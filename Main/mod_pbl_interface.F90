@@ -29,15 +29,14 @@ module mod_pbl_interface
   use mod_pbl_common
   use mod_pbl_holtbl
   use mod_pbl_uwtcm
-  use mod_runparams , only : iqc , iqv , dt , rdt , ichem
+  use mod_runparams , only : iqc , iqv , dt , rdt , ichem , hsigma , dsigma
 
   public
 
   contains
 
   subroutine init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten, &
-                      remdrd,cchifxuw,psdot,sfs,mddom,ldmsk,hsigma,   &
-                      sigma,dsigma,chtrdpv)
+                      remdrd,cchifxuw,psdot,sfs,mddom,ldmsk,chtrdpv)
     implicit none
     type (atmstate) , intent(in) :: atm2 , aten , holtten , uwten
     type (slice) , intent(in) :: atms
@@ -50,9 +49,6 @@ module mod_pbl_interface
     real(rk8) , pointer , dimension(:,:,:) :: remdrd
     integer(ik4) , pointer , dimension(:,:) :: ldmsk
     real(rk8) , pointer , dimension(:,:) :: psdot
-    real(rk8) , pointer , dimension(:) :: hsigma
-    real(rk8) , pointer , dimension(:) :: sigma
-    real(rk8) , pointer , dimension(:) :: dsigma
     real(rk8) , pointer , dimension(:,:) :: chtrdpv
 
     tkemin = 1.0D-8
@@ -95,9 +91,6 @@ module mod_pbl_interface
     call assignpnt(mddom%coriol,coriolis)
     call assignpnt(mddom%msfx,mapfcx)
     call assignpnt(ldmsk,landmsk)
-    call assignpnt(sigma,flev)
-    call assignpnt(hsigma,hlev)
-    call assignpnt(dsigma,dlev)
     call assignpnt(chtrdpv,depvel)
     call assignpnt(cchifxuw,chifxuw)
   end subroutine init_pbl
@@ -286,9 +279,9 @@ module mod_pbl_interface
         do i = ici1 , ici2
           do j = jci1 , jci2
             tcmstate%advtke(j,i,k) = tcmstate%advtke(j,i,k) - &
-                                    (dotqdot(j,i,k)*ftmp(j,i,k) -  &
-                                     dotqdot(j,i,k-1)*ftmp(j,i,k-1))/ &
-                                    (dlev(k)+dlev(k-1))
+                         (dotqdot(j,i,k)*ftmp(j,i,k) -  &
+                         dotqdot(j,i,k-1)*ftmp(j,i,k-1))/ &
+                         (dsigma(k)+dsigma(k-1))
           end do
         end do
       end do
@@ -299,22 +292,22 @@ module mod_pbl_interface
       do i = ici1 , ici2
         do j = jci1 , jci2
           tcmstate%advtke(j,i,1) = tcmstate%advtke(j,i,1)-  &
-                                   qdot(j,i,2)*tcmstate%tkeps(j,i,2)/dlev(1)
+                         qdot(j,i,2)*tcmstate%tkeps(j,i,2)/dsigma(1)
         end do
       end do
       do k = 2 , kzm1
         do i = ici1 , ici2
           do j = jci1 , jci2
             tcmstate%advtke(j,i,k) = tcmstate%advtke(j,i,k) &
-                                   -(qdot(j,i,k+1)*tcmstate%tkeps(j,i,k+1)   &
-                                   - qdot(j,i,k)*tcmstate%tkeps(j,i,k))/dlev(k)
+                         -(qdot(j,i,k+1)*tcmstate%tkeps(j,i,k+1)   &
+                         - qdot(j,i,k)*tcmstate%tkeps(j,i,k))/dsigma(k)
           end do
         end do
       end do
       do i = ici1 , ici2
         do j = jci1 , jci2
           tcmstate%advtke(j,i,kz) = tcmstate%advtke(j,i,kz)+  &
-                                    qdot(j,i,kz)*tcmstate%tkeps(j,i,kz)/dlev(kz)
+                         qdot(j,i,kz)*tcmstate%tkeps(j,i,kz)/dsigma(kz)
         end do
       end do
     end if
@@ -363,15 +356,15 @@ module mod_pbl_interface
     do k = 1 , kzm1
       do j = jci1 , jci2
         do i = ici1 , ici2
-          xps = (hlev(k)*sfcps(j,i)+ptop)
-          ps2 = (hlev(k+1)*sfcps(j,i)+ptop)
+          xps = (hsigma(k)*sfcps(j,i)+ptop)
+          ps2 = (hsigma(k+1)*sfcps(j,i)+ptop)
           dza = za(j,i,k) - za(j,i,k+1)
           rhobydpdz1d(k) = d_1000*(ps2-xps)/(egrav*dza)
         end do
         rhobydpdz1d(kz) = rhox2d(j,i)
         dtops = dt/sfcps(j,i)
 
-        rho1d = d_1000*(hlev*sfcps(j,i) + ptop) / &
+        rho1d = d_1000*(hsigma*sfcps(j,i) + ptop) / &
                     ( rgas * tatm(j,i,:) *  &
                     (d_one + ep1* qxatm(j,i,:,iqv) - qxatm(j,i,:,iqc)) )
 

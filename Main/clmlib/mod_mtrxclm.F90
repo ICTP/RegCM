@@ -24,7 +24,8 @@ module mod_mtrxclm
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : idate0 , iqv , solcon , clmfrq , imask , ichem
+  use mod_runparams , only : idate0 , iqv , solcon , clmfrq , &
+                             imask , ichem , ksrf
   use mod_mpmessage
   use mod_service
   use mod_mppparam
@@ -911,7 +912,7 @@ module mod_mtrxclm
 
       ! Those are for the output, but collected only at POINT in time
 
-      if ( mod(ktau+1,kbats) == 0 ) then
+      if ( mod(ktau+1,ksrf) == 0 ) then
 
         if ( ifsrf ) then
           if ( associated(srf_uvdrag_out) ) &

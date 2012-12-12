@@ -66,8 +66,6 @@ module mod_cu_common
   real(rk8) , pointer , dimension(:,:,:) :: rcldfra  ! rcldfra
   integer(ik4) , pointer , dimension(:,:) :: rktrop  ! ktrop
 
-  real(rk8) , pointer , dimension(:) :: flev , hlev , dflev , wlev
-                                    ! sigma, a,     dsigma, qcon
   integer(ik4) :: total_precip_points
 
   contains

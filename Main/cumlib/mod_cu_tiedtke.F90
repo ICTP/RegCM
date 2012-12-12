@@ -168,7 +168,7 @@ module mod_cu_tiedtke
       do i = ici1 , ici2
         do j = jci1 , jci2
           ! Pascal
-          papp1(ii,k) = (hlev(k)*sfcps(j,i)+ptop)*d_1000
+          papp1(ii,k) = (hsigma(k)*sfcps(j,i)+ptop)*d_1000
 
           ptm1(ii,k)  = tas(j,i,k)  ! temperature
           pum1(ii,k)  = uas(j,i,k)  ! u (guessing!)
@@ -203,7 +203,7 @@ module mod_cu_tiedtke
       do i = ici1 , ici2
         do j = jci1 , jci2
           ! 1st guess pressure at full levels
-          paphp1(ii,k) = (flev(k)*sfcps(j,i)+ptop)*d_1000
+          paphp1(ii,k) = (sigma(k)*sfcps(j,i)+ptop)*d_1000
           ii = ii + 1
         end do
       end do

@@ -137,7 +137,7 @@ contains
         amp = 12.0D0*mathpi/daylen
         tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
         chemsrc(j,i,iisop) = (amp)*chemsrc(j,i,iisop) * &
-                             sin(mathpi*fact)*egrav/(cdsigma(kz)*1.0D3)
+                             sin(mathpi*fact)*egrav/(dsigma(kz)*1.0D3)
       end do
 #endif
     end if
@@ -149,7 +149,7 @@ contains
         do i = ici1 , ici2
           if ( chtrname(itr)(1:4).eq.'DUST' .or. chtrname(itr)(1:4).eq.'SSLT' .or. chtrname(itr)(1:6).eq.'POLLEN' ) cycle 
             chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
-            chemsrc(j,i,itr)*egrav/(cdsigma(kz)*1.0D3)
+            chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0D3)
             ! diagnostic for source, cumul
             cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
         end do

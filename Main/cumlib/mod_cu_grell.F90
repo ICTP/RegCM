@@ -311,7 +311,7 @@ module mod_cu_grell
           if ( q(j,i,k) < 1.0D-08 ) q(j,i,k) = 1.0D-08
           tn(j,i,k) = t(j,i,k) + (tten(j,i,kk))/sfcps(j,i)*dt
           qo(j,i,k) = q(j,i,k) + (qxten(j,i,kk,iqv))/sfcps(j,i)*dt
-          p(j,i,k) = d_10*sfcps(j,i)*hlev(kk) + d_10*ptop
+          p(j,i,k) = d_10*sfcps(j,i)*hsigma(kk) + d_10*ptop
           vsp(j,i,k) = dsqrt(us**2+vs**2)
           if ( qo(j,i,k) < 1.0D-08 ) qo(j,i,k) = 1.0D-08
 !

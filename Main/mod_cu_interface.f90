@@ -35,7 +35,7 @@ module mod_cu_interface
   contains
 
   subroutine init_cuscheme(mddom,atm1,aten,atms,chiten,sfs,qdot,pptc, &
-                           ldmsk,sigma,hsigma,dsigma,qcon,cldfra,cldlwc,ktrop)
+                           ldmsk,cldfra,cldlwc,ktrop)
     implicit none
     type(domain) , intent(in) :: mddom
     type(atmstate) , intent(in) :: atm1 , aten
@@ -45,8 +45,6 @@ module mod_cu_interface
     real(rk8) , pointer , intent(in) , dimension(:,:,:) :: qdot
     real(rk8) , pointer , intent(in) , dimension(:,:) :: pptc
     integer(ik4) , pointer , intent(in) , dimension(:,:) :: ldmsk , ktrop
-    real(rk8) , pointer , intent(in) , dimension(:) :: sigma , hsigma
-    real(rk8) , pointer , intent(in) , dimension(:) :: dsigma , qcon
     real(rk8) , pointer , dimension(:,:,:) :: cldlwc , cldfra
 !
     call assignpnt(mddom%ht,sfhgt)
@@ -74,14 +72,9 @@ module mod_cu_interface
     call assignpnt(qdot,svv)
     call assignpnt(pptc,lmpcpc)
     call assignpnt(ldmsk,lmask)
-    call assignpnt(sigma,flev)
-    call assignpnt(hsigma,hlev)
-    call assignpnt(dsigma,dflev)
-    call assignpnt(qcon,wlev)
     call assignpnt(cldfra,rcldfra)
     call assignpnt(cldlwc,rcldlwc)
     call assignpnt(ktrop,rktrop)
-
   end subroutine init_cuscheme
 !
 end module mod_cu_interface

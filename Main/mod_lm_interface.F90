@@ -49,15 +49,12 @@ module mod_lm_interface
 
   contains
 
-  subroutine init_bats(dt,ksrf,dom,atm,sfs,zpbl)
+  subroutine init_bats(dom,atm,sfs,zpbl)
     implicit none
-    real(rk8) , intent(in) :: dt
-    integer(ik8) , intent(in) :: ksrf
     type(domain) , intent(in) :: dom
     type(slice) , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
     real(rk8) , pointer , intent(in) , dimension(:,:) :: zpbl
-    kbats = ksrf
     ntcpl  = idnint(cpldt/dtsec)
     ntsrf2 = idnint(dtsrf/dtsec)
     if ( idcsst   == 1 ) ldcsst    = .true.
@@ -87,17 +84,15 @@ module mod_lm_interface
   end subroutine init_bats
 !
 #ifdef CLM
-  subroutine init_clm(dt,ksrf,dom,atm,sfs,zpbl,lm)
+  subroutine init_clm(dom,atm,sfs,zpbl,lm)
     implicit none
-    real(rk8)       , intent(in) :: dt
-    integer(ik8)    , intent(in) :: ksrf
     type(domain)    , intent(in) :: dom
     type(slice)     , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
     real(rk8)       , pointer , intent(in) , dimension(:,:) :: zpbl
     integer         , pointer , intent(in) , dimension(:,:) :: lm
 
-    call init_bats(dt,ksrf,dom,atm,sfs,zpbl)
+    call init_bats(dom,atm,sfs,zpbl)
     call assignpnt(lm,lmask)
   end subroutine init_clm
 #endif

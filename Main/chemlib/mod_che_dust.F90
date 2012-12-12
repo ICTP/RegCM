@@ -552,7 +552,7 @@ module mod_che_dust
             rsfrow(i,n) = xrsfrow(ieff,n)
             if ( ichdrdepo == 1 ) then  
               chiten(jloop,i,kz,idust(n)) = chiten(jloop,i,kz,idust(n)) + &
-                   rsfrow(i,n)*egrav/(cdsigma(kz)*1.D3)
+                   rsfrow(i,n)*egrav/(dsigma(kz)*1.D3)
             elseif ( ichdrdepo == 2 ) then  
               ! pass the flux to BL scheme 
               cchifxuw(jloop,i,idust(n)) = cchifxuw(jloop,i,idust(n)) + &

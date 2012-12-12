@@ -26,8 +26,6 @@ module mod_che_param
 !
   integer(ik4) :: ichaer
 
-  real(rk8) , pointer , dimension(:) :: chlevs
-!
   !FAB : temporaire car defini dans les modules de deposts
   real(rk8) , dimension(22) :: aest , arye
   ! Stokes parameters

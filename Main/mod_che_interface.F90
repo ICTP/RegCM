@@ -42,14 +42,14 @@ module mod_che_interface
   contains 
 !
 #if (defined CLM)
-  subroutine init_chem(dsigma,atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,   &
-                       rembc,remrat,a,twt,coszrs,iveg,svegfrac2d,     &
+  subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,   &
+                       rembc,remrat,coszrs,iveg,svegfrac2d,     &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdeltk2d,     &
                        sdelqk2d,ssw2da,convpr,icutop,icubot,taucldsp, &
                        voc_em,dep_vels)
 #else
-  subroutine init_chem(dsigma,atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,   &
-                       rembc,remrat,a,twt,coszrs,iveg,svegfrac2d,     &
+  subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,   &
+                       rembc,remrat,coszrs,iveg,svegfrac2d,     &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdeltk2d,     &
                        sdelqk2d,ssw2da,convpr,icutop,icubot,taucldsp)
 #endif
@@ -60,10 +60,9 @@ module mod_che_interface
 
     implicit none
 
-    real(rk8) , pointer , dimension(:) , intent(in) :: dsigma ! dsigma
     real(rk8), pointer, dimension(:,:,:),intent(in) :: fcc
     real(rk8), pointer, dimension(:,:) :: svegfrac2d , solis , sdeltk2d , &
-             sdelqk2d , ssw2da , twt , sfracv2d , sfracb2d , sfracs2d
+             sdelqk2d , ssw2da , sfracv2d , sfracb2d , sfracs2d
     real(rk8), pointer, dimension(:,:,:) :: cldfra , rembc , remrat , convpr
     real(rk8), pointer, dimension(:,:,:,:) :: taucldsp
     integer(ik4) , pointer , dimension(:,:)  :: icutop , icubot, iveg
@@ -72,14 +71,12 @@ module mod_che_interface
     type(surfstate) , intent(in) :: sfs
     type(v2dbound) , intent(in) :: xpsb
     type(bound_area) , intent(in) :: ba_cr
-    real(rk8) , pointer , dimension(:) :: a
     real(rk8) , pointer , dimension(:,:) :: coszrs
 
 #if (defined CLM)
     real(rk8), pointer :: voc_em(:,:), dep_vels(:,:,:)
 #endif
 
-    call assignpnt(dsigma,cdsigma)
     call assignpnt(icutop,kcumtop)
     call assignpnt(icubot,kcumbot)
     call assignpnt(atms%tb3d,ctb3d)
@@ -115,8 +112,6 @@ module mod_che_interface
 
     call assignpnt(atms%za,cza)
     call assignpnt(atms%dzq,cdzq)
-    call assignpnt(a,hlev)
-    call assignpnt(twt,ctwt)
     call assignpnt(coszrs,czen)
     call assignpnt(ssw2da,cssw2da)   
 

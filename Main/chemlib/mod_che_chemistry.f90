@@ -61,7 +61,7 @@ module mod_che_chemistry
       do k = 2 , kz
         do i = ici1 , ici2
           ! care here pressure4 is considered ???
-          altmid(1) = (cpsb(j,i)*hlev(k)+ptop)
+          altmid(1) = (cpsb(j,i)*hsigma(k)+ptop)
           temp(1) = ctb3d(j,i,k)
           zenith = dacos(czen(j,i))*raddeg
           dens(1) = crhob3d(j,i,k) * 1.D-03 * navgdr / 28.97D0
@@ -78,34 +78,34 @@ module mod_che_chemistry
             ! by cloud optical depth 
             ! here altitude is taken in kpa to be consistent with altmid 
             ! WOULD not it BE BETTER TO CONSIDER ALTITUDE in M  ?
-            altabove = cdsigma(k)* cpsb(j,i) * d_half *  deptha  
-            altbelow = cdsigma(k)* cpsb(j,i) * d_half *  depthb  
+            altabove = dsigma(k)* cpsb(j,i) * d_half *  deptha  
+            altbelow = dsigma(k)* cpsb(j,i) * d_half *  depthb  
             do kbl = k+1 , kz 
               depthb = depthb + ctaucld(j,i,kbl,8)
-              altbelow = altbelow + cdsigma(kbl)*cpsb(j,i)*ctaucld(j,i,kbl,8)
+              altbelow = altbelow + dsigma(kbl)*cpsb(j,i)*ctaucld(j,i,kbl,8)
             end do
             ! FAB TEST consider the visible taucld
           else if ( k == kz ) then 
             depthb =  ctaucld(j,i,k,8) *d_half
             deptha =  ctaucld(j,i,k,8) *d_half
-            altabove = cdsigma(k)* cpsb(j,i) * d_half *  deptha  
-            altbelow = cdsigma(k)* cpsb(j,i) * d_half *  depthb  
+            altabove = dsigma(k)* cpsb(j,i) * d_half *  deptha  
+            altbelow = dsigma(k)* cpsb(j,i) * d_half *  depthb  
             do kab = 1 , k-1 
               deptha = deptha + ctaucld(j,i,kab,8)
-              altabove = altabove + cdsigma(kab)*cpsb(j,i)*ctaucld(j,i,kab,8)
+              altabove = altabove + dsigma(kab)*cpsb(j,i)*ctaucld(j,i,kab,8)
             end do
           else
             depthb =  ctaucld(j,i,k,8) *d_half
             deptha =  ctaucld(j,i,k,8) *d_half
-            altabove = cdsigma(k)* cpsb(j,i) * d_half *  deptha  
-            altbelow = cdsigma(k)* cpsb(j,i) * d_half *  depthb  
+            altabove = dsigma(k)* cpsb(j,i) * d_half *  deptha  
+            altbelow = dsigma(k)* cpsb(j,i) * d_half *  depthb  
             do kbl = k+1 , kz 
               depthb = depthb + ctaucld(j,i,kbl,8)
-              altbelow = altbelow + cdsigma(kbl)*cpsb(j,i)*ctaucld(j,i,kbl,8)
+              altbelow = altbelow + dsigma(kbl)*cpsb(j,i)*ctaucld(j,i,kbl,8)
             end do
             do kab = 1 , k-1 
               deptha = deptha + ctaucld(j,i,kab,8)
-              altabove = altabove + cdsigma(kab)*cpsb(j,i)*ctaucld(j,i,kab,8)
+              altabove = altabove + dsigma(kab)*cpsb(j,i)*ctaucld(j,i,kab,8)
             end do
           endif
           ! normalise the weighted altitude above and bleow cloud        

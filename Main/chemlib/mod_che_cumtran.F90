@@ -54,9 +54,9 @@ module mod_che_cumtran
             chibbar = d_zero
             kctop = max0(kcumtop(j,i),4)
             do k = kctop , kz
-              deltas = deltas + cdsigma(k)
-              chiabar = chiabar + chia(j,i,k,n)*cdsigma(k)
-              chibbar = chibbar + chib(j,i,k,n)*cdsigma(k)
+              deltas = deltas + dsigma(k)
+              chiabar = chiabar + chia(j,i,k,n)*dsigma(k)
+              chibbar = chibbar + chib(j,i,k,n)*dsigma(k)
             end do
             do k = kctop , kz
  !             cumfrc =  ccldfra(j,i,k) - cfcc(j,i,k)

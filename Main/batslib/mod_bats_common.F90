@@ -33,7 +33,6 @@ module mod_bats_common
 
   logical :: ldcsst , llake , lseaice , ldesseas
 
-  integer(ik8) :: kbats  ! Step frequency in calling BATS1e LSM
   integer(ik8) :: ntcpl  ! Number of time step to call ROMS update 
   integer(ik8) :: ntsrf2 ! Number of time step to call BATs 
 

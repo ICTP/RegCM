@@ -570,8 +570,8 @@ module mod_che_drydep
         ! deposition, remember chiten must be normalised by psb and consistent with chib
         do k = 2 , kz
           do i = ici1 , ici2
-            wk(i,k) =  ctwt(k,1)*chib(j,i,k,indsp(ib))+ &
-                       ctwt(k,2)*chib(j,i,k-1,indsp(ib))
+            wk(i,k) =  twt(k,1)*chib(j,i,k,indsp(ib))+ &
+                       twt(k,2)*chib(j,i,k-1,indsp(ib))
           end do
         end do
         do i = ici1 , ici2

@@ -22,6 +22,7 @@ module mod_rad_aerosol
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_runparams
   use mod_constants
   use mod_memutil
   use mod_mpmessage
@@ -503,9 +504,8 @@ module mod_rad_aerosol
 !
   contains
 ! 
-  subroutine allocate_mod_rad_aerosol(ichem)
+  subroutine allocate_mod_rad_aerosol
     implicit none
-    integer(ik4) , intent(in) :: ichem
     npoints = (jci2-jci1+1)*(ici2-ici1+1)
     call getmem2d(aermmb,1,npoints,1,kz,'aerosol:aermmb')
     call getmem3d(ftota3d,1,npoints,0,kz,1,nspi,'aerosol:ftota3d')
@@ -634,7 +634,7 @@ module mod_rad_aerosol
     integer(ik4) :: n , l , ibin , jbin , itr , k , k1, k2 , ns
     real(rk8) :: path , uaerdust , qabslw , rh0
 !
-    if ( .not. lchem ) then
+    if ( ichem /= 1 ) then
       tauxar(:,:) = d_zero
       tauasc(:,:) = d_zero
       gtota(:,:) = d_zero
@@ -699,10 +699,10 @@ module mod_rad_aerosol
             if ( rh(n,k) < d_zero .or. rh(n,k) > d_one ) then
               write(stderr,*) n , k , rh(n,k) , '  RH WARNING !!!!!'
             end if
-            if ( tracname(itr) == 'XXXXX') then
+            if ( chtrname(itr) == 'XXXXX') then
               continue
             end if
-            if ( tracname(itr)(1:4) == 'DUST' ) then
+            if ( chtrname(itr)(1:4) == 'DUST' ) then
               uaer(n,k,itr) = aermmr(n,k,itr)*path
               ibin = ibin + 1
               if ( ibin > 4 ) then
@@ -712,7 +712,7 @@ module mod_rad_aerosol
               wa(n,k,itr) = wsdust(ns,ibin)
               ga(n,k,itr) = gsdust(ns,ibin)
               fa(n,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
-            else if ( tracname(itr) == 'SO4' ) then
+            else if ( chtrname(itr) == 'SO4' ) then
               ! maximum limit for effect on sulfate extinction 
               rh0 = dmin1(0.97D0,dmax1(d_zero,rh(n,k)))
               uaer(n,k,itr) = aermmr(n,k,itr)*path
@@ -725,7 +725,7 @@ module mod_rad_aerosol
               ga(n,k,itr) = gsbase(ns) * dexp(gscoef(ns,1)+gscoef(ns,2) / &
                    (rh(n,k)+gscoef(ns,3))+gscoef(ns,4)/(rh(n,k)+gscoef(ns,5)))
               fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
-            else if ( tracname(itr)(1:4) == 'SSLT' ) then
+            else if ( chtrname(itr)(1:4) == 'SSLT' ) then
               rh0 = dmin1(0.99D0,dmax1(d_zero,rh(n,k)))
               jbin = jbin+1
               if ( jbin > 2 ) then
@@ -745,7 +745,7 @@ module mod_rad_aerosol
               wa(n,k,itr) = wssslt(ns,jbin)
               ga(n,k,itr) = gssslt(ns,jbin)
               fa(n,k,itr) = gssslt(ns,jbin)*gssslt(ns,jbin)
-            else if ( tracname(itr) == 'OC_HL' ) then
+            else if ( chtrname(itr) == 'OC_HL' ) then
               uaer(n,k,itr) = aermmr(n,k,itr)*path
 !             Humidity effect !
               tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksoc_hl(ns) * &
@@ -753,7 +753,7 @@ module mod_rad_aerosol
               wa(n,k,itr) = wsoc_hl(ns)
               ga(n,k,itr) = gsoc_hl(ns)
               fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
-            else if ( tracname(itr) == 'BC_HL' ) then
+            else if ( chtrname(itr) == 'BC_HL' ) then
               uaer(n,k,itr) = aermmr(n,k,itr)*path
 !             Humidity effect !
               tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksbc_hl(ns) * &
@@ -761,13 +761,13 @@ module mod_rad_aerosol
               wa(n,k,itr) = wsbc_hl(ns)
               ga(n,k,itr) = gsbc_hl(ns)
               fa(n,k,itr) = ga(n,k,itr)*ga(n,k,itr)
-            else if ( tracname(itr) == 'OC_HB' ) then
+            else if ( chtrname(itr) == 'OC_HB' ) then
               uaer(n,k,itr) = aermmr(n,k,itr)*path
               tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksoc_hb(ns)
               wa(n,k,itr) = wsoc_hb(ns)
               ga(n,k,itr) = gsoc_hb(ns)
               fa(n,k,itr) = gsoc_hb(ns)*gsoc_hb(ns)
-            else if ( tracname(itr) == 'BC_HB' ) then
+            else if ( chtrname(itr) == 'BC_HB' ) then
               uaer(n,k,itr) = aermmr(n,k,itr)*path
 !             Absorbing aerosols (soot type)
               tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksbc_hb(ns)
@@ -854,7 +854,7 @@ module mod_rad_aerosol
           ibin = 0
           uaerdust = d_zero
           do itr = 1 , ntr     
-            if ( tracname(itr) == 'DUST' ) then
+            if ( chtrname(itr) == 'DUST' ) then
               ibin = ibin+1
               if ( k1<k2 ) then
                 uaerdust =  uaerdust + d10e5 * (sum(uaer(n,k1:k2-1,itr)))

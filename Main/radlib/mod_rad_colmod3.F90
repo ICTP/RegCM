@@ -70,9 +70,8 @@ module mod_rad_colmod3
 
   contains
 !
-    subroutine allocate_mod_rad_colmod3(ichem)
+    subroutine allocate_mod_rad_colmod3
       implicit none
-      integer(ik4) , intent(in) :: ichem
       npr = (jci2-jci1+1)*(ici2-ici1+1)
       call getmem1d(alb,1,npr,'colmod3:alb')
       call getmem1d(albc,1,npr,'colmod3:albc')
@@ -442,7 +441,7 @@ module mod_rad_colmod3
         end do
       end do
     end if
-    if ( lchem ) then
+    if ( ichem == 1 ) then
       do m = 1 , nspi
         do k = 0 , kz
           n = 1
@@ -684,7 +683,7 @@ module mod_rad_colmod3
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        ps(n) = (sfps(j,i)+ptp)*d_1000
+        ps(n) = (sfps(j,i)+ptop)*d_1000
         n = n + 1
       end do
     end do
@@ -695,7 +694,7 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          pmidm1(n,k) = (sfps(j,i)*hlev(k)+ptp)*d_1000
+          pmidm1(n,k) = (sfps(j,i)*hsigma(k)+ptop)*d_1000
           n = n + 1
         end do
       end do
@@ -705,7 +704,7 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          pintm1(n,k) = (sfps(j,i)*flev(k)+ptp)*d_1000
+          pintm1(n,k) = (sfps(j,i)*sigma(k)+ptop)*d_1000
           n = n + 1
         end do
       end do
@@ -827,7 +826,7 @@ module mod_rad_colmod3
     !
     ! Tracers mixing ratios
     !
-    if ( lchem ) then
+    if ( ichem == 1 ) then
       do itr = 1 , ntr
         do k = 1 , kz
           n = 1

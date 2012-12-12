@@ -24,7 +24,7 @@ module mod_rad_radiation
   use mod_dynparam
   use mod_mpmessage
   use mod_service
-  use mod_runparams , only : iemiss , idirect , scon
+  use mod_runparams , only : iemiss , idirect , scon , ichem
   use mod_memutil
 
 ! Used by this module only
@@ -1464,7 +1464,7 @@ module mod_rad_radiation
 !     should be consistent with aeroppt routine
 
       lzero = .true.
-      if ( lchem ) then
+      if ( ichem == 1 ) then
         if ( idirect == 2 ) then
           lzero = .false.
         end if
@@ -1593,7 +1593,7 @@ module mod_rad_radiation
 !     one with actual aerosol. DIFFERENCE  in net TOA SW for the two
 !     case is saved as one more variable in the rad file. The
 !     outputed TOASW ( fsntc, clrst) is accounting for aerosol.
-      if ( lchem .and. idirect >= 1 ) then
+      if ( ichem == 1 .and. idirect >= 1 ) then
    
 !       Following code is the diagnostic clear sky computation:
 !
@@ -1726,7 +1726,7 @@ module mod_rad_radiation
     end do  ! End of spectral interval loop
    
 !   FAB calculation of TOA aerosol radiative forcing
-    if ( lchem .and. idirect >= 1 ) then
+    if ( ichem == 1 .and. idirect >= 1 ) then
       do n = n1 , n2
         if ( czengt0(n) ) then
           aeradfo(n) = -(x0fsntc(n)-fsntc(n))
@@ -1939,7 +1939,7 @@ module mod_rad_radiation
 !   option to calculate LW aerosol radiative forcing
 !
 !   FAB LW radiative forcing ( rad=1 : avec dust)
-    if ( .not. lchem .and. idirect > 0 ) then
+    if ( ichem /= 1 .and. idirect > 0 ) then
       nradaer = 2
       fsul0(:,:) = d_zero
       fsdl0(:,:) = d_zero
@@ -1953,7 +1953,7 @@ module mod_rad_radiation
 
     do irad = 1 , nradaer
 
-      if ( lchem .and. idirect > 0 .and. irad == 2 ) then
+      if ( ichem == 1 .and. idirect > 0 .and. irad == 2 ) then
         abstot(:,:,:) = d_one-(d_one-abstot(:,:,:))*aertrlw(:,:,:)
         emstot(:,:) = d_one-(d_one-emstot(:,:))*aertrlw(:,:,1)
         do k = 1 , kz  ! aertrlw defined on plev levels
@@ -2059,7 +2059,7 @@ module mod_rad_radiation
 
 !     FAB radiative forcing sur fsul
 
-      if ( lchem .and. idirect > 0 .and. irad == 1 ) then
+      if ( ichem == 1 .and. idirect > 0 .and. irad == 1 ) then
         fsul0(:,:) = fsul(:,:)! save fsul0 = no dust
         fsdl0(:,:) = fsdl(:,:)!
         ful0(:,:) = ful(:,:)
@@ -2072,7 +2072,7 @@ module mod_rad_radiation
 !   FAB after this DO loop fsul account for dust LW effect
 !   which is OK in case of idirect=2
 
-    if ( lchem .and. idirect > 0 ) then
+    if ( ichem == 1 .and. idirect > 0 ) then
 
       aerlwfo(:) = fsul0(:,1) - fsul(:,1)
 
@@ -3354,7 +3354,7 @@ module mod_rad_radiation
         pinpl(n,4) = (p2+pint(n,k2+1))*d_half
 
 !       FAB AER SAVE uinpl  for aerosl LW forcing calculation
-        if ( lchem .and. idirect > 0 ) then
+        if ( ichem == 1 .and. idirect > 0 ) then
           do kn = 1 , 4
             xuinpl(n,k2,kn) = uinpl(n,kn)
           end do

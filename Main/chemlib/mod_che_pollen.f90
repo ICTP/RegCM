@@ -101,7 +101,7 @@ module mod_che_pollen
        if ( ichdrdepo /= 2 ) then
         do i = ici1 , ici2
             chiten(j,i,kz,ipollen) = chiten(j,i,kz,ipollen) + &
-            emispol(i)*egrav/(cdsigma(kz)*1.0D3)
+            emispol(i)*egrav/(dsigma(kz)*1.0D3)
             ! diagnostic for source, cumul
             cemtrac(j,i,ipollen) = cemtrac(j,i,ipollen) + emispol(i)*cfdout
         end do

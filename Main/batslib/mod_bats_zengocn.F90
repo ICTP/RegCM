@@ -27,7 +27,7 @@ module mod_bats_zengocn
     use mod_dynparam
     use mod_service
     use mod_bats_common
-    use mod_runparams , only : iqv , iocnrough
+    use mod_runparams , only : iqv , iocnrough , ksrf
 !
     private
 !
@@ -345,7 +345,7 @@ module mod_bats_zengocn
             t2m(n,j,i)  = t995 + tzero - dth*facttq
             q2m(n,j,i)  = q995 - dqh*facttq
             !
-            if ( mod(ktau+1,kbats) == 0 .or. lfirst_call ) then
+            if ( mod(ktau+1,ksrf) == 0 .or. lfirst_call ) then
               facttq = dlog(z995*d_half)/dlog(z995/zo)
               tgbrd(n,j,i) = tground2(j,i)
             end if

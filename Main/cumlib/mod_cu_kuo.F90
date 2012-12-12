@@ -114,7 +114,7 @@ module mod_cu_kuo
 !
         sca = d_zero
         do k = 1 , kz
-          sca = sca + qxten(j,i,k,iqv)*dflev(k)
+          sca = sca + qxten(j,i,k,iqv)*dsigma(k)
         end do
 !
 !       determine if moist convection exists:
@@ -132,7 +132,7 @@ module mod_cu_kuo
           do k = k700 , kz
             ttp = ptatm(j,i,k)/psfcps(j,i) + pert
             q = pvqxtm(j,i,k,iqv)/psfcps(j,i) + perq
-            psg = psfcps(j,i)*hlev(k) + ptop
+            psg = psfcps(j,i)*hsigma(k) + ptop
             t1 = ttp*(d_100/psg)**rovcp
             eqt = t1*dexp(wlhvocp*q/ttp)
             if ( eqt > eqtm ) then
@@ -160,7 +160,7 @@ module mod_cu_kuo
 !         of all the levels that are above the lcl
 !
           do k = 1 , kz
-            if ( hlev(k) >= siglcl ) exit
+            if ( hsigma(k) >= siglcl ) exit
           end do
           kbase = k
           if ( kbase > kz ) kbase = kz
@@ -169,7 +169,7 @@ module mod_cu_kuo
 !
           do k = 1 , kbase
             ttp = ptatm(j,i,k)/psfcps(j,i)
-            psg = psfcps(j,i)*hlev(k) + ptop
+            psg = psfcps(j,i)*hsigma(k) + ptop
             es = 0.611D0*dexp(19.84659D0-5418.12D0/ttp)
             qs = ep2*es/(psg-es)
             t1 = ttp*(d_100/psg)**rovcp
@@ -193,7 +193,7 @@ module mod_cu_kuo
 !         if cloud depth is less than critical depth (cdscld = 0.3),
 !         the convection is killed
 !
-          dsc = (siglcl-hlev(ktop))
+          dsc = (siglcl-hsigma(ktop))
           if ( dsc >= cdscld ) then
 !
 !           6) check negative area
@@ -202,7 +202,7 @@ module mod_cu_kuo
 !
             ttsum = d_zero
             do k = ktop , kbase
-              ttsum = (eqtm-seqt(k))*dflev(k) + ttsum
+              ttsum = (eqtm-seqt(k))*dsigma(k) + ttsum
             end do
             if ( ttsum >= d_zero ) then
 !
@@ -232,16 +232,16 @@ module mod_cu_kuo
                 qwght(k) = d_zero
               end do
               do k = ktop , kz
-                pux = psx*hlev(k) + ptop
+                pux = psx*hsigma(k) + ptop
                 e1 = 0.611D0*dexp(19.84659D0-5418.12D0/(ptatm(j,i,k)/psx))
                 qs = ep2*e1/(pux-e1)
                 rh = pvqxtm(j,i,k,iqv)/(qs*psx)
                 rh = dmin1(rh,d_one)
                 xsav = (d_one-rh)*qs
                 qwght(k) = xsav
-                sumb = sumb + qs*dflev(k)
-                arh = arh + rh*qs*dflev(k)
-                suma = suma + xsav*dflev(k)
+                sumb = sumb + qs*dsigma(k)
+                arh = arh + rh*qs*dsigma(k)
+                suma = suma + xsav*dsigma(k)
               end do
               arh = arh/sumb
               c301 = d_two*(d_one-arh)
@@ -298,15 +298,15 @@ module mod_cu_kuo
             tmp3(k) = d_zero
           else
             tmp3(k) = pvqxtm(j,i,k,iqv)* &
-                      (pvqxtm(j,i,k-1,iqv)/pvqxtm(j,i,k,iqv))**wlev(k)
+                      (pvqxtm(j,i,k-1,iqv)/pvqxtm(j,i,k,iqv))**qcon(k)
           end if
         end do
-        qxten(j,i,1,iqv) = qxten(j,i,1,iqv)-svv(j,i,2)*tmp3(2)/dflev(1)
+        qxten(j,i,1,iqv) = qxten(j,i,1,iqv)-svv(j,i,2)*tmp3(2)/dsigma(1)
         do k = 2 , kzm1
           qxten(j,i,k,iqv) = qxten(j,i,k,iqv)-(svv(j,i,k+1)*tmp3(k+1) - &
-                                       svv(j,i,k)*tmp3(k))/dflev(k)
+                                       svv(j,i,k)*tmp3(k))/dsigma(k)
         end do
-        qxten(j,i,kz,iqv) = qxten(j,i,kz,iqv) + svv(j,i,kz)*tmp3(kz)/dflev(kz)
+        qxten(j,i,kz,iqv) = qxten(j,i,kz,iqv) + svv(j,i,kz)*tmp3(kz)/dsigma(kz)
 !
       end do
     end do

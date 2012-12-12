@@ -498,7 +498,7 @@ module mod_rrtmg_driver
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        psfc(n) = (sfps(j,i)+ptp)*d_10
+        psfc(n) = (sfps(j,i)+ptop)*d_10
         n = n + 1
       end do
     end do
@@ -508,7 +508,7 @@ module mod_rrtmg_driver
       kj = kzp1-k
       do i = ici1 , ici2
         do j = jci1 , jci2
-          play(n,kj) = (sfps(j,i)*hlev(k)+ptp)*d_10
+          play(n,kj) = (sfps(j,i)*hsigma(k)+ptop)*d_10
           n = n + 1
         end do
       end do
@@ -524,7 +524,7 @@ module mod_rrtmg_driver
       kj = kzp1-k+1   
       do i = ici1 , ici2
         do j = jci1 , jci2
-          plev(n,kj) = (sfps(j,i)*flev(k)+ptp)*d_10
+          plev(n,kj) = (sfps(j,i)*sigma(k)+ptop)*d_10
           n = n + 1
         end do
       end do
@@ -574,8 +574,8 @@ module mod_rrtmg_driver
     do k = 2 , kz
       kj = kzp1-k+1
       do n = 1 , npr
-        w1 =  (hlev(kj) - flev(kj)) / (hlev(kj) - hlev(kj-1))
-        w2 =  (flev(kj) - hlev(kj-1) ) / (hlev(kj) - hlev(kj-1))
+        w1 =  (hsigma(kj) - sigma(kj)) / (hsigma(kj) - hsigma(kj-1))
+        w2 =  (sigma(kj) - hsigma(kj-1) ) / (hsigma(kj) - hsigma(kj-1))
         if (k < kz-1) then    
           tlev(n,k) =  w1*tlay(n,k-1) * (plev(n,k)/play(n,k-1))**c287 + &
                        w2*tlay(n,k)   * (plev(n,k)/play(n,k))**c287     

@@ -291,7 +291,7 @@ module mod_cu_bm
           t(j,i,k) = tas(j,i,k)
           if ( t(j,i,k) > tzero .and. ml(j,i) == kzp1 ) ml(j,i) = k
           q(j,i,k) = qxas(j,i,k,iqv)
-          pppk = (hlev(k)*sfcps(j,i)+ptop)*d_1000
+          pppk = (hsigma(k)*sfcps(j,i)+ptop)*d_1000
           ape(j,i,k) = (pppk/h10e5)**dm2859
         end do
         lbot(j,i) = kz
@@ -305,7 +305,7 @@ module mod_cu_bm
         ip300(j,i) = 0
         cell = ptop/sfcps(j,i)
         do k = 1 , kz
-          ddzq(k) = rovg*tbase(j,i,k)*dlog((flev(k+1)+cell)/(flev(k)+cell))
+          ddzq(k) = rovg*tbase(j,i,k)*dlog((sigma(k+1)+cell)/(sigma(k)+cell))
         end do
         z0(j,i,kz) = d_half*ddzq(kz)
         do k = kz - 1 , 1 , -1
@@ -320,7 +320,7 @@ module mod_cu_bm
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( q(j,i,k) < epsq ) q(j,i,k) = epsq
-          pdiff = (d_one-hlev(k))*sfcps(j,i)
+          pdiff = (d_one-hsigma(k))*sfcps(j,i)
           if ( pdiff < 30.0D0 .and. ip300(j,i) == 0 ) ip300(j,i) = k
         end do
       end do
@@ -331,8 +331,8 @@ module mod_cu_bm
     do kb = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          pkl = (hlev(kb)*sfcps(j,i)+ptop)*d_1000
-          psfck = (hlev(kz)*sfcps(j,i)+ptop)*d_1000
+          pkl = (hsigma(kb)*sfcps(j,i)+ptop)*d_1000
+          psfck = (hsigma(kz)*sfcps(j,i)+ptop)*d_1000
           if ( pkl >= psfck-pbm ) then
             tthbt(j,i) = t(j,i,kb)*ape(j,i,kb)
             ee = pkl*q(j,i,kb)/(ep2+q(j,i,kb))
@@ -355,7 +355,7 @@ module mod_cu_bm
 !   choose cloud base as model level just below psp
 !
     do k = 1 , kzm1
-      ak = hlev(k)
+      ak = hsigma(k)
       do i = ici1 , ici2
         do j = jci1 , jci2
           p(j,i) = (ak*sfcps(j,i)+ptop)*d_1000
@@ -370,15 +370,15 @@ module mod_cu_bm
 !
     do i = ici1 , ici2
       do j = jci1 , jci2
-        pbot(j,i) = (hlev(lbot(j,i))*sfcps(j,i)+ptop)*d_1000
-        psfck = (hlev(kz)*sfcps(j,i)+ptop)*d_1000
+        pbot(j,i) = (hsigma(lbot(j,i))*sfcps(j,i)+ptop)*d_1000
+        psfck = (hsigma(kz)*sfcps(j,i)+ptop)*d_1000
         if ( pbot(j,i) >= psfck-pone .or. lbot(j,i) >= kz ) then
 !         cloud bottom is at the surface so recalculate cloud bottom
           do k = 1 , kzm1
-            p(j,i) = (hlev(kz)*sfcps(j,i)+ptop)*d_1000
+            p(j,i) = (hsigma(kz)*sfcps(j,i)+ptop)*d_1000
             if ( p(j,i) < psfck-pone ) lbot(j,i) = k
           end do
-          pbot(j,i) = (hlev(lbot(j,i))*sfcps(j,i)+ptop)*d_1000
+          pbot(j,i) = (hsigma(lbot(j,i))*sfcps(j,i)+ptop)*d_1000
         end if
       end do
     end do
@@ -396,7 +396,7 @@ module mod_cu_bm
 !     find environmental saturation equiv pot temp...
       do i = ici1 , ici2
         do j = jci1 , jci2
-          p(j,i) = (hlev(l)*sfcps(j,i)+ptop)*d_1000
+          p(j,i) = (hsigma(l)*sfcps(j,i)+ptop)*d_1000
           es = aliq*dexp((bliq*t(j,i,l)-cliq)/(t(j,i,l)-dliq))
           qs = ep2*es/(p(j,i)-es)
           ths(j,i) = t(j,i,l)*ape(j,i,l)*dexp(elocp*qs/t(j,i,l))
@@ -418,7 +418,7 @@ module mod_cu_bm
 !    
     do i = ici1 , ici2
       do j = jci1 , jci2
-        prtop(j,i) = (hlev(ltop(j,i))*sfcps(j,i)+ptop)*d_1000
+        prtop(j,i) = (hsigma(ltop(j,i))*sfcps(j,i)+ptop)*d_1000
       end do
     end do
 !
@@ -523,7 +523,7 @@ module mod_cu_bm
         qkl = q(j,i,k)
         qk(k) = qkl
         qrefk(k) = qkl
-        pkl = (hlev(k)*sfcps(j,i)+ptop)*d_1000
+        pkl = (hsigma(k)*sfcps(j,i)+ptop)*d_1000
         tref(j,i,k) = tpfc(pkl,thesp(j,i),t(j,i,k),wlhv,qu,ape(j,i,k))
         pk(k) = pkl
         psk(k) = pkl
@@ -601,10 +601,10 @@ module mod_cu_bm
         sumde = d_zero
         sumdp = d_zero
         do l = ltpk , lb
-          sumde = ((tk(l)-trefk(l))*cpd+(qk(l)-qrefk(l))*wlhv)*dflev(l) + sumde
-          sumdp = sumdp + dflev(l)
+          sumde = ((tk(l)-trefk(l))*cpd+(qk(l)-qrefk(l))*wlhv)*dsigma(l) + sumde
+          sumdp = sumdp + dsigma(l)
         end do
-        hcorr = sumde/(sumdp-dflev(ltpk))
+        hcorr = sumde/(sumdp-dsigma(ltpk))
         lcor = ltpk + 1
 !
 !       find lqm
@@ -644,9 +644,9 @@ module mod_cu_bm
         diftl = (trefk(l)-tkl)*tauk
         difql = (qrefk(l)-qk(l))*tauk
         avrgtl = (tkl+tkl+diftl)
-        dentpy = (diftl*cpd+difql*wlhv)*dflev(l)/avrgtl + dentpy
-        avrgt = avrgtl*dflev(l) + avrgt
-        preck = dflev(l)*diftl + preck
+        dentpy = (diftl*cpd+difql*wlhv)*dsigma(l)/avrgtl + dentpy
+        avrgt = avrgtl*dsigma(l) + avrgt
+        preck = dsigma(l)*diftl + preck
         dift(l) = diftl
         difq(l) = difql
       end do
@@ -773,7 +773,7 @@ module mod_cu_bm
         qk(k) = qkl
         qrefk(k) = qkl
         qsatk(k) = qkl
-        pkl = (hlev(k)*sfcps(j,i)+ptop)*d_1000
+        pkl = (hsigma(k)*sfcps(j,i)+ptop)*d_1000
         pk(k) = pkl
         apekl = ape(j,i,k)
         apek(k) = apekl
@@ -853,7 +853,7 @@ module mod_cu_bm
       end if
 !     scaling potential temperature & table index at top
       thtpk = t(j,i,ltp1)*ape(j,i,ltp1)
-      pkl = (hlev(ltp1)*sfcps(j,i)+ptop)*d_1000
+      pkl = (hsigma(ltp1)*sfcps(j,i)+ptop)*d_1000
       ee = pkl*q(j,i,ltp1)/(ep2+q(j,i,ltp1))
       tdpt = d_one/(rtzero-rwat/wlhv*dlog(ee/611.D0))
       tdpt = dmin1(tdpt,t(j,i,ltp1))
@@ -877,8 +877,8 @@ module mod_cu_bm
       sumdt = d_zero
       sumdp = d_zero
       do l = ltp1 , lbtk
-        sumdt = (tk(l)-trefk(l))*dflev(l) + sumdt
-        sumdp = sumdp + dflev(l)
+        sumdt = (tk(l)-trefk(l))*dsigma(l) + sumdt
+        sumdp = sumdp + dsigma(l)
       end do
 !
       rdpsum = d_one/sumdp
@@ -901,13 +901,13 @@ module mod_cu_bm
       fptk = fpk(ltp1)
       do l = ltp1 , lbtk
         dpkl = fpk(l) - fptk
-        psum = dpkl*dflev(l) + psum
-        qsum = qk(l)*dflev(l) + qsum
+        psum = dpkl*dsigma(l) + psum
+        qsum = qk(l)*dsigma(l) + qsum
         rtbar = 2.0D0/(trefk(l)+tk(l))
-        otsum = dflev(l)*rtbar + otsum
-        potsum = dpkl*rtbar*dflev(l) + potsum
-        qotsum = qk(l)*rtbar*dflev(l) + qotsum
-        dst = (trefk(l)-tk(l))*rtbar*dflev(l) + dst
+        otsum = dsigma(l)*rtbar + otsum
+        potsum = dpkl*rtbar*dsigma(l) + potsum
+        qotsum = qk(l)*rtbar*dsigma(l) + qotsum
+        dst = (trefk(l)-tk(l))*rtbar*dsigma(l) + dst
       end do
 !
       psum = psum*rdpsum
@@ -972,7 +972,7 @@ module mod_cu_bm
 !     eliminate impossible slopes (betts, dtheta/dq)
 !
       do l = ltp1 , lbtk
-        dtdeta = (thvref(l-1)-thvref(l))/(hlev(l)-hlev(l-1))
+        dtdeta = (thvref(l-1)-thvref(l))/(hsigma(l)-hsigma(l-1))
         if ( dtdeta < epsth ) then
           ltop(j,i) = lbot(j,i)
           prtop(j,i) = pbot(j,i)
@@ -987,7 +987,7 @@ module mod_cu_bm
       dentpy = d_zero
       do l = ltp1 , lbtk
         dentpy = ((trefk(l)-tk(l))*cpd+(qrefk(l)-qk(l))*wlhv) / &
-                  (tk(l)+trefk(l))*dflev(l) + dentpy
+                  (tk(l)+trefk(l))*dsigma(l) + dentpy
       end do
 !
 !     relaxation towards reference profiles

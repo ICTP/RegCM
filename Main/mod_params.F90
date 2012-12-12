@@ -856,15 +856,15 @@ module mod_params
   if ( enable_newmicro ) then
     call allocate_mod_cloud_s1
   end if
-  call allocate_mod_rad_common(ichem)
-  call allocate_mod_rad_aerosol(ichem)
+  call allocate_mod_rad_common
+  call allocate_mod_rad_aerosol
   call allocate_mod_rad_o3blk
   call allocate_mod_rad_outrad
   if ( irrtm == 1 ) then
     call allocate_mod_rad_rrtmg
   else
     call allocate_mod_rad_radiation 
-    call allocate_mod_rad_colmod3(ichem)
+    call allocate_mod_rad_colmod3
   end if
 
   call allocate_mod_che_common
@@ -1064,31 +1064,31 @@ module mod_params
   call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
 #ifdef CLM
   allocate(landmask(jx,iy))
-  call init_clm(dtsec,ksrf,mddom,atms,sfs,zpbl,landmask)
+  call init_clm(mddom,atms,sfs,zpbl,landmask)
 #else
-  call init_bats(dtsec,ksrf,mddom,atms,sfs,zpbl)
+  call init_bats(mddom,atms,sfs,zpbl)
 #endif
   call init_cuscheme(mddom,atm1,aten,atms,chiten,sfs,qdot,pptc,ldmsk, &
-                     sigma,hsigma,dsigma,qcon,cldfra,cldlwc,ktrop)
+                     cldfra,cldlwc,ktrop)
   if ( ichem == 1 ) then
 #ifdef CLM
-    call init_chem(dsigma,atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc, &
-                   remrat,hsigma,twt,coszrs,iveg,svegfrac2d,sfracv2d, &
-                   sfracb2d,sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,  &
-                   convpr,icumtop,icumbot,taucldsp,voc_em,dep_vels)
+    call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat, &
+                   coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d,sfracs2d, &
+                   solis,sdeltk2d,sdelqk2d,ssw2da,convpr,icumtop,     &
+                   icumbot,taucldsp,voc_em,dep_vels)
 #else
-    call init_chem(dsigma,atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc, &
-                   remrat,hsigma,twt,coszrs,iveg,svegfrac2d,sfracv2d, &
-                   sfracb2d,sfracs2d,solis,sdeltk2d,sdelqk2d,ssw2da,  &
-                   convpr,icumtop,icumbot,taucldsp)
+    call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat, &
+                   coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d,sfracs2d, &
+                   solis,sdeltk2d,sdelqk2d,ssw2da,convpr,icumtop,     &
+                   icumbot,taucldsp)
 #endif
     do n = 1 , ntr
       call bcast(chtrname(n),6)
     end do
   end if
-  call init_rad(ichem,ptop,hsigma,sigma,twt,atms,sfs,mddom,sabveg,solis, &
-                coszrs,aldirs,aldifs,aldirl,aldifl,albvs,albvl,aemiss,   &
-                sinc,solvs,solvd,fsw,flw,flwd,ldmsk1,chia,chtrname)
+  call init_rad(atms,sfs,mddom,sabveg,solis,coszrs,aldirs,aldifs,  &
+                aldirl,aldifl,albvs,albvl,aemiss,sinc,solvs,solvd, &
+                fsw,flw,flwd,ldmsk1,chia)
 #ifdef CLM
   call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
 #endif
@@ -1534,7 +1534,7 @@ module mod_params
   end if
 
   call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,remdrd,   &
-                cchifxuw,psdot,sfs,mddom,ldmsk,hsigma,sigma,dsigma,chtrdpv)
+                cchifxuw,psdot,sfs,mddom,ldmsk,chtrdpv)
  
 !     Convective Cloud Cover
   afracl = 0.3D0 ! frac. cover for conv. precip. when dx=dxlarg

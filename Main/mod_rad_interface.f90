@@ -35,14 +35,10 @@ module mod_rad_interface
 !
   contains 
 !
-  subroutine init_rad(ichem,ptop,a,sigma,twt,atms,sfs,mddom,sabveg, &
-                      solis,coszrs,aldirs,aldifs,aldirl,aldifl,albvs, &
-                      albvl,emiss,sinc,solvs,solvd,fsw,flw,flwd,ldmsk1, &
-                      chia,chtrname)
+  subroutine init_rad(atms,sfs,mddom,sabveg,solis,coszrs, &
+                      aldirs,aldifs,aldirl,aldifl,albvs,albvl,emiss,  &
+                      sinc,solvs,solvd,fsw,flw,flwd,ldmsk1,chia)
     implicit none
-    integer(ik4) , intent(in) :: ichem
-    real(rk8) , intent(in) :: ptop
-    real(rk8) , pointer , dimension(:) :: a , sigma
     type(slice) , intent(in) :: atms
     type(surfstate) , intent(in) :: sfs
     type(domain) , intent(in) :: mddom
@@ -56,7 +52,6 @@ module mod_rad_interface
     real(rk8) , pointer , intent(in) , dimension(:,:) :: albvs
     real(rk8) , pointer , intent(in) , dimension(:,:) :: albvl
     real(rk8) , pointer , intent(in) , dimension(:,:) :: emiss
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: twt
     real(rk8) , pointer , intent(in) , dimension(:,:) :: sinc
     real(rk8) , pointer , intent(in) , dimension(:,:) :: solvs
     real(rk8) , pointer , intent(in) , dimension(:,:) :: solvd
@@ -65,13 +60,7 @@ module mod_rad_interface
     real(rk8) , pointer , intent(in) , dimension(:,:) :: flwd
     integer(ik4) , pointer , intent(in) , dimension(:,:,:) :: ldmsk1
     real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: chia
-    character(len=6) , pointer , intent(in) , dimension(:) :: chtrname
 
-    if ( ichem == 1 ) lchem = .true.
-    ptp = ptop
-    call assignpnt(sigma,flev)
-    call assignpnt(a,hlev)
-    call assignpnt(twt,twtr)
     call assignpnt(atms%tb3d,tatms)
     call assignpnt(atms%qxb3d,qxatms)
     call assignpnt(atms%rhb3d,rhatms)
@@ -97,7 +86,6 @@ module mod_rad_interface
     call assignpnt(flwd,srflwflxdw)
     call assignpnt(ldmsk1,lndocnicemsk)
     call assignpnt(chia,chspmix)
-    if ( associated(chtrname) ) tracname => chtrname
   end subroutine init_rad
 !
   subroutine init_rad_clm(sols,soll,solsd,solld)

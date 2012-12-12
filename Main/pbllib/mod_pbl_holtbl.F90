@@ -25,7 +25,8 @@ module mod_pbl_holtbl
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : ibltyp , iqv , iqc , dt , rdt , ichem , ichdrdepo
+  use mod_runparams , only : ibltyp , iqv , iqc , dt , rdt , &
+    ichem , ichdrdepo , sigma , hsigma , dsigma
   use mod_mppparam
   use mod_memutil
   use mod_service
@@ -151,7 +152,7 @@ module mod_pbl_holtbl
   ! tendencies.
   !
   do k = 1 , kz
-    hydf(k) = gpcf/dlev(k)
+    hydf(k) = gpcf/dsigma(k)
   end do
   do k = 1 , kz
     do i = ici1 , ici2
@@ -167,8 +168,8 @@ module mod_pbl_holtbl
     do i = ici1 , ici2
       do j = jci1 , jci2
         dza(j,i,k) = za(j,i,k) - za(j,i,k+1)
-        xps = (hlev(k)*sfcps(j,i)+ptop)*d_1000
-        ps2 = (hlev(k+1)*sfcps(j,i)+ptop)*d_1000
+        xps = (hsigma(k)*sfcps(j,i)+ptop)*d_1000
+        ps2 = (hsigma(k+1)*sfcps(j,i)+ptop)*d_1000
         rhohf(j,i,k) = (ps2-xps)/(egrav*dza(j,i,k))
       end do
     end do

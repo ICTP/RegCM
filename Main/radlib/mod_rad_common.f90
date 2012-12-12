@@ -28,10 +28,6 @@ module mod_rad_common
 
   public
 
-  logical :: lchem ! ichem logical equiv
-  real(rk8) :: ptp ! ptop
-  real(rk8) , pointer , dimension(:) :: flev , hlev ! sigma , a
-  real(rk8),  pointer , dimension(:,:) :: twtr
   real(rk8) , pointer , dimension(:,:) :: sfps    ! sfs%psb
   real(rk8) , pointer , dimension(:,:) :: psfps   ! sfs%psa
 
@@ -78,8 +74,6 @@ module mod_rad_common
 
   real(rk8) , pointer , dimension(:,:,:,:) :: chspmix  ! chia
 
-  character(len=6) , pointer , dimension(:) :: tracname ! chtrname
-
   real(rk8) , pointer , dimension(:,:,:) :: cldfra , cldlwc
   real(rk8) , pointer , dimension(:,:,:) :: heatrt
   real(rk8) , pointer , dimension(:,:,:) :: o3prof
@@ -105,13 +99,10 @@ module mod_rad_common
 
   integer(ik8) :: ntabem
 
-  data lchem /.false./
-
   contains 
 
-  subroutine allocate_mod_rad_common(ichem)
+  subroutine allocate_mod_rad_common
     implicit none
-    integer(ik4) , intent(in) :: ichem
     call getmem3d(cldfra,jci1,jci2,ici1,ici2,1,kz,'rad:cldfra')
     call getmem3d(cldlwc,jci1,jci2,ici1,ici2,1,kz,'rad:cldlwc')
     call getmem3d(heatrt,jci1,jci2,ici1,ici2,1,kz,'rad:heatrt')

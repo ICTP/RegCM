@@ -75,7 +75,7 @@ module mod_pbl_uwtcm
   use mod_pbl_common
   use mod_pbl_thetal
   use mod_runparams , only : iqv , iqc , iuwvadv , atwo , rstbl , &
-    dt , rdt , ichem
+    dt , rdt , ichem , sigma , hsigma
 
   private
 
@@ -261,7 +261,7 @@ module mod_pbl_uwtcm
           rttenx(k) = radheatrt(j,i,k)
           cell = ptop/psbx
           zqx(k) = zqx(k+1) + rgas/egrav*tatm(j,i,k)*   &
-                   log((flev(k+1)+cell)/(flev(k)+cell))
+                   log((sigma(k+1)+cell)/(sigma(k)+cell))
           zax(k) = d_half*(zqx(k)+zqx(k+1))
           tke(k) = tkests(j,i,k)
           tx(k)  = tatm(j,i,k)
@@ -285,7 +285,7 @@ module mod_pbl_uwtcm
         khalfloop: &
         do k = 1 , kz
           ! pressure at half levels
-          preshl(k) = hlev(k)*psbx + ptop
+          preshl(k) = hsigma(k)*psbx + ptop
           ! Level spacing
           udzq(k) = zqx(k)-zqx(k+1)
           rdzq(k) = d_one/udzq(k)
@@ -328,7 +328,7 @@ module mod_pbl_uwtcm
         kfullloop: &
         do k = 2 , kz
           ! pressure at full levels
-          presfl(k) = flev(k)*psbx + ptop
+          presfl(k) = sigma(k)*psbx + ptop
           epop(k) = ep2/presfl(k)
           ! Level spacing
           dza(k) = zax(k-1)-zax(k)

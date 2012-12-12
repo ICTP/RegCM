@@ -85,7 +85,7 @@ module mod_cu_em
         end do
         do k = 1 , kzp1
           kk = kzp1 - k + 1
-          phcup(k) = (flev(kk)*sfcps(j,i)+ptop)*d_10 ! [hPa]
+          phcup(k) = (sigma(kk)*sfcps(j,i)+ptop)*d_10 ! [hPa]
         end do
         cbmf = cbmf2d(j,i)                              ! [(kg/m**2)/s]
    

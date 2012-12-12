@@ -310,7 +310,7 @@
       if ( idust(1) > 0 .and. ichdrdepo > 0 ) then
         do j = jci1 , jci2
           call drydep_aero(j,nbin,idust,rhodust,ivegcov(:,j),      &
-                           ttb(:,:,j),rho(:,:,j),hlev,psurf(:,j),  &
+                           ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j),  &
                            temp10(:,j),tsurf(:,j),srad(:,j),       &
                            rh10(:,j),wid10(:,j),zeff(:,j),dustbed, &
                            pdepv(:,:,:,j),ddepa(:,:,j))
@@ -319,7 +319,7 @@
       if ( isslt(1) > 0  .and. ichdrdepo > 0) then
         do j = jci1 , jci2
           call drydep_aero(j,sbin,isslt,rhosslt,ivegcov(:,j),      &
-                           ttb(:,:,j),rho(:,:,j),hlev,psurf(:,j),  &
+                           ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j),  &
                            temp10(:,j),tsurf(:,j),srad(:,j),       &
                            rh10(:,j),wid10(:,j),zeff(:,j),ssltbed, &
                            pdepv(:,:,:,j),ddepa(:,:,j))
@@ -329,7 +329,7 @@
         ibin = count( icarb > 0 ) 
         do j = jci1 , jci2
           call drydep_aero(j,ibin,icarb(1:ibin),rhooc,ivegcov(:,j), &
-                           ttb(:,:,j),rho(:,:,j),hlev,psurf(:,j),   &
+                           ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j),   &
                            temp10(:,j),tsurf(:,j),srad(:,j),        &
                            rh10(:,j),wid10(:,j),zeff(:,j),          &
                            carbed(1:ibin),pdepv(:,:,:,j),ddepa(:,:,j))
@@ -342,7 +342,7 @@
         polrftab(1) = reffpollen
         do j = jci1 , jci2
           call drydep_aero(j,ibin,poltab,rhopollen,ivegcov(:,j), &
-                           ttb(:,:,j),rho(:,:,j),hlev,psurf(:,j),   &
+                           ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j),   &
                            temp10(:,j),tsurf(:,j),srad(:,j),        &
                            rh10(:,j),wid10(:,j),zeff(:,j),          &
                            polrftab,pdepv(:,:,:,j),ddepa(:,:,j))
@@ -365,17 +365,17 @@
       !
       if ( idust(1) > 0 .and. ichremlsc == 1) then
         do j = jci1 , jci2
-          call wetdepa(j,nbin,idust,dustbed,rhodust,ttb(:,:,j), &
-                       wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
-                       psurf(:,j),hlev,rho(:,:,j),prec(:,:,j),  &
+          call wetdepa(j,nbin,idust,dustbed,rhodust,ttb(:,:,j),  &
+                       wl(:,:,j),fracloud(:,:,j),fracum(:,:,j),  &
+                       psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j), &
                        convprec(:,:,j), pdepv(:,:,:,j))  
         end do
       end if
       if ( isslt(1) > 0 .and.   ichremlsc == 1 )  then   
         do j = jci1 , jci2
-          call wetdepa(j,sbin,isslt,ssltbed,rhosslt,ttb(:,:,j), &
-                       wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
-                       psurf(:,j),hlev,rho(:,:,j),prec(:,:,j),  &
+          call wetdepa(j,sbin,isslt,ssltbed,rhosslt,ttb(:,:,j),  &
+                       wl(:,:,j),fracloud(:,:,j),fracum(:,:,j),  &
+                       psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j), &
                        convprec(:,:,j), pdepv(:,:,:,j))  
         end do
       end if
@@ -384,7 +384,7 @@
         do j = jci1 , jci2
           call wetdepa(j,ibin,icarb(1:ibin),carbed(1:ibin),rhobchl,        &
                        ttb(:,:,j),wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
-                       psurf(:,j),hlev,rho(:,:,j),prec(:,:,j),             &
+                       psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j),           &
                        convprec(:,:,j),pdepv(:,:,:,j)) 
         end do
       end if
@@ -396,7 +396,7 @@
         do j = jci1 , jci2
           call wetdepa(j,ibin,poltab,polrftab,rhopollen,        &
                        ttb(:,:,j),wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
-                       psurf(:,j),hlev,rho(:,:,j),prec(:,:,j),             &
+                       psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j),           &
                        convprec(:,:,j),pdepv(:,:,:,j)) 
         end do
       end if

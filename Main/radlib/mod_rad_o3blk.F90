@@ -128,7 +128,7 @@ module mod_rad_o3blk
       do j = jci1 , jci2
         do k = kzp1 , 1 , -1
           kj = kzp1 - k + 1
-          prlevh(kj) = (flev(k)*sfps(j,i)+ptp)*d_10
+          prlevh(kj) = (sigma(k)*sfps(j,i)+ptop)*d_10
         end do
         ppwrkh(1) = 1100.0D0
         do k = 2 , 31
