@@ -780,7 +780,8 @@ module mod_bats_bndry
   subroutine snow
     implicit none
 !
-    real(rk8) :: age1 , age2 , age3 , arg , arg2 , dela , dela0 , dels , tage
+    real(rk8) :: age1 , age2 , age3 , arg , arg2 , dela , dela0 , &
+                 dels , tage , sold
     integer(ik4) :: n , i , j
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'snow'
@@ -826,7 +827,7 @@ module mod_bats_bndry
       do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
-            sold(n,j,i) = sncv(n,j,i)
+            sold = sncv(n,j,i)
             sncv(n,j,i) = sncv(n,j,i) + &
                          dtbat*(ps(n,j,i)-evaps(n,j,i)-sm(n,j,i)) + sdrop(n,j,i)
             if ( sncv(n,j,i) < dlowval ) then
@@ -846,7 +847,7 @@ module mod_bats_bndry
               tage = age1 + age2 + age3
               dela0 = 1.0D-6*dtbat
               dela = dela0*tage
-              dels = d_r10*dmax1(d_zero,sncv(n,j,i)-sold(n,j,i))
+              dels = d_r10*dmax1(d_zero,sncv(n,j,i)-sold)
               snag(n,j,i) = (snag(n,j,i)+dela)*(d_one-dels)
               if ( snag(n,j,i) < dlowval ) snag(n,j,i) = d_zero
             end if
@@ -899,9 +900,10 @@ module mod_bats_bndry
   subroutine tgrund
     implicit none
     real(rk8) :: bcoefd , bcoefs , c31 , c3t , c41 , c4t , cder , depr , &
-             depu , xdt2 , xdtime , dtimea , froze2 , frozen , rscss ,  &
-             tbef , tg , tinc , wtas , wtax , wtd , wtds
-    real(rk8) :: dtbat2 , rdtbat2 , xlexp , xnua
+             depu , xdt2 , xdtime , dtimea , froze2 , frozen , rscss ,   &
+             tbef , tg , tinc , wtas , wtax , wtd , wtds , hs , depann , &
+             depdiu , rscsa , rscsd , ska , skd , sks
+    real(rk8) :: dtbat2 , rdtbat2 , xlexp , xnua , swtrta , swtrtd
     integer(ik4) :: n , i , j
     real(rk8) , parameter :: xkperi = 1.4D-6
     real(rk8) , parameter :: t3 = 271.0D0 ! permafrost temperature
@@ -931,29 +933,29 @@ module mod_bats_bndry
             !      thermal diffusion coefficient, based on the values of
             !      50 and 38 quoted by osterkamp; ice contribution to
             !      specific heat only o.49 that of water
-            swtrtd(n,j,i) = watu(n,j,i)*porsl(n,j,i)
+            swtrtd = watu(n,j,i)*porsl(n,j,i)
             if ( tgrd(n,j,i) < tzero ) then
               frozen = 0.85D0*dmin1(d_one,d_rfour*(tzero-tgrd(n,j,i)))
-              skd(n,j,i) = xkperi
-              rscsd(n,j,i) = fsc(swtrtd(n,j,i)*(d_one-0.51D0*frozen))
+              skd = xkperi
+              rscsd = fsc(swtrtd*(d_one-0.51D0*frozen))
             else
-              skd(n,j,i) = fsk(swtrtd(n,j,i))*texrat(n,j,i)
-              rscsd(n,j,i) = fsc(swtrtd(n,j,i))
+              skd = fsk(swtrtd)*texrat(n,j,i)
+              rscsd = fsc(swtrtd)
             end if
-            swtrta(n,j,i) = watr(n,j,i)*porsl(n,j,i)
+            swtrta = watr(n,j,i)*porsl(n,j,i)
             if ( tgbrd(n,j,i) < tzero ) then
               froze2 = 0.85D0*dmin1(d_one,d_rfour*(tzero-tgbrd(n,j,i)))
-              ska(n,j,i) = xkperi
-              rscsa(n,j,i) = fsc(swtrta(n,j,i)*(d_one-0.51D0*froze2))
+              ska = xkperi
+              rscsa = fsc(swtrta*(d_one-0.51D0*froze2))
             else
-              ska(n,j,i) = fsk(swtrta(n,j,i))*texrat(n,j,i)
-              rscsa(n,j,i) = fsc(swtrta(n,j,i))
+              ska = fsk(swtrta)*texrat(n,j,i)
+              rscsa = fsc(swtrta)
             end if
             ! 1.2  correct for snow cover, if significant
-            depdiu(n,j,i) = dsqrt(d_two*skd(n,j,i)/xnu)
-            bcoef(n,j,i) = xdtime*depdiu(n,j,i)/(rscsd(n,j,i)*skd(n,j,i))
+            depdiu = dsqrt(d_two*skd/xnu)
+            bcoef(n,j,i) = xdtime*depdiu/(rscsd*skd)
             if ( scrat(n,j,i) > 0.001D0 ) then
-              xlexp = -d_two*scrat(n,j,i)/depdiu(n,j,i)
+              xlexp = -d_two*scrat(n,j,i)/depdiu
               ! Graziano : Limit exponential argument
               if ( xlexp > -25.0D0 ) then
                 wtd = dexp(xlexp)
@@ -961,27 +963,27 @@ module mod_bats_bndry
                 wtd = d_zero
               end if
               rscss = csnw*rhosw(n,j,i)
-              sks(n,j,i) = 7.0D-7*cws*rhosw(n,j,i)
-              bcoefs = dsqrt(d_two*sks(n,j,i)/xnu)/(rscss*sks(n,j,i))
+              sks = 7.0D-7*cws*rhosw(n,j,i)
+              bcoefs = dsqrt(d_two*sks/xnu)/(rscss*sks)
               wtds = (d_one-wtd)*scvk(n,j,i)
-              bcoefd = dsqrt(d_two*skd(n,j,i)/xnu)/(rscsd(n,j,i)*skd(n,j,i))
+              bcoefd = dsqrt(d_two*skd/xnu)/(rscsd*skd)
               bcoef(n,j,i) = xdtime*(wtds*bcoefs+(d_one-wtds)*bcoefd)
-              depdiu(n,j,i) = wtds*dsqrt(d_two*sks(n,j,i)/xnu) + &
-                            (d_one-wtds)*depdiu(n,j,i)
+              depdiu = wtds*dsqrt(d_two*sks/xnu) + &
+                            (d_one-wtds)*depdiu
             end if
-            depann(n,j,i) = dsqrt(d_two*ska(n,j,i)/xnua)
+            depann = dsqrt(d_two*ska/xnua)
             if ( scrat(n,j,i) > 0.02D0 ) then
-              xlexp = -d_two*scrat(n,j,i)/depann(n,j,i)
+              xlexp = -d_two*scrat(n,j,i)/depann
               if ( xlexp > -25.0D0 ) then
                 wtax = dexp(xlexp)
               else
                 wtax = d_zero
               end if
               wtas = (d_one-wtax)*scvk(n,j,i)
-              depann(n,j,i) = wtas*dsqrt(d_two*sks(n,j,i)/xnua) + &
-                            (d_one-wtas)*depann(n,j,i)
+              depann = wtas*dsqrt(d_two*sks/xnua) + &
+                            (d_one-wtas)*depann
             end if
-            deprat(n,j,i) = depann(n,j,i)/depdiu(n,j,i)
+            deprat(n,j,i) = depann/depdiu
             !=================================================================
             !         2.   collect force restore terms
             !=================================================================
@@ -994,22 +996,22 @@ module mod_bats_bndry
                  (sfice(n,j,i) < lowsice) ) then
               depu = depuv(lveg(n,j,i))*d_r1000
               cc(n,j,i) = d_one + dmax1(ssw(n,j,i) - &
-                        frezu(lveg(n,j,i)),d_zero)*fct1(depu*rscsd(n,j,i))
+                        frezu(lveg(n,j,i)),d_zero)*fct1(depu*rscsd)
             end if
             if ( (tgbrd(n,j,i) < tzero) .and.                  &
                  (tgbrd(n,j,i) > (tzero-d_four)) .and.         &
                  (sfice(n,j,i) < lowsice) ) then
               depr = deprv(lveg(n,j,i))*d_r1000
               fct2(n,j,i) = dmax1(rsw(n,j,i)-freza(lveg(n,j,i)),d_zero) * &
-                                fct1(depr*rscsa(n,j,i))
+                                fct1(depr*rscsa)
             end if
             ! 2.2  large thermal inertial for permanent ice cap
             if ( lveg(n,j,i) == 12 ) fct2(n,j,i) = d_1000*fct2(n,j,i)
             ! 2.3  collect energy flux terms
             rnet(n,j,i) = fsw(j,i) - sigf(n,j,i)*(sabveg(j,i)-flnet(n,j,i)) - &
                      (d_one-sigf(n,j,i))*(flw(j,i)-sigf(n,j,i)*flneto(n,j,i))
-            hs(n,j,i) = rnet(n,j,i) - fseng(n,j,i) - fevpg(n,j,i)*htvp(n,j,i)
-            bb(n,j,i) = bcoef(n,j,i)*hs(n,j,i) + xdtime*tgbrd(n,j,i)
+            hs = rnet(n,j,i) - fseng(n,j,i) - fevpg(n,j,i)*htvp(n,j,i)
+            bb(n,j,i) = bcoef(n,j,i)*hs + xdtime*tgbrd(n,j,i)
             ! 2.4  add in snowmelt (melt enough snow to reach freezing temp)
             sm(n,j,i) = d_zero
             if ( sncv(n,j,i) > d_zero ) then

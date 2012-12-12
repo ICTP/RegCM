@@ -27,24 +27,13 @@ module mod_bats_internal
   private
 
   real(rk8) , pointer , dimension(:,:,:) :: rnof , rsubst , rsur , &
-    wflux1 , wflux2 , wfluxc
-  real(rk8) , pointer , dimension(:,:,:) :: sold
-  real(rk8) , pointer , dimension(:,:,:) :: bb , bcoef , cc , depann , depdiu , &
-        deprat , fct2 , hs , rscsa , rscsd , ska , skd , sks , swtrta , swtrtd
-  real(rk8) , pointer , dimension(:,:,:) :: lfta , lftb
-  real(rk8) , pointer , dimension(:,:,:) :: lftra , lftrs
+    wflux1 , wflux2 , wfluxc , bb , cc , bcoef , deprat , fct2
+  real(rk8) , pointer , dimension(:,:,:) :: lfta , lftb , lftra , lftrs
   real(rk8) , pointer , dimension(:,:,:) :: cdrd , vpdc
   real(rk8) , pointer , dimension(:,:,:) :: rppq , efe
   real(rk8) , pointer , dimension(:,:,:) :: dcd , etrc
-  real(rk8) , pointer , dimension(:,:,:) :: qsatld
-  real(rk8) , pointer , dimension(:,:,:) :: dels
-  real(rk8) , pointer , dimension(:,:,:) :: efpot , tbef
-  real(rk8) , pointer , dimension(:,:,:) :: fsol0 , fsold
-  real(rk8) , pointer , dimension(:,:,:) :: radf , rmini
-  real(rk8) , pointer , dimension(:,:,:) :: trup , trupd
-  real(rk8) , pointer , dimension(:,:,:) :: dlstaf
-  real(rk8) , pointer , dimension(:,:,:) :: rib , rib1
-  real(rk8) , pointer , dimension(:,:,:) :: prcp
+  real(rk8) , pointer , dimension(:,:,:) :: dels , radf , rmini
+  real(rk8) , pointer , dimension(:,:,:) :: rib , prcp
   real(rk8) , pointer , dimension(:,:,:) :: qgrd , qs , resp , rhs
   real(rk8) , pointer , dimension(:,:,:) :: sts , zh
   real(rk8) , pointer , dimension(:,:,:) :: bfc , bsw
@@ -53,28 +42,24 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:,:,:) :: porsl , relfc , relaw , rnet
   real(rk8) , pointer , dimension(:,:,:) :: texrat , vegt , wiltr , wt , xkmx
   real(rk8) , pointer , dimension(:,:,:) :: cdr , cdrn , cdrx , cf ,  &
-         cgrnd , cgrndl , cgrnds , clead , efpr , eg , etr , etrrun , &
-         evaps , evapw , fevpg , flnet , flneto , fseng , htvp , ps , &
-         pw , qice , qsatl , rhosw , ribd , rlai , rpp , scrat ,      &
-         scvk , sdrop , seasb , sigf , sm , tm , uaf , vspda , wata , &
-         watr , watt , watu , wta , xlai , xlsai , xrun , z1log ,     &
-         z2fra , z10fra , zlgocn , zlglnd ,  zlgsno , zlgveg , zlgdis
+    cgrnd , cgrndl , cgrnds , clead , efpr , eg , etr , etrrun , &
+    evaps , evapw , fevpg , flnet , flneto , fseng , htvp , ps , &
+    pw , qice , qsatl , rhosw , ribd , rlai , rpp , scrat ,      &
+    scvk , sdrop , seasb , sigf , sm , tm , uaf , vspda , wata , &
+    watr , watt , watu , wta , xlai , xlsai , xrun , z1log ,     &
+    z2fra , z10fra , zlgocn , zlglnd ,  zlgsno , zlgveg , zlgdis
   real(rk8) , pointer , dimension(:,:,:) :: cn1 , rgr , wta0 , wtaq0 ,   &
-         wtg , wtg0 , wtg2 , wtga , wtgaq , wtgl , wtglq ,  wtgq ,   &
-         wtgq0 , wtl0 , wtlh , wtlq , wtlq0 , wtshi , wtsqi , df
+    wtg , wtg0 , wtg2 , wtga , wtgaq , wtgl , wtglq ,  wtgq ,   &
+    wtgq0 , wtl0 , wtlh , wtlq , wtlq0 , wtshi , wtsqi , df
   real(rk8) , pointer , dimension(:,:,:) :: ribl
   real(rk8) , pointer , dimension(:,:) :: usw , vsw
   integer(ik4) , pointer , dimension(:,:,:) :: lveg
 !
-  public :: rnof , rsubsr , rsubst , rsur , sold ,     &
-            wflux1 , wflux2 , wfluxc , bb ,    &
-            bcoef , cc , depann , depdiu , deprat , fct2 , hs , rscsa , &
-            rscsd , ska , skd , sks , swtrta , swtrtd
-  public :: lfta , lftb , lftra , lftrs , cdrd , vpdc , rppq , efe ,    &
-            dcd , etrc , qsatld , dels , efpot , tbef , fsol0 , fsold , &
-            radf , rmini , trup , trupd , dlstaf , rib  , rib1
-  public :: prcp , qgrd , qs , &
-            resp , rhs , sts , zh , bfc , bsw
+  public :: rnof , rsubsr , rsubst , rsur , wflux1 , wflux2 , wfluxc , bb , &
+            bcoef , cc , deprat , fct2
+  public :: lfta , lftb , lftra , lftrs , cdrd , vpdc , rppq , efe ,   &
+            dcd , etrc , dels , radf , rmini , rib
+  public :: prcp , qgrd , qs , resp , rhs , sts , zh , bfc , bsw
   public :: evmx0 , fdry , fwet , gwmx0 , gwmx1 , gwmx2 , porsl , relfc ,  &
             rnet , texrat , vegt , wiltr , wt , xkmx , cdr , cdrn , cdrx , &
             cf , cgrnd , cgrndl , cgrnds , clead , efpr , eg , etr ,       &
@@ -103,43 +88,23 @@ module mod_bats_internal
     call getmem3d(vpdc,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:vpdc')
     call getmem3d(rppq,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rppq')
     call getmem3d(efe,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:efe')
-    call getmem3d(qsatld,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:qsatld')
     call getmem3d(dcd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:dcd')
     call getmem3d(etrc,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:etrc')
     call getmem3d(dels,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:dels')
-    call getmem3d(efpot,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:efpot')
-    call getmem3d(tbef,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:tbef')
-    call getmem3d(fsol0,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:fsol0')
-    call getmem3d(fsold,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:fsold')
     call getmem3d(radf,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:radf')
     call getmem3d(rmini,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rmini')
-    call getmem3d(trup,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:trup')
-    call getmem3d(trupd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:trupd')
-    call getmem3d(dlstaf,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:dlstaf')
     call getmem3d(rib,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rib')
-    call getmem3d(rib1,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rib1')
     call getmem3d(rnof,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rnof')
     call getmem3d(rsubst,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rsubst')
     call getmem3d(rsur,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rsur')
     call getmem3d(wflux1,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wflux1')
     call getmem3d(wflux2,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wflux2')
     call getmem3d(wfluxc,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wfluxc')
-    call getmem3d(sold,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:sold')
     call getmem3d(bb,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:bb')
     call getmem3d(bcoef,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:bcoef')
     call getmem3d(cc,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cc')
-    call getmem3d(depann,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:depann')
-    call getmem3d(depdiu,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:depdiu')
     call getmem3d(deprat,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:deprat')
     call getmem3d(fct2,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:fct2')
-    call getmem3d(hs,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:hs')
-    call getmem3d(rscsa,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rscsa')
-    call getmem3d(rscsd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rscsd')
-    call getmem3d(ska,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:ska')
-    call getmem3d(skd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:skd')
-    call getmem3d(sks,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:sks')
-    call getmem3d(swtrta,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:swtrta')
-    call getmem3d(swtrtd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:swtrtd')
     call getmem3d(prcp,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:prcp')
     call getmem3d(qgrd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:qgrd')
     call getmem3d(qs,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:qs')

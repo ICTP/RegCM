@@ -92,9 +92,9 @@ module mod_bats_leaftemp
 !
   implicit none
 !
-  real(rk8) :: dcn , delmax , efeb , eg1 , epss , fbare , qbare ,     &
-           & qcan , qsatdg , rppdry , sf1 , sf2 , sgtg3 , vakb ,    &
-           & xxkb
+  real(rk8) :: dcn , delmax , efeb , eg1 , epss , fbare , qbare , &
+             qcan , qsatdg , rppdry , sf1 , sf2 , sgtg3 , vakb ,  &
+             xxkb , efpot , tbef
   integer(ik4) :: iter , itfull , itmax , n , i , j
   !
   !=======================================================================
@@ -191,18 +191,18 @@ module mod_bats_leaftemp
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
-              efpot(n,j,i) = cn1(n,j,i)*(wtgaq(n,j,i)*qsatl(n,j,i) - &
+              efpot = cn1(n,j,i)*(wtgaq(n,j,i)*qsatl(n,j,i) - &
                            wtgq0(n,j,i)*qgrd(n,j,i) - wtaq0(n,j,i)*qs(n,j,i))
-              if ( efpot(n,j,i) > d_zero ) then
-                etr(n,j,i) = efpot(n,j,i)*lftra(n,j,i)*fdry(n,j,i) / &
+              if ( efpot > d_zero ) then
+                etr(n,j,i) = efpot*lftra(n,j,i)*fdry(n,j,i) / &
                            (lftrs(n,j,i)+lftra(n,j,i))
                 rpp(n,j,i) = dmin1(rpp(n,j,i),(etr(n,j,i)+ldew(n,j,i)/      &
-                           dtbat)/efpot(n,j,i)-epss)
+                           dtbat)/efpot-epss)
               else
                 etr(n,j,i) = d_zero
                 rpp(n,j,i) = d_one
               end if
-              if ( ( efpot(n,j,i) >= d_zero ) .and. &
+              if ( ( efpot >= d_zero ) .and. &
                    ( etr(n,j,i) >= etrc(n,j,i) ) )  then
                 ! transpiration demand exceeds supply, stomat adjust
                 ! demand
@@ -213,10 +213,10 @@ module mod_bats_leaftemp
                 lftrs(n,j,i) = lftra(n,j,i)*(fdry(n,j,i)/rppdry-d_one)
                 rpp(n,j,i) = rppdry + fwet(n,j,i)
                 rpp(n,j,i) = dmin1(rpp(n,j,i),(etr(n,j,i)+ldew(n,j,i)/      &
-                           dtbat)/efpot(n,j,i)-epss)
+                           dtbat)/efpot-epss)
               end if
               rppq(n,j,i) = wlhv*rpp(n,j,i)
-              efe(n,j,i) = rppq(n,j,i)*efpot(n,j,i)
+              efe(n,j,i) = rppq(n,j,i)*efpot
               if ( efe(n,j,i)*efeb < d_zero ) efe(n,j,i) = 0.1D0*efe(n,j,i)
             end if
           end if
@@ -253,15 +253,14 @@ module mod_bats_leaftemp
               sf2 = d_four*sigf(n,j,i)*sgtg3 + &
                          df(n,j,i)*wtga(n,j,i) + dcd(n,j,i)
               ! 3.4  iterative leaf temperature calculation
-              tbef(n,j,i) = tlef(n,j,i)
+              tbef = tlef(n,j,i)
               tlef(n,j,i) = (sf1+df(n,j,i)*(wta0(n,j,i)*sts(n,j,i)+        &
                             wtg0(n,j,i)*tgrd(n,j,i))-efe(n,j,i)+dcn)/sf2
               !
               ! 3.5  chk magnitude of change; limit to max allowed value
-              dels(n,j,i) = tlef(n,j,i) - tbef(n,j,i)
+              dels(n,j,i) = tlef(n,j,i) - tbef
               if ( dabs(dels(n,j,i)) > delmax ) then
-                tlef(n,j,i) = tbef(n,j,i) + &
-                                delmax*dels(n,j,i)/dabs(dels(n,j,i))
+                tlef(n,j,i) = tbef + delmax*dels(n,j,i)/dabs(dels(n,j,i))
               end if
               ! 3.6  update dependence of stomatal resistance
               !      on vapor pressure deficit
@@ -376,19 +375,20 @@ module mod_bats_leaftemp
 !
   implicit none
 !
-  real(rk8) :: difzen , g , radfi , seas , vpdf , rilmax
+  real(rk8) :: difzen , g , radfi , seas , vpdf , rilmax , fsol0 , fsold
+  real(rk8) :: trup , trupd
   integer(ik4) :: il , ilmax , n , i , j
   real(rk8) , dimension(10) :: rad , radd
 !
-!     ***** seasonal temperature factor
-!     ***** g is average leaf crosssection per unit lai
-!     ***** difzen is ave of inverse of cos of angle of diffuse vis
-!     light ***** ilmax is number of canopy layers
-!     ***** coszrs is cosine solar zenith angle for incident light
-!     *****   (to spec from input data need a good treatment of diffuse
-!     rad) ***** trup is transmission of direct beam light in one
-!     canopy layer ***** trupd is transmission of diffuse light in one
-!     canopy layer
+! seasonal temperature factor
+! g is average leaf crosssection per unit lai
+! difzen is ave of inverse of cos of angle of diffuse vis light
+! ilmax is number of canopy layers
+! coszrs is cosine solar zenith angle for incident light
+! (to spec from input data need a good treatment of diffuse rad)
+! trup is transmission of direct beam light in one canopy layer
+! trupd is transmission of diffuse light in one canopy layer
+!
   g = d_half
   difzen = d_two
   ilmax = 4
@@ -401,32 +401,18 @@ module mod_bats_leaftemp
           if ( sigf(n,j,i) > 0.001D0 ) then
             ! zenith angle set in zenitm
             if ( (coszrs(j,i)/rilmax) > 0.001D0 ) then
-              trup(n,j,i) = dexp(-g*rlai(n,j,i)/(rilmax*coszrs(j,i)))
-              trupd(n,j,i) = dexp(-difzen*g*rlai(n,j,i)/(rilmax))
-              if ( trup(n,j,i) < dlowval )  trup(n,j,i)  = dlowval
-              if ( trupd(n,j,i) < dlowval ) trupd(n,j,i) = dlowval
-              fsold(n,j,i) = fracd(j,i)*solis(j,i)*fc(lveg(n,j,i))
-              fsol0(n,j,i) = (d_one-fracd(j,i))*solis(j,i)*fc(lveg(n,j,i))
+              trup = dexp(-g*rlai(n,j,i)/(rilmax*coszrs(j,i)))
+              trupd = dexp(-difzen*g*rlai(n,j,i)/(rilmax))
+              if ( trup  < dlowval ) trup  = dlowval
+              if ( trupd < dlowval ) trupd = dlowval
+              fsold = fracd(j,i)*solis(j,i)*fc(lveg(n,j,i))
+              fsol0 = (d_one-fracd(j,i))*solis(j,i)*fc(lveg(n,j,i))
               rmini(n,j,i) = rsmin(lveg(n,j,i))/rmax0
-            end if
-          end if
-        end if
-      end do
-    end do
-  end do
- 
-  do i = ici1 , ici2
-    do j = jci1 , jci2
-      do n = 1 , nnsg
-        if ( ldmsk1(n,j,i) /= 0 ) then
-          if ( sigf(n,j,i) > 0.001D0 ) then
-            if ( coszrs(j,i)/rilmax > 0.001D0 ) then
-              rad(1) = (d_one-trup(n,j,i))*fsol0(n,j,i)*rilmax/rlai(n,j,i)
-              radd(1) = (d_one-trupd(n,j,i))*fsold(n,j,i) * &
-                        rilmax/rlai(n,j,i)
+              rad(1)  = (d_one-trup) *fsol0*rilmax/rlai(n,j,i)
+              radd(1) = (d_one-trupd)*fsold*rilmax/rlai(n,j,i)
               do il = 2 , ilmax
-                rad(il) = trup(n,j,i)*rad(il-1)
-                radd(il) = trupd(n,j,i)*radd(il-1)
+                rad(il)  = trup* rad(il-1)
+                radd(il) = trupd*radd(il-1)
               end do
               radfi = d_zero
               do il = 1 , ilmax
@@ -605,6 +591,7 @@ module mod_bats_leaftemp
     implicit none
 !
     real(rk8) :: dthdz , ribi , sqrtf , tkb , u1 , u2 , zatild , cdrmin
+    real(rk8) :: dlstaf , rib1
     integer(ik4) :: n , i , j
 !
     do i = ici1 , ici2
@@ -614,9 +601,9 @@ module mod_bats_leaftemp
             if ( sigf(n,j,i) > 0.001D0 ) then
               tkb = wta0(n,j,i)*sts(n,j,i) + wtl0(n,j,i)*tlef(n,j,i) + &
                     wtg0(n,j,i)*tgrd(n,j,i)
-              dlstaf(n,j,i) = sts(n,j,i) - sigf(n,j,i)*tkb - &
+              dlstaf = sts(n,j,i) - sigf(n,j,i)*tkb - &
                             (d_one-sigf(n,j,i))*tgrd(n,j,i)
-              if ( dlstaf(n,j,i) <= d_zero ) then
+              if ( dlstaf <= d_zero ) then
                 dthdz = (d_one-sigf(n,j,i))*tgrd(n,j,i) + &
                          sigf(n,j,i)*tkb-sts(n,j,i)
                 u1 = wtur + d_two*dsqrt(dthdz)
@@ -632,19 +619,19 @@ module mod_bats_leaftemp
               end if
               zatild = (zh(n,j,i)-displa(lveg(n,j,i)))*sigf(n,j,i) + &
                         zh(n,j,i)*(d_one-sigf(n,j,i))
-              rib1(n,j,i) = egrav*zatild/(ribd(n,j,i)*sts(n,j,i))
-              rib(n,j,i) = rib1(n,j,i)*dlstaf(n,j,i)
+              rib1 = egrav*zatild/(ribd(n,j,i)*sts(n,j,i))
+              rib(n,j,i) = rib1*dlstaf
               if ( rib(n,j,i) < d_zero ) then
                 cdr(n,j,i) = cdrn(n,j,i)*(d_one+24.5D0 * &
                                           dsqrt(-cdrn(n,j,i)*rib(n,j,i)))
                 sqrtf = dmin1(dsqrt(-cdrn(n,j,i)/rib(n,j,i)),11.5D0/12.25D0)
                 cdrd(n,j,i) = cdrn(n,j,i)*12.25D0* &
-                            wtl0(n,j,i)*rib1(n,j,i)*sigf(n,j,i)*sqrtf
+                            wtl0(n,j,i)*rib1*sigf(n,j,i)*sqrtf
               else
                 ribi = d_one/(d_one+11.5D0*rib(n,j,i))
                 cdr(n,j,i) = cdrn(n,j,i)*ribi
                 cdrd(n,j,i) = cdr(n,j,i)*ribi*11.5D0 * &
-                              rib1(n,j,i)*wtl0(n,j,i)*sigf(n,j,i)
+                              rib1*wtl0(n,j,i)*sigf(n,j,i)
                 cdrmin = dmax1(cdrn(n,j,i)*d_rfour,6.0D-4)
               end if
               if ( (rib(n,j,i) >= d_zero) ) then
@@ -753,7 +740,7 @@ module mod_bats_leaftemp
 !
 !     derivatives of energy fluxes with respect to leaf temperature for
 !     newton-raphson calculation of leaf temperature.
-!     input: rs,ra,cdrd,rppq,efe.    output: qsatld,dcd.
+!     input: rs,ra,cdrd,rppq,efe.    output: dcd.
 !
 !     approximate by derivatives of cdr and ef.  many weaker
 !     dependences on leaf temperature are omitted, as convergence
@@ -763,7 +750,7 @@ module mod_bats_leaftemp
 !
   subroutine deriv
     implicit none
-    real(rk8) :: dne , hfl , xkb
+    real(rk8) :: dne , hfl , xkb , qsatld
     integer(ik4) :: n , i , j
 !
     do i = ici1 , ici2
@@ -772,14 +759,14 @@ module mod_bats_leaftemp
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
               dne = d_one/(tlef(n,j,i)-lftb(n,j,i))
-              qsatld(n,j,i) = qsatl(n,j,i)*lfta(n,j,i) * &
+              qsatld = qsatl(n,j,i)*lfta(n,j,i) * &
                             (tzero-lftb(n,j,i))*dne**2
               xkb = cdrd(n,j,i)/cdr(n,j,i)
               hfl = df(n,j,i)*(wtga(n,j,i)*tlef(n,j,i) - &
                              wtg0(n,j,i)*tgrd(n,j,i)   - &
                              wta0(n,j,i)*sts(n,j,i))
               dcd(n,j,i) = cn1(n,j,i)*rppq(n,j,i)*wtgaq(n,j,i) *   &
-                         qsatld(n,j,i) + (d_one-wtgaq(n,j,i)) *   &
+                         qsatld + (d_one-wtgaq(n,j,i)) *   &
                          efe(n,j,i) * xkb + (d_one-wtga(n,j,i)) * hfl * xkb
               dcd(n,j,i) = dmax1(dcd(n,j,i),d_zero)
               dcd(n,j,i) = dmin1(dcd(n,j,i),500.0D0)
