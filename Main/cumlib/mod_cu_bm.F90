@@ -236,9 +236,7 @@ module mod_cu_bm
     !
     icumtop(:,:) = 0
     icumbot(:,:) = 0
-    if ( ichem == 1 ) then
-      convpr(:,:,:) = d_zero
-    end if
+    if ( ichem == 1 ) convpr(:,:,:) = d_zero
     total_precip_points = 0
     iconss = 0
     tauk = dt/trel

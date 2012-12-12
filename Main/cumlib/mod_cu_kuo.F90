@@ -100,9 +100,7 @@ module mod_cu_kuo
     !
     icumtop(:,:) = 0
     icumbot(:,:) = 0
-    if ( ichem == 1 ) then
-      convpr(:,:,:) = d_zero
-    end if
+    if ( ichem == 1 ) convpr(:,:,:) = d_zero
 !
 !   compute the moisture convergence in a column:
 !   at this stage, qxten(j,i,k,iqv) only includes horizontal advection.

@@ -130,6 +130,8 @@ module mod_cu_tiedtke
     total_precip_points = 0
     ilab(:,:) = 2
     cevapcu(:) = cevapu
+    q_detr(:,:,:) = d_zero
+    if ( ichem == 1 ) convpr(:,:,:) = d_zero
 
 !   evaporation coefficient for kuo0 
     if ( ichem == 1 ) then    

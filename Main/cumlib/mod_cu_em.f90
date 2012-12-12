@@ -68,6 +68,7 @@ module mod_cu_em
     total_precip_points = 0
     icumtop(:,:) = 0
     icumbot(:,:) = 0
+    if ( ichem == 1 ) convpr(:,:,:) = d_zero
 
     do i = ici1 , ici2
       do j = jci1 , jci2
