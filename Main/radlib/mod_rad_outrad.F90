@@ -145,10 +145,10 @@ module mod_rad_outrad
     if ( ktau == 0 ) return
 
     if ( ifchem .and. iaerosol == 1 ) then
-      call copy4d_mult(tauxar3d,opt_aext8_out,8,deltaz)
-      call copy4d_mult(tauasc3d,opt_assa8_out,8,deltaz)
-      call copy4d_mult(gtota3d,opt_agfu8_out,8,deltaz)
-      opt_aod_out = sum(opt_aext8_out,3)
+      call copy4d_div(tauxar3d,opt_aext8_out,8,deltaz)
+      call copy4d_div(tauasc3d,opt_assa8_out,8,deltaz)
+      call copy4d_div(gtota3d,opt_agfu8_out,8,deltaz)
+      call copy2d_integrate_from3(tauxar3d,opt_aod_out,8)
       call copy2d_add(aeradfo,opt_acstoarf_out)
       call copy2d_add(aeradfos,opt_acstsrrf_out)
       call copy2d_add(aerlwfo,opt_acstalrf_out)
@@ -194,6 +194,26 @@ module mod_rad_outrad
       end do
     end if
   end subroutine copy2d
+
+  subroutine copy2d_integrate_from3(a,b,l)
+    implicit none
+    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
+    real(rk8) , pointer , intent(out) , dimension(:,:) :: b
+    integer(ik4) , intent(in) :: l
+    integer(ik4) :: i , j , k , n
+    if ( associated(b) ) then
+      b(:,:) = d_zero
+      do k = 1 , kz
+        n = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            b(j,i) = b(j,i) + a(n,k,l)
+            n = n + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine copy2d_integrate_from3
 
   subroutine copy3d(a,b)
     implicit none

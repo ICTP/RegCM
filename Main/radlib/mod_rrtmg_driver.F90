@@ -678,6 +678,15 @@ module mod_rrtmg_driver
         ccl4vmr(n,k)  = d_zero 
       end do 
     end do
+    !
+    ! deltaz
+    !
+    do k = 1 , kz
+      do n = 1 , npr
+        deltaz(n,k) = rgas*tlay(n,k)*(plev(n,k) - &
+                      plev(n,k+1))/(egrav*play(n,k))
+      end do
+    end do
 
     ! cloud fraction and cloud liquid waterpath calculation:
     ! as in STANDARD SCHEME for now (getdat) : We need to improve this 
@@ -703,8 +712,6 @@ module mod_rrtmg_driver
           ! deltaz,clwp are on the right grid since plev and tlay are
           ! care pressure is on botom/toa grid
           !
-          deltaz(n,k) = rgas*tlay(n,k)*(plev(n,k) - &
-                         plev(n,k+1))/(egrav*play(n,k))
           clwp(n,k) = clwtem * deltaz(n,k)
           if ( dabs(cldf(n,k)) < lowcld ) then
             cldf(n,k) = d_zero

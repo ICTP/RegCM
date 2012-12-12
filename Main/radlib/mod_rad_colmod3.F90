@@ -738,6 +738,15 @@ module mod_rad_colmod3
     end do
     qm1(:,:) = h2ommr(:,:)
     !
+    ! deltaz
+    !
+    do k = 1 , kz
+      do n = 1 , npr
+        deltaz(n,k) = rgas*tm1(n,k)*(pintm1(n,k+1) - &
+                      pintm1(n,k))/(egrav*pmidm1(n,k))
+      end do
+    end do
+    !
     ! Fractional cloud cover (dependent on relative humidity)
     ! Set cloud
     !   - NOT on the topmost two layers
@@ -769,8 +778,6 @@ module mod_rad_colmod3
           ! Convert liquid water content into liquid water path, i.e.
           ! multiply b deltaz
           !
-          deltaz(n,k) = rgas*tm1(n,k)*(pintm1(n,k+1) - &
-                        pintm1(n,k))/(egrav*pmidm1(n,k))
           clwp(n,k) = cldlwc(j,i,k)*deltaz(n,k)
           if ( cldfra(j,i,k) < lowcld ) then
             clwp(n,k) = d_zero
