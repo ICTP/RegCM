@@ -51,7 +51,6 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:,:,:) :: cn1 , rgr , wta0 , wtaq0 ,   &
     wtg , wtg0 , wtg2 , wtga , wtgaq , wtgl , wtglq ,  wtgq ,   &
     wtgq0 , wtl0 , wtlh , wtlq , wtlq0 , wtshi , wtsqi , df
-  real(rk8) , pointer , dimension(:,:,:) :: ribl
   real(rk8) , pointer , dimension(:,:) :: usw , vsw
   integer(ik4) , pointer , dimension(:,:,:) :: lveg
 !
@@ -71,7 +70,7 @@ module mod_bats_internal
             zlgveg , zlgdis
   public :: cn1 , rgr , wta0 , wtaq0 , wtg , wtg0 , wtg2 , wtga , wtgaq , &
             wtgl , wtglq ,  wtgq , wtgq0 , wtl0 , wtlh , wtlq , wtlq0 ,   &
-            wtshi , wtsqi , df , ribl , usw , vsw
+            wtshi , wtsqi , df , usw , vsw
   public :: lveg
 
   public :: allocate_mod_bats_internal
@@ -201,7 +200,6 @@ module mod_bats_internal
     call getmem3d(zlgsno,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:zlgsno')
     call getmem3d(zlgveg,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:zlgveg')
     call getmem3d(zlgdis,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:zlgdis')
-    call getmem3d(ribl,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:ribl')
     call getmem3d(lveg,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:lveg')
 
     call getmem2d(usw,jci1,jci2,ici1,ici2,'bats_internal:usw')

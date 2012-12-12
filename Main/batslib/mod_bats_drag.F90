@@ -50,7 +50,7 @@ module mod_bats_drag
 ! 
   implicit none
 !
-  real(rk8) :: dthdz , u1 , ribn , zatild , cdrmin
+  real(rk8) :: dthdz , u1 , ribn , ribl , zatild , cdrmin
   integer(ik4) :: n , i , j
   !
   !=======================================================================
@@ -139,13 +139,13 @@ module mod_bats_drag
         if ( ldmsk1(n,j,i) == 2 ) then       !  check each point
           cdrn(n,j,i) = (vonkar/zlgsno(n,j,i))**2
           ! 4.1  drag coefficient over leads
-          ribl(n,j,i) = (d_one-271.5D0/sts(n,j,i))* &
+          ribl = (d_one-271.5D0/sts(n,j,i))* &
                         zh(n,j,i)*egrav/ribd(n,j,i)
-          if ( ribl(n,j,i) >= d_zero ) then
-            clead(n,j,i) = cdrn(n,j,i)/(d_one+11.5D0*ribl(n,j,i))
+          if ( ribl >= d_zero ) then
+            clead(n,j,i) = cdrn(n,j,i)/(d_one+11.5D0*ribl)
           else
             clead(n,j,i) = cdrn(n,j,i)*(d_one+24.5D0* &
-                         dsqrt(-cdrn(n,j,i)*ribl(n,j,i)))
+                         dsqrt(-cdrn(n,j,i)*ribl))
           end if
           ! 4.2  calculate weighted avg of ice and lead drag
           !      coefficients
