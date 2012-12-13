@@ -31,7 +31,7 @@ module mod_ncstream_types
   integer(ik4) , private , parameter :: maxunit = 36
   integer(ik4) , private , parameter :: maxattarr = 8
   integer(ik4) , private , parameter :: maxstring = 512
-  integer(ik4) , private , parameter :: maxpath = 256
+  integer(ik4) , private , parameter :: maxpath = maxstring
 
   integer(ik4) , parameter :: jx_dim          = 1
   integer(ik4) , parameter :: iy_dim          = 2
