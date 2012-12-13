@@ -540,6 +540,8 @@ module mod_cu_bm
 !     temperature reference profile below freezing level
 !
       l0 = lb
+      l0m1 = l0-1
+!
       pk0 = pk(lb)
       tprofbfl: &
       do l = ltpk , lbm1
@@ -562,8 +564,6 @@ module mod_cu_bm
           pk0 = pk(l0)
         end if
       end do tprofbfl
-!
-      l0m1 = l0-1
 !
 !     deep convection reference humidity profile
 !
