@@ -717,11 +717,8 @@ module mod_che_dust
       fsoil2(:,:) = d_zero
       fsoil3(:,:) = d_zero
 
-      if ( ichdustemd == 1 ) then
-        const = 0.4D0 * rdstemfac
-      else if (  ichdustemd == 2 ) then 
-        const = d_one * rdstemfac
-      end if 
+      ! emission constant is no fixed in the namelise via rdtemfac 
+      const = d_one * rdstemfac
  
       do nt = 1 , nats 
          do i = il1 , il2
