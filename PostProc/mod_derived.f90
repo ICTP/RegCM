@@ -158,12 +158,8 @@ module mod_derived
     do n = 1 , 20
       do j = 2 , jm-1
         do i = 2 , im-1
-          if ( ht(i,j) > 10.0 ) then
-            slp1(i,j) = &
-              ((slp1(i-1,j)+slp(i+1,j)+slp1(i,j-1)+slp(i,j+1))-psmask(i,j))/4.0
-          else
-            slp1(i,j) = slp(i,j)
-          end if
+          slp1(i,j) = &
+            ((slp1(i-1,j)+slp(i+1,j)+slp1(i,j-1)+slp(i,j+1))-psmask(i,j))/4.0
         end do
       end do
       slp(:,:) = slp1(:,:)
