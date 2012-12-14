@@ -72,7 +72,9 @@ module mod_derived
     real(rk4) , dimension(im,jm,kp) , intent(in) :: tp
     real(rk4) , dimension(im,jm) , intent(in) :: ps , topo
     real(rk4) , dimension(kp) , intent(in) :: plev
-    integer(ik4) :: i , j , k
+    real(rk4) , dimension(im,jm) :: psmask
+    real(rk4) , dimension(im,jm,kp) :: hp1
+    integer(ik4) :: i , j , k , n
     do k = 1 , kp
       do j = 1 , jm
         do i = 1 , im
@@ -84,6 +86,30 @@ module mod_derived
           end if
         end do
       end do
+    end do
+    ! Now apply Gauss-Seidel filtering
+    hp1(:,1,:) = hp(:,1,:)
+    hp1(1,:,:) = hp(1,:,:)
+    hp1(im,:,:) = hp(im,:,:)
+    hp1(:,jm,:) = hp(:,jm,:)
+    psmask(:,:) = 0.0
+    do j = 2 , jm-1
+      do i = 2 , im-1
+        psmask(i,j) = (0.001*ps(i-1,j)+0.001*ps(i+1,j) + &
+                       0.001*ps(i,j-1)+0.001*ps(i,j+1) - 0.004*ps(i,j))
+      end do
+    end do
+    do n = 1 , 20
+      do k = 1 , kp
+        do j = 2 , jm-1
+          do i = 2 , im-1
+            hp1(i,j,k) = &
+              ((hp1(i-1,j,k)+hp(i+1,j,k)+ &
+                hp1(i,j-1,k)+hp(i,j+1,k))-psmask(i,j))/4.0
+          end do
+        end do
+      end do
+      hp(:,:,:) = hp1(:,:,:)
     end do
   end subroutine calc_hgt
 !
@@ -97,8 +123,10 @@ module mod_derived
     real(rk4) , dimension(im,jm) , intent(in) :: ht , ps
     real(rk4) , dimension(im,jm) , intent(out) :: slp
     real(rk4) , dimension(kp) , intent(in) :: plev
-    integer(ik4) :: i , j
+    integer(ik4) :: i , j , n
     real(rk4) :: tstar , hstar , alpha , sraval
+    real(rk4) , dimension(im,jm) :: slp1
+    real(rk4) , dimension(im,jm) :: psmask
 !
     ! Follow Kallen 1996
     alpha = real(lrate*rgas/egrav)
@@ -114,6 +142,31 @@ module mod_derived
         sraval = 0.5*alpha*hstar
         slp(i,j) = ps(i,j) * exp(hstar*(1.0 - sraval + (sraval*sraval)/3.0))
       end do
+    end do
+    ! Now apply Gauss-Seidel filtering
+    slp1(:,1) = slp(:,1)
+    slp1(1,:) = slp(1,:)
+    slp1(im,:) = slp(im,:)
+    slp1(:,jm) = slp(:,jm)
+    psmask(:,:) = 0.0
+    do j = 2 , jm-1
+      do i = 2 , im-1
+        psmask(i,j) = (0.001*ps(i-1,j)+0.001*ps(i+1,j) + &
+                       0.001*ps(i,j-1)+0.001*ps(i,j+1) - 0.004*ps(i,j))
+      end do
+    end do
+    do n = 1 , 20
+      do j = 2 , jm-1
+        do i = 2 , im-1
+          if ( ht(i,j) > 10.0 ) then
+            slp1(i,j) = &
+              ((slp1(i-1,j)+slp(i+1,j)+slp1(i,j-1)+slp(i,j+1))-psmask(i,j))/4.0
+          else
+            slp1(i,j) = slp(i,j)
+          end if
+        end do
+      end do
+      slp(:,:) = slp1(:,:)
     end do
   end subroutine calc_mslpres
 !
