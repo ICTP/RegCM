@@ -37,7 +37,7 @@ module mod_derived
   real(rk4) , parameter :: srovg = real(rovg)
   real(rk4) , parameter :: slrate = real(lrate)
 
-  public :: calc_rh , calc_hgt , calc_slpres
+  public :: calc_rh , calc_hgt , calc_mslpres
 
   contains
 
@@ -78,7 +78,7 @@ module mod_derived
         do i = 1 , im
           if ( ps(i,j) < plev(k) ) then
             hp(i,j,k) = topo(i,j) - (tp(i,j,k)/slrate) * &
-                  (1.0-exp(-srovg*slrate*log(plev(k)/ps(i,j))))
+                  (1.0-exp(srovg*slrate*log(ps(i,j)/plev(k))))
           else
             hp(i,j,k) = topo(i,j) + srovg*tp(i,j,k)*log(ps(i,j)/plev(k))
           end if
@@ -90,24 +90,31 @@ module mod_derived
 ! Extrapolate surface air temperature, extrapolate pressure at SL with
 ! hydrostatic equation.
 !
-  subroutine calc_slpres(h,t,ps,ht,slp,plev,im,jm,kp)
+  subroutine calc_mslpres(t,ps,ht,slp,plev,im,jm,kp)
     implicit none
     integer(ik4) , intent(in) :: im , jm , kp
-    real(rk4) , dimension(im,jm,kp) , intent(in) :: t , h
+    real(rk4) , dimension(im,jm,kp) , intent(in) :: t
     real(rk4) , dimension(im,jm) , intent(in) :: ht , ps
     real(rk4) , dimension(im,jm) , intent(out) :: slp
     real(rk4) , dimension(kp) , intent(in) :: plev
     integer(ik4) :: i , j
-    real(rk4) :: tstar , saval , sraval
+    real(rk4) :: tstar , hstar , alpha , sraval
 !
-    saval = real(lrate*rgas/egrav)
-    sraval = real(egrav/(lrate*rgas))
+    ! Follow Kallen 1996
+    alpha = real(lrate*rgas/egrav)
     do j = 1 , jm
       do i = 1 , im
-        tstar = t(i,j,1) + saval*t(i,j,1)*(ps(j,i)/plev(1)-1.0)
-        slp(i,j) = ps(i,j) * ( 1.0 + (saval*ht(i,j))/(srgas*tstar) )**sraval
+        tstar = t(i,j,1)*(1.0 + alpha*(ps(i,j)/plev(1)-1.0))
+        if ( tstar < 255.0 ) then
+          tstar = (tstar+255.0)*0.5
+        else if ( tstar > 290.5 ) then
+          tstar = 290.5 + (0.005*(tstar-290.5))**2
+        end if
+        hstar = ht(i,j)*segrav/(srgas*tstar)
+        sraval = 0.5*alpha*hstar
+        slp(i,j) = ps(i,j) * exp(hstar*(1.0 - sraval + (sraval*sraval)/3.0))
       end do
     end do
-  end subroutine calc_slpres
+  end subroutine calc_mslpres
 !
 end module mod_derived

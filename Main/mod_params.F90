@@ -974,9 +974,7 @@ module mod_params
   rnsrf_for_subfrq = d_one/(dble(ksub)*rtsrf)
   rnsrf_for_day = d_one/(dble(kday)*rtsrf)
   rnrad_for_radfrq = d_one/(dble(krad)*rtrad)
-  if ( ifchem ) then
-    rnrad_for_chem = dble(ntrad)/dble(kche)
-  end if
+  rnrad_for_chem = dble(ntrad)/dble(kche)
 
   fdaysrf = real(secpd/dtsrf)
   rsrf_in_atm = dble(ntsrf)/dble(katm)

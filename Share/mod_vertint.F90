@@ -76,18 +76,18 @@ module mod_vertint
             sigp = p(n)/ps(i,j)
             k1 = 0
             do k = 1 , km
-              if ( sigp > sig(k) ) k1 = k
+              if ( sigp > sig(k) ) exit
+              k1 = k
             end do
-            if ( sigp <= sig(1) ) then
+            if ( k1 == 0 ) then
               fp(i,j,n) = f(i,j,1)
-            else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
+            else if ( k1 == km ) then
+              fp(i,j,n) = f(i,j,km)
+            else
               kp1 = k1 + 1
               wp = (sigp-sig(k1))/(sig(kp1)-sig(k1))
               w1 = 1. - wp
               fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
-            else if ( sigp >= sig(km) ) then
-              fp(i,j,n) = f(i,j,km)
-            else
             end if
           end do
         else
@@ -114,31 +114,48 @@ module mod_vertint
     intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
     intent (out) fp
 !
-    integer(ik4) :: i , j , k , k1 , kp1 , n
+    integer(ik4) :: i , j , k , kk , knext , k1 , k2 , kin , n
     real(rk8) :: sigp , w1 , wp
     !
     ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
     ! HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
     ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
     !
+    if ( sig(1) > sig(2) ) then
+      k1 = 1
+      k2 = km
+      kin = 1
+    else
+      k1 = km
+      k2 = 1
+      kin = -1
+    end if
     do j = 1 , jm
       do i = 1 , im
         do n = 1 , kp
           sigp = (p(n)-ptop)/(pstar(i,j)-ptop)
-          k1 = 0
-          do k = 1 , km
-            if ( sigp > sig(k) ) k1 = k
+          kk = 0
+          do k = k1 , k2 , kin
+            if ( sigp > sig(k) ) exit
+            kk = k
           end do
-          if ( sigp <= sig(1) ) then
-            fp(i,j,n) = f(i,j,1)
-          else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
-            kp1 = k1 + 1
-            wp = (sigp-sig(k1))/(sig(kp1)-sig(k1))
-            w1 = 1. - wp
-            fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
-          else if ( sigp >= sig(km) ) then
-            fp(i,j,n) = f(i,j,km)
+          if ( kk == 0 ) then
+            if ( kin > 0 ) then
+              fp(i,j,n) = f(i,j,1)
+            else
+              fp(i,j,n) = f(i,j,km)
+            end if
+          else if ( kk == km ) then
+            if ( kin > 0 ) then
+              fp(i,j,n) = f(i,j,km)
+            else
+              fp(i,j,n) = f(i,j,1)
+            end if
           else
+            knext = kk + kin
+            wp = (sigp-sig(kk))/(sig(knext)-sig(kk))
+            w1 = 1. - wp
+            fp(i,j,n) = w1*f(i,j,kk) + wp*f(i,j,knext)
           end if
         end do
       end do
@@ -158,7 +175,8 @@ module mod_vertint
     intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
     intent (out) fp
 !
-    integer(ik4) :: i , j , k , k1 , kp1 , n
+    logical :: positive_up , positive_down
+    integer(ik4) :: i , j , k , kk , knext , kin , n
     real(rk4) :: sigp , w1 , wp , pt
     !
     ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
@@ -166,24 +184,32 @@ module mod_vertint
     ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
     !
     pt = real(ptop)
+    positive_up = .false.
+    if ( sig(1) > sig(2) ) then
+      positive_up = .true.
+    end if
+    positive_down = .not. positive_up
+    kin = 1
+    if ( positive_up ) kin = -kin
     do j = 1 , jm
       do i = 1 , im
         do n = 1 , kp
           sigp = (p(n)-pt)/(pstar(i,j)-pt)
-          k1 = 0
+          kk = 0
           do k = 1 , km
-            if ( sigp > sig(k) ) k1 = k
+            if ( ( positive_up   .and. sigp > sig(k) ) .or. &
+                 ( positive_down .and. sigp < sig(k) ) ) exit
+            kk = k
           end do
-          if ( sigp <= sig(1) ) then
+          if ( kk == 0 ) then
             fp(i,j,n) = f(i,j,1)
-          else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
-            kp1 = k1 + 1
-            wp = (sigp-sig(k1))/(sig(kp1)-sig(k1))
-            w1 = 1. - wp
-            fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
-          else if ( sigp >= sig(km) ) then
+          else if ( kk == km ) then
             fp(i,j,n) = f(i,j,km)
           else
+            knext = kk + kin
+            wp = (sigp-sig(kk))/(sig(knext)-sig(kk))
+            w1 = 1. - wp
+            fp(i,j,n) = w1*f(i,j,kk) + wp*f(i,j,knext)
           end if
         end do
       end do
@@ -278,21 +304,24 @@ module mod_vertint
           end do
           do n = 1 , kp
             sigp = p(n)/ps(i,j)
+            if ( sigp > d_one ) then
+              fp(i,j,n) = f(i,j,kbc)*dexp(rglrog*dlog(sigp/sig(kbc)))
+              cycle
+            end if
             k1 = 0
             do k = 1 , km
-              if ( sigp > sig(k) ) k1 = k
+              if ( sigp > sig(k) ) exit
+              k1 = k
             end do
-            if ( sigp <= sig(1) ) then
+            if ( k1 == 0 ) then
               fp(i,j,n) = f(i,j,1)
-            else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
+            else if ( k1 == km ) then
+              fp(i,j,n) = f(i,j,km)
+            else
               kp1 = k1 + 1
               wp = dlog(sigp/sig(k1))/dlog(sig(kp1)/sig(k1))
               w1 = d_one - wp
               fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
-            else if ( (sigp >= sig(km)) .and. (sigp <= d_one) ) then
-              fp(i,j,n) = f(i,j,km)
-            else if ( sigp > d_one ) then
-              fp(i,j,n) = f(i,j,kbc)*dexp(rglrog*dlog(sigp/sig(kbc)))
             end if
           end do
         else
@@ -320,7 +349,8 @@ module mod_vertint
     intent (out) fp
 !
     real(rk8) :: sigp , w1 , wp
-    integer(ik4) :: i , j , k , k1 , kp1 , kbc , n
+    logical :: positive_up , positive_down
+    integer(ik4) :: i , j , k , kk , knext , kbc , kin , n
     !
     ! INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
     ! LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
@@ -330,30 +360,43 @@ module mod_vertint
     ! THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
     ! TWO EXTREME TEMPERATURES IN THE LAYER.
     !
+    positive_up = .false.
+    if ( sig(1) > sig(2) ) then
+      positive_up = .true.
+    end if
+    positive_down = .not. positive_up
+    kin = 1
+    if ( positive_up ) kin = -kin
     kbc = 1
     do k = 1 , km
-      if ( sig(k) < bltop ) kbc = k
+      if ( ( positive_up   .and. sig(k) < bltop) .or. &
+           ( positive_down .and. sig(k) > bltop) ) then
+        kbc = k
+      end if
     end do
     do j = 1 , jm
       do i = 1 , im
         do n = 1 , kp
           sigp = (p(n)-ptop)/(pstar(i,j)-ptop)
-          k1 = 0
-          do k = 1 , km
-            if ( sigp > sig(k) ) k1 = k
-          end do
-          if ( sigp <= sig(1) ) then
-            fp(i,j,n) = f(i,j,1)
-          else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
-            kp1 = k1 + 1
-            wp = dlog(sigp/sig(k1))/dlog(sig(kp1)/sig(k1))
-            w1 = d_one - wp
-            fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
-          else if ( (sigp >= sig(km)) .and. (sigp <= d_one) ) then
-            fp(i,j,n) = f(i,j,km)
-          else if ( sigp > d_one ) then
+          if ( sigp > d_one ) then
             fp(i,j,n) = f(i,j,kbc)*dexp(rglrog*dlog(sigp/sig(kbc)))
+            cycle
+          end if
+          kk = 0
+          do k = 1 , km
+            if ( ( positive_up   .and. sigp > sig(k) ) .or. &
+                 ( positive_down .and. sigp < sig(k) ) ) exit
+            kk = k
+          end do
+          if ( kk == 0 ) then
+            fp(i,j,n) = f(i,j,1)
+          else if ( kk == km ) then
+            fp(i,j,n) = f(i,j,km)
           else
+            knext = kk + kin
+            wp = dlog(sigp/sig(kk))/dlog(sig(knext)/sig(kk))
+            w1 = d_one - wp
+            fp(i,j,n) = w1*f(i,j,kk) + wp*f(i,j,knext)
           end if
         end do
       end do
@@ -374,7 +417,8 @@ module mod_vertint
     intent (out) fp
 !
     real(rk4) :: sigp , w1 , wp , pt
-    integer(ik4) :: i , j , k , k1 , kp1 , kbc , n
+    logical :: positive_up , positive_down
+    integer(ik4) :: i , j , k , kk , knext , kbc , kin , n
     !
     ! INTLOG IS FOR VERTICAL INTERPOLATION OF T.  THE INTERPOLATION IS
     ! LINEAR IN LOG P.  WHERE EXTRAPOLATION UPWARD IS NECESSARY,
@@ -385,30 +429,43 @@ module mod_vertint
     ! TWO EXTREME TEMPERATURES IN THE LAYER.
     !
     pt = real(ptop)
+    positive_up = .false.
+    if ( sig(1) > sig(2) ) then
+      positive_up = .true.
+    end if
+    positive_down = .not. positive_up
+    kin = 1
+    if ( positive_up ) kin = -kin
     kbc = 1
     do k = 1 , km
-      if ( sig(k) < bltop ) kbc = k
+      if ( ( positive_up   .and. sig(k) < bltop) .or. &
+           ( positive_down .and. sig(k) > bltop) ) then
+        kbc = k
+      end if
     end do
     do j = 1 , jm
       do i = 1 , im
         do n = 1 , kp
           sigp = (p(n)-pt)/(pstar(i,j)-pt)
-          k1 = 0
-          do k = 1 , km
-            if ( sigp > sig(k) ) k1 = k
-          end do
-          if ( sigp <= sig(1) ) then
-            fp(i,j,n) = f(i,j,1)
-          else if ( (sigp > sig(1)) .and. (sigp < sig(km)) ) then
-            kp1 = k1 + 1
-            wp = log(sigp/sig(k1))/log(sig(kp1)/sig(k1))
-            w1 = 1.0 - wp
-            fp(i,j,n) = w1*f(i,j,k1) + wp*f(i,j,kp1)
-          else if ( (sigp >= sig(km)) .and. (sigp <= 1.0) ) then
-            fp(i,j,n) = f(i,j,km)
-          else if ( sigp > 1.0 ) then
+          if ( sigp > d_one ) then
             fp(i,j,n) = f(i,j,kbc)*exp(real(rglrog)*log(sigp/sig(kbc)))
+            cycle
+          end if
+          kk = 0
+          do k = 1 , km
+            if ( ( positive_up   .and. sigp > sig(k) ) .or. &
+                 ( positive_down .and. sigp < sig(k) ) ) exit
+            kk = k
+          end do
+          if ( kk == 0 ) then
+            fp(i,j,n) = f(i,j,1)
+          else if ( kk == km ) then
+            fp(i,j,n) = f(i,j,km)
           else
+            knext = kk + kin
+            wp = log(sigp/sig(kk))/log(sig(knext)/sig(kk))
+            w1 = 1.0 - wp
+            fp(i,j,n) = w1*f(i,j,kk) + wp*f(i,j,knext)
           end if
         end do
       end do

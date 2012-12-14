@@ -1364,16 +1364,14 @@ module mod_ncout
 
         if ( enable_che2d_vars(che_wdrflx) ) then
           call setup_var(v2dvar_che(che_wdrflx),vsize,'wdrflx', &
-            'mg m-2 day-1','Wet deposition flux due to large scale rain', &
-            'wet_deposition_flux_from_large_scale_precipitation', &
-            .true.,'time: mean')
+            'mg m-2 day-1','Wet deposition flux due to rainout', &
+            'wet_deposition_flux_from_rainout',.true.,'time: mean')
           che_wdrflx_out => v2dvar_che(che_wdrflx)%rval
         end if
         if ( enable_che2d_vars(che_wdcflx) ) then
-          call setup_var(v2dvar_che(che_wdcflx),vsize,'wdcflx', &
-            'mg m-2 day-1','Wet deposition flux due to convective rain', &
-            'wet_deposition_flux_from_convective_precipitation', &
-            .true.,'time: mean')
+          call setup_var(v2dvar_che(che_wdcflx),vsize,'wdwflx', &
+            'mg m-2 day-1','Wet deposition flux due to washout', &
+            'wet_deposition_flux_from_washout',.true.,'time: mean')
           che_wdcflx_out => v2dvar_che(che_wdcflx)%rval
         end if
         if ( enable_che2d_vars(che_ddflx) ) then

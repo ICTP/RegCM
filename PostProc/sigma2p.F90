@@ -223,12 +223,12 @@ program sigma2p
       psdimids = dimids(1:3)
     else if (varname == 'topo') then
       ishvarid = i
-    else if (varname == 'ta') then
+    else if (varname == 'ta' .or. varname == 't') then
       has_t = .true.
       intscheme(i) = 2
       tvarid = i
       tdimids = dimids(1:4)
-    else if (varname == 'qas') then
+    else if (varname == 'qas' .or. varname == 'qv') then
       has_q = .true.
       qvarid = i
     else if (varname == 'chtrname') then
@@ -538,7 +538,7 @@ program sigma2p
       icount(iv-1) = np
       istatus = nf90_put_var(ncout, ihgvar, hapvar, istart(1:iv), icount(1:iv))
       call checkncerr(istatus,__FILE__,__LINE__,'Error writing hgt variable.')
-      call calc_slpres(hapvar,tapvar,ps,topo,mslp,plevs,jx,iy,np)
+      call calc_mslpres(tapvar,ps,topo,mslp,plevs,jx,iy,np)
       iv = 3
       istart(iv) = it
       icount(iv) = 1

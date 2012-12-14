@@ -69,12 +69,14 @@ module mod_output
         xlat_out = mddom%xlat(jci1:jci2,ici1:ici2)
         mask_out = mddom%mask(jci1:jci2,ici1:ici2)
         topo_out = mddom%ht(jci1:jci2,ici1:ici2)
+        topo_out = topo_out*regrav
       end if
       if ( associated(sub_xlon_out) ) then
         call reorder_subgrid(xlon1,sub_xlon_out)
         call reorder_subgrid(xlat1,sub_xlat_out)
         call reorder_subgrid(mask1,sub_mask_out)
         call reorder_subgrid(ht1,sub_topo_out)
+        sub_topo_out = topo_out*regrav
       end if
       call newoutfiles(idatex)
 

@@ -705,8 +705,9 @@ module mod_che_dust
       real(rk8), dimension(ilg,nbin,nats):: rsfrowt
       !
       ! Put const consistent with soil parameters and Laurent et al., 08
-      ! basically this const is a tuning parameter / now set through rdstemfac (chem nameliste) 
-      !data const /d_one/
+      ! basically this const is a tuning parameter 
+      ! now set through rdstemfac (chem namelist) 
+      ! data const /d_one/
       data beta  /16300.0D0/
   
       p1 = d_zero
@@ -717,7 +718,8 @@ module mod_che_dust
       fsoil2(:,:) = d_zero
       fsoil3(:,:) = d_zero
 
-      ! emission constant is no fixed in the namelise via rdtemfac 
+      ! emission constant is now fixed in the namelist via rdtemfac 
+
       const = d_one * rdstemfac
  
       do nt = 1 , nats 
