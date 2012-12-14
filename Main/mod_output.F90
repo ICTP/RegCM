@@ -353,13 +353,13 @@ module mod_output
       if ( ldoche ) then
         ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         if ( associated(opt_acstoarf_out) ) &
-          opt_acstoarf_out = opt_acstoarf_out * rnrad_for_chem
+          opt_acstoarf_out = (opt_acstoarf_out * rnrad_for_chem) * d_r1000
         if ( associated(opt_acstsrrf_out) ) &
-          opt_acstsrrf_out = opt_acstsrrf_out * rnrad_for_chem
+          opt_acstsrrf_out = (opt_acstsrrf_out * rnrad_for_chem) * d_r1000
         if ( associated(opt_acstalrf_out) ) &
-          opt_acstalrf_out = opt_acstalrf_out * rnrad_for_chem
+          opt_acstalrf_out = (opt_acstalrf_out * rnrad_for_chem) * d_r1000
         if ( associated(opt_acssrlrf_out) ) &
-          opt_acssrlrf_out = opt_acssrlrf_out * rnrad_for_chem
+          opt_acssrlrf_out = (opt_acssrlrf_out * rnrad_for_chem) * d_r1000
         call write_record_output_stream(opt_stream,idatex)
         if ( myid == italk ) &
           write(stdout,*) 'OPT variables written at ' , tochar(idatex)
