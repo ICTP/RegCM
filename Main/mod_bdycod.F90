@@ -33,6 +33,7 @@ module mod_bdycod
   use mod_ncio
   use mod_mppio
   use mod_service
+  use mod_slabocean
 !
   private
 !
@@ -442,7 +443,7 @@ module mod_bdycod
     !
     do i = ici1 , ici2
       do j = jci1 , jci2
-        if ( iswater(mddom%lndcat(j,i)) ) then
+        if ( iswater(mddom%lndcat(j,i)) .and. islab_ocean == 0 ) then
           if ( idcsst == 1 ) then
             sst(j,i) = ts1(j,i)
             sfs%tga(j,i) = sst(j,i) + dtskin(j,i)

@@ -28,6 +28,7 @@ module mod_mppio
   use mod_mppparam
   use mod_memutil
   use mod_mpmessage
+  use mod_slabocean
 !
   integer(ik4) , pointer , dimension(:,:,:) :: ldmsk1_io
   integer(ik4) , pointer , dimension(:,:,:) :: iveg1_io
@@ -60,6 +61,9 @@ module mod_mppio
   real(rk8) , pointer , dimension(:,:) :: dtskin_io
   real(rk8) , pointer , dimension(:,:) :: tdeltas_io
   real(rk8) , pointer , dimension(:,:) :: deltas_io
+
+  real(rk8), pointer , dimension(:,:) :: qflux_slaboc_io
+   
 
   integer(ik4) , pointer , dimension(:,:) :: kpbl_io
   real(rk8) , pointer , dimension(:,:) :: zpbl_io
@@ -151,6 +155,11 @@ module mod_mppio
         call getmem2d(deltas_io,jcross1,jcross2,icross1,icross2,'deltas_io')
         call getmem2d(tdeltas_io,jcross1,jcross2,icross1,icross2,'tdeltas_io')
       end if
+
+      if (islab_ocean == 1 ) then 
+        call getmem2d(qflux_slaboc_io,jcross1,jcross2,icross1,icross2,'qflux_slaboc_io')
+      end if 
+
 
       call getmem2d(cbmf2d_io,jcross1,jcross2,icross1,icross2,'cbmf2d_io')
       call getmem3d(fcc_io,jcross1,jcross2,icross1,icross2,1,kz,'fcc_io')

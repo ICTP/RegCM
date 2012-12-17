@@ -40,6 +40,7 @@ module mod_params
   use mod_ncout
   use mod_advection , only : init_advection
   use mod_mppio
+  use mod_slabocean
 #ifdef CLM
   use mod_clm
   use clm_varsur , only : landmask
@@ -100,7 +101,7 @@ module mod_params
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocncpl , iocnrough ,     &
     ichem , scenario , idcsst , iseaice , idesseas , iconvlwp ,     &
-    irrtm , iclimao3 , isolconst , icumcloud
+    irrtm , iclimao3 , isolconst , icumcloud, islab_ocean
 
   namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
     iceflglw , liqflglw , icld , irng , idrv
@@ -135,6 +136,9 @@ module mod_params
 #endif
 
   namelist /cplparam/ cpldt, cpldbglevel
+
+
+  namelist /slabocparam/ do_qflux_adj, do_restore_sst, sst_restore_timescale, mixed_layer_depth
 !
 #ifdef DEBUG
   call time_begin(subroutine_name,idindx)
@@ -308,6 +312,7 @@ module mod_params
   idesseas = 1
   iconvlwp = 1
   irrtm = 0
+  islab_ocean = 0
   iclimao3 = 0
   isolconst = 1
   icumcloud = 1
@@ -415,6 +420,13 @@ module mod_params
   ilenparam = 0
   atwo = 15.0D0
   rstbl = 1.5D0
+
+!c-----namelist slabocparam ;
+
+  mixed_layer_depth = 50.
+  sst_restore_timescale   =  5.0 !days
+  do_restore_sst   = .true.
+  do_qflux_adj     = .false. 
 
 !c------namelist chemparam ; ( 0= none, 1= activated)
   ichsolver = 1     ! enable chem solver
@@ -542,6 +554,19 @@ module mod_params
       write(stdout,*) 'Read rrtmparam OK'
 #endif
     end if
+
+    if ( islab_ocean == 1 ) then
+      read (ipunit, slabocparam)
+            if ( do_qflux_adj.eqv. do_restore_sst) then 
+       write (stderr,*) 'do_qflux_adj =' , do_qflux_adj
+       write (stderr,*) 'do_restore_sst =' , do_restore_sst
+      call fatal(__FILE__,__LINE__,'THESE OPTION CANNOT BE EQUAL, DO RETSORE SST RUN FIRST AND THEN ADJUST SST RUN !!')
+      end if
+#ifdef DEBUG
+      write(stdout,*) 'Read slabocparam OK'
+#endif
+    end if
+
     if ( ichem == 1 ) then
       read (ipunit, chemparam)
 #ifdef DEBUG
@@ -676,7 +701,7 @@ module mod_params
   call bcast(iclimao3)
   call bcast(isolconst)
   call bcast(icumcloud)
-
+  call bcast(islab_ocean)
   if ( idcsst == 1 .and. iocnflx /= 2 ) then
     if ( myid == italk ) then
       write(stderr,*) 'Cannot enable diurnal cycle sst without Zheng ocean flux'
@@ -801,6 +826,16 @@ module mod_params
     call bcast(rstbl)
   end if
 
+
+  if ( islab_ocean==1 ) then
+    call bcast(do_qflux_adj)
+    call bcast(do_restore_sst)
+    call bcast(sst_restore_timescale)
+    call bcast(mixed_layer_depth)
+  end if
+
+
+
   if ( ichem == 1 ) then
     call bcast(chemsimtype,8)
     call bcast(ichremlsc)
@@ -871,6 +906,9 @@ module mod_params
   call allocate_mod_che_mppio
   call allocate_mod_che_dust
   call allocate_mod_che_bdyco
+
+
+  call allocate_mod_slabocean
 !
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -920,6 +958,7 @@ module mod_params
       write (stderr,*) 'CHEMFRQ=' ,chemfrq
       call fatal(__FILE__,__LINE__,'CHEMFRQ CANNOT BE ZERO')
     end if
+
   end if
 !
   if ( ifrest ) then
@@ -1090,6 +1129,9 @@ module mod_params
 #ifdef CLM
   call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
 #endif
+
+  call init_slabocean(sfs,ldmsk,fsw,flw)
+
 !
   if ( myid == italk ) then
     if ( ifrest .and. idate0 == idate1 ) then

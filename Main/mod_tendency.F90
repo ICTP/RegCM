@@ -40,6 +40,7 @@ module mod_tendency
   use mod_mppio
   use mod_domain
   use mod_cloud_s1
+  use mod_slabocean
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
@@ -682,6 +683,8 @@ module mod_tendency
     !
     if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
       call mtrxbats(ktau)
+
+      if(islab_ocean ==1 ) call  update_slabocean
     end if
 #else
     !
