@@ -144,6 +144,8 @@ module mod_ncout
   logical , public , dimension(nradvars) :: enable_rad_vars
   logical , public , dimension(noptvars) :: enable_opt_vars
   logical , public , dimension(nchevars) :: enable_che_vars
+ 
+
 
   integer(ik4) , parameter :: atm_xlon  = 1
   integer(ik4) , parameter :: atm_xlat  = 2
@@ -381,7 +383,7 @@ module mod_ncout
         opt_stream = nstream
       end if
     end if
-
+    
     maxstreams = nstream
     allocate(outstream(maxstreams))
 
