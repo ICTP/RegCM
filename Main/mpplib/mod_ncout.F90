@@ -82,6 +82,10 @@ module mod_ncout
   integer(ik4) , parameter :: nche3dvars = 11
   integer(ik4) , parameter :: nchevars = nche2dvars+nche3dvars
 
+  integer(ik4) , parameter :: nslabocvars = 1 + nbase
+
+
+
   type(ncvariable2d_real) , save , pointer , &
     dimension(:) :: v2dvar_atm => null()
   type(ncvariable3d_real) , save , pointer , &
@@ -127,6 +131,8 @@ module mod_ncout
   integer(ik4) , public :: sts_stream = -1
   integer(ik4) , public :: opt_stream = -1
   integer(ik4) , public :: che_stream = -1
+  integer(ik4) , public :: slaboc_stream = -1
+  
 !
   type(regcm_stream) , pointer , save , dimension(:) :: outstream
 
@@ -308,6 +314,9 @@ module mod_ncout
   integer(ik4) , parameter :: che_wasten   = 9
   integer(ik4) , parameter :: che_bdyten   = 10
   integer(ik4) , parameter :: che_sedten   = 11
+
+  integer(ik4) , parameter :: slab_qflx   = 1
+
 
   real(rk8) , pointer , dimension(:,:) :: io2d , io2dsg
   real(rk8) , pointer , dimension(:,:,:) :: io3d , io3dsg
@@ -1247,6 +1256,13 @@ module mod_ncout
         outstream(lak_stream)%ig1 = iout1
         outstream(lak_stream)%ig2 = iout2
       end if
+
+     if ( nstream == slaboc_stream ) then
+
+
+     end if
+
+
 
       if ( nstream == opt_stream ) then
 
