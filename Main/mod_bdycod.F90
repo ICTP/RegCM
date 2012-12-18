@@ -227,6 +227,7 @@ module mod_bdycod
           call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
         end if
         call read_som(qflb0)
+        where ( ldmsk > 0 ) qflb0 = d_zero
       end if
     end if
 
@@ -265,7 +266,7 @@ module mod_bdycod
         call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
       end if
       call read_som(qflb1)
-      print *, qflb1
+      where ( ldmsk > 0 ) qflb1 = d_zero
       qflbt = (qflb1-qflb0)/dtbdys
     end if
 
@@ -421,6 +422,7 @@ module mod_bdycod
         end if
       end if
       call read_som(qflb1)
+      where ( ldmsk > 0 ) qflb1 = d_zero
       qflbt = (qflb1-qflb0)/dtbdys
     end if
     !

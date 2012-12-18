@@ -277,7 +277,7 @@ module mod_mppparam
   public :: grid_distribute , grid_collect , grid_fill
   public :: subgrid_distribute , subgrid_collect
   public :: uvcross2dot , psc2psd
-  public :: bcast , sumall
+  public :: bcast , sumall , maxall
   public :: gather_r , gather_i
   public :: reorder_subgrid , reorder_add_subgrid
   public :: input_reorder
@@ -435,6 +435,16 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
   end subroutine sumall_real8
+
+  subroutine maxall(rlval,rtval)
+    implicit none
+    real(rk8) , intent(in) :: rlval
+    real(rk8) , intent(out) :: rtval
+    call mpi_reduce(rlval,rtval,1,mpi_real8,mpi_max,iocpu,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    end if
+  end subroutine maxall
 
   subroutine sumall_int4(ilval,itval)
     implicit none

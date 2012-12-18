@@ -39,7 +39,7 @@ module mod_slabocean
     net_hflx , hflx , qflb0 , qflb1 , qflbt
   integer(ik4) , pointer , dimension (:,:) :: ocmask
 
-  integer(ik8) :: dtocean
+  real(rk8) :: dtocean
 !
   public :: allocate_mod_slabocean , init_slabocean , update_slabocean
   public :: fill_slaboc_outvars
@@ -79,6 +79,10 @@ module mod_slabocean
       implicit none
       ! mlcp is the heat capacity of the mixed layer [J / m3 / deg C] * m
       real(rk8) :: mlcp
+#ifdef DEBUG
+      integer(ik4) :: i
+      real(rk8) , dimension(5) :: pval , pval1
+#endif
       ! water heat capacity ~ 4 J/g/K         
       mlcp = mixed_layer_depth*4.0D6
 
@@ -108,8 +112,23 @@ module mod_slabocean
       ! energy budget in the mixed layer including the q flux therm
       !
 #ifdef DEBUG
-      write(stdout,*) 'HE : ', maxval(ofsw), maxval(oflw), maxval(ohfx) , &
-        maxval(2.26D6 * oqfx), maxval(qflux_restore_sst)
+      if ( mod(ktau+1,krep) == 0 ) then
+        pval(1) = maxval(ofsw)
+        pval(2) = maxval(oflw)
+        pval(3) = maxval(ohfx)
+        pval(4) = maxval(2.26D6*oqfx)
+        pval(5) = maxval(qflux_adj)
+        do i = 1 , size(pval)
+          call maxall(pval(i),pval1(i))
+        end do
+        if ( myid == italk ) then
+          write(stdout,'(a,f12.5)') ' $$$ SLAB :  max fsw = ', pval1(1)
+          write(stdout,'(a,f12.5)') ' $$$         max flw = ', pval1(2)
+          write(stdout,'(a,f12.5)') ' $$$         max hfx = ', pval1(3)
+          write(stdout,'(a,f12.5)') ' $$$         max qfx = ', pval1(4)
+          write(stdout,'(a,f12.5)') ' $$$         max adj = ', pval1(5)
+        end if
+      end if
 #endif
 
       where ( ocmask == 0 )

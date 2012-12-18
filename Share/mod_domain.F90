@@ -180,12 +180,12 @@ module mod_domain
     istatus = nf90_inquire_dimension(ncid, idimid, len=jxx)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension JX')
     jcheck = jx
-    if ( lb ) jcheck = jcheck - 2
+    if ( lb ) jcheck = jcheck - 3
     if ( jcheck /= jxx ) then
       write(stderr,*) 'DOMAIN FILE : ', jxx
       write(stderr,*) 'NAMELIST    : ', jx
       if ( lb ) then
-        call die('Mismatch: JX+2 in DOMAIN file /= JX in namelist')
+        call die('Mismatch: JX+3 in DOMAIN file /= JX in namelist')
       else
         call die('Mismatch: JX in DOMAIN file /= JX in namelist')
       end if
@@ -195,12 +195,12 @@ module mod_domain
     istatus = nf90_inquire_dimension(ncid, idimid, len=iyy)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension IY')
     icheck = iy
-    if ( lb ) icheck = icheck - 2
+    if ( lb ) icheck = icheck - 3
     if ( icheck /= iyy ) then
       write(stderr,*) 'DOMAIN FILE : ', iyy
       write(stderr,*) 'NAMELIST    : ', iy
       if ( lb ) then
-        call die('Mismatch: IY+2 in DOMAIN file /= IY in namelist')
+        call die('Mismatch: IY+3 in DOMAIN file /= IY in namelist')
       else
         call die('Mismatch: IY in DOMAIN file /= IY in namelist')
       end if
