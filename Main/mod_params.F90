@@ -93,7 +93,7 @@ module mod_params
  
   namelist /outparam/ ifsave , ifatm , ifrad , ifsrf , ifsub , iflak , &
     ifsts , ifchem , ifopt , savfrq , atmfrq , srffrq , subfrq ,       &
-    lakfrq , radfrq , chemfrq , slabfrq , enable_atm_vars ,            &
+    lakfrq , radfrq , chemfrq , enable_atm_vars ,                      &
     enable_srf_vars , enable_rad_vars , enable_sub_vars ,              &
     enable_sts_vars , enable_lak_vars , enable_opt_vars ,              &
     enable_che_vars , dirout , lsync , do_parallel_netcdf_io
@@ -279,7 +279,6 @@ module mod_params
   lakfrq  = 6.0D0   ! time interval for disposing lake output (hrs)
   subfrq  = 6.0D0   ! time interval for disposing lake output (hrs)
   chemfrq = 6.0D0   ! time interval for disposing chem output (hrs)
-  slabfrq = 6.0D0   ! time interval for disposing slab ocean input (hrs)
   enable_atm_vars(:) = .true.
   enable_srf_vars(:) = .true.
   enable_sts_vars(:) = .true.
@@ -624,7 +623,6 @@ module mod_params
   call bcast(lakfrq)
   call bcast(subfrq)
   call bcast(chemfrq)
-  call bcast(slabfrq)
   call bcast(lsync)
 #ifdef NETCDF4_HDF5
   call bcast(do_parallel_netcdf_io)
@@ -987,7 +985,7 @@ module mod_params
   nlakfrq = idnint(secph*lakfrq)
   nsubfrq = idnint(secph*subfrq)
   nchefrq = idnint(secph*chemfrq)
-  nslabfrq = idnint(secph*slabfrq)
+  nslabfrq = idnint(dtbdys)
   nbdyfrq = idnint(dtbdys)
 
   ntsrf = idnint(dtsrf/dtsec)

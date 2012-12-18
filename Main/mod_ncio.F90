@@ -211,7 +211,7 @@ module mod_ncio
       som_search = -1
     else
       tdif = idate-som_idate(1)
-      somrec = idnint((tohours(tdif))/slabfrq)+1
+      somrec = (idnint(tohours(tdif))/ibdyfrq)+1
       if ( somrec < 1 .or. somrec > somnrec ) then
         appdat1 = tochar(idate)
         write (stderr,*) 'Record is not found in SOM file for ',appdat1
@@ -341,6 +341,15 @@ module mod_ncio
     do i = 1 , somnrec
       som_idate(i) = timeval2date(som_nctime(i), som_timeunits, som_timecal)
     end do
+    if ( somnrec > 1 ) then
+      chkdiff = idnint(som_nctime(2) - som_nctime(1))
+      if (chkdiff /= ibdyfrq) then
+        write (stderr,*) 'Time var in SOM inconsistency.'
+        write (stderr,*) 'Expecting ibdyfrq = ', ibdyfrq
+        write (stderr,*) 'Found     ibdyfrq = ', chkdiff
+        call fatal(__FILE__,__LINE__,'SOM READ')
+      end if
+    end if
     deallocate(som_nctime)
     istatus = nf90_inq_varid(ibcin, 'qflx', som_ivar(1))
     call check_ok(__FILE__,__LINE__,'variable qflx miss', 'SOM FILE')

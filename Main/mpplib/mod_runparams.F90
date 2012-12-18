@@ -268,7 +268,6 @@ module mod_runparams
   ! TK mod; restoring time scale for SST in days
   real(rk8) :: sst_restore_timescale 
   real(rk8) :: mixed_layer_depth 
-  real(rk8) :: slabfrq 
 
   ! CLM options
 #ifdef CLM
