@@ -34,17 +34,25 @@ module mod_ncio
   public :: ivarname_lookup
   public :: read_domain_info , read_subdomain_info
   public :: open_icbc , icbc_search , read_icbc , close_icbc
+  public :: open_som , som_search , read_som , close_som
 !
-  integer(ik4) :: ibcin
+  integer(ik4) :: ibcin , somin
   integer(ik4) :: istatus
   integer(ik4) :: ibcrec , ibcnrec
+  integer(ik4) :: somrec , somnrec
   type(rcm_time_and_date) , dimension(:) , allocatable :: icbc_idate
+  type(rcm_time_and_date) , dimension(:) , allocatable :: som_idate
   integer(ik4) , dimension(7) :: icbc_ivar
+  integer(ik4) , dimension(1) :: som_ivar
 
   data ibcin   /-1/
   data ibcrec  / 1/
   data ibcnrec / 0/
+  data somin   /-1/
+  data somrec  / 1/
+  data somnrec / 0/
 
+  real(rk8) , dimension(:,:) , allocatable :: rspace1
   real(rk8) , dimension(:,:) , allocatable :: rspace2
   real(rk8) , dimension(:,:,:) , allocatable :: rspace3
 
@@ -194,12 +202,34 @@ module mod_ncio
     end if 
   end function icbc_search
 
+  integer function som_search(idate)
+    implicit none
+    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_interval) :: tdif
+    character(len=32) :: appdat1, appdat2
+    if (idate > som_idate(somnrec) .or. idate < som_idate(1)) then
+      som_search = -1
+    else
+      tdif = idate-som_idate(1)
+      somrec = idnint((tohours(tdif))/slabfrq)+1
+      if ( somrec < 1 .or. somrec > somnrec ) then
+        appdat1 = tochar(idate)
+        write (stderr,*) 'Record is not found in SOM file for ',appdat1
+        appdat1 = tochar(som_idate(1))
+        appdat2 = tochar(som_idate(ibcnrec))
+        write (stderr,*) 'Range is : ', appdat1, '-', appdat2
+        call fatal(__FILE__,__LINE__,'SOM READ')
+      end if
+      som_search = somrec
+    end if 
+  end function som_search
+
   subroutine open_icbc(idate)
     type(rcm_time_and_date) , intent(in) :: idate
-    character(10) :: ctime
+    character(len=10) :: ctime
     integer(ik4) :: idimid , itvar , i , chkdiff , nnj , nni
     real(rk8) , dimension(:) , allocatable :: icbc_nctime
-    character(64) :: icbc_timeunits , icbc_timecal
+    character(len=64) :: icbc_timeunits , icbc_timecal
     character(len=256) :: icbcname
 
     call close_icbc
@@ -266,6 +296,59 @@ module mod_ncio
     allocate(rspace2(nnj,nni))
     allocate(rspace3(nnj,nni,kz))
   end subroutine open_icbc
+
+  subroutine open_som(idate)
+    type(rcm_time_and_date) , intent(in) :: idate
+    character(len=10) :: ctime
+    integer(ik4) :: idimid , itvar , i , chkdiff , nnj , nni
+    real(rk8) , dimension(:) , allocatable :: som_nctime
+    character(len=64) :: som_timeunits , som_timecal
+    character(len=256) :: somname
+
+    call close_som
+    write (ctime, '(i10)') toint10(idate)
+    somname = trim(dirglob)//pthsep//trim(domname)//'_SOM.'//ctime//'.nc'
+    call openfile_withname(somname,somin)
+    somrec = 1
+    somnrec = 0
+    call check_domain(somin,.true.,.true.)
+    istatus = nf90_inq_dimid(somin, 'time', idimid)
+    call check_ok(__FILE__,__LINE__,'Dimension time miss', 'SOM FILE')
+    istatus = nf90_inquire_dimension(somin, idimid, len=somnrec)
+    call check_ok(__FILE__,__LINE__,'Dimension time read error', 'SOM FILE')
+    if ( somnrec < 1 ) then
+      write (stderr,*) 'Time var in SOM has zero dim.'
+      call fatal(__FILE__,__LINE__,'SOM READ')
+    end if
+    istatus = nf90_inq_varid(somin, 'time', itvar)
+    call check_ok(__FILE__,__LINE__,'variable time miss', 'SOM FILE')
+    istatus = nf90_get_att(somin, itvar, 'units', som_timeunits)
+    call check_ok(__FILE__,__LINE__,'variable time units miss','SOM FILE')
+    istatus = nf90_get_att(somin, itvar, 'calendar', som_timecal)
+    call check_ok(__FILE__,__LINE__,'variable time calendar miss','SOM FILE')
+    allocate(som_nctime(somnrec), stat=istatus)
+    if ( istatus /= 0 ) then
+      write(stderr,*) 'Memory allocation error in SOM for time real values'
+      call fatal(__FILE__,__LINE__,'SOM READ')
+    end if
+    allocate(icbc_idate(somnrec), stat=istatus)
+    if ( istatus /= 0 ) then
+      write(stderr,*) 'Memory allocation error in SOM for time array'
+      call fatal(__FILE__,__LINE__,'SOM READ')
+    end if
+    istatus = nf90_get_var(somin, itvar, som_nctime)
+    call check_ok(__FILE__,__LINE__,'variable time read error', 'SOM FILE')
+    do i = 1 , somnrec
+      som_idate(i) = timeval2date(som_nctime(i), som_timeunits, som_timecal)
+    end do
+    deallocate(som_nctime)
+    istatus = nf90_inq_varid(ibcin, 'qflx', som_ivar(1))
+    call check_ok(__FILE__,__LINE__,'variable qflx miss', 'SOM FILE')
+
+    nnj = global_out_jend-global_out_jstart+1
+    nni = global_out_iend-global_out_istart+1
+    allocate(rspace1(nnj,nni))
+  end subroutine open_som
 
   subroutine read_icbc(ps,ts,u,v,t,qv)
     implicit none
@@ -348,6 +431,22 @@ module mod_ncio
     qv(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
   end subroutine read_icbc
 
+  subroutine read_som(qflx)
+    implicit none
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: qflx
+    integer(ik4) , dimension(4) :: istart , icount
+
+    istart(1) = global_out_jstart
+    istart(2) = global_out_istart
+    istart(3) = somrec
+    icount(1) = global_out_jend-global_out_jstart+1
+    icount(2) = global_out_iend-global_out_istart+1
+    icount(3) = 1
+    istatus = nf90_get_var(somin,som_ivar(1),rspace1,istart(1:3),icount(1:3))
+    call check_ok(__FILE__,__LINE__,'variable qflx read error', 'SOM FILE')
+    qflx(jci1:jci2,ici1:ici2) = rspace1(jci1:jci2,ici1:ici2)
+  end subroutine read_som
+
   subroutine close_icbc
     implicit none
     if (ibcin >= 0) then
@@ -359,6 +458,17 @@ module mod_ncio
     if ( allocated(rspace2) ) deallocate(rspace2)
     if ( allocated(rspace3) ) deallocate(rspace3)
   end subroutine close_icbc
+
+  subroutine close_som
+    implicit none
+    if (somin >= 0) then
+      istatus = nf90_close(somin)
+      call check_ok(__FILE__,__LINE__,'Error Close SOM file','SOM FILE')
+      if ( allocated(som_idate) ) deallocate(som_idate)
+      somin = -1
+    end if
+    if ( allocated(rspace1) ) deallocate(rspace1)
+  end subroutine close_som
 
   subroutine check_ok(f,l,m1,mf)
     implicit none
