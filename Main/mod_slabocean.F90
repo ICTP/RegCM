@@ -36,13 +36,14 @@ module mod_slabocean
   real(ik8) , pointer , dimension(:,:) :: ohfx , oqfx , ofsw , oflw
   real(rk8) , pointer , dimension(:,:) :: olndcat
   real(rk8) , pointer , dimension (:,:) :: qflux_restore_sst , qflux_adj , &
-    net_hflx , hflx 
+    net_hflx , hflx , qflb0 , qflb1 , qflbt
   integer(ik4) , pointer , dimension (:,:) :: ocmask
 
   integer(ik8) :: dtocean
 !
   public :: allocate_mod_slabocean , init_slabocean , update_slabocean
   public :: fill_slaboc_outvars
+  public :: qflb0 , qflb1 , qflbt
 
   contains
 !
@@ -51,6 +52,9 @@ module mod_slabocean
       call getmem2d(qflux_restore_sst,jci1,jci2,ici1,ici2, &
                     'slab_ocean:qflux_restore_sst')
       call getmem2d(qflux_adj,jci1,jci2,ici1,ici2,'slab_ocean:qflux_adj')
+      call getmem2d(qflb0,jci1,jci2,ici1,ici2,'slab_ocean:qflb0')
+      call getmem2d(qflb1,jci1,jci2,ici1,ici2,'slab_ocean:qflb1')
+      call getmem2d(qflbt,jci1,jci2,ici1,ici2,'slab_ocean:qflbt')
       call getmem2d(net_hflx,jci1,jci2,ici1,ici2,'slab_ocean:net_hflx')
       call getmem2d(hflx,jci1,jci2,ici1,ici2,'slab_ocean:hflx')
     end subroutine allocate_mod_slabocean
@@ -88,6 +92,7 @@ module mod_slabocean
         else where
           qflux_restore_sst = dmissval
         end where
+        return
       else if ( do_qflux_adj ) then
         ! Find the current climatological heat flux adjustment (qflux_adj).  
         ! The qflux_adj can be added to the heat flux to find the net heat
@@ -97,16 +102,13 @@ module mod_slabocean
         ! is handled in an off-line calculation to derive the final qflux
         ! adjustment. These include ice restoring and ice lid contributions.
 
-        ! Obtain indices for local array:
-      
-        ! ICI LIRE LE QFLUX ADJ FROM THE EXTERNAL FILE !!!!
-        ! call get_heat_flux_adj (Ocean_state%ocean_time, qflux_adj)       
+        qflux_adj = qflb0 + dtocean*qflbt
       end if    
       !
       ! energy budget in the mixed layer including the q flux therm
       !
 #ifdef DEBUG
-      write(stdout,*) 'HE', maxval(ofsw), maxval(oflw), maxval(ohfx) , &
+      write(stdout,*) 'HE : ', maxval(ofsw), maxval(oflw), maxval(ohfx) , &
         maxval(2.26D6 * oqfx), maxval(qflux_restore_sst)
 #endif
 
@@ -114,7 +116,7 @@ module mod_slabocean
         ! The following are some key equations for this model:
         ! flux from or to the atmosphere ( convention  = positive downward)  
         ! multiply evaporation by latent heat of evaporation     
-        hflx = ofsw - oflw - ohfx - wlhv * oqfx 
+        hflx = ofsw - oflw - ohfx - wlhv * oqfx
 
         ! account for the retaured or adjustment flux term
         net_hflx = hflx + qflux_adj + qflux_restore_sst

@@ -204,6 +204,9 @@ module mod_bdycod
     end if
 
     call open_icbc(icbc_date)
+    if ( islab_ocean == 1 .and. do_qflux_adj ) then
+      call open_som(icbc_date)
+    end if
 
     datefound = icbc_search(bdydate1)
     if (datefound < 0) then
@@ -215,6 +218,18 @@ module mod_bdycod
     end if
 
     call read_icbc(xpsb%b0,ts0,xub%b0,xvb%b0,xtb%b0,xqb%b0)
+
+    if ( islab_ocean == 1 .and. do_qflux_adj ) then
+      datefound = som_search(bdydate1)
+      if (datefound < 0) then
+        !
+        ! Cannot run without initial conditions
+        !
+        appdat = tochar(bdydate1)
+        call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
+      end if
+      call read_som(qflb0)
+    end if
 
     if ( myid == italk ) then
       appdat = tochar(bdydate1)
@@ -240,6 +255,19 @@ module mod_bdycod
     end if
 
     call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+
+    if ( islab_ocean == 1 .and. do_qflux_adj ) then
+      datefound = som_search(bdydate2)
+      if (datefound < 0) then
+        !
+        ! Cannot run without initial conditions
+        !
+        appdat = tochar(bdydate2)
+        call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
+      end if
+      call read_som(qflb1)
+      qflbt = (qflb1-qflb0)/dtbdys
+    end if
 
     if ( myid == italk ) then
       write (stdout,*) 'READY  BC from     ' , &
@@ -365,21 +393,36 @@ module mod_bdycod
     xqb%b0(:,:,:) = xqb%b1(:,:,:)
     xpsb%b0(:,:) = xpsb%b1(:,:)
     ts0(:,:) = ts1(:,:)
+    if ( islab_ocean == 1 .and. do_qflux_adj ) qflb0 = qflb1
 !
     bdydate2 = bdydate2 + intbdy
     if ( myid == italk ) then
       write(stdout,*) 'SEARCH BC data for ', toint10(bdydate2)
     end if
     datefound = icbc_search(bdydate2)
-    if (datefound < 0) then
+    if ( datefound < 0 ) then
       call open_icbc(monfirst(bdydate2))
       datefound = icbc_search(bdydate2)
-      if (datefound < 0) then
+      if ( datefound < 0 ) then
         appdat = tochar(bdydate2)
         call fatal(__FILE__,__LINE__,'ICBC for '//appdat//' not found')
       end if
     end if
     call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
+
+    if ( islab_ocean == 1 .and. do_qflux_adj ) then
+      datefound = som_search(bdydate2)
+      if ( datefound < 0 ) then
+        call open_som(monfirst(bdydate2))
+        datefound = som_search(bdydate2)
+        if ( datefound < 0 ) then
+          appdat = tochar(bdydate2)
+          call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
+        end if
+      end if
+      call read_som(qflb1)
+      qflbt = (qflb1-qflb0)/dtbdys
+    end if
     !
     ! Convert surface pressure to pstar
     !
