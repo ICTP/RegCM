@@ -85,6 +85,8 @@ module mod_slabocean
           qflux_restore_sst = &
             (ts1(jci1:jci2, ici1:ici2) - sstemp(jci1:jci2, ici1:ici2)) * &
              mlcp / (sst_restore_timescale * 86400.0D0) ! w/m2                  
+        else where
+          qflux_restore_sst = dmissval
         end where
       else if ( do_qflux_adj ) then
         ! Find the current climatological heat flux adjustment (qflux_adj).  

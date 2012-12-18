@@ -1277,7 +1277,7 @@ module mod_ncout
 
         call setup_var(v2dvar_slaboc(slab_qflx),vsize,'qflx','W m-2', &
             'heat flux correction from slab ocean model', &
-            'heat_flux_correction',.true.)
+            'heat_flux_correction',.true.,l_fill=.true.)
         slab_qflx_out => v2dvar_slaboc(slab_qflx)%rval
 
         outstream(slaboc_stream)%nvar = nslabocvars

@@ -429,7 +429,7 @@ module mod_output
         call fill_slaboc_outvars
         call write_record_output_stream(slaboc_stream,idatex)
         if ( myid == italk ) &
-          write(stdout,*) 'SLO variables written at ' , tochar(idatex)
+          write(stdout,*) 'SOM variables written at ' , tochar(idatex)
       end if
     end if
 
