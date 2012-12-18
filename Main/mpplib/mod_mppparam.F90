@@ -609,6 +609,10 @@ module mod_mppparam
       global_cross_istart = 1
       global_cross_jend = jx-1
       global_cross_iend = iy-1
+      global_out_jstart = 1
+      global_out_istart = 1
+      global_out_jend = jx - 3
+      global_out_iend = iy - 3
       ma%has_bdytop    = .true.
       ma%has_bdybottom = .true.
       if ( ma%bandflag ) then

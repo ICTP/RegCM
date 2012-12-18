@@ -331,7 +331,7 @@ module mod_ncio
       write(stderr,*) 'Memory allocation error in SOM for time real values'
       call fatal(__FILE__,__LINE__,'SOM READ')
     end if
-    allocate(icbc_idate(somnrec), stat=istatus)
+    allocate(som_idate(somnrec), stat=istatus)
     if ( istatus /= 0 ) then
       write(stderr,*) 'Memory allocation error in SOM for time array'
       call fatal(__FILE__,__LINE__,'SOM READ')
@@ -351,7 +351,7 @@ module mod_ncio
       end if
     end if
     deallocate(som_nctime)
-    istatus = nf90_inq_varid(ibcin, 'qflx', som_ivar(1))
+    istatus = nf90_inq_varid(somin, 'qflx', som_ivar(1))
     call check_ok(__FILE__,__LINE__,'variable qflx miss', 'SOM FILE')
 
     nnj = global_out_jend-global_out_jstart+1
@@ -453,7 +453,7 @@ module mod_ncio
     icount(3) = 1
     istatus = nf90_get_var(somin,som_ivar(1),rspace1,istart(1:3),icount(1:3))
     call check_ok(__FILE__,__LINE__,'variable qflx read error', 'SOM FILE')
-    qflx(jci1:jci2,ici1:ici2) = rspace1(jci1:jci2,ici1:ici2)
+    qflx(jci1:jci2,ici1:ici2) = rspace1
   end subroutine read_som
 
   subroutine close_icbc

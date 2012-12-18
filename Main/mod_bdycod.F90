@@ -220,15 +220,14 @@ module mod_bdycod
     call read_icbc(xpsb%b0,ts0,xub%b0,xvb%b0,xtb%b0,xqb%b0)
 
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
-      datefound = som_search(bdydate1)
-      if (datefound < 0) then
-        !
-        ! Cannot run without initial conditions
-        !
-        appdat = tochar(bdydate1)
-        call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
+      if ( ktau > 0 ) then
+        datefound = som_search(bdydate1)
+        if (datefound < 0) then
+          appdat = tochar(bdydate1)
+          call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
+        end if
+        call read_som(qflb0)
       end if
-      call read_som(qflb0)
     end if
 
     if ( myid == italk ) then
@@ -266,6 +265,7 @@ module mod_bdycod
         call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
       end if
       call read_som(qflb1)
+      print *, qflb1
       qflbt = (qflb1-qflb0)/dtbdys
     end if
 
