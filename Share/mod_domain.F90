@@ -160,36 +160,50 @@ module mod_domain
     call getmem2d(mddom_io%hlake,1,jx,1,iy,'domain:hlake')
   end subroutine allocate_domain
 
-  subroutine check_domain(ncid,lmod)
+  subroutine check_domain(ncid,lmod,linternal)
     implicit none
     integer(ik4) , intent(in) :: ncid
-    logical , optional :: lmod
+    logical , optional :: lmod , linternal
     integer(ik4) :: istatus
     integer(ik4) :: idimid , ivarid
-    integer(ik4) :: iyy , jxx , kzz , kcheck
+    integer(ik4) :: iyy , jxx , kzz , kcheck , jcheck , icheck
     character(len=6) :: proj
-    logical :: lh
+    logical :: lh , lb
     real(rk8) :: dsx , iclat , iclon , ptsp
 
     lh = .false.
+    lb = .false.
     if ( present(lmod) ) lh = lmod
+    if ( present(linternal) ) lb = linternal
     istatus = nf90_inq_dimid(ncid, 'jx', idimid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension JX')
     istatus = nf90_inquire_dimension(ncid, idimid, len=jxx)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension JX')
-    if ( jx /= jxx ) then
+    jcheck = jx
+    if ( lb ) jcheck = jcheck - 2
+    if ( jcheck /= jxx ) then
       write(stderr,*) 'DOMAIN FILE : ', jxx
       write(stderr,*) 'NAMELIST    : ', jx
-      call die('Mismatch: JX in DOMAIN file /= JX in namelist')
+      if ( lb ) then
+        call die('Mismatch: JX+2 in DOMAIN file /= JX in namelist')
+      else
+        call die('Mismatch: JX in DOMAIN file /= JX in namelist')
+      end if
     end if
     istatus = nf90_inq_dimid(ncid, 'iy', idimid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension IY')
     istatus = nf90_inquire_dimension(ncid, idimid, len=iyy)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension IY')
-    if ( iy /= iyy ) then
+    icheck = iy
+    if ( lb ) icheck = icheck - 2
+    if ( icheck /= iyy ) then
       write(stderr,*) 'DOMAIN FILE : ', iyy
       write(stderr,*) 'NAMELIST    : ', iy
-      call die('Mismatch: IY in DOMAIN file /= IY in namelist')
+      if ( lb ) then
+        call die('Mismatch: IY+2 in DOMAIN file /= IY in namelist')
+      else
+        call die('Mismatch: IY in DOMAIN file /= IY in namelist')
+      end if
     end if
     istatus = nf90_inq_dimid(ncid, 'kz', idimid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension KZ')
