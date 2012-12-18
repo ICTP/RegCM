@@ -683,8 +683,7 @@ module mod_tendency
     !
     if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
       call mtrxbats(ktau)
-
-      if(islab_ocean ==1 ) call  update_slabocean
+      if ( islab_ocean == 1 ) call update_slabocean
     end if
 #else
     !
@@ -703,6 +702,7 @@ module mod_tendency
         r2cnstep = (ktau+1)/ntsrf
       end if
       call mtrxclm(ktau)
+      if ( islab_ocean == 1 ) call update_slabocean
     end if
 #endif
     if ( icup == 1 ) then

@@ -164,5 +164,4 @@ module mod_outvars
 
   real(rk8) , dimension(:,:) , pointer :: slab_qflx_out => null()
 
-
 end module mod_outvars

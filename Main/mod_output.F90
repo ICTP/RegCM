@@ -37,6 +37,7 @@ module mod_output
   use mod_split
   use mod_savefile
   use mod_mppio
+  use mod_slabocean
 #ifdef CLM
   use mod_clm
 #endif
@@ -51,6 +52,7 @@ module mod_output
     implicit none
     logical :: ldoatm , ldosrf , ldorad , ldoche
     logical :: ldosav , ldolak , ldosub , ldotmp
+    logical :: ldoslab
     logical :: lstartup
     integer(ik4) :: i , j , k , jp1 , ip1 , itr
 #ifdef DEBUG
@@ -104,6 +106,7 @@ module mod_output
     ldoche = .false.
     ldosav = .false.
     ldotmp = .false.
+    ldoslab = .false.
 
     if ( ktau > 0 ) then
       if ( mod(ktau,ksav) == 0 ) then
@@ -131,6 +134,9 @@ module mod_output
       end if
       if ( mod(ktau,kche) == 0 ) then
         ldoche = .true.
+      end if
+      if ( mod(ktau,kslab) == 0 ) then
+        ldoslab = .true.
       end if
     end if
 !
@@ -414,6 +420,16 @@ module mod_output
         call write_record_output_stream(rad_stream,idatex)
         if ( myid == italk ) &
           write(stdout,*) 'RAD variables written at ' , tochar(idatex)
+      end if
+    end if
+
+    if ( slaboc_stream > 0 ) then
+      if ( ldoslab ) then
+        ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
+        call fill_slaboc_outvars
+        call write_record_output_stream(slaboc_stream,idatex)
+        if ( myid == italk ) &
+          write(stdout,*) 'SLO variables written at ' , tochar(idatex)
       end if
     end if
 

@@ -62,7 +62,7 @@ module mod_runparams
   integer(ik8) :: kday
   ! Output k values for I/O operations.
   integer(ik8) :: katm , krad , kche , ksav , kdbg , kbdy , &
-                  ksrf , ksub , klak , krep
+                  ksrf , ksub , klak , krep , kslab
   ! Seconds counter in between boundary conditions read
   integer(ik8) :: nbdytime
   ! Step counters to activate surface and radiation schemes
@@ -257,6 +257,18 @@ module mod_runparams
   real(rk8) :: fcmax
   real(rk8) :: conf
   integer(ik4) :: iconvlwp
+
+  !
+  ! SLAB ocean parameters
+  !
+  integer(ik4) :: islab_ocean
+  logical :: ifslaboc = .false.
+  logical :: do_qflux_adj
+  logical :: do_restore_sst
+  ! TK mod; restoring time scale for SST in days
+  real(rk8) :: sst_restore_timescale 
+  real(rk8) :: mixed_layer_depth 
+  real(rk8) :: slabfrq 
 
   ! CLM options
 #ifdef CLM

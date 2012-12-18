@@ -82,9 +82,8 @@ module mod_ncout
   integer(ik4) , parameter :: nche3dvars = 11
   integer(ik4) , parameter :: nchevars = nche2dvars+nche3dvars
 
-  integer(ik4) , parameter :: nslabocvars = 1 + nbase
-
-
+  integer(ik4) , parameter :: nslaboc2dvars = 1 + nbase
+  integer(ik4) , parameter :: nslabocvars = nslaboc2dvars
 
   type(ncvariable2d_real) , save , pointer , &
     dimension(:) :: v2dvar_atm => null()
@@ -118,6 +117,8 @@ module mod_ncout
     dimension(:) :: v2dvar_che => null()
   type(ncvariable3d_real) , save , pointer , &
     dimension(:) :: v3dvar_che => null()
+  type(ncvariable2d_real) , save , pointer , &
+    dimension(:) :: v2dvar_slaboc => null()
 
   integer(ik4) :: maxstreams
 
@@ -132,7 +133,6 @@ module mod_ncout
   integer(ik4) , public :: opt_stream = -1
   integer(ik4) , public :: che_stream = -1
   integer(ik4) , public :: slaboc_stream = -1
-  
 !
   type(regcm_stream) , pointer , save , dimension(:) :: outstream
 
@@ -144,8 +144,6 @@ module mod_ncout
   logical , public , dimension(nradvars) :: enable_rad_vars
   logical , public , dimension(noptvars) :: enable_opt_vars
   logical , public , dimension(nchevars) :: enable_che_vars
- 
-
 
   integer(ik4) , parameter :: atm_xlon  = 1
   integer(ik4) , parameter :: atm_xlat  = 2
@@ -317,8 +315,12 @@ module mod_ncout
   integer(ik4) , parameter :: che_bdyten   = 10
   integer(ik4) , parameter :: che_sedten   = 11
 
-  integer(ik4) , parameter :: slab_qflx   = 1
-
+  integer(ik4) , parameter :: slab_xlon    = 1
+  integer(ik4) , parameter :: slab_xlat    = 2
+  integer(ik4) , parameter :: slab_mask    = 3
+  integer(ik4) , parameter :: slab_topo    = 4
+  integer(ik4) , parameter :: slab_ps      = 5
+  integer(ik4) , parameter :: slab_qflx    = 6
 
   real(rk8) , pointer , dimension(:,:) :: io2d , io2dsg
   real(rk8) , pointer , dimension(:,:,:) :: io3d , io3dsg
@@ -383,7 +385,11 @@ module mod_ncout
         opt_stream = nstream
       end if
     end if
-    
+    if ( ifslaboc ) then
+      nstream = nstream+1
+      slaboc_stream = nstream
+    end if
+ 
     maxstreams = nstream
     allocate(outstream(maxstreams))
 
@@ -1259,12 +1265,47 @@ module mod_ncout
         outstream(lak_stream)%ig2 = iout2
       end if
 
-     if ( nstream == slaboc_stream ) then
+      if ( nstream == slaboc_stream ) then
 
+        allocate(v2dvar_slaboc(nslaboc2dvars))
 
-     end if
+        ! This variables are always present
 
+        call setup_common_vars(vsize,v2dvar_slaboc(slab_xlon), &
+          v2dvar_slaboc(slab_xlat),v2dvar_slaboc(slab_topo),   &
+          v2dvar_slaboc(slab_mask),v2dvar_slaboc(slab_ps))
 
+        call setup_var(v2dvar_slaboc(slab_qflx),vsize,'qflx','W m-2', &
+            'heat flux correction from slab ocean model', &
+            'heat_flux_correction',.true.)
+        slab_qflx_out => v2dvar_slaboc(slab_qflx)%rval
+
+        outstream(slaboc_stream)%nvar = nslabocvars
+        allocate( &
+          outstream(slaboc_stream)%ncvars%vlist(outstream(slaboc_stream)%nvar))
+        outstream(slaboc_stream)%nfiles = 1
+        allocate( &
+          outstream(slaboc_stream)%ncout(outstream(slaboc_stream)%nfiles))
+        allocate( &
+          outstream(slaboc_stream)%cname_base(outstream(slaboc_stream)%nfiles))
+        outstream(slaboc_stream)%cname_base(1) = 'SOM'
+
+        vcount = 1
+        do i = 1 , nslaboc2dvars
+          outstream(slaboc_stream)%ncvars%vlist(vcount)%vp => v2dvar_slaboc(i)
+          vcount = vcount + 1
+        end do
+
+        outstream(slaboc_stream)%jl1 = vsize%j1
+        outstream(slaboc_stream)%jl2 = vsize%j2
+        outstream(slaboc_stream)%il1 = vsize%i1
+        outstream(slaboc_stream)%il2 = vsize%i2
+        outstream(slaboc_stream)%jg1 = jout1
+        outstream(slaboc_stream)%jg2 = jout2
+        outstream(slaboc_stream)%ig1 = iout1
+        outstream(slaboc_stream)%ig2 = iout2
+
+      end if
 
       if ( nstream == opt_stream ) then
 
@@ -1643,9 +1684,15 @@ module mod_ncout
         write (fbname,'(a,a,i10)') trim(outstream(i)%cname_base(j)) , &
           '.', toint10(idate)
 
-        outstream(i)%opar%fname = &
-          trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
-        outstream(i)%opar%zero_date = idate
+        if ( i == slaboc_stream ) then
+          outstream(i)%opar%fname = &
+            trim(dirglob)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
+          outstream(i)%opar%zero_date = idate
+        else
+          outstream(i)%opar%fname = &
+            trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
+          outstream(i)%opar%zero_date = idate
+        end if
 
         if ( myid == italk ) then
           write(stdout,*) 'Opening new output file ', &
@@ -1979,6 +2026,21 @@ module mod_ncout
             ncattribute_real8('cpl_coupling_timestep_in_seconds',cpldt))
         end if
 
+        if ( islab_ocean == 1 ) then
+          if ( do_qflux_adj ) &
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_logical('slabocean_qflux_adjusted_run',do_qflux_adj))
+          if ( do_restore_sst ) &
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_logical('slabocean_do_restore_sst',do_restore_sst))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('slabocean_sst_restore_timescale', &
+              sst_restore_timescale))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('slabocean_mixed_layer_depth', &
+              mixed_layer_depth))
+        end if
+
         do ivar = 1 , outstream(i)%nvar
           vp => outstream(i)%ncvars%vlist(ivar)%vp
           call outstream_addvar(outstream(i)%ncout(j),vp)
@@ -2150,6 +2212,7 @@ module mod_ncout
     if ( associated(v3dvar_opt) ) deallocate(v3dvar_opt)
     if ( associated(v2dvar_che) ) deallocate(v2dvar_che)
     if ( associated(v3dvar_che) ) deallocate(v3dvar_che)
+    if ( associated(v2dvar_slaboc) ) deallocate(v2dvar_slaboc)
     do nstream = 1 , maxstreams
       do nfile = 1 , outstream(nstream)%nfiles
         call outstream_dispose(outstream(nstream)%ncout(nfile))

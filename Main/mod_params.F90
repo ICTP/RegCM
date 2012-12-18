@@ -70,7 +70,7 @@ module mod_params
   integer(ik4) :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2
   integer(ik4) :: hspan
   integer(ik8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
-  integer(ik8) :: nlakfrq , nsubfrq , nbdyfrq
+  integer(ik8) :: nlakfrq , nsubfrq , nbdyfrq , nslabfrq
   integer(ik4) :: n , len_path
   character(len=32) :: appdat
   type(rcm_time_interval) :: bdif
@@ -93,15 +93,15 @@ module mod_params
  
   namelist /outparam/ ifsave , ifatm , ifrad , ifsrf , ifsub , iflak , &
     ifsts , ifchem , ifopt , savfrq , atmfrq , srffrq , subfrq ,       &
-    lakfrq , radfrq , chemfrq , enable_atm_vars , enable_srf_vars ,    &
-    enable_rad_vars , enable_sub_vars , enable_sts_vars ,              &
-    enable_lak_vars , enable_opt_vars , enable_che_vars ,              &
-    dirout , lsync , do_parallel_netcdf_io
+    lakfrq , radfrq , chemfrq , slabfrq , enable_atm_vars ,            &
+    enable_srf_vars , enable_rad_vars , enable_sub_vars ,              &
+    enable_sts_vars , enable_lak_vars , enable_opt_vars ,              &
+    enable_che_vars , dirout , lsync , do_parallel_netcdf_io
 
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocncpl , iocnrough ,     &
     ichem , scenario , idcsst , iseaice , idesseas , iconvlwp ,     &
-    irrtm , iclimao3 , isolconst , icumcloud, islab_ocean
+    irrtm , iclimao3 , isolconst , icumcloud , islab_ocean
 
   namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
     iceflglw , liqflglw , icld , irng , idrv
@@ -137,8 +137,8 @@ module mod_params
 
   namelist /cplparam/ cpldt, cpldbglevel
 
-
-  namelist /slabocparam/ do_qflux_adj, do_restore_sst, sst_restore_timescale, mixed_layer_depth
+  namelist /slabocparam/ do_qflux_adj , do_restore_sst , &
+    sst_restore_timescale , mixed_layer_depth
 !
 #ifdef DEBUG
   call time_begin(subroutine_name,idindx)
@@ -278,7 +278,8 @@ module mod_params
   srffrq  = 3.0D0   ! time interval for disposing srf output (hrs)
   lakfrq  = 6.0D0   ! time interval for disposing lake output (hrs)
   subfrq  = 6.0D0   ! time interval for disposing lake output (hrs)
-  chemfrq = 6.0D0   ! time interval for disposeing chem output (hrs)
+  chemfrq = 6.0D0   ! time interval for disposing chem output (hrs)
+  slabfrq = 6.0D0   ! time interval for disposing slab ocean input (hrs)
   enable_atm_vars(:) = .true.
   enable_srf_vars(:) = .true.
   enable_sts_vars(:) = .true.
@@ -423,10 +424,10 @@ module mod_params
 
 !c-----namelist slabocparam ;
 
-  mixed_layer_depth = 50.
-  sst_restore_timescale   =  5.0 !days
-  do_restore_sst   = .true.
-  do_qflux_adj     = .false. 
+  mixed_layer_depth     = 50.0D0
+  sst_restore_timescale = 5.0D0 !days
+  do_restore_sst = .true.
+  do_qflux_adj = .false. 
 
 !c------namelist chemparam ; ( 0= none, 1= activated)
   ichsolver = 1     ! enable chem solver
@@ -557,10 +558,12 @@ module mod_params
 
     if ( islab_ocean == 1 ) then
       read (ipunit, slabocparam)
-            if ( do_qflux_adj.eqv. do_restore_sst) then 
-       write (stderr,*) 'do_qflux_adj =' , do_qflux_adj
-       write (stderr,*) 'do_restore_sst =' , do_restore_sst
-      call fatal(__FILE__,__LINE__,'THESE OPTION CANNOT BE EQUAL, DO RETSORE SST RUN FIRST AND THEN ADJUST SST RUN !!')
+      if ( do_qflux_adj .eqv. do_restore_sst ) then 
+        write (stderr,*) 'do_qflux_adj   = ' , do_qflux_adj
+        write (stderr,*) 'do_restore_sst = ' , do_restore_sst
+        write (stderr,*) 'THESE OPTION CANNOT BE EQUAL !!'
+        write (stderr,*) 'FIRST DO A RESTORE SST RUN AND THEN AN ADJUST RUN!'
+        call fatal(__FILE__,__LINE__,'SLABOCEAN INPUT INCONSISTENCY')
       end if
 #ifdef DEBUG
       write(stdout,*) 'Read slabocparam OK'
@@ -621,6 +624,7 @@ module mod_params
   call bcast(lakfrq)
   call bcast(subfrq)
   call bcast(chemfrq)
+  call bcast(slabfrq)
   call bcast(lsync)
 #ifdef NETCDF4_HDF5
   call bcast(do_parallel_netcdf_io)
@@ -826,15 +830,14 @@ module mod_params
     call bcast(rstbl)
   end if
 
-
-  if ( islab_ocean==1 ) then
+  if ( islab_ocean == 1 ) then
     call bcast(do_qflux_adj)
     call bcast(do_restore_sst)
     call bcast(sst_restore_timescale)
     call bcast(mixed_layer_depth)
+    ! Save the input restore flux file for the adjust run
+    if ( do_restore_sst ) ifslaboc = .true.
   end if
-
-
 
   if ( ichem == 1 ) then
     call bcast(chemsimtype,8)
@@ -906,7 +909,6 @@ module mod_params
   call allocate_mod_che_mppio
   call allocate_mod_che_dust
   call allocate_mod_che_bdyco
-
 
   call allocate_mod_slabocean
 !
@@ -985,6 +987,7 @@ module mod_params
   nlakfrq = idnint(secph*lakfrq)
   nsubfrq = idnint(secph*subfrq)
   nchefrq = idnint(secph*chemfrq)
+  nslabfrq = idnint(secph*slabfrq)
   nbdyfrq = idnint(dtbdys)
 
   ntsrf = idnint(dtsrf/dtsec)
@@ -1007,6 +1010,7 @@ module mod_params
   kche  = nchefrq/idnint(dtsec)
   kdbg  = ndbgfrq/idnint(dtsec)
   ksav  = nsavfrq/idnint(dtsec)
+  kslab = nslabfrq/idnint(dtsec)
 
   rnsrf_for_srffrq = d_one/(dble(ksrf)*rtsrf)
   rnsrf_for_lakfrq = d_one/(dble(klak)*rtsrf)
@@ -1129,9 +1133,7 @@ module mod_params
 #ifdef CLM
   call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
 #endif
-
   call init_slabocean(sfs,ldmsk,fsw,flw)
-
 !
   if ( myid == italk ) then
     if ( ifrest .and. idate0 == idate1 ) then
