@@ -67,12 +67,17 @@ program clm2rcm
   real(rk4) , dimension(3) :: varmax , varmin
   real(rk8) :: xhr
   real(rk4) :: offset , xscale , xlatmin , xlatmax , xlonmin , xlonmax
-  real(rk4) :: pxerr , pmax
+  real(rk4) :: pxerr , pmax , adjust
   real(rk4) , pointer , dimension(:) :: glat , glon , zlat ,      &
                                        zlev , zlon
   real(rk4) , pointer , dimension(:,:) :: mpu
   real(rk4) , pointer , dimension(:,:,:) :: regxyz
   real(rk4) , pointer , dimension(:,:,:,:) :: regyxzt , zoom
+#ifdef SAGE_TEST
+  real(rk4) , pointer , dimension(:,:,:) :: save_regyz
+  real(rk4) , pointer , dimension(:,:) :: new_forest , old_forest
+  logical :: hassmask = .false.
+#endif
   real(rk4) , pointer , dimension(:,:) :: landmask , sandclay
   integer(ik4) :: ipathdiv , ierr
   integer(ik4) :: i , iz , it , j , k , l , kmax , ipnt
@@ -82,6 +87,8 @@ program clm2rcm
   character(len=256) :: outfil_nc
   character(len=64) :: csdate , cldim
   integer(ik4) , dimension(8) :: ilevs
+  integer(ik4) , parameter :: iforest = 5
+  integer(ik4) , parameter :: igrass  = 14
 !
   data ilevs /-1,-1,-1,-1,-1,-1,-1,-1/
   data xmiss /-9999.0/
@@ -109,19 +116,16 @@ program clm2rcm
 
   call init_domain
 !
-!     ** Get latitudes and longitudes from DOMAIN file
+!     ** Get latitudes, longitudes and mask from DOMAIN file
 !
   terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
   call openfile_withname(terfile,incin)
-  call read_domain(incin,sigx,xlat,xlon)
-  istatus = nf90_close(incin)
-  call checkncerr(istatus,__FILE__,__LINE__, &
-                  'Error closing file '//trim(terfile))
-!     ** Set output variables
+  call read_domain(incin,sigx,xlat,xlon,mask=xmask)
+  call closefile(incin)
   jotyp = 2
   xscale = 1.
   offset = 0.
- 
+
 !     ** Open Output checkfile in NetCDF format
 
   checkfile = trim(dirglob)//pthsep//trim(domname)//'_CLM3.nc'
@@ -198,7 +202,6 @@ program clm2rcm
         outfil_nc = trim(dirglob)//pthsep//trim(domname)//  &
                  '_RCM'//inpfile(7:)
       endif
-!         CALL FEXIST(outfil_nc)
       write(stdout,*) 'OPENING Output NetCDF FILE: ',trim(outfil_nc)
       call rcrecdf(outfil_nc,idout,varmin,varmax,3,ierr)
     end if
@@ -222,12 +225,24 @@ program clm2rcm
       icount(4) = 1
     end if
  
+#ifdef SAGE_TEST
+    if ( ifld==ipft ) then
+      call getmem3d(save_regyz,1,jx,1,iy,1,nlev(ifld),'clm2rcm:save_regyz')
+      call getmem2d(new_forest,1,jx,1,iy,'clm2rcm:new_forest')
+      call getmem2d(old_forest,1,jx,1,iy,'clm2rcm:old_forest')
+    end if
+#endif
     call getmem4d(zoom,1,icount(1),1,icount(2),1,icount(3),1,icount(4), &
                   'clm2rcm:zoom')
     call getmem1d(zlon,1,icount(1),'clm2rcm:zlon')
     call getmem1d(zlat,1,icount(2),'clm2rcm:zlat')
-    call getmem1d(zlev,1,icount(3),'clm2rcm:zlev')
+    if ( icount(3) > 0 ) call getmem1d(zlev,1,icount(3),'clm2rcm:zlev')
     call getmem2d(landmask,1,icount(1),1,icount(2),'clm2rcm:landmask')
+
+    if ( ifld /= icol ) then
+      call readcdfr4(idin,vnam_lm,cdum,cdum,istart(1),              &
+                     icount(1),istart(2),icount(2),1,1,1,1,landmask)
+    end if
 !
     call clm3grid2(nlon(ifld),nlat(ifld),glon,glat,istart,icount,zlon,zlat,zlev)
 !
@@ -245,8 +260,6 @@ program clm2rcm
       call readcdfr4(idin,vnam(ifld),lnam(ifld),units(ifld),1,      &
                      ntim(ifld),1,nlev(ifld),1,1,1,1,sandclay)
       write(stdout,*) 'Read ', trim(lnam(ifld))
-      call readcdfr4(idin,vnam_lm,cdum,cdum,istart(1),              &
-                     icount(1),istart(2),icount(2),1,1,1,1,landmask)
       call readcdfr4(idin,vnam_st,cdum,cdum,istart(1),              &
                      icount(1),istart(2),icount(2),1,1,1,1,mpu)
       do j = 1 , icount(2)
@@ -300,7 +313,7 @@ program clm2rcm
       end do
     end if
 
-    write(stdout,*) 'READ/WRITE: ', trim(vnam(ifld)), ', ', &
+    write(stdout,*) 'WRITE: ', trim(vnam(ifld)), ', ', &
                trim(lnam(ifld)), ', ', trim(units(ifld))
  
 !       ** Set the non-land values to missing for interpolation purposes
@@ -313,49 +326,95 @@ program clm2rcm
     call getmem4d(regyxzt,1,jx,1,iy,1,nlev(ifld),1,ntim(ifld),'clm2rcm:regyxzt')
     call getmem3d(regxyz,1,jx,1,iy,1,nlev(ifld),'clm2rcm:regxyz')
 
-    call bilinx4d(zoom,zlon,zlat,icount(1),icount(2),regyxzt,xlon,  &
+    call bilinx4d(zoom,landmask,zlon,zlat,icount(1),icount(2),regyxzt,xlon,  &
                   xlat,jx,iy,icount(3),icount(4),vmin(ifld),vmisdat)
  
 !   ** Write the interpolated data to NetCDF for CLM and checkfile
 
     imondate = irefdate
+#ifdef SAGE_TEST
+    if ( ifld == ipft ) then
+     inquire(file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
+             exist=hassmask)
+     if ( hassmask ) then
+       open(163,file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
+            form='unformatted',status='old')
+       read(163) save_regyz
+     end if
+    end if
+#endif
     do l = 1 , ntim(ifld)
-      if ( ifld==ipft ) then
+      if ( ifld == ipft ) then
         do i = 1 , iy
           do j = 1 , jx
-            if ( regyxzt(j,i,1,l)>-99. ) then
+            if ( xmask(j,i) > 0.0 ) then
               do k = 1 , nlev(ifld)
                 regyxzt(j,i,k,l) = aint(regyxzt(j,i,k,l))
               end do
               pxerr = 100.
+              pmax  = -1.
               kmax = -1
-              pmax = -99.
               do k = 1 , nlev(ifld)
                 pxerr = pxerr - regyxzt(j,i,k,l)
-                if ( regyxzt(j,i,k,l)>pmax ) then
+                if ( regyxzt(j,i,k,l) > pmax ) then
                   pmax = regyxzt(j,i,k,l)
                   kmax = k
                 end if
               end do
-              regyxzt(j,i,kmax,l) = regyxzt(j,i,kmax,l) + pxerr
+              if ( pxerr > 0.0 .and. kmax > 0 ) then
+#ifdef DEBUG
+                write(stdout,*) 'Adjusting classes at ',j,i
+#endif
+                adjust = pxerr/nlev(ifld)
+                do k = 1 , nlev(ifld)
+                  regyxzt(j,i,k,l) = regyxzt(j,i,k,l) + adjust
+                end do
+                pxerr = pxerr - adjust*nlev(ifld)
+                regyxzt(j,i,kmax,l) = regyxzt(j,i,kmax,l) + pxerr
+              end if
+            else
+              regyxzt(j,i,:,:) = 0.0
             end if
           end do
         end do
       end if
-      do k = 1 , nlev(ifld)
-        do j = 1 , jx
+      where ( regyxzt < vmin(ifld) )
+        regyxzt = 0.0
+      end where
+#ifdef SAGE_TEST
+      if ( ifld == ipft ) then
+        if ( .not. hassmask ) then
+          save_regyz(:,:,:) = regyxzt(:,:,:,1)
+          open(163,file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
+               form='unformatted',status='new')
+          write(163) save_regyz
+        else
+          new_forest = regyxzt(:,:,iforest,1)
+          old_forest = save_regyz(:,:,iforest)
+          regyxzt(:,:,:,1) = save_regyz(:,:,:)
+          regyxzt(:,:,iforest,1) = new_forest(:,:)
+          regyxzt(:,:,igrass,1) = save_regyz(:,:,igrass)+ &
+             (old_forest(:,:)-new_forest(:,:))
+        end if
+      end if
+#endif
+      if ( ifld==icol ) then
+        do k = 1 , nlev(ifld)
           do i = 1 , iy
-            if ( ifld==icol ) then
-              regyxzt(j,i,k,l) = anint(regyxzt(j,i,k,l))
-            end if
-            if ( regyxzt(j,i,k,l)>vmin(ifld) ) then
-              regxyz(j,i,k) = regyxzt(j,i,k,l)
-            else
-              regxyz(j,i,k) = 0.0
-            end if
+            do j = 1 , jx
+              regxyz(j,i,k) = anint(regyxzt(j,i,k,l))
+            end do
           end do
         end do
-      end do
+      else
+        do k = 1 , nlev(ifld)
+          do i = 1 , iy
+            do j = 1 , jx
+              regxyz(j,i,k) = regyxzt(j,i,k,l)
+            end do
+          end do
+        end do
+      end if
       tdif = imondate-irefdate
       xhr = tohours(tdif)
       call writecdf(idout,vnam(ifld),regxyz,jx,iy,nlev(ifld),iadim, &

@@ -21,6 +21,7 @@ module mod_clm3grid
 
   use mod_intkinds
   use mod_realkinds
+  use mod_stdio
 
   contains
 
@@ -117,7 +118,7 @@ module mod_clm3grid
  
   end subroutine clm3grid2
 
-  subroutine bilinx4d(mti,loni,lati,nloni,nlati,mto,lono,lato,jx,iy,&
+  subroutine bilinx4d(mti,lmsk,loni,lati,nloni,nlati,mto,lono,lato,jx,iy,&
                       nz,nt,xming,vmisdat)
 !
 !  PERFORMING BI-LINEAR INTERPOLATION USING 4 GRID POINTS FROM A BIGGER
@@ -145,6 +146,7 @@ module mod_clm3grid
   integer(ik4) :: iy , jx , nlati , nloni , nt , nz
   real(rk4) :: vmisdat , xming
   real(rk4) , dimension(nloni,nlati,nz,nt) :: mti
+  real(rk4) , dimension(nloni,nlati) :: lmsk
   real(rk4) , dimension(nlati) :: lati
   real(rk4) , dimension(jx,iy) :: lato , lono
   real(rk4) , dimension(nloni) :: loni
@@ -155,6 +157,7 @@ module mod_clm3grid
 !
   integer(ik4) :: i , ip , ipp1 , j , jq , jqp1 , k , l
   real(rk4) :: lon360 , p , q , temp1 , temp2 , xind , yind
+  logical :: gt1 , gt2
 !
   do i = 1 , iy
     do j = 1 , jx
@@ -174,43 +177,42 @@ module mod_clm3grid
  
       do l = 1 , nt
         do k = 1 , nz
- 
-          if ( mti(ip,jq,k,l)<=xming .and. mti(ipp1,jq,k,l)>xming ) &
-               then
+          gt1 = .false.
+          gt2 = .false.
+          if ( (lmsk(ip,jq)   < 0.5 .or.  mti(ip,jq,k,l)   <= xming)  .and. &
+               (lmsk(ipp1,jq) > 0.5 .and. mti(ipp1,jq,k,l) >  xming) )  then
             temp1 = mti(ipp1,jq,k,l)
-          else if ( mti(ip,jq,k,l)<=xming .and. mti(ipp1,jq,k,l)    &
-                    <=xming ) then
-            temp1 = vmisdat
-          else if ( mti(ip,jq,k,l)>xming .and. mti(ipp1,jq,k,l)     &
-                    <=xming ) then
+            gt1 = .true.
+          else if ( (lmsk(ip,jq) > 0.5 .and. mti(ip,jq,k,l)   >  xming) .and. &
+                  (lmsk(ipp1,jq) < 0.5 .or.  mti(ipp1,jq,k,l) <= xming) )  then
             temp1 = mti(ip,jq,k,l)
+            gt1 = .true.
           else
             temp1 = (1.0-p)*mti(ip,jq,k,l) + p*mti(ipp1,jq,k,l)
+            gt1 = .true.
           end if
- 
-          if ( mti(ipp1,jqp1,k,l)<=xming .and. mti(ip,jqp1,k,l)     &
-               >xming ) then
+          if ( (lmsk(ipp1,jqp1) < 0.5 .or.  mti(ipp1,jqp1,k,l) <= xming) .and. &
+               (lmsk(ip,  jqp1) > 0.5 .and. mti(ip,jqp1,k,l)   >  xming) )  then
             temp2 = mti(ip,jqp1,k,l)
-          else if ( mti(ipp1,jqp1,k,l)<=xming .and. mti(ip,jqp1,k,l)&
-                    <=xming ) then
-            temp2 = vmisdat
-          else if ( mti(ipp1,jqp1,k,l)>xming .and. mti(ip,jqp1,k,l) &
-                    <=xming ) then
+            gt2 = .true.
+          else if ((lmsk(ipp1,jqp1) > 0.5 .and. mti(ipp1,jqp1,k,l) > xming) .and. &
+                   (lmsk(ip,jqp1)   < 0.5 .or.  mti(ip,jqp1,k,l)  <= xming) )  then
             temp2 = mti(ipp1,jqp1,k,l)
+            gt2 = .true.
           else
             temp2 = p*mti(ipp1,jqp1,k,l) + (1.0-p)*mti(ip,jqp1,k,l)
+            gt2 = .true.
           end if
- 
-          if ( temp1<=xming .and. temp2>xming ) then
-            mto(j,i,k,l) = temp2
-          else if ( temp1<=xming .and. temp2<=xming ) then
+          if ( .not. gt1 .and. .not. gt2 ) then
             mto(j,i,k,l) = vmisdat
-          else if ( temp1>xming .and. temp2<=xming ) then
+            write(stderr,*) 'Warning: Missing value added in output file!'
+          else if ( .not. gt1 ) then
+            mto(j,i,k,l) = temp2
+          else if ( .not. gt2 ) then
             mto(j,i,k,l) = temp1
           else
             mto(j,i,k,l) = (1.-q)*temp1 + q*temp2
           end if
- 
         end do
       end do
     end do
