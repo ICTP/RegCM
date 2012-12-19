@@ -17,12 +17,12 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-SVNDEF := '-DSVN_REV="$(shell svnversion -n .)"'
+SVNDEF := '-DSVN_REV="3580 4.3.5"'
 
 ifeq ($(OSNAME),AIX)
-null :=
-cpre := $(null)-WF,-D$(null)
-SVNDEF := $(patsubst -D%,$(cpre)%,$(SVNDEF))
-CPPFLAGS := $(patsubst -D%,$(cpre)%,$(CPPFLAGS))
-MPEUFCFLAGS := $(patsubst -D%,$(cpre)%,$(MPEUFCFLAGS))
+  null :=
+  cpre := $(null)-WF,-D$(null)
+  SVNDEF := '-WF,-DSVN_REV="3580 4.3.5"'
+  CPPFLAGS := $(patsubst -D%,$(cpre)%,$(CPPFLAGS))
+  MPEUFCFLAGS := $(patsubst -D%,$(cpre)%,$(MPEUFCFLAGS))
 endif
