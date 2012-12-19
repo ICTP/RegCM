@@ -1,0 +1,87 @@
+\newcommand{\Rule}{\rule[-.7ex]{0ex}{2.9ex}}
+\newcommand{\un}{\underline}
+\newcommand{\be}{\begin{equation}}
+\newcommand{\ee}{\end{equation}}
+\newcommand{\bfi}{\begin{figure}}
+\newcommand{\efi}{\end{figure}}
+\newcommand{\beq}{\begin{eqnarray}}
+\newcommand{\eeq}{\end{eqnarray}}
+\newcommand{\bb}{\bibitem}
+\newcommand{\tab}{\hspace{1.5truecm}}
+\newcommand{\tap}{\hspace{0.5truecm}}
+\newcommand{\accapo}{\nonumber \\}
+\newcommand{\cm}{\vspace{1.5truecm}}
+\newcommand{\build}{{\rout build\_all}}
+\newcommand{\dlgen}{{\rout dlgen}}
+\newcommand{\merge}{{\rout merge\_field}}
+\newcommand{\D}{{\rout REGCM\_4.0{ }}}
+\newcommand{\PR}{{\rout REGCM\_4.3{ }}}
+\newcommand{\dir}{\it}
+\newcommand{\macro}{\bf}
+\newcommand{\rout}{\sc}
+\newcommand{\dct}{\bf}
+\newcommand{\var}{\tt}
+\newcommand{\file}{}
+
+\newcommand{\benu}{\begin{enumerate}}
+\newcommand{\eenu}{\end{enumerate}}
+\newcommand{\fort}{{\sc Fortran90{ }}}
+\newcommand{\oldfort}{{\sc Fortran77{ }}}
+\newcommand{\C}{{\sc C{ }}}
+\newcommand{\mat}[1]{\mbox{\un{\un#1}~}}
+% \def\mat#1{\mbox{\un{\un $#1$ }}}
+% \def\mat#1{\vbox{\ialign{##\crcr {\un{ }}\crcr\noalign{
+% \kern-1pt \nointerlineskip}$\hfil\displaystyle{#1}\hfil$\crcr}}}
+
+\newcommand{\ddd}{........................}
+
+
+\def\goodgap{
+\hspace{\subfigtopskip}
+\hspace{\subfigbottomskip}}
+
+\def\bivec#1{\vbox{\ialign{##\crcr $\leftrightarrow$\crcr\noalign{
+ \kern-1pt \nointerlineskip}$\hfil\displaystyle{#1}\hfil$\crcr}}}
+
+%
+\documentclass[12pt,epsf]{report}
+\usepackage{listings}
+\usepackage{natbib}
+
+\lstset{language=Fortran}
+\lstset{basicstyle=\scriptsize,commentstyle=\scriptsize,stringstyle=\scriptsize}
+
+\renewcommand{\baselinestretch}{0.5} 
+
+\begin{document}
+
+%
+\baselineskip=0.8truecm
+\parindent=1.2truecm
+
+\include{TitleDeveloperGuide}
+
+\headheight=12pt
+\footskip=48pt
+\hoffset=-.3truecm          %questa l'ha usata Nico%
+\voffset=-1.2truecm
+
+\textwidth=15truecm
+\textheight=22truecm
+
+% \renewcommand{\baselinestretch}{0.8}    %Nic ha usato 2.0!!!!
+
+\pagenumbering{roman}         
+\setcounter{page}{0}
+
+\tableofcontents  
+\pagenumbering{roman}
+
+\include{MainDeveloperGuide}
+
+\addcontentsline{toc}{chapter}{References}    % suppressed by * option 
+
+\bibliography{Biblio_Developer}
+\bibliographystyle{agu}
+
+\end{document}

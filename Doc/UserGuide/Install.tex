@@ -1,0 +1,185 @@
+%
+% This file is part of ICTP RegCM model.
+% Copyright (C) 2011 ICTP Trieste
+% See the file COPYING for copying conditions.
+%
+
+Whatever method is chosen to download the code, we assume that you have now
+on your working directory a new directory, named \verb=RegCM-4.3=.
+That directory will be for the rest of this guide referred as 
+\verb=$REGCM_ROOT= .
+
+All the operations to build the model binaries will be performed in this
+directory.
+
+\section{Software requirements}
+
+In order to configure and install the RegCM code, the following software are
+needed:
+
+\begin{enumerate}
+\item Python 2 language interpreter
+\item GNU Make program
+\item Fortran 2003 compiler
+\item netCDF \cite{Rew_90} Format I/O library compiled with the above compiler.
+   Source code can be found from \\
+{\bf ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf.tar.gz} \\
+Note that current netCDF version 4.2 is dependent on HDF5 1.8.8.
+\end{enumerate}
+
+Optional requirements strongly suggested are :
+
+\begin{enumerate}
+\item GNU \verb=patch= program if CLM option is activated.
+\item MPI2 Message Passing Library compiled with the above fortran compiler
+for parallel runs using multiple core single machines or cluster of machines.
+Source code for the implementation code was tested with can be obtained at: \\
+{\bf http://www.open-mpi.org/software/ompi/v1.4/downloads}
+\item HDF5 Format I/O Library compiled with the above fortran compiler to
+enable netCDF V4 features. Source code can be obtained at: \\
+{\bf http://www.hdfgroup.org/ftp/HDF5/current/src}
+\item NCO netCDF Operators for manging netCDF file. Most Linux distribution
+have this already packed, and you should refer to your System Administrator or
+OS Software Installation manual to obtain it. Source code is at: \\
+{\bf http://nco.sourceforge.net/src}
+\item CDO Climatic data Operators for managing netCDF file. Most Linux
+distribution have this already packed, and you should refer to your System
+Administrator or OS Software Installation manual to obtain it.
+Source code is at: \\
+{\bf https://code.zmaw.de/projects/cdo/files}
+\item A Scientific Plotting and Data Analysis Software such as:
+\begin{itemize}
+\item IGES GrADS 2.0 Graphical Analysis and Display System. Convenient helpers
+are packed in RegCM to use GrADS with RegCM netCDF output files.
+Binaries and source code can be obtained from \\
+{\bf http://www.iges.org/grads/downloads.html}
+\item NCL, NCAR CISL Command Language. The NCL can read netCDF output files, and
+sample scripts can be found in the {\em Tools/Scripts/NCL} directory.
+Binaries and source code can be obtained from \\
+{\bf http://www.ncl.ucar.edu}
+\end{itemize}
+\item A quick viewer for netCDF files like NcView: \\
+{\bf http://meteora.ucsd.edu/~pierce/ncview\_home\_page.html}
+\end{enumerate}
+
+An example session of installation of basic software needed to compile the
+RegCM model is detailed in chapter $\ref{Appendice}$.
+
+\section{Configuring build}
+
+The RegCM Version 4.3 is configured by a python2 script, which will select
+and edit for you sample configuration files for the supported architectures.
+These files are kept in the \verb=Arch= directory under \verb=$REGCM_ROOT=.
+
+Currently tested and supported configurations (OS/Compiler) are:
+
+\begin{enumerate}
+\item Linux with GNU gfortran compiler version $\ge 4.6$
+\item Linux with Intel\texttrademark ifort compiler version $\ge 11.0$
+\item Linux with Portland\texttrademark pgf95 compiler version $\ge 11.0$
+\item Mac OsX\texttrademark with g95 compiler
+\item IBM AIX\texttrademark with xlf2003 compiler
+\item Oracle Solaris\texttrademark with Oracle Solaris Studio\texttrademark
+compiler $\ge 12.0$
+\end{enumerate}
+
+The 4.3 version of the RegCM model relies on the standard GNU autotools to
+configure and build the model code.
+
+The first step is to change working directory to \verb=$REGCM_ROOT= and run the
+\verb=configure= script giving as arguments the chosen compilers:
+
+\begin{Verbatim}
+$> cd $REGCM_ROOT
+$> ./configure CC=icc FC=ifort
+\end{Verbatim}
+
+To know the list of arguments that can be given to the configure script, the
+script can be launched with the \verb=--help= command line argument.
+
+\begin{Verbatim}
+$> ./configure --help
+\end{Verbatim}
+
+The useful arguments to successfully build the model are:
+
+\begin{Verbatim}
+  --with-netcdf           Path to NetCDF installation (default: NETCDF
+                          environment)
+  --with-hdf5             Path to HDF5 installation (default: HDF5
+                          environment)
+  --with-szip             Path to SZIP installation (default: SZIP
+                          environment)
+  CC=         C compiler command
+  CFLAGS=     C compiler flags
+  LDFLAGS=    linker flags, e.g. -L<lib dir> if you have libraries in a
+              nonstandard directory <lib dir>
+  LIBS=       libraries to pass to the linker, e.g. -l<library>
+  CPPFLAGS=   (Objective) C/C++ preprocessor flags, e.g. -I<include dir> if
+              you have headers in a nonstandard directory <include dir>
+  CPP=        C preprocessor
+  FC=         Fortran compiler command
+  FCFLAGS=    Fortran compiler flags
+  MPIFC=      MPI Fortran compiler command
+\end{Verbatim}
+
+\subsection{Model configuration at build stage}
+\label{modconf}
+
+\begin{enumerate}
+\item Enable debug
+\begin{Verbatim}
+  --enable-debug          Enable debugging flags and per processor log file
+\end{Verbatim}
+If enabled, the model will be compiled using debug flags for the compiler,
+which will allow the use of a debugger such as gdb. More diagnostics will
+also be generated during model run.
+The default is to build production binaries with all optimization flags
+turned on.
+
+\item Serial code using stub MPI library
+\begin{Verbatim}
+  --enable-mpiserial      Use the included MPI replacement library for single
+                          processor
+\end{Verbatim}
+The model is coded to use an MPI2 library to run in parallel mode using
+multiple cores/processors or run on a cluster. To enable instead a serial
+compilation option, a stub MPI library with empty callbacks needs to be
+compiled and linked to the executable.
+The RegCM team strongly suggest to build MPI enabled model also on standalone
+systems, to take advantage of the multicore capabilities of any modern
+processor.
+\item CLM option
+\begin{Verbatim}
+  --enable-clm            Supply this option if you plan on using CLM option.
+\end{Verbatim}
+This option switches off the default Land model of RegCM (derived from BATS1e),
+and enables the use of the Community Land Model V3.5 inside RegCM. The default
+is to use the RegCM BATS Land Model.
+\footnote{The CLM option needs the GNU patch program to be installed.}
+For the scope of the tutorial test run in chapter \ref{tutorial}, use the
+default option.
+\end{enumerate}
+
+\section{Build the model executables}
+
+Now that everything is hopefully configured, you may use the \verb=make=
+program to build executables.
+
+\begin{Verbatim}
+$> make
+\end{Verbatim}
+
+This target will builds all model parts. 
+The compilation is started in the whole model tree (PreProc, Main and PostProc).
+Lot of messages will appear on screen, abd at the end all executables are built
+int the source directories.
+To copy them to a \verb=bin= directory in the model root or into a \verb=bin=
+directory in the path specified with the prefix argument to the \verb=configure=
+script, esplicitly issue the command:
+
+\begin{Verbatim}
+$> make install
+\end{Verbatim}
+
+Congratulations! You can now go to next step and run a test simulation.

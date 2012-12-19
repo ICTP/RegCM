@@ -1,0 +1,56 @@
+%
+% This file is part of ICTP RegCM model.
+% Copyright (C) 2011 ICTP Trieste
+% See the file COPYING for copying conditions.
+%
+
+RegCM-4.2 is a new step in recoding the RegCM3 model after the effort put into
+the RegCM4.0 version. The code base now is actively developed by a community
+of developers internal and external to ICTP, and this work is merged on the
+Gforge site on e-science-lab.org site.
+
+The main new technical features of the code are summarized in the following
+points
+
+\begin{itemize}
+\item New UW PBL option
+\item Tiedtke cumuluis scheme in early stage of development
+\item Autotools enabled configure and build
+\item Multiple calendar support (gregorian, noleap, 360days)
+\item New daily output file with statistical variables
+\item Input layer for some of the CMIP5 models
+\item netCDF I/O format from model components following the CF-1.4 standard
+\end{itemize}
+
+The model code is in Fortran 2003 ANSI standard.
+The development is done on Linux boxes, and the model is known to run
+on Oracle Solaris\texttrademark platforms, IBM AIX\texttrademark platforms,
+MacOS\texttrademark platforms.
+No porting effort has been done towards non Unix-like Operating Systems.
+We will for this User Guide assume that the reference platform is a recent
+Linux distributon with a \verb=bash= shell.
+Typographical convention is the following:
+
+\begin{table}[ht]
+\caption{Conventions}
+\vspace{0.05 in}
+\centering
+\begin{tabular}{l|l}
+\hline
+\verb=$> = & normal shell prompt \\
+\verb=#> = & root shell prompt \\
+\verb=$SHELL_VARIABLE = & a shell variable \\
+\hline
+\end{tabular}
+\label{conventions}
+\end{table}
+
+Any shell variable is supposed to be set by the User with the following example
+syntax:
+
+\begin{Verbatim}
+$> export REGCM_ROOT="/home/user/RegCM4.2"
+\end{Verbatim}
+
+Hope you will find this document useful. Any error found belongs to me and can
+be reported to be corrected in future revisions. Enjoy.

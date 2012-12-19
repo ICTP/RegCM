@@ -1,0 +1,62 @@
+%
+% This file is part of ICTP RegCM model.
+% Copyright (C) 2011 ICTP Trieste
+% See the file COPYING for copying conditions.
+%
+
+\section{Simple Model User}
+
+A packed archive file with the model code can be downloaded from:
+
+\begin{Verbatim}
+http://gforge.ictp.it/gf/project/regcm/frs
+\end{Verbatim}
+
+and it can be later on decompressed and unpacked using:
+
+\begin{Verbatim}
+$> tar -zxvf RegCM-4.3.tar.gz
+\end{Verbatim}
+
+\section{Model Developer}
+
+If you plan to become a model developer, source code can be obtained via svn.
+The RegCM team strongly encouragethe contributing developers to enroll on
+the gforge site to always be up to date and to check on-line all the news of
+the package.
+
+\vspace{0.5cm}
+\begin{tabular}{|c|}
+\hline
+{\bf https://gforge.ictp.it/gf/project/regcm} \\
+\hline
+\end{tabular}
+\vspace{0.5cm}
+
+The correct procedure is first to register on the e-forge site, then ask
+the ICTP scientific team head Filippo Giorgi to be enrolled as a model
+developer. After being officially granted the status, you will gain
+access to the model subversion repository.
+
+Check that {\bf Subversion} software is installed on your machine typing
+the following command:
+
+\begin{verbatim}
+$> svn --version
+\end{verbatim}
+
+If your system answers \verb=command not found=, refer to your System
+Administrator or software installation manual of your OS to install the
+subversion software. As an example, on Scientific Linux the command
+to install it as root is:
+
+\begin{verbatim}
+#> yum install subversion
+\end{verbatim}
+
+If Subversion is installed, just type the following command:
+
+\begin{verbatim}
+$> svn checkout https://gforge.ictp.it/svn/regcm/tags/RegCM-4.3
+\end{verbatim}
+

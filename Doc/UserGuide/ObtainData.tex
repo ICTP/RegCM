@@ -1,0 +1,242 @@
+%
+% This file is part of ICTP RegCM model.
+% Copyright (C) 2011 ICTP Trieste
+% See the file COPYING for copying conditions.
+%
+
+The first step to run a test simulation is to obtain static data to localize
+model DOMAIN and Atmosphere and Ocean global model dataset to build initial
+and boundary conditions ICBC to run a local area simulation.
+
+ICTP maintains a public accessible web repository of datasets on:
+
+{\bf http://users.ictp.it/~pubregcm/RegCM4/globedat.htm}
+
+As of now you are requested to download required global data on your local disk
+storage before any run attempt. In the future, the ICTP ESP team has
+planned to make available an OpenDAP THREDDS Server to give remote access
+to global dataset for creating DOMAIN and ICBC without the need to
+download the global dataset, but just the required subset in space and time,
+using the ICTP web server capabilities to create that subset.
+
+\section{Global dataset directory Layout}
+
+You are suggested to establish a convenient location for global datasets
+on your local storage. Keep in mind that required space for a year of global
+data can be as large as 8 GBytes.
+
+Having this in mind, we will now consider that you the user have identified
+on your system or have network access to such a storage resource to store say
+100 GB of data, and have it reachable on your system under the
+\verb=$REGCM_GLOBEDAT= location.
+On this directory, you are required to make the following directories:
+
+\begin{Verbatim}
+$> cd $REGCM_GLOBEDAT
+$> mkdir SURFACE CLM SST AERGLOB EIN15
+\end{Verbatim}
+
+This does not fill all possible global data sources paths, but will be enough
+for the scope of running the model for testing its capabilities.
+
+\section{Static Surface Dataset}
+
+The model needs to be localized on a particular DOMAIN. The needed information
+are topography, land type classification and optionally lake depth (to run the
+Hostetler lake model) and soil texture classification (to run the chemistry option
+with DUST enabled).
+
+This means downloading four files, which are global archives at $30 second$
+horizontal resolution on a global latitude-longitude grid of the above data.
+
+\begin{Verbatim}
+$> cd $REGCM_GLOBEDAT
+$> cd SURFACE
+$> curl -o GTOPO_DEM_30s.nc.gz \
+> http://clima-dods.ictp.it/data/d4/SURFACE/GTOPO_DEM_30s.nc.gz
+$> gunzip GTOPO_DEM_30s.nc.gz
+$> curl -o GLCC_BATS_30s.nc.gz \
+> http://clima-dods.ictp.it/data/d4/SURFACE/GLCC_BATS_30s.nc.gz
+$> gunzip GLCC_BATS_30s.nc.gz
+\end{Verbatim}
+
+Optional Lake and Texture datasets:
+
+\begin{Verbatim}
+$> cd $REGCM_GLOBEDAT
+$> cd SURFACE
+$> curl -o ETOPO_BTM_30s.nc.gz \
+> http://clima-dods.ictp.it/data/d4/SURFACE/ETOPO_BTM_30s.nc.gz
+$> gunzip ETOPO_BTM_30s.nc.gz
+$> curl -o GLZB_SOIL_30s.nc.gz \
+> http://clima-dods.ictp.it/data/d4/SURFACE/GLZB_SOIL_30s.nc.gz
+$> gunzip GLZB_SOIL_30s.nc.gz
+\end{Verbatim}
+
+\section{Aerosol Database}
+
+If you are planning to enable aerosol in the model, you will need a single
+file, which contains sources of optical active species used in the model
+regridded from global model run.
+
+\begin{Verbatim}
+$> cd $REGCM_GLOBEDAT
+$> cd AERGLOB
+$> curl -o AEROSOL.dat \
+> http://clima-dods.ictp.it/data/d4/AEROSOL/AEROSOL.dat
+\end{Verbatim}
+
+This is the input file for the \verb=aerosol= icbc program.
+
+\section{CLM Dataset}
+\label{clmdata}
+
+If you are planning to enable the \verb=CLM= option in the model, you will need
+a series of files with global land surface characteristics datasets.
+
+\begin{Verbatim}
+$> cd $REGCM_GLOBEDAT
+$> cd CLM
+$> CLMURL="clima-dods.ictp.it/data/d4/CLM"
+$> curl -o mksrf_fmax.nc.gz \
+> http://$CLMURL/mksrf_fmax.nc.gz
+$> curl -o mksrf_glacier.nc.gz \
+> http://$CLMURL/mksrf_glacier.nc.gz
+$> curl -o mksrf_lai.nc.gz \
+> http://$CLMURL/mksrf_lai.nc.gz
+$> curl -o mksrf_lanwat.nc.gz \
+> http://$CLMURL/mksrf_lanwat.nc.gz
+$> curl -o mksrf_navyoro_20min.nc.gz \
+> http://$CLMURL/mksrf_navyoro_20min.nc.gz
+$> curl -o mksrf_pft.nc.gz \
+> http://$CLMURL/mksrf_pft.nc.gz
+$> curl -o mksrf_soicol_clm2.nc.gz \
+> http://$CLMURL/mksrf_soicol_clm2.nc.gz
+$> curl -o mksrf_soitex.10level.nc.gz \
+> http://$CLMURL/mksrf_soitex.10level.nc.gz
+$> curl -o mksrf_urban.nc.gz \
+> http://$CLMURL/mksrf_urban.nc.gz
+$> curl -o pft-physiology.c070207.gz \
+> http://$CLMURL/pft-physiology.c070207.gz
+$> curl -o pft-physiology.c070207.readme.gz \
+> http://$CLMURL/pft-physiology.c070207.readme.gz
+$> curl -o rdirc.05.061026.gz \
+> http://$CLMURL/rdirc.05.061026.gz
+$> gunzip *.gz
+\end{Verbatim}
+
+This is the input file for the \verb=clm2rcm= program (see at \ref{clm}).
+
+\section{Sea Surface Temperature}
+
+The model needs a global SST dataset to feed the model with ocean temperature.
+You have multiple choices for SST data:
+
+\begin{enumerate}
+\item {\em GISST} - UKMO SST (Rayner et al 1996), 1 degree from \\
+{\bf http://www.badc.rl.ac.uk} \\ UKMO DATA archive reformed as direct access
+binary format from the original ASCII format.
+\item {\em OISST} - CAC Monthly Optimal Interpolation dataset in the original 
+netCDF format.
+\item {\em OI2ST} - Same as above, but both SST and Sea Ice dataset (used if
+seaice option is enabled in the model).
+\item {\em OI\_WK} - OISST CAC Weekly Optimal Interpolation dataset in the
+original netCDF format
+\item {\em OI2WK} - Same as above, but both SST and Sea Ice dataset
+\item {\em EH5RF} - EC-MPI 6 hourly 1.875x1.875, reference from 1941 to 2000
+\item {\em EH5A2} - Same as above, from 2001 to 2100 IPCC A2 scenario
+\item {\em EH5B1} - Same as above, from 2001 to 2100 IPCC B1 scenario
+\item {\em EHA1B} - Same as above, from 2001 to 2100 IPCC A1B scenario
+\item {\em ERSST} - ERA interim Project 6 hourly 1.5x1.5 degree SST
+\item {\em ERSKT} - ERA interim as above but Skin temperature
+\item {\em FV\_RF} - HadAMH\_SST in the original netCDF format, from 1959
+to 1991
+\item {\em FV\_A2} - Same as above, IPCC A2 scenario
+\item {\em FV\_B2} - Same as above, IPCC B2 scenario 
+\item {\em CCSST} - CCSM3 POP gx1v3 regridded 1x1 data
+\item {\em HA\_XX} - HadGEM CMPI5 dataset with XX in RF,26,45,85
+\item {\em CA\_XX} - CanESM CMPI5 dataset with XX in RF,26,45,85
+\end{enumerate}
+
+We will for now for our test run download just CAC OISST weekly for the
+period 1981 - present.
+
+\begin{Verbatim}
+$> cd $REGCM_GLOBEDAT
+$> cd SST
+$> CDCSITE="ftp.cdc.noaa.gov/pub/Datasets/noaa.oisst.v2"
+$> curl -o sst.wkmean.1981-1989.nc \
+> ftp://$CDCSITE/sst.wkmean.1981-1989.nc
+$> curl -o sst.wkmean.1990-present.nc \
+> ftp://$CDCSITE/sst.wkmean.1990-present.nc
+\end{Verbatim}
+
+\section{Atmosphere and Land temperature Global Dataset}
+
+The model needs to build initial and boundary conditions for the regional scale,
+interpolating on the RegCM grid the data from a Global Climatic Model output.
+The GCM dataset can come from any of the supported models:
+
+\begin{enumerate}
+\item {\em EINXX} - ECMWF INTERIM 10 year reanalysis datasets,
+XX can have values 25, 15 or 75 for resolution 2.5x2.5L37, 1.5x1.5L37,
+0.75x0.75L37. Time resolution is 4 times daily.
+\item {\em ECMWF} - ECMWF TOGA/WCRP Uninitialized Data - (ECWCRP).
+Reformatted by PWC/ICTP to direct-access binary, T42L15, Gaussian Grid.
+\footnote{As of RegCM 4.2 this input source is not tested}
+\item {\em ERA40} - ECMWF 40 year reanalysis datasets, available from \\
+{\bf http://data.ecmwf.int/data/d/era40\_daily}, \\
+Pressure levels, 2.5x2.5L23, 4 times daily.
+\item {\em ERAHI} - ECMWF 40 year reanalysis datasets, origigal model level
+fields: T, U, V and log(Ps) are in spectral coefficients, Oro and Q are at the
+reduced Gaussian grids. T159L60 (N80L60).
+\item {\em NNRPY} - NCEP/NCAR Reanalysis datasets, Y can have values 1 and 2
+for the two reanalysis experimens. Data are available in the original netCDF
+format at \\ {\bf ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis} \\
+($1948 - present$, 2.5x2.5L13) and \\
+{\bf ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis2} \\
+($1979 - 2009$, 2.5x2.5L13). 
+\item {\em NRP2W} - Small Window (instead of global) of NNRP1/2 to save disk
+space. This window can be created from original files with NCO tools.
+\footnote{As of RegCM 4.2 this input source is not tested}
+\item {\em GFS11} - NCEP Global Forecast System (GFS) product FNL, from \\
+{\bf http://dss.ucar.edu/datasets/ds083.2/data/fnl-yyyymm}, \\
+Pressure levels, 1.0x1.0L27, 4 times daily.
+\item {\em FVGCM} - FVGCM run by the PWC group of Abdus Salam ICTP.
+\footnote{As of RegCM 4.2 this input source is not tested}
+\item {\em EH5XX} - Echam run by the MPI at Hamburg, T63, Gaussian grid.
+For present day  run: $1941 - 2000$, for A1B scenario run: $2001 - 2100$. 
+17 pressure levels, 4 times daily, direct-access binary.
+\item {\em ECEXY} - ECMWF Ensemble forecast member, where $X$ is the model
+version number, and $Y$ is the ensemble member number, i.e. for example ECE24
+stands for ECMWF model version 2, ensemble number 4. Dataset contains 6 hourly
+global data on model levels with surface geopotential and natural logarithm
+of surface pressure.
+\item {\em CCSMN} - unpacked CCSM3 NETCDF L26 (six hourly) data, either global
+or window, can be obtained from \\ {\bf http://www.earthsystemgrid.org}
+\item {\em HA\_XX} - HadGEM CMPI5 dataset with XX in RF,26,45,85
+\item {\em CA\_XX} - CanESM CMPI5 dataset with XX in RF,26,45,85
+\item {\em FNEST} - Further oneway NESTing from previous RegCM run.
+\end{enumerate}
+
+We will for now for our test run download just the EIN15 dataset for the
+year 1990 (Jan 01 00:00:00 UTC to Dec 31 18:00:00 UTC)
+
+\begin{Verbatim}
+$> cd $REGCM_GLOBEDAT
+$> cd EIN15
+$> mkdir 1990
+$> cd 1990
+$> ICTPSITE="clima-dods.ictp.it/data/d9/ERAIN150/1990/"
+$> for type in "air hgt rhum uwnd vwnd"
+>  do
+>    for hh in "00 06 12 18"
+>    do
+>      curl -o ${type}.1990.${hh}.nc \
+>         http://$ICTPSITE}/${type}.1990.${hh}.nc
+>    done
+>  done
+\end{Verbatim}
+
+With this dataset we are now ready to go through the RegCM Little Tutorial
+in the next chapter of this User Guide.
