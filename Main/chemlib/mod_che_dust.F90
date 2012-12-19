@@ -698,18 +698,19 @@ module mod_che_dust
       intent (inout) rsfrow , uth
 !
 !     real(rk8) :: beffect
-      real(rk8) :: beta , const, p1 , p2 , p3 , rwi , dec , ec , fdp1 , fdp2
+      real(rk8) :: beta , p1 , p2 , p3 , rwi , dec , ec , fdp1 , fdp2
       real(rk8) , dimension(ilg,nats) :: fsoil , fsoil1 , fsoil2 , fsoil3
       integer(ik4) :: i , k , n , nt , ns
       real(rk8) , dimension(ilg,isize,nats) :: rsfrowsub
       real(rk8), dimension(ilg,nbin,nats):: rsfrowt
-      !
-      ! Put const consistent with soil parameters and Laurent et al., 08
-      ! basically this const is a tuning parameter 
-      ! now set through rdstemfac (chem namelist) 
-      ! data const /d_one/
+
       data beta  /16300.0D0/
   
+      !
+      ! Put rdstemfac consistent with soil parameters and Laurent et al., 08
+      !
+      ! rdstemfac = d_one
+      !
       p1 = d_zero
       p2 = d_zero
       p3 = d_zero
@@ -718,10 +719,6 @@ module mod_che_dust
       fsoil2(:,:) = d_zero
       fsoil3(:,:) = d_zero
 
-      ! emission constant is now fixed in the namelist via rdtemfac 
-
-      const = d_one * rdstemfac
- 
       do nt = 1 , nats 
          do i = il1 , il2
            if (ftex(i,nt) < 1.D-10) cycle
@@ -730,7 +727,7 @@ module mod_che_dust
               uth = utheff(i,ns)/(rc(i)*ustar(i))
               if ( uth <= d_one ) then
                 fdp1 = ustar(i)**3*(d_one-uth*uth)
-                fdp2 = (d_one+uth)*const*(1.0D-5)*roarow(i)*regrav
+                fdp2 = (d_one+uth)*rdstemfac*(1.0D-5)*roarow(i)*regrav
                 if ( fdp2 <= d_zero ) fdp2 = d_zero
                 ! FAB: with subgrid soil texture, the aggregation of vertical
                 ! fluxes per texture type at the grid cell level is done in
