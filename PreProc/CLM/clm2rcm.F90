@@ -361,17 +361,22 @@ program clm2rcm
                   kmax = k
                 end if
               end do
-              if ( pxerr > 0.0 .and. kmax > 0 ) then
+              if ( abs(pxerr) > 0.0 ) then
 #ifdef DEBUG
-                write(stdout,*) 'Adjusting classes at ',j,i
+                write(stdout,*) 'Adjusting classes at ',j,i,' total Err: ', pxerr
 #endif
-                adjust = pxerr/nlev(ifld)
-                do k = 1 , nlev(ifld)
-                  regyxzt(j,i,k,l) = regyxzt(j,i,k,l) + adjust
-                end do
-                pxerr = pxerr - adjust*nlev(ifld)
-                regyxzt(j,i,kmax,l) = regyxzt(j,i,kmax,l) + pxerr
+                adjust = nint(pxerr/nlev(ifld))
+                if ( abs(adjust) > 0.0 ) then
+                  do k = 1 , nlev(ifld)
+                    regyxzt(j,i,k,l) = regyxzt(j,i,k,l) + adjust
+                  end do
+                end if
+                pxerr = pxerr - nint(adjust*nlev(ifld))
+                if ( abs(pxerr) > 0.0) regyxzt(j,i,kmax,l) = regyxzt(j,i,kmax,l) + pxerr
               end if
+#ifdef DEBUG
+              write(stdout,*) 'New sum now is: ',sum(regyxzt(j,i,:,l))
+#endif
             else
               regyxzt(j,i,:,:) = 0.0
             end if
