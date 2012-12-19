@@ -89,6 +89,8 @@ program clm2rcm
   integer(ik4) , dimension(8) :: ilevs
   integer(ik4) , parameter :: iforest = 5
   integer(ik4) , parameter :: igrass  = 14
+  real(rk4) , dimension(:) , allocatable :: vals_swap
+  integer , dimension(:) , allocatable :: iord
 !
   data ilevs /-1,-1,-1,-1,-1,-1,-1,-1/
   data xmiss /-9999.0/
@@ -345,43 +347,44 @@ program clm2rcm
 #endif
     do l = 1 , ntim(ifld)
       if ( ifld == ipft ) then
+        allocate(iord(nlev(ifld)))
+        allocate(vals_swap(nlev(ifld)))
         do i = 1 , iy
           do j = 1 , jx
             if ( xmask(j,i) > 0.0 ) then
               do k = 1 , nlev(ifld)
                 regyxzt(j,i,k,l) = aint(regyxzt(j,i,k,l))
               end do
+              call sortpatch(regyxzt(j,i,:,l))
               pxerr = 100.
-              pmax  = -1.
-              kmax = -1
-              do k = 1 , nlev(ifld)
-                pxerr = pxerr - regyxzt(j,i,k,l)
-                if ( regyxzt(j,i,k,l) > pmax ) then
-                  pmax = regyxzt(j,i,k,l)
-                  kmax = k
-                end if
+              do k = 1 , MAXPATCH_PFT
+                pxerr = pxerr - vals_swap(k)
               end do
               if ( abs(pxerr) > 0.0 ) then
 #ifdef DEBUG
                 write(stdout,*) 'Adjusting classes at ',j,i,' total Err: ', pxerr
+                write(stdout,*) 'Old sum now is: ',sum(regyxzt(j,i,:,l))
 #endif
-                adjust = nint(pxerr/nlev(ifld))
+                adjust = nint(pxerr/MAXPATCH_PFT)
                 if ( abs(adjust) > 0.0 ) then
-                  do k = 1 , nlev(ifld)
-                    regyxzt(j,i,k,l) = regyxzt(j,i,k,l) + adjust
+                  do k = 1 , MAXPATCH_PFT
+                    regyxzt(j,i,iord(k),l) = vals_swap(k) + adjust
                   end do
                 end if
-                pxerr = pxerr - nint(adjust*nlev(ifld))
-                if ( abs(pxerr) > 0.0) regyxzt(j,i,kmax,l) = regyxzt(j,i,kmax,l) + pxerr
-              end if
+                pxerr = pxerr - nint(adjust*MAXPATCH_PFT)
+                if ( abs(pxerr) > 0.0) regyxzt(j,i,iord(1),l) = regyxzt(j,i,iord(1),l) + pxerr
+                regyxzt(j,i,iord(MAXPATCH_PFT:),l) = 0.0
 #ifdef DEBUG
-              write(stdout,*) 'New sum now is: ',sum(regyxzt(j,i,:,l))
+                write(stdout,*) 'New sum now is: ',sum(regyxzt(j,i,:,l))
 #endif
+              end if
             else
               regyxzt(j,i,:,:) = 0.0
             end if
           end do
         end do
+        deallocate(iord)
+        deallocate(vals_swap)
       end if
       where ( regyxzt < vmin(ifld) )
         regyxzt = 0.0
@@ -522,5 +525,32 @@ program clm2rcm
   call memory_destroy
 
   write(stdout,*) 'Successfully completed CLM preprocessing.'
+
+  contains
+
+  recursive subroutine sortpatch(vals,lsub)
+    implicit none
+    real(rk4) , dimension(:) , intent(in) :: vals
+    logical , optional :: lsub
+    integer(ik4) :: i , iswap
+    real(rk4) :: rswap
+    if ( .not. present(lsub) ) then
+      do i = 1 , size(vals)
+        iord(i) = i
+        vals_swap(i) = vals(i)
+      end do
+    end if
+    do i = 1 , size(vals)-1
+      if ( vals_swap(i) < vals_swap(i+1) ) then
+        rswap = vals_swap(i+1)
+        iswap = iord(i+1)
+        vals_swap(i+1) = vals_swap(i)
+        iord(i+1) = iord(i)
+        vals_swap(i) = rswap
+        iord(i) = iswap
+        call sortpatch(vals,.true.)
+      end if
+    end do
+  end subroutine sortpatch
  
 end program clm2rcm
