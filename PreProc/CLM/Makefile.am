@@ -17,7 +17,7 @@ clm2rcm_SOURCES = mod_param_clm.F90 mod_grid.F90 mod_nclib.f90  \
                   mod_clm3grid.f90 clm2rcm.F90
 
 %.o: %.f90
-	$(FC) $(FCFLAGS) -c $<
+	$(FC) $(FPPFLAGS) $(FCFLAGS) -c $<
 
 %.o: %.F90
 	$(FC) $(FPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
