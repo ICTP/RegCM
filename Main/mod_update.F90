@@ -27,6 +27,7 @@
 !
       use mod_couplerr
       use mod_bats_common
+      use mod_outvars
 !
       implicit none
       private
@@ -92,8 +93,10 @@
                     lbound(models(Iatmos)%dataExport(k,n)%ptr, dim=2),  &
                     ubound(models(Iatmos)%dataExport(k,n)%ptr, dim=2)
         write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),         &
-                    lbound(t2m, dim=2), ubound(t2m, dim=2),             &
-                    lbound(t2m, dim=3), ubound(t2m, dim=3)
+                    lbound(t2m, dim=2),                                 &
+                    ubound(t2m, dim=2),                                 &
+                    lbound(t2m, dim=3),                                 &
+                    ubound(t2m, dim=3)
         write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),         &
                     jci1, jci2, ici1, ici2
       end if
@@ -113,7 +116,8 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(sfcp(:,j,i))*rnnsg
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) =                     &
+                       (sfps(j,i)+ptop)*d_10
         end do
       end do
 !
@@ -126,7 +130,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(t2m(:,j,i))*rnnsg
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = t2m(1,j,i)
         end do
       end do
 !
@@ -139,7 +143,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(q2m(:,j,i))*rnnsg
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = q2m(1,j,i)
         end do
       end do
 !          
@@ -152,7 +156,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(fsw(:,j,i))*rnnsg
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fsw(j,i)
         end do
       end do
 !
@@ -165,7 +169,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(flwd(:,j,i))*rnnsg
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = flwd(j,i)
         end do
       end do
 !          
@@ -178,7 +182,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(flw((:,j,i))*rnnsg
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = flw(j,i)
         end do
       end do
 !          
@@ -191,7 +195,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(sinc(:,j,i))*rnnsg
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sent(1,j,i)
         end do
       end do
 !          
@@ -204,13 +208,12 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(evpr(:,j,i)) * &
-                                                    rnnsg*wlhv*day2s
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = evpr(1,j,i)*wlhv
         end do
       end do
 !
 !-----------------------------------------------------------------------
-!     Precipitation (m/s)
+!     Precipitation (mm/s)
 !-----------------------------------------------------------------------
 ! 
       case ('Rain')
@@ -218,7 +221,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(totpr(:,j,i)*rnnsg
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = totpr(j,i)
         end do
       end do
 !          
@@ -231,7 +234,7 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(u10m(:,j,i))*rnnsg
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = u10m(1,j,i) 
         end do
       end do
 !          
@@ -244,12 +247,12 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sum(v10m(:,j,i)*rnnsg
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = v10m(1,j,i)
         end do
       end do
 !          
 !-----------------------------------------------------------------------
-!     Net freshwater flux (m/s) 
+!     Net freshwater flux (mm/s) 
 !-----------------------------------------------------------------------
 ! 
       case ('EminP')
@@ -257,9 +260,8 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = (fbat(j,i,evpa_o)-  &
-                                                    fbat(j,i,tpr_o))*   &
-                                                    day2s
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = (evpr(1,j,i)-       &
+                                                     totpr(j,i))
         end do
       end do
 !          
@@ -272,11 +274,10 @@
         do j = jci1, jci2
         ii = global_cross_istart+i-1
         jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fbat(j,i,fswa_o)-   &
-                                                    fbat(j,i,sena_o)-   &
-                                                    fbat(j,i,evpa_o)*   &
-                                                    wlhv*day2s-         &
-                                                    fbat(j,i,flwa_o)
+        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fsw(j,i)-           &
+                                                    sent(1,j,i)-        &
+                                                    evpr(1,j,i)*wlhv-   &
+                                                    flw(j,i) 
         end do
       end do
 !          
@@ -554,7 +555,7 @@
                   ldmsk1(n,j,i) = 2
                   lveg(n,j,i) = 12
                   ! reduce sensible heat flux for ice presence                    
-                  toth = hice+fbat(j,i,scv_o) 
+                  toth = hice+sncv(n,j,i) 
                   if ( toth > href ) then
                     sfs%hfx(j,i) = sfs%hfx(j,i)*(href/toth)**steepf
                   end if

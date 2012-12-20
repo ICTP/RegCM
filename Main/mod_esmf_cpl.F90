@@ -408,7 +408,7 @@
                   trim(GRIDDES(sid)),                                   &
                   trim(itemNamesExportF(i)),                            &
                   trim(GRIDDES(did)),                                   &
-                  'bilnear'
+                  'bilinear'
       end if
       end if
 !
@@ -545,7 +545,7 @@
                   trim(GRIDDES(sid)),                                   &
                   trim(models(Iatmos)%dataImport(vid,1)%name),          &
                   trim(GRIDDES(did)),                                   &
-                  'bilnear'
+                  'bilinear'
       end if
       end if
 !     
@@ -749,7 +749,7 @@
                   trim(GRIDDES(sid)),                                   &
                   trim(itemNamesExportF(i)),                            &
                   trim(GRIDDES(did)),                                   &
-                  'bilnear'
+                  'bilinear'
       end if
       end if
 !
@@ -836,7 +836,7 @@
                   trim(GRIDDES(sid)),                                   &
                   trim(models(Iatmos)%dataImport(vid,1)%name),          &
                   trim(GRIDDES(did)),                                   &
-                  'bilnear'
+                  'bilinear'
       end if
       end if
 !

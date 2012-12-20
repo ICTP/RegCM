@@ -24,8 +24,8 @@
 !-----------------------------------------------------------------------
 !
       use ESMF
-      !use mod_regcm_interface
       use mod_couplerr
+      use mod_stdio, only : stderr
 !
 !-----------------------------------------------------------------------
 !     Used module declarations (ROMS Component routines)
@@ -466,7 +466,7 @@
           call ESMF_Finalize(endflag=ESMF_END_ABORT)
         end if
       else if (int(time_ref) == -1) then
-        ref_year=1
+        ref_year=0
         ref_month=1
         ref_day=1
         ref_hour=0
@@ -555,6 +555,7 @@
       do ng = 1, nNest(Iocean)
         MyStopTime=MAX(MyStopTime, (REAL(ntimes(ng),r8)*dt(ng))*sec2day)
       end do
+      MyStopTime=MyStopTime+MyStartTime
       call caldate (r_date, MyStopTime, end_year, yday, end_month,      &
                     end_day, hour)
       minute=(hour-Aint(hour))*60.0_r8

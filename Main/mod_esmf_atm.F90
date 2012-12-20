@@ -29,6 +29,7 @@
       use mod_regcm_interface, only : RCM_initialize,                   &
                                       RCM_run,                          &
                                       RCM_finalize
+      use mod_stdio, only : stderr
 !
       implicit none
       private
@@ -244,11 +245,33 @@
 !     Set RCM start time (timestr1)
 !-----------------------------------------------------------------------
 !
+  
       dt1 = models(Iatmos)%curTime-models(Iatmos)%strTime
+!
+      if (localPet == 0) then
+      call ESMF_TimePrint(models(Iatmos)%strTime,                       &
+                          options="string isofrac",                     &
+                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      call ESMF_TimePrint(models(Iatmos)%curTime,                       &
+                          options="string isofrac",                     &
+                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!
+      call ESMF_TimeIntervalPrint(dt1,                                          &
+                          options="string isofrac",                     &
+                          rc=rc)
+      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      end if
+
       call ESMF_TimeIntervalGet (dt1,                                   &
                                  s_r8=timestr1,                         &
                                  rc=rc)
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+      if (localPet == 0) then
+        print*, timestr1
+      end if
 !
 !-----------------------------------------------------------------------
 !     Get coupler component start time (timestr2)
@@ -394,6 +417,7 @@
       use mod_runparams, only : idate0, idate1, idate2, dtsec 
       use mod_runparams, only : split_idate
       use mod_runparams, only : cpldt, cpldbglevel
+      use mod_dynparam , only : calendar
 !
       implicit none
 !
@@ -423,10 +447,27 @@
 !     Create ESMF calendar
 !-----------------------------------------------------------------------
 !
-      name = 'Mixed Gregorian/Julian calendar'
-      models(Iatmos)%cal = ESMF_CalendarCreate(ESMF_CALKIND_GREGORIAN,  &
-                                        name=trim(name),                &
-                                        rc=rc)
+      if (calendar == 'gregorian') then
+        name = "The Gregorian calendar"
+        models(Iatmos)%cal = ESMF_CalendarCreate(ESMF_CALKIND_GREGORIAN,&
+                                                 name=trim(name),       &
+                                                 rc=rc)
+      else if (calendar == 'noleap' .or. calendar == '365_day') then
+        name = "The no-leap calendar"
+        models(Iatmos)%cal = ESMF_CalendarCreate(ESMF_CALKIND_NOLEAP,   &
+                                                 name=trim(name),       &
+                                                 rc=rc)
+      else if (calendar == '360_day') then
+        name = "The 360-day calendar"
+        models(Iatmos)%cal = ESMF_CalendarCreate(ESMF_CALKIND_360DAY,   &
+                                                 name=trim(name),       &
+                                                 rc=rc)
+      else
+        name = "The Gregorian calendar"
+        models(Iatmos)%cal = ESMF_CalendarCreate(ESMF_CALKIND_GREGORIAN,&
+                                                 name=trim(name),       &
+                                                 rc=rc)
+      end if
       if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
 !
 !-----------------------------------------------------------------------

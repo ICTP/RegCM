@@ -936,7 +936,7 @@
             models(i)%dataImport(1,j)%long_name = &
             'surface freshwater (E-P) flux'
             models(i)%dataImport(1,j)%units = 'm/s'
-            models(i)%dataImport(1,j)%scale_factor = day2s*mm2m 
+            models(i)%dataImport(1,j)%scale_factor = mm2m 
             models(i)%dataImport(1,j)%add_offset = 0.0d0
 !
             models(i)%dataImport(2,j)%fid = 2
