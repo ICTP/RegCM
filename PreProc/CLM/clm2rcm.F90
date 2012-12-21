@@ -92,10 +92,9 @@ program clm2rcm
   integer , dimension(:) , allocatable :: iord
 #ifdef SAGE_TEST
   real(rk4) , dimension(:) , allocatable :: vals_swap1
-  real(rk4) :: new_forest , old_forest
-  real(rk4) :: new_grass , old_grass
+  real(rk4) :: new_forest , old_forest , old_grass
   integer , dimension(:) , allocatable :: iord1
-  integer(ik4) :: inowf , inowg , iprevf , iprevg
+  integer(ik4) :: inowf , iprevf
 #endif
 !
   data ilevs /-1,-1,-1,-1,-1,-1,-1,-1/
@@ -235,8 +234,10 @@ program clm2rcm
     end if
  
 #ifdef SAGE_TEST
-    if ( ifld==ipft ) then
+    if ( ifld == ipft ) then
       call getmem3d(save_regyz,1,jx,1,iy,1,nlev(ifld),'clm2rcm:save_regyz')
+      allocate(iord1(nlev(ifld)))
+      allocate(vals_swap1(nlev(ifld)))
     end if
 #endif
     call getmem4d(zoom,1,icount(1),1,icount(2),1,icount(3),1,icount(4), &
@@ -341,29 +342,25 @@ program clm2rcm
     imondate = irefdate
 #ifdef SAGE_TEST
     if ( ifld == ipft ) then
-     inquire(file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
+      inquire(file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
              exist=hassmask)
-     if ( hassmask ) then
-       open(163,file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
-            form='unformatted',status='old')
-       read(163) save_regyz
-     end if
+      if ( hassmask ) then
+        write(stdout,*) 'SAGE : Reading initial state from SAGEMASK'
+        open(163,file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
+             form='unformatted',status='old')
+        read(163) save_regyz
+      end if
     end if
 #endif
     do l = 1 , ntim(ifld)
       if ( ifld == ipft ) then
-#ifdef SAGE_TEST
-        if ( .not. hassmask ) then
-          save_regyz(:,:,:) = regyxzt(:,:,:,1)
-          open(163,file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
-               form='unformatted',status='new')
-          write(163) save_regyz
-        end if
-        allocate(iord1(nlev(ifld)))
-        allocate(vals_swap1(nlev(ifld)))
-#endif
         allocate(iord(nlev(ifld)))
         allocate(vals_swap(nlev(ifld)))
+#ifdef SAGE_TEST
+        if ( hassmask ) then
+          write(stdout,*) 'SAGE : Correcting FOREST PFT...'
+        end if
+#endif
         do i = 1 , iy
           do j = 1 , jx
             if ( xmask(j,i) > 0.0 ) then
@@ -389,32 +386,35 @@ program clm2rcm
                 regyxzt(j,i,iord(MAXPATCH_PFT:),l) = 0.0
               end if
 #ifdef SAGE_TEST
-              old_forest = save_regyz(j,i,iforest)
-              old_grass = save_regyz(j,i,igrass)
-              new_forest = regyxzt(j,i,iforest,l)
-              new_grass = regyxzt(j,i,igrass,l)
-              ! If something has changed
-              if ( nint(new_forest) /= nint(old_forest) .or. &
-                   nint(new_grass) /= nint(old_grass) ) then
-                ! Find new order
-                call sortpatch(save_regyz(j,i,:),vals_swap1,iord1)
-                iprevf = -1
-                inowf = -1
-                iprevg = -1
-                inowg = -1
-                do k = 1 , MAXPATCH_PFT
-                  if ( iord(k) == iforest ) inowf = k
-                  if ( iord1(k) == iforest ) iprevf = k
-                  if ( iord(k) == igrass ) inowg = k
-                  if ( iord1(k) == igrass ) iprevg = k
-                end do
-                if ( iprevf > 0 .and. inowf < 0 .or. &
-                     iprevf < 0 .and. inowf > 0 .or. &
-                     iprevg > 0 .and. inowg < 0 .or. &
-                     iprevg < 0 .and. inowg > 0 ) then
-                  regyxzt(j,i,:,l) = save_regyz(j,i,:)
-                  regyxzt(j,i,iforest,l) = old_grass
-                  regyxzt(j,i,igrass,l) = old_forest
+              if ( hassmask ) then
+                old_forest = save_regyz(j,i,iforest)
+                new_forest = regyxzt(j,i,iforest,l)
+                old_grass = save_regyz(j,i,igrass)
+                ! First , restore the previous state
+                regyxzt(j,i,:,l) = save_regyz(j,i,:)
+                ! If something has changed (for now only forest decrease)
+                if ( nint(new_forest) < nint(old_forest) ) then
+                  ! Find new order
+                  write(stdout,*) 'SAGE: Forest change ', &
+                           new_forest-old_forest,'% at ',i,j
+                  regyxzt(j,i,iforest,l) = new_forest
+                  regyxzt(j,i,igrass,l) = old_grass + (old_forest-new_forest)
+                  call sortpatch(save_regyz(j,i,:),vals_swap1,iord1)
+                  call sortpatch(regyxzt(j,i,:,l),vals_swap,iord)
+                  iprevf = -1
+                  inowf = -1
+                  do k = 1 , MAXPATCH_PFT
+                    if ( iord(k)  == iforest ) inowf = k
+                    if ( iord1(k) == iforest ) iprevf = k
+                  end do
+                  ! If forest has gone out of MAXPATCH, swap the two
+                  ! from the original dataset.
+                  if ( iprevf > 0 .and. inowf < 0 ) then
+                    write(stdout,*) 'SAGE: Swapping grass and forest at',i,j
+                    regyxzt(j,i,iforest,l) = old_grass
+                    regyxzt(j,i,igrass,l) = old_forest
+                  else
+                  end if
                 end if
               end if
 #endif
@@ -428,6 +428,13 @@ program clm2rcm
 #ifdef SAGE_TEST
         deallocate(iord1)
         deallocate(vals_swap1)
+        if ( .not. hassmask ) then
+          write(stdout,*) 'SAGE : Writing initial state to SAGEMASK'
+          save_regyz(:,:,:) = regyxzt(:,:,:,1)
+          open(163,file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
+               form='unformatted',status='new')
+          write(163) save_regyz
+        end if
 #endif
       end if
       where ( regyxzt < vmin(ifld) )
