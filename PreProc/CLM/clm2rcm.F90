@@ -75,7 +75,6 @@ program clm2rcm
   real(rk4) , pointer , dimension(:,:,:,:) :: regyxzt , zoom
 #ifdef SAGE_TEST
   real(rk4) , pointer , dimension(:,:,:) :: save_regyz
-  real(rk4) , pointer , dimension(:,:) :: new_forest , old_forest
   logical :: hassmask = .false.
 #endif
   real(rk4) , pointer , dimension(:,:) :: landmask , sandclay
@@ -91,6 +90,13 @@ program clm2rcm
   integer(ik4) , parameter :: igrass  = 14
   real(rk4) , dimension(:) , allocatable :: vals_swap
   integer , dimension(:) , allocatable :: iord
+#ifdef SAGE_TEST
+  real(rk4) , dimension(:) , allocatable :: vals_swap1
+  real(rk4) :: new_forest , old_forest
+  real(rk4) :: new_grass , old_grass
+  integer , dimension(:) , allocatable :: iord1
+  integer(ik4) :: inowf , inowg , iprevf , iprevg
+#endif
 !
   data ilevs /-1,-1,-1,-1,-1,-1,-1,-1/
   data xmiss /-9999.0/
@@ -195,7 +201,8 @@ program clm2rcm
 !         ************************
       write(stdout,*) 'OPENING Input NetCDF FILE: ' , trim(inpfile)
       ierr = nf90_open(inpfile,nf90_nowrite,idin)
-      call checkncerr(istatus,__FILE__,__LINE__,'Cannot open file '//trim(inpfile))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+        'Cannot open file '//trim(inpfile))
       ipathdiv = scan(inpfile, pthsep, .true.)
       if ( ipathdiv/=0 ) then
         outfil_nc = trim(dirglob)//pthsep//trim(domname)//  &
@@ -230,8 +237,6 @@ program clm2rcm
 #ifdef SAGE_TEST
     if ( ifld==ipft ) then
       call getmem3d(save_regyz,1,jx,1,iy,1,nlev(ifld),'clm2rcm:save_regyz')
-      call getmem2d(new_forest,1,jx,1,iy,'clm2rcm:new_forest')
-      call getmem2d(old_forest,1,jx,1,iy,'clm2rcm:old_forest')
     end if
 #endif
     call getmem4d(zoom,1,icount(1),1,icount(2),1,icount(3),1,icount(4), &
@@ -347,6 +352,16 @@ program clm2rcm
 #endif
     do l = 1 , ntim(ifld)
       if ( ifld == ipft ) then
+#ifdef SAGE_TEST
+        if ( .not. hassmask ) then
+          save_regyz(:,:,:) = regyxzt(:,:,:,1)
+          open(163,file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
+               form='unformatted',status='new')
+          write(163) save_regyz
+        end if
+        allocate(iord1(nlev(ifld)))
+        allocate(vals_swap1(nlev(ifld)))
+#endif
         allocate(iord(nlev(ifld)))
         allocate(vals_swap(nlev(ifld)))
         do i = 1 , iy
@@ -355,16 +370,12 @@ program clm2rcm
               do k = 1 , nlev(ifld)
                 regyxzt(j,i,k,l) = aint(regyxzt(j,i,k,l))
               end do
-              call sortpatch(regyxzt(j,i,:,l))
+              call sortpatch(regyxzt(j,i,:,l),vals_swap,iord)
               pxerr = 100.
               do k = 1 , MAXPATCH_PFT
                 pxerr = pxerr - vals_swap(k)
               end do
               if ( abs(pxerr) > 0.0 ) then
-#ifdef DEBUG
-                write(stdout,*) 'Adjusting classes at ',j,i,' total Err: ', pxerr
-                write(stdout,*) 'Old sum now is: ',sum(regyxzt(j,i,:,l))
-#endif
                 adjust = nint(pxerr/MAXPATCH_PFT)
                 if ( abs(adjust) > 0.0 ) then
                   do k = 1 , MAXPATCH_PFT
@@ -372,12 +383,41 @@ program clm2rcm
                   end do
                 end if
                 pxerr = pxerr - nint(adjust*MAXPATCH_PFT)
-                if ( abs(pxerr) > 0.0) regyxzt(j,i,iord(1),l) = regyxzt(j,i,iord(1),l) + pxerr
+                if ( abs(pxerr) > 0.0 ) then
+                  regyxzt(j,i,iord(1),l) = regyxzt(j,i,iord(1),l) + pxerr
+                end if
                 regyxzt(j,i,iord(MAXPATCH_PFT:),l) = 0.0
-#ifdef DEBUG
-                write(stdout,*) 'New sum now is: ',sum(regyxzt(j,i,:,l))
-#endif
               end if
+#ifdef SAGE_TEST
+              old_forest = save_regyz(j,i,iforest)
+              old_grass = save_regyz(j,i,igrass)
+              new_forest = regyxzt(j,i,iforest,l)
+              new_grass = regyxzt(j,i,igrass,l)
+              ! If something has changed
+              if ( nint(new_forest) /= nint(old_forest) .or. &
+                   nint(new_grass) /= nint(old_grass) ) then
+                ! Find new order
+                call sortpatch(save_regyz(j,i,:),vals_swap1,iord1)
+                iprevf = -1
+                inowf = -1
+                iprevg = -1
+                inowg = -1
+                do k = 1 , MAXPATCH_PFT
+                  if ( iord(k) == iforest ) inowf = k
+                  if ( iord1(k) == iforest ) iprevf = k
+                  if ( iord(k) == igrass ) inowg = k
+                  if ( iord1(k) == igrass ) iprevg = k
+                end do
+                if ( iprevf > 0 .and. inowf < 0 .or. &
+                     iprevf < 0 .and. inowf > 0 .or. &
+                     iprevg > 0 .and. inowg < 0 .or. &
+                     iprevg < 0 .and. inowg > 0 ) then
+                  regyxzt(j,i,:,l) = save_regyz(j,i,:)
+                  regyxzt(j,i,iforest,l) = old_grass
+                  regyxzt(j,i,igrass,l) = old_forest
+                end if
+              end if
+#endif
             else
               regyxzt(j,i,:,:) = 0.0
             end if
@@ -385,27 +425,14 @@ program clm2rcm
         end do
         deallocate(iord)
         deallocate(vals_swap)
+#ifdef SAGE_TEST
+        deallocate(iord1)
+        deallocate(vals_swap1)
+#endif
       end if
       where ( regyxzt < vmin(ifld) )
         regyxzt = 0.0
       end where
-#ifdef SAGE_TEST
-      if ( ifld == ipft ) then
-        if ( .not. hassmask ) then
-          save_regyz(:,:,:) = regyxzt(:,:,:,1)
-          open(163,file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
-               form='unformatted',status='new')
-          write(163) save_regyz
-        else
-          new_forest = regyxzt(:,:,iforest,1)
-          old_forest = save_regyz(:,:,iforest)
-          regyxzt(:,:,:,1) = save_regyz(:,:,:)
-          regyxzt(:,:,iforest,1) = new_forest(:,:)
-          regyxzt(:,:,igrass,1) = save_regyz(:,:,igrass)+ &
-             (old_forest(:,:)-new_forest(:,:))
-        end if
-      end if
-#endif
       if ( ifld==icol ) then
         do k = 1 , nlev(ifld)
           do i = 1 , iy
@@ -528,27 +555,29 @@ program clm2rcm
 
   contains
 
-  recursive subroutine sortpatch(vals,lsub)
+  recursive subroutine sortpatch(vals,svals,ird,lsub)
     implicit none
     real(rk4) , dimension(:) , intent(in) :: vals
+    real(rk4) , dimension(:) , intent(inout) :: svals
+    integer , dimension(:) , intent(inout) :: ird
     logical , optional :: lsub
     integer(ik4) :: i , iswap
     real(rk4) :: rswap
     if ( .not. present(lsub) ) then
       do i = 1 , size(vals)
-        iord(i) = i
-        vals_swap(i) = vals(i)
+        ird(i) = i
+        svals(i) = vals(i)
       end do
     end if
     do i = 1 , size(vals)-1
-      if ( vals_swap(i) < vals_swap(i+1) ) then
-        rswap = vals_swap(i+1)
-        iswap = iord(i+1)
-        vals_swap(i+1) = vals_swap(i)
-        iord(i+1) = iord(i)
-        vals_swap(i) = rswap
-        iord(i) = iswap
-        call sortpatch(vals,.true.)
+      if ( svals(i) < svals(i+1) ) then
+        rswap = svals(i+1)
+        iswap = ird(i+1)
+        svals(i+1) = svals(i)
+        ird(i+1) = ird(i)
+        svals(i) = rswap
+        ird(i) = iswap
+        call sortpatch(vals,svals,ird,.true.)
       end if
     end do
   end subroutine sortpatch
