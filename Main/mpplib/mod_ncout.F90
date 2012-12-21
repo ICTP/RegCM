@@ -79,7 +79,7 @@ module mod_ncout
   integer(ik4) , parameter :: noptvars = nopt2dvars+nopt3dvars
 
   integer(ik4) , parameter :: nche2dvars = 7 + nbase
-  integer(ik4) , parameter :: nche3dvars = 11
+  integer(ik4) , parameter :: nche3dvars = 12
   integer(ik4) , parameter :: nchevars = nche2dvars+nche3dvars
 
   integer(ik4) , parameter :: nslaboc2dvars = 1 + nbase
@@ -314,7 +314,8 @@ module mod_ncout
   integer(ik4) , parameter :: che_wasten   = 9
   integer(ik4) , parameter :: che_bdyten   = 10
   integer(ik4) , parameter :: che_sedten   = 11
-
+  integer(ik4) , parameter :: che_emten    = 12
+ 
   integer(ik4) , parameter :: slab_xlon    = 1
   integer(ik4) , parameter :: slab_xlat    = 2
   integer(ik4) , parameter :: slab_mask    = 3
@@ -1493,8 +1494,8 @@ module mod_ncout
           end if
           if ( enable_che3d_vars(che_cuten) ) then
             call setup_var(v3dvar_che(che_cuten),vsize,'cuten', &
-              'kg kg-1 s-1', 'Tendency of tracer due to convective rainout', &
-              'tendency_of_mixing_ratio_due_to_convective_rainout',.true.)
+              'kg kg-1 s-1', 'Tendency of tracer due to convective transport', &
+              'tendency_of_mixing_ratio_due_to_convective_transport',.true.)
             che_cuten_out => v3dvar_che(che_cuten)%rval
           end if
           if ( enable_che3d_vars(che_tuten) ) then
@@ -1527,6 +1528,15 @@ module mod_ncout
               'tendency_of_mixing_ratio_due_to_sedimentation',.true.)
             che_sedten_out => v3dvar_che(che_sedten)%rval
           end if
+          if ( enable_che3d_vars(che_emten) ) then
+            print*,"OLA"
+            call setup_var(v3dvar_che(che_sedten),vsize,'emiten', &
+              'kg kg-1 s-1', 'Tendency of tracer due to emission', &
+              'tendency_of_mixing_ratio_due_to_emission',.true.)
+              print*,'HE'
+            che_emten_out => v3dvar_che(che_emten)%rval
+              print*,'ALO'
+          end if
           if ( ibltyp == 2 .or. ibltyp == 99 ) then
             if ( enable_che2d_vars(che_pblten) ) then
               call setup_var(v2dvar_che(che_pblten),vsize,'pblten', &
@@ -1538,7 +1548,7 @@ module mod_ncout
             enable_che2d_vars(che_pblten) = .false.
           end if
         else
-          enable_che3d_vars(che_cheten:che_sedten) = .false.
+          enable_che3d_vars(che_cheten:che_emten) = .false.
           enable_che2d_vars(che_pblten) = .false.
         end if
 

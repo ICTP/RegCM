@@ -65,7 +65,7 @@ module mod_che_common
   real(rk8) , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
                                              rxsaq1 , rxsaq2 , rxsg
   real(rk8) , pointer , dimension(:,:,:,:) :: chemdiag , cadvhdiag , &
-          cadvvdiag , cdifhdiag , cconvdiag , cbdydiag , ctbldiag , cseddpdiag 
+          cadvvdiag , cdifhdiag , cconvdiag , cbdydiag , ctbldiag , cseddpdiag, cemisdiag 
 
 
 !*****************************************************************************
@@ -176,6 +176,9 @@ module mod_che_common
                         ice1,ice2,1,kz,1,ntr,'che_common:cbdydiag')
           call getmem4d(cseddpdiag,jce1,jce2, &
                         ice1,ice2,1,kz,1,ntr,'che_common:cseddpdiag')
+          call getmem4d(cemisdiag,jce1,jce2, &
+                        ice1,ice2,1,kz,1,ntr,'che_common:cemisdiag')
+        
         end if
 #if (defined VOC && defined CLM)
         call getmem1d(bvoc_trmask,1,ntr,'mod_che_common:bvoc_trmask')
