@@ -17,12 +17,12 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-SVNDEF := '-DSVN_REV="3580 4.3.5"'
+SVNDEF := '-DSVN_REV="4.3.5 3595"'
 
 ifeq ($(OSNAME),AIX)
   null :=
   cpre := $(null)-WF,-D$(null)
-  SVNDEF := '-WF,-DSVN_REV="3580 4.3.5"'
+  SVNDEF := '-WF,-DSVN_REV="4.3.5 3595"'
   CPPFLAGS := $(patsubst -D%,$(cpre)%,$(CPPFLAGS))
   MPEUFCFLAGS := $(patsubst -D%,$(cpre)%,$(MPEUFCFLAGS))
 endif
