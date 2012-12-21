@@ -1529,7 +1529,7 @@ module mod_ncout
             che_sedten_out => v3dvar_che(che_sedten)%rval
           end if
           if ( enable_che3d_vars(che_emten) ) then
-            call setup_var(v3dvar_che(che_emtenn),vsize,'emiten', &
+            call setup_var(v3dvar_che(che_emten),vsize,'emiten', &
               'kg kg-1 s-1', 'Tendency of tracer due to emission', &
               'tendency_of_mixing_ratio_due_to_emission',.true.)
             che_emten_out => v3dvar_che(che_emten)%rval
