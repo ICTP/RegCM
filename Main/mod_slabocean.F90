@@ -96,7 +96,6 @@ module mod_slabocean
         else where
           qflux_restore_sst = dmissval
         end where
-        return
       else if ( do_qflux_adj ) then
         ! Find the current climatological heat flux adjustment (qflux_adj).  
         ! The qflux_adj can be added to the heat flux to find the net heat
