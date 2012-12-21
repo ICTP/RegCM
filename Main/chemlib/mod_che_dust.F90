@@ -561,6 +561,11 @@ module mod_che_dust
             ! diagnostic source (accumulated)
             cemtrac(jloop,i,idust(n)) = cemtrac(jloop,i,idust(n)) + &
                      rsfrow(i,n)* cfdout
+
+             if ( ichdiag == 1 ) then
+             cemisdiag(jloop,i,kz,idust(n)) = cemisdiag(jloop,i,kz,idust(n)) + &
+                       rsfrow(i,n)/ ( cdzq(jloop,i,kz)*crhob3d(jloop,i,kz)) * cfdout
+             end if
           end do
           ieff = ieff + 1
         end if

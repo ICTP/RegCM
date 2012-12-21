@@ -1494,7 +1494,7 @@ module mod_ncout
           end if
           if ( enable_che3d_vars(che_cuten) ) then
             call setup_var(v3dvar_che(che_cuten),vsize,'cuten', &
-              'kg kg-1 s-1', 'Tendency of tracer due to convective transport', &
+              'kg kg-1 s-1', 'Tendency of tracer due to conv. transport', &
               'tendency_of_mixing_ratio_due_to_convective_transport',.true.)
             che_cuten_out => v3dvar_che(che_cuten)%rval
           end if
@@ -1548,7 +1548,6 @@ module mod_ncout
           enable_che3d_vars(che_cheten:che_emten) = .false.
           enable_che2d_vars(che_pblten) = .false.
         end if
-
         enable_che_vars(1:nche2dvars) = enable_che2d_vars
         enable_che_vars(nche2dvars+1:nchevars) = enable_che3d_vars
 
@@ -1568,8 +1567,8 @@ module mod_ncout
             vcount = vcount + 1
           end if
         end do
-        do i = 1 , nche3dvars
-          if ( enable_che_vars(i+nche2dvars) ) then
+        do i = 1 , nche3dvars 
+         if ( enable_che_vars(i+nche2dvars) ) then
             outstream(che_stream)%ncvars%vlist(vcount)%vp => v3dvar_che(i)
             vcount = vcount + 1
           end if

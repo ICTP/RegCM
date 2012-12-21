@@ -152,6 +152,11 @@ contains
             chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0D3)
             ! diagnostic for source, cumul
             cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
+            if ( ichdiag == 1 ) then
+             cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
+                        chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
+            end if 
+            
         end do
       end do
     elseif ( ichdrdepo ==2) then
@@ -164,14 +169,19 @@ contains
             cchifxuw(j,i,itr) = cchifxuw(j,i,itr) +  chemsrc(j,i,itr)
             ! diagnostic for source, cumul
             cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
+            if ( ichdiag == 1 ) then
+             cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
+                        chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
+            end if 
           end if 
         end do
       end do
     end if
     ! put back isop source to its nominal value 
-    !  if ( iisop > 0 ) then 
-    !    chemsrc(j,:,iisop) = tmpsrc(j,:,iisop)
-    !  end if 
+      if ( iisop > 0 ) then 
+        chemsrc(j,:,iisop) = tmpsrc(j,:,iisop)
+      end if 
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
