@@ -111,7 +111,7 @@ module mod_che_output
                              cpsb(jci1:jci2,ici1:ici2)
           end do
         end if
-        ctbldiag (:,:,:,itr) = d_zero 
+        ctbldiag(:,:,:,itr) = d_zero 
         if ( associated(che_raiten_out) ) then
           do k = 1 , kz
             che_raiten_out(:,:,k) = remcvc(jci1:jci2,ici1:ici2,k,itr) / &
@@ -141,15 +141,14 @@ module mod_che_output
         if ( associated(che_pblten_out) ) then
           che_pblten_out = cchifxuw(jci1:jci2,ici1:ici2,itr)
         end if
-       if ( associated(che_emten_out) ) then
+        if ( associated(che_emten_out) ) then
           do k = 1 , kz
             che_emten_out(:,:,k) = cemisdiag(jci1:jci2,ici1:ici2,k,itr) / &
                              cpsb(jci1:jci2,ici1:ici2)
           end do
         end if
-       cemisdiag(:,:,:,itr) = d_zero
+        cemisdiag(:,:,:,itr) = d_zero
       endif
-
 
       remlsc(:,:,:,itr) = d_zero
       remcvc(:,:,:,itr) = d_zero
