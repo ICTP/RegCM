@@ -66,7 +66,7 @@ program ncplot
   real(rk8) :: alat , alon , angle
   integer(ik4) :: i , j
   integer(ik4) :: year , month , day , hour
-  logical :: lvarsplit , lsigma , ldepth , lua , luas
+  logical :: lvarsplit , lsigma , ldepth , lu , lua , luas
   logical :: is_model_output = .false.
 #if defined ( __PGI ) || defined ( IBM ) || defined ( __OPENCC__ )
   integer(ik4) , external :: iargc
@@ -76,6 +76,7 @@ program ncplot
              'jul','aug','sep','oct','nov','dec'/
   data lsigma /.true./
   data ldepth /.false./
+  data lu /.false./
   data lua /.false./
   data luas /.false./
   data kzdimid  /-1/
@@ -427,7 +428,8 @@ program ncplot
     lvarflag(i) = .false.
     istatus = nf90_inquire_variable(ncid,i,name=varname,xtype=xtype, &
                                     ndims=idimid,dimids=dimids)
-    if ( varname == 'ua' .or. varname == 'u' ) lua = .true.
+    if ( varname == 'u' ) lu = .true.
+    if ( varname == 'ua' ) lua = .true.
     if ( varname == 'uas' ) luas = .true.
     call checkncerr(istatus,__FILE__,__LINE__, 'Inquire variable error')
     if (idimid > 1) then
@@ -477,8 +479,8 @@ program ncplot
     end if
   end do
 
-  if ( lua .and. luas ) then
-    write (11, '(a)') 'vectorpairs ua,va s01uas,s01vas'
+  if ( lu ) then
+    write (11, '(a)') 'vectorpairs u,v'
   else if ( lua ) then
     write (11, '(a)') 'vectorpairs ua,va'
   else if ( luas ) then
