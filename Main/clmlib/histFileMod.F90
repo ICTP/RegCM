@@ -2837,7 +2837,7 @@ contains
 
        ! Skip nstep=0 if monthly average
 
-       if (nstep==0 .and. tape(t)%nhtfrq==0) cycle
+       if (nstep==0) cycle
 
        ! Determine if end of history interval
        tape(t)%is_endhist = .false.
