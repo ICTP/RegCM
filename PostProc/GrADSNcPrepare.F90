@@ -67,7 +67,7 @@ program ncprepare
   real(rk8) :: alat , alon , angle
   integer(ik4) :: i , j , iid
   integer(ik4) :: year , month , day , hour
-  logical :: lvarsplit , existing , lsigma , ldepth
+  logical :: lvarsplit , existing , lsigma , ldepth , lua , luas
   logical :: is_model_output = .false.
 #if defined ( __PGI ) || defined ( IBM ) || defined ( __OPENCC__ )
   integer(ik4) , external :: iargc
@@ -77,6 +77,8 @@ program ncprepare
              'jul','aug','sep','oct','nov','dec'/
   data lsigma /.true./
   data ldepth /.false./
+  data lua /.false./
+  data luas /.false./
   data kzdimid  /-1/
   data itdimid  /-1/
   data dptdimid /-1/
@@ -432,9 +434,11 @@ program ncprepare
   totvars = 0
   do i = 1 , nvars
     lvarflag(i) = .false.
-    istatus = nf90_inquire_variable(ncid,i,xtype=xtype,ndims=idimid, &
-                                    dimids=dimids)
+    istatus = nf90_inquire_variable(ncid,i,name=varname,xtype=xtype, &
+                                    ndims=idimid,dimids=dimids)
     call checkncerr(istatus,__FILE__,__LINE__, 'Inquire variable error')
+    if ( varname == 'ua' .or. varname == 'u' ) lua = .true.
+    if ( varname == 'uas' ) luas = .true.
     if (idimid > 1) then
       lvarflag(i) = .true.
       if (idimid == 2) then
@@ -482,7 +486,13 @@ program ncprepare
     end if
   end do
 
-  write (11, '(a)') 'vectorpairs u,v s01u10m,s01v10m'
+  if ( lua .and. luas ) then
+    write (11, '(a)') 'vectorpairs ua,va s01uas,s01vas'
+  else if ( lua ) then
+    write (11, '(a)') 'vectorpairs ua,va'
+  else if ( luas ) then
+    write (11, '(a)') 'vectorpairs s01uas,s01vas'
+  end if
   write (11, '(a,i4)') 'vars ', totvars
 
   do i = 1 , nvars
