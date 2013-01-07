@@ -91,13 +91,6 @@ module mod_output
       if ( associated(sts_psmin_out) )  sts_psmin_out  =  1.D30
       if ( associated(sts_pcpmax_out) ) sts_pcpmax_out = -1.D30
       call newoutfiles(idatex)
-
-      ! This must be removed
-
-      ! if ( ifchem .and. myid == iocpu ) then
-      !   call prepare_chem_out(idatex,ifrest)
-      ! end if
-
       lstartup = .true.
       if ( doing_restart ) then
         doing_restart = .false.
