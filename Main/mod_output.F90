@@ -78,7 +78,7 @@ module mod_output
         call reorder_subgrid(xlat1,sub_xlat_out)
         call reorder_subgrid(mask1,sub_mask_out)
         call reorder_subgrid(ht1,sub_topo_out)
-        sub_topo_out = topo_out*regrav
+        sub_topo_out = sub_topo_out*regrav
       end if
       !
       ! Reset the accumulation arrays
