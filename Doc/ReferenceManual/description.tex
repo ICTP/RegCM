@@ -353,12 +353,12 @@ Max. sat. area  & $0.5^{\circ}$ x $0.5^{\circ}$ & $\pm 179.75$ & $\pm 89.75$  \\
 \end{table}
 
 \subsection{Planetary Boundary Layer Scheme}
+\subsubsection{Holtslag PBL}
 
-The planetary boundary
-layer scheme, developed by \cite{Holtslag_90}, is based on a nonlocal diffusion
-concept that takes into account countergradient fluxes resulting from
-large-scale eddies in an unstable, well-mixed atmosphere.  The vertical eddy
-flux within the PBL is given by
+The Holtslag planetary boundary layer scheme, developed by \cite{Holtslag_90},
+is based on a nonlocal diffusion concept that takes into account
+countergradient fluxes resulting from large-scale eddies in an unstable,
+well-mixed atmosphere.  The vertical eddy flux within the PBL is given by
 
 \begin{eqnarray}
 F_c = -K_c \left( {\partial{C} \over \partial{z}} - \gamma_c \right)
@@ -393,11 +393,11 @@ For the calculation of the eddy diffusivity and countergradient terms, the PBL
 height is diagnostically computed from
 
 \begin{eqnarray}
-h = { {\rm Ri_cr} [u(h)^2 + v(h)^2] \over (g/\theta_s)[\theta_v(h)-\theta_s] }
+  h = { {\rm {R_i}_{cr}} [u(h)^2 + v(h)^2] \over (g/\theta_s)[\theta_v(h)-\theta_s] }
 \end{eqnarray}
 
 where $u(h)$, $v(h)$, and $\theta_v$ are the wind components and the
-virtual potential temperature at the PBL height, $g$ is gravity, ${\rm Ri_cr}$
+virtual potential temperature at the PBL height, $g$ is gravity, ${\rm {R_i}_{cr}}$
 is the critical bulk Richardson number, and $\theta_s$ is an appropriate
 temperature of are near the surface.  Refer to \cite{Holtslag_90} and
 \cite{Holtslag_93} for a more detailed description.
@@ -431,6 +431,124 @@ Preliminary tests showed that this modification reduces the warm bias in high
 latitude winter conditions and allows the model to better capture surface
 inversions. These modifications have thus been incorporated as default in the
 \ac{RegCM4} code.
+
+\subsubsection{The UW Turbulence Closure Model}
+
+As an alternative to the Holtslag PBL, the University of Washington turbulence
+closure model \citep{Grenier_01,Bretherton_04} has been coupled to RegCM.  The
+development of this coupling, and its validation for western North America, is
+described by \cite{OBrien_12a}, and validation over Europe is described by
+\cite{Guettler_13}.  This parameterization was originally implemented to allow
+RegCM to simulate stratocumulus and coastal fog
+\citep{OBrien_12a,OBrien_12b}.
+
+The UW model is a 1.5-order, local, down-gradient diffusion parametrization.
+It will be referred to as a PBL model, but it has capabilities that allow it to
+calculate vertical fluxes out side of the PBL as well as within;
+\cite{Bretherton_04} refers to it as a moist turbulence parametrization.  As
+with other 1$^{st}$-order models, such as the Holtslag model, the UW model
+parameterizes turbulent fluxes as the product of a diffusivity and a gradient.
+In contrast to 1$^{st}$-order models, however, the model prognostically
+determines the turbulent kinetic energy (TKE, also referred to as $e$), and it
+uses TKE to define the diffusivites. 
+
+As with the Holtslag mode, diffusivity is defined as the product of a length
+scale and a velocity scale, though the velocity scale is defined as the square
+root of local TKE rather than the convective velocity scale. The length scale
+is the UW model's master length scale, either $l = \kappa z$ or $l = kz/(1 +
+kz/\lambda)$ (this can be set in the RegCM configuration file), multiplied by a
+correction factor that depends on local stability\footnote{The correction
+  factors are called the stability functions $S_{h,m}$, which are defined in
+\cite{Galperin_88}}, and the velocity scale is the square root of twice the
+TKE.
+
+The boundary layer height in the UW model is defined as the first level where
+the expression $N(z)^2 l(z)^2$ (where $N$ is the Brunt-V\"{a}is\"{a}l\"{a}
+frequency, $N^2 = \frac{g}{\theta_v}\frac{\partial \theta_v}{\partial z}$)
+exceeds half of the negative of its layer-mean value.  Since the flux of
+buoyancy, $b$, can be written as $\overline{w'b'} = -K_h \frac{\partial
+b}{\partial z}$, and it can be shown that $N^2 = \frac{\partial b}{\partial
+z}$, $N^2$ can be viewed as being proportional to the local buoyancy flux in
+the UW model.  In this interpretation, this condition for PBL top (or the top
+of any turbulent layer) can be approximately viewed as a ``condition that the
+buoyancy flux anywhere in the interior of a convective layer not be more
+negative than -0.5 of the layer-mean buoyancy flux" \citep{Bretherton_04}.  In
+other words for an unstable PBL, the PBL ends approximately when the virtual
+potential temperature profile becomes so stable that the buoyancy flux is
+opposite to and half as strong as the mean buoyancy flux below.  This condition
+for the height of the PBL can be encapsulated in the following implicit
+equation, where the $z$ and $h$ values are restricted to lie on the model's
+vertical grid:
+
+\begin{equation}\label{uwheight}
+N^2(h)l^2(h) = -\frac{1}{2}\frac{1}{h}\int_{0}^{h}N^2(z)l^2(z)\cdot dz 
+\end{equation}
+
+The diffusivity of scalar quantities and momentum at a given height, $z$, are
+given as $K_{h,m}(z) = l(z) S_{h,m}(z) \sqrt{2 e}$.  The TKE budget equation is
+solved at each time step according to equation~\ref{tkeeqn} (where the shear
+frequency, $S_f = \sqrt{(\frac{\partial u }{\partial z})^2 + (\frac{\partial v
+}{\partial z})^2}$), which is the balance of buoyancy ($B$), shear ($S$),
+transport ($T$), and dissipation ($D$) terms.  Following \cite{Grenier_01},
+the TKE diffusivity, $K_e$, is set as 5 times the eddy diffusivity, $K_m$.  The
+RegCM dynamical core has been modified to account for horizontal transport
+(i.e.~advection and diffusion) of TKE when the UW model is active.
+
+\begin{subequations}\label{tkeeqn}
+\begin{align}
+\frac{\partial e}{\partial t}\Bigr\rvert_{BL}&= -K_h N^2 + K_m {S_f}^2 + \frac{\partial}{\partial z}[K_e \frac{\partial e}{\partial z}] - \frac{e^{\frac{3}{2}}}{l}\\
+\frac{\partial e}{\partial t}\Bigr\rvert_{BL}&= B + S + T - D
+\end{align}
+\end{subequations}
+
+The UW model treats TKE and diffusivity at the surface and the PBL top
+specially.  At the surface, TKE is diagnosed as $e_0 = B u_{*}^2$, where $B$ is
+a constant.  At the PBL top (the temperature inversion), diffusivity for all
+quantities is set as $K_X = w_e \Delta_{inv}z$.  The entrainment flux, which
+uses the Turner-Deardorff formulation, is set as $w_e = \frac{A U}{R_i}$, where
+$A$ is the entrainment efficiency\footnote{The entrainment efficiency is
+  partially determined by the mixture of clear and cloudy air that happens at
+the inversion top: \cite{Grenier_01} takes special care to develop a
+parametrization for A that includes `evaporative enhancement' effects for cases
+when a cloudy-clear mixture of air is more dense than its surroundings.}, $U$
+is a scale velocity, and $R_i$ is a bulk Richardson number.  The UW model
+specifies the bulk Richardson number as $R_i = \frac{L \Delta b}{U^2}$, with $U
+= \sqrt{e_{inv}}$, and $L = l$ as the master length scale.  It is assumed that
+the PBL does not entrain or detrain TKE.
+
+The UW model accounts for the production of turbulence by cloud-top radiative
+cooling, which is a critical difference from the Holtslag PBL.  If a turbulent
+layer (e.g.~the PBL) is cloud-topped, then a term is added to the TKE budget
+equation: $\frac{\partial e}{\partial t}\Bigr\rvert_{RAD} = \frac{g \Delta
+F_{lw}}{C_p\rho \Pi \theta_v}\rvert_{inv}$, where $\Delta F_{lw}$ is the jump
+in long-wave flux at cloud-top.  This term is crucial for ensuring that
+turbulence is produced in the otherwise-stable regions where stratocumulus
+exist.
+
+The UW model is written specifically to deal with moist thermodynamic processes
+(i.e.~mixing between clear and cloudy air): its core prognostic equations are
+written to predict liquid water potential temperature, $\theta_l$, total water
+mixing ratio, $Q$, and momentum, $u_i$.  The use of these variables ensures
+that enthalpy and water are explicitly conserved when mixing between clear and
+cloudy parcels of air; care has to be taken otherwise (when using $\theta$ and
+$q$) to ensure conservation in this situation.
+
+At each model timestep, the UW model does the following: determines the
+boundary layer height, $h$, calculates the surface TKE,predicts the change in
+TKE due to PBL processes, determines the diffusivities at each height, and
+predicts the change in each prognostic quantity due to vertical convergence of
+turbulent fluxes.  The full set of equations that the UW PBL model solves at
+each time step, including equations~\ref{uwheight} and \ref{tkeeqn}, follows:
+
+\begin{subequations}\label{uwmodel}
+\begin{align}
+\frac{\partial u_i}{\partial t}\Bigr\rvert_{BL} &= \frac{\partial}{\partial z}[\kappa z S_m(z) \sqrt{2 e(z)} \frac{\partial u_i}{\partial z}]\label{uwmodela} \\
+\frac{\partial \theta_l}{\partial t}\Bigr\rvert_{BL} &= \frac{\partial}{\partial z}[\kappa z S_h(z) \sqrt{2 e(z)} \frac{\partial \theta_l}{\partial z}]\label{uwmodelb} \\
+\frac{\partial Q}{\partial t}\Bigr\rvert_{BL} &= \frac{\partial}{\partial z}[\kappa z S_h(z) \sqrt{2 e(z)} \frac{\partial Q}{\partial z}]\label{uwmodelc} \\
+\frac{\partial \chi_j}{\partial t}\Bigr\rvert_{BL} &= \frac{\partial}{\partial z}[\kappa z S_h(z) \sqrt{2 e(z)} \frac{\partial \chi_j}{\partial z}]\label{uwmodeld} 
+\end{align}
+\end{subequations}
+
 
 \subsection{Convective Precipitation Schemes}
 

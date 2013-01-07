@@ -25,30 +25,6 @@ contributions.
 Some of the development results/ideas are listed below, in a "time to market"
 order.
 
-\section{UFW PBL scheme}
-
-One of the deficiencies identified in \ac{RegCM3} has been the lack of
-simulation of low level stratus clouds, a problem clearly tied to the excessive
-vertical transport in the Holtslag PBL scheme (\cite{OBrien_11}).
-To address this problem Travis O’Brien coupled to the \ac{RegCM4} the general
-turbulence closure parameterization of \citep{Grenier_01,Bretherton_04},
-which we refer to as UW-PBL. This is a 1.5 order local, down-gradient diffusion
-parameterization in which the velocity scale is based on turbulent kinetic
-energy (TKE). The TKE is in turn calculated prognostically from the balance of
-buoyant production/destruction, shear production, dissipation vertical transport
-and horizontal diffusion and advection. The scheme also parameterizes the
-entrainment process  and its enhancement by evaporation of cloudy air into
-entrained air. One property of the scheme is the use of a mixing length
-formulation based on a 2010 paper by Grisogono (ref?) which allows a more
-realistic description of sharp inversions under strongly stable conditions.
-The UW-PBL has been so far tested within the \ac{RegCM4} framework mostly in
-midlatitude domains, such as the continental US (where it considerably improved
-the simulation of low level stratus clouds) and Europe.
-
-This scheme is currently in a SVN branch of the code and will be merged into
-the main development trunk as soon as the accompanying paper will be published,
-and will be available in the next model release.
-
 \section{Tiedtke convection scheme}
 
 Adrian Tompkins is developing an adaptation of the ECHAM5.4 \cite{Tiedtke_89}
