@@ -54,7 +54,7 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:,:) :: usw , vsw
   integer(ik4) , pointer , dimension(:,:,:) :: lveg
 !
-  public :: rnof , rsubsr , rsubst , rsur , wflux1 , wflux2 , wfluxc , bb , &
+  public :: rnof , rsubst , rsur , wflux1 , wflux2 , wfluxc , bb , &
             bcoef , cc , deprat , fct2
   public :: lfta , lftb , lftra , lftrs , cdrd , vpdc , rppq , efe ,   &
             dcd , etrc , dels , radf , rmini , rib
