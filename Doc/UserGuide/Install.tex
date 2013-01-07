@@ -5,7 +5,7 @@
 %
 
 Whatever method is chosen to download the code, we assume that you have now
-on your working directory a new directory, named \verb=RegCM-4.3=.
+on your working directory a new directory, named \verb=RegCM-4.3.x=.
 That directory will be for the rest of this guide referred as 
 \verb=$REGCM_ROOT= .
 
@@ -18,26 +18,33 @@ In order to configure and install the RegCM code, the following software are
 needed:
 
 \begin{enumerate}
-\item Python 2 language interpreter
 \item GNU Make program
 \item Fortran 2003 compiler
-\item netCDF \cite{Rew_90} Format I/O library compiled with the above compiler.
-   Source code can be found from \\
-{\bf ftp://ftp.unidata.ucar.edu/pub/netcdf/netcdf.tar.gz} \\
-Note that current netCDF version 4.2 is dependent on HDF5 1.8.8.
+\item One in:
+  \begin{enumerate}
+    \item C compiler for the serial option (\verb=enable-mpi-serial= at
+      configure)
+    \item MPI2 Message Passing Library compiled with the above fortran compiler
+     for parallel runs using multiple core single machines or cluster of
+     machines (default).  Source code for the implementation code was tested
+     with can be obtained at: \\
+     {\bf http://www.open-mpi.org/software/ompi/v1.6}
+  \end{enumerate}
+\item netCDF (\cite{Rew_90}) Format I/O library compiled with the above
+  Fortran compiler.  Source code can be found from \\
+  {\bf http://www.unidata.ucar.edu/downloads/netcdf/netcdf-4\_2\_1\_1/ } \\
+  {\bf http://www.unidata.ucar.edu/downloads/netcdf/netcdf-fortran} \\
 \end{enumerate}
 
 Optional requirements strongly suggested are :
 
 \begin{enumerate}
-\item GNU \verb=patch= program if CLM option is activated.
-\item MPI2 Message Passing Library compiled with the above fortran compiler
-for parallel runs using multiple core single machines or cluster of machines.
-Source code for the implementation code was tested with can be obtained at: \\
-{\bf http://www.open-mpi.org/software/ompi/v1.4/downloads}
 \item HDF5 Format I/O Library compiled with the above fortran compiler to
 enable netCDF V4 features. Source code can be obtained at: \\
-{\bf http://www.hdfgroup.org/ftp/HDF5/current/src}
+{\bf http://www.hdfgroup.org/ftp/HDF5/current/src} \\
+Note that some of the input datasets available from ICTP from 2012 DO require
+this option, as we distribute data in the netCDF V4 format.
+Note that current netCDF version 4.2.1.1 is dependent on HDF5 1.9.
 \item NCO netCDF Operators for manging netCDF file. Most Linux distribution
 have this already packed, and you should refer to your System Administrator or
 OS Software Installation manual to obtain it. Source code is at: \\
@@ -67,9 +74,8 @@ RegCM model is detailed in chapter $\ref{Appendice}$.
 
 \section{Configuring build}
 
-The RegCM Version 4.3 is configured by a python2 script, which will select
-and edit for you sample configuration files for the supported architectures.
-These files are kept in the \verb=Arch= directory under \verb=$REGCM_ROOT=.
+The RegCM Version 4.3 is configured by a configure script, which will select
+the known working configuration for the supported architectures.
 
 Currently tested and supported configurations (OS/Compiler) are:
 
@@ -77,7 +83,7 @@ Currently tested and supported configurations (OS/Compiler) are:
 \item Linux with GNU gfortran compiler version $\ge 4.6$
 \item Linux with Intel\texttrademark ifort compiler version $\ge 11.0$
 \item Linux with Portland\texttrademark pgf95 compiler version $\ge 11.0$
-\item Mac OsX\texttrademark with g95 compiler
+\item Mac OsX\texttrademark with gfortran compiler $\ge 4.6$ from MacPorts
 \item IBM AIX\texttrademark with xlf2003 compiler
 \item Oracle Solaris\texttrademark with Oracle Solaris Studio\texttrademark
 compiler $\ge 12.0$
@@ -156,9 +162,6 @@ processor.
 This option switches off the default Land model of RegCM (derived from BATS1e),
 and enables the use of the Community Land Model V3.5 inside RegCM. The default
 is to use the RegCM BATS Land Model.
-\footnote{The CLM option needs the GNU patch program to be installed.}
-For the scope of the tutorial test run in chapter \ref{tutorial}, use the
-default option.
 \end{enumerate}
 
 \section{Build the model executables}

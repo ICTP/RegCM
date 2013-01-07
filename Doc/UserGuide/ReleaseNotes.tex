@@ -4,22 +4,130 @@
 % See the file COPYING for copying conditions.
 %
 
-RegCM-4.2 is a new step in recoding the RegCM3 model after the effort put into
-the RegCM4.0 version. The code base now is actively developed by a community
+RegCM-4.3 is a new step in recoding the RegCM model after the effort put into
+the RegCM4 version. The code base now is actively developed by a community
 of developers internal and external to ICTP, and this work is merged on the
-Gforge site on e-science-lab.org site.
+Gforge site on gforge.ictp.it site.
 
 The main new technical features of the code are summarized in the following
-points
+points:
 
 \begin{itemize}
-\item New UW PBL option
-\item Tiedtke cumuluis scheme in early stage of development
-\item Autotools enabled configure and build
-\item Multiple calendar support (gregorian, noleap, 360days)
-\item New daily output file with statistical variables
-\item Input layer for some of the CMIP5 models
-\item netCDF I/O format from model components following the CF-1.4 standard
+  \item A number of new global models input layers have been added to preproc
+    stage, and we plan to support any request to add a new layer.
+    What is needed is just send us a couple of months worth of data, specify
+    format if not netCDF, fix a naming convention. Just ask, we will help you.
+    Now supported at SST stage:
+  \begin{enumerate}
+    \item GISST Met Office's Global Ice coverage and Sea Surface Temperatures
+     This data required a pre-processing (from ASCII to binary), and are
+     available from ICTP up to 2002 from clima-dods server
+    \item NOAA Optimal Interpolation SST dataset
+    \item ECMWF Era Interim SST dataset
+    \item CMIP5 global ocean model datasets:
+      \begin{enumerate}
+        \item Canadian Centre for Climate Modelling and Analysis CanESM2
+        \item Met Office Hadley Centre HadGEM2-ES
+        \item Commonwealth Scientific and Industrial Research Organization Mk3.6
+        \item EC-EARTH consortium (need conversion from GRIB to netCDF)
+        \item Institut Pierre-Simon Laplace CM5A-MR
+        \item NOAA Geophysical Fluid Dynamics Laboratory ESM2M
+        \item Centre National de Recherches Météorologiques CM5 model
+        \item Max-Planck-Institut für Meteorologie MPI-ESM-MR
+      \end{enumerate}
+    \item ECHAM 5 dataset (A1B in binary format from ICTP, A2 converted from
+      GRIB
+    to netCDF using cdo)
+    \item 33 years Era Interim average available from ICTP
+  \end{enumerate}
+  Code for FV model and some CAM 2/4 is present, but is obsolete or untested.
+  Supported at ICBC stage:
+  \begin{enumerate}
+    \item ERA Interim and ERA 40 reanalysis
+    \item NNRP reanalysys (V1 and V2)
+    \item CMIP5 global atmosphere model datasets:
+    \begin{enumerate}
+      \item Canadian Centre for Climate Modelling and Analysis CanESM2
+      \item Met Office Hadley Centre HadGEM2-ES
+      \item Commonwealth Scientific and Industrial Research Organization Mk3.6
+      \item EC-EARTH consortium (need conversion from GRIB to netCDF)
+      \item Institut Pierre-Simon Laplace CM5A-MR
+      \item NOAA Geophysical Fluid Dynamics Laboratory ESM2M
+      \item Centre National de Recherches Météorologiques CM5 model
+      \item Max-Planck-Institut für Meteorologie MPI-ESM-MR
+    \end{enumerate}
+    \item ECHAM 5 dataset (A1B in binary format from ICTP, A2 converted from
+      GRIB to netCDF using cdo)
+    \item 33 years Era Interim average available from ICTP
+  \end{enumerate}
+  Code for FV model and some CAM 2/4 is present, but is obsolete or untested.
+  \item Boundary conditions / emissions for tracers both aerosols and chemically
+   active creation from different sources
+  \item 2D model decomposition is fully tested and model scales easily up to 512
+   processors what was scaling previously up to 64 processors.
+  \item RCP standard 2.6, 4.5, 6.0 and 8.5 Greenhouse gas concentration data for
+   historical and future scenarios.
+  \item A new option to use measured total solar irradiance from SOLARIS instead
+   of the previously used hardcoded solar constant.
+  \item Climatological and future 2.6, 4.5 and 8.5 scenario data for ozone
+   concentration.
+  \item Experimental new empirical cumulus cloud representation option.
+  \item In the model output each file tipology can be disabled, and in each file
+   each output 2D/3D variable can be disable. The default is to write all the
+   defined variables, but the user may play with the i\verb=enable_xxx_vars=
+   flags to eventually disable variables.
+   Some variables cannot be disabled: xlat , xlon , mask , topo , ps.
+   Those are needed for model geolocation.
+  \item Model input is read now in parallel by all processors, i.e. a complete
+   diskless model for computing nodes is not supported: each processor needs
+   access to the input data directory.
+  \item Model output can be written in parallel by the model taking advantage
+    of a parallel file system and the mpiio capability of the HDF5 library.
+    Model must be compiled with the \verb=--enable-nc4-parallel= flag and the
+    namelist option \verb=do_parallel_netcdf_io= must be set to true.
+    As to take advantage from this a particular harware/software stack is
+    needed, this is NOT the default option.
+  \item Model output files contain when applicable geolocation informations
+   following the CF-1.6 convention. IDV can now use this informations, except
+   for the rotated mercator projection which is unsupported in the java IDV
+   library.
+  \item Model output variable naming convention and unit of measure shouldi
+    respect the CORDEX experiment guidelines. User should report any
+    non-conformity.
+  \item The Kallen 1996 algorithm is used to compute Mean Sea Level pressure.
+  \item A Gauss-Seidel smoothing has been applied to the Mean Sea Level and the
+   Geopotential Height post-processing calculation subroutines.
+\end{itemize}
+Bug Fixing:
+\begin{itemize}
+  \item Cressman type interpolation is used for all Gaussian grids in SST/ICBC
+  \item Added extra stratospheric layers in the RRTM radiation model.
+  \item Model input/output of netCDF files is consistent at all stages using a
+   common library.
+  \item Fix for tracer gases optical properties in the visible spectra
+  \item Relaxing upstream scheme for cloud disabled as it may need reworking.
+  \item The GrADSNc programs now is able to guess when the data are monthly
+    averages calculated with cdo and use 1mo as timestep in the ctl file
+  \item All model output is now using the write intrinsic instead of print.
+\end{itemize}
+
+Planned Development for V 4.4 :
+
+\begin{itemize}
+  \item Mandatory add interface for Community Earth System Model dataset
+  \item The new semi-implicit moisture scheme is almost completed.
+  \item Input interface for snow/ice informations from measured datasets/models.
+  \item The Tiedtke cumulus scheme will be upgraded to ECMWF Version 38r2
+  \item A new slab ocean model option to enhance fluxes representation over
+    ocean
+  \item Use the netCDF format also for the SAV files.
+\end{itemize}
+
+Next release V 5.X :
+
+\begin{itemize}
+  \item New dynamical core from Giovanni Tumolo semi-implicit, semi-Lagrangian,
+   p-adaptive Discontinuous Galerkin method three dimensional model.
 \end{itemize}
 
 The model code is in Fortran 2003 ANSI standard.
@@ -49,7 +157,7 @@ Any shell variable is supposed to be set by the User with the following example
 syntax:
 
 \begin{Verbatim}
-$> export REGCM_ROOT="/home/user/RegCM4.2"
+$> export REGCM_ROOT="/home/user/RegCM4.3.5"
 \end{Verbatim}
 
 Hope you will find this document useful. Any error found belongs to me and can
