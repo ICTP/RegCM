@@ -124,7 +124,7 @@ begin
     ptop  = fhatm->ptop
     time = fhatm->time
 
-    t = fhatm->t
+    t = fhatm->ta
 
     ;Create the pressure variable
     dim4d = dimsizes(t)
@@ -154,10 +154,11 @@ begin
     if(bWriteOut)then
       print("Calculating Density...")
     end if
-    t = fhatm->t
-    qv = fhatm->qv
-    qc = fhatm->qc
+    t = fhatm->ta
+    qv = fhatm->qas
+    qc = fhatm->clw
 
+    qv = 1/(1+qv)
     tv = t*(1 + ep1*qv - qc)
 
     rho = t
@@ -180,11 +181,12 @@ begin
     end if
     ps    = fhatm->ps
     topo = fhatm->topo
-    t = fhatm->t
-    qv = fhatm->qv
-    qc = fhatm->qc
-    ts = fhsrf->t2m(:,0,:,:)
-    qvs = fhsrf->q2m(:,0,:,:)
+    t = fhatm->ta
+    qv = fhatm->qas
+    qc = fhatm->clw
+    ts = fhsrf->tas(:,0,:,:)
+    qvs = fhsrf->qas(:,0,:,:)
+    qv = 1 / (1+qv)
     qcs = qvs
     qcs = 0.0
 
@@ -234,7 +236,7 @@ begin
     if(bWriteOut)then
       print("Calculating Theta...")
     end if
-      t = fhatm->t
+      t = fhatm->ta
       theta = t
       theta = t*(p0exner/p)^rovcp
 
@@ -251,8 +253,8 @@ begin
     if(bWriteOut)then
       print("Calculating Fog...")
     end if
-;    cld = fhrad->cld
-    qc = fhatm->qc
+;    cld = fhrad->cl
+    qc = fhatm->clw
     relgeo = zgeo
     relgeo = zgeo - conform_dims(dimsizes(zgeo),topo,(/2,3/))
     ;Use the calculateFog() function to calculate fog
@@ -273,9 +275,9 @@ begin
       print("Calculating In-Cloud Liquid Water Path...")
     end if
     ;Read in the grid-cell cloud fraction
-    cld = fhrad->cld
+    cld = fhrad->cl
     ;Read in the grid-cell average liquid water path
-    lwp = fhrad->clwp
+    lwp = fhrad->clw
 
     totcld = 1 - dim_product(1 - cld(time|:,iy|:,jx|:,kz|:))
     totlwp = dim_sum_Wrap(lwp(time|:,iy|:,jx|:,kz|:))
@@ -327,8 +329,8 @@ begin
     end if
 
       alpha = gti/(rgas*gammastd)
-      t2m = fhsrf->t2m(:,0,:,:)
-      q2m = fhsrf->q2m(:,0,:,:)
+      t2m = fhsrf->tas(:,0,:,:)
+      q2m = fhsrf->qas(:,0,:,:)
       ps = fhsrf->ps
 
       tv2m = t2m*(1 + ep1*q2m)
@@ -392,9 +394,9 @@ begin
       print("Calculating Wind Stress Curl...")
     end if
 
-      uvdrag = fhsrf->uvdrag
-      u10m = fhsrf->u10m(:,0,:,:)
-      v10m = fhsrf->v10m(:,0,:,:)
+      uvdrag = fhsrf->drag
+      u10m = fhsrf->uas(:,0,:,:)
+      v10m = fhsrf->vas(:,0,:,:)
       ds = fhsrf@grid_size_in_meters; Get the grid resolution (in meters)
 
       taux = u10m
@@ -438,7 +440,7 @@ begin
     end if
 
       aldirs = fhsrf->aldirs
-      scv = fhsrf->scv
+      scv = fhsrf->snv
 
       aldirs@_FillValue = -1e-20
       sfalbedosw = aldirs

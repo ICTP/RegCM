@@ -29,8 +29,8 @@ latmat  = get.var.ncdf(nc=surface,varid="xlat")
 timearr   = get.var.ncdf(nc=surface,varid="time")
 timeunits = att.get.ncdf(nc=surface,varid="time",attname="units")
 
-tpr       = get.var.ncdf(nc=surface,varid="tpr")
-tprunits  = att.get.ncdf(nc=surface,varid="tpr",attname="units")
+tpr       = get.var.ncdf(nc=surface,varid="pr")
+tprunits  = att.get.ncdf(nc=surface,varid="pr",attname="units")
 
 ts = ud.convert(timearr,timeunits$value,"seconds since 1970-01-01 00:00:00 GMT")
 a = as.POSIXct(ts,origin="1970-01-01 00:00:00 GMT",tz="GMT")
@@ -39,6 +39,6 @@ inds = (1:dim(timearr))
 targettime = chron(dates("1990-01-31",format="y-m-d"), times("21:00:00"))
 tind = inds[as.chron(a) == targettime]
 
-image.plot(lonmat, latmat,tpr[,,tind])
+image.plot(lonmat, latmat,pr[,,tind])
 
 close.ncdf(surface)

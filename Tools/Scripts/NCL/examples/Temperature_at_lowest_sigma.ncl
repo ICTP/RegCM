@@ -26,7 +26,7 @@ begin
 ; read in data
 ;*************************
   a = addfile("CAS_ATM.1990010100.nc","r")
-  t = a->t
+  t = a->ta
 
   xlat = a->xlat
   xlon = a->xlon
