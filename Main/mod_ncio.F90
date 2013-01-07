@@ -31,7 +31,6 @@ module mod_ncio
 !
   private
 
-  public :: ivarname_lookup
   public :: read_domain_info , read_subdomain_info
   public :: open_icbc , icbc_search , read_icbc , close_icbc
   public :: open_som , som_search , read_som , close_som

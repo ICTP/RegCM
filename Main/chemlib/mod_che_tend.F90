@@ -42,7 +42,7 @@
   use mod_che_pollen 
  private
 
-  public :: tractend2 , tracbud
+  public :: tractend2
 
   contains
 !
