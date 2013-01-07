@@ -83,23 +83,23 @@ int main(int argc, char *argv[])
   std::cout << "PROJECT CLAT    : " << clat << std::endl;
   std::cout << "PROJECT CLON    : " << clon << std::endl;
 
-  NcVar t2mvar;
-  NcVarAtt t2munitsatt;
+  NcVar tasvar;
+  NcVarAtt tasunitsatt;
   try
   {
-    t2mvar = srf_file->getVar("t2m");
-    t2munitsatt = t2mvar.getAtt("units");
+    tasvar = srf_file->getVar("tas");
+    tasunitsatt = tasvar.getAtt("units");
   }
   catch (NcException& e)
   {
-    std::cerr << "File doens't have t2m variable." << std::endl;
+    std::cerr << "File doens't have tas variable." << std::endl;
     e.what();
   }
 
-  float * t2m = new float[jx*iy*m2*ntime];
+  float * tas = new float[jx*iy*m2*ntime];
   std::string units;
-  t2mvar.getVar(t2m);
-  t2munitsatt.getValues(units);
+  tasvar.getVar(tas);
+  tasunitsatt.getValues(units);
 
   double meanval = 0;
   double count = 0;
@@ -109,11 +109,11 @@ int main(int argc, char *argv[])
       for ( int isn = 0; isn < iy; isn ++ )
         for ( int iwe = 0; iwe < jx; iwe ++ )
         {
-          meanval = meanval+t2m[iwe+isn*iwe+il*isn*iwe+it*il*isn*iwe];
+          meanval = meanval+tas[iwe+isn*iwe+il*isn*iwe+it*il*isn*iwe];
           count = count + 1.0;
         }
 
-  std::cout << "The mean value of T2M is " << meanval/count 
+  std::cout << "The mean value of TAS is " << meanval/count 
             << " " << units << std::endl;
 
   delete srf_file;
