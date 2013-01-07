@@ -25,6 +25,7 @@ module mod_cu_grell
   use mod_memutil
   use mod_service 
   use mod_cu_common
+  use mod_mpmessage
   use mod_runparams , only : iqv
  
   private
@@ -325,6 +326,14 @@ module mod_cu_grell
         end do
       end do
     end do
+
+    if ( maxval(kdet) > kz ) then
+      write(stderr,*) 'Convection has reached column top!'
+      write(stderr,*) 'Hydrostatic model cannot procede.'
+      write(stderr,*) 'Try decreasing horizontal resolution'
+      write(stderr,*) 'I mean increase ds!!!'
+      call fatal(__FILE__,__LINE__,'GRELL INSTABILITY!')
+    end if
 !
 !   call cumulus parameterization
 !
