@@ -35,7 +35,7 @@ while(k<=kmax)
   'set ylopts 1 4 0.15'
   'set clopts -1 -1 0.16'
 
-  'define mean1=ave(ave(tpr.1,t-1,t+1),time='month.k'1998,time='month.k'2003,1yr)'
+  'define mean1=ave(ave(pr.1,t-1,t+1),time='month.k'1998,time='month.k'2003,1yr)'
 
   'run colors.gs'
   'set clevs  1  2  4  8 12 16 24'

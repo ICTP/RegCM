@@ -34,7 +34,7 @@ while(k<=kmax)
   'set clopts -1 -1 0.13'
 
   'open RegCM4monthly_SRF.1998_2003.nc.ctl'
-  'define rcmmean=ave(ave(s01t2m.1,t-1,t+1),time='month.k'1998,time='month.k'2002,1yr)-273.15'
+  'define rcmmean=ave(ave(s01tas.1,t-1,t+1),time='month.k'1998,time='month.k'2002,1yr)-273.15'
   'close 1'
 
   'sdfopen /home/netapp-clima/shared/OBS/CRU/TS2.1/CRUTMP.CDF'
