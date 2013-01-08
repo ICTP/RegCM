@@ -27,39 +27,8 @@ order.
 
 \section{Tiedtke convection scheme}
 
-Adrian Tompkins is developing an adaptation of the ECHAM5.4 \cite{Tiedtke_89}
-cumulus convection scheme for the \ac{RegCM} model. The code from ECHAM has
-been ported into RegCM, and extensive testing is planned in the second half of
-2011. This option should be available for next model release.
-
-\section{Chemistry}
-
-Fabien Solmon is developing the coupling of \ac{RegCM} model with the CBMZ
-chemical module with the Sillmann fast solver.
-
-\section{Coupling}
-
-We have resolved to adopt for the \ac{RegCM} model a standard model coupling
-engine: the \ac{ESMF}. Ufuk Utku Turuncoglu is already adapting model data
-structures to use the \ac{ESMF} framework. First target will be to couple
-the \ac{RegCM} model to the \ac{ROMS} oceanic model, and update the \ac{CLM}
-to version 4.
-
-\section{2D parallelization}
-
-This long standing limitation of the model in the parallel performances will
-be faced: we plan to drop altogether the Serial model version (does exist
-anymore a single core processor?), clean up model parallel code and perform
-a dynamical 2D decomposition of the model domain.
-
-\section{Parallel I/O}
-
-This is another limit of the current model implementation, where all data
-need to be gathered by the master processor before being written to disk.
-Again, if running on a decent cluster, all processors usually have access
-to disk resources, and a form of parallel I/O will allow a big performance
-boost as well as a reduction of some of the MPI communication data at the
-expenses of an increase of the requirements for the cluster I/O channel.
+Adrian Tompkins is developing an adaptation of the ECMWF 38R2 \cite{Tiedtke_89}
+cumulus convection scheme for the \ac{RegCM} model.
 
 \section{Semi-Lagrangian dynamic core}
 
