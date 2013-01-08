@@ -1931,12 +1931,13 @@ module mod_mppparam
     integer(ik4) , intent(in) , optional :: k
     integer(ik4) :: ib , i , j , kk , isize , jsize , lsize , icpu
     integer(ik4) :: jsub1 , isub1
-    if ( .not. present(lsub) .or. .not. lsub ) then
-      jsub1 = global_dot_jstart
-      isub1 = global_dot_istart
-    else
-      jsub1 = (global_dot_jstart-1)*nsg+1
-      isub1 = (global_dot_istart-1)*nsg+1
+    jsub1 = global_dot_jstart
+    isub1 = global_dot_istart
+    if ( present(lsub) ) then
+      if ( lsub ) then
+        jsub1 = (global_dot_jstart-1)*nsg+1
+        isub1 = (global_dot_istart-1)*nsg+1
+      end if
     end if
     if ( myid == iocpu ) then
       kk = 1
@@ -1996,12 +1997,13 @@ module mod_mppparam
     integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     logical , intent(in) , optional :: lsub
     integer(ik4) :: jsub1 , isub1
-    if ( .not. present(lsub) .or. .not. lsub ) then
-      jsub1 = global_dot_jstart
-      isub1 = global_dot_istart
-    else
-      jsub1 = (global_dot_jstart-1)*nsg+1
-      isub1 = (global_dot_istart-1)*nsg+1
+    jsub1 = global_dot_jstart
+    isub1 = global_dot_istart
+    if ( present(lsub) ) then
+      if ( lsub ) then
+        jsub1 = (global_dot_jstart-1)*nsg+1
+        isub1 = (global_dot_istart-1)*nsg+1
+      end if
     end if
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
@@ -2059,12 +2061,13 @@ module mod_mppparam
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
     integer(ik4) :: isub1 , jsub1
-    if ( .not. present(lsub) .or. .not. lsub ) then
-      jsub1 = global_dot_jstart
-      isub1 = global_dot_istart
-    else
-      jsub1 = (global_dot_jstart-1)*nsg+1
-      isub1 = (global_dot_istart-1)*nsg+1
+    jsub1 = global_dot_jstart
+    isub1 = global_dot_istart
+    if ( present(lsub) ) then
+      if ( lsub ) then
+        jsub1 = (global_dot_jstart-1)*nsg+1
+        isub1 = (global_dot_istart-1)*nsg+1
+      end if
     end if
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
