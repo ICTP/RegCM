@@ -326,6 +326,11 @@ module mod_ncout
   real(rk8) , pointer , dimension(:,:) :: io2d , io2dsg
   real(rk8) , pointer , dimension(:,:,:) :: io3d , io3dsg
 
+  interface setup_var
+    module procedure setup_var_2d
+    module procedure setup_var_3d
+  end interface setup_var
+
   contains
 
   subroutine init_output_streams(lparallel)
@@ -2151,10 +2156,10 @@ module mod_ncout
     end if
   end subroutine setup_common_vars
 
-  subroutine setup_var(var,vsize,vname,vunit,long_name,standard_name, &
-                       l_rec,cell_method,l_fill,rmissval,lgetspace)
+  subroutine setup_var_2d(var,vsize,vname,vunit,long_name,standard_name, &
+                         l_rec,cell_method,l_fill,rmissval,lgetspace)
     implicit none
-    class(ncvariable_standard) , intent(inout) :: var
+    type(ncvariable2d_real) , intent(inout) :: var
     type(varspan) , intent(in) :: vsize
     character(len=*) , intent(in) :: vname , vunit , long_name , standard_name
     character(len=*) , intent(in) , optional :: cell_method
@@ -2169,35 +2174,49 @@ module mod_ncout
       var%lfillvalue = .true.
       if ( present(rmissval) ) var%rmissval = rmissval
     end if
-    select type(var)
-      type is (ncvariable2d_real)
-        if ( present(l_rec) ) var%lrecords = l_rec
-        if ( .not. present(lgetspace) .or. &
+    if ( present(l_rec) ) var%lrecords = l_rec
+    if ( .not. present(lgetspace) .or. &
              ( present(lgetspace) .and. lgetspace ) ) then
-          call getmem2d(var%rval,vsize%j1,vsize%j2, &
+      call getmem2d(var%rval,vsize%j1,vsize%j2, &
             vsize%i1,vsize%i2,'ncout:setup_var:'//trim(var%vname))
-        end if
-        var%j1 = vsize%j1
-        var%j2 = vsize%j2
-        var%i1 = vsize%i1
-        var%i2 = vsize%i2
-      type is (ncvariable3d_real)
-        if ( present(l_rec) ) var%lrecords = l_rec
-        if ( .not. present(lgetspace) .or. &
+    end if
+    var%j1 = vsize%j1
+    var%j2 = vsize%j2
+    var%i1 = vsize%i1
+    var%i2 = vsize%i2
+  end subroutine setup_var_2d
+
+  subroutine setup_var_3d(var,vsize,vname,vunit,long_name,standard_name, &
+                          l_rec,cell_method,l_fill,rmissval,lgetspace)
+    implicit none
+    type(ncvariable3d_real) , intent(inout) :: var
+    type(varspan) , intent(in) :: vsize
+    character(len=*) , intent(in) :: vname , vunit , long_name , standard_name
+    character(len=*) , intent(in) , optional :: cell_method
+    logical , intent(in) , optional :: l_rec , l_fill , lgetspace
+    real(rk4) , intent(in) , optional :: rmissval
+    var%vname = vname
+    var%vunit = vunit
+    var%long_name = long_name
+    var%standard_name = standard_name
+    if ( present(cell_method) ) var%cell_method = cell_method
+    if ( present(rmissval) .or. present(l_fill) ) then
+      var%lfillvalue = .true.
+      if ( present(rmissval) ) var%rmissval = rmissval
+    end if
+    if ( present(l_rec) ) var%lrecords = l_rec
+    if ( .not. present(lgetspace) .or. &
              ( present(lgetspace) .and. lgetspace ) ) then
-          call getmem3d(var%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
+      call getmem3d(var%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
             vsize%k1,vsize%k2,'ncout:setup_var:'//trim(var%vname))
-        end if
-        var%j1 = vsize%j1
-        var%j2 = vsize%j2
-        var%i1 = vsize%i1
-        var%i2 = vsize%i2
-        var%k1 = vsize%k1
-        var%k2 = vsize%k2
-      class default
-        return
-    end select
-  end subroutine setup_var
+    end if
+    var%j1 = vsize%j1
+    var%j2 = vsize%j2
+    var%i1 = vsize%i1
+    var%i2 = vsize%i2
+    var%k1 = vsize%k1
+    var%k2 = vsize%k2
+  end subroutine setup_var_3d
 
   subroutine dispose_output_streams
     implicit none
