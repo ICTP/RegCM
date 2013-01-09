@@ -1666,7 +1666,7 @@ module mod_date
     type (iatime) :: t
     call internal_to_date_time(x,d,t)
     yeardayfrac = dble(idayofyear(d)) + dble(t%hour)/24.0D+00 + &
-                  dble(t%minute/1440.0D0) + dble(t%second/86400.0D0)
+                  dble(t%minute/1440.0D0) + dble(t%second/86400.0D0)-1.0D0
   end function yeardayfrac
 
   integer(ik4) function getyear(x)
