@@ -89,6 +89,7 @@ program clm2rcm
   integer(ik4) , parameter :: iforest = 5
   integer(ik4) , parameter :: igrass  = 14
   real(rk4) , dimension(:) , allocatable :: vals_swap
+  real(rk4) , dimension(:,:) , allocatable :: pctspec
   integer , dimension(:) , allocatable :: iord
 #ifdef SAGE_TEST
   real(rk4) , dimension(:) , allocatable :: vals_swap1
@@ -183,6 +184,8 @@ program clm2rcm
 
 !     ** determine which files to create (emission factor map or not)
   call comp(ifield,bvoc)
+  allocate(pctspec(jx,iy))
+  pctspec = 0.0
  
 !     ** Loop over the fields defined in clm.param
   do ifld = 1 , ifield
@@ -383,13 +386,13 @@ program clm2rcm
                 do k = 1 , npatch
                   adjust = (vals_swap(k)/totpft)*pxerr
                   if ( abs(adjust) > 0.0 ) then
-                    totadj = totadj + nint(adjust)
-                    regyxzt(j,i,iord(k),l) = vals_swap(k) + nint(adjust)
+                    totadj = totadj + aint(adjust)
+                    regyxzt(j,i,iord(k),l) = vals_swap(k) + aint(adjust)
                   end if
                 end do
                 pxerr = pxerr - totadj
                 if ( abs(pxerr) > 0.0 ) then
-                  regyxzt(j,i,iord(1),l) = regyxzt(j,i,iord(1),l) + pxerr
+                  regyxzt(j,i,iord(1),l) = regyxzt(j,i,iord(1),l) + aint(pxerr)
                 end if
                 regyxzt(j,i,iord(npatch:),l) = 0.0
               end if
@@ -401,7 +404,7 @@ program clm2rcm
                 ! First , restore the previous state
                 regyxzt(j,i,:,l) = save_regyz(j,i,:)
                 ! If something has changed (for now only forest decrease)
-                if ( nint(new_forest) < nint(old_forest) ) then
+                if ( aint(new_forest) < aint(old_forest) ) then
                   ! Find new order
                   write(stdout,*) 'SAGE: Forest change ', &
                            new_forest-old_forest,'% at ',i,j
@@ -453,7 +456,7 @@ program clm2rcm
         do k = 1 , nlev(ifld)
           do i = 1 , iy
             do j = 1 , jx
-              regxyz(j,i,k) = anint(regyxzt(j,i,k,l))
+              regxyz(j,i,k) = aint(regyxzt(j,i,k,l))
             end do
           end do
         end do
@@ -465,6 +468,10 @@ program clm2rcm
             end do
           end do
         end do
+      end if
+      if ( ifld == iurb .or. ifld == ilak .or. ifld == iwtl .or. ifld == iglc ) then
+        regxyz = aint(regxyz)
+        pctspec = pctspec + regxyz(:,:,nlev(ifld))
       end if
       tdif = imondate-irefdate
       xhr = tohours(tdif)
@@ -555,6 +562,8 @@ program clm2rcm
       ('Error '//trim(vnam(ifld))// ' write'))
 
   end do  ! End nfld loop
+
+  deallocate(pctspec)
 
 !     ** Close files
 

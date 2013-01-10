@@ -29,11 +29,11 @@ module mod_param_clm
   integer, private :: k
 
   integer(ik4) , parameter :: nfld = 18 , npft = 17 , nsoi = 10 ,        &
-                         ipft = 1 , ilai = 2 , isai = 3 , itop = 4 ,&
-                         ibot = 5 , ilak = 6 , iwtl = 7 , iglc = 8 ,&
+                         iglc = 1 , ilai = 2 , isai = 3 , itop = 4 ,&
+                         ibot = 5 , ilak = 6 , iwtl = 7 , ifma = 8 ,&
                          iurb = 9 , isnd = 10 , icly = 11 ,         &
                          icol = 12 , ioro = 13 , iiso = 15 ,        &
-                         ifma = 14 , iapin = 16 , ibpin = 17 ,      &
+                         ipft = 14 , iapin = 16 , ibpin = 17 ,      &
                          imbo = 18
 !
   real(rk4) , dimension(nfld) :: glat1 , glat2 , glon1 , glon2 , vmin
