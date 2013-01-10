@@ -74,6 +74,8 @@ module mod_wrtoxd
             58.0D0,  56.0D0,  72.0D0,  42.0D0,  44.0D0,  68.0D0,  92.0D0, &
            121.0D0,  64.0D0,  96.0D0,  62.0D0 /
 
+  integer , parameter :: maxaeout = 16
+
   data aedust / 'DST01', 'DST02', 'DST03', 'DST04' /
   data aesslt / 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
   data aecarb / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' /
@@ -98,7 +100,8 @@ module mod_wrtoxd
   type(ncvariable2d_real) , save , dimension(2) :: v2dvar_base
   type(ncvariable3d_real) , save , dimension(nchsp) :: v3dvar_ch
   type(ncvariable3d_real) , save , dimension(noxsp) :: v3dvar_ox
-  type(ncvariable3d_real) , save , allocatable , dimension(:) :: v3dvar_ae
+  type(ncvariable3d_real) , save , dimension(maxaeout) :: v3dvar_ae
+
   data sum_soa_to_oc2 /.false./
   data sum_sslt_bins  /.false./
 
@@ -159,8 +162,11 @@ module mod_wrtoxd
         call die('init_outoxd','Unknown chemsimtype')
     end select
     if ( doaero ) then
+      if ( naesp > maxaeout ) then
+        write(stderr,*) 'Added more species without increasing maxaeout'
+        call die('init_outoxd','INCRESE maxaeout AND RECOMPILE')
+      end if
       call getmem4d(aev4,1,jx,1,iy,1,kz,1,naesp,'mod_wrtoxd:aev4')
-      allocate(v3dvar_ae(naesp))
     end if
     if ( dochem ) call getmem4d(chv4,1,jx,1,iy,1,kz,1,nchsp,'mod_wrtoxd:chv4')
     if ( dooxcl ) call getmem4d(oxv4,1,jx,1,iy,1,kz,1,noxsp,'mod_wrtoxd:oxv4')
@@ -207,7 +213,6 @@ module mod_wrtoxd
     call outstream_dispose(ncoutch)
     call outstream_dispose(ncoutox)
     call outstream_dispose(ncoutae)
-    if (allocated(v3dvar_ae) ) deallocate(v3dvar_ae)
   end subroutine close_outoxd
 
   subroutine newfile_ch_icbc(idate1)
