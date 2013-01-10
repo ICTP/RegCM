@@ -67,7 +67,7 @@ program clm2rcm
   real(rk4) , dimension(3) :: varmax , varmin
   real(rk8) :: xhr
   real(rk4) :: offset , xscale , xlatmin , xlatmax , xlonmin , xlonmax
-  real(rk4) :: pxerr , pmax , adjust
+  real(rk4) :: pxerr , pmax , adjust , totpft , totadj
   real(rk4) , pointer , dimension(:) :: glat , glon , zlat ,      &
                                        zlev , zlon
   real(rk4) , pointer , dimension(:,:) :: mpu
@@ -78,7 +78,7 @@ program clm2rcm
   logical :: hassmask = .false.
 #endif
   real(rk4) , pointer , dimension(:,:) :: landmask , sandclay
-  integer(ik4) :: ipathdiv , ierr
+  integer(ik4) :: ipathdiv , ierr , npatch
   integer(ik4) :: i , iz , it , j , k , l , kmax , ipnt
   integer(ik4) :: jotyp , idin , idout , ifield , ifld , imap
   character(len=256) :: namelistfile , prgname
@@ -361,6 +361,10 @@ program clm2rcm
           write(stdout,*) 'SAGE : Correcting FOREST PFT...'
         end if
 #endif
+        xmask = 0.0
+        where (sum(regyxzt(:,:,:,l),3) > 0.0)
+          xmask = 1.0
+        end where        
         do i = 1 , iy
           do j = 1 , jx
             if ( xmask(j,i) > 0.0 ) then
@@ -369,21 +373,25 @@ program clm2rcm
               end do
               call sortpatch(regyxzt(j,i,:,l),vals_swap,iord)
               pxerr = 100.
-              do k = 1 , MAXPATCH_PFT
+              npatch = min(MAXPATCH_PFT,nlev(ifld))
+              do k = 1 , npatch
                 pxerr = pxerr - vals_swap(k)
               end do
               if ( abs(pxerr) > 0.0 ) then
-                adjust = nint(pxerr/MAXPATCH_PFT)
-                if ( abs(adjust) > 0.0 ) then
-                  do k = 1 , MAXPATCH_PFT
-                    regyxzt(j,i,iord(k),l) = vals_swap(k) + adjust
-                  end do
-                end if
-                pxerr = pxerr - nint(adjust*MAXPATCH_PFT)
+                totpft = sum(vals_swap(1:npatch))
+                totadj = 0.0
+                do k = 1 , npatch
+                  adjust = (vals_swap(k)/totpft)*pxerr
+                  if ( abs(adjust) > 0.0 ) then
+                    totadj = totadj + nint(adjust)
+                    regyxzt(j,i,iord(k),l) = vals_swap(k) + nint(adjust)
+                  end if
+                end do
+                pxerr = pxerr - totadj
                 if ( abs(pxerr) > 0.0 ) then
                   regyxzt(j,i,iord(1),l) = regyxzt(j,i,iord(1),l) + pxerr
                 end if
-                regyxzt(j,i,iord(MAXPATCH_PFT:),l) = 0.0
+                regyxzt(j,i,iord(npatch:),l) = 0.0
               end if
 #ifdef SAGE_TEST
               if ( hassmask ) then
@@ -403,7 +411,8 @@ program clm2rcm
                   call sortpatch(regyxzt(j,i,:,l),vals_swap,iord)
                   iprevf = -1
                   inowf = -1
-                  do k = 1 , MAXPATCH_PFT
+                  npatch = min(MAXPATCH_PFT,nlev(ifld))
+                  do k = 1 , npatch
                     if ( iord(k)  == iforest ) inowf = k
                     if ( iord1(k) == iforest ) iprevf = k
                   end do
