@@ -575,7 +575,7 @@ program clm2rcm
     implicit none
     real(rk4) , dimension(:) , intent(in) :: vals
     real(rk4) , dimension(:) , intent(inout) :: svals
-    integer , dimension(:) , intent(inout) :: ird
+    integer(ik4) , dimension(:) , intent(inout) :: ird
     logical , optional :: lsub
     integer(ik4) :: i , iswap
     real(rk4) :: rswap
