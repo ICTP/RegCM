@@ -357,7 +357,6 @@ module mod_vertint
     intent (in) f , im , jm , km , kp , p , pstar , ptop , sig
     intent (out) fp
 !
-    logical :: positive_up , positive_down
     integer(ik4) :: i , j , k , kx , knx , n
     real(rk4) :: sigp , w1 , wp , pt
     !
@@ -536,7 +535,7 @@ module mod_vertint
     intent (out) fp
 !
     real(rk8) :: sigp , w1 , wp
-    integer(ik4) :: i , j , k , kx , knext , knx , n , kbc
+    integer(ik4) :: i , j , k , kx , knx , n , kbc
     real(rk8) , dimension(km) :: sig
     real(rk8) , dimension(kp) :: pp1
     !
@@ -986,7 +985,7 @@ module mod_vertint
             !
             ! The searched sigma value
             !
-            sigp = (p(n)-ptop)/(pstar(i,j)-ptop)
+            sigp = (p(n)-pt)/(pstar(i,j)-pt)
             !
             ! Extrapolation
             !
