@@ -68,29 +68,32 @@ module mod_sst_1deg
   integer(ik4) , parameter :: ilon = 360 , jlat = 180
 !
   real(rk8) , dimension(ilon,jlat) :: sst , ice
+  real(rk4) , dimension(ilon,jlat) :: gisst
   integer(ik4) :: i , j , k , iwk , nrec
   integer(ik4) :: nsteps
+  integer(ik8) :: gireclen
   type(rcm_time_and_date) :: idate , idateo , idatef , idatem , irefd
   real(rk8) , dimension(jlat) :: lati
   real(rk8) , dimension(ilon) :: loni
   character(len=256) :: inpfile
   logical :: there
 !
-
   if ( ssttyp == 'GISST' ) then
     if ( globidate1 < 1947121512 .or. globidate2 > 2002091512 ) then
       write (stderr,*) 'GISST data required are not available'
       write (stderr,*) 'IDATE1, IDATE2 = ' , globidate1 , globidate2
       call die('sst_1deg')
     end if
-    inquire (file=trim(inpglob)//'/SST/GISST_194712_200209',exist=there)
+    inpfile = trim(inpglob)//'/SST/GISST_194712_200209'
+    inquire (file=inpfile,exist=there)
     if ( .not. there ) then
       call die('sst_1deg','GISST_194712_200209 is not available'//  &
                ' under '//trim(inpglob)//'/SST/',1)
     end if
-    open (11,file=trim(inpglob)//'/SST/GISST_194712_200209',        &
-          form='unformatted',recl=ilon*jlat*ibyte,access='direct',  &
-          status = 'old')
+    inquire(iolength=gireclen) gisst
+    write (stderr,*) 'OPEN ', trim(inpfile)
+    open(121,file=inpfile,form='unformatted', &
+         access='direct',recl=gireclen,action='read',status='old')
   else if ( ssttyp == 'OISST' .or. ssttyp == 'OI_NC' .or. &
             ssttyp == 'OI2ST' ) then
     if ( globidate1 < 1981121512 .or. globidate2 < 1981121512 ) then
@@ -157,7 +160,8 @@ module mod_sst_1deg
 
       if ( ssttyp == 'GISST' ) then
         nrec = (year-1947)*12 + month - 11
-        read (11,rec=nrec) sst
+        read (121,rec=nrec) gisst
+        sst = gisst
       else if ( ssttyp == 'OISST' .or. ssttyp == 'OI_NC' .or. &
                 ssttyp == 'OI2ST') then
         inpfile=trim(inpglob)//'/SST/sst.mnmean.nc'

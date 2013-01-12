@@ -47,6 +47,7 @@ module mod_erahi
   real(rk8) , dimension(nlats) :: slat
   real(rk8) , dimension(nlons) :: slon
 
+  real(rk4) , dimension(nlons,nlats) :: iobuf
   real(rk8) , dimension(nlons,nlats) :: lsm , ps2 , zs2
   real(rk8) , dimension(nlons,nlats,nlev1) :: q2 , t2 , u2 , v2
   real(rk8) , dimension(nlons,nlats,nlev1) :: pp3d , z1
@@ -74,6 +75,7 @@ module mod_erahi
   integer(ik4) :: i , j , k , nrec
   logical :: there
   real(rk8) :: slonmax , slonmin , xlonmax , xlonmin
+  integer(ik8) :: hireclen
 !
   if ( idate == globidate1 ) then
     xlonmin = 400.
@@ -93,20 +95,24 @@ module mod_erahi
     end do
     write (stdout,*) 'SLONMIN,SLONMAX = ' , slonmin , slonmax
   end if
-  write (finame,99001) trim(dirglob),pthsep,'ERAHI',pthsep,toint10(idate)
+  write (finame,99001) trim(inpglob),pthsep,'ERAHI',pthsep,toint10(idate)
   inquire (file=finame,exist=there)
   if ( .not. there ) then
     call die('ERAHI', trim(finame)//' is not available',1)
   end if
-  open (61,file=finame,form='unformatted',recl=nlons*nlats*ibyte, &
-        access='direct')
+  inquire(iolength=hireclen) iobuf
+  open (61,file=finame,form='unformatted',recl=hireclen,action='read', &
+        access='direct',status='old')
   nrec = 0
   nrec = nrec + 1
-  read (61,rec=nrec) zs2
+  read (61,rec=nrec) iobuf
+  zs2 = iobuf
   nrec = nrec + 1
-  read (61,rec=nrec) lsm
+  read (61,rec=nrec) iobuf
+  lsm = iobuf
   nrec = nrec + 1
-  read (61,rec=nrec) ps2
+  read (61,rec=nrec) iobuf
+  ps2 = iobuf
   do j = 1 , nlats
     do i = 1 , nlons
       if ( lsm(i,j) < 0.5 ) zs2(i,j) = 0.000
@@ -114,19 +120,23 @@ module mod_erahi
   end do
   do k = 1 , nlev1
     nrec = nrec + 1
-    read (61,rec=nrec) ((t2(i,j,k),i=1,nlons),j=1,nlats)
+    read (61,rec=nrec) iobuf
+    t2(:,:,k) = iobuf
   end do
   do k = 1 , nlev1
     nrec = nrec + 1
-    read (61,rec=nrec) ((q2(i,j,k),i=1,nlons),j=1,nlats)
+    read (61,rec=nrec) iobuf
+    q2(:,:,k) = iobuf
   end do
   do k = 1 , nlev1
     nrec = nrec + 1
-    read (61,rec=nrec) ((u2(i,j,k),i=1,nlons),j=1,nlats)
+    read (61,rec=nrec) iobuf
+    u2(:,:,k) = iobuf
   end do
   do k = 1 , nlev1
     nrec = nrec + 1
-    read (61,rec=nrec) ((v2(i,j,k),i=1,nlons),j=1,nlats)
+    read (61,rec=nrec) iobuf
+    v2(:,:,k) = iobuf
   end do
  
   write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)

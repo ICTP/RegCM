@@ -64,10 +64,10 @@ module mod_sst_eh5om
   type(rcm_time_interval) :: tdiff , itbc
   integer(ik4) :: ieh5orec , nsteps
   integer(ik4) :: i , it , j
+  integer(ik8) :: ilenrec
   real(rk8) , dimension(jlat) :: lati
   real(rk8) , dimension(ilon) :: loni
   logical :: there
-!
 !
   it_base = 0
 
@@ -285,55 +285,58 @@ module mod_sst_eh5om
     ieh5ostart = 2001010100
   end if
 
+  ilenrec = 0
+  inquire(iolength=ilenrec) offset , xscale , ivar
+
   do it = 1 , nsteps
     
     i1 = toint10(idate)
 
     if ( ssttyp == 'EH5RF' ) then
       if ( i1 >= a1 .and. i1 <= a2 ) then
-        open (11,file=trim(inpglob)//                           &
-              '/SST/SST_20C_3_1941010106_1961123118',           &
-              form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
-              access='direct')
+        open (11,file=trim(inpglob)//                          &
+              '/SST/SST_20C_3_1941010106_1961123118',          &
+              form='unformatted',recl=ilenrec,access='direct', &
+              action='read',status='old')
         it_base = 0
       else if ( i1 >= a3 .and. i1 <= a4 ) then
-        open (11,file=trim(inpglob)//                           &
-              '/SST/SST_20C_3_1962010100_1993123118',           &
-              form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
-              access='direct')
+        open (11,file=trim(inpglob)//                          &
+              '/SST/SST_20C_3_1962010100_1993123118',          &
+              form='unformatted',recl=ilenrec,access='direct', &
+              action='read',status='old')
         it_base = 30679
       else if ( i1 >= a5 .and. i1 <= a6 ) then
-        open (11,file=trim(inpglob)//                           &
-              '/SST/SST_20C_3_1994010100_2001010100',           &
-              form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
-              access='direct')
+        open (11,file=trim(inpglob)//                          &
+              '/SST/SST_20C_3_1994010100_2001010100',          &
+              form='unformatted',recl=ilenrec,access='direct', &
+              action='read',status='old')
         it_base = 30679 + 46752
       else
       end if
     else if ( ssttyp == 'EH5A2' ) then
       if ( i1 >= a7 .and. i1 <= a8 ) then
-        open (11,file=trim(inpglob)//                           &
-              '/SST/SST_A2_1_2001010100_2029123118',            &
-              form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
-              access='direct')
+        open (11,file=trim(inpglob)//                          &
+              '/SST/SST_A2_1_2001010100_2029123118',           &
+              form='unformatted',recl=ilenrec,access='direct', &
+              action='read',status='old')
         it_base = 0
       else if ( i1 >= a9 .and. i1 <= a10 ) then
-        open (11,file=trim(inpglob)//                           &
-              '/SST/SST_A2_1_2030010100_2061123118',            &
-              form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
-              access='direct')
+        open (11,file=trim(inpglob)//                          &
+              '/SST/SST_A2_1_2030010100_2061123118',           &
+              form='unformatted',recl=ilenrec,access='direct', &
+              action='read',status='old')
         it_base = 42368
       else if ( i1 >= a11 .and. i1 <= a12 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_A2_1_2062010100_2093123118',            &
-              form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
-              access='direct')
+              form='unformatted',recl=ilenrec,access='direct',  &
+              action='read',status='old')
         it_base = 42368 + 46752
       else if ( i1 >= a13 .and. i1 <= a14 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_A2_1_2094010100_2100123118',            &
-              form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
-              access='direct')
+              form='unformatted',recl=ilenrec,access='direct',  &
+              action='read',status='old')
         it_base = 42368 + 46752*2
       else
       end if
@@ -341,26 +344,26 @@ module mod_sst_eh5om
       if ( i1 >= a7 .and. i1 <= a8 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_B1_1_2001010100_2029123118',            &
-              form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
-              access='direct')
+              form='unformatted',recl=ilenrec,access='direct',  &
+              action='read',status='old')
         it_base = 0
       else if ( i1 >= a9 .and. i1 <= a10 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_B1_1_2030010100_2061123118',            &
-              form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
-              access='direct')
+              form='unformatted',recl=ilenrec,access='direct',  &
+              action='read',status='old')
         it_base = 42368
       else if ( i1 >= a11 .and. i1 <= a12 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_B1_1_2062010100_2093123118',            &
-              form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
-              access='direct')
+              form='unformatted',recl=ilenrec,access='direct',  &
+              action='read',status='old')
         it_base = 42368 + 46752
       else if ( i1 >= a13 .and. i1 <= a14 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_B1_1_2094010100_2100123118',            &
-              form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
-              access='direct')
+              form='unformatted',recl=ilenrec,access='direct',  &
+              action='read',status='old')
         it_base = 42368 + 46752*2
       else
       end if
@@ -368,26 +371,26 @@ module mod_sst_eh5om
       if ( i1 >= a7 .and. i1 <= a8 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_A1B_3_2001010100_2029123118',           &
-              form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
-              access='direct')
+              form='unformatted',recl=ilenrec,access='direct',  &
+              action='read',status='old')
         it_base = 0
       else if ( i1 >= a9 .and. i1 <= a10 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_A1B_3_2030010100_2061123118',           &
-              form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
-              access='direct')
+              form='unformatted',recl=ilenrec,access='direct',  &
+              action='read',status='old')
         it_base = 42368
       else if ( i1 >= a11 .and. i1 <= a12 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_A1B_3_2062010100_2093123118',           &
-              form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
-              access='direct')
+              form='unformatted',recl=ilenrec,access='direct',  &
+              action='read',status='old')
         it_base = 42368 + 46752
       else if ( i1 >= a13 .and. i1 <= a14 ) then
         open (11,file=trim(inpglob)//                           &
               '/SST/SST_A1B_3_2094010100_2100123118',           &
-              form='unformatted',recl=(ilon*jlat/2+4)*ibyte,    &
-              access='direct')
+              form='unformatted',recl=ilenrec,access='direct',  &
+              action='read',status='old')
         it_base = 42368 + 46752*2
       end if
     end if

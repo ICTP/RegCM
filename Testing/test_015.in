@@ -29,9 +29,6 @@
  dirter = '/set/this/to/where/your/domain/file/is',
  inpter = '/set/this/to/where/your/surface/dataset/is',
  /
- &ioparam
- ibyte = 4,
- /
  &debugparam
  debug_level = 1,
  dbgfrq = 3,

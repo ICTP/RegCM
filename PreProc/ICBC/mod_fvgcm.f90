@@ -74,10 +74,11 @@ module mod_fvgcm
   integer(ik4) :: i , i2 , ii , j , j2 , k , mrec , nrec , numx , numy
   integer(2) , dimension(288,181) :: itmp
   real(rk8) :: offset , xscale
-  real(rk8) , dimension(288,181) :: temp
+  real(rk4) , dimension(288,181) :: temp
   logical :: there
   character(len=4) , dimension(30) :: yr_a2 , yr_rf
   integer(ik4) :: year , month , day , hour
+  integer(ik8) :: ilenrec
 !
   data fn_rf/'FV_RF'/ , fn_a2/'FV_A2'/
   data pn_rf/'PS_RF'/ , pn_a2/'PS_A2'/
@@ -105,9 +106,10 @@ module mod_fvgcm
       write (stderr,*) trim(inpglob)//'/FVGCM/HT_SRF is not present'
       call die('getfvgcm')
     end if
+    inquire(iolength=ilenrec) temp
     open (61,file=trim(inpglob)//'/FVGCM/HT_SRF',form='unformatted', &
-          recl=numx*numy*ibyte,access='direct')
-    read (61,rec=1) ((temp(i,j),i=1,numx),j=1,numy)
+          recl=ilenrec,access='direct',action='read',status='old')
+    read (61,rec=1) temp
     do j = nint(lat0) , nint(lat1)
       do i = nint(lon0/1.25) , nint(lon1/1.25)
         ii = i + 1
@@ -191,10 +193,12 @@ module mod_fvgcm
                 trim(inpglob)//'/FVGCM/'
     call die('getfvgcm')
   end if
+  inquire(iolength=ilenrec)  offset , xscale , itmp
   open (63,file=trim(inpglob)//'/FVGCM/'//finm,form='unformatted',  &
-        recl=(numx*numy*2+16)/4*ibyte,access='direct')
+        recl=ilenrec,access='direct',action='read',status='old')
+  inquire(iolength=ilenrec) temp
   open (62,file=trim(inpglob)//'/FVGCM/'//fips,form='unformatted',  &
-        recl=numx*numy*ibyte,access='direct')
+        recl=ilenrec,access='direct',action='read',status='old')
   if ( day /= 1 .or. hour /= 0 ) then
     nrec = ((day-1)*4+hour/6-1)*(nlev*4)
     mrec = (day-1)*4 + hour/6 - 1

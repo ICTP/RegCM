@@ -54,12 +54,14 @@ module mod_sst_fvgcm
   integer(ik4) :: i , it , j , k , nsteps
   real(rk8) , dimension(jlat) :: lati
   real(rk8) , dimension(ilon) :: loni
-  real(rk8) , dimension(ilon,jlat) :: temp
+  real(rk4) , dimension(ilon,jlat) :: temp
   real(rk8) , dimension(ilon,jlat) :: sst
   type(rcm_time_and_date) :: idate , idateo , idatef
   integer(ik4) :: year , month , day , hour
+  integer(ik8) :: ilenrec
   logical :: there
 !
+  inquire(iolength=ilenrec) temp
 
   if ( ssttyp == 'FV_RF' ) then
     inquire (file=trim(inpglob)//'/SST/Sst_1959_1991ref.dat',exist=there)
@@ -69,7 +71,8 @@ module mod_sst_fvgcm
       call die('sst_fvgcm')
     end if
     open (11,file=trim(inpglob)//'/SST/Sst_1959_1991ref.dat',       &
-          form='unformatted',recl=ilon*jlat*ibyte,access='direct')
+          form='unformatted',recl=ilenrec, &
+          access='direct',action='read',status='old')
   else if ( ssttyp == 'FV_A2' ) then
     inquire (file=trim(inpglob)//'/SST/Sst_2069_2101_A2.dat',       &
              exist=there)
@@ -79,7 +82,8 @@ module mod_sst_fvgcm
       call die('sst_fvgcm')
     end if
     open (11,file=trim(inpglob)//'/SST/Sst_2069_2101_A2.dat',       &
-          form='unformatted',recl=ilon*jlat*ibyte,access='direct')
+          form='unformatted',recl=ilenrec, &
+          access='direct',action='read',status='old')
   else if ( ssttyp == 'FV_B2' ) then
     inquire (file=trim(inpglob)//'/SST/Sst_2069_2101_B2.dat',       &
              exist=there)
@@ -89,7 +93,8 @@ module mod_sst_fvgcm
       call die('sst_fvgcm')
     end if
     open (11,file=trim(inpglob)//'/SST/Sst_2069_2101_B2.dat',       &
-          form='unformatted',recl=ilon*jlat*ibyte,access='direct')
+          form='unformatted',recl=ilenrec, &
+          access='direct',action='read',status='old')
   else
     write (stderr,*) 'PLEASE SET right SSTTYP in regcm.in'
     write (stderr,*) 'Supported types are FV_RF FV_A2 FV_B2'

@@ -61,9 +61,6 @@ program sst
     call die('sst','Check argument and namelist syntax.',1)
   end if
 
-  if (debug_level > 2) then
-  end if
-
   call memory_init
 
   call init_grid

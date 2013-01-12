@@ -67,13 +67,6 @@
  inpter = 'globdata/',   ! Input directory for SURFACE dataset
  /
 !
-! Global I/O control Stanza
-!
- &ioparam
- ibyte = 4,   ! Number of bytes in reclen. Usually 4. Used for I/O of non
-              ! netDF datasets (ECHAM5, GIST, ECWP, FVGCM)
- /
-!
 ! Debug I/O printout level.
 !
  &debugparam

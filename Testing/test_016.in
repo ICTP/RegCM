@@ -33,9 +33,6 @@
  dirter = '/home/netapp/clima-users/users/uturunco/CAS/run.roms/coupled/cas.cplwice/input',
  inpter = '/home/netapp/clima-shared/RCMDATA',
  /
- &ioparam
- ibyte = 4,
- /
  &debugparam
  debug_level = 3
  dbgfrq = 3,

@@ -34,7 +34,7 @@ module mod_ecwcp
   real(rk8) , dimension(ilon) :: hlon
   real(rk8) , dimension(nlev) :: sigma1 , sigmar
 
-  real(rk8) , dimension(ilon,jlat,nlev) :: w1
+  real(rk4) , dimension(ilon,jlat) :: r2
 
   real(rk8) , target , dimension(ilon,jlat,nlev*3) :: b2
   real(rk8) , target , dimension(ilon,jlat,nlev*2) :: d2
@@ -67,6 +67,7 @@ module mod_ecwcp
   character(len=12) , dimension(12,5) :: finm
   integer(ik4) :: i , j , k , nrec
   integer(ik4) :: year , month , day , hour
+  integer(ik8) :: ecwlen
   logical :: there
 !
   data finm/'ECT421993JAN' , 'ECT421993FEB' , 'ECT421993MAR' ,  &
@@ -99,34 +100,39 @@ module mod_ecwcp
     call die('getecwcp',trim(inpglob)//'/ECWCRP/'// &
              finm(month,year-1992)//' is not available',1)
   end if
+  inquire(iolength=ecwlen) r2
   open (63,file=trim(inpglob)//'/ECWCRP/'// &
-        finm(month,year-1992),  &
-        form='unformatted',recl=ilon*jlat*ibyte,access='direct')
+        finm(month,year-1992),form='unformatted',recl=ecwlen, &
+        access='direct',action='read',status='old')
   nrec = (((day-1)*4+hour)/6)*(nlev*6+1)
   nrec = nrec + 1
   do k = 1 , nlev
     nrec = nrec + 1
-    read (63,rec=nrec) ((h1(i,j,k),i=1,ilon),j=1,jlat)
+    read (63,rec=nrec) r2
+    h1(:,:,k) = r2
   end do
   do k = 1 , nlev
     nrec = nrec + 1
-    read (63,rec=nrec) ((t1(i,j,k),i=1,ilon),j=1,jlat)
+    read (63,rec=nrec) r2
+    t1(:,:,k) = r2
   end do
   do k = 1 , nlev
     nrec = nrec + 1
-    read (63,rec=nrec) ((u1(i,j,k),i=1,ilon),j=1,jlat)
+    read (63,rec=nrec) r2
+    u1(:,:,k) = r2
   end do
   do k = 1 , nlev
     nrec = nrec + 1
-    read (63,rec=nrec) ((v1(i,j,k),i=1,ilon),j=1,jlat)
+    read (63,rec=nrec) r2
+    v1(:,:,k) = r2
+  end do
+  do k = 1 , nlev
+    nrec = nrec + 2
   end do
   do k = 1 , nlev
     nrec = nrec + 1
-    read (63,rec=nrec) ((w1(i,j,k),i=1,ilon),j=1,jlat)
-  end do
-  do k = 1 , nlev
-    nrec = nrec + 1
-    read (63,rec=nrec) ((q1(i,j,k),i=1,ilon),j=1,jlat)
+    read (63,rec=nrec) r2
+    q1(:,:,k) = r2
   end do
   write (stdout,*) 'READ IN fields at DATE:' , tochar(idate) , ' from ' , &
               finm(month,year-1992)

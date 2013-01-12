@@ -31,12 +31,6 @@
  dirter = '/lustre/fsolmon/regcm/MEGAPOLI/Input',
  inpter = '/scratch/esp/RCM3DATA',
  /
- &ioparam
- igrads = 1,
- ibigend = 1,
- ibyte = 4,
- iotyp = 1,
- /
  &debugparam
  debug_level = 1
  /

@@ -79,6 +79,7 @@ module mod_eh5om
   character(len=4) , dimension(61) :: yr_rf
   character(len=4) :: namepart
   integer(ik4) :: year , month , day , hour
+  integer(ik8) :: iehlen
 !
   data yr_rf/'1941' , '1942' , '1943' , '1944' , '1945' , '1946' ,  &
              '1947' , '1948' , '1949' , '1950' , '1951' , '1952' ,  &
@@ -259,8 +260,9 @@ module mod_eh5om
     call die('geteh5om',trim(inpglob)//'/EH5OM/'//finm// &
              ' is not available',1)
   end if
+  inquire(iolength=iehlen) offset , xscale , itmp
   open (63,file=trim(inpglob)//'/EH5OM/'//finm,form='unformatted',  &
-        recl=(numx*numy*2+16)/4*ibyte,access='direct')
+        recl=iehlen,access='direct',action='read',status='old')
   if ( day /= 1 .or. hour /= 0 ) then
     nrec = ((day-1)*4+hour/6-1)*(klev*5)
   else if ( month == 1 .or. month == 2 .or. &
@@ -278,7 +280,7 @@ module mod_eh5om
  
   do k = klev , 1 , -1
     nrec = nrec + 1
-    read (63,rec=nrec) offset , xscale , ((itmp(i,j),i=1,numx),j=1,numy)
+    read (63,rec=nrec) offset , xscale , itmp
     do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
       do i = nint(lon0/1.875) , nint(lon1/1.875)
         ii = i + 1
@@ -296,7 +298,7 @@ module mod_eh5om
   end do
   do k = klev , 1 , -1
     nrec = nrec + 1
-    read (63,rec=nrec) offset , xscale , ((itmp(i,j),i=1,numx),j=1,numy)
+    read (63,rec=nrec) offset , xscale , itmp
     do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
       do i = nint(lon0/1.875) , nint(lon1/1.875)
         ii = i + 1
@@ -316,7 +318,7 @@ module mod_eh5om
   end do
   do k = klev , 1 , -1
     nrec = nrec + 1
-    read (63,rec=nrec) offset , xscale , ((itmp(i,j),i=1,numx),j=1,numy)
+    read (63,rec=nrec) offset , xscale , itmp
     do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
       do i = nint(lon0/1.875) , nint(lon1/1.875)
         ii = i + 1
@@ -334,7 +336,7 @@ module mod_eh5om
   end do
   do k = klev , 1 , -1
     nrec = nrec + 1
-    read (63,rec=nrec) offset , xscale , ((itmp(i,j),i=1,numx),j=1,numy)
+    read (63,rec=nrec) offset , xscale , itmp
     do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
       do i = nint(lon0/1.875) , nint(lon1/1.875)
         ii = i + 1
@@ -352,7 +354,7 @@ module mod_eh5om
   end do
   do k = klev , 1 , -1
     nrec = nrec + 1
-    read (63,rec=nrec) offset , xscale , ((itmp(i,j),i=1,numx),j=1,numy)
+    read (63,rec=nrec) offset , xscale , itmp
     do j = nint((lat0+.9375)/1.875) , nint((lat1+.9375)/1.875)
       do i = nint(lon0/1.875) , nint(lon1/1.875)
         ii = i + 1

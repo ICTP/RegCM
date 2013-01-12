@@ -905,7 +905,6 @@ module mod_mppparam
     call bcast(i_band)
 
     call bcast(domname,64)
-    call bcast(ibyte)
 
     call bcast(debug_level)
     call bcast(dbgfrq)

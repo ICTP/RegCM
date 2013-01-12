@@ -113,11 +113,7 @@ module mod_dynparam
 
   real(rk8) :: truelath
 
-!###################### I/O control flag ###############################
-
-! Number of bytes in reclen. Usually 4
-
-  integer(ik4) :: ibyte
+!###################### DEBUG I/O control flag #########################
 
 ! Set amount of printout (still unused, sorry)
 
@@ -376,7 +372,6 @@ module mod_dynparam
     namelist /terrainparam/ domname , smthbdy , ltexture , lakedpth,  &
       fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s , fudge_lak,  &
       fudge_lak_s , h2opct , h2ohgt , dirter , inpter
-    namelist /ioparam/ ibyte
     namelist /debugparam/ debug_level , dbgfrq
     namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
       medium_nudge , low_nudge
@@ -479,9 +474,7 @@ module mod_dynparam
     h2opct = 50.0D0
     read(ipunit, terrainparam, err=103)
 
-    ! Set convenient defaults for I/O parameters
-    ibyte = 4
-    read(ipunit, ioparam, err=104)
+    ! Set convenient defaults for debug I/O parameters
     dbgfrq = 3600
     read(ipunit, debugparam, err=105)
 

@@ -242,20 +242,6 @@ For \verb=terrain= program you may want to try the following URL: \\
 http://clima-dods.ictp.it/thredds/dodsC
 \end{enumerate}
 
-\subsection{ioparam stanza}
-
-{\footnotesize
-\begin{Verbatim}
- &ioparam
- ibyte = 4,   ! Number of bytes in reclen. Usually 4
- /
-\end{Verbatim}
-}
-
-Leave this untouched. The model expects input record syze to be 4 bytes.
-You will need to change some compilation parameters if you change this value.
-\footnote{This namelist stanza will be removed in future versions}
-
 \subsection{debugparam stanza}
 
 This stanza is used by all RegCM programs to enable/disable some debug printout.
