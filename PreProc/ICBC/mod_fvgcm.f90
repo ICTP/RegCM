@@ -36,21 +36,25 @@ module mod_fvgcm
 
   private
 
-  integer(ik4) , parameter :: nlev = 18 , nlat = 181 , nlon = 288
+  integer(ik4) , parameter :: nlev = 18
+  integer(ik4) :: numx , numy
 
   real(rk8) , dimension(nlev+1) :: ak , bk
   real(rk8) , dimension(nlev) :: pplev , sigma1 , sigmar
-  real(rk8) , dimension(nlat) :: vlat
-  real(rk8) , dimension(nlon) :: vlon
 
-  real(rk8) , target , dimension(nlon,nlat,nlev*4+1) :: bb
-  real(rk8) , target , dimension(nlon,nlat,nlev*3) :: b2
-  real(rk8) , target , dimension(nlon,nlat,nlev*2) :: d2
+  real(rk8) , pointer , dimension(:) :: vlat
+  real(rk8) , pointer , dimension(:) :: vlon
+
+  real(rk8) , pointer , dimension(:,:,:) :: bb
+  real(rk8) , pointer , dimension(:,:,:) :: b2
+  real(rk8) , pointer , dimension(:,:,:) :: d2
   real(rk8) , pointer , dimension(:,:,:) :: b3
   real(rk8) , pointer , dimension(:,:,:) :: d3
+  real(rk4) , pointer , dimension(:,:) :: temp
+  integer(2) , pointer , dimension(:,:) :: itmp
 
-  real(rk8) , dimension(nlon,nlat) :: zs2
-  real(rk8) , dimension(nlon,nlat,nlev) :: pp3d , z1
+  real(rk8) , pointer , dimension(:,:) :: zs2
+  real(rk8) , pointer , dimension(:,:,:) :: pp3d , z1
 
   real(rk8) , pointer , dimension(:,:) :: ps2
   real(rk8) , pointer , dimension(:,:,:) :: q2 , t2 , u2 , v2
@@ -71,10 +75,8 @@ module mod_fvgcm
   character(len=3) , dimension(12) :: chmon
   character(len=20) :: finm , fips
   character(len=5) :: fn_a2 , fn_rf , pn_a2 , pn_rf
-  integer(ik4) :: i , i2 , ii , j , j2 , k , mrec , nrec , numx , numy
-  integer(2) , dimension(288,181) :: itmp
+  integer(ik4) :: i , i2 , ii , j , j2 , k , mrec , nrec
   real(rk8) :: offset , xscale
-  real(rk4) , dimension(288,181) :: temp
   logical :: there
   character(len=4) , dimension(30) :: yr_a2 , yr_rf
   integer(ik4) :: year , month , day , hour
@@ -99,8 +101,6 @@ module mod_fvgcm
   call split_idate(idate,year,month,day,hour)
 
   if ( idate == globidate1 ) then
-    numx = nint((lon1-lon0)/1.25) + 1
-    numy = nint(lat1-lat0) + 1
     inquire (file=trim(inpglob)//'/FVGCM/HT_SRF',exist=there)
     if ( .not.there ) then
       write (stderr,*) trim(inpglob)//'/FVGCM/HT_SRF is not present'
@@ -110,19 +110,11 @@ module mod_fvgcm
     open (61,file=trim(inpglob)//'/FVGCM/HT_SRF',form='unformatted', &
           recl=ilenrec,access='direct',action='read',status='old')
     read (61,rec=1) temp
-    do j = nint(lat0) , nint(lat1)
-      do i = nint(lon0/1.25) , nint(lon1/1.25)
-        ii = i + 1
-        if ( ii <= 0 ) ii = ii + 288
-        if ( ii > 288 ) ii = ii - 288
-        i2 = i - nint(lon0/1.25) + 1
-        j2 = j - nint(lat0) + 1
-        zs2(ii,j+91) = temp(i2,j2)/9.80616
-      end do
-    end do
+    zs2 = temp*regrav
     close (61)
+
   end if
- 
+
   if ( day /= 1 .or. hour /= 0 ) then
     if ( ssttyp == 'FV_RF' ) then
       finm = 'RF/'//yr_rf(year-1960)//'/'//fn_rf//yr_rf(year-1960) &
@@ -177,11 +169,9 @@ module mod_fvgcm
     write (stderr,*) 'Unknown sstyp. Supported FV_RF and FV_A2'
     call die('getfvgcm')
   end if
-  numx = nint((lon1-lon0)/1.25) + 1
-  numy = nint(lat1-lat0) + 1
   do k = 1 , nlev*4 + 1
-    do j = 1 , nlat
-      do i = 1 , nlon
+    do j = 1 , numy
+      do i = 1 , numx
         bb(i,j,k) = -9999.
       end do
     end do
@@ -220,79 +210,34 @@ module mod_fvgcm
     mrec = 28*4 - 1
   end if
   mrec = mrec + 1
-  read (62,rec=mrec) ((temp(i,j),i=1,numx),j=1,numy)
-  do j = nint(lat0) , nint(lat1)
-    do i = nint(lon0/1.25) , nint(lon1/1.25)
-      ii = i + 1
-      if ( ii <= 0 ) ii = ii + 288
-      if ( ii > 288 ) ii = ii - 288
-      i2 = i - nint(lon0/1.25) + 1
-      j2 = j - nint(lat0) + 1
-      ps2(ii,j+91) = temp(i2,j2)*0.01
-    end do
+  read (62,rec=mrec) temp
+  ps2 = temp*0.01
+  do k = 1 , nlev
+    nrec = nrec + 1
+    read (63,rec=nrec) offset , xscale , itmp
+    u2(:,:,k) = itmp*xscale + offset
   end do
   do k = 1 , nlev
     nrec = nrec + 1
-    read (63,rec=nrec) offset , xscale , ((itmp(i,j),i=1,numx),j=1,numy)
-    do j = nint(lat0) , nint(lat1)
-      do i = nint(lon0/1.25) , nint(lon1/1.25)
-        ii = i + 1
-        if ( ii <= 0 ) ii = ii + 288
-        if ( ii > 288 ) ii = ii - 288
-        i2 = i - nint(lon0/1.25) + 1
-        j2 = j - nint(lat0) + 1
-        u2(ii,j+91,k) = real(dble(itmp(i2,j2))*xscale + offset)
-      end do
-    end do
+    read (63,rec=nrec) offset , xscale , itmp
+    v2(:,:,k) = itmp*xscale + offset
   end do
   do k = 1 , nlev
     nrec = nrec + 1
-    read (63,rec=nrec) offset , xscale , ((itmp(i,j),i=1,numx),j=1,numy)
-    do j = nint(lat0) , nint(lat1)
-      do i = nint(lon0/1.25) , nint(lon1/1.25)
-        ii = i + 1
-        if ( ii <= 0 ) ii = ii + 288
-        if ( ii > 288 ) ii = ii - 288
-        i2 = i - nint(lon0/1.25) + 1
-        j2 = j - nint(lat0) + 1
-        v2(ii,j+91,k) = real(dble(itmp(i2,j2))*xscale + offset)
-      end do
-    end do
+    read (63,rec=nrec) offset , xscale , itmp
+    t2(:,:,k) = itmp*xscale + offset
   end do
   do k = 1 , nlev
     nrec = nrec + 1
-    read (63,rec=nrec) offset , xscale , ((itmp(i,j),i=1,numx),j=1,numy)
-    do j = nint(lat0) , nint(lat1)
-      do i = nint(lon0/1.25) , nint(lon1/1.25)
-        ii = i + 1
-        if ( ii <= 0 ) ii = ii + 288
-        if ( ii > 288 ) ii = ii - 288
-        i2 = i - nint(lon0/1.25) + 1
-        j2 = j - nint(lat0) + 1
-        t2(ii,j+91,k) = real(dble(itmp(i2,j2))*xscale + offset)
-      end do
-    end do
-  end do
-  do k = 1 , nlev
-    nrec = nrec + 1
-    read (63,rec=nrec) offset , xscale , ((itmp(i,j),i=1,numx),j=1,numy)
-    do j = nint(lat0) , nint(lat1)
-      do i = nint(lon0/1.25) , nint(lon1/1.25)
-        ii = i + 1
-        if ( ii <= 0 ) ii = ii + 288
-        if ( ii > 288 ) ii = ii - 288
-        i2 = i - nint(lon0/1.25) + 1
-        j2 = j - nint(lat0) + 1
-        q2(ii,j+91,k) = real(dble(itmp(i2,j2))*xscale + offset)
-      end do
-    end do
+    read (63,rec=nrec) offset , xscale , itmp
+    q2(:,:,k) = itmp*xscale + offset
   end do
   close (63)
   close (62)
-  write (stdout,*) 'READ IN fields at DATE:' , idate
+  write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
   do k = 1 , nlev
-    do j = 1 , nlat
-      do i = 1 , nlon
+    do j = 1 , numy
+      do i = 1 , numx
         if ( ps2(i,j) > -9995. ) then
           pp3d(i,j,k) = ps2(i,j)*0.5*(bk(k)+bk(k+1))    &
                         + 0.5*(ak(k)+ak(k+1))
@@ -304,24 +249,24 @@ module mod_fvgcm
   end do
 !
 !     to calculate Heights on sigma surfaces.
-  call htsig(t2,z1,pp3d,ps2,zs2,nlon,nlat,nlev)
+  call htsig(t2,z1,pp3d,ps2,zs2,numx,numy,nlev)
 !
 !     to interpolate H,U,V,T,Q and QC
 !     1. For Heights
-  call height(hp,z1,t2,ps2,pp3d,zs2,nlon,nlat,nlev,pplev,nlev)
+  call height(hp,z1,t2,ps2,pp3d,zs2,numx,numy,nlev,pplev,nlev)
 !     2. For Zonal and Meridional Winds
-  call intlin(up,u2,ps2,pp3d,nlon,nlat,nlev,pplev,nlev)
-  call intlin(vp,v2,ps2,pp3d,nlon,nlat,nlev,pplev,nlev)
+  call intlin(up,u2,ps2,pp3d,numx,numy,nlev,pplev,nlev)
+  call intlin(vp,v2,ps2,pp3d,numx,numy,nlev,pplev,nlev)
 !     3. For Temperatures
-  call intlog(tp,t2,ps2,pp3d,nlon,nlat,nlev,pplev,nlev)
+  call intlog(tp,t2,ps2,pp3d,numx,numy,nlev,pplev,nlev)
 !     4. For Moisture qva & qca
-  call humid1fv(t2,q2,pp3d,nlon,nlat,nlev)
-  call intlin(qp,q2,ps2,pp3d,nlon,nlat,nlev,pplev,nlev)
+  call humid1fv(t2,q2,pp3d,numx,numy,nlev)
+  call intlin(qp,q2,ps2,pp3d,numx,numy,nlev,pplev,nlev)
 !
 !     HORIZONTAL INTERPOLATION OF BOTH THE SCALAR AND VECTOR FIELDS
 !
-  call bilinx2(b3,b2,xlon,xlat,vlon,vlat,nlon,nlat,jx,iy,nlev*3)
-  call bilinx2(d3,d2,dlon,dlat,vlon,vlat,nlon,nlat,jx,iy,nlev*2)
+  call bilinx2(b3,b2,xlon,xlat,vlon,vlat,numx,numy,jx,iy,nlev*3)
+  call bilinx2(d3,d2,dlon,dlat,vlon,vlat,numx,numy,jx,iy,nlev*2)
 !
 !     ROTATE U-V FIELDS AFTER HORIZONTAL INTERPOLATION
 !
@@ -376,108 +321,125 @@ module mod_fvgcm
 !
   subroutine headerfv
 
-  implicit none
+    implicit none
 !
-  integer(ik4) :: i , j , k , kr
+    integer(ik4) :: i , j , k , kr
 !
-  do j = 1 , nlat
-    vlat(j) = float(j-1) - 90.0
-  end do
-!
-  do i = 1 , nlon
-    vlon(i) = float(i-1)*1.25
-  end do
+    numx = nint((lon1-lon0)/1.25) + 1
+    numy = nint(lat1-lat0) + 1
+
+    ! Allocating space
+
+    write (stdout,*) 'Reading a ',numx,'x',numy,' point grid'
+    call getmem1d(vlat,1,numy,'fvgc:vlat')
+    call getmem1d(vlon,1,numx,'fvgc:vlon')
+
+    do j = 1 , numy
+      vlat(j) = lat0 + dble(j-1)*1.0D0
+    end do
+    do i = 1 , numx
+      vlon(i) = lon0 + dble(i-1)*1.25D0
+    end do
  
-  pplev(1) = 30.
-  pplev(2) = 50.
-  pplev(3) = 70.
-  pplev(4) = 100.
-  pplev(5) = 150.
-  pplev(6) = 200.
-  pplev(7) = 250.
-  pplev(8) = 300.
-  pplev(9) = 350.
-  pplev(10) = 420.
-  pplev(11) = 500.
-  pplev(12) = 600.
-  pplev(13) = 700.
-  pplev(14) = 780.
-  pplev(15) = 850.
-  pplev(16) = 920.
-  pplev(17) = 960.
-  pplev(18) = 1000.
+    pplev(1) = 30.
+    pplev(2) = 50.
+    pplev(3) = 70.
+    pplev(4) = 100.
+    pplev(5) = 150.
+    pplev(6) = 200.
+    pplev(7) = 250.
+    pplev(8) = 300.
+    pplev(9) = 350.
+    pplev(10) = 420.
+    pplev(11) = 500.
+    pplev(12) = 600.
+    pplev(13) = 700.
+    pplev(14) = 780.
+    pplev(15) = 850.
+    pplev(16) = 920.
+    pplev(17) = 960.
+    pplev(18) = 1000.
  
-  do k = 1 , nlev
-    sigmar(k) = pplev(k)*0.001
-  end do
+    do k = 1 , nlev
+      sigmar(k) = pplev(k)*0.001
+    end do
 !HH:OVER
 !     CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
 !
-  do k = 1 , nlev
-    kr = nlev - k + 1
-    sigma1(k) = sigmar(kr)
-  end do
+    do k = 1 , nlev
+      kr = nlev - k + 1
+      sigma1(k) = sigmar(kr)
+    end do
 !
-  ak(1) = 2.9170
-  ak(2) = 7.9292
-  ak(3) = 21.5539
-  ak(4) = 49.1834
-  ak(5) = 83.1425
-  ak(6) = 79.9308
-  ak(7) = 75.7738
-  ak(8) = 70.5752
-  ak(9) = 64.2963
-  ak(10) = 56.9838
-  ak(11) = 48.7913
-  ak(12) = 39.9895
-  ak(13) = 30.9631
-  ak(14) = 22.1902
-  ak(15) = 14.2039
-  ak(16) = 7.5413
-  ak(17) = 2.6838
-  ak(18) = 0.0
-  ak(19) = 0.0
+    ak(1) = 2.9170
+    ak(2) = 7.9292
+    ak(3) = 21.5539
+    ak(4) = 49.1834
+    ak(5) = 83.1425
+    ak(6) = 79.9308
+    ak(7) = 75.7738
+    ak(8) = 70.5752
+    ak(9) = 64.2963
+    ak(10) = 56.9838
+    ak(11) = 48.7913
+    ak(12) = 39.9895
+    ak(13) = 30.9631
+    ak(14) = 22.1902
+    ak(15) = 14.2039
+    ak(16) = 7.5413
+    ak(17) = 2.6838
+    ak(18) = 0.0
+    ak(19) = 0.0
  
-  bk(1) = 0.0
-  bk(2) = 0.0
-  bk(3) = 0.0
-  bk(4) = 0.0
-  bk(5) = 0.0
-  bk(6) = 0.0380541
-  bk(7) = 0.0873088
-  bk(8) = 0.1489307
-  bk(9) = 0.2232996
-  bk(10) = 0.3099406
-  bk(11) = 0.4070096
-  bk(12) = 0.5112977
-  bk(13) = 0.6182465
-  bk(14) = 0.7221927
-  bk(15) = 0.8168173
-  bk(16) = 0.8957590
-  bk(17) = 0.9533137
-  bk(18) = 0.9851222
-  bk(19) = 1.0
+    bk(1) = 0.0
+    bk(2) = 0.0
+    bk(3) = 0.0
+    bk(4) = 0.0
+    bk(5) = 0.0
+    bk(6) = 0.0380541
+    bk(7) = 0.0873088
+    bk(8) = 0.1489307
+    bk(9) = 0.2232996
+    bk(10) = 0.3099406
+    bk(11) = 0.4070096
+    bk(12) = 0.5112977
+    bk(13) = 0.6182465
+    bk(14) = 0.7221927
+    bk(15) = 0.8168173
+    bk(16) = 0.8957590
+    bk(17) = 0.9533137
+    bk(18) = 0.9851222
+    bk(19) = 1.0
  
-  call getmem3d(b3,1,jx,1,iy,1,nlev*3,'mod_fvgcm:b3')
-  call getmem3d(d3,1,jx,1,iy,1,nlev*2,'mod_fvgcm:d3')
+    call getmem3d(bb,1,numx,1,numy,1,nlev*4+1,'fvgc:bb')
+    call getmem3d(b2,1,numx,1,numy,1,nlev*3,'fvgc:b2')
+    call getmem3d(d2,1,numx,1,numy,1,nlev*2,'fvgc:d2')
+    call getmem3d(pp3d,1,numx,1,numy,1,nlev,'fvgc:pp3d')
+    call getmem3d(z1,1,numx,1,numy,1,nlev,'fvgc:z1')
+    call getmem2d(zs2,1,numx,1,numy,'fvgc:zs2')
+    call getmem2d(temp,1,numx,1,numy,'fvgc:temp')
+    call getmem2d(itmp,1,numx,1,numy,'fvgc:itmp')
 
-!     Set up pointers
+    call getmem3d(b3,1,jx,1,iy,1,nlev*3,'mod_fvgcm:b3')
+    call getmem3d(d3,1,jx,1,iy,1,nlev*2,'mod_fvgcm:d3')
+ 
+    ! Set up pointers
 
-  ps2 => bb(:,:,1)
-  t2 => bb(:,:,2:nlev+1)
-  q2 => bb(:,:,nlev+2:2*nlev+1)
-  u2 => bb(:,:,2*nlev+2:3*nlev+1)
-  v2 => bb(:,:,3*nlev+2:4*nlev+1)
-  tp => b2(:,:,1:nlev)
-  qp => b2(:,:,nlev+1:2*nlev)
-  hp => b2(:,:,2*nlev+1:3*nlev)
-  up => d2(:,:,1:nlev)
-  vp => d2(:,:,nlev+1:2*nlev)
-  t3 => b3(:,:,1:nlev)
-  q3 => b3(:,:,nlev+1:2*nlev)
-  h3 => b3(:,:,2*nlev+1:3*nlev)
-  u3 => d3(:,:,1:nlev)
-  v3 => d3(:,:,nlev+1:2*nlev)
+    ps2 => bb(:,:,1)
+    t2 => bb(:,:,2:nlev+1)
+    q2 => bb(:,:,nlev+2:2*nlev+1)
+    u2 => bb(:,:,2*nlev+2:3*nlev+1)
+    v2 => bb(:,:,3*nlev+2:4*nlev+1)
+    tp => b2(:,:,1:nlev)
+    qp => b2(:,:,nlev+1:2*nlev)
+    hp => b2(:,:,2*nlev+1:3*nlev)
+    up => d2(:,:,1:nlev)
+    vp => d2(:,:,nlev+1:2*nlev)
+    t3 => b3(:,:,1:nlev)
+    q3 => b3(:,:,nlev+1:2*nlev)
+    h3 => b3(:,:,2*nlev+1:3*nlev)
+    u3 => d3(:,:,1:nlev)
+    v3 => d3(:,:,nlev+1:2*nlev)
 
   end subroutine headerfv
 
