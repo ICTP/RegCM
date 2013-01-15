@@ -550,10 +550,6 @@ module mod_dynparam
         & trim(filename)
     ierr = 1
     return
-  104   write(stderr,*) 'Cannot read namelist stanza: ioparam        ',  &
-        & trim(filename)
-    ierr = 1
-    return
   105   write(stderr,*) 'Cannot read namelist stanza: debugparam     ',  &
         & trim(filename)
     ierr = 1
