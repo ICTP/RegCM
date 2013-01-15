@@ -121,9 +121,9 @@ module mod_pbl_holtbl
     call getmem3d(thvx,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:thvx')
 
     if ( ichem == 1 ) then
-      if ( ichdrdepo == 1 ) then
+!      if ( ichdrdepo == 1 ) then
         call getmem3d(vdep,jci1,jci2,ici1,ici2,1,ntr,'mod_holtbl:vdep')
-      end if
+!      end if
       call getmem3d(kvc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvc')
     end if
   end subroutine allocate_mod_pbl_holtbl

@@ -797,7 +797,7 @@ module mod_tendency
         xtm1 = xbctime - dtsec
         call nudge_chi(kz,xtm1,chib,chiten)
       end if
-      if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten0 - chiten) * cfdout
+      if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten - chiten0) * cfdout
     end if
     !
     ! forecast t, qv, and qc at tau+1:

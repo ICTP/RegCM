@@ -336,7 +336,7 @@
         end do
       end if 
 
-      if ( ipollen > 0 ) then
+      if ( ipollen > 0 .and. ichdrdepo > 0 ) then
         ibin = 1 
         poltab(1) = ipollen
         polrftab(1) = reffpollen
@@ -353,7 +353,7 @@
       ! option compatible with BATS and CLM
       ! dry deposition for SO2  is calculated also in non gaschem simulations
       !
-      if ( (iso2 > 0 .or. igaschem == 1) .and. ichdrdepo == 1 ) then
+      if ( (iso2 > 0 .or. igaschem == 1) .and. ichdrdepo > 0 ) then
         do j = jci1 , jci2
           call drydep_gas(j,lmonth,lday,ivegcov(:,j),rh10(:,j), &
                           srad(:,j),tsurf(:,j),prec(:,kz,j),    &

@@ -541,9 +541,6 @@ module mod_params
     end if
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       read (ipunit, uwparam)
-      !Set ichdrdepo to a default value of 2; the UW--chem coupling
-      !requires this
-      ichdrdepo = 2
 #ifdef DEBUG
       write(stdout,*) 'Read uwparam OK'
 #endif
@@ -571,6 +568,8 @@ module mod_params
 
     if ( ichem == 1 ) then
       read (ipunit, chemparam)
+        ! force option 2 for drydep in the case of UW PBL
+        if ( ibltyp == 2 .or. ibltyp == 99 ) ichdrdepo = 2
 #ifdef DEBUG
       write(stdout,*) 'Read chemparam OK'
 #endif
