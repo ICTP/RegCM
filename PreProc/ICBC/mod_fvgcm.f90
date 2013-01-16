@@ -75,7 +75,7 @@ module mod_fvgcm
   character(len=3) , dimension(12) :: chmon
   character(len=20) :: finm , fips
   character(len=5) :: fn_a2 , fn_rf , pn_a2 , pn_rf
-  integer(ik4) :: i , i2 , ii , j , j2 , k , mrec , nrec
+  integer(ik4) :: i , j , k , mrec , nrec
   real(rk8) :: offset , xscale
   logical :: there
   character(len=4) , dimension(30) :: yr_a2 , yr_rf

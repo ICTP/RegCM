@@ -250,7 +250,7 @@ module mod_rad_atmosphere
        real(rk8) , intent(in) :: lat
        real(rk8) , intent(in) :: plev
        integer(ik4) , intent(in) :: ival
-       integer(ik4) :: k , kp1 , kp2
+       integer(ik4) :: kp1 , kp2
        real(rk8) :: wts1 , wts2 , wtp1 , wtp2
        real(rk8) :: vs1 , vs2
 

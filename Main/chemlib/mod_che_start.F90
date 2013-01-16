@@ -52,7 +52,6 @@ module mod_che_start
   subroutine start_chem
     implicit none
     integer(ik4) :: i , j , k , itr , ibin , jbin , kbin
-    integer(ik4) :: lyear , lmonth , lday , lhour
 
     ! A : Intialise chemistry tracer indices         
 

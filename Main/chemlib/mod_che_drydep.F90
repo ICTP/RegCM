@@ -647,7 +647,7 @@ module mod_che_drydep
                                             prec, temp10 , wind10 , zeff
       real(rk8),  dimension(ici1:ici2,ntr) :: drydepvg
 
-      integer(ik4) :: n , i , im , iday_m , kcov
+      integer(ik4) :: n , i , im , kcov
       real(rk8) , dimension(ici1:ici2,luc) :: ustar, resa
       real(rk8) , dimension(ngasd,ici1:ici2,luc) :: resb, resc
       real(rk8) , dimension(ngasd,ici1:ici2,luc) :: vdg

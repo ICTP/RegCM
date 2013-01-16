@@ -129,7 +129,7 @@ module mod_scrip_remap_vars
         max_links_map1 = max(4*grid1_size,4*grid2_size)
         max_links_map2 = max_links_map1
       end if
-      resize_increment = 0.1*max(grid1_size,grid2_size)
+      resize_increment = max(grid1_size,grid2_size)/10
       !
       ! allocate address and weight arrays for mapping 1
       !
@@ -157,7 +157,6 @@ module mod_scrip_remap_vars
       ! the number of links to add(subtract) to arrays
       integer(ik4) , intent(in) :: increment
 
-      integer(ik4) :: ierr    ! error flag
       integer(ik4) :: mxlinks ! size of link arrays
 
       ! temp arrays for resizing address arrays

@@ -67,7 +67,7 @@ program clm2rcm
   real(rk4) , dimension(3) :: varmax , varmin
   real(rk8) :: xhr
   real(rk4) :: offset , xscale , xlatmin , xlatmax , xlonmin , xlonmax
-  real(rk4) :: pxerr , pmax , adjust , totpft , totadj
+  real(rk4) :: pxerr , adjust , totpft , totadj
   real(rk4) , pointer , dimension(:) :: glat , glon , zlat ,      &
                                        zlev , zlon
   real(rk4) , pointer , dimension(:,:) :: mpu
@@ -79,19 +79,19 @@ program clm2rcm
 #endif
   real(rk4) , pointer , dimension(:,:) :: landmask , sandclay
   integer(ik4) :: ipathdiv , ierr , npatch
-  integer(ik4) :: i , iz , it , j , k , l , kmax , ipnt
+  integer(ik4) :: i , iz , it , j , k , l , ipnt
   integer(ik4) :: jotyp , idin , idout , ifield , ifld , imap
   character(len=256) :: namelistfile , prgname
   character(len=256) :: inpfile , terfile , checkfile
   character(len=256) :: outfil_nc
   character(len=64) :: csdate , cldim
   integer(ik4) , dimension(8) :: ilevs
-  integer(ik4) , parameter :: iforest = 5
-  integer(ik4) , parameter :: igrass  = 14
   real(rk4) , dimension(:) , allocatable :: vals_swap
   real(rk4) , dimension(:,:) , allocatable :: pctspec
   integer , dimension(:) , allocatable :: iord
 #ifdef SAGE_TEST
+  integer(ik4) , parameter :: iforest = 5
+  integer(ik4) , parameter :: igrass  = 14
   real(rk4) , dimension(:) , allocatable :: vals_swap1
   real(rk4) :: new_forest , old_forest , old_grass
   integer , dimension(:) , allocatable :: iord1

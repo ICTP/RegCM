@@ -65,7 +65,7 @@ module mod_ecwcp
   type(rcm_time_and_date) , intent(in) :: idate
 !
   character(len=12) , dimension(12,5) :: finm
-  integer(ik4) :: i , j , k , nrec
+  integer(ik4) :: k , nrec
   integer(ik4) :: year , month , day , hour
   integer(ik8) :: ecwlen
   logical :: there
