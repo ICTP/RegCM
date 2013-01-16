@@ -335,7 +335,6 @@
                            carbed(1:ibin),pdepv(:,:,:,j),ddepa(:,:,j))
         end do
       end if 
-
       if ( ipollen > 0 .and. ichdrdepo > 0 ) then
         ibin = 1 
         poltab(1) = ipollen

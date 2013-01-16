@@ -272,26 +272,18 @@ module mod_che_ncio
             maxval(echemsrc(:,:,ico))
         end if
       end if
-
       ! NO emission                  
       if ( ino /= 0 ) then
         call rvar(ncid,istart,icount,ino,echemsrc, &
                   'NO_flux',.false.,sdim)
       end if
-
       ! NO2 emission 
-
       if ( ino2 /= 0 ) then
-!        call rvar(ncid,istart,icount,ino2,echemsrc, &
-!                  'NO_flux',.false.,sdim)
-       echemsrc (:,:,ino2) = 0.1D0 *  echemsrc (:,:,ino)
-       echemsrc (:,:,ino) = 0.9D0 *  echemsrc (:,:,ino)
-        
+!       call rvar(ncid,istart,icount,ino2,echemsrc, &
+!                 'NO_flux',.false.,sdim)
+        echemsrc (:,:,ino2) = 0.1D0 *  echemsrc (:,:,ino)
+        echemsrc (:,:,ino) = 0.9D0 *  echemsrc (:,:,ino)
       end if
-
-
-
-
       ! HCHO emission                  
       if ( ihcho /= 0 ) then
          call rvar(ncid,istart,icount,ihcho,echemsrc, &

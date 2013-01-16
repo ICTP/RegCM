@@ -143,7 +143,7 @@ module mod_che_output
         end if
         if ( associated(che_emten_out) ) then
           do k = 1 , kz
-            ! no need to normalise by ps  here !!
+            ! no need to normalise by ps here !!
             che_emten_out(:,:,k) = cemisdiag(jci1:jci2,ici1:ici2,k,itr) 
           end do
         end if
