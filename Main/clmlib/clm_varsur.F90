@@ -25,7 +25,8 @@ module clm_varsur
   integer , allocatable :: vegxy(:,:) ! vegetation type
   real(r8), allocatable,target :: wtxy(:,:)  ! subgrid weights
 
-  real(r8) ,allocatable :: pctspec(:)        ! percent of spec lunits wrt gcell
+  real(r8) ,allocatable :: pctspec(:)         ! percent of spec lunits wrt gcell
+  real(r8) ,allocatable :: pctspecB(:)        ! percent of spec lunits wrt gcell
 
 ! abt below
   integer,  pointer :: landmask(:,:)     ! land mask: 1 = land. 0 = ocean. 3 = land/ocean

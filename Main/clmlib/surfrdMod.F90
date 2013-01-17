@@ -27,7 +27,7 @@ module surfrdMod
                            maxpatch_pft, maxpatch_cft, maxpatch, &
                            npatch_urban, npatch_lake, npatch_wet, npatch_glacier
   use clm_varsur  , only : wtxy, vegxy
-  use clm_varsur  , only : pctspec
+  use clm_varsur  , only : pctspec , pctspecB
   use ncdio
   use clmtype
   use spmdMod                         
@@ -136,10 +136,12 @@ contains
 
     call get_proc_bounds(begg,endg)
     allocate(pctspec(begg:endg))
+    allocate(pctspecB(begg:endg))
 
     vegxy(:,:)   = noveg
     wtxy(:,:)  = 0._r8
     pctspec(:) = 0._r8
+    pctspecB(:) = 0._r8
 
     if (masterproc) then
        write (6,*) 'Attempting to read surface boundary data .....'
@@ -767,10 +769,12 @@ contains
 
     call get_proc_bounds(begg,endg)
     allocate(pctspec(begg:endg))
+    allocate(pctspecB(begg:endg))
 
     vegxy(:,:)   = noveg
     wtxy(:,:)  = 0._r8
     pctspec(:) = 0._r8
+    pctspecB(:) = 0._r8
 
     if (masterproc) then
        write (6,*) 'Attempting to read surface boundary data .....'
@@ -847,6 +851,7 @@ contains
     end if
 
     if(allocated(pctspec)) deallocate(pctspec) !abt added
+    if(allocated(pctspecB)) deallocate(pctspecB) !abt added
 
   end subroutine rcmsurfrd
 
@@ -1889,7 +1894,7 @@ contains
     integer  :: begg,endg                  ! gcell beg/end
     integer  :: dimid,varid                ! netCDF id's
     integer  :: ret, time_index
-    real(r8) :: nlevsoidata(nlevsoi),pctspecB
+    real(r8) :: nlevsoidata(nlevsoi)
     logical  :: found                      ! temporary for error check
     integer  :: nindx                      ! temporary for error check
     integer  :: ier                        ! error status
@@ -1959,18 +1964,18 @@ contains
          if(pcturb(nl) < 5._r8) pcturb(nl) = 0._r8
       endif
 
-      pctspecB = pctwet(nl) + pctlak(nl) + pctgla(nl) + pcturb(nl)
+      pctspecB(nl) = pctwet(nl) + pctlak(nl) + pctgla(nl) + pcturb(nl)
 
       if(landfrac(nni,nnj) .eq. 0) then
          write(*,*)"landfrac =  ",landfrac(nni,nnj)," at ",nl 
          call endrun()
-      elseif((landfrac(nni,nnj)*100._r8).lt.pctspecB) then
+      elseif((landfrac(nni,nnj)*100._r8).lt.pctspecB(nl)) then
          pcturb(nl) = 0._r8
          pctgla(nl) = 0._r8
          pctlak(nl) = 0._r8
-         pcturb(nl) = 0._r8
          pctwet(nl) = 100._r8   !set to 100% for the land portion of the grid
          write(*,*)"****** wetland is 100% *********"  !buggin
+         pctspecB(nl) = pctwet(nl) + pctlak(nl) + pctgla(nl) + pcturb(nl)
       else
          pctlak(nl) = pctlak(nl)/(landfrac(nni,nnj)*100._r8)
          pctwet(nl) = pctwet(nl)/(landfrac(nni,nnj)*100._r8)
@@ -1981,7 +1986,6 @@ contains
     enddo
 
 !abt rcm above
-
 
     pctspec = pctwet + pctlak + pctgla + pcturb
 
@@ -2767,7 +2771,7 @@ contains
        pctcft_lunit(nl,:) = 0._r8
        cropcount = 0
 
-       if (pctspec(nl) < 100._r8) then
+       if (pctspecB(nl) < 100._r8) then
 
           do m = 0, numpft
              if (create_crop_landunit) then
@@ -2795,14 +2799,14 @@ contains
              end if
           end do
 
-       else if (pctspec(nl) == 100._r8) then
+       else if (pctspecB(nl) == 100._r8) then
 
           pctpft(nl,0)        = 100._r8
           pctpft(nl,1:numpft) =   0._r8
 
        else
 
-          write(6,*)subname, 'error: pcturb+pctgla+pctlak+pctwet = ',pctspec(nl), &
+          write(6,*)subname, 'error: pcturb+pctgla+pctlak+pctwet = ',pctspecB(nl), &
                ' must be less than or equal to 100'
           call endrun()
 
@@ -3141,17 +3145,17 @@ contains
           ! (convert pctpft from percent with respect to gridcel to percent with 
           ! respect to vegetated landunit)
 
-          if (pctspec(nl) < 100._r8) then
+          if ( pctspecB(nl) < 100._r8 .and. pctspecB(nl) > 0.0 ) then
              sumpct = 0._r8
              do m = 0,numpft
-                sumpct = sumpct + pctpft(nl,m) * 100._r8/(100._r8-pctspec(nl))
+                sumpct = sumpct + pctpft(nl,m)
              end do
-             if (abs(sumpct - 100._r8) > 0.1e-4_r8) then
+             if (abs(sumpct - 100._r8 + pctspecB(nl) ) > 0.1e-8_r8) then
                 write(6,*)'surfrdMod error: sum(pct) over numpft+1 is not = 100.'
-                write(6,*) sumpct, sumpct-100._r8, nl
+                write(6,*) nl , sumpct, pctspecB(nl)
                 call endrun()
              end if
-             if (sumpct < -0.000001_r8) then
+             if (sumpct < -0.00000001_r8) then
                 write(6,*)'surfrdMod error: sum(pct) over numpft+1 is < 0.'
                 write(6,*) sumpct, nl
                 call endrun()
