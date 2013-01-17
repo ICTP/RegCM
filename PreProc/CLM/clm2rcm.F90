@@ -375,7 +375,7 @@ program clm2rcm
                 regyxzt(j,i,k,l) = aint(regyxzt(j,i,k,l))
               end do
               call sortpatch(regyxzt(j,i,:,l),vals_swap,iord)
-              pxerr = 100.
+              pxerr = 100.-pctspec(j,i)
               npatch = min(MAXPATCH_PFT,nlev(ifld))
               do k = 1 , npatch
                 pxerr = pxerr - vals_swap(k)
