@@ -19,7 +19,6 @@
  /
  &terrainparam
  domname = 'MEGAPOLI2',
- itype_in = 1,
  smthbdy = .false.,
  lakedpth = .false.,
  ltexture = .true.,
@@ -27,7 +26,6 @@
  fudge_lnd_s = .false.,
  fudge_tex   = .false.,
  fudge_tex_s = .false.,
- ntex = 17,
  dirter = '/lustre/fsolmon/regcm/MEGAPOLI/Input',
  inpter = '/scratch/esp/RCM3DATA',
  /
@@ -61,7 +59,7 @@
  dtabem  =    18.,
  dtsrf   =   600.,
  dt      =   150.,
- ibdyfrq =          6,
+ ibdyfrq =     6,
  /
  &outparam
  ifsave  = .true. ,
@@ -73,11 +71,8 @@
  ifsrf   = .true. ,
  ifsub   = .true. ,
    srffrq  =     3.,
- ifprt   = .false.,
-   prtfrq  =    12.,
-   kxout   =          6,
-   jxsex   =         40,
  ifchem  = .true.,
+ ifopt   = .true.,
    chemfrq =     6.,
  dirout='/lustre/fsolmon/regcm/MEGAPOLI/output_SO2'
  /

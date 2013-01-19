@@ -19,8 +19,6 @@
  /
  &terrainparam
  domname = 'CAS',
- ntypec = 10,
- ntypec_s = 2,
  smthbdy = .false.,
  lakedpth = .false.,
  fudge_lnd   = .false.,
