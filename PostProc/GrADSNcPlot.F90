@@ -214,6 +214,9 @@ program ncplot
   if (abs(minlat+90.0)<0.001 .or. abs(maxlat-90.0)<0.001) then
     minlon = -180.0
     maxlon = 180.0
+  else if ( (xlon(jx,iy) - xlon(1,1)) < dlowval ) then
+    minlon = -180.0
+    maxlon = 180.0
   else
     tmplon(:) = xlon(jx,:)
     if ( (tmplon(1 ) > 0.0 .and. tmplon(iy) < 0.0) .or. &
