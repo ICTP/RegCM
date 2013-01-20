@@ -26,8 +26,8 @@
  fudge_lnd_s = .false.,
  fudge_tex   = .false.,
  fudge_tex_s = .false.,
- dirter = '/lustre/fsolmon/regcm/MEGAPOLI/Input',
- inpter = '/scratch/esp/RCM3DATA',
+ dirter = 'input',
+ inpter = 'RCMDATA',
  /
  &debugparam
  debug_level = 1
@@ -37,29 +37,31 @@
  nspgd  = 12,
  /
  &globdatparam
+ ibdyfrq =     6,
  ssttyp = 'EHA1B',
- dattyp = 'EH5OM',
+ dattyp = 'EHA1B',
  gdate1 = 2004120100,
  gdate2 = 2006010100,
- dirglob = '/lustre/fsolmon/regcm/MEGAPOLI/Input',
- inpglob = '/lustre/fsolmon/DATA',
+ dirglob = 'input',
+ inpglob = 'RCMDATA',
  /
- &lsmparam
- lsmtyp = 'BATS',
+ &globwindow
+ lat0 = 0.0
+ lat1 = 0.0
+ lon0 = 0.0
+ lon1 = 0.0
  /
  &restartparam
  ifrest  = .false. ,
  mdate0  = 2004120100,
  mdate1  = 2004120100,
  mdate2  = 2006010100,
- nslice  =        120,
  /
  &timeparam
  dtrad   =    30.,
  dtabem  =    18.,
  dtsrf   =   600.,
  dt      =   150.,
- ibdyfrq =     6,
  /
  &outparam
  ifsave  = .true. ,
