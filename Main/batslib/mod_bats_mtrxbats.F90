@@ -599,6 +599,7 @@ module mod_bats_mtrxbats
           if ( llake ) then
             if ( associated(sub_tlake_out) ) &
             call reorder_subgrid(tlak,sub_tlake_out,1)
+            sub_tlake_out = sub_tlake_out + tzero
           end if
           if ( associated(sub_u10m_out) ) &
             call reorder_subgrid(u10m,sub_u10m_out)
