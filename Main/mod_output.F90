@@ -521,6 +521,7 @@ module mod_output
 
 #ifndef CLM
         if ( lakemod == 1 ) then
+          call subgrid_collect(idep,idep_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(eta,eta_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(hi,hi_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(aveice,aveice_io,jci1,jci2,ici1,ici2)

@@ -322,6 +322,7 @@ module mod_init
 
 #ifndef CLM
     if ( lakemod == 1 ) then
+      call subgrid_distribute(idep_io,idep,jci1,jci2,ici1,ici2)
       call subgrid_distribute(eta_io,eta,jci1,jci2,ici1,ici2)
       call subgrid_distribute(hi_io,hi,jci1,jci2,ici1,ici2)
       call subgrid_distribute(aveice_io,aveice,jci1,jci2,ici1,ici2)
@@ -452,12 +453,6 @@ module mod_init
   !
   if ( ktau == 0 ) then
     call initb
-    !
-#ifndef CLM
-    if ( lakemod == 1 ) then
-      call subgrid_collect(idep,idep_io,jci1,jci2,ici1,ici2)
-    end if
-#endif
   end if
 #ifdef CLM
   call mkslice
