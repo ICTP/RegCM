@@ -1226,8 +1226,8 @@ module mod_params
       end do
     end do
     if ( lakemod == 1 ) then
-      do i = ide1 , ide2
-        do j = jde1 , jde2
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           dhlake1(1,j,i) = mddom%dhlake(j,i)
         end do
       end do
