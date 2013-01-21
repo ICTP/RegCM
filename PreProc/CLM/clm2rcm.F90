@@ -488,7 +488,7 @@ program clm2rcm
       if ( ifld == iurb .or. ifld == ilak .or. &
            ifld == iwtl .or. ifld == iglc ) then
         regxyz = amax1(aint(regxyz),0.0)
-        where regxyz < 5.0
+        where ( regxyz < 5.0 )
           regxyz = 0.0
         end where
         pctspec = pctspec + regxyz(:,:,nlev(ifld))
