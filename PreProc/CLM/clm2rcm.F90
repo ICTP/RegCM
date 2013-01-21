@@ -128,7 +128,7 @@ program clm2rcm
 !
   terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
   call openfile_withname(terfile,incin)
-  call read_domain(incin,sigx,xlat,xlon,mask=xmask)
+  call read_domain(incin,sigx,xlat,xlon)
   call closefile(incin)
   jotyp = 2
   xscale = 1.
@@ -365,14 +365,14 @@ program clm2rcm
         end if
 #endif
         xmask = 0.0
-        where (sum(regyxzt(:,:,:,l),3) > 0.0)
+        where ( sum(regyxzt(:,:,:,l),3) >= 1.0 )
           xmask = 1.0
         end where        
         do i = 1 , iy
           do j = 1 , jx
             if ( xmask(j,i) > 0.0 ) then
               do k = 1 , nlev(ifld)
-                regyxzt(j,i,k,l) = aint(regyxzt(j,i,k,l))
+                regyxzt(j,i,k,l) = amax1(aint(regyxzt(j,i,k,l)),0.0)
               end do
               call sortpatch(regyxzt(j,i,:,l),vals_swap,iord)
               pxerr = 100.-pctspec(j,i)
@@ -384,15 +384,26 @@ program clm2rcm
                 totpft = sum(vals_swap(1:npatch))
                 totadj = 0.0
                 do k = 1 , npatch
-                  adjust = (vals_swap(k)/totpft)*pxerr
+                  adjust = aint((vals_swap(k)/totpft)*pxerr)
                   if ( abs(adjust) > 0.0 ) then
-                    totadj = totadj + aint(adjust)
-                    regyxzt(j,i,iord(k),l) = vals_swap(k) + aint(adjust)
+                    totadj = totadj + adjust
+                    regyxzt(j,i,iord(k),l) = vals_swap(k) + adjust
+                    if (regyxzt(j,i,iord(k),l) < 0.0) then
+                      totadj = totadj - regyxzt(j,i,iord(k),l)
+                      regyxzt(j,i,iord(k),l) = 0.0
+                    end if
                   end if
                 end do
-                pxerr = pxerr - totadj
-                if ( abs(pxerr) > 0.0 ) then
-                  regyxzt(j,i,iord(1),l) = regyxzt(j,i,iord(1),l) + aint(pxerr)
+                pxerr = aint(pxerr - totadj)
+                if ( pxerr > 0.0 ) then
+                  regyxzt(j,i,iord(1),l) = regyxzt(j,i,iord(1),l) + pxerr
+                else
+                  regyxzt(j,i,iord(1),l) = 100.0 - pctspec(j,i)
+                  regyxzt(j,i,iord(2:),l) = 0.0
+                end if
+                if ( aint(sum(regyxzt(j,i,:,l)+pctspec(j,i))) /= 100 ) then
+                  regyxzt(j,i,iord(1),l) = 100-pctspec(j,i)
+                  regyxzt(j,i,iord(2:),l) = 0.0
                 end if
                 regyxzt(j,i,iord(npatch:),l) = 0.0
               end if
@@ -431,7 +442,12 @@ program clm2rcm
               end if
 #endif
             else
-              regyxzt(j,i,:,:) = 0.0
+              if ( pctspec(j,i) > 0.0 ) then
+                regyxzt(j,i,1,l) = 100.0 - pctspec(j,i)
+                regyxzt(j,i,2:,l) = 0.0
+              else
+                regyxzt(j,i,:,:) = 0.0
+              end if
             end if
           end do
         end do
@@ -469,9 +485,21 @@ program clm2rcm
           end do
         end do
       end if
-      if ( ifld == iurb .or. ifld == ilak .or. ifld == iwtl .or. ifld == iglc ) then
-        regxyz = aint(regxyz)
+      if ( ifld == iurb .or. ifld == ilak .or. &
+           ifld == iwtl .or. ifld == iglc ) then
+        regxyz = amax1(aint(regxyz),0.0)
+        where regxyz < 5.0
+          regxyz = 0.0
+        end where
         pctspec = pctspec + regxyz(:,:,nlev(ifld))
+        do i = 1 , iy
+          do j = 1 , jx
+            if (pctspec(j,i) > 100.0 ) then
+              print *, 'Error in interpolation: urb+lak+wet+glc > 100.0'
+              stop
+            end if
+          end do
+        end do
       end if
       tdif = imondate-irefdate
       xhr = tohours(tdif)
@@ -563,8 +591,6 @@ program clm2rcm
 
   end do  ! End nfld loop
 
-  deallocate(pctspec)
-
 !     ** Close files
 
   call clscdf(idin,ierr)
@@ -573,6 +599,8 @@ program clm2rcm
   istatus = nf90_close(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,  &
     'Error close file '//trim(checkfile))
+
+  deallocate(pctspec)
 
   call memory_destroy
 
