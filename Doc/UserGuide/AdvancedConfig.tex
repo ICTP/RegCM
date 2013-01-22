@@ -761,6 +761,21 @@ efficiency: increasing their value generally decrease convective precipitation.
 and report in any work modification of this parameters.
 \end{enumerate}
 
+\subsection{holtslagparam stanza}
+
+You are allowed here to tune the Holtslag PBL scheme selected above in
+\ref{physicsparam} with the \verb=ibltyp= number if selected number is
+$1, 99$. 
+
+{\footnotesize
+\begin{Verbatim}
+ &holtslagparam
+ ricr_ocn = 0.25D0,  ! Critical Richardson Number over Ocean
+ ricr_lnd = 0.25D0,  ! Critical Richardson Number over Land
+ /
+\end{Verbatim}
+}
+
 \subsection{uwparam stanza}
 
 You are allowed here to tune the UW PBL scheme selected above in

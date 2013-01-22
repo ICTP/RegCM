@@ -130,6 +130,8 @@
  /
  &emanparam
  /
+ &holtslagparam
+ /
  &cplparam
  cpldt        = 10800.,
  cpldbglevel  = 1,

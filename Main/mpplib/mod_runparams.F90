@@ -234,6 +234,11 @@ module mod_runparams
   real(rk8) :: rstbl
   real(rk8) :: atwo
 
+  ! Holtslag PBL parameters
+
+  real(rk8) :: ricr_ocn
+  real(rk8) :: ricr_lnd
+
   ! Chemistry nameliste option
 
   character(len=8) :: chemsimtype 

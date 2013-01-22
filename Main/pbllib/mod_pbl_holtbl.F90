@@ -74,7 +74,6 @@ module mod_pbl_holtbl
   real(rk8) , parameter :: binh = betah*sffrac
 ! power in formula for k and critical ri for judging stability
   real(rk8) , parameter :: pink = d_two
-  real(rk8) , parameter :: ricr = d_rfour
 !
   contains
 !
@@ -910,9 +909,9 @@ module mod_pbl_holtbl
       do j = jci1 , jci2
         ! bl height lies between this level and the last
         ! use linear interp. of rich. no. to height of ri=ricr
-        if ( (ri(j,i,k) < ricr) .and. (ri(j,i,k2) >= ricr) ) then
+        if ( (ri(j,i,k) < ricr(j,i)) .and. (ri(j,i,k2) >= ricr(j,i)) ) then
           zpbl(j,i) = za(j,i,k) + (za(j,i,k2)-za(j,i,k)) &
-              *((ricr-ri(j,i,k))/(ri(j,i,k2)-ri(j,i,k)))
+              *((ricr(j,i)-ri(j,i,k))/(ri(j,i,k2)-ri(j,i,k)))
           kpbl(j,i) = k
         end if
       end do
@@ -921,7 +920,7 @@ module mod_pbl_holtbl
   do i = ici1 , ici2
     do j = jci1 , jci2
       ! set bl top to highest allowable model layer
-      if ( ri(j,i,kmxpbl) < ricr ) then
+      if ( ri(j,i,kmxpbl) < ricr(j,i) ) then
         zpbl(j,i) = za(j,i,kmxpbl)
         kpbl(j,i) = kmxpbl
       end if
@@ -964,9 +963,9 @@ module mod_pbl_holtbl
         if ( hfxv(j,i) > d_zero ) then
           ! bl height lies between this level and the last
           ! use linear interp. of rich. no. to height of ri=ricr
-          if ( (ri(j,i,k) < ricr) .and. (ri(j,i,k2) >= ricr) ) then
+          if ( (ri(j,i,k) < ricr(j,i)) .and. (ri(j,i,k2) >= ricr(j,i)) ) then
             zpbl(j,i) = za(j,i,k) + (za(j,i,k2)-za(j,i,k)) * &
-                        ((ricr-ri(j,i,k))/(ri(j,i,k2)-ri(j,i,k)))
+                        ((ricr(j,i)-ri(j,i,k))/(ri(j,i,k2)-ri(j,i,k)))
             kpbl(j,i) = k
           end if
         end if
@@ -977,7 +976,7 @@ module mod_pbl_holtbl
     do j = jci1 , jci2
       if ( hfxv(j,i) > d_zero ) then
         ! set bl top to highest allowable model layer
-        if ( ri(j,i,kmxpbl) < ricr ) then
+        if ( ri(j,i,kmxpbl) < ricr(j,i) ) then
           zpbl(j,i) = za(j,i,kmxpbl)
         end if
       end if

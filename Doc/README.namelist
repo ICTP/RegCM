@@ -336,6 +336,13 @@
  lmfdudv = .true.,  ! true if cumulus friction is switched on
  /
 !
+! Holtslag PBL scheme control
+!
+ &holtslagparam
+ ricr_ocn = 0.25D0,  ! Critical Richardson Number over Ocean
+ ricr_lnd = 0.25D0,  ! Critical Richardson Number over Land
+ /
+!
 ! UW PBL scheme control
 !
  &uwparam

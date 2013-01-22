@@ -131,6 +131,8 @@ module mod_params
 
   namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl
 
+  namelist /holtslagparam/ ricr_ocn , ricr_lnd
+
 #ifdef CLM
   namelist /clmparam/ dirclm , imask , clmfrq
 #endif
@@ -421,6 +423,11 @@ module mod_params
   atwo = 15.0D0
   rstbl = 1.5D0
 
+!c------namelist holtslagparam ;
+
+  ricr_ocn = 0.25D0
+  ricr_lnd = 0.25D0
+
 !c-----namelist slabocparam ;
 
   mixed_layer_depth     = 50.0D0
@@ -539,7 +546,10 @@ module mod_params
     if ( ibltyp < 0 .or. (ibltyp > 2 .and. ibltyp /= 99) ) then
       call fatal(__FILE__,__LINE__,'UNSUPPORTED PBL SCHEME.')
     end if
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    if ( ibltyp == 1 .or. ibltyp == 99 ) then
+      read (ipunit, holtslagparam, err=101)
+ 101  continue
+    else if ( ibltyp == 2 .or. ibltyp == 99 ) then
       read (ipunit, uwparam)
 #ifdef DEBUG
       write(stdout,*) 'Read uwparam OK'
@@ -820,7 +830,10 @@ module mod_params
     call bcast(lmfdudv)
   end if
 
-  if ( ibltyp == 2 .or. ibltyp == 99 ) then
+  if ( ibltyp == 1 .or. ibltyp == 99 ) then
+    call bcast(ricr_ocn)
+    call bcast(ricr_lnd)
+  else if ( ibltyp == 2 .or. ibltyp == 99 ) then
     call bcast(iuwvadv)
     call bcast(ilenparam)
     call bcast(atwo)
@@ -1646,9 +1659,23 @@ module mod_params
       end do
     end do
   end if
-!
-! Setup Boundary condition routines.
-!
+  !
+  ! Setup Holtslag PBL Critical Richardson Number
+  !
+  if ( ibltyp == 1 .or. ibltyp == 99 ) then
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( ldmsk(j,i) == 1 ) then
+          ricr(j,i) = ricr_lnd
+        else
+          ricr(j,i) = ricr_ocn
+        end if
+      end do
+    end do
+  end if
+  !
+  ! Setup Boundary condition routines.
+  !
   call setup_bdycon(hsigma)
   if ( ichem == 1 ) call setup_che_bdycon
 !

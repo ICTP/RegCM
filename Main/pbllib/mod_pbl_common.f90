@@ -34,6 +34,7 @@ module mod_pbl_common
 !
   integer(ik4) , public , pointer , dimension(:,:) :: kpbl
   real(rk8) , public , pointer , dimension(:,:) :: zpbl
+  real(rk8) , public , pointer , dimension(:,:) :: ricr
 !
   type tcm_state
     !
@@ -147,10 +148,12 @@ module mod_pbl_common
     implicit none
     call getmem2d(kpbl,jci1,jci2,ici1,ici2,'pbl_common:kpbl')
     call getmem2d(zpbl,jci1,jci2,ici1,ici2,'pbl_common:zpbl')
-    !
-    ! Allocate the tcm state variables
-    !
-    if ( ibltyp == 2 .or. ibltyp == 99) then
+    if ( ibltyp == 1 .or. ibltyp == 99) then
+      call getmem2d(ricr,jci1,jci2,ici1,ici2,'pbl_common:ricr')
+    else if ( ibltyp == 2 .or. ibltyp == 99) then
+      !
+      ! Allocate the tcm state variables
+      !
       call allocate_tcm_state(uwstatea,.true.)
       call allocate_tcm_state(uwstateb,.true.)
       ! To be used in vertical advection scheme

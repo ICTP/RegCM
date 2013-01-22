@@ -105,6 +105,8 @@
  elcrit  = 0.0011D0,
  coeffr  = 1.0D0,
  /
+ &holtslagparam
+ /
  &chemparam
  chemsimtype = 'SULF   ',
  idirect   =    1,
