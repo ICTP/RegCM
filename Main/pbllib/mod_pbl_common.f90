@@ -150,7 +150,8 @@ module mod_pbl_common
     call getmem2d(zpbl,jci1,jci2,ici1,ici2,'pbl_common:zpbl')
     if ( ibltyp == 1 .or. ibltyp == 99) then
       call getmem2d(ricr,jci1,jci2,ici1,ici2,'pbl_common:ricr')
-    else if ( ibltyp == 2 .or. ibltyp == 99) then
+    end if
+    if ( ibltyp == 2 .or. ibltyp == 99) then
       !
       ! Allocate the tcm state variables
       !
