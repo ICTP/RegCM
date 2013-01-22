@@ -113,6 +113,10 @@ module mod_dynparam
 
   real(rk8) :: truelath
 
+! Smoothness level
+
+  integer(ik4) :: ismthlev
+
 !###################### DEBUG I/O control flag #########################
 
 ! Set amount of printout (still unused, sorry)
@@ -371,7 +375,7 @@ module mod_dynparam
       plon , truelatl, truelath , i_band
     namelist /terrainparam/ domname , smthbdy , ltexture , lakedpth,  &
       fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s , fudge_lak,  &
-      fudge_lak_s , h2opct , h2ohgt , dirter , inpter
+      fudge_lak_s , h2opct , h2ohgt , ismthlev , dirter , inpter
     namelist /debugparam/ debug_level , dbgfrq
     namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
       medium_nudge , low_nudge
@@ -472,6 +476,7 @@ module mod_dynparam
 
     h2ohgt = .false.
     h2opct = 50.0D0
+    ismthlev = 1
     read(ipunit, terrainparam, err=103)
 
     ! Set convenient defaults for debug I/O parameters

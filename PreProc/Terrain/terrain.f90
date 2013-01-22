@@ -80,7 +80,7 @@ program terrain
 !
   character(len=256) :: char_lnd , char_tex , char_lak
   character(len=256) :: namelistfile , prgname , outname
-  integer(ik4) :: i , j , k , ierr , i0 , j0 , m , n
+  integer(ik4) :: i , j , k , ierr , i0 , j0 , m , n , ism
   logical :: ibndry
   real(rk8) :: clong , hsum , have , dsinm
   integer(ik4) :: ntypec , ntypec_s
@@ -383,8 +383,11 @@ program terrain
     end if
 
 !     ******           grell smoothing to eliminate 2 delx wave (6/90):
-    call smth121(htgrid_s,jxsg,iysg)
-    call smth121(htgrid_s,jxsg,iysg)
+
+    do ism = 1 , ismthlev
+      call smth121(htgrid_s,jxsg,iysg)
+      call smth121(htgrid_s,jxsg,iysg)
+    end do
 
     if ( ibndry ) then
       do j = 2 , jxsg - 1
@@ -539,8 +542,10 @@ program terrain
   if ( smthbdy ) call smthtr(htgrid,jx,iy)
  
 !     ******           grell smoothing to eliminate 2 delx wave (6/90):
-  call smth121(htgrid,jx,iy)
-  call smth121(htgrid,jx,iy)
+  do ism = 1 , ismthlev
+    call smth121(htgrid,jx,iy)
+    call smth121(htgrid,jx,iy)
+  end do
 
   if ( ibndry ) then
     do j = 2 , jx - 1

@@ -1982,7 +1982,13 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_logical('tiedtke_enable_cumulus_friction',lmfdudv))
         end if
-        if ( ibltyp == 2 ) then
+        if ( ibltyp == 1 .or. ibltyp == 99 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('holtslag_critical_ocean_richardson',ricr_ocn))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('holtslag_critical_land_richardson',ricr_lnd))
+        end if
+        if ( ibltyp == 2 .or. ibltyp == 99 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('uwpbl_advection_scheme',iuwvadv))
           call outstream_addatt(outstream(i)%ncout(j), &

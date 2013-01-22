@@ -549,7 +549,8 @@ module mod_params
     if ( ibltyp == 1 .or. ibltyp == 99 ) then
       read (ipunit, holtslagparam, err=101)
  101  continue
-    else if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    end if
+    if ( ibltyp == 2 .or. ibltyp == 99 ) then
       read (ipunit, uwparam)
 #ifdef DEBUG
       write(stdout,*) 'Read uwparam OK'
@@ -833,7 +834,8 @@ module mod_params
   if ( ibltyp == 1 .or. ibltyp == 99 ) then
     call bcast(ricr_ocn)
     call bcast(ricr_lnd)
-  else if ( ibltyp == 2 .or. ibltyp == 99 ) then
+  end if
+  if ( ibltyp == 2 .or. ibltyp == 99 ) then
     call bcast(iuwvadv)
     call bcast(ilenparam)
     call bcast(atwo)

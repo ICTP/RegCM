@@ -182,6 +182,8 @@ module mod_write
     call outstream_addatt(ncout, &
       ncattribute_real8('minimum_h2o_pct_for_water',h2opct))
     call outstream_addatt(ncout, &
+      ncattribute_integer('smoothing_level',ismthlev))
+    call outstream_addatt(ncout, &
       ncattribute_logical('h2o_hgt_over_water',h2ohgt))
     call outstream_addatt(ncout, &
       ncattribute_logical('landuse_fudging',lndfudge))
