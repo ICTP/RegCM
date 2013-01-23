@@ -22,7 +22,7 @@ module mod_bats_mtrxbats
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : iqv , iocnflx , iocncpl , ichem , ksrf
+  use mod_runparams , only : iqv , iocnflx , iocncpl , ichem , ksrf , xmonth
   use mod_mppparam
   use mod_mpmessage
   use mod_constants
@@ -660,9 +660,8 @@ module mod_bats_mtrxbats
 ! (depuv/10.0)= the ratio of upper soil layer to total root depth
 ! Used to compute "wet" for soil albedo
 !
-  subroutine albedobats(imon)
+  subroutine albedobats
     implicit none
-    integer(ik4) , intent (in) :: imon
 !
     real(rk8) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
                albld , albs , albsd , albzn , alwet , cf1 , cff ,     &
@@ -695,16 +694,16 @@ module mod_bats_mtrxbats
     ! In souther emisphere only some points have this class
     !
     if ( ldesseas ) then
-      if ( imon == 1 .or. imon == 2 .or. imon == 12 ) then
+      if ( xmonth == 1 .or. xmonth == 2 .or. xmonth == 12 ) then
         solour(1) = 0.12D0
       endif        
-      if ( imon == 3 .or. imon == 4 .or. imon == 5 ) then
+      if ( xmonth == 3 .or. xmonth == 4 .or. xmonth == 5 ) then
         solour(1) = 0.15D0
       endif        
-      if ( imon == 6 .or. imon == 7 .or. imon == 8) then
+      if ( xmonth == 6 .or. xmonth == 7 .or. xmonth == 8) then
         solour(1) = 0.18D0
       endif        
-      if ( imon == 9 .or. imon == 10 .or. imon == 11) then
+      if ( xmonth == 9 .or. xmonth == 10 .or. xmonth == 11) then
         solour(1) = 0.15D0
       endif
     end if

@@ -660,9 +660,9 @@ module mod_tendency
       ! calculate albedo
       !
 #ifndef CLM
-      call albedobats(xmonth)
+      call albedobats
 #else
-      call albedoclm(xmonth)
+      call albedoclm
 #endif
       loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
       if ( iclimao3 == 1 ) then

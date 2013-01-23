@@ -25,7 +25,7 @@ module mod_mtrxclm
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : idate0 , iqv , solcon , clmfrq , &
-                             imask , ichem , ksrf
+                             imask , ichem , ksrf , xmonth
   use mod_mpmessage
   use mod_service
   use mod_mppparam
@@ -443,10 +443,9 @@ module mod_mtrxclm
 #endif
   end subroutine initclm
 !
-  subroutine albedoclm(imon)
+  subroutine albedoclm
     use clm_varsur , only : landfrac
     implicit none
-    integer(ik4) , intent(in) :: imon
     integer(ik4) :: i , j , ig , jg
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'albedoclm'
@@ -454,31 +453,60 @@ module mod_mtrxclm
     call time_begin(subroutine_name,idindx)
 #endif
 !
-    call albedobats(imon)
-!
-!     ****** Section Below added for albedo to be corrected by CLM
-!     ****** calculated albedo.  NOTE: for cosz<=0 CLM assigns albedo
-!     ****** to be equal to 1 which can cause a FPE.  To avoid this
-!     ****** use albedo calculated with BATS method when albedo=1
-!
+    !
+    ! Calculate DEFAULT albedo to be the BATS one
+    !
+    call albedobats
+    !
+    ! Section Below added for albedo to be corrected by CLM
+    ! calculated albedo.  NOTE: for cosz<=0 CLM assigns albedo
+    ! to be equal to 1 which can cause a FPE.  To avoid this
+    ! use albedo calculated with BATS method when albedo=1
+    !
     do i = ici1 , ici2
       ig = global_cross_istart+i-1
       do j = jci1 , jci2
         jg = global_cross_jstart+j-1
-        if (ldmsk1(1,j,i) /= 0 .and. (d_one-aldirs(j,i)) > 1.0D-10 ) then
-          aldirs(j,i) = aldirs(j,i)*landfrac(jg,ig) + &
-                        aldirs(j,i)*(d_one-landfrac(jg,ig))
-          aldirl(j,i) = aldirl(j,i)*landfrac(jg,ig) + &
-                        aldirl(j,i)*(d_one-landfrac(jg,ig))
-          aldifs(j,i) = aldifs(j,i)*landfrac(jg,ig) + &
-                        aldifs(j,i)*(d_one-landfrac(jg,ig))
-          aldifl(j,i) = aldifl(j,i)*landfrac(jg,ig) + &
-                        aldifl(j,i)*(d_one-landfrac(jg,ig))
-          albvs(j,i)  = aldirs(j,i)*landfrac(jg,ig) + &
-                        albvs(j,i) *(d_one-landfrac(jg,ig))
-          albvl(j,i)  = aldirl(j,i)*landfrac(jg,ig) + &
-                        albvl(j,i) *(d_one-landfrac(jg,ig))
+        if ( ( ldmsk(j,i) == 0 .and. landfrac(jg,ig) > d_zero ) ) then
+          !
+          ! Correct "Mixed points" from CLM for their water fraction
+          ! in the albedo (good when < 1)
+          !
+          if ( (d_one-c2ralbdirs(jg,ig)) > dlowval ) then
+            aldirs(j,i) = aldirs(j,i)*(d_one-landfrac(jg,ig)) + &
+                          c2ralbdirs(j,i)*landfrac(jg,ig)
+          end if
+          if ( (d_one-c2ralbdirl(jg,ig)) > dlowval ) then
+            aldirl(j,i) = aldirl(j,i)*(d_one-landfrac(jg,ig)) + &
+                          c2ralbdirl(j,i)*landfrac(jg,ig)
+          end if
+          if ( (d_one-c2ralbdifs(jg,ig)) > dlowval ) then 
+            aldifs(j,i) = aldifs(j,i)*(d_one-landfrac(jg,ig)) + &
+                          c2ralbdifs(jg,ig)*landfrac(jg,ig)
+          end if
+          if ( (d_one-c2ralbdifl(jg,ig)) > dlowval ) then
+            aldifl(j,i) = aldifl(j,i)*(d_one-landfrac(jg,ig)) + &
+                          c2ralbdifl(jg,ig)
+          end if
+        else if (ldmsk(j,i) /= 0 ) then
+          !
+          ! Use over land CLM calculated albedo (good when < 1)
+          !
+          if ( (d_one-c2ralbdirs(jg,ig)) > dlowval ) then
+            aldirs(j,i) = c2ralbdirs(jg,ig)
+          end if
+          if ( (d_one-c2ralbdirl(jg,ig)) > dlowval ) then
+            aldirl(j,i) = c2ralbdirl(jg,ig)
+          end if
+          if ( (d_one-c2ralbdifs(jg,ig)) > dlowval ) then 
+            aldifs(j,i) = c2ralbdifs(jg,ig)
+          end if
+          if ( (d_one-c2ralbdifl(jg,ig)) > dlowval ) then
+            aldifl(j,i) = c2ralbdifl(jg,ig)
+          end if
         end if
+        albvs(j,i) = aldirs(j,i)+aldifs(j,i)
+        albvl(j,i) = aldirl(j,i)+aldifl(j,i)
       end do
     end do
 #ifdef DEBUG
@@ -668,11 +696,6 @@ module mod_mtrxclm
             qfx(j,i)      = c2rlatht(jg,ig)
             uvdrag(j,i)   = c2ruvdrag(jg,ig)
             tgbb(j,i)     = c2rtgbb(jg,ig)
-
-            aldirs(j,i)   = c2ralbdirs(jg,ig)
-            aldirl(j,i)   = c2ralbdirl(jg,ig)
-            aldifs(j,i)   = c2ralbdifs(jg,ig)
-            aldifl(j,i)   = c2ralbdifl(jg,ig)
 
             do n = 1 , nnsg
               tgrd(n,j,i)   = c2rtgb(jg,ig)
@@ -913,6 +936,8 @@ module mod_mtrxclm
       ! Those are for the output, but collected only at POINT in time
 
       if ( mod(ktau+1,ksrf) == 0 ) then
+
+        call albedoclm
 
         if ( ifsrf ) then
           if ( associated(srf_uvdrag_out) ) &
