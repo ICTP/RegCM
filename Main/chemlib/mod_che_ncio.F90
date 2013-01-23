@@ -521,7 +521,7 @@ module mod_che_ncio
         ibcid = iaein
       end if
       if ( ioxclim == 1 ) then
-        icbcname = trim(dirglob)//pthsep//trim(domname)//'_OXCL.'//ctime//'.nc'
+        icbcname = trim(dirglob)//pthsep//trim(domname)//'_OXBC.'//ctime//'.nc'
         call openfile_withname(icbcname,ioxin)
         call check_dims(iaein)
         ibcid = ioxin
