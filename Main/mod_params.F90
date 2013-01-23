@@ -744,11 +744,15 @@ module mod_params
 
 #ifdef CLM
   if ( lakemod /= 0 ) then
-    write(stderr,*) 'Disabling BATS lake model, this is a CLM run'
+    if ( myid == italk ) then
+      write(stderr,*) 'Disabling BATS lake model, this is a CLM run'
+    end if
     lakemod = 0
   end if
   if ( iemiss /= 0 ) then
-    write(stderr,*) 'Disabling Surface Emissivity, this is a CLM run'
+    if ( myid == italk ) then
+      write(stderr,*) 'Disabling Surface Emissivity, this is a CLM run'
+    end if
     iemiss = 0
   end if
 #endif
