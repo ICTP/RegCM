@@ -57,6 +57,7 @@ PROGRAM EMCRE
   REAL(DP),DIMENSION(:,:), ALLOCATABLE :: dhlatt  ! half longitude width  [deg]
 
   ! VARIABLES
+  INTEGER                         :: ismthlev
   INTEGER                         :: status       ! status flag
   INTEGER                         :: jc,jf        ! class/file counter
   INTEGER                         :: ji, jj, jk, jl, jt, jz, ii
@@ -73,9 +74,10 @@ PROGRAM EMCRE
   CHARACTER(len=256) :: dirter , inpter
   CHARACTER(len=1) :: pthsep='/'
   INTEGER :: ipunit = 101
-  namelist /terrainparam/ domname , smthbdy , lakedpth , ltexture , &
-                fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s , &
-                fudge_lak, fudge_lak_s , h2opct , h2ohgt , dirter , inpter
+  namelist /terrainparam/ domname , smthbdy , lakedpth , ltexture ,   &
+                fudge_lnd , fudge_lnd_s , fudge_tex , fudge_tex_s ,   &
+                fudge_lak, fudge_lak_s , h2opct , h2ohgt , ismthlev , &
+                dirter , inpter
 
   ! (1) READ COMMAND LINE
   NARG = COMMAND_ARGUMENT_COUNT()    ! number of arguments
