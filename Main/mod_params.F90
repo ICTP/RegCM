@@ -483,8 +483,8 @@ module mod_params
 
   if ( myid == iocpu ) then
     write(stdout,*) 'Reading model namelist stanzas'
-!  
-!-----read in namelist variables:
+
+    rewind(ipunit)
     read (ipunit, nml=restartparam, iostat=iretval)
     if ( iretval /= 0 ) then
       write(stderr,*) 'Error reading restartparam namelist stanza'
@@ -508,6 +508,7 @@ module mod_params
                  'Runtime increments must be modulus 24 hours')
     end if
 
+    rewind(ipunit)
     read (ipunit, nml=timeparam, iostat=iretval)
     if ( iretval /= 0 ) then
       write(stderr,*) 'Error reading timeparam namelist stanza'
@@ -518,6 +519,7 @@ module mod_params
 #endif
     end if
 
+    rewind(ipunit)
     read (ipunit, nml=outparam, iostat=iretval)
     if ( iretval /= 0 ) then
       write(stderr,*) 'Error reading outparam namelist stanza'
@@ -530,6 +532,7 @@ module mod_params
 
     len_path = len(trim(dirout))
     if ( dirout(len_path:len_path) /= '/' ) dirout = trim(dirout)//'/'
+    rewind(ipunit)
     read (ipunit, nml=physicsparam, iostat=iretval)
     if ( iretval /= 0 ) then
       write(stderr,*) 'Error reading physicsparam namelist stanza'
@@ -541,6 +544,7 @@ module mod_params
     end if
 
     if ( ipptls == 1 ) then
+      rewind(ipunit)
       read (ipunit, nml=subexparam, iostat=iretval)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default subex parameter.'
@@ -552,6 +556,7 @@ module mod_params
     end if
 
     if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
+      rewind(ipunit)
       read (ipunit, nml=grellparam, iostat=iretval)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default Grell parameter.'
@@ -562,6 +567,7 @@ module mod_params
       end if
     end if
     if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
+      rewind(ipunit)
       read (ipunit, nml=emanparam, iostat=iretval)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default MIT parameter.'
@@ -572,6 +578,7 @@ module mod_params
       end if
     end if
     if ( icup == 5 ) then
+      rewind(ipunit)
       read (ipunit, nml=tiedtkeparam, iostat=iretval)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default Tiedtke parameter.'
@@ -588,6 +595,7 @@ module mod_params
       call fatal(__FILE__,__LINE__,'UNSUPPORTED PBL SCHEME.')
     end if
     if ( ibltyp == 1 .or. ibltyp == 99 ) then
+      rewind(ipunit)
       read (ipunit, nml=holtslagparam, iostat=iretval)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default Holtslag parameter.'
@@ -598,6 +606,7 @@ module mod_params
       end if
     end if
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      rewind(ipunit)
       read (ipunit, nml=uwparam, iostat=iretval)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default UW PBL parameter.'
@@ -608,6 +617,7 @@ module mod_params
       end if
     end if
     if ( irrtm == 1 ) then
+      rewind(ipunit)
       read (ipunit, nml=rrtmparam, iostat=iretval)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default RRTM parameter.'
@@ -619,6 +629,7 @@ module mod_params
     end if
 
     if ( islab_ocean == 1 ) then
+      rewind(ipunit)
       read (ipunit, nml=slabocparam, iostat=iretval)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default SLAB Ocean parameter.'
@@ -637,6 +648,7 @@ module mod_params
     end if
 
     if ( ichem == 1 ) then
+      rewind(ipunit)
       read (ipunit, chemparam, iostat=iretval)
       if ( iretval /= 0 ) then
         write(stderr,*) 'Error reading chemparam namelist stanza'
@@ -653,6 +665,7 @@ module mod_params
       ntr = 0
     end if
 #ifdef CLM
+    rewind(ipunit)
     read (ipunit , clmparam, iostat=iretval)
     if ( iretval /= 0 ) then
       write(stdout,*) 'Using default CLM parameter.'
@@ -663,6 +676,7 @@ module mod_params
     end if
 #endif
     if (iocncpl == 1) then
+      rewind(ipunit)
       read (ipunit , cplparam, iostat=iretval)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default Coupling parameter.'
