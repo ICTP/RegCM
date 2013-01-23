@@ -4845,7 +4845,7 @@ module mod_mppparam
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: a
     real(rk8) , pointer , dimension(:,:) , intent(out) :: b
-    call grid_collect(a,b,1,jxp,1,iyp)
+    call grid_collect(a,b,lbound(a,1),ubound(a,1),lbound(a,2),ubound(a,2))
     call mpi_bcast(b,iy*jx,mpi_real8,iocpu,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')

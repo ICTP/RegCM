@@ -161,12 +161,12 @@ module mod_clm
 
   contains
 !
-  subroutine allocate_mod_clm(n_tr,igases)
+  subroutine allocate_mod_clm(n_tr,igases,ioxcl)
 
     implicit none
 
-    integer, intent(in) :: igases
-    integer, intent(in) :: n_tr
+    integer(ik4), intent(in) :: igases , ioxcl
+    integer(ik4), intent(in) :: n_tr
 
     call getmem2d(r2ctb,1,jxp,1,iyp,'clm:r2ctb')
     call getmem2d(r2cqb,1,jxp,1,iyp,'clm:r2cqb')
@@ -235,7 +235,7 @@ module mod_clm
 #if (defined VOC)
     call getmem2d(voc_em,1,jx,1,iy,'clm:voc_em')
 #endif
-    if ( igases == 1 ) then
+    if ( igases == 1 .or. ioxcl == 1 ) then
       call getmem3d(dep_vels,1,jx,1,iy,1,n_tr,'clm:dep_vels')
     end if
 

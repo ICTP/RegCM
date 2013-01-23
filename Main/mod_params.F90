@@ -986,7 +986,7 @@ module mod_params
 #ifndef CLM
   call allocate_mod_bats_mppio(lakemod)
 #else
-  call allocate_mod_clm(ntr,igaschem)
+  call allocate_mod_clm(ntr,igaschem,ioxclim)
 #endif
 
   if ( enable_newmicro ) then
