@@ -66,6 +66,7 @@ module mod_params
              qkp1 , sig700 , sigtbl , ssum , vqmax , vqrang , wk ,  &
              wkp1 , xbot , xtop , xx , yy
   integer(ik4) :: kbmax
+  integer(ik4) :: iretval
   real(rk8) , dimension(nsplit) :: dtsplit
   integer(ik4) :: i , j , k , kbase , ktop , ns , mdate0 , mdate1 , mdate2
   integer(ik4) :: hspan
@@ -484,10 +485,15 @@ module mod_params
     write(stdout,*) 'Reading model namelist stanzas'
 !  
 !-----read in namelist variables:
-    read (ipunit, restartparam)
+    read (ipunit, nml=restartparam, iostat=iretval)
+    if ( iretval /= 0 ) then
+      write(stderr,*) 'Error reading restartparam namelist stanza'
+      call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
 #ifdef DEBUG
-    write(stdout,*) 'Read restartparam OK'
+    else
+      write(stdout,*) 'Read restartparam OK'
 #endif
+    end if
 
     idate0 = mdate0
     idate1 = mdate1
@@ -502,43 +508,78 @@ module mod_params
                  'Runtime increments must be modulus 24 hours')
     end if
 
-    read (ipunit, timeparam)
+    read (ipunit, nml=timeparam, iostat=iretval)
+    if ( iretval /= 0 ) then
+      write(stderr,*) 'Error reading timeparam namelist stanza'
+      call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
 #ifdef DEBUG
-    write(stdout,*) 'Read timeparam OK'
+    else
+      write(stdout,*) 'Read timeparam OK'
 #endif
-    read (ipunit, outparam)
+    end if
+
+    read (ipunit, nml=outparam, iostat=iretval)
+    if ( iretval /= 0 ) then
+      write(stderr,*) 'Error reading outparam namelist stanza'
+      call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
 #ifdef DEBUG
-    write(stdout,*) 'Read outparam OK'
+    else
+      write(stdout,*) 'Read outparam OK'
 #endif
+    end if
+
     len_path = len(trim(dirout))
     if ( dirout(len_path:len_path) /= '/' ) dirout = trim(dirout)//'/'
-    read (ipunit, physicsparam)
+    read (ipunit, nml=physicsparam, iostat=iretval)
+    if ( iretval /= 0 ) then
+      write(stderr,*) 'Error reading physicsparam namelist stanza'
+      call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
 #ifdef DEBUG
-    write(stdout,*) 'Read physicsparam OK'
-#endif
-    if ( ipptls == 1 ) then
-      read (ipunit, subexparam)
-#ifdef DEBUG
-      write(stdout,*) 'Read subexparam OK'
+    else
+      write(stdout,*) 'Read physicsparam OK'
 #endif
     end if
-    if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
-      read (ipunit, grellparam)
+
+    if ( ipptls == 1 ) then
+      read (ipunit, nml=subexparam, iostat=iretval)
+      if ( iretval /= 0 ) then
+        write(stdout,*) 'Using default subex parameter.'
 #ifdef DEBUG
-      write(stdout,*) 'Read grellparam OK'
+      else
+        write(stdout,*) 'Read subexparam OK'
 #endif
+      end if
+    end if
+
+    if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
+      read (ipunit, nml=grellparam, iostat=iretval)
+      if ( iretval /= 0 ) then
+        write(stdout,*) 'Using default Grell parameter.'
+#ifdef DEBUG
+      else
+        write(stdout,*) 'Read grellparam OK'
+#endif
+      end if
     end if
     if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
-      read (ipunit, emanparam)
+      read (ipunit, nml=emanparam, iostat=iretval)
+      if ( iretval /= 0 ) then
+        write(stdout,*) 'Using default MIT parameter.'
 #ifdef DEBUG
-      write(stdout,*) 'Read emanparam OK'
+      else
+        write(stdout,*) 'Read emanparam OK'
 #endif
+      end if
     end if
     if ( icup == 5 ) then
-      read (ipunit, tiedtkeparam)
+      read (ipunit, nml=tiedtkeparam, iostat=iretval)
+      if ( iretval /= 0 ) then
+        write(stdout,*) 'Using default Tiedtke parameter.'
 #ifdef DEBUG
-      write(stdout,*) 'Read tiedtkeparam OK'
+      else
+        write(stdout,*) 'Read tiedtkeparam OK'
 #endif
+      end if
     end if
     if ( icup < 0 .or. (icup > 5 .and. icup < 98) .or. icup > 99 ) then
       call fatal(__FILE__,__LINE__,'UNSUPPORTED CUMULUS SCHEME')
@@ -547,24 +588,45 @@ module mod_params
       call fatal(__FILE__,__LINE__,'UNSUPPORTED PBL SCHEME.')
     end if
     if ( ibltyp == 1 .or. ibltyp == 99 ) then
-      read (ipunit, holtslagparam, err=101)
- 101  continue
+      read (ipunit, nml=holtslagparam, iostat=iretval)
+      if ( iretval /= 0 ) then
+        write(stdout,*) 'Using default Holtslag parameter.'
+#ifdef DEBUG
+      else
+        write(stdout,*) 'Read holtslagparam OK'
+#endif
+      end if
     end if
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      read (ipunit, uwparam)
+      read (ipunit, nml=uwparam, iostat=iretval)
+      if ( iretval /= 0 ) then
+        write(stdout,*) 'Using default UW PBL parameter.'
 #ifdef DEBUG
-      write(stdout,*) 'Read uwparam OK'
+      else
+        write(stdout,*) 'Read uwparam OK'
 #endif
+      end if
     end if
     if ( irrtm == 1 ) then
-      read (ipunit, rrtmparam)
+      read (ipunit, nml=rrtmparam, iostat=iretval)
+      if ( iretval /= 0 ) then
+        write(stdout,*) 'Using default RRTM parameter.'
 #ifdef DEBUG
-      write(stdout,*) 'Read rrtmparam OK'
+      else
+        write(stdout,*) 'Read rrtmparam OK'
 #endif
+      end if
     end if
 
     if ( islab_ocean == 1 ) then
-      read (ipunit, slabocparam)
+      read (ipunit, nml=slabocparam, iostat=iretval)
+      if ( iretval /= 0 ) then
+        write(stdout,*) 'Using default SLAB Ocean parameter.'
+#ifdef DEBUG
+      else
+        write(stdout,*) 'Read slabocparam OK'
+#endif
+      end if
       if ( do_qflux_adj .eqv. do_restore_sst ) then 
         write (stderr,*) 'do_qflux_adj   = ' , do_qflux_adj
         write (stderr,*) 'do_restore_sst = ' , do_restore_sst
@@ -572,33 +634,43 @@ module mod_params
         write (stderr,*) 'FIRST DO A RESTORE SST RUN AND THEN AN ADJUST RUN!'
         call fatal(__FILE__,__LINE__,'SLABOCEAN INPUT INCONSISTENCY')
       end if
-#ifdef DEBUG
-      write(stdout,*) 'Read slabocparam OK'
-#endif
     end if
 
     if ( ichem == 1 ) then
-      read (ipunit, chemparam)
+      read (ipunit, chemparam, iostat=iretval)
+      if ( iretval /= 0 ) then
+        write(stderr,*) 'Error reading chemparam namelist stanza'
+        call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
+#ifdef DEBUG
+      else
+        write(stdout,*) 'Read chemparam OK'
+#endif
+      end if
       ! force option 2 for drydep in the case of UW PBL
       if ( ibltyp == 2 .or. ibltyp == 99 ) ichdrdepo = 2
-#ifdef DEBUG
-      write(stdout,*) 'Read chemparam OK'
-#endif
     else
       ichem = 0
       ntr = 0
     end if
 #ifdef CLM
-    read (ipunit , clmparam)
+    read (ipunit , clmparam, iostat=iretval)
+    if ( iretval /= 0 ) then
+      write(stdout,*) 'Using default CLM parameter.'
 #ifdef DEBUG
-    write(stdout,*) 'Read clmparam OK'
+    else
+      write(stdout,*) 'Read clmparam OK'
 #endif
+    end if
 #endif
     if (iocncpl == 1) then
-      read (ipunit , cplparam)
+      read (ipunit , cplparam, iostat=iretval)
+      if ( iretval /= 0 ) then
+        write(stdout,*) 'Using default Coupling parameter.'
 #ifdef DEBUG
-      write(stdout,*) 'Read cplparam OK'
+      else
+        write(stdout,*) 'Read cplparam OK'
 #endif
+      end if
     end if
   end if 
 !
