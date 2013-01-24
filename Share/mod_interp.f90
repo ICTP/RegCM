@@ -21,6 +21,7 @@ module mod_interp
  
   use mod_intkinds
   use mod_realkinds
+  use mod_constants
   use mod_stdio
   use mod_message
   use mod_memutil
@@ -37,6 +38,10 @@ module mod_interp
   integer(ik4) :: imxmn = 0
   integer(ik4) :: lcross = 0
   integer(ik4) :: ldot = 0
+
+  real(rk8) , parameter :: deg720 = d_two*deg360
+  real(rk8) , parameter :: missl = -9999.0D0
+  real(rk8) , parameter :: missc = -9990.0D0
 
   real(rk8) , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc , dc1xd
   real(rk8) , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc , dd1xd
@@ -96,20 +101,20 @@ module mod_interp
   do i = 1 , iy
     do j = 1 , jx
  
-      yind = (((lato(j,i)-lati(1))/(lati(nlati)-lati(1)))*float(nlati-1))+1.
+      yind = (((lato(j,i)-lati(1))/(lati(nlati)-lati(1)))*dble(nlati-1))+d_one
       jq = int(yind)
       jq = max0(jq,1)
       jqp1 = min0(jq+1,nlati)
       q = yind - jq
  
       lon360 = lono(j,i)
-      if ( lono(j,i) < 0. ) lon360 = lono(j,i) + 360.
-      xind = (((lon360-loni(1))/(loni(nloni)-loni(1)))*float(nloni-1))+1.
-      if ( xind < 1.0 .and. lg ) then
+      if ( lono(j,i) < deg00 ) lon360 = lono(j,i) + deg360
+      xind = (((lon360-loni(1))/(loni(nloni)-loni(1)))*dble(nloni-1))+d_one
+      if ( xind < d_one .and. lg ) then
         ip = nloni
         ipp1 = 1
         p = xind
-      else if ( (xind-nloni) > 0.0 .and. lg ) then
+      else if ( (xind-nloni) > deg00 .and. lg ) then
         ip = nloni
         ipp1 = 1
         p = xind - nloni
@@ -121,27 +126,27 @@ module mod_interp
       end if
  
       do l = 1 , nflds
-        xsum = 0.0
-        bas = 0.0
-        if ( fin(ip,jq,l) < -9990.0 .and. fin(ipp1,jq,l) < -9990.0 .and. &
-             fin(ipp1,jqp1,l) < -9990.0 .and. fin(ip,jqp1,l) < -9990.0 ) then
-          fout(j,i,l) = -9999.
+        xsum = d_zero
+        bas = d_zero
+        if ( fin(ip,jq,l) < missc .and. fin(ipp1,jq,l) < missc .and. &
+             fin(ipp1,jqp1,l) < missc .and. fin(ip,jqp1,l) < missc ) then
+          fout(j,i,l) = missl
         else
-          if ( fin(ip,jq,l) > -9990.0 ) then
-            xsum = xsum + (1.-q)*(1.-p)*fin(ip,jq,l)
-            bas = bas + (1.-q)*(1.-p)
+          if ( fin(ip,jq,l) > missc ) then
+            xsum = xsum + (d_one-q)*(d_one-p)*fin(ip,jq,l)
+            bas = bas + (d_one-q)*(d_one-p)
           end if
-          if ( fin(ipp1,jq,l) > -9990.0 ) then
-            xsum = xsum + (1.-q)*p*fin(ipp1,jq,l)
-            bas = bas + (1.-q)*p
+          if ( fin(ipp1,jq,l) > missc ) then
+            xsum = xsum + (d_one-q)*p*fin(ipp1,jq,l)
+            bas = bas + (d_one-q)*p
           end if
-          if ( fin(ipp1,jqp1,l) > -9990.0 ) then
+          if ( fin(ipp1,jqp1,l) > missc ) then
             xsum = xsum + q*p*fin(ipp1,jqp1,l)
             bas = bas + q*p
           end if
-          if ( fin(ip,jqp1,l) > -9990.0 ) then
-            xsum = xsum + q*(1.-p)*fin(ip,jqp1,l)
-            bas = bas + q*(1.-p)
+          if ( fin(ip,jqp1,l) > missc ) then
+            xsum = xsum + q*(d_one-p)*fin(ip,jqp1,l)
+            bas = bas + q*(d_one-p)
           end if
           fout(j,i,l) = xsum/bas
         end if
@@ -194,10 +199,10 @@ module mod_interp
   i2 = 0
   j1 = 0
   j2 = 0
-  q1 = 0.0
-  q2 = 0.0
-  p1 = 0.0
-  p2 = 0.0
+  q1 = d_zero
+  q2 = d_zero
+  p1 = d_zero
+  p2 = d_zero
 
   do i = 1 , iy
     do j = 1 , jx
@@ -209,42 +214,42 @@ module mod_interp
           i1 = ii
           i2 = ii + 1
           exit
-        else if ( alon(j,i) >= hlon(ii)-360 .and. &
-                  alon(j,i) < hlon(ii+1)-360. ) then
-          p1 = alon(j,i) - (hlon(ii)-360.)
-          p2 = (hlon(ii+1)-360.) - alon(j,i)
+        else if ( alon(j,i) >= hlon(ii)-deg360 .and. &
+                  alon(j,i) < hlon(ii+1)-deg360 ) then
+          p1 = alon(j,i) - (hlon(ii)-deg360)
+          p2 = (hlon(ii+1)-deg360) - alon(j,i)
           i1 = ii
           i2 = ii + 1
           exit
-        else if ( alon(j,i) >= hlon(ii)+360 .and. &
-                  alon(j,i) < hlon(ii+1)+360. ) then
-          p1 = alon(j,i) - (hlon(ii)+360.)
-          p2 = (hlon(ii+1)+360.) - alon(j,i)
+        else if ( alon(j,i) >= hlon(ii)+deg360 .and. &
+                  alon(j,i) < hlon(ii+1)+deg360 ) then
+          p1 = alon(j,i) - (hlon(ii)+deg360)
+          p2 = (hlon(ii+1)+deg360) - alon(j,i)
           i1 = ii
           i2 = ii + 1
           exit
         end if
       end do
-      if ( alon(j,i) >= hlon(nlon) .and. alon(j,i) < hlon(1)+360. ) then
+      if ( alon(j,i) >= hlon(nlon) .and. alon(j,i) < hlon(1)+deg360 ) then
         p1 = alon(j,i) - hlon(nlon)
-        p2 = (hlon(1)+360.) - alon(j,i)
+        p2 = (hlon(1)+deg360) - alon(j,i)
         i1 = nlon
         i2 = 1
-      else if ( alon(j,i) >= hlon(nlon)+360 .and. &
-                alon(j,i) < hlon(1)+720. ) then
-        p1 = alon(j,i) - (hlon(nlon)+360.)
-        p2 = (hlon(1)+720.) - alon(j,i)
+      else if ( alon(j,i) >= hlon(nlon)+deg360 .and. &
+                alon(j,i) < hlon(1)+deg720 ) then
+        p1 = alon(j,i) - (hlon(nlon)+deg360)
+        p2 = (hlon(1)+deg720) - alon(j,i)
         i1 = nlon
         i2 = 1
-      else if ( alon(j,i) >= hlon(nlon)-360 .and. alon(j,i) < hlon(1) ) then
-        p1 = alon(j,i) - (hlon(nlon)-360.)
+      else if ( alon(j,i) >= hlon(nlon)-deg360 .and. alon(j,i) < hlon(1) ) then
+        p1 = alon(j,i) - (hlon(nlon)-deg360)
         p2 = hlon(1) - alon(j,i)
         i1 = nlon
         i2 = 1
-      else if ( alon(j,i) >= hlon(nlon)-720 .and. &
-                alon(j,i) < hlon(1)-360. ) then
-        p1 = alon(j,i) - (hlon(nlon)-720.)
-        p2 = (hlon(1)-360.) - alon(j,i)
+      else if ( alon(j,i) >= hlon(nlon)-deg720 .and. &
+                alon(j,i) < hlon(1)-deg360 ) then
+        p1 = alon(j,i) - (hlon(nlon)-deg720)
+        p2 = (hlon(1)-deg360) - alon(j,i)
         i1 = nlon
         i2 = 1
       end if
@@ -260,14 +265,14 @@ module mod_interp
           j2 = jj + 1
           exit
         else if ( alat(j,i) <= hlat(1) ) then
-          q1 = 1.0
-          q2 = 1.0
+          q1 = d_one
+          q2 = d_one
           j1 = 1
           j2 = 1
           exit
         else if ( alat(j,i) >= hlat(nlat) ) then
-          q1 = 1.0
-          q2 = 1.0
+          q1 = d_one
+          q2 = d_one
           j1 = nlat
           j2 = nlat
         end if
@@ -282,21 +287,21 @@ module mod_interp
         end do
       else if ( j1 == 0 ) then
         do l = 1 , llev
-          ave = 0.0
+          ave = d_zero
           do ii = 1 , nlon
             ave = ave + b2(ii,1,l)
           end do
-          ave = ave/float(nlon)
+          ave = ave/dble(nlon)
           b3(j,i,l) = ((ave*(p1+p2))*q2+(b2(i1,j2,l)*p2+b2(i2,j2,l)* &
                                      p1)*q1)/(p1+p2)/(q1+q2)
         end do
       else if ( j1 == nlat ) then
         do l = 1 , llev
-          ave = 0.0
+          ave = d_zero
           do ii = 1 , nlon
             ave = ave + b2(ii,nlat,l)
           end do
-          ave = ave/float(nlon)
+          ave = ave/dble(nlon)
           b3(j,i,l) = ((b2(i1,j1,l)*p2+b2(i2,j1,l)*p1)*q2+ &
                        (ave*(p1+p2))*q1)/(p1+p2)/(q1+q2)
         end do
@@ -377,10 +382,10 @@ module mod_interp
         ndr = -1000
         mdl = -1000
         ndl = -1000
-        dista = 1.E8
-        distb = 1.E8
-        distc = 1.E8
-        distd = 1.E8
+        dista = 1.D8
+        distb = 1.D8
+        distc = 1.D8
+        distd = 1.D8
         do n = 1 , nlat
           do m = 1 , nlon
             if ( glon(m,n) > alon(j,i) .and. &
@@ -421,8 +426,9 @@ module mod_interp
             end if
           end do
         end do
-        if ( mur < 0. .or. nur < 0. .or. mul < 0. .or. nul < 0. .or.&
-             mdr < 0. .or. ndr < 0. .or. mdl < 0. .or. ndl < 0 ) then
+        if ( mur < d_zero .or. nur < d_zero .or. mul < d_zero .or. &
+             nul < d_zero .or. mdr < d_zero .or. ndr < d_zero .or. &
+             mdl < d_zero .or. ndl < 0 ) then
           write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
           write (stderr,*) mur , nur , mdr , ndr
           write (stderr,*) mul , nul , mdl , ndl
@@ -439,17 +445,17 @@ module mod_interp
         jc1dr(j,i) = ndr
         ic1dl(j,i) = mdl
         jc1dl(j,i) = ndl
-        dc1xa(j,i) = (1.0/dista)**2
-        dc1xb(j,i) = (1.0/distb)**2
-        dc1xc(j,i) = (1.0/distc)**2
-        dc1xd(j,i) = (1.0/distd)**2
+        dc1xa(j,i) = (d_one/dista)**2
+        dc1xb(j,i) = (d_one/distb)**2
+        dc1xc(j,i) = (d_one/distc)**2
+        dc1xd(j,i) = (d_one/distd)**2
       end do
     end do
     write (stdout,*) 'Done.'
     lcross = 1
   end if
 
-  b3(:,:) = -9999.0
+  b3(:,:) = missl
 
   do i = 1 , iy
     do j = 1 , jx
@@ -467,27 +473,27 @@ module mod_interp
       distd = dc1xd(j,i)
  
       ifound = 0
-      wg = 0.0
-      v1 = 0.0
-      v2 = 0.0
-      v3 = 0.0
-      v4 = 0.0
-      if ( b2(mur,nur) > -9990.0 ) then
+      wg = d_zero
+      v1 = d_zero
+      v2 = d_zero
+      v3 = d_zero
+      v4 = d_zero
+      if ( b2(mur,nur) > missc ) then
         v1 = b2(mur,nur)*dista
         ifound = 1
         wg = wg + dista
       end if
-      if ( b2(mul,nul) > -9990.0 ) then
+      if ( b2(mul,nul) > missc ) then
         v2 = b2(mul,nul)*distb
         ifound = 1
         wg = wg + distb
       end if
-      if ( b2(mdr,ndr) > -9990.0 ) then
+      if ( b2(mdr,ndr) > missc ) then
         v3 = b2(mdr,ndr)*distc
         ifound = 1
         wg = wg + distc
       end if
-      if ( b2(mdl,ndl) > -9990.0 ) then
+      if ( b2(mdl,ndl) > missc ) then
         v4= b2(mdl,ndl)*distd
         ifound = 1
         wg = wg + distd
@@ -567,10 +573,10 @@ module mod_interp
         ndr = -1000
         mdl = -1000
         ndl = -1000
-        dista = 1.E8
-        distb = 1.E8
-        distc = 1.E8
-        distd = 1.E8
+        dista = 1.D8
+        distb = 1.D8
+        distc = 1.D8
+        distd = 1.D8
         do n = 1 , nlat
           do m = 1 , nlon
             if ( glon(m,n) > alon(j,i) .and. &
@@ -611,8 +617,9 @@ module mod_interp
             end if
           end do
         end do
-        if ( mur < 0. .or. nur < 0. .or. mul < 0. .or. nul < 0. .or.&
-             mdr < 0. .or. ndr < 0. .or. mdl < 0. .or. ndl < 0 ) then
+        if ( mur < d_zero .or. nur < d_zero .or. mul < d_zero .or. &
+             nul < d_zero .or. mdr < d_zero .or. ndr < d_zero .or. &
+             mdl < d_zero .or. ndl < 0 ) then
           write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
           write (stderr,*) mur , nur , mdr , ndr
           write (stderr,*) mul , nul , mdl , ndl
@@ -629,17 +636,17 @@ module mod_interp
         jd1dr(j,i) = ndr
         id1dl(j,i) = mdl
         jd1dl(j,i) = ndl
-        dd1xa(j,i) = (1.0/dista)**2
-        dd1xb(j,i) = (1.0/distb)**2
-        dd1xc(j,i) = (1.0/distc)**2
-        dd1xd(j,i) = (1.0/distd)**2
+        dd1xa(j,i) = (d_one/dista)**2
+        dd1xb(j,i) = (d_one/distb)**2
+        dd1xc(j,i) = (d_one/distc)**2
+        dd1xd(j,i) = (d_one/distd)**2
       end do
     end do
     write (stdout,*) 'Done.'
     ldot = 1
   end if
 
-  b3(:,:) = -9999.0
+  b3(:,:) = missl
 
   do i = 1 , iy
     do j = 1 , jx
@@ -657,27 +664,27 @@ module mod_interp
       distd = dd1xd(j,i)
  
       ifound = 0
-      wg = 0.0
-      v1 = 0.0
-      v2 = 0.0
-      v3 = 0.0
-      v4 = 0.0
-      if ( b2(mur,nur) > -9990.0 ) then
+      wg = d_zero
+      v1 = d_zero
+      v2 = d_zero
+      v3 = d_zero
+      v4 = d_zero
+      if ( b2(mur,nur) > missc ) then
         v1 = b2(mur,nur)*dista
         ifound = 1
         wg = wg + dista
       end if
-      if ( b2(mul,nul) > -9990.0 ) then
+      if ( b2(mul,nul) > missc ) then
         v2 = b2(mul,nul)*distb
         ifound = 1
         wg = wg + distb
       end if
-      if ( b2(mdr,ndr) > -9990.0 ) then
+      if ( b2(mdr,ndr) > missc ) then
         v3 = b2(mdr,ndr)*distc
         ifound = 1
         wg = wg + distc
       end if
-      if ( b2(mdl,ndl) > -9990.0 ) then
+      if ( b2(mdl,ndl) > missc ) then
         v4= b2(mdl,ndl)*distd
         ifound = 1
         wg = wg + distd

@@ -107,10 +107,20 @@ module mod_vertint
               !
               sigp = pp1(n)/ps(i,j)
               !
+              ! Over the top or below bottom level
+              !
+              if ( sigp < sig(km) ) then
+                fp(i,j,n) = f(i,j,km)
+                cycle
+              else if ( sigp > sig(1) ) then
+                fp(i,j,n) = f(i,j,1)
+                cycle
+              end if
+              !
               ! Search k level below the requested one
               !
               kx = 0
-              do k = 1 , km
+              do k = 1 , km-1
                 if ( sigp > sig(k) ) exit
                 kx = k
               end do
@@ -118,24 +128,9 @@ module mod_vertint
               ! This is the above level
               !
               knx = kx + 1
-              !
-              ! If under the higher pressure level
-              !
-              if ( kx < 1 ) then
-                fp(i,j,n) = f(i,j,1)
-              !
-              ! If above the lower pressure level
-              !
-              else if ( knx > km ) then
-                fp(i,j,n) = f(i,j,km)
-              !
-              ! If in between two levels, linear interpolation
-              !
-              else
-                wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-                w1 = 1. - wp
-                fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-              end if
+              wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+              w1 = d_one - wp
+              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
             end do
           else
             call die('intlin','Missing value in surface pressure',1)
@@ -180,10 +175,20 @@ module mod_vertint
               !
               sigp = pp1(n)/ps(i,j)
               !
+              ! Over the top or below bottom level
+              !
+              if ( sigp < sig(1) ) then
+                fp(i,j,n) = f(i,j,1)
+                cycle
+              else if ( sigp > sig(km) ) then
+                fp(i,j,n) = f(i,j,km)
+                cycle
+              end if
+              !
               ! Search k level below the requested one
               !
               kx = km + 1
-              do k = km , 1 , -1
+              do k = km , 2 , -1
                 if ( sigp > sig(k) ) exit
                 kx = k
               end do
@@ -191,24 +196,9 @@ module mod_vertint
               ! This is the above level
               !
               knx = kx - 1
-              !
-              ! If under the higher pressure level
-              !
-              if ( kx > km ) then
-                fp(i,j,n) = f(i,j,km)
-              !
-              ! If above the lower pressure level
-              !
-              else if ( knx < 1 ) then
-                fp(i,j,n) = f(i,j,1)
-              !
-              ! If in between two levels, linear interpolation
-              !
-              else
-                wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-                w1 = 1. - wp
-                fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-              end if
+              wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+              w1 = d_one - wp
+              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
             end do
           else
             call die('intlin','Missing value in surface pressure',1)
@@ -259,10 +249,20 @@ module mod_vertint
             !
             sigp = (p(n)-ptop)/(pstar(i,j)-ptop)
             !
+            ! Over the top or below bottom level
+            !
+            if ( sigp < sig(km) ) then
+              fp(i,j,n) = f(i,j,km)
+              cycle
+            else if ( sigp > sig(1) ) then
+              fp(i,j,n) = f(i,j,1)
+              cycle
+            end if
+            !
             ! Search k level below the requested one
             !
             kx = 0
-            do k = 1 , km
+            do k = 1 , km-1
               if ( sigp > sig(k) ) exit
               kx = k
             end do
@@ -270,24 +270,9 @@ module mod_vertint
             ! This is the above level
             !
             knx = kx + 1
-            !
-            ! If under the higher pressure level
-            !
-            if ( kx < 1 ) then
-              fp(i,j,n) = f(i,j,1)
-            !
-            ! If above the lower pressure level
-            !
-            else if ( knx > km ) then
-              fp(i,j,n) = f(i,j,km)
-            !
-            ! If in between two levels, linear interpolation
-            !
-            else
-              wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
+            wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+            w1 = d_one - wp
+            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end do
         end do
       end do
@@ -309,10 +294,20 @@ module mod_vertint
             !
             sigp = (p(n)-ptop)/(pstar(i,j)-ptop)
             !
+            ! Over the top or below bottom level
+            !
+            if ( sigp < sig(1) ) then
+              fp(i,j,n) = f(i,j,1)
+              cycle
+            else if ( sigp > sig(km) ) then
+              fp(i,j,n) = f(i,j,km)
+              cycle
+            end if
+            !
             ! Search k level below the requested one
             !
             kx = km + 1
-            do k = km , 1 , -1
+            do k = km , 2 , -1
               if ( sigp > sig(k) ) exit
               kx = k
             end do
@@ -320,24 +315,9 @@ module mod_vertint
             ! This is the above level
             !
             knx = kx - 1
-            !
-            ! If under the higher pressure level
-            !
-            if ( kx > km ) then
-              fp(i,j,n) = f(i,j,km)
-            !
-            ! If above the lower pressure level
-            !
-            else if ( knx < 1 ) then
-              fp(i,j,n) = f(i,j,1)
-            !
-            ! If in between two levels, linear interpolation
-            !
-            else
-              wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
+            wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+            w1 = d_one - wp
+            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end do
         end do
       end do
@@ -383,10 +363,20 @@ module mod_vertint
             !
             sigp = (p(n)-pt)/(pstar(i,j)-pt)
             !
+            ! Over the top or below bottom level
+            !
+            if ( sigp < sig(km) ) then
+              fp(i,j,n) = f(i,j,km)
+              cycle
+            else if ( sigp > sig(1) ) then
+              fp(i,j,n) = f(i,j,1)
+              cycle
+            end if
+            !
             ! Search k level below the requested one
             !
             kx = 0
-            do k = 1 , km
+            do k = 1 , km-1
               if ( sigp > sig(k) ) exit
               kx = k
             end do
@@ -394,24 +384,9 @@ module mod_vertint
             ! This is the above level
             !
             knx = kx + 1
-            !
-            ! If under the higher pressure level
-            !
-            if ( kx < 1 ) then
-              fp(i,j,n) = f(i,j,1)
-            !
-            ! If above the lower pressure level
-            !
-            else if ( knx > km ) then
-              fp(i,j,n) = f(i,j,km)
-            !
-            ! If in between two levels, linear interpolation
-            !
-            else
-              wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
+            wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+            w1 = 1.0 - wp
+            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end do
         end do
       end do
@@ -433,10 +408,20 @@ module mod_vertint
             !
             sigp = (p(n)-pt)/(pstar(i,j)-pt)
             !
+            ! Over the top or below bottom level
+            !
+            if ( sigp < sig(1) ) then
+              fp(i,j,n) = f(i,j,1)
+              cycle
+            else if ( sigp > sig(km) ) then
+              fp(i,j,n) = f(i,j,km)
+              cycle
+            end if
+            !
             ! Search k level below the requested one
             !
             kx = km + 1
-            do k = km , 1 , -1
+            do k = km , 2 , -1
               if ( sigp > sig(k) ) exit
               kx = k
             end do
@@ -444,24 +429,9 @@ module mod_vertint
             ! This is the above level
             !
             knx = kx - 1
-            !
-            ! If under the higher pressure level
-            !
-            if ( kx > km ) then
-              fp(i,j,n) = f(i,j,km)
-            !
-            ! If above the lower pressure level
-            !
-            else if ( knx < 1 ) then
-              fp(i,j,n) = f(i,j,1)
-            !
-            ! If in between two levels, linear interpolation
-            !
-            else
-              wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
+            wp = (sigp-sig(kx))/(sig(knx)-sig(kx))
+            w1 = 1.0 - wp
+            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end do
         end do
       end do
@@ -509,7 +479,7 @@ module mod_vertint
                          zp(i,j,nlev1+1-kb))+tp(i,j,nlev1+1-kb)  &
                         *(zp(i,j,nlev1+1-kt)-zrcm(i,j)))         &
                         /(zp(i,j,nlev1+1-kt)-zp(i,j,nlev1+1-kb))
-          tlayer(i,j) = (tp(i,j,nlev1+1-kt)+tlayer(i,j))/2.
+          tlayer(i,j) = (tp(i,j,nlev1+1-kt)+tlayer(i,j))/d_two
           za(i,j) = zp(i,j,nlev1+1-kt)
           pa(i,j) = d_100*sccm(kt)
         else
@@ -577,7 +547,7 @@ module mod_vertint
             kbc = 1
             do k = 1 , km
               sig(k) = p3d(i,j,k)/ps(i,j)
-              if ( sig(k) > bltop ) kbc = k
+              if ( sig(k) >= bltop ) kbc = k
             end do
             !
             ! For each of the requested levels
@@ -595,6 +565,16 @@ module mod_vertint
                 cycle
               end if
               !
+              ! Over the top or below bottom level
+              !
+              if ( sigp < sig(km) ) then
+                fp(i,j,n) = f(i,j,km)
+                cycle
+              else if ( sigp > sig(1) ) then
+                fp(i,j,n) = f(i,j,1)
+                cycle
+              end if
+              !
               ! Search k level below the requested one
               !
               kx = 0
@@ -606,24 +586,9 @@ module mod_vertint
               ! This is the above level
               !
               knx = kx + 1
-              !
-              ! If under the higher pressure level
-              !
-              if ( kx < 1 ) then
-                fp(i,j,n) = f(i,j,1)
-              !
-              ! If above the lower pressure level
-              !
-              else if ( knx > km ) then
-                fp(i,j,n) = f(i,j,km)
-              !
-              ! If in between two levels, linear interpolation
-              !
-              else
-                wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
-                w1 = d_one - wp
-                fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-              end if
+              wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
+              w1 = d_one - wp
+              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
             end do
           else
             call die('intlog','Missing value in surface pressure',1)
@@ -657,9 +622,9 @@ module mod_vertint
             ! Sigma values in this point , and find boundary layer
             !
             kbc = km
-            do k = 1 , km
+            do k = km , 1 , -1
               sig(k) = p3d(i,j,k)/ps(i,j)
-              if ( sig(k) > bltop ) kbc = k
+              if ( sig(k) >= bltop ) kbc = k
             end do
             !
             ! For each of the requested levels
@@ -677,6 +642,16 @@ module mod_vertint
                 cycle
               end if
               !
+              ! Over the top or below bottom level
+              !
+              if ( sigp < sig(1) ) then
+                fp(i,j,n) = f(i,j,1)
+                cycle
+              else if ( sigp > sig(km) ) then
+                fp(i,j,n) = f(i,j,km)
+                cycle
+              end if
+              !
               ! Search k level below the requested one
               !
               kx = km + 1
@@ -688,24 +663,9 @@ module mod_vertint
               ! This is the above level
               !
               knx = kx - 1
-              !
-              ! If under the higher pressure level
-              !
-              if ( kx > km ) then
-                fp(i,j,n) = f(i,j,km)
-              !
-              ! If above the lower pressure level
-              !
-              else if ( knx < 1 ) then
-                fp(i,j,n) = f(i,j,1)
-              !
-              ! If in between two levels, linear interpolation
-              !
-              else
-                wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
-                w1 = d_one - wp
-                fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-              end if
+              wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
+              w1 = d_one - wp
+              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
             end do
           else
             call die('intlog','Missing value in surface pressure',1)
@@ -756,7 +716,7 @@ module mod_vertint
           !
           kbc = 1
           do k = 1 , km
-            if ( sig(k) > bltop ) kbc = k
+            if ( sig(k) >= bltop ) kbc = k
           end do
           !
           ! For each of the requested levels
@@ -774,6 +734,16 @@ module mod_vertint
               cycle
             end if
             !
+            ! Over the top or below bottom level
+            !
+            if ( sigp < sig(km) ) then
+              fp(i,j,n) = f(i,j,km)
+              cycle
+            else if ( sigp > sig(1) ) then
+              fp(i,j,n) = f(i,j,1)
+              cycle
+            end if
+            !
             ! Search k level below the requested one
             !
             kx = 0
@@ -785,24 +755,9 @@ module mod_vertint
             ! This is the above level
             !
             knx = kx + 1
-            !
-            ! If under the higher pressure level
-            !
-            if ( kx < 1 ) then
-              fp(i,j,n) = f(i,j,1)
-            !
-            ! If above the lower pressure level
-            !
-            else if ( knx > km ) then
-              fp(i,j,n) = f(i,j,km)
-            !
-            ! If in between two levels, linear interpolation
-            !
-            else
-              wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
+            wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
+            w1 = d_one - wp
+            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end do
         end do
       end do
@@ -819,8 +774,8 @@ module mod_vertint
           ! Find boundary layer Top
           !
           kbc = km
-          do k = 1 , km
-            if ( sig(k) > bltop ) kbc = k
+          do k = km , 1 , -1
+            if ( sig(k) >= bltop ) kbc = k
           end do
           !
           ! For each of the requested levels
@@ -838,6 +793,16 @@ module mod_vertint
               cycle
             end if
             !
+            ! Over the top or below bottom level
+            !
+            if ( sigp < sig(1) ) then
+              fp(i,j,n) = f(i,j,1)
+              cycle
+            else if ( sigp > sig(km) ) then
+              fp(i,j,n) = f(i,j,km)
+              cycle
+            end if
+            !
             ! Search k level below the requested one
             !
             kx = km + 1
@@ -849,24 +814,9 @@ module mod_vertint
             ! This is the above level
             !
             knx = kx - 1
-            !
-            ! If under the higher pressure level
-            !
-            if ( kx > km ) then
-              fp(i,j,n) = f(i,j,km)
-            !
-            ! If above the lower pressure level
-            !
-            else if ( knx < 1 ) then
-              fp(i,j,n) = f(i,j,1)
-            !
-            ! If in between two levels, linear interpolation
-            !
-            else
-              wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
-              w1 = d_one - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
+            wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
+            w1 = d_one - wp
+            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end do
         end do
       end do
@@ -912,7 +862,7 @@ module mod_vertint
           !
           kbc = 1
           do k = 1 , km
-            if ( sig(k) > bltop ) kbc = k
+            if ( sig(k) >= bltop ) kbc = k
           end do
           !
           ! For each of the requested levels
@@ -930,6 +880,16 @@ module mod_vertint
               cycle
             end if
             !
+            ! Over the top or below bottom level
+            !
+            if ( sigp < sig(km) ) then
+              fp(i,j,n) = f(i,j,km)
+              cycle
+            else if ( sigp > sig(1) ) then
+              fp(i,j,n) = f(i,j,1)
+              cycle
+            end if
+            !
             ! Search k level below the requested one
             !
             kx = 0
@@ -941,24 +901,9 @@ module mod_vertint
             ! This is the above level
             !
             knx = kx + 1
-            !
-            ! If under the higher pressure level
-            !
-            if ( kx < 1 ) then
-              fp(i,j,n) = f(i,j,1)
-            !
-            ! If above the lower pressure level
-            !
-            else if ( knx > km ) then
-              fp(i,j,n) = f(i,j,km)
-            !
-            ! If in between two levels, linear interpolation
-            !
-            else
-              wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
+            wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
+            w1 = 1.0 - wp
+            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end do
         end do
       end do
@@ -975,8 +920,8 @@ module mod_vertint
           ! Find boundary layer Top
           !
           kbc = km
-          do k = 1 , km
-            if ( sig(k) > bltop ) kbc = k
+          do k = km , 1 , -1
+            if ( sig(k) >= bltop ) kbc = k
           end do
           !
           ! For each of the requested levels
@@ -994,6 +939,16 @@ module mod_vertint
               cycle
             end if
             !
+            ! Over the top or below bottom level
+            !
+            if ( sigp < sig(1) ) then
+              fp(i,j,n) = f(i,j,1)
+              cycle
+            else if ( sigp > sig(km) ) then
+              fp(i,j,n) = f(i,j,km)
+              cycle
+            end if
+            !
             ! Search k level below the requested one
             !
             kx = km + 1
@@ -1005,24 +960,9 @@ module mod_vertint
             ! This is the above level
             !
             knx = kx - 1
-            !
-            ! If under the higher pressure level
-            !
-            if ( kx > km ) then
-              fp(i,j,n) = f(i,j,km)
-            !
-            ! If above the lower pressure level
-            !
-            else if ( knx < 1 ) then
-              fp(i,j,n) = f(i,j,1)
-            !
-            ! If in between two levels, linear interpolation
-            !
-            else
-              wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
-              w1 = 1.0 - wp
-              fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
-            end if
+            wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
+            w1 = 1.0 - wp
+            fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end do
         end do
       end do
@@ -1078,7 +1018,7 @@ module mod_vertint
 !   THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
 !   IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
 !
-    pt1 = real(pt)/psccm
+    pt1 = pt/psccm
     do i = 1 , ni
       do j = 1 , nj
         dp1 = psrcm(i,j)/psccm
@@ -1126,7 +1066,7 @@ module mod_vertint
 !   HUMIDITY. THE INTERPOLATION IS LINEAR IN P.  WHERE EXTRAPOLATION
 !   IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
 ! 
-    pt1 = real(pt)/psccm
+    pt1 = pt/psccm
     do i = 1 , ni
       do j = 1 , nj
         dp1 = psrcm(i,j)/psccm
@@ -1179,7 +1119,7 @@ module mod_vertint
 !   THICKNESS IS DETERMINED HYDROSTATICALLY FROM THE MEAN OF THE
 !   TWO EXTREME TEMPERATUES IN THE LAYER.
 !
-    pt1 = real(pt)/psccm
+    pt1 = pt/psccm
     do i = 1 , ni
       do j = 1 , nj
         dp1 = psrcm(i,j)/psccm
@@ -1231,7 +1171,7 @@ module mod_vertint
 !
     do i = 1 , ni
       do j = 1 , nj
-        sc = (psrccm(i,j)+real(ptop))/100.
+        sc = (psrccm(i,j)+ptop)*d_r100
         k1 = 0
         do k = 1 , kccm - 1
           if ( sc <= sccm(k+1) .and. sc >= sccm(k) ) k1 = k
