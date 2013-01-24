@@ -15,13 +15,13 @@
 
 if [ -z "$DEST" ]
 then
-  echo "SCRIPT TO INSTALL NETCDF V4 and MPICH2 LIBRARIES."
+  echo "SCRIPT TO INSTALL NETCDF V4 and MPICH LIBRARIES."
   echo "EDIT ME TO DEFINE DEST, CC AND FC VARIABLE"
   exit 1
 fi
 
 UNIDATA=http://www.unidata.ucar.edu/downloads/netcdf/ftp
-MCS=https://www.mcs.anl.gov/research/projects/mpich2/downloads/tarballs/1.5
+MPICH=http://www.mpich.org/static/tarballs/3.0.1
 
 WGET=`which wget 2> /dev/null`
 if [ -z "$WGET" ]
@@ -69,33 +69,33 @@ then
   echo "Error downloading netCDF Fortran library from www.unidata.ucar.edu"
   exit 1
 fi
-echo "Downloading MPICH2 Library..."
-wget -c $MCS/mpich2-1.5.tar.gz -o $DEST/logs/download_M.log
+echo "Downloading MPICH Library..."
+wget -c $MPICH/mpich-3.0.1.tar.gz -o $DEST/logs/download_M.log
 if [ $? -ne 0 ]
 then
-  echo "Error downloading MPICH2 from MCS website"
+  echo "Error downloading MPICH from MPICH website"
   exit 1
 fi
 
-echo "Compiling MPI2 library."
-tar zxvf mpich2-1.5.tar.gz > /dev/null
+echo "Compiling MPI library."
+tar zxvf mpich-3.0.1.tar.gz > /dev/null
 if [ $? -ne 0 ]
 then
-  echo "Error uncompressing mpich2 library"
+  echo "Error uncompressing mpich library"
   exit 1
 fi
-cd mpich2-1.5
+cd mpich-3.0.1
 CC="$CC" FC="$FC" ./configure --prefix=$DEST > $DEST/logs/configure.log 2>&1
 make > $DEST/logs/compile.log 2>&1 && \
   make install > $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
-  echo "Error compiling mpich2 library"
+  echo "Error compiling mpich library"
   exit 1
 fi
 cd $DEST
-rm -fr mpich2-1.5
-echo "Compiled MPI2 library."
+rm -fr mpich-3.0.1
+echo "Compiled MPI library."
 echo "Compiling zlib Library."
 tar zxvf zlib-1.2.7.tar.gz > /dev/null
 if [ $? -ne 0 ]
