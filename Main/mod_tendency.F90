@@ -74,7 +74,7 @@ module mod_tendency
     call getmem2d(psc,jce1,jce2,ice1,ice2,'tendency:psc')
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
     call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
-    rptn = d_one/dble((jci2-jci1+1)*(ici2-ici1+1))
+    rptn = d_one/dble((jout2-jout1+1)*(iout2-iout1+1))
   end subroutine allocate_mod_tend
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -1284,10 +1284,9 @@ module mod_tendency
     ! Print out noise parameter
     !
     if ( ktau > 1 ) then
-      ptnbar = ptntot*rptn
       ! Added a check for nan... The following inequality is wanted.
-      if ((ptnbar /= ptnbar) .or. &
-         ((ptnbar > d_zero) .eqv. (ptnbar <= d_zero))) then
+      if ((ptntot /= ptntot) .or. &
+         ((ptntot > d_zero) .eqv. (ptntot <= d_zero))) then
         maxv = dabs(maxval(aten%t))
         if ( (maxv/dtsec) > 0.01D0 ) then ! 50 K per hour
           write(stderr,*) 'MAXVAL ATEN T :', maxv
@@ -1376,7 +1375,8 @@ module mod_tendency
       end if
 
       if ( mod(ktau,krep) == 0 ) then
-        pt2bar = pt2tot*rptn
+        pt2bar = pt2tot
+        ptnbar = ptntot
         iconvec = 0
         pt2tot = d_zero
         ptntot = d_zero
@@ -1385,9 +1385,11 @@ module mod_tendency
         call sumall(ptnbar,ptntot)
         if ( myid == italk ) then
           appdat = tochar(idatex)
+          ptntot = ptntot*rptn
+          pt2tot = pt2tot*rptn
           write(stdout,'(a,a23,a,i16)') ' $$$ ', appdat , ', ktau   = ', ktau
           write(stdout,'(a,2E12.5)') ' $$$ 1st, 2nd time deriv of ps   = ', &
-                ptnbar , pt2tot
+                ptntot , pt2tot
           write(stdout,'(a,i7)') ' $$$  no. of points w/convection = ', iconvec
         end if
       end if
