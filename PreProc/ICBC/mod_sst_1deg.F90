@@ -181,10 +181,10 @@ module mod_sst_1deg
  
       do j = 1 , jx
         do i = 1 , iy
-          if ( sstmm(i,j) > -100. ) then
-            sstmm(i,j) = sstmm(i,j) + 273.15
+          if ( sstmm(j,i) > -100. ) then
+            sstmm(j,i) = sstmm(j,i) + 273.15
           else
-            sstmm(i,j) = -9999.
+            sstmm(j,i) = -9999.
           end if
         end do
       end do
