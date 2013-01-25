@@ -368,7 +368,7 @@ module mod_dynparam
     implicit none
     character (len=*) , intent(in) :: filename
     integer(ik4) , intent(out) :: ierr
-    integer(ik4) :: gdate1 , gdate2
+    integer(ik4) :: gdate1 , gdate2 , iresult
 
     namelist /dimparam/ iy , jx , kz , dsmax , dsmin , nsg , njxcpus , niycpus
     namelist /geoparam/ iproj , ds , ptop , clat , clon , plat ,    &
@@ -388,14 +388,26 @@ module mod_dynparam
       lperturb_v , perturb_frac_v
 
     open(ipunit, file=filename, status='old', &
-                 action='read', err=100)
+                 action='read', iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error opening input namelist file ',trim(filename)
+      ierr = 1
+      return
+    end if
+
 !
     dsmax = d_zero
     dsmin = d_zero
     njxcpus = -1
     niycpus = -1
 
-    read(ipunit, dimparam, err=101)
+    rewind(ipunit)
+    read(ipunit, nml=dimparam, iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error reading dimparam stanza in ',trim(filename)
+      ierr = 2
+      return
+    end if
     if ( nsg < 1 ) then
       write(stderr,*) 'Resetting nsg to 1'
       nsg = 1
@@ -403,7 +415,13 @@ module mod_dynparam
 
     i_band = 0
 
-    read(ipunit, geoparam, err=102)
+    rewind(ipunit)
+    read(ipunit, nml=geoparam, iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error reading geoparam stanza in ',trim(filename)
+      ierr = 3
+      return
+    end if
 
 !   Setup all convenience dimensions
 
@@ -477,16 +495,32 @@ module mod_dynparam
     h2ohgt = .false.
     h2opct = 50.0D0
     ismthlev = 1
-    read(ipunit, terrainparam, err=103)
+    rewind(ipunit)
+    read(ipunit, nml=terrainparam, iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error reading terrainparam stanza in ',trim(filename)
+      ierr = 4
+      return
+    end if
 
     ! Set convenient defaults for debug I/O parameters
     dbgfrq = 3600
-    read(ipunit, debugparam, err=105)
+    rewind(ipunit)
+    read(ipunit, nml=debugparam, iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stdout,*) 'No debug information requested.'
+    end if
 
     high_nudge = 3.0D0
     medium_nudge = 2.0D0
     low_nudge = 1.0D0
-    read(ipunit, boundaryparam, err=106)
+    rewind(ipunit)
+    read(ipunit, nml=boundaryparam, iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error reading boundaryparam stanza in ',trim(filename)
+      ierr = 5
+      return
+    end if
 
     nspgv = (nspgd+nspgx)*8 + 8
     nspgp = nspgx*4
@@ -497,7 +531,14 @@ module mod_dynparam
     ibdyfrq = 6 ! Convenient default
     calendar = 'gregorian'
     ensemble_run = .false.
-    read(ipunit, globdatparam, err=109)
+
+    rewind(ipunit)
+    read(ipunit, nml=globdatparam, iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error reading globdatparam stanza in ',trim(filename)
+      ierr = 6
+      return
+    end if
     if (calendar == 'gregorian') then
       dayspy = 365.2422D+00
       ical = gregorian
@@ -534,49 +575,23 @@ module mod_dynparam
       perturb_frac_q = d_r1000
       perturb_frac_u = d_r1000
       perturb_frac_v = d_r1000
-      read(ipunit, perturbparam, err=110)
+      rewind(ipunit)
+      read(ipunit, nml=perturbparam, iostat=iresult)
+      if ( iresult /= 0 ) then
+        write (stderr,*) 'Error reading perturbparam stanza in ',trim(filename)
+        ierr = 6
+        return
+      end if
     end if
 
     ierr = 0
     return
-
-  100   write(stderr,*) 'Cannot read namelist file ', trim(filename)
-    ierr = 1 
-    return 
-  101   write(stderr,*) 'Cannot read namelist stanza: dimparam       ',  &
-        & trim(filename)
-    ierr = 1
-    return
-  102   write(stderr,*) 'Cannot read namelist stanza: geoparam       ',  &
-        & trim(filename)
-    ierr = 1
-    return
-  103   write(stderr,*) 'Cannot read namelist stanza: terrainparam   ',  &
-        & trim(filename)
-    ierr = 1
-    return
-  105   write(stderr,*) 'Cannot read namelist stanza: debugparam     ',  &
-        & trim(filename)
-    ierr = 1
-    return
-  106   write(stderr,*) 'Cannot read namelist stanza: boundaryparam  ',  &
-        & trim(filename)
-    ierr = 1
-    return
-  109   write(stderr,*) 'Cannot read namelist stanza: globdatparam   ',  &
-        & trim(filename)
-    ierr = 1
-    return
-  110   write(stderr,*) 'Cannot read namelist stanza: perturbparam   ',  &
-        & trim(filename)
-    ierr = 1
-    return
-
   end subroutine initparam
 
   subroutine init_globwindow(lat0,lon0,lat1,lon1)
     implicit none
     real(rk8) , intent(out) :: lat0 , lat1 , lon0 , lon1
+    integer(ik4) :: iresult
     namelist /globwindow/ lat0 , lat1 , lon0 , lon1
 
     lat0 = 0.0D0
@@ -585,24 +600,10 @@ module mod_dynparam
     lon1 = 0.0D0
 
     rewind(ipunit)
-    read(ipunit, globwindow,err=101)
-    return
-  101   print *, 'Globwindow not present: Assuming Global data input'
-    return
+    read(ipunit, nml=globwindow, iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stdout,*) 'Globwindow Stanza not present: Assuming Global dataset'
+    end if
   end subroutine init_globwindow
-
-  subroutine init_outparam
-    implicit none
-
-    namelist /outparam/ ifsave , savfrq , ifatm , atmfrq ,       &
-      ifrad , radfrq , ifsrf , ifsub , iflak , ifsts , srffrq , &
-      subfrq , lakfrq , ifchem , chemfrq
-
-    read(ipunit, outparam, err=100)
-    return
-
-  100   write(stderr,*) 'Cannot read namelist stanza: outparam'
-
-  end subroutine init_outparam
 
 end module mod_dynparam
