@@ -132,6 +132,7 @@ module mod_init
               ldmsk(j,i) = 2
               do n = 1, nnsg
                 ldmsk1(n,j,i) = 2
+                sfice(n,j,i) = d_100
               end do
             end if
           end if
@@ -153,6 +154,7 @@ module mod_init
               ldmsk(j,i) = 2
               do n = 1, nnsg
                 ldmsk1(n,j,i) = 2
+                sfice(n,j,i) = d_100
               end do
             end if
           end if
@@ -402,18 +404,17 @@ module mod_init
               ldmsk(j,i) = 2
               do n = 1, nnsg
                 ldmsk1(n,j,i) = 2
-                sfice(n,j,i) = d_1000
-                sncv(n,j,i) = d_zero
+                sfice(n,j,i) = d_100
               end do
             else
-              sfs%tga(j,i) = ts1(j,i)
-              sfs%tgb(j,i) = ts1(j,i)
-              ldmsk(j,i) = 0
-              do n = 1, nnsg
-                ldmsk1(n,j,i) = 0
-                sfice(n,j,i) = d_zero
-                sncv(n,j,i)  = d_zero
-              end do
+              !
+              ! Allow for ice melting.
+              !
+              if ( ldmsk(j,i) == 2 ) then
+                do n = 1, nnsg
+                  sfice(n,j,i) = min(sfice(n,j,i),0.1D0)
+                end do
+              end if
             end if
           end if
         end if

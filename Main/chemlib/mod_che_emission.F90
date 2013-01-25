@@ -40,7 +40,7 @@ module mod_che_emission
   !
   public :: chem_emission , emis_tend 
   !
-contains
+  contains
   !
   ! SURFACE EMIOSSION flux
   !
@@ -56,7 +56,7 @@ contains
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    ! 
+    !
     ! read the aerosol emission files
     !
     if ( chemsimtype(1:4) == 'DUST' .or. chemsimtype(1:4) == 'SSLT') return
