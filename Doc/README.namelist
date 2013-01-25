@@ -387,7 +387,7 @@
                            !   SUCA : Activate both SUKF and CARB
                            !   AERO : Activate all DUST, SSLT, CARB and SULF
                            !   CBMZ : Activate gas phase and sulfate
-                           !   DCBB : Activate CBMZ +DUST +CARB
+                           !   DCCB : Activate CBMZ +DUST +CARB
  ichsolver = 1,  ! Activate the chemical solver
  ichsursrc = 1,  ! Enable the emissions
  ichdrdepo = 0,  ! 1 = enable tracer surface dry deposition. For dust,

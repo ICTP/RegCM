@@ -839,7 +839,7 @@ This stanza controls the chemistry and aerosol options in the RegCM model.
                            !   SUCA : Activate both SUKF and CARB
                            !   AERO : Activate all DUST, SSLT, CARB and SULF
                            !   CBMZ : Activate gas phase and sulfate
-                           !   DCBB : Activate CBMZ +DUST +CARB
+                           !   DCCB : Activate CBMZ +DUST +CARB
  ichsolver = 1,  ! Activate the chemical solver
  ichsursrc = 1,  ! Enable the emissions
  ichdrdepo = 0,  ! 1 = enable tracer surface dry deposition. For dust,
@@ -889,7 +889,7 @@ are:
   \item \verb=AERO= : Activate all DUST, SSLT, CARB and SULF
   \item \verb=CBMZ= : Activate CBMZ gas phase option : 35 tracer are
     considered here.
-  \item \verb=DCBB= : Activate CBMZ +DUST +CARB options: 45 tracers are
+  \item \verb=DCCB= : Activate CBMZ +DUST +CARB options: 45 tracers are
     considered here.
 \end{enumerate}
 
@@ -909,7 +909,7 @@ We need to perform a couple of operations in the pre-processing stage to prepare
 input datasets for an aerosol/chemistry simulation.
 
 \begin{enumerate}
-  \item In the case of a \verb=DUST=, \verb=AERO= or \verb=DCBB= simulation,
+  \item In the case of a \verb=DUST=, \verb=AERO= or \verb=DCCB= simulation,
     we need the model to prepare soil type dataset to be used for dust emission
     calculation at the \verb=terrain= program stage. The \verb=ltexture=
     parameter in the \verb=terrainparam= stanza (see above in \ref{terparam})
@@ -956,7 +956,7 @@ measurements data or GCM model with a chemistry parametrization active.
 The steps to prepare the chemistry boundary conditions data are the following:
 
 \begin{enumerate}
-  \item In case of a chemistry simulation type (\verb=CBMZ= or \verb=DCBB=), the
+  \item In case of a chemistry simulation type (\verb=CBMZ= or \verb=DCCB=), the
     global emission files must first be interpolate to the RegCM model grid
     using the following procedure:
     \begin{itemize}
