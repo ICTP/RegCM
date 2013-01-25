@@ -397,6 +397,14 @@ module mod_precip
             else                                   ! partial cloud cover
               fcc(j,i,k) = d_one-dsqrt(d_one-(rh3(j,i,k)-rh0adj) / &
                             (rhmax-rh0adj))
+              !
+              ! Tuğba Öztürk mod for Siberia
+              !
+              ! fcc(j,i,k) = (rh3(j,i,k)**0.25D0)* &
+              !      (d_one-dexp((-100.0D0*qx3(j,i,k,iqc)) / &
+              !     ((d_one-rh3(j,i,k))*qs3(j,i,k))**0.49D0))
+              !
+              !
               fcc(j,i,k) = dmin1(dmax1(fcc(j,i,k),0.01D0),0.99D0)
             end if !  rh0 threshold
 !---------------------------------------------------------------------
