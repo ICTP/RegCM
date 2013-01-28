@@ -40,7 +40,6 @@ module mod_ncio
   integer(ik4) :: ibcrec , ibcnrec
   integer(ik4) :: somrec , somnrec
   type(rcm_time_and_date) , dimension(:) , allocatable :: icbc_idate
-  type(rcm_time_and_date) , dimension(:) , allocatable :: som_idate
   integer(ik4) , dimension(7) :: icbc_ivar
   integer(ik4) , dimension(1) :: som_ivar
 
@@ -49,7 +48,7 @@ module mod_ncio
   data ibcnrec / 0/
   data somin   /-1/
   data somrec  / 1/
-  data somnrec / 0/
+  data somnrec / 12/
 
   real(rk8) , dimension(:,:) , allocatable :: rspace1
   real(rk8) , dimension(:,:) , allocatable :: rspace2
@@ -201,26 +200,21 @@ module mod_ncio
     end if 
   end function icbc_search
 
-  integer function som_search(idate)
+  integer function som_search(imon)
     implicit none
-    type(rcm_time_and_date) , intent(in) :: idate
-    type(rcm_time_interval) :: tdif
-    character(len=32) :: appdat1, appdat2
-    if (idate > som_idate(somnrec) .or. idate < som_idate(1)) then
-      som_search = -1
+    integer(ik4) , intent(in) :: imon
+    if ( imon < 0 .or. imon > 13 ) then
+      somrec = -1
     else
-      tdif = idate-som_idate(1)
-      somrec = (idnint(tohours(tdif))/ibdyfrq)+1
-      if ( somrec < 1 .or. somrec > somnrec ) then
-        appdat1 = tochar(idate)
-        write (stderr,*) 'Record is not found in SOM file for ',appdat1
-        appdat1 = tochar(som_idate(1))
-        appdat2 = tochar(som_idate(ibcnrec))
-        write (stderr,*) 'Range is : ', appdat1, '-', appdat2
-        call fatal(__FILE__,__LINE__,'SOM READ')
+      if ( imon > 0 .and. imon < 12 ) then 
+        somrec = imon
+      else if ( imon == 0 ) then
+        somrec = 12
+      else
+        somrec = 1
       end if
-      som_search = somrec
-    end if 
+    end if
+    som_search = somrec
   end function som_search
 
   subroutine open_icbc(idate)
@@ -299,60 +293,18 @@ module mod_ncio
   subroutine open_som(idate)
     type(rcm_time_and_date) , intent(in) :: idate
     character(len=10) :: ctime
-    integer(ik4) :: idimid , itvar , i , chkdiff , nnj , nni
-    real(rk8) , dimension(:) , allocatable :: som_nctime
-    character(len=64) :: som_timeunits , som_timecal
     character(len=256) :: somname
+    integer(ik4) :: nnj , nni
 
     call close_som
-    write (ctime, '(i10)') toint10(idate)
+    ctime = 'YYYYMMDDHH'
     somname = trim(dirglob)//pthsep//trim(domname)//'_SOM.'//ctime//'.nc'
     call openfile_withname(somname,somin)
     somrec = 1
-    somnrec = 0
+    somnrec = 12
     call check_domain(somin,.true.,.true.)
-    istatus = nf90_inq_dimid(somin, 'time', idimid)
-    call check_ok(__FILE__,__LINE__,'Dimension time miss', 'SOM FILE')
-    istatus = nf90_inquire_dimension(somin, idimid, len=somnrec)
-    call check_ok(__FILE__,__LINE__,'Dimension time read error', 'SOM FILE')
-    if ( somnrec < 1 ) then
-      write (stderr,*) 'Time var in SOM has zero dim.'
-      call fatal(__FILE__,__LINE__,'SOM READ')
-    end if
-    istatus = nf90_inq_varid(somin, 'time', itvar)
-    call check_ok(__FILE__,__LINE__,'variable time miss', 'SOM FILE')
-    istatus = nf90_get_att(somin, itvar, 'units', som_timeunits)
-    call check_ok(__FILE__,__LINE__,'variable time units miss','SOM FILE')
-    istatus = nf90_get_att(somin, itvar, 'calendar', som_timecal)
-    call check_ok(__FILE__,__LINE__,'variable time calendar miss','SOM FILE')
-    allocate(som_nctime(somnrec), stat=istatus)
-    if ( istatus /= 0 ) then
-      write(stderr,*) 'Memory allocation error in SOM for time real values'
-      call fatal(__FILE__,__LINE__,'SOM READ')
-    end if
-    allocate(som_idate(somnrec), stat=istatus)
-    if ( istatus /= 0 ) then
-      write(stderr,*) 'Memory allocation error in SOM for time array'
-      call fatal(__FILE__,__LINE__,'SOM READ')
-    end if
-    istatus = nf90_get_var(somin, itvar, som_nctime)
-    call check_ok(__FILE__,__LINE__,'variable time read error', 'SOM FILE')
-    do i = 1 , somnrec
-      som_idate(i) = timeval2date(som_nctime(i), som_timeunits, som_timecal)
-    end do
-    if ( somnrec > 1 ) then
-      chkdiff = idnint(som_nctime(2) - som_nctime(1))
-      if (chkdiff /= ibdyfrq) then
-        write (stderr,*) 'Time var in SOM inconsistency.'
-        write (stderr,*) 'Expecting ibdyfrq = ', ibdyfrq
-        write (stderr,*) 'Found     ibdyfrq = ', chkdiff
-        call fatal(__FILE__,__LINE__,'SOM READ')
-      end if
-    end if
-    deallocate(som_nctime)
     istatus = nf90_inq_varid(somin, 'qflx', som_ivar(1))
     call check_ok(__FILE__,__LINE__,'variable qflx miss', 'SOM FILE')
-
     nnj = global_out_jend-global_out_jstart+1
     nni = global_out_iend-global_out_istart+1
     allocate(rspace1(nnj,nni))
@@ -472,7 +424,6 @@ module mod_ncio
     if (somin >= 0) then
       istatus = nf90_close(somin)
       call check_ok(__FILE__,__LINE__,'Error Close SOM file','SOM FILE')
-      if ( allocated(som_idate) ) deallocate(som_idate)
       somin = -1
     end if
     if ( allocated(rspace1) ) deallocate(rspace1)

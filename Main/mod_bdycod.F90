@@ -66,6 +66,7 @@ module mod_bdycod
   real(rk8) , pointer , dimension(:) :: wgtx
   real(rk8) :: fnudge , gnudge
   integer(ik4) :: nbdm
+  integer(ik4) :: som_month
 !
   interface nudge
     module procedure nudge4d , nudge3d , nudge2d
@@ -220,15 +221,14 @@ module mod_bdycod
     call read_icbc(xpsb%b0,ts0,xub%b0,xvb%b0,xtb%b0,xqb%b0)
 
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
-      if ( ktau > 0 ) then
-        datefound = som_search(bdydate1)
-        if (datefound < 0) then
-          appdat = tochar(bdydate1)
-          call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
-        end if
-        call read_som(qflb0)
-        where ( ldmsk > 0 ) qflb0 = d_zero
+      som_month = xmonth
+      datefound = som_search(som_month)
+      if (datefound < 0) then
+        appdat = tochar(bdydate1)
+        call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
       end if
+      call read_som(qflb0)
+      where ( ldmsk > 0 ) qflb0 = d_zero
     end if
 
     if ( myid == italk ) then
@@ -257,7 +257,7 @@ module mod_bdycod
     call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
 
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
-      datefound = som_search(bdydate2)
+      datefound = som_search(som_month+1)
       if (datefound < 0) then
         !
         ! Cannot run without initial conditions
@@ -382,19 +382,27 @@ module mod_bdycod
     implicit none
     integer(ik4) :: i , j , k , n , datefound
     character(len=32) :: appdat
+    logical :: update_slabocn
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyin'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
+    update_slabocn = ( islab_ocean == 1 .and. &
+      do_qflux_adj .and. som_month /= xmonth )
     xub%b0(:,:,:) = xub%b1(:,:,:)
     xvb%b0(:,:,:) = xvb%b1(:,:,:)
     xtb%b0(:,:,:) = xtb%b1(:,:,:)
     xqb%b0(:,:,:) = xqb%b1(:,:,:)
     xpsb%b0(:,:) = xpsb%b1(:,:)
     ts0(:,:) = ts1(:,:)
-    if ( islab_ocean == 1 .and. do_qflux_adj ) qflb0 = qflb1
+
+    ! Data are monthly
+    if ( update_slabocn ) then
+      som_month = xmonth
+      qflb0 = qflb1
+    end if
 !
     bdydate2 = bdydate2 + intbdy
     if ( myid == italk ) then
@@ -411,15 +419,11 @@ module mod_bdycod
     end if
     call read_icbc(xpsb%b1,ts1,xub%b1,xvb%b1,xtb%b1,xqb%b1)
 
-    if ( islab_ocean == 1 .and. do_qflux_adj ) then
-      datefound = som_search(bdydate2)
+    if ( update_slabocn ) then
+      datefound = som_search(som_month)
       if ( datefound < 0 ) then
-        call open_som(monfirst(bdydate2))
-        datefound = som_search(bdydate2)
-        if ( datefound < 0 ) then
-          appdat = tochar(bdydate2)
-          call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
-        end if
+        appdat = tochar(bdydate2)
+        call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
       end if
       call read_som(qflb1)
       where ( ldmsk > 0 ) qflb1 = d_zero

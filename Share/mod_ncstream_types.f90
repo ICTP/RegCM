@@ -43,6 +43,7 @@ module mod_ncstream_types
   integer(ik4) , parameter :: h10m_level_dim  = 8
   integer(ik4) , parameter :: soil_layer_dim  = 9
   integer(ik4) , parameter :: water_depth_dim = 10
+  integer(ik4) , parameter :: months_dim      = 11
 
   type ncinstream_params
     ! The name of the input file

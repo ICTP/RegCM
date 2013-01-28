@@ -42,9 +42,11 @@ module mod_runparams
   integer(ik4) :: xyear , xmonth , xday , xhour
 
   type(rcm_time_and_date) , save :: bdydate1 , bdydate2
+  type(rcm_time_and_date) , save :: somdate1 , somdate2
 
   type(rcm_time_interval) , save :: intmdl
   type(rcm_time_interval) , save :: intbdy
+  type(rcm_time_interval) , save :: intsom
 
   real(rk8) :: declin , deltmx
   real(rk8) :: xbctime
@@ -62,7 +64,7 @@ module mod_runparams
   integer(ik8) :: kday
   ! Output k values for I/O operations.
   integer(ik8) :: katm , krad , kche , ksav , kdbg , kbdy , &
-                  ksrf , ksub , klak , krep , kslab
+                  ksrf , ksub , klak , krep
   ! Seconds counter in between boundary conditions read
   integer(ik8) :: nbdytime
   ! Step counters to activate surface and radiation schemes

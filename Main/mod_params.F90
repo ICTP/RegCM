@@ -939,6 +939,7 @@ module mod_params
     call bcast(mixed_layer_depth)
     ! Save the input restore flux file for the adjust run
     if ( do_restore_sst ) ifslaboc = .true.
+    stepcount_io => stepcount
   end if
 
   if ( ichem == 1 ) then
@@ -1112,7 +1113,6 @@ module mod_params
   kche  = nchefrq/idnint(dtsec)
   kdbg  = ndbgfrq/idnint(dtsec)
   ksav  = nsavfrq/idnint(dtsec)
-  kslab = nslabfrq/idnint(dtsec)
 
   rnsrf_for_srffrq = d_one/(dble(ksrf)*rtsrf)
   rnsrf_for_lakfrq = d_one/(dble(klak)*rtsrf)
@@ -1139,6 +1139,7 @@ module mod_params
 !
   intmdl = rcm_time_interval(idnint(dt),usec)
   intbdy = rcm_time_interval(ibdyfrq,uhrs)
+  intsom = rcm_time_interval(1,umnt)
   deltmx = dt
   dtlake = dtsrf
 !

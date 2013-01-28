@@ -30,33 +30,38 @@ module mod_slabocean
   private
 !
   real(rk8) :: mixed_layer_salin = d_100/d_three
+  integer(ik4) , parameter :: monperyear = 12
 !
   ! the actual prognotic sst pointing on tg2
   real(rk8) , pointer , dimension(:,:) :: sstemp
   real(ik8) , pointer , dimension(:,:) :: ohfx , oqfx , ofsw , oflw
   real(rk8) , pointer , dimension(:,:) :: olndcat
-  real(rk8) , pointer , dimension (:,:) :: qflux_restore_sst , qflux_adj , &
-    net_hflx , hflx , qflb0 , qflb1 , qflbt
+  real(rk8) , pointer , dimension(:,:,:) :: qflux_restore_sst
+  integer(ik4) , dimension(monperyear) , target :: stepcount
+  real(rk8) , pointer , dimension (:,:) :: qflux_sst , qflux_adj , net_hflx , &
+    hflx , qflb0 , qflb1 , qflbt
   integer(ik4) , pointer , dimension (:,:) :: ocmask
 
   real(rk8) :: dtocean
 !
   public :: allocate_mod_slabocean , init_slabocean , update_slabocean
   public :: fill_slaboc_outvars
-  public :: qflb0 , qflb1 , qflbt
+  public :: qflb0 , qflb1 , qflbt , qflux_restore_sst , stepcount
 
   contains
 !
     subroutine allocate_mod_slabocean
       implicit none
-      call getmem2d(qflux_restore_sst,jci1,jci2,ici1,ici2, &
+      call getmem3d(qflux_restore_sst,jci1,jci2,ici1,ici2,1,monperyear,&
                     'slab_ocean:qflux_restore_sst')
+      call getmem2d(qflux_sst,jci1,jci2,ici1,ici2,'slab_ocean:qflux_sst')
       call getmem2d(qflux_adj,jci1,jci2,ici1,ici2,'slab_ocean:qflux_adj')
       call getmem2d(qflb0,jci1,jci2,ici1,ici2,'slab_ocean:qflb0')
       call getmem2d(qflb1,jci1,jci2,ici1,ici2,'slab_ocean:qflb1')
       call getmem2d(qflbt,jci1,jci2,ici1,ici2,'slab_ocean:qflbt')
       call getmem2d(net_hflx,jci1,jci2,ici1,ici2,'slab_ocean:net_hflx')
       call getmem2d(hflx,jci1,jci2,ici1,ici2,'slab_ocean:hflx')
+      stepcount(:) = 0
     end subroutine allocate_mod_slabocean
 !
     subroutine init_slabocean(sfs,ldmsk,fsw,flw)
@@ -86,25 +91,25 @@ module mod_slabocean
       ! water heat capacity ~ 4 J/g/K         
       mlcp = mixed_layer_depth*4.0D6
 
-      qflux_restore_sst(:,:) = d_zero
-
       if ( do_restore_sst ) then
+        stepcount(xmonth) = stepcount(xmonth)+1
         where ( ocmask == 0 )
-          qflux_restore_sst = &
-            (ts1(jci1:jci2, ici1:ici2) - sstemp(jci1:jci2, ici1:ici2)) * &
-             mlcp / (sst_restore_timescale * 86400.0D0) ! w/m2                  
-        else where
-          qflux_restore_sst = dmissval
+          qflux_sst = &
+            (ts1(jci1:jci2, ici1:ici2) - sstemp(jci1:jci2,ici1:ici2)) * &
+            mlcp / (sst_restore_timescale * 86400.0D0) ! w/m2
+          qflux_restore_sst(:,:,xmonth) = (qflux_restore_sst(:,:,xmonth) + &
+            qflux_sst)
         end where
       else if ( do_qflux_adj ) then
+        !
         ! Find the current climatological heat flux adjustment (qflux_adj).  
         ! The qflux_adj can be added to the heat flux to find the net heat
         ! flux anomaly into the mixed layer for the coupled mixed layer expt.
-  
+        !
         ! Note that any ice model contributions need to be added in, which
         ! is handled in an off-line calculation to derive the final qflux
         ! adjustment. These include ice restoring and ice lid contributions.
-
+        !
         qflux_adj = qflb0 + dtocean*qflbt
       end if    
       !
@@ -137,7 +142,7 @@ module mod_slabocean
         hflx = ofsw - oflw - ohfx - wlhv * oqfx
 
         ! account for the retaured or adjustment flux term
-        net_hflx = hflx + qflux_adj + qflux_restore_sst
+        net_hflx = hflx + qflux_adj + qflux_sst
 
         ! update the prognostic seasurface temperature (pointing on tg2)
         sstemp(jci1:jci2, ici1:ici2) = &
@@ -147,8 +152,24 @@ module mod_slabocean
 
     subroutine fill_slaboc_outvars
       implicit none
+      integer(ik4) :: imon
       if ( associated(slab_qflx_out) ) then
-        slab_qflx_out = qflux_restore_sst(jci1:jci2,ici1:ici2)
+        do imon = 1 , monperyear
+          if ( stepcount(imon) /= 0 ) then
+            where ( ocmask == 0 )
+              slab_qflx_out(:,:,imon) = &
+                qflux_restore_sst(:,:,imon)/stepcount(imon)
+            else where
+              slab_qflx_out(:,:,imon) = dmissval
+            end where
+          else
+            where ( ocmask == 0 )
+              slab_qflx_out(:,:,imon) = d_zero
+            else where
+              slab_qflx_out(:,:,imon) = dmissval
+            end where
+          end if
+        end do
       end if
     end subroutine fill_slaboc_outvars
 !

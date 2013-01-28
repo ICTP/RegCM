@@ -31,6 +31,7 @@ module mod_ncout
   public :: init_output_streams
   public :: dispose_output_streams
   public :: write_record_output_stream
+  public :: writevar_output_stream
 !
   type varspan
     integer(ik4) :: j1 , j2 , i1 , i2 , k1 , k2
@@ -82,8 +83,9 @@ module mod_ncout
   integer(ik4) , parameter :: nche3dvars = 12
   integer(ik4) , parameter :: nchevars = nche2dvars+nche3dvars
 
-  integer(ik4) , parameter :: nslaboc2dvars = 1 + nbase
-  integer(ik4) , parameter :: nslabocvars = nslaboc2dvars
+  integer(ik4) , parameter :: nslaboc2dvars = nbase
+  integer(ik4) , parameter :: nslaboc3dvars = 1
+  integer(ik4) , parameter :: nslabocvars = nslaboc2dvars + nslaboc3dvars
 
   type(ncvariable2d_real) , save , pointer , &
     dimension(:) :: v2dvar_atm => null()
@@ -119,6 +121,8 @@ module mod_ncout
     dimension(:) :: v3dvar_che => null()
   type(ncvariable2d_real) , save , pointer , &
     dimension(:) :: v2dvar_slaboc => null()
+  type(ncvariable3d_real) , save , pointer , &
+    dimension(:) :: v3dvar_slaboc => null()
 
   integer(ik4) :: maxstreams
 
@@ -321,7 +325,8 @@ module mod_ncout
   integer(ik4) , parameter :: slab_mask    = 3
   integer(ik4) , parameter :: slab_topo    = 4
   integer(ik4) , parameter :: slab_ps      = 5
-  integer(ik4) , parameter :: slab_qflx    = 6
+
+  integer(ik4) , public , parameter :: slab_qflx    = 1
 
   real(rk8) , pointer , dimension(:,:) :: io2d , io2dsg
   real(rk8) , pointer , dimension(:,:,:) :: io3d , io3dsg
@@ -330,6 +335,11 @@ module mod_ncout
     module procedure setup_var_2d
     module procedure setup_var_3d
   end interface setup_var
+
+  interface writevar_output_stream
+    module procedure writevar2d_output_stream
+    module procedure writevar3d_output_stream
+  end interface
 
   contains
 
@@ -1274,6 +1284,7 @@ module mod_ncout
       if ( nstream == slaboc_stream ) then
 
         allocate(v2dvar_slaboc(nslaboc2dvars))
+        allocate(v3dvar_slaboc(nslaboc3dvars))
 
         ! This variables are always present
 
@@ -1281,10 +1292,13 @@ module mod_ncout
           v2dvar_slaboc(slab_xlat),v2dvar_slaboc(slab_topo),   &
           v2dvar_slaboc(slab_mask),v2dvar_slaboc(slab_ps))
 
-        call setup_var(v2dvar_slaboc(slab_qflx),vsize,'qflx','W m-2', &
+        vsize%k2 = 12
+        v3dvar_slaboc(slab_qflx)%axis = 'xyM'
+        call setup_var(v3dvar_slaboc(slab_qflx),vsize,'qflx','W m-2', &
             'heat flux correction from slab ocean model', &
-            'heat_flux_correction',.true.,l_fill=.true.)
-        slab_qflx_out => v2dvar_slaboc(slab_qflx)%rval
+            'heat_flux_correction',.false.,'time: mean (interval 1 month)', &
+            l_fill=.true.)
+        slab_qflx_out => v3dvar_slaboc(slab_qflx)%rval
 
         outstream(slaboc_stream)%nvar = nslabocvars
         allocate( &
@@ -1299,6 +1313,10 @@ module mod_ncout
         vcount = 1
         do i = 1 , nslaboc2dvars
           outstream(slaboc_stream)%ncvars%vlist(vcount)%vp => v2dvar_slaboc(i)
+          vcount = vcount + 1
+        end do
+        do i = 1 , nslaboc3dvars
+          outstream(slaboc_stream)%ncvars%vlist(vcount)%vp => v3dvar_slaboc(i)
           vcount = vcount + 1
         end do
 
@@ -1692,14 +1710,15 @@ module mod_ncout
       file_loop_par: &
       do j = 1 , outstream(i)%nfiles
 
-        write (fbname,'(a,a,i10)') trim(outstream(i)%cname_base(j)) , &
-          '.', toint10(idate)
-
         if ( i == slaboc_stream ) then
+          write (fbname,'(a,a,a)') trim(outstream(i)%cname_base(j)) , &
+            '.YYYYMMDDHH'
           outstream(i)%opar%fname = &
             trim(dirglob)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
           outstream(i)%opar%zero_date = idate
         else
+          write (fbname,'(a,a,i10)') trim(outstream(i)%cname_base(j)) , &
+            '.', toint10(idate)
           outstream(i)%opar%fname = &
             trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
           outstream(i)%opar%zero_date = idate
@@ -2378,5 +2397,120 @@ module mod_ncout
     end do
 
   end subroutine write_record_output_stream
+
+  subroutine writevar2d_output_stream(istream,vp,ifile)
+    implicit none
+    integer(ik4) , intent(in) :: istream
+    integer(ik4) , intent(in) , optional :: ifile
+    type(ncvariable2d_real) , intent(inout) :: vp
+    real(rk8) , pointer , dimension(:,:) :: tmp2d
+    real(rk8) , pointer , dimension(:,:) :: pnt2d => null( )
+    integer(ik4) :: jfile
+
+    if ( .not. parallel_out .and. myid /= iocpu ) then
+      call grid_collect(vp%rval,pnt2d, &
+                        vp%j1,vp%j2,vp%i1,vp%i2,outstream(istream)%l_sub)
+      ! If not parallel output, only the master proc writes output files
+      return
+    end if
+
+    jfile = outstream(istream)%nfiles
+    if ( present(ifile) ) jfile = ifile
+    if ( jfile < 1 .or. jfile > outstream(istream)%nfiles ) then
+      write (stderr,*) 'No such file in stream ',istream,' : ', ifile
+      return
+    end if
+
+    if ( .not. parallel_out ) then
+      if ( outstream(istream)%l_sub ) then
+        pnt2d => io2dsg
+      else
+        pnt2d => io2d
+      end if
+    end if
+
+    ! If not parallel output, collect data
+
+    if ( .not. parallel_out ) then
+      call grid_collect(vp%rval,pnt2d, &
+                        vp%j1,vp%j2,vp%i1,vp%i2,outstream(istream)%l_sub)
+      vp%j1 = outstream(istream)%jg1
+      vp%j2 = outstream(istream)%jg2
+      vp%i1 = outstream(istream)%ig1
+      vp%i2 = outstream(istream)%ig2
+      tmp2d => vp%rval
+      vp%rval => pnt2d
+    end if
+
+    call outstream_writevar(outstream(istream)%ncout(jfile),vp)
+
+    ! Reset pointers
+
+    if ( .not. parallel_out ) then
+      vp%rval => tmp2d
+      vp%j1 = outstream(istream)%jl1
+      vp%j2 = outstream(istream)%jl2
+      vp%i1 = outstream(istream)%il1
+      vp%i2 = outstream(istream)%il2
+    end if
+
+  end subroutine writevar2d_output_stream
+
+  subroutine writevar3d_output_stream(istream,vp,ifile)
+    implicit none
+    integer(ik4) , intent(in) :: istream
+    integer(ik4) , intent(in) , optional :: ifile
+    type(ncvariable3d_real) , intent(inout) :: vp
+    real(rk8) , pointer , dimension(:,:,:) :: tmp3d
+    real(rk8) , pointer , dimension(:,:,:) :: pnt3d => null( )
+    integer(ik4) :: jfile
+
+    if ( .not. parallel_out .and. myid /= iocpu ) then
+      call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2, &
+                        vp%i1,vp%i2,vp%k1,vp%k2,outstream(istream)%l_sub)
+      ! If not parallel output, only the master proc writes output files
+      return
+    end if
+
+    jfile = outstream(istream)%nfiles
+    if ( present(ifile) ) jfile = ifile
+    if ( jfile < 1 .or. jfile > outstream(istream)%nfiles ) then
+      write (stderr,*) 'No such file in stream ',istream,' : ', ifile
+      return
+    end if
+
+    if ( .not. parallel_out ) then
+      if ( outstream(istream)%l_sub ) then
+        pnt3d => io3dsg
+      else
+        pnt3d => io3d
+      end if
+    end if
+
+    ! If not parallel output, collect data
+
+    if ( .not. parallel_out ) then
+      call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2, &
+                        vp%i1,vp%i2,vp%k1,vp%k2,outstream(istream)%l_sub)
+      vp%j1 = outstream(istream)%jg1
+      vp%j2 = outstream(istream)%jg2
+      vp%i1 = outstream(istream)%ig1
+      vp%i2 = outstream(istream)%ig2
+      tmp3d => vp%rval
+      vp%rval => pnt3d
+    end if
+
+    call outstream_writevar(outstream(istream)%ncout(jfile),vp)
+
+    ! Reset pointers
+
+    if ( .not. parallel_out ) then
+      vp%rval => tmp3d
+      vp%j1 = outstream(istream)%jl1
+      vp%j2 = outstream(istream)%jl2
+      vp%i1 = outstream(istream)%il1
+      vp%i2 = outstream(istream)%il2
+    end if
+  end subroutine writevar3d_output_stream
 
 end module mod_ncout

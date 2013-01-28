@@ -29,6 +29,7 @@ module mod_init
   use mod_cu_interface
   use mod_rad_interface
   use mod_pbl_interface
+  use mod_slabocean
   use rrtmg_sw_init
   use rrtmg_lw_init
   use mod_pbl_interface
@@ -379,6 +380,12 @@ module mod_init
       call grid_distribute(sfracb2d_io,sfracb2d,jci1,jci2,ici1,ici2)
       call grid_distribute(sfracs2d_io,sfracs2d,jci1,jci2,ici1,ici2)
       call grid_distribute(svegfrac2d_io,svegfrac2d,jci1,jci2,ici1,ici2)
+    end if
+
+    if ( islab_ocean == 1 .and. do_restore_sst ) then
+      call grid_distribute(qflux_restore_sst_io,qflux_restore_sst, &
+        jci1,jci2,ici1,ici2,1,12)
+      call bcast(stepcount)
     end if
 
     !

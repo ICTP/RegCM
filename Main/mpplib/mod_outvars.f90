@@ -163,6 +163,6 @@ module mod_outvars
   real(rk8) , dimension(:,:,:) , pointer :: che_sedten_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: che_emten_out => null()
 
-  real(rk8) , dimension(:,:) , pointer :: slab_qflx_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: slab_qflx_out => null()
 
 end module mod_outvars

@@ -200,6 +200,10 @@ module mod_savefile
 #endif
       read (iutrst) dstor_io
       read (iutrst) hstor_io
+      if ( islab_ocean == 1 .and. do_restore_sst ) then
+        read (iutrst) qflux_restore_sst_io
+        read (iutrst) stepcount_io
+      end if
       close(iutrst)
     end if
   end subroutine read_savefile
@@ -336,6 +340,10 @@ module mod_savefile
 #endif
       write (iutsav) dstor_io
       write (iutsav) hstor_io
+      if ( islab_ocean == 1 .and. do_restore_sst ) then
+        write (iutsav) qflux_restore_sst_io
+        write (iutsav) stepcount_io
+      end if
       close(iutsav)
     end if
 

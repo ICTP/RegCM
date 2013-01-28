@@ -651,6 +651,10 @@ module mod_ncstream
           num = ndpmax
           the_name = 'depth'
           pdim = water_depth_dim
+        case ('MONTHS','months','month','mon','mpy')
+          num = 12
+          the_name = 'month'
+          pdim = months_dim
         case default
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', &
@@ -1112,6 +1116,12 @@ module mod_ncstream
             end if
             id_dim(ic) = stream%id_dims(water_depth_dim)
             len_dim(ic) = stream%len_dims(water_depth_dim)
+          case ('M')
+            if ( stream%id_dims(months_dim) < 0 ) then
+              call add_dimension(stream,'months')
+            end if
+            id_dim(ic) = stream%id_dims(months_dim)
+            len_dim(ic) = stream%len_dims(months_dim)
           case default
             write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
             write(stderr,*) 'Not in list. Known dimension codes: xyztbT2wsd'

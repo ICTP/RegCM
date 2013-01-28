@@ -84,6 +84,9 @@ module mod_mppio
   real(rk8) , pointer , dimension(:,:,:) :: omega_io
   real(rk8) , pointer , dimension(:,:,:) :: tbase_io
 
+  real(rk8) , pointer , dimension(:,:,:) :: qflux_restore_sst_io
+  integer(ik4) , pointer , dimension(:) :: stepcount_io
+
   type(atmstate) :: atm1_io
   type(atmstate) :: atm2_io
   type(surfstate) :: sfs_io
@@ -171,6 +174,11 @@ module mod_mppio
                     icross1,icross2,1,kz,'heatrt_io')
       call getmem3d(o3prof_io,jcross1,jcross2, &
                     icross1,icross2,1,kzp1,'o3prof_io')
+
+      if ( islab_ocean == 1 .and. do_restore_sst ) then
+        call getmem3d(qflux_restore_sst_io,jcross1,jcross2, &
+                      icross1,icross2,1,12,'qflux_restore_sst_io')
+      end if
 
       if ( iocnflx == 2 ) then
         call getmem2d(zpbl_io,jcross1,jcross2,icross1,icross2,'zpbl_io')

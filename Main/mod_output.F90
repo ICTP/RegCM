@@ -138,7 +138,7 @@ module mod_output
       if ( mod(ktau,kche) == 0 ) then
         ldoche = .true.
       end if
-      if ( mod(ktau,kslab) == 0 ) then
+      if ( idatex == idate2 ) then
         ldoslab = .true.
       end if
     end if
@@ -430,7 +430,7 @@ module mod_output
       if ( ldoslab ) then
         ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         call fill_slaboc_outvars
-        call write_record_output_stream(slaboc_stream,idatex)
+        call writevar_output_stream(slaboc_stream,v3dvar_slaboc(slab_qflx))
         if ( myid == italk ) &
           write(stdout,*) 'SOM variables written at ' , tochar(idatex)
       end if
@@ -568,6 +568,12 @@ module mod_output
           call grid_collect(sfracb2d,sfracb2d_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfracs2d,sfracs2d_io,jci1,jci2,ici1,ici2)
           call grid_collect(svegfrac2d,svegfrac2d_io,jci1,jci2,ici1,ici2)
+        end if
+
+        if ( islab_ocean == 1 .and. do_restore_sst ) then
+          call grid_collect(qflux_restore_sst,qflux_restore_sst_io, &
+            jci1,jci2,ici1,ici2,1,12)
+          stepcount_io => stepcount
         end if
 
         if ( ldosav ) then
