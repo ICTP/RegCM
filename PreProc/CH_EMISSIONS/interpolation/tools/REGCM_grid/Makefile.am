@@ -20,5 +20,6 @@ distclean-local:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
 emcre_grid.o: emcre_grid.f90 mo_f2kcli.o emcre_tools.o emcre_netcdf.o
-emcre_netcdf.o emcre_netcdf.mod: emcre_netcdf.f90 emcre_tools.o
-emcre_tools.o emcre_tools.mod: emcre_tools.f90
+emcre_netcdf.o : emcre_netcdf.f90 emcre_tools.o
+emcre_tools.o : emcre_tools.f90
+mo_f2kcli.o : mo_f2kcli.F90
