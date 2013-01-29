@@ -46,7 +46,7 @@ clean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-GrADSNcPlot.o : GrADSNcPlot.F90 mod_intkinds.o mod_realkinds.o mod_projections.o mod_date.o mod_message.o mod_nchelper.o
-GrADSNcPrepare.o : GrADSNcPrepare.F90 mod_intkinds.o mod_realkinds.o mod_projections.o mod_date.o mod_message.o mod_nchelper.o mod_stdio.o
+GrADSNcPlot.o : GrADSNcPlot.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_projections.o mod_stdio.o mod_message.o mod_date.o mod_space.o mod_memutil.o mod_dynparam.o mod_nchelper.o
+GrADSNcPrepare.o : GrADSNcPrepare.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_projections.o mod_stdio.o mod_message.o mod_date.o mod_space.o mod_memutil.o mod_dynparam.o mod_nchelper.o
 mod_derived.o : mod_derived.f90 mod_intkinds.o mod_realkinds.o mod_constants.o
-sigma2p.o : sigma2p.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_message.o mod_vertint.o mod_derived.o mod_nchelper.o
+sigma2p.o : sigma2p.F90 mod_realkinds.o mod_constants.o mod_stdio.o mod_message.o mod_vertint.o mod_derived.o mod_date.o mod_space.o mod_memutil.o mod_dynparam.o mod_nchelper.o
