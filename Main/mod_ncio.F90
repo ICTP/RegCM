@@ -50,9 +50,10 @@ module mod_ncio
   data somrec  / 1/
   data somnrec / 12/
 
-  real(rk8) , dimension(:,:) , allocatable :: rspace1
-  real(rk8) , dimension(:,:) , allocatable :: rspace2
-  real(rk8) , dimension(:,:,:) , allocatable :: rspace3
+  real(rk8) , dimension(:,:) , pointer :: rspacesom => null()
+  real(rk8) , dimension(:,:) , pointer :: rspacesom_io => null()
+  real(rk8) , dimension(:,:) , pointer :: rspace2 => null()
+  real(rk8) , dimension(:,:,:) , pointer :: rspace3 => null()
 
   contains
 
@@ -74,57 +75,131 @@ module mod_ncio
     character(len=256) :: dname
     integer(ik4) :: idmin
     integer(ik4) , dimension(2) :: istart , icount
-    real(rk8) , dimension(:,:) , allocatable :: rspace
+    real(rk8) , dimension(:,:) , pointer :: rspace
 
     dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     if ( myid == italk ) then
       write(stdout,*) 'Reading Domain file : ', trim(dname)
     end if
-    istart(1) = global_dot_jstart
-    istart(2) = global_dot_istart
-    icount(1) = global_dot_jend-global_dot_jstart+1
-    icount(2) = global_dot_iend-global_dot_istart+1
-    allocate(rspace(icount(1),icount(2)))
-    call openfile_withname(dname,idmin)
-    call check_domain(idmin)
-    call read_var1d_static(idmin,'sigma',sigma)
-    call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
-    xlat(jde1:jde2,ide1:ide2) = rspace
-    call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
-    xlon(jde1:jde2,ide1:ide2) = rspace
-    call read_var2d_static(idmin,'dlat',rspace,istart=istart,icount=icount)
-    dlat(jde1:jde2,ide1:ide2) = rspace
-    call read_var2d_static(idmin,'dlon',rspace,istart=istart,icount=icount)
-    dlon(jde1:jde2,ide1:ide2) = rspace
-    call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
-    if ( ensemble_run ) then
-      write(stdout,*) 'Appling perturbation to input dataset:'
-      if ( lperturb_topo ) then
-        write(stdout,'(a,f7.2,a)') 'Topo with value ', &
-          perturb_frac_topo*d_100,'%'
-        call randify(rspace,perturb_frac_topo,icount(1),icount(2))
+
+    if ( do_parallel_netcdf_in ) then
+      istart(1) = global_dot_jstart
+      istart(2) = global_dot_istart
+      icount(1) = global_dot_jend-global_dot_jstart+1
+      icount(2) = global_dot_iend-global_dot_istart+1
+      allocate(rspace(icount(1),icount(2)))
+      call openfile_withname(dname,idmin)
+      call check_domain(idmin)
+      call read_var1d_static(idmin,'sigma',sigma)
+      call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
+      xlat(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
+      xlon(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'dlat',rspace,istart=istart,icount=icount)
+      dlat(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'dlon',rspace,istart=istart,icount=icount)
+      dlon(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
+      if ( ensemble_run ) then
+        if ( myid == italk ) then
+          write(stdout,*) 'Appling perturbation to input dataset:'
+        end if
+        if ( lperturb_topo ) then
+          if ( myid == italk ) then
+            write(stdout,'(a,f7.2,a)') 'Topo with value ', &
+              perturb_frac_topo*d_100,'%'
+          end if
+          call randify(rspace,perturb_frac_topo,icount(1),icount(2))
+        end if
+      end if
+      ht(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'mask',rspace,istart=istart,icount=icount)
+      mask(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'landuse',rspace,istart=istart,icount=icount)
+      lnd(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'xmap',rspace,istart=istart,icount=icount)
+      msfx(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'dmap',rspace,istart=istart,icount=icount)
+      msfd(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'coriol',rspace,istart=istart,icount=icount)
+      coriol(jde1:jde2,ide1:ide2) = rspace
+      rspace = d_zero
+      call read_var2d_static(idmin,'snowam',rspace,.true.,istart,icount)
+      snowam(jde1:jde2,ide1:ide2) = rspace
+      if ( lakemod == 1 ) then
+        call read_var2d_static(idmin,'dhlake',rspace,.true.,istart,icount)
+        hlake(jde1:jde2,ide1:ide2) = rspace
+      end if
+      call closefile(idmin)
+      deallocate(rspace)
+    else
+      if ( myid == iocpu ) then
+        istart(1) = 1
+        istart(2) = 1
+        icount(1) = jx
+        icount(2) = iy
+        allocate(rspace(icount(1),icount(2)))
+        call openfile_withname(dname,idmin)
+        call check_domain(idmin)
+        call read_var1d_static(idmin,'sigma',sigma)
+        call bcast(sigma)
+        call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
+        call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
+        call grid_distribute(rspace,xlon,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'dlat',rspace,istart=istart,icount=icount)
+        call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'dlon',rspace,istart=istart,icount=icount)
+        call grid_distribute(rspace,dlon,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
+        if ( ensemble_run ) then
+          write(stdout,*) 'Appling perturbation to input dataset:'
+          if ( lperturb_topo ) then
+            write(stdout,'(a,f7.2,a)') 'Topo with value ', &
+              perturb_frac_topo*d_100,'%'
+            call randify(rspace,perturb_frac_topo,icount(1),icount(2))
+          end if
+        end if
+        call grid_distribute(rspace,ht,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'mask',rspace,istart=istart,icount=icount)
+        call grid_distribute(rspace,mask,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'landuse',rspace, &
+                istart=istart,icount=icount)
+        call grid_distribute(rspace,lnd,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'xmap',rspace,istart=istart,icount=icount)
+        call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'dmap',rspace,istart=istart,icount=icount)
+        call grid_distribute(rspace,msfd,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'coriol',rspace, &
+                istart=istart,icount=icount)
+        call grid_distribute(rspace,coriol,jde1,jde2,ide1,ide2)
+        rspace = d_zero
+        call read_var2d_static(idmin,'snowam',rspace,.true.,istart,icount)
+        call grid_distribute(rspace,snowam,jde1,jde2,ide1,ide2)
+        if ( lakemod == 1 ) then
+          call read_var2d_static(idmin,'dhlake',rspace,.true.,istart,icount)
+          call grid_distribute(rspace,hlake,jde1,jde2,ide1,ide2)
+        end if
+        call closefile(idmin)
+        deallocate(rspace)
+      else
+        call bcast(sigma)
+        call grid_distribute(rspace,xlat,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,xlon,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,dlat,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,dlon,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,ht,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,mask,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,lnd,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,msfx,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,msfd,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,coriol,jde1,jde2,ide1,ide2)
+        call grid_distribute(rspace,snowam,jde1,jde2,ide1,ide2)
+        if ( lakemod == 1 ) then
+          call grid_distribute(rspace,hlake,jde1,jde2,ide1,ide2)
+        end if
       end if
     end if
-    ht(jde1:jde2,ide1:ide2) = rspace
-    call read_var2d_static(idmin,'mask',rspace,istart=istart,icount=icount)
-    mask(jde1:jde2,ide1:ide2) = rspace
-    call read_var2d_static(idmin,'landuse',rspace,istart=istart,icount=icount)
-    lnd(jde1:jde2,ide1:ide2) = rspace
-    call read_var2d_static(idmin,'xmap',rspace,istart=istart,icount=icount)
-    msfx(jde1:jde2,ide1:ide2) = rspace
-    call read_var2d_static(idmin,'dmap',rspace,istart=istart,icount=icount)
-    msfd(jde1:jde2,ide1:ide2) = rspace
-    call read_var2d_static(idmin,'coriol',rspace,istart=istart,icount=icount)
-    coriol(jde1:jde2,ide1:ide2) = rspace
-    rspace = d_zero
-    call read_var2d_static(idmin,'snowam',rspace,.true.,istart,icount)
-    snowam(jde1:jde2,ide1:ide2) = rspace
-    if ( lakemod == 1 ) then
-      call read_var2d_static(idmin,'dhlake',rspace,.true.,istart,icount)
-      hlake(jde1:jde2,ide1:ide2) = rspace
-    end if
-    call closefile(idmin)
-    deallocate(rspace)
   end subroutine read_domain_info
 
   subroutine read_subdomain_info(ht1,lnd1,mask1,xlat1,xlon1,hlake1)
@@ -138,7 +213,8 @@ module mod_ncio
     character(len=256) :: dname
     integer(ik4) :: idmin
     integer(ik4) , dimension(2) :: istart , icount
-    real(rk8) , dimension(:,:) , allocatable :: rspace
+    real(rk8) , dimension(:,:) , pointer :: rspace
+    real(rk8) , dimension(:,:,:) , pointer :: rspace0
     character(len=3) :: sbstring
 
     write (sbstring,'(i0.3)') nsg
@@ -146,36 +222,94 @@ module mod_ncio
     if ( myid == italk ) then
       write(stdout,*) 'Reading Sub-Domain file : ', trim(dname)
     end if
-    istart(1) = (global_dot_jstart-1)*nsg+1
-    istart(2) = (global_dot_istart-1)*nsg+1
-    icount(1) = (global_dot_jend-global_dot_jstart+1)*nsg
-    icount(2) = (global_dot_iend-global_dot_istart+1)*nsg
-    allocate(rspace(icount(1),icount(2)))
-    call openfile_withname(dname,idmin)
-    call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
-    call input_reorder(rspace,xlat1,jde1,jde2,ide1,ide2)
-    call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
-    call input_reorder(rspace,xlon1,jde1,jde2,ide1,ide2)
-    call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
-    if ( ensemble_run ) then
-      write(stdout,*) 'Appling perturbation to input dataset:'
-      if ( lperturb_topo ) then
-        write(stdout,'(a,f7.2,a)') 'Topo with value ', &
-          perturb_frac_topo*d_100,'%'
-        call randify(rspace,perturb_frac_topo,icount(1),icount(2))
+
+    if ( do_parallel_netcdf_in ) then
+      istart(1) = (global_dot_jstart-1)*nsg+1
+      istart(2) = (global_dot_istart-1)*nsg+1
+      icount(1) = (global_dot_jend-global_dot_jstart+1)*nsg
+      icount(2) = (global_dot_iend-global_dot_istart+1)*nsg
+      allocate(rspace(icount(1),icount(2)))
+      call openfile_withname(dname,idmin)
+      call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
+      call input_reorder(rspace,xlat1,jde1,jde2,ide1,ide2)
+      call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
+      call input_reorder(rspace,xlon1,jde1,jde2,ide1,ide2)
+      call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
+      if ( ensemble_run ) then
+        if ( myid == italk ) then
+          write(stdout,*) 'Appling perturbation to input dataset:'
+        end if
+        if ( lperturb_topo ) then
+          if ( myid == italk ) then
+            write(stdout,'(a,f7.2,a)') 'Topo with value ', &
+              perturb_frac_topo*d_100,'%'
+          end if
+          call randify(rspace,perturb_frac_topo,icount(1),icount(2))
+        end if
+      end if
+      call input_reorder(rspace,ht1,jde1,jde2,ide1,ide2)
+      call read_var2d_static(idmin,'mask',rspace,istart=istart,icount=icount)
+      call input_reorder(rspace,mask1,jde1,jde2,ide1,ide2)
+      call read_var2d_static(idmin,'landuse',rspace,istart=istart,icount=icount)
+      call input_reorder(rspace,lnd1,jde1,jde2,ide1,ide2)
+      if ( lakemod == 1 ) then
+        call read_var2d_static(idmin,'dhlake',rspace,.true.,istart,icount)
+        call input_reorder(rspace,hlake1,jde1,jde2,ide1,ide2)
+      end if
+      call closefile(idmin)
+      deallocate(rspace)
+    else
+      if ( myid == iocpu ) then
+        istart(1) = 1
+        istart(2) = 1
+        icount(1) = jxsg
+        icount(2) = iysg
+        allocate(rspace(icount(1),icount(2)))
+        allocate(rspace0(nnsg,jx,iy))
+        call openfile_withname(dname,idmin)
+        call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
+        call input_reorder(rspace,rspace0,1,jx,1,iy)
+        call subgrid_distribute(rspace0,xlat1,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
+        call input_reorder(rspace,rspace0,1,jx,1,iy)
+        call subgrid_distribute(rspace0,xlon1,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
+        if ( ensemble_run ) then
+          write(stdout,*) 'Appling perturbation to input dataset:'
+          if ( lperturb_topo ) then
+            write(stdout,'(a,f7.2,a)') 'Topo with value ', &
+              perturb_frac_topo*d_100,'%'
+            call randify(rspace,perturb_frac_topo,icount(1),icount(2))
+          end if
+        end if
+        call input_reorder(rspace,rspace0,1,jx,1,iy)
+        call subgrid_distribute(rspace0,ht1,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'mask',rspace,istart=istart,icount=icount)
+        call input_reorder(rspace,rspace0,1,jx,1,iy)
+        call subgrid_distribute(rspace0,mask1,jde1,jde2,ide1,ide2)
+        call read_var2d_static(idmin,'landuse', &
+                rspace,istart=istart,icount=icount)
+        call input_reorder(rspace,rspace0,1,jx,1,iy)
+        call subgrid_distribute(rspace0,lnd1,jde1,jde2,ide1,ide2)
+        if ( lakemod == 1 ) then
+          call read_var2d_static(idmin,'dhlake',rspace,.true.,istart,icount)
+          call input_reorder(rspace,rspace0,1,jx,1,iy)
+          call subgrid_distribute(rspace0,hlake1,jde1,jde2,ide1,ide2)
+        end if
+        call closefile(idmin)
+        deallocate(rspace)
+        deallocate(rspace0)
+      else
+        call subgrid_distribute(rspace0,xlat1,jde1,jde2,ide1,ide2)
+        call subgrid_distribute(rspace0,xlon1,jde1,jde2,ide1,ide2)
+        call subgrid_distribute(rspace0,ht1,jde1,jde2,ide1,ide2)
+        call subgrid_distribute(rspace0,mask1,jde1,jde2,ide1,ide2)
+        call subgrid_distribute(rspace0,lnd1,jde1,jde2,ide1,ide2)
+        if ( lakemod == 1 ) then
+          call subgrid_distribute(rspace0,hlake1,jde1,jde2,ide1,ide2)
+        end if
       end if
     end if
-    call input_reorder(rspace,ht1,jde1,jde2,ide1,ide2)
-    call read_var2d_static(idmin,'mask',rspace,istart=istart,icount=icount)
-    call input_reorder(rspace,mask1,jde1,jde2,ide1,ide2)
-    call read_var2d_static(idmin,'landuse',rspace,istart=istart,icount=icount)
-    call input_reorder(rspace,lnd1,jde1,jde2,ide1,ide2)
-    if ( lakemod == 1 ) then
-      call read_var2d_static(idmin,'dhlake',rspace,.true.,istart,icount)
-      call input_reorder(rspace,hlake1,jde1,jde2,ide1,ide2)
-    end if
-    call closefile(idmin)
-    deallocate(rspace)
   end subroutine read_subdomain_info
 
   integer function icbc_search(idate)
@@ -183,6 +317,12 @@ module mod_ncio
     type(rcm_time_and_date) , intent(in) :: idate
     type(rcm_time_interval) :: tdif
     character(len=32) :: appdat1, appdat2
+    if ( .not. do_parallel_netcdf_in ) then
+      if ( myid /= iocpu ) then
+        icbc_search = 1
+        return
+      end if
+    end if
     if (idate > icbc_idate(ibcnrec) .or. idate < icbc_idate(1)) then
       icbc_search = -1
     else
@@ -203,6 +343,12 @@ module mod_ncio
   integer function som_search(imon)
     implicit none
     integer(ik4) , intent(in) :: imon
+    if ( .not. do_parallel_netcdf_in ) then
+      if ( myid /= iocpu ) then
+        som_search = 1
+        return
+      end if
+    end if
     if ( imon < 0 .or. imon > 13 ) then
       somrec = -1
     else
@@ -224,7 +370,9 @@ module mod_ncio
     real(rk8) , dimension(:) , allocatable :: icbc_nctime
     character(len=64) :: icbc_timeunits , icbc_timecal
     character(len=256) :: icbcname
-
+    if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) then
+      return
+    end if
     call close_icbc
     write (ctime, '(i10)') toint10(idate)
     icbcname = trim(dirglob)//pthsep//trim(domname)//'_ICBC.'//ctime//'.nc'
@@ -259,7 +407,7 @@ module mod_ncio
     istatus = nf90_get_var(ibcin, itvar, icbc_nctime)
     call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
     do i = 1 , ibcnrec
-      icbc_idate(i) = timeval2date(icbc_nctime(i), icbc_timeunits, icbc_timecal)
+      icbc_idate(i) = timeval2date(icbc_nctime(i),icbc_timeunits,icbc_timecal)
     end do
     if ( ibcnrec > 1 ) then
       chkdiff = idnint(icbc_nctime(2) - icbc_nctime(1))
@@ -283,19 +431,24 @@ module mod_ncio
     call check_ok(__FILE__,__LINE__,'variable t miss', 'ICBC FILE')
     istatus = nf90_inq_varid(ibcin, 'qv', icbc_ivar(6))
     call check_ok(__FILE__,__LINE__,'variable qv miss', 'ICBC FILE')
-
-    nnj = global_dot_jend-global_dot_jstart+1
-    nni = global_dot_iend-global_dot_istart+1
+    if ( do_parallel_netcdf_in ) then
+      nnj = global_dot_jend-global_dot_jstart+1
+      nni = global_dot_iend-global_dot_istart+1
+    else
+      nnj = jx
+      nni = iy
+    end if
     allocate(rspace2(nnj,nni))
     allocate(rspace3(nnj,nni,kz))
   end subroutine open_icbc
 
-  subroutine open_som(idate)
-    type(rcm_time_and_date) , intent(in) :: idate
+  subroutine open_som
     character(len=10) :: ctime
     character(len=256) :: somname
     integer(ik4) :: nnj , nni
-
+    if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) then
+      return
+    end if
     call close_som
     ctime = 'YYYYMMDDHH'
     somname = trim(dirglob)//pthsep//trim(domname)//'_SOM.'//ctime//'.nc'
@@ -305,9 +458,15 @@ module mod_ncio
     call check_domain(somin,.true.,.true.)
     istatus = nf90_inq_varid(somin, 'qflx', som_ivar(1))
     call check_ok(__FILE__,__LINE__,'variable qflx miss', 'SOM FILE')
-    nnj = global_out_jend-global_out_jstart+1
-    nni = global_out_iend-global_out_istart+1
-    allocate(rspace1(nnj,nni))
+    if ( do_parallel_netcdf_in ) then
+      nnj = global_out_jend-global_out_jstart+1
+      nni = global_out_iend-global_out_istart+1
+    else
+      nnj = jx - 3
+      nni = iy - 3
+      allocate(rspacesom(jx,iy))
+    end if
+    allocate(rspacesom_io(nnj,nni))
   end subroutine open_som
 
   subroutine read_icbc(ps,ts,u,v,t,qv)
@@ -320,75 +479,174 @@ module mod_ncio
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: qv
     integer(ik4) , dimension(4) :: istart , icount
 
-    istart(1) = global_dot_jstart
-    istart(2) = global_dot_istart
-    istart(3) = ibcrec
-    icount(1) = global_dot_jend-global_dot_jstart+1
-    icount(2) = global_dot_iend-global_dot_istart+1
-    icount(3) = 1
-    istatus = nf90_get_var(ibcin,icbc_ivar(1),rspace2,istart(1:3),icount(1:3))
-    call check_ok(__FILE__,__LINE__,'variable ps read error', 'ICBC FILE')
-    if ( ensemble_run ) then
-      if ( lperturb_ps ) then
-        write(stdout,'(a,f7.2,a)') 'PS with value ',perturb_frac_ps*d_100,'%'
-        call randify(rspace2,perturb_frac_ps,icount(1),icount(2))
+    if ( do_parallel_netcdf_in ) then
+      istart(1) = global_dot_jstart
+      istart(2) = global_dot_istart
+      istart(3) = ibcrec
+      icount(1) = global_dot_jend-global_dot_jstart+1
+      icount(2) = global_dot_iend-global_dot_istart+1
+      icount(3) = 1
+      istatus = nf90_get_var(ibcin,icbc_ivar(1),rspace2,istart(1:3),icount(1:3))
+      call check_ok(__FILE__,__LINE__,'variable ps read error', 'ICBC FILE')
+      if ( ensemble_run ) then
+        if ( lperturb_ps ) then
+          if ( myid == italk ) then
+            write(stdout,'(a,f7.2,a)') &
+                    'PS with value ',perturb_frac_ps*d_100,'%'
+          end if
+          call randify(rspace2,perturb_frac_ps,icount(1),icount(2))
+        end if
+      end if
+      ps(jce1:jce2,ice1:ice2) = rspace2(jce1:jce2,ice1:ice2)
+      istatus = nf90_get_var(ibcin,icbc_ivar(2),rspace2,istart(1:3),icount(1:3))
+      call check_ok(__FILE__,__LINE__,'variable ts read error', 'ICBC FILE')
+      if ( ensemble_run ) then
+        write(stdout,*) 'Appling perturbation to input dataset:'
+        if ( lperturb_ts ) then
+          if ( myid == italk ) then
+            write(stdout,'(a,f7.2,a)') &
+                    'TS with value ',perturb_frac_ts*d_100,'%'
+          end if
+          call randify(rspace2,perturb_frac_ts,icount(1),icount(2))
+        end if
+      end if
+      ts(jce1:jce2,ice1:ice2) = rspace2(jce1:jce2,ice1:ice2)
+      istart(1) = global_dot_jstart
+      istart(2) = global_dot_istart
+      istart(3) = 1
+      istart(4) = ibcrec
+      icount(1) = global_dot_jend-global_dot_jstart+1
+      icount(2) = global_dot_iend-global_dot_istart+1
+      icount(3) = kz
+      icount(4) = 1
+      istatus = nf90_get_var(ibcin,icbc_ivar(3),rspace3,istart,icount)
+      call check_ok(__FILE__,__LINE__,'variable u read error', 'ICBC FILE')
+      if ( ensemble_run ) then
+        if ( lperturb_u ) then
+          if ( myid == italk ) then
+            write(stdout,'(a,f7.2,a)') 'U  with value ',perturb_frac_u*d_100,'%'
+          end if
+          call randify(rspace3,perturb_frac_u,icount(1),icount(2),icount(3))
+        end if
+      end if
+      u(jde1:jde2,ide1:ide2,1:kz) = rspace3
+      istatus = nf90_get_var(ibcin,icbc_ivar(4),rspace3,istart,icount)
+      call check_ok(__FILE__,__LINE__,'variable v read error', 'ICBC FILE')
+      if ( ensemble_run ) then
+        if ( lperturb_v ) then
+          if ( myid == italk ) then
+            write(stdout,'(a,f7.2,a)') 'V  with value ',perturb_frac_v*d_100,'%'
+          end if
+          call randify(rspace3,perturb_frac_v,icount(1),icount(2),icount(3))
+        end if
+      end if
+      v(jde1:jde2,ide1:ide2,1:kz) = rspace3
+      istatus = nf90_get_var(ibcin,icbc_ivar(5),rspace3,istart,icount)
+      call check_ok(__FILE__,__LINE__,'variable t read error', 'ICBC FILE')
+      if ( ensemble_run ) then
+        if ( lperturb_t ) then
+          if ( myid == italk ) then
+            write(stdout,'(a,f7.2,a)') 'T  with value ',perturb_frac_t*d_100,'%'
+          end if
+          call randify(rspace3,perturb_frac_t,icount(1),icount(2),icount(3))
+        end if
+      end if
+      t(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+      istatus = nf90_get_var(ibcin,icbc_ivar(6),rspace3,istart,icount)
+      call check_ok(__FILE__,__LINE__,'variable qx read error', 'ICBC FILE')
+      if ( ensemble_run ) then
+        if ( lperturb_q ) then
+          if ( myid == italk ) then
+            write(stdout,'(a,f7.2,a)') 'Q  with value ',perturb_frac_q*d_100,'%'
+          end if
+          call randify(rspace3,perturb_frac_q,icount(1),icount(2),icount(3))
+        end if
+      end if
+      qv(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
+    else
+      if ( myid == iocpu ) then
+        istart(1) = 1
+        istart(2) = 1
+        istart(3) = ibcrec
+        icount(1) = jx
+        icount(2) = iy
+        icount(3) = 1
+        istatus = nf90_get_var(ibcin,icbc_ivar(1), &
+                rspace2,istart(1:3),icount(1:3))
+        call check_ok(__FILE__,__LINE__,'variable ps read error', 'ICBC FILE')
+        if ( ensemble_run ) then
+          if ( lperturb_ps ) then
+            write(stdout,'(a,f7.2,a)') &
+                    'PS with value ',perturb_frac_ps*d_100,'%'
+            call randify(rspace2,perturb_frac_ps,icount(1),icount(2))
+          end if
+        end if
+        call grid_distribute(rspace2,ps,jce1,jce2,ice1,ice2)
+        istatus = nf90_get_var(ibcin,icbc_ivar(2), &
+                rspace2,istart(1:3),icount(1:3))
+        call check_ok(__FILE__,__LINE__,'variable ts read error', 'ICBC FILE')
+        if ( ensemble_run ) then
+          write(stdout,*) 'Appling perturbation to input dataset:'
+          if ( lperturb_ts ) then
+            write(stdout,'(a,f7.2,a)') &
+                    'TS with value ',perturb_frac_ts*d_100,'%'
+            call randify(rspace2,perturb_frac_ts,icount(1),icount(2))
+          end if
+        end if
+        call grid_distribute(rspace2,ts,jce1,jce2,ice1,ice2)
+        istart(1) = 1
+        istart(2) = 1
+        istart(3) = 1
+        istart(4) = ibcrec
+        icount(1) = jx
+        icount(2) = iy
+        icount(3) = kz
+        icount(4) = 1
+        istatus = nf90_get_var(ibcin,icbc_ivar(3),rspace3,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable u read error', 'ICBC FILE')
+        if ( ensemble_run ) then
+          if ( lperturb_u ) then
+            write(stdout,'(a,f7.2,a)') 'U  with value ',perturb_frac_u*d_100,'%'
+            call randify(rspace3,perturb_frac_u,icount(1),icount(2),icount(3))
+          end if
+        end if
+        call grid_distribute(rspace3,u,jde1,jde2,ide1,ide2,1,kz)
+        istatus = nf90_get_var(ibcin,icbc_ivar(4),rspace3,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable v read error', 'ICBC FILE')
+        if ( ensemble_run ) then
+          if ( lperturb_v ) then
+            write(stdout,'(a,f7.2,a)') 'V  with value ',perturb_frac_v*d_100,'%'
+            call randify(rspace3,perturb_frac_v,icount(1),icount(2),icount(3))
+          end if
+        end if
+        call grid_distribute(rspace3,v,jde1,jde2,ide1,ide2,1,kz)
+        istatus = nf90_get_var(ibcin,icbc_ivar(5),rspace3,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable t read error', 'ICBC FILE')
+        if ( ensemble_run ) then
+          if ( lperturb_t ) then
+            write(stdout,'(a,f7.2,a)') 'T  with value ',perturb_frac_t*d_100,'%'
+            call randify(rspace3,perturb_frac_t,icount(1),icount(2),icount(3))
+          end if
+        end if
+        call grid_distribute(rspace3,t,jce1,jce2,ice1,ice2,1,kz)
+        istatus = nf90_get_var(ibcin,icbc_ivar(6),rspace3,istart,icount)
+        call check_ok(__FILE__,__LINE__,'variable qx read error', 'ICBC FILE')
+        if ( ensemble_run ) then
+          if ( lperturb_q ) then
+            write(stdout,'(a,f7.2,a)') 'Q  with value ',perturb_frac_q*d_100,'%'
+            call randify(rspace3,perturb_frac_q,icount(1),icount(2),icount(3))
+          end if
+        end if
+        call grid_distribute(rspace3,qv,jce1,jce2,ice1,ice2,1,kz)
+      else
+        call grid_distribute(rspace2,ps,jce1,jce2,ice1,ice2)
+        call grid_distribute(rspace2,ts,jce1,jce2,ice1,ice2)
+        call grid_distribute(rspace3,u,jde1,jde2,ide1,ide2,1,kz)
+        call grid_distribute(rspace3,v,jde1,jde2,ide1,ide2,1,kz)
+        call grid_distribute(rspace3,t,jce1,jce2,ice1,ice2,1,kz)
+        call grid_distribute(rspace3,qv,jce1,jce2,ice1,ice2,1,kz)
       end if
     end if
-    ps(jce1:jce2,ice1:ice2) = rspace2(jce1:jce2,ice1:ice2)
-    istatus = nf90_get_var(ibcin,icbc_ivar(2),rspace2,istart(1:3),icount(1:3))
-    call check_ok(__FILE__,__LINE__,'variable ts read error', 'ICBC FILE')
-    if ( ensemble_run ) then
-      write(stdout,*) 'Appling perturbation to input dataset:'
-      if ( lperturb_ts ) then
-        write(stdout,'(a,f7.2,a)') 'TS with value ',perturb_frac_ts*d_100,'%'
-        call randify(rspace2,perturb_frac_ts,icount(1),icount(2))
-      end if
-    end if
-    ts(jce1:jce2,ice1:ice2) = rspace2(jce1:jce2,ice1:ice2)
-    istart(1) = global_dot_jstart
-    istart(2) = global_dot_istart
-    istart(3) = 1
-    istart(4) = ibcrec
-    icount(1) = global_dot_jend-global_dot_jstart+1
-    icount(2) = global_dot_iend-global_dot_istart+1
-    icount(3) = kz
-    icount(4) = 1
-    istatus = nf90_get_var(ibcin,icbc_ivar(3),rspace3,istart,icount)
-    call check_ok(__FILE__,__LINE__,'variable u read error', 'ICBC FILE')
-    if ( ensemble_run ) then
-      if ( lperturb_u ) then
-        write(stdout,'(a,f7.2,a)') 'U  with value ',perturb_frac_u*d_100,'%'
-        call randify(rspace3,perturb_frac_u,icount(1),icount(2),icount(3))
-      end if
-    end if
-    u(jde1:jde2,ide1:ide2,1:kz) = rspace3
-    istatus = nf90_get_var(ibcin,icbc_ivar(4),rspace3,istart,icount)
-    call check_ok(__FILE__,__LINE__,'variable v read error', 'ICBC FILE')
-    if ( ensemble_run ) then
-      if ( lperturb_v ) then
-        write(stdout,'(a,f7.2,a)') 'V  with value ',perturb_frac_v*d_100,'%'
-        call randify(rspace3,perturb_frac_v,icount(1),icount(2),icount(3))
-      end if
-    end if
-    v(jde1:jde2,ide1:ide2,1:kz) = rspace3
-    istatus = nf90_get_var(ibcin,icbc_ivar(5),rspace3,istart,icount)
-    call check_ok(__FILE__,__LINE__,'variable t read error', 'ICBC FILE')
-    if ( ensemble_run ) then
-      if ( lperturb_t ) then
-        write(stdout,'(a,f7.2,a)') 'T  with value ',perturb_frac_t*d_100,'%'
-        call randify(rspace3,perturb_frac_t,icount(1),icount(2),icount(3))
-      end if
-    end if
-    t(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
-    istatus = nf90_get_var(ibcin,icbc_ivar(6),rspace3,istart,icount)
-    call check_ok(__FILE__,__LINE__,'variable qx read error', 'ICBC FILE')
-    if ( ensemble_run ) then
-      if ( lperturb_q ) then
-        write(stdout,'(a,f7.2,a)') 'Q  with value ',perturb_frac_q*d_100,'%'
-        call randify(rspace3,perturb_frac_q,icount(1),icount(2),icount(3))
-      end if
-    end if
-    qv(jce1:jce2,ice1:ice2,1:kz) = rspace3(jce1:jce2,ice1:ice2,1:kz)
   end subroutine read_icbc
 
   subroutine read_som(qflx)
@@ -396,15 +654,35 @@ module mod_ncio
     real(rk8) , pointer , dimension(:,:) , intent(out) :: qflx
     integer(ik4) , dimension(4) :: istart , icount
 
-    istart(1) = global_out_jstart
-    istart(2) = global_out_istart
-    istart(3) = somrec
-    icount(1) = global_out_jend-global_out_jstart+1
-    icount(2) = global_out_iend-global_out_istart+1
-    icount(3) = 1
-    istatus = nf90_get_var(somin,som_ivar(1),rspace1,istart(1:3),icount(1:3))
-    call check_ok(__FILE__,__LINE__,'variable qflx read error', 'SOM FILE')
-    qflx(jci1:jci2,ici1:ici2) = rspace1
+    if ( do_parallel_netcdf_in ) then
+      istart(1) = global_out_jstart
+      istart(2) = global_out_istart
+      istart(3) = somrec
+      icount(1) = global_out_jend-global_out_jstart+1
+      icount(2) = global_out_iend-global_out_istart+1
+      icount(3) = 1
+      istatus = nf90_get_var(somin,som_ivar(1),rspacesom_io, &
+              istart(1:3),icount(1:3))
+      call check_ok(__FILE__,__LINE__,'variable qflx read error', 'SOM FILE')
+      qflx(jci1:jci2,ici1:ici2) = rspacesom_io
+      else
+        if ( myid == iocpu ) then
+          istart(1) = 1
+          istart(2) = 1
+          istart(3) = somrec
+          icount(1) = jx-3
+          icount(2) = iy-3
+          icount(3) = 1
+          istatus = nf90_get_var(somin,som_ivar(1), &
+                  rspacesom_io,istart(1:3),icount(1:3))
+          call check_ok(__FILE__,__LINE__, &
+                  'variable qflx read error', 'SOM FILE')
+          rspacesom(2:jx-2,2:iy-2) = rspacesom_io
+          call grid_distribute(rspacesom,qflx,jci1,jci2,ici1,ici2)
+        else
+          call grid_distribute(rspacesom,qflx,jci1,jci2,ici1,ici2)
+        end if
+      end if
   end subroutine read_som
 
   subroutine close_icbc
@@ -415,8 +693,8 @@ module mod_ncio
       if ( allocated(icbc_idate) ) deallocate(icbc_idate)
       ibcin = -1
     end if
-    if ( allocated(rspace2) ) deallocate(rspace2)
-    if ( allocated(rspace3) ) deallocate(rspace3)
+    if ( associated(rspace2) ) deallocate(rspace2)
+    if ( associated(rspace3) ) deallocate(rspace3)
   end subroutine close_icbc
 
   subroutine close_som
@@ -426,7 +704,8 @@ module mod_ncio
       call check_ok(__FILE__,__LINE__,'Error Close SOM file','SOM FILE')
       somin = -1
     end if
-    if ( allocated(rspace1) ) deallocate(rspace1)
+    if ( associated(rspacesom_io) ) deallocate(rspacesom_io)
+    if ( associated(rspacesom) ) deallocate(rspacesom)
   end subroutine close_som
 
   subroutine check_ok(f,l,m1,mf)

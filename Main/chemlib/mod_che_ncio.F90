@@ -68,7 +68,10 @@ module mod_che_ncio
   integer(ik4) , public , parameter :: ifrqmon = 1
   integer(ik4) , public , parameter :: ifrqday = 2
   integer(ik4) , public , parameter :: ifrqhrs = 3
-  real(rk8) , dimension(:,:) , allocatable :: rspace2
+  real(rk8) , dimension(:,:) , pointer :: rspace2
+  real(rk8) , dimension(:,:) , pointer :: rspace2_loc
+  real(rk8) , dimension(:,:,:) , pointer :: rspace3
+  real(rk8) , dimension(:,:,:) , pointer :: rspace3_loc
 
   character(256) :: icbcname
 
@@ -76,7 +79,7 @@ module mod_che_ncio
   data iaein   /-1/
   data ibcrec  / 1/
   data ibcnrec / 0/
-  data ioxin  /-1/
+  data ioxin   /-1/
 
   data chbcname /'O3      ','NO      ','NO2     ','HNO3    ', &
                  'N2O5    ','H2O2    ','CH4     ','CO      ', &
@@ -134,22 +137,43 @@ module mod_che_ncio
       integer(ik4) :: idmin
       integer(ik4) , dimension(3) :: istart , icount
       character(len=256) :: dname
-      real(rk8) , allocatable , dimension(:,:,:) ::  rspace
+      real(rk8) , pointer , dimension(:,:,:) ::  rspace
 
       dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
-      call openfile_withname(dname,idmin)
-      istart(1) = global_dot_jstart
-      istart(2) = global_dot_istart
-      istart(3) = 1
-      icount(1) = global_dot_jend-global_dot_jstart+1
-      icount(2) = global_dot_iend-global_dot_istart+1
-      icount(3) = nats
-      allocate(rspace(icount(1),icount(2),icount(3)))
-      call read_var3d_static(idmin,'texture_fraction',rspace, &
-        istart=istart,icount=icount)
-      texture(jci1:jci2,ici1:ici2,:) = &
-        max(rspace(jci1:jci2,ici1:ici2,:)*0.01D0,d_zero)
-      call closefile(idmin)
+
+      if ( do_parallel_netcdf_in ) then
+        call openfile_withname(dname,idmin)
+        istart(1) = global_dot_jstart
+        istart(2) = global_dot_istart
+        istart(3) = 1
+        icount(1) = global_dot_jend-global_dot_jstart+1
+        icount(2) = global_dot_iend-global_dot_istart+1
+        icount(3) = nats
+        allocate(rspace(icount(1),icount(2),icount(3)))
+        call read_var3d_static(idmin,'texture_fraction',rspace, &
+          istart=istart,icount=icount)
+        texture(jci1:jci2,ici1:ici2,:) = &
+          max(rspace(jci1:jci2,ici1:ici2,:)*0.01D0,d_zero)
+        call closefile(idmin)
+      else
+        if ( myid == iocpu ) then
+          call openfile_withname(dname,idmin)
+          istart(1) = 1
+          istart(2) = 1
+          istart(3) = 1
+          icount(1) = jx
+          icount(2) = iy
+          icount(3) = nats
+          allocate(rspace(icount(1),icount(2),icount(3)))
+          call read_var3d_static(idmin,'texture_fraction',rspace, &
+            istart=istart,icount=icount)
+          rspace = max(rspace*0.01D0,d_zero)
+          call grid_distribute(rspace,texture,jci1,jci2,ici1,ici2,1,nats)
+          call closefile(idmin)
+        else
+          call grid_distribute(rspace,texture,jci1,jci2,ici1,ici2,1,nats)
+        end if
+      end if
     end subroutine read_texture
 
     subroutine read_emission(ifreq,lyear,lmonth,lday,lhour,echemsrc)
@@ -174,95 +198,99 @@ module mod_che_ncio
         write(stdout,*) 'Opening ch. emission file ', trim(aername)
       end if
 
-      call openfile_withname(aername,ncid)
+      if ( do_parallel_netcdf_in .or. (myid == iocpu) ) then
+        call openfile_withname(aername,ncid)
+        istatus = nf90_inq_dimid(ncid, 'time', idimid)
+        call check_ok(__FILE__,__LINE__,'Dimension time miss', 'CHEMI FILE')
+        istatus = nf90_inquire_dimension(ncid, idimid, len=chmnrec)
+        call check_ok(__FILE__,__LINE__, &
+                'Dimension time read error', 'CHEMI FILE')
+        allocate (emtimeval(chmnrec))
+        istatus = nf90_inq_varid(ncid, 'time', itvar)
+        call check_ok(__FILE__,__LINE__,'variable time miss', 'CHEMISS FILE')
+        istatus = nf90_get_att(ncid, itvar, 'units', chemi_timeunits)
+        call check_ok(__FILE__,__LINE__,'variable time units miss', &
+                      'CHEMISS FILE')
+        if ( chemi_timeunits(1:6) == 'months' ) then
+          ifreq = ifrqmon
+        else if ( chemi_timeunits(1:4) == 'days' ) then
+          ifreq = ifrqday
+        else if ( chemi_timeunits(1:5) == 'hours' ) then
+          ifreq = ifrqhrs
+        else
+          call fatal(__FILE__,__LINE__,'NO CODED FREQUENCY IN CHEMISS FILE')
+        end if
+        istatus = nf90_get_att(ncid, itvar, 'calendar', chemi_timecal)
+        if ( istatus /= nf90_noerr ) then
+          chemi_timecal = 'gregorian'
+        end if
+        istatus = nf90_get_var(ncid, itvar, emtimeval)
+        call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
+      
+        recc = 0
+        looprec: &
+        do n = 1 , chmnrec
+          tchdate = timeval2date(emtimeval(n),chemi_timeunits,chemi_timecal)
+          call split_idate(tchdate,year,month,day,hour)
+          select case (ifreq)
+            case (ifrqmon)
+              if ( year == lyear .and. month == lmonth ) then
+                recc = n
+                exit looprec
+              end if
+            case (ifrqday)
+              if ( year == lyear .and. month == lmonth .and. day == lday ) then
+                recc = n
+                exit looprec
+              end if
+            case (ifrqhrs)
+              if ( year == lyear .and. month == lmonth .and. &
+                    day == lday  .and. hour  == lhour ) then
+                recc = n
+                exit looprec
+              end if
+          end select
+        end do looprec
+         
+        if ( recc == 0 ) then
+          write(stderr,*) 'chem emission : time record not found emission file'
+          call fatal(__FILE__,__LINE__,'IO ERROR in CHEM EMISSION')
+        end if  
 
-      istatus = nf90_inq_dimid(ncid, 'time', idimid)
-      call check_ok(__FILE__,__LINE__,'Dimension time miss', 'CHEMI FILE')
-      istatus = nf90_inquire_dimension(ncid, idimid, len=chmnrec)
-      call check_ok(__FILE__,__LINE__,'Dimension time read error', 'CHEMI FILE')
+        !*** intialized in start_chem
+        !*** Advice record counter
+        istart = 0
+        icount = 0 
 
-      allocate (emtimeval(chmnrec))
-
-      istatus = nf90_inq_varid(ncid, 'time', itvar)
-      call check_ok(__FILE__,__LINE__,'variable time miss', 'CHEMISS FILE')
-      istatus = nf90_get_att(ncid, itvar, 'units', chemi_timeunits)
-      call check_ok(__FILE__,__LINE__,'variable time units miss', &
-                    'CHEMISS FILE')
-      if ( chemi_timeunits(1:6) == 'months' ) then
-        ifreq = ifrqmon
-      else if ( chemi_timeunits(1:4) == 'days' ) then
-        ifreq = ifrqday
-      else if ( chemi_timeunits(1:5) == 'hours' ) then
-        ifreq = ifrqhrs
+        if ( do_parallel_netcdf_in ) then
+          istart(1) = global_dot_jstart
+          istart(2) = global_dot_istart
+          icount(1) = global_dot_jend-global_dot_jstart+1
+          icount(2) = global_dot_iend-global_dot_istart+1
+        else
+          istart(1) = 1
+          istart(2) = 1
+          icount(1) = jx
+          icount(2) = iy
+          allocate(rspace2_loc(jci1:jci2,ici1:ici2))
+        end if
+        istatus = nf90_inq_dimid(ncid, 'lev', idimid)
+        if(istatus /= nf90_noerr) then
+          ! no lev diemsion in emission variables
+          istart(3) = recc
+          icount(3) = 1
+          sdim = 3
+        else
+          istart(3) = 1
+          istart(4) = recc
+          icount(3) = 1
+          icount(4) = 1
+          sdim=4
+        end if
+        allocate(rspace2(icount(1),icount(2)))
       else
-        call fatal(__FILE__,__LINE__,'NO CODED FREQUENCY IN CHEMISS FILE')
+        allocate(rspace2_loc(jci1:jci2,ici1:ici2))
       end if
-        
-      istatus = nf90_get_att(ncid, itvar, 'calendar', chemi_timecal)
-      if ( istatus /= nf90_noerr ) then
-        chemi_timecal = 'gregorian'
-      end if
-      istatus = nf90_get_var(ncid, itvar, emtimeval)
-      call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
-    
-      recc = 0
-      looprec: &
-      do n = 1 , chmnrec
-        tchdate = timeval2date(emtimeval(n),chemi_timeunits,chemi_timecal)
-        call split_idate(tchdate,year,month,day,hour)
-        select case (ifreq)
-          case (ifrqmon)
-            if ( year == lyear .and. month == lmonth ) then
-              recc = n
-              exit looprec
-            end if
-          case (ifrqday)
-            if ( year == lyear .and. month == lmonth .and. day == lday ) then
-              recc = n
-              exit looprec
-            end if
-          case (ifrqhrs)
-            if ( year == lyear .and. month == lmonth .and. &
-                  day == lday  .and. hour  == lhour ) then
-              recc = n
-              exit looprec
-            end if
-        end select
-      end do looprec
-       
-      if ( recc == 0 ) then
-        write(stderr,*) 'chem emission : time record not found emission file'
-        call fatal(__FILE__,__LINE__,'IO ERROR in CHEM EMISSION')
-      end if  
-
-      !*** intialized in start_chem
-      !*** Advice record counter
-      istart = 0
-      icount = 0 
-
-      istatus = nf90_inq_dimid(ncid, 'lev', idimid)
-      if(istatus /= nf90_noerr) then
-        ! no lev diemsion in emission variables
-        istart(1) = global_dot_jstart
-        istart(2) = global_dot_istart
-        istart(3) = recc
-        icount(1) = global_dot_jend-global_dot_jstart+1
-        icount(2) = global_dot_iend-global_dot_istart+1
-        icount(3) = 1
-        sdim = 3
-      else
-        istart(1) = global_dot_jstart
-        istart(2) = global_dot_istart
-        istart(3) = 1
-        istart(4) = recc
-        icount(1) = global_dot_jend-global_dot_jstart+1
-        icount(2) = global_dot_iend-global_dot_istart+1
-        icount(3) = 1
-        icount(4) = 1
-        sdim=4
-      end if
-
-      allocate(rspace2(icount(1),icount(2)))
 
       ! CO emission                  
       if ( ico /= 0 ) then
@@ -281,8 +309,8 @@ module mod_che_ncio
       if ( ino2 /= 0 ) then
 !       call rvar(ncid,istart,icount,ino2,echemsrc, &
 !                 'NO_flux',.false.,sdim)
-        echemsrc (:,:,ino2) = 0.1D0 *  echemsrc (:,:,ino)
-        echemsrc (:,:,ino) = 0.9D0 *  echemsrc (:,:,ino)
+        echemsrc(:,:,ino2) = 0.1D0 * echemsrc(:,:,ino)
+        echemsrc(:,:,ino)  = 0.9D0 * echemsrc(:,:,ino)
       end if
       ! HCHO emission                  
       if ( ihcho /= 0 ) then
@@ -394,9 +422,20 @@ module mod_che_ncio
 
       where (echemsrc(:,:,:) < d_zero ) echemsrc(:,:,:) = d_zero
 
-      call closefile(ncid)
-      deallocate (emtimeval)
-      deallocate(rspace2)
+      if ( do_parallel_netcdf_in ) then
+        call closefile(ncid)
+        deallocate (emtimeval)
+        deallocate(rspace2)
+      else
+        if ( myid == iocpu ) then
+          call closefile(ncid)
+          deallocate (emtimeval)
+          deallocate(rspace2)
+          deallocate(rspace2_loc)
+        else
+          deallocate(rspace2_loc)
+        end if
+      end if
     end subroutine read_emission
 
     subroutine rvar(ncid,istart,icount,ind,echemsrc,cna,lh,sdim,cnb,cnc,cnd)
@@ -413,66 +452,177 @@ module mod_che_ncio
       integer(ik4) :: ivarid 
       integer(ik4) :: i , j , ind
 
-      istatus = nf90_inq_varid(ncid, cna, ivarid)
-      call check_ok(__FILE__,__LINE__, &
-                    'Variable '//cna//' miss','CHEM_EMISS FILE')
-      istatus = nf90_get_var(ncid,ivarid,rspace2,istart(1:sdim),icount(1:sdim))
-      call check_ok(__FILE__,__LINE__, &
-                    'Variable '//cna//' read err','CHEM_EMISS FILE')
-      if ( lh ) then  ! half of lumped Aromatics
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            echemsrc(j,i,ind) = d_half*rspace2(j,i)
-          end do
-        end do
-      else
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            echemsrc(j,i,ind) = rspace2(j,i)
-          end do
-        end do
-      end if
-      if ( present(cnb) ) then
-        istatus = nf90_inq_varid(ncid, cnb, ivarid)
+      if ( do_parallel_netcdf_in ) then
+        istatus = nf90_inq_varid(ncid, cna, ivarid)
         call check_ok(__FILE__,__LINE__, &
-                      'Variable '//cnb//' miss','CHEM_EMISS FILE')
+                      'Variable '//cna//' miss','CHEM_EMISS FILE')
         istatus = nf90_get_var(ncid,ivarid,rspace2, &
-          istart(1:sdim),icount(1:sdim))
+                istart(1:sdim),icount(1:sdim))
         call check_ok(__FILE__,__LINE__, &
-                      'Variable '//cnb//' read err','CHEM_EMISS FILE')
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            echemsrc(j,i,ind) = rspace2(j,i) + echemsrc(j,i,ind)
+                      'Variable '//cna//' read err','CHEM_EMISS FILE')
+        if ( lh ) then  ! half of lumped Aromatics
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              echemsrc(j,i,ind) = d_half*rspace2(j,i)
+            end do
           end do
-        end do
-      end if
-      if ( present(cnc) ) then
-        istatus = nf90_inq_varid(ncid, cnc, ivarid)
-        call check_ok(__FILE__,__LINE__, &
-                      'Variable '//cnc//' miss','CHEM_EMISS FILE')
-        istatus = nf90_get_var(ncid,ivarid,rspace2, &
-          istart(1:sdim),icount(1:sdim))
-        call check_ok(__FILE__,__LINE__, &
-                      'Variable '//cnc//' read err','CHEM_EMISS FILE')
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            echemsrc(j,i,ind) = rspace2(j,i) + echemsrc(j,i,ind)
+        else
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              echemsrc(j,i,ind) = rspace2(j,i)
+            end do
           end do
-        end do
-      end if
-      if ( present(cnd) ) then
-        istatus = nf90_inq_varid(ncid, cnd, ivarid)
-        call check_ok(__FILE__,__LINE__, &
+        end if
+        if ( present(cnb) ) then
+          istatus = nf90_inq_varid(ncid, cnb, ivarid)
+          call check_ok(__FILE__,__LINE__, &
+                        'Variable '//cnb//' miss','CHEM_EMISS FILE')
+          istatus = nf90_get_var(ncid,ivarid,rspace2, &
+            istart(1:sdim),icount(1:sdim))
+          call check_ok(__FILE__,__LINE__, &
+                        'Variable '//cnb//' read err','CHEM_EMISS FILE')
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              echemsrc(j,i,ind) = rspace2(j,i) + echemsrc(j,i,ind)
+            end do
+          end do
+        end if
+        if ( present(cnc) ) then
+          istatus = nf90_inq_varid(ncid, cnc, ivarid)
+          call check_ok(__FILE__,__LINE__, &
+                        'Variable '//cnc//' miss','CHEM_EMISS FILE')
+          istatus = nf90_get_var(ncid,ivarid,rspace2, &
+            istart(1:sdim),icount(1:sdim))
+          call check_ok(__FILE__,__LINE__, &
+                        'Variable '//cnc//' read err','CHEM_EMISS FILE')
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              echemsrc(j,i,ind) = rspace2(j,i) + echemsrc(j,i,ind)
+            end do
+          end do
+        end if
+        if ( present(cnd) ) then
+          istatus = nf90_inq_varid(ncid, cnd, ivarid)
+          call check_ok(__FILE__,__LINE__, &
                       'Variable '//cnd//' miss','CHEM_EMISS FILE')
-        istatus = nf90_get_var(ncid,ivarid,rspace2, &
-          istart(1:sdim),icount(1:sdim))
-        call check_ok(__FILE__,__LINE__, &
-                      'Variable '//cnd//' read err','CHEM_EMISS FILE')
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            echemsrc(j,i,ind) = rspace2(j,i) + echemsrc(j,i,ind)
+          istatus = nf90_get_var(ncid,ivarid,rspace2, &
+            istart(1:sdim),icount(1:sdim))
+          call check_ok(__FILE__,__LINE__, &
+                        'Variable '//cnd//' read err','CHEM_EMISS FILE')
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              echemsrc(j,i,ind) = rspace2(j,i) + echemsrc(j,i,ind)
+            end do
           end do
-        end do
+        end if
+      else
+        if ( myid == iocpu ) then
+          istatus = nf90_inq_varid(ncid, cna, ivarid)
+          call check_ok(__FILE__,__LINE__, &
+                        'Variable '//cna//' miss','CHEM_EMISS FILE')
+          istatus = nf90_get_var(ncid,ivarid,rspace2, &
+                  istart(1:sdim),icount(1:sdim))
+          call check_ok(__FILE__,__LINE__, &
+                        'Variable '//cna//' read err','CHEM_EMISS FILE')
+          call grid_distribute(rspace2,rspace2_loc,jci1,jci2,ici1,ici2)
+          if ( lh ) then  ! half of lumped Aromatics
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                echemsrc(j,i,ind) = d_half*rspace2_loc(j,i)
+              end do
+            end do
+          else
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                echemsrc(j,i,ind) = rspace2_loc(j,i)
+              end do
+            end do
+          end if
+          if ( present(cnb) ) then
+            istatus = nf90_inq_varid(ncid, cnb, ivarid)
+            call check_ok(__FILE__,__LINE__, &
+                          'Variable '//cnb//' miss','CHEM_EMISS FILE')
+            istatus = nf90_get_var(ncid,ivarid,rspace2, &
+              istart(1:sdim),icount(1:sdim))
+            call check_ok(__FILE__,__LINE__, &
+                          'Variable '//cnb//' read err','CHEM_EMISS FILE')
+            call grid_distribute(rspace2,rspace2_loc,jci1,jci2,ici1,ici2)
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                echemsrc(j,i,ind) = rspace2_loc(j,i) + echemsrc(j,i,ind)
+              end do
+            end do
+          end if
+          if ( present(cnc) ) then
+            istatus = nf90_inq_varid(ncid, cnc, ivarid)
+            call check_ok(__FILE__,__LINE__, &
+                          'Variable '//cnc//' miss','CHEM_EMISS FILE')
+            istatus = nf90_get_var(ncid,ivarid,rspace2, &
+              istart(1:sdim),icount(1:sdim))
+            call check_ok(__FILE__,__LINE__, &
+                          'Variable '//cnc//' read err','CHEM_EMISS FILE')
+            call grid_distribute(rspace2,rspace2_loc,jci1,jci2,ici1,ici2)
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                echemsrc(j,i,ind) = rspace2_loc(j,i) + echemsrc(j,i,ind)
+              end do
+            end do
+          end if
+          if ( present(cnd) ) then
+            istatus = nf90_inq_varid(ncid, cnd, ivarid)
+            call check_ok(__FILE__,__LINE__, &
+                         'Variable '//cnd//' miss','CHEM_EMISS FILE')
+            istatus = nf90_get_var(ncid,ivarid,rspace2, &
+              istart(1:sdim),icount(1:sdim))
+            call check_ok(__FILE__,__LINE__, &
+                          'Variable '//cnd//' read err','CHEM_EMISS FILE')
+            call grid_distribute(rspace2,rspace2_loc,jci1,jci2,ici1,ici2)
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                echemsrc(j,i,ind) = rspace2_loc(j,i) + echemsrc(j,i,ind)
+              end do
+            end do
+          end if
+        else
+          call grid_distribute(rspace2,rspace2_loc,jci1,jci2,ici1,ici2)
+          if ( lh ) then  ! half of lumped Aromatics
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                echemsrc(j,i,ind) = d_half*rspace2_loc(j,i)
+              end do
+            end do
+          else
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                echemsrc(j,i,ind) = rspace2_loc(j,i)
+              end do
+            end do
+          end if
+          if ( present(cnb) ) then
+            call grid_distribute(rspace2,rspace2_loc,jci1,jci2,ici1,ici2)
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                echemsrc(j,i,ind) = rspace2_loc(j,i) + echemsrc(j,i,ind)
+              end do
+            end do
+          end if
+          if ( present(cnc) ) then
+            call grid_distribute(rspace2,rspace2_loc,jci1,jci2,ici1,ici2)
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                echemsrc(j,i,ind) = rspace2_loc(j,i) + echemsrc(j,i,ind)
+              end do
+            end do
+          end if
+          if ( present(cnd) ) then
+            call grid_distribute(rspace2,rspace2_loc,jci1,jci2,ici1,ici2)
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                echemsrc(j,i,ind) = rspace2_loc(j,i) + echemsrc(j,i,ind)
+              end do
+            end do
+          end if
+        end if
       end if
     end subroutine rvar
 
@@ -481,6 +631,10 @@ module mod_che_ncio
       type(rcm_time_and_date) , intent(in) :: idate
       type(rcm_time_interval) :: tdif
       character(len=32) :: appdat1, appdat2
+      if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) then
+        chbc_search = 1
+        return
+      end if
       if (idate > chbc_idate(ibcnrec) .or. idate < chbc_idate(1)) then
         chbc_search = -1
       else
@@ -505,6 +659,11 @@ module mod_che_ncio
       integer(ik4) :: ibcid , idimid , itvar , i , chkdiff
       real(rk8) , dimension(:) , allocatable :: icbc_nctime
       character(len=64) :: icbc_timeunits , icbc_timecal
+
+      if ( .not. do_parallel_netcdf_in .and. myid /= iocpu ) then
+        allocate(rspace3_loc(jce1:jce2,ice1:ice2,kz))
+        return
+      end if
 
       call close_chbc
       write (ctime, '(i10)') toint10(idate)
@@ -589,6 +748,14 @@ module mod_che_ncio
                'variable '//trim(oxbcname(i))//' missing','OXBC FILE ERROR')
         end do
       end if
+      if ( do_parallel_netcdf_in ) then
+        allocate(rspace3(global_dot_jend-global_dot_jstart+1, &
+                         global_dot_iend-global_dot_istart+1, &
+                         kz))
+      else
+        allocate(rspace3(jx,iy,kz))
+        allocate(rspace3_loc(jce1:jce2,ice1:ice2,kz))
+      end if
     end subroutine open_chbc
 
     subroutine read_chbc(chebdio)
@@ -596,63 +763,162 @@ module mod_che_ncio
       real(rk8) , dimension (:,:,:,:), intent(out) :: chebdio 
       integer(ik4) , dimension(4) :: istart , icount
       integer(ik4) :: i , j , k, n , iafter
-      real(rk8) , dimension(:,:,:) , allocatable :: rspace3
-      istart(1) = global_dot_jstart
-      istart(2) = global_dot_istart
-      istart(3) = 1
-      istart(4) = ibcrec
-      icount(1) = global_dot_jend-global_dot_jstart+1
-      icount(2) = global_dot_iend-global_dot_istart+1
-      icount(3) = kz
-      icount(4) = 1
-      iafter = 0
-      allocate(rspace3(icount(1),icount(2),icount(3)))
-      if ( igaschem == 1 ) then
-        do n = 1 , n_chbcvar
-          istatus = nf90_get_var(ichin, chbc_ivar(n), rspace3, istart, icount)
-          call check_ok(__FILE__,__LINE__, &
-               'variable '//trim(chbcname(n))//' read error','CHBC FILE ERROR')
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
-                chebdio(j,i,k,n) = rspace3(j,i,k)
+
+      if ( do_parallel_netcdf_in ) then
+        istart(1) = global_dot_jstart
+        istart(2) = global_dot_istart
+        istart(3) = 1
+        istart(4) = ibcrec
+        icount(1) = global_dot_jend-global_dot_jstart+1
+        icount(2) = global_dot_iend-global_dot_istart+1
+        icount(3) = kz
+        icount(4) = 1
+        iafter = 0
+        if ( igaschem == 1 ) then
+          do n = 1 , n_chbcvar
+            istatus = nf90_get_var(ichin, chbc_ivar(n), rspace3, istart, icount)
+            call check_ok(__FILE__,__LINE__, &
+                'variable '//trim(chbcname(n))//' read error','CHBC FILE ERROR')
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  chebdio(j,i,k,n) = rspace3(j,i,k)
+                end do
               end do
             end do
+            iafter = iafter + 1
           end do
+        end if
+        if ( iaerosol == 1 ) then
+          do n = 1 , n_aebcvar
+            istatus = nf90_get_var(iaein, aebc_ivar(n), rspace3, istart, icount)
+            call check_ok(__FILE__,__LINE__, &
+                'variable '//trim(aebcname(n))//' read error','AEBC FILE ERROR')
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  chebdio(j,i,k,iafter+1) = rspace3(j,i,k)
+                end do
+              end do
+            end do
           iafter = iafter + 1
-        end do
-      end if
-      if ( iaerosol == 1 ) then
-        do n = 1 , n_aebcvar
-          istatus = nf90_get_var(iaein, aebc_ivar(n), rspace3, istart, icount)
-          call check_ok(__FILE__,__LINE__, &
-               'variable '//trim(aebcname(n))//' read error','AEBC FILE ERROR')
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
-                chebdio(j,i,k,iafter+1) = rspace3(j,i,k)
+          end do
+        end if
+        if ( ioxclim == 1 ) then
+          do n = 1 , n_oxbcvar
+            istatus = nf90_get_var(ioxin, oxbc_ivar(n), rspace3, istart, icount)
+            call check_ok(__FILE__,__LINE__, &
+                'variable '//trim(oxbcname(n))//' read error','OXBC FILE ERROR')
+            do k = 1 , kz
+              do i = ice1 , ice2
+                do j = jce1 , jce2
+                  chebdio(j,i,k,iafter+n) = rspace3(j,i,k)
+                end do
               end do
             end do
           end do
-        iafter = iafter + 1
-        end do
-      end if
-      if ( ioxclim == 1 ) then
-        do n = 1 , n_oxbcvar
-          istatus = nf90_get_var(ioxin, oxbc_ivar(n), rspace3, istart, icount)
-          call check_ok(__FILE__,__LINE__, &
-               'variable '//trim(oxbcname(n))//' read error','OXBC FILE ERROR')
-          do k = 1 , kz
-            do i = ice1 , ice2
-              do j = jce1 , jce2
-                chebdio(j,i,k,iafter+n) = rspace3(j,i,k)
+        end if
+      else
+        if ( myid == iocpu ) then
+          istart(1) = 1
+          istart(2) = 1
+          istart(3) = 1
+          istart(4) = ibcrec
+          icount(1) = jx
+          icount(2) = iy
+          icount(3) = kz
+          icount(4) = 1
+          iafter = 0
+          if ( igaschem == 1 ) then
+            do n = 1 , n_chbcvar
+              istatus = nf90_get_var(ichin,chbc_ivar(n),rspace3,istart,icount)
+              call check_ok(__FILE__,__LINE__, &
+                'variable '//trim(chbcname(n))//' read error','CHBC FILE ERROR')
+              call grid_distribute(rspace3,rspace3_loc,jce1,jce2,ice1,ice2,1,kz)
+              do k = 1 , kz
+                do i = ice1 , ice2
+                  do j = jce1 , jce2
+                    chebdio(j,i,k,n) = rspace3_loc(j,i,k)
+                  end do
+                end do
+              end do
+              iafter = iafter + 1
+            end do
+          end if
+          if ( iaerosol == 1 ) then
+            do n = 1 , n_aebcvar
+              istatus = nf90_get_var(iaein,aebc_ivar(n),rspace3,istart,icount)
+              call check_ok(__FILE__,__LINE__, &
+                'variable '//trim(aebcname(n))//' read error','AEBC FILE ERROR')
+              call grid_distribute(rspace3,rspace3_loc,jce1,jce2,ice1,ice2,1,kz)
+              do k = 1 , kz
+                do i = ice1 , ice2
+                  do j = jce1 , jce2
+                    chebdio(j,i,k,iafter+1) = rspace3_loc(j,i,k)
+                  end do
+                end do
+              end do
+            iafter = iafter + 1
+            end do
+          end if
+          if ( ioxclim == 1 ) then
+            do n = 1 , n_oxbcvar
+              istatus = nf90_get_var(ioxin,oxbc_ivar(n),rspace3,istart,icount)
+              call check_ok(__FILE__,__LINE__, &
+                'variable '//trim(oxbcname(n))//' read error','OXBC FILE ERROR')
+              call grid_distribute(rspace3,rspace3_loc,jce1,jce2,ice1,ice2,1,kz)
+              do k = 1 , kz
+                do i = ice1 , ice2
+                  do j = jce1 , jce2
+                    chebdio(j,i,k,iafter+n) = rspace3_loc(j,i,k)
+                  end do
+                end do
               end do
             end do
-          end do
-        end do
+          end if
+        else
+          iafter = 0
+          if ( igaschem == 1 ) then
+            do n = 1 , n_chbcvar
+              call grid_distribute(rspace3,rspace3_loc,jce1,jce2,ice1,ice2,1,kz)
+              do k = 1 , kz
+                do i = ice1 , ice2
+                  do j = jce1 , jce2
+                    chebdio(j,i,k,n) = rspace3_loc(j,i,k)
+                  end do
+                end do
+              end do
+              iafter = iafter + 1
+            end do
+          end if
+          if ( iaerosol == 1 ) then
+            do n = 1 , n_aebcvar
+              call grid_distribute(rspace3,rspace3_loc,jce1,jce2,ice1,ice2,1,kz)
+              do k = 1 , kz
+                do i = ice1 , ice2
+                  do j = jce1 , jce2
+                    chebdio(j,i,k,iafter+1) = rspace3_loc(j,i,k)
+                  end do
+                end do
+              end do
+            iafter = iafter + 1
+            end do
+          end if
+          if ( ioxclim == 1 ) then
+            do n = 1 , n_oxbcvar
+              call grid_distribute(rspace3,rspace3_loc,jce1,jce2,ice1,ice2,1,kz)
+              do k = 1 , kz
+                do i = ice1 , ice2
+                  do j = jce1 , jce2
+                    chebdio(j,i,k,iafter+n) = rspace3_loc(j,i,k)
+                  end do
+                end do
+              end do
+            end do
+          end if
+        end if
       end if
       where (chebdio < d_zero) chebdio = d_zero
-      deallocate(rspace3)
     end subroutine read_chbc
 
     subroutine close_chbc
@@ -669,7 +935,9 @@ module mod_che_ncio
         call closefile(ioxin)
         ioxin = -1
       end if
-      if ( allocated(chbc_idate) ) deallocate(chbc_idate)
+      if ( allocated(chbc_idate) )   deallocate(chbc_idate)
+      if ( associated(rspace3) )     deallocate(rspace3)
+      if ( associated(rspace3_loc) ) deallocate(rspace3_loc)
     end subroutine close_chbc
 
     subroutine check_ok(f,l,m1,mf)

@@ -115,7 +115,7 @@ module mod_runparams
   integer(ik4) :: iaerosol , igaschem , ioxclim
   character(len=6) , pointer , dimension(:) :: chtrname
 !
-  logical :: do_parallel_netcdf_io
+  logical :: do_parallel_netcdf_in , do_parallel_netcdf_out
   logical :: ifrest , rfstrt , doing_restart , lsync
 
   integer(ik4) :: kchi , kclo , kcmd , cpldbglevel

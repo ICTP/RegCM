@@ -97,7 +97,8 @@ module mod_params
     lakfrq , radfrq , chemfrq , enable_atm_vars ,                      &
     enable_srf_vars , enable_rad_vars , enable_sub_vars ,              &
     enable_sts_vars , enable_lak_vars , enable_opt_vars ,              &
-    enable_che_vars , dirout , lsync , do_parallel_netcdf_io
+    enable_che_vars , dirout , lsync , do_parallel_netcdf_in ,         &
+    do_parallel_netcdf_out
 
   namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
     iemiss , lakemod , ipptls , iocnflx , iocncpl , iocnrough ,     &
@@ -292,7 +293,8 @@ module mod_params
   enable_che_vars(:) = .true.
   dirout = './output' 
   lsync = .false.
-  do_parallel_netcdf_io = .false.
+  do_parallel_netcdf_in = .false.
+  do_parallel_netcdf_out = .false.
 !
 !----------------------------------------------------------------------
 !-----namelist physicsparam:
@@ -720,10 +722,11 @@ module mod_params
   call bcast(subfrq)
   call bcast(chemfrq)
   call bcast(lsync)
+  call bcast(do_parallel_netcdf_in)
 #ifdef NETCDF4_HDF5
-  call bcast(do_parallel_netcdf_io)
+  call bcast(do_parallel_netcdf_out)
 #else
-  do_parallel_netcdf_io = .false.
+  do_parallel_netcdf_out = .false.
 #endif
 
   call bcast(iboudy)

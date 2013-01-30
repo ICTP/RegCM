@@ -206,7 +206,7 @@ module mod_bdycod
 
     call open_icbc(icbc_date)
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
-      call open_som(icbc_date)
+      call open_som
     end if
 
     datefound = icbc_search(bdydate1)
