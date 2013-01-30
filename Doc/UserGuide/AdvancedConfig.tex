@@ -542,9 +542,14 @@ written in the files.
  lsync   = .false.,           ! If sync of output files at every timestep is
                               ! requested. Note, it has a performance impact.
                               ! Enabled by default if debug_level > 2
- do_parallel_netcdf_io = .false., ! This enables paralell I/O if the hdf5/netcdf
-                                  ! libraries support it and the model is
-                                  ! compiled with --enable-nc4-parallel
+ do_parallel_netcdf_in  = .false., ! This enables paralell input
+                                   ! Each processors reads its slice in the
+                                   ! input file. Enable ONLY in case of
+                                   ! HUGE input bandwidth,
+ do_parallel_netcdf_out = .false., ! This enables paralell output if the 
+                                   ! hdf5/netcdf libraries support it and
+                                   ! the model is compiled with :
+                                   !    --enable-nc4-parallel
  /
 \end{Verbatim}
 }
