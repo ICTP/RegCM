@@ -235,7 +235,7 @@ module mod_che_common
                                  'DUST03','DUST04','SSLT01','SSLT02' /)
         if ( myid == italk ) write(stdout,*) 'AERO simulation'
       else if ( chemsimtype(1:4) == 'DCCB' ) then 
-        ntr = 45
+        ntr = 47
         allocate(chtrname(ntr))      
         chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   ','NH3   ','O3    ', &
                                  'NO2   ','NO    ','CO    ','H2O2  ', &
@@ -248,7 +248,7 @@ module mod_che_common
                                  'ETHOOH','ROOH  ','HONO  ','HNO4  ', &
                                  'XO2   ','DUST01','DUST02','DUST03', &
                                  'DUST04','BC_HL ','BC_HB ','OC_HL ', &
-                                 'OC_HB ' /)
+                                 'OC_HB ','SSLT01','SSLT02' /)
         iaerosol = 1
         igaschem = 1
         if ( myid == italk ) write(stdout,*) 'DCCB simulation'
