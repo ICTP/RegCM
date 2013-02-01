@@ -26,7 +26,7 @@ module mod_pbl_holtbl
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : ibltyp , iqv , iqc , dt , rdt , &
-    ichem , ichdrdepo , sigma , hsigma , dsigma
+    ichem , ichdrdepo , sigma , hsigma , dsigma , zhnew_fac
   use mod_mppparam
   use mod_memutil
   use mod_service
@@ -1011,14 +1011,14 @@ module mod_pbl_holtbl
 !xexp4      zzhnew = zpbl(j,i)*(d_one-zh)*zh**1.5
 !xexp5      zzhnew = 0.5*zpbl(j,i)*(d_one-zh)*zh**1.5
 !xexp6      zzhnew = d_one - zh
-!xexp7      zzhnew =0.5* (d_one - zh)
+!xexp7      zzhnew = 0.50 * (d_one - zh)
 !Sara
-!           zzhnew =0.25* (d_one - zh)
-!           zzhnew =0.75* (d_one - zh)
+!           zzhnew = 0.25 * (d_one - zh)
+!           zzhnew = 0.75 * (d_one - zh)
 !Sara_
 !xexp10     zzhnew =zh * (d_one - zh)**2
-            zzhnew = (d_one-zh)*d_rfour
-            zzhnew2 = (d_one-zh)**2
+            zzhnew = (d_one-zh)*zhnew_fac
+            zzhnew2 = zzhnew**2
           else
             zzh = d_zero
             zzhnew = d_zero

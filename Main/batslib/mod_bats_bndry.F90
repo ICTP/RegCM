@@ -375,8 +375,9 @@ module mod_bats_bndry
   subroutine tseaice
     implicit none
 !
-    real(rk8) :: bb , fact , fss , hrl , hs , hsl , qgrnd , ratsi ,     &
-                rhosw3 , rsd1 , rss , smc4 , smt , tg , tgrnd , wss , wtt
+    real(rk8) :: bb , fact , fss , hrl , hs , hsl , qgrnd , &
+                 rhosw3 , rsd1 , smc4 , smt , tg , tgrnd
+!   real(rk8) :: rss , ratsi , wtt , wss
     integer(ik4) :: n , i , j
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tseaice'
@@ -387,21 +388,22 @@ module mod_bats_bndry
       do j = jci1 , jci2
         do n = 1 , nnsg
           ! lake model handles this case
-          if ( llake .and. iveg1(n,j,i) == 14 ) exit
+          if ( llake .and. iveg1(n,j,i) == 14 ) cycle
    
           if ( ldmsk1(n,j,i) == 2 ) then
             ! rhosw = density of snow relative to water
             rhosw3 = rhosw(n,j,i)**3
             ! cice = specific heat of sea-ice per unit volume
-            rsd1 = cice*(sfice(n,j,i)*d_r1000)
+            rsd1 = cice*sfice(n,j,i)*d_r1000
             if ( sncv(n,j,i) > d_zero ) then
-              rss = csnw*(sncv(n,j,i)*d_r1000)
-              ratsi = sncv(n,j,i)/(1.4D0*rhosw3*sfice(n,j,i))
-              wtt = d_one/(d_one+ratsi)
-              wss = (sncv(n,j,i)+2.8D0*rhosw3*sfice(n,j,i)) / &
-                    (sncv(n,j,i)+1.4D0*rhosw3*sfice(n,j,i))
+              !rss = csnw*sncv(n,j,i)*d_r1000
+              !ratsi = sncv(n,j,i)/(1.4D0*rhosw3*sfice(n,j,i))
+              !wtt = d_one/(d_one+ratsi)
+              !wss = (sncv(n,j,i)+2.8D0*rhosw3*sfice(n,j,i)) / &
+              !      (sncv(n,j,i)+1.4D0*rhosw3*sfice(n,j,i))
               ! include snow heat capacity
-              rsd1 = d_half*(wss*rss+wtt*rsd1)
+              !rsd1 = d_half*(wss*rss+wtt*rsd1)
+              rsd1 = rsd1 + csnw*sncv(n,j,i)*d_r1000
             end if
             tgbrd(n,j,i) = -d_two + tzero
             ! subsurface heat flux through ice
@@ -413,7 +415,7 @@ module mod_bats_bndry
               sfice(n,j,i) = d_zero
               ldmsk1(n,j,i) = 0
               lveg(n,j,i) = 15
-              exit
+              cycle
             end if
             ! assume lead ocean temp is -1.8c
             ! flux of heat and moisture through leads
@@ -446,11 +448,12 @@ module mod_bats_bndry
             bb = dtbat*(hs+fss)/rsd1
             ! snow melt
             sm(n,j,i) = d_zero
-            if ( tgrd(n,j,i) >= tzero ) sm(n,j,i) = (hs+fss)/wlhf
-            if ( sm(n,j,i) <= d_zero ) sm(n,j,i) = d_zero
+            if ( tgrd(n,j,i) >= tzero ) then
+              sm(n,j,i) = max(d_zero,(hs+fss)/wlhf)
+            end if
             smc4 = sm(n,j,i)*dtbat
-            if ( sncv(n,j,i) < smc4 ) then
             ! all snow removed, melt ice
+            if ( sncv(n,j,i) < smc4 ) then
               smt = (sncv(n,j,i)/dtbat)
               ! rho(h2o)/rho(ice) = 1.087
               sfice(n,j,i) = sfice(n,j,i) + dtbat*(smt-sm(n,j,i))*1.087D0
@@ -461,7 +464,7 @@ module mod_bats_bndry
                 sfice(n,j,i) = d_zero
                 ldmsk1(n,j,i) = 0
                 lveg(n,j,i) = 15
-                exit
+                cycle
               end if
             else
               ! snow or ice with no snow melting
@@ -954,6 +957,7 @@ module mod_bats_bndry
             ! 1.2  correct for snow cover, if significant
             depdiu = dsqrt(d_two*skd/xnu)
             bcoef(n,j,i) = xdtime*depdiu/(rscsd*skd)
+            sks = d_zero
             if ( scrat(n,j,i) > 0.001D0 ) then
               xlexp = -d_two*scrat(n,j,i)/depdiu
               ! Graziano : Limit exponential argument

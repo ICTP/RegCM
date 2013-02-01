@@ -144,7 +144,7 @@ module mod_advection
         do k = 1 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
-              ften(j,i,k) = ften(j,i,k) -                             &
+              ften(j,i,k) = ften(j,i,k) -                               &
                   ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k)+f(j,i,k)) -  &
                    (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k)+f(j-1,i,k)) +  &
                    (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k)+f(j,i,k)) -  &

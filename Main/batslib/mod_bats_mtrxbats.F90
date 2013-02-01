@@ -203,7 +203,7 @@ module mod_bats_mtrxbats
     call bndry
 
 !   Zeng ocean flux model
-    if ( iocnflx == 2 ) call zengocndrv(ktau)
+    if ( iocnflx == 2 ) call zengocndrv
 
 !   Hostetler lake model for every BATS timestep at lake points
     if ( llake ) then
@@ -231,7 +231,8 @@ module mod_bats_mtrxbats
 !
   subroutine initb
     implicit none
-    integer(ik4) :: i , is , itex , j , n , nlveg
+    integer(ik4) :: i , itex , j , n , nlveg
+    logical , parameter :: snowhack = .false.
 !
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'initb'
@@ -250,27 +251,31 @@ module mod_bats_mtrxbats
           tgbrd(n,j,i) = tground2(j,i)
           taf(n,j,i) = tground2(j,i)
           tlef(n,j,i) = tground2(j,i)
+          nlveg = iveg1(n,j,i)
+          itex  = iexsol(nlveg)
           if ( ldmsk1(n,j,i) == 2 ) then
-            if ( lseaice .or. llake ) then
-              sfice(n,j,i) = d_1000
-            end if
+            if ( lemiss ) emiss(n,j,i) = 0.97D0
             nlveg = 12
-          else if ( ldmsk1(n,j,i) == 1 ) then
+          end if
+          if ( ldmsk1(n,j,i) > 0 ) then
             if ( snowam(j,i) > d_zero .and. snowam(j,i) < dmissval ) then
-              sncv(:,j,i) = snowam(j,i)
+              sncv(n,j,i) = snowam(j,i)
             else
-              sncv(:,j,i) = d_zero
+              if ( snowhack ) then
+                if ( ht1(n,j,i) > 2000.0D0 ) then
+                  sncv(n,j,i) = 0.01D0
+                else
+                  sncv(n,j,i) = d_zero
+                end if
+              else
+                sncv(n,j,i) = d_zero
+              end if
             end if
-            nlveg = iveg1(n,j,i)
-          else
-            nlveg = iveg1(n,j,i)
           end if
 !         Initialize soil moisture in the 3 layers
-          is = iveg1(n,j,i)
-          itex = iexsol(nlveg)
-          tsw(n,j,i) = deptv(nlveg)*xmopor(itex)*slmo(is)
-          rsw(n,j,i) = deprv(nlveg)*xmopor(itex)*slmo(is)
-          ssw(n,j,i) = depuv(nlveg)*xmopor(itex)*slmo(is)
+          tsw(n,j,i) = deptv(nlveg)*xmopor(itex)*slmo(nlveg)
+          rsw(n,j,i) = deprv(nlveg)*xmopor(itex)*slmo(nlveg)
+          ssw(n,j,i) = depuv(nlveg)*xmopor(itex)*slmo(nlveg)
           gwet(n,j,i) = d_half
         end do
       end do
@@ -297,7 +302,7 @@ module mod_bats_mtrxbats
     real(rk8) :: facb , facs , fact , factuv , facv , fracb ,  &
                 fracs , fracv , hl , rh0 , satvp ,     &
                 solvt , p0 , qs0 , ts0
-    integer(ik4) :: i , j , n
+    integer(ik4) :: i , j , n , icemsk
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'interf'
     integer(ik4) , save :: idindx = 0
@@ -330,7 +335,12 @@ module mod_bats_mtrxbats
             sent(n,j,i) = hfx(j,i)
             evpr(n,j,i) = qfx(j,i)
             lveg(n,j,i) = iveg1(n,j,i)
-            if ( ldmsk1(n,j,i) == 2 ) lveg(n,j,i) = 12
+            if ( ldmsk1(n,j,i) == 2 ) then
+              lveg(n,j,i) = 12
+              if ( lemiss ) emiss(n,j,i) = 0.97D0
+            else if ( ldmsk1(n,j,i) == 0 ) then
+              if ( lemiss ) emiss(n,j,i) = 0.995D0
+            end if
             lncl(n,j,i) = mfcv(lveg(n,j,i)) - &
                           seasf(lveg(n,j,i))*fseas(tgbrd(n,j,i),lveg(n,j,i))
             zh(n,j,i) = hgt(j,i,kz)
@@ -378,6 +388,22 @@ module mod_bats_mtrxbats
 
     else if ( ivers == 2 ) then ! bats --> regcm2d
  
+      ! Re-create the land sea mask to account for ice sheet melting
+
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( ldmsk(j,i) == 2 ) then
+            icemsk = 0
+            do n = 1 , nnsg
+              if ( ldmsk1(n,j,i) > 1 ) icemsk = icemsk + 1
+            end do
+            if ( icemsk < nnsg/2 ) then
+              ldmsk(j,i) = 0
+            end if
+          end if
+        end do
+      end do
+
       ! Those are needed elsewhere in the model (pbl,cumulus,chem,etc)
 
       do i = ici1 , ici2
@@ -563,7 +589,7 @@ module mod_bats_mtrxbats
           if ( associated(srf_tg_out) ) &
             srf_tg_out = tground1(jci1:jci2,ici1:ici2)
           if ( associated(srf_tlef_out) ) then
-            where ( sum(ldmsk1,1) > nnsg/2 )
+            where ( ldmsk > 0 )
               srf_tlef_out = sum(tlef,1)*rdnnsg
             elsewhere
               srf_tlef_out = dmissval
@@ -684,7 +710,12 @@ module mod_bats_mtrxbats
       do j = jci1 , jci2
         do n = 1 , nnsg
           lveg(n,j,i) = iveg1(n,j,i)
-          if ( ldmsk1(n,j,i) == 2 ) lveg(n,j,i) = 12
+          if ( ldmsk1(n,j,i) == 2 ) then
+            lveg(n,j,i) = 12
+            if ( lemiss ) emiss(n,j,i) = 0.97D0
+          else if ( ldmsk1(n,j,i) == 0 ) then
+            if ( lemiss ) emiss(n,j,i) = 0.995D0
+          end if
         end do
       end do
     end do

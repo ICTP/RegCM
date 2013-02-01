@@ -505,7 +505,7 @@ module mod_rad_colmod3
         else
           ! Effective liquid radius over land
           rliq = d_five+d_five* & 
-                  dmin1(d_one,dmax1(d_zero,(minus10-tm1(n,k))*0.05D0))
+                   dmin1(d_one,dmax1(d_zero,(minus10-tm1(n,k))*0.05D0))
         end if
         ! rel : liquid effective drop size (microns)
         rel(n,k) = rliq
@@ -522,13 +522,16 @@ module mod_rad_colmod3
         rei(n,k) = reimax - rirnge*weight
         ! Define fractional amount of cloud that is ice
         ! if warmer than -10 degrees C then water phase
-        if ( tm1(n,k) > minus10 ) fice(n,k) = d_zero
+        if ( tm1(n,k) > minus10 ) then
+          fice(n,k) = d_zero
+        else if ( tm1(n,k) <= minus10 .and. tm1(n,k) >= minus30 ) then
         ! if colder than -10 degrees C but warmer than -30 C mixed phase
         ! fice : fractional ice content within cloud
-        if ( tm1(n,k) <= minus10 .and. tm1(n,k) >= minus30 ) &
           fice(n,k) = (minus10-tm1(n,k))/20.0D0
         !  if colder than -30 degrees C then ice phase
-        if ( tm1(n,k) < minus30 ) fice(n,k) = d_one
+        else
+          fice(n,k) = d_one
+        end if
         !  Turn off ice radiative properties by setting fice = 0.0
 !
 !fil    no-ice test

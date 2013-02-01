@@ -57,6 +57,11 @@ module mod_tendency
   real(rk8) , pointer , dimension(:,:,:) :: ps_4 
   real(rk8) , pointer , dimension(:,:) :: psc , pten
 
+#ifdef DEBUG
+  real(rk8) , pointer , dimension(:,:,:) :: last_tten
+  real(rk8) , pointer , dimension(:,:,:) :: last_wten
+#endif
+
   real(rk8) :: rptn ! Total number of internal points
 
   contains
@@ -74,6 +79,10 @@ module mod_tendency
     call getmem2d(psc,jce1,jce2,ice1,ice2,'tendency:psc')
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
     call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
+#ifdef DEBUG
+    call getmem3d(last_tten,jce1,jce2,ice1,ice2,1,kz,'tendency:last_tten')
+    call getmem3d(last_wten,jde1,jde2,ide1,ide2,1,kz,'tendency:last_wten')
+#endif
     rptn = d_one/dble((jout2-jout1+1)*(iout2-iout1+1))
   end subroutine allocate_mod_tend
 !
@@ -480,6 +489,10 @@ module mod_tendency
     aten%v(:,:,:) = d_zero
     aten%t(:,:,:) = d_zero
     aten%qx(:,:,:,:) = d_zero
+#ifdef DEBUG
+    last_tten(:,:,:) = d_zero
+    last_wten(:,:,:) = d_zero
+#endif
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       aten%tke(:,:,:) = d_zero
     end if
@@ -496,6 +509,9 @@ module mod_tendency
     ! compute the horizontal advection term:
     !
     call hadv(cross,aten%t,atmx%t,kz)
+#ifdef DEBUG
+    call check_temperature_tendency('HADV')
+#endif
     !
     ! compute the vertical advection term:
     !
@@ -508,6 +524,9 @@ module mod_tendency
         call vadv(cross,aten%t,atm1%t,kz,1)
       end if
     end if
+#ifdef DEBUG
+    call check_temperature_tendency('VADV')
+#endif
     !
     ! compute the adiabatic term:
     !
@@ -521,6 +540,9 @@ module mod_tendency
         end do
       end do
     end do
+#ifdef DEBUG
+    call check_temperature_tendency('DIAB')
+#endif
     !
     ! compute the diffusion term for t and store in difft:
     !
@@ -575,6 +597,10 @@ module mod_tendency
     if ( icup == 5 ) then
       call tiedtkedrv(ktau)
     end if
+#ifdef DEBUG
+    call check_temperature_tendency('CONV')
+    call check_wind_tendency('CONV')
+#endif
     !
     ! save cumulus cloud fraction for chemistry before it is
     ! overwritten in cldfrac 
@@ -611,6 +637,9 @@ module mod_tendency
       !
       call diffu_x(adf%diffqx,atms%qxb3d,sfs%psb,xkc,nqx,kz)
     end if
+#ifdef DEBUG
+    call check_temperature_tendency('PREC')
+#endif
     !
     ! Tracers tendencies
     !
@@ -731,6 +760,10 @@ module mod_tendency
     if ( ichem == 1 .and. ichdiag == 1 ) then
       ctbldiag = ctbldiag + (chiten - chiten0) * cfdout 
     end if
+#ifdef DEBUG
+    call check_temperature_tendency('PBLL')
+    call check_wind_tendency('PBLL')
+#endif
     !
     ! add ccm radiative transfer package-calculated heating rates to
     ! temperature tendency
@@ -743,6 +776,9 @@ module mod_tendency
         end do
       end do
     end do
+#ifdef DEBUG
+    call check_temperature_tendency('HEAT')
+#endif
     !
     ! apply the sponge boundary conditions on t and qv.
     ! We must do this before adding diffusion terms.
@@ -799,6 +835,9 @@ module mod_tendency
       end if
       if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten - chiten0) * cfdout
     end if
+#ifdef DEBUG
+    call check_temperature_tendency('BDYC')
+#endif
     !
     ! forecast t, qv, and qc at tau+1:
     !
@@ -953,6 +992,9 @@ module mod_tendency
     !
     call hadv(dot,aten%u,atmx%u,kz)
     call hadv(dot,aten%v,atmx%v,kz)
+#ifdef DEBUG
+    call check_wind_tendency('HADV')
+#endif
     !
     ! compute coriolis terms:
     !
@@ -966,6 +1008,9 @@ module mod_tendency
         end do
       end do
     end do
+#ifdef DEBUG
+    call check_wind_tendency('CORI')
+#endif
     !
     ! compute pressure gradient terms:
     !
@@ -1022,6 +1067,9 @@ module mod_tendency
         end do
       end do
     end if
+#ifdef DEBUG
+    call check_wind_tendency('PRGR')
+#endif
     !
     ! compute geopotential height at half-k levels, cross points:
     !
@@ -1094,11 +1142,17 @@ module mod_tendency
         end do
       end do
     end do
+#ifdef DEBUG
+    call check_wind_tendency('GEOP')
+#endif
     !
     ! compute the vertical advection terms:
     !
     call vadv(dot,aten%u,atm1%u,kz,2)
     call vadv(dot,aten%v,atm1%v,kz,2)
+#ifdef DEBUG
+    call check_wind_tendency('VADV')
+#endif
     !
     ! apply the sponge boundary condition on u and v:
     !
@@ -1114,6 +1168,9 @@ module mod_tendency
       call nudge(kz,ba_dt,xtm1,atm2%u,iboudy,xub,aten%u)
       call nudge(kz,ba_dt,xtm1,atm2%v,iboudy,xvb,aten%v)
     end if
+#ifdef DEBUG
+    call check_wind_tendency('BDYC')
+#endif
     !
     ! add the diffusion and pbl tendencies to aten%u and aten%v:
     !
@@ -1125,6 +1182,9 @@ module mod_tendency
         end do
       end do
     end do
+#ifdef DEBUG
+    call check_wind_tendency('DIFF')
+#endif
     !
     ! forecast p*u and p*v at tau+1:
     !
@@ -1394,10 +1454,72 @@ module mod_tendency
         end if
       end if
     end if
-!
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
+
+    contains
+
+    ! Check temperature tendency less than 10 K
+
+    subroutine check_temperature_tendency(loc)
+      implicit none
+      character(len=*) , intent(in) :: loc
+      integer(ik4) :: i , j , k , ierr
+      real(rk8) :: check_tt
+      ierr = 0
+      do k = 1 , kz
+        do i = ice1, ice2
+          do j = jce1 , jce2
+            check_tt = (aten%t(j,i,k)-last_tten(j,i,k))/psc(j,i)
+            if ( dabs(check_tt) > temp_tend_maxval ) then
+              write(stderr,*) 'After ', loc, ' at ktau = ', ktau
+              write(stderr,*) 'TEMP tendency out of order : ', check_tt
+              write(stderr,*) 'At J = ',global_dot_jstart+j
+              write(stderr,*) 'At I = ',global_dot_istart+i
+              write(stderr,*) 'At K = ',k
+              ierr = ierr + 1
+            end if
+            last_tten(j,i,k) = aten%t(j,i,k)
+          end do
+        end do
+      end do
+      if ( ierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'TEMP TENDENCY ERROR')
+      end if
+    end subroutine check_temperature_tendency
+
+    ! Check wind speed tendency less than 10 m/s
+
+    subroutine check_wind_tendency(loc)
+      implicit none
+      character(len=*) , intent(in) :: loc
+      integer(ik4) :: i , j , k , ierr
+      real(rk8) :: check_ww , ten_wspd
+      ierr = 0
+      do k = 1 , kz
+        do i = ide1, ide2
+          do j = jde1 , jde2
+            ten_wspd = sqrt(aten%u(j,i,k)**2+aten%v(j,i,k)**2)
+            check_ww = (ten_wspd-last_wten(j,i,k))/psdot(j,i)
+            if ( dabs(check_ww) > wind_tend_maxval ) then
+              write(stderr,*) 'After ', loc, ' at ktau = ', ktau
+              write(stderr,*) 'WIND tendency out of order : ', check_ww
+              write(stderr,*) 'At J = ',global_dot_jstart+j
+              write(stderr,*) 'At I = ',global_dot_istart+i
+              write(stderr,*) 'At K = ',k
+              ierr = ierr + 1
+            end if
+            last_wten(j,i,k) = ten_wspd
+          end do
+        end do
+      end do
+      if ( ierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'WIND TENDENCY ERROR')
+      end if
+    end subroutine check_wind_tendency
 #endif
+
   end subroutine tend
 !
 end module mod_tendency

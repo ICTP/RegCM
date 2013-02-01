@@ -27,6 +27,7 @@ module mod_precip
 !
   use mod_runparams
   use mod_memutil
+  use mod_mpmessage
   use mod_atm_interface , only : atmstate , slice , surfstate
 !
   private
@@ -503,6 +504,15 @@ module mod_precip
       do i = ici1 , ici2
         do j = jci1 , jci2
           tmp3 = (t2(j,i,k)+dt*tten(j,i,k))/psc(j,i)
+#ifdef DEBUG
+          if ( tmp3 < d_zero ) then
+            write(stderr,*) 'Time ktau = ', ktau
+            write(stderr,*) 'Consistency TEMPERATURE ERROR in condtq (T < 0K)'
+            write(stderr,*) 'At global J : ',global_dot_jstart+j
+            write(stderr,*) 'At global I : ',global_dot_istart+i
+            write(stderr,*) 'At global K : ',k
+          end if
+#endif
           qvcs = dmax1((qx2(j,i,k,iqv)+dt*qxten(j,i,k,iqv))/psc(j,i),minqx)
           qccs = dmax1((qx2(j,i,k,iqc)+dt*qxten(j,i,k,iqc))/psc(j,i),d_zero)
           !-----------------------------------------------------------
@@ -515,7 +525,7 @@ module mod_precip
           else
             satvp = svp4*d_1000*dexp(svp5-svp6/tmp3)
           end if
-          qvs = dmax1(ep2*satvp/(pres-satvp),minqx)
+          qvs = dmax1((ep2*satvp)/(pres-satvp),minqx)
           rhc = dmax1(qvcs/qvs,dlowval)
 
           r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3*tmp3))
@@ -555,7 +565,6 @@ module mod_precip
         end do
       end do
     end do
-   
     end subroutine condtq
 !
 end module mod_precip

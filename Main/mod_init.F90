@@ -69,6 +69,7 @@ module mod_init
 !
   integer(ik4) :: i , j , k , n , ist
   real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax
+  real(rk8) :: sfice_temp
   character(len=32) :: appdat
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'init'
@@ -122,18 +123,19 @@ module mod_init
     !
     ! We have the grid (ldmsk) and subgrid (ldmsk1) versions of this
     !
+    sfice_temp = (minval(ts0(jci1:jci2,ici1:ici2))+icetemp)*d_half
     if ( iseaice == 1 ) then
       do i = ice1 , ice2
         do j = jce1 , jce2
           if ( isocean(mddom%lndcat(j,i)) ) then
             if ( ts0(j,i) <= icetemp ) then
-              sfs%tga(j,i) = icetemp
-              sfs%tgb(j,i) = icetemp
+              sfs%tga(j,i) = sfice_temp
+              sfs%tgb(j,i) = sfice_temp
               ts0(j,i) = icetemp
               ldmsk(j,i) = 2
               do n = 1, nnsg
                 ldmsk1(n,j,i) = 2
-                sfice(n,j,i) = d_100
+                sfice(n,j,i) = d_10
               end do
             end if
           end if
@@ -155,7 +157,7 @@ module mod_init
               ldmsk(j,i) = 2
               do n = 1, nnsg
                 ldmsk1(n,j,i) = 2
-                sfice(n,j,i) = d_100
+                sfice(n,j,i) = d_10
               end do
             end if
           end if
@@ -207,7 +209,7 @@ module mod_init
     if ( idcsst == 1 ) then
       dtskin(:,:) = d_zero
       deltas(:,:) = 0.001D0
-      sst(:,:) = tground2(jci1:jci2,ici1:ici2)
+      sst(:,:) = ts0(jci1:jci2,ici1:ici2)
       tdeltas(:,:) = sst(:,:) - deltas(:,:)
     end if
     !
@@ -389,39 +391,47 @@ module mod_init
     end if
 
     !
-    ! Update ground temperature on Ocean/Lakes
+    ! Restore ground temperature on Ocean/Lakes
     !
+    sfice_temp = (minval(sfs%tga(jci1:jci2,ici1:ici2))+icetemp)*d_half
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( iswater(mddom%lndcat(j,i)) ) then
-          if ( idcsst == 1 ) then
-            sst(j,i) = ts1(j,i)
-            sfs%tga(j,i) = sst(j,i) + dtskin(j,i)
-            sfs%tgb(j,i) = sst(j,i) + dtskin(j,i)
-          else
-            sfs%tga(j,i) = ts1(j,i)
-            sfs%tgb(j,i) = ts1(j,i)
+          if ( ldmsk(j,i) == 0 ) then
+            if ( idcsst == 1 ) then
+              sst(j,i) = ts1(j,i)
+              sfs%tga(j,i) = sst(j,i) + dtskin(j,i)
+              sfs%tgb(j,i) = sst(j,i) + dtskin(j,i)
+            else
+              ! Update temperature where NO ice
+              sfs%tga(j,i) = ts1(j,i)
+              sfs%tgb(j,i) = ts1(j,i)
+            end if
           end if
           if ( iseaice == 1 ) then
             if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-            if ( ts1(j,i) <= icetemp ) then
-              sfs%tga(j,i) = icetemp
-              sfs%tgb(j,i) = icetemp
+            if ( ts1(j,i) <= icetemp .and. ldmsk(j,i) == 0 ) then
+#ifdef DEBUG
+              write(stderr,*) 'OCEAN -> ICE TRANSITION FROM SST'
+#endif
+              sfs%tga(j,i) = sfice_temp
+              sfs%tgb(j,i) = sfice_temp
               ts1(j,i) = icetemp
               ldmsk(j,i) = 2
               do n = 1, nnsg
                 ldmsk1(n,j,i) = 2
-                sfice(n,j,i) = d_100
+                sfice(n,j,i) = d_10
               end do
-            else
-              !
-              ! Allow for ice melting.
-              !
-              if ( ldmsk(j,i) == 2 ) then
-                do n = 1, nnsg
-                  sfice(n,j,i) = min(sfice(n,j,i),0.1D0)
-                end do
-              end if
+            else if ( ts1(j,i) > icetemp .and. ldmsk(j,i) == 2 ) then
+#ifdef DEBUG
+              write(stderr,*) 'ICE -> OCEAN TRANSITION FROM SST'
+#endif
+              ! Decrease the surface ice to melt it
+              do n = 1, nnsg
+                sfice(n,j,i) = 0.75D0*sfice(n,j,i)
+                sfs%tga(j,i) = sfs%tga(j,i) + d_one
+                sfs%tgb(j,i) = sfs%tgb(j,i) + d_one
+              end do
             end if
           end if
         end if

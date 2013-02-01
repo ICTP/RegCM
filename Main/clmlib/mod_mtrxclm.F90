@@ -645,7 +645,7 @@ module mod_mtrxclm
       call interf(1,ktau)
 
       if ( iocnflx == 2 ) then
-        call zengocndrv(ktau)
+        call zengocndrv
       else if ( iocnflx == 1 ) then
         call dragc
         do i = ici1 , ici2

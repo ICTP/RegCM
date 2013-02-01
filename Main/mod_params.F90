@@ -133,7 +133,7 @@ module mod_params
 
   namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl
 
-  namelist /holtslagparam/ ricr_ocn , ricr_lnd
+  namelist /holtslagparam/ ricr_ocn , ricr_lnd , zhnew_fac
 
 #ifdef CLM
   namelist /clmparam/ dirclm , imask , clmfrq
@@ -305,7 +305,7 @@ module mod_params
   ipptls = 1
   igcc = 1
   ipgf = 1
-  iemiss = 1
+  iemiss = 0
   iocnflx = 1
   iocncpl = 0
   iocnrough = 1
@@ -321,6 +321,8 @@ module mod_params
   iclimao3 = 0
   isolconst = 1
   icumcloud = 1
+  temp_tend_maxval = 1.0
+  wind_tend_maxval = 0.5
 !----------------------------------------------------------------------
 !-----rrtm radiation namelist param:
 !
@@ -430,6 +432,7 @@ module mod_params
 
   ricr_ocn = 0.25D0
   ricr_lnd = 0.25D0
+  zhnew_fac = 0.25D0
 
 !c-----namelist slabocparam ;
 
@@ -927,6 +930,7 @@ module mod_params
   if ( ibltyp == 1 .or. ibltyp == 99 ) then
     call bcast(ricr_ocn)
     call bcast(ricr_lnd)
+    call bcast(zhnew_fac)
   end if
   if ( ibltyp == 2 .or. ibltyp == 99 ) then
     call bcast(iuwvadv)

@@ -88,7 +88,7 @@ regcm_SOURCES = mod_atm_interface.F90 mod_che_interface.F90 \
   mod_lm_interface.F90 mod_cu_interface.f90 mod_rad_interface.f90 \
   mod_pbl_interface.F90 mod_mppio.F90 mod_header.F90 \
   mod_advection.F90 mod_ncio.F90 mod_bdycod.F90 mod_diffusion.F90 \
-  mod_precip.f90 mod_sun.F90 mod_savefile.F90 mod_slice.F90 mod_init.F90 \
+  mod_precip.F90 mod_sun.F90 mod_savefile.F90 mod_slice.F90 mod_init.F90 \
   mod_vmodes.F90 mod_split.F90 mod_output.F90 mod_cloud_s1.F90 \
   mod_tendency.F90 mod_params.F90 mod_tstep.f90 mod_slabocean.F90 regcm.f90
 
@@ -154,7 +154,7 @@ else
 mod_params.o: mod_params.F90 mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_domain.o mod_cu_interface.o mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_rad_interface.o mod_pbl_interface.o mod_precip.o mod_cloud_s1.o mod_split.o mod_slice.o mod_bdycod.o mod_ncio.o mod_tendency.o mod_ncio.o mod_ncout.o mod_advection.o mod_mppio.o mod_slabocean.o
 endif
 mod_pbl_interface.o: mod_pbl_interface.F90 mod_realkinds.o mod_service.o mod_constants.o mod_dynparam.o mod_memutil.o mod_mppparam.o mod_atm_interface.o mod_pbl_common.o mod_pbl_holtbl.o mod_pbl_uwtcm.o mod_runparams.o mod_runparams.o
-mod_precip.o: mod_precip.f90 mod_runparams.o mod_memutil.o mod_atm_interface.o
+mod_precip.o: mod_precip.F90 mod_runparams.o mod_memutil.o mod_atm_interface.o mod_mpmessage.o
 mod_rad_interface.o: mod_rad_interface.f90 mod_realkinds.o mod_atm_interface.o mod_rad_common.o mod_rad_aerosol.o mod_rad_colmod3.o mod_rrtmg_driver.o mod_rad_o3blk.o mod_rad_outrad.o mod_rad_radiation.o mod_rad_scenarios.o mod_rad_tracer.o
 if DO_COMPILE_LIBCLM
 mod_regcm_interface.o: mod_regcm_interface.F90 mod_memutil.o mod_service.o mod_che_interface.o mod_atm_interface.o mod_pbl_interface.o mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_ncio.o mod_ncout.o mod_output.o mod_split.o mod_bdycod.o mod_init.o mod_header.o mod_params.o mod_tendency.o mod_tstep.o mod_service.o mod_mppio.o mod_cloud_s1.o mod_sun.o perf_mod.o mod_mtrxclm.o spmdMod.o clm_varsur.o
@@ -171,7 +171,7 @@ mod_savefile.o: mod_savefile.F90 mod_runparams.o mod_mpmessage.o mod_mppparam.o 
 else
 mod_savefile.o: mod_savefile.F90 mod_runparams.o mod_mpmessage.o mod_mppparam.o mod_atm_interface.o mod_lm_interface.o mod_che_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_bdycod.o mod_mppio.o
 endif
-mod_slice.o: mod_slice.F90 mod_runparams.o mod_atm_interface.o mod_che_interface.o mod_pbl_interface.o mod_rad_interface.o
+mod_slice.o: mod_slice.F90 mod_runparams.o mod_atm_interface.o mod_che_interface.o mod_pbl_interface.o mod_rad_interface.o mod_constants.o
 mod_split.o: mod_split.F90 mod_dynparam.o mod_mppparam.o mod_runparams.o mod_atm_interface.o mod_vmodes.o mod_bdycod.o mod_atm_interface.o mod_memutil.o mod_service.o mod_mppio.o
 mod_sun.o: mod_sun.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_runparams.o mod_atm_interface.o mod_mpmessage.o mod_mppparam.o mod_service.o
 if DO_COMPILE_LIBCLM

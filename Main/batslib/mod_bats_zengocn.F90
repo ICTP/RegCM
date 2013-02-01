@@ -66,9 +66,8 @@ module mod_bats_zengocn
 ! Implement Zeng and Beljaars, GRL , 2005, ZB2005
 ! Account for SST diurnal evoluation warm layer/ skin temperature scheme
 !
-  subroutine zengocndrv(ktau)
+  subroutine zengocndrv
     implicit none
-    integer(ik8) , intent(in) :: ktau
 !
     real(rk8) :: dqh , dth , facttq , lh , psurf , q995 , qs , sh , zo ,&
                 t995 , tau , tsurf , ustar , uv10 , uv995 , z995 , zi
@@ -344,11 +343,6 @@ module mod_bats_zengocn
             tauy(n,j,i) = tau*(vatm(j,i,kz)/uv995) 
             t2m(n,j,i)  = t995 + tzero - dth*facttq
             q2m(n,j,i)  = q995 - dqh*facttq
-            !
-            if ( mod(ktau+1,ksrf) == 0 .or. lfirst_call ) then
-              facttq = dlog(z995*d_half)/dlog(z995/zo)
-              tgbrd(n,j,i) = tground2(j,i)
-            end if
           end if
         end do
       end do

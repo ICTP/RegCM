@@ -383,6 +383,7 @@ module mod_bdycod
     integer(ik4) :: i , j , k , n , datefound
     character(len=32) :: appdat
     logical :: update_slabocn
+    real(rk8) :: sfice_temp
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyin'
     integer(ik4) , save :: idindx = 0
@@ -490,37 +491,47 @@ module mod_bdycod
     !
     ! Update ground temperature on Ocean/Lakes
     !
+
+    sfice_temp = (minval(sfs%tga(jci1:jci2,ici1:ici2))+icetemp)*d_half
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( iswater(mddom%lndcat(j,i)) .and. islab_ocean == 0 ) then
-          if ( idcsst == 1 ) then
-            sst(j,i) = ts1(j,i)
-            sfs%tga(j,i) = sst(j,i) + dtskin(j,i)
-            sfs%tgb(j,i) = sst(j,i) + dtskin(j,i)
-          else
-            sfs%tga(j,i) = ts1(j,i)
-            sfs%tgb(j,i) = ts1(j,i)
+          if ( ldmsk(j,i) == 0 ) then
+            if ( idcsst == 1 ) then
+              sst(j,i) = ts1(j,i)
+              sfs%tga(j,i) = sst(j,i) + dtskin(j,i)
+              sfs%tgb(j,i) = sst(j,i) + dtskin(j,i)
+            else
+              ! Update temperature where NO ice
+              sfs%tga(j,i) = ts1(j,i)
+              sfs%tgb(j,i) = ts1(j,i)
+            end if
           end if
           if ( iseaice == 1 ) then
             if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-            if ( ts1(j,i) <= icetemp ) then
-              sfs%tga(j,i) = icetemp
-              sfs%tgb(j,i) = icetemp
+            if ( ts1(j,i) <= icetemp .and. ldmsk(j,i) == 0 ) then
+#ifdef DEBUG
+              write(stderr,*) 'OCEAN -> ICE TRANSITION FROM SST'
+#endif
+              sfs%tga(j,i) = sfice_temp
+              sfs%tgb(j,i) = sfice_temp
               ts1(j,i) = icetemp
               ldmsk(j,i) = 2
               do n = 1, nnsg
                 ldmsk1(n,j,i) = 2
-                sfice(n,j,i) = d_100
+                sfice(n,j,i) = d_10
               end do
-            else
-              !
-              ! Allow for ice melting.
-              !
-              if ( ldmsk(j,i) == 2 ) then
-                do n = 1, nnsg
-                  sfice(n,j,i) = min(sfice(n,j,i),0.1D0)
-                end do
-              end if
+            else if ( ts1(j,i) > icetemp .and. ldmsk(j,i) == 2 ) then
+              ! Decrease the surface ice to melt it
+#ifdef DEBUG
+              write(stderr,*) 'ICE -> OCEAN TRANSITION FROM SST'
+#endif
+              do n = 1, nnsg
+                sfice(n,j,i) = 0.75D0*sfice(n,j,i)
+                ! Give a little boost on temp
+                sfs%tga(j,i) = sfs%tga(j,i) + d_one
+                sfs%tgb(j,i) = sfs%tgb(j,i) + d_one
+              end do
             end if
           end if
         end if

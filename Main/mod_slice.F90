@@ -21,6 +21,7 @@ module mod_slice
 !
 ! Fill 3D spaces for calculations
 !
+  use mod_constants
   use mod_runparams
   use mod_atm_interface
   use mod_che_interface
@@ -150,6 +151,9 @@ module mod_slice
         atms%rhox2d(j,i) = pres/(rgas*atms%tb3d(j,i,kz))
       end do
     end do
+
+    atms%rhb3d(:,:,:) = d_zero
+
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -161,8 +165,7 @@ module mod_slice
           else
             satvp = svp4*d_1000*dexp(svp5-svp6/atms%tb3d(j,i,k))
           end if
-          atms%qsb3d(j,i,k) = ep2*satvp/(pres-satvp)
-          atms%rhb3d(j,i,k) = d_zero
+          atms%qsb3d(j,i,k) = (ep2*satvp)/(pres-satvp)
           if ( atms%qsb3d(j,i,k) > d_zero ) then
             atms%rhb3d(j,i,k) = atms%qxb3d(j,i,k,iqv)/atms%qsb3d(j,i,k)
           end if

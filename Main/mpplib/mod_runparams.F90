@@ -240,6 +240,7 @@ module mod_runparams
 
   real(rk8) :: ricr_ocn
   real(rk8) :: ricr_lnd
+  real(rk8) :: zhnew_fac
 
   ! Chemistry nameliste option
 
@@ -282,6 +283,12 @@ module mod_runparams
   real(rk8) :: clmfrq
   character(len=256) :: dirclm
 #endif
+
+  !
+  ! Debug limit values for tendencies
+  !
+  real(rk8) :: temp_tend_maxval
+  real(rk8) :: wind_tend_maxval
 
   data doing_restart /.false./
 
