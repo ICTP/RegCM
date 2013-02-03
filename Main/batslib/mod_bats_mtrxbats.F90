@@ -22,7 +22,8 @@ module mod_bats_mtrxbats
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : iqv , iocnflx , iocncpl , ichem , ksrf , xmonth
+  use mod_runparams , only : iqv , iocnflx , iocncpl , ichem , &
+                             iemiss , ksrf , xmonth
   use mod_mppparam
   use mod_mpmessage
   use mod_constants
@@ -254,7 +255,7 @@ module mod_bats_mtrxbats
           nlveg = iveg1(n,j,i)
           itex  = iexsol(nlveg)
           if ( ldmsk1(n,j,i) == 2 ) then
-            if ( lemiss ) emiss(n,j,i) = 0.97D0
+            if ( iemiss == 1 ) emiss(n,j,i) = 0.97D0
             nlveg = 12
           end if
           if ( ldmsk1(n,j,i) > 0 ) then
@@ -337,9 +338,9 @@ module mod_bats_mtrxbats
             lveg(n,j,i) = iveg1(n,j,i)
             if ( ldmsk1(n,j,i) == 2 ) then
               lveg(n,j,i) = 12
-              if ( lemiss ) emiss(n,j,i) = 0.97D0
+              if ( iemiss == 1 ) emiss(n,j,i) = 0.97D0
             else if ( ldmsk1(n,j,i) == 0 ) then
-              if ( lemiss ) emiss(n,j,i) = 0.995D0
+              if ( iemiss == 1 ) emiss(n,j,i) = 0.995D0
             end if
             lncl(n,j,i) = mfcv(lveg(n,j,i)) - &
                           seasf(lveg(n,j,i))*fseas(tgbrd(n,j,i),lveg(n,j,i))
@@ -712,9 +713,9 @@ module mod_bats_mtrxbats
           lveg(n,j,i) = iveg1(n,j,i)
           if ( ldmsk1(n,j,i) == 2 ) then
             lveg(n,j,i) = 12
-            if ( lemiss ) emiss(n,j,i) = 0.97D0
+            if ( iemiss == 1 ) emiss(n,j,i) = 0.97D0
           else if ( ldmsk1(n,j,i) == 0 ) then
-            if ( lemiss ) emiss(n,j,i) = 0.995D0
+            if ( iemiss == 1 ) emiss(n,j,i) = 0.995D0
           end if
         end do
       end do
