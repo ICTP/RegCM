@@ -586,11 +586,7 @@ module mod_vertint
               ! This is the above level
               !
               knx = kx + 1
-              if ( sig(kx) > d_zero ) then
-                wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
-              else
-                wp = dlog(sigp)/dlog(sig(knx))
-              end if
+              wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
               w1 = d_one - wp
               fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
             end do
@@ -667,11 +663,7 @@ module mod_vertint
               ! This is the above level
               !
               knx = kx - 1
-              if ( sig(knx) > d_zero ) then
-                wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
-              else
-                wp = dlog(sigp/sig(kx))/dlog(d_one/sig(kx))
-              end if
+              wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
               w1 = d_one - wp
               fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
             end do
@@ -763,11 +755,7 @@ module mod_vertint
             ! This is the above level
             !
             knx = kx + 1
-            if ( sig(kx) > d_zero ) then
-              wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
-            else
-              wp = dlog(sigp)/dlog(sig(knx))
-            end if
+            wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
             w1 = d_one - wp
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end do
@@ -826,11 +814,7 @@ module mod_vertint
             ! This is the above level
             !
             knx = kx - 1
-            if ( sig(knx) > d_zero ) then
-              wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
-            else
-              wp = log(sigp/sig(kx))/log(d_one/sig(kx))
-            end if
+            wp = dlog(sigp/sig(kx))/dlog(sig(knx)/sig(kx))
             w1 = d_one - wp
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end do
@@ -917,11 +901,7 @@ module mod_vertint
             ! This is the above level
             !
             knx = kx + 1
-            if ( sig(kx) > d_zero ) then
-              wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
-            else
-              wp = log(sigp)/log(sig(knx))
-            end if
+            wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
             w1 = 1.0 - wp
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end do
@@ -980,11 +960,7 @@ module mod_vertint
             ! This is the above level
             !
             knx = kx - 1
-            if ( sig(knx) > 0.0 ) then
-              wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
-            else
-              wp = log(sigp/sig(kx))/log(1.0/sig(kx))
-            end if
+            wp = log(sigp/sig(kx))/log(sig(knx)/sig(kx))
             w1 = 1.0 - wp
             fp(i,j,n) = w1*f(i,j,kx) + wp*f(i,j,knx)
           end do
