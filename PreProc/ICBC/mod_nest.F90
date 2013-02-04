@@ -263,6 +263,7 @@ module mod_nest
     integer(ik4) :: i , k , istatus , idimid , ivarid
     type(rcm_time_and_date) :: imf
     real(rk8) , dimension(2) :: trlat
+    real(rk8) , dimension(:) , allocatable :: sigfix
 !
     plev(1) = 50.
     plev(2) = 70.
@@ -341,6 +342,16 @@ module mod_nest
     call checkncerr(istatus,__FILE__,__LINE__,'variable sigma error')
     istatus = nf90_get_var(ncinp, ivarid, sig)
     call checkncerr(istatus,__FILE__,__LINE__,'variable sigma read error')
+    if ( sig(1) < dlowval ) then
+      ! Fix V. 4.3.x bug in sigma levels
+      allocate(sigfix(kz_in+1))
+      sigfix(1:kz_in) = sig(:)
+      sigfix(kz_in+1) = d_one
+      do k = 1 , kz_in
+        sig(k) = d_half*(sigfix(k)+sigfix(k+1))
+      end do
+      deallocate(sigfix)
+    end if
     istatus = nf90_inq_varid(ncinp, 'xlat', ivarid) 
     call checkncerr(istatus,__FILE__,__LINE__,'variable xlat error')
     istatus = nf90_get_var(ncinp, ivarid, xlat_in)
