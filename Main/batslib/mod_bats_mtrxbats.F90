@@ -495,8 +495,9 @@ module mod_bats_mtrxbats
             srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1) + sum(srnof,1)*rdnnsg
             srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2) + sum(trnof,1)*rdnnsg
           end if
-          if ( associated(srf_sena_out) ) &
+          if ( associated(srf_sena_out) ) then
             srf_sena_out = srf_sena_out + sum(sent,1)*rdnnsg
+          end if
           if ( associated(srf_flw_out) ) &
             srf_flw_out = srf_flw_out + flw
           if ( associated(srf_fsw_out) ) &

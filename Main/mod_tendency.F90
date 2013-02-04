@@ -1465,7 +1465,7 @@ module mod_tendency
     subroutine check_temperature_tendency(loc)
       implicit none
       character(len=*) , intent(in) :: loc
-      integer(ik4) :: i , j , k , ierr
+      integer(ik4) :: i , j , k , kk , ierr
       real(rk8) :: check_tt
       ierr = 0
       do k = 1 , kz
@@ -1478,6 +1478,14 @@ module mod_tendency
               write(stderr,*) 'At J = ',global_dot_jstart+j
               write(stderr,*) 'At I = ',global_dot_istart+i
               write(stderr,*) 'At K = ',k
+              write(stderr,*) 'Surface Temperature : ', sfs%tga(j,i)
+              write(stderr,*) 'Vertical PTU profile: '
+              do kk = 1 , kz
+                write(stderr,'(i2,3f12.7)') kk, &
+                        atms%pb3d(j,i,kk), atms%tb3d(j,i,kk), &
+                        sqrt(atms%ubx3d(j,i,kk)**2+ &
+                             atms%vbx3d(j,i,kk)**2)
+              end do
               ierr = ierr + 1
             end if
             last_tten(j,i,k) = aten%t(j,i,k)
@@ -1494,7 +1502,7 @@ module mod_tendency
     subroutine check_wind_tendency(loc)
       implicit none
       character(len=*) , intent(in) :: loc
-      integer(ik4) :: i , j , k , ierr
+      integer(ik4) :: i , j , k , kk , ierr
       real(rk8) :: check_ww , ten_wspd
       ierr = 0
       do k = 1 , kz
@@ -1508,6 +1516,14 @@ module mod_tendency
               write(stderr,*) 'At J = ',global_dot_jstart+j
               write(stderr,*) 'At I = ',global_dot_istart+i
               write(stderr,*) 'At K = ',k
+              write(stderr,*) 'Surface Temperature : ', sfs%tga(j,i)
+              write(stderr,*) 'Vertical PTU profile: '
+              do kk = 1 , kz
+                write(stderr,'(i2,3f12.7)') kk, &
+                        atms%pb3d(j,i,kk), atms%tb3d(j,i,kk), &
+                        sqrt(atms%ubx3d(j,i,kk)**2+ &
+                             atms%vbx3d(j,i,kk)**2)
+              end do
               ierr = ierr + 1
             end if
             last_wten(j,i,k) = ten_wspd

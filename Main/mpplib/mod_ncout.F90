@@ -2371,6 +2371,20 @@ module mod_ncout
         end select
       end if
 
+#ifdef DEBUG
+    if ( debug_level > 2 ) then
+      write(stderr,*) 'Writing var ',trim(vp%vname),' at time ',tochar(idate)
+      select type(vp)
+        type is (ncvariable2d_real)
+          write(stderr,*) 'Max Value : ', maxval(vp%rval)
+          write(stderr,*) 'Min Value : ', minval(vp%rval)
+        type is (ncvariable3d_real)
+          write(stderr,*) 'Max Value : ', maxval(vp%rval)
+          write(stderr,*) 'Min Value : ', minval(vp%rval)
+        class default
+      end select
+    end if
+#endif
       call outstream_writevar(outstream(istream)%ncout(jfile),vp)
 
       ! Reset pointers
@@ -2442,6 +2456,11 @@ module mod_ncout
       vp%rval => pnt2d
     end if
 
+#ifdef DEBUG
+    if ( debug_level > 2 ) then
+      write(stdout,*) 'Writing var ',trim(vp%vname)
+    end if
+#endif
     call outstream_writevar(outstream(istream)%ncout(jfile),vp)
 
     ! Reset pointers
@@ -2500,6 +2519,11 @@ module mod_ncout
       vp%rval => pnt3d
     end if
 
+#ifdef DEBUG
+    if ( debug_level > 2 ) then
+      write(stdout,*) 'Writing var ',trim(vp%vname)
+    end if
+#endif
     call outstream_writevar(outstream(istream)%ncout(jfile),vp)
 
     ! Reset pointers
