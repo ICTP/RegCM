@@ -336,6 +336,8 @@ module mod_bats_leaftemp
             sent(n,j,i) = cpd*rhs(n,j,i)*(-wta(n,j,i)*delt(n,j,i)+fbare)
             evpr(n,j,i) = rhs(n,j,i)*(-wta(n,j,i)*delq(n,j,i) + &
                             rgr(n,j,i)*qbare)
+            if ( dabs(sent(n,j,i)) < dlowval ) sent(n,j,i) = d_zero
+            if ( dabs(evpr(n,j,i)) < dlowval ) evpr(n,j,i) = d_zero
           end if
         end if
       end do

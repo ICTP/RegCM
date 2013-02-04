@@ -152,6 +152,8 @@ module mod_bats_lake
               if ( toth > href ) then
                 sent(n,j,i) = sent(n,j,i) * (href/toth)**steepf
               end if
+              if ( dabs(sent(n,j,i)) < dlowval ) sent(n,j,i) = d_zero
+              if ( dabs(evpr(n,j,i)) < dlowval ) evpr(n,j,i) = d_zero
             end if
           end if
         end do

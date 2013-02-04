@@ -163,6 +163,8 @@ module mod_bats_bndry
               delt(n,j,i) = sts(n,j,i) - tgrd(n,j,i)
               evpr(n,j,i) = -rai*delq(n,j,i)
               sent(n,j,i) = -cgrnds(n,j,i)*delt(n,j,i)
+              if ( dabs(sent(n,j,i)) < dlowval ) sent(n,j,i) = d_zero
+              if ( dabs(evpr(n,j,i)) < dlowval ) evpr(n,j,i) = d_zero
               ! 3.3  fluxes to subrout tgrund (evap is in kg/m**2/s)
               fseng(n,j,i) = sent(n,j,i)
               fevpg(n,j,i) = evpr(n,j,i)
@@ -251,6 +253,8 @@ module mod_bats_bndry
             ! evaporation is in kg/m**2/s
             evpr(n,j,i) = fact*delq(n,j,i)
             sent(n,j,i) = fact*cpd*delt(n,j,i)
+            if ( dabs(sent(n,j,i)) < dlowval ) sent(n,j,i) = d_zero
+            if ( dabs(evpr(n,j,i)) < dlowval ) evpr(n,j,i) = d_zero
           end if
           if ( sigf(n,j,i) < minsigf ) taf(n,j,i) = tgrd(n,j,i)
           ! 6.2  parameters for temperature difference at anemometer level
@@ -436,6 +440,8 @@ module mod_bats_bndry
             ! output fluxes, averaged over leads and ice
             evpr(n,j,i) = fact*delq(n,j,i)
             sent(n,j,i) = fact*cpd*delt(n,j,i)
+            if ( dabs(sent(n,j,i)) < dlowval ) sent(n,j,i) = d_zero
+            if ( dabs(evpr(n,j,i)) < dlowval ) evpr(n,j,i) = d_zero
             hrl = rhs(n,j,i)*vspda(n,j,i)*clead(n,j,i) * &
                       (qice(n,j,i)-qs(n,j,i))
             hsl = rhs(n,j,i)*vspda(n,j,i)*clead(n,j,i) * &
@@ -1053,6 +1059,8 @@ module mod_bats_bndry
             tinc = tgrd(n,j,i) - tbef
             sent(n,j,i) = sent(n,j,i) + tinc*cgrnds(n,j,i)
             evpr(n,j,i) = evpr(n,j,i) + tinc*cgrndl(n,j,i)
+            if ( dabs(sent(n,j,i)) < dlowval ) sent(n,j,i) = d_zero
+            if ( dabs(evpr(n,j,i)) < dlowval ) evpr(n,j,i) = d_zero
             fseng(n,j,i) = fseng(n,j,i) + tinc*cgrnds(n,j,i)
             fevpg(n,j,i) = fevpg(n,j,i) + tinc*cgrndl(n,j,i)
             !
