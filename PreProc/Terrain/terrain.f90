@@ -121,66 +121,66 @@ program terrain
 !  Setup hardcoded sigma levels
 !
   if ( kz==14 ) then                      ! RegCM2
-    sigma(1) = 0.0
-    sigma(2) = 0.04
-    sigma(3) = 0.10
-    sigma(4) = 0.17
-    sigma(5) = 0.25
-    sigma(6) = 0.35
-    sigma(7) = 0.46
-    sigma(8) = 0.56
-    sigma(9) = 0.67
-    sigma(10) = 0.77
-    sigma(11) = 0.86
-    sigma(12) = 0.93
-    sigma(13) = 0.97
-    sigma(14) = 0.99
-    sigma(15) = 1.0
+    sigma(1) = 0.0D0
+    sigma(2) = 0.04D0
+    sigma(3) = 0.10D0
+    sigma(4) = 0.17D0
+    sigma(5) = 0.25D0
+    sigma(6) = 0.35D0
+    sigma(7) = 0.46D0
+    sigma(8) = 0.56D0
+    sigma(9) = 0.67D0
+    sigma(10) = 0.77D0
+    sigma(11) = 0.86D0
+    sigma(12) = 0.93D0
+    sigma(13) = 0.97D0
+    sigma(14) = 0.99D0
+    sigma(15) = 1.0D0
   else if ( kz==18 ) then                 ! RegCM3, default
-    sigma(1) = 0.0
-    sigma(2) = 0.05
-    sigma(3) = 0.10
-    sigma(4) = 0.16
-    sigma(5) = 0.23
-    sigma(6) = 0.31
-    sigma(7) = 0.39
-    sigma(8) = 0.47
-    sigma(9) = 0.55
-    sigma(10) = 0.63
-    sigma(11) = 0.71
-    sigma(12) = 0.78
-    sigma(13) = 0.84
-    sigma(14) = 0.89
-    sigma(15) = 0.93
-    sigma(16) = 0.96
-    sigma(17) = 0.98
-    sigma(18) = 0.99
-    sigma(19) = 1.0
+    sigma(1) = 0.0D0
+    sigma(2) = 0.05D0
+    sigma(3) = 0.10D0
+    sigma(4) = 0.16D0
+    sigma(5) = 0.23D0
+    sigma(6) = 0.31D0
+    sigma(7) = 0.39D0
+    sigma(8) = 0.47D0
+    sigma(9) = 0.55D0
+    sigma(10) = 0.63D0
+    sigma(11) = 0.71D0
+    sigma(12) = 0.78D0
+    sigma(13) = 0.84D0
+    sigma(14) = 0.89D0
+    sigma(15) = 0.93D0
+    sigma(16) = 0.96D0
+    sigma(17) = 0.98D0
+    sigma(18) = 0.99D0
+    sigma(19) = 1.0D0
   else if ( kz==23 ) then                 ! MM5V3
-    sigma(1) = 0.0
-    sigma(2) = 0.05
-    sigma(3) = 0.1
-    sigma(4) = 0.15
-    sigma(5) = 0.2
-    sigma(6) = 0.25
-    sigma(7) = 0.3
-    sigma(8) = 0.35
-    sigma(9) = 0.4
-    sigma(10) = 0.45
-    sigma(11) = 0.5
-    sigma(12) = 0.55
-    sigma(13) = 0.6
-    sigma(14) = 0.65
-    sigma(15) = 0.7
-    sigma(16) = 0.75
-    sigma(17) = 0.8
-    sigma(18) = 0.85
-    sigma(19) = 0.89
-    sigma(20) = 0.93
-    sigma(21) = 0.96
-    sigma(22) = 0.98
-    sigma(23) = 0.99
-    sigma(24) = 1.0
+    sigma(1) = 0.0D0
+    sigma(2) = 0.05D0
+    sigma(3) = 0.1D0
+    sigma(4) = 0.15D0
+    sigma(5) = 0.2D0
+    sigma(6) = 0.25D0
+    sigma(7) = 0.3D0
+    sigma(8) = 0.35D0
+    sigma(9) = 0.4D0
+    sigma(10) = 0.45D0
+    sigma(11) = 0.5D0
+    sigma(12) = 0.55D0
+    sigma(13) = 0.6D0
+    sigma(14) = 0.65D0
+    sigma(15) = 0.7D0
+    sigma(16) = 0.75D0
+    sigma(17) = 0.8D0
+    sigma(18) = 0.85D0
+    sigma(19) = 0.89D0
+    sigma(20) = 0.93D0
+    sigma(21) = 0.96D0
+    sigma(22) = 0.98D0
+    sigma(23) = 0.99D0
+    sigma(24) = 1.0D0
   else
     call getmem1d(alph,1,kz,'terrain:alph')
     call getmem1d(dsig,1,kz,'terrain:dsig')
@@ -254,12 +254,12 @@ program terrain
         call die('terrain','Error setting up custom sigma levels')
       end if
     end do
-    sigma(1) = d_zero
+    sigma(1) = 0.0D0
     pstar = stdpmb - d_10*ptop
     do k = 1 , kz-1
       sigma(k+1) = sigma(k)+dsig(k)
     end do
-    sigma(kz+1) = d_one
+    sigma(kz+1) = 1.0D0
     ! Write the levels out to the screen
     zsig = d_zero
     psig = pstar*sigma(kz+1) + d_10*ptop
