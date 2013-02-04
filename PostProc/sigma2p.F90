@@ -51,6 +51,7 @@ program sigma2p
   character , allocatable , dimension(:) :: tvar
   real(rk4) , allocatable , dimension(:) :: apvar
   real(rk8) , allocatable , dimension(:) :: times
+  real(rk8) , allocatable , dimension(:) :: sigfix
   logical , allocatable , dimension(:) :: lkvarflag , ltvarflag , lchnameflag
   integer(ik4) , allocatable , dimension(:) :: varsize
   integer(ik4) , allocatable , dimension(:) :: intscheme
@@ -65,7 +66,7 @@ program sigma2p
   real(rk8) :: ptop
   integer(ik4) , dimension(4) :: tdimids
   integer(ik4) , dimension(3) :: psdimids
-  integer(ik4) :: i , j , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
+  integer(ik4) :: i , j , k , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
   integer(ik4) :: tvarid , qvarid , irhvar , ihgvar , imslpvar , ircm_map
   logical :: has_t , has_q
   logical :: make_rh , make_hgt
@@ -348,6 +349,16 @@ program sigma2p
   end if
   istatus = nf90_get_var(ncid, ivarid, sigma)
   call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable sigma.')
+  if ( sigma(1) < dlowval ) then
+    ! Fix for a buggy RegCM 4.3.x revision
+    allocate(sigfix(kz+1))
+    sigfix(1:kz) = sigma
+    sigfix(kz+1) = d_one
+    do k = 1 , kz
+      sigma(k) = 0.5*real(sigfix(k)+sigfix(k+1))
+    end do
+    deallocate(sigfix)
+  end if
 
   istatus = nf90_inq_varid(ncid, "time", ivarid)
   call checkncerr(istatus,__FILE__,__LINE__,'Error reading variable time.')
