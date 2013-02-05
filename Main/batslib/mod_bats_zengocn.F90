@@ -356,11 +356,11 @@ module mod_bats_zengocn
 !
 !   stability function for rb < 0
 !
-    function psi(k,zeta)
+    real(rk8) function psi(k,zeta)
       implicit none
       integer(ik4) , intent(in) :: k
       real(rk8) , intent(in) :: zeta
-      real(rk8) :: chik , psi
+      real(rk8) :: chik
       chik = (d_one-16.0D0*zeta)**d_rfour
       if ( k == 1 ) then
         psi = d_two*dlog((d_one+chik)*d_half) +       &
@@ -374,10 +374,9 @@ module mod_bats_zengocn
 !   Tetens' formula for saturation vp Buck(1981) JAM 20, 1527-1532
 !   p in mb, t in C, and qsat in mb
 !
-    function qsat(t,p)
+    real(rk8) function qsat(t,p)
       implicit none
       real(rk8) , intent (in) :: p , t
-      real(rk8) :: qsat
       qsat = (1.0007D0+3.46D-6*p)*6.1121D0*dexp(17.502D0*t/(240.97D0+t))
     end function qsat
 !
