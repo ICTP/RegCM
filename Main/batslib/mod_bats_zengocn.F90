@@ -269,7 +269,7 @@ module mod_bats_zengocn
               rs = fsw(j,i)
               ! rd is sw flux at 3m
               rd = rs*(a1*dexp(-d*b1) + a2*dexp(-d*b2) + a3*dexp(-d*b3))
-              ! ustar water (with air density ==1)
+              ! ustar water (with air density == 1)
               ustarw = d_half*ustar*dsqrt(rhox(j,i)/rhoh2o)
               ! lwds =  flwd(j,i)
               ! lwus =  emsw*sigm*(tsurf+273.16)**4

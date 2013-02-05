@@ -377,7 +377,8 @@ module mod_bats_leaftemp
 !
   implicit none
 !
-  real(rk8) :: difzen , g , radfi , seas , vpdf , rilmax , fsol0 , fsold
+  real(rk8) :: difzen , g , radf , radfi , seas , vpdf , rilmax , &
+               rmini , fsol0 , fsold
   real(rk8) :: trup , trupd
   integer(ik4) :: il , ilmax , n , i , j
   real(rk8) , dimension(10) :: rad , radd
@@ -404,12 +405,12 @@ module mod_bats_leaftemp
             ! zenith angle set in zenitm
             if ( (coszrs(j,i)/rilmax) > 0.001D0 ) then
               trup = dexp(-g*rlai(n,j,i)/(rilmax*coszrs(j,i)))
-              trupd = dexp(-difzen*g*rlai(n,j,i)/(rilmax))
-              if ( trup  < dlowval ) trup  = dlowval
-              if ( trupd < dlowval ) trupd = dlowval
+              trupd = dexp(-difzen*g*rlai(n,j,i)/rilmax)
+              if ( trup  < dlowval ) trup  = d_zero
+              if ( trupd < dlowval ) trupd = d_zero
               fsold = fracd(j,i)*solis(j,i)*fc(lveg(n,j,i))
               fsol0 = (d_one-fracd(j,i))*solis(j,i)*fc(lveg(n,j,i))
-              rmini(n,j,i) = rsmin(lveg(n,j,i))/rmax0
+              rmini = rsmin(lveg(n,j,i))/rmax0
               rad(1)  = (d_one-trup) *fsol0*rilmax/rlai(n,j,i)
               radd(1) = (d_one-trupd)*fsold*rilmax/rlai(n,j,i)
               do il = 2 , ilmax
@@ -418,26 +419,13 @@ module mod_bats_leaftemp
               end do
               radfi = d_zero
               do il = 1 , ilmax
-                radfi = radfi + (rad(il)+radd(il)+rmini(n,j,i)) / &
-                        (d_one+rad(il)+radd(il))
+                radfi = radfi + &
+                        (rmini+rad(il)+radd(il))/(d_one+rad(il)+radd(il))
               end do
-              radf(n,j,i) = rilmax/radfi
-            end if
-          end if
-        end if
-      end do
-    end do
-  end do
- 
-  do i = ici1 , ici2
-    do j = jci1 , jci2
-      do n = 1 , nnsg
-        if ( ldmsk1(n,j,i) /= 0 ) then
-          if ( sigf(n,j,i) > 0.001D0 ) then
-            if ( (coszrs(j,i)/rilmax) > 0.001D0 ) then
+              radf = rilmax/radfi
               vpdf = d_one/dmax1(0.3D0,d_one-vpdc(n,j,i)*0.025D0)
-              seas = d_one/(rmini(n,j,i)+fseas(tlef(n,j,i),lveg(n,j,i)))
-              lftrs(n,j,i) = rsmin(lveg(n,j,i))*radf(n,j,i)*seas*vpdf
+              seas = d_one/(rmini+fseas(tlef(n,j,i),lveg(n,j,i)))
+              lftrs(n,j,i) = rsmin(lveg(n,j,i))*radf*seas*vpdf
               lftrs(n,j,i) = dmin1(lftrs(n,j,i),rmax0)
             else
               lftrs(n,j,i) = rmax0

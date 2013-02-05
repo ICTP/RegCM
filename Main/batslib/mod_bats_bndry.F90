@@ -381,7 +381,7 @@ module mod_bats_bndry
 !
     real(rk8) :: bb , fact , fss , hrl , hs , hsl , qgrnd , &
                  rhosw3 , rsd1 , smc4 , smt , tg , tgrnd
-!   real(rk8) :: rss , ratsi , wtt , wss
+    real(rk8) :: rss , ratsi , wtt , wss , ksnow , rsi
     integer(ik4) :: n , i , j
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tseaice'
@@ -400,19 +400,20 @@ module mod_bats_bndry
             ! cice = specific heat of sea-ice per unit volume
             rsd1 = cice*sfice(n,j,i)*d_r1000
             if ( sncv(n,j,i) > d_zero ) then
-              !rss = csnw*sncv(n,j,i)*d_r1000
-              !ratsi = sncv(n,j,i)/(1.4D0*rhosw3*sfice(n,j,i))
-              !wtt = d_one/(d_one+ratsi)
-              !wss = (sncv(n,j,i)+2.8D0*rhosw3*sfice(n,j,i)) / &
-              !      (sncv(n,j,i)+1.4D0*rhosw3*sfice(n,j,i))
+              rss = csnw*sncv(n,j,i)*d_r1000
+              ratsi = sncv(n,j,i)/(1.4D0*rhosw3*sfice(n,j,i))
+              wtt = d_one/(d_one+ratsi)
+              wss = (sncv(n,j,i)+2.8D0*rhosw3*sfice(n,j,i)) / &
+                    (sncv(n,j,i)+1.4D0*rhosw3*sfice(n,j,i))
               ! include snow heat capacity
-              !rsd1 = d_half*(wss*rss+wtt*rsd1)
-              rsd1 = rsd1 + csnw*sncv(n,j,i)*d_r1000
+              rsd1 = d_half*(wss*rss+wtt*rsd1)
             end if
             tgbrd(n,j,i) = -d_two + tzero
             ! subsurface heat flux through ice
-            fss = 7.0D-4*(tgbrd(n,j,i)-tgrd(n,j,i)) * &
-                  ch2o*rhosw3/(sncv(n,j,i)+1.4D0*rhosw3*sfice(n,j,i))
+            ! Following Maykut and Untersteiner (1971) and Semtner (1976)
+            rsi = 1.4D0*rhosw3*sfice(n,j,i)/sncv(n,j,i)
+            ksnow = 7.0D-4*rhosw3/sncv(n,j,i)
+            fss = ksnow * (tgbrd(n,j,i)-tgrd(n,j,i)) / (d_one + rsi)
             sfice(n,j,i) = sfice(n,j,i) + fss*dtbat/wlhf*1.087D0
             ! set sea ice parameter for melting and return
             if ( sfice(n,j,i) <= d_zero ) then
@@ -435,7 +436,7 @@ module mod_bats_bndry
             tgrnd = ((d_one-aarea)*cdr(n,j,i)*tgrd(n,j,i) + &
                     aarea*clead(n,j,i)*(tzero-1.8D0))/cdrx(n,j,i)
             fact = -rhs(n,j,i)*cdrx(n,j,i)*vspda(n,j,i)
-            delq(n,j,i) = (qs(n,j,i)-qgrnd)*gwet(n,j,i)
+            delq(n,j,i) = (qs(n,j,i) - qgrnd)*gwet(n,j,i)
             delt(n,j,i) = sts(n,j,i) - tgrnd
             ! output fluxes, averaged over leads and ice
             evpr(n,j,i) = fact*delq(n,j,i)
@@ -451,6 +452,17 @@ module mod_bats_bndry
             fseng(n,j,i) = (sent(n,j,i)-aarea*hsl)/(d_one-aarea)
             fevpg(n,j,i) = (evpr(n,j,i)-aarea*hrl)/(d_one-aarea)
             hs = fsw(j,i) - flw(j,i) - fseng(n,j,i) - wlhs*fevpg(n,j,i)
+            if ( global_dot_istart+i == 99 .and. &
+                 global_dot_jstart+j == 78 ) then
+              print *, 'TGRND ', tgrnd
+              print *, 'QGRND ', qgrnd
+              print *, 'FSW   ', fsw(j,i)
+              print *, 'FLW   ', flw(j,i)
+              print *, 'FSENG ', fseng(n,j,i)
+              print *, 'FEVPG ', fevpg(n,j,i)*wlhs
+              print *, 'HS    ', hs
+              print *, 'FSS   ', fss
+            end if
             bb = dtbat*(hs+fss)/rsd1
             ! snow melt
             if ( tgrd(n,j,i) >= tzero ) sm(n,j,i) = (hs+fss)/wlhf
@@ -462,7 +474,7 @@ module mod_bats_bndry
               ! rho(h2o)/rho(ice) = 1.087
               sfice(n,j,i) = sfice(n,j,i) + dtbat*(smt-sm(n,j,i))*1.087D0
               sm(n,j,i) = smt
-              tgrd(n,j,i) = tzero
+              ! tgrd(n,j,i) = tzero
               ! set sea ice parameter for melting and return
               if ( sfice(n,j,i) <= d_zero ) then
                 sfice(n,j,i) = d_zero
@@ -787,37 +799,38 @@ module mod_bats_bndry
   subroutine snow
     implicit none
 !
-    real(rk8) :: age1 , age2 , age3 , arg , arg2 , dela , dela0 , &
+    real(rk8) :: age1 , age2 , arg , arg2 , dela , dela0 , &
                  dels , tage , sold
     integer(ik4) :: n , i , j
+    real(rk8) , parameter :: age3 = 0.3D0
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'snow'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-!
-    age3 = 0.3D0
-   
+    !
     !=======================================================================
     !   1.   partition soil evaporation and precipitation
     !        between water and snow
     !=======================================================================
+    !
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
-            evapw(n,j,i) = fevpg(n,j,i)
-            evaps(n,j,i) = scvk(n,j,i)*evapw(n,j,i)
             if ( ldmsk1(n,j,i) == 2 ) then
               evaps(n,j,i) = fevpg(n,j,i)
+              evapw(n,j,i) = d_zero
+            else
+              evaps(n,j,i) = scvk(n,j,i)*fevpg(n,j,i)
+              evapw(n,j,i) = (d_one-scvk(n,j,i))*fevpg(n,j,i)
             end if
-            evapw(n,j,i) = (d_one-scvk(n,j,i))*evapw(n,j,i)
-            ! tm  is temperature of precipitation
+            ! tm is temperature of precipitation : all snow if lower 0C
             if ( tm(n,j,i) >= tzero ) then
               pw(n,j,i) = prcp(n,j,i)*(d_one-sigf(n,j,i))
               ps(n,j,i) = d_zero
+            ! snowing
             else
-              ! snowing
               pw(n,j,i) = d_zero
               ps(n,j,i) = prcp(n,j,i)*(d_one-sigf(n,j,i))
             end if

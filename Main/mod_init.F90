@@ -123,7 +123,7 @@ module mod_init
     !
     ! We have the grid (ldmsk) and subgrid (ldmsk1) versions of this
     !
-    sfice_temp = (minval(ts0(jci1:jci2,ici1:ici2))+icetemp)*d_half
+    sfice_temp = icetemp
     if ( iseaice == 1 ) then
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -393,7 +393,7 @@ module mod_init
     !
     ! Restore ground temperature on Ocean/Lakes
     !
-    sfice_temp = (minval(sfs%tga(jci1:jci2,ici1:ici2))+icetemp)*d_half
+    sfice_temp = icetemp
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( iswater(mddom%lndcat(j,i)) ) then

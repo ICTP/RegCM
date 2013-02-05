@@ -238,7 +238,6 @@ module mod_bats_drag
           if ( ldmsk1(n,j,i) /= 0 ) then
             age = (d_one-d_one/(d_one+snag(n,j,i)))
             densi = 0.01D0/(d_one+d_three*age)
-            rhosw(n,j,i) = densi
             scrat(n,j,i) = sncv(n,j,i)*densi
             wt(n,j,i) = d_one
             if ( ldmsk1(n,j,i) /= 2 ) then
@@ -247,6 +246,7 @@ module mod_bats_drag
             end if
             sigf(n,j,i) = (d_one-wt(n,j,i))*lncl(n,j,i)
             scvk(n,j,i) = scrat(n,j,i)/(0.1D0+scrat(n,j,i))
+            rhosw(n,j,i) = 0.10D0*(d_one+d_three*age)
           end if
         end do
       end do

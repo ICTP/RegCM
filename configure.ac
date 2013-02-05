@@ -341,7 +341,7 @@ if eval "test x$DEBUG = x1"; then
     AC_SUBST(FCFLAGS)
   fi
   if eval "test x"$FC" = xgfortran"; then
-    FCFLAGS="-O0 -g -ffpe-trap=zero,invalid,overflow,underflow -fbacktrace \
+    FCFLAGS="-O2 -g -ffpe-trap=zero,invalid,overflow,underflow -fbacktrace \
             -fdump-core -Wall -pedantic -Wconversion -Wsurprising -Waliasing \
             -Wampersand -Warray-bounds -Wcharacter-truncation \
             -Wline-truncation -Wintrinsics-std -Wno-tabs -Wunderflow \

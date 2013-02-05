@@ -307,6 +307,7 @@ module mod_bats_mtrxbats
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'interf'
     integer(ik4) , save :: idindx = 0
+    integer(ik4) :: ierr
     call time_begin(subroutine_name,idindx)
 #endif
  
@@ -440,6 +441,26 @@ module mod_bats_mtrxbats
         end do
       end do
  
+#ifdef DEBUG
+      ierr = 0
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n = 1 , nnsg
+            if ( tgrd(n,j,i) < 150.0D0 ) then
+              write(stderr,*) 'Likely error: Surface temperature too low'
+              write(stderr,*) 'J   = ',global_dot_jstart+j
+              write(stderr,*) 'I   = ',global_dot_istart+i
+              write(stderr,*) 'VAL = ',tgrd(n,j,i)
+              ierr = ierr + 1
+            end if
+          end do
+        end do
+      end do
+      if ( ierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'TEMP CHECK ERROR')
+      end if
+#endif
+
       uvdrag = sum(drag,1)*rdnnsg
       hfx = sum(sent,1)*rdnnsg
       qfx = sum(evpr,1)*rdnnsg

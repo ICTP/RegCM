@@ -492,7 +492,7 @@ module mod_bdycod
     ! Update ground temperature on Ocean/Lakes
     !
 
-    sfice_temp = (minval(sfs%tga(jci1:jci2,ici1:ici2))+icetemp)*d_half
+    sfice_temp = icetemp
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( iswater(mddom%lndcat(j,i)) .and. islab_ocean == 0 ) then
