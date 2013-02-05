@@ -604,7 +604,7 @@ module mod_bats_leaftemp
               tkb = wta0(n,j,i)*sts(n,j,i) + wtl0(n,j,i)*tlef(n,j,i) + &
                     wtg0(n,j,i)*tgrd(n,j,i)
               dlstaf = sts(n,j,i) - sigf(n,j,i)*tkb - &
-                            (d_one-sigf(n,j,i))*tgrd(n,j,i)
+                       (d_one-sigf(n,j,i))*tgrd(n,j,i)
               if ( dlstaf <= d_zero ) then
                 dthdz = (d_one-sigf(n,j,i))*tgrd(n,j,i) + &
                          sigf(n,j,i)*tkb-sts(n,j,i)
@@ -625,18 +625,16 @@ module mod_bats_leaftemp
               rib(n,j,i) = rib1*dlstaf
               if ( rib(n,j,i) < d_zero ) then
                 cdr(n,j,i) = cdrn(n,j,i)*(d_one+24.5D0 * &
-                                          dsqrt(-cdrn(n,j,i)*rib(n,j,i)))
+                             dsqrt(-cdrn(n,j,i)*rib(n,j,i)))
                 sqrtf = dmin1(dsqrt(-cdrn(n,j,i)/rib(n,j,i)),11.5D0/12.25D0)
                 cdrd(n,j,i) = cdrn(n,j,i)*12.25D0* &
-                            wtl0(n,j,i)*rib1*sigf(n,j,i)*sqrtf
+                              wtl0(n,j,i)*rib1*sigf(n,j,i)*sqrtf
               else
                 ribi = d_one/(d_one+11.5D0*rib(n,j,i))
                 cdr(n,j,i) = cdrn(n,j,i)*ribi
                 cdrd(n,j,i) = cdr(n,j,i)*ribi*11.5D0 * &
                               rib1*wtl0(n,j,i)*sigf(n,j,i)
                 cdrmin = dmax1(cdrn(n,j,i)*d_rfour,6.0D-4)
-              end if
-              if ( (rib(n,j,i) >= d_zero) ) then
                 if ( (cdr(n,j,i) < cdrmin) ) then
                   cdr(n,j,i) = cdrmin
                   cdrd(n,j,i) = d_zero

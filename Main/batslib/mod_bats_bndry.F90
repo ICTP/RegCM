@@ -247,7 +247,7 @@ module mod_bats_bndry
           ! 6.3  latent and heat fluxes over ocean, plus a dummy taf
           if ( ldmsk1(n,j,i) == 0 ) then
             tlef(n,j,i) = sts(n,j,i)
-            fact = -drag(n,j,i)
+            fact = -rhs(n,j,i)*cdrx(n,j,i)*vspda(n,j,i)
             delq(n,j,i) = (qs(n,j,i) - qgrd(n,j,i))*gwet(n,j,i)
             delt(n,j,i) = sts(n,j,i) - tgrd(n,j,i)
             ! evaporation is in kg/m**2/s
@@ -453,10 +453,8 @@ module mod_bats_bndry
             hs = fsw(j,i) - flw(j,i) - fseng(n,j,i) - wlhs*fevpg(n,j,i)
             bb = dtbat*(hs+fss)/rsd1
             ! snow melt
-            sm(n,j,i) = d_zero
-            if ( tgrd(n,j,i) >= tzero ) then
-              sm(n,j,i) = max(d_zero,(hs+fss)/wlhf)
-            end if
+            if ( tgrd(n,j,i) >= tzero ) sm(n,j,i) = (hs+fss)/wlhf
+            if ( sm(n,j,i) <= d_zero ) sm(n,j,i) = d_zero
             smc4 = sm(n,j,i)*dtbat
             ! all snow removed, melt ice
             if ( sncv(n,j,i) < smc4 ) then

@@ -358,12 +358,9 @@ module mod_bats_zengocn
 !
     function psi(k,zeta)
       implicit none
-!
       integer(ik4) , intent(in) :: k
       real(rk8) , intent(in) :: zeta
-!
       real(rk8) :: chik , psi
-!
       chik = (d_one-16.0D0*zeta)**d_rfour
       if ( k == 1 ) then
         psi = d_two*dlog((d_one+chik)*d_half) +       &
@@ -379,26 +376,20 @@ module mod_bats_zengocn
 !
     function qsat(t,p)
       implicit none
-!
       real(rk8) , intent (in) :: p , t
       real(rk8) :: qsat
-!
+      write (stderr,*) p, t
       qsat = (1.0007D0+3.46D-6*p)*6.1121D0*dexp(17.502D0*t/(240.97D0+t))
-!
     end function qsat
 !
 !   our formulation for zo,zot,zoq
 !
     subroutine ocnrough(zo,zot,zoq,ustar,visa)
-!
       implicit none
-!
       real(rk8) , intent (in) :: ustar , visa
       real(rk8) , intent (out) :: zoq , zot
       real(rk8) , intent (inout) :: zo
-!
       real(rk8) :: re , xtq
-!
       if ( iocnrough == 2 ) then
         zo = (0.013D0*ustar*ustar)*regrav + 0.11D0*visa/ustar
       else
@@ -409,7 +400,6 @@ module mod_bats_zengocn
       xtq = 2.67D0*(re**d_rfour) - 2.57D0
       zoq = zo/dexp(xtq)
       zot = zoq
-!
      end subroutine ocnrough
 !
   end subroutine zengocndrv
