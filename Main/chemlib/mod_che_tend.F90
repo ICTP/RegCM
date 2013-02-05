@@ -429,13 +429,16 @@
             call chemistry(j,lyear,lmonth,lday)
           end do
           if ( myid == italk .and. mod(ktau+1,krep) == 0 ) then
-            write(stdout,'(a,2g12.5)') ' $$$ Jvalue min/max NO2 : ', &
-              minval(jphoto(:,:,:,jvNO2 )),  maxval(jphoto(:,:,:,jvNO2 ))  
+            write(stdout,'(a,2g12.5)') ' $$$ Jvalue min/max NO2surf : ', &
+              minval(jphoto(:,:,kz,jvNO2 )),  maxval(jphoto(:,:,kz,jvNO2 ))  
           end if
         end if
         ! add tendency due to chemistry reaction (every dt)      
         chiten(jci1:jci2,:,:,:) = chiten(jci1:jci2,:,:,:) + &
                                   chemten(jci1:jci2,:,:,:)
+        if (ichdiag > 0 )chemdiag(jci1:jci2,:,:,:) = chemdiag(jci1:jci2,:,:,:) + &
+              chemten(jci1:jci2,:,:,:) * cfdout 
+
       end if
       !
       ! Finally save tarcer instantaneous burden for diag

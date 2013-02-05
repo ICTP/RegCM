@@ -359,9 +359,10 @@ module mod_che_ncio
       end if
 
       ! Internal Alkene
-!     if ( ioli /= 0 ) then
-!       call rvar(ncid,istart,icount,ioli,echemsrc,'OLI_flux',.false.)
-!     end if
+     if ( ioli /= 0 ) then
+       call rvar(ncid,istart,icount,ioli,echemsrc, &
+                 'OLI_flux',.false.,sdim)
+     end if
 
       ! Isoprene
       if ( iisop /= 0 ) then

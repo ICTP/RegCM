@@ -141,6 +141,7 @@ module mod_che_emission
       end do
 #endif
     end if
+
     !
     ! add the source term to tracer tendency
     !

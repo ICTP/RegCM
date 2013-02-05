@@ -258,10 +258,6 @@ module mod_che_chemistry
         end do ! end i , k loop
       end do
 
-      if (ichdiag > 0 )chemdiag(j,:,:,:) = chemdiag(j,:,:,:) + &
-              chemten(j,:,:,:) * dble(dtchsolv) / (3600D0 * dble(chemfrq)) 
-
-
 
     end subroutine chemistry
 !
