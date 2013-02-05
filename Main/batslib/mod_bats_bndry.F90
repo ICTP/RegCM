@@ -407,14 +407,16 @@ module mod_bats_bndry
                     (sncv(n,j,i)+1.4D0*rhosw3*sfice(n,j,i))
               ! include snow heat capacity
               rsd1 = d_half*(wss*rss+wtt*rsd1)
+              ! subsurface heat flux through ice
+              ! Following Maykut and Untersteiner (1971) and Semtner (1976)
+              rsi = 1.4D0*rhosw3*sfice(n,j,i)/sncv(n,j,i)
+              ksnow = 7.0D-4*rhosw3/sncv(n,j,i)
+              fss = ksnow * (tgbrd(n,j,i)-tgrd(n,j,i)) / (d_one + rsi)
+            else
+              fss = (tgbrd(n,j,i)-tgrd(n,j,i))/rsd1
             end if
             tgbrd(n,j,i) = -d_two + tzero
-            ! subsurface heat flux through ice
-            ! Following Maykut and Untersteiner (1971) and Semtner (1976)
-            rsi = 1.4D0*rhosw3*sfice(n,j,i)/sncv(n,j,i)
-            ksnow = 7.0D-4*rhosw3/sncv(n,j,i)
-            fss = ksnow * (tgbrd(n,j,i)-tgrd(n,j,i)) / (d_one + rsi)
-            sfice(n,j,i) = sfice(n,j,i) + fss*dtbat/wlhf*1.087D0
+            sfice(n,j,i) = sfice(n,j,i) + 1.087D0*(fss/wlhf)*dtbat
             ! set sea ice parameter for melting and return
             if ( sfice(n,j,i) <= d_zero ) then
               sfice(n,j,i) = d_zero
@@ -452,17 +454,6 @@ module mod_bats_bndry
             fseng(n,j,i) = (sent(n,j,i)-aarea*hsl)/(d_one-aarea)
             fevpg(n,j,i) = (evpr(n,j,i)-aarea*hrl)/(d_one-aarea)
             hs = fsw(j,i) - flw(j,i) - fseng(n,j,i) - wlhs*fevpg(n,j,i)
-            if ( global_dot_istart+i == 99 .and. &
-                 global_dot_jstart+j == 78 ) then
-              print *, 'TGRND ', tgrnd
-              print *, 'QGRND ', qgrnd
-              print *, 'FSW   ', fsw(j,i)
-              print *, 'FLW   ', flw(j,i)
-              print *, 'FSENG ', fseng(n,j,i)
-              print *, 'FEVPG ', fevpg(n,j,i)*wlhs
-              print *, 'HS    ', hs
-              print *, 'FSS   ', fss
-            end if
             bb = dtbat*(hs+fss)/rsd1
             ! snow melt
             if ( tgrd(n,j,i) >= tzero ) sm(n,j,i) = (hs+fss)/wlhf
