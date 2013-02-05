@@ -436,9 +436,10 @@
         ! add tendency due to chemistry reaction (every dt)      
         chiten(jci1:jci2,:,:,:) = chiten(jci1:jci2,:,:,:) + &
                                   chemten(jci1:jci2,:,:,:)
-        if (ichdiag > 0 )chemdiag(jci1:jci2,:,:,:) = chemdiag(jci1:jci2,:,:,:) + &
+        if ( ichdiag > 0 ) then
+          chemdiag(jci1:jci2,:,:,:) = chemdiag(jci1:jci2,:,:,:) + &
               chemten(jci1:jci2,:,:,:) * cfdout 
-
+        end if
       end if
       !
       ! Finally save tarcer instantaneous burden for diag

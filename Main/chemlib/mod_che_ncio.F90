@@ -357,13 +357,11 @@ module mod_che_ncio
         call rvar(ncid,istart,icount,iolt,echemsrc, &
                   'OLT_flux',.false.,sdim)
       end if
-
       ! Internal Alkene
-     if ( ioli /= 0 ) then
-       call rvar(ncid,istart,icount,ioli,echemsrc, &
-                 'OLI_flux',.false.,sdim)
-     end if
-
+      if ( ioli /= 0 ) then
+        call rvar(ncid,istart,icount,ioli,echemsrc, &
+                  'OLI_flux',.false.,sdim)
+      end if
       ! Isoprene
       if ( iisop /= 0 ) then
         call rvar(ncid,istart,icount,iisop,echemsrc, &
@@ -374,13 +372,11 @@ module mod_che_ncio
         echemsrc(:,:,iisop) =  echemsrc(:,:,iisop) + echemsrc(:,:,io3)
         echemsrc(:,:,io3) = d_zero
       end if
-
       ! Toluene
       if ( itolue /= 0 ) then
         call rvar(ncid,istart,icount,itolue,echemsrc, &
                   'TOL_flux',.false.,sdim)
       end if
-
       ! Xylene
       if ( ixyl /= 0 ) then
         call rvar(ncid,istart,icount,ixyl,echemsrc, &

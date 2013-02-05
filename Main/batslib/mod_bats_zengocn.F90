@@ -378,7 +378,6 @@ module mod_bats_zengocn
       implicit none
       real(rk8) , intent (in) :: p , t
       real(rk8) :: qsat
-      write (stderr,*) p, t
       qsat = (1.0007D0+3.46D-6*p)*6.1121D0*dexp(17.502D0*t/(240.97D0+t))
     end function qsat
 !

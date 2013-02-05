@@ -253,12 +253,8 @@ module mod_che_chemistry
             (xrout(1,ind_hno4) - xrin(1,ind_hno4))*pfact*W_hno4
            chemten(j,i,k,ixo2)  = &
             (xrout(1,ind_xo2) - xrin(1,ind_xo2))*pfact*W_xo2
-
-
         end do ! end i , k loop
       end do
-
-
     end subroutine chemistry
 !
 end module mod_che_chemistry
