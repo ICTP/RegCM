@@ -380,8 +380,8 @@ module mod_bats_bndry
     implicit none
 !
     real(rk8) :: bb , fact , fss , hrl , hs , hsl , qgrnd , &
-                 rhosw3 , rsd1 , smc4 , smt , tg , tgrnd
-    real(rk8) :: rss , ratsi , wtt , wss , ksnow , rsi
+                 rhosw3 , rsd1 , smc4 , smt , tg , tgrnd , qice
+    real(rk8) :: ksnow , rsi
     integer(ik4) :: n , i , j
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tseaice'
@@ -400,26 +400,25 @@ module mod_bats_bndry
             ! cice = specific heat of sea-ice per unit volume
             rsd1 = cice*sfice(n,j,i)*d_r1000
             if ( sncv(n,j,i) > d_zero ) then
-              rss = csnw*sncv(n,j,i)*d_r1000
-              ratsi = sncv(n,j,i)/(1.4D0*rhosw3*sfice(n,j,i))
-              wtt = d_one/(d_one+ratsi)
-              wss = (sncv(n,j,i)+2.8D0*rhosw3*sfice(n,j,i)) / &
-                    (sncv(n,j,i)+1.4D0*rhosw3*sfice(n,j,i))
               ! include snow heat capacity
-              rsd1 = d_half*(wss*rss+wtt*rsd1)
+              rsd1 = rsd1 + csnw*sncv(n,j,i)*d_r1000
               ! subsurface heat flux through ice
               ! Following Maykut and Untersteiner (1971) and Semtner (1976)
               rsi = 1.4D0*rhosw3*sfice(n,j,i)/sncv(n,j,i)
               ksnow = 7.0D-4*rhosw3/sncv(n,j,i)
               fss = ksnow * (tgbrd(n,j,i)-tgrd(n,j,i)) / (d_one + rsi)
             else
-              fss = (tgbrd(n,j,i)-tgrd(n,j,i))/rsd1
+              ! Slack, 1980
+              fss = 2.14D0*(tgbrd(n,j,i)-tgrd(n,j,i))/sfice(n,j,i)
             end if
+            tlef(n,j,i) = sts(n,j,i)
             tgbrd(n,j,i) = -d_two + tzero
             sfice(n,j,i) = sfice(n,j,i) + 1.087D0*(fss/wlhf)*dtbat
             ! set sea ice parameter for melting and return
-            if ( sfice(n,j,i) <= d_zero ) then
+            if ( sfice(n,j,i) <= 2.0D0 ) then
               sfice(n,j,i) = d_zero
+              sncv(n,j,i) = d_zero
+              tgrd(n,j,i) = tzero
               ldmsk1(n,j,i) = 0
               lveg(n,j,i) = 15
               cycle
@@ -427,14 +426,13 @@ module mod_bats_bndry
             ! assume lead ocean temp is -1.8c
             ! flux of heat and moisture through leads
             ! sat. mixing ratio at t=-1.8c is 3.3e-3
-            qice(n,j,i) = 3.3D-3 * stdp/sfcp(n,j,i)
+            qice = 3.3D-3 * stdp/sfcp(n,j,i)
             !
             ! determine effective surface fluxes over ice, allowing for leads;
             ! aarea is set in mod_bats_runparams
             !
-            tlef(n,j,i) = sts(n,j,i)
             qgrnd = ((d_one-aarea)*cdr(n,j,i)*qgrd(n,j,i) + &
-                    aarea*clead(n,j,i)*qice(n,j,i))/cdrx(n,j,i)
+                    aarea*clead(n,j,i)*qice)/cdrx(n,j,i)
             tgrnd = ((d_one-aarea)*cdr(n,j,i)*tgrd(n,j,i) + &
                     aarea*clead(n,j,i)*(tzero-1.8D0))/cdrx(n,j,i)
             fact = -rhs(n,j,i)*cdrx(n,j,i)*vspda(n,j,i)
@@ -446,7 +444,7 @@ module mod_bats_bndry
             if ( dabs(sent(n,j,i)) < dlowval ) sent(n,j,i) = d_zero
             if ( dabs(evpr(n,j,i)) < dlowval ) evpr(n,j,i) = d_zero
             hrl = rhs(n,j,i)*vspda(n,j,i)*clead(n,j,i) * &
-                      (qice(n,j,i)-qs(n,j,i))
+                      (qice-qs(n,j,i))
             hsl = rhs(n,j,i)*vspda(n,j,i)*clead(n,j,i) * &
                       (tzero-1.8D0-sts(n,j,i))*cpd
             ! get fluxes over ice for sublimation (subrout snow)
@@ -467,8 +465,10 @@ module mod_bats_bndry
               sm(n,j,i) = smt
               ! tgrd(n,j,i) = tzero
               ! set sea ice parameter for melting and return
-              if ( sfice(n,j,i) <= d_zero ) then
+              if ( sfice(n,j,i) <= 2.0D0 ) then
+                tgrd(n,j,i) = tzero
                 sfice(n,j,i) = d_zero
+                sncv(n,j,i) = d_zero
                 ldmsk1(n,j,i) = 0
                 lveg(n,j,i) = 15
                 cycle

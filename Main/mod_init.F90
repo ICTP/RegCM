@@ -411,9 +411,6 @@ module mod_init
           if ( iseaice == 1 ) then
             if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
             if ( ts1(j,i) <= icetemp .and. ldmsk(j,i) == 0 ) then
-#ifdef DEBUG
-              write(stderr,*) 'OCEAN -> ICE TRANSITION FROM SST'
-#endif
               sfs%tga(j,i) = sfice_temp
               sfs%tgb(j,i) = sfice_temp
               ts1(j,i) = icetemp
@@ -423,12 +420,9 @@ module mod_init
                 sfice(n,j,i) = d_10
               end do
             else if ( ts1(j,i) > icetemp .and. ldmsk(j,i) == 2 ) then
-#ifdef DEBUG
-              write(stderr,*) 'ICE -> OCEAN TRANSITION FROM SST'
-#endif
               ! Decrease the surface ice to melt it
               do n = 1, nnsg
-                sfice(n,j,i) = 0.75D0*sfice(n,j,i)
+                sfice(n,j,i) = sfice(n,j,i)*d_r10
                 sfs%tga(j,i) = sfs%tga(j,i) + d_one
                 sfs%tgb(j,i) = sfs%tgb(j,i) + d_one
               end do

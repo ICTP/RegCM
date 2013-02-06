@@ -44,7 +44,7 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:,:,:) :: cdr , cdrn , cdrx , cf ,  &
     cgrnd , cgrndl , cgrnds , clead , efpr , eg , etr , etrrun , &
     evaps , evapw , fevpg , flnet , flneto , fseng , htvp , ps , &
-    pw , qice , qsatl , rhosw , ribd , rlai , rpp , scrat ,      &
+    pw , qsatl , rhosw , ribd , rlai , rpp , scrat ,      &
     scvk , sdrop , seasb , sigf , sm , tm , uaf , vspda , wata , &
     watr , watt , watu , wta , xlai , xlsai , xrun , z1log ,     &
     z2fra , z10fra , zlgocn , zlglnd ,  zlgsno , zlgveg , zlgdis
@@ -63,7 +63,7 @@ module mod_bats_internal
             rnet , texrat , vegt , wiltr , wt , xkmx , cdr , cdrn , cdrx , &
             cf , cgrnd , cgrndl , cgrnds , clead , efpr , eg , etr ,       &
             etrrun , evaps , evapw , fevpg , flnet , flneto , fseng ,      &
-            htvp , ps , pw , qice , qsatl , rhosw , ribd , relaw , rlai ,  &
+            htvp , ps , pw , qsatl , rhosw , ribd , relaw , rlai ,  &
             rpp , scrat , scvk , sdrop , seasb , sigf , sm , tm , uaf ,    &
             vspda , wata , watr , watt , watu , wta , xlai , xlsai ,       &
             xrun , z1log , z2fra , z10fra , zlgocn , zlglnd , zlgsno ,     &
@@ -147,7 +147,6 @@ module mod_bats_internal
     call getmem3d(htvp,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:htvp')
     call getmem3d(ps,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:ps')
     call getmem3d(pw,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:pw')
-    call getmem3d(qice,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:qice')
     call getmem3d(qsatl,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:qsatl')
     call getmem3d(rhosw,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rhosw')
     call getmem3d(ribd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:ribd')

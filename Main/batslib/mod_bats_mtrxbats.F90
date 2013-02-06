@@ -392,19 +392,21 @@ module mod_bats_mtrxbats
  
       ! Re-create the land sea mask to account for ice sheet melting
 
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( ldmsk(j,i) == 2 ) then
-            icemsk = 0
-            do n = 1 , nnsg
-              if ( ldmsk1(n,j,i) > 1 ) icemsk = icemsk + 1
-            end do
-            if ( icemsk < nnsg/2 ) then
-              ldmsk(j,i) = 0
+      if ( lseaice .or. llake ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if ( ldmsk(j,i) == 2 ) then
+              icemsk = 0
+              do n = 1 , nnsg
+                if ( ldmsk1(n,j,i) > 1 ) icemsk = icemsk + 1
+              end do
+              if ( icemsk <= nnsg/2 ) then
+                ldmsk(j,i) = 0
+              end if
             end if
-          end if
+          end do
         end do
-      end do
+      end if
 
       ! Those are needed elsewhere in the model (pbl,cumulus,chem,etc)
 

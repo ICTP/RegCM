@@ -25,6 +25,7 @@ module mod_bats_lake
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_service
   use mod_bats_common
   use mod_bats_internal
   use mod_bats_mppio
@@ -41,7 +42,7 @@ module mod_bats_lake
   ! vertical grid spacing in m
   real(rk8) , parameter :: dz = surf
   ! minimum ice depth in mm: less that this is removed
-  real(rk8) , parameter :: iceminh = d_10
+  real(rk8) , parameter :: iceminh = 1.0D0
   ! reference hgt in mm for latent heat removal from ice
   real(rk8) , parameter :: href = d_two * iceminh
   ! steepness factor of latent heat removal
@@ -54,6 +55,11 @@ module mod_bats_lake
   subroutine initlake
     implicit none
     integer(ik4) :: i, j, n
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'initlake'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
 
     ! initialize hostetler lake model
 
@@ -71,9 +77,9 @@ module mod_bats_lake
             idep(n,j,i) = idint(dmax1(d_two,dmin1(dhlake1(n,j,i), &
                                   dble(ndpmax)))/dz)
             if ( ldmsk1(n,j,i) == 2 ) then
-              tlak(n,j,i,1) = 1.78D0
-              tlak(n,j,i,2) = 1.78D0
-              aveice(n,j,i) = d_1000
+              tlak(n,j,i,1) = -2.0D0
+              tlak(n,j,i,2) = -2.0D0
+              aveice(n,j,i) = d_10
               hi(n,j,i) = d_one
               hsnow(n,j,i) = d_zero
             end if
@@ -94,14 +100,21 @@ module mod_bats_lake
         end do
       end do
     end do
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end subroutine initlake
 !
   subroutine lakedrv
     implicit none
-!
     real(rk8) :: flwx , fswx , hsen , prec , ql , tgl , tl , vl , zl , &
                 xl , evp , toth
     integer(ik4) :: i , j , n
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'lakedrv'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
 !
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -135,14 +148,12 @@ module mod_bats_lake
 
             if ( aveice(n,j,i) <= iceminh ) then
               ldmsk1(n,j,i) = 0 
-              ldmsk1(n,j,i) = 0
               lveg(n,j,i) = 14
               sfice(n,j,i) = d_zero
               sncv(n,j,i) = d_zero
               snag(n,j,i) = d_zero
             else
               ldmsk1(n,j,i) = 2 
-              ldmsk1(n,j,i) = 2
               lveg(n,j,i) = 12
               sfice(n,j,i) = aveice(n,j,i)  !  units of ice = mm
               sncv(n,j,i)  = hsnow(n,j,i)   !  units of snw = mm
@@ -159,7 +170,9 @@ module mod_bats_lake
         end do
       end do
     end do
-
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end subroutine lakedrv
 !
 !-----------------------------------------------------------------------
@@ -167,7 +180,6 @@ module mod_bats_lake
   subroutine lake(dtlake,tl,vl,zl,ql,fsw,flw,hsen,xl,tgl,  &
                   prec,ndpt,eta,hi,aveice,hsnow,evl,tprof)
     implicit none
-!
     real(rk8) :: dtlake , evl , aveice , hsen , hsnow , flw , &
                prec , ql , fsw , tl , tgl , vl , zl , eta , hi , xl
     real(rk8) , dimension(ndpmax) :: tprof
@@ -177,9 +189,7 @@ module mod_bats_lake
     intent (out) tgl
     intent (inout) evl , aveice , hsnow
     intent (inout) tprof
-!
     real(rk8) :: ai , ea , ev , hs , ld , lu , qe , qh , tac , tk , u2
-!
     ! zo: surface roughness length
     real(rk8) , parameter :: zo = 0.001D0
     real(rk8) , parameter :: z2 = d_two
@@ -187,6 +197,11 @@ module mod_bats_lake
     real(rk8) , parameter :: twatui = 1.78D0
     logical , parameter :: lfreeze = .false.
     integer(ik4) , parameter :: kmin = 1
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'lake'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
 !
     ! interpolate winds at z1 m to 2m via log wind profile
     u2 = vl*dlog(z2/zo)/dlog(zl/zo)
@@ -200,13 +215,13 @@ module mod_bats_lake
       qh = hsen
 
       ! Calculate eddy diffusivities
-      call eddy(ndpt,dtlake,u2,xl,tprof)
+      call lakeeddy(ndpt,dtlake,u2,xl,tprof)
 
       ! Lake temperature calc using sensible and latent heats
-      call temp(ndpt,dtlake,fsw,flw,qe,qh,eta,tprof)
+      call laketemp(ndpt,dtlake,fsw,flw,qe,qh,eta,tprof)
 
       ! Convective mixer
-      call mixer(kmin,ndpt,tprof)
+      call lakemixer(kmin,ndpt,tprof)
 
       hi     = 0.01D0
       aveice = d_zero
@@ -224,7 +239,7 @@ module mod_bats_lake
       ai  = aveice / d_1000   ! convert to m
       hs  = hsnow / d_100     ! convert to m
 
-      call ice(dtlake,fsw,ld,tac,u2,ea,hs,hi,ai,ev,prec,tprof)
+      call lakeice(dtlake,fsw,ld,tac,u2,ea,hs,hi,ai,ev,prec,tprof)
       if ( .not. lfreeze ) tprof(1) = twatui
 
       evl    = ev/secph       ! convert evl  from mm/hr to mm/sec
@@ -234,14 +249,15 @@ module mod_bats_lake
       if (hsnow < dlowval) hsnow = d_zero
 
     end if
-
     tgl = tprof(1) + tzero
-
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end subroutine lake
 !
 !-----------------------------------------------------------------------
 !
-  subroutine eddy(ndpt,dtlake,u2,xl,tprof)
+  subroutine lakeeddy(ndpt,dtlake,u2,xl,tprof)
 
     ! Computes density and eddy diffusivity
 
@@ -254,6 +270,11 @@ module mod_bats_lake
     real(rk8) :: demax , demin , dpdz , ks , n2 , po
     real(rk8) :: zmax , rad , ri , ws , z
     integer(ik4) :: k
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'lakeeddy'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
 !
     ! demin molecular diffusion of heat in water
     demin = hdmw
@@ -324,21 +345,25 @@ module mod_bats_lake
 
     end do
     de(ndpt) = demin
-
-  end subroutine eddy
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
+  end subroutine lakeeddy
 !
 !-----------------------------------------------------------------------
 !
-  subroutine temp(ndpt,dtlake,fsw,flw,qe,qh,eta,tprof)
-!
+  subroutine laketemp(ndpt,dtlake,fsw,flw,qe,qh,eta,tprof)
     implicit none
-!
     integer(ik4) , intent(in) :: ndpt
     real(rk8) , intent(in) :: dtlake , eta , flw , qe , qh , fsw
     real(rk8) , dimension(ndpmax) , intent(inout) :: tprof
-!
     real(rk8) :: bot , dt1 , dt2 , top
     integer(ik4) :: k
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'laketemp'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
 
     ! Computes temperature profile
     ! solve differential equations of heat transfer
@@ -369,20 +394,24 @@ module mod_bats_lake
       dnsty(k) = d_1000*(d_one-1.9549D-05 * &
                  (dabs((tprof(k)+tzero)-277.0D0))**1.68D0)
     end do
-
-  end subroutine temp
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
+  end subroutine laketemp
 !
 !-----------------------------------------------------------------------
 !
-  subroutine mixer(kmin,ndpt,tprof)
-!
+  subroutine lakemixer(kmin,ndpt,tprof)
     implicit none
-!
     integer(ik4) , intent(in) :: ndpt , kmin
     real(rk8) , intent(inout) , dimension(ndpmax) :: tprof
-!
     real(rk8) :: avet , avev , tav , vol
     integer(ik4) :: k , k2
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'lakemixer'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
 ! 
     ! Simulates convective mixing
     tt(kmin:ndpt) = tprof(kmin:ndpt)
@@ -415,13 +444,14 @@ module mod_bats_lake
     end do ! K loop
 
     tprof(kmin:ndpt) = tt(kmin:ndpt)
-
-  end subroutine mixer
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
+  end subroutine lakemixer
 !
 !-----------------------------------------------------------------------
 !
-  subroutine ice(dtx,fsw,ld,tac,u2,ea,hs,hi,aveice,evl,prec,tprof)
-
+  subroutine lakeice(dtx,fsw,ld,tac,u2,ea,hs,hi,aveice,evl,prec,tprof)
     implicit none
     real(rk8) :: ea , evl , hi , aveice , hs , fsw , &
                ld , prec , tac , u2 , dtx
@@ -429,12 +459,10 @@ module mod_bats_lake
     intent (in) dtx , ea , ld , prec , tac , u2
     intent (out) evl
     intent (inout) hi , aveice , hs , fsw , tprof
-!
     real(rk8) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
                t2 , tf , theta , rho , xlexpc
     real(rk8) :: xea , xeb , xec
     integer(ik4) :: nits
-!
     real(rk8) , parameter :: isurf = 0.6D0
     ! attenuation coeff for ice in visible band (m-1)
     real(rk8) , parameter :: lami1 = 1.5D0
@@ -458,7 +486,11 @@ module mod_bats_lake
     real(rk8) , parameter :: cd = 0.001D0
     ! Maximum exponent
     real(rk8) , parameter :: minexp = -25.0D0
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'lakeice'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
 
     if ( (tac <= d_zero) .and. (aveice > d_zero) ) &
       hs = hs + prec*d_r100  ! convert prec(mm) to depth(m)
@@ -572,6 +604,9 @@ module mod_bats_lake
       end if
       exit
     end do
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
 
     contains
 
@@ -603,19 +638,20 @@ module mod_bats_lake
           - d_one/khat*(qpen+tf-x)
     end function f
 
-  end subroutine ice
+  end subroutine lakeice
 !
 !-----------------------------------------------------------------------
 !
   subroutine lakesav_o(iutl)
     implicit none
-    integer(ik4) :: iutl
-    intent (in) iutl
-!
+    integer(ik4) , intent(in) :: iutl
     integer(ik4) :: i , j , k , n
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'lakesav_o'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
     write (iutl) idep_io
-
     do i = iout1 , iout2
       do j = jout1 , jout2
         do n = 1 , nnsg
@@ -627,26 +663,29 @@ module mod_bats_lake
         end do
       end do
     end do
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end subroutine lakesav_o
 !
 !-----------------------------------------------------------------------
 !
   subroutine lakesav_i(iutl)
     implicit none
-    integer(ik4) :: iutl
-    intent (in) iutl
-!
+    integer(ik4) , intent(in) :: iutl
     integer(ik4) :: i , j , k , n
-!
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'lakesav_i'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
     idep_io   = 0
     hi_io     = dmissval
     aveice_io = dmissval
     hsnow_io  = dmissval
     eta_io    = dmissval
     tlak_io   = dmissval
-!
     read (iutl) idep_io
-
     do i = iout1 , iout2
       do j = jout1 , jout2
         do n = 1 , nnsg
@@ -658,6 +697,9 @@ module mod_bats_lake
         end do
       end do
     end do
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end subroutine lakesav_i
 !
 end module mod_bats_lake

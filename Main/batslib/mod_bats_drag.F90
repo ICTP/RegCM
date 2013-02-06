@@ -22,6 +22,7 @@ module mod_bats_drag
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_service
   use mod_bats_common
   use mod_bats_internal
 !
@@ -50,6 +51,11 @@ module mod_bats_drag
     implicit none
     real(rk8) :: dthdz , u1 , ribn , ribl , zatild , cdrmin
     integer(ik4) :: n , i , j
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'dragc'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
      
     !======================================
     !     1.   get neutral drag coefficient
@@ -151,6 +157,9 @@ module mod_bats_drag
         end do
       end do
     end do
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end subroutine dragc
 !
 !=======================================================================
@@ -178,6 +187,11 @@ module mod_bats_drag
     implicit none
     real(rk8) :: asigf , cdb , cds , cdv , frab , fras , frav
     integer(ik4) :: n , i , j
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'dragdn'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
     !
     call depth
     !
@@ -206,6 +220,9 @@ module mod_bats_drag
         end do
       end do
     end do
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end subroutine dragdn
 !
 !=======================================================================
@@ -231,6 +248,11 @@ module mod_bats_drag
     implicit none
     real(rk8) :: age , densi
     integer(ik4) :: n , i , j
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'depth'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
     !
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -251,6 +273,9 @@ module mod_bats_drag
         end do
       end do
     end do
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end subroutine depth
 !
 end module mod_bats_drag
