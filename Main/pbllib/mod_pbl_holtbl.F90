@@ -260,9 +260,6 @@ module mod_pbl_holtbl
   !
   do i = ici1 , ici2
     do j = jci1 , jci2
-!     th10(j,i) = ((thxatm(j,i,kz)+tg(j,i))*d_half)*(d_one+mult*sh10)
-!     th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
-!                 dlog(za(j,i,kz)*d_r10)
       sh10 = qxatm(j,i,kz,iqv)/(qxatm(j,i,kz,iqv)+d_one)
       ! "virtual" potential temperature
       if ( hfxv(j,i) >= d_zero ) then
@@ -270,8 +267,10 @@ module mod_pbl_holtbl
       else
         ! first approximation for obhukov length
         ! th10(j,i) = (0.25*thxatm(j,i,kz)+0.75*tg(j,i))*(d_one+mult*sh10)
-        oblen = -d_half*(thxatm(j,i,kz)+tg(j,i)) *  &
-                (d_one+mult*sh10)*ustr(j,i)**3 /  &
+        ! th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
+        !             dlog(za(j,i,kz)*d_r10)
+        th10(j,i) = ((thxatm(j,i,kz)+tg(j,i))*d_half)*(d_one+mult*sh10)
+        oblen = -th10(j,i)*ustr(j,i)**3 /  &
                 (gvk*(hfxv(j,i)+dsign(1.0D-10,hfxv(j,i))))
         if ( oblen >= za(j,i,kz) ) then
           th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i))*  &
