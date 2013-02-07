@@ -49,7 +49,7 @@ then
   exit 1
 fi
 echo "Downloading HDF5 library..."
-$WGET -c http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.9.tar.gz \
+$WGET -c http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.10-patch1.tar.gz \
       -o $DEST/logs/download_H.log
 if [ $? -ne 0 ]
 then
@@ -117,8 +117,8 @@ cd $DEST
 rm -fr zlib-1.2.7
 echo "Compiled zlib library."
 echo "Compiling HDF5 library."
-tar zxvf hdf5-1.8.9.tar.gz > $DEST/logs/extract.log
-cd hdf5-1.8.9
+tar zxvf hdf5-1.8.10-patch1.tar.gz > $DEST/logs/extract.log
+cd hdf5-1.8.10-patch1
 ./configure CC="$CC" --prefix=$DEST --with-zlib=$DEST --disable-shared \
         --disable-cxx --disable-fortran >> $DEST/logs/configure.log 2>&1
 make > $DEST/logs/compile.log 2>&1 && \
@@ -129,7 +129,7 @@ then
   exit 1
 fi
 cd $DEST
-rm -fr hdf5-1.8.9
+rm -fr hdf5-1.8.10-patch1
 echo "Compiled HDF5 library."
 echo "Compiling netCDF Library."
 tar zxvf netcdf-4.2.1.1.tar.gz > $DEST/logs/extract.log
