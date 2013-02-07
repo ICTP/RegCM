@@ -1199,6 +1199,7 @@ module mod_date
     character(len=16) :: cdum
     type (iadate) :: d
     type (iatime) :: t
+    integer(ik4) :: istat
 
     data csave/'none'/
 
@@ -1229,9 +1230,18 @@ module mod_date
       if (cunit(1:5) == 'hours') then
         ! Unit is hours since reference
         if (len_trim(cunit) >= 30) then
-          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
+          read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)',iostat=istat) &
             cdum, d%year, cdum, d%month, cdum, d%day, &
             cdum, t%hour, cdum, t%minute, cdum, t%second
+          if ( istat /= 0 ) then
+            ! Erain fix
+            read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i1)',iostat=istat) &
+              cdum, d%year, cdum, d%month, cdum, d%day, &
+              cdum, t%hour, cdum, t%minute, cdum, t%second
+            if ( istat /= 0 ) then
+              call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
+            end if
+          end if
         else if (len_trim(cunit) >= 27) then
           read(cunit,'(a12,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
             cdum, d%year, cdum, d%month, cdum, d%day, &
