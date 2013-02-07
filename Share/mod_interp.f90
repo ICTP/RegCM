@@ -751,13 +751,13 @@ module mod_interp
     real(rk8) , intent(in) :: lat1 , lon1 , lat2, lon2
     real(rk8) :: clat1 , slat1 , clat2 , slat2 , cdlon , crd
 
-    clat1 = cos(dble(lat1)*degrad)
-    slat1 = sin(dble(lat1)*degrad)
-    clat2 = cos(dble(lat2)*degrad)
-    slat2 = sin(dble(lat2)*degrad)
-    cdlon = cos(dble(lon1-lon2)*degrad)
+    clat1 = cos(lat1*degrad)
+    slat1 = sin(lat1*degrad)
+    clat2 = cos(lat2*degrad)
+    slat2 = sin(lat2*degrad)
+    cdlon = cos((lon1-lon2)*degrad)
     crd   = slat1*slat2+clat1*clat2*cdlon
-    gcdist = real(earthrad*acos(crd))
+    gcdist = earthrad*acos(crd)
   end function gcdist
 !
 end module mod_interp
