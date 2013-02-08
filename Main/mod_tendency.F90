@@ -40,6 +40,7 @@ module mod_tendency
   use mod_mppio
   use mod_domain
   use mod_cloud_s1
+  use mod_sladvection
   use mod_slabocean
 #ifdef CLM
   use mod_clm
@@ -288,30 +289,56 @@ module mod_tendency
 !=======================================================================
 !
     call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
-    call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atm1%t,1,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(atm1%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+    if ( isladvec == 1 ) then
+      call exchange(atm1%u,4,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atm1%v,4,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atm1%t,4,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm1%qx,4,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+    else
+      call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atm1%t,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm1%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+    end if
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       call exchange(atm1%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 !
-    call exchange(atm2%u,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atm2%v,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atm2%t,1,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(atm2%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+    if ( isladvec == 1 ) then
+      call exchange(atm2%u,4,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atm2%v,4,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atm2%t,4,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm2%qx,4,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+    else
+      call exchange(atm2%u,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atm2%v,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atm2%t,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm2%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+    end if
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       call exchange(atm2%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 !
-    call exchange(atmx%u,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atmx%v,1,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atmx%t,1,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(atmx%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+    if ( isladvec == 1 ) then
+      call exchange(atmx%u,4,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atmx%v,4,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atmx%t,4,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atmx%qx,4,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+    else
+      call exchange(atmx%u,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atmx%v,1,jde1,jde2,ide1,ide2,1,kz)
+      call exchange(atmx%t,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atmx%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+    end if
 !
     if ( ichem == 1 ) then
-      call exchange(chi,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-      call exchange(chib,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      if ( isladvec == 1 ) then
+        call exchange(chi,4,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        call exchange(chib,4,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      else
+        call exchange(chi,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+        call exchange(chib,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      end if
     end if
     !
     ! Calculate pdot , calculate decoupled variables at B
@@ -543,6 +570,11 @@ module mod_tendency
 #ifdef DEBUG
     call check_temperature_tendency('DIAB')
 #endif
+
+    if ( isladvec == 1 ) then
+      call trajcalc_x
+    end if
+
     !
     ! compute the diffusion term for t and store in difft:
     !
@@ -558,7 +590,12 @@ module mod_tendency
     !   icup = 99: grell over land, emanuel over ocean
     !   icup = 98: emanuel over land, grell over ocean
     !
-    call hadv(aten%qx,atmx%qx,kz,iqv)
+    if ( isladvec == 1 ) then
+      call slhadv_x(aten%qx,atm2%qx,iqv)
+      call hdvg_x(aten%qx,atm1%qx,iqv)
+    else
+      call hadv(aten%qx,atmx%qx,kz,iqv)
+    end if
     if ( icup /= 1 ) then
       if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
         call vadv(aten%qx,atm1%qx,kz,iqv,1)
@@ -613,7 +650,12 @@ module mod_tendency
     ! Large scale precipitation
     !
     if ( ipptls == 1 ) then
-      call hadv(aten%qx,atmx%qx,kz,iqc)
+      if ( isladvec == 1 ) then
+        call slhadv_x(aten%qx,atm2%qx,iqc)
+        call hdvg_x(aten%qx,atm1%qx,iqc)
+      else
+        call hadv(aten%qx,atmx%qx,kz,iqc)
+      end if
       if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
         call vadv(aten%qx,atm1%qx,kz,iqc,2)
       else
@@ -648,7 +690,12 @@ module mod_tendency
       ! horizontal and vertical advection + diag
       !
       if ( ichdiag == 1 ) chiten0 = chiten
-      call hadv(chiten,chi,kz)
+      if ( isladvec == 1 ) then
+        call slhadv_x(chiten,chib)
+        call hdvg_x(chiten,chi)
+      else
+        call hadv(chiten,chi,kz)
+      end if
       if ( ichdiag == 1 ) then
         cadvhdiag = cadvhdiag + (chiten - chiten0) * cfdout
         chiten0 = chiten
@@ -1335,6 +1382,8 @@ module mod_tendency
       dtbat = dt*dble(ntsrf)
       dt = dt2
       rdt = d_one/dt
+      dtsq = dt*dt
+      dtcb = dt*dt*dt
     end if
     !
     ! do cumulus transport/mixing  of tracers (grell

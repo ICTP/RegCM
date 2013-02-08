@@ -151,6 +151,7 @@ module mod_atm_interface
   integer(ik4) , public , parameter :: zero_exchange_point = 0
   integer(ik4) , public , parameter :: one_exchange_point = 1
   integer(ik4) , public , parameter :: two_exchange_point = 2
+  integer(ik4) , public , parameter :: four_exchange_point = 4
 
 #ifdef DEBUG
   type(grid_nc_var4d) , public :: nc_4d
@@ -164,27 +165,35 @@ module mod_atm_interface
       implicit none
       ma%jbl1 = 1
       ma%jbl2 = 2
+      ma%jbl4 = 4
       ma%jbr1 = 1
       ma%jbr2 = 2
+      ma%jbr4 = 4
       ma%ibt1 = 1
       ma%ibt2 = 2
+      ma%ibt4 = 4
       ma%ibb1 = 1
       ma%ibb2 = 2
+      ma%ibb4 = 4
       if ( ma%has_bdyleft ) then
         ma%jbl1 = 0
         ma%jbl2 = 0
+        ma%jbl4 = 0
       end if
       if ( ma%has_bdyright ) then
         ma%jbr1 = 0
         ma%jbr2 = 0
+        ma%jbr4 = 0
       end if
       if ( ma%has_bdytop ) then
         ma%ibt1 = 0
         ma%ibt2 = 0
+        ma%ibt4 = 0
       end if
       if ( ma%has_bdybottom ) then
         ma%ibb1 = 0
         ma%ibb2 = 0
+        ma%ibb4 = 0
       end if
       jde1  = 1
       jdi1  = 1
@@ -496,6 +505,11 @@ module mod_atm_interface
         it = ma%ibt2
         jl = ma%jbl2
         jr = ma%jbr2
+      else if ( exchange_points == four_exchange_point ) then
+        ib = ma%ibb4
+        it = ma%ibt4
+        jl = ma%jbl4
+        jr = ma%jbr4
       else
         call fatal(__FILE__,__LINE__,'Uncoded number of exchange points')
       end if
@@ -640,16 +654,22 @@ module mod_atm_interface
       call getmem4d(dx%diffqx,jci1,jci2,ici1,ici2,1,kz,1,nqx,'diffx:diffqx')
     end subroutine allocate_diffx
 !
-    subroutine allocate_mod_atm_interface(ibltyp)
+    subroutine allocate_mod_atm_interface(ibltyp,isladvec)
 !
       implicit none
-      integer(ik4) , intent(in) :: ibltyp
+      integer(ik4) , intent(in) :: ibltyp , isladvec
 !
       call allocate_domain(mddom,.true.)
 
-      call allocate_atmstate(atm1,ibltyp,.true.,one_exchange_point)
-      call allocate_atmstate(atm2,ibltyp,.true.,one_exchange_point)
-      call allocate_atmstate(atmx,ibltyp,.true.,one_exchange_point)
+      if ( isladvec == 1 ) then
+        call allocate_atmstate(atmx,ibltyp,.true.,four_exchange_point)
+        call allocate_atmstate(atm1,ibltyp,.true.,four_exchange_point)
+        call allocate_atmstate(atm2,ibltyp,.true.,four_exchange_point)
+      else
+        call allocate_atmstate(atmx,ibltyp,.true.,one_exchange_point)
+        call allocate_atmstate(atm1,ibltyp,.true.,one_exchange_point)
+        call allocate_atmstate(atm2,ibltyp,.true.,one_exchange_point)
+      end if
       call allocate_atmstate(atmc,ibltyp,.true.,zero_exchange_point)
       call allocate_atmstate(aten,ibltyp,.true.,zero_exchange_point)
       if ( ibltyp == 99 ) then

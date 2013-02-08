@@ -54,7 +54,7 @@ module mod_output
     logical :: ldosav , ldolak , ldosub , ldotmp
     logical :: ldoslab
     logical :: lstartup
-    integer(ik4) :: i , j , k , jp1 , ip1 , itr
+    integer(ik4) :: i , j , k , itr
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'output'
     integer(ik4) , save :: idindx = 0
@@ -158,17 +158,15 @@ module mod_output
           end do
         end if
         if ( associated(atm_u_out) .and. associated(atm_v_out) ) then
+          call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
+          call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
           do k = 1 , kz
             do i = ici1 , ici2
-              ip1 = i+1
-              if ( ip1 > iy ) ip1 = 1
               do j = jci1 , jci2
-                jp1 = j+1
-                if ( jp1 > jx ) jp1 = 1
-                atm_u_out(j,i,k) = d_rfour*(atm1%u(j,i,k)+atm1%u(jp1,i,k) + &
-                                 atm1%u(j,ip1,k)+atm1%u(jp1,ip1,k))/ps_out(j,i)
-                atm_v_out(j,i,k) = d_rfour*(atm1%v(j,i,k)+atm1%v(jp1,i,k) + &
-                                 atm1%v(j,ip1,k)+atm1%v(jp1,ip1,k))/ps_out(j,i)
+                atm_u_out(j,i,k) = d_rfour*(atm1%u(j,i,k)+atm1%u(j+1,i,k) + &
+                                 atm1%u(j,i+1,k)+atm1%u(j+1,i+1,k))/ps_out(j,i)
+                atm_v_out(j,i,k) = d_rfour*(atm1%v(j,i,k)+atm1%v(j+1,i,k) + &
+                                 atm1%v(j,i+1,k)+atm1%v(j+1,i+1,k))/ps_out(j,i)
               end do
             end do
           end do

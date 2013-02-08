@@ -41,6 +41,7 @@ module mod_params
   use mod_advection , only : init_advection
   use mod_mppio
   use mod_slabocean
+  use mod_sldepparam
 #ifdef CLM
   use mod_clm
   use clm_varsur , only : landmask
@@ -100,10 +101,10 @@ module mod_params
     enable_che_vars , dirout , lsync , do_parallel_netcdf_in ,         &
     do_parallel_netcdf_out
 
-  namelist /physicsparam/ ibltyp , iboudy , icup , igcc , ipgf ,    &
-    iemiss , lakemod , ipptls , iocnflx , iocncpl , iocnrough ,     &
-    ichem , scenario , idcsst , iseaice , idesseas , iconvlwp ,     &
-    irrtm , iclimao3 , isolconst , icumcloud , islab_ocean
+  namelist /physicsparam/ ibltyp , iboudy , isladvec , icup , igcc , &
+    ipgf , iemiss , lakemod , ipptls , iocnflx , iocncpl ,           &
+    iocnrough , ichem , scenario , idcsst , iseaice , idesseas ,     &
+    iconvlwp , irrtm , iclimao3 , isolconst , icumcloud , islab_ocean
 
   namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
     iceflglw , liqflglw , icld , irng , idrv
@@ -301,6 +302,7 @@ module mod_params
 !
   ibltyp = 1
   iboudy = 1
+  isladvec = 0
   icup = 1
   ipptls = 1
   igcc = 1
@@ -733,6 +735,7 @@ module mod_params
 #endif
 
   call bcast(iboudy)
+  call bcast(isladvec)
   call bcast(ibltyp)
   call bcast(icup)
   call bcast(igcc)
@@ -978,7 +981,7 @@ module mod_params
 
   call allocate_mod_runparams
 
-  call allocate_mod_atm_interface(ibltyp)
+  call allocate_mod_atm_interface(ibltyp,isladvec)
 
   call allocate_mod_tend
 
@@ -1015,12 +1018,16 @@ module mod_params
     call allocate_mod_rad_colmod3
   end if
 
-  call allocate_mod_che_common
+  call allocate_mod_che_common(isladvec)
   call allocate_mod_che_mppio
   call allocate_mod_che_dust
   call allocate_mod_che_bdyco
 
   call allocate_mod_slabocean
+
+  if ( isladvec == 1 ) then
+    call allocate_mod_sldepparam
+  end if
 !
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
@@ -1070,7 +1077,14 @@ module mod_params
       write (stderr,*) 'CHEMFRQ=' ,chemfrq
       call fatal(__FILE__,__LINE__,'CHEMFRQ CANNOT BE ZERO')
     end if
-
+    if ( isladvec == 1 ) then
+      if ( jxp < 5 .or. iyp < 5 ) then
+        write (stderr,*) 'To use Semi-Lagrangian Advection Scheme reduce'
+        write (stderr,*) 'the number of processors !!!!'
+        write (stderr,*) 'Minimum number of points is 25 (5x5) per processor'
+        call fatal(__FILE__,__LINE__,'ISLADVEC WITH PPROC < 5x5')
+      end if
+    end if
   end if
 !
   if ( ifrest ) then
@@ -1143,6 +1157,8 @@ module mod_params
   end do
   ntabem = idnint(secph*dtabem/dt) !dtabem is time interval abs./emis. calc.
   dt2 = d_two*dt
+  dtsq = dt*dt
+  dtcb = dt*dt*dt
 !
   intmdl = rcm_time_interval(idnint(dt),usec)
   intbdy = rcm_time_interval(ibdyfrq,uhrs)
@@ -1285,6 +1301,7 @@ module mod_params
 
     write(stdout,*) 'Physical Parameterizations'
     write(stdout,'(a,i2)') '  Lateral Boundary conditions : ' , iboudy
+    write(stdout,'(a,i2)') '  Semi-Lagrangian Advection   : ' , isladvec
     write(stdout,'(a,i2)') '  Cumulus convection scheme   : ' , icup
     if ( icup == 2 ) then
       write(stdout,'(a,i2)') '  Grell closure scheme        : ' , igcc

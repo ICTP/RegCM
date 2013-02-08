@@ -102,10 +102,12 @@ module mod_runparams
   integer(ik4) :: iocnrough , iocnflx , iocncpl
   ! Radiation switch controls
   integer(ik4) :: idirect , iemiss , isolconst
+  ! Semi-Langrangian advection for tracers
+  integer(ik4) :: isladvec
 !
   character(len=8) :: scenario
 !
-  real(rk8) :: dt , dt2 , dtbdys , rdt
+  real(rk8) :: dt , dt2 , dtsq , dtcb , dtbdys , rdt
   real(rk8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
   real(rk8) :: c200 , rdxsq , dtsrf , dtabem , dtrad , cpldt
   real(rk8) :: xkhmax , xkhz

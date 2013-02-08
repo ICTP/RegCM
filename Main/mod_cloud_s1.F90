@@ -195,7 +195,6 @@ module mod_cloud_s1
     integer(ik4) , intent(in) :: jstart , jend , istart , iend
     integer(ik4) :: i , j , k , n , m 
     integer(ik4) :: iqqi , iqql , iqqr , iqqs , iqqv , jn , jo , kautoconv
-    integer(ik4) :: zmax, zrat
     logical :: lmicro, budget
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: omega             
     real(rk8) :: zexplicit
@@ -641,9 +640,9 @@ do k = 1 , kz
         m = imelt(n) 
         do j = jstart, jend
           do i = istart, iend
-            if (zmeltmax(j,i) > zepsec  .and. zicetot(j,i) > 0.0) then   !zepsec
+            if (zmeltmax(j,i) > zepsec .and. zicetot(j,i) > d_zero) then !zepsec
               zphases = zqxx(j,i,k,n)/zicetot(j,i)
-              zmelt = min(1.0,zphases*zmeltmax(j,i))
+              zmelt = min(d_one,zphases*zmeltmax(j,i))
               zsolqa(j,i,m,n) = zsolqa(j,i,m,n)+zmelt
               zsolqa(j,i,n,m) = zsolqa(j,i,n,m)-zmelt
             end if

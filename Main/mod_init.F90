@@ -438,6 +438,8 @@ module mod_init
     dtbat = dt*dble(ntsrf)
     dt = dt2
     rdt = d_one/dt
+    dtsq = dt*dt
+    dtcb = dt*dt*dt
     !
     ! Report success
     !

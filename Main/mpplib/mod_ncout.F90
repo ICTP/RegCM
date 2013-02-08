@@ -1806,6 +1806,8 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('lateral_boundary_condition_scheme',iboudy))
         call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('semi_lagrangian_advection_scheme',isladvec))
+        call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('boundary_layer_scheme',ibltyp))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('cumulus_convection_scheme',icup))

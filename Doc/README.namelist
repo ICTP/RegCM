@@ -204,6 +204,10 @@
                         !   3 => Time and inflow/outflow dependent.
                         !   4 => Sponge (Perkey & Kreitzberg, MWR 1976)
                         !   5 => Relaxation, exponential technique.
+ isladvec =         0,  ! Semilagrangian advection scheme for tracers and
+                        ! humidity
+                        !   0 => Disabled
+                        !   1 => Enable Semi Lagrangian Scheme
  ibltyp  =          1,  ! Boundary layer scheme
                         !   0 => Frictionless
                         !   1 => Holtslag PBL (Holtslag, 1990)

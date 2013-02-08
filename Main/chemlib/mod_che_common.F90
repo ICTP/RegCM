@@ -97,16 +97,24 @@ module mod_che_common
 
   contains
 
-    subroutine allocate_mod_che_common
+    subroutine allocate_mod_che_common(isladvec)
       implicit none
+      integer(ik4) , intent(in) :: isladvec
 
       if ( ichem == 1 ) then
         call getmem4d(chia,jce1-ma%jbl2,jce2+ma%jbr2, &
                       ice1-ma%ibb2,ice2+ma%ibt2,1,kz,1,ntr,'che_common:chia')
-        call getmem4d(chib,jce1-ma%jbl2,jce2+ma%jbr2, &
-                      ice1-ma%ibb2,ice2+ma%ibt2,1,kz,1,ntr,'che_common:chib')
-        call getmem4d(chi,jce1-ma%jbl1,jce2+ma%jbr1, &
-                      ice1-ma%ibb1,ice2+ma%ibt1,1,kz,1,ntr,'che_common:chi')
+        if ( isladvec == 1 ) then
+          call getmem4d(chib,jce1-ma%jbl4,jce2+ma%jbr4, &
+                        ice1-ma%ibb4,ice2+ma%ibt4,1,kz,1,ntr,'che_common:chib')
+          call getmem4d(chi,jce1-ma%jbl4,jce2+ma%jbr4, &
+                        ice1-ma%ibb4,ice2+ma%ibt4,1,kz,1,ntr,'che_common:chi')
+        else
+          call getmem4d(chib,jce1-ma%jbl2,jce2+ma%jbr2, &
+                        ice1-ma%ibb2,ice2+ma%ibt2,1,kz,1,ntr,'che_common:chib')
+          call getmem4d(chi,jce1-ma%jbl1,jce2+ma%jbr1, &
+                        ice1-ma%ibb1,ice2+ma%ibt1,1,kz,1,ntr,'che_common:chi')
+        end if
         call getmem4d(chic,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chic')
         call getmem4d(chiten,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chiten')
         call getmem4d(chiten0,jce1,jce2,ice1,ice2,1,kz,1,ntr, &

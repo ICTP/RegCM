@@ -51,8 +51,8 @@ module mod_mppparam
     integer(ik4) , dimension(2) :: location
     integer(ik4) :: left , right , top , bottom
     integer(ik4) :: topleft , topright , bottomleft , bottomright
-    integer(ik4) :: ibt1 , ibt2 , ibb1 , ibb2
-    integer(ik4) :: jbl1 , jbl2 , jbr1 , jbr2
+    integer(ik4) :: ibt1 , ibt2 , ibt4 , ibb1 , ibb2 , ibb4
+    integer(ik4) :: jbl1 , jbl2 , jbl4 , jbr1 , jbr2 , jbr4
   end type model_area
 
   type grid_nc_var2d
