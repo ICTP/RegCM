@@ -84,8 +84,8 @@ module mod_slabocean
       implicit none
       ! mlcp is the heat capacity of the mixed layer [J / m3 / deg C] * m
       real(rk8) :: mlcp
+      integer(ik4) :: i , j
 #ifdef DEBUG
-      integer(ik4) :: i
       real(rk8) , dimension(5) :: pval , pval1
 #endif
       ! water heat capacity ~ 4 J/g/K         
@@ -93,13 +93,16 @@ module mod_slabocean
 
       if ( do_restore_sst ) then
         stepcount(xmonth) = stepcount(xmonth)+1
-        where ( ocmask == 0 )
-          qflux_sst = &
-            (ts1(jci1:jci2, ici1:ici2) - sstemp(jci1:jci2,ici1:ici2)) * &
-            mlcp / (sst_restore_timescale * 86400.0D0) ! w/m2
-          qflux_restore_sst(:,:,xmonth) = (qflux_restore_sst(:,:,xmonth) + &
-            qflux_sst)
-        end where
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if ( ocmask(j,i) == 0 ) then
+              qflux_sst(j,i) = (ts1(j,i) - sstemp(j,i)) * &
+                mlcp / (sst_restore_timescale * 86400.0D0) ! w/m2
+              qflux_restore_sst(j,i,xmonth) = &
+                qflux_restore_sst(j,i,xmonth) + qflux_sst(j,i)
+            end if
+          end do
+        end do
       else if ( do_qflux_adj ) then
         !
         ! Find the current climatological heat flux adjustment (qflux_adj).  
@@ -134,20 +137,20 @@ module mod_slabocean
         end if
       end if
 #endif
-
-      where ( ocmask == 0 )
-        ! The following are some key equations for this model:
-        ! flux from or to the atmosphere ( convention  = positive downward)  
-        ! multiply evaporation by latent heat of evaporation     
-        hflx = ofsw - oflw - ohfx - wlhv * oqfx
-
-        ! account for the retaured or adjustment flux term
-        net_hflx = hflx + qflux_adj + qflux_sst
-
-        ! update the prognostic seasurface temperature (pointing on tg2)
-        sstemp(jci1:jci2, ici1:ici2) = &
-          sstemp(jci1:jci2, ici1:ici2) + dtocean*net_hflx/mlcp
-      end where
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( ocmask(j,i) == 0 ) then
+            ! The following are some key equations for this model:
+            ! flux from or to the atmosphere ( convention  = positive downward)
+            ! multiply evaporation by latent heat of evaporation     
+            hflx(j,i) = ofsw(j,i)-oflw(j,i)-ohfx(j,i)-wlhv*oqfx(j,i)
+            ! account for the retaured or adjustment flux term
+            net_hflx(j,i) = hflx(j,i) + qflux_adj(j,i) + qflux_sst(j,i)
+            ! update the prognostic seasurface temperature (pointing on tg2)
+            sstemp(j,i) = sstemp(j,i) + dtocean*net_hflx(j,i)/mlcp
+          end if
+        end do
+      end do
     end subroutine update_slabocean
 
     subroutine fill_slaboc_outvars
