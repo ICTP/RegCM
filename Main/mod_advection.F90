@@ -34,7 +34,6 @@ module mod_advection
 
   interface hadv
     module procedure hadv3d
-    module procedure hadv3d4d
     module procedure hadv4d
   end interface hadv
 
@@ -158,60 +157,39 @@ module mod_advection
 #endif
     end subroutine hadv3d
 !
-    subroutine hadv3d4d(ften,f,nk,m)
-      implicit none
-      integer(ik4) , intent (in) :: nk , m
-      real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
-      real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
-!
-      integer(ik4) :: i , j , k
-#ifdef DEBUG
-      character(len=dbgslen) :: subroutine_name = 'hadv3d4d'
-      integer(ik4) , save :: idindx = 0
-      call time_begin(subroutine_name,idindx)
-#endif
-      !
-      ! for qv:
-      !
-      do k = 1 , nk
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ften(j,i,k,m) = ften(j,i,k,m) -                               &
-                  ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k,m)+f(j,i,k,m)) -  &
-                   (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k,m)+f(j-1,i,k,m)) +  &
-                   (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k,m)+f(j,i,k,m)) -  &
-                   (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k,m)+f(j,i,k,m))) / &
-                   (dx4*mapfx(j,i)*mapfx(j,i))
-          end do
-        end do
-      end do
-#ifdef DEBUG
-      call time_end(subroutine_name,idindx)
-#endif
-    end subroutine hadv3d4d
-!
-    subroutine hadv4d(ften,f,nk)
+    subroutine hadv4d(ften,f,nk,m)
       implicit none
       integer(ik4) , intent (in) :: nk
+      integer(ik4) , optional , intent (in) :: m
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 !
-      integer(ik4) :: i , j , k , n
+      integer(ik4) :: i , j , k , n , n1 , n2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'hadv4d'
       integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
-      do n = 1 , ntr
+      if ( present(m) ) then
+        n1 = m
+        n2 = m
+      else
+        n1 = lbound(f,4)
+        n2 = ubound(f,4)
+      end if
+      !
+      ! for qv:
+      !
+      do n = n1 , n2
         do k = 1 , nk
           do i = ici1 , ici2
             do j = jci1 , jci2
               ften(j,i,k,n) = ften(j,i,k,n) -                               &
-                    ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k,n)+f(j,i,k,n)) -  &
-                     (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k,n)+f(j-1,i,k,n)) +  &
-                     (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k,n)+f(j,i,k,n)) -  &
-                     (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k,n)+f(j,i,k,n))) / &
-                     (dx4*mapfx(j,i)*mapfx(j,i))
+                  ((ua(j+1,i+1,k)+ua(j+1,i,k))*(f(j+1,i,k,n)+f(j,i,k,n)) -  &
+                   (ua(j,i+1,k)+ua(j,i,k)) *   (f(j,i,k,n)+f(j-1,i,k,n)) +  &
+                   (va(j+1,i+1,k)+va(j,i+1,k))*(f(j,i+1,k,n)+f(j,i,k,n)) -  &
+                   (va(j+1,i,k)+va(j,i,k)) *   (f(j,i-1,k,n)+f(j,i,k,n))) / &
+                   (dx4*mapfx(j,i)*mapfx(j,i))
             end do
           end do
         end do
