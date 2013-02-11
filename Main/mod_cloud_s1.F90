@@ -33,15 +33,16 @@ module mod_cloud_s1
   use mod_runparams , only : dt
   use mod_pbl_common
   use mod_constants
- 
+  use mod_precip , only : fcc
+  !use clm_varsur , only : landfrac!mask
   private
 
   integer(ik4) , parameter :: nmax = 5                           ! number of progn.variables 
   integer(ik4) , parameter :: nqx = 5                             
   real(rk8) :: zfall                                             ! constant fall speed   
   real(rk8) :: zqtmst                                            ! 1/dt
-  real(rk8) , parameter :: vlht = 2.50D6                         !evaporation latent heat (J/K)
-  real(rk8) , parameter :: slht = 2.83D6                         !sublimation latent heat at T=tzero
+  real(rk8) , parameter :: vlht = 2.26D6                         !evaporation latent heat (J/Kg)
+  real(rk8) , parameter :: slht = 3.34D5                        !sublimation latent heat at T=tzero
   real(rk8) , pointer , dimension(:,:,:) :: pres                 ! from atms
   real(rk8) , pointer , dimension(:,:,:) :: zt                   ! from atms
   real(rk8) , pointer , dimension(:,:,:) :: zeta                 ! from atms
@@ -95,7 +96,9 @@ module mod_cloud_s1
 ! for convection detrainment source and subsidence source/sink terms
   real(rk8) , pointer , dimension(:,:,:) :: zconvsrce
   real(rk8) , pointer , dimension(:,:,:) :: zconvsink
-
+  
+  real(rk8) , pointer , dimension(:,:) :: zliqcld
+  real(rk8) , pointer , dimension(:,:) :: zicecld
   real(rk8) , pointer , dimension(:,:,:) :: zfluxq                ! fluxes convergence of species 
   real(rk8) , pointer , dimension(:,:,:) :: zratio
   real(rk8) , pointer , dimension(:,:,:) :: zsinksum
@@ -158,6 +161,8 @@ module mod_cloud_s1
     call getmem3d(zerrorh,jci1,jci2,ici1,ici2,1,kz,'clouds1:zerrorh')
     call getmem3d(papf,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:papf')
     call getmem3d(zliq,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:zliq')
+    call getmem2d(zliqcld,jci1,jci2,ici1,ici2,'clouds1:zliqcld')
+    call getmem2d(zicecld,jci1,jci2,ici1,ici2,'clouds1:zicecld')
     call getmem3d(zqdetr,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqdetr')
     call getmem4d(zqxtendc,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:zqxtendc')
     call getmem4d(zvqx,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:zvqx')
@@ -201,13 +206,14 @@ module mod_cloud_s1
  
     ! local real variables for autoconversion rate constants
     real(rk8) :: alpha1                                              ! coefficient autoconversion cold cloud
+    real(rk8) :: ztmpa
     real(rk8) , parameter :: zauto_rate_khair = 0.355D0              ! microphysical terms
     real(rk8) , parameter :: zauto_expon_khair = 1.47D0
     real(rk8) , parameter :: zauto_rate_sundq = 0.5D-3
     real(rk8) , parameter :: zauto_rate_kesl = 1.D-3                 !giusto!
     real(rk8) , parameter :: zauto_rate_klepi = 0.5D-3
     real(rk8) , parameter :: zautocrit = 5.D-4                       !giusto!
-    real(rk8) , parameter :: zepsec = 1.D-20
+    real(rk8) , parameter :: zepsec = 1.D-10
     real(rk8) , parameter :: qi0 = 1.0D-3                            !g g^(-1)
     real(rk8) , parameter :: retv = 0.60                             !rv/rd-1   rv = 461.5, rd = 287.05              
    
@@ -269,11 +275,6 @@ module mod_cloud_s1
     imelt(iqqi) = iqql
     imelt(iqqs) = iqqr
 
-    !Define some simple constants
-    ralsdcp = slht/cpd                               !Ls/Cp
-    ralvdcp = vlht/cpd                               !Lv/Cp 
-    zrldcp  = d_zero/(ralsdcp-ralvdcp)                 !
-
 !Define zliq the function for mixed phase
 do k = 1 , kz
   do j = jstart , jend
@@ -294,7 +295,16 @@ budget = .true.
 do k = 1 , kz+1
   do i = istart , iend
     do j = jstart , jend
-      papf(j,i,k) = (sigma(k)*sfcps(j,i)+ptop)*d_1000
+      papf(j,i,k) = (sigma(k)*sfcps(j,i)+ptop)*d_1000          ! (Pa)
+    end do
+  end do
+end do
+
+!Convert pressure at half levels in Pa
+do k = 1 , kz
+  do i = istart , iend
+    do j = jstart , jend
+      pres(j,i,k) = pres(j,i,k)*d_1000        !   (Pa)
     end do
   end do
 end do
@@ -349,6 +359,10 @@ do k = 1 , kz
   enddo
 enddo
 
+ralsdcp = slht/cpd                               !Ls/Cp
+ralvdcp = vlht/cpd                               !Lv/Cp 
+zrldcp  = d_zero/(ralsdcp-ralvdcp)                 !
+
 !-------------------------------------
 ! Initial enthalpy and total water diagnostics 
 !-------------------------------------
@@ -367,7 +381,7 @@ do k = 1 , kz
         zsumq0(j,i,k) = zsumq0(j,i,k-1)             
         zsumh0(j,i,k) = zsumh0(j,i,k-1)
       endif
-
+    
       do n = 1 , nqx
           if (kphase(n) == 1) ztnew=ztnew-ralvdcp*(zqxx(j,i,k,n)+ &
                                     & (zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))*dt)
@@ -463,7 +477,7 @@ do k = 1 , kz
   do j = jstart , jend
     do i = istart , iend
       !Teton's formula for the saturation mixing ratio:
-      if ( zt(j,i,k) > d_zero ) then
+      if ( zt(j,i,k) > tzero ) then
          satvp(j,i,k) = satw(zt(j,i,k),pres(j,i,k))
          dqsatdt(j,i,k) = dqsatdtw(zt(j,i,k),satvp(j,i,k))
       else
@@ -507,7 +521,10 @@ do k = 1 , kz
     !Warm clouds
     do j = jstart , jend
       do i = istart , iend
-        if ( zqxx(j,i,k,iqql) > d_zero ) then    !why if B=0 by default?
+        ztmpa=d_one/max(fcc(j,i,k),zepsec) 
+        zliqcld(j,i) = zqxx(j,i,k,iqql)*ztmpa
+        zicecld(j,i) = zqxx(j,i,k,iqqi)*ztmpa
+        if ( zliqcld(j,i) > zepsec ) then    !why if B=0 by default?
           zsolqb(j,i,iqql,iqqv) = d_zero 
           select case (kautoconv)
           case (1)          !Klein & Pincus (2000)
@@ -534,19 +551,24 @@ do k = 1 , kz
        
         ! Cold clouds
         ! Snow Autoconversion rate follow Lin et al. 1983
-        if (zt(j,i,k) <=  tzero) then
-          if (zqxx(j,i,k,iqqi) > zepsec) then
-            alpha1 = dt*1.0D-3*exp(0.025*(zt(j,i,k)-tzero))
-            zsolqa(j,i,iqqs,iqqi)=zsolqa(j,i,iqqs,iqqi)-alpha1*qi0
-            zsolqa(j,i,iqqi,iqqs)=zsolqa(j,i,iqqi,iqqs)+alpha1*qi0
-            zsolqb(j,i,iqqs,iqqi)=zsolqb(j,i,iqqs,iqqi)+dt*alpha1
-          end if
+        if (zt(j,i,k) <=  tzero .and. zicecld(j,i) > zepsec ) then
+          alpha1 = dt*1.0D-3*exp(0.025*(zt(j,i,k)-tzero))
+          zsolqa(j,i,iqqs,iqqi)=zsolqa(j,i,iqqs,iqqi)-alpha1*qi0
+          zsolqa(j,i,iqqi,iqqs)=zsolqa(j,i,iqqi,iqqs)+alpha1*qi0
+          zsolqb(j,i,iqqs,iqqi)=zsolqb(j,i,iqqs,iqqi)+dt*alpha1
         end if
+       
+      
+       ! if (zliqcld(j,i) > zepsec) then
+       !   if (zt(j,i,k) <= tzero) then
+       !     zsolqb
+       ! end if    
    
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         !                         EVAPORATION                        ! 
         !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
-        zsolqb(j,i,iqqv,iqqr) = zsolqb(j,i,iqqv,iqqr)+ dt*kevap*max((satvp(j,i,k)-zqxx(j,i,k,iqqv)),d_zero)
+        zsolqb(j,i,iqqv,iqqr) = zsolqb(j,i,iqqv,iqqr)+&
+                                & dt*kevap*max((satvp(j,i,k)-zqxx(j,i,k,iqqv)),d_zero)
       end do
     end do  
     
@@ -556,11 +578,6 @@ do k = 1 , kz
     !Freezing of rain. 
     !All rain freezes in a timestep if the temperature is below 0 C
     !calculate sublimation latent heat
-    !  do j = jstart , jend
-    !    do i = istart , iend
-    !    slht=(2834.1 -0.29*zt(j,i,k)-0.004*(zt(j,i,k)**2)) !sublimation latent heat
-    !    end do
-    !        end do
 
     do j = jstart , jend
       do i = istart , iend
@@ -620,13 +637,15 @@ do k = 1 , kz
         zicetot(j,i) = zqxx(j,i,k,iqqi)+zqxx(j,i,k,iqqs)
         zmeltmax(j,i) = d_zero
         if (zicetot(j,i) > zepsec .and. zt(j,i,k) > tzero) then
+          !Calculate subsaturation 
           zsubsat = max(zqsice(j,i,k)-zqxx(j,i,k,iqqv),d_zero)
           ! Calculate difference between dry-bulb (zt)  and the temperature
           ! at which the wet-bulb=0degC  
           ! Melting only occurs if the wet-bulb temperature >0
           ! i.e. warming of ice particle due to melting > cooling
           ! due to evaporation.     
-          ztdiff = zt(j,i,k)-tzero-zsubsat*(ztw1+ztw2*(pres(j,i,k)-ztw3)-ztw4*(zt(j,i,k)-ztw5))
+          ztdiff = zt(j,i,k)-tzero-zsubsat*&
+                   &(ztw1+ztw2*(pres(j,i,k)-ztw3)-ztw4*(zt(j,i,k)-ztw5))
           ! Ensure ZCONS1 is positive so that ZMELTMAX=0 if ZTDMTW0<0
           zcons1 = abs(dt*(d_one+d_half*ztdiff)/rtaumel)  
           zmeltmax(j,i) = max(ztdiff*zcons1*zrldcp,d_zero)
@@ -634,7 +653,7 @@ do k = 1 , kz
       end do
     end do    
 
-    ! Loop over frozen hydrometeors (ice, snow)
+    ! Loop over frozen hydrometeors (kphase==2 (ice, snow))
     do n = 1, nqx
       if (kphase(n) == 2) then
         m = imelt(n) 
@@ -965,6 +984,8 @@ do j = jstart , jend
     do k = 1 , kz
       prcflxw(j,i) = prcflxw(j,i) + zpfplsl(j,i,k)   !mm/s
       prcflxc(j,i) = prcflxc(j,i) + zpfplsn(j,i,k)   !mm/s
+   !   print*,'warm', prcflxw(j,i)
+   !   print*,'cold', prcflxc(j,i)
     end do
   end do
 end do
@@ -1010,17 +1031,17 @@ contains
      real(rk8) function satc(zt,xp)
        implicit none
        real(rk8) , intent(in) :: xp , zt
-       ! saturation mixing ratio for ice in hPa (A Description of the Fifth-Generation Penn State/NCAR
+       ! saturation mixing ratio for ice in Pa (A Description of the Fifth-Generation Penn State/NCAR
        !Mesoscale Model (MM5)Georg A. Grell, Jimy Dudhia, David R. Stauffer, NCAR TECHNICAL NOTE Dec 1994)
-       satc = (3.79D0/xp)*dexp(22.514D0-6150.0D0/zt) 
+       satc = (3.79D2/xp)*dexp(22.514D0-6150.0D0/zt) 
      end function satc
 
      real(rk8) function satw(zt,xp)
        implicit none
        real(rk8) , intent(in) :: xp , zt
-       !  ! saturation mixing ratio for water in hPa (A Description of the Fifth-Generation Penn State/NCAR
+       !  ! saturation mixing ratio for water in Pa (A Description of the Fifth-Generation Penn State/NCAR
        !Mesoscale Model (MM5)Georg A. Grell, Jimy Dudhia, David R. Stauffer, NCAR TECHNICAL NOTE Dec 1994)
-       satw = (3.79D0/xp)*dexp(17.67D0*(zt-tzero)/(zt-29.65D0))
+       satw = (3.79D2/xp)*dexp(17.67D0*(zt-tzero)/(zt-29.65D0))
      end function satw
      
      real(rk8) function dqsatdtc(zt,satc)
