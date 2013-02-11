@@ -32,7 +32,7 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:,:,:) :: cdrd , vpdc
   real(rk8) , pointer , dimension(:,:,:) :: rppq , efe
   real(rk8) , pointer , dimension(:,:,:) :: dcd , etrc
-  real(rk8) , pointer , dimension(:,:,:) :: dels
+  real(rk8) , pointer , dimension(:,:,:) :: dels , aseas
   real(rk8) , pointer , dimension(:,:,:) :: rib , prcp
   real(rk8) , pointer , dimension(:,:,:) :: qgrd , qs , resp , rhs
   real(rk8) , pointer , dimension(:,:,:) :: sts , zh
@@ -57,7 +57,7 @@ module mod_bats_internal
   public :: rnof , rsubst , rsur , wflux1 , wflux2 , wfluxc , bb , &
             bcoef , cc , deprat , fct2
   public :: lfta , lftb , lftra , lftrs , cdrd , vpdc , rppq , efe ,   &
-            dcd , etrc , dels , rib
+            dcd , etrc , dels , aseas , rib
   public :: prcp , qgrd , qs , resp , rhs , sts , zh , bfc , bsw
   public :: evmx0 , fdry , fwet , gwmx0 , gwmx1 , gwmx2 , porsl , relfc ,  &
             rnet , texrat , vegt , wiltr , wt , xkmx , cdr , cdrn , cdrx , &
@@ -90,6 +90,7 @@ module mod_bats_internal
     call getmem3d(dcd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:dcd')
     call getmem3d(etrc,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:etrc')
     call getmem3d(dels,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:dels')
+    call getmem3d(aseas,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:aseas')
     call getmem3d(rib,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rib')
     call getmem3d(rnof,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rnof')
     call getmem3d(rsubst,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rsubst')
@@ -201,7 +202,6 @@ module mod_bats_internal
 
     call getmem2d(usw,jci1,jci2,ici1,ici2,'bats_internal:usw')
     call getmem2d(vsw,jci1,jci2,ici1,ici2,'bats_internal:vsw')
-!
   end subroutine allocate_mod_bats_internal
 !
 end module mod_bats_internal

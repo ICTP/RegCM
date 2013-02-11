@@ -30,10 +30,10 @@ module mod_bats_mtrxbats
   use mod_service
   use mod_bats_common
   use mod_bats_internal
-  use mod_bats_leaftemp , only : fseas
   use mod_bats_lake
   use mod_bats_bndry
   use mod_bats_drag
+  use mod_bats_leaftemp
   use mod_bats_mppio
   use mod_bats_zengocn
   use mod_outvars
@@ -313,6 +313,8 @@ module mod_bats_mtrxbats
  
     if ( ivers == 1 ) then ! regcm --> bats
 
+      call fseas(tgbrd)
+
       do i = ici1 , ici2
         do j = jci1 , jci2
           p0 = (sfps(j,i)+ptop)*d_1000
@@ -343,8 +345,7 @@ module mod_bats_mtrxbats
             else if ( ldmsk1(n,j,i) == 0 ) then
               if ( iemiss == 1 ) emiss(n,j,i) = 0.995D0
             end if
-            lncl(n,j,i) = mfcv(lveg(n,j,i)) - &
-                          seasf(lveg(n,j,i))*fseas(tgbrd(n,j,i),lveg(n,j,i))
+            lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*aseas(n,j,i)
             zh(n,j,i) = hgt(j,i,kz)
             z1log(n,j,i)  = dlog(zh(n,j,i))
             z2fra(n,j,i)  = dlog(zh(n,j,i)*d_half)
@@ -770,13 +771,13 @@ module mod_bats_mtrxbats
     call depth
     !
     ! 1.2  set default vegetation and albedo
-    ! 
+    !
+    call fseas(tgbrd)
     do i = ici1 , ici2
       do j = jci1 , jci2
         czeta = coszrs(j,i)
         do n = 1 , nnsg
-          lncl(n,j,i) = mfcv(lveg(n,j,i)) - &
-                        seasf(lveg(n,j,i))*fseas(tgbrd(n,j,i),lveg(n,j,i))
+          lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*aseas(n,j,i)
           sts(n,j,i) = thatm(j,i,kz)-lrate*regrav*(ht1(n,j,i)-ht(j,i))
           albgs = d_zero
           albgl = d_zero
@@ -822,7 +823,7 @@ module mod_bats_mtrxbats
             albgld = albgl
           else if ( ldmsk1(n,j,i) == 1 ) then
             ! Land
-            sfac = d_one - fseas(tgbrd(n,j,i),lveg(n,j,i))
+            sfac = d_one - aseas(n,j,i)
             !
             ! ccm tests here on land mask for veg and soils data
             ! reduces albedo at low temps !!!!!

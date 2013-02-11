@@ -359,8 +359,8 @@ module mod_bats_leaftemp
 !             under conditions of no moisture stress
 !
 !     standard lai from xla=max & xlai0=min lai
-!     seasb = fseas(tgbrd(n,j,i) (set in bndry) is a seasonal
-!             factor for reduced winter lai and root water uptake
+!     seasb = fseas(tgbrd) is a seasonal factor for reduced winter lai
+!             and root water uptake
 !        fc = light sensitivity for crops and grasses and has inverse
 !             radiation units (m**2/watt)
 !      rlai = sum of leaf and stem area indices
@@ -406,6 +406,7 @@ module mod_bats_leaftemp
     difzen = d_two
     ilmax = 4
     rilmax = d_four
+    call fseas(tlef)
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
@@ -433,7 +434,7 @@ module mod_bats_leaftemp
                 end do
                 radf = rilmax/radfi
                 vpdf = d_one/dmax1(0.3D0,d_one-vpdc(n,j,i)*0.025D0)
-                seas = d_one/(rmini+fseas(tlef(n,j,i),lveg(n,j,i)))
+                seas = d_one/(rmini+aseas(n,j,i))
                 lftrs(n,j,i) = rsmin(lveg(n,j,i))*radf*seas*vpdf
                 lftrs(n,j,i) = dmin1(lftrs(n,j,i),rmax0)
               else
@@ -828,11 +829,11 @@ module mod_bats_leaftemp
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine deriv
-!
-  real(rk8) function fseas(x,ic)
+! 
+  subroutine fseas(temp)
     implicit none
-    real(rk8) , intent(in) :: x
-    integer(ik4) , intent(in) :: ic
+    real(rk8) , pointer , dimension(:,:,:) :: temp
+    integer(ik4) :: i , j , n
     logical , parameter :: lcrop_cutoff = .false.
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'fseas'
@@ -840,17 +841,40 @@ module mod_bats_leaftemp
     call time_begin(subroutine_name,idindx)
 #endif
     if ( lcrop_cutoff ) then
-      if ( ic == 1 ) then ! Crop cutoff
-        fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**4)
-      else
-        fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**2)
-      end if
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n = 1 , nnsg
+            if ( ldmsk1(n,j,i) == 1 ) then
+              if ( lveg(n,j,i) == 1 ) then
+                aseas(n,j,i) = dmax1(d_zero, &
+                  d_one-0.0016D0*dmax1(298.0D0-temp(n,j,i),d_zero)**4)
+              else
+                aseas(n,j,i) = dmax1(d_zero, &
+                  d_one-0.0016D0*dmax1(298.0D0-temp(n,j,i),d_zero)**2)
+              end if
+            else
+              aseas(n,j,i) = d_zero
+            end if
+          end do
+        end do
+      end do
     else
-      fseas = dmax1(d_zero,d_one-0.0016D0*dmax1(298.0D0-x,d_zero)**2)
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n = 1 , nnsg
+            if ( ldmsk1(n,j,i) == 1 ) then
+              aseas(n,j,i) = dmax1(d_zero, &
+                d_one-0.0016D0*dmax1(298.0D0-temp(n,j,i),d_zero)**2)
+            else
+              aseas(n,j,i) = d_zero
+            end if
+          end do
+        end do
+      end do
     end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-  end function fseas
-! 
+  end subroutine fseas
+!
 end module mod_bats_leaftemp

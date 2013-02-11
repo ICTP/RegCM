@@ -288,12 +288,14 @@ module mod_bats_bndry
     call time_begin(subroutine_name,idindx)
 #endif
 !
+    call fseas(tgbrd)
+
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > minsigf ) then
-              seasb(n,j,i) = fseas(tgbrd(n,j,i),lveg(n,j,i))
+              seasb(n,j,i) = aseas(n,j,i)
             end if
           end if
         end do
