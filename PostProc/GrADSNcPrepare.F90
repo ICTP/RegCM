@@ -118,7 +118,7 @@ program ncprepare
   call checkncerr(istatus,__FILE__,__LINE__,'Error reading title attribute')
   write(11, '(a)') 'title '//trim(charatt)
 
-  istatus = nf90_get_att(ncid, nf90_global, 'model_IPCC_scenario', charatt)
+  istatus = nf90_get_att(ncid, nf90_global, 'ipcc_scenario_code', charatt)
   if ( istatus == nf90_noerr ) then
     is_model_output = .true.
   end if
