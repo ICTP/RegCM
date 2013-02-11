@@ -598,12 +598,12 @@ module mod_tendency
     end if
     if ( icup /= 1 ) then
       if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-        call vadv(aten%qx,atm1%qx,kz,iqv,1)
+        call vadv(aten%qx,atm1%qx,kz,1,iqv)
       else
         if ( iuwvadv == 1 ) then
-          call vadv(aten%qx,atm1%qx,kz,iqv,3)
+          call vadv(aten%qx,atm1%qx,kz,3,iqv)
         else
-          call vadv(aten%qx,atm1%qx,kz,iqv,1)
+          call vadv(aten%qx,atm1%qx,kz,1,iqv)
         end if
       end if
     end if
@@ -657,12 +657,12 @@ module mod_tendency
         call hadv(aten%qx,atmx%qx,kz,iqc)
       end if
       if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-        call vadv(aten%qx,atm1%qx,kz,iqc,2)
+        call vadv(aten%qx,atm1%qx,kz,2,iqc)
       else
         if ( iuwvadv == 1 ) then
-          call vadv(aten%qx,atm1%qx,kz,iqc,3)
+          call vadv(aten%qx,atm1%qx,kz,3,iqc)
         else
-          call vadv(aten%qx,atm1%qx,kz,iqc,2)
+          call vadv(aten%qx,atm1%qx,kz,2,iqc)
         end if
       end if
       call pcp
@@ -702,12 +702,12 @@ module mod_tendency
       end if
       if ( icup /= 1 ) then
         if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-          call vadv(chiten,chia,kz,1)
+          call vadv(chiten,chia,kz,2)
         else
           if ( iuwvadv == 1 ) then
-            call vadv(chiten,chia,kz,2)
+            call vadv(chiten,chia,kz,3)
           else
-            call vadv(chiten,chia,kz,1)
+            call vadv(chiten,chia,kz,2)
           end if
         end if
       end if

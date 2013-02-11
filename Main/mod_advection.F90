@@ -40,7 +40,6 @@ module mod_advection
 
   interface vadv
     module procedure vadv3d
-    module procedure vadv3d4d
     module procedure vadv4d
   end interface vadv
 
@@ -415,174 +414,69 @@ module mod_advection
 #endif
     end subroutine vadv3d
 !
-    subroutine vadv3d4d(ften,f,nk,m,ind)
-      implicit none
-      integer(ik4) , intent(in) :: ind , m , nk
-      real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
-      real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
-!
-      real(rk8) :: slope
-      integer(ik4) :: i , j , k
-#ifdef DEBUG
-      character(len=dbgslen) :: subroutine_name = 'vadv3d4d'
-      integer(ik4) , save :: idindx = 0
-      call time_begin(subroutine_name,idindx)
-#endif
-      if ( ind == 1 ) then
-        !
-        ! vertical advection term : interpolate qv to full sigma levels
-        !
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            fg(j,i,1) = d_zero
-          end do
-        end do
-        do k = 2 , nk
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              if ( f(j,i,k,m) > falow .and. f(j,i,k-1,m) > falow ) then
-                fg(j,i,k) = f(j,i,k,m)*(f(j,i,k-1,m)/f(j,i,k,m))**qcon(k)
-              else
-                fg(j,i,k) = d_zero
-              end if
-            end do
-          end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ften(j,i,1,m) = ften(j,i,1,m) - vsv(j,i,2)*fg(j,i,2)/dsigma(1)
-          end do
-        end do
-        do k = 2 , nk-1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,k,m) = ften(j,i,k,m) - &
-                     (vsv(j,i,k+1)*fg(j,i,k+1)-vsv(j,i,k)*fg(j,i,k))/dsigma(k)
-            end do
-          end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ften(j,i,nk,m) = ften(j,i,nk,m) + vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
-          end do
-        end do
-      else if ( ind == 2 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            fg(j,i,1) = d_zero
-          end do
-        end do
-        do k = 2 , nk
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              fg(j,i,k) = twt(k,1)*f(j,i,k,m) + twt(k,2)*f(j,i,k-1,m)
-            end do
-          end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ften(j,i,1,m) = ften(j,i,1,m) - vsv(j,i,2)*fg(j,i,2)/dsigma(1)
-          end do
-        end do
-        do k = 2 , nk-1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,k,m) = ften(j,i,k,m) - &
-                      (vsv(j,i,k+1)*fg(j,i,k+1)-vsv(j,i,k)*fg(j,i,k))/dsigma(k)
-            end do
-          end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ften(j,i,nk,m) = ften(j,i,nk,m) + vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
-          end do
-        end do
-      else if ( ind == 3 ) then
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            fg(j,i,1) = d_zero
-          end do
-        end do
-        do k = 2 , nk
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              fg(j,i,k)= twt(k,1)*f(j,i,k,m) + twt(k,2)*f(j,i,k-1,m)
-            end do
-          end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( kpbl(j,i).gt.nk ) then
-              call fatal(__FILE__,__LINE__,'kpbl is greater than nk')
-            end if
-            if ( kpbl(j,i).ge.4 ) then
-              ! Calculate slope of scalar in layer above ambiguous layer
-              k = kpbl(j,i)-2
-              if ( (f(j,i,k+1,m)-f(j,i,k,m)) > d_zero .and. &
-                   (f(j,i,k,m)-f(j,i,k-1,m)) > d_zero ) then
-                slope = min((f(j,i,k+1,m)-f(j,i,k,m))/(hsigma(k+1)-hsigma(k)), &
-                            (f(j,i,k,m)-f(j,i,k-1,m))/(hsigma(k)-hsigma(k-1)))
-              else if ( (f(j,i,k+1,m)-f(j,i,k,m)) < d_zero .and. &
-                        (f(j,i,k,m)-f(j,i,k-1,m)) < d_zero ) then
-                slope = max((f(j,i,k+1,m)-f(j,i,k,m))/(hsigma(k+1)-hsigma(k)), &
-                            (f(j,i,k,m)-f(j,i,k-1,m))/(hsigma(k)-hsigma(k-1)))
-              else
-                slope = d_zero
-              end if
-              ! Replace the values of scalar at top and bottom of ambiguous
-              ! layer as long as inversion is actually in the ambiguous layer
-              k = kpbl(j,i)
-              fg(j,i,k-1) = f(j,i,k-2,m) + slope*(sigma(k-1)-hsigma(k-2))
-              if (abs(f(j,i,k-2,m) + &
-                      slope*(hsigma(k-1)-hsigma(k-2))-f(j,i,k,m)) > &
-                  abs(f(j,i,k-1,m)-f(j,i,k,m)) ) then
-                fg(j,i,k) = f(j,i,k,m)
-              else
-                fg(j,i,k) = f(j,i,k-2,m) + slope*(sigma(k)-hsigma(k-2))
-              end if
-            end if
-          end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ften(j,i,1,m) = ften(j,i,1,m) - vsv(j,i,2)*fg(j,i,2)/dsigma(1)
-          end do
-        end do
-        do k = 2 , nk-1
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              ften(j,i,k,m) = ften(j,i,k,m) - &
-                  (vsv(j,i,k+1)*fg(j,i,k+1)-vsv(j,i,k)*fg(j,i,k))/dsigma(k)
-            end do
-          end do
-        end do
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ften(j,i,nk,m) = ften(j,i,nk,m) + &
-                   vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
-          end do
-        end do
-      end if
-#ifdef DEBUG
-      call time_end(subroutine_name,idindx)
-#endif
-    end subroutine vadv3d4d
-!
-    subroutine vadv4d(ften,f,nk,ind)
+    subroutine vadv4d(ften,f,nk,ind,m)
       implicit none
       integer(ik4) , intent(in) :: ind , nk
+      integer(ik4) , optional , intent(in) :: m
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 !
       real(rk8) :: slope
-      integer(ik4) :: i , j , k , n
+      integer(ik4) :: i , j , k , n , n1 , n2
 #ifdef DEBUG
       character(len=dbgslen) :: subroutine_name = 'vadv4d'
       integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
+      if (present(m) ) then
+        n1 = m
+        n2 = m
+      else
+        n1 = lbound(f,4)
+        n2 = ubound(f,4)
+      end if
       if ( ind == 1 ) then
-        do n = 1 , ntr
+        do n = n1 , n2
+          !
+          ! vertical advection term : interpolate qv to full sigma levels
+          !
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              fg(j,i,1) = d_zero
+            end do
+          end do
+          do k = 2 , nk
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( f(j,i,k,n) > falow .and. f(j,i,k-1,n) > falow ) then
+                  fg(j,i,k) = f(j,i,k,n)*(f(j,i,k-1,n)/f(j,i,k,n))**qcon(k)
+                else
+                  fg(j,i,k) = d_zero
+                end if
+              end do
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ften(j,i,1,n) = ften(j,i,1,n) - vsv(j,i,2)*fg(j,i,2)/dsigma(1)
+            end do
+          end do
+          do k = 2 , nk-1
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                ften(j,i,k,n) = ften(j,i,k,n) - &
+                       (vsv(j,i,k+1)*fg(j,i,k+1)-vsv(j,i,k)*fg(j,i,k))/dsigma(k)
+              end do
+            end do
+          end do
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ften(j,i,nk,n) = ften(j,i,nk,n)+vsv(j,i,nk)*fg(j,i,nk)/dsigma(nk)
+            end do
+          end do
+        end do
+      else if ( ind == 2 ) then
+        do n = n1 , n2
           do i = ici1 , ici2
             do j = jci1 , jci2
               fg(j,i,1) = d_zero
@@ -614,8 +508,8 @@ module mod_advection
             end do
           end do
         end do
-      else if ( ind == 2 ) then
-        do n = 1 , ntr
+      else if ( ind == 3 ) then
+        do n = n1 , n2
           do i = ici1 , ici2
             do j = jci1 , jci2
               fg(j,i,1) = d_zero
@@ -638,16 +532,14 @@ module mod_advection
                 k = kpbl(j,i)-2
                 if ( (f(j,i,k+1,n)-f(j,i,k,n)) > d_zero .and. &
                      (f(j,i,k,n)-f(j,i,k-1,n)) > d_zero ) then
-                  slope = min((f(j,i,k+1,n)-f(j,i,k,n))/ &
-                               (hsigma(k+1)-hsigma(k)),  &
-                              (f(j,i,k,n)-f(j,i,k-1,n))/ &
-                               (hsigma(k)-hsigma(k-1)))
+                  slope = min((f(j,i,k+1,n)-f(j,i,k,n)) / &
+                          (hsigma(k+1)-hsigma(k)), &
+                          (f(j,i,k,n)-f(j,i,k-1,n))/(hsigma(k)-hsigma(k-1)))
                 else if ( (f(j,i,k+1,n)-f(j,i,k,n)) < d_zero .and. &
                           (f(j,i,k,n)-f(j,i,k-1,n)) < d_zero ) then
-                  slope = max((f(j,i,k+1,n)-f(j,i,k,n))/ &
-                              (hsigma(k+1)-hsigma(k)),   &
-                              (f(j,i,k,n)-f(j,i,k-1,n))/ &
-                              (hsigma(k)-hsigma(k-1)))
+                  slope = max((f(j,i,k+1,n)-f(j,i,k,n)) / &
+                          (hsigma(k+1)-hsigma(k)), &
+                          (f(j,i,k,n)-f(j,i,k-1,n))/(hsigma(k)-hsigma(k-1)))
                 else
                   slope = d_zero
                 end if
@@ -655,8 +547,8 @@ module mod_advection
                 ! layer as long as inversion is actually in the ambiguous layer
                 k = kpbl(j,i)
                 fg(j,i,k-1) = f(j,i,k-2,n) + slope*(sigma(k-1)-hsigma(k-2))
-                if (abs(f(j,i,k-2,n) + slope * &
-                       (hsigma(k-1)-hsigma(k-2))-f(j,i,k,n)) > &
+                if (abs(f(j,i,k-2,n) + &
+                        slope*(hsigma(k-1)-hsigma(k-2))-f(j,i,k,n)) > &
                     abs(f(j,i,k-1,n)-f(j,i,k,n)) ) then
                   fg(j,i,k) = f(j,i,k,n)
                 else
