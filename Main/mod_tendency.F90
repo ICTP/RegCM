@@ -677,7 +677,7 @@ module mod_tendency
       ! compute the diffusion terms:
       ! the diffusion term for qx is stored in diffqx.
       !
-      call diffu_x(adf%diffqx,atms%qxb3d,sfs%psb,xkc,nqx,kz)
+      call diffu_x(adf%diffqx,atms%qxb3d,sfs%psb,xkc,kz)
     end if
 #ifdef DEBUG
     call check_temperature_tendency('PREC')
@@ -719,7 +719,7 @@ module mod_tendency
       ! horizontal diffusion: initialize scratch vars to 0.
       ! need to compute tracer tendencies due to diffusion
       !
-      call diffu_x(chiten,chib3d,sfs%psb,xkc,ntr,kz)
+      call diffu_x(chiten,chib3d,sfs%psb,xkc,kz)
       if ( ichdiag == 1 ) then
         cdifhdiag = cdifhdiag + (chiten - chiten0) * cfdout 
       end if

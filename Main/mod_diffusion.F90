@@ -262,24 +262,32 @@ module mod_diffusion
 #endif
   end subroutine diffu_x3d
 !
-  subroutine diffu_x4d(ften,f,press,xkc,n4,kmax)
+  subroutine diffu_x4d(ften,f,press,xkc,kmax,n4)
     implicit none
-    integer(ik4) , intent(in) :: kmax , n4
+    integer(ik4) , intent(in) :: kmax
+    integer(ik4) , optional , intent(in) :: n4
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: xkc
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: f
     real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: ften
     real(rk8) , pointer , dimension(:,:) , intent(in) :: press
 !
-    integer(ik4) :: i , j , k , n
+    integer(ik4) :: i , j , k , n , n1 , n2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'diffu_x4d'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+    if ( present(n4) ) then
+      n1 = n4
+      n2 = n4
+    else
+      n1 = lbound(f,4)
+      n2 = ubound(f,4)
+    end if
     !
     ! fourth-order scheme for interior:
     !
-    do n = 1 , n4
+    do n = n1 , n2
       do k = 1 , kmax
         do i = icii1 , icii2
           do j = jcii1 , jcii2
@@ -298,7 +306,7 @@ module mod_diffusion
     !
     if ( ma%has_bdyleft ) then
       j = jci1
-      do n = 1 , n4
+      do n = n1 , n2
         do k = 1 , kmax
           do i = ici1 , ici2
             ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) *     &
@@ -311,7 +319,7 @@ module mod_diffusion
     end if
     if ( ma%has_bdyright ) then
       j = jci2
-      do n = 1 , n4
+      do n = n1 , n2
         do k = 1 , kmax
           do i = ici1 , ici2
             ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) *     &
@@ -327,7 +335,7 @@ module mod_diffusion
     !
     if ( ma%has_bdybottom ) then
       i = ici1
-      do n = 1 , n4
+      do n = n1 , n2
         do k = 1 , kmax
           do j = jci1 , jci2
             ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) *   &
@@ -340,7 +348,7 @@ module mod_diffusion
     end if
     if ( ma%has_bdytop ) then
       i = ici2
-      do n = 1 , n4
+      do n = n1 , n2
         do k = 1 , kmax
           do j = jci1 , jci2
             ften(j,i,k,n) = ften(j,i,k,n) + xkc(j,i,k) *   &

@@ -39,13 +39,11 @@ module mod_sladvection
 
   interface slhadv_x
     module procedure slhadv_x3d
-    module procedure slhadv_x3d4d
     module procedure slhadv_x4d
   end interface
 
   interface hdvg_x
     module procedure hdvg_x3d
-    module procedure hdvg_x3d4d
     module procedure hdvg_x4d
   end interface hdvg_x
 
@@ -375,80 +373,26 @@ module mod_sladvection
 #endif
   end subroutine slhadv_x3d
 
-  subroutine slhadv_x3d4d(ften,var,m)
+  subroutine slhadv_x4d(ften,var,m)
     implicit none
     real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
     real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: var
-    integer(ik4) , intent(in) :: m
+    integer(ik4) , optional , intent(in) :: m
     real(rk8) :: tbadp , tbmax , tbmin , tsla , bl1 , bl2 , cb1 , cb2
-    integer(ik4) :: i , j , k
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'slhadv_x3d4d'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
-
-    do k = 1, kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ! GTD bilinear for the two outermost zonal grid points
-          bl1 = alffbl_x(j,i,k)*var(xnnm1dp_x(j,i,k),ynnp1dp_x(j,i,k),k,m) + &
-             (d_one - alffbl_x(j,i,k))*var(xndp_x(j,i,k),ynnp1dp_x(j,i,k),k,m)
-          bl2 = alffbl_x(j,i,k)*var(xnnm1dp_x(j,i,k),ynnm2dp_x(j,i,k),k,m) + &
-             (d_one - alffbl_x(j,i,k))*var(xndp_x(j,i,k),ynnm2dp_x(j,i,k),k,m)
-          ! GTD Cubic for the two innermost zonal grid points
-          cb1 = alfm2dp_x(j,i,k)*var(xnnm2dp_x(j,i,k),yndp_x(j,i,k),k,m) + &
-                alfm1dp_x(j,i,k)*var(xnnm1dp_x(j,i,k),yndp_x(j,i,k),k,m) + &
-                alfdp_x(j,i,k)*var(xndp_x(j,i,k),yndp_x(j,i,k),k,m) + &
-                alfp1dp_x(j,i,k)*var(xnnp1dp_x(j,i,k),yndp_x(j,i,k),k,m)
-          cb2 = alfm2dp_x(j,i,k)*var(xnnm2dp_x(j,i,k),ynnm1dp_x(j,i,k),k,m) + &
-                alfm1dp_x(j,i,k)*var(xnnm1dp_x(j,i,k),ynnm1dp_x(j,i,k),k,m) + &
-                alfdp_x(j,i,k)*var(xndp_x(j,i,k),ynnm1dp_x(j,i,k),k,m) + &
-                alfp1dp_x(j,i,k)*var(xnnp1dp_x(j,i,k),ynnm1dp_x(j,i,k),k,m)
-          ! GTD finally a Cubic interpolation on
-          !              cb1,cb2,bl1 and bl2 pts in y dirn
-          tbadp = betm2dp_x(j,i,k)*bl2 + betm1dp_x(j,i,k)*cb2 + &
-                  betdp_x(j,i,k)*cb1 + betp1dp_x(j,i,k)*bl1
-          ! to get the maximum and minimum value
-          tbmax = max(var(xndp_x(j,i,k),yndp_x(j,i,k),k,m),    &
-                      var(xndp_x(j,i,k),ynnm1dp_x(j,i,k),k,m), &
-                      var(xnnm1dp_x(j,i,k),yndp_x(j,i,k),k,m), &
-                      var(xnnm1dp_x(j,i,k),ynnm1dp_x(j,i,k),k,m))
-          tbmin = min(var(xndp_x(j,i,k),yndp_x(j,i,k),k,m) ,   &
-                      var(xndp_x(j,i,k),ynnm1dp_x(j,i,k),k,m), &
-                      var(xnnm1dp_x(j,i,k),yndp_x(j,i,k),k,m), &
-                      var(xnnm1dp_x(j,i,k),ynnm1dp_x(j,i,k),k,m))
-          ! for the quasi monotonic sl
-          if ( tbadp > tbmax ) then
-            tsla = tbmax
-          else if ( tbadp < tbmin ) then
-            tsla = tbmin
-          else
-            tsla = tbadp
-          end if
-          ! to compute the tendency
-          ften(j,i,k,m) =  (tsla - var(j,i,k,m))/dt
-        end do
-      end do
-    end do
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
-  end subroutine slhadv_x3d4d
-
-  subroutine slhadv_x4d(ften,var)
-    implicit none
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
-    real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: var
-    real(rk8) :: tbadp , tbmax , tbmin , tsla , bl1 , bl2 , cb1 , cb2
-    integer(ik4) :: i , j , k , n
+    integer(ik4) :: i , j , k , n , n1 , n2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'slhadv_x4d'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-
-    do n = 1 , ntr
+    if ( present(m) ) then
+      n1 = m
+      n2 = m
+    else
+      n1 = lbound(var,4)
+      n2 = ubound(var,4)
+    end if
+    do n = n1 , n2
       do k = 1, kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -613,75 +557,27 @@ module mod_sladvection
 #endif
   end subroutine hdvg_x3d
 
-  subroutine hdvg_x3d4d(ften,var,m)
+  subroutine hdvg_x4d(ften,var,m)
     implicit none
     real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
     real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: var
-    integer(ik4) , intent(in) :: m
-
+    integer(ik4) , optional , intent(in) :: m
     real(rk8) :: ucapf_x, ucapi_x , vcapf_x , vcapi_x
     real(rk8) :: ducapdx , dvcapdy , hdvg , tatotdvtrm
-    integer(ik4) :: i , j , k
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'hdvg_x3d4d'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ucapf_x = (atmx%u(j+1,i+1,k)*mddom%msfd(j+1,i+1) + &
-                     atmx%u(j+1,i,k)*mddom%msfd(j+1,i))*d_half
-          ucapi_x = (atmx%u(j,i+1,k)*mddom%msfd(j,i+1) + &
-                     atmx%u(j,i,k)*mddom%msfd(j,i))*d_half
-          ducapdx = (ucapf_x - ucapi_x) / dx
-          vcapf_x = (atmx%v(j+1,i+1,k)*mddom%msfd(j+1,i+1) + &
-                     atmx%v(j,i+1,k)*mddom%msfd(j,i+1))*d_half
-          vcapi_x = (atmx%v(j+1,i,k)*mddom%msfd(j+1,i) + &
-                     atmx%v(j,i,k)*mddom%msfd(j,i))*d_half
-          dvcapdy = (vcapf_x - vcapi_x) / dx
-          hdvg = (ducapdx + dvcapdy)/(mddom%msfx(j,i)*mddom%msfx(j,i))
-          tatotdvtrm = var(j,i,k,m)*hdvg
-          ften(j,i,k,m) = ften(j,i,k,m) - tatotdvtrm
-          !GTD ucapf_x = 0.25D0*(atmx%u(j+1,i,k) + &
-          !GTD   atmx%u(j+1,i+1,k) + atmx%u(j+2,i+1,k) + &
-          !GTD   atmx%u(j+2,i,k))*mddom%msfx(j+1,i)
-          !GTD ucapi_x = 0.25D0*(atmx%u(j,i,k) + &
-          !GTD   atmx%u(j,i+1,k) + atmx%u(j-1,i+1,k) + &
-          !GTD   atmx%u(j-1,i,k))*mddom%msfx(j-1,i)
-          !GTD vcapf_x = 0.25D0*(atmx%v(j,i+1,idyp1_x,k) + &
-          !GTD   atmx%v(j+1,i+1,k+ atmx%v(j+1,i+2,k) + &
-          !GTD   atmx%v(j,i+2,k))*mddom%msfx(j,i+1)
-          !GTD vcapi_x = 0.25D0*(atmx%v(j,i,k) + &
-          !GTD   atmx%v(j,i-1,k) + atmx%v(j+1,i-1,k) + &
-          !GTD   atmx%v(j+1,i,k))*mddom%msfx(j,i-1)
-          !GTD ducapdx = (ucapf_x - ucapi_x) / (2.0D0*dx)
-          !GTD dvcapdy = (vcapf_x - vcapi_x) / (2.0D0*dx)
-          !GTD hdvg = (ducapdx + dvcapdy)/(mddom%msfx(j,i)*mddom%msfx(j,i))
-          !GTD tatotdvtrm = var(j,i,k,m)*hdvg
-          !GTD ften(j,i,k,m) = ften(j,i,k,m) - tatotdvtrm
-        end do
-      end do
-    end do
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
-  end subroutine hdvg_x3d4d
-
-  subroutine hdvg_x4d(ften,var)
-    implicit none
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
-    real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: var
-
-    real(rk8) :: ucapf_x, ucapi_x , vcapf_x , vcapi_x
-    real(rk8) :: ducapdx , dvcapdy , hdvg , tatotdvtrm
-    integer(ik4) :: i , j , k , n
+    integer(ik4) :: i , j , k , n , n1 , n2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'hdvg_x4d'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    do n = 1 , ntr
+    if ( present(m) ) then
+      n1 = m
+      n2 = m
+    else
+      n1 = lbound(var,4)
+      n2 = ubound(var,4)
+    end if
+    do n = n1 , n2
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
