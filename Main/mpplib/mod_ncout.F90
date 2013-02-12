@@ -2008,6 +2008,14 @@ module mod_ncout
             ncattribute_real8('holtslag_critical_ocean_richardson',ricr_ocn))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('holtslag_critical_land_richardson',ricr_lnd))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('holtslag_zhnew_factor',zhnew_fac))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('holtslag_th10_estimate',ifaholtth10))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('holtslag_th10_maximize',ifaholtmax))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('holtslag_th10_minimize',ifaholtmin))
         end if
         if ( ibltyp == 2 .or. ibltyp == 99 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

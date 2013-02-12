@@ -25,8 +25,9 @@ module mod_pbl_holtbl
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : ibltyp , iqv , iqc , dt , rdt , &
-    ichem , ichdrdepo , sigma , hsigma , dsigma , zhnew_fac
+  use mod_runparams , only : ibltyp , iqv , iqc , dt , rdt ,  &
+    ichem , ichdrdepo , sigma , hsigma , dsigma , zhnew_fac , &
+    ifaholtth10 , ifaholtmax , ifaholtmin
   use mod_mppparam
   use mod_memutil
   use mod_service
@@ -266,10 +267,14 @@ module mod_pbl_holtbl
         th10(j,i) = thvx(j,i,kz)
       else
         ! first approximation for obhukov length
-        ! th10(j,i) = (0.25*thxatm(j,i,kz)+0.75*tg(j,i))*(d_one+mult*sh10)
-        ! th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
-        !             dlog(za(j,i,kz)*d_r10)
-        th10(j,i) = ((thxatm(j,i,kz)+tg(j,i))*d_half)*(d_one+mult*sh10)
+        if ( ifaholtth10 == 2 ) then
+          th10(j,i) = (0.25*thxatm(j,i,kz)+0.75*tg(j,i))*(d_one+mult*sh10)
+        else if ( ifaholtth10 == 3 ) then
+          th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)* &
+                      dlog(za(j,i,kz)*d_r10))
+        else
+          th10(j,i) = ((thxatm(j,i,kz)+tg(j,i))*d_half)*(d_one+mult*sh10)
+        end if
         oblen = -th10(j,i)*ustr(j,i)**3 /  &
                 (gvk*(hfxv(j,i)+dsign(1.0D-10,hfxv(j,i))))
         if ( oblen >= za(j,i,kz) ) then
@@ -283,8 +288,11 @@ module mod_pbl_holtbl
           th10(j,i) = thvx(j,i,kz) + hfxv(j,i)/(vonkar*ustr(j,i)) * &
                       6.0D0*dlog(za(j,i,kz)*d_r10)
         end if
-        th10(j,i) = dmax1(th10(j,i),tg(j,i))
-!gtb    th10(j,i) = dmin1(th10(j,i),tg(j,i))  ! gtb add to minimize
+      end if
+      if ( ifaholtmax == 1 ) then
+        th10(j,i) = dmax1(th10(j,i),tg(j,i))  ! gtb add to maximize
+      else  if ( ifaholtmin  == 1 ) then
+        th10(j,i) = dmin1(th10(j,i),tg(j,i))  ! gtb add to minimize
       end if
       ! obklen compute obukhov length
       obklen(j,i) = -th10(j,i)*ustr(j,i)**3 / &

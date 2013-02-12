@@ -134,7 +134,8 @@ module mod_params
 
   namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl
 
-  namelist /holtslagparam/ ricr_ocn , ricr_lnd , zhnew_fac
+  namelist /holtslagparam/ ricr_ocn , ricr_lnd , zhnew_fac , &
+         ifaholtth10 , ifaholtmax , ifaholtmin
 
 #ifdef CLM
   namelist /clmparam/ dirclm , imask , clmfrq
@@ -435,6 +436,9 @@ module mod_params
   ricr_ocn = 0.25D0
   ricr_lnd = 0.25D0
   zhnew_fac = 0.25D0
+  ifaholtth10 = 1
+  ifaholtmax = 1
+  ifaholtmin = 0
 
 !c-----namelist slabocparam ;
 
@@ -934,6 +938,9 @@ module mod_params
     call bcast(ricr_ocn)
     call bcast(ricr_lnd)
     call bcast(zhnew_fac)
+    call bcast(ifaholtth10)
+    call bcast(ifaholtmax)
+    call bcast(ifaholtmin)
   end if
   if ( ibltyp == 2 .or. ibltyp == 99 ) then
     call bcast(iuwvadv)

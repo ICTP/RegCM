@@ -243,6 +243,9 @@ module mod_runparams
   real(rk8) :: ricr_ocn
   real(rk8) :: ricr_lnd
   real(rk8) :: zhnew_fac
+  integer(ik4) :: ifaholtth10
+  integer(ik4) :: ifaholtmax
+  integer(ik4) :: ifaholtmin
 
   ! Chemistry nameliste option
 
