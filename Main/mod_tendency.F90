@@ -692,7 +692,7 @@ module mod_tendency
       if ( ichdiag == 1 ) chiten0 = chiten
       if ( isladvec == 1 ) then
         call slhadv_x(chiten,chib)
-        call hdvg_x(chiten,chi)
+        call hdvg_x(chiten,chia)
       else
         call hadv(chiten,chi,kz)
       end if
