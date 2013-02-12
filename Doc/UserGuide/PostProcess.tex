@@ -220,6 +220,14 @@ files sharing the same RegCM domain (i.e. it creates just only once the
 \verb=proj= file). To use the \verb=grads= program, you need to have both
 this ancillary files together with the data netCDF file.
 
+To create the \verb=CTL= file for the history \verb=CLM= output file, you need
+to provide to the helper programs the path to both the history \verb=CLM= and
+the \verb=RegCM= \verb=DOMAIN= file, as in:
+
+\begin{Verbatim}
+$ GrADSNcPrepare clmoutput.clm2.h0.2000-07-30-00000.nc test_DOMAIN000.nc
+\end{Verbatim}
+
 A collection of sample \verb=grads= scripts commonly used at ICTP to plot
 simulation results can be found in the \verb=Tools/Scripts/GrADS=
 directory under \verb=$REGCM_ROOT=.
