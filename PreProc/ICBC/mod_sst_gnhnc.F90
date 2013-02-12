@@ -106,9 +106,9 @@ module mod_sst_gnhnc
   else if ( ssttyp == 'EIXXX' ) then
     write(inpfile,'(a)') trim(inpglob)//'/ERAIN_MEAN/SST/sst_xxxx_xxxx.nc'
     varname(2) = 'sst'
-  else if ( ssttyp == 'E5_A2' ) then
+  else if ( ssttyp(1:2) == 'E5' ) then
     write(inpfile,'(a,i4,a,i4,a)') &
-      trim(inpglob)//'/ECHAM5/SST/EH5_OM_A2_1_TSW_', &
+      trim(inpglob)//'/ECHAM5/SST/EH5_OM'//ssttyp(3:5)//'_1_TSW_', &
       y1,'010100-',y1+1,'010100.nc'
     varname(2) = 'tos'
   else
@@ -277,9 +277,9 @@ module mod_sst_gnhnc
       write(inpfile,'(a,i9,a,i9,a)') &
         trim(inpglob)//'/MPI-ESM-MR/SST/tos_6hrLev_MPI-ESM-MR_rcp85_r1i1p1_', &
         y1*100000+m1*1000+10,'000-',y2*100000+m2*1000+10,'000.nc'
-    else if ( ssttyp == 'E5_A2' ) then
+    else if ( ssttyp(1:2) == 'E5' ) then
       write(inpfile,'(a,i9,a,i9,a)') &
-        trim(inpglob)//'/ECHAM5/SST/EH5_OM_A2_1_TSW_', &
+        trim(inpglob)//'/ECHAM5/SST/EH5_OM'//ssttyp(3:5)//'_1_TSW_', &
         y1,'010100-',y1+1,'010100.nc'
     end if
     istatus = nf90_open(inpfile,nf90_nowrite,inet1)
