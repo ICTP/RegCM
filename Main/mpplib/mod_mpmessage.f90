@@ -41,13 +41,13 @@ module mod_mpmessage
     integer(ik4) :: k , nn , kk
     integer(ik4) , parameter :: npl = 7
     character(len=32) :: myf
-    write(stderr,'(2x,a,a,a)') '# ',nam,' #'
+    write(stdout,'(2x,a,a,a)') '# ',nam,' #'
     write(myf,'(a,i1,a)') '(2x,',npl,'g11.3)'
     if ( n > npl ) then
       nn = n/npl
       do k = 1 , nn
         kk = (k-1)*npl+1
-        write(stderr,myf) a(kk:kk+npl-1)
+        write(stdout,myf) a(kk:kk+npl-1)
       end do
       kk = n-(nn*npl)+1
     else
@@ -55,7 +55,7 @@ module mod_mpmessage
     end if
     if ( kk > 0 ) then
       write(myf,'(a,i1,a)') '(2x,',kk,'g11.3)'
-      write(stderr,myf) a(n-kk+1:)
+      write(stdout,myf) a(n-kk+1:)
     end if
   end subroutine vprntv
 !
@@ -67,15 +67,15 @@ module mod_mpmessage
     integer(ik4) :: k1 , k2 , nn , kk
     integer(ik4) , parameter :: npl = 7
     character(len=32) :: myf
-    write(stderr,'(2x,a,a,a)') '# ',nam,' #'
+    write(stdout,'(2x,a,a,a)') '# ',nam,' #'
     nn = n1/npl
     do k2 = 1 , n2
       write(myf,'(a,i1,a)') '(2x,',npl,'g11.3)'
-      write(stderr,*) '## Row ',k2
+      write(stdout,*) '## Row ',k2
       if ( n1 > npl ) then
         do k1 = 1 , nn
           kk = (k1-1)*npl+1
-          write(stderr,myf) a(kk:kk+npl-1,k2)
+          write(stdout,myf) a(kk:kk+npl-1,k2)
         end do
         kk = n1-(nn*npl)+1
       else
@@ -83,9 +83,9 @@ module mod_mpmessage
       end if
       if ( kk > 0 ) then
         write(myf,'(a,i1,a)') '(2x,',kk,'g11.3)'
-        write(stderr,myf) a(n1-kk+1:,k2)
+        write(stdout,myf) a(n1-kk+1:,k2)
       end if
-      write(stderr,*) '## '
+      write(stdout,*) '## '
     end do
   end subroutine vprntm
 !
