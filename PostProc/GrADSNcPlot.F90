@@ -30,17 +30,18 @@ program ncplot
   use mod_date
   use mod_message
   use mod_nchelper
+  use mod_stdio
   use netcdf
 
   implicit none
 
-  character(256) :: prgname , ncfile , tmpctl , tmpcoord
+  character(256) :: prgname , ncfile , clmfile , tmpctl , tmpcoord
   character(512) :: command , levels
   character(32) :: lvformat , varname
   character(64) :: vardesc , timeunit , timecal
   character(16) :: varunit
   character(16) :: dimdesc
-  integer(ik4) :: numarg , istatus , ncid
+  integer(ik4) :: numarg , istatus , ncid , ncid_clm
   type(rcm_time_and_date) :: idate1 , idate2
   type(rcm_time_interval) :: tdif
   integer(ik4) :: delta
@@ -66,7 +67,7 @@ program ncplot
   real(rk8) :: alat , alon , angle
   integer(ik4) :: i , j
   integer(ik4) :: year , month , day , hour
-  logical :: lvarsplit , lsigma , ldepth , lu , lua , luas
+  logical :: lvarsplit , lsigma , ldepth , lu , lua , luas , lclm
   logical :: is_model_output = .false.
 #if defined ( __PGI ) || defined ( IBM ) || defined ( __OPENCC__ )
   integer(ik4) , external :: iargc
@@ -79,6 +80,7 @@ program ncplot
   data lu /.false./
   data lua /.false./
   data luas /.false./
+  data lclm /.false./
   data kzdimid  /-1/
   data itdimid  /-1/
   data dptdimid /-1/
@@ -86,10 +88,11 @@ program ncplot
   call getarg(0, prgname)
   numarg = iargc( )
   if (numarg < 1) then
-    write (6,*) 'Not enough arguments.'
-    write (6,*) ' '
-    write (6,*) 'Usage : ', trim(prgname), ' Rcmfile.nc'
-    write (6,*) ' '
+    write (stderr,*) 'Not enough arguments.'
+    write (stderr,*) ' '
+    write (stderr,*) 'Usage : ', trim(prgname), ' Rcmfile.nc'
+    write (stderr,*) '        ', trim(prgname), ' clmoutput.nc DOMAIN.nc'
+    write (stderr,*) ' '
     stop
   end if
 
@@ -97,11 +100,26 @@ program ncplot
   tmpctl = trim(ncfile)//'.ctl'
   tmpcoord = trim(ncfile)//'.coord'
 
+  if ( numarg == 2 ) then
+    lclm = .true.
+    clmfile = ncfile
+    call getarg(2, ncfile)
+  end if
+
   istatus = nf90_open(ncfile, nf90_nowrite, ncid)
   call checkncerr(istatus,__FILE__,__LINE__,'Error Open file '//trim(ncfile))
 
-  istatus = nf90_inquire(ncid,ndims,nvars,natts,udimid)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error inquire file '//trim(ncfile))
+  if ( lclm ) then
+    istatus = nf90_open(clmfile, nf90_nowrite, ncid_clm)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error Open file '//trim(clmfile))
+    istatus = nf90_inquire(ncid_clm,ndims,nvars,natts,udimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire file '//trim(ncfile))
+  else
+    istatus = nf90_inquire(ncid,ndims,nvars,natts,udimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error inquire file '//trim(ncfile))
+  end if
 
   allocate(lvarflag(nvars), stat=istatus)
   call checkalloc(istatus,__FILE__,__LINE__,'lvarflag')
@@ -110,9 +128,17 @@ program ncplot
 
   open(11, file=tmpctl, form='formatted', status='replace')
   open(12, file=tmpcoord, form='unformatted', status='replace')
-  write(11, '(a)') 'dset '//trim(ncfile)
+  if ( lclm ) then
+    write(11, '(a)') 'dset '//trim(clmfile)
+  else
+    write(11, '(a)') 'dset '//trim(ncfile)
+  end if
   write(11, '(a)') 'dtype netcdf'
-  write(11, '(a)') 'undef 1e+20_FillValue'
+  if ( lclm ) then
+    write(11, '(a)') 'undef 1e+36_FillValue'
+  else
+    write(11, '(a)') 'undef 1e+20_FillValue'
+  end if
 
   istatus = nf90_get_att(ncid, nf90_global, 'title', charatt)
   call checkncerr(istatus,__FILE__,__LINE__,'Error reading title attribute')
@@ -123,20 +149,31 @@ program ncplot
     is_model_output = .true.
   end if
 
-  istatus = nf90_inq_dimid(ncid, "jx", jxdimid)
-  if (istatus /= nf90_noerr) then
-    istatus = nf90_inq_dimid(ncid, "x", jxdimid)
+  if ( lclm ) then
+    istatus = nf90_inq_dimid(ncid_clm, "lon", jxdimid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Dimension x missing')
+    istatus = nf90_inquire_dimension(ncid_clm, jxdimid, len=jx)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension x')
+    istatus = nf90_inq_dimid(ncid_clm, "lat", iydimid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Dimension y missing')
+    istatus = nf90_inquire_dimension(ncid_clm, iydimid, len=iy)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension y')
+  else
+    istatus = nf90_inq_dimid(ncid, "jx", jxdimid)
+    if (istatus /= nf90_noerr) then
+      istatus = nf90_inq_dimid(ncid, "x", jxdimid)
+    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Dimension x missing')
+    istatus = nf90_inquire_dimension(ncid, jxdimid, len=jx)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension x')
+    istatus = nf90_inq_dimid(ncid, "iy", iydimid)
+    if (istatus /= nf90_noerr) then
+      istatus = nf90_inq_dimid(ncid, "y", iydimid)
+    end if
+    call checkncerr(istatus,__FILE__,__LINE__,'Dimension y missing')
+    istatus = nf90_inquire_dimension(ncid, iydimid, len=iy)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension y')
   end if
-  call checkncerr(istatus,__FILE__,__LINE__,'Dimension x missing')
-  istatus = nf90_inquire_dimension(ncid, jxdimid, len=jx)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension x')
-  istatus = nf90_inq_dimid(ncid, "iy", iydimid)
-  if (istatus /= nf90_noerr) then
-    istatus = nf90_inq_dimid(ncid, "y", iydimid)
-  end if
-  call checkncerr(istatus,__FILE__,__LINE__,'Dimension y missing')
-  istatus = nf90_inquire_dimension(ncid, iydimid, len=iy)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension y')
   istatus = nf90_inq_dimid(ncid, "kz", kzdimid)
   if (istatus /= nf90_noerr) then
     lsigma = .false.
@@ -151,18 +188,34 @@ program ncplot
   else
     kz = 0
   end if
-  istatus = nf90_inq_dimid(ncid, "depth", dptdimid)
-  if (istatus == nf90_noerr) then
-    ldepth = .true.
-    istatus = nf90_inquire_dimension(ncid, dptdimid, len=nd)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension depth')
-  end if
-  istatus = nf90_inq_dimid(ncid, "time", itdimid)
-  if (istatus == nf90_noerr) then
-    istatus = nf90_inquire_dimension(ncid, itdimid, len=nt)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension time')
+  if ( lclm ) then
+    istatus = nf90_inq_dimid(ncid_clm, "time", itdimid)
+    if (istatus == nf90_noerr) then
+      istatus = nf90_inquire_dimension(ncid_clm, itdimid, len=nt)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension time')
+    else
+      nt = 0
+    end if
+    istatus = nf90_inq_dimid(ncid_clm, "levsoi", dptdimid)
+    if (istatus == nf90_noerr) then
+      ldepth = .true.
+      istatus = nf90_inquire_dimension(ncid_clm, dptdimid, len=nd)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension depth')
+    end if
   else
-    nt = 0
+    istatus = nf90_inq_dimid(ncid, "time", itdimid)
+    if (istatus == nf90_noerr) then
+      istatus = nf90_inquire_dimension(ncid, itdimid, len=nt)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension time')
+    else
+      nt = 0
+    end if
+    istatus = nf90_inq_dimid(ncid, "depth", dptdimid)
+    if (istatus == nf90_noerr) then
+      ldepth = .true.
+      istatus = nf90_inquire_dimension(ncid, dptdimid, len=nd)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension depth')
+    end if
   end if
 
 #ifdef NETCDF4_HDF5
@@ -323,7 +376,7 @@ program ncplot
       end do
     end do
   else
-    write (6,*) 'Unknown Projection : ', iproj
+    write (stderr,*) 'Unknown Projection : ', iproj
     stop
   end if
 
@@ -374,14 +427,25 @@ program ncplot
   if (nt > 1) then
     allocate(times(nt), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'times')
-    istatus = nf90_inq_varid(ncid, "time", ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, 'Time variable not present')
-    istatus = nf90_get_att(ncid, ivarid, 'units', timeunit)
-    call checkncerr(istatus,__FILE__,__LINE__, 'Time units not present')
-    istatus = nf90_get_att(ncid, ivarid, 'calendar', timecal)
-    call checkncerr(istatus,__FILE__,__LINE__, 'Time calendar not present')
-    istatus = nf90_get_var(ncid, ivarid, times)
-    call checkncerr(istatus,__FILE__,__LINE__, 'Read time variable')
+    if ( lclm ) then
+      istatus = nf90_inq_varid(ncid_clm, "time", ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Time variable not present')
+      istatus = nf90_get_att(ncid_clm, ivarid, 'units', timeunit)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Time units not present')
+      istatus = nf90_get_att(ncid_clm, ivarid, 'calendar', timecal)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Time calendar not present')
+      istatus = nf90_get_var(ncid_clm, ivarid, times)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Read time variable')
+    else
+      istatus = nf90_inq_varid(ncid, "time", ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Time variable not present')
+      istatus = nf90_get_att(ncid, ivarid, 'units', timeunit)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Time units not present')
+      istatus = nf90_get_att(ncid, ivarid, 'calendar', timecal)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Time calendar not present')
+      istatus = nf90_get_var(ncid, ivarid, times)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Read time variable')
+    end if
     idate1 = timeval2date(times(1),timeunit,timecal)
     idate2 = timeval2date(times(2),timeunit,timecal)
     tdif = idate2 - idate1
@@ -408,16 +472,27 @@ program ncplot
              cmon(month), year , delta, 'hr'
     end if
   else if (nt == 1) then
-    call split_idate(idate1,year,month,day,hour)
-    istatus = nf90_inq_varid(ncid, "time", ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, 'Time variable not present')
-    istatus = nf90_get_att(ncid, ivarid, 'units', timeunit)
-    call checkncerr(istatus,__FILE__,__LINE__, 'Time units not present')
-    istatus = nf90_get_att(ncid, ivarid, 'calendar', timecal)
-    call checkncerr(istatus,__FILE__,__LINE__, 'Time calendar not present')
-    istatus = nf90_get_var(ncid, ivarid, time1)
-    call checkncerr(istatus,__FILE__,__LINE__, 'Time variable read')
+    if ( lclm ) then
+      istatus = nf90_inq_varid(ncid_clm, "time", ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Time variable not present')
+      istatus = nf90_get_att(ncid_clm, ivarid, 'units', timeunit)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Time units not present')
+      istatus = nf90_get_att(ncid_clm, ivarid, 'calendar', timecal)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Time calendar not present')
+      istatus = nf90_get_var(ncid_clm, ivarid, time1)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Time variable read')
+    else
+      istatus = nf90_inq_varid(ncid, "time", ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Time variable not present')
+      istatus = nf90_get_att(ncid, ivarid, 'units', timeunit)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Time units not present')
+      istatus = nf90_get_att(ncid, ivarid, 'calendar', timecal)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Time calendar not present')
+      istatus = nf90_get_var(ncid, ivarid, time1)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Time variable read')
+    end if
     idate1 = timeval2date(time1,timeunit,timecal)
+    call split_idate(idate1,year,month,day,hour)
     delta = 6
     write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &
            'tdef ', nt, ' linear ', hour, 'Z', day,  &
@@ -429,8 +504,13 @@ program ncplot
   totvars = 0
   do i = 1 , nvars
     lvarflag(i) = .false.
-    istatus = nf90_inquire_variable(ncid,i,name=varname,xtype=xtype, &
-                                    ndims=idimid,dimids=dimids)
+    if ( lclm ) then
+      istatus = nf90_inquire_variable(ncid_clm,i,name=varname,xtype=xtype, &
+                                      ndims=idimid,dimids=dimids)
+    else
+      istatus = nf90_inquire_variable(ncid,i,name=varname,xtype=xtype, &
+                                      ndims=idimid,dimids=dimids)
+    end if
     if ( varname == 'u' ) lu = .true.
     if ( varname == 'ua' ) lua = .true.
     if ( varname == 'uas' ) luas = .true.
@@ -450,7 +530,11 @@ program ncplot
         else if (dimids(3) == itdimid .and. dimids(2) == iydimid) then
           totvars = totvars + 1
         else if (dimids(2) == iydimid .and. dimids(1) == jxdimid) then
-          istatus = nf90_inquire_dimension(ncid, dimids(3), len=isplit)
+          if ( lclm ) then
+            istatus = nf90_inquire_dimension(ncid_clm, dimids(3), len=isplit)
+          else
+            istatus = nf90_inquire_dimension(ncid, dimids(3), len=isplit)
+          end if
           call checkncerr(istatus,__FILE__,__LINE__, 'Inquire split dim error')
           totvars = totvars + isplit
         else
@@ -461,7 +545,11 @@ program ncplot
             (dimids(3) == kzdimid .or. dimids(3) == dptdimid)) then
           totvars = totvars + 1
         else if (dimids(4) == itdimid .and. dimids(2) == iydimid) then
-          istatus = nf90_inquire_dimension(ncid, dimids(3), len=isplit)
+          if ( lclm ) then
+            istatus = nf90_inquire_dimension(ncid_clm, dimids(3), len=isplit)
+          else
+            istatus = nf90_inquire_dimension(ncid, dimids(3), len=isplit)
+          end if
           call checkncerr(istatus,__FILE__,__LINE__, 'Inquire split dim error')
           totvars = totvars + isplit
         else
@@ -470,7 +558,11 @@ program ncplot
       else if (idimid == 5) then
         if (dimids(5) == itdimid .and. dimids(3) == kzdimid .and. &
             dimids(2) == iydimid) then
-          istatus = nf90_inquire_dimension(ncid, dimids(4), len=isplit)
+          if ( lclm ) then
+            istatus = nf90_inquire_dimension(ncid_clm, dimids(4), len=isplit)
+          else
+            istatus = nf90_inquire_dimension(ncid, dimids(4), len=isplit)
+          end if
           call checkncerr(istatus,__FILE__,__LINE__, 'Inquire split dim error')
           totvars = totvars + isplit
         else
@@ -494,8 +586,13 @@ program ncplot
   do i = 1 , nvars
     if (lvarflag(i) .eqv. .false.) cycle
     lvarsplit = .false.
-    istatus = nf90_inquire_variable(ncid,i,name=varname,ndims=idimid, &
-                                    dimids=dimids)
+    if ( lclm ) then
+      istatus = nf90_inquire_variable(ncid_clm,i,name=varname,ndims=idimid, &
+                                      dimids=dimids)
+    else
+      istatus = nf90_inquire_variable(ncid,i,name=varname,ndims=idimid, &
+                                      dimids=dimids)
+    end if
     call checkncerr(istatus,__FILE__,__LINE__, 'Inquire variable error')
     if (idimid == 2) then
       if (dimids(2) == iydimid .and. dimids(1) == jxdimid) then
@@ -536,17 +633,32 @@ program ncplot
     else
       cycle
     end if
-    istatus = nf90_get_att(ncid,i,'long_name', vardesc)
-    call checkncerr(istatus,__FILE__,__LINE__, 'Inquire variable long_name')
-    istatus = nf90_get_att(ncid,i,'units', varunit)
-    call checkncerr(istatus,__FILE__,__LINE__, 'Inquire variable units')
+    if ( lclm ) then
+      istatus = nf90_get_att(ncid_clm,i,'long_name', vardesc)
+      if ( istatus /= nf90_noerr ) then
+        vardesc = 'unknown'
+      end if
+      istatus = nf90_get_att(ncid_clm,i,'units', varunit)
+      if ( istatus /= nf90_noerr ) then
+        varunit = '1'
+      end if
+    else
+      istatus = nf90_get_att(ncid,i,'long_name', vardesc)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Inquire variable long_name')
+      istatus = nf90_get_att(ncid,i,'units', varunit)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Inquire variable units')
+    end if
 
     if (.not. lvarsplit) then
       write (11, '(a,a,a,a,a,a,a,a,a)') trim(varname),'=>',trim(varname), &
                               trim(dimdesc), ' ', trim(vardesc) , ' (',   &
                               trim(varunit), ')'
     else if (idimid <= 4 .and. lvarsplit) then
-      istatus = nf90_inquire_dimension(ncid, dimids(3), len=isplit)
+      if ( lclm ) then
+        istatus = nf90_inquire_dimension(ncid_clm, dimids(3), len=isplit)
+      else
+        istatus = nf90_inquire_dimension(ncid, dimids(3), len=isplit)
+      end if
       call checkncerr(istatus,__FILE__,__LINE__, 'Inquire split dimension')
       if (idimid == 3) then
         do j = 1 , isplit
@@ -562,7 +674,11 @@ program ncplot
         end do
       end if
     else if (idimid == 5 .and. lvarsplit) then
-      istatus = nf90_inquire_dimension(ncid, dimids(4), len=isplit)
+      if ( lclm ) then
+        istatus = nf90_inquire_dimension(ncid_clm, dimids(4), len=isplit)
+      else
+        istatus = nf90_inquire_dimension(ncid, dimids(4), len=isplit)
+      end if
       call checkncerr(istatus,__FILE__,__LINE__, 'Inquire split dimension')
       do j = 1 , isplit
         if (ldepth) then
@@ -588,6 +704,10 @@ program ncplot
 
   istatus = nf90_close(ncid)
   call checkncerr(istatus,__FILE__,__LINE__, 'Close file error')
+  if ( lclm ) then
+    istatus = nf90_close(ncid_clm)
+    call checkncerr(istatus,__FILE__,__LINE__, 'Close file error')
+  end if
 
   command = 'grads -lc '//char(39)//'open '//trim(tmpctl)//char(39)
 
