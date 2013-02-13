@@ -59,6 +59,18 @@ module mod_atm_interface
     real(rk8) , pointer , dimension(:,:,:) :: tke
   end type atmstate
 
+  type tendiag
+    real(rk8) , pointer , dimension(:,:,:) :: adh
+    real(rk8) , pointer , dimension(:,:,:) :: adv
+    real(rk8) , pointer , dimension(:,:,:) :: tbl
+    real(rk8) , pointer , dimension(:,:,:) :: dif
+    real(rk8) , pointer , dimension(:,:,:) :: bdy
+    real(rk8) , pointer , dimension(:,:,:) :: con
+    real(rk8) , pointer , dimension(:,:,:) :: adi
+    real(rk8) , pointer , dimension(:,:,:) :: rad
+    real(rk8) , pointer , dimension(:,:,:) :: lsc
+  end type tendiag
+  
   type surfstate
     real(rk8) , pointer , dimension(:,:) :: psa
     real(rk8) , pointer , dimension(:,:) :: psb
@@ -123,12 +135,13 @@ module mod_atm_interface
     integer(ik4) , pointer , dimension(:,:) :: ibnd
   end type bound_area
 
-  public :: atmstate , domain , surfstate , slice
+  public :: atmstate , domain , surfstate , slice, tendiag
   public :: diffx , v2dbound , v3dbound , bound_area , model_area
 
   type(domain) , public :: mddom
   type(atmstate) , public :: atm1 , atm2
   type(atmstate) , public :: atmx , atmc , aten , holtten , uwten
+  type(tendiag), public :: tdiag
   type(surfstate) , public :: sfs
   type(slice) , public :: atms
   type(diffx) , public :: adf
@@ -152,6 +165,7 @@ module mod_atm_interface
   integer(ik4) , public , parameter :: one_exchange_point = 1
   integer(ik4) , public , parameter :: two_exchange_point = 2
   integer(ik4) , public , parameter :: four_exchange_point = 4
+
 
 #ifdef DEBUG
   type(grid_nc_var4d) , public :: nc_4d
@@ -536,6 +550,53 @@ module mod_atm_interface
         end if
       end if
     end subroutine allocate_atmstate
+
+    subroutine allocate_tendiag(dia,lpar,exchange_points)
+ implicit none
+   logical , intent(in) :: lpar
+        integer(ik4) , intent(in) :: exchange_points
+      type(tendiag) , intent(out) :: dia
+      integer(ik4) :: ib , it , jr , jl
+
+  if ( exchange_points == zero_exchange_point ) then
+        ib = 0
+        it = 0
+        jl = 0
+        jr = 0
+      else if ( exchange_points == one_exchange_point ) then
+        ib = ma%ibb1
+        it = ma%ibt1
+        jl = ma%jbl1
+        jr = ma%jbr1
+      else if ( exchange_points == two_exchange_point ) then
+        ib = ma%ibb2
+        it = ma%ibt2
+        jl = ma%jbl2
+        jr = ma%jbr2
+      else if ( exchange_points == four_exchange_point ) then
+        ib = ma%ibb4
+        it = ma%ibt4
+        jl = ma%jbl4
+        jr = ma%jbr4
+      else
+        call fatal(__FILE__,__LINE__,'Uncoded number of exchange points')
+      end if
+
+      if (lpar) then
+        call getmem3d(dia%adh ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:adh')
+        call getmem3d(dia%adv ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:adv')
+        call getmem3d(dia%tbl ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:tbl')
+        call getmem3d(dia%con ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:con')
+        call getmem3d(dia%bdy ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:bdy')
+        call getmem3d(dia%adi ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:adi')
+        call getmem3d(dia%dif ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:dif')
+        call getmem3d(dia%rad ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:rad') 
+        call getmem3d(dia%lsc ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:lsc') 
+      else
+        print*, 'lpar has to be true'  
+         stop
+      end if     
+    end subroutine allocate_tendiag
 !
     subroutine allocate_domain(dom,lpar)
       implicit none
@@ -684,6 +745,10 @@ module mod_atm_interface
       call allocate_slice(atms,ibltyp)
 
       call allocate_diffx(adf)
+
+      if (idiag > 0 )  call allocate_tendiag(tdiag,.true.,zero_exchange_point )
+! FAB: 
+! complete for diag on water quantitiies idiag = 2, 3 etc
 
       call getmem2d(ts0,jce1,jce2,ice1,ice2,'atm_interface:ts0')
       call getmem2d(ts1,jce1,jce2,ice1,ice2,'atm_interface:ts1')

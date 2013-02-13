@@ -52,8 +52,9 @@ module mod_ncout
   integer(ik4) , parameter :: nbase = 5
 
   integer(ik4) , parameter :: natm2dvars = 3 + nbase
-  integer(ik4) , parameter :: natm3dvars = 9
-  integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
+ ! integer(ik4) , parameter :: natm3dvars = 9
+ integer(ik4) , parameter :: natm3dvars = 18
+ integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nsrf2dvars = 17 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 6
@@ -167,6 +168,16 @@ module mod_ncout
   integer(ik4) , parameter :: atm_tke   = 7
   integer(ik4) , parameter :: atm_kth   = 8
   integer(ik4) , parameter :: atm_kzm   = 9
+
+  integer(ik4) , parameter :: atm_tten_adh  = 10
+  integer(ik4) , parameter :: atm_tten_adv  = 11
+  integer(ik4) , parameter :: atm_tten_tbl  = 12
+  integer(ik4) , parameter :: atm_tten_dif  = 13
+  integer(ik4) , parameter :: atm_tten_bdy  = 14
+  integer(ik4) , parameter :: atm_tten_con  = 15
+  integer(ik4) , parameter :: atm_tten_adi  = 16
+  integer(ik4) , parameter :: atm_tten_rad  = 17
+  integer(ik4) , parameter :: atm_tten_lsc  = 18
 
   integer(ik4) , parameter :: srf_xlon   = 1
   integer(ik4) , parameter :: srf_xlat   = 2
@@ -511,6 +522,68 @@ module mod_ncout
           enable_atm3d_vars(atm_tke:atm_kzm) = .false.
         end if
 
+       if ( idiag > 0) then
+! FAB : flag properly
+          if ( enable_atm3d_vars(atm_tten_adh) ) then
+          call setup_var(v3dvar_atm(atm_tten_adh),vsize,'ttenadh','K.s-1', &
+            'Temp. Tend. Hor. Adv.', &
+            'Temp. Tend. Hor. Adv.',.true.)
+          atm_tten_adh_out => v3dvar_atm(atm_tten_adh)%rval
+          end if
+          if ( enable_atm3d_vars(atm_tten_adv) ) then
+          call setup_var(v3dvar_atm(atm_tten_adv),vsize,'ttenadv','K.s-1', &
+            'Temp. Tend. Ver. Adv.', &
+            'Temp. Tend. Ver. Adv.',.true.)
+          atm_tten_adv_out => v3dvar_atm(atm_tten_adv)%rval
+          end if
+          if ( enable_atm3d_vars(atm_tten_tbl) ) then
+          call setup_var(v3dvar_atm(atm_tten_tbl),vsize,'ttentbl','K.s-1', &
+            'Temp. Tend. tbl.', &
+            'Temp. Tend. tbl.',.true.)
+          atm_tten_tbl_out => v3dvar_atm(atm_tten_tbl)%rval
+          end if
+           if ( enable_atm3d_vars(atm_tten_dif) ) then
+          call setup_var(v3dvar_atm(atm_tten_dif),vsize,'ttendif','K.s-1', &
+            'Temp. Tend. dif.', &
+            'Temp. Tend. dif.',.true.)
+          atm_tten_dif_out => v3dvar_atm(atm_tten_dif)%rval
+          end if
+          if ( enable_atm3d_vars(atm_tten_bdy) ) then
+          call setup_var(v3dvar_atm(atm_tten_bdy),vsize,'ttenbdy','K.s-1', &
+            'Temp. Tend. bdy.', &
+            'Temp. Tend. bdy.',.true.)
+          atm_tten_bdy_out => v3dvar_atm(atm_tten_bdy)%rval
+          end if
+           if ( enable_atm3d_vars(atm_tten_con) ) then
+          call setup_var(v3dvar_atm(atm_tten_con),vsize,'ttencon','K.s-1', &
+            'Temp. Tend. con.', &
+            'Temp. Tend. con.',.true.)
+          atm_tten_con_out => v3dvar_atm(atm_tten_con)%rval
+          end if
+           if ( enable_atm3d_vars(atm_tten_adi) ) then
+          call setup_var(v3dvar_atm(atm_tten_adi),vsize,'ttenadi','K.s-1', &
+            'Temp. Tend. adi.', &
+            'Temp. Tend. adi.',.true.)
+          atm_tten_adi_out => v3dvar_atm(atm_tten_adi)%rval
+          end if
+           if ( enable_atm3d_vars(atm_tten_rad) ) then
+          call setup_var(v3dvar_atm(atm_tten_rad),vsize,'ttenrad','K.s-1', &
+            'Temp. Tend. rad.', &
+            'Temp_Tend_rad_sw+lw',.true.)
+          atm_tten_rad_out => v3dvar_atm(atm_tten_rad)%rval
+          end if
+           if ( enable_atm3d_vars(atm_tten_lsc) ) then
+          call setup_var(v3dvar_atm(atm_tten_lsc),vsize,'ttenlsc','K.s-1', &
+            'Temp. Tend. lsc.', &
+            'Temp_Tend_large_scale_prec_evap+cond',.true.)
+          atm_tten_lsc_out => v3dvar_atm(atm_tten_lsc)%rval
+          end if
+        
+       else
+            enable_atm3d_vars(atm_tten_adh:atm_tten_lsc) = .false.
+
+      end if
+       
         enable_atm_vars(1:natm2dvars) = enable_atm2d_vars
         enable_atm_vars(natm2dvars+1:natmvars) = enable_atm3d_vars
         outstream(atm_stream)%nvar = countvars(enable_atm_vars,natmvars)

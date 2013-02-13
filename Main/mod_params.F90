@@ -99,7 +99,7 @@ module mod_params
     enable_srf_vars , enable_rad_vars , enable_sub_vars ,              &
     enable_sts_vars , enable_lak_vars , enable_opt_vars ,              &
     enable_che_vars , dirout , lsync , do_parallel_netcdf_in ,         &
-    do_parallel_netcdf_out
+    do_parallel_netcdf_out, idiag
 
   namelist /physicsparam/ ibltyp , iboudy , isladvec , icup , igcc , &
     ipgf , iemiss , lakemod , ipptls , iocnflx , iocncpl ,           &
@@ -297,6 +297,7 @@ module mod_params
   lsync = .false.
   do_parallel_netcdf_in = .false.
   do_parallel_netcdf_out = .false.
+  idiag = 0
 !
 !----------------------------------------------------------------------
 !-----namelist physicsparam:
@@ -732,6 +733,8 @@ module mod_params
   call bcast(chemfrq)
   call bcast(lsync)
   call bcast(do_parallel_netcdf_in)
+  call bcast(idiag)
+
 #ifdef NETCDF4_HDF5
   call bcast(do_parallel_netcdf_out)
 #else
