@@ -1711,7 +1711,7 @@ module mod_params
   end if
 
   if ( enable_newmicro ) then
-    call init_cloud_s1(atms,aten,heatrt,sfs,q_detr)
+    call init_cloud_s1(atms,aten,heatrt,sfs,q_detr,pptnc)
   end if
 
   call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,remdrd,   &
