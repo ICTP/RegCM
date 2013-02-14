@@ -74,7 +74,6 @@ module mod_che_common
 !   the pointer targets are defined in mod_che_interface
 !*****************************************************************************
 
-  real(rk8) :: cfdout
   real(rk8) , pointer , dimension(:,:,:,:) ::chib3d
   real(rk8) , pointer , dimension(:,:,:,:) :: cqxb3d
   real(rk8) , pointer , dimension(:,:,:) :: ctb3d , cubx3d , cvbx3d , &

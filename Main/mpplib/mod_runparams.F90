@@ -72,6 +72,7 @@ module mod_runparams
   real(rk8) :: rtsrf , rtrad , rnsrf_for_srffrq , rnsrf_for_day , &
                rnsrf_for_lakfrq , rnsrf_for_subfrq , rnrad_for_chem , &
                rnrad_for_radfrq
+  real(rk8) :: afdout , cfdout
   ! Step of surface scheme in one atmosphere I/O interval
   real(rk8) :: rsrf_in_atm
   ! One over seconds in one surface I/O interval

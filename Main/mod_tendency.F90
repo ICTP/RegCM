@@ -541,7 +541,7 @@ module mod_tendency
     !  
     call hadv(cross,aten%t,atmx%t,kz)
     if ( idiag > 0 ) then
-      tdiag%adh = tdiag%adh + (aten%t - ten0) * cfdout
+      tdiag%adh = tdiag%adh + (aten%t - ten0) * afdout
       ten0 = aten%t
     end if
 #ifdef DEBUG
@@ -560,7 +560,7 @@ module mod_tendency
       end if
     end if
     if ( idiag > 0 ) then
-      tdiag%adv = tdiag%adv + (aten%t - ten0) * cfdout
+      tdiag%adv = tdiag%adv + (aten%t - ten0) * afdout
       ten0 = aten%t
     end if
 #ifdef DEBUG
@@ -580,7 +580,7 @@ module mod_tendency
       end do
     end do
     if ( idiag > 0 ) then
-      tdiag%adi = tdiag%adi + (aten%t - ten0) * cfdout
+      tdiag%adi = tdiag%adi + (aten%t - ten0) * afdout
       ten0 = aten%t
     end if
 #ifdef DEBUG
@@ -598,7 +598,7 @@ module mod_tendency
     if ( idiag > 0 ) then
       ! save the h diff diag here
       tdiag%dif(jci1:jci2,ici1:ici2,:) = tdiag%dif(jci1:jci2,ici1:ici2,:) + &
-        (adf%difft - ten0(jci1:jci2,ici1:ici2,:)) * cfdout
+        (adf%difft - ten0(jci1:jci2,ici1:ici2,:)) * afdout
     end if
     !
     ! compute the moisture tendencies for convection
@@ -657,7 +657,7 @@ module mod_tendency
     end if
  
     if ( idiag > 0 ) then
-      tdiag%con = tdiag%con + (aten%t - ten0) * cfdout
+      tdiag%con = tdiag%con + (aten%t - ten0) * afdout
       ten0 = aten%t
     end if
 #ifdef DEBUG
@@ -708,7 +708,7 @@ module mod_tendency
 
     if ( idiag > 0 ) then
       ! save tten from pcp (evaporation)
-      tdiag%lsc = tdiag%lsc + (aten%t - ten0) * cfdout
+      tdiag%lsc = tdiag%lsc + (aten%t - ten0) * afdout
       ten0 = aten%t
     end if
 #ifdef DEBUG
@@ -843,7 +843,7 @@ module mod_tendency
     end if
     if ( idiag > 0 ) then
       tdiag%tbl(jci1:jci2,ici1:ici2,:) = tdiag%tbl(jci1:jci2,ici1:ici2,:) + &
-                     (adf%difft - ten0(jci1:jci2,ici1:ici2,:)) * cfdout    
+                     (adf%difft - ten0(jci1:jci2,ici1:ici2,:)) * afdout    
     end if
 #ifdef DEBUG
     call check_temperature_tendency('PBLL')
@@ -862,7 +862,7 @@ module mod_tendency
       end do
     end do
     if ( idiag > 0 ) then
-      tdiag%rad = tdiag%rad + (aten%t - ten0) * cfdout
+      tdiag%rad = tdiag%rad + (aten%t - ten0) * afdout
       ten0 = aten%t
     end if
 #ifdef DEBUG
@@ -878,7 +878,7 @@ module mod_tendency
       if ( idiag > 0 ) then    
         ! rq : temp condensation tend is added the evap temp tend
         !      calculated in pcp
-        tdiag%bdy = tdiag%bdy + (aten%t - ten0) * cfdout
+        tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
         ten0 = aten%t
       end if
     end if
@@ -920,7 +920,7 @@ module mod_tendency
       if ( idiag > 0 ) then    
         ! rq : temp condensation tend is added the evap temp tend
         ! calculated in pcp
-        tdiag%lsc = tdiag%lsc + (aten%t - ten0) * cfdout
+        tdiag%lsc = tdiag%lsc + (aten%t - ten0) * afdout
         ten0 = aten%t
       end if
     end if
@@ -942,8 +942,8 @@ module mod_tendency
       if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten - chiten0) * cfdout
     end if  
     if ( idiag > 0 ) then    
-      tdiag%bdy = tdiag%bdy + (aten%t - ten0) * cfdout
-       ten0 = aten%t
+      tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
+      ten0 = aten%t
     end if
 #ifdef DEBUG
     call check_temperature_tendency('BDYC')

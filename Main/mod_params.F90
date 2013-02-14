@@ -1123,6 +1123,9 @@ module mod_params
   nslabfrq = idnint(dtbdys)
   nbdyfrq = idnint(dtbdys)
 
+  cfdout =  dtsec/(secph*chemfrq)
+  afdout =  dtsec/(secph*atmfrq)
+
   ntsrf = idnint(dtsrf/dtsec)
   rtsrf = d_one/dble(ntsrf)
   ntrad = idnint((dtrad*secpm)/dtsec)
