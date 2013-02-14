@@ -135,13 +135,13 @@ module mod_atm_interface
     integer(ik4) , pointer , dimension(:,:) :: ibnd
   end type bound_area
 
-  public :: atmstate , domain , surfstate , slice, tendiag
+  public :: atmstate , domain , surfstate , slice , tendiag
   public :: diffx , v2dbound , v3dbound , bound_area , model_area
 
   type(domain) , public :: mddom
   type(atmstate) , public :: atm1 , atm2
   type(atmstate) , public :: atmx , atmc , aten , holtten , uwten
-  type(tendiag), public :: tdiag
+  type(tendiag) , public :: tdiag
   type(surfstate) , public :: sfs
   type(slice) , public :: atms
   type(diffx) , public :: adf
@@ -551,50 +551,19 @@ module mod_atm_interface
       end if
     end subroutine allocate_atmstate
 
-    subroutine allocate_tendiag(dia,lpar,exchange_points)
- implicit none
-   logical , intent(in) :: lpar
-        integer(ik4) , intent(in) :: exchange_points
+    subroutine allocate_tendiag(dia)
+      implicit none
       type(tendiag) , intent(out) :: dia
-      integer(ik4) :: ib , it , jr , jl
-
-  if ( exchange_points == zero_exchange_point ) then
-        ib = 0
-        it = 0
-        jl = 0
-        jr = 0
-      else if ( exchange_points == one_exchange_point ) then
-        ib = ma%ibb1
-        it = ma%ibt1
-        jl = ma%jbl1
-        jr = ma%jbr1
-      else if ( exchange_points == two_exchange_point ) then
-        ib = ma%ibb2
-        it = ma%ibt2
-        jl = ma%jbl2
-        jr = ma%jbr2
-      else if ( exchange_points == four_exchange_point ) then
-        ib = ma%ibb4
-        it = ma%ibt4
-        jl = ma%jbl4
-        jr = ma%jbr4
-      else
-        call fatal(__FILE__,__LINE__,'Uncoded number of exchange points')
-      end if
-
       if (lpar) then
-        call getmem3d(dia%adh ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:adh')
-        call getmem3d(dia%adv ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:adv')
-        call getmem3d(dia%tbl ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:tbl')
-        call getmem3d(dia%con ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:con')
-        call getmem3d(dia%bdy ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:bdy')
-        call getmem3d(dia%adi ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:adi')
-        call getmem3d(dia%dif ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:dif')
-        call getmem3d(dia%rad ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:rad') 
-        call getmem3d(dia%lsc ,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'tendiag:lsc') 
-      else
-        print*, 'lpar has to be true'  
-         stop
+        call getmem3d(dia%adh,jce1,jce2,ice1,ice2,1,kz,'tendiag:adh')
+        call getmem3d(dia%adv,jce1,jce2,ice1,ice2,1,kz,'tendiag:adv')
+        call getmem3d(dia%tbl,jce1,jce2,ice1,ice2,1,kz,'tendiag:tbl')
+        call getmem3d(dia%con,jce1,jce2,ice1,ice2,1,kz,'tendiag:con')
+        call getmem3d(dia%bdy,jce1,jce2,ice1,ice2,1,kz,'tendiag:bdy')
+        call getmem3d(dia%adi,jce1,jce2,ice1,ice2,1,kz,'tendiag:adi')
+        call getmem3d(dia%dif,jce1,jce2,ice1,ice2,1,kz,'tendiag:dif')
+        call getmem3d(dia%rad,jce1,jce2,ice1,ice2,1,kz,'tendiag:rad') 
+        call getmem3d(dia%lsc,jce1,jce2,ice1,ice2,1,kz,'tendiag:lsc') 
       end if     
     end subroutine allocate_tendiag
 !
@@ -746,9 +715,11 @@ module mod_atm_interface
 
       call allocate_diffx(adf)
 
-      if (idiag > 0 )  call allocate_tendiag(tdiag,.true.,zero_exchange_point )
-! FAB: 
-! complete for diag on water quantitiies idiag = 2, 3 etc
+      ! FAB: 
+      !    complete for diag on water quantitiies idiag = 2, 3 etc
+      if ( idiag > 0 ) then
+        call allocate_tendiag(tdiag)
+      end if
 
       call getmem2d(ts0,jce1,jce2,ice1,ice2,'atm_interface:ts0')
       call getmem2d(ts1,jce1,jce2,ice1,ice2,'atm_interface:ts1')

@@ -45,10 +45,6 @@ module mod_outvars
   real(rk8) , dimension(:,:,:) , pointer :: atm_tke_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_kth_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_kzm_out => null()
-  real(rk8) , dimension(:,:) , pointer :: atm_tgb_out => null()
-  real(rk8) , dimension(:,:) , pointer :: atm_tpr_out => null()
-  real(rk8) , dimension(:,:) , pointer :: atm_tsw_out => null()
-
   real(rk8) , dimension(:,:,:) , pointer :: atm_tten_adh_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_tten_adv_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_tten_tbl_out => null()
@@ -58,6 +54,10 @@ module mod_outvars
   real(rk8) , dimension(:,:,:) , pointer :: atm_tten_adi_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_tten_rad_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_tten_lsc_out => null()
+  real(rk8) , dimension(:,:) , pointer :: atm_tgb_out => null()
+  real(rk8) , dimension(:,:) , pointer :: atm_tpr_out => null()
+  real(rk8) , dimension(:,:) , pointer :: atm_tsw_out => null()
+
 
   real(rk8) , dimension(:,:) , pointer :: srf_uvdrag_out => null()
   real(rk8) , dimension(:,:) , pointer :: srf_tg_out => null()

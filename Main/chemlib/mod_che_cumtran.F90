@@ -40,7 +40,7 @@ module mod_che_cumtran
     if ( ichdiag == 1 ) then
      do j = jci1 , jci2
         do i = ici1 , ici2 
-         chiten0(j,i,:,:)  = chib(j,i,:,:)
+         chiten0(j,i,:,:) = chib(j,i,:,:)
         end do
       end do
     end if 

@@ -295,7 +295,7 @@ module mod_runparams
   real(rk8) :: temp_tend_maxval
   real(rk8) :: wind_tend_maxval
 
- ! options for writing tendency diagnostic
+  ! option for writing tendency diagnostic
   integer(ik4) :: idiag
 
   data doing_restart /.false./

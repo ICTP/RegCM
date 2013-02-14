@@ -53,7 +53,7 @@ module mod_tendency
   public :: allocate_mod_tend , tend
 
   real(rk8) , pointer , dimension(:,:,:) :: divl
-  real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi, ten0
+  real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi , ten0
   real(rk8) , pointer , dimension(:,:,:) :: ps4
   real(rk8) , pointer , dimension(:,:,:) :: ps_4 
   real(rk8) , pointer , dimension(:,:) :: psc , pten
@@ -80,8 +80,8 @@ module mod_tendency
     call getmem2d(psc,jce1,jce2,ice1,ice2,'tendency:psc')
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
     call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
-    if ( idiag > 0) then 
-    call getmem3d(ten0,jce1,jce2,ice1,ice2,1,kz,'tendency:ten0')
+    if ( idiag > 0 ) then 
+      call getmem3d(ten0,jce1,jce2,ice1,ice2,1,kz,'tendency:ten0')
     end if
 #ifdef DEBUG
     call getmem3d(last_tten,jce1,jce2,ice1,ice2,1,kz,'tendency:last_tten')
@@ -528,9 +528,9 @@ module mod_tendency
     end if
     if ( ichem == 1 ) then 
       chiten(:,:,:,:)  = d_zero
-      chiten0(:,:,:,:) = d_zero
+      if ( ichdiag == 1 ) chiten0(:,:,:,:) = d_zero
     end if 
-    if (idiag > 0) ten0(:,:,:) =  d_zero
+    if ( idiag > 0 ) ten0(:,:,:) = d_zero
     !
     ! Initialize diffusion terms
     !
@@ -540,8 +540,8 @@ module mod_tendency
     ! compute the horizontal advection term:
     !  
     call hadv(cross,aten%t,atmx%t,kz)
-    if (idiag >0 ) then
-      tdiag%adh   =tdiag%adh  + (aten%t - ten0) * cfdout
+    if ( idiag > 0 ) then
+      tdiag%adh = tdiag%adh + (aten%t - ten0) * cfdout
       ten0 = aten%t
     end if
 #ifdef DEBUG
@@ -559,8 +559,8 @@ module mod_tendency
         call vadv(cross,aten%t,atm1%t,kz,1)
       end if
     end if
-    if (idiag >0 ) then
-      tdiag%adv   =tdiag%adv  + (aten%t - ten0) * cfdout
+    if ( idiag > 0 ) then
+      tdiag%adv = tdiag%adv + (aten%t - ten0) * cfdout
       ten0 = aten%t
     end if
 #ifdef DEBUG
@@ -579,8 +579,8 @@ module mod_tendency
         end do
       end do
     end do
-    if (idiag >0 ) then
-      tdiag%adi   =tdiag%adi  + (aten%t - ten0) * cfdout
+    if ( idiag > 0 ) then
+      tdiag%adi = tdiag%adi + (aten%t - ten0) * cfdout
       ten0 = aten%t
     end if
 #ifdef DEBUG
@@ -593,12 +593,12 @@ module mod_tendency
     !
     ! compute the diffusion term for t and store in difft:
     !
-    if (idiag >0 ) ten0(jci1:jci2,ici1:ici2,:)  = adf%difft
+    if ( idiag > 0 ) ten0(jci1:jci2,ici1:ici2,:) = adf%difft
     call diffu_x(adf%difft,atms%tb3d,sfs%psb,xkc,kz)
-    if (idiag >0 ) then
-    ! save the h diff diag here
-      tdiag%dif(jci1:jci2,ici1:ici2,:)   =tdiag%dif(jci1:jci2,ici1:ici2,:) &
-                                         + (adf%difft - ten0(jci1:jci2,ici1:ici2,:)) * cfdout    
+    if ( idiag > 0 ) then
+      ! save the h diff diag here
+      tdiag%dif(jci1:jci2,ici1:ici2,:) = tdiag%dif(jci1:jci2,ici1:ici2,:) + &
+        (adf%difft - ten0(jci1:jci2,ici1:ici2,:)) * cfdout
     end if
     !
     ! compute the moisture tendencies for convection
@@ -656,8 +656,8 @@ module mod_tendency
       call tiedtkedrv(ktau)
     end if
  
-    if (idiag >0 ) then
-      tdiag%con   =tdiag%con  + (aten%t - ten0) * cfdout
+    if ( idiag > 0 ) then
+      tdiag%con = tdiag%con + (aten%t - ten0) * cfdout
       ten0 = aten%t
     end if
 #ifdef DEBUG
@@ -706,12 +706,11 @@ module mod_tendency
       call diffu_x(adf%diffqx,atms%qxb3d,sfs%psb,xkc,kz)
     end if
 
-    if (idiag >0 ) then
+    if ( idiag > 0 ) then
       ! save tten from pcp (evaporation)
-      tdiag%lsc   =tdiag%lsc  + (aten%t - ten0) * cfdout
+      tdiag%lsc = tdiag%lsc + (aten%t - ten0) * cfdout
       ten0 = aten%t
     end if
-
 #ifdef DEBUG
     call check_temperature_tendency('PREC')
 #endif
@@ -821,7 +820,8 @@ module mod_tendency
     ! Call medium resolution PBL
     !
     if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
-    if (idiag > 0) ten0(jci1:jci2,ici1:ici2,:) = adf%difft  ! care : pbl update the difft table at this level 
+    ! care : pbl update the difft table at this level 
+    if ( idiag > 0 ) ten0(jci1:jci2,ici1:ici2,:) = adf%difft
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       ! Call the Grenier and Bretherton (2001) / Bretherton (2004) TCM
       call uwtcm
@@ -841,8 +841,8 @@ module mod_tendency
     if ( ichem == 1 .and. ichdiag == 1 ) then
       ctbldiag = ctbldiag + (chiten - chiten0) * cfdout 
     end if
-    if (idiag >0 ) then
-      tdiag%tbl(jci1:jci2,ici1:ici2,:) = tdiag%tbl(jci1:jci2,ici1:ici2,:)  + &
+    if ( idiag > 0 ) then
+      tdiag%tbl(jci1:jci2,ici1:ici2,:) = tdiag%tbl(jci1:jci2,ici1:ici2,:) + &
                      (adf%difft - ten0(jci1:jci2,ici1:ici2,:)) * cfdout    
     end if
 #ifdef DEBUG
@@ -861,8 +861,8 @@ module mod_tendency
         end do
       end do
     end do
-    if (idiag >0 ) then
-      tdiag%rad   =tdiag%rad  + (aten%t - ten0) * cfdout
+    if ( idiag > 0 ) then
+      tdiag%rad = tdiag%rad + (aten%t - ten0) * cfdout
       ten0 = aten%t
     end if
 #ifdef DEBUG
@@ -875,11 +875,12 @@ module mod_tendency
     if ( iboudy == 4 ) then
       call sponge(kz,ba_cr,xtb,aten%t)
       call sponge(kz,iqv,ba_cr,xqb,aten%qx)
-    if (idiag >0 ) then    
-      ! rq : temp condensation tend is added the evap temp tend calculated in pcp
-      tdiag%bdy   =tdiag%bdy  + (aten%t - ten0) * cfdout
-      ten0 = aten%t
-    end if
+      if ( idiag > 0 ) then    
+        ! rq : temp condensation tend is added the evap temp tend
+        !      calculated in pcp
+        tdiag%bdy = tdiag%bdy + (aten%t - ten0) * cfdout
+        ten0 = aten%t
+      end if
     end if
 
     !
@@ -899,14 +900,13 @@ module mod_tendency
         end do
       end do
     end do
-    ! Rq: the temp tendency diagnostics have been already saved for tbl and hor. diff but :  
-    if(idiag > 0) ten0 = aten%t ! important since aten%t have been updated 
-! 
+    ! Rq: the temp tendency diagnostics have been already
+    !     saved for tbl and hor. diff but :  
+    if ( idiag > 0 ) ten0 = aten%t ! important since aten%t have been updated 
     !
     ! compute the condensation and precipitation terms for explicit
     ! moisture scheme:
     !
-
     if ( ipptls == 1 ) then
       do k = 1 , kz
         do i = ici1 , ici2
@@ -917,11 +917,12 @@ module mod_tendency
       end do
 
       call condtq(psc)
-      if (idiag >0 ) then    
-      ! rq : temp condensation tend is added the evap temp tend calculated in pcp
-      tdiag%lsc   =tdiag%lsc  + (aten%t - ten0) * cfdout
-      ten0 = aten%t
-    end if
+      if ( idiag > 0 ) then    
+        ! rq : temp condensation tend is added the evap temp tend
+        ! calculated in pcp
+        tdiag%lsc = tdiag%lsc + (aten%t - ten0) * cfdout
+        ten0 = aten%t
+      end if
     end if
     !
     ! apply the nudging boundary conditions:
@@ -940,10 +941,10 @@ module mod_tendency
       end if
       if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten - chiten0) * cfdout
     end if  
-      if (idiag >0 ) then    
-       tdiag%bdy   =tdiag%bdy  + (aten%t - ten0) * cfdout
+    if ( idiag > 0 ) then    
+      tdiag%bdy = tdiag%bdy + (aten%t - ten0) * cfdout
        ten0 = aten%t
-      end if
+    end if
 #ifdef DEBUG
     call check_temperature_tendency('BDYC')
 #endif

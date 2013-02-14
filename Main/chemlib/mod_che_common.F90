@@ -117,8 +117,6 @@ module mod_che_common
         end if
         call getmem4d(chic,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chic')
         call getmem4d(chiten,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chiten')
-        call getmem4d(chiten0,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
-                      'che_common:chiten0')
         call getmem4d(chemten,jce1,jce2, &
                       ice1,ice2,1,kz,1,ntr,'che_common:chemten')
 
@@ -169,6 +167,8 @@ module mod_che_common
         call getmem3d(drydepv,jce1,jce2,ice1,ice2,1,ntr,'che_common:drydepv')
 
         if ( ichdiag >0  ) then 
+          call getmem4d(chiten0,jce1,jce2, &
+                        ice1,ice2,1,kz,1,ntr,'che_common:chiten0')
           call getmem4d(chemdiag,jce1,jce2, &
                         ice1,ice2,1,kz,1,ntr,'che_common:chemdiag')
           call getmem4d(cadvhdiag,jce1,jce2, &

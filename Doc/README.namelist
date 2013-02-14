@@ -184,6 +184,8 @@
  lsync   = .false.,           ! If sync of output files at every timestep is
                               ! requested. Note, it has a performance impact.
                               ! Enabled by default if debug_level > 2
+ idiag = 0,                   ! Enable tendency diagnostic output in the ATM
+                              ! file. NOTE: output file gets HUGE.
  do_parallel_netcdf_in  = .false., ! This enables paralell input
                                    ! Each processors reads its slice in the
                                    ! input file. Enable ONLY in case of

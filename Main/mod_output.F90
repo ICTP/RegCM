@@ -199,81 +199,68 @@ module mod_output
           atm_tgb_out = atm_tgb_out * rsrf_in_atm
         if ( associated(atm_tsw_out) ) &
           atm_tsw_out = atm_tsw_out * rsrf_in_atm
-
-! FAB add tendency diagnostic here 
+        ! FAB add tendency diagnostic here 
         if ( associated(atm_tten_adh_out) ) then     
           do k = 1 , kz
             atm_tten_adh_out(:,:,k) = tdiag%adh(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           tdiag%adh = d_zero
         end if 
-         if ( associated(atm_tten_adv_out) ) then     
+        if ( associated(atm_tten_adv_out) ) then     
           do k = 1 , kz
             atm_tten_adv_out(:,:,k) = tdiag%adv(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           tdiag%adv = d_zero
         end if 
-         if ( associated(atm_tten_tbl_out) ) then     
+        if ( associated(atm_tten_tbl_out) ) then     
           do k = 1 , kz
             atm_tten_tbl_out(:,:,k) = tdiag%tbl(jci1:jci2,ici1:ici2,k)/ps_out
           end do
-            tdiag%tbl = d_zero
-       end if 
+          tdiag%tbl = d_zero
+        end if 
         if ( associated(atm_tten_dif_out) ) then     
           do k = 1 , kz
             atm_tten_dif_out(:,:,k) = tdiag%dif(jci1:jci2,ici1:ici2,k)/ps_out
           end do
-            tdiag%dif = d_zero
+          tdiag%dif = d_zero
         end if 
-         if ( associated(atm_tten_bdy_out) ) then     
+        if ( associated(atm_tten_bdy_out) ) then     
           do k = 1 , kz
             atm_tten_bdy_out(:,:,k) = tdiag%bdy(jci1:jci2,ici1:ici2,k)/ps_out
           end do
-           tdiag%bdy = d_zero 
+          tdiag%bdy = d_zero 
         end if 
-          if ( associated(atm_tten_con_out) ) then     
+        if ( associated(atm_tten_con_out) ) then     
           do k = 1 , kz
             atm_tten_con_out(:,:,k) = tdiag%con(jci1:jci2,ici1:ici2,k)/ps_out
           end do
+          tdiag%con = d_zero
         end if 
-          if ( associated(atm_tten_adi_out) ) then     
+        if ( associated(atm_tten_adi_out) ) then     
           do k = 1 , kz
             atm_tten_adi_out(:,:,k) = tdiag%adi(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           tdiag%adi = d_zero
         end if 
-         if ( associated(atm_tten_rad_out) ) then     
+        if ( associated(atm_tten_rad_out) ) then     
           do k = 1 , kz
             atm_tten_rad_out(:,:,k) = tdiag%rad(jci1:jci2,ici1:ici2,k)/ps_out
           end do
-            tdiag%rad =d_zero
+          tdiag%rad = d_zero
         end if  
-         if ( associated(atm_tten_lsc_out) ) then     
+        if ( associated(atm_tten_lsc_out) ) then     
           do k = 1 , kz
             atm_tten_lsc_out(:,:,k) = tdiag%lsc(jci1:jci2,ici1:ici2,k)/ps_out
           end do
-           tdiag%lsc =d_zero 
+          tdiag%lsc = d_zero 
         end if  
-
-       call write_record_output_stream(atm_stream,idatex)
+        call write_record_output_stream(atm_stream,idatex)
         if ( myid == italk ) &
           write(stdout,*) 'ATM variables written at ' , tochar(idatex)
-
         atm_tgb_out = d_zero
         atm_tsw_out = d_zero
         sfs%rainc   = d_zero
         sfs%rainnc  = d_zero
- 
-! zero out the diagnostic too
-        if ( associated(atm_tten_adh_out) ) atm_tten_adh_out =d_zero
-        if ( associated(atm_tten_adv_out) ) atm_tten_adv_out =d_zero
-        if ( associated(atm_tten_tbl_out) ) atm_tten_tbl_out =d_zero
-        if ( associated(atm_tten_dif_out) ) atm_tten_dif_out =d_zero 
-        if ( associated(atm_tten_bdy_out) ) atm_tten_bdy_out =d_zero
-        if ( associated(atm_tten_con_out) ) atm_tten_con_out =d_zero
-        if ( associated(atm_tten_adi_out) ) atm_tten_adi_out =d_zero
-        if ( associated(atm_tten_rad_out) ) atm_tten_rad_out =d_zero
-        if ( associated(atm_tten_lsc_out) ) atm_tten_lsc_out =d_zero
       end if
     end if
 
@@ -334,8 +321,6 @@ module mod_output
         if ( associated(srf_fld_out) ) srf_fld_out = d_zero
         if ( associated(srf_sina_out) ) srf_sina_out = d_zero
         if ( associated(srf_sund_out) ) srf_sund_out = d_zero
-
-
       end if
     end if
 
