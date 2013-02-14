@@ -691,12 +691,14 @@ module mod_tendency
           call vadv(aten%qx,atm1%qx,kz,2,iqc)
         end if
       end if
-      call pcp
-      call cldfrac
 #ifdef DEBUG
       if ( enable_newmicro ) then
+        call cldfrac
         call microphys(omega,jci1,jci2,ici1,ici2)
-        ! call grid_nc_write(qqxp)
+        !call grid_nc_write(qqxp)
+      else  
+        call pcp
+        call cldfrac
       end if
 #endif
       ! 

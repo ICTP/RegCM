@@ -34,15 +34,14 @@ module mod_cloud_s1
   use mod_pbl_common
   use mod_constants
   use mod_precip , only : fcc
-  !use clm_varsur , only : landfrac!mask
+  use mod_runparams , only : rtsrf
+  use mod_service
   private
 
   integer(ik4) , parameter :: nmax = 5                           ! number of progn.variables 
   integer(ik4) , parameter :: nqx = 5                             
   real(rk8) :: zfall                                             ! constant fall speed   
   real(rk8) :: zqtmst                                            ! 1/dt
-  real(rk8) , parameter :: vlht = 2.26D6                         !evaporation latent heat (J/Kg)
-  real(rk8) , parameter :: slht = 3.34D5                        !sublimation latent heat at T=tzero
   real(rk8) , pointer , dimension(:,:,:) :: pres                 ! from atms
   real(rk8) , pointer , dimension(:,:,:) :: zt                   ! from atms
   real(rk8) , pointer , dimension(:,:,:) :: zeta                 ! from atms
@@ -54,6 +53,7 @@ module mod_cloud_s1
   real(rk8) , pointer , dimension(:,:,:) :: ztten                ! tendency of temperature
   real(rk8) , pointer , dimension(:,:,:) :: qdetr                ! conv. detrained water
   real(rk8) , pointer , dimension(:,:,:,:) :: zqxten             ! tendency of zqx
+  real(rk8) , pointer , dimension(:,:) :: psf , rainnc, lsmrnc
   
   public :: allocate_mod_cloud_s1 , init_cloud_s1 , microphys
 
@@ -86,7 +86,6 @@ module mod_cloud_s1
   real(rk8) , pointer , dimension(:,:) :: zmeltmax
   real(rk8) , pointer , dimension(:,:) :: prcflxw
   real(rk8) , pointer , dimension(:,:) :: prcflxc
-  real(rk8) , pointer , dimension(:,:) :: psf                     ! surface pressure
   real(rk8) , pointer , dimension(:,:,:) :: dqsatdt
   real(rk8) , pointer , dimension(:,:,:) :: satvp
   real(rk8) , pointer , dimension(:,:,:) :: satice          
@@ -175,12 +174,13 @@ module mod_cloud_s1
     call getmem4d(ztenkeep,jce1,jce2,ice1,ice2,1,kz,1,nqx,'clouds1:ztenkeep')
   end subroutine allocate_mod_cloud_s1
 
-  subroutine init_cloud_s1(atms,aten,heatrt,sfs,q_detr)
+  subroutine init_cloud_s1(atms,aten,heatrt,sfs,q_detr,pptnc)
     implicit none
     type(slice) , intent(in) :: atms
     type(atmstate) , intent(in) :: aten
     type(surfstate) , intent(in) :: sfs
     real(rk8) , pointer , intent(in), dimension(:,:,:) :: heatrt, q_detr
+    real(rk8) , pointer , dimension(:,:) :: pptnc
     call assignpnt(atms%pb3d,pres)
     call assignpnt(atms%tb3d,zt)
     call assignpnt(atms%za,zeta)
@@ -193,6 +193,9 @@ module mod_cloud_s1
     call assignpnt(q_detr,qdetr)
     call assignpnt(sfs%psb,psf)
     call assignpnt(sfs%psb,sfcps)
+    call assignpnt(sfs%rainnc,rainnc)
+    call assignpnt(pptnc,lsmrnc)
+
   end subroutine init_cloud_s1
 
   subroutine microphys(omega,jstart,jend,istart,iend)
@@ -223,8 +226,6 @@ module mod_cloud_s1
 
     ! local real constants and variables for freezing
     real(rk8) :: zfrz
-    real(rk8) :: ralsdcp
-    real(rk8) :: ralvdcp
     real(rk8) :: zrldcp
 
     ! local real constants and variables for melting
@@ -233,7 +234,10 @@ module mod_cloud_s1
     real(rk8) :: zcons1
 
     real(rk8) :: rovcp
-
+     
+    ! constant for converting the fluxes unit measures
+    real(rk8) :: prainx 
+     
     ! local real constants for evaporation
     real(rk8) , parameter :: kevap = 0.100D-02                       ! Raindrop evap rate coef
     real(rk8) , parameter :: rlmin = 1.D-8
@@ -245,6 +249,13 @@ module mod_cloud_s1
     real(rk8) , parameter :: ztw4 = 40.637
     real(rk8) , parameter :: ztw5 = 275.0
     real(rk8) , parameter :: rtaumel=11880.0 
+
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'microphys'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
+
 
     ! Define species tags
     iqqv = 1    ! vapour
@@ -359,9 +370,7 @@ do k = 1 , kz
   enddo
 enddo
 
-ralsdcp = slht/cpd                               !Ls/Cp
-ralvdcp = vlht/cpd                               !Lv/Cp 
-zrldcp  = d_zero/(ralsdcp-ralvdcp)                 !
+zrldcp  = d_zero/(wlhfocp-wlhvocp)                 !
 
 !-------------------------------------
 ! Initial enthalpy and total water diagnostics 
@@ -383,15 +392,15 @@ do k = 1 , kz
       endif
     
       do n = 1 , nqx
-          if (kphase(n) == 1) ztnew=ztnew-ralvdcp*(zqxx(j,i,k,n)+ &
+          if (kphase(n) == 1) ztnew=ztnew-wlhvocp*(zqxx(j,i,k,n)+ &
                                     & (zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))*dt)
-          if (kphase(n) == 2) ztnew=ztnew-ralsdcp*(zqxx(j,i,k,n)+ &
+          if (kphase(n) == 2) ztnew=ztnew-wlhfocp*(zqxx(j,i,k,n)+ &
                                     & (zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))*dt)
           zsumq0(j,i,k)=zsumq0(j,i,k)+ (zqxx(j,i,k,n)+(zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))*dt)* &
                         & (papf(j,i,k+1)-papf(j,i,k))*regrav
       end do
 
-      ztnew = ztnew-ralvdcp*ztmpl-ralsdcp*ztmpi  
+      ztnew = ztnew-wlhvocp*ztmpl-wlhfocp*ztmpi  
       zsumq0(j,i,k) = zsumq0(j,i,k)+(ztmpl+ztmpi)*(papf(j,i,k+1)-papf(j,i,k))*regrav    !(kg/m^2)
            
       ! Detrained water treated here
@@ -399,7 +408,7 @@ do k = 1 , kz
       if (zqe > rlmin) then
         zsumq0(j,i,k) = zsumq0(j,i,k)+zqdetr(j,i,k)*dt                         ![zqdetr]=kg/(m^2*s)
         zalfaw = phases(zt(j,i,k))
-        ztnew = ztnew-(ralvdcp*zalfaw+ralsdcp*(d_one-zalfaw))*zqe
+        ztnew = ztnew-(wlhvocp*zalfaw+wlhfocp*(d_one-zalfaw))*zqe
       endif
       zsumh0(j,i,k) = zsumh0(j,i,k)+(papf(j,i,k+1)-papf(j,i,k))*ztnew
     end do 
@@ -496,7 +505,7 @@ do k = 1 , kz
   ! and the parametrization can have different variables switched on
   ! and off.
   ! each of these is a parametrization for a microphysical process.
-  !lmicro = .false.
+  ! lmicro = .false.
   lmicro = .true.
  
   if ( lmicro ) then
@@ -830,7 +839,7 @@ do k = 1 , kz
     do j = jstart , jend
       do i = istart , iend
         zpfplsx(j,i,k+1,n) = zfallsink(j,i,n)*zqxn(j,i,k,n)*zrdtgdp(j,i) !this will be the source for the k 
-      end do
+      end do                                                             !kg/m2/s 
     end do
   end do
 
@@ -858,10 +867,10 @@ do k = 1 , kz
     do j = jstart , jend
       do i = istart , iend
         if ( kphase(n) == 1 ) then
-          zttendc(j,i,k) = zttendc(j,i,k) + ralvdcp*(zqxn(j,i,k,n)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
+          zttendc(j,i,k) = zttendc(j,i,k) + wlhvocp*(zqxn(j,i,k,n)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
         end if
         if ( kphase(n) == 2 ) then
-          zttendc(j,i,k) = zttendc(j,i,k) + ralsdcp*(zqxn(j,i,k,n)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
+          zttendc(j,i,k) = zttendc(j,i,k) + wlhfocp*(zqxn(j,i,k,n)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
         end if
       end do
     end do 
@@ -904,9 +913,9 @@ if (budget) then
 
         ! cld vars
         do n = 1 , nqx
-          if (kphase(n) == 1) ztnew = ztnew-ralvdcp*(zqxx(j,i,k,n)+ &
+          if (kphase(n) == 1) ztnew = ztnew-wlhvocp*(zqxx(j,i,k,n)+ &
                                       & (zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))*dt)
-          if (kphase(n) == 2) ztnew = ztnew-ralsdcp*(zqxx(j,i,k,n)+ &
+          if (kphase(n) == 2) ztnew = ztnew-wlhfocp*(zqxx(j,i,k,n)+ &
                                       & (zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))*dt)
           zsumq1(j,i,k) = zsumq1(j,i,k)+ (zqxx(j,i,k,n)+(zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))*dt)* &
                       & (papf(j,i,k+1)-papf(j,i,k))*regrav
@@ -930,9 +939,9 @@ if (budget) then
         zdtgdp(j,i) = dt*egrav/(papf(j,i,k+1)-papf(j,i,k))
         zrain = d_zero
         do n = 1 , nqx
-          if (kphase(n) == 1) zrain = zrain+ralvdcp*zdtgdp(j,i)*zpfplsx(j,i,k+1,n)* &                    !k+1?
+          if (kphase(n) == 1) zrain = zrain+wlhvocp*zdtgdp(j,i)*zpfplsx(j,i,k+1,n)* &                    !k+1?
                                       & (papf(j,i,k+1)-papf(j,i,k))
-          if (kphase(n) == 2) zrain = zrain+ralsdcp*zdtgdp(j,i)*zpfplsx(j,i,k+1,n)* &
+          if (kphase(n) == 2) zrain = zrain+wlhfocp*zdtgdp(j,i)*zpfplsx(j,i,k+1,n)* &
                                       & (papf(j,i,k+1)-papf(j,i,k))
         end do
         zsumh1(j,i,k) = (zsumh1(j,i,k)-zrain)/(papf(j,i,k+1)-papf(j,i,1))
@@ -958,12 +967,14 @@ end if!budget
 ! Initialize fluxes
 prcflxw(:,:) = d_zero
 prcflxc(:,:) = d_zero
+zpfplsl(:,:,:) = d_zero
+zpfplsn(:,:,:) = d_zero
 
 !--------------------------------------------------------------------
 ! Copy general precip arrays back into PFP arrays for GRIB archiving
 ! Add rain and liquid fluxes, ice and snow fluxes
 !--------------------------------------------------------------------
-
+!Rain+liquid, snow+ice
 do k = 1 , kz+1
   do j = jstart , jend
     do i = istart , iend
@@ -979,53 +990,72 @@ do k = 1 , kz+1
   end do
 end do
 
+!--------------------------------------------------------------------
+!Convert the accumlated precipitation to appropriate units for
+!the surface physics and the output
+!--------------------------------------------------------------------
+
 do j = jstart , jend
   do i = istart , iend
     do k = 1 , kz
-      prcflxw(j,i) = prcflxw(j,i) + zpfplsl(j,i,k)   !mm/s
-      prcflxc(j,i) = prcflxc(j,i) + zpfplsn(j,i,k)   !mm/s
-   !   print*,'warm', prcflxw(j,i)
+      prainx = zpfplsl(j,i,k+1)*dt
+      if ( prainx > dlowval ) then
+        rainnc(j,i) =  rainnc(j,i) + prainx   !mm
+        lsmrnc(j,i) =  lsmrnc(j,i) + zpfplsl(j,i,k+1)*rtsrf
+      end if
+     ! rainnc(j,i) = prcflxc(j,i) + zpfplsn(j,i,k)   !mm/s
+      
    !   print*,'cold', prcflxc(j,i)
     end do
   end do
 end do
+
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
 
 contains
 
      real(rk8) function phases(zt)
        implicit none
        real(rk8) , intent(in):: zt
-       real(rk8) , parameter :: rtice =  250.16D0      !tzero - 23.0
-       real(rk8) , parameter :: rtwat_rtice_r=d_one/23.0D0
+       real(rk8) , parameter :: rtice =  250.16D0               !tzero - 23.0
+       real(rk8) , parameter :: rtwat_rtice_r=d_one/23.0D0      !1.0_JPRB/(RTWAT-RTICE)
        phases = min(d_one,((max(rtice,min(tzero,zt))-rtice)*rtwat_rtice_r)**2)
      end function phases
 
      real(rk8) function foeewm(zt)
        implicit none
        real(rk8) , intent(in):: zt
-       real(rk8) , parameter :: r2es =  611.21D0
+       real(rk8) , parameter :: r2es =  611.21D0*rgow
        real(rk8) , parameter :: r3les = 17.502D0
        real(rk8) , parameter :: r3ies = 22.587D0
        real(rk8) , parameter :: r4les = 32.19D0
        real(rk8) , parameter :: r4ies = -0.7D0
        foeewm = r2es*(phases(zt)*exp(r3les*(zt-tzero)/(zt-r4les))+&
-       &(1.0-phases(zt))*exp(r3ies*(zt-tzero)/(zt-r4ies)))
+       &(d_one-phases(zt))*exp(r3ies*(zt-tzero)/(zt-r4ies)))
        end function foeewm
 
      real(rk8) function foeeliq(zt)
        implicit none
        real(rk8) , intent(in):: zt
-       real(rk8) , parameter :: rtice =  250.16D0 
-       real(rk8) , parameter :: rtwat_rtice_r=d_one/23.0D0
-       foeeliq = min(d_one,((max(rtice,min(tzero,zt))-rtice)*rtwat_rtice_r)**2)
+      ! real(rk8) , parameter :: rtice =  250.16D0 
+      ! real(rk8) , parameter :: rtwat_rtice_r=d_one/23.0D0
+       real(rk8) , parameter :: r2es =  611.21D0*rgow
+       real(rk8) , parameter :: r3les = 17.502D0
+       real(rk8) , parameter :: r4les = 32.19D0
+       foeeliq = r2es*exp(r3les*(zt-tzero)/(zt-r4les))
      end function foeeliq
 
      real(rk8) function foeeice(zt)
        implicit none
        real(rk8) , intent(in):: zt
-       real(rk8) , parameter :: rtice =  250.16D0
+      ! real(rk8) , parameter :: rtice =  250.16D0
+       real(rk8) , parameter :: r3ies = 22.587D0
+       real(rk8) , parameter :: r2es =  611.21D0*rgow
+       real(rk8) , parameter :: r4ies = -0.7D0
        real(rk8) , parameter :: rtwat_rtice_r=d_one/23.0D0
-       foeeice = min(d_one,((max(rtice,min(tzero,zt))-rtice)*rtwat_rtice_r)**2)
+        foeeice = r2es*exp(r3ies*(zt-tzero)/(zt-r4ies))
      end function foeeice
 
      real(rk8) function satc(zt,xp)
@@ -1041,7 +1071,7 @@ contains
        real(rk8) , intent(in) :: xp , zt
        !  ! saturation mixing ratio for water in Pa (A Description of the Fifth-Generation Penn State/NCAR
        !Mesoscale Model (MM5)Georg A. Grell, Jimy Dudhia, David R. Stauffer, NCAR TECHNICAL NOTE Dec 1994)
-       satw = (3.79D2/xp)*dexp(17.67D0*(zt-tzero)/(zt-29.65D0))
+       satw = (3.8014D2/xp)*dexp(17.67D0*(zt-tzero)/(zt-29.65D0))
      end function satw
      
      real(rk8) function dqsatdtc(zt,satc)
@@ -1055,6 +1085,10 @@ contains
        real(rk8) , intent(in) :: satw , zt
        dqsatdtw = satw*(4097.99D0/((zt-32.15D0)**2))
      end function dqsatdtw
+
+!#ifdef DEBUG
+!  call time_end(subroutine_name,idindx)
+!#endif
 
   end subroutine microphys
 
