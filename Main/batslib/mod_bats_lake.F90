@@ -646,11 +646,6 @@ module mod_bats_lake
     implicit none
     integer(ik4) , intent(in) :: iutl
     integer(ik4) :: i , j , k , n
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'lakesav_o'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
     write (iutl) idep_io
     do i = iout1 , iout2
       do j = jout1 , jout2
@@ -663,9 +658,6 @@ module mod_bats_lake
         end do
       end do
     end do
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
   end subroutine lakesav_o
 !
 !-----------------------------------------------------------------------
@@ -674,11 +666,6 @@ module mod_bats_lake
     implicit none
     integer(ik4) , intent(in) :: iutl
     integer(ik4) :: i , j , k , n
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'lakesav_i'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
     idep_io   = 0
     hi_io     = dmissval
     aveice_io = dmissval
@@ -697,9 +684,6 @@ module mod_bats_lake
         end do
       end do
     end do
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
   end subroutine lakesav_i
 !
 end module mod_bats_lake
