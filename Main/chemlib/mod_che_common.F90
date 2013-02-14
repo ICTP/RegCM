@@ -166,7 +166,7 @@ module mod_che_common
         call getmem3d(cemtrac,jce1,jce2,ice1,ice2,1,ntr,'che_common:cemtrac')
         call getmem3d(drydepv,jce1,jce2,ice1,ice2,1,ntr,'che_common:drydepv')
 
-        if ( ichdiag >0  ) then 
+        if ( ichdiag > 0 ) then 
           call getmem4d(chiten0,jce1,jce2, &
                         ice1,ice2,1,kz,1,ntr,'che_common:chiten0')
           call getmem4d(chemdiag,jce1,jce2, &

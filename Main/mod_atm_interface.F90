@@ -554,17 +554,15 @@ module mod_atm_interface
     subroutine allocate_tendiag(dia)
       implicit none
       type(tendiag) , intent(out) :: dia
-      if (lpar) then
-        call getmem3d(dia%adh,jce1,jce2,ice1,ice2,1,kz,'tendiag:adh')
-        call getmem3d(dia%adv,jce1,jce2,ice1,ice2,1,kz,'tendiag:adv')
-        call getmem3d(dia%tbl,jce1,jce2,ice1,ice2,1,kz,'tendiag:tbl')
-        call getmem3d(dia%con,jce1,jce2,ice1,ice2,1,kz,'tendiag:con')
-        call getmem3d(dia%bdy,jce1,jce2,ice1,ice2,1,kz,'tendiag:bdy')
-        call getmem3d(dia%adi,jce1,jce2,ice1,ice2,1,kz,'tendiag:adi')
-        call getmem3d(dia%dif,jce1,jce2,ice1,ice2,1,kz,'tendiag:dif')
-        call getmem3d(dia%rad,jce1,jce2,ice1,ice2,1,kz,'tendiag:rad') 
-        call getmem3d(dia%lsc,jce1,jce2,ice1,ice2,1,kz,'tendiag:lsc') 
-      end if     
+      call getmem3d(dia%adh,jce1,jce2,ice1,ice2,1,kz,'tendiag:adh')
+      call getmem3d(dia%adv,jce1,jce2,ice1,ice2,1,kz,'tendiag:adv')
+      call getmem3d(dia%tbl,jce1,jce2,ice1,ice2,1,kz,'tendiag:tbl')
+      call getmem3d(dia%con,jce1,jce2,ice1,ice2,1,kz,'tendiag:con')
+      call getmem3d(dia%bdy,jce1,jce2,ice1,ice2,1,kz,'tendiag:bdy')
+      call getmem3d(dia%adi,jce1,jce2,ice1,ice2,1,kz,'tendiag:adi')
+      call getmem3d(dia%dif,jce1,jce2,ice1,ice2,1,kz,'tendiag:dif')
+      call getmem3d(dia%rad,jce1,jce2,ice1,ice2,1,kz,'tendiag:rad') 
+      call getmem3d(dia%lsc,jce1,jce2,ice1,ice2,1,kz,'tendiag:lsc') 
     end subroutine allocate_tendiag
 !
     subroutine allocate_domain(dom,lpar)
