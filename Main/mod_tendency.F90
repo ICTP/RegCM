@@ -917,8 +917,11 @@ module mod_tendency
           end do
         end do
       end do
-
-      call condtq(psc)
+      if ( enable_newmicro ) then
+        !dummystatement
+      else
+        call condtq(psc)
+      end if
       if ( idiag > 0 ) then    
         ! rq : temp condensation tend is added the evap temp tend
         ! calculated in pcp
