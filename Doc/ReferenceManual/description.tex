@@ -369,7 +369,7 @@ nonlocal transport due to dry deep convection.  The eddy diffusivity is given by
 the nonlocal formulation
 
 \begin{eqnarray}
-K_c = kw_tz \left( 1- {z \over h}^2 \right)
+K_c = kw_tz \left( 1- {z \over h} \right)^2
 \end{eqnarray}
 
 where $k$ is the von Karman constant; $w_t$ is a turbulent convective
@@ -877,12 +877,13 @@ parameterizations \cite{Dickinson_93}.  The bulk aerodynamic formulations for
 latent heat flux ($F_q$) and sensible heat flux ($F_s$) are as follows,
 
 \begin{eqnarray}
-F_q = \rho_a C_D V_a (q_s - q_a) \\ F_s = \rho_a C_p C_D V_a (T_s - T_a)
+F_q = \rho_a C_D V_a L_v (q_s - q_a) \\ F_s = \rho_a C_p C_D V_a (T_s - T_a)
 \end{eqnarray}
 
 where the subscripts $s$ and $a$ refer to surface and air,
-respectively; $\rho_a$ is the density of air, $V_a$ is the wind speed, $C_p$,
-$q$ is specific humidity, and $T$ is temperature.  The momentum drag
+respectively; $\rho_a$ is the density of air, $V_a$ is the wind speed, $C_p$
+is specific heat at constant pressure, $L_v$ is evaporation latent
+heat, $q$ is specific humidity, and $T$ is temperature.  The momentum drag
 coefficient, $C_D$, depends on roughness length and the surface bulk Richardson
 number.
 
