@@ -617,7 +617,7 @@ contains
     ! "mkarbinit, inicfile and restFile". 
 
     if (do_restread()) then
-       if (masterproc) write(6,*)'reading restart file ',fnamer
+       if (masterproc) write(6,*)'reading restart file ',trim(fnamer)
        call restFile_read( fnamer )
     else if (nsrest == 0 .and. finidat == ' ') then
        call mkarbinit()

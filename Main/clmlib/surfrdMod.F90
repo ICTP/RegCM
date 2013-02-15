@@ -365,16 +365,16 @@ contains
        ier = nf_inq_varid(ncid, 'LANDMASK', varid)
        if (ier == NF_NOERR) then
           call check_ret(nf_get_vara_int(ncid, varid, strt3, cnt3, domain%mask), subname)
-          domain%pftm = domain%mask
-          where (domain%mask <= 0)
-             domain%pftm = -1
-          endwhere
        endif
 
        ier = nf_inq_varid (ncid, 'PFTDATA_MASK', varid)
        if (ier == NF_NOERR) then
          call check_ret(nf_get_vara_int(ncid, varid, strt3, cnt3, domain%pftm), subname)
        endif
+       domain%pftm = domain%mask
+       where (domain%mask <= 0)
+         domain%pftm = -1
+       end where
        
 !tcx fix, this or a test/abort should be added so overlaps can be computed
 !tcx fix, this is demonstrated not bfb in cam bl311 test.
@@ -1111,7 +1111,7 @@ contains
 
        domain%pftm = domain%mask
        where (domain%mask(:) <= 0)
-            domain%pftm(:) = -1
+         domain%pftm(:) = -1
        endwhere
 
        deallocate(rcmfrac) 
@@ -1682,9 +1682,17 @@ contains
        enddo
        enddo
 
-       where(domain%mask(:) == 0.)
-         domain%frac(:) = 0.
-       endwhere
+       if(r2cimask == 2) then
+         where(domain%mask(:) == 0.)
+           domain%frac(:) = 0.
+         endwhere
+       elseif(r2cimask == 1) then           !using DOMAIN.INFO landmask
+         where(domain%mask(:) == 0.)
+           domain%frac(:) = 0.
+         else where
+           domain%frac(:) = 1.
+         endwhere
+       end if
 !abt above
 
        deallocate(latc,lonc)
@@ -1957,14 +1965,7 @@ contains
          pctwet(nl) = 0._r8
          pctgla(nl) = 0._r8
          pcturb(nl) = 0._r8
-      else
-         if(pctlak(nl) < 5._r8) pctlak(nl) = 0._r8
-         if(pctwet(nl) < 5._r8) pctwet(nl) = 0._r8
-         if(pctgla(nl) < 5._r8) pctgla(nl) = 0._r8
-         if(pcturb(nl) < 5._r8) pcturb(nl) = 0._r8
       endif
-
-      pctspecB(nl) = pctwet(nl) + pctlak(nl) + pctgla(nl) + pcturb(nl)
 
       if(landfrac(nni,nnj) .eq. 0) then
          write(*,*)"landfrac =  ",landfrac(nni,nnj)," at ",nl 
@@ -1975,13 +1976,19 @@ contains
          pctlak(nl) = 0._r8
          pctwet(nl) = 100._r8   !set to 100% for the land portion of the grid
          write(*,*)"****** wetland is 100% *********"  !buggin
-         pctspecB(nl) = pctwet(nl) + pctlak(nl) + pctgla(nl) + pcturb(nl)
       else
          pctlak(nl) = pctlak(nl)/(landfrac(nni,nnj)*100._r8)
          pctwet(nl) = pctwet(nl)/(landfrac(nni,nnj)*100._r8)
          pctgla(nl) = pctgla(nl)/(landfrac(nni,nnj)*100._r8)
          pcturb(nl) = pcturb(nl)/(landfrac(nni,nnj)*100._r8)
       endif       
+
+      if (pctlak(nl) < 5._r8) pctlak(nl) = 0._r8
+      if (pctwet(nl) < 5._r8) pctwet(nl) = 0._r8
+      if (pctgla(nl) < 5._r8) pctgla(nl) = 0._r8
+      if (pcturb(nl) < 5._r8) pcturb(nl) = 0._r8
+
+      pctspecB(nl) = pctwet(nl) + pctlak(nl) + pctgla(nl) + pcturb(nl)
     
     enddo
 
@@ -2617,7 +2624,7 @@ contains
     endif
     if(r2cefmap(19) == 1) then
       call ncd_iolocal(ncidv(19), 'ACET_ETH'  , 'read', ef_acta , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
-    endif
+    end if
     if(r2cefmap(20) == 1) then
       call ncd_iolocal(ncidv(20),'FORM'      , 'read', ef_form , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
@@ -2684,8 +2691,8 @@ contains
     integer  :: start(4),count(4)               ! netCDF start/count arrays
     integer  :: cropcount                       ! temporary counter
     real(r8),allocatable :: sumvec(:)           ! temporary vector sum
+    integer,allocatable :: nindx(:)
     logical  :: found                           ! temporary for error check
-    integer  :: nindx                           ! temporary for error check
     integer  :: miss = 99999                    ! missing data indicator
     real(r8) :: wst(0:numpft)                   ! as pft at specific i, j
     integer ,allocatable :: wsti(:)             ! ranked indices largest wst values
@@ -2725,6 +2732,7 @@ contains
     call get_proc_bounds(begg,endg)
 
     allocate(sumvec(begg:endg))
+    allocate(nindx(begg:endg))
     allocate(cft(begg:endg,maxpatch_cft))
     allocate(pft(begg:endg,maxpatch_pft))
     allocate(pctcft_lunit(begg:endg,maxpatch_cft))
@@ -2766,52 +2774,36 @@ contains
     ! For now keep all cfts (< 4 anyway) instead of 4 most dominant cfts
 
     do nl = begg,endg
-
-       cft(nl,:) = 0
-       pctcft_lunit(nl,:) = 0._r8
-       cropcount = 0
-
-       if (pctspecB(nl) < 100._r8) then
-
-          do m = 0, numpft
-             if (create_crop_landunit) then
-                ! Separate crop landunit is to be created
-
-                if (crop(m) == 1._r8 .and. pctpft(nl,m) > 0._r8) then
-                   cropcount = cropcount + 1
-                   if (cropcount > maxpatch_cft) then
-                      write(6,*) 'ERROR surfrdMod: cropcount>maxpatch_cft'
-                      call endrun()
-                   end if
-                   cft(nl,cropcount) = m
-                   pctcft_lunit(nl,cropcount) = pctpft(nl,m) * 100._r8/(100._r8-pctspec(nl))
-                   pctpft(nl,m) = 0.0_r8
-                else if (crop(m) == 0._r8) then
-                   pctpft(nl,m) = pctpft(nl,m) * 100._r8/(100._r8-pctspec(nl))
-                end if
-
-             else
-                ! Separate crop landunit is not created
-
-!abt                pctpft(nl,m) = pctpft(nl,m) * 100._r8/(100._r8-pctspec(nl))
-                pctpft(nl,m) = pctpft(nl,m)   !input file already is %pft of vegetation (sum of pfts = 100%)
-
-             end if
-          end do
-
-       else if (pctspecB(nl) == 100._r8) then
-
-          pctpft(nl,0)        = 100._r8
-          pctpft(nl,1:numpft) =   0._r8
-
-       else
-
-          write(6,*)subname, 'error: pcturb+pctgla+pctlak+pctwet = ',pctspecB(nl), &
-               ' must be less than or equal to 100'
-          call endrun()
-
-       end if
-
+      cft(nl,:) = 0
+      pctcft_lunit(nl,:) = 0._r8
+      cropcount = 0
+      if (pctspecB(nl) < 99.0_r8) then
+        do m = 0, numpft
+          if (create_crop_landunit) then
+            ! Separate crop landunit is to be created
+            if (crop(m) == 1._r8 .and. pctpft(nl,m) > 0._r8) then
+              cropcount = cropcount + 1
+              if (cropcount > maxpatch_cft) then
+                write(6,*) 'ERROR surfrdMod: cropcount>maxpatch_cft'
+                call endrun()
+              end if
+              cft(nl,cropcount) = m
+              pctcft_lunit(nl,cropcount) = &
+                  pctpft(nl,m)*100._r8/(100._r8-pctspec(nl))
+              pctpft(nl,m) = 0.0_r8
+            else if (crop(m) == 0._r8) then
+              pctpft(nl,m) = pctpft(nl,m) * 100._r8/(100._r8-pctspec(nl))
+            end if
+          else
+            ! Separate crop landunit is not created
+!abt        pctpft(nl,m) = pctpft(nl,m) * 100._r8/(100._r8-pctspec(nl))
+            !input file already is %pft of vegetation (sum of pfts = 100%)
+            pctpft(nl,m) = pctpft(nl,m)
+          end if
+        end do
+      else
+        pctpft(nl,1:numpft) = 0._r8
+      end if
     end do
 
     ! Find pft and pct arrays 
@@ -2819,173 +2811,179 @@ contains
 
     do nl = begg,endg
 
-       wst_sum = 0._r8
-       sumpct = 0
-       do m = 0, numpft
-          wst(m) = pctpft(nl,m)
-          wst_sum = wst_sum + pctpft(nl,m)
-       end do
+      wst_sum = 0._r8
+      sumpct = 0._r8
+      do m = 0, numpft
+        wst(m) = pctpft(nl,m)
+        wst_sum = wst_sum + pctpft(nl,m)
+      end do
 
 !!!abt below!! Correct for gridcells that do not have any percent of pft cover
              ! Use BATS landuse types from DOMAIN.INFO and convert to the equivalent 
              ! CLM landuse/pft type.  For example, BATS Evergreen Shrub type would be
              ! Broadleaf Evergreen Shrub in CLM.
 
-       if(sum(wst(:))<95 .or. sum(wst(:))>105) then 
-         do m = 0,numpft
-           wst(m)       = 0._r8
-           pctpft(nl,m) = 0._r8
-           wst_sum      = 0._r8
-           adj_wst(m)   = 0._r8
-           adj_pctpft(nl,m) = 0._r8
-           wst_sum          = 0._r8
-         enddo
-
-         call pft_adjustment(begg,endg,ipft,nl,adj_wst,adj_wst_sum,adj_pctpft,domain)  !abt
-        
-         do m = 0,numpft
-           wst(m)       = adj_wst(m)
-           pctpft(nl,m) = adj_pctpft(nl,m) 
-         enddo
-           wst_sum      = adj_wst_sum
-       endif
-
-
+      if ( abs(sum(wst(:)) + pctspecB(nl) - 100.0_r8) > 1.0_r8 ) then 
+        do m = 0,numpft
+          wst(m)       = 0._r8
+          pctpft(nl,m) = 0._r8
+          wst_sum      = 0._r8
+          adj_wst(m)   = 0._r8
+          adj_pctpft(nl,m) = 0._r8
+          wst_sum          = 0._r8
+        enddo
+        call pft_adjustment(begg,endg,ipft,nl,adj_wst, &
+                            adj_wst_sum,adj_pctpft,domain)  !abt
+        do m = 0,numpft
+          wst(m)       = adj_wst(m)
+          pctpft(nl,m) = adj_pctpft(nl,m) 
+        enddo
+        wst_sum      = adj_wst_sum
+      endif
 
 !!!abt rcm above
 
+      if (domain%pftm(nl) >= 0) then
 
+        ! Rank [wst] in ascendg order to obtain the top [maxpatch_pft] PFTs
 
-       if (domain%pftm(nl) >= 0) then
-
-          ! Rank [wst] in ascendg order to obtain the top [maxpatch_pft] PFTs
-
+        if ( sum(wst(:)) > 1.0_r8 ) then
           call surfrd_mkrank (numpft, wst, miss, wsti, maxpatch_pft)
+        end if
 
+        ! Fill in [pft] and [pctpft] with data for top [maxpatch_pft] PFTs.
+        ! If land model grid cell is ocean, set to no PFTs.
+        ! If land model grid cell is land then:
+        !  1. If [pctlnd_o] = 0, there is no PFT data from the input grid.
+        !     Since need land data, use bare ground.
+        !  2. If [pctlnd_o] > 0, there is PFT data from the input grid but:
+        !     a. use the chosen PFT so long as it is not a missing value
+        !     b. missing value means no more PFTs with cover > 0
+                 
+        do m = 1, maxpatch_pft
+          if (wsti(m) /=  miss) then
+            pft(nl,m) = wsti(m)
+            pctpft_lunit(nl,m) = wst(wsti(m))
+          else
+            pft(nl,m) = noveg
+            pctpft_lunit(nl,m) = 0._r8
+          end if
+          sumpct = sumpct + pctpft_lunit(nl,m)
+        end do
+      else                               ! model grid wants ocean
+        do m = 1, maxpatch_pft
+          pft(nl,m) = 0
+          pctpft_lunit(nl,m) = 0._r8
+        end do
+      end if
 
-          ! Fill in [pft] and [pctpft] with data for top [maxpatch_pft] PFTs.
-          ! If land model grid cell is ocean, set to no PFTs.
-          ! If land model grid cell is land then:
-          !  1. If [pctlnd_o] = 0, there is no PFT data from the input grid.
-          !     Since need land data, use bare ground.
-          !  2. If [pctlnd_o] > 0, there is PFT data from the input grid but:
-          !     a. use the chosen PFT so long as it is not a missing value
-          !     b. missing value means no more PFTs with cover > 0
-                   
-          do m = 1, maxpatch_pft
-             if (wsti(m) /=  miss) then
-                pft(nl,m) = wsti(m)
-                pctpft_lunit(nl,m) = wst(wsti(m))
-             else
-                pft(nl,m) = noveg
-                pctpft_lunit(nl,m) = 0._r8
-             end if
-             sumpct = sumpct + pctpft_lunit(nl,m)
-          end do
-
-       else                               ! model grid wants ocean
-
-          do m = 1, maxpatch_pft
-             pft(nl,m) = 0
-             pctpft_lunit(nl,m) = 0._r8
-          end do
-
-       end if
-
-       ! Correct for the case of more than [maxpatch_pft] PFTs present
+      ! Correct for the case of more than [maxpatch_pft] PFTs present
                 
-       if (sumpct < wst_sum) then
-          diff  = wst_sum - sumpct
-          sumpct = 0._r8
-          do m = 1, maxpatch_pft
-             pctpft_lunit(nl,m) = pctpft_lunit(nl,m) + diff/maxpatch_pft
-             sumpct = sumpct + pctpft_lunit(nl,m)
-          end do
-       end if
+!       if (sumpct < wst_sum) then
+!          diff  = wst_sum - sumpct
+!          sumpct = 0._r8
+!          do m = 1, maxpatch_pft
+!             pctpft_lunit(nl,m) = pctpft_lunit(nl,m) + diff/maxpatch_pft
+!             sumpct = sumpct + pctpft_lunit(nl,m)
+!          end do
+!       end if
 
-       ! Error check: make sure have a valid PFT
+      ! Error check: make sure have a valid PFT
 
-       do m = 1,maxpatch_pft
-          if (pft(nl,m) < 0 .or. pft(nl,m) > numpft) then
-             write (6,*)'surfrd error: invalid PFT at gridcell nl=',nl,pft(nl,m)
-             call endrun()
-          end if
-       end do
-
-       ! As done in mksrfdatMod.F90 for other percentages, truncate pctpft to
-       ! ensure that weight relative to landunit is not nonzero
-       ! (i.e. a very small number such as 1e-16) where it really should be zero
-       ! The following if-block is here to preserve roundoff level differences
-       ! between the call to surfrd_wtxy_veg_all and surfrd_wtxy_veg_rank
-
-       if (maxpatch_pft < numpft+1) then
-          do m=1,maxpatch_pft
-             pctpft_lunit(nl,m) = float(nint(pctpft_lunit(nl,m)))
-          end do
-          do m=1,maxpatch_cft
-             pctcft_lunit(nl,m) = float(nint(pctcft_lunit(nl,m)))
-          end do
-       end if
-                   
-       ! Make sure sum of PFT cover == 100 for land points. If not,
-       ! subtract excess from most dominant PFT.
-
-       rmax = -9999._r8
-       k1 = -9999
-       k2 = -9999
-       sumpct = 0._r8
-       do m = 1, maxpatch_pft
-          sumpct = sumpct + pctpft_lunit(nl,m)
-          if (pctpft_lunit(nl,m) > rmax) then
-             k1 = m
-             rmax = pctpft_lunit(nl,m)
-          end if
-       end do
-       do m = 1, maxpatch_cft
-          sumpct = sumpct + pctcft_lunit(nl,m)
-          if (pctcft_lunit(nl,m) > rmax) then
-             k2 = m
-             rmax = pctcft_lunit(nl,m)
-          end if
-       end do
-       if (k1 == -9999 .and. k2 == -9999) then
-          write(6,*)'surfrd error: largest PFT patch not found'
+      do m = 1,maxpatch_pft
+        if (pft(nl,m) < 0 .or. pft(nl,m) > numpft) then
+          write (6,*)'surfrd error: invalid PFT at gridcell nl=',nl,pft(nl,m)
           call endrun()
-       else if (domain%pftm(nl) >= 0) then
-          if (sumpct < 95 .or. sumpct > 105._r8) then
-             write(6,*)'surfrd error: sum of PFT cover =',sumpct,' at nl=',nl
-             call endrun()
-          else if (sumpct /= 100._r8 .and. k2 /= -9999) then
-             pctcft_lunit(nl,k2) = pctcft_lunit(nl,k2) - (sumpct-100._r8)
-          else if (sumpct /= 100._r8) then
-             pctpft_lunit(nl,k1) = pctpft_lunit(nl,k1) - (sumpct-100._r8)
-          end if
-       end if
+        end if
+      end do
 
-       ! Error check: make sure PFTs sum to 100% cover
+      ! As done in mksrfdatMod.F90 for other percentages, truncate pctpft to
+      ! ensure that weight relative to landunit is not nonzero
+      ! (i.e. a very small number such as 1e-16) where it really should be zero
+      ! The following if-block is here to preserve roundoff level differences
+      ! between the call to surfrd_wtxy_veg_all and surfrd_wtxy_veg_rank
 
-       sumpct = 0._r8
-       do m = 1, maxpatch_pft
-          sumpct = sumpct + pctpft_lunit(nl,m)
-       end do
-       do m = 1, maxpatch_cft
-          sumpct = sumpct + pctcft_lunit(nl,m)
-       end do
-       if (domain%pftm(nl) >= 0) then
-          if (abs(sumpct - 100._r8) > 0.000001_r8) then
-             write(6,*)'surfrdMod error: sum(pct) over maxpatch_pft is not = 100.'
-             write(6,*)sumpct, nl
-             call endrun()
-          end if
-          if (sumpct < -0.000001_r8) then
-             write(6,*)'surfrdMod error: sum(pct) over maxpatch_pft is < 0.'
-             write(6,*)sumpct, nl
-             call endrun()
-          end if
-       end if
+      ! GRAZIANO
+      ! This is done in clm2rcm now
+      ! GRAZIANO
+
+!     if (maxpatch_pft < numpft+1) then
+!       do m=1,maxpatch_pft
+!         pctpft_lunit(nl,m) = float(nint(pctpft_lunit(nl,m)))
+!       end do
+!       do m=1,maxpatch_cft
+!         pctcft_lunit(nl,m) = float(nint(pctcft_lunit(nl,m)))
+!       end do
+!     end if
+!                   
+!     ! Make sure sum of PFT cover == 100 for land points. If not,
+!     ! subtract excess from most dominant PFT.
+!
+!     rmax = -9999._r8
+!     k1 = -9999
+!     k2 = -9999
+!     sumpct = 0._r8
+!     do m = 1, maxpatch_pft
+!       sumpct = sumpct + pctpft_lunit(nl,m)
+!       if (pctpft_lunit(nl,m) > rmax) then
+!         k1 = m
+!         rmax = pctpft_lunit(nl,m)
+!       end if
+!     end do
+!     do m = 1, maxpatch_cft
+!       sumpct = sumpct + pctcft_lunit(nl,m)
+!       if (pctcft_lunit(nl,m) > rmax) then
+!         k2 = m
+!         rmax = pctcft_lunit(nl,m)
+!       end if
+!     end do
+!     if (k1 == -9999 .and. k2 == -9999) then
+!       write(6,*)'surfrd error: largest PFT patch not found'
+!       call endrun()
+!     else if (domain%pftm(nl) >= 0) then
+!       if (sumpct < 95 .or. sumpct > 105._r8) then
+!         write(6,*)'surfrd error: sum of PFT cover =',sumpct,' at nl=',nl
+!         call endrun()
+!       else if (sumpct /= 100._r8 .and. k2 /= -9999) then
+!         pctcft_lunit(nl,k2) = pctcft_lunit(nl,k2) - (sumpct-100._r8)
+!       else if (sumpct /= 100._r8) then
+!         pctpft_lunit(nl,k1) = pctpft_lunit(nl,k1) - (sumpct-100._r8)
+!       end if
+!     end if
+
+      ! Error check: make sure PFTs sum to 100% cover
+
+!     sumpct = 0._r8
+!     do m = 1, maxpatch_pft
+!       sumpct = sumpct + pctpft_lunit(nl,m)
+!     end do
+!     do m = 1, maxpatch_cft
+!       sumpct = sumpct + pctcft_lunit(nl,m)
+!     end do
+!     if (domain%pftm(nl) >= 0) then
+!       if (abs(sumpct - 100._r8) > 0.000001_r8) then
+!         write(6,*)'surfrdMod error: sum(pct) over maxpatch_pft is not = 100.'
+!         write(6,*)sumpct, nl
+!         call endrun()
+!       end if
+!       if (sumpct < -0.000001_r8) then
+!         write(6,*)'surfrdMod error: sum(pct) over maxpatch_pft is < 0.'
+!         write(6,*)sumpct, nl
+!         call endrun()
+!       end if
+!     end if
 
     end do   ! end of latitude loop
 
+    ! Reset everithing if bare soil or special classes
+    do nl = begg,endg
+      if ( pctspecB(nl) > 99.0_r8 ) then
+        pctpft_lunit(nl,:) = 0.0_r8
+      end if
+      if ( pctpft_lunit(nl,1) > 99.0_r8 ) then
+        pctpft_lunit(nl,2:) = 0.0_r8
+      end if
+    end do
 
     ! Determine array [veg], which sets the PFT type for each of the [maxpatch]
     ! patches and array [wtxy], which sets the relative abundance of the PFT.
@@ -2995,53 +2993,83 @@ contains
     ! Next, fill in urban, lake, wetland, and glacier patches.
 
     do nl = begg,endg
-       if (domain%pftm(nl) >= 0) then
+      if (domain%pftm(nl) >= 0) then
 
-          ! Naturally vegetated landunit
+        ! Naturally vegetated landunit
 
-          do m = 1, maxpatch_pft
-             vegxy(nl,m)  = pft(nl,m)
-             wtxy(nl,m) = pctpft_lunit(nl,m) * (100._r8-pctspec(nl))/10000._r8
+        do m = 1, maxpatch_pft
+          vegxy(nl,m)  = pft(nl,m)
+          wtxy(nl,m) = pctpft_lunit(nl,m) / 100.0_r8
 #if (defined CN)
-             ! the following test prevents the assignment of temperate deciduous
-             ! vegetation types in the tropics
-             ! 1. broadleaf deciduous temperate tree -> broadleaf deciduous tropical tree
+          ! the following test prevents the assignment of temperate deciduous
+          ! vegetation types in the tropics
+          ! 1. broadleaf deciduous temperate tree -> broadleaf deciduous tropical tree
 
-             if (vegxy(nl,m) == 7 .and. abs(domain%latc(nl)) < 23.5_r8) vegxy(nl,m) = 6
+          if (vegxy(nl,m) == 7 .and. abs(domain%latc(nl)) < 23.5_r8) vegxy(nl,m) = 6
 
-             ! 2. broadleaf deciduous temperate shrub -> broadleaf deciduous tropical tree
-             ! this reassignment from shrub to tree is necessary because there is currently no
-             ! tropical deciduous broadleaf shrub type defined.
+          ! 2. broadleaf deciduous temperate shrub -> broadleaf deciduous tropical tree
+          ! this reassignment from shrub to tree is necessary because there is currently no
+          ! tropical deciduous broadleaf shrub type defined.
 
-              if (vegxy(nl,m) == 10 .and. abs(domain%latc(nl)) < 23.5_r8) vegxy(nl,m) = 6
+          if (vegxy(nl,m) == 10 .and. abs(domain%latc(nl)) < 23.5_r8) vegxy(nl,m) = 6
 #endif
+        end do
+        ! Crop landunit
+
+        if (create_crop_landunit) then
+          do m = 1,maxpatch_cft
+            vegxy(nl,npatch_glacier+m)  = cft(nl,m)
+            wtxy(nl,npatch_glacier+m) = pctcft_lunit(nl,m) / 100._r8
           end do
+        end if
+      end if
+    end do
 
-          ! Crop landunit
-
-          if (create_crop_landunit) then
-             do m = 1,maxpatch_cft
-                vegxy(nl,npatch_glacier+m)  = cft(nl,m)
-                wtxy(nl,npatch_glacier+m) = pctcft_lunit(nl,m) * (100._r8-pctspec(nl))/10000._r8
-             end do
-          end if
-
-
-       end if
+    do nl = begg,endg
+      if ( wtxy(nl,npatch_wet) > 0.99_r8 ) then
+        wtxy(nl,:) = 0.0_r8
+        wtxy(nl,npatch_wet) = 1.0_r8
+      end if
+      if ( wtxy(nl,npatch_glacier) > 0.99_r8 ) then
+        wtxy(nl,:) = 0.0_r8
+        wtxy(nl,npatch_glacier) = 1.0_r8
+      end if
+      if ( wtxy(nl,npatch_urban) > 0.99_r8 ) then
+        wtxy(nl,:) = 0.0_r8
+        wtxy(nl,npatch_urban) = 1.0_r8
+      end if
+      if ( wtxy(nl,npatch_lake) > 0.99_r8 ) then
+        wtxy(nl,:) = 0.0_r8
+        wtxy(nl,npatch_lake) = 1.0_r8
+      end if
     end do
 
     found = .false.
-    sumvec(:) = abs(sum(wtxy,dim=2)-1._r8)
+    nindx(:) = -1
+    sumvec(:) = 0._r8
     do nl = begg,endg
-       if (sumvec(nl) > 1.e-06_r8 .and. domain%pftm(nl)>=0) then
-          found = .true.
-          nindx = nl
-          exit
-       endif
+      if (domain%pftm(nl) >= 0) then
+        sumvec(nl) = abs(sum(wtxy(nl,:)))
+      end if
+    end do
+    do nl = begg,endg
+      if (sumvec(nl) > 1.00005_r8 .and. domain%pftm(nl)>=0) then
+        found = .true.
+        nindx(nl) = nl
+        exit
+      endif
     end do
     if ( found ) then
-       write (6,*)'surfrd error: WTXY > 1 occurs at nl= ',nindx  !; call endrun()
-       call endrun()
+      write (6,*)'surfrd error: WTXY > 1 occured'
+      do nl = begg,endg
+        if ( nindx(nl) > -1 ) then
+          write (6,*) nl , sumvec(nl)
+          do m = 1 , maxpatch
+            write (6,*) m , wtxy(nl,m)
+          end do
+        end if
+      end do
+      call endrun()
     end if
 
     deallocate(sumvec,cft,pft)
@@ -3050,8 +3078,6 @@ contains
 !abt below
     deallocate(adj_wst,adj_pctpft)
 !abt above
-
-
   end subroutine surfrd_wtxy_veg_rank
 
 !-----------------------------------------------------------------------
@@ -3166,7 +3192,7 @@ contains
 
           do m = 1,numpft+1
              vegxy(nl,m)  = m-1
-             wtxy(nl,m) = pctpft(nl,m-1) / 100._r8
+             wtxy(nl,m) = pctpft(nl,m) /100.0_r8
           end do
 
 #if (defined CN)
@@ -3409,203 +3435,229 @@ contains
     character(len=32) :: subname = 'pft_adjustment'     ! subroutine name
 !-----------------------------------------------------------------------
 
-           pft_pctpft(nns,:) = 0._r8
-           pft_wst(:)        = 0._r8          
-           ipft = 0
+     pft_pctpft(nns,:) = 0._r8
+     pft_wst(:)        = 0._r8          
+     ipft = 0
           
-           nni = adecomp%gdc2i(nns)
-           nnj = adecomp%gdc2j(nns)
-           if(satbrt_clm(nni,nnj).lt.0.9 .or. satbrt_clm(nni,nnj).gt.20.1) then
-              write(*,*)"BATS landuse correction is not set properly :::: at nl = ",nns
-              write(*,*)"SATBRT   = ",satbrt_clm(nni,nnj)
-              write(*,*)"lat/lat  = ",nni,nnj
-              call endrun()
-           else
-              bats_lu = satbrt_clm(nni,nnj)
-           endif
-              
-            ! Desert/Tundra/semidesert from BATS equals no veg for CLM
-              if(bats_lu.eq.8 .or. bats_lu.eq.9 .or. bats_lu.eq.11) then
-                 pft_pctpft(nns,0) = 100._r8
-                 pft_wst_sum      = 100._r8
-                 pft_wst(0)       = 100._r8
-              endif
-            
-            ! Short/Tall grass from BATS equals grass for CLM
-              if(bats_lu.eq.2 .or. bats_lu.eq.7) then
-                 pft_pctpft(nns,14) = 100._r8
-                 pft_wst_sum       = 100._r8
-                 pft_wst(14)       = 100._r8  
-              endif
+     nni = adecomp%gdc2i(nns)
+     nnj = adecomp%gdc2j(nns)
+     if(satbrt_clm(nni,nnj).lt.0.9 .or. satbrt_clm(nni,nnj).gt.22.1) then
+       write(*,*)"BATS landuse correction is not set properly :::: at nl = ",nns
+       write(*,*)"SATBRT   = ",satbrt_clm(nni,nnj)
+       write(*,*)"lat/lat  = ",nni,nnj
+       call endrun()
+     else
+       bats_lu = satbrt_clm(nni,nnj)
+     endif
+       
+     pft_wst_sum = 100.0_r8 - pctspecB(nns)
 
-            ! Evergreen Needleleaf from BATS eq NeEvTemp and Boreal
-              if(bats_lu.eq.3) then
-                 if(domain%latc(nns).gt.47) then  !boreal
-                    pft_pctpft(nns,2)  = 100._r8
-                    pft_wst_sum       = 100._r8
-                    pft_wst(2)        = 100._r8
-                 else                             !temperate
-                    pft_pctpft(nns,1)  = 100._r8
-                    pft_wst_sum       = 100._r8
-                    pft_wst(1)        = 100._r8
-                 endif
-              endif
-           
-            ! Decidious Needleleaf from BATS eq NeDeBo
-              if(bats_lu.eq.4) then
-                pft_pctpft(nns,3)  = 100._r8
-                pft_wst_sum       = 100._r8
-                pft_wst(3)        = 100._r8
-              endif 
+     ! Desert/Tundra/semidesert from BATS equals no veg for CLM
+     if(bats_lu.eq.8 .or. bats_lu.eq.9 .or. bats_lu.eq.11) then
+       pft_pctpft(nns,0) = pft_wst_sum
+       pft_wst(0)        = pft_wst_sum
+     endif
+     
+     ! Short/Tall grass from BATS equals grass for CLM
+     if(bats_lu.eq.2 .or. bats_lu.eq.7) then
+       pft_pctpft(nns,14) = pft_wst_sum
+       pft_wst(14)        = pft_wst_sum
+     endif
 
-            ! Deciduous Broadleaf from BATS eq Broadleaf Deciduous tropical/temperate/boreal
-              if(bats_lu.eq.5) then
-                 if(domain%latc(nns).gt.47) then  !boreal
-                    pft_pctpft(nns,8)  = 100._r8
-                    pft_wst_sum       = 100._r8
-                    pft_wst(8)        = 100._r8
-                 elseif(domain%latc(nns).lt.15 .and. domain%latc(nns).gt.-15) then     !tropical
-                    pft_pctpft(nns,6)  = 100._r8
-                    pft_wst_sum       = 100._r8
-                    pft_wst(6)        = 100._r8
-                 else                              !temperate
-                    pft_pctpft(nns,7)  = 100._r8
-                    pft_wst_sum        = 100._r8
-                    pft_wst(7)         = 100._r8
-                 endif
-              endif
+     ! Evergreen Needleleaf from BATS eq NeEvTemp and Boreal
+     if(bats_lu.eq.3) then
+       if(domain%latc(nns).gt.47) then  !boreal
+         pft_pctpft(nns,2) = pft_wst_sum
+         pft_wst(2)        = pft_wst_sum
+       else                             !temperate
+         pft_pctpft(nns,1) = pft_wst_sum
+         pft_wst(1)        = pft_wst_sum
+       endif
+     endif
+    
+     ! Decidious Needleleaf from BATS eq NeDeBo
+     if(bats_lu.eq.4) then
+       pft_pctpft(nns,3) = pft_wst_sum
+       pft_wst(3)        = pft_wst_sum
+     endif 
 
-            ! Evergreen Broadleaf from BATS eq Broadleaf evergreen tropical/temperate
-              if(bats_lu.eq.6) then
-                 if(domain%latc(nns).lt.15 .and. domain%latc(nns).gt.-15) then     !tropical
-                    pft_pctpft(nns,4)  = 100._r8
-                    pft_wst_sum       = 100._r8
-                    pft_wst(4)        = 100._r8
-                 else                              !temperate
-                    pft_pctpft(nns,5)  = 100._r8
-                    pft_wst_sum        = 100._r8
-                    pft_wst(5)         = 100._r8
-                 endif
-              endif
-              
-            ! Evergreen Shrub from BATS eq Broadleaf Evergreen Shrub
-              if(bats_lu.eq.16) then
-                pft_pctpft(nns,9)  = 100._r8
-                pft_wst_sum       = 100._r8
-                pft_wst(9)        = 100._r8
-              endif
+     ! Deciduous Broadleaf from BATS eq Broadleaf Deciduous tropical/temperate/boreal
+     if(bats_lu.eq.5) then
+       if(domain%latc(nns).gt.47) then  !boreal
+         pft_pctpft(nns,8) = pft_wst_sum
+         pft_wst(8)        = pft_wst_sum
+       elseif(domain%latc(nns).lt.15 .and. &
+              domain%latc(nns).gt.-15) then     !tropical
+         pft_pctpft(nns,6) = pft_wst_sum
+         pft_wst(6)        = pft_wst_sum
+       else                              !temperate
+         pft_pctpft(nns,7)  = pft_wst_sum
+         pft_wst(7)         = pft_wst_sum
+       endif
+     endif
 
-            ! Deciduous Shrub from BATS eq Broadleaf Deciduous temperate/boreal shurbs
-              if(bats_lu.eq.17) then
-                 if(domain%latc(nns).gt.47) then  !boreal
-                    pft_pctpft(nns,11)  = 100._r8
-                    pft_wst_sum         = 100._r8
-                    pft_wst(11)         = 100._r8
-                 else                              !temperate
-                    pft_pctpft(nns,10)  = 100._r8
-                    pft_wst_sum         = 100._r8
-                    pft_wst(10)         = 100._r8
-                 endif
-              endif
+     ! Evergreen Broadleaf from BATS eq Broadleaf evergreen tropical/temperate
+     if(bats_lu.eq.6) then
+       if(domain%latc(nns).lt.15 .and. &
+          domain%latc(nns).gt.-15) then     !tropical
+         pft_pctpft(nns,4) = pft_wst_sum
+         pft_wst(4)        = pft_wst_sum
+       else                              !temperate
+         pft_pctpft(nns,5)  = pft_wst_sum
+         pft_wst(5)         = pft_wst_sum
+       endif
+     endif
+       
+     ! Evergreen Shrub from BATS eq Broadleaf Evergreen Shrub
+     if(bats_lu.eq.16) then
+       pft_pctpft(nns,9) = pft_wst_sum
+       pft_wst(9)        = pft_wst_sum
+     endif
 
-            ! Mixed forest from BATS eq some percent of needleleaf and broadleaf
-              if(bats_lu.eq.18) then
-                 if(domain%latc(nns).gt.47) then  !boreal
-                    pft_pctpft(nns,8)  = 50._r8
-                    pft_pctpft(nns,2)  = 25._r8
-                    pft_pctpft(nns,3)  = 25._r8
-                    pft_wst_sum        = 100._r8
-                    pft_wst(8)         = 50._r8
-                    pft_wst(2)         = 25._r8
-                    pft_wst(3)         = 25._r8
-                 elseif(domain%latc(nns).lt.15 .and. domain%latc(nns).gt.-15) then     !tropical
-                    pft_pctpft(nns,4)  = 50._r8
-                    pft_pctpft(nns,6)  = 50._r8
-                    pft_wst_sum        = 100._r8
-                    pft_wst(6)         = 50._r8
-                    pft_wst(4)         = 50._r8
-                 else                              !temperate
-                    pft_pctpft(nns,1)  = 33._r8
-                    pft_pctpft(nns,5)  = 33._r8
-                    pft_pctpft(nns,7)  = 34._r8
-                    pft_wst_sum        = 100._r8
-                    pft_wst(7)         = 34._r8
-                    pft_wst(5)         = 33._r8
-                    pft_wst(1)         = 33._r8
-                 endif
-              endif
+     ! Deciduous Shrub from BATS eq Broadleaf Deciduous temperate/boreal shurbs
+     if(bats_lu.eq.17) then
+       if(domain%latc(nns).gt.47) then  !boreal
+         pft_pctpft(nns,11)  = pft_wst_sum
+         pft_wst(11)         = pft_wst_sum
+       else                              !temperate
+         pft_pctpft(nns,10)  = pft_wst_sum
+         pft_wst(10)         = pft_wst_sum
+       endif
+     endif
 
-            ! Forest mosaic from BATS eq some forests and grass
-             if(bats_lu.eq.19) then
-                 if(domain%latc(nns).gt.47) then  !boreal
-                    pft_pctpft(nns,8)  = 18._r8
-                    pft_pctpft(nns,2)  = 16._r8
-                    pft_pctpft(nns,3)  = 16._r8
-                    pft_pctpft(nns,14) = 50._r8
-                    pft_wst_sum        = 100._r8
-                    pft_wst(8)         = 18._r8
-                    pft_wst(2)         = 16._r8
-                    pft_wst(3)         = 16._r8
-                    pft_wst(14)        = 50._r8
-                 elseif(domain%latc(nns).lt.15 .and. domain%latc(nns).gt.-15) then     !tropical
-                    pft_pctpft(nns,4)  = 25._r8
-                    pft_pctpft(nns,6)  = 25._r8
-                    pft_pctpft(nns,14) = 50._r8
-                    pft_wst_sum        = 100._r8
-                    pft_wst(6)         = 25._r8
-                    pft_wst(4)         = 25._r8
-                    pft_wst(14)        = 50._r8
-                 else                              !temperate
-                    pft_pctpft(nns,1)  = 16._r8
-                    pft_pctpft(nns,5)  = 16._r8
-                    pft_pctpft(nns,7)  = 18._r8
-                    pft_pctpft(nns,14) = 50._r8
-                    pft_wst_sum        = 100._r8
-                    pft_wst(7)         = 18._r8
-                    pft_wst(5)         = 16._r8
-                    pft_wst(1)         = 16._r8
-                    pft_wst(14)        = 50._r8
-                 endif
-              endif
+     ! Mixed forest from BATS eq some percent of needleleaf and broadleaf
+     if(bats_lu.eq.18) then
+       if(domain%latc(nns).gt.47) then  !boreal
+         pft_pctpft(nns,8)  = pft_wst_sum/2.0_r8
+         pft_pctpft(nns,2)  = pft_pctpft(nns,8)/2.0_r8
+         pft_pctpft(nns,3)  = pft_wst_sum - &
+           (pft_pctpft(nns,8) + pft_pctpft(nns,2))
+         pft_wst(8)         = pft_pctpft(nns,8)
+         pft_wst(2)         = pft_pctpft(nns,2)
+         pft_wst(3)         = pft_pctpft(nns,3)
+       elseif(domain%latc(nns).lt.15 .and. &
+              domain%latc(nns).gt.-15) then     !tropical
+         pft_pctpft(nns,4)  = pft_wst_sum/2.0_r8
+         pft_pctpft(nns,6)  = pft_wst_sum - pft_pctpft(nns,4)
+         pft_wst(4)         = pft_pctpft(nns,4)
+         pft_wst(6)         = pft_pctpft(nns,6)
+       else                              !temperate
+         pft_pctpft(nns,1)  = pft_wst_sum/3.0_r8
+         pft_pctpft(nns,5)  = pft_pctpft(nns,1)
+         pft_pctpft(nns,7)  = pft_wst_sum - &
+                       (pft_pctpft(nns,5)+pft_pctpft(nns,1))
+         pft_wst(7)         = pft_pctpft(nns,7)
+         pft_wst(5)         = pft_pctpft(nns,5)
+         pft_wst(1)         = pft_pctpft(nns,1)
+       endif
+     endif
 
-            ! Glacier from BATS equals glacier for CLM
-              if(bats_lu.eq.12) then
-                 pft_pctpft(nns,0)  = 100._r8
-                 pft_wst_sum        = 100._r8
-                 pft_wst(0)         = 100._r8
-                 pctspec(nns)   = 100._r8
-                 wtxy(nns,npatch_glacier) = 1._r8  
-              endif
+     ! Forest mosaic from BATS eq some forests and grass
+     if(bats_lu.eq.19) then
+       if(domain%latc(nns).gt.47) then  !boreal
+         pft_pctpft(nns,8)  = pft_wst_sum/6.0_r8
+         pft_pctpft(nns,2)  = pft_pctpft(nns,8)
+         pft_pctpft(nns,3)  = pft_pctpft(nns,2)
+         pft_pctpft(nns,14) = pft_wst_sum - &
+           (pft_pctpft(nns,8)+pft_pctpft(nns,2)+pft_pctpft(nns,3))
+         pft_wst(8)         = pft_pctpft(nns,8)
+         pft_wst(2)         = pft_pctpft(nns,2)
+         pft_wst(3)         = pft_pctpft(nns,3)
+         pft_wst(14)        = pft_pctpft(nns,14)
+       elseif(domain%latc(nns).lt.15 .and. domain%latc(nns).gt.-15) then     !tropical
+         pft_pctpft(nns,4)  = pft_wst_sum/4.0_r8
+         pft_pctpft(nns,6)  = pft_pctpft(nns,4)
+         pft_pctpft(nns,14) = pft_wst_sum - &
+            (pft_pctpft(nns,4) + pft_pctpft(nns,6))
+         pft_wst(4)         = pft_pctpft(nns,4)
+         pft_wst(6)         = pft_pctpft(nns,6)
+         pft_wst(14)        = pft_pctpft(nns,14)
+       else                              !temperate
+         pft_pctpft(nns,1)  = pft_wst_sum/6.0_r8
+         pft_pctpft(nns,5)  = pft_pctpft(nns,1)
+         pft_pctpft(nns,7)  = pft_pctpft(nns,5)
+         pft_pctpft(nns,14) = pft_wst_sum - &
+           (pft_pctpft(nns,1) + pft_pctpft(nns,5) + pft_pctpft(nns,7))
+         pft_wst(1)         = pft_pctpft(nns,1)
+         pft_wst(5)         = pft_pctpft(nns,5)
+         pft_wst(7)         = pft_pctpft(nns,7)
+         pft_wst(14)        = pft_pctpft(nns,14)
+      endif
+    endif
 
-            ! Wetland from BATS equals wetland for CLM
-              if(bats_lu.eq.13) then
-                 pft_pctpft(nns,0)  = 100._r8
-                 pft_wst_sum        = 100._r8
-                 pft_wst(0)         = 100._r8
-                 pctspec(nns)   = 100._r8
-                 wtxy(nns,npatch_wet) = 1._r8  
-              endif
+    ! Crop/irrigated from BATS eq half corn and wheat mix
+    if(bats_lu.eq.1 .or. bats_lu.eq.10) then
+      pft_pctpft(nns,15)  = pft_wst_sum/2.0_r8
+      pft_pctpft(nns,16)  = pft_wst_sum - pft_pctpft(nns,15)
+      pft_wst(15)         = pft_pctpft(nns,15)
+      pft_wst(16)         = pft_pctpft(nns,16)
+    endif           
 
-            ! Bare ground for any other landtype 
-             if(bats_lu.eq.14 .or. bats_lu.eq.15 .or. bats_lu.eq.20) then
-                 pft_pctpft(nns,0)  = 100._r8
-                 pft_wst_sum        = 100._r8
-                 pft_wst(0)         = 100._r8
-              endif
+    ! Lake from BATS equals lake for CLM
+    if(bats_lu.eq.14) then
+      pft_wst_sum        = 100._r8
+      pft_pctpft(nns,0)  = 100.0_r8
+      pft_wst(0)         = 100.0_r8
+      pctspec(nns)       = 100._r8
+      pctspecB(nns)      = 100._r8
+      wtxy(nns,npatch_lake) = 1.0_r8  
+      wtxy(nns,npatch_glacier) = 0.0_r8  
+      wtxy(nns,npatch_wet) = 0.0_r8  
+      wtxy(nns,npatch_urban) = 0.0_r8  
+    endif
 
-            ! Crop/irrigated from BATS eq half corn and wheat mix
-              if(bats_lu.eq.1 .or. bats_lu.eq.10) then
-                 pft_pctpft(nns,15)  = 50._r8
-                 pft_pctpft(nns,16)  = 50._r8
-                 pft_wst_sum         = 100._r8
-                 pft_wst(16)         = 50._r8
-                 pft_wst(15)         = 50._r8
-              endif           
+    ! Glacier from BATS equals glacier for CLM
+    if(bats_lu.eq.12) then
+      pft_wst_sum        = 100._r8
+      pft_pctpft(nns,0)  = 100.0_r8
+      pft_wst(0)         = 100.0_r8
+      pctspec(nns)       = 100._r8
+      pctspecB(nns)      = 100._r8
+      wtxy(nns,npatch_glacier) = 1.0_r8  
+      wtxy(nns,npatch_lake) = 0.0_r8  
+      wtxy(nns,npatch_wet) = 0.0_r8  
+      wtxy(nns,npatch_urban) = 0.0_r8  
+    endif
 
+    ! Wetland from BATS equals wetland for CLM
+    if(bats_lu.eq.13) then
+      pft_wst_sum        = 100._r8
+      pft_pctpft(nns,0)  = 100.0_r8
+      pft_wst(0)         = 100.0_r8
+      pctspec(nns)       = 100._r8
+      pctspecB(nns)      = 100._r8
+      wtxy(nns,npatch_wet) = 1.0_r8  
+      wtxy(nns,npatch_glacier) = 0.0_r8  
+      wtxy(nns,npatch_lake) = 0.0_r8  
+      wtxy(nns,npatch_urban) = 0.0_r8  
+    endif
+
+    ! Urban/Semi Urban from BATS equals urban for CLM
+    if(bats_lu.gt.20) then
+      pft_wst_sum        = 100._r8
+      pft_pctpft(nns,0)  = 100.0_r8
+      pft_wst(0)         = 100.0_r8
+      pctspec(nns)       = 100._r8
+      pctspecB(nns)      = 100._r8
+      wtxy(nns,npatch_urban) = 1.0_r8  
+      wtxy(nns,npatch_wet) = 0.0_r8  
+      wtxy(nns,npatch_glacier) = 0.0_r8  
+      wtxy(nns,npatch_lake) = 0.0_r8  
+    endif
+
+    ! Bare ground for any other landtype 
+    if(bats_lu.eq.15 .or. bats_lu.eq.20) then
+      pft_wst_sum        = 100._r8
+      pft_pctpft(nns,0)  = 100._r8
+      pft_wst(0)         = 100._r8
+      wtxy(nns,npatch_wet)     = 0.0_r8
+      wtxy(nns,npatch_urban)   = 0.0_r8
+      wtxy(nns,npatch_lake)    = 0.0_r8
+      wtxy(nns,npatch_glacier) = 0.0_r8
+    endif
 
   end subroutine pft_adjustment
-
-
+!
 !-----------------------------------------------------------------------
 !BOP
 !
