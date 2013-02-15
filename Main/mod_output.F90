@@ -191,8 +191,6 @@ module mod_output
         if ( associated(atm_kzm_out) ) &
           atm_kzm_out = uwstateb%kzm(jci1:jci2,ici1:ici2,1:kz)
 
-        ps_out = d_10*(ps_out+ptop)
-
         if ( associated(atm_tpr_out) ) &
           atm_tpr_out = (sfs%rainc+sfs%rainnc)*rsecpd
         if ( associated(atm_tgb_out) ) &
@@ -254,9 +252,13 @@ module mod_output
           end do
           tdiag%lsc = d_zero 
         end if  
+    
+        ps_out = d_10*(ps_out+ptop)
+
         call write_record_output_stream(atm_stream,idatex)
         if ( myid == italk ) &
           write(stdout,*) 'ATM variables written at ' , tochar(idatex)
+
         atm_tgb_out = d_zero
         atm_tsw_out = d_zero
         sfs%rainc   = d_zero

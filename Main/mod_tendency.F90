@@ -599,6 +599,8 @@ module mod_tendency
       ! save the h diff diag here
       tdiag%dif(jci1:jci2,ici1:ici2,:) = tdiag%dif(jci1:jci2,ici1:ici2,:) + &
         (adf%difft - ten0(jci1:jci2,ici1:ici2,:)) * afdout
+      ! reset ten0 to aten%t 
+      ten0 = aten%t
     end if
     !
     ! compute the moisture tendencies for convection
@@ -846,6 +848,7 @@ module mod_tendency
     if ( idiag > 0 ) then
       tdiag%tbl(jci1:jci2,ici1:ici2,:) = tdiag%tbl(jci1:jci2,ici1:ici2,:) + &
                      (adf%difft - ten0(jci1:jci2,ici1:ici2,:)) * afdout    
+      ten0 = aten%t 
     end if
 #ifdef DEBUG
     call check_temperature_tendency('PBLL')
