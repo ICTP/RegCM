@@ -693,7 +693,6 @@ module mod_tendency
           call vadv(aten%qx,atm1%qx,kz,2,iqc)
         end if
       end if
-#ifdef DEBUG
       if ( enable_newmicro ) then
         call cldfrac
         call microphys(omega,jci1,jci2,ici1,ici2)
@@ -702,7 +701,6 @@ module mod_tendency
         call pcp
         call cldfrac
       end if
-#endif
       ! 
       ! compute the diffusion terms:
       ! the diffusion term for qx is stored in diffqx.
