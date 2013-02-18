@@ -447,6 +447,33 @@ module mod_ncstream
         attc%theval = 'GeoX GeoY'
         call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
       end if
+      if ( stream%l_has2mlev ) then
+        stvar%lev2m_var%vname = 'm2'
+        stvar%lev2m_var%vunit = 'm'
+        stvar%lev2m_var%axis = '2'
+        stvar%lev2m_var%long_name = 'Height level'
+        stvar%lev2m_var%standard_name = 'height'
+        stvar%lev2m_var%lrecords = .false.
+        call outstream_addvar(ncout,stvar%lev2m_var)
+      end if
+      if ( stream%l_has10mlev ) then
+        stvar%lev10m_var%vname = 'm10'
+        stvar%lev10m_var%vunit = 'm'
+        stvar%lev10m_var%axis = 'w'
+        stvar%lev10m_var%long_name = 'Height level'
+        stvar%lev10m_var%standard_name = 'height'
+        stvar%lev10m_var%lrecords = .false.
+        call outstream_addvar(ncout,stvar%lev10m_var)
+      end if
+      if ( stream%l_hassoillev ) then
+        stvar%levsoil_var%vname = 'soil_layer'
+        stvar%levsoil_var%vunit = 'm'
+        stvar%levsoil_var%axis = 's'
+        stvar%levsoil_var%long_name = 'Soil layer levels'
+        stvar%levsoil_var%standard_name = 'root_depth'
+        stvar%levsoil_var%lrecords = .false.
+        call outstream_addvar(ncout,stvar%levsoil_var)
+      end if
       ncstat = nf90_enddef(stream%id)
       if ( ncstat /= nf90_noerr ) then
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -511,6 +538,19 @@ module mod_ncstream
       call outstream_writevar(ncout,stvar%sigma_var,nocopy)
       stvar%ptop_var%rval(1) = real(ptop*10.0D0)
       call outstream_writevar(ncout,stvar%ptop_var)
+      if ( stream%l_has2mlev ) then
+        buffer%realbuff(1) = 2.0D0
+        call outstream_writevar(ncout,stvar%lev2m_var,nocopy)
+      end if
+      if ( stream%l_has10mlev ) then
+        buffer%realbuff(1) = 10.0D0
+        call outstream_writevar(ncout,stvar%lev10m_var,nocopy)
+      end if
+      if ( stream%l_hassoillev ) then
+        buffer%realbuff(1) = 0.10D0
+        buffer%realbuff(2) = 1.00D0
+        call outstream_writevar(ncout,stvar%levsoil_var,nocopy)
+      end if
     end subroutine outstream_enable
 
     subroutine outstream_sync(stream)
@@ -639,14 +679,17 @@ module mod_ncstream
           num = 1
           the_name = 'm2'
           pdim = h2m_level_dim
+          stream%l_has2mlev = .true.
         case ('10M','10m','lev10m','10mlev','lev_10m')
           num = 1
           the_name = 'm10'
           pdim = h10m_level_dim
+          stream%l_has10mlev = .true.
         case ('NSOIL','nsoil','n_soil_layer','nlay','layers')
           num = 2
           the_name = 'soil_layer'
           pdim = soil_layer_dim
+          stream%l_hassoillev = .true.
         case ('DPTH','dpth','NDEPTH','ndepth','depth','DEPTH')
           num = ndpmax
           the_name = 'depth'

@@ -161,6 +161,9 @@ module mod_ncstream_types
     logical :: l_hastbound = .false.
     logical :: l_hasgrid = .false.
     logical :: l_enabled = .false.
+    logical :: l_has2mlev = .false.
+    logical :: l_has10mlev = .false.
+    logical :: l_hassoillev = .false.
     !
     ! Dimension identifiers for 'coded' dimensions
     !
@@ -334,6 +337,9 @@ module mod_ncstream_types
     type(ncvariable1d_real) :: jx_var
     type(ncvariable1d_real) :: iy_var
     type(ncvariable0d_char) :: map_var
+    type(ncvariable1d_real) :: lev2m_var
+    type(ncvariable1d_real) :: lev10m_var
+    type(ncvariable1d_real) :: levsoil_var
   end type basic_variables
 
   type basic_variables_p
