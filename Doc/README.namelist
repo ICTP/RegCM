@@ -242,7 +242,7 @@
                         !   1 => Hydrostatic deduction with pert. temperature
  iemiss  =          0,  ! Calculate emission
  lakemod =          0,  ! Use lake model
- ichem   =          1,  ! Use active aerosol chemical model
+ ichem   =          0,  ! Use active aerosol chemical model
  scenario =      'A1B', ! IPCC Scenario to use in A1B,RF,A2,B1,B2
                         ! RCP Scenario in RCP3PD,RCP4.5,RCP6,RCP8.5
  idcsst   =          0, ! Use diurnal cycle sst scheme
