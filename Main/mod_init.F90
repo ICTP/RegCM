@@ -422,11 +422,11 @@ module mod_init
                 sfice(n,j,i) = d_10
               end do
             else if ( ts1(j,i) > icetemp .and. ldmsk(j,i) == 2 ) then
+              sfs%tga(j,i) = ts1(j,i)
+              sfs%tgb(j,i) = ts1(j,i)
               ! Decrease the surface ice to melt it
               do n = 1, nnsg
                 sfice(n,j,i) = sfice(n,j,i)*d_r10
-                sfs%tga(j,i) = sfs%tga(j,i) + d_one
-                sfs%tgb(j,i) = sfs%tgb(j,i) + d_one
               end do
             end if
           end if

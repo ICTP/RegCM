@@ -520,11 +520,10 @@ module mod_bdycod
               end do
             else if ( ts1(j,i) > icetemp .and. ldmsk(j,i) == 2 ) then
               ! Decrease the surface ice to melt it
+              sfs%tga(j,i) = ts1(j,i)
+              sfs%tgb(j,i) = ts1(j,i)
               do n = 1, nnsg
                 sfice(n,j,i) = sfice(n,j,i)*d_r10
-                ! Give a little boost on temp
-                sfs%tga(j,i) = sfs%tga(j,i) + d_one
-                sfs%tgb(j,i) = sfs%tgb(j,i) + d_one
               end do
             end if
           end if
