@@ -157,10 +157,10 @@ module mod_advection
 #endif
     end subroutine hadv3d
 !
-    subroutine hadv4d(ften,f,nk,m)
+    subroutine hadv4d(ften,f,nk,m,p)
       implicit none
       integer(ik4) , intent (in) :: nk
-      integer(ik4) , optional , intent (in) :: m
+      integer(ik4) , optional , intent (in) :: m , p
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 !
@@ -171,8 +171,13 @@ module mod_advection
       call time_begin(subroutine_name,idindx)
 #endif
       if ( present(m) ) then
-        n1 = m
-        n2 = m
+        if ( present(p) ) then
+          n1 = m
+          n2 = p
+        else
+          n1 = m
+          n2 = m
+        end if
       else
         n1 = lbound(f,4)
         n2 = ubound(f,4)
@@ -392,10 +397,10 @@ module mod_advection
 #endif
     end subroutine vadv3d
 !
-    subroutine vadv4d(ften,f,nk,ind,m)
+    subroutine vadv4d(ften,f,nk,ind,m,p)
       implicit none
       integer(ik4) , intent(in) :: ind , nk
-      integer(ik4) , optional , intent(in) :: m
+      integer(ik4) , optional , intent(in) :: m , p
       real(rk8) , pointer , intent (in) , dimension(:,:,:,:) :: f
       real(rk8) , pointer , intent (inout), dimension(:,:,:,:) :: ften
 !
@@ -406,9 +411,14 @@ module mod_advection
       integer(ik4) , save :: idindx = 0
       call time_begin(subroutine_name,idindx)
 #endif
-      if (present(m) ) then
-        n1 = m
-        n2 = m
+      if ( present(m) ) then
+        if ( present(p) ) then
+          n1 = m
+          n2 = p
+        else
+          n1 = m
+          n2 = m
+        end if
       else
         n1 = lbound(f,4)
         n2 = ubound(f,4)

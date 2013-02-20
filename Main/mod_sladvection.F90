@@ -373,11 +373,11 @@ module mod_sladvection
 #endif
   end subroutine slhadv_x3d
 
-  subroutine slhadv_x4d(ften,var,m)
+  subroutine slhadv_x4d(ften,var,m,p)
     implicit none
     real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
     real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: var
-    integer(ik4) , optional , intent(in) :: m
+    integer(ik4) , optional , intent(in) :: m , p
     real(rk8) :: tbadp , tbmax , tbmin , tsla , bl1 , bl2 , cb1 , cb2
     integer(ik4) :: i , j , k , n , n1 , n2
 #ifdef DEBUG
@@ -386,8 +386,13 @@ module mod_sladvection
     call time_begin(subroutine_name,idindx)
 #endif
     if ( present(m) ) then
-      n1 = m
-      n2 = m
+      if ( present(p) ) then
+        n1 = m
+        n2 = p
+      else
+        n1 = m
+        n2 = m
+      end if
     else
       n1 = lbound(var,4)
       n2 = ubound(var,4)
@@ -557,11 +562,11 @@ module mod_sladvection
 #endif
   end subroutine hdvg_x3d
 
-  subroutine hdvg_x4d(ften,var,m)
+  subroutine hdvg_x4d(ften,var,m,p)
     implicit none
     real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
     real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: var
-    integer(ik4) , optional , intent(in) :: m
+    integer(ik4) , optional , intent(in) :: m , p
     real(rk8) :: ucapf_x, ucapi_x , vcapf_x , vcapi_x
     real(rk8) :: ducapdx , dvcapdy , hdvg , tatotdvtrm
     integer(ik4) :: i , j , k , n , n1 , n2
@@ -571,8 +576,13 @@ module mod_sladvection
     call time_begin(subroutine_name,idindx)
 #endif
     if ( present(m) ) then
-      n1 = m
-      n2 = m
+      if ( present(p) ) then
+        n1 = m
+        n2 = p
+      else
+        n1 = m
+        n2 = m
+      end if
     else
       n1 = lbound(var,4)
       n2 = ubound(var,4)
