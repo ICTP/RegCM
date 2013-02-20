@@ -34,6 +34,14 @@ module mod_sst_ersst
 
   public :: sst_ersst
 
+  integer(ik4) :: ilon , jlat
+  integer(ik4) , parameter :: idtbc = 6
+  real(rk8) , pointer , dimension(:,:) :: sst
+  real(rk8) , pointer , dimension(:) :: lati
+  real(rk8) , pointer , dimension(:) :: loni
+  integer(2) , pointer , dimension(:,:) :: work
+
+  integer(ik4) :: inet
   contains
 
   subroutine sst_ersst
@@ -54,19 +62,13 @@ module mod_sst_ersst
 
   implicit none
 !
-  integer(ik4) :: ilon , jlat
-  integer(ik4) , parameter :: idtbc = 6
-!
   integer(ik4) :: it
-  integer(ik4) :: istatus , inet
+  integer(ik4) :: istatus
   integer(ik4) :: year , month , day , hour , isyear
   integer(ik4) :: dimi , vari
-  real(rk8) , pointer , dimension(:) :: lati
-  real(rk8) , pointer , dimension(:) :: loni
   integer(ik4) :: ierrec , nsteps
   type(rcm_time_and_date) :: idate , ierastart
   type(rcm_time_interval) :: tdiff , itbc
-  real(rk8) , pointer , dimension(:,:) :: sst
   character(len=256) :: inpfile
   logical :: lfirst
 
@@ -134,6 +136,7 @@ module mod_sst_ersst
   call getmem1d(loni,1,ilon,'sst_ersst:loni')
   call getmem1d(lati,1,jlat,'sst_ersst:lati')
   call getmem2d(sst,1,ilon,1,jlat,'sst_ersst:sst')
+  call getmem2d(work,1,ilon,1,jlat,'sst_ersst:work')
 
   istatus = nf90_inq_varid(inet,'longitude',vari)
   call checkncerr(istatus,__FILE__,__LINE__,'Error find lon var')
@@ -184,9 +187,9 @@ module mod_sst_ersst
     ierrec = idnint(tohours(tdiff))/idtbc+1
 
     if ( ssttyp == 'ERSST' ) then
-      call sst_erain(ierrec,ilon,jlat,sst,inet,lfirst,1)
+      call sst_erain(ierrec,lfirst,1)
     else if ( ssttyp == 'ERSKT' ) then
-      call sst_erain(ierrec,ilon,jlat,sst,inet,lfirst,2)
+      call sst_erain(ierrec,lfirst,2)
     end if
 
     call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
@@ -194,7 +197,7 @@ module mod_sst_ersst
  
     ! WRITE OUT SST DATA ON REGCM GRID
     call writerec(idate)
-    write(stdout,*) 'WRITING OUT MM4 SST DATA:' , tochar(idate)
+    write(stdout,*) 'WRITING OUT SST DATA:' , tochar(idate)
 
     idate = idate + itbc
   end do
@@ -203,17 +206,15 @@ module mod_sst_ersst
 !
 !-----------------------------------------------------------------------
 !
-  subroutine sst_erain(it,ilon,jlat,sst,inet,lfirst,itype)
+  subroutine sst_erain(it,lfirst,itype)
     use netcdf
     implicit none
 !
-    integer(ik4) , intent(in) :: it , ilon , jlat , inet , itype
+    integer(ik4) , intent(in) :: it , itype
     logical , intent(inout) :: lfirst
-    real(rk8) , dimension(ilon,jlat) ,intent(out) :: sst
 !
     integer(ik4) :: i , j
     character(len=4) , dimension(2) :: varname
-    integer(2) , dimension(ilon,jlat) :: work
     integer(ik4) :: istatus
 !
     integer(ik4) , save :: ivar
@@ -261,10 +262,13 @@ module mod_sst_ersst
     do j = 1 , jlat
       do i = 1 , ilon
         if (work(i,j) /= xmiss) then
-          sst(i,j) = real(dble(work(i,j))*xscale + xadd)
+          sst(i,j) = dble(work(i,j))*xscale + xadd
+          ! Respect convention for ice
+          if ( sst(i,j) < 271.5D0 ) sst(i,j) = 271.0D0
         else
-          sst(i,j) = -9999.0
+          sst(i,j) = -9999.0D0
         end if
+        ! Respect convention on seaice
       end do
     end do
 !

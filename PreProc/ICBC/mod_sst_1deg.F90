@@ -189,7 +189,6 @@ module mod_sst_1deg
         end do
       end do
  
-!         ******           WRITE OUT SST DATA ON MM4 GRID
       call writerec(idate)
 
       write (stdout,*) 'WRITTEN OUT SST DATA : ' , tochar(idate)
@@ -239,7 +238,6 @@ module mod_sst_1deg
         end do
       end do
  
-!         ******           WRITE OUT SST DATA ON MM4 GRID
       call writerec(idate)
 
       write (stdout,*) 'WRITTEN OUT SST DATA : ' , tochar(idate)
