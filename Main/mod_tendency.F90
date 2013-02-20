@@ -104,8 +104,9 @@ module mod_tendency
                psasum , pt2bar , pt2tot , ptnbar , maxv , lowq ,     &
                ptntot , qxas , qxbs , rovcpm , rtbar , sigpsa , tv , &
                tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,     &
-               xmsf , xtm1 , theta , eccf
-    integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
+               xmsf , xtm1 , theta , eccf 
+    integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk ,       & 
+                  iconvec , iqfrst , iqlst
     logical :: loutrad , labsem
     character (len=32) :: appdat
 #ifdef DEBUG
@@ -678,25 +679,34 @@ module mod_tendency
     ! Large scale precipitation
     !
     if ( ipptls == 1 ) then
-      if ( isladvec == 1 ) then
-        call slhadv_x(aten%qx,atm2%qx,iqc)
-        call hdvg_x(aten%qx,atm1%qx,iqc)
+      if ( enable_newmicro ) then 
+        iqfrst = iqc
+        iqlst = iqi
       else
-        call hadv(aten%qx,atmx%qx,kz,iqc)
+        iqfrst = iqc
+        iqlst = iqc
+      end if
+      if ( isladvec == 1 ) then
+        call slhadv_x(aten%qx,atm2%qx,iqfrst,iqlst)
+        call hdvg_x(aten%qx,atm1%qx,iqfrst,iqlst)
+      else
+        call hadv(aten%qx,atmx%qx,kz,iqfrst,iqlst)
       end if
       if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
-        call vadv(aten%qx,atm1%qx,kz,2,iqc)
+        call vadv(aten%qx,atm1%qx,kz,2,iqfrst,iqlst)
       else
         if ( iuwvadv == 1 ) then
-          call vadv(aten%qx,atm1%qx,kz,3,iqc)
+          call vadv(aten%qx,atm1%qx,kz,3,iqfrst,iqlst)
         else
-          call vadv(aten%qx,atm1%qx,kz,2,iqc)
+          call vadv(aten%qx,atm1%qx,kz,2,iqfrst,iqlst)
         end if
       end if
       if ( enable_newmicro ) then
+#ifdef DEBUG
         call cldfrac
         call microphys(omega,jci1,jci2,ici1,ici2)
         !call grid_nc_write(qqxp)
+#endif
       else  
         call pcp
         call cldfrac
