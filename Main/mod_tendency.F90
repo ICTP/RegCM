@@ -105,8 +105,7 @@ module mod_tendency
                ptntot , qxas , qxbs , rovcpm , rtbar , sigpsa , tv , &
                tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,     &
                xmsf , xtm1 , theta , eccf 
-    integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk ,       & 
-                  iconvec , iqfrst , iqlst
+    integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
 #ifdef DEBUG
@@ -679,13 +678,6 @@ module mod_tendency
     ! Large scale precipitation
     !
     if ( ipptls == 1 ) then
-      if ( enable_newmicro ) then 
-        iqfrst = iqc
-        iqlst = iqi
-      else
-        iqfrst = iqc
-        iqlst = iqc
-      end if
       if ( isladvec == 1 ) then
         call slhadv_x(aten%qx,atm2%qx,iqfrst,iqlst)
         call hdvg_x(aten%qx,atm1%qx,iqfrst,iqlst)

@@ -479,8 +479,12 @@ module mod_params
 !
   if ( enable_newmicro ) then
     nqx = 5
+    iqfrst = iqc
+    iqlst = iqi
   else
     nqx = 2
+    iqfrst = iqc
+    iqlst = iqc
   end if
 
 #ifdef CLM

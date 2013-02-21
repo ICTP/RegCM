@@ -29,7 +29,7 @@ module mod_runparams
 
   logical , public :: enable_newmicro = .false.
 
-  integer(ik4) , public :: nqx
+  integer(ik4) , public :: nqx , iqfrst , iqlst
   integer(ik4) , public , parameter :: iqv = 1
   integer(ik4) , public , parameter :: iqc = 2
   integer(ik4) , public , parameter :: iqr = 3
