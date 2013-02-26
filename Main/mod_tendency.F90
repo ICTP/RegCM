@@ -1459,7 +1459,7 @@ module mod_tendency
     !
     ! do cumulus transport/mixing  of tracers (grell
     !
-    if ( ichem == 1 .and. ichcumtra == 1 .and. icup /= 5 )  call cumtran
+    if ( ichem == 1 .and. ichcumtra == 1 .and. ( icup  <= 3 .or. icup >=98) )  call cumtran
     !
     ! Print out noise parameter
     !
