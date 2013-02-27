@@ -51,13 +51,10 @@ module mod_cu_em
 ! **********************************************
 !
   subroutine cupemandrv(ktau)
-! 
     implicit none
-!
     integer(ik8) , intent(in) :: ktau
 !
-!    integer(ik4) , parameter :: ntra = 0
-    integer(ik4):: ntra
+    integer(ik4) :: ntra
     real(rk8) :: cbmf , pret , qprime , tprime , wd , prainx
     real(rk8) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
                                 qscup , tcup , ucup , vcup
@@ -90,10 +87,10 @@ module mod_cu_em
           pcup(k) = pas(j,i,kk)*d_10                    ! [hPa]
         end do
         if (ichem == 1 ) then 
-         do k=1, kz       
-           kk = kzp1 - k
-           tra(k,:) = chias(j,i,kk,:)                   ! [kg/kg]
-         end do
+          do k=1, kz       
+            kk = kzp1 - k
+            tra(k,:) = chias(j,i,kk,:)                  ! [kg/kg]
+          end do
         end if
         do k = 1 , kzp1
           kk = kzp1 - k + 1
@@ -131,19 +128,20 @@ module mod_cu_em
             uten(j,i,kk) = fu(k)*sfcps(j,i) + uten(j,i,kk)
             vten(j,i,kk) = fv(k)*sfcps(j,i) + vten(j,i,kk)
           end do
-          ! tracer tendency
+
+          ! Tracer tendency
           if (ichem ==1 ) then
-           do k = 1 , kz
-            kk = kzp1 - k
-            tchiten(j,i,kk,:) = ftra(k,:) *  sfcps(j,i) 
-           end do 
+            do k = 1 , kz
+              kk = kzp1 - k
+              tchiten(j,i,kk,:) = ftra(k,:) * sfcps(j,i) 
+            end do 
           end if
 
           ! The order top/bottom for regcm is reversed.
           icumtop(j,i) = kzp1 - ktop
           icumbot(j,i) = kzp1 - kbase
 
-          ! build for chemistry 3d table of constant precipitation rate
+          ! Build for chemistry 3d table of constant precipitation rate
           ! from the surface to the top of the convection
           if ( ichem == 1 ) then
             do k = 1 , ktop-1

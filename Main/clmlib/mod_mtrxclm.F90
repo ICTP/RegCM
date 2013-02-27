@@ -638,8 +638,9 @@ module mod_mtrxclm
           jc = jc + 1
         end do
         ic = ic + c2rngc(icpu)*nout
-        if ( ichem == 1 .and. cgaschem == 1 ) &
+        if ( ichem == 1 .and. cgaschem == 1 ) then
           idep = idep + c2rngc(icpu)*n_drydep
+        end if
       end do
 
       call interf(1,ktau)

@@ -1457,9 +1457,10 @@ module mod_tendency
       dtcb = dt*dt*dt
     end if
     !
-    ! do cumulus transport/mixing  of tracers (grell
+    ! do cumulus transport/mixing  of tracers for the schemes allowing it
     !
-    if ( ichem == 1 .and. ichcumtra == 1 .and. ( icup  <= 3 .or. icup >=98) )  call cumtran
+    if ( ichem == 1 .and. ichcumtra == 1 .and. &
+         ( icup <= 3 .or. icup >= 98 ) )  call cumtran
     !
     ! Print out noise parameter
     !
