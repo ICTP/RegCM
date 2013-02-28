@@ -81,6 +81,7 @@ program clm2rcm
   integer(ik4) :: ipathdiv , ierr , npatch
   integer(ik4) :: i , iz , it , j , k , l , ipnt
   integer(ik4) :: jotyp , idin , idout , ifield , ifld , imap
+  integer(ik4) :: idimid , ivarid
   character(len=256) :: namelistfile , prgname
   character(len=256) :: inpfile , terfile , checkfile
   character(len=256) :: outfil_nc
@@ -194,6 +195,56 @@ program clm2rcm
 !       **   Some files have more than one required variable. 
 !       Therefore, **   the output file should only be opened once.
     inpfile = trim(inpglob)//infil(ifld)
+    write(stdout,*) 'OPENING Input NetCDF FILE: ' , trim(inpfile)
+    istatus = nf90_open(inpfile,nf90_nowrite,idin)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+      'Cannot open file '//trim(inpfile))
+    istatus = nf90_inq_dimid(idin,'lat',idimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+      'Cannot find dimension lat in file '//trim(inpfile))
+    istatus = nf90_inquire_dimension(idin,idimid,len=nlat(ifld))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+      'Cannot read dimension lat in file '//trim(inpfile))
+    call getmem1d(glat,1,nlat(ifld),'clm2rcm:glat')
+    istatus = nf90_inq_varid(idin,'lat',ivarid)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_varid(idin,'LAT',ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+        'Cannot find variable lat/LAT in file '//trim(inpfile))
+    end if
+    istatus = nf90_get_var(idin,ivarid,glat)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+      'Cannot read variable lat in file '//trim(inpfile))
+
+    istatus = nf90_inq_dimid(idin,'lon',idimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+      'Cannot find dimension lon in file '//trim(inpfile))
+    istatus = nf90_inquire_dimension(idin,idimid,len=nlon(ifld))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+      'Cannot read dimension lon in file '//trim(inpfile))
+    call getmem1d(glon,1,nlon(ifld),'clm2rcm:glat')
+    istatus = nf90_inq_varid(idin,'lon',ivarid)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_varid(idin,'LON',ivarid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+        'Cannot find variable lon in file '//trim(inpfile))
+    end if
+    istatus = nf90_get_var(idin,ivarid,glon)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+      'Cannot read variable lon in file '//trim(inpfile))
+    glon1(ifld) = glon(1)
+    if ( glon1(ifld) >  180.0 ) glon1(ifld) = glon1(ifld) - 360.0
+    if ( glon1(ifld) < -180.0 ) glon1(ifld) = glon1(ifld) + 360.0
+    glon2(ifld) = glon(nlon(ifld))
+    if ( glon2(ifld) >  180.0 ) glon2(ifld) = glon2(ifld) - 360.0
+    if ( glon2(ifld) < -180.0 ) glon2(ifld) = glon2(ifld) + 360.0
+    glat1(ifld) = glat(1)
+    glat2(ifld) = glat(nlat(ifld))
+
+    ! ATTENTION : ASSUME REGULAR LATLON GRID HERE !!!
+    dlon(ifld) = (glon(2) - glon(1))
+    dlat(ifld) = (glat(2) - glat(1))
+
     if ( ifld==ipft .or. ifld==ilai .or. ifld==ilak .or.   &
          ifld==iglc .or. ifld==iurb .or. ifld==isnd .or.   &
          ifld==icol .or. ifld==ioro .or. ifld==iiso .or.   &
@@ -201,10 +252,6 @@ program clm2rcm
          ifld==iapin ) then
 !         ************************ CHANGED LINE ABOVE to include iiso
 !         ************************
-      write(stdout,*) 'OPENING Input NetCDF FILE: ' , trim(inpfile)
-      ierr = nf90_open(inpfile,nf90_nowrite,idin)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-        'Cannot open file '//trim(inpfile))
       ipathdiv = scan(inpfile, pthsep, .true.)
       if ( ipathdiv/=0 ) then
         outfil_nc = trim(dirglob)//pthsep//trim(domname)//  &
@@ -215,6 +262,7 @@ program clm2rcm
       endif
       write(stdout,*) 'OPENING Output NetCDF FILE: ',trim(outfil_nc)
       call rcrecdf(outfil_nc,idout,varmin,varmax,3,ierr)
+
     end if
  
 !   ** Setup RegCM3 grid variables
@@ -223,13 +271,11 @@ program clm2rcm
                iadim,ndim)
  
 !   ** Setup CLM3 grid variables, including subgrid region
-    call getmem1d(glon,1,nlon(ifld),'clm2rcm:glon')
-    call getmem1d(glat,1,nlat(ifld),'clm2rcm:glat')
  
     call clm3grid1(nlon(ifld),nlat(ifld),nlev(ifld),ntim(ifld),     &
                    glon1(ifld),glon2(ifld),glat1(ifld),glat2(ifld), &
-                   xlonmin,xlonmax,xlatmin,xlatmax,glon,glat,istart,&
-                   icount)
+                   dlat(ifld),dlon(ifld),xlonmin,xlonmax,xlatmin,xlatmax, &
+                   istart,icount)
  
     if ( ifld==isnd .or. ifld==icly ) then
       istart(4) = 1

@@ -25,59 +25,29 @@ module mod_clm3grid
 
   contains
 
-  subroutine clm3grid1(nlon,nlat,nlev,ntim,glon1,glon2,glat1,glat2, &
-                       xlonmin,xlonmax,xlatmin,xlatmax,glon,glat,   &
-                       istart,icount)
+  subroutine clm3grid1(nlon,nlat,nlev,ntim, &
+                       glon1,glon2,glat1,glat2,dlat,dlon, &
+                       xlonmin,xlonmax,xlatmin,xlatmax,istart,icount)
   implicit none
 !
-  real(rk4) :: glat1 , glat2 , glon1 , glon2 , xlatmax , xlatmin ,    &
-          xlonmax , xlonmin
+  real(rk4) :: glat1 , glat2 , glon1 , glon2 , dlat , dlon
+  real(rk4) :: xlatmax , xlatmin , xlonmax , xlonmin
   integer(ik4) :: nlat , nlev , nlon , ntim
-  real(rk4) , dimension(nlat) :: glat
-  real(rk4) , dimension(nlon) :: glon
   integer(ik4) , dimension(4) :: icount , istart
-  intent (in) glat1 , glat2 , nlat , nlev , nlon , ntim
-  intent (out) glat , glon , icount , istart
-  intent (inout) glon1 , glon2 , xlatmax , xlatmin , xlonmax ,      &
-                 xlonmin
+  intent (in) glat1 , glat2 , nlat , nlev , nlon , ntim , dlat , dlon
+  intent (out) icount , istart
+  intent (inout) xlatmax , xlatmin , xlonmax , xlonmin
 !
-  integer(ik4) :: corrlatn , corrlats , i , ilatmax , ilatmin , ilonmax ,&
-             ilonmin , j
-  real(rk4) :: dlat , dlon
- 
-!     dlon = 360./nlon
-!     dlat = 180./nlat
+  integer(ik4) :: i , ilatmax , ilatmin , ilonmax , ilonmin , j
 
-!     ABT added to get mksrf dependent resolution
-  dlon = (glon2+abs(glon1)+0.5)/real(nlon)
-  dlat = (glat2+abs(glat1)+0.5)/real(nlat)
-!     ABT correction terms in case the grid is not from 90S to 90N 
-  corrlatn = 90 - nint(glat2)
-  corrlats = -90 - nint(glat1)
- 
-  if ( glon1>=0. ) then
-    glon1 = glon1 - 180.
-    glon2 = glon2 - 180.
-  end if
-  do i = 1 , nlon
-    glon(i) = glon1 + dlon*float(i-1)
-  end do
-  do j = 1 , nlat
-    glat(j) = glat1 + dlat*float(j-1)
-  end do
- 
   xlonmin = max(xlonmin-dlon,glon1)
   xlonmax = min(xlonmax+dlon,glon2)
   xlatmin = max(xlatmin-dlat,glat1)
   xlatmax = min(xlatmax+dlat,glat2)
   ilonmin = max(min(nint((glon2+xlonmin)/dlon)-1,nlon),1)
   ilonmax = max(min(nint((glon2+xlonmax)/dlon)+1,nlon),1)
-!     abt ilatmin = max(min(nint((glat2+xlatmin)/dlat)-1,nlat),1)
-!     abt ilatmax = max(min(nint((glat2+xlatmax)/dlat)+1,nlat),1)
-  ilatmin = max(min(nint((glat2+xlatmin+corrlatn+corrlats)/dlat)-1, &
-            nlat),1)   ! ABT added corrlat terms
-  ilatmax = max(min(nint((glat2+xlatmax+corrlatn+corrlats)/dlat)+1, &
-            nlat),1)   ! ABT added corrlat terms
+  ilatmin = max(min(nint((glat2+xlatmin+glat2+glat1)/dlat)-1,nlat),1)
+  ilatmax = max(min(nint((glat2+xlatmax+glat2+glat1)/dlat)+1,nlat),1)
   istart(1) = ilonmin
   icount(1) = ilonmax - ilonmin + 1
   istart(2) = ilatmin
@@ -162,23 +132,25 @@ module mod_clm3grid
   do i = 1 , iy
     do j = 1 , jx
  
-      yind = (((lato(j,i)-lati(1))/(lati(nlati)-lati(1)))           &
-             *float(nlati-1)) + 1.
+      yind = (((lato(j,i)-lati(1))/(lati(nlati)-lati(1))) * &
+              float(nlati-1)) + 1.0
       jq = int(yind)
       jqp1 = min0(jq+1,nlati)
-      q = yind - jq
+      q = yind - real(jq)
  
       lon360 = lono(j,i)
-      xind = (((lon360-loni(1))/(loni(nloni)-loni(1)))              &
-             *float(nloni-1)) + 1.
+      xind = (((lon360-loni(1))/(loni(nloni)-loni(1))) * &
+              float(nloni-1)) + 1.0
       ip = int(xind)
       ipp1 = min0(ip+1,nloni)
-      p = xind - ip
+      p = xind - real(ip)
  
       do l = 1 , nt
         do k = 1 , nz
           gt1 = .false.
           gt2 = .false.
+          temp1 = vmisdat
+          temp2 = vmisdat
           if ( (lmsk(ip,jq)   < 0.5 .or.  mti(ip,jq,k,l)   <= xming)  .and. &
                (lmsk(ipp1,jq) > 0.5 .and. mti(ipp1,jq,k,l) >  xming) )  then
             temp1 = mti(ipp1,jq,k,l)
@@ -187,7 +159,8 @@ module mod_clm3grid
                   (lmsk(ipp1,jq) < 0.5 .or.  mti(ipp1,jq,k,l) <= xming) )  then
             temp1 = mti(ip,jq,k,l)
             gt1 = .true.
-          else
+          else if ( (lmsk(ip,jq)   > 0.5 .and. mti(ip,jq,k,l)   >  xming) .and.&
+                    (lmsk(ipp1,jq) > 0.5 .and. mti(ipp1,jq,k,l) >  xming) ) then
             temp1 = (1.0-p)*mti(ip,jq,k,l) + p*mti(ipp1,jq,k,l)
             gt1 = .true.
           end if
@@ -195,23 +168,27 @@ module mod_clm3grid
                (lmsk(ip,  jqp1) > 0.5 .and. mti(ip,jqp1,k,l)   >  xming) )  then
             temp2 = mti(ip,jqp1,k,l)
             gt2 = .true.
-          else if ((lmsk(ipp1,jqp1) > 0.5 .and. mti(ipp1,jqp1,k,l) > xming) .and. &
-                   (lmsk(ip,jqp1)   < 0.5 .or.  mti(ip,jqp1,k,l)  <= xming) )  then
+          else if ((lmsk(ipp1,jqp1) > 0.5 .and. &
+                    mti(ipp1,jqp1,k,l) > xming) .and. &
+                   (lmsk(ip,jqp1)   < 0.5 .or.  &
+                   mti(ip,jqp1,k,l)  <= xming) )  then
             temp2 = mti(ipp1,jqp1,k,l)
             gt2 = .true.
-          else
-            temp2 = p*mti(ipp1,jqp1,k,l) + (1.0-p)*mti(ip,jqp1,k,l)
+          else if ( (lmsk(ipp1,jqp1) > 0.5 .and. &
+                     mti(ipp1,jqp1,k,l) > xming) .and. &
+                    (lmsk(ip,jqp1)   > 0.5 .and. &
+                     mti(ip,jqp1,k,l) > xming) ) then
+            temp2 = (1.0-p)*mti(ip,jqp1,k,l) + p*mti(ipp1,jqp1,k,l)
             gt2 = .true.
           end if
           if ( .not. gt1 .and. .not. gt2 ) then
             mto(j,i,k,l) = vmisdat
-            write(stderr,*) 'Warning: Missing value added in output file!'
           else if ( .not. gt1 ) then
             mto(j,i,k,l) = temp2
           else if ( .not. gt2 ) then
             mto(j,i,k,l) = temp1
           else
-            mto(j,i,k,l) = (1.-q)*temp1 + q*temp2
+            mto(j,i,k,l) = (1.0-q)*temp1 + q*temp2
           end if
         end do
       end do
