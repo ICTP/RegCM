@@ -226,9 +226,9 @@ module mod_param_clm
   integer(ik4) :: kz , ndim , nx , ny
   integer(ik4) , dimension(ndim) :: iadim
   real(rk4) , dimension(ndim) :: varmax , varmin
-  real(rk4) , dimension(ny,nx) :: xlat , xlon
-  real(rk4) , dimension(ny) :: xlat1d
+  real(rk4) , dimension(nx,ny) :: xlat , xlon
   real(rk4) , dimension(nx) :: xlon1d
+  real(rk4) , dimension(ny) :: xlat1d
   intent (in) kz , ndim , nx , ny , xlat , xlon
   intent (out) iadim , varmax , varmin , xlat1d , xlatmax , xlatmin ,&
                xlon1d , xlonmax , xlonmin
@@ -245,10 +245,10 @@ module mod_param_clm
   iadim(2) = ny
   iadim(3) = kz
   do i = 1 , nx
-    xlon1d(i) = xlon(ny/2,i)
+    xlon1d(i) = xlon(i,ny/2)
   end do
   do j = 1 , ny
-    xlat1d(j) = xlat(j,nx/2)
+    xlat1d(j) = xlat(nx/2,j)
   end do
   xlonmin = minval(xlon)
   xlonmax = maxval(xlon)

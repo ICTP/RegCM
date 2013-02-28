@@ -41,8 +41,8 @@ module mod_grid
     call getmem2d(xlat,1,jx,1,iy,'mod_read_domain:xlat')
     call getmem2d(xlon,1,jx,1,iy,'mod_read_domain:xlon')
     call getmem2d(xmask,1,jx,1,iy,'mod_read_domain:xmask')
-    call getmem1d(xlat1d,1,iy,'mod_read_domain:xlat1d')
     call getmem1d(xlon1d,1,jx,'mod_read_domain:xlon1d')
+    call getmem1d(xlat1d,1,iy,'mod_read_domain:xlat1d')
     call getmem1d(sigx,1,kzp1,'mod_read_domain:sigx')
   end subroutine init_domain
 
