@@ -368,6 +368,18 @@ module mod_date
     type (iadate) :: d
     type (iatime) :: t
     call split_i10(i, d%year, d%month, d%day, t%hour)
+    if ( d%year < 0 .or. d%year > 10000 ) then
+      call die('mod_date','Inconsistent year in date')
+    end if
+    if ( d%month < 1 .or. d%month > 12 ) then
+      call die('mod_date','Inconsistent month in date')
+    end if
+    if ( d%day < 1 .or. d%day > 31 ) then
+      call die('mod_date','Inconsistent day in date')
+    end if
+    if ( t%hour+1 < 1 .or. t%hour+1 > 24 ) then
+      call die('mod_date','Inconsistent hour in date')
+    end if
     d%calendar = gregorian
     call date_time_to_internal(d,t,x)
   end subroutine initfromintdt

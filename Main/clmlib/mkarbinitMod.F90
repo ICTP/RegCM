@@ -254,30 +254,11 @@ contains
 
 !abt below !!edit initialization to match BATS
        if (.not. lakpoi(l)) then  !not lake
-          t_soisno(c,-nlevsno+1:0) = spval
-          if (snl(c) < 0) then    !snow layer temperatures
-             do j = snl(c)+1, 0
-                t_soisno(c,j) = init_tgb(ii,jj)
-             enddo
-          endif
-          if (ltype(l) == istice) then
-             do j = 1, nlevsoi
-                t_soisno(c,j) = init_tgb(ii,jj)
-             end do
-          else if (ltype(l) == istwet) then
-             do j = 1, nlevsoi
-                t_soisno(c,j) = init_tgb(ii,jj)
-             end do
-          else
-             do j = 1, nlevsoi
-                t_soisno(c,j) = init_tgb(ii,jj)
-             end do
-          endif
-          t_grnd(c) = t_soisno(c,snl(c)+1)
+          t_soisno(c,:) = init_tgb(ii,jj)
        else                     !lake
-          t_lake(c,1:nlevlak) = init_tgb(ii,jj)
-          t_grnd(c) = t_lake(c,1)
+          t_lake(c,:) = init_tgb(ii,jj)
        endif
+       t_grnd(c) = init_tgb(ii,jj)
 
     end do
 !abt above !!edit initialization to match BATS

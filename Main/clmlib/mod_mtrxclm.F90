@@ -235,6 +235,7 @@ module mod_mtrxclm
     call grid_fill(ht,ht_rcm)
     call grid_fill(lndcat,satbrt_clm)
     call grid_fill(tground1,init_tgb)
+
     !
     ! End of clm run control variable initialization
     !

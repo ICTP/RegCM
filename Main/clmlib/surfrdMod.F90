@@ -3595,9 +3595,6 @@ contains
 
     ! Lake from BATS equals lake for CLM
     if(bats_lu.eq.14) then
-      pft_wst_sum        = 100._r8
-      pft_pctpft(nns,0)  = 100.0_r8
-      pft_wst(0)         = 100.0_r8
       pctspec(nns)       = 100._r8
       pctspecB(nns)      = 100._r8
       wtxy(nns,npatch_lake) = 1.0_r8  
@@ -3608,9 +3605,7 @@ contains
 
     ! Glacier from BATS equals glacier for CLM
     if(bats_lu.eq.12) then
-      pft_wst_sum        = 100._r8
-      pft_pctpft(nns,0)  = 100.0_r8
-      pft_wst(0)         = 100.0_r8
+      pft_wst_sum        = 0._r8
       pctspec(nns)       = 100._r8
       pctspecB(nns)      = 100._r8
       wtxy(nns,npatch_glacier) = 1.0_r8  
@@ -3621,9 +3616,6 @@ contains
 
     ! Wetland from BATS equals wetland for CLM
     if(bats_lu.eq.13) then
-      pft_wst_sum        = 100._r8
-      pft_pctpft(nns,0)  = 100.0_r8
-      pft_wst(0)         = 100.0_r8
       pctspec(nns)       = 100._r8
       pctspecB(nns)      = 100._r8
       wtxy(nns,npatch_wet) = 1.0_r8  
@@ -3634,9 +3626,6 @@ contains
 
     ! Urban/Semi Urban from BATS equals urban for CLM
     if(bats_lu.gt.20) then
-      pft_wst_sum        = 100._r8
-      pft_pctpft(nns,0)  = 100.0_r8
-      pft_wst(0)         = 100.0_r8
       pctspec(nns)       = 100._r8
       pctspecB(nns)      = 100._r8
       wtxy(nns,npatch_urban) = 1.0_r8  
