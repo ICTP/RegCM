@@ -33,6 +33,7 @@ module clm_varsur
   real(r8), allocatable :: landfrac(:,:)     ! fractional land
   real(r8), pointer :: ht_rcm(:,:)       ! elevation from regcm
   real(r8), pointer :: init_tgb(:,:)     ! ICBC temperature used for soil temp initialization
+  real(r8), pointer :: init_snow(:,:)     ! Snow amount used for soil initialization
   logical  :: init_grid                      ! call clm initialization or not true=do init
   real(r8) :: numdays                        ! number of days per year (used in shr_orb_mod)
   integer,  allocatable :: clm_soitex(:,:)   ! Used only for the RegCM Dust Model

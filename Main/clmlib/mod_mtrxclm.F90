@@ -141,7 +141,7 @@ module mod_mtrxclm
     use shr_orb_mod
     use clm_varpar,    only : lsmlon , lsmlat
     use clm_varsur,    only : landmask , landfrac , satbrt_clm
-    use clm_varsur,    only : r2cimask , init_tgb , r2coutfrq
+    use clm_varsur,    only : r2cimask , init_tgb , init_snow , r2coutfrq
     use clm_varsur,    only : clm2bats_veg , ht_rcm
     use clm_varsur,    only : clm_fracveg
     use clm_varsur,    only : cgaschem, caerosol
@@ -220,6 +220,7 @@ module mod_mtrxclm
     ! Set elevation and BATS landuse type (abt added)
     allocate(ht_rcm(jx,iy))
     allocate(init_tgb(jx,iy))
+    allocate(init_snow(jx,iy))
     allocate(satbrt_clm(jx,iy))
     allocate(clm_fracveg(jx,iy))
     allocate(clm2bats_veg(jx,iy))
@@ -235,6 +236,7 @@ module mod_mtrxclm
     call grid_fill(ht,ht_rcm)
     call grid_fill(lndcat,satbrt_clm)
     call grid_fill(tground1,init_tgb)
+    call grid_fill(snowam,init_snow)
 
     !
     ! End of clm run control variable initialization
@@ -436,6 +438,7 @@ module mod_mtrxclm
     ! deallocate some variables used in CLM initialization only
     deallocate(ht_rcm)
     deallocate(init_tgb)
+    deallocate(init_snow)
     deallocate(satbrt_clm)
     deallocate(clm2bats_veg)
     deallocate(clm_fracveg)

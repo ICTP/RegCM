@@ -28,7 +28,7 @@ contains
     use spmdMod      , only : masterproc
     use decompMod    , only : get_proc_bounds
 !!abt added below rcm
-    use clm_varsur   , only : satbrt_clm,init_tgb
+    use clm_varsur   , only : satbrt_clm,init_tgb,init_snow
     use clm_varpar   , only : lsmlon,lsmlat
     use clm_varsur   , only : slmo,iexsol,xmopor 
     use decompMod    , only : ldecomp
@@ -181,6 +181,9 @@ contains
 !dir$ concurrent
 !cdir nodep
     do c = begc,endc
+       g = cgridcell(c) !abt added
+      ii = ldecomp%gdc2i(g) !abt
+      jj = ldecomp%gdc2j(g) !abt
 
        ! canopy water (column level)
 
@@ -192,7 +195,7 @@ contains
        if (ltype(l) == istice) then
           h2osno(c) = 1000._r8
        else
-          h2osno(c) = 0._r8
+          h2osno(c) = init_snow(ii,jj)
        endif
 
        ! snow depth
