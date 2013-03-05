@@ -17,8 +17,8 @@ program changeland
   real(4) , dimension(nlakes) :: lak_dpth
   real(4) , dimension(nlakes) :: elevation
 
-  data jxlak /161,156,156,155/
-  data iylak /186,180,165,179/
+  data jxlak /161,156,158,155/
+  data iylak /186,180,181,179/
   data lak_dpth /310.0,145.0,82.0,71.0/
   data elevation /372.0,231.0,447.0,373.0/
 
