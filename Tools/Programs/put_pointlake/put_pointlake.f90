@@ -19,8 +19,11 @@ program changeland
 
   data jxlak /161,156,158,155/
   data iylak /186,180,181,179/
+  !data jxlak /13,12,13,12/
+  !data iylak /18,18,19,19/
   data lak_dpth /310.0,145.0,82.0,71.0/
   data elevation /372.0,231.0,447.0,373.0/
+  !data elevation /372.0,372.0,372.0,372.0/
 
   call getarg(1,arg1)
 
@@ -145,6 +148,9 @@ program changeland
     stop
   end if
   do ip = 1 , nlakes
+    var(jxlak(ip),iylak(ip)) = elevation(ip)
+  end do
+  do ip = 1 , nlakes
     ii = iylak(ip) - 3
     jj = jxlak(ip) - 3
     var(jxlak(ip),iylak(ip)) = elevation(ip)
@@ -160,6 +166,8 @@ program changeland
         var(jj+j,ii+i) = (var(jj+j,ii+i) + mean_elevation*2.0) / 3.0
       end do
     end do
+  end do
+  do ip = 1 , nlakes
     var(jxlak(ip),iylak(ip)) = elevation(ip)
   end do
   istatus = nf90_put_var(ncid, ivarid, var)
