@@ -306,7 +306,7 @@ module mod_dynparam
 
 ! Maximum number of depths in lake model
 
-  integer(ik4) , parameter :: ndpmax = 400 ! This means 400 m max depth
+  integer(ik4) , parameter :: ndpmax = 200
 
 ! Number of bins in solar spectra
 

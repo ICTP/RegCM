@@ -27,6 +27,7 @@ module mod_bats_lake
   use mod_dynparam
   use mod_service
   use mod_bats_common
+  use mod_runparams , only : xmonth
   use mod_bats_internal
   use mod_bats_mppio
 !
@@ -54,7 +55,7 @@ module mod_bats_lake
 !
   subroutine initlake
     implicit none
-    integer(ik4) :: i, j, n
+    integer(ik4) :: i , j , n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'initlake'
     integer(ik4) , save :: idindx = 0
@@ -85,14 +86,56 @@ module mod_bats_lake
             end if
             ! Azar Zarrin: Fixed unrealistic high ice tickness and
             ! high water temperatures during warm months.
-            if (idep(n,j,i) < 50) then
-              eta(n,j,i) = 0.5D0
-            else if (idep(n,j,i) > 100) then
-              eta(n,j,i) = 0.1D0
+            ! Graziano: Take a data driven approach.
+            ! The attenuation coefficient is function of the turbidity
+            ! of the water. We assume here that the more deep, the less
+            ! turbid the water is. Real data from:
+            !
+            ! http://www.waterontheweb.org/under/lakeecology/04_light.html
+            !
+            if ( idep(n,j,i) < 5 ) then
+              ! A High eutrophic lake with suspended sediments can
+              ! reach even value of vertical extinction coefficient of 4 !!!
+              ! This means euphotic zone very limited.
+              eta(n,j,i) = -1.20D0
+            else if ( idep(n,j,i) > 5 .and. idep(n,j,i) < 10) then
+              ! Something like Mesotrophic
+              eta(n,j,i) = -0.80D0
+            else if ( idep(n,j,i) >= 10 .and. idep(n,j,i) < 40) then
+              eta(n,j,i) = -0.60D0
+            else if ( idep(n,j,i) >= 40 .and. idep(n,j,i) < 100) then
+              eta(n,j,i) = -0.40D0
             else
-              eta(n,j,i) = 0.3D0
+              ! This is a mean value for Great Lakes.
+              ! Oligotropic lake value.
+              eta(n,j,i) = -0.20D0
             end if
-            tlak(n,j,i,1:idep(n,j,i)) = 6.0D0
+            ! Put winter surface water a bit colder and summer or tropical
+            ! surface water a little warmer to ease spinup nudging in the
+            ! correct direction the profile.
+            if ( xlat (i,j) > 30.0 ) then
+              if ( xmonth < 4 .or. xmonth > 9 ) then
+                tlak(n,j,i,1) = 3.0
+                tlak(n,j,i,2) = 3.5
+              else
+                tlak(n,j,i,1) = 6.0
+                tlak(n,j,i,2) = 5.0
+              end if
+            else if ( xlat (i,j) < 30.0 ) then
+              if ( xmonth > 4 .and. xmonth < 9 ) then
+                tlak(n,j,i,1) = 3.0
+                tlak(n,j,i,2) = 3.5
+              else
+                tlak(n,j,i,1) = 6.0
+                tlak(n,j,i,2) = 5.0
+              end if
+            else
+              tlak(n,j,i,1) = 6.0
+              tlak(n,j,i,2) = 5.0
+            end if
+            if ( idep(n,j,i) > 2 ) then
+              tlak(n,j,i,3:idep(n,j,i)) = 4.0D0
+            end if
             hi(n,j,i) = 0.01D0
             aveice(n,j,i) = d_zero
             hsnow(n,j,i)  = d_zero
@@ -197,6 +240,7 @@ module mod_bats_lake
     real(rk8) , parameter :: twatui = 1.78D0
     logical , parameter :: lfreeze = .false.
     integer(ik4) , parameter :: kmin = 1
+    integer(ik4) , parameter :: kmax = 200
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'lake'
     integer(ik4) , save :: idindx = 0
@@ -221,7 +265,7 @@ module mod_bats_lake
       call laketemp(ndpt,dtlake,fsw,flw,qe,qh,eta,tprof)
 
       ! Convective mixer
-      call lakemixer(kmin,ndpt,tprof)
+      call lakemixer(kmin,kmax,ndpt,tprof)
 
       hi     = 0.01D0
       aveice = d_zero
@@ -284,8 +328,7 @@ module mod_bats_lake
     demax = .99D0*demax
 !
     do k = 1 , ndpt
-      dnsty(k) = d_1000*(d_one-1.9549D-05 * &
-                    (dabs((tprof(k)+tzero)-277.0D0))**1.68D0)
+      dnsty(k) = d_1000*(d_one-1.9549D-05*(dabs(tprof(k)-4.0D0))**1.68D0)
     end do
 !
 ! Compute eddy diffusion profile
@@ -338,8 +381,7 @@ module mod_bats_lake
       ri = (-d_one+dsqrt(rad))/20.0D0
 
       ! Total diffusion coefficient for heat: molecular + eddy (Eqn 42)
-      de(k) = demin + vonkar*ws*z*po*dexp(-ks*z) / &
-                      (d_one+37.0D0*ri**2)
+      de(k) = demin + vonkar*ws*z*po*dexp(-ks*z) / (d_one+37.0D0*ri**2)
       if ( de(k) < demin ) de(k) = demin
       if ( de(k) > demax ) de(k) = demax
 
@@ -370,7 +412,7 @@ module mod_bats_lake
 
     tt(1:ndpt) = tprof(1:ndpt)
 
-    dt1 = (fsw*(d_one-dexp(-eta*surf))+(flw+qe+qh)) / &
+    dt1 = (fsw*(d_one-dexp(eta*surf))+(flw+qe+qh)) / &
             (surf*dnsty(1)*cpw)
     dt2 = -de(1)*(tprof(1)-tprof(2))/surf
     tt(1) = tt(1) + (dt1+dt2)*dtlake
@@ -378,21 +420,20 @@ module mod_bats_lake
     do k = 2 , ndpt - 1
       top = (surf+(k-2)*dz)
       bot = (surf+(k-1)*dz)
-      dt1 = fsw*(dexp(-eta*top)-dexp(-eta*bot))/(dz*dnsty(k)*cpw)
+      dt1 = fsw*(dexp(eta*top)-dexp(eta*bot))/(dz*dnsty(k)*cpw)
       dt2 = (de(k-1)*(tprof(k-1)-tprof(k))    -    &
              de(k)  *(tprof(k)  -tprof(k+1))) / dz
       tt(k) = tt(k) + (dt1+dt2)*dtlake
     end do
 
     top = (surf+(ndpt-2)*dz)
-    dt1 = fsw*dexp(-eta*top)/(dz*dnsty(ndpt)*cpw)
+    dt1 = fsw*dexp(eta*top)/(dz*dnsty(ndpt)*cpw)
     dt2 = de(ndpt-1)*(tprof(ndpt-1)-tprof(ndpt))/dz
     tt(ndpt) = tt(ndpt) + (dt1+dt2)*dtlake
 
     do k = 1 , ndpt
       tprof(k) = tt(k)
-      dnsty(k) = d_1000*(d_one-1.9549D-05 * &
-                 (dabs((tprof(k)+tzero)-277.0D0))**1.68D0)
+      dnsty(k) = d_1000*(d_one-1.9549D-05*(dabs(tprof(k)-4.0D0))**1.68D0)
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -401,9 +442,9 @@ module mod_bats_lake
 !
 !-----------------------------------------------------------------------
 !
-  subroutine lakemixer(kmin,ndpt,tprof)
+  subroutine lakemixer(kmin,kmax,ndpt,tprof)
     implicit none
-    integer(ik4) , intent(in) :: ndpt , kmin
+    integer(ik4) , intent(in) :: ndpt , kmin , kmax
     real(rk8) , intent(inout) , dimension(ndpmax) :: tprof
     real(rk8) :: avet , avev , tav , vol
     integer(ik4) :: k , k2
@@ -416,13 +457,13 @@ module mod_bats_lake
     ! Simulates convective mixing
     tt(kmin:ndpt) = tprof(kmin:ndpt)
 
-    do k = kmin , ndpt - 1
+    do k = max(kmin,2) , min(kmax,ndpt-1)
       avet = d_zero
       avev = d_zero
 
       if ( dnsty(k) > dnsty(k+1) ) then
 
-        do k2 = kmin , k + 1
+        do k2 = k - 1 , k + 1
           if ( k2 == 1 ) then
             vol = surf
           else
@@ -434,10 +475,9 @@ module mod_bats_lake
 
         tav = avet/avev
 
-        do k2 = kmin , k + 1
+        do k2 = k - 1 , k + 1
           tt(k2) = tav
-          dnsty(k2) = d_1000*(d_one-1.9549D-05 * &
-                      (dabs((tav+tzero)-277.0D0))**1.68D0)
+          dnsty(k2) = d_1000*(d_one-1.9549D-05*(dabs(tav-4.0D0))**1.68D0)
         end do
       end if
 
