@@ -129,12 +129,18 @@ module mod_bats_lake
                 tlak(n,j,i,1) = 6.0
                 tlak(n,j,i,2) = 5.0
               end if
+              if ( idep(n,j,i) > 2 ) then
+                tlak(n,j,i,3:idep(n,j,i)) = 4.0D0
+              end if
             else
-              tlak(n,j,i,1) = 6.0
-              tlak(n,j,i,2) = 5.0
-            end if
-            if ( idep(n,j,i) > 2 ) then
-              tlak(n,j,i,3:idep(n,j,i)) = 4.0D0
+              ! This needs tuning for tropical lakes.
+              ! Lake Malawi bottom temperature can be as high as 22.75 Celsius
+              ! with surface as hot as 25.5 degrees.
+              tlak(n,j,i,1) = 20.0
+              tlak(n,j,i,2) = 19.0
+              if ( idep(n,j,i) > 2 ) then
+                tlak(n,j,i,3:idep(n,j,i)) = 18.0D0
+              end if
             end if
             hi(n,j,i) = 0.01D0
             aveice(n,j,i) = d_zero
