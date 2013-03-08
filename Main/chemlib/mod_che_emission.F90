@@ -63,8 +63,8 @@ module mod_che_emission
       if ( curry == lyear .and. currm == lmonth ) then
         if ( myid == italk ) then
           write(stdout,*) &
-            'EMISSION for  ',lyear*1000000+lmonth*10000+lday,' ready', &
-            ' from ',curry*1000000+currm*10000+currd
+            'EMISSION for  ',lyear*1000000+lmonth*10000+100*lday,' ready', &
+            ' from ',curry*1000000+currm*10000+100*currd
         end if
         return
       end if
