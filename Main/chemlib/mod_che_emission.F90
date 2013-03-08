@@ -25,7 +25,6 @@ module mod_che_emission
   use mod_realkinds
   use mod_constants
   use mod_mpmessage
-  use mod_mppparam
   use mod_service 
   use mod_dynparam
   use mod_che_common
@@ -61,7 +60,14 @@ module mod_che_emission
     !
     if ( chemsimtype(1:4) == 'DUST' .or. chemsimtype(1:4) == 'SSLT') return
     if ( ifreq == ifrqmon ) then
-      if ( curry == lyear .and. currm == lmonth ) return
+      if ( curry == lyear .and. currm == lmonth ) then
+        if ( myid == italk ) then
+          write(stdout,*) &
+            'EMISSION for  ',lyear*1000000+lmonth*10000+lday,' ready', &
+            ' from ',curry*1000000+currm*10000+currd
+        end if
+        return
+      end if
     else if ( ifreq == ifrqday ) then
       if ( curry == lyear .and. currm == lmonth .and. currd == lday ) return
     end if
@@ -69,12 +75,11 @@ module mod_che_emission
     currm = lmonth
     currd = lday
     if ( myid == italk ) then
-      write(*,*)'READ CHEM EMISSION for ',lyear*1000000+lmonth*10000+lday
+      write(stdout,*)'READ CHEM EMISSION for ',lyear*1000000+lmonth*10000+lday
     end if
     ! Also lmonth is not really necessary here, but KEEP THIS DIMENSION
     ! FOR HIGHER TEMPORAL RESOLUTION INVENTORIES
     call read_emission(ifreq,lyear,lmonth,lday,lhour,chemsrc)
-    call bcast(ifreq)
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif

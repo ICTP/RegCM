@@ -458,8 +458,8 @@ module mod_vmodes
       call vprntv(tbarh,kz,'t mean  ')
       pps(1) = xps
       call vprntv(pps,1,'ps mean ')
-      write(stderr,'(a,i3)') ' Vertical mode problem for kz   = ',kz
-      write(stderr,'(a,i3)') ' Number of errors (should be 0) = ',numerr
+      write(stdout,'(a,i3)') ' Vertical mode problem for kz   = ',kz
+      write(stdout,'(a,i3)') ' Number of errors (should be 0) = ',numerr
     end if
     !
     ! printout if desired

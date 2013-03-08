@@ -58,7 +58,6 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: atm_tpr_out => null()
   real(rk8) , dimension(:,:) , pointer :: atm_tsw_out => null()
 
-
   real(rk8) , dimension(:,:) , pointer :: srf_uvdrag_out => null()
   real(rk8) , dimension(:,:) , pointer :: srf_tg_out => null()
   real(rk8) , dimension(:,:) , pointer :: srf_tlef_out => null()

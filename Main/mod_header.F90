@@ -44,8 +44,8 @@ module mod_header
     if ( myid == iocpu ) then 
       call cpu_time(start_time)
       last_time = start_time
-      write (stderr,"(/,2x,'This is RegCM trunk')")
-      write (stderr,99001)  SVN_REV, __DATE__ , __TIME__   
+      write (stdout,"(/,2x,'This is RegCM trunk')")
+      write (stdout,99001)  SVN_REV, __DATE__ , __TIME__   
     end if
 
 99001   format(2x,' SVN Revision: ',a,' compiled at: data : ',a,  &
@@ -74,13 +74,13 @@ module mod_header
       call date_and_time(zone=czone,values=tval)
       write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
             tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone
-      write (stderr,*) ": this run start at  : ",trim(cdata)
-      write (stderr,*) ": it is submitted by : ",trim(user)
-      write (stderr,*) ": it is running on   : ",trim(hostname)
-      write (stderr,*) ": it is using        : ",nproc, &
+      write (stdout,*) ": this run start at  : ",trim(cdata)
+      write (stdout,*) ": it is submitted by : ",trim(user)
+      write (stdout,*) ": it is running on   : ",trim(hostname)
+      write (stdout,*) ": it is using        : ",nproc, &
                        '  processors' 
-      write (stderr,*) ": in directory       : ",trim(directory)
-      write (stderr,*) "                      " 
+      write (stdout,*) ": in directory       : ",trim(directory)
+      write (stdout,*) "                      " 
     end if 
   end subroutine header
 
@@ -90,7 +90,7 @@ module mod_header
     real(rk4) :: check_time
     if ( myid == iocpu ) then
       call cpu_time(check_time)
-      write (stderr,*) 'Elapsed seconds of run for this month : ', &
+      write (stdout,*) 'Elapsed seconds of run for this month : ', &
                 (check_time-last_time)
       last_time = check_time
     end if
@@ -106,8 +106,8 @@ module mod_header
       call date_and_time(zone=czone,values=tval)
       write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
             tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone
-      write (stderr,*) ': this run stops at  : ', trim(cdata)
-      write (stderr,*) ': Total elapsed seconds of run : ', &
+      write (stdout,*) ': this run stops at  : ', trim(cdata)
+      write (stdout,*) ': Total elapsed seconds of run : ', &
                 (finish_time - start_time)
     end if
   end subroutine finaltime
