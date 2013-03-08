@@ -318,7 +318,7 @@ module mod_cu_em
     integer(ik4) :: icb , iflag , inb , na , nd , nl , ntra
     real(rk8) , dimension(nd) :: fq , ft , fu , fv , p , ph , q , qs ,  &
                                t , u , v
-    real(rk8) , dimension(nd,1) :: ftra , tra
+    real(rk8) , dimension(nd,ntra) :: ftra , tra
     intent (in) na , ntra , ph , p , nd , nl
     intent (out) tprime , wd
     intent (inout) cbmf , fq , ft , ftra , fu , fv , icb , iflag ,    &
