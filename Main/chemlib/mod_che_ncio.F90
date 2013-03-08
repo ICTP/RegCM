@@ -198,7 +198,7 @@ module mod_che_ncio
         write(stdout,*) 'Opening ch. emission file ', trim(aername)
       end if
 
-      if ( do_parallel_netcdf_in .or. (myid == iocpu) ) then
+      if ( do_parallel_netcdf_in .or. myid == iocpu ) then
         call openfile_withname(aername,ncid)
         istatus = nf90_inq_dimid(ncid, 'time', idimid)
         call check_ok(__FILE__,__LINE__,'Dimension time miss', 'CHEMI FILE')
@@ -251,10 +251,12 @@ module mod_che_ncio
               end if
           end select
         end do looprec
-         
+
         if ( recc == 0 ) then
           write(stderr,*) 'chem emission : time record not found emission file'
           call fatal(__FILE__,__LINE__,'IO ERROR in CHEM EMISSION')
+        else
+          write(stdout,*) 'Reading record ',recc
         end if  
 
         !*** intialized in start_chem
@@ -275,7 +277,7 @@ module mod_che_ncio
           allocate(rspace2_loc(jci1:jci2,ici1:ici2))
         end if
         istatus = nf90_inq_dimid(ncid, 'lev', idimid)
-        if(istatus /= nf90_noerr) then
+        if ( istatus /= nf90_noerr ) then
           ! no lev diemsion in emission variables
           istart(3) = recc
           icount(3) = 1

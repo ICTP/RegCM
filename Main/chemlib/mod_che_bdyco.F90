@@ -359,6 +359,7 @@ module mod_che_bdyco
         write (stdout,*) 'READY  CHBC from     ' , &
             toint10(chbdydate1) , ' to ' , toint10(chbdydate2)
       end if
+      chbdydate1 = chbdydate2
     else
       chbdydate1 = chbdydate2
     end if
