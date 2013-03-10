@@ -113,7 +113,7 @@ module mod_bats_lake
             ! Put winter surface water a bit colder and summer or tropical
             ! surface water a little warmer to ease spinup nudging in the
             ! correct direction the profile.
-            if ( xlat (i,j) > 30.0 ) then
+            if ( xlat1(n,j,i) > 30.0 ) then
               if ( xmonth < 4 .or. xmonth > 9 ) then
                 tlak(n,j,i,1) = 3.0
                 tlak(n,j,i,2) = 3.5
@@ -121,7 +121,7 @@ module mod_bats_lake
                 tlak(n,j,i,1) = 6.0
                 tlak(n,j,i,2) = 5.0
               end if
-            else if ( xlat (i,j) < 30.0 ) then
+            else if ( xlat1(n,j,i) < 30.0 ) then
               if ( xmonth > 4 .and. xmonth < 9 ) then
                 tlak(n,j,i,1) = 3.0
                 tlak(n,j,i,2) = 3.5
