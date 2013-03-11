@@ -121,6 +121,9 @@ module mod_bats_lake
                 tlak(n,j,i,1) = 6.0
                 tlak(n,j,i,2) = 5.0
               end if
+              if ( idep(n,j,i) > 2 ) then
+                tlak(n,j,i,3:idep(n,j,i)) = 4.0D0
+              end if
             else if ( xlat1(n,j,i) < 30.0 ) then
               if ( xmonth > 4 .and. xmonth < 9 ) then
                 tlak(n,j,i,1) = 3.0
