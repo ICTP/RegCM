@@ -28,8 +28,8 @@
  fudge_lak   = .false.,
  fudge_lak_s  = .false.,
  h2opct = 75.,
- dirter = '/home/netapp/clima-users/users/uturunco/CAS/run.roms/coupled/cas.cplwice/input',
- inpter = '/home/netapp/clima-shared/RCMDATA',
+ dirter = 'input',
+ inpter = 'RCMDATA',
  /
  &debugparam
  debug_level = 3
@@ -44,10 +44,10 @@
  ssttyp = 'OI2WK',
  dattyp = 'EIN15',
  calendar = 'gregorian',
- gdate1 = 1996030100,
- gdate2 = 2009010100,
- dirglob = '/home/netapp/clima-users/users/uturunco/CAS/run.roms/coupled/cas.cplwice/input',
- inpglob = '/home/netapp/clima-shared/RCMDATA',
+ gdate1 = 1995010100,
+ gdate2 = 1995020100,
+ dirglob = 'input',
+ inpglob = 'RCMDATA',
  /
  &globwindow
  lat0 = 0.0
@@ -59,7 +59,7 @@
  ifrest  = .false. ,
  mdate0  = 1995010100,
  mdate1  = 1995010100, 
- mdate2  = 2009010100,
+ mdate2  = 1995020100,
  /
  &timeparam
  dtrad   =    30.,
@@ -81,7 +81,7 @@
    srffrq  =     3.,
  ifchem  = .false.,
    chemfrq =     6., 
- dirout = '/home/netapp/clima-users/users/uturunco/CAS/run.roms/coupled/cas.cplwice/output',
+ dirout = 'output',
  /
  &physicsparam
  iboudy  =          5,
