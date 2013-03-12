@@ -394,7 +394,6 @@ module mod_dynparam
       ierr = 1
       return
     end if
-
 !
     dsmax = d_zero
     dsmin = d_zero

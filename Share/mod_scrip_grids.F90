@@ -62,10 +62,7 @@ module mod_scrip_grids
 
   private
 
-  character(len=80) :: grid1_name  ! name for the grid
-  character(len=80) :: grid2_name  ! name for the grid
-  character(len=80) :: grid1_units ! units for grid coords (degs/radians)
-  character(len=80) :: grid2_units ! units for grid coords (degs/radians)
+  logical :: init_sizes = .false.
   integer(ik4) :: grid1_size      ! total points of the grid
   integer(ik4) :: grid2_size      ! total points of the grid
   integer(ik4) :: grid1_rank      ! rank of the grid
@@ -74,6 +71,7 @@ module mod_scrip_grids
   integer(ik4) :: grid2_corners   ! number of corners
   integer(ik4) , pointer , dimension(:) :: grid1_dims ! size of grid dimensions
   integer(ik4) , pointer , dimension(:) :: grid2_dims ! size of grid dimensions
+
   logical , pointer , dimension(:) :: grid1_mask ! flag which cells participate
   logical , pointer , dimension(:) :: grid2_mask ! flag which cells participate
   real(rk8) , pointer , dimension(:) :: grid1_center_lat  ! coordinates for
@@ -91,14 +89,12 @@ module mod_scrip_grids
   real(rk8) , pointer , dimension(:,:) :: grid1_bound_box ! lat/lon bounding box
   real(rk8) , pointer , dimension(:,:) :: grid2_bound_box ! lat/lon bounding box
 
-  public :: grid1_name , grid1_units
   public :: grid1_size , grid1_rank , grid1_corners
   public :: grid1_dims , grid1_mask
   public :: grid1_center_lat , grid1_center_lon
   public :: grid1_area , grid1_frac
   public :: grid1_corner_lat , grid1_corner_lon
   public :: grid1_bound_box
-  public :: grid2_name , grid2_units
   public :: grid2_size , grid2_rank , grid2_corners
   public :: grid2_dims , grid2_mask
   public :: grid2_center_lat , grid2_center_lon
@@ -112,33 +108,45 @@ module mod_scrip_grids
   real(rk8) , public , pointer , dimension(:,:) :: bin_lats
   real(rk8) , public , pointer , dimension(:,:) :: bin_lons
 
-  character(len=80) , public :: restrict_type ! type of bins to use
-  integer(ik4) , public :: num_srch_bins      ! num of bins for restricted srch
+  character(len=80) , public :: restrict_type = 'latlon'  ! type of bins to use
+  integer(ik4) , public :: num_srch_bins = 90 ! num of bins for restricted srch
+  logical , public :: luse_grid_centers = .true.
 
-  logical , public :: luse_grid_centers
-
-  type scrip_inpgrid
-    character(len=80) :: gname
-    character(len=80) :: gunits
-    integer(ik4) :: gsize
-    integer(ik4) :: grank
-    integer(ik4) :: gcorners
-    integer(ik4) , pointer , dimension(:) :: imask
-    real(rk4) , pointer , dimension(:) :: gclat
-    real(rk4) , pointer , dimension(:) :: gclon
-    real(rk4) , pointer , dimension(:,:) :: gdlat
-    real(rk4) , pointer , dimension(:,:) :: gdlon
-  end type scrip_inpgrid
-
-  public :: scrip_inpgrid
-
-  public :: scrip_grid_init
+  public :: scrip_dims_init , scrip_grid_init
 
   contains
 
-    subroutine scrip_grid_init(ga,gb)
+    subroutine scrip_dims_init(gasize,garank,gadims,gacorners, &
+                               gbsize,gbrank,gbdims,gbcorners)
       implicit none
-      type(scrip_inpgrid) , intent(in) :: ga , gb
+      integer(ik4) , intent(in) :: gasize , garank , gacorners
+      integer(ik4) , intent(in) :: gbsize , gbrank , gbcorners
+      integer(ik4) , dimension(:) , intent(in) :: gadims , gbdims
+
+      grid1_size = gasize
+      grid1_rank = garank
+      grid1_corners = gacorners
+      grid2_size = gbsize
+      grid2_rank = gbrank
+      grid2_corners = gbcorners
+
+      call getmem1d(grid1_dims,1,grid1_rank,'scrip:grid1:rank')
+      call getmem1d(grid2_dims,1,grid2_rank,'scrip:grid2:rank')
+
+      grid1_dims(1:grid1_rank) = gadims(1:grid1_rank)
+      grid2_dims(1:grid2_rank) = gbdims(1:grid2_rank)
+      init_sizes = .true.    
+    end subroutine scrip_dims_init
+
+    subroutine scrip_grid_init(gaclat,gaclon,gadlat,gadlon,gamask, &
+                               gbclat,gbclon,gbdlat,gbdlon,gbmask)
+      implicit none
+      real(rk8) , dimension(:) , intent(in) :: gaclat , gaclon
+      real(rk8) , dimension(:,:) , intent(in) :: gadlat , gadlon
+      integer(ik4) , dimension(:) , intent(in) :: gamask
+      real(rk8) , dimension(:) , intent(in) :: gbclat , gbclon
+      real(rk8) , dimension(:,:) , intent(in) :: gbdlat , gbdlon
+      integer(ik4) , dimension(:) , intent(in) :: gbmask
 
       integer(ik4) :: nx , ny , i , j , ip1 , jp1 , n
       integer(ik4) :: n_add , e_add , ne_add , nele , nsbsq
@@ -148,44 +156,31 @@ module mod_scrip_grids
       ! temps for computing bounding boxes
       real(rk8) , dimension(4) :: tmp_lats , tmp_lons
 
-      if ( ga%gsize <= 0 .or. gb%gsize <= 0 .or. &
-           ga%grank <= 0 .or. gb%grank <= 0 .or. &
-           ga%gcorners <= 0 .or. gb%gcorners <= 0 ) then
-        call die('scrip_grid_init','Inconsistent grid in input.',1)
+      if ( .not. init_sizes ) then
+        call die('scrip_grid_init','Grid dimensions unknown',1)
       end if
 
-      grid1_size = ga%gsize
-      grid1_rank = ga%grank
-      grid1_corners = ga%gcorners
-      grid1_name = ga%gname
-      grid1_units = ga%gunits
-
-      grid2_size = gb%gsize
-      grid2_rank = gb%grank
-      grid2_corners = gb%gcorners
-      grid2_name = gb%gname
-      grid2_units = gb%gunits
-      
-      call getmem1d(grid1_dims,1,grid1_rank,'scrip:grid1:rank')
       call getmem1d(grid1_mask,1,grid1_size,'scrip:grid1:mask')
       call getmem1d(grid1_center_lat,1,grid1_size,'scrip:grid1:centerlat')
       call getmem1d(grid1_center_lon,1,grid1_size,'scrip:grid1:centerlon')
       call getmem1d(grid1_area,1,grid1_size,'scrip:grid1:area')
       call getmem1d(grid1_frac,1,grid1_size,'scrip:grid1:frac')
       call getmem1d(grid1_mask,1,grid1_size,'scrip:grid1:mask')
+
       call getmem2d(grid1_corner_lat,1,grid1_corners, &
                                     1,grid1_size,'scrip:grid1:cornerlat')
       call getmem2d(grid1_corner_lon,1,grid1_corners, &
                                     1,grid1_size,'scrip:grid1:cornerlon')
       call getmem2d(grid1_bound_box,1,4, &
                                     1,grid1_size,'scrip:grid1:bound_box')
-      call getmem1d(grid2_dims,1,grid2_rank,'scrip:grid2:rank')
+
       call getmem1d(grid2_mask,1,grid2_size,'scrip:grid2:mask')
       call getmem1d(grid2_center_lat,1,grid2_size,'scrip:grid2:centerlat')
       call getmem1d(grid2_center_lon,1,grid2_size,'scrip:grid2:centerlon')
       call getmem1d(grid2_area,1,grid2_size,'scrip:grid2:area')
       call getmem1d(grid2_frac,1,grid2_size,'scrip:grid2:frac')
       call getmem1d(grid2_mask,1,grid2_size,'scrip:grid2:mask')
+
       call getmem2d(grid2_corner_lat,1,grid2_corners, &
                                     1,grid2_size,'scrip:grid2:cornerlat')
       call getmem2d(grid2_corner_lon,1,grid2_corners, &
@@ -195,44 +190,34 @@ module mod_scrip_grids
 
       grid1_area = d_zero
       grid1_frac = d_zero
-      grid1_center_lat = ga%gclat
-      grid1_center_lon = ga%gclon
-      where (ga%imask == 1)
+      grid1_center_lat = gaclat
+      grid1_center_lon = gaclon
+      grid1_corner_lat = gadlat
+      grid1_corner_lon = gadlon
+      where (gamask == 1)
         grid1_mask = .true.
       elsewhere
         grid1_mask = .false.
       endwhere
-      select case (grid1_units(1:7))
-        case ('degrees')
-          grid1_center_lat = grid1_center_lat*degrad
-          grid1_center_lon = grid1_center_lon*degrad
-          grid1_corner_lat = grid1_corner_lat*degrad
-          grid1_corner_lon = grid1_corner_lon*degrad
-        case ('radians')
-        case default
-          write(stdout,*) 'units supplied for grid1 center lat/lon: '
-          write(stdout,*) 'proceeding assuming radians'
-      end select
+      grid1_center_lat = grid1_center_lat*degrad
+      grid1_center_lon = grid1_center_lon*degrad
+      grid1_corner_lat = grid1_corner_lat*degrad
+      grid1_corner_lon = grid1_corner_lon*degrad
       grid2_area = d_zero
       grid2_frac = d_zero
-      grid2_center_lat = gb%gclat
-      grid2_center_lon = gb%gclon
-      where (gb%imask == 1)
+      grid2_center_lat = gbclat
+      grid2_center_lon = gbclon
+      grid2_corner_lat = gbdlat
+      grid2_corner_lon = gbdlon
+      where (gbmask == 1)
         grid2_mask = .true.
       elsewhere
         grid2_mask = .false.
       endwhere
-      select case (grid2_units(1:7))
-        case ('degrees')
-          grid2_center_lat = grid2_center_lat*degrad
-          grid2_center_lon = grid2_center_lon*degrad
-          grid2_corner_lat = grid2_corner_lat*degrad
-          grid2_corner_lon = grid2_corner_lon*degrad
-        case ('radians')
-        case default
-          write(stdout,*) 'unknown units supplied for grid2 center lat/lon: '
-          write(stdout,*) 'proceeding assuming radians'
-      end select
+      grid2_center_lat = grid2_center_lat*degrad
+      grid2_center_lon = grid2_center_lon*degrad
+      grid2_corner_lat = grid2_corner_lat*degrad
+      grid2_corner_lon = grid2_corner_lon*degrad
       !
       !  convert longitudes to 0,2pi interval
       !
@@ -423,7 +408,6 @@ module mod_scrip_grids
       !
       select case ( restrict_type )
         case ('latitude')
-          write(stdout,*) 'Using latitude bins to restrict search.'
           if ( num_srch_bins <= 0 ) then
             call die('scrip_grid_init','num_srch_bins <= 0 ?',1)
           end if
@@ -462,7 +446,6 @@ module mod_scrip_grids
             end do
           end do
         case ('latlon')
-          write(stdout,*) 'Using lat/lon boxes to restrict search.'
           if ( num_srch_bins <= 0 ) then
             call die('scrip_grid_init','num_srch_bins <= 0 ?',1)
           end if

@@ -264,6 +264,7 @@ module mod_ncstream
       call setcal(tt,reference_date)
       stream%zero_time    = hourdiff(tt,reference_date)
       stream%l_bound      = params%l_bound
+      stream%l_band       = params%l_band
       stream%l_sync       = params%l_sync
       stream%l_subgrid    = params%l_subgrid
       stream%l_full_sigma = params%l_full_sigma
@@ -630,7 +631,7 @@ module mod_ncstream
       in_name = dname
       select case (in_name)
         case ('JX','jx')
-          if ( stream%l_bound ) then
+          if ( stream%l_bound .or. stream%l_band ) then
             ! this is the number of dot points WITH bondary
             num = jx
           else

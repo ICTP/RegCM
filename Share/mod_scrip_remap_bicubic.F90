@@ -68,9 +68,157 @@ module mod_scrip_remap_bicubic
   ! convergence criterion
   real(rk8) , parameter :: converge = 1.D-10
 
-  public :: remap_bicub
+  public :: remap_bicub , calculate_gradients
+
+  real(rk8) , allocatable , dimension(:) :: grad1_lat , grad1_lon
+  real(rk8) , allocatable , dimension(:) :: grad1_lon_zero , grad1_lat_zero
+  real(rk8) , allocatable , dimension(:) :: grad1_latlon
+
+  public :: grad1_lat , grad1_lon , grad1_latlon
 
   contains
+
+    subroutine calculate_gradients(grid1_array)
+      implicit none
+      real(rk8) , dimension(:) , intent(in) :: grid1_array
+      integer(ik4) :: n , nx , ny
+      integer(ik4) :: i , j , ip1 , im1 , jp1 , jm1
+      integer(ik4) :: iin , iis , iie , iiw
+      integer(ik4) :: ine , inw , ise , isw
+      real(rk8) :: delew , delns , dels
+
+      allocate(grad1_lat(grid1_size))
+      allocate(grad1_lon(grid1_size))
+      allocate(grad1_lat_zero(grid1_size))
+      allocate(grad1_lon_zero(grid1_size))
+      allocate(grad1_latlon(grid1_size))
+      nx = grid1_dims(1)
+      ny = grid1_dims(2)
+      do n = 1 , grid1_size
+        if ( grid1_mask(n) ) then
+          delew = d_half
+          delns = d_half
+          j = (n-1)/nx + 1
+          i = n - (j-1)*nx
+          ip1 = i+1
+          im1 = i-1
+          jp1 = j+1
+          jm1 = j-1
+          if ( ip1 > nx ) ip1 = ip1 - nx
+          if ( im1 < 1  ) im1 = nx
+          if ( jp1 > ny ) then
+            jp1 = j
+            delns = d_one
+          end if
+          if ( jm1 < 1 ) then
+            jm1 = j
+            delns = d_one
+          end if
+          iin = (jp1-1)*nx + i
+          iis = (jm1-1)*nx + i
+          iie = (j  -1)*nx + ip1
+          iiw = (j  -1)*nx + im1
+          ine = (jp1-1)*nx + ip1
+          inw = (jp1-1)*nx + im1
+          ise = (jm1-1)*nx + ip1
+          isw = (jm1-1)*nx + im1
+          ! *** Compute i-gradient
+          if ( .not. grid1_mask(iie) ) then
+            iie = n
+            delew = d_one
+          end if
+          if ( .not. grid1_mask(iiw) ) then
+            iiw = n
+            delew = d_one
+          end if
+          grad1_lat(n) = delew*(grid1_array(iie) - grid1_array(iiw))
+          !*** Compute j-gradient
+          if ( .not. grid1_mask(iin) ) then
+            iin = n
+            dels = d_one
+          end if
+          if (.not. grid1_mask(iis)) then
+            iis = n
+            dels = d_one
+          end if
+          grad1_lon(n) = delns*(grid1_array(iin) - grid1_array(iis))
+          !*** Compute ij-gradient
+          delew = d_half
+          if ( jp1 == j .or. jm1 == j ) then
+            delns = d_one
+          else
+            delns = d_half
+          end if
+          if ( .not. grid1_mask(ine) ) then
+            if ( iin /= n ) then
+              ine = iin
+              delew = d_one
+            else if ( iie /= n ) then
+              ine = iie
+              inw = iiw
+              if ( inw == n ) delew = d_one
+              delns = d_one
+            else
+              ine = n
+              inw = iiw
+              delew = d_one
+              delns = d_one
+            end if
+          end if
+          if ( .not. grid1_mask(inw) ) then
+            if ( iin /= n ) then
+              inw = iin
+              delew = d_one
+            else if ( iiw /= n ) then
+              inw = iiw
+              ine = iie
+              if ( iie == n ) delew = d_one
+              delns = d_one
+            else
+              inw = n
+              ine = iie
+              delew = d_one
+              delns = d_one
+            end if
+          end if
+          grad1_lat_zero(n) = delew*(grid1_array(ine) - grid1_array(inw))
+          if ( .not. grid1_mask(ise) ) then
+            if ( iis /= n ) then
+              ise = iis
+              delew = d_one
+            else if ( iie /= n ) then
+              ise = iie
+              isw = iiw
+              if ( isw == n ) delew = d_one
+              delns = d_one
+            else
+              ise = n
+              isw = iiw
+              delew = d_one
+              delns = d_one
+            end if
+          end if
+          if ( .not. grid1_mask(isw) ) then
+            if ( iis /= n ) then
+              isw = iis
+              delew = d_one
+            else if ( iiw /= n ) then
+              isw = iiw
+              ise = iie
+              if ( iie == n ) delew = d_one
+              delns = d_one
+            else
+              isw = n
+              ise = iie
+              delew = d_one
+              delns = d_one
+            end if
+          end if
+          grad1_lon_zero(n) = delew*(grid1_array(ise) - grid1_array(isw))
+          grad1_latlon(n) = delns*(grad1_lat_zero(n) - grad1_lon_zero(n))
+        end if
+      end do
+    end subroutine calculate_gradients
 
     subroutine remap_bicub
       implicit none
@@ -112,8 +260,8 @@ module mod_scrip_remap_bicubic
         !
         ! find nearest square of grid points on source grid
         !
-        call grid_search_bicub(src_add, src_lats, src_lons,      &
-                               plat, plon, grid1_dims,           &
+        call grid_search_bicub(src_add, src_lats, src_lons,        &
+                               plat, plon, grid1_dims,             &
                                grid1_center_lat, grid1_center_lon, &
                                grid1_bound_box, bin_addr1, bin_addr2)
         !
@@ -139,12 +287,12 @@ module mod_scrip_remap_bicubic
           dph2 = src_lons(4) - src_lons(1)
           dph3 = src_lons(3) - src_lons(2)
 
-          if (dph1 >  d_three*halfpi) dph1 = dph1 - twopi
-          if (dph2 >  d_three*halfpi) dph2 = dph2 - twopi
-          if (dph3 >  d_three*halfpi) dph3 = dph3 - twopi
-          if (dph1 < -d_three*halfpi) dph1 = dph1 + twopi
-          if (dph2 < -d_three*halfpi) dph2 = dph2 + twopi
-          if (dph3 < -d_three*halfpi) dph3 = dph3 + twopi
+          if ( dph1 >  d_three*halfpi ) dph1 = dph1 - twopi
+          if ( dph2 >  d_three*halfpi ) dph2 = dph2 - twopi
+          if ( dph3 >  d_three*halfpi ) dph3 = dph3 - twopi
+          if ( dph1 < -d_three*halfpi ) dph1 = dph1 + twopi
+          if ( dph2 < -d_three*halfpi ) dph2 = dph2 + twopi
+          if ( dph3 < -d_three*halfpi ) dph3 = dph3 + twopi
 
           dph3 = dph3 - dph2
 
@@ -187,35 +335,35 @@ module mod_scrip_remap_bicubic
             wgts(1,1) = (d_one - jguess**2*(d_three-d_two*jguess))* &
                         (d_one - iguess**2*(d_three-d_two*iguess))
             wgts(1,2) = (d_one - jguess**2*(d_three-d_two*jguess))* &
-                        iguess**2*(d_three-d_two*iguess)
-            wgts(1,3) = jguess**2*(d_three-d_two*jguess)* &
-                        iguess**2*(d_three-d_two*iguess)
-            wgts(1,4) = jguess**2*(d_three-d_two*jguess)* &
+                                 iguess**2*(d_three-d_two*iguess)
+            wgts(1,3) =          jguess**2*(d_three-d_two*jguess)* &
+                                 iguess**2*(d_three-d_two*iguess)
+            wgts(1,4) =          jguess**2*(d_three-d_two*jguess)* &
                         (d_one - iguess**2*(d_three-d_two*iguess))
             wgts(2,1) = (d_one - jguess**2*(d_three-d_two*jguess))* &
-                        iguess*(iguess-d_one)**2
+                                 iguess*(iguess-d_one)**2
             wgts(2,2) = (d_one - jguess**2*(d_three-d_two*jguess))* &
-                        iguess**2*(iguess-d_one)
-            wgts(2,3) = jguess**2*(d_three-d_two*jguess)* &
-                        iguess**2*(iguess-d_one)
-            wgts(2,4) = jguess**2*(d_three-d_two*jguess)* &
-                        iguess*(iguess-d_one)**2
-            wgts(3,1) = jguess*(jguess-d_one)**2* &
+                                 iguess**2*(iguess-d_one)
+            wgts(2,3) =          jguess**2*(d_three-d_two*jguess)* &
+                                 iguess**2*(iguess-d_one)
+            wgts(2,4) =          jguess**2*(d_three-d_two*jguess)* &
+                                 iguess*(iguess-d_one)**2
+            wgts(3,1) =          jguess*(jguess-d_one)**2* &
                         (d_one - iguess**2*(d_three-d_two*iguess))
-            wgts(3,2) = jguess*(jguess-d_one)**2* &
-                        iguess**2*(d_three-d_two*iguess)
-            wgts(3,3) = jguess**2*(jguess-d_one)* &
-                        iguess**2*(d_three-d_two*iguess)
-            wgts(3,4) = jguess**2*(jguess-d_one)* &
+            wgts(3,2) =          jguess*(jguess-d_one)**2* &
+                                 iguess**2*(d_three-d_two*iguess)
+            wgts(3,3) =          jguess**2*(jguess-d_one)* &
+                                 iguess**2*(d_three-d_two*iguess)
+            wgts(3,4) =          jguess**2*(jguess-d_one)* &
                         (d_one - iguess**2*(d_three-d_two*iguess))
-            wgts(4,1) = iguess*(iguess-d_one)**2* &
-                        jguess*(jguess-d_one)**2
-            wgts(4,2) = iguess**2*(iguess-d_one)* &
-                        jguess*(jguess-d_one)**2
-            wgts(4,3) = iguess**2*(iguess-d_one)* &
-                        jguess**2*(jguess-d_one)
-            wgts(4,4) = iguess*(iguess-d_one)**2* &
-                        jguess**2*(jguess-d_one)
+            wgts(4,1) =          iguess*(iguess-d_one)**2* &
+                                 jguess*(jguess-d_one)**2
+            wgts(4,2) =          iguess**2*(iguess-d_one)* &
+                                 jguess*(jguess-d_one)**2
+            wgts(4,3) =          iguess**2*(iguess-d_one)* &
+                                 jguess**2*(jguess-d_one)
+            wgts(4,4) =          iguess*(iguess-d_one)**2* &
+                                 jguess**2*(jguess-d_one)
             call store_link_bicub(dst_add, src_add, wgts, nmap)
           else
             call die('remap_bicubic', &
@@ -265,7 +413,7 @@ module mod_scrip_remap_bicubic
         !
         grid_loop2: &
         do dst_add = 1 , grid1_size
-          if ( .not. grid1_mask(dst_add)) cycle grid_loop2
+          if ( .not. grid1_mask(dst_add) ) cycle grid_loop2
           plat = grid1_center_lat(dst_add)
           plon = grid1_center_lon(dst_add)
           !
@@ -348,35 +496,35 @@ module mod_scrip_remap_bicubic
               wgts(1,1) = (d_one - jguess**2*(d_three-d_two*jguess))* &
                           (d_one - iguess**2*(d_three-d_two*iguess))
               wgts(1,2) = (d_one - jguess**2*(d_three-d_two*jguess))* &
-                          iguess**2*(d_three-d_two*iguess)
-              wgts(1,3) = jguess**2*(d_three-d_two*jguess)* &
-                          iguess**2*(d_three-d_two*iguess)
-              wgts(1,4) = jguess**2*(d_three-d_two*jguess)* &
+                                   iguess**2*(d_three-d_two*iguess)
+              wgts(1,3) =          jguess**2*(d_three-d_two*jguess)* &
+                                   iguess**2*(d_three-d_two*iguess)
+              wgts(1,4) =          jguess**2*(d_three-d_two*jguess)* &
                           (d_one - iguess**2*(d_three-d_two*iguess))
               wgts(2,1) = (d_one - jguess**2*(d_three-d_two*jguess))* &
-                          iguess*(iguess-d_one)**2
+                                   iguess*(iguess-d_one)**2
               wgts(2,2) = (d_one - jguess**2*(d_three-d_two*jguess))* &
-                          iguess**2*(iguess-d_one)
-              wgts(2,3) = jguess**2*(d_three-d_two*jguess)* &
-                          iguess**2*(iguess-d_one)
-              wgts(2,4) = jguess**2*(d_three-d_two*jguess)* &
-                          iguess*(iguess-d_one)**2
-              wgts(3,1) = jguess*(jguess-d_one)**2* &
+                                   iguess**2*(iguess-d_one)
+              wgts(2,3) =          jguess**2*(d_three-d_two*jguess)* &
+                                   iguess**2*(iguess-d_one)
+              wgts(2,4) =          jguess**2*(d_three-d_two*jguess)* &
+                                   iguess*(iguess-d_one)**2
+              wgts(3,1) =          jguess*(jguess-d_one)**2* &
                           (d_one - iguess**2*(d_three-d_two*iguess))
-              wgts(3,2) = jguess*(jguess-d_one)**2* &
-                          iguess**2*(d_three-d_two*iguess)
-              wgts(3,3) = jguess**2*(jguess-d_one)* &
-                          iguess**2*(d_three-d_two*iguess)
-              wgts(3,4) = jguess**2*(jguess-d_one)* &
+              wgts(3,2) =          jguess*(jguess-d_one)**2* &
+                                   iguess**2*(d_three-d_two*iguess)
+              wgts(3,3) =          jguess**2*(jguess-d_one)* &
+                                   iguess**2*(d_three-d_two*iguess)
+              wgts(3,4) =          jguess**2*(jguess-d_one)* &
                           (d_one - iguess**2*(d_three-d_two*iguess))
-              wgts(4,1) = iguess*(iguess-d_one)**2* &
-                          jguess*(jguess-d_one)**2
-              wgts(4,2) = iguess**2*(iguess-d_one)* &
-                          jguess*(jguess-d_one)**2
-              wgts(4,3) = iguess**2*(iguess-d_one)* &
-                          jguess**2*(jguess-d_one)
-              wgts(4,4) = iguess*(iguess-d_one)**2* &
-                          jguess**2*(jguess-d_one)
+              wgts(4,1) =          iguess*(iguess-d_one)**2* &
+                                   jguess*(jguess-d_one)**2
+              wgts(4,2) =          iguess**2*(iguess-d_one)* &
+                                   jguess*(jguess-d_one)**2
+              wgts(4,3) =          iguess**2*(iguess-d_one)* &
+                                   jguess**2*(jguess-d_one)
+              wgts(4,4) =          iguess*(iguess-d_one)**2* &
+                                   jguess**2*(jguess-d_one)
               call store_link_bicub(dst_add, src_add, wgts, nmap)
             else
               call die('remap_bicubic', &
@@ -490,8 +638,8 @@ module mod_scrip_remap_bicubic
           else
             jp1 = 1
           end if
-          n_add = (jp1 - 1)*nx + i
-          e_add = (j - 1)*nx + ip1
+          n_add  = (jp1 - 1)*nx + i
+          e_add  = (j   - 1)*nx + ip1
           ne_add = (jp1 - 1)*nx + ip1
           !
           ! find N,S and NE lat/lon coords and check bounding box

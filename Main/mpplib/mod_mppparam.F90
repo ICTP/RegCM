@@ -611,18 +611,27 @@ module mod_mppparam
       cartesian_communicator = mycomm
       ma%location(1) = 0
       ma%location(2) = 0
+
       global_dot_jstart = 1
       global_dot_istart = 1
       global_dot_jend = jx
       global_dot_iend = iy
+
       global_cross_jstart = 1
       global_cross_istart = 1
       global_cross_jend = jx-1
       global_cross_iend = iy-1
+
       global_out_jstart = 1
       global_out_istart = 1
-      global_out_jend = jx - 3
+      if ( ma%bandflag ) then
+        ! No boundary on east-west direction
+        global_out_jend = jx-1
+      else
+        global_out_jend = jx-3
+      end if
       global_out_iend = iy - 3
+
       ma%has_bdytop    = .true.
       ma%has_bdybottom = .true.
       if ( ma%bandflag ) then
@@ -832,25 +841,44 @@ module mod_mppparam
                                                        global_dot_jend
         call fatal(__FILE__,__LINE__,'DECOMPOSITION ERROR')
       end if
-      global_cross_jstart = global_dot_jstart
+
+      ! South-North direction: The cross grid is one internal to the dot one.
       global_cross_istart = global_dot_istart
-      global_cross_jend = global_dot_jend
       global_cross_iend = global_dot_iend
-      if ( global_dot_jend == jx ) then
-        global_cross_jend = global_cross_jend - 1
-      end if
       if ( global_dot_iend == iy ) then
         global_cross_iend = global_cross_iend - 1
       end if
-      global_out_jstart = max(global_cross_jstart-1,1)
-      global_out_istart = max(global_cross_istart-1,1)
-      global_out_jend   = global_cross_jend-1
-      global_out_iend   = global_cross_iend-1
-      if ( global_dot_jend == jx ) then
-        global_out_jend = global_out_jend-1
+
+      global_cross_jstart = global_dot_jstart
+      if ( ma%bandflag ) then
+        ! Take all points.
+        global_cross_jend = global_dot_jend
+      else
+        ! West-East direction: The cross grid is one internal to the dot one.
+        global_cross_jend = global_dot_jend
+        if ( global_dot_jend == jx ) then
+          global_cross_jend = global_cross_jend - 1
+        end if
       end if
+
+      ! Take away the South boundary point
+      global_out_istart = max(global_cross_istart-1,1)
+      global_out_iend   = global_cross_iend-1
+      ! Take away the North boundary
       if ( global_dot_iend == iy ) then
         global_out_iend = global_out_iend-1
+      end if
+      if ( ma%bandflag ) then
+        global_out_jstart = global_cross_jstart
+        global_out_jend = global_cross_jend
+      else
+        ! Take away the West boundary point
+        global_out_jstart = max(global_cross_jstart-1,1)
+        global_out_jend   = global_cross_jend-1
+        ! Take away the East boundary point
+        if ( global_dot_jend == jx ) then
+          global_out_jend = global_out_jend-1
+        end if
       end if
     end if
     !

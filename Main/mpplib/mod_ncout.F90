@@ -1678,6 +1678,7 @@ module mod_ncout
 
       outstream(nstream)%opar%pname = 'RegCM Model'
       outstream(nstream)%opar%l_sync = lsync
+      outstream(nstream)%opar%l_band = (i_band == 1)
 
       if ( parallel_out ) then
         outstream(nstream)%opar%mpi_comm = mycomm

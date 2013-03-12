@@ -73,6 +73,8 @@ module mod_ncstream_types
     ! JX = number of DOT zonal points WITH boundary
     ! IY = number of DOT meridional points WITH boundary
     logical :: l_bound = .false.
+    ! BAND output has no East or West boundary.
+    logical :: l_band  = .false.
     ! If this is a subgrid output file.
     logical :: l_subgrid = .false.
     ! If the vertical coordinate is on full sigma levels
@@ -145,10 +147,12 @@ module mod_ncstream_types
     !
     ! Defaults is output from model, i.e.:
     !   -) normal grid, not subgrid
+    !   -) BAND output, no E/W boundary
     !   -) no boundary on cross points
     !   -) half sigma level on vertical
     !
     logical :: l_bound = .false.
+    logical :: l_band  = .false.
     logical :: l_subgrid = .false.
     logical :: l_full_sigma = .false.
     real(rk8) :: zero_time = 0.0D0
