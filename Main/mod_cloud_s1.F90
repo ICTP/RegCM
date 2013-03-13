@@ -293,11 +293,11 @@ module mod_cloud_s1
    !newscheme=.false.
    !if ( newscheme ) then
 
-   #ifdef DEBUG
+#ifdef DEBUG
      character(len=dbgslen) :: subroutine_name = 'microphys'
      integer(ik4) , save :: idindx = 0
      call time_begin(subroutine_name,idindx)
-   #endif
+#endif
 
     ! Define species tags
     iqqv = 1    ! vapour
@@ -553,7 +553,7 @@ do k = 1 , kz
       !-----------------------------------
       ! Supersaturation limit (from Koop)
       !-----------------------------------
-      zfokoop= fokoop(zt(j,i,k),foeeliq,foeeice)
+      zfokoop= fokoop(zt(j,i,k),foeeliq(zt(j,i,k)),foeeice(zt(j,i,k)))
       if (zt(j,i,k)>=tzero) then
         zfac  = d_one
         zfaci = d_one
