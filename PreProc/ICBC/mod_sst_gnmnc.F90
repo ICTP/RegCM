@@ -81,7 +81,7 @@ module mod_sst_gnmnc
   integer(ik4) :: year , month , day , hour , y1 , y2
   real(rk8) :: ufac
 !
-  call split_idate(globidate2, year, month, day, hour)  
+  call split_idate(globidate1, year, month, day, hour)  
 !
   ufac = 0.0
   if ( ssttyp == "CAM4N" ) then
@@ -154,7 +154,6 @@ module mod_sst_gnmnc
     inpfile = trim(inpglob)//'/SST/tos_Omon_IPSL-CM5A-LR_rcp85_r1i1p1_200601-230012.nc'
     varname(2) = 'tos'
   else if ( ssttyp(1:3) == 'GF_' ) then
-    call split_idate(globidate1, year, month, day, hour)  
     y1 = (year-1)/5*5+1
     y2 = y1+4
     if ( year == y1 .and. month == 1 .and. day == 1 .and. hour == 0 ) then
@@ -182,7 +181,6 @@ module mod_sst_gnmnc
     end if
     varname(2) = 'ts'
   else if ( ssttyp(1:3) == 'CN_' ) then
-    call split_idate(globidate1, year, month, day, hour)  
     if ( year < 2006 ) then
       y1 = (year)/10*10
       if ( y1 == 2000 ) then
@@ -383,6 +381,8 @@ module mod_sst_gnmnc
   integer(ik4) :: year , month , day , hour , y1 , y2
   type(rcm_time_interval) :: tdiff1 , tdiff2
 
+  call split_idate(idate, year, month, day, hour)  
+
   icount(1) = ilon
   icount(2) = jlat
   icount(3) = 1
@@ -400,7 +400,6 @@ module mod_sst_gnmnc
       ! Try switching to next file
       istatus = nf90_close(inet1)
       call checkncerr(istatus,__FILE__,__LINE__,'Error Close file')
-      call split_idate(idate, year, month, day, hour)  
       y1 = (year-1)/5*5+1
       y2 = y1+4
       if ( ssttyp(4:5) == 'RF' ) then
@@ -467,7 +466,6 @@ module mod_sst_gnmnc
       ! Try switching to next file
       istatus = nf90_close(inet1)
       call checkncerr(istatus,__FILE__,__LINE__,'Error Close file')
-      call split_idate(idate, year, month, day, hour)  
       if ( year < 2006 ) then
         y1 = (year)/10*10
         if ( y1 == 2000 ) then
@@ -530,6 +528,61 @@ module mod_sst_gnmnc
       istatus = nf90_get_var(inet1,ivar2(2),work3,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
       next = timeval2date(work1(it),cunit,ccal)
+    else
+      istart(3) = it-1
+      istatus = nf90_get_var(inet1,ivar2(2),work2,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+      istart(3) = it
+      istatus = nf90_get_var(inet1,ivar2(2),work3,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+      prev = timeval2date(work1(it-1),cunit,ccal)
+      next = timeval2date(work1(it),cunit,ccal)
+    end if
+  else if ( ssttyp == 'HA_RF' ) then
+    if ( it > timlen ) then
+      if ( year == 1959 ) then
+        istart(3) = it-1
+        istatus = nf90_get_var(inet1,ivar2(2),work2,istart,icount)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+        prev = timeval2date(work1(it-1),cunit,ccal)
+        inpfile = trim(inpglob)// &
+           '/SST/tos_Omon_HadGEM2-ES_historical_r1i1p1_195912-200512.nc'
+        ! Try switching to next file
+        istatus = nf90_close(inet1)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error Close file')
+        istatus = nf90_open(inpfile,nf90_nowrite,inet1)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error opening '//trim(inpfile))
+        write (stdout,*) inet1 , trim(inpfile)
+        istatus = nf90_inq_varid(inet1,varname(1),ivar2(1))
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(1))
+        istatus = nf90_inq_varid(inet1,varname(2),ivar2(2))
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find var '//varname(2))
+        istatus = nf90_inq_dimid(inet1,'time',timid)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+        istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
+        call getmem1d(work1,1,timlen,'mod_gnmnc_sst:work1')
+        istart_t(1) = 1
+        icount_t(1) = timlen
+        istatus = nf90_get_var(inet1,ivar2(1),work1,istart_t,icount_t)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
+        istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(1)//' units')
+        istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error read var '//varname(1)//' calendar')
+        fidate1 = timeval2date(work1(1),cunit,ccal)
+        it = imondiff(idate,fidate1) + 1
+        istart(3) = it
+        istatus = nf90_get_var(inet1,ivar2(2),work3,istart,icount)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
+        next = timeval2date(work1(it),cunit,ccal)
+      else
+        write(stderr,*) 'Timestep not found in input file :', tochar(idate)
+        call die('gnmnc_sst','DATE NOT FOUND',1)
+      end if
     else
       istart(3) = it-1
       istatus = nf90_get_var(inet1,ivar2(2),work2,istart,icount)
