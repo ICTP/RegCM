@@ -93,6 +93,7 @@ program ncprepare
     write (stderr,*) ' '
     write (stderr,*) 'Usage : ', trim(prgname), ' Rcmfile.nc'
     write (stderr,*) '        ', trim(prgname), ' clmoutput.nc DOMAIN.nc'
+    write (stderr,*) '        ', trim(prgname), ' CHEMISS.nc DOMAIN.nc'
     write (stderr,*) ' '
     stop
   end if
@@ -150,10 +151,16 @@ program ncprepare
 
   if ( lclm ) then
     istatus = nf90_inq_dimid(ncid_clm, "lon", jxdimid)
+    if (istatus /= nf90_noerr) then
+      istatus = nf90_inq_dimid(ncid_clm, "x", jxdimid)
+    end if
     call checkncerr(istatus,__FILE__,__LINE__,'Dimension x missing')
     istatus = nf90_inquire_dimension(ncid_clm, jxdimid, len=jx)
     call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension x')
     istatus = nf90_inq_dimid(ncid_clm, "lat", iydimid)
+    if (istatus /= nf90_noerr) then
+      istatus = nf90_inq_dimid(ncid_clm, "y", iydimid)
+    end if
     call checkncerr(istatus,__FILE__,__LINE__,'Dimension y missing')
     istatus = nf90_inquire_dimension(ncid_clm, iydimid, len=iy)
     call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dimension y')
