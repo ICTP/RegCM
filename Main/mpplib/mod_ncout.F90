@@ -52,7 +52,7 @@ module mod_ncout
   integer(ik4) , parameter :: nbase = 5
 
   integer(ik4) , parameter :: natm2dvars = 3 + nbase
-  integer(ik4) , parameter :: natm3dvars = 18
+  integer(ik4) , parameter :: natm3dvars = 19
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nsrf2dvars = 17 + nbase
@@ -164,18 +164,19 @@ module mod_ncout
   integer(ik4) , parameter :: atm_omega     = 4
   integer(ik4) , parameter :: atm_qv        = 5
   integer(ik4) , parameter :: atm_qc        = 6
-  integer(ik4) , parameter :: atm_tke       = 7
-  integer(ik4) , parameter :: atm_kth       = 8
-  integer(ik4) , parameter :: atm_kzm       = 9
-  integer(ik4) , parameter :: atm_tten_adh  = 10
-  integer(ik4) , parameter :: atm_tten_adv  = 11
-  integer(ik4) , parameter :: atm_tten_tbl  = 12
-  integer(ik4) , parameter :: atm_tten_dif  = 13
-  integer(ik4) , parameter :: atm_tten_bdy  = 14
-  integer(ik4) , parameter :: atm_tten_con  = 15
-  integer(ik4) , parameter :: atm_tten_adi  = 16
-  integer(ik4) , parameter :: atm_tten_rad  = 17
-  integer(ik4) , parameter :: atm_tten_lsc  = 18
+  integer(ik4) , parameter :: atm_qi        = 7
+  integer(ik4) , parameter :: atm_tke       = 8
+  integer(ik4) , parameter :: atm_kth       = 9
+  integer(ik4) , parameter :: atm_kzm       = 10
+  integer(ik4) , parameter :: atm_tten_adh  = 11
+  integer(ik4) , parameter :: atm_tten_adv  = 12
+  integer(ik4) , parameter :: atm_tten_tbl  = 13
+  integer(ik4) , parameter :: atm_tten_dif  = 14
+  integer(ik4) , parameter :: atm_tten_bdy  = 15
+  integer(ik4) , parameter :: atm_tten_con  = 16
+  integer(ik4) , parameter :: atm_tten_adi  = 17
+  integer(ik4) , parameter :: atm_tten_rad  = 18
+  integer(ik4) , parameter :: atm_tten_lsc  = 19
 
   integer(ik4) , parameter :: srf_xlon   = 1
   integer(ik4) , parameter :: srf_xlat   = 2
@@ -497,7 +498,16 @@ module mod_ncout
             'mass_fraction_of_cloud_liquid_water_in_air',.true.)
           atm_qc_out => v3dvar_atm(atm_qc)%rval
         end if
-
+        if (enable_newmicro) then
+          if ( enable_atm3d_vars(atm_qi) ) then
+            call setup_var(v3dvar_atm(atm_qi),vsize,'cli','kg kg-1', &
+             'Mass fraction of ice', &
+             'mass_fraction_of_ice_in_air',.true.)
+            atm_qi_out => v3dvar_atm(atm_qi)%rval
+          end if
+        else
+          enable_atm3d_vars(atm_qi) = .false.
+        end if
         if ( ibltyp == 2 .or. ibltyp == 99 ) then
           if ( enable_atm3d_vars(atm_tke) ) then
             call setup_var(v3dvar_atm(atm_tke),vsize,'tke','m2 s2', &

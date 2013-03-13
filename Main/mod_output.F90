@@ -184,6 +184,11 @@ module mod_output
             atm_qc_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqc)/ps_out
           end do
         end if
+        if ( associated(atm_qi_out) ) then
+          do k = 1 , kz
+            atm_qi_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqi)/ps_out
+          end do
+        end if
         if ( associated(atm_tke_out) ) &
           atm_tke_out = atm1%tke(jci1:jci2,ici1:ici2,1:kz)
         if ( associated(atm_kth_out) ) &

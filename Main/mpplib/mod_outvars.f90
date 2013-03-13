@@ -42,6 +42,7 @@ module mod_outvars
   real(rk8) , dimension(:,:,:) , pointer :: atm_omega_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_qv_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_qc_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: atm_qi_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_tke_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_kth_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_kzm_out => null()
@@ -56,6 +57,7 @@ module mod_outvars
   real(rk8) , dimension(:,:,:) , pointer :: atm_tten_lsc_out => null()
   real(rk8) , dimension(:,:) , pointer :: atm_tgb_out => null()
   real(rk8) , dimension(:,:) , pointer :: atm_tpr_out => null()
+  real(rk8) , dimension(:,:) , pointer :: atm_tsn_out => null()
   real(rk8) , dimension(:,:) , pointer :: atm_tsw_out => null()
 
   real(rk8) , dimension(:,:) , pointer :: srf_uvdrag_out => null()
