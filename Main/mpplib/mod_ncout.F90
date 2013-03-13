@@ -1800,6 +1800,13 @@ module mod_ncout
         end if
         call outstream_setup(outstream(i)%ncout(j),outstream(i)%opar)
 
+        ! Initial and Boundary data sources
+
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_string('model_icbc_data_source',dattyp))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_string('model_sst_data_source',ssttyp))
+
         ! Buffer Zone Control relaxation + diffusion term params
 
         call outstream_addatt(outstream(i)%ncout(j), &
