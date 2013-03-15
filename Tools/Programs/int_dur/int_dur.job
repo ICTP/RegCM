@@ -1,0 +1,18 @@
+#!/bin/bash
+
+#PBS -N int_dur
+#PBS -l walltime=24:00:00
+#PBS -q serial
+
+# load required modules
+. /etc/profile.d/modules.sh
+module purge 
+module load netcdf/intel/2011
+
+# run coupled model
+cd /home/ggiulian/int_dur
+make
+./int_dur \
+  /home/netapp-clima-scratch/fraffael/AFRICA/MPI/DAILY/preavgOK.nc \
+  preavgOK_int_dur.nc > int_dur.log
+echo Done.
