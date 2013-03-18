@@ -7,13 +7,13 @@ program int_dur
 
   ! The variable to search
   character(len=16) , dimension(2) , parameter :: prenames =  &
-                 (/'pre','pre2'/)
+                 (/'pre ','pre2'/)
   character(len=16) , dimension(2) , parameter :: timenames = &
                  (/'time','Time'/)
-  character(len=16) , dimension(4) , parameter :: latnames = &
-                 (/'xlat','lat','latitude','LAT'/)
-  character(len=16) , dimension(4) , parameter :: lonnames = &
-                 (/'xlon','lon','longitude','LON'/)
+  character(len=16) , dimension(5) , parameter :: latnames = &
+                 (/'xlat    ','lat     ','latitude','LAT     ','iy      '/)
+  character(len=16) , dimension(5) , parameter :: lonnames = &
+                 (/'xlon     ','lon      ','longitude','LON      ','jx       '/)
 
   character(len=256) :: inputfile
   character(len=256) :: outputfile
@@ -416,7 +416,7 @@ program int_dur
       if ( lleap(iyear) ) daypy = 366
     end if
     ndays = daypy-dstart+1+1
-    if ( nprocessed + ndays > nt ) ndays = nt
+    if ( nprocessed + ndays > nt ) ndays = nt-nprocessed+1
     istart(1) = 1
     istart(2) = 1
     istart(3) = nprocessed

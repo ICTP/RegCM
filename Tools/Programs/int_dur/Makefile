@@ -1,8 +1,8 @@
 
-FC = ifort
-FCFLAGS = -I${NETCDF}/include -I. -O3
-LDFLAGS = -L${NETCDF}/lib
-LIBS = -lnetcdff -lnetcdf
+FC = gfortran
+FCFLAGS = -I`nf-config --includedir` -I. -O3
+LDFLAGS = 
+LIBS = `nf-config --flibs`
 OBJS = mod_date.o
 
 all: int_dur
