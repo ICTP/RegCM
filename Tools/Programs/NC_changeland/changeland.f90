@@ -78,13 +78,14 @@ program changeland
   end if
 
   mask(:,:) = .false.
-  where ( (xlat > 45.0 .and. xlat < 48.0) .and. &
-          (xlon > 13.0 .and. xlon < 15.0) )
-    mask = .true.
-  end where
+!  where ( (xlat > 45.0 .and. xlat < 48.0) .and. &
+!          (xlon > 13.0 .and. xlon < 15.0) )
+!    mask = .true.
+!  end where
+  mask(288:400,134:216) = .true.
 
-  where ( mask .and. landuse == 5 )
-    landuse = 1
+  where ( mask .and. landuse == 14 )
+    landuse = 15
   end where
 
   istatus = nf90_put_var(ncid, ivarid, landuse)

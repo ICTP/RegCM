@@ -1,7 +1,7 @@
 
-FC = gfortran
-FCFLAGS = -O2 -g -I`nf-config --includedir`
-LIBS = `nf-config --flibs`
+FC = ifort
+FCFLAGS = -O2 -g -I${NETCDF}/include
+LIBS = -L${NETCDF}/lib -lnetcdff -lnetcdf
 
 all:: put_pointlake
 

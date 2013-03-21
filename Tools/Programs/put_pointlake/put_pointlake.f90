@@ -11,18 +11,18 @@ program changeland
   real(4) :: mean_elevation
 
   integer :: ip , i , j , ii , jj
-  integer , parameter :: nlakes = 4
+  integer , parameter :: nlakes = 24
   integer , dimension(nlakes) :: jxlak
   integer , dimension(nlakes) :: iylak
   real(4) , dimension(nlakes) :: lak_dpth
   real(4) , dimension(nlakes) :: elevation
 
-  data jxlak /161,156,158,155/
-  data iylak /186,180,181,179/
+  data jxlak /161,156,158,155,330,331,331,333,332,333,334,336,336,338,337,338,385,386,387,255,255,331,337,338/
+  data iylak /186,180,181,179,205,206,206,209,209,210,210,211,210,212,210,210,215,215,215,137,138,205,211,211/
   !data jxlak /13,12,13,12/
   !data iylak /18,18,19,19/
-  data lak_dpth /310.0,145.0,82.0,71.0/
-  data elevation /372.0,231.0,447.0,373.0/
+  data lak_dpth /310.0,145.0,82.0,71.0,30.0,30.0,30.0,30.0,30.0,30.0,30.0,30.0,30.0,30.0,30.0,30.0,30.0,30.0,30.0,50.0,155.0,30,30,30/
+  data elevation /372.0,231.0,447.0,373.0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,853.0,693.0,-1,-1,-1/
   !data elevation /372.0,372.0,372.0,372.0/
 
   call getarg(1,arg1)
@@ -148,11 +148,12 @@ program changeland
     stop
   end if
   do ip = 1 , nlakes
-    var(jxlak(ip),iylak(ip)) = elevation(ip)
+    if ( elevation(ip) > 0.0 ) var(jxlak(ip),iylak(ip)) = elevation(ip)
   end do
   do ip = 1 , nlakes
     ii = iylak(ip) - 3
     jj = jxlak(ip) - 3
+    if ( elevation(ip) < 0.0 ) cycle
     var(jxlak(ip),iylak(ip)) = elevation(ip)
     mean_elevation = elevation(ip) * 5.0
     do i = 1 , 5
@@ -168,7 +169,7 @@ program changeland
     end do
   end do
   do ip = 1 , nlakes
-    var(jxlak(ip),iylak(ip)) = elevation(ip)
+    if ( elevation(ip) > 0.0 ) var(jxlak(ip),iylak(ip)) = elevation(ip)
   end do
   istatus = nf90_put_var(ncid, ivarid, var)
   if ( istatus /= nf90_noerr) then
