@@ -21,8 +21,9 @@ vpath %.o $(REGCM_ROOT)/Share:.
 
 include $(REGCM_ROOT)/makeinc
 
-bin_PROGRAMS = sigma2p GrADSNcPlot GrADSNcPrepare average regrid
+bin_PROGRAMS = sigma2p sigma2z GrADSNcPlot GrADSNcPrepare average regrid
 sigma2p_SOURCES = sigma2p.F90 mod_derived.f90
+sigma2z_SOURCES = sigma2z.F90 mod_derived.f90
 GrADSNcPlot_SOURCES = GrADSNcPlot.F90
 GrADSNcPrepare_SOURCES = GrADSNcPrepare.F90
 
@@ -50,3 +51,4 @@ GrADSNcPlot.o : GrADSNcPlot.F90 mod_intkinds.o mod_realkinds.o mod_constants.o m
 GrADSNcPrepare.o : GrADSNcPrepare.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_projections.o mod_stdio.o mod_message.o mod_date.o mod_space.o mod_memutil.o mod_dynparam.o mod_nchelper.o
 mod_derived.o : mod_derived.f90 mod_intkinds.o mod_realkinds.o mod_constants.o
 sigma2p.o : sigma2p.F90 mod_realkinds.o mod_constants.o mod_stdio.o mod_message.o mod_vertint.o mod_derived.o mod_date.o mod_space.o mod_memutil.o mod_dynparam.o mod_nchelper.o
+sigma2z.o : sigma2z.F90 mod_realkinds.o mod_constants.o mod_stdio.o mod_message.o mod_vertint.o mod_derived.o mod_date.o mod_space.o mod_memutil.o mod_dynparam.o mod_nchelper.o
