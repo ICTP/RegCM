@@ -36,6 +36,7 @@ module mod_vertint
   interface intlin_o
     module procedure intlin_o_double
     module procedure intlin_o_single
+    module procedure intlin_z_o_single
   end interface intlin_o
 
   interface intlog_o
@@ -437,6 +438,120 @@ module mod_vertint
       end do
     end if
   end subroutine intlin_o_single
+!
+  subroutine intlin_z_o_single(fz,f,t,pstar,sig,ptop,im,jm,km,z,kz)
+    implicit none
+!
+    integer(ik4) :: im , jm , km , kz
+    real(rk8) :: ptop
+    real(rk4) , dimension(im,jm,km) :: f , t
+    real(rk4) , dimension(im,jm,kz) :: fz
+    real(rk4) , dimension(kz) :: z
+    real(rk4) , dimension(im,jm) :: pstar
+    real(rk4) , dimension(km) :: sig , h
+    intent (in) f , im , jm , km , kz , z , pstar , ptop , sig
+    intent (out) fz
+!
+    integer(ik4) :: i , j , k , kx , knx , n
+    real(rk4) :: sigp , w1 , wz , pt
+    !
+    ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
+    ! HUMIDITY. THE INTERPOLATION IS LINEAR IN Z.  WHERE EXTRAPOLATION
+    ! IS NECESSARY, FIELDS ARE CONSIDERED TO HAVE 0 VERTICAL DERIVATIVE.
+    !
+    pt = real(ptop)
+    !
+    ! HERE BOTTOM TO TOP
+    !
+    if ( sig(1) < sig(2) ) then
+      !
+      ! Loop over points
+      !
+      do j = 1 , jm
+        do i = 1 , im
+          !
+          ! Compute elevation profile h
+          !
+          call htsig_profile_single(t(j,i,:),h,pstar(j,i),sig,pt,km)
+          !
+          ! For each of the requested levels
+          !
+          do n = 1 , kz
+            !
+            ! Over the top or below bottom level
+            !
+            if ( z(n) <= h(km) ) then
+              fz(i,j,n) = f(i,j,km)
+              cycle
+            else if ( z(n) >= h(1) ) then
+              fz(i,j,n) = f(i,j,1)
+              cycle
+            end if
+            !
+            ! Search k level below the requested one
+            !
+            kx = 0
+            do k = 1 , km-1
+              if ( z(n) > h(k) ) exit
+              kx = k
+            end do
+            !
+            ! This is the above level
+            !
+            knx = kx + 1
+            wz = (z(n)-h(kx))/(h(knx)-h(kx))
+            w1 = 1.0 - wz
+            fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
+          end do
+        end do
+      end do
+    !
+    ! HERE TOP TO BOTTOM
+    !
+    else
+      !
+      ! Loop over points
+      !
+      do j = 1 , jm
+        do i = 1 , im
+          !
+          ! For each of the requested levels
+          !
+          do n = 1 , kz
+            !
+            ! The searched sigma value
+            !
+            call htsig_profile_single(t(j,i,:),h,pstar(j,i),sig,pt,km)
+            !
+            ! Over the top or below bottom level
+            !
+            if ( z(n) <= h(1) ) then
+              fz(i,j,n) = f(i,j,1)
+              cycle
+            else if ( z(n) >= h(km) ) then
+              fz(i,j,n) = f(i,j,km)
+              cycle
+            end if
+            !
+            ! Search k level below the requested one
+            !
+            kx = km + 1
+            do k = km , 2 , -1
+              if ( z(n) > h(k) ) exit
+              kx = k
+            end do
+            !
+            ! This is the above level
+            !
+            knx = kx - 1
+            wz = (z(n)-h(kx))/(h(knx)-h(kx))
+            w1 = 1.0 - wz
+            fz(i,j,n) = w1*f(i,j,kx) + wz*f(i,j,knx)
+          end do
+        end do
+      end do
+    end if
+  end subroutine intlin_z_o_single
 !
 !-----------------------------------------------------------------------
 !
@@ -1194,5 +1309,59 @@ module mod_vertint
       end do
     end do
   end subroutine intv3
+!
+  subroutine htsig_profile(t,h,pstar,sig,ptop,km)
+    implicit none
+    integer , intent(in) :: km
+    real(rk8) , intent(in) :: ptop
+    real(rk8) , intent(in) :: pstar
+    real(rk8) , intent(in) , dimension(km) :: t
+    real(rk8) , intent(in) , dimension(km) :: sig
+    real(rk8) , intent(out) , dimension(km) :: h
+    real(rk8) :: tbar
+    integer(ik4) :: k
+    if ( sig(1) < sig(2) ) then
+      h(km) = rovg*t(km)*dlog(pstar/((pstar-ptop)*sig(km)+ptop))
+      do k = km - 1 , 1 , -1
+        tbar = d_half*(t(k)+t(k+1))
+        h(k) = h(k+1) + rovg*tbar*dlog( ((pstar-ptop)*sig(k+1)+ptop) / &
+                                        ((pstar-ptop)*sig(k  )+ptop) )
+      end do
+    else
+      h(1) = rovg*t(1)*dlog(pstar/((pstar-ptop)*sig(1)+ptop))
+      do k = 2 , km
+        tbar = d_half*(t(k)+t(k-1))
+        h(k) = h(k-1) + rovg*tbar*dlog( ((pstar-ptop)*sig(k)+ptop) / &
+                                        ((pstar-ptop)*sig(k-1)+ptop) )
+      end do
+    end if
+  end subroutine htsig_profile
+!
+  subroutine htsig_profile_single(t,h,pstar,sig,ptop,km)
+    implicit none
+    integer , intent(in) :: km
+    real(rk4) , intent(in) :: ptop
+    real(rk4) , intent(in) :: pstar
+    real(rk4) , intent(in) , dimension(km) :: t
+    real(rk4) , intent(in) , dimension(km) :: sig
+    real(rk4) , intent(out) , dimension(km) :: h
+    real(rk4) :: tbar
+    integer(ik4) :: k
+    if ( sig(1) < sig(2) ) then
+      h(km) = real(rovg)*t(km)*log(pstar/((pstar-ptop)*sig(km)+ptop))
+      do k = km - 1 , 1 , -1
+        tbar = 0.5*(t(k)+t(k+1))
+        h(k) = h(k+1) + real(rovg)*tbar * &
+          log(((pstar-ptop)*sig(k+1)+ptop)/((pstar-ptop)*sig(k)+ptop))
+      end do
+    else
+      h(1) = real(rovg)*t(1)*log(pstar/((pstar-ptop)*sig(1)+ptop))
+      do k = 2, km
+        tbar = 0.5*(t(k)+t(k-1))
+        h(k) = h(k-1) + real(rovg)*tbar * &
+          log(((pstar-ptop)*sig(k)+ptop)/((pstar-ptop)*sig(k-1)+ptop))
+      end do
+    end if
+  end subroutine htsig_profile_single
 !
 end module mod_vertint
