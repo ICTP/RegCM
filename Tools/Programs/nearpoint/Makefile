@@ -1,5 +1,5 @@
 
-FC = ifort
+FC = gfortran
 FCFLAGS = -O2 -g -I../../../Share
 
 all:: nearpoint
