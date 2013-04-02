@@ -45,7 +45,7 @@ program sigma2p
   integer(ik4) , allocatable , dimension(:) :: dimids , dimlen
   real(rk4) , allocatable , dimension(:) :: sigma
   real(rk4) , allocatable , dimension(:,:,:) :: xvar , tempvar
-  real(rk4) , allocatable , dimension(:,:,:) :: zvar , tazvar , qazvar , hazvar
+  real(rk4) , allocatable , dimension(:,:,:) :: zvar , tazvar , qazvar
   real(rk4) , allocatable , dimension(:,:) :: ps , topo , mslp
   real(rk4) , allocatable , dimension(:) :: avar
   character , allocatable , dimension(:) :: tvar
@@ -67,7 +67,7 @@ program sigma2p
   integer(ik4) , dimension(4) :: tdimids
   integer(ik4) , dimension(3) :: psdimids
   integer(ik4) :: i , j , k , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
-  integer(ik4) :: tvarid , qvarid , irhvar , ihgvar , imslzvar , ircm_map
+  integer(ik4) :: tvarid , qvarid , irhvar , imslzvar , ircm_map
   logical :: has_t , has_q
   logical :: make_rh , make_hgt
   integer(ik4) :: n3d , iz3d
@@ -292,24 +292,8 @@ program sigma2p
     call checkalloc(istatus,__FILE__,__LINE__,'topo')
     allocate(mslp(jx,iy), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'mslp')
-    allocate(hazvar(jx,iy,nz), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'hazvar')
     istatus = nf90_get_var(ncid, ishvarid, topo, istart(1:2), icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading topo.')
-    istatus = nf90_def_var(ncout, 'hgt', nf90_float, tdimids, ihgvar)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error define variable rh')
-#ifdef NETCDF4_HDF5
-    istatus = nf90_def_var_deflate(ncout, ihgvar, 1, 1, 9)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error set deflate for hgt')
-#endif
-    istatus = nf90_put_att(ncout, ihgvar, 'standard_name', 'height')
-    call checkncerr(istatus,__FILE__,__LINE__,'Error adding standard name')
-    istatus = nf90_put_att(ncout, ihgvar, 'long_name', 'Vertical distance above surface')
-    call checkncerr(istatus,__FILE__,__LINE__,'Error adding long name')
-    istatus = nf90_put_att(ncout, ihgvar, 'units', 'm')
-    call checkncerr(istatus,__FILE__,__LINE__,'Error adding units')
-    istatus = nf90_put_att(ncout, ihgvar, '_FillValue', smissval)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error adding missval')
     istatus = nf90_def_var(ncout, 'mslp', nf90_float, psdimids, imslzvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable rh')
 #ifdef NETCDF4_HDF5
@@ -545,15 +529,6 @@ program sigma2p
       call checkncerr(istatus,__FILE__,__LINE__,'Error writing rh variable.')
     end if
     if ( make_hgt ) then
-      call calc_hgt(hazvar,tazvar,ps,topo,zlevs,jx,iy,nz)
-      iv = 4
-      istart(iv) = it
-      icount(iv) = 1
-      istart(1:iv-1) = 1
-      icount(1:iv-1) = dimsize(1:iv-1,tvarid)
-      icount(iv-1) = nz
-      istatus = nf90_put_var(ncout, ihgvar, hazvar, istart(1:iv), icount(1:iv))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error writing hgt variable.')
       call calc_mslpres(tazvar,ps,topo,mslp,zlevs,jx,iy,nz)
       iv = 3
       istart(iv) = it
