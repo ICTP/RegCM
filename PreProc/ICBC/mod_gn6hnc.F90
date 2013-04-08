@@ -721,7 +721,7 @@ module mod_gn6hnc
     type(rcm_time_and_date) , intent(in) :: idate
 !
     call readgn6hnc(idate)
-    write (stderr,*) 'Read in fields at Date: ', tochar(idate)
+    write (stdout,*) 'Read in fields at Date: ', tochar(idate)
  
     ! GFS and EC-EARTH and ECHAM5 grids are already on pressure levels.
     if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' .and. &
