@@ -250,11 +250,6 @@ module mod_bats_lake
     logical , parameter :: lfreeze = .false.
     integer(ik4) , parameter :: kmin = 1
     integer(ik4) , parameter :: kmax = 200
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'lake'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
 !
     ! interpolate winds at z1 m to 2m via log wind profile
     u2 = vl*dlog(z2/zo)/dlog(zl/zo)
@@ -303,9 +298,6 @@ module mod_bats_lake
 
     end if
     tgl = tprof(1) + tzero
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
   end subroutine lake
 !
 !-----------------------------------------------------------------------
@@ -323,11 +315,6 @@ module mod_bats_lake
     real(rk8) :: demax , demin , dpdz , ks , n2 , po
     real(rk8) :: zmax , rad , ri , ws , z
     integer(ik4) :: k
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'lakeeddy'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
 !
     ! demin molecular diffusion of heat in water
     demin = hdmw
@@ -396,9 +383,6 @@ module mod_bats_lake
 
     end do
     de(ndpt) = demin
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
   end subroutine lakeeddy
 !
 !-----------------------------------------------------------------------
@@ -410,11 +394,6 @@ module mod_bats_lake
     real(rk8) , dimension(ndpmax) , intent(inout) :: tprof
     real(rk8) :: bot , dt1 , dt2 , top
     integer(ik4) :: k
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'laketemp'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
 
     ! Computes temperature profile
     ! solve differential equations of heat transfer
@@ -444,9 +423,6 @@ module mod_bats_lake
       tprof(k) = tt(k)
       dnsty(k) = d_1000*(d_one-1.9549D-05*(dabs(tprof(k)-4.0D0))**1.68D0)
     end do
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
   end subroutine laketemp
 !
 !-----------------------------------------------------------------------
@@ -457,11 +433,6 @@ module mod_bats_lake
     real(rk8) , intent(inout) , dimension(ndpmax) :: tprof
     real(rk8) :: avet , avev , tav , vol
     integer(ik4) :: k , k2
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'lakemixer'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
 ! 
     ! Simulates convective mixing
     tt(kmin:ndpt) = tprof(kmin:ndpt)
@@ -493,9 +464,6 @@ module mod_bats_lake
     end do ! K loop
 
     tprof(kmin:ndpt) = tt(kmin:ndpt)
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
   end subroutine lakemixer
 !
 !-----------------------------------------------------------------------
@@ -535,11 +503,6 @@ module mod_bats_lake
     real(rk8) , parameter :: cd = 0.001D0
     ! Maximum exponent
     real(rk8) , parameter :: minexp = -25.0D0
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'lakeice'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
 
     if ( (tac <= d_zero) .and. (aveice > d_zero) ) &
       hs = hs + prec*d_r100  ! convert prec(mm) to depth(m)
@@ -653,9 +616,6 @@ module mod_bats_lake
       end if
       exit
     end do
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
 
     contains
 
