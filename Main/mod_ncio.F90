@@ -38,7 +38,7 @@ module mod_ncio
   integer(ik4) :: ibcin , somin
   integer(ik4) :: istatus
   integer(ik4) :: ibcrec , ibcnrec
-  integer(ik4) :: somrec , somnrec
+  integer(ik4) :: somrec
   type(rcm_time_and_date) , dimension(:) , allocatable :: icbc_idate
   integer(ik4) , dimension(7) :: icbc_ivar
   integer(ik4) , dimension(1) :: som_ivar
@@ -48,7 +48,6 @@ module mod_ncio
   data ibcnrec / 0/
   data somin   /-1/
   data somrec  / 1/
-  data somnrec / 12/
 
   real(rk8) , dimension(:,:) , pointer :: rspacesom => null()
   real(rk8) , dimension(:,:) , pointer :: rspacesom_io => null()
@@ -352,7 +351,7 @@ module mod_ncio
     if ( imon < 0 .or. imon > 13 ) then
       somrec = -1
     else
-      if ( imon > 0 .and. imon < 12 ) then 
+      if ( imon > 0 .and. imon < 13 ) then 
         somrec = imon
       else if ( imon == 0 ) then
         somrec = 12
@@ -453,8 +452,6 @@ module mod_ncio
     ctime = 'YYYYMMDDHH'
     somname = trim(dirglob)//pthsep//trim(domname)//'_SOM.'//ctime//'.nc'
     call openfile_withname(somname,somin)
-    somrec = 1
-    somnrec = 12
     call check_domain(somin,.true.,.true.)
     istatus = nf90_inq_varid(somin, 'qflx', som_ivar(1))
     call check_ok(__FILE__,__LINE__,'variable qflx miss', 'SOM FILE')
@@ -653,7 +650,13 @@ module mod_ncio
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(out) :: qflx
     integer(ik4) , dimension(4) :: istart , icount
+    character(len=3) , dimension(12) :: cmon = &
+      (/'jan','feb','mar','apr','may','jun', &
+        'jul','aug','sep','oct','nov','dec'/)
 
+    if ( myid == italk ) then
+      write(stdout,*) 'Reading SOM data for ',cmon(somrec)
+    end if
     if ( do_parallel_netcdf_in ) then
       istart(1) = global_out_jstart
       istart(2) = global_out_istart
