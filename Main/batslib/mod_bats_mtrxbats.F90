@@ -503,9 +503,6 @@ module mod_bats_mtrxbats
             srf_tpr_out = srf_tpr_out + totpr
           if ( associated(srf_prcv_out) ) &
             srf_prcv_out = srf_prcv_out + pptc
-          ! Reset accumulation from precip and cumulus
-          pptnc = d_zero
-          pptc  = d_zero
           if ( associated(srf_zpbl_out) ) &
             srf_zpbl_out = srf_zpbl_out + hpbl
           if ( associated(srf_scv_out) ) &
@@ -681,6 +678,10 @@ module mod_bats_mtrxbats
         end if
 
       end if ! IF output time
+
+      ! Reset accumulation from precip and cumulus
+      pptnc = d_zero
+      pptc  = d_zero
 
     end if ! Versus of the interface (1,2)
 
