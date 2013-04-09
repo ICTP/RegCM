@@ -266,8 +266,6 @@ module mod_output
 
         atm_tgb_out = d_zero
         atm_tsw_out = d_zero
-        sfs%rainc   = d_zero
-        sfs%rainnc  = d_zero
       end if
     end if
 
@@ -652,6 +650,11 @@ module mod_output
 
         call checktime(myid)
       end if
+    end if
+
+    if ( ldoatm ) then
+      sfs%rainc   = d_zero
+      sfs%rainnc  = d_zero
     end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx) 
