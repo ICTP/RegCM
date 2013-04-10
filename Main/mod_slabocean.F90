@@ -30,29 +30,26 @@ module mod_slabocean
   private
 !
   real(rk8) :: mixed_layer_salin = d_100/d_three
-  integer(ik4) , parameter :: monperyear = 12
+  real(rk8) :: mlcp , dtocean
 !
   ! the actual prognotic sst pointing on tg2
   real(rk8) , pointer , dimension(:,:) :: sstemp
   real(ik8) , pointer , dimension(:,:) :: ohfx , oqfx , ofsw , oflw
   real(rk8) , pointer , dimension(:,:) :: olndcat
   real(rk8) , pointer , dimension(:,:,:) :: qflux_restore_sst
-  integer(ik4) , dimension(monperyear) , target :: stepcount
   real(rk8) , pointer , dimension (:,:) :: qflux_sst , qflux_adj , net_hflx , &
     hflx , qflb0 , qflb1 , qflbt
   integer(ik4) , pointer , dimension (:,:) :: ocmask
 
-  real(rk8) :: dtocean
-!
   public :: allocate_mod_slabocean , init_slabocean , update_slabocean
   public :: fill_slaboc_outvars
-  public :: qflb0 , qflb1 , qflbt , qflux_restore_sst , stepcount
+  public :: qflb0 , qflb1 , qflbt , qflux_restore_sst
 
   contains
 !
     subroutine allocate_mod_slabocean
       implicit none
-      call getmem3d(qflux_restore_sst,jci1,jci2,ici1,ici2,1,monperyear,&
+      call getmem3d(qflux_restore_sst,jci1,jci2,ici1,ici2,1,mpy,&
                     'slab_ocean:qflux_restore_sst')
       call getmem2d(qflux_sst,jci1,jci2,ici1,ici2,'slab_ocean:qflux_sst')
       call getmem2d(qflux_adj,jci1,jci2,ici1,ici2,'slab_ocean:qflux_adj')
@@ -62,6 +59,7 @@ module mod_slabocean
       call getmem2d(net_hflx,jci1,jci2,ici1,ici2,'slab_ocean:net_hflx')
       call getmem2d(hflx,jci1,jci2,ici1,ici2,'slab_ocean:hflx')
       stepcount(:) = 0
+      dtocean = dtsrf
     end subroutine allocate_mod_slabocean
 !
     subroutine init_slabocean(sfs,ldmsk,fsw,flw)
@@ -71,26 +69,25 @@ module mod_slabocean
       integer(ik4) , pointer , intent(in) , dimension(:,:) :: ldmsk
       real(rk8) , pointer , intent(in) , dimension(:,:) :: fsw , flw
 
+      ! water heat capacity ~ 4 J/g/K         
+      mlcp = mixed_layer_depth*4.0D6
+
       call assignpnt(sfs%tgb,sstemp)
       call assignpnt(ldmsk,ocmask)
       call assignpnt(sfs%hfx,ohfx)
       call assignpnt(sfs%qfx,oqfx)
       call assignpnt(fsw,ofsw)
       call assignpnt(flw,oflw) 
-      dtocean =  dtsrf
     end subroutine init_slabocean
 
-    subroutine update_slabocean
+    subroutine update_slabocean(xt)
       implicit none
+      real(rk8) , intent(in) :: xt
       ! mlcp is the heat capacity of the mixed layer [J / m3 / deg C] * m
-      real(rk8) :: mlcp
       integer(ik4) :: i , j
 #ifdef DEBUG
       real(rk8) , dimension(5) :: pval , pval1
 #endif
-      ! water heat capacity ~ 4 J/g/K         
-      mlcp = mixed_layer_depth*4.0D6
-
       if ( do_restore_sst ) then
         stepcount(xmonth) = stepcount(xmonth)+1
         do i = ici1 , ici2
@@ -113,7 +110,7 @@ module mod_slabocean
         ! is handled in an off-line calculation to derive the final qflux
         ! adjustment. These include ice restoring and ice lid contributions.
         !
-        qflux_adj = qflb0 + dtocean*qflbt
+        qflux_adj = qflb0 + xt*qflbt
       end if    
       !
       ! energy budget in the mixed layer including the q flux therm
@@ -141,7 +138,7 @@ module mod_slabocean
         do j = jci1 , jci2
           if ( ocmask(j,i) == 0 ) then
             ! The following are some key equations for this model:
-            ! flux from or to the atmosphere ( convention  = positive downward)
+            ! flux from or to the atmosphere ( convention = positive downward)
             ! multiply evaporation by latent heat of evaporation     
             hflx(j,i) = ofsw(j,i)-oflw(j,i)-ohfx(j,i)-wlhv*oqfx(j,i)
             ! account for the retaured or adjustment flux term
@@ -155,22 +152,30 @@ module mod_slabocean
 
     subroutine fill_slaboc_outvars
       implicit none
-      integer(ik4) :: imon
+      integer(ik4) :: imon , i , j
       if ( associated(slab_qflx_out) ) then
-        do imon = 1 , monperyear
+        do imon = 1 , mpy
           if ( stepcount(imon) /= 0 ) then
-            where ( ocmask == 0 )
-              slab_qflx_out(:,:,imon) = &
-                qflux_restore_sst(:,:,imon)/stepcount(imon)
-            else where
-              slab_qflx_out(:,:,imon) = dmissval
-            end where
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( ocmask(j,i) == 0 ) then
+                  slab_qflx_out(j,i,imon) = &
+                        qflux_restore_sst(j,i,imon)/stepcount(imon)
+                else
+                  slab_qflx_out(j,i,imon) = dmissval
+                end if
+              end do
+            end do
           else
-            where ( ocmask == 0 )
-              slab_qflx_out(:,:,imon) = d_zero
-            else where
-              slab_qflx_out(:,:,imon) = dmissval
-            end where
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( ocmask(j,i) == 0 ) then
+                  slab_qflx_out(j,i,imon) = d_zero
+                else
+                  slab_qflx_out(j,i,imon) = dmissval
+                end if
+              end do
+            end do
           end if
         end do
       end if

@@ -189,6 +189,7 @@ module mod_bdycod
     integer(ik4) :: datefound , i , j , k
     character(len=32) :: appdat
     type (rcm_time_and_date) :: icbc_date
+    type (rcm_time_interval) :: tdif
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'init_bdy'
     integer(ik4) , save :: idindx = 0
@@ -197,6 +198,8 @@ module mod_bdycod
 
     bdydate1 = idate1
     bdydate2 = idate1
+    nbdytime = 0
+    xbctime = d_zero
 
     if ( bdydate1 == globidate1 ) then
       icbc_date = bdydate1
@@ -207,6 +210,7 @@ module mod_bdycod
     call open_icbc(icbc_date)
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
       call open_som
+      xslabtime = d_zero
     end if
 
     datefound = icbc_search(bdydate1)
@@ -267,7 +271,8 @@ module mod_bdycod
       end if
       call read_som(qflb1)
       where ( ldmsk > 0 ) qflb1 = d_zero
-      qflbt = (qflb1-qflb0)/dtbdys
+      tdif = prevmon(bdydate2)-bdydate2
+      qflbt = (qflb1-qflb0)/(tohours(tdif)*secph)
     end if
 
     if ( myid == italk ) then
@@ -384,6 +389,7 @@ module mod_bdycod
     character(len=32) :: appdat
     logical :: update_slabocn
     real(rk8) :: sfice_temp
+    type (rcm_time_interval) :: tdif
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyin'
     integer(ik4) , save :: idindx = 0
@@ -392,6 +398,10 @@ module mod_bdycod
 
     update_slabocn = ( islab_ocean == 1 .and. &
       do_qflux_adj .and. som_month /= xmonth )
+
+    nbdytime = 0
+    xbctime = d_zero
+
     xub%b0(:,:,:) = xub%b1(:,:,:)
     xvb%b0(:,:,:) = xvb%b1(:,:,:)
     xtb%b0(:,:,:) = xtb%b1(:,:,:)
@@ -403,6 +413,7 @@ module mod_bdycod
     if ( update_slabocn ) then
       som_month = xmonth
       qflb0 = qflb1
+      xslabtime = d_zero
     end if
 !
     bdydate2 = bdydate2 + intbdy
@@ -428,7 +439,8 @@ module mod_bdycod
       end if
       call read_som(qflb1)
       where ( ldmsk > 0 ) qflb1 = d_zero
-      qflbt = (qflb1-qflb0)/dtbdys
+      tdif = prevmon(bdydate2)-bdydate2
+      qflbt = (qflb1-qflb0)/(tohours(tdif)*secph)
     end if
     !
     ! Convert surface pressure to pstar
@@ -491,7 +503,6 @@ module mod_bdycod
     !
     ! Update ground temperature on Ocean/Lakes
     !
-
     sfice_temp = icetemp
     do i = ici1 , ici2
       do j = jci1 , jci2

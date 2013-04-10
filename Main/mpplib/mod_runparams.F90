@@ -49,7 +49,7 @@ module mod_runparams
   type(rcm_time_interval) , save :: intsom
 
   real(rk8) :: declin , deltmx
-  real(rk8) :: xbctime
+  real(rk8) :: xbctime , xslabtime
   real(rk8) :: calday , twodt
 
   real(rk8) :: solcon , scon
@@ -282,6 +282,7 @@ module mod_runparams
   ! TK mod; restoring time scale for SST in days
   real(rk8) :: sst_restore_timescale 
   real(rk8) :: mixed_layer_depth 
+  integer(ik4) , dimension(mpy) :: stepcount
 
   ! CLM options
 #ifdef CLM

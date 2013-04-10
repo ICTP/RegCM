@@ -104,7 +104,7 @@ module mod_tendency
                psasum , pt2bar , pt2tot , ptnbar , maxv , lowq ,     &
                ptntot , qxas , qxbs , rovcpm , rtbar , sigpsa , tv , &
                tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,     &
-               xmsf , xtm1 , theta , eccf 
+               xmsf , theta , eccf
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
@@ -415,8 +415,7 @@ module mod_tendency
     if ( iboudy == 4 ) then
       call sponge(ba_cr,xpsb,pten)
     else if ( iboudy == 1 .or. iboudy == 5 ) then
-      xtm1 = xbctime - dtsec
-      call nudge(ba_cr,xtm1,sfs%psb,iboudy,xpsb,pten)
+      call nudge(ba_cr,xbctime,sfs%psb,iboudy,xpsb,pten)
     end if
     !
     ! psc : forecast pressure
@@ -795,7 +794,7 @@ module mod_tendency
     !
     if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
       call mtrxbats(ktau)
-      if ( islab_ocean == 1 ) call update_slabocean
+      if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
     end if
 #else
     !
@@ -814,7 +813,7 @@ module mod_tendency
         r2cnstep = (ktau+1)/ntsrf
       end if
       call mtrxclm(ktau)
-      if ( islab_ocean == 1 ) call update_slabocean
+      if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
     end if
 #endif
     if ( icup == 1 ) then
@@ -936,16 +935,14 @@ module mod_tendency
     ! apply the nudging boundary conditions:
     !
     if ( iboudy == 1 .or. iboudy == 5 ) then
-      xtm1 = xbctime - dtsec
-      call nudge(kz,ba_cr,xtm1,atm2%t,iboudy,xtb,aten%t)
-      call nudge(kz,iqv,ba_cr,xtm1,atm2%qx,iboudy,xqb,aten%qx)
+      call nudge(kz,ba_cr,xbctime,atm2%t,iboudy,xtb,aten%t)
+      call nudge(kz,iqv,ba_cr,xbctime,atm2%qx,iboudy,xqb,aten%qx)
     end if
     if ( ichem == 1 ) then
       if ( ichdiag == 1 ) chiten0 = chiten
       ! keep nudge_chi for now 
       if ( iboudy == 1 .or. iboudy == 5 ) then
-        xtm1 = xbctime - dtsec
-        call nudge_chi(kz,xtm1,chib,chiten)
+        call nudge_chi(kz,xbctime,chib,chiten)
       end if
       if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten - chiten0) * cfdout
     end if  
@@ -1282,9 +1279,8 @@ module mod_tendency
     ! apply the nudging boundary conditions:
     !
     if ( iboudy == 1 .or. iboudy == 5 ) then
-      xtm1 = xbctime - dtsec
-      call nudge(kz,ba_dt,xtm1,atm2%u,iboudy,xub,aten%u)
-      call nudge(kz,ba_dt,xtm1,atm2%v,iboudy,xvb,aten%v)
+      call nudge(kz,ba_dt,xbctime,atm2%u,iboudy,xub,aten%u)
+      call nudge(kz,ba_dt,xbctime,atm2%v,iboudy,xvb,aten%v)
     end if
 #ifdef DEBUG
     call check_wind_tendency('BDYC')
@@ -1440,14 +1436,11 @@ module mod_tendency
     !
     ktau = ktau + 1
     xbctime = xbctime + dtsec
-    nbdytime = nbdytime + ntsec
+    if ( islab_ocean == 1 ) xslabtime = xslabtime + dtsec
+    nbdytime = nbdytime + 1
     idatex = idatex + intmdl
     if ( mod(ktau,khour) == 0 ) then
       call split_idate(idatex,xyear,xmonth,xday,xhour)
-    end if
-    if ( mod(ktau,kbdy) == 0 ) then
-      nbdytime = 0
-      xbctime = d_zero
     end if
     if ( ktau == 2 ) then
       dtbat = dt*dble(ntsrf)

@@ -962,7 +962,6 @@ module mod_params
     call bcast(mixed_layer_depth)
     ! Save the input restore flux file for the adjust run
     if ( do_restore_sst ) ifslaboc = .true.
-    stepcount_io => stepcount
   end if
 
   if ( ichem == 1 ) then
@@ -1035,8 +1034,6 @@ module mod_params
   call allocate_mod_che_mppio
   call allocate_mod_che_dust
   call allocate_mod_che_bdyco
-
-  call allocate_mod_slabocean
 
   if ( isladvec == 1 ) then
     call allocate_mod_sldepparam
@@ -1164,9 +1161,6 @@ module mod_params
 
   mtau = idnint((hspan*secph)/dt)
 
-  nbdytime = 0
-  xbctime = d_zero
-
   do ns = 1 , nsplit
     dtsplit(ns) = dt*(d_half/dble(nsplit-ns+1))
     dtau(ns) = dtsplit(ns)
@@ -1275,7 +1269,10 @@ module mod_params
 #ifdef CLM
   call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
 #endif
-  call init_slabocean(sfs,ldmsk,fsw,flw)
+  if ( islab_ocean == 1 ) then
+    call allocate_mod_slabocean
+    call init_slabocean(sfs,ldmsk,fsw,flw)
+  end if
 !
   if ( myid == italk ) then
     if ( ifrest .and. idate0 == idate1 ) then

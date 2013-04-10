@@ -279,7 +279,7 @@ module mod_regcm_interface
       ! Boundary code (do not execute at the end of run)
       !
       if ( ktau /= mtau ) then
-        if ( nbdytime == 0 ) then
+        if ( nbdytime == kbdy ) then
           !
           ! recalculate solar declination angle if reading bdy
           !

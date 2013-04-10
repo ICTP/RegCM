@@ -230,8 +230,6 @@ module mod_init
     !
     ! Comunicate the data to other processors
     !
-    xbctime = d_zero
-    nbdytime = 0
     call bcast(ktau)
     call bcast(idatex)
 !

@@ -628,7 +628,6 @@ module mod_output
         if ( islab_ocean == 1 .and. do_restore_sst ) then
           call grid_collect(qflux_restore_sst,qflux_restore_sst_io, &
             jci1,jci2,ici1,ici2,1,12)
-          stepcount_io => stepcount
         end if
 
         if ( ldosav ) then

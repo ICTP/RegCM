@@ -85,7 +85,6 @@ module mod_mppio
   real(rk8) , pointer , dimension(:,:,:) :: tbase_io
 
   real(rk8) , pointer , dimension(:,:,:) :: qflux_restore_sst_io
-  integer(ik4) , pointer , dimension(:) :: stepcount_io
 
   type(atmstate) :: atm1_io
   type(atmstate) :: atm2_io
