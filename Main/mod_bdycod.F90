@@ -272,7 +272,7 @@ module mod_bdycod
       end if
       call read_som(qflb1)
       where ( ldmsk > 0 ) qflb1 = d_zero
-      tdif = prevmon(bdydate2)-bdydate2
+      tdif = bdydate2-prevmon(bdydate2)
       qflbt = (qflb1-qflb0)/(tohours(tdif)*secph)
     end if
 
@@ -440,7 +440,7 @@ module mod_bdycod
       end if
       call read_som(qflb1)
       where ( ldmsk > 0 ) qflb1 = d_zero
-      tdif = prevmon(bdydate2)-bdydate2
+      tdif = bdydate2-prevmon(bdydate2)
       qflbt = (qflb1-qflb0)/(tohours(tdif)*secph)
     end if
     !
