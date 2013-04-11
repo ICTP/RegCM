@@ -210,7 +210,6 @@ module mod_bdycod
     call open_icbc(icbc_date)
     if ( islab_ocean == 1 .and. do_qflux_adj ) then
       call open_som
-      xslabtime = d_zero
     end if
 
     datefound = icbc_search(bdydate1)
@@ -233,6 +232,8 @@ module mod_bdycod
       end if
       call read_som(qflb0)
       where ( ldmsk > 0 ) qflb0 = d_zero
+      tdif = monfirst(bdydate1)-bdydate1
+      xslabtime = tohours(tdif)*secph
     end if
 
     if ( myid == italk ) then
