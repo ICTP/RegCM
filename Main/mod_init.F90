@@ -396,7 +396,7 @@ module mod_init
     sfice_temp = icetemp
     do i = ici1 , ici2
       do j = jci1 , jci2
-        if ( iswater(mddom%lndcat(j,i)) ) then
+        if ( iswater(mddom%lndcat(j,i)) .and. islab_ocean == 0 ) then
           if ( ldmsk(j,i) == 0 ) then
             if ( idcsst == 1 ) then
               sst(j,i) = ts1(j,i)
