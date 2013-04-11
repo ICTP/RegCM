@@ -232,7 +232,7 @@ module mod_bdycod
       end if
       call read_som(qflb0)
       where ( ldmsk > 0 ) qflb0 = d_zero
-      tdif = monfirst(bdydate1)-bdydate1
+      tdif = bdydate1-monfirst(bdydate1)
       xslabtime = tohours(tdif)*secph
     end if
 
@@ -414,7 +414,8 @@ module mod_bdycod
     if ( update_slabocn ) then
       som_month = xmonth
       qflb0 = qflb1
-      xslabtime = d_zero
+      tdif = bdydate1-monfirst(bdydate1)
+      xslabtime = tohours(tdif)*secph
     end if
 !
     bdydate2 = bdydate2 + intbdy
