@@ -389,49 +389,49 @@ module mod_init
         jci1,jci2,ici1,ici2,1,12)
       call bcast(stepcount)
     end if
-
     !
     ! Restore ground temperature on Ocean/Lakes
     !
-    sfice_temp = icetemp
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        if ( iswater(mddom%lndcat(j,i)) .and. islab_ocean == 0 ) then
-          if ( ldmsk(j,i) == 0 ) then
-            if ( idcsst == 1 ) then
-              sst(j,i) = ts1(j,i)
-              sfs%tga(j,i) = sst(j,i) + dtskin(j,i)
-              sfs%tgb(j,i) = sst(j,i) + dtskin(j,i)
-            else
-              ! Update temperature where NO ice
-              sfs%tga(j,i) = ts1(j,i)
-              sfs%tgb(j,i) = ts1(j,i)
+    if ( islab_ocean == 0 ) then
+      sfice_temp = icetemp
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( iswater(mddom%lndcat(j,i)) ) then
+            if ( ldmsk(j,i) == 0 ) then
+              if ( idcsst == 1 ) then
+                sst(j,i) = ts1(j,i)
+                sfs%tga(j,i) = sst(j,i) + dtskin(j,i)
+                sfs%tgb(j,i) = sst(j,i) + dtskin(j,i)
+              else
+                ! Update temperature where NO ice
+                sfs%tga(j,i) = ts1(j,i)
+                sfs%tgb(j,i) = ts1(j,i)
+              end if
+            end if
+            if ( iseaice == 1 ) then
+              if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+              if ( ts1(j,i) <= icetemp .and. ldmsk(j,i) == 0 ) then
+                sfs%tga(j,i) = sfice_temp
+                sfs%tgb(j,i) = sfice_temp
+                ts1(j,i) = icetemp
+                ldmsk(j,i) = 2
+                do n = 1, nnsg
+                  ldmsk1(n,j,i) = 2
+                  sfice(n,j,i) = d_10
+                end do
+              else if ( ts1(j,i) > icetemp .and. ldmsk(j,i) == 2 ) then
+                sfs%tga(j,i) = ts1(j,i)
+                sfs%tgb(j,i) = ts1(j,i)
+                ! Decrease the surface ice to melt it
+                do n = 1, nnsg
+                  sfice(n,j,i) = sfice(n,j,i)*d_r10
+                end do
+              end if
             end if
           end if
-          if ( iseaice == 1 ) then
-            if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-            if ( ts1(j,i) <= icetemp .and. ldmsk(j,i) == 0 ) then
-              sfs%tga(j,i) = sfice_temp
-              sfs%tgb(j,i) = sfice_temp
-              ts1(j,i) = icetemp
-              ldmsk(j,i) = 2
-              do n = 1, nnsg
-                ldmsk1(n,j,i) = 2
-                sfice(n,j,i) = d_10
-              end do
-            else if ( ts1(j,i) > icetemp .and. ldmsk(j,i) == 2 ) then
-              sfs%tga(j,i) = ts1(j,i)
-              sfs%tgb(j,i) = ts1(j,i)
-              ! Decrease the surface ice to melt it
-              do n = 1, nnsg
-                sfice(n,j,i) = sfice(n,j,i)*d_r10
-              end do
-            end if
-          end if
-        end if
+        end do
       end do
-    end do
-!
+    end if
     !
     ! Setup all timeseps for a restart
     !
