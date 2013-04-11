@@ -160,7 +160,7 @@ module mod_slabocean
               do j = jci1 , jci2
                 if ( ocmask(j,i) == 0 ) then
                   slab_qflx_out(j,i,imon) = &
-                        qflux_restore_sst(j,i,imon)/stepcount(imon)
+                        qflux_restore_sst(j,i,imon)/dble(stepcount(imon))
                 else
                   slab_qflx_out(j,i,imon) = dmissval
                 end if
