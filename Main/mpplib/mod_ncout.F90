@@ -2297,6 +2297,11 @@ module mod_ncout
     if ( present(l_rec) ) then
       var(ivar)%lrecords = l_rec
     end if
+    ! This was the error on the IBM BlueGeneQ !
+    ! The following WILL NOT WORK with IBM or PGI compiler.
+    !
+    ! if ( .not. present(a) .or (present(a) .and. a == .T.) )
+    !
     if ( present(lgetspace) ) then
       if ( lgetspace ) then
         call getmem2d(var(ivar)%rval,vsize%j1,vsize%j2, &
