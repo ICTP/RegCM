@@ -661,6 +661,14 @@ module mod_params
         write (stderr,*) 'FIRST DO A RESTORE SST RUN AND THEN AN ADJUST RUN!'
         call fatal(__FILE__,__LINE__,'SLABOCEAN INPUT INCONSISTENCY')
       end if
+      if ( idcsst == 1 ) then
+        write(stderr,*) 'The SLAB Ocean model disables the diurnal SST'
+        idcsst = 0
+      end if
+      if ( iseaice == 1 ) then
+        write(stderr,*) 'The SLAB Ocean model disables the SeaIce model'
+        iseaice = 0
+      end if
     end if
 
     if ( ichem == 1 ) then
