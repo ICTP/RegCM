@@ -2285,14 +2285,24 @@ module mod_ncout
     var(ivar)%vunit = vunit
     var(ivar)%long_name = long_name
     var(ivar)%standard_name = standard_name
-    if ( present(cell_method) ) var(ivar)%cell_method = cell_method
+    if ( present(cell_method) ) then
+      var(ivar)%cell_method = cell_method
+    end if
     if ( present(rmissval) .or. present(l_fill) ) then
       var(ivar)%lfillvalue = .true.
-      if ( present(rmissval) ) var(ivar)%rmissval = rmissval
+      if ( present(rmissval) ) then
+        var(ivar)%rmissval = rmissval
+      end if
     end if
-    if ( present(l_rec) ) var(ivar)%lrecords = l_rec
-    if ( .not. present(lgetspace) .or. &
-             ( present(lgetspace) .and. lgetspace ) ) then
+    if ( present(l_rec) ) then
+      var(ivar)%lrecords = l_rec
+    end if
+    if ( present(lgetspace) ) then
+      if ( lgetspace ) then
+        call getmem2d(var(ivar)%rval,vsize%j1,vsize%j2, &
+              vsize%i1,vsize%i2,'ncout:setup_var:'//trim(var(ivar)%vname))
+      end if
+    else
       call getmem2d(var(ivar)%rval,vsize%j1,vsize%j2, &
             vsize%i1,vsize%i2,'ncout:setup_var:'//trim(var(ivar)%vname))
     end if
@@ -2316,14 +2326,22 @@ module mod_ncout
     var(ivar)%vunit = vunit
     var(ivar)%long_name = long_name
     var(ivar)%standard_name = standard_name
-    if ( present(cell_method) ) var(ivar)%cell_method = cell_method
+    if ( present(cell_method) ) then
+      var(ivar)%cell_method = cell_method
+    end if
     if ( present(rmissval) .or. present(l_fill) ) then
       var(ivar)%lfillvalue = .true.
       if ( present(rmissval) ) var(ivar)%rmissval = rmissval
     end if
-    if ( present(l_rec) ) var(ivar)%lrecords = l_rec
-    if ( .not. present(lgetspace) .or. &
-             ( present(lgetspace) .and. lgetspace ) ) then
+    if ( present(l_rec) ) then
+      var(ivar)%lrecords = l_rec
+    end if
+    if ( present(lgetspace) ) then
+      if ( lgetspace ) then
+        call getmem3d(var(ivar)%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
+              vsize%k1,vsize%k2,'ncout:setup_var:'//trim(var(ivar)%vname))
+      end if
+    else
       call getmem3d(var(ivar)%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
             vsize%k1,vsize%k2,'ncout:setup_var:'//trim(var(ivar)%vname))
     end if
