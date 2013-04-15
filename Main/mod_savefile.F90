@@ -108,6 +108,7 @@ module mod_savefile
       read (iutrst) sfs_io%tga , sfs_io%tgb
       read (iutrst) sfs_io%hfx , sfs_io%qfx
       read (iutrst) sfs_io%rainc , sfs_io%rainnc
+      read (iutrst) sfs_io%snownc
       read (iutrst) sfs_io%tgbb , sfs_io%uvdrag
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         read (iutrst) atm1_io%tke
@@ -248,6 +249,7 @@ module mod_savefile
       write (iutsav) sfs_io%tga , sfs_io%tgb
       write (iutsav) sfs_io%hfx , sfs_io%qfx
       write (iutsav) sfs_io%rainc , sfs_io%rainnc
+      write (iutsav) sfs_io%snownc
       write (iutsav) sfs_io%tgbb , sfs_io%uvdrag
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         write (iutsav) atm1_io%tke

@@ -78,6 +78,7 @@ module mod_atm_interface
     real(rk8) , pointer , dimension(:,:) :: tgb
     real(rk8) , pointer , dimension(:,:) :: rainc
     real(rk8) , pointer , dimension(:,:) :: rainnc
+    real(rk8) , pointer , dimension(:,:) :: snownc
     real(rk8) , pointer , dimension(:,:) :: hfx
     real(rk8) , pointer , dimension(:,:) :: qfx
     real(rk8) , pointer , dimension(:,:) :: tgbb
@@ -171,6 +172,8 @@ module mod_atm_interface
   type(grid_nc_var4d) , public :: nc_4d
   type(grid_nc_var3d) , public :: nc_3d
   type(grid_nc_var2d) , public :: nc_2d
+  type(grid_nc_var4d) , public :: qqxp
+
 #endif
 
   contains 
@@ -621,6 +624,7 @@ module mod_atm_interface
         call getmem2d(sfs%qfx,jci1,jci2,ici1,ici2,'surf:qfx')
         call getmem2d(sfs%rainc,jci1,jci2,ici1,ici2,'surf:rainc')
         call getmem2d(sfs%rainnc,jci1,jci2,ici1,ici2,'surf:rainnc')
+        call getmem2d(sfs%snownc,jci1,jci2,ici1,ici2,'surf:snownc')
         call getmem2d(sfs%tgbb,jci1,jci2,ici1,ici2,'surf:tgbb')
         call getmem2d(sfs%uvdrag,jci1,jci2,ici1,ici2,'surf:uvdrag')
       else
@@ -632,6 +636,7 @@ module mod_atm_interface
         call getmem2d(sfs%qfx,jcross1,jcross2,icross1,icross2,'surf:qfx')
         call getmem2d(sfs%rainc,jcross1,jcross2,icross1,icross2,'surf:rainc')
         call getmem2d(sfs%rainnc,jcross1,jcross2,icross1,icross2,'surf:rainnc')
+        call getmem2d(sfs%snownc,jcross1,jcross2,icross1,icross2,'surf:snownc')
         call getmem2d(sfs%tgbb,jcross1,jcross2,icross1,icross2,'surf:tgbb')
         call getmem2d(sfs%uvdrag,jcross1,jcross2,icross1,icross2,'surf:uvdrag')
       end if

@@ -260,6 +260,7 @@ module mod_init
     call grid_distribute(sfs_io%qfx,sfs%qfx,jci1,jci2,ici1,ici2)
     call grid_distribute(sfs_io%rainc,sfs%rainc,jci1,jci2,ici1,ici2)
     call grid_distribute(sfs_io%rainnc,sfs%rainnc,jci1,jci2,ici1,ici2)
+    call grid_distribute(sfs_io%snownc,sfs%snownc,jci1,jci2,ici1,ici2)
     call grid_distribute(sfs_io%tgbb,sfs%tgbb,jci1,jci2,ici1,ici2)
     call grid_distribute(sfs_io%uvdrag,sfs%uvdrag,jci1,jci2,ici1,ici2)
 

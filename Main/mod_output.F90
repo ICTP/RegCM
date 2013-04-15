@@ -184,11 +184,23 @@ module mod_output
             atm_qc_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqc)/ps_out
           end do
         end if
+ 
+        if ( associated(atm_qr_out) ) then
+          do k = 1 , kz
+            atm_qr_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqr)/ps_out
+          end do
+        end if
         if ( associated(atm_qi_out) ) then
           do k = 1 , kz
             atm_qi_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqi)/ps_out
           end do
         end if
+        if ( associated(atm_qs_out) ) then
+           do k = 1 , kz
+            atm_qs_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqs)/ps_out
+          end do
+        end if
+
         if ( associated(atm_tke_out) ) &
           atm_tke_out = atm1%tke(jci1:jci2,ici1:ici2,1:kz)
         if ( associated(atm_kth_out) ) &
@@ -198,6 +210,9 @@ module mod_output
 
         if ( associated(atm_tpr_out) ) &
           atm_tpr_out = (sfs%rainc+sfs%rainnc)*rsecpd
+        if ( associated(atm_tsn_out) ) &
+          atm_tsn_out = (sfs%snownc)*rsecpd
+
         if ( associated(atm_tgb_out) ) &
           atm_tgb_out = atm_tgb_out * rsrf_in_atm
         if ( associated(atm_tsw_out) ) &
@@ -518,6 +533,7 @@ module mod_output
         call grid_collect(sfs%qfx,sfs_io%qfx,jci1,jci2,ici1,ici2)
         call grid_collect(sfs%rainc,sfs_io%rainc,jci1,jci2,ici1,ici2)
         call grid_collect(sfs%rainnc,sfs_io%rainnc,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%snownc,sfs_io%snownc,jci1,jci2,ici1,ici2)
         call grid_collect(sfs%tgbb,sfs_io%tgbb,jci1,jci2,ici1,ici2)
         call grid_collect(sfs%uvdrag,sfs_io%uvdrag,jci1,jci2,ici1,ici2)
 
@@ -654,6 +670,7 @@ module mod_output
     if ( ldoatm ) then
       sfs%rainc   = d_zero
       sfs%rainnc  = d_zero
+      sfs%snownc  = d_zero
     end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx) 

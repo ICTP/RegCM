@@ -208,6 +208,9 @@ module mod_params
 !     ipptls : type of moisture scheme
 !     = 1 ; explicit moisture (SUBEX; Pal et al 2000)
 !
+!     imicro : type of large scale precipitation    
+!     = 1 ; new microphysics
+! 
 !     iocnflx: type of ocean flux parameterization
 !     = 1 ; BATS
 !     = 2 ; Zeng et al.

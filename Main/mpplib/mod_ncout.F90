@@ -51,8 +51,8 @@ module mod_ncout
 
   integer(ik4) , parameter :: nbase = 5
 
-  integer(ik4) , parameter :: natm2dvars = 3 + nbase
-  integer(ik4) , parameter :: natm3dvars = 19
+  integer(ik4) , parameter :: natm2dvars = 4 + nbase
+  integer(ik4) , parameter :: natm3dvars = 21
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nsrf2dvars = 17 + nbase
@@ -155,8 +155,9 @@ module mod_ncout
   integer(ik4) , parameter :: atm_topo  = 4
   integer(ik4) , parameter :: atm_ps    = 5
   integer(ik4) , parameter :: atm_tpr   = 6
-  integer(ik4) , parameter :: atm_tgb   = 7
-  integer(ik4) , parameter :: atm_tsw   = 8
+  integer(ik4) , parameter :: atm_tsn   = 7
+  integer(ik4) , parameter :: atm_tgb   = 8
+  integer(ik4) , parameter :: atm_tsw   = 9
 
   integer(ik4) , parameter :: atm_u         = 1
   integer(ik4) , parameter :: atm_v         = 2
@@ -164,19 +165,21 @@ module mod_ncout
   integer(ik4) , parameter :: atm_omega     = 4
   integer(ik4) , parameter :: atm_qv        = 5
   integer(ik4) , parameter :: atm_qc        = 6
-  integer(ik4) , parameter :: atm_qi        = 7
-  integer(ik4) , parameter :: atm_tke       = 8
-  integer(ik4) , parameter :: atm_kth       = 9
-  integer(ik4) , parameter :: atm_kzm       = 10
-  integer(ik4) , parameter :: atm_tten_adh  = 11
-  integer(ik4) , parameter :: atm_tten_adv  = 12
-  integer(ik4) , parameter :: atm_tten_tbl  = 13
-  integer(ik4) , parameter :: atm_tten_dif  = 14
-  integer(ik4) , parameter :: atm_tten_bdy  = 15
-  integer(ik4) , parameter :: atm_tten_con  = 16
-  integer(ik4) , parameter :: atm_tten_adi  = 17
-  integer(ik4) , parameter :: atm_tten_rad  = 18
-  integer(ik4) , parameter :: atm_tten_lsc  = 19
+  integer(ik4) , parameter :: atm_qr        = 7
+  integer(ik4) , parameter :: atm_qi        = 8
+  integer(ik4) , parameter :: atm_qs        = 9
+  integer(ik4) , parameter :: atm_tke       = 10
+  integer(ik4) , parameter :: atm_kth       = 11
+  integer(ik4) , parameter :: atm_kzm       = 12
+  integer(ik4) , parameter :: atm_tten_adh  = 13
+  integer(ik4) , parameter :: atm_tten_adv  = 14
+  integer(ik4) , parameter :: atm_tten_tbl  = 15
+  integer(ik4) , parameter :: atm_tten_dif  = 16
+  integer(ik4) , parameter :: atm_tten_bdy  = 17
+  integer(ik4) , parameter :: atm_tten_con  = 18
+  integer(ik4) , parameter :: atm_tten_adi  = 19
+  integer(ik4) , parameter :: atm_tten_rad  = 20
+  integer(ik4) , parameter :: atm_tten_lsc  = 21
 
   integer(ik4) , parameter :: srf_xlon   = 1
   integer(ik4) , parameter :: srf_xlat   = 2
@@ -453,6 +456,16 @@ module mod_ncout
             'time: mean')
           atm_tpr_out => v2dvar_atm(atm_tpr)%rval
         end if
+        if ( enable_newmicro ) then
+          if ( enable_atm2d_vars(atm_tsn) ) then
+            call setup_var(v2dvar_atm,atm_tsn,vsize,'snw','kg m-2 s-1', &
+              'Total snow precipitation flux','snow_flux',.true., &
+              'time: mean')
+            atm_tsn_out => v2dvar_atm(atm_tsn)%rval
+          end if          
+        else
+          enable_atm2d_vars(atm_tsn) = .false.
+        end if
         if ( enable_atm2d_vars(atm_tgb) ) then
           call setup_var(v2dvar_atm,atm_tgb,vsize,'ts','K', &
             'Groud surface temperature','soil_temperature',.true.,'time: mean')
@@ -497,16 +510,30 @@ module mod_ncout
             'mass_fraction_of_cloud_liquid_water_in_air',.true.)
           atm_qc_out => v3dvar_atm(atm_qc)%rval
         end if
+
         if (enable_newmicro) then
+          if ( enable_atm3d_vars(atm_qr) ) then
+            call setup_var(v3dvar_atm,atm_qr,vsize,'clr','kg kg-1', &
+              'Mass fraction of rain', &
+              'mass_fraction_of_rain',.true.)
+            atm_qr_out => v3dvar_atm(atm_qr)%rval
+          end if
           if ( enable_atm3d_vars(atm_qi) ) then
             call setup_var(v3dvar_atm,atm_qi,vsize,'cli','kg kg-1', &
-             'Mass fraction of ice', &
-             'mass_fraction_of_ice_in_air',.true.)
+              'Mass fraction of ice', &
+              'mass_fraction_of_ice_in_air',.true.)
             atm_qi_out => v3dvar_atm(atm_qi)%rval
           end if
+          if ( enable_atm3d_vars(atm_qs) ) then
+            call setup_var(v3dvar_atm,atm_qs,vsize,'cls','kg kg-1', &
+              'Mass fraction of snow', &
+              'mass_fraction_of_snow_in_air',.true.)
+            atm_qs_out => v3dvar_atm(atm_qs)%rval
+          end if
         else
-          enable_atm3d_vars(atm_qi) = .false.
+          enable_atm3d_vars(atm_qr:atm_qs) = .false.
         end if
+
         if ( ibltyp == 2 .or. ibltyp == 99 ) then
           if ( enable_atm3d_vars(atm_tke) ) then
             call setup_var(v3dvar_atm,atm_tke,vsize,'tke','m2 s2', &
