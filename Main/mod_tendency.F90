@@ -676,7 +676,7 @@ module mod_tendency
     !
     ! Large scale precipitation
     !
-    if ( ipptls == 1 ) then
+    if ( ipptls > 0 ) then
       if ( isladvec == 1 ) then
         call slhadv_x(aten%qx,atm2%qx,iqfrst,iqlst)
         call hdvg_x(aten%qx,atm1%qx,iqfrst,iqlst)
@@ -692,12 +692,9 @@ module mod_tendency
           call vadv(aten%qx,atm1%qx,kz,2,iqfrst,iqlst)
         end if
       end if
-      if ( enable_newmicro ) then
-#ifdef DEBUG
+      if ( ipptls == 2 ) then
         call cldfrac
         call microphys(omega,jci1,jci2,ici1,ici2)
-        !call grid_nc_write(qqxp)
-#endif
       else  
         call pcp
         call cldfrac
@@ -911,7 +908,7 @@ module mod_tendency
     ! compute the condensation and precipitation terms for explicit
     ! moisture scheme:
     !
-    if ( ipptls == 1 ) then
+    if ( ipptls > 0 ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -919,7 +916,7 @@ module mod_tendency
           end do
         end do
       end do
-      if ( enable_newmicro ) then
+      if ( ipptls == 2 ) then
         !dummystatement
       else
         call condtq(psc)

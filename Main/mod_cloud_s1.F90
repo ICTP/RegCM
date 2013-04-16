@@ -296,11 +296,11 @@ module mod_cloud_s1
    ! temperature homogeneous freezing
    real(rk8) , parameter :: thomo = 235.16        !273.16-38.00
 
-   #ifdef DEBUG
+#ifdef DEBUG
      character(len=dbgslen) :: subroutine_name = 'microphys'
      integer(ik4) , save :: idindx = 0
      call time_begin(subroutine_name,idindx)
-   #endif
+#endif
 
     zrldcp  = d_one/(wlhsocp-wlhvocp)                  !Cp/Lf 
     rkconv = d_one/6000                                !1/autoconversion time scale (s)
@@ -866,7 +866,11 @@ module mod_cloud_s1
             if (zt(j,i,k) <=  tzero .and. zicecld(j,i) > zepsec ) then
               alpha1 = dt*1.0D-3*exp(0.025*(zt(j,i,k)-tzero))
               zlcrit=rlcritsnow
-              zsnowaut(j,i)=alpha1*(d_one-exp(-(zicecld(j,i)/zlcrit)**2))
+              if ( (zicecld(j,i)/zlcrit)**2 < 25 ) then
+                zsnowaut(j,i)=alpha1*(d_one-exp(-(zicecld(j,i)/zlcrit)**2))
+              else
+                zsnowaut(j,i) = d_zero
+              end if
               zsolqb(j,i,iqqs,iqqi)=zsolqb(j,i,iqqs,iqqi)+zsnowaut(j,i)
             else 
               zsolqb(j,i,iqqs,iqqi)=d_zero
@@ -1392,9 +1396,9 @@ module mod_cloud_s1
       end do
     end do
 
-    #ifdef DEBUG
-        call time_end(subroutine_name,idindx)
-    #endif
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
 
     contains
 
@@ -1557,8 +1561,6 @@ module mod_cloud_s1
     integer(ik4) :: i , j , k , imax , n , m
     real(rk8) , dimension(nmax) :: vv
 !
-!   
-
     do j = jstart , jend
       do i = istart , iend
         do m = 1 , nqx !LOOP OVER ROWS TO GET THE IMPLICIT SCALING INFORMATION.

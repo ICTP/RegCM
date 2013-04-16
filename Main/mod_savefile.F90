@@ -108,7 +108,6 @@ module mod_savefile
       read (iutrst) sfs_io%tga , sfs_io%tgb
       read (iutrst) sfs_io%hfx , sfs_io%qfx
       read (iutrst) sfs_io%rainc , sfs_io%rainnc
-      read (iutrst) sfs_io%snownc
       read (iutrst) sfs_io%tgbb , sfs_io%uvdrag
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         read (iutrst) atm1_io%tke
@@ -134,6 +133,8 @@ module mod_savefile
       end if
       if ( ipptls == 1 ) then
         read (iutrst) fcc_io
+      else if ( ipptls == 2 ) then
+        read (iutrst) sfs_io%snownc
       end if
 #ifdef CLM
       read (iutrst) sols2d_io
@@ -249,7 +250,6 @@ module mod_savefile
       write (iutsav) sfs_io%tga , sfs_io%tgb
       write (iutsav) sfs_io%hfx , sfs_io%qfx
       write (iutsav) sfs_io%rainc , sfs_io%rainnc
-      write (iutsav) sfs_io%snownc
       write (iutsav) sfs_io%tgbb , sfs_io%uvdrag
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
         write (iutsav) atm1_io%tke
@@ -275,6 +275,8 @@ module mod_savefile
       end if
       if ( ipptls == 1 ) then
         write (iutsav) fcc_io
+      else if ( ipptls == 2 ) then
+        write (iutsav) sfs_io%snownc
       end if
 #ifdef CLM
       write (iutsav) sols2d_io

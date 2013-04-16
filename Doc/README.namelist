@@ -172,7 +172,7 @@
  lakfrq  =     6.,            ! Frequency in hours to write to LAK
  ifchem  = .true.,            ! Output CHE ?
  chemfrq =     6.,            ! Frequency in hours to write to CHE
- enable_atm_vars = 27*.true., ! Mask to eventually disable variables ATM
+ enable_atm_vars = 30*.true., ! Mask to eventually disable variables ATM
  enable_srf_vars = 28*.true., ! Mask to eventually disable variables SRF
  enable_rad_vars = 21*.true., ! Mask to eventually disable variables STS
  enable_sub_vars = 18*.true., ! Mask to eventually disable variables LAK
@@ -226,8 +226,9 @@
    igcc  =          1,  ! Grell Scheme Cumulus closure scheme
                         !   1 => Arakawa & Schubert (1974)
                         !   2 => Fritsch & Chappell (1980)
- ipptls  =          1,  ! Moisture scheme
+ ipptls  =          2,  ! Moisture scheme
                         !   1 => Explicit moisture (SUBEX; Pal et al 2000)
+                        !   2 => Explicit moisture Nogherotto/Tompkins
  iocnflx =          2,  ! Ocean Flux scheme
                         !   1 => Use BATS1e Monin-Obukhov
                         !   2 => Zeng et al (1998)

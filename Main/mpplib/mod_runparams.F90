@@ -27,8 +27,6 @@ module mod_runparams
 
   implicit none
 
-  logical , public :: enable_newmicro = .false.
-
   integer(ik4) , public :: nqx , iqfrst , iqlst
   integer(ik4) , public , parameter :: iqv = 1
   integer(ik4) , public , parameter :: iqc = 2
@@ -413,6 +411,8 @@ module mod_runparams
     select case (ipptls)
       case(1)
         write (cdum,'(a)') 'Explicit moisture (SUBEX; Pal et al 2000)'
+      case(2)
+        write (cdum,'(a)') 'Explicit moisture Nogherotto/Tompkins'
       case default 
         write (cdum,'(a)') 'Unknown or not specified'
     end select

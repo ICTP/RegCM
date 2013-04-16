@@ -456,7 +456,7 @@ module mod_ncout
             'time: mean')
           atm_tpr_out => v2dvar_atm(atm_tpr)%rval
         end if
-        if ( enable_newmicro ) then
+        if ( ipptls == 2 ) then
           if ( enable_atm2d_vars(atm_tsn) ) then
             call setup_var(v2dvar_atm,atm_tsn,vsize,'snw','kg m-2 s-1', &
               'Total snow precipitation flux','snow_flux',.true., &
@@ -511,7 +511,7 @@ module mod_ncout
           atm_qc_out => v3dvar_atm(atm_qc)%rval
         end if
 
-        if (enable_newmicro) then
+        if ( ipptls == 2 ) then
           if ( enable_atm3d_vars(atm_qr) ) then
             call setup_var(v3dvar_atm,atm_qr,vsize,'clr','kg kg-1', &
               'Mass fraction of rain', &

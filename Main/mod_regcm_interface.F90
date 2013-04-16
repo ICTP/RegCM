@@ -232,7 +232,7 @@ module mod_regcm_interface
     character(len=32) :: appdat
 !
 #ifdef DEBUG
-    ! if ( enable_newmicro ) call grid_nc_create('qqxp',cross,zqxn,qqxp)
+    ! if ( ipptls == 2 ) call grid_nc_create('qqxp',cross,zqxn,qqxp)
     ! call grid_nc_create('qxatm',cross,atm1%qx,nc_4d)
 #endif
     do while ( extime >= timestr .and. extime < timeend)
@@ -330,7 +330,7 @@ module mod_regcm_interface
 
 #ifdef DEBUG
     call stop_debug()
-    ! if ( enable_newmicro ) call grid_nc_destroy(qqxp)
+    ! if ( ipptls == 2 ) call grid_nc_destroy(qqxp)
     ! call grid_nc_destroy(nc_4d)
     call time_print(6,'evolution phase')
 #endif

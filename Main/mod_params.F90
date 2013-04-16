@@ -207,9 +207,7 @@ module mod_params
 !
 !     ipptls : type of moisture scheme
 !     = 1 ; explicit moisture (SUBEX; Pal et al 2000)
-!
-!     imicro : type of large scale precipitation    
-!     = 1 ; new microphysics
+!     = 2 ; new microphysics
 ! 
 !     iocnflx: type of ocean flux parameterization
 !     = 1 ; BATS
@@ -480,16 +478,6 @@ module mod_params
 !
 !---------------------------------------------------------------------
 !
-  if ( enable_newmicro ) then
-    nqx = 5
-    iqfrst = iqc
-    iqlst = iqi
-  else
-    nqx = 2
-    iqfrst = iqc
-    iqlst = iqc
-  end if
-
 #ifdef CLM
   if ( myid == italk ) then
     if (nsg /= 1 ) then
@@ -571,6 +559,14 @@ module mod_params
       else
         write(stdout,*) 'Read subexparam OK'
 #endif
+      end if
+    else if ( ipptls == 2 ) then
+      write(stderr,*) 'IPPTLS == 2 IS STILL EXPERIMENTAL !!!!'
+      write(stderr,*) 'DO NOT USE IT ON A PRODUCTION RUN !!!!'
+      if ( icup /= 5 ) then
+        write(stderr,*) 'IPPTLS == 2 REQUIRES ICUP == 5.'
+        write(stderr,*) 'Setting icup to 5 (Tiedtke)'
+        icup = 5
       end if
     end if
 
@@ -769,6 +765,16 @@ module mod_params
   call bcast(lakemod)
   call bcast(ichem)
   call bcast(ntr)
+
+  if ( ipptls == 2 ) then
+    nqx = 5
+    iqfrst = iqc
+    iqlst = iqi
+  else
+    nqx = 2
+    iqfrst = iqc
+    iqlst = iqc
+  end if
 
   ! Check if really do output
 
@@ -1027,7 +1033,7 @@ module mod_params
   call allocate_mod_clm(ntr,igaschem,ioxclim)
 #endif
 
-  if ( enable_newmicro ) then
+  if ( ipptls == 2 ) then
     call allocate_mod_cloud_s1
   end if
   call allocate_mod_rad_common
@@ -1722,7 +1728,7 @@ module mod_params
     call init_mod_pbl_uwtcm
   end if
 
-  if ( enable_newmicro ) then
+  if ( ipptls == 2 ) then
     call init_cloud_s1(atms,aten,heatrt,sfs,q_detr,pptnc)
   end if
 
