@@ -50,7 +50,6 @@ module mod_ncep
   real(rk8) , pointer , dimension(:,:,:) :: d2
   real(rk8) , pointer , dimension(:,:,:) :: b3
   real(rk8) , pointer , dimension(:,:,:) :: d3
-
   !
   ! The data are packed into short integers (INTEGER*2).  The array
   ! work will be used to hold the packed integers.
@@ -126,7 +125,6 @@ module mod_ncep
     implicit none
     type(rcm_time_and_date) , intent (in) :: idate , idate0
     integer(ik4) :: i , ilev , inet , it , j , kkrec , k , nlev , istatus
-    character(len=21) :: inname
     character(len=256) :: pathaddname
     character(len=5) , dimension(5) :: varname
     real(rk8) :: xadd , xscale
@@ -144,24 +142,8 @@ module mod_ncep
         if ( kkrec == 3 ) nlev = 8 ! Relative humidity has less levels
       end if
       if ( idate == idate0 .or. (lfdoyear(idate) .and. lmidnight(idate))) then
-        if ( kkrec == 1 ) then
-          write (inname,99001) year , 'air.' , year
-        else if ( kkrec == 2 ) then
-          write (inname,99001) year , 'hgt.' , year
-        else if ( kkrec == 3 ) then
-          write (inname,99002) year , 'rhum.' , year
-        else if ( kkrec == 4 ) then
-          write (inname,99002) year , 'uwnd.' , year
-        else if ( kkrec == 5 ) then
-          write (inname,99002) year , 'vwnd.' , year
-        end if
-   
-        if ( dattyp == 'NNRP1' ) then
-          pathaddname = trim(inpglob)//'/NNRP1/'//inname
-        else if ( dattyp == 'NNRP2' ) then
-          pathaddname = trim(inpglob)//'/NNRP2/'//inname
-        else
-        end if
+        write(pathaddname,'(a,i0.4,a,i0.4,a)') trim(inpglob)//'/'// &
+            dattyp//'/',year , '/'//trim(varname(kkrec))//'.' , year,'.nc'
         istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error opening '//trim(pathaddname))
@@ -258,10 +240,6 @@ module mod_ncep
         end if
       end if
     end do
-99001 format (i4,'/',a4,i4,'.nc')
-99002 format (i4,'/',a5,i4,'.nc')
-99003 format (i4,'/',a6,i4,'.nc')
-99004 format (i4,'/',a9,i4,'.nc')
   end subroutine cdc6hour
 
   subroutine headernc
@@ -273,9 +251,8 @@ module mod_ncep
     character(len=256) :: inpfile
 
     call split_idate(globidate1, year, month, day, hour)  
-
-    write (inpfile,'(a,i0.4,a,i0.4,a)') trim(inpglob)//'/NNRP1/', &
-       year , '/air.' , year,'.nc'
+    write (inpfile,'(a,i0.4,a,i0.4,a)') trim(inpglob)//'/'// &
+         dattyp//'/',year , '/air.' , year,'.nc'
     istatus = nf90_open(inpfile,nf90_nowrite,inet)
     call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(inpfile))
     istatus = nf90_inq_dimid(inet,'lon',iddim)
