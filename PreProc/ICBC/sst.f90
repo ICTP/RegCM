@@ -139,6 +139,12 @@ program sst
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnhnc
+  else if ( ssttyp == 'CFSST' ) then
+    if (ical /= gregorian) then
+      write(stderr,*) ssttyp//' calendar should be set to noleap'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gnhnc
   else
     call die('sst', 'Unknown SSTTYP '//ssttyp//' specified in '// &
               trim(namelistfile)//'.',1)
