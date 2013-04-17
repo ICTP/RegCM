@@ -64,8 +64,7 @@ program icbc
 !   NNRP2: NCEP/DOE AMIP-II Reanalysis (Reanalysis-2) are at:          !
 !          ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis2/           !
 !          Current holdings: 1979 - 2009, 2.5x2.5L13, netCDF.          !
-!   NRP2W: Small Window (instead of global) of NNRP1/2 to save disk    !
-!          space. (For example, African window: 40W,80E;60S,70N)       !
+!   CFSPL: CFS seasonal forecast on pressure level.
 !   ECMWF: ECMWF TOGA/WCRP Uninitialized Data - (ECWCRP)               !
 !          NCAR MSS:/TRENBERT/CTEC/ , ET42yymmdd, where yy = year,     !
 !          mm = month, dd = day = 01,04,07,10,13,16,19,22,25,28, or 31 !
@@ -157,9 +156,8 @@ program icbc
   call getarg(0, prgname)
   call getarg(1, namelistfile)
   call initparam(namelistfile, ierr)
-  if ( dattyp == 'FVGCM' .or. dattyp == 'NRP2W' .or.   &
-       dattyp == 'EH5RF' .or. dattyp == 'EH5A2' .or.   &
-       dattyp == 'EH5B1' .or. dattyp == 'EHA1B') then
+  if ( dattyp == 'FVGCM' .or. dattyp == 'EH5RF' .or. &
+       dattyp == 'EH5A2' .or. dattyp == 'EH5B1' .or. dattyp == 'EHA1B') then
     call init_globwindow(lat0,lon0,lat1,lon1)
   end if
 
@@ -208,7 +206,7 @@ program icbc
   idate = globidate1
   iodate = idate
 
-  if ( dattyp == 'NNRP1' .or. dattyp == 'NNRP2' .or. dattyp == 'NRP2W' ) then
+  if ( dattyp == 'NNRP1' .or. dattyp == 'NNRP2' .or. dattyp == 'CFSPL' ) then
     call headernc
   else if ( dattyp == 'ECMWF' ) then
     call headerec
@@ -254,9 +252,9 @@ program icbc
     end if
 
     if ( dattyp == 'NNRP1' .or. dattyp == 'NNRP2' ) then
-      call getncep(idate,1)
-    else if ( dattyp == 'NRP2W' ) then
-      call getncep(idate,2)
+      call getncep(idate)
+    else if ( dattyp == 'CFSPL' ) then
+      call getncep(idate)
     else if ( dattyp == 'ECMWF' ) then
       call getecwcp(idate)
     else if ( dattyp == 'ERA40' ) then
