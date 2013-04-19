@@ -64,7 +64,8 @@ program icbc
 !   NNRP2: NCEP/DOE AMIP-II Reanalysis (Reanalysis-2) are at:          !
 !          ftp://ftp.cdc.noaa.gov/Datasets/ncep.reanalysis2/           !
 !          Current holdings: 1979 - 2009, 2.5x2.5L13, netCDF.          !
-!   CFSPL: CFS seasonal forecast on pressure level.
+!   CFSXX: CFS seasonal forecast on pressure level.                    !
+!          XX stands for ensemble member (in 01 02 03 04)              !
 !   ECMWF: ECMWF TOGA/WCRP Uninitialized Data - (ECWCRP)               !
 !          NCAR MSS:/TRENBERT/CTEC/ , ET42yymmdd, where yy = year,     !
 !          mm = month, dd = day = 01,04,07,10,13,16,19,22,25,28, or 31 !
@@ -206,7 +207,8 @@ program icbc
   idate = globidate1
   iodate = idate
 
-  if ( dattyp == 'NNRP1' .or. dattyp == 'NNRP2' .or. dattyp == 'CFSPL' ) then
+  if ( dattyp == 'NNRP1' .or. dattyp == 'NNRP2' .or. &
+       dattyp(1:3) == 'CFS' ) then
     call headernc
   else if ( dattyp == 'ECMWF' ) then
     call headerec
@@ -253,7 +255,7 @@ program icbc
 
     if ( dattyp == 'NNRP1' .or. dattyp == 'NNRP2' ) then
       call getncep(idate)
-    else if ( dattyp == 'CFSPL' ) then
+    else if ( dattyp(1:3) == 'CFS' ) then
       call getncep(idate)
     else if ( dattyp == 'ECMWF' ) then
       call getecwcp(idate)

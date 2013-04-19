@@ -62,6 +62,7 @@ module mod_ncep
   real(rk8) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
   integer(ik4) :: year , month , day , hour
+  integer(ik4) :: itcfs = 0
 
   public :: getncep , headernc
 
@@ -72,7 +73,7 @@ module mod_ncep
     type(rcm_time_and_date) , intent(in) :: idate
 
     call split_idate(idate,year,month,day,hour)
-    if ( dattyp == 'CFSPL' ) then
+    if ( dattyp(1:3) == 'CFS' ) then
       call cfs6hour(idate,globidate1)
     else
       call cdc6hour(idate,globidate1)
@@ -140,11 +141,12 @@ module mod_ncep
     xadd = 0.0D0
     xscale = 1.0D0
     nlev = 0
-    do kkrec = 1 , 5
-      nlev = klev
-      if ( idate == idate0 .or. (lfdoyear(idate) .and. lmidnight(idate))) then
-        write(pathaddname,'(a,i0.4,a,i0.4,a)') trim(inpglob)//'/'// &
-            dattyp//'/',year , '/'//trim(varname(kkrec))//'.' , year,'.nc'
+    if ( itcfs == 0 ) then
+      do kkrec = 1 , 5
+        write(pathaddname,'(a,i0.4,i0.2,i0.2,i0.2,a,i0.4,i0.2,i0.2,i0.2,a)') &
+          trim(inpglob)//'/CFS/',year,month,day,hour, &
+          '/'//dattyp(4:5)//'/PLEV/'//trim(varname(kkrec))// &
+          '.',year,month,day,hour,'.nc'
         istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec))
         call checkncerr(istatus,__FILE__,__LINE__, &
                         'Error opening '//trim(pathaddname))
@@ -163,23 +165,15 @@ module mod_ncep
               ':add_offset in file'//trim(pathaddname))
         write (stdout,*) inet5(kkrec) , trim(pathaddname) , &
                          xscl(kkrec) , xoff(kkrec)
-      end if
+        itcfs = 1
+      end do
+    end if
    
-      it = (day-1)*4 + hour/6 + 1
-      if ( month == 2 ) it = it + 31*4
-      if ( month == 3 ) it = it + 59*4
-      if ( month == 4 ) it = it + 90*4
-      if ( month == 5 ) it = it + 120*4
-      if ( month == 6 ) it = it + 151*4
-      if ( month == 7 ) it = it + 181*4
-      if ( month == 8 ) it = it + 212*4
-      if ( month == 9 ) it = it + 243*4
-      if ( month == 10 ) it = it + 273*4
-      if ( month == 11 ) it = it + 304*4
-      if ( month == 12 ) it = it + 334*4
-      if ( mod(day,4) == 0 .and. month > 2 ) it = it + 4
-      if ( mod(day,100) == 0 .and. month > 2 ) it = it - 4
-      if ( mod(day,400) == 0 .and. month > 2 ) it = it + 4
+    it = itcfs
+    itcfs = itcfs + 1
+
+    do kkrec = 1 , 5
+      nlev = klev
 
       istart(1) = 1
       icount(1) = ilon
@@ -229,17 +223,6 @@ module mod_ncep
           end do
         end if
       end do
-      if ( dattyp == 'NNRP1' ) then
-        if ( kkrec == 3 ) then
-          do k = nlev+1, klev
-            do j = 1 , jlat
-              do i = 1 , ilon
-                rhvar(i,j,k) = rhvar(i,j,k-1)
-              end do
-            end do
-          end do
-        end if
-      end if
     end do
   end subroutine cfs6hour
 
@@ -374,9 +357,10 @@ module mod_ncep
     character(len=256) :: inpfile
 
     call split_idate(globidate1, year, month, day, hour)  
-    if ( dattyp == 'CFSPL' ) then
-      write (inpfile,'(a,i0.4,a,i0.4,a)') trim(inpglob)//'/CFS/', &
-           year , '/air.' , year,'.nc'
+    if ( dattyp(1:3) == 'CFS' ) then
+      write(inpfile,'(a,i0.4,i0.2,i0.2,i0.2,a,i0.4,i0.2,i0.2,i0.2,a)') &
+        trim(inpglob)//'/CFS/',year,month,day,hour, &
+        '/'//dattyp(4:5)//'/PLEV/air.',year,month,day,hour,'.nc'
     else
       write (inpfile,'(a,i0.4,a,i0.4,a)') trim(inpglob)//'/'// &
            dattyp//'/',year , '/air.' , year,'.nc'
@@ -384,10 +368,16 @@ module mod_ncep
     istatus = nf90_open(inpfile,nf90_nowrite,inet)
     call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(inpfile))
     istatus = nf90_inq_dimid(inet,'lon',iddim)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_dimid(inet,'longitude',iddim)
+    end if
     call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
     istatus = nf90_inquire_dimension(inet,iddim, len=ilon)
     call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lon')
     istatus = nf90_inq_dimid(inet,'lat',iddim)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_dimid(inet,'latitude',iddim)
+    end if
     call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lat')
     istatus = nf90_inquire_dimension(inet,iddim, len=jlat)
     call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim lat')
@@ -414,10 +404,16 @@ module mod_ncep
     ! INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
     !
     istatus = nf90_inq_varid(inet,'lon',idv)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_varid(inet,'longitude',idv)
+    end if
     call checkncerr(istatus,__FILE__,__LINE__,'Error find var lon')
     istatus = nf90_get_var(inet,idv,glon)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read lon')
     istatus = nf90_inq_varid(inet,'lat',idv)
+    if ( istatus /= nf90_noerr ) then
+      istatus = nf90_inq_varid(inet,'latitude',idv)
+    end if
     call checkncerr(istatus,__FILE__,__LINE__,'Error find var lon')
     istatus = nf90_get_var(inet,idv,glat1)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read lat')
