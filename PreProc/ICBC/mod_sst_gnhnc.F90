@@ -39,8 +39,10 @@ module mod_sst_gnhnc
   integer(ik4) :: timlen
   integer(ik4) :: timid
   integer(ik4) :: istatus
+  integer(ik4) :: itcfs
   integer(ik4) , dimension(3) :: istart , icount
   integer(ik2) , pointer , dimension (:, :) :: work
+  integer(ik2) :: fillvalue
   real(rk8) , pointer ::  work1(:)
   real(rk8) , pointer , dimension (:, :) :: work2
   real(rk8) , pointer , dimension(:,:) :: sst
@@ -106,10 +108,12 @@ module mod_sst_gnhnc
   else if ( ssttyp == 'EIXXX' ) then
     write(inpfile,'(a)') trim(inpglob)//'/ERAIN_MEAN/SST/sst_xxxx_xxxx.nc'
     varname(2) = 'sst'
-  else if ( ssttyp == 'CFSST' ) then
-    write(inpfile,'(a,i0.4,i0.2,i0.2,a)') trim(inpglob)// &
-      '/CFS/SST/sst_',year,month,day,'00.nc'
+  else if ( ssttyp(1:3) == 'CFS' ) then
+    write(inpfile,'(a,i0.4,i0.2,i0.2,i0.2,a,i0.4,i0.2,i0.2,i0.2,a)') &
+      trim(inpglob)//'/CFS/',year,month,day,hour, &
+      '/'//ssttyp(4:5)//'/SST/sst.',year,month,day,hour,'.nc'
     varname(2) = 'sst'
+    itcfs = 1
   else if ( ssttyp(1:2) == 'E5' ) then
     write(inpfile,'(a,i4,a,i4,a)') &
       trim(inpglob)//'/ECHAM5/SST/EH5_OM'//ssttyp(3:5)//'_1_TSW_', &
@@ -185,7 +189,7 @@ module mod_sst_gnhnc
   call getmem2d(sst,1,ilon,1,jlat,'mod_gnhnc_sst:sst')
   
 ! GET TIME VALUES
-  if ( ssttyp /= 'EIXXX' .and. ssttyp /= 'CFSST' ) then
+  if ( ssttyp /= 'EIXXX' .and. ssttyp(1:3) /= 'CFS' ) then
     istart(1) = 1
     icount(1) = timlen
     istatus = nf90_get_var(inet1,ivar2(1),work1,istart,icount)
@@ -198,21 +202,27 @@ module mod_sst_gnhnc
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var '//varname(1)//' calendar')
     fidate1 = timeval2date(work1(1),cunit,ccal)
-  else if ( ssttyp == 'CFSST' ) then
-    ! Nothing to be done
   else
+    istatus = nf90_get_att(inet1,ivar2(2),'_FillValue',fillvalue)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var '//varname(2)//' _FillValue')
     istatus = nf90_get_att(inet1,ivar2(2),'add_offset',add_offset)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var '//varname(2)//' add_offset')
     istatus = nf90_get_att(inet1,ivar2(2),'scale_factor',scale_factor)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read var '//varname(2)//' scale_factor')
-    write(6,*) 'Add offset   = ',add_offset
-    write(6,*) 'Scale factor = ',scale_factor
+    write(stdout,*) 'Add offset   = ',add_offset
+    write(stdout,*) 'Scale factor = ',scale_factor
+    write(stdout,*) 'Fill Value   = ',fillvalue
     call getmem2d(work,1,ilon,1,jlat,'mod_gnhnc_sst:work')
   end if
 
-  idateo = monfirst(globidate1)
+  if ( ssttyp(1:3) == 'CFS' ) then
+    idateo = globidate1
+  else
+    idateo = monfirst(globidate1)
+  end if
   idatef = globidate2
   tdif = idatef-idateo
   nsteps = int(tohours(tdif))/6 + 1
@@ -224,7 +234,7 @@ module mod_sst_gnhnc
   tdif = 6*3600
   do k = 1 , nsteps
     call gnhnc_sst(idate)
-    if ( ssttyp == 'CFSST' ) then
+    if ( ssttyp(1:3) == 'CFS' ) then
       call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,jx,iy,1)
     else
       call distwgtcr(sstmm,sst,xlon,xlat,glon2,glat2,jx,iy,ilon,jlat)
@@ -256,9 +266,9 @@ module mod_sst_gnhnc
   if ( ssttyp == 'EIXXX' ) then
     call split_idate(idate, year, month, day, hour)  
     it = isteps(month) + (day-1)*4 + hour/6 
-  else if ( ssttyp == 'CFSST' ) then
-    call split_idate(idate, year, month, day, hour)
-    it = hour/6+1
+  else if ( ssttyp(1:3) == 'CFS' ) then
+    it = itcfs
+    itcfs = itcfs + 1
   else
     tdif = idate-fidate1
     it = int(tohours(tdif))/6 + 1
@@ -290,9 +300,6 @@ module mod_sst_gnhnc
       write(inpfile,'(a,i9,a,i9,a)') &
         trim(inpglob)//'/MPI-ESM-MR/SST/tos_6hrLev_MPI-ESM-MR_rcp85_r1i1p1_', &
         y1*100000+m1*1000+10,'000-',y2*100000+m2*1000+10,'000.nc'
-    else if ( ssttyp == 'CFSST' ) then
-      write(inpfile,'(a,i0.4,i0.2,i0.2,a)') trim(inpglob)// &
-        '/CFS/SST/sst_',year,month,day,'00.nc'
     else if ( ssttyp(1:2) == 'E5' ) then
       write(inpfile,'(a,i9,a,i9,a)') &
         trim(inpglob)//'/ECHAM5/SST/EH5_OM'//ssttyp(3:5)//'_1_TSW_', &
@@ -310,23 +317,19 @@ module mod_sst_gnhnc
     istatus = nf90_inquire_dimension(inet1,timid,len=timlen)
     call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
     call getmem1d(work1,1,timlen,'mod_gnhnc_sst:work1')
-    if ( ssttyp == 'CFSST' ) then
-      it = hour / 6 + 1
-    else
-      istart(1) = 1
-      icount(1) = timlen
-      istatus = nf90_get_var(inet1,ivar2(1),work1,istart(1:1),icount(1:1))
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
-      istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read var '//varname(1)//' units')
-      istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
-      call checkncerr(istatus,__FILE__,__LINE__, &
-                      'Error read var '//varname(1)//' calendar')
-      fidate1 = timeval2date(work1(1),cunit,ccal)
-      tdif = idate-fidate1
-      it = int(tohours(tdif))/6 + 1
-    end if
+    istart(1) = 1
+    icount(1) = timlen
+    istatus = nf90_get_var(inet1,ivar2(1),work1,istart(1:1),icount(1:1))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
+    istatus = nf90_get_att(inet1,ivar2(1),'units',cunit)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var '//varname(1)//' units')
+    istatus = nf90_get_att(inet1,ivar2(1),'calendar',ccal)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+                    'Error read var '//varname(1)//' calendar')
+    fidate1 = timeval2date(work1(1),cunit,ccal)
+    tdif = idate-fidate1
+    it = int(tohours(tdif))/6 + 1
   end if
   icount(1) = ilon
   icount(2) = jlat
@@ -334,11 +337,11 @@ module mod_sst_gnhnc
   istart(1) = 1
   istart(2) = 1
   istart(3) = it
-  if ( ssttyp == 'EIXXX' ) then
+  if ( ssttyp == 'EIXXX' .or. ssttyp(1:3) == 'CFS' ) then
     istatus = nf90_get_var(inet1,ivar2(2),work,istart,icount)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
     work2 = 1E+20
-    where ( work /= -32767 )
+    where ( work /= fillvalue )
       work2 = work * scale_factor + add_offset
     end where
   else

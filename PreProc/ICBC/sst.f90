@@ -139,7 +139,7 @@ program sst
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnhnc
-  else if ( ssttyp == 'CFSST' ) then
+  else if ( ssttyp(1:3) == 'CFS' ) then
     if (ical /= gregorian) then
       write(stderr,*) ssttyp//' calendar should be set to noleap'
       call die('sst','Calendar mismatch',1)

@@ -72,7 +72,11 @@ module mod_ncep
     type(rcm_time_and_date) , intent(in) :: idate
 
     call split_idate(idate,year,month,day,hour)
-    call cdc6hour(idate,globidate1)
+    if ( dattyp == 'CFSPL' ) then
+      call cfs6hour(idate,globidate1)
+    else
+      call cdc6hour(idate,globidate1)
+    end if
 
     write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
     !
@@ -93,10 +97,10 @@ module mod_ncep
     !
     call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
-    if(i_band == 1) then
-       call p1p2_band(b3pd,ps4,jx,iy)
+    if ( i_band == 1 ) then
+      call p1p2_band(b3pd,ps4,jx,iy)
     else
-       call p1p2(b3pd,ps4,jx,iy)
+      call p1p2(b3pd,ps4,jx,iy)
     endif
     !
     ! F0  DETERMINE SURFACE TEMPS ON RCM TOPOGRAPHY.
@@ -119,6 +123,125 @@ module mod_ncep
     call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
 
   end subroutine getncep
+
+  subroutine cfs6hour(idate,idate0)
+    use netcdf
+    implicit none
+    type(rcm_time_and_date) , intent (in) :: idate , idate0
+    integer(ik4) :: i , ilev , inet , it , j , kkrec , k , nlev , istatus
+    character(len=256) :: pathaddname
+    character(len=5) , dimension(5) :: varname
+    real(rk8) :: xadd , xscale
+    integer(ik4) , dimension(4) , save :: icount , istart
+    integer(ik4) , dimension(5) , save :: inet5 , ivar5
+    real(rk8) , dimension(5) , save :: xoff , xscl
+    data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd'/
+    !
+    xadd = 0.0D0
+    xscale = 1.0D0
+    nlev = 0
+    do kkrec = 1 , 5
+      nlev = klev
+      if ( idate == idate0 .or. (lfdoyear(idate) .and. lmidnight(idate))) then
+        write(pathaddname,'(a,i0.4,a,i0.4,a)') trim(inpglob)//'/'// &
+            dattyp//'/',year , '/'//trim(varname(kkrec))//'.' , year,'.nc'
+        istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+                        'Error opening '//trim(pathaddname))
+        istatus = nf90_inq_varid(inet5(kkrec),varname(kkrec),ivar5(kkrec))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+             'Variable '//varname(kkrec)//' error in file'//trim(pathaddname))
+        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
+                              'scale_factor',xscl(kkrec))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+             'Variable '//varname(kkrec)// &
+             ':scale_factor in file'//trim(pathaddname))
+        istatus = nf90_get_att(inet5(kkrec),ivar5(kkrec), &
+                               'add_offset',xoff(kkrec))
+        call checkncerr(istatus,__FILE__,__LINE__, &
+              'Variable '//varname(kkrec)// &
+              ':add_offset in file'//trim(pathaddname))
+        write (stdout,*) inet5(kkrec) , trim(pathaddname) , &
+                         xscl(kkrec) , xoff(kkrec)
+      end if
+   
+      it = (day-1)*4 + hour/6 + 1
+      if ( month == 2 ) it = it + 31*4
+      if ( month == 3 ) it = it + 59*4
+      if ( month == 4 ) it = it + 90*4
+      if ( month == 5 ) it = it + 120*4
+      if ( month == 6 ) it = it + 151*4
+      if ( month == 7 ) it = it + 181*4
+      if ( month == 8 ) it = it + 212*4
+      if ( month == 9 ) it = it + 243*4
+      if ( month == 10 ) it = it + 273*4
+      if ( month == 11 ) it = it + 304*4
+      if ( month == 12 ) it = it + 334*4
+      if ( mod(day,4) == 0 .and. month > 2 ) it = it + 4
+      if ( mod(day,100) == 0 .and. month > 2 ) it = it - 4
+      if ( mod(day,400) == 0 .and. month > 2 ) it = it + 4
+
+      istart(1) = 1
+      icount(1) = ilon
+      istart(2) = 1
+      icount(2) = jlat
+      istart(3) = 1
+      icount(3) = nlev
+      istart(4) = it
+      icount(4) = 1
+      inet = inet5(kkrec)
+      istatus = nf90_get_var(inet,ivar5(kkrec),work,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__,'Variable '//varname(kkrec)// &
+                    'read error in file'//trim(pathaddname))
+      xscale = xscl(kkrec)
+      xadd = xoff(kkrec)
+      do ilev = 1 , nlev
+        if ( kkrec == 1 ) then
+          do j = 1 , jlat
+            do i = 1 , ilon
+              tvar(i,jlat+1-j,ilev) = dble(work(i,j,ilev))*xscale+xadd
+            end do
+          end do
+        else if ( kkrec == 2 ) then
+          do j = 1 , jlat
+            do i = 1 , ilon
+              hvar(i,jlat+1-j,ilev) = dble(work(i,j,ilev))*xscale+xadd
+            end do
+          end do
+        else if ( kkrec == 3 ) then
+          do j = 1 , jlat
+            do i = 1 , ilon
+              rhvar(i,jlat+1-j,ilev) = dmin1((dble(work(i,j,ilev))* &
+                            xscale+xadd)*0.01D0,1.D0)
+            end do
+          end do
+        else if ( kkrec == 4 ) then
+          do j = 1 , jlat
+            do i = 1 , ilon
+              uvar(i,jlat+1-j,ilev) = dble(work(i,j,ilev))*xscale+xadd
+            end do
+          end do
+        else if ( kkrec == 5 ) then
+          do j = 1 , jlat
+            do i = 1 , ilon
+              vvar(i,jlat+1-j,ilev) = dble(work(i,j,ilev))*xscale+xadd
+            end do
+          end do
+        end if
+      end do
+      if ( dattyp == 'NNRP1' ) then
+        if ( kkrec == 3 ) then
+          do k = nlev+1, klev
+            do j = 1 , jlat
+              do i = 1 , ilon
+                rhvar(i,j,k) = rhvar(i,j,k-1)
+              end do
+            end do
+          end do
+        end if
+      end if
+    end do
+  end subroutine cfs6hour
 
   subroutine cdc6hour(idate,idate0)
     use netcdf
@@ -251,8 +374,13 @@ module mod_ncep
     character(len=256) :: inpfile
 
     call split_idate(globidate1, year, month, day, hour)  
-    write (inpfile,'(a,i0.4,a,i0.4,a)') trim(inpglob)//'/'// &
-         dattyp//'/',year , '/air.' , year,'.nc'
+    if ( dattyp == 'CFSPL' ) then
+      write (inpfile,'(a,i0.4,a,i0.4,a)') trim(inpglob)//'/CFS/', &
+           year , '/air.' , year,'.nc'
+    else
+      write (inpfile,'(a,i0.4,a,i0.4,a)') trim(inpglob)//'/'// &
+           dattyp//'/',year , '/air.' , year,'.nc'
+    end if
     istatus = nf90_open(inpfile,nf90_nowrite,inet)
     call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(inpfile))
     istatus = nf90_inq_dimid(inet,'lon',iddim)
