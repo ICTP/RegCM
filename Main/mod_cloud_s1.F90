@@ -90,7 +90,6 @@ module mod_cloud_s1
   real(rk8) , pointer , dimension(:,:) :: zrdtgdp                 ! dp / (dt * g)     [Kg/(m*s)]
 ! Microphysics 
   integer(ik4) , pointer , dimension(:,:,:)   :: jindex2          ! index variable
-  integer(ik4) , pointer , dimension(:,:,:,:) :: jindex1          ! index variable
   real(rk8) , pointer , dimension(:,:) :: zfrzmax
   real(rk8) , pointer , dimension(:,:) :: zicetot
   real(rk8) , pointer , dimension(:,:) :: zmeltmax
@@ -139,6 +138,8 @@ module mod_cloud_s1
   real(rk8) , pointer , dimension(:,:,:,:) :: zsolqb              ! implicit sources and sinks
   real(rk8) , pointer , dimension(:,:,:,:) :: zqxtendc            ! decoupled mixing ratios tendency   
   real(rk8) , pointer , dimension(:,:,:,:) :: zpfplsx             ! j,i,n ! generalized precipitation flux
+  real(rk8) , pointer , dimension(:,:) :: zcldtopdist             ! 
+  real(rk8) , pointer , dimension(:,:) :: zicenuclei              ! 
   real(rk8) , public  , pointer, dimension(:,:,:,:) :: zqx0 
   real(rk8) , public  , pointer, dimension(:,:,:,:) :: zqxn       ! new values for zqxx at time+1
   real(rk8) , public  , pointer, dimension(:,:,:,:) ::zqxn2d      ! new values for zqxx at time+1
@@ -165,6 +166,8 @@ module mod_cloud_s1
     call getmem2d(zqpretot,jci1,jci2,ici1,ici2,'clouds1:zqpretot')
     call getmem2d(zrainaut,jci1,jci2,ici1,ici2,'clouds1:zrainaut')
     call getmem2d(zsnowaut,jci1,jci2,ici1,ici2,'clouds1:zsnowaut')
+    call getmem2d(zcldtopdist,jci1,jci2,ici1,ici2,'clouds1:zcldtopdist')
+    call getmem2d(zicenuclei,jci1,jci2,ici1,ici2,'clouds1:zicenuclei')
     call getmem3d(iorder,jci1,jci2,ici1,ici2,1,nqx,'clouds1:iorder')
     call getmem3d(zttendc,jci1,jci2,ici1,ici2,1,kz,'clouds1:zttendc')
     call getmem3d(zconvsrce,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zconvsrce')
@@ -207,7 +210,6 @@ module mod_cloud_s1
     call getmem4d(zqlhs,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:zqlhs')
     call getmem4d(zsolqa,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:zsolqa')
     call getmem4d(zsolqb,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:zsolqb')
-    call getmem4d(jindex1,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:jindex1')
     call getmem4d(llindex3,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:llindex3')
     call getmem4d(zpfplsx,jci1,jci2,ici1,ici2,1,kz+1,1,nqx,'clouds1:zpfplsx')
     call getmem4d(ztenkeep,jce1,jce2,ice1,ice2,1,kz,1,nqx,'clouds1:ztenkeep')
@@ -314,6 +316,12 @@ module mod_cloud_s1
    ! temperature homogeneous freezing
    real(rk8) , parameter :: thomo = 235.16        !273.16-38.00
    real(rk8) :: zgdph_r
+   ! constants for deposition process
+   real(rk8) :: zvpice, zvpliq , zadd , zbdd , zcvds , zice0 , zinew , zdepos , zinfactor
+   real(rk8), parameter :: rcldtopcf = d_r100              ! Cloud fraction threshold that defines cloud top
+   real(rk8), parameter :: rdepliqrefrate = d_r10          ! Fraction of deposition rate in cloud top layer
+   real(rk8), parameter :: rdepliqrefdepth = 500.0D0       ! Depth of supercooled liquid water layer (m)
+   real(rk8), parameter :: riceinit = 1.D-12               ! initial mass of ice particle  
    ! constants for scaling factor
    real(rk8) :: zmm, zrr, zmax, zrat
 #ifdef DEBUG
@@ -656,6 +664,10 @@ module mod_cloud_s1
           ! Calculate supersaturation wrt Koop including dqs/dT 
           ! correction factor
           !-------------------------------------------------------------------
+          ! Here the supersaturation is turned into liquid water
+          ! However, if the temperature is below the threshold for homogeneous
+          ! freezing then the supersaturation is turned instantly to ice.
+          !--------------------------------------------------------------------
           zsupsat(j,i)=max((zqxx(j,i,k,iqqv)-zfac*zqsice(j,i,k))/zcorqsliq(j,i),d_zero)
           if (zsupsat(j,i) > zepsec) then
             if (zt(j,i,k) > thomo) then
@@ -719,9 +731,9 @@ module mod_cloud_s1
 
       if ( lmicro ) then
         ! Turn on/off microphysics
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !------------------------------------------------------------------
         !                 DETRAINMENT FROM CONVECTION
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !------------------------------------------------------------------
         if (k < kz .and. k >= 1) then
           do j = jstart , jend
             do i = istart , iend
@@ -740,9 +752,9 @@ module mod_cloud_s1
           end do 
         end if
 
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        !                         CONDENSATION                       ! 
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !------------------------------------------------------------------
+        !                         CONDENSATION                             
+        !------------------------------------------------------------------
         rovcp = rgas/cpd
         do j = jstart , jend
           do i = istart , iend
@@ -755,12 +767,97 @@ module mod_cloud_s1
             zqxfg(j,i,iqqv)=zqxfg(j,i,iqql)-zcond
           end do
         end do 
+
         !----------------------------------------------------------------------
+        ! DEPOSITION: Growth of ice by vapour deposition 
+        !----------------------------------------------------------------------
+        ! Following Rotstayn et al. 2001:
+        ! does not use the ice nuclei number from cloudaer.F90
+        ! but rather a simple Meyers et al. 1992 form based on the 
+        ! supersaturation and assuming clouds are saturated with 
+        ! respect to liquid water (well mixed), (or Koop adjustment)
+        ! Growth considered as sink of liquid water if present so 
+        ! Bergeron-Findeisen adjustment in autoconversion term no longer needed
+        !----------------------------------------------------------------------
+        do j = jstart , jend
+          do i = istart , iend 
+            !--------------------------------------------------------------
+            ! Calculate distance from cloud top 
+            ! defined by cloudy layer below a layer with cloud frac <0.01
+            ! ZDZ = ZDP(JL)/(ZRHO(JL)*RG)
+            !--------------------------------------------------------------
+            if (k>1) then
+              if (fcc(j,i,k-1) < rcldtopcf .and. fcc(j,i,k) >= rcldtopcf) then
+                zcldtopdist(j,i) = d_zero
+              else 
+                zcldtopdist(j,i) = zcldtopdist(j,i) + zdp(j,i)/rhob3d(j,i,k)*egrav
+              end if
+            end if
+            !--------------------------------------------------------------
+            ! only treat depositional growth if liquid present. due to fact 
+            ! that can not model ice growth from vapour without additional 
+            ! in-cloud water vapour variable
+            !--------------------------------------------------------------
+            if (zt(j,i,k) < tzero .and. zqxfg(j,i,iqql) > rlmin) then
+              zvpice = foeeice(zt(j,i,k))
+              zvpliq = zvpice*zfokoop
+              zicenuclei(j,i) = d_1000*exp(12.96*(zvpliq-zvpice)/zvpliq-0.639)
+              !------------------------------------------------
+              !   2.4e-2 is conductivity of air
+              !   8.8 = 700**1/3 = density of ice to the third
+              !------------------------------------------------
+              zadd  = wlhs*(wlhs/(rwat*zt(j,i,k))-d_one)/(2.4D-2*zt(j,i,k))
+              zbdd  = rwat*zt(j,i,k)*pres(j,i,k)/(2.21D0*zvpice)
+              zcvds = 7.8D0*(zicenuclei(j,i)/rhob3d(j,i,k))**0.666D0*(zvpliq-zvpice) / &
+                      & (8.87D0*(zadd+zbdd)*zvpice)
+              !-----------------------------------------------------
+              ! riceinit=1.e-12_jprb is initial mass of ice particle
+              !-----------------------------------------------------
+              zice0 = max(zicecld(j,i), zicenuclei(j,i)*riceinit/rhob3d(j,i,k))
+              !------------------
+              ! new value of ice:
+              !------------------
+              zinew=(0.666D0*zcvds*dt+zice0**0.666D0)**1.5D0
+              !---------------------------
+              ! grid-mean deposition rate:
+              !--------------------------- 
+              zdepos=max(fcc(j,i,k)*(zinew-zice0),d_zero)*2.0D0
+              ! above increased by factor of 2 to retain similar mixed phase liq 
+              ! as in diagnostic scheme
+              !--------------------------------------------------------------------
+              ! limit deposition to liquid water amount
+              ! if liquid is all frozen, ice would use up reservoir of water 
+              ! vapour in excess of ice saturation mixing ratio - however this 
+              ! can not be represented without a in-cloud humidity variable. using 
+              ! the grid-mean humidity would imply a large artificial horizontal 
+              ! flux from the clear sky to the cloudy area. we thus rely on the 
+              ! supersaturation check to clean up any remaining supersaturation
+              !--------------------------------------------------------------------
+              zdepos=min(zdepos,zqxfg(j,i,iqql)) ! limit to liquid water amount
+              !--------------------------------------------------------------------
+              ! at top of cloud, reduce deposition rate near cloud top to account for
+              ! small scale turbulent processes, limited ice nucleation and ice fallout 
+              !--------------------------------------------------------------------
+              zinfactor = min(zicenuclei(j,i)/15000D0, d_one)
+              zdepos = zdepos*min(zinfactor + (d_one-zinfactor)* &
+                       & (rdepliqrefrate+zcldtopdist(j,i)/rdepliqrefdepth),d_one)
+              !--------------
+              ! add to matrix 
+              !--------------
+              zsolqa(j,i,iqqi,iqql)=zsolqa(j,i,iqqi,iqql)+zdepos
+              zsolqa(j,i,iqql,iqqi)=zsolqa(j,i,iqql,iqqi)-zdepos
+              zqxfg(j,i,iqqi)=zqxfg(j,i,iqqi)+zdepos
+              zqxfg(j,i,iqql)=zqxfg(j,i,iqql)-zdepos
+            endif
+          enddo
+        end do
+
+        !------------------------------------------------------------------
         !  SEDIMENTATION/FALLING OF *ALL* MICROPHYSICAL SPECIES
         !     now that rain and snow species are prognostic
         !     the precipitation flux can be defined directly level by level
         !     There is no vertical memory required from the flux variable
-        !----------------------------------------------------------------------
+        !------------------------------------------------------------------
 
         do n = 1 , nqx
           if (llfall(n)) then
@@ -814,9 +911,9 @@ module mod_cloud_s1
           end do
         end do
 
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        !                         AUTOCONVERSION                     ! 
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!    
+        !---------------------------------------------------------------
+        !                         AUTOCONVERSION                      
+        !---------------------------------------------------------------   
         !Warm clouds
         do j = jstart , jend
           do i = istart , iend
@@ -897,17 +994,17 @@ module mod_cloud_s1
             else 
               zsolqb(j,i,iqqs,iqqi)=d_zero
             end if
-            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            !                         EVAPORATION                        ! 
-            !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!        
+            !-----------------------------------------------------------
+            !                         EVAPORATION                        
+            !-----------------------------------------------------------        
             zsolqb(j,i,iqqv,iqqr) = zsolqb(j,i,iqqv,iqqr)+&
                                     & dt*kevap*max((satliq(j,i,k)-zqxx(j,i,k,iqqv)),d_zero)
           end do
         end do  
     
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        !                         MELTING                                  !
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !---------------------------------------------------------------
+        !                         MELTING                                  
+        !---------------------------------------------------------------
         ! The melting of ice and snow are treated explicitly.
         ! First water and ice saturation are found
         !---------------------------------------------
@@ -939,10 +1036,10 @@ module mod_cloud_s1
               !ztdiff=   T-T0+(qs-q)(A+B(p-c)-D(Td-E))?
               !perche':
               !ztdiff=zt(j,i,k)-tzero-zsubsat*(ztw1+ztw2*(pres(j,i,k)-ztw3)-ztw4*(tzero-ztw5)) ?
-              ztdiff = zt(j,i,k)-tzero!-zsubsat*&
-              !&(ztw1+ztw2*(pres(j,i,k)-ztw3)-ztw4*(zt(j,i,k)-ztw5))
+              ztdiff = zt(j,i,k)-tzero-zsubsat*&
+              &(ztw1+ztw2*(pres(j,i,k)-ztw3)-ztw4*(zt(j,i,k)-ztw5))
               ! Ensure ZCONS1 is positive so that ZMELTMAX=0 if ZTDMTW0<0
-              zcons1 = d_one!abs(dt*(d_one+d_half*ztdiff)/rtaumel)  
+              zcons1 = abs(dt*(d_one+d_half*ztdiff)/rtaumel)  
               zmeltmax(j,i) = max(ztdiff*zcons1*zrldcp,d_zero)
             end if
           end do
@@ -956,7 +1053,7 @@ module mod_cloud_s1
               do i = istart, iend
                 if (zmeltmax(j,i) > zepsec .and. zicetot(j,i) > zepsec) then 
                   zphases = zqxfg(j,i,n)/zicetot(j,i)
-                  zmelt = min(zqxfg(j,i,n),d_one)!zphases*zmeltmax(j,i))
+                  zmelt = min(zqxfg(j,i,n),zphases*zmeltmax(j,i))
                   ! n= iqqi,iqqs; m=iqql,iqqr
                   zqxfg(j,i,n) =  zqxfg(j,i,n)-zmelt 
                   zqxfg(j,i,m) =  zqxfg(j,i,m)+zmelt
@@ -1004,6 +1101,8 @@ module mod_cloud_s1
         do j = jstart , jend
           do i = istart , iend
             zfrzmax(j,i) = max((thomo-zt(j,i,k))*zrldcp,d_zero)
+!zfrzmax(j,i) = max((250.16-zt(j,i,k))*zrldcp,d_zero)
+
           end do
         end do
         do j = jstart , jend
@@ -1015,9 +1114,9 @@ module mod_cloud_s1
             end if
           end do
         end do
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        !                         EVAPORATION                              !
-        !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        !---------------------------------------------------------------
+        !                         EVAPORATION                           
+        !---------------------------------------------------------------
         !------------------------------------------------------------
         ! recalculate zqpretot since melting term may have changed it
         !------------------------------------------------------------ 
@@ -1180,7 +1279,6 @@ module mod_cloud_s1
       ! this approach is inaccurate, but conserves -
       ! prob best can do with explicit (i.e. not implicit!) terms
       !----------------------------------------------------------
-!      jindex1(:,:,:,:) = 0
       zsinksum(:,:,:) = d_zero
       llindex3(:,:,:,:)= .false. 
     
@@ -1705,8 +1803,14 @@ lsmrnc(j,i) =  lsmrnc(j,i) + zpfplsl(j,i,kz+1)*rtsrf
 
      real(rk8) function fokoop(zt,foeeliq,foeeice)
        implicit none
-       real(rk8) , parameter :: rkoop1 = 2.583
-       real(rk8) , parameter :: rkoop2 = 0.48116D-02
+       !critical vapour saturation mixing ratio with respect to ice at which homogeneous ice nucleation initiates
+       !empirical fit given by Karcher and Lohmann (2002) which is a function of temperature and ranges 
+       !from 45% supersaturation at T =235 K to 67% at T = 190 K.
+       !At temperatures warmer than -38◦C the cloud formation over a timestep results entirely in liquid cloud, 
+       !while below this threshold the liquid water or aqueous sulphate solutes are assumed to freeze 
+       !instantaneously and the process is a source for cloud ice.
+       real(rk8) , parameter :: rkoop1 = 2.583                      ! RHhomo=2.583-T/207.8
+       real(rk8) , parameter :: rkoop2 = 0.48116D-02                !1/207.8 
        real(rk8) , intent(in) :: zt, foeeliq , foeeice
        fokoop = min(rkoop1-rkoop2*zt,foeeliq/foeeice)
      end function fokoop
