@@ -453,7 +453,7 @@ module mod_vertint
     intent (out) fz
 !
     integer(ik4) :: i , j , k , kx , knx , n
-    real(rk4) :: sigp , w1 , wz , pt
+    real(rk4) :: w1 , wz , pt
     !
     ! INTLIN IS FOR VERTICAL INTERPOLATION OF U, V, AND RELATIVE
     ! HUMIDITY. THE INTERPOLATION IS LINEAR IN Z.  WHERE EXTRAPOLATION

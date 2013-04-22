@@ -540,16 +540,16 @@ module mod_ncstream
       stvar%ptop_var%rval(1) = real(ptop*10.0D0)
       call outstream_writevar(ncout,stvar%ptop_var)
       if ( stream%l_has2mlev ) then
-        buffer%realbuff(1) = 2.0D0
+        buffer%realbuff(1) = 2.0
         call outstream_writevar(ncout,stvar%lev2m_var,nocopy)
       end if
       if ( stream%l_has10mlev ) then
-        buffer%realbuff(1) = 10.0D0
+        buffer%realbuff(1) = 10.0
         call outstream_writevar(ncout,stvar%lev10m_var,nocopy)
       end if
       if ( stream%l_hassoillev ) then
-        buffer%realbuff(1) = 0.10D0
-        buffer%realbuff(2) = 1.00D0
+        buffer%realbuff(1) = 0.10
+        buffer%realbuff(2) = 1.00
         call outstream_writevar(ncout,stvar%levsoil_var,nocopy)
       end if
     end subroutine outstream_enable
@@ -625,7 +625,7 @@ module mod_ncstream
       type(ncoutstream) , pointer , intent(inout) :: stream
       character(len=*) , intent(in) :: dname
       character(len=16) :: the_name , in_name
-      integer(ik4) :: pdim , num
+      integer(ik4) :: pdim = -1, num
       if ( stream%l_enabled ) return
       if ( stream%id < 0 ) return
       in_name = dname
