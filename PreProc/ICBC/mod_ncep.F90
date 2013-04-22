@@ -74,9 +74,9 @@ module mod_ncep
 
     call split_idate(idate,year,month,day,hour)
     if ( dattyp(1:3) == 'CFS' ) then
-      call cfs6hour(idate,globidate1)
+      call cfs6hour(idate)
     else
-      call cdc6hour(idate,globidate1)
+      call cdc6hour(idate)
     end if
 
     write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
@@ -125,22 +125,19 @@ module mod_ncep
 
   end subroutine getncep
 
-  subroutine cfs6hour(idate,idate0)
+  subroutine cfs6hour(idate)
     use netcdf
     implicit none
-    type(rcm_time_and_date) , intent (in) :: idate , idate0
-    integer(ik4) :: i , ilev , inet , it , j , kkrec , k , nlev , istatus
+    type(rcm_time_and_date) , intent (in) :: idate
+    integer(ik4) :: i , j , k , inet , it , kkrec , istatus
     character(len=256) :: pathaddname
     character(len=5) , dimension(5) :: varname
     real(rk8) :: xadd , xscale
-    integer(ik4) , dimension(4) , save :: icount , istart
+    integer(ik4) , dimension(4) :: icount , istart
     integer(ik4) , dimension(5) , save :: inet5 , ivar5
     real(rk8) , dimension(5) , save :: xoff , xscl
     data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd'/
     !
-    xadd = 0.0D0
-    xscale = 1.0D0
-    nlev = 0
     if ( itcfs == 0 ) then
       do kkrec = 1 , 5
         write(pathaddname,'(a,i0.4,i0.2,i0.2,i0.2,a,i0.4,i0.2,i0.2,i0.2,a)') &
@@ -173,68 +170,74 @@ module mod_ncep
     itcfs = itcfs + 1
 
     do kkrec = 1 , 5
-      nlev = klev
-
+      xscale = xscl(kkrec)
+      xadd = xoff(kkrec)
       istart(1) = 1
       icount(1) = ilon
       istart(2) = 1
       icount(2) = jlat
       istart(3) = 1
-      icount(3) = nlev
+      icount(3) = klev
       istart(4) = it
       icount(4) = 1
       inet = inet5(kkrec)
       istatus = nf90_get_var(inet,ivar5(kkrec),work,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Variable '//varname(kkrec)// &
                     'read error in file'//trim(pathaddname))
-      xscale = xscl(kkrec)
-      xadd = xoff(kkrec)
-      do ilev = 1 , nlev
-        if ( kkrec == 1 ) then
+      if ( kkrec == 1 ) then
+        do k = 1 , klev
           do j = 1 , jlat
             do i = 1 , ilon
-              tvar(i,jlat+1-j,ilev) = dble(work(i,j,ilev))*xscale+xadd
+              tvar(i,j,k) = dble(work(i,j,k))*xscale+xadd
             end do
           end do
-        else if ( kkrec == 2 ) then
+        end do
+      else if ( kkrec == 2 ) then
+        do k = 1 , klev
           do j = 1 , jlat
             do i = 1 , ilon
-              hvar(i,jlat+1-j,ilev) = dble(work(i,j,ilev))*xscale+xadd
+              hvar(i,j,k) = dble(work(i,j,k))*xscale+xadd
             end do
           end do
-        else if ( kkrec == 3 ) then
+        end do
+      else if ( kkrec == 3 ) then
+        do k = 1 , klev
           do j = 1 , jlat
             do i = 1 , ilon
-              rhvar(i,jlat+1-j,ilev) = dmin1((dble(work(i,j,ilev))* &
+              rhvar(i,j,k) = dmin1((dble(work(i,j,k))* &
                             xscale+xadd)*0.01D0,1.D0)
             end do
           end do
-        else if ( kkrec == 4 ) then
+        end do
+      else if ( kkrec == 4 ) then
+        do k = 1 , klev
           do j = 1 , jlat
             do i = 1 , ilon
-              uvar(i,jlat+1-j,ilev) = dble(work(i,j,ilev))*xscale+xadd
+              uvar(i,j,k) = dble(work(i,j,k))*xscale+xadd
             end do
           end do
-        else if ( kkrec == 5 ) then
+        end do
+      else if ( kkrec == 5 ) then
+        do k = 1 , klev
           do j = 1 , jlat
             do i = 1 , ilon
-              vvar(i,jlat+1-j,ilev) = dble(work(i,j,ilev))*xscale+xadd
+              vvar(i,j,k) = dble(work(i,j,k))*xscale+xadd
             end do
           end do
-        end if
-      end do
+        end do
+      end if
     end do
   end subroutine cfs6hour
 
-  subroutine cdc6hour(idate,idate0)
+  subroutine cdc6hour(idate)
     use netcdf
     implicit none
-    type(rcm_time_and_date) , intent (in) :: idate , idate0
+    type(rcm_time_and_date) , intent (in) :: idate
     integer(ik4) :: i , ilev , inet , it , j , kkrec , k , nlev , istatus
     character(len=256) :: pathaddname
     character(len=5) , dimension(5) :: varname
     real(rk8) :: xadd , xscale
-    integer(ik4) , dimension(4) , save :: icount , istart
+    integer(ik4) , dimension(4) :: icount , istart
     integer(ik4) , dimension(5) , save :: inet5 , ivar5
     real(rk8) , dimension(5) , save :: xoff , xscl
     data varname/'air' , 'hgt' , 'rhum' , 'uwnd' , 'vwnd'/
@@ -247,7 +250,8 @@ module mod_ncep
       if ( dattyp == 'NNRP1' ) then
         if ( kkrec == 3 ) nlev = 8 ! Relative humidity has less levels
       end if
-      if ( idate == idate0 .or. (lfdoyear(idate) .and. lmidnight(idate))) then
+      if ( idate == globidate1 .or. &
+           (lfdoyear(idate) .and. lmidnight(idate))) then
         write(pathaddname,'(a,i0.4,a,i0.4,a)') trim(inpglob)//'/'// &
             dattyp//'/',year , '/'//trim(varname(kkrec))//'.' , year,'.nc'
         istatus = nf90_open(pathaddname,nf90_nowrite,inet5(kkrec))
@@ -422,9 +426,13 @@ module mod_ncep
 
     write(stdout,*) 'Read static data'
 
-    do j = 1 , jlat
-      glat(j) = glat1(jlat-j+1)
-    end do
+    if ( dattyp(1:3) /= 'CFS' ) then
+      do j = 1 , jlat
+        glat(j) = glat1(jlat-j+1)
+      end do
+    else
+      glat(:) = glat1(:)
+    end if
 
     call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_ncep:work')
     call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ncep:b3')
