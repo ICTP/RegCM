@@ -74,7 +74,7 @@ module mod_ncep
 
     call split_idate(idate,year,month,day,hour)
     if ( dattyp(1:3) == 'CFS' ) then
-      call cfs6hour(idate)
+      call cfs6hour
     else
       call cdc6hour(idate)
     end if
@@ -125,10 +125,9 @@ module mod_ncep
 
   end subroutine getncep
 
-  subroutine cfs6hour(idate)
+  subroutine cfs6hour
     use netcdf
     implicit none
-    type(rcm_time_and_date) , intent (in) :: idate
     integer(ik4) :: i , j , k , inet , it , kkrec , istatus
     character(len=256) :: pathaddname
     character(len=5) , dimension(5) :: varname
@@ -356,7 +355,7 @@ module mod_ncep
     use netcdf
     implicit none
 !
-    integer(ik4) :: i , j , k , kr , year , month , day , hour
+    integer(ik4) :: j , k , year , month , day , hour
     integer(ik4) :: istatus , inet , iddim , idv
     character(len=256) :: inpfile
 

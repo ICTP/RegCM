@@ -64,7 +64,7 @@ module mod_sst_ersst
 !
   integer(ik4) :: it
   integer(ik4) :: istatus
-  integer(ik4) :: year , month , day , hour , isyear
+  integer(ik4) :: year , month , day , hour , isyear = -1
   integer(ik4) :: dimi , vari
   integer(ik4) :: ierrec , nsteps
   type(rcm_time_and_date) :: idate , ierastart
