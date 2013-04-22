@@ -172,6 +172,7 @@ module mod_intldtr
   end if
   mostaround = -d_one
   lastc = -1
+  dist = maxval(bmindist) + d_one
   do i = 1 , maxbins
     if (bincnt(i) > 0) then
       if (bincnt(i) > lastc) then
