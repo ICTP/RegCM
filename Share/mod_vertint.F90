@@ -472,7 +472,7 @@ module mod_vertint
           !
           ! Compute elevation profile h
           !
-          call htsig_profile_single(t(j,i,:),h,pstar(j,i),sig,pt,km)
+          call htsig_profile_single(t(i,j,:),h,pstar(i,j),sig,pt,km)
           !
           ! For each of the requested levels
           !
@@ -521,7 +521,7 @@ module mod_vertint
             !
             ! The searched sigma value
             !
-            call htsig_profile_single(t(j,i,:),h,pstar(j,i),sig,pt,km)
+            call htsig_profile_single(t(i,j,:),h,pstar(i,j),sig,pt,km)
             !
             ! Over the top or below bottom level
             !
