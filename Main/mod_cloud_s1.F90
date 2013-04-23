@@ -254,30 +254,29 @@ module mod_cloud_s1
     integer(ik4) :: iqqi , iqql , iqqr , iqqs , iqqv , jn , jo , kautoconv
     logical :: lmicro, budget, llo1 
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: omega             
-    real(rk8) :: zexplicit,zexpsnow
+    real(rk8) :: zexplicit
     ! local real variables for autoconversion rate constants
     real(rk8) :: alpha1                                              ! coefficient autoconversion cold cloud
     real(rk8) :: ztmpa
     real(rk8) :: zcfpr
     real(rk8) :: zlcrit
-    real(rk8) :: zrlcrit 
     real(rk8) :: zprecip
-    real(rk8) :: zqadj
+    ! real(rk8) :: zqadj
     real(rk8) :: zzrh
     real(rk8) :: zbeta,zbeta1
     real(rk8) , parameter :: rlcritsnow = 3.D-5                      !critical autoconversion
     real(rk8) , parameter :: zauto_rate_khair = 0.355D0              ! microphysical terms
     real(rk8) , parameter :: zauto_expon_khair = 1.47D0
-    real(rk8) , parameter :: zauto_rate_sundq = 0.5D-3
+    ! real(rk8) , parameter :: zauto_rate_sundq = 0.5D-3
     real(rk8) , parameter :: zauto_rate_kesl = 1.D-3                 !giusto!
     real(rk8) , parameter :: zauto_rate_klepi = 0.5D-3
     real(rk8) , parameter :: zautocrit = 5.D-4                       !giusto!
     real(rk8) , parameter :: zepsec = 1.D-14
-    real(rk8) , parameter :: qs0 = 1.0D-3                            !g g^(-1)
+    ! real(rk8) , parameter :: qs0 = 1.0D-3                          !g g^(-1)
     real(rk8) , parameter :: rcovpmin = 0.1
     real(rk8) , parameter :: rclcrit_land = 5.D-4
     real(rk8) , parameter :: rclcrit_sea = 3.D-4    
-    real(rk8) , parameter :: rprc1 = 3.D2                          ! in Sundqvist = 300
+    real(rk8) , parameter :: rprc1 = 3.D2           ! in Sundqvist = 300
     ! local real constants and variables for condensation
     real(rk8) :: zcond  
     real(rk8) :: zdtdp  
@@ -295,7 +294,7 @@ module mod_cloud_s1
     real(rk8) :: zdpr , zdenom , zdpevap , zevap
     real(rk8) , parameter :: kevap = 0.100D-02                       ! Raindrop evap rate coef
     real(rk8) , parameter :: rlmin = 1.D-8
-    real(rk8) , parameter :: ramin = 1.D-8
+    ! real(rk8) , parameter :: ramin = 1.D-8
     real(rk8) , parameter :: rprecrhmax = 0.7D0                      ! max threshold rh for evaporation 
                                                                      ! for a precip coverage of zero rmfsens20081111   
     real(rk8) , parameter :: rpecons=5.44D-4/egrav !evaporation rate coefficient
@@ -786,6 +785,7 @@ module mod_cloud_s1
             ! defined by cloudy layer below a layer with cloud frac <0.01
             ! ZDZ = ZDP(JL)/(ZRHO(JL)*RG)
             !--------------------------------------------------------------
+            zfokoop= fokoop(zt(j,i,k),foeeliq(zt(j,i,k)),foeeice(zt(j,i,k)))
             if (k>1) then
               if (fcc(j,i,k-1) < rcldtopcf .and. fcc(j,i,k) >= rcldtopcf) then
                 zcldtopdist(j,i) = d_zero
@@ -1177,22 +1177,19 @@ module mod_cloud_s1
 
                 ! evaporate rain
                 zevap = min(zdpevap,zqxfg(j,i,iqqr))
+                !-------------------------------------------------------------
+                ! reduce the total precip coverage proportional to evaporation
+                ! to mimic the previous scheme which had a diagnostic
+                ! 2-flux treatment, abandoned due to the new prognostic precip
+                !-------------------------------------------------------------
+                zcovptot(j,i) = zcovptot(j,i) - max(d_zero, &
+                              &(zcovptot(j,i)-fcc(j,i,k))*zdpevap/zqpretot(j,i))
               else
                 zevap = zqxfg(j,i,iqqr)
               endif
               zsolqa(j,i,iqqv,iqqr) = zsolqa(j,i,iqqv,iqqr) + zevap
               zsolqa(j,i,iqqr,iqqv) = zsolqa(j,i,iqqr,iqqv)-zevap
               zqxfg(j,i,iqqr)       = zqxfg(j,i,iqqr)-zevap
-
-              !-------------------------------------------------------------
-              ! reduce the total precip coverage proportional to evaporation
-              ! to mimic the previous scheme which had a diagnostic
-              ! 2-flux treatment, abandoned due to the new prognostic precip
-              !-------------------------------------------------------------
-              if (zbeta1 >= d_zero) then
-                zcovptot(j,i) = zcovptot(j,i) - max(d_zero, &
-                              &(zcovptot(j,i)-fcc(j,i,k))*zdpevap/zqpretot(j,i))
-              end if
             end if
           end do
         end do
@@ -1241,22 +1238,19 @@ module mod_cloud_s1
 
                ! evaporate snow
                zevap = min(zdpevap,zqxfg(j,i,iqqs))
+               !-------------------------------------------------------------
+               ! reduce the total precip coverage proportional to evaporation
+               ! to mimic the previous scheme which had a diagnostic
+               ! 2-flux treatment, abandoned due to the new prognostic precip
+               !-------------------------------------------------------------
+               zcovptot(j,i) = zcovptot(j,i)-max(d_zero, &
+               &               (zcovptot(j,i)-fcc(j,i,k))*zdpevap/zqpretot(j,i))
              else
                zevap = zqxfg(j,i,iqqs)
              end if
              zsolqa(j,i,iqqv,iqqs) = zsolqa(j,i,iqqv,iqqs) + zevap
              zsolqa(j,i,iqqs,iqqv) = zsolqa(j,i,iqqs,iqqv) - zevap
              zqxfg(j,i,iqqs)       = zqxfg(j,i,iqqs) - zevap
-
-             !-------------------------------------------------------------
-             ! reduce the total precip coverage proportional to evaporation
-             ! to mimic the previous scheme which had a diagnostic
-             ! 2-flux treatment, abandoned due to the new prognostic precip
-             !-------------------------------------------------------------
-             if (zbeta1 >= d_zero) then
-               zcovptot(j,i) = zcovptot(j,i)-max(d_zero, &
-               &               (zcovptot(j,i)-fcc(j,i,k))*zdpevap/zqpretot(j,i))
-             end if
            end if
          end do
        end do
@@ -1912,6 +1906,7 @@ lsmrnc(j,i) =  lsmrnc(j,i) + zpfplsl(j,i,kz+1)*rtsrf
             aam(j,i,m,n) = xsum
           end do
           aamax = d_zero ! INITIALIZE FOR THE SEARCH FOR LARGEST PIVOT ELEMENT.
+          imax = n
           do m = n , nqx ! THIS IS I = J OF EQUATION (2.3.12)
             ! AND I = J+1. . .N OF EQUATION (2.3.13).
             xsum = aam(j,i,m,n)
