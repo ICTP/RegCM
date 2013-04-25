@@ -88,7 +88,9 @@ module mod_ch_icbc
        trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
        'mz4_avg_2000-2007_',im1,'.nc'
     istatus = nf90_open(chfilename,nf90_nowrite,ncid)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error open file chemical')
+    call checkncerr(istatus,__FILE__,__LINE__, &
+       'Error open file chemical '//trim(inpglob)//pthsep// &
+       'OXIGLOB'//pthsep//'mz4_avg_2000-2007_',im1,'.nc')
     istatus = nf90_inq_dimid(ncid,'lon',idimid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lon')
     istatus = nf90_inquire_dimension(ncid,idimid,len=chilon)
