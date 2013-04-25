@@ -56,7 +56,7 @@ program chem_icbc
 !
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
      ichcumtra , ichsolver , idirect , ichdustemd , ichdiag ,            &
-     ichsursrc , ichebdy, rdstemfac
+     ichsursrc , ichebdy , rdstemfac
 
   call header('chem_icbc')
 !
@@ -66,15 +66,28 @@ program chem_icbc
   call getarg(1, namelistfile)
   call initparam(namelistfile, ierr)
   if ( ierr/=0 ) then
-    write ( 6, * ) 'Parameter initialization not completed'
-    write ( 6, * ) 'Usage : '
-    write ( 6, * ) '          ', trim(prgname), ' regcm.in'
-    write ( 6, * ) ' '
-    write ( 6, * ) 'Check argument and namelist syntax'
+    write (stderr,*) 'Parameter initialization not completed'
+    write (stderr,*) 'Usage : '
+    write (stderr,*) '          ', trim(prgname), ' regcm.in'
+    write (stderr,*) ' '
+    write (stderr,*) 'Check argument and namelist syntax'
     stop
   end if
 !
-  read(ipunit, chemparam, err=101)
+  open(ipunit, file=namelistfile, status='old', &
+       action='read', iostat=ierr)
+  if ( ierr /= 0 ) then
+    write (stderr,*) 'Parameter initialization not completed'
+    write (stderr,*) 'Cannot open ',trim(namelistfile)
+    stop
+  end if
+  read(ipunit, chemparam, iostat=ierr)
+  if ( ierr /= 0 ) then
+    write (stderr,*) 'Cannot read namelist stanza: chemparam'
+    write (stderr,*) 'Assuming nothing to do for this experiment (ichem = 0)'
+    stop
+  end if
+  close(ipunit)
 !
   select case (chemsimtype)
     case ( 'CBMZ' )
@@ -142,11 +155,4 @@ program chem_icbc
 
   call finaltime(0)
   write(stdout,*) 'Successfully completed CHEM ICBC'
-  stop
-
-  101 write (stderr,*) 'Cannot read namelist stanza: chemparam'
-  write (stderr,*) 'Assuming nothing to do for this experiment (ichem = 0)'
-  call finaltime(0)
-  write(stdout,*) 'Successfully completed CHEM ICBC'
-
 end program chem_icbc

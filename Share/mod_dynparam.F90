@@ -583,6 +583,7 @@ module mod_dynparam
       end if
     end if
 
+    close(ipunit)
     ierr = 0
     return
   end subroutine initparam

@@ -489,6 +489,17 @@ module mod_params
 #endif
 
   if ( myid == iocpu ) then
+    open(ipunit, file=namelistfile, status='old', &
+                 action='read', iostat=iretval)
+    if ( iretval /= 0 ) then
+      write(stderr,*) 'Error opening input namelist file ',trim(namelistfile)
+      call fatal(__FILE__,__LINE__,'INPUT NAMELIST OPEN ERROR')
+#ifdef DEBUG
+    else
+      write(stdout,*) 'Open ',trim(namelistfile),' OK'
+#endif
+    end if
+
     write(stdout,*) 'Reading model namelist stanzas'
 
     rewind(ipunit)
@@ -710,6 +721,8 @@ module mod_params
 #endif
       end if
     end if
+
+    close(ipunit)
   end if 
 !
 !  communicate to all processors 

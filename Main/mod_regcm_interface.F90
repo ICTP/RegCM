@@ -71,7 +71,6 @@ module mod_regcm_interface
     integer, intent(in), optional :: mpiCommunicator
 !
     integer(ik4) :: ierr
-    character(256) :: namelistfile, prgname
 ! 
 !**********************************************************************
 !

@@ -710,7 +710,7 @@ module mod_mppparam
         end if
       end if
 
-      call mpi_cart_create(mycomm,2,cpus_per_dim,dim_period,.false., &
+      call mpi_cart_create(mycomm,2,cpus_per_dim,dim_period,.true., &
                            cartesian_communicator,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_cart_create error.')

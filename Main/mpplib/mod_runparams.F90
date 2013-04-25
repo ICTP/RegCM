@@ -27,6 +27,8 @@ module mod_runparams
 
   implicit none
 
+  character(len=256) :: namelistfile , prgname
+
   integer(ik4) , public :: nqx , iqfrst , iqlst
   integer(ik4) , public , parameter :: iqv = 1
   integer(ik4) , public , parameter :: iqc = 2
