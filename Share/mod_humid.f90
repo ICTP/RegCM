@@ -23,6 +23,27 @@ module mod_humid
   use mod_realkinds
   use mod_constants
 !
+  private
+
+  real(rk4) , parameter :: rt0 = real(rtzero)
+  real(rk4) , parameter :: t0 = real(tzero)
+  real(rk4) , parameter :: srgas = real(rgas)
+  real(rk4) , parameter :: slh0 = real(lh0)
+  real(rk4) , parameter :: slh1 = real(lh1)
+  real(rk4) , parameter :: slsvp1 = real(lsvp1)
+  real(rk4) , parameter :: slsvp2 = real(lsvp2)
+  real(rk4) , parameter :: sep2 = real(ep2)
+  real(rk4) , parameter :: segrav = real(egrav)
+  real(rk4) , parameter :: srovg = real(rovg)
+  real(rk4) , parameter :: slrate = real(lrate)
+
+  interface humid1_o
+    module procedure humid1_o_double
+    module procedure humid1_o_single
+  end interface humid1_o
+
+  public :: humid1 , humid1_o , humid1fv , humid2
+
   contains
 
   subroutine humid1(t,q,ps,ptop,sigma,ni,nj,nk)
@@ -53,7 +74,7 @@ module mod_humid
 !
 !-----------------------------------------------------------------------
 !
-  subroutine humid1_o(t,q,ps,sigma,ptop,im,jm,km)
+  subroutine humid1_o_double(t,q,ps,sigma,ptop,im,jm,km)
     implicit none
     integer(ik4) , intent(in) :: im , jm , km
     real(rk8) , intent(in) :: ptop
@@ -74,13 +95,41 @@ module mod_humid
           p = sigma(k)*(ps(i,j)-ptop) + ptop
           lh = lh0 - lh1*(t(i,j,k)-tzero)       ! LATENT HEAT OF EVAP.
           satvp = lsvp1*dexp(lsvp2*lh*(rtzero-d_one/t(i,j,k)))
-                                                ! SATURATION VAP PRESS.
           qs = ep2*satvp/(p-satvp)              ! SAT. MIXING RATIO
           q(i,j,k) = max(q(i,j,k)/qs,d_zero)
         end do
       end do
     end do
-  end subroutine humid1_o
+  end subroutine humid1_o_double
+
+  subroutine humid1_o_single(t,q,ps,sigma,ptop,im,jm,km)
+    implicit none
+    integer(ik4) , intent(in) :: im , jm , km
+    real(rk8) , intent(in) :: ptop
+    real(rk4) , intent(in) , dimension(im,jm) :: ps
+    real(rk4) , intent(in) , dimension(im,jm,km) :: t
+    real(rk4) , intent(in) , dimension(km) :: sigma
+    real(rk4) , intent(inout) , dimension(im,jm,km) :: q
+!
+    real(rk4) :: lh , p , qs , satvp , rpt
+    integer(ik4) :: i , j , k
+    !
+    ! THIS ROUTINE REPLACES SPECIFIC HUMIDITY BY RELATIVE HUMIDITY
+    ! DATA ON SIGMA LEVELS
+    !
+    rpt = real(ptop)
+    do k = 1 , km
+      do j = 1 , jm
+        do i = 1 , im
+          p = sigma(k)*(ps(i,j)-rpt) + rpt
+          lh = slh0 - slh1*(t(i,j,k)-t0)       ! LATENT HEAT OF EVAP.
+          satvp = slsvp1*exp(slsvp2*lh*(rt0-1.0/t(i,j,k)))
+          qs = sep2*satvp/(p-satvp)              ! SAT. MIXING RATIO
+          q(i,j,k) = max(q(i,j,k)/qs,0.0)
+        end do
+      end do
+    end do
+  end subroutine humid1_o_single
 !
 !-----------------------------------------------------------------------
 !
@@ -101,7 +150,6 @@ module mod_humid
           if ( p3d(i,j,k) > -9990.0D0 ) then
             lh = lh0 - lh1*(t(i,j,k)-tzero)  ! LATENT HEAT OF EVAP.
             satvp = lsvp1*dexp(lsvp2*lh*(rtzero-d_one/t(i,j,k)))
-                                                 ! SATURATION VAP PRESS.
             qs = ep2*satvp/(p3d(i,j,k)-satvp)   ! SAT. MIXING RATIO
             q(i,j,k) = max(q(i,j,k)/qs,d_zero)    !ALREADY MIXING RATIO
           else

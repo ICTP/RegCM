@@ -133,7 +133,7 @@ module mod_ein
     !
     ! F4  DETERMINE H
     !
-    call hydrost(h4,t4,topogm,ps4,ptop,sigmaf,sigma2,dsigma,jx,iy,kz)
+    call hydrost(h4,t4,topogm,ps4,ptop,sigma2,jx,iy,kz)
 !
   end subroutine getein
 !

@@ -396,7 +396,7 @@ module mod_date
     implicit none
     type (rcm_time_interval) , intent(out) :: x
     real(rk8) , intent(in) :: d
-    x%ival = d
+    x%ival = int(d,ik8)
     x%iunit = usec
   end subroutine initfromdbleit
 
@@ -705,33 +705,33 @@ module mod_date
     select case (y%iunit)
       case (usec)
         tmp = tmp + z%second_of_day
-        z%second_of_day = mod(tmp, i8spd)
+        z%second_of_day = int(mod(tmp, i8spd),ik4)
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = i8spd+z%second_of_day
+          z%second_of_day = int(i8spd,ik4)+z%second_of_day
           tmp = tmp-i8spd
         end if
         tmp = tmp/i8spd
-        z%days_from_reference = z%days_from_reference + tmp
+        z%days_from_reference = z%days_from_reference + int(tmp,ik4)
       case (umin)
         tmp = tmp*i8spm+z%second_of_day
-        z%second_of_day = mod(tmp, i8spd)
+        z%second_of_day = int(mod(tmp, i8spd),ik4)
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = i8spd+z%second_of_day
+          z%second_of_day = int(i8spd,ik4)+z%second_of_day
           tmp = tmp-i8spd
         end if
         tmp = tmp/i8spd
-        z%days_from_reference = z%days_from_reference + tmp
+        z%days_from_reference = z%days_from_reference + int(tmp,ik4)
       case (uhrs)
         tmp = tmp*i8sph+z%second_of_day
-        z%second_of_day = mod(tmp, i8spd)
+        z%second_of_day = int(mod(tmp, i8spd),ik4)
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = i8spd+z%second_of_day
+          z%second_of_day = int(i8spd,ik4)+z%second_of_day
           tmp = tmp-i8spd
         end if
         tmp = tmp/i8spd
-        z%days_from_reference = z%days_from_reference + tmp
+        z%days_from_reference = z%days_from_reference + int(tmp,ik4)
       case (uday)
-        z%days_from_reference = z%days_from_reference + tmp
+        z%days_from_reference = z%days_from_reference + int(tmp,ik4)
       case (umnt)
         call days_from_reference_to_date(x,d)
         ! Adjust date of the month: This is really a trick...
@@ -740,26 +740,30 @@ module mod_date
             dm = dble(d%day)/dble(mdays_leap(d%year, d%month))
           case (noleap)
             dm = dble(d%day)/dble(mlen(d%month))
+          case default
+            dm = dble(d%day)/30.0D0
         end select
-        d%month = d%month+mod(tmp,i8mpy)
+        d%month = d%month+int(mod(tmp,i8mpy),ik4)
         call adjustpm(d%month,d%year,12)
         tmp = tmp/i8mpy
-        d%year = d%year+tmp
+        d%year = d%year+int(tmp,ik4)
         ! Adjust date of the month: This is really a trick...
         select case (z%calendar)
           case (gregorian)
             d%day = idnint(dble(mdays_leap(d%year, d%month)) * dm)
           case (noleap)
             d%day = idnint(dble(mlen(d%month)) * dm)
+          case default
+            d%day = 30 * int(dm)
         end select
         call date_to_days_from_reference(d,z)
       case (uyrs)
         call days_from_reference_to_date(x,d)
-        d%year = d%year+tmp
+        d%year = d%year+int(tmp,ik4)
         call date_to_days_from_reference(d,z)
       case (ucnt)
         call days_from_reference_to_date(x,d)
-        d%year = d%year+i8ypc*tmp
+        d%year = d%year+int(i8ypc*tmp,ik4)
         call date_to_days_from_reference(d,z)
     end select
   end function add_interval
@@ -816,9 +820,8 @@ module mod_date
           end if
         end if
       end if
-      if (icaltype == 1) then
-        lcaltype = .false.
-      else if (icaltype == 2) then
+      lcaltype = .false.
+      if (icaltype == 2) then
         lcaltype = .true.
       else
         write (stderr, *) 'year  = ', iy
@@ -861,46 +864,46 @@ module mod_date
     select case (y%iunit)
       case (usec)
         tmp = tmp - z%second_of_day
-        z%second_of_day = mod(tmp,i8spd)
+        z%second_of_day = int(mod(tmp,i8spd),ik4)
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = i8spd+z%second_of_day
+          z%second_of_day = int(i8spd+z%second_of_day,ik4)
           tmp = tmp+i8spd
         end if
         tmp = tmp/i8spd
-        z%days_from_reference = z%days_from_reference - tmp
+        z%days_from_reference = z%days_from_reference - int(tmp,ik4)
       case (umin)
         tmp = tmp*i8spm - z%second_of_day
-        z%second_of_day = mod(tmp, i8spd)
+        z%second_of_day = int(mod(tmp, i8spd),ik4)
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = i8spd+z%second_of_day
+          z%second_of_day = int(i8spd,ik4)+z%second_of_day
           tmp = tmp+i8spd
         end if
         tmp = tmp/i8spd
-        z%days_from_reference = z%days_from_reference - tmp
+        z%days_from_reference = z%days_from_reference - int(tmp,ik4)
       case (uhrs)
         tmp = tmp*i8sph - z%second_of_day
-        z%second_of_day = mod(tmp, i8spd)
+        z%second_of_day = int(mod(tmp, i8spd),ik4)
         if ( z%second_of_day < 0 ) then
-          z%second_of_day = i8spd+z%second_of_day
+          z%second_of_day = int(i8spd,ik4)+z%second_of_day
           tmp = tmp+i8spd
         end if
         tmp = tmp/i8spd
-        z%days_from_reference = z%days_from_reference - tmp
+        z%days_from_reference = z%days_from_reference - int(tmp,ik4)
       case (uday)
-        z%days_from_reference = z%days_from_reference - tmp
+        z%days_from_reference = z%days_from_reference - int(tmp,ik4)
       case (umnt)
         call days_from_reference_to_date(x,d)
-        d%month = d%month-mod(tmp,i8mpy)
+        d%month = d%month-int(mod(tmp,i8mpy),ik4)
         call adjustmp(d%month,d%year,12)
-        d%year = d%year-tmp/i8mpy
+        d%year = d%year-int(tmp/i8mpy,ik4)
         call date_to_days_from_reference(d,z)
       case (uyrs)
         call days_from_reference_to_date(x,d)
-        d%year = d%year-tmp
+        d%year = d%year-int(tmp,ik4)
         call date_to_days_from_reference(d,z)
       case (ucnt)
         call days_from_reference_to_date(x,d)
-        d%year = d%year-i8ypc*tmp
+        d%year = d%year-int(i8ypc*tmp,ik4)
         call date_to_days_from_reference(d,z)
     end select
   end function sub_interval
@@ -1677,6 +1680,7 @@ module mod_date
       case (uday)
         hs = dble(x%ival)*24.0D0
       case default
+        hs = 0.0D0
         call die('mod_date','Interval unit conversion depend on calendar',1)
     end select
   end function tohours

@@ -33,7 +33,7 @@ module mod_grid
   real(rk8) , public , pointer , dimension(:,:) :: topogm , mask , landuse
   real(rk8) , public , pointer , dimension(:,:) :: pa , tlayer , za
   real(rk8) , public , pointer , dimension(:,:) :: b3pd
-  real(rk8) , public , pointer , dimension(:) :: dsigma , sigma2
+  real(rk8) , public , pointer , dimension(:) :: sigma2
   real(rk8) , public , pointer , dimension(:) :: sigmaf
   real(rk8) , public :: delx
   integer(ik4) , public :: i0 , i1 , j0 , j1
@@ -57,7 +57,6 @@ module mod_grid
     call getmem2d(tlayer,1,nx,1,ny,'mod_grid:tlayer')
     call getmem2d(za,1,nx,1,ny,'mod_grid:za')
     call getmem2d(b3pd,1,nx,1,ny,'mod_grid:b3pd')
-    call getmem1d(dsigma,1,nz,'mod_grid:dsigma')
     call getmem1d(sigma2,1,nz,'mod_grid:sigma2')
     call getmem1d(sigmaf,1,nz+1,'mod_grid:sigmaf')
     call read_domain_info
@@ -74,8 +73,7 @@ module mod_grid
     call read_domain(incin,sigmaf,xlat,xlon,dlat,dlon,topogm,mask,landuse)
     call closefile(incin)
     do k = 1 , kz
-      sigma2(k) = 0.5*(sigmaf(k+1)+sigmaf(k))
-      dsigma(k) = sigmaf(k+1) - sigmaf(k)
+      sigma2(k) = d_half*(sigmaf(k+1)+sigmaf(k))
     end do
   end subroutine read_domain_info
 !

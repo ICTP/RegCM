@@ -29,7 +29,8 @@ program sigma2p
   use mod_constants
   use mod_message
   use mod_vertint
-  use mod_derived
+  use mod_hgt
+  use mod_humid
   use mod_nchelper
   use netcdf
 
@@ -44,9 +45,9 @@ program sigma2p
 
   integer(ik4) , allocatable , dimension(:) :: dimids , dimlen
   real(rk4) , allocatable , dimension(:) :: sigma
-  real(rk4) , allocatable , dimension(:,:,:) :: xvar
-  real(rk4) , allocatable , dimension(:,:,:) :: pvar , tapvar , qapvar , hapvar
-  real(rk4) , allocatable , dimension(:,:) :: ps , topo , mslp
+  real(rk4) , allocatable , dimension(:,:,:) :: xvar , tmpvar , qvar , hzvar
+  real(rk4) , allocatable , dimension(:,:,:) :: pvar
+  real(rk4) , allocatable , dimension(:,:) :: ps , topo , mslpr
   real(rk4) , allocatable , dimension(:) :: avar
   character , allocatable , dimension(:) :: tvar
   real(rk4) , allocatable , dimension(:) :: apvar
@@ -287,10 +288,12 @@ program sigma2p
     icount(2) = iy
     allocate(topo(jx,iy), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'topo')
-    allocate(mslp(jx,iy), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'mslp')
-    allocate(hapvar(jx,iy,np), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'hapvar')
+    allocate(mslpr(jx,iy), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'mslpr')
+    allocate(tmpvar(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'tmpvar')
+    allocate(hzvar(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'hzvar')
     istatus = nf90_get_var(ncid, ishvarid, topo, istart(1:2), icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading topo.')
     istatus = nf90_def_var(ncout, 'hgt', nf90_float, tdimids, ihgvar)
@@ -324,10 +327,8 @@ program sigma2p
   end if
   if ( has_t .and. has_q ) then
     make_rh = .true.
-    allocate(tapvar(jx,iy,np), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'tapvar')
-    allocate(qapvar(jx,iy,np), stat=istatus)
-    call checkalloc(istatus,__FILE__,__LINE__,'qapvar')
+    allocate(qvar(jx,iy,kz), stat=istatus)
+    call checkalloc(istatus,__FILE__,__LINE__,'qvar')
     istatus = nf90_def_var(ncout, 'rh', nf90_float, tdimids, irhvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable rh')
 #ifdef NETCDF4_HDF5
@@ -457,9 +458,9 @@ program sigma2p
             apvar((ii-1)*ip3d+1:ii*ip3d) = reshape(pvar,(/ip3d/))
           end do
           if ( i == tvarid ) then
-            tapvar = pvar
+            tmpvar = xvar
           else if ( i == qvarid ) then
-            qapvar = pvar
+            qvar = xvar
           end if
 
           icount(iv-1) = np
@@ -529,33 +530,37 @@ program sigma2p
     end do
 
     if ( make_rh ) then
-      call calc_rh(tapvar,qapvar,plevs,jx,iy,np)
+      call humid1_o(tmpvar,qvar,ps,sigma,ptop,jx,iy,kz)
+      call intlin_o(pvar,qvar,ps,sigma,ptop,jx,iy,kz,plevs,np)
+      pvar = pvar * 100.0 ! Put in %
       iv = 4
       istart(iv) = it
       icount(iv) = 1
       istart(1:iv-1) = 1
       icount(1:iv-1) = dimsize(1:iv-1,tvarid)
       icount(iv-1) = np
-      istatus = nf90_put_var(ncout, irhvar, qapvar, istart(1:iv), icount(1:iv))
+      istatus = nf90_put_var(ncout, irhvar, pvar, istart(1:iv), icount(1:iv))
       call checkncerr(istatus,__FILE__,__LINE__,'Error writing rh variable.')
     end if
     if ( make_hgt ) then
-      call calc_hgt(hapvar,tapvar,ps,topo,plevs,jx,iy,np)
+      call htsig_o(tmpvar,hzvar,ps,topo,sigma,ptop,jx,iy,kz)
+      call height_o(pvar,hzvar,tmpvar,ps,topo,sigma,ptop,jx,iy,kz,plevs,np)
       iv = 4
       istart(iv) = it
       icount(iv) = 1
       istart(1:iv-1) = 1
       icount(1:iv-1) = dimsize(1:iv-1,tvarid)
       icount(iv-1) = np
-      istatus = nf90_put_var(ncout, ihgvar, hapvar, istart(1:iv), icount(1:iv))
+      istatus = nf90_put_var(ncout, ihgvar, pvar, istart(1:iv), icount(1:iv))
       call checkncerr(istatus,__FILE__,__LINE__,'Error writing hgt variable.')
-      call calc_mslpres(tapvar,ps,topo,mslp,plevs,jx,iy,np)
+      call mslp(tmpvar,ps,topo,mslpr,jx,iy,kz)
+      call gs_filter(mslpr,ps,jx,iy)
       iv = 3
       istart(iv) = it
       icount(iv) = 1
       istart(1:iv-1) = 1
       icount(1:iv-1) = dimsize(1:iv-1,tvarid)
-      istatus = nf90_put_var(ncout, imslpvar, mslp, istart(1:iv), icount(1:iv))
+      istatus = nf90_put_var(ncout, imslpvar, mslpr, istart(1:iv), icount(1:iv))
       call checkncerr(istatus,__FILE__,__LINE__,'Error writing mslp variable.')
     end if
 
@@ -573,12 +578,14 @@ program sigma2p
   deallocate(ps)
   deallocate(xvar)
   deallocate(pvar)
-  if ( make_rh ) then
-    deallocate(qapvar)
-    deallocate(tapvar)
+  if ( has_t .and. has_q ) then
+    deallocate(qvar)
   end if
-  if ( make_hgt ) then
+  if ( has_t ) then
+    deallocate(hzvar)
+    deallocate(tmpvar)
     deallocate(topo)
+    deallocate(mslpr)
   end if
 
   istatus = nf90_close(ncid)
