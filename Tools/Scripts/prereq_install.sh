@@ -167,7 +167,7 @@ echo "Compiled netCDF Fortran library."
 echo "Done!"
 echo "To link RegCM with this librares use:"
 echo
-echo  PATH=$DEST/bin:$PATH ./configure CC=$CC FC=$FC '\'
+echo  ./configure CC=$CC FC=$FC PATH=$DEST/bin:$PATH '\'
 echo         CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib '\'
 echo         LIBS=\"-lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -lz\"
 echo
