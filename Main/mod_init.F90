@@ -217,7 +217,7 @@ module mod_init
     !
     call o3data
     if ( myid == italk ) then
-      call vprntv(o3prof(3,3,:),kzp1,'Ozone profiles')
+      call vprntv(o3prof(3,3,:),kzp1,'Ozone profile at (3,3)')
     end if
     !
     ! End of initial run case

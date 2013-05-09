@@ -283,6 +283,9 @@ module mod_rad_o3blk
       ozone = (ozone1*xfac2+ozone2*xfac1)*1.0D-06
     end if
     call grid_distribute(ozone,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
+    if ( dointerp .and. myid == italk ) then
+      call vprntv(o3prof(3,3,:),kzp1,'Ozone profile at (3,3)')
+    end if
   end subroutine read_o3data
 !
   subroutine inextmon(iyear,imon)
