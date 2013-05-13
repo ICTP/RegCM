@@ -35,6 +35,9 @@ program nearpoint
   character(len=256) :: namelistfile , prgname , outname , line
   real(rk8) :: lat , lon , iiy , jjx , jmax , imax , centeri , centerj
   integer(ik4) :: istat , ierr , imodel , iver
+#if defined ( __PGI ) || defined ( IBM ) || defined ( __OPENCC__ )
+  integer(ik4) , external :: iargc
+#endif
 !
 !     Read input global namelist
 !
