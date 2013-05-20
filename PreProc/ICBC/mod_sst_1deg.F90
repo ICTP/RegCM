@@ -91,7 +91,7 @@ module mod_sst_1deg
                ' under '//trim(inpglob)//'/SST/',1)
     end if
     inquire(iolength=gireclen) gisst
-    write (stderr,*) 'OPEN ', trim(inpfile)
+    write (stdout,*) 'OPEN ', trim(inpfile)
     open(121,file=inpfile,form='unformatted', &
          access='direct',recl=gireclen,action='read',status='old')
   else if ( ssttyp == 'OISST' .or. ssttyp == 'OI_NC' .or. &
