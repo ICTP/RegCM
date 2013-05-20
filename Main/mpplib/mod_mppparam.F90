@@ -4873,7 +4873,8 @@ module mod_mppparam
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: a
     real(rk8) , pointer , dimension(:,:) , intent(out) :: b
-    call grid_collect(a,b,lbound(a,1),ubound(a,1),lbound(a,2),ubound(a,2))
+    call grid_collect(a,b,max(jce1,lbound(a,1)),min(jce2,ubound(a,1)), &
+                          max(ice1,lbound(a,2)),min(ice2,ubound(a,2)))
     b(1,:) = b(2,:)
     b(jx,:) = b(jx-1,:)
     b(:,1) = b(:,2)
