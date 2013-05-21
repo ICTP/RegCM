@@ -21,7 +21,7 @@ then
 fi
 
 UNIDATA=http://www.unidata.ucar.edu/downloads/netcdf/ftp
-MPICH=http://www.mpich.org/static/tarballs/3.0.1
+MPICH=http://www.mpich.org/static/tarballs/3.0.4
 
 WGET=`which wget 2> /dev/null`
 if [ -z "$WGET" ]
@@ -70,7 +70,7 @@ then
   exit 1
 fi
 echo "Downloading MPICH Library..."
-wget -c $MPICH/mpich-3.0.1.tar.gz -o $DEST/logs/download_M.log
+wget -c $MPICH/mpich-3.0.4.tar.gz -o $DEST/logs/download_M.log
 if [ $? -ne 0 ]
 then
   echo "Error downloading MPICH from MPICH website"
@@ -78,13 +78,13 @@ then
 fi
 
 echo "Compiling MPI library."
-tar zxvf mpich-3.0.1.tar.gz > /dev/null
+tar zxvf mpich-3.0.4.tar.gz > /dev/null
 if [ $? -ne 0 ]
 then
   echo "Error uncompressing mpich library"
   exit 1
 fi
-cd mpich-3.0.1
+cd mpich-3.0.4
 CC="$CC" FC="$FC" ./configure --prefix=$DEST > $DEST/logs/configure.log 2>&1
 make > $DEST/logs/compile.log 2>&1 && \
   make install > $DEST/logs/install.log 2>&1
@@ -94,7 +94,7 @@ then
   exit 1
 fi
 cd $DEST
-rm -fr mpich-3.0.1
+rm -fr mpich-3.0.4
 echo "Compiled MPI library."
 echo "Compiling zlib Library."
 tar zxvf zlib-1.2.7.tar.gz > /dev/null
