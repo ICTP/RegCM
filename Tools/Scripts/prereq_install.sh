@@ -144,8 +144,13 @@ echo "Compiled HDF5 library."
 echo "Compiling netCDF Library."
 tar zxvf netcdf-4.3.0.tar.gz > $DEST/logs/extract.log
 cd netcdf-4.3.0
+H5LIBS="-lhdf5_hl -lhdf5 -lz"
+if [ "X$FC" == "Xgfortran" ]
+then
+  H5LIBS="$H5LIBS -lm -ldl"
+fi
 ./configure CC="$CC" FC="$FC" --prefix=$DEST --enable-netcdf-4 \
-  CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib LIBS="-lhdf5_hl -lhdf5 -lz" \
+  CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib LIBS="$H5LIBS" \
   --disable-shared --disable-dap >> $DEST/logs/configure.log 2>&1
 make > $DEST/logs/compile.log 2>&1 && \
   make install > $DEST/logs/install.log 2>&1
@@ -179,7 +184,7 @@ echo "To link RegCM with this librares use:"
 echo
 echo  ./configure CC=$CC FC=$FC PATH=$DEST/bin:$PATH '\'
 echo         CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib '\'
-echo         LIBS=\"-lnetcdff -lnetcdf -lhdf5_hl -lhdf5 -lz\"
+echo         LIBS=\"-lnetcdff -lnetcdf $H5LIBS\"
 echo
 
 echo "Cleanup..."
