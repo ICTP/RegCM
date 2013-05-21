@@ -7,9 +7,17 @@
 # CHEK HERE BELOW THE COMPILERS
 #
 # Working CC Compiler
+#CC=gcc
 #CC=icc
+#CC=pgcc
+# Working C++ Compiler
+#CXX=g++
+#CXX=icpc
+#CXX=pgCC
 # Working Fortran Compiler
+#FC=gfortran
 #FC=ifort
+#FC=pgf90
 # Destination directory
 #DEST=$PWD
 
@@ -42,7 +50,7 @@ echo
 cd $DEST
 mkdir $DEST/logs
 echo "Downloading ZLIB library..."
-$WGET -c http://zlib.net/zlib-1.2.7.tar.gz -o $DEST/logs/download_Z.log
+$WGET -c http://zlib.net/zlib-1.2.8.tar.gz -o $DEST/logs/download_Z.log
 if [ $? -ne 0 ]
 then
   echo "Error downloading ZLIB library from zlib.net"
@@ -57,7 +65,7 @@ then
   exit 1
 fi
 echo "Downloading netCDF Library..."
-$WGET -c $UNIDATA/netcdf-4.3.tar.gz -o $DEST/logs/download_C.log
+$WGET -c $UNIDATA/netcdf-4.3.0.tar.gz -o $DEST/logs/download_C.log
 if [ $? -ne 0 ]
 then
   echo "Error downloading netCDF C library from www.unidata.ucar.edu"
@@ -85,7 +93,8 @@ then
   exit 1
 fi
 cd mpich-3.0.4
-CC="$CC" FC="$FC" ./configure --prefix=$DEST > $DEST/logs/configure.log 2>&1
+./configure CC="$CC" FC="$FC" F77="$FC" CXX="$CXX" \
+	--prefix=$DEST > $DEST/logs/configure.log 2>&1
 make > $DEST/logs/compile.log 2>&1 && \
   make install > $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
@@ -97,14 +106,14 @@ cd $DEST
 rm -fr mpich-3.0.4
 echo "Compiled MPI library."
 echo "Compiling zlib Library."
-tar zxvf zlib-1.2.7.tar.gz > /dev/null
+tar zxvf zlib-1.2.8.tar.gz > /dev/null
 if [ $? -ne 0 ]
 then
   echo "Error uncompressing zlib library"
   exit 1
 fi
-cd zlib-1.2.7
-CC="$CC" FC="$FC" ./configure --prefix=$DEST --static >> \
+cd zlib-1.2.8
+./configure CC="$CC" FC="$FC" --prefix=$DEST --static >> \
              $DEST/logs/configure.log 2>&1
 make >> $DEST/logs/compile.log 2>&1 && \
   make install >> $DEST/logs/install.log 2>&1
@@ -114,12 +123,13 @@ then
   exit 1
 fi
 cd $DEST
-rm -fr zlib-1.2.7
+rm -fr zlib-1.2.8
 echo "Compiled zlib library."
 echo "Compiling HDF5 library."
 tar zxvf hdf5-1.8.11.tar.gz > $DEST/logs/extract.log
 cd hdf5-1.8.11
-./configure CC="$CC" --prefix=$DEST --with-zlib=$DEST --disable-shared \
+./configure CC="$CC" CXX="$CXX" FC="$FC" \
+	--prefix=$DEST --with-zlib=$DEST --disable-shared \
         --disable-cxx --disable-fortran >> $DEST/logs/configure.log 2>&1
 make > $DEST/logs/compile.log 2>&1 && \
   make install > $DEST/logs/install.log 2>&1
@@ -132,8 +142,8 @@ cd $DEST
 rm -fr hdf5-1.8.11
 echo "Compiled HDF5 library."
 echo "Compiling netCDF Library."
-tar zxvf netcdf-4.3.tar.gz > $DEST/logs/extract.log
-cd netcdf-4.3
+tar zxvf netcdf-4.3.0.tar.gz > $DEST/logs/extract.log
+cd netcdf-4.3.0
 ./configure CC="$CC" FC="$FC" --prefix=$DEST --enable-netcdf-4 \
   CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib LIBS="-lhdf5_hl -lhdf5 -lz" \
   --disable-shared --disable-dap >> $DEST/logs/configure.log 2>&1
@@ -145,11 +155,11 @@ then
   exit 1
 fi
 cd $DEST
-rm -fr netcdf-4.3
+rm -fr netcdf-4.3.0
 echo "Compiled netCDF C library."
 tar zxvf netcdf-fortran-4.2.tar.gz >> $DEST/logs/extract.log
 cd netcdf-fortran-4.2
-PATH=$DEST/bin:$PATH ./configure CC="$CC" FC="$FC" \
+./configure PATH=$DEST/bin:$PATH CC="$CC" FC="$FC" \
      CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib --prefix=$DEST \
      --disable-shared >> $DEST/logs/configure.log 2>&1
 make >> $DEST/logs/compile.log 2>&1 && \
