@@ -113,7 +113,7 @@ then
   exit 1
 fi
 cd zlib-1.2.8
-./configure CC="$CC" FC="$FC" --prefix=$DEST --static >> \
+CC="$CC" FC="$FC" ./configure --prefix=$DEST --static >> \
              $DEST/logs/configure.log 2>&1
 make >> $DEST/logs/compile.log 2>&1 && \
   make install >> $DEST/logs/install.log 2>&1
