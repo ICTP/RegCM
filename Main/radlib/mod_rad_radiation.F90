@@ -861,79 +861,85 @@ module mod_rad_radiation
 !   eccf     - Earth/sun distance factor
 !
     integer(ik4) :: n , k
+    real(rk8) :: betafac
 !
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'radctl'
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
-!
-!   Instead of interpolating the o3vmr from the time-interpolated
-!   values, we pass compute o3vmr in getdat() and pass it directly
-!   into radctl(). o3mmr will be computed in radinp().
-!
-!   Set latitude dependent radiation input
-!
+    !
+    ! Instead of interpolating the o3vmr from the time-interpolated
+    ! values, we pass compute o3vmr in getdat() and pass it directly
+    ! into radctl(). o3mmr will be computed in radinp().
+    !
+    ! Set latitude dependent radiation input
+    !
     call radinp(n1,n2,pmid,pint,h2ommr,cld,o3vmr,pbr,pnm, &
                 plco2,plh2o,tclrsf,o3mmr)
-!
-!   Solar radiation computation
-!
+    !
+    ! Solar radiation computation
+    !
     if ( dosw ) then
-!
-!     Specify aerosol mass mixing ratio
-!
+      !
+      ! Specify aerosol mass mixing ratio
+      !
       call aermix(pnm,n1,n2)
  
       call aeroppt(rh,aermmr,pint,n1,n2)
-!
+
       call radcsw(n1,n2,pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,  &
                   solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll,solsd,solld, &
                   fsnirt,fsnrtc,fsnirtsq,adirsw,adifsw,adirlw,adiflw,asw,alw, &
                   abv,sol,czen,czengt0,aeradfo,aeradfos,tauxcl,tauxci)
-!
-!     Convert units of shortwave fields needed by rest of model from CGS to MKS
-!
+      !
+      ! Convert units of shortwave fields needed by rest of model
+      ! from CGS to MKS
+      !
       do n = n1 , n2
-
         solin(n) = solin(n)*1.0D-3
         fsnt(n) = fsnt(n)*1.0D-3
         fsns(n) = fsns(n)*1.0D-3
         fsntc(n) = fsntc(n)*1.0D-3
         fsnsc(n) = fsnsc(n)*1.0D-3
-!
-!       clear sky column partitioning for surface flux  
-!       note : should be generalised to the whole column to be
-!              really in energy balance !
-!
+        !
+        ! clear sky column partitioning for surface flux  
+        ! note : should be generalised to the whole column to be
+        !        really in energy balance !
+        !
         totcf(n) = d_one
         do k = 1 , kzp1
           totcf(n) = totcf(n) * (d_one - cld(n,k)) 
         end do
         totcf(n) = d_one - totcf(n)
-
-!       maximum cld cover considered        
-!       fsns(n) = fsns(n) * maxval(cld(n,:)) + &
-!                 fsnsc(n) * (1-maxval(cld(n,:)))
-!       random overlap assumption is tocf(n)
-!       Now average btw rand ov and maximum cloud cover as fil suggest
+        !
+        ! maximum cld cover considered        
+        ! fsns(n) = fsns(n) * maxval(cld(n,:)) + &
+        !           fsnsc(n) * (1-maxval(cld(n,:)))
+        ! random overlap assumption is tocf(n)
+        ! Now average btw rand ov and maximum cloud cover as fil suggest
         totcf(n) =  d_half * ( totcf(n) + maxval(cld(n,:)) )
-
-!       Fil suggestion of putting a max on column cloud fraction
-!       TAO: implement a user-specified CF maximum (default of 0.75d0,
-!       as suggested by Erika)
+        ! abv is proportional to fsns in radcsw : Calculate the factor
+        if ( fsns(n) > d_zero ) then
+          betafac = abv(n) / fsns(n)
+        else
+          betafac = d_zero
+        end if
+        ! Fil suggestion of putting a max on column cloud fraction
+        ! TAO: implement a user-specified CF maximum (default of 1.0)
         if ( totcf(n) > cftotmax ) totcf(n) = cftotmax
         if ( totcf(n) < d_zero ) totcf(n) = d_zero
-
         fsns(n) = fsns(n) * totcf(n) + fsnsc(n) * (d_one-totcf(n))
+        ! Apply the clear-sky / cloudy-sky also to abv using the beta factor
+        abv(n) = betafac * fsns(n)
         fsds(n) = fsds(n)*1.0D-3
         fsnirt(n) = fsnirt(n)*1.0D-3
         fsnrtc(n) = fsnrtc(n)*1.0D-3
         fsnirtsq(n) = fsnirtsq(n)*1.0D-3
       end do
-!
-!     Calculate/outfld albedo and clear sky albedo
-!
+      !
+      ! Calculate/outfld albedo and clear sky albedo
+      !
       do n = n1 , n2
         if ( solin(n) > d_zero ) then
           alb(n) = (solin(n)-fsnt(n))/solin(n)
@@ -941,7 +947,6 @@ module mod_rad_radiation
           alb(n) = d_zero
         end if
       end do
-!
       do n = n1 , n2
         if ( solin(n) > d_zero ) then
           albc(n) = (solin(n)-fsntc(n))/solin(n)
@@ -950,30 +955,30 @@ module mod_rad_radiation
         end if
       end do
     end if
-!
-!   Longwave radiation computation
-!
+    !
+    !   Longwave radiation computation
+    !
     if ( dolw ) then
-!
-!     Specify trace gas mixing ratios
-!
+      !
+      ! Specify trace gas mixing ratios
+      !
       call trcmix(n1,n2,dlat,xptrop,pmid,n2o,ch4,cfc11,cfc12)
-!
+
       call radclw(n1,n2,ts,t,h2ommr,o3vmr,pbr,pnm,pmln, &
                   piln,n2o,ch4,cfc11,cfc12,effcld,tclrsf,qrl,flns,   &
                   flnt,flnsc,flntc,flwds,fslwdcs,emsvt,aerlwfo,      &
                   aerlwfos,absgasnxt,absgastot,emsgastot,labsem)
-!
-!     Convert units of longwave fields needed by rest of model from CGS to MKS
-!
+      !
+      ! Convert units of longwave fields needed by rest of model from CGS to MKS
+      !
       do n = n1 , n2
         flnt(n) = flnt(n)*1.0D-3
         flns(n) = flns(n)*1.0D-3
         flntc(n) = flntc(n)*1.0D-3
         flnsc(n) = flnsc(n)*1.0D-3
         flwds(n) = flwds(n)*1.0D-3
-!FAB
         fslwdcs(n) = fslwdcs(n)*1.0D-3
+!
 !       essai clear sky column
 !
 !       flwds(n) = flwds(n) * maxval(cld((n,:))) + &
@@ -984,6 +989,7 @@ module mod_rad_radiation
 !                 flnsc(n)*(d_one-maxval(cld(n,:))) 
 !
 !       totcf(n) has been calculated for the SW, dolw is always true 
+!
         flwds(n) = flwds(n) * totcf(n) + &
                    fslwdcs(n) * (d_one - totcf(n))
         flns(n) = flns(n) * totcf(n) + &
@@ -999,7 +1005,6 @@ module mod_rad_radiation
 !qian 30/06/99,  csm new scheme: hygroscopic growth effect of
 !qian            sulfate has been included
 !qian            main changed codes: radcsw,
- 
 !-----------------------------------------------------------------------
 !
 ! Solar radiation code
