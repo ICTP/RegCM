@@ -2066,6 +2066,8 @@ module mod_ncout
             ncattribute_real8('mit_approach_rate_quasi_eq_coeff_a',alphae))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('mit_approach_rate_quasi_eq_coeff_d',damp))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('mit_epmax_param',epmax))
         end if
         if ( icup == 5 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

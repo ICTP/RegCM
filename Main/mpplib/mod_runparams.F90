@@ -183,6 +183,7 @@ module mod_runparams
   real(rk8) :: sigd
   real(rk8) :: sigs
   real(rk8) :: tlcrit
+  real(rk8) :: epmax
   integer(ik4) :: minorig
  
   ! Tiedtke cumulus scheme parameters

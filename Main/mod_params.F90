@@ -121,7 +121,7 @@ module mod_params
  
   namelist /emanparam/ minsig , elcrit , tlcrit , entp , sigd ,     &
     sigs , omtrain , omtsnow , coeffr , coeffs , cu , betae ,       &
-    dtmax , alphae , damp
+    dtmax , alphae , damp , epmax
  
   namelist /tiedtkeparam/ iconv , entrpen , entrscv , entrmid ,  &
     entrdd , cmfcmax , cmfcmin , cmfdeps , cmfctop , rhcdd ,     &
@@ -402,6 +402,7 @@ module mod_params
   dtmax = 0.9D0     ! Max negative parcel temperature perturbation below LFC
   alphae = 0.2D0    ! Controls the approach rate to quasi-equilibrium
   damp = 0.1D0      ! Controls the approach rate to quasi-equilibrium
+  epmax = 0.999D0   ! ???????????????????
 !
 !------namelist tiedtkeparam:
   iconv    = 1  ! Selects the actual scheme

@@ -330,7 +330,7 @@ module mod_cu_em
                cbmfold , chi , coeff , cpinv , cwat , damps , dbo ,   &
                dbosum , defrac , dei , delm , delp , delt0 ,          &
                denom , dhdp , dphinv , dpinv , dtma , dtmnx , dtpbl , &
-               elacrit , ents , epmax , fac , fqold , frac , ftold ,  &
+               elacrit , ents , fac , fqold , frac , ftold ,          &
                ftraold , fuold , fvold , plcl , qnew , qp1 , qsm ,    &
                qstm , qti , rat , rdcp , revap , rh , rm , scrit , sigt
     real(rk8) , dimension(na) :: clw , cpn , ep , evap , gz , h , hm ,  &
@@ -599,7 +599,6 @@ module mod_cu_em
         elacrit = elcrit*(d_one-tca/tlcrit)
       end if
       elacrit = dmax1(elacrit,d_zero)
-      epmax = 0.999D0
       ep(i) = epmax*(d_one-elacrit/dmax1(clw(i),1.0D-8))
       ep(i) = dmax1(ep(i),d_zero)
       ep(i) = dmin1(ep(i),epmax)
