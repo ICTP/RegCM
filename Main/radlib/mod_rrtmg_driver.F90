@@ -96,6 +96,12 @@ module mod_rrtmg_driver
     implicit none
     integer(ik4) :: k
 
+#if defined ( __PGI ) || defined ( __OPENCC__ ) || defined ( __INTEL_COMPILER )
+    integer , external :: getpid
+#endif
+#if defined ( IBM )
+    integer , external :: getpid_
+#endif
     npr = (jci2-jci1+1)*(ici2-ici1+1)
 
     ! Define here the total number of vertical levels, including standard
@@ -230,7 +236,11 @@ module mod_rrtmg_driver
     call getmem2d(cfc12mmr,1,npr,1,kth,'rrtmg:cfc12mmr')
     call getmem2d(deltaz,1,npr,1,kth,'rrtmg:deltaz')
 
+#if defined ( IBM )
+    mypid = getpid_()
+#else
     mypid = getpid()
+#endif
 
   end subroutine allocate_mod_rad_rrtmg
 !
