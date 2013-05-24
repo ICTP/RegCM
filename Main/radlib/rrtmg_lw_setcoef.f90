@@ -293,7 +293,7 @@
          if (plog .le. 4.56_rb) go to 5300
          laytrop =  laytrop + 1
 
-         forfac(lay) = scalefac / (1.+water)
+         forfac(lay) = scalefac / (1.0_rb+water)
          factor = (332.0_rb-tavel(lay))/36.0_rb
          indfor(lay) = min(2, max(1, int(factor)))
          forfrac(lay) = factor - float(indfor(lay))
@@ -350,7 +350,7 @@
 !  Above laytrop.
  5300    continue
 
-         forfac(lay) = scalefac / (1.+water)
+         forfac(lay) = scalefac / (1.0_rb+water)
          factor = (tavel(lay)-188.0_rb)/36.0_rb
          indfor(lay) = 3
          forfrac(lay) = factor - 1.0_rb
@@ -1990,4 +1990,3 @@
       end subroutine lwavplankderiv
 
       end module rrtmg_lw_setcoef
-

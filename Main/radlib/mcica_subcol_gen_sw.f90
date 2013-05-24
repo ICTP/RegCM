@@ -4,7 +4,7 @@
 !     created:   $Date: 2009/05/22 22:22:21 $
 !
 
-      module mcica_subcol_gen_sw
+module mcica_subcol_gen_sw
 
 !  --------------------------------------------------------------------------
 ! |                                                                          |
@@ -51,12 +51,12 @@
 
 ! ----- Input -----
 ! Control
-      integer(kind=im), intent(in) :: iplon           ! column/longitude dimension
+      integer(kind=im), intent(in) :: iplon           ! column/longitude index
       integer(kind=im), intent(in) :: ncol            ! number of columns
       integer(kind=im), intent(in) :: nlay            ! number of model layers
       integer(kind=im), intent(in) :: icld            ! clear/cloud, cloud overlap flag
       integer(kind=im), intent(in) :: permuteseed     ! if the cloud generator is called multiple times,
-                                                      ! permute the seed between each call;
+                                                      ! permute the seed between each call.
                                                       ! between calls for LW and SW, recommended
                                                       ! permuteseed differs by 'ngpt'
       integer(kind=im), intent(inout) :: irng         ! flag for random number generator
@@ -126,7 +126,7 @@
          stop 'MCICA_SUBCOL: INVALID ICLD'
       endif 
 
-! NOTE: For GCM mode, permuteseed must be offset between LW and SW by at least number of subcolumns
+! NOTE: For GCM mode, permuteseed must be offset between LW and SW by at least the number of subcolumns
 
 
 ! Pass particle sizes to new arrays, no subcolumns for these properties yet
@@ -281,13 +281,12 @@
 !      real(kind=rb) :: mean_tauc_stoch(ncol,nlay)    ! cloud optical depth
 !      real(kind=rb) :: mean_ssac_stoch(ncol,nlay)    ! cloud single scattering albedo
 !      real(kind=rb) :: mean_asmc_stoch(ncol,nlay)    ! cloud asymmetry parameter
-!      real(kind=rb) :: mean_fsfc_stoch(ncol,nlay)    ! cloud forward scattering fraction
 
 ! Set overlap
       integer(kind=im) :: overlap                     ! 1 = random overlap, 2 = maximum/random,
                                                       ! 3 = maximum overlap, 
 !      real(kind=rb), parameter  :: Zo = 2500._rb        ! length scale (m) 
-!      real(kind=rb) :: zm(ncon,nlay)                    ! Height of midpoints (above surface)
+!      real(kind=rb) :: zm(ncol,nlay)                    ! Height of midpoints (above surface)
 !      real(kind=rb), dimension(nlay) :: alpha=0.0_rb    ! overlap parameter  
 
 ! Constants (min value for cloud fraction and cloud water and ice)
@@ -298,11 +297,11 @@
       real(kind=rb), dimension(nsubcol, ncol, nlay) :: CDF, CDF2       ! random numbers
       integer(kind=im), dimension(ncol) :: seed1, seed2, seed3, seed4  ! seed to create random number
       real(kind=rb), dimension(ncol) :: rand_num       ! random number (kissvec)
-      integer(kind=im) :: iseed                        ! seed to create random number (Mersenne Twister)
+      integer(kind=im) :: iseed                        ! seed to create random number (Mersenne Teister)
       real(kind=rb) :: rand_num_mt                     ! random number (Mersenne Twister)
 
 ! Flag to identify cloud fraction in subcolumns
-      logical,  dimension(nsubcol, ncol, nlay) :: isCloudy   ! flag that says whether a gridbox is cloudy
+      logical,  dimension(nsubcol, ncol, nlay) :: iscloudy   ! flag that says whether a gridbox is cloudy
 
 ! Indices
       integer(kind=im) :: ilev, isubcol, i, n, ngbm    ! indices
@@ -473,8 +472,8 @@
 
  
 ! -- generate subcolumns for homogeneous clouds -----
-      do ilev = 1, nlay
-         isCloudy(:,:,ilev) = (CDF(:,:,ilev) >= 1._rb - spread(cldf(:,ilev), dim=1, nCopies=nsubcol) )
+      do ilev = 1 , nlay
+         iscloudy(:,:,ilev) = (CDF(:,:,ilev) >= 1._rb - spread(cldf(:,ilev), dim=1, nCopies=nsubcol) )
       enddo
 
 ! where the subcolumn is cloudy, the subcolumn cloud fraction is 1;
@@ -515,7 +514,6 @@
 !      mean_tauc_stoch(:,:) = 0._rb
 !      mean_ssac_stoch(:,:) = 0._rb
 !      mean_asmc_stoch(:,:) = 0._rb
-!      mean_fsfc_stoch(:,:) = 0._rb
 !      do i = 1, nsubcol
 !         mean_cld_stoch(:,:) =  cld_stoch(i,:,:) + mean_cld_stoch(:,:) 
 !         mean_clwp_stoch(:,:) =  clwp_stoch( i,:,:) + mean_clwp_stoch(:,:) 
@@ -523,7 +521,6 @@
 !         mean_tauc_stoch(:,:) =  tauc_stoch( i,:,:) + mean_tauc_stoch(:,:) 
 !         mean_ssac_stoch(:,:) =  ssac_stoch( i,:,:) + mean_ssac_stoch(:,:) 
 !         mean_asmc_stoch(:,:) =  asmc_stoch( i,:,:) + mean_asmc_stoch(:,:) 
-!         mean_fsfc_stoch(:,:) =  fsfc_stoch( i,:,:) + mean_fsfc_stoch(:,:) 
 !      end do
 !      mean_cld_stoch(:,:) = mean_cld_stoch(:,:) / nsubcol
 !      mean_clwp_stoch(:,:) = mean_clwp_stoch(:,:) / nsubcol
@@ -531,15 +528,10 @@
 !      mean_tauc_stoch(:,:) = mean_tauc_stoch(:,:) / nsubcol
 !      mean_ssac_stoch(:,:) = mean_ssac_stoch(:,:) / nsubcol
 !      mean_asmc_stoch(:,:) = mean_asmc_stoch(:,:) / nsubcol
-!      mean_fsfc_stoch(:,:) = mean_fsfc_stoch(:,:) / nsubcol
 
       end subroutine generate_stochastic_clouds_sw
 
-
-!-------------------------------------------------------------------------------------------------- 
       subroutine kissvec(seed1,seed2,seed3,seed4,ran_arr)
-!-------------------------------------------------------------------------------------------------- 
-
 ! public domain code
 ! made available from http://www.fortran.com/
 ! downloaded by pjr on 03/16/04 for NCAR CAM
@@ -571,6 +563,4 @@
     
       end subroutine kissvec
 
-      end module mcica_subcol_gen_sw
-
-
+end module mcica_subcol_gen_sw

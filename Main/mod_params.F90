@@ -358,7 +358,7 @@ module mod_params
   cevap = 1.0D-3     ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
 ! caccr    = 6.0D0   ! Raindrop accretion rate [m3/kg/s]
   caccr = 3.0D0      ! Raindrop accretion rate [m3/kg/s]
-  cllwcv = 0.5D-4    ! Cloud liquid water content for convective precip.
+  cllwcv = 0.3D-3    ! Cloud liquid water content for convective precip.
   clfrcvmax = 0.25D0 ! Max cloud fractional cover for convective precip.
   cftotmax = fcmax   ! Max total cover cloud fraction for radiation
  
@@ -654,9 +654,6 @@ module mod_params
         write(stdout,*) 'Read rrtmparam OK'
 #endif
       end if
-      write(stdout,*) 'Re-setting fcmax/cftotmax to 1 for IRRTM'
-      fcmax = d_one
-      cftotmax = d_one
     end if
 
     if ( islab_ocean == 1 ) then

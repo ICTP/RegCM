@@ -321,7 +321,7 @@
          indf = indfor(lay)
          indm = indminor(lay)
          pp = pavel(lay)
-         corradj =  1.
+         corradj =  1.0_rb
          if (pp .lt. 250._rb) then
             corradj = 1._rb - 0.15_rb * (250._rb-pp) / 154.4_rb
          endif
@@ -1006,13 +1006,13 @@
 ! Empirical modification to code to improve stratospheric cooling rates
 ! for co2.  Revised to apply weighting for g-point reduction in this band.
 
-         taug(lay,ngs3+8)=taug(lay,ngs3+8)*0.92
-         taug(lay,ngs3+9)=taug(lay,ngs3+9)*0.88
-         taug(lay,ngs3+10)=taug(lay,ngs3+10)*1.07
-         taug(lay,ngs3+11)=taug(lay,ngs3+11)*1.1
-         taug(lay,ngs3+12)=taug(lay,ngs3+12)*0.99
-         taug(lay,ngs3+13)=taug(lay,ngs3+13)*0.88
-         taug(lay,ngs3+14)=taug(lay,ngs3+14)*0.943
+         taug(lay,ngs3+8)=taug(lay,ngs3+8)*0.92_rb
+         taug(lay,ngs3+9)=taug(lay,ngs3+9)*0.88_rb
+         taug(lay,ngs3+10)=taug(lay,ngs3+10)*1.07_rb
+         taug(lay,ngs3+11)=taug(lay,ngs3+11)*1.1_rb
+         taug(lay,ngs3+12)=taug(lay,ngs3+12)*0.99_rb
+         taug(lay,ngs3+13)=taug(lay,ngs3+13)*0.88_rb
+         taug(lay,ngs3+14)=taug(lay,ngs3+14)*0.943_rb
 
       enddo
 

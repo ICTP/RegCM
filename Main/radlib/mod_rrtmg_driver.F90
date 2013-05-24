@@ -88,6 +88,8 @@ module mod_rrtmg_driver
   real(rk8) , pointer , dimension(:,:,:) :: tauaer_lw
   integer(ik4) :: npr , kth , ktf , kclimf , kclimh
 
+  integer(ik4) :: permuteseed = 1 , mypid
+
   contains
 
   subroutine allocate_mod_rad_rrtmg
@@ -228,6 +230,8 @@ module mod_rrtmg_driver
     call getmem2d(cfc12mmr,1,npr,1,kth,'rrtmg:cfc12mmr')
     call getmem2d(deltaz,1,npr,1,kth,'rrtmg:deltaz')
 
+    mypid = getpid()
+
   end subroutine allocate_mod_rad_rrtmg
 !
   subroutine rrtmg_driver(iyear,eccf,lout)
@@ -239,7 +243,7 @@ module mod_rrtmg_driver
 !
 !   local variables
 !
-    integer(ik4) :: dyofyr , permuteseed , iplon , k , kj , n , i , j
+    integer(ik4) :: dyofyr , iplon , k , kj , n , i , j
     real(rk8) :: adjes
 
 !-----------------------------------------------------------------------
@@ -262,8 +266,9 @@ module mod_rrtmg_driver
 
     if ( maxval(coszen) > dlowval) then
       ! generates cloud properties:
-      permuteseed = 1
-      call mcica_subcol_sw(iplon,npr,kth,icld,permuteseed,irng,play,  &
+      permuteseed = permuteseed+mypid+ngptlw
+      if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
+      call mcica_subcol_sw(iplon,npr,kth,icld,permuteseed,irng,play,   &
                            cldf,ciwp,clwp,rei,rel,tauc,ssac,asmc,fsfc, &
                            cldfmcl,ciwpmcl,clwpmcl,reicmcl,relqmcl,    &
                            taucmcl,ssacmcl,asmcmcl,fsfcmcl)
@@ -286,7 +291,7 @@ module mod_rrtmg_driver
         end do
       end do
 
-      call rrtmg_sw(npr,kth,icld,play,plev,tlay,tlev,tsfc,  &
+      call rrtmg_sw(npr,kth,icld,play,plev,tlay,tlev,tsfc,   &
                     h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr, &
                     asdir,asdif,aldir,aldif,czen,adjes,      &
                     dyofyr,solcon,inflgsw,iceflgsw,liqflgsw, &
@@ -312,8 +317,9 @@ module mod_rrtmg_driver
 
     ! LW call :
 
-    permuteseed = 150
-    call mcica_subcol_lw(iplon,npr,kth,icld,permuteseed,irng,play, &
+    permuteseed = permuteseed+mypid+ngptsw
+    if ( permuteseed < 0 ) permuteseed = 2147483641+permuteseed
+    call mcica_subcol_lw(iplon,npr,kth,icld,permuteseed,irng,play,  &
                          cldf,ciwp,clwp,rei,rel,tauc_lw,cldfmcl_lw, &
                          ciwpmcl_lw,clwpmcl_lw,reicmcl,relqmcl,     &
                          taucmcl_lw)

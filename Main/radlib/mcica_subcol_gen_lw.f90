@@ -4,7 +4,7 @@
 !     created:   $Date: 2009/05/22 21:04:30 $
 !
 
-      module mcica_subcol_gen_lw
+module mcica_subcol_gen_lw
 
 !  --------------------------------------------------------------------------
 ! |                                                                          |
@@ -58,7 +58,7 @@
       integer(kind=im), intent(in) :: permuteseed     ! if the cloud generator is called multiple times, 
                                                       ! permute the seed between each call.
                                                       ! between calls for LW and SW, recommended
-                                                      ! permuteseed differes by 'ngpt'
+                                                      ! permuteseed differs by 'ngpt'
       integer(kind=im), intent(inout) :: irng         ! flag for random number generator
                                                       !  0 = kissvec
                                                       !  1 = Mersenne Twister
@@ -279,7 +279,7 @@
       integer(kind=im) :: overlap                     ! 1 = random overlap, 2 = maximum/random,
                                                       ! 3 = maximum overlap, 
 !      real(kind=rb), parameter  :: Zo = 2500._rb        ! length scale (m) 
-!      real(kind=rb) :: zm(ncol,nlay)                 ! Height of midpoints (above surface)
+!      real(kind=rb) :: zm(ncol,nlay)                    ! Height of midpoints (above surface)
 !      real(kind=rb), dimension(nlay) :: alpha=0.0_rb    ! overlap parameter  
 
 ! Constants (min value for cloud fraction and cloud water and ice)
@@ -288,16 +288,16 @@
 
 ! Variables related to random number and seed 
       real(kind=rb), dimension(nsubcol, ncol, nlay) :: CDF, CDF2      ! random numbers
-      integer(kind=im), dimension(ncol) :: seed1, seed2, seed3, seed4 ! seed to create random number (kissvec)
+      integer(kind=im), dimension(ncol) :: seed1, seed2, seed3, seed4 ! seed to create random number
       real(kind=rb), dimension(ncol) :: rand_num      ! random number (kissvec)
-      integer(kind=im) :: iseed                       ! seed to create random number (Mersenne Teister)
+      integer(kind=im) :: iseed                        ! seed to create random number (Mersenne Teister)
       real(kind=rb) :: rand_num_mt                    ! random number (Mersenne Twister)
 
 ! Flag to identify cloud fraction in subcolumns
       logical,  dimension(nsubcol, ncol, nlay) :: iscloudy   ! flag that says whether a gridbox is cloudy
 
 ! Indices
-      integer(kind=im) :: ilev, isubcol, i, n         ! indices
+      integer(kind=im) :: ilev, isubcol, i, n, ngbm         ! indices
 
 !------------------------------------------------------------------------------------------ 
 
@@ -353,7 +353,7 @@
          if (irng.eq.0) then 
             do isubcol = 1,nsubcol
                do ilev = 1,nlay
-                  call kissvec(seed1, seed2, seed3, seed4, rand_num)  ! we get different random number for each level
+                  call kissvec(seed1, seed2, seed3, seed4, rand_num)
                   CDF(isubcol,:,ilev) = rand_num
                enddo
             enddo
@@ -407,7 +407,7 @@
        
       case(3) 
 ! Maximum overlap
-! i) pick the same random numebr at every level  
+! i) pick same random numebr at every level  
 
          if (irng.eq.0) then 
             do isubcol = 1,nsubcol
@@ -439,7 +439,7 @@
 
 !       ! compute alpha
 !       zm    = state%zm     
-!       alpha(:, 1) = 0.
+!       alpha(:, 1) = 0._rb
 !       do ilev = 2,nlay
 !          alpha(:, ilev) = exp( -( zm (:, ilev-1) -  zm (:, ilev)) / Zo)
 !       end do
@@ -465,7 +465,7 @@
 
  
 ! -- generate subcolumns for homogeneous clouds -----
-      do ilev = 1,nlay
+      do ilev = 1 , nlay
          iscloudy(:,:,ilev) = (CDF(:,:,ilev) >= 1._rb - spread(cldf(:,ilev), dim=1, nCopies=nsubcol) )
       enddo
 
@@ -474,13 +474,15 @@
 ! where there is a cloud, define the subcolumn cloud properties, 
 ! otherwise set these to zero
 
+      ngbm = ngb(1) - 1
       do ilev = 1,nlay
          do i = 1, ncol
             do isubcol = 1, nsubcol
-               if (iscloudy(isubcol,i,ilev) ) then
+               if ( iscloudy(isubcol,i,ilev) ) then
                   cld_stoch(isubcol,i,ilev) = 1._rb
                   clwp_stoch(isubcol,i,ilev) = clwp(i,ilev)
                   ciwp_stoch(isubcol,i,ilev) = ciwp(i,ilev)
+                  !n = ngb(isubcol) - ngbm
                   n = ngb(isubcol)
                   tauc_stoch(isubcol,i,ilev) = tauc(n,i,ilev)
 !                  ssac_stoch(isubcol,i,ilev) = ssac(n,i,ilev)
@@ -521,15 +523,7 @@
 
       end subroutine generate_stochastic_clouds
 
-
-!------------------------------------------------------------------
-! Private subroutines
-!------------------------------------------------------------------
-
-!-------------------------------------------------------------------------------------------------- 
       subroutine kissvec(seed1,seed2,seed3,seed4,ran_arr)
-!-------------------------------------------------------------------------------------------------- 
-
 ! public domain code
 ! made available from http://www.fortran.com/
 ! downloaded by pjr on 03/16/04 for NCAR CAM
@@ -561,5 +555,4 @@
     
       end subroutine kissvec
 
-      end module mcica_subcol_gen_lw
-
+end module mcica_subcol_gen_lw
