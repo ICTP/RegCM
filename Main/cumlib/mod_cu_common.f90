@@ -85,7 +85,7 @@ module mod_cu_common
 !
   subroutine model_cumulus_cloud
     implicit none
-    real(rk8) :: akclth , xhk
+    real(rk8) :: akclth , xhk , tcel
     integer(ik4):: i , j , k , ktop , kbot , kclth
     real(rk8) , dimension(6) :: clf_coeff
     real(rk8) , dimension(6) :: lqc_coeff
@@ -112,7 +112,17 @@ module mod_cu_common
           kclth = kbot - ktop + 1
           akclth = d_one/dble(kclth)
           do k = ktop , kbot
-            rcldlwc(j,i,k) = cllwcv
+            tcel = tas(j,i,k)-tzero
+            ! Temperature dependance for convective cloud water content
+            ! in g/m3 (Lemus et al., 1997)
+            if ( tcel < -50D0 ) then
+              rcldlwc(j,i,k) = 0.001D0
+            else
+              rcldlwc(j,i,k) = 0.127D+00 + 6.78D-03 * tcel + &
+                               1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
+              if ( rcldlwc(j,i,k) > 0.300D0 ) rcldlwc(j,i,k) = 0.300D0
+              if ( rcldlwc(j,i,k) < 0.001D0 ) rcldlwc(j,i,k) = 0.001D0
+            end if
             rcldfra(j,i,k) = d_one - (d_one-clfrcv)**akclth
           end do
         end do jloop1

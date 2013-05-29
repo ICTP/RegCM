@@ -375,9 +375,9 @@ module mod_precip
       implicit none
       real(rk8) :: exlwc , rh0adj , tcel
       integer(ik4) :: i , j , k
-!--------------------------------------------------------------------
-! 1.  Determine large-scale cloud fraction
-!--------------------------------------------------------------------
+      !-----------------------------------------
+      ! 1.  Determine large-scale cloud fraction
+      !-----------------------------------------
       do k = 1 , kz
         ! Adjusted relative humidity threshold
         do i = ici1 , ici2
@@ -404,13 +404,13 @@ module mod_precip
               !
               fcc(j,i,k) = dmin1(dmax1(fcc(j,i,k),0.01D0),0.99D0)
             end if !  rh0 threshold
-!---------------------------------------------------------------------
-! Correction:
-!   Ivan Guettler, 14.10.2010.
-! Based on: Vavrus, S. and Waliser D., 2008, 
-! An Improved Parameterization for Simulating Arctic Cloud Amount
-! in the CCSM3 Climate Model, J. Climate 
-!---------------------------------------------------------------------
+            !----------------------------------------------------------------
+            ! Correction:
+            !   Ivan Guettler, 14.10.2010.
+            ! Based on: Vavrus, S. and Waliser D., 2008, 
+            ! An Improved Parameterization for Simulating Arctic Cloud Amount
+            ! in the CCSM3 Climate Model, J. Climate 
+            !----------------------------------------------------------------
             if ( p3(j,i,k) >= 75.0D0 ) then
               ! Clouds below 750hPa
               if ( qx3(j,i,k,iqv) <= 0.003D0 ) then
@@ -418,41 +418,43 @@ module mod_precip
                        dmax1(0.15D0,dmin1(d_one,qx3(j,i,k,iqv)/0.003D0))
               end if
             end if
-!---------------------------------------------------------------------
-! End of the correction.
-!---------------------------------------------------------------------
+            !----------------------------------------------------------------
+            ! End of the correction.
+            !----------------------------------------------------------------
           end do
         end do
       end do
-!--------------------------------------------------------------------
-! 2.  Combine large-scale and convective fraction and liquid water
-!     to be passed into radiation.
-!--------------------------------------------------------------------
+      !-----------------------------------------------------------------
+      ! 2.  Combine large-scale and convective fraction and liquid water
+      !     to be passed into radiation.
+      !-----------------------------------------------------------------
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ! Cloud Water Volume
-            ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-            exlwc = qx3(j,i,k,iqc)*rho3(j,i,k)*d_1000
-            tcel  = t3(j,i,k)-tzero
-            ! temperature dependance for convective cloud water content
-            ! in g/m3 (Lemus et al., 1997)
-            radlqwc(j,i,k) = 0.127D+00 + 6.78D-03 * tcel + &
-                            1.29D-04 * tcel**2 +    &
-                            8.36D-07 * tcel**3
-            if ( radlqwc(j,i,k) > 0.3D+00 ) radlqwc(j,i,k) = 0.300D+00
-            if ( radlqwc(j,i,k) < d_zero )  radlqwc(j,i,k) = 0.001D+00
-            if ( tcel < -50D+00 ) radlqwc(j,i,k) = 0.001D+00
-            ! Apply the parameterisation based on temperature to the
-            ! convective fraction AND the large scale clouds :
-            ! the large scale cloud water content is not really used by
-            ! current radiation code, needs further evaluation.
-            !TAO: but only apply this parameterization to large scale LWC 
-            !if the user specifies it
-            if ( iconvlwp == 1 ) exlwc = radlqwc(j,i,k)
-            radlqwc(j,i,k) = (radcldf(j,i,k)*radlqwc(j,i,k) + &
-                             fcc(j,i,k)*exlwc) / &
-                             dmax1(radcldf(j,i,k)+fcc(j,i,k),0.01D0)
+            if ( qx3(j,i,k,iqc) > minqx ) then
+              if ( iconvlwp == 1 ) then
+                ! Apply the parameterisation based on temperature to the
+                ! the large scale clouds.
+                tcel = t3(j,i,k)-tzero
+                if ( tcel < -50D0 ) then
+                  exlwc = 0.001D0
+                else
+                  exlwc = 0.127D+00 + 6.78D-03 * tcel + &
+                          1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
+                  if ( exlwc > 0.300D0) exlwc = 0.300D0
+                  if ( exlwc < 0.001D0) exlwc = 0.001D0
+                end if
+              else
+                ! Cloud Water Volume
+                ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
+                exlwc = qx3(j,i,k,iqc)*rho3(j,i,k)*d_1000
+              end if
+            else
+              exlwc = 0.001D0
+            end if
+            radlqwc(j,i,k) = &
+              (radcldf(j,i,k)*radlqwc(j,i,k) + fcc(j,i,k)*exlwc) / &
+               dmax1(radcldf(j,i,k)+fcc(j,i,k),0.01D0)
             radcldf(j,i,k) = dmin1(dmax1(radcldf(j,i,k),fcc(j,i,k)),fcmax)
           end do
         end do
