@@ -204,7 +204,6 @@ module mod_runparams
   real(rk8) :: ctrigger     ! coefficients for triggering convection
 
   integer(ik4) :: iconv
-  integer(ik4) :: nmctop    !  max. level for cloud base of mid level conv.
 
   logical :: lmfpen    !  true if penetrative convection is switched on
   logical :: lmfscv    !  true if shallow convection is switched on

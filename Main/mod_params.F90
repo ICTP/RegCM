@@ -125,8 +125,8 @@ module mod_params
  
   namelist /tiedtkeparam/ iconv , entrpen , entrscv , entrmid ,  &
     entrdd , cmfcmax , cmfcmin , cmfdeps , cmfctop , rhcdd ,     &
-    cmtcape , zdlev , cprcon , ctrigger , nmctop , lmfpen ,      &
-    lmfscv , lmfmid , lmfdd , lmfdudv
+    cmtcape , zdlev , cprcon , ctrigger , lmfpen , lmfscv ,      &
+    lmfmid , lmfdd , lmfdudv
 
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
          ichcumtra , ichsolver , idirect , ichdustemd , ichdiag ,        &
@@ -414,10 +414,9 @@ module mod_params
   cmfcmin  = 1.0D-10
   cmfdeps  = 0.3D0
   rhcdd    = 1.0D0
-  cmtcape  = 40.0D0
+  cmtcape  = 20.0D0
   zdlev    = 1.5D4
 ! THOSE ARE FUNCTION OF GRID AND VERTICAL RESOLUTION
-  nmctop   = 4
   cmfctop  = 0.35D0
   cprcon   = 1.0D-4
   ctrigger = -1.1D-0
@@ -964,7 +963,6 @@ module mod_params
     call bcast(zdlev)
     call bcast(cprcon)
     call bcast(ctrigger)
-    call bcast(nmctop)
     call bcast(lmfpen)
     call bcast(lmfscv)
     call bcast(lmfmid)
@@ -1727,7 +1725,6 @@ module mod_params
       write(stdout,'(a,f11.6)') '  CAPE adjustment timescale         : ',cmtcape
       write(stdout,'(a,f11.2)') '  Restrict rainfall level           : ',zdlev
       write(stdout,'(a,f11.6)') '  CLW to rain conversion factor     : ',cprcon
-      write(stdout,'(a,i3)') '  Max level for cloud base of MLC   : ',nmctop
       write(stdout,*) ' Penetrative convection enabled    : ',lmfpen
       write(stdout,*) ' Shallow convection enabled        : ',lmfscv
       write(stdout,*) ' Midlevel convection enabled       : ',lmfmid

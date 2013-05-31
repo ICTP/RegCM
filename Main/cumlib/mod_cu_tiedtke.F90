@@ -36,8 +36,7 @@ module mod_cu_tiedtke
 !
   public :: entrpen , entrscv , entrmid , entrdd , cmfctop , cmfcmax , &
             cmfcmin , cmfdeps , rhcdd , cprcon , ctrigger , iconv ,    &
-            nmctop , lmfpen , lmfscv , lmfmid , lmfdd , lmfdudv ,      &
-            cmtcape , zdlev
+            lmfpen , lmfscv , lmfmid , lmfdd , lmfdudv , cmtcape , zdlev
 !
   ! evaporation coefficient for kuo0
   real(rk8) , pointer , dimension(:) :: cevapcu
@@ -63,7 +62,7 @@ module mod_cu_tiedtke
 
   real(rk8) , public , pointer , dimension(:,:,:) :: q_detr
 
-  integer(ik4) :: nipoi
+  integer(ik4) :: nipoi , nmctop
 
   contains
 !
@@ -118,7 +117,7 @@ module mod_cu_tiedtke
     integer(ik8) , intent(in) :: ktau
 
 !   local variables
-    integer(ik4) :: i , j , k , ii
+    integer(ik4) :: i , j , k , ii , ipl300
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tiedtkedrv'
     integer(ik4) , save :: idindx = 0
@@ -210,6 +209,18 @@ module mod_cu_tiedtke
         end do
       end do
     end do
+
+    ! Calculate average elevation of 300 hPa level
+
+    nmctop = 0
+    do ii = 1 , nipoi
+      do k = 1 , kzp1
+        ipl300 = k
+        if ( paphp1(ii,k) >= 30000.0D0 ) exit
+      end do
+      nmctop = nmctop + ipl300
+    end do
+    nmctop = nmctop / nipoi
 
     ! Output variables (1d)
     prsfc(:) = d_zero ! CHECK - surface rain flux
@@ -2213,7 +2224,6 @@ module mod_cu_tiedtke
       end if
     end if
   end do
-!
 !
 !----------------------------------------------------------------------
 !     4.           DO ASCENT: SUBCLOUD LAYER (KLAB=1) ,CLOUDS (KLAB=2)
