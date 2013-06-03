@@ -359,7 +359,7 @@ module mod_params
 ! caccr    = 6.0D0   ! Raindrop accretion rate [m3/kg/s]
   caccr = 3.0D0      ! Raindrop accretion rate [m3/kg/s]
   cllwcv = 0.3D-3    ! Cloud liquid water content for convective precip.
-  clfrcvmax = 0.25D0 ! Max cloud fractional cover for convective precip.
+  clfrcvmax = 1.00D0 ! Max cloud fractional cover for convective precip.
   cftotmax = fcmax   ! Max total cover cloud fraction for radiation
  
 !------namelist grellparam:
@@ -1746,20 +1746,17 @@ module mod_params
 
   call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,remdrd,   &
                 cchifxuw,psdot,sfs,mddom,ldmsk,chtrdpv)
- 
-!     Convective Cloud Cover
-  afracl = 0.3D0 ! frac. cover for conv. precip. when dx=dxlarg
-  afracs = 1.0D0 !   "     "    "    "      "     "   dx=dxsmal
+  !
+  ! Convective Cloud Cover
+  !
+  afracl = 0.25D0    ! frac. cover for conv. precip. when dx=dxlarg
+  afracs = clfrcvmax !   "     "    "    "      "     "   dx=dxsmal
   dlargc = 200.0D0
   dsmalc = 10.0D0
-  dxtemc = dmin1(dmax1(dx,dsmalc),dlargc)
-  clfrcv = afracl + (afracs-afracl)                                 &
-           *((dlargc-dxtemc)/(dlargc-dsmalc))**2
-  clfrcv = dmin1(clfrcv,clfrcvmax)
+  dxtemc = dmin1(dmax1(ds,dsmalc),dlargc)
+  clfrcv = afracl + (afracs-afracl)*((dlargc-dxtemc)/(dlargc-dsmalc))**2
   if ( myid == italk ) then
-    write(stdout,*) 'Convective Cloud Cover parameters'
-    write(stdout,*) 'Before and after resolution scaling'
-    write(stdout,'(a,f11.6)') '  Maximum Convective Cloud Cover : ',clfrcvmax
+    write(stdout,*) 'Convective Cloud Cover parameters after resolution scaling'
     write(stdout,'(a,f11.6)') '  Maximum Convective Cloud Cover : ',clfrcv
     write(stdout,'(a,f11.6)') '  Convective Cloud Water         : ',cllwcv
   end if

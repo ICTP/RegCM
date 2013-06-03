@@ -273,7 +273,7 @@
  cevap     =   .100E-02, ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
  caccr     =      3.000, ! Raindrop accretion rate [m3/kg/s]
  cllwcv    =     0.3E-3, ! Cloud liquid water content for convective precip.
- clfrcvmax =       0.25, ! Max cloud fractional cover for convective precip.
+ clfrcvmax =       1.00, ! Max cloud fractional cover for convective precip.
  cftotmax  =       0.75, ! Max total cover cloud fraction for radiation
  /
 !
