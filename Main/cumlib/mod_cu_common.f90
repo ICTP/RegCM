@@ -89,8 +89,8 @@ module mod_cu_common
     integer(ik4):: i , j , k , ktop , kbot , kclth
     real(rk8) , dimension(10) :: cld_profile
 
-    data cld_profile / 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , &
-                       1.0D0 , 1.0D0 , 1.0D0 , 1.5D0 , 2.0D0 /
+    data cld_profile / 2.0D0 , 1.5D0 , 1.0D0 , 1.0D0 , 1.0D0 , &
+                       1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , 1.5D0 /
 
     rcldfra(:,:,:) = d_zero
     rcldlwc(:,:,:) = d_zero
