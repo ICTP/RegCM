@@ -325,7 +325,7 @@ module mod_params
   islab_ocean = 0
   iclimao3 = 0
   isolconst = 1
-  icumcloud = 1
+  icumcloud = 2
   temp_tend_maxval = 1.0
   wind_tend_maxval = 0.5
 !----------------------------------------------------------------------
@@ -1755,6 +1755,7 @@ module mod_params
   dsmalc = 10.0D0
   dxtemc = dmin1(dmax1(ds,dsmalc),dlargc)
   clfrcv = afracl + (afracs-afracl)*((dlargc-dxtemc)/(dlargc-dsmalc))**2
+  clfrcv = dmin1(clfrcv,d_one)
   if ( myid == italk ) then
     write(stdout,*) 'Convective Cloud Cover parameters after resolution scaling'
     write(stdout,'(a,f11.6)') '  Maximum Convective Cloud Cover : ',clfrcv

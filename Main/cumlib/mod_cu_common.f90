@@ -85,20 +85,35 @@ module mod_cu_common
 !
   subroutine model_cumulus_cloud
     implicit none
-    real(rk8) :: akclth , xhk , tcel
+    real(rk8) :: akclth , tcel , scalep , scalef
     integer(ik4):: i , j , k , ktop , kbot , kclth
-    real(rk8) , dimension(6) :: clf_coeff
-    real(rk8) , dimension(6) :: lqc_coeff
+    real(rk8) , dimension(10) :: cld_profile
 
-    data clf_coeff / 1.9666666666669D-1, -2.9128321678326D-1, &
-                     1.6301573426576D-1, -3.5253496503501D-2, &
-                     3.0914918414923D-3, -8.3333333333350D-5 /
-    data lqc_coeff /-1.4666666666659D-2,  2.9144079254078D-1, &
-                     9.3927738927745D-2, -4.5889568764570D-2, &
-                     5.3648018648020D-3, -1.9807692307693D-4 /
+    data cld_profile / 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , &
+                       1.0D0 , 1.0D0 , 1.0D0 , 1.5D0 , 2.0D0 /
 
     rcldfra(:,:,:) = d_zero
     rcldlwc(:,:,:) = d_zero
+
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          tcel = tas(j,i,k)-tzero
+          ! Temperature dependance for convective cloud water content
+          ! in g/m3 (Lemus et al., 1997)
+          if ( tcel < -50D0 ) then
+            rcldlwc(j,i,k) = 0.001D0
+          else
+            rcldlwc(j,i,k) = 0.127D+00 + 6.78D-03 * tcel + &
+                             1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
+            if ( rcldlwc(j,i,k) > 0.300D0 ) rcldlwc(j,i,k) = 0.300D0
+            if ( rcldlwc(j,i,k) < 0.001D0 ) rcldlwc(j,i,k) = 0.001D0
+          end if
+        end do
+      end do
+    end do
+
+    scalef = (d_one-clfrcv)
 
     if ( icumcloud == 1 ) then
       iloop1: &
@@ -108,49 +123,35 @@ module mod_cu_common
           ! The regcm model is top to bottom
           ktop = icumtop(j,i)
           kbot = icumbot(j,i)
-          if ( ktop > kbot .or. kbot == 0 ) cycle jloop1
           kclth = kbot - ktop + 1
+          if ( kclth < 2 ) cycle jloop1
           akclth = d_one/dble(kclth)
           do k = ktop , kbot
-            tcel = tas(j,i,k)-tzero
-            ! Temperature dependance for convective cloud water content
-            ! in g/m3 (Lemus et al., 1997)
-            if ( tcel < -50D0 ) then
-              rcldlwc(j,i,k) = 0.001D0
-            else
-              rcldlwc(j,i,k) = 0.127D+00 + 6.78D-03 * tcel + &
-                               1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
-              if ( rcldlwc(j,i,k) > 0.300D0 ) rcldlwc(j,i,k) = 0.300D0
-              if ( rcldlwc(j,i,k) < 0.001D0 ) rcldlwc(j,i,k) = 0.001D0
-            end if
-            rcldfra(j,i,k) = d_one - (d_one-clfrcv)**akclth
+            rcldfra(j,i,k) = d_one - scalef**akclth
           end do
         end do jloop1
       end do iloop1
     else if ( icumcloud == 2 ) then
-      iloop2: &
+      iloop3: &
       do i = ici1 , ici2
-        jloop2: &
+        jloop3: &
         do j = jci1 , jci2
           ktop = icumtop(j,i)
           kbot = icumbot(j,i)
-          if ( ktop > kbot .or. kbot == 0 ) cycle jloop2
           kclth = kbot - ktop + 1
-          akclth = d_one/dble(kclth)
+          if ( kclth < 2 ) cycle jloop3
+          scalep = min((pas(j,i,kbot)-pas(j,i,ktop))/400.0D0,d_one)
           do k = ktop , kbot
-            xhk = dble(kbot-k+1)*akclth*d_10
-            rcldlwc(j,i,k) = cllwcv* &
-                   (lqc_coeff(1) + lqc_coeff(2)*xhk + lqc_coeff(3)*xhk**2 + &
-                    lqc_coeff(4)*xhk**3 + lqc_coeff(5)*xhk**4 + &
-                    lqc_coeff(6)*xhk**5)
-            rcldfra(j,i,k) = dmax1((dble(kclth)/dble(rktrop(j,i))),d_one) * &
-                   (clf_coeff(1) + clf_coeff(2)*xhk + clf_coeff(3)*xhk**2 + &
-                    clf_coeff(4)*xhk**3 + clf_coeff(5)*xhk**4 + &
-                    clf_coeff(6)*xhk**5)
+            rcldfra(j,i,k) = cld_profile((k-ktop)/kclth+1)*clfrcv*scalep
           end do
-        end do jloop2
-      end do iloop2
+        end do jloop3
+      end do iloop3
     end if
+
+    where ( rcldfra < 1.0D-4 )
+      rcldlwc = 0.001D0
+    end where
+
   end subroutine model_cumulus_cloud
 !
 end module mod_cu_common
