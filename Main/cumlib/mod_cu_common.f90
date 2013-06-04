@@ -86,11 +86,12 @@ module mod_cu_common
   subroutine model_cumulus_cloud
     implicit none
     real(rk8) :: akclth , tcel , scalep , scalef
-    integer(ik4):: i , j , k , ktop , kbot , kclth
+    integer(ik4):: i , j , k , ktop , kbot , kclth , ikh
     real(rk8) , dimension(10) :: cld_profile
+    real(rk8) , parameter :: maxcloud_dp = 100.0D0 ! In cb
 
-    data cld_profile / 2.0D0 , 1.5D0 , 1.0D0 , 1.0D0 , 1.0D0 , &
-                       1.0D0 , 1.0D0 , 1.0D0 , 1.0D0 , 1.5D0 /
+    data cld_profile / 0.5D0 , 0.4D0 , 0.3D0 , 0.3D0 , 0.3D0 , &
+                       0.3D0 , 0.3D0 , 0.3D0 , 0.3D0 , 0.5D0 /
 
     rcldfra(:,:,:) = d_zero
     rcldlwc(:,:,:) = d_zero
@@ -140,9 +141,10 @@ module mod_cu_common
           kbot = icumbot(j,i)
           kclth = kbot - ktop + 1
           if ( kclth < 2 ) cycle jloop3
-          scalep = min((pas(j,i,kbot)-pas(j,i,ktop))/400.0D0,d_one)
+          scalep = min((pas(j,i,kbot)-pas(j,i,ktop))/maxcloud_dp,d_one)
           do k = ktop , kbot
-            rcldfra(j,i,k) = cld_profile((k-ktop)/kclth+1)*clfrcv*scalep
+            ikh = max(1,min(10,int((dble(k-ktop+1)/dble(kclth))*d_10)))
+            rcldfra(j,i,k) = cld_profile(ikh)*clfrcv*scalep
           end do
         end do jloop3
       end do iloop3
