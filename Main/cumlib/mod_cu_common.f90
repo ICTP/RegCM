@@ -68,11 +68,15 @@ module mod_cu_common
 
   integer(ik4) :: total_precip_points
 
+  real(rk8) , dimension(10) :: cld_profile
+  real(rk8) , parameter :: maxcloud_dp = 105.0D0 ! In cb
+
   contains
 !
   subroutine allocate_mod_cu_common(ichem)
     implicit none
     integer(ik4) , intent(in) :: ichem
+    integer :: k
     if ( icup == 99 .or. icup == 98) then
       call getmem2d(cucontrol,jci1,jci2,ici1,ici2,'mod_cu_common:cucontrol')
     end if
@@ -81,17 +85,18 @@ module mod_cu_common
     if ( ichem == 1 ) then
       call getmem3d(convpr,jci1,jci2,ici1,ici2,1,kz,'mod_cu_common:convpr')
     end if
+    cld_profile(1) = 3.0D0/dble(kz)
+    cld_profile(2) = 2.0D0/dble(kz)
+    do k = 3 , 9
+      cld_profile(k) = 1.00D0/dble(kz)
+    end do
+    cld_profile(10) = 2.0D0/dble(kz)
   end subroutine allocate_mod_cu_common
 !
   subroutine model_cumulus_cloud
     implicit none
     real(rk8) :: akclth , tcel , scalep , scalef
     integer(ik4):: i , j , k , ktop , kbot , kclth , ikh
-    real(rk8) , dimension(10) :: cld_profile
-    real(rk8) , parameter :: maxcloud_dp = 100.0D0 ! In cb
-
-    data cld_profile / 0.5D0 , 0.4D0 , 0.3D0 , 0.3D0 , 0.3D0 , &
-                       0.3D0 , 0.3D0 , 0.3D0 , 0.3D0 , 0.5D0 /
 
     rcldfra(:,:,:) = d_zero
     rcldlwc(:,:,:) = d_zero
