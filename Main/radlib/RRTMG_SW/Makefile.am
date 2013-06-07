@@ -37,10 +37,10 @@ rrlw_kg15.f90  rrsw_kg16.f90  rrsw_kg26.f90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 distclean-local:
-	rm -f .mod
+	rm -f *.mod *__genmod.f90
 
 clean-local:
-	rm -f .mod
+	rm -f *.mod *__genmod.f90
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on i.
