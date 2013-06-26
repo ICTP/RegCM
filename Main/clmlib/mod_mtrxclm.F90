@@ -25,7 +25,7 @@ module mod_mtrxclm
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : idate0 , iqv , solcon , clmfrq , &
-                             imask , ichem , ksrf , xmonth
+                             imask , ilawrence_albedo , ichem , ksrf , xmonth
   use mod_mpmessage
   use mod_service
   use mod_mppparam
@@ -143,7 +143,7 @@ module mod_mtrxclm
     use clm_varsur,    only : landmask , landfrac , satbrt_clm
     use clm_varsur,    only : r2cimask , init_tgb , init_snow , r2coutfrq
     use clm_varsur,    only : clm2bats_veg , ht_rcm
-    use clm_varsur,    only : clm_fracveg
+    use clm_varsur,    only : clm_fracveg , r2cilawrence_albedo
     use clm_varsur,    only : cgaschem, caerosol
     use atmdrvMod
     use program_offMod
@@ -212,6 +212,8 @@ module mod_mtrxclm
     r2carea = (dx*d_r1000)*(dx*d_r1000)
     ! Set landmask method
     r2cimask = imask
+    ! Lawrence modifications
+    r2cilawrence_albedo = ilawrence_albedo
 
     !chemistry fields
     cgaschem = igases

@@ -480,11 +480,11 @@ program ncprepare
              'tdef ', nt, ' linear ', hour, 'Z', day, cmon(month), year , ' 7dy'
     else if (delta >= 672 .and. delta <= 744) then
       write (11, '(a,i8,a,a,a1,a,a3,i0.4,a)') &
-             'tdef ', nt, ' linear ', '00', 'Z', '15', &
+             'tdef ', nt, ' linear ', '12', 'Z', '15', &
               cmon(month), year , ' 1mo'
     else if (delta > 8640) then
       write (11, '(a,i8,a,a,a1,a,a3,i0.4,a)') &
-             'tdef ', nt, ' linear ', '00' , 'Z', '15' , &
+             'tdef ', nt, ' linear ', '12' , 'Z', '15' , &
              '06' , year , ' 1yr'
     else
       write (11, '(a,i8,a,i0.2,a1,i0.2,a3,i0.4,i5,a)') &

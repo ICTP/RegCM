@@ -2172,6 +2172,9 @@ module mod_ncout
 #ifdef CLM
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('clm_land_surface_dataset_selection', imask))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('clm_use_modified_lawrence_albedo', &
+              ilawrence_albedo))
 #endif
         if ( iocncpl == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

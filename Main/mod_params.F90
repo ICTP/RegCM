@@ -138,7 +138,7 @@ module mod_params
          ifaholtth10 , ifaholtmax , ifaholtmin
 
 #ifdef CLM
-  namelist /clmparam/ dirclm , imask , clmfrq
+  namelist /clmparam/ dirclm , imask , clmfrq , ilawrence_albedo
 #endif
 
   namelist /cplparam/ cpldt, cpldbglevel
@@ -463,6 +463,7 @@ module mod_params
   rdstemfac = d_one
 #ifdef CLM
   imask = 1
+  ilawrence_albedo = 1
   clmfrq = 24.0D0
 #endif
 !------namelist cplparam ;
@@ -866,6 +867,7 @@ module mod_params
   call bcast(dirclm,256)
   call bcast(imask)
   call bcast(clmfrq)
+  call bcast(ilawrence_albedo)
 #endif
 
   if (iocncpl == 1) then

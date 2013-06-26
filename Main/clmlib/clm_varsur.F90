@@ -44,6 +44,7 @@ module clm_varsur
   integer :: r2cimask                        ! landmask evaluation method
                                              ! 1 = Using DOMAIN.INFO landuse type
                                              ! 2 = Using landfraction from RCMnavyoro.nc
+  integer :: r2cilawrence_albedo             ! Apply lawrence 2007 albedo modifications
   integer :: r2coutfrq                       ! output frequency for clm in hours
                                              ! variable retrieved from regcm.in (clmfrq)
 !  real(r8), allocatable :: c2rcosz1d(:)      ! used for gathering and sending to regcm

@@ -287,6 +287,7 @@ module mod_runparams
   ! CLM options
 #ifdef CLM
   integer(ik4) :: imask
+  integer(ik4) :: ilawrence_albedo
   real(rk8) :: clmfrq
   character(len=256) :: dirclm
 #endif
