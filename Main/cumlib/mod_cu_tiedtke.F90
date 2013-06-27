@@ -117,7 +117,7 @@ module mod_cu_tiedtke
     integer(ik8) , intent(in) :: ktau
 
 !   local variables
-    integer(ik4) :: i , j , k , ii , ipl300
+    integer(ik4) :: i , j , k , ii , iplmlc
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tiedtkedrv'
     integer(ik4) , save :: idindx = 0
@@ -210,15 +210,15 @@ module mod_cu_tiedtke
       end do
     end do
 
-    ! Calculate average elevation of 300 hPa level
+    ! Calculate average elevation of cmcptop level
 
     nmctop = 0
     do ii = 1 , nipoi
       do k = 1 , kzp1
-        ipl300 = k
-        if ( paphp1(ii,k) >= 30000.0D0 ) exit
+        iplmlc = k
+        if ( paphp1(ii,k) >= cmcptop*100.0D0 ) exit
       end do
-      nmctop = nmctop + ipl300
+      nmctop = nmctop + iplmlc
     end do
     nmctop = nmctop / nipoi
 

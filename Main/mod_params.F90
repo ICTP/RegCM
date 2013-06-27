@@ -125,8 +125,8 @@ module mod_params
  
   namelist /tiedtkeparam/ iconv , entrpen , entrscv , entrmid ,  &
     entrdd , cmfcmax , cmfcmin , cmfdeps , cmfctop , rhcdd ,     &
-    cmtcape , zdlev , cprcon , ctrigger , lmfpen , lmfscv ,      &
-    lmfmid , lmfdd , lmfdudv
+    cmtcape , zdlev , cprcon , cmcptop , ctrigger , lmfpen ,     &
+    lmfscv , lmfmid , lmfdd , lmfdudv
 
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
          ichcumtra , ichsolver , idirect , ichdustemd , ichdiag ,        &
@@ -419,6 +419,7 @@ module mod_params
 ! THOSE ARE FUNCTION OF GRID AND VERTICAL RESOLUTION
   cmfctop  = 0.35D0
   cprcon   = 1.0D-4
+  cmcptop   = 300.0D0
   ctrigger = -1.1D-0
 ! Control switch flags
   lmfpen   = .true.
@@ -964,6 +965,7 @@ module mod_params
     call bcast(cmtcape)
     call bcast(zdlev)
     call bcast(cprcon)
+    call bcast(cmcptop)
     call bcast(ctrigger)
     call bcast(lmfpen)
     call bcast(lmfscv)
@@ -1727,6 +1729,7 @@ module mod_params
       write(stdout,'(a,f11.6)') '  CAPE adjustment timescale         : ',cmtcape
       write(stdout,'(a,f11.2)') '  Restrict rainfall level           : ',zdlev
       write(stdout,'(a,f11.6)') '  CLW to rain conversion factor     : ',cprcon
+      write(stdout,'(a,f11.6)') '  Midlevel Convection top pressure  : ',cmcptop
       write(stdout,*) ' Penetrative convection enabled    : ',lmfpen
       write(stdout,*) ' Shallow convection enabled        : ',lmfscv
       write(stdout,*) ' Midlevel convection enabled       : ',lmfmid

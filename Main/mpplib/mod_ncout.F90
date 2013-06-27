@@ -2095,6 +2095,8 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('tiedtke_conversion_coefficient',cprcon))
           call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('tiedtke_midlevel_conv_top_pressure',cmcptop))
+          call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('tiedtke_trigger_coefficient',ctrigger))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('tiedtke_fractional_massflux_above_NB',cmfctop))
