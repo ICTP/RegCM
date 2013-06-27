@@ -691,6 +691,13 @@ program terrain
                     htgrid,lndout,snowam,dpth,texout,frac_tex)
   write(stdout,*) 'Grid data written to output file'
 
+  if ( debug_level > 2 ) then
+    call viz_init(48,24)
+    call viz_clear
+    call viz_plot(mask)
+    call viz_done
+  end if
+
   call memory_destroy
 
   write(stdout,*)'Successfully completed terrain fields generation'

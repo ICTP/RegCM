@@ -37,7 +37,7 @@ mod_hgt.o: mod_hgt.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_messag
 mod_humid.o : mod_humid.f90 mod_intkinds.o mod_realkinds.o mod_constants.o
 mod_interp.o: mod_interp.f90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_stdio.o mod_message.o mod_memutil.o mod_constants.o
 mod_memutil.o: mod_memutil.F90 mod_intkinds.o mod_realkinds.o mod_space.o mod_message.o mod_constants.o mod_date.o
-mod_message.o: mod_message.f90 mod_intkinds.o mod_stdio.o
+mod_message.o: mod_message.f90 mod_intkinds.o mod_realkinds.o mod_stdio.o
 mod_nchelper.o: mod_nchelper.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_memutil.o mod_dynparam.o mod_message.o
 mod_projections.o: mod_projections.f90 mod_intkinds.o mod_realkinds.o mod_constants.o
 mod_realkinds.o: mod_realkinds.f90
