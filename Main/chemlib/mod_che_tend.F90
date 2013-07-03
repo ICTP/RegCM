@@ -283,7 +283,7 @@
       !
       ! pollen emission 
       !
-      if ( ipollen > 0 ) then 
+      if ( lpoll ) then 
         do j = jci1 , jci2  
          call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j), &
            rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,j),xra(:,1))
@@ -335,16 +335,13 @@
                            carbed(1:ibin),pdepv(:,:,:,j),ddepa(:,:,j))
         end do
       end if 
-      if ( ipollen > 0 .and. ichdrdepo > 0 ) then
-        ibin = 1 
-        poltab(1) = ipollen
-        polrftab(1) = reffpollen
+      if ( lpoll .and. ichdrdepo > 0 ) then
         do j = jci1 , jci2
-          call drydep_aero(j,ibin,poltab,rhopollen,ivegcov(:,j), &
+          call drydep_aero(j,pbin,ipollen,rhopollen,ivegcov(:,j), &
                            ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j),   &
                            temp10(:,j),tsurf(:,j),srad(:,j),        &
                            rh10(:,j),wid10(:,j),zeff(:,j),          &
-                           polrftab,pdepv(:,:,:,j),ddepa(:,:,j))
+                           pollbed,pdepv(:,:,:,j),ddepa(:,:,j))
         end do
       end if 
       !
@@ -388,12 +385,9 @@
         end do
       end if
       !
-      if ( ipollen > 0 .and.  ichremlsc == 1 )  then   
-        ibin = 1 
-        poltab(1) = ipollen
-        polrftab(1) = reffpollen
+      if ( lpoll .and.  ichremlsc == 1 ) then
         do j = jci1 , jci2
-          call wetdepa(j,ibin,poltab,polrftab,rhopollen,        &
+          call wetdepa(j,pbin,ipollen,pollbed,rhopollen,        &
                        ttb(:,:,j),wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
                        psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j),           &
                        convprec(:,:,j),pdepv(:,:,:,j)) 

@@ -33,7 +33,10 @@ module mod_che_common
 
   integer(ik4) , parameter :: nbin = 4
   integer(ik4) , parameter :: sbin = 2
+  integer(ik4) , parameter :: pbin = 2
   integer(ik4) , parameter :: maxntr = 40 
+
+  logical :: lpoll = .false.
 
   ! tracer variables
 
@@ -56,7 +59,7 @@ module mod_che_common
 
   real(rk8), pointer , dimension(:,:,:)  :: cchifxuw
 !
-  integer(ik4) , pointer , dimension(:) :: isslt , icarb , idust
+  integer(ik4) , pointer , dimension(:) :: isslt , icarb , idust , ipollen
   integer(ik4) , parameter :: nphoto = 56
 !
   real(rk8) , pointer , dimension(:,:,:) :: convcldfra , cemtrac , remdrd
@@ -147,6 +150,7 @@ module mod_che_common
         call getmem2d(chtrdpv,1,ntr,1,2,'mod_che_common:chtrdpv')
         call getmem1d(idust,1,nbin,'mod_che_common:idust')
         call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
+        call getmem1d(ipollen,1,pbin,'mod_che_common:ipollen')
         call getmem1d(icarb,1,5,'mod_che_common:icarb')
         call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
 
@@ -274,11 +278,12 @@ module mod_che_common
                                  'XO2   ' /)
         igaschem = 1
         if ( myid == italk ) write(stdout,*) 'CBMZ simulation'
-      else if ( chemsimtype(1:6) == 'POLLEN' ) then 
-        ntr = 1
-        allocate(chtrname(ntr))      
-        chtrname(1:ntr)(1:6) = (/'POLLEN' /)
+      else if ( chemsimtype(1:6) == 'POLLEN' ) then
+        ntr = pbin
+        allocate(chtrname(ntr))
+        chtrname(1:ntr)(1:6) = (/ 'POLL01', 'POLL02' /)
         iaerosol = 1
+        lpoll = .true.
         if ( myid == italk ) write(stdout,*) 'POLLEN simulation'
       else 
         if ( myid == italk ) then

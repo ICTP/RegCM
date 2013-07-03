@@ -47,9 +47,6 @@ module mod_che_indices
   integer(ik4) :: ionitr , iglyald , imvk , imacr , isoa , inh4 , inh4no3 , ich3cooh
   integer(ik4) :: iterpooh , itolooh , imekooh , ialkooh
 
-  !
-  integer(ik4) :: ipollen
-
   ! This the compound indecies
   ! this list ishould absolutly be consistent with REACTION.DAT for Sillman/CBMZ mechanism
   integer(ik4) , parameter :: ind_o3     = 1
