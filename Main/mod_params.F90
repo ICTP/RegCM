@@ -1761,7 +1761,7 @@ module mod_params
   !
   afracl = 0.25D0    ! frac. cover for conv. precip. when dx=dxlarg
   afracs = clfrcvmax !   "     "    "    "      "     "   dx=dxsmal
-  dlargc = 200.0D0
+  dlargc = 100.0D0
   dsmalc = 10.0D0
   dxtemc = dmin1(dmax1(ds,dsmalc),dlargc)
   clfrcv = afracl + (afracs-afracl)*((dlargc-dxtemc)/(dlargc-dsmalc))**2
