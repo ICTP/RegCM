@@ -37,12 +37,14 @@ module mod_cu_em
   real(rk8) , parameter :: mincbmf = 1.0D-30
 !
   real(rk8) , public , pointer , dimension(:,:) :: cbmf2d
+  real(rk8) , public , pointer , dimension(:,:) :: elcrit2d
 !
   contains
 !
   subroutine allocate_mod_cu_em
     implicit none
     call getmem2d(cbmf2d,jci1,jci2,ici1,ici2,'mod_cu_em:cbmf2d')
+    call getmem2d(elcrit2d,jci1,jci2,ici1,ici2,'mod_cu_em:elcrit2d')
   end subroutine allocate_mod_cu_em
 !
 !
@@ -55,7 +57,7 @@ module mod_cu_em
     integer(ik8) , intent(in) :: ktau
 !
     integer(ik4) :: ntra
-    real(rk8) :: cbmf , pret , qprime , tprime , wd , prainx
+    real(rk8) :: cbmf , pret , qprime , tprime , wd , prainx , elcrit
     real(rk8) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
                                 qscup , tcup , ucup , vcup
     real(rk8) , dimension(kz,ntr) :: ftra , tra
@@ -97,10 +99,11 @@ module mod_cu_em
           phcup(k) = (sigma(kk)*sfcps(j,i)+ptop)*d_10 ! [hPa]
         end do
         cbmf = cbmf2d(j,i)                              ! [(kg/m**2)/s]
+        elcrit = elcrit2d(j,i)
    
         call cupeman(tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup,kz,kzp1,  &
                      kzm1,ntra,iflag,ft,fq,fu,fv,ftra,pret,wd,          &
-                     tprime,qprime,cbmf,kbase,ktop)
+                     tprime,qprime,cbmf,kbase,ktop,elcrit)
    
         cbmf2d(j,i) = cbmf
    
@@ -310,16 +313,16 @@ module mod_cu_em
 !   7. a maximum value to the cloud base mass flux has been added.
 !
   subroutine cupeman(t,q,qs,u,v,tra,p,ph,nd,na,nl,ntra,iflag,ft,fq,fu,fv, &
-                     ftra,precip,wd,tprime,qprime,cbmf,icb,inb)
+                     ftra,precip,wd,tprime,qprime,cbmf,icb,inb,elcrit)
 !
     implicit none
 !
-    real(rk8) :: cbmf , precip , qprime , tprime , wd
+    real(rk8) :: cbmf , precip , qprime , tprime , wd , elcrit
     integer(ik4) :: icb , iflag , inb , na , nd , nl , ntra
     real(rk8) , dimension(nd) :: fq , ft , fu , fv , p , ph , q , qs ,  &
                                t , u , v
     real(rk8) , dimension(nd,ntra) :: ftra , tra
-    intent (in) na , ntra , ph , p , nd , nl
+    intent (in) na , ntra , ph , p , nd , nl , elcrit
     intent (out) tprime , wd
     intent (inout) cbmf , fq , ft , ftra , fu , fv , icb , iflag ,    &
                    inb , precip , q , qprime , qs , t , tra , u , v

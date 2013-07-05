@@ -119,9 +119,9 @@ module mod_params
     edtmin_ocn, edtmax_ocn, edtmino_ocn , edtmaxo_ocn ,             &
     edtminx_ocn , edtmaxx_ocn 
  
-  namelist /emanparam/ minsig , elcrit , tlcrit , entp , sigd ,     &
-    sigs , omtrain , omtsnow , coeffr , coeffs , cu , betae ,       &
-    dtmax , alphae , damp , epmax
+  namelist /emanparam/ minsig , elcrit_ocn , elcrit_lnd , tlcrit ,  &
+    entp , sigd , sigs , omtrain , omtsnow , coeffr , coeffs , cu , &
+    betae , dtmax , alphae , damp , epmax
  
   namelist /tiedtkeparam/ iconv , entrpen , entrscv , entrmid ,  &
     entrdd , cmfcmax , cmfcmin , cmfdeps , cmfctop , rhcdd ,     &
@@ -388,7 +388,8 @@ module mod_params
 ! 
 !------namelist emanparam:
   minsig = 0.95D0   ! Lowest sigma level from which convection can originate
-  elcrit = 0.0011D0 ! Autoconversion threshold water content (gm/gm)
+  elcrit_ocn = 0.0011D0 ! Autoconversion threshold water content (gm/gm) 
+  elcrit_lnd = 0.0011D0 ! Autoconversion threshold water content (gm/gm) 
   tlcrit = -55.0D0  ! Below tlcrit auto-conversion threshold is zero
   entp = 1.5D0      ! Coefficient of mixing in the entrainment formulation
   sigd = 0.05D0     ! Fractional area covered by unsaturated dndraft
@@ -934,7 +935,8 @@ module mod_params
  
   if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
     call bcast(minsig)
-    call bcast(elcrit)
+    call bcast(elcrit_ocn)
+    call bcast(elcrit_lnd)
     call bcast(tlcrit)
     call bcast(entp)
     call bcast(sigd)
@@ -1696,7 +1698,10 @@ module mod_params
     if ( myid == italk ) then
       write(stdout,*) 'Emanuel (1991) Convection Scheme V4.3C used.'
       write(stdout,'(a,f11.6)') '  Min Convection origin             : ',minsig
-      write(stdout,'(a,f11.6)') '  Autoconversion Threshold          : ',elcrit
+      write(stdout,'(a,f11.6)') '  Autoconversion Threshold (ocean)  : ', &
+        elcrit_ocn
+      write(stdout,'(a,f11.6)') '  Autoconversion Threshold (land)   : ', &
+        elcrit_lnd
       write(stdout,'(a,f11.6)') '  Autoconversion Threshold to zero  : ',tlcrit
       write(stdout,'(a,f11.6)') '  Entrainment Coefficient           : ',entp
       write(stdout,'(a,f11.6)') '  Fractional area of uns. downdraft : ',sigd
@@ -1831,6 +1836,20 @@ module mod_params
           ricr(j,i) = ricr_lnd
         else
           ricr(j,i) = ricr_ocn
+        end if
+      end do
+    end do
+  end if
+  !
+  ! Setup Land/Ocean MIT autoconversion
+  !
+  if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( ldmsk(j,i) == 1 ) then
+          elcrit2d(j,i) = elcrit_lnd
+        else
+          elcrit2d(j,i) = elcrit_ocn
         end if
       end do
     end do

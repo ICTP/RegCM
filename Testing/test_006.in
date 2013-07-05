@@ -104,7 +104,8 @@
  &grellparam
  /
  &emanparam
- elcrit  = 0.0011D0,
+ elcrit_ocn  = 0.0011D0,
+ elcrit_lnd  = 0.0011D0,
  coeffr  = 1.0D0,
  /
  &holtslagparam

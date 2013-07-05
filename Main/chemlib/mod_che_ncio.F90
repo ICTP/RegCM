@@ -182,11 +182,11 @@ module mod_che_ncio
       integer(ik4) , intent(out) :: ifreq
       real(rk8) , pointer , dimension(:,:,:) , intent(out) :: echemsrc
       character(256) :: aername
-      integer(ik4) :: n , ncid , itvar, idimid , chmnrec , sdim
+      integer(ik4) :: n,ncid , itvar, idimid, chmnrec,sdim
       character(64) ::chemi_timeunits , chemi_timecal
       real(rk8) , dimension(:) , allocatable :: emtimeval
       integer(ik4) , dimension(4) :: istart , icount
-      integer(ik4) :: year , month , day , hour
+      integer(ik4) :: year , month , day , hour 
       type(rcm_time_and_date) :: tchdate
 
       ! FAB: remember for now, we have 1 emission file containing all monthly
@@ -256,8 +256,7 @@ module mod_che_ncio
           write(stderr,*) 'chem emission : time record not found emission file'
           call fatal(__FILE__,__LINE__,'IO ERROR in CHEM EMISSION')
         else
-          if ( myid == italk ) &
-            write(stdout,*) 'CHE_EMISS: Reading record ', recc
+          write(stdout,*) 'CHE_EMISS: Reading record ', recc
         end if  
 
         !*** intialized in start_chem
@@ -415,11 +414,9 @@ module mod_che_ncio
                   'OC_flux',.false.,sdim)
       end if
 
-      if ( lpoll ) then
-        call rvar(ncid,istart,icount,ipollen(1),echemsrc, &
-                  'POLL01',.false.,sdim)
-        call rvar(ncid,istart,icount,ipollen(2),echemsrc, &
-                  'POLL02',.false.,sdim)
+      if (ipollen /=0 ) then 
+        call  rvar(ncid,istart,icount,ipollen,echemsrc, &
+                  'POLLEN',.false.,sdim)
       end if
 
       where (echemsrc(:,:,:) < d_zero ) echemsrc(:,:,:) = d_zero

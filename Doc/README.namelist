@@ -307,22 +307,23 @@
 ! Emanuel Cumuls scheme control
 !
  &emanparam
- minsig = 0.95,   ! Lowest sigma level from which convection can originate
- elcrit = 0.0011, ! Autoconversion threshold water content (g/g)
- tlcrit = -55.0,  ! Below tlcrit auto-conversion threshold is zero
- entp = 1.5,      ! Coefficient of mixing in the entrainment formulation
- sigd = 0.05,     ! Fractional area covered by unsaturated dndraft
- sigs = 0.12,     ! Fraction of precipitation falling outside of cloud
- omtrain = 50.0,  ! Fall speed of rain (Pa/s)
- omtsnow = 5.5,   ! Fall speed of snow (Pa/s)
- coeffr = 1.0,    ! Coefficient governing the rate of rain evaporation
- coeffs = 0.8,    ! Coefficient governing the rate of snow evaporation
- cu = 0.7,        ! Coefficient governing convective momentum transport
- betae = 10.0,    ! Controls downdraft velocity scale
- dtmax = 0.9,     ! Max negative parcel temperature perturbation below LFC
- alphae = 0.2,    ! Controls the approach rate to quasi-equilibrium
- damp = 0.1,      ! Controls the approach rate to quasi-equilibrium
- epmax = 0.999,   ! Maximum precipitation efficiency
+ minsig = 0.95,       ! Lowest sigma level from which convection can originate
+ elcrit_ocn = 0.0011, ! Autoconversion threshold water content (g/g) over ocean
+ elcrit_lnd = 0.0011, ! Autoconversion threshold water content (g/g) over land
+ tlcrit = -55.0,      ! Below tlcrit auto-conversion threshold is zero
+ entp = 1.5,          ! Coefficient of mixing in the entrainment formulation
+ sigd = 0.05,         ! Fractional area covered by unsaturated dndraft
+ sigs = 0.12,         ! Fraction of precipitation falling outside of cloud
+ omtrain = 50.0,      ! Fall speed of rain (Pa/s)
+ omtsnow = 5.5,       ! Fall speed of snow (Pa/s)
+ coeffr = 1.0,        ! Coefficient governing the rate of rain evaporation
+ coeffs = 0.8,        ! Coefficient governing the rate of snow evaporation
+ cu = 0.7,            ! Coefficient governing convective momentum transport
+ betae = 10.0,        ! Controls downdraft velocity scale
+ dtmax = 0.9,         ! Max negative parcel temperature perturbation below LFC
+ alphae = 0.2,        ! Controls the approach rate to quasi-equilibrium
+ damp = 0.1,          ! Controls the approach rate to quasi-equilibrium
+ epmax = 0.999,       ! Maximum precipitation efficiency
  /
 !
 ! Tiedtke Cumulus scheme control

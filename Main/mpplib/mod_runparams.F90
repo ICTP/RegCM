@@ -175,7 +175,8 @@ module mod_runparams
   real(rk8) :: cu
   real(rk8) :: damp
   real(rk8) :: dtmax
-  real(rk8) :: elcrit
+  real(rk8) :: elcrit_ocn
+  real(rk8) :: elcrit_lnd
   real(rk8) :: entp
   real(rk8) :: minsig
   real(rk8) :: omtrain

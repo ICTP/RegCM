@@ -35,7 +35,6 @@ module mod_che_start
   use mod_che_dust
   use mod_che_sox
   use mod_che_seasalt
-  use mod_che_pollen
   use mod_mppparam  
 
   implicit none
@@ -52,7 +51,7 @@ module mod_che_start
 
   subroutine start_chem
     implicit none
-    integer(ik4) :: i , j , k , itr , ibin , jbin , kbin , lbin
+    integer(ik4) :: i , j , k , itr , ibin , jbin , kbin
 
     ! A : Intialise chemistry tracer indices         
 
@@ -123,6 +122,9 @@ module mod_che_start
     irooh   = 0
     ixo2 =    0
 
+    ipollen = 0
+
+
     !abt *** For initializing megan tracer biogenic voc mask  
     !    *** Mask not equal to zero when any MEGAN species is
     !    *** defined as a tracer within regcm.in  
@@ -139,7 +141,6 @@ module mod_che_start
     ibin = 0
     jbin = 0
     kbin = 0
-    lbin = 0
 
     do itr = 1 , ntr
       if ( chtrname(itr) == 'SO2' ) iso2 = itr
@@ -185,11 +186,6 @@ module mod_che_start
         ibin = ibin + 1
         idust(ibin) = itr
         chtrsol(itr) = soldust(ibin)   
-      end if
-      if ( chtrname(itr)(1:4) ==  'POLL') then
-        lbin = lbin + 1
-        ipollen(lbin) = itr
-        chtrsol(itr) = solpollen(lbin)   
       end if
       if ( chtrname(itr)(1:4) ==  'SSLT') then
         jbin = jbin + 1
@@ -259,6 +255,7 @@ module mod_che_start
       if ( chtrname(itr) == 'HONO'  ) ihono     = itr
       if ( chtrname(itr) == 'HNO4'  ) ihno4     = itr
       if ( chtrname(itr) == 'XO2'   ) ixo2      = itr
+      if ( chtrname(itr) == 'POLLEN') ipollen   = itr
 
       !abt *** Check to make sure SO4 is not defined twice as SULF or SO4 in
       !    *** regcm.in namelist.  If both are defined then STOP

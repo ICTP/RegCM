@@ -2039,7 +2039,11 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('mit_lowest_convection_sigma',minsig))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('mit_autoconversion_threshold_mixing',elcrit))
+            ncattribute_real8( &
+            'mit_autoconversion_threshold_mixing_over_ocean',elcrit_ocn))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8( &
+            'mit_autoconversion_threshold_mixing_over_land',elcrit_lnd))
           call outstream_addatt(outstream(i)%ncout(j), &
            ncattribute_real8('mit_autoconversion_threshold_temperature',tlcrit))
           call outstream_addatt(outstream(i)%ncout(j), &
