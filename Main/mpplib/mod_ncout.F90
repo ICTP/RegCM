@@ -1961,8 +1961,6 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('subex_bottom_level_with_no_clouds',ncld))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_maximum_cloud_fraction_cover',fcmax))
-          call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('subex_auto_conversion_rate_for_land',qck1land))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('subex_auto_conversion_rate_for_ocean',qck1oce))

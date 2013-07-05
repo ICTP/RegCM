@@ -455,7 +455,7 @@ module mod_precip
             radlqwc(j,i,k) = &
               (radcldf(j,i,k)*radlqwc(j,i,k) + fcc(j,i,k)*exlwc) / &
                dmax1(radcldf(j,i,k)+fcc(j,i,k),0.01D0)
-            radcldf(j,i,k) = dmin1(dmax1(radcldf(j,i,k),fcc(j,i,k)),fcmax)
+            radcldf(j,i,k) = dmin1(dmax1(radcldf(j,i,k),fcc(j,i,k)),cftotmax)
           end do
         end do
       end do

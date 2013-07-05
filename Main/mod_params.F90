@@ -109,9 +109,9 @@ module mod_params
   namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
     iceflglw , liqflglw , icld , irng , idrv
 
-  namelist /subexparam/ ncld , fcmax , qck1land , qck1oce ,         &
-    gulland , guloce , rhmax , rh0oce , rh0land , cevap , caccr ,   &
-    tc0 , cllwcv , clfrcvmax , cftotmax
+  namelist /subexparam/ ncld , qck1land , qck1oce , gulland , guloce , &
+    rhmax , rh0oce , rh0land , cevap , caccr , tc0 , cllwcv ,          &
+    clfrcvmax , cftotmax
 
   namelist /grellparam/ shrmin , shrmax , edtmin , edtmax ,         &
     edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
@@ -343,7 +343,6 @@ module mod_params
 !----------------------------------------------------------------------
 !------namelist subexparam:
   ncld = 1             ! # of bottom model levels with no clouds (rad only)
-  fcmax = 0.80D0       ! Maximum cloud fraction cover (rad only)
 ! qck1land = 0.0005D0  ! Autoconversion Rate for Land
 ! qck1oce  = 0.0005D0  ! Autoconversion Rate for Ocean
   qck1land = 0.00025D0 ! Autoconversion Rate for Land
@@ -360,7 +359,7 @@ module mod_params
   caccr = 3.0D0      ! Raindrop accretion rate [m3/kg/s]
   cllwcv = 0.3D-3    ! Cloud liquid water content for convective precip.
   clfrcvmax = 1.00D0 ! Max cloud fractional cover for convective precip.
-  cftotmax = fcmax   ! Max total cover cloud fraction for radiation
+  cftotmax = 0.75D0  ! Max total cover cloud fraction for radiation
  
 !------namelist grellparam:
   shrmin = 0.25D0       ! Minimum Shear effect on precip eff.
@@ -879,7 +878,6 @@ module mod_params
 
   if ( ipptls == 1 ) then
     call bcast(ncld)
-    call bcast(fcmax)
     call bcast(qck1land)
     call bcast(qck1oce)
     call bcast(gulland)
@@ -1505,7 +1503,6 @@ module mod_params
         '  Relative humidity thresholds:  Land = ',rh0land, ' Ocean = ',rh0oce
       write(stdout,'(a,f11.6,a,f11.6)')                      &
         '  Gultepe factors:               Land = ',gulland ,' Ocean = ',guloce
-      write(stdout,'(a,f11.6)') '  Maximum cloud cover for radiation : ' , fcmax
       write(stdout,'(a,f11.6)') '  Maximum relative humidity         : ' , rhmax
       write(stdout,'(a,f11.6)') '  RH0 temperature threshold         : ' , tc0
       if ( cevap <= d_zero ) then

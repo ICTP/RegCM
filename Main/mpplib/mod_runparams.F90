@@ -270,7 +270,6 @@ module mod_runparams
   real(rk8) :: cevap
   real(rk8) :: rhmax
   real(rk8) :: tc0
-  real(rk8) :: fcmax
   real(rk8) :: conf
   integer(ik4) :: iconvlwp
 
