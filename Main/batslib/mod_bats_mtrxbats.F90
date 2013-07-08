@@ -593,7 +593,7 @@ module mod_bats_mtrxbats
                     lak_aveice_out(j,i) = lak_aveice_out(j,i) + &
                       aveice(n,j,i)*rdnnsg*d_r1000
                   else
-                    lak_aveice_out = dmissval
+                    lak_aveice_out(j,i) = dmissval
                   end if
                 end do
               end do
