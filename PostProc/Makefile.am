@@ -21,17 +21,11 @@ vpath %.o $(REGCM_ROOT)/Share:.
 
 include $(REGCM_ROOT)/makeinc
 
-bin_PROGRAMS = sigma2p sigma2z GrADSNcPlot GrADSNcPrepare average regrid
+bin_PROGRAMS = sigma2p sigma2z GrADSNcPlot GrADSNcPrepare
 sigma2p_SOURCES = sigma2p.F90
 sigma2z_SOURCES = sigma2z.F90
 GrADSNcPlot_SOURCES = GrADSNcPlot.F90
 GrADSNcPrepare_SOURCES = GrADSNcPrepare.F90
-
-average: average.sh
-	cp $< $@
-
-regrid: regrid.sh
-	cp $< $@
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -44,6 +38,10 @@ distclean-local:
 
 clean-local:
 	rm -f *.mod *__genmod.*
+
+install-exec-hook:
+	cp regrid.sh $(DESTDIR)$(bindir)/regrid
+	cp average.sh $(DESTDIR)$(bindir)/average
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.

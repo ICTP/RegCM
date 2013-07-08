@@ -21,13 +21,9 @@ SUBDIRS = tools
 
 include $(REGCM_ROOT)/makeinc
 
-bin_PROGRAMS = interp_emissions interp_pollen
-
-interp_emissions: interp_emissions.sh
-	cp $< $@
-
-interp_pollen: interp_pollen.sh
-	cp $< $@
+install-exec-hook:
+	cp interp_emissions.sh $(DESTDIR)$(bindir)/interp_emissions
+	cp interp_pollen.sh $(DESTDIR)$(bindir)/interp_pollen
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
