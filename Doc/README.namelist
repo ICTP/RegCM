@@ -322,7 +322,8 @@
  dtmax = 0.9,         ! Max negative parcel temperature perturbation below LFC
  alphae = 0.2,        ! Controls the approach rate to quasi-equilibrium
  damp = 0.1,          ! Controls the approach rate to quasi-equilibrium
- epmax = 0.999,       ! Maximum precipitation efficiency
+ epmax_ocn = 0.999,   ! Maximum precipitation efficiency (ocean)
+ epmax_lnd = 0.999,   ! Maximum precipitation efficiency (land)
  /
 !
 ! Tiedtke Cumulus scheme control

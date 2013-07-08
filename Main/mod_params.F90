@@ -121,7 +121,7 @@ module mod_params
  
   namelist /emanparam/ minsig , elcrit_ocn , elcrit_lnd , tlcrit ,  &
     entp , sigd , sigs , omtrain , omtsnow , coeffr , coeffs , cu , &
-    betae , dtmax , alphae , damp , epmax
+    betae , dtmax , alphae , damp , epmax_ocn , epmax_lnd
  
   namelist /tiedtkeparam/ iconv , entrpen , entrscv , entrmid ,  &
     entrdd , cmfcmax , cmfcmin , cmfdeps , cmfctop , rhcdd ,     &
@@ -386,23 +386,24 @@ module mod_params
   dtauc = 30.0D0         ! Fritsch & Chappell (1980) 
 ! 
 !------namelist emanparam:
-  minsig = 0.95D0   ! Lowest sigma level from which convection can originate
+  minsig = 0.95D0     ! Lowest sigma level from which convection can originate
   elcrit_ocn = 0.0011D0 ! Autoconversion threshold water content (gm/gm) 
   elcrit_lnd = 0.0011D0 ! Autoconversion threshold water content (gm/gm) 
-  tlcrit = -55.0D0  ! Below tlcrit auto-conversion threshold is zero
-  entp = 1.5D0      ! Coefficient of mixing in the entrainment formulation
-  sigd = 0.05D0     ! Fractional area covered by unsaturated dndraft
-  sigs = 0.12D0     ! Fraction of precipitation falling outside of cloud
-  omtrain = 50.0D0  ! Fall speed of rain (P/s)
-  omtsnow = 5.5D0   ! Fall speed of snow (P/s)
-  coeffr = 1.0D0    ! Coefficient governing the rate of rain evaporation
-  coeffs = 0.8D0    ! Coefficient governing the rate of snow evaporation
-  cu = 0.7D0        ! Coefficient governing convective momentum transport
-  betae = 10.0D0    ! Controls downdraft velocity scale
-  dtmax = 0.9D0     ! Max negative parcel temperature perturbation below LFC
-  alphae = 0.2D0    ! Controls the approach rate to quasi-equilibrium
-  damp = 0.1D0      ! Controls the approach rate to quasi-equilibrium
-  epmax = 0.999D0   ! Maximum precipitation efficiency
+  tlcrit = -55.0D0    ! Below tlcrit auto-conversion threshold is zero
+  entp = 1.5D0        ! Coefficient of mixing in the entrainment formulation
+  sigd = 0.05D0       ! Fractional area covered by unsaturated dndraft
+  sigs = 0.12D0       ! Fraction of precipitation falling outside of cloud
+  omtrain = 50.0D0    ! Fall speed of rain (P/s)
+  omtsnow = 5.5D0     ! Fall speed of snow (P/s)
+  coeffr = 1.0D0      ! Coefficient governing the rate of rain evaporation
+  coeffs = 0.8D0      ! Coefficient governing the rate of snow evaporation
+  cu = 0.7D0          ! Coefficient governing convective momentum transport
+  betae = 10.0D0      ! Controls downdraft velocity scale
+  dtmax = 0.9D0       ! Max negative parcel temperature perturbation below LFC
+  alphae = 0.2D0      ! Controls the approach rate to quasi-equilibrium
+  damp = 0.1D0        ! Controls the approach rate to quasi-equilibrium
+  epmax_ocn = 0.999D0 ! Maximum precipitation efficiency over land
+  epmax_lnd = 0.999D0 ! Maximum precipitation efficiency over ocean
 !
 !------namelist tiedtkeparam:
   iconv    = 1  ! Selects the actual scheme
@@ -948,6 +949,8 @@ module mod_params
     call bcast(dtmax)
     call bcast(alphae)
     call bcast(damp)
+    call bcast(epmax_ocn)
+    call bcast(epmax_ocn)
   end if
  
   if ( icup.eq.5 ) then
@@ -1712,6 +1715,10 @@ module mod_params
       write(stdout,'(a,f11.6)') '  Max negative perturbation blw LFC : ',dtmax
       write(stdout,'(a,f11.6)') '  Quasi-equilibrium approach rate 1 : ',alphae
       write(stdout,'(a,f11.6)') '  Quasi-equilibrium approach rate 2 : ',damp
+      write(stdout,'(a,f11.6)') '  Precipitation efficienct (land)   : ', &
+        epmax_lnd
+      write(stdout,'(a,f11.6)') '  Precipitation efficienct (ocean)  : ', &
+        epmax_ocn
     end if
   end if
   if ( icup == 5 ) then
@@ -1845,8 +1852,10 @@ module mod_params
       do j = jci1 , jci2
         if ( ldmsk(j,i) == 1 ) then
           elcrit2d(j,i) = elcrit_lnd
+          epmax2d(j,i) = epmax_lnd
         else
           elcrit2d(j,i) = elcrit_ocn
+          epmax2d(j,i) = epmax_ocn
         end if
       end do
     end do
