@@ -23,391 +23,153 @@
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
-      use ESMF
-!
-      use mod_couplerr
-      use mod_bats_common
-      use mod_outvars
+       use mod_intkinds, only : ik4
+       use mod_realkinds, only : rk8
+       use mod_memutil
 !
       implicit none
       private
+
+      type exp_data
+        real(rk8), pointer :: psfc(:,:)
+        real(rk8), pointer :: tsfc(:,:)
+        real(rk8), pointer :: qsfc(:,:)
+        real(rk8), pointer :: swrd(:,:)
+        real(rk8), pointer :: lwrd(:,:)
+        real(rk8), pointer :: dlwr(:,:)
+        real(rk8), pointer :: lhfx(:,:)
+        real(rk8), pointer :: shfx(:,:)
+        real(rk8), pointer :: prec(:,:)
+        real(rk8), pointer :: wndu(:,:)
+        real(rk8), pointer :: wndv(:,:)
+        real(rk8), pointer :: rnof(:,:)
+        real(rk8), pointer :: snof(:,:)
+      end type exp_data      
+!
+      type imp_data
+        real(rk8), pointer :: sst(:,:)
+        real(rk8), pointer :: sit(:,:)
+        real(rk8), pointer :: msk(:,:)
+      end type imp_data
+!
+      type(imp_data), public :: importFields
+      type(exp_data), public :: exportFields
+!
+      integer(ik4), pointer :: ldmskb(:,:)
+      integer(ik4), pointer :: wetdry(:,:)
+!
 !
 !-----------------------------------------------------------------------
 !     Public subroutines 
 !-----------------------------------------------------------------------
 !
-      public :: RCM_PutExportData
-      public :: RCM_GetImportData
+      public :: RCM_Get
+      public :: RCM_Put
+      public :: RCM_Allocate
+!
+!-----------------------------------------------------------------------
+!     Module constants 
+!-----------------------------------------------------------------------
+!
+      real(rk8), parameter :: beta = 1.25 ! gustiness coeff
+      real(rk8), parameter :: von  = 0.4  ! von Karman constant
+      real(rk8), parameter :: fdg  = 1.00 ! ratio of thermal to wind von Karman
+      real(rk8), parameter :: tdk  = 273.16
+      real(rk8), parameter :: grav = 9.82 ! accel of earth grav
 !
       contains
 !
-      subroutine RCM_PutExportData (localPet)
+      subroutine RCM_Allocate()
 !
 !-----------------------------------------------------------------------
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
-      use mod_mppparam, only : ma
-      use mod_constants, only : wlhv
+      use mod_bats_common, only : ldmsk, cplmsk
       use mod_dynparam, only : ice1, ice2, jce1, jce2
-      use mod_dynparam, only : ici1, ici2, jci1, jci2, kz
-      use mod_dynparam, only : global_cross_istart, global_cross_jstart
+      use mod_dynparam, only : ici1, ici2, jci1, jci2
 !
       implicit none
-!
-!-----------------------------------------------------------------------
-!     Imported variable declarations 
-!-----------------------------------------------------------------------
-!
-      integer, intent(in) :: localPet
 !
 !-----------------------------------------------------------------------
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      integer :: i, j, ii, jj, k, n, rc
-      character (len=40) :: name
-      character (len=100) :: outfile
+      integer :: i, j
+      real(rk8), parameter :: initval = 1.0d20
+      real(rk8), parameter :: zeroval = 0.0d20
 !
 !-----------------------------------------------------------------------
-!     Initialize the import and export fields 
+!     Allocate arrays 
 !-----------------------------------------------------------------------
 !
-      do n = 1, nNest(Iatmos)
+      call getmem2d(exportFields%psfc,jce1,jce2,ice1,ice2,'cpl:psfc')
+      call getmem2d(exportFields%tsfc,jce1,jce2,ice1,ice2,'cpl:tsfc')
+      call getmem2d(exportFields%qsfc,jce1,jce2,ice1,ice2,'cpl:qsfc')
+      call getmem2d(exportFields%swrd,jce1,jce2,ice1,ice2,'cpl:swrd')
+      call getmem2d(exportFields%lwrd,jce1,jce2,ice1,ice2,'cpl:lwrd')
+      call getmem2d(exportFields%dlwr,jce1,jce2,ice1,ice2,'cpl:dlwr')
+      call getmem2d(exportFields%lhfx,jce1,jce2,ice1,ice2,'cpl:lhfx')
+      call getmem2d(exportFields%shfx,jce1,jce2,ice1,ice2,'cpl:shfx')
+      call getmem2d(exportFields%prec,jce1,jce2,ice1,ice2,'cpl:prec')
+      call getmem2d(exportFields%wndu,jce1,jce2,ice1,ice2,'cpl:wndu')
+      call getmem2d(exportFields%wndv,jce1,jce2,ice1,ice2,'cpl:wndv')
+      call getmem2d(exportFields%rnof,jci1,jci2,ici1,ici2,'cpl:rnof')
+      call getmem2d(exportFields%snof,jci1,jci2,ici1,ici2,'cpl:snof')
+!
+      call getmem2d(importFields%sst,jce1,jce2,ice1,ice2,'cpl:sst')
+      call getmem2d(importFields%sit,jce1,jce2,ice1,ice2,'cpl:sit')
+      call getmem2d(importFields%msk,jce1,jce2,ice1,ice2,'cpl:msk')
+!
+      call getmem2d(ldmskb,jci1,jci2,ici1,ici2,'cpl:ldmsk')
+      call getmem2d(wetdry,jci1,jci2,ici1,ici2,'cpl:wetdry')
 !
 !-----------------------------------------------------------------------
-!     Create export state fields 
+!     Initialize arrays 
 !-----------------------------------------------------------------------
 !
-      do k = 1, size(models(Iatmos)%dataExport(:,n), dim=1)
-!
-!-----------------------------------------------------------------------
-!     Debug: write size of pointers    
-!-----------------------------------------------------------------------
-!
-      name = trim(adjustl(models(Iatmos)%dataExport(k,n)%name))
-      if (cpl_dbglevel > 1) then
-        write(*,50) localPet, 0, adjustl("PTR/ATM/EXP/"//name),         &
-                    lbound(models(Iatmos)%dataExport(k,n)%ptr, dim=1),  &
-                    ubound(models(Iatmos)%dataExport(k,n)%ptr, dim=1),  &
-                    lbound(models(Iatmos)%dataExport(k,n)%ptr, dim=2),  &
-                    ubound(models(Iatmos)%dataExport(k,n)%ptr, dim=2)
-        write(*,50) localPet, 0, adjustl("DAT/ATM/EXP/"//name),         &
-                    lbound(t2m, dim=2),                                 &
-                    ubound(t2m, dim=2),                                 &
-                    lbound(t2m, dim=3),                                 &
-                    ubound(t2m, dim=3)
-        write(*,50) localPet, 0, adjustl("IND/ATM/EXP/"//name),         &
-                    jci1, jci2, ici1, ici2
-      end if
-!
-!-----------------------------------------------------------------------
-!     Fill pointers with data 
-!-----------------------------------------------------------------------
-!
-      select case (trim(adjustl(name)))
-!
-!-----------------------------------------------------------------------
-!     Surface atmospheric pressure (mb)
-!-----------------------------------------------------------------------
-!
-      case ('Pair')
       do i = ici1, ici2
         do j = jci1, jci2
-        ii = global_cross_istart+i-1
-        jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) =                     &
-                       (sfps(j,i)+ptop)*d_10
+          exportFields%psfc(j,i) = initval
+          exportFields%tsfc(j,i) = initval
+          exportFields%qsfc(j,i) = initval
+          exportFields%swrd(j,i) = initval
+          exportFields%lwrd(j,i) = initval
+          exportFields%dlwr(j,i) = initval
+          exportFields%lhfx(j,i) = initval
+          exportFields%shfx(j,i) = initval
+          exportFields%prec(j,i) = initval
+          exportFields%wndu(j,i) = initval
+          exportFields%wndv(j,i) = initval
+          exportFields%rnof(j,i) = zeroval
+          exportFields%snof(j,i) = zeroval
+!
+          importFields%sst(j,i) = initval
+          importFields%sit(j,i) = initval
+          importFields%msk(j,i) = initval 
+!
+          ldmskb(j,i) = ldmsk(j,i)
+          wetdry(j,i) = 0
+          cplmsk(j,i) = 0
         end do
       end do
 !
-!-----------------------------------------------------------------------
-!     Surface (2m) air temperature (K)
-!-----------------------------------------------------------------------
+      end subroutine RCM_Allocate
 !
-      case ('Tair')
-      do i = ici1, ici2
-        do j = jci1, jci2
-        ii = global_cross_istart+i-1
-        jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = t2m(1,j,i)
-        end do
-      end do
-!
-!-----------------------------------------------------------------------
-!     Surface (2m) specific humidity (kg/kg)
-!-----------------------------------------------------------------------
-!           
-      case ('Qair')
-      do i = ici1, ici2
-        do j = jci1, jci2
-        ii = global_cross_istart+i-1
-        jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = q2m(1,j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Shortwave radiation (W/m2) 
-!-----------------------------------------------------------------------
-! 
-      case ('Swrad')
-      do i = ici1, ici2
-        do j = jci1, jci2
-        ii = global_cross_istart+i-1
-        jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fsw(j,i)
-        end do
-      end do
-!
-!-----------------------------------------------------------------------
-!     Downward longwave radiation (W/m2) 
-!-----------------------------------------------------------------------
-! 
-      case ('Lwrad_down')
-      do i = ici1, ici2
-        do j = jci1, jci2
-        ii = global_cross_istart+i-1
-        jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = flwd(j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Net longwave radiation (W/m2) 
-!-----------------------------------------------------------------------
-! 
-      case ('Lwrad')
-      do i = ici1, ici2
-        do j = jci1, jci2
-        ii = global_cross_istart+i-1
-        jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = flw(j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Sensible heat flux (W/m2) 
-!-----------------------------------------------------------------------
-! 
-      case ('Shflx')
-      do i = ici1, ici2
-        do j = jci1, jci2
-        ii = global_cross_istart+i-1
-        jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = sent(1,j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Latent heat flux (W/m2) 
-!-----------------------------------------------------------------------
-! 
-      case ('Lhflx')
-      do i = ici1, ici2
-        do j = jci1, jci2
-        ii = global_cross_istart+i-1
-        jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = evpr(1,j,i)*wlhv
-        end do
-      end do
-!
-!-----------------------------------------------------------------------
-!     Precipitation (mm/s)
-!-----------------------------------------------------------------------
-! 
-      case ('Rain')
-      do i = ici1, ici2
-        do j = jci1, jci2
-        ii = global_cross_istart+i-1
-        jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = totpr(j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Surface (10m) U-wind speed (m/s)
-!-----------------------------------------------------------------------
-! 
-      case ('Uwind')
-      do i = ici1, ici2
-        do j = jci1, jci2
-        ii = global_cross_istart+i-1
-        jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = u10m(1,j,i) 
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Surface (10 m) V-wind speed (m/s)
-!-----------------------------------------------------------------------
-! 
-      case ('Vwind')
-      do i = ici1, ici2
-        do j = jci1, jci2
-        ii = global_cross_istart+i-1
-        jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = v10m(1,j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Net freshwater flux (mm/s) 
-!-----------------------------------------------------------------------
-! 
-      case ('EminP')
-      do i = ici1, ici2
-        do j = jci1, jci2
-        ii = global_cross_istart+i-1
-        jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = (evpr(1,j,i)-       &
-                                                     totpr(j,i))
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Net heat flux (W/m2) 
-!-----------------------------------------------------------------------
-!
-      case ('NHeat')
-      do i = ici1, ici2
-        do j = jci1, jci2
-        ii = global_cross_istart+i-1
-        jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = fsw(j,i)-           &
-                                                    sent(1,j,i)-        &
-                                                    evpr(1,j,i)*wlhv-   &
-                                                    flw(j,i) 
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Surface (10m) U-wind stress (Pa) 
-!-----------------------------------------------------------------------
-!
-      case ('Ustr')
-      do i = ici1, ici2
-        do j = jci1, jci2
-        ii = global_cross_istart+i-1
-        jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = taux(1,j,i)
-        end do
-      end do
-!          
-!-----------------------------------------------------------------------
-!     Surface (10m) V-wind stress (Pa) 
-!-----------------------------------------------------------------------
-!
-      case ('Vstr')
-      do i = ici1, ici2
-        do j = jci1, jci2
-        ii = global_cross_istart+i-1
-        jj = global_cross_jstart+j-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii,jj) = tauy(1,j,i)
-        end do
-      end do
-      end select
-!
-!-----------------------------------------------------------------------
-!     Fill domain boundaries with data   
-!-----------------------------------------------------------------------
-!
-      if (ma%has_bdytop) then
-        ii = global_cross_istart+ici2-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii+1,:) =                    &
-                       models(Iatmos)%dataExport(k,n)%ptr(ii,:)
-        models(Iatmos)%dataExport(k,n)%ptr(ii+2,:) =                    &
-                       models(Iatmos)%dataExport(k,n)%ptr(ii,:)
-      end if
-!
-      if (ma%has_bdyright) then
-        jj = global_cross_jstart+jci2-1
-        models(Iatmos)%dataExport(k,n)%ptr(:,jj+1) =                    &
-                       models(Iatmos)%dataExport(k,n)%ptr(:,jj)
-        models(Iatmos)%dataExport(k,n)%ptr(:,jj+2) =                    &
-                       models(Iatmos)%dataExport(k,n)%ptr(:,jj)
-      end if
-!
-      if (ma%has_bdybottom) then
-        ii = global_cross_istart+ici1-1
-        models(Iatmos)%dataExport(k,n)%ptr(ii-1,:) =                    &
-                       models(Iatmos)%dataExport(k,n)%ptr(ii,:)
-      end if
-!
-      if (ma%has_bdyleft) then
-        jj = global_cross_jstart+jci1-1
-        models(Iatmos)%dataExport(k,n)%ptr(:,jj-1) =                    &
-                       models(Iatmos)%dataExport(k,n)%ptr(:,jj)
-      end if
-!
-!-----------------------------------------------------------------------
-!     Debug: write field to ASCII file    
-!-----------------------------------------------------------------------
-!
-      if (cpl_dbglevel > 3) then
-      write(outfile,                                                    &
-            fmt='(A10,"_",A,"_",I4,"-",I2.2,"-",                        &
-            I2.2,"_",I2.2,"_",I2.2,".txt")')                            &
-            'atm_export',                                               &
-            trim(adjustl(name)),                                        &
-            models(Iatmos)%time%year,                                   &
-            models(Iatmos)%time%month,                                  &
-            models(Iatmos)%time%day,                                    &
-            models(Iatmos)%time%hour,                                   &
-            localPet
-!
-      open (unit=99, file = trim(outfile)) 
-      call print_matrix_r8(models(Iatmos)%dataExport(k,n)%ptr,          &
-                           1, 1, localPet, 99, "PTR/ATM/EXP")
-      close(99)
-      end if
-!
-!-----------------------------------------------------------------------
-!     Debug: write field to file
-!-----------------------------------------------------------------------
-!
-      if (cpl_dbglevel > 2) then
-      write(outfile,                                                    &
-            fmt='(A10,"_",A,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")')  &
-            'atm_export',                                               &
-            trim(adjustl(name)),                                        &
-            models(Iatmos)%time%year,                                   &
-            models(Iatmos)%time%month,                                  &
-            models(Iatmos)%time%day,                                    &
-            models(Iatmos)%time%hour
-!
-      call ESMF_FieldWrite(models(Iatmos)%dataExport(k,n)%field,        &
-                           trim(adjustl(outfile)),                      &
-                           rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-      end if
-!
-      end do
-      end do
-!
-!-----------------------------------------------------------------------
-!     Format definition 
-!-----------------------------------------------------------------------
-!     
- 50   format(" PET(",I3,") - DE(",I2,") - ", A20, " : ", 4I8)
-!
-!-----------------------------------------------------------------------
-!     Set return flag to success
-!-----------------------------------------------------------------------
-!
-      rc = ESMF_SUCCESS
-!
-      end subroutine RCM_PutExportData
-!
-      subroutine RCM_GetImportData (localPet)
+      subroutine RCM_Get(localPet)
 !
 !-----------------------------------------------------------------------
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
-      use mod_atm_interface, only : sfs
-      use mod_runparams, only : idcsst 
+      use mod_constants
+      use mod_atm_interface, only : sfs, mddom
+      use mod_bats_common, only : ldmsk, ldmsk1, cplmsk, ntcpl
+      use mod_bats_common, only : lveg, iveg1, sfice, sent, sncv, tgrd
+      use mod_dynparam, only : ice1, ice2, jce1, jce2
+      use mod_dynparam, only : ici1, ici2, jci1, jci2, nnsg
       use mod_dynparam, only : global_cross_istart, global_cross_jstart
+      use mod_runparams, only : iswater, ktau
 !
       implicit none
 !
@@ -421,207 +183,164 @@
 !     Local variable declarations 
 !-----------------------------------------------------------------------
 !
-      character (len=40) :: name
-      character (len=100) :: outfile
-      integer :: i, j, ii, jj, k, m, n, p, rc, localDECount
-      real*8 :: hice, toth, tol, scale_factor, add_offset
-#ifdef ROMSICE
-      ! minimum ice depth in mm: less that this is removed
-      real(dp) , parameter :: iceminh = d_10
-      ! reference hgt in mm for latent heat removal from ice
-      real(dp) , parameter :: href = d_two * iceminh
-      ! steepness factor of latent heat removal
-      real(dp) , parameter :: steepf = 1.0D0  ! Tuning needed
-#endif
-!
-      real(ESMF_KIND_R8), pointer :: ptr(:,:)
+      integer :: i, j, ii, jj, n
+      logical :: flag
+      real(dp) :: toth
+      real(dp), parameter :: missing_r8 = 1.0d20
+      real(dp), parameter :: tol = missing_r8/2.0d0 
+      real(dp), parameter :: iceminh = d_10
+      real(dp), parameter :: href = d_two * iceminh
+      real(dp), parameter :: steepf = 1.0D0
+      integer(ik4) :: ix, jy, imin, imax, jmin, jmax, srad, hveg(22)
 !
 !-----------------------------------------------------------------------
-!     Loop over number of nested/composed meshs 
+!     Retrieve information from OCN component
 !-----------------------------------------------------------------------
 !
-      do p = 1, nNest(Iatmos)
+      do i = ici1, ici2
+      ii = global_cross_istart+i-1
+      do j = jci1, jci2
+      jj = global_cross_jstart+j-1
+!        
+      if (iswater(mddom%lndcat(j,i))) then
 !
 !-----------------------------------------------------------------------
-!     Get import fields 
+!     Update: Sea Surface Temperature (SST)
 !-----------------------------------------------------------------------
 !
-      do k = 1, size(models(Iatmos)%dataImport(:,p), dim=1)
-      name = models(Iatmos)%dataImport(k,p)%name
+      if (importFields%sst(j,i) .lt. tol) then
+        ! create fixed coupling mask
+        if (mod(ktau+1, ntcpl*2) == 0) then
+          cplmsk(j,i) = 1
+        end if
+!        
+        sfs%tga(j,i) = importFields%sst(j,i)
+        sfs%tgb(j,i) = importFields%sst(j,i)
+        tgrd(:,j,i)  = importFields%sst(j,i)
+      end if
 !
 !-----------------------------------------------------------------------
-!     Get number of local DEs
+!     Update: Mask and land-use type (based on dynamic wet-dry)
+!-----------------------------------------------------------------------
+!
+!      if (importFields%msk(j,i) .lt. tol .and. ldmskb(j,i) == 0) then
+!        if (importFields%msk(j,i) .lt. 1.0) then
+!          flag = .false.
+!          if (ldmsk(j,i) == 0 .or. ldmsk(j,i) == 2) flag = .true.
+!          ! set land-sea mask
+!          ldmsk(j,i) = 1
+!          do n = 1, nnsg
+!            ldmsk1(n,j,i) = ldmsk(j,i)
+!          end do
+!          ! count land-use type in a specified search radius (srad)
+!          srad = 10
+!          jmin = j-srad
+!          if (j-srad < jci1) jmin = jci1
+!          jmax = j+srad
+!          if (j+srad > jci2) jmax = jci2
+!          imin = i-srad
+!          if (i-srad < ici1) imin = ici1
+!          imax = i+srad
+!          if (i+srad > ici2) imax = ici2
+!          hveg = 0
+!          do ix = imin, imax
+!            do jy = jmin, jmax
+!              do n = 1, nnsg
+!                hveg(iveg1(n,jy,ix)) = hveg(iveg1(n,jy,ix))+1
+!              end do
+!            end do
+!          end do        
+!          hveg(14) = 0
+!          hveg(15) = 0
+!          ! set land-use type to dominant value
+!          do n = 1, nnsg
+!            lveg(n,j,i) = maxloc(hveg, dim=1)
+!          end do
+!          ! set array to store change
+!          wetdry(j,i) = 1
+!          ! write debug info
+!          if (flag) then
+!            write(*,20) jj, ii, 'water', 'land ',                       &
+!                        lveg(1,j,i), ldmsk(j,i)
+!          end if
+!        else
+!          if (ldmsk(j,i) == 1 .and. wetdry(j,i) == 1) then
+!            flag = .false.
+!            if (ldmskb(j,i) /= ldmsk(j,i)) flag = .true.
+!            ! set land-sea mask to its original value
+!            ldmsk(j,i) = ldmskb(j,i)             
+!            do n = 1, nnsg
+!              ldmsk1(n,j,i) = ldmsk(j,i)
+!            end do
+!            ! set land-use type to its original value
+!            lveg(n,j,i) = iveg1(n,j,i)
+!            ! set array to store change
+!            wetdry(j,i) = 0
+!            ! write debug info
+!            if (flag) then
+!              write(*,20) jj, ii, 'land ', 'water',                     &
+!                        lveg(1,j,i), ldmsk(j,i)
+!            end if
+!          end if
+!        end if
+!      end if
+!
+!-----------------------------------------------------------------------
+!     Update: Sea-ice, mask and land-use type (based on sea-ice module) 
 !-----------------------------------------------------------------------
 ! 
-      call ESMF_GridGet (models(Iatmos)%grid(p),                        &
-                         localDECount=localDECount,                     &
-                         rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
+!      if (importFields%sit(j,i) < tol .and. ldmsk(j,i) /= 1) then
+!        if (importFields%sit(j,i) > iceminh) then
+!          flag = .false.
+!          if (ldmsk(j,i) == 0) flag = .true.
+!          ! set land-sea mask
+!          ldmsk(j,i) = 2
+!          do n = 1, nnsg
+!            ldmsk1(n,j,i) = 2
+!            ! set land-use type
+!            lveg(n,j,i) = 12
+!            ! set sea ice thikness (in mm)
+!            sfice(n,j,i) = importFields%sit(j,i) 
+!            ! reduce sensible heat flux
+!            toth = sfice(n,j,i)+sncv(n,j,i)
+!            if ( toth > href ) then
+!              sent(n,j,i) = sent(n,j,i) * (href/toth)**steepf
+!            end if
+!          end do
+!          ! write debug info
+!          if (flag) then
+!            write(*,30) jj, ii, 'water', 'ice  ',                       &
+!                        lveg(1,j,i), ldmsk(j,i), sfice(1,j,i)
+!          end if
+!        else
+!          if (ldmskb(j,i) == 0 .and. ldmsk(j,i) == 2) then
+!            ! reduce to one tenth surface ice: it should melt away
+!            do n = 1, nnsg
+!              sfice(n,j,i) = sfice(n,j,i)*(d_r10*5.0d0)
+!              ! check that sea ice is melted or not
+!              if (sfice(n,j,i) <= iceminh) then
+!                if (ldmskb(j,i) /= ldmsk(j,i)) flag = .true.
+!                ! set land-sea mask to its original value
+!                ldmsk(j,i) = ldmskb(j,i)
+!                ldmsk1(n,j,i) = ldmskb(j,i)
+!                ! set land-use type to its original value
+!                lveg(n,j,i) = iveg1(n,j,i)
+!                ! set sea ice thikness (in mm)
+!                sfice(n,j,i) = 0.0d0 
+!              else
+!                flag = .false.
+!              end if
+!            end do
+!            ! write debug info
+!            if (flag) then
+!              write(*,40) jj, ii, 'ice  ', 'water',                     &
+!                          lveg(1,j,i), ldmsk(j,i), sfice(1,j,i)
+!            end if 
+!          end if           
+!        end if
+!      end if 
+      end if      
 !
-!-----------------------------------------------------------------------
-!     Get pointer
-!-----------------------------------------------------------------------
-! 
-      do m = 0, localDECount-1
-      call ESMF_FieldGet (models(Iatmos)%dataImport(k,p)%field,         &
-                          localDE=m,                                    &
-                          farrayPtr=ptr,                                &
-                          rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-!
-!-----------------------------------------------------------------------
-!     Debug: write size of pointers    
-!-----------------------------------------------------------------------
-!
-      if (cpl_dbglevel > 1) then
-        write(*,60) localPet, m, adjustl("PTR/ATM/IMP/"//name),         &
-                    lbound(ptr, dim=1), ubound(ptr, dim=1),             &
-                    lbound(ptr, dim=2), ubound(ptr, dim=2)
-      end if
-!
-!-----------------------------------------------------------------------
-!     Put data to RCM variable
-!-----------------------------------------------------------------------
-!
-      tol = MISSING_R8/2.0d0
-      scale_factor = models(Iatmos)%dataImport(k,p)%scale_factor
-      add_offset = models(Iatmos)%dataImport(k,p)%add_offset
-!
-      select case (trim(adjustl(name)))
-      case('SST')      
-      if (cpl_dbglevel > 1) then
-        write(*,60) localPet, m, adjustl("DAT/ATM/IMP/"//name),         &
-                    lbound(sfs%tga, dim=1), ubound(sfs%tga, dim=1),     &
-                    lbound(sfs%tga, dim=2), ubound(sfs%tga, dim=2)
-      end if
-!
-      if ( idcsst == 1 ) then
-      do i = ici1, ici2
-        do j = jci1, jci2
-          ii = global_cross_istart+i-1
-          jj = global_cross_jstart+j-1
-          do n = 1 , nnsg
-            if (iveg1(n,j,i) == 12 .or.                                 &
-                iveg1(n,j,i) == 14 .or.                                 &
-                iveg1(n,j,i) == 15) then
-               if (ptr(ii,jj) .lt. tol) then
-                  sfs%tga(j,i) = (ptr(ii,jj)*scale_factor)+             &
-                                 add_offset+dtskin(j,i)
-                  sfs%tgb(j,i) = (ptr(ii,jj)*scale_factor)+             &
-                                 add_offset+dtskin(j,i)
-               end if
-             end if
-           end do
-         end do
-      end do
-      else
-      do i = ici1, ici2
-        do j = jci1, jci2
-          ii = global_cross_istart+i-1
-          jj = global_cross_jstart+j-1
-          do n = 1 , nnsg
-            if (iveg1(n,j,i) == 12 .or.                                 &
-                iveg1(n,j,i) == 14 .or.                                 &
-                iveg1(n,j,i) == 15) then
-              if (ptr(ii,jj) .lt. tol) then 
-                 sfs%tga(j,i) = (ptr(ii,jj)*scale_factor)+add_offset
-                 sfs%tgb(j,i) = (ptr(ii,jj)*scale_factor)+add_offset 
-              end if
-            end if
-          end do
-        end do
-      end do
-      end if
-#ifdef ROMSICE
-      case('Hice')      
-      if (cpl_dbglevel > 1) then
-        write(*,60) localPet, m, adjustl("DAT/ATM/IMP/"//name),         &
-                    lbound(sfs%hfx, dim=1), ubound(sfs%hfx, dim=1),     &
-                    lbound(sfs%hfx, dim=2), ubound(sfs%hfx, dim=2)
-      end if
-
-      do i = ici1, ici2
-        do j = jci1, jci2
-          ii = global_cross_istart+i-1
-          jj = global_cross_jstart+j-1
-          do n = 1 , nnsg
-            if (iveg1(n,j,i) == 12 .or.                                 &
-                iveg1(n,j,i) == 14 .or.                                 &
-                iveg1(n,j,i) == 15) then
-              if (ptr(ii,jj) .lt. tol) then
-                hice = (ptr(ii,jj)*scale_factor)+add_offset  
-                if (hice .gt. iceminh) then
-                  ! change land-use type as ice covered
-                  ldmsk1(n,j,i) = 2
-                  lveg(n,j,i) = 12
-                  ! reduce sensible heat flux for ice presence                    
-                  toth = hice+sncv(n,j,i) 
-                  if ( toth > href ) then
-                    sfs%hfx(j,i) = sfs%hfx(j,i)*(href/toth)**steepf
-                  end if
-                else
-                  ! change land-use type to its original value
-                  ldmsk1(n,j,i) = 0
-                  lveg(n,j,i) = iveg1(n,j,i)
-                end if
-              end if
-            end if
-          end do
-        end do
-      end do
-#endif
-      end select
-      end do
-!
-!-----------------------------------------------------------------------
-!     Debug: write field to ASCII file    
-!-----------------------------------------------------------------------
-!
-      if (cpl_dbglevel > 3) then
-      write(outfile,                                                    &
-            fmt='(A10,"_",A,"_",I4,"-",I2.2,"-",                        &
-            I2.2,"_",I2.2,"_",I2.2,".txt")')                            &
-            'atm_import',                                               &
-            trim(adjustl(name)),                                        &
-            models(Iatmos)%time%year,                                   &
-            models(Iatmos)%time%month,                                  &
-            models(Iatmos)%time%day,                                    &
-            models(Iatmos)%time%hour,                                   &
-            localPet
-!
-      open (unit=99, file = trim(outfile))
-      call print_matrix_r8(ptr, 1, 1, localPet, 99, "PTR/ATM/IMP")
-      close(99)
-      end if
-!
-!-----------------------------------------------------------------------
-!     Debug: write field to NetCDF file
-!-----------------------------------------------------------------------
-!
-      if (cpl_dbglevel > 2) then
-      write(outfile,                                                    &
-            fmt='(A10,"_",A,"_",I4,"-",I2.2,"-",I2.2,"_",I2.2,".nc")')  &
-            'atm_import',                                               &
-            trim(adjustl(name)),                                        &
-            models(Iatmos)%time%year,                                   &
-            models(Iatmos)%time%month,                                  &
-            models(Iatmos)%time%day,                                    &
-            models(Iatmos)%time%hour
-!
-      call ESMF_FieldWrite(models(Iatmos)%dataImport(k,p)%field,        &
-                           trim(adjustl(outfile)),                      &
-                           rc=rc)
-      if (rc /= ESMF_SUCCESS) call ESMF_Finalize(endflag=ESMF_END_ABORT)
-      end if
-!
-!-----------------------------------------------------------------------
-!     Nullify pointer to make sure that it does not point on a random 
-!     part in the memory 
-!-----------------------------------------------------------------------
-!
-      if (associated(ptr)) then
-        nullify(ptr)
-      end if
       end do
       end do
 !
@@ -629,14 +348,79 @@
 !     Format definition 
 !-----------------------------------------------------------------------
 !
- 60   format(" PET(",I3,") - DE(",I2,") - ", A20, " : ", 4I8)
+ 20   format(' ATM land-sea mask is changed at (',I3,',',I3,') : ',     &
+             A5,' --> ',A5,' [',I2,' - ',I2,']')
+ 30   format(' ATM sea-ice is formed at (',I3,',',I3,') : ',            &
+             A5,' --> ',A5,' [',I2,' - ',I2,' - ',F12.4,']')
+ 40   format(' ATM sea-ice is melted at (',I3,',',I3,') : ',       &
+             A5,' --> ',A5,' [',I2,' - ',I2,' - ',F12.4,']')
+!
+      end subroutine RCM_Get
+!
+      subroutine RCM_Put(localPet)
 !
 !-----------------------------------------------------------------------
-!     Set return flag to success.
+!     Used module declarations 
 !-----------------------------------------------------------------------
 !
-      rc = ESMF_SUCCESS
+      use mod_constants
+      use mod_runparams, only : kday, ktau, rnsrf_for_day
+      use mod_dynparam, only : ici1, ici2, jci1, jci2, nnsg, ptop
+      use mod_bats_common, only : sfps, t2m, q2m, flw, flwd,            &
+                                  evpr, sent, totpr, u10m, v10m, fsw,   &
+                                  srnof, trnof, rdnnsg, ldmsk
+      use mod_outvars, only : sts_runoff_out
 !
-      end subroutine RCM_GetImportData
+      implicit none
+!
+!-----------------------------------------------------------------------
+!     Imported variable declarations 
+!-----------------------------------------------------------------------
+!
+      integer, intent(in) :: localPet
+!
+!-----------------------------------------------------------------------
+!     Local variable declarations 
+!-----------------------------------------------------------------------
+!
+      integer :: i, j 
+      real(dp), parameter :: zeroval = 0.0d20
+!
+!-----------------------------------------------------------------------
+!     Send information to OCN component
+!-----------------------------------------------------------------------
+!
+      do i = ici1, ici2
+        do j = jci1, jci2
+          exportFields%psfc(j,i) = (sfps(j,i)+ptop)*d_10
+          exportFields%tsfc(j,i) = t2m(1,j,i)
+          exportFields%qsfc(j,i) = q2m(1,j,i)
+          exportFields%swrd(j,i) = fsw(j,i)
+          exportFields%lwrd(j,i) = flw(j,i) 
+          exportFields%dlwr(j,i) = flwd(j,i)
+          exportFields%lhfx(j,i) = evpr(1,j,i)*wlhv
+          exportFields%shfx(j,i) = sent(1,j,i)
+          exportFields%prec(j,i) = totpr(j,i)
+          exportFields%wndu(j,i) = u10m(1,j,i)
+          exportFields%wndv(j,i) = v10m(1,j,i)
+        end do
+      end do
+!
+!-----------------------------------------------------------------------
+!     Send information to RTM component
+!-----------------------------------------------------------------------
+!
+      if (mod(ktau+1,kday) == 0) then
+        where (ldmsk > 0)
+          exportFields%rnof = sts_runoff_out(:,:,1)*rnsrf_for_day
+          exportFields%snof = sts_runoff_out(:,:,2)*rnsrf_for_day-      &
+                              exportFields%rnof
+        else where
+          exportFields%rnof = zeroval
+          exportFields%snof = zeroval
+        end where
+      end if
+!
+      end subroutine RCM_Put
 !
       end module mod_update

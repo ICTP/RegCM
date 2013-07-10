@@ -141,7 +141,7 @@ module mod_params
   namelist /clmparam/ dirclm , imask , clmfrq , ilawrence_albedo
 #endif
 
-  namelist /cplparam/ cpldt, cpldbglevel
+  namelist /cplparam/ cpldt
 
   namelist /slabocparam/ do_qflux_adj , do_restore_sst , &
     sst_restore_timescale , mixed_layer_depth
@@ -213,9 +213,9 @@ module mod_params
 !     = 1 ; BATS
 !     = 2 ; Zeng et al.
 !
-!     iocncpl: controls the coupling with ROMS
+!     iocncpl: controls the coupling with driver, RegESM 
 !     = 0 ; no coupling
-!     = 1 ; activate ROMS coupling
+!     = 1 ; activate coupling
 !
 !     iocnrough: Zeng Ocean Model Roughness model
 !     = 1 ; (0.0065*ustar*ustar)/egrav (the RegCM V3 one)
@@ -468,16 +468,8 @@ module mod_params
   ilawrence_albedo = 1
   clmfrq = 24.0D0
 #endif
-!------namelist cplparam ;
-! cpldbglevel:
-! 0 = no debugging
-! 1 = only informative print
-! 2 = previous + write grid information in VTK format
-! 3 = previous + write exchange fields into NetCDF
-! 4 = previous + write exchange fileds into ASCII
-!
+!c------namelist cplparam ;
   cpldt = 21600.0D0       ! coupling time step in seconds (seconds)
-  cpldbglevel = 1         ! debugging level
 !
 !---------------------------------------------------------------------
 !
@@ -874,7 +866,6 @@ module mod_params
 
   if (iocncpl == 1) then
     call bcast(cpldt)
-    call bcast(cpldbglevel)
   end if
 
   if ( ipptls == 1 ) then

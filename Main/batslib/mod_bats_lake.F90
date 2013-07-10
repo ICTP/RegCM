@@ -74,7 +74,7 @@ module mod_bats_lake
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
-          if ( iveg1(n,j,i) == 14 ) then
+          if ( iveg1(n,j,i) == 14 .and. cplmsk(j,i) == 0 ) then
             idep(n,j,i) = idint(dmax1(d_two,dmin1(dhlake1(n,j,i), &
                                   dble(ndpmax)))/dz)
             if ( ldmsk1(n,j,i) == 2 ) then
@@ -171,7 +171,7 @@ module mod_bats_lake
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
-          if ( idep(n,j,i) > 1 ) then
+          if ( idep(n,j,i) > 1 .and. cplmsk(j,i) == 0 ) then
             tl = sts(n,j,i)
             vl = dsqrt(usw(j,i)**2+vsw(j,i)**2)
             zl = zh(n,j,i)

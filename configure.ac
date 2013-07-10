@@ -60,61 +60,6 @@ AC_ARG_ENABLE(mpiserial,
   [DONOTCHECKMPI="DONOTCHECKMPI"; PARALLEL="0"]
 )
 
-USECPL="0"
-#AM_CONDITIONAL([DO_COMPILE_LIBESMF], [test x"$USECPL" = x1])
-AC_ARG_WITH([esmf],
-  AC_HELP_STRING([--with-esmf=<yes|no|directory> (default=no)],
-            [Path to ESMF installation (default: ESMF_LIB environment)]),
-            [AS_CASE(["$with_esmf"],
-                     [no],[AC_MSG_CHECKING([for ESMF library])
-                           AC_MSG_RESULT([suppressed])],
-                     [yes],[AC_CHECK_FILE([$ESMF_LIB/esmf.mk],
-                           [AS_IF([test x"$PARALLEL" = x1],
-                                  [ESMF_PREFIX="${ESMF_LIB}"
-                                   USECPL="1"
-                                   AM_CPPFLAGS="-DESMFCPL $AM_CPPFLAGS"],
-                                  [AC_MSG_NOTICE([ESMF enabled code works only with MPI version])])])],
-                     [*],[ESMF_PREFIX=$with_esmf
-                          AS_IF([test -d "$ESMF_PREFIX"],
-                                [AS_IF([test x"$PARALLEL" = x1],
-                                       [USECPL="1" AM_CPPFLAGS="-DESMFCPL $AM_CPPFLAGS"],
-                                       [AC_MSG_NOTICE([ESMF enabled code works only with MPI version])])],
-                                [AC_MSG_NOTICE([$ESMF_PREFIX is not a directory! ESMF suppressed])])],
-            [AC_MSG_CHECKING([for ESMF library])
-             AC_MSG_RESULT([suppressed])]
-  )]
-)
-AM_CONDITIONAL([DO_COMPILE_LIBESMF], [test x"$USECPL" = x1])
-if eval "test x$USECPL = x1"; then
-  AC_MSG_WARN([Compiling CPL enabled code using ESMF library])
-  AC_SUBST(ESMF_PREFIX)
-fi
-
-AC_ARG_WITH([roms],
-  AC_HELP_STRING([--with-roms=<no|directory> (default=no)],
-            [Path to ROMS installation (default: none)]),
-            [AS_CASE(["$with_roms"],
-                     [no],[AC_MSG_CHECKING([for ROMS coupling])
-                           AC_MSG_RESULT([suppressed])],
-                     [yes],[AC_MSG_NOTICE([The ROMS installation directory must be given! ROMS coupling suppressed])],
-                     [*],[ROMS_PREFIX=$with_roms
-                          AS_IF([test -d "$ROMS_PREFIX"],
-                                [AS_IF([test x"$PARALLEL" = x1 & test x"$USECPL" = x1],
-                                       [USEROMS="1"],
-                                       [AC_MSG_NOTICE([ROMS coupling works only with MPI and ESMF version])])],
-                                [AC_MSG_NOTICE([$ROMS_PREFIX is not a directory! ROMS coupling suppressed])])],
-            [AC_MSG_CHECKING([for ROMS coupling])
-             AC_MSG_RESULT([suppressed])]
-  )]
-)
-AM_CONDITIONAL([DO_COMPILE_ROMS], [test x"$USEROMS" = x1])
-if eval "test x$USEROMS = x1"; then
-  AC_CHECK_FILE([$ROMS_PREFIX/seaice.o],
-                [AM_CPPFLAGS="-DROMSICE $AM_CPPFLAGS"; AC_MSG_WARN([Compiling with ROMS-ICE model])],
-                AC_MSG_WARN([Compiling with ROMS model]))
-  AC_SUBST(ROMS_PREFIX)
-fi
-
 AC_ARG_ENABLE(selectedrealkind,
   AC_HELP_STRING([--enable-selectedrealkind],
                  [define single precision and double precision numbers using the selected_real_kind function. Default uses the kind inquiry function.]),
@@ -151,6 +96,19 @@ if eval "test x"$USECLM" = x1"; then
     AM_CPPFLAGS="-DVOC $AM_CPPFLAGS"
     AC_SUBST(AM_CPPFLAGS)
   fi
+fi
+
+USECPL="0"
+AC_ARG_ENABLE(cpl,
+  AC_HELP_STRING([--enable-cpl],
+                 [Supply this option if you plan on using REGESM.]),
+  [USECPL="1"],
+)
+AM_CONDITIONAL(DO_COMPILE_CPL, [test x"$USECPL" = x1])
+
+if eval "test x"$USECPL" = x1"; then
+  AM_CPPFLAGS="-DCPL $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
 fi
 
 AC_ARG_ENABLE(nc4-gzip,
@@ -436,23 +394,6 @@ AC_SUBST(MPEUFCFLAGS)
 F90FLAGS="$FCFLAGS"
 AC_SUBST(F90FLAGS)
 
-AC_SUBST(ESMFINCPTH)
-AC_SUBST(ESMFLIBPTH)
-if eval "test x$USECPL = x1"; then
-  tmp_inc="`cat $ESMF_LIB/esmf.mk | grep ESMF_F90COMPILEPATHS | awk -F= '{print $2}'`"
-  tmp_lib="`cat $ESMF_LIB/esmf.mk | grep ESMF_F90LINKPATHS | awk -F= '{print $2}'`"
-  tmp_lib="$tmp_lib `cat $ESMF_LIB/esmf.mk | grep ESMF_F90ESMFLINKLIBS | awk -F= '{print $2}'`"
-  ESMFINCPTH="$tmp_inc"
-  ESMFLIBPTH="$tmp_lib"
-fi
-
-AC_SUBST(ROMS_ROOT)
-if eval "test x$USEROMS = x1"; then
-  ESMFINCPTH="$ESMFINCPTH -I$ROMS_PREFIX"
-  ESMFLIBPTH="$ESMFLIBPTH -L$ROMS_PREFIX -lUTIL"
-  ROMS_ROOT="$ROMS_PREFIX"
-fi
-
 REGCM_ROOT=${PWD}
 AC_SUBST(REGCM_ROOT)
 AC_PREFIX_DEFAULT(${PWD})
@@ -467,7 +408,6 @@ fi
 LIBS="-L$REGCM_ROOT/Share -lrcmlib $LIBS"
 SYSLIBS="$LIBS"
 AC_SUBST(SYSLIBS)
-
 
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \

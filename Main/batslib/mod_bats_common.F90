@@ -62,7 +62,7 @@ module mod_bats_common
         sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
 !
   integer(ik4) , pointer , dimension(:,:,:) :: ldmsk1 , iveg1
-  integer(ik4) , pointer , dimension(:,:) :: iveg , ldmsk
+  integer(ik4) , pointer , dimension(:,:) :: iveg , ldmsk, cplmsk
 !
   real(rk8) , pointer , dimension(:,:,:) :: ht1 , lndcat1 , &
     mask1 , xlat1 , xlon1 , emiss
@@ -123,6 +123,7 @@ module mod_bats_common
 
       call getmem2d(sinc,jci1,jci2,ici1,ici2,'bats:sinc')
       call getmem2d(ldmsk,jci1,jci2,ici1,ici2,'bats:ldmsk')
+      call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'bats:cplmsk')
       call getmem2d(flwd,jci1,jci2,ici1,ici2,'bats:flwd')
       call getmem2d(solvd,jci1,jci2,ici1,ici2,'bats:solvd')
       call getmem2d(solvs,jci1,jci2,ici1,ici2,'bats:solvs')

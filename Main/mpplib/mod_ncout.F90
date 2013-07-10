@@ -227,6 +227,7 @@ module mod_ncout
   integer(ik4) , parameter :: sts_t2min  = 2
   integer(ik4) , parameter :: sts_t2avg  = 3
   integer(ik4) , parameter :: sts_w10max = 4
+  integer(ik4) , parameter :: sts_runoff = 5
 
   integer(ik4) , parameter :: sub_xlon   = 1
   integer(ik4) , parameter :: sub_xlat   = 2
@@ -919,6 +920,13 @@ module mod_ncout
           call setup_var(v3dvar_sts,sts_w10max,vsize,'sfcWindmax','m s-1', &
             'Maximum speed of 10m wind','wind_speed',.true.,'time: maximum')
           sts_w10max_out => v3dvar_sts(sts_w10max)%rval
+        end if
+        vsize%k2 = 2
+        v3dvar_sts(sts_runoff)%axis = 'xys'
+        if ( enable_sts3d_vars(sts_runoff) ) then
+          call setup_var(v3dvar_sts,sts_runoff,vsize,'mrro','kg m-2 s-1', &
+            'Runoff flux','runoff_flux',.true.,'time: mean',l_fill=.true.)
+          sts_runoff_out => v3dvar_sts(sts_runoff)%rval
         end if
 
         enable_sts_vars(1:nsts2dvars) = enable_sts2d_vars

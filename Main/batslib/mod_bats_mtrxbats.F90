@@ -36,6 +36,7 @@ module mod_bats_mtrxbats
   use mod_bats_leaftemp
   use mod_bats_mppio
   use mod_bats_zengocn
+  use mod_bats_coare
   use mod_outvars
 
   private
@@ -211,6 +212,9 @@ module mod_bats_mtrxbats
       call lakedrv
     endif
 
+!   Coare bulk flux algorithm
+    if ( iocncpl == 1 ) call coare3_drv
+
 !   Accumulate quantities for energy and moisture budgets
 
     call interf(2,ktau)
@@ -383,7 +387,7 @@ module mod_bats_mtrxbats
         do i = ici1 , ici2
           do j = jci1 , jci2
             do n = 1 , nnsg
-              if ( ldmsk1(n,j,i) == 0 ) tgrd(n,j,i) = tground2(j,i)
+              if ( ldmsk1(n,j,i) == 0 .and. cplmsk(j,i) == 0 ) tgrd(n,j,i) = tground2(j,i)
             end do
           end do
         end do
@@ -431,7 +435,7 @@ module mod_bats_mtrxbats
               t2m(n,j,i) = sts(n,j,i) - delt(n,j,i)*fact
               q2m(n,j,i) = qs(n,j,i) - delq(n,j,i)*fact
             else
-              if ( iocnflx == 1 ) then
+              if ( iocnflx == 1 .and. cplmsk(j,i) == 0 ) then
                 fact = z2fra(n,j,i)/zlgocn(n,j,i)
                 factuv = z10fra(n,j,i)/zlgocn(n,j,i)
                 u10m(n,j,i) = usw(j,i)*(d_one-factuv)
@@ -566,6 +570,10 @@ module mod_bats_mtrxbats
             where( fsw > 120.0D0 )
               sts_sund_out = sts_sund_out + dtbat
             end where
+          end if
+          if ( associated(sts_runoff_out) ) then
+            sts_runoff_out(:,:,1) = sts_runoff_out(:,:,1) + sum(srnof,1)*rdnnsg
+            sts_runoff_out(:,:,2) = sts_runoff_out(:,:,2) + sum(trnof,1)*rdnnsg
           end if
         end if
         if ( iflak ) then

@@ -48,9 +48,8 @@ module mod_regcm_interface
   use spmdMod, only: mpicom
   use clm_varsur , only : numdays
 #endif
-#ifdef ESMFCPL
-  use mod_update, only: ocn_put => RCM_PutExportData
-  use mod_update, only: ocn_get => RCM_GetImportData
+#ifdef CPL
+  use mod_update, only: rcm_get, rcm_put
 #endif
   implicit none
   include 'mpif.h'
@@ -257,12 +256,12 @@ module mod_regcm_interface
         end if
       end if
       !
-      ! Get information from ocean model
+      ! Retrieve information from the driver 
       !
-#ifdef ESMFCPL
+#ifdef CPL
       if ( iocncpl == 1 ) then
-        if (ktau > ntcpl) then 
-          call ocn_get(myid)
+        if (mod(ktau+1, ntcpl) == 0) then
+          call rcm_get(myid)
         end if
       end if
 #endif
@@ -308,11 +307,13 @@ module mod_regcm_interface
       !
       call output
       !
-      ! Send information to ocean model
+      ! Send information to the driver 
       !
-#ifdef ESMFCPL
+#ifdef CPL
       if ( iocncpl == 1 ) then
-        call ocn_put(myid)
+        if (mod(ktau, ntcpl) == 0) then
+          call rcm_put(myid)
+        end if
       end if
 #endif
       !

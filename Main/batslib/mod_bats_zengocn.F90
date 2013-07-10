@@ -100,7 +100,7 @@ module mod_bats_zengocn
 #ifdef CLM
           if ( ldmsk1(n,j,i) == 0 .or. lmask(jj,ii) == 3 ) then
 #else
-          if ( ldmsk1(n,j,i) == 0 ) then
+          if ( ldmsk1(n,j,i) == 0 .and. cplmsk(j,i) == 0 ) then
 #endif
             uv995 = dsqrt(uatm(j,i,kz)**2+vatm(j,i,kz)**2)
             tsurf = tground2(j,i) - tzero

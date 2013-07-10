@@ -98,6 +98,7 @@ module mod_outvars
   real(rk8) , dimension(:,:,:) , pointer :: sts_t2min_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: sts_t2avg_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: sts_w10max_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: sts_runoff_out => null()
 
   real(rk8) , dimension(:,:) , pointer :: sub_uvdrag_out => null()
   real(rk8) , dimension(:,:) , pointer :: sub_tg_out => null()
