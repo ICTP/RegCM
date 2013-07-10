@@ -98,7 +98,7 @@
  scenario = 'A1B',
  idcsst = 1,
  iseaice = 0,
- idesseas = 1,
+ idesseas = 0,
  iconvlwp = 1,
  /
  &subexparam

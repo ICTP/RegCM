@@ -89,7 +89,7 @@
  iemiss   = 0,
  lakemod  = 0,
  ichem    = 1,
- idesseas = 1,
+ idesseas = 0,
  iconvlwp = 1,
  /
  &subexparam
