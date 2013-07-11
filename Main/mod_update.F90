@@ -150,7 +150,6 @@
 !
           ldmskb(j,i) = ldmsk(j,i)
           wetdry(j,i) = 0
-          cplmsk(j,i) = 0
         end do
       end do
 !

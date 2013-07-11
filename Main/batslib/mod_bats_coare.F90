@@ -95,7 +95,9 @@
 !     Input bulk parameterization fields 
 !-----------------------------------------------------------------------
 !
+      iflag = .false.
       if (sfice(n,j,i) > 0.0d0) iflag = .true.
+!
       ps = (sfps(j,i)+ptop)*d_10
       ts = tground2(j,i)-tzero
       uv995 = dsqrt(uatm(j,i,kz)**2+vatm(j,i,kz)**2)
@@ -130,7 +132,12 @@
              4.84d-9*t995*t995*t995)
 
       bigc = 16.0*egrav*cpw*(rhow*visw)**3/(tcw*tcw*rhoa*rhoa)
-      Al = 1.5d10-4 !2.1d-5*(ts+3.2d0)**0.79d0
+
+      if (ts < 0.0d0) then
+        Al = 3.1d10-5
+      else
+        Al = 2.1d-5*(ts+3.2d0)**0.79d0
+      end if
 !     
 !-----------------------------------------------------------------------
 !     Compute net longwave and shortwave radiation (W/m2) 
@@ -358,12 +365,15 @@
       tauy(n,j,i) = tau*(vatm(j,i,kz)/uv995)
 
       ! wind components
-      u10m(n,j,i) = 0.0d0 !uatm(j,i,kz)*uv10/uv995
-      v10m(n,j,i) = 0.0d0 !vatm(j,i,kz)*uv10/uv995 
+      u10m(n,j,i) = uatm(j,i,kz)*uv10/uv995
+      v10m(n,j,i) = vatm(j,i,kz)*uv10/uv995 
 
       ! surface atmospheric variables
       t2m(n,j,i) = t995+tzero-dt*facttq
       q2m(n,j,i) = q995-dq*facttq
+!
+      write(*,fmt="(2I5,2F10.3,4F12.6,3F10.3,F12.6)") i, j, hsb, hlb, facttq, drag(n,j,i), taux(n,j,i), tauy(n,j,i), u10m(n,j,i), v10m(n,j,i), t2m(n,j,i), q2m(n,j,i)
+!
       end if
       end do
       end do
