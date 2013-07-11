@@ -132,6 +132,7 @@ module mod_bats_common
         ! This is for the RTM component
         call getmem3d(dailyrnf,jci1,jci2,ici1,ici2,1,2,'bats:dailyrnf')
       end if
+      cplmsk = 0 
       call getmem2d(flwd,jci1,jci2,ici1,ici2,'bats:flwd')
       call getmem2d(solvd,jci1,jci2,ici1,ici2,'bats:solvd')
       call getmem2d(solvs,jci1,jci2,ici1,ici2,'bats:solvs')

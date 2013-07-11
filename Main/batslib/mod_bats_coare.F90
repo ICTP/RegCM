@@ -130,7 +130,7 @@
              4.84d-9*t995*t995*t995)
 
       bigc = 16.0*egrav*cpw*(rhow*visw)**3/(tcw*tcw*rhoa*rhoa)
-      Al = 2.1d-5*(ts+3.2d0)**0.79d0
+      Al = 1.5d10-4 !2.1d-5*(ts+3.2d0)**0.79d0
 !     
 !-----------------------------------------------------------------------
 !     Compute net longwave and shortwave radiation (W/m2) 
