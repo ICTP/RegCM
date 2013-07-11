@@ -418,7 +418,7 @@
           exportFields%rnof = zeroval
           exportFields%snof = zeroval
         end where
-        dailyrnf(:,:.:) = zeroval
+        dailyrnf(:,:,:) = zeroval
         runoffcount = zeroval
       end if
 !
