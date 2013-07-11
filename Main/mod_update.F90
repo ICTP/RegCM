@@ -368,8 +368,8 @@
       use mod_dynparam, only : ici1, ici2, jci1, jci2, nnsg, ptop
       use mod_bats_common, only : sfps, t2m, q2m, flw, flwd,            &
                                   evpr, sent, totpr, u10m, v10m, fsw,   &
-                                  srnof, trnof, rdnnsg, ldmsk
-      use mod_outvars, only : sts_runoff_out
+                                  srnof, trnof, rdnnsg, ldmsk, dailyrnf,&
+                                  runoffcount
 !
       implicit none
 !
@@ -412,13 +412,14 @@
 !
       if (mod(ktau+1,kday) == 0) then
         where (ldmsk > 0)
-          exportFields%rnof = sts_runoff_out(:,:,1)*rnsrf_for_day
-          exportFields%snof = sts_runoff_out(:,:,2)*rnsrf_for_day-      &
-                              exportFields%rnof
+          exportFields%rnof = dailyrnf(:,:,1)/runoffcount
+          exportFields%snof = dailyrnf(:,:,2)/runoffcount
         else where
           exportFields%rnof = zeroval
           exportFields%snof = zeroval
         end where
+        dailyrnf(:,:.:) = zeroval
+        runoffcount = zeroval
       end if
 !
       end subroutine RCM_Put

@@ -60,7 +60,7 @@ module mod_ncout
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
   integer(ik4) , parameter :: nsts2dvars = 6 + nbase
-  integer(ik4) , parameter :: nsts3dvars = 4
+  integer(ik4) , parameter :: nsts3dvars = 5
   integer(ik4) , parameter :: nstsvars = nsts2dvars+nsts3dvars
 
   integer(ik4) , parameter :: nsub2dvars = 7 + nbase

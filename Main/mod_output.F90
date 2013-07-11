@@ -469,6 +469,16 @@ module mod_output
           sts_pcpavg_out = sts_pcpavg_out*rnsrf_for_day
         if ( associated(sts_t2avg_out) ) &
           sts_t2avg_out = sts_t2avg_out*rnsrf_for_day
+        if ( associated(sts_runoff_out) ) then
+          where ( ldmsk > 0 )
+            sts_runoff_out(:,:,1) = sts_runoff_out(:,:,1)*rnsrf_for_day
+            sts_runoff_out(:,:,2) = sts_runoff_out(:,:,2)*rnsrf_for_day - &
+                                    sts_runoff_out(:,:,1)
+          else where
+            sts_runoff_out(:,:,1) = dmissval
+            sts_runoff_out(:,:,2) = dmissval
+          end where
+        end if
 
         call write_record_output_stream(sts_stream,idatex)
         if ( myid == italk ) &
@@ -484,17 +494,8 @@ module mod_output
         if ( associated(sts_psmin_out) )  sts_psmin_out  =  1.D30
         if ( associated(sts_pcpmax_out) ) sts_pcpmax_out = -1.D30
         if ( associated(sts_sund_out) )   sts_sund_out   = d_zero
+        if ( associated(sts_runoff_out) ) sts_runoff_out = d_zero
 
-        if ( associated(sts_runoff_out) ) then
-          where ( ldmsk > 0 )
-            sts_runoff_out(:,:,1) = sts_runoff_out(:,:,1)*rnsrf_for_day
-            sts_runoff_out(:,:,2) = sts_runoff_out(:,:,2)*rnsrf_for_day - &
-                                    sts_runoff_out(:,:,1)
-          else where
-            sts_runoff_out(:,:,1) = dmissval
-            sts_runoff_out(:,:,2) = dmissval
-          end where
-        end if
       end if
     end if
 

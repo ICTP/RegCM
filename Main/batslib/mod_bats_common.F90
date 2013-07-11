@@ -62,11 +62,15 @@ module mod_bats_common
         sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
 !
   integer(ik4) , pointer , dimension(:,:,:) :: ldmsk1 , iveg1
-  integer(ik4) , pointer , dimension(:,:) :: iveg , ldmsk, cplmsk
+  integer(ik4) , pointer , dimension(:,:) :: iveg , ldmsk
 !
   real(rk8) , pointer , dimension(:,:,:) :: ht1 , lndcat1 , &
     mask1 , xlat1 , xlon1 , emiss
 !
+  ! Coupling variables
+  real(rk8) , pointer , dimension(:,:,:) :: dailyrnf
+  integer(ik4) , pointer , dimension(:,:) :: cplmsk
+  real(rk8) :: runoffcount = 0.0D0
   ! dtskin is difference between skin temp and bulk sst
   real(rk8) , pointer , dimension(:,:) :: deltas , tdeltas , dtskin
   real(rk8) , pointer , dimension(:,:) :: sst
@@ -107,9 +111,9 @@ module mod_bats_common
 
   contains
 
-    subroutine allocate_mod_bats_common(ichem,idcsst,lakemod)
+    subroutine allocate_mod_bats_common(ichem,idcsst,lakemod,iocncpl)
       implicit none
-      integer(ik4) , intent(in) :: ichem , idcsst , lakemod
+      integer(ik4) , intent(in) :: ichem , idcsst , lakemod , iocncpl
 
       rrnnsg = 1.0/real(nnsg)
       rdnnsg = d_one/dble(nnsg)
@@ -123,7 +127,11 @@ module mod_bats_common
 
       call getmem2d(sinc,jci1,jci2,ici1,ici2,'bats:sinc')
       call getmem2d(ldmsk,jci1,jci2,ici1,ici2,'bats:ldmsk')
-      call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'bats:cplmsk')
+      if ( iocncpl == 1 ) then
+        call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'bats:cplmsk')
+        ! This is for the RTM component
+        call getmem3d(dailyrnf,jci1,jci2,ici1,ici2,1,2,'bats:dailyrnf')
+      end if
       call getmem2d(flwd,jci1,jci2,ici1,ici2,'bats:flwd')
       call getmem2d(solvd,jci1,jci2,ici1,ici2,'bats:solvd')
       call getmem2d(solvs,jci1,jci2,ici1,ici2,'bats:solvs')

@@ -27,7 +27,7 @@ module mod_bats_zengocn
     use mod_dynparam
     use mod_service
     use mod_bats_common
-    use mod_runparams , only : iqv , iocnrough , ksrf
+    use mod_runparams , only : iqv , iocnrough , iocncpl , ksrf
 !
     private
 !
@@ -100,8 +100,11 @@ module mod_bats_zengocn
 #ifdef CLM
           if ( ldmsk1(n,j,i) == 0 .or. lmask(jj,ii) == 3 ) then
 #else
-          if ( ldmsk1(n,j,i) == 0 .and. cplmsk(j,i) == 0 ) then
+          if ( ldmsk1(n,j,i) == 0 ) then
 #endif
+            if ( iocncpl == 1 ) then
+              if ( cplmsk(j,i) /= 0 ) cycle
+            end if
             uv995 = dsqrt(uatm(j,i,kz)**2+vatm(j,i,kz)**2)
             tsurf = tground2(j,i) - tzero
             t995 = tatm(j,i,kz) - tzero

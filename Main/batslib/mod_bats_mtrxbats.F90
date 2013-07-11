@@ -387,7 +387,12 @@ module mod_bats_mtrxbats
         do i = ici1 , ici2
           do j = jci1 , jci2
             do n = 1 , nnsg
-              if ( ldmsk1(n,j,i) == 0 .and. cplmsk(j,i) == 0 ) tgrd(n,j,i) = tground2(j,i)
+              if ( ldmsk1(n,j,i) == 0 ) then
+                if ( iocncpl == 1 ) then
+                  if ( cplmsk(j,i) /= 0 ) cycle
+                end if
+                tgrd(n,j,i) = tground2(j,i)
+              end if
             end do
           end do
         end do
@@ -435,7 +440,10 @@ module mod_bats_mtrxbats
               t2m(n,j,i) = sts(n,j,i) - delt(n,j,i)*fact
               q2m(n,j,i) = qs(n,j,i) - delq(n,j,i)*fact
             else
-              if ( iocnflx == 1 .and. cplmsk(j,i) == 0 ) then
+              if ( iocncpl == 1 ) then
+                if ( cplmsk(j,i) /= 0 ) cycle
+              end if
+              if ( iocnflx == 1 ) then
                 fact = z2fra(n,j,i)/zlgocn(n,j,i)
                 factuv = z10fra(n,j,i)/zlgocn(n,j,i)
                 u10m(n,j,i) = usw(j,i)*(d_one-factuv)
@@ -686,6 +694,13 @@ module mod_bats_mtrxbats
         end if
 
       end if ! IF output time
+
+      if ( iocncpl == 1 ) then
+        ! Fill for the RTM component
+        dailyrnf(:,:,1) = dailyrnf(:,:,1) + sum(srnof,1)*rdnnsg
+        dailyrnf(:,:,2) = dailyrnf(:,:,2) + (sum(trnof,1)-sum(srnof,1))*rdnnsg
+        runoffcount = runoffcount + d_one
+      end if
 
       ! Reset accumulation from precip and cumulus
       pptnc = d_zero

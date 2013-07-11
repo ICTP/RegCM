@@ -1037,7 +1037,7 @@ module mod_params
 
   call allocate_mod_mppio
 
-  call allocate_mod_bats_common(ichem,idcsst,lakemod)
+  call allocate_mod_bats_common(ichem,idcsst,lakemod,iocncpl)
 #ifndef CLM
   call allocate_mod_bats_mppio(lakemod)
 #else
