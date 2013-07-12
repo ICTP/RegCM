@@ -834,7 +834,7 @@ module mod_bats_leaftemp
     implicit none
     real(rk8) , pointer , dimension(:,:,:) :: temp
     integer(ik4) :: i , j , n
-    logical , parameter :: lcrop_cutoff = .false.
+    logical , parameter :: lcrop_cutoff = .true. !.false.
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'fseas'
     integer(ik4) , save :: idindx = 0

@@ -100,7 +100,11 @@ module mod_bats_zengocn
 #ifdef CLM
           if ( ldmsk1(n,j,i) == 0 .or. lmask(jj,ii) == 3 ) then
 #else
+#ifdef CPL
           if ( ldmsk1(n,j,i) == 0 .or. cplmsk(j,i) == 1) then
+#else
+          if ( ldmsk1(n,j,i) == 0) then
+#endif
 #endif
 !            if ( iocncpl == 1 ) then
 !              if ( cplmsk(j,i) /= 0 ) cycle
