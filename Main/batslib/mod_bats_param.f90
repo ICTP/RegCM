@@ -82,8 +82,7 @@ module mod_bats_param
 ! (increase in rsmin will lead to a decrease in evapotranspration)
 ! Model is expecially sensible to this, tune it carefully
 !
-!  data rsmin /5*200.0D0,50.0D0,14*200.0D0, 120.0D0, 60.0D0/
-  data rsmin /45.0D0,4*200.0D0,50.0D0,14*200.0D0, 120.0D0, 60.0D0/
+  data rsmin /5*200.0D0,50.0D0,14*200.0D0, 120.0D0, 60.0D0/
 !
 !Sara_
 ! max leaf area index (ratio unit cover per unit ground)
@@ -91,10 +90,7 @@ module mod_bats_param
 ! data xla/6.,2.,5*6.,0.,3*6.,0.,6.,2*0.,5*6./
 ! Laura 21/04/08
 !
-!  data xla/4.0D0 , 2.0D0 , 4*6.0D0 , 3.0D0 , 0.0D0 , 2.0D0 , 4.0D0 ,&
-!           1.0D0 , 0.0D0 , 4.0D0 , 2*0.0D0 , 4.0D0 , 4.0D0 , 5.0D0 ,&
-!           4.0D0 , 1.0D0, 1.0D0, 2.0D0 /
-  data xla/6.0D0 , 2.0D0 , 4*6.0D0 , 3.0D0 , 0.0D0 , 2.0D0 , 4.0D0 ,&
+  data xla/4.0D0 , 2.0D0 , 4*6.0D0 , 3.0D0 , 0.0D0 , 2.0D0 , 4.0D0 ,&
            1.0D0 , 0.0D0 , 4.0D0 , 2*0.0D0 , 4.0D0 , 4.0D0 , 5.0D0 ,&
            4.0D0 , 1.0D0, 1.0D0, 2.0D0 /
 !

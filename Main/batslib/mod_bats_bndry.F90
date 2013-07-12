@@ -34,7 +34,7 @@ module mod_bats_bndry
 !
   real(rk8) , parameter :: minsigf = 0.001D+00
   real(rk8) , parameter :: lowsice = 1.0D-22
-  real(rk8) , parameter :: rainsnowtemp = 1.2 !2.2D0
+  real(rk8) , parameter :: rainsnowtemp = 2.2D0
   real(rk8) , parameter :: xnu = twopi/secpd
 !
   contains
