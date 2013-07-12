@@ -100,11 +100,11 @@ module mod_bats_zengocn
 #ifdef CLM
           if ( ldmsk1(n,j,i) == 0 .or. lmask(jj,ii) == 3 ) then
 #else
-          if ( ldmsk1(n,j,i) == 0 ) then
+          if ( ldmsk1(n,j,i) == 0 .or. cplmsk(j,i) == 1) then
 #endif
-            if ( iocncpl == 1 ) then
-              if ( cplmsk(j,i) /= 0 ) cycle
-            end if
+!            if ( iocncpl == 1 ) then
+!              if ( cplmsk(j,i) /= 0 ) cycle
+!            end if
             uv995 = dsqrt(uatm(j,i,kz)**2+vatm(j,i,kz)**2)
             tsurf = tground2(j,i) - tzero
             t995 = tatm(j,i,kz) - tzero
@@ -251,7 +251,7 @@ module mod_bats_zengocn
               uv10 = uv995 + (ustar/vonkar)* &
                        (dlog(z10/hu)+d_five*zeta-d_five*hu/obu)
             end if
-            if ( ldcsst ) then
+            if ( ldcsst .and. iocncpl == 0) then
               ! time step considered for the integration of prognostic skin
               ! temperature , equal to BATS time step
               dtsst = dtbat

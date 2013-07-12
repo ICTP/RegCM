@@ -288,56 +288,55 @@
 !     Update: Sea-ice, mask and land-use type (based on sea-ice module) 
 !-----------------------------------------------------------------------
 ! 
-!      if (importFields%sit(j,i) < tol .and. ldmsk(j,i) /= 1) then
-!        if (importFields%sit(j,i) > iceminh) then
-!          flag = .false.
-!          if (ldmsk(j,i) == 0) flag = .true.
-!          ! set land-sea mask
-!          ldmsk(j,i) = 2
-!          do n = 1, nnsg
-!            ldmsk1(n,j,i) = 2
-!            ! set land-use type
-!            lveg(n,j,i) = 12
-!            ! set sea ice thikness (in mm)
-!            sfice(n,j,i) = importFields%sit(j,i) 
-!            ! reduce sensible heat flux
-!            toth = sfice(n,j,i)+sncv(n,j,i)
-!            if ( toth > href ) then
-!              sent(n,j,i) = sent(n,j,i) * (href/toth)**steepf
-!            end if
-!          end do
-!          ! write debug info
-!          if (flag) then
-!            write(*,30) jj, ii, 'water', 'ice  ',                       &
-!                        lveg(1,j,i), ldmsk(j,i), sfice(1,j,i)
-!          end if
-!        else
-!          if (ldmskb(j,i) == 0 .and. ldmsk(j,i) == 2) then
-!            ! reduce to one tenth surface ice: it should melt away
-!            do n = 1, nnsg
-!              sfice(n,j,i) = sfice(n,j,i)*(d_r10*5.0d0)
-!              ! check that sea ice is melted or not
-!              if (sfice(n,j,i) <= iceminh) then
-!                if (ldmskb(j,i) /= ldmsk(j,i)) flag = .true.
-!                ! set land-sea mask to its original value
-!                ldmsk(j,i) = ldmskb(j,i)
-!                ldmsk1(n,j,i) = ldmskb(j,i)
-!                ! set land-use type to its original value
-!                lveg(n,j,i) = iveg1(n,j,i)
-!                ! set sea ice thikness (in mm)
-!                sfice(n,j,i) = 0.0d0 
-!              else
-!                flag = .false.
-!              end if
-!            end do
-!            ! write debug info
-!            if (flag) then
-!              write(*,40) jj, ii, 'ice  ', 'water',                     &
-!                          lveg(1,j,i), ldmsk(j,i), sfice(1,j,i)
-!            end if 
-!          end if           
-!        end if
-!      end if 
+      if (importFields%sit(j,i) < tol .and. ldmsk(j,i) /= 1) then
+        if (importFields%sit(j,i) > iceminh) then
+          flag = .false.
+          if (ldmsk(j,i) == 0) flag = .true.
+          ! set land-sea mask
+          ldmsk(j,i) = 2
+          do n = 1, nnsg
+            ldmsk1(n,j,i) = 2
+            ! set land-use type
+            lveg(n,j,i) = 12
+            ! set sea ice thikness (in mm)
+            sfice(n,j,i) = importFields%sit(j,i) 
+            !toth = sfice(n,j,i)+sncv(n,j,i)
+            !if ( toth > href ) then
+            !  sent(n,j,i) = sent(n,j,i) * (href/toth)**steepf
+            !end if
+          end do
+          ! write debug info
+          if (flag) then
+            write(*,30) jj, ii, 'water', 'ice  ',                       &
+                        lveg(1,j,i), ldmsk(j,i), sfice(1,j,i)
+          end if
+        else
+          if (ldmskb(j,i) == 0 .and. ldmsk(j,i) == 2) then
+            ! reduce to one tenth surface ice: it should melt away
+            do n = 1, nnsg
+              sfice(n,j,i) = sfice(n,j,i)*(d_r10*5.0d0)
+              ! check that sea ice is melted or not
+              if (sfice(n,j,i) <= iceminh) then
+                if (ldmskb(j,i) /= ldmsk(j,i)) flag = .true.
+                ! set land-sea mask to its original value
+                ldmsk(j,i) = ldmskb(j,i)
+                ldmsk1(n,j,i) = ldmskb(j,i)
+                ! set land-use type to its original value
+                lveg(n,j,i) = iveg1(n,j,i)
+                ! set sea ice thikness (in mm)
+                sfice(n,j,i) = 0.0d0 
+              else
+                flag = .false.
+              end if
+            end do
+            ! write debug info
+            if (flag) then
+              write(*,40) jj, ii, 'ice  ', 'water',                     &
+                          lveg(1,j,i), ldmsk(j,i), sfice(1,j,i)
+            end if 
+          end if           
+        end if
+      end if 
       end if      
 !
       end do
