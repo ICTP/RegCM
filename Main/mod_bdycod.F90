@@ -523,6 +523,9 @@ module mod_bdycod
             end if
             if ( iseaice == 1 ) then
               if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+              if ( iocncpl == 1 ) then
+                if ( cplmsk(j,i) /= 0 ) cycle
+              end if
               if ( ts1(j,i) <= icetemp .and. ldmsk(j,i) == 0 ) then
                 sfs%tga(j,i) = sfice_temp
                 sfs%tgb(j,i) = sfice_temp

@@ -215,7 +215,7 @@
 !        
         sfs%tga(j,i) = importFields%sst(j,i)
         sfs%tgb(j,i) = importFields%sst(j,i)
-        tgrd(:,j,i)  = importFields%sst(j,i)
+        tgrd(:,j,i) = importFields%sst(j,i)
       end if
 !
 !-----------------------------------------------------------------------
@@ -314,17 +314,17 @@
           if (ldmskb(j,i) == 0 .and. ldmsk(j,i) == 2) then
             ! reduce to one tenth surface ice: it should melt away
             do n = 1, nnsg
-              sfice(n,j,i) = sfice(n,j,i)*(d_r10*5.0d0)
-              ! check that sea ice is melted or not
+!              sfice(n,j,i) = sfice(n,j,i)*(d_r10*2.0d0)
+!              ! check that sea ice is melted or not
               if (sfice(n,j,i) <= iceminh) then
                 if (ldmskb(j,i) /= ldmsk(j,i)) flag = .true.
-                ! set land-sea mask to its original value
+!                ! set land-sea mask to its original value
                 ldmsk(j,i) = ldmskb(j,i)
                 ldmsk1(n,j,i) = ldmskb(j,i)
-                ! set land-use type to its original value
+!                ! set land-use type to its original value
                 lveg(n,j,i) = iveg1(n,j,i)
-                ! set sea ice thikness (in mm)
-                sfice(n,j,i) = 0.0d0 
+!                ! set sea ice thikness (in mm)
+                sfice(n,j,i) = d_zero 
               else
                 flag = .false.
               end if
