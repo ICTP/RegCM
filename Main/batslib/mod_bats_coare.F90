@@ -133,10 +133,10 @@
 
       bigc = 16.0*egrav*cpw*(rhow*visw)**3/(tcw*tcw*rhoa*rhoa)
 
-      if (ts < 0.0d0) then
-        Al = 3.1d10-5
-      else
+      if (ts > -2.0d0) then
         Al = 2.1d-5*(ts+3.2d0)**0.79d0
+      else
+        Al = 2.4253d-05
       end if
 !     
 !-----------------------------------------------------------------------
@@ -460,16 +460,17 @@
 !
       real(rk8) :: x, psik, f, psic, c
 !
-      x = (1.0d0-15.0d0*zet)**0.25d0
-      psik = 2.0d0*dlog((1.0d0+x)/2.0d0)+dlog((1.0d0+x*x)/2.0d0)-       &
-             2.0d0*datan(x)+2.0d0*datan(1.0d0)
-      x = (1.0d0-10.15d0*zet)**0.3333d0
-      psic = 1.5d0*dlog((1.0d0+x+x*x)/3.0d0)-dsqrt(3.0d0)*              &
-             datan((1.0d0+2.0d0*x)/dsqrt(3.0d0))+4.0d0*                 &
-             datan(1.0d0)/dsqrt(3.0d0) 
-      f = zet*zet/(1.0d0+zet*zet) 
-      psiuo = (1.0d0-f)*psik+f*psic
-      if (zet > 0.0d0) then
+      if (zet < 0.0d0) then
+        x = (1.0d0-15.0d0*zet)**0.25d0
+        psik = 2.0d0*dlog((1.0d0+x)/2.0d0)+dlog((1.0d0+x*x)/2.0d0)-     &
+               2.0d0*datan(x)+2.0d0*datan(1.0d0)
+        x = (1.0d0-10.15d0*zet)**0.3333d0
+        psic = 1.5d0*dlog((1.0d0+x+x*x)/3.0d0)-dsqrt(3.0d0)*            &
+               datan((1.0d0+2.0d0*x)/dsqrt(3.0d0))+4.0d0*               &
+               datan(1.0d0)/dsqrt(3.0d0) 
+        f = zet*zet/(1.0d0+zet*zet) 
+        psiuo = (1.0d0-f)*psik+f*psic
+      else
         c = dmin1(50.0d0,0.35d0*zet)
         psiuo = -((1.0d0+1.0d0*zet)**1.0d0+0.667d0*                     &
                 (zet-14.28d0)/dexp(c)+8.525d0)
@@ -493,15 +494,16 @@
 !
       real(rk8) :: x, psik, f, psic, c
 !
-      x = (1.0d0-15.0d0*zet)**0.5d0
-      psik = 2.0d0*dlog((1.0d0+x)/2.0d0)
-      x = (1.0d0-34.15d0*zet)**0.3333d0
-      psic = 1.5d0*dlog((1.0d0+x+x*x)/3.0d0)-dsqrt(3.0d0)*              &
-             datan((1.0d0+2.0d0*x)/dsqrt(3.0d0))+4.0d0*                 &
-             datan(1.0d0)/dsqrt(3.0d0)
-      f = zet*zet/(1.0d0+zet*zet)
-      psit = (1.0d0-f)*psik+f*psic
-      if (zet > 0.0d0) then
+      if (zet < 0.0d0) then
+        x = (1.0d0-15.0d0*zet)**0.5d0
+        psik = 2.0d0*dlog((1.0d0+x)/2.0d0)
+        x = (1.0d0-34.15d0*zet)**0.3333d0
+        psic = 1.5d0*dlog((1.0d0+x+x*x)/3.0d0)-dsqrt(3.0d0)*            &
+               datan((1.0d0+2.0d0*x)/dsqrt(3.0d0))+4.0d0*               &
+               datan(1.0d0)/dsqrt(3.0d0)
+        f = zet*zet/(1.0d0+zet*zet)
+        psit = (1.0d0-f)*psik+f*psic
+      else
         c = dmin1(50.0d0,0.35d0*zet)
         psit = -((1.0d0+2.0d0/3.0d0*zet)**1.5d0+0.667d0*                &
                 (zet-14.28d0)/dexp(c)+8.525d0)
