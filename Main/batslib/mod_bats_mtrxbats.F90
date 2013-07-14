@@ -213,7 +213,7 @@ module mod_bats_mtrxbats
     endif
 
 !   Coare bulk flux algorithm
-!    if ( iocncpl == 1 ) call coare3_drv
+    if ( iocncpl == 1 .and. iocnflx == 3 ) call coare3_drv
 
 !   Accumulate quantities for energy and moisture budgets
 

@@ -89,7 +89,8 @@
       do i = ici1 , ici2
       do j = jci1 , jci2
       do n = 1 , nnsg
-      if (cplmsk(j,i) == 1) then
+      if ((ldmsk1(n,j,i) == 0 .or. ldmsk1(n,j,i) == 2) .and.             &
+           cplmsk(j,i) == 1) then
 !     
 !-----------------------------------------------------------------------
 !     Input bulk parameterization fields 
