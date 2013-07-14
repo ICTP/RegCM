@@ -311,9 +311,9 @@ module mod_regcm_interface
       !
 #ifdef CPL
       if ( iocncpl == 1 ) then
-        if (mod(ktau, ntcpl) == 0) then
+        !if (mod(ktau, ntcpl) == 0) then
           call rcm_put(myid)
-        end if
+        !end if
       end if
 #endif
       !
