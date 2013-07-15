@@ -625,6 +625,8 @@ sensitivity experiments to select the best scheme for your application.
  iocnflx =          2,  ! Ocean Flux scheme
                         !   1 => Use BATS1e Monin-Obukhov
                         !   2 => Zeng et al (1998)
+                        !   3 => Coare bulk flux algorithm (snowice),
+                        !        only activated with coupling
    iocnrough =      1,  ! Zeng Ocean model roughness formula to use.
                         !   1 => (0.0065*ustar*ustar)/egrav
                         !   2 => (0.013*ustar*ustar)/egrav + 0.11*visa/ustar

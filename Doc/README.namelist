@@ -232,7 +232,8 @@
  iocnflx =          2,  ! Ocean Flux scheme
                         !   1 => Use BATS1e Monin-Obukhov
                         !   2 => Zeng et al (1998)
-                        !   3 => Coare bulk flux algorithm (snowice), only activated with coupling
+                        !   3 => Coare bulk flux algorithm (snowice),
+                        !        only activated with coupling
  iocncpl =          0,  ! Activates RegCM-ROMS coupled model
                         !   0 => no coupling
                         !   1 => coupling activated
