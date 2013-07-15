@@ -306,10 +306,10 @@ program sigma2z
     istatus = nf90_get_var(ncid, ishvarid, topo, istart(1:2), icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__,'Error reading topo.')
     istatus = nf90_def_var(ncout, 'mslp', nf90_float, psdimids, imslzvar)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error define variable rh')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error define variable mslp')
 #ifdef NETCDF4_HDF5
     istatus = nf90_def_var_deflate(ncout, imslzvar, 1, 1, 9)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error set deflate for hgt')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error set deflate for mslp')
 #endif
     istatus = nf90_put_att(ncout, imslzvar, 'standard_name', &
                      'air_pressure_at_sea_level')
@@ -319,6 +319,8 @@ program sigma2z
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding long name')
     istatus = nf90_put_att(ncout, imslzvar, 'units', 'hPa')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding units')
+    istatus = nf90_put_att(ncout, imslzvar, 'coordinates', 'xlat xlon')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding coordinates')
   end if
   if ( has_t .and. has_q ) then
     make_rh = .true.
@@ -336,6 +338,8 @@ program sigma2z
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding long name')
     istatus = nf90_put_att(ncout, irhvar, 'units', '%')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding units')
+    istatus = nf90_put_att(ncout, irhvar, 'coordinates', 'xlat xlon')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding coordinates')
   end if
 
   istatus = nf90_inq_varid(ncid, "sigma", ivarid)
