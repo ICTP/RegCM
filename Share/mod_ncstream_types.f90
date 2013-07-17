@@ -44,6 +44,8 @@ module mod_ncstream_types
   integer(ik4) , parameter :: soil_layer_dim  = 9
   integer(ik4) , parameter :: water_depth_dim = 10
   integer(ik4) , parameter :: months_dim      = 11
+  integer(ik4) , parameter :: spectral_dim    = 12
+  integer(ik4) , parameter :: spectral_b_dim  = 13
 
   type ncinstream_params
     ! The name of the input file
@@ -81,6 +83,8 @@ module mod_ncstream_types
     logical :: l_full_sigma = .false.
     ! Sync the output each timestep
     logical :: l_sync = .false.
+    ! Has spectral intervals dimensions (radfile)
+    logical :: l_specint = .false.
     ! Initial time for this run
     type(rcm_time_and_date) :: zero_date = rcm_time_and_date(1,18231,0)
     ! If parallel I/O, the processor patch indexes on the global grid
@@ -168,6 +172,7 @@ module mod_ncstream_types
     logical :: l_has2mlev = .false.
     logical :: l_has10mlev = .false.
     logical :: l_hassoillev = .false.
+    logical :: l_hasspectral = .false.
     !
     ! Dimension identifiers for 'coded' dimensions
     !
@@ -344,6 +349,7 @@ module mod_ncstream_types
     type(ncvariable1d_real) :: lev2m_var
     type(ncvariable1d_real) :: lev10m_var
     type(ncvariable1d_real) :: levsoil_var
+    type(ncvariable2d_real) :: spectral_var
   end type basic_variables
 
   type basic_variables_p

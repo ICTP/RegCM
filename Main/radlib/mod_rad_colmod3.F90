@@ -63,6 +63,7 @@ module mod_rad_colmod3
   real(rk8) , pointer , dimension(:,:,:) :: absgasnxt
   real(rk8) , pointer , dimension(:,:,:) :: absgastot
   real(rk8) , pointer , dimension(:,:) :: emsgastot
+  real(rk8) , pointer , dimension(:,:) :: outtaucl , outtauci
   logical , pointer , dimension(:) :: czengt0
   integer(ik4) , pointer , dimension(:) :: ioro
 !
@@ -142,6 +143,8 @@ module mod_rad_colmod3
       call getmem2d(emsgastot,1,npr,1,kzp1,'colmod3:emsgastot')
       call getmem3d(tauxcl,1,npr,0,kz,1,nspi,'colmod3:tauxcl')
       call getmem3d(tauxci,1,npr,0,kz,1,nspi,'colmod3:tauxci')
+      call getmem2d(outtaucl,1,npr,1,4,'colmod3:outtaucl')
+      call getmem2d(outtauci,1,npr,1,4,'colmod3:outtauci')
 
       call getmem1d(ioro,1,npr,'colmod3:ioro')
 
@@ -404,7 +407,7 @@ module mod_rad_colmod3
                 fsnrtc,fsnirtsq,totcf,eccf,o3vmr,czen,czengt0,adirsw,   &
                 adifsw,adirlw,adiflw,asw,alw,abv,sol,aeradfo,aeradfos,  &
                 aerlwfo,aerlwfos,absgasnxt,absgastot,emsgastot,tauxcl,  &
-                tauxci,labsem)
+                tauxci,outtaucl,outtauci,labsem)
     !
     ! Save gas emission/absorbtion
     !
@@ -461,7 +464,8 @@ module mod_rad_colmod3
     call radout(lout,solin,fsnt,fsns,fsntc,fsnsc,qrs,flnt,flns,  &
                 flntc,flnsc,qrl,flwds,sols,soll,solsd,solld,     &
                 totcf,totcl,totci,cld,clwp,abv,sol,aeradfo,      &
-                aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d,deltaz)
+                aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,     &
+                gtota3d,deltaz,outtaucl,outtauci)
 #ifdef DEBUG
     call time_end(subroutine_name,indx)
 #endif

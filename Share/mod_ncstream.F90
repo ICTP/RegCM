@@ -262,12 +262,13 @@ module mod_ncstream
       reference_date      = 1949120100
       call setcal(reference_date,ical)
       call setcal(tt,reference_date)
-      stream%zero_time    = hourdiff(tt,reference_date)
-      stream%l_bound      = params%l_bound
-      stream%l_band       = params%l_band
-      stream%l_sync       = params%l_sync
-      stream%l_subgrid    = params%l_subgrid
-      stream%l_full_sigma = params%l_full_sigma
+      stream%zero_time     = hourdiff(tt,reference_date)
+      stream%l_bound       = params%l_bound
+      stream%l_band        = params%l_band
+      stream%l_sync        = params%l_sync
+      stream%l_subgrid     = params%l_subgrid
+      stream%l_full_sigma  = params%l_full_sigma
+      stream%l_hasspectral = params%l_specint
       stream%id_dims(:)   = -1
       stream%len_dims(:)  = 0
       call add_common_global_params(ncout)
@@ -475,6 +476,15 @@ module mod_ncstream
         stvar%levsoil_var%lrecords = .false.
         call outstream_addvar(ncout,stvar%levsoil_var)
       end if
+      if ( stream%l_hasspectral ) then
+        stvar%spectral_var%vname = 'wavelen'
+        stvar%spectral_var%vunit = 'm'
+        stvar%spectral_var%axis = 'SB'
+        stvar%spectral_var%long_name = 'Spectral intervals'
+        stvar%spectral_var%standard_name = 'radiation_wavelength'
+        stvar%spectral_var%lrecords = .false.
+        call outstream_addvar(ncout,stvar%spectral_var)
+      end if
       ncstat = nf90_enddef(stream%id)
       if ( ncstat /= nf90_noerr ) then
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -551,6 +561,17 @@ module mod_ncstream
         buffer%realbuff(1) = 0.10
         buffer%realbuff(2) = 1.00
         call outstream_writevar(ncout,stvar%levsoil_var,nocopy)
+      end if
+      if ( stream%l_hasspectral ) then
+        buffer%realbuff(1) = 0.00000025
+        buffer%realbuff(2) = 0.00000069
+        buffer%realbuff(3) = 0.00000119
+        buffer%realbuff(4) = 0.00000238
+        buffer%realbuff(5) = 0.00000069
+        buffer%realbuff(6) = 0.00000119
+        buffer%realbuff(7) = 0.00000238
+        buffer%realbuff(8) = 0.00000400
+        call outstream_writevar(ncout,stvar%spectral_var,nocopy)
       end if
     end subroutine outstream_enable
 
@@ -699,6 +720,16 @@ module mod_ncstream
           num = 12
           the_name = 'month'
           pdim = months_dim
+        case ('SPECTRAL','spectral','spec')
+          num = 4
+          the_name = 'spec_intv'
+          pdim = spectral_dim
+          stream%l_hasspectral = .true.
+        case ('SPECTRAL_BOUND','spectral_bound','specbound')
+          num = 2
+          the_name = 'spec_bound'
+          pdim = spectral_b_dim
+          stream%l_hasspectral = .true.
         case default
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
           call die('nc_stream', &
@@ -1166,6 +1197,18 @@ module mod_ncstream
             end if
             id_dim(ic) = stream%id_dims(months_dim)
             len_dim(ic) = stream%len_dims(months_dim)
+          case ('S')
+            if ( stream%id_dims(spectral_dim) < 0 ) then
+              call add_dimension(stream,'spectral')
+            end if
+            id_dim(ic) = stream%id_dims(spectral_dim)
+            len_dim(ic) = stream%len_dims(spectral_dim)
+          case ('B')
+            if ( stream%id_dims(spectral_b_dim) < 0 ) then
+              call add_dimension(stream,'spectral_bound')
+            end if
+            id_dim(ic) = stream%id_dims(spectral_b_dim)
+            len_dim(ic) = stream%len_dims(spectral_b_dim)
           case default
             write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
             write(stderr,*) 'Not in list. Known dimension codes: xyztbT2wsd'

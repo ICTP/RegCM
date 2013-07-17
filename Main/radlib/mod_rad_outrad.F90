@@ -43,7 +43,8 @@ module mod_rad_outrad
   subroutine radout(lout,solin,sabtp,frsa,clrst,clrss,qrs,firtp,         &
                     frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,     &
                     totcf,totcl,totci,cld,clwp,abv,sol,aeradfo,aeradfos, &
-                    aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d,deltaz)
+                    aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d,deltaz,   &
+                    outtaucl,outtauci)
 !
 ! copy radiation output quantities to model buffer
 !
@@ -81,6 +82,7 @@ module mod_rad_outrad
                 sabtp , slwd , solin , soll , solld ,      &
                 sols , solsd , totcf , totcl , totci , abv , sol
     real(rk8) , pointer , dimension(:,:) :: cld , clwp , qrl , qrs , deltaz
+    real(rk8) , pointer , dimension(:,:) :: outtaucl , outtauci
     real(rk8) , pointer , dimension(:,:,:) :: tauxar3d , tauasc3d , gtota3d
     real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos
     real(rk8) , pointer , dimension(:) :: aerlwfo , aerlwfos
@@ -88,7 +90,7 @@ module mod_rad_outrad
                 clwp , firtp , frla , frsa , qrl , qrs , sabtp ,  &
                 slwd , solin , soll , solld , sols , solsd ,      &
                 totcf , totcl , totci , aeradfo , aeradfos,       &
-                aerlwfo , aerlwfos , deltaz
+                aerlwfo , aerlwfos , deltaz , outtaucl , outtauci
 !
     integer(ik4) :: i , j , k , n
     !
@@ -161,6 +163,8 @@ module mod_rad_outrad
         call copy3d(clwp,rad_clwp_out)
         call copy3d(qrs,rad_qrs_out)
         call copy3d(qrl,rad_qrl_out)
+        call copy3d1(outtaucl,rad_taucl_out,1,4)
+        call copy3d1(outtauci,rad_tauci_out,1,4)
 
         call copy2d(frsa,rad_frsa_out)
         call copy2d(frla,rad_frla_out)
@@ -219,9 +223,17 @@ module mod_rad_outrad
     implicit none
     real(rk8) , pointer , intent(in) , dimension(:,:) :: a
     real(rk8) , pointer , intent(out) , dimension(:,:,:) :: b
+    call copy3d1(a,b,1,kz)
+  end subroutine copy3d
+
+  subroutine copy3d1(a,b,k1,k2)
+    implicit none
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: a
+    real(rk8) , pointer , intent(out) , dimension(:,:,:) :: b
+    integer(ik4) , intent(in) :: k1 , k2
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
-      do k = 1 , kz
+      do k = k1 , k2
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -231,7 +243,7 @@ module mod_rad_outrad
         end do
       end do
     end if
-  end subroutine copy3d
+  end subroutine copy3d1
 
   subroutine copy4d(a,b,l)
     implicit none

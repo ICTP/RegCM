@@ -784,7 +784,8 @@ module mod_rad_radiation
                     albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,eccf,o3vmr,&
                     czen,czengt0,adirsw,adifsw,adirlw,adiflw,asw,alw, &
                     abv,sol,aeradfo,aeradfos,aerlwfo,aerlwfos,        &
-                    absgasnxt,absgastot,emsgastot,tauxcl,tauxci,labsem)
+                    absgasnxt,absgastot,emsgastot,tauxcl,tauxci,      &
+                    outtaucl,outtauci,labsem)
 !
     implicit none
 !
@@ -831,7 +832,8 @@ module mod_rad_radiation
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: absgastot
     real(rk8) , pointer , dimension(:,:) , intent(out) :: emsgastot
     logical , pointer , dimension(:) , intent(in) :: czengt0
-    real(rk8) , pointer , dimension(:,:) :: cld , effcld , piln , pint
+    real(rk8) , pointer , dimension(:,:) :: cld , effcld , piln , pint , &
+            outtaucl , outtauci
     real(rk8) , pointer , dimension(:,:,:) :: tauxcl , tauxci
     real(rk8) , pointer , dimension(:,:) :: clwp , fice , h2ommr , pmid ,  &
             pmln , qrl , qrs , rei , rel , t , rh
@@ -840,7 +842,7 @@ module mod_rad_radiation
     intent (out) alb , albc , abv , sol , tauxcl , tauxci
     intent (out) flns , flnsc , flnt , flntc , flwds , fsds ,       &
                    fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
-                   fsntc , solin , totcf
+                   fsntc , solin , totcf , outtaucl , outtauci
 !
 !---------------------------Local variables-----------------------------
 !
@@ -891,7 +893,8 @@ module mod_rad_radiation
       call radcsw(n1,n2,pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,  &
                   solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll,solsd,solld, &
                   fsnirt,fsnrtc,fsnirtsq,adirsw,adifsw,adirlw,adiflw,asw,alw, &
-                  abv,sol,czen,czengt0,aeradfo,aeradfos,tauxcl,tauxci)
+                  abv,sol,czen,czengt0,aeradfo,aeradfos,tauxcl,tauxci, &
+                  outtaucl,outtauci)
       !
       ! Convert units of shortwave fields needed by rest of model
       ! from CGS to MKS
@@ -1085,7 +1088,7 @@ module mod_rad_radiation
                     eccf,solin,qrs,fsns,fsnt,fsds,fsnsc,fsntc,sols,soll,  &
                     solsd,solld,fsnirt,fsnrtc,fsnirtsq,adirsw,adifsw,     &
                     adirlw,adiflw,asw,alw,abv,sol,czen,czengt0,aeradfo,   &
-                    aeradfos,tauxcl,tauxci)
+                    aeradfos,tauxcl,tauxci,outtaucl,outtauci)
 ! 
     implicit none
 !
@@ -1096,13 +1099,14 @@ module mod_rad_radiation
              solld , sols , solsd , adirsw , adifsw , adirlw , adiflw , asw , &
              alw , abv , sol , czen
     logical , pointer , dimension(:) , intent(in) :: czengt0
-    real(rk8) , pointer , dimension(:,:) :: cld , pint
+    real(rk8) , pointer , dimension(:,:) :: cld , pint , outtaucl , outtauci
     real(rk8) , pointer , dimension(:,:,:) :: tauxcl , tauxci
     real(rk8) , pointer , dimension(:,:) :: clwp , fice , h2ommr , o3mmr , &
              qrs , rei , rel
     intent (in) cld , clwp , eccf , fice , h2ommr , o3mmr , pint , rei , rel , &
            adirsw , adifsw , adirlw , adiflw , asw , alw
-    intent (out) aeradfo , aeradfos , fsds , qrs , abv , sol , tauxcl , tauxci
+    intent (out) aeradfo , aeradfos , fsds , qrs , abv , sol , &
+            tauxcl , tauxci , outtaucl , outtauci
     intent (inout) fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
                    fsntc , solin , soll , solld , sols , solsd
 !
@@ -1220,6 +1224,8 @@ module mod_rad_radiation
     aeradfos(:) = d_zero
     x0fsntc(:) = d_zero
     x0fsnsc(:) = d_zero
+    outtaucl(:,:) = d_zero
+    outtauci(:,:) = d_zero
 !
     qrs(:,:) = d_zero
 !
@@ -1409,9 +1415,11 @@ module mod_rad_radiation
             tauxcl(n,k,ns) = clwp(n,k)*tmp1l*(d_one-fice(n,k))*cld(n,k) / &
                           (d_one+(d_one-0.85D0)*(d_one-cld(n,k))*      &
                           clwp(n,k)*tmp1l*(d_one-fice(n,k)))
+            outtaucl(n,indxsl) = outtaucl(n,indxsl) + tauxcl(n,k,ns)
             tauxci(n,k,ns) = clwp(n,k)*tmp1i*fice(n,k)*cld(n,k) /     &
                           (d_one+(d_one-0.78D0)*(d_one-cld(n,k)) * &
                           clwp(n,k)*tmp1i*fice(n,k))
+            outtauci(n,indxsl) = outtauci(n,indxsl) + tauxci(n,k,ns)
    
 !scheme     3
 !EES        below replaced

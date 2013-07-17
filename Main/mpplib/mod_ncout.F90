@@ -72,7 +72,7 @@ module mod_ncout
   integer(ik4) , parameter :: nlakvars = nlak2dvars+nlak3dvars
 
   integer(ik4) , parameter :: nrad2dvars = 12 + nbase
-  integer(ik4) , parameter :: nrad3dvars = 4
+  integer(ik4) , parameter :: nrad3dvars = 6
   integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars
 
   integer(ik4) , parameter :: nopt2dvars = 5 + nbase
@@ -271,6 +271,8 @@ module mod_ncout
   integer(ik4) , parameter :: rad_clwp   = 2
   integer(ik4) , parameter :: rad_qrs    = 3
   integer(ik4) , parameter :: rad_qrl    = 4
+  integer(ik4) , parameter :: rad_taucl  = 5
+  integer(ik4) , parameter :: rad_tauci  = 6
 
   integer(ik4) , parameter :: lak_xlon   = 1
   integer(ik4) , parameter :: lak_xlat   = 2
@@ -1227,6 +1229,22 @@ module mod_ncout
             'tendency_of_air_temperature_due_to_longwave_heating',.true.)
           rad_qrl_out => v3dvar_rad(rad_qrl)%rval
         end if
+        if ( enable_rad3d_vars(rad_taucl) ) then
+          vsize%k2 = 4
+          v3dvar_rad(rad_taucl)%axis = 'xyS'
+          call setup_var(v3dvar_rad,rad_taucl,vsize,'taucl','1', &
+            'Cloud liquid water optical depth', &
+            'atmosphere_optical_thickness_due_to_cloud_liquid_water',.true.)
+          rad_taucl_out => v3dvar_rad(rad_taucl)%rval
+        end if
+        if ( enable_rad3d_vars(rad_tauci) ) then
+          vsize%k2 = 4
+          v3dvar_rad(rad_tauci)%axis = 'xyS'
+          call setup_var(v3dvar_rad,rad_tauci,vsize,'tauci','1', &
+            'Cloud ice optical depth', &
+            'atmosphere_optical_thickness_due_to_cloud_ice',.true.)
+          rad_tauci_out => v3dvar_rad(rad_tauci)%rval
+        end if
 
         enable_rad_vars(1:nrad2dvars) = enable_rad2d_vars
         enable_rad_vars(nrad2dvars+1:nradvars) = enable_rad3d_vars
@@ -1250,6 +1268,7 @@ module mod_ncout
             vcount = vcount + 1
           end if
         end do
+        outstream(rad_stream)%opar%l_specint = .true.
         outstream(rad_stream)%jl1 = vsize%j1
         outstream(rad_stream)%jl2 = vsize%j2
         outstream(rad_stream)%il1 = vsize%i1
