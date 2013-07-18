@@ -1192,7 +1192,8 @@ module mod_rad_radiation
                ptho3 , xptop , rdenom , sqrco2 , tmp1 , tmp1i ,       &
                tmp1l , tmp2 , tmp2i , tmp2l , tmp3i , tmp3l ,         &
                trayoslp , wavmid , wgtint , sfltot , x0fsnrtc
-    integer(ik4) :: n , indxsl , k , ns
+    real(rk8) , dimension(4) :: ww
+    integer(ik4) :: n , indxsl , k , ns , is
 !
     logical :: lzero = .false.
 !
@@ -1226,6 +1227,7 @@ module mod_rad_radiation
     x0fsnsc(:) = d_zero
     outtaucl(:,:) = d_zero
     outtauci(:,:) = d_zero
+    ww(:) = d_zero
 !
     qrs(:,:) = d_zero
 !
@@ -1384,6 +1386,8 @@ module mod_rad_radiation
       dbarii = dbari(indxsl)
       ebarii = ebari(indxsl)
       fbarii = fbari(indxsl)
+
+      ww(indxsl) = ww(indxsl) + d_one
 !
       do k = 1 , kz
         do n = n1 , n2
@@ -1737,6 +1741,11 @@ module mod_rad_radiation
 !     End of clear sky calculation
 !
     end do  ! End of spectral interval loop
+
+    do is = 1 , 4
+      outtaucl(:,is) = outtaucl(:,is) / ww(is)
+      outtauci(:,is) = outtauci(:,is) / ww(is)
+    end do
    
 !   FAB calculation of TOA aerosol radiative forcing
     if ( ichem == 1 .and. idirect >= 1 ) then
