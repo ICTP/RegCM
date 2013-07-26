@@ -213,7 +213,10 @@ module mod_bats_mtrxbats
     endif
 
 !   Coare bulk flux algorithm
-    if ( iocncpl == 1 .and. iocnflx == 3 ) call coare3_drv
+!    if ( iocncpl == 1 .and. iocnflx == 3 ) then
+!      call zengocndrv
+!      call coare3_drv
+!    end if
 
 !   Accumulate quantities for energy and moisture budgets
 
@@ -388,9 +391,6 @@ module mod_bats_mtrxbats
           do j = jci1 , jci2
             do n = 1 , nnsg
               if ( ldmsk1(n,j,i) == 0 ) then
-                !if ( iocncpl == 1 ) then
-                !  if ( cplmsk(j,i) /= 0 ) cycle
-                !end if
                 tgrd(n,j,i) = tground2(j,i)
               end if
             end do
@@ -440,9 +440,6 @@ module mod_bats_mtrxbats
               t2m(n,j,i) = sts(n,j,i) - delt(n,j,i)*fact
               q2m(n,j,i) = qs(n,j,i) - delq(n,j,i)*fact
             else
-              !if ( iocncpl == 1 ) then
-              !  if ( cplmsk(j,i) /= 0 ) cycle
-              !end if
               if ( iocnflx == 1 ) then
                 fact = z2fra(n,j,i)/zlgocn(n,j,i)
                 factuv = z10fra(n,j,i)/zlgocn(n,j,i)
@@ -475,7 +472,6 @@ module mod_bats_mtrxbats
         call fatal(__FILE__,__LINE__,'TEMP CHECK ERROR')
       end if
 #endif
-
       uvdrag = sum(drag,1)*rdnnsg
       hfx = sum(sent,1)*rdnnsg
       qfx = sum(evpr,1)*rdnnsg

@@ -58,6 +58,9 @@
       integer(ik4), pointer :: ldmskb(:,:)
       integer(ik4), pointer :: wetdry(:,:)
 !
+      real(rk8), parameter :: zeroval = 0.0d20
+      real(rk8), parameter :: missing_r8 = 1.0d20
+      real(rk8), parameter :: tol = missing_r8/2.0d0
 !
 !-----------------------------------------------------------------------
 !     Public subroutines 
@@ -163,7 +166,7 @@
 !
       use mod_constants
       use mod_atm_interface, only : sfs, mddom
-      use mod_bats_common, only : ldmsk, ldmsk1, cplmsk, ntcpl
+      use mod_bats_common, only : ldmsk, ldmsk1, cplmsk, ntcpl, tgbrd
       use mod_bats_common, only : lveg, iveg1, sfice, sent, sncv, tgrd
       use mod_dynparam, only : ice1, ice2, jce1, jce2
       use mod_dynparam, only : ici1, ici2, jci1, jci2, nnsg
@@ -184,12 +187,10 @@
 !
       integer :: i, j, ii, jj, n
       logical :: flag
-      real(dp) :: toth
-      real(dp), parameter :: missing_r8 = 1.0d20
-      real(dp), parameter :: tol = missing_r8/2.0d0 
-      real(dp), parameter :: iceminh = d_10
-      real(dp), parameter :: href = d_two * iceminh
-      real(dp), parameter :: steepf = 1.0D0
+      real(rk8) :: toth
+      real(rk8), parameter :: iceminh = d_10
+      real(rk8), parameter :: href = d_two * iceminh
+      real(rk8), parameter :: steepf = 1.0D0
       integer(ik4) :: ix, jy, imin, imax, jmin, jmax, srad, hveg(22)
 !
 !-----------------------------------------------------------------------
@@ -215,7 +216,9 @@
 !        
         sfs%tga(j,i) = importFields%sst(j,i)
         sfs%tgb(j,i) = importFields%sst(j,i)
-        tgrd(:,j,i) = importFields%sst(j,i)
+        sfs%tgbb(j,i) = importFields%sst(j,i)
+        tgrd(:,j,i)  = importFields%sst(j,i)
+        tgbrd(:,j,i) = importFields%sst(j,i)
       end if
 !
 !-----------------------------------------------------------------------
@@ -300,10 +303,6 @@
             lveg(n,j,i) = 12
             ! set sea ice thikness (in mm)
             sfice(n,j,i) = importFields%sit(j,i) 
-            !toth = sfice(n,j,i)+sncv(n,j,i)
-            !if ( toth > href ) then
-            !  sent(n,j,i) = sent(n,j,i) * (href/toth)**steepf
-            !end if
           end do
           ! write debug info
           if (flag) then
@@ -314,16 +313,15 @@
           if (ldmskb(j,i) == 0 .and. ldmsk(j,i) == 2) then
             ! reduce to one tenth surface ice: it should melt away
             do n = 1, nnsg
-!              sfice(n,j,i) = sfice(n,j,i)*(d_r10*2.0d0)
-!              ! check that sea ice is melted or not
+              ! check that sea ice is melted or not
               if (sfice(n,j,i) <= iceminh) then
                 if (ldmskb(j,i) /= ldmsk(j,i)) flag = .true.
-!                ! set land-sea mask to its original value
+                ! set land-sea mask to its original value
                 ldmsk(j,i) = ldmskb(j,i)
                 ldmsk1(n,j,i) = ldmskb(j,i)
-!                ! set land-use type to its original value
+                ! set land-use type to its original value
                 lveg(n,j,i) = iveg1(n,j,i)
-!                ! set sea ice thikness (in mm)
+                ! set sea ice thikness (in mm)
                 sfice(n,j,i) = d_zero 
               else
                 flag = .false.
@@ -382,7 +380,6 @@
 !-----------------------------------------------------------------------
 !
       integer :: i, j 
-      real(dp), parameter :: zeroval = 0.0d20
 !
 !-----------------------------------------------------------------------
 !     Send information to OCN component

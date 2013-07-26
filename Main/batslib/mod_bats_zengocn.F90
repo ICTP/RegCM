@@ -102,9 +102,6 @@ module mod_bats_zengocn
 #else
           if ( ldmsk1(n,j,i) == 0) then
 #endif
-!            if ( iocncpl == 1 ) then
-!              if ( cplmsk(j,i) /= 0 ) cycle
-!            end if
             uv995 = dsqrt(uatm(j,i,kz)**2+vatm(j,i,kz)**2)
             tsurf = tground2(j,i) - tzero
             t995 = tatm(j,i,kz) - tzero
