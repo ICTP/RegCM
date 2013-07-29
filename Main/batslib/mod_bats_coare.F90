@@ -373,7 +373,9 @@
       t2m(n,j,i) = t995+tzero-dt*facttq
       q2m(n,j,i) = q995-dq*facttq
 !
-      write(*,fmt="(2I5,2F10.3,4F12.6,3F10.3,F12.6)") i, j, hsb, hlb, facttq, drag(n,j,i), taux(n,j,i), tauy(n,j,i), u10m(n,j,i), v10m(n,j,i), t2m(n,j,i), q2m(n,j,i)
+      !write(*,fmt="(2I5,2F10.3,4F12.6,3F10.3,F12.6)") i, j, hsb, hlb, &
+      !  facttq, drag(n,j,i), taux(n,j,i), tauy(n,j,i), u10m(n,j,i),   &
+      !  v10m(n,j,i), t2m(n,j,i), q2m(n,j,i)
 !
       end if
       end do
