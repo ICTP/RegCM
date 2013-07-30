@@ -4,7 +4,7 @@ program cumclouds
   integer , parameter :: nds = 8
   real(8) , parameter :: dsinc = 25.0D0
   real(8) , parameter :: clfrcvmax = 12.0D0
-  real(8) , parameter :: maxcloud_dp = 105.0D0 ! In cb
+  real(8) , parameter :: maxcloud_dp = 85.0D0 ! In cb
 
   integer :: k , ktop , kbot , ids , kclth , ikh
   real(8) :: dp , ds , dxtemc , clfrcv , scalep , totcf

@@ -69,7 +69,7 @@ module mod_cu_common
   integer(ik4) :: total_precip_points
 
   real(rk8) , dimension(10) :: cld_profile
-  real(rk8) , parameter :: maxcloud_dp = 105.0D0 ! In cb
+  real(rk8) , parameter :: maxcloud_dp =  85.0D0 ! In cb
 
   contains
 !
