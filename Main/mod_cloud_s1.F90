@@ -368,6 +368,7 @@ module mod_cloud_s1
 #endif
     zrldcp  = d_one/(wlhsocp-wlhvocp)                  !Cp/Lf 
     rkconv = d_one/6000                                !1/autoconversion time scale (s)
+    zfokoop = d_zero
     ! Define species tags
     iqqv = 1    ! vapour
     iqql = 2    ! liquid cloud water
@@ -400,7 +401,7 @@ module mod_cloud_s1
     !Set the default 1.D-14 = d_zero
     where (zqxx .le. zepsec) zqxx=d_zero 
     !Define the inizial array zqx0  
-    zqx0(:,:,:,:)=zqxx(:,:,:,:)
+    zqx0(:,:,:,:)=zqxx(jce1:jce2,ice1:ice2,:,:)
  
     ! Total water and enthalpy budget on/off
     budget = .true.
@@ -1126,8 +1127,8 @@ module mod_cloud_s1
               !------------------------------------------------
               zadd  = wlhs*(wlhs/(rwat*zt(j,i,k))-d_one)/(2.4D-2*zt(j,i,k))
               zbdd  = rwat*zt(j,i,k)*pres(j,i,k)/(2.21D0*zvpice)
-              zcvds = 7.8D0*(zicenuclei(j,i)/rhob3d(j,i,k))**0.666D0*(zvpliq-zvpice)/ &
-                      & (8.87D0*(zadd+zbdd)*zvpice)
+              zcvds = 7.8D0*(zicenuclei(j,i)/rhob3d(j,i,k))** &
+                       0.666D0*(zvpliq-zvpice)/(8.87D0*(zadd+zbdd)*zvpice)
               !-----------------------------------------------------
               ! riceinit=1.e-12_jprb is initial mass of ice particle
               !-----------------------------------------------------
@@ -1135,6 +1136,8 @@ module mod_cloud_s1
               !------------------
               ! new value of ice condensate amount ( Rotstayn et al. (2000) ) 
               !------------------
+              zice0 = max(zice0,d_zero)
+              zcvds = max(zcvds,d_zero)
               zinew=(0.666D0*zcvds*dt+zice0**0.666D0)**1.5D0
               !---------------------------
               ! grid-mean deposition rate:
@@ -1307,8 +1310,11 @@ module mod_cloud_s1
               if ( zicecld(j,i) > zepsec ) then
                 alpha1 = dt*1.0D-3*exp(0.025*(zt(j,i,k)-tzero))
                 zlcrit=rlcritsnow
-         
-                zsnowaut(j,i)=alpha1*(d_one-exp(-(zicecld(j,i)/zlcrit)**2))
+                if ( (zicecld(j,i)/zlcrit)**2 < 25.0D0 ) then
+                  zsnowaut(j,i)=alpha1*(d_one-exp(-(zicecld(j,i)/zlcrit)**2))
+                else
+                  zsnowaut(j,i)=alpha1
+                end if
                 zsolqb(j,i,iqqs,iqqi)=zsolqb(j,i,iqqs,iqqi)+zsnowaut(j,i)
 !            else 
 !              zsolqb(j,i,iqqs,iqqi)=d_zero
