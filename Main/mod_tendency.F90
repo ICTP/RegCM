@@ -694,7 +694,7 @@ module mod_tendency
       end if
       if ( ipptls == 2 ) then
         call cldfrac
-        call microphys(omega,jci1,jci2,ici1,ici2)
+        call microphys(omega)
       else  
         call pcp
         call cldfrac
