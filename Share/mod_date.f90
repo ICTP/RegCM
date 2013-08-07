@@ -735,26 +735,28 @@ module mod_date
       case (umnt)
         call days_from_reference_to_date(x,d)
         ! Adjust date of the month: This is really a trick...
+        ! It is to have 14 as February middle month for Gregorian.
         select case (z%calendar)
           case (gregorian)
-            dm = dble(d%day)/dble(mdays_leap(d%year, d%month))
+            dm = dble(d%day-1)/dble(mdays_leap(d%year, d%month))
           case (noleap)
-            dm = dble(d%day)/dble(mlen(d%month))
+            dm = dble(d%day-1)/dble(mlen(d%month))
           case default
-            dm = dble(d%day)/30.0D0
+            dm = dble(d%day-1)/30.0D0
         end select
         d%month = d%month+int(mod(tmp,i8mpy),ik4)
         call adjustpm(d%month,d%year,12)
         tmp = tmp/i8mpy
         d%year = d%year+int(tmp,ik4)
         ! Adjust date of the month: This is really a trick...
+        ! It is to have 14 as February middle month for Gregorian.
         select case (z%calendar)
           case (gregorian)
-            d%day = idnint(dble(mdays_leap(d%year, d%month)) * dm)
+            d%day = idnint(dble(mdays_leap(d%year, d%month)) * dm)+1
           case (noleap)
-            d%day = idnint(dble(mlen(d%month)) * dm)
+            d%day = idnint(dble(mlen(d%month)) * dm)+1
           case default
-            d%day = 30 * int(dm)
+            d%day = idnint(30.0D0*dm)+1
         end select
         call date_to_days_from_reference(d,z)
       case (uyrs)
@@ -1208,7 +1210,7 @@ module mod_date
     type (rcm_time_and_date) :: dd
     type (rcm_time_interval) :: z , zz
     character(len=64) , save :: csave
-    character(len=16) :: safeccal
+    character(len=16) , save :: csavecal
     integer(ik4) , save :: iunit
     type (rcm_time_and_date) , save :: dref
     character(len=16) :: cdum
@@ -1217,14 +1219,13 @@ module mod_date
     integer(ik4) :: istat
 
     data csave/'none'/
+    data csavecal/'none'/
 
     t%hour = 0
     t%minute = 0
     t%second = 0
 
-    safeccal = ccal
-
-    if (csave == cunit) then
+    if ( csave == cunit .and. csavecal == ccal ) then
       z = xval
       z%iunit = iunit
       dd = dref + z
@@ -1241,6 +1242,7 @@ module mod_date
       end if
     else
       csave = cunit
+      csavecal = ccal
       z = xval
       if (cunit(1:5) == 'hours') then
         ! Unit is hours since reference
@@ -1351,11 +1353,11 @@ module mod_date
       else
         call die('mod_date','CANNOT PARSE TIME UNIT IN TIMEVAL2DATE')
       end if
-      if ( safeccal(1:6) == 'noleap' .or.   &
-           safeccal(1:8) == 'days_365' .or. &
-           safeccal(1:7) == '365_day' ) then
+      if ( csavecal(1:6) == 'noleap' .or.   &
+           csavecal(1:8) == 'days_365' .or. &
+           csavecal(1:7) == '365_day' ) then
         d%calendar = noleap
-      else if (safeccal(1:7) == '360_day') then
+      else if (csavecal(1:7) == '360_day') then
         d%calendar = y360
       else
         d%calendar = gregorian
