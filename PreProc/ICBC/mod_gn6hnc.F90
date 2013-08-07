@@ -1104,26 +1104,38 @@ module mod_gn6hnc
             istatus = nf90_close(inet(6))
             call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
           end if
-          iyear1 = year/5*5
-          if ( mod(year,5) == 0 .and. month == 1 .and. &
-               day == 1 .and. hour == 0 ) then
-            iyear1 = iyear1 - 5
+          if ( dattyp(4:4) == 'R' ) then
+            if ( year == 2005 .and. month /= 1 .and. &
+                 day /= 1 .and. hour /= 0 ) then
+              iyear1 = 2005
+              iyear2 = 2006
+            else
+              iyear1 = year/5*5
+              if ( mod(year,5) == 0 .and. month == 1 .and. &
+                   day == 1 .and. hour == 0 ) then
+                iyear1 = iyear1 - 5
+              end if
+              iyear2 = iyear1 + 5
+            end if
+          else
+            iyear1 = (year-2006)/5*5+2006
+            iyear2 = iyear1 + 5
           end if
           if ( dattyp(4:4) == 'R' ) then
             write (inname,99005) 'RF', pthsep, trim(csirvars(6)), pthsep, &
                  trim(csirvars(6)), trim(csirbase1)//trim(csirbase3), &
-                 iyear1, '01010600-', iyear1+5, '01010000.nc'
+                 iyear1, '01010600-', iyear2, '01010000.nc'
           else
             if (year*1000000+month*10000+day*100+hour == 2005120100) then 
               write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
                 trim(csirvars(6)), pthsep, trim(csirvars(6)), &
                 trim(csirbase2)//dattyp(4:5)//trim(csirbase3), &
-                iyear1, '01010600-', iyear1+5, '01010000.nc'
+                iyear1, '01010600-', iyear2, '01010000.nc'
             else
               write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
                 trim(csirvars(6)), pthsep, trim(csirvars(6)), &
                 trim(csirbase2)//dattyp(4:5)//trim(csirbase3), &
-                iyear1, '01010600-', iyear1+5, '01010000.nc'
+                iyear1, '01010600-', iyear2, '01010000.nc'
             end if
           end if
           pathaddname = trim(inpglob)//'/CSIRO-MK36/'//inname
