@@ -41,8 +41,7 @@ module mod_cloud_s1
 
   private
 
-  integer(ik4) , parameter :: nmax = 5               ! number of progn.variables
-  integer(ik4) , parameter :: nqx = 5
+  integer(ik4) , parameter :: nqx = 5                ! num of prognostic vars
   real(rk8) :: zfall                                 ! constant fall speed
   real(rk8) :: zqtmst                                ! 1/dt
   real(rk8) , pointer , dimension(:,:,:) :: pres     ! from atms
@@ -246,7 +245,7 @@ module mod_cloud_s1
       call getmem3d(zfoeew,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeew')
       call getmem3d(zfoeeliq,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeeliq')
       call getmem3d(zqsice,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqsice')
-      call getmem3d(jindex2,jci1,jci2,ici1,ici2,1,nqx,'clouds1:jindex2')
+      call getmem3d(jindex2,1,nqx,jci1,jci2,ici1,ici2,'clouds1:jindex2')
       call getmem3d(zfallsink,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zfallsink')
       call getmem3d(zfallsrce,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zfallsrce')
       call getmem3d(zfluxq,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zfluxq')
@@ -274,8 +273,8 @@ module mod_cloud_s1
       call getmem3d(zfoeeliqt,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeeliqt')
       call getmem3d(zfoeeicet,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeeicet')
       call getmem4d(zqxtendc,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:zqxtendc')
-      call getmem4d(zqxn,jce1,jce2,ice1,ice2,1,kz,1,nqx,'clouds1:zqxn')
-      call getmem4d(zqlhs,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:zqlhs')
+      call getmem4d(zqxn,1,nqx,jce1,jce2,ice1,ice2,1,kz,'clouds1:zqxn')
+      call getmem4d(zqlhs,1,nqx,1,nqx,jci1,jci2,ici1,ici2,'clouds1:zqlhs')
       call getmem4d(zsolqa,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:zsolqa')
       call getmem4d(zsolqb,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:zsolqb')
       call getmem4d(llindex3,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:llindex3')
@@ -1773,14 +1772,14 @@ module mod_cloud_s1
             do j = jci1 , jci2
               ! Diagonals: microphysical sink terms+transport
               if ( jn == n ) then
-                zqlhs(j,i,jn,n) = d_one + zfallsink(j,i,n)
+                zqlhs(jn,n,j,i) = d_one + zfallsink(j,i,n)
                 do jo = 1 , nqx
-                  zqlhs(j,i,jn,n) = zqlhs(j,i,jn,n) + zsolqb(j,i,jo,jn)
+                  zqlhs(jn,n,j,i) = zqlhs(jn,n,j,i) + zsolqb(j,i,jo,jn)
                 end do
                 ! Non-diagonals: microphysical source terms
               else
                 ! Here is the delta T - missing from doc.
-                zqlhs(j,i,jn,n) = -zsolqb(j,i,jn,n)
+                zqlhs(jn,n,j,i) = -zsolqb(j,i,jn,n)
               end if
             end do
           end do
@@ -1796,7 +1795,7 @@ module mod_cloud_s1
               ! Positive, since summed over 2nd index
               zexplicit = zexplicit + zsolqa(j,i,n,jn)
             end do
-            zqxn(j,i,k,n) = zqxx(j,i,k,n) + zexplicit
+            zqxn(n,j,i,k) = zqxx(j,i,k,n) + zexplicit
           end do
         end do
       end do
@@ -1809,8 +1808,8 @@ module mod_cloud_s1
       ! ENDDO
       ! ZQLHS(1,3,3)=ZQLHS(1,3,3)+0.47
       ! ZQLHS(1,5,3)=ZQLHS(1,5,3)-0.47
-      call ludcmp(zqlhs,jci1,jci2,ici1,ici2,nqx,jindex2)
-      call lubksb(zqlhs,jci1,jci2,ici1,ici2,nqx,jindex2,zqxn)
+      call ludcmp(zqlhs,jindex2)
+      call lubksb(zqlhs,jindex2,zqxn)
 
       !------------------------------------------------------------------------
       !  Precipitation/sedimentation fluxes to next level
@@ -1824,7 +1823,7 @@ module mod_cloud_s1
           do j = jci1 , jci2
             ! this will be the source for the k
             zpfplsx(j,i,k+1,n) = zfallsink(j,i,n) * &
-              zqxn(j,i,k,n)*zrdtgdp(j,i) ! kg/m2/s
+              zqxn(n,j,i,k)*zrdtgdp(j,i) ! kg/m2/s
           end do
         end do
       end do
@@ -1833,7 +1832,7 @@ module mod_cloud_s1
         do i = ici1 , ici2
           do j = jci1 , jci2
             zfluxq(j,i,n)=zconvsrce(j,i,n)+ zfallsrce(j,i,n) - &
-                        (zfallsink(j,i,n)+zconvsink(j,i,n))*zqxn(j,i,k,n)
+                        (zfallsink(j,i,n)+zconvsink(j,i,n))*zqxn(n,j,i,k)
           end do
         end do
       end do
@@ -1842,7 +1841,7 @@ module mod_cloud_s1
         do i = ici1 , ici2
           do j = jci1 , jci2
             zqxtendc(j,i,k,n) = zqxtendc(j,i,k,n) + &
-              (zqxn(j,i,k,n)-zqxx(j,i,k,n))*zqtmst
+              (zqxn(n,j,i,k)-zqxx(j,i,k,n))*zqtmst
           end do
         end do
       end do
@@ -1852,11 +1851,11 @@ module mod_cloud_s1
           do j = jci1 , jci2
             if ( kphase(n) == 1 ) then
               zttendc(j,i,k) = zttendc(j,i,k) + &
-                wlhvocp*(zqxn(j,i,k,n)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
+                wlhvocp*(zqxn(n,j,i,k)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
             end if
             if ( kphase(n) == 2 ) then
               zttendc(j,i,k) = zttendc(j,i,k) + &
-                wlhfocp*(zqxn(j,i,k,n)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
+                wlhfocp*(zqxn(n,j,i,k)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
             end if
           end do
         end do
@@ -2195,12 +2194,10 @@ module mod_cloud_s1
 
   end subroutine microphys
 
-  subroutine lubksb(aam,jci1,jci2,ici1,ici2,nqx,indx,bbm)
+  subroutine lubksb(aam,indx,bbm)
     implicit none
-    integer(ik4) , intent(in) :: jci1 , jci2 , ici1 , ici2
     real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: aam
     integer(ik4) , pointer , intent(in) , dimension(:,:,:) :: indx
-    integer(ik4) , intent(in) :: nqx
     real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: bbm
     integer(ik4) :: i , j , ii , jj , k , ll , m
     real(rk8) :: xsum
@@ -2228,25 +2225,25 @@ module mod_cloud_s1
           ! WE NOW DO THE FORWARD SUBSTITUTION, EQUATION (2.3.6).
           ! THE ONLY NEW WRINKLE IS TO UNSCRAMBLE THE PERMUTATION AS WE GO.
           do m = 1 , nqx
-            ll = indx(j,i,m)
-            xsum = bbm(j,i,k,ll)
-            bbm(j,i,k,ll) = bbm(j,i,k,m)
+            ll = indx(m,j,i)
+            xsum = bbm(ll,j,i,k)
+            bbm(ll,j,i,k) = bbm(m,j,i,k)
             if ( ii /= 0 ) then
               do jj = ii , m - 1
-                xsum = xsum - aam(j,i,m,jj)*bbm(j,i,k,jj)
+                xsum = xsum - aam(m,jj,j,i)*bbm(jj,j,i,k)
               end do
             else if ( dabs(xsum) > dlowval ) then
                 ii = m
             end if
-            bbm(j,i,k,m) = xsum
+            bbm(m,j,i,k) = xsum
           end do
           do m = nqx , 1 , -1 ! NOW WE DO THE BACKSUBSTITUTION, EQUATION (2.3.7)
-            xsum = bbm(j,i,k,m)
+            xsum = bbm(m,j,i,k)
             do jj = m + 1 , nqx
-              xsum = xsum - aam(j,i,m,jj)*bbm(j,i,k,jj)
+              xsum = xsum - aam(m,jj,j,i)*bbm(jj,j,i,k)
             end do
             ! STORE A COMPONENT OF THE SOLUTION VECTOR X.
-            bbm(j,i,k,m) = xsum/aam(j,i,m,m)
+            bbm(m,j,i,k) = xsum/aam(m,m,j,i)
           end do
         end do
       end do
@@ -2256,18 +2253,16 @@ module mod_cloud_s1
 #endif
   end subroutine lubksb
 
-  subroutine ludcmp(aam,jci1,jci2,ici1,ici2,nqx,indx)
+  subroutine ludcmp(aam,indx)
     ! solves A x = b-------------> LU x = b---------> Ly=b
     !                                                 Ux=y
     !
     implicit none
-    integer(ik4) , intent(in) :: jci1 , jci2 , ici1 , ici2
     real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: aam
     integer(ik4) , pointer , intent(out) , dimension(:,:,:) :: indx
-    integer(ik4) , intent(in) :: nqx
     real(rk8) :: aamax , dum , xsum
     integer(ik4) :: i , j , k , imax , n , m
-    real(rk8) , dimension(nmax) :: vv
+    real(rk8) , dimension(nqx) :: vv
 #ifdef DEBUG
      character(len=dbgslen) :: subroutine_name = 'ludcmp'
      integer(ik4) , save :: idindx = 0
@@ -2278,7 +2273,7 @@ module mod_cloud_s1
         do m = 1 , nqx !LOOP OVER ROWS TO GET THE IMPLICIT SCALING INFORMATION.
           aamax = d_zero
           do n = 1 , nqx
-            if ( dabs(aam(j,i,m,n)) > aamax ) aamax = dabs(aam(j,i,m,n))
+            if ( dabs(aam(m,n,j,i)) > aamax ) aamax = dabs(aam(m,n,j,i))
           end do
           if ( dabs(aamax) < dlowval ) then
             call fatal(__FILE__,__LINE__,'SINGULAR MATRIX')
@@ -2289,21 +2284,21 @@ module mod_cloud_s1
           ! THIS IS THE LOOP OVER COLUMNS OF CROUT S METHOD.
           do m = 1 , n - 1
             !THIS IS EQUATION (2.3.12) EXCEPT FOR I = J.
-            xsum = aam(j,i,m,n)
+            xsum = aam(m,n,j,i)
             do k = 1 , m - 1
-              xsum = xsum - aam(j,i,m,k)*aam(j,i,k,n)
+              xsum = xsum - aam(m,k,j,i)*aam(k,n,j,i)
             end do
-            aam(j,i,m,n) = xsum
+            aam(m,n,j,i) = xsum
           end do
           aamax = d_zero ! INITIALIZE FOR THE SEARCH FOR LARGEST PIVOT ELEMENT.
           imax = n
           do m = n , nqx ! THIS IS I = J OF EQUATION (2.3.12)
             ! AND I = J+1. . .N OF EQUATION (2.3.13).
-            xsum = aam(j,i,m,n)
+            xsum = aam(m,n,j,i)
             do k = 1 , n - 1
-              xsum = xsum - aam(j,i,m,k)*aam(j,i,k,n)
+              xsum = xsum - aam(m,k,j,i)*aam(k,n,j,i)
             end do
-            aam(j,i,m,n) = xsum
+            aam(m,n,j,i) = xsum
             dum = vv(m)*dabs(xsum)   ! FIGURE OF MERIT FOR THE PIVOT.
             if ( dum >= aamax ) then ! IS IT BETTER THAN THE BEST SO FAR?
               imax = m
@@ -2313,19 +2308,19 @@ module mod_cloud_s1
           if ( n /= imax ) then
             ! DO WE NEED TO INTERCHANGE ROWS?
             do k = 1 , nqx ! YES, DO SO...
-              dum = aam(j,i,imax,k)
-              aam(j,i,imax,k) = aam(j,i,n,k)
-              aam(j,i,n,k) = dum
+              dum = aam(imax,k,j,i)
+              aam(imax,k,j,i) = aam(n,k,j,i)
+              aam(n,k,j,i) = dum
             end do
             ! D=-D !...AND CHANGE THE PARITY OF D.
             vv(imax) = vv(n) ! ALSO INTERCHANGE THE SCALE FACTOR.
           end if
-          indx(j,i,n) = imax
-          if ( dabs(aam(j,i,n,n)) < dlowval ) aam(j,i,n,n) = dlowval
+          indx(n,j,i) = imax
+          if ( dabs(aam(n,n,j,i)) < dlowval ) aam(n,n,j,i) = dlowval
           if ( n /= nqx ) then
-            dum = d_one/aam(j,i,n,n)
+            dum = d_one/aam(n,n,j,i)
             do m = n + 1 , nqx
-              aam(j,i,m,n) = aam(j,i,m,n)*dum
+              aam(m,n,j,i) = aam(m,n,j,i)*dum
             end do
           end if
         end do
