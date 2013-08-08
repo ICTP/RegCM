@@ -318,11 +318,11 @@ module mod_cloud_s1
 
   subroutine microphys(omega)
     implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: omega
+
     integer(ik4) :: i , j , k , n , m
     integer(ik4) :: iqqi , iqql , iqqr , iqqs , iqqv , jn , jo , kautoconv
-    integer(ik4) , parameter :: nssopt=1
-    logical :: lmicro, budget, llo1
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: omega
+    logical :: llo1
     real(rk8) :: zexplicit
     ! local real variables for autoconversion rate constants
     real(rk8) :: alpha1 ! coefficient autoconversion cold cloud
@@ -330,13 +330,47 @@ module mod_cloud_s1
     real(rk8) :: zcfpr
     real(rk8) :: zlcrit
     real(rk8) :: zprecip
-
     ! real(rk8) :: zqadj
     real(rk8) :: zzrh
-    real(rk8) :: zbeta,zbeta1
+    real(rk8) :: zbeta , zbeta1
+    ! local variables for condensation
+    real(rk8) :: zcond , zdtdp , zcdmax , zrhc , zsigk , &
+                 zacond , zzdl , zlcondlim
+    ! local variables for freezing
+    real(rk8) :: zfrz
+    ! local variables for melting
+    real(rk8) :: zsubsat
+    real(rk8) :: ztdiff
+    real(rk8) :: zcons1
+    real(rk8) :: rovcp
+    ! constant for converting the fluxes unit measures
+    real(rk8) :: prainx , psnowx
+    ! local real constants for evaporation
+    real(rk8) :: zdpr , zdenom , zdpevap , zevap
+    real(rk8) :: zgdph_r
+    ! constants for deposition process
+    real(rk8) :: zvpice , zvpliq , zadd , zbdd , zcvds , &
+                 zice0 , zinew , zdepos , zinfactor
+    ! constants for scaling factor
+    real(rk8) :: zmm , zrr , zmax , zrat
+    ! constants for condensation
+    real(rk8) :: zdpmxdt , zwtot , zzzdt , zdtdiab , zdtforc , &
+                 zqp , zqsat , zcond1 , zlevap
+#ifdef USE_LAPACK
+    integer :: ires
+#endif
+
+    logical , parameter :: lmicro = .true.
+    ! Total water and enthalpy budget on/off
+    logical , parameter :: budget = .true.
+
+    integer(ik4) , parameter :: nssopt = 1
     real(rk8) , parameter :: rlcritsnow = 3.D-5!4.D-5   !critical autoconversion
     real(rk8) , parameter :: zauto_rate_khair = 0.355D0 ! microphysical terms
     real(rk8) , parameter :: zauto_expon_khair = 1.47D0
+    real(rk8) , parameter :: zrldcp = d_one/(wlhsocp-wlhvocp)  ! Cp/Lf
+    ! 1/autoconversion time scale (s)
+    real(rk8) , parameter :: rkconv = d_one/6000.0D0
     ! real(rk8) , parameter :: zauto_rate_sundq = 0.5D-3
     real(rk8) , parameter :: zauto_rate_kesl = 1.D-3    !giusto!
     real(rk8) , parameter :: zauto_rate_klepi = 0.5D-3
@@ -347,22 +381,7 @@ module mod_cloud_s1
     real(rk8) , parameter :: rclcrit_land = 5.D-4
     real(rk8) , parameter :: rclcrit_sea = 3.D-4
     real(rk8) , parameter :: rprc1 = 3.D2           ! in Sundqvist = 300
-    ! local real constants and variables for condensation
-    real(rk8) :: zcond , zdtdp , zcdmax , zrhc , zsigk , &
-                 zacond , zzdl , zlcondlim
     real(rk8) , parameter :: ramid = 0.8D0
-    ! local real constants and variables for freezing
-    real(rk8) :: zfrz
-    real(rk8) :: zrldcp
-    ! local real constants and variables for melting
-    real(rk8) :: zsubsat
-    real(rk8) :: ztdiff
-    real(rk8) :: zcons1
-    real(rk8) :: rovcp,rkconv
-    ! constant for converting the fluxes unit measures
-    real(rk8) :: prainx, psnowx
-    ! local real constants for evaporation
-    real(rk8) :: zdpr , zdenom , zdpevap , zevap
     real(rk8) , parameter :: kevap = 0.100D-02  ! Raindrop evap rate coef
     real(rk8) , parameter :: rlmin = 1.D-8
     ! real(rk8) , parameter :: ramin = 1.D-8
@@ -388,10 +407,6 @@ module mod_cloud_s1
     real(rk8) , parameter :: rkooptau = 10800
     ! temperature homogeneous freezing
     real(rk8) , parameter :: thomo = 235.16        !273.16-38.00
-    real(rk8) :: zgdph_r
-    ! constants for deposition process
-    real(rk8) :: zvpice , zvpliq , zadd , zbdd , zcvds , &
-                 zice0 , zinew , zdepos , zinfactor
     ! Cloud fraction threshold that defines cloud top
     real(rk8), parameter :: rcldtopcf = d_r100
     ! Fraction of deposition rate in cloud top layer
@@ -400,20 +415,14 @@ module mod_cloud_s1
     real(rk8), parameter :: rdepliqrefdepth = 500.0D0
     ! initial mass of ice particle
     real(rk8), parameter :: riceinit = 1.D-12
-    ! constants for scaling factor
-    real(rk8) :: zmm, zrr, zmax, zrat
-    ! constants for condensation
-    real(rk8) :: zdpmxdt , zwtot , zzzdt , zdtdiab , zdtforc , &
-                 zqp , zqsat , zcond1 , zlevap
-    integer :: ires
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'microphys'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    zrldcp  = d_one/(wlhsocp-wlhvocp)  ! Cp/Lf
-    rkconv = d_one/6000                ! 1/autoconversion time scale (s)
+
     zfokoop = d_zero
+
     ! Define species tags
     iqqv = 1    ! vapour
     iqql = 2    ! liquid cloud water
@@ -447,9 +456,6 @@ module mod_cloud_s1
     where (zqxx /= zepsec) zqxx = d_zero
     ! Define the inizial array zqx0
     zqx0(:,:,:,:) = zqxx(jci1:jci2,ici1:ici2,:,:)
-
-    ! Total water and enthalpy budget on/off
-    budget = .true.
 
     !-----------------------------------
     ! initialization for cloud variables
@@ -580,7 +586,7 @@ module mod_cloud_s1
           end do
         end do
       end do
-    end if !budget
+    end if ! budget
 
     ! ----------------------------------------------------
     ! Tidy up very small cloud cover or total cloud water
@@ -627,7 +633,7 @@ module mod_cloud_s1
           ! liquid water saturation for T>273K
           !--------------------------------------------
           zdelta = delta(zt(j,i,k))
-          zfoeew(j,i,k) = min((zdelta*foeeliq(zt(j,i,k))+ &
+          zfoeew(j,i,k) = min((zdelta*foeeliq(zt(j,i,k)) + &
                (d_one-zdelta)*foeeice(zt(j,i,k)))/pres(j,i,k),d_half)
           zfoeew(j,i,k) = min(d_half,zfoeew(j,i,k))
           !qsi saturation mixing ratio with respect to ice
@@ -643,7 +649,7 @@ module mod_cloud_s1
           ! zfoeeliqt(j,i,k) = foeeliq(zt(j,i,k))/pres(j,i,k)
           zqsliq(j,i,k) = zfoeeliqt(j,i,k)
           zqsliq(j,i,k) = zqsliq(j,i,k)/(d_one-vtmpc1*zqsliq(j,i,k))
-          relh(j,i,k) = (zqxx(j,i,k,iqqv)/zqsliq(j,i,k))*100.0D0
+          relh(j,i,k) = (zqxx(j,i,k,iqqv)/zqsliq(j,i,k))*d_100
         end do
       end do
     end do
@@ -710,7 +716,7 @@ module mod_cloud_s1
           zgdp(j,i) = egrav/zdp(j,i)                 !g/dp  =(1/m)
           zdtgdp(j,i) = dt*zgdp(j,i)                 !(dt*g)/dp =(dt/m)
           zrdtgdp(j,i) = zdp(j,i)*(d_one/(dt*egrav)) !dp/(gdt)=m/dt
-          zqtmst = 1/dt                                           !1/dt
+          zqtmst = d_one/dt                          !1/dt
           !------------------------------------
           ! calculate dqs/dt correction factor
           !------------------------------------
@@ -869,8 +875,6 @@ module mod_cloud_s1
       ! and the parametrization can have different variables switched on
       ! and off.
       ! each of these is a parametrization for a microphysical process.
-      ! lmicro = .false.
-      lmicro = .true.
       if ( lmicro ) then
         !------------------------------------------------------------------
         ! Turn on/off microphysics
@@ -1356,7 +1360,7 @@ module mod_cloud_s1
                   alpha1 = alpha1*zcfpr
                   zlcrit = zlcrit/max(zcfpr,zepsec)
                   ! security for exp for some compilers
-                  if (zliqcld(j,i)/zlcrit < 25.0 ) then
+                  if (zliqcld(j,i)/zlcrit < 25.0D0 ) then
                     zrainaut(j,i) = alpha1 * &
                       (d_one-exp(-(zliqcld(j,i)/zlcrit)**2))
                   else
