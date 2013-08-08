@@ -187,7 +187,9 @@ module mod_cloud_s1
   ! saturation mixing ratio with respect to water
   real(rk8) , public  , pointer, dimension(:,:,:)   :: zqsliq
 
+#ifdef USE_LAPACK
   real(rk8) , dimension(nqx) :: ipivot
+#endif
 
   contains
 
@@ -247,7 +249,9 @@ module mod_cloud_s1
       call getmem3d(zfoeew,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeew')
       call getmem3d(zfoeeliq,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeeliq')
       call getmem3d(zqsice,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqsice')
+#ifndef USE_LAPACK
       call getmem3d(jindex2,1,nqx,jci1,jci2,ici1,ici2,'clouds1:jindex2')
+#endif
       call getmem3d(zfallsink,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zfallsink')
       call getmem3d(zfallsrce,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zfallsrce')
       call getmem3d(zfluxq,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zfluxq')
@@ -1803,22 +1807,33 @@ module mod_cloud_s1
         end do
       end do
 
-      ! Solve by LU decomposition:
-      ! dummy test
+      ! Solve by LU decomposition: dummy test
       ! zqlhs(:,:,:) = 0.0
       ! do jm = 1,nqx
       !   zqlhs(1,jm,jm)=1.0
       ! end do
       ! zqlhs(1,3,3)=zqlhs(1,3,3)+0.47
       ! zqlhs(1,5,3)=zqlhs(1,5,3)-0.47
+#ifdef USE_LAPACK
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          call dgesv(nqx,kz,zqlhs(:,:,j,i),nqx,ipivot,zqxn(:,:,j,i),nqx,ires)
+          if ( ires /= 0 ) then
+            write(stderr,*) 'Error from lapack subroutine DGESV'
+            if ( ires < 0 ) then
+              write(stderr,*) 'Argument ',ires,' has illegal value'
+            else if ( ires > 0 ) then
+              write(stderr,*) 'U(',ires,',',ires,') is zero: Singularity'
+            end if
+            call fatal(__FILE__,__LINE__,'LAPACK DGESV ERROR')
+          end if
+        end do
+      end do
+#else
+      ! Internally coded solution
       call ludcmp(zqlhs,jindex2)
       call lubksb(zqlhs,jindex2,zqxn)
-      ! Below use lapack instead
-      !do i = ici1 , ici2
-      !  do j = jci1 , jci2
-      !    call dgesv(nqx,kz,zqlhs(:,:,j,i),nqx,ipivot,zqxn(:,:,j,i),nqx,ires)
-      !  end do
-      !end do
+#endif
 
       !------------------------------------------------------------------------
       !  Precipitation/sedimentation fluxes to next level
