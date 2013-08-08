@@ -187,6 +187,8 @@ module mod_cloud_s1
   ! saturation mixing ratio with respect to water
   real(rk8) , public  , pointer, dimension(:,:,:)   :: zqsliq
 
+  real(rk8) , dimension(nqx) :: ipivot
+
   contains
 
   subroutine allocate_mod_cloud_s1
@@ -267,22 +269,22 @@ module mod_cloud_s1
       call getmem3d(zerrorh,jci1,jci2,ici1,ici2,1,kz,'clouds1:zerrorh')
       call getmem3d(papf,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:papf')
       call getmem3d(zliq,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:zliq')
-      call getmem3d(zqxfg,jce1,jce2,ice1,ice2,1,nqx,'clouds1:zqxfg')
+      call getmem3d(zqxfg,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zqxfg')
       call getmem3d(llindex1,jci1,jci2,ici1,ici2,1,nqx,'clouds1:llindex1')
       call getmem3d(zqdetr,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqdetr')
       call getmem3d(zfoeeliqt,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeeliqt')
       call getmem3d(zfoeeicet,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeeicet')
       call getmem4d(zqxtendc,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:zqxtendc')
-      call getmem4d(zqxn,1,nqx,jce1,jce2,ice1,ice2,1,kz,'clouds1:zqxn')
+      call getmem4d(zqxn,1,nqx,1,kz,jci1,jci2,ici1,ici2,'clouds1:zqxn')
       call getmem4d(zqlhs,1,nqx,1,nqx,jci1,jci2,ici1,ici2,'clouds1:zqlhs')
       call getmem4d(zsolqa,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:zsolqa')
       call getmem4d(zsolqb,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:zsolqb')
       call getmem4d(llindex3,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:llindex3')
       call getmem4d(zpfplsx,jci1,jci2,ici1,ici2,1,kz+1,1,nqx,'clouds1:zpfplsx')
-      call getmem4d(ztenkeep,jce1,jce2,ice1,ice2,1,kz,1,nqx,'clouds1:ztenkeep')
+      call getmem4d(ztenkeep,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:ztenkeep')
       call getmem4d(zqx0,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:zqx0')
     end if
-    call getmem3d(zqsliq,jce1,jce2,ice1,ice2,1,kz,'clouds1:zqsliq')
+    call getmem3d(zqsliq,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqsliq')
     call getmem3d(relh,jci1,jci2,ici1,ici2,1,kz,'clouds1:relh')
   end subroutine allocate_mod_cloud_s1
 
@@ -372,37 +374,38 @@ module mod_cloud_s1
     real(rk8) , parameter :: ztw4 = 40.637
     real(rk8) , parameter :: ztw5 = 275.0
     real(rk8) , parameter :: rtaumel=1.1880D4
-   ! variables/constants for the supersaturation
-   real(rk8) :: zfac , zfaci , zfacw , zcor , zfokoop
-   real(rk8) , parameter :: r5les =  4216.975  !r3les*(rtt-r4les)
-   real(rk8) , parameter :: r5ies =  708.47582 !r3ies*(rtt-r4ies)
-   real(rk8) , parameter :: r4les =  32.19
-   real(rk8) , parameter :: r4ies = -0.7
-   !  TIMESCALE FOR ICE SUPERSATURATION REMOVAL
-   real(rk8) , parameter :: rkooptau = 10800
-   ! temperature homogeneous freezing
-   real(rk8) , parameter :: thomo = 235.16        !273.16-38.00
-   real(rk8) :: zgdph_r
-   ! constants for deposition process
-   real(rk8) :: zvpice , zvpliq , zadd , zbdd , zcvds , &
-                zice0 , zinew , zdepos , zinfactor
-   ! Cloud fraction threshold that defines cloud top
-   real(rk8), parameter :: rcldtopcf = d_r100
-   ! Fraction of deposition rate in cloud top layer
-   real(rk8), parameter :: rdepliqrefrate = d_r10
-   ! Depth of supercooled liquid water layer (m)
-   real(rk8), parameter :: rdepliqrefdepth = 500.0D0
-   ! initial mass of ice particle
-   real(rk8), parameter :: riceinit = 1.D-12
-   ! constants for scaling factor
-   real(rk8) :: zmm, zrr, zmax, zrat
-   ! constants for condensation
-   real(rk8) :: zdpmxdt , zwtot , zzzdt , zdtdiab , zdtforc , &
-                zqp , zqsat , zcond1 , zlevap
+    ! variables/constants for the supersaturation
+    real(rk8) :: zfac , zfaci , zfacw , zcor , zfokoop
+    real(rk8) , parameter :: r5les =  4216.975  !r3les*(rtt-r4les)
+    real(rk8) , parameter :: r5ies =  708.47582 !r3ies*(rtt-r4ies)
+    real(rk8) , parameter :: r4les =  32.19
+    real(rk8) , parameter :: r4ies = -0.7
+    !  TIMESCALE FOR ICE SUPERSATURATION REMOVAL
+    real(rk8) , parameter :: rkooptau = 10800
+    ! temperature homogeneous freezing
+    real(rk8) , parameter :: thomo = 235.16        !273.16-38.00
+    real(rk8) :: zgdph_r
+    ! constants for deposition process
+    real(rk8) :: zvpice , zvpliq , zadd , zbdd , zcvds , &
+                 zice0 , zinew , zdepos , zinfactor
+    ! Cloud fraction threshold that defines cloud top
+    real(rk8), parameter :: rcldtopcf = d_r100
+    ! Fraction of deposition rate in cloud top layer
+    real(rk8), parameter :: rdepliqrefrate = d_r10
+    ! Depth of supercooled liquid water layer (m)
+    real(rk8), parameter :: rdepliqrefdepth = 500.0D0
+    ! initial mass of ice particle
+    real(rk8), parameter :: riceinit = 1.D-12
+    ! constants for scaling factor
+    real(rk8) :: zmm, zrr, zmax, zrat
+    ! constants for condensation
+    real(rk8) :: zdpmxdt , zwtot , zzzdt , zdtdiab , zdtforc , &
+                 zqp , zqsat , zcond1 , zlevap
+    integer :: ires
 #ifdef DEBUG
-     character(len=dbgslen) :: subroutine_name = 'microphys'
-     integer(ik4) , save :: idindx = 0
-     call time_begin(subroutine_name,idindx)
+    character(len=dbgslen) :: subroutine_name = 'microphys'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
 #endif
     zrldcp  = d_one/(wlhsocp-wlhvocp)  ! Cp/Lf
     rkconv = d_one/6000                ! 1/autoconversion time scale (s)
@@ -1795,21 +1798,27 @@ module mod_cloud_s1
               ! Positive, since summed over 2nd index
               zexplicit = zexplicit + zsolqa(j,i,n,jn)
             end do
-            zqxn(n,j,i,k) = zqxx(j,i,k,n) + zexplicit
+            zqxn(n,k,j,i) = zqxx(j,i,k,n) + zexplicit
           end do
         end do
       end do
 
       ! Solve by LU decomposition:
       ! dummy test
-      ! ZQLHS(:,:,:)=0.0
-      ! DO JM=1,NQX
-      ! ZQLHS(1,JM,JM)=1.0
-      ! ENDDO
-      ! ZQLHS(1,3,3)=ZQLHS(1,3,3)+0.47
-      ! ZQLHS(1,5,3)=ZQLHS(1,5,3)-0.47
+      ! zqlhs(:,:,:) = 0.0
+      ! do jm = 1,nqx
+      !   zqlhs(1,jm,jm)=1.0
+      ! end do
+      ! zqlhs(1,3,3)=zqlhs(1,3,3)+0.47
+      ! zqlhs(1,5,3)=zqlhs(1,5,3)-0.47
       call ludcmp(zqlhs,jindex2)
       call lubksb(zqlhs,jindex2,zqxn)
+      ! Below use lapack instead
+      !do i = ici1 , ici2
+      !  do j = jci1 , jci2
+      !    call dgesv(nqx,kz,zqlhs(:,:,j,i),nqx,ipivot,zqxn(:,:,j,i),nqx,ires)
+      !  end do
+      !end do
 
       !------------------------------------------------------------------------
       !  Precipitation/sedimentation fluxes to next level
@@ -1823,7 +1832,7 @@ module mod_cloud_s1
           do j = jci1 , jci2
             ! this will be the source for the k
             zpfplsx(j,i,k+1,n) = zfallsink(j,i,n) * &
-              zqxn(n,j,i,k)*zrdtgdp(j,i) ! kg/m2/s
+              zqxn(n,k,j,i)*zrdtgdp(j,i) ! kg/m2/s
           end do
         end do
       end do
@@ -1832,7 +1841,7 @@ module mod_cloud_s1
         do i = ici1 , ici2
           do j = jci1 , jci2
             zfluxq(j,i,n)=zconvsrce(j,i,n)+ zfallsrce(j,i,n) - &
-                        (zfallsink(j,i,n)+zconvsink(j,i,n))*zqxn(n,j,i,k)
+                        (zfallsink(j,i,n)+zconvsink(j,i,n))*zqxn(n,k,j,i)
           end do
         end do
       end do
@@ -1841,7 +1850,7 @@ module mod_cloud_s1
         do i = ici1 , ici2
           do j = jci1 , jci2
             zqxtendc(j,i,k,n) = zqxtendc(j,i,k,n) + &
-              (zqxn(n,j,i,k)-zqxx(j,i,k,n))*zqtmst
+              (zqxn(n,k,j,i)-zqxx(j,i,k,n))*zqtmst
           end do
         end do
       end do
@@ -1851,11 +1860,11 @@ module mod_cloud_s1
           do j = jci1 , jci2
             if ( kphase(n) == 1 ) then
               zttendc(j,i,k) = zttendc(j,i,k) + &
-                wlhvocp*(zqxn(n,j,i,k)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
+                wlhvocp*(zqxn(n,k,j,i)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
             end if
             if ( kphase(n) == 2 ) then
               zttendc(j,i,k) = zttendc(j,i,k) + &
-                wlhfocp*(zqxn(n,j,i,k)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
+                wlhfocp*(zqxn(n,k,j,i)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
             end if
           end do
         end do
@@ -1998,19 +2007,19 @@ module mod_cloud_s1
     !         if ( kphase(n)==1 ) then
     !           ! Liquid & Rain
     !           pfsqlf(j,i,k+1) = pfsqlf(j,i,k+1) + &
-    !                (zqxn2d(j,i,k,iqql)-zqx0(j,i,k,iqql) - &
+    !                (zqxn(iqql,k,j,i)-zqx0(iqql,k,j,i) - &
     !                 zalfaw*qdetr(j,i,k))*zgdph_r
     !           ! Rain
     !           pfsqlf(j,i,k+1) = pfsqlf(j,i,k+1)+&
-    !                (zqxn2d(j,i,k,iqqr)-zqx0(j,i,k,iqqr))*zgdph_r
+    !                (zqxn(iqqr,k,j,i)-zqx0(iqqr,k,j,i))*zgdph_r
     !         else if ( kphase(n)==2 ) then
     !           ! Ice
     !           pfsqif(j,i,k+1) = pfsqif(j,i,k+1) + &
-    !                (zqxn2d(j,i,k,iqqi)-zqx0(j,i,k,iqqi) - &
+    !                (zqxn(iqqi,k,j,i)-zqx0(iqqi,k,j,i) - &
     !                (d_one-zalfaw)*qdetr(j,i,k))*zgdph_r
     !           !  Snow
     !           pfsqif(j,i,k+1) = pfsqif(j,i,k+1)+&
-    !                (zqxn2d(j,i,k,iqqs)-zqx0(j,i,k,iqqs))*zgdph_r
+    !                (zqxn(iqqs,k,j,i)-zqx0(iqqs,k,j,i)*zgdph_r
     !         end if
     !       end do
     !     end do
@@ -2216,9 +2225,9 @@ module mod_cloud_s1
     ! AND INDX ARE NOT MODIFIED BY THIS ROUTINE AND CAN BE
     ! LEFT IN PLACE FOR SUCCESSIVE CALLS WITH DI
 
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do k = 1 , kz
           ii = 0
           ! WHEN II IS SET TO A POSITIVE VALUE, IT WILL BECOME
           ! THE INDEX OF THE  FIRST NONVANISHING ELEMENT OF B.
@@ -2226,24 +2235,24 @@ module mod_cloud_s1
           ! THE ONLY NEW WRINKLE IS TO UNSCRAMBLE THE PERMUTATION AS WE GO.
           do m = 1 , nqx
             ll = indx(m,j,i)
-            xsum = bbm(ll,j,i,k)
-            bbm(ll,j,i,k) = bbm(m,j,i,k)
+            xsum = bbm(ll,k,j,i)
+            bbm(ll,k,j,i) = bbm(m,k,j,i)
             if ( ii /= 0 ) then
               do jj = ii , m - 1
-                xsum = xsum - aam(m,jj,j,i)*bbm(jj,j,i,k)
+                xsum = xsum - aam(m,jj,j,i)*bbm(jj,k,j,i)
               end do
             else if ( dabs(xsum) > dlowval ) then
-                ii = m
+              ii = m
             end if
-            bbm(m,j,i,k) = xsum
+            bbm(m,k,j,i) = xsum
           end do
           do m = nqx , 1 , -1 ! NOW WE DO THE BACKSUBSTITUTION, EQUATION (2.3.7)
-            xsum = bbm(m,j,i,k)
+            xsum = bbm(m,k,j,i)
             do jj = m + 1 , nqx
-              xsum = xsum - aam(m,jj,j,i)*bbm(jj,j,i,k)
+              xsum = xsum - aam(m,jj,j,i)*bbm(jj,k,j,i)
             end do
             ! STORE A COMPONENT OF THE SOLUTION VECTOR X.
-            bbm(m,j,i,k) = xsum/aam(m,m,j,i)
+            bbm(m,k,j,i) = xsum/aam(m,m,j,i)
           end do
         end do
       end do
@@ -2262,7 +2271,7 @@ module mod_cloud_s1
     integer(ik4) , pointer , intent(out) , dimension(:,:,:) :: indx
     real(rk8) :: aamax , dum , xsum
     integer(ik4) :: i , j , k , imax , n , m
-    real(rk8) , dimension(nqx) :: vv
+    real(rk8) , dimension(nqx) :: vv , swap
 #ifdef DEBUG
      character(len=dbgslen) :: subroutine_name = 'ludcmp'
      integer(ik4) , save :: idindx = 0
@@ -2306,23 +2315,19 @@ module mod_cloud_s1
             end if
           end do
           if ( n /= imax ) then
-            ! DO WE NEED TO INTERCHANGE ROWS?
-            do k = 1 , nqx ! YES, DO SO...
-              dum = aam(imax,k,j,i)
-              aam(imax,k,j,i) = aam(n,k,j,i)
-              aam(n,k,j,i) = dum
-            end do
+            ! DO WE NEED TO INTERCHANGE ROWS? YES, DO SO...
             ! D=-D !...AND CHANGE THE PARITY OF D.
+            swap = aam(imax,:,j,i)
+            aam(imax,:,j,i) = aam(n,:,j,i)
+            aam(n,:,j,i) = swap
             vv(imax) = vv(n) ! ALSO INTERCHANGE THE SCALE FACTOR.
           end if
           indx(n,j,i) = imax
           if ( dabs(aam(n,n,j,i)) < dlowval ) aam(n,n,j,i) = dlowval
-          if ( n /= nqx ) then
-            dum = d_one/aam(n,n,j,i)
-            do m = n + 1 , nqx
-              aam(m,n,j,i) = aam(m,n,j,i)*dum
-            end do
-          end if
+          dum = d_one/aam(n,n,j,i)
+          do m = n + 1 , nqx ! nqx is implicitly excluded by the loop
+            aam(m,n,j,i) = aam(m,n,j,i)*dum
+          end do
         end do
       end do
     end do
