@@ -179,7 +179,7 @@ module mod_cloud_s1
   real(rk8) , pointer , dimension(:,:,:,:) :: zpfplsx
   real(rk8) , public  , pointer, dimension(:,:,:,:) :: zqx0
   ! new values for zqxx at time+1
-  real(rk8) , public  , pointer, dimension(:,:,:,:) :: zqxn
+  real(rk8) , public  , pointer, dimension(:,:,:) :: zqxn
   ! first guess values including precip
   real(rk8) , public  , pointer, dimension(:,:,:)   :: zqxfg
   ! relative humidity
@@ -279,7 +279,7 @@ module mod_cloud_s1
       call getmem3d(zfoeeliqt,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeeliqt')
       call getmem3d(zfoeeicet,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeeicet')
       call getmem4d(zqxtendc,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:zqxtendc')
-      call getmem4d(zqxn,1,nqx,1,kz,jci1,jci2,ici1,ici2,'clouds1:zqxn')
+      call getmem3d(zqxn,1,nqx,jci1,jci2,ici1,ici2,'clouds1:zqxn')
       call getmem4d(zqlhs,1,nqx,1,nqx,jci1,jci2,ici1,ici2,'clouds1:zqlhs')
       call getmem4d(zsolqa,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:zsolqa')
       call getmem4d(zsolqb,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:zsolqb')
@@ -1806,7 +1806,7 @@ module mod_cloud_s1
               ! Positive, since summed over 2nd index
               zexplicit = zexplicit + zsolqa(j,i,n,jn)
             end do
-            zqxn(n,k,j,i) = zqxx(j,i,k,n) + zexplicit
+            zqxn(n,j,i) = zqxx(j,i,k,n) + zexplicit
           end do
         end do
       end do
@@ -1821,7 +1821,7 @@ module mod_cloud_s1
 #ifdef USE_LAPACK
       do i = ici1 , ici2
         do j = jci1 , jci2
-          call dgesv(nqx,kz,zqlhs(:,:,j,i),nqx,ipivot,zqxn(:,:,j,i),nqx,ires)
+          call dgesv(nqx,1,zqlhs(:,:,j,i),nqx,ipivot,zqxn(:,j,i),nqx,ires)
           if ( ires /= 0 ) then
             write(stderr,*) 'Error from lapack subroutine DGESV'
             if ( ires < 0 ) then
@@ -1851,7 +1851,7 @@ module mod_cloud_s1
           do j = jci1 , jci2
             ! this will be the source for the k
             zpfplsx(j,i,k+1,n) = zfallsink(j,i,n) * &
-              zqxn(n,k,j,i)*zrdtgdp(j,i) ! kg/m2/s
+              zqxn(n,j,i)*zrdtgdp(j,i) ! kg/m2/s
           end do
         end do
       end do
@@ -1860,7 +1860,7 @@ module mod_cloud_s1
         do i = ici1 , ici2
           do j = jci1 , jci2
             zfluxq(j,i,n)=zconvsrce(j,i,n)+ zfallsrce(j,i,n) - &
-                        (zfallsink(j,i,n)+zconvsink(j,i,n))*zqxn(n,k,j,i)
+                        (zfallsink(j,i,n)+zconvsink(j,i,n))*zqxn(n,j,i)
           end do
         end do
       end do
@@ -1869,7 +1869,7 @@ module mod_cloud_s1
         do i = ici1 , ici2
           do j = jci1 , jci2
             zqxtendc(j,i,k,n) = zqxtendc(j,i,k,n) + &
-              (zqxn(n,k,j,i)-zqxx(j,i,k,n))*zqtmst
+              (zqxn(n,j,i)-zqxx(j,i,k,n))*zqtmst
           end do
         end do
       end do
@@ -1879,11 +1879,11 @@ module mod_cloud_s1
           do j = jci1 , jci2
             if ( kphase(n) == 1 ) then
               zttendc(j,i,k) = zttendc(j,i,k) + &
-                wlhvocp*(zqxn(n,k,j,i)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
+                wlhvocp*(zqxn(n,j,i)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
             end if
             if ( kphase(n) == 2 ) then
               zttendc(j,i,k) = zttendc(j,i,k) + &
-                wlhfocp*(zqxn(n,k,j,i)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
+                wlhfocp*(zqxn(n,j,i)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
             end if
           end do
         end do
@@ -2026,19 +2026,19 @@ module mod_cloud_s1
     !         if ( kphase(n)==1 ) then
     !           ! Liquid & Rain
     !           pfsqlf(j,i,k+1) = pfsqlf(j,i,k+1) + &
-    !                (zqxn(iqql,k,j,i)-zqx0(iqql,k,j,i) - &
+    !                (zqxn(iqql,j,i)-zqx0(iqql,k,j,i) - &
     !                 zalfaw*qdetr(j,i,k))*zgdph_r
     !           ! Rain
     !           pfsqlf(j,i,k+1) = pfsqlf(j,i,k+1)+&
-    !                (zqxn(iqqr,k,j,i)-zqx0(iqqr,k,j,i))*zgdph_r
+    !                (zqxn(iqqr,j,i)-zqx0(iqqr,k,j,i))*zgdph_r
     !         else if ( kphase(n)==2 ) then
     !           ! Ice
     !           pfsqif(j,i,k+1) = pfsqif(j,i,k+1) + &
-    !                (zqxn(iqqi,k,j,i)-zqx0(iqqi,k,j,i) - &
+    !                (zqxn(iqqi,j,i)-zqx0(iqqi,k,j,i) - &
     !                (d_one-zalfaw)*qdetr(j,i,k))*zgdph_r
     !           !  Snow
     !           pfsqif(j,i,k+1) = pfsqif(j,i,k+1)+&
-    !                (zqxn(iqqs,k,j,i)-zqx0(iqqs,k,j,i)*zgdph_r
+    !                (zqxn(iqqs,j,i)-zqx0(iqqs,k,j,i)*zgdph_r
     !         end if
     !       end do
     !     end do
@@ -2226,7 +2226,7 @@ module mod_cloud_s1
     implicit none
     real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: aam
     integer(ik4) , pointer , intent(in) , dimension(:,:,:) :: indx
-    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: bbm
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: bbm
     integer(ik4) :: i , j , ii , jj , k , ll , m
     real(rk8) :: xsum
 #ifdef DEBUG
@@ -2246,33 +2246,31 @@ module mod_cloud_s1
 
     do i = ici1 , ici2
       do j = jci1 , jci2
-        do k = 1 , kz
-          ii = 0
-          ! WHEN II IS SET TO A POSITIVE VALUE, IT WILL BECOME
-          ! THE INDEX OF THE  FIRST NONVANISHING ELEMENT OF B.
-          ! WE NOW DO THE FORWARD SUBSTITUTION, EQUATION (2.3.6).
-          ! THE ONLY NEW WRINKLE IS TO UNSCRAMBLE THE PERMUTATION AS WE GO.
-          do m = 1 , nqx
-            ll = indx(m,j,i)
-            xsum = bbm(ll,k,j,i)
-            bbm(ll,k,j,i) = bbm(m,k,j,i)
-            if ( ii /= 0 ) then
-              do jj = ii , m - 1
-                xsum = xsum - aam(m,jj,j,i)*bbm(jj,k,j,i)
-              end do
-            else if ( dabs(xsum) > dlowval ) then
-              ii = m
-            end if
-            bbm(m,k,j,i) = xsum
-          end do
-          do m = nqx , 1 , -1 ! NOW WE DO THE BACKSUBSTITUTION, EQUATION (2.3.7)
-            xsum = bbm(m,k,j,i)
-            do jj = m + 1 , nqx
-              xsum = xsum - aam(m,jj,j,i)*bbm(jj,k,j,i)
+        ii = 0
+        ! WHEN II IS SET TO A POSITIVE VALUE, IT WILL BECOME
+        ! THE INDEX OF THE  FIRST NONVANISHING ELEMENT OF B.
+        ! WE NOW DO THE FORWARD SUBSTITUTION, EQUATION (2.3.6).
+        ! THE ONLY NEW WRINKLE IS TO UNSCRAMBLE THE PERMUTATION AS WE GO.
+        do m = 1 , nqx
+          ll = indx(m,j,i)
+          xsum = bbm(ll,j,i)
+          bbm(ll,j,i) = bbm(m,j,i)
+          if ( ii /= 0 ) then
+            do jj = ii , m - 1
+              xsum = xsum - aam(m,jj,j,i)*bbm(jj,j,i)
             end do
-            ! STORE A COMPONENT OF THE SOLUTION VECTOR X.
-            bbm(m,k,j,i) = xsum/aam(m,m,j,i)
+          else if ( dabs(xsum) > dlowval ) then
+            ii = m
+          end if
+          bbm(m,j,i) = xsum
+        end do
+        do m = nqx , 1 , -1 ! NOW WE DO THE BACKSUBSTITUTION, EQUATION (2.3.7)
+          xsum = bbm(m,j,i)
+          do jj = m + 1 , nqx
+            xsum = xsum - aam(m,jj,j,i)*bbm(jj,j,i)
           end do
+          ! STORE A COMPONENT OF THE SOLUTION VECTOR X.
+          bbm(m,j,i) = xsum/aam(m,m,j,i)
         end do
       end do
     end do
