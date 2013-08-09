@@ -259,7 +259,7 @@
                         ! TSI recommended CMIP5 solar forcing data.
  /
 !
-! Moisture scheme comtrol (You know what You are doing, don't You?)
+! Moisture scheme comtrol (ipptls = 1)
 !
  &subexparam
  ncld      =          1, ! # of bottom model levels with no clouds
@@ -276,6 +276,17 @@
  cllwcv    =     0.3E-3, ! Cloud liquid water content for convective precip.
  clfrcvmax =       1.00, ! Max cloud fractional cover for convective precip.
  cftotmax  =       0.75, ! Max total cover cloud fraction for radiation
+ /
+!
+! New Microphysics Option (ipptls = 2)
+!
+ &microparam
+  budget_compute = .false., ! Verify enthalpy and moisture conservation
+  nssopt = 1,               ! Supersaturation Computation
+                            ! 0 => No scheme
+                            ! 1 => Tompkins
+                            ! 2 => Lohmann and Karcher
+                            ! 3 => Gierens
  /
 !
 ! Grell Cumulus scheme control

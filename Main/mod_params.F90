@@ -364,9 +364,12 @@ module mod_params
   cftotmax = 0.75D0  ! Max total cover cloud fraction for radiation
 
   ! namelist microparam
-  budget_compute = .false.
-  nssopt = 1 ! Use Tompkins supersaturation
- 
+  budget_compute = .false. ! Verify enthalpy and moisture conservation
+  nssopt = 1 ! Supersaturation Computation
+             ! 0 => No scheme
+             ! 1 => Tompkins
+             ! 2 => Lohmann and Karcher
+             ! 3 => Gierens
 !------namelist grellparam:
   shrmin = 0.25D0       ! Minimum Shear effect on precip eff.
   shrmax = 0.50D0       ! Maximum Shear effect on precip eff.

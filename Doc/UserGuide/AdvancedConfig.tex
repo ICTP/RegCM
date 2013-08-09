@@ -653,9 +653,9 @@ sensitivity experiments to select the best scheme for your application.
 
 \subsection{subexparam stanza}
 
-This stanza controls the moisture scheme. Please consider carefully reporting
-in your work the tuning you perform on this parameters. The parameters below
-are the ones currently used at ICTP.
+This stanza controls the SUBEX moisture scheme. Please consider carefully
+reporting in your work the tuning you perform on this parameters.
+The parameters below are the ones currently used at ICTP.
 
 {\footnotesize
 \begin{Verbatim}
@@ -685,6 +685,23 @@ We found that RegCM4 is especially sensitive to:
 \item \verb=gulland=, \verb=guloce= : increase of guland/guloce will generally
 lead to reduce precipitation
 \end{enumerate}
+
+\subsection{microparam stanza}
+
+This stanza controls the new microphysics scheme.
+
+{\footnotesize
+\begin{Verbatim}
+ &microparam
+  budget_compute = .false., ! Verify enthalpy and moisture conservation
+  nssopt = 1,               ! Supersaturation Computation
+                            ! 0 => No scheme
+                            ! 1 => Tompkins
+                            ! 2 => Lohmann and Karcher
+                            ! 3 => Gierens
+ /
+\end{Verbatim}
+}
 
 \subsection{grellparam, emanparam and tiedtkeparam stanzas}
 
