@@ -44,6 +44,13 @@
         real(rk8), pointer :: wndv(:,:)
         real(rk8), pointer :: rnof(:,:)
         real(rk8), pointer :: snof(:,:)
+        real(rk8), pointer :: taux(:,:)
+        real(rk8), pointer :: tauy(:,:)
+        real(rk8), pointer :: wspd(:,:)
+        real(rk8), pointer :: nflx(:,:)
+        real(rk8), pointer :: sflx(:,:)
+        real(rk8), pointer :: snow(:,:)
+        real(rk8), pointer :: dswr(:,:)
       end type exp_data      
 !
       type imp_data
@@ -119,6 +126,13 @@
       call getmem2d(exportFields%wndv,jce1,jce2,ice1,ice2,'cpl:wndv')
       call getmem2d(exportFields%rnof,jci1,jci2,ici1,ici2,'cpl:rnof')
       call getmem2d(exportFields%snof,jci1,jci2,ici1,ici2,'cpl:snof')
+      call getmem2d(exportFields%taux,jce1,jce2,ice1,ice2,'cpl:taux')
+      call getmem2d(exportFields%tauy,jce1,jce2,ice1,ice2,'cpl:tauy')
+      call getmem2d(exportFields%wspd,jce1,jce2,ice1,ice2,'cpl:wspd')
+      call getmem2d(exportFields%nflx,jce1,jce2,ice1,ice2,'cpl:nflx')
+      call getmem2d(exportFields%sflx,jce1,jce2,ice1,ice2,'cpl:sflx')
+      call getmem2d(exportFields%snow,jce1,jce2,ice1,ice2,'cpl:snow')
+      call getmem2d(exportFields%dswr,jce1,jce2,ice1,ice2,'cpl:dswr')
 !
       call getmem2d(importFields%sst,jce1,jce2,ice1,ice2,'cpl:sst')
       call getmem2d(importFields%sit,jce1,jce2,ice1,ice2,'cpl:sit')
@@ -146,6 +160,13 @@
           exportFields%wndv(j,i) = initval
           exportFields%rnof(j,i) = zeroval
           exportFields%snof(j,i) = zeroval
+          exportFields%taux(j,i) = zeroval
+          exportFields%tauy(j,i) = zeroval
+          exportFields%wspd(j,i) = zeroval
+          exportFields%nflx(j,i) = zeroval
+          exportFields%sflx(j,i) = zeroval
+          exportFields%snow(j,i) = zeroval
+          exportFields%dswr(j,i) = zeroval
 !
           importFields%sst(j,i) = initval
           importFields%sit(j,i) = initval
@@ -365,6 +386,7 @@
       use mod_bats_common, only : sfps, t2m, q2m, flw, flwd,            &
                                   evpr, sent, totpr, u10m, v10m, fsw,   &
                                   srnof, trnof, rdnnsg, ldmsk, dailyrnf,&
+                                  taux, tauy, sncv, solvd, solvs,       &
                                   runoffcount
 !
       implicit none
@@ -398,6 +420,13 @@
           exportFields%prec(j,i) = totpr(j,i)
           exportFields%wndu(j,i) = u10m(1,j,i)
           exportFields%wndv(j,i) = v10m(1,j,i)
+          exportFields%taux(j,i) = taux(1,j,i)
+          exportFields%tauy(j,i) = tauy(1,j,i)
+          exportFields%wspd(j,i) = dsqrt(u10m(1,j,i)**2+v10m(1,j,i)**2)
+          exportFields%nflx(j,i) = fsw(j,i)-evpr(1,j,i)*wlhv-sent(1,j,i)-flw(j,i)
+          exportFields%sflx(j,i) = evpr(1,j,i)-totpr(j,i)
+          exportFields%snow(j,i) = sncv(1,j,i)
+          exportFields%dswr(j,i) = solvd(j,i)+solvs(j,i) 
         end do
       end do
 !
