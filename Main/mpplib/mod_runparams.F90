@@ -301,6 +301,8 @@ module mod_runparams
   logical :: budget_compute
   ! Super saturation option
   integer :: nssopt
+  ! Choose the autoconversion paramaterization
+  integer :: kautoconv
 
   !
   ! Debug limit values for tendencies

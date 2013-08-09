@@ -2018,6 +2018,8 @@ module mod_ncout
             ncattribute_logical('micro_budget_verification',budget_compute))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('micro_super_saturation_option',nssopt))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('micro_autoconversion_option',kautoconv))
         end if
         if ( icup == 2 .or. icup == 98 .or. icup == 99 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

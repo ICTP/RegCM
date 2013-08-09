@@ -113,7 +113,7 @@ module mod_params
     rhmax , rh0oce , rh0land , cevap , caccr , tc0 , cllwcv ,          &
     clfrcvmax , cftotmax
 
-  namelist /microparam/ budget_compute , nssopt
+  namelist /microparam/ budget_compute , nssopt , kautoconv
 
   namelist /grellparam/ shrmin , shrmax , edtmin , edtmax ,         &
     edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
@@ -370,6 +370,12 @@ module mod_params
              ! 1 => Tompkins
              ! 2 => Lohmann and Karcher
              ! 3 => Gierens
+  kautoconv = 4 !  Choose the autoconversion paramaterization
+                ! => 1 Klein & Pincus (2000)
+                ! => 2 Khairoutdinov and Kogan (2000)
+                ! => 3 Kessler (1969)
+                ! => 4 Sundqvist
+
 !------namelist grellparam:
   shrmin = 0.25D0       ! Minimum Shear effect on precip eff.
   shrmax = 0.50D0       ! Maximum Shear effect on precip eff.
@@ -905,6 +911,7 @@ module mod_params
   else if ( ipptls == 2 ) then
     call bcast(budget_compute)
     call bcast(nssopt)
+    call bcast(kautoconv)
   end if
 
   if ( irrtm == 1 ) then

@@ -32,7 +32,7 @@ module mod_cloud_s1
   use mod_runparams , only : sigma
   use mod_runparams , only : dt
   use mod_runparams , only : ipptls
-  use mod_runparams , only : budget_compute , nssopt
+  use mod_runparams , only : budget_compute , nssopt , kautoconv
   use mod_pbl_common
   use mod_constants
   use mod_precip , only : fcc
@@ -325,7 +325,7 @@ module mod_cloud_s1
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: omega
 
     integer(ik4) :: i , j , k , n , m
-    integer(ik4) :: iqqi , iqql , iqqr , iqqs , iqqv , jn , jo , kautoconv
+    integer(ik4) :: iqqi , iqql , iqqr , iqqs , iqqv , jn , jo
     logical :: llo1
     real(rk8) :: zexplicit
     ! local real variables for autoconversion rate constants
@@ -351,7 +351,7 @@ module mod_cloud_s1
     real(rk8) :: prainx , psnowx
     ! local real constants for evaporation
     real(rk8) :: zdpr , zdenom , zdpevap , zevap
-    real(rk8) :: zgdph_r
+    ! real(rk8) :: zgdph_r
     ! constants for deposition process
     real(rk8) :: zvpice , zvpliq , zadd , zbdd , zcvds , &
                  zice0 , zinew , zdepos , zinfactor
@@ -383,7 +383,7 @@ module mod_cloud_s1
     real(rk8) , parameter :: rclcrit_sea = 3.D-4
     real(rk8) , parameter :: rprc1 = 3.D2           ! in Sundqvist = 300
     real(rk8) , parameter :: ramid = 0.8D0
-    real(rk8) , parameter :: kevap = 0.100D-02  ! Raindrop evap rate coef
+    ! real(rk8) , parameter :: kevap = 0.100D-02  ! Raindrop evap rate coef
     real(rk8) , parameter :: rlmin = 1.D-8
     ! real(rk8) , parameter :: ramin = 1.D-8
     ! max threshold rh for evaporation
@@ -392,12 +392,12 @@ module mod_cloud_s1
     !evaporation rate coefficient
     real(rk8) , parameter :: rpecons = 5.44D-4/egrav
     ! Numerical fit to wet bulb temperature
-    real(rk8) , parameter :: ztw1 = 1329.31
-    real(rk8) , parameter :: ztw2 = 0.0074615
-    real(rk8) , parameter :: ztw3 = 0.85D5
-    real(rk8) , parameter :: ztw4 = 40.637
-    real(rk8) , parameter :: ztw5 = 275.0
-    real(rk8) , parameter :: rtaumel=1.1880D4
+    ! real(rk8) , parameter :: ztw1 = 1329.31
+    ! real(rk8) , parameter :: ztw2 = 0.0074615
+    ! real(rk8) , parameter :: ztw3 = 0.85D5
+    ! real(rk8) , parameter :: ztw4 = 40.637
+    ! real(rk8) , parameter :: ztw5 = 275.0
+    ! real(rk8) , parameter :: rtaumel=1.1880D4
     ! variables/constants for the supersaturation
     real(rk8) :: zfac , zfaci , zfacw , zcor , zfokoop
     real(rk8) , parameter :: r5les =  4216.975  !r3les*(rtt-r4les)
@@ -430,12 +430,6 @@ module mod_cloud_s1
     iqqr = 3    ! rain water
     iqqi = 4    ! ice
     iqqs = 5    ! snow
-
-    ! Choose the autoconversion paramaterization
-    ! KAUTOCONV = 1 ! Klein & Pincus (2000)
-    ! kautoconv = 2 ! Khairoutdinov and Kogan (2000)
-    ! KAUTOCONV = 3 ! Kessler (1969)
-     KAUTOCONV = 4 ! Sundqvist
 
     ! Define species phase, 0=vapour, 1=liquid, 2=ice
     kphase(iqqv) = 0
@@ -2152,9 +2146,9 @@ module mod_cloud_s1
      pure real(rk8) function foeeice(zt) ! = 0.622*esi
        implicit none
        real(rk8) , intent(in):: zt
-       real(rk8) , parameter :: r3ies = 21.874D0
        real(rk8) , parameter :: r2es =  610.78D0*ep2
-       real(rk8) , parameter :: r4ies = 7.66D0
+       ! real(rk8) , parameter :: r3ies = 21.874D0
+       ! real(rk8) , parameter :: r4ies = 7.66D0
        ! real(rk8) , parameter :: r3ies = 22.587D0
        ! real(rk8) , parameter :: r2es =  611.21D0*rgow
        ! real(rk8) , parameter :: r4ies = -0.7D0
@@ -2230,7 +2224,7 @@ module mod_cloud_s1
     real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: aam
     integer(ik4) , pointer , intent(in) , dimension(:,:,:) :: indx
     real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: bbm
-    integer(ik4) :: i , j , ii , jj , k , ll , m
+    integer(ik4) :: i , j , ii , jj , ll , m
     real(rk8) :: xsum
 #ifdef DEBUG
      character(len=dbgslen) :: subroutine_name = 'lubksb'
