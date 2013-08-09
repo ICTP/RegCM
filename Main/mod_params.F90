@@ -113,7 +113,7 @@ module mod_params
     rhmax , rh0oce , rh0land , cevap , caccr , tc0 , cllwcv ,          &
     clfrcvmax , cftotmax
 
-  namelist /microparam/ budget_compute
+  namelist /microparam/ budget_compute , nssopt
 
   namelist /grellparam/ shrmin , shrmax , edtmin , edtmax ,         &
     edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
@@ -365,6 +365,7 @@ module mod_params
 
   ! namelist microparam
   budget_compute = .false.
+  nssopt = 1 ! Use Tompkins supersaturation
  
 !------namelist grellparam:
   shrmin = 0.25D0       ! Minimum Shear effect on precip eff.
@@ -900,6 +901,7 @@ module mod_params
     call bcast(cftotmax)
   else if ( ipptls == 2 ) then
     call bcast(budget_compute)
+    call bcast(nssopt)
   end if
 
   if ( irrtm == 1 ) then

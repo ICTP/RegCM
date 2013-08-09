@@ -2013,6 +2013,11 @@ module mod_ncout
          ncattribute_real8('subex_cloud_fraction_max_for_convection',clfrcvmax))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('subex_cloud_liqwat_max_for_convection',cllwcv))
+        else if ( ipptls == 2 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('micro_budget_verification',budget_compute))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('micro_super_saturation_option',nssopt))
         end if
         if ( icup == 2 .or. icup == 98 .or. icup == 99 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

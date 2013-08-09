@@ -32,7 +32,7 @@ module mod_cloud_s1
   use mod_runparams , only : sigma
   use mod_runparams , only : dt
   use mod_runparams , only : ipptls
-  use mod_runparams , only : budget_compute
+  use mod_runparams , only : budget_compute , nssopt
   use mod_pbl_common
   use mod_constants
   use mod_precip , only : fcc
@@ -59,7 +59,6 @@ module mod_cloud_s1
   real(rk8) , pointer , dimension(:,:) :: psf , rainnc, lsmrnc, snownc
 
   public :: allocate_mod_cloud_s1 , init_cloud_s1 , microphys
-  public :: ludcmp , lubksb
 
   ! Total water and enthalpy budget diagnostics variables
   ! marker for water phase of each species
@@ -367,7 +366,6 @@ module mod_cloud_s1
 
     logical , parameter :: lmicro = .true.
 
-    integer(ik4) , parameter :: nssopt = 1
     real(rk8) , parameter :: rlcritsnow = 3.D-5!4.D-5   !critical autoconversion
     real(rk8) , parameter :: zauto_rate_khair = 0.355D0 ! microphysical terms
     real(rk8) , parameter :: zauto_expon_khair = 1.47D0
@@ -527,7 +525,9 @@ module mod_cloud_s1
     !-------------------------------------
     ! Initial enthalpy and total water diagnostics
     !-------------------------------------
-
+    !
+    ! Starting budget if requested
+    !
     if ( budget_compute ) then
       ! Record the tendencies
       do n = 1 , nqx
@@ -546,8 +546,6 @@ module mod_cloud_s1
           end do
         end do
       end do
-
-      ! starting budget
       ! initialize the flux arrays
       do k = 1 , kz
         do i = ici1 , ici2

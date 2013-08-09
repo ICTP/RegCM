@@ -299,6 +299,8 @@ module mod_runparams
   !
   ! Total water and enthalpy budget on/off
   logical :: budget_compute
+  ! Super saturation option
+  integer :: nssopt
 
   !
   ! Debug limit values for tendencies
