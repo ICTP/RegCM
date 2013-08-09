@@ -295,6 +295,12 @@ module mod_runparams
 #endif
 
   !
+  ! New microphys parameters
+  !
+  ! Total water and enthalpy budget on/off
+  logical :: budget_compute
+
+  !
   ! Debug limit values for tendencies
   !
   real(rk8) :: temp_tend_maxval

@@ -32,6 +32,7 @@ module mod_cloud_s1
   use mod_runparams , only : sigma
   use mod_runparams , only : dt
   use mod_runparams , only : ipptls
+  use mod_runparams , only : budget_compute
   use mod_pbl_common
   use mod_constants
   use mod_precip , only : fcc
@@ -58,6 +59,7 @@ module mod_cloud_s1
   real(rk8) , pointer , dimension(:,:) :: psf , rainnc, lsmrnc, snownc
 
   public :: allocate_mod_cloud_s1 , init_cloud_s1 , microphys
+  public :: ludcmp , lubksb
 
   ! Total water and enthalpy budget diagnostics variables
   ! marker for water phase of each species
@@ -264,13 +266,17 @@ module mod_cloud_s1
       call getmem3d(zpfplsn,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:zpfplsn')
       call getmem3d(pfsqlf,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:pfsqlf')
       call getmem3d(pfsqif,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:pfsqif')
-      call getmem3d(ztentkeep,jci1,jci2,ici1,ici2,1,kz,'clouds1:ztentkeep')
-      call getmem3d(zsumq0,jci1,jci2,ici1,ici2,1,kz,'clouds1:zsumq0')
-      call getmem3d(zsumh0,jci1,jci2,ici1,ici2,1,kz,'clouds1:zsumh0')
-      call getmem3d(zsumq1,jci1,jci2,ici1,ici2,1,kz,'clouds1:zsumq1')
-      call getmem3d(zsumh1,jci1,jci2,ici1,ici2,1,kz,'clouds1:zsumh1')
-      call getmem3d(zerrorq,jci1,jci2,ici1,ici2,1,kz,'clouds1:zerrorq')
-      call getmem3d(zerrorh,jci1,jci2,ici1,ici2,1,kz,'clouds1:zerrorh')
+      if ( budget_compute ) then
+        call getmem3d(zsumq0,jci1,jci2,ici1,ici2,1,kz,'clouds1:zsumq0')
+        call getmem3d(zsumh0,jci1,jci2,ici1,ici2,1,kz,'clouds1:zsumh0')
+        call getmem3d(zsumq1,jci1,jci2,ici1,ici2,1,kz,'clouds1:zsumq1')
+        call getmem3d(zsumh1,jci1,jci2,ici1,ici2,1,kz,'clouds1:zsumh1')
+        call getmem3d(zerrorq,jci1,jci2,ici1,ici2,1,kz,'clouds1:zerrorq')
+        call getmem3d(zerrorh,jci1,jci2,ici1,ici2,1,kz,'clouds1:zerrorh')
+        call getmem4d(ztenkeep,jci1,jci2,ici1,ici2, &
+                      1,kz,1,nqx,'clouds1:ztenkeep')
+        call getmem3d(ztentkeep,jci1,jci2,ici1,ici2,1,kz,'clouds1:ztentkeep')
+      end if
       call getmem3d(papf,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:papf')
       call getmem3d(zliq,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:zliq')
       call getmem3d(zqxfg,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zqxfg')
@@ -285,7 +291,6 @@ module mod_cloud_s1
       call getmem4d(zsolqb,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:zsolqb')
       call getmem4d(llindex3,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:llindex3')
       call getmem4d(zpfplsx,jci1,jci2,ici1,ici2,1,kz+1,1,nqx,'clouds1:zpfplsx')
-      call getmem4d(ztenkeep,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:ztenkeep')
       call getmem4d(zqx0,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:zqx0')
     end if
     call getmem3d(zqsliq,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqsliq')
@@ -361,8 +366,6 @@ module mod_cloud_s1
 #endif
 
     logical , parameter :: lmicro = .true.
-    ! Total water and enthalpy budget on/off
-    logical , parameter :: budget = .true.
 
     integer(ik4) , parameter :: nssopt = 1
     real(rk8) , parameter :: rlcritsnow = 3.D-5!4.D-5   !critical autoconversion
@@ -491,15 +494,17 @@ module mod_cloud_s1
     zcovptot(:,:)        = d_zero
     zcovpclr(:,:)        = d_zero
     zcldtopdist(:,:)     = d_zero
-    zerrorq(:,:,:)       = d_zero
-    zerrorh(:,:,:)       = d_zero
-    zsumh0(:,:,:)        = d_zero
-    zsumq0(:,:,:)        = d_zero
-    zsumh1(:,:,:)        = d_zero
-    zsumq1(:,:,:)        = d_zero
-    ztentkeep(:,:,:)     = d_zero
-    ztenkeep(:,:,:,:)    = d_zero
     zpfplsx(:,:,:,:)     = d_zero
+    if ( budget_compute ) then
+      zerrorq(:,:,:)       = d_zero
+      zerrorh(:,:,:)       = d_zero
+      zsumh0(:,:,:)        = d_zero
+      zsumq0(:,:,:)        = d_zero
+      zsumh1(:,:,:)        = d_zero
+      zsumq1(:,:,:)        = d_zero
+      ztentkeep(:,:,:)     = d_zero
+      ztenkeep(:,:,:,:)    = d_zero
+    end if
 
     ! Decouple tendencies
     do n = 1 , nqx
@@ -519,29 +524,29 @@ module mod_cloud_s1
       end do
     end do
 
-    ! Record the tendencies
-    do n = 1 , nqx
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ztenkeep(j,i,k,n) = zqxtendc(j,i,k,n)
-          end do
-        end do
-      end do
-    end do
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ztentkeep(j,i,k) = zttendc(j,i,k)
-        end do
-      end do
-    end do
-
     !-------------------------------------
     ! Initial enthalpy and total water diagnostics
     !-------------------------------------
 
-    if ( budget ) then
+    if ( budget_compute ) then
+      ! Record the tendencies
+      do n = 1 , nqx
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              ztenkeep(j,i,k,n) = zqxtendc(j,i,k,n)
+            end do
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ztentkeep(j,i,k) = zttendc(j,i,k)
+          end do
+        end do
+      end do
+
       ! starting budget
       ! initialize the flux arrays
       do k = 1 , kz
@@ -586,7 +591,7 @@ module mod_cloud_s1
           end do
         end do
       end do
-    end if ! budget
+    end if ! budget_compute
 
     ! ----------------------------------------------------
     ! Tidy up very small cloud cover or total cloud water
@@ -1907,7 +1912,7 @@ module mod_cloud_s1
     ! Final enthalpy and total water diagnostics
     !-------------------------------------
 
-    if ( budget ) then
+    if ( budget_compute ) then
       ! Initialize the flux arrays
       do k = 1 , kz
         do i = ici1 , ici2
@@ -1973,7 +1978,7 @@ module mod_cloud_s1
           end do
         end do
       end do
-    end if ! budget
+    end if ! budget_compute
 
     ! Sum fluxes over the levels
     ! Initialize fluxes
@@ -2296,7 +2301,8 @@ module mod_cloud_s1
 #endif
     do i = ici1 , ici2
       do j = jci1 , jci2
-        do m = 1 , nqx !LOOP OVER ROWS TO GET THE IMPLICIT SCALING INFORMATION.
+        ! LOOP OVER ROWS TO GET THE IMPLICIT SCALING INFORMATION.
+        do m = 1 , nqx
           aamax = d_zero
           do n = 1 , nqx
             if ( dabs(aam(m,n,j,i)) > aamax ) aamax = dabs(aam(m,n,j,i))
@@ -2309,17 +2315,19 @@ module mod_cloud_s1
         do n = 1 , nqx
           ! THIS IS THE LOOP OVER COLUMNS OF CROUT S METHOD.
           do m = 1 , n - 1
-            !THIS IS EQUATION (2.3.12) EXCEPT FOR I = J.
+            ! THIS IS EQUATION (2.3.12) EXCEPT FOR I = J.
             xsum = aam(m,n,j,i)
             do k = 1 , m - 1
               xsum = xsum - aam(m,k,j,i)*aam(k,n,j,i)
             end do
             aam(m,n,j,i) = xsum
           end do
-          aamax = d_zero ! INITIALIZE FOR THE SEARCH FOR LARGEST PIVOT ELEMENT.
+          ! INITIALIZE FOR THE SEARCH FOR LARGEST PIVOT ELEMENT.
+          aamax = d_zero
           imax = n
-          do m = n , nqx ! THIS IS I = J OF EQUATION (2.3.12)
-            ! AND I = J+1. . .N OF EQUATION (2.3.13).
+          ! THIS IS I = J OF EQUATION (2.3.12) AND I = J+1. . .N
+          ! OF EQUATION (2.3.13).
+          do m = n , nqx
             xsum = aam(m,n,j,i)
             do k = 1 , n - 1
               xsum = xsum - aam(m,k,j,i)*aam(k,n,j,i)

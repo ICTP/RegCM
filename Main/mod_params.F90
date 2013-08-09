@@ -113,6 +113,8 @@ module mod_params
     rhmax , rh0oce , rh0land , cevap , caccr , tc0 , cllwcv ,          &
     clfrcvmax , cftotmax
 
+  namelist /microparam/ budget_compute
+
   namelist /grellparam/ shrmin , shrmax , edtmin , edtmax ,         &
     edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
     htmin , htmax , skbmax , dtauc, shrmin_ocn , shrmax_ocn ,       &
@@ -360,6 +362,9 @@ module mod_params
   cllwcv = 0.3D-3    ! Cloud liquid water content for convective precip.
   clfrcvmax = 1.00D0 ! Max cloud fractional cover for convective precip.
   cftotmax = 0.75D0  ! Max total cover cloud fraction for radiation
+
+  ! namelist microparam
+  budget_compute = .false.
  
 !------namelist grellparam:
   shrmin = 0.25D0       ! Minimum Shear effect on precip eff.
@@ -567,13 +572,25 @@ module mod_params
 #endif
       end if
     else if ( ipptls == 2 ) then
+      rewind(ipunit)
+      read (ipunit, nml=microparam, iostat=iretval)
+      if ( iretval /= 0 ) then
+        write(stdout,*) 'Using default microphysical parameter.'
+#ifdef DEBUG
+      else
+        write(stdout,*) 'Read microparam OK'
+#endif
+      end if
       write(stderr,*) 'IPPTLS == 2 IS STILL EXPERIMENTAL !!!!'
       write(stderr,*) 'DO NOT USE IT ON A PRODUCTION RUN !!!!'
-      call fatal(__FILE__,__LINE__,'EXPERIMENTAL FEATURE')
+      ! call fatal(__FILE__,__LINE__,'EXPERIMENTAL FEATURE')
       if ( icup /= 5 ) then
         write(stderr,*) 'IPPTLS == 2 REQUIRES ICUP == 5.'
         write(stderr,*) 'Setting icup to 5 (Tiedtke)'
         icup = 5
+      end if
+      if ( budget_compute ) then
+        write(stdout,*) 'Will check the total enthalpy and moisture'
       end if
     end if
 
@@ -881,6 +898,8 @@ module mod_params
     call bcast(cevap)
     call bcast(caccr)
     call bcast(cftotmax)
+  else if ( ipptls == 2 ) then
+    call bcast(budget_compute)
   end if
 
   if ( irrtm == 1 ) then
