@@ -266,10 +266,11 @@ module mod_init
     call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
     call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
 
-    if ( ipptls == 1 ) then
+    if ( ipptls > 0 ) then
       call grid_distribute(fcc_io,fcc,jci1,jci2,ici1,ici2,1,kz)
-    else if ( ipptls == 2 ) then
-      call grid_distribute(sfs_io%snownc,sfs%snownc,jci1,jci2,ici1,ici2)
+      if ( ipptls == 2 ) then
+        call grid_distribute(sfs_io%snownc,sfs%snownc,jci1,jci2,ici1,ici2)
+      end if
     end if
     call grid_distribute(heatrt_io,heatrt,jci1,jci2,ici1,ici2,1,kz)
     call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
