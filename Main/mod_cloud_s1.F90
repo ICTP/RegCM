@@ -346,7 +346,6 @@ module mod_cloud_s1
     real(rk8) :: zsubsat
     real(rk8) :: ztdiff
     real(rk8) :: zcons1
-    real(rk8) :: rovcp
     ! constant for converting the fluxes unit measures
     real(rk8) :: prainx , psnowx
     ! local real constants for evaporation
@@ -366,7 +365,8 @@ module mod_cloud_s1
 
     logical , parameter :: lmicro = .true.
 
-    real(rk8) , parameter :: rlcritsnow = 3.D-5!4.D-5   !critical autoconversion
+    real(rk8) , parameter :: rovcp = rgas/cpd
+    real(rk8) , parameter :: rlcritsnow = 3.D-5   !critical autoconversion
     real(rk8) , parameter :: zauto_rate_khair = 0.355D0 ! microphysical terms
     real(rk8) , parameter :: zauto_expon_khair = 1.47D0
     real(rk8) , parameter :: zrldcp = d_one/(wlhsocp-wlhvocp)  ! Cp/Lf
@@ -392,22 +392,22 @@ module mod_cloud_s1
     !evaporation rate coefficient
     real(rk8) , parameter :: rpecons = 5.44D-4/egrav
     ! Numerical fit to wet bulb temperature
-    ! real(rk8) , parameter :: ztw1 = 1329.31
-    ! real(rk8) , parameter :: ztw2 = 0.0074615
+    ! real(rk8) , parameter :: ztw1 = 1329.31D0
+    ! real(rk8) , parameter :: ztw2 = 0.0074615D0
     ! real(rk8) , parameter :: ztw3 = 0.85D5
-    ! real(rk8) , parameter :: ztw4 = 40.637
-    ! real(rk8) , parameter :: ztw5 = 275.0
+    ! real(rk8) , parameter :: ztw4 = 40.637D0
+    ! real(rk8) , parameter :: ztw5 = 275.0D0
     ! real(rk8) , parameter :: rtaumel=1.1880D4
     ! variables/constants for the supersaturation
     real(rk8) :: zfac , zfaci , zfacw , zcor , zfokoop
-    real(rk8) , parameter :: r5les =  4216.975  !r3les*(rtt-r4les)
-    real(rk8) , parameter :: r5ies =  708.47582 !r3ies*(rtt-r4ies)
-    real(rk8) , parameter :: r4les =  32.19
-    real(rk8) , parameter :: r4ies = -0.7
+    real(rk8) , parameter :: r5les =  4216.975D0  !r3les*(rtt-r4les)
+    real(rk8) , parameter :: r5ies =  708.47582D0 !r3ies*(rtt-r4ies)
+    real(rk8) , parameter :: r4les =  32.19D0
+    real(rk8) , parameter :: r4ies = -0.7D0
     !  TIMESCALE FOR ICE SUPERSATURATION REMOVAL
-    real(rk8) , parameter :: rkooptau = 10800
+    real(rk8) , parameter :: rkooptau = 10800.0D0
     ! temperature homogeneous freezing
-    real(rk8) , parameter :: thomo = 235.16        !273.16-38.00
+    real(rk8) , parameter :: thomo = 235.16D0  ! -38.00 Celsius
     ! Cloud fraction threshold that defines cloud top
     real(rk8), parameter :: rcldtopcf = d_r100
     ! Fraction of deposition rate in cloud top layer
@@ -448,7 +448,7 @@ module mod_cloud_s1
     imelt(iqqs) = iqqr
 
     ! Set the default 1.D-14 = d_zero
-    where (zqxx /= zepsec) zqxx = d_zero
+    where (zqxx <= zepsec) zqxx = d_zero
     ! Define the inizial array zqx0
     zqx0(:,:,:,:) = zqxx(jci1:jci2,ici1:ici2,:,:)
 
@@ -917,7 +917,6 @@ module mod_cloud_s1
         !  Thus for the initial implementation the diagnostic mixed phase is
         !  retained for the moment, and the level of approximation noted.
         !----------------------------------------------------------------------
-        rovcp = rgas/cpd
         do i = ici1 , ici2
           do j = jci1 , jci2
             zdtdp = rovcp*zt(j,i,k)/pres(j,i,k)
