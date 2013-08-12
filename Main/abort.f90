@@ -22,7 +22,16 @@
     use mod_intkinds
     implicit none
     include 'mpif.h'
-    integer(ik4) :: ierr
+    integer(ik4) :: ierr , myid
+    character(len=8) :: date
+    character(len=10) :: time
+    character(len=5) :: zone
+    call date_and_time(date,time,zone)
+    call mpi_comm_rank(mycomm, myid, ierr)
+    write (6,*) 'Abort called by computing node ', myid, 'at ', &
+            date(1:4),'-',date(5:6),'-',date(7:8),' ', &
+            time(1:2),':',time(3:4),':',time(5:10),' ',&
+            zone
     call mpi_abort(mycomm,1,ierr)
   end subroutine myabort
 

@@ -83,18 +83,14 @@ module mod_message
     implicit none
     character(*) , intent(in) :: filename , str
     integer(ik4) , intent(in) :: line
-!
     write (cline,'(i8)') line
-    write (aline,*) '-------------- FATAL CALLED ---------------'
-    call say
+    write (stderr,*) '-------------- FATAL CALLED ---------------'
     if ( line > 0 ) then
       write (aline,*) 'Fatal in file: '//filename//' at line: '//trim(cline)
-      call say
+      write (stderr,*) trim(aline)
     end if
-    write (aline,*) str
-    call say
-    write (aline,*) '-------------------------------------------'
-    call say
+    write (stderr,*) str
+    write (stderr,*) '-------------------------------------------'
     call die(filename,trim(cline),1)
   end subroutine fatal
 
