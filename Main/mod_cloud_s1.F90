@@ -74,7 +74,7 @@ module mod_cloud_s1
   logical , pointer , dimension(:,:,:,:) :: llindex3
 
   real(rk8) :: zalfaw , zphases , zmelt , zice , zdelta , ztmpl , &
-               ztmpi , ztnew , zqe , zrain , zpreclr
+               ztmpi , ztnew , zqe , zrain , zpreclr , zarg
   real(rk8) , pointer , dimension(:,:,:) :: papf
   real(rk8) , pointer , dimension(:,:,:):: zsumh0 , zsumq0
   real(rk8) , pointer , dimension(:,:,:) :: zsumh1 , zsumq1
@@ -1361,10 +1361,9 @@ module mod_cloud_s1
                   zcfpr = d_one + rprc1*sqrt(max(zprecip,d_zero))
                   alpha1 = alpha1*zcfpr
                   zlcrit = zlcrit/max(zcfpr,zepsec)
-                  ! security for exp for some compilers
-                  if (zliqcld(j,i)/zlcrit < 25.0D0 ) then
-                    zrainaut(j,i) = alpha1 * &
-                      (d_one-exp(-(zliqcld(j,i)/zlcrit)**2))
+                  zarg = (zliqcld(j,i)/zlcrit)**2
+                  if ( zarg < 25.0D0 ) then
+                    zrainaut(j,i) = alpha1 * (d_one-exp(-zarg))
                   else
                     zrainaut(j,i) = alpha1
                   end if
@@ -1384,15 +1383,16 @@ module mod_cloud_s1
               if ( zicecld(j,i) > zepsec ) then
                 alpha1 = dt*1.0D-3*exp(0.025*(zt(j,i,k)-tzero))
                 zlcrit=rlcritsnow
-                if ( (zicecld(j,i)/zlcrit)**2 < 25.0D0 ) then
-                  zsnowaut(j,i)=alpha1*(d_one-exp(-(zicecld(j,i)/zlcrit)**2))
+                zarg = (zicecld(j,i)/zlcrit)**2
+                if ( zarg < 25.0D0 ) then
+                  zsnowaut(j,i) = alpha1*(d_one-exp(-zarg))
                 else
-                  zsnowaut(j,i)=alpha1
+                  zsnowaut(j,i) = alpha1
                 end if
-                zsolqb(j,i,iqqs,iqqi)=zsolqb(j,i,iqqs,iqqi)+zsnowaut(j,i)
+                zsolqb(j,i,iqqs,iqqi) = zsolqb(j,i,iqqs,iqqi)+zsnowaut(j,i)
                end if
 !           else
-!             zsolqb(j,i,iqqs,iqqi)=d_zero
+!             zsolqb(j,i,iqqs,iqqi) = d_zero
             end if
           end do
         end do

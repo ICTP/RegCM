@@ -1851,11 +1851,11 @@ module mod_params
              mddom%lndcat(j,i) < 15.5D0) then
           qck1(j,i) = qck1oce  ! OCEAN
           cgul(j,i) = guloce   ! OCEAN
-          rh0(j,i)  = rh0oce    ! OCEAN
+          rh0(j,i)  = rh0oce   ! OCEAN
         else
           qck1(j,i) = qck1land ! LAND
           cgul(j,i) = gulland  ! LAND
-          rh0(j,i)  = rh0land   ! LAND
+          rh0(j,i)  = rh0land  ! LAND
         end if
       end do
     end do
