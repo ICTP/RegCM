@@ -398,12 +398,12 @@ module mod_cloud_s1
     !evaporation rate coefficient
     real(rk8) , parameter :: rpecons = 5.44D-4/egrav
     ! Numerical fit to wet bulb temperature
-    ! real(rk8) , parameter :: ztw1 = 1329.31D0
-    ! real(rk8) , parameter :: ztw2 = 0.0074615D0
-    ! real(rk8) , parameter :: ztw3 = 0.85D5
-    ! real(rk8) , parameter :: ztw4 = 40.637D0
-    ! real(rk8) , parameter :: ztw5 = 275.0D0
-    ! real(rk8) , parameter :: rtaumel = 1.1880D4
+    real(rk8) , parameter :: ztw1 = 1329.31D0
+    real(rk8) , parameter :: ztw2 = 0.0074615D0
+    real(rk8) , parameter :: ztw3 = 0.85D5
+    real(rk8) , parameter :: ztw4 = 40.637D0
+    real(rk8) , parameter :: ztw5 = 275.0D0
+    real(rk8) , parameter :: rtaumel = 1.1880D4
     ! variables/constants for the supersaturation
     real(rk8) :: zfac , zfaci , zfacw , zcor , zfokoop
     real(rk8) , parameter :: r5les =  4216.975D0  !r3les*(rtt-r4les)
@@ -1437,12 +1437,11 @@ module mod_cloud_s1
               ! perche':
               ! ztdiff = zt(j,i,k)-tzero- &
               !  zsubsat*(ztw1+ztw2*(pres(j,i,k)-ztw3)-ztw4*(tzero-ztw5))
-              ztdiff = zt(j,i,k)-tzero ! - zsubsat * &
-              !    (ztw1+ztw2*(pres(j,i,k)-ztw3)-ztw4*(zt(j,i,k)-ztw5))
+              ztdiff = zt(j,i,k)-tzero - zsubsat * &
+                  (ztw1+ztw2*(pres(j,i,k)-ztw3)-ztw4*(zt(j,i,k)-ztw5))
               ! Ensure ZCONS1 is positive so that ZMELTMAX = 0 if ZTDMTW0 < 0
-              zcons1 = d_one ! abs(dt*(d_one+d_half*ztdiff)/rtaumel)
+              zcons1 = abs(dt*(d_one+d_half*ztdiff)/rtaumel)
               zmeltmax(j,i) = max(ztdiff*zcons1*zrldcp,d_zero)
-              ! zmeltmax(j,i) = max(ztdiff*zcons1,d_zero)
             end if
           end do
         end do
@@ -1970,6 +1969,20 @@ module mod_cloud_s1
           do j = jci1 , jci2
             if ( abs(zerrorq(j,i,kz)) > 1.D-12 .or. &
                  abs(zerrorh(j,i,kz)) > 1.D-12) then
+              if ( abs(zerrorq(j,i,kz)) > 1.D-12 ) then
+                write(stderr,*) 'WATER NON CONSERVED AT '
+                write(stderr,*) 'J = ',global_dot_jstart+j
+                write(stderr,*) 'I = ',global_dot_istart+i
+                write(stderr,*) 'K = ',k
+                write(stderr,*) 'ERROR IS : ',zerrorq(j,i,kz)
+              end if
+              if ( abs(zerrorh(j,i,kz)) > 1.D-12 ) then
+                write(stderr,*) 'HENTALPY NON CONSERVED AT '
+                write(stderr,*) 'J = ',global_dot_jstart+j
+                write(stderr,*) 'I = ',global_dot_istart+i
+                write(stderr,*) 'K = ',k
+                write(stderr,*) 'ERROR IS : ',zerrorh(j,i,kz)
+              end if
               call fatal(__FILE__,__LINE__, &
                 'TOTAL WATER OR ENTHALPY NOT CONSERVED')
             end if
