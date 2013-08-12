@@ -155,7 +155,9 @@ module mod_mppio
       end if
 
       call getmem2d(cbmf2d_io,jcross1,jcross2,icross1,icross2,'cbmf2d_io')
-      call getmem3d(fcc_io,jcross1,jcross2,icross1,icross2,1,kz,'fcc_io')
+      if ( ipptls > 0 ) then
+        call getmem3d(fcc_io,jcross1,jcross2,icross1,icross2,1,kz,'fcc_io')
+      end if
       call getmem3d(rsheat_io,jcross1,jcross2,icross1,icross2,1,kz,'rsheat_io')
       call getmem3d(rswat_io,jcross1,jcross2,icross1,icross2,1,kz,'rswat_io')
 

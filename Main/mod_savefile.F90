@@ -131,10 +131,11 @@ module mod_savefile
       if ( irrtm == 0 ) then
         read (iutrst) gasabsnxt_io , gasabstot_io , gasemstot_io
       end if
-      if ( ipptls == 1 ) then
+      if ( ipptls > 0 ) then
         read (iutrst) fcc_io
-      else if ( ipptls == 2 ) then
-        read (iutrst) sfs_io%snownc
+        if ( ipptls == 2 ) then
+          read (iutrst) sfs_io%snownc
+        end if
       end if
 #ifdef CLM
       read (iutrst) sols2d_io
@@ -273,10 +274,11 @@ module mod_savefile
       if ( irrtm == 0 ) then
         write (iutsav) gasabsnxt_io , gasabstot_io , gasemstot_io
       end if
-      if ( ipptls == 1 ) then
+      if ( ipptls > 0 ) then
         write (iutsav) fcc_io
-      else if ( ipptls == 2 ) then
-        write (iutsav) sfs_io%snownc
+        if ( ipptls == 2 ) then
+          write (iutsav) sfs_io%snownc
+        end if
       end if
 #ifdef CLM
       write (iutsav) sols2d_io

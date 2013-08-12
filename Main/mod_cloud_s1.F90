@@ -24,6 +24,7 @@ module mod_cloud_s1
   use mod_mpmessage
   use mod_memutil
   use mod_atm_interface , only : atmstate , slice , surfstate
+  use mod_runparams , only : nqx
   use mod_runparams , only : iqqv => iqv !vapor
   use mod_runparams , only : iqql => iqc !liquid
   use mod_runparams , only : iqqr => iqr !rain
@@ -42,7 +43,6 @@ module mod_cloud_s1
 
   private
 
-  integer(ik4) , parameter :: nqx = 5                ! num of prognostic vars
   real(rk8) :: zfall                                 ! constant fall speed
   real(rk8) :: zqtmst                                ! 1/dt
   real(rk8) , pointer , dimension(:,:,:) :: pres     ! from atms
@@ -87,7 +87,6 @@ module mod_cloud_s1
   real(rk8) , pointer , dimension(:,:) :: zdtgdp  ! dt * g/dp
   real(rk8) , pointer , dimension(:,:) :: zrdtgdp ! dp / (dt * g)  [Kg/(m*s)]
   ! Microphysics
-  integer(ik4) , pointer , dimension(:,:,:)   :: jindex2  ! index variable
   real(rk8) , pointer , dimension(:,:) :: zfrzmax
   real(rk8) , pointer , dimension(:,:) :: zicetot
   real(rk8) , pointer , dimension(:,:) :: zmeltmax
@@ -189,7 +188,10 @@ module mod_cloud_s1
   real(rk8) , public  , pointer, dimension(:,:,:)   :: zqsliq
 
 #ifdef USE_LAPACK
-  real(rk8) , dimension(nqx) :: ipivot
+  integer(ik4) , pointer , dimension(:) :: ipivot
+#else
+  integer(ik4) , pointer , dimension(:,:,:)   :: jindex2  ! index variable
+  real(rk8) , pointer , dimension(:) :: vv , swap
 #endif
 
   contains
@@ -250,8 +252,12 @@ module mod_cloud_s1
       call getmem3d(zfoeew,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeew')
       call getmem3d(zfoeeliq,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeeliq')
       call getmem3d(zqsice,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqsice')
-#ifndef USE_LAPACK
+#ifdef USE_LAPACK
+      call getmem1d(ipivot,1,nqx,'clouds1:ipivot')
+#else
       call getmem3d(jindex2,1,nqx,jci1,jci2,ici1,ici2,'clouds1:jindex2')
+      call getmem1d(vv,1,nqx,'clouds1:vv')
+      call getmem1d(swap,1,nqx,'clouds1:swap')
 #endif
       call getmem3d(zfallsink,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zfallsink')
       call getmem3d(zfallsrce,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zfallsrce')
@@ -2284,7 +2290,6 @@ module mod_cloud_s1
     integer(ik4) , pointer , intent(out) , dimension(:,:,:) :: indx
     real(rk8) :: aamax , dum , xsum
     integer(ik4) :: i , j , k , imax , n , m
-    real(rk8) , dimension(nqx) :: vv , swap
 #ifdef DEBUG
      character(len=dbgslen) :: subroutine_name = 'ludcmp'
      integer(ik4) , save :: idindx = 0

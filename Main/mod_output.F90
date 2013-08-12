@@ -548,10 +548,11 @@ module mod_output
         call grid_collect(sfs%tgbb,sfs_io%tgbb,jci1,jci2,ici1,ici2)
         call grid_collect(sfs%uvdrag,sfs_io%uvdrag,jci1,jci2,ici1,ici2)
 
-        if ( ipptls == 1 ) then
+        if ( ipptls > 0 ) then
           call grid_collect(fcc,fcc_io,jci1,jci2,ici1,ici2,1,kz)
-        else if ( ipptls == 2 ) then
-          call grid_collect(sfs%snownc,sfs_io%snownc,jci1,jci2,ici1,ici2)
+          if ( ipptls == 2 ) then
+            call grid_collect(sfs%snownc,sfs_io%snownc,jci1,jci2,ici1,ici2)
+          end if
         end if
         call grid_collect(heatrt,heatrt_io,jci1,jci2,ici1,ici2,1,kz)
         call grid_collect(o3prof,o3prof_io,jci1,jci2,ici1,ici2,1,kzp1)

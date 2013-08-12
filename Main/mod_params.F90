@@ -571,7 +571,7 @@ module mod_params
 #endif
     end if
 
-    if ( ipptls == 1 ) then
+    if ( ipptls > 0 ) then
       rewind(ipunit)
       read (ipunit, nml=subexparam, iostat=iretval)
       if ( iretval /= 0 ) then
@@ -581,26 +581,27 @@ module mod_params
         write(stdout,*) 'Read subexparam OK'
 #endif
       end if
-    else if ( ipptls == 2 ) then
-      rewind(ipunit)
-      read (ipunit, nml=microparam, iostat=iretval)
-      if ( iretval /= 0 ) then
-        write(stdout,*) 'Using default microphysical parameter.'
+      if ( ipptls == 2 ) then
+        rewind(ipunit)
+        read (ipunit, nml=microparam, iostat=iretval)
+        if ( iretval /= 0 ) then
+          write(stdout,*) 'Using default microphysical parameter.'
 #ifdef DEBUG
-      else
-        write(stdout,*) 'Read microparam OK'
+        else
+          write(stdout,*) 'Read microparam OK'
 #endif
-      end if
-      write(stderr,*) 'IPPTLS == 2 IS STILL EXPERIMENTAL !!!!'
-      write(stderr,*) 'DO NOT USE IT ON A PRODUCTION RUN !!!!'
-      ! call fatal(__FILE__,__LINE__,'EXPERIMENTAL FEATURE')
-      if ( icup /= 5 ) then
-        write(stderr,*) 'IPPTLS == 2 REQUIRES ICUP == 5.'
-        write(stderr,*) 'Setting icup to 5 (Tiedtke)'
-        icup = 5
-      end if
-      if ( budget_compute ) then
-        write(stdout,*) 'Will check the total enthalpy and moisture'
+        end if
+        write(stderr,*) 'IPPTLS == 2 IS STILL EXPERIMENTAL !!!!'
+        write(stderr,*) 'DO NOT USE IT ON A PRODUCTION RUN !!!!'
+        ! call fatal(__FILE__,__LINE__,'EXPERIMENTAL FEATURE')
+        if ( icup /= 5 ) then
+          write(stderr,*) 'IPPTLS == 2 REQUIRES ICUP == 5.'
+          write(stderr,*) 'Setting icup to 5 (Tiedtke)'
+          icup = 5
+        end if
+        if ( budget_compute ) then
+          write(stdout,*) 'Will check the total enthalpy and moisture'
+        end if
       end if
     end if
 
@@ -895,7 +896,7 @@ module mod_params
     call bcast(cpldt)
   end if
 
-  if ( ipptls == 1 ) then
+  if ( ipptls > 0 ) then
     call bcast(ncld)
     call bcast(qck1land)
     call bcast(qck1oce)
@@ -908,10 +909,11 @@ module mod_params
     call bcast(cevap)
     call bcast(caccr)
     call bcast(cftotmax)
-  else if ( ipptls == 2 ) then
-    call bcast(budget_compute)
-    call bcast(nssopt)
-    call bcast(kautoconv)
+    if ( ipptls == 2 ) then
+      call bcast(budget_compute)
+      call bcast(nssopt)
+      call bcast(kautoconv)
+    end if
   end if
 
   if ( irrtm == 1 ) then
@@ -1062,7 +1064,9 @@ module mod_params
 
   call allocate_mod_cu_common(ichem)
 
-  call allocate_mod_precip(ichem)
+  if ( ipptls > 0 ) then
+    call allocate_mod_precip(ichem)
+  end if
 
   call allocate_mod_split
 
@@ -1836,7 +1840,7 @@ module mod_params
 ! Move back form init : the land categories are read just here,
 ! they are no more in the restart file.
 !
-  if ( ipptls == 1 ) then
+  if ( ipptls > 0 ) then
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( mddom%lndcat(j,i) > 14.5D0 .and. &
