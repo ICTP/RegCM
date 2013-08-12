@@ -637,6 +637,10 @@ module mod_params
         write(stdout,*) 'Read tiedtkeparam OK'
 #endif
       end if
+      if ( ipptls < 1 .and. ipptls > 2 ) then
+        write(stderr,*) 'ICUP == 5 needs ipptls = 1 or ipptls = 2'
+        call fatal(__FILE__,__LINE__,'UNSUPPORTED LARGE SCALE FOR CUMULUS')
+      end if
     end if
     if ( icup < 0 .or. (icup > 5 .and. icup < 98) .or. icup > 99 ) then
       call fatal(__FILE__,__LINE__,'UNSUPPORTED CUMULUS SCHEME')
@@ -1512,10 +1516,9 @@ module mod_params
       exit
     end if
   end do
-  if ( ipptls == 1 ) then
+  if ( ipptls > 0 ) then
     cevap = max(cevap,d_zero)
     caccr = max(caccr,d_zero)
-    cevapu = cevap
   end if
  
   if ( myid == italk ) then
@@ -1523,7 +1526,7 @@ module mod_params
       write(stdout,*) 'PBL limit for Holtstag'
       write(stdout,'(a,i3)') '  Index of highest allowed pbl : ',kmxpbl
     end if
-    if ( ipptls == 1 ) then
+    if ( ipptls > 0 ) then
       write(stdout,*) 'SUBEX large scale precipitation parameters'
       write(stdout,'(a,i2)' )   '  # of bottom no cloud model levels : ',ncld
       write(stdout,'(a,f11.6,a,f11.6)')                      &
@@ -1771,6 +1774,7 @@ module mod_params
       write(stdout,*) ' Cumulus downdraft is enabled      : ',lmfdd
       write(stdout,*) ' Cumulus friction is enabled       : ',lmfdudv
     end if
+    cevapu = cevap
   end if
 
   if ( ibltyp == 1 .or. ibltyp == 99 ) then
