@@ -125,10 +125,10 @@ module mod_cloud_s1
   real(rk8) , pointer , dimension(:,:) :: zlicld
   real(rk8) , pointer , dimension(:,:) :: zldefr
   real(rk8) , pointer , dimension(:,:) :: zqold
-  real(rk8) , pointer , dimension(:,:) :: ztold
   real(rk8) , pointer , dimension(:,:) :: zdqs
   real(rk8) , pointer , dimension(:,:) :: zlevapi
   real(rk8) , pointer , dimension(:,:) :: zlevapl
+  real(rk8) , pointer , dimension(:,:,:) :: ztcond
   ! distance from the top of the cloud
   real(rk8) , pointer , dimension(:,:) :: zcldtopdist
   ! ice nuclei concentration
@@ -207,7 +207,6 @@ module mod_cloud_s1
       call getmem2d(zlcond2,jci1,jci2,ici1,ici2,'clouds1:zlcond2')
       call getmem2d(zldefr,jci1,jci2,ici1,ici2,'clouds1:zldefr')
       call getmem2d(zqold,jci1,jci2,ici1,ici2,'clouds1:zqold')
-      call getmem2d(ztold,jci1,jci2,ici1,ici2,'clouds1:ztold')
       call getmem2d(zlevapl,jci1,jci2,ici1,ici2,'clouds1:zdqs')
       call getmem2d(zlevapi,jci1,jci2,ici1,ici2,'clouds1:zlevapi')
       call getmem2d(zdqs,jci1,jci2,ici1,ici2,'clouds1:zdqs')
@@ -240,6 +239,7 @@ module mod_cloud_s1
       call getmem2d(zcorqsice,jci1,jci2,ici1,ici2,'clouds1:zcorqsice')
       call getmem2d(zdqsliqdt,jci1,jci2,ici1,ici2,'clouds1:zdqsliqdt')
       call getmem2d(zcorqsliq,jci1,jci2,ici1,ici2,'clouds1:zcorqsliq')
+      call getmem3d(ztcond,jci1,jci2,ici1,ici2,1,kz,'clouds1:ztcond')
       call getmem3d(zliqfrac,jci1,jci2,ici1,ici2,1,kz,'clouds1:zliqfrac')
       call getmem3d(zicefrac,jci1,jci2,ici1,ici2,1,kz,'clouds1:zicefrac')
       call getmem3d(zfoeewmt,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeewmt')
@@ -643,7 +643,6 @@ module mod_cloud_s1
           zqsice(j,i,k) = zfoeew(j,i,k)/(d_one-vtmpc1*zfoeew(j,i,k))
           zfoeeicet(j,i,k) = min(foeeice(zt(j,i,k))/pres(j,i,k),d_half)
           zqsice(j,i,k) = zfoeeicet(j,i,k)
-          ! rgowi = rv/rd. in IFS rv/rd-1, ma non funziona
           zqsice(j,i,k) = zqsice(j,i,k)/(d_one-vtmpc1*zqsice(j,i,k))
           !----------------------------------
           ! liquid water saturation
@@ -925,7 +924,7 @@ module mod_cloud_s1
         !----------------------------------------------------------------------
         do i = ici1 , ici2
           do j = jci1 , jci2
-            zdtdp = rovcp*zt(j,i,k)/pres(j,i,k)
+            zdtdp   = rovcp*zt(j,i,k)/pres(j,i,k)
             zdpmxdt = zdp(j,i)*zqtmst
             ! zmfdn  = d_zero
             ! if ( k < kz ) then
@@ -943,34 +942,36 @@ module mod_cloud_s1
             ! phase functions in the convection and cloud scheme, but this is
             ! not calculated, so is zero and the functions must be the same
 
-            zdtforc      = zdtdp*zwtot*dt+zdtdiab
-            zqold(j,i)   = zqsmix(j,i,k)
-            ztold(j,i)   = zt(j,i,k)
-            ! zt(j,i,k)    = zt(j,i,k)+zdtforc
-            ! zt(j,i,k)    = max(zt(j,i,k),160.0D0)
+            zdtforc       = zdtdp*zwtot*dt + zdtdiab
+            zqold(j,i)    = zqsmix(j,i,k)
+            ztcond(j,i,k) = zt(j,i,k)+zdtforc
+            ztcond(j,i,k) = max(ztcond(j,i,k),160.0D0)
           end do
         end do
 
         do i = ici1 , ici2
           do j = jci1 , jci2
             zqp = d_one/pres(j,i,k)
-            zqsat = foeewm(zt(j,i,k))*zqp   !saturation mixing ratio ws
+            zqsat = foeewm(ztcond(j,i,k))*zqp   !saturation mixing ratio ws
             zqsat = min(d_half,zqsat)       !ws<0.5
             zcor  = d_one/(d_one-vtmpc1*zqsat)
             zqsat = zqsat*zcor
-            zcond = (zqsmix(j,i,k)-zqsat)/(d_one+zqsat*zcor*foedem(zt(j,i,k)))
-            ! zt(j,i,k) = zt(j,i,k)+foeldcpm(zt(j,i,k))*zcond
+            zcond = (zqsmix(j,i,k)-zqsat)/(d_one+zqsat*zcor*foedem(ztcond(j,i,k)))
+            ztcond(j,i,k) = ztcond(j,i,k)+foeldcpm(ztcond(j,i,k))*zcond
             zqsmix(j,i,k) = zqsmix(j,i,k)-zcond
-            zqsat = foeewm(zt(j,i,k))*zqp
+            zqsat = foeewm(ztcond(j,i,k))*zqp
             zqsat = min(d_half,zqsat)
             zcor = d_one/(d_one-vtmpc1*zqsat)
             zqsat = zqsat*zcor
-            zcond1 = (zqsmix(j,i,k)-zqsat)/(d_one+zqsat*zcor*foedem(zt(j,i,k)))
-            ! zt(j,i,k) = zt(j,i,k)+foeldcpm(zt(j,i,k))*zcond1
+            zcond1 = (zqsmix(j,i,k)-zqsat)/(d_one+zqsat*zcor*foedem(ztcond(j,i,k)))
+            ztcond(j,i,k) = ztcond(j,i,k)+foeldcpm(ztcond(j,i,k))*zcond1
             zqsmix(j,i,k) = zqsmix(j,i,k)-zcond1
+          end do
+        end do
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             zdqs(j,i)     = zqsmix(j,i,k)-zqold(j,i)
             zqsmix(j,i,k) = zqold(j,i)
-            ! zt(j,i,k)      = ztold(j,i)
           end do
         end do
 
@@ -1903,6 +1904,19 @@ module mod_cloud_s1
           ztten(j,i,k) = zttendc(j,i,k)*psf(j,i)
         end do
       end do
+
+!TEMPORARY
+     do i = ici1 , ici2
+        do j = jci1 , jci2
+       if (zt(j,i,k)>276 .and. zqxn(n,j,i)>rlmin )then
+         zsubsat=0
+       end if
+     end do
+   end do
+
+
+
+
     end do   ! kz : end of vertical loop
 
     !-------------------------------------
