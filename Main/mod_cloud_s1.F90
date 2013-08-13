@@ -956,14 +956,16 @@ module mod_cloud_s1
             zqsat = min(d_half,zqsat)       !ws<0.5
             zcor  = d_one/(d_one-vtmpc1*zqsat)
             zqsat = zqsat*zcor
-            zcond = (zqsmix(j,i,k)-zqsat)/(d_one+zqsat*zcor*foedem(ztcond(j,i,k)))
+            zcond = (zqsmix(j,i,k)-zqsat) / &
+                    (d_one+zqsat*zcor*foedem(ztcond(j,i,k)))
             ztcond(j,i,k) = ztcond(j,i,k)+foeldcpm(ztcond(j,i,k))*zcond
             zqsmix(j,i,k) = zqsmix(j,i,k)-zcond
             zqsat = foeewm(ztcond(j,i,k))*zqp
             zqsat = min(d_half,zqsat)
             zcor = d_one/(d_one-vtmpc1*zqsat)
             zqsat = zqsat*zcor
-            zcond1 = (zqsmix(j,i,k)-zqsat)/(d_one+zqsat*zcor*foedem(ztcond(j,i,k)))
+            zcond1 = (zqsmix(j,i,k)-zqsat) / &
+                    (d_one+zqsat*zcor*foedem(ztcond(j,i,k)))
             ztcond(j,i,k) = ztcond(j,i,k)+foeldcpm(ztcond(j,i,k))*zcond1
             zqsmix(j,i,k) = zqsmix(j,i,k)-zcond1
           end do
@@ -1906,16 +1908,15 @@ module mod_cloud_s1
       end do
 
 !TEMPORARY
-     do i = ici1 , ici2
-        do j = jci1 , jci2
-       if (zt(j,i,k)>276 .and. zqxn(n,j,i)>rlmin )then
-         zsubsat=0
-       end if
-     end do
-   end do
-
-
-
+      do n = 1 , nqx
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            if (zt(j,i,k) > 276.0D0 .and. zqxn(n,j,i) > rlmin ) then
+              zsubsat = d_zero
+            end if
+          end do
+        end do
+      end do
 
     end do   ! kz : end of vertical loop
 
