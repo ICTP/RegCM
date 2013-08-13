@@ -4148,6 +4148,10 @@ module mod_cu_tiedtke
                          *(pcpcu(jl,jk)*ptenh(jl,jk)+pgeoh(jl,jk))
           pmfdq(jl,jk) = pmfdq(jl,jk) - pmfd(jl,jk)*pqenh(jl,jk)
         else
+          if ( jk == 1 ) then
+            call fatal(__FILE__,__LINE__, &
+                    'Tiedtke Cumulus: overflow in computing fluxes')
+          end if
           pmfd(jl,jk) = d_zero
           pmfds(jl,jk) = d_zero
           pmfdq(jl,jk) = d_zero
