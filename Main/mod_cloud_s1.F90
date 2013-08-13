@@ -1002,8 +1002,8 @@ module mod_cloud_s1
                                       zicefrac(j,i,k)*zlevap
               zsolqa(j,i,iqqi,iqqv) = zsolqa(j,i,iqqi,iqqv) - &
                                       zicefrac(j,i,k)*zlevap
-              zqxfg(j,i,iqqv) = zqxfg(j,i,iqqv)+zliqfrac(j,i,k)*zlevap
-              zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi)-zliqfrac(j,i,k)*zlevap
+              zqxfg(j,i,iqqv) = zqxfg(j,i,iqqv)+zicefrac(j,i,k)*zlevap
+              zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi)-zicefrac(j,i,k)*zlevap
             end if
           end do
         end do
@@ -1906,18 +1906,6 @@ module mod_cloud_s1
           ztten(j,i,k) = zttendc(j,i,k)*psf(j,i)
         end do
       end do
-
-!TEMPORARY
-      do n = 1 , nqx
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if (zt(j,i,k) > 276.0D0 .and. zqxn(n,j,i) > rlmin ) then
-              zsubsat = d_zero
-            end if
-          end do
-        end do
-      end do
-
     end do   ! kz : end of vertical loop
 
     !-------------------------------------
