@@ -59,8 +59,7 @@ module mod_tendency
   real(rk8) , pointer , dimension(:,:) :: psc , pten
 
 #ifdef DEBUG
-  real(rk8) , pointer , dimension(:,:,:) :: last_tten
-  real(rk8) , pointer , dimension(:,:,:) :: last_wten
+  real(rk8) , pointer , dimension(:,:,:) :: wten
 #endif
 
   real(rk8) :: rptn ! Total number of internal points
@@ -84,8 +83,7 @@ module mod_tendency
       call getmem3d(ten0,jce1,jce2,ice1,ice2,1,kz,'tendency:ten0')
     end if
 #ifdef DEBUG
-    call getmem3d(last_tten,jce1,jce2,ice1,ice2,1,kz,'tendency:last_tten')
-    call getmem3d(last_wten,jde1,jde2,ide1,ide2,1,kz,'tendency:last_wten')
+    call getmem3d(wten,jde1,jde2,ide1,ide2,1,kz,'tendency:wten')
 #endif
     rptn = d_one/dble((jout2-jout1+1)*(iout2-iout1+1))
   end subroutine allocate_mod_tend
@@ -519,8 +517,7 @@ module mod_tendency
     aten%t(:,:,:) = d_zero
     aten%qx(:,:,:,:) = d_zero
 #ifdef DEBUG
-    last_tten(:,:,:) = d_zero
-    last_wten(:,:,:) = d_zero
+    wten(:,:,:) = d_zero
 #endif
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       aten%tke(:,:,:) = d_zero
@@ -1577,12 +1574,13 @@ module mod_tendency
       implicit none
       character(len=*) , intent(in) :: loc
       integer(ik4) :: i , j , k , kk , ierr
-      real(rk8) :: check_tt
+      real(rk8) :: check_tt , mean_tt
       ierr = 0
+      mean_tt = (maxval(aten%t)+minval(aten%t))/d_two
       do k = 1 , kz
         do i = ice1, ice2
           do j = jce1 , jce2
-            check_tt = (aten%t(j,i,k)-last_tten(j,i,k))/psc(j,i)
+            check_tt = (aten%t(j,i,k)-mean_tt)/psc(j,i)
             if ( dabs(check_tt) > temp_tend_maxval ) then
               write(stderr,*) 'After ', loc, ' at ktau = ', ktau
               write(stderr,*) 'TEMP tendency out of order : ', check_tt
@@ -1599,7 +1597,6 @@ module mod_tendency
               end do
               ierr = ierr + 1
             end if
-            last_tten(j,i,k) = aten%t(j,i,k)
           end do
         end do
       end do
@@ -1614,13 +1611,14 @@ module mod_tendency
       implicit none
       character(len=*) , intent(in) :: loc
       integer(ik4) :: i , j , k , kk , ierr
-      real(rk8) :: check_ww , ten_wspd
+      real(rk8) :: check_ww , mean_ww
       ierr = 0
+      wten = sqrt(aten%u**2+aten%v**2)
+      mean_ww = (maxval(wten)+minval(wten))/d_two
       do k = 1 , kz
         do i = ide1, ide2
           do j = jde1 , jde2
-            ten_wspd = sqrt(aten%u(j,i,k)**2+aten%v(j,i,k)**2)
-            check_ww = (ten_wspd-last_wten(j,i,k))/psdot(j,i)
+            check_ww = (wten(j,i,k)-mean_ww)/psdot(j,i)
             if ( dabs(check_ww) > wind_tend_maxval ) then
               write(stderr,*) 'After ', loc, ' at ktau = ', ktau
               write(stderr,*) 'WIND tendency out of order : ', check_ww
@@ -1637,7 +1635,6 @@ module mod_tendency
               end do
               ierr = ierr + 1
             end if
-            last_wten(j,i,k) = ten_wspd
           end do
         end do
       end do
