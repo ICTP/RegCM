@@ -328,8 +328,8 @@ module mod_params
   iclimao3 = 0
   isolconst = 1
   icumcloud = 2
-  temp_tend_maxval = 0.1*(dt/secpm)
-  wind_tend_maxval = 0.1*(dt/secpm)
+  temp_tend_maxval = 0.5*(dt/secpm)
+  wind_tend_maxval = 0.5*(dt/secpm)
 !----------------------------------------------------------------------
 !-----rrtm radiation namelist param:
 !

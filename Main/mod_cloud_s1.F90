@@ -1441,8 +1441,9 @@ use mod_runparams , only : ktau
               ! ztdiff = T-T0+(qs-q)(A+B(p-c)-D(Td-E))?
               ! ztdiff = zt(j,i,k)-tzero !- zsubsat * &
               !         (ztw1+ztw2*(pres(j,i,k)-ztw3)-ztw4*(zt(j,i,k)-ztw5))
-               ztdiff = zt(j,i,k)-(tzero +(zsubsat*(ztw1+ztw2*(pres(j,i,k)-ztw3)+zsubsat*&
-                        ztw4*ztw5)/(1+ztw4*zsubsat)))
+              ztdiff = zt(j,i,k)-(tzero + &
+                       (zsubsat*(ztw1+ztw2*(pres(j,i,k)-ztw3) + &
+                        zsubsat*ztw4*ztw5)/(d_one+ztw4*zsubsat)))
               ! Ensure ZCONS1 is positive so that ZMELTMAX = 0 if ZTDMTW0 < 0
               zcons1 = abs(dt*(d_one+d_half*ztdiff)/rtaumel)
               zmeltmax(j,i) = max(ztdiff*zcons1*zrldcp,d_zero)
