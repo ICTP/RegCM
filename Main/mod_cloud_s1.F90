@@ -34,6 +34,7 @@ module mod_cloud_s1
   use mod_runparams , only : dt
   use mod_runparams , only : ipptls
   use mod_runparams , only : budget_compute , nssopt , kautoconv
+use mod_runparams , only : ktau
   use mod_pbl_common
   use mod_constants
   use mod_precip , only : fcc
@@ -886,18 +887,19 @@ module mod_cloud_s1
         if ( k < kz .and. k >= 1 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              zalfaw = zliq(j,i,k)
-              zice = d_one-zalfaw  !zice=1 if T<250, zice=0 if T>273
               zqdetr(j,i,k) = qdetr(j,i,k)*zdtgdp(j,i)  !kg/kg
               if ( zqdetr(j,i,k) > rlmin ) then
+                zalfaw              = zliq(j,i,k)
+                zice                = d_one-zalfaw  
+                !zice=1 if T<250, zice=0 if T>273
                 zconvsrce(j,i,iqql) = zalfaw*zqdetr(j,i,k)
                 zconvsrce(j,i,iqqi) = zice*zqdetr(j,i,k)
                 zsolqa(j,i,iqql,iqql) = zsolqa(j,i,iqql,iqql) + &
                                         zconvsrce(j,i,iqql)
                 zsolqa(j,i,iqqi,iqqi) = zsolqa(j,i,iqqi,iqqi) + &
                                         zconvsrce(j,i,iqqi)
-                zqxfg(j,i,iqql)=zqxfg(j,i,iqql)+zconvsrce(j,i,iqql)
-                zqxfg(j,i,iqqi)=zqxfg(j,i,iqqi)+zconvsrce(j,i,iqqi)
+                zqxfg(j,i,iqql) = zqxfg(j,i,iqql)+zconvsrce(j,i,iqql)
+                zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi)+zconvsrce(j,i,iqqi)
               else
                 zqdetr(j,i,k) = d_zero
               end if
@@ -1437,11 +1439,10 @@ module mod_cloud_s1
               ! approximated as in the scheme described by
               ! Wilson and Ballard(1999): Tw = Td-(qs-q)(A+B(p-c)-D(Td-E))
               ! ztdiff = T-T0+(qs-q)(A+B(p-c)-D(Td-E))?
-              ! perche':
-              ! ztdiff = zt(j,i,k)-tzero- &
-              !  zsubsat*(ztw1+ztw2*(pres(j,i,k)-ztw3)-ztw4*(tzero-ztw5))
-              ztdiff = zt(j,i,k)-tzero - zsubsat * &
-                  (ztw1+ztw2*(pres(j,i,k)-ztw3)-ztw4*(zt(j,i,k)-ztw5))
+              ! ztdiff = zt(j,i,k)-tzero !- zsubsat * &
+              !         (ztw1+ztw2*(pres(j,i,k)-ztw3)-ztw4*(zt(j,i,k)-ztw5))
+               ztdiff = zt(j,i,k)-(tzero +(zsubsat*(ztw1+ztw2*(pres(j,i,k)-ztw3)+zsubsat*&
+                        ztw4*ztw5)/(1+ztw4*zsubsat)))
               ! Ensure ZCONS1 is positive so that ZMELTMAX = 0 if ZTDMTW0 < 0
               zcons1 = abs(dt*(d_one+d_half*ztdiff)/rtaumel)
               zmeltmax(j,i) = max(ztdiff*zcons1*zrldcp,d_zero)
