@@ -55,7 +55,7 @@ module mod_ncout
   integer(ik4) , parameter :: natm3dvars = 21
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
-  integer(ik4) , parameter :: nsrf2dvars = 17 + nbase
+  integer(ik4) , parameter :: nsrf2dvars = 18 + nbase
   integer(ik4) , parameter :: nsrf3dvars = 6
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
@@ -203,6 +203,7 @@ module mod_ncout
   integer(ik4) , parameter :: srf_aldifs = 20
   integer(ik4) , parameter :: srf_sund   = 21
   integer(ik4) , parameter :: srf_seaice = 22
+  integer(ik4) , parameter :: srf_snowmelt = 23
 
   integer(ik4) , parameter :: srf_u10m   = 1
   integer(ik4) , parameter :: srf_v10m   = 2
@@ -760,7 +761,6 @@ module mod_ncout
             'Duration of sunshine','duration_of_sunshine',.true.,'time: sum')
           srf_sund_out => v2dvar_srf(srf_sund)%rval
         end if
-
         if ( iseaice == 1 ) then
           if ( enable_srf2d_vars(srf_seaice) ) then
             call setup_var(v2dvar_srf,srf_seaice,vsize,'seaice','m', &
@@ -769,6 +769,11 @@ module mod_ncout
           end if
         else
           enable_srf2d_vars(srf_seaice) = .false.
+        end if
+        if ( enable_srf2d_vars(srf_snowmelt) ) then
+          call setup_var(v2dvar_srf,srf_snowmelt,vsize,'smelt','kg m-2', &
+            'Snow Melt','surface_snow_melt_amount',.true.,'time: mean')
+          srf_snowmelt_out => v2dvar_srf(srf_snowmelt)%rval
         end if
 
         vsize%k2 = 1

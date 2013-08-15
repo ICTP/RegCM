@@ -535,6 +535,8 @@ module mod_bats_mtrxbats
             srf_fld_out = srf_fld_out + flwd
           if ( associated(srf_sina_out) ) &
             srf_sina_out = srf_sina_out + sinc
+          if ( associated(srf_snowmelt_out) ) &
+            srf_snowmelt_out = srf_snowmelt_out + sum(sm,1)*rdnnsg
         end if
         if ( ifsub ) then
           call reorder_add_subgrid(sfcp,sub_ps_out)

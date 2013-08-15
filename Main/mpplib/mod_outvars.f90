@@ -78,6 +78,7 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: srf_aldirs_out => null()
   real(rk8) , dimension(:,:) , pointer :: srf_aldifs_out => null()
   real(rk8) , dimension(:,:) , pointer :: srf_sund_out => null()
+  real(rk8) , dimension(:,:) , pointer :: srf_snowmelt_out => null()
   real(rk8) , dimension(:,:) , pointer :: srf_seaice_out => null()
 
   real(rk8) , dimension(:,:,:) , pointer :: srf_u10m_out => null()

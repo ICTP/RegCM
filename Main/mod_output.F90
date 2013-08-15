@@ -324,6 +324,8 @@ module mod_output
           srf_fld_out = srf_fld_out*rnsrf_for_srffrq
         if ( associated(srf_sina_out) ) &
           srf_sina_out = srf_sina_out*rnsrf_for_srffrq
+        if ( associated(srf_snowmelt_out) ) &
+          srf_snowmelt_out = srf_snowmelt_out*rnsrf_for_srffrq
 
         call write_record_output_stream(srf_stream,idatex)
         if ( myid == italk ) &
@@ -341,6 +343,7 @@ module mod_output
         if ( associated(srf_fld_out) ) srf_fld_out = d_zero
         if ( associated(srf_sina_out) ) srf_sina_out = d_zero
         if ( associated(srf_sund_out) ) srf_sund_out = d_zero
+        if ( associated(srf_snowmelt_out) ) srf_snowmelt_out = d_zero
       end if
     end if
 
