@@ -593,7 +593,7 @@ module mod_params
         end if
         write(stderr,*) 'IPPTLS == 2 IS STILL EXPERIMENTAL !!!!'
         write(stderr,*) 'DO NOT USE IT ON A PRODUCTION RUN !!!!'
-        ! call fatal(__FILE__,__LINE__,'EXPERIMENTAL FEATURE')
+        call fatal(__FILE__,__LINE__,'EXPERIMENTAL FEATURE')
         if ( icup /= 5 ) then
           write(stderr,*) 'IPPTLS == 2 REQUIRES ICUP == 5.'
           write(stderr,*) 'Setting icup to 5 (Tiedtke)'
