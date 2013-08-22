@@ -561,14 +561,14 @@ use mod_runparams , only : ktau
                 ztnew = ztnew-wlhvocp*(zqxx(j,i,k,n)+ &
                         (zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))*dt)
               else if (kphase(n) == 2) then
-                ztnew = ztnew-wlhfocp*(zqxx(j,i,k,n)+ &
+                ztnew = ztnew-wlhsocp*(zqxx(j,i,k,n)+ &
                         (zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))*dt)
               end if
               zsumq0(j,i,k) = zsumq0(j,i,k) + &
                 (zqxx(j,i,k,n)+(zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))*dt)* &
                 (papf(j,i,k+1)-papf(j,i,k))*regrav
             end do
-            ztnew = ztnew - wlhvocp*ztmpl - wlhfocp*ztmpi
+            ztnew = ztnew - wlhvocp*ztmpl - wlhsocp*ztmpi
             zsumq0(j,i,k) = zsumq0(j,i,k) + &
               (ztmpl+ztmpi)*(papf(j,i,k+1)-papf(j,i,k))*regrav    !(kg/m^2)
             ! Detrained water treated here
@@ -577,7 +577,7 @@ use mod_runparams , only : ktau
               ! [zqdetr] = kg/(m^2*s)
               zsumq0(j,i,k) = zsumq0(j,i,k)+zqdetr(j,i,k)*dt
               zalfaw = phases(zt(j,i,k))
-              ztnew = ztnew-(wlhvocp*zalfaw+wlhfocp*(d_one-zalfaw))*zqe
+              ztnew = ztnew-(wlhvocp*zalfaw+wlhsocp*(d_one-zalfaw))*zqe
             end if
             zsumh0(j,i,k) = zsumh0(j,i,k)+(papf(j,i,k+1)-papf(j,i,k))*ztnew
           end do
@@ -732,7 +732,7 @@ use mod_runparams , only : ktau
           zfaci          = r5ies/((zt(j,i,k)-r4ies)**2)
           zcor           = d_one/(d_one-vtmpc1*zfoeew(j,i,k))
           zdqsicedt(j,i) = zfaci*zcor*zqsice(j,i,k)
-          zcorqsice(j,i) = d_one+wlhfocp*zdqsicedt(j,i)
+          zcorqsice(j,i) = d_one+wlhsocp*zdqsicedt(j,i)
           ! diagnostic mixed
           zalfaw         = zliq(j,i,k)
           zfac           = zalfaw*zfacw+(d_one-zalfaw)*zfaci
@@ -1438,8 +1438,8 @@ use mod_runparams , only : ktau
               ! humidity of the air is low. The wet-bulb temperature is
               ! approximated as in the scheme described by
               ! Wilson and Ballard(1999): Tw = Td-(qs-q)(A+B(p-c)-D(Td-E))
-              ztdiff = zt(j,i,k)-(ztw1+ztw2*(pres(j,i,k)-ztw3)+ztw4*ztw5)/ &
-                       (d_one-zsubsat*ztw4)
+              ztdiff = zt(j,i,k)-(tzero+zsubsat*(ztw1+ztw2*(pres(j,i,k)-ztw3)+ztw4*ztw5))/ &
+                       (d_one+ztw4*zsubsat) 
               ! Ensure ZCONS1 is positive so that ZMELTMAX = 0 if ZTDMTW0 < 0
               zcons1 = abs(dt*(d_one+d_half*ztdiff)/rtaumel)
               zmeltmax(j,i) = max(ztdiff*zcons1*zrldcp,d_zero)
@@ -1449,7 +1449,7 @@ use mod_runparams , only : ktau
 
         ! Loop over frozen hydrometeors (kphase == 2 (ice, snow))
         do n = 1, nqx
-          if ( kphase(n) == 2 ) then
+           if ( kphase(n) == 2 ) then
             m = imelt(n) ! imelt(iqqi)=iqql, imelt(iqqs)=iqqr
             do i = ici1 , ici2
               do j = jci1 , jci2
@@ -1886,7 +1886,7 @@ use mod_runparams , only : ktau
             end if
             if ( kphase(n) == 2 ) then
               zttendc(j,i,k) = zttendc(j,i,k) + &
-                wlhfocp*(zqxn(n,j,i)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
+                wlhsocp*(zqxn(n,j,i)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
             end if
           end do
         end do
@@ -1929,7 +1929,7 @@ use mod_runparams , only : ktau
                 ztnew = ztnew-wlhvocp*(zqxx(j,i,k,n)+ &
                         (zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))*dt)
               else if ( kphase(n) == 2 ) then
-                ztnew = ztnew-wlhfocp*(zqxx(j,i,k,n)+ &
+                ztnew = ztnew-wlhsocp*(zqxx(j,i,k,n)+ &
                         (zqxtendc(j,i,k,n)-ztenkeep(j,i,k,n))*dt)
               end if
               zsumq1(j,i,k) = zsumq1(j,i,k) + &
@@ -1955,7 +1955,7 @@ use mod_runparams , only : ktau
                 zrain = zrain+wlhvocp*zdtgdp(j,i)*zpfplsx(j,i,k+1,n)* & !k+1?
                          (papf(j,i,k+1)-papf(j,i,k))
               else if ( kphase(n) == 2 ) then
-                zrain = zrain+wlhfocp*zdtgdp(j,i)*zpfplsx(j,i,k+1,n)* &
+                zrain = zrain+wlhsocp*zdtgdp(j,i)*zpfplsx(j,i,k+1,n)* &
                         (papf(j,i,k+1)-papf(j,i,k))
               end if
             end do
