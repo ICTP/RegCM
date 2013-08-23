@@ -13,6 +13,7 @@ module clm_varsur
 !
 ! !USES:
   use shr_kind_mod, only : r8 => shr_kind_r8
+  use mod_bats_param , only : slmo , xmopor , iexsol
 !
 ! !PUBLIC TYPES:
   implicit none
@@ -58,15 +59,6 @@ module clm_varsur
   integer :: caerosol                        ! Flag for sending aerosol vars to RegCM 
                                              ! particularly clm snow cover and fracveg
 
-! soil moisture initialization
-  real(r8) :: slmo(22)                       ! surface moisture availability in fraction of one
-  integer  :: iexsol(22)                     ! soil texture type based on BATS landuse types     
-  real(r8) :: xmopor(12)                     ! fraction of soil that is voids                           
-  data xmopor/.33,.36,.39,.42,.45,.48,.51,.54,.57,.6,.63,.66/
-  data iexsol/6,6,6,6,7,8,6,3,6,6,5,12,6,6,6,6,5,6,6,6,12,8/
-  data slmo/0.65,0.45,0.6,0.6,0.65,0.65,0.55,0.1, &
-  0.9,0.8,0.2,0.9,0.9,1.0,1.0,0.5,0.5,0.65,0.6,0.6,0.5,0.6/
-!
 ! abt above
 ! !REVISION HISTORY:
 ! Created by Mariana Vertenstein
