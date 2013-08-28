@@ -168,7 +168,7 @@ module mod_init
     !
     ! Initialize the tbase for BM cumulus scheme
     !
-    if (icup == 3) then
+    if ( icup == 3 ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -290,7 +290,7 @@ module mod_init
       call grid_distribute(tbase_io,tbase,jci1,jci2,ici1,ici2,1,kz)
       call grid_distribute(cldefi_io,cldefi,jci1,jci2,ici1,ici2)
     end if
-    if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
+    if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
       call grid_distribute(cbmf2d_io,cbmf2d,jci1,jci2,ici1,ici2)
     end if
 

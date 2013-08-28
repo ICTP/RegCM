@@ -571,7 +571,7 @@ module mod_output
           call grid_collect(tbase,tbase_io,jci1,jci2,ici1,ici2,1,kz)
           call grid_collect(cldefi,cldefi_io,jci1,jci2,ici1,ici2)
         end if
-        if ( icup==4 .or. icup==99 .or. icup==98 ) then
+        if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
           call grid_collect(cbmf2d,cbmf2d_io,jci1,jci2,ici1,ici2)
         end if
 

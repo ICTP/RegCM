@@ -64,14 +64,52 @@ module mod_cu_tiedtke
 
   integer(ik4) :: nipoi , nmctop
 
+  integer(ik4) , pointer , dimension(:) :: imap , jmap
+
   contains
 !
 ! This subroutines allocates space
 !
   subroutine allocate_mod_cu_tiedtke
     implicit none
-    nipoi = (ici2-ici1+1)*(jci2-jci1+1)
+    integer(ik4) :: i , j , ii
     call getmem1d(cevapcu,1,kz,'mod_cu_tiedtke:cevapcu')
+    call getmem3d(q_detr,jci1,jci2,ici1,ici2,1,kz,'mod_cu_tiedtke:q_detr')
+    if ( icup == 5 ) then
+      nipoi = (ici2-ici1+1)*(jci2-jci1+1)
+      call getmem1d(imap,1,nipoi,'mod_cu_tiedtke:imap')
+      call getmem1d(jmap,1,nipoi,'mod_cu_tiedtke:jmap')
+      ii = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          imap(ii) = i
+          jmap(ii) = j
+          ii = ii + 1
+        end do
+      end do
+    else
+      nipoi = 0
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( cucontrol(j,i) == 5 ) then
+            nipoi = nipoi + 1
+          end if
+        end do
+      end do
+      if ( nipoi == 0 ) return
+      call getmem1d(imap,1,nipoi,'mod_cu_tiedtke:imap')
+      call getmem1d(jmap,1,nipoi,'mod_cu_tiedtke:jmap')
+      ii = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( cucontrol(j,i) == 5 ) then
+            imap(ii) = i
+            jmap(ii) = j
+            ii = ii + 1
+          end if
+        end do
+      end do
+    end if
     call getmem2d(ptte,1,nipoi,1,kz,'mod_cu_tiedtke:ptte')
     call getmem2d(pvom,1,nipoi,1,kz,'mod_cu_tiedtke:pvom')
     call getmem2d(pvol,1,nipoi,1,kz,'mod_cu_tiedtke:pvol')
@@ -105,24 +143,22 @@ module mod_cu_tiedtke
     call getmem1d(xphfx,1,nipoi,'mod_cu_tiedtke:xphfx')
     call getmem1d(ldland,1,nipoi,'mod_cu_tiedtke:ldland')
 
-    call getmem3d(q_detr,jci1,jci2,ici1,ici2,1,kz,'mod_cu_tiedtke:q_detr')
-
   end subroutine allocate_mod_cu_tiedtke
 !
 ! This subroutines calls cucall
 !
   subroutine tiedtkedrv(ktau)
     implicit none
-!
     integer(ik8) , intent(in) :: ktau
-
-!   local variables
     integer(ik4) :: i , j , k , ii , iplmlc
+    real(rk8) :: pxf
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tiedtkedrv'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+
+    if ( nipoi == 0 ) return
 
 !   need to translate REGCM to TIEDTKE vars...
 
@@ -135,14 +171,12 @@ module mod_cu_tiedtke
 !   evaporation coefficient for kuo0 
     if ( ichem == 1 ) then    
       do k = 1 , kz
-        ii = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            ! tracers input profile : implicit loop on tracer
-            pxtm1(ii,k,:) = chias(j,i,k,:)
-            pxtte(ii,k,:) = tchiten(j,i,k,:)/sfcps(j,i)
-            ii = ii + 1
-          end do
+        do ii = 1 , nipoi
+          i = imap(ii)
+          j = jmap(ii)
+          ! tracers input profile : implicit loop on tracer
+          pxtm1(ii,k,:) = chias(j,i,k,:)
+          pxtte(ii,k,:) = tchiten(j,i,k,:)/sfcps(j,i)
         end do 
       end do
     else
@@ -150,63 +184,53 @@ module mod_cu_tiedtke
       pxtte(:,:,:) = d_zero ! tracer tendencies
     end if
 
-    ii = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-!     AMT NOTE: This is used in the switch between deep and shallow convectio
-!     The simpler switch on pressure difference still used in ECMWF 
-!     is commented out - possibly tests should be made to reinstate 
-!     the ECMWF version of this - this array will then be obsolete 
-        xphfx(ii) = qfx(j,i)
-        ! Land/water flag - is correctly set?
-        ldland(ii) = (lmask(j,i) == 0)
-        ii = ii + 1
-      end do
+    do ii = 1 , nipoi
+      ! AMT NOTE: This is used in the switch between deep and shallow
+      ! convection. The simpler switch on pressure difference still
+      ! used in ECMWF is commented out - possibly tests should be made
+      ! to reinstate the ECMWF version of this
+      ! this array will then be obsolete 
+      i = imap(ii)
+      j = jmap(ii)
+      xphfx(ii) = qfx(j,i)
+      ! Land/water flag - is correctly set?
+      ldland(ii) = (lmask(j,i) == 0)
     end do
 
     do k = 1 , kz
-      ii = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ! Pascal
-          papp1(ii,k) = (hsigma(k)*sfcps(j,i)+ptop)*d_1000
-
-          ptm1(ii,k)  = tas(j,i,k)  ! temperature
-          pum1(ii,k)  = uas(j,i,k)  ! u (guessing!)
-          pvm1(ii,k)  = vas(j,i,k)  ! v     "
-          pqm1(ii,k)  = qxas(j,i,k,iqv) ! humidity
-          pxlm1(ii,k) = qxas(j,i,k,iqc) ! cloud liquid water
-
-          ptte(ii,k)  = tten(j,i,k)/sfcps(j,i)
-          pvom(ii,k)  = uten(j,i,k)/sfcps(j,i)
-          pvol(ii,k)  = vten(j,i,k)/sfcps(j,i)
-          pqte(ii,k)  = qxten(j,i,k,iqv)/sfcps(j,i)
-          pxlte(ii,k) = qxten(j,i,k,iqc)/sfcps(j,i)
-
-          ! IS vertical velocity in Pa/s or in m/s?
-          pverv(ii,k)  = d_half*(svv(j,i,k)+svv(j,i,k+1))
-
-          pxim1(ii,k) = d_zero ! cloud ice water
-          pxite(ii,k) = d_zero ! ice tend
-
-          ! scheme diagnostic output - tendencies due to convection
-          pxtec(ii,k) = d_zero ! detrained cloud water tendancy
-          pqtec(ii,k) = d_zero ! detrained humidity tendancy
-
-          xpg(ii,k) = hgt(j,i,k)*egrav  !   geopotential
-          ii = ii + 1
-        end do
+      do ii = 1 , nipoi
+        i = imap(ii)
+        j = jmap(ii)
+        pxf = sfcps(j,i)
+        ! Pascal
+        papp1(ii,k) = (hsigma(k)*pxf+ptop)*d_1000
+        ptm1(ii,k)  = tas(j,i,k)  ! temperature
+        pum1(ii,k)  = uas(j,i,k)  ! u (guessing!)
+        pvm1(ii,k)  = vas(j,i,k)  ! v     "
+        pqm1(ii,k)  = qxas(j,i,k,iqv) ! humidity
+        pxlm1(ii,k) = qxas(j,i,k,iqc) ! cloud liquid water
+        ptte(ii,k)  = tten(j,i,k)/pxf
+        pvom(ii,k)  = uten(j,i,k)/pxf
+        pvol(ii,k)  = vten(j,i,k)/pxf
+        pqte(ii,k)  = qxten(j,i,k,iqv)/pxf
+        pxlte(ii,k) = qxten(j,i,k,iqc)/pxf
+        ! IS vertical velocity in Pa/s or in m/s?
+        pverv(ii,k)  = d_half*(svv(j,i,k) + svv(j,i,k+1))
+        pxim1(ii,k) = d_zero ! cloud ice water
+        pxite(ii,k) = d_zero ! ice tend
+        ! scheme diagnostic output - tendencies due to convection
+        pxtec(ii,k) = d_zero ! detrained cloud water tendancy
+        pqtec(ii,k) = d_zero ! detrained humidity tendancy
+        xpg(ii,k) = hgt(j,i,k)*egrav  !   geopotential
       end do
     end do
 
     do k = 1 , kzp1
-      ii = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          ! 1st guess pressure at full levels
-          paphp1(ii,k) = (sigma(k)*sfcps(j,i)+ptop)*d_1000
-          ii = ii + 1
-        end do
+      do ii = 1 , nipoi
+        i = imap(ii)
+        j = jmap(ii)
+        ! 1st guess pressure at full levels
+        paphp1(ii,k) = (sigma(k)*sfcps(j,i)+ptop)*d_1000
       end do
     end do
 
@@ -214,6 +238,7 @@ module mod_cu_tiedtke
 
     nmctop = 0
     do ii = 1 , nipoi
+      iplmlc = 1
       do k = 1 , kzp1
         iplmlc = k
         if ( paphp1(ii,k) >= cmcptop*100.0D0 ) exit
@@ -239,65 +264,58 @@ module mod_cu_tiedtke
     !
     ! postprocess some fields including precipitation fluxes
     !
-    ii = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        if (ktype(ii) > 0) then
-          if ( paprc(ii)+paprs(ii) > dlowval ) then
-            total_precip_points = total_precip_points + 1
-            ! total precip cumulative 
-            rainc(j,i) = rainc(j,i) + paprc(ii)+paprs(ii)
-
-            ! rainfall for bats
-            if ( ktau == 0 .and. debug_level > 2 ) then
-              lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))
-            else
-              lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))*rtsrf
-            end if
+    do ii = 1 , nipoi
+      if (ktype(ii) > 0) then
+        if ( paprc(ii)+paprs(ii) > dlowval ) then
+          i = imap(ii)
+          j = jmap(ii)
+          total_precip_points = total_precip_points + 1
+          ! total precip cumulative 
+          rainc(j,i) = rainc(j,i) + paprc(ii)+paprs(ii)
+          ! rainfall for bats
+          if ( ktau == 0 .and. debug_level > 2 ) then
+            lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))
+          else
+            lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))*rtsrf
           end if
         end if
-        ii = ii + 1
-      end do
+      end if
     end do
 
     ! update tendencies - note that rate were ADDED in cudtdq
     !                     thus here we must reset the rates. 
     do k = 1 , kz
-      ii = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if (ktype(ii) > 0) then
-            tten(j,i,k)  = ptte(ii,k)  * sfcps(j,i)
-            uten(j,i,k)  = pvom(ii,k)  * sfcps(j,i)
-            vten(j,i,k)  = pvol(ii,k)  * sfcps(j,i)
-            qxten(j,i,k,iqv) = pqte(ii,k)  * sfcps(j,i)
-            qxten(j,i,k,iqc) = pxlte(ii,k) * sfcps(j,i)
-            q_detr(j,i,k) = zlude(ii,k)
-            if ( ichem == 1 ) then
-              tchiten(j,i,k,:) = pxtte(ii,k,:) * sfcps(j,i)
-              ! build for chemistry 3d table of constant precipitation rate
-              ! from the surface to the top of the convection
-              if ( k > kctop(ii) ) then
-                convpr(j,i,k) = (prsfc(ii)+pssfc(ii))
-              end if
+      do ii = 1 , nipoi
+        if (ktype(ii) > 0) then
+          i = imap(ii)
+          j = jmap(ii)
+          tten(j,i,k)  = ptte(ii,k)  * sfcps(j,i)
+          uten(j,i,k)  = pvom(ii,k)  * sfcps(j,i)
+          vten(j,i,k)  = pvol(ii,k)  * sfcps(j,i)
+          qxten(j,i,k,iqv) = pqte(ii,k)  * sfcps(j,i)
+          qxten(j,i,k,iqc) = pxlte(ii,k) * sfcps(j,i)
+          q_detr(j,i,k) = zlude(ii,k)
+          if ( ichem == 1 ) then
+            tchiten(j,i,k,:) = pxtte(ii,k,:) * sfcps(j,i)
+            ! build for chemistry 3d table of constant precipitation rate
+            ! from the surface to the top of the convection
+            if ( k > kctop(ii) ) then
+              convpr(j,i,k) = (prsfc(ii)+pssfc(ii))
             end if
           end if
-          ii = ii + 1
-        end do
+        end if
       end do
     end do
 
     icumtop(:,:) = 0
     icumbot(:,:) = 0
-    ii = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        if (ktype(ii) > 0) then
-          icumtop(j,i) = kctop(ii)
-          icumbot(j,i) = kcbot(ii)
-        end if
-        ii = ii + 1
-      end do
+    do ii = 1 , nipoi
+      if (ktype(ii) > 0) then
+        i = imap(ii)
+        j = jmap(ii)
+        icumtop(j,i) = kctop(ii)
+        icumbot(j,i) = kcbot(ii)
+      end if
     end do
 
     call model_cumulus_cloud

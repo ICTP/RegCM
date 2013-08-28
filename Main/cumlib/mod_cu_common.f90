@@ -77,7 +77,7 @@ module mod_cu_common
     implicit none
     integer(ik4) , intent(in) :: ichem
     integer :: k
-    if ( icup == 99 .or. icup == 98) then
+    if ( icup > 90 ) then
       call getmem2d(cucontrol,jci1,jci2,ici1,ici2,'mod_cu_common:cucontrol')
     end if
     call getmem2d(icumbot,jci1,jci2,ici1,ici2,'mod_cu_common:icumbot')

@@ -601,14 +601,6 @@ module mod_tendency
     !
     ! compute the moisture tendencies for convection
     !
-    !   icup = 1 : kuo-anthes cumulus parameterizaion scheme
-    !   icup = 2 : grell cumulus paramterization scheme
-    !   icup = 3 : betts-miller (1986)
-    !   icup = 4 : emanuel (1991)
-    !   icup = 5 : tiedtke (1986)
-    !   icup = 99: grell over land, emanuel over ocean
-    !   icup = 98: emanuel over land, grell over ocean
-    !
     if ( isladvec == 1 ) then
       call slhadv_x(aten%qx,atm2%qx,iqv)
       call hdvg_x(aten%qx,atm1%qx,iqv)
@@ -641,16 +633,16 @@ module mod_tendency
     if ( icup == 1 ) then
       call cupara(ktau)
     end if
-    if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
+    if ( icup == 2 .or. icup == 99 .or. icup == 98 .or. icup == 96 ) then
       call cuparan(ktau)
     end if
     if ( icup == 3 ) then
       call bmpara(ktau)
     end if
-    if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
+    if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
       call cupemandrv(ktau)
     end if
-    if ( icup == 5 ) then
+    if ( icup == 5 .or. icup == 96 .or. icup == 97 ) then
       call tiedtkedrv(ktau)
     end if
  
@@ -1447,7 +1439,9 @@ module mod_tendency
     ! do cumulus transport/mixing  of tracers for the schemes allowing it
     !
     if ( ichem == 1 .and. ichcumtra == 1 .and. &
-         ( icup <= 3 .or. icup >= 98 ) )  call cumtran
+         ( icup == 4 .or. icup == 5 .or. icup == 97 ) ) then
+      call cumtran
+    end if
     !
     ! Print out noise parameter
     !

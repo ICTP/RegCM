@@ -154,7 +154,9 @@ module mod_mppio
         call getmem2d(tdeltas_io,jcross1,jcross2,icross1,icross2,'tdeltas_io')
       end if
 
-      call getmem2d(cbmf2d_io,jcross1,jcross2,icross1,icross2,'cbmf2d_io')
+      if ( icup == 4 .or. icup == 97 .or. icup == 98 .or. icup == 99 ) then
+        call getmem2d(cbmf2d_io,jcross1,jcross2,icross1,icross2,'cbmf2d_io')
+      end if
       if ( ipptls > 0 ) then
         call getmem3d(fcc_io,jcross1,jcross2,icross1,icross2,1,kz,'fcc_io')
       end if
@@ -186,7 +188,7 @@ module mod_mppio
       end if
       call getmem3d(omega_io,jcross1,jcross2, &
                     icross1,icross2,1,kz,'omega_io')
-      if (icup == 3) then
+      if ( icup == 3 ) then
         call getmem2d(cldefi_io,jcross1,jcross2,icross1,icross2,'cldefi_io')
         call getmem3d(tbase_io,jcross1,jcross2,icross1,icross2,1,kz,'tbase_io')
       end if

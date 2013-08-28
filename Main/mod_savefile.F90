@@ -120,7 +120,7 @@ module mod_savefile
       if ( icup == 3 ) then
         read (iutrst) tbase_io , cldefi_io
       end if
-      if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
+      if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
         read (iutrst) cbmf2d_io
       end if
       if ( idcsst == 1 ) then
@@ -263,7 +263,7 @@ module mod_savefile
       if ( icup == 3 ) then
         write (iutsav) tbase_io , cldefi_io
       end if
-      if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
+      if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
         write (iutsav) cbmf2d_io
       end if
       if ( idcsst == 1 ) then

@@ -1949,10 +1949,6 @@ module mod_ncout
           ncattribute_integer('boundary_layer_scheme',ibltyp))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('cumulus_convection_scheme',icup))
-        if ( icup == 2 .or. icup == 98 .or. icup == 99 ) then
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_integer('grell_scheme_closure',igcc))
-        end if
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('moisture_scheme',ipptls))
         call outstream_addatt(outstream(i)%ncout(j), &
@@ -2026,7 +2022,9 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('micro_autoconversion_option',kautoconv))
         end if
-        if ( icup == 2 .or. icup == 98 .or. icup == 99 ) then
+        if ( icup == 2 .or. icup == 98 .or. icup == 99 .or. icup == 96 ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('grell_scheme_closure',igcc))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('grell_min_shear_on_precip',shrmin))
           call outstream_addatt(outstream(i)%ncout(j), &
@@ -2072,7 +2070,7 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('grell_FC_ABE_removal_timescale',dtauc))
          end if
-        if ( icup == 4 .or. icup == 98 .or. icup == 99 ) then
+        if ( icup == 4 .or. icup == 98 .or. icup == 99 .or. icup == 97 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('mit_lowest_convection_sigma',minsig))
           call outstream_addatt(outstream(i)%ncout(j), &
@@ -2114,7 +2112,7 @@ module mod_ncout
             ncattribute_real8('mit_maximum_ocean_precipitation_efficiency', &
             epmax_ocn))
         end if
-        if ( icup == 5 ) then
+        if ( icup == 5 .or. icup == 96 .or. icup == 97 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('tiedtke_actual_scheme',iconv))
           call outstream_addatt(outstream(i)%ncout(j), &

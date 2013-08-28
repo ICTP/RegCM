@@ -221,8 +221,10 @@
                         !   3 => Betts-Miller (1986) DOES NOT WORK !!!
                         !   4 => Emanuel (1991)
                         !   5 => Tiedtke (1996)
-                        !  99 => Use Grell over land and Emanuel over ocean
+                        !  96 => Use Tiedtke over land and Grell over ocean
+                        !  97 => Use Tiedtke over land and Emanuel over ocean
                         !  98 => Use Emanuel over land and Grell over ocean
+                        !  99 => Use Grell over land and Emanuel over ocean
    igcc  =          1,  ! Grell Scheme Cumulus closure scheme
                         !   1 => Arakawa & Schubert (1974)
                         !   2 => Fritsch & Chappell (1980)

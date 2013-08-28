@@ -614,8 +614,10 @@ sensitivity experiments to select the best scheme for your application.
                         !   3 => Betts-Miller (1986) DOES NOT WORK !!!
                         !   4 => Emanuel (1991)
                         !   5 => Tiedtke (1986) UNTESTED !!!
-                        !  99 => Use Grell over land and Emanuel over ocean
+                        !  96 => Use Tiedtke over land and Grell over ocean
+                        !  97 => Use Tiedtke over land and Emanuel over ocean
                         !  98 => Use Emanuel over land and Grell over ocean
+                        !  99 => Use Grell over land and Emanuel over ocean
    igcc  =          1,  ! Grell Scheme Cumulus closure scheme
                         !   1 => Arakawa & Schubert (1974)
                         !   2 => Fritsch & Chappell (1980)
@@ -712,7 +714,7 @@ This stanza controls the new microphysics scheme.
 
 You are allowed here to tune the convection scheme selected above in
 \ref{physicsparam} with the \verb=icup= number if selected number is
-$2, 4, 98, 99$. 
+$2, 4, 5, 96, 97,  98, 99$.
 
 {\footnotesize
 \begin{Verbatim}
@@ -790,9 +792,10 @@ $2, 4, 98, 99$.
 Things you need to know here:
 
 \begin{enumerate}
-\item In case of the mixed schemes $98, 99$, both the Grell and Emanuel stanzas
-are read in. Note in this case for Grell scheme only the relevant
-(Ocean or Land) control values are used.
+\item In case of the mixed schemes $96, 97, 98, 99$, both the selected schemes
+configuration stanzas are read in.
+Note in this case for the schemes only the relevant (Ocean or Land) control
+values are used.
 \item Minimum and maximum values of the fraction of reevaporated water in the
 downdraft for the Grell scheme is essentially a measure of the precipitation
 efficiency: increasing their value generally decrease convective precipitation.
@@ -1170,7 +1173,7 @@ how to obtain needed datasets.
 itself, and does not control the RegCM model output. To know the \verb=CLM=
 output file content, refer to CLM 3.5 documentation.
 \item The \verb'imask = 2' option cannot be used with the \verb'icup'
-cumulus convection schemes $2, 98, 99$, which rely on the BATS1e landmask.
+cumulus convection schemes $2, 98, 99, 96$, which rely on the BATS1e landmask.
 \end{enumerate}
 
 In the case of \verb=CLM= run, the user needs to run, after the \verb=terrain=

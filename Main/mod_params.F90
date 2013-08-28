@@ -200,6 +200,8 @@ module mod_params
 !     = 3 ; betts-miller (1986)
 !     = 4 ; emanuel (1991)
 !     = 5 ; Tiedtke (1986) - version from ECHAM 5.4 
+!     = 96; variable: tiedtke over land and grell over ocean
+!     = 97; variable: tiedtke over land and emanuel over ocean
 !     = 98; variable: emanuel over land and grell over ocean
 !     = 99; variable: grell over land and emanuel over ocean
 !
@@ -605,7 +607,7 @@ module mod_params
       end if
     end if
 
-    if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
+    if ( icup == 2 .or. icup == 99 .or. icup == 98 .or. icup == 96 ) then
       rewind(ipunit)
       read (ipunit, nml=grellparam, iostat=iretval)
       if ( iretval /= 0 ) then
@@ -616,7 +618,7 @@ module mod_params
 #endif
       end if
     end if
-    if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
+    if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
       rewind(ipunit)
       read (ipunit, nml=emanparam, iostat=iretval)
       if ( iretval /= 0 ) then
@@ -627,7 +629,7 @@ module mod_params
 #endif
       end if
     end if
-    if ( icup == 5 ) then
+    if ( icup == 5 .or. icup == 96 .or. icup == 97 ) then
       rewind(ipunit)
       read (ipunit, nml=tiedtkeparam, iostat=iretval)
       if ( iretval /= 0 ) then
@@ -642,7 +644,7 @@ module mod_params
         call fatal(__FILE__,__LINE__,'UNSUPPORTED LARGE SCALE FOR CUMULUS')
       end if
     end if
-    if ( icup < 0 .or. (icup > 5 .and. icup < 98) .or. icup > 99 ) then
+    if ( icup < 0 .or. (icup > 5 .and. icup < 96) .or. icup > 99 ) then
       call fatal(__FILE__,__LINE__,'UNSUPPORTED CUMULUS SCHEME')
     end if
     if ( ibltyp < 0 .or. (ibltyp > 2 .and. ibltyp /= 99) ) then
@@ -935,7 +937,7 @@ module mod_params
   call bcast(clfrcvmax)
   call bcast(cllwcv)
  
-  if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
+  if ( icup == 2 .or. icup == 99 .or. icup == 98 .or. icup == 96 ) then
     call bcast(shrmin)
     call bcast(shrmax)
     call bcast(edtmin)
@@ -960,7 +962,7 @@ module mod_params
     call bcast(dtauc)
   end if
  
-  if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
+  if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
     call bcast(minsig)
     call bcast(elcrit_ocn)
     call bcast(elcrit_lnd)
@@ -1383,7 +1385,7 @@ module mod_params
     write(stdout,'(a,i2)') '  Lateral Boundary conditions : ' , iboudy
     write(stdout,'(a,i2)') '  Semi-Lagrangian Advection   : ' , isladvec
     write(stdout,'(a,i2)') '  Cumulus convection scheme   : ' , icup
-    if ( icup == 2 ) then
+    if ( icup == 2 .or. icup == 97 .or. icup == 98 .or. icup == 96 ) then
       write(stdout,'(a,i2)') '  Grell closure scheme        : ' , igcc
     end if
     write(stdout,'(a,i2)') '  Moisture schem              : ' , ipptls
@@ -1568,7 +1570,7 @@ module mod_params
       end do
     end do
   end if
-  if (icup == 98) then
+  if ( icup == 98 ) then
     if ( myid == italk ) then
       write(stdout,*) 'Cumulus scheme: will use Emanuel '// &
            'over land and Grell over ocean.'
@@ -1580,6 +1582,38 @@ module mod_params
           cucontrol(j,i) = 2
         else
           cucontrol(j,i) = 4
+        end if
+      end do
+    end do
+  end if
+  if ( icup == 97 ) then
+    if ( myid == italk ) then
+      write(stdout,*) 'Cumulus scheme: will use Tiedtke '// &
+        'over land and Emanuel over ocean'
+    end if
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( mddom%lndcat(j,i) > 14.5D0 .and. &
+             mddom%lndcat(j,i) < 15.5D0 ) then
+          cucontrol(j,i) = 4
+        else
+          cucontrol(j,i) = 5
+        end if
+      end do
+    end do
+  end if
+  if ( icup == 96 ) then
+    if ( myid == italk ) then
+      write(stdout,*) 'Cumulus scheme: will use Tiedtke '// &
+        'over land and Grell over ocean'
+    end if
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( mddom%lndcat(j,i) > 14.5D0 .and. &
+             mddom%lndcat(j,i) < 15.5D0 ) then
+          cucontrol(j,i) = 2
+        else
+          cucontrol(j,i) = 5
         end if
       end do
     end do
@@ -1651,7 +1685,7 @@ module mod_params
       write(stdout, *) 'Anthes-Kuo Convection Scheme used.'
     end if
   end if
-  if ( icup == 2 .or. icup == 99 .or. icup == 98 ) then
+  if ( icup == 2 .or. icup == 99 .or. icup == 98 .or. icup == 96 ) then
     call allocate_mod_cu_grell
     kbmax = kz
     do k = 1 , kz - 1
@@ -1718,7 +1752,7 @@ module mod_params
                       'properly implemented'
     end if
   end if
-  if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
+  if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
     call allocate_mod_cu_em
     minorig = kz
     do k = 1 , kz
@@ -1750,7 +1784,7 @@ module mod_params
         epmax_ocn
     end if
   end if
-  if ( icup == 5 ) then
+  if ( icup == 5 .or. icup == 97 .or. icup == 96 ) then
     call allocate_mod_cu_tiedtke
     if ( myid == italk ) then
       write(stdout,*) 'Tiedtke (1986) Convection Scheme ECHAM 5.4 used.'
@@ -1877,7 +1911,7 @@ module mod_params
   !
   ! Setup Land/Ocean MIT autoconversion
   !
-  if ( icup == 4 .or. icup == 99 .or. icup == 98 ) then
+  if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( ldmsk(j,i) == 1 ) then

@@ -381,6 +381,10 @@ module mod_runparams
        write (cdum,'(a)') 'Emanuel (1991)'
       case(5)
         write (cdum,'(a)') 'Tiedtke (1986)'
+      case(96)
+        write (cdum,'(a)') 'Tiedtke (1986) over ocean, Grell over land'
+      case(97)
+        write (cdum,'(a)') 'Tiedtke (1986) over ocean, Emanuel (1991) over land'
       case(98)
         write (cdum,'(a)') 'Grell over ocean, Emanuel (1991) over land'
       case(99)
