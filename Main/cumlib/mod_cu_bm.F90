@@ -230,6 +230,7 @@ module mod_cu_bm
 !
     lqm = 0
     lshu = 0
+    prainx = d_zero
     !
     ! icumtop = top level of cumulus clouds
     ! icumbot = bottom level of cumulus clouds
@@ -809,6 +810,7 @@ module mod_cu_bm
 !
 !     cloud top is level just above pbtk-psh
 !
+      ltpk = 1
       do l = 1 , kz
         if ( z0(j,i,l) >= ztop ) ltpk = l
       end do

@@ -69,6 +69,7 @@ module mod_cu_em
     total_precip_points = 0
     icumtop(:,:) = 0
     icumbot(:,:) = 0
+    ktop = 1
     if ( ichem == 1 ) then 
       convpr(:,:,:) = d_zero
       ntra = ntr      
