@@ -2215,6 +2215,8 @@ module mod_ncout
             ncattribute_integer('chem_dust_PSD_scheme',ichdustemd))
           call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('chem_enable_aerosol_radiation_feedback',idirect))
+          call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('chem_enable_sulfate_indirect_effect',iindirect))
         end if
 #ifdef CLM
         call outstream_addatt(outstream(i)%ncout(j), &
