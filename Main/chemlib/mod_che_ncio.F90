@@ -257,7 +257,7 @@ module mod_che_ncio
           call fatal(__FILE__,__LINE__,'IO ERROR in CHEM EMISSION')
         else
           if ( myid == italk ) then
-          write(stdout,*) 'CHE_EMISS: Reading record ', recc
+            write(stdout,*) 'CHE_EMISS: Reading record ', recc
           end if
         end if  
 

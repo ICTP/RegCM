@@ -480,8 +480,8 @@ module mod_rad_colmod3
   subroutine cldefr
     implicit none
 !
-    integer(ik4) :: n , k, nt
-    real(rk8) :: pnrml , rliq , weight,rhoa, nc,aerc,lwc,kparam
+    integer(ik4) :: n , k , nt
+    real(rk8) :: pnrml , rliq , weight , rhoa , nc , aerc , lwc , kparam
     ! reimax - maximum ice effective radius
     real(rk8) , parameter :: reimax = 30.0D0
     ! rirnge - range of ice radii (reimax - 10 microns)
@@ -546,31 +546,34 @@ module mod_rad_colmod3
     end do
 
     !FAB : reintroduce simple sulfate indirect effect 
-    !from Qian  1999
-    !clwp is passed  in g/m2 
-    if(ichem ==1 .and. iindirect==1) then
-      do nt = 1, ntr 
-        if (chtrname(nt)/='SO4') cycle
-          do k = 1 , kz
-            do n = 1 , npr
-              rhoa =  pmidm1(n,k)* amdk / ( tm1(n,k) * 8.314D0)
-              aerc = rhoa *  aermmr(n,k,nt)* 1.D9 !microg/m3
-              if (aerc > 0.1D0) then ! thershold of 0.1 microg/m3 for activation of indirect effectt
-              nc = 90.7D0 * aerc**0.45D0 + 23.D0 !ccn number concentration in cm-3 
-              lwc =  clwp(n,k) / deltaz(n,k) * d_r1000 !kg/m3, already account fro cum and ls clouds      
-              if(lwc < 1.D-6) cycle
-                if ( ioro(n) /= 1 ) then
-                      ! Martin et al.(1994) parameter over ocean and sea ice
-                 kparam = 0.80D0
-                else
-                      ! and over land
-                 kparam = 0.67D0
-                end if
-                   !finally modify effective radius 
-                   !(1.D6 to convert to rel to microm, 1D6 to vonvert nc in m-3)
-                  rel(n,k) = 1.D6 * ( d_three*lwc /(d_four*mathpi*rhoh2o*kparam*nc*1.D6 ) )**(d_one/d_three)
-
+    ! from Qian  1999
+    ! clwp is passed  in g/m2 
+    if ( ichem == 1 .and. iindirect == 1 ) then
+      do nt = 1 , ntr 
+        if ( chtrname(nt) /= 'SO4' ) cycle
+        do k = 1 , kz
+          do n = 1 , npr
+            rhoa = pmidm1(n,k)* amdk / (tm1(n,k) * 8.314D0)
+            aerc = rhoa * aermmr(n,k,nt) * 1.D9 !microg/m3
+            ! thershold of 0.1 microg/m3 for activation of indirect effect
+            if ( aerc > 0.1D0 ) then
+              ! ccn number concentration in cm-3 
+              nc = 90.7D0 * aerc**0.45D0 + 23.D0
+              ! kg/m3, already account fro cum and ls clouds      
+              lwc = clwp(n,k) / deltaz(n,k) * d_r1000
+              if ( lwc < 1.D-6 ) cycle
+              if ( ioro(n) /= 1 ) then
+                ! Martin et al.(1994) parameter over ocean and sea ice
+                kparam = 0.80D0
+              else
+               ! and over land
+               kparam = 0.67D0
               end if
+              !finally modify effective radius 
+              !(1.D6 to convert to rel to microm, 1D6 to vonvert nc in m-3)
+              rel(n,k) = 1.D6 * ( d_three*lwc / &
+                   (d_four*mathpi*rhoh2o*kparam*nc*1.D6 ) )**(d_one/d_three)
+            end if
           end do
         end do
       end do

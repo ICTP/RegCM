@@ -297,19 +297,19 @@ module mod_che_drydep
                  2.0D0,  1.0D0,  10.0D0,-999.0D0,-999.0D0, &
                 50.0D0, 50.0D0, 200.0D0, 200.0D0,-999.0D0 /
     
-!   *****************************************************************
-!   * Gas Properties (Total 31 species)                          ****
-!   * Mesophyll resistance RM, scaling factors ALPHAZ and BETAZ,   ****
-!   * molecular weight.                                          ****
-!   *****************************************************************
-! parameters are given for the folloewing species in the zhang scheme
-! SO2    H2SO4   NO2     O3     H2O2      HONO     HNO3      HNO4            NH3 
-!                 PAN           PPN       APAN           MPAN   
-!                 HCHO          MCHO      PALD           C4A  
-!                 C7A           ACHO      MVK            MACR 
-!                 MGLY          MOH       ETOH           POH 
-!                 CRES          FORM      ACAC           ROOH   
-!                 ONIT          INIT 
+! *****************************************************************
+! * Gas Properties (Total 31 species)                          ****
+! * Mesophyll resistance RM, scaling factors ALPHAZ and BETAZ, ****
+! * molecular weight.                                          ****
+! *****************************************************************
+! parameters are given for the following species in the zhang scheme
+! SO2    H2SO4   NO2    O3     H2O2   HONO  HNO3   HNO4  NH3 
+! PAN    PPN     APAN   MPAN   
+! HCHO   MCHO    PALD   C4A  
+! C7A    ACHO    MVK    MACR 
+! MGLY   MOH     ETOH   POH 
+! CRES   FORM    ACAC   ROOH   
+! ONIT   INIT 
 
   data rm / 0.0D0 ,   0.0D0 ,   0.0D0 ,   0.0D0 ,    0.0D0 , &
             0.0D0 ,   0.0D0 ,   0.0D0 ,   0.0D0 ,    0.0D0 , &

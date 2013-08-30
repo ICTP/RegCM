@@ -110,8 +110,7 @@ module mod_che_sox
          !       weights of  so4 and so2 mw(so4)=96;  
          !       mw(so2)=64;  mw(so4)/mw(so2)=3/2=1.5
          !---------------------------------------------      
-
-!       so2_rate = rk_com(i,k,12) * oh1int * d_10
+         ! so2_rate = rk_com(i,k,12) * oh1int * d_10
          so2_rate = rk_com(i,k,12) * oh1int
          so2_snk(i,k) = chib(j,i,k,iso2)*(d_one-dexp(-so2_rate*dt))/dt
 
@@ -122,12 +121,9 @@ module mod_che_sox
          if ( ichdiag > 0 ) then
           chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) &
                - so2_snk(i,k) * cldno * cfdout 
-
           chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) &
                +  1.5D0*so2_snk(i,k)*cldno  * cfdout 
-
          end if
-
        end do
      end do
 
@@ -140,7 +136,7 @@ module mod_che_sox
            h2o2mol =  oxcl(i,k,j,iox_h2o2)
            concmin(i,k) = dmin1(h2o2mol,chimol)*64.0D0/28.9D0*cpsb(j,i)
          else
-         ! cb*kg/kg do tests, suppose h2o2 always enough
+           ! cb*kg/kg do tests, suppose h2o2 always enough
            concmin(i,k) = chimol*64.D0/28.9D0*cpsb(j,i)     ! cb*kg/kg
          end if
        end do
@@ -200,19 +196,15 @@ module mod_che_sox
  
          ! and wetdep diagnostics
          ! just for iso2 washout (remcvc) here.
-         ! only the contributio9n of large scale cloud is accounted for
+         ! only the contribution of large scale cloud is accounted for
          remcvc(j,i,k,iso2) = remcvc(j,i,k,iso2) - wetrem(iso2)/dt *cfdout
-!         remlsc(j,i,k,iso4) = remlsc(j,i,k,iso4) - wetrem(iso4)/d_two
+         ! remlsc(j,i,k,iso4) = remlsc(j,i,k,iso4) - wetrem(iso4)/d_two
  
          ! chemical aqueous conversion diagnostic
         
          if ( ichdiag > 0 ) then
-          chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) &
-               + rxs1/dt * cfdout 
-
-          chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) &
-                - rxs11/dt  * cfdout 
-
+           chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) + rxs1/dt * cfdout 
+           chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) - rxs11/dt * cfdout 
          end if 
        end do
      end do
@@ -252,34 +244,27 @@ module mod_che_sox
            ! chemical aquesous conversion diagnostic
            ! ( add the contribution of gas + wet lsc + wet cum conversions)
            if ( ichdiag > 0 ) then
-               chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) &
-               + rxs2/dt * cfdout 
-
-               chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) &
-                - rxs21/dt  * cfdout 
-
-         end if  
-
-        
+             chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) + rxs2/dt * cfdout 
+             chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) - rxs21/dt  * cfdout 
+           end if  
          end do
        end if
      end do
 
-   ! diagnostic for SO2 durface fluxes         
+     ! diagnostic for SO2 durface fluxes         
   
-      do i = ici1 , ici2
-        wdlsc(j,i,iso2) = d_zero
-        wdcvc(j,i,iso2) = d_zero
-        do k = 1 , kz
-          ! sum on the vertical to get total surface flux diag fo rain out
-          ! and washout (already weighted for time average cfdout !), 
-          ! also change sign convention normalise by psb to get the right
-          ! flux unit 
-          wdcvc(j,i,iso2) = wdcvc(j,i,iso2) - &
+     do i = ici1 , ici2
+       wdlsc(j,i,iso2) = d_zero
+       wdcvc(j,i,iso2) = d_zero
+       do k = 1 , kz
+         ! sum on the vertical to get total surface flux diag fo rain out
+         ! and washout (already weighted for time average cfdout !), 
+         ! also change sign convention normalise by psb to get the right
+         ! flux unit 
+         wdcvc(j,i,iso2) = wdcvc(j,i,iso2) - &
             remcvc(j,i,k,iso2)*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
-        end do
-      end do
-  
+       end do
+     end do
 
 !!$!
 !!$  if ( (chtrname(itr) == 'DMS' ) .and. iso2 > 0 ) then
