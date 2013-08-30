@@ -7,7 +7,7 @@ module mod_cu_tiedtke_38r2
 
   private
 
-  public :: cumastrn , cuancape2
+  public :: sucumf , cumastrn , cuancape2
 
   integer(ik4) , parameter :: n_vmass = 0   ! Using or not vector mass
   real(rk8) , parameter :: rlpal1 = 0.15D0  ! Smoothing coefficient
@@ -17,15 +17,13 @@ module mod_cu_tiedtke_38r2
   real(rk8) , parameter :: rcpecons = 5.44D-4/rgas
                                           ! Coefficient for rain evaporation
                                           ! below cloud
-  ! real(rk8) , parameter :: rtau = 3.0D0
-  real(rk8) , parameter :: rtau = 1.0D0+264.0D0/319.0D0
+  real(rk8) :: rtau
   real(rk8) , parameter :: rtaumel = 5.0D0*3.6D3*1.5D0
                                           ! Relaxation time for melting of
                                           ! snow
   real(rk8) , parameter :: rhebc = 0.8D0  ! Critical relative humidity below
                                           ! cloud at which evaporation starts
-  real(rk8) , parameter :: rmfcfl = 5.0D0 ! Massflux multiple of cfl stability
-                                          ! criterium
+  real(rk8) :: rmfcfl ! Massflux multiple of cfl stability criterium
   real(rk8) , parameter :: rmflic = 1.0D0 ! Use CFL mass flux limit (1) or
                                           ! absolut limit (0)
   real(rk8) , parameter :: rmflia = 0.0D0 ! Value of absolut mass flux limit
@@ -56,23 +54,61 @@ module mod_cu_tiedtke_38r2
   real(rk8) , parameter :: zqmax = 0.5D0
   real(rk8) , parameter :: rlmin = 1.0D-8
 
-  logical , public :: lmfmid    ! True if midlevel convection is on
-  logical , public :: lmfdd     ! True if cumulus downdraft is on
-  logical , public :: lepcld    ! True if prognostic cloud scheme is on
-  logical , public :: lmfdudv   ! True if cumulus friction is on
-  logical , public :: lmfscv    ! True if shallow convection is switched on
-  logical , public :: lmfpen    ! True if penetrative convection is switched on
-  logical , public :: lmfsmooth ! Smoothing of mass fluxes top/bottom for
-                                ! Tracers
-  logical , public :: lmfwstar  ! Grant w* closure for shallow convection
-  logical , public :: lmfuvdis  ! use kinetic energy dissipation (addit
-                                ! T-tendency)
-  logical , public :: lmftrac   ! Convective chemical tracer transport
+  logical , public :: lmfmid = .true.   ! True if midlevel convection is on
+  logical , public :: lmfdd = .true.    ! True if cumulus downdraft is on
+  logical , public :: lepcld = .true.   ! True if prognostic cloud scheme is on
+  logical , public :: lmfdudv = .true.  ! True if cumulus friction is on
+  logical , public :: lmfscv = .true.   ! True if shallow convection is on
+  logical , public :: lmfpen = .true.   ! True if penetrative convection is on
+  logical , public :: lmfuvdis = .true. ! use kinetic energy dissipation
+                                        ! (addit T-tendency)
+  logical , public :: lmftrac = .true.  ! Convective chemical tracer transport
+  logical , public :: lmfsmooth = .false. ! Smoothing of mass fluxes 
+                                          ! top/bottom for tracers
+  logical , public :: lmfwstar = .false. ! Grant w* closure for shallow conv.
 
-  integer(ik4) , parameter :: njkt1 = 2
-  integer(ik4) , parameter :: njkt2 = 2
+  integer(ik4) :: njkt1 , njkt2 , njkt3 , njkt4 , njkt5 , njkt6
 
   contains
+!
+!     THIS ROUTINE DEFINES DISPOSABLE PARAMETERS FOR MASSFLUX SCHEME
+!
+!          M.TIEDTKE         E.C.M.W.F.    2/89
+!
+!          INTERFACE
+!          ---------
+!
+!          THIS ROUTINE IS CALLED FROM *INIPHY*
+!
+!          MODIFICATIONS
+!          -------------
+!
+  subroutine sucumf(ksmax,klev,pmean)
+    implicit none
+    integer(ik4) , intent(in) :: ksmax , klev
+    real(rk8) , dimension(klev) , intent(in) :: pmean
+    integer(ik4) :: nflevg , jlev
+    nflevg = klev
+    rtau = d_one+264.0D0/real(ksmax)
+    rtau = min(3.0D0,rtau)
+    if ( ksmax >= 511 ) then
+      rmfcfl = 3.0D0
+    else
+      rmfcfl = 5.0D0
+    end if
+    njkt1 = 2
+    njkt2 = 2
+    njkt3 = nflevg-2
+    do jlev = nflevg , 2 , -1
+      if ( pmean(jlev)/pmean(klev)*stdp > 350.D2 ) njkt1 = jlev
+      if ( pmean(jlev)/pmean(klev)*stdp >  60.D2 ) njkt2 = jlev
+      if ( pmean(jlev)/pmean(klev)*stdp > 950.D2 ) njkt3 = jlev
+      if ( pmean(jlev)/pmean(klev)*stdp > 850.D2 ) njkt4 = jlev
+      if ( pmean(jlev)/pmean(klev)*stdp > 500.D2 ) njkt5 = jlev
+      if ( pmean(jlev)/pmean(klev)*stdp > 700.D2 ) njkt6 = jlev
+    end do
+    njkt3 = min(nflevg-2,njkt3)
+  end subroutine sucumf
 !
 !***** CUANCAPE2 - COMPUTE APPROXIMATE CAPE,CIN  USING THETAE AND THETAES
 !
@@ -157,7 +193,7 @@ module mod_cu_tiedtke_38r2
           zqs = foeewm(pt(jl,jk))*zrpap
           zqs = max(1.D-8,zqs)
           zqs = zqs/(d_one-retv*zqs) ! small correction
-          zthetes = pt(jl,jk)*(stdpmb*zrpap)**rovcp * &
+          zthetes = pt(jl,jk)*(stdp*zrpap)**rovcp * &
                     exp( foeldcp(pt(jl,jk))*zqs/pt(jl,jk) ) 
           zthetad(jl,jk) = d_one/zthetes
         end if
@@ -176,7 +212,7 @@ module mod_cu_tiedtke_38r2
             if ( zpmix(jl) < 30.D2 ) then
               zdp = paph(jl,jk+1)-paph(jl,jk)
               zpmix(jl) = zpmix(jl)+zdp
-              zthmix(jl) = zthmix(jl)+pt(jl,jk)*zdp*(stdpmb/pap(jl,jk))**rovcp
+              zthmix(jl) = zthmix(jl)+pt(jl,jk)*zdp*(stdp/pap(jl,jk))**rovcp
               zqmix(jl) = zqmix(jl)+pq(jl,jk)*zdp
             end if
           end do
@@ -184,12 +220,12 @@ module mod_cu_tiedtke_38r2
           zqmix(jl) = zqmix(jl)*zdp
           zpmix(jl) = paph(jl,jkk+2) - 0.5D0*zpmix(jl)
           zthmix(jl) = zthmix(jl)*zdp
-          ztmix(jl) = zthmix(jl)*(zpmix(jl)/stdpmb)**rovcp
+          ztmix(jl) = zthmix(jl)*(zpmix(jl)/stdp)**rovcp
         else
           zqmix(jl) = pq(jl,jkk)
           zpmix(jl) = pap(jl,jkk)
           ztmix(jl) = pt(jl,jkk)
-          zthmix(jl) = pt(jl,jkk)*(stdpmb/zpmix(jl))**rovcp
+          zthmix(jl) = pt(jl,jkk)*(stdp/zpmix(jl))**rovcp
         end if
         ztheteu(jl) = zthmix(jl)*exp(foeldcp(ztmix(jl))*zqmix(jl)/ztmix(jl))
         llz(jl) = (paph(jl,klev+1)-paph(jl,jkk)) < 350.D2
