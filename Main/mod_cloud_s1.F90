@@ -34,7 +34,7 @@ module mod_cloud_s1
   use mod_runparams , only : dt
   use mod_runparams , only : ipptls
   use mod_runparams , only : budget_compute , nssopt , kautoconv
-use mod_runparams , only : ktau
+  use mod_runparams , only : ktau
   use mod_pbl_common
   use mod_constants
   use mod_precip , only : fcc
@@ -334,7 +334,7 @@ use mod_runparams , only : ktau
     integer(ik4) :: i , j , k , n , m
     integer(ik4) :: iqqi , iqql , iqqr , iqqs , iqqv , jn , jo
     logical :: llo1
-    real(rk8) :: zexplicit
+    real(rk8) :: zexplicit , zimplicit
     ! local real variables for autoconversion rate constants
     real(rk8) :: alpha1 ! coefficient autoconversion cold cloud
     real(rk8) :: ztmpa
@@ -370,8 +370,10 @@ use mod_runparams , only : ktau
     integer :: ires
 #endif
 
-    logical , parameter :: lmicro = .true.
-
+    logical , parameter   :: lmicro = .true.
+    real(rk8) , parameter :: ksemi = d_one        ! ksemi=0.  , scheme is fully explicit
+                                                  ! ksemi=1.  , scheme is fully implicit 
+                                                  ! 0<ksemi<1., scheme is semi-implici 
     real(rk8) , parameter :: rovcp = rgas/cpd
     real(rk8) , parameter :: rlcritsnow = 3.D-5   !critical autoconversion
     real(rk8) , parameter :: zauto_rate_khair = 0.355D0 ! microphysical terms
@@ -1396,75 +1398,9 @@ use mod_runparams , only : ktau
                   zsnowaut(j,i) = alpha1
                 end if
                 zsolqb(j,i,iqqs,iqqi) = zsolqb(j,i,iqqs,iqqi)+zsnowaut(j,i)
-               end if
-!           else
-!             zsolqb(j,i,iqqs,iqqi) = d_zero
-            end if
-          end do
-        end do
-
-        !---------------------------------------------------------------
-        !                         MELTING
-        !---------------------------------------------------------------
-        ! The melting of ice and snow are treated explicitly.
-        ! First water and ice saturation are found
-        !---------------------------------------------
-        ! ice saturation T<273K
-        ! liquid water saturation for T>273K
-        !---------------------------------------------
-
-        do i = ici1, ici2
-          do j = jci1, jci2
-            do n = 1 , nqx
-              if ( kphase(n) == 2 ) then
-                zicetot(j,i) = zicetot(j,i) + zqxfg(j,i,n)
               end if
-            end do
-            zmeltmax(j,i) = d_zero
-            if ( zicetot(j,i) > zepsec .and. zt(j,i,k) > tzero ) then
-              ! Calculate subsaturation
-              ! satice(j,i,k)-zqxx(j,i,k,iqqv),d_zero)
-              zsubsat = max(zqsice(j,i,k)-zqxx(j,i,k,iqqv),d_zero)
-              ! Calculate difference between dry-bulb (zt)  and the temperature
-              ! at which the wet-bulb = 0degC
-              ! Melting only occurs if the wet-bulb temperature >0
-              ! i.e. warming of ice particle due to melting > cooling
-              ! due to evaporation.
-              ! The wet-bulb temperature is used in order to account for the
-              ! thermal (cooling) ect of evaporation on the melting process
-              ! in sub-saturated air. The evaporation counteracts the latent
-              ! heating due to melting and allows snow particles to survive
-              ! to slightly warmer temperatures when the relative
-              ! humidity of the air is low. The wet-bulb temperature is
-              ! approximated as in the scheme described by
-              ! Wilson and Ballard(1999): Tw = Td-(qs-q)(A+B(p-c)-D(Td-E))
-              ztdiff = zt(j,i,k)-(tzero+zsubsat*(ztw1+ztw2*(pres(j,i,k)-ztw3)+ztw4*ztw5))/ &
-                       (d_one+ztw4*zsubsat) 
-              ! Ensure ZCONS1 is positive so that ZMELTMAX = 0 if ZTDMTW0 < 0
-              zcons1 = abs(dt*(d_one+d_half*ztdiff)/rtaumel)
-              zmeltmax(j,i) = max(ztdiff*zcons1*zrldcp,d_zero)
             end if
           end do
-        end do
-
-        ! Loop over frozen hydrometeors (kphase == 2 (ice, snow))
-        do n = 1, nqx
-           if ( kphase(n) == 2 ) then
-            m = imelt(n) ! imelt(iqqi)=iqql, imelt(iqqs)=iqqr
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                if ( zmeltmax(j,i) > zepsec .and. zicetot(j,i) > zepsec ) then
-                  zphases = zqxfg(j,i,n)/zicetot(j,i)
-                  zmelt = min(zqxfg(j,i,n),zphases*zmeltmax(j,i))
-                  ! n = iqqi , iqqs; m = iqql , iqqr
-                  zqxfg(j,i,n) =  zqxfg(j,i,n)-zmelt
-                  zqxfg(j,i,m) =  zqxfg(j,i,m)+zmelt
-                  zsolqa(j,i,m,n) =  zsolqa(j,i,m,n) + zmelt
-                  zsolqa(j,i,n,m) =  zsolqa(j,i,n,m) - zmelt
-                end if
-              end do
-            end do
-          end if
         end do
 
         !------------------------------------------------------------!
@@ -1654,7 +1590,91 @@ use mod_runparams , only : ktau
            end if
          end do
        end do
+
+        !---------------------------------------------------------------
+        !                         MELTING
+        !---------------------------------------------------------------
+        ! The melting of ice and snow are treated explicitly.
+        ! First water and ice saturation are found
+        !---------------------------------------------
+        ! ice saturation T<273K
+        ! liquid water saturation for T>273K
+        !---------------------------------------------
+
+        do i = ici1, ici2
+          do j = jci1, jci2
+            do n = 1 , nqx
+              if ( kphase(n) == 2 ) then
+                zicetot(j,i) = zicetot(j,i) + zqxfg(j,i,n)
+              end if
+            end do
+            zmeltmax(j,i) = d_zero
+            if ( zicetot(j,i) > zepsec .and. zt(j,i,k) > tzero ) then
+              ! Calculate subsaturation
+              ! satice(j,i,k)-zqxx(j,i,k,iqqv),d_zero)
+              zsubsat = max(zqsice(j,i,k)-zqxx(j,i,k,iqqv),d_zero)
+              ! Calculate difference between dry-bulb (zt)  and the temperature
+              ! at which the wet-bulb = 0degC
+              ! Melting only occurs if the wet-bulb temperature >0
+              ! i.e. warming of ice particle due to melting > cooling
+              ! due to evaporation.
+              ! The wet-bulb temperature is used in order to account for the
+              ! thermal (cooling) ect of evaporation on the melting process
+              ! in sub-saturated air. The evaporation counteracts the latent
+              ! heating due to melting and allows snow particles to survive
+              ! to slightly warmer temperatures when the relative
+              ! humidity of the air is low. The wet-bulb temperature is
+              ! approximated as in the scheme described by
+              ! Wilson and Ballard(1999): Tw = Td-(qs-q)(A+B(p-c)-D(Td-E))
+              !ztdiff = zt(j,i,k)-(tzero+zsubsat*(ztw1+ztw2*(pres(j,i,k)-ztw3)+ztw4*ztw5))/ &
+              !         (d_one+ztw4*zsubsat) 
+              ztdiff=zt(j,i,k)-tzero
+              ! Ensure ZCONS1 is positive so that ZMELTMAX = 0 if ZTDMTW0 < 0
+              zcons1 = abs(dt*(d_one+d_half*ztdiff)/rtaumel)
+              zmeltmax(j,i) = max(ztdiff*zcons1*zrldcp,d_zero)
+            end if
+          end do
+        end do
+
+        ! Loop over frozen hydrometeors (kphase == 2 (ice, snow))
+        do n = 1, nqx
+           if ( kphase(n) == 2 ) then
+            m = imelt(n) ! imelt(iqqi)=iqql, imelt(iqqs)=iqqr
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                if ( zmeltmax(j,i) > zepsec .and. zicetot(j,i) > zepsec ) then
+                  zphases = zqxfg(j,i,n)/zicetot(j,i)
+                  zmelt = min(zqxfg(j,i,n),zphases*zmeltmax(j,i))
+                  zmelt = zqxfg(j,i,n)
+                  ! n = iqqi , iqqs; m = iqql , iqqr
+                  zqxfg(j,i,n) =  zqxfg(j,i,n)-zmelt
+                  zqxfg(j,i,m) =  zqxfg(j,i,m)+zmelt
+                  zsolqa(j,i,m,n) =  zsolqa(j,i,m,n) + zmelt
+                  zsolqa(j,i,n,m) =  zsolqa(j,i,n,m) - zmelt
+                end if
+              end do
+            end do
+          end if
+        end do
+       !------------------------------------
+       ! recalculate zqpretot to see if zero
+       !------------------------------------
+       do n = 1 , nqx
+         do i = ici1 , ici2
+           do j = jci1 , jci2
+             if ( kphase(n) == 2 ) then
+               zqpretot(j,i) = zqpretot(j,i)+zqxfg(j,i,n)
+             end if
+           end do
+         end do
+       end do
+       do i = ici1 , ici2
+         do j = jci1 , jci2
+           if (zqpretot(j,i)<zepsec) zcovptot(j,i) = d_zero
+         end do
+       end do            
       end if !lmicro
+
       !--------------------------------
       ! solver for the microphysics
       !--------------------------------
@@ -1788,12 +1808,12 @@ use mod_runparams , only : ktau
               if ( jn == n ) then
                 zqlhs(jn,n,j,i) = d_one + zfallsink(j,i,n)
                 do jo = 1 , nqx
-                  zqlhs(jn,n,j,i) = zqlhs(jn,n,j,i) + zsolqb(j,i,jo,jn)
+                  zqlhs(jn,n,j,i) = zqlhs(jn,n,j,i) + ksemi*zsolqb(j,i,jo,jn)
                 end do
                 ! Non-diagonals: microphysical source terms
               else
                 ! Here is the delta T - missing from doc.
-                zqlhs(jn,n,j,i) = -zsolqb(j,i,jn,n)
+                zqlhs(jn,n,j,i) = -ksemi*zsolqb(j,i,jn,n)
               end if
             end do
           end do
@@ -1805,11 +1825,19 @@ use mod_runparams , only : ktau
           do j = jci1 , jci2
           !   Sum the explicit source and sink
             zexplicit = d_zero
+            zimplicit = d_zero
             do jn = 1 , nqx
               ! Positive, since summed over 2nd index
-              zexplicit = zexplicit + zsolqa(j,i,n,jn)
+              zexplicit = zexplicit + zsolqa(j,i,n,jn) 
             end do
-            zqxn(n,j,i) = zqxx(j,i,k,n) + zexplicit
+            do jn = 1, nqx
+              if (jn /= n) then
+                zexplicit = zexplicit + (d_one-ksemi)*zsolqb(j,i,n,jn)*zqxx(j,i,k,jn)
+                zimplicit = zimplicit - (d_one-ksemi)*zsolqb(j,i,jn,n)*zqxx(j,i,k,jn)
+              end if  
+            end do
+            zqxn(n,j,i) = zqxx(j,i,k,n) + zimplicit - &
+                          zqxx(j,i,k,n)*(d_one-ksemi)*zfallsink(j,i,n) +zexplicit
           end do
         end do
       end do
@@ -1847,14 +1875,15 @@ use mod_runparams , only : ktau
       !     diagnostic precipitation fluxes
       !     It is this scaled flux that must be used for source to next layer
       !------------------------------------------------------------------------
-
       ! Generalized precipitation flux
       do n = 1 , nqx
         do i = ici1 , ici2
           do j = jci1 , jci2
             ! this will be the source for the k
-            zpfplsx(j,i,k+1,n) = zfallsink(j,i,n) * &
-              zqxn(n,j,i)*zrdtgdp(j,i) ! kg/m2/s
+            zpfplsx(j,i,k+1,n) = ksemi*zfallsink(j,i,n) * &
+              zqxn(n,j,i)*zrdtgdp(j,i) + &
+              (1-ksemi)*zfallsink(j,i,n)* &
+              zqxx(j,i,k,n)*zrdtgdp(j,i) ! kg/m2/s
           end do
         end do
       end do
@@ -1978,7 +2007,7 @@ use mod_runparams , only : ktau
                 write(stderr,*) 'ERROR IS : ',zerrorq(j,i,kz)
               end if
               if ( abs(zerrorh(j,i,kz)) > 1.D-12 ) then
-                write(stderr,*) 'HENTALPY NON CONSERVED AT '
+                write(stderr,*) 'ENTHALPY NON CONSERVED AT '
                 write(stderr,*) 'J = ',global_dot_jstart+j
                 write(stderr,*) 'I = ',global_dot_istart+i
                 write(stderr,*) 'K = ',k
@@ -2020,7 +2049,6 @@ use mod_runparams , only : ktau
         end do
       end do
     end do
-
 
     !-------
     !Fluxes:
