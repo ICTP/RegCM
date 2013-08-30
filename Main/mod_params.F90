@@ -131,7 +131,7 @@ module mod_params
     lmfscv , lmfmid , lmfdd , lmfdudv
 
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
-         ichcumtra , ichsolver , idirect , ichdustemd , ichdiag ,        &
+         ichcumtra , ichsolver , idirect ,iindirect, ichdustemd , ichdiag ,        &
          ichsursrc , ichebdy , rdstemfac
 
   namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl
@@ -476,6 +476,7 @@ module mod_params
   ichcumtra = 1     ! tracer convective transport
   ichdustemd = 1    ! dust emission distribution (1 = alfaro, 2 =kok)
   idirect = 1       ! tracer direct effect
+  iindirect = 0
   ichdiag = 0       ! chem tend outputs 
   ichsursrc = 1
   ichebdy =1
@@ -1038,6 +1039,7 @@ module mod_params
     call bcast(ichdrdepo)
     call bcast(ichcumtra)
     call bcast(idirect)
+    call bcast(iindirect)
     call bcast(ichsolver)
     call bcast(ichdustemd)
     call bcast(rdstemfac)

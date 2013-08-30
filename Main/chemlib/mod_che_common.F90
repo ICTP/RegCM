@@ -211,7 +211,13 @@ module mod_che_common
         chtrname(1:ntr)(1:6) = (/'SSLT01','SSLT02'/)
         iaerosol = 1
         if ( myid == italk ) write(stdout,*) 'SSLT simulation'
-      else if ( chemsimtype(1:4) == 'CARB' ) then 
+       else if ( chemsimtype(1:4) == 'DUSS' ) then
+        ntr = sbin + nbin
+        allocate(chtrname(ntr))
+        chtrname(1:ntr)(1:6) = (/'DUST01','DUST02','DUST03','DUST04','SSLT01','SSLT02'/)
+        iaerosol = 1
+        if ( myid == italk ) write(stdout,*) 'DUSS simulation'
+       else if ( chemsimtype(1:4) == 'CARB' ) then 
         ntr = 4
         allocate(chtrname(ntr))
         chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB '/)

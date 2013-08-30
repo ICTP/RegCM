@@ -303,7 +303,7 @@ module mod_che_drydep
 !   * molecular weight.                                          ****
 !   *****************************************************************
 ! parameters are given for the folloewing species in the zhang scheme
-! SO2    H2SO4   NO2     O3     H2O2      HONO           HNO4            NH3 
+! SO2    H2SO4   NO2     O3     H2O2      HONO     HNO3      HNO4            NH3 
 !                 PAN           PPN       APAN           MPAN   
 !                 HCHO          MCHO      PALD           C4A  
 !                 C7A           ACHO      MVK            MACR 

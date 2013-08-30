@@ -102,7 +102,7 @@ module mod_runparams
   ! Ocean model switch indexes
   integer(ik4) :: iocnrough , iocnflx , iocncpl
   ! Radiation switch controls
-  integer(ik4) :: idirect , iemiss , isolconst
+  integer(ik4) :: idirect , iindirect , iemiss , isolconst
   ! Semi-Langrangian advection for tracers
   integer(ik4) :: isladvec
 !

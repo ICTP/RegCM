@@ -111,18 +111,22 @@ module mod_che_sox
          !       mw(so2)=64;  mw(so4)/mw(so2)=3/2=1.5
          !---------------------------------------------      
 
-         so2_rate = rk_com(i,k,12) * oh1int * d_10
+!       so2_rate = rk_com(i,k,12) * oh1int * d_10
+         so2_rate = rk_com(i,k,12) * oh1int
          so2_snk(i,k) = chib(j,i,k,iso2)*(d_one-dexp(-so2_rate*dt))/dt
 
          chiten(j,i,k,iso2) = chiten(j,i,k,iso2) - so2_snk(i,k) * cldno
          chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + 1.5D0*so2_snk(i,k)*cldno 
 
          !  gazeous conversion diagnostic 
+         if ( ichdiag > 0 ) then
+          chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) &
+               - so2_snk(i,k) * cldno * cfdout 
 
-         rxsg(j,i,k,iso2) = rxsg(j,i,k,iso2) + &
-                            so2_snk(i,k)*cldno*dt/d_two
-         rxsg(j,i,k,iso4) = rxsg(j,i,k,iso4) + &
-                            1.5D0*so2_snk(i,k)*cldno*dt/d_two
+          chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) &
+               +  1.5D0*so2_snk(i,k)*cldno  * cfdout 
+
+         end if
 
        end do
      end do
@@ -132,8 +136,7 @@ module mod_che_sox
      do k = 1 , kz
        do i = ici1 , ici2
          chimol = 28.9D0/64.0D0*chib(j,i,k,iso2)/cpsb(j,i) ! kg/kg to mole
-
-         if ( ichaer == 1 ) then 
+         if ( ioxclim == 1 ) then 
            h2o2mol =  oxcl(i,k,j,iox_h2o2)
            concmin(i,k) = dmin1(h2o2mol,chimol)*64.0D0/28.9D0*cpsb(j,i)
          else
@@ -174,6 +177,8 @@ module mod_che_sox
 !!$                      rxs11)*(dexp(-cremrat(j,i,k)/fracloud(i,k)*dt)-d_one)
 !!$           end if
  
+
+         end if
            ! Below cloud scavenging only for SO2 only stratiform precip !
            ! rembc is in calculated in prec, [mm/hr] and converted to
            ! below cloud scavenging rate for SO2 rate, s^-1)
@@ -181,29 +186,36 @@ module mod_che_sox
            ! s^-1, it is already a grid scale removal rate!
            krembc = 6.5D0*1.0D-5*crembc(j,i,k)**0.68D0
 
-           if ( crembc(j,i,k) > d_zero ) then
+         if ( crembc(j,i,k) > d_zero ) then
              wetrem(iso2) =  chtrsol(iso2)*concmin(i,k) * &
                              (dexp(-krembc*dt)-d_one)
-           end if
          end if
+
  
          ! Tendancies large scale cloud
          chiten(j,i,k,iso2) = chiten(j,i,k,iso2) + rxs1/dt + &
-                              wetrem(iso2)/dt
+                              wetrem(iso2)/dt ! zero here
          chiten(j,i,k,iso4) = chiten(j,i,k,iso4) - rxs11/dt + &
                               wetrem(iso4)/dt
  
          ! and wetdep diagnostics
-         remlsc(j,i,k,iso2) = remlsc(j,i,k,iso2) - wetrem(iso2)/d_two
-         remlsc(j,i,k,iso4) = remlsc(j,i,k,iso4) - wetrem(iso4)/d_two
+         ! just for iso2 washout (remcvc) here.
+         ! only the contributio9n of large scale cloud is accounted for
+         remcvc(j,i,k,iso2) = remcvc(j,i,k,iso2) - wetrem(iso2)/dt *cfdout
+!         remlsc(j,i,k,iso4) = remlsc(j,i,k,iso4) - wetrem(iso4)/d_two
  
          ! chemical aqueous conversion diagnostic
-         rxsaq1(j,i,k,iso2) = rxsaq1(j,i,k,iso2) - rxs1/d_two
-         rxsaq1(j,i,k,iso4) = rxsaq1(j,i,k,iso4) - rxs11/d_two
- 
+        
+         if ( ichdiag > 0 ) then
+          chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) &
+               + rxs1/dt * cfdout 
+
+          chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) &
+                - rxs11/dt  * cfdout 
+
+         end if 
        end do
      end do
- 
      ! cumulus clouds
      ! wet removal by cumulus clouds (over the fraction of grid box
      ! fracum) assume the cloud water content = 2 g/m3  (ref Kasibhatla )
@@ -232,16 +244,43 @@ module mod_che_sox
            chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + &
                                 wetrem_cvc(iso4)/dt - rxs21/dt
  
-           ! diagnostic of wet deposition
+           ! diagnostic of wet deposition: NOT relevant here
+           ! only SO2 below large scale cloud washout is considered above
            ! remcvc(j,i,k,1) = remcvc(j,i,k,1) - wetrem_cvc(iso2)/2.
-           remcvc(j,i,k,iso4) = remcvc(j,i,k,iso4) - wetrem_cvc(iso4)/d_two
+           ! remcvc(j,i,k,iso2) = remcvc(j,i,k,iso4) - wetrem_cvc(iso4)/d_two
+
            ! chemical aquesous conversion diagnostic
-           rxsaq2(j,i,k,iso2) = rxsaq2(j,i,k,iso2) - rxs2/d_two
-           rxsaq2(j,i,k,iso4) = rxsaq2(j,i,k,iso4) - rxs21/d_two
- 
+           ! ( add the contribution of gas + wet lsc + wet cum conversions)
+           if ( ichdiag > 0 ) then
+               chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) &
+               + rxs2/dt * cfdout 
+
+               chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) &
+                - rxs21/dt  * cfdout 
+
+         end if  
+
+        
          end do
        end if
      end do
+
+   ! diagnostic for SO2 durface fluxes         
+  
+      do i = ici1 , ici2
+        wdlsc(j,i,iso2) = d_zero
+        wdcvc(j,i,iso2) = d_zero
+        do k = 1 , kz
+          ! sum on the vertical to get total surface flux diag fo rain out
+          ! and washout (already weighted for time average cfdout !), 
+          ! also change sign convention normalise by psb to get the right
+          ! flux unit 
+          wdcvc(j,i,iso2) = wdcvc(j,i,iso2) - &
+            remcvc(j,i,k,iso2)*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
+        end do
+      end do
+  
+
 !!$!
 !!$  if ( (chtrname(itr) == 'DMS' ) .and. iso2 > 0 ) then
 !!$            
