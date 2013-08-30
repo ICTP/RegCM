@@ -137,6 +137,7 @@ module mod_constants
   real(rk8) , parameter :: cpowlhv = cpd/wlhv
   real(rk8) , parameter :: cpowlhs = cpd/wlhs
   real(rk8) , parameter :: cpowlhf = cpd/wlhf
+  real(rk8) , parameter :: rtber = tzero-5.0D0
   real(rk8) , parameter :: rtice = tzero-23.0D+00
   real(rk8) , parameter :: rtwat = tzero
   real(rk8) , parameter :: mpcrt = rtice+(rtwat-rtice)/sqrt(2.0D+00)

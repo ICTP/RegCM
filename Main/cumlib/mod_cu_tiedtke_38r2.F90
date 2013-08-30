@@ -7,6 +7,8 @@ module mod_cu_tiedtke_38r2
 
   private
 
+  public :: cumastrn , cuancape2
+
   integer(ik4) , parameter :: n_vmass = 0   ! Using or not vector mass
   real(rk8) , parameter :: rlpal1 = 0.15D0  ! Smoothing coefficient
   real(rk8) , parameter :: rlpal2 = 20.0D0  ! Smoothing coefficient
@@ -15,7 +17,8 @@ module mod_cu_tiedtke_38r2
   real(rk8) , parameter :: rcpecons = 5.44D-4/rgas
                                           ! Coefficient for rain evaporation
                                           ! below cloud
-  real(rk8) , parameter :: rtau = 3.0D0
+  ! real(rk8) , parameter :: rtau = 3.0D0
+  real(rk8) , parameter :: rtau = 1.0D0+264.0D0/319.0D0
   real(rk8) , parameter :: rtaumel = 5.0D0*3.6D3*1.5D0
                                           ! Relaxation time for melting of
                                           ! snow
@@ -31,10 +34,14 @@ module mod_cu_tiedtke_38r2
   real(rk8) , parameter :: rmfsolct = 1.0D0 ! Mass flux solver for chem tracers
   real(rk8) , parameter :: ruvper = 0.3D0 ! Updraught velocity perturbation for
                                           ! implicit (m/s)
+  real(rk8) , parameter :: rprcon = 1.4D03 ! coefficients for determining
+                                           ! conversion from cloud water
   real(rk8) , parameter :: detrpen = 0.75D-4 ! Detrainment rate for penetrative
                                              ! convection
   real(rk8) , parameter :: entrorg = 1.75D-3 ! Entrainment for positively
                                              ! buoyant convection 1/(m)
+  real(rk8) , parameter :: entshalp = 2.0D0  ! shallow entrainment factor for
+                                             ! entrorg
   real(rk8) , parameter :: entrdd = 3.0D-4   ! Average entrainment rate
                                              ! for downdrafts
   real(rk8) , parameter :: rmfcmax = 1.0D0   ! Maximum massflux value allowed
@@ -49,7 +56,6 @@ module mod_cu_tiedtke_38r2
   real(rk8) , parameter :: zqmax = 0.5D0
   real(rk8) , parameter :: rlmin = 1.0D-8
 
-  logical , public :: lphylin = .false.  ! Linearized physics is activated ?
   logical , public :: lmfmid    ! True if midlevel convection is on
   logical , public :: lmfdd     ! True if cumulus downdraft is on
   logical , public :: lepcld    ! True if prognostic cloud scheme is on
@@ -67,7 +73,162 @@ module mod_cu_tiedtke_38r2
   integer(ik4) , parameter :: njkt2 = 2
 
   contains
+!
+!***** CUANCAPE2 - COMPUTE APPROXIMATE CAPE,CIN  USING THETAE AND THETAES
+!
+!     E. HOLM + P. BECHTOLD     E.C.M.W.F.     13/10/2005
+!
+!     PURPOSE 
+!     -------
+!                 ESTIMATE CAPE FIRST FOR A MIXED-LAYER PARCEL, THEN
+!                 LOOP OVER SUBSEQUENT DEPARTURE LAYERS IN LOWEST 350 hPa
+!                 Theta_e =Theta*exp[L q_v/(C_p T)] 
+!                         = T*(P0/P)**(R_d/C_p) * exp[L q_v/(C_p T)]
+!                 -> THIS WILL BE THE UPDRAUGHT PARCEL (CONSERVING ITS
+!                 PROPERTIES)  (no entrainment)
+!                 CAPE    = Int ( g dTheta_v/Theta_v dz ) = 
+!                   aprox = Int ( g (Theta_e_up-Theta_e_sat)/Theta_e_sat ) dz
+!                 WITH THIS FORMULATION THE ACTUAL CAPE IS OVERESTIMATED  BY
+!                 ROUGHLY 20%. DEEP CONVECTION CAN BE CONSIDERED FOR CAPE
+!                 VALUES ABOVE 200-500 J/KG            
+!
+!     PARAMETER     DESCRIPTION                              UNITS
+!     ---------     -----------                              -----
+!     INPUT PARAMETERS (INTEGER):
+!
+!    *KIDIA*        START POINT
+!    *KFDIA*        END POINT
+!    *KLON*         NUMBER OF GRID POINTS PER PACKET
+!    *KLEV*         NUMBER OF LEVELS
+!
+!    INPUT PARAMETERS (REAL):
+!
+!    *PAP*          PRESSURE ON FULL LEVELS                    PA
+!    *PAPH*         PRESSURE ON HALF LEVELS                    PA
+!    *PT*           TEMPERATURE ON FULL LEVELS                 K   
+!    *PQ*           SPECIFIC HUMIDITY ON FULL LEVELS          KG/KG
+!
+!    OUTPUT PARAMETERS (REAL):
+!
+!    *PCAPE*        CONVECTIVE AVAILABLE POT. ENERGY          J/KG
+!    *PCIN*         CONVECTIVE INHIBITION                     J/KG
+!
+!          MODIFICATIONS
+!          -------------
+!     24-06-2011 :  Add CIN    P. Bechtold
+!
+!-------------------------------------------------------------------------------
+!
+  subroutine cuancape2(kidia,kfdia,klon,klev,pap,paph,pt,pq,pcape,pcin)
+    implicit none
+    integer(ik4) , intent(in) :: klon
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) , intent(in) :: kidia
+    integer(ik4) , intent(in) :: kfdia
+    real(rk8) , dimension(klon,klev) , intent(in) :: pap
+    real(rk8) , dimension(klon,klev+1) , intent(in) :: paph
+    real(rk8) , dimension(klon,klev) , intent(in) :: pt
+    real(rk8) , dimension(klon,klev) , intent(in) :: pq
+    real(rk8) , dimension(klon) , intent(out) :: pcape
+    real(rk8) , dimension(klon) , intent(out) :: pcin
 
+    integer(ik4) :: jl , jk , jkk
+    ! integer(ik4) , dimension(klon) :: jdep
+    real(rk8) , dimension(klon) :: zpmix , ztmix , zthmix , zqmix , ztheteu
+    real(rk8) , dimension(klon) :: zcin2
+    real(rk8) , dimension(klon,klev) :: zcape , zcin
+    real(rk8) :: zdp , zthetes , zqs , zdz , ztemp , zrpap
+    real(rk8) , dimension(klon,klev) :: zthetad
+    logical , dimension(klon,klev) :: llpap
+    logical , dimension(klon) :: llz
+
+    !----------------------------------------------------------------------
+
+    do jl = kidia , kfdia
+      pcape(jl) = d_zero
+      pcin(jl) = d_zero
+      zcin2(jl) = -1000.0D0
+    end do
+    do jk = klev-1 , njkt2,-1
+      do jl = kidia , kfdia
+        llpap(jl,jk) = ( pap(jl,jk)>80.D2 )
+        if ( llpap(jl,jk) ) then
+          zrpap = d_one/pap(jl,jk)
+          zqs = foeewm(pt(jl,jk))*zrpap
+          zqs = max(1.D-8,zqs)
+          zqs = zqs/(d_one-retv*zqs) ! small correction
+          zthetes = pt(jl,jk)*(stdpmb*zrpap)**rovcp * &
+                    exp( foeldcp(pt(jl,jk))*zqs/pt(jl,jk) ) 
+          zthetad(jl,jk) = d_one/zthetes
+        end if
+      end do
+    end do
+    do jkk = klev-1 , njkt1 , -1
+      do jl = kidia , kfdia
+        zcape(jl,jkk) = d_zero
+        zcin(jl,jkk) = d_zero
+        if ( paph(jl,klev+1)-paph(jl,jkk-1) < 60.D2 ) then
+          ztmix(jl) = d_zero
+          zthmix(jl) = d_zero
+          zqmix(jl) = d_zero
+          zpmix(jl) = d_zero
+          do jk = jkk+1 , jkk-1 , -1
+            if ( zpmix(jl) < 30.D2 ) then
+              zdp = paph(jl,jk+1)-paph(jl,jk)
+              zpmix(jl) = zpmix(jl)+zdp
+              zthmix(jl) = zthmix(jl)+pt(jl,jk)*zdp*(stdpmb/pap(jl,jk))**rovcp
+              zqmix(jl) = zqmix(jl)+pq(jl,jk)*zdp
+            end if
+          end do
+          zdp = d_one/zpmix(jl)
+          zqmix(jl) = zqmix(jl)*zdp
+          zpmix(jl) = paph(jl,jkk+2) - 0.5D0*zpmix(jl)
+          zthmix(jl) = zthmix(jl)*zdp
+          ztmix(jl) = zthmix(jl)*(zpmix(jl)/stdpmb)**rovcp
+        else
+          zqmix(jl) = pq(jl,jkk)
+          zpmix(jl) = pap(jl,jkk)
+          ztmix(jl) = pt(jl,jkk)
+          zthmix(jl) = pt(jl,jkk)*(stdpmb/zpmix(jl))**rovcp
+        end if
+        ztheteu(jl) = zthmix(jl)*exp(foeldcp(ztmix(jl))*zqmix(jl)/ztmix(jl))
+        llz(jl) = (paph(jl,klev+1)-paph(jl,jkk)) < 350.D2
+      end do
+      do jk = jkk , njkt2 , -1
+        do jl = kidia , kfdia
+          if ( llpap(jl,jk) .and. llz(jl) ) then
+            zrpap = d_one/pap(jl,jk)
+            ztemp = ztheteu(jl)*zthetad(jl,jk)-d_one
+            zdz = (paph(jl,jk+1)-paph(jl,jk))*zrpap*rgas*pt(jl,jk) * &
+                  (d_one+retv*pq(jl,jk))
+            if ( ztemp > d_zero ) then
+              zcape(jl,jkk) = zcape(jl,jkk)+ztemp*zdz
+            else if ( ztemp < d_zero .and. zcape(jl,jkk) < 100.D0 ) then
+              zcin(jl,jkk) = zcin(jl,jkk)+ztemp*zdz
+            end if
+          end if
+        end do
+      end do
+    end do
+    ! chose maximum cape and cin values
+    ! jdep(:) = klev-1
+    do jk = klev-1 , njkt1 , -1
+      do jl = kidia , kfdia
+        if ( zcape(jl,jk) > pcape(jl) ) then
+          pcape(jl) = zcape(jl,jk)
+          ! jdep(jl) = jk
+        end if
+        if ( zcin(jl,jk) > zcin2(jl) .and. zcin(jl,jk) < d_zero ) then
+          zcin2(jl) = zcin(jl,jk)
+        end if
+      end do
+    end do
+    do jl = kidia , kfdia
+      ! jkk = jdep(jl)
+      ! pcin(jl) = -zcin(jl,jkk)
+      pcin(jl) = -zcin2(jl)
+    end do
+  end subroutine cuancape2
 !
 !          M.TIEDTKE         E.C.M.W.F.     12/89
 !          P.BECHTOLD        E.C.M.W.F.     06/07
@@ -256,15 +417,9 @@ module mod_cu_tiedtke_38r2
       end do
       if ( jk >= klev-1 .or. jk < njkt2 ) cycle
       ik = jk
-      if ( lphylin ) then
-        icall = 0
-        call cuadjtqs(kidia,kfdia,klon,ktdia,klev,ik, &
-                      zph,ptenh,pqsenh,llflag,icall)
-      else
-        icall = 3
-        call cuadjtq(kidia,kfdia,klon,ktdia,klev,ik, &
-                     zph,ptenh,pqsenh,llflag,icall)
-      end if
+      icall = 3
+      call cuadjtq(kidia,kfdia,klon,ktdia,klev,ik, &
+                   zph,ptenh,pqsenh,llflag,icall)
       do jl = kidia , kfdia
         pqenh(jl,jk) = min(pqen(jl,jk-1),pqsen(jl,jk-1)) + &
                           (pqsenh(jl,jk)-pqsen(jl,jk-1))
@@ -316,6 +471,607 @@ module mod_cu_tiedtke_38r2
       end do
     end do
   end subroutine cuinin
+!
+!          THIS ROUTINE DOES THE CALCULATIONS FOR CLOUD ASCENTS
+!          FOR CUMULUS PARAMETERIZATION
+!
+!          M.TIEDTKE         E.C.M.W.F.     7/86 MODIF. 12/89
+!
+!          PURPOSE.
+!          --------
+!          TO PRODUCE CLOUD ASCENTS FOR CU-PARAMETRIZATION
+!          (VERTICAL PROFILES OF T,Q,L,U AND V AND CORRESPONDING
+!           FLUXES AS WELL AS PRECIPITATION RATES)
+!
+!          INTERFACE
+!          ---------
+!
+!          THIS ROUTINE IS CALLED FROM *CUMASTR*.
+!
+!          METHOD.
+!          --------
+!          LIFT SURFACE AIR DRY-ADIABATICALLY TO CLOUD BASE
+!          AND THEN CALCULATE MOIST ASCENT FOR
+!          ENTRAINING/DETRAINING PLUME.
+!          ENTRAINMENT AND DETRAINMENT RATES DIFFER FOR
+!          SHALLOW AND DEEP CUMULUS CONVECTION.
+!          IN CASE THERE IS NO PENETRATIVE OR SHALLOW CONVECTION
+!          CHECK FOR POSSIBILITY OF MID LEVEL CONVECTION
+!          (CLOUD BASE VALUES CALCULATED IN *CUBASMC*)
+!
+!     PARAMETER     DESCRIPTION                                   UNITS
+!     ---------     -----------                                   -----
+!     INPUT PARAMETERS (INTEGER):
+!
+!    *KIDIA*        START POINT
+!    *KFDIA*        END POINT
+!    *KLON*         NUMBER OF GRID POINTS PER PACKET
+!    *KTDIA*        START OF THE VERTICAL LOOP
+!    *KLEV*         NUMBER OF LEVELS
+!    *KLWMIN*       LEVEL OF MAXIMUM VERTICAL VELOCITY
+!    *KTYPE*        TYPE OF CONVECTION
+!                       1 = PENETRATIVE CONVECTION
+!                       2 = SHALLOW CONVECTION
+!                       3 = MIDLEVEL CONVECTION
+!    *KCBOT*        CLOUD BASE LEVEL
+!    *KDPL*         DEPARTURE LEVEL FOR CONVECTION
+!
+!    INPUT PARAMETERS (REAL):
+!
+!    *PTSPHY*       TIME STEP FOR THE PHYSICS                      S
+!    *PTENH*        ENV. TEMPERATURE (T+1) ON HALF LEVELS          K
+!    *PQENH*        ENV. SPEC. HUMIDITY (T+1) ON HALF LEVELS     KG/KG
+!    *PUEN*         PROVISIONAL ENVIRONMENT U-VELOCITY (T+1)      M/S
+!    *PVEN*         PROVISIONAL ENVIRONMENT V-VELOCITY (T+1)      M/S
+!    *PTEN*         PROVISIONAL ENVIRONMENT TEMPERATURE (T+1)      K
+!    *PQEN*         PROVISIONAL ENVIRONMENT SPEC. HUMIDITY (T+1) KG/KG
+!    *PQSEN*        ENVIRONMENT SPEC. SATURATION HUMIDITY (T+1)  KG/KG
+!    *PGEO*         GEOPOTENTIAL                                 M2/S2
+!    *PLITOT*       GRID MEAN LIQUID WATER+ICE CONTENT           KG/KG
+!    *PGEOH*        GEOPOTENTIAL ON HALF LEVELS                  M2/S2
+!    *PAP*          PROVISIONAL PRESSURE ON FULL LEVELS           PA
+!    *PAPH*         PROVISIONAL PRESSURE ON HALF LEVELS           PA
+!    *PVERVEL*      VERTICAL VELOCITY                            PA/S
+!
+!    INPUT PARAMETERS (LOGICAL):
+!
+!    *LDLAND*       LAND SEA MASK (.TRUE. FOR LAND)
+!    *LDCUM*        FLAG: .TRUE. FOR CONVECTIVE POINTS 
+!
+!    UPDATED PARAMETERS (INTEGER):
+!
+!    *KLAB*         FLAG KLAB=1 FOR SUBCLOUD LEVELS
+!                        KLAB=2 FOR CLOUD LEVELS
+!
+!    UPDATED PARAMETERS (REAL):
+!
+!    *PTU*          TEMPERATURE IN UPDRAFTS                        K
+!    *PQU*          SPEC. HUMIDITY IN UPDRAFTS                   KG/KG
+!    *PLU*          LIQUID WATER CONTENT IN UPDRAFTS             KG/KG
+!
+!    OUTPUT PARAMETERS (INTEGER):
+!
+!    *KCTOP*        CLOUD TOP LEVEL
+!    *KCTOP0*       FIRST GUESS OF CLOUD TOP LEVEL 
+!
+!    OUTPUT PARAMETERS (REAL):
+!
+!    *PMFU*         MASSFLUX IN UPDRAFTS                         KG/(M2*S)
+!    *PMFUB*        MASSFLUX IN UPDRAFTS AT CLOUD BASE           KG/(M2*S)
+!    *PMFUS*        FLUX OF DRY STATIC ENERGY IN UPDRAFTS         J/(M2*S)
+!    *PMFUQ*        FLUX OF SPEC. HUMIDITY IN UPDRAFTS           KG/(M2*S)
+!    *PMFUL*        FLUX OF LIQUID WATER IN UPDRAFTS             KG/(M2*S)
+!    *PLUDE*        DETRAINED LIQUID WATER                       KG/(M2*S)
+!    *PLGLAC*       FROZEN CLOUD WATER CONTENT                   KG/KG
+!    *PDMFUP*       FLUX DIFFERENCE OF PRECIP. IN UPDRAFTS       KG/(M2*S)
+!    *PMFUDE_RATE*  UPDRAFT DETRAINMENT RATE                     KG/(M2*S)
+!    *PKINEU*       UPDRAFT KINETIC ENERGY                       M2/S2
+!    *PWMEAN*       MEAN UPDRAUGHT VELOCITY                      M/S
+!
+!          EXTERNALS
+!          ---------
+!          *CUADJTQ* ADJUST T AND Q DUE TO CONDENSATION IN ASCENT
+!          *CUENTR*  CALCULATE ENTRAINMENT/DETRAINMENT RATES
+!          *CUBASMC* CALCULATE CLOUD BASE VALUES FOR MIDLEVEL CONVECTION
+!
+!          REFERENCE
+!          ---------
+!          (TIEDTKE,1989)
+!
+!          MODIFICATIONS
+!          -------------
+!             92-09-21 : Update to Cy44      J.-J. MORCRETTE
+!             99-06-14 : Optimisation        D.SALMOND
+!             01-05-22 : Modified flux limiter M.CULLEN
+!             02-08-14 : Allow for departure level =/ KLEV  P.BECHTOLD
+!             03-08-28 : Clean-up detrainment rates         P.BECHTOLD
+!        M.Hamrud      01-Oct-2003 CY28 Cleaning
+!        J.Hague       08-Dec-2005 Tuning: LLFLAG indexing
+!             07-06-01 : Organized entrainment based on RH  P.BECHTOLD
+!
+!----------------------------------------------------------------------
+!
+  subroutine cuascn(kidia,kfdia,klon,ktdia,klev,ptsphy,ptenh,pqenh,  &
+                    puen,pven,pten,pqen,pqsen,plitot,pgeo,pgeoh,pap, &
+                    paph,pvervel,pwubase,klwmin,ldland,ldcum,ktype,  &
+                    klab,ptu,pqu,plu,pmfu,pmfub,plglac,pmfus,pmfuq,  &
+                    pmful,plude,pdmfup,pdmfen,kcbot,kctop,kctop0,    &
+                    kdpl,pmfude_rate,pkineu,pwmean)
+    implicit none
+
+    integer(ik4) , intent(in) :: klon 
+    integer(ik4) , intent(in) :: klev 
+    integer(ik4) , intent(in) :: kidia 
+    integer(ik4) , intent(in) :: kfdia 
+    integer(ik4) :: ktdia ! argument not used
+    real(rk8) , intent(in) :: ptsphy 
+    real(rk8) , dimension(klon,klev) , intent(inout) :: ptenh
+    real(rk8) , dimension(klon,klev) , intent(inout) :: pqenh
+    real(rk8) , dimension(klon,klev) , intent(in) :: puen
+    real(rk8) , dimension(klon,klev) , intent(in) :: pven
+    real(rk8) , dimension(klon,klev) , intent(in) :: pten
+    real(rk8) , dimension(klon,klev) , intent(in) :: pqen
+    real(rk8) , dimension(klon,klev) , intent(in) :: pqsen
+    real(rk8) , dimension(klon,klev) , intent(in) :: plitot
+    real(rk8) , dimension(klon,klev) , intent(in) :: pgeo
+    real(rk8) , dimension(klon,klev+1) , intent(in) :: pgeoh
+    real(rk8) , dimension(klon,klev) , intent(in) :: pap
+    real(rk8) , dimension(klon,klev+1) , intent(in) :: paph
+    real(rk8) , dimension(klon,klev) , intent(in) :: pvervel
+    real(rk8) , dimension(klon) , intent(in) :: pwubase
+    integer(ik4) , dimension(klon) , intent(in) :: klwmin
+    logical , dimension(klon) , intent(in) :: ldland
+    logical , dimension(klon) , intent(inout) :: ldcum
+    integer(ik4) , dimension(klon) , intent(inout) :: ktype
+    integer(ik4) , dimension(klon,klev) , intent(inout) :: klab
+    real(rk8) , dimension(klon,klev) , intent(inout) :: ptu
+    real(rk8) , dimension(klon,klev) , intent(inout) :: pqu
+    real(rk8) , dimension(klon,klev) , intent(inout) :: plu
+    real(rk8) , dimension(klon,klev) , intent(inout) :: pmfu
+    real(rk8) , dimension(klon) , intent(inout) :: pmfub
+    real(rk8) , dimension(klon,klev) , intent(out) :: plglac
+    real(rk8) , dimension(klon,klev) , intent(out) :: pmfus
+    real(rk8) , dimension(klon,klev) , intent(out) :: pmfuq
+    real(rk8) , dimension(klon,klev) , intent(out) :: pmful
+    real(rk8) , dimension(klon,klev) , intent(out) :: plude
+    real(rk8) , dimension(klon,klev) , intent(out) :: pdmfup
+    real(rk8) , dimension(klon,klev) , intent(out) :: pdmfen
+    integer(ik4) , dimension(klon) , intent(inout) :: kcbot
+    integer(ik4) , dimension(klon) , intent(out) :: kctop
+    integer(ik4) , dimension(klon) , intent(inout) :: kctop0
+    integer(ik4) , dimension(klon) , intent(in) :: kdpl
+    real(rk8) , dimension(klon,klev) , intent(out) :: pmfude_rate
+    real(rk8) , dimension(klon,klev) , intent(out) :: pkineu
+    real(rk8) , dimension(klon) , intent(out) :: pwmean
+
+    real(rk8) , dimension(klon) :: zdmfen , zdmfde , zqold , zluold , zprecip
+    real(rk8) , dimension(klon,klev) :: zlrain , zbuo
+    real(rk8) , dimension(klon) :: zdpmean
+    real(rk8) , dimension(klon) :: zoentr , zph
+    logical , dimension(klon) :: llflag , llflaguv , llo1 , llklab
+    logical :: llo3 , llo4
+    integer(ik4) :: icall , ik , is , jk , jl , ikb
+    integer(ik4) :: jll , jlm
+    integer(ik4) , dimension(klon) :: jlx
+
+    real(rk8) :: z_cldmax , z_cprc2 , z_cwdrag , z_cwifrac , zalfaw ,    &
+                 zbc , zbe , zbuoc , zc , zcbf , zcons2 , zd , zdfi ,    &
+                 zdkbuo , zdken , zdnoprc , zdt , zfac , zfacbuo ,       &
+                 zint , zkedke , zlcrit , zleen , zlnew , zmfmax ,       &
+                 zmftest , zmfulk , zmfun , zmfuqk , zmfusk , zoealfa ,  &
+                 zoealfap , zprcdgw , zprcon , zqeen , zqude , zrnew ,   &
+                 zrold , zscde , zseen , ztglace , zvi , zvv , zvw ,     &
+                 zwu , zzco  
+    real(rk8) :: zchange , zxs , zxe
+
+!dir$ vfunction exphf
+
+    !----------------------------------------------------------------------
+    !*    1.           specify parameters
+    !                  ------------------
+
+    zcons2 = rmfcfl/(egrav*ptsphy)
+    ztglace = tzero-13.D0
+    zfacbuo = 0.5D0/(d_one+0.5D0)
+    zprcdgw = rprcon/egrav
+    z_cldmax = 5.0D-3
+    z_cwifrac = 0.5D0
+    z_cprc2 = 0.5D0
+    z_cwdrag = (3.D0/8.D0)*0.506D0/0.2D0
+
+    !----------------------------------------------------------------------
+    !     2.           set default values
+    !                  ------------------
+    llo3 = .false.
+    do jl = kidia , kfdia
+      zluold(jl) = d_zero
+      if ( .not. ldcum(jl) ) then
+        kcbot(jl) = -1
+        pmfub(jl) = d_zero
+        pqu(jl,klev) = d_zero
+        ktype(jl) = 0
+      end if
+      pwmean(jl) = d_zero
+      zdpmean(jl) = d_zero
+      zoentr(jl) = d_zero
+    end do
+
+    ! initalize various quantities
+    ! note that liquid water and kinetic energy at cloud base is 
+    ! preserved from cubase
+
+    do jl = kidia , kfdia
+      llklab(jl) = .false.
+      if ( .not. ldcum(jl) .or. ktype(jl) == 3 ) llklab(jl) = .true.
+    end do
+
+    do jk = 1 , klev
+      do jl = kidia , kfdia
+        if ( jk /= kcbot(jl) ) then 
+          plu(jl,jk) = d_zero
+        end if
+        pkineu(jl,jk) = d_zero
+      end do
+      do jl = kidia , kfdia
+        pmfu(jl,jk) = d_zero
+        pmfus(jl,jk) = d_zero
+        pmfuq(jl,jk) = d_zero
+        pmful(jl,jk) = d_zero
+      end do
+      do jl = kidia , kfdia
+        plude(jl,jk) = d_zero
+        plglac(jl,jk) = d_zero
+        pdmfup(jl,jk) = d_zero
+        zlrain(jl,jk) = d_zero
+      end do
+      do jl = kidia , kfdia
+        zbuo(jl,jk) = d_zero
+        if ( llklab(jl) ) klab(jl,jk) = 0
+        if( .not. ldcum(jl) .and. paph(jl,jk) < 4.D4 ) kctop0(jl) = jk
+        pdmfen(jl,jk) = d_zero
+        pmfude_rate(jl,jk) = d_zero
+      end do
+    end do
+!dir$ ivdep
+!ocl novrec
+    do jl = kidia , kfdia
+      if ( ktype(jl) == 3 ) ldcum(jl) = .false.
+    end do
+
+    !----------------------------------------------------------------------
+    !     3.0          initialize values at cloud base level
+    !                  -------------------------------------
+    do jl = kidia , kfdia
+      kctop(jl) = kcbot(jl)
+      if ( ldcum(jl) ) then
+        ikb = kcbot(jl)
+        pkineu(jl,ikb) = 0.5D0*pwubase(jl)**2
+        pmfu(jl,ikb) = pmfub(jl)
+        pmfus(jl,ikb) = pmfub(jl)*(cpd*ptu(jl,ikb)+pgeoh(jl,ikb))
+        pmfuq(jl,ikb) = pmfub(jl)*pqu(jl,ikb)
+        pmful(jl,ikb) = pmfub(jl)*plu(jl,ikb)
+      end if
+    end do
+
+    !----------------------------------------------------------------------
+    !     4.           do ascent: subcloud layer (klab=1) ,clouds (klab=2)
+    !                  by doing first dry-adiabatic ascent and then
+    !                  by adjusting t,q and l accordingly in *cuadjtq*,
+    !                  then check for buoyancy and set flags accordingly
+    !                  -------------------------------------------------
+
+    do jk = klev-1 , 3 , -1
+      !                  specify cloud base values for midlevel convection
+      !                  in *cubasmc* in case there is not already convection
+      !                  ----------------------------------------------------
+      ik = jk
+      call cubasmcn(kidia,kfdia,klon,ktdia,klev,ik,pten,pqen,pqsen, &
+                    pvervel,pgeo,pgeoh,ldcum,ktype,klab,kcbot,pmfu, &
+                    pmfub,zlrain,ptu,pqu,plu,pmfus,pmfuq,pmful,pdmfup)  
+      is = 0
+      jlm = 0
+      do jl = kidia , kfdia
+        llflag(jl) = .false.
+        zprecip(jl) = d_zero
+        llo1(jl) = .false.
+        is = is+klab(jl,jk+1)
+        if ( klab(jl,jk+1) == 0 ) klab(jl,jk) = 0
+        if ( (ldcum(jl) .and. klab(jl,jk+1) == 2) .or. &
+             (ktype(jl) == 3 .and. klab(jl,jk+1) == 1) ) then  
+          llflag(jl) = .true.
+          jlm = jlm+1
+          jlx(jlm) = jl
+        end if
+        if ( klab(jl,jk+1) > 0 ) then
+          llflaguv(jl) = .true.
+        else
+          llflaguv(jl) = .false.
+        end if
+        zph(jl) = paph(jl,jk)
+        if ( ktype(jl) == 3 .and. jk == kcbot(jl) ) then
+          zmfmax = (paph(jl,jk)-paph(jl,jk-1))*zcons2*rmflic+rmflia
+          if ( pmfub(jl) > zmfmax ) then
+            zfac = zmfmax/pmfub(jl)
+            pmfu(jl,jk+1) = pmfu(jl,jk+1)*zfac
+            pmfus(jl,jk+1) = pmfus(jl,jk+1)*zfac
+            pmfuq(jl,jk+1) = pmfuq(jl,jk+1)*zfac
+            pmfub(jl) = zmfmax
+          end if
+        end if
+      end do
+
+      if ( is > 0 ) llo3 = .true.
+
+      !*                  specify entrainment rates in *cuentr*
+      !                   -------------------------------------
+
+      ik = jk
+      call cuentr(kidia,kfdia,klon,klev,ik,kcbot,ktype,ldcum,llo3, &
+                  pqsen,paph,pgeoh,pmfu,zdmfen,zdmfde)  
+
+      !                  do adiabatic ascent for entraining/detraining plume
+      !                  ---------------------------------------------------
+
+      if ( llo3 ) then
+        llo4 = ptsphy>1800.0D0.and.rmfcfl==d_one
+        do jl = kidia , kfdia
+          zqold(jl) = d_zero
+        end do
+        do jll = 1 , jlm  
+          jl = jlx(jll)
+          zdmfde(jl) = min(zdmfde(jl),0.75D0*pmfu(jl,jk+1))
+          if ( jk == kcbot(jl) ) then
+            zoentr(jl) = -entrorg*(min(d_one,pqen(jl,jk)/pqsen(jl,jk))-d_one)*&
+                                      (pgeoh(jl,jk)-pgeoh(jl,jk+1))*regrav
+            zoentr(jl) = min(0.4D0,zoentr(jl))*pmfu(jl,jk+1)
+          end if
+          if ( jk < kcbot(jl) ) then
+            zmfmax = (paph(jl,jk)-paph(jl,jk-1))*zcons2*rmflic+rmflia
+            if ( ktype(jl) == 2 .and. llo4 ) zmfmax = zmfmax*3.D0
+            zxs = max(pmfu(jl,jk+1)-zmfmax,d_zero)
+            pwmean(jl) = pwmean(jl)+pkineu(jl,jk+1)*(pap(jl,jk+1)-pap(jl,jk))
+            zdpmean(jl) = zdpmean(jl)+pap(jl,jk+1)-pap(jl,jk)
+            zdmfen(jl) = zoentr(jl)
+            if ( ktype(jl) >= 2 ) then
+              zdmfen(jl) = entshalp*zdmfen(jl)
+              zdmfde(jl) = zdmfen(jl)
+            end if
+            zdmfde(jl) = zdmfde(jl)*(1.6D0-min(d_one,pqen(jl,jk)/pqsen(jl,jk)))
+            zmftest = pmfu(jl,jk+1)+zdmfen(jl)-zdmfde(jl)
+            zchange = max(zmftest-zmfmax,d_zero)
+            zxe = max(zchange-zxs,d_zero)
+            zdmfen(jl) = zdmfen(jl)-zxe
+            zchange = zchange-zxe
+            zdmfde(jl) = zdmfde(jl)+zchange
+          end if
+          pdmfen(jl,jk) = zdmfen(jl)-zdmfde(jl)
+          pmfu(jl,jk) = pmfu(jl,jk+1)+zdmfen(jl)-zdmfde(jl)
+          zqeen = pqenh(jl,jk+1)*zdmfen(jl)
+          zseen = (cpd*ptenh(jl,jk+1)+pgeoh(jl,jk+1))*zdmfen(jl)
+          if ( plitot(jl,jk) > rlmin ) then
+            zleen = plitot(jl,jk)*zdmfen(jl)
+          else
+            zleen = d_zero
+          end if
+          zscde = (cpd*ptu(jl,jk+1)+pgeoh(jl,jk+1))*zdmfde(jl)
+          zqude = pqu(jl,jk+1)*zdmfde(jl)
+          plude(jl,jk) = plu(jl,jk+1)*zdmfde(jl)
+          zmfusk = pmfus(jl,jk+1)+zseen-zscde
+          zmfuqk = pmfuq(jl,jk+1)+zqeen-zqude
+          zmfulk = pmful(jl,jk+1)+zleen-plude(jl,jk)
+          plu(jl,jk) = zmfulk*(d_one/max(rmfcmin,pmfu(jl,jk)))
+          pqu(jl,jk) = zmfuqk*(d_one/max(rmfcmin,pmfu(jl,jk)))
+          ptu(jl,jk) = (zmfusk*(d_one/max(rmfcmin,pmfu(jl,jk))) - &
+             pgeoh(jl,jk))/cpd  
+          ptu(jl,jk) = max(100.D0,ptu(jl,jk))
+          ptu(jl,jk) = min(400.D0,ptu(jl,jk))
+          zqold(jl) = pqu(jl,jk)
+          zlrain(jl,jk) = zlrain(jl,jk+1)*(pmfu(jl,jk+1)-zdmfde(jl)) * &
+                      (d_one/max(rmfcmin,pmfu(jl,jk)))  
+          zluold(jl) = plu(jl,jk)
+        end do
+        ! reset to environmental values if below departure level
+        do jl = kidia , kfdia
+          if ( jk > kdpl(jl) ) then
+            ptu(jl,jk) = ptenh(jl,jk)      
+            pqu(jl,jk) = pqenh(jl,jk)      
+            plu(jl,jk) = d_zero
+            zluold(jl) = plu(jl,jk)
+          end if
+        end do
+
+        !                  do corrections for moist ascent
+        !                  by adjusting t,q and l in *cuadjtq*
+        !                  -----------------------------------
+
+        ik = jk
+        icall = 1
+        if ( jlm > 0 ) then
+          call cuadjtq(kidia,kfdia,klon,ktdia,klev,ik,zph,ptu,pqu,llflag,icall)
+        end if
+
+!dir$ ivdep
+!ocl novrec
+        do jll = 1 , jlm  
+          jl = jlx(jll)
+          if ( pqu(jl,jk) /= zqold(jl) ) then
+            plglac(jl,jk) = plu(jl,jk)*((d_one-foealfcu(ptu(jl,jk))) - &
+                (d_one-foealfcu(ptu(jl,jk+1))))  
+            ptu(jl,jk) = ptu(jl,jk)+wlhfocp*plglac(jl,jk)
+          end if
+        end do
+        do jll = 1 , jlm  
+          jl = jlx(jll)
+          if ( pqu(jl,jk) /= zqold(jl) ) then
+            klab(jl,jk) = 2
+            plu(jl,jk) = plu(jl,jk)+zqold(jl)-pqu(jl,jk)
+            zbc = ptu(jl,jk)*(d_one+retv*pqu(jl,jk)-plu(jl,jk+1) - &
+              zlrain(jl,jk+1))
+            zbe = ptenh(jl,jk)*(d_one+retv*pqenh(jl,jk))
+            zbuo(jl,jk) = zbc-zbe
+
+            ! set flags in case of midlevel convection
+
+            if ( ktype(jl) == 3 .and. klab(jl,jk+1)== 1 ) then
+              if ( zbuo(jl,jk) > -0.5D0 ) then
+                ldcum(jl) = .true.
+                kctop(jl) = jk
+                pkineu(jl,jk) = 0.5D0
+              else
+                klab(jl,jk) = 0
+                pmfu(jl,jk) = d_zero
+                plude(jl,jk) = d_zero
+                plu(jl,jk) = d_zero
+              end if
+            end if
+            if ( klab(jl,jk+1) == 2 ) then
+              if ( zbuo(jl,jk) < d_zero .and. klab(jl,jk+1) == 2 ) then
+                ptenh(jl,jk) = 0.5D0*(pten(jl,jk)+pten(jl,jk-1))
+                pqenh(jl,jk) = 0.5D0*(pqen(jl,jk)+pqen(jl,jk-1))
+                zbuo(jl,jk) = zbc-ptenh(jl,jk)*(d_one+retv*pqenh(jl,jk))
+              end if
+              zbuoc = (zbuo(jl,jk)/(ptenh(jl,jk)*(d_one+retv*pqenh(jl,jk))) + &
+                       zbuo(jl,jk+1)/(ptenh(jl,jk+1)*(d_one+retv* &
+                                         pqenh(jl,jk+1))))*0.5D0  
+              zdkbuo = (pgeoh(jl,jk)-pgeoh(jl,jk+1))*zfacbuo*zbuoc
+
+              ! either use entrainment rate or if zero
+              ! use detrainmnet rate as a subsitute for 
+              ! mixing and "pressure" gradient term in upper
+              ! troposphere
+
+              if ( zdmfen(jl) > d_zero ) then
+                zdken = min(d_one,(d_one+z_cwdrag) * &
+                        zdmfen(jl)/max(rmfcmin,pmfu(jl,jk+1)))  
+              else
+                zdken = min(d_one,(d_one+z_cwdrag) * &
+                        zdmfde(jl)/max(rmfcmin,pmfu(jl,jk+1)))  
+              end if
+              pkineu(jl,jk) = (pkineu(jl,jk+1) * &
+                (d_one-zdken)+zdkbuo)/(d_one+zdken)
+              if ( zbuo(jl,jk) < d_zero .and. klab(jl,jk+1) == 2 ) then
+                zkedke = pkineu(jl,jk)/max(1.D-10,pkineu(jl,jk+1))
+                zkedke = max(d_zero,min(d_one,zkedke))
+                zmfun = sqrt(zkedke)*pmfu(jl,jk+1)
+                zdmfde(jl) = max(zdmfde(jl),pmfu(jl,jk+1)-zmfun)
+                plude(jl,jk) = plu(jl,jk+1)*zdmfde(jl)
+                pmfu(jl,jk) = pmfu(jl,jk+1)+zdmfen(jl)-zdmfde(jl)
+              end if
+              if ( zbuo(jl,jk) > -0.2D0 .and. klab(jl,jk+1) == 2 ) then
+                ikb = kcbot(jl)
+                zoentr(jl) = entrorg*(0.3D0-(min(d_one,pqen(jl,jk-1) / &
+                  pqsen(jl,jk-1))-d_one))*(pgeoh(jl,jk-1)-pgeoh(jl,jk)) * &
+                  regrav*min(d_one,pqsen(jl,jk)/pqsen(jl,ikb))**3
+                zoentr(jl) = min(0.4D0,zoentr(jl))*pmfu(jl,jk)
+              else
+                zoentr(jl) = d_zero
+              end if
+              ! erase values if below departure level
+              if ( jk > kdpl(jl) ) then
+                pmfu(jl,jk) = pmfu(jl,jk+1)
+                pkineu(jl,jk) = 0.5D0
+              end if
+              if ( pkineu(jl,jk) > d_zero .and. pmfu(jl,jk) > d_zero ) then
+                kctop(jl) = jk
+                llo1(jl) = .true.
+              else
+                klab(jl,jk) = 0
+                pmfu(jl,jk) = d_zero
+                pkineu(jl,jk) = d_zero
+                zdmfde(jl) = pmfu(jl,jk+1)
+                plude(jl,jk) = plu(jl,jk+1)*zdmfde(jl)
+              end if
+              ! store detrainment rates for updraught
+              if ( pmfu(jl,jk+1) > d_zero ) then
+                pmfude_rate(jl,jk) = zdmfde(jl)
+              end if
+            end if
+          ! else if ( llflag(jl) .and. ktype(jl) == 2 .and. &
+          !           pqu(jl,jk) == zqold(jl) ) then
+          else if ( ktype(jl) == 2 .and. pqu(jl,jk) == zqold(jl) ) then
+            klab(jl,jk) = 0
+            pmfu(jl,jk) = d_zero
+            pkineu(jl,jk) = d_zero
+            zdmfde(jl) = pmfu(jl,jk+1)
+            plude(jl,jk) = plu(jl,jk+1)*zdmfde(jl)
+            pmfude_rate(jl,jk) = zdmfde(jl)
+          end if
+        end do
+
+        !              calculate precipitation rate by
+        !              analytic integration of equation for l
+
+        do jl = kidia , kfdia
+          if ( llo1(jl) ) then
+            if ( ldland(jl) ) then
+              zdnoprc = 5.D-4
+            else
+              zdnoprc = 3.D-4
+            end if
+            if ( plu(jl,jk) > zdnoprc ) then
+              zwu = min(15.D0,sqrt(2.0D0*max(0.1D0,pkineu(jl,jk+1))))
+              zprcon = zprcdgw/(0.75D0*zwu)
+
+              !           parameters for bergeron-findeisen process (t < -5c)
+
+              zdt = min(rtber-rtice,max(rtber-ptu(jl,jk),d_zero))
+              zcbf = d_one+z_cprc2*sqrt(zdt)
+              zzco = zprcon*zcbf
+              zlcrit = zdnoprc/zcbf
+
+              zdfi = pgeoh(jl,jk)-pgeoh(jl,jk+1)
+              zc = (plu(jl,jk)-zluold(jl))
+              zd = zzco*(d_one-exp(-(plu(jl,jk)/zlcrit)**2))*zdfi
+              zint = exp(-zd)
+              zlnew = zluold(jl)*zint+zc/zd*(d_one-zint)
+              zlnew = max(d_zero,min(plu(jl,jk),zlnew))
+              zlnew = min(z_cldmax,zlnew)
+              zprecip(jl) = max(d_zero,zluold(jl)+zc-zlnew)
+              pdmfup(jl,jk) = zprecip(jl)*pmfu(jl,jk)
+              zlrain(jl,jk) = zlrain(jl,jk)+zprecip(jl)
+              plu(jl,jk) = zlnew
+            end if
+          end if
+        end do
+
+        do jl = kidia , kfdia
+          if ( llo1(jl) ) then
+            if ( zlrain(jl,jk) > d_zero ) then
+              zvw = 21.18D0*zlrain(jl,jk)**0.2D0
+              zvi = z_cwifrac*zvw
+              zalfaw = foealfcu(ptu(jl,jk))
+              zvv = zalfaw*zvw+(d_one-zalfaw)*zvi
+              zrold = zlrain(jl,jk)-zprecip(jl)
+              zc = zprecip(jl)
+              zwu = min(15.D0,sqrt(2.0D0*max(0.1D0,pkineu(jl,jk))))
+              zd = zvv/zwu
+              zint = exp(-zd)
+              zrnew = zrold*zint+zc/zd*(d_one-zint)
+              zrnew = max(d_zero,min(zlrain(jl,jk),zrnew))
+              zlrain(jl,jk) = zrnew
+            end if
+          end if
+        end do
+        do jll = 1 , jlm  
+          jl = jlx(jll)
+          pmful(jl,jk) = plu(jl,jk)*pmfu(jl,jk)
+          pmfus(jl,jk) = (cpd*ptu(jl,jk)+pgeoh(jl,jk))*pmfu(jl,jk)
+          pmfuq(jl,jk) = pqu(jl,jk)*pmfu(jl,jk)
+        end do
+      end if
+    end do
+    !----------------------------------------------------------------------
+    !     5.           final calculations 
+    !                  ------------------
+    do jl = kidia , kfdia
+      if ( kctop(jl) == -1 ) ldcum(jl) = .false.
+      kcbot(jl) = max(kcbot(jl),kctop(jl))
+      if ( ldcum(jl) ) then
+        pwmean(jl) = max(1.D-2,pwmean(jl)/max(d_one,zdpmean(jl)))
+        pwmean(jl) = sqrt(2.0D0*pwmean(jl))
+      end if
+    end do
+end subroutine cuascn
 !
 !**   *CUADJTQS* - SIMPLIFIED VERSION OF MOIST ADJUSTMENT
 !     J.F. MAHFOUF      ECMWF
@@ -618,67 +1374,64 @@ module mod_cu_tiedtke_38r2
 
 !dir$ vfunction exphf
 
-    if ( .not. lphylin ) then
-      if ( n_vmass > 0 ) then
-        jlen = kfdia-kidia+1
-      end if
-      !
-      ! calculate condensation and adjust t and q accordingly
-      !
-      if ( kcall == 1 ) then
+    if ( n_vmass > 0 ) then
+      jlen = kfdia-kidia+1
+    end if
+    !
+    ! calculate condensation and adjust t and q accordingly
+    !
+    if ( kcall == 1 ) then
 !dir$    ivdep
 !ocl novrec
-        do jl = kidia , kfdia
-          if ( ldflag(jl) ) then
-            zqp = d_one/psp(jl)
+      do jl = kidia , kfdia
+        if ( ldflag(jl) ) then
+          zqp = d_one/psp(jl)
+          ! zqsat = foeewmcu(pt(jl,kk))*zqp
+          ! foeewmcu(ptare) = c2es*(foealfcu(ptare)* &
+          !                   exp(c3les*(ptare-tzero)/(ptare-c4les))+&
+          !                 (d_one-foealfcu(ptare))* &
+          !                   exp(c3ies*(ptare-tzero)/(ptare-c4ies)))
+          zl = d_one/(pt(jl,kk)-c4les)
+          zi = d_one/(pt(jl,kk)-c4ies)
+          zqsat = c2es *(foealfcu(pt(jl,kk))*exp(c3les*(pt(jl,kk)-tzero)*zl)+&
+                  (d_one-foealfcu(pt(jl,kk)))*exp(c3ies*(pt(jl,kk)-tzero)*zi))
+          zqsat = zqsat*zqp
+          zqsat = min(zqmax,zqsat)
+          zcor = d_one-retv*zqsat
+          ! zcond = (pq(jl,kk)*zcor**2-zqsat*zcor) / &
+          !         (zcor**2+zqsat*foedemcu(pt(jl,kk)))
+          ! foedemcu(ptare) = foealfcu(ptare)*c5alvcp*  &
+          !                   (d_one/(ptare-c4les)**2)+ &
+          !                   (d_one-foealfcu(ptare))*  &
+          !                   c5alscp*(d_one/(ptare-c4ies)**2)
+          zf = foealfcu(pt(jl,kk))*c5alvcp*zl**2 + &
+               (d_one-foealfcu(pt(jl,kk)))*c5alscp*zi**2
+          zcond = (pq(jl,kk)*zcor**2-zqsat*zcor)/(zcor**2+zqsat*zf)
+          ! zcond = max(zcond,d_zero)
+          if ( zcond > d_zero ) then
+            pt(jl,kk) = pt(jl,kk)+foeldcpmcu(pt(jl,kk))*zcond
+            pq(jl,kk) = pq(jl,kk)-zcond
             ! zqsat = foeewmcu(pt(jl,kk))*zqp
-            ! foeewmcu(ptare) = c2es*(foealfcu(ptare)* &
-            !                   exp(c3les*(ptare-tzero)/(ptare-c4les))+&
-            !                 (d_one-foealfcu(ptare))* &
-            !                   exp(c3ies*(ptare-tzero)/(ptare-c4ies)))
             zl = d_one/(pt(jl,kk)-c4les)
             zi = d_one/(pt(jl,kk)-c4ies)
-            zqsat = c2es *(foealfcu(pt(jl,kk))*exp(c3les*(pt(jl,kk)-tzero)*zl)+&
-                    (d_one-foealfcu(pt(jl,kk)))*exp(c3ies*(pt(jl,kk)-tzero)*zi))
+            zqsat = c2es*(foealfcu(pt(jl,kk)) * &
+                    exp(c3les*(pt(jl,kk)-tzero)*zl) + &
+                    (d_one-foealfcu(pt(jl,kk))) * &
+                    exp(c3ies*(pt(jl,kk)-tzero)*zi))
             zqsat = zqsat*zqp
-            zqsat = min(zqmax,zqsat)
+            zqsat = minj(zqmax,zqsat)
             zcor = d_one-retv*zqsat
-            ! zcond = (pq(jl,kk)*zcor**2-zqsat*zcor) / &
-            !         (zcor**2+zqsat*foedemcu(pt(jl,kk)))
-            ! foedemcu(ptare) = foealfcu(ptare)*c5alvcp*  &
-            !                   (d_one/(ptare-c4les)**2)+ &
-            !                   (d_one-foealfcu(ptare))*  &
-            !                   c5alscp*(d_one/(ptare-c4ies)**2)
+            ! zcond1 = (pq(jl,kk)*zcor**2-zqsat*zcor) / &
+            !          (zcor**2+zqsat*foedemcu(pt(jl,kk)))
             zf = foealfcu(pt(jl,kk))*c5alvcp*zl**2 + &
                  (d_one-foealfcu(pt(jl,kk)))*c5alscp*zi**2
-            zcond = (pq(jl,kk)*zcor**2-zqsat*zcor)/(zcor**2+zqsat*zf)
-            ! zcond = max(zcond,d_zero)
-            if ( zcond > d_zero ) then
-              pt(jl,kk) = pt(jl,kk)+foeldcpmcu(pt(jl,kk))*zcond
-              pq(jl,kk) = pq(jl,kk)-zcond
-              ! zqsat = foeewmcu(pt(jl,kk))*zqp
-              zl = d_one/(pt(jl,kk)-c4les)
-              zi = d_one/(pt(jl,kk)-c4ies)
-              zqsat = c2es*(foealfcu(pt(jl,kk)) * &
-                      exp(c3les*(pt(jl,kk)-tzero)*zl) + &
-                      (d_one-foealfcu(pt(jl,kk))) * &
-                      exp(c3ies*(pt(jl,kk)-tzero)*zi))
-              zqsat = zqsat*zqp
-              zqsat = minj(zqmax,zqsat)
-              zcor = d_one-retv*zqsat
-              ! zcond1 = (pq(jl,kk)*zcor**2-zqsat*zcor) / &
-              !          (zcor**2+zqsat*foedemcu(pt(jl,kk)))
-              zf = foealfcu(pt(jl,kk))*c5alvcp*zl**2 + &
-                   (d_one-foealfcu(pt(jl,kk)))*c5alscp*zi**2
-              zcond1 = (pq(jl,kk)*zcor**2-zqsat*zcor)/(zcor**2+zqsat*zf)
-              if ( dabs(zcond) < dlowval ) zcond1 = d_zero
-              pt(jl,kk) = pt(jl,kk)+foeldcpmcu(pt(jl,kk))*zcond1
-              pq(jl,kk) = pq(jl,kk)-zcond1
-            end if
+            zcond1 = (pq(jl,kk)*zcor**2-zqsat*zcor)/(zcor**2+zqsat*zf)
+            if ( dabs(zcond) < dlowval ) zcond1 = d_zero
+            pt(jl,kk) = pt(jl,kk)+foeldcpmcu(pt(jl,kk))*zcond1
+            pq(jl,kk) = pq(jl,kk)-zcond1
           end if
-        end do
-      end if
-
+        end if
+      end do
       if ( kcall == 2 ) then
 !dir$    ivdep
 !ocl novrec
@@ -1415,61 +2168,43 @@ module mod_cu_tiedtke_38r2
     !
     ! calculate saturation specific humidity
     !
-    if ( lphylin ) then
+    if ( n_vmass <= 0 ) then ! not using vector mass
       do jk = ktdia , klev
         do jl = kidia , kfdia
-          ztarg = pt(jl,jk)
-          zalfa = foealfa(ztarg)
-          zfoeewl = c2es*exp(c3les*(ztarg-tzero)/(ztarg-c4les))
-          zfoeewi = c2es*exp(c3ies*(ztarg-tzero)/(ztarg-c4ies))
-          zfoeew = zalfa*zfoeewl+(d_one-zalfa)*zfoeewi
-          zqs = zfoeew/paprsf(jl,jk)
-          if ( zqs > zqmax ) then
-            zqs = zqmax
+          if ( kflag == 1 ) then
+            zew = foeewmcu(pt(jl,jk))
+          else
+            zew = foeewm(pt(jl,jk))
           end if
+          zqs = zew/paprsf(jl,jk)
+          zqs = min(zqmax,zqs)
           zcor = d_one/(d_one-retv*zqs)
           pqsat(jl,jk) = zqs*zcor
         end do
       end do
-    else
-      if ( n_vmass <= 0 ) then ! not using vector mass
-        do jk = ktdia , klev
-          do jl = kidia , kfdia
-            if ( kflag == 1 ) then
-              zew = foeewmcu(pt(jl,jk))
-            else
-              zew = foeewm(pt(jl,jk))
-            end if
-            zqs = zew/paprsf(jl,jk)
-            zqs = min(zqmax,zqs)
-            zcor = d_one/(d_one-retv*zqs)
-            pqsat(jl,jk) = zqs*zcor
-          end do
+    else ! using vector mass
+      jlen = kfdia-kidia+1
+      do jk = ktdia , klev
+        do jl = kidia , kfdia
+          z_exparg1(jl) = foeles_v(pt(jl,jk))
+          z_exparg2(jl) = foeies_v(pt(jl,jk))
         end do
-      else ! using vector mass
-        jlen = kfdia-kidia+1
-        do jk = ktdia , klev
-          do jl = kidia , kfdia
-            z_exparg1(jl) = foeles_v(pt(jl,jk))
-            z_exparg2(jl) = foeies_v(pt(jl,jk))
-          end do
-          call vexp(z_expout1,z_exparg1,jlen)
-          call vexp(z_expout2,z_exparg2,jlen)
-          do jl = kidia , kfdia
-            if ( kflag == 1 ) then
-              zew = foeewmcu_v( pt(jl,jk),z_expout1(jl),z_expout2(jl) )
-            else
-              zew = foeewm_v( pt(jl,jk),z_expout1(jl),z_expout2(jl) )
-            end if
-            ! zqs = zew/paprsf(jl,jk)
-            ! zqs = min(zqmax,zqs)
-            !! zcor = _one_/(_one_-retv*zqs)
-            ! pqsat(jl,jk) = zqs/(_one_-retv*zqs)
-            zqs = min(zqmax*paprsf(jl,jk),zew)
-            pqsat(jl,jk) = zqs/(paprsf(jl,jk)-retv*zqs)
-          end do
+        call vexp(z_expout1,z_exparg1,jlen)
+        call vexp(z_expout2,z_exparg2,jlen)
+        do jl = kidia , kfdia
+          if ( kflag == 1 ) then
+            zew = foeewmcu_v( pt(jl,jk),z_expout1(jl),z_expout2(jl) )
+          else
+            zew = foeewm_v( pt(jl,jk),z_expout1(jl),z_expout2(jl) )
+          end if
+          ! zqs = zew/paprsf(jl,jk)
+          ! zqs = min(zqmax,zqs)
+          !! zcor = _one_/(_one_-retv*zqs)
+          ! pqsat(jl,jk) = zqs/(_one_-retv*zqs)
+          zqs = min(zqmax*paprsf(jl,jk),zew)
+          pqsat(jl,jk) = zqs/(paprsf(jl,jk)-retv*zqs)
         end do
-      end if
+      end do
     end if
   end subroutine satur
 !
@@ -1716,26 +2451,13 @@ module mod_cu_tiedtke_38r2
       !    evaporation of rain and cloud water)
       !
       do jk = 3 , klev-2
-        if ( lphylin ) then
-          do jl = kidia , kfdia
-            ztarg = pten(jl,jk)
-            zoealfa = 0.545D0*(tanh(0.17D0*(ztarg-mpcrt))+d_one)
-            zoelhm  = zoealfa*wlhv+(d_one-zoealfa)*wlhs
-            zhsk = cpd*pten(jl,jk)+pgeo(jl,jk)+zoelhm*pqsen(jl,jk)
-            if ( zhsk < zhsmin(jl) ) then
-              zhsmin(jl) = zhsk
-              ikhsmin(jl) = jk
-            end if
-          end do
-        else
-          do jl = kidia , kfdia
-            zhsk=cpd*pten(jl,jk)+pgeo(jl,jk)+foelhmcu(pten(jl,jk))*pqsen(jl,jk)
-            if ( zhsk < zhsmin(jl) ) then
-              zhsmin(jl) = zhsk
-              ikhsmin(jl) = jk
-            end if
-          end do
-        end if
+        do jl = kidia , kfdia
+          zhsk=cpd*pten(jl,jk)+pgeo(jl,jk)+foelhmcu(pten(jl,jk))*pqsen(jl,jk)
+          if ( zhsk < zhsmin(jl) ) then
+            zhsmin(jl) = zhsk
+            ikhsmin(jl) = jk
+          end if
+        end do
       end do
       ike = klev-3
       do jk = 3 , ike
@@ -2386,7 +3108,7 @@ module mod_cu_tiedtke_38r2
     real(rk8) , dimension(klon,klev) :: zdtdt , zdqdt , zdp , zb , zr1 , zr2
     logical , dimension(klon,klev) :: llcumbas
 
-    real(rk8) , parameter :: zimp = 1.0D0 - rmfsoltq
+    real(rk8) , parameter :: zimp = d_one - rmfsoltq
 
     !
     ! 1.0 Setup and initializations
@@ -2399,21 +3121,14 @@ module mod_cu_tiedtke_38r2
       end do
     end do
     !
-    ! mass-flux approach switched on for deep convection only
-    ! in the tangent-linear and adjoint versions
-    !
-    do jl = kidia , kfdia
-      if ( ktype(jl) /= 1 .and. lphylin ) ldcum(jl) = .false.
-    end do
-    !
     ! zero detrained liquid water if diagnostic cloud scheme to be used
     !
     ! this means that detrained liquid water will be evaporated in the
     ! cloud environment and not fed directly into a cloud liquid water
     ! variable
 
-    !lltest = (.not.lepcld.and..not.lencld2).or.(lphylin.and..not.lencld2)
-    lltest = .not. lepcld .or. lphylin
+    !lltest = (.not.lepcld.and..not.lencld2)
+    lltest = .not. lepcld
 
     if ( lltest ) then
       do jk = 1 , klev
@@ -2474,13 +3189,7 @@ module mod_cu_tiedtke_38r2
       if ( jk < klev ) then
         do jl = kidia , kfdia
           if ( ldcum(jl) ) then
-            if ( lphylin ) then
-              ztarg = pten(jl,jk)
-              zoealfa = 0.545D0*(tanh(0.17D0*(ztarg-mpcrt))+d_one)
-              zalv = zoealfa*wlhv+(d_one-zoealfa)*wlhs
-            else
-              zalv = foelhmcu(pten(jl,jk))
-            end if
+            zalv = foelhmcu(pten(jl,jk))
             zdtdt(jl,jk) = zdp(jl,jk)*rcpd*(zmfus(jl,jk+1)-zmfus(jl,jk) + &
                                             zmfds(jl,jk+1)-zmfds(jl,jk) + &
                                   wlhf*plglac(jl,jk)-wlhf*pdpmel(jl,jk) - &
@@ -2495,13 +3204,7 @@ module mod_cu_tiedtke_38r2
       else
         do jl = kidia , kfdia
           if ( ldcum(jl) ) then
-            if ( lphylin ) then
-              ztarg = pten(jl,jk)
-              zoealfa = 0.545D0*(tanh(0.17D0*(ztarg-mpcrt))+d_zero)
-              zalv = zoealfa*wlhv+(d_one-zoealfa)*wlhs
-            else
-              zalv = foelhmcu(pten(jl,jk))
-            end if
+            zalv = foelhmcu(pten(jl,jk))
             zdtdt(jl,jk) = -zdp(jl,jk)*rcpd*(zmfus(jl,jk)+zmfds(jl,jk) + &
                          wlhf*pdpmel(jl,jk)-zalv*(pmful(jl,jk)+pdmfup(jl,jk)))
             zdqdt(jl,jk) = -zdp(jl,jk)*(zmfuq(jl,jk)+zmfdq(jl,jk) + &
@@ -2767,15 +3470,8 @@ module mod_cu_tiedtke_38r2
         zzp = ((paph(jl,klev+1)-paph(jl,ik))/(paph(jl,klev+1)-paph(jl,ikb)))
         if ( ktype(jl) == 3 ) zzp = zzp*zzp
         pmfu(jl,ik) = pmfu(jl,ikb)*zzp
-        if ( lphylin ) then
-          ztarg = ptenh(jl,ikb)
-          zoealfa = 0.545D0*(tanh(0.17D0*(ztarg-mpcrt))+d_one)
-          zoelhm = zoealfa*wlhv+(d_one-zoealfa)*wlhs
-          pmfus(jl,ik) = (pmfus(jl,ikb)-zoelhm*pmful(jl,ikb))*zzp
-        else
-          pmfus(jl,ik) = (pmfus(jl,ikb)-foelhmcu(ptenh(jl,ikb)) * &
-                          pmful(jl,ikb))*zzp
-        end if
+        pmfus(jl,ik) = (pmfus(jl,ikb)-foelhmcu(ptenh(jl,ikb)) * &
+                        pmful(jl,ikb))*zzp
         pmfuq(jl,ik) = (pmfuq(jl,ikb)+pmful(jl,ikb))*zzp
         pmful(jl,ik) = d_zero
       end if
@@ -2821,22 +3517,9 @@ module mod_cu_tiedtke_38r2
             zfac = zcons1*(paph(jl,jk+1)-paph(jl,jk))
             zsnmlt = min(pmflxs(jl,jk),zfac*(pten(jl,jk)-tzero))
             pdpmel(jl,jk) = zsnmlt
-            if ( lphylin ) then
-              ztarg=pten(jl,jk)-zsnmlt/zfac
-              zoealfa = 0.545D0*(tanh(0.17D0*(ztarg-mpcrt))+d_one)
-              zfoeewl = c2es*exp(c3les*(ztarg-tzero)/(ztarg-c4les))
-              zfoeewi = c2es*exp(c3ies*(ztarg-tzero)/(ztarg-c4ies))
-              zoeewm = zoealfa*zfoeewl + (d_one-zoealfa)*zfoeewi
-              pqsen(jl,jk) = zoeewm/pap(jl,jk)
-            else
-              pqsen(jl,jk) = foeewmcu(pten(jl,jk)-zsnmlt/zfac)/pap(jl,jk)
-            end if
+            pqsen(jl,jk) = foeewmcu(pten(jl,jk)-zsnmlt/zfac)/pap(jl,jk)
           end if
-          if ( lphylin ) then
-            zalfaw = 0.545D0*(tanh(0.17D0*(pten(jl,jk)-mpcrt))+d_one)
-          else
-            zalfaw=foealfcu(pten(jl,jk))
-          end if
+          zalfaw = foealfcu(pten(jl,jk))
           !
           ! No liquid precipitation above melting level
           !
@@ -2881,11 +3564,7 @@ module mod_cu_tiedtke_38r2
             zrnew = max(zrnew,zrmin)
             zrfln = max(zrnew,d_zero)
             zdrfl = min(d_zero,zrfln-zrfl)
-            if ( lphylin ) then
-              zalfaw = 0.545D0*(tanh(0.17D0*(pten(jl,jk)-mpcrt))+d_one)
-            else
-              zalfaw=foealfcu(pten(jl,jk))
-            end if
+            zalfaw = foealfcu(pten(jl,jk))
             if ( pten(jl,jk) < tzero ) zalfaw = d_zero
             zpdr = zalfaw*pdmfdp(jl,jk)
             zpds = (d_one-zalfaw)*pdmfdp(jl,jk)
@@ -3049,8 +3728,8 @@ module mod_cu_tiedtke_38r2
     real(rk8) :: zwork1 , zwork2 ! work arrays for t and w perturbations
 
     real(rk8) , parameter :: zc2 = 0.55D0
-    real(rk8) , parameter :: zaw = 1.0D0
-    real(rk8) , parameter :: zbw = 1.0D0
+    real(rk8) , parameter :: zaw = d_one
+    real(rk8) , parameter :: zbw = d_one
     real(rk8) , parameter :: zepsadd = 1.D-4
     !
     ! 0. Initialize fields
@@ -3426,8 +4105,8 @@ module mod_cu_tiedtke_38r2
             jkb = icbot(jl)
             ! test on cloud thickness and buoyancy
             lldeep(jl) = paph(jl,jkb)-paph(jl,jkt) >= rdepths
-            ! lldeep(jl)=paph(jl,jkb)-paph(jl,jkt)>=rdepths &
-            !            .and. zdtvtrig(jl)>0.D0
+            ! lldeep(jl) = paph(jl,jkb)-paph(jl,jkt) >= rdepths &
+            !            .and. zdtvtrig(jl) > d_zero
           end if
           llresetjl(jl) = lldeep(jl) .and. llfirst(jl)
           llreset = llreset .or. llresetjl(jl)
@@ -3481,6 +4160,349 @@ module mod_cu_tiedtke_38r2
       pcape(jl) = maxval(zcape(jl,:))
     end do
   end subroutine cubasen
+!
+!**** *CUCTRACER* - COMPUTE CONVECTIVE TRANSPORT OF CHEM. TRACERS
+!                   IMPORTANT: ROUTINE IS FOR POSITIVE DEFINIT QUANTITIES
+!
+!          P.BECHTOLD        E.C.M.W.F.              11/02/2004
+!
+!**   INTERFACE.
+!     ----------
+!
+!          *CUTRACER* IS CALLED FROM *CUMASTR*
+!
+!     PARAMETER     DESCRIPTION                                   UNITS
+!     ---------     -----------                                   -----
+!     INPUT PARAMETERS (INTEGER):
+!
+!    *KIDIA*        START POINT
+!    *KFDIA*        END POINT
+!    *KLON*         NUMBER OF GRID POINTS PER PACKET
+!    *KTDIA*        START OF THE VERTICAL LOOP
+!    *KLEV*         NUMBER OF LEVELS
+!    *KTRAC*        NUMBER OF CHEMICAL TRACERS
+!
+!    *KTYPE*        CONVECTION TYPE (DEEP SHALLOW MID-LEVEL)
+!    *KCTOP*        CLOUD TOP  LEVEL
+!    *KCBOT*        CLOUD BASE LEVEL
+!    *KDPL*         DEPARTURE LEVEL
+!    *KDTOP*        DOWNDRAFT TOP LEVEL
+!
+!    INPUT PARAMETERS (LOGICAL):
+!
+!    *LDCUM*        FLAG: .TRUE. FOR CONVECTIVE POINTS
+!    *LDDRAF*       FLAG: .TRUE. IF DOWNDRAFTS EXIST
+!
+!    INPUT PARAMETERS (REAL):
+!
+!    *PTSPHY*       PHYSICS TIME-STEP                              S
+!    *PAPH*         PROVISIONAL PRESSURE ON HALF LEVELS            PA
+!    *PCEN*         PROVISIONAL ENVIRONMENT TRACER CONCENTRATION
+!    *PMFU*         MASSFLUX UPDRAFTS                             KG/(M2*S)
+!    *PMFD*         MASSFLUX DOWNDRAFTS                           KG/(M2*S)
+!    *PUDRATE       UPDRAFT DETRAINMENT                           KG/(M2*S)
+!    *PDDRATE       DOWNDRAFT DETRAINMENT                         KG/(M2*S)
+!
+!    UPDATED PARAMETERS (REAL):
+!
+!    *PTENC*        UPDATED TENDENCY OF CHEM. TRACERS              1/S
+!
+!          METHOD
+!          -------
+!     EXPLICIT UPSTREAM AND IMPLICIT SOLUTION OF VERTICAL ADVECTION
+!     DEPENDING ON VALUE OF RMFSOLCT: 0=EXPLICIT 0-1 SEMI-IMPLICIT >=1 IMPLICIT
+!
+!     FOR EXPLICIT SOLUTION: ONLY ONE SINGLE ITERATION
+!     FOR IMPLICIT SOLUTION: FIRST IMPLICIT SOLVER, THEN EXPLICIT SOLVER
+!                            TO CORRECT TENDENCIES BELOW CLOUD BASE
+!
+!
+!------------------------------------------------------------------------------
+!     COMMENTS FOR OFFLINE USERS IN CHEMICAL TRANSPORT MODELS
+!     (i.e. reading mass fluxes and detrainment rates from ECMWF archive:
+!      ------------------------------------------------------------------
+!     KCTOP IS FIRST LEVEL FROM TOP WHERE PMFU>0
+!     KDTOP IS FIRST LEVEL FROM TOP WHERE PMFD<0
+!     KCBOT IS NOT NEEDED FOR EXPLICIT SOLUTION
+!     ATTENTION: ON ARCHIVE DETRAINMENT RATES HAVE UNITS KG/(M3*S), SO FOR USE
+!              IN CURRENT ROUTINE YOU HAVE TO MULTIPLY ARCHIVED VALUES BY DZ !!
+!     LDCUM  IS TRUE IF CONVECTION EXISTS, i.e. IF PMFU>0 IN COLUMN OR IF
+!                       KCTOP>0 AND KCTOP<KLEV
+!     LDDRAF IS TRUE IF DOWNDRAUGHTS EXIST IF PMFD<0 IN COLUMN OR IF
+!                       KDTOP>0 AND KDTOP<KLEV
+!     IF MASSFLUX SATISFIES CFL CRITERIUM M<=DP/Dt IT IS SUFFICIENT TO
+!     ONLY CONSIDER EXPLICIT SOLUTION (RMFSOLCT=0), IN THIS CASE
+!     BUT IMPLICIT SOLUTION (RMFSOLCT=1) PART 7.0 IS PREFERED
+!------------------------------------------------------------------------------
+!
+!          EXTERNALS
+!          ---------
+!          CUBIDIAG
+!
+!          MODIFICATIONS
+!          -------------
+!        M.Hamrud      01-Oct-2003 CY28 Cleaning
+!
+!----------------------------------------------------------------------
+!
+  subroutine cuctracer(kidia,kfdia,klon,ktdia,klev,ktrac,ktype,    &
+                       kctop,kcbot,kdpl,kdtop,ldcum,lddraf,ptsphy, &
+                       paph,pmfu,pmfd,pudrate,pddrate,pcen,ptenc)
+    implicit none
+    integer(ik4) , intent(in) :: klon
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) , intent(in) :: ktrac
+    integer(ik4) , intent(in) :: kidia
+    integer(ik4) , intent(in) :: kfdia
+    integer(ik4) :: ktdia ! argument not used
+    integer(ik4) , dimension(klon) , intent(in) :: ktype
+    integer(ik4) , dimension(klon) , intent(in) :: kctop
+    integer(ik4) , dimension(klon) , intent(in) :: kcbot
+    integer(ik4) , dimension(klon) , intent(in) :: kdpl
+    integer(ik4) , dimension(klon) , intent(in) :: kdtop
+    logical , dimension(klon) , intent(in) :: ldcum
+    logical , dimension(klon) , intent(in) :: lddraf
+    real(rk8) , intent(in) :: ptsphy
+    real(rk8) , dimension(klon,klev+1) , intent(in) :: paph
+    real(rk8) , dimension(klon,klev) , intent(in) :: pmfu
+    real(rk8) , dimension(klon,klev) , intent(in) :: pmfd
+    real(rk8) , dimension(klon,klev) , intent(in) :: pudrate
+    real(rk8) , dimension(klon,klev) , intent(in) :: pddrate
+    real(rk8) , dimension(klon,klev,ktrac) , intent(in) :: pcen
+    real(rk8) , dimension(klon,klev,ktrac) , intent(inout) :: ptenc
+
+    !----------------------------------------------------------------------
+
+    integer(ik4) :: ik , jk , jl , jn
+    real(rk8) :: zzp , zmfa , zimp , zerate , zposi , ztsphy
+    ! allocatable arays
+    real(rk8) , dimension(:,:,:) , allocatable :: zcen , zcu , zcd , &
+      ztenc , zmfc
+    real(rk8) , dimension(:,:) , allocatable :: zdp , zb ,  zr1
+    logical , dimension(:,:) ,  allocatable :: llcumask , llcumbas
+
+    !----------------------------------------------------------------------
+
+    zimp = d_one-rmfsolct
+    ztsphy = d_one/ptsphy
+
+    allocate(zcen(klon,klev,ktrac)) !half-level environmental values
+    allocate(zcu(klon,klev,ktrac))  !updraft values
+    allocate(zcd(klon,klev,ktrac))  !downdraft values
+    allocate(ztenc(klon,klev,ktrac))!tendency
+    allocate(zmfc(klon,klev,ktrac)) !fluxes
+    allocate(zdp(klon,klev))        !pressure difference
+    allocate(llcumask(klon,klev))   !mask for convection
+
+    ! initialize cumulus mask + some setups
+
+    do jk = 2 , klev
+      do jl = kidia , kfdia
+        llcumask(jl,jk) = .false.
+        if ( ldcum(jl) ) then
+          zdp(jl,jk) = egrav/(paph(jl,jk+1)-paph(jl,jk))
+          if ( jk >= kctop(jl)-1 ) then
+            llcumask(jl,jk) = .true.
+          end if
+        end if
+      end do
+    end do
+    !----------------------------------------------------------------------
+
+    do jn = 1 , ktrac
+
+      !*    1.0          define tracers at half levels
+      !                  -----------------------------
+      do jk = 2 , klev
+        ik = jk-1
+        do jl = kidia , kfdia
+          zcen(jl,jk,jn) = pcen(jl,jk,jn)
+          zcd(jl,jk,jn) = pcen(jl,ik,jn)
+          zcu(jl,jk,jn) = pcen(jl,ik,jn)
+          zmfc(jl,jk,jn) = d_zero
+          ztenc(jl,jk,jn) = d_zero
+        end do
+      end do
+      do jl = kidia , kfdia
+        zcu(jl,klev,jn) = pcen(jl,klev,jn)
+      end do
+
+      !*    2.0          compute updraft values
+      !                  ----------------------
+      do jk = klev-1 , 3 , -1
+        ik = jk+1
+        do jl = kidia , kfdia
+          if ( llcumask(jl,jk) ) then
+            zerate = pmfu(jl,jk)-pmfu(jl,ik)+pudrate(jl,jk)
+            zmfa = d_one/max(rmfcmin,pmfu(jl,jk))
+            if ( jk >= kctop(jl) )  then
+              zcu(jl,jk,jn) = ( pmfu(jl,ik)*zcu(jl,ik,jn) + &
+                zerate*pcen(jl,jk,jn)-pudrate(jl,jk)*zcu(jl,ik,jn) )*zmfa
+              ! if you have a source term dc/dt=dcdt write
+              ! zcu(jl,jk,jn) = ( pmfu(jl,ik)*zcu(jl,ik,jn) + &
+              !   zerate*pcen(jl,jk,jn)-pudrate(jl,jk)*zcu(jl,ik,jn) )*zmfa + &
+              !   dcdt(jl,ik,jn)*ptsphy
+            end if
+          end if
+        end do
+      end do
+
+      !*    3.0          compute downdraft values
+      !                  ------------------------
+      do jk = 3 , klev
+        ik = jk-1
+        do jl = kidia , kfdia
+          if ( lddraf(jl) .and. jk == kdtop(jl) ) then
+            !nota: in order to avoid final negative tracer values at lfs
+            ! the allowed value of zcd depends on the jump in mass flux
+            ! at the lfs
+            ! zcd(jl,jk,jn) = 0.5D0*zcu(jl,jk,jn)+0.5D0*pcen(jl,ik,jn)
+            zcd(jl,jk,jn) = 0.1D0*zcu(jl,jk,jn)+0.9D0*pcen(jl,ik,jn)
+          else if ( lddraf(jl) .and. jk > kdtop(jl) ) then
+            zerate = -pmfd(jl,jk)+pmfd(jl,ik)+pddrate(jl,jk)
+            zmfa = d_one/min(-rmfcmin,pmfd(jl,jk))
+            zcd(jl,jk,jn) = ( pmfd(jl,ik)*zcd(jl,ik,jn) - &
+              zerate*pcen(jl,ik,jn)+pddrate(jl,jk)*zcd(jl,ik,jn) )*zmfa
+            ! if you have a source term dc/dt=dcdt write
+            ! zcd(jl,jk,jn) = ( pmfd(jl,ik)*zcd(jl,ik,jn) - &
+            !   zerate*pcen(jl,ik,jn)+pddrate(jl,jk)*zcd(jl,ik,jn) + &
+            !   dcdt(jl,ik,jn)*ptsphy
+          end if
+        end do
+      end do
+
+      ! in order to avoid negative tracer at klev adjust zcd
+      jk = klev
+      ik = jk-1
+      do jl = kidia , kfdia
+        if ( lddraf(jl) ) then
+          zposi = -zdp(jl,jk)*(pmfu(jl,jk)*zcu(jl,jk,jn) + &
+                               pmfd(jl,jk)*zcd(jl,jk,jn) - &
+                              (pmfu(jl,jk)+pmfd(jl,jk))*pcen(jl,ik,jn))
+          if ( pcen(jl,jk,jn)+zposi*ptsphy < d_zero ) then
+            zmfa = d_one/min(-rmfcmin,pmfd(jl,jk))
+            zcd(jl,jk,jn) = ( (pmfu(jl,jk)+pmfd(jl,jk))*pcen(jl,ik,jn) - &
+                               pmfu(jl,jk)*zcu(jl,jk,jn) + &
+                               pcen(jl,jk,jn)/(ptsphy*zdp(jl,jk)) )*zmfa
+          end if
+        end if
+      end do
+    end do
+
+    !----------------------------------------------------------------------
+
+    do jn = 1 , ktrac
+
+      !*    4.0          compute fluxes
+      !                  --------------
+      do jk = 2 , klev
+        ik = jk-1
+        do jl = kidia , kfdia
+          if ( llcumask(jl,jk) ) then
+            zmfa = pmfu(jl,jk)+pmfd(jl,jk)
+            zmfc(jl,jk,jn) = pmfu(jl,jk)*zcu(jl,jk,jn) + &
+                             pmfd(jl,jk)*zcd(jl,jk,jn) - &
+                             zimp*zmfa*zcen(jl,ik,jn)
+          end if
+        end do
+      end do
+
+      !*    5.0          compute tendencies = rhs
+      !                  ------------------------
+      do jk = 2 , klev-1
+        ik = jk+1
+        do jl = kidia , kfdia
+          if ( llcumask(jl,jk) ) then
+            ztenc(jl,jk,jn) = zdp(jl,jk)*(zmfc(jl,ik,jn)-zmfc(jl,jk,jn))
+          end if
+        end do
+      end do
+      jk = klev
+      do jl = kidia , kfdia
+        if ( ldcum(jl) ) then
+          ztenc(jl,jk,jn) = -zdp(jl,jk)*zmfc(jl,jk,jn)
+        end if
+      end do
+    end do
+
+    if ( rmfsolct == d_zero ) then
+      !
+      !*    6.0          update tendencies
+      !                  -----------------
+      do jn = 1 , ktrac
+        do jk = 2 , klev
+          do jl = kidia , kfdia
+            if ( llcumask(jl,jk) ) then
+              ptenc(jl,jk,jn) = ptenc(jl,jk,jn)+ztenc(jl,jk,jn)
+            end if
+          end do
+        end do
+      end do
+    else
+      !
+      !*    7.0          implicit solution
+      !                  -----------------
+      ! fill bi-diagonal matrix vectors a=k-1, b=k;
+      ! reuse zmfc=a and zb=b;
+      ! ztenc corresponds to the rhs ("constants") of the equation
+      ! the solution is in zr1
+      allocate(zb(klon,klev))
+      allocate(zr1(klon,klev))
+      allocate(llcumbas(klon,klev))
+      llcumbas(:,:) = .false.
+      zb(:,:) = d_one
+
+      do jn = 1 , ktrac
+        ! fill vectors a, b and rhs
+        do jk = 2 , klev
+          ik = jk+1
+          do jl = kidia , kfdia
+            ! llcumbas(jl,jk) = llcumask(jl,jk).and.jk<=kcbot(jl)
+            llcumbas(jl,jk) = llcumask(jl,jk)
+            if ( llcumbas(jl,jk) ) then
+              zzp = rmfsolct*zdp(jl,jk)*ptsphy
+              zmfc(jl,jk,jn) = -zzp*(pmfu(jl,jk)+pmfd(jl,jk))
+              ztenc(jl,jk,jn) = ztenc(jl,jk,jn)*ptsphy+pcen(jl,jk,jn)
+              ! for implicit solution including tendency source term
+              ! ztenc(jl,jk,jn) = (ztenc(jl,jk,jn) + &
+              !       ptenc(jl,jk,jn))*ptsphy+pcen(jl,jk,jn)
+              if ( jk < klev ) then
+                zb(jl,jk) = d_one+zzp*(pmfu(jl,ik)+pmfd(jl,ik))
+              else
+                zb(jl,jk) = d_one
+              end if
+            end if
+          end do
+        end do
+        call cubidiag(kidia,kfdia,klon,klev,kctop,llcumbas, &
+                      zmfc(:,:,jn),zb,ztenc(:,:,jn),zr1)
+        ! compute tendencies
+        do jk = 2 , klev
+          do jl = kidia , kfdia
+            if ( llcumbas(jl,jk) ) then
+              ptenc(jl,jk,jn) = ptenc(jl,jk,jn) + &
+                (zr1(jl,jk)-pcen(jl,jk,jn))*ztsphy
+              !  for implicit solution including tendency source term
+              !  ptenc(jl,jk,jn) = (zr1(jl,jk)-pcen(jl,jk,jn))*ztsphy
+            end if
+          end do
+        end do
+      end do
+      deallocate(llcumbas)
+      deallocate(zb)
+      deallocate(zr1)
+    end if
+
+    !---------------------------------------------------------------------------
+
+    deallocate(llcumask)
+    deallocate(zdp)
+    deallocate(zmfc)
+    deallocate(ztenc)
+    deallocate(zcd)
+    deallocate(zcu)
+    deallocate(zcen)
+  end subroutine cuctracer
 !
 !**** *CUMASTR*  MASTER ROUTINE FOR CUMULUS MASSFLUX-SCHEME
 !
@@ -3555,7 +4577,7 @@ module mod_cu_tiedtke_38r2
 !    *PQEN*         PROVISIONAL ENVIRONMENT SPEC. HUMIDITY (T+1)  KG/KG
 !    *PUEN*         PROVISIONAL ENVIRONMENT U-VELOCITY (T+1)       M/S
 !    *PVEN*         PROVISIONAL ENVIRONMENT V-VELOCITY (T+1)       M/S
-!    *PCEN*         PROVISIONAL ENVIRONMENT TRACER CONCENTRATIONS KG/KG 
+!    *PCEN*         PROVISIONAL ENVIRONMENT TRACER CONCENTRATIONS KG/KG
 !    *PLITOT*       GRID MEAN LIQUID WATER+ICE CONTENT            KG/KG
 !    *PVERVEL*      VERTICAL VELOCITY                             PA/S
 !    *PQSEN*        ENVIRONMENT SPEC. SATURATION HUMIDITY (T+1)   KG/KG
@@ -3578,7 +4600,7 @@ module mod_cu_tiedtke_38r2
 !
 !    OUTPUT PARAMETERS (LOGICAL):
 !
-!    *LDCUM*        FLAG: .TRUE. FOR CONVECTIVE POINTS 
+!    *LDCUM*        FLAG: .TRUE. FOR CONVECTIVE POINTS
 !    *LDSC*         FLAG: .TRUE. FOR SC-POINTS
 !
 !    OUTPUT PARAMETERS (INTEGER):
@@ -3630,7 +4652,7 @@ module mod_cu_tiedtke_38r2
 !          LMFMID=.TRUE.   MIDLEVEL CONVECTION IS SWITCHED ON
 !          LMFDD=.TRUE.    CUMULUS DOWNDRAFTS SWITCHED ON
 !          LMFDUDV=.TRUE.  CUMULUS FRICTION SWITCHED ON
-!          LMFTRAC=.false. TRACER TRANSPORT 
+!          LMFTRAC=.false. TRACER TRANSPORT
 !
 !
 !     REFERENCE.
@@ -3652,7 +4674,7 @@ module mod_cu_tiedtke_38r2
 !             M.Hamrud      01-Oct-2003 CY28 Cleaning
 !             04-12-03 : Turn off shallow convection over stratocu.
 !                                                         M.Ko"hler
-!             05-06-27 : Switch off ddraught if idtop<kctop  
+!             05-06-27 : Switch off ddraught if idtop<kctop
 !                        correction for detrainment rates P.Bechtold
 !             05-11-22 : Mods for coarser/finer physics D.Salmond + M.Hortal
 !             06-02-11 : Enable TQ implicit               P.Bechtold
@@ -3671,7 +4693,7 @@ module mod_cu_tiedtke_38r2
                       ldcum,ktype,kcbot,kctop,kbotsc,ldsc,      &
                       ptu,pqu,plu,pmflxr,pmflxs,prain,pmfu,pmfd,&
                       pmfude_rate,pmfdde_rate,pcape,ktrac,pcen, &
-                      ptenc)  
+                      ptenc)
     implicit none
 
     integer(ik4) , intent(in) :: klon
@@ -3725,7 +4747,7 @@ module mod_cu_tiedtke_38r2
     real(rk8) , dimension(klon,klev) , intent(inout) :: pmfude_rate
     real(rk8) , dimension(klon,klev) , intent(inout) :: pmfdde_rate
     real(rk8) , dimension(klon) , intent(out) :: pcape
-    !real(rk8) , intent(out)   :: pwmean(klon) 
+    !real(rk8) , intent(out)   :: pwmean(klon)
     !*upg change to operations
     real(rk8) , dimension(klon) :: pwmean
     real(rk8) , dimension(klon,klev) :: plude ! only local variable
@@ -3781,14 +4803,14 @@ module mod_cu_tiedtke_38r2
     !                  --------------------------------
 
     zcons2 = rmfcfl/(egrav*ptsphy)
-    zcons = 1.0D0/(egrav*ptsphy)
+    zcons = d_one/(egrav*ptsphy)
 
     !*    2.           initialize values at vertical grid points in 'cuini'
     !                  ---------------------------------------------------
 
     call cuinin(kidia,kfdia,klon,ktdia,klev,pten,pqen,pqsen,puen,pven, &
                 pvervel,pgeo,paph,pap,ilwmin,ilab,ztenh,zqenh,zqsenh,  &
-                pgeoh,ptu,pqu,ztd,zqd,zuu,zvu,zud,zvd,plu)  
+                pgeoh,ptu,pqu,ztd,zqd,zuu,zvu,zud,zvd,plu)
 
     !---------------------------------------------------------------------
     !*    3.0          cloud base calculations
@@ -3799,10 +4821,10 @@ module mod_cu_tiedtke_38r2
     call cubasen(kidia,kfdia,klon,ktdia,klev,ldland,ztenh,zqenh,pgeoh, &
                  paph,pqhfl,pahfs,pten,pqen,pqsen,pgeo,puen,pven,      &
                  ptu,pqu,plu,zuu,zvu,zwubase,ilab,ldcum,ldsc,kcbot,    &
-                 kbotsc,ictop0,idpl,pcape)   
+                 kbotsc,ictop0,idpl,pcape)
 
     !*             (b) determine total moisture convergence and
-    !*                 decide on type of cumulus convection 
+    !*                 decide on type of cumulus convection
     !*                 one the basis of the depth of the convection
     !*                 deep if cloud depth > 200mb
     !*                 shallow if cloud depth <200mb
@@ -3811,29 +4833,29 @@ module mod_cu_tiedtke_38r2
     ! and sub cloud layer moist static energy convergence
 
     do jl = kidia , kfdia
-      zdqcv(jl)  = 0.0D0
-      zdhpbl(jl) = 0.0D0
+      zdqcv(jl)  = d_zero
+      zdhpbl(jl) = d_zero
       idtop(jl) = 0
     end do
     do jk = njkt2 , klev
       do jl = kidia , kfdia
-        zdqcv(jl)=zdqcv(jl)+max(0.0D0,ptenq(jl,jk))*(paph(jl,jk+1)-paph(jl,jk))
+        zdqcv(jl)=zdqcv(jl)+max(d_zero,ptenq(jl,jk))*(paph(jl,jk+1)-paph(jl,jk))
         if ( ldcum(jl) .and. jk >= kcbot(jl) ) then
           zdhpbl(jl)=zdhpbl(jl)+(wlhv*ptenq(jl,jk)+cpd*ptent(jl,jk)) * &
-                     (paph(jl,jk+1)-paph(jl,jk))  
+                     (paph(jl,jk+1)-paph(jl,jk))
         end if
       end do
     end do
 
     !*                 estimate cloud height for entrainment/detrainment
-    !*                 calculations in cuasc and initial determination of 
+    !*                 calculations in cuasc and initial determination of
     !*                 cloud type
     !*                 (max.possible cloud height
     !*                 for non-entraining plume, following a.-s.,1974)
     !                  -------------------------------------------------
 
 !dir$ ivdep
-!ocl novrec      
+!ocl novrec
 
     !*                 specify initial cloud type
     !*
@@ -3856,12 +4878,12 @@ module mod_cu_tiedtke_38r2
     !*             (c) calculate initial updraught mass flux
     !*                 and set lateral mixing rates
     !*
-    !*                 for deep convection assume it is 10% of 
-    !*                 maximum value which is determined by the 
+    !*                 for deep convection assume it is 10% of
+    !*                 maximum value which is determined by the
     !*                 thickness of the layer and timestep
     !*
     !*                 for shallow convection calculated assuming
-    !*                 a balance of moist static energy in the 
+    !*                 a balance of moist static energy in the
     !*                 sub-cloud layer (ignores present of downdraughts)
     !                  ------------------------------------------
 
@@ -3871,9 +4893,9 @@ module mod_cu_tiedtke_38r2
       do jl = kidia , kfdia
         if ( ldcum(jl) ) then
           ikb = kcbot(jl)
-          zdz = max(0.0D0,min(1.5D3,(pgeoh(jl,ikb)-pgeoh(jl,klev+1))/egrav))
+          zdz = max(d_zero,min(1.5D3,(pgeoh(jl,ikb)-pgeoh(jl,klev+1))/egrav))
           zmf_shal(jl) = 0.07D0*(egrav/pten(jl,klev)*zdz * &
-                         max(0.0D0,-pahfs(jl,klev+1)*rcpd-retv * &
+                         max(d_zero,-pahfs(jl,klev+1)*rcpd-retv * &
                              pten(jl,klev)*pqhfl(jl,klev+1)))**0.3333D0
           zmfmax = (paph(jl,ikb)-paph(jl,ikb-1))*zcons2*rmflic+rmflia
           zmf_shal(jl) = min(zmf_shal(jl),zmfmax)
@@ -3899,10 +4921,10 @@ module mod_cu_tiedtke_38r2
           zdqmin = max(0.01D0*zqenh(jl,ikb),1.0D-10)
           zdh = cpd*(ptu(jl,ikb)-ztenh(jl,ikb))+wlhv*zqumqe
           zdh = egrav*max(zdh,1.D5*zdqmin)
-          if ( zdhpbl(jl) > 0.0D0 ) then
+          if ( zdhpbl(jl) > d_zero ) then
             zmfub(jl) = zdhpbl(jl)/zdh
             !eps: temporary solution for explicit
-            if( ptsphy > 1800.D0 .and. rmfcfl == 1.0D0 ) then
+            if( ptsphy > 1800.D0 .and. rmfcfl == d_one ) then
               zmfub(jl) = min(zmfub(jl),3.D0*zmfmax)
             else
               zmfub(jl) = min(zmfub(jl),zmfmax)
@@ -3920,7 +4942,7 @@ module mod_cu_tiedtke_38r2
         ! set cloud base mass flux and mixing rate
         ! to default value for safety
 
-        zmfub(jl) = 0.0D0
+        zmfub(jl) = d_zero
       end if
     end do
 
@@ -3943,7 +4965,7 @@ module mod_cu_tiedtke_38r2
                 paph,pvervel,zwubase,ilwmin,ldland,ldcum,ktype, &
                 ilab,ptu,pqu,plu,pmfu,zmfub,zlglac,zmfus,zmfuq, &
                 zmful,plude,zdmfup,zdmfen,kcbot,kctop,ictop0,   &
-                idpl,pmfude_rate,zkineu,pwmean)   
+                idpl,pmfude_rate,zkineu,pwmean)
 
     !*         (c) check cloud depth and change entrainment rate accordingly
     !              calculate precipitation rate (for downdraft calculation)
@@ -3968,11 +4990,11 @@ module mod_cu_tiedtke_38r2
     end do
     do jk = 1 , klev
       do jl = kidia , kfdia
-        pmfd(jl,jk) = 0.0D0
-        zmfds(jl,jk) = 0.0D0
-        zmfdq(jl,jk) = 0.0D0
-        zdmfdp(jl,jk) = 0.0D0
-        zdpmel(jl,jk) = 0.0D0
+        pmfd(jl,jk) = d_zero
+        zmfds(jl,jk) = d_zero
+        zmfdq(jl,jk) = d_zero
+        zdmfdp(jl,jk) = d_zero
+        zdpmel(jl,jk) = d_zero
       end do
     end do
     if ( lmfuvdis ) then
@@ -3996,14 +5018,14 @@ module mod_cu_tiedtke_38r2
       call cudlfsn(kidia,kfdia,klon,ktdia,klev,kcbot,kctop,ldland,ldcum, &
                    ztenh,zqenh,puen,pven,pten,pqsen,pgeo,pgeoh,paph,ptu, &
                    pqu,plu,zuu,zvu,zmfub,zrfl,ztd,zqd,pmfd,zmfds,zmfdq,  &
-                   zdmfdp,idtop,llddraf)  
+                   zdmfdp,idtop,llddraf)
 
       !*            (b)  determine downdraft t,q and fluxes in 'cuddraf'
       !                  -----------------------------------------------
 
       call cuddrafn(kidia,kfdia,klon,ktdia,klev,llddraf,ztenh,zqenh,puen, &
                     pven,pgeo,pgeoh,paph,zrfl,ztd,zqd,pmfu,pmfd,zmfds,    &
-                    zmfdq,zdmfdp,zdmfde,pmfdde_rate,zkined)  
+                    zmfdq,zdmfdp,zdmfde,pmfdde_rate,zkined)
 
     end if
 
@@ -4013,14 +5035,14 @@ module mod_cu_tiedtke_38r2
     !*                 recalculate cloud base massflux from a
     !*                 cape closure for deep convection (ktype=1)
     !*                 and by pbl equilibrum taking downdrafts into
-    !*                 account for shallow convection (ktype=2)          
+    !*                 account for shallow convection (ktype=2)
     !                  --------------------------------------------
 
     !   deep convection
 
     do jl = kidia , kfdia
-      zheat(jl) = 0.0D0
-      zcape(jl) = 0.0D0
+      zheat(jl) = d_zero
+      zcape(jl) = d_zero
       zmfub1(jl) = zmfub(jl)
     end do
     do jk = 1 , klev
@@ -4028,15 +5050,15 @@ module mod_cu_tiedtke_38r2
         llo1 = ldcum(jl) .and. ktype(jl) == 1
         if ( llo1 .and. jk <= kcbot(jl) .and. jk > kctop(jl) ) then
           ikb = kcbot(jl)
-          zro = paph(jl,jk)/(rgas*ztenh(jl,jk)*(1.0D0+retv*zqenh(jl,jk)))
+          zro = paph(jl,jk)/(rgas*ztenh(jl,jk)*(d_one+retv*zqenh(jl,jk)))
           zdz = (pgeoh(jl,jk-1)-pgeoh(jl,jk))
           zheat(jl) = zheat(jl) + &
                 (  (pten(jl,jk-1)-pten(jl,jk) + zdz*rcpd)/ztenh(jl,jk) + &
                     retv*(pqen(jl,jk-1)-pqen(jl,jk))  ) * &
-                (egrav*(pmfu(jl,jk)+pmfd(jl,jk)))/zro  
+                (egrav*(pmfu(jl,jk)+pmfd(jl,jk)))/zro
           zcape(jl) = zcape(jl) + &
                  ((ptu(jl,jk)-ztenh(jl,jk))/ztenh(jl,jk) + &
-                   retv*(pqu(jl,jk)-zqenh(jl,jk))-plu(jl,jk) ) * zdz  
+                   retv*(pqu(jl,jk)-zqenh(jl,jk))-plu(jl,jk) ) * zdz
         end if
       end do
     end do
@@ -4045,7 +5067,7 @@ module mod_cu_tiedtke_38r2
       if ( ldcum(jl) .and. ktype(jl) == 1 ) then
         ikb = kcbot(jl)
         ik = kctop(jl)
-        zcape(jl) = max(0.0D0,min(zcape(jl),5000.0D0))
+        zcape(jl) = max(d_zero,min(zcape(jl),5000.0D0))
         zheat(jl) = max(1.D-4,zheat(jl))
         ztau(jl) = (pgeoh(jl,ik)-pgeoh(jl,ikb)) / &
           ((2.0D0+min(15.0D0,pwmean(jl)))*egrav)*rtau
@@ -4065,30 +5087,30 @@ module mod_cu_tiedtke_38r2
     do jl = kidia , kfdia
       if ( ldcum(jl) .and. (ktype(jl) == 2 .or. ktype(jl) == 3) ) then
         ikb = kcbot(jl)
-        if ( pmfd(jl,ikb) < 0.0D0 ) then
+        if ( pmfd(jl,ikb) < d_zero ) then
           zeps = -pmfd(jl,ikb)/max(zmfub(jl),1.D-10)
         else
-          zeps=0.0D0
+          zeps = d_zero
         end if
         zqumqe = pqu(jl,ikb)+plu(jl,ikb) - &
-                 zeps*zqd(jl,ikb)-(1.0D0-zeps)*zqenh(jl,ikb)  
+                 zeps*zqd(jl,ikb)-(d_one-zeps)*zqenh(jl,ikb)
         zdqmin = max(0.01D0*zqenh(jl,ikb),1.D-10)
-        ! maximum permisable value of ud base mass flux 
+        ! maximum permisable value of ud base mass flux
         zmfmax = (paph(jl,ikb)-paph(jl,ikb-1))*zcons2*rmflic+rmflia
 
         ! shallow convection
 
         if ( ktype(jl) == 2 ) then
           zdh = cpd*(ptu(jl,ikb)-zeps*ztd(jl,ikb) - &
-               (1.0D0-zeps)*ztenh(jl,ikb))+wlhv*zqumqe  
+               (d_one-zeps)*ztenh(jl,ikb))+wlhv*zqumqe
           zdh = egrav*max(zdh,1.D5*zdqmin)
-          if ( zdhpbl(jl) > 0.0D0 ) then
+          if ( zdhpbl(jl) > d_zero ) then
             zmfub1(jl) = zdhpbl(jl)/zdh
           else
             zmfub1(jl) = zmfub(jl)
           end if
           !eps: temporary solution for explicit
-          if ( ptsphy>1800.D0 .and. rmfcfl==1.0D0 ) then
+          if ( ptsphy>1800.D0 .and. rmfcfl==d_one ) then
             zmfub1(jl) = min(zmfub1(jl),3.D0*zmfmax)
           else
             zmfub1(jl) = min(zmfub1(jl),zmfmax)
@@ -4099,7 +5121,7 @@ module mod_cu_tiedtke_38r2
         ! mid-level convection
 
         if ( ktype(jl) == 3 ) then
-          zmfub1(jl) = zmfub(jl)*(1.0D0+zeps)
+          zmfub1(jl) = zmfub(jl)*(d_one+zeps)
           zmfub1(jl) = min(zmfub1(jl),zmfmax)
         end if
 
@@ -4141,7 +5163,7 @@ module mod_cu_tiedtke_38r2
           end if
           zmfmax = (paph(jl,jk)-paph(jl,jk-1))*zcons2*rmflic+rmflia
           if ( pmfu(jl,jk)*zmfs(jl)>zmfmax ) then
-            zmfs(jl) = min(zmfs(jl),zmfmax/pmfu(jl,jk))  
+            zmfs(jl) = min(zmfs(jl),zmfmax/pmfu(jl,jk))
           end if
         end if
       end do
@@ -4201,13 +5223,13 @@ module mod_cu_tiedtke_38r2
       do jl = kidia , kfdia
         if ( llddraf(jl) ) then
           if ( jk < idtop(jl) ) then
-            pmfd(jl,jk) = 0.0D0
-            zmfds(jl,jk) = 0.0D0
-            zmfdq(jl,jk) = 0.0D0
-            pmfdde_rate(jl,jk) = 0.0D0
-            zdmfdp(jl,jk) = 0.0D0
+            pmfd(jl,jk) = d_zero
+            zmfds(jl,jk) = d_zero
+            zmfdq(jl,jk) = d_zero
+            pmfdde_rate(jl,jk) = d_zero
+            zdmfdp(jl,jk) = d_zero
           else if ( jk == idtop(jl) ) then
-            pmfdde_rate(jl,jk) = 0.0D0
+            pmfdde_rate(jl,jk) = d_zero
           end if
         end if
       end do
@@ -4215,34 +5237,34 @@ module mod_cu_tiedtke_38r2
     call cuflxn(kidia,kfdia,klon,ktdia,klev,ptsphy,pten,pqen,pqsen,ztenh,   &
                 zqenh,paph,pap,pgeoh,ldland,ldcum,kcbot,kctop,idtop,itopm2, &
                 ktype,llddraf,pmfu,pmfd,zmfus,zmfds,zmfuq,zmfdq,zmful,plude,&
-                zdmfup,zdmfdp,zdpmel,zlglac,pmflxr,pmflxs,prain,pmfdde_rate)  
- 
+                zdmfup,zdmfdp,zdpmel,zlglac,pmflxr,pmflxs,prain,pmfdde_rate)
+
     !- rescale dd fluxes if total mass flux becomes negative
     !- correct dd detrainment rates if entrainment becomes negative
     !- correct ud detrainment rates if entrainment becomes negative
     !- conservation correction for precip
 
-    zmfs(:) = 1.0D0
+    zmfs(:) = d_one
     ! do jk = 2 , klev-1
     do jk = 2 , klev ! change for stability
       do jl = kidia , kfdia
         if ( llddraf(jl) .and. jk >= idtop(jl)-1 ) then
           zmfmax = pmfu(jl,jk)*0.98D0
-          if ( pmfd(jl,jk)+zmfmax+1.D-15 < 0.0D0 ) then
+          if ( pmfd(jl,jk)+zmfmax+1.D-15 < d_zero ) then
             zmfs(jl) = min(zmfs(jl),-zmfmax/pmfd(jl,jk))
           end if
         end if
       end do
     end do
-    zmfuub(:) = 0.0D0
+    zmfuub(:) = d_zero
     do jk = 2 , klev
       do jl = kidia , kfdia
-        if ( zmfs(jl) < 1.0D0 .and. jk >= idtop(jl)-1 ) then
+        if ( zmfs(jl) < d_one .and. jk >= idtop(jl)-1 ) then
           pmfd(jl,jk) = pmfd(jl,jk)*zmfs(jl)
           zmfds(jl,jk) = zmfds(jl,jk)*zmfs(jl)
           zmfdq(jl,jk) = zmfdq(jl,jk)*zmfs(jl)
           pmfdde_rate(jl,jk) = pmfdde_rate(jl,jk)*zmfs(jl)
-          zmfuub(jl) = zmfuub(jl)-(1.0D0-zmfs(jl))*zdmfdp(jl,jk)
+          zmfuub(jl) = zmfuub(jl)-(d_one-zmfs(jl))*zdmfdp(jl,jk)
           pmflxr(jl,jk+1) = pmflxr(jl,jk+1)+zmfuub(jl)
           zdmfdp(jl,jk) = zdmfdp(jl,jk)*zmfs(jl)
         end if
@@ -4253,19 +5275,19 @@ module mod_cu_tiedtke_38r2
       do jl = kidia , kfdia
         if ( llddraf(jl) .and. jk >= idtop(jl)-1 ) then
           zerate = -pmfd(jl,jk)+pmfd(jl,jk-1)+pmfdde_rate(jl,jk)
-          if ( zerate < 0.0D0 ) then
+          if ( zerate < d_zero ) then
             pmfdde_rate(jl,jk) = pmfdde_rate(jl,jk)-zerate
           end if
         end if
         if ( ldcum(jl) .and. jk >= kctop(jl)-1 ) then
           zerate = pmfu(jl,jk)-pmfu(jl,jk+1)+pmfude_rate(jl,jk)
-          if ( zerate < 0.0D0 ) then
+          if ( zerate < d_zero ) then
             pmfude_rate(jl,jk) = pmfude_rate(jl,jk)-zerate
           end if
           ! zdmfup(jl,jk) = zdmfup(jl,jk)+zdmfdp(jl,jk)
           zdmfup(jl,jk) = pmflxr(jl,jk+1)+pmflxs(jl,jk+1) - &
                           pmflxr(jl,jk)-pmflxs(jl,jk)
-          zdmfdp(jl,jk) = 0.0D0
+          zdmfdp(jl,jk) = d_zero
         end if
       end do
     end do
@@ -4276,7 +5298,7 @@ module mod_cu_tiedtke_38r2
         jk = idtop(jl)
         ik = min(jk+1,klev)
         if ( zmfdq(jl,jk) < 0.3D0*zmfdq(jl,ik) ) then
-          if ( rmfsoltq == 0.0D0 ) then
+          if ( rmfsoltq == d_zero ) then
             zmfdq(jl,jk) = 0.3D0*zmfdq(jl,ik)
           else
             pmfd(jl,jk) = 0.3D0*pmfd(jl,ik)
@@ -4294,18 +5316,18 @@ module mod_cu_tiedtke_38r2
           zmfa = zmfuq(jl,jk+1)+zmfdq(jl,jk+1)-zmfuq(jl,jk)-zmfdq(jl,jk) + &
                  zmful(jl,jk+1)-zmful(jl,jk)+zdmfup(jl,jk)
           zmfa = (zmfa-plude(jl,jk))*zdz
-          if ( pqen(jl,jk)+zmfa < 0.0D0 ) then
+          if ( pqen(jl,jk)+zmfa < d_zero ) then
             plude(jl,jk) = plude(jl,jk)+2.0D0*(pqen(jl,jk)+zmfa)/zdz
           end if
-          if ( plude(jl,jk) < 0.0D0 ) then
-            plude(jl,jk) = 0.0D0
+          if ( plude(jl,jk) < d_zero ) then
+            plude(jl,jk) = d_zero
           end if
         end if
         if ( .not. ldcum(jl) ) then
-          pmfude_rate(jl,jk) = 0.0D0
+          pmfude_rate(jl,jk) = d_zero
         end if
-        if ( pmfd(jl,jk-1) == 0.0D0 ) then
-          pmfdde_rate(jl,jk) = 0.0D0
+        if ( pmfd(jl,jk-1) == d_zero ) then
+          pmfdde_rate(jl,jk) = d_zero
         end if
       end do
     end do
@@ -4346,19 +5368,19 @@ module mod_cu_tiedtke_38r2
     !*    8.0          update tendencies for t and q in subroutine cudtdq
     !                  --------------------------------------------------
 
-    if ( rmfsoltq > 0.0D0 ) then
+    if ( rmfsoltq > d_zero ) then
       ! derive draught properties for implicit
       do jk = klev , 2 , -1
         do jl = kidia , kfdia
           if ( ldcum(jl) ) then
             if ( jk > kcbot(jl) ) then
-              zmfa = 1.0D0/max(1.D-15,pmfu(jl,jk))
+              zmfa = d_one/max(1.D-15,pmfu(jl,jk))
               pqu(jl,jk) = zqenh(jl,jk)+zmfuq(jl,jk)*zmfa
               ptu(jl,jk) = ztenh(jl,jk)+zmfus(jl,jk)*zmfa*rcpd
               zmfus(jl,jk) = pmfu(jl,jk)*(cpd*ptu(jl,jk)+pgeoh(jl,jk))
               zmfuq(jl,jk) = pmfu(jl,jk)*pqu(jl,jk)
               if ( llddraf(jl) ) then
-                zmfa = 1.0D0/min(-1.D-15,pmfd(jl,jk))
+                zmfa = d_one/min(-1.D-15,pmfd(jl,jk))
                 zqd(jl,jk) = zqenh(jl,jk)+zmfdq(jl,jk)*zmfa
                 ztd(jl,jk) = ztenh(jl,jk)+zmfds(jl,jk)*zmfa*rcpd
                 zmfdq(jl,jk) = pmfd(jl,jk)*zqd(jl,jk)
@@ -4399,12 +5421,12 @@ module mod_cu_tiedtke_38r2
               zvu(jl,jk) = pven(jl,jk-1)
             end if
             if ( jk < kcbot(jl) .and. jk >= kctop(jl) ) then
-              zfac = 0.0D0
+              zfac = d_zero
               if ( ktype(jl) == 1 .or. ktype(jl) == 3 ) zfac = 2.0D0
               if ( ktype(jl) == 1 .and. jk <= kctop(jl)+2 ) zfac = 3.0D0
-              zerate = pmfu(jl,jk)-pmfu(jl,ik)+(1.0D0+zfac)*pmfude_rate(jl,jk)
-              zderate = (1.0D0+zfac)*pmfude_rate(jl,jk)
-              zmfa = 1.0D0/max(rmfcmin,pmfu(jl,jk))
+              zerate = pmfu(jl,jk)-pmfu(jl,ik)+(d_one+zfac)*pmfude_rate(jl,jk)
+              zderate = (d_one+zfac)*pmfude_rate(jl,jk)
+              zmfa = d_one/max(rmfcmin,pmfu(jl,jk))
               zuu(jl,jk) = (zuu(jl,ik)*pmfu(jl,ik) + &
                 zerate*puen(jl,jk)-zderate*zuu(jl,ik))*zmfa
               zvu(jl,jk) = (zvu(jl,ik)*pmfu(jl,ik) + &
@@ -4422,7 +5444,7 @@ module mod_cu_tiedtke_38r2
               zvd(jl,jk) = 0.5D0*(zvu(jl,jk)+pven(jl,ik))
             else if ( jk > idtop(jl) ) then
               zerate = -pmfd(jl,jk)+pmfd(jl,ik)+pmfdde_rate(jl,jk)
-              zmfa = 1.0D0/min(-rmfcmin,pmfd(jl,jk))
+              zmfa = d_one/min(-rmfcmin,pmfd(jl,jk))
               zud(jl,jk) = (zud(jl,ik)*pmfd(jl,ik) - &
                 zerate*puen(jl,ik)+pmfdde_rate(jl,jk)*zud(jl,ik))*zmfa
               zvd(jl,jk) = (zvd(jl,ik)*pmfd(jl,ik) - &
@@ -4437,15 +5459,15 @@ module mod_cu_tiedtke_38r2
       ! for explicit/semi-implicit rescale massfluxes for stability in momentum
       !------------------------------------------------------------------------
 
-      zmfs(:) = 1.0D0
+      zmfs(:) = d_one
       ! if ( rmfsoluv <= 0.5D0 ) then
-      if ( rmfsoluv <= 1.0D0 ) then
+      if ( rmfsoluv <= d_one ) then
         do jk = 2 , klev
           do jl = kidia , kfdia
             if ( ldcum(jl) .and. jk >= kctop(jl)-1 ) then
               zmfmax = (paph(jl,jk)-paph(jl,jk-1))*zcons
               if ( pmfu(jl,jk) > zmfmax .and. jk >= kctop(jl) ) then
-                zmfs(jl) = min(zmfs(jl),zmfmax/pmfu(jl,jk))  
+                zmfs(jl) = min(zmfs(jl),zmfmax/pmfu(jl,jk))
               end if
             end if
           end do
@@ -4465,7 +5487,7 @@ module mod_cu_tiedtke_38r2
       ! recompute draught properties below for implicit
       ! based on linear flux profiles
 
-      if ( rmfsoluv > 0.0D0 ) then
+      if ( rmfsoluv > d_zero ) then
         do jl = kidia , kfdia
           if ( ldcum(jl) ) then
             jk = kcbot(jl)
@@ -4484,7 +5506,7 @@ module mod_cu_tiedtke_38r2
               if ( ktype(jl) == 3 ) then
                 zdz = zdz*zdz
               end if
-              zmfa = 1.0D0/max(rmfcmin,zmfuus(jl,jk))
+              zmfa = d_one/max(rmfcmin,zmfuus(jl,jk))
               zuu(jl,jk) = puen(jl,ik)+zmfuub(jl)*zdz*zmfa
               zvu(jl,jk) = pven(jl,ik)+zmfuvb(jl)*zdz*zmfa
 
@@ -4494,8 +5516,8 @@ module mod_cu_tiedtke_38r2
             end if
             ! add uv perturb to correct wind bias
             if ( ldcum(jl) .and. jk >= kctop(jl) ) then
-              zuu(jl,jk) = zuu(jl,jk)-ruvper*sign(1.0D0,zuu(jl,jk))
-              zvu(jl,jk) = zvu(jl,jk)-ruvper*sign(1.0D0,zvu(jl,jk))
+              zuu(jl,jk) = zuu(jl,jk)-ruvper*sign(d_one,zuu(jl,jk))
+              zvu(jl,jk) = zvu(jl,jk)-ruvper*sign(d_one,zvu(jl,jk))
             end if
           end do
         end do
@@ -4503,7 +5525,7 @@ module mod_cu_tiedtke_38r2
 
       !-------------------------------------------------------------------
       ! end
-      ! intermediate solution for stability in eps: 
+      ! intermediate solution for stability in eps:
       ! for original code replace line
       !  &, puen,     pven,     zmfuus,   zmfdus &
       !by
@@ -4511,17 +5533,17 @@ module mod_cu_tiedtke_38r2
 
       call cududv(kidia,kfdia,klon,ktdia,klev,itopm2,ktype,kcbot,kctop, &
                   ldcum,ptsphy,paph,puen,pven,zmfuus,zmfdus,zuu,zud,    &
-                  zvu,zvd,ptenu,ptenv)  
+                  zvu,zvd,ptenu,ptenv)
 
       if ( lmfuvdis ) then
         ! add ke dissipation
         do jl = kidia , kfdia
-          zsum12(jl) = 0.0D0
-          zsum22(jl) = 0.0D0
+          zsum12(jl) = d_zero
+          zsum22(jl) = d_zero
         end do
         do jk = 1 , klev
           do jl = kidia , kfdia
-            zuv2(jl,jk) = 0.0D0
+            zuv2(jl,jk) = d_zero
             if ( ldcum(jl) .and. jk >= kctop(jl)-1 ) then
               zdz = (paph(jl,jk+1)-paph(jl,jk))
               zduten = ptenu(jl,jk)-ztenu(jl,jk)
@@ -4556,10 +5578,10 @@ module mod_cu_tiedtke_38r2
           if ( llo2(jl) .and. jk >= kctop(jl)-1 ) then
             ptu(jl,jk) = pten(jl,jk)
             pqu(jl,jk) = pqen(jl,jk)
-            plu(jl,jk) = 0.0D0
-            penth(jl,jk) = 0.0D0
-            pmfude_rate(jl,jk) = 0.0D0
-            pmfdde_rate(jl,jk) = 0.0D0
+            plu(jl,jk) = d_zero
+            penth(jl,jk) = d_zero
+            pmfude_rate(jl,jk) = d_zero
+            pmfdde_rate(jl,jk) = d_zero
           end if
         end do
       end do
@@ -4589,17 +5611,17 @@ module mod_cu_tiedtke_38r2
            llddraf3(jl) = .false.
          end if
       end do
-  
+
       ! check and correct mass fluxes for cfl criterium
 
-      zmfs(:) = 1.0D0
+      zmfs(:) = d_one
       if ( rmfsolct <= 3.0D0 ) then
         do jk = 2 , klev
           do jl = kidia , kfdia
             if ( lldcum(jl) .and. jk >= kctop(jl) ) then
               zmfmax = (paph(jl,jk)-paph(jl,jk-1))*0.8D0*zcons
               if ( pmfu(jl,jk) > zmfmax ) then
-                zmfs(jl) = min(zmfs(jl),zmfmax/pmfu(jl,jk))  
+                zmfs(jl) = min(zmfs(jl),zmfmax/pmfu(jl,jk))
               end if
             end if
           end do
@@ -4611,15 +5633,15 @@ module mod_cu_tiedtke_38r2
             zmfuus(jl,jk) = pmfu(jl,jk)*zmfs(jl)
             zmfudr(jl,jk) = pmfude_rate(jl,jk)*zmfs(jl)
           else
-            zmfuus(jl,jk) = 0.D0
-            zmfudr(jl,jk) = 0.D0
+            zmfuus(jl,jk) = d_zero
+            zmfudr(jl,jk) = d_zero
           end if
           if ( llddraf3(jl) .and. jk >= idtop(jl)-1 ) then
             zmfdus(jl,jk) = pmfd(jl,jk)*zmfs(jl)
             zmfddr(jl,jk) = pmfdde_rate(jl,jk)*zmfs(jl)
           else
-            zmfdus(jl,jk) = 0.D0
-            zmfddr(jl,jk) = 0.D0
+            zmfdus(jl,jk) = d_zero
+            zmfddr(jl,jk) = d_zero
           end if
         end do
       end do
@@ -4628,15 +5650,15 @@ module mod_cu_tiedtke_38r2
         ! smoothing of mass fluxes (gradients) at top and bottom of draughts
         do jk = 2 , klev-1
           do jl = kidia , kfdia
-            if ( llddraf3(jl) .and. zmfdus(jl,jk) < 0.0D0 .and. &
-                 zmfdus(jl,jk+1) == 0.0D0 ) then
-              zerate = min(0.D0,zmfdus(jl,jk)-0.5*zmfdus(jl,jk-1))
+            if ( llddraf3(jl) .and. zmfdus(jl,jk) < d_zero .and. &
+                 zmfdus(jl,jk+1) == d_zero ) then
+              zerate = min(d_zero,zmfdus(jl,jk)-0.5*zmfdus(jl,jk-1))
               zmfdus(jl,jk) = zmfdus(jl,jk)-zerate
               zmfddr(jl,jk) = zmfddr(jl,jk)-zerate
               zmfddr(jl,jk+1) = -zmfdus(jl,jk)
             end if
             if ( lldcum(jl) .and. jk == kctop(jl) ) then
-              zerate = max(0.0D0,zmfuus(jl,jk)-0.5D0*zmfuus(jl,jk+1))
+              zerate = max(d_zero,zmfuus(jl,jk)-0.5D0*zmfuus(jl,jk+1))
               zmfuus(jl,jk) = zmfuus(jl,jk)-zerate
               zmfudr(jl,jk) = zmfudr(jl,jk)+zerate
               zmfudr(jl,jk-1) = zmfuus(jl,jk)
@@ -4646,8 +5668,8 @@ module mod_cu_tiedtke_38r2
         do jk = klev-1 , 2 , -1
           do jl = kidia , kfdia
             if ( lldcum(jl) ) then
-              if ( zmfudr(jl,jk) == 0.0D0 .and. &
-                   zmfudr(jl,jk-1) > 0.0D0 ) then
+              if ( zmfudr(jl,jk) == d_zero .and. &
+                   zmfudr(jl,jk-1) > d_zero ) then
                 zmfudr(jl,jk) = 0.5D0*zmfudr(jl,jk-1)
               end if
             end if
@@ -4657,11 +5679,11 @@ module mod_cu_tiedtke_38r2
 
       call cuctracer(kidia,kfdia,klon,ktdia,klev,ktrac,ktype,kctop,kcbot, &
                      idpl,idtop,lldcum,llddraf3,ptsphy,paph,zmfuus,zmfdus,&
-                     zmfudr,zmfddr,pcen,ptenc)  
+                     zmfudr,zmfddr,pcen,ptenc)
     end if
 
     !----------------------------------------------------------------------
-    !*   12.           put detrainment rates from mflx units in units mflx/m 
+    !*   12.           put detrainment rates from mflx units in units mflx/m
     !                  for era40
     !                  ---------------------------------------------------
 
@@ -4672,7 +5694,7 @@ module mod_cu_tiedtke_38r2
           pmfude_rate(jl,jk) = pmfude_rate(jl,jk)*zro
           pmfdde_rate(jl,jk) = pmfdde_rate(jl,jk)*zro
           if ( jk<kctop(jl) ) then
-            plu(jl,jk) = 0.0D0
+            plu(jl,jk) = d_zero
             ptu(jl,jk) = pten(jl,jk)
             pqu(jl,jk) = pqen(jl,jk)
           end if
@@ -4682,14 +5704,14 @@ module mod_cu_tiedtke_38r2
 
     !----------------------------------------------------------------------
     !*upg change to operations
- 
+
     if ( llconscheck ) then
 
       !*   13.0          conservation check and correction
       !                  ---------------------------------
 
       do jl = kidia , kfdia
-        zsumc(jl,:) = 0.0D0
+        zsumc(jl,:) = d_zero
       end do
       do jk = klev , 2 , -1
         do jl = kidia , kfdia
@@ -4769,7 +5791,7 @@ module mod_cu_tiedtke_38r2
     do jk = 1 , klev
       do jl = kidia , kfdia
         ptenl(jl,jk) = plude(jl,jk)*egrav/(paph(jl,jk+1)-paph(jl,jk))
-        pteni(jl,jk) = (1.0D0-foealfa(pten(jl,jk)))*ptenl(jl,jk)
+        pteni(jl,jk) = (d_one-foealfa(pten(jl,jk)))*ptenl(jl,jk)
         ptenl(jl,jk) = ptenl(jl,jk)-pteni(jl,jk)
         pmflxr(jl,jk) = pmflxr(jl,jk)*1.D-3
         pmflxs(jl,jk) = pmflxs(jl,jk)*1.D-3
