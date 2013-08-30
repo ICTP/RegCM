@@ -294,6 +294,10 @@
                             ! => 2 Khairoutdinov and Kogan (2000)
                             ! => 3 Kessler (1969)
                             ! => 4 Sundqvist
+  ksemi = 1.0D0,            ! Implicit/Explicit control
+                            ! ksemi == 0 => scheme is fully explicit
+                            ! ksemi == 1 => scheme is fully implicit
+                            ! 0<ksemi<1  => scheme is semi-implicit
  /
 !
 ! Grell Cumulus scheme control
@@ -439,13 +443,14 @@
                  ! 1 = use the standard scheme (Alfaro et al., Zakey et al.)
                  ! 2 = use the the revised soil granulometry + Kok et al., 2011
  ichdiag = 0,    ! 1 = enable writing of additional diagnostics in the output
- idirect   = 1,  ! CHoice to enable or not aerosol feedbacks on radiation and
+ idirect   = 1,  ! Choice to enable or not aerosol feedbacks on radiation and
                  ! dynamics (aerosol direct and semi direct effcts):
                  ! 1 = no coupling to dynamic and thermodynamic. However
                  !     the clear sky surface and top of atmosphere 
                  !     aerosol radiative forcings are diagnosed.
                  ! 2 = allows aerosol feedbacks on radiative,
                  !     thermodynamic and dynamic fields.
+ iindirect = 0,  ! Enable sulfate indirect effect in radiation scheme
  rdstemfac = 1.0,! Aerosol correction factor (Laurent et al, 2008)
  /
 !

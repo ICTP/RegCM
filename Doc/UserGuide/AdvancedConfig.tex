@@ -706,6 +706,10 @@ This stanza controls the new microphysics scheme.
                             ! => 2 Khairoutdinov and Kogan (2000)
                             ! => 3 Kessler (1969)
                             ! => 4 Sundqvist
+  ksemi = 1.0D0,            ! Implicit/Explicit control
+                            ! ksemi == 0 => scheme is fully explicit
+                            ! ksemi == 1 => scheme is fully implicit
+                            ! 0<ksemi<1  => scheme is semi-implicit
  /
 \end{Verbatim}
 }
@@ -905,6 +909,7 @@ This stanza controls the chemistry and aerosol options in the RegCM model.
                  !     aerosol radiative forcings are diagnosed.
                  ! 2 = allows aerosol feedbacks on radiative,
                  !     thermodynamic and dynamic fields.
+ iindirect = 0,  ! Enable sulfate indirect effect in radiation scheme
  rdstemfac = 1.0,! Aerosol correction factor (Laurent et al, 2008)
  /
 \end{Verbatim}

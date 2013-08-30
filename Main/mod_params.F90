@@ -113,7 +113,7 @@ module mod_params
     rhmax , rh0oce , rh0land , cevap , caccr , tc0 , cllwcv ,          &
     clfrcvmax , cftotmax
 
-  namelist /microparam/ budget_compute , nssopt , kautoconv
+  namelist /microparam/ budget_compute , nssopt , kautoconv , ksemi
 
   namelist /grellparam/ shrmin , shrmax , edtmin , edtmax ,         &
     edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
@@ -377,6 +377,9 @@ module mod_params
                 ! => 2 Khairoutdinov and Kogan (2000)
                 ! => 3 Kessler (1969)
                 ! => 4 Sundqvist
+  ksemi = d_one ! 0 => fully explicit
+                ! 1 => fully implict
+                ! 0<ksemi<1 => semi-implicit
 
 !------namelist grellparam:
   shrmin = 0.25D0       ! Minimum Shear effect on precip eff.

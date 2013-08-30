@@ -33,7 +33,7 @@ module mod_cloud_s1
   use mod_runparams , only : sigma
   use mod_runparams , only : dt
   use mod_runparams , only : ipptls
-  use mod_runparams , only : budget_compute , nssopt , kautoconv
+  use mod_runparams , only : budget_compute , nssopt , kautoconv , ksemi
   use mod_runparams , only : ktau
   use mod_pbl_common
   use mod_constants
@@ -371,9 +371,6 @@ module mod_cloud_s1
 #endif
 
     logical , parameter   :: lmicro = .true.
-    real(rk8) , parameter :: ksemi = d_one        ! ksemi=0.  , scheme is fully explicit
-                                                  ! ksemi=1.  , scheme is fully implicit 
-                                                  ! 0<ksemi<1., scheme is semi-implici 
     real(rk8) , parameter :: rovcp = rgas/cpd
     real(rk8) , parameter :: rlcritsnow = 3.D-5   !critical autoconversion
     real(rk8) , parameter :: zauto_rate_khair = 0.355D0 ! microphysical terms
@@ -1832,12 +1829,15 @@ module mod_cloud_s1
             end do
             do jn = 1, nqx
               if (jn /= n) then
-                zexplicit = zexplicit + (d_one-ksemi)*zsolqb(j,i,n,jn)*zqxx(j,i,k,jn)
-                zimplicit = zimplicit - (d_one-ksemi)*zsolqb(j,i,jn,n)*zqxx(j,i,k,jn)
+                zexplicit = zexplicit +  &
+                        (d_one-ksemi)*zsolqb(j,i,n,jn)*zqxx(j,i,k,jn)
+                zimplicit = zimplicit -  &
+                        (d_one-ksemi)*zsolqb(j,i,jn,n)*zqxx(j,i,k,jn)
               end if  
             end do
             zqxn(n,j,i) = zqxx(j,i,k,n) + zimplicit - &
-                          zqxx(j,i,k,n)*(d_one-ksemi)*zfallsink(j,i,n) +zexplicit
+                          zqxx(j,i,k,n) * &
+                          (d_one-ksemi)*zfallsink(j,i,n) +zexplicit
           end do
         end do
       end do
@@ -1882,7 +1882,7 @@ module mod_cloud_s1
             ! this will be the source for the k
             zpfplsx(j,i,k+1,n) = ksemi*zfallsink(j,i,n) * &
               zqxn(n,j,i)*zrdtgdp(j,i) + &
-              (1-ksemi)*zfallsink(j,i,n)* &
+              (d_one-ksemi)*zfallsink(j,i,n)* &
               zqxx(j,i,k,n)*zrdtgdp(j,i) ! kg/m2/s
           end do
         end do

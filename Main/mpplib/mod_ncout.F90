@@ -2021,6 +2021,8 @@ module mod_ncout
             ncattribute_integer('micro_super_saturation_option',nssopt))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('micro_autoconversion_option',kautoconv))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('micro_semi_implicit_option',ksemi))
         end if
         if ( icup == 2 .or. icup == 98 .or. icup == 99 .or. icup == 96 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

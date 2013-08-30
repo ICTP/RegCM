@@ -303,6 +303,8 @@ module mod_runparams
   integer :: nssopt
   ! Choose the autoconversion paramaterization
   integer :: kautoconv
+  ! Implict option
+  real(rk8) :: ksemi
 
   !
   ! Debug limit values for tendencies
