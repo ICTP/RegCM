@@ -691,7 +691,7 @@ module mod_cu_tiedtke_38r2
                  zkedke , zlcrit , zleen , zlnew , zmfmax , zmftest ,      &
                  zmfulk , zmfun , zmfuqk , zmfusk , zprcdgw , zprcon ,     &
                  zqeen , zqude , zrnew , zrold , zscde , zseen , ztglace , &
-                 zvi , zvv , zvw , zwu , zzco
+                 zvi , zvv , zvw , zwu , zzco , zarg
     real(rk8) :: zchange , zxs , zxe
     logical , dimension(klon) :: llklab
     !----------------------------------------------------------------------
@@ -767,7 +767,7 @@ module mod_cu_tiedtke_38r2
         ikb = kcbot(jl)
         pkineu(jl,ikb) = d_half*pwubase(jl)**2
         pmfu(jl,ikb) = pmfub(jl)
-        pmfus(jl,ikb) = pmfub(jl)*(rcpd*ptu(jl,ikb)+pgeoh(jl,ikb))
+        pmfus(jl,ikb) = pmfub(jl)*(cpd*ptu(jl,ikb)+pgeoh(jl,ikb))
         pmfuq(jl,ikb) = pmfub(jl)*pqu(jl,ikb)
         pmful(jl,ikb) = pmfub(jl)*plu(jl,ikb)
       end if
@@ -862,13 +862,13 @@ module mod_cu_tiedtke_38r2
           pdmfen(jl,jk) = zdmfen(jl) - zdmfde(jl)
           pmfu(jl,jk) = pmfu(jl,jk+1) + zdmfen(jl) - zdmfde(jl)
           zqeen = pqenh(jl,jk+1)*zdmfen(jl)
-          zseen = (rcpd*ptenh(jl,jk+1)+pgeoh(jl,jk+1))*zdmfen(jl)
+          zseen = (cpd*ptenh(jl,jk+1)+pgeoh(jl,jk+1))*zdmfen(jl)
           if ( plitot(jl,jk)>rlmin ) then
             zleen = plitot(jl,jk)*zdmfen(jl)
           else
             zleen = d_zero
           end if
-          zscde = (rcpd*ptu(jl,jk+1)+pgeoh(jl,jk+1))*zdmfde(jl)
+          zscde = (cpd*ptu(jl,jk+1)+pgeoh(jl,jk+1))*zdmfde(jl)
           zqude = pqu(jl,jk+1)*zdmfde(jl)
           plude(jl,jk) = plu(jl,jk+1)*zdmfde(jl)
           zmfusk = pmfus(jl,jk+1) + zseen - zscde
@@ -877,7 +877,7 @@ module mod_cu_tiedtke_38r2
           plu(jl,jk) = zmfulk*(d_one/max(rmfcmin,pmfu(jl,jk)))
           pqu(jl,jk) = zmfuqk*(d_one/max(rmfcmin,pmfu(jl,jk)))
           ptu(jl,jk) = (zmfusk * &
-            (d_one/max(rmfcmin,pmfu(jl,jk)))-pgeoh(jl,jk))/rcpd
+            (d_one/max(rmfcmin,pmfu(jl,jk)))-pgeoh(jl,jk))/cpd
           ptu(jl,jk) = max(100.0D0,ptu(jl,jk))
           ptu(jl,jk) = min(400.0D0,ptu(jl,jk))
           zqold(jl) = pqu(jl,jk)
@@ -1019,7 +1019,12 @@ module mod_cu_tiedtke_38r2
               zlcrit = zdnoprc/zcbf
               zdfi = pgeoh(jl,jk) - pgeoh(jl,jk+1)
               zc = (plu(jl,jk)-zluold(jl))
-              zd = zzco*(d_one-exp(-(plu(jl,jk)/zlcrit)**2))*zdfi
+              zarg = (plu(jl,jk)/zlcrit)**2
+              if ( zarg < 25.0D0 ) then
+                zd = zzco*(d_one-exp(-zarg))*zdfi
+              else
+                zd = zzco*zdfi
+              end if
               zint = exp(-zd)
               zlnew = zluold(jl)*zint + zc/zd*(d_one-zint)
               zlnew = max(d_zero,min(plu(jl,jk),zlnew))
@@ -1052,7 +1057,7 @@ module mod_cu_tiedtke_38r2
         do jll = 1 , jlm
           jl = jlx(jll)
           pmful(jl,jk) = plu(jl,jk)*pmfu(jl,jk)
-          pmfus(jl,jk) = (rcpd*ptu(jl,jk)+pgeoh(jl,jk))*pmfu(jl,jk)
+          pmfus(jl,jk) = (cpd*ptu(jl,jk)+pgeoh(jl,jk))*pmfu(jl,jk)
           pmfuq(jl,jk) = pqu(jl,jk)*pmfu(jl,jk)
         end do
       end if
@@ -1876,14 +1881,14 @@ module mod_cu_tiedtke_38r2
         if ( lmfmid .and. pgeo(jl,kk) >  5000.0D0 .and. &
                           pgeo(jl,kk) < 10000.0D0 .and. &
                           pqen(jl,kk) > 0.80D0*pqsen(jl,kk) ) then
-          ptu(jl,kk+1) = (rcpd*pten(jl,kk)+pgeo(jl,kk)-pgeoh(jl,kk+1))/rcpd
+          ptu(jl,kk+1) = (cpd*pten(jl,kk)+pgeo(jl,kk)-pgeoh(jl,kk+1))/cpd
           pqu(jl,kk+1) = pqen(jl,kk)
           plu(jl,kk+1) = d_zero
           zzzmb = max(rmfcmin,-pvervel(jl,kk)/egrav)
           zzzmb = min(zzzmb,rmfcmax)
           pmfub(jl) = zzzmb
           pmfu(jl,kk+1) = pmfub(jl)
-          pmfus(jl,kk+1) = pmfub(jl)*(rcpd*ptu(jl,kk+1)+pgeoh(jl,kk+1))
+          pmfus(jl,kk+1) = pmfub(jl)*(cpd*ptu(jl,kk+1)+pgeoh(jl,kk+1))
           pmfuq(jl,kk+1) = pmfub(jl)*pqu(jl,kk+1)
           pmful(jl,kk+1) = d_zero
           pdmfup(jl,kk+1) = d_zero
@@ -2034,7 +2039,7 @@ module mod_cu_tiedtke_38r2
       !   ----------------------------------------------------
       do jk = 3 , klev - 2
         do jl = kidia , kfdia
-          zhsk = rcpd*pten(jl,jk) + pgeo(jl,jk) + &
+          zhsk = cpd*pten(jl,jk) + pgeo(jl,jk) + &
             foelhmcu(pten(jl,jk))*pqsen(jl,jk)
           if ( zhsk < zhsmin(jl) ) then
             zhsmin(jl) = zhsk
@@ -2082,7 +2087,7 @@ module mod_cu_tiedtke_38r2
               ptd(jl,jk) = zttest
               pqd(jl,jk) = zqtest
               pmfd(jl,jk) = zmftop
-              pmfds(jl,jk) = pmfd(jl,jk)*(rcpd*ptd(jl,jk)+pgeoh(jl,jk))
+              pmfds(jl,jk) = pmfd(jl,jk)*(cpd*ptd(jl,jk)+pgeoh(jl,jk))
               pmfdq(jl,jk) = pmfd(jl,jk)*pqd(jl,jk)
               pdmfdp(jl,jk-1) = -d_half*pmfd(jl,jk)*zcond(jl)
               prfl(jl) = prfl(jl) + pdmfdp(jl,jk-1)
@@ -2251,15 +2256,15 @@ module mod_cu_tiedtke_38r2
       do jl = kidia , kfdia
         if ( llo2(jl) ) then
           pmfd(jl,jk) = pmfd(jl,jk-1) + zdmfen(jl) - zdmfde(jl)
-          zseen = (rcpd*ptenh(jl,jk-1)+pgeoh(jl,jk-1))*zdmfen(jl)
+          zseen = (cpd*ptenh(jl,jk-1)+pgeoh(jl,jk-1))*zdmfen(jl)
           zqeen = pqenh(jl,jk-1)*zdmfen(jl)
-          zsdde = (rcpd*ptd(jl,jk-1)+pgeoh(jl,jk-1))*zdmfde(jl)
+          zsdde = (cpd*ptd(jl,jk-1)+pgeoh(jl,jk-1))*zdmfde(jl)
           zqdde = pqd(jl,jk-1)*zdmfde(jl)
           zmfdsk = pmfds(jl,jk-1) + zseen - zsdde
           zmfdqk = pmfdq(jl,jk-1) + zqeen - zqdde
           pqd(jl,jk) = zmfdqk*(d_one/min(-rmfcmin,pmfd(jl,jk)))
           ptd(jl,jk) = (zmfdsk*(d_one / &
-            min(-rmfcmin,pmfd(jl,jk)))-pgeoh(jl,jk))/rcpd
+            min(-rmfcmin,pmfd(jl,jk)))-pgeoh(jl,jk))/cpd
           ptd(jl,jk) = min(400.0D0,ptd(jl,jk))
           ptd(jl,jk) = max(100.0D0,ptd(jl,jk))
           zcond(jl) = pqd(jl,jk)
@@ -2281,7 +2286,7 @@ module mod_cu_tiedtke_38r2
             pmfd(jl,jk) = d_zero
             zbuo = d_zero
           end if
-          pmfds(jl,jk) = (rcpd*ptd(jl,jk)+pgeoh(jl,jk))*pmfd(jl,jk)
+          pmfds(jl,jk) = (cpd*ptd(jl,jk)+pgeoh(jl,jk))*pmfd(jl,jk)
           pmfdq(jl,jk) = pqd(jl,jk)*pmfd(jl,jk)
           zdmfdp = -pmfd(jl,jk)*zcond(jl)
           pdmfdp(jl,jk-1) = zdmfdp
@@ -2407,14 +2412,14 @@ module mod_cu_tiedtke_38r2
     ztmst = ptsphy
     zcons1 = ztpfac1*ztmst*egrav**2/(d_half*rgas)
     zcons2 = d_one/ztmst
-    zcons3 = ztmst*rcpd
+    zcons3 = ztmst*cpd
     ilevh = klev/2
     !----------------------------------------------------------------------
     !*    3.           PRELIMINARY COMPUTATIONS.
     ! ------------------------
     do jk = 1 , klev
       do jl = kidia , kfdia
-        zcptgz(jl,jk) = pgeo(jl,jk) + pten(jl,jk)*rcpd
+        zcptgz(jl,jk) = pgeo(jl,jk) + pten(jl,jk)*cpd
         zcf(jl,jk) = d_zero
         ilab(jl,jk) = 0
       end do
@@ -2443,7 +2448,7 @@ module mod_cu_tiedtke_38r2
       end do
       do jl = kidia , kfdia
         if ( llbl(jl) ) then
-          ztc(jl,jk) = (ztc(jl,jk+1)*rcpd+pgeo(jl,jk+1)-pgeo(jl,jk))/rcpd
+          ztc(jl,jk) = (ztc(jl,jk+1)*cpd+pgeo(jl,jk+1)-pgeo(jl,jk))/cpd
           zqc(jl,jk) = zqc(jl,jk+1)
           if ( ilab(jl,jk+1) > 0 ) then
             llflag(jl) = .true.
@@ -2723,11 +2728,11 @@ module mod_cu_tiedtke_38r2
             ! compute interpolating coefficients ZGS and ZGQ
             ! for half-level values
             zgq = (pqenh(jl,jk)-pqen(jl,ik))/pqsen(jl,jk)
-            zgh = rcpd*pten(jl,jk) + pgeo(jl,jk)
-            zgs = (rcpd*(ptenh(jl,jk)-pten(jl,ik)) + &
+            zgh = cpd*pten(jl,jk) + pgeo(jl,jk)
+            zgs = (cpd*(ptenh(jl,jk)-pten(jl,ik)) + &
               pgeoh(jl,jk)-pgeo(jl,ik))/zgh
             !half-level environmental values for S and Q
-            zs = rcpd*(zimp*pten(jl,ik)+zgs*pten(jl,jk)) + &
+            zs = cpd*(zimp*pten(jl,ik)+zgs*pten(jl,jk)) + &
               pgeo(jl,ik) + zgs*pgeo(jl,jk)
             zq = zimp*pqen(jl,ik) + zgq*pqsen(jl,jk)
             zmfus(jl,jk) = pmfus(jl,jk) - pmfu(jl,jk)*zs
@@ -2777,7 +2782,7 @@ module mod_cu_tiedtke_38r2
           if ( ldcum(jl) ) then
             ptent(jl,jk) = ptent(jl,jk) + zdtdt(jl,jk)
             ptenq(jl,jk) = ptenq(jl,jk) + zdqdt(jl,jk)
-            penth(jl,jk) = zdtdt(jl,jk)*rcpd
+            penth(jl,jk) = zdtdt(jl,jk)*cpd
           end if
         end do
       end do
@@ -2956,7 +2961,7 @@ module mod_cu_tiedtke_38r2
                  zdrfl1 , zfac , zpdr , zpds , zrfl , zrfln , zrmin ,  &
                  zrnew , zsnmlt , ztmst , zzp
     ztmst = ptsphy
-    zcons1a = rcpd/(wlhf*egrav*rtaumel)
+    zcons1a = cpd/(wlhf*egrav*rtaumel)
     zcons2 = rmfcfl/(egrav*ztmst)
     !*    1.0          DETERMINE FINAL CONVECTIVE FLUXES
     ! ---------------------------------
@@ -2983,13 +2988,13 @@ module mod_cu_tiedtke_38r2
         pdpmel(jl,jk) = d_zero
         if ( ldcum(jl) .and. jk >= kctop(jl) ) then
           pmfus(jl,jk) = pmfus(jl,jk) - &
-            pmfu(jl,jk)*(rcpd*ptenh(jl,jk)+pgeoh(jl,jk))
+            pmfu(jl,jk)*(cpd*ptenh(jl,jk)+pgeoh(jl,jk))
           pmfuq(jl,jk) = pmfuq(jl,jk) - pmfu(jl,jk)*pqenh(jl,jk)
           plglac(jl,jk) = pmfu(jl,jk)*plglac(jl,jk)
           llddraf = lddraf(jl) .and. jk >= kdtop(jl)
           if ( llddraf ) then
             pmfds(jl,jk) = pmfds(jl,jk) - &
-              pmfd(jl,jk)*(rcpd*ptenh(jl,jk)+pgeoh(jl,jk))
+              pmfd(jl,jk)*(cpd*ptenh(jl,jk)+pgeoh(jl,jk))
             pmfdq(jl,jk) = pmfdq(jl,jk) - pmfd(jl,jk)*pqenh(jl,jk)
           else
             pmfd(jl,jk) = d_zero
@@ -3331,9 +3336,9 @@ module mod_cu_tiedtke_38r2
     do jk = 1 , klev
       do jl = kidia , kfdia
         zwu2h(jl,jk) = d_zero
-        zs(jl,jk) = rcpd*pten(jl,jk) + pgeo(jl,jk)
+        zs(jl,jk) = cpd*pten(jl,jk) + pgeo(jl,jk)
         zqenh(jl,jk) = pqenh(jl,jk)
-        zsenh(jl,jk) = rcpd*ptenh(jl,jk) + pgeoh(jl,jk)
+        zsenh(jl,jk) = cpd*ptenh(jl,jk) + pgeoh(jl,jk)
       end do
     end do
     do jkk = klev , jkt1 , -1
@@ -3379,10 +3384,10 @@ module mod_cu_tiedtke_38r2
               if ( zkhvfl < d_zero ) then
                 zws = 1.2D0*zws**.3333D0
                 ilab(jl,jkk) = 1
-                ztexc = max(-1.5D0*pahfs(jl,jkk+1)/(zrho*zws*rcpd),d_zero)
+                ztexc = max(-1.5D0*pahfs(jl,jkk+1)/(zrho*zws*cpd),d_zero)
                 zqexc = max(-1.5D0*pqhfl(jl,jkk+1)/(zrho*zws),d_zero)
                 zqu(jl,jkk) = zqenh(jl,jkk) + zqexc
-                zsuh(jl,jkk) = zsenh(jl,jkk) + rcpd*ztexc
+                zsuh(jl,jkk) = zsenh(jl,jkk) + cpd*ztexc
                 ztu(jl,jkk) = (zsenh(jl,jkk)-pgeoh(jl,jkk))*rcpd + ztexc
                 zlu(jl,jkk) = d_zero
                 zwu2h(jl,jkk) = zws**2
@@ -3407,7 +3412,7 @@ module mod_cu_tiedtke_38r2
               ztexc = 0.2D0
               zqexc = 1.D-4
               zqu(jl,jkk) = zqenh(jl,jkk) + zqexc
-              zsuh(jl,jkk) = zsenh(jl,jkk) + rcpd*ztexc
+              zsuh(jl,jkk) = zsenh(jl,jkk) + cpd*ztexc
               ztu(jl,jkk) = (zsenh(jl,jkk)-pgeoh(jl,jkk))*rcpd + ztexc
               zlu(jl,jkk) = d_zero
               ! construct mixed layer for parcels emanating in lowest 60 hPa
@@ -3424,7 +3429,7 @@ module mod_cu_tiedtke_38r2
                   end if
                 end do
                 zqu(jl,jkk) = zqu(jl,jkk)/zwork1 + zqexc
-                zsuh(jl,jkk) = zsuh(jl,jkk)/zwork1 + rcpd*ztexc
+                zsuh(jl,jkk) = zsuh(jl,jkk)/zwork1 + cpd*ztexc
                 ztu(jl,jkk) = (zsuh(jl,jkk)-pgeoh(jl,jkk))*rcpd + ztexc
               end if
               zwu2h(jl,jkk) = d_one
@@ -3512,7 +3517,7 @@ module mod_cu_tiedtke_38r2
               zlu(jl,jk) = d_half*zlu(jl,jk)
             end if
             ! update dry static energy after condensation + freezing
-            zsuh(jl,jk) = rcpd*(ztu(jl,jk)+wlhfocp*zlglac) + pgeoh(jl,jk)
+            zsuh(jl,jk) = cpd*(ztu(jl,jk)+wlhfocp*zlglac) + pgeoh(jl,jk)
             ! Buoyancy on half and full levels
             ztvuh = (d_one+retv*zqu(jl,jk)-zlu(jl,jk))*ztu(jl,jk) + &
                     wlhfocp*zlglac
@@ -3551,7 +3556,7 @@ module mod_cu_tiedtke_38r2
               zesdp = foeewm(ztu(jl,ik))/paph(jl,ik)
               zcor = d_one/(d_one-retv*zesdp)
               zdqsdt = zfac*zcor*zqsu
-              zdtdp = rgas*ztu(jl,ik)/(rcpd*paph(jl,ik))
+              zdtdp = rgas*ztu(jl,ik)/(cpd*paph(jl,ik))
               zdp = zdq/(zdqsdt*zdtdp)
               zcbase(jl) = paph(jl,ik) + zdp
               ! chose nearest half level as cloud base
@@ -4324,7 +4329,7 @@ module mod_cu_tiedtke_38r2
                     (paph(jl,jk+1)-paph(jl,jk))
         if ( ldcum(jl) .and. jk >= kcbot(jl) ) then
           zdhpbl(jl) = zdhpbl(jl) + &
-            (wlhv*ptenq(jl,jk)+rcpd*ptent(jl,jk))*(paph(jl,jk+1)-paph(jl,jk))
+            (wlhv*ptenq(jl,jk)+cpd*ptent(jl,jk))*(paph(jl,jk+1)-paph(jl,jk))
         end if
       end do
     end do
@@ -4389,7 +4394,7 @@ module mod_cu_tiedtke_38r2
           !       shallow convection
           zqumqe = pqu(jl,ikb) + plu(jl,ikb) - zqenh(jl,ikb)
           zdqmin = max(0.01D0*zqenh(jl,ikb),1.D-10)
-          zdh = rcpd*(ptu(jl,ikb)-ztenh(jl,ikb)) + wlhv*zqumqe
+          zdh = cpd*(ptu(jl,ikb)-ztenh(jl,ikb)) + wlhv*zqumqe
           zdh = egrav*max(zdh,1.D5*zdqmin)
           if ( zdhpbl(jl) > d_zero ) then
             zmfub(jl) = zdhpbl(jl)/zdh
@@ -4424,12 +4429,12 @@ module mod_cu_tiedtke_38r2
     ! THE TYPE OF CONVECTION
     !*             (B) DO ASCENT IN 'CUASC'IN ABSENCE OF DOWNDRAFTS
     ! --------------------------------------------
-        call cuascn(kidia,kfdia,klon,klev,ptsphy,ztenh,zqenh,pten,  &
-                    pqen,pqsen,plitot,pgeo,pgeoh,pap,paph,pvervel,  &
-                    zwubase,ldland,ldcum,ktype,ilab,ptu,pqu,plu,    &
-                    pmfu,zmfub,zlglac,zmfus,zmfuq,zmful,plude,      &
-                    zdmfup,zdmfen,kcbot,kctop,ictop0,idpl,          &
-                    pmfude_rate,zkineu,pwmean)
+    call cuascn(kidia,kfdia,klon,klev,ptsphy,ztenh,zqenh,pten,  &
+                pqen,pqsen,plitot,pgeo,pgeoh,pap,paph,pvervel,  &
+                zwubase,ldland,ldcum,ktype,ilab,ptu,pqu,plu,    &
+                pmfu,zmfub,zlglac,zmfus,zmfuq,zmful,plude,      &
+                zdmfup,zdmfen,kcbot,kctop,ictop0,idpl,          &
+                pmfude_rate,zkineu,pwmean)
     !*         (C) CHECK CLOUD DEPTH AND CHANGE ENTRAINMENT RATE ACCORDINGLY
     ! CALCULATE PRECIPITATION RATE (FOR DOWNDRAFT CALCULATION)
     ! -----------------------------------------------------
@@ -4547,7 +4552,7 @@ module mod_cu_tiedtke_38r2
         zmfmax = (paph(jl,ikb)-paph(jl,ikb-1))*zcons2*rmflic + rmflia
         !     shallow convection
         if ( ktype(jl) == 2 ) then
-          zdh = rcpd*(ptu(jl,ikb)-zeps*ztd(jl,ikb) - &
+          zdh = cpd*(ptu(jl,ikb)-zeps*ztd(jl,ikb) - &
             (d_one-zeps)*ztenh(jl,ikb)) + wlhv*zqumqe
           zdh = egrav*max(zdh,1.0D5*zdqmin)
           if ( zdhpbl(jl) > d_zero ) then
@@ -4792,19 +4797,19 @@ module mod_cu_tiedtke_38r2
               zmfa = d_one/max(1.D-15,pmfu(jl,jk))
               pqu(jl,jk) = zqenh(jl,jk) + zmfuq(jl,jk)*zmfa
               ptu(jl,jk) = ztenh(jl,jk) + zmfus(jl,jk)*zmfa*rcpd
-              zmfus(jl,jk) = pmfu(jl,jk)*(rcpd*ptu(jl,jk)+pgeoh(jl,jk))
+              zmfus(jl,jk) = pmfu(jl,jk)*(cpd*ptu(jl,jk)+pgeoh(jl,jk))
               zmfuq(jl,jk) = pmfu(jl,jk)*pqu(jl,jk)
               if ( llddraf(jl) ) then
                 zmfa = d_one/min(-1.D-15,pmfd(jl,jk))
                 zqd(jl,jk) = zqenh(jl,jk) + zmfdq(jl,jk)*zmfa
                 ztd(jl,jk) = ztenh(jl,jk) + zmfds(jl,jk)*zmfa*rcpd
                 zmfdq(jl,jk) = pmfd(jl,jk)*zqd(jl,jk)
-                zmfds(jl,jk) = pmfd(jl,jk)*(rcpd*ztd(jl,jk)+pgeoh(jl,jk))
+                zmfds(jl,jk) = pmfd(jl,jk)*(cpd*ztd(jl,jk)+pgeoh(jl,jk))
               end if
             else if ( jk <= kcbot(jl) .and. jk >= kctop(jl) ) then
-              zmfus(jl,jk) = pmfu(jl,jk)*(rcpd*ptu(jl,jk)+pgeoh(jl,jk))
+              zmfus(jl,jk) = pmfu(jl,jk)*(cpd*ptu(jl,jk)+pgeoh(jl,jk))
               zmfuq(jl,jk) = pmfu(jl,jk)*pqu(jl,jk)
-              zmfds(jl,jk) = pmfd(jl,jk)*(rcpd*ztd(jl,jk)+pgeoh(jl,jk))
+              zmfds(jl,jk) = pmfd(jl,jk)*(cpd*ztd(jl,jk)+pgeoh(jl,jk))
               zmfdq(jl,jk) = pmfd(jl,jk)*zqd(jl,jk)
             end if
           end if
@@ -5108,7 +5113,7 @@ module mod_cu_tiedtke_38r2
               (ptenq(jl,jk)-ztenq(jl,jk))*zdz + plude(jl,jk)
             zalv = foelhmcu(pten(jl,jk))
             zsumc(jl,2) = zsumc(jl,2) + &
-              rcpd*(ptent(jl,jk)-ztent(jl,jk))*zdz - zalv*plude(jl,jk)
+              cpd*(ptent(jl,jk)-ztent(jl,jk))*zdz - zalv*plude(jl,jk)
             zsumc(jl,3) = zsumc(jl,3) + (ptenu(jl,jk)-ztenu(jl,jk))*zdz
             zsumc(jl,4) = zsumc(jl,4) + (ptenv(jl,jk)-ztenv(jl,jk))*zdz
           end if
@@ -5145,7 +5150,7 @@ module mod_cu_tiedtke_38r2
           ikb = kctop(jl)
           zdz = (paph(jl,klev+1)-paph(jl,ikb-1))/egrav
           zsumc(jl,1) = (zsumc(jl,1)+zsfl(jl))/zdz
-          zsumc(jl,2) = (zsumc(jl,2)-zalv*zsfl(jl))/(zdz*rcpd)
+          zsumc(jl,2) = (zsumc(jl,2)-zalv*zsfl(jl))/(zdz*cpd)
         end if
       end do
       deallocate (zsumc)
