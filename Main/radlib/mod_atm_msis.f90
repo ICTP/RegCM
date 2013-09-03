@@ -85,7 +85,6 @@ module physics_msis
   real(rk8) :: gb , rout , tinf
   real(rk8) , dimension(15) :: t
   ! Gas constant in J/K/mol
-  real(rk8) , parameter :: rgasmol = boltzk*navgdr
   real(rk8) , parameter :: r100gas = rgasmol*d_100
   real(rk8) , parameter :: nearzero = 0.000001D0
   real(rk8) , parameter :: dr = 1.72142D-2

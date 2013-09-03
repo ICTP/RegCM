@@ -74,36 +74,54 @@ module mod_constants
   ! Standard Gravity (m/sec**2) 3rd CGPM
   real(rk8) , parameter :: egrav = 9.80665D+00
 
+  real(rk8) , parameter :: speedoflight = 299792458.0D+00
+  real(rk8) , parameter :: plankconstant = 6.62607550D-34
+  ! Stefan-Boltzmann  constant CODATA 2007
+  real(rk8) , parameter :: sigm = 5.670400D-08
+  ! Boltzman Constant k CODATA 2007
+  real(rk8) , parameter :: boltzk = 1.3806504D-23
+  ! Avogadro Constant
+  real(rk8) , parameter :: navgdr = 6.02214129D23
+  ! Effective molecular weight of dry air (g/mol)
+  real(rk8) , parameter :: amd = 28.9644D+00
+  ! Effective molecular weight of water (g/mol)
+  real(rk8) , parameter :: amw = 18.0153D+00
+  ! Effective molecular weight of ozone (g/mol)
+  real(rk8) , parameter :: amo = 47.9942D+00
+  ! Effective molecular weight of carbon dioxide (g/mol)
+  real(rk8) , parameter :: amco2 = 44.01D+00
+
+  real(rk8) , parameter :: rgasmol = navgdr*boltzk
   ! Gas constant for dry air in Joules/kg/K
-  real(rk8) , parameter :: rgas = 287.0058D+00
+  real(rk8) , parameter :: rgas = (rgasmol/amd)*1000.0D+00
   ! Gas constant for water vapor in Joules/kg/K
-  real(rk8) , parameter :: rwat = 461.90D+00
+  real(rk8) , parameter :: rwat = (rgasmol/amw)*1000.0D+00
   ! Ratio of the two above
   real(rk8) , parameter :: rgow = rgas/rwat
   ! Reverse of the above
   real(rk8) , parameter :: rgowi = rwat/rgas
   ! Helper value to ease calculations
-  real(rk8) , parameter :: retv = rwat/rgas - 1.0D0
+  real(rk8) , parameter :: retv = rwat/rgas - d_one
 
   ! Specific heat at constant pressure for dry air J/kg/K
-  real(rk8) , parameter :: cpd = 1005.46D+00
+  real(rk8) , parameter :: cpd = 3.5D+00*rgas
   ! Specific heat at constant pressure for moist air J/kg/K
-  real(rk8) , parameter :: cpv = 1869.46D+00
+  real(rk8) , parameter :: cpv = 4.0D+00*rwat
   ! Specific heat of water at 15 Celsius J/kg/K
   real(rk8) , parameter :: cpw = 4186.95D+00
   ! Specific heat of water at 0 Celsius J/kg/K
   real(rk8) , parameter :: cpw0 = 4218.0D+00
 
   ! Specific heats per m**3  (joules/m**3/k)
-  real(rk8) , parameter :: ch2o = 4.186D+06
+  real(rk8) , parameter :: ch2o = 4.18695D+06
   real(rk8) , parameter :: cice = 0.45D+00*ch2o
   real(rk8) , parameter :: cwi = d_one/0.45D+00
   real(rk8) , parameter :: csnw = 0.49D+00*ch2o
   real(rk8) , parameter :: cws = d_one/0.49D+00
 
   ! Latent heats (Joules/kg)
-  real(rk8) , parameter :: wlhf = 0.3336D+06
-  real(rk8) , parameter :: wlhv = 2.51040D+06
+  real(rk8) , parameter :: wlhf = 0.3337D+06
+  real(rk8) , parameter :: wlhv = 2.50080D+06
   real(rk8) , parameter :: wlhs = wlhv + wlhf
 
   ! Various utility terms used in calculations
@@ -154,15 +172,6 @@ module mod_constants
   real(rk8) , parameter :: lrate = 0.00649D+00 ! K/m from MSL up to 11 km
   real(rk8) , parameter :: bltop = 0.960D+00
  
-  ! Stefan-Boltzmann  constant CODATA 2007
-  real(rk8) , parameter :: sigm = 5.670400D-08
-  ! Boltzman Constant k CODATA 2007
-  real(rk8) , parameter :: boltzk = 1.3806504D-23
-  ! Avogadro Constant
-  real(rk8) , parameter :: navgdr = 6.02214084D23
-  ! Same in lit/cm3
-  real(rk8) , parameter :: avogadrl = navgdr*d_1000
-
   ! Atmos. surface pressure mol/cm3
   real(rk8) , parameter :: atmos = 2.247D19
   ! Conversion parameter for Henry L-atm/mol-K
@@ -292,14 +301,10 @@ module mod_constants
   real(rk8) , parameter :: rsslp = d_one/sslp
   real(rk8) , parameter :: stebol = sigm*d_1000
   real(rk8) , parameter :: rgsslp = d_half/(egravgts*sslp)
-  ! Effective molecular weight of dry air (g/mol)
-  real(rk8) , parameter :: amd = 28.9644D+00
   ! Effective molecular weight of dry air (kg/mol)
   real(rk8) , parameter :: amdk = amd*d_r1000
-  ! Molecular weight of ozone (g/mol)
-  real(rk8) , parameter :: amo = 48.0D+00
-  ! Molecular weight of co2 (g/mol)
-  real(rk8) , parameter :: amco2 = 44.0D+00
+  ! Avogadro Constant in lit/cm3
+  real(rk8) , parameter :: avogadrl = navgdr*d_1000
 
   ! Radiation constants
   real(rk8) , parameter :: dpfco2 = 5.0D-03
