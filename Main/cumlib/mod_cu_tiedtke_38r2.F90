@@ -54,6 +54,7 @@ module mod_cu_tiedtke_38r2
   real(rk8) , parameter :: zqmax = 0.5D0
   real(rk8) , parameter :: rlmin = 1.0D-8
   real(rk8) , parameter :: rkap = 0.4D0
+  real(rk8) , parameter :: ratm = 100000.0D0
 
   logical , public :: lmfmid = .true.   ! True if midlevel convection is on
   logical , public :: lmfdd = .true.    ! True if cumulus downdraft is on
@@ -168,39 +169,34 @@ module mod_cu_tiedtke_38r2
     real(rk8) , dimension(klon,klev) , intent(in) :: pq
     real(rk8) , dimension(klon) , intent(out) :: pcape
     real(rk8) , dimension(klon) , intent(out) :: pcin
-
     integer(ik4) :: jl , jk , jkk
-    ! integer(ik4) , dimension(klon) :: jdep
     real(rk8) , dimension(klon) :: zpmix , ztmix , zthmix , zqmix , ztheteu
+    real(rk8) , dimension(klon,klev) :: zcape , zcin , zthetad
     real(rk8) , dimension(klon) :: zcin2
-    real(rk8) , dimension(klon,klev) :: zcape , zcin
     real(rk8) :: zdp , zthetes , zqs , zdz , ztemp , zrpap
-    real(rk8) , dimension(klon,klev) :: zthetad
-    logical , dimension(klon,klev) :: llpap
     logical , dimension(klon) :: llz
-
-    !----------------------------------------------------------------------
-
+    logical , dimension(klon,klev) :: llpap
+    !------------------------
     do jl = kidia , kfdia
       pcape(jl) = d_zero
       pcin(jl) = d_zero
       zcin2(jl) = -1000.0D0
     end do
-    do jk = klev-1 , njkt2,-1
+    do jk = klev - 1 , njkt2 , -1
       do jl = kidia , kfdia
-        llpap(jl,jk) = ( pap(jl,jk)>80.D2 )
+        llpap(jl,jk) = (pap(jl,jk) > 80.D2)
         if ( llpap(jl,jk) ) then
           zrpap = d_one/pap(jl,jk)
           zqs = foeewm(pt(jl,jk))*zrpap
           zqs = max(1.D-8,zqs)
-          zqs = zqs/(d_one-retv*zqs) ! small correction
-          zthetes = pt(jl,jk)*(stdp*zrpap)**rovcp * &
-                    exp( foeldcp(pt(jl,jk))*zqs/pt(jl,jk) ) 
+          zqs = zqs/(d_one-retv*zqs)   ! small correction
+          zthetes = pt(jl,jk)*(ratm*zrpap)**rovcp * &
+            exp(foeldcp(pt(jl,jk))*zqs/pt(jl,jk))
           zthetad(jl,jk) = d_one/zthetes
         end if
       end do
     end do
-    do jkk = klev-1 , njkt1 , -1
+    do jkk = klev - 1 , njkt1 , -1
       do jl = kidia , kfdia
         zcape(jl,jkk) = d_zero
         zcin(jl,jkk) = d_zero
@@ -209,24 +205,24 @@ module mod_cu_tiedtke_38r2
           zthmix(jl) = d_zero
           zqmix(jl) = d_zero
           zpmix(jl) = d_zero
-          do jk = jkk+1 , jkk-1 , -1
+          do jk = jkk + 1 , jkk - 1 , -1
             if ( zpmix(jl) < 30.D2 ) then
-              zdp = paph(jl,jk+1)-paph(jl,jk)
-              zpmix(jl) = zpmix(jl)+zdp
-              zthmix(jl) = zthmix(jl)+pt(jl,jk)*zdp*(stdp/pap(jl,jk))**rovcp
-              zqmix(jl) = zqmix(jl)+pq(jl,jk)*zdp
+              zdp = paph(jl,jk+1) - paph(jl,jk)
+              zpmix(jl) = zpmix(jl) + zdp
+              zthmix(jl) = zthmix(jl) + pt(jl,jk)*zdp*(ratm/pap(jl,jk))**rovcp
+              zqmix(jl) = zqmix(jl) + pq(jl,jk)*zdp
             end if
           end do
           zdp = d_one/zpmix(jl)
           zqmix(jl) = zqmix(jl)*zdp
-          zpmix(jl) = paph(jl,jkk+2) - 0.5D0*zpmix(jl)
+          zpmix(jl) = paph(jl,jkk+2) - d_half*zpmix(jl)
           zthmix(jl) = zthmix(jl)*zdp
-          ztmix(jl) = zthmix(jl)*(zpmix(jl)/stdp)**rovcp
+          ztmix(jl) = zthmix(jl)*(zpmix(jl)/ratm)**rovcp
         else
           zqmix(jl) = pq(jl,jkk)
           zpmix(jl) = pap(jl,jkk)
           ztmix(jl) = pt(jl,jkk)
-          zthmix(jl) = pt(jl,jkk)*(stdp/zpmix(jl))**rovcp
+          zthmix(jl) = pt(jl,jkk)*(ratm/zpmix(jl))**rovcp
         end if
         ztheteu(jl) = zthmix(jl)*exp(foeldcp(ztmix(jl))*zqmix(jl)/ztmix(jl))
         llz(jl) = (paph(jl,klev+1)-paph(jl,jkk)) < 350.D2
@@ -235,34 +231,27 @@ module mod_cu_tiedtke_38r2
         do jl = kidia , kfdia
           if ( llpap(jl,jk) .and. llz(jl) ) then
             zrpap = d_one/pap(jl,jk)
-            ztemp = ztheteu(jl)*zthetad(jl,jk)-d_one
-            zdz = (paph(jl,jk+1)-paph(jl,jk))*zrpap*rgas*pt(jl,jk) * &
-                  (d_one+retv*pq(jl,jk))
+            ztemp = ztheteu(jl)*zthetad(jl,jk) - d_one
+            zdz = (paph(jl,jk+1)-paph(jl,jk))*zrpap * &
+              rgas*pt(jl,jk)*(d_one+retv*pq(jl,jk))
             if ( ztemp > d_zero ) then
-              zcape(jl,jkk) = zcape(jl,jkk)+ztemp*zdz
+              zcape(jl,jkk) = zcape(jl,jkk) + ztemp*zdz
             else if ( ztemp < d_zero .and. zcape(jl,jkk) < 100.D0 ) then
-              zcin(jl,jkk) = zcin(jl,jkk)+ztemp*zdz
+              zcin(jl,jkk) = zcin(jl,jkk) + ztemp*zdz
             end if
           end if
         end do
       end do
     end do
-    ! chose maximum cape and cin values
-    ! jdep(:) = klev-1
-    do jk = klev-1 , njkt1 , -1
+    ! chose maximum CAPE and CIN values
+    do jk = klev - 1 , njkt1 , -1
       do jl = kidia , kfdia
-        if ( zcape(jl,jk) > pcape(jl) ) then
-          pcape(jl) = zcape(jl,jk)
-          ! jdep(jl) = jk
-        end if
-        if ( zcin(jl,jk) > zcin2(jl) .and. zcin(jl,jk) < d_zero ) then
-          zcin2(jl) = zcin(jl,jk)
-        end if
+        if ( zcape(jl,jk) > pcape(jl) ) pcape(jl) = zcape(jl,jk)
+        if ( zcin(jl,jk) > zcin2(jl) .and. &
+             zcin(jl,jk) < d_zero ) zcin2(jl) = zcin(jl,jk)
       end do
     end do
     do jl = kidia , kfdia
-      ! jkk = jdep(jl)
-      ! pcin(jl) = -zcin(jl,jkk)
       pcin(jl) = -zcin2(jl)
     end do
   end subroutine cuancape2
