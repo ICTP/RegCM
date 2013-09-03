@@ -448,8 +448,8 @@ module mod_cu_tiedtke_38r2
     zalfa = log(d_two)
     do jk = 2 , klev
       do jl = kidia , kfdia
-        ptenh(jl,jk) = (max(rcpd*pten(jl,jk-1) + &
-          pgeo(jl,jk-1),rcpd*pten(jl,jk)+pgeo(jl,jk))-pgeoh(jl,jk))*rcpd
+        ptenh(jl,jk) = (max(cpd*pten(jl,jk-1) + &
+          pgeo(jl,jk-1),cpd*pten(jl,jk)+pgeo(jl,jk))-pgeoh(jl,jk))*rcpd
         pqenh(jl,jk) = pqen(jl,jk-1)
         pqsenh(jl,jk) = pqsen(jl,jk-1)
         zph(jl) = paph(jl,jk)
@@ -466,7 +466,7 @@ module mod_cu_tiedtke_38r2
       end do
     end do
     do jl = kidia , kfdia
-      ptenh(jl,klev) = (rcpd*pten(jl,klev)+pgeo(jl,klev)-pgeoh(jl,klev))*rcpd
+      ptenh(jl,klev) = (cpd*pten(jl,klev)+pgeo(jl,klev)-pgeoh(jl,klev))*rcpd
       pqenh(jl,klev) = pqen(jl,klev)
       ptenh(jl,1) = pten(jl,1)
       pqenh(jl,1) = pqen(jl,1)
@@ -475,8 +475,8 @@ module mod_cu_tiedtke_38r2
     end do
     do jk = klev - 1 , 2 , -1
       do jl = kidia , kfdia
-        zzs = max(rcpd*ptenh(jl,jk)+pgeoh(jl,jk), &
-                  rcpd*ptenh(jl,jk+1)+pgeoh(jl,jk+1))
+        zzs = max(cpd*ptenh(jl,jk)+pgeoh(jl,jk), &
+                  cpd*ptenh(jl,jk+1)+pgeoh(jl,jk+1))
         ptenh(jl,jk) = (zzs-pgeoh(jl,jk))*rcpd
       end do
     end do
@@ -1136,7 +1136,6 @@ module mod_cu_tiedtke_38r2
     logical , dimension(klon) , intent(in) :: ldflag
     integer(ik4) , intent(in) :: kcall
     integer(ik4) :: jl , jlen
-
     real(rk8) , dimension(kfdia-kidia+1) :: ztmp0
     real(rk8) , dimension(kfdia-kidia+1) :: ztmp1
     real(rk8) , dimension(kfdia-kidia+1) :: ztmp2
@@ -1144,22 +1143,15 @@ module mod_cu_tiedtke_38r2
     real(rk8) , dimension(kfdia-kidia+1) :: ztmp4
     real(rk8) , dimension(kfdia-kidia+1) :: ztmp5
     real(rk8) , dimension(kfdia-kidia+1) :: ztmp6
-
     real(rk8) :: zcond , zcond1 , zcor , zqmax , zqsat , zqp
     real(rk8) :: zl , zi , zf
-
     !----------------------------------------------------------------------
     ! 1.           DEFINE CONSTANTS
     ! ----------------
-
     if ( n_vmass > 0 ) jlen = kfdia - kidia + 1
-
     zqmax = d_half
-
     !   2.           CALCULATE CONDENSATION AND ADJUST T AND Q ACCORDINGLY
     !   -----------------------------------------------------
-
-
     if ( kcall == 1 ) then
 !DIR$ IVDEP
 !OCL  NOVREC
@@ -1333,7 +1325,8 @@ module mod_cu_tiedtke_38r2
         end do
       end if
     else if ( kcall == 3 ) then
-!DIR$ IVDEP !OCL NOVREC
+!DIR$ IVDEP
+!OCL NOVREC
       if ( n_vmass <= 0 ) then ! Not using Vector MASS
         do jl = kidia , kfdia
           zqp = d_one/psp(jl)
@@ -5269,8 +5262,8 @@ module mod_cu_tiedtke_38r2
   real(rk8) function foeewmcu(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
-    foeewmcu = c2es*(foealfcu(ptare)*exp(c3les*(ptare-tzero)/(ptare-c4les))+ &
-            (d_one-foealfcu(ptare))*exp(c3ies*(ptare-tzero)/(ptare-c4ies)))
+    foeewmcu = c2es*(foealfcu(ptare)*exp(c3les*(ptare-tzero)/(ptare-c4les)) + &
+             (d_one-foealfcu(ptare))*exp(c3ies*(ptare-tzero)/(ptare-c4ies)))
   end function foeewmcu
   real(rk8) function foedemcu(ptare)
     implicit none
