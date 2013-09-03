@@ -14,7 +14,7 @@ module mod_cu_tiedtke_38r2
   real(rk8) , parameter :: rlpal2 = 20.0D0  ! Smoothing coefficient
   real(rk8) , parameter :: rcucov = 0.05D0  ! Convective cloud cover for rain
                                             ! evporation
-  real(rk8) , parameter :: rcpecons = 5.44D-4/rgas
+  real(rk8) , parameter :: rcpecons = 5.44D-4/egrav
                                           ! Coefficient for rain evaporation
                                           ! below cloud
   real(rk8) :: rtau
@@ -32,7 +32,7 @@ module mod_cu_tiedtke_38r2
   real(rk8) , parameter :: rmfsolct = 1.0D0 ! Mass flux solver for chem tracers
   real(rk8) , parameter :: ruvper = 0.3D0 ! Updraught velocity perturbation for
                                           ! implicit (m/s)
-  real(rk8) , parameter :: rprcon = 1.4D03 ! coefficients for determining
+  real(rk8) , parameter :: rprcon = 1.4D-3 ! coefficients for determining
                                            ! conversion from cloud water
   real(rk8) , parameter :: detrpen = 0.75D-4 ! Detrainment rate for penetrative
                                              ! convection
@@ -47,7 +47,7 @@ module mod_cu_tiedtke_38r2
   real(rk8) , parameter :: rmfcmin = 1.0D-10 ! Minimum massflux value (safety)
   real(rk8) , parameter :: rmfdeps = 0.30D0  ! Fractional massflux for
                                              ! downdrafts at lfs
-  real(rk8) , parameter :: rdepths = 2.4D4   ! Maximum allowed cloud thickness
+  real(rk8) , parameter :: rdepths = 2.0D4   ! Maximum allowed cloud thickness
                                              ! for shallow cloud depth (Pa)
   real(rk8) , parameter :: rvdifts = 1.5D0   ! Factor for time step weighting in
                                              ! *vdf....*
