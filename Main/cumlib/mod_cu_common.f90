@@ -38,6 +38,7 @@ module mod_cu_common
 !
   real(rk8) , pointer , dimension(:,:) :: sfhgt    ! mddom%ht
   real(rk8) , pointer , dimension(:,:,:) :: hgt    ! za
+  real(rk8) , pointer , dimension(:,:,:) :: hgth   ! zq
   real(rk8) , pointer , dimension(:,:,:) :: ptatm  ! atm1%t
   real(rk8) , pointer , dimension(:,:,:) :: puatm  ! atm1%u
   real(rk8) , pointer , dimension(:,:,:) :: pvatm  ! atm1%v

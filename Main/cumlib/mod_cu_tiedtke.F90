@@ -29,6 +29,7 @@ module mod_cu_tiedtke
   use mod_cu_tables
   use mod_service
   use mod_runparams , only : iqc , iqv
+  use mod_cu_tiedtke_38r2 , only : cumastrn
 !
   private
 !
@@ -57,7 +58,7 @@ module mod_cu_tiedtke
         paprs , ptopmax , xphfx
 
   real(rk8) , pointer , dimension(:,:) :: ptte , pvom , pvol , pqte , &
-        pxlte , pverv , xpg
+        pxlte , pverv , xpg , xpgh
   integer(ik4) , pointer , dimension(:) :: kctop , kcbot
 
   real(rk8) , public , pointer , dimension(:,:,:) :: q_detr
@@ -117,6 +118,7 @@ module mod_cu_tiedtke
     call getmem2d(pxlte,1,nipoi,1,kz,'mod_cu_tiedtke:pxlte')
     call getmem2d(pverv,1,nipoi,1,kz,'mod_cu_tiedtke:pverv')
     call getmem2d(xpg,1,nipoi,1,kz,'mod_cu_tiedtke:xpg')
+    call getmem2d(xpgh,1,nipoi,1,kz+1,'mod_cu_tiedtke:xpgh')
     call getmem3d(pxtm1,1,nipoi,1,kz,1,ntr,'mod_cu_tiedtke:pxtm1')
     call getmem3d(pxtte,1,nipoi,1,kz,1,ntr,'mod_cu_tiedtke:pxtte')
     call getmem2d(ilab,1,nipoi,1,kz,'mod_cu_tiedtke:ilab')
@@ -219,8 +221,8 @@ module mod_cu_tiedtke
         pxim1(ii,k) = d_zero ! cloud ice water
         pxite(ii,k) = d_zero ! ice tend
         ! scheme diagnostic output - tendencies due to convection
-        pxtec(ii,k) = d_zero ! detrained cloud water tendancy
-        pqtec(ii,k) = d_zero ! detrained humidity tendancy
+        pxtec(ii,k) = d_zero ! detrained cloud water tendency
+        pqtec(ii,k) = d_zero ! detrained humidity tendency
         xpg(ii,k) = hgt(j,i,k)*egrav  !   geopotential
       end do
     end do
@@ -231,6 +233,7 @@ module mod_cu_tiedtke
         j = jmap(ii)
         ! 1st guess pressure at full levels
         paphp1(ii,k) = (sigma(k)*sfcps(j,i)+ptop)*d_1000
+        xpgh(ii,k) = hgth(j,i,k)*egrav  !   geopotential
       end do
     end do
 
@@ -259,7 +262,7 @@ module mod_cu_tiedtke
 
     call cucall(nipoi,nipoi,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,     &
                 pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
-                pxite,pverv,pxtec,pqtec,xphfx,papp1,paphp1,xpg,prsfc, &
+                pxite,pverv,pxtec,pqtec,xphfx,papp1,paphp1,xpg,xpgh,prsfc, &
                 pssfc,paprc,paprs,zlude,ktype,ldland,kctop,kcbot,ptopmax)
     !
     ! postprocess some fields including precipitation fluxes
@@ -328,7 +331,7 @@ module mod_cu_tiedtke
   subroutine cucall(kproma,kbdim,klev,klevp1,klevm1,ilab,ktrac,     &
                     pxtm1,pxtte,ptm1,pqm1,pum1,pvm1,pxlm1,pxim1,    &
                     ptte,pqte,pvom,pvol,pxlte,pxite,pverv,pxtec,    &
-                    pqtec,pqhfla,papp1,paphp1,pgeo,prsfc,pssfc,     &
+                    pqtec,pqhfla,papp1,paphp1,pgeo,pgeoh,prsfc,pssfc, &
                     paprc,paprs,zlude,ktype,ldland,kctop,kcbot,ptopmax)
 !
 !
@@ -360,7 +363,7 @@ module mod_cu_tiedtke
   integer(ik4) , dimension(kbdim,klev) :: ilab
   integer(ik4) , dimension(kbdim) :: ktype
   logical , dimension(kbdim) :: ldland
-  real(rk8) , dimension(kbdim,klevp1) :: paphp1
+  real(rk8) , dimension(kbdim,klevp1) :: paphp1 , pgeoh
   real(rk8) , dimension(kbdim,klev) :: papp1 , pgeo , pqm1 , pqte ,   &
          pqtec , ptm1 , ptte , pum1 , pverv , pvm1 , pvol , pvom ,  &
          pxim1 , pxite , pxlm1 , pxlte , pxtec , zlude
@@ -368,7 +371,7 @@ module mod_cu_tiedtke
                                 pssfc , ptopmax
   integer(ik4) , dimension(kbdim) , intent(out) :: kctop , kcbot
   real(rk8) , dimension(kbdim,klev,ktrac) :: pxtm1 , pxtte
-  intent (in) papp1 , pqm1 , ptm1 , pum1 , pvm1 , pxim1 , pxite ,   &
+  intent (in) papp1 , pqm1 , ptm1 , pum1 , pvm1 , pxim1 , &
               pxlm1 , pxlte , pxtm1
   intent(out) :: zlude
   intent (inout) ptopmax
@@ -381,7 +384,13 @@ module mod_cu_tiedtke
          zvp1 , zxp1
   real(rk8) , dimension(kbdim) :: zrain , ztopmax
   real(rk8) :: zxip1 , zxlp1
+  integer(ik4) , dimension(kbdim) :: kbotsc
+  logical , dimension(kbdim) :: ldsc
   real(rk8) , dimension(kbdim,klev,ktrac) :: zxtp1 , zxtu
+  real(rk8) , dimension(kbdim,klev+1) :: pmflxr , pmflxs
+  real(rk8) , dimension(kbdim,klev) :: pmfude_rate , pmfdde_rate
+  real(rk8) , dimension(kbdim) :: pcape
+  real(rk8) , dimension(kbdim,klev) :: pqhfl , pahfs
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cucall'
   integer(ik4) , save :: idindx = 0
@@ -456,7 +465,13 @@ module mod_cu_tiedtke
                   pvom,pvol,prsfc,pssfc,paprc,paprs,pxtec,pqtec,    &
                   zqude,locum,ktype,kcbot,kctop,ztu,zqu,zlu,zlude,  &
                   zmfu,zmfd,zrain)
- 
+  case (4)
+    call cumastrn(1,kproma,kbdim,klev,ldland,dtsec,ztp1,zqp1,    &
+                  zup1,zvp1,zxp1,pverv,pqhfl,pahfs,papp1,paphp1, &
+                  pgeo,pgeoh,ptte,pqte,pvom,pvol,pxtec,pxite,    &
+                  locum,ktype,kcbot,kctop,kbotsc,ldsc,ztu,zqu,   &
+                  zlu,pmflxr,pmflxs,zrain,zmfu,zmfd,pmfude_rate, &
+                  pmfdde_rate,pcape,ktrac,pxtm1,pxtte)
   case default
   end select
 !
