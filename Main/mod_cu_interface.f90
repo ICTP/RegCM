@@ -60,6 +60,7 @@ module mod_cu_interface
     call assignpnt(atms%qxb3d,qxas)
     call assignpnt(atms%chib3d,chias)
     call assignpnt(atms%za,hgt)
+    call assignpnt(atms%zq,hgth)
     call assignpnt(aten%t,tten)
     call assignpnt(aten%u,uten)
     call assignpnt(aten%v,vten)
