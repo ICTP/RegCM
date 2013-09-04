@@ -197,7 +197,7 @@ module mod_cu_tiedtke
       ! this array will then be obsolete 
       i = imap(ii)
       j = jmap(ii)
-      xpqfx(ii) = qfx(j,i)
+      xpqfx(ii) = qfx(j,i)*wlhv
       xphfx(ii) = hfx(j,i)
       ! Land/water flag - is correctly set?
       ldland(ii) = (lmask(j,i) == 0)
@@ -480,13 +480,12 @@ module mod_cu_tiedtke
                   zmfu,zmfd,zrain)
   case (4)
     pmflxr(:,1) = pqhfla(:)
+    write(0,*) pshfla
     pmflxs(:,1) = pshfla(:)
-    do jk = 2 , klev
+    do jk = 2 , klev+1
       pmflxr(:,jk) = 0.9D0*pmflxr(:,jk-1)
       pmflxs(:,jk) = 0.9D0*pmflxs(:,jk-1)
     end do
-    pmflxr(:,klev+1) = d_zero
-    pmflxs(:,klev+1) = d_zero
     call cumastrn(1,kproma,kbdim,klev,ldland,dtsec,ztp1,zqp1,    &
                   zup1,zvp1,zxp1,pverv,pqhfl,pahfs,papp1,paphp1, &
                   pgeo,pgeoh,ptte,pqte,pvom,pvol,pxtec,pxite,    &

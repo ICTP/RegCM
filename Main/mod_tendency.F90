@@ -643,7 +643,8 @@ module mod_tendency
       call cupemandrv(ktau)
     end if
     if ( icup == 5 .or. icup == 96 .or. icup == 97 ) then
-      call tiedtkedrv(ktau)
+      ! Tiedtke needs surface heat fluxes to be computed.
+      if ( ktau > 0 ) call tiedtkedrv(ktau)
     end if
  
     if ( idiag > 0 ) then
