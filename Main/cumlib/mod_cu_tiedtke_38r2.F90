@@ -4,6 +4,7 @@ module mod_cu_tiedtke_38r2
   use mod_realkinds
   use mod_constants
   use mod_dynparam
+  use mod_mpmessage
 
   private
 

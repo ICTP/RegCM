@@ -29,7 +29,7 @@ module mod_cu_tiedtke
   use mod_cu_tables
   use mod_service
   use mod_runparams , only : iqc , iqv
-  use mod_cu_tiedtke_38r2 , only : cumastrn
+  use mod_cu_tiedtke_38r2 , only : sucumf , cumastrn
 !
   private
 !
@@ -59,6 +59,7 @@ module mod_cu_tiedtke
 
   real(rk8) , pointer , dimension(:,:) :: ptte , pvom , pvol , pqte , &
         pxlte , pverv , xpg , xpgh
+  real(rk8) , pointer , dimension(:) :: pmean
   integer(ik4) , pointer , dimension(:) :: kctop , kcbot
 
   real(rk8) , public , pointer , dimension(:,:,:) :: q_detr
@@ -144,6 +145,7 @@ module mod_cu_tiedtke
     call getmem1d(ptopmax,1,nipoi,'mod_cu_tiedtke:ptopmax')
     call getmem1d(xphfx,1,nipoi,'mod_cu_tiedtke:xphfx')
     call getmem1d(ldland,1,nipoi,'mod_cu_tiedtke:ldland')
+    call getmem1d(pmean,1,kz,'mod_cu_tiedtke:pmean')
 
   end subroutine allocate_mod_cu_tiedtke
 !
@@ -226,6 +228,13 @@ module mod_cu_tiedtke
         xpg(ii,k) = hgt(j,i,k)*egrav  !   geopotential
       end do
     end do
+
+    if ( iconv == 4 ) then
+      do k = 1 , kz
+        pmean(k) = sum(papp1(:,k))/nipoi
+      end do
+      call sucumf(nint(ds*d_three),kz,pmean)
+    end if
 
     do k = 1 , kzp1
       do ii = 1 , nipoi
