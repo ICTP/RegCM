@@ -3379,7 +3379,8 @@ module mod_cu_tiedtke_38r2
         if ( jkk == klev ) then
           do jl = kidia , kfdia
             if ( llgo_on(jl) ) then
-              zrho = paph(jl,jkk+1)/(rgas*(pten(jl,jkk)*(1.+retv*pqen(jl,jkk))))
+              zrho = paph(jl,jkk+1)/(rgas*(pten(jl,jkk) * &
+                (d_one+retv*pqen(jl,jkk))))
               zkhvfl = (pahfs(jl,jkk+1)*rcpd + &
                 retv*pten(jl,jkk)*pqhfl(jl,jkk+1))/zrho
               zws = 0.001D0 - 1.5D0*rkap*zkhvfl * &
@@ -3555,7 +3556,7 @@ module mod_cu_tiedtke_38r2
               zalfaw = foealfa(ztu(jl,ik))
               zfacw = c5les/((ztu(jl,ik)-c4les)**2)
               zfaci = c5ies/((ztu(jl,ik)-c4ies)**2)
-              zfac = zalfaw*zfacw + (1.-zalfaw)*zfaci
+              zfac = zalfaw*zfacw + (d_one-zalfaw)*zfaci
               zesdp = foeewm(ztu(jl,ik))/paph(jl,ik)
               zcor = d_one/(d_one-retv*zesdp)
               zdqsdt = zfac*zcor*zqsu

@@ -70,6 +70,7 @@ module mod_cu_interface
     call assignpnt(sfs%psb,sfcps)
     call assignpnt(sfs%rainc,rainc)
     call assignpnt(sfs%qfx,qfx)
+    call assignpnt(sfs%hfx,hfx)
     call assignpnt(qdot,svv)
     call assignpnt(pptc,lmpcpc)
     call assignpnt(ldmsk,lmask)

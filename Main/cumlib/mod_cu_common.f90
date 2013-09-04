@@ -37,8 +37,6 @@ module mod_cu_common
   integer(ik4) , pointer , dimension(:,:) :: icumtop , icumbot
 !
   real(rk8) , pointer , dimension(:,:) :: sfhgt    ! mddom%ht
-  real(rk8) , pointer , dimension(:,:,:) :: hgt    ! za
-  real(rk8) , pointer , dimension(:,:,:) :: hgth   ! zq
   real(rk8) , pointer , dimension(:,:,:) :: ptatm  ! atm1%t
   real(rk8) , pointer , dimension(:,:,:) :: puatm  ! atm1%u
   real(rk8) , pointer , dimension(:,:,:) :: pvatm  ! atm1%v
@@ -50,6 +48,8 @@ module mod_cu_common
   real(rk8) , pointer , dimension(:,:,:) :: qsas   ! atms%qsb3d
   real(rk8) , pointer , dimension(:,:,:,:) :: qxas ! atms%qxb3d
   real(rk8) , pointer , dimension(:,:,:,:) :: chias   ! atms%chib3d
+  real(rk8) , pointer , dimension(:,:,:) :: hgt    ! atms%za
+  real(rk8) , pointer , dimension(:,:,:) :: hgth   ! atms%zq
   real(rk8) , pointer , dimension(:,:,:) :: tten   ! aten%t
   real(rk8) , pointer , dimension(:,:,:) :: uten   ! aten%u
   real(rk8) , pointer , dimension(:,:,:) :: vten   ! aten%v
@@ -60,6 +60,7 @@ module mod_cu_common
   real(rk8) , pointer , dimension(:,:) :: rainc    ! sfs%rainc
   real(rk8) , pointer , dimension(:,:,:) :: convpr ! prec rate ( used in chem) 
   real(rk8) , pointer , dimension(:,:) :: qfx      ! sfs%qfx
+  real(rk8) , pointer , dimension(:,:) :: hfx      ! sfs%hfx
   real(rk8) , pointer , dimension(:,:,:) :: svv    ! qdot
   real(rk8) , pointer , dimension(:,:) :: lmpcpc   ! pptc
   integer(ik4) , pointer , dimension(:,:) :: lmask    ! ldmsk

@@ -55,7 +55,7 @@ module mod_cu_tiedtke
         pxlm1 , pxim1 , pxite , papp1 , paphp1 , pxtec , pqtec , zlude
 
   real(rk8) , pointer , dimension(:) :: prsfc , pssfc , paprc , &
-        paprs , ptopmax , xphfx
+        paprs , ptopmax , xphfx , xpqfx
 
   real(rk8) , pointer , dimension(:,:) :: ptte , pvom , pvol , pqte , &
         pxlte , pverv , xpg , xpgh
@@ -144,6 +144,7 @@ module mod_cu_tiedtke
     call getmem1d(paprs,1,nipoi,'mod_cu_tiedtke:paprs')
     call getmem1d(ptopmax,1,nipoi,'mod_cu_tiedtke:ptopmax')
     call getmem1d(xphfx,1,nipoi,'mod_cu_tiedtke:xphfx')
+    call getmem1d(xpqfx,1,nipoi,'mod_cu_tiedtke:xpqfx')
     call getmem1d(ldland,1,nipoi,'mod_cu_tiedtke:ldland')
     call getmem1d(pmean,1,kz,'mod_cu_tiedtke:pmean')
 
@@ -196,7 +197,8 @@ module mod_cu_tiedtke
       ! this array will then be obsolete 
       i = imap(ii)
       j = jmap(ii)
-      xphfx(ii) = qfx(j,i)
+      xpqfx(ii) = qfx(j,i)
+      xphfx(ii) = hfx(j,i)
       ! Land/water flag - is correctly set?
       ldland(ii) = (lmask(j,i) == 0)
     end do
@@ -269,10 +271,11 @@ module mod_cu_tiedtke
     kctop(:) = 0
     kcbot(:) = 0
 
-    call cucall(nipoi,nipoi,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,     &
+    call cucall(nipoi,nipoi,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,   &
                 pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
-                pxite,pverv,pxtec,pqtec,xphfx,papp1,paphp1,xpg,xpgh,prsfc, &
-                pssfc,paprc,paprs,zlude,ktype,ldland,kctop,kcbot,ptopmax)
+                pxite,pverv,pxtec,pqtec,xphfx,xpqfx,papp1,paphp1,xpg, &
+                xpgh,prsfc,pssfc,paprc,paprs,zlude,ktype,ldland,      &
+                kctop,kcbot,ptopmax)
     !
     ! postprocess some fields including precipitation fluxes
     !
@@ -337,11 +340,12 @@ module mod_cu_tiedtke
 #endif
   end subroutine tiedtkedrv
 !
-  subroutine cucall(kproma,kbdim,klev,klevp1,klevm1,ilab,ktrac,     &
-                    pxtm1,pxtte,ptm1,pqm1,pum1,pvm1,pxlm1,pxim1,    &
-                    ptte,pqte,pvom,pvol,pxlte,pxite,pverv,pxtec,    &
-                    pqtec,pqhfla,papp1,paphp1,pgeo,pgeoh,prsfc,pssfc, &
-                    paprc,paprs,zlude,ktype,ldland,kctop,kcbot,ptopmax)
+  subroutine cucall(kproma,kbdim,klev,klevp1,klevm1,ilab,ktrac,  &
+                    pxtm1,pxtte,ptm1,pqm1,pum1,pvm1,pxlm1,pxim1, &
+                    ptte,pqte,pvom,pvol,pxlte,pxite,pverv,pxtec, &
+                    pqtec,pshfla,pqhfla,papp1,paphp1,pgeo,pgeoh, &
+                    prsfc,pssfc,paprc,paprs,zlude,ktype,ldland,  &
+                    kctop,kcbot,ptopmax)
 !
 !
 !     *CUCALL* - MASTER ROUTINE - PROVIDES INTERFACE FOR:
@@ -376,7 +380,7 @@ module mod_cu_tiedtke
   real(rk8) , dimension(kbdim,klev) :: papp1 , pgeo , pqm1 , pqte ,   &
          pqtec , ptm1 , ptte , pum1 , pverv , pvm1 , pvol , pvom ,  &
          pxim1 , pxite , pxlm1 , pxlte , pxtec , zlude
-  real(rk8) , dimension(kbdim) :: paprc , paprs , pqhfla , prsfc ,    &
+  real(rk8) , dimension(kbdim) :: paprc , paprs , pqhfla , pshfla , prsfc , &
                                 pssfc , ptopmax
   integer(ik4) , dimension(kbdim) , intent(out) :: kctop , kcbot
   real(rk8) , dimension(kbdim,klev,ktrac) :: pxtm1 , pxtte
@@ -475,6 +479,14 @@ module mod_cu_tiedtke
                   zqude,locum,ktype,kcbot,kctop,ztu,zqu,zlu,zlude,  &
                   zmfu,zmfd,zrain)
   case (4)
+    pmflxr(:,1) = pqhfla(:)
+    pmflxs(:,1) = pshfla(:)
+    do jk = 2 , klev
+      pmflxr(:,jk) = 0.9D0*pmflxr(:,jk-1)
+      pmflxs(:,jk) = 0.9D0*pmflxs(:,jk-1)
+    end do
+    pmflxr(:,klev+1) = d_zero
+    pmflxs(:,klev+1) = d_zero
     call cumastrn(1,kproma,kbdim,klev,ldland,dtsec,ztp1,zqp1,    &
                   zup1,zvp1,zxp1,pverv,pqhfl,pahfs,papp1,paphp1, &
                   pgeo,pgeoh,ptte,pqte,pvom,pvol,pxtec,pxite,    &
