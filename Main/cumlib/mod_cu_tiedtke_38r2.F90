@@ -828,7 +828,7 @@ module mod_cu_tiedtke_38r2
       !   DO ADIABATIC ASCENT FOR ENTRAINING/DETRAINING PLUME
       !   ---------------------------------------------------
       if ( llo3 ) then
-        llo4 = ptsphy > 1800.0D0 .and. rmfcfl == d_one
+        llo4 = ptsphy > 1800.0D0 .and. abs(rmfcfl-d_one) < dlowval
         do jl = kidia , kfdia
           zqold(jl) = d_zero
         end do
@@ -1188,7 +1188,7 @@ module mod_cu_tiedtke_38r2
             zf = foealfcu(pt(jl,kk))*c5alvcp*zl**2 + &
                  (d_one-foealfcu(pt(jl,kk)))*c5alscp*zi**2
             zcond1 = (pq(jl,kk)*zcor**2-zqsat*zcor)/(zcor**2+zqsat*zf)
-            if ( zcond == d_zero ) zcond1 = d_zero
+            if ( abs(zcond) < dlowval ) zcond1 = d_zero
             pt(jl,kk) = pt(jl,kk) + foeldcpmcu(pt(jl,kk))*zcond1
             pq(jl,kk) = pq(jl,kk) - zcond1
           end if
@@ -1213,7 +1213,7 @@ module mod_cu_tiedtke_38r2
           zcor = d_one/(d_one-retv*zqsat)
           zqsat = zqsat*zcor
           zcond1 = (pq(jl,kk)-zqsat)/(d_one+zqsat*zcor*foedemcu(pt(jl,kk)))
-          if ( zcond == d_zero ) zcond1 = min(zcond1,d_zero)
+          if ( abs(zcond) < dlowval ) zcond1 = min(zcond1,d_zero)
           pt(jl,kk) = pt(jl,kk) + foeldcpmcu(pt(jl,kk))*zcond1
           pq(jl,kk) = pq(jl,kk) - zcond1
         end if
@@ -1518,7 +1518,7 @@ module mod_cu_tiedtke_38r2
       end do
     end do
     ! linear fluxes below cloud
-    if ( rmfsoluv == d_zero ) then
+    if ( abs(rmfsoluv) < dlowval ) then
       do jk = ktopm2 , klev
       !DIR$ IVDEP
       !OCL NOVREC
@@ -1557,7 +1557,7 @@ module mod_cu_tiedtke_38r2
         end do
       end if
     end do
-    if ( rmfsoluv == d_zero ) then
+    if ( abs(rmfsoluv) < dlowval ) then
       !*  1.3          UPDATE TENDENCIES
       !   -----------------
       do jk = ktopm2 , klev
@@ -2777,7 +2777,7 @@ module mod_cu_tiedtke_38r2
         end do
       end if
     end do
-    if ( rmfsoltq == d_zero ) then
+    if ( abs(rmfsoltq) < dlowval ) then
       !*  3.1          UPDATE TENDENCIES
       !   -----------------
       do jk = ktopm2 , klev
@@ -3006,7 +3006,7 @@ module mod_cu_tiedtke_38r2
             pdmfdp(jl,jk-1) = d_zero
           end if
           if ( llddraf .and. &
-               pmfd(jl,jk) < d_zero .and. pmfd(jl,ikb) == d_zero) then
+               pmfd(jl,jk) < d_zero .and. abs(pmfd(jl,ikb)) < dlowval ) then
             idbas(jl) = jk
           end if
         else
@@ -3949,7 +3949,7 @@ module mod_cu_tiedtke_38r2
         if ( ldcum(jl) ) ztenc(jl,jk,jn) = -zdp(jl,jk)*zmfc(jl,jk,jn)
       end do
     end do
-    if ( rmfsolct == d_zero ) then
+    if ( abs(rmfsolct) < dlowval ) then
       !*  6.0          UPDATE TENDENCIES
       !   -----------------
       do jn = 1 , ktrac
@@ -4402,7 +4402,7 @@ module mod_cu_tiedtke_38r2
           if ( zdhpbl(jl) > d_zero ) then
             zmfub(jl) = zdhpbl(jl)/zdh
             ! EPS: temporary solution for explicit
-            if ( ptsphy > 1800.0D0 .and. rmfcfl == d_one ) then
+            if ( ptsphy > 1800.0D0 .and. abs(rmfcfl-d_one) < dlowval ) then
               zmfub(jl) = min(zmfub(jl),3.0D0*zmfmax)
             else
               zmfub(jl) = min(zmfub(jl),zmfmax)
@@ -4564,7 +4564,7 @@ module mod_cu_tiedtke_38r2
             zmfub1(jl) = zmfub(jl)
           end if
           ! EPS: temporary solution for explicit
-          if ( ptsphy > 1800.0D0 .and. rmfcfl == d_one ) then
+          if ( ptsphy > 1800.0D0 .and. abs(rmfcfl-d_one) < dlowval ) then
             zmfub1(jl) = min(zmfub1(jl),3.0D0*zmfmax)
           else
             zmfub1(jl) = min(zmfub1(jl),zmfmax)
@@ -4734,7 +4734,7 @@ module mod_cu_tiedtke_38r2
         jk = idtop(jl)
         ik = min(jk+1,klev)
         if ( zmfdq(jl,jk) < 0.3D0*zmfdq(jl,ik) ) then
-          if ( rmfsoltq == d_zero ) then
+          if ( abs(rmfsoltq) < dlowval ) then
             zmfdq(jl,jk) = 0.3D0*zmfdq(jl,ik)
           else
             pmfd(jl,jk) = 0.3D0*pmfd(jl,ik)
@@ -4758,7 +4758,7 @@ module mod_cu_tiedtke_38r2
           if ( plude(jl,jk) < d_zero ) plude(jl,jk) = d_zero
         end if
         if ( .not. ldcum(jl) ) pmfude_rate(jl,jk) = d_zero
-        if ( pmfd(jl,jk-1) == d_zero ) pmfdde_rate(jl,jk) = d_zero
+        if ( abs(pmfd(jl,jk-1)) < dlowval ) pmfdde_rate(jl,jk) = d_zero
       end do
     end do
     if ( llconscheck ) then
@@ -5053,7 +5053,8 @@ module mod_cu_tiedtke_38r2
         do jk = 2 , klev - 1
           do jl = kidia , kfdia
             if ( llddraf3(jl) .and. &
-                 zmfdus(jl,jk) < d_zero .and. zmfdus(jl,jk+1) == d_zero ) then
+                 zmfdus(jl,jk) < d_zero .and. &
+                 abs(zmfdus(jl,jk+1)) < dlowval ) then
               zerate = min(d_zero,zmfdus(jl,jk)-d_half*zmfdus(jl,jk-1))
               zmfdus(jl,jk) = zmfdus(jl,jk) - zerate
               zmfddr(jl,jk) = zmfddr(jl,jk) - zerate
@@ -5070,7 +5071,7 @@ module mod_cu_tiedtke_38r2
         do jk = klev - 1 , 2 , -1
           do jl = kidia , kfdia
             if ( lldcum(jl) ) then
-              if ( zmfudr(jl,jk) == d_zero .and. &
+              if ( abs(zmfudr(jl,jk)) < dlowval .and. &
                    zmfudr(jl,jk-1) > d_zero ) then
                 zmfudr(jl,jk) = d_half*zmfudr(jl,jk-1)
               end if
