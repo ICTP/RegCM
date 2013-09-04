@@ -403,7 +403,7 @@ module mod_cu_tiedtke
   real(rk8) , dimension(kbdim,klev+1) :: pmflxr , pmflxs
   real(rk8) , dimension(kbdim,klev) :: pmfude_rate , pmfdde_rate
   real(rk8) , dimension(kbdim) :: pcape
-  real(rk8) , dimension(kbdim,klev) :: pqhfl , pahfs
+  real(rk8) , dimension(kbdim,klev+1) :: pqhfl , pahfs
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'cucall'
   integer(ik4) , save :: idindx = 0
@@ -479,13 +479,14 @@ module mod_cu_tiedtke
                   zqude,locum,ktype,kcbot,kctop,ztu,zqu,zlu,zlude,  &
                   zmfu,zmfd,zrain)
   case (4)
-    pmflxr(:,1) = pqhfla(:)
-    write(0,*) pshfla
-    pmflxs(:,1) = pshfla(:)
-    do jk = 2 , klev+1
-      pmflxr(:,jk) = 0.9D0*pmflxr(:,jk-1)
-      pmflxs(:,jk) = 0.9D0*pmflxs(:,jk-1)
+    pqhfl(:,klev+1) = pqhfla(:)
+    pahfs(:,klev+1) = pshfla(:) ! Just for test !!!!
+    do jk = klev , 1 , -1
+      pqhfl(:,jk) = 0.9D0*pqhfl(:,jk+1)
+      pahfs(:,jk) = 0.9D0*pahfs(:,jk+1)
     end do
+    pmflxr = d_zero
+    pmflxs = d_zero
     call cumastrn(1,kproma,kbdim,klev,ldland,dtsec,ztp1,zqp1,    &
                   zup1,zvp1,zxp1,pverv,pqhfl,pahfs,papp1,paphp1, &
                   pgeo,pgeoh,ptte,pqte,pvom,pvol,pxtec,pxite,    &
