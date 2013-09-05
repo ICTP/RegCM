@@ -145,10 +145,8 @@ module mod_cu_bm
     call getmem1d(jshal,1,intall,'cu_bm:jshal')
   end subroutine allocate_mod_cu_bm
 
-  subroutine bmpara(ktau)
+  subroutine bmpara
     implicit none
-    integer(ik8) , intent(in) :: ktau
-!
     real(rk8) , parameter :: h1 = 1.0D0
     real(rk8) , parameter :: h3000 = 3000.0D0
     real(rk8) , parameter :: h10e5 = 100000.0D0
@@ -206,6 +204,7 @@ module mod_cu_bm
     real(rk8) , parameter :: cporng = d_one/dm2859
     real(rk8) , parameter :: elocp = wlhv/cpd
     real(rk8) , parameter :: cprlg = cpd/(row*egrav*wlhv)
+    logical , save :: efinit = .false.
     logical , parameter :: unis = .false.
     logical , parameter :: unil = .true.
     logical , parameter :: oct90 = .true.
@@ -256,12 +255,13 @@ module mod_cu_bm
         end if
       end do
     end do
-    if ( ktau == 0 ) then
+    if ( .not. efinit ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
           cldefi(j,i) = avgefi*xsm(j,i) + stefi*(h1-xsm(j,i))
         end do
       end do
+      efinit = .true.
     end if
 !
 !   lb is currently set to kz-1
@@ -707,11 +707,7 @@ module mod_cu_bm
       if ( prainx > dlowval ) then
         rainc(j,i) = rainc(j,i) + prainx
 !       precipitation rate for bats (mm/s)
-        if ( ktau == 0 .and. debug_level > 2 ) then
-          lmpcpc(j,i) = lmpcpc(j,i) + prainx/dt
-        else
-          lmpcpc(j,i) = lmpcpc(j,i) + (prainx/dt)/rtsrf
-        end if
+        lmpcpc(j,i) = lmpcpc(j,i) + (prainx/dt)/rtsrf
       end if
       do l = ltpk , lb
         tmod(j,i,l) = dift(l)*fefi/dt

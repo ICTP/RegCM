@@ -69,15 +69,8 @@ module mod_cu_kuo
                           ice1-ma%ibb1,ice2+ma%ibt1,1,kz,'tendency:wrkkuo2')
   end subroutine allocate_mod_cu_kuo
 !
-  subroutine cupara(ktau)
-!
-!   All the other arguments are passed from subroutine "tend" and
-!   explained in "tend".
-!
+  subroutine cupara
     implicit none
-!
-    integer(ik8) , intent(in) :: ktau
-!
     real(rk8) :: apcnt , arh , c301 , dalr ,    &
                deqt , dlnp , dplr , dsc , e1 , eddyf , emax ,   &
                eqt , eqtm , es , plcl , pmax , prainx , psg ,   &
@@ -210,7 +203,7 @@ module mod_cu_kuo
 !             kbase/ktop, then flag it, and set kbase/ktop to standard
 !
               if ( (kbase < 5) .or. (ktop > kbase-3) ) then
-                print 99001 , ktau , i , j , kbase , ktop
+                print 99001 , i , j , kbase , ktop
                 if ( kbase < 5 ) kbase = 5
                 if ( ktop > kbase-3 ) ktop = kbase - 3
               end if
@@ -270,11 +263,7 @@ module mod_cu_kuo
               if ( prainx > dlowval ) then
                 rainc(j,i) = rainc(j,i) + prainx
 !               instantaneous precipitation rate for use in bats (mm/s)
-                if ( ktau == 0 .and. debug_level > 2 ) then
-                  lmpcpc(j,i) = lmpcpc(j,i) + prainx/dtsec
-                else
-                  lmpcpc(j,i) = lmpcpc(j,i) + prainx/dtsec*rtsrf
-                end if
+                lmpcpc(j,i) = lmpcpc(j,i) + prainx/dtsec*rtsrf
               end if
               if ( ichem == 1 ) then
                 ! build for chemistry 3d table of constant precipitation rate
@@ -326,9 +315,9 @@ module mod_cu_kuo
 
     call model_cumulus_cloud
 
-99001 format (/,' >>in **cupara**: at ktau=',i8,  &
-          ' (i,j)=(',i2,',',i2,'),   ',' kbase/ktop are non-standard:',2I3, &
-          ' will be set to closest standard.')
+99001 format (/,' >>in **cupara**: (i,j)=(',i2,',',i2,'),   ',&
+        ' kbase/ktop are non-standard:',2I3, &
+        ' will be set to closest standard.')
 !
   end subroutine cupara
 !

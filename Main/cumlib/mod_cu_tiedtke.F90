@@ -152,9 +152,8 @@ module mod_cu_tiedtke
 !
 ! This subroutines calls cucall
 !
-  subroutine tiedtkedrv(ktau)
+  subroutine tiedtkedrv
     implicit none
-    integer(ik8) , intent(in) :: ktau
     integer(ik4) :: i , j , k , ii , iplmlc
     real(rk8) :: pxf
 #ifdef DEBUG
@@ -286,13 +285,9 @@ module mod_cu_tiedtke
           j = jmap(ii)
           total_precip_points = total_precip_points + 1
           ! total precip cumulative 
-          rainc(j,i) = rainc(j,i) + paprc(ii)+paprs(ii)
+          rainc(j,i) = rainc(j,i) + (paprc(ii)+paprs(ii))
           ! rainfall for bats
-          if ( ktau == 0 .and. debug_level > 2 ) then
-            lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))
-          else
-            lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))*rtsrf
-          end if
+          lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))*rtsrf
         end if
       end if
     end do
@@ -493,6 +488,10 @@ module mod_cu_tiedtke
                   locum,ktype,kcbot,kctop,kbotsc,ldsc,ztu,zqu,   &
                   zlu,pmflxr,pmflxs,zrain,zmfu,zmfd,pmfude_rate, &
                   pmfdde_rate,pcape,ktrac,pxtm1,pxtte)
+    paprc(:) = pmflxr(:,klev+1)
+    paprs(:) = pmflxs(:,klev+1)
+    prsfc = zrain
+    pssfc = 0.0D0
   case default
   end select
 !

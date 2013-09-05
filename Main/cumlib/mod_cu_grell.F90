@@ -182,14 +182,8 @@ module mod_cu_grell
     ae(2) = be(2)*rtzero + alsixt
   end subroutine allocate_mod_cu_grell
 
-  subroutine cuparan(ktau)
-
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
+  subroutine cuparan
     implicit none
-!
-    integer(ik8) , intent(in) :: ktau
-!
     real(rk8) :: pkdcut , pkk , prainx , us , vs
     integer(ik4) :: i , j , k , jp1 , kk
 #ifdef DEBUG
@@ -362,11 +356,7 @@ module mod_cu_grell
         if ( prainx > dlowval ) then
           rainc(j,i) = rainc(j,i) + prainx
 !         precipitation rate for bats (mm/s)
-          if ( ktau == 0 .and. debug_level > 2 ) then
-            lmpcpc(j,i) = lmpcpc(j,i) + pret(j,i)
-          else
-            lmpcpc(j,i) = lmpcpc(j,i) + pret(j,i)*rtsrf
-          end if
+          lmpcpc(j,i) = lmpcpc(j,i) + pret(j,i)*rtsrf
           total_precip_points = total_precip_points + 1
         end if
       end do

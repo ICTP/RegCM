@@ -54,10 +54,8 @@ module mod_cu_em
 ! **** Driver for Emanuel Convection Scheme ****
 ! **********************************************
 !
-  subroutine cupemandrv(ktau)
+  subroutine cupemandrv
     implicit none
-    integer(ik8) , intent(in) :: ktau
-!
     integer(ik4) :: ntra
     real(rk8) :: cbmf , pret , qprime , tprime , wd , prainx , elcrit , epmax
     real(rk8) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
@@ -160,11 +158,7 @@ module mod_cu_em
           prainx = pret*dtsec
           if ( prainx > dlowval ) then
             rainc(j,i)  = rainc(j,i)  + prainx  ! mm
-            if ( ktau == 0 .and. debug_level > 2 ) then
-              lmpcpc(j,i) = lmpcpc(j,i) + pret
-            else
-              lmpcpc(j,i) = lmpcpc(j,i) + pret*rtsrf
-            end if
+            lmpcpc(j,i) = lmpcpc(j,i) + pret*rtsrf
             total_precip_points = total_precip_points + 1
           end if
         end if
