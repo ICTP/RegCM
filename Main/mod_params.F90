@@ -127,8 +127,8 @@ module mod_params
  
   namelist /tiedtkeparam/ iconv , entrpen , entrscv , entrmid ,  &
     entrdd , cmfcmax , cmfcmin , cmfdeps , cmfctop , rhcdd ,     &
-    cmtcape , zdlev , cprcon , cmcptop , ctrigger , lmfpen ,     &
-    lmfscv , lmfmid , lmfdd , lmfdudv
+    cmtcape , zdlev , cprcon , cmcptop , ctrigger , centrmax ,   &
+    lmfpen , lmfscv , lmfmid , lmfdd , lmfdudv
 
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
          ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,      &
@@ -441,7 +441,8 @@ module mod_params
   cmfctop  = 0.35D0
   cprcon   = 1.0D-4
   cmcptop   = 300.0D0
-  ctrigger = -1.1D-0
+  ctrigger = 1.0D0
+  centrmax = 3.0D-4
 ! Control switch flags
   lmfpen   = .true.
   lmfscv   = .true.
@@ -647,6 +648,7 @@ module mod_params
         write(stderr,*) 'ICUP == 5 needs ipptls = 1 or ipptls = 2'
         call fatal(__FILE__,__LINE__,'UNSUPPORTED LARGE SCALE FOR CUMULUS')
       end if
+      ctrigger = max(d_zero,min(ctrigger,d_one))
     end if
     if ( icup < 0 .or. (icup > 5 .and. icup < 96) .or. icup > 99 ) then
       call fatal(__FILE__,__LINE__,'UNSUPPORTED CUMULUS SCHEME')
@@ -1004,6 +1006,7 @@ module mod_params
     call bcast(cprcon)
     call bcast(cmcptop)
     call bcast(ctrigger)
+    call bcast(centrmax)
     call bcast(lmfpen)
     call bcast(lmfscv)
     call bcast(lmfmid)
@@ -1807,6 +1810,8 @@ module mod_params
       write(stdout,'(a,f11.2)') '  Restrict rainfall level           : ',zdlev
       write(stdout,'(a,f11.6)') '  CLW to rain conversion factor     : ',cprcon
       write(stdout,'(a,f11.6)') '  Midlevel Convection top pressure  : ',cmcptop
+      write(stdout,'(a,f11.6)') '  Max entrainment                   : ', &
+        centrmax
       write(stdout,*) ' Penetrative convection enabled    : ',lmfpen
       write(stdout,*) ' Shallow convection enabled        : ',lmfscv
       write(stdout,*) ' Midlevel convection enabled       : ',lmfmid

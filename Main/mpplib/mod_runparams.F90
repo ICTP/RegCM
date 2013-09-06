@@ -203,6 +203,7 @@ module mod_runparams
   real(rk8) :: rhcdd        ! relative saturation in downdrafts
   real(rk8) :: cprcon       ! coefficients for determining conversion
                             ! from cloud water to rain
+  real(rk8) :: centrmax     ! Max entrainment
   real(rk8) :: ctrigger     ! coefficients for triggering convection
   real(rk8) :: cmcptop      ! Top pressure for midlevel convection
 

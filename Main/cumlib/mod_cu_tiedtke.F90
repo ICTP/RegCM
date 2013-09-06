@@ -33,39 +33,24 @@ module mod_cu_tiedtke
 !
   private
 !
-  public :: allocate_mod_cu_tiedtke , tiedtkedrv
-!
-  public :: entrpen , entrscv , entrmid , entrdd , cmfctop , cmfcmax , &
-            cmfcmin , cmfdeps , rhcdd , cprcon , ctrigger , iconv ,    &
-            lmfpen , lmfscv , lmfmid , lmfdd , lmfdudv , cmtcape , zdlev
+  public :: allocate_mod_cu_tiedtke , tiedtkedrv , q_detr
 !
   ! evaporation coefficient for kuo0
   real(rk8) , pointer , dimension(:) :: cevapcu
-
-  real(rk8) , parameter :: centrmax = 3.0D-4
-
   integer(ik4) , pointer , dimension(:,:) :: ilab
   integer(ik4) , pointer , dimension(:) :: ktype
-
   logical , pointer , dimension(:) :: ldland
-
   real(rk8) , pointer , dimension(:,:,:) :: pxtm1 , pxtte 
-
   real(rk8) , pointer , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 , &
         pxlm1 , pxim1 , pxite , papp1 , paphp1 , pxtec , pqtec , zlude
-
   real(rk8) , pointer , dimension(:) :: prsfc , pssfc , paprc , &
         paprs , ptopmax , xphfx , xpqfx
-
   real(rk8) , pointer , dimension(:,:) :: ptte , pvom , pvol , pqte , &
         pxlte , pverv , xpg , xpgh
   real(rk8) , pointer , dimension(:) :: pmean
   integer(ik4) , pointer , dimension(:) :: kctop , kcbot
-
-  real(rk8) , public , pointer , dimension(:,:,:) :: q_detr
-
+  real(rk8) , pointer , dimension(:,:,:) :: q_detr
   integer(ik4) :: nipoi , nmctop
-
   integer(ik4) , pointer , dimension(:) :: imap , jmap
 
   contains
@@ -196,7 +181,7 @@ module mod_cu_tiedtke
       ! this array will then be obsolete 
       i = imap(ii)
       j = jmap(ii)
-      xpqfx(ii) = qfx(j,i)*wlhv
+      xpqfx(ii) = qfx(j,i)
       xphfx(ii) = hfx(j,i)
       ! Land/water flag - is correctly set?
       ldland(ii) = (lmask(j,i) == 0)
@@ -474,7 +459,7 @@ module mod_cu_tiedtke
                   zqude,locum,ktype,kcbot,kctop,ztu,zqu,zlu,zlude,  &
                   zmfu,zmfd,zrain)
   case (4)
-    pqhfl(:,klev+1) = pqhfla(:)
+    pqhfl(:,klev+1) = pqhfla(:)*wlhv
     pahfs(:,klev+1) = pshfla(:) ! Just for test !!!!
     do jk = klev , 1 , -1
       pqhfl(:,jk) = 0.9D0*pqhfl(:,jk+1)
@@ -1670,7 +1655,7 @@ module mod_cu_tiedtke
     zmfmax = (paphp1(jl,ikb)-paphp1(jl,ikb-1))*zcons2
     zmfub(jl) = min(zmfub(jl),zmfmax)
     if ( .not.llo1 ) ldcum(jl) = .false.
-    ktype(jl) = merge(1,2,zdqcv(jl) > max(d_zero,ctrigger *pqhfla(jl)*egrav))
+    ktype(jl) = merge(1,2,zdqcv(jl) > max(d_zero,ctrigger*pqhfla(jl)*egrav))
     zentr(jl) = merge(entrpen,entrscv,ktype(jl) == 1)
   end do
 !

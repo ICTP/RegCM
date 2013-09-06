@@ -2144,6 +2144,8 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('tiedtke_trigger_coefficient',ctrigger))
           call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('tiedtke_max_entrainment',centrmax))
+          call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('tiedtke_fractional_massflux_above_NB',cmfctop))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_logical('tiedtke_enable_deep_convection',lmfpen))
