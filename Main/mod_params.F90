@@ -442,7 +442,7 @@ module mod_params
   cprcon   = 1.0D-4
   cmcptop   = 300.0D0
   ctrigger = 1.0D0
-  centrmax = 3.0D-4
+  centrmax = 2.0D-4
 ! Control switch flags
   lmfpen   = .true.
   lmfscv   = .true.

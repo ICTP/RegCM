@@ -782,7 +782,8 @@ $2, 4, 5, 96, 97,  98, 99$.
  zdlev = 1.5D4,     ! Restrict rainfall up to this elevation
  cprcon = 1.0D-4,   ! Coefficients for determining conversion
  cmcptop = 300.0D0, ! Midlevel convection top pressure
- ctrigger = -1.1D0, ! Trigger parameter
+ centrmax = 2.0D-4, ! Max entrainment
+ ctrigger = 1.0D0,  ! Trigger parameter 0 <- -> 1
  cmfctop = 0.35D0,  ! Relat. cloud massflux at level above nonbuoyancy
  lmfpen = .true.,   ! true if penetrative convection is switched on
  lmfscv = .true.,   ! true if shallow convection is switched on
