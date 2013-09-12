@@ -423,7 +423,6 @@ AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  Main/cumlib/Makefile Main/radlib/Makefile \
                  Main/radlib/RRTMG_SW/Makefile Main/pbllib/Makefile \
                  Tools/Programs/CheckSun/Makefile \
-                 Tools/Programs/RegCM_read/Makefile \
-                 Tools/Programs/SAV_read/Makefile])
+                 Tools/Programs/RegCM_read/Makefile])
 
 AC_OUTPUT
