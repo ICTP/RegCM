@@ -564,6 +564,9 @@ module mod_savefile
     integer(ik4) , dimension(maxvars) :: varids
     character(256) :: ffout
     character(32) :: fbname
+#ifdef CLM
+    integer(ik4) :: ioff
+#endif
 
     if ( myid == iocpu ) then
       if (ltmp) then
@@ -1129,7 +1132,7 @@ module mod_savefile
     end if
 
 #ifdef CLM
-    ioff = dtsec*(ntsrf-1)
+    ioff = int(dtsec*dble(ntsrf-1))
     filer_rest = restFile_filename(type='netcdf',offset=ioff)
     call restFile_write(filer_rest)
     filer_rest = restFile_filename(type='binary',offset=ioff)

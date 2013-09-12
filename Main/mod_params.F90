@@ -1486,6 +1486,7 @@ module mod_params
 !
 !-----compute land/water mask on subgrid space
 !
+#ifndef CLM
   if ( lakemod == 1 ) then
     write(0,*) 'nlakepts = ', nlakep
     call count_lakepoints
@@ -1493,6 +1494,7 @@ module mod_params
     write(0,*) 'totlakpts = ', totlakep
     call allocate_mod_bats_lake
   end if
+#endif
    do i = ici1 , ici2
      do j = jci1 , jci2
        if ( mddom%lndcat(j,i) > 13.5D0 .and. &
@@ -1994,6 +1996,7 @@ module mod_params
 !
   end subroutine param
 
+#ifndef CLM
   subroutine count_lakepoints
     implicit none
     integer(ik4) :: i , j , n
@@ -2010,5 +2013,6 @@ module mod_params
     nlakep = sum(lakemsk)
     call sumall(nlakep,totlakep)
   end subroutine count_lakepoints
+#endif
 !
 end module mod_params
