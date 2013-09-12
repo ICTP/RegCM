@@ -39,7 +39,6 @@ module mod_init
   use mod_sun
   use mod_ncio
   use mod_savefile
-  use mod_mppio
   use mod_slice
   use mod_constants
   use mod_outvars
@@ -235,33 +234,33 @@ module mod_init
 !
     mtau = mtau + ktau
 !
-    call grid_distribute(atm1_io%u,atm1%u,jde1,jde2,ide1,ide2,1,kz)
-    call grid_distribute(atm1_io%v,atm1%v,jde1,jde2,ide1,ide2,1,kz)
-    call grid_distribute(atm1_io%t,atm1%t,jce1,jce2,ice1,ice2,1,kz)
-    call grid_distribute(atm1_io%qx,atm1%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+    call grid_distribute(atm1_u_io,atm1%u,jde1,jde2,ide1,ide2,1,kz)
+    call grid_distribute(atm1_v_io,atm1%v,jde1,jde2,ide1,ide2,1,kz)
+    call grid_distribute(atm1_t_io,atm1%t,jce1,jce2,ice1,ice2,1,kz)
+    call grid_distribute(atm1_qx_io,atm1%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 
-    call grid_distribute(atm2_io%u,atm2%u,jde1,jde2,ide1,ide2,1,kz)
-    call grid_distribute(atm2_io%v,atm2%v,jde1,jde2,ide1,ide2,1,kz)
-    call grid_distribute(atm2_io%t,atm2%t,jce1,jce2,ice1,ice2,1,kz)
-    call grid_distribute(atm2_io%qx,atm2%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+    call grid_distribute(atm2_u_io,atm2%u,jde1,jde2,ide1,ide2,1,kz)
+    call grid_distribute(atm2_v_io,atm2%v,jde1,jde2,ide1,ide2,1,kz)
+    call grid_distribute(atm2_t_io,atm2%t,jce1,jce2,ice1,ice2,1,kz)
+    call grid_distribute(atm2_qx_io,atm2%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      call grid_distribute(atm1_io%tke,atm1%tke,jce1,jce2,ice1,ice2,1,kzp1)
-      call grid_distribute(atm2_io%tke,atm2%tke,jce1,jce2,ice1,ice2,1,kzp1)
+      call grid_distribute(atm1_tke_io,atm1%tke,jce1,jce2,ice1,ice2,1,kzp1)
+      call grid_distribute(atm2_tke_io,atm2%tke,jce1,jce2,ice1,ice2,1,kzp1)
       call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)
     end if
 
-    call grid_distribute(sfs_io%psa,sfs%psa,jce1,jce2,ice1,ice2)
-    call grid_distribute(sfs_io%psb,sfs%psb,jce1,jce2,ice1,ice2)
-    call grid_distribute(sfs_io%tga,sfs%tga,jce1,jce2,ice1,ice2)
-    call grid_distribute(sfs_io%tgb,sfs%tgb,jce1,jce2,ice1,ice2)
+    call grid_distribute(psa_io,sfs%psa,jce1,jce2,ice1,ice2)
+    call grid_distribute(psb_io,sfs%psb,jce1,jce2,ice1,ice2)
+    call grid_distribute(tga_io,sfs%tga,jce1,jce2,ice1,ice2)
+    call grid_distribute(tgb_io,sfs%tgb,jce1,jce2,ice1,ice2)
 
-    call grid_distribute(sfs_io%hfx,sfs%hfx,jci1,jci2,ici1,ici2)
-    call grid_distribute(sfs_io%qfx,sfs%qfx,jci1,jci2,ici1,ici2)
-    call grid_distribute(sfs_io%rainc,sfs%rainc,jci1,jci2,ici1,ici2)
-    call grid_distribute(sfs_io%rainnc,sfs%rainnc,jci1,jci2,ici1,ici2)
-    call grid_distribute(sfs_io%tgbb,sfs%tgbb,jci1,jci2,ici1,ici2)
-    call grid_distribute(sfs_io%uvdrag,sfs%uvdrag,jci1,jci2,ici1,ici2)
+    call grid_distribute(hfx_io,sfs%hfx,jci1,jci2,ici1,ici2)
+    call grid_distribute(qfx_io,sfs%qfx,jci1,jci2,ici1,ici2)
+    call grid_distribute(rainc_io,sfs%rainc,jci1,jci2,ici1,ici2)
+    call grid_distribute(rainnc_io,sfs%rainnc,jci1,jci2,ici1,ici2)
+    call grid_distribute(tgbb_io,sfs%tgbb,jci1,jci2,ici1,ici2)
+    call grid_distribute(uvdrag_io,sfs%uvdrag,jci1,jci2,ici1,ici2)
 
     call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
     call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
@@ -269,7 +268,7 @@ module mod_init
     if ( ipptls > 0 ) then
       call grid_distribute(fcc_io,fcc,jci1,jci2,ici1,ici2,1,kz)
       if ( ipptls == 2 ) then
-        call grid_distribute(sfs_io%snownc,sfs%snownc,jci1,jci2,ici1,ici2)
+        call grid_distribute(snownc_io,sfs%snownc,jci1,jci2,ici1,ici2)
       end if
     end if
     call grid_distribute(heatrt_io,heatrt,jci1,jci2,ici1,ici2,1,kz)
@@ -328,12 +327,16 @@ module mod_init
 
 #ifndef CLM
     if ( lakemod == 1 ) then
-      call subgrid_distribute(idep_io,idep,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(eta_io,eta,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(hi_io,hi,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(aveice_io,aveice,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(hsnow_io,hsnow,jci1,jci2,ici1,ici2)
-      call subgrid_distribute(tlak_io,tlak,jci1,jci2,ici1,ici2,1,ndpmax)
+      call subgrid_distribute(eta_io,xlake,jci1,jci2,ici1,ici2)
+      call lake_fillvar(var_eta,xlake,1)
+      call subgrid_distribute(hi_io,xlake,jci1,jci2,ici1,ici2)
+      call lake_fillvar(var_hi,xlake,1)
+      call subgrid_distribute(aveice_io,xlake,jci1,jci2,ici1,ici2)
+      call lake_fillvar(var_aveice,xlake,1)
+      call subgrid_distribute(hsnow_io,xlake,jci1,jci2,ici1,ici2)
+      call lake_fillvar(var_hsnow,xlake,1)
+      call subgrid_distribute(tlak_io,tlake,jci1,jci2,ici1,ici2,1,ndpmax)
+      call lake_fillvar(var_tlak,tlake,1)
     endif
 #else
     call grid_distribute(sols2d_io,sols2d,jci1,jci2,ici1,ici2)

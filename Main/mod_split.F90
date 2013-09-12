@@ -30,7 +30,6 @@ module mod_split
   use mod_atm_interface
   use mod_memutil
   use mod_service
-  use mod_mppio
 !
   private
 !

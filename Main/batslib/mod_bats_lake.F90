@@ -29,12 +29,11 @@ module mod_bats_lake
   use mod_bats_common
   use mod_runparams , only : xmonth , iocncpl
   use mod_bats_internal
-  use mod_bats_mppio
 !
   private
 !
-  public :: initlake , lakedrv
-  public :: lakesav_i , lakesav_o
+  public :: allocate_mod_bats_lake , initlake , lakedrv
+  public :: lake_fillvar
 !
   real(rk8) , dimension(ndpmax) :: de , dnsty , tt , ttx
 !
@@ -49,13 +48,57 @@ module mod_bats_lake
   ! steepness factor of latent heat removal
   real(rk8) , parameter :: steepf = 1.0D0  ! Tuning needed !
 !
+  real(rk8) , pointer , dimension(:,:) :: tlak
+  real(rk8) , pointer , dimension(:) :: hi , aveice , hsnow , eta
+  integer(ik4) , pointer , dimension(:) :: idep , ilp , jlp , nlp
+
+  integer , public , parameter :: var_eta    = 1
+  integer , public , parameter :: var_hi     = 2
+  integer , public , parameter :: var_aveice = 3
+  integer , public , parameter :: var_hsnow  = 4
+  integer , public , parameter :: var_tlak   = 5
+
+  interface lake_fillvar
+    module procedure lake_fillvar_real8_3d
+    module procedure lake_fillvar_real8_4d
+  end interface lake_fillvar
+
   contains
 !
 !-----------------------------------------------------------------------
 !
+  subroutine allocate_mod_bats_lake
+    implicit none
+    integer :: i , j , n , lp
+    if ( nlakep == 0 ) return
+    call getmem1d(idep,1,nlakep,'bats::initlake::idep')
+    call getmem1d(ilp,1,nlakep,'bats::initlake::ilp')
+    call getmem1d(jlp,1,nlakep,'bats::initlake::jlp')
+    call getmem1d(nlp,1,nlakep,'bats::initlake::nlp')
+    call getmem1d(hi,1,nlakep,'bats::initlake::hi')
+    call getmem1d(aveice,1,nlakep,'bats::initlake::aveice')
+    call getmem1d(hsnow,1,nlakep,'bats::initlake::hsnow')
+    call getmem1d(eta,1,nlakep,'bats::initlake::eta')
+    call getmem2d(tlak,1,nlakep,1,ndpmax,'bats::initlake::tlak')
+    lp = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          if ( lakemsk(n,j,i) == 1 ) then
+            jlp(lp) = j
+            ilp(lp) = i
+            nlp(lp) = n
+            idep(lp) = idint(dmax1(d_two,dmin1(dhlake1(n,j,i),dble(ndpmax)))/dz)
+            lp = lp + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine allocate_mod_bats_lake
+
   subroutine initlake
     implicit none
-    integer(ik4) :: i , j , n
+    integer(ik4) :: i , j , n , lp
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'initlake'
     integer(ik4) , save :: idindx = 0
@@ -64,93 +107,94 @@ module mod_bats_lake
 
     ! initialize hostetler lake model
 
-    idep(:,:,:)   = 0
-    hi(:,:,:)     = dmissval
-    aveice(:,:,:) = dmissval
-    hsnow(:,:,:)  = dmissval
-    eta(:,:,:)    = dmissval
-    tlak(:,:,:,:) = dmissval
+    if ( nlakep == 0 ) then
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          if ( iveg1(n,j,i) == 14 ) then
-            idep(n,j,i) = idint(dmax1(d_two,dmin1(dhlake1(n,j,i), &
-                                  dble(ndpmax)))/dz)
-            if ( ldmsk1(n,j,i) == 2 ) then
-              tlak(n,j,i,1) = -2.0D0
-              tlak(n,j,i,2) = -2.0D0
-              aveice(n,j,i) = d_10
-              hi(n,j,i) = d_one
-              hsnow(n,j,i) = d_zero
-            end if
-            ! Azar Zarrin: Fixed unrealistic high ice tickness and
-            ! high water temperatures during warm months.
-            ! Graziano: Take a data driven approach.
-            ! The attenuation coefficient is function of the turbidity
-            ! of the water. We assume here that the more deep, the less
-            ! turbid the water is. Real data from:
-            !
-            ! http://www.waterontheweb.org/under/lakeecology/04_light.html
-            !
-            if ( idep(n,j,i) < 5 ) then
-              ! A High eutrophic lake with suspended sediments can
-              ! reach even value of vertical extinction coefficient of 4 !!!
-              ! This means euphotic zone very limited.
-              eta(n,j,i) = -1.20D0
-            else if ( idep(n,j,i) > 5 .and. idep(n,j,i) < 10) then
-              ! Something like Mesotrophic
-              eta(n,j,i) = -0.80D0
-            else if ( idep(n,j,i) >= 10 .and. idep(n,j,i) < 40) then
-              eta(n,j,i) = -0.60D0
-            else if ( idep(n,j,i) >= 40 .and. idep(n,j,i) < 100) then
-              eta(n,j,i) = -0.40D0
-            else
-              ! This is a mean value for Great Lakes.
-              ! Oligotropic lake value.
-              eta(n,j,i) = -0.20D0
-            end if
-            ! Put winter surface water a bit colder and summer or tropical
-            ! surface water a little warmer to ease spinup nudging in the
-            ! correct direction the profile.
-            if ( xlat1(n,j,i) > 30.0 ) then
-              if ( xmonth < 4 .or. xmonth > 9 ) then
-                tlak(n,j,i,1) = 3.0
-                tlak(n,j,i,2) = 3.5
-              else
-                tlak(n,j,i,1) = 6.0
-                tlak(n,j,i,2) = 5.0
-              end if
-              if ( idep(n,j,i) > 2 ) then
-                tlak(n,j,i,3:idep(n,j,i)) = 4.0D0
-              end if
-            else if ( xlat1(n,j,i) < 30.0 ) then
-              if ( xmonth > 4 .and. xmonth < 9 ) then
-                tlak(n,j,i,1) = 3.0
-                tlak(n,j,i,2) = 3.5
-              else
-                tlak(n,j,i,1) = 6.0
-                tlak(n,j,i,2) = 5.0
-              end if
-              if ( idep(n,j,i) > 2 ) then
-                tlak(n,j,i,3:idep(n,j,i)) = 4.0D0
-              end if
-            else
-              ! This needs tuning for tropical lakes.
-              ! Lake Malawi bottom temperature can be as high as 22.75 Celsius
-              ! with surface as hot as 25.5 degrees.
-              tlak(n,j,i,1) = 20.0
-              tlak(n,j,i,2) = 19.0
-              if ( idep(n,j,i) > 2 ) then
-                tlak(n,j,i,3:idep(n,j,i)) = 18.0D0
-              end if
-            end if
-            hi(n,j,i) = 0.01D0
-            aveice(n,j,i) = d_zero
-            hsnow(n,j,i)  = d_zero
-          end if
-        end do
-      end do
+    hi(:)     = dmissval
+    aveice(:) = dmissval
+    hsnow(:)  = dmissval
+    eta(:)    = dmissval
+    tlak(:,:) = dmissval
+
+    do lp = 1 , nlakep
+      n = nlp(lp)
+      j = jlp(lp)
+      i = ilp(lp)
+      if ( ldmsk1(n,j,i) == 2 ) then
+        tlak(lp,1) = -2.0D0
+        tlak(lp,2) = -2.0D0
+        aveice(lp) = d_10
+        hi(lp) = d_one
+        hsnow(lp) = d_zero
+      end if
+      ! Azar Zarrin: Fixed unrealistic high ice tickness and
+      ! high water temperatures during warm months.
+      ! Graziano: Take a data driven approach.
+      ! The attenuation coefficient is function of the turbidity
+      ! of the water. We assume here that the more deep, the less
+      ! turbid the water is. Real data from:
+      !
+      ! http://www.waterontheweb.org/under/lakeecology/04_light.html
+      !
+      if ( idep(lp) < 5 ) then
+        ! A High eutrophic lake with suspended sediments can
+        ! reach even value of vertical extinction coefficient of 4 !!!
+        ! This means euphotic zone very limited.
+        eta(lp) = -1.20D0
+      else if ( idep(lp) > 5 .and. idep(lp) < 10) then
+        ! Something like Mesotrophic
+        eta(lp) = -0.80D0
+      else if ( idep(lp) >= 10 .and. idep(lp) < 40) then
+        eta(lp) = -0.60D0
+      else if ( idep(lp) >= 40 .and. idep(lp) < 100) then
+        eta(lp) = -0.40D0
+      else
+        ! This is a mean value for Great Lakes.
+        ! Oligotropic lake value.
+        eta(lp) = -0.20D0
+      end if
+      ! Put winter surface water a bit colder and summer or tropical
+      ! surface water a little warmer to ease spinup nudging in the
+      ! correct direction the profile.
+      if ( xlat1(n,j,i) > 30.0 ) then
+        if ( xmonth < 4 .or. xmonth > 9 ) then
+          tlak(lp,1) = 3.0
+          tlak(lp,2) = 3.5
+        else
+          tlak(lp,1) = 6.0
+          tlak(lp,2) = 5.0
+        end if
+        if ( idep(lp) > 2 ) then
+          tlak(lp,3:idep(lp)) = 4.0D0
+        end if
+      else if ( xlat1(n,j,i) < 30.0 ) then
+        if ( xmonth > 4 .and. xmonth < 9 ) then
+          tlak(lp,1) = 3.0
+          tlak(lp,2) = 3.5
+        else
+          tlak(lp,1) = 6.0
+          tlak(lp,2) = 5.0
+        end if
+        if ( idep(lp) > 2 ) then
+          tlak(lp,3:idep(lp)) = 4.0D0
+        end if
+      else
+        ! This needs tuning for tropical lakes.
+        ! Lake Malawi bottom temperature can be as high as 22.75 Celsius
+        ! with surface as hot as 25.5 degrees.
+        tlak(lp,1) = 20.0
+        tlak(lp,2) = 19.0
+        if ( idep(lp) > 2 ) then
+          tlak(lp,3:idep(lp)) = 18.0D0
+        end if
+      end if
+      hi(lp) = 0.01D0
+      aveice(lp) = d_zero
+      hsnow(lp)  = d_zero
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -161,69 +205,67 @@ module mod_bats_lake
     implicit none
     real(rk8) :: flwx , fswx , hsen , prec , ql , tgl , tl , vl , zl , &
                 xl , evp , toth
-    integer(ik4) :: i , j , n
+    integer(ik4) :: lp , i , j , n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'lakedrv'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          if ( iocncpl == 1 ) then
-            if ( cplmsk(j,i) /= 0 ) cycle
-          end if
-          if ( idep(n,j,i) > 1 ) then
-            tl = sts(n,j,i)
-            vl = dsqrt(usw(j,i)**2+vsw(j,i)**2)
-            zl = zh(n,j,i)
-            ql = qs(n,j,i)
-            fswx = fsw(j,i)
-            flwx = -d_one*flw(j,i)
-            prec = prcp(n,j,i)*dtbat
-            hsen = -d_one*sent(n,j,i)
-            evp = evpr(n,j,i)
-            if (nnsg == 1) then
-              xl = xlat(j,i)
-            else
-              xl = xlat1(n,j,i)
-            end if
+    if ( nlakep == 0 ) then
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
 
-            ttx(:) = tlak(n,j,i,:)
-            call lake( dtlake,tl,vl,zl,ql,fswx,flwx,hsen,xl, &
-                       tgl,prec,idep(n,j,i),eta(n,j,i),  &
-                       hi(n,j,i),aveice(n,j,i),          &
-                       hsnow(n,j,i),evp,ttx )
-            tlak(n,j,i,:) = ttx(:)
+    do lp = 1 , nlakep
+      n = nlp(lp)
+      j = jlp(lp)
+      i = ilp(lp)
+      if ( iocncpl == 1 ) then
+        if ( cplmsk(j,i) /= 0 ) cycle
+      end if
+      tl = sts(n,j,i)
+      vl = dsqrt(usw(j,i)**2+vsw(j,i)**2)
+      zl = zh(n,j,i)
+      ql = qs(n,j,i)
+      fswx = fsw(j,i)
+      flwx = -d_one*flw(j,i)
+      prec = prcp(n,j,i)*dtbat
+      hsen = -d_one*sent(n,j,i)
+      evp = evpr(n,j,i)
+      xl = xlat1(n,j,i)
+      ttx(:) = tlak(lp,:)
+      call lake( dtlake,tl,vl,zl,ql,fswx,flwx,hsen,xl, &
+                 tgl,prec,idep(lp),eta(lp),hi(lp),aveice(lp), &
+                 hsnow(lp),evp,ttx )
+      tlak(lp,:) = ttx(:)
 
-            ! Feed back ground temperature
-            tgrd(n,j,i) = tgl
-            tgbrd(n,j,i) = tgl
+      ! Feed back ground temperature
+      tgrd(n,j,i) = tgl
+      tgbrd(n,j,i) = tgl
 
-            if ( aveice(n,j,i) <= iceminh ) then
-              ldmsk1(n,j,i) = 0 
-              lveg(n,j,i) = 14
-              sfice(n,j,i) = d_zero
-              sncv(n,j,i) = d_zero
-              snag(n,j,i) = d_zero
-            else
-              ldmsk1(n,j,i) = 2 
-              lveg(n,j,i) = 12
-              sfice(n,j,i) = aveice(n,j,i)  !  units of ice = mm
-              sncv(n,j,i)  = hsnow(n,j,i)   !  units of snw = mm
-              evpr(n,j,i) = evp                 !  units of evp = mm/sec
-              ! Reduce sensible heat flux for ice presence
-              toth = sfice(n,j,i) + sncv(n,j,i)
-              if ( toth > href ) then
-                sent(n,j,i) = sent(n,j,i) * (href/toth)**steepf
-              end if
-              if ( dabs(sent(n,j,i)) < dlowval ) sent(n,j,i) = d_zero
-              if ( dabs(evpr(n,j,i)) < dlowval ) evpr(n,j,i) = d_zero
-            end if
-          end if
-        end do
-      end do
+      if ( aveice(lp) <= iceminh ) then
+        ldmsk1(n,j,i) = 0 
+        lveg(n,j,i) = 14
+        sfice(n,j,i) = d_zero
+        sncv(n,j,i) = d_zero
+        snag(n,j,i) = d_zero
+      else
+        ldmsk1(n,j,i) = 2 
+        lveg(n,j,i) = 12
+        sfice(n,j,i) = aveice(lp)  !  units of ice = mm
+        sncv(n,j,i)  = hsnow(lp)   !  units of snw = mm
+        evpr(n,j,i) = evp          !  units of evp = mm/sec
+        ! Reduce sensible heat flux for ice presence
+        toth = sfice(n,j,i) + sncv(n,j,i)
+        if ( toth > href ) then
+          sent(n,j,i) = sent(n,j,i) * (href/toth)**steepf
+        end if
+        if ( dabs(sent(n,j,i)) < dlowval ) sent(n,j,i) = d_zero
+        if ( dabs(evpr(n,j,i)) < dlowval ) evpr(n,j,i) = d_zero
+      end if
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -541,17 +583,14 @@ module mod_bats_lake
     else
       xec = d_zero
     end if
-
     qpen = fsw*0.7D0*((d_one-xea)/(ks*lams1) +            &
                       (xea*(d_one-xeb)/(ki*lami1))) +     &
            fsw*0.3D0*((d_one-dexp(-lams2))/(ks*lams2)+    &
                       (-lams2*hs)*(d_one-xec)/(ki*lami2))
     ! radiation absorbed at the ice surface
     fsw = fsw - qpen
-
     ! test qpen sensitivity
     !qpen = qpen * 0.5
-
     nits = 0
     t1 = -50.0D0
     f0 = f(t0)
@@ -654,48 +693,78 @@ module mod_bats_lake
 !
 !-----------------------------------------------------------------------
 !
-  subroutine lakesav_o(iutl)
+  subroutine lake_fillvar_real8_3d(ivar,rvar,idir)
     implicit none
-    integer(ik4) , intent(in) :: iutl
-    integer(ik4) :: i , j , k , n
-    write (iutl) idep_io
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
-          if ( idep_io(n,j,i) > 0 ) then
-            write(iutl) eta_io(n,j,i), hi_io(n,j,i), &
-                 aveice_io(n,j,i), hsnow_io(n,j,i),  &
-                 (tlak_io(n,j,i,k),k=1,idep_io(n,j,i))  
-          end if
+    integer(ik4) , intent(in) :: ivar , idir
+    real(rk8) , intent(inout) , pointer , dimension(:,:,:) :: rvar
+    real(rk8) , pointer , dimension(:) :: p
+    integer(ik4) :: i , j , n , lp
+
+    if ( nlakep == 0 ) return
+    select case (ivar)
+      case (var_eta)
+        p => eta
+      case (var_hi)
+        p => hi
+      case (var_aveice)
+        p => aveice
+      case (var_hsnow)
+        p => hsnow
+      case default
+        return
+    end select
+    if ( idir == 1 ) then
+      do lp = 1 , nlakep
+        n = nlp(lp)
+        j = jlp(lp)
+        i = ilp(lp)
+        p(lp) = rvar(n,j,i)
+      end do
+    else
+      rvar(:,:,:) = dmissval
+      do lp = 1 , nlakep
+        n = nlp(lp)
+        j = jlp(lp)
+        i = ilp(lp)
+        rvar(n,j,i) = p(lp)
+      end do
+    end if
+  end subroutine lake_fillvar_real8_3d
+!
+  subroutine lake_fillvar_real8_4d(ivar,rvar,idir)
+    implicit none
+    integer(ik4) , intent(in) :: ivar , idir
+    real(rk8) , intent(inout) , pointer , dimension(:,:,:,:) :: rvar
+    real(rk8) , pointer , dimension(:,:) :: p
+    integer(ik4) :: i , j , k , n , lp
+
+    if ( nlakep == 0 ) return
+    select case (ivar)
+      case (var_tlak)
+        p => tlak
+      case default
+        return
+    end select
+    if ( idir == 1 ) then
+      do k = 1 , ndpmax
+        do lp = 1 , nlakep
+          n = nlp(lp)
+          j = jlp(lp)
+          i = ilp(lp)
+          p(lp,k) = rvar(n,j,i,k)
         end do
       end do
-    end do
-  end subroutine lakesav_o
-!
-!-----------------------------------------------------------------------
-!
-  subroutine lakesav_i(iutl)
-    implicit none
-    integer(ik4) , intent(in) :: iutl
-    integer(ik4) :: i , j , k , n
-    idep_io   = 0
-    hi_io     = dmissval
-    aveice_io = dmissval
-    hsnow_io  = dmissval
-    eta_io    = dmissval
-    tlak_io   = dmissval
-    read (iutl) idep_io
-    do i = iout1 , iout2
-      do j = jout1 , jout2
-        do n = 1 , nnsg
-          if ( idep_io(n,j,i) > 0 ) then
-            read(iutl) eta_io(n,j,i), hi_io(n,j,i), &
-                 aveice_io(n,j,i), hsnow_io(n,j,i), &
-                 (tlak_io(n,j,i,k),k=1,idep_io(n,j,i))  
-          end if
+    else
+      rvar(:,:,:,:) = dmissval
+      do k = 1 , ndpmax
+        do lp = 1 , nlakep
+          n = nlp(lp)
+          j = jlp(lp)
+          i = ilp(lp)
+          rvar(n,j,i,k) = p(lp,k)
         end do
       end do
-    end do
-  end subroutine lakesav_i
+    end if
+  end subroutine lake_fillvar_real8_4d
 !
 end module mod_bats_lake

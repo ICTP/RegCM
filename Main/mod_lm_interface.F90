@@ -31,7 +31,6 @@ module mod_lm_interface
   use mod_bats_mtrxbats
 #else
   use mod_bats_param
-  use mod_bats_mppio
   use mod_bats_bndry
   use mod_bats_co2
   use mod_bats_drag

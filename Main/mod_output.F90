@@ -36,7 +36,6 @@ module mod_output
   use mod_precip
   use mod_split
   use mod_savefile
-  use mod_mppio
   use mod_slabocean
 #ifdef CLM
   use mod_clm
@@ -523,38 +522,38 @@ module mod_output
 
     if ( ifsave ) then
       if ( ldosav .or. ldotmp ) then
-        call grid_collect(atm1%u,atm1_io%u,jde1,jde2,ide1,ide2,1,kz)
-        call grid_collect(atm1%v,atm1_io%v,jde1,jde2,ide1,ide2,1,kz)
-        call grid_collect(atm1%t,atm1_io%t,jce1,jce2,ice1,ice2,1,kz)
-        call grid_collect(atm1%qx,atm1_io%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+        call grid_collect(atm1%u,atm1_u_io,jde1,jde2,ide1,ide2,1,kz)
+        call grid_collect(atm1%v,atm1_v_io,jde1,jde2,ide1,ide2,1,kz)
+        call grid_collect(atm1%t,atm1_t_io,jce1,jce2,ice1,ice2,1,kz)
+        call grid_collect(atm1%qx,atm1_qx_io,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 
-        call grid_collect(atm2%u,atm2_io%u,jde1,jde2,ide1,ide2,1,kz)
-        call grid_collect(atm2%v,atm2_io%v,jde1,jde2,ide1,ide2,1,kz)
-        call grid_collect(atm2%t,atm2_io%t,jce1,jce2,ice1,ice2,1,kz)
-        call grid_collect(atm2%qx,atm2_io%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+        call grid_collect(atm2%u,atm2_u_io,jde1,jde2,ide1,ide2,1,kz)
+        call grid_collect(atm2%v,atm2_v_io,jde1,jde2,ide1,ide2,1,kz)
+        call grid_collect(atm2%t,atm2_t_io,jce1,jce2,ice1,ice2,1,kz)
+        call grid_collect(atm2%qx,atm2_qx_io,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 
         if ( ibltyp == 2 .or. ibltyp == 99 ) then
-          call grid_collect(atm1%tke,atm1_io%tke,jce1,jce2,ice1,ice2,1,kzp1)
-          call grid_collect(atm2%tke,atm2_io%tke,jce1,jce2,ice1,ice2,1,kzp1)
+          call grid_collect(atm1%tke,atm1_tke_io,jce1,jce2,ice1,ice2,1,kzp1)
+          call grid_collect(atm2%tke,atm2_tke_io,jce1,jce2,ice1,ice2,1,kzp1)
           call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)
         end if
 
-        call grid_collect(sfs%psa,sfs_io%psa,jce1,jce2,ice1,ice2)
-        call grid_collect(sfs%psb,sfs_io%psb,jce1,jce2,ice1,ice2)
-        call grid_collect(sfs%tga,sfs_io%tga,jce1,jce2,ice1,ice2)
-        call grid_collect(sfs%tgb,sfs_io%tgb,jce1,jce2,ice1,ice2)
+        call grid_collect(sfs%psa,psa_io,jce1,jce2,ice1,ice2)
+        call grid_collect(sfs%psb,psb_io,jce1,jce2,ice1,ice2)
+        call grid_collect(sfs%tga,tga_io,jce1,jce2,ice1,ice2)
+        call grid_collect(sfs%tgb,tgb_io,jce1,jce2,ice1,ice2)
 
-        call grid_collect(sfs%hfx,sfs_io%hfx,jci1,jci2,ici1,ici2)
-        call grid_collect(sfs%qfx,sfs_io%qfx,jci1,jci2,ici1,ici2)
-        call grid_collect(sfs%rainc,sfs_io%rainc,jci1,jci2,ici1,ici2)
-        call grid_collect(sfs%rainnc,sfs_io%rainnc,jci1,jci2,ici1,ici2)
-        call grid_collect(sfs%tgbb,sfs_io%tgbb,jci1,jci2,ici1,ici2)
-        call grid_collect(sfs%uvdrag,sfs_io%uvdrag,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%hfx,hfx_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%qfx,qfx_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%rainc,rainc_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%rainnc,rainnc_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%tgbb,tgbb_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%uvdrag,uvdrag_io,jci1,jci2,ici1,ici2)
 
         if ( ipptls > 0 ) then
           call grid_collect(fcc,fcc_io,jci1,jci2,ici1,ici2,1,kz)
           if ( ipptls == 2 ) then
-            call grid_collect(sfs%snownc,sfs_io%snownc,jci1,jci2,ici1,ici2)
+            call grid_collect(sfs%snownc,snownc_io,jci1,jci2,ici1,ici2)
           end if
         end if
         call grid_collect(heatrt,heatrt_io,jci1,jci2,ici1,ici2,1,kz)
@@ -609,12 +608,16 @@ module mod_output
 
 #ifndef CLM
         if ( lakemod == 1 ) then
-          call subgrid_collect(idep,idep_io,jci1,jci2,ici1,ici2)
-          call subgrid_collect(eta,eta_io,jci1,jci2,ici1,ici2)
-          call subgrid_collect(hi,hi_io,jci1,jci2,ici1,ici2)
-          call subgrid_collect(aveice,aveice_io,jci1,jci2,ici1,ici2)
-          call subgrid_collect(hsnow,hsnow_io,jci1,jci2,ici1,ici2)
-          call subgrid_collect(tlak,tlak_io,jci1,jci2,ici1,ici2,1,ndpmax)
+          call lake_fillvar(var_eta,xlake,0)
+          call subgrid_collect(xlake,eta_io,jci1,jci2,ici1,ici2)
+          call lake_fillvar(var_hi,xlake,0)
+          call subgrid_collect(xlake,hi_io,jci1,jci2,ici1,ici2)
+          call lake_fillvar(var_aveice,xlake,0)
+          call subgrid_collect(xlake,aveice_io,jci1,jci2,ici1,ici2)
+          call lake_fillvar(var_hsnow,xlake,0)
+          call subgrid_collect(xlake,hsnow_io,jci1,jci2,ici1,ici2)
+          call lake_fillvar(var_tlak,tlake,0)
+          call subgrid_collect(tlake,tlak_io,jci1,jci2,ici1,ici2,1,ndpmax)
         end if
 #else
         call grid_collect(sols2d,sols2d_io,jci1,jci2,ici1,ici2)
@@ -662,12 +665,7 @@ module mod_output
           call grid_collect(qflux_restore_sst,qflux_restore_sst_io, &
             jci1,jci2,ici1,ici2,1,12)
         end if
-
-        if ( ldosav ) then
-          call write_savefile(idatex, .false.)
-        else
-          call write_savefile(idatex, .true.)
-        end if
+        call write_savefile(idatex,ldotmp)
       end if
     end if
 

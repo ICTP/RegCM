@@ -23,6 +23,7 @@ module mod_regcm_interface
   use mod_memutil
   use mod_service
   use mod_che_interface
+  use mod_lm_interface
   use mod_atm_interface
   use mod_pbl_interface
   use mod_runparams
@@ -39,7 +40,6 @@ module mod_regcm_interface
   use mod_tendency
   use mod_tstep
   use mod_service
-  use mod_mppio
   use mod_cloud_s1
   use mod_sun
 #ifdef CLM

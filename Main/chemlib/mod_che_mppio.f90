@@ -81,7 +81,7 @@ module mod_che_mppio
             call getmem4d(chemall_io,jcross1,jcross2,icross1,icross2, &
                           1,kz,1,totsp,'che_mppio:chemall_io')
             call getmem4d(taucldsp_io,jcross1,jcross2,icross1,icross2, &
-                          0,kz,1,nspi,'che_mppio:chemall_io')
+                          0,kz,1,nspi,'che_mppio:taucldsp_io')
           end if
         end if
       end if

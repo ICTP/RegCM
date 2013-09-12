@@ -34,7 +34,6 @@ module mod_bats_mtrxbats
   use mod_bats_bndry
   use mod_bats_drag
   use mod_bats_leaftemp
-  use mod_bats_mppio
   use mod_bats_zengocn
   use mod_bats_coare
   use mod_outvars
@@ -600,18 +599,8 @@ module mod_bats_mtrxbats
           if ( associated(lak_evp_out) ) &
             lak_evp_out = lak_evp_out + sum(evpr,1)*rdnnsg
           if ( associated(lak_aveice_out) ) then
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                do n = 1 , nnsg
-                  if ( aveice(n,j,i) < dmissval ) then
-                    lak_aveice_out(j,i) = lak_aveice_out(j,i) + &
-                      aveice(n,j,i)*rdnnsg*d_r1000
-                  else
-                    lak_aveice_out(j,i) = dmissval
-                  end if
-                end do
-              end do
-            end do
+            lak_aveice_out = lak_aveice_out + &
+              sum(sfice*lakemsk,1)*rdnnsg*d_r1000
           end if
         end if
       end if
@@ -660,9 +649,11 @@ module mod_bats_mtrxbats
           if ( associated(sub_tlef_out) ) &
             call reorder_subgrid(tlef,sub_tlef_out,mask=ldmsk1)
           if ( llake ) then
-            if ( associated(sub_tlake_out) ) &
-            call reorder_subgrid(tlak,sub_tlake_out,1)
-            sub_tlake_out = sub_tlake_out + tzero
+            if ( associated(sub_tlake_out) ) then
+              call lake_fillvar(1,tlake,0)
+              call reorder_subgrid(tlake,sub_tlake_out,1)
+              sub_tlake_out = sub_tlake_out + tzero
+            end if
           end if
           if ( associated(sub_u10m_out) ) &
             call reorder_subgrid(u10m,sub_u10m_out)
@@ -686,9 +677,9 @@ module mod_bats_mtrxbats
           if ( associated(lak_aldifs_out) ) &
             lak_aldifs_out = aldifs
           if ( associated(lak_hsnow_out) ) &
-            lak_hsnow_out = sum(hsnow,1)*rdnnsg
+            lak_hsnow_out = sum(sncv*lakemsk,1)*rdnnsg
           if ( associated(lak_tlake_out) ) &
-            lak_tlake_out = sum(tlak,1)*rdnnsg+tzero
+            lak_tlake_out = sum(tlake,1)*rdnnsg+tzero
         end if
 
       end if ! IF output time

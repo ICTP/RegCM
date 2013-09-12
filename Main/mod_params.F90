@@ -39,7 +39,7 @@ module mod_params
   use mod_ncio
   use mod_ncout
   use mod_advection , only : init_advection
-  use mod_mppio
+  use mod_savefile
   use mod_slabocean
   use mod_sldepparam
 #ifdef CLM
@@ -1084,12 +1084,10 @@ module mod_params
 
   call allocate_mod_split
 
-  call allocate_mod_mppio
+  call allocate_mod_savefile
 
   call allocate_mod_bats_common(ichem,idcsst,lakemod,iocncpl)
-#ifndef CLM
-  call allocate_mod_bats_mppio(lakemod)
-#else
+#ifdef CLM
   call allocate_mod_clm(ntr,igaschem,ioxclim)
 #endif
 
@@ -1488,6 +1486,13 @@ module mod_params
 !
 !-----compute land/water mask on subgrid space
 !
+  if ( lakemod == 1 ) then
+    write(0,*) 'nlakepts = ', nlakep
+    call count_lakepoints
+    write(0,*) 'nlakepts = ', nlakep
+    write(0,*) 'totlakpts = ', totlakep
+    call allocate_mod_bats_lake
+  end if
    do i = ici1 , ici2
      do j = jci1 , jci2
        if ( mddom%lndcat(j,i) > 13.5D0 .and. &
@@ -1988,5 +1993,22 @@ module mod_params
 #endif
 !
   end subroutine param
+
+  subroutine count_lakepoints
+    implicit none
+    integer(ik4) :: i , j , n
+    lakemsk(:,:,:) = 0
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          if ( lndcat1(n,j,i) > 13.0 .and. lndcat1(n,j,i) < 15.0 ) then
+            lakemsk(n,j,i) = 1
+          end if
+        end do
+      end do
+    end do
+    nlakep = sum(lakemsk)
+    call sumall(nlakep,totlakep)
+  end subroutine count_lakepoints
 !
 end module mod_params

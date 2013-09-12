@@ -150,8 +150,8 @@ module mod_atm_interface
   type(v2dbound) , public :: xpsb
   type(bound_area) , public :: ba_cr , ba_dt
 
-  public :: allocate_mod_atm_interface , allocate_atmstate , allocate_domain
-  public :: allocate_surfstate , allocate_v3dbound , allocate_v2dbound
+  public :: allocate_mod_atm_interface
+  public :: allocate_v3dbound , allocate_v2dbound
   public :: setup_boundaries , setup_model_indexes
 
   real(rk8) , public , pointer , dimension(:,:) :: hgfact
@@ -500,9 +500,8 @@ module mod_atm_interface
       end if
     end subroutine allocate_v2dbound
 !
-    subroutine allocate_atmstate(atm,ibltyp,lpar,exchange_points)
+    subroutine allocate_atmstate(atm,ibltyp,exchange_points)
       implicit none
-      logical , intent(in) :: lpar
       integer(ik4) , intent(in) :: ibltyp
       integer(ik4) , intent(in) :: exchange_points
       type(atmstate) , intent(out) :: atm
@@ -528,29 +527,20 @@ module mod_atm_interface
         jl = ma%jbl4
         jr = ma%jbr4
       else
+        ib = -1
+        it = -1
+        jl = -1
+        jr = -1
         call fatal(__FILE__,__LINE__,'Uncoded number of exchange points')
       end if
-
-      if (lpar) then
-        call getmem3d(atm%u,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:u')
-        call getmem3d(atm%v,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:v')
-        call getmem3d(atm%t,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:t')
-        call getmem4d(atm%qx,jce1-jl,jce2+jr, &
-                             ice1-ib,ice2+it,1,kz,1,nqx,'atmstate:qx')
-        if ( ibltyp == 2 .or. ibltyp == 99 ) then
-          call getmem3d(atm%tke,jce1-jl,jce2+jr,ice1-ib,ice2+it, &
-                        1,kzp1,'atmstate:tke')
-        end if
-      else
-        call getmem3d(atm%u,jdot1,jdot2,idot1,idot2,1,kz,'atmstate:u')
-        call getmem3d(atm%v,jdot1,jdot2,idot1,idot2,1,kz,'atmstate:v')
-        call getmem3d(atm%t,jcross1,jcross2,icross1,icross2,1,kz,'atmstate:t')
-        call getmem4d(atm%qx,jcross1,jcross2, &
-                             icross1,icross2,1,kz,1,nqx,'atmstate:qx')
-        if ( ibltyp == 2 .or. ibltyp == 99 ) then
-          call getmem3d(atm%tke, &
-                        jcross1,jcross2,icross1,icross2,1,kzp1,'atmstate:tke')
-        end if
+      call getmem3d(atm%u,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:u')
+      call getmem3d(atm%v,jde1-jl,jde2+jr,ide1-ib,ide2+it,1,kz,'atmstate:v')
+      call getmem3d(atm%t,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:t')
+      call getmem4d(atm%qx,jce1-jl,jce2+jr, &
+                           ice1-ib,ice2+it,1,kz,1,nqx,'atmstate:qx')
+      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        call getmem3d(atm%tke,jce1-jl,jce2+jr,ice1-ib,ice2+it, &
+                      1,kzp1,'atmstate:tke')
       end if
     end subroutine allocate_atmstate
 
@@ -609,42 +599,24 @@ module mod_atm_interface
       end if
     end subroutine allocate_domain
 !
-    subroutine allocate_surfstate(sfs,lpar)
+    subroutine allocate_surfstate(sfs)
       implicit none
       type(surfstate) , intent(out) :: sfs
-      logical , intent(in) :: lpar
-      if (lpar) then
-        call getmem2d(sfs%psa,jce1-ma%jbl1,jce2+ma%jbr1, &
-                              ice1-ma%ibb1,ice2+ma%ibt1,'surf:psa')
-        call getmem2d(sfs%psb,jce1-ma%jbl1,jce2+ma%jbr1, &
-                              ice1-ma%ibb1,ice2+ma%ibt1,'surf:psb')
-        call getmem2d(sfs%tga,jce1,jce2,ice1,ice2,'surf:tga')
-        call getmem2d(sfs%tgb,jce1,jce2,ice1,ice2,'surf:tgb')
-        call getmem2d(sfs%hfx,jci1,jci2,ici1,ici2,'surf:hfx')
-        call getmem2d(sfs%qfx,jci1,jci2,ici1,ici2,'surf:qfx')
-        call getmem2d(sfs%rainc,jci1,jci2,ici1,ici2,'surf:rainc')
-        call getmem2d(sfs%rainnc,jci1,jci2,ici1,ici2,'surf:rainnc')
-        if ( ipptls == 2 ) then
-          call getmem2d(sfs%snownc,jci1,jci2,ici1,ici2,'surf:snownc')
-        end if
-        call getmem2d(sfs%tgbb,jci1,jci2,ici1,ici2,'surf:tgbb')
-        call getmem2d(sfs%uvdrag,jci1,jci2,ici1,ici2,'surf:uvdrag')
-      else
-        call getmem2d(sfs%psa,jcross1,jcross2,icross1,icross2,'surf:psa')
-        call getmem2d(sfs%psb,jcross1,jcross2,icross1,icross2,'surf:psb')
-        call getmem2d(sfs%tga,jcross1,jcross2,icross1,icross2,'surf:tga')
-        call getmem2d(sfs%tgb,jcross1,jcross2,icross1,icross2,'surf:tgb')
-        call getmem2d(sfs%hfx,jcross1,jcross2,icross1,icross2,'surf:hfx')
-        call getmem2d(sfs%qfx,jcross1,jcross2,icross1,icross2,'surf:qfx')
-        call getmem2d(sfs%rainc,jcross1,jcross2,icross1,icross2,'surf:rainc')
-        call getmem2d(sfs%rainnc,jcross1,jcross2,icross1,icross2,'surf:rainnc')
-        if ( ipptls == 2 ) then
-          call getmem2d(sfs%snownc,jcross1,jcross2, &
-                                   icross1,icross2,'surf:snownc')
-        end if
-        call getmem2d(sfs%tgbb,jcross1,jcross2,icross1,icross2,'surf:tgbb')
-        call getmem2d(sfs%uvdrag,jcross1,jcross2,icross1,icross2,'surf:uvdrag')
+      call getmem2d(sfs%psa,jce1-ma%jbl1,jce2+ma%jbr1, &
+                            ice1-ma%ibb1,ice2+ma%ibt1,'surf:psa')
+      call getmem2d(sfs%psb,jce1-ma%jbl1,jce2+ma%jbr1, &
+                            ice1-ma%ibb1,ice2+ma%ibt1,'surf:psb')
+      call getmem2d(sfs%tga,jce1,jce2,ice1,ice2,'surf:tga')
+      call getmem2d(sfs%tgb,jce1,jce2,ice1,ice2,'surf:tgb')
+      call getmem2d(sfs%hfx,jci1,jci2,ici1,ici2,'surf:hfx')
+      call getmem2d(sfs%qfx,jci1,jci2,ici1,ici2,'surf:qfx')
+      call getmem2d(sfs%rainc,jci1,jci2,ici1,ici2,'surf:rainc')
+      call getmem2d(sfs%rainnc,jci1,jci2,ici1,ici2,'surf:rainnc')
+      if ( ipptls == 2 ) then
+        call getmem2d(sfs%snownc,jci1,jci2,ici1,ici2,'surf:snownc')
       end if
+      call getmem2d(sfs%tgbb,jci1,jci2,ici1,ici2,'surf:tgbb')
+      call getmem2d(sfs%uvdrag,jci1,jci2,ici1,ici2,'surf:uvdrag')
     end subroutine allocate_surfstate
 !
     subroutine allocate_slice(ax,ibltyp)
@@ -700,24 +672,24 @@ module mod_atm_interface
       call allocate_domain(mddom,.true.)
 
       if ( isladvec == 1 ) then
-        call allocate_atmstate(atmx,ibltyp,.true.,four_exchange_point)
-        call allocate_atmstate(atm1,ibltyp,.true.,four_exchange_point)
-        call allocate_atmstate(atm2,ibltyp,.true.,four_exchange_point)
+        call allocate_atmstate(atmx,ibltyp,four_exchange_point)
+        call allocate_atmstate(atm1,ibltyp,four_exchange_point)
+        call allocate_atmstate(atm2,ibltyp,four_exchange_point)
       else
-        call allocate_atmstate(atmx,ibltyp,.true.,one_exchange_point)
-        call allocate_atmstate(atm1,ibltyp,.true.,one_exchange_point)
-        call allocate_atmstate(atm2,ibltyp,.true.,one_exchange_point)
+        call allocate_atmstate(atmx,ibltyp,one_exchange_point)
+        call allocate_atmstate(atm1,ibltyp,one_exchange_point)
+        call allocate_atmstate(atm2,ibltyp,one_exchange_point)
       end if
-      call allocate_atmstate(atmc,ibltyp,.true.,zero_exchange_point)
-      call allocate_atmstate(aten,ibltyp,.true.,zero_exchange_point)
+      call allocate_atmstate(atmc,ibltyp,zero_exchange_point)
+      call allocate_atmstate(aten,ibltyp,zero_exchange_point)
       if ( ibltyp == 99 ) then
-        call allocate_atmstate(holtten,ibltyp,.true.,zero_exchange_point)
+        call allocate_atmstate(holtten,ibltyp,zero_exchange_point)
       end if
       if ( ibltyp == 2 .or. ibltyp == 99 ) then
-        call allocate_atmstate(uwten,ibltyp,.true.,one_exchange_point)
+        call allocate_atmstate(uwten,ibltyp,one_exchange_point)
       end if
 
-      call allocate_surfstate(sfs,.true.)
+      call allocate_surfstate(sfs)
 
       call allocate_slice(atms,ibltyp)
 

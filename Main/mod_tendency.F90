@@ -37,7 +37,6 @@ module mod_tendency
   use mod_sun
   use mod_advection
   use mod_diffusion
-  use mod_mppio
   use mod_domain
   use mod_cloud_s1
   use mod_sladvection

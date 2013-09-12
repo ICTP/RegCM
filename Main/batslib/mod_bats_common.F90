@@ -62,6 +62,7 @@ module mod_bats_common
         sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
 !
   integer(ik4) , pointer , dimension(:,:,:) :: ldmsk1 , iveg1
+  integer(ik4) , pointer , dimension(:,:,:) :: lakemsk
   integer(ik4) , pointer , dimension(:,:) :: iveg , ldmsk
 !
   real(rk8) , pointer , dimension(:,:,:) :: ht1 , lndcat1 , &
@@ -76,12 +77,8 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:) :: sst
   ! Lake model
   real(rk8) , pointer , dimension(:,:,:) :: dhlake1
-  integer(ik4) , pointer , dimension(:,:,:) :: idep
-  real(rk8) , pointer , dimension(:,:,:) :: eta
-  real(rk8) , pointer , dimension(:,:,:) :: hi
-  real(rk8) , pointer , dimension(:,:,:) :: aveice
-  real(rk8) , pointer , dimension(:,:,:) :: hsnow
-  real(rk8) , pointer , dimension(:,:,:,:) :: tlak
+  real(rk8) , pointer , dimension(:,:,:,:) :: tlake
+  real(rk8) , pointer , dimension(:,:,:) :: xlake
 !
   data ldcsst /.false./
   data llake  /.false./
@@ -108,6 +105,9 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:,:) :: hgt         ! za
   real(rk8) , pointer , dimension(:,:) :: rhox          ! rhox2d
   integer(ik4) , pointer , dimension(:,:) :: lmask      ! CLM landmask
+
+  integer(ik4) :: nlakep = 0
+  integer(ik4) :: totlakep = 0
 
   contains
 
@@ -207,13 +207,10 @@ module mod_bats_common
       call getmem2d(aldirs,jci1,jci2,ici1,ici2,'bats:aldirs')
 
       if ( lakemod == 1 ) then
+        call getmem3d(lakemsk,1,nnsg,jci1,jci2,ici1,ici2,'bats:lakemsk')
         call getmem3d(dhlake1,1,nnsg,jci1,jci2,ici1,ici2,'bats:dhlake1')
-        call getmem3d(idep,1,nnsg,jci1,jci2,ici1,ici2,'bats:idep')
-        call getmem3d(eta,1,nnsg,jci1,jci2,ici1,ici2,'bats:eta')
-        call getmem3d(hi,1,nnsg,jci1,jci2,ici1,ici2,'bats:hi')
-        call getmem3d(aveice,1,nnsg,jci1,jci2,ici1,ici2,'bats:aveice')
-        call getmem3d(hsnow,1,nnsg,jci1,jci2,ici1,ici2,'bats:hsnow')
-        call getmem4d(tlak,1,nnsg,jci1,jci2,ici1,ici2,1,ndpmax,'bats:tlak')
+        call getmem3d(xlake,1,nnsg,jci1,jci2,ici1,ici2,'bats:xlake')
+        call getmem4d(tlake,1,nnsg,jci1,jci2,ici1,ici2,1,ndpmax,'bats:tlake')
       end if
 
       call allocate_mod_bats_internal

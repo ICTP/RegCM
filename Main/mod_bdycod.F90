@@ -31,7 +31,6 @@ module mod_bdycod
   use mod_lm_interface
   use mod_mpmessage 
   use mod_ncio
-  use mod_mppio
   use mod_service
   use mod_slabocean
 !
