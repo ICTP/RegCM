@@ -42,10 +42,6 @@ module mod_lm_interface
 !
   public
 
-#ifdef CLM
-  real(rk8) , dimension(:,:,:) , pointer :: dhlake1_io
-#endif
-
   contains
 
   subroutine init_bats(dom,atm,sfs,zpbl)

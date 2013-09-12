@@ -252,7 +252,8 @@ module mod_ncio
       call read_var2d_static(idmin,'landuse',rspace,istart=istart,icount=icount)
       call input_reorder(rspace,lnd1,jde1,jde2,ide1,ide2)
       if ( lakemod == 1 ) then
-        call read_var2d_static(idmin,'dhlake',rspace,.true.,istart,icount)
+        call read_var2d_static(idmin,'dhlake',rspace,.true., &
+                               istart=istart,icount=icount)
         call input_reorder(rspace,hlake1,jde1,jde2,ide1,ide2)
       end if
       call closefile(idmin)
@@ -291,9 +292,10 @@ module mod_ncio
         call input_reorder(rspace,rspace0,1,jx,1,iy)
         call subgrid_distribute(rspace0,lnd1,jde1,jde2,ide1,ide2)
         if ( lakemod == 1 ) then
-          call read_var2d_static(idmin,'dhlake',rspace,.true.,istart,icount)
+          call read_var2d_static(idmin,'dhlake',rspace,.true., &
+                                 istart=istart,icount=icount)
           call input_reorder(rspace,rspace0,1,jx,1,iy)
-          call subgrid_distribute(rspace0,hlake1,jde1,jde2,ide1,ide2)
+          call subgrid_distribute(rspace0,hlake1,jci1,jci2,ici1,ici2)
         end if
         call closefile(idmin)
         deallocate(rspace)
@@ -305,7 +307,7 @@ module mod_ncio
         call subgrid_distribute(rspace0,mask1,jde1,jde2,ide1,ide2)
         call subgrid_distribute(rspace0,lnd1,jde1,jde2,ide1,ide2)
         if ( lakemod == 1 ) then
-          call subgrid_distribute(rspace0,hlake1,jde1,jde2,ide1,ide2)
+          call subgrid_distribute(rspace0,hlake1,jci1,jci2,ici1,ici2)
         end if
       end if
     end if
