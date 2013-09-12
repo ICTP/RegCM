@@ -154,10 +154,6 @@ module mod_savefile
   real(rk8) , public , pointer , dimension(:,:) :: soll2d_io
   real(rk8) , public , pointer , dimension(:,:) :: solsd2d_io
   real(rk8) , public , pointer , dimension(:,:) :: solld2d_io
-  real(rk8) , public , pointer , dimension(:,:) :: aldifl2d_io
-  real(rk8) , public , pointer , dimension(:,:) :: aldirs2d_io
-  real(rk8) , public , pointer , dimension(:,:) :: aldirl2d_io
-  real(rk8) , public , pointer , dimension(:,:) :: aldifs2d_io
   real(rk8) , public , pointer , dimension(:,:) :: lndcat2d_io
 #endif
 
@@ -278,10 +274,6 @@ module mod_savefile
       call getmem2d(soll2d_io,jcross1,jcross2,icross1,icross2,'soll2d_io')
       call getmem2d(solsd2d_io,jcross1,jcross2,icross1,icross2,'solsd2d_io')
       call getmem2d(solld2d_io,jcross1,jcross2,icross1,icross2,'solld2d_io')
-      call getmem2d(aldifl2d_io,jcross1,jcross2,icross1,icross2,'aldifl2d_io')
-      call getmem2d(aldifs2d_io,jcross1,jcross2,icross1,icross2,'aldifs2d_io')
-      call getmem2d(aldirl2d_io,jcross1,jcross2,icross1,icross2,'aldirl2d_io')
-      call getmem2d(aldirs2d_io,jcross1,jcross2,icross1,icross2,'aldirs2d_io')
       call getmem2d(lndcat2d_io,jcross1,jcross2,icross1,icross2,'lndcat2d_io')
 #else
       if ( lakemod == 1 ) then
@@ -455,6 +447,7 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read taf')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'emiss'),emiss_io)
       call check_ok(__FILE__,__LINE__,'Cannot read emiss')
+#ifndef CLM
       if ( lakemod == 1 ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'eta'),eta_io)
         call check_ok(__FILE__,__LINE__,'Cannot read eta')
@@ -467,6 +460,7 @@ module mod_savefile
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'tlak'),tlak_io)
         call check_ok(__FILE__,__LINE__,'Cannot read tlak')
       end if
+#endif
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'heatrt'),heatrt_io)
       call check_ok(__FILE__,__LINE__,'Cannot read heatrt')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'o3prof'),o3prof_io)
@@ -537,14 +531,6 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read solsd2d')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'solld2d'),solld2d_io)
       call check_ok(__FILE__,__LINE__,'Cannot read solld2d')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'aldifl2d'),aldifl2d_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read aldifl2d')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'aldifs2d'),aldifs2d_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read aldifs2d')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'aldirl2d'),aldirl2d_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read aldirl2d')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'aldirs2d'),aldirs2d_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read aldirs2d')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'lndcat2d'),lndcat2d_io)
       call check_ok(__FILE__,__LINE__,'Cannot read lndcat2d')
 #endif
@@ -766,6 +752,7 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot create var taf')
       ncstatus = nf90_def_var(ncid,'emiss',nf90_double,wrkdim(1:3),varids(52))
       call check_ok(__FILE__,__LINE__,'Cannot create var emiss')
+#ifndef CLM
       if ( lakemod == 1 ) then
         ncstatus = nf90_def_var(ncid,'eta',nf90_double,wrkdim(1:3),varids(53))
         call check_ok(__FILE__,__LINE__,'Cannot create var eta')
@@ -782,6 +769,7 @@ module mod_savefile
                                 wrkdim(1:4),varids(57))
         call check_ok(__FILE__,__LINE__,'Cannot create var tlak')
       end if
+#endif
       wrkdim(1) = dimids(idjcross)
       wrkdim(2) = dimids(idicross)
       wrkdim(3) = dimids(idkh)
@@ -886,20 +874,8 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot create var solsd2d')
       ncstatus = nf90_def_var(ncid,'solld2d',nf90_double,wrkdim(1:2),varids(87))
       call check_ok(__FILE__,__LINE__,'Cannot create var solld2d')
-      ncstatus = nf90_def_var(ncid,'aldifl2d',nf90_double,wrkdim(1:2), &
-                              varids(88))
-      call check_ok(__FILE__,__LINE__,'Cannot create var aldifl2d')
-      ncstatus = nf90_def_var(ncid,'aldifs2d',nf90_double,wrkdim(1:2), &
-                              varids(89))
-      call check_ok(__FILE__,__LINE__,'Cannot create var aldifs2d')
-      ncstatus = nf90_def_var(ncid,'aldirl2d',nf90_double,wrkdim(1:2), &
-                              varids(90))
-      call check_ok(__FILE__,__LINE__,'Cannot create var aldirl2d')
-      ncstatus = nf90_def_var(ncid,'aldirs2d',nf90_double,wrkdim(1:2), &
-                              varids(91))
-      call check_ok(__FILE__,__LINE__,'Cannot create var aldirs2d')
       ncstatus = nf90_def_var(ncid,'lndcat2d',nf90_double,wrkdim(1:2), &
-                              varids(92))
+                              varids(88))
       call check_ok(__FILE__,__LINE__,'Cannot create var lndcat2d')
 #endif
 
@@ -1035,6 +1011,7 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot write taf')
       ncstatus = nf90_put_var(ncid,varids(52),emiss_io)
       call check_ok(__FILE__,__LINE__,'Cannot write emiss')
+#ifndef CLM
       if ( lakemod == 1 ) then
         ncstatus = nf90_put_var(ncid,varids(53),eta_io)
         call check_ok(__FILE__,__LINE__,'Cannot write eta')
@@ -1047,6 +1024,7 @@ module mod_savefile
         ncstatus = nf90_put_var(ncid,varids(57),tlak_io)
         call check_ok(__FILE__,__LINE__,'Cannot write tlak')
       end if
+#endif
       ncstatus = nf90_put_var(ncid,varids(58),heatrt_io)
       call check_ok(__FILE__,__LINE__,'Cannot write heatrt')
       ncstatus = nf90_put_var(ncid,varids(59),o3prof_io)
@@ -1116,15 +1094,7 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot write solsd2d')
       ncstatus = nf90_put_var(ncid,varids(87),solld2d_io)
       call check_ok(__FILE__,__LINE__,'Cannot write solld2d')
-      ncstatus = nf90_put_var(ncid,varids(88),aldifl2d_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write aldifl2d')
-      ncstatus = nf90_put_var(ncid,varids(89),aldifs2d_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write aldifs2d')
-      ncstatus = nf90_put_var(ncid,varids(90),aldirl2d_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write aldirl2d')
-      ncstatus = nf90_put_var(ncid,varids(91),aldirs2d_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write aldirs2d')
-      ncstatus = nf90_put_var(ncid,varids(92),lndcat2d_io)
+      ncstatus = nf90_put_var(ncid,varids(88),lndcat2d_io)
       call check_ok(__FILE__,__LINE__,'Cannot write lndcat2d')
 #endif
       ncstatus = nf90_close(ncid)

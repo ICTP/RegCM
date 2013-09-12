@@ -343,10 +343,6 @@ module mod_init
     call grid_distribute(soll2d_io,soll2d,jci1,jci2,ici1,ici2)
     call grid_distribute(solsd2d_io,solsd2d,jci1,jci2,ici1,ici2)
     call grid_distribute(solld2d_io,solld2d,jci1,jci2,ici1,ici2)
-    call grid_distribute(aldirs2d_io,aldirs2d,jci1,jci2,ici1,ici2)
-    call grid_distribute(aldirl2d_io,aldirl2d,jci1,jci2,ici1,ici2)
-    call grid_distribute(aldifs2d_io,aldifs2d,jci1,jci2,ici1,ici2)
-    call grid_distribute(aldifl2d_io,aldifl2d,jci1,jci2,ici1,ici2)
     call grid_distribute(lndcat2d_io,lndcat2d,jci1,jci2,ici1,ici2)
     !
     ! CLM modifies landuse table. Get the modified one from restart file
