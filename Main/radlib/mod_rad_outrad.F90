@@ -264,6 +264,27 @@ module mod_rad_outrad
     end if
   end subroutine copy4d
 
+  subroutine copy4d1(a,b,nl)
+    implicit none
+    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
+    real(rk8) , pointer , intent(out) , dimension(:,:,:,:) :: b
+    integer(ik4) , intent(in) :: nl
+    integer(ik4) :: i , j , l , k , n
+    if ( associated(b) ) then
+      do l = 1 , nl
+        do k = 1 , kz
+          n = 1
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              b(j,i,k,l) = a(n,k,l)
+              n = n + 1
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine copy4d1
+
   subroutine copy4d_mult(a,b,l,c)
     implicit none
     real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
