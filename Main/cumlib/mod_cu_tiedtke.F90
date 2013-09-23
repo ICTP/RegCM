@@ -469,16 +469,6 @@ module mod_cu_tiedtke
     end do
     pqhfl(:,1) = pqhfl(:,2)
     pahfs(:,1) = pahfs(:,2)
-    if ( myid == 0 ) then
-      do jk = 1 , klev
-        write (11,*) pqhfl(kproma/2,jk)
-      end do
-      write (11,*) pqhfl(kproma/2,klev+1)
-      do jk = 1 , klev
-        write (12,*) pahfs(kproma/2,jk)
-      end do
-      write (12,*) pahfs(kproma/2,klev+1)
-    end if
     pmflxr = d_zero
     pmflxs = d_zero
     call cumastrn(1,kproma,kbdim,klev,ldland,dtsec,ztp1,zqp1,    &
