@@ -460,11 +460,25 @@ module mod_cu_tiedtke
                   zmfu,zmfd,zrain)
   case (4)
     pqhfl(:,klev+1) = pqhfla(:)*wlhv
-    pahfs(:,klev+1) = pshfla(:) ! Just for test !!!!
-    do jk = klev , 1 , -1
-      pqhfl(:,jk) = 0.9D0*pqhfl(:,jk+1)
-      pahfs(:,jk) = 0.9D0*pahfs(:,jk+1)
+    pahfs(:,klev+1) = pshfla(:)
+    ! Just for test !!!! Make sensible heat have same shape of
+    ! the profile of T and latent heat same shape of the Q profile
+    do jk = klev , 2 , -1
+      pqhfl(:,jk) = pqhfl(:,jk+1) * (zqp1(:,jk-1)/zqp1(:,jk))
+      pahfs(:,jk) = pahfs(:,jk+1) * (ztp1(:,jk-1)/ztp1(:,jk))
     end do
+    pqhfl(:,1) = pqhfl(:,2)
+    pahfs(:,1) = pahfs(:,2)
+    if ( myid == 0 ) then
+      do jk = 1 , klev
+        write (11,*) pqhfl(kproma/2,jk)
+      end do
+      write (11,*) pqhfl(kproma/2,klev+1)
+      do jk = 1 , klev
+        write (12,*) pahfs(kproma/2,jk)
+      end do
+      write (12,*) pahfs(kproma/2,klev+1)
+    end if
     pmflxr = d_zero
     pmflxs = d_zero
     call cumastrn(1,kproma,kbdim,klev,ldland,dtsec,ztp1,zqp1,    &
