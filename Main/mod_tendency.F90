@@ -644,6 +644,10 @@ module mod_tendency
     if ( icup == 5 .or. icup == 96 .or. icup == 97 ) then
       ! Tiedtke needs surface heat fluxes to be computed.
       if ( ktau > 0 ) call tiedtkedrv
+      if ( ipptls /= 2 ) then
+        ! Put back detrained water
+        aten%qx(:,:,:,iqc) = aten%qx(:,:,:,iqc) + q_detr(:,:,:)
+      end if
     end if
  
     if ( idiag > 0 ) then
@@ -684,7 +688,7 @@ module mod_tendency
       if ( ipptls == 2 ) then
         call cldfrac
         call microphys(omega)
-      else  
+      else
         call pcp
         call cldfrac
       end if
