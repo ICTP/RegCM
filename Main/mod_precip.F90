@@ -543,8 +543,8 @@ module mod_precip
             if ( ipptls == 1 ) then
               fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
               fccc = dmin1(dmax1(fccc,0.01D0),d_one)
-            else 
-              fccc = rhc**0.25D0*(1-exp(-100.0D0*qxten(j,i,k,iqc)/((d_one-rhc)*qvs)**0.49D0))
+            else ! (Xu & Randall 1996a)
+              fccc = rhc**0.25D0*(d_one-exp(-100.0D0*qxten(j,i,k,iqc)/((d_one-rhc)*qvs)**0.49D0))
               fccc = dmin1(dmax1(fccc,0.01D0),d_one)
             end if
             qvc_cld = dmax1((qs3(j,i,k)+dt*qxten(j,i,k,iqv)/psc(j,i)),d_zero)
