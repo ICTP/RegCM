@@ -646,7 +646,8 @@ module mod_tendency
       if ( ktau > 0 ) call tiedtkedrv
       if ( ipptls /= 2 ) then
         ! Put back detrained water
-        aten%qx(:,:,:,iqc) = aten%qx(:,:,:,iqc) + q_detr(:,:,:)
+        aten%qx(jci1:jci2,ici1:ici2,:,iqc) = &
+                aten%qx(jci1:jci2,ici1:ici2,:,iqc) + q_detr(:,:,:)
       end if
     end if
  
