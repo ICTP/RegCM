@@ -71,7 +71,8 @@ module mod_rrtmg_driver
   real(rk8) , pointer , dimension(:) :: aerlwfo , aerlwfos
   real(rk8) , pointer , dimension(:,:) :: fice , wcl , wci , gcl , gci , &
          fcl , fci , tauxcl , tauxci , h2ommr , n2ommr , ch4mmr ,       &
-         cfc11mmr , cfc12mmr , deltaz , outtaucl , outtauci
+         cfc11mmr , cfc12mmr , deltaz 
+  real(rk8) , pointer , dimension(:,:,:) :: outtaucl , outtauci
 
   integer(ik4) , pointer , dimension(:) :: ioro
 
@@ -229,8 +230,8 @@ module mod_rrtmg_driver
     call getmem2d(fci,1,npr,1,kth,'rrtmg:fci')
     call getmem2d(tauxcl,1,npr,1,kth,'rrtmg:tauxcl')
     call getmem2d(tauxci,1,npr,1,kth,'rrtmg:tauxci')
-    call getmem2d(outtaucl,1,npr,1,4,'rrtmg:outtaucl')
-    call getmem2d(outtauci,1,npr,1,4,'rrtmg:outtauci')
+    call getmem3d(outtaucl,1,npr,1,kz,1,4,'rrtmg:outtaucl')
+    call getmem3d(outtauci,1,npr,1,kz,1,4,'rrtmg:outtauci')
     call getmem2d(h2ommr,1,npr,1,kth,'rrtmg:h2ommr')
     call getmem2d(n2ommr,1,npr,1,kth,'rrtmg:n2ommr')
     call getmem2d(ch4mmr,1,npr,1,kth,'rrtmg:ch4mmr')
@@ -422,7 +423,6 @@ module mod_rrtmg_driver
                 solld,totcf,totcl,totci,cld_int,clwp_int,abv,     &
                 sol,aeradfo,aeradfos,aerlwfo,aerlwfos,tauxar3d,   &
                 tauasc3d,gtota3d,deltaz,outtaucl,outtauci)
-
   end subroutine rrtmg_driver
 
   subroutine prep_dat_rrtm(iyear,inflagsw)
@@ -818,8 +818,8 @@ module mod_rrtmg_driver
     asmc  =  0.850D0
     fsfc  =  0.725D0
 
-    outtaucl(:,:) = d_zero
-    outtauci(:,:) = d_zero
+    outtaucl(:,:,:) = d_zero
+    outtauci(:,:,:) = d_zero
 
     if ( inflagsw == 0 ) then 
       do ns = 1 , nbndsw
@@ -857,8 +857,8 @@ module mod_rrtmg_driver
             !
             tauxcl(n,k) = clwp(n,k)*tmp1l
             tauxci(n,k) = ciwp(n,k)*tmp1i
-            outtaucl(n,indsl(ns)) = outtaucl(n,indsl(ns)) + tauxcl(n,k)
-            outtauci(n,indsl(ns)) = outtauci(n,indsl(ns)) + tauxci(n,k)
+            outtaucl(n,k,indsl(ns)) = outtaucl(n,k,indsl(ns)) + tauxcl(n,k)
+            outtauci(n,k,indsl(ns)) = outtauci(n,k,indsl(ns)) + tauxci(n,k)
             wcl(n,k) = dmin1(tmp2l,verynearone)
             gcl(n,k) = ebarli + tmp3l
             fcl(n,k) = gcl(n,k)*gcl(n,k)

@@ -82,7 +82,7 @@ module mod_rad_outrad
                 sabtp , slwd , solin , soll , solld ,      &
                 sols , solsd , totcf , totcl , totci , abv , sol
     real(rk8) , pointer , dimension(:,:) :: cld , clwp , qrl , qrs , deltaz
-    real(rk8) , pointer , dimension(:,:) :: outtaucl , outtauci
+    real(rk8) , pointer , dimension(:,:,:) :: outtaucl , outtauci
     real(rk8) , pointer , dimension(:,:,:) :: tauxar3d , tauasc3d , gtota3d
     real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos
     real(rk8) , pointer , dimension(:) :: aerlwfo , aerlwfos
@@ -163,8 +163,8 @@ module mod_rad_outrad
         call copy3d(clwp,rad_clwp_out)
         call copy3d(qrs,rad_qrs_out)
         call copy3d(qrl,rad_qrl_out)
-        call copy3d1(outtaucl,rad_taucl_out,1,4)
-        call copy3d1(outtauci,rad_tauci_out,1,4)
+        call copy4d1(outtaucl,rad_taucl_out,4)
+        call copy4d1(outtauci,rad_tauci_out,4)
 
         call copy2d(frsa,rad_frsa_out)
         call copy2d(frla,rad_frla_out)

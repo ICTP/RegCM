@@ -133,8 +133,8 @@ module mod_outvars
   real(rk8) , dimension(:,:,:) , pointer :: rad_clwp_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: rad_qrs_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: rad_qrl_out => null()
-  real(rk8) , dimension(:,:,:) , pointer :: rad_taucl_out => null()
-  real(rk8) , dimension(:,:,:) , pointer :: rad_tauci_out => null()
+  real(rk8) , dimension(:,:,:,:) , pointer :: rad_taucl_out => null()
+  real(rk8) , dimension(:,:,:,:) , pointer :: rad_tauci_out => null()
 
   real(rk8) , dimension(:,:) , pointer :: lak_tg_out => null()
   real(rk8) , dimension(:,:) , pointer :: lak_tpr_out => null()

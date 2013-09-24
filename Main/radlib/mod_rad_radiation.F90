@@ -832,8 +832,8 @@ module mod_rad_radiation
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: absgastot
     real(rk8) , pointer , dimension(:,:) , intent(out) :: emsgastot
     logical , pointer , dimension(:) , intent(in) :: czengt0
-    real(rk8) , pointer , dimension(:,:) :: cld , effcld , piln , pint , &
-            outtaucl , outtauci
+    real(rk8) , pointer , dimension(:,:) :: cld , effcld , piln , pint  
+    real(rk8) , pointer , dimension(:,:,:) :: outtaucl , outtauci
     real(rk8) , pointer , dimension(:,:,:) :: tauxcl , tauxci
     real(rk8) , pointer , dimension(:,:) :: clwp , fice , h2ommr , pmid ,  &
             pmln , qrl , qrs , rei , rel , t , rh
@@ -1099,7 +1099,8 @@ module mod_rad_radiation
              solld , sols , solsd , adirsw , adifsw , adirlw , adiflw , asw , &
              alw , abv , sol , czen
     logical , pointer , dimension(:) , intent(in) :: czengt0
-    real(rk8) , pointer , dimension(:,:) :: cld , pint , outtaucl , outtauci
+    real(rk8) , pointer , dimension(:,:) :: cld , pint 
+    real(rk8) , pointer , dimension(:,:,:) ::  outtaucl , outtauci
     real(rk8) , pointer , dimension(:,:,:) :: tauxcl , tauxci
     real(rk8) , pointer , dimension(:,:) :: clwp , fice , h2ommr , o3mmr , &
              qrs , rei , rel
@@ -1225,8 +1226,8 @@ module mod_rad_radiation
     aeradfos(:) = d_zero
     x0fsntc(:) = d_zero
     x0fsnsc(:) = d_zero
-    outtaucl(:,:) = d_zero
-    outtauci(:,:) = d_zero
+    outtaucl(:,:,:) = d_zero
+    outtauci(:,:,:) = d_zero
     ww(:) = d_zero
 !
     qrs(:,:) = d_zero
@@ -1419,11 +1420,11 @@ module mod_rad_radiation
             tauxcl(n,k,ns) = clwp(n,k)*tmp1l*(d_one-fice(n,k))*cld(n,k) / &
                           (d_one+(d_one-0.85D0)*(d_one-cld(n,k))*      &
                           clwp(n,k)*tmp1l*(d_one-fice(n,k)))
-            outtaucl(n,indxsl) = outtaucl(n,indxsl) + tauxcl(n,k,ns)
+            outtaucl(n,k,indxsl) = outtaucl(n,k,indxsl) + tauxcl(n,k,ns)
             tauxci(n,k,ns) = clwp(n,k)*tmp1i*fice(n,k)*cld(n,k) /     &
                           (d_one+(d_one-0.78D0)*(d_one-cld(n,k)) * &
                           clwp(n,k)*tmp1i*fice(n,k))
-            outtauci(n,indxsl) = outtauci(n,indxsl) + tauxci(n,k,ns)
+            outtauci(n,k,indxsl) = outtauci(n,k,indxsl) + tauxci(n,k,ns)
    
 !scheme     3
 !EES        below replaced
@@ -1743,8 +1744,8 @@ module mod_rad_radiation
     end do  ! End of spectral interval loop
 
     do is = 1 , 4
-      outtaucl(:,is) = outtaucl(:,is) / ww(is)
-      outtauci(:,is) = outtauci(:,is) / ww(is)
+      outtaucl(:,:,is) = outtaucl(:,:,is) / ww(is)
+      outtauci(:,:,is) = outtauci(:,:,is) / ww(is)
     end do
    
 !   FAB calculation of TOA aerosol radiative forcing

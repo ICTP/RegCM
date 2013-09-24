@@ -137,9 +137,9 @@ mod_lm_interface.o: mod_lm_interface.F90 mod_bats_common.o mod_runparams.o mod_m
 endif
 mod_ncio.o: mod_ncio.F90 mod_runparams.o mod_dynparam.o mod_ensemble.o mod_mpmessage.o mod_mppparam.o mod_memutil.o mod_nchelper.o mod_domain.o
 if DO_COMPILE_LIBCLM
-mod_output.o: mod_output.F90 mod_runparams.o mod_header.o mod_mpmessage.o mod_mppparam.o mod_service.o mod_atm_interface.o mod_che_interface.o mod_che_output.o mod_lm_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_ncout.o mod_bdycod.o mod_precip.o mod_split.o mod_savefile.o mod_slabocean.o mod_clm.o
+mod_output.o: mod_output.F90 mod_runparams.o mod_header.o mod_mpmessage.o mod_mppparam.o mod_service.o mod_atm_interface.o mod_che_interface.o mod_che_output.o mod_lm_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_ncout.o mod_bdycod.o mod_precip.o mod_split.o mod_savefile.o mod_slabocean.o mod_clm.o mod_cloud_s1.o
 else
-mod_output.o: mod_output.F90 mod_runparams.o mod_header.o mod_mpmessage.o mod_mppparam.o mod_service.o mod_atm_interface.o mod_che_interface.o mod_che_output.o mod_lm_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_ncout.o mod_bdycod.o mod_precip.o mod_split.o mod_savefile.o mod_slabocean.o
+mod_output.o: mod_output.F90 mod_runparams.o mod_header.o mod_mpmessage.o mod_mppparam.o mod_service.o mod_atm_interface.o mod_che_interface.o mod_che_output.o mod_lm_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_ncout.o mod_bdycod.o mod_precip.o mod_split.o mod_savefile.o mod_slabocean.o mod_cloud_s1.o
 endif
 if DO_COMPILE_LIBCLM
 mod_params.o: mod_params.F90 mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_domain.o mod_cu_interface.o mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_rad_interface.o mod_pbl_interface.o mod_precip.o mod_cloud_s1.o mod_split.o mod_slice.o mod_bdycod.o mod_ncio.o mod_tendency.o mod_ncio.o mod_ncout.o mod_advection.o mod_savefile.o mod_sldepparam.o mod_slabocean.o mod_clm.o clm_varsur.o

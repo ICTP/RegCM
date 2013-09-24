@@ -540,8 +540,13 @@ module mod_precip
             dqv = qvcs - qvs*conf ! Water vapor in excess of sat
             tmp1 = r1*dqv
           else                                       ! Partial cloud cover
-            fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
-            fccc = dmin1(dmax1(fccc,0.01D0),d_one)
+            if ( ipptls == 1 ) then
+              fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
+              fccc = dmin1(dmax1(fccc,0.01D0),d_one)
+            else 
+              fccc = rhc**0.25D0*(1-exp(-100.0D0*qxten(j,i,k,iqc)/((d_one-rhc)*qvs)**0.49D0))
+              fccc = dmin1(dmax1(fccc,0.01D0),d_one)
+            end if
             qvc_cld = dmax1((qs3(j,i,k)+dt*qxten(j,i,k,iqv)/psc(j,i)),d_zero)
             dqv = qvc_cld - qvs*conf  ! qv diff between predicted qv_c
             tmp1 = r1*dqv*fccc        ! grid cell average

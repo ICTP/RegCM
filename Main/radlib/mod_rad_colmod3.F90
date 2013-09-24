@@ -63,7 +63,7 @@ module mod_rad_colmod3
   real(rk8) , pointer , dimension(:,:,:) :: absgasnxt
   real(rk8) , pointer , dimension(:,:,:) :: absgastot
   real(rk8) , pointer , dimension(:,:) :: emsgastot
-  real(rk8) , pointer , dimension(:,:) :: outtaucl , outtauci
+  real(rk8) , pointer , dimension(:,:,:) :: outtaucl , outtauci
   logical , pointer , dimension(:) :: czengt0
   integer(ik4) , pointer , dimension(:) :: ioro
 !
@@ -143,8 +143,8 @@ module mod_rad_colmod3
       call getmem2d(emsgastot,1,npr,1,kzp1,'colmod3:emsgastot')
       call getmem3d(tauxcl,1,npr,0,kz,1,nspi,'colmod3:tauxcl')
       call getmem3d(tauxci,1,npr,0,kz,1,nspi,'colmod3:tauxci')
-      call getmem2d(outtaucl,1,npr,1,4,'colmod3:outtaucl')
-      call getmem2d(outtauci,1,npr,1,4,'colmod3:outtauci')
+      call getmem3d(outtaucl,1,npr,1,kzp1,1,4,'colmod3:outtaucl')
+      call getmem3d(outtauci,1,npr,1,kzp1,1,4,'colmod3:outtauci')
 
       call getmem1d(ioro,1,npr,'colmod3:ioro')
 

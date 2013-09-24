@@ -37,6 +37,7 @@ module mod_output
   use mod_split
   use mod_savefile
   use mod_slabocean
+  use mod_cloud_s1
 #ifdef CLM
   use mod_clm
 #endif

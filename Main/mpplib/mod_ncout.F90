@@ -34,7 +34,7 @@ module mod_ncout
   public :: writevar_output_stream
 !
   type varspan
-    integer(ik4) :: j1 , j2 , i1 , i2 , k1 , k2
+    integer(ik4) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
   end type varspan
 
   type regcm_stream
@@ -72,8 +72,9 @@ module mod_ncout
   integer(ik4) , parameter :: nlakvars = nlak2dvars+nlak3dvars
 
   integer(ik4) , parameter :: nrad2dvars = 12 + nbase
-  integer(ik4) , parameter :: nrad3dvars = 6
-  integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars
+  integer(ik4) , parameter :: nrad3dvars = 4
+  integer(ik4) , parameter :: nrad4dvars = 2
+  integer(ik4) , parameter :: nradvars = nrad2dvars+nrad3dvars+nrad4dvars
 
   integer(ik4) , parameter :: nopt2dvars = 5 + nbase
   integer(ik4) , parameter :: nopt3dvars = 3
@@ -111,6 +112,8 @@ module mod_ncout
     dimension(:) :: v2dvar_rad => null()
   type(ncvariable3d_real) , save , pointer , &
     dimension(:) :: v3dvar_rad => null()
+  type(ncvariable4d_real) , save , pointer , &
+    dimension(:) :: v4dvar_rad => null()
   type(ncvariable2d_real) , save , pointer , &
     dimension(:) :: v2dvar_opt => null()
   type(ncvariable3d_real) , save , pointer , &
@@ -272,8 +275,9 @@ module mod_ncout
   integer(ik4) , parameter :: rad_clwp   = 2
   integer(ik4) , parameter :: rad_qrs    = 3
   integer(ik4) , parameter :: rad_qrl    = 4
-  integer(ik4) , parameter :: rad_taucl  = 5
-  integer(ik4) , parameter :: rad_tauci  = 6
+
+  integer(ik4) , parameter :: rad_taucl  = 1
+  integer(ik4) , parameter :: rad_tauci  = 2
 
   integer(ik4) , parameter :: lak_xlon   = 1
   integer(ik4) , parameter :: lak_xlat   = 2
@@ -347,10 +351,12 @@ module mod_ncout
 
   real(rk8) , pointer , dimension(:,:) :: io2d , io2dsg
   real(rk8) , pointer , dimension(:,:,:) :: io3d , io3dsg
+  real(rk8) , pointer , dimension(:,:,:,:) :: io4d
 
   interface setup_var
     module procedure setup_var_2d
     module procedure setup_var_3d
+    module procedure setup_var_4d
   end interface setup_var
 
   interface writevar_output_stream
@@ -363,7 +369,7 @@ module mod_ncout
   subroutine init_output_streams(lparallel)
     implicit none
     logical , intent(in) :: lparallel
-    integer(ik4) :: nstream , i , itr , vcount , kkz
+    integer(ik4) :: nstream , i , itr , vcount , kkz , n4dd
     type(varspan) :: vsize
     logical , dimension(natm2dvars) :: enable_atm2d_vars
     logical , dimension(natm3dvars) :: enable_atm3d_vars
@@ -377,6 +383,7 @@ module mod_ncout
     logical , dimension(nlak3dvars) :: enable_lak3d_vars
     logical , dimension(nrad2dvars) :: enable_rad2d_vars
     logical , dimension(nrad3dvars) :: enable_rad3d_vars
+    logical , dimension(nrad4dvars) :: enable_rad4d_vars
     logical , dimension(nopt2dvars) :: enable_opt2d_vars
     logical , dimension(nopt3dvars) :: enable_opt3d_vars
     logical , dimension(nche2dvars) :: enable_che2d_vars
@@ -439,6 +446,8 @@ module mod_ncout
       vsize%i1 = ici1
       vsize%i2 = ici2
       vsize%k1 = 1
+      vsize%n1 = 1
+      vsize%n2 = 4
 
       if ( nstream == atm_stream ) then
 
@@ -1128,9 +1137,10 @@ module mod_ncout
 
         allocate(v2dvar_rad(nrad2dvars))
         allocate(v3dvar_rad(nrad3dvars))
+        allocate(v4dvar_rad(nrad4dvars))
         enable_rad2d_vars = enable_rad_vars(1:nrad2dvars)
-        enable_rad3d_vars = enable_rad_vars(nrad2dvars+1:nradvars)
-
+        enable_rad3d_vars = enable_rad_vars(nrad2dvars+1:nradvars-nrad4dvars)
+        enable_rad4d_vars = enable_rad_vars(nrad2dvars+nrad3dvars+1:nradvars)
         ! This variables are always present
 
         call setup_common_vars(vsize,v2dvar_rad,rad_xlon, &
@@ -1234,25 +1244,28 @@ module mod_ncout
             'tendency_of_air_temperature_due_to_longwave_heating',.true.)
           rad_qrl_out => v3dvar_rad(rad_qrl)%rval
         end if
-        if ( enable_rad3d_vars(rad_taucl) ) then
-          vsize%k2 = 4
-          v3dvar_rad(rad_taucl)%axis = 'xyS'
-          call setup_var(v3dvar_rad,rad_taucl,vsize,'taucl','1', &
-            'Cloud liquid water optical depth', &
-            'atmosphere_optical_thickness_due_to_cloud_liquid_water',.true.)
-          rad_taucl_out => v3dvar_rad(rad_taucl)%rval
-        end if
-        if ( enable_rad3d_vars(rad_tauci) ) then
-          vsize%k2 = 4
-          v3dvar_rad(rad_tauci)%axis = 'xyS'
-          call setup_var(v3dvar_rad,rad_tauci,vsize,'tauci','1', &
-            'Cloud ice optical depth', &
-            'atmosphere_optical_thickness_due_to_cloud_ice',.true.)
-          rad_tauci_out => v3dvar_rad(rad_tauci)%rval
+        if ( idiag > 0 ) then
+          if ( enable_rad4d_vars(rad_taucl) ) then
+            v4dvar_rad(rad_taucl)%axis = 'xyzS'
+            call setup_var(v4dvar_rad,rad_taucl,vsize,'taucl','1', &
+              'Cloud liquid water optical depth', &
+              'atmosphere_optical_thickness_due_to_cloud_liquid_water',.true.)
+            rad_taucl_out => v4dvar_rad(rad_taucl)%rval
+          end if
+          if ( enable_rad4d_vars(rad_tauci) ) then
+            v4dvar_rad(rad_tauci)%axis = 'xyzS'
+            call setup_var(v4dvar_rad,rad_tauci,vsize,'tauci','1', &
+              'Cloud ice optical depth', &
+              'atmosphere_optical_thickness_due_to_cloud_ice',.true.)
+            rad_tauci_out => v4dvar_rad(rad_tauci)%rval
+          end if
+        else
+          enable_rad4d_vars(rad_taucl:rad_tauci) = .false.
         end if
 
         enable_rad_vars(1:nrad2dvars) = enable_rad2d_vars
-        enable_rad_vars(nrad2dvars+1:nradvars) = enable_rad3d_vars
+        enable_rad_vars(nrad2dvars+1:nradvars-nrad4dvars) = enable_rad3d_vars
+        enable_rad_vars(nrad2dvars+nrad3dvars+1:nradvars) = enable_rad4d_vars
         outstream(rad_stream)%nvar = countvars(enable_rad_vars,nradvars)
         allocate(outstream(rad_stream)%ncvars%vlist(outstream(rad_stream)%nvar))
         outstream(rad_stream)%nfiles = 1
@@ -1273,6 +1286,13 @@ module mod_ncout
             vcount = vcount + 1
           end if
         end do
+        do i = 1 , nrad4dvars
+          if ( enable_rad_vars(i+nrad2dvars+nrad3dvars) ) then
+            outstream(rad_stream)%ncvars%vlist(vcount)%vp => v4dvar_rad(i)
+            vcount = vcount + 1
+          end if
+        end do
+
         outstream(rad_stream)%opar%l_specint = .true.
         outstream(rad_stream)%jl1 = vsize%j1
         outstream(rad_stream)%jl2 = vsize%j2
@@ -1774,6 +1794,7 @@ module mod_ncout
     if ( .not. parallel_out ) then
       if ( myid == iocpu ) then
         kkz = 2
+        n4dd = 4
         if ( atm_stream > 0 .or. rad_stream > 0 ) then
           kkz = max(kz,kkz)
         end if
@@ -1782,6 +1803,7 @@ module mod_ncout
         end if
         call getmem2d(io2d,jout1,jout2,iout1,iout2,'ncout:io2d')
         call getmem3d(io3d,jout1,jout2,iout1,iout2,1,kkz,'ncout:io3d')
+        call getmem4d(io4d,jout1,jout2,iout1,iout2,1,kkz,1,n4dd,'ncout:io4d')
         if ( sub_stream > 0 ) then
           call getmem2d(io2dsg,joutsg1,joutsg2,ioutsg1,ioutsg2,'ncout:io2dsg')
           call getmem3d(io3dsg,joutsg1,joutsg2,ioutsg1,ioutsg2, &
@@ -2439,7 +2461,50 @@ module mod_ncout
     var(ivar)%k2 = vsize%k2
   end subroutine setup_var_3d
 
-  subroutine dispose_output_streams
+  subroutine setup_var_4d(var,ivar,vsize,vname,vunit,long_name,standard_name, &
+                          l_rec,cell_method,l_fill,rmissval,lgetspace)
+    implicit none
+    type(ncvariable4d_real) , dimension(:) , intent(inout) :: var
+    integer(ik4) , intent(in) :: ivar
+    type(varspan) , intent(in) :: vsize
+    character(len=*) , intent(in) :: vname , vunit , long_name , standard_name
+    character(len=*) , intent(in) , optional :: cell_method
+    logical , intent(in) , optional :: l_rec , l_fill , lgetspace
+    real(rk4) , intent(in) , optional :: rmissval
+    var(ivar)%vname = vname
+    var(ivar)%vunit = vunit
+    var(ivar)%long_name = long_name
+    var(ivar)%standard_name = standard_name
+    if ( present(cell_method) ) then
+      var(ivar)%cell_method = cell_method
+    end if
+    if ( present(rmissval) .or. present(l_fill) ) then
+      var(ivar)%lfillvalue = .true.
+      if ( present(rmissval) ) var(ivar)%rmissval = rmissval
+    end if
+    if ( present(l_rec) ) then
+      var(ivar)%lrecords = l_rec
+    end if
+    if ( present(lgetspace) ) then
+      if ( lgetspace ) then
+        call getmem4d(var(ivar)%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
+              vsize%k1,vsize%k2,vsize%n1,vsize%n2,'ncout:setup_var:'//trim(var(ivar)%vname))
+      end if
+    else
+      call getmem4d(var(ivar)%rval,vsize%j1,vsize%j2,vsize%i1,vsize%i2, &
+            vsize%k1,vsize%k2,vsize%n1,vsize%n2,'ncout:setup_var:'//trim(var(ivar)%vname))
+    end if
+    var(ivar)%j1 = vsize%j1
+    var(ivar)%j2 = vsize%j2
+    var(ivar)%i1 = vsize%i1
+    var(ivar)%i2 = vsize%i2
+    var(ivar)%k1 = vsize%k1
+    var(ivar)%k2 = vsize%k2
+    var(ivar)%n1 = vsize%n1
+    var(ivar)%n2 = vsize%n2
+  end subroutine setup_var_4d
+
+ subroutine dispose_output_streams
     implicit none
     integer(ik4) :: nstream , nfile
     if ( associated(v2dvar_atm) ) deallocate(v2dvar_atm)
@@ -2450,6 +2515,7 @@ module mod_ncout
     if ( associated(v3dvar_sts) ) deallocate(v3dvar_sts)
     if ( associated(v2dvar_rad) ) deallocate(v2dvar_rad)
     if ( associated(v3dvar_rad) ) deallocate(v3dvar_rad)
+    if ( associated(v4dvar_rad) ) deallocate(v4dvar_rad)
     if ( associated(v2dvar_sub) ) deallocate(v2dvar_sub)
     if ( associated(v3dvar_sub) ) deallocate(v3dvar_sub)
     if ( associated(v2dvar_lak) ) deallocate(v2dvar_lak)
@@ -2479,8 +2545,10 @@ module mod_ncout
     integer(ik4) , intent(in) , optional :: ifile
     real(rk8) , pointer , dimension(:,:) :: tmp2d
     real(rk8) , pointer , dimension(:,:,:) :: tmp3d
+    real(rk8) , pointer , dimension(:,:,:,:) :: tmp4d
     real(rk8) , pointer , dimension(:,:) :: pnt2d => null( )
     real(rk8) , pointer , dimension(:,:,:) :: pnt3d => null( )
+    real(rk8) , pointer , dimension(:,:,:,:) :: pnt4d => null( )
     class(ncvariable_standard) , pointer :: vp
     integer(ik4) :: ivar , jfile
 
@@ -2496,6 +2564,10 @@ module mod_ncout
             if ( .not. vp%lrecords ) cycle
             call grid_collect(vp%rval,pnt3d,vp%j1,vp%j2, &
                               vp%i1,vp%i2,vp%k1,vp%k2,outstream(istream)%l_sub)
+          type is (ncvariable4d_real)
+            if ( .not. vp%lrecords ) cycle
+            call grid_collect(vp%rval,pnt4d,vp%j1,vp%j2, &
+                              vp%i1,vp%i2,vp%k1,vp%k2,vp%n1,vp%n2)
           class default
             cycle
         end select
@@ -2522,6 +2594,7 @@ module mod_ncout
       else
         pnt2d => io2d
         pnt3d => io3d
+        pnt4d => io4d
       end if
     end if
 
@@ -2553,6 +2626,16 @@ module mod_ncout
             vp%i2 = outstream(istream)%ig2
             tmp3d => vp%rval
             vp%rval => pnt3d
+          type is (ncvariable4d_real)
+            if ( .not. vp%lrecords ) cycle
+            call grid_collect(vp%rval,pnt4d,vp%j1,vp%j2, &
+                              vp%i1,vp%i2,vp%k1,vp%k2,vp%n1,vp%n2)
+            vp%j1 = outstream(istream)%jg1
+            vp%j2 = outstream(istream)%jg2
+            vp%i1 = outstream(istream)%ig1
+            vp%i2 = outstream(istream)%ig2
+            tmp4d => vp%rval
+            vp%rval => pnt4d
           class default
             cycle
         end select
@@ -2561,6 +2644,8 @@ module mod_ncout
           type is (ncvariable2d_real)
             if ( .not. vp%lrecords ) cycle
           type is (ncvariable3d_real)
+            if ( .not. vp%lrecords ) cycle
+          type is (ncvariable4d_real)
             if ( .not. vp%lrecords ) cycle
           class default
             cycle
@@ -2575,6 +2660,9 @@ module mod_ncout
           write(stderr,*) 'Max Value : ', maxval(vp%rval)
           write(stderr,*) 'Min Value : ', minval(vp%rval)
         type is (ncvariable3d_real)
+          write(stderr,*) 'Max Value : ', maxval(vp%rval)
+          write(stderr,*) 'Min Value : ', minval(vp%rval)
+        type is (ncvariable4d_real)
           write(stderr,*) 'Max Value : ', maxval(vp%rval)
           write(stderr,*) 'Min Value : ', minval(vp%rval)
         class default
@@ -2595,6 +2683,12 @@ module mod_ncout
             vp%i2 = outstream(istream)%il2
           type is (ncvariable3d_real)
             vp%rval => tmp3d
+            vp%j1 = outstream(istream)%jl1
+            vp%j2 = outstream(istream)%jl2
+            vp%i1 = outstream(istream)%il1
+            vp%i2 = outstream(istream)%il2
+          type is (ncvariable4d_real)
+            vp%rval => tmp4d
             vp%j1 = outstream(istream)%jl1
             vp%j2 = outstream(istream)%jl2
             vp%i1 = outstream(istream)%il1
@@ -2732,5 +2826,63 @@ module mod_ncout
       vp%i2 = outstream(istream)%il2
     end if
   end subroutine writevar3d_output_stream
+
+  subroutine writevar4d_output_stream(istream,vp,ifile)
+    implicit none
+    integer(ik4) , intent(in) :: istream
+    integer(ik4) , intent(in) , optional :: ifile
+    type(ncvariable4d_real) , intent(inout) :: vp
+    real(rk8) , pointer , dimension(:,:,:,:) :: tmp4d
+    real(rk8) , pointer , dimension(:,:,:,:) :: pnt4d => null( )
+    integer(ik4) :: jfile
+
+    if ( .not. parallel_out .and. myid /= iocpu ) then
+      call grid_collect(vp%rval,pnt4d,vp%j1,vp%j2, &
+                        vp%i1,vp%i2,vp%k1,vp%k2,vp%n1,vp%n2)
+      ! If not parallel output, only the master proc writes output files
+      return
+    end if
+
+    jfile = outstream(istream)%nfiles
+    if ( present(ifile) ) jfile = ifile
+    if ( jfile < 1 .or. jfile > outstream(istream)%nfiles ) then
+      write (stderr,*) 'No such file in stream ',istream,' : ', ifile
+      return
+    end if
+
+    if ( .not. parallel_out ) then
+      pnt4d => io4d
+    end if
+
+    ! If not parallel output, collect data
+
+    if ( .not. parallel_out ) then
+      call grid_collect(vp%rval,pnt4d,vp%j1,vp%j2, &
+                        vp%i1,vp%i2,vp%k1,vp%k2,vp%n1,vp%n2)
+      vp%j1 = outstream(istream)%jg1
+      vp%j2 = outstream(istream)%jg2
+      vp%i1 = outstream(istream)%ig1
+      vp%i2 = outstream(istream)%ig2
+      tmp4d => vp%rval
+      vp%rval => pnt4d
+    end if
+
+#ifdef DEBUG
+    if ( debug_level > 2 ) then
+      write(stdout,*) 'Writing var ',trim(vp%vname)
+    end if
+#endif
+    call outstream_writevar(outstream(istream)%ncout(jfile),vp)
+
+    ! Reset pointers
+
+    if ( .not. parallel_out ) then
+      vp%rval => tmp4d
+      vp%j1 = outstream(istream)%jl1
+      vp%j2 = outstream(istream)%jl2
+      vp%i1 = outstream(istream)%il1
+      vp%i2 = outstream(istream)%il2
+    end if
+  end subroutine writevar4d_output_stream
 
 end module mod_ncout

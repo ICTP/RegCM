@@ -299,7 +299,7 @@ module mod_params
   enable_opt_vars(:) = .true.
   enable_che_vars(:) = .true.
   dirout = './output' 
-  lsync = .false.
+  lsync = .true.
   do_parallel_netcdf_in = .false.
   do_parallel_netcdf_out = .false.
   idiag = 0
@@ -330,7 +330,8 @@ module mod_params
   iclimao3 = 0
   isolconst = 1
   icumcloud = 2
-  temp_tend_maxval = 0.5*(dt/secpm)
+  temp_tend_maxval = 0.1*(dt/secpm)
+! temp_tend_maxval = 0.5*(dt/secpm)
   wind_tend_maxval = 0.5*(dt/secpm)
 !----------------------------------------------------------------------
 !-----rrtm radiation namelist param:
@@ -366,7 +367,7 @@ module mod_params
   cftotmax = 0.75D0  ! Max total cover cloud fraction for radiation
 
   ! namelist microparam
-  budget_compute = .false. ! Verify enthalpy and moisture conservation
+  budget_compute = .true. ! Verify enthalpy and moisture conservation
   nssopt = 1 ! Supersaturation Computation
              ! 0 => No scheme
              ! 1 => Tompkins
