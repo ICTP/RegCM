@@ -437,8 +437,7 @@ program terrain
              '_TEXTURE' , nsg
       allocate(tmptex(jxsg,iysg))
       tmptex(:,:) = texout_s(:,:)
-      call texfudge(fudge_tex_s,texout_s,htgrid_s,jxsg,iysg, &
-                    trim(char_tex))
+      call texfudge(fudge_tex_s,texout_s,htgrid_s,jxsg,iysg,trim(char_tex))
       do i = 1 , iysg
         do j = 1 , jxsg
           ! Swap percentages of the old class and the new requested

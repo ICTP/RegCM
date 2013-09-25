@@ -207,7 +207,7 @@ module mod_fudge
         write(stderr,*)  'ERROR OPENING ' , char_tex ,   &
                  ' FILE:  FILE DOES NOT EXIST'
         call die('texfudge')
-      endif 
+      endif
       open (iunit,file=char_tex,form='formatted')
       do i = iy , 1 , -1
         read (iunit,99001) (ch(j,i),j=1,jx)
