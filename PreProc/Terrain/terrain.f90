@@ -88,7 +88,8 @@ program terrain
   data ibndry /.true./
   real(rk8) :: jumpsize , apara , bpara , func , funcprev
   real(rk8) , pointer , dimension(:) :: alph , dsig
-  real(rk8) :: psig , zsig , pstar
+  real(rk8) , allocatable , dimension(:,:) :: tmptex
+  real(rk8) :: psig , zsig , pstar , tswap
   integer(ik4) :: icount
   integer(ik4) , parameter :: maxiter = 1000000
   real(rk8) , parameter :: conv_crit = 0.00001D0
@@ -434,8 +435,22 @@ program terrain
     if ( ltexture ) then
       write (char_tex,99001) trim(dirter), pthsep, trim(domname), &
              '_TEXTURE' , nsg
+      allocate(tmptex(jxsg,iysg))
+      tmptex(:,:) = texout_s(:,:)
       call texfudge(fudge_tex_s,texout_s,htgrid_s,jxsg,iysg, &
                     trim(char_tex))
+      do i = 1 , iysg
+        do j = 1 , jxsg
+          ! Swap percentages of the old class and the new requested
+          if ( texout_s(j,i) /= tmptex(j,i) ) then
+            tswap = frac_tex_s(j,i,int(tmptex(j,i)))
+            frac_tex_s(j,i,int(tmptex(j,i))) = &
+                    frac_tex_s(j,i,int(texout_s(j,i)))
+            frac_tex_s(j,i,int(texout_s(j,i))) = tswap
+          end if
+        end do
+      end do
+      deallocate(tmptex)
     end if
     write(stdout,*) 'Fudging data (if requested) succeeded'
 
@@ -586,14 +601,25 @@ program terrain
     end do
   end do
 
-  write (char_lnd,99002) trim(dirter), pthsep, trim(domname), &
-           '_LANDUSE'
+  write (char_lnd,99002) trim(dirter), pthsep, trim(domname),'_LANDUSE'
   call lndfudge(fudge_lnd,lndout,htgrid,jx,iy,trim(char_lnd))
 
   if ( ltexture ) then
-    write (char_tex,99002) trim(dirter), pthsep, trim(domname), &
-             '_TEXTURE'
+    write (char_tex,99002) trim(dirter), pthsep, trim(domname),'_TEXTURE'
+    allocate(tmptex(jx,iy))
+    tmptex(:,:) = texout(:,:)
     call texfudge(fudge_tex,texout,htgrid,jx,iy,trim(char_tex))
+    do i = 1 , iy
+      do j = 1 , jx
+        ! Swap percentages of the old class and the new requested
+        if ( texout(j,i) /= tmptex(j,i) ) then
+          tswap = frac_tex(j,i,int(tmptex(j,i)))
+          frac_tex(j,i,int(tmptex(j,i))) = frac_tex(j,i,int(texout(j,i)))
+          frac_tex(j,i,int(texout(j,i))) = tswap
+        end if
+      end do
+    end do
+    deallocate(tmptex)
   end if
 
   if ( .not. h2ohgt ) then
