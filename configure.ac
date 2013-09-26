@@ -17,7 +17,7 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-AC_INIT([RegCM], [4.3.5.1], [ggiulian@ictp.it])
+AC_INIT([RegCM], [4.4], [ggiulian@ictp.it])
 
 AC_SUBST([PACKAGE_URL], ["https://gforge.ictp.it/gf/project/regcm"])
 
