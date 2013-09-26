@@ -66,6 +66,8 @@ module mod_che_start
     idust = 0
     isslt = 0
     icarb = 0
+    ianh4 = 0
+    iano3 = 0
 
     io3    =  0
     ino    =  0
@@ -154,6 +156,8 @@ module mod_che_start
         carbed(kbin) = reffochl
         chtrsol(iso4) = solso4
       end if
+      if ( chtrname(itr) == 'ANO3' ) iano3 = itr
+      if ( chtrname(itr) == 'ANH4' ) ianh4 = itr
       if ( chtrname(itr) == 'BC_HL' ) then 
         kbin = kbin + 1
         ibchl = itr

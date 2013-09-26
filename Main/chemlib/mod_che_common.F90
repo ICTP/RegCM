@@ -33,7 +33,7 @@ module mod_che_common
 
   integer(ik4) , parameter :: nbin = 4
   integer(ik4) , parameter :: sbin = 2
-  integer(ik4) , parameter :: maxntr = 40 
+  integer(ik4) , parameter :: maxntr = 50 
 
   ! tracer variables
 
@@ -78,7 +78,7 @@ module mod_che_common
   real(rk8) , pointer , dimension(:,:,:,:) :: cqxb3d
   real(rk8) , pointer , dimension(:,:,:) :: ctb3d , cubx3d , cvbx3d , &
          crhob3d , cfcc , cza , cdzq , ccldfra , crembc , cremrat ,  &
-         cconvpr
+         cconvpr , crhb3d
   real(rk8) , pointer , dimension(:,:) :: cpsb , ctg , clndcat , cht , &
          cssw2da , cvegfrac , csol2d , csdeltk2d , csdelqk2d ,         &
          cuvdrag , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc
@@ -199,6 +199,7 @@ module mod_che_common
       ! of relevant tracer dimension and parameters 
       igaschem = 0
       iaerosol = 0
+      iisoropia = 0
       if ( chemsimtype(1:4) == 'DUST' ) then
         ntr = nbin
         allocate(chtrname(nbin))
@@ -249,7 +250,7 @@ module mod_che_common
                                  'DUST03','DUST04','SSLT01','SSLT02' /)
         if ( myid == italk ) write(stdout,*) 'AERO simulation'
       else if ( chemsimtype(1:4) == 'DCCB' ) then 
-        ntr = 47
+        ntr = 49
         allocate(chtrname(ntr))      
         chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   ','NH3   ','O3    ', &
                                  'NO2   ','NO    ','CO    ','H2O2  ', &
@@ -262,9 +263,11 @@ module mod_che_common
                                  'ETHOOH','ROOH  ','HONO  ','HNO4  ', &
                                  'XO2   ','DUST01','DUST02','DUST03', &
                                  'DUST04','BC_HL ','BC_HB ','OC_HL ', &
-                                 'OC_HB ','SSLT01','SSLT02' /)
+                                 'OC_HB ','SSLT01','SSLT02','ANO3  ', &
+                                 'ANH4  ' /)
         iaerosol = 1
         igaschem = 1
+        iisoropia = 1
         if ( myid == italk ) write(stdout,*) 'DCCB simulation'
       else if ( chemsimtype(1:4) == 'CBMZ' ) then 
         ntr = 37

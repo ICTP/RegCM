@@ -115,7 +115,7 @@ module mod_runparams
 
   integer(ik4) :: iboudy , ichem , ipgf , ipptls
   ! usefull flags for chemistry
-  integer(ik4) :: iaerosol , igaschem , ioxclim
+  integer(ik4) :: iaerosol , igaschem , ioxclim , iisoropia
   character(len=6) , pointer , dimension(:) :: chtrname
 !
   logical :: do_parallel_netcdf_in , do_parallel_netcdf_out

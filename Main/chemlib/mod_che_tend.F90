@@ -39,6 +39,7 @@
   use mod_che_carbonaer
   use mod_che_mppio
   use mod_che_chemistry
+  use mod_che_isorropia
   use mod_che_pollen 
  private
 
@@ -439,6 +440,23 @@
         if ( ichdiag > 0 ) then
           chemdiag(jci1:jci2,:,:,:) = chemdiag(jci1:jci2,:,:,:) + &
               chemten(jci1:jci2,:,:,:) * cfdout 
+        end if
+      end if
+      !
+      ! secondary inorganic aerosol solver
+      !
+      chemten(:,:,:,:) = d_zero
+      if ( igaschem == 1 .and. ichsolver > 0 .and. iisoropia == 1 ) then
+        if ( mod(ktau+1,kchsolv) == 0 ) then     !kchsolv for the moment
+          do j = jci1 , jci2
+            call aerodriver(j)
+          end do
+        endif
+        chiten(jci1:jci2,:,:,:) = chiten(jci1:jci2,:,:,:) + &
+                                  chemten(jci1:jci2,:,:,:)
+        if ( ichdiag > 0 ) then
+           chemdiag(jci1:jci2,:,:,:) = chemdiag(jci1:jci2,:,:,:) + &
+               chemten(jci1:jci2,:,:,:) * cfdout
         end if
       end if
       !
