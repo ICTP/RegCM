@@ -55,8 +55,13 @@ endif
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
+if COMPILER_GNU
+%.o: %.F
+	$(FC) $(CPPFLAGS) $(FCFLAGS) -fdefault-real-8 -c $<
+else
 %.o: %.F
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -r8 -c $<
+endif
 
 distclean-local:
 	rm -f *.mod
