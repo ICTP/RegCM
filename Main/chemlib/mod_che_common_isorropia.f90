@@ -187,7 +187,7 @@ module mod_che_common_isorropia
   !=================================================================
 
   character(len=15) :: version
-  real(rk8) :: great , tiny , tiny2 , zero , one
+  real(rk8) :: great , tiny1 , tiny2 , zero , one
 
 !      common /cgen/ great,tiny,tiny2,zero,one,version
 
