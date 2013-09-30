@@ -18132,6 +18132,7 @@ module mod_che_isorropia
 !
     x1 = omehi
     y1 = funca2(x1)
+    y2 = y1
     if ( abs(y1)<=eps ) return
 !
 ! *** root tracking ; for the range of hi and lo **********************
@@ -18411,6 +18412,7 @@ module mod_che_isorropia
     y1 = funcb3a(z1,tlc,tnh42s4)
     if ( abs(y1)<=eps ) return
     ylo = y1
+    y2 = y1
 !
 ! *** root tracking ; for the range of hi and lo ***********************
 !
@@ -18764,6 +18766,7 @@ module mod_che_isorropia
     y1 = funcb2b(x1,tnh4hs4,tlc)
     if ( abs(y1)<=eps ) return
     yhi = y1                          ! save y-value at hi position
+    y2 = y1
 !
 ! *** root tracking ; for the range of hi and lo
 ! ************************
@@ -19117,6 +19120,7 @@ module mod_che_isorropia
     y1 = funcc1(x1)
     if ( abs(y1)<=eps ) return
     ylo = y1
+    y2 = y1
 !
 ! *** root tracking ; for the range of hi and lo ***********************
 !
@@ -19202,6 +19206,7 @@ module mod_che_isorropia
 !
     frst = .true.
     calain = .true.
+    par2 = one
 !
     psi = w(2) - w(3)
     do i = 1 , nsweep
@@ -19290,6 +19295,7 @@ module mod_che_isorropia
     y1 = funcd3(x1)
     if ( abs(y1)<=eps ) return
     ylo = y1                   ! save y-value at hi position
+    y2 = y1
 !
 ! *** root tracking ; for the range of hi and lo **********************
 !
@@ -19500,6 +19506,7 @@ module mod_che_isorropia
 !
  100  x1 = psi4lo
     y1 = funcd2(x1)
+    y2 = y1
     if ( abs(y1)<=eps ) return
     ylo = y1                   ! save y-value at hi position
 !
@@ -19810,6 +19817,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcg5a(x1)
+    y2 = y1
     if ( chi6>tiny1 ) then
 !   if (abs(y1) <= eps .or. chi6 <= tiny1) goto 50
 !   if (water  <=  tiny1) return                    ! no water
@@ -20006,6 +20014,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcg4a(x1)
+    y2 = y1
     if ( chi6>tiny1 ) then
 !   if (abs(y1) <= eps .or. chi6 <= tiny1 .or. water  <=  tiny1) goto 50
 !   if (water  <=  tiny1) return                    ! no water
@@ -20278,6 +20287,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcg3a(x1)
+    y2 = y1
     if ( chi6>tiny1 ) then
 !   if (abs(y1) <= eps .or. chi6 <= tiny1 .or. water  <=  tiny1) goto 50
 !   if (water  <=  tiny1) return                    ! no water
@@ -20565,6 +20575,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcg2a(x1)
+    y2 = y1
     if ( chi6>tiny1 ) then
 !   if (abs(y1) <= eps .or. chi6 <= tiny1) goto 50
 !   if (water  <=  tiny1) goto 50               ! no water
@@ -20996,6 +21007,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funch6a(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -21204,6 +21216,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funch5a(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -21424,6 +21437,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funch4a(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -21669,6 +21683,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funch3a(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -21959,6 +21974,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funch2a(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -22045,6 +22061,7 @@ module mod_che_isorropia
     psi8 = chi8
     frst = .true.
     calain = .true.
+    a64 = tiny1
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
@@ -22481,6 +22498,7 @@ module mod_che_isorropia
     x1 = psi4hi
     y1 = funci5a(x1)
     yhi = y1                        ! save y-value at hi position
+    y2 = y1
 !
 ! *** yhi < 0.0 the solution is always undersaturated with na2so4 **
 !
@@ -22663,6 +22681,7 @@ module mod_che_isorropia
     x1 = psi4hi
     y1 = funci4a(x1)
     yhi = y1                        ! save y-value at hi position
+    y2 = y1
 !
 ! *** yhi < 0.0 the solution is always undersaturated with na2so4 **
 !
@@ -22899,6 +22918,7 @@ module mod_che_isorropia
     x1 = psi2hi
     y1 = funci3a(x1)
     yhi = y1                        ! save y-value at hi position
+    y2 = y1
 !
 ! *** yhi < 0.0 the solution is always undersaturated with lc *********
 !
@@ -22986,6 +23006,7 @@ module mod_che_isorropia
 !
     x1 = psi4hi
     y1 = funci3b(x1)
+    y2 = y1
     if ( abs(y1)>eps ) then
       yhi = y1                      ! save y-value at hi position
 !
@@ -23225,6 +23246,7 @@ module mod_che_isorropia
     x1 = psi2hi
     y1 = funci2a(x1)
     yhi = y1                        ! save y-value at hi position
+    y2 = y1
 !
 ! *** yhi < 0.0 the solution is always undersaturated with lc *********
 !
@@ -23585,6 +23607,7 @@ module mod_che_isorropia
     x1 = psi1hi
     y1 = funcj2(x1)
     yhi = y1                        ! save y-value at hi position
+    y2 = y1
 !
 ! *** yhi < 0.0 the solution is always undersaturated with nh42so4 ****
 !
@@ -23748,6 +23771,7 @@ module mod_che_isorropia
     x1 = psi1hi
     y1 = funcj1(x1)
     yhi = y1                        ! save y-value at hi position
+    y2 = y1
 !
 ! *** yhi < 0.0 the solution is always undersaturated with nh42so4 ****
 !
@@ -23935,6 +23959,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funco7(x1)
+    y2 = y1
     if ( chi6>tiny1 ) then
 !   if (abs(y1) <= eps .or. chi6 <= tiny1) goto 50
 !   if (water  <=  tiny1) return                    ! no water
@@ -24155,6 +24180,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funco6(x1)
+    y2 = y1
     if ( chi6>tiny1 ) then
 !   if (abs(y1) <= eps .or. chi6 <= tiny1) goto 50
 !   if (water  <=  tiny1) return                    ! no water
@@ -24386,6 +24412,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funco5(x1)
+    y2 = y1
     if ( chi6>tiny1 ) then
 !   if (abs(y1) <= eps .or. chi6 <= tiny1) goto 50
 !   if (water  <=  tiny1) return                    ! no water
@@ -24624,6 +24651,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funco4(x1)
+    y2 = y1
     if ( chi6>tiny1 ) then
 !   if (abs(y1) <= eps .or. chi6 <= tiny1) goto 50
 !   if (water  <=  tiny1) goto 50               ! no water
@@ -24922,6 +24950,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funco3a(x1)
+    y2 = y1
     if ( chi6>tiny1 ) then
 !   if (abs(y1) <= eps .or. chi7 <= tiny1) goto 50
 !   if (water  <=  tiny1) goto 50               ! no water
@@ -25247,6 +25276,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funco2a(x1)
+    y2 = y1
     if ( chi6>tiny1 ) then
 !   if (abs(y1) <= eps .or. chi6 <= tiny1) goto 50
 !   if (water  <=  tiny1) goto 50               ! no water
@@ -25720,6 +25750,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcm8(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -25934,6 +25965,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcm7(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -26158,6 +26190,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcm6(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -26409,6 +26442,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcm5(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -26669,6 +26703,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcm4(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -26959,6 +26994,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcm3(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -27305,6 +27341,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcm2a(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -27829,6 +27866,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcp13(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -28106,6 +28144,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcp12(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -28395,6 +28434,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcp11(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -28694,6 +28734,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcp10(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -28993,6 +29034,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcp9(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -29299,6 +29341,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcp8(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -29633,6 +29676,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcp7(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -29976,6 +30020,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcp6(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -30382,6 +30427,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcp5(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -30817,6 +30863,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcp4(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -31251,6 +31298,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcp3(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -31721,6 +31769,7 @@ module mod_che_isorropia
 !
     x1 = psi6lo
     y1 = funcp2a(x1)
+    y2 = y1
     if ( abs(y1)>eps .and. chi6>tiny1 ) then
 !
 !   *** root tracking ; for the range of hi and lo
@@ -32394,6 +32443,7 @@ module mod_che_isorropia
     x1 = psi6hi
     y1 = funcl8(x1)
     yhi = y1                        ! save y-value at hi position
+    y2 = y1
 !
 ! *** yhi < 0.0 the solution is always undersaturated with k2so4
 ! *********
@@ -32588,6 +32638,7 @@ module mod_che_isorropia
     x1 = psi4hi
     y1 = funcl7(x1)
     yhi = y1                        ! save y-value at hi position
+    y2 = y1
 !
 ! *** yhi < 0.0 the solution is always undersaturated with k2so4
 ! *********
@@ -32671,6 +32722,7 @@ module mod_che_isorropia
 !
     frst = .true.
     calain = .true.
+    lamda = tiny1
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
@@ -32800,6 +32852,7 @@ module mod_che_isorropia
     x1 = psi4hi
     y1 = funcl6(x1)
     yhi = y1                        ! save y-value at hi position
+    y2 = y1
 !
 ! *** yhi < 0.0 the solution is always undersaturated with k2so4
 ! *********
@@ -32883,6 +32936,7 @@ module mod_che_isorropia
 !
     frst = .true.
     calain = .true.
+    lamda = tiny1
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
@@ -33013,6 +33067,7 @@ module mod_che_isorropia
 !
     x1 = psi4hi
     y1 = funcl5(x1)
+    y2 = y1
     yhi = y1                        ! save y-value at hi position
 !
 ! *** yhi < 0.0 the solution is always undersaturated with na2so4
@@ -33099,6 +33154,7 @@ module mod_che_isorropia
 !
     frst = .true.
     calain = .true.
+    lamda = tiny1
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
@@ -33238,6 +33294,7 @@ module mod_che_isorropia
     x1 = psi4hi
     y1 = funcl4(x1)
     yhi = y1                        ! save y-value at hi position
+    y2 = y1
 !
 ! *** yhi < 0.0 the solution is always undersaturated with na2so4
 ! *********
@@ -33516,6 +33573,7 @@ module mod_che_isorropia
     x1 = psi2hi
     y1 = funcl3a(x1)
     yhi = y1                        ! save y-value at hi position
+    y2 = y1
 !
 ! *** yhi < 0.0 the solution is always undersaturated with lc *********
 !
@@ -33604,6 +33662,7 @@ module mod_che_isorropia
 !
     x1 = psi4hi
     y1 = funcl3b(x1)
+    y2 = y1
     if ( abs(y1)>eps ) then
       yhi = y1                      ! save y-value at hi position
 !
@@ -33881,6 +33940,7 @@ module mod_che_isorropia
 !
     x1 = psi2hi
     y1 = funcl2a(x1)
+    y2 = y1
     yhi = y1                        ! save y-value at hi position
 !
 ! *** yhi < 0.0 the solution is always undersaturated with na2so4
@@ -33972,6 +34032,7 @@ module mod_che_isorropia
  
     x1 = psi4hi
     y1 = funcl2b(x1)
+    y2 = y1
  
     if ( abs(y1)>eps ) then
       yhi = y1                      ! save y-value at hi position
@@ -34399,6 +34460,7 @@ module mod_che_isorropia
     x1 = psi3hi
     y1 = funck3(x1)
     yhi = y1                        ! save y-value at hi position
+    y2 = y1
 !
 ! *** yhi < 0.0 the solution is always undersaturated with khso4 ****
 !
@@ -34570,6 +34632,7 @@ module mod_che_isorropia
     x1 = psi3hi
     y1 = funck2(x1)
     yhi = y1                        ! save y-value at hi position
+    y2 = y1
 !
 ! *** yhi < 0.0 the solution is always undersaturated with khso4 ****
 !
@@ -34741,6 +34804,7 @@ module mod_che_isorropia
 !
     x1 = psi3hi
     y1 = funck1(x1)
+    y2 = y1
     yhi = y1                        ! save y-value at hi position
 !
 ! *** yhi < 0.0 the solution is always undersaturated with khso4 ****
@@ -35910,6 +35974,7 @@ module mod_che_isorropia
     y1 = funcn2(x1)
     if ( y1<=eps ) return     ! if (abs(y1) <= eps .or. y1 <= zero) return
     yhi = y1                   ! save y-value at hi position
+    y2 = y1
 !
 ! *** root tracking ; for the range of hi and lo **********************
 !
@@ -38606,6 +38671,9 @@ module mod_che_isorropia
     nh3aq = zero
     no3aq = zero
     claq = zero
+    no3i = zero
+    nh4i = zero
+    cli = zero
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
@@ -40194,6 +40262,9 @@ module mod_che_isorropia
     nh3aq = zero
     no3aq = zero
     claq = zero
+    no3i = zero
+    nh4i = zero
+    cli = zero
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
@@ -41914,6 +41985,7 @@ module mod_che_isorropia
     nh3aq = zero
     no3aq = zero
     claq = zero
+    psi20 = zero
 !
     molal(1) = zero
     molal(2) = nai
@@ -42423,6 +42495,9 @@ module mod_che_isorropia
     nh3aq = zero
     no3aq = zero
     claq = zero
+    no3i = zero
+    nh4i = zero
+    cli = zero
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
