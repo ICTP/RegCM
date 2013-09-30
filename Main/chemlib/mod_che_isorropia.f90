@@ -18094,7 +18094,7 @@ module mod_che_isorropia
   subroutine calca2
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: dx , funca2 , omehi , omelo , x1 , x2 , x3 , y1 , y2 , y3
+    real(rk8) :: dx , omehi , omelo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -18377,7 +18377,7 @@ module mod_che_isorropia
   subroutine calcb3a(tlc,tnh42s4)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: dz , funcb3a , tlc , tnh42s4 , y1 , y2 , y3 , &
+    real(rk8) :: dz , tlc , tnh42s4 , y1 , y2 , y3 , &
          yhi , ylo , z1 , z2 , z3 , zhi , zk , zlo
     integer(ik4) :: i
 !
@@ -18728,7 +18728,7 @@ module mod_che_isorropia
   subroutine calcb2b(tlc,tnh4hs4)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: dx , funcb2b , tlc , tnh4hs4 , x1 , x2 , x3 , &
+    real(rk8) :: dx , tlc , tnh4hs4 , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo , zhi , zlo
     integer(ik4) :: i
 !
@@ -19079,7 +19079,7 @@ module mod_che_isorropia
   subroutine calcc1
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: dx , funcc1 , x1 , x2 , x3 , y1 , y2 , y3 , yhi , ylo
+    real(rk8) :: dx , x1 , x2 , x3 , y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
     real(rk8) :: klo , khi
 !
@@ -19228,7 +19228,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , funcd3 , p4 , psi4hi , psi4lo , &
+    real(rk8) :: delta , dx , p4 , psi4hi , psi4lo , &
          x1 , x2 , x3 , y1 , y2 , y3 , yhi , ylo , yy
     integer(ik4) :: i
 !
@@ -19437,7 +19437,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , funcd2 , p4 , psi4hi , psi4lo , &
+    real(rk8) :: delta , dx , p4 , psi4hi , psi4lo , &
          x1 , x2 , x3 , y1 , y2 , y3 , yhi , ylo , yy
     integer(ik4) :: i
 !
@@ -19753,7 +19753,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rk8) :: delta , dx , funcg5a , psi6hi , psi6lo , &
+    real(rk8) :: delta , dx , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -19947,7 +19947,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rk8) :: delta , dx , funcg4a , psi6hi , psi6lo , &
+    real(rk8) :: delta , dx , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -20217,7 +20217,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rk8) :: delta , dx , funcg3a , psi6hi , psi6lo , &
+    real(rk8) :: delta , dx , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i , islv
 !
@@ -20501,7 +20501,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseg
     implicit none
-    real(rk8) :: delta , dx , funcg2a , psi6hi , psi6lo , &
+    real(rk8) :: delta , dx , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i , islv
 !
@@ -20927,7 +20927,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frna , funch6a , psi6hi , psi6lo , &
+    real(rk8) :: delta , dx , frna , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -21123,7 +21123,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frna , funch5a , psi6hi , psi6lo , &
+    real(rk8) :: delta , dx , frna , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -21340,7 +21340,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frna , funch4a , psi6hi , psi6lo , &
+    real(rk8) :: delta , dx , frna , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -21582,7 +21582,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frna , funch3a , psi6hi , psi6lo , &
+    real(rk8) :: delta , dx , frna , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -21881,7 +21881,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: delta , dx , frna , funch2a , psi6hi , psi6lo , &
+    real(rk8) :: delta , dx , frna , psi6hi , psi6lo , &
          x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -22389,7 +22389,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , funci5a , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -22573,7 +22573,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , funci4a , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -22817,7 +22817,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , funci3a , psi2hi , psi2lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , psi2hi , psi2lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi
     integer(ik4) :: i
 !
@@ -22915,7 +22915,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , funci3b , p2 , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , p2 , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi
     integer(ik4) :: i
 !
@@ -23144,7 +23144,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , funci2a , psi2hi , psi2lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , psi2hi , psi2lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi
     integer(ik4) :: i
 !
@@ -23519,7 +23519,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casej
     implicit none
-    real(rk8) :: dx , funcj2 , psi1hi , psi1lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , psi1hi , psi1lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -23682,7 +23682,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casej
     implicit none
-    real(rk8) :: dx , funcj1 , psi1hi , psi1lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , psi1hi , psi1lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -23845,7 +23845,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , funco7 , psi6hi , &
+    real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i , nafr
 !
@@ -24067,7 +24067,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , funco6 , psi6hi , &
+    real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i , nafr
 !
@@ -24299,7 +24299,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , funco5 , psi6hi , &
+    real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i , nafr
 !
@@ -24538,7 +24538,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , funco4 , psi6hi , &
+    real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i , islv , nafr
 !
@@ -24840,7 +24840,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , funco3a , psi6hi , &
+    real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i , islv , nafr
 !
@@ -25165,7 +25165,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , funco2a , psi6hi , &
+    real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i , islv , nafr
 !
@@ -25640,7 +25640,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , frna , funcm8 , psi6hi , &
+    real(rk8) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -25854,7 +25854,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , frna , funcm7 , psi6hi , &
+    real(rk8) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -26078,7 +26078,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , frna , funcm6 , psi6hi , &
+    real(rk8) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -26329,7 +26329,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , frna , funcm5 , psi6hi , &
+    real(rk8) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -26580,7 +26580,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , frna , funcm4 , psi6hi , &
+    real(rk8) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -26870,7 +26870,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , frna , funcm3 , psi6hi , &
+    real(rk8) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -27225,7 +27225,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , frna , funcm2a , psi6hi , &
+    real(rk8) :: cafr , delta , dx , frk , frmg , frna , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -27728,7 +27728,7 @@ module mod_che_isorropia
     use mod_che_common_solut
     implicit none
     real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , funcp13 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -28005,7 +28005,7 @@ module mod_che_isorropia
     use mod_che_common_solut
     implicit none
     real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , funcp12 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -28294,7 +28294,7 @@ module mod_che_isorropia
     use mod_che_common_solut
     implicit none
     real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , funcp11 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -28593,7 +28593,7 @@ module mod_che_isorropia
     use mod_che_common_solut
     implicit none
     real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , funcp10 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -28892,7 +28892,7 @@ module mod_che_isorropia
     use mod_che_common_solut
     implicit none
     real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , funcp9 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -29198,7 +29198,7 @@ module mod_che_isorropia
     use mod_che_common_solut
     implicit none
     real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , funcp8 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -29532,7 +29532,7 @@ module mod_che_isorropia
     use mod_che_common_solut
     implicit none
     real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , funcp7 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -29875,7 +29875,7 @@ module mod_che_isorropia
     use mod_che_common_solut
     implicit none
     real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , funcp6 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -30281,7 +30281,7 @@ module mod_che_isorropia
     use mod_che_common_solut
     implicit none
     real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , funcp5 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -30716,7 +30716,7 @@ module mod_che_isorropia
     use mod_che_common_solut
     implicit none
     real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , funcp4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -31150,7 +31150,7 @@ module mod_che_isorropia
     use mod_che_common_solut
     implicit none
     real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , frno3 , &
-         frso4 , funcp3 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
+         frso4 , psi6hi , psi6lo , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
@@ -31619,7 +31619,7 @@ module mod_che_isorropia
     use mod_che_common_solut
     implicit none
     real(rk8) :: delta , dx , frca , frcl , frk , frmg , frna , &
-         frno3 , frso4 , funcp2a , psi6hi , psi6lo , x1 , x2 ,  &
+         frno3 , frso4 , psi6hi , psi6lo , x1 , x2 ,  &
          x3 , y1 , y2 , y3
     integer(ik4) :: i
 !
@@ -32305,7 +32305,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , funcl8 , psi6hi , psi6lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , psi6hi , psi6lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -32500,7 +32500,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , funcl7 , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -32713,7 +32713,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , funcl6 , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -32927,7 +32927,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , funcl5 , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -33153,7 +33153,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , funcl4 , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -33437,7 +33437,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , funcl3a , psi2hi , psi2lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , psi2hi , psi2lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi
     integer(ik4) :: i
 !
@@ -33541,7 +33541,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , funcl3b , p2 , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , p2 , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi
     integer(ik4) :: i
 !
@@ -33807,7 +33807,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , funcl2a , psi2hi , psi2lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , psi2hi , psi2lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi
     integer(ik4) :: i
 !
@@ -33907,7 +33907,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , funcl2b , p2 , psi4hi , psi4lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , p2 , psi4hi , psi4lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi
     integer(ik4) :: i
 !
@@ -34338,7 +34338,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rk8) :: dx , funck3 , psi3hi , psi3lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , psi3hi , psi3lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -34509,7 +34509,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rk8) :: dx , funck2 , psi3hi , psi3lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , psi3hi , psi3lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -34681,7 +34681,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_casek
     implicit none
-    real(rk8) :: dx , funck1 , psi3hi , psi3lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , psi3hi , psi3lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo
     integer(ik4) :: i
 !
@@ -34853,7 +34853,7 @@ module mod_che_isorropia
   subroutine isrp1r(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: getasr , rhi , tempi
+    real(rk8) :: rhi , tempi
     real(rk8) , dimension(ncomp) :: wi
 !
 ! *** initialize common block variables
@@ -34963,7 +34963,7 @@ module mod_che_isorropia
   subroutine isrp2r(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: getasr , rhi , tempi
+    real(rk8) :: rhi , tempi
     real(rk8) , dimension(ncomp) :: wi
     logical :: tryliq
 !
@@ -35111,7 +35111,7 @@ module mod_che_isorropia
   subroutine isrp3r(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: frso4 , getasr , rhi , sri , tempi
+    real(rk8) :: frso4 , rhi , sri , tempi
     integer(ik4) :: i
     real(rk8) , dimension(ncomp) :: wi
     logical :: tryliq
@@ -35325,7 +35325,7 @@ module mod_che_isorropia
   subroutine isrp4r(wi,rhi,tempi)
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: frso4 , getasr , rhi , sri , tempi
+    real(rk8) :: frso4 , rhi , sri , tempi
     integer(ik4) :: i
     real(rk8) , dimension(ncomp) :: wi
     logical :: tryliq
@@ -35846,7 +35846,7 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: dx , funcn2 , p4 , psi1hi , psi1lo , x1 , x2 , x3 , &
+    real(rk8) :: dx , p4 , psi1hi , psi1lo , x1 , x2 , x3 , &
          y1 , y2 , y3 , yhi , ylo , yy
     integer(ik4) :: i
 !
