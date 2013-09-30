@@ -1,5 +1,36 @@
 module mod_che_common_isorropia
 
+  ! ------------
+  ! Terms of Use
+  ! ------------
+  !
+  ! These codes not to be included in any commercial package, or used for any
+  ! commercial applications (or for profit) without prior authorization from the
+  ! code authors (CF, AN, SP, CP).
+  ! The code is to be used for educational or non-profit purposes only.
+  ! Any other usage must first have authorization from the authors
+  ! ISORROPIA/ISORROPIA-II cannot be modified in any way without the author's
+  ! consent.
+  ! No portion of the ISORROPIA/ISORROPIA-II source code can be used in other
+  ! codes without the author's consent.
+  ! The codes are provided as-is, and the authors have no liability from its
+  ! usage.
+  ! Usage of the model, for any purpose (educational, research, or other) must
+  ! acknowledge the usage of these codes, i.e.
+  ! Links to the ISORROPIA webpage must be provided
+  ! (http://nenes.eas.gatech.edu/ISORROPIA) where users can download the latest
+  ! version of the code, as well as manuals and other materials.
+  ! The main ISORROPIA reference (Nenes et al., Aquatic Geochemistry, 1998) must
+  ! be cited in all publications and documentation.
+  ! The main ISORROPIA-II reference (Fountoukis and Nenes, Atmos.Chem.Phys.,
+  ! 2007) must be cited in all publications and documentation.
+  ! If ISORROPIA/ISORROPIA-II is to be included within another model, some
+  ! kind of agreement is required (such as an e-mail confirmation) that
+  ! subsequent users will abide to the terms as outlined here.
+  ! Documentation and publications using ISORROPIA/ISORROPIA-II should cite the
+  ! ISORROPIA webpage.
+  !
+
   use mod_realkinds
   use mod_intkinds
 
