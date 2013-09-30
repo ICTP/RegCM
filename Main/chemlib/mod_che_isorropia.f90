@@ -2438,7 +2438,7 @@ module mod_che_isorropia
 !
       if ( molal(6)>exs4 ) then   ! adjust aqueous phase hso4
         molal(6) = molal(6) - exs4
-        go to 99999
+        return
       else
         exs4 = exs4 - molal(6)
         molal(6) = zero
@@ -2446,7 +2446,7 @@ module mod_che_isorropia
 !
       if ( molal(5)>exs4 ) then   ! adjust aqueous phase so4
         molal(5) = molal(5) - exs4
-        go to 99999
+        return
       else
         exs4 = exs4 - molal(5)
         molal(5) = zero
@@ -2455,7 +2455,7 @@ module mod_che_isorropia
       if ( clc>2D0*exs4 ) then     ! adjust (nh4)3h(so4)2(s)
         clc = clc - exs4/2D0        ! more solid than excess
         gnh3 = gnh3 + 1.5D0*exs4    ! evaporate nh3 to gas phase
-        go to 99999
+        return
       else                          ! less solid than excess
         gnh3 = gnh3 + 1.5D0*clc     ! evaporate nh3 to gas phase
         exs4 = exs4 - 2D0*clc       ! reduce excess
@@ -2465,7 +2465,7 @@ module mod_che_isorropia
       if ( cnh4hs4>exs4 ) then     ! adjust nh4hso4(s)
         cnh4hs4 = cnh4hs4 - exs4    ! more solid than excess
         gnh3 = gnh3 + exs4          ! evaporate nh3 to gas phase
-        go to 99999
+        return
       else                          ! less solid than excess
         gnh3 = gnh3 + cnh4hs4       ! evaporate nh3 to gas phase
         exs4 = exs4 - cnh4hs4       ! reduce excess
@@ -2481,7 +2481,7 @@ module mod_che_isorropia
         cnh42s4 = zero             ! zero salt concentration
       end if
     end if
-99999 end subroutine adjust
+  end subroutine adjust
  
 !======================================================================
 !
@@ -2894,19 +2894,19 @@ module mod_che_isorropia
 !
 ! *** special case; hcl = hno3=zero
 ! ***************************************
-    if ( w(5)<=tiny1 .and. w(4)<=tiny1 ) go to 99999
+    if ( w(5)<=tiny1 .and. w(4)<=tiny1 ) return
 !
 ! *** special case; hcl = zero
 ! ********************************************
     if ( w(5)<=tiny1 ) then
       call calcna                 ! call hno3 dissolution routine
-      go to 99999
+      return
 !
 !   *** special case; hno3 = zero
 !   *******************************************
     else if ( w(4)<=tiny1 ) then
       call calcha                 ! call hcl dissolution routine
-      go to 99999
+      return
     end if
 !
 ! *** calculate equilibrium constants
@@ -2969,7 +2969,6 @@ module mod_che_isorropia
 100 continue
     ghcl = max(w(5)-molal(4),tiny1)
     ghno3 = max(w(4)-molal(7),tiny1)
-99999 continue
   end subroutine calcnha
 ! 
 !======================================================================
@@ -3739,8 +3738,7 @@ module mod_che_isorropia
         gnh3 = gnh3o                 ! gas phase
         ghno3 = ghno3o
         ghcl = ghclo
-!
-        go to 99999
+        return
       end if
 !
 !   *** find salt dissolutions between dry & liquid solutions.
@@ -3793,7 +3791,6 @@ module mod_che_isorropia
       ghno3 = wf*ghno3o + onemwf*ghno3
       ghcl = wf*ghclo + onemwf*ghcl
     end if
-99999 continue
   end subroutine calcmdrh
 !
 !======================================================================
@@ -4084,7 +4081,7 @@ module mod_che_isorropia
           molal(i) = zero
         end do
         call drycase
-        go to 99999
+        return
       end if
 !
 !   *** find salt dissolutions between dry & liquid solutions.
@@ -4140,7 +4137,6 @@ module mod_che_isorropia
       ghno3 = molal(1)*molal(7)/a3
       ghcl = molal(1)*molal(4)/a4
     end if
-99999 continue
   end subroutine calcmdrp
 !
 !======================================================================
@@ -4550,7 +4546,7 @@ module mod_che_isorropia
       do j = 1 , 4
         zmi = z(j+3)
         if ( j==3 ) then
-          if ( i==4 .or. i==6 ) go to 100
+          if ( i==4 .or. i==6 ) exit outerl
         end if
         ch = 0.25D0*(zpl+zmi)*(zpl+zmi)/ionic
         xij = ch*mpl
@@ -4562,31 +4558,32 @@ module mod_che_isorropia
 !
 ! *** log10 of activity coefficients ***********************************
 !
- 100  gama(01) = ga(2,1)*zz(01)                    ! nacl
-    gama(02) = ga(2,2)*zz(02)                        ! na2so4
-    gama(03) = ga(2,4)*zz(03)                        ! nano3
-    gama(04) = ga(3,2)*zz(04)                        ! (nh4)2so4
-    gama(05) = ga(3,4)*zz(05)                        ! nh4no3
-    gama(06) = ga(3,1)*zz(06)                        ! nh4cl
-    gama(07) = ga(1,2)*zz(07)                        ! 2h-so4
-    gama(08) = ga(1,3)*zz(08)                        ! h-hso4
-    gama(09) = ga(3,3)*zz(09)                        ! nh4hso4
-    gama(10) = ga(1,4)*zz(10)                        ! hno3
-    gama(11) = ga(1,1)*zz(11)                        ! hcl
-    gama(12) = ga(2,3)*zz(12)                        ! nahso4
-    gama(13) = 0.20*(3.0*gama(04)+2.0*gama(09))    ! lc ; scape
-! gama(13) = 0.50*(gama(04)+gama(09))          ! lc ; sequilib
+100 continue
+    gama(01) = ga(2,1)*zz(01)                    ! nacl
+    gama(02) = ga(2,2)*zz(02)                    ! na2so4
+    gama(03) = ga(2,4)*zz(03)                    ! nano3
+    gama(04) = ga(3,2)*zz(04)                    ! (nh4)2so4
+    gama(05) = ga(3,4)*zz(05)                    ! nh4no3
+    gama(06) = ga(3,1)*zz(06)                    ! nh4cl
+    gama(07) = ga(1,2)*zz(07)                    ! 2h-so4
+    gama(08) = ga(1,3)*zz(08)                    ! h-hso4
+    gama(09) = ga(3,3)*zz(09)                    ! nh4hso4
+    gama(10) = ga(1,4)*zz(10)                    ! hno3
+    gama(11) = ga(1,1)*zz(11)                    ! hcl
+    gama(12) = ga(2,3)*zz(12)                    ! nahso4
+    gama(13) = 0.20*(3.0*gama(04)+2.0*gama(09))  ! lc ; scape
+! gama(13) = 0.50*(gama(04)+gama(09))            ! lc ; sequilib
 ! gama(13) = 0.25D0*(3.0*gama(04)+gama(07))      ! lc ; aim
-    gama(14) = 0.0D0                                ! caso4
-    gama(15) = gb(4,4)*zz(15)                        ! ca(no3)2
-    gama(16) = gb(4,1)*zz(16)                        ! cacl2
-    gama(17) = gb(5,2)*zz(17)                        ! k2so4
-    gama(18) = gb(5,3)*zz(18)                        ! khso4
-    gama(19) = gb(5,4)*zz(19)                        ! kno3
-    gama(20) = gb(5,1)*zz(20)                        ! kcl
-    gama(21) = gb(6,2)*zz(21)                        ! mgso4
-    gama(22) = gb(6,4)*zz(22)                        ! mg(no3)2
-    gama(23) = gb(6,1)*zz(23)                        ! mgcl2
+    gama(14) = 0.0D0                             ! caso4
+    gama(15) = gb(4,4)*zz(15)                    ! ca(no3)2
+    gama(16) = gb(4,1)*zz(16)                    ! cacl2
+    gama(17) = gb(5,2)*zz(17)                    ! k2so4
+    gama(18) = gb(5,3)*zz(18)                    ! khso4
+    gama(19) = gb(5,4)*zz(19)                    ! kno3
+    gama(20) = gb(5,1)*zz(20)                    ! kcl
+    gama(21) = gb(6,2)*zz(21)                    ! mgso4
+    gama(22) = gb(6,4)*zz(22)                    ! mg(no3)2
+    gama(23) = gb(6,1)*zz(23)                    ! mgcl2
 !
 ! *** convert log (gama) coefficients to gama **************************
 !
@@ -16624,19 +16621,27 @@ module mod_che_isorropia
     character(len=*) :: prompt , prfmt
     character(len=128) :: buffer
     real(rk8) :: def , var
-    integer(ik4) :: ierr
+    integer(ik4) :: ierr , ires
 !
     ierr = 0
 !
 ! *** write default value to work buffer *******************************
 !
-    write (buffer,fmt = prfmt,err = 200) def
+    write (buffer,fmt = prfmt,iostat=ires) def
+    if ( ires /= 0 ) then
+      ierr = 1       ! bad format and/or bad default value
+      return
+    end if
     call chrbln(buffer,iend)
 !
 ! *** prompt user for input and read it ********************************
 !
     write (*,*) prompt , ' [' , buffer(1:iend) , ']: '
-    read (*,'(a)',err = 300,end = 300) buffer
+    read (*,'(a)',iostat=ires) buffer
+    if ( ires /= 0 ) then
+      ierr = 2       ! bad number given by user
+      return
+    end if
     call chrbln(buffer,iend)
 !
 ! *** read data or set default ?
@@ -16644,21 +16649,12 @@ module mod_che_isorropia
     if ( iend==1 .and. buffer(1:1)==' ' ) then
       var = def
     else
-      read (buffer,*,err = 300,end = 300) var
+      read (buffer,*,iostat=ires) var
+      if ( ires /= 0 ) then
+        ierr = 2       ! bad number given by user
+        return
+      end if
     end if
-!
-! *** return point
-! ******************************************************
- 100  return
-!
-! *** error handler
-! *****************************************************
- 200  ierr = 1       ! bad format and/or bad default value
-    go to 100
-!
- 300  ierr = 2       ! bad number given by user
-    go to 100
-!
   end subroutine inptd
 !
 !************************************************************************
@@ -16685,7 +16681,7 @@ module mod_che_isorropia
 !
   subroutine pushend(iunit)
     implicit none
-    integer(ik4) :: iunit
+    integer(ik4) :: iunit , ierr
 !
 !**********************************************************************
 !
@@ -16694,17 +16690,16 @@ module mod_che_isorropia
 ! *** inquire if iunit connected to file
 ! ********************************
     inquire (unit = iunit,opened = opned)
-    if ( .not.opned ) go to 99999
+    if ( .not.opned ) return
 !
 ! *** iunit connected , push pointer to end
 ! ******************************
- 100  read (iunit,'()',err = 200,end = 200)
-    go to 100
-!
-! *** return point
-! ******************************************************
- 200  backspace (iunit)
-99999 end subroutine pushend
+    do
+      read (iunit,'()',iostat=ierr)
+      if ( ierr /= 0 ) exit
+    end do
+    backspace(iunit)
+  end subroutine pushend
  
  
 !************************************************************************
@@ -16918,7 +16913,8 @@ module mod_che_isorropia
 !
 ! *** bisection *******************************************************
 !
- 100  do i = 1 , maxit
+100 continue
+    do i = 1 , maxit
       x3 = 0.5D0*(x1+x2)
       y3 = func(x3)
       if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -17260,7 +17256,7 @@ module mod_che_isorropia
       write (io,99001) 'no diagnostic message available'
     end if
 !
- 100  return
+100 continue
 !
 ! *** format statements *************************************
 !
@@ -18134,7 +18130,8 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+100 continue
+    do i = 1 , maxit
       x3 = 0.5D0*(x1+x2)
       y3 = funca2(x3)
       if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -18149,8 +18146,8 @@ module mod_che_isorropia
     call pusherr(0002,'calca2')         ! warning error: no convergence
 !
 ! *** converged ; return **********************************************
-!
- 200  x3 = 0.5D0*(x1+x2)
+200 continue
+    x3 = 0.5D0*(x1+x2)
     y3 = funca2(x3)
   end subroutine calca2
 !
@@ -18429,7 +18426,8 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+100 continue
+    do i = 1 , maxit
       z3 = 0.5D0*(z1+z2)
       y3 = funcb3a(z3,tlc,tnh42s4)
       if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -18445,7 +18443,8 @@ module mod_che_isorropia
 !
 ! *** converged ; return
 ! ************************************************
- 200  zk = 0.5D0*(z1+z2)
+200 continue
+    zk = 0.5D0*(z1+z2)
     y3 = funcb3a(zk,tlc,tnh42s4)
   end subroutine calcb3a
 !
@@ -18780,7 +18779,8 @@ module mod_che_isorropia
 !
 ! *** perform bisection
 ! *************************************************
- 100  do i = 1 , maxit
+100 continue
+    do i = 1 , maxit
       x3 = 0.5D0*(x1+x2)
       y3 = funcb2b(x3,tnh4hs4,tlc)
       if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -18796,7 +18796,8 @@ module mod_che_isorropia
 !
 ! *** converged ; return
 ! ************************************************
- 200  x3 = 0.5D0*(x1+x2)
+200 continue
+    x3 = 0.5D0*(x1+x2)
     y3 = funcb2b(x3,tnh4hs4,tlc)
   end subroutine calcb2b
 !
@@ -19129,7 +19130,8 @@ module mod_che_isorropia
 !
 ! *** perform bisection of dissolved nh4hso4 **************************
 !
- 100  do i = 1 , maxit
+100 continue
+    do i = 1 , maxit
       x3 = 0.5D0*(x1+x2)
       y3 = funcc1(x3)
       if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -19145,7 +19147,8 @@ module mod_che_isorropia
 !
 ! *** converged ; return ***********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+200 continue
+    x3 = 0.5D0*(x1+x2)
     y3 = funcc1(x3)
 !
   end subroutine calcc1
@@ -19315,7 +19318,8 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 200  do i = 1 , maxit
+200 continue
+    do i = 1 , maxit
       x3 = 0.5D0*(x1+x2)
       y3 = funcd3(x3)
       if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -19331,12 +19335,14 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 300  x3 = 0.5D0*(x1+x2)
+300 continue
+    x3 = 0.5D0*(x1+x2)
     y3 = funcd3(x3)
 !
 ! *** calculate hso4 speciation and return
 ! *******************************
- 400  if ( molal(1)>tiny1 ) then
+400 continue
+    if ( molal(1)>tiny1 ) then
       call calchs4(molal(1),molal(5),zero,delta)
       molal(1) = molal(1) - delta                        ! h+   effect
       molal(5) = molal(5) - delta                        ! so4  effect
@@ -19529,7 +19535,8 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 200  do i = 1 , maxit
+200 continue
+    do i = 1 , maxit
       x3 = 0.5D0*(x1+x2)
       y3 = funcd2(x3)
       if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -19545,12 +19552,14 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 300  x3 = min(x1,x2)  ! 0.5d0*(x1+x2)  ! get "low" side , it's acidic soln.
+300 continue
+    x3 = min(x1,x2)  ! 0.5d0*(x1+x2)  ! get "low" side , it's acidic soln.
     y3 = funcd2(x3)
 !
 ! *** calculate hso4 speciation and return
 ! *******************************
- 400  if ( molal(1)>tiny1 ) then
+400 continue
+    if ( molal(1)>tiny1 ) then
       call calchs4(molal(1),molal(5),zero,delta)
       molal(1) = molal(1) - delta                        ! h+   effect
       molal(5) = molal(5) - delta                        ! so4  effect
@@ -19801,7 +19810,8 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+100 continue
+    do i = 1 , maxit
       x3 = 0.5D0*(x1+x2)
       y3 = funcg5a(x3)
       if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -19817,12 +19827,14 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+200 continue
+    x3 = 0.5D0*(x1+x2)
     y3 = funcg5a(x3)
 !
 ! *** calculate hso4 speciation and return
 ! *******************************
- 300  if ( molal(1)>tiny1 .and. molal(5)>tiny1 ) then  ! if quadrat.called
+300 continue
+    if ( molal(1)>tiny1 .and. molal(5)>tiny1 ) then  ! if quadrat.called
       call calchs4(molal(1),molal(5),zero,delta)
       molal(1) = molal(1) - delta                       ! h+   effect
       molal(5) = molal(5) - delta                       ! so4  effect
@@ -19994,7 +20006,8 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+100 continue
+    do i = 1 , maxit
       x3 = 0.5D0*(x1+x2)
       y3 = funcg4a(x3)
       if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -20010,12 +20023,14 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+200 continue
+    x3 = 0.5D0*(x1+x2)
     y3 = funcg4a(x3)
 !
 ! *** calculate hso4 speciation and return
 ! *******************************
- 300  if ( molal(1)>tiny1 .and. molal(5)>tiny1 ) then
+300 continue
+    if ( molal(1)>tiny1 .and. molal(5)>tiny1 ) then
       call calchs4(molal(1),molal(5),zero,delta)
       molal(1) = molal(1) - delta                        ! h+   effect
       molal(5) = molal(5) - delta                        ! so4  effect
@@ -20264,7 +20279,8 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+100 continue
+    do i = 1 , maxit
       x3 = 0.5D0*(x1+x2)
       y3 = funcg3a(x3)
       if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -20280,7 +20296,8 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+200 continue
+    x3 = 0.5D0*(x1+x2)
     y3 = funcg3a(x3)
 !
 ! *** final calculations
@@ -20288,7 +20305,8 @@ module mod_che_isorropia
 !
 ! *** na2so4 dissolution
 !
- 300  if ( chi1>tiny1 .and. water>tiny1 ) then        ! psi1
+300 continue
+    if ( chi1>tiny1 .and. water>tiny1 ) then        ! psi1
       call poly3(psi2,zero,-a1/4.D0,psi1,islv)
       if ( islv==0 ) then
         psi1 = min(psi1,chi1)
@@ -20547,7 +20565,8 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+100 continue
+    do i = 1 , maxit
       x3 = 0.5D0*(x1+x2)
       y3 = funcg2a(x3)
       if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -20563,7 +20582,8 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+200 continue
+    x3 = 0.5D0*(x1+x2)
     if ( x3<=tiny2 ) then     ! practically no nitrates , so dry solution
       water = tiny1
     else
@@ -20575,7 +20595,8 @@ module mod_che_isorropia
 !
 ! *** na2so4 dissolution
 !
- 300  if ( chi1>tiny1 .and. water>tiny1 ) then        ! psi1
+300 continue
+    if ( chi1>tiny1 .and. water>tiny1 ) then        ! psi1
       call poly3(psi2,zero,-a1/4.D0,psi1,islv)
       if ( islv==0 ) then
         psi1 = min(psi1,chi1)
@@ -20898,7 +20919,8 @@ module mod_che_isorropia
 !
 ! *** calculate composition of volatile species ***********************
 !
- 100  cnh4no3 = lamda
+100 continue
+    cnh4no3 = lamda
     cnh4cl = kapa
 !
     gnh3 = max(alf-kapa-lamda,zero)
@@ -20972,7 +20994,8 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+100 continue
+    do i = 1 , maxit
       x3 = 0.5D0*(x1+x2)
       y3 = funch6a(x3)
       if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -20988,12 +21011,14 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+200 continue
+    x3 = 0.5D0*(x1+x2)
     y3 = funch6a(x3)
 !
 ! *** calculate hso4 speciation and return
 ! *******************************
- 300  if ( molal(1)>tiny1 .and. molal(5)>tiny1 ) then
+300 continue
+    if ( molal(1)>tiny1 .and. molal(5)>tiny1 ) then
       call calchs4(molal(1),molal(5),zero,delta)
       molal(1) = molal(1) - delta                        ! h+   effect
       molal(5) = molal(5) - delta                        ! so4  effect
@@ -21177,7 +21202,8 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+100 continue
+    do i = 1 , maxit
       x3 = 0.5D0*(x1+x2)
       y3 = funch5a(x3)
       if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -21193,12 +21219,14 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+200 continue
+    x3 = 0.5D0*(x1+x2)
     y3 = funch5a(x3)
 !
 ! *** calculate hso4 speciation and return
 ! *******************************
- 300  if ( molal(1)>tiny1 .and. molal(5)>tiny1 ) then
+300 continue
+    if ( molal(1)>tiny1 .and. molal(5)>tiny1 ) then
       call calchs4(molal(1),molal(5),zero,delta)
       molal(1) = molal(1) - delta                        ! h+   efect
       molal(5) = molal(5) - delta                        ! so4  effect
@@ -21394,7 +21422,8 @@ module mod_che_isorropia
 !
 ! *** perform bisection ***********************************************
 !
- 100  do i = 1 , maxit
+100 continue
+    do i = 1 , maxit
       x3 = 0.5D0*(x1+x2)
       y3 = funch4a(x3)
       if ( sign(1.D0,y1)*sign(1.D0,y3)<=zero ) then         ! (y1*y3  <=  zero)
@@ -21410,12 +21439,14 @@ module mod_che_isorropia
 !
 ! *** converged ; return **********************************************
 !
- 200  x3 = 0.5D0*(x1+x2)
+200 continue
+    x3 = 0.5D0*(x1+x2)
     y3 = funch4a(x3)
 !
 ! *** calculate hso4 speciation and return
 ! *******************************
- 300  if ( molal(1)>tiny1 .and. molal(5)>tiny1 ) then
+300 continue
+    if ( molal(1)>tiny1 .and. molal(5)>tiny1 ) then
       call calchs4(molal(1),molal(5),zero,delta)
       molal(1) = molal(1) - delta                         ! h+   effect
       molal(5) = molal(5) - delta                         ! so4  effect
@@ -22419,7 +22450,7 @@ module mod_che_isorropia
 ! ***************************
     if ( chi4<=tiny1 ) then
       y1 = funci5a(zero)
-      go to 99999
+      return
     end if
 !
 ! *** initial values for bisection ************************************
@@ -22451,7 +22482,7 @@ module mod_che_isorropia
       else if ( abs(y2)>=eps ) then    ! x2 is a solution
         call pusherr(0001,'calci5')        ! warning error: no solution
       end if
-      go to 99999
+      return
 !
 !   *** perform bisection
 !   ***********************************************
@@ -22475,10 +22506,8 @@ module mod_che_isorropia
       y3 = funci5a(x3)
     end if
 !
-99999 end subroutine calci5
- 
- 
- 
+  end subroutine calci5
+! 
 !======================================================================
 !
 ! *** isorropia code
@@ -22603,7 +22632,7 @@ module mod_che_isorropia
 ! ***************************
     if ( chi4<=tiny1 ) then
       y1 = funci4a(zero)
-      go to 99999
+      return
     end if
 !
 ! *** initial values for bisection ************************************
@@ -22635,7 +22664,7 @@ module mod_che_isorropia
       else if ( abs(y2)>=eps ) then    ! x2 is a solution
         call pusherr(0001,'calci4')        ! warning error: no solution
       end if
-      go to 99999
+      return
 !
 !   *** perform bisection
 !   ***********************************************
@@ -22658,8 +22687,7 @@ module mod_che_isorropia
  100  x3 = 0.5D0*(x1+x2)
       y3 = funci4a(x3)
     end if
-!
-99999 end subroutine calci4
+  end subroutine calci4
 !
 !======================================================================
 !
@@ -22868,7 +22896,7 @@ module mod_che_isorropia
 !   lc
       if ( y2>eps ) y2 = funci3a(zero)
     end if
-    go to 99999
+    return
 !
 ! *** perform bisection ***********************************************
 !
@@ -22890,8 +22918,7 @@ module mod_che_isorropia
 !
  200  x3 = 0.5D0*(x1+x2)
     y3 = funci3a(x3)
-!
-99999 end subroutine calci3a
+  end subroutine calci3a
 !
 !======================================================================
 !
@@ -23195,7 +23222,7 @@ module mod_che_isorropia
 !   lc
       if ( y2>eps ) y2 = funci2a(zero)
     end if
-    go to 99999
+    return
 !
 ! *** perform bisection ***********************************************
 !
@@ -23217,8 +23244,7 @@ module mod_che_isorropia
 !
  200  x3 = 0.5D0*(x1+x2)
     y3 = funci2a(x3)
-!
-99999 end subroutine calci2a
+  end subroutine calci2a
 !
 !======================================================================
 !
@@ -23560,7 +23586,7 @@ module mod_che_isorropia
       else if ( abs(y2)>=eps ) then    ! x2 is a solution
         call pusherr(0001,'calcj2')        ! warning error: no solution
       end if
-      go to 99999
+      return
 !
 !   *** perform bisection
 !   ***********************************************
@@ -23583,8 +23609,7 @@ module mod_che_isorropia
  100  x3 = 0.5D0*(x1+x2)
       y3 = funcj2(x3)
     end if
-!
-99999 end subroutine calcj2
+  end subroutine calcj2
 !
 !======================================================================
 !
@@ -23724,7 +23749,7 @@ module mod_che_isorropia
       else if ( abs(y2)>=eps ) then    ! x2 is a solution
         call pusherr(0001,'calcj1')        ! warning error: no solution
       end if
-      go to 99999
+      return
 !
 !   *** perform bisection
 !   ***********************************************
@@ -23747,8 +23772,7 @@ module mod_che_isorropia
  100  x3 = 0.5D0*(x1+x2)
       y3 = funcj1(x3)
     end if
-!
-99999 end subroutine calcj1
+  end subroutine calcj1
 !======================================================================
 !
 ! *** isorropia code
@@ -32341,7 +32365,7 @@ module mod_che_isorropia
 !
     if ( chi6<=tiny1 ) then
       y1 = funcl8(zero)
-      go to 99999
+      return
     end if
 !
     x1 = psi6hi
@@ -32371,7 +32395,7 @@ module mod_che_isorropia
       else if ( abs(y2)>=eps ) then    ! x2 is a solution
         call pusherr(0001,'calcl8')        ! warning error: no solution
       end if
-      go to 99999
+      return
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
@@ -32393,8 +32417,7 @@ module mod_che_isorropia
  100  x3 = 0.5D0*(x1+x2)
       y3 = funcl8(x3)
     end if
-!
-99999 end subroutine calcl8
+  end subroutine calcl8
 !
 !======================================================================
 !
@@ -32536,7 +32559,7 @@ module mod_che_isorropia
 !
     if ( chi4<=tiny1 ) then
       y1 = funcl7(zero)
-      go to 99999
+      return
     end if
 !
     x1 = psi4hi
@@ -32566,7 +32589,7 @@ module mod_che_isorropia
       else if ( abs(y2)>=eps ) then    ! x2 is a solution
         call pusherr(0001,'calcl7')        ! warning error: no solution
       end if
-      go to 99999
+      return
 !   *** perform bisection
 !   ***********************************************
  50   do i = 1 , maxit
@@ -32588,8 +32611,7 @@ module mod_che_isorropia
  100  x3 = 0.5D0*(x1+x2)
       y3 = funcl7(x3)
     end if
-!
-99999 end subroutine calcl7
+  end subroutine calcl7
 !
 !======================================================================
 !
@@ -32749,7 +32771,7 @@ module mod_che_isorropia
 !
     if ( chi4<=tiny1 ) then
       y1 = funcl6(zero)
-      go to 99999
+      return
     end if
 !
     x1 = psi4hi
@@ -32779,7 +32801,7 @@ module mod_che_isorropia
       else if ( abs(y2)>=eps ) then    ! x2 is a solution
         call pusherr(0001,'calcl6')        ! warning error: no solution
       end if
-      go to 99999
+      return
 !
 !   *** perform bisection
 !   ***********************************************
@@ -32802,8 +32824,7 @@ module mod_che_isorropia
  100  x3 = 0.5D0*(x1+x2)
       y3 = funcl6(x3)
     end if
-!
-99999 end subroutine calcl6
+  end subroutine calcl6
 !
 !======================================================================
 !
@@ -32964,7 +32985,7 @@ module mod_che_isorropia
 !
     if ( chi4<=tiny1 ) then
       y1 = funcl5(zero)
-      go to 99999
+      return
     end if
 !
     x1 = psi4hi
@@ -32995,7 +33016,7 @@ module mod_che_isorropia
       else if ( abs(y2)>=eps ) then    ! x2 is a solution
         call pusherr(0001,'calcl5')        ! warning error: no solution
       end if
-      go to 99999
+      return
 !
 !   *** perform bisection
 !   ***********************************************
@@ -33018,8 +33039,7 @@ module mod_che_isorropia
  100  x3 = 0.5D0*(x1+x2)
       y3 = funcl5(x3)
     end if
-!
-99999 end subroutine calcl5
+  end subroutine calcl5
 !
 !======================================================================
 !
@@ -33187,7 +33207,7 @@ module mod_che_isorropia
 !
     if ( chi4<=tiny1 ) then
       y1 = funcl4(zero)
-      go to 99999
+      return
     end if
 !
 ! *** initial values for bisection ************************************
@@ -33219,7 +33239,7 @@ module mod_che_isorropia
       else if ( abs(y2)>=eps ) then    ! x2 is a solution
         call pusherr(0001,'calcl4')        ! warning error: no solution
       end if
-      go to 99999
+      return
 !
 !   *** perform bisection
 !   ***********************************************
@@ -33242,8 +33262,7 @@ module mod_che_isorropia
  100  x3 = 0.5D0*(x1+x2)
       y3 = funcl4(x3)
     end if
-!
-99999 end subroutine calcl4
+  end subroutine calcl4
 !
 !======================================================================
 !
@@ -33494,7 +33513,7 @@ module mod_che_isorropia
 !   lc
       if ( y2>eps ) y2 = funcl3a(zero)
     end if
-    go to 99999
+    return
 !
 ! *** perform bisection ***********************************************
 !
@@ -33516,8 +33535,7 @@ module mod_che_isorropia
 !
  200  x3 = 0.5D0*(x1+x2)
     y3 = funcl3a(x3)
-!
-99999 end subroutine calcl3a
+  end subroutine calcl3a
 !
 !======================================================================
 !
@@ -33861,7 +33879,7 @@ module mod_che_isorropia
 !   na2so4
       if ( y2>eps ) y2 = funcl2a(zero)
     end if
-    go to 99999
+    return
 !
 ! *** perform bisection ***********************************************
 !
@@ -33883,7 +33901,7 @@ module mod_che_isorropia
 !
  200  x3 = 0.5D0*(x1+x2)
     y3 = funcl2a(x3)
-99999 end subroutine calcl2a
+  end subroutine calcl2a
 !
 !======================================================================
 !
@@ -34382,7 +34400,7 @@ module mod_che_isorropia
       else if ( abs(y2)>=eps ) then    ! x2 is a solution
         call pusherr(0001,'calck3')        ! warning error: no solution
       end if
-      go to 99999
+      return
 !
 !   *** perform bisection
 !   ***********************************************
@@ -34405,7 +34423,7 @@ module mod_che_isorropia
  100  x3 = 0.5D0*(x1+x2)
       y3 = funck3(x3)
     end if
-99999 end subroutine calck3
+  end subroutine calck3
 !
 !======================================================================
 !
@@ -34553,7 +34571,7 @@ module mod_che_isorropia
       else if ( abs(y2)>=eps ) then    ! x2 is a solution
         call pusherr(0001,'calck2')        ! warning error: no solution
       end if
-      go to 99999
+      return
 !
 !   *** perform bisection
 !   ***********************************************
@@ -34576,7 +34594,7 @@ module mod_che_isorropia
  100  x3 = 0.5D0*(x1+x2)
       y3 = funck2(x3)
     end if
-99999 end subroutine calck2
+  end subroutine calck2
 !
 !======================================================================
 !
@@ -34725,7 +34743,7 @@ module mod_che_isorropia
       else if ( abs(y2)>=eps ) then        ! x2 is a solution
         call pusherr(0001,'calck1')       ! warning error: no solution
       end if
-      go to 99999
+      return
 !
 !   *** perform bisection
 !   ***********************************************
@@ -34748,7 +34766,7 @@ module mod_che_isorropia
  100  x3 = 0.5D0*(x1+x2)
       y3 = funck1(x3)
     end if
-99999 end subroutine calck1
+  end subroutine calck1
 !
 !======================================================================
 !
@@ -35892,14 +35910,14 @@ module mod_che_isorropia
     else if ( ylo<zero .and. yhi<zero ) then
       p4 = chi4
       yy = funcn2(p4)
-      go to 99999
+      return
 !
 !   *** { ylo , yhi } > 0.0 the solution is always supersaturated with
 !   nh3
     else if ( ylo>zero .and. yhi>zero ) then
       p4 = tiny1
       yy = funcn2(p4)
-      go to 99999
+      return
     else
       call pusherr(0001,'calcn2')          ! warning error: no solution
       return
@@ -35925,7 +35943,7 @@ module mod_che_isorropia
 !
  200  x3 = 0.5D0*(x1+x2)
     y3 = funcn2(x3)
-99999 end subroutine calcn2
+  end subroutine calcn2
 !
 !=====================================================================
 !
