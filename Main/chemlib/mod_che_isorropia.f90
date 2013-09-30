@@ -2580,7 +2580,7 @@ module mod_che_isorropia
     a1 = int(log10(rat))                         ! magnitude of rat
     ia1 = int(rat/2.5/10.0**a1)
 !
-    inds = 4.0*a1 + min(ia1,4)
+    inds = int(4.0*a1 + min(ia1,4))
     inds = min(max(0,inds),nso4s-1) + 1            ! so4 component of ipos
 !
     indr = int(99.0-rhi*100.0) + 1
@@ -2594,7 +2594,7 @@ module mod_che_isorropia
     iposh = (indsh-1)*nrhs + indr                 ! high position in array
 !
     wf = (so4i-asso4(indsl))/(asso4(indsh)-asso4(indsl)+1E-7)
-    wf = min(max(wf,0.0),1.0)
+    wf = min(max(wf,0.0D0),1.0D0)
     getasr = wf*asrat(iposh) + (1.0-wf)*asrat(iposl)
   end function getasr
 !
@@ -4464,7 +4464,7 @@ module mod_che_isorropia
   subroutine calcact4
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: errin , errou , ga , gb
+    real(rk8) :: errin , errou
     integer(ik4) :: i , j
     real(rk8) , dimension(6,4) :: g0
     real(rk8) , dimension(6) :: f1
@@ -4472,9 +4472,6 @@ module mod_che_isorropia
     real(rk8) :: zpl , zmi , agama , sion , h , ch
     real(rk8) :: mpl , xij , yji
     data g0/24*0D0/
-!
-    ga(i,j) = (f1(i)/z(i)+f2a(j)/z(j+3))/(z(i)+z(j+3)) - h
-    gb(i,j) = (f1(i)/z(i+4)+f2b(j)/z(j+3))/(z(i+4)+z(j+3)) - h
 !
 ! *** save activities in old array *************************************
 !
@@ -4540,13 +4537,13 @@ module mod_che_isorropia
       end do
     end do
 !
-    outerl:do i = 4 , 6
+    do i = 4 , 6
       zpl = z(i+4)
       mpl = molal(i+4)/water
       do j = 1 , 4
         zmi = z(j+3)
         if ( j==3 ) then
-          if ( i==4 .or. i==6 ) exit outerl
+          if ( i==4 .or. i==6 ) go to 100
         end if
         ch = 0.25D0*(zpl+zmi)*(zpl+zmi)/ionic
         xij = ch*mpl
@@ -4554,7 +4551,7 @@ module mod_che_isorropia
         f1(i) = f1(i) + dble(yji*(g0(i,j)+zpl*zmi*h))
         f2b(j) = f2b(j) + dble(xij*(g0(i,j)+zpl*zmi*h))
       end do
-    end do outerl
+    end do
 !
 ! *** log10 of activity coefficients ***********************************
 !
@@ -4615,6 +4612,18 @@ module mod_che_isorropia
     calain = errin>=epsact
 !
     iclact = iclact + 1                  ! increment activity call counter
+
+    contains
+      real(rk8) function ga(i,j)
+        implicit none
+        integer(ik4) , intent(in) :: i , j
+        ga = (f1(i)/z(i)+f2a(j)/z(j+3))/(z(i)+z(j+3)) - h
+      end function ga
+      real(rk8) function gb(i,j)
+        implicit none
+        integer(ik4) , intent(in) :: i , j
+        gb = (f1(i)/z(i+4)+f2b(j)/z(j+3))/(z(i+4)+z(j+3)) - h
+      end function gb
   end subroutine calcact4
 !
 !======================================================================
@@ -4636,15 +4645,13 @@ module mod_che_isorropia
   subroutine calcact3
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: errin , errou , g
+    real(rk8) :: errin , errou
     integer(ik4) :: i , j
     real(rk8) , dimension(6,4) :: g0
     real(rk8) , dimension(3) ::  f1
     real(rk8) , dimension(4) ::  f2
     real(rk8) :: zpl , zmi , agama , sion , h , ch
     real(rk8) :: mpl , xij , yji
-!
-    g(i,j) = (f1(i)/z(i)+f2(j)/z(j+3))/(z(i)+z(j+3)) - h
 !
 ! *** save activities in old array *************************************
 !
@@ -4757,6 +4764,12 @@ module mod_che_isorropia
     calain = errin>=epsact
 !
     iclact = iclact + 1                  ! increment activity call counter
+    contains
+      real(rk8) function g(i,j)
+        implicit none
+        integer(ik4) , intent(in) :: i , j
+        g = (f1(i)/z(i)+f2(j)/z(j+3))/(z(i)+z(j+3)) - h
+      end function g
   end subroutine calcact3
 !
 !======================================================================
@@ -4778,15 +4791,13 @@ module mod_che_isorropia
   subroutine calcact2
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: errin , errou , g
+    real(rk8) :: errin , errou
     integer(ik4) :: i , j
     real(rk8) , dimension(6,4) :: g0
     real(rk8) , dimension(3) :: f1
     real(rk8) , dimension(4) :: f2
     real(rk8) :: zpl , zmi , agama , sion , h , ch
     real(rk8) :: mpl , xij , yji
-!
-    g(i,j) = (f1(i)/z(i)+f2(j)/z(j+3))/(z(i)+z(j+3)) - h
 !
 ! *** save activities in old array *************************************
 !
@@ -4931,6 +4942,12 @@ module mod_che_isorropia
     calain = errin>=epsact
 !
     iclact = iclact + 1                  ! increment activity call counter
+    contains
+      real(rk8) function g(i,j)
+        implicit none
+        integer(ik4) , intent(in) :: i , j
+        g = (f1(i)/z(i)+f2(j)/z(j+3))/(z(i)+z(j+3)) - h
+      end function g
   end subroutine calcact2
 !
 !======================================================================
@@ -4952,15 +4969,13 @@ module mod_che_isorropia
   subroutine calcact1
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: errin , errou , g
+    real(rk8) :: errin , errou
     integer(ik4) :: i , j
     real(rk8) , dimension(6,4) :: g0
     real(rk8) , dimension(3) :: f1
     real(rk8) , dimension(4) :: f2
     real(rk8) :: zpl , zmi , agama , sion , h , ch
     real(rk8) :: mpl , xij , yji
-!
-    g(i,j) = (f1(i)/z(i)+f2(j)/z(j+3))/(z(i)+z(j+3)) - h
 !
 ! *** save activities in old array *************************************
 !
@@ -4997,7 +5012,7 @@ module mod_che_isorropia
 ! ,1)=g01;g0(2 ,2)=g02 & g02 ,3) = g12;g0(2 ,4)=g03;g0(3 ,1)=g06;g0(3
 ! ,2)=g04;g0(3 ,3)=g09;g0(3 ,4)=g05
     if ( iacalc==0 ) then                ! k.m.; full
-      call kmful1(ionic,dble(temp),g0(3,2),g0(1,2),g0(1,3),g0(3,3))
+      call kmful1(ionic,dble(temp),g0(3,2),g0(1,2),g0(1,3))
     else                                 ! k.m.; tabulated
       call kmtab(ionic,dble(temp),g0(2,1),g0(2,2),g0(2,4),g0(3,2),g0(3,4),&
                  g0(3,1),g0(1,2),g0(1,3),g0(3,3),g0(1,4),g0(1,1),g0(2,3), &
@@ -5105,6 +5120,11 @@ module mod_che_isorropia
     calain = errin>=epsact
 !
     iclact = iclact + 1                  ! increment activity call counter
+    contains
+      real(rk8) function g(i,j)
+        integer(ik4) , intent(in) :: i , j
+        g = (f1(i)/z(i)+f2(j)/z(j+3))/(z(i)+z(j+3)) - h
+      end function g
   end subroutine calcact1
 !
 !======================================================================
@@ -5353,9 +5373,9 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  subroutine kmful1(ionic,temp,g04,g07,g08,g09)
+  subroutine kmful1(ionic,temp,g04,g07,g08)
     implicit none
-    real(rk8) :: cf1 , cf2 , g04 , g07 , g08 , g09 , sion , tc , ti , &
+    real(rk8) :: cf1 , cf2 , g04 , g07 , g08 , sion , tc , ti , &
          z01 , z02 , z03 , z04 , z05 , z06 , z07 , z08 , z10 , z11
     real(rk8) :: ionic , temp
     data z01 , z02 , z03 , z04 , z05 , z06 , z07 , z08 , z10 , z11 &
@@ -16871,15 +16891,13 @@ module mod_che_isorropia
   subroutine poly3b(a1,a2,a3,rtlw,rthi,root,islv)
 !
     implicit none
-    real(rk8) :: a1 , a2 , a3 , dx , func , root , rthi , &
-         rtlw , x , x1 , x2 , x3 , y1 , y2 , y3
+    real(rk8) :: a1 , a2 , a3 , dx , root , rthi , &
+         rtlw , x1 , x2 , x3 , y1 , y2 , y3
     integer(ik4) :: i , islv
     real(rk8) , parameter :: zero = 0.D0
     real(rk8) , parameter :: eps = 1D-15
     integer(ik4) , parameter :: maxit = 100
     integer(ik4) , parameter :: ndiv = 5
-!
-    func(x) = x**30 + a1*x**2 + a2*x + a3
 !
 ! *** initial values for bisection *************************************
 !
@@ -16933,6 +16951,12 @@ module mod_che_isorropia
     y3 = func(x3)
     root = x3
     islv = 0
+    contains
+      real(rk8) function func(x)
+        implicit none
+        real(rk8) , intent(in) :: x
+        func = x**30 + a1*x**2 + a2*x + a3
+      end function func
   end subroutine poly3b
 ! 
 !      program driver
@@ -17748,9 +17772,8 @@ module mod_che_isorropia
     real(rk8) :: cafri , ccacl2i , ccano32i , ccaso4i , clfri , cmgcl2i , &
          cmgno32i , cmgso4i , cna2so4i , cnacli , cnano3i , frmgi ,       &
          frso4i , rest , rest1 , rest2 , rest3 , rhi , tempi
-    integer(ik4) :: no3fr
     real(rk8) , dimension(ncomp) :: wi
-    real(rk8) :: nafri , no3fri
+    real(rk8) :: nafri , no3fri , no3fr
 !
 ! *** adjust for too little ammonium and chloride
 ! ***********************
@@ -23870,8 +23893,8 @@ module mod_che_isorropia
     use mod_che_common_caseo
     implicit none
     real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
-    integer(ik4) :: i , nafr
+         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3 , nafr
+    integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
 !
@@ -24092,8 +24115,8 @@ module mod_che_isorropia
     use mod_che_common_caseo
     implicit none
     real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
-    integer(ik4) :: i , nafr
+         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3 , nafr
+    integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
 !
@@ -24324,8 +24347,8 @@ module mod_che_isorropia
     use mod_che_common_caseo
     implicit none
     real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
-    integer(ik4) :: i , nafr
+         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3 , nafr
+    integer(ik4) :: i
 !
 ! *** setup parameters ************************************************
 !
@@ -24563,8 +24586,8 @@ module mod_che_isorropia
     use mod_che_common_caseo
     implicit none
     real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
-    integer(ik4) :: i , islv , nafr
+         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3 , nafr
+    integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
 !
@@ -24865,8 +24888,8 @@ module mod_che_isorropia
     use mod_che_common_caseo
     implicit none
     real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
-         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
-    integer(ik4) :: i , islv , nafr
+         psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3 , nafr
+    integer(ik4) :: i , islv
 !
 ! *** setup parameters ************************************************
 !
@@ -25189,9 +25212,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_caseo
     implicit none
-    real(rk8) :: cafr , delta , dx , frk , frmg , psi6hi , &
+    real(rk8) :: cafr , nafr , delta , dx , frk , frmg , psi6hi , &
          psi6lo , so4fr , x1 , x2 , x3 , y1 , y2 , y3
-    integer(ik4) :: i , islv , nafr
+    integer(ik4) :: i , islv
 !
 ! *** setup parameters *************************************************
 !
@@ -40082,8 +40105,7 @@ module mod_che_isorropia
   subroutine calcv1a
     use mod_che_common_isorropia
     implicit none
-    real(rk8) :: cafr , frk , frmg , frnh3 , so4fr
-    integer(ik4) :: nafr
+    real(rk8) :: cafr , frk , frmg , frnh3 , so4fr , nafr
 !
 ! *** calculate solids
 ! **************************************************
@@ -42364,8 +42386,9 @@ module mod_che_isorropia
     use mod_che_common_isorropia
     use mod_che_common_solut
     implicit none
-    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , ohi , so4i
-    integer(ik4) :: i , kcl
+    real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
+         ohi , so4i , kcl
+    integer(ik4) :: i
     real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
 ! *** setup parameters ************************************************
@@ -42542,8 +42565,8 @@ module mod_che_isorropia
     use mod_che_common_solut
     implicit none
     real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi9o , root9 , so4i
-    integer(ik4) :: i , islv , kcl
+         ohi , psi9o , root9 , so4i , kcl
+    integer(ik4) :: i , islv
     logical :: psconv9
     real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
@@ -42759,8 +42782,9 @@ module mod_che_isorropia
     use mod_che_common_solut
     implicit none
     real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi13o , psi9o , root13 , root13a , root13b , root9 , so4i
-    integer(ik4) :: i , islv , kcl
+         ohi , psi13o , psi9o , root13 , root13a , root13b , root9 , &
+         so4i , kcl
+    integer(ik4) :: i , islv
     logical :: psconv9 , psconv13
     real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
@@ -43003,8 +43027,9 @@ module mod_che_isorropia
     use mod_che_common_solut
     implicit none
     real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
-         ohi , psi13o , psi9o , root13 , root13a , root13b , root9 , so4i
-    integer(ik4) :: i , islv , kcl
+         ohi , psi13o , psi9o , root13 , root13a , root13b , root9 , &
+         so4i , kcl
+    integer(ik4) :: i , islv
     logical :: psconv9 , psconv13
     real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
@@ -43250,9 +43275,8 @@ module mod_che_isorropia
     implicit none
     real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi13o , psi14o , psi9o , root13 , root13a , root13b , &
-         root14 , root14a , root14b , root9
-    real(rk8) :: so4i
-    integer(ik4) :: i , islv , kcl
+         root14 , root14a , root14b , root9 , so4i , kcl
+    integer(ik4) :: i , islv
     logical :: psconv9 , psconv13 , psconv14
     real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
@@ -43523,8 +43547,8 @@ module mod_che_isorropia
     real(rk8) :: akw , bb , cc , cli , dd , del , gg , hi , hso4i , &
          ohi , psi13o , psi14o , psi5o , psi9o , root13 , root13a , &
          root13b , root14 , root14a , root14b
-    real(rk8) :: root5 , root5a , root5b , root9 , so4i
-    integer(ik4) :: i , islv , kcl
+    real(rk8) :: root5 , root5a , root5b , root9 , so4i , kcl
+    integer(ik4) :: i , islv
     logical :: psconv9 , psconv13 , psconv14 , psconv5
     real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
@@ -43820,8 +43844,8 @@ module mod_che_isorropia
          ohi , psi13o , psi14o , psi5o , psi7o , psi9o , root13 , &
          root13a , root13b , root14 , root14a
     real(rk8) :: root14b , root5 , root5a , root5b , root7 , root7a , &
-         root7b , root9 , so4i
-    integer(ik4) :: i , islv , kcl
+         root7b , root9 , so4i , kcl
+    integer(ik4) :: i , islv
     logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7
     real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
@@ -44142,8 +44166,8 @@ module mod_che_isorropia
          ohi , psi13o , psi14o , psi5o , psi7o , psi8o , psi9o , &
          root13 , root13a , root13b , root14
     real(rk8) :: root14a , root14b , root5 , root5a , root5b , root7 , &
-         root7a , root7b , root8 , root8a , root8b , root9 , so4i
-    integer(ik4) :: i , islv , kcl
+         root7a , root7b , root8 , root8a , root8b , root9 , so4i , kcl
+    integer(ik4) :: i , islv
     logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7 , psconv8
     real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
@@ -44541,8 +44565,8 @@ module mod_che_isorropia
          ohi , psi13o , psi14o , psi5o , psi7o , psi8o , psi9o , root13 , &
          root13a , root13b , root14
     real(rk8) :: root14a , root14b , root5 , root5a , root5b , root7 , &
-         root7a , root7b , root8 , root8a , root8b , root9 , so4i
-    integer(ik4) :: i , islv , kcl
+         root7a , root7b , root8 , root8a , root8b , root9 , so4i , kcl
+    integer(ik4) :: i , islv
     logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7 , psconv8
     real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
@@ -44940,8 +44964,8 @@ module mod_che_isorropia
          ohi , psi13o , psi14o , psi5o , psi7o , psi8o , psi9o , root13 , &
          root13a , root13b , root14
     real(rk8) :: root14a , root14b , root5 , root5a , root5b , root7 , &
-         root7a , root7b , root8 , root8a , root8b , root9 , so4i
-    integer(ik4) :: i , islv , kcl
+         root7a , root7b , root8 , root8a , root8b , root9 , so4i , kcl
+    integer(ik4) :: i , islv
     logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7 , psconv8
     real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
@@ -45344,8 +45368,8 @@ module mod_che_isorropia
          ohi , psi13o , psi14o , psi5o , psi7o , psi8o , psi9o , &
          root13 , root13a , root13b , root14
     real(rk8) :: root14a , root14b , root5 , root5a , root5b , root7 , &
-         root7a , root7b , root8 , root8a , root8b , root9 , so4i
-    integer(ik4) :: i , islv , kcl
+         root7a , root7b , root8 , root8a , root8b , root9 , so4i , kcl
+    integer(ik4) :: i , islv
     logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7 , psconv8
     real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
@@ -45779,8 +45803,8 @@ module mod_che_isorropia
          ohi , psi13o , psi14o , psi5o , psi7o , psi8o , psi9o , root13 , &
          root13a , root13b , root14
     real(rk8) :: root14a , root14b , root5 , root5a , root5b , root7 , &
-         root7a , root7b , root8 , root8a , root8b , root9 , so4i
-    integer(ik4) :: i , islv , kcl
+         root7a , root7b , root8 , root8a , root8b , root9 , so4i , kcl
+    integer(ik4) :: i , islv
     logical :: psconv9 , psconv13 , psconv14 , psconv5 , psconv7 , psconv8
     real(rk8) :: nh4i , nai , no3i , nh3aq , no3aq , claq , cai , ki , mgi
 !
