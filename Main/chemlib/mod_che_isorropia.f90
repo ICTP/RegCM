@@ -7,7 +7,7 @@ module mod_che_isorropia
  
   contains
  
-  subroutine aerodriver(j)
+  subroutine aerodriver
     use mod_dynparam
     use mod_constants
     use mod_che_common
@@ -15,7 +15,6 @@ module mod_che_isorropia
     use mod_che_species
     use mod_cbmz_molwg
     implicit none
-    integer(ik4) , intent(in) :: j
     character(len = 15) :: scasi
     integer(ik4) , parameter :: nctrl = 2
     integer(ik4) , parameter :: nother = 9
@@ -36,61 +35,63 @@ module mod_che_isorropia
     real(rk8) , dimension(nions+ngasaq+2) :: aerliq
     real(rk8) , dimension(nctrl) :: cntrl
     real(rk8) , dimension(nother) :: other
-    integer(ik4) :: i , k
+    integer(ik4) :: i , j , k
     real(rk8) :: tempi , rhi
  
     do k = 1 , kz
       do i = ici1 , ici2
-        cntrl(1) = d_zero
-        cntrl(2) = 1.0D0
-        wt = d_zero
-        gas = d_zero
-        aerliq = d_zero
-        aersld = d_zero
-        scasi = ''
-        other = d_zero
-        tempi = ctb3d(j,i,k)
-        rhi = crhb3d(j,i,k)
-        if ( rhi>1.0 ) rhi = 0.99
+        do j = jci1 , jci2
+          cntrl(1) = d_zero
+          cntrl(2) = 1.0D0
+          wt = d_zero
+          gas = d_zero
+          aerliq = d_zero
+          aersld = d_zero
+          scasi = ''
+          other = d_zero
+          tempi = ctb3d(j,i,k)
+          rhi = crhb3d(j,i,k)
+          if ( rhi>1.0 ) rhi = 0.99
  
-        wi = d_zero
-        wi(2) = max(chib3d(j,i,k,iso4)/w_so4*crhob3d(j,i,k)*massfactor,   &
-                conmin)                                   !so4
-        wi(3) = max((chib3d(j,i,k,inh3)/w_nh3+chib3d(j,i,k,ianh4)/w_anh4) &
-                *crhob3d(j,i,k)*massfactor,conmin)        !nh4
-        wi(4) = max((chib3d(j,i,k,ihno3)/w_hno3+chib3d(j,i,k,iano3)/w_ano3&
-                )*crhob3d(j,i,k)*massfactor,conmin)       !no3
+          wi = d_zero
+          wi(2) = max(chib3d(j,i,k,iso4)/w_so4*crhob3d(j,i,k)*massfactor,   &
+                      conmin)                                     !so4
+          wi(3) = max((chib3d(j,i,k,inh3)/w_nh3+chib3d(j,i,k,ianh4)/w_anh4) &
+                      *crhob3d(j,i,k)*massfactor,conmin)          !nh4
+          wi(4) = max((chib3d(j,i,k,ihno3)/w_hno3+chib3d(j,i,k,iano3)/ &
+                       w_ano3)*crhob3d(j,i,k)*massfactor,conmin)  !no3
  
-        call isoropia(wi,rhi,tempi,cntrl,wt,gas,aerliq,aersld,scasi,other)
- 
-!     if(i == 20.and.j==1.and.k==kz)then
-!     write(*,*) "input",wi(4),chib3d(j ,i ,k ,iano3)
-!     &            *crhob3d(j ,i ,k)*1e9 ,
-!     &                                chib3d(j ,i ,k ,ihno3)
-!     &            *crhob3d(j ,i ,k)*1e9
-!     write(*,*) "output",wt(4),wt(4)*63.0/1000.0*1e9
-!     &            ,gas(2)*63.0/1000.0*1e9
-!     end if
- 
-        chemten(j,i,k,iso4) = (wt(2)*w_so4/massfactor/crhob3d(j,i,k)      &
-                              *cpsb(j,i)-chib3d(j,i,k,iso4)*cpsb(j,i))    &
-                              /dtaesolv                        !so4
-        chemten(j,i,k,inh3) = (gas(1)*w_nh3/massfactor/crhob3d(j,i,k)     &
-                              *cpsb(j,i)-chib3d(j,i,k,inh3)*cpsb(j,i))    &
-                              /dtaesolv                        !nh3
-        chemten(j,i,k,ihno3) = (gas(2)*w_hno3/massfactor/crhob3d(j,i,k)   &
-                               *cpsb(j,i)-chib3d(j,i,k,ihno3)*cpsb(j,i))  &
-                               /dtaesolv                       !no3
-        chemten(j,i,k,ianh4) = ((wt(3)-gas(1))*w_anh4/massfactor/crhob3d(j&
-                               ,i,k)*cpsb(j,i)-chib3d(j,i,k,ianh4)        &
-                               *cpsb(j,i))/dtaesolv            !anh4
-        chemten(j,i,k,iano3) = ((wt(4)-gas(2))*w_ano3/massfactor/crhob3d(j&
-                               ,i,k)*cpsb(j,i)-chib3d(j,i,k,iano3)        &
-                               *cpsb(j,i))/dtaesolv            !ano3
+          call isoropia(wi,rhi,tempi,cntrl,wt,gas,aerliq,aersld,scasi,other)
+! 
+!         if ( i == 20 .and. j==1 .and. k==kz ) then
+!           write(*,*) "input",wi(4), &
+!                      chib3d(j ,i ,k ,iano3)*crhob3d(j ,i ,k)*1e9 , &
+!                      chib3d(j ,i ,k ,ihno3)*crhob3d(j ,i ,k)*1e9
+!           write(*,*) "output",wt(4),wt(4)*63.0/1000.0*1e9, &
+!                      gas(2)*63.0/1000.0*1e9
+!         end if
+! 
+          chemten(j,i,k,iso4) = (wt(2)*w_so4/massfactor/crhob3d(j,i,k)      &
+                                *cpsb(j,i)-chib3d(j,i,k,iso4)*cpsb(j,i))    &
+                                /dtaesolv                        !so4
+          chemten(j,i,k,inh3) = (gas(1)*w_nh3/massfactor/crhob3d(j,i,k)     &
+                                *cpsb(j,i)-chib3d(j,i,k,inh3)*cpsb(j,i))    &
+                                /dtaesolv                        !nh3
+          chemten(j,i,k,ihno3) = (gas(2)*w_hno3/massfactor/crhob3d(j,i,k)   &
+                                 *cpsb(j,i)-chib3d(j,i,k,ihno3)*cpsb(j,i))  &
+                                 /dtaesolv                       !no3
+          chemten(j,i,k,ianh4) = ((wt(3)-gas(1))*w_anh4/massfactor/         &
+                                  crhob3d(j,i,k)*cpsb(j,i)-                 &
+                                  chib3d(j,i,k,ianh4)*                      &
+                                  cpsb(j,i))/dtaesolv            !anh4
+        chemten(j,i,k,iano3) = ((wt(4)-gas(2))*w_ano3/massfactor/            &
+                                crhob3d(j,i,k)*cpsb(j,i)-chib3d(j,i,k,iano3) &
+                                *cpsb(j,i))/dtaesolv             !ano3
+        end do
       end do
     end do
   end subroutine aerodriver
- 
+! 
 ! =====================================================================
 !
 ! *** isorropia code ii

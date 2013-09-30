@@ -448,9 +448,7 @@
       chemten(:,:,:,:) = d_zero
       if ( igaschem == 1 .and. ichsolver > 0 .and. iisoropia == 1 ) then
         if ( mod(ktau+1,kchsolv) == 0 ) then     !kchsolv for the moment
-          do j = jci1 , jci2
-            call aerodriver(j)
-          end do
+          call aerodriver
         endif
         chiten(jci1:jci2,:,:,:) = chiten(jci1:jci2,:,:,:) + &
                                   chemten(jci1:jci2,:,:,:)
