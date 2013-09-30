@@ -5461,14 +5461,14 @@ module mod_che_isorropia
 !
 !======================================================================
 !
-  subroutine kmtab(in,temp,g01,g02,g03,g04,g05,g06,g07,g08,g09,g10,g11, &
+  subroutine kmtab(ino,temp,g01,g02,g03,g04,g05,g06,g07,g08,g09,g10,g11, &
                      g12,g15,g16,g17,g18,g19,g20,g21,g22,g23)
     implicit none
     real(rk8) :: g01 , g02 , g03 , g04 , g05 , g06 , g07 , g08 , g09 , &
                  g10 , g11 , g12 , g13 , g14 , g15 , g16 , g17 , g18 , &
                  g19 , g20 , g21 , g22 , g23
     integer(ik4) :: ind
-    real(rk8) :: in , temp
+    real(rk8) :: ino , temp
     real(rk8) , dimension(23) :: binarray
 !
 ! *** find temperature range
@@ -5479,17 +5479,17 @@ module mod_che_isorropia
 ! *** call appropriate routine
 !
     if ( ind==1 ) then
-      call km198(in,binarray)
+      call km198(ino,binarray)
     else if ( ind==2 ) then
-      call km223(in,binarray)
+      call km223(ino,binarray)
     else if ( ind==3 ) then
-      call km248(in,binarray)
+      call km248(ino,binarray)
     else if ( ind==4 ) then
-      call km273(in,binarray)
+      call km273(ino,binarray)
     else if ( ind==5 ) then
-      call km298(in,binarray)
+      call km298(ino,binarray)
     else
-      call km323(in,binarray)
+      call km323(ino,binarray)
     end if
 !
     g01 = binarray(01)
