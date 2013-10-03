@@ -71,13 +71,17 @@ module mod_cu_common
   integer(ik4) :: total_precip_points
 
   real(rk8) , dimension(10) :: cld_profile
-  real(rk8) , parameter :: maxcloud_dp =  85.0D0 ! In cb
+  real(rk8) , dimension(10) :: fixed_cld_profile
+  real(rk8) , dimension(10) :: rnum
+  real(rk8) , parameter :: maxcloud_dp =  45.0D0 ! In cb
+  logical , parameter :: addnoise = .false.
 
   contains
 !
   subroutine allocate_mod_cu_common(ichem)
     implicit none
     integer(ik4) , intent(in) :: ichem
+    integer(ik4) , dimension(12) :: iseed
     integer :: k
     if ( icup > 90 ) then
       call getmem2d(cucontrol,jci1,jci2,ici1,ici2,'mod_cu_common:cucontrol')
@@ -87,12 +91,30 @@ module mod_cu_common
     if ( ichem == 1 ) then
       call getmem3d(convpr,jci1,jci2,ici1,ici2,1,kz,'mod_cu_common:convpr')
     end if
-    cld_profile(1) = 3.0D0/dble(kz)
-    cld_profile(2) = 2.0D0/dble(kz)
-    do k = 3 , 9
-      cld_profile(k) = 1.00D0/dble(kz)
-    end do
-    cld_profile(10) = 2.0D0/dble(kz)
+    if ( icumcloud == 2 ) then
+      !
+      ! Free hand draw of a generic ten layer cumulus cloud shape.
+      !  Taken with "hand digitizing" Fig 2. from Knupp and Cotton
+      !  Number is "shape fraction of the total cloud in figure"
+      !
+      fixed_cld_profile(1)  = 0.195D0
+      fixed_cld_profile(2)  = 0.175D0
+      fixed_cld_profile(3)  = 0.155D0
+      fixed_cld_profile(4)  = 0.105D0
+      fixed_cld_profile(5)  = 0.085D0
+      fixed_cld_profile(6)  = 0.075D0
+      fixed_cld_profile(7)  = 0.065D0
+      fixed_cld_profile(8)  = 0.055D0
+      fixed_cld_profile(9)  = 0.045D0
+      fixed_cld_profile(10) = 0.045D0
+      if ( addnoise ) then
+        call date_and_time(values=iseed(1:8))
+        iseed(8:12) = iseed(4:8)
+        call random_seed(put=iseed)
+      else
+        cld_profile = fixed_cld_profile
+      end if
+    end if
   end subroutine allocate_mod_cu_common
 !
   subroutine model_cumulus_cloud
@@ -140,14 +162,19 @@ module mod_cu_common
         end do jloop1
       end do iloop1
     else if ( icumcloud == 2 ) then
+      if ( addnoise ) then
+        ! Put 25% noise level. Update cld_profile each time.
+        call random_number(rnum)
+        cld_profile = (0.75D0+(rnum/2.0D0))*fixed_cld_profile
+      end if
       iloop3: &
       do i = ici1 , ici2
         jloop3: &
         do j = jci1 , jci2
           ktop = icumtop(j,i)
           kbot = icumbot(j,i)
-          kclth = kbot - ktop + 1
-          if ( kclth < 2 ) cycle jloop3
+          kclth = kbot - ktop
+          if ( kclth < 1 ) cycle jloop3
           scalep = min((pas(j,i,kbot)-pas(j,i,ktop))/maxcloud_dp,d_one)
           do k = ktop , kbot
             ikh = max(1,min(10,int((dble(k-ktop+1)/dble(kclth))*d_10)))
