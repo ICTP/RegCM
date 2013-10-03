@@ -2007,6 +2007,8 @@ module mod_ncout
           ncattribute_integer('climatic_ozone_input_dataset',iclimao3))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('static_solar_constant_used',isolconst))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('cumulus_cloud_model',icumcloud))
         if ( ipptls == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('subex_bottom_level_with_no_clouds',ncld))
