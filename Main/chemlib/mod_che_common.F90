@@ -44,13 +44,12 @@ module mod_che_common
   real(rk8) , pointer , dimension(:,:,:,:) :: chia , chib
   real(rk8) , pointer , dimension(:,:,:) :: srclp2
   real(rk8) , pointer , dimension(:,:,:) :: dtrace , wdcvc , &
-                                           wdlsc , wxaq , wxsg , drydepv
+                                           wdlsc , wxaq , wxsg , ddv_out
+  real(rk8) , pointer , dimension(:,:,:) :: drydepv
 
   real(rk8) , pointer , dimension(:,:,:,:) :: chemall , jphoto
   integer(ik4) , pointer , dimension(:,:) :: kcumtop , kcumbot , cveg2d
 !
-  real(rk8) , pointer , dimension(:,:)   :: chtrdpv
-
   real(rk8) , pointer , dimension(:,:)   :: chtrsize
   real(rk8) , pointer , dimension(:)     :: chtrsol
 
@@ -144,7 +143,6 @@ module mod_che_common
         call getmem3d(remdrd,jce1,jce2,ice1,ice2,1,ntr,'che_common:remdrd')
 
         call getmem1d(chtrsol,1,ntr,'mod_che_common:chtrsol')
-        call getmem2d(chtrdpv,1,ntr,1,2,'mod_che_common:chtrdpv')
         call getmem1d(idust,1,nbin,'mod_che_common:idust')
         call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
         call getmem1d(icarb,1,5,'mod_che_common:icarb')
@@ -164,6 +162,7 @@ module mod_che_common
         call getmem3d(wxaq,jce1,jce2,ice1,ice2,1,ntr,'che_common:wxaq')
         call getmem3d(cemtrac,jce1,jce2,ice1,ice2,1,ntr,'che_common:cemtrac')
         call getmem3d(drydepv,jce1,jce2,ice1,ice2,1,ntr,'che_common:drydepv')
+        call getmem3d(ddv_out,jce1,jce2,ice1,ice2,1,ntr,'che_common:ddv_out')
 
         if ( ichdiag > 0 ) then 
           call getmem4d(chiten0,jce1,jce2, &

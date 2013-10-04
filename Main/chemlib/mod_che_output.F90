@@ -57,9 +57,9 @@ module mod_che_output
       end if
       cemtrac(:,:,itr) = d_zero
       if ( associated(che_ddvel_out) ) then
-        che_ddvel_out = drydepv(jci1:jci2,ici1:ici2,itr)*cfdout
+        che_ddvel_out = ddv_out(jci1:jci2,ici1:ici2,itr)*cfdout
       end if
-      drydepv(:,:,itr) = d_zero
+      ddv_out(:,:,itr) = d_zero
       if ( associated(che_mixrat_out) ) then
         do k = 1 , kz
           che_mixrat_out(:,:,k) = chia(jci1:jci2,ici1:ici2,k,itr) / &
