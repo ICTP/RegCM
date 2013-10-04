@@ -36,7 +36,7 @@ module mod_pbl_interface
   contains
 
   subroutine init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten, &
-                      remdrd,cchifxuw,psdot,sfs,mddom,ldmsk,chtrdpv)
+                      remdrd,cchifxuw,psdot,sfs,mddom,ldmsk,drydepv)
     implicit none
     type (atmstate) , intent(in) :: atm2 , aten , holtten , uwten
     type (slice) , intent(in) :: atms
@@ -49,7 +49,7 @@ module mod_pbl_interface
     real(rk8) , pointer , dimension(:,:,:) :: remdrd
     integer(ik4) , pointer , dimension(:,:) :: ldmsk
     real(rk8) , pointer , dimension(:,:) :: psdot
-    real(rk8) , pointer , dimension(:,:) :: chtrdpv
+    real(rk8) , pointer , dimension(:,:,:) :: drydepv
 
     tkemin = 1.0D-8
 
@@ -91,7 +91,7 @@ module mod_pbl_interface
     call assignpnt(mddom%coriol,coriolis)
     call assignpnt(mddom%msfx,mapfcx)
     call assignpnt(ldmsk,landmsk)
-    call assignpnt(chtrdpv,depvel)
+    call assignpnt(drydepv,depvel)
     call assignpnt(cchifxuw,chifxuw)
   end subroutine init_pbl
 

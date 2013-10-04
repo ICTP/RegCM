@@ -116,7 +116,7 @@ module mod_pbl_common
   real(rk8) , public , pointer , dimension(:,:) :: coriolis    ! mddom%coriol
   real(rk8) , public , pointer , dimension(:,:) :: mapfcx      ! mddom%msfx
   integer(ik4) , public , pointer , dimension(:,:) :: landmsk  ! ldmsk
-  real(rk8) , public , pointer , dimension(:,:) :: depvel      ! chtrdpv
+  real(rk8) , public , pointer , dimension(:,:,:) :: depvel    ! drydepv
 
   real(rk8) , public , pointer , dimension(:,:,:) :: dotqdot , ftmp
 

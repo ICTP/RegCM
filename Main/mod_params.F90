@@ -1841,7 +1841,7 @@ module mod_params
   end if
 
   call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,remdrd,   &
-                cchifxuw,psdot,sfs,mddom,ldmsk,chtrdpv)
+                cchifxuw,psdot,sfs,mddom,ldmsk,drydepv)
   !
   ! Convective Cloud Cover
   !

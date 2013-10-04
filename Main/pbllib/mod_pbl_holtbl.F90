@@ -46,7 +46,7 @@ module mod_pbl_holtbl
   real(rk8) , pointer , dimension(:,:,:) :: alphak , betak , &
                         coef1 , coef2 , coef3 , coefe , coeff1 , &
                         coeff2 , tpred1 , tpred2
-  real(rk8) , pointer , dimension(:,:,:) :: kzm , rc , ttnp , vdep
+  real(rk8) , pointer , dimension(:,:,:) :: kzm , rc , ttnp
   real(rk8) , pointer , dimension(:,:) :: govrth , uvdrage
   real(rk8) , pointer , dimension(:) :: hydf
 !
@@ -121,7 +121,6 @@ module mod_pbl_holtbl
     call getmem3d(thvx,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:thvx')
 
     if ( ichem == 1 ) then
-      call getmem3d(vdep,jci1,jci2,ici1,ici2,1,ntr,'mod_holtbl:vdep')
       call getmem3d(kvc,jci1,jci2,ici1,ici2,1,kz,'mod_holtbl:kvc')
     end if
   end subroutine allocate_mod_pbl_holtbl
@@ -754,25 +753,6 @@ module mod_pbl_holtbl
         coef3(j,i,kz) = dt*alphak(j,i,kz)*betak(j,i,kz)
       end do
     end do
-    !
-    !     set the Vd for in case of prescribed deposition velocities
-    !
-    do itr = 1 , ntr
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( landmsk(j,i) == 0 ) then
-            vdep(j,i,itr) = depvel(itr,2)
-          else
-            vdep(j,i,itr) = depvel(itr,1)
-          end if
-          !
-          ! provisoire test de la routine chdrydep pour les dust
-          ! 
-!         if ( chtrname(itr) == 'DUST' ) vdep(j,i,itr) = d_zero
-          vdep(j,i,itr) = d_zero
-        end do
-      end do
-    end do
     do itr = 1 , ntr
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -796,7 +776,7 @@ module mod_pbl_holtbl
           coefe(j,i,kz) = d_zero
           ! add dry deposition option1
           coeff1(j,i,kz) = (chmx(j,i,kz,itr)-dt*alphak(j,i,kz) * &
-                            chmx(j,i,kz,itr)*vdep(j,i,itr)*rhox2d(j,i) + &
+                            chmx(j,i,kz,itr)*depvel(j,i,itr)*rhox2d(j,i) + &
                             coef3(j,i,kz)*coeff1(j,i,kz-1)) / &
                            (coef2(j,i,kz)-coef3(j,i,kz)*coefe(j,i,kz-1))
         end do
@@ -834,13 +814,14 @@ module mod_pbl_holtbl
         do j = jci1 , jci2
 !         if ( chtrname(itr) /= 'DUST' ) &
             drmr(j,i,itr) = drmr(j,i,itr) + chmx(j,i,kz,itr)* &
-                vdep(j,i,itr)*sfcps(j,i)*dt*d_half*rhox2d(j,i)* &
+                depvel(j,i,itr)*sfcps(j,i)*dt*d_half*rhox2d(j,i)* &
                 hydf(kz)/sfcps(j,i)
  
         end do
       end do
     end do
   end if
+!   write(*,*)'ashalaby Inside pbllib',maxval(chmx(:,:,kz,9)),maxval(depvel(:,:,9))
 #ifdef DEBUG
   call time_end(subroutine_name,idindx)
 #endif 
