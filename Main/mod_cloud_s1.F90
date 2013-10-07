@@ -48,7 +48,7 @@ module mod_cloud_s1
   real(rk8) :: zqtmst                                ! 1/dt
   real(rk8) , pointer , dimension(:,:,:) :: pres     ! from atms
   real(rk8) , pointer , dimension(:,:,:) :: zt       ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: zeta     ! from atms
+  real(rk8) , public , pointer , dimension(:,:,:) :: zeta     ! from atms
   real(rk8) , pointer , dimension(:,:,:) :: dzeta    ! from atms
   real(rk8) , pointer , dimension(:,:,:,:) :: zqxx   ! from atms
   real(rk8) , pointer , dimension(:,:,:) :: rhob3d   ! from atms
@@ -76,7 +76,7 @@ module mod_cloud_s1
 
   real(rk8) :: zalfaw , zphases , zmelt , zice , zdelta , ztmpl , &
                ztmpi , ztnew , zqe , zrain , zpreclr , zarg
-  real(rk8) , pointer , dimension(:,:,:) :: papf
+  real(rk8) , public , pointer , dimension(:,:,:) :: papf
   real(rk8) , pointer , dimension(:,:,:):: zsumh0 , zsumq0
   real(rk8) , pointer , dimension(:,:,:) :: zsumh1 , zsumq1
   real(rk8) , pointer , dimension(:,:,:) :: zerrorq , zerrorh

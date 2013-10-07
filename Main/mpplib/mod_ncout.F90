@@ -52,7 +52,7 @@ module mod_ncout
   integer(ik4) , parameter :: nbase = 5
 
   integer(ik4) , parameter :: natm2dvars = 4 + nbase
-  integer(ik4) , parameter :: natm3dvars = 21
+  integer(ik4) , parameter :: natm3dvars = 26
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nsrf2dvars = 18 + nbase
@@ -171,18 +171,23 @@ module mod_ncout
   integer(ik4) , parameter :: atm_qr        = 7
   integer(ik4) , parameter :: atm_qi        = 8
   integer(ik4) , parameter :: atm_qs        = 9
-  integer(ik4) , parameter :: atm_tke       = 10
-  integer(ik4) , parameter :: atm_kth       = 11
-  integer(ik4) , parameter :: atm_kzm       = 12
-  integer(ik4) , parameter :: atm_tten_adh  = 13
-  integer(ik4) , parameter :: atm_tten_adv  = 14
-  integer(ik4) , parameter :: atm_tten_tbl  = 15
-  integer(ik4) , parameter :: atm_tten_dif  = 16
-  integer(ik4) , parameter :: atm_tten_bdy  = 17
-  integer(ik4) , parameter :: atm_tten_con  = 18
-  integer(ik4) , parameter :: atm_tten_adi  = 19
-  integer(ik4) , parameter :: atm_tten_rad  = 20
-  integer(ik4) , parameter :: atm_tten_lsc  = 21
+  integer(ik4) , parameter :: atm_rh        = 10
+  integer(ik4) , parameter :: atm_zf        = 11
+  integer(ik4) , parameter :: atm_zh        = 12
+  integer(ik4) , parameter :: atm_pf        = 13
+  integer(ik4) , parameter :: atm_ph        = 14
+  integer(ik4) , parameter :: atm_tke       = 15
+  integer(ik4) , parameter :: atm_kth       = 16
+  integer(ik4) , parameter :: atm_kzm       = 17
+  integer(ik4) , parameter :: atm_tten_adh  = 18
+  integer(ik4) , parameter :: atm_tten_adv  = 19
+  integer(ik4) , parameter :: atm_tten_tbl  = 20
+  integer(ik4) , parameter :: atm_tten_dif  = 21
+  integer(ik4) , parameter :: atm_tten_bdy  = 22
+  integer(ik4) , parameter :: atm_tten_con  = 23
+  integer(ik4) , parameter :: atm_tten_adi  = 24
+  integer(ik4) , parameter :: atm_tten_rad  = 25
+  integer(ik4) , parameter :: atm_tten_lsc  = 26
 
   integer(ik4) , parameter :: srf_xlon   = 1
   integer(ik4) , parameter :: srf_xlat   = 2
@@ -513,7 +518,7 @@ module mod_ncout
           atm_omega_out => v3dvar_atm(atm_omega)%rval
         end if
         if ( enable_atm3d_vars(atm_qv) ) then
-          call setup_var(v3dvar_atm,atm_qv,vsize,'qas','1', &
+          call setup_var(v3dvar_atm,atm_qv,vsize,'qas','kg kg-1', &
             'Specific humidity in air','specific_humidity',.true.)
           atm_qv_out => v3dvar_atm(atm_qv)%rval
         end if
@@ -543,8 +548,43 @@ module mod_ncout
               'mass_fraction_of_snow_in_air',.true.)
             atm_qs_out => v3dvar_atm(atm_qs)%rval
           end if
+            if ( enable_atm3d_vars(atm_rh) ) then
+              call setup_var(v3dvar_atm,atm_rh,vsize,'rh','%', &
+                'Relative Humidity', &
+                'relative_humidity',.true.)
+              atm_rh_out => v3dvar_atm(atm_rh)%rval
+            end if
+          if ( enable_atm3d_vars(atm_zf) ) then
+            call setup_var(v3dvar_atm,atm_zf,vsize,'zf','m', &
+              'Height at full levels', &
+              'height_full_levels',.true.)
+            atm_zf_out => v3dvar_atm(atm_zf)%rval
+          end if
+          if ( enable_atm3d_vars(atm_zh) ) then
+            call setup_var(v3dvar_atm,atm_zh,vsize,'zh','m', &
+              'Height at half levels', &
+              'height_half_levels',.true.)
+            atm_zh_out => v3dvar_atm(atm_zh)%rval
+          end if
+          if ( enable_atm3d_vars(atm_pf) ) then
+            call setup_var(v3dvar_atm,atm_pf,vsize,'pf','Pa', &
+              'Pressure at full levels', &
+              'pressure_full_levels',.true.)
+            atm_pf_out => v3dvar_atm(atm_pf)%rval
+          end if
+          if ( enable_atm3d_vars(atm_ph) ) then
+            call setup_var(v3dvar_atm,atm_ph,vsize,'ph','Pa', &
+              'Pressure at half levels', &
+              'pressure_half_levels',.true.)
+            atm_ph_out => v3dvar_atm(atm_ph)%rval
+          end if
         else
           enable_atm3d_vars(atm_qr:atm_qs) = .false.
+          enable_atm3d_vars(atm_rh) = .false.
+          enable_atm3d_vars(atm_zf) = .false.
+          enable_atm3d_vars(atm_zh) = .false.
+          enable_atm3d_vars(atm_pf) = .false.
+          enable_atm3d_vars(atm_ph) = .false.
         end if
 
         if ( ibltyp == 2 .or. ibltyp == 99 ) then

@@ -200,6 +200,31 @@ module mod_output
             atm_qs_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqs)/ps_out
           end do
         end if
+        if ( associated(atm_rh_out) ) then
+           do k = 1 , kz
+            atm_rh_out(:,:,k) = relh(jci1:jci2,ici1:ici2,k)
+          end do
+        end if
+        if ( associated(atm_zf_out) ) then
+           do k = 1 , kz
+            atm_zf_out(:,:,k) = zq(jci1:jci2,ici1:ici2,k)
+          end do
+        end if
+        if ( associated(atm_zh_out) ) then
+           do k = 1 , kz
+            atm_zh_out(:,:,k) = zeta(jci1:jci2,ici1:ici2,k)
+          end do
+        end if
+        if ( associated(atm_pf_out) ) then
+           do k = 1 , kz
+            atm_pf_out(:,:,k) = atms%pb3d(jci1:jci2,ici1:ici2,k)
+          end do
+        end if
+        if ( associated(atm_ph_out) ) then
+           do k = 1 , kz
+            atm_ph_out(:,:,k) = papf(jci1:jci2,ici1:ici2,k)
+          end do
+        end if
 
         if ( associated(atm_tke_out) ) &
           atm_tke_out = atm1%tke(jci1:jci2,ici1:ici2,1:kz)
