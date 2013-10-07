@@ -293,7 +293,7 @@ module mod_che_common
         if ( myid == italk ) then
           write (stderr,*) 'Not a valid chemtype simulation : STOP !'
           write (stderr,*) 'Valid simulations are : ' , &
-                           '  DUST SSLT CARB SULF SUCA AERO CBMZ'
+             'DUST SSLT DUSS CARB SULF SUCA AERO CBMZ DCCB POLLEN'
         end if
         call fatal(__FILE__,__LINE__,'INVALID CHEM CONFIGURATION')
       end if

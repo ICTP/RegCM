@@ -649,6 +649,7 @@ sensitivity experiments to select the best scheme for your application.
  iclimao3 =          0, ! Use O3 climatic dataset from SPARC CMIP5
  isolconst =         1, ! Use a constant 1367 W/m^2 instead of the prescribed
                         ! TSI recommended CMIP5 solar forcing data.
+ islab_ocean =       0, ! Activate the SLAB ocean model
  \
 \end{Verbatim}
 }
@@ -845,6 +846,26 @@ $2, 99$.
 \end{Verbatim}
 }
 
+\subsection{slabocparam stanza}
+
+Here you define parameter and stage fot the Ocean q-flux adjusted mixed layer
+model.
+
+{\footnotesize
+\begin{Verbatim}
+ &slabocparam
+ do_qflux_adj  = .false.,  ! Activate SLAB Ocean model surface fluxes adjust
+                           ! from an already created climatology
+ do_restore_sst = .true.,  ! Create during the run the SLAB Ocean model surface
+                           ! fluxes climatology to be used in a subsequent run
+ sst_restore_timescale = 5.0D0,  ! Time interval in days in building the
+                                 ! q-flux adjustment
+ mixed_layer_depth     = 50.0D0, ! Depth in meters of the Ocean mixed layer.
+ /
+\end{Verbatim}
+}
+
+
 \subsection{rrtmparam stanza}
 
 You are allowed here to tune the RRTM radiative scheme selected above in
@@ -853,17 +874,32 @@ You are allowed here to tune the RRTM radiative scheme selected above in
 {\footnotesize
 \begin{Verbatim}
  &rrtmparam
- inflgsw  = 2, ! 0 = use the optical properties calculated in perp_dat_rrtm
-                !     (same as standard radiation)
-                ! 2 = use RRTM option to calculate cloud optical prperties
-                !     from water path and cloud drop radius
- iceflgsw = 3, ! ???????????????????????????
- liqflgsw = 1, ! ???????????????????????????
- inflglw  = 2, ! Same as above for LONG wave
- iceflglw = 3, ! ???????????????????????????
- liqflglw = 1, ! ???????????????????????????
- idrv = 0,     ! ???????????????????????????
- icld  = 1,    ! Cloud Overlapp hypothesis
+ inflgsw  = 2, ! 0 = use the optical properties calculated in prep_dat_rrtm
+               !     (same as standard radiation)
+               ! 2 = use RRTM option to calculate cloud optical properties
+               !     from water path and cloud drop radius
+ iceflgsw = 3, ! Flag for ice particle specification
+               !   0 => ice effective radius, r_ec, (Ebert and Curry, 1992),
+               !        r_ec must be >= 10.0 microns
+               !   1 => ice effective radius, r_ec, (Ebert and Curry, 1992),
+               !        r_ec range is limited to 13.0 to 130.0 microns
+               !   2 => ice effective radius, r_k, (Key, Streamer Ref. Manual,
+               !        1996), r_k range is limited to 5.0 to 131.0 microns
+               !   3 => generalized effective size, dge, (Fu, 1996),
+               !        dge range is limited to 5.0 to 140.0 microns
+               !        [dge = 1.0315 * r_ec]
+ liqflgsw = 1, ! Flag for liquid droplet specification
+               !   0 => Compute the optical depths due to water clouds in ATM
+               !        (currently not supported)
+               !   1 => The water droplet effective radius (microns) is input
+               !        and the optical depths due to water clouds are computed
+               !        as in Hu and Stamnes, J., Clim., 6, 728-742, (1993).
+ inflglw  = 2, ! Flag for cloud optical properties as above but for LW
+ iceflglw = 3, ! Flag for ice particle specification as above but for LW
+ liqflglw = 1, ! Flag for liquid droplet specification as above but for LW
+ idrv = 0,     ! Flag for calculation of dFdT, the change in upward flux as
+               ! a function of surface temperature [0=off, 1=on]
+ icld  = 1,    ! Cloud Overlap hypothesis
  irng = 1,     ! mersenne twister random generator for McICA COH
  /
 \end{Verbatim}
@@ -878,18 +914,20 @@ This stanza controls the chemistry and aerosol options in the RegCM model.
  &chemparam
  chemsimtype = 'CBMZ    ', ! Which chemical tracers to be activated.
                            ! One in :
-                           !   DUST : Activate 4 dust bins scheme
-                           !   SSLT : Activate 2 bins Sea salt scheme
-                           !   CARB : Activate 4 species black/anthropic
-                           !          carbon simulations
-                           !   SULF : Activate SO2 and SO4 tracers
-                           !   SUCA : Activate both SUKF and CARB
-                           !   AERO : Activate all DUST, SSLT, CARB and SULF
-                           !   CBMZ : Activate gas phase and sulfate
-                           !   DCCB : Activate CBMZ +DUST +CARB
+                           !   DUST   : Activate 4 dust bins scheme
+                           !   SSLT   : Activate 2 bins Sea salt scheme
+                           !   DUSS   : Activate DUST +SSLT
+                           !   CARB   : Activate 4 species black/anthropic
+                           !            carbon simulations
+                           !   SULF   : Activate SO2 and SO4 tracers
+                           !   SUCA   : Activate both SUKF and CARB
+                           !   AERO   : Activate all DUST, SSLT, CARB and SULF
+                           !   CBMZ   : Activate gas phase and sulfate
+                           !   DCCB   : Activate CBMZ +DUST +CARB
+                           !   POLLEN : Activate POLLEN transport scheme
  ichsolver = 1,  ! Activate the chemical solver
  ichsursrc = 1,  ! Enable the emissions
- ichdrdepo = 0,  ! 1 = enable tracer surface dry deposition. For dust,
+ ichdrdepo = 1,  ! 1 = enable tracer surface dry deposition. For dust,
                  !     it is calculated by a size settling and dry
                  !     deposition scheme. For other aerosol,a dry
                  !     deposition velocity is simply prescribed further.

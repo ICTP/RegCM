@@ -484,8 +484,9 @@ module mod_params
   iindirect = 0
   ichdiag = 0       ! chem tend outputs 
   ichsursrc = 1
-  ichebdy =1
+  ichebdy = 1
   rdstemfac = d_one
+!c------namelist clmparam ; (read in case clm surface model compiled in)
 #ifdef CLM
   imask = 1
   ilawrence_albedo = 1
