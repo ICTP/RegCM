@@ -899,9 +899,9 @@ module mod_cloud_s1
         if ( k < kz .and. k >= 1 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-                zalfaw              = zliq(j,i,k)
-                zice                = d_one-zalfaw  
-                !zice=1 if T<250, zice=0 if T>273
+              zalfaw              = zliq(j,i,k)
+              zice                = d_one-zalfaw  
+              !zice=1 if T<250, zice=0 if T>273
               zqdetr(j,i,k) = qdetr(j,i,k)*zdtgdp(j,i)  !kg/kg
               if ( zqdetr(j,i,k) > rlmin ) then
                 zconvsrce(j,i,iqql) = zalfaw*zqdetr(j,i,k)

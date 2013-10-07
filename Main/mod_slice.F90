@@ -90,6 +90,13 @@ module mod_slice
       end do
     end do
 
+    do k = 1 , kz+1
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          atms%pf3d(j,i,k) = sigma(k)*sfs%psb(j,i)+ptop
+        end do
+      end do
+    end do
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2

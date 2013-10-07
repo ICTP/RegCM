@@ -89,6 +89,7 @@ module mod_atm_interface
     real(rk8) , pointer , dimension(:,:,:) :: tb3d
     real(rk8) , pointer , dimension(:,:,:) :: thx3d
     real(rk8) , pointer , dimension(:,:,:) :: pb3d
+    real(rk8) , pointer , dimension(:,:,:) :: pf3d
     real(rk8) , pointer , dimension(:,:,:) :: rhob3d
     real(rk8) , pointer , dimension(:,:,:) :: ubx3d
     real(rk8) , pointer , dimension(:,:,:) :: vbx3d
@@ -624,6 +625,7 @@ module mod_atm_interface
       type(slice) , intent(out) :: ax
       integer(ik4) , intent(in) :: ibltyp
       call getmem3d(ax%pb3d,jce1,jce2,ice1,ice2,1,kz,'slice:pb3d')
+      call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kz+1,'slice:pb3d')
       call getmem3d(ax%qsb3d,jce1,jce2,ice1,ice2,1,kz,'slice:qsb3d')
       call getmem3d(ax%rhb3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhb3d')
       call getmem3d(ax%rhob3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhob3d')
