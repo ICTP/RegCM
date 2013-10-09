@@ -672,8 +672,10 @@ The parameters below are the ones currently used at ICTP.
  rh0oce    =       0.90, ! Relative humidity threshold for ocean
  rh0land   =       0.80, ! Relative humidity threshold for land
  tc0       =      238.0, ! Below this temperature, rh0 begins to approach unity
- cevap     =   .100E-02, ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
- caccr     =      3.000, ! Raindrop accretion rate [m3/kg/s]
+ cevaplnd  =   .100E-02, ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
+ cevapoce  =   .100E-02, ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
+ caccrlnd  =      3.000, ! Raindrop accretion rate [m3/kg/s]
+ caccroce  =      3.000, ! Raindrop accretion rate [m3/kg/s]
  cllwcv    =     0.3E-3, ! Cloud liquid water content for convective precip.
  clfrcvmax =       1.00, ! Max cloud fractional cover for convective precip.
  cftotmax  =       0.75, ! Max total cover cloud fraction for radiation

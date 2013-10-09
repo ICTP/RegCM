@@ -109,9 +109,9 @@ module mod_params
   namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
     iceflglw , liqflglw , icld , irng , idrv
 
-  namelist /subexparam/ ncld , qck1land , qck1oce , gulland , guloce , &
-    rhmax , rh0oce , rh0land , cevap , caccr , tc0 , cllwcv ,          &
-    clfrcvmax , cftotmax
+  namelist /subexparam/ ncld , qck1land , qck1oce , gulland , guloce ,     &
+    rhmax , rh0oce , rh0land , cevaplnd , cevapoce , caccrlnd , caccroce , &
+    tc0 , cllwcv , clfrcvmax , cftotmax , conf
 
   namelist /microparam/ budget_compute , nssopt , kautoconv , ksemi
 
@@ -348,8 +348,6 @@ module mod_params
 !----------------------------------------------------------------------
 !------namelist subexparam:
   ncld = 1             ! # of bottom model levels with no clouds (rad only)
-! qck1land = 0.0005D0  ! Autoconversion Rate for Land
-! qck1oce  = 0.0005D0  ! Autoconversion Rate for Ocean
   qck1land = 0.00025D0 ! Autoconversion Rate for Land
   qck1oce = 0.00025D0  ! Autoconversion Rate for Ocean
   gulland = 0.4D0      ! Fract of Gultepe eqn (qcth) when prcp occurs (land)
@@ -358,13 +356,14 @@ module mod_params
   rh0oce = 0.90D0      ! Relative humidity threshold for ocean
   rh0land = 0.80D0     ! Relative humidity threshold for land
   tc0 = 238.0D0        ! Below this temp, rh0 begins to approach unity
-! cevap    = 0.2D-4    ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
-  cevap = 1.0D-3     ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
-! caccr    = 6.0D0   ! Raindrop accretion rate [m3/kg/s]
-  caccr = 3.0D0      ! Raindrop accretion rate [m3/kg/s]
-  cllwcv = 0.3D-3    ! Cloud liquid water content for convective precip.
-  clfrcvmax = 1.00D0 ! Max cloud fractional cover for convective precip.
-  cftotmax = 0.75D0  ! Max total cover cloud fraction for radiation
+  cevaplnd = 1.0D-3    ! Raindrop evap rate coef land [[(kg m-2 s-1)-1/2]/s]
+  cevapoce = 1.0D-3    ! Raindrop evap rate coef ocean [[(kg m-2 s-1)-1/2]/s]
+  caccrlnd = 3.0D0     ! Raindrop accretion rate land [m3/kg/s]
+  caccroce = 3.0D0     ! Raindrop accretion rate ocean [m3/kg/s]
+  cllwcv = 0.3D-3      ! Cloud liquid water content for convective precip.
+  clfrcvmax = 1.00D0   ! Max cloud fractional cover for convective precip.
+  cftotmax = 0.75D0    ! Max total cover cloud fraction for radiation
+  conf = d_one       !   Condensation threshold
 
   ! namelist microparam
   budget_compute = .true. ! Verify enthalpy and moisture conservation
@@ -920,9 +919,12 @@ module mod_params
     call bcast(rh0oce)
     call bcast(rh0land)
     call bcast(tc0)
-    call bcast(cevap)
-    call bcast(caccr)
+    call bcast(cevaplnd)
+    call bcast(cevapoce)
+    call bcast(caccrlnd)
+    call bcast(caccroce)
     call bcast(cftotmax)
+    call bcast(conf)
     if ( ipptls == 2 ) then
       call bcast(budget_compute)
       call bcast(nssopt)
@@ -1298,8 +1300,6 @@ module mod_params
   akht1 = dxsq/tauht
   akht2 = dxsq/tauht
 !
-  conf = d_one
-
   ! Calculate boundary areas per processor
 
   call setup_boundaries(cross,ba_cr)
@@ -1536,8 +1536,10 @@ module mod_params
     end if
   end do
   if ( ipptls > 0 ) then
-    cevap = max(cevap,d_zero)
-    caccr = max(caccr,d_zero)
+    cevaplnd = max(cevaplnd,d_zero)
+    caccrlnd = max(caccrlnd,d_zero)
+    cevapoce = max(cevapoce,d_zero)
+    caccroce = max(caccroce,d_zero)
   end if
  
   if ( myid == italk ) then
@@ -1549,25 +1551,43 @@ module mod_params
       write(stdout,*) 'SUBEX large scale precipitation parameters'
       write(stdout,'(a,i2)' )   '  # of bottom no cloud model levels : ',ncld
       write(stdout,'(a,f11.6,a,f11.6)')                      &
-        '  Auto-conversion rate:          Land = ',qck1land,' Ocean = ',qck1oce
+          '  Auto-conversion rate:         Land = ',qck1land,' Ocean = ',qck1oce
       write(stdout,'(a,f11.6,a,f11.6)')                      &
-        '  Relative humidity thresholds:  Land = ',rh0land, ' Ocean = ',rh0oce
+          '  Relative humidity thresholds: Land = ',rh0land, ' Ocean = ',rh0oce
       write(stdout,'(a,f11.6,a,f11.6)')                      &
-        '  Gultepe factors:               Land = ',gulland ,' Ocean = ',guloce
-      write(stdout,'(a,f11.6)') '  Maximum relative humidity         : ' , rhmax
-      write(stdout,'(a,f11.6)') '  RH0 temperature threshold         : ' , tc0
-      if ( cevap <= d_zero ) then
-        write (stdout,*) '  Raindrop evaporation not included'
+          '  Gultepe factors:              Land = ',gulland ,' Ocean = ',guloce
+      write(stdout,'(a,f11.6)') &
+          '  Maximum relative humidity         : ' , rhmax
+      write(stdout,'(a,f11.6)') &
+          '  RH0 temperature threshold         : ' , tc0
+      if ( cevaplnd <= d_zero ) then
+        write (stdout,*) '  Land raindrop evaporation not included'
       else
-        write(stdout,'(a,f11.6)') '  Raindrop Evaporation Rate         : ',cevap
+        write(stdout,'(a,f11.6)') &
+          '  Land Raindrop Evaporation Rate    : ',cevaplnd
       end if
-      if ( caccr <= d_zero ) then
-        write(stdout, *) '  Raindrop accretion not included'
+      if ( cevapoce <= d_zero ) then
+        write (stdout,*) '  Ocean raindrop evaporation not included'
       else
-        write(stdout,'(a,f11.6)') '  Raindrop Accretion Rate           : ',caccr
+        write(stdout,'(a,f11.6)') &
+          '  Ocean Raindrop Evaporation Rate   : ', cevapoce
       end if
-      write(stdout,'(a,f11.6)') '  Maximum total cloud cover for rad : ', &
-        cftotmax
+      if ( caccrlnd <= d_zero ) then
+        write(stdout, *) '  Land raindrop accretion not included'
+      else
+        write(stdout,'(a,f11.6)') &
+          '  Land Raindrop Accretion Rate      : ', caccrlnd
+      end if
+      if ( caccroce <= d_zero ) then
+        write(stdout, *) '  Ocean raindrop accretion not included'
+      else
+        write(stdout,'(a,f11.6)') &
+          '  Ocean Raindrop Accretion Rate     : ', caccroce
+      end if
+      write(stdout,'(a,f11.6)') &
+          '  Maximum total cloud cover for rad : ', cftotmax
+      write(stdout,'(a,f11.6)') &
+          '  Condensation threshold            : ', conf
     end if
   end if
 
@@ -1827,7 +1847,7 @@ module mod_params
       write(stdout,*) ' Cumulus downdraft is enabled      : ',lmfdd
       write(stdout,*) ' Cumulus friction is enabled       : ',lmfdudv
     end if
-    cevapu = cevap
+    cevapu = cevaplnd
   end if
 
   if ( ibltyp == 1 .or. ibltyp == 99 ) then
@@ -1902,13 +1922,17 @@ module mod_params
       do j = jci1 , jci2
         if ( mddom%lndcat(j,i) > 14.5D0 .and. &
              mddom%lndcat(j,i) < 15.5D0) then
-          qck1(j,i) = qck1oce  ! OCEAN
-          cgul(j,i) = guloce   ! OCEAN
-          rh0(j,i)  = rh0oce   ! OCEAN
+          qck1(j,i)  = qck1oce  ! OCEAN
+          cgul(j,i)  = guloce
+          rh0(j,i)   = rh0oce
+          cevap(j,i) = cevapoce
+          caccr(j,i) = caccroce
         else
-          qck1(j,i) = qck1land ! LAND
-          cgul(j,i) = gulland  ! LAND
-          rh0(j,i)  = rh0land  ! LAND
+          qck1(j,i)  = qck1land ! LAND
+          cgul(j,i)  = gulland
+          rh0(j,i)   = rh0land
+          cevap(j,i) = cevaplnd
+          caccr(j,i) = caccrlnd
         end if
       end do
     end do

@@ -46,7 +46,8 @@ module mod_precip
   real(rk8) , parameter :: uch = d_1000*regrav*secph
 !
   real(rk8) , public , pointer , dimension(:,:,:) :: fcc , remrat , rembc
-  real(rk8) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0
+  real(rk8) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0 , &
+    cevap , caccr
   logical :: lchem = .false.
 !
   public :: allocate_mod_precip , init_precip , pcp , cldfrac , condtq
@@ -62,6 +63,8 @@ module mod_precip
       call getmem2d(qck1,jci1,jci2,ici1,ici2,'pcp:qck1')
       call getmem2d(cgul,jci1,jci2,ici1,ici2,'pcp:cgul')
       call getmem2d(rh0,jci1,jci2,ici1,ici2,'pcp:rh0')
+      call getmem2d(cevap,jci1,jci2,ici1,ici2,'pcp:cevap')
+      call getmem2d(caccr,jci1,jci2,ici1,ici2,'pcp:caccr')
       call getmem2d(pptsum,jci1,jci2,ici1,ici2,'pcp:pptsum')
 
       if ( ichem == 1 ) then
@@ -179,7 +182,7 @@ module mod_precip
 !           1agb. Add 1/2 of the new precipitation can accrete.
             pptkm1 = d_half*pptnew/afc*rho*dt                ![kg/m3][cld]
 !           1agc. Accretion [kg/kg/s]=[m3/kg/s]*[kg/kg]*[kg/m3]
-            pptacc = caccr*qcleft*pptkm1                     ![kg/kg/s][avg]
+            pptacc = caccr(j,i)*qcleft*pptkm1                ![kg/kg/s][avg]
 !           1agd. Update the precipitation accounting for the accretion
 !           [kg/kg/s]
             pptnew = dmin1(pptmax,pptacc+pptnew)             ![kg/kg/s][avg]
@@ -234,7 +237,7 @@ module mod_precip
             rhcs = (rh-afc*rhmax)/(d_one-afc)                ![frac][clr]
             rhcs = dmax1(dmin1(rhcs,rhmax),d_zero)           ![frac][clr]
 !           2bcb. Raindrop evaporation [kg/kg/s]
-            rdevap = cevap*(rhmax-rhcs)*dsqrt(pptsum(j,i))*(d_one-afc)
+            rdevap = cevap(j,i)*(rhmax-rhcs)*dsqrt(pptsum(j,i))*(d_one-afc)
                                                            ![kg/kg/s][avg]
             rdevap = dmin1((qs-qx3(j,i,k,iqv))/dt,rdevap)  ![kg/kg/s][avg]
             rdevap = dmin1(dmax1(rdevap,d_zero),pptkm1)    ![kg/kg/s][avg]
@@ -279,7 +282,7 @@ module mod_precip
 !                   precipitation [kg/m3]
               pptkm1 = (pptkm1+d_half*pptnew/afc)*rho*dt     ![kg/m3][cld]
 !             1bfc. accretion [kg/kg/s]
-              pptacc = caccr*qcleft*pptkm1                   ![kg/kg/s][avg]
+              pptacc = caccr(j,i)*qcleft*pptkm1              ![kg/kg/s][avg]
 !             1bfd. Update the precipitation accounting for the
 !                   accretion [kg/kg/s]
               pptnew = dmin1(pptmax,pptacc+pptnew)           ![kg/kg/s][avg]

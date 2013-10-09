@@ -2069,11 +2069,17 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('subex_limit_temperature',tc0))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_raindrop_evaporation_rate',cevap))
+            ncattribute_real8('subex_land_raindrop_evaporation_rate',cevaplnd))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('subex_raindrop_accretion_rate',caccr))
+            ncattribute_real8('subex_ocean_raindrop_evaporation_rate',cevapoce))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('subex_land_raindrop_accretion_rate',caccrlnd))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('subex_ocean_raindrop_accretion_rate',caccroce))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('subex_cloud_fraction_maximum',cftotmax))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('subex_condensation_threshold',conf))
           call outstream_addatt(outstream(i)%ncout(j), &
          ncattribute_real8('subex_cloud_fraction_max_for_convection',clfrcvmax))
           call outstream_addatt(outstream(i)%ncout(j), &

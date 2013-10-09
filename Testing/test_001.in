@@ -97,8 +97,8 @@
  &subexparam
  qck1land =   .250E-03,
  qck1oce  =   .250E-03,
- cevap    =   .100E-02,
- caccr    =      3.000,
+ cevaplnd =   .100E-02,
+ caccrlnd =      3.000,
  cftotmax =      0.75,
  /
  &grellparam

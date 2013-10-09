@@ -105,6 +105,8 @@ module mod_runparams
   integer(ik4) :: idirect , iindirect , iemiss , isolconst
   ! Semi-Langrangian advection for tracers
   integer(ik4) :: isladvec
+  ! Convective LWP scheme
+  integer(ik4) :: iconvlwp
 !
   character(len=8) :: scenario
 !
@@ -132,19 +134,11 @@ module mod_runparams
   real(rk8) , pointer , dimension(:) :: anudg
 
   real(rk8) :: clfrcv ! Cloud fractional cover for convective precip
-  real(rk8) :: cllwcv ! Cloud liquid water content for convective precip.
 
   ! Grell cumulus scheme parameters
 
-  real(rk8) :: gulland
-  real(rk8) :: guloce
   real(rk8) :: mincld
-  real(rk8) :: qck1land
-  real(rk8) :: qck1oce
-  real(rk8) :: rh0land
-  real(rk8) :: rh0oce
   real(rk8) :: skbmax
-  real(rk8) :: clfrcvmax
   real(rk8) :: shrmax_ocn
   real(rk8) :: shrmin_ocn
   real(rk8) :: edtmax_ocn
@@ -233,9 +227,7 @@ module mod_runparams
 
   ! Radiation schemes common parametrs
 
-  real(rk8) , public :: cftotmax ! Maximum total cloud fraction for radiation
   integer(ik4) :: iclimao3
-  integer(ik4) :: ncld ! # of bottom model levels with no clouds
 
   ! UW PBL parameters
 
@@ -268,12 +260,23 @@ module mod_runparams
 
   ! Large scale SUBEX parameters
 
-  real(rk8) :: caccr
-  real(rk8) :: cevap
+  integer(ik4) :: ncld ! # of bottom model levels with no clouds
+  real(rk8) :: qck1land
+  real(rk8) :: qck1oce
+  real(rk8) :: gulland
+  real(rk8) :: guloce
   real(rk8) :: rhmax
+  real(rk8) :: rh0land
+  real(rk8) :: rh0oce
+  real(rk8) :: caccrlnd
+  real(rk8) :: cevaplnd
+  real(rk8) :: caccroce
+  real(rk8) :: cevapoce
   real(rk8) :: tc0
-  real(rk8) :: conf
-  integer(ik4) :: iconvlwp
+  real(rk8) :: cllwcv   ! Cloud liquid water content for convective precip.
+  real(rk8) :: clfrcvmax
+  real(rk8) :: cftotmax ! Maximum total cloud fraction for radiation
+  real(rk8) :: conf     ! Condensation threshold.
 
   !
   ! SLAB ocean parameters

@@ -102,12 +102,12 @@
  iconvlwp = 1,
  /
  &subexparam
- ncld    =          3,
- qck1land=   .600E-04,
- qck1oce =   .250E-03,
- cevap   =   1.50E-02,
- caccr   =      1.000,
- gulland =        1.0,
+ ncld     =          3,
+ qck1land =   .600E-04,
+ qck1oce  =   .250E-03,
+ cevaplnd =   1.50E-02,
+ caccrlnd =      1.000,
+ gulland  =        1.0,
  cftotmax =      0.75,
  /
  &grellparam
