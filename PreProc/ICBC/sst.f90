@@ -133,7 +133,7 @@ program sst
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnhnc
-  else if ( ssttyp == 'EIXXX' ) then
+  else if ( ssttyp == 'EIXXX' .or. ssttyp == 'CCSM3' ) then
     if (ical /= noleap) then
       write(stderr,*) ssttyp//' calendar should be set to noleap'
       call die('sst','Calendar mismatch',1)
