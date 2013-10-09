@@ -176,7 +176,7 @@ program icbc
   call init_grid(jx,iy,kz)
   call init_output
 
-  if (dattyp == 'CCSMN' .or. dattyp == 'CAM4N' .or. &
+  if (dattyp == 'CCSMN' .or. dattyp == 'CAM4N' .or. dattyp == 'CCSM3' .or. &
       dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'GF_' ) then
     if (ical /= noleap ) then
       write(stderr,*) 'Calendar should be set to noleap'
@@ -234,7 +234,8 @@ program icbc
     call headerfv
   else if ( dattyp == 'FNEST' ) then
     call headernest
-  else if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' .or. &
+  else if ( dattyp == 'CAM4N'    .or. dattyp == 'CCSMN'    .or. &
+            dattyp == 'CCSM3'    .or.                           &
             dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' .or. &
             dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'EC_' .or. &
             dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
@@ -277,7 +278,8 @@ program icbc
       call getfvgcm(idate)
     else if ( dattyp == 'FNEST' ) then
       call get_nest(idate)
-    else if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' .or. &
+    else if ( dattyp == 'CAM4N'    .or. dattyp == 'CCSMN'    .or. &
+              dattyp == 'CCSM3'    .or.                           &
               dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CA_' .or. &
               dattyp(1:3) == 'IP_' .or. dattyp(1:3) == 'EC_' .or. &
               dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
