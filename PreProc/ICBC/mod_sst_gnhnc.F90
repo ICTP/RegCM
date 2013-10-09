@@ -121,8 +121,7 @@ module mod_sst_gnhnc
       y1,'010100-',y1+1,'010100.nc'
     varname(2) = 'tos'
   else if ( ssttyp == 'CCSM3' ) then
-    call find_ccsm3_file(year,month,day,hour)
-    inpfile = ccsm3_filename
+    call find_ccsm3_file(inpfile,year,month,day,hour)
     varname(2) = 'SST'
   else
     call die('gnhnc_sst','Unknown ssttyp: '//ssttyp,1)
@@ -311,8 +310,7 @@ module mod_sst_gnhnc
         y1,'010100-',y1+1,'010100.nc'
     else if ( ssttyp == 'CCSM3' ) then
       call split_idate(idate, year, month, day, hour)  
-      call find_ccsm3_file(year,month,day,hour)
-      inpfile = ccsm3_filename
+      call find_ccsm3_file(inpfile,year,month,day,hour)
     end if
     istatus = nf90_open(inpfile,nf90_nowrite,inet1)
     call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(inpfile))

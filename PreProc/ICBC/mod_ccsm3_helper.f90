@@ -26,16 +26,24 @@ module mod_ccsm3_helper
 
   private
 
-  character(len=256) , public :: ccsm3_filename
-  character(len=32) , parameter :: ccsm3_experiment = 'OCN.199904.E30.cam2.h1.'
-  character(len=16) :: ccsm3_date
+  public :: find_ccsm3_topo , find_ccsm3_file
 
-  public :: find_ccsm3_file
+  character(len=32) , parameter :: ccsm3_experiment = 'OCN.199904.E30.cam2.h1.'
+  character(len=64) , parameter :: ccsm3_init = &
+          'OCN.199904.E30.cam2.i.1999-05-01-00000.nc'
+  character(len=16) :: ccsm3_date
 
   contains
 
-  subroutine find_ccsm3_file(y,m,d,h)
+  subroutine find_ccsm3_topo(topo_filename)
     implicit none
+    character(len=256) , intent(out) :: topo_filename
+    topo_filename = trim(inpglob)//'/CCSM3/'//trim(ccsm3_init)
+  end subroutine find_ccsm3_topo
+
+  subroutine find_ccsm3_file(ccsm3_filename,y,m,d,h)
+    implicit none
+    character(len=256) , intent(out) :: ccsm3_filename
     integer(ik4) , intent(in) :: y,m,d,h
     character(len=5) :: date
     integer(ik4)  :: yy , mm , dd , hh , icheck , inow , ii

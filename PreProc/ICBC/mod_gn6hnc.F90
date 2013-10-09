@@ -43,6 +43,7 @@ module mod_gn6hnc
   use mod_vectutil
   use mod_message
   use mod_nchelper
+  use mod_ccsm3_helper
 
   private
 
@@ -229,6 +230,8 @@ module mod_gn6hnc
       pathaddname = trim(inpglob)//'/GFS11/fixed/fixed_orography.nc'
     else if ( dattyp(1:3) == 'EC_' ) then
       pathaddname = trim(inpglob)//'/EC-EARTH/fixed/ecearth.nc'
+    else if ( dattyp == 'CCSM3' ) then
+      call find_ccsm3_topo(pathaddname)
     else
       call die('Unknown dattyp in generic 6h NetCDF driver.')
     end if
@@ -310,7 +313,8 @@ module mod_gn6hnc
 
     npl = nipl
 
-    if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' ) then
+    if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' .or. &
+         dattyp == 'CCSM3' ) then
       istatus = nf90_inq_varid(inet1,'hyam',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__,'Error find hyam var')
       istatus = nf90_get_var(inet1,ivar1,ak)
@@ -1172,6 +1176,9 @@ module mod_gn6hnc
             istatus = nf90_close(inet(1))
             call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
             filedate = filedate + tdif
+          else if ( dattyp == 'CCSM3' ) then
+            istatus = nf90_close(inet(1))
+            call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
           else
             if ( dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CS_' ) then
               do i = 1 , nfiles-1
@@ -1206,6 +1213,14 @@ module mod_gn6hnc
           write (inname,99002) trim(cambase) , fyear, &
                     fmonth, fday, filedate%second_of_day
           pathaddname = trim(inpglob)//'/CAM2/'//trim(inname)
+          istatus = nf90_open(pathaddname,nf90_nowrite,inet(1))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+                           'Error open '//trim(pathaddname))
+          write (stdout,*) inet(1), trim(pathaddname)
+          inet(2:nfiles) = inet(1)
+          varname => cam2vars
+        else if ( dattyp == 'CCSM3' ) then
+          call find_ccsm3_file(pathaddname,year,month,day,hour)
           istatus = nf90_open(pathaddname,nf90_nowrite,inet(1))
           call checkncerr(istatus,__FILE__,__LINE__, &
                            'Error open '//trim(pathaddname))
@@ -1550,7 +1565,8 @@ module mod_gn6hnc
       istart(4) = it
       istatus = nf90_get_var(inet(1),ivar(1),tvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(1))
-      if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' ) then
+      if ( dattyp == 'CAM4N' .or. dattyp == 'CCSMN' .or. &
+           dattyp == 'CCSM3' ) then
         ! We have geopotential HGT in m, on hybrid sigma pressure levels
         istatus = nf90_get_var(inet(2),ivar(2),hvar,istart,icount)
         call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(2))
