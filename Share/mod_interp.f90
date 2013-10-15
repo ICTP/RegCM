@@ -322,10 +322,13 @@ module mod_interp
   intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
   intent (out) b3
 !
-  real(rk8) :: dist , dista , distb , distc , distd
+  real(rk8) :: dist , dista , distb , distc , distd , distx
+  real(rk8) , dimension(2) :: dists
   real(rk8) :: v1 , v2 , v3 , v4 , wg
   integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
-             ndr , nul , nur , ifound
+             ndr , nul , nur , ifound , mx , nx , mm , nn
+  logical , save :: lonwrap = .false. , latpole = .false.
+  logical , dimension(4) :: q
 !
 !     FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
 !     THEN DO THE AVERAGE OF THOSE FOUR POINTS WEIGHTED BY THE DISTANCE.
@@ -353,6 +356,8 @@ module mod_interp
     write (stdout,*) glonmn , alonmn , alonmx , glonmx
     write (stdout,*) 'GLATMN,ALATMN,ALATMX,GLATMX= '
     write (stdout,*) glatmn , alatmn , alatmx , glatmx
+    if ( glonmx - glonmn > 350.0D0 ) lonwrap   = .true.
+    if ( glatmx - glatmn > 170.0D0 ) latpole = .true.
     imxmn = 1
   end if
 
@@ -373,69 +378,154 @@ module mod_interp
     write (stdout,*) 'Calculating weights.... (will take long time)'
     do i = 1 , iy
       do j = 1 , jx
-        mur = -1000
-        nur = -1000
-        mul = -1000
-        nul = -1000
-        mdr = -1000
-        ndr = -1000
-        mdl = -1000
-        ndl = -1000
-        dista = 1.D8
-        distb = 1.D8
-        distc = 1.D8
-        distd = 1.D8
+        ! Find nearest point
+        distx = 1.0D+08
+        mx = -1
+        nx = -1
         do n = 1 , nlat
           do m = 1 , nlon
-            if ( glon(m,n) > alon(j,i) .and. &
-                 glat(m,n) > alat(j,i) ) then
-              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
-              if ( dist < dista ) then
-                dista = dist
-                mur = m
-                nur = n
-              end if
-            end if
-            if ( glon(m,n) < alon(j,i) .and. &
-                 glat(m,n) > alat(j,i) ) then
-              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
-              if ( dist < distb ) then
-                distb = dist
-                mul = m
-                nul = n
-              end if
-            end if
-            if ( glon(m,n) > alon(j,i) .and. &
-                 glat(m,n) < alat(j,i) ) then
-              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
-              if ( dist < distc ) then
-                distc = dist
-                mdr = m
-                ndr = n
-              end if
-            end if
-            if ( glon(m,n) < alon(j,i) .and. &
-                 glat(m,n) < alat(j,i) ) then
-              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
-              if ( dist < distd ) then
-                distd = dist
-                mdl = m
-                ndl = n
-              end if
+            dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
+            if ( dist < distx ) then
+              distx = dist
+              mx = m
+              nx = n
             end if
           end do
         end do
-        if ( mur < d_zero .or. nur < d_zero .or. mul < d_zero .or. &
-             nul < d_zero .or. mdr < d_zero .or. ndr < d_zero .or. &
-             mdl < d_zero .or. ndl < 0 ) then
-          write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
-          write (stderr,*) mur , nur , mdr , ndr
-          write (stderr,*) mul , nul , mdl , ndl
-          write (stderr,*) i , j
+        ! Find dists from 4 points around this
+        q(:) = .false.
+        nn = nx
+        mm = mx + 1
+        if ( lonwrap ) then
+          if ( mm > nlon ) mm = 1
+        else
+          if ( mm > nlon ) then
+            write (stderr,*) 'EXCEEDING NLON'
+            write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
+            write (stderr,*) i , j , mm , nn
+            write (stderr,*) alon(j,i)
+            write (stderr,*) alat(j,i)
+            call die('cressmcr')
+          end if
+        end if
+        dists(1) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
+        mm = mx - 1
+        if ( lonwrap ) then
+          if ( mm < 1 ) mm = nlon
+        else
+          if ( mm < 1 ) then
+            write (stderr,*) 'NLON < 1'
+            write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
+            write (stderr,*) i , j , mm , nn
+            write (stderr,*) alon(j,i)
+            write (stderr,*) alat(j,i)
+            call die('cressmcr')
+          end if
+        end if
+        dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
+        if ( dists(1) > dists(2) ) then
+          q(1) = .true.
+          q(3) = .true.
+        else
+          q(2) = .true.
+          q(4) = .true.
+        end if
+        mm = mx
+        nn = nx + 1
+        if ( latpole ) then
+          if ( nn > nlat ) nn = nlat
+        else
+          if ( nn > nlat ) then
+            write (stderr,*) 'EXCEEDING NLAT'
+            write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
+            write (stderr,*) i , j , mm , nn
+            write (stderr,*) alon(j,i)
+            write (stderr,*) alat(j,i)
+            call die('cressmcr')
+          end if
+        end if
+        dists(1) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
+        nn = nx - 1
+        if ( latpole ) then
+          if ( nn < 1 ) nn = 1
+        else
+          if ( nn < 1 ) then
+            write (stderr,*) 'NLAT < 1'
+            write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
+            write (stderr,*) i , j , mm , nn
+            write (stderr,*) alon(j,i)
+            write (stderr,*) alat(j,i)
+            call die('cressmcr')
+          end if
+        end if
+        dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
+        if ( dists(1) > dists(2) ) then
+          q(3) = .true.
+          q(4) = .true.
+        else
+          q(1) = .true.
+          q(2) = .true.
+        end if
+        if ( q(1) ) then
+          mur = mx
+          nur = nx+1
+          mul = mx-1
+          nul = nx+1
+          mdr = mx-1
+          ndr = nx
+          mdl = mx
+          ndl = nx
+        else if ( q(2) ) then
+          mur = mx+1
+          nur = nx+1
+          mul = mx
+          nul = nx+1
+          mdr = mx
+          ndr = nx
+          mdl = mx+1
+          ndl = nx
+        else if ( q(3) ) then
+          mur = mx
+          nur = nx
+          mul = mx-1
+          nul = nx
+          mdr = mx
+          ndr = nx-1
+          mdl = mx-1
+          ndl = nx-1
+        else if ( q(4) ) then
+          mur = mx+1
+          nur = nx
+          mul = mx
+          nul = nx
+          mdr = mx+1
+          ndr = nx-1
+          mdl = mx
+          ndl = nx-1
+        else
+          write (stderr,*) 'LOGIC ERROR in locating point'
+          write (stderr,*) i , j , mx , nx
           write (stderr,*) alon(j,i)
           write (stderr,*) alat(j,i)
           call die('cressmcr')
         end if
+        ! Check if in a global window again
+        if ( lonwrap ) then
+          if ( mur > nlon ) mur = nlon
+          if ( mdr > nlon ) mdr = nlon
+          if ( mul < 1 ) mul = 1
+          if ( mdl < 1 ) mdl = 1
+        end if
+        if ( latpole ) then
+          if ( nur > nlat ) nur = nlat
+          if ( nul > nlat ) nul = nlat
+          if ( ndr < 1 ) ndr = 1
+          if ( ndr < 1 ) ndr = 1
+        end if
+        dista = gcdist(glat(mur,nur),glon(mur,nur),alat(j,i),alon(j,i))
+        distb = gcdist(glat(mul,nul),glon(mul,nul),alat(j,i),alon(j,i))
+        distc = gcdist(glat(mdr,ndr),glon(mdr,ndr),alat(j,i),alon(j,i))
+        distd = gcdist(glat(mdl,ndl),glon(mdl,ndl),alat(j,i),alon(j,i))
         ic1ur(j,i) = mur
         jc1ur(j,i) = nur
         ic1ul(j,i) = mul
@@ -500,7 +590,6 @@ module mod_interp
       if ( ifound /= 0 ) b3(j,i) = v1/wg+v2/wg+v3/wg+v4/wg
     end do
   end do
- 
   end subroutine distwgtcr
 !
   subroutine distwgtdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
@@ -514,10 +603,13 @@ module mod_interp
   intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
   intent (out) b3
 !
-  real(rk8) :: dist , dista , distb , distc , distd
+  real(rk8) :: dist , dista , distb , distc , distd , distx
+  real(rk8) , dimension(2) :: dists
   real(rk8) :: v1 , v2 , v3 , v4 , wg
   integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
-             ndr , nul , nur , ifound
+             ndr , nul , nur , ifound , mx , nx , mm , nn
+  logical , save :: lonwrap = .false. , latpole = .false.
+  logical , dimension(4) :: q
 !
 !     FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
 !     THEN DO THE AVERAGE OF THOSE FOUR POINTS WEIGHTED BY THE DISTANCE.
@@ -528,6 +620,7 @@ module mod_interp
 !     (regular or irregular) GRID. GLON......LONGITUDE VALUES IN
 !     DEGREES OF THE INTERMEDIATE GRID4. GLAT......LATITUDE VALUES IN
 !     DEGREES OF THE INTERMEDIATE GRID4.
+!
 !
 !     Find the Minimum and Maximum of GLON, GLAT, ALON and ALAT
 !
@@ -544,6 +637,8 @@ module mod_interp
     write (stdout,*) glonmn , alonmn , alonmx , glonmx
     write (stdout,*) 'GLATMN,ALATMN,ALATMX,GLATMX= '
     write (stdout,*) glatmn , alatmn , alatmx , glatmx
+    if ( glonmx - glonmn > 350.0D0 ) lonwrap   = .true.
+    if ( glatmx - glatmn > 170.0D0 ) latpole = .true.
     imxmn = 1
   end if
 
@@ -564,69 +659,154 @@ module mod_interp
     write (stdout,*) 'Calculating weights.... (will take long time)'
     do i = 1 , iy
       do j = 1 , jx
-        mur = -1000
-        nur = -1000
-        mul = -1000
-        nul = -1000
-        mdr = -1000
-        ndr = -1000
-        mdl = -1000
-        ndl = -1000
-        dista = 1.D8
-        distb = 1.D8
-        distc = 1.D8
-        distd = 1.D8
+        ! Find nearest point
+        distx = 1.0D+08
+        mx = -1
+        nx = -1
         do n = 1 , nlat
           do m = 1 , nlon
-            if ( glon(m,n) > alon(j,i) .and. &
-                 glat(m,n) > alat(j,i) ) then
-              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
-              if ( dist < dista ) then
-                dista = dist
-                mur = m
-                nur = n
-              end if
-            end if
-            if ( glon(m,n) < alon(j,i) .and. &
-                 glat(m,n) > alat(j,i) ) then
-              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
-              if ( dist < distb ) then
-                distb = dist
-                mul = m
-                nul = n
-              end if
-            end if
-            if ( glon(m,n) > alon(j,i) .and. &
-                 glat(m,n) < alat(j,i) ) then
-              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
-              if ( dist < distc ) then
-                distc = dist
-                mdr = m
-                ndr = n
-              end if
-            end if
-            if ( glon(m,n) < alon(j,i) .and. &
-                 glat(m,n) < alat(j,i) ) then
-              dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
-              if ( dist < distd ) then
-                distd = dist
-                mdl = m
-                ndl = n
-              end if
+            dist = gcdist(glat(m,n),glon(m,n),alat(j,i),alon(j,i))
+            if ( dist < distx ) then
+              distx = dist
+              mx = m
+              nx = n
             end if
           end do
         end do
-        if ( mur < d_zero .or. nur < d_zero .or. mul < d_zero .or. &
-             nul < d_zero .or. mdr < d_zero .or. ndr < d_zero .or. &
-             mdl < d_zero .or. ndl < 0 ) then
-          write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
-          write (stderr,*) mur , nur , mdr , ndr
-          write (stderr,*) mul , nul , mdl , ndl
-          write (stderr,*) i , j
+        ! Find dists from 4 points around this
+        q(:) = .false.
+        nn = nx
+        mm = mx + 1
+        if ( lonwrap ) then
+          if ( mm > nlon ) mm = 1
+        else
+          if ( mm > nlon ) then
+            write (stderr,*) 'EXCEEDING NLON'
+            write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
+            write (stderr,*) i , j , mm , nn
+            write (stderr,*) alon(j,i)
+            write (stderr,*) alat(j,i)
+            call die('cressmdt')
+          end if
+        end if
+        dists(1) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
+        mm = mx - 1
+        if ( lonwrap ) then
+          if ( mm < 1 ) mm = nlon
+        else
+          if ( mm < 1 ) then
+            write (stderr,*) 'NLON < 1'
+            write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
+            write (stderr,*) i , j , mm , nn
+            write (stderr,*) alon(j,i)
+            write (stderr,*) alat(j,i)
+            call die('cressmdt')
+          end if
+        end if
+        dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
+        if ( dists(1) > dists(2) ) then
+          q(1) = .true.
+          q(3) = .true.
+        else
+          q(2) = .true.
+          q(4) = .true.
+        end if
+        mm = mx
+        nn = nx + 1
+        if ( latpole ) then
+          if ( nn > nlat ) nn = nlat
+        else
+          if ( nn > nlat ) then
+            write (stderr,*) 'EXCEEDING NLAT'
+            write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
+            write (stderr,*) i , j , mm , nn
+            write (stderr,*) alon(j,i)
+            write (stderr,*) alat(j,i)
+            call die('cressmdt')
+          end if
+        end if
+        dists(1) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
+        nn = nx - 1
+        if ( latpole ) then
+          if ( nn < 1 ) nn = 1
+        else
+          if ( nn < 1 ) then
+            write (stderr,*) 'NLAT < 1'
+            write (stderr,*) 'NEST DOMAIN TOO NEAR TO PARENT.'
+            write (stderr,*) i , j , mm , nn
+            write (stderr,*) alon(j,i)
+            write (stderr,*) alat(j,i)
+            call die('cressmdt')
+          end if
+        end if
+        dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
+        if ( dists(1) > dists(2) ) then
+          q(3) = .true.
+          q(4) = .true.
+        else
+          q(1) = .true.
+          q(2) = .true.
+        end if
+        if ( q(1) ) then
+          mur = mx
+          nur = nx+1
+          mul = mx-1
+          nul = nx+1
+          mdr = mx-1
+          ndr = nx
+          mdl = mx
+          ndl = nx
+        else if ( q(2) ) then
+          mur = mx+1
+          nur = nx+1
+          mul = mx
+          nul = nx+1
+          mdr = mx
+          ndr = nx
+          mdl = mx+1
+          ndl = nx
+        else if ( q(3) ) then
+          mur = mx
+          nur = nx
+          mul = mx-1
+          nul = nx
+          mdr = mx
+          ndr = nx-1
+          mdl = mx-1
+          ndl = nx-1
+        else if ( q(4) ) then
+          mur = mx+1
+          nur = nx
+          mul = mx
+          nul = nx
+          mdr = mx+1
+          ndr = nx-1
+          mdl = mx
+          ndl = nx-1
+        else
+          write (stderr,*) 'LOGIC ERROR in locating point'
+          write (stderr,*) i , j , mx , nx
           write (stderr,*) alon(j,i)
           write (stderr,*) alat(j,i)
           call die('cressmdt')
         end if
+        ! Check if in a global window again
+        if ( lonwrap ) then
+          if ( mur > nlon ) mur = nlon
+          if ( mdr > nlon ) mdr = nlon
+          if ( mul < 1 ) mul = 1
+          if ( mdl < 1 ) mdl = 1
+        end if
+        if ( latpole ) then
+          if ( nur > nlat ) nur = nlat
+          if ( nul > nlat ) nul = nlat
+          if ( ndr < 1 ) ndr = 1
+          if ( ndr < 1 ) ndr = 1
+        end if
+        dista = gcdist(glat(mur,nur),glon(mur,nur),alat(j,i),alon(j,i))
+        distb = gcdist(glat(mul,nul),glon(mul,nul),alat(j,i),alon(j,i))
+        distc = gcdist(glat(mdr,ndr),glon(mdr,ndr),alat(j,i),alon(j,i))
+        distd = gcdist(glat(mdl,ndl),glon(mdl,ndl),alat(j,i),alon(j,i))
         id1ur(j,i) = mur
         jd1ur(j,i) = nur
         id1ul(j,i) = mul
@@ -691,7 +871,6 @@ module mod_interp
       if ( ifound /= 0 ) b3(j,i) = v1/wg+v2/wg+v3/wg+v4/wg
     end do
   end do
- 
   end subroutine distwgtdt
 !
 !-----------------------------------------------------------------------

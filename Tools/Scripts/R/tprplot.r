@@ -22,7 +22,7 @@ library("udunits2")
 library("fields")
 library("chron")
 
-surface = open.ncdf("/home/graziano/test/output/CAS_SRF.1990010100.nc")
+surface = open.ncdf("/scratch/ggiulian/test/output/verysmall_SRF.1999050100.nc")
 lonmat  = get.var.ncdf(nc=surface,varid="xlon")
 latmat  = get.var.ncdf(nc=surface,varid="xlat")
 
@@ -36,9 +36,9 @@ ts = ud.convert(timearr,timeunits$value,"seconds since 1970-01-01 00:00:00 GMT")
 a = as.POSIXct(ts,origin="1970-01-01 00:00:00 GMT",tz="GMT")
 
 inds = (1:dim(timearr))
-targettime = chron(dates("1990-01-31",format="y-m-d"), times("21:00:00"))
+targettime = chron(dates("1999-05-05",format="y-m-d"), times("21:00:00"))
 tind = inds[as.chron(a) == targettime]
 
-image.plot(lonmat, latmat,pr[,,tind])
+image.plot(lonmat, latmat,tpr[,,tind])
 
 close.ncdf(surface)

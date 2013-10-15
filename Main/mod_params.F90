@@ -36,7 +36,6 @@ module mod_params
   use mod_bdycod
   use mod_ncio
   use mod_tendency
-  use mod_ncio
   use mod_ncout
   use mod_advection , only : init_advection
   use mod_savefile
