@@ -159,7 +159,7 @@ endif
 endif
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 if DO_COMPILE_LIBCLM
-mod_savefile.o : mod_savefile.F90 clm_time_manager.o clm_varctl.o mod_che_mppio.o mod_clm.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_runparams.o netcdf.o restFileMod.o
+mod_savefile.o : mod_savefile.F90 clm_time_manager.o clm_varctl.o mod_che_mppio.o mod_clm.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_runparams.o restFileMod.o
 else
 mod_savefile.o : mod_savefile.F90 mod_che_mppio.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_runparams.o
 endif
