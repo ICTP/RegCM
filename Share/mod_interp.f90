@@ -393,7 +393,7 @@ module mod_interp
           end do
         end do
         ! Find dists from 4 points around this
-        q(:) = .false.
+        q(:) = .true.
         nn = nx
         mm = mx + 1
         if ( lonwrap ) then
@@ -424,11 +424,11 @@ module mod_interp
         end if
         dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
         if ( dists(1) > dists(2) ) then
-          q(1) = .true.
-          q(3) = .true.
+          q(2) = .false.
+          q(4) = .false.
         else
-          q(2) = .true.
-          q(4) = .true.
+          q(1) = .false.
+          q(3) = .false.
         end if
         mm = mx
         nn = nx + 1
@@ -460,29 +460,29 @@ module mod_interp
         end if
         dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
         if ( dists(1) > dists(2) ) then
-          q(3) = .true.
-          q(4) = .true.
+          q(1) = .false.
+          q(2) = .false.
         else
-          q(1) = .true.
-          q(2) = .true.
+          q(3) = .false.
+          q(4) = .false.
         end if
         if ( q(1) ) then
           mur = mx
           nur = nx+1
           mul = mx-1
-          nul = nx+1
-          mdr = mx-1
+          nul = nx-1
+          mdr = mx
           ndr = nx
-          mdl = mx
+          mdl = mx-1
           ndl = nx
         else if ( q(2) ) then
           mur = mx+1
           nur = nx+1
           mul = mx
           nul = nx+1
-          mdr = mx
+          mdr = mx+1
           ndr = nx
-          mdl = mx+1
+          mdl = mx
           ndl = nx
         else if ( q(3) ) then
           mur = mx
@@ -674,7 +674,7 @@ module mod_interp
           end do
         end do
         ! Find dists from 4 points around this
-        q(:) = .false.
+        q(:) = .true.
         nn = nx
         mm = mx + 1
         if ( lonwrap ) then
@@ -705,11 +705,11 @@ module mod_interp
         end if
         dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
         if ( dists(1) > dists(2) ) then
-          q(1) = .true.
-          q(3) = .true.
+          q(2) = .false.
+          q(4) = .false.
         else
-          q(2) = .true.
-          q(4) = .true.
+          q(1) = .false.
+          q(3) = .false.
         end if
         mm = mx
         nn = nx + 1
@@ -741,29 +741,29 @@ module mod_interp
         end if
         dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
         if ( dists(1) > dists(2) ) then
-          q(3) = .true.
-          q(4) = .true.
+          q(1) = .false.
+          q(2) = .false.
         else
-          q(1) = .true.
-          q(2) = .true.
+          q(3) = .false.
+          q(4) = .false.
         end if
         if ( q(1) ) then
           mur = mx
           nur = nx+1
           mul = mx-1
-          nul = nx+1
-          mdr = mx-1
+          nul = nx-1
+          mdr = mx
           ndr = nx
-          mdl = mx
+          mdl = mx-1
           ndl = nx
         else if ( q(2) ) then
           mur = mx+1
           nur = nx+1
           mul = mx
           nul = nx+1
-          mdr = mx
+          mdr = mx+1
           ndr = nx
-          mdl = mx+1
+          mdl = mx
           ndl = nx
         else if ( q(3) ) then
           mur = mx
