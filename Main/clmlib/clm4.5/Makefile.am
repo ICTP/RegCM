@@ -32,7 +32,8 @@ libclm45_a_SOURCES = mod_clm_domain.F90 mod_clm_type.F90 \
   mod_clm_clmvicmap.F90 mod_clm_pftvarcon.F90 mod_clm_pft2col.F90 \
   mod_clm_urbaninput.F90 mod_clm_surfrd.F90 mod_clm_cnallocation.F90 \
   mod_clm_tridiagonal.F90 mod_clm_cnbalancecheck.F90 mod_clm_cnc14decay.F90 \
-  mod_clm_cncisoflux.F90
+  mod_clm_cncisoflux.F90 mod_clm_cncstateupdate1.F90 \
+  mod_clm_cncstateupdate2.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -91,3 +92,5 @@ mod_clm_tridiagonal.o : mod_clm_tridiagonal.F90 mod_clm_type.o mod_clm_varcon.o 
 mod_clm_cnbalancecheck.o : mod_clm_cnbalancecheck.F90 mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_type.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
 mod_clm_cnc14decay.o : mod_clm_cnc14decay.F90 mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_nchelper.o mod_realkinds.o
 mod_clm_cncisoflux.o : mod_clm_cncisoflux.F90 mod_clm_type.o mod_clm_varpar.o mod_realkinds.o
+mod_clm_cncstateupdate1.o : mod_clm_cncstateupdate1.F90 mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varpar.o mod_realkinds.o
+mod_clm_cncstateupdate2.o : mod_clm_cncstateupdate2.F90 mod_clm_time_manager.o mod_clm_type.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o
