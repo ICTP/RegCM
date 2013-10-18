@@ -75,6 +75,8 @@ module mod_ncio
     integer(ik4) :: idmin
     integer(ik4) , dimension(2) :: istart , icount
     real(rk8) , dimension(:,:) , pointer :: rspace
+    logical :: has_snow = .true.
+    logical :: has_dhlake = .true.
 
     dname = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
     if ( myid == italk ) then
@@ -123,11 +125,13 @@ module mod_ncio
       call read_var2d_static(idmin,'coriol',rspace,istart=istart,icount=icount)
       coriol(jde1:jde2,ide1:ide2) = rspace
       rspace = d_zero
-      call read_var2d_static(idmin,'snowam',rspace,.true.,istart,icount)
-      snowam(jde1:jde2,ide1:ide2) = rspace
+      call read_var2d_static(idmin,'snowam',rspace,has_snow, &
+           istart=istart,icount=icount)
+      if ( has_snow ) snowam(jde1:jde2,ide1:ide2) = rspace
       if ( lakemod == 1 ) then
-        call read_var2d_static(idmin,'dhlake',rspace,.true.,istart,icount)
-        hlake(jde1:jde2,ide1:ide2) = rspace
+        call read_var2d_static(idmin,'dhlake',rspace,has_dhlake, &
+             istart=istart,icount=icount)
+        if (has_dhlake) hlake(jde1:jde2,ide1:ide2) = rspace
       end if
       call closefile(idmin)
       deallocate(rspace)
@@ -173,10 +177,12 @@ module mod_ncio
                 istart=istart,icount=icount)
         call grid_distribute(rspace,coriol,jde1,jde2,ide1,ide2)
         rspace = d_zero
-        call read_var2d_static(idmin,'snowam',rspace,.true.,istart,icount)
+        call read_var2d_static(idmin,'snowam',rspace,has_snow, &
+                istart=istart,icount=icount)
         call grid_distribute(rspace,snowam,jde1,jde2,ide1,ide2)
         if ( lakemod == 1 ) then
-          call read_var2d_static(idmin,'dhlake',rspace,.true.,istart,icount)
+          call read_var2d_static(idmin,'dhlake',rspace,has_dhlake, &
+                   istart=istart,icount=icount)
           call grid_distribute(rspace,hlake,jde1,jde2,ide1,ide2)
         end if
         call closefile(idmin)
@@ -214,6 +220,8 @@ module mod_ncio
     integer(ik4) , dimension(2) :: istart , icount
     real(rk8) , dimension(:,:) , pointer :: rspace
     real(rk8) , dimension(:,:,:) , pointer :: rspace0
+    logical :: has_snow = .true.
+    logical :: has_dhlake = .true.
     character(len=3) :: sbstring
 
     write (sbstring,'(i0.3)') nsg
@@ -252,9 +260,9 @@ module mod_ncio
       call read_var2d_static(idmin,'landuse',rspace,istart=istart,icount=icount)
       call input_reorder(rspace,lnd1,jde1,jde2,ide1,ide2)
       if ( lakemod == 1 ) then
-        call read_var2d_static(idmin,'dhlake',rspace,.true., &
+        call read_var2d_static(idmin,'dhlake',rspace,has_dhlake, &
                                istart=istart,icount=icount)
-        call input_reorder(rspace,hlake1,jde1,jde2,ide1,ide2)
+        if ( has_dhlake ) call input_reorder(rspace,hlake1,jde1,jde2,ide1,ide2)
       end if
       call closefile(idmin)
       deallocate(rspace)
@@ -292,9 +300,9 @@ module mod_ncio
         call input_reorder(rspace,rspace0,1,jx,1,iy)
         call subgrid_distribute(rspace0,lnd1,jde1,jde2,ide1,ide2)
         if ( lakemod == 1 ) then
-          call read_var2d_static(idmin,'dhlake',rspace,.true., &
+          call read_var2d_static(idmin,'dhlake',rspace,has_dhlake, &
                                  istart=istart,icount=icount)
-          call input_reorder(rspace,rspace0,1,jx,1,iy)
+          if ( has_dhlake ) call input_reorder(rspace,rspace0,1,jx,1,iy)
           call subgrid_distribute(rspace0,hlake1,jci1,jci2,ici1,ici2)
         end if
         call closefile(idmin)

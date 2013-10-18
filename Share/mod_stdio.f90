@@ -27,4 +27,67 @@ module mod_stdio
   integer(ik4) , public , parameter :: stdout = 6
   integer(ik4) , public , parameter :: stderr = 0
 
+  integer(ik4) , parameter :: file_maxunit = 99
+  integer(ik4) , parameter :: file_minunit = 10
+
+  logical , dimension(file_minunit:file_maxunit) :: unit_tag = .false.
+
+  public :: file_getunit , file_freeunit
+
+  contains
+
+    integer(ik4) function file_getunit(unitn)
+      implicit none
+      integer(ik4) , optional , intent(in) :: unitn
+      integer(ik4) :: n
+      logical :: isopened
+      ! The "I want that unit" case
+      file_getunit = -1
+      if (present (unitn)) then
+        ! Is a valid unit number ? Has been already given out ?
+        if (unitn < file_minunit .or. unitn > file_maxunit .or. &
+            unit_tag(unitn)) then
+          return
+        end if
+        ! Is it opened by some other part of the program ?
+        inquire(unitn, opened=isopened)
+        if (isopened) then
+          file_getunit = -1
+          return
+        else
+          ! Nulla osta, grant it.
+          unit_tag (unitn) = .true.
+          file_getunit = unitn
+          return
+        end if
+      else
+        do n = file_maxunit, file_minunit, -1
+          inquire(n,opened=isopened)
+          if ( isopened ) then
+            ! First loop get all opened files and flags then
+            if ( .not. unit_tag(n) ) unit_tag(n) = .true.
+            cycle
+          end if
+          ! This one is not opened and is not granted.
+          if (.not. unit_tag(n)) then
+            ! Grant it
+            unit_tag(n) = .true.
+            file_getunit = unitn
+            return
+          end if
+        end do
+      end if
+      ! No avail...
+      return
+    end function file_getunit
+
+    subroutine file_freeunit(unitn)
+      implicit none
+      integer(ik4) , intent(in) :: unitn
+      if ( unit_tag(unitn) ) then
+        close(unitn)
+        unit_tag(unitn) = .false.
+      end if
+    end subroutine file_freeunit
+
 end module mod_stdio

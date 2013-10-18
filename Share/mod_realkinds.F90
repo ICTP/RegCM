@@ -30,4 +30,14 @@ module mod_realkinds
   integer , parameter :: dp = rk8
   integer , parameter :: sp = rk4
 
+#ifdef __PGI
+  ! quiet nan for portland group compilers
+  real(rk8), parameter :: inf = O'0777600000000000000000'
+  real(rk8), parameter :: nan = O'0777700000000000000000'
+#else
+  ! signaling nan otherwise
+  real(rk8), parameter :: inf = O'0777600000000000000000'
+  real(rk8), parameter :: nan = O'0777610000000000000000'
+#endif
+
 end module mod_realkinds

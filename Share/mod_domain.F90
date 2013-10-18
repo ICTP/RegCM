@@ -60,6 +60,8 @@ module mod_domain
   subroutine read_domain_type(ncid)
     implicit none
     integer(ik4) , intent(in) :: ncid
+    logical :: has_snow = .true.
+    logical :: has_dhlake = .true.
     call check_domain(ncid)
     call allocate_domain( )
     call read_var1d_static(ncid,'sigma',mddom_io%sigma)
@@ -73,8 +75,8 @@ module mod_domain
     call read_var2d_static(ncid,'xmap',mddom_io%msfx)
     call read_var2d_static(ncid,'dmap',mddom_io%msfd)
     call read_var2d_static(ncid,'coriol',mddom_io%coriol)
-    call read_var2d_static(ncid,'snowam',mddom_io%snowam,.true.)
-    call read_var2d_static(ncid,'dhlake',mddom_io%hlake,.true.)
+    call read_var2d_static(ncid,'snowam',mddom_io%snowam,has_snow)
+    call read_var2d_static(ncid,'dhlake',mddom_io%hlake,has_dhlake)
   end subroutine read_domain_type
 
   subroutine read_domain_array(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
@@ -94,6 +96,8 @@ module mod_domain
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: coriol
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: snowam
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: hlake
+    logical :: has_snow = .true.
+    logical :: has_dhlake = .true.
     call check_domain(ncid)
     call read_var1d_static(ncid,'sigma',sigma)
     if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
@@ -106,8 +110,8 @@ module mod_domain
     if ( present(msfx) ) call read_var2d_static(ncid,'xmap',msfx)
     if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
     if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
-    if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam,.true.)
-    if ( present(hlake) ) call read_var2d_static(ncid,'dhlake',hlake,.true.)
+    if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam,has_snow)
+    if ( present(hlake) ) call read_var2d_static(ncid,'dhlake',hlake,has_dhlake)
   end subroutine read_domain_array
 
   subroutine read_domain_array_single(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
@@ -127,6 +131,8 @@ module mod_domain
     real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: coriol
     real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: snowam
     real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: hlake
+    logical :: has_snow = .true.
+    logical :: has_dhlake = .true.
     call check_domain(ncid)
     call read_var1d_static(ncid,'sigma',sigma)
     if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
@@ -139,8 +145,8 @@ module mod_domain
     if ( present(msfx) ) call read_var2d_static(ncid,'xmap',msfx)
     if ( present(msfd) ) call read_var2d_static(ncid,'dmap',msfd)
     if ( present(coriol) ) call read_var2d_static(ncid,'coriol',coriol)
-    if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam,.true.)
-    if ( present(hlake) ) call read_var2d_static(ncid,'dhlake',hlake,.true.)
+    if ( present(snowam) ) call read_var2d_static(ncid,'snowam',snowam,has_snow)
+    if ( present(hlake) ) call read_var2d_static(ncid,'dhlake',hlake,has_dhlake)
   end subroutine read_domain_array_single
 
   subroutine allocate_domain

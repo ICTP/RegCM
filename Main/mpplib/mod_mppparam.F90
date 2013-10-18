@@ -281,6 +281,7 @@ module mod_mppparam
   public :: gather_r , gather_i
   public :: reorder_subgrid , reorder_add_subgrid
   public :: input_reorder
+  public :: trueforall
 !
   contains
 !
@@ -425,6 +426,16 @@ module mod_mppparam
     call bcast(x%days_from_reference)
     call bcast(x%second_of_day)
   end subroutine bcast_rcm_time_and_date
+
+  subroutine trueforall(rlval,rtval)
+    implicit none
+    logical , intent(in) :: rlval
+    logical , intent(in) :: rtval
+    call mpi_allreduce(rlval,rtval,1,mpi_logical,mpi_lor,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+  end subroutine trueforall
 
   subroutine sumall_real8(rlval,rtval)
     implicit none

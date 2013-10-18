@@ -5,9 +5,9 @@ noinst_LIBRARIES = librcmlib.a
 librcmlib_a_SOURCES = mod_constants.F90 mod_date.f90 mod_space.f90 mod_hgt.F90 \
                       mod_message.f90 mod_memutil.F90 mod_projections.f90 \
                       mod_dynparam.F90 mod_ensemble.f90 mod_stdio.f90 \
-                      mod_humid.f90 mod_realkinds.f90 mod_interp.f90 \
+                      mod_humid.f90 mod_realkinds.F90 mod_interp.f90 \
                       mod_nchelper.F90 mod_vertint.F90 mod_spline.f90 \
-                      mod_domain.F90 mod_intkinds.f90 mod_ncstream_types.f90 \
+                      mod_domain.F90 mod_intkinds.F90 mod_ncstream_types.f90 \
                       mod_ncstream.F90 mod_scrip_grids.F90 mod_scrip_remap.F90 \
                       mod_scrip_remap_bicubic.F90 mod_scrip_remap_bilinear.F90 \
                       mod_scrip_remap_conserv.F90 mod_scrip_remap_distwgt.F90 \
@@ -40,8 +40,8 @@ mod_memutil.o: mod_memutil.F90 mod_intkinds.o mod_realkinds.o mod_space.o mod_me
 mod_message.o: mod_message.f90 mod_intkinds.o mod_realkinds.o mod_stdio.o
 mod_nchelper.o: mod_nchelper.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o mod_constants.o mod_memutil.o mod_dynparam.o mod_message.o
 mod_projections.o: mod_projections.f90 mod_intkinds.o mod_realkinds.o mod_constants.o
-mod_realkinds.o: mod_realkinds.f90
-mod_intkinds.o: mod_intkinds.f90
+mod_realkinds.o: mod_realkinds.F90
+mod_intkinds.o: mod_intkinds.F90
 mod_space.o: mod_space.f90 mod_intkinds.o mod_realkinds.o mod_date.o
 mod_spline.o: mod_spline.f90 mod_intkinds.o mod_realkinds.o mod_constants.o
 mod_stdio.o: mod_stdio.f90 mod_intkinds.o

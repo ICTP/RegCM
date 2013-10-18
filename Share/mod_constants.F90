@@ -90,10 +90,13 @@ module mod_constants
   real(rk8) , parameter :: amo = 47.9942D+00
   ! Effective molecular weight of carbon dioxide (g/mol)
   real(rk8) , parameter :: amco2 = 44.01D+00
+  ! Ratio of 13C/12C in Pee Dee Belemnite (C isotope standard)
+  real(rk8) , parameter :: pdbratio = 0.0112372D+00
 
   real(rk8) , parameter :: rgasmol = navgdr*boltzk
   ! Gas constant for dry air in Joules/kg/K
   real(rk8) , parameter :: rgas = (rgasmol/amd)*1000.0D+00
+  real(rk8) , parameter :: rdry = rgas
   ! Gas constant for water vapor in Joules/kg/K
   real(rk8) , parameter :: rwat = (rgasmol/amw)*1000.0D+00
   ! Ratio of the two above
@@ -119,6 +122,11 @@ module mod_constants
   real(rk8) , parameter :: csnw = 0.49D+00*ch2o
   real(rk8) , parameter :: cws = d_one/0.49D+00
 
+  ! Specific heats per kg (J/kg/K)
+  real(rk8) , parameter :: spcpfw = 4.188D+03    ! fresh h2o
+  real(rk8) , parameter :: spcpsw = 3.996D+03    ! Sea water
+  real(rk8) , parameter :: spcpice = 2.11727D+03 ! fresh ice
+
   ! Latent heats (Joules/kg)
   real(rk8) , parameter :: wlhf = 0.3337D+06
   real(rk8) , parameter :: wlhv = 2.50080D+06
@@ -133,6 +141,7 @@ module mod_constants
   real(rk8) , parameter :: vtmpc1 = rwat/rgas - d_one
   real(rk8) , parameter :: vtmpc2 = cpv*rcpd - d_one
   real(rk8) , parameter :: rhoh2o = 1000.0D+00
+  real(rk8) , parameter :: rhosea = 1026.0D+00
   real(rk8) , parameter :: rhosnow = 330.0D+00
   real(rk8) , parameter :: rhoice = 917.0D+00
   real(rk8) , parameter :: tzero = 273.15D+00

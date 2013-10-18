@@ -27,4 +27,12 @@ module mod_intkinds
   integer , parameter :: ik2 = selected_int_kind(R=4)
   integer , parameter :: ik1 = selected_int_kind(R=2)
 
+#ifdef __PGI
+  ! quiet nan for portland group compilers
+  integer(ik4),  parameter :: bigint = O'17777777777'
+#else
+  ! signaling nan otherwise
+  integer(ik4),  parameter :: bigint = O'17777777777'
+#endif
+
 end module mod_intkinds
