@@ -13,6 +13,7 @@ module mod_clm_cnallocation
 ! !USES:
   use mod_realkinds
   use mod_clm_varcon, only: dzsoi_decomp
+  use mod_stdio
   use mod_mpmessage
   use mod_clm_varctl, only: use_c13, use_c14
   implicit none
@@ -103,7 +104,7 @@ subroutine CNAllocationInit ( lbc, ubc, lbp, ubp )
    col_plant_ndemand(:) = nan
 
    ! set time steps
-   dt = real( get_step_size(), r8 )
+   dt = real( get_step_size(), rk8 )
 
    ! set some space-and-time constant parameters 
    bdnr         = 0.5D0 * (dt/secspday)
@@ -539,7 +540,7 @@ subroutine CNAllocation (lbp, ubp, lbc, ubc, &
 
 
    ! set time steps
-   dt = real( get_step_size(), r8 )
+   dt = real( get_step_size(), rk8 )
 
    ! loop over pfts to assess the total plant N demand
    do fp=1,num_soilp
@@ -1005,8 +1006,9 @@ subroutine CNAllocation (lbp, ubp, lbc, ubc, &
       end if
    end do
 
-#else  !----------NITRIF_DENITRIF-------------!
-   ! column loops to resolve plant/heterotroph/nitrifier/denitrifier competition for mineral N
+#else
+ !----------NITRIF_DENITRIF-------------!
+ ! column loops to resolve plant/heterotroph/nitrifier/denitrifier competition for mineral N
 
    ! init total mineral N pools
    do fc=1,num_soilc
@@ -1061,9 +1063,15 @@ subroutine CNAllocation (lbp, ubp, lbc, ubc, &
             ! soil mineral NH4 resource.
             nlimit_nh4(c,j) = 1
             if (sum_nh4_demand(c,j) > 0.0D0) then
-               actual_immob_nh4_vr(c,j) = min((smin_nh4_vr(c,j)/dt)*(potential_immob_vr(c,j)*compet_decomp_nh4 / sum_nh4_demand_scaled(c,j)), potential_immob_vr(c,j))
-               smin_nh4_to_plant_vr(c,j) = min((smin_nh4_vr(c,j)/dt)*(col_plant_ndemand(c)*nuptake_prof(c,j)*compet_plant_nh4 / sum_nh4_demand_scaled(c,j)), col_plant_ndemand(c)*nuptake_prof(c,j))
-               f_nit_vr(c,j) =  min((smin_nh4_vr(c,j)/dt)*(pot_f_nit_vr(c,j)*compet_nit / sum_nh4_demand_scaled(c,j)), pot_f_nit_vr(c,j))
+               actual_immob_nh4_vr(c,j) = min((smin_nh4_vr(c,j)/dt)*&
+                 (potential_immob_vr(c,j)*compet_decomp_nh4 / &
+                 sum_nh4_demand_scaled(c,j)), potential_immob_vr(c,j))
+               smin_nh4_to_plant_vr(c,j) = min((smin_nh4_vr(c,j)/dt)*&
+                 (col_plant_ndemand(c)*nuptake_prof(c,j)*compet_plant_nh4 / &
+                 sum_nh4_demand_scaled(c,j)), &
+                 col_plant_ndemand(c)*nuptake_prof(c,j))
+               f_nit_vr(c,j) =  min((smin_nh4_vr(c,j)/dt)*(pot_f_nit_vr(c,j)*&
+                 compet_nit / sum_nh4_demand_scaled(c,j)), pot_f_nit_vr(c,j))
             else
                actual_immob_nh4_vr(c,j) = 0.0D0
                smin_nh4_to_plant_vr(c,j) = 0.0D0
@@ -1079,9 +1087,13 @@ subroutine CNAllocation (lbp, ubp, lbc, ubc, &
          end if
 
          ! next compete for no3
-         sum_no3_demand(c,j) = (col_plant_ndemand(c)*nuptake_prof(c,j)-smin_nh4_to_plant_vr(c,j)) + (potential_immob_vr(c,j)-actual_immob_nh4_vr(c,j)) + pot_f_denit_vr(c,j)
-         sum_no3_demand_scaled(c,j) = (col_plant_ndemand(c)*nuptake_prof(c,j)-smin_nh4_to_plant_vr(c,j))*compet_plant_no3 + &
-              (potential_immob_vr(c,j)-actual_immob_nh4_vr(c,j))*compet_decomp_no3 + pot_f_denit_vr(c,j)*compet_denit
+         sum_no3_demand(c,j) = (col_plant_ndemand(c)*nuptake_prof(c,j)-&
+           smin_nh4_to_plant_vr(c,j)) + (potential_immob_vr(c,j)-&
+           actual_immob_nh4_vr(c,j)) + pot_f_denit_vr(c,j)
+         sum_no3_demand_scaled(c,j) = (col_plant_ndemand(c)*&
+           nuptake_prof(c,j)-smin_nh4_to_plant_vr(c,j))*compet_plant_no3 + &
+              (potential_immob_vr(c,j)-actual_immob_nh4_vr(c,j))*&
+              compet_decomp_no3 + pot_f_denit_vr(c,j)*compet_denit
 
          if (sum_no3_demand(c,j)*dt < smin_no3_vr(c,j)) then
             ! NO3 availability is not limiting immobilization or plant
@@ -1089,7 +1101,8 @@ subroutine CNAllocation (lbp, ubp, lbc, ubc, &
             nlimit_no3(c,j) = 1
             fpi_no3_vr(c,j) = 1.0D0 -  fpi_nh4_vr(c,j)
             actual_immob_no3_vr(c,j) = (potential_immob_vr(c,j)-actual_immob_nh4_vr(c,j))
-            smin_no3_to_plant_vr(c,j) = (col_plant_ndemand(c)*nuptake_prof(c,j)-smin_nh4_to_plant_vr(c,j))
+            smin_no3_to_plant_vr(c,j) = &
+              (col_plant_ndemand(c)*nuptake_prof(c,j)-smin_nh4_to_plant_vr(c,j))
             
             f_denit_vr(c,j) = pot_f_denit_vr(c,j)
             
@@ -1100,11 +1113,18 @@ subroutine CNAllocation (lbp, ubp, lbc, ubc, &
             ! soil mineral NO3 resource.
             nlimit_no3(c,j) = 1
             if (sum_no3_demand(c,j) > 0.0D0) then
-               actual_immob_no3_vr(c,j) = min((smin_no3_vr(c,j)/dt)*((potential_immob_vr(c,j)-actual_immob_nh4_vr(c,j))*compet_decomp_no3 / sum_no3_demand_scaled(c,j)), &
+               actual_immob_no3_vr(c,j) = min((smin_no3_vr(c,j)/dt)*&
+                 ((potential_immob_vr(c,j)-actual_immob_nh4_vr(c,j))*&
+                 compet_decomp_no3 / sum_no3_demand_scaled(c,j)), &
                     potential_immob_vr(c,j)-actual_immob_nh4_vr(c,j))
-               smin_no3_to_plant_vr(c,j) = min((smin_no3_vr(c,j)/dt)*((col_plant_ndemand(c)*nuptake_prof(c,j)-smin_nh4_to_plant_vr(c,j))*compet_plant_no3 / sum_no3_demand_scaled(c,j)), &
-                    col_plant_ndemand(c)*nuptake_prof(c,j)-smin_nh4_to_plant_vr(c,j))
-               f_denit_vr(c,j) =  min((smin_no3_vr(c,j)/dt)*(pot_f_denit_vr(c,j)*compet_denit / sum_no3_demand_scaled(c,j)), pot_f_denit_vr(c,j))
+               smin_no3_to_plant_vr(c,j) = min((smin_no3_vr(c,j)/dt)*&
+                 ((col_plant_ndemand(c)*nuptake_prof(c,j)-&
+                 smin_nh4_to_plant_vr(c,j))*compet_plant_no3 / &
+                 sum_no3_demand_scaled(c,j)), &
+                 col_plant_ndemand(c)*nuptake_prof(c,j)-smin_nh4_to_plant_vr(c,j))
+               f_denit_vr(c,j) =  min((smin_no3_vr(c,j)/dt)*&
+                 (pot_f_denit_vr(c,j)*compet_denit / &
+                 sum_no3_demand_scaled(c,j)), pot_f_denit_vr(c,j))
             else
                actual_immob_no3_vr(c,j) = 0.0D0
                smin_no3_to_plant_vr(c,j) = 0.0D0

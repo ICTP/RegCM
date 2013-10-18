@@ -6,7 +6,8 @@ module mod_clm_time_manager
    use mod_realkinds
    use mod_mpmessage
    use mod_runparams , only : idate0 , idate1 , idate2 , idatex , &
-                  ktau , mtau , dtsec , dtsrf , ntsrf , doing_restart
+                  ktau , mtau , dtsec , dtsrf , ntsrf , doing_restart , &
+                  dayspy
    use mod_clm_regcm , only : r2coutfrq
 
    implicit none
@@ -40,7 +41,8 @@ module mod_clm_time_manager
       is_end_curr_day,          &! return true on last timestep in current day
       is_end_curr_month,        &! return true on last timestep in current month
       is_last_step,             &! return true on last timestep
-      is_perpetual               ! return true if perpetual calendar is in use
+      is_perpetual,             &! return true if perpetual calendar is in use
+      get_days_per_year
 
 ! Public data for namelist input
 
@@ -492,5 +494,9 @@ subroutine timemgr_datediff(ymd1, tod1, ymd2, tod2, days)
    days = tohours(tdif)/24.0D0 + dble(tod2-tod1)/86400.0D0
 
 end subroutine timemgr_datediff
+
+  real(rk8) function get_days_per_year( )
+    get_days_per_year = dayspy
+  end function get_days_per_year
 
 end module mod_clm_time_manager
