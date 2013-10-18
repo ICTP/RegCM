@@ -33,7 +33,10 @@ libclm45_a_SOURCES = mod_clm_domain.F90 mod_clm_type.F90 \
   mod_clm_urbaninput.F90 mod_clm_surfrd.F90 mod_clm_cnallocation.F90 \
   mod_clm_tridiagonal.F90 mod_clm_cnbalancecheck.F90 mod_clm_cnc14decay.F90 \
   mod_clm_cncisoflux.F90 mod_clm_cncstateupdate1.F90 \
-  mod_clm_cncstateupdate2.F90
+  mod_clm_cncstateupdate2.F90 mod_clm_cncstateupdate3.F90 \
+  mod_clm_cnannualupdate.F90 mod_clm_cndvecosystemdynini.F90 \
+  mod_clm_cndvestablishment.F90 mod_clm_cndvlight.F90 \
+  mod_clm_cnvegstructupdate.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -44,7 +47,8 @@ else
 FCFLAGS += -I$(MPP_INCLUDE)
 endif
 
-CPPFLAGS += -DMAXPATCH_PFT=4 -DCN -DLCH4 -DCROP -DVERTSOILC #-DNITRIF_DENITRIF
+CPPFLAGS += -DMAXPATCH_PFT=4 -DCN -DLCH4 -DCROP -DVERTSOILC \
+						-DCNDV #-DNITRIF_DENITRIF
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
@@ -94,3 +98,9 @@ mod_clm_cnc14decay.o : mod_clm_cnc14decay.F90 mod_clm_time_manager.o mod_clm_typ
 mod_clm_cncisoflux.o : mod_clm_cncisoflux.F90 mod_clm_type.o mod_clm_varpar.o mod_realkinds.o
 mod_clm_cncstateupdate1.o : mod_clm_cncstateupdate1.F90 mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varpar.o mod_realkinds.o
 mod_clm_cncstateupdate2.o : mod_clm_cncstateupdate2.F90 mod_clm_time_manager.o mod_clm_type.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o
+mod_clm_cncstateupdate3.o : mod_clm_cncstateupdate3.F90 mod_clm_time_manager.o mod_clm_type.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o
+mod_clm_cnannualupdate.o : mod_clm_cnannualupdate.F90 mod_clm_pft2col.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_realkinds.o
+mod_clm_cndvecosystemdynini.o : mod_clm_cndvecosystemdynini.F90 mod_clm_decomp.o mod_clm_type.o mod_constants.o mod_realkinds.o
+mod_clm_cndvestablishment.o : mod_clm_cndvestablishment.F90 mod_clm_pftvarcon.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
+mod_clm_cndvlight.o : mod_clm_cndvlight.F90 mod_clm_type.o mod_constants.o mod_realkinds.o
+mod_clm_cnvegstructupdate.o : mod_clm_cnvegstructupdate.F90 mod_clm_atmlnd.o mod_clm_pftvarcon.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_realkinds.o

@@ -36,7 +36,6 @@ module mod_nchelper
   public :: closefile
   public :: add_common_global_params
   public :: define_basic_dimensions
-  public :: add_dimension
   public :: define_horizontal_coord
   public :: define_vertical_coord
   public :: define_cross_geolocation_coord
@@ -49,11 +48,12 @@ module mod_nchelper
   public :: define_textures
   public :: write_vertical_coord
   public :: write_horizontal_coord
-  public :: write_var2d_static
-  public :: write_var3d_static
   public :: check_dims
   public :: check_var
   public :: ncd_inqdim
+  public :: add_dimension
+  public :: add_variable
+  public :: add_attribute
   public :: check_dimlen
   public :: checkncerr
 
@@ -85,9 +85,20 @@ module mod_nchelper
     module procedure read_var3d_static_integer
   end interface read_var3d_static
 
+  interface write_var1d_static
+    module procedure write_var1d_static_double
+    module procedure write_var1d_static_single
+    module procedure write_var1d_static_integer
+    module procedure write_var1d_static_text
+  end interface write_var1d_static
+
   public :: read_var1d_static
   public :: read_var2d_static
   public :: read_var3d_static
+
+  public :: write_var1d_static
+  public :: write_var2d_static
+  public :: write_var3d_static
 
   integer(ik4) :: incstat
 
@@ -636,6 +647,74 @@ module mod_nchelper
     incstat = nf90_put_var(ncid, ihvar(2), yiy)
     call checkncerr(incstat,__FILE__,__LINE__,'Error variable iy write')
   end subroutine write_horizontal_coord
+
+  subroutine write_var1d_static_single(ncid,vnam,values,ipnt,ivar)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) :: vnam
+    real(rk4) , dimension(:) , intent(in) :: values
+    integer(ik4) , intent(inout) :: ipnt
+    integer(ik4) , intent(in) , dimension(:) :: ivar
+    incstat = nf90_put_var(ncid, ivar(ipnt), values)
+    call checkncerr(incstat,__FILE__,__LINE__,'Error variable '//vnam//' write')
+    ipnt = ipnt + 1
+    if ( debug_level > 2 ) then
+      incstat = nf90_sync(ncid)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error variable '//vnam//' sync')
+    end if
+  end subroutine write_var1d_static_single
+
+  subroutine write_var1d_static_double(ncid,vnam,values,ipnt,ivar)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) :: vnam
+    real(rk8) , dimension(:) , intent(in) :: values
+    integer(ik4) , intent(inout) :: ipnt
+    integer(ik4) , intent(in) , dimension(:) :: ivar
+    incstat = nf90_put_var(ncid, ivar(ipnt), values)
+    call checkncerr(incstat,__FILE__,__LINE__,'Error variable '//vnam//' write')
+    ipnt = ipnt + 1
+    if ( debug_level > 2 ) then
+      incstat = nf90_sync(ncid)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error variable '//vnam//' sync')
+    end if
+  end subroutine write_var1d_static_double
+
+  subroutine write_var1d_static_integer(ncid,vnam,values,ipnt,ivar)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) :: vnam
+    integer(ik4) , dimension(:) , intent(in) :: values
+    integer(ik4) , intent(inout) :: ipnt
+    integer(ik4) , intent(in) , dimension(:) :: ivar
+    incstat = nf90_put_var(ncid, ivar(ipnt), values)
+    call checkncerr(incstat,__FILE__,__LINE__,'Error variable '//vnam//' write')
+    ipnt = ipnt + 1
+    if ( debug_level > 2 ) then
+      incstat = nf90_sync(ncid)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error variable '//vnam//' sync')
+    end if
+  end subroutine write_var1d_static_integer
+
+  subroutine write_var1d_static_text(ncid,vnam,values,ipnt,ivar)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) :: vnam
+    character(len=*) , intent(in) :: values
+    integer(ik4) , intent(inout) :: ipnt
+    integer(ik4) , intent(in) , dimension(:) :: ivar
+    incstat = nf90_put_var(ncid, ivar(ipnt), values)
+    call checkncerr(incstat,__FILE__,__LINE__,'Error variable '//vnam//' write')
+    ipnt = ipnt + 1
+    if ( debug_level > 2 ) then
+      incstat = nf90_sync(ncid)
+      call checkncerr(incstat,__FILE__,__LINE__, &
+                      'Error variable '//vnam//' sync')
+    end if
+  end subroutine write_var1d_static_text
 
   subroutine write_var2d_static(ncid,vnam,values,ipnt,ivar)
     implicit none
@@ -1189,7 +1268,10 @@ module mod_nchelper
     integer(ik4) , intent(in) :: nd
     integer(ik4) , intent(inout) , dimension(:) :: idims
     integer(ik4) , intent(inout) :: ipnt
-    incstat = nf90_def_dim(ncid, dnam, nd, idims(ipnt))
+    integer(ik4) :: incstat , nval
+    incstat = nd
+    if ( nd == -1 ) incstat = nf90_unlimited
+    incstat = nf90_def_dim(ncid, dnam, incstat, idims(ipnt))
     call checkncerr(incstat,__FILE__,__LINE__,'Error adding dimension '//dnam)
     ipnt = ipnt + 1
   end subroutine add_dimension
@@ -1252,6 +1334,21 @@ module mod_nchelper
       call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension '//dname)
     end if
   end subroutine ncd_inqdim
+
+  subroutine add_attribute(ncid,aname,aval,ivar)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: aname
+    character(len=*) , intent(in) :: aval
+    integer(ik4) , intent(in) , optional :: ivar
+    integer :: istat
+    if ( present(ivar) ) then
+      istat = nf90_put_att(ncid,ivar,aname,aval)
+    else
+      istat = nf90_put_att(ncid,nf90_global,aname,aval)
+    end if
+    call checkncerr(istat,__FILE__,__LINE__,'Error adding attribute '//aname)
+  end subroutine add_attribute
 
   logical function check_dimlen(ncid,dname,ival)
     implicit none
@@ -1328,6 +1425,25 @@ module mod_nchelper
       call die('Mismatch: KZ in DOMAIN file /= KZ in namelist')
     end if
   end subroutine check_dims_regcm
+
+  subroutine add_variable(ncid,varname,long_name,units,idims,ipnt,ivars)
+    implicit none
+    integer(ik4) , intent(in) :: ncid
+    character(len=*) , intent(in) :: varname
+    character(len=*) , intent(in) :: long_name
+    character(len=*) , intent(in) :: units
+    integer(ik4) , dimension(:) , intent(in) :: idims
+    integer(ik4) , intent(inout) :: ipnt
+    integer(ik4) , dimension(:) , intent(inout) :: ivars
+    integer(ik4) :: incstat
+    incstat = nf90_def_var(ncid, varname, nf90_double, idims, ivars(ipnt))
+    call checkncerr(incstat,__FILE__,__LINE__,'Error adding variable '//varname)
+    incstat = nf90_put_att(ncid, ivars(ipnt), 'long_name',long_name)
+    call checkncerr(incstat,__FILE__,__LINE__,'Error long_name to '//varname)
+    incstat = nf90_put_att(ncid, ivars(ipnt), 'units', units)
+    call checkncerr(incstat,__FILE__,__LINE__,'Error units to '//varname)
+    ipnt = ipnt + 1
+  end subroutine add_variable
 
   subroutine check_var(ncid,vname,lerror)
     implicit none

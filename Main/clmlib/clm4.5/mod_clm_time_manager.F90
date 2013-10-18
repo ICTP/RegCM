@@ -14,8 +14,12 @@ module mod_clm_time_manager
    private
    save
 
+   real(rk8), parameter :: uninit_r8  = -999999999.0
+   integer, parameter :: uninit_int = -999999999
+
    type (rcm_time_and_date) :: cordex_refdate
    integer :: ioffset
+   integer :: rst_nstep_rad_prev  ! nstep of previous radiation call
 
 ! Public methods
 
@@ -42,18 +46,20 @@ module mod_clm_time_manager
       is_end_curr_month,        &! return true on last timestep in current month
       is_last_step,             &! return true on last timestep
       is_perpetual,             &! return true if perpetual calendar is in use
-      get_days_per_year
+      get_days_per_year,        &
+      get_rad_step_size
 
 ! Public data for namelist input
 
    character(len=32), public ::&
       calendar   = 'NO_LEAP'     ! Calendar to use in date calculations.
                                  ! 'NO_LEAP' or 'GREGORIAN'
-   integer, parameter :: uninit_int = -999999999
 
 ! Namelist read in all modes
    integer, public ::&
-      dtime         = uninit_int    ! timestep in seconds
+     dtime          = uninit_int,  &! timestep in seconds
+     dtime_rad      = uninit_int,  &! radiation interval in seconds
+     nstep_rad_prev = uninit_int    ! radiation interval in seconds
 
 ! Namelist read in only in ccsm and offline modes
    integer, public ::&
@@ -496,7 +502,17 @@ subroutine timemgr_datediff(ymd1, tod1, ymd2, tod2, days)
 end subroutine timemgr_datediff
 
   real(rk8) function get_days_per_year( )
+    implicit none
     get_days_per_year = dayspy
   end function get_days_per_year
+
+  integer function get_rad_step_size()
+    implicit none
+    if (nstep_rad_prev == uninit_int ) then
+      get_rad_step_size=get_step_size()
+    else
+      get_rad_step_size=dtime_rad
+    end if
+  end function get_rad_step_size
 
 end module mod_clm_time_manager
