@@ -392,7 +392,7 @@ module mod_clm_nchelper
     if ( searchdim(ncid,dnam) > 0 ) return ! Already here
     call add_dimhash(ncid,dnam)
     incstat = nf90_def_dim(ncid%ncid, dnam, nval, ncid%dimids(ncid%idimlast))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error adding dimension '//dnam//' to file '//trim(ncid%fname))
     ncid%idimlast = ncid%idimlast + 1
   end subroutine clm_adddim
@@ -828,10 +828,10 @@ module mod_clm_nchelper
     logical , intent(out) :: xval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     incstat = nf90_get_var(ncid%ncid,ivarid,rval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
     xval = (rval > 0)
   end subroutine clm_readvar_logical_0d
@@ -844,11 +844,11 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:) , allocatable :: rval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     allocate(rval(size(xval)))
     incstat = nf90_get_var(ncid%ncid,ivarid,rval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
     xval = (rval > 0)
     deallocate(rval)
@@ -862,11 +862,11 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:,:) , allocatable :: rval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     allocate(rval(size(xval,1),size(xval,2)))
     incstat = nf90_get_var(ncid%ncid,ivarid,rval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
     xval = (rval > 0)
     deallocate(rval)
@@ -880,11 +880,11 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:,:,:) , allocatable :: rval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     allocate(rval(size(xval,1),size(xval,2),size(xval,3)))
     incstat = nf90_get_var(ncid%ncid,ivarid,rval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
     xval = (rval > 0)
     deallocate(rval)
@@ -898,11 +898,11 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:,:,:,:) , allocatable :: rval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     allocate(rval(size(xval,1),size(xval,2),size(xval,3),size(xval,4)))
     incstat = nf90_get_var(ncid%ncid,ivarid,rval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
     xval = (rval > 0)
     deallocate(rval)
@@ -915,10 +915,10 @@ module mod_clm_nchelper
     integer(ik4) , intent(out) :: xval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     incstat = nf90_get_var(ncid%ncid,ivarid,xval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readvar_integer_0d
 
@@ -929,10 +929,10 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:) , intent(out) :: xval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     incstat = nf90_get_var(ncid%ncid,ivarid,xval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readvar_integer_1d
 
@@ -943,10 +943,10 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:,:) , intent(out) :: xval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     incstat = nf90_get_var(ncid%ncid,ivarid,xval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readvar_integer_2d
 
@@ -957,10 +957,10 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:,:,:) , intent(out) :: xval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     incstat = nf90_get_var(ncid%ncid,ivarid,xval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readvar_integer_3d
 
@@ -971,10 +971,10 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:,:,:,:) , intent(out) :: xval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     incstat = nf90_get_var(ncid%ncid,ivarid,xval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readvar_integer_4d
 
@@ -985,10 +985,10 @@ module mod_clm_nchelper
     real(rk4) , intent(out) :: xval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     incstat = nf90_get_var(ncid%ncid,ivarid,xval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readvar_real4_0d
 
@@ -999,10 +999,10 @@ module mod_clm_nchelper
     real(rk4) , dimension(:) , intent(out) :: xval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     incstat = nf90_get_var(ncid%ncid,ivarid,xval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readvar_real4_1d
 
@@ -1013,10 +1013,10 @@ module mod_clm_nchelper
     real(rk4) , dimension(:,:) , intent(out) :: xval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     incstat = nf90_get_var(ncid%ncid,ivarid,xval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readvar_real4_2d
 
@@ -1027,10 +1027,10 @@ module mod_clm_nchelper
     real(rk4) , dimension(:,:,:) , intent(out) :: xval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     incstat = nf90_get_var(ncid%ncid,ivarid,xval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readvar_real4_3d
 
@@ -1041,10 +1041,10 @@ module mod_clm_nchelper
     real(rk4) , dimension(:,:,:,:) , intent(out) :: xval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     incstat = nf90_get_var(ncid%ncid,ivarid,xval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readvar_real4_4d
 
@@ -1055,10 +1055,10 @@ module mod_clm_nchelper
     real(rk8) , intent(out) :: xval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     incstat = nf90_get_var(ncid%ncid,ivarid,xval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readvar_real8_0d
 
@@ -1069,10 +1069,10 @@ module mod_clm_nchelper
     real(rk8) , dimension(:) , intent(out) :: xval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     incstat = nf90_get_var(ncid%ncid,ivarid,xval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readvar_real8_1d
 
@@ -1083,10 +1083,10 @@ module mod_clm_nchelper
     real(rk8) , dimension(:,:) , intent(out) :: xval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     incstat = nf90_get_var(ncid%ncid,ivarid,xval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readvar_real8_2d
 
@@ -1097,10 +1097,10 @@ module mod_clm_nchelper
     real(rk8) , dimension(:,:,:) , intent(out) :: xval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     incstat = nf90_get_var(ncid%ncid,ivarid,xval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readvar_real8_3d
 
@@ -1111,10 +1111,10 @@ module mod_clm_nchelper
     real(rk8) , dimension(:,:,:,:) , intent(out) :: xval
     integer(ik4) :: ivarid
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     incstat = nf90_get_var(ncid%ncid,ivarid,xval)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readvar_real8_4d
 
@@ -1127,12 +1127,12 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid
     integer(ik4) , dimension(1) :: rval
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     istart(1) = nt
     icount(1) = 1
     incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
     xval = (rval(1) > 0)
   end subroutine clm_readrec_logical_0d
@@ -1146,7 +1146,7 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid , nv1
     integer(ik4) , dimension(:) , allocatable :: rval
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     nv1 = size(xval,1)
     allocate(rval(nv1))
@@ -1155,7 +1155,7 @@ module mod_clm_nchelper
     icount(1) = 1
     icount(2) = nv1
     incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
     xval = (rval > 0)
     deallocate(rval)
@@ -1170,7 +1170,7 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:,:) , allocatable :: rval
     integer(ik4) :: ivarid , nv1 , nv2
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -1182,7 +1182,7 @@ module mod_clm_nchelper
     icount(2) = nv1
     icount(3) = nv2
     incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
     xval = (rval > 0)
     deallocate(rval)
@@ -1197,7 +1197,7 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:,:,:) , allocatable :: rval
     integer(ik4) :: ivarid , nv1 , nv2 , nv3
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -1212,7 +1212,7 @@ module mod_clm_nchelper
     icount(3) = nv2
     icount(4) = nv3
     incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
     xval = (rval > 0)
     deallocate(rval)
@@ -1227,12 +1227,12 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid
     integer(ik4) , dimension(1) :: rval
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     istart(1) = nt
     icount(1) = 1
     incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
     xval = rval(1)
   end subroutine clm_readrec_integer_0d
@@ -1245,7 +1245,7 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) :: nt
     integer(ik4) :: ivarid , nv1
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     nv1 = size(xval,1)
     istart(1) = nt
@@ -1253,7 +1253,7 @@ module mod_clm_nchelper
     icount(1) = 1
     icount(2) = nv1
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readrec_integer_1d
 
@@ -1265,7 +1265,7 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) :: nt
     integer(ik4) :: ivarid , nv1 , nv2
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -1276,7 +1276,7 @@ module mod_clm_nchelper
     icount(2) = nv1
     icount(3) = nv2
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readrec_integer_2d
 
@@ -1288,7 +1288,7 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) :: nt
     integer(ik4) :: ivarid , nv1 , nv2 , nv3
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -1302,7 +1302,7 @@ module mod_clm_nchelper
     icount(3) = nv2
     icount(4) = nv3
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readrec_integer_3d
 
@@ -1315,12 +1315,12 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid
     real(rk4) , dimension(1) :: rval
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     istart(1) = nt
     icount(1) = 1
     incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
     xval = rval(1)
   end subroutine clm_readrec_real4_0d
@@ -1333,7 +1333,7 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) :: nt
     integer(ik4) :: ivarid , nv1
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     nv1 = size(xval,1)
     istart(1) = nt
@@ -1341,7 +1341,7 @@ module mod_clm_nchelper
     icount(1) = 1
     icount(2) = nv1
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readrec_real4_1d
 
@@ -1353,7 +1353,7 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) :: nt
     integer(ik4) :: ivarid , nv1 , nv2
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -1364,7 +1364,7 @@ module mod_clm_nchelper
     icount(2) = nv1
     icount(3) = nv2
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readrec_real4_2d
 
@@ -1376,7 +1376,7 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) :: nt
     integer(ik4) :: ivarid , nv1 , nv2 , nv3
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -1390,7 +1390,7 @@ module mod_clm_nchelper
     icount(3) = nv2
     icount(4) = nv3
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readrec_real4_3d
 
@@ -1403,12 +1403,12 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid
     real(rk8) , dimension(1) :: rval
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     istart(1) = nt
     icount(1) = 1
     incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
     xval = rval(1)
   end subroutine clm_readrec_real8_0d
@@ -1421,7 +1421,7 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) :: nt
     integer(ik4) :: ivarid , nv1
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     nv1 = size(xval,1)
     istart(1) = nt
@@ -1429,7 +1429,7 @@ module mod_clm_nchelper
     icount(1) = 1
     icount(2) = nv1
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readrec_real8_1d
 
@@ -1441,7 +1441,7 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) :: nt
     integer(ik4) :: ivarid , nv1 , nv2
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -1452,7 +1452,7 @@ module mod_clm_nchelper
     icount(2) = nv1
     icount(3) = nv2
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readrec_real8_2d
 
@@ -1464,7 +1464,7 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) :: nt
     integer(ik4) :: ivarid , nv1 , nv2 , nv3
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//ncid%fname)
     nv1 = size(xval,1)
     nv2 = size(xval,2)
@@ -1478,7 +1478,7 @@ module mod_clm_nchelper
     icount(3) = nv2
     icount(4) = nv3
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_readrec_real8_3d
 
@@ -1497,7 +1497,7 @@ module mod_clm_nchelper
       if ( xval ) rval = 1
       incstat = nf90_put_var(ncid%ncid,ivarid,rval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_logical_0d
 
@@ -1520,7 +1520,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,rval)
       deallocate(rval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_logical_1d
 
@@ -1543,7 +1543,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,rval)
       deallocate(rval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_logical_2d
 
@@ -1566,7 +1566,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,rval)
       deallocate(rval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_logical_3d
 
@@ -1589,7 +1589,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,rval)
       deallocate(rval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_logical_4d
 
@@ -1605,7 +1605,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_integer_0d
 
@@ -1621,7 +1621,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_integer_1d
 
@@ -1637,7 +1637,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_integer_2d
 
@@ -1653,7 +1653,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_integer_3d
 
@@ -1669,7 +1669,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_integer_4d
 
@@ -1685,7 +1685,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_real4_0d
 
@@ -1701,7 +1701,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_real4_1d
 
@@ -1717,7 +1717,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_real4_2d
 
@@ -1733,7 +1733,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_real4_3d
 
@@ -1749,7 +1749,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_real4_4d
 
@@ -1765,7 +1765,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_real8_0d
 
@@ -1781,7 +1781,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_real8_1d
 
@@ -1797,7 +1797,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_real8_2d
 
@@ -1813,7 +1813,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_real8_3d
 
@@ -1829,7 +1829,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//ncid%fname)
   end subroutine clm_writevar_real8_4d
 
@@ -1851,7 +1851,7 @@ module mod_clm_nchelper
       if ( xval ) rval = 1
       incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_writerec_logical_0d
 
@@ -1880,7 +1880,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
       deallocate(rval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_writerec_logical_1d
 
@@ -1912,7 +1912,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
       deallocate(rval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_writerec_logical_2d
 
@@ -1947,7 +1947,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
       deallocate(rval)
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_writerec_logical_3d
 
@@ -1968,7 +1968,7 @@ module mod_clm_nchelper
       rval(:) = xval
       incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_writerec_integer_0d
 
@@ -1990,7 +1990,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_writerec_integer_1d
 
@@ -2015,7 +2015,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_writerec_integer_2d
 
@@ -2043,7 +2043,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_writerec_integer_3d
 
@@ -2064,7 +2064,7 @@ module mod_clm_nchelper
       rval(:) = xval
       incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_writerec_real4_0d
 
@@ -2086,7 +2086,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_writerec_real4_1d
 
@@ -2111,7 +2111,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_writerec_real4_2d
 
@@ -2139,7 +2139,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_writerec_real4_3d
 
@@ -2160,7 +2160,7 @@ module mod_clm_nchelper
       rval(:) = xval
       incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_writerec_real8_0d
 
@@ -2182,7 +2182,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_writerec_real8_1d
 
@@ -2207,7 +2207,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_writerec_real8_2d
 
@@ -2235,7 +2235,7 @@ module mod_clm_nchelper
     else
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
     end if
-    call checkncerr(incstat,__FILE__,__LINE__, &
+    call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//ncid%fname)
   end subroutine clm_writerec_real8_3d
 !
