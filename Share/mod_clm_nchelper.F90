@@ -96,6 +96,8 @@ module mod_clm_nchelper
   end interface clm_addatt
 
   interface clm_readvar
+    module procedure clm_readvar_text_0d
+    module procedure clm_readvar_text_1d
     module procedure clm_readvar_logical_0d
     module procedure clm_readvar_logical_1d
     module procedure clm_readvar_logical_2d
@@ -819,6 +821,34 @@ module mod_clm_nchelper
       end if
     end do
   end function searchvar
+
+  subroutine clm_readvar_text_0d(ncid,vname,xval)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    character(len=*) , intent(out) :: xval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    incstat = nf90_get_var(ncid%ncid,ivarid,xval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+  end subroutine clm_readvar_text_0d
+
+  subroutine clm_readvar_text_1d(ncid,vname,xval)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    character(len=*) , dimension(:) , intent(out) :: xval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    incstat = nf90_get_var(ncid%ncid,ivarid,xval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+  end subroutine clm_readvar_text_1d
 
   subroutine clm_readvar_logical_0d(ncid,vname,xval)
     implicit none

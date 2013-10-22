@@ -102,11 +102,6 @@ module mod_nchelper
 
   integer(ik4) :: incstat
 
-  interface check_dims
-    module procedure check_dims_regcm
-    module procedure check_dims_generic
-  end interface check_dims
-
   contains
 !
   subroutine cdumlogical(cdum,yesno)
@@ -1365,33 +1360,7 @@ module mod_nchelper
     check_dimlen = .true.
   end function check_dimlen
 
-  subroutine check_dims_generic(ncid,ni,nj)
-    implicit none
-    integer(ik4) , intent(in) :: ncid
-    integer(ik4) , intent(out) :: ni , nj
-    integer(ik4) :: istatus
-    integer(ik4) :: idimid
-    call ncd_inqdim(ncid,'lon',dlen=ni,lerror=.true.)
-    if ( ni < 0 ) then
-      call ncd_inqdim(ncid,'lsmlon',dlen=ni,lerror=.true.)
-      if ( ni < 0 ) then
-        call ncd_inqdim(ncid,'ni',dlen=ni,lerror=.true.)
-        if ( ni < 0 ) then
-          call ncd_inqdim(ncid,'gridcell',dlen=ni)
-          nj = 1
-          return
-        else
-          call ncd_inqdim(ncid,'nj',dlen=nj)
-        end if
-      else
-        call ncd_inqdim(ncid,'lsmlat',dlen=nj)
-      end if
-    else
-      call ncd_inqdim(ncid,'lat',dlen=nj)
-    end if
-  end subroutine check_dims_generic
-
-  subroutine check_dims_regcm(ncid)
+  subroutine check_dims(ncid)
     implicit none
     integer(ik4) , intent(in) :: ncid
     integer(ik4) :: istatus
@@ -1424,7 +1393,7 @@ module mod_nchelper
       write(stderr,*) 'NAMELIST    : ', kz
       call die('Mismatch: KZ in DOMAIN file /= KZ in namelist')
     end if
-  end subroutine check_dims_regcm
+  end subroutine check_dims
 
   subroutine add_variable(ncid,varname,long_name,units,idims,ipnt,ivars)
     implicit none
