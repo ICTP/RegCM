@@ -407,16 +407,20 @@ module mod_clm_nchelper
     character , intent(in) :: ctype
     type(clm_out_filetype) , intent(inout) :: ncid
     character(len=*) , intent(in) :: varname
-    character(len=*) , intent(in) , dimension(:) :: cdims
+    character(len=*) , intent(in) , optional , dimension(:) :: cdims
     character(len=*) , intent(in) , optional :: long_name
     character(len=*) , intent(in) , optional :: units
     integer(ik4) :: nd , i , varid
-    nd = size(cdims)
-    do i = 1 , nd
-      usedims(i) = searchdim(ncid,cdims(i))
-    end do
     call add_varhash(ncid,varname)
-    incstat = nf90_def_var(ncid%ncid,varname,nf90_char,usedims(1:nd),varid)
+    if ( present(cdims) ) then
+      nd = size(cdims)
+      do i = 1 , nd
+        usedims(i) = searchdim(ncid,cdims(i))
+      end do
+      incstat = nf90_def_var(ncid%ncid,varname,nf90_char,usedims(1:nd),varid)
+    else
+      incstat = nf90_def_var(ncid%ncid,varname,nf90_char,varid)
+    end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error adding variable '//varname//' to file '//trim(ncid%fname))
     if ( present(long_name) ) then
@@ -440,7 +444,7 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) :: itype
     type(clm_out_filetype) , intent(inout) :: ncid
     character(len=*) , intent(in) :: varname
-    character(len=*) , intent(in) , dimension(:) :: cdims
+    character(len=*) , intent(in) , optional , dimension(:) :: cdims
     character(len=*) , intent(in) , optional :: long_name
     character(len=*) , intent(in) , optional :: units
     character(len=*) , intent(in) , optional :: cell_method
@@ -452,12 +456,16 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) , dimension(2) , optional :: valid_range
     integer(ik4) :: nd , i , varid
     character(len=256) :: str
-    nd = size(cdims)
-    do i = 1 , nd
-      usedims(i) = searchdim(ncid,cdims(i))
-    end do
     call add_varhash(ncid,varname)
-    incstat = nf90_def_var(ncid%ncid,varname,nf90_int4,usedims(1:nd),varid)
+    if ( present(cdims) ) then
+      nd = size(cdims)
+      do i = 1 , nd
+        usedims(i) = searchdim(ncid,cdims(i))
+      end do
+      incstat = nf90_def_var(ncid%ncid,varname,nf90_int4,usedims(1:nd),varid)
+    else
+      incstat = nf90_def_var(ncid%ncid,varname,nf90_int4,varid)
+    end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error adding variable '//varname//' to file '//trim(ncid%fname))
     incstat = nf90_put_att(ncid%ncid, varid, 'long_name',long_name)
@@ -516,7 +524,7 @@ module mod_clm_nchelper
     logical , intent(in) :: ltype
     type(clm_out_filetype) , intent(inout) :: ncid
     character(len=*) , intent(in) :: varname
-    character(len=*) , intent(in) , dimension(:) :: cdims
+    character(len=*) , intent(in) , optional , dimension(:) :: cdims
     character(len=*) , intent(in) , optional :: long_name
     character(len=*) , intent(in) , optional :: units
     character(len=*) , intent(in) , optional :: cell_method
@@ -525,12 +533,16 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) , optional :: fill_value
     integer(ik4) :: nd , i , varid
     character(len=256) :: str
-    nd = size(cdims)
-    do i = 1 , nd
-      usedims(i) = searchdim(ncid,cdims(i))
-    end do
     call add_varhash(ncid,varname)
-    incstat = nf90_def_var(ncid%ncid,varname,nf90_int,usedims(1:nd),varid)
+    if ( present(cdims) ) then
+      nd = size(cdims)
+      do i = 1 , nd
+        usedims(i) = searchdim(ncid,cdims(i))
+      end do
+      incstat = nf90_def_var(ncid%ncid,varname,nf90_int,usedims(1:nd),varid)
+    else
+      incstat = nf90_def_var(ncid%ncid,varname,nf90_int,varid)
+    end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error adding variable '//varname//' to file '//trim(ncid%fname))
     incstat = nf90_put_att(ncid%ncid, varid, 'long_name',long_name)
@@ -580,7 +592,7 @@ module mod_clm_nchelper
     real(rk4) , intent(in) :: rtype
     type(clm_out_filetype) , intent(inout) :: ncid
     character(len=*) , intent(in) :: varname
-    character(len=*) , intent(in) , dimension(:) :: cdims
+    character(len=*) , intent(in) , optional , dimension(:) :: cdims
     character(len=*) , intent(in) , optional :: long_name
     character(len=*) , intent(in) , optional :: units
     character(len=*) , intent(in) , optional :: cell_method
@@ -592,12 +604,16 @@ module mod_clm_nchelper
     real(rk4) , intent(in) , dimension(2) , optional :: valid_range
     integer(ik4) :: nd , i , varid
     character(len=256) :: str
-    nd = size(cdims)
-    do i = 1 , nd
-      usedims(i) = searchdim(ncid,cdims(i))
-    end do
     call add_varhash(ncid,varname)
-    incstat = nf90_def_var(ncid%ncid,varname,nf90_real4,usedims(1:nd),varid)
+    if ( present(cdims) ) then
+      nd = size(cdims)
+      do i = 1 , nd
+        usedims(i) = searchdim(ncid,cdims(i))
+      end do
+      incstat = nf90_def_var(ncid%ncid,varname,nf90_real4,usedims(1:nd),varid)
+    else
+      incstat = nf90_def_var(ncid%ncid,varname,nf90_real4,varid)
+    end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error adding variable '//varname//' to file '//trim(ncid%fname))
     incstat = nf90_put_att(ncid%ncid, varid, 'long_name',long_name)
@@ -657,7 +673,7 @@ module mod_clm_nchelper
     real(rk8) , intent(in) :: rtype
     type(clm_out_filetype) , intent(inout) :: ncid
     character(len=*) , intent(in) :: varname
-    character(len=*) , intent(in) , dimension(:) :: cdims
+    character(len=*) , intent(in) , optional , dimension(:) :: cdims
     character(len=*) , intent(in) , optional :: long_name
     character(len=*) , intent(in) , optional :: units
     character(len=*) , intent(in) , optional :: cell_method
@@ -669,12 +685,16 @@ module mod_clm_nchelper
     real(rk8) , intent(in) , dimension(2) , optional :: valid_range
     integer(ik4) :: nd , i , varid
     character(len=256) :: str
-    nd = size(cdims)
-    do i = 1 , nd
-      usedims(i) = searchdim(ncid,cdims(i))
-    end do
     call add_varhash(ncid,varname)
-    incstat = nf90_def_var(ncid%ncid,varname,nf90_real8,usedims(1:nd),varid)
+    if ( present(cdims) ) then
+      nd = size(cdims)
+      do i = 1 , nd
+        usedims(i) = searchdim(ncid,cdims(i))
+      end do
+      incstat = nf90_def_var(ncid%ncid,varname,nf90_real8,usedims(1:nd),varid)
+    else
+      incstat = nf90_def_var(ncid%ncid,varname,nf90_real8,varid)
+    end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error adding variable '//varname//' to file '//trim(ncid%fname))
     incstat = nf90_put_att(ncid%ncid, varid, 'long_name',long_name)
