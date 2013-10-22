@@ -33,9 +33,6 @@ module mod_clm_nchelper
   type clm_filetype
     integer(ik4) :: ncid
     character(len=256) :: fname
-  end type clm_filetype
-
-  type , extends(clm_filetype) :: clm_out_filetype
     integer(ik4) :: idimlast = 1
     integer(ik4) :: ivarlast = 1
     integer(ik4) , dimension(clm_maxdims) :: dimids
@@ -44,7 +41,7 @@ module mod_clm_nchelper
     integer(ik4) , dimension(clm_maxvars) :: varids
     integer(ik4) , dimension(clm_maxdims) :: varhash
     character(len=32) , dimension(clm_maxvars) :: varname
-  end type clm_out_filetype
+  end type clm_filetype
 
   character , public , parameter :: clmvar_text       = 'c'
   logical , public , parameter :: clmvar_logical      = .false.
@@ -52,7 +49,7 @@ module mod_clm_nchelper
   real(rk4) , public , parameter :: clmvar_real       = 1.0
   real(rk8) , public , parameter :: clmvar_double     = 1.0D0
 
-  public :: clm_filetype , clm_out_filetype
+  public :: clm_filetype
 
   public :: clm_createfile
   public :: clm_openfile
@@ -183,7 +180,7 @@ module mod_clm_nchelper
   subroutine clm_createfile(fname,ncid)
     implicit none
     character(len=*) , intent(in) :: fname
-    type(clm_out_filetype) , intent(out) :: ncid
+    type(clm_filetype) , intent(out) :: ncid
 
 #ifdef NETCDF4_HDF5
     incstat = nf90_create(fname, &
@@ -208,7 +205,7 @@ module mod_clm_nchelper
 
   subroutine clm_enddef(ncid)
     implicit none
-    type(clm_out_filetype) , intent(inout) :: ncid
+    type(clm_filetype) , intent(inout) :: ncid
     incstat =  nf90_enddef(ncid%ncid)
     call clm_checkncerr(__FILE__,__LINE__,'Error enddef NetCDF output')
   end subroutine clm_enddef
@@ -252,7 +249,7 @@ module mod_clm_nchelper
 
   subroutine clm_addatt_text(ncid,aname,aval,ivar,cvar)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: aname
     character(len=*) , intent(in) :: aval
     integer(ik4) , intent(in) , optional :: ivar
@@ -276,7 +273,7 @@ module mod_clm_nchelper
 
   subroutine clm_addatt_integer(ncid,aname,aval,ivar,cvar)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: aname
     integer(ik4) , intent(in) :: aval
     integer(ik4) , intent(in) , optional :: ivar
@@ -300,7 +297,7 @@ module mod_clm_nchelper
 
   subroutine clm_addatt_single(ncid,aname,aval,ivar,cvar)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: aname
     real(rk4) , intent(in) :: aval
     integer(rk4) , intent(in) , optional :: ivar
@@ -324,7 +321,7 @@ module mod_clm_nchelper
 
   subroutine clm_addatt_double(ncid,aname,aval,ivar,cvar)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: aname
     integer(rk8) , intent(in) :: aval
     integer(ik4) , intent(in) , optional :: ivar
@@ -388,7 +385,7 @@ module mod_clm_nchelper
 
   subroutine clm_adddim(ncid,dnam,nd)
     implicit none
-    type(clm_out_filetype) , intent(inout) :: ncid
+    type(clm_filetype) , intent(inout) :: ncid
     character(len=*) , intent(in) :: dnam
     integer(ik4) , intent(in) :: nd
     integer(ik4) :: nval
@@ -405,7 +402,7 @@ module mod_clm_nchelper
   subroutine clm_addvar_char(ctype,ncid,varname,cdims,long_name,units)
     implicit none
     character , intent(in) :: ctype
-    type(clm_out_filetype) , intent(inout) :: ncid
+    type(clm_filetype) , intent(inout) :: ncid
     character(len=*) , intent(in) :: varname
     character(len=*) , intent(in) , optional , dimension(:) :: cdims
     character(len=*) , intent(in) , optional :: long_name
@@ -442,7 +439,7 @@ module mod_clm_nchelper
                             fill_value,flag_values,valid_range)
     implicit none
     integer(ik4) , intent(in) :: itype
-    type(clm_out_filetype) , intent(inout) :: ncid
+    type(clm_filetype) , intent(inout) :: ncid
     character(len=*) , intent(in) :: varname
     character(len=*) , intent(in) , optional , dimension(:) :: cdims
     character(len=*) , intent(in) , optional :: long_name
@@ -522,7 +519,7 @@ module mod_clm_nchelper
                             cell_method,comment,missing_value,fill_value)
     implicit none
     logical , intent(in) :: ltype
-    type(clm_out_filetype) , intent(inout) :: ncid
+    type(clm_filetype) , intent(inout) :: ncid
     character(len=*) , intent(in) :: varname
     character(len=*) , intent(in) , optional , dimension(:) :: cdims
     character(len=*) , intent(in) , optional :: long_name
@@ -590,7 +587,7 @@ module mod_clm_nchelper
                             fill_value,flag_values,valid_range)
     implicit none
     real(rk4) , intent(in) :: rtype
-    type(clm_out_filetype) , intent(inout) :: ncid
+    type(clm_filetype) , intent(inout) :: ncid
     character(len=*) , intent(in) :: varname
     character(len=*) , intent(in) , optional , dimension(:) :: cdims
     character(len=*) , intent(in) , optional :: long_name
@@ -671,7 +668,7 @@ module mod_clm_nchelper
                             fill_value,flag_values,valid_range)
     implicit none
     real(rk8) , intent(in) :: rtype
-    type(clm_out_filetype) , intent(inout) :: ncid
+    type(clm_filetype) , intent(inout) :: ncid
     character(len=*) , intent(in) :: varname
     character(len=*) , intent(in) , optional , dimension(:) :: cdims
     character(len=*) , intent(in) , optional :: long_name
@@ -767,19 +764,14 @@ module mod_clm_nchelper
 
   subroutine clm_closefile(ncid)
     implicit none
-    class(clm_filetype) , intent(inout) :: ncid
+    type(clm_filetype) , intent(inout) :: ncid
     incstat = nf90_close(ncid%ncid)
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error closing file '//trim(ncid%fname))
     ncid%ncid = -1
     ncid%fname = ' '
-    select type(ncid)
-      class is (clm_out_filetype)
-        ncid%idimlast = -1
-        ncid%ivarlast = -1
-        ncid%ncid = -1
-        ncid%fname = ' '
-    end select
+    ncid%idimlast = -1
+    ncid%ivarlast = -1
   end subroutine clm_closefile
 
   subroutine clm_checkncerr(filename,line,arg)
@@ -810,7 +802,7 @@ module mod_clm_nchelper
 
   subroutine add_dimhash(ncid,dname)
     implicit none
-    type(clm_out_filetype) , intent(inout) :: ncid
+    type(clm_filetype) , intent(inout) :: ncid
     character(len=*) , intent(in) :: dname
     ncid%dimhash(ncid%idimlast) = hash(dname)
     ncid%dimname(ncid%idimlast) = dname
@@ -818,7 +810,7 @@ module mod_clm_nchelper
 
   integer(ik4) function searchdim(ncid,dname)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: dname
     integer(ik4) :: i , hashed
     hashed = hash(dname)
@@ -833,7 +825,7 @@ module mod_clm_nchelper
 
   subroutine add_varhash(ncid,vname)
     implicit none
-    type(clm_out_filetype) , intent(inout) :: ncid
+    type(clm_filetype) , intent(inout) :: ncid
     character(len=*) , intent(in) :: vname
     ncid%varhash(ncid%ivarlast) = hash(vname)
     ncid%varname(ncid%ivarlast) = vname
@@ -841,7 +833,7 @@ module mod_clm_nchelper
 
   integer(ik4) function searchvar(ncid,vname)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     integer(ik4) :: i , hashed
     hashed = hash(vname)
@@ -1546,7 +1538,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_text_0d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     character(len=*) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1562,7 +1554,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_text_1d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     character(len=*) , dimension(:) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1578,7 +1570,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_0d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     logical , intent(in) :: xval
     integer(ik4) , dimension(1) :: rval
@@ -1597,7 +1589,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_1d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     logical , dimension(:) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1620,7 +1612,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_2d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     logical , dimension(:,:) , intent(in) :: xval
     integer(ik4) , dimension(:,:) , allocatable :: rval
@@ -1643,7 +1635,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_3d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     logical , dimension(:,:,:) , intent(in) :: xval
     integer(ik4) , dimension(:,:,:) , allocatable :: rval
@@ -1666,7 +1658,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_logical_4d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     logical , dimension(:,:,:,:) , intent(in) :: xval
     integer(ik4) , dimension(:,:,:,:) , allocatable :: rval
@@ -1689,7 +1681,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_0d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     integer(ik4) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1705,7 +1697,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_1d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     integer(ik4) , dimension(:) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1721,7 +1713,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_2d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     integer(ik4) , dimension(:,:) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1737,7 +1729,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_3d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     integer(ik4) , dimension(:,:,:) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1753,7 +1745,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_integer_4d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     integer(ik4) , dimension(:,:,:,:) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1769,7 +1761,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_0d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk4) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1785,7 +1777,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_1d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk4) , dimension(:) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1801,7 +1793,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_2d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk4) , dimension(:,:) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1817,7 +1809,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_3d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk4) , dimension(:,:,:) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1833,7 +1825,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real4_4d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk4) , dimension(:,:,:,:) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1849,7 +1841,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_0d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk8) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1865,7 +1857,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_1d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk8) , dimension(:) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1881,7 +1873,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_2d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk8) , dimension(:,:) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1897,7 +1889,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_3d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk8) , dimension(:,:,:) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1913,7 +1905,7 @@ module mod_clm_nchelper
 
   subroutine clm_writevar_real8_4d(ncid,vname,xval)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk8) , dimension(:,:,:,:) , intent(in) :: xval
     integer(ik4) :: ivarid
@@ -1929,7 +1921,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_0d(ncid,vname,xval,nt)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     logical , intent(in) :: xval
     integer(ik4) , intent(in) :: nt
@@ -1951,7 +1943,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_1d(ncid,vname,xval,nt)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     logical , dimension(:) , intent(in) :: xval
     integer(ik4) , intent(in) :: nt
@@ -1980,7 +1972,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_2d(ncid,vname,xval,nt)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     logical , dimension(:,:) , intent(in) :: xval
     integer(ik4) , intent(in) :: nt
@@ -2012,7 +2004,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_logical_3d(ncid,vname,xval,nt)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     logical , dimension(:,:,:) , intent(in) :: xval
     integer(ik4) , intent(in) :: nt
@@ -2047,7 +2039,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_integer_0d(ncid,vname,xval,nt)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     integer(ik4) , intent(in) :: xval
     integer(ik4) , intent(in) :: nt
@@ -2068,7 +2060,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_integer_1d(ncid,vname,xval,nt)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     integer(ik4) , dimension(:) , intent(in) :: xval
     integer(ik4) , intent(in) :: nt
@@ -2090,7 +2082,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_integer_2d(ncid,vname,xval,nt)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     integer(ik4) , dimension(:,:) , intent(in) :: xval
     integer(ik4) , intent(in) :: nt
@@ -2115,7 +2107,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_integer_3d(ncid,vname,xval,nt)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     integer(ik4) , dimension(:,:,:) , intent(in) :: xval
     integer(ik4) , intent(in) :: nt
@@ -2143,7 +2135,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real4_0d(ncid,vname,xval,nt)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk4) , intent(in) :: xval
     integer(ik4) , intent(in) :: nt
@@ -2164,7 +2156,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real4_1d(ncid,vname,xval,nt)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk4) , dimension(:) , intent(in) :: xval
     integer(ik4) , intent(in) :: nt
@@ -2186,7 +2178,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real4_2d(ncid,vname,xval,nt)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk4) , dimension(:,:) , intent(in) :: xval
     integer(ik4) , intent(in) :: nt
@@ -2211,7 +2203,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real4_3d(ncid,vname,xval,nt)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk4) , dimension(:,:,:) , intent(in) :: xval
     integer(ik4) , intent(in) :: nt
@@ -2239,7 +2231,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real8_0d(ncid,vname,xval,nt)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk8) , intent(in) :: xval
     integer(ik4) , intent(in) :: nt
@@ -2260,7 +2252,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real8_1d(ncid,vname,xval,nt)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk8) , dimension(:) , intent(in) :: xval
     integer(ik4) , intent(in) :: nt
@@ -2282,7 +2274,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real8_2d(ncid,vname,xval,nt)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk8) , dimension(:,:) , intent(in) :: xval
     integer(ik4) , intent(in) :: nt
@@ -2307,7 +2299,7 @@ module mod_clm_nchelper
 
   subroutine clm_writerec_real8_3d(ncid,vname,xval,nt)
     implicit none
-    type(clm_out_filetype) , intent(in) :: ncid
+    type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
     real(rk8) , dimension(:,:,:) , intent(in) :: xval
     integer(ik4) , intent(in) :: nt
