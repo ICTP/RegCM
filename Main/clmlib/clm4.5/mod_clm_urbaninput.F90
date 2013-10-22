@@ -11,7 +11,7 @@ module mod_clm_urbaninput
 ! !USES:
   use mod_realkinds
   use mod_mpmessage
-  use mod_nchelper
+  use mod_clm_nchelper
   use mod_dynparam
   use mod_mppparam
 !
@@ -95,7 +95,7 @@ contains
 !
 ! !LOCAL VARIABLES:
 !EOP
-    integer :: ncid                  ! netcdf id
+    type(clm_filetype) :: ncid       ! netcdf id
     integer :: begg,endg             ! start/stop gridcells
     integer :: nw,n,k,i,j,ni,nj,ns   ! indices
     integer :: nlevurb_i             ! input grid: number of urban vertical levels
@@ -121,16 +121,15 @@ contains
           write(stdout,*)' Reading in urban input data from fsurdat file ...'
        end if
        
-       call openfile_withname(fsurdat,ncid)
+       call clm_openfile(fsurdat,ncid)
 
        if (myid == italk) then
           write(stdout,*) subname,trim(fsurdat)
        end if
 
-       call ncd_inqdim(ncid,'nsolar',lexist=has_nsolar)
-
        ! Check whether this file has new-format urban data
-       call ncd_inqdim(ncid,'numurbl',lexist=has_numurbl)
+       has_nsolar = clm_check_dim(ncid,'nsolar')
+       has_numurbl = clm_check_dim(ncid,'numurbl')
 
        ! If file doesn't have numurbl, then it is old-format urban;
        ! in this case, set nlevurb to zero
@@ -175,7 +174,7 @@ contains
           write(stderr,*)'initUrbanInput: allocation error '
           call fatal(__FILE__,__LINE__,'clm now stopping')
        endif
-       call check_dims(ncid,ni,nj)
+       call clm_check_dims(ncid,ni,nj)
        ns = ni*nj
        if (ldomain%ns /= ns .or. ldomain%ni /= ni .or. ldomain%nj /= nj) then
           write(stderr,*)trim(subname), &
@@ -185,62 +184,62 @@ contains
           write(stderr,*)trim(subname), 'ldomain%ns,ns,= ',ldomain%ns,ns
           call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
-       call ncd_inqdim(ncid,'nlevurb',dlen=nlevurb_i)
+       call clm_inqdim(ncid,'nlevurb',dlen=nlevurb_i)
        if (nlevurb_i /= nlevurb) then
           write(stderr,*)trim(subname)// ': parameter nlevurb= ',nlevurb, &
                'does not equal input dataset nlevurb= ',nlevurb_i
           call fatal(__FILE__,__LINE__,'clm now stopping')
        endif
-       call ncd_inqdim(ncid,'numrad',dlen=numrad_i)
+       call clm_inqdim(ncid,'numrad',dlen=numrad_i)
        if (numrad_i /= numrad) then
           write(stderr,*)trim(subname)// ': parameter numrad= ',numrad, &
                'does not equal input dataset numrad= ',numrad_i
           call fatal(__FILE__,__LINE__,'clm now stopping')
        endif
-       call ncd_inqdim(ncid,'numurbl',dlen=numurbl_i)
+       call clm_inqdim(ncid,'numurbl',dlen=numurbl_i)
        if (numurbl_i /= numurbl) then
           write(stderr,*)trim(subname)// ': parameter numurbl= ',numurbl, &
                'does not equal input dataset numurbl= ',numurbl_i
           call fatal(__FILE__,__LINE__,'clm now stopping')
        endif
 
-       call read_var2d_static(ncid,'CANYON_HWR',ni,nj,urbinp%canyon_hwr)
-       call read_var2d_static(ncid,'WTLUNIT_ROOF',ni,nj,urbinp%wtlunit_roof)
-       call read_var2d_static(ncid,'WTROAD_PERV',ni,nj,urbinp%wtroad_perv)
-       call read_var2d_static(ncid,'EM_ROOF',ni,nj,urbinp%em_roof)
-       call read_var2d_static(ncid,'EM_IMPROAD',ni,nj,urbinp%em_improad)
-       call read_var2d_static(ncid,'EM_PERROAD',ni,nj,urbinp%em_perroad)
-       call read_var2d_static(ncid,'EM_WALL',ni,nj,urbinp%em_wall)
-       call read_var2d_static(ncid,'HT_ROOF',ni,nj,urbinp%ht_roof)
-       call read_var2d_static(ncid,'WIND_HGT_CANYON',ni,nj,urbinp%wind_hgt_canyon)
-       call read_var2d_static(ncid,'THICK_WALL',ni,nj,urbinp%thick_wall)
-       call read_var2d_static(ncid,'THICK_ROOF',ni,nj,urbinp%thick_roof)
-       call read_var2d_static(ncid,'NLEV_IMPROAD',ni,nj,urbinp%nlev_improad)
-       call read_var2d_static(ncid,'T_BUILDING_MIN',ni,nj,urbinp%t_building_min)
-       call read_var2d_static(ncid,'T_BUILDING_MAX',ni,nj,urbinp%t_building_max)
+       call clm_readvar(ncid,'CANYON_HWR',urbinp%canyon_hwr)
+       call clm_readvar(ncid,'WTLUNIT_ROOF',urbinp%wtlunit_roof)
+       call clm_readvar(ncid,'WTROAD_PERV',urbinp%wtroad_perv)
+       call clm_readvar(ncid,'EM_ROOF',urbinp%em_roof)
+       call clm_readvar(ncid,'EM_IMPROAD',urbinp%em_improad)
+       call clm_readvar(ncid,'EM_PERROAD',urbinp%em_perroad)
+       call clm_readvar(ncid,'EM_WALL',urbinp%em_wall)
+       call clm_readvar(ncid,'HT_ROOF',urbinp%ht_roof)
+       call clm_readvar(ncid,'WIND_HGT_CANYON',urbinp%wind_hgt_canyon)
+       call clm_readvar(ncid,'THICK_WALL',urbinp%thick_wall)
+       call clm_readvar(ncid,'THICK_ROOF',urbinp%thick_roof)
+       call clm_readvar(ncid,'NLEV_IMPROAD',urbinp%nlev_improad)
+       call clm_readvar(ncid,'T_BUILDING_MIN',urbinp%t_building_min)
+       call clm_readvar(ncid,'T_BUILDING_MAX',urbinp%t_building_max)
 
        if ( has_nsolar ) then
          call fatal(__FILE__,__LINE__, &
              trim(subname)//' ERROR: Cannot handle nsolar here' )
          ! not implemented
        else
-         call read_var3d_static(ncid,'ALB_IMPROAD_DIR',ni,nj,numrad,urbinp%alb_improad_dir)
-         call read_var3d_static(ncid,'ALB_IMPROAD_DIF',ni,nj,numrad,urbinp%alb_improad_dif)
-         call read_var3d_static(ncid,'ALB_PERROAD_DIR',ni,nj,numrad,urbinp%alb_perroad_dir)
-         call read_var3d_static(ncid,'ALB_PERROAD_DIF',ni,nj,numrad,urbinp%alb_perroad_dif)
-         call read_var3d_static(ncid,'ALB_ROOF_DIR',ni,nj,numrad,urbinp%alb_roof_dir)
-         call read_var3d_static(ncid,'ALB_ROOF_DIF',ni,nj,numrad,urbinp%alb_roof_dif)
-         call read_var3d_static(ncid,'ALB_WALL_DIR',ni,nj,numrad,urbinp%alb_wall_dir)
-         call read_var3d_static(ncid,'ALB_WALL_DIF',ni,nj,numrad,urbinp%alb_wall_dif)
+         call clm_readvar(ncid,'ALB_IMPROAD_DIR',urbinp%alb_improad_dir)
+         call clm_readvar(ncid,'ALB_IMPROAD_DIF',urbinp%alb_improad_dif)
+         call clm_readvar(ncid,'ALB_PERROAD_DIR',urbinp%alb_perroad_dir)
+         call clm_readvar(ncid,'ALB_PERROAD_DIF',urbinp%alb_perroad_dif)
+         call clm_readvar(ncid,'ALB_ROOF_DIR',urbinp%alb_roof_dir)
+         call clm_readvar(ncid,'ALB_ROOF_DIF',urbinp%alb_roof_dif)
+         call clm_readvar(ncid,'ALB_WALL_DIR',urbinp%alb_wall_dir)
+         call clm_readvar(ncid,'ALB_WALL_DIF',urbinp%alb_wall_dif)
        end if
-       call read_var3d_static(ncid,'TK_IMPROAD',ni,nj,nlevurb,urbinp%tk_improad)
-       call read_var3d_static(ncid,'TK_ROOF',ni,nj,nlevurb,urbinp%tk_roof)
-       call read_var3d_static(ncid,'TK_WALL',ni,nj,nlevurb,urbinp%tk_wall)
-       call read_var3d_static(ncid,'CV_IMPROAD',ni,nj,nlevurb,urbinp%cv_improad)
-       call read_var3d_static(ncid,'CV_ROOF',ni,nj,nlevurb,urbinp%cv_roof)
-       call read_var3d_static(ncid,'CV_WALL',ni,nj,nlevurb,urbinp%cv_wall)
+       call clm_readvar(ncid,'TK_IMPROAD',urbinp%tk_improad)
+       call clm_readvar(ncid,'TK_ROOF',urbinp%tk_roof)
+       call clm_readvar(ncid,'TK_WALL',urbinp%tk_wall)
+       call clm_readvar(ncid,'CV_IMPROAD',urbinp%cv_improad)
+       call clm_readvar(ncid,'CV_ROOF',urbinp%cv_roof)
+       call clm_readvar(ncid,'CV_WALL',urbinp%cv_wall)
 
-       call closefile(ncid)
+       call clm_closefile(ncid)
        if (myid == italk) then
           write(stdout,*)' Sucessfully read urban input data' 
           write(stdout,*)

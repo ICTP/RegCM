@@ -34,6 +34,7 @@ module mod_clm_time_manager
       get_curr_date,            &! return date components at end of current timestep
       get_prev_date,            &! return date components at beginning of current timestep
       get_start_date,           &! return components of the start date
+      get_driver_start_ymd,     &! return year/month/day (as integer in YYYYMMDD format) of driver start date
       get_ref_date,             &! return components of the reference date
       get_perp_date,            &! return components of the perpetual date, and current time of day
       get_curr_time,            &! return components of elapsed time since reference date at end of current timestep
@@ -46,6 +47,7 @@ module mod_clm_time_manager
       is_end_curr_month,        &! return true on last timestep in current month
       is_last_step,             &! return true on last timestep
       is_perpetual,             &! return true if perpetual calendar is in use
+      is_restart,               &! return true if this is a restart run
       get_days_per_year,        &
       get_rad_step_size
 
@@ -302,6 +304,26 @@ subroutine get_start_date(yr, mon, day, tod)
 
 end subroutine get_start_date
 
+integer function get_driver_start_ymd( tod )
+
+! Return date of start of simulation from driver (i.e. NOT from restart file)
+! Note: get_start_date gets you the date from the beginning of the simulation
+!       on the restart file.
+
+! Arguments
+   integer, intent(out) , optional::&
+      tod     ! time of day (seconds past 0Z)
+
+    integer :: ih , yr , mon , day
+
+    call split_idate(idate0,yr,mon,day,ih)
+
+    get_driver_start_ymd = yr*10000+mon*100+day
+
+    if (present(tod)) tod = idate0%second_of_day
+
+end function get_driver_start_ymd
+
 !=========================================================================================
 
 subroutine get_ref_date(yr, mon, day, tod)
@@ -514,5 +536,15 @@ end subroutine timemgr_datediff
       get_rad_step_size=dtime_rad
     end if
   end function get_rad_step_size
+
+  logical function is_restart( )
+    ! Determine if restart run
+    use mod_clm_varctl, only : nsrest, nsrContinue
+    if (nsrest == nsrContinue) then
+      is_restart = .true.
+    else
+      is_restart = .false.
+    end if
+  end function is_restart
 
 end module mod_clm_time_manager

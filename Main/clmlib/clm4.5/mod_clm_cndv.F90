@@ -16,6 +16,7 @@ module mod_clm_cndv
   use mod_realkinds
   use mod_dynparam
   use mod_mppparam
+  use mod_clm_nchelper
   use mod_clm_cnvegstructupdate, only : CNVegStructUpdate
 !
 ! !PUBLIC TYPES:
@@ -152,11 +153,11 @@ contains
 ! Create CNDV history file
 !
 ! !USES:
-    use mod_clm_clmtype
+    use mod_clm_type
     use mod_clm_decomp       , only : get_proc_bounds, get_proc_global
     use mod_clm_varpar      , only : maxpatch_pft
     use mod_clm_domain       , only : ldomain
-    use mod_clm_varctl      , only : caseid, ctitle, finidat, fsurdat, fpftcon, iulog
+    use mod_clm_varctl      , only : caseid, ctitle, finidat, fsurdat, fpftcon
     use mod_clm_varcon      , only : spval
     use mod_clm_time_manager, only : get_ref_date, get_nstep, get_curr_date, get_curr_time
     use mod_clm_varcon  , only : secspday
@@ -184,7 +185,7 @@ contains
 !
 ! !LOCAL VARIABLES:
     character(len=256) :: dgvm_fn      ! dgvm history filename
-    integer :: ncid                    ! netcdf file id
+    type(clm_filetype) :: ncid         ! netcdf file id
     integer :: g,p,l                   ! indices
     integer :: begp, endp              ! per-proc beginning and ending pft indices
     integer :: begc, endc              ! per-proc beginning and ending column indices
@@ -197,10 +198,6 @@ contains
     integer :: hours,minutes,secs      ! hours,minutes,seconds of hh:mm:ss
     integer :: nstep                   ! time step
     integer :: nbsec                   ! seconds components of a date
-    integer , dimension(5) :: dimids   ! dimension, variable id
-    integer , dimension(5) :: varids   ! variable id
-    integer :: tid
-    integer :: ipnt
     real(rk8):: time                   ! current time
     character(len=256) :: str          ! temporary string
     character(len=  8) :: curdate      ! current date
@@ -243,18 +240,18 @@ contains
 
     dgvm_fn = set_dgvm_filename()
 
-    call createfile_withname(trim(dgvm_fn),ncid)
+    call clm_createfile(trim(dgvm_fn),ncid)
 
     ! -----------------------------------------------------------------------
     ! Create global attributes.
     ! -----------------------------------------------------------------------
     
     str = 'CF1.0'
-    call add_attribute(ncid, 'conventions', trim(str))
+    call clm_addatt(ncid, 'conventions', trim(str))
     
     call getdatetime(curdate, curtime)
     str = 'created on ' // curdate // ' ' // curtime
-    call add_attribute(ncid, 'history', trim(str))
+    call clm_addatt(ncid, 'history', trim(str))
  
 #ifdef IBM
     hostname='ibm platform '
@@ -264,59 +261,56 @@ contains
     call getlog(user)
 #endif
        
-    call add_attribute(ncid, 'logname', trim(user))
-    call add_attribute(ncid, 'host', trim(hostname))
+    call clm_addatt(ncid, 'logname', trim(user))
+    call clm_addatt(ncid, 'host', trim(hostname))
        
     str = 'Community Land Model: CLM3'
-    call add_attribute(ncid, 'source',  trim(str))
+    call clm_addatt(ncid, 'source',  trim(str))
        
     str = '$Name$'
-    call add_attribute(ncid, 'version', trim(str))
+    call clm_addatt(ncid, 'version', trim(str))
        
     str = '$Id$'
-    call add_attribute(ncid, 'revision_id',  trim(str))
+    call clm_addatt(ncid, 'revision_id',  trim(str))
 
     str = ctitle
-    call add_attribute(ncid, 'case_title', trim(str))
+    call clm_addatt(ncid, 'case_title', trim(str))
 
     str = caseid
-    call add_attribute(ncid, 'case_id',  trim(str))
+    call clm_addatt(ncid, 'case_id',  trim(str))
 
-    call add_attribute(ncid, 'Surface_dataset',  trim(fsurdat))
+    call clm_addatt(ncid, 'Surface_dataset',  trim(fsurdat))
 
     str = 'arbitrary initialization'
     if (finidat /= ' ') str = finidat
-    call add_attribute(ncid, 'Initial_conditions_dataset',  trim(str))
+    call clm_addatt(ncid, 'Initial_conditions_dataset',  trim(str))
 
-    call add_attribute(ncid,'PFT_physiological_constants_dataset',trim(fpftcon))
+    call clm_addatt(ncid,'PFT_physiological_constants_dataset',trim(fpftcon))
 
     ! -----------------------------------------------------------------------
     ! Define dimensions.
     ! -----------------------------------------------------------------------
     
-    ipnt = 1
     if (ldomain%isgrid2d) then
-      call add_dimension(ncid,'lon',ldomain%ni,ipnt,dimids)
-      call add_dimension(ncid,'lat',ldomain%nj,ipnt,dimids)
+      call clm_adddim(ncid,'lon',ldomain%ni)
+      call clm_adddim(ncid,'lat',ldomain%nj)
     else
-      call add_dimension(ncid,'gridcell',ldomain%ns,ipnt,dimids)
+      call clm_adddim(ncid,'gridcell',ldomain%ns)
     end if
-    call add_dimension(ncid,'pft',maxpatch_pft,ipnt,dimids)
-    tid = ipnt
-    call add_dimension(ncid,'time',-1,ipnt,dimids)
-    call add_dimension(ncid,'string_length',80,ipnt,dimids)
+    call clm_adddim(ncid,'pft',maxpatch_pft)
+    call clm_adddim(ncid,'time',clmvar_unlim)
+    call clm_adddim(ncid,'string_length',80)
     
     ! -----------------------------------------------------------------------
     ! Define variables
     ! -----------------------------------------------------------------------
     
     ! Define coordinate variables (including time)
-    ipnt = 1
     if (ldomain%isgrid2d) then
-       call add_variable(ncid,'lon','coordinate longitude','degrees_east', &
-         dimids(1:1),ipnt,varids)
-       call add_variable(ncid,'lat','coordinate latitude','degrees_north', &
-         dimids(2:2),ipnt,varids)
+       call clm_addvar(clmvar_double,ncid,'lon',(/'lon'/), &
+         'coordinate longitude','degrees_east')
+       call clm_addvar(clmvar_double,ncid,'lat',(/'lat'/), &
+         'coordinate latitude','degrees_north')
     end if
     
     call get_curr_time(mdcur, mscur)
@@ -331,78 +325,66 @@ contains
     str = 'days since ' // basedate // " " // basesec
     time = mdcur + mscur/secspday
     
-    call add_variable(ncid,'time','time',trim(str),dimids(tid:tid),ipnt,varids)
+    call clm_addvar(clmvar_double,ncid,'time',(/'time'/),'time',trim(str))
        
     ! Define surface grid (coordinate variables, latitude, longitude, surface type).
     
     if (ldomain%isgrid2d) then
-       call ncd_defvar(ncid=ncid, varname='longxy', xtype=ncprec, &
-            dim1name='lon', dim2name='lat', &
+      call clm_addvar(clmvar_double,ncid,'longxy',(/'lon','lat'/), &
             long_name='longitude', units='degrees_east')
-       
-       call ncd_defvar(ncid=ncid, varname='latixy', xtype=ncprec, &
-            dim1name='lon', dim2name='lat', &
+      call clm_addvar(clmvar_double,ncid,'latixy',(/'lon','lat'/), &
             long_name='latitude', units='degrees_north')
-       
-       call ncd_defvar(ncid=ncid, varname='landmask', xtype=ncd_int, &
-            dim1name='lon', dim2name='lat', &
+      call clm_addvar(clmvar_integer,ncid,'landmask',(/'lon','lat'/), &
             long_name='land/ocean mask (0.=ocean and 1.=land)')
     else
-       call ncd_defvar(ncid=ncid, varname='longxy', xtype=ncprec, &
-            dim1name='gridcell',&
+      call clm_addvar(clmvar_double,ncid,'longxy',(/'gridcell'/), &
             long_name='longitude', units='degrees_east')
-       
-       call ncd_defvar(ncid=ncid, varname='latixy', xtype=ncprec, &
-            dim1name='gridcell',&
+      call clm_addvar(clmvar_double,ncid,'latixy',(/'gridcell'/), &
             long_name='latitude', units='degrees_north')
-       
-       call ncd_defvar(ncid=ncid, varname='landmask', xtype=ncd_int, &
-            dim1name='gridcell', &
+      call clm_addvar(clmvar_integer,ncid,'landmask',(/'gridcell'/), &
             long_name='land/ocean mask (0.=ocean and 1.=land)')
     end if
 
     ! Define time information
 
-    call ncd_defvar(ncid=ncid, varname='mcdate', xtype=ncd_int, dim1name='time',&
+    call clm_addvar(clmvar_integer,ncid,'mcdate',(/'time'/), &
          long_name='current date (YYYYMMDD)')
-
-    call ncd_defvar(ncid=ncid, varname='mcsec', xtype=ncd_int, dim1name='time',&
+    call clm_addvar(clmvar_integer,ncid,'mcsec',(/'time'/), &
          long_name='current seconds of current date', units='s')
-
-    call ncd_defvar(ncid=ncid, varname='mdcur', xtype=ncd_int, dim1name='time',&
+    call clm_addvar(clmvar_integer,ncid,'mdcur',(/'time'/), &
          long_name='current day (from base day)')
-
-    call ncd_defvar(ncid=ncid, varname='mscur', xtype=ncd_int, dim1name='time',&
+    call clm_addvar(clmvar_integer,ncid,'mscur',(/'time'/), &
          long_name='current seconds of current day', units='s')
-
-    call ncd_defvar(ncid=ncid, varname='nstep', xtype=ncd_int, dim1name='time',&
+    call clm_addvar(clmvar_integer,ncid,'nstep',(/'time'/), &
          long_name='time step', units='s')
 
     ! Define time dependent variables
 
     if (ldomain%isgrid2d) then
-       call ncd_defvar(ncid=ncid, varname='FPCGRID', xtype=ncprec, &
-            dim1name='lon', dim2name='lat', dim3name='pft', dim4name='time', &
-            long_name='plant functional type cover', units='fraction of vegetated area', &
+       call clm_addvar(clmvar_double,ncid,'FPCGRID', &
+         (/'lon ','lat ','pft ','time'/), &
+            long_name='plant functional type cover', &
+            units='fraction of vegetated area', &
             missing_value=spval, fill_value=spval)
-       
-       call ncd_defvar(ncid=ncid, varname='NIND', xtype=ncprec, &
-            dim1name='lon', dim2name='lat', dim3name='pft', dim4name='time', &
-            long_name='number of individuals', units='individuals/m2 vegetated land', &
+       call clm_addvar(clmvar_double,ncid,'NIND', &
+         (/'lon ','lat ','pft ','time'/), &
+            long_name='number of individuals', &
+            units='individuals/m2 vegetated land', &
             missing_value=spval, fill_value=spval)
     else 
-       call ncd_defvar(ncid=ncid, varname='FPCGRID', xtype=ncprec, &
-            dim1name='gridcell', dim2name='pft', dim3name='time', &
-            long_name='plant functional type cover', units='fraction of vegetated area', &
+       call clm_addvar(clmvar_double,ncid,'FPCGRID',&
+            (/'gridcell','pft     ','time    '/), &
+            long_name='plant functional type cover', &
+            units='fraction of vegetated area', &
             missing_value=spval, fill_value=spval)
-       
-       call ncd_defvar(ncid=ncid, varname='NIND', xtype=ncprec, &
-            dim1name='gridcell', dim2name='pft', dim3name='time', &
-            long_name='number of individuals', units='individuals/m2 vegetated land', &
+       call clm_addvar(clmvar_double,ncid,'NIND', &
+            (/'gridcell','pft     ','time    '/), &
+            long_name='number of individuals', &
+            units='individuals/m2 vegetated land', &
             missing_value=spval, fill_value=spval)
     end if
 
-    call ncd_enddef(ncid)
+    call clm_enddef(ncid)
 
     ! -----------------------------------------------------------------------
     ! Write variables
@@ -410,12 +392,9 @@ contains
 
     ! Write surface grid (coordinate variables, latitude, longitude, surface type).
 
-    call ncd_io(ncid=ncid, varname='longxy'  , data=ldomain%lonc, flag='write', &
-         dim1name=grlnd)
-    call ncd_io(ncid=ncid, varname='latixy'  , data=ldomain%latc, flag='write', &
-         dim1name=grlnd)
-    call ncd_io(ncid=ncid, varname='landmask', data=ldomain%mask, flag='write', &
-         dim1name=grlnd)
+    call clm_writevar(ncid,'longxy',ldomain%lonc)
+    call clm_writevar(ncid,'latixy',ldomain%latc)
+    call clm_writevar(ncid,'landmask',ldomain%mask)
 
     ! Write current date, current seconds, current day, current nstep
 
@@ -423,12 +402,12 @@ contains
     mcdate = yr*10000 + mon*100 + day
     nstep = get_nstep()
 
-    call ncd_io(ncid=ncid, varname='mcdate', data=mcdate, nt=1, flag='write')
-    call ncd_io(ncid=ncid, varname='mcsec' , data=mcsec , nt=1, flag='write')
-    call ncd_io(ncid=ncid, varname='mdcur' , data=mdcur , nt=1, flag='write')
-    call ncd_io(ncid=ncid, varname='mscur' , data=mcsec , nt=1, flag='write')
-    call ncd_io(ncid=ncid, varname='nstep' , data=nstep , nt=1, flag='write')
-    call ncd_io(ncid=ncid, varname='time'  , data=time  , nt=1, flag='write')
+    call clm_writevar(ncid,'mcdate',mcdate,nt=1)
+    call clm_writevar(ncid,'mcsec',mcsec,nt=1)
+    call clm_writevar(ncid,'mdcur',mdcur,nt=1)
+    call clm_writevar(ncid,'mscur',mscur,nt=1)
+    call clm_writevar(ncid,'nstep',nstep,nt=1)
+    call clm_writevar(ncid,'time',time,nt=1)
 
     ! Write time dependent variables to CNDV history file
 
@@ -441,8 +420,7 @@ contains
        l = plandunit(p)
        if (.not. ifspecial(l)) rbuf2dg(g,mxy(p)) = fpcgrid(p)*100.D0
     end do
-    call ncd_io(ncid=ncid, varname='FPCGRID', dim1name=grlnd, data=rbuf2dg, &
-         nt=1, flag='write')
+    call clm_writevar(ncid,'FPCGRID',rbuf2dg,nt=1)
 
     rbuf2dg(:,:) = 0.D0
     do p = begp,endp
@@ -450,8 +428,7 @@ contains
        l = plandunit(p)
        if (.not. ifspecial(l)) rbuf2dg(g,mxy(p)) = nind(p)
     end do
-    call ncd_io(ncid=ncid, varname='NIND', dim1name=grlnd, data=rbuf2dg, &
-         nt=1, flag='write')
+    call clm_writevar(ncid,'NIND',rbuf2dg,nt=1)
 
     ! Deallocate dynamic memory
 
@@ -461,10 +438,10 @@ contains
     ! Close and archive netcdf CNDV history file
     !------------------------------------------------------------------
 
-    call closefile(ncid)
+    call clm_closefile(ncid)
 
     if (myid == italk) then
-       write(iulog,*)'(histCNDV): Finished writing CNDV history dataset ',&
+       write(stdout,*)'(histCNDV): Finished writing CNDV history dataset ',&
             trim(dgvm_fn), 'at nstep = ',get_nstep()
     end if
 
@@ -482,8 +459,8 @@ contains
 ! Determine initial dataset filenames
 !
 ! !USES:
-    use clm_varctl       , only : caseid, inst_suffix
-    use clm_time_manager , only : get_curr_date
+    use mod_clm_varctl       , only : caseid, inst_suffix
+    use mod_clm_time_manager , only : get_curr_date
 !
 ! !ARGUMENTS:
     implicit none
@@ -522,7 +499,7 @@ contains
 ! Reconstruct a filter of naturally-vegetated PFTs for use in DGVM
 !
 ! !USES:
-    use clmtype
+    use mod_clm_type
 !
 ! !ARGUMENTS:
     implicit none

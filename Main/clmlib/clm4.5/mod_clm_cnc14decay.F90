@@ -12,7 +12,7 @@ module mod_clm_cnc14decay
 !
 ! !USES:
     use mod_realkinds
-    use mod_nchelper
+    use mod_clm_nchelper
     use mod_mpmessage
     use mod_stdio
     use mod_dynparam
@@ -308,7 +308,7 @@ subroutine C14_init_BombSpike()
    implicit none
 
 ! !OTHER LOCAL VARIABLES:
-   integer :: ncid            ! netcdf id
+   type(clm_filetype)  :: ncid            ! netcdf id
    integer :: ntim            ! number of input data time samples
    integer :: t
    
@@ -319,17 +319,17 @@ subroutine C14_init_BombSpike()
          write(stdout, *) trim(atm_c14_filename)
       endif
 
-      call openfile_withname(atm_c14_filename,ncid)
-      call ncd_inqdim(ncid,'time',ntim)
+      call clm_openfile(atm_c14_filename,ncid)
+      call clm_inqdim(ncid,'time',ntim)
       
       !! allocate arrays based on size of netcdf timeseries
       allocate(atm_c14file_time(ntim))
       allocate(atm_delta_c14(ntim))
 
-      call read_var1d_static(ncid,'time',ntim,atm_c14file_time)
-      call read_var1d_static(ncid,'atm_delta_c14',ntim,atm_delta_c14)
+      call clm_readvar(ncid,'time',atm_c14file_time)
+      call clm_readvar(ncid,'atm_delta_c14',atm_delta_c14)
       
-      call closefile(ncid)
+      call clm_closefile(ncid)
 
       ! check to make sure that time dimension is well behaved
       do t = 2, ntim

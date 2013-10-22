@@ -36,7 +36,10 @@ libclm45_a_SOURCES = mod_clm_domain.F90 mod_clm_type.F90 \
   mod_clm_cncstateupdate2.F90 mod_clm_cncstateupdate3.F90 \
   mod_clm_cnannualupdate.F90 mod_clm_cndvecosystemdynini.F90 \
   mod_clm_cndvestablishment.F90 mod_clm_cndvlight.F90 \
-  mod_clm_cnvegstructupdate.F90
+  mod_clm_cnvegstructupdate.F90 mod_clm_cndecompcascadebgc.F90 \
+  mod_clm_cndecompcascadecentury.F90 mod_clm_cnverticalprofile.F90 \
+  mod_clm_cnnitrifdenitrif.F90 mod_clm_cndecomp.F90 mod_clm_croprest.F90 \
+  mod_clm_cndv.F90 mod_clm_cnphenology.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -48,7 +51,7 @@ FCFLAGS += -I$(MPP_INCLUDE)
 endif
 
 CPPFLAGS += -DMAXPATCH_PFT=4 -DCN -DLCH4 -DCROP -DVERTSOILC \
-						-DCNDV #-DNITRIF_DENITRIF
+						-DCNDV # -DNITRIF_DENITRIF -DLCH4
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
@@ -69,7 +72,7 @@ mod_clm_varpar.o : mod_clm_varpar.F90 mod_realkinds.o
 mod_clm_varcon.o : mod_clm_varcon.F90 mod_clm_varpar.o mod_constants.o mod_realkinds.o
 mod_clm_varsur.o : mod_clm_varsur.F90 mod_realkinds.o
 mod_clm_regcm.o : mod_clm_regcm.F90 mod_realkinds.o
-mod_clm_time_manager.o : mod_clm_time_manager.F90 mod_date.o mod_mpmessage.o mod_runparams.o mod_clm_regcm.o
+mod_clm_time_manager.o : mod_clm_time_manager.F90 mod_date.o mod_mpmessage.o mod_runparams.o mod_clm_regcm.o mod_clm_varctl.o
 mod_clm_activelayer.o : mod_clm_activelayer.F90 mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_constants.o mod_realkinds.o
 mod_clm_varctl.o : mod_clm_varctl.F90 mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o
 mod_clm_subgridave.o : mod_clm_subgridave.F90 mod_clm_varpar.o mod_clm_type.o mod_clm_varcon.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
@@ -87,14 +90,14 @@ mod_clm_biogeophysics1.o : mod_clm_biogeophysics1.F90 mod_clm_atmlnd.o mod_clm_q
 mod_clm_soiltemperature.o : mod_clm_soiltemperature.F90 mod_clm_atmlnd.o mod_clm_banddiagonal.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_realkinds.o
 mod_clm_biogeophysics2.o : mod_clm_biogeophysics2.F90 mod_clm_atmlnd.o mod_clm_soiltemperature.o mod_clm_subgridave.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_realkinds.o
 mod_clm_clmvicmap.o : mod_clm_clmvicmap.F90 mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_realkinds.o
-mod_clm_pftvarcon.o : mod_clm_pftvarcon.F90 mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_mpmessage.o mod_mppparam.o mod_nchelper.o mod_realkinds.o
+mod_clm_pftvarcon.o : mod_clm_pftvarcon.F90 mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_mpmessage.o mod_mppparam.o mod_clm_nchelper.o mod_realkinds.o
 mod_clm_pft2col.o : mod_clm_pft2col.F90 mod_clm_subgridave.o mod_clm_type.o mod_realkinds.o
-mod_clm_urbaninput.o : mod_clm_urbaninput.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_type.o mod_clm_varctl.o mod_clm_varpar.o mod_mpmessage.o mod_nchelper.o mod_realkinds.o
+mod_clm_urbaninput.o : mod_clm_urbaninput.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_type.o mod_clm_varctl.o mod_clm_varpar.o mod_mpmessage.o mod_clm_nchelper.o mod_realkinds.o
 mod_clm_surfrd.o : mod_clm_surfrd.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_pftvarcon.o mod_clm_type.o mod_clm_urbaninput.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_clm_varsur.o mod_dynparam.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_stdio.o
 mod_clm_cnallocation.o : mod_clm_cnallocation.F90 mod_clm_pft2col.o mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o
 mod_clm_tridiagonal.o : mod_clm_tridiagonal.F90 mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_realkinds.o
 mod_clm_cnbalancecheck.o : mod_clm_cnbalancecheck.F90 mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_type.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
-mod_clm_cnc14decay.o : mod_clm_cnc14decay.F90 mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_nchelper.o mod_realkinds.o
+mod_clm_cnc14decay.o : mod_clm_cnc14decay.F90 mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_clm_nchelper.o mod_realkinds.o
 mod_clm_cncisoflux.o : mod_clm_cncisoflux.F90 mod_clm_type.o mod_clm_varpar.o mod_realkinds.o
 mod_clm_cncstateupdate1.o : mod_clm_cncstateupdate1.F90 mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varpar.o mod_realkinds.o
 mod_clm_cncstateupdate2.o : mod_clm_cncstateupdate2.F90 mod_clm_time_manager.o mod_clm_type.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o
@@ -104,3 +107,11 @@ mod_clm_cndvecosystemdynini.o : mod_clm_cndvecosystemdynini.F90 mod_clm_decomp.o
 mod_clm_cndvestablishment.o : mod_clm_cndvestablishment.F90 mod_clm_pftvarcon.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
 mod_clm_cndvlight.o : mod_clm_cndvlight.F90 mod_clm_type.o mod_constants.o mod_realkinds.o
 mod_clm_cnvegstructupdate.o : mod_clm_cnvegstructupdate.F90 mod_clm_atmlnd.o mod_clm_pftvarcon.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_realkinds.o
+mod_clm_cndecompcascadebgc.o : mod_clm_cndecompcascadebgc.F90 mod_clm_ch4varcon.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_realkinds.o
+mod_clm_cndecompcascadecentury.o : mod_clm_cndecompcascadecentury.F90 mod_clm_ch4varcon.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o
+mod_clm_cnverticalprofile.o : mod_clm_cnverticalprofile.F90 mod_clm_pft2col.o mod_clm_pftvarcon.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_realkinds.o mod_stdio.o
+mod_clm_cnnitrifdenitrif.o : mod_clm_cnnitrifdenitrif.F90 mod_clm_ch4varcon.o mod_clm_cndecompcascadebgc.o mod_clm_cndecompcascadecentury.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_realkinds.o
+mod_clm_cndecomp.o : mod_clm_cndecomp.F90 mod_clm_varcon.o mod_clm_cnallocation.o mod_clm_cndecompcascadebgc.o mod_clm_cndecompcascadecentury.o mod_clm_cnnitrifdenitrif.o mod_clm_cnverticalprofile.o mod_clm_pft2col.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varpar.o mod_realkinds.o
+mod_clm_croprest.o : mod_clm_croprest.F90 mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_nchelper.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o
+mod_clm_cndv.o : mod_clm_cndv.F90 mod_clm_cndvestablishment.o mod_clm_cndvlight.o mod_clm_cnvegstructupdate.o mod_clm_decomp.o mod_clm_domain.o mod_clm_nchelper.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_mppparam.o mod_realkinds.o
+mod_clm_cnphenology.o : mod_clm_cnphenology.F90 mod_clm_croprest.o mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_realkinds.o mod_stdio.o

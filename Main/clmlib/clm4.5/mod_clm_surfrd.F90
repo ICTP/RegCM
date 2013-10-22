@@ -22,7 +22,7 @@ module mod_clm_surfrd
   use mod_mpmessage
   use mod_dynparam , only : myid
   use mod_mppparam
-  use mod_nchelper
+  use mod_clm_nchelper
   use mod_clm_varpar  , only : nlevsoifl, numpft, &
                            maxpatch_pft, numcft, maxpatch, &
                            npatch_urban_tbd, npatch_urban_hd, npatch_urban_md, &
@@ -102,7 +102,7 @@ contains
     integer :: ns                  ! size of grid on file
     integer :: n,i,j               ! index 
     integer :: ier                 ! error status
-    integer            :: ncid     ! netcdf id
+    type(clm_filetype) :: ncid     ! netcdf id
     character(len=256) :: varname  ! variable name
     logical :: readvar             ! read variable in or not
     integer , allocatable :: idata2d(:,:)
@@ -121,11 +121,11 @@ contains
        endif
     end if
 
-    call openfile_withname(filename,ncid)
+    call clm_openfile(filename,ncid)
 
     ! Determine dimensions and if grid file is 2d or 1d
 
-    call check_dims(ncid,ni,nj)
+    call clm_check_dims(ncid,ni,nj)
     if ( nj == 1 ) isgrid2d = .false.
     if (myid == italk) then
        write(stdout,*)'lat/lon grid flag (isgrid2d) is ',isgrid2d
@@ -135,14 +135,16 @@ contains
     allocate(mask(ns))
     mask(:) = 1
 
-    readvar = .true.
+    readvar = .false.
     if (isgrid2d) then
        allocate(idata2d(ni,nj))
        idata2d(:,:) = 1
-       call read_var2d_static(ncid,'LANDMASK',ni,nj,idata2d,lerror=readvar)
-       if ( .not. readvar ) then
+       if ( clm_check_var(ncid,'LANDMASK') ) then
+         call clm_readvar(ncid,'LANDMASK',idata2d)
          readvar = .true.
-         call read_var2d_static(ncid,'mask',ni,nj,idata2d,lerror=readvar)
+       else if ( clm_check_var(ncid,'mask') ) then
+         call clm_readvar(ncid,'mask',idata2d)
+         readvar = .true.
        end if
        if (readvar) then
           do j = 1,nj
@@ -154,10 +156,12 @@ contains
        end if
        deallocate(idata2d)
     else
-       call read_var1d_static(ncid,'LANDMASK',ns,mask,lerror=readvar)
-       if (.not. readvar) then
-          readvar = .true.
-          call read_var1d_static(ncid,'mask',ns,mask,lerror=readvar)
+       if ( clm_check_var(ncid,'LANDMASK') ) then
+         call clm_readvar(ncid,'LANDMASK',mask)
+         readvar = .true.
+       else if ( clm_check_var(ncid,'mask') ) then
+         call clm_readvar(ncid,'mask',mask)
+         readvar = .true.
        end if
     end if
     if (.not. readvar) then
@@ -165,7 +169,7 @@ contains
           trim(subname)//' ERROR: landmask not on fatmlndfrc file' )
     end if
 
-    call closefile(ncid)
+    call clm_closefile(ncid)
 
   end subroutine surfrd_get_globmask
 
@@ -203,8 +207,8 @@ contains
 !
 ! !LOCAL VARIABLES:
 !EOP
-    integer           :: ncid               ! netcdf id
-    integer           :: ncidg              ! netCDF id for glcmask
+    type(clm_filetype) :: ncid              ! netcdf id
+    type(clm_filetype ):: ncidg             ! netCDF id for glcmask
     integer :: beg                          ! local beg index
     integer :: end                          ! local end index
     integer :: ni,nj,ns                     ! size of grid on file
@@ -228,11 +232,11 @@ contains
        endif
     end if
 
-    call openfile_withname(filename,ncid)
+    call clm_openfile(filename,ncid)
 
     ! Determine dimensions
 
-    call check_dims(ncid,ni,nj)
+    call clm_check_dims(ncid,ni,nj)
     if ( nj == 1 ) isgrid2d = .false.
     ns = ni*nj
 
@@ -242,58 +246,69 @@ contains
     call domain_init(ldomain, isgrid2d=isgrid2d, ni=ni, nj=nj, nbeg=beg, nend=end)
     ! Determine type of file - old style grid file or new style domain file
 
-    call check_var(ncid,'LONGXY',readvar)
-    if (readvar) istype_domain = .false.
-
-    readvar = .true.
-    call check_var(ncid,'xc',readvar)
-    if (readvar) istype_domain = .true.
+    if ( clm_check_var(ncid,'LONGXY') ) istype_domain = .false.
+    if ( clm_check_var(ncid,'xc') ) istype_domain = .true.
 
     ! Read in area, lon, lat
 
     if (istype_domain) then
-       call read_var1d_static(ncid,'area',size(ldomain%area),ldomain%area,readvar)
-       ! convert from radians**2 to km**2
-       if (.not. readvar) then
+       if ( clm_check_var(ncid,'area') ) then
+         call clm_readvar(ncid,'area',ldomain%area)
+       else
          call fatal(__FILE__,__LINE__,trim(subname)//' ERROR: area NOT on file')
        end if
+       ! convert from radians**2 to km**2
        ldomain%area = ldomain%area * (re**2)
-       call read_var1d_static(ncid,'xc',size(ldomain%lonc),ldomain%lonc,readvar)
-       if (.not. readvar) then
+       if ( clm_check_var(ncid,'xc') ) then
+         call clm_readvar(ncid,'xc',ldomain%lonc)
+       else
          call fatal(__FILE__,__LINE__,trim(subname)//' ERROR: xc NOT on file')
        end if
-       call read_var1d_static(ncid,'yc',size(ldomain%latc),ldomain%latc,readvar)
-       if (.not. readvar) then
+       if ( clm_check_var(ncid,'yc') ) then
+         call clm_readvar(ncid,'yc',ldomain%latc)
+       else
          call fatal(__FILE__,__LINE__,trim(subname)//' ERROR: yc NOT on file')
        end if
-       call read_var1d_static(ncid,'mask',size(ldomain%mask),ldomain%mask,readvar)
-       if (.not. readvar) then
+       if ( clm_check_var(ncid,'mask') )then
+         call clm_readvar(ncid,'mask',ldomain%mask)
+       else
          call fatal(__FILE__,__LINE__,trim(subname)//' ERROR: mask NOT on file')
        end if
-       call read_var1d_static(ncid,'frac',size(ldomain%frac),ldomain%frac,readvar)
-       if (.not. readvar) then
-         call fatal(__FILE__,__LINE__,trim(subname)//' ERROR: LANDMASK NOT on file')
+       if ( clm_check_var(ncid,'frac') ) then
+         call clm_readvar(ncid,'frac',ldomain%frac)
+       else
+         call fatal(__FILE__,__LINE__, &
+           trim(subname)//' ERROR: LANDMASK NOT on file')
        end if
     else
-       call read_var1d_static(ncid,'AREA',size(ldomain%area),ldomain%area,readvar)
-       if (.not. readvar) then
+       if ( clm_check_var(ncid,'AREA') ) then
+         call clm_readvar(ncid,'AREA',ldomain%area)
+       else
          call fatal(__FILE__,__LINE__,trim(subname)//' ERROR: AREA NOT on file')
        end if
-       call read_var1d_static(ncid,'LONGXY',size(ldomain%lonc),ldomain%lonc,readvar)
-       if (.not. readvar) then
-         call fatal(__FILE__,__LINE__,trim(subname)//' ERROR: LONGXY NOT on file')
+       if ( clm_check_var(ncid,'LONGXY') ) then
+         call clm_readvar(ncid,'LONGXY',ldomain%lonc)
+       else
+         call fatal(__FILE__,__LINE__, &
+           trim(subname)//' ERROR: LONGXY NOT on file')
        end if
-       call read_var1d_static(ncid,'LATIXY',size(ldomain%latc),ldomain%latc,readvar)
-       if (.not. readvar) then
-         call fatal(__FILE__,__LINE__,trim(subname)//' ERROR: LATIXY NOT on file')
+       if ( clm_check_var(ncid,'LATIXY') ) then
+         call clm_readvar(ncid,'LATIXY',ldomain%latc)
+       else
+         call fatal(__FILE__,__LINE__, &
+           trim(subname)//' ERROR: LATIXY NOT on file')
        end if
-       call read_var1d_static(ncid,'LANDMASK',size(ldomain%mask),ldomain%mask,readvar)
-       if (.not. readvar) then
-         call fatal(__FILE__,__LINE__,trim(subname)//' ERROR: LANDMASK NOT on file')
+       if ( clm_check_var(ncid,'LANDMASK') ) then
+         call clm_readvar(ncid,'LANDMASK',ldomain%mask)
+       else
+         call fatal(__FILE__,__LINE__, &
+           trim(subname)//' ERROR: LANDMASK NOT on file')
        end if
-       call read_var1d_static(ncid,'LANDFRAC',size(ldomain%frac),ldomain%frac,readvar)
-       if (.not. readvar) then
-         call fatal(__FILE__,__LINE__,trim(subname)//' ERROR: LANDMASK NOT on file')
+       if ( clm_check_var(ncid,'LANDFRAC') ) then
+         call clm_readvar(ncid,'LANDFRAC',ldomain%frac)
+       else
+         call fatal(__FILE__,__LINE__, &
+           trim(subname)//' ERROR: LANDMASK NOT on file')
        end if
     end if
     if (isgrid2d) then
@@ -303,14 +318,14 @@ contains
        else
           vname = 'LONGXY'
        end if
-       call read_var2d_static(ncid,vname,ni,nj,rdata2d,readvar)
+       call clm_readvar(ncid,vname,rdata2d)
        lon1d(:) = reshape(rdata2d,(/ns/))
        if (istype_domain) then
           vname = 'yc'
        else
           vname = 'LATIXY'
        end if
-       call read_var2d_static(ncid,vname,ni,nj,rdata2d,readvar)
+       call clm_readvar(ncid,vname,rdata2d)
        lat1d(:) = reshape(rdata2d,(/ns/))
        deallocate(rdata2d)
     end if
@@ -328,7 +343,7 @@ contains
        ! where (ldomain%latc >  90.0D0) ldomain%latc =  90.0D0
     endif
 
-    call closefile(ncid)
+    call clm_closefile(ncid)
 
     if (present(glcfilename)) then
        if (myid == italk) then
@@ -337,12 +352,14 @@ contains
              call fatal(__FILE__,__LINE__,'clm now stopping')
           endif
        end if
-       call openfile_withname(glcfilename,ncidg)
+       call clm_openfile(glcfilename,ncidg)
 
        ldomain%glcmask(:) = 0
-       call read_var1d_static(ncidg,'GLCMASK',size(ldomain%glcmask),ldomain%glcmask,readvar)
-       if (.not. readvar) then
-         call fatal(__FILE__,__LINE__,trim(subname)//' ERROR: GLCMASK NOT in file' )
+       if ( clm_check_var(ncidg,'GLCMASK') ) then
+         call clm_readvar(ncidg,'GLCMASK',ldomain%glcmask)
+       else
+         call fatal(__FILE__,__LINE__, &
+           trim(subname)//' ERROR: GLCMASK NOT in file' )
        end if
 
        ! Make sure the glc mask is a subset of the land mask
@@ -355,7 +372,7 @@ contains
              call fatal(__FILE__,__LINE__,'clm now stopping')
           endif
        enddo
-       call closefile(ncidg)
+       call clm_closefile(ncidg)
     endif   ! present(glcfilename)
 
   end subroutine surfrd_get_grid
@@ -389,7 +406,7 @@ contains
 !
 ! !LOCAL VARIABLES:
 !EOP
-    integer           :: ncid      ! netcdf file id
+    type(clm_filetype) :: ncid     ! netcdf file id
     integer :: n                   ! indices
     integer :: ni,nj,ns            ! size of grid on file
     integer :: dimid,varid         ! netCDF id's
@@ -411,8 +428,8 @@ contains
        endif
     end if
 
-    call openfile_withname(filename,ncid)
-    call check_dims(ncid,ni,nj)
+    call clm_openfile(filename,ncid)
+    call clm_check_dims(ncid,ni,nj)
     if ( nj == 1 ) isgrid2d = .true.
     ns = ni*nj
 
@@ -426,14 +443,18 @@ contains
     end = domain%nend
 
     allocate(latc(beg:end),lonc(beg:end))
-    call read_var1d_static(ncid,'LONGXY',size(lonc),lonc,readvar)
-    if (.not. readvar) then
-      call fatal(__FILE__,__LINE__, trim(subname)//' ERROR: LONGXY  NOT on topodata file' )
+    if ( clm_check_var(ncid,'LONGXY') ) then
+      call clm_readvar(ncid,'LONGXY',lonc)
+    else
+      call fatal(__FILE__,__LINE__, &
+        trim(subname)//' ERROR: LONGXY  NOT on topodata file' )
     end if
 
-    call read_var1d_static(ncid,'LONGXY',size(latc),latc,readvar)
-    if (.not. readvar) then
-      call fatal(__FILE__,__LINE__, trim(subname)//' ERROR: LONGXY  NOT on topodata file' )
+    if ( clm_check_var(ncid,'LATIXY') ) then
+      call clm_readvar(ncid,'LATIXY',latc)
+    else
+      call fatal(__FILE__,__LINE__, &
+        trim(subname)//' ERROR: LATIXY  NOT on topodata file' )
     end if
 
     do n = beg,end
@@ -445,14 +466,16 @@ contains
        endif
     enddo
 
-    call read_var1d_static(ncid,'TOPO',size(domain%topo),domain%topo,readvar)
-    if (.not. readvar) then
-      call fatal(__FILE__,__LINE__, trim(subname)//' ERROR: LONGXY  NOT on topodata file' )
+    if ( clm_check_var(ncid,'TOPO') ) then
+      call clm_readvar(ncid,'TOPO',domain%topo)
+    else
+      call fatal(__FILE__,__LINE__, &
+        trim(subname)//' ERROR: TOPO  NOT on topodata file' )
     end if
 
     deallocate(latc,lonc)
 
-    call closefile(ncid)
+    call clm_closefile(ncid)
 
   end subroutine surfrd_get_topo
 
@@ -510,7 +533,7 @@ contains
     character(len=16) :: lon_var, lat_var     ! names of lat/lon on dataset
     logical           :: readvar              ! true => variable is on dataset
     real(rk8)          :: rmaxlon,rmaxlat      ! local min/max vars
-    integer            :: ncid                 ! netcdf id
+    type(clm_filetype) :: ncid                 ! netcdf id
     integer           :: begg,endg            ! beg,end gridcell indices
     logical           :: istype_domain        ! true => input file is of type domain
     logical           :: isgrid2d             ! true => intut grid is 2d 
@@ -535,28 +558,25 @@ contains
 
     ! Read surface data
 
-    call openfile_withname(lfsurdat,ncid)
+    call clm_openfile(lfsurdat,ncid)
 
     ! Read in pft mask - this variable is only on the surface dataset - but not
     ! on the domain dataset
-    call read_var1d_static(ncid,'PFTDATA_MASK',size(ldomain%pftm),ldomain%pftm,readvar)
-    if (.not. readvar) then
-      call fatal(__FILE__,__LINE__, trim(subname)//' ERROR: pftm NOT on surface dataset' )
+    if ( clm_check_var(ncid,'PFTDATA_MASK') ) then
+      call clm_readvar(ncid,'PFTDATA_MASK',ldomain%pftm)
+    else
+      call fatal(__FILE__,__LINE__, &
+        trim(subname)//' ERROR: pftm NOT on surface dataset' )
     end if
 
     ! Check if fsurdat grid is "close" to fatmlndfrc grid, exit if lats/lon > 0.001
-    call check_var(ncid,'xc',readvar) 
-    if (readvar) then
-       istype_domain = .true.
+    if ( clm_check_var(ncid,'xc') ) then
+      istype_domain = .true.
+    else if ( clm_check_var(ncid,'LONGXY') ) then
+      istype_domain = .false.
     else
-       readvar = .true.
-       call check_var(ncid,'LONGXY',readvar) 
-       if (readvar) then
-          istype_domain = .false.
-       else
-          call fatal(__FILE__,__LINE__, &
+      call fatal(__FILE__,__LINE__, &
             trim(subname)//' ERROR: unknown domain type')
-       end if
     end if
     if (istype_domain) then
        lon_var  = 'xc'
@@ -568,19 +588,23 @@ contains
     if ( myid == italk )then
        write(stdout,*) trim(subname),' lon_var = ',trim(lon_var),' lat_var =',trim(lat_var)
     end if
-    call check_dims(ncid,ni,nj)
+    call clm_check_dims(ncid,ni,nj)
     if ( nj == 1 ) isgrid2d = .true.
     ns = ni*nj
 
     call domain_init(surfdata_domain, isgrid2d, ni, nj, begg, endg, clmlevel=grlnd)
-    call read_var1d_static(ncid,lon_var,size(surfdata_domain%lonc),surfdata_domain%lonc,readvar)
-    if (.not. readvar) then
-      call fatal(__FILE__,__LINE__, trim(subname)//' ERROR: lon var NOT on surface dataset' )
+    if ( clm_check_var(ncid,lon_var) ) then
+      call clm_readvar(ncid,lon_var,surfdata_domain%lonc)
+    else
+      call fatal(__FILE__,__LINE__, &
+        trim(subname)//' ERROR: lon var NOT on surface dataset' )
     end if
 
-    call read_var1d_static(ncid,lat_var,size(surfdata_domain%latc),surfdata_domain%latc,readvar)
-    if (.not. readvar) then
-      call fatal(__FILE__,__LINE__, trim(subname)//' ERROR: lat var NOT on surface dataset' )
+    if ( clm_check_var(ncid,lat_var) ) then
+      call clm_readvar(ncid,lat_var,surfdata_domain%latc)
+    else
+      call fatal(__FILE__,__LINE__, &
+        trim(subname)//' ERROR: lat var NOT on surface dataset' )
     end if
 
     rmaxlon = 0.0D0
@@ -620,7 +644,7 @@ contains
        call fatal(__FILE__,__LINE__,trim(subname) // 'only allocate_all_vegpfts is supported')
     end if
 #endif
-    call closefile(ncid)
+    call clm_closefile(ncid)
 
     if ( myid == italk )then
        write(stdout,*) 'Successfully read surface boundary data'
@@ -649,7 +673,7 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer          , intent(inout) :: ncid   ! netcdf id
+    type(clm_filetype),intent(inout) :: ncid   ! netcdf id
     integer          , intent(in)    :: ns     ! domain size
 !
 ! !CALLED FROM:
@@ -695,25 +719,32 @@ contains
        allocate(glc_topomax(0:maxpatch_glcmec))
     endif
 
-    if ( .not. check_dimlen(ncid,'nlevsoi',nlevsoifl) ) then
-      call fatal(__FILE__,__LINE__, trim(subname)//' ERROR: nlevsoi not matching nlevsoifl' )
+    if ( .not. clm_check_dimlen(ncid,'nlevsoi',nlevsoifl) ) then
+      call fatal(__FILE__,__LINE__, &
+        trim(subname)//' ERROR: nlevsoi not matching nlevsoifl' )
     end if
 
-       ! Obtain non-grid surface properties of surface dataset other than percent pft
+    ! Obtain non-grid surface properties of surface dataset other than percent pft
 
-    call read_var1d_static(ncid,'PCT_WETLAND',size(pctwet),pctwet,readvar)
-    if (.not. readvar) then
-      call fatal(__FILE__,__LINE__, trim(subname)//' ERROR: PCT_WETLAND  NOT on surfdata file' )
+    if ( clm_check_var(ncid,'PCT_WETLAND') ) then
+      call clm_readvar(ncid,'PCT_WETLAND',pctwet)
+    else
+      call fatal(__FILE__,__LINE__, &
+        trim(subname)//' ERROR: PCT_WETLAND  NOT on surfdata file' )
     end if
 
-    call read_var1d_static(ncid,'PCT_LAKE',size(pctlak),pctlak,readvar)
-    if (.not. readvar) then
-      call fatal(__FILE__,__LINE__, trim(subname)//' ERROR: PCT_LAKE NOT on surfdata file' )
+    if ( clm_check_var(ncid,'PCT_LAKE') ) then
+      call clm_readvar(ncid,'PCT_LAKE',pctlak)
+    else
+      call fatal(__FILE__,__LINE__, &
+        trim(subname)//' ERROR: PCT_LAKE NOT on surfdata file' )
     end if
 
-    call read_var1d_static(ncid,'PCT_GLACIER',size(pctgla),pctgla,readvar)
-    if (.not. readvar) then
-      call fatal(__FILE__,__LINE__, trim(subname)//' ERROR: PCT_GLACIER NOT on surfdata file' )
+    if ( clm_check_var(ncid,'PCT_GLACIER') ) then
+      call clm_readvar(ncid,'PCT_GLACIER',pctgla)
+    else
+      call fatal(__FILE__,__LINE__, &
+        trim(subname)//' ERROR: PCT_GLACIER NOT on surfdata file' )
     end if
 
     ! If PCT_URBAN is not multi-density then set pcturb and nlevurb to zero 
@@ -721,9 +752,11 @@ contains
       pcturb = 0.D0
       write(stdout,*)'PCT_URBAN is not multi-density, pcturb set to 0'
     else
-      call read_var2d_static(ncid,'PCT_URBAN',size(pcturb,1),size(pcturb,2),pcturb,readvar)
-      if (.not. readvar) then
-        call fatal(__FILE__,__LINE__, trim(subname)//' ERROR: PCT_URBAN NOT on surfdata file' )
+      if ( clm_check_var(ncid,'PCT_URBAN') ) then
+        call clm_readvar(ncid,'PCT_URBAN',pcturb)
+      else
+        call fatal(__FILE__,__LINE__, &
+          trim(subname)//' ERROR: PCT_URBAN NOT on surfdata file' )
       end if
     end if
     if ( nlevurb == 0 )then
@@ -742,23 +775,29 @@ contains
 
     if (create_glacier_mec_landunit) then          ! call ncd_io_gs_int2d
 
-       if ( .not. check_dimlen(ncid,'nglcec',maxpatch_glcmec) ) then
+       if ( .not. clm_check_dimlen(ncid,'nglcec',maxpatch_glcmec) ) then
          call fatal(__FILE__,__LINE__, trim(subname)//'nglcec /= maxpatch_glcmec' )
        end if
-       if ( .not. check_dimlen(ncid,'nglcecp1',maxpatch_glcmec+1) ) then
+       if ( .not. clm_check_dimlen(ncid,'nglcecp1',maxpatch_glcmec+1) ) then
          call fatal(__FILE__,__LINE__, trim(subname)//'nglcecp1 /= maxpatch_glcmec+1' )
        end if
-       call read_var1d_static(ncid,'GLC_MEC',size(glc_topomax),glc_topomax,readvar)
-       if (.not. readvar) then
-         call fatal(__FILE__,__LINE__, trim(subname)//'ERROR: GLC_MEC was NOT on the input surfdata file' )
+       if ( clm_check_var(ncid,'GLC_MEC') ) then
+         call clm_readvar(ncid,'GLC_MEC',glc_topomax)
+       else
+         call fatal(__FILE__,__LINE__, &
+           trim(subname)//'ERROR: GLC_MEC was NOT on the input surfdata file' )
        end if
-       call read_var2d_static(ncid,'PCT_GLC_MEC NOT',size(pctglc_mec,1),size(pctglc_mec,2),pctglc_mec,readvar)
-       if (.not. readvar) then
-         call fatal(__FILE__,__LINE__, trim(subname)//' ERROR: PCT_GLC_MEC NOT on surfdata file' )
+       if ( clm_check_var(ncid,'PCT_GLC_MEC') ) then
+         call clm_readvar(ncid,'PCT_GLC_MEC',pctglc_mec)
+       else
+         call fatal(__FILE__,__LINE__, &
+           trim(subname)//' ERROR: PCT_GLC_MEC NOT on surfdata file' )
        end if
-       call read_var2d_static(ncid,'TOPO_GLC_MEC',size(topoglc_mec,1),size(topoglc_mec,2),topoglc_mec,readvar)
-       if (.not. readvar) then
-         call fatal(__FILE__,__LINE__, trim(subname)//' ERROR: TOPO_GLC_MEC NOT on surfdata file' )
+       if ( clm_check_var(ncid,'TOPO_GLC_MEC') ) then
+         call clm_readvar(ncid,'TOPO_GLC_MEC',topoglc_mec)
+       else
+         call fatal(__FILE__,__LINE__, &
+           trim(subname)//' ERROR: TOPO_GLC_MEC NOT on surfdata file' )
        end if
 
        pctglc_mec_tot(:) = 0.D0
@@ -1047,8 +1086,8 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer          ,intent(inout) :: ncid   ! netcdf id
-    integer          ,intent(in)    :: ns     ! domain size
+    type(clm_filetype), intent(inout) :: ncid   ! netcdf id
+    integer          ,intent(in)      :: ns     ! domain size
     integer          ,pointer       :: pftm(:)
 !
 ! !CALLED FROM:
@@ -1076,14 +1115,16 @@ contains
     call get_proc_bounds(begg,endg)
     allocate(pctpft(begg:endg,0:numpft))
 
-    if ( .not. check_dimlen(ncid, 'lsmpft', numpft+1) ) then
+    if ( .not. clm_check_dimlen(ncid, 'lsmpft', numpft+1) ) then
       call fatal(__FILE__,__LINE__, trim(subname)//'lsmpft /= numpft+1' )
     end if
 
     allocate(arrayl(begg:endg,0:numpft))
-    call read_var2d_static(ncid,'PCT_PFT',size(arrayl,1),size(arrayl,2),arrayl,readvar)
-    if (.not. readvar) then
-      call fatal(__FILE__,__LINE__, trim(subname)//' ERROR: PCT_PFT NOT on surfdata file' )
+    if ( clm_check_var(ncid,'PCT_PFT') ) then
+      call clm_readvar(ncid,'PCT_PFT',arrayl)
+    else
+      call fatal(__FILE__,__LINE__, &
+        trim(subname)//' ERROR: PCT_PFT NOT on surfdata file' )
     end if
     pctpft(begg:endg,0:numpft) = arrayl(begg:endg,0:numpft)
     deallocate(arrayl)
