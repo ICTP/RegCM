@@ -48,6 +48,7 @@ module mod_clm_nchelper
   integer(ik4) , public , parameter :: clmvar_integer = 1
   real(rk4) , public , parameter :: clmvar_real       = 1.0
   real(rk8) , public , parameter :: clmvar_double     = 1.0D0
+  integer(ik4) , public , parameter :: clmvar_unlim   = -1
 
   public :: clm_filetype
 
@@ -390,7 +391,7 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) :: nd
     integer(ik4) :: nval
     nval = nd
-    if ( nd == -1 ) nval = nf90_unlimited
+    if ( nd == clmvar_unlim ) nval = nf90_unlimited
     if ( searchdim(ncid,dnam) > 0 ) return ! Already here
     call add_dimhash(ncid,dnam)
     incstat = nf90_def_dim(ncid%ncid, dnam, nval, ncid%dimids(ncid%idimlast))
