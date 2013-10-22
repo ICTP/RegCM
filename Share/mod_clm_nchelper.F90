@@ -61,6 +61,7 @@ module mod_clm_nchelper
   public :: clm_checkncerr
 
   public :: clm_inqdim
+  public :: clm_check_dim
   public :: clm_check_dims
   public :: clm_check_var
   public :: clm_check_dimlen
@@ -725,6 +726,15 @@ module mod_clm_nchelper
     ncid%varids(ncid%ivarlast) = varid
     ncid%ivarlast = ncid%ivarlast + 1
   end subroutine clm_addvar_real8
+
+  logical function clm_check_dim(ncid,dname)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: dname
+    integer(ik4) :: idimid
+    incstat = nf90_inq_dimid(ncid%ncid,dname,idimid)
+    clm_check_dim = ( incstat == nf90_noerr )
+  end function clm_check_dim
 
   logical function clm_check_var(ncid,vname)
     implicit none
