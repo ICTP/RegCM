@@ -2003,7 +2003,6 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid , nv1 , nv2
     nv1 = size(xval,1)
     nv2 = size(xval,2)
-    print *, nv1,nv2
     istart(3) = nt
     istart(2) = 1
     istart(1) = 1
