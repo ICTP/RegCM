@@ -1150,10 +1150,10 @@ module mod_clm_nchelper
       'Error search '//vname//' to file '//trim(ncid%fname))
     nv1 = size(xval,1)
     allocate(rval(nv1))
-    istart(1) = nt
-    istart(2) = 1
-    icount(1) = 1
-    icount(2) = nv1
+    istart(2) = nt
+    istart(1) = 1
+    icount(2) = 1
+    icount(1) = nv1
     incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
@@ -1175,12 +1175,12 @@ module mod_clm_nchelper
     nv1 = size(xval,1)
     nv2 = size(xval,2)
     allocate(rval(nv1,nv2))
-    istart(1) = nt
+    istart(3) = nt
     istart(2) = 1
-    istart(3) = 1
-    icount(1) = 1
-    icount(2) = nv1
-    icount(3) = nv2
+    istart(1) = 1
+    icount(3) = 1
+    icount(2) = nv2
+    icount(1) = nv1
     incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
@@ -1203,14 +1203,14 @@ module mod_clm_nchelper
     nv2 = size(xval,2)
     nv3 = size(xval,3)
     allocate(rval(nv1,nv2,nv3))
-    istart(1) = nt
-    istart(2) = 1
+    istart(4) = nt
     istart(3) = 1
-    istart(4) = 1
-    icount(1) = 1
-    icount(2) = nv1
-    icount(3) = nv2
-    icount(4) = nv3
+    istart(2) = 1
+    istart(1) = 1
+    icount(4) = 1
+    icount(3) = nv3
+    icount(2) = nv2
+    icount(1) = nv1
     incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
@@ -1248,10 +1248,10 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//trim(ncid%fname))
     nv1 = size(xval,1)
-    istart(1) = nt
-    istart(2) = 1
-    icount(1) = 1
-    icount(2) = nv1
+    istart(2) = nt
+    istart(1) = 1
+    icount(2) = 1
+    icount(1) = nv1
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
@@ -1269,12 +1269,12 @@ module mod_clm_nchelper
       'Error search '//vname//' to file '//trim(ncid%fname))
     nv1 = size(xval,1)
     nv2 = size(xval,2)
-    istart(1) = nt
+    istart(3) = nt
     istart(2) = 1
-    istart(3) = 1
-    icount(1) = 1
-    icount(2) = nv1
-    icount(3) = nv2
+    istart(1) = 1
+    icount(3) = 1
+    icount(2) = nv2
+    icount(1) = nv1
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
@@ -1293,14 +1293,14 @@ module mod_clm_nchelper
     nv1 = size(xval,1)
     nv2 = size(xval,2)
     nv3 = size(xval,3)
-    istart(1) = nt
-    istart(2) = 1
+    istart(4) = nt
     istart(3) = 1
-    istart(4) = 1
-    icount(1) = 1
-    icount(2) = nv1
-    icount(3) = nv2
-    icount(4) = nv3
+    istart(2) = 1
+    istart(1) = 1
+    icount(4) = 1
+    icount(3) = nv3
+    icount(2) = nv2
+    icount(1) = nv1
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
@@ -1336,10 +1336,10 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//trim(ncid%fname))
     nv1 = size(xval,1)
-    istart(1) = nt
-    istart(2) = 1
-    icount(1) = 1
-    icount(2) = nv1
+    istart(2) = nt
+    istart(1) = 1
+    icount(2) = 1
+    icount(1) = nv1
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
@@ -1357,12 +1357,12 @@ module mod_clm_nchelper
       'Error search '//vname//' to file '//trim(ncid%fname))
     nv1 = size(xval,1)
     nv2 = size(xval,2)
-    istart(1) = nt
+    istart(3) = nt
     istart(2) = 1
-    istart(3) = 1
-    icount(1) = 1
-    icount(2) = nv1
-    icount(3) = nv2
+    istart(1) = 1
+    icount(3) = 1
+    icount(2) = nv2
+    icount(1) = nv1
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
@@ -1381,14 +1381,14 @@ module mod_clm_nchelper
     nv1 = size(xval,1)
     nv2 = size(xval,2)
     nv3 = size(xval,3)
-    istart(1) = nt
-    istart(2) = 1
+    istart(4) = nt
     istart(3) = 1
-    istart(4) = 1
-    icount(1) = 1
-    icount(2) = nv1
-    icount(3) = nv2
-    icount(4) = nv3
+    istart(2) = 1
+    istart(1) = 1
+    icount(4) = 1
+    icount(3) = nv3
+    icount(2) = nv2
+    icount(1) = nv1
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
@@ -1424,10 +1424,10 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error search '//vname//' to file '//trim(ncid%fname))
     nv1 = size(xval,1)
-    istart(1) = nt
-    istart(2) = 1
-    icount(1) = 1
-    icount(2) = nv1
+    istart(2) = nt
+    istart(1) = 1
+    icount(2) = 1
+    icount(1) = nv1
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
@@ -1445,12 +1445,12 @@ module mod_clm_nchelper
       'Error search '//vname//' to file '//trim(ncid%fname))
     nv1 = size(xval,1)
     nv2 = size(xval,2)
-    istart(1) = nt
+    istart(3) = nt
     istart(2) = 1
-    istart(3) = 1
-    icount(1) = 1
-    icount(2) = nv1
-    icount(3) = nv2
+    istart(1) = 1
+    icount(3) = 1
+    icount(2) = nv2
+    icount(1) = nv1
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
@@ -1469,14 +1469,14 @@ module mod_clm_nchelper
     nv1 = size(xval,1)
     nv2 = size(xval,2)
     nv3 = size(xval,3)
-    istart(1) = nt
-    istart(2) = 1
+    istart(4) = nt
     istart(3) = 1
-    istart(4) = 1
-    icount(1) = 1
-    icount(2) = nv1
-    icount(3) = nv2
-    icount(4) = nv3
+    istart(2) = 1
+    istart(1) = 1
+    icount(4) = 1
+    icount(3) = nv3
+    icount(2) = nv2
+    icount(1) = nv1
     incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
@@ -1864,10 +1864,10 @@ module mod_clm_nchelper
     integer(ik4) , dimension(:) , allocatable :: rval
     integer(ik4) :: ivarid , nv1
     nv1 = size(xval,1)
-    istart(1) = nt
-    istart(2) = 1
-    icount(1) = 1
-    icount(2) = nv1
+    istart(2) = nt
+    istart(1) = 1
+    icount(2) = 1
+    icount(1) = nv1
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
@@ -1894,12 +1894,12 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid , nv1 , nv2
     nv1 = size(xval,1)
     nv2 = size(xval,2)
-    istart(1) = nt
+    istart(3) = nt
     istart(2) = 1
-    istart(3) = 1
-    icount(1) = 1
-    icount(2) = nv1
-    icount(3) = nv2
+    istart(1) = 1
+    icount(3) = 1
+    icount(2) = nv2
+    icount(1) = nv1
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
@@ -1927,14 +1927,14 @@ module mod_clm_nchelper
     nv1 = size(xval,1)
     nv2 = size(xval,2)
     nv3 = size(xval,3)
-    istart(1) = nt
-    istart(2) = 1
+    istart(4) = nt
     istart(3) = 1
-    istart(4) = 1
-    icount(1) = 1
-    icount(2) = nv1
-    icount(3) = nv2
-    icount(4) = nv3
+    istart(2) = 1
+    istart(1) = 1
+    icount(4) = 1
+    icount(3) = nv3
+    icount(2) = nv2
+    icount(1) = nv1
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
@@ -1980,10 +1980,10 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) :: nt
     integer(ik4) :: ivarid , nv1
     nv1 = size(xval,1)
-    istart(1) = nt
-    istart(2) = 1
-    icount(1) = 1
-    icount(2) = nv1
+    istart(2) = nt
+    istart(1) = 1
+    icount(2) = 1
+    icount(1) = nv1
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
@@ -2003,12 +2003,13 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid , nv1 , nv2
     nv1 = size(xval,1)
     nv2 = size(xval,2)
-    istart(1) = nt
+    print *, nv1,nv2
+    istart(3) = nt
     istart(2) = 1
-    istart(3) = 1
-    icount(1) = 1
-    icount(2) = nv1
-    icount(3) = nv2
+    istart(1) = 1
+    icount(3) = 1
+    icount(2) = nv2
+    icount(1) = nv1
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
@@ -2029,14 +2030,14 @@ module mod_clm_nchelper
     nv1 = size(xval,1)
     nv2 = size(xval,2)
     nv3 = size(xval,3)
-    istart(1) = nt
-    istart(2) = 1
+    istart(4) = nt
     istart(3) = 1
-    istart(4) = 1
-    icount(1) = 1
-    icount(2) = nv1
-    icount(3) = nv2
-    icount(4) = nv3
+    istart(2) = 1
+    istart(1) = 1
+    icount(4) = 1
+    icount(3) = nv3
+    icount(2) = nv2
+    icount(1) = nv1
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
@@ -2076,10 +2077,10 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) :: nt
     integer(ik4) :: ivarid , nv1
     nv1 = size(xval,1)
-    istart(1) = nt
-    istart(2) = 1
-    icount(1) = 1
-    icount(2) = nv1
+    istart(2) = nt
+    istart(1) = 1
+    icount(2) = 1
+    icount(1) = nv1
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
@@ -2099,12 +2100,12 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid , nv1 , nv2
     nv1 = size(xval,1)
     nv2 = size(xval,2)
-    istart(1) = nt
+    istart(3) = nt
     istart(2) = 1
-    istart(3) = 1
-    icount(1) = 1
-    icount(2) = nv1
-    icount(3) = nv2
+    istart(1) = 1
+    icount(3) = 1
+    icount(2) = nv2
+    icount(1) = nv1
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
@@ -2125,14 +2126,14 @@ module mod_clm_nchelper
     nv1 = size(xval,1)
     nv2 = size(xval,2)
     nv3 = size(xval,3)
-    istart(1) = nt
-    istart(2) = 1
+    istart(4) = nt
     istart(3) = 1
-    istart(4) = 1
-    icount(1) = 1
-    icount(2) = nv1
-    icount(3) = nv2
-    icount(4) = nv3
+    istart(2) = 1
+    istart(1) = 1
+    icount(4) = 1
+    icount(3) = nv3
+    icount(2) = nv2
+    icount(1) = nv1
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
@@ -2172,10 +2173,10 @@ module mod_clm_nchelper
     integer(ik4) , intent(in) :: nt
     integer(ik4) :: ivarid , nv1
     nv1 = size(xval,1)
-    istart(1) = nt
-    istart(2) = 1
-    icount(1) = 1
-    icount(2) = nv1
+    istart(2) = nt
+    istart(1) = 1
+    icount(2) = 1
+    icount(1) = nv1
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
@@ -2195,12 +2196,12 @@ module mod_clm_nchelper
     integer(ik4) :: ivarid , nv1 , nv2
     nv1 = size(xval,1)
     nv2 = size(xval,2)
-    istart(1) = nt
+    istart(3) = nt
     istart(2) = 1
-    istart(3) = 1
-    icount(1) = 1
-    icount(2) = nv1
-    icount(3) = nv2
+    istart(1) = 1
+    icount(3) = 1
+    icount(2) = nv2
+    icount(1) = nv1
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
@@ -2221,14 +2222,14 @@ module mod_clm_nchelper
     nv1 = size(xval,1)
     nv2 = size(xval,2)
     nv3 = size(xval,3)
-    istart(1) = nt
-    istart(2) = 1
+    istart(4) = nt
     istart(3) = 1
-    istart(4) = 1
-    icount(1) = 1
-    icount(2) = nv1
-    icount(3) = nv2
-    icount(4) = nv3
+    istart(2) = 1
+    istart(1) = 1
+    icount(4) = 1
+    icount(3) = nv3
+    icount(2) = nv2
+    icount(1) = nv1
     ivarid = searchvar(ncid,vname)
     if ( ivarid < 0 ) then
       incstat = nf90_enotvar
