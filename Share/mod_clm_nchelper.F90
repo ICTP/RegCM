@@ -137,6 +137,8 @@ module mod_clm_nchelper
   end interface clm_readvar
 
   interface clm_writevar
+    module procedure clm_writevar_text_0d
+    module procedure clm_writevar_text_1d
     module procedure clm_writevar_logical_0d
     module procedure clm_writevar_logical_1d
     module procedure clm_writevar_logical_2d
@@ -1511,6 +1513,38 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_readrec_real8_3d
+
+  subroutine clm_writevar_text_0d(ncid,vname,xval)
+    implicit none
+    type(clm_out_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    character(len=*) , intent(in) :: xval
+    integer(ik4) :: ivarid
+    ivarid = searchvar(ncid,vname)
+    if ( ivarid < 0 ) then
+      incstat = nf90_enotvar
+    else
+      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+    end if
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error write '//vname//' to file '//trim(ncid%fname))
+  end subroutine clm_writevar_text_0d
+
+  subroutine clm_writevar_text_1d(ncid,vname,xval)
+    implicit none
+    type(clm_out_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    character(len=*) , dimension(:) , intent(in) :: xval
+    integer(ik4) :: ivarid
+    ivarid = searchvar(ncid,vname)
+    if ( ivarid < 0 ) then
+      incstat = nf90_enotvar
+    else
+      incstat = nf90_put_var(ncid%ncid,ivarid,xval)
+    end if
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error write '//vname//' to file '//trim(ncid%fname))
+  end subroutine clm_writevar_text_1d
 
   subroutine clm_writevar_logical_0d(ncid,vname,xval)
     implicit none
