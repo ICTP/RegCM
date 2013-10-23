@@ -77,7 +77,6 @@ contains
     integer :: begl, endl                 ! per-proc beginning and ending landunit indices
     integer :: begg, endg                 ! per-proc gridcell ending gridcell indices
     real(rk8):: m                          ! multiplier for the exit_spinup code
-    logical :: readvar                    ! determine if variable is on initial file
     character(len=128) :: varname         ! temporary
     type(gridcell_type), pointer :: gptr  ! pointer to gridcell derived subtype
     type(landunit_type), pointer :: lptr  ! pointer to landunit derived subtype
@@ -93,8 +92,12 @@ contains
           long_name='Number of years prognostic crop ran', units="years", &
           missing_value=unset,fill_value=unset)
     else if (flag == 'read' ) then
-      call clm_readvar(ncid,'restyear',restyear)
-      call checkDates( )
+      if ( is_restart() .and. .not. clm_check_var(ncid,'restyear') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'restyear',restyear)
+        call checkDates( )
+      end if
     else if (flag == 'write') then
       call clm_writevar(ncid,'restyear',restyear)
     end if
@@ -121,7 +124,11 @@ contains
             flag_values=(/0,1/), valid_range=(/0,1/),     &
             flag_meanings=(/'NOT-at-peak', 'AT_peak-LAI' /) )
     else if (flag == 'read' ) then
-       call clm_readvar(ncid,'peaklai',pptr%pps%peaklai)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'peaklai') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'peaklai',pptr%pps%peaklai)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'peaklai',pptr%pps%peaklai)
     end if
@@ -132,7 +139,11 @@ contains
             long_name='Date of planting',units='jday', &
             valid_range=(/1,366/) )
     else if (flag == 'read') then
-       call clm_readvar(ncid,'idop',pptr%pps%idop)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'idop') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'idop',pptr%pps%idop)
+      end if
     else if ( flag == 'write') then
        call clm_writevar(ncid,'idop',pptr%pps%idop)
     end if
@@ -142,7 +153,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'aleaf',cdims=(/'pft'/), &
             long_name='leaf allocation coefficient',units='')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'aleaf',pptr%pps%aleaf)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'aleaf') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'aleaf',pptr%pps%aleaf)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'aleaf',pptr%pps%aleaf)
     end if
@@ -153,7 +168,11 @@ contains
             long_name='Saved leaf allocation coefficient from phase 2', &
             units='')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'aleafi',pptr%pps%aleafi)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'aleafi') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'aleafi',pptr%pps%aleafi)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'aleafi',pptr%pps%aleafi)
     end if
@@ -163,7 +182,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'astem',cdims=(/'pft'/), &
             long_name='stem allocation coefficient',units='')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'astem',pptr%pps%astem)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'astem') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'astem',pptr%pps%astem)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'astem',pptr%pps%astem)
     end if
@@ -174,7 +197,11 @@ contains
             long_name='Saved stem allocation coefficient from phase 2',&
             units='')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'astemi',pptr%pps%astemi)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'astemi') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'astemi',pptr%pps%astemi)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'astemi',pptr%pps%astemi)
     end if
@@ -185,7 +212,11 @@ contains
             long_name='max height attained by a crop during year',&
             units='m')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'htmx',pptr%pps%htmx)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'htmx') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'htmx',pptr%pps%htmx)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'htmx',pptr%pps%htmx)
     end if
@@ -195,7 +226,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'hdidx',cdims=(/'pft'/), &
             long_name='cold hardening index',units='')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'hdidx',pptr%pps%hdidx)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'hdidx') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'hdidx',pptr%pps%hdidx)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'hdidx',pptr%pps%hdidx)
     end if
@@ -205,7 +240,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'vf',cdims=(/'pft'/), &
             long_name='vernalization factor',units='')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'vf',pptr%pps%vf)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'vf') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'vf',pptr%pps%vf)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'vf',pptr%pps%vf)
     end if
@@ -215,7 +254,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'cumvd',cdims=(/'pft'/), &
             long_name='cumulative vernalization d',units='')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'cumvd',pptr%pps%cumvd)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'cumvd') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'cumvd',pptr%pps%cumvd)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'cumvd',pptr%pps%cumvd)
     end if
@@ -225,7 +268,11 @@ contains
        call clm_addvar(clmvar_logical,ncid,'croplive',cdims=(/'pft'/), &
             long_name='Flag that crop is alive, but not harvested')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'croplive',pptr%pps%croplive)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'croplive') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'croplive',pptr%pps%croplive)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'croplive',pptr%pps%croplive)
     end if
@@ -235,7 +282,11 @@ contains
        call clm_addvar(clmvar_logical,ncid,'cropplant',cdims=(/'pft'/), &
             long_name='Flag that crop is planted, but not harvested' )
     else if (flag == 'read') then
-       call clm_readvar(ncid,'cropplant',pptr%pps%cropplant)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'cropplant') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'cropplant',pptr%pps%cropplant)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'cropplant',pptr%pps%cropplant)
     end if
@@ -245,7 +296,11 @@ contains
        call clm_addvar(clmvar_integer,ncid,'harvdate',cdims=(/'pft'/), &
             long_name='harvest date',units='jday',valid_range=(/1,366/) )
     else if (flag == 'read') then
-       call clm_readvar(ncid,'harvdate',pptr%pps%harvdate)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'harvdate') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'harvdate',pptr%pps%harvdate)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'harvdate',pptr%pps%harvdate)
     end if
@@ -256,7 +311,11 @@ contains
             long_name='20 year average of growing degree-days base 10C from planting', &
             units='ddays')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'gdd1020',pptr%pps%gdd1020)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'gdd1020') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'gdd1020',pptr%pps%gdd1020)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'gdd1020',pptr%pps%gdd1020)
     end if
@@ -267,7 +326,11 @@ contains
             long_name='20 year average of growing degree-days base 8C from planting', &
             units='ddays')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'gdd820',pptr%pps%gdd820)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'gdd820') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'gdd820',pptr%pps%gdd820)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'gdd820',pptr%pps%gdd820)
     end if
@@ -278,7 +341,11 @@ contains
             long_name='20 year average of growing degree-days base 0C from planting', &
             units='ddays')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'gdd020',pptr%pps%gdd020)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'gdd020') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'gdd020',pptr%pps%gdd020)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'gdd020',pptr%pps%gdd020)
     end if
@@ -288,7 +355,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'gddmaturity',cdims=(/'pft'/), &
             long_name='Growing degree days needed to harvest',units='ddays')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'gddmaturity',pptr%pps%gddmaturity)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'gddmaturity') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'gddmaturity',pptr%pps%gddmaturity)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'gddmaturity',pptr%pps%gddmaturity)
     end if
@@ -298,7 +369,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'huileaf',cdims=(/'pft'/), &
             long_name='heat unit index needed from planting to leaf emergence',units='')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'huileaf',pptr%pps%huileaf)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'huileaf') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'huileaf',pptr%pps%huileaf)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'huileaf',pptr%pps%huileaf)
     end if
@@ -309,7 +384,11 @@ contains
             long_name='heat unit index needed to reach vegetative maturity', &
             units='')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'huigrain',pptr%pps%huigrain)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'huigrain') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'huigrain',pptr%pps%huigrain)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'huigrain',pptr%pps%huigrain)
     end if
@@ -319,7 +398,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'grainc',cdims=(/'pft'/), &
             long_name='grain C',units='gC/m2')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'grainc',pptr%pcs%grainc)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'grainc') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'grainc',pptr%pcs%grainc)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'grainc',pptr%pcs%grainc)
     end if
@@ -329,7 +412,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'grainc_storage',cdims=(/'pft'/), &
             long_name='grain C storage',units='gC/m2')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'grainc_storage',pptr%pcs%grainc_storage)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'grainc_storage') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'grainc_storage',pptr%pcs%grainc_storage)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'grainc_storage',pptr%pcs%grainc_storage)
     end if
@@ -339,7 +426,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'grainc_xfer',cdims=(/'pft'/), &
             long_name='grain C transfer',units='gC/m2')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'grainc_xfer',pptr%pcs%grainc_xfer)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'grainc_xfer') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'grainc_xfer',pptr%pcs%grainc_xfer)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'grainc_xfer',pptr%pcs%grainc_xfer)
     end if
@@ -349,7 +440,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'grainn',cdims=(/'pft'/), &
             long_name='grain N',units='gN/m2')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'grainn',pptr%pns%grainn)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'grainn') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'grainn',pptr%pns%grainn)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'grainn',pptr%pns%grainn)
     end if
@@ -359,7 +454,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'grainn_storage',cdims=(/'pft'/), &
             long_name='grain N storage',units='gN/m2')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'grainn_storage',pptr%pns%grainn_storage)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'grainn_storage') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'grainn_storage',pptr%pns%grainn_storage)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'grainn_storage',pptr%pns%grainn_storage)
     end if
@@ -369,7 +468,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'grainn_xfer',cdims=(/'pft'/), &
             long_name='grain N transfer',units='gN/m2')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'grainn_xfer',pptr%pns%grainn_xfer)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'grainn_xfer') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'grainn_xfer',pptr%pns%grainn_xfer)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'grainn_xfer',pptr%pns%grainn_xfer)
     end if
@@ -379,7 +482,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'grainc_xfer_to_grainc',cdims=(/'pft'/), &
             long_name='grain C growth from storage',units='gC/m2/s')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'grainc_xfer_to_grainc',pptr%pcf%grainc_xfer_to_grainc)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'grainc_xfer_to_grainc') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'grainc_xfer_to_grainc',pptr%pcf%grainc_xfer_to_grainc)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'grainc_xfer_to_grainc',pptr%pcf%grainc_xfer_to_grainc)
     end if
@@ -389,7 +496,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'livestemc_to_litter',cdims=(/'pft'/), &
             long_name='live stem C litterfall',units='gC/m2/s')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'livestemc_to_litter',pptr%pcf%livestemc_to_litter)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'livestemc_to_litter') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'livestemc_to_litter',pptr%pcf%livestemc_to_litter)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'livestemc_to_litter',pptr%pcf%livestemc_to_litter)
     end if
@@ -399,7 +510,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'grainc_to_food',cdims=(/'pft'/), &
             long_name='grain C to food',units='gC/m2/s')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'grainc_to_food',pptr%pcf%grainc_to_food)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'grainc_to_food') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'grainc_to_food',pptr%pcf%grainc_to_food)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'grainc_to_food',pptr%pcf%grainc_to_food)
     end if
@@ -409,7 +524,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'grainn_xfer_to_grainn',cdims=(/'pft'/), &
             long_name='grain N growth from storage',units='gN/m2/s')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'grainn_xfer_to_grainn',pptr%pnf%grainn_xfer_to_grainn)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'grainn_xfer_to_grainn') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'grainn_xfer_to_grainn',pptr%pnf%grainn_xfer_to_grainn)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'grainn_xfer_to_grainn',pptr%pnf%grainn_xfer_to_grainn)
     end if
@@ -419,7 +538,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'livestemn_to_litter',cdims=(/'pft'/), &
             long_name='livestem N to litter',units='gN/m2/s')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'livestemn_to_litter',pptr%pnf%livestemn_to_litter)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'livestemn_to_litter') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'livestemn_to_litter',pptr%pnf%livestemn_to_litter)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'livestemn_to_litter',pptr%pnf%livestemn_to_litter)
     end if
@@ -429,7 +552,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'grainn_to_food',cdims=(/'pft'/), &
             long_name='grain N to food',units='gN/m2/s')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'grainn_to_food',pptr%pnf%grainn_to_food)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'grainn_to_food') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'grainn_to_food',pptr%pnf%grainn_to_food)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'grainn_to_food',pptr%pnf%grainn_to_food)
     end if
@@ -439,7 +566,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'cpool_to_grainc',cdims=(/'pft'/), &
             long_name='allocation to grain C',units='gC/m2/s')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'cpool_to_grainc',pptr%pcf%cpool_to_grainc)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'cpool_to_grainc') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'cpool_to_grainc',pptr%pcf%cpool_to_grainc)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'cpool_to_grainc',pptr%pcf%cpool_to_grainc)
     end if
@@ -449,7 +580,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'cpool_to_grainc_storage',cdims=(/'pft'/), &
             long_name='allocation to grain C storage',units='gC/m2/s')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'cpool_to_grainc_storage',pptr%pcf%cpool_to_grainc_storage)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'cpool_to_grainc_storage') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'cpool_to_grainc_storage',pptr%pcf%cpool_to_grainc_storage)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'cpool_to_grainc_storage',pptr%pcf%cpool_to_grainc_storage)
     end if
@@ -459,7 +594,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'npool_to_grainn',cdims=(/'pft'/), &
             long_name='allocation to grain N',units='gN/m2/s')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'npool_to_grainn',pptr%pnf%npool_to_grainn)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'npool_to_grainn') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'npool_to_grainn',pptr%pnf%npool_to_grainn)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'npool_to_grainn',pptr%pnf%npool_to_grainn)
     end if
@@ -469,7 +608,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'npool_to_grainn_storage',cdims=(/'pft'/), &
             long_name='allocation to grain N storage',units='gN/m2/s')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'npool_to_grainn_storage',pptr%pnf%npool_to_grainn_storage)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'npool_to_grainn_storage') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'npool_to_grainn_storage',pptr%pnf%npool_to_grainn_storage)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'npool_to_grainn_storage',pptr%pnf%npool_to_grainn_storage)
     end if
@@ -479,7 +622,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'cpool_grain_gr',cdims=(/'pft'/), &
             long_name='grain growth respiration',units='gC/m2/s')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'cpool_grain_gr',pptr%pcf%cpool_grain_gr)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'cpool_grain_gr') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'cpool_grain_gr',pptr%pcf%cpool_grain_gr)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'cpool_grain_gr',pptr%pcf%cpool_grain_gr)
     end if
@@ -489,7 +636,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'cpool_grain_storage_gr',cdims=(/'pft'/), &
             long_name='grain growth respiration to storage',units='gC/m2/s')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'cpool_grain_storage_gr',pptr%pcf%cpool_grain_storage_gr)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'cpool_grain_storage_gr') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'cpool_grain_storage_gr',pptr%pcf%cpool_grain_storage_gr)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'cpool_grain_storage_gr',pptr%pcf%cpool_grain_storage_gr)
     end if
@@ -499,7 +650,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'transfer_grain_gr',cdims=(/'pft'/), &
             long_name='grain growth respiration from storage',units='gC/m2/s')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'transfer_grain_gr',pptr%pcf%transfer_grain_gr)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'transfer_grain_gr') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'transfer_grain_gr',pptr%pcf%transfer_grain_gr)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'transfer_grain_gr',pptr%pcf%transfer_grain_gr)
     end if
@@ -509,7 +664,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'grainc_storage_to_xfer',cdims=(/'pft'/), &
             long_name='grain C shift storage to transfer',units='gC/m2/s')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'grainc_storage_to_xfer',pptr%pcf%grainc_storage_to_xfer)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'grainc_storage_to_xfer') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'grainc_storage_to_xfer',pptr%pcf%grainc_storage_to_xfer)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'grainc_storage_to_xfer',pptr%pcf%grainc_storage_to_xfer)
     end if
@@ -519,7 +678,11 @@ contains
        call clm_addvar(clmvar_double,ncid,'grainn_storage_to_xfer',cdims=(/'pft'/), &
             long_name='grain N shift storage to transfer',units='gN/m2/s')
     else if (flag == 'read') then
-       call clm_readvar(ncid,'grainn_storage_to_xfer',pptr%pnf%grainn_storage_to_xfer)
+      if ( is_restart() .and. .not. clm_check_var(ncid,'grainn_storage_to_xfer') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'grainn_storage_to_xfer',pptr%pnf%grainn_storage_to_xfer)
+      end if
     else if (flag == 'write') then
        call clm_writevar(ncid,'grainn_storage_to_xfer',pptr%pnf%grainn_storage_to_xfer)
     end if

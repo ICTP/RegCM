@@ -50,7 +50,7 @@ contains
     use mod_clm_cnallocation, only : CNAllocationInit
     use mod_clm_cnphenology , only : CNPhenologyInit
     use CNFireMod      , only : CNFireInit
-    use CNC14DecayMod  , only : C14_init_BombSpike
+    use mod_clm_cnc14decay  , only : C14_init_BombSpike
 !
 ! !ARGUMENTS:
     implicit none
