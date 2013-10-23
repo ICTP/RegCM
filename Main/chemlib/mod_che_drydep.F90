@@ -612,6 +612,8 @@ module mod_che_drydep
                                     chib3d(j,i,kz,indsp(ib)) *crhob3d(j,i,kz)*  ddepv(i,indsp(ib)) * cfdout                         
             ! no net flux is passed to BL schemes in this case
             cchifxuw(j,i,indsp(ib)) = d_zero
+            drydepv(j,i,indsp(ib)) = d_zero
+
           else if ( ichdrdepo == 2 ) then
             !
             ! add the dry deposition term to the net emision/deposition flux
@@ -623,9 +625,8 @@ module mod_che_drydep
           !
           ! dry dep velocity diagnostic in m.s-1  ( + drydep v. include
           ! also settling , accumulated between two outputs time step) 
-          drydepv(j,i,indsp(ib)) = ddepv(i,indsp(ib))
           ddv_out(j,i,indsp(ib)) = ddv_out(j,i,indsp(ib)) + &
-                  drydepv(j,i,indsp(ib))
+                 ddepv(i,indsp(ib)) 
         end do
       end do
 #ifdef DEBUG
@@ -755,8 +756,8 @@ module mod_che_drydep
              remdrd(j,i,n) = remdrd(j,i,n) + ddrem(i)/cpsb(j,i) * cfdout
              ! dry dep velocity diagnostic in m.s-1
              ! (accumulated between two outputs time step) 
-             drydepv(j,i,n) =  drydepvg(i,n)     
-             ddv_out(j,i,n) =  ddv_out(j,i,n) + drydepv(j,i,n)
+             drydepv(j,i,n) =  d_zero     
+             ddv_out(j,i,n) =  ddv_out(j,i,n) + drydepvg(i,n)
            end do 
          end do
        else if ( ichdrdepo == 2 ) then 
@@ -776,7 +777,7 @@ module mod_che_drydep
              ! dry dep velocity diagnostic in m.s-1
              ! (accumulated between two outputs time step) 
              drydepv(j,i,n) =  drydepvg(i,n) 
-             ddv_out(j,i,n) =  ddv_out(j,i,n) + drydepv(j,i,n)
+             ddv_out(j,i,n) =  ddv_out(j,i,n) + drydepvg(i,n)
            end do
          end do
 

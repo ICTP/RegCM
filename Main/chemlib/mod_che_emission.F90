@@ -171,12 +171,19 @@ module mod_che_emission
           if ( chtrname(itr)(1:4).ne.'DUST' .or. &
                chtrname(itr)(1:4).ne.'SSLT' .or. &
                chtrname(itr)(1:6).ne.'POLLEN' ) then 
-            !then emission is injected in the PBL scheme
+            ! if PBL scheme is not UW then calculate emission tendency
+            if (ibltyp .ne. 2 ) then
+             chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
+             chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0D3)
+            end if 
+            ! otherwise emission is injected in the PBL scheme ( together with dry deposition)for tend calculation 
             cchifxuw(j,i,itr) = cchifxuw(j,i,itr) +  chemsrc(j,i,itr)
             ! diagnostic for source, cumul
             cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
             if ( ichdiag == 1 ) then
-             cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
+            ! in this case we calculate emission  tendency diagnostic, but this term will also be included in BL tendency diagnostic 
+            ! if UW scheme is used.           
+            if(ibltyp .ne. 2) cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
                         chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
             end if 
           end if 
