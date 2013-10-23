@@ -42,7 +42,10 @@ libclm45_a_SOURCES = mod_clm_domain.F90 mod_clm_type.F90 \
   mod_clm_cndv.F90 mod_clm_cnphenology.F90 mod_clm_cngresp.F90 \
   mod_clm_cngapmortality.F90 mod_clm_cnmresp.F90 mod_clm_cnndynamics.F90 \
   mod_clm_cnnstateupdate1.F90 mod_clm_cnnstateupdate2.F90 \
-  mod_clm_cnnstateupdate3.F90
+  mod_clm_cnnstateupdate3.F90 mod_clm_cnprecisioncontrol.F90 \
+  mod_clm_cnsetvalue.F90 mod_clm_cnsoillittverttransp.F90 \
+  mod_clm_cnsummary.F90 mod_clm_cnwoodproducts.F90 \
+	mod_clm_cninispecial.F90 mod_clm_cninitimevar.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -125,3 +128,10 @@ mod_clm_cnndynamics.o : mod_clm_cnndynamics.F90 mod_clm_atmlnd.o mod_clm_pft2col
 mod_clm_cnnstateupdate1.o : mod_clm_cnnstateupdate1.F90 mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_realkinds.o
 mod_clm_cnnstateupdate2.o : mod_clm_cnnstateupdate2.F90 mod_clm_time_manager.o mod_clm_type.o mod_clm_varpar.o mod_realkinds.o
 mod_clm_cnnstateupdate3.o : mod_clm_cnnstateupdate3.F90 mod_clm_time_manager.o mod_clm_type.o mod_clm_varpar.o mod_realkinds.o
+mod_clm_cnprecisioncontrol.o : mod_clm_cnprecisioncontrol.F90 mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_type.o mod_clm_varctl.o mod_clm_varpar.o mod_realkinds.o mod_stdio.o
+mod_clm_cnsetvalue.o : mod_clm_cnsetvalue.F90 mod_clm_surfrd.o mod_clm_type.o mod_clm_varctl.o mod_clm_varpar.o mod_realkinds.o
+mod_clm_cnsoillittverttransp.o : mod_clm_cnsoillittverttransp.F90 mod_clm_time_manager.o mod_clm_tridiagonal.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
+mod_clm_cnsummary.o : mod_clm_cnsummary.F90 mod_clm_cnndynamics.o mod_clm_pft2col.o mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_realkinds.o
+mod_clm_cnwoodproducts.o : mod_clm_cnwoodproducts.F90 mod_clm_decomp.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_realkinds.o
+mod_clm_cninispecial.o : mod_clm_cninispecial.F90 mod_clm_cnsetvalue.o mod_clm_decomp.o mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_realkinds.o
+mod_clm_cninitimevar.o : mod_clm_cninitimevar.F90 mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_realkinds.o

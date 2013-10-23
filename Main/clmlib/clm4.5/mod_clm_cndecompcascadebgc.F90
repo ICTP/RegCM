@@ -16,7 +16,7 @@ module mod_clm_cndecompcascadebgc
    use mod_clm_varcon, only: tfrz , zsoi
    use mod_clm_varpar   , only: nlevsoi, nlevgrnd, nlevdecomp, ndecomp_cascade_transitions, ndecomp_pools, nsompools
    use mod_clm_varpar   , only: i_met_lit, i_cel_lit, i_lig_lit, i_cwd
-   use mod_clm_varctl  , only: iulog, spinup_state
+   use mod_clm_varctl  , only: spinup_state
 #ifdef LCH4
    use mod_clm_varctl, only: anoxia
    use mod_clm_ch4varcon, only: mino2lim

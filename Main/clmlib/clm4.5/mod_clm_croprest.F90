@@ -768,7 +768,6 @@ contains
 !
 ! !ARGUMENTS:
     use mod_clm_time_manager, only : get_driver_start_ymd, get_start_date
-    use mod_clm_varctl      , only : iulog
     use mod_clm_varctl      , only : nsrest, nsrBranch, nsrStartup
 !
 ! !REVISION HISTORY:
@@ -798,9 +797,9 @@ contains
        call get_start_date( rsyr, rsmon, rsday, tod )
        rsmon_day = rsmon*100 + rsday
        if ( myid == italk ) &
-       write(iulog,formDate) 'Date on the restart file is: ', rsyr, rsmon, rsday
+       write(stdout,formDate) 'Date on the restart file is: ', rsyr, rsmon, rsday
        if ( stmon_day /= rsmon_day )then
-          write(iulog,formDate) 'Start date is: ', styr, stmon_day/100, &
+          write(stdout,formDate) 'Start date is: ', styr, stmon_day/100, &
                                  (stmon_day - stmon_day/100)
           call fatal(__FILE__,__LINE__,trim(subname)// &
           ' ERROR: For prognostic crop to work correctly, the start date (month and day)'// &

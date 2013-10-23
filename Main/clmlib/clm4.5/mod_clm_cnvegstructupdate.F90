@@ -42,7 +42,7 @@ subroutine CNVegStructUpdate(num_soilp, filter_soilp)
    use mod_clm_atmlnd   , only: clm_a2l
    use mod_clm_pftvarcon    , only: noveg, nc3crop, nc3irrig, nbrdlf_evr_shrub, nbrdlf_dcd_brl_shrub
    use mod_clm_pftvarcon    , only: ncorn, ncornirrig, npcropmin, ztopmx, laimx
-   use mod_clm_varcon , only: rpi
+   use mod_clm_varcon, only: rpi
    use mod_clm_time_manager , only : get_rad_step_size
 !
 ! !ARGUMENTS:
@@ -262,6 +262,8 @@ subroutine CNVegStructUpdate(num_soilp, filter_soilp)
                 htmx(p) = 0.D0
                 peaklai(p) = 0
              end if
+             !if (harvdate(p) < 999 .and. tlai(p) > 0.D0) write(iulog,*) 'CNVegStructUpdate: tlai>0 after harvest!' ! remove after initial debugging?
+
              ! canopy top and bottom heights
              htop(p) = ztopmx(ivt(p)) * (min(tlai(p)/(laimx(ivt(p))-1.D0),1.D0))**2
              htmx(p) = max(htmx(p), htop(p))

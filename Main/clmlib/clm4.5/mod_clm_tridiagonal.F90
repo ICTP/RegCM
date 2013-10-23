@@ -42,7 +42,6 @@ contains
     use mod_clm_type
     use mod_clm_varpar    , only : nlevurb
     use mod_clm_varcon    , only : icol_roof, icol_sunwall, icol_shadewall
-    use mod_clm_varctl    , only : iulog
 !
 ! !ARGUMENTS:
     implicit none

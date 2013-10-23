@@ -11,6 +11,7 @@ module mod_clm_varctl
 ! !USES:
   use mod_realkinds
   use mod_mpmessage
+  use mod_stdio
 !
 ! !PUBLIC MEMBER FUNCTIONS:
   implicit none
@@ -43,8 +44,6 @@ module mod_clm_varctl
   character(len=256), public :: conventions = "CF-1.0"                   ! dataset conventions
 !
 ! Unit Numbers
-!
-  integer, public :: iulog = 6        ! "stdout" log file unit number, default is 6
 !
 ! Output NetCDF files
 !
@@ -239,7 +238,7 @@ contains
     else
        allocate_all_vegpfts = .false.
 #ifdef CROP
-       write(iulog,*)'maxpatch_pft = ',maxpatch_pft,&
+       write(stderr,*)'maxpatch_pft = ',maxpatch_pft,&
             ' does NOT equal numpft+1 = ',numpft+1
        call fatal(__FILE__,__LINE__, &
                 subname//' ERROR:: Can NOT turn CROP on without all PFTs' )
@@ -251,7 +250,7 @@ contains
        ! Consistency settings for co2 type
 
        if (co2_type /= 'constant' .and. co2_type /= 'prognostic' .and. co2_type /= 'diagnostic') then
-          write(iulog,*)'co2_type = ',co2_type,' is not supported'
+          write(stderr,*)'co2_type = ',co2_type,' is not supported'
           call fatal(__FILE__,__LINE__, &
            subname//' ERROR:: choices are constant, prognostic or diagnostic' )
        end if
