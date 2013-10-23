@@ -46,7 +46,7 @@ libclm45_a_SOURCES = mod_clm_domain.F90 mod_clm_type.F90 \
   mod_clm_cnsetvalue.F90 mod_clm_cnsoillittverttransp.F90 \
   mod_clm_cnsummary.F90 mod_clm_cnwoodproducts.F90 \
 	mod_clm_cninispecial.F90 mod_clm_cninitimevar.F90 \
-  mod_clm_canopyfluxes.F90 mod_clm_dust.F90
+  mod_clm_canopyfluxes.F90 mod_clm_dust.F90 mod_clm_drydepvelocity.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -138,3 +138,4 @@ mod_clm_cninispecial.o : mod_clm_cninispecial.F90 mod_clm_cnsetvalue.o mod_clm_d
 mod_clm_cninitimevar.o : mod_clm_cninitimevar.F90 mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_realkinds.o
 mod_clm_canopyfluxes.o : mod_clm_canopyfluxes.F90 mod_clm_frictionvelocity.o mod_clm_atmlnd.o mod_clm_cnallocation.o mod_clm_pftvarcon.o mod_clm_qsat.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_clm_type.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
 mod_clm_dust.o : mod_clm_dust.F90 mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_subgridave.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_constants.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
+mod_clm_drydepvelocity.o : mod_clm_drydepvelocity.F90 mod_clm_atmlnd.o mod_clm_drydep.o mod_clm_pftvarcon.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_mpmessage.o mod_realkinds.o
