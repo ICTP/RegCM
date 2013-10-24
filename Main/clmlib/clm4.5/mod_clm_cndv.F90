@@ -206,6 +206,7 @@ contains
     character(len=  8) :: basesec      ! base seconds
     real(rk8), pointer :: rbuf2dg(:,:)  ! temporary
     character(len=32) :: subname='histCNDV'
+    integer(ik4) :: hostnm
     character (len=32) :: hostname='?'
     character (len=32) :: user='?'
 !-----------------------------------------------------------------------
