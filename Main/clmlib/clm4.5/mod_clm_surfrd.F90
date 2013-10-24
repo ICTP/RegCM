@@ -515,8 +515,8 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    type(domain_type),intent(in) :: ldomain     ! land domain associated with wtxy
-    character(len=*), intent(in) :: lfsurdat    ! surface dataset filename
+    type(domain_type),intent(inout) :: ldomain     ! land domain associated with wtxy
+    character(len=*), intent(inout) :: lfsurdat    ! surface dataset filename
 !
 ! !CALLED FROM:
 ! subroutine initialize in module initializeMod
