@@ -69,7 +69,7 @@ program sigma2p
   integer(ik4) , dimension(3) :: psdimids
   integer(ik4) :: i , j , k , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
   integer(ik4) :: tvarid , qvarid , irhvar , ihgvar , imslpvar , ircm_map
-  logical :: has_t , has_q
+  logical :: has_t , has_q . has_rh
   logical :: make_rh , make_hgt
   integer(ik4) :: n3d , ip3d
 #if defined ( __PGI ) || defined ( IBM ) || defined ( __OPENCC__ )
@@ -78,6 +78,7 @@ program sigma2p
 
   data has_t /.false./
   data has_q /.false./
+  data has_rh /.false./
   data make_rh /.false./
   data make_hgt /.false./
 
@@ -225,6 +226,8 @@ program sigma2p
       psdimids = dimids(1:3)
     else if (varname == 'topo') then
       ishvarid = i
+    else if (varname == 'rh') then
+      has_rh = .true.
     else if (varname == 'ta' .or. varname == 't') then
       has_t = .true.
       intscheme(i) = 2
@@ -329,7 +332,7 @@ program sigma2p
     istatus = nf90_put_att(ncout, imslpvar, 'coordinates', 'xlat xlon')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding coordinates')
   end if
-  if ( has_t .and. has_q ) then
+  if ( has_t .and. has_q .and. .not. has_rh ) then
     make_rh = .true.
     allocate(qvar(jx,iy,kz), stat=istatus)
     call checkalloc(istatus,__FILE__,__LINE__,'qvar')
