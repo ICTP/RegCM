@@ -47,7 +47,8 @@ program chem_icbc
   character(len=256) :: namelistfile , prgname
   character(len=8)   :: chemsimtype
   integer(ik4) :: ichremlsc , ichremcvc , ichdrdepo , ichcumtra , &
-        ichsolver , idirect , ichdustemd , ichdiag , ichsursrc , ichebdy
+        ichsolver , idirect , ichdustemd , ichdiag , ichsursrc ,  &
+        iindirect , ichebdy
   real(rk8) :: rdstemfac
   logical :: dochem , dooxcl , doaero
   data dochem /.false./
@@ -55,7 +56,7 @@ program chem_icbc
   data doaero /.false./
 !
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
-     ichcumtra , ichsolver , idirect , ichdustemd , ichdiag ,            &
+     ichcumtra , ichsolver , idirect , ichdustemd , ichdiag , iindirect ,&
      ichsursrc , ichebdy , rdstemfac
 
   call header('chem_icbc')
