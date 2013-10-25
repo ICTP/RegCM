@@ -217,7 +217,8 @@ module mod_mppparam
 
   interface sumall
     module procedure sumall_real8 , &
-                     sumall_int4
+                     sumall_int4 ,  &
+                     sumall_int4_array
   end interface sumall
 
   interface send_array
@@ -443,7 +444,7 @@ module mod_mppparam
     real(rk8) , intent(out) :: rtval
     call mpi_reduce(rlval,rtval,1,mpi_real8,mpi_sum,iocpu,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      call fatal(__FILE__,__LINE__,'mpi_reduce error.')
     end if
   end subroutine sumall_real8
 
@@ -453,7 +454,7 @@ module mod_mppparam
     real(rk8) , intent(out) :: rtval
     call mpi_reduce(rlval,rtval,1,mpi_real8,mpi_max,iocpu,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      call fatal(__FILE__,__LINE__,'mpi_reduce error.')
     end if
   end subroutine maxall
 
@@ -463,9 +464,20 @@ module mod_mppparam
     integer(ik4) , intent(out) :: itval
     call mpi_reduce(ilval,itval,1,mpi_integer4,mpi_sum,iocpu,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+      call fatal(__FILE__,__LINE__,'mpi_reduce error.')
     end if
   end subroutine sumall_int4
+
+  subroutine sumall_int4_array(ilval,itval)
+    implicit none
+    integer(ik4) , dimension(:) , intent(in) :: ilval
+    integer(ik4) , dimension(:) , intent(out) :: itval
+    call mpi_allreduce(ilval,itval,size(itval),mpi_integer4, &
+                       mpi_sum,iocpu,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
+    end if
+  end subroutine sumall_int4_array
 
   subroutine send_array_logical(lval,isize,icpu,itag)
     implicit none
@@ -5661,5 +5673,13 @@ module mod_mppparam
       end do
     end do
   end subroutine input_reorder
+
+  subroutine allsync
+    implicit none
+    call mpi_barrier(mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_barrier error.')
+    end if
+  end subroutine allsync
 
 end module mod_mppparam

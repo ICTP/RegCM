@@ -110,7 +110,7 @@ contains
   subroutine shr_megan_readnl( NLFileName, megan_fields )
 
     character(len=*), intent(in)  :: NLFileName
-    character(len=*), intent(out) :: megan_fields	
+    character(len=*), intent(out) :: megan_fields
 
     integer :: unitn            ! namelist unit number
     integer :: ierr             ! error code
@@ -147,7 +147,6 @@ contains
        ! parse the namelist info and initialize the module data
        call shr_megan_init( megan_specifier, megan_fields )
 
-       close( unitn )
        call file_freeUnit( unitn )
 
     end if
@@ -160,7 +159,7 @@ contains
   subroutine shr_megan_init( specifier, megan_fields )
 
     character(len=*), intent(in) :: specifier(:)
-    character(len=*), intent(out) :: megan_fields	
+    character(len=*), intent(out) :: megan_fields
 
     integer :: n_entries
     integer :: i, j, k
