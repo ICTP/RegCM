@@ -48,7 +48,9 @@ libclm45_a_SOURCES = mod_clm_domain.F90 mod_clm_type.F90 \
   mod_clm_cninispecial.F90 mod_clm_cninitimevar.F90 \
   mod_clm_canopyfluxes.F90 mod_clm_dust.F90 mod_clm_drydepvelocity.F90 \
   mod_clm_dynland.F90 mod_clm_filter.F90 mod_clm_fractwet.F90 \
-  mod_clm_h2osfc.F90 mod_clm_snicar.F90 mod_clm_hydrology1.F90
+  mod_clm_h2osfc.F90 mod_clm_snicar.F90 mod_clm_hydrology1.F90 \
+  mod_clm_slakecon.F90 mod_clm_snowhydrology.F90 mod_clm_vicmap.F90 \
+  mod_clm_soilhydrology.F90 mod_clm_hydrology2.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -60,7 +62,7 @@ FCFLAGS += -I$(MPP_INCLUDE)
 endif
 
 CPPFLAGS += -DMAXPATCH_PFT=4 -DCN -DLCH4 -DCROP -DVERTSOILC \
-						-DCNDV # -DNITRIF_DENITRIF -DLCH4
+            -DCNDV -DVICHYDRO -DNITRIF_DENITRIF -DLCH4
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
@@ -147,3 +149,8 @@ mod_clm_fractwet.o : mod_clm_fractwet.F90 mod_clm_type.o mod_realkinds.o
 mod_clm_h2osfc.o : mod_clm_h2osfc.F90 mod_clm_type.o mod_clm_varcon.o mod_realkinds.o
 mod_clm_snicar.o : mod_clm_snicar.F90 mod_clm_nchelper.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
 mod_clm_hydrology1.o : mod_clm_hydrology1.F90 mod_clm_atmlnd.o mod_clm_fractwet.o mod_clm_h2osfc.o mod_clm_snicar.o mod_clm_subgridave.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_stdio.o
+mod_clm_slakecon.o : mod_clm_slakecon.F90 mod_clm_varpar.o mod_realkinds.o
+mod_clm_snowhydrology.o : mod_clm_snowhydrology.F90 mod_clm_atmlnd.o mod_clm_slakecon.o mod_clm_snicar.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
+mod_clm_vicmap.o : mod_clm_vicmap.F90 mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_realkinds.o
+mod_clm_soilhydrology.o : mod_clm_soilhydrology.F90 mod_clm_h2osfc.o mod_clm_time_manager.o mod_clm_tridiagonal.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_clm_vicmap.o mod_dynparam.o mod_mppparam.o mod_realkinds.o
+mod_clm_hydrology2.o : mod_clm_hydrology2.F90 mod_clm_atmlnd.o mod_clm_snowhydrology.o mod_clm_soilhydrology.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_clm_vicmap.o mod_realkinds.o

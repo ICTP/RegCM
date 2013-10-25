@@ -1,0 +1,133 @@
+module mod_clm_slakecon
+
+!-----------------------------------------------------------------------
+!BOP
+!
+! !MODULE: SLakeCon
+!
+! !DESCRIPTION:
+! Module containing constants and parameters for the SLake code (CLM4-LISSS, documented in Subin et al. 2011, JAMES)
+!
+! !USES:
+  use mod_realkinds
+  use mod_clm_varpar , only : numrad
+!
+! !PUBLIC TYPES:
+  implicit none
+  save
+!
+! !REVISION HISTORY:
+! Created by Zack Subin, 2011
+!
+!EOP
+!-----------------------------------------------------------------------
+
+  integer, private :: i
+
+  !------------------------------------------------------------------
+  ! Lake Model Constants
+  !------------------------------------------------------------------
+
+  ! Non-tuneable constants for the lake model
+  real(rk8), parameter :: tdmax = 277.D0   ! temperature of maximum water density (K)
+                                           ! This is from Hostetler and Bartlein (1990); more updated sources suggest
+                                           ! 277.13 K.
+
+  ! Tuneable constants for the lake model
+  real(rk8), parameter :: emg_lake = 0.97D0  ! lake emissivity. This
+                                           ! is used for both frozen and unfrozen lakes. This is pulled in from CLM4 and
+                                           ! the reference is unclear.
+
+  real(rk8) :: alblak(numrad) = &           ! albedo frozen lakes by waveband (1=vis, 2=nir)
+                        (/0.60D0, 0.40D0/) ! Also unclear what the reference is for this.
+  real(rk8) :: alblakwi(numrad)            ! albedo of melting lakes due to puddling, open water, or white ice
+                                          ! From D. Mironov (2010) Boreal Env. Research
+                                          ! To revert albedo of melting lakes to the cold snow-free value, set
+                                          ! lake_melt_icealb namelist to 0.60, 0.40 like alblak above.
+
+  real(rk8), parameter :: calb = 95.6D0   ! Coefficient for calculating ice "fraction" for lake surface albedo
+                                          ! From D. Mironov (2010) Boreal Env. Research
+  real(rk8) :: betavis = 0.0D0            ! The fraction of the visible (e.g. vis not nir from atm) sunlight
+                                          ! absorbed in ~1 m of water (the surface layer za_lake).
+                                          ! This is roughly the fraction over 700 nm but may depend on the details
+                                          ! of atmospheric radiative transfer.
+                                          ! As long as NIR = 700 nm and up, this can be zero.
+  real(rk8), parameter :: z0frzlake = 0.001D0  ! Momentum Roughness length over frozen lakes without snow  (m)
+                                          ! Typical value found in the literature, and consistent with Mironov expressions.
+                                          ! See e.g. Morris EM 1989, Andreas EL 1987, Guest & Davidson 1991 (as cited in
+                                          ! Vavrus 1996)
+  real(rk8), parameter :: za_lake = 0.6D0           ! Base of surface light absorption layer for lakes (m)
+
+  ! For calculating prognostic roughness length
+  real(rk8), parameter :: cur0    = 0.01D0  ! min. Charnock parameter
+  real(rk8), parameter :: cus     = 0.1D0   ! empirical constant for roughness under smooth flow
+  real(rk8), parameter :: curm    = 0.1D0   ! maximum Charnock parameter
+
+  !! The following will be set in initSLake based on namelists.
+  real(rk8)            :: fcrit              ! critical dimensionless fetch for Charnock parameter.
+  real(rk8)            :: minz0lake          ! (m) Minimum allowed roughness length for unfrozen lakes.
+
+  ! For calculating enhanced diffusivity
+  real(rk8), parameter :: n2min = 7.5D-5 ! (s^-2) (yields diffusivity about 6 times km) ! Fang & Stefan 1996
+
+  real(rk8)            :: lsadz = 0.03D0 ! m
+  ! Note, this will be adjusted in initSLake if the timestep is not 1800 s.
+  ! Lake top numerics can oscillate with 0.01m top layer and 1800 s timestep.
+  ! The problem is that the surface flux is fixed during the calculation of the top
+  ! layer temperature in the diffusion and not corrected for the tendency of the top layer.
+  ! This thickness will be added to all minimum and maximum snow layer thicknesses compared to that used over non-lakes.
+  ! Analysis of the CFL condition suggests that the minimum snow layer thickness for 1800 s needs
+  ! to be at least ~1.2 cm for the bulk snow values of conductivity and heat capacity
+  ! and as much as 2.3 cm for pure ice.
+  ! Alternatively, a check could be done in SLakeTemperature in case
+  ! t_grnd(c) - t_soisno(c,snl(c)+1) changed sign after the Crank-Nicholson step.
+  ! Such an approach, while perhaps allowing additional snow layer resolution, has not been tested.
+  ! The approach used over non-lakes is to have a first-order surface flux correction.
+  ! We choose not to do that here because t_grnd can vary independently of the top model
+  ! layer temperature, while it is fixed to the top layer temperature if tbot > tfrz and
+  ! the lake is frozen, or if there is an unstable density gradient in the top unfrozen
+  ! lake layer.
+
+  !! The following will be set in initSLake based on namelists.
+  real(rk8)            :: pudz          ! (m) Optional minimum total ice thickness required to allow lake puddling.
+                                       ! Currently used for sensitivity tests only.
+  real(rk8)            :: depthcrit     ! (m) Depth beneath which to increase mixing. See discussion in Subin et al. 2011
+  real(rk8)            :: mixfact       ! Mixing increase factor.
+
+  !!!!!!!!!!!
+  ! Namelists (some of these have not been extensively tested and are hardwired to default values currently).
+  !!!!!!!!!!!
+
+  ! used in SLakeFluxes
+  logical,  public :: lake_use_old_fcrit_minz0 = .false. ! true => use old fcrit & minz0 as per Subin et al 2011 form
+                                                         ! See initSLakeMod for details. Difference is very small for
+                                                         ! small lakes and negligible for large lakes.
+                                                         ! Currently hardwired off.
+
+  ! used in SLakeTemperature
+  ! Increase mixing by a large factor for deep lakes
+  ! Crude but enhanced performance at all 4 deep lakes tested.
+  ! See Subin et al 2011 (JAMES) for details
+  real(rk8), public :: deepmixing_depthcrit = 25.D0     ! (m) minimum lake depth to invoke deepmixing
+  real(rk8), public :: deepmixing_mixfact   = 10.D0     ! factor to increase mixing by
+logical,  public :: lake_no_ed = .false.              ! true => Suppress enhanced diffusion. Small differences.
+                                                        ! Currently hardwired .false.
+                                                        ! See Subin et al 2011 for details.
+                                                        ! Enhanced diffusion is intended for under ice and at large depths.
+                                                        ! It is a much smaller change on its own than the "deepmixing"
+                                                        ! above, but it increases the effect of deepmixing under ice and for
+                                                        ! large depths.
+
+
+  ! puddling (not extensively tested and currently hardwired off)
+  ! used in SLakeTemperature and SurfaceAlbedo
+  logical,  public :: lakepuddling = .false.            ! true => suppress convection when greater than minimum amount
+                                                        ! of ice is present. This also effectively sets lake_no_melt_icealb.
+  real(rk8), public :: lake_puddle_thick = 0.2D0        ! (m) minimum amount of total ice nominal thickness before
+                                                        ! convection is suppressed
+
+  ! alblakwi used in SurfaceAlbedo. Will be set by lake_melt_icealb in initSLake.
+  real(rk8), public :: lake_melt_icealb(numrad) = &      ! Namelist for inputting alblakwi
+                      (/ 0.10D0, 0.10D0/)
+
+end module mod_clm_slakecon
