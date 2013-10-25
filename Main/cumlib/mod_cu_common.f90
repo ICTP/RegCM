@@ -81,8 +81,9 @@ module mod_cu_common
   subroutine allocate_mod_cu_common(ichem)
     implicit none
     integer(ik4) , intent(in) :: ichem
-    integer(ik4) , dimension(12) :: iseed
-    integer :: k
+    integer(ik4) , dimension(:) , allocatable:: iseed
+    integer :: k , nseed
+    real(rk4) :: cputime
     if ( icup > 90 ) then
       call getmem2d(cucontrol,jci1,jci2,ici1,ici2,'mod_cu_common:cucontrol')
     end if
@@ -108,9 +109,12 @@ module mod_cu_common
       fixed_cld_profile(9)  = 0.045D0
       fixed_cld_profile(10) = 0.045D0
       if ( addnoise ) then
-        call date_and_time(values=iseed(1:8))
-        iseed(8:12) = iseed(4:8)
+        call random_seed(size=nseed)
+        call cpu_time(cputime)
+        allocate(iseed(nseed))
+        iseed = int(cputime) + 37*(/(k-1,k=1,nseed)/)
         call random_seed(put=iseed)
+        deallocate(iseed)
       else
         cld_profile = fixed_cld_profile
       end if
