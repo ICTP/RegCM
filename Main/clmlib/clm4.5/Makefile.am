@@ -54,7 +54,8 @@ libclm45_a_SOURCES = mod_clm_domain.F90 mod_clm_type.F90 \
   mod_clm_slakefluxes.F90 mod_clm_slakehydrology.F90 \
   mod_clm_slaketemperature.F90 mod_clm_slakerest.F90 mod_clm_surfacealbedo.F90 \
   mod_clm_surfaceradiation.F90 mod_clm_urban.F90 mod_clm_urbaninit.F90 \
-  mod_clm_vocemission.F90 mod_clm_typeinit.F90
+  mod_clm_vocemission.F90 mod_clm_typeinit.F90 mod_clm_driverinit.F90 \
+  mod_clm_reweight.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -169,3 +170,5 @@ mod_clm_urban.o : mod_clm_urban.F90 mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_fi
 mod_clm_urbaninit.o : mod_clm_urbaninit.F90 mod_clm_decomp.o mod_clm_type.o mod_clm_urbaninput.o mod_clm_urban.o mod_clm_varcon.o mod_clm_varctl.o mod_realkinds.o
 mod_clm_vocemission.o : mod_clm_vocemission.F90 mod_clm_atmlnd.o mod_clm_domain.o mod_clm_meganfactors.o mod_clm_meganfactors.o mod_clm_megan.o mod_clm_pftvarcon.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_realkinds.o
 mod_clm_typeinit.o : mod_clm_typeinit.F90 mod_clm_decomp.o mod_clm_drydep.o mod_clm_megan.o mod_clm_surfrd.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o
+mod_clm_driverinit.o : mod_clm_driverinit.F90 mod_clm_atmlnd.o mod_clm_domain.o mod_clm_qsat.o mod_clm_subgridave.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_realkinds.o
+mod_clm_reweight.o : mod_clm_reweight.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_filter.o mod_clm_type.o mod_clm_varcon.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
