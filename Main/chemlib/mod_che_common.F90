@@ -145,7 +145,7 @@ module mod_che_common
         call getmem1d(chtrsol,1,ntr,'mod_che_common:chtrsol')
         call getmem1d(idust,1,nbin,'mod_che_common:idust')
         call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
-        call getmem1d(icarb,1,5,'mod_che_common:icarb')
+        call getmem1d(icarb,1,7,'mod_che_common:icarb')
         call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
 
         call getmem4d(chemall,jci1,jci2,ici1,ici2, &

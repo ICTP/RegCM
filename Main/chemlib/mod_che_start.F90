@@ -156,8 +156,20 @@ module mod_che_start
         carbed(kbin) = reffochl
         chtrsol(iso4) = solso4
       end if
-      if ( chtrname(itr) == 'ANO3' ) iano3 = itr
-      if ( chtrname(itr) == 'ANH4' ) ianh4 = itr
+      if ( chtrname(itr) == 'ANO3' ) then
+        kbin = kbin + 1
+        iano3 = itr 
+        icarb(kbin) = itr
+        carbed(kbin) = reffochl
+        chtrsol(iano3) = solso4
+      end if
+      if ( chtrname(itr) == 'ANH4' ) then
+        kbin = kbin + 1
+        ianh4 = itr 
+        icarb(kbin) = itr
+        carbed(kbin) = reffochl
+        chtrsol(ianh4) = solso4
+      end if
       if ( chtrname(itr) == 'BC_HL' ) then 
         kbin = kbin + 1
         ibchl = itr

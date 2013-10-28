@@ -712,7 +712,9 @@ module mod_rad_aerosol
               wa(n,k,itr) = wsdust(ns,ibin)
               ga(n,k,itr) = gsdust(ns,ibin)
               fa(n,k,itr) = gsdust(ns,ibin)*gsdust(ns,ibin)
-            else if ( chtrname(itr) == 'SO4' ) then
+            else if ( chtrname(itr) == 'SO4' .or.     &
+                      chtrname(itr) == 'ANO3' .or.    &
+                      chtrname(itr) == 'ANH4' ) then
               ! maximum limit for effect on sulfate extinction 
               rh0 = dmin1(0.97D0,dmax1(d_zero,rh(n,k)))
               uaer(n,k,itr) = aermmr(n,k,itr)*path

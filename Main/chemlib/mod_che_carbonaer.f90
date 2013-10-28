@@ -58,7 +58,7 @@ module mod_che_carbonaer
 
   ! bin size for carboneaceous aerosols
   ! ps add one dimension for sulfate too.
-  real(rk8) , public , dimension(5) :: carbed
+  real(rk8) , public , dimension(7) :: carbed
 
   contains
 
