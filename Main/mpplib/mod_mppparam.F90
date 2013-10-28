@@ -5893,6 +5893,10 @@ module mod_mppparam
     integer(ik4) , dimension(:) :: vector
     integer(ik4) :: nval , npt
     nval = cartesian_npoint(myid+1)
+    if ( nproc == 1 ) then
+      vector(1:nval) = pack(matrix,lmask2)
+      return
+    end if
     if ( nval > 0 ) then
       i4vector1 = pack(matrix,lmask2)
     end if
@@ -5917,6 +5921,10 @@ module mod_mppparam
     integer(ik4) , dimension(:) :: vector
     integer(ik4) :: nval , npt
     nval = cartesian_npoint(myid+1)
+    if ( nproc == 1 ) then
+      vector(1:nval) = pack(matrix,lmask3)
+      return
+    end if
     if ( nval > 0 ) then
       i4vector1 = pack(matrix,lmask3)
     end if
@@ -5941,6 +5949,10 @@ module mod_mppparam
     real(rk8) , dimension(:) :: vector
     integer(ik4) :: nval , npt
     nval = cartesian_npoint(myid+1)
+    if ( nproc == 1 ) then
+      vector(1:nval) = pack(matrix,lmask2)
+      return
+    end if
     if ( nval > 0 ) then
       i4vector1 = pack(matrix,lmask2)
     end if
@@ -5964,6 +5976,10 @@ module mod_mppparam
     real(rk8) , dimension(:) :: vector
     integer(ik4) :: nval , npt
     nval = cartesian_npoint(myid+1)
+    if ( nproc == 1 ) then
+      vector(1:nval) = pack(matrix,lmask3)
+      return
+    end if
     if ( nval > 0 ) then
       i4vector1 = pack(matrix,lmask3)
     end if
