@@ -70,9 +70,6 @@ program ncprepare
   integer(ik4) :: year , month , day , hour
   logical :: lvarsplit , existing , lsigma , ldepth , lu , lua , luas , lclm
   logical :: is_model_output = .false.
-#if defined ( __PGI ) || defined ( IBM ) || defined ( __OPENCC__ )
-  integer(ik4) , external :: iargc
-#endif
 
   data cmon /'jan','feb','mar','apr','may','jun', &
              'jul','aug','sep','oct','nov','dec'/
@@ -86,8 +83,8 @@ program ncprepare
   data itdimid  /-1/
   data dptdimid /-1/
 
-  call getarg(0, prgname)
-  numarg = iargc( )
+  call get_command_argument(0,value=prgname)
+  numarg = command_argument_count()
   if (numarg < 1) then
     write (stderr,*) 'Not enough arguments.'
     write (stderr,*) ' '
@@ -98,14 +95,14 @@ program ncprepare
     stop
   end if
 
-  call getarg(1, ncfile)
+  call get_command_argument(1,value=ncfile)
   iid = scan(ncfile, '/', .true.)
   tmpctl = trim(ncfile)//'.ctl'
 
   if ( numarg == 2 ) then
     lclm = .true.
     clmfile = ncfile
-    call getarg(2, ncfile)
+    call get_command_argument(2,value=ncfile)
     iid = scan(clmfile, '/', .true.)
   end if
 

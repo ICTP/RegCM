@@ -98,8 +98,8 @@ program terrain
 !
 !     Read input global namelist
 !
-  call getarg(0, prgname)
-  call getarg(1, namelistfile)
+  call get_command_argument(0,value=prgname)
+  call get_command_argument(1,value=namelistfile)
   call initparam(namelistfile, ierr)
   if ( ierr/=0 ) then
     write (stderr,*) 'Parameter initialization not completed'

@@ -35,17 +35,14 @@ program nearpoint
   character(len=256) :: namelistfile , prgname , outname , line
   real(rk8) :: lat , lon , iiy , jjx , jmax , imax , centeri , centerj
   integer(ik4) :: istat , ierr , imodel , iver
-#if defined ( __PGI ) || defined ( IBM ) || defined ( __OPENCC__ )
-  integer(ik4) , external :: iargc
-#endif
 !
 !     Read input global namelist
 !
-  call getarg(0, prgname)
-  if ( iargc( ) < 5 ) then
+  call get_command_argument(0,value=prgname)
+  if ( command_argument_count( ) < 5 ) then
     call usage
   end if
-  call getarg(1, namelistfile)
+  call get_command_argument(1,value=namelistfile)
   call initparam(namelistfile, ierr)
   if ( ierr/=0 ) then
     call usage
@@ -53,7 +50,7 @@ program nearpoint
   jmax = jx
   imax = iy
 
-  call getarg(2, line)
+  call get_command_argument(2,value=line)
   read(line,*,iostat=istat) iver
   if ( iver < 1 .or. iver > 2 ) then
     write (stderr,*) 'iver == 1  =>  lon/lat to jx,iy'
@@ -61,7 +58,7 @@ program nearpoint
     call usage
   end if
 
-  call getarg(3, line)
+  call get_command_argument(3,value=line)
   read(line,*,iostat=istat) imodel
   if ( imodel < 1 .or. imodel > 2 ) then
     write (stderr,*) 'model == 1  =>  model output'
@@ -76,13 +73,13 @@ program nearpoint
   if ( iver == 1 ) then
     lon = -500.0D0
     lat = -500.0D0
-    call getarg(4, line)
+    call get_command_argument(4,value=line)
     read(line,*,iostat=istat) lon
     if ( istat /= 0 .or. lon < -360.0 .and. lon > 360.0 ) then
       write (stderr,*) 'LONGITUDE NOT IN RANGE -360,360'
       call usage
     end if
-    call getarg(5, line)
+    call get_command_argument(5,value=line)
     read(line,*,iostat=istat) lat
     if ( istat /= 0 .or. lat < -90.0 .and. lat > 90.0 ) then
       write (stderr,*) 'LATITUDE NOT IN RANGE -90,90'
@@ -92,13 +89,13 @@ program nearpoint
   else
     jjx = -1
     iiy = -1
-    call getarg(4, line)
+    call get_command_argument(4,value=line)
     read(line,*,iostat=istat) jjx
     if ( jjx < 1 .or. jjx > jmax ) then
       write (stderr,*) 'JX NOT IN RANGE 1 to ',jmax
       call usage
     end if
-    call getarg(5, line)
+    call get_command_argument(5,value=line)
     read(line,*,iostat=istat) iiy
     if ( iiy < 1 .or. iiy > imax ) then
       write (stderr,*) 'IY NOT IN RANGE 1 to ',imax

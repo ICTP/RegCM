@@ -71,9 +71,6 @@ program sigma2z
   logical :: has_t , has_q , has_rh
   logical :: make_rh , make_mslp
   integer(ik4) :: n3d , iz3d
-#if defined ( __PGI ) || defined ( IBM ) || defined ( __OPENCC__ )
-  integer(ik4) , external :: iargc
-#endif
 
   data has_t /.false./
   data has_q /.false./
@@ -84,8 +81,8 @@ program sigma2z
   data zlevs /20.0,50.0,80.0,100.0,150.0,200.0,500.0,750.0,1000.0, &
               1500.0,2000.0,5000.0,7000.0,10000.0/
 
-  call getarg(0, prgname)
-  numarg = iargc( )
+  call get_command_argument(0,value=prgname)
+  numarg = command_argument_count()
   if (numarg < 1) then
     write (6,*) 'Not enough arguments.'
     write (6,*) ' '
@@ -94,7 +91,7 @@ program sigma2z
     stop
   end if
 
-  call getarg(1, ncsfile)
+  call get_command_argument(1,value=ncsfile)
   iid1 = scan(ncsfile, '/', .true.)
   iid2 = scan(ncsfile, '.', .true.)
   ncpfile = trim(ncsfile(iid1+1:iid2-1))//'_hgt.nc'

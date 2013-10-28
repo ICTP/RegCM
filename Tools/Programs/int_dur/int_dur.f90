@@ -39,8 +39,8 @@ program int_dur
   integer :: year2 , month2 , day2 , hour2
   integer :: maxdpy , daypy , dstart
 
-  call getarg(1,inputfile)
-  call getarg(2,outputfile)
+  call get_command_argument(1,value=inputfile)
+  call get_command_argument(2,value=outputfile)
 
   istatus = nf90_open(inputfile,nf90_nowrite,ncid)
   if ( istatus /= nf90_noerr ) then

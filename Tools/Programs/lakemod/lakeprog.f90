@@ -38,9 +38,9 @@ program lakeprog
 
   real (8) :: tl , vl , ql , fsw , flw , hsen , prec , evl
 
-  call getarg(0, prgname)
-  call getarg(1, inpfile)
-  call getarg(2, outfile)
+  call get_command_argument(0,value=prgname)
+  call get_command_argument(1,value=inpfile)
+  call get_command_argument(2,value=outfile)
 
   open (inunit,file=inpfile,status='old',action='read', &
         form='formatted',err=100)

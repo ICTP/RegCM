@@ -47,12 +47,9 @@ program readregcm
   integer :: jx , iy , kz, nt , nlat , nlon
   integer :: i
   integer , dimension(4) :: istart , icount
-#ifdef IBM
-  integer , external :: iargc
-#endif
 
-  call getarg(0, prgname)
-  numarg = iargc( )
+  call get_command_argument(0,value=prgname)
+  numarg = command_argument_count( )
   if (numarg < 1) then
     write (6,*) 'Not enough arguments.'
     write (6,*) ' '
@@ -61,7 +58,7 @@ program readregcm
     stop
   end if
 
-  call getarg(1, ncfile)
+  call get_command_argument(1,value=ncfile)
 
 ! Open the file
 

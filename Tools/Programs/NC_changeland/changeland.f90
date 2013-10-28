@@ -10,7 +10,7 @@ program changeland
   real(4) , pointer , dimension(:,:) :: xlat , xlon , landuse
   logical , pointer , dimension(:,:) :: mask
 
-  call getarg(1,arg1)
+  call get_command_argument(1,value=arg1)
 
   istatus = nf90_open(arg1,nf90_write,ncid)
   if ( istatus /= nf90_noerr) then

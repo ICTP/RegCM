@@ -154,8 +154,8 @@ program icbc
 !
 !     Read input global namelist
 !
-  call getarg(0, prgname)
-  call getarg(1, namelistfile)
+  call get_command_argument(0,value=prgname)
+  call get_command_argument(1,value=namelistfile)
   call initparam(namelistfile, ierr)
   if ( dattyp == 'FVGCM' .or. dattyp == 'EH5RF' .or. &
        dattyp == 'EH5A2' .or. dattyp == 'EH5B1' .or. dattyp == 'EHA1B') then

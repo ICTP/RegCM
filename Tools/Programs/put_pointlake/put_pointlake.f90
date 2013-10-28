@@ -25,7 +25,7 @@ program changeland
   data elevation /372.0,231.0,447.0,373.0/
   !data elevation /372.0,372.0,372.0,372.0/
 
-  call getarg(1,arg1)
+  call get_command_argument(1,value=arg1)
 
   istatus = nf90_open(arg1,nf90_write,ncid)
   if ( istatus /= nf90_noerr) then

@@ -102,8 +102,8 @@ module mod_regcm_interface
 !**********************************************************************
 !
     if ( myid == iocpu ) then
-      call getarg(0, prgname)
-      call getarg(1, namelistfile)
+      call get_command_argument(0,value=prgname)
+      call get_command_argument(1,value=namelistfile)
       call initparam(namelistfile, ierr)
       if ( ierr /= 0 ) then
         write ( 6, * ) 'Parameter initialization not completed'

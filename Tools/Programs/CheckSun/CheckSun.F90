@@ -43,14 +43,11 @@ program checksun
   real(8) :: xtime , gmt
   character(32) :: csdate
   character(256) :: ofname
-#ifdef IBM
-  integer , external :: iargc
-#endif
   real(8) , parameter :: dayspy = 365.2422D0
   real(8) , parameter :: solcon = 1367.0D0
 
-  call getarg(0, chararg)
-  numarg = iargc( )
+  call get_command_argument(0,value=chararg)
+  numarg = command_argument_count( )
   if (numarg < 5) then
     write (6,*) 'Not enough arguments.'
     write (6,*) ' '
@@ -68,29 +65,29 @@ program checksun
     stop
   end if
 
-  call getarg(1, ncfile)
-  call getarg(2, chararg)
+  call get_command_argument(1,value=ncfile)
+  call get_command_argument(2,value=chararg)
   read(chararg, '(i10)',iostat=istatus) idate0
   if (istatus /= 0) then
     print *, 'Cannot parse idate0'
     stop
   end if
   xidate0 = idate0
-  call getarg(3, chararg)
+  call get_command_argument(3,value=chararg)
   read(chararg, '(i10)',iostat=istatus) idate1
   if (istatus /= 0) then
     print *, 'Cannot parse idate1'
     stop
   end if
   xidate1 = idate1
-  call getarg(4, chararg)
+  call get_command_argument(4,value=chararg)
   read(chararg, '(i10)',iostat=istatus) idate2
   if (istatus /= 0) then
     print *, 'Cannot parse idate2'
     stop
   end if
   xidate2 = idate2
-  call getarg(5, chararg)
+  call get_command_argument(5,value=chararg)
   read(chararg, '(i5)',iostat=istatus) ifrq
   if (istatus /= 0) then
     print *, 'Cannot parse ifrq'

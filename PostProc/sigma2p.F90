@@ -69,12 +69,9 @@ program sigma2p
   integer(ik4) , dimension(3) :: psdimids
   integer(ik4) :: i , j , k , it , iv , iid1 , iid2 , ii , i3d , p3d , ich
   integer(ik4) :: tvarid , qvarid , irhvar , ihgvar , imslpvar , ircm_map
-  logical :: has_t , has_q . has_rh
+  logical :: has_t , has_q , has_rh
   logical :: make_rh , make_hgt
   integer(ik4) :: n3d , ip3d
-#if defined ( __PGI ) || defined ( IBM ) || defined ( __OPENCC__ )
-  integer(ik4) , external :: iargc
-#endif
 
   data has_t /.false./
   data has_q /.false./
@@ -84,8 +81,8 @@ program sigma2p
 
   data plevs /1000.,925.,850.,700.,500.,400.,300.,250.,200.,150.,100./
 
-  call getarg(0, prgname)
-  numarg = iargc( )
+  call get_command_argument(0,value=prgname)
+  numarg = command_argument_count()
   if (numarg < 1) then
     write (6,*) 'Not enough arguments.'
     write (6,*) ' '
@@ -94,7 +91,7 @@ program sigma2p
     stop
   end if
 
-  call getarg(1, ncsfile)
+  call get_command_argument(1,value=ncsfile)
   iid1 = scan(ncsfile, '/', .true.)
   iid2 = scan(ncsfile, '.', .true.)
   ncpfile = trim(ncsfile(iid1+1:iid2-1))//'_pressure.nc'
