@@ -52,7 +52,8 @@ libclm45_a_SOURCES = mod_clm_domain.F90 mod_clm_type.F90 \
   mod_clm_slakecon.F90 mod_clm_snowhydrology.F90 mod_clm_vicmap.F90 \
   mod_clm_soilhydrology.F90 mod_clm_hydrology2.F90 mod_clm_meganfactors.F90 \
   mod_clm_slakefluxes.F90 mod_clm_slakehydrology.F90 \
-  mod_clm_slaketemperature.F90 mod_clm_slakerest.F90
+  mod_clm_slaketemperature.F90 mod_clm_slakerest.F90 mod_clm_surfacealbedo.F90 \
+  mod_clm_surfaceradiation.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -161,3 +162,5 @@ mod_clm_slakefluxes.o : mod_clm_slakefluxes.F90 mod_clm_atmlnd.o mod_clm_frictio
 mod_clm_slakehydrology.o : mod_clm_slakehydrology.F90 mod_clm_atmlnd.o mod_clm_slakecon.o mod_clm_snicar.o mod_clm_snowhydrology.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_realkinds.o
 mod_clm_slaketemperature.o : mod_clm_slaketemperature.F90 mod_clm_atmlnd.o mod_clm_qsat.o mod_clm_slakecon.o mod_clm_time_manager.o mod_clm_tridiagonal.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_realkinds.o mod_stdio.o
 mod_clm_slakerest.o : mod_clm_slakerest.F90 mod_clm_decomp.o mod_clm_nchelper.o mod_clm_time_manager.o mod_clm_type.o mod_mpmessage.o mod_realkinds.o
+mod_clm_surfacealbedo.o : mod_clm_surfacealbedo.F90 mod_clm_slakecon.o mod_clm_snicar.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_constants.o mod_intkinds.o mod_realkinds.o
+mod_clm_surfaceradiation.o : mod_clm_surfaceradiation.F90 mod_clm_atmlnd.o mod_clm_snicar.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_realkinds.o
