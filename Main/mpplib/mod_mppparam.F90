@@ -36,9 +36,17 @@ module mod_mppparam
   integer(ik4) , parameter :: mpi_proc_null = -2
 #endif
 
+  integer(ik4) :: linear_communicator
+  logical , pointer , dimension(:,:) :: lmask2
+  logical , pointer , dimension(:,:,:) :: lmask3
+  integer(ik4) , public , pointer , dimension(:) :: linear_npoint
+  integer(ik4) , public , pointer , dimension(:) :: linear_displ
+
   public :: set_nproc , broadcast_params
 
   integer(ik4) :: cartesian_communicator
+  integer(ik4) , public , pointer , dimension(:) :: cartesian_npoint
+  integer(ik4) , public , pointer , dimension(:) :: cartesian_displ
 
   integer(ik4) , public :: ncout_mpi_info = mpi_info_null
 
@@ -235,16 +243,30 @@ module mod_mppparam
                      recv_array_real8
   end interface recv_array
 
+  interface c2l_setup
+    module procedure c2l_setup_from_integer_2d, &
+                     c2l_setup_from_integer_3d, &
+                     c2l_setup_from_double_2d, &
+                     c2l_setup_from_double_3d
+  end interface c2l_setup
+
+  interface c2l
+    module procedure cartesian2d_to_linear_integer, &
+                     cartesian3d_to_linear_integer, &
+                     cartesian2d_to_linear_real8,   &
+                     cartesian3d_to_linear_real8
+  end interface c2l
+
   interface reorder_subgrid
-    module procedure reorder_subgrid_2d
-    module procedure reorder_subgrid_2d3d
-    module procedure reorder_subgrid_3d
+    module procedure reorder_subgrid_2d , &
+                     reorder_subgrid_2d3d , &
+                     reorder_subgrid_3d
   end interface reorder_subgrid
 
   interface reorder_add_subgrid
-    module procedure reorder_add_subgrid_2d
-    module procedure reorder_add_subgrid_2d3d
-    module procedure reorder_add_subgrid_3d
+    module procedure reorder_add_subgrid_2d , &
+                     reorder_add_subgrid_2d3d , &
+                     reorder_add_subgrid_3d
   end interface reorder_add_subgrid
 
   public :: model_area
@@ -283,6 +305,9 @@ module mod_mppparam
   public :: reorder_subgrid , reorder_add_subgrid
   public :: input_reorder
   public :: trueforall
+  public :: allsync
+  public :: c2l_setup
+  public :: c2l
 !
   contains
 !
@@ -625,6 +650,12 @@ module mod_mppparam
     ma%has_bdytopright    = .false.
     ma%has_bdybottomleft  = .false.
     ma%has_bdybottomright = .false.
+
+    linear_communicator = mycomm
+    call getmem1d(linear_npoint,1,nproc,'set_nproc:linear_npoint')
+    call getmem1d(linear_displ,1,nproc,'set_nproc:linear_displ')
+    call getmem1d(cartesian_npoint,1,nproc,'set_nproc:cartesian_npoint')
+    call getmem1d(cartesian_displ,1,nproc,'set_nproc:cartesian_displ')
 
     if ( nproc == 1 ) then
       cpus_per_dim(1) = 1
@@ -5681,5 +5712,273 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_barrier error.')
     end if
   end subroutine allsync
+
+  subroutine c2l_setup_from_double_2d(mask)
+    implicit none
+    real(rk8) , dimension(:,:) :: mask
+    integer(ik4) :: ncart_pnum , ncart_tot , linp , nrem , np
+    if ( .not. associated(lmask2) ) then
+      call getmem2d(lmask2,lbound(mask,1),ubound(mask,1), &
+                           lbound(mask,2),ubound(mask,2),'mppparam:lmask2')
+    end if
+    lmask2 = mask > 0
+    ncart_tot = count(lmask2)
+    call mpi_allgather(ncart_tot,1,mpi_integer4,         &
+                       cartesian_npoint,1,mpi_integer4,  &
+                       cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allgather error.')
+    end if
+    cartesian_displ(:) = 1
+    do np = 2 , nproc
+      cartesian_displ(np) = cartesian_displ(np) + cartesian_npoint(np-1)
+    end do
+    linear_npoint(:) = 0
+    ncart_tot = sum(cartesian_npoint)
+    if ( ncart_tot < nproc ) then
+      linear_npoint(2) = linp
+    else
+      linp = ncart_tot / nproc
+      linear_npoint(:) = linp
+      nrem = ncart_tot - linp*nproc
+      if ( nrem > 0 ) then
+        np = 2
+        do while (nrem > 0)
+          linear_npoint(np) = linear_npoint(np) + 1
+          nrem = nrem - 1
+          np = np + 1
+        end do
+      end if
+    end if 
+    linear_displ(:) = 1
+    do np = 2 , nproc
+      linear_displ(np) = linear_displ(np) + linear_npoint(np-1)
+    end do
+  end subroutine c2l_setup_from_double_2d
+
+  subroutine c2l_setup_from_integer_2d(mask)
+    implicit none
+    integer(ik4) , dimension(:,:) :: mask
+    integer(ik4) :: ncart_pnum , ncart_tot , linp , nrem , np
+    if ( .not. associated(lmask2) ) then
+      call getmem2d(lmask2,lbound(mask,1),ubound(mask,1), &
+                           lbound(mask,2),ubound(mask,2),'mppparam:lmask2')
+    end if
+    lmask2 = mask > 0
+    ncart_tot = count(lmask2)
+    call mpi_allgather(ncart_tot,1,mpi_integer4,         &
+                       cartesian_npoint,1,mpi_integer4,  &
+                       cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allgather error.')
+    end if
+    cartesian_displ(:) = 1
+    do np = 2 , nproc
+      cartesian_displ(np) = cartesian_displ(np) + cartesian_npoint(np-1)
+    end do
+    linear_npoint(:) = 0
+    ncart_tot = sum(cartesian_npoint)
+    if ( ncart_tot < nproc ) then
+      linear_npoint(2) = linp
+    else
+      linp = ncart_tot / nproc
+      linear_npoint(:) = linp
+      nrem = ncart_tot - linp*nproc
+      if ( nrem > 0 ) then
+        np = 2
+        do while (nrem > 0)
+          linear_npoint(np) = linear_npoint(np) + 1
+          nrem = nrem - 1
+          np = np + 1
+        end do
+      end if
+    end if 
+    linear_displ(:) = 1
+    do np = 2 , nproc
+      linear_displ(np) = linear_displ(np) + linear_npoint(np-1)
+    end do
+  end subroutine c2l_setup_from_integer_2d
+
+  subroutine c2l_setup_from_double_3d(mask)
+    implicit none
+    real(rk8) , dimension(:,:,:) :: mask
+    integer(ik4) :: ncart_pnum , ncart_tot , linp , nrem , np
+    if ( .not. associated(lmask3) ) then
+      call getmem3d(lmask3,lbound(mask,1),ubound(mask,1), &
+                           lbound(mask,2),ubound(mask,2), &
+                           lbound(mask,3),ubound(mask,3), 'mppparam:lmask3')
+    end if
+    lmask3 = mask > 0
+    ncart_tot = count(lmask3)
+    call mpi_allgather(ncart_tot,1,mpi_integer4,         &
+                       cartesian_npoint,1,mpi_integer4,  &
+                       cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allgather error.')
+    end if
+    cartesian_displ(:) = 1
+    do np = 2 , nproc
+      cartesian_displ(np) = cartesian_displ(np) + cartesian_npoint(np-1)
+    end do
+    linear_npoint(:) = 0
+    ncart_tot = sum(cartesian_npoint)
+    if ( ncart_tot < nproc ) then
+      linear_npoint(2) = linp
+    else
+      linp = ncart_tot / nproc
+      linear_npoint(:) = linp
+      nrem = ncart_tot - linp*nproc
+      if ( nrem > 0 ) then
+        np = 2
+        do while (nrem > 0)
+          linear_npoint(np) = linear_npoint(np) + 1
+          nrem = nrem - 1
+          np = np + 1
+        end do
+      end if
+    end if 
+    linear_displ(:) = 1
+    do np = 2 , nproc
+      linear_displ(np) = linear_displ(np) + linear_npoint(np-1)
+    end do
+  end subroutine c2l_setup_from_double_3d
+
+  subroutine c2l_setup_from_integer_3d(mask)
+    implicit none
+    integer(ik4) , dimension(:,:,:) :: mask
+    integer(ik4) :: ncart_pnum , ncart_tot , linp , nrem , np
+    if ( .not. associated(lmask3) ) then
+      call getmem3d(lmask3,lbound(mask,1),ubound(mask,1), &
+                           lbound(mask,2),ubound(mask,2), &
+                           lbound(mask,3),ubound(mask,3), 'mppparam:lmask3')
+    end if
+    lmask3 = mask > 0
+    ncart_tot = count(lmask3)
+    call mpi_allgather(ncart_tot,1,mpi_integer4, &
+                       cartesian_npoint,1,mpi_integer4,  &
+                       cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_allgather error.')
+    end if
+    cartesian_displ(:) = 1
+    do np = 2 , nproc
+      cartesian_displ(np) = cartesian_displ(np) + cartesian_npoint(np-1)
+    end do
+    linear_npoint(:) = 0
+    ncart_tot = sum(cartesian_npoint)
+    if ( ncart_tot < nproc ) then
+      linear_npoint(2) = linp
+    else
+      linp = ncart_tot / nproc
+      linear_npoint(:) = linp
+      nrem = ncart_tot - linp*nproc
+      if ( nrem > 0 ) then
+        np = 2
+        do while (nrem > 0)
+          linear_npoint(np) = linear_npoint(np) + 1
+          nrem = nrem - 1
+          np = np + 1
+        end do
+      end if
+    end if 
+    linear_displ(:) = 1
+    do np = 2 , nproc
+      linear_displ(np) = linear_displ(np) + linear_npoint(np-1)
+    end do
+  end subroutine c2l_setup_from_integer_3d
+
+  subroutine cartesian2d_to_linear_integer(matrix,vector)
+    implicit none
+    integer(ik4) , dimension(:,:) :: matrix
+    integer(ik4) , dimension(:) :: vector
+    integer(ik4) :: nval , npt
+    nval = cartesian_npoint(myid+1)
+    if ( nval > 0 ) then
+      i4vector1 = pack(matrix,lmask2)
+    end if
+    call mpi_gatherv(i4vector1,nval,mpi_integer4,        &
+            i4vector2,cartesian_npoint,cartesian_displ,  &
+            mpi_integer4,iocpu,cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    npt = linear_npoint(myid+1)
+    call mpi_scatterv(i4vector2,linear_npoint,linear_displ, &
+            mpi_integer4,vector,npt,mpi_integer4,           &
+            iocpu,linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+  end subroutine cartesian2d_to_linear_integer
+
+  subroutine cartesian3d_to_linear_integer(matrix,vector)
+    implicit none
+    integer(ik4) , dimension(:,:,:) :: matrix
+    integer(ik4) , dimension(:) :: vector
+    integer(ik4) :: nval , npt
+    nval = cartesian_npoint(myid+1)
+    if ( nval > 0 ) then
+      i4vector1 = pack(matrix,lmask3)
+    end if
+    call mpi_gatherv(i4vector1,nval,mpi_integer4,                 &
+                     i4vector2,cartesian_npoint,cartesian_displ,  &
+                     mpi_integer4,iocpu,cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    npt = linear_npoint(myid+1)
+    call mpi_scatterv(i4vector2,linear_npoint,linear_displ,mpi_integer4, &
+                      vector,npt,mpi_integer4,                           &
+                      iocpu,linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+  end subroutine cartesian3d_to_linear_integer
+
+  subroutine cartesian2d_to_linear_real8(matrix,vector)
+    implicit none
+    real(rk8) , dimension(:,:) :: matrix
+    real(rk8) , dimension(:) :: vector
+    integer(ik4) :: nval , npt
+    nval = cartesian_npoint(myid+1)
+    if ( nval > 0 ) then
+      i4vector1 = pack(matrix,lmask2)
+    end if
+    call mpi_gatherv(i4vector1,nval,mpi_real8,           &
+            i4vector2,cartesian_npoint,cartesian_displ,  &
+            mpi_real8,iocpu,cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    npt = linear_npoint(myid+1)
+    call mpi_scatterv(i4vector2,linear_npoint,linear_displ, &
+            mpi_real8,vector,npt,mpi_real8,iocpu,linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+  end subroutine cartesian2d_to_linear_real8
+
+  subroutine cartesian3d_to_linear_real8(matrix,vector)
+    implicit none
+    real(rk8) , dimension(:,:,:) :: matrix
+    real(rk8) , dimension(:) :: vector
+    integer(ik4) :: nval , npt
+    nval = cartesian_npoint(myid+1)
+    if ( nval > 0 ) then
+      i4vector1 = pack(matrix,lmask3)
+    end if
+    call mpi_gatherv(i4vector1,nval,mpi_real8,                    &
+                     i4vector2,cartesian_npoint,cartesian_displ,  &
+                     mpi_real8,iocpu,cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    npt = linear_npoint(myid+1)
+    call mpi_scatterv(i4vector2,linear_npoint,linear_displ,mpi_real8, &
+                      vector,npt,mpi_real8,iocpu,linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+  end subroutine cartesian3d_to_linear_real8
 
 end module mod_mppparam
