@@ -42,6 +42,7 @@ module mod_clm_surfacealbedo
 !
 ! !PUBLIC MEMBER FUNCTIONS:
   public :: SurfaceAlbedo  ! Surface albedo and two-stream fluxes
+  public :: shr_orb_cosz , shr_orb_decl
 !
 ! !PUBLIC DATA MEMBERS:
 ! The CLM default albice values are too high.
