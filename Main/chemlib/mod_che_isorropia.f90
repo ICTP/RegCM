@@ -3421,8 +3421,7 @@ module mod_che_isorropia
     implicit none
     real(rk8) :: aml5 , frcl , frnh4 , frno3 , hso4i , so4i , tots4
     integer(ik4) :: i
-!
-    character sc*1
+    character(len=1) :: sc
 !
 ! *** calculate ion pair concentrations according to specific case ****
 !

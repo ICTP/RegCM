@@ -26,10 +26,9 @@ module mod_service
   use mod_stdio
   use mod_mppparam
   use mod_dynparam , only : mycomm , myid , nproc , debug_level
+  use mpi
 
   private
-
-  include 'mpif.h'
 
   integer(ik4) , parameter , public :: dbgslen = 64
   integer(ik4) , parameter , public :: dbglinelen = 80

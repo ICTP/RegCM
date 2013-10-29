@@ -27,10 +27,10 @@ module mod_mppparam
   use mod_date
   use mod_stdio
   use netcdf
+  use mpi
 
   private
 
-  include 'mpif.h'
 #ifdef MPI_SERIAL
   integer(ik4) mpi_status_ignore(mpi_status_size)
   integer(ik4) , parameter :: mpi_proc_null = -2
@@ -257,6 +257,13 @@ module mod_mppparam
                      cartesian3d_to_linear_real8
   end interface c2l
 
+  interface l2c
+     module procedure linear_to_cartesian3d_integer, &
+                      linear_to_cartesian2d_integer, &
+                      linear_to_cartesian2d_real8,   &
+                      linear_to_cartesian3d_real8
+  end interface l2c
+
   interface reorder_subgrid
     module procedure reorder_subgrid_2d , &
                      reorder_subgrid_2d3d , &
@@ -307,7 +314,7 @@ module mod_mppparam
   public :: trueforall
   public :: allsync
   public :: c2l_setup
-  public :: c2l
+  public :: c2l , l2c
 !
   contains
 !
@@ -5716,12 +5723,12 @@ module mod_mppparam
   subroutine c2l_setup_from_double_2d(mask)
     implicit none
     real(rk8) , dimension(:,:) :: mask
-    integer(ik4) :: ncart_pnum , ncart_tot , linp , nrem , np
+    integer(ik4) :: ncart_tot , linp , nrem , np
     if ( .not. associated(lmask2) ) then
       call getmem2d(lmask2,lbound(mask,1),ubound(mask,1), &
                            lbound(mask,2),ubound(mask,2),'mppparam:lmask2')
     end if
-    lmask2 = mask > 0
+    lmask2 = mask > 0.0D0
     ncart_tot = count(lmask2)
     call mpi_allgather(ncart_tot,1,mpi_integer4,         &
                        cartesian_npoint,1,mpi_integer4,  &
@@ -5731,12 +5738,12 @@ module mod_mppparam
     end if
     cartesian_displ(:) = 1
     do np = 2 , nproc
-      cartesian_displ(np) = cartesian_displ(np) + cartesian_npoint(np-1)
+      cartesian_displ(np) = cartesian_displ(np-1) + cartesian_npoint(np-1)
     end do
     linear_npoint(:) = 0
     ncart_tot = sum(cartesian_npoint)
     if ( ncart_tot < nproc ) then
-      linear_npoint(2) = linp
+      linear_npoint(2) = ncart_tot
     else
       linp = ncart_tot / nproc
       linear_npoint(:) = linp
@@ -5752,14 +5759,14 @@ module mod_mppparam
     end if 
     linear_displ(:) = 1
     do np = 2 , nproc
-      linear_displ(np) = linear_displ(np) + linear_npoint(np-1)
+      linear_displ(np) = linear_displ(np-1) + linear_npoint(np-1)
     end do
   end subroutine c2l_setup_from_double_2d
 
   subroutine c2l_setup_from_integer_2d(mask)
     implicit none
     integer(ik4) , dimension(:,:) :: mask
-    integer(ik4) :: ncart_pnum , ncart_tot , linp , nrem , np
+    integer(ik4) :: ncart_tot , linp , nrem , np
     if ( .not. associated(lmask2) ) then
       call getmem2d(lmask2,lbound(mask,1),ubound(mask,1), &
                            lbound(mask,2),ubound(mask,2),'mppparam:lmask2')
@@ -5774,12 +5781,12 @@ module mod_mppparam
     end if
     cartesian_displ(:) = 1
     do np = 2 , nproc
-      cartesian_displ(np) = cartesian_displ(np) + cartesian_npoint(np-1)
+      cartesian_displ(np) = cartesian_displ(np-1) + cartesian_npoint(np-1)
     end do
     linear_npoint(:) = 0
     ncart_tot = sum(cartesian_npoint)
     if ( ncart_tot < nproc ) then
-      linear_npoint(2) = linp
+      linear_npoint(2) = ncart_tot
     else
       linp = ncart_tot / nproc
       linear_npoint(:) = linp
@@ -5795,20 +5802,20 @@ module mod_mppparam
     end if 
     linear_displ(:) = 1
     do np = 2 , nproc
-      linear_displ(np) = linear_displ(np) + linear_npoint(np-1)
+      linear_displ(np) = linear_displ(np-1) + linear_npoint(np-1)
     end do
   end subroutine c2l_setup_from_integer_2d
 
   subroutine c2l_setup_from_double_3d(mask)
     implicit none
     real(rk8) , dimension(:,:,:) :: mask
-    integer(ik4) :: ncart_pnum , ncart_tot , linp , nrem , np
+    integer(ik4) :: ncart_tot , linp , nrem , np
     if ( .not. associated(lmask3) ) then
       call getmem3d(lmask3,lbound(mask,1),ubound(mask,1), &
                            lbound(mask,2),ubound(mask,2), &
                            lbound(mask,3),ubound(mask,3), 'mppparam:lmask3')
     end if
-    lmask3 = mask > 0
+    lmask3 = mask > 0.0D0
     ncart_tot = count(lmask3)
     call mpi_allgather(ncart_tot,1,mpi_integer4,         &
                        cartesian_npoint,1,mpi_integer4,  &
@@ -5818,12 +5825,12 @@ module mod_mppparam
     end if
     cartesian_displ(:) = 1
     do np = 2 , nproc
-      cartesian_displ(np) = cartesian_displ(np) + cartesian_npoint(np-1)
+      cartesian_displ(np) = cartesian_displ(np-1) + cartesian_npoint(np-1)
     end do
     linear_npoint(:) = 0
     ncart_tot = sum(cartesian_npoint)
     if ( ncart_tot < nproc ) then
-      linear_npoint(2) = linp
+      linear_npoint(2) = ncart_tot
     else
       linp = ncart_tot / nproc
       linear_npoint(:) = linp
@@ -5839,14 +5846,14 @@ module mod_mppparam
     end if 
     linear_displ(:) = 1
     do np = 2 , nproc
-      linear_displ(np) = linear_displ(np) + linear_npoint(np-1)
+      linear_displ(np) = linear_displ(np-1) + linear_npoint(np-1)
     end do
   end subroutine c2l_setup_from_double_3d
 
   subroutine c2l_setup_from_integer_3d(mask)
     implicit none
     integer(ik4) , dimension(:,:,:) :: mask
-    integer(ik4) :: ncart_pnum , ncart_tot , linp , nrem , np
+    integer(ik4) :: ncart_tot , linp , nrem , np
     if ( .not. associated(lmask3) ) then
       call getmem3d(lmask3,lbound(mask,1),ubound(mask,1), &
                            lbound(mask,2),ubound(mask,2), &
@@ -5862,12 +5869,12 @@ module mod_mppparam
     end if
     cartesian_displ(:) = 1
     do np = 2 , nproc
-      cartesian_displ(np) = cartesian_displ(np) + cartesian_npoint(np-1)
+      cartesian_displ(np) = cartesian_displ(np-1) + cartesian_npoint(np-1)
     end do
     linear_npoint(:) = 0
     ncart_tot = sum(cartesian_npoint)
     if ( ncart_tot < nproc ) then
-      linear_npoint(2) = linp
+      linear_npoint(2) = ncart_tot
     else
       linp = ncart_tot / nproc
       linear_npoint(:) = linp
@@ -5883,7 +5890,7 @@ module mod_mppparam
     end if 
     linear_displ(:) = 1
     do np = 2 , nproc
-      linear_displ(np) = linear_displ(np) + linear_npoint(np-1)
+      linear_displ(np) = linear_displ(np-1) + linear_npoint(np-1)
     end do
   end subroutine c2l_setup_from_integer_3d
 
@@ -5915,6 +5922,34 @@ module mod_mppparam
     end if
   end subroutine cartesian2d_to_linear_integer
 
+  subroutine linear_to_cartesian2d_integer(vector,matrix)
+    implicit none
+    integer(ik4) , dimension(:) , intent(in) :: vector
+    integer(ik4) , dimension(:,:) , intent(out) :: matrix
+    integer(ik4) :: nval , npt
+    nval = cartesian_npoint(myid+1)
+    if ( nproc == 1 ) then
+      matrix = unpack(vector(1:nval),lmask2,matrix)
+      return
+    end if
+    npt = linear_npoint(myid+1)
+    call mpi_gatherv(vector,npt,mpi_integer4,                     &
+                     i4vector2,linear_npoint,linear_displ,        &
+                     mpi_integer4,iocpu,linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    call mpi_scatterv(i4vector2,cartesian_npoint,cartesian_displ,mpi_integer4, &
+                      i4vector1,nval,mpi_integer4,                             &
+                      iocpu,cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    if ( nval > 0 ) then
+      matrix = unpack(i4vector1(1:nval),lmask2,matrix)
+    end if
+  end subroutine linear_to_cartesian2d_integer
+
   subroutine cartesian3d_to_linear_integer(matrix,vector)
     implicit none
     integer(ik4) , dimension(:,:,:) :: matrix
@@ -5943,6 +5978,34 @@ module mod_mppparam
     end if
   end subroutine cartesian3d_to_linear_integer
 
+  subroutine linear_to_cartesian3d_integer(vector,matrix)
+    implicit none
+    integer(ik4) , dimension(:) , intent(in) :: vector
+    integer(ik4) , dimension(:,:,:) , intent(out) :: matrix
+    integer(ik4) :: nval , npt
+    nval = cartesian_npoint(myid+1)
+    if ( nproc == 1 ) then
+      matrix = unpack(vector(1:nval),lmask3,matrix)
+      return
+    end if
+    npt = linear_npoint(myid+1)
+    call mpi_gatherv(vector,npt,mpi_integer4,                     &
+                     i4vector2,linear_npoint,linear_displ,        &
+                     mpi_integer4,iocpu,linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    call mpi_scatterv(i4vector2,cartesian_npoint,cartesian_displ,mpi_integer4, &
+                      i4vector1,nval,mpi_integer4,                             &
+                      iocpu,cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    if ( nval > 0 ) then
+      matrix = unpack(i4vector1(1:nval),lmask3,matrix)
+    end if
+  end subroutine linear_to_cartesian3d_integer
+
   subroutine cartesian2d_to_linear_real8(matrix,vector)
     implicit none
     real(rk8) , dimension(:,:) :: matrix
@@ -5954,21 +6017,49 @@ module mod_mppparam
       return
     end if
     if ( nval > 0 ) then
-      i4vector1 = pack(matrix,lmask2)
+      r8vector1 = pack(matrix,lmask2)
     end if
-    call mpi_gatherv(i4vector1,nval,mpi_real8,           &
-            i4vector2,cartesian_npoint,cartesian_displ,  &
+    call mpi_gatherv(r8vector1,nval,mpi_real8,          &
+            r8vector2,cartesian_npoint,cartesian_displ, &
             mpi_real8,iocpu,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     npt = linear_npoint(myid+1)
-    call mpi_scatterv(i4vector2,linear_npoint,linear_displ, &
+    call mpi_scatterv(r8vector2,linear_npoint,linear_displ, &
             mpi_real8,vector,npt,mpi_real8,iocpu,linear_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
   end subroutine cartesian2d_to_linear_real8
+
+  subroutine linear_to_cartesian2d_real8(vector,matrix)
+    implicit none
+    real(rk8) , dimension(:) , intent(in) :: vector
+    real(rk8) , dimension(:,:) , intent(out) :: matrix
+    integer(ik4) :: nval , npt
+    nval = cartesian_npoint(myid+1)
+    if ( nproc == 1 ) then
+      matrix = unpack(vector(1:nval),lmask2,matrix)
+      return
+    end if
+    npt = linear_npoint(myid+1)
+    call mpi_gatherv(vector,npt,mpi_real8,                 &
+                     r8vector2,linear_npoint,linear_displ, &
+                     mpi_real8,iocpu,linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    call mpi_scatterv(r8vector2,cartesian_npoint,cartesian_displ,mpi_real8, &
+                      r8vector1,nval,mpi_real8,                             &
+                      iocpu,cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    if ( nval > 0 ) then
+      matrix = unpack(r8vector1(1:nval),lmask2,matrix)
+    end if
+  end subroutine linear_to_cartesian2d_real8
 
   subroutine cartesian3d_to_linear_real8(matrix,vector)
     implicit none
@@ -5981,20 +6072,48 @@ module mod_mppparam
       return
     end if
     if ( nval > 0 ) then
-      i4vector1 = pack(matrix,lmask3)
+      r8vector1 = pack(matrix,lmask3)
     end if
-    call mpi_gatherv(i4vector1,nval,mpi_real8,                    &
-                     i4vector2,cartesian_npoint,cartesian_displ,  &
+    call mpi_gatherv(r8vector1,nval,mpi_real8,                    &
+                     r8vector2,cartesian_npoint,cartesian_displ,  &
                      mpi_real8,iocpu,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     npt = linear_npoint(myid+1)
-    call mpi_scatterv(i4vector2,linear_npoint,linear_displ,mpi_real8, &
+    call mpi_scatterv(r8vector2,linear_npoint,linear_displ,mpi_real8, &
                       vector,npt,mpi_real8,iocpu,linear_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
   end subroutine cartesian3d_to_linear_real8
+
+  subroutine linear_to_cartesian3d_real8(vector,matrix)
+    implicit none
+    real(rk8) , dimension(:) , intent(in) :: vector
+    real(rk8) , dimension(:,:,:) , intent(out) :: matrix
+    integer(ik4) :: nval , npt
+    nval = cartesian_npoint(myid+1)
+    if ( nproc == 1 ) then
+      matrix = unpack(vector(1:nval),lmask3,matrix)
+      return
+    end if
+    npt = linear_npoint(myid+1)
+    call mpi_gatherv(vector,npt,mpi_real8,                     &
+                     r8vector2,linear_npoint,linear_displ,     &
+                     mpi_real8,iocpu,linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    call mpi_scatterv(r8vector2,cartesian_npoint,cartesian_displ,mpi_real8, &
+                      r8vector1,nval,mpi_real8,                             &
+                      iocpu,cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    if ( nval > 0 ) then
+      matrix = unpack(r8vector1(1:nval),lmask3,matrix)
+    end if
+  end subroutine linear_to_cartesian3d_real8
 
 end module mod_mppparam
