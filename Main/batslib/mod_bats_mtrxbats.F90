@@ -474,8 +474,8 @@ module mod_bats_mtrxbats
       uvdrag = sum(drag,1)*rdnnsg
       hfx = sum(sent,1)*rdnnsg
       qfx = sum(evpr,1)*rdnnsg
-      tground2(jci1:jci2,ici1:ici2) = sum(tgrd,1)*rdnnsg
-      tground1(jci1:jci2,ici1:ici2) = sum(tgrd,1)*rdnnsg
+      tground2 = sum(tgrd,1)*rdnnsg
+      tground1 = sum(tgrd,1)*rdnnsg
       if ( ichem == 1 ) then
         ssw2da = sum(ssw,1)*rdnnsg
         sdeltk2d = sum(delt,1)*rdnnsg
@@ -613,7 +613,7 @@ module mod_bats_mtrxbats
           if ( associated(srf_uvdrag_out) ) &
             srf_uvdrag_out = uvdrag
           if ( associated(srf_tg_out) ) &
-            srf_tg_out = tground1(jci1:jci2,ici1:ici2)
+            srf_tg_out = tground1
           if ( associated(srf_tlef_out) ) then
             where ( ldmsk > 0 )
               srf_tlef_out = sum(tlef,1)*rdnnsg
@@ -671,7 +671,7 @@ module mod_bats_mtrxbats
 
         if ( iflak ) then
           if ( associated(lak_tg_out) ) &
-            lak_tg_out = tground1(jci1:jci2,ici1:ici2)
+            lak_tg_out = tground1
           if ( associated(lak_aldirs_out) ) &
             lak_aldirs_out = aldirs
           if ( associated(lak_aldifs_out) ) &
