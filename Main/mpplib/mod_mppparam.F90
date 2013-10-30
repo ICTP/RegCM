@@ -257,17 +257,21 @@ module mod_mppparam
   end interface cl_setup
 
   interface c2l
-    module procedure cartesian2d_to_linear_integer, &
-                     cartesian3d_to_linear_integer, &
-                     cartesian2d_to_linear_real8,   &
-                     cartesian3d_to_linear_real8
+    module procedure cartesian3d_to_linear_integer, &
+                     cartesian2d_to_linear_integer, &
+                     cartesian3d_to_linear_logical, &
+                     cartesian2d_to_linear_logical, &
+                     cartesian3d_to_linear_real8,   &
+                     cartesian2d_to_linear_real8
   end interface c2l
 
   interface l2c
     module procedure linear_to_cartesian3d_integer, &
                      linear_to_cartesian2d_integer, &
-                     linear_to_cartesian2d_real8,   &
-                     linear_to_cartesian3d_real8
+                     linear_to_cartesian3d_logical, &
+                     linear_to_cartesian2d_logical, &
+                     linear_to_cartesian3d_real8,   &
+                     linear_to_cartesian2d_real8
   end interface l2c
 
   interface reorder_subgrid
@@ -291,6 +295,8 @@ module mod_mppparam
   real(rk4) , pointer , dimension(:) :: r4vector2
   integer(ik4) , pointer , dimension(:) :: i4vector1
   integer(ik4) , pointer , dimension(:) :: i4vector2
+  logical , pointer , dimension(:) :: lvector1
+  logical , pointer , dimension(:) :: lvector2
   integer(ik4) , dimension(4) :: window
   integer(ik4) :: mpierr
 !
@@ -972,6 +978,8 @@ module mod_mppparam
       call getmem1d(r4vector2,1,nsg*jx*iy*kz,'set_nproc:r4vector2')
       call getmem1d(i4vector1,1,nsg*jx*iy*kz,'set_nproc:i4vector1')
       call getmem1d(i4vector2,1,nsg*jx*iy*kz,'set_nproc:i4vector2')
+      call getmem1d(lvector1,1,nsg*jx*iy*kz,'set_nproc:lvector1')
+      call getmem1d(lvector2,1,nsg*jx*iy*kz,'set_nproc:lvector2')
     end if
   end subroutine set_nproc
 
@@ -5896,6 +5904,124 @@ module mod_mppparam
     ncart_tot = count(cl%lmask3)
     call clset(ncart_tot,cl)
   end subroutine cl_setup_from_logical_3d
+
+  subroutine cartesian2d_to_linear_logical(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    logical , dimension(:,:) :: matrix
+    logical , dimension(:) :: vector
+    integer(ik4) :: nval , npt
+    nval = cl%cartesian_npoint(myid+1)
+    if ( nproc == 1 ) then
+      vector(1:nval) = pack(matrix,cl%lmask2)
+      return
+    end if
+    if ( nval > 0 ) then
+      lvector1 = pack(matrix,cl%lmask2)
+    end if
+    call mpi_gatherv(lvector1,nval,mpi_logical,                       &
+                     lvector2,cl%cartesian_npoint,cl%cartesian_displ, &
+                     mpi_logical,iocpu,cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    npt = cl%linear_npoint(myid+1)
+    call mpi_scatterv(lvector2,cl%linear_npoint,cl%linear_displ, &
+                      mpi_logical,vector,npt,mpi_logical,        &
+                      iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+  end subroutine cartesian2d_to_linear_logical
+
+  subroutine linear_to_cartesian2d_logical(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    logical , dimension(:) , intent(in) :: vector
+    logical , dimension(:,:) , intent(out) :: matrix
+    integer(ik4) :: nval , npt
+    nval = cl%cartesian_npoint(myid+1)
+    if ( nproc == 1 ) then
+      matrix = unpack(vector(1:nval),cl%lmask2,matrix)
+      return
+    end if
+    npt = cl%linear_npoint(myid+1)
+    call mpi_gatherv(vector,npt,mpi_logical,                    &
+                     lvector2,cl%linear_npoint,cl%linear_displ, &
+                     mpi_logical,iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    call mpi_scatterv(lvector2,cl%cartesian_npoint,   &
+                      cl%cartesian_displ,mpi_logical, &
+                      lvector1,nval,mpi_logical,      &
+                      iocpu,cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    if ( nval > 0 ) then
+      matrix = unpack(lvector1(1:nval),cl%lmask2,matrix)
+    end if
+  end subroutine linear_to_cartesian2d_logical
+
+  subroutine cartesian3d_to_linear_logical(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    logical , dimension(:,:,:) :: matrix
+    logical , dimension(:) :: vector
+    integer(ik4) :: nval , npt
+    nval = cl%cartesian_npoint(myid+1)
+    if ( nproc == 1 ) then
+      vector(1:nval) = pack(matrix,cl%lmask3)
+      return
+    end if
+    if ( nval > 0 ) then
+      lvector1 = pack(matrix,cl%lmask3)
+    end if
+    call mpi_gatherv(lvector1,nval,mpi_logical,                       &
+                     lvector2,cl%cartesian_npoint,cl%cartesian_displ, &
+                     mpi_logical,iocpu,cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    npt = cl%linear_npoint(myid+1)
+    call mpi_scatterv(lvector2,cl%linear_npoint,cl%linear_displ, &
+                      mpi_logical,vector,npt,mpi_logical,        &
+                      iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+  end subroutine cartesian3d_to_linear_logical
+
+  subroutine linear_to_cartesian3d_logical(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    logical , dimension(:) , intent(in) :: vector
+    logical , dimension(:,:,:) , intent(out) :: matrix
+    integer(ik4) :: nval , npt
+    nval = cl%cartesian_npoint(myid+1)
+    if ( nproc == 1 ) then
+      matrix = unpack(vector(1:nval),cl%lmask3,matrix)
+      return
+    end if
+    npt = cl%linear_npoint(myid+1)
+    call mpi_gatherv(vector,npt,mpi_logical,                    &
+                     lvector2,cl%linear_npoint,cl%linear_displ, &
+                     mpi_logical,iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    call mpi_scatterv(lvector2,cl%cartesian_npoint,   &
+                      cl%cartesian_displ,mpi_logical, &
+                      lvector1,nval,mpi_logical,      &
+                      iocpu,cartesian_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+    if ( nval > 0 ) then
+      matrix = unpack(lvector1(1:nval),cl%lmask3,matrix)
+    end if
+  end subroutine linear_to_cartesian3d_logical
 
   subroutine cartesian2d_to_linear_integer(cl,matrix,vector)
     implicit none
