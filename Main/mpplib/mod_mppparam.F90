@@ -5770,10 +5770,11 @@ module mod_mppparam
     end do
   end subroutine clset
 
-  subroutine cl_setup_from_double_2d(cl,mask)
+  subroutine cl_setup_from_double_2d(cl,mask,lrev)
     implicit none
     type(masked_comm) , intent(inout) :: cl
-    real(rk8) , dimension(:,:) :: mask
+    real(rk8) , dimension(:,:) , intent(in) :: mask
+    logical , optional , intent(in) :: lrev
     integer(ik4) :: ncart_tot
     if ( .not. associated(cl%linear_npoint) ) then
       call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
@@ -5788,14 +5789,18 @@ module mod_mppparam
                               lbound(mask,2),ubound(mask,2),'cl:lmask2')
     end if
     cl%lmask2 = mask > 0.0D0
+    if ( present(lrev) ) then
+      if ( lrev ) cl%lmask2 = .not. cl%lmask2
+    end if
     ncart_tot = count(cl%lmask2)
     call clset(ncart_tot,cl)
   end subroutine cl_setup_from_double_2d
 
-  subroutine cl_setup_from_integer_2d(cl,mask)
+  subroutine cl_setup_from_integer_2d(cl,mask,lrev)
     implicit none
     type(masked_comm) , intent(inout) :: cl
-    integer(ik4) , dimension(:,:) :: mask
+    integer(ik4) , dimension(:,:) , intent(in) :: mask
+    logical , optional , intent(in) :: lrev
     integer(ik4) :: ncart_tot
     if ( .not. associated(cl%linear_npoint) ) then
       call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
@@ -5810,14 +5815,18 @@ module mod_mppparam
                               lbound(mask,2),ubound(mask,2),'cl:lmask2')
     end if
     cl%lmask2 = mask > 0
+    if ( present(lrev) ) then
+      if ( lrev ) cl%lmask2 = .not. cl%lmask2
+    end if
     ncart_tot = count(cl%lmask2)
     call clset(ncart_tot,cl)
   end subroutine cl_setup_from_integer_2d
 
-  subroutine cl_setup_from_logical_2d(cl,mask)
+  subroutine cl_setup_from_logical_2d(cl,mask,lrev)
     implicit none
     type(masked_comm) , intent(inout) :: cl
-    logical , dimension(:,:) :: mask
+    logical , dimension(:,:) , intent(in) :: mask
+    logical , optional , intent(in) :: lrev
     integer(ik4) :: ncart_tot
     if ( .not. associated(cl%linear_npoint) ) then
       call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
@@ -5832,14 +5841,18 @@ module mod_mppparam
                               lbound(mask,2),ubound(mask,2),'cl:lmask2')
     end if
     cl%lmask2 = mask
+    if ( present(lrev) ) then
+      if ( lrev ) cl%lmask2 = .not. cl%lmask2
+    end if
     ncart_tot = count(cl%lmask2)
     call clset(ncart_tot,cl)
   end subroutine cl_setup_from_logical_2d
 
-  subroutine cl_setup_from_double_3d(cl,mask)
+  subroutine cl_setup_from_double_3d(cl,mask,lrev)
     implicit none
     type(masked_comm) , intent(inout) :: cl
-    real(rk8) , dimension(:,:,:) :: mask
+    real(rk8) , dimension(:,:,:) , intent(in) :: mask
+    logical , optional , intent(in) :: lrev
     integer(ik4) :: ncart_tot
     if ( .not. associated(cl%linear_npoint) ) then
       call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
@@ -5855,14 +5868,18 @@ module mod_mppparam
                               lbound(mask,3),ubound(mask,3), 'mppparam:lmask3')
     end if
     cl%lmask3 = mask > 0.0D0
+    if ( present(lrev) ) then
+      if ( lrev ) cl%lmask3 = .not. cl%lmask3
+    end if
     ncart_tot = count(cl%lmask3)
     call clset(ncart_tot,cl)
   end subroutine cl_setup_from_double_3d
 
-  subroutine cl_setup_from_integer_3d(cl,mask)
+  subroutine cl_setup_from_integer_3d(cl,mask,lrev)
     implicit none
     type(masked_comm) , intent(inout) :: cl
-    integer(ik4) , dimension(:,:,:) :: mask
+    integer(ik4) , dimension(:,:,:) , intent(in) :: mask
+    logical , optional , intent(in) :: lrev
     integer(ik4) :: ncart_tot
     if ( .not. associated(cl%linear_npoint) ) then
       call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
@@ -5878,14 +5895,18 @@ module mod_mppparam
                               lbound(mask,3),ubound(mask,3), 'mppparam:lmask3')
     end if
     cl%lmask3 = mask > 0
+    if ( present(lrev) ) then
+      if ( lrev ) cl%lmask3 = .not. cl%lmask3
+    end if
     ncart_tot = count(cl%lmask3)
     call clset(ncart_tot,cl)
   end subroutine cl_setup_from_integer_3d
 
-  subroutine cl_setup_from_logical_3d(cl,mask)
+  subroutine cl_setup_from_logical_3d(cl,mask,lrev)
     implicit none
     type(masked_comm) , intent(inout) :: cl
-    logical , dimension(:,:,:) :: mask
+    logical , dimension(:,:,:) , intent(in) :: mask
+    logical , optional , intent(in) :: lrev
     integer(ik4) :: ncart_tot
     if ( .not. associated(cl%linear_npoint) ) then
       call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
@@ -5901,6 +5922,9 @@ module mod_mppparam
                               lbound(mask,3),ubound(mask,3), 'mppparam:lmask3')
     end if
     cl%lmask3 = mask
+    if ( present(lrev) ) then
+      if ( lrev ) cl%lmask3 = .not. cl%lmask3
+    end if
     ncart_tot = count(cl%lmask3)
     call clset(ncart_tot,cl)
   end subroutine cl_setup_from_logical_3d
