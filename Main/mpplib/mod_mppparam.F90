@@ -675,7 +675,7 @@ module mod_mppparam
       cpus_per_dim(2) = 1
       jxp =  jx
       iyp =  iy
-      call mpi_comm_sup(mycomm,cartesian_communicator,mpierr)
+      call mpi_comm_dup(mycomm,cartesian_communicator,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
       end if
