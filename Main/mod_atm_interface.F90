@@ -607,8 +607,8 @@ module mod_atm_interface
                             ice1-ma%ibb1,ice2+ma%ibt1,'surf:psa')
       call getmem2d(sfs%psb,jce1-ma%jbl1,jce2+ma%jbr1, &
                             ice1-ma%ibb1,ice2+ma%ibt1,'surf:psb')
-      call getmem2d(sfs%tga,jce1,jce2,ice1,ice2,'surf:tga')
-      call getmem2d(sfs%tgb,jce1,jce2,ice1,ice2,'surf:tgb')
+      call getmem2d(sfs%tga,jci1,jci2,ici1,ici2,'surf:tga')
+      call getmem2d(sfs%tgb,jci1,jci2,ici1,ici2,'surf:tgb')
       call getmem2d(sfs%hfx,jci1,jci2,ici1,ici2,'surf:hfx')
       call getmem2d(sfs%qfx,jci1,jci2,ici1,ici2,'surf:qfx')
       call getmem2d(sfs%rainc,jci1,jci2,ici1,ici2,'surf:rainc')

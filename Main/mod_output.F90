@@ -566,8 +566,8 @@ module mod_output
 
         call grid_collect(sfs%psa,psa_io,jce1,jce2,ice1,ice2)
         call grid_collect(sfs%psb,psb_io,jce1,jce2,ice1,ice2)
-        call grid_collect(sfs%tga,tga_io,jce1,jce2,ice1,ice2)
-        call grid_collect(sfs%tgb,tgb_io,jce1,jce2,ice1,ice2)
+        call grid_collect(sfs%tga,tga_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%tgb,tgb_io,jci1,jci2,ici1,ici2)
 
         call grid_collect(sfs%hfx,hfx_io,jci1,jci2,ici1,ici2)
         call grid_collect(sfs%qfx,qfx_io,jci1,jci2,ici1,ici2)

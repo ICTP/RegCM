@@ -107,6 +107,10 @@ module mod_init
       do j = jce1 , jce2
         sfs%psa(j,i) = xpsb%b0(j,i)
         sfs%psb(j,i) = xpsb%b0(j,i)
+      end do
+    end do
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         sfs%tga(j,i) = ts0(j,i)
         sfs%tgb(j,i) = ts0(j,i)
       end do
@@ -124,8 +128,8 @@ module mod_init
     !
     sfice_temp = icetemp
     if ( iseaice == 1 ) then
-      do i = ice1 , ice2
-        do j = jce1 , jce2
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           if ( isocean(mddom%lndcat(j,i)) ) then
             if ( ts0(j,i) <= icetemp ) then
               sfs%tga(j,i) = sfice_temp
@@ -252,8 +256,8 @@ module mod_init
 
     call grid_distribute(psa_io,sfs%psa,jce1,jce2,ice1,ice2)
     call grid_distribute(psb_io,sfs%psb,jce1,jce2,ice1,ice2)
-    call grid_distribute(tga_io,sfs%tga,jce1,jce2,ice1,ice2)
-    call grid_distribute(tgb_io,sfs%tgb,jce1,jce2,ice1,ice2)
+    call grid_distribute(tga_io,sfs%tga,jci1,jci2,ici1,ici2)
+    call grid_distribute(tgb_io,sfs%tgb,jci1,jci2,ici1,ici2)
 
     call grid_distribute(hfx_io,sfs%hfx,jci1,jci2,ici1,ici2)
     call grid_distribute(qfx_io,sfs%qfx,jci1,jci2,ici1,ici2)
