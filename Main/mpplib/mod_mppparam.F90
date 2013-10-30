@@ -264,14 +264,11 @@ module mod_mppparam
   end interface c2l
 
   interface l2c
-     module procedure linear_to_cartesian3d_integer, &
-                      linear_to_cartesian2d_integer, &
-                      linear_to_cartesian2d_real8,   &
-                      linear_to_cartesian3d_real8
+    module procedure linear_to_cartesian3d_integer, &
+                     linear_to_cartesian2d_integer, &
+                     linear_to_cartesian2d_real8,   &
+                     linear_to_cartesian3d_real8
   end interface l2c
-
-  interface cl_dispose
-  end interface cl_dispose
 
   interface reorder_subgrid
     module procedure reorder_subgrid_2d , &
@@ -6135,5 +6132,26 @@ module mod_mppparam
       matrix = unpack(r8vector1(1:nval),cl%lmask3,matrix)
     end if
   end subroutine linear_to_cartesian3d_real8
+
+  subroutine cl_dispose(cl)
+    implicit none
+    type(masked_comm) , intent(inout) :: cl
+    if ( associated(cl%linear_npoint) ) then
+      call relmem1d(cl%linear_npoint)
+      call relmem1d(cl%linear_displ)
+      call relmem1d(cl%cartesian_npoint)
+      call relmem1d(cl%cartesian_displ)
+      if ( associated(cl%lmask3) ) then
+        call relmem3d(cl%lmask3)
+      end if
+      if ( associated(cl%lmask2) ) then
+        call relmem2d(cl%lmask2)
+      end if
+      call mpi_comm_free(cl%linear_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_comm_free error.')
+      end if
+    end if
+  end subroutine cl_dispose
 
 end module mod_mppparam
