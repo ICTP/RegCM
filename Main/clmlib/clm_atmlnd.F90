@@ -1408,7 +1408,7 @@ end subroutine clm_map2gcell
      nout = 20
      if( ichem == 1 ) then  !Aerosol scheme on
 #if (defined VOC)
-       if(cgaschem == 1)    nout = nout + 1
+       if(cgaschem == 1)    nout = nout + 3
 #endif
        if(caerosol == 1)    nout = nout + 2
      end if
@@ -1467,8 +1467,12 @@ end subroutine clm_map2gcell
         if( cgaschem == 1 ) then
           if( caerosol == 1 ) then  !Aerosol scheme on
             c2r_all(nn+22*nt)   = clm_l2a%voc2rcm(n,1)
+            c2r_all(nn+23*nt)   = clm_l2a%voc2rcm(n,7)
+            c2r_all(nn+24*nt)   = clm_l2a%voc2rcm(n,4)
           else
             c2r_all(nn+20*nt)   = clm_l2a%voc2rcm(n,1)
+            c2r_all(nn+21*nt)   = clm_l2a%voc2rcm(n,7)
+            c2r_all(nn+22*nt)   = clm_l2a%voc2rcm(n,4)
           end if
         end if
 #endif

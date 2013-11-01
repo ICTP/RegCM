@@ -400,9 +400,9 @@ contains
 !    call add_fld1d (fname='METHYLBUT', units='uG/M2/H',  &
 !         avgflag='A', long_name='methylbutenol flux', &
 !         ptr_pft=clm3%g%l%c%p%pvf%vocflx_6, set_lake=0._r8)
-!    call add_fld1d (fname='APINE', units='uG/M2/H',  &
-!         avgflag='A', long_name='alpha-pinene flux', &
-!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_7, set_lake=0._r8)
+    call add_fld1d (fname='APIN', units='uG/M2/H',  &
+         avgflag='A', long_name='alpha-pinene flux', &
+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_7, set_lake=0._r8)
 !    call add_fld1d (fname='BPINE', units='uG/M2/H',  &
 !         avgflag='A', long_name='beta-pinene flux', &
 !         ptr_pft=clm3%g%l%c%p%pvf%vocflx_8, set_lake=0._r8)
@@ -412,9 +412,9 @@ contains
 !    call add_fld1d (fname='SABINENE', units='uG/M2/H',  &
 !         avgflag='A', long_name='sabinene flux', &
 !         ptr_pft=clm3%g%l%c%p%pvf%vocflx_3, set_lake=0._r8)
-!    call add_fld1d (fname='LIMONENE', units='uG/M2/H',  &
-!         avgflag='A', long_name='limonene flux', &
-!         ptr_pft=clm3%g%l%c%p%pvf%vocflx_4, set_lake=0._r8)
+    call add_fld1d (fname='LIMO', units='uG/M2/H',  &
+         avgflag='A', long_name='limonene flux', &
+         ptr_pft=clm3%g%l%c%p%pvf%vocflx_4, set_lake=0._r8)
 !    call add_fld1d (fname='BIOGENCO', units='uG/M2/H',  &
 !         avgflag='A', long_name='biogenic co flux', &
 !         ptr_pft=clm3%g%l%c%p%pvf%vocflx_5, set_lake=0._r8)

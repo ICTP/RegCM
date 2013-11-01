@@ -89,6 +89,8 @@ module mod_che_common
   ! Tracer mask that uses MEGAN indices
   integer(ik4) , pointer , dimension(:) :: bvoc_trmask
   real(rk8) , pointer , dimension(:,:) :: cvoc_em
+  real(rk8) , pointer , dimension(:,:) :: cvoc_em1
+  real(rk8) , pointer , dimension(:,:) :: cvoc_em2
 #endif
   real(rk8) , pointer , dimension(:,:,:) :: cdep_vels
 #endif
@@ -269,7 +271,7 @@ module mod_che_common
         iisoropia = 1
         if ( myid == italk ) write(stdout,*) 'DCCB simulation'
       else if ( chemsimtype(1:4) == 'CBMZ' ) then 
-        ntr = 37
+        ntr = 39
         allocate(chtrname(ntr))      
         chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   ','NH3   ','O3    ', &
                                  'NO2   ','NO    ','CO    ','H2O2  ', &
@@ -280,7 +282,7 @@ module mod_che_common
                                  'MGLY  ','CRES  ','OPEN  ','ISOPRD', &
                                  'ONIT  ','HCOOH ','RCOOH ','CH3OOH', &
                                  'ETHOOH','ROOH  ','HONO  ','HNO4  ', &
-                                 'XO2   ' /)
+                                 'XO2   ','APIN  ','LIMO  ' /)
         igaschem = 1
         if ( myid == italk ) write(stdout,*) 'CBMZ simulation'
       else if ( chemsimtype(1:6) == 'POLLEN' ) then 

@@ -2581,13 +2581,13 @@ contains
       call ncd_iolocal(ncidv(8),'BPINE', 'read', ef_bpin, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(7) == 1) then
-      call ncd_iolocal(ncidv(7),'APINE', 'read', ef_apin, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(7),'APIN', 'read', ef_apin, begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(2) == 1) then
       call ncd_iolocal(ncidv(2), 'MYRCENE'   , 'read', ef_myrc , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(4) == 1) then
-      call ncd_iolocal(ncidv(4), 'LIMONENE'  , 'read', ef_limo , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
+      call ncd_iolocal(ncidv(4), 'LIMO'  , 'read', ef_limo , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )
     endif
     if(r2cefmap(3) == 1) then
       call ncd_iolocal(ncidv(3),'SABINENE'  , 'read', ef_sabi , begg, endg, gsMap_lnd_gdc2glo, perm_lnd_gdc2glo, strt3, cnt3 )

@@ -147,6 +147,32 @@ module mod_che_emission
 #endif
     end if
 
+    if ( iapin >0 ) then
+#if (defined VOC && defined CLM)
+      jglob = global_dot_jstart+j-1
+      if ( bvoc_trmask(iapin) /= 0 ) then
+        do i = ici1, ici2
+          iglob = global_dot_istart+i-1
+          if ( ktau == 0 ) cvoc_em1(jglob,iglob) = d_zero
+          chemsrc(j,i,iapin) = cvoc_em1(jglob,iglob)
+        end do
+      end if
+#endif
+    end if
+
+    if ( ilimo >0 ) then
+#if (defined VOC && defined CLM)
+      jglob = global_dot_jstart+j-1
+      if ( bvoc_trmask(ilimo) /= 0 ) then
+        do i = ici1, ici2
+          iglob = global_dot_istart+i-1
+          if ( ktau == 0 ) cvoc_em2(jglob,iglob) = d_zero
+          chemsrc(j,i,ilimo) = cvoc_em2(jglob,iglob)
+        end do
+      end if
+#endif
+    end if
+
     !
     ! add the source term to tracer tendency
     !

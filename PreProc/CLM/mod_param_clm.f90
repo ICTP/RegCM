@@ -28,13 +28,13 @@ module mod_param_clm
 !
   integer, private :: k
 
-  integer(ik4) , parameter :: nfld = 18
+  integer(ik4) , parameter :: nfld = 19
   integer(ik4) , parameter :: npft = 17
   integer(ik4) , parameter :: nsoi = 10
   integer(ik4) , parameter :: iglc = 1 ,  ilai = 2 ,  isai = 3 ,  &
       itop = 4 ,  ibot = 5 ,  ilak = 6 ,  iwtl = 7 ,  ifma = 8 ,  &
       iurb = 9 ,  isnd = 10 , icly = 11 , icol = 12 , ioro = 13 , &
-      ipft = 14 , iiso = 15 , iapin = 16 , ibpin = 17 , imbo = 18
+      ipft = 14 , iiso = 15 , iapin = 16 , ilimo = 17 , ibpin = 18 , imbo = 19
 !
   real(rk4) , dimension(nfld) :: glat1 , glat2 , glon1 , glon2 , &
                                  dlat , dlon , vmin
@@ -124,22 +124,27 @@ module mod_param_clm
  
 !     ***** ADDITION ISOPRENE *****
   data vnam(iiso) , vmin(iiso)/'ISOP' , -99./
-  data infil(iiso)/'mksrf_iso.nc'/
+  data infil(iiso)/'CLM/mksrf_iso.nc'/
   data nlev(iiso) , ntim(iiso)/ 1 , 1/
  
 !     ***** ADDITION B-PINENE *****
   data vnam(ibpin) , vmin(ibpin)/'BPINE' , -99./
-  data infil(ibpin)/'mksrf_pinb.nc'/
+  data infil(ibpin)/'CLM/mksrf_pinb.nc'/
   data nlev(ibpin) , ntim(ibpin)/ 1 , 1/
  
 !     ***** ADDITION A-PINENE *****
-  data vnam(iapin) , vmin(iapin)/'APINE' , -99./
-  data infil(iapin)/'mksrf_pina.nc'/
+  data vnam(iapin) , vmin(iapin)/'APIN' , -99./
+  data infil(iapin)/'CLM/mksrf_pina.nc'/
   data nlev(iapin) , ntim(iapin)/ 1 , 1/
+
+!     ***** ADDITION LIMONENE *****
+  data vnam(ilimo) , vmin(ilimo)/'LIMO' , -99./
+  data infil(ilimo)/'CLM/mksrf_limo.nc'/
+  data nlev(ilimo) , ntim(ilimo)/ 1 , 1/
  
 !     ***** ADDITION METHYLBUTENOL *****
   data vnam(imbo) , vmin(imbo)/'MBO' , -99./
-  data infil(imbo)/'mksrf_mbo.nc'/
+  data infil(imbo)/'CLM/mksrf_mbo.nc'/
   data nlev(imbo) , ntim(imbo)/ 1 , 1/
  
 !     **** ADDITION Maximum Fractional Saturated Area ***

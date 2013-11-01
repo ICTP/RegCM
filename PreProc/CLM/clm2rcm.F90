@@ -195,6 +195,9 @@ program clm2rcm
 !       **   Some files have more than one required variable. 
 !       Therefore, **   the output file should only be opened once.
     inpfile = trim(inpglob)//infil(ifld)
+    if(ifld==iiso) inpfile = "./mksrf_iso.nc"
+    if(ifld==iapin) inpfile = "./mksrf_pina.nc"
+    if(ifld==ilimo) inpfile = "./mksrf_limo.nc"
     write(stdout,*) 'OPENING Input NetCDF FILE: ' , trim(inpfile)
     istatus = nf90_open(inpfile,nf90_nowrite,idin)
     call checkncerr(istatus,__FILE__,__LINE__, &
@@ -249,7 +252,7 @@ program clm2rcm
          ifld==iglc .or. ifld==iurb .or. ifld==isnd .or.   &
          ifld==icol .or. ifld==ioro .or. ifld==iiso .or.   &
          ifld==ifma .or. ifld==imbo .or. ifld==ibpin .or.  &
-         ifld==iapin ) then
+         ifld==iapin .or. ifld==ilimo) then
 !         ************************ CHANGED LINE ABOVE to include iiso
 !         ************************
       ipathdiv = scan(inpfile, pthsep, .true.)
@@ -296,7 +299,8 @@ program clm2rcm
     if ( icount(3) > 0 ) call getmem1d(zlev,1,icount(3),'clm2rcm:zlev')
     call getmem2d(landmask,1,icount(1),1,icount(2),'clm2rcm:landmask')
 
-    if ( ifld /= icol ) then
+    if ( ifld /= icol  .and. ifld /= iiso .and. ifld /= ibpin .and.  &
+         ifld /= iapin .and. ifld /= imbo .and. ifld /= ilimo ) then
       call readcdfr4(idin,vnam_lm,cdum,cdum,istart(1),              &
                      icount(1),istart(2),icount(2),1,1,1,1,landmask)
     end if
@@ -337,7 +341,7 @@ program clm2rcm
       ntim(ifld) = 1
  
     else if ( ifld==iiso .or. ifld==ibpin .or. ifld==iapin .or.     &
-              ifld==imbo ) then
+              ifld==imbo .or. ifld==ilimo ) then
       call readcdfr4_iso(idin,vnam(ifld),lnam(ifld),units(ifld),    &
                          istart(1),icount(1),istart(2),icount(2),   &
                          istart(3),icount(3),istart(4),icount(4),   &
@@ -357,7 +361,7 @@ program clm2rcm
     end if
  
     if ( ifld==icol .or. ifld==iiso .or. ifld==ibpin .or.           &
-         ifld==imbo .or. ifld==iapin ) then
+         ifld==imbo .or. ifld==iapin .or. ifld==ilimo ) then
       write(stdout,*) 'Adjusting landmask'
       do j = 1 , icount(2)
         do i = 1 , icount(1)

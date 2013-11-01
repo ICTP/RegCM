@@ -46,8 +46,11 @@ module mod_clm3grid
   xlatmax = min(xlatmax+dlat,glat2)
   ilonmin = max(min(nint((glon2+xlonmin)/dlon)-1,nlon),1)
   ilonmax = max(min(nint((glon2+xlonmax)/dlon)+1,nlon),1)
-  ilatmin = max(min(nint((glat2+xlatmin+glat2+glat1)/dlat)-1,nlat),1)
-  ilatmax = max(min(nint((glat2+xlatmax+glat2+glat1)/dlat)+1,nlat),1)
+!  ilatmin = max(min(nint((glat2+xlatmin+glat2+glat1)/dlat)-1,nlat),1)
+!  ilatmax = max(min(nint((glat2+xlatmax+glat2+glat1)/dlat)+1,nlat),1)
+  ilatmin = max(min(nint((glat2+xlatmin-nint(glat2)-nint(glat1))/dlat)-1,nlat),1)
+  ilatmax = max(min(nint((glat2+xlatmax-nint(glat2)-nint(glat1))/dlat)+1,nlat),1)
+
   istart(1) = ilonmin
   icount(1) = ilonmax - ilonmin + 1
   istart(2) = ilatmin

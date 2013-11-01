@@ -230,6 +230,8 @@ module mod_mtrxclm
 
 #if (defined VOC)
     voc_em(:,:) = d_zero
+    voc_em1(:,:) = d_zero
+    voc_em2(:,:) = d_zero
 #endif
     if ( igases == 1 ) then
       dep_vels(:,:,:) = d_zero
@@ -588,7 +590,7 @@ module mod_mtrxclm
       nout = 20
       if ( ichem == 1 ) then  !Aerosol and/or Chem schemes on
 #if (defined VOC)
-        if ( cgaschem == 1 ) nout = nout + 1
+        if ( cgaschem == 1 ) nout = nout + 3
 #endif
         if ( caerosol == 1 ) nout = nout + 2
       end if
@@ -627,6 +629,8 @@ module mod_mtrxclm
               c2rfvegnosno(j,i) = c2r_allout(ib+(21*kk)+ic)
 #if (defined VOC)
               voc_em(j,i)       = c2r_allout(ib+(22*kk)+ic)
+              voc_em1(j,i)      = c2r_allout(ib+(23*kk)+ic)
+              voc_em2(j,i)      = c2r_allout(ib+(24*kk)+ic)
 #endif
             else if ( cgaschem == 1 .and. caerosol /= 1 ) then
               !**** Dry deposition velocities from CLM4
@@ -635,6 +639,8 @@ module mod_mtrxclm
               end do
 #if (defined VOC)
               voc_em(j,i)    = c2r_allout(ib+(20*kk)+ic)
+              voc_em1(j,i)   = c2r_allout(ib+(21*kk)+ic)
+              voc_em2(j,i)   = c2r_allout(ib+(22*kk)+ic)
 #endif
             else if ( cgaschem /= 1 .and. caerosol == 1 ) then
               c2rfracsno(j,i)   = c2r_allout(ib+(20*kk)+ic)

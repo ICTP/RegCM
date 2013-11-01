@@ -1328,7 +1328,7 @@ module mod_params
     call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat, &
                    coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d,sfracs2d, &
                    solis,sdeltk2d,sdelqk2d,ssw2da,convpr,icumtop,     &
-                   icumbot,taucldsp,voc_em,dep_vels)
+                   icumbot,taucldsp,voc_em,voc_em1,voc_em2,dep_vels)
 #else
     call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat, &
                    coszrs,iveg,svegfrac2d,sfracv2d,sfracb2d,sfracs2d, &

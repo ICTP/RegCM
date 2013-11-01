@@ -137,6 +137,8 @@ module mod_clm
   real(rk8) , pointer , dimension(:,:) :: c2rfracsno      
   real(rk8) , pointer , dimension(:,:) :: c2rfvegnosno 
   real(rk8) , pointer , dimension(:,:) :: voc_em
+  real(rk8) , pointer , dimension(:,:) :: voc_em1
+  real(rk8) , pointer , dimension(:,:) :: voc_em2
   real(rk8) , pointer , dimension(:,:,:) :: dep_vels
 
   integer(ik4) , pointer , dimension(:,:) :: c2rprocmap
@@ -230,6 +232,8 @@ module mod_clm
     call getmem2d(c2rprocmap,1,jx,1,iy,'clm:c2rprocmap')
 #if (defined VOC)
     call getmem2d(voc_em,1,jx,1,iy,'clm:voc_em')
+    call getmem2d(voc_em1,1,jx,1,iy,'clm:voc_em1')
+    call getmem2d(voc_em2,1,jx,1,iy,'clm:voc_em2')
 #endif
     if ( igases == 1 .or. ioxcl == 1 ) then
       call getmem3d(dep_vels,1,jx,1,iy,1,n_tr,'clm:dep_vels')

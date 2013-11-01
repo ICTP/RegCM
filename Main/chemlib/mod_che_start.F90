@@ -123,6 +123,8 @@ module mod_che_start
     iethooh = 0
     irooh   = 0
     ixo2 =    0
+    iapin  =  0
+    ilimo  =  0
 
     ipollen = 0
 
@@ -271,6 +273,8 @@ module mod_che_start
       if ( chtrname(itr) == 'HONO'  ) ihono     = itr
       if ( chtrname(itr) == 'HNO4'  ) ihno4     = itr
       if ( chtrname(itr) == 'XO2'   ) ixo2      = itr
+      if ( chtrname(itr) == 'APIN'  ) iapin     = itr
+      if ( chtrname(itr) == 'LIMO'  ) ilimo     = itr
       if ( chtrname(itr) == 'POLLEN') ipollen   = itr
 
       !abt *** Check to make sure SO4 is not defined twice as SULF or SO4 in
@@ -293,6 +297,8 @@ module mod_che_start
       !    *** Uncomment to give potential to advect    
       if ( igaschem == 1 ) then
         if ( chtrname(itr) == 'ISOP'  ) bvoc_trmask(itr) = 1
+        if ( chtrname(itr) == 'APIN'  ) bvoc_trmask(itr) = 1
+        if ( chtrname(itr) == 'LIMO'  ) bvoc_trmask(itr) = 1
       end if
 #endif
 

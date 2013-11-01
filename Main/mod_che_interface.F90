@@ -46,7 +46,7 @@ module mod_che_interface
                        rembc,remrat,coszrs,iveg,svegfrac2d,     &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdeltk2d,     &
                        sdelqk2d,ssw2da,convpr,icutop,icubot,taucldsp, &
-                       voc_em,dep_vels)
+                       voc_em,voc_em1,voc_em2,dep_vels)
 #else
   subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,   &
                        rembc,remrat,coszrs,iveg,svegfrac2d,     &
@@ -74,7 +74,7 @@ module mod_che_interface
     real(rk8) , pointer , dimension(:,:) :: coszrs
 
 #if (defined CLM)
-    real(rk8), pointer :: voc_em(:,:), dep_vels(:,:,:)
+    real(rk8), pointer :: voc_em(:,:), voc_em1(:,:), voc_em2(:,:), dep_vels(:,:,:)
 #endif
 
     call assignpnt(icutop,kcumtop)
@@ -134,6 +134,8 @@ module mod_che_interface
 #if (defined CLM)
 #if (defined VOC)
     call assignpnt(voc_em,cvoc_em)
+    call assignpnt(voc_em1,cvoc_em1)
+    call assignpnt(voc_em2,cvoc_em2)
 #endif
     call assignpnt(dep_vels,cdep_vels)
 #endif

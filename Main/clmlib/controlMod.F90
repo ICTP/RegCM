@@ -1123,6 +1123,11 @@ contains
     else
        write(6,*) '   A-pinene data = ',trim(mksrf_fapin)
     end if    
+    if (mksrf_flimo == ' ') then
+       write(6,*) '   mksrf_flimo not set'
+    else
+       write(6,*) '   Limonene data = ',trim(mksrf_flimo)
+    end if
 #endif
     if (mksrf_offline_fnavyoro == ' ') then
        write(6,*) '   mksrf_offline_fnavyoro not set'
