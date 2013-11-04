@@ -23,7 +23,7 @@ module mod_bats_mtrxbats
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : iqv , iocnflx , iocncpl , ichem , &
-                             iemiss , ksrf , xmonth
+                             iemiss , ksrf , xmonth , rtsrf
   use mod_mppparam
   use mod_mpmessage
   use mod_constants
@@ -337,8 +337,9 @@ module mod_bats_mtrxbats
             satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/sts(n,j,i)))
             qs(n,j,i) = dmax1(rh0*ep2*satvp/(sfcp(n,j,i)*0.01D0-satvp),d_zero)
             rhs(n,j,i) = sfcp(n,j,i)/(rgas*sts(n,j,i))
-            prcp(n,j,i) = pptnc(j,i) + pptc(j,i)
-            totpr(j,i) = pptnc(j,i) + pptc(j,i)
+            ! Average over the priod
+            prcp(n,j,i) = (pptnc(j,i) + pptc(j,i))*rtsrf
+            totpr(j,i) = (pptnc(j,i) + pptc(j,i))*rtsrf
             !
             ! quantities stored on 2d surface array for bats use only
             !

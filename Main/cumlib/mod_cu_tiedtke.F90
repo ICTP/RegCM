@@ -272,7 +272,7 @@ module mod_cu_tiedtke
           ! total precip cumulative 
           rainc(j,i) = rainc(j,i) + (paprc(ii)+paprs(ii))
           ! rainfall for bats
-          lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))*rtsrf
+          lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))
         end if
       end if
     end do

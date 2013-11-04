@@ -356,7 +356,7 @@ module mod_cu_grell
         if ( prainx > dlowval ) then
           rainc(j,i) = rainc(j,i) + prainx
 !         precipitation rate for bats (mm/s)
-          lmpcpc(j,i) = lmpcpc(j,i) + pret(j,i)*rtsrf
+          lmpcpc(j,i) = lmpcpc(j,i) + pret(j,i)
           total_precip_points = total_precip_points + 1
         end if
       end do

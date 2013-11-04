@@ -158,7 +158,7 @@ module mod_cu_em
           prainx = pret*dtsec
           if ( prainx > dlowval ) then
             rainc(j,i)  = rainc(j,i)  + prainx  ! mm
-            lmpcpc(j,i) = lmpcpc(j,i) + pret*rtsrf
+            lmpcpc(j,i) = lmpcpc(j,i) + pret
             total_precip_points = total_precip_points + 1
           end if
         end if

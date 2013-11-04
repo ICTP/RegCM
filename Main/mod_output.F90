@@ -234,9 +234,9 @@ module mod_output
           atm_kzm_out = uwstateb%kzm(jci1:jci2,ici1:ici2,1:kz)
 
         if ( associated(atm_tpr_out) ) &
-          atm_tpr_out = (sfs%rainc+sfs%rainnc)*rsecpd
+          atm_tpr_out = (sfs%rainc+sfs%rainnc)/(atmfrq*secph)
         if ( associated(atm_tsn_out) ) &
-          atm_tsn_out = (sfs%snownc)*rsecpd
+          atm_tsn_out = sfs%snownc/(atmfrq*secph)
 
         if ( associated(atm_tgb_out) ) &
           atm_tgb_out = atm_tgb_out * rsrf_in_atm

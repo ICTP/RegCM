@@ -263,7 +263,7 @@ module mod_cu_kuo
               if ( prainx > dlowval ) then
                 rainc(j,i) = rainc(j,i) + prainx
 !               instantaneous precipitation rate for use in bats (mm/s)
-                lmpcpc(j,i) = lmpcpc(j,i) + prainx/dtsec*rtsrf
+                lmpcpc(j,i) = lmpcpc(j,i) + prainx/dtsec
               end if
               if ( ichem == 1 ) then
                 ! build for chemistry 3d table of constant precipitation rate
