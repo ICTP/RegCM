@@ -149,16 +149,13 @@ module mod_cu_tiedtke
 
     if ( nipoi == 0 ) return
 
-!   need to translate REGCM to TIEDTKE vars...
-
     total_precip_points = 0
     ilab(:,:) = 2
     cevapcu(:) = cevapu
     q_detr(:,:,:) = d_zero
-    if ( ichem == 1 ) convpr(:,:,:) = d_zero
 
-!   evaporation coefficient for kuo0 
     if ( ichem == 1 ) then    
+      convpr(:,:,:) = d_zero
       do k = 1 , kz
         do ii = 1 , nipoi
           i = imap(ii)
@@ -183,8 +180,7 @@ module mod_cu_tiedtke
       j = jmap(ii)
       xpqfx(ii) = qfx(j,i)
       xphfx(ii) = hfx(j,i)
-      ! Land/water flag - is correctly set?
-      ldland(ii) = (lmask(j,i) == 0)
+      ldland(ii) = (lmask(j,i) /= 0)
     end do
 
     do k = 1 , kz
@@ -204,7 +200,6 @@ module mod_cu_tiedtke
         pvol(ii,k)  = vten(j,i,k)/pxf
         pqte(ii,k)  = qxten(j,i,k,iqv)/pxf
         pxlte(ii,k) = qxten(j,i,k,iqc)/pxf
-        ! IS vertical velocity in Pa/s or in m/s?
         pverv(ii,k)  = d_half*(svv(j,i,k) + svv(j,i,k+1))
         pxim1(ii,k) = d_zero ! cloud ice water
         pxite(ii,k) = d_zero ! ice tend
@@ -212,6 +207,7 @@ module mod_cu_tiedtke
         pxtec(ii,k) = d_zero ! detrained cloud water tendency
         pqtec(ii,k) = d_zero ! detrained humidity tendency
         xpg(ii,k) = hgt(j,i,k)*egrav  !   geopotential
+        ! pressure top limit for convection: the level above tropopause
       end do
     end do
 
@@ -220,6 +216,12 @@ module mod_cu_tiedtke
         pmean(k) = sum(papp1(:,k))/nipoi
       end do
       call sucumf(nint(ds*d_three),kz,pmean)
+    else
+      do ii = 1 , nipoi
+        i = imap(ii)
+        j = jmap(ii)
+        ptopmax(ii) = papp1(ii,max(1,rktrop(j,i)-1))
+      end do
     end if
 
     do k = 1 , kzp1
@@ -251,7 +253,6 @@ module mod_cu_tiedtke
     paprc(:) = d_zero ! total precip cumulative 
     paprs(:) = d_zero ! total snow cumulative 
 
-    ptopmax(:) = ptop*d_1000  ! pressure top limit for convection 
     kctop(:) = 0
     kcbot(:) = 0
 
@@ -265,12 +266,12 @@ module mod_cu_tiedtke
     !
     do ii = 1 , nipoi
       if (ktype(ii) > 0) then
-        if ( paprc(ii)+paprs(ii) > dlowval ) then
+        if ( paprc(ii) > dlowval ) then
           i = imap(ii)
           j = jmap(ii)
           total_precip_points = total_precip_points + 1
           ! total precip cumulative 
-          rainc(j,i) = rainc(j,i) + (paprc(ii)+paprs(ii))
+          rainc(j,i) = rainc(j,i) + paprc(ii)
           ! rainfall for bats
           lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))
         end if
@@ -488,30 +489,28 @@ module mod_cu_tiedtke
 !*    3.     PRESSURE ALTITUDE OF CONVECTIVE CLOUD TOPS.
 !     -------- -------- -- ---------- ----- -----
 !
-  ilevmin = klev - 4
-!
-  do jl = 1 , kproma
-    itopec2(jl) = klevp1
-  end do
-!
-  do jk = 1 , ilevmin
+  if ( iconv /= 4 ) then
+    ilevmin = klev - 4
     do jl = 1 , kproma
-      if ( ilab(jl,jk) == 2 .and. itopec2(jl) == klevp1 ) itopec2(jl) = jk
+      itopec2(jl) = klevp1
     end do
-  end do
-
-!
-  ztopmax(1:kproma) = ptopmax(1:kproma)
-  do jl = 1 , kproma
-    if ( itopec2(jl) == 1 ) then
-      ptopmax(jl) = papp1(jl,1)
-    else if ( itopec2(jl) /= klevp1 ) then
-      ptopmax(jl) = paphp1(jl,itopec2(jl))
-    else
-      ptopmax(jl) = 99999.0D0
-    end if
-    ptopmax(jl) = min(ptopmax(jl),ztopmax(jl))
-  end do
+    do jk = 1 , ilevmin
+      do jl = 1 , kproma
+        if ( ilab(jl,jk) == 2 .and. itopec2(jl) == klevp1 ) itopec2(jl) = jk
+      end do
+    end do
+    ztopmax(1:kproma) = ptopmax(1:kproma)
+    do jl = 1 , kproma
+      if ( itopec2(jl) == 1 ) then
+        ptopmax(jl) = papp1(jl,1)
+      else if ( itopec2(jl) /= klevp1 ) then
+        ptopmax(jl) = paphp1(jl,itopec2(jl))
+      else
+        ptopmax(jl) = 99999.0D0
+      end if
+      ptopmax(jl) = min(ptopmax(jl),ztopmax(jl))
+    end do
+  end if
 #ifdef DEBUG
   call time_end(subroutine_name,idindx)
 #endif
@@ -663,8 +662,8 @@ module mod_cu_tiedtke
 ! was a function of horizontal resolution (nn wavenumber of a spectral model)
 ! this is translated roughly into horizontal resolution in meters
 !
-!      ztau = min(3.0D0*3600.0D0,7200.0D0*63.0D0/nn)
-       ztau=min(3.0D0*3600.0D0,cmtcape*ds)
+! ztau = min(3.0D0*3600.0D0,7200.0D0*63.0D0/nn)
+  ztau=min(3.0D0*3600.0D0,cmtcape*ds)
 !
 !----------------------------------------------------------------------
 !*    2.           INITIALIZE VALUES AT VERTICAL GRID POINTS IN 'CUINI'
@@ -1940,7 +1939,7 @@ module mod_cu_tiedtke
 !
   do jk = 1 , klev
     do jl = 1 , kproma
-!         pcpen(jl,jk) = cpd*(1.+vtmpc2*max(pqen(jl,jk),0.00D0))
+!      pcpen(jl,jk) = cpd*(d_one+vtmpc2*max(pqen(jl,jk),0.00D0))
       pcpen(jl,jk) = cpd
     end do
   end do
@@ -1981,7 +1980,7 @@ module mod_cu_tiedtke
       pqenh(jl,jk) = min(pqen(jl,jk-1),pqsen(jl,jk-1))              &
                      + (pqsenh(jl,jk)-pqsen(jl,jk-1))
       pqenh(jl,jk) = max(pqenh(jl,jk),d_zero)
-!         pcpcu(jl,jk) = cpd*(1.+vtmpc2*pqenh(jl,jk))
+!      pcpcu(jl,jk) = cpd*(d_one+vtmpc2*pqenh(jl,jk))
       pcpcu(jl,jk) = cpd
     end do
   end do
