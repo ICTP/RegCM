@@ -38,8 +38,8 @@ module mod_write
   public :: init_output , close_output , newfile , writef
 
   type(nc_output_stream) , save :: ncout
-  integer(ik4) , parameter :: nvar2d = 6
-  integer(ik4) , parameter :: nvar2d_static = 4
+  integer(ik4) , parameter :: nvar2d = 8
+  integer(ik4) , parameter :: nvar2d_static = 6
   integer(ik4) , parameter :: nvar3d = 4
   type(ncvariable2d_real) , save , dimension(nvar2d) :: v2dvar_icbc
   type(ncvariable3d_real) , save , dimension(nvar3d) :: v3dvar_icbc
@@ -63,24 +63,32 @@ module mod_write
     v2dvar_icbc(2)%vunit = 'degrees_north'
     v2dvar_icbc(2)%long_name = 'Latitude on Cross Points'
     v2dvar_icbc(2)%standard_name = 'latitude'
-    v2dvar_icbc(3)%vname = 'mask'
-    v2dvar_icbc(3)%vunit = '1'
-    v2dvar_icbc(3)%long_name = 'Land Mask'
-    v2dvar_icbc(3)%standard_name = 'land_binary_mask'
-    v2dvar_icbc(4)%vname = 'topo'
-    v2dvar_icbc(4)%vunit = 'm'
-    v2dvar_icbc(4)%long_name = 'Surface Model Elevation'
-    v2dvar_icbc(4)%standard_name = 'surface_altitude'
-    v2dvar_icbc(5)%vname = 'ps'
-    v2dvar_icbc(5)%vunit = 'hPa'
-    v2dvar_icbc(5)%long_name = 'Surface pressure'
-    v2dvar_icbc(5)%standard_name = 'surface_air_pressure'
-    v2dvar_icbc(5)%lrecords = .true.
-    v2dvar_icbc(6)%vname = 'ts'
-    v2dvar_icbc(6)%vunit = 'K'
-    v2dvar_icbc(6)%long_name = 'Surface Temperature'
-    v2dvar_icbc(6)%standard_name = 'surface_temperature'
-    v2dvar_icbc(6)%lrecords = .true.
+    v2dvar_icbc(3)%vname = 'dlon'
+    v2dvar_icbc(3)%vunit = 'degrees_east'
+    v2dvar_icbc(3)%long_name = 'Longitude on Dot Points'
+    v2dvar_icbc(3)%standard_name = 'longitude'
+    v2dvar_icbc(4)%vname = 'dlat'
+    v2dvar_icbc(4)%vunit = 'degrees_north'
+    v2dvar_icbc(4)%long_name = 'Latitude on Dot Points'
+    v2dvar_icbc(4)%standard_name = 'latitude'
+    v2dvar_icbc(5)%vname = 'mask'
+    v2dvar_icbc(5)%vunit = '1'
+    v2dvar_icbc(5)%long_name = 'Land Mask'
+    v2dvar_icbc(5)%standard_name = 'land_binary_mask'
+    v2dvar_icbc(6)%vname = 'topo'
+    v2dvar_icbc(6)%vunit = 'm'
+    v2dvar_icbc(6)%long_name = 'Surface Model Elevation'
+    v2dvar_icbc(6)%standard_name = 'surface_altitude'
+    v2dvar_icbc(7)%vname = 'ps'
+    v2dvar_icbc(7)%vunit = 'hPa'
+    v2dvar_icbc(7)%long_name = 'Surface pressure'
+    v2dvar_icbc(7)%standard_name = 'surface_air_pressure'
+    v2dvar_icbc(7)%lrecords = .true.
+    v2dvar_icbc(8)%vname = 'ts'
+    v2dvar_icbc(8)%vunit = 'K'
+    v2dvar_icbc(8)%long_name = 'Surface Temperature'
+    v2dvar_icbc(8)%standard_name = 'surface_temperature'
+    v2dvar_icbc(8)%lrecords = .true.
     v3dvar_icbc(1)%vname = 't'
     v3dvar_icbc(1)%vunit = 'K'
     v3dvar_icbc(1)%long_name = 'Temperature'
@@ -127,10 +135,12 @@ module mod_write
     call outstream_addatt(ncout,ncattribute_string('global_atm_source',dattyp))
     v2dvar_icbc(1)%rval => xlon
     v2dvar_icbc(2)%rval => xlat
-    v2dvar_icbc(3)%rval => mask
-    v2dvar_icbc(4)%rval => topogm
-    v2dvar_icbc(5)%rval => ps4
-    v2dvar_icbc(6)%rval => ts4
+    v2dvar_icbc(3)%rval => dlon
+    v2dvar_icbc(4)%rval => dlat
+    v2dvar_icbc(5)%rval => mask
+    v2dvar_icbc(6)%rval => topogm
+    v2dvar_icbc(7)%rval => ps4
+    v2dvar_icbc(8)%rval => ts4
     v3dvar_icbc(1)%rval => t4
     v3dvar_icbc(2)%rval => q4
     v3dvar_icbc(3)%rval => u4
