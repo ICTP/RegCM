@@ -322,8 +322,8 @@ module mod_params
   scenario = 'A1B'
   idcsst = 0
   iseaice = 0
-  idesseas = 1
-  iconvlwp = 1
+  idesseas = 0
+  iconvlwp = 0
   irrtm = 0
   islab_ocean = 0
   iclimao3 = 0
