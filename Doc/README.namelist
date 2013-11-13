@@ -171,6 +171,7 @@
  iflak   = .true.,            ! Output LAK ?
  lakfrq  =     6.,            ! Frequency in hours to write to LAK
  ifchem  = .true.,            ! Output CHE ?
+ ifopt   = .false.,           ! Output OPT ?
  chemfrq =     6.,            ! Frequency in hours to write to CHE
  enable_atm_vars = 30*.true., ! Mask to eventually disable variables ATM
  enable_srf_vars = 28*.true., ! Mask to eventually disable variables SRF
