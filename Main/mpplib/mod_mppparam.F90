@@ -475,7 +475,7 @@ module mod_mppparam
   subroutine trueforall(rlval,rtval)
     implicit none
     logical , intent(in) :: rlval
-    logical , intent(in) :: rtval
+    logical , intent(out) :: rtval
     call mpi_allreduce(rlval,rtval,1,mpi_logical,mpi_lor,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
@@ -517,7 +517,7 @@ module mod_mppparam
     integer(ik4) , dimension(:) , intent(in) :: ilval
     integer(ik4) , dimension(:) , intent(out) :: itval
     call mpi_allreduce(ilval,itval,size(itval),mpi_integer4, &
-                       mpi_sum,iocpu,mycomm,mpierr)
+                       mpi_sum,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
