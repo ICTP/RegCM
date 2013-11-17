@@ -12,6 +12,16 @@ AC_DEFUN([AX_PROG_NC_CONFIG], [
   AS_IF([test "$ax_cv_prog_nc_config" = "yes"], [[$1]], [[$2]])
 ])
 
+AC_DEFUN([AX_PROG_NF_CONFIG], [
+  AC_REQUIRE([AC_PROG_EGREP])
+
+  AC_CACHE_CHECK([if nf-config program is present],[ax_cv_prog_nf_config],[
+  AS_IF([nf-config --version 2>/dev/null | egrep -q '^netCDF '],
+        [ax_cv_prog_fc_config=yes], [ax_cv_prog_nf_config=no])
+      ])
+  AS_IF([test "$ax_cv_prog_nf_config" = "yes"], [[$1]], [[$2]])
+])
+
 AC_DEFUN([RR_PATH_NETCDF],[
 
   AC_CHECKING([for NetCDF])

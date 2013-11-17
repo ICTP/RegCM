@@ -34,8 +34,13 @@ AC_PROG_F77
 
 AC_LANG([Fortran])
 
-AX_PROG_NC_CONFIG([NC_PREFIX=`nc-config --prefix` && NCAUTO="yes"],
-                  [NC_PREFIX="${NETCDF}" && NCAUTO="no"])
+AX_PROG_NF_CONFIG([NC_PREFIX=`nf-config --prefix` && NFAUTO="yes"],
+                  [NC_PREFIX="${NETCDF}" && NFAUTO="no"])
+if eval "test x$NFAUTO = xno"; then
+  AX_PROG_NC_CONFIG([NC_PREFIX=`nc-config --prefix` && NCAUTO="yes"],
+                    [NC_PREFIX="${NETCDF}" && NCAUTO="no"])
+fi
+
 AC_ARG_WITH([netcdf],
   AC_HELP_STRING([--with-netcdf],
             [Path to NetCDF installation (default: NETCDF environment)]),
@@ -143,25 +148,28 @@ if eval "test x$DEBUG = x1"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
-if eval "test x$NCAUTO = xno"; then
-  NC_INCLUDES="-I$NC_PREFIX/include"
+if eval "test x$NFAUTO = xyes"; then
+  NC_INCLUDES="-I`nf-config --includedir`"
+  NC_LDFLAGS=""
+  NC_LIBS="`nf-config --flibs`"
 else
-  NCVER=`nc-config --version | cut -d " " -f 2`
-  if eval "test x$NCVER = x4.0.1"; then
-    NC_INCLUDES="`nc-config --fflags`"
+  if eval "test x$NCAUTO = xno"; then
+    NC_INCLUDES="-I$NC_PREFIX/include"
+    NC_LDFLAGS="-L$NC_PREFIX/lib"
+    NC_LIBS="-lnetcdf"
   else
-    # new netcdf library has this
-    NC_INCLUDES="-I`nc-config --includedir`"
+    NCVER=`nc-config --version | cut -d " " -f 2`
+    if eval "test x$NCVER = x4.0.1"; then
+      NC_INCLUDES="`nc-config --fflags`"
+    else
+      # new netcdf library has this
+      NC_INCLUDES="-I`nc-config --includedir`"
+    fi
+    NC_LDFLAGS=""
+    NC_LIBS="`nc-config --libs`"
   fi
 fi
 
-if eval "test x$NCAUTO = xno"; then
-  NC_LDFLAGS="-L$NC_PREFIX/lib"
-  NC_LIBS="-lnetcdf"
-else
-  NC_LDFLAGS=""
-  NC_LIBS="`nc-config --libs`"
-fi
 AC_SUBST(NC_PREFIX)
 
 AC_LANG_PUSH([C])
@@ -419,8 +427,8 @@ AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/Makefile \
                  PreProc/CLM/Makefile PostProc/Makefile \
                  Main/mpplib/Makefile Main/netlib/Makefile \
-                 Main/clmlib/clm4.5/Makefile \
                  Main/Makefile Main/batslib/Makefile Main/clmlib/Makefile \
+                 Main/clmlib/clm4.5/Makefile \
                  Main/chemlib/Makefile Main/chemlib/GAS_CBMZ/Makefile \
                  Main/cumlib/Makefile Main/radlib/Makefile \
                  Main/radlib/RRTMG_SW/Makefile Main/pbllib/Makefile \
