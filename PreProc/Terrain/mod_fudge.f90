@@ -262,7 +262,7 @@ module mod_fudge
             end if
           else
             if ( lnduse(j,i) > 13.5 .and. lnduse(j,i) < 15.5 ) then
-              lnduse(j,i) = 11.0
+              lnduse(j,i) = 8.0
             end if
           end if
         end do
