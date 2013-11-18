@@ -321,6 +321,8 @@ program sigma2z
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding units')
     istatus = nf90_put_att(ncout, imslzvar, 'coordinates', 'xlat xlon')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding coordinates')
+    istatus = nf90_put_att(ncout, imslzvar, 'grid_mapping', 'rcm_map')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding grid_mapping')
   end if
   if ( has_t .and. has_q .and. .not. has_rh ) then
     make_rh = .true.
@@ -340,6 +342,8 @@ program sigma2z
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding units')
     istatus = nf90_put_att(ncout, irhvar, 'coordinates', 'xlat xlon')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding coordinates')
+    istatus = nf90_put_att(ncout, irhvar, 'grid_mapping', 'rcm_map')
+    call checkncerr(istatus,__FILE__,__LINE__,'Error adding grid_mapping')
   end if
 
   istatus = nf90_inq_varid(ncid, "sigma", ivarid)
