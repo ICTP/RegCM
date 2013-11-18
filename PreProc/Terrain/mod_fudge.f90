@@ -196,6 +196,7 @@ module mod_fudge
     intent (inout) texout , lnduse
 !
     integer(ik4) :: i , j
+    real(rk8) :: oval
     character(len=1) , dimension(jx,iy) :: ch
 !
     if ( fudge ) then
@@ -214,6 +215,7 @@ module mod_fudge
       close (iunit)
       do i = 1 , iy
         do j = 1 , jx
+          oval = texout(j,i)
           if ( ch(j,i)==' ' ) then
             texout(j,i) = 14.
           else if ( ch(j,i) == '1' ) then
@@ -256,13 +258,15 @@ module mod_fudge
             write (stderr,*) 'TEXTURE TYPE exceed the limit'
             call die('texfudge')
           end if
-          if ( nint(texout(j,i)) == 14 ) then
-            if ( lnduse(j,i) < 13.5 .or. lnduse(j,i) > 15.5 ) then
-              lnduse(j,i) = 14.0
-            end if
-          else
-            if ( lnduse(j,i) > 13.5 .and. lnduse(j,i) < 15.5 ) then
-              lnduse(j,i) = 8.0
+          if ( nint(oval) /= nint(texout(j,i)) ) then
+            if ( nint(texout(j,i)) == 14 ) then
+              if ( lnduse(j,i) < 13.5 .or. lnduse(j,i) > 15.5 ) then
+                lnduse(j,i) = 14.0
+              end if
+            else
+              if ( lnduse(j,i) > 13.5 .and. lnduse(j,i) < 15.5 ) then
+                lnduse(j,i) = 8.0
+              end if
             end if
           end if
         end do
