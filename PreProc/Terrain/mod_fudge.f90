@@ -216,41 +216,41 @@ module mod_fudge
         do j = 1 , jx
           if ( ch(j,i)==' ' ) then
             texout(j,i) = 14.
-          else if ( ch(j,i)=='1' ) then
+          else if ( ch(j,i) == '1' ) then
             texout(j,i) = 1.
-          else if ( ch(j,i)=='2' ) then
+          else if ( ch(j,i) == '2' ) then
             texout(j,i) = 2.
-          else if ( ch(j,i)=='3' ) then
+          else if ( ch(j,i) == '3' ) then
             texout(j,i) = 3.
-          else if ( ch(j,i)=='4' ) then
+          else if ( ch(j,i) == '4' ) then
             texout(j,i) = 4.
-          else if ( ch(j,i)=='5' ) then
+          else if ( ch(j,i) == '5' ) then
             texout(j,i) = 5.
-          else if ( ch(j,i)=='6' ) then
+          else if ( ch(j,i) == '6' ) then
             texout(j,i) = 6.
-          else if ( ch(j,i)=='7' ) then
+          else if ( ch(j,i) == '7' ) then
             texout(j,i) = 7.
-          else if ( ch(j,i)=='8' ) then
+          else if ( ch(j,i) == '8' ) then
             texout(j,i) = 8.
-          else if ( ch(j,i)=='9' ) then
+          else if ( ch(j,i) == '9' ) then
             texout(j,i) = 9.
-          else if ( ch(j,i)=='A' ) then
+          else if ( ch(j,i) == 'A' ) then
             texout(j,i) = 10.
-          else if ( ch(j,i)=='B' ) then
+          else if ( ch(j,i) == 'B' ) then
             texout(j,i) = 11.
-          else if ( ch(j,i)=='C' ) then
+          else if ( ch(j,i) == 'C' ) then
             texout(j,i) = 12.
-          else if ( ch(j,i)=='D' ) then
+          else if ( ch(j,i) == 'D' ) then
             texout(j,i) = 13.
-          else if ( ch(j,i)=='E' ) then
+          else if ( ch(j,i) == 'E' ) then
             texout(j,i) = 14.
-          else if ( ch(j,i)=='F' ) then
+          else if ( ch(j,i) == 'F' ) then
             texout(j,i) = 15.
-          else if ( ch(j,i)=='G' ) then
+          else if ( ch(j,i) == 'G' ) then
             texout(j,i) = 16.
-          else if ( ch(j,i)=='H' ) then
+          else if ( ch(j,i) == 'H' ) then
             texout(j,i) = 17.
-          else if ( nint(texout(j,i))==0 ) then
+          else if ( nint(texout(j,i)) == 0 ) then
             ch(j,i) = ' '
           else
             write (stderr,*) 'TEXTURE TYPE exceed the limit'
@@ -260,45 +260,49 @@ module mod_fudge
             if ( lnduse(j,i) < 13.5 .or. lnduse(j,i) > 15.5 ) then
               lnduse(j,i) = 14.0
             end if
+          else
+            if ( lnduse(j,i) > 13.5 .and. lnduse(j,i) < 15.5 ) then
+              lnduse(j,i) = 11.0
+            end if
           end if
         end do
       end do
     else
       do i = 1 , iy
         do j = 1 , jx
-          if ( nint(texout(j,i))==14 ) then
+          if ( nint(texout(j,i)) == 14 ) then
             ch(j,i) = ' '
-          else if ( nint(texout(j,i))==1 ) then
+          else if ( nint(texout(j,i)) == 1 ) then
             ch(j,i) = '1'
-          else if ( nint(texout(j,i))==2 ) then
+          else if ( nint(texout(j,i)) == 2 ) then
             ch(j,i) = '2'
-          else if ( nint(texout(j,i))==3 ) then
+          else if ( nint(texout(j,i)) == 3 ) then
             ch(j,i) = '3'
-          else if ( nint(texout(j,i))==4 ) then
+          else if ( nint(texout(j,i)) == 4 ) then
             ch(j,i) = '4'
-          else if ( nint(texout(j,i))==5 ) then
+          else if ( nint(texout(j,i)) == 5 ) then
             ch(j,i) = '5'
-          else if ( nint(texout(j,i))==6 ) then
+          else if ( nint(texout(j,i)) == 6 ) then
             ch(j,i) = '6'
-          else if ( nint(texout(j,i))==7 ) then
+          else if ( nint(texout(j,i)) == 7 ) then
             ch(j,i) = '7'
-          else if ( nint(texout(j,i))==8 ) then
+          else if ( nint(texout(j,i)) == 8 ) then
             ch(j,i) = '8'
-          else if ( nint(texout(j,i))==9 ) then
+          else if ( nint(texout(j,i)) == 9 ) then
             ch(j,i) = '9'
-          else if ( nint(texout(j,i))==10 ) then
+          else if ( nint(texout(j,i)) == 10 ) then
             ch(j,i) = 'A'
-          else if ( nint(texout(j,i))==11 ) then
+          else if ( nint(texout(j,i)) == 11 ) then
             ch(j,i) = 'B'
-          else if ( nint(texout(j,i))==12 ) then
+          else if ( nint(texout(j,i)) == 12 ) then
             ch(j,i) = 'C'
-          else if ( nint(texout(j,i))==13 ) then
+          else if ( nint(texout(j,i)) == 13 ) then
             ch(j,i) = 'D'
-          else if ( nint(texout(j,i))==15 ) then
+          else if ( nint(texout(j,i)) == 15 ) then
             ch(j,i) = 'F'
-          else if ( nint(texout(j,i))==16 ) then
+          else if ( nint(texout(j,i)) == 16 ) then
             ch(j,i) = 'G'
-          else if ( nint(texout(j,i))==17 ) then
+          else if ( nint(texout(j,i)) == 17 ) then
             ch(j,i) = 'H'
           else
             write (stderr,*) 'TEXTURE TYPE' , nint(texout(j,i)) ,          &
