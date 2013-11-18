@@ -185,16 +185,15 @@ module mod_fudge
 99001 format (132A1)
   end subroutine lndfudge
 
-  subroutine texfudge(fudge,texout,htgrid,jx,iy,char_tex)
+  subroutine texfudge(fudge,texout,lnduse,jx,iy,char_tex)
     implicit none
 !
     character(len=*) :: char_tex
     logical :: fudge, there
     integer(ik4) :: iy , jx
-    real(rk8) , dimension(jx,iy) :: htgrid , texout
+    real(rk8) , dimension(jx,iy) :: texout , lnduse
     intent (in) char_tex , fudge , iy , jx
-    intent (out) htgrid
-    intent (inout) texout
+    intent (inout) texout , lnduse
 !
     integer(ik4) :: i , j
     character(len=1) , dimension(jx,iy) :: ch
@@ -257,7 +256,11 @@ module mod_fudge
             write (stderr,*) 'TEXTURE TYPE exceed the limit'
             call die('texfudge')
           end if
-          if ( nint(texout(j,i))==14 ) htgrid(j,i) = 0.0
+          if ( nint(texout(j,i)) == 14 ) then
+            if ( lnduse(j,i) < 13.5 .or. lnduse(j,i) > 15.5 ) then
+              lnduse(j,i) = 14.0
+            end if
+          end if
         end do
       end do
     else
