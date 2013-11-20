@@ -30,6 +30,7 @@ module mod_interp
   private
 
   public :: bilinx , bilinx2 , cressmcr , cressmdt , distwgtcr , distwgtdt
+  public :: gcdist
 
   real(rk8) :: alatmn , alatmx , alonmn , alonmx
   real(rk8) :: glatmn , glatmx , glonmn , glonmx

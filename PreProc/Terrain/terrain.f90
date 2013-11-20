@@ -341,7 +341,7 @@ program terrain
     write(stdout,*)'Static DEM data successfully read in'
     call interp(jxsg,iysg,xlat_s,xlon_s,htgrid_s, &
                 nlatin,nlonin,grdltmn,grdlnmn,values, &
-                ntypec_s,3,lonwrap,lcrosstime)
+                ntypec_s,1,lonwrap,lcrosstime)
     write(stdout,*)'Interpolated DEM on SUBGRID'
 !
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
@@ -379,7 +379,7 @@ program terrain
       write(stdout,*)'Static bathymetry data successfully read in'
       call interp(jxsg,iysg,xlat_s,xlon_s,dpth_s,    &
                   nlatin,nlonin,grdltmn,grdlnmn,values, &
-                  ntypec_s,3,lonwrap,lcrosstime)
+                  ntypec_s,1,lonwrap,lcrosstime)
       write(stdout,*)'Interpolated bathymetry on SUBGRID'
     end if
 
@@ -510,7 +510,7 @@ program terrain
   write(stdout,*)'Static DEM data successfully read in'
   call interp(jx,iy,xlat,xlon,htgrid,           &
               nlatin,nlonin,grdltmn,grdlnmn,values, &
-              ntypec,3,lonwrap,lcrosstime)
+              ntypec,1,lonwrap,lcrosstime)
   write(stdout,*)'Interpolated DEM on model GRID'
 !
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
@@ -548,7 +548,7 @@ program terrain
     write(stdout,*)'Static bathymetry data successfully read in'
     call interp(jx,iy,xlat,xlon,dpth,              &
                 nlatin,nlonin,grdltmn,grdlnmn,values, &
-                ntypec,3,lonwrap,lcrosstime)
+                ntypec,1,lonwrap,lcrosstime)
     write(stdout,*)'Interpolated bathymetry on model GRID'
   end if
 
