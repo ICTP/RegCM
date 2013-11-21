@@ -21,15 +21,22 @@
 # Destination directory
 #DEST=$PWD
 
+UNIDATA=http://www.unidata.ucar.edu/downloads/netcdf/ftp
+OPENMPI=http://www.open-mpi.org/software/ompi/v1.6/downloads
+HDFGROUP=http://www.hdfgroup.org/ftp/HDF5/current/src
+ZLIB=http://zlib.net
+
+netcdf_c_ver=4.3.0
+netcdf_f_ver=4.2
+hdf5_ver=1.8.12
+zlib_ver=1.2.8
+
 if [ -z "$DEST" ]
 then
   echo "SCRIPT TO INSTALL NETCDF V4 and MPICH LIBRARIES."
   echo "EDIT ME TO DEFINE DEST, CC AND FC VARIABLE"
   exit 1
 fi
-
-UNIDATA=http://www.unidata.ucar.edu/downloads/netcdf/ftp
-MPICH=http://www.mpich.org/static/tarballs/3.0.4
 
 WGET=`which wget 2> /dev/null`
 if [ -z "$WGET" ]
@@ -48,16 +55,16 @@ echo -e "\t$DEST/logs"
 echo
 
 cd $DEST
-mkdir $DEST/logs
+mkdir -p $DEST/logs
 echo "Downloading ZLIB library..."
-$WGET -c http://zlib.net/zlib-1.2.8.tar.gz -o $DEST/logs/download_Z.log
+$WGET -c $ZLIB/zlib-${zlib_ver}.tar.gz -o $DEST/logs/download_Z.log
 if [ $? -ne 0 ]
 then
   echo "Error downloading ZLIB library from zlib.net"
   exit 1
 fi
 echo "Downloading HDF5 library..."
-$WGET -c http://www.hdfgroup.org/ftp/HDF5/current/src/hdf5-1.8.11.tar.gz \
+$WGET -c $HDFGROUP/hdf5-${hdf5_ver}.tar.gz \
       -o $DEST/logs/download_H.log
 if [ $? -ne 0 ]
 then
@@ -65,54 +72,54 @@ then
   exit 1
 fi
 echo "Downloading netCDF Library..."
-$WGET -c $UNIDATA/netcdf-4.3.0.tar.gz -o $DEST/logs/download_C.log
+$WGET -c $UNIDATA/netcdf-${netcdf_c_ver}.tar.gz -o $DEST/logs/download_C.log
 if [ $? -ne 0 ]
 then
   echo "Error downloading netCDF C library from www.unidata.ucar.edu"
   exit 1
 fi
-$WGET -c $UNIDATA/netcdf-fortran-4.2.tar.gz -o $DEST/logs/download_F.log
+$WGET -c $UNIDATA/netcdf-fortran-${netcdf_f_ver}.tar.gz -o $DEST/logs/download_F.log
 if [ $? -ne 0 ]
 then
   echo "Error downloading netCDF Fortran library from www.unidata.ucar.edu"
   exit 1
 fi
-echo "Downloading MPICH Library..."
-wget -c $MPICH/mpich-3.0.4.tar.gz -o $DEST/logs/download_M.log
+echo "Downloading OPENMPI Library..."
+wget -c $OPENMPI/openmpi-1.6.5.tar.bz2 -o $DEST/logs/download_M.log
 if [ $? -ne 0 ]
 then
-  echo "Error downloading MPICH from MPICH website"
+  echo "Error downloading OPENMPI from OPENMPI website"
   exit 1
 fi
 
 echo "Compiling MPI library."
-tar zxvf mpich-3.0.4.tar.gz > /dev/null
+tar jxvf openmpi-1.6.5.tar.bz2 > /dev/null
 if [ $? -ne 0 ]
 then
-  echo "Error uncompressing mpich library"
+  echo "Error uncompressing openmpi library"
   exit 1
 fi
-cd mpich-3.0.4
+cd openmpi-1.6.5
 ./configure CC="$CC" FC="$FC" F77="$FC" CXX="$CXX" \
 	--prefix=$DEST > $DEST/logs/configure.log 2>&1
 make > $DEST/logs/compile.log 2>&1 && \
   make install > $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
-  echo "Error compiling mpich library"
+  echo "Error compiling openmpi library"
   exit 1
 fi
 cd $DEST
-rm -fr mpich-3.0.4
+rm -fr openmpi-1.6.5
 echo "Compiled MPI library."
 echo "Compiling zlib Library."
-tar zxvf zlib-1.2.8.tar.gz > /dev/null
+tar zxvf zlib-${zlib_ver}.tar.gz > /dev/null
 if [ $? -ne 0 ]
 then
   echo "Error uncompressing zlib library"
   exit 1
 fi
-cd zlib-1.2.8
+cd zlib-${zlib_ver}
 CC="$CC" FC="$FC" ./configure --prefix=$DEST --static >> \
              $DEST/logs/configure.log 2>&1
 make >> $DEST/logs/compile.log 2>&1 && \
@@ -123,11 +130,11 @@ then
   exit 1
 fi
 cd $DEST
-rm -fr zlib-1.2.8
+rm -fr zlib-${zlib_ver}
 echo "Compiled zlib library."
 echo "Compiling HDF5 library."
-tar zxvf hdf5-1.8.11.tar.gz > $DEST/logs/extract.log
-cd hdf5-1.8.11
+tar zxvf hdf5-${hdf5_ver}.tar.gz > $DEST/logs/extract.log
+cd hdf5-${hdf5_ver}
 ./configure CC="$CC" CXX="$CXX" FC="$FC" \
 	--prefix=$DEST --with-zlib=$DEST --disable-shared \
         --disable-cxx --disable-fortran >> $DEST/logs/configure.log 2>&1
@@ -139,11 +146,11 @@ then
   exit 1
 fi
 cd $DEST
-rm -fr hdf5-1.8.11
+rm -fr hdf5-${hdf5_ver}
 echo "Compiled HDF5 library."
 echo "Compiling netCDF Library."
-tar zxvf netcdf-4.3.0.tar.gz > $DEST/logs/extract.log
-cd netcdf-4.3.0
+tar zxvf netcdf-${netcdf_c_ver}.tar.gz > $DEST/logs/extract.log
+cd netcdf-${netcdf_c_ver}
 H5LIBS="-lhdf5_hl -lhdf5 -lz"
 if [ "X$FC" == "Xgfortran" ]
 then
@@ -160,10 +167,10 @@ then
   exit 1
 fi
 cd $DEST
-rm -fr netcdf-4.3.0
+rm -fr netcdf-${netcdf_c_ver}
 echo "Compiled netCDF C library."
-tar zxvf netcdf-fortran-4.2.tar.gz >> $DEST/logs/extract.log
-cd netcdf-fortran-4.2
+tar zxvf netcdf-fortran-${netcdf_f_ver}.tar.gz >> $DEST/logs/extract.log
+cd netcdf-fortran-${netcdf_f_ver}
 ./configure PATH=$DEST/bin:$PATH CC="$CC" FC="$FC" \
      CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib --prefix=$DEST \
      --disable-shared >> $DEST/logs/configure.log 2>&1
@@ -175,7 +182,7 @@ then
   exit 1
 fi
 cd $DEST
-rm -fr netcdf-fortran-4.2
+rm -fr netcdf-fortran-${netcdf_f_ver}
 echo "Compiled netCDF Fortran library."
 
 # Done
