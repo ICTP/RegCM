@@ -834,7 +834,8 @@ module mod_gn6hnc
     type(rcm_time_and_date) , intent(in) :: idate
 !
     integer(ik4) :: istatus
-    integer(ik4) :: i , it , itps , j , k , timid , imon1 , iyear1 , imon2 , iyear2
+    integer(ik4) :: i , it , itps , j , k , timid , imon1
+    integer(ik4) :: iyear1 , imon2 , iyear2
     character(len=256) :: inname
 
     integer(ik4) :: kkrec

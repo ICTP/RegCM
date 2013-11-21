@@ -75,7 +75,8 @@ program sst
   else if ( ssttyp == 'EH5RF' .or. ssttyp == 'EH5A2' .or.  &
             ssttyp == 'EH5B1' .or. ssttyp == 'EHA1B' ) then
     call sst_eh5om
-  else if ( ssttyp == 'ERSST' .or. ssttyp == 'ERSKT' ) then
+  else if ( ssttyp == 'ERSST' .or. ssttyp == 'ERSKT' .or. &
+            ssttyp == 'EIN15' ) then
     call sst_ersst
   else if ( ssttyp == 'FV_RF' .or. ssttyp == 'FV_A2' .or.  &
             ssttyp == 'FV_B2' ) then

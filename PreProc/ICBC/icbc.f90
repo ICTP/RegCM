@@ -214,13 +214,9 @@ program icbc
     call headerec
   else if ( dattyp == 'ERA40' ) then
     call headerera
-  else if ( dattyp == 'ERAIN' .or. dattyp == 'EIN15' .or. &
+  else if ( dattyp == 'ERAIN' .or. dattyp(1:3) == 'EIN' .or. &
             dattyp == 'EIXXX' ) then
-    call headerein(15)
-  else if ( dattyp == 'EIN75' ) then
-    call headerein(75)
-  else if ( dattyp == 'EIN25' ) then
-    call headerein(25)
+    call headerein
   else if ( dattyp(1:3) == 'ECE' ) then
     call headerecens
   else if ( dattyp == 'GFS11' ) then

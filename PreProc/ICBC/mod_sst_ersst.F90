@@ -74,12 +74,6 @@ module mod_sst_ersst
 
   data lfirst /.true./
 !
-  if ( ssttyp /= 'ERSST' .and. ssttyp /= 'ERSKT' ) then
-    write (stderr,*) 'PLEASE SET right SSTTYP in regcm.in'
-    write (stderr,*) 'Supported types are ERSST ERSKT'
-    call die('sst_ersst')
-  end if
-
   itbc = rcm_time_interval(idtbc,uhrs)
   tdiff = globidate2-globidate1
   nsteps = idnint(tohours(tdiff))/idtbc + 1
@@ -96,7 +90,7 @@ module mod_sst_ersst
   if ( year > 1978 .and. year < 1989 ) then
     isyear = 1979
     ierastart = 1979010100
-    if ( ssttyp == 'ERSST' ) then
+    if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
       inpfile=trim(inpglob)//'/SST/sstERAIN.1979-1989.nc'
     else if ( ssttyp == 'ERSKT' ) then
       inpfile=trim(inpglob)//'/SST/tskinERAIN.1979-1989.nc'
@@ -104,7 +98,7 @@ module mod_sst_ersst
   else if ( year > 1988 .and. year < 2009 ) then
     isyear = 1989
     ierastart = 1989010100
-    if ( ssttyp == 'ERSST' ) then
+    if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
       inpfile=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
     else if ( ssttyp == 'ERSKT' ) then
       inpfile=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
@@ -112,7 +106,7 @@ module mod_sst_ersst
   else if ( year > 2008 ) then
     isyear = 2009
     ierastart = 2009010100
-    if ( ssttyp == 'ERSST' ) then
+    if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
       inpfile=trim(inpglob)//'/SST/sstERAIN.2009-present.nc'
     else if ( ssttyp == 'ERSKT' ) then
       inpfile=trim(inpglob)//'/SST/tskinERAIN.2009-present.nc'
@@ -154,7 +148,7 @@ module mod_sst_ersst
     if ( year > 1988 .and. isyear == 1979 ) then
       ierastart = 1989010100
       isyear = 1989
-      if ( ssttyp == 'ERSST' ) then
+      if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
         inpfile=trim(inpglob)//'/SST/sstERAIN.1989-2009.nc'
       else if ( ssttyp == 'ERSKT' ) then
         inpfile=trim(inpglob)//'/SST/tskinERAIN.1989-2009.nc'
@@ -169,7 +163,7 @@ module mod_sst_ersst
     else if ( year > 2008 .and. isyear == 1989 ) then
       ierastart = 2009010100
       isyear = 2009
-      if ( ssttyp == 'ERSST' ) then
+      if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
         inpfile=trim(inpglob)//'/SST/sstERAIN.2009-present.nc'
       else if ( ssttyp == 'ERSKT' ) then
         inpfile=trim(inpglob)//'/SST/tskinERAIN.2009-present.nc'
@@ -186,7 +180,7 @@ module mod_sst_ersst
     tdiff = idate-ierastart
     ierrec = idnint(tohours(tdiff))/idtbc+1
 
-    if ( ssttyp == 'ERSST' ) then
+    if ( ssttyp == 'ERSST' .or. ssttyp == 'EIN15' ) then
       call sst_erain(ierrec,lfirst,1)
     else if ( ssttyp == 'ERSKT' ) then
       call sst_erain(ierrec,lfirst,2)

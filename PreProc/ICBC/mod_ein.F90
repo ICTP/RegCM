@@ -39,11 +39,7 @@ module mod_ein
 
   private
 
-  integer(ik4) , parameter :: klev = 37
-
-  real(rk8) , dimension(klev) :: plevs
-
-  integer(ik4) :: jlat , ilon
+  integer(ik4) :: jlat , ilon , klev , timlen
 
   real(rk8) , pointer , dimension(:,:,:) :: b3
   real(rk8) , pointer , dimension(:,:,:) :: d3
@@ -53,25 +49,23 @@ module mod_ein
   real(rk8) , pointer :: uvar(:,:,:) , vvar(:,:,:)
   real(rk8) , pointer :: hvar(:,:,:) , rhvar(:,:,:) , tvar(:,:,:)
 
-  real(rk8) :: xres
   real(rk8) , pointer , dimension(:,:,:) :: b2
   real(rk8) , pointer , dimension(:,:,:) :: d2
   real(rk8) , pointer , dimension(:) :: glat
+  real(rk8) , pointer , dimension(:) :: grev
   real(rk8) , pointer , dimension(:) :: glon
+  integer(ik4) , pointer , dimension(:) :: plevs
   real(rk8) , pointer , dimension(:) :: sigma1 , sigmar
   integer(2) , pointer , dimension(:,:,:) :: work
 
   integer(ik4) , dimension(5,4) :: inet5
   integer(ik4) , dimension(5,4) :: ivar5
   real(rk8) , dimension(5,4) :: xoff , xscl
+  type(rcm_time_and_date) , pointer , dimension(:) :: itimes
+  integer(ik4) , pointer , dimension(:) :: xtimes
 
   public :: getein , headerein
 
-  data plevs / 1.0, 2.0, 3.0, 5.0, 7.0, 10.0, 20.0, 30.0, 50.0, 70.0,  &
-               100.0, 125.0, 150.0, 175.0, 200.0, 225.0, 250.0, 300.0, &
-               350.0, 400.0, 450.0, 500.0, 550.0, 600.0, 650.0, 700.0, &
-               750.0, 775.0, 800.0, 825.0, 850.0, 875.0, 900.0, 925.0, &
-               950.0, 975.0, 1000.0 /
   contains
 
   subroutine getein(idate)
@@ -146,15 +140,19 @@ module mod_ein
     type(rcm_time_and_date) , intent(in) :: idate , idate0
 !
     integer(ik4) :: i , inet , it , j , k , k4 , kkrec , istatus , ivar
+    integer(ik4) :: timid
     character(len=64) :: inname
     character(len=256) :: pathaddname
     character(len=1) , dimension(5) :: varname
     character(len=4) , dimension(5) :: fname
     character(len=4) , dimension(4) :: hname
+    character(len=64) :: cunit , ccal
     real(rk8) :: xadd , xscale
     integer(ik4) , dimension(4) :: icount , istart
     integer(ik4) :: year , month , day , hour , monthp1
     integer(ik4) , save :: lastmonth , lastyear
+    type(rcm_time_and_date) :: xdate
+    type(rcm_time_interval) :: tdif
     !
     ! This is the latitude, longitude dimension of the grid to be read.
     ! This corresponds to the lat and lon dimension variables in the
@@ -197,9 +195,29 @@ module mod_ein
             'Error find att add_offset')
           write (stdout,*) inet5(kkrec,1) , trim(pathaddname) ,   &
                            xscl(kkrec,1) , xoff(kkrec,1)
+          if ( kkrec == 1 ) then
+            istatus = nf90_inq_dimid(inet5(1,1),'time',timid)
+            call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+            istatus = nf90_inquire_dimension(inet5(1,1),timid,len=timlen)
+            call checkncerr(istatus,__FILE__,__LINE__,'Error inquire time')
+            istatus = nf90_inq_varid(inet5(1,1),'time',timid)
+            call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+            cunit = 'hours since 1900-01-01 00:00:00'
+            ccal = 'noleap'
+            call getmem1d(itimes,1,timlen,'mod_ein:itimes')
+            call getmem1d(xtimes,1,timlen,'mod_ein:xtimes')
+            istatus = nf90_get_var(inet5(1,1),timid,xtimes)
+            call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+            do it = 1 , timlen
+              itimes(it) = timeval2date(dble(xtimes(it)),cunit,ccal)
+            end do
+          end if
         end do
       end if
-      it = (day-1)*4 + hour/6 + 1
+      xdate = 1979000000 + month*10000+day*100+hour
+      call setcal(xdate,'noleap')
+      tdif = xdate - itimes(1)
+      it = idnint(tohours(tdif))/6 + 1
     else
       if ( idate == idate0 .or. year /= lastyear ) then
         lastyear = year
@@ -225,27 +243,32 @@ module mod_ein
               'Error find att add_offset')
             write (stdout,*) inet5(kkrec,k4) , trim(pathaddname) ,   &
                              xscl(kkrec,k4) , xoff(kkrec,k4)
+            if ( k4 == 1 .and. kkrec == 1 ) then
+              istatus = nf90_inq_dimid(inet5(1,1),'time',timid)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+              istatus = nf90_inquire_dimension(inet5(1,1),timid,len=timlen)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error inquire time')
+              istatus = nf90_inq_varid(inet5(1,1),'time',timid)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+              istatus = nf90_get_att(inet5(1,1),timid,'units',cunit)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error read time units')
+              ccal = 'gregorian'
+              call getmem1d(itimes,1,timlen,'mod_ein:itimes')
+              call getmem1d(xtimes,1,timlen,'mod_ein:xtimes')
+              istatus = nf90_get_var(inet5(1,1),timid,xtimes)
+              call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+              do it = 1 , timlen
+                itimes(it) = timeval2date(dble(xtimes(it)),cunit,ccal)
+              end do
+            end if
           end do
         end do
       end if
       k4 = hour/6 + 1
-      it = day
-      if ( month == 2 ) it = it + 31
-      if ( month == 3 ) it = it + 59
-      if ( month == 4 ) it = it + 90
-      if ( month == 5 ) it = it + 120
-      if ( month == 6 ) it = it + 151
-      if ( month == 7 ) it = it + 181
-      if ( month == 8 ) it = it + 212
-      if ( month == 9 ) it = it + 243
-      if ( month == 10 ) it = it + 273
-      if ( month == 11 ) it = it + 304
-      if ( month == 12 ) it = it + 334
-      if ( mod(year,4) == 0 .and. month > 2 ) it = it + 1
-      if ( mod(year,100) == 0 .and. month > 2 ) it = it - 1
-      if ( mod(year,400) == 0 .and. month > 2 ) it = it + 1
+      tdif = idate - itimes(1)
+      it = idnint(tohours(tdif))/24 + 1
     end if
- 
+
     do k = 1 , 4
       istart(k) = 1
     end do
@@ -300,34 +323,59 @@ module mod_ein
 !
 !-----------------------------------------------------------------------
 !
-  subroutine headerein(ires)
+  subroutine headerein
     implicit none
-!
-    integer(ik4) , intent(in) :: ires
-    integer(ik4) :: i , j , k , kr
+    integer(ik4) :: j , k , kr
+    integer(ik4) :: year , month , monthp1 , day , hour
+    character(len=256) :: pathaddname
+    integer(ik4) :: istatus , ncid , ivarid , idimid
+    character(len=64) :: inname
 
-    select case (ires)
-      case (15)
-        jlat = 121
-        ilon = 240
-        xres = 1.50
-      case (25)
-        jlat = 73
-        ilon = 144
-        xres = 2.50
-      case (75)
-        jlat = 241
-        ilon = 480
-        xres = 0.750
-      case default
-        call die('headerein','Unsupported resolution',1)
-    end select
+    call split_idate(globidate1,year,month,day,hour)
+    if ( dattyp == 'EIXXX' ) then
+      monthp1 = month+1
+      if ( monthp1 == 13 ) monthp1 = 1
+      write(inname,'(a,i0.2,a,i0.2,a)') &
+         't_xxxx',month,'0100-xxxx',monthp1,'0100.nc'
+      pathaddname = trim(inpglob)//pthsep//'ERAIN_MEAN'//&
+          pthsep//'XXXX'//pthsep//inname
+      istatus = nf90_open(pathaddname,nf90_nowrite,ncid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+            'Error open file '//trim(pathaddname))
+    else
+      write(inname,'(i4,a,a,i4,a)') &
+        year, pthsep, 'air.', year, '.00.nc'
+      pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
+      istatus = nf90_open(pathaddname,nf90_nowrite,ncid)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+              'Error open file '//trim(pathaddname))
+    end if
+    istatus = nf90_inq_dimid(ncid,'latitude',idimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Missing latitude dimension in file '//trim(pathaddname))
+    istatus = nf90_inquire_dimension(ncid,idimid,len=jlat)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading latitude dimelen in file '//trim(pathaddname))
+    istatus = nf90_inq_dimid(ncid,'longitude',idimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Missing longitude dimension in file '//trim(pathaddname))
+    istatus = nf90_inquire_dimension(ncid,idimid,len=ilon)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading longitude dimelen in file '//trim(pathaddname))
+    istatus = nf90_inq_dimid(ncid,'levelist',idimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Missing levelist dimension in file '//trim(pathaddname))
+    istatus = nf90_inquire_dimension(ncid,idimid,len=klev)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading levelist dimelen in file '//trim(pathaddname))
     !
     ! Allocate working space
     !
+    call getmem1d(plevs,1,klev,'mod_ein:plevs')
     call getmem3d(b2,1,ilon,1,jlat,1,klev*3,'mod_ein:b2')
     call getmem3d(d2,1,ilon,1,jlat,1,klev*2,'mod_ein:d2')
     call getmem1d(glat,1,jlat,'mod_ein:glat')
+    call getmem1d(grev,1,jlat,'mod_ein:grev')
     call getmem1d(glon,1,ilon,'mod_ein:glon')
     call getmem1d(sigma1,1,klev,'mod_ein:sigma1')
     call getmem1d(sigmar,1,klev,'mod_ein:sigmar')
@@ -335,16 +383,32 @@ module mod_ein
     call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_ein:d3')
     call getmem3d(work,1,ilon,1,jlat,1,klev,'mod_ein:work')
 
-    sigmar(:) = plevs(:)/1000.0
-    !
-    ! INITIAL GLOBAL GRID-POINT LONGITUDE & LATITUDE
-    !
-    do i = 1 , ilon
-      glon(i) = float(i-1)*xres
-    end do
+    istatus = nf90_inq_varid(ncid,'latitude',ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Missing latitude variable in file '//trim(pathaddname))
+    istatus = nf90_get_var(ncid,ivarid,grev)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading latitude variable in file '//trim(pathaddname))
+    ! Reverse latitudes
     do j = 1 , jlat
-      glat(j) = -90.0 + float(j-1)*xres
+      glat(jlat+1-j) = grev(j)
     end do
+    istatus = nf90_inq_varid(ncid,'longitude',ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Missing longitude variable in file '//trim(pathaddname))
+    istatus = nf90_get_var(ncid,ivarid,glon)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading longitude variable in file '//trim(pathaddname))
+    istatus = nf90_inq_varid(ncid,'levelist',ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Missing levelist variable in file '//trim(pathaddname))
+    istatus = nf90_get_var(ncid,ivarid,plevs)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error reading levelist variable in file '//trim(pathaddname))
+    istatus = nf90_close(ncid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error close file '//trim(pathaddname))
+    sigmar(:) = dble(plevs(:))/1000.0
     !
     ! CHANGE ORDER OF VERTICAL INDEXES FOR PRESSURE LEVELS
     !
