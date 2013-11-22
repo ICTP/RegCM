@@ -2322,7 +2322,7 @@ module mod_ncout
           call outstream_addvar(outstream(i)%ncout(j),vp)
         end do
 
-        call outstream_enable(outstream(i)%ncout(j),sigma)
+        call outstream_enable(outstream(i)%ncout(j),hsigma)
 
         if ( .not. parallel_out ) then
           if ( outstream(i)%l_sub ) then
