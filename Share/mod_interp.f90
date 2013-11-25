@@ -49,6 +49,7 @@ module mod_interp
                                        jc1dl , jc1dr , jc1ul , jc1ur
   integer(ik4) , pointer, dimension(:,:) :: id1dl , id1dr , id1ul , id1ur , &
                                        jd1dl , jd1dr , jd1ul , jd1ur
+  logical :: lonwrap = .false. , latpole = .false.
 
   contains
 !
@@ -328,7 +329,6 @@ module mod_interp
   real(rk8) :: v1 , v2 , v3 , v4 , wg
   integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
              ndr , nul , nur , ifound , mx , nx , mm , nn
-  logical , save :: lonwrap = .false. , latpole = .false.
   logical , dimension(4) :: q
 !
 !     FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
@@ -609,7 +609,6 @@ module mod_interp
   real(rk8) :: v1 , v2 , v3 , v4 , wg
   integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
              ndr , nul , nur , ifound , mx , nx , mm , nn
-  logical , save :: lonwrap = .false. , latpole = .false.
   logical , dimension(4) :: q
 !
 !     FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
