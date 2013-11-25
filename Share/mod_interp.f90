@@ -398,7 +398,7 @@ module mod_interp
         nn = nx
         mm = mx + 1
         if ( lonwrap ) then
-          if ( mm > nlon ) mm = 1
+          if ( mm > nlon ) mm = mm - nlon
         else
           if ( mm > nlon ) then
             write (stderr,*) 'EXCEEDING NLON'
@@ -412,7 +412,7 @@ module mod_interp
         dists(1) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
         mm = mx - 1
         if ( lonwrap ) then
-          if ( mm < 1 ) mm = nlon
+          if ( mm < 1 ) mm = nlon - mm
         else
           if ( mm < 1 ) then
             write (stderr,*) 'NLON < 1'
@@ -679,7 +679,7 @@ module mod_interp
         nn = nx
         mm = mx + 1
         if ( lonwrap ) then
-          if ( mm > nlon ) mm = 1
+          if ( mm > nlon ) mm = mm - nlon
         else
           if ( mm > nlon ) then
             write (stderr,*) 'EXCEEDING NLON'
@@ -693,7 +693,7 @@ module mod_interp
         dists(1) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
         mm = mx - 1
         if ( lonwrap ) then
-          if ( mm < 1 ) mm = nlon
+          if ( mm < 1 ) mm = nlon - mm
         else
           if ( mm < 1 ) then
             write (stderr,*) 'NLON < 1'
