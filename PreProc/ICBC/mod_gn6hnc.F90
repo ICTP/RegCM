@@ -733,6 +733,13 @@ module mod_gn6hnc
       ipstimes(1) = 1870010100 ! This set to a "Prehistorical" date
       call setcal(itimes(1), y360)
       call setcal(ipstimes(1), y360)
+      if ( glon(1) > glon(nulon) ) then
+        do i = 1 , nlon
+          if ( glon(i) > 180.0 ) then
+            glon(i) = glon(i) - 360.0
+          end if
+        end do
+      end if
     else if ( dattyp(1:3) == 'CS_' ) then
       ! CSIRO datasets has different times for PS and vertical variables.
       pstimlen = 1
@@ -1670,20 +1677,44 @@ module mod_gn6hnc
         icount(2) = nlat
         istatus = nf90_get_var(inet(4),ivar(4),ha_d2_1,istart,icount)
         call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
-        uvar(1,:,:) = ha_d2_1(1,:,:)
-        do i = 1 , nulon-1
-          uvar(i+1,:,:) = 0.5*(ha_d2_1(i,:,:) + ha_d2_1(i+1,:,:))
+        do k = 1 , klev
+          do j = 1 , nlat
+            uvar(1,j,k) = ha_d2_1(1,j,k)
+          end do
         end do
-        uvar(nlon,:,:) = ha_d2_1(nulon,:,:)
+        do k = 1 , klev
+          do j = 1 , nlat
+            do i = 1 , nulon-1
+              uvar(i+1,j,k) = 0.5*(ha_d2_1(i,j,k) + ha_d2_1(i+1,j,k))
+            end do
+          end do
+        end do
+        do k = 1 , klev
+          do j = 1 , nlat
+            uvar(nlon,j,k) = ha_d2_1(nulon,j,k)
+          end do
+        end do
         icount(1) = nlon
         icount(2) = nvlat
         istatus = nf90_get_var(inet(5),ivar(5),ha_d2_2,istart,icount)
         call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
-        vvar(:,1,:) = ha_d2_2(:,1,:)
-        do j = 1 , nvlat-1
-          vvar(:,j+1,:) = 0.5*(ha_d2_2(:,j,:) + ha_d2_2(:,j+1,:))
+        do k = 1 , klev
+          do i = 1 , nlon
+            vvar(i,1,k) = ha_d2_2(i,1,k)
+          end do
         end do
-        vvar(:,nlat,:) = ha_d2_2(:,nvlat,:)
+        do k = 1 , klev
+          do j = 1 , nvlat-1
+            do i = 1 , nlon
+              vvar(i,j+1,k) = 0.5*(ha_d2_2(i,j,k) + ha_d2_2(i,j+1,k))
+            end do
+          end do
+        end do
+        do k = 1 , klev
+          do i = 1 , nlon
+            vvar(i,nlat,k) = ha_d2_2(i,nvlat,k)
+          end do
+        end do
       else
         istatus = nf90_get_var(inet(4),ivar(4),uvar,istart,icount)
         call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
