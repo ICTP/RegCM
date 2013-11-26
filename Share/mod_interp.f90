@@ -37,17 +37,17 @@ module mod_interp
 
   integer(ik4) :: imxmn = 0
   integer(ik4) :: lcross = 0
-  integer(ik4) :: ldot = 0
+  integer(ik4) , dimension(2) :: ldot = (/0,0/)
 
   real(rk8) , parameter :: deg720 = d_two*deg360
   real(rk8) , parameter :: missl = -9999.0D0
   real(rk8) , parameter :: missc = -9990.0D0
 
   real(rk8) , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc , dc1xd
-  real(rk8) , pointer , dimension(:,:) :: dd1xa , dd1xb , dd1xc , dd1xd
+  real(rk8) , pointer , dimension(:,:,:) :: dd1xa , dd1xb , dd1xc , dd1xd
   integer(ik4) , pointer, dimension(:,:) :: ic1dl , ic1dr , ic1ul , ic1ur , &
                                        jc1dl , jc1dr , jc1ul , jc1ur
-  integer(ik4) , pointer, dimension(:,:) :: id1dl , id1dr , id1ul , id1ur , &
+  integer(ik4) , pointer, dimension(:,:,:) :: id1dl , id1dr , id1ul , id1ur , &
                                        jd1dl , jd1dr , jd1ul , jd1ur
   logical :: lonwrap = .false. , latpole = .false.
 
@@ -593,7 +593,7 @@ module mod_interp
   end do
   end subroutine distwgtcr
 !
-  subroutine distwgtdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat)
+  subroutine distwgtdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,idd)
   implicit none
 !
   integer(ik4) :: iy , jx , nlat , nlon
@@ -601,6 +601,7 @@ module mod_interp
   real(rk8) , dimension(jx,iy) :: b3
   real(rk8) , dimension(nlon,nlat) :: glat , glon
   real(rk8) , dimension(nlon,nlat) :: b2
+  integer , intent(in) , optional :: idd
   intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
   intent (out) b3
 !
@@ -608,7 +609,7 @@ module mod_interp
   real(rk8) , dimension(2) :: dists
   real(rk8) :: v1 , v2 , v3 , v4 , wg
   integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
-             ndr , nul , nur , ifound , mx , nx , mm , nn
+             ndr , nul , nur , ifound , mx , nx , mm , nn , idx
   logical , dimension(4) :: q
 !
 !     FIND THE FOUR CLOSEST POINTS TO THE GRID WE WANT TO HAVE VALUE,
@@ -624,6 +625,8 @@ module mod_interp
 !
 !     Find the Minimum and Maximum of GLON, GLAT, ALON and ALAT
 !
+  idx = 1
+  if ( present(idd) ) idx = idd
   if ( imxmn == 0 ) then
     glonmx = maxval(glon)
     glonmn = minval(glon)
@@ -642,19 +645,19 @@ module mod_interp
     imxmn = 1
   end if
 
-  if ( ldot == 0 ) then
-    if (.not. associated(id1dl)) call getmem2d(id1dl,1,jx,1,iy,'interp:id1dl')
-    if (.not. associated(id1dr)) call getmem2d(id1dr,1,jx,1,iy,'interp:id1dr')
-    if (.not. associated(id1ul)) call getmem2d(id1ul,1,jx,1,iy,'interp:id1ul')
-    if (.not. associated(id1ur)) call getmem2d(id1ur,1,jx,1,iy,'interp:id1ur')
-    if (.not. associated(jd1dl)) call getmem2d(jd1dl,1,jx,1,iy,'interp:jd1dl')
-    if (.not. associated(jd1dr)) call getmem2d(jd1dr,1,jx,1,iy,'interp:jd1dr')
-    if (.not. associated(jd1ul)) call getmem2d(jd1ul,1,jx,1,iy,'interp:jd1ul')
-    if (.not. associated(jd1ur)) call getmem2d(jd1ur,1,jx,1,iy,'interp:jd1ur')
-    if (.not. associated(dd1xa)) call getmem2d(dd1xa,1,jx,1,iy,'interp:dd1xa')
-    if (.not. associated(dd1xb)) call getmem2d(dd1xb,1,jx,1,iy,'interp:dd1xb')
-    if (.not. associated(dd1xc)) call getmem2d(dd1xc,1,jx,1,iy,'interp:dd1xc')
-    if (.not. associated(dd1xd)) call getmem2d(dd1xd,1,jx,1,iy,'interp:dd1xd')
+  if ( ldot(idx) == 0 ) then
+    if (.not. associated(id1dl)) call getmem3d(id1dl,1,jx,1,iy,1,2,'id1dl')
+    if (.not. associated(id1dr)) call getmem3d(id1dr,1,jx,1,iy,1,2,'id1dr')
+    if (.not. associated(id1ul)) call getmem3d(id1ul,1,jx,1,iy,1,2,'id1ul')
+    if (.not. associated(id1ur)) call getmem3d(id1ur,1,jx,1,iy,1,2,'id1ur')
+    if (.not. associated(jd1dl)) call getmem3d(jd1dl,1,jx,1,iy,1,2,'jd1dl')
+    if (.not. associated(jd1dr)) call getmem3d(jd1dr,1,jx,1,iy,1,2,'jd1dr')
+    if (.not. associated(jd1ul)) call getmem3d(jd1ul,1,jx,1,iy,1,2,'jd1ul')
+    if (.not. associated(jd1ur)) call getmem3d(jd1ur,1,jx,1,iy,1,2,'jd1ur')
+    if (.not. associated(dd1xa)) call getmem3d(dd1xa,1,jx,1,iy,1,2,'dd1xa')
+    if (.not. associated(dd1xb)) call getmem3d(dd1xb,1,jx,1,iy,1,2,'dd1xb')
+    if (.not. associated(dd1xc)) call getmem3d(dd1xc,1,jx,1,iy,1,2,'dd1xc')
+    if (.not. associated(dd1xd)) call getmem3d(dd1xd,1,jx,1,iy,1,2,'dd1xd')
     write (stdout,*) 'FIRST TIME in CRESSMDT'
     write (stdout,*) 'Calculating weights.... (will take long time)'
     do i = 1 , iy
@@ -807,18 +810,18 @@ module mod_interp
         distb = gcdist(glat(mul,nul),glon(mul,nul),alat(j,i),alon(j,i))
         distc = gcdist(glat(mdr,ndr),glon(mdr,ndr),alat(j,i),alon(j,i))
         distd = gcdist(glat(mdl,ndl),glon(mdl,ndl),alat(j,i),alon(j,i))
-        id1ur(j,i) = mur
-        jd1ur(j,i) = nur
-        id1ul(j,i) = mul
-        jd1ul(j,i) = nul
-        id1dr(j,i) = mdr
-        jd1dr(j,i) = ndr
-        id1dl(j,i) = mdl
-        jd1dl(j,i) = ndl
-        dd1xa(j,i) = (d_one/dista)**2
-        dd1xb(j,i) = (d_one/distb)**2
-        dd1xc(j,i) = (d_one/distc)**2
-        dd1xd(j,i) = (d_one/distd)**2
+        id1ur(j,i,idx) = mur
+        jd1ur(j,i,idx) = nur
+        id1ul(j,i,idx) = mul
+        jd1ul(j,i,idx) = nul
+        id1dr(j,i,idx) = mdr
+        jd1dr(j,i,idx) = ndr
+        id1dl(j,i,idx) = mdl
+        jd1dl(j,i,idx) = ndl
+        dd1xa(j,i,idx) = (d_one/dista)**2
+        dd1xb(j,i,idx) = (d_one/distb)**2
+        dd1xc(j,i,idx) = (d_one/distc)**2
+        dd1xd(j,i,idx) = (d_one/distd)**2
       end do
     end do
     write (stdout,*) 'Done.'
@@ -829,18 +832,18 @@ module mod_interp
 
   do i = 1 , iy
     do j = 1 , jx
-      mur = id1ur(j,i)
-      nur = jd1ur(j,i)
-      mul = id1ul(j,i)
-      nul = jd1ul(j,i)
-      mdr = id1dr(j,i)
-      ndr = jd1dr(j,i)
-      mdl = id1dl(j,i)
-      ndl = jd1dl(j,i)
-      dista = dd1xa(j,i)
-      distb = dd1xb(j,i)
-      distc = dd1xc(j,i)
-      distd = dd1xd(j,i)
+      mur = id1ur(j,i,idx)
+      nur = jd1ur(j,i,idx)
+      mul = id1ul(j,i,idx)
+      nul = jd1ul(j,i,idx)
+      mdr = id1dr(j,i,idx)
+      ndr = jd1dr(j,i,idx)
+      mdl = id1dl(j,i,idx)
+      ndl = jd1dl(j,i,idx)
+      dista = dd1xa(j,i,idx)
+      distb = dd1xb(j,i,idx)
+      distc = dd1xc(j,i,idx)
+      distd = dd1xd(j,i,idx)
  
       ifound = 0
       wg = d_zero

@@ -48,7 +48,7 @@ module mod_gn6hnc
   private
 
   ! Dimension of input read from input files
-  integer(ik4) :: nlon , nlat , klev
+  integer(ik4) :: nlon , nlat , nulon , nvlat , klev
 
   ! Pressure levels to interpolate to if dataset is on model sigma levels.
   integer(ik4) , parameter :: nipl = 18
@@ -66,6 +66,10 @@ module mod_gn6hnc
   real(rk8) , pointer , dimension(:,:,:) :: d2
   real(rk8) , pointer , dimension(:,:,:) :: b3
   real(rk8) , pointer , dimension(:,:,:) :: d3
+  real(rk8) , pointer , dimension(:,:,:) :: ha_d2_1
+  real(rk8) , pointer , dimension(:,:,:) :: ha_d2_2
+  real(rk8) , pointer , dimension(:,:,:) :: ha_d3_1
+  real(rk8) , pointer , dimension(:,:,:) :: ha_d3_2
 
   real(rk8) , pointer :: u3(:,:,:) , v3(:,:,:)
   real(rk8) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
@@ -76,8 +80,8 @@ module mod_gn6hnc
   real(rk8) :: p0
   real(rk8) , pointer , dimension(:,:) :: psvar , zsvar , pmslvar
   real(rk8) , pointer , dimension(:) :: ak , bk
-  real(rk8) , pointer , dimension(:) :: glat , gltemp
-  real(rk8) , pointer , dimension(:) :: glon
+  real(rk8) , pointer , dimension(:) :: glat , gltemp , uglon
+  real(rk8) , pointer , dimension(:) :: glon , vglat
   real(rk8) , pointer , dimension(:,:) :: glat2
   real(rk8) , pointer , dimension(:,:) :: glon2
   real(rk8) , pointer , dimension(:,:,:) :: hvar , qvar , tvar , &
@@ -172,7 +176,7 @@ module mod_gn6hnc
 !
     implicit none
 !
-    integer(ik4) :: istatus , ivar1 , inet1 , jdim , i , j , k
+    integer(ik4) :: istatus , ivar1 , inet1 , inet2 , inet3 , jdim , i , j , k
     character(len=256) :: pathaddname
     real(8) :: dp0
 !
@@ -239,7 +243,6 @@ module mod_gn6hnc
     istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error open '//trim(pathaddname))
-
     istatus = nf90_inq_dimid(inet1,'lon',jdim)
     call checkncerr(istatus,__FILE__,__LINE__,'Error find lon dim')
     istatus = nf90_inquire_dimension(inet1,jdim,len=nlon)
@@ -257,6 +260,37 @@ module mod_gn6hnc
 
     call getmem1d(glat,1,nlat,'mod_gn6hnc:glat')
     call getmem1d(glon,1,nlon,'mod_gn6hnc:glon')
+    if ( dattyp(1:2) == 'HA' ) then
+      pathaddname = trim(inpglob)// &
+            '/HadGEM2/RF/ua/ua_6hrLev_HadGEM2-ES_historical_'// &
+            'r1i1p1_199012010600-199103010000.nc'
+      istatus = nf90_open(pathaddname,nf90_nowrite,inet2)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open '//trim(pathaddname))
+      istatus = nf90_inq_dimid(inet2,'lon',jdim)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find lon dim')
+      istatus = nf90_inquire_dimension(inet2,jdim,len=nulon)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lon dim')
+      pathaddname = trim(inpglob)// &
+            '/HadGEM2/RF/va/va_6hrLev_HadGEM2-ES_historical_'// &
+            'r1i1p1_199012010600-199103010000.nc'
+      istatus = nf90_open(pathaddname,nf90_nowrite,inet3)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open '//trim(pathaddname))
+      istatus = nf90_inq_dimid(inet3,'lat',jdim)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find lat dim')
+      istatus = nf90_inquire_dimension(inet3,jdim,len=nvlat)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error inquire lat dim')
+      pathaddname = trim(inpglob)// &
+            '/HadGEM2/RF/ua/ua_6hrLev_HadGEM2-ES_historical_'// &
+            'r1i1p1_199012010600-199103010000.nc'
+      istatus = nf90_open(pathaddname,nf90_nowrite,inet2)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error open '//trim(pathaddname))
+      call getmem1d(vglat,1,nvlat,'mod_gn6hnc:vglat')
+      call getmem1d(uglon,1,nulon,'mod_gn6hnc:uglon')
+    end if
+
     call getmem2d(zsvar,1,nlon,1,nlat,'mod_gn6hnc:zsvar')
     call getmem2d(psvar,1,nlon,1,nlat,'mod_gn6hnc:psvar')
 
@@ -303,6 +337,24 @@ module mod_gn6hnc
     call checkncerr(istatus,__FILE__,__LINE__,'Error find lon var')
     istatus = nf90_get_var(inet1,ivar1,glon)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read lon var')
+    if ( dattyp(1:2) == 'HA' ) then
+      istatus = nf90_inq_varid(inet2,'lon',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find lon var')
+      istatus = nf90_get_var(inet2,ivar1,uglon)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read lon var')
+      istatus = nf90_inq_varid(inet3,'lat',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find lat var')
+      istatus = nf90_get_var(inet3,ivar1,vglat)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read lat var')
+      istatus = nf90_close(inet2)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error close ua file')
+      istatus = nf90_close(inet3)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error close va file')
+      call getmem3d(ha_d2_1,1,nulon,1,nlat,1,klev,'mod_gn6hnc:ha_d2_1')
+      call getmem3d(ha_d2_2,1,nlon,1,nvlat,1,klev,'mod_gn6hnc:ha_d2_2')
+      call getmem3d(ha_d3_1,1,jx,1,iy,1,klev,'mod_gn6hnc:ha_d3_1')
+      call getmem3d(ha_d3_2,1,jx,1,iy,1,klev,'mod_gn6hnc:ha_d3_2')
+    end if
 
     icount(1) = nlon
     icount(2) = nlat
@@ -776,7 +828,14 @@ module mod_gn6hnc
          dattyp(1:3) /= 'GF_' .and. dattyp(1:3) /= 'IP_' .and. &
          dattyp(1:3) /= 'EC_' .and. dattyp(1:2) /= 'E5' ) then
       call bilinx2(b3,b2,xlon,xlat,glon,glat,nlon,nlat,jx,iy,npl*3)
-      call bilinx2(d3,d2,dlon,dlat,glon,glat,nlon,nlat,jx,iy,npl*2)
+      if ( dattyp(1:2) == 'HA' ) then
+        call bilinx2(ha_d3_1,ha_d2_1,dlon,dlat,uglon,glat,nulon,nlat,jx,iy,npl)
+        call bilinx2(ha_d3_2,ha_d2_2,dlon,dlat,glon,vglat,nlon,nvlat,jx,iy,npl)
+        u3 = ha_d3_1
+        v3 = ha_d3_2
+      else
+        call bilinx2(d3,d2,dlon,dlat,glon,glat,nlon,nlat,jx,iy,npl*2)
+      end if
     else ! Gaussian grid
       call cressmcr(b3,b2,xlon,xlat,glon2,glat2,jx,iy,nlon,nlat,npl,3)
       call cressmdt(d3,d2,dlon,dlat,glon2,glat2,jx,iy,nlon,nlat,npl,2)
@@ -1620,18 +1679,17 @@ module mod_gn6hnc
       istatus = nf90_get_var(inet(4),ivar(4),uvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
       if ( dattyp(1:3) == 'HA_' ) then
-        ! Data is missing on poles.
-        icount(2) = nlat-1
-        istatus = nf90_get_var(inet(5),ivar(5),vwork,istart,icount)
+        icount(1) = nulon
+        icount(2) = nlat
+        istatus = nf90_get_var(inet(4),ivar(4),ha_d2_1,istart,icount)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
+        icount(1) = nlon
+        icount(2) = nvlat
+        istatus = nf90_get_var(inet(5),ivar(5),ha_d2_2,istart,icount)
         call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
-        do k = 1 , klev
-          vvar(:,1,k) = vwork(:,1,k)
-          do j = 1 , nlat-2
-            vvar(:,j,k) = 0.5*(vwork(:,j,k)+vwork(:,j+1,k))
-          end do
-          vvar(:,nlat,k) = vwork(:,nlat-1,k)
-        end do
       else
+        istatus = nf90_get_var(inet(4),ivar(4),uvar,istart,icount)
+        call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
         istatus = nf90_get_var(inet(5),ivar(5),vvar,istart,icount)
         call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
       end if
