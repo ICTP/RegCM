@@ -145,7 +145,7 @@ module mod_ox_icbc
     end do
 
     call bilinx2(poxid_3,xps,xlon,xlat,oxt42lon,oxt42lat, &
-                 oxilon,oxjlat,iy,jx,1)
+                 oxilon,oxjlat,iy,jx)
     do i = 1 , iy 
       do j = 1 , jx
         do l = 1 , kz

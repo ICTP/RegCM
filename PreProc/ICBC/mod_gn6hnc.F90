@@ -68,8 +68,6 @@ module mod_gn6hnc
   real(rk8) , pointer , dimension(:,:,:) :: d3
   real(rk8) , pointer , dimension(:,:,:) :: ha_d2_1
   real(rk8) , pointer , dimension(:,:,:) :: ha_d2_2
-  real(rk8) , pointer , dimension(:,:,:) :: ha_d3_1
-  real(rk8) , pointer , dimension(:,:,:) :: ha_d3_2
 
   real(rk8) , pointer :: u3(:,:,:) , v3(:,:,:)
   real(rk8) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
@@ -352,8 +350,6 @@ module mod_gn6hnc
       call checkncerr(istatus,__FILE__,__LINE__,'Error close va file')
       call getmem3d(ha_d2_1,1,nulon,1,nlat,1,klev,'mod_gn6hnc:ha_d2_1')
       call getmem3d(ha_d2_2,1,nlon,1,nvlat,1,klev,'mod_gn6hnc:ha_d2_2')
-      call getmem3d(ha_d3_1,1,jx,1,iy,1,klev,'mod_gn6hnc:ha_d3_1')
-      call getmem3d(ha_d3_2,1,jx,1,iy,1,klev,'mod_gn6hnc:ha_d3_2')
     end if
 
     icount(1) = nlon
@@ -828,14 +824,7 @@ module mod_gn6hnc
          dattyp(1:3) /= 'GF_' .and. dattyp(1:3) /= 'IP_' .and. &
          dattyp(1:3) /= 'EC_' .and. dattyp(1:2) /= 'E5' ) then
       call bilinx2(b3,b2,xlon,xlat,glon,glat,nlon,nlat,jx,iy,npl*3)
-      if ( dattyp(1:2) == 'HA' ) then
-        call bilinx2(ha_d3_1,ha_d2_1,dlon,dlat,uglon,glat,nulon,nlat,jx,iy,npl)
-        call bilinx2(ha_d3_2,ha_d2_2,dlon,dlat,glon,vglat,nlon,nvlat,jx,iy,npl)
-        u3 = ha_d3_1
-        v3 = ha_d3_2
-      else
-        call bilinx2(d3,d2,dlon,dlat,glon,glat,nlon,nlat,jx,iy,npl*2)
-      end if
+      call bilinx2(d3,d2,dlon,dlat,glon,glat,nlon,nlat,jx,iy,npl*2)
     else ! Gaussian grid
       call cressmcr(b3,b2,xlon,xlat,glon2,glat2,jx,iy,nlon,nlat,npl,3)
       call cressmdt(d3,d2,dlon,dlat,glon2,glat2,jx,iy,nlon,nlat,npl,2)
@@ -1676,17 +1665,25 @@ module mod_gn6hnc
       ! Replace with relative humidity for internal calculation
       call humid1fv(tvar,qvar,pp3d,nlon,nlat,klev)
 
-      istatus = nf90_get_var(inet(4),ivar(4),uvar,istart,icount)
-      call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
       if ( dattyp(1:3) == 'HA_' ) then
         icount(1) = nulon
         icount(2) = nlat
         istatus = nf90_get_var(inet(4),ivar(4),ha_d2_1,istart,icount)
         call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))
+        uvar(1,:,:) = ha_d2_1(1,:,:)
+        do i = 1 , nulon-1
+          uvar(i+1,:,:) = 0.5*(ha_d2_1(i,:,:) + ha_d2_1(i+1,:,:))
+        end do
+        uvar(nlon,:,:) = ha_d2_1(nulon,:,:)
         icount(1) = nlon
         icount(2) = nvlat
         istatus = nf90_get_var(inet(5),ivar(5),ha_d2_2,istart,icount)
         call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(5))
+        vvar(:,1,:) = ha_d2_2(:,1,:)
+        do j = 1 , nvlat-1
+          vvar(:,j+1,:) = 0.5*(ha_d2_2(:,j,:) + ha_d2_2(:,j+1,:))
+        end do
+        vvar(:,nlat,:) = ha_d2_2(:,nvlat,:)
       else
         istatus = nf90_get_var(inet(4),ivar(4),uvar,istart,icount)
         call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(4))

@@ -197,7 +197,7 @@ module mod_ae_icbc
     end do
 
     call bilinx2(paeid_3,xps,xlon,xlat,aet42lon,aet42lat, &
-                 aeilon,aejlat,iy,jx,1)
+                 aeilon,aejlat,iy,jx)
 
     do i = 1 , iy 
       do j = 1 , jx

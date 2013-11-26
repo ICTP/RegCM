@@ -227,7 +227,7 @@ module mod_ch_icbc
                    chilon,chjlat,iy,jx,chilev) 
     end do
     call bilinx2(pchem_3,xps,xlon,xlat,cht42lon,cht42lat, &
-                 chilon,chjlat,iy,jx,1)
+                 chilon,chjlat,iy,jx)
     do i = 1 , iy 
       do j = 1 , jx
         do l = 1 , kz
@@ -282,7 +282,7 @@ module mod_ch_icbc
                    chilon,chjlat,iy,jx,chilev) 
     end do
     call bilinx2(pchem_3,xps,xlon,xlat,cht42lon,cht42lat, &
-                 chilon,chjlat,iy,jx,1)
+                 chilon,chjlat,iy,jx)
     do i = 1 , iy 
       do j = 1 , jx
         do l = 1 , kz

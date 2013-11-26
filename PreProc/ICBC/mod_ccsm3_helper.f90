@@ -45,7 +45,6 @@ module mod_ccsm3_helper
     implicit none
     character(len=256) , intent(out) :: ccsm3_filename
     integer(ik4) , intent(in) :: y,m,d,h
-    character(len=5) :: date
     integer(ik4)  :: yy , mm , dd , hh , icheck , inow , ii
     integer(ik4)  , parameter :: oneyear = 10000000
     logical :: iexist
