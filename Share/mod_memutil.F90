@@ -48,11 +48,26 @@ module mod_memutil
     module procedure assignp2d_i
     module procedure assignp2d_r
     module procedure assignp2d_d
+    module procedure assignp2d3_l
+    module procedure assignp2d3_s
+    module procedure assignp2d3_i
+    module procedure assignp2d3_r
+    module procedure assignp2d3_d
     module procedure assignp3d_l
     module procedure assignp3d_s
     module procedure assignp3d_i
     module procedure assignp3d_r
     module procedure assignp3d_d
+    module procedure assignp3d4_l
+    module procedure assignp3d4_s
+    module procedure assignp3d4_i
+    module procedure assignp3d4_r
+    module procedure assignp3d4_d
+    module procedure assignp2d4_l
+    module procedure assignp2d4_s
+    module procedure assignp2d4_i
+    module procedure assignp2d4_r
+    module procedure assignp2d4_d
     module procedure assignp4d_l
     module procedure assignp4d_s
     module procedure assignp4d_i
@@ -2250,6 +2265,111 @@ module mod_memutil
 #endif
   end subroutine assignp2d_d
 
+  subroutine assignp2d3_l(a,b,k)
+    use iso_c_binding, only: c_loc, c_f_pointer
+    implicit none
+    logical , pointer , dimension(:,:,:) , intent(in) :: a
+    logical , pointer , dimension(:,:) , intent(out) :: b
+    integer , intent(in) :: k
+    integer , dimension(2) :: theshape
+    logical , pointer , dimension(:,:) :: x
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,1))
+    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k)),x,theshape)
+#ifndef __GFORTRAN__
+    b => x
+#else
+    b(lbound(a,1):,lbound(a,2):) => x
+#endif
+  end subroutine assignp2d3_l
+
+  subroutine assignp2d3_s(a,b,k)
+    use iso_c_binding, only: c_loc, c_f_pointer
+    implicit none
+    integer(2) , pointer , dimension(:,:,:) , intent(in) :: a
+    integer(2) , pointer , dimension(:,:) , intent(out) :: b
+    integer , intent(in) :: k
+    integer , dimension(2) :: theshape
+    integer(2) , pointer , dimension(:,:) :: x
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,1))
+    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k)),x,theshape)
+#ifndef __GFORTRAN__
+    b => x
+#else
+    b(lbound(a,1):,lbound(a,2):) => x
+#endif
+  end subroutine assignp2d3_s
+
+  subroutine assignp2d3_i(a,b,k)
+    use iso_c_binding, only: c_loc, c_f_pointer
+    implicit none
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: a
+    integer(ik4) , pointer , dimension(:,:) , intent(out) :: b
+    integer , intent(in) :: k
+    integer , dimension(2) :: theshape
+    integer(ik4) , pointer , dimension(:,:) :: x
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,1))
+    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k)),x,theshape)
+#ifndef __GFORTRAN__
+    b => x
+#else
+    b(lbound(a,1):,lbound(a,2):) => x
+#endif
+  end subroutine assignp2d3_i
+
+  subroutine assignp2d3_r(a,b,k)
+    use iso_c_binding, only: c_loc, c_f_pointer
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:) , intent(in) :: a
+    real(rk4) , pointer , dimension(:,:) , intent(out) :: b
+    integer , intent(in) :: k
+    integer , dimension(2) :: theshape
+    real(rk4) , pointer , dimension(:,:) :: x
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,1))
+    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k)),x,theshape)
+#ifndef __GFORTRAN__
+    b => x
+#else
+    b(lbound(a,1):,lbound(a,2):) => x
+#endif
+  end subroutine assignp2d3_r
+
+  subroutine assignp2d3_d(a,b,k)
+    use iso_c_binding, only: c_loc, c_f_pointer
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: a
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: b
+    integer , intent(in) :: k
+    integer , dimension(2) :: theshape
+    real(rk8) , pointer , dimension(:,:) :: x
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,1))
+    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k)),x,theshape)
+#ifndef __GFORTRAN__
+    b => x
+#else
+    b(lbound(a,1):,lbound(a,2):) => x
+#endif
+  end subroutine assignp2d3_d
+
   subroutine assignp3d_l(a,b)
     implicit none
     logical , pointer , dimension(:,:,:) , intent(in) :: a
@@ -2324,6 +2444,216 @@ module mod_memutil
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
 #endif
   end subroutine assignp3d_d
+
+  subroutine assignp3d4_l(a,b,k)
+    use iso_c_binding, only: c_loc, c_f_pointer
+    implicit none
+    logical , pointer , dimension(:,:,:,:) , intent(in) :: a
+    logical , pointer , dimension(:,:,:) , intent(out) :: b
+    integer , intent(in) :: k
+    integer , dimension(3) :: theshape
+    logical , pointer , dimension(:,:,:) :: x
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,:,1))
+    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k)),x,theshape)
+#ifndef __GFORTRAN__
+    b => x
+#else
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => x
+#endif
+  end subroutine assignp3d4_l
+
+  subroutine assignp3d4_s(a,b,k)
+    use iso_c_binding, only: c_loc, c_f_pointer
+    implicit none
+    integer(2) , pointer , dimension(:,:,:,:) , intent(in) :: a
+    integer(2) , pointer , dimension(:,:,:) , intent(out) :: b
+    integer , intent(in) :: k
+    integer , dimension(3) :: theshape
+    integer(2) , pointer , dimension(:,:,:) :: x
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,:,1))
+    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k)),x,theshape)
+#ifndef __GFORTRAN__
+    b => x
+#else
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => x
+#endif
+  end subroutine assignp3d4_s
+
+  subroutine assignp3d4_i(a,b,k)
+    use iso_c_binding, only: c_loc, c_f_pointer
+    implicit none
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: a
+    integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: b
+    integer , intent(in) :: k
+    integer , dimension(3) :: theshape
+    integer(ik4) , pointer , dimension(:,:,:) :: x
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,:,1))
+    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k)),x,theshape)
+#ifndef __GFORTRAN__
+    b => x
+#else
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => x
+#endif
+  end subroutine assignp3d4_i
+
+  subroutine assignp3d4_r(a,b,k)
+    use iso_c_binding, only: c_loc, c_f_pointer
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: a
+    real(rk4) , pointer , dimension(:,:,:) , intent(out) :: b
+    integer , intent(in) :: k
+    integer , dimension(3) :: theshape
+    real(rk4) , pointer , dimension(:,:,:) :: x
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,:,1))
+    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k)),x,theshape)
+#ifndef __GFORTRAN__
+    b => x
+#else
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => x
+#endif
+  end subroutine assignp3d4_r
+
+  subroutine assignp3d4_d(a,b,k)
+    use iso_c_binding, only: c_loc, c_f_pointer
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: a
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: b
+    integer , intent(in) :: k
+    integer , dimension(3) :: theshape
+    real(rk8) , pointer , dimension(:,:,:) :: x
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,:,1))
+    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k)),x,theshape)
+#ifndef __GFORTRAN__
+    b => x
+#else
+    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => x
+#endif
+  end subroutine assignp3d4_d
+
+  subroutine assignp2d4_l(a,b,k,l)
+    use iso_c_binding, only: c_loc, c_f_pointer
+    implicit none
+    logical , pointer , dimension(:,:,:,:) , intent(in) :: a
+    logical , pointer , dimension(:,:) , intent(out) :: b
+    integer , intent(in) :: k , l
+    integer , dimension(2) :: theshape
+    logical , pointer , dimension(:,:) :: x
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,1,1))
+    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k,l)),x,theshape)
+#ifndef __GFORTRAN__
+    b => x
+#else
+    b(lbound(a,1):,lbound(a,2):) => x
+#endif
+  end subroutine assignp2d4_l
+
+  subroutine assignp2d4_s(a,b,k,l)
+    use iso_c_binding, only: c_loc, c_f_pointer
+    implicit none
+    integer(2) , pointer , dimension(:,:,:,:) , intent(in) :: a
+    integer(2) , pointer , dimension(:,:) , intent(out) :: b
+    integer , intent(in) :: k , l
+    integer , dimension(2) :: theshape
+    integer(2) , pointer , dimension(:,:) :: x
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,1,1))
+    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k,l)),x,theshape)
+#ifndef __GFORTRAN__
+    b => x
+#else
+    b(lbound(a,1):,lbound(a,2):) => x
+#endif
+  end subroutine assignp2d4_s
+
+  subroutine assignp2d4_i(a,b,k,l)
+    use iso_c_binding, only: c_loc, c_f_pointer
+    implicit none
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: a
+    integer(ik4) , pointer , dimension(:,:) , intent(out) :: b
+    integer , intent(in) :: k , l
+    integer , dimension(2) :: theshape
+    integer(ik4) , pointer , dimension(:,:) :: x
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,1,1))
+    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k,l)),x,theshape)
+#ifndef __GFORTRAN__
+    b => x
+#else
+    b(lbound(a,1):,lbound(a,2):) => x
+#endif
+  end subroutine assignp2d4_i
+
+  subroutine assignp2d4_r(a,b,k,l)
+    use iso_c_binding, only: c_loc, c_f_pointer
+    implicit none
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: a
+    real(rk4) , pointer , dimension(:,:) , intent(out) :: b
+    integer , intent(in) :: k , l
+    integer , dimension(2) :: theshape
+    real(rk4) , pointer , dimension(:,:) :: x
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,1,1))
+    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k,l)),x,theshape)
+#ifndef __GFORTRAN__
+    b => x
+#else
+    b(lbound(a,1):,lbound(a,2):) => x
+#endif
+  end subroutine assignp2d4_r
+
+  subroutine assignp2d4_d(a,b,k,l)
+    use iso_c_binding, only: c_loc, c_f_pointer
+    implicit none
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: a
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: b
+    integer , intent(in) :: k , l
+    integer , dimension(2) :: theshape
+    real(rk8) , pointer , dimension(:,:) :: x
+    if ( .not. associated(a) ) then
+      nullify(b)
+      return
+    end if
+    theshape = shape(a(:,:,1,1))
+    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k,l)),x,theshape)
+#ifndef __GFORTRAN__
+    b => x
+#else
+    b(lbound(a,1):,lbound(a,2):) => x
+#endif
+  end subroutine assignp2d4_d
 
   subroutine assignp4d_l(a,b)
     implicit none
