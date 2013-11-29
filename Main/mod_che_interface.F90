@@ -20,8 +20,7 @@
 module mod_che_interface
 !
   use mod_realkinds
-  use mod_atm_interface , only : slice , domain, surfstate , &
-                                 bound_area , v2dbound
+  use mod_regcm_types
   use mod_che_common
   use mod_che_cumtran
   use mod_che_dust

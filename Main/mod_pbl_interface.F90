@@ -25,7 +25,7 @@ module mod_pbl_interface
   use mod_dynparam
   use mod_memutil
   use mod_mppparam
-  use mod_atm_interface
+  use mod_regcm_types
   use mod_pbl_common
   use mod_pbl_holtbl
   use mod_pbl_uwtcm

@@ -21,7 +21,7 @@ module mod_advection
 !
 ! Horizontal and vertical advection.
 !
-  use mod_atm_interface
+  use mod_regcm_types
   use mod_dynparam
   use mod_runparams
   use mod_memutil

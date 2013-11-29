@@ -281,7 +281,7 @@ module mod_mtrxclm
       !    to clm.
       !
       call fill_frame(tatm,r2ctb)
-      call fill_frame(qxatm,r2cqb,iqv)
+      call fill_frame(qvatm,r2cqb)
       r2cqb = r2cqb/(d_one+r2cqb)
       call fill_frame(hgt,r2czga)
       call fill_frame(uatm,r2cuxb)
@@ -553,7 +553,7 @@ module mod_mtrxclm
     if ( ivers == 1 ) then
 
       call fill_frame(tatm,r2ctb)
-      call fill_frame(qxatm,r2cqb,iqv)
+      call fill_frame(qvatm,r2cqb)
       r2cqb = r2cqb/(d_one+r2cqb)
       call fill_frame(hgt,r2czga)
       call fill_frame(uatm,r2cuxb)
@@ -716,8 +716,8 @@ module mod_mtrxclm
               ! supposed to be lower soil layer temp not tgrnd
               taf(n,j,i)    = c2r2mt(jg,ig)
               t2m(n,j,i)    = c2r2mt(jg,ig)
-              u10m(n,j,i)   = uatm(j,i,kz)
-              v10m(n,j,i)   = vatm(j,i,kz)
+              u10m(n,j,i)   = uatm(j,i)
+              v10m(n,j,i)   = vatm(j,i)
               tlef(n,j,i)   = c2rtlef(jg,ig)
               tsw(n,j,i)    = c2rsmtot(jg,ig)
               rsw(n,j,i)    = c2rsm1m(jg,ig)

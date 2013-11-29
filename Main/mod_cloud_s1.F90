@@ -23,7 +23,7 @@ module mod_cloud_s1
   use mod_dynparam
   use mod_mpmessage
   use mod_memutil
-  use mod_atm_interface , only : atmstate , slice , surfstate
+  use mod_regcm_types
   use mod_runparams , only : nqx
   use mod_runparams , only : iqqv => iqv !vapor
   use mod_runparams , only : iqql => iqc !liquid

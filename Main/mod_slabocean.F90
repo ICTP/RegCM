@@ -22,7 +22,8 @@ module mod_slabocean
 !
   use mod_runparams
   use mod_memutil
-  use mod_atm_interface , only :  surfstate , ts1 , domain
+  use mod_regcm_types
+  use mod_atm_interface , only : ts1
   use mod_mppparam
   use mod_constants
   use mod_outvars

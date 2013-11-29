@@ -102,11 +102,11 @@ module mod_bats_zengocn
 #else
           if ( ldmsk1(n,j,i) == 0) then
 #endif
-            uv995 = dsqrt(uatm(j,i,kz)**2+vatm(j,i,kz)**2)
+            uv995 = dsqrt(uatm(j,i)**2+vatm(j,i)**2)
             tsurf = tground2(j,i) - tzero
-            t995 = tatm(j,i,kz) - tzero
-            q995 = qxatm(j,i,kz,iqv)/(d_one+qxatm(j,i,kz,iqv))
-            z995 = hgt(j,i,kz)
+            t995 = tatm(j,i) - tzero
+            q995 = qvatm(j,i)/(d_one+qvatm(j,i))
+            z995 = hgt(j,i)
             zi = hpbl(j,i)
             psurf = (sfps(j,i)+ptop)*d_10
             hu = z995
@@ -337,10 +337,10 @@ module mod_bats_zengocn
             ! Back out Drag Coefficient
             facttq = dlog(z995*d_half)/dlog(z995/zo)
             drag(n,j,i) = ustar**2*rhox(j,i)/uv995
-            u10m(n,j,i) = uatm(j,i,kz)*uv10/uv995
-            v10m(n,j,i) = vatm(j,i,kz)*uv10/uv995
-            taux(n,j,i) = tau*(uatm(j,i,kz)/uv995) 
-            tauy(n,j,i) = tau*(vatm(j,i,kz)/uv995) 
+            u10m(n,j,i) = uatm(j,i)*uv10/uv995
+            v10m(n,j,i) = vatm(j,i)*uv10/uv995
+            taux(n,j,i) = tau*(uatm(j,i)/uv995) 
+            tauy(n,j,i) = tau*(vatm(j,i)/uv995) 
             t2m(n,j,i)  = t995 + tzero - dth*facttq
             q2m(n,j,i)  = q995 - dqh*facttq
           end if

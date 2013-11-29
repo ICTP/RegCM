@@ -89,7 +89,7 @@
       do i = ici1 , ici2
       do j = jci1 , jci2
       do n = 1 , nnsg
-      if ((ldmsk1(n,j,i) == 0 .or. ldmsk1(n,j,i) == 2) .and.             &
+      if ((ldmsk1(n,j,i) == 0 .or. ldmsk1(n,j,i) == 2) .and.  &
            cplmsk(j,i) == 1) then
 !     
 !-----------------------------------------------------------------------
@@ -101,10 +101,10 @@
 !
       ps = (sfps(j,i)+ptop)*d_10
       ts = tground2(j,i)-tzero
-      uv995 = dsqrt(uatm(j,i,kz)**2+vatm(j,i,kz)**2)
-      t995 = tatm(j,i,kz)-tzero
-      q995 = qxatm(j,i,kz,iqv)/(d_one+qxatm(j,i,kz,iqv))
-      z995 = hgt(j,i,kz)
+      uv995 = dsqrt(uatm(j,i)**2+vatm(j,i)**2)
+      t995 = tatm(j,i)-tzero
+      q995 = qvatm(j,i)/(d_one+qvatm(j,i))
+      z995 = hgt(j,i)
       ta = t995+tzero
 
       ! height of the atmospheric data
@@ -362,12 +362,12 @@
 
       ! wind stress components 
       tau = rhoa*usr*usr*du/ut
-      taux(n,j,i) = tau*(uatm(j,i,kz)/uv995)
-      tauy(n,j,i) = tau*(vatm(j,i,kz)/uv995)
+      taux(n,j,i) = tau*(uatm(j,i)/uv995)
+      tauy(n,j,i) = tau*(vatm(j,i)/uv995)
 
       ! wind components
-      u10m(n,j,i) = uatm(j,i,kz)*uv10/uv995
-      v10m(n,j,i) = vatm(j,i,kz)*uv10/uv995 
+      u10m(n,j,i) = uatm(j,i)*uv10/uv995
+      v10m(n,j,i) = vatm(j,i)*uv10/uv995 
 
       ! surface atmospheric variables
       t2m(n,j,i) = t995+tzero-dt*facttq

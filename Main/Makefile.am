@@ -116,12 +116,12 @@ clean-local:
 #
 # Modules
 #
-mod_advection.o : mod_advection.F90 mod_atm_interface.o mod_dynparam.o mod_memutil.o mod_mpmessage.o mod_runparams.o mod_service.o
-mod_atm_interface.o : mod_atm_interface.F90 mod_constants.o mod_dynparam.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_runparams.o mod_service.o mod_stdio.o
+mod_advection.o : mod_advection.F90 mod_regcm_types.o mod_dynparam.o mod_memutil.o mod_mpmessage.o mod_runparams.o mod_service.o
+mod_atm_interface.o : mod_atm_interface.F90 mod_constants.o mod_dynparam.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_runparams.o mod_service.o mod_stdio.o mod_regcm_types.o
 mod_bdycod.o : mod_bdycod.F90 mod_atm_interface.o mod_che_interface.o mod_dynparam.o mod_lm_interface.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_ncio.o mod_pbl_interface.o mod_service.o mod_slabocean.o
-mod_che_interface.o : mod_che_interface.F90 mod_atm_interface.o mod_che_bdyco.o mod_che_carbonaer.o mod_che_common.o mod_che_cumtran.o mod_che_drydep.o mod_che_dust.o mod_che_emission.o mod_che_indices.o mod_che_mppio.o mod_che_ncio.o mod_che_param.o mod_che_species.o mod_che_start.o mod_che_tend.o mod_realkinds.o
-mod_cloud_s1.o : mod_cloud_s1.F90 mod_atm_interface.o mod_constants.o mod_dynparam.o mod_lm_interface.o mod_memutil.o mod_mpmessage.o mod_pbl_common.o mod_precip.o mod_realkinds.o mod_runparams.o mod_service.o
-mod_cu_interface.o : mod_cu_interface.f90 mod_atm_interface.o mod_constants.o mod_cu_bm.o mod_cu_common.o mod_cu_em.o mod_cu_grell.o mod_cu_kuo.o mod_cu_tables.o mod_cu_tiedtke.o mod_realkinds.o
+mod_che_interface.o : mod_che_interface.F90 mod_regcm_types.o mod_che_bdyco.o mod_che_carbonaer.o mod_che_common.o mod_che_cumtran.o mod_che_drydep.o mod_che_dust.o mod_che_emission.o mod_che_indices.o mod_che_mppio.o mod_che_ncio.o mod_che_param.o mod_che_species.o mod_che_start.o mod_che_tend.o mod_realkinds.o
+mod_cloud_s1.o : mod_cloud_s1.F90 mod_regcm_types.o mod_constants.o mod_dynparam.o mod_lm_interface.o mod_memutil.o mod_mpmessage.o mod_pbl_common.o mod_precip.o mod_realkinds.o mod_runparams.o mod_service.o
+mod_cu_interface.o : mod_cu_interface.f90 mod_regcm_types.o mod_constants.o mod_cu_bm.o mod_cu_common.o mod_cu_em.o mod_cu_grell.o mod_cu_kuo.o mod_cu_tables.o mod_cu_tiedtke.o mod_realkinds.o
 mod_diffusion.o: mod_diffusion.F90 mod_atm_interface.o mod_runparams.o mod_mppparam.o mod_service.o
 mod_header.o: mod_header.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_mppparam.o mod_date.o mod_stdio.o
 if DO_COMPILE_LIBCLM
@@ -130,7 +130,7 @@ else
 mod_init.o: mod_init.F90 mod_runparams.o mod_mppparam.o mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_cu_interface.o mod_rad_interface.o mod_pbl_interface.o mod_slabocean.o rrtmg_sw_init.o rrtmg_lw_init.o mod_pbl_interface.o mod_precip.o mod_bdycod.o mod_mpmessage.o mod_sun.o mod_ncio.o mod_savefile.o mod_slice.o mod_constants.o mod_outvars.o mod_lm_interface.o
 endif
 if DO_COMPILE_LIBCLM
-mod_lm_interface.o : mod_lm_interface.F90 mod_atm_interface.o mod_bats_bndry.o mod_bats_co2.o mod_bats_common.o mod_bats_drag.o mod_bats_lake.o mod_bats_leaftemp.o mod_bats_mtrxbats.o mod_bats_param.o mod_bats_zengocn.o mod_clm.o mod_memutil.o mod_mtrxclm.o mod_runparams.o
+mod_lm_interface.o : mod_lm_interface.F90 mod_regcm_types.o mod_bats_bndry.o mod_bats_co2.o mod_bats_common.o mod_bats_drag.o mod_bats_lake.o mod_bats_leaftemp.o mod_bats_mtrxbats.o mod_bats_param.o mod_bats_zengocn.o mod_clm.o mod_memutil.o mod_mtrxclm.o mod_runparams.o
 else
 mod_lm_interface.o : mod_lm_interface.F90 mod_atm_interface.o mod_bats_bndry.o mod_bats_co2.o mod_bats_common.o mod_bats_drag.o mod_bats_lake.o mod_bats_leaftemp.o mod_bats_param.o mod_bats_zengocn.o mod_memutil.o mod_runparams.o
 endif
@@ -145,9 +145,9 @@ mod_params.o : mod_params.F90 clm_varsur.o mod_advection.o mod_atm_interface.o m
 else
 mod_params.o : mod_params.F90 mod_advection.o mod_atm_interface.o mod_bdycod.o mod_che_interface.o mod_cloud_s1.o mod_cu_interface.o mod_domain.o mod_lm_interface.o mod_mpmessage.o mod_mppparam.o mod_ncio.o mod_ncout.o mod_pbl_interface.o mod_precip.o mod_rad_interface.o mod_runparams.o mod_savefile.o mod_slabocean.o mod_sldepparam.o mod_slice.o mod_split.o mod_tendency.o
 endif
-mod_pbl_interface.o : mod_pbl_interface.F90 mod_atm_interface.o mod_constants.o mod_dynparam.o mod_memutil.o mod_mppparam.o mod_pbl_common.o mod_pbl_holtbl.o mod_pbl_uwtcm.o mod_realkinds.o mod_runparams.o mod_service.o
-mod_precip.o : mod_precip.F90 mod_atm_interface.o mod_memutil.o mod_mpmessage.o mod_runparams.o
-mod_rad_interface.o : mod_rad_interface.f90 mod_atm_interface.o mod_rad_aerosol.o mod_rad_colmod3.o mod_rad_common.o mod_rad_o3blk.o mod_rad_outrad.o mod_rad_radiation.o mod_rad_scenarios.o mod_rad_tracer.o mod_realkinds.o mod_rrtmg_driver.o
+mod_pbl_interface.o : mod_pbl_interface.F90 mod_regcm_types.o mod_constants.o mod_dynparam.o mod_memutil.o mod_mppparam.o mod_pbl_common.o mod_pbl_holtbl.o mod_pbl_uwtcm.o mod_realkinds.o mod_runparams.o mod_service.o
+mod_precip.o : mod_precip.F90 mod_regcm_types.o mod_memutil.o mod_mpmessage.o mod_runparams.o
+mod_rad_interface.o : mod_rad_interface.f90 mod_regcm_types.o mod_rad_aerosol.o mod_rad_colmod3.o mod_rad_common.o mod_rad_o3blk.o mod_rad_outrad.o mod_rad_radiation.o mod_rad_scenarios.o mod_rad_tracer.o mod_realkinds.o mod_rrtmg_driver.o
 if DO_COMPILE_LIBCLM
 mod_regcm_interface.o: mod_regcm_interface.F90 mod_memutil.o mod_service.o mod_che_interface.o mod_atm_interface.o mod_lm_interface.o mod_pbl_interface.o mod_runparams.o mod_mppparam.o mod_mpmessage.o mod_ncio.o mod_ncout.o mod_output.o mod_split.o mod_bdycod.o mod_init.o mod_header.o mod_params.o mod_tendency.o mod_tstep.o mod_service.o mod_cloud_s1.o mod_sun.o perf_mod.o mod_mtrxclm.o spmdMod.o clm_varsur.o
 else
@@ -163,7 +163,7 @@ mod_savefile.o : mod_savefile.F90 clm_time_manager.o clm_varctl.o mod_che_mppio.
 else
 mod_savefile.o : mod_savefile.F90 mod_che_mppio.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_runparams.o
 endif
-mod_slabocean.o : mod_slabocean.F90 mod_atm_interface.o mod_constants.o mod_memutil.o mod_mppparam.o mod_outvars.o mod_runparams.o
+mod_slabocean.o : mod_slabocean.F90 mod_regcm_types.o mod_atm_interface.o mod_constants.o mod_memutil.o mod_mppparam.o mod_outvars.o mod_runparams.o
 mod_sldepparam.o : mod_sldepparam.f90 mod_dynparam.o mod_intkinds.o mod_memutil.o mod_realkinds.o
 mod_sladvection.o: mod_sladvection.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_constants.o mod_runparams.o mod_atm_interface.o mod_sldepparam.o mod_service.o mod_mpmessage.o mod_mppparam.o
 mod_slice.o : mod_slice.F90 mod_atm_interface.o mod_che_interface.o mod_constants.o mod_pbl_interface.o mod_rad_interface.o mod_runparams.o

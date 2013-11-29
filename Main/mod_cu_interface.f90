@@ -30,7 +30,7 @@ module mod_cu_interface
   use mod_cu_em
   use mod_cu_kuo
   use mod_cu_grell
-  use mod_atm_interface , only : atmstate , slice , surfstate , domain
+  use mod_regcm_types
 !
   contains
 

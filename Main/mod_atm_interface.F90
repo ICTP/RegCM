@@ -27,118 +27,12 @@ module mod_atm_interface
   use mod_mpmessage
   use mod_service
   use mod_memutil
+  use mod_regcm_types
 
   private
 
   logical , public , parameter :: cross = .false.
   logical , public , parameter :: dot = .true.
-!
-! Storage for all the 3d prognostic variables in two
-! timesteps and all the 2d variables and constants
-!
-  type domain
-    real(rk8) , pointer , dimension(:,:) :: ht
-    real(rk8) , pointer , dimension(:,:) :: lndcat
-    real(rk8) , pointer , dimension(:,:) :: xlat
-    real(rk8) , pointer , dimension(:,:) :: xlon
-    real(rk8) , pointer , dimension(:,:) :: mask
-    real(rk8) , pointer , dimension(:,:) :: dlat
-    real(rk8) , pointer , dimension(:,:) :: dlon
-    real(rk8) , pointer , dimension(:,:) :: msfx
-    real(rk8) , pointer , dimension(:,:) :: msfd
-    real(rk8) , pointer , dimension(:,:) :: coriol
-    real(rk8) , pointer , dimension(:,:) :: snowam
-    real(rk8) , pointer , dimension(:,:) :: dhlake
-  end type domain
-
-  type atmstate
-    real(rk8) , pointer , dimension(:,:,:) :: u
-    real(rk8) , pointer , dimension(:,:,:) :: v
-    real(rk8) , pointer , dimension(:,:,:) :: t
-    real(rk8) , pointer , dimension(:,:,:,:) :: qx
-    real(rk8) , pointer , dimension(:,:,:) :: tke
-  end type atmstate
-
-  type tendiag
-    real(rk8) , pointer , dimension(:,:,:) :: adh
-    real(rk8) , pointer , dimension(:,:,:) :: adv
-    real(rk8) , pointer , dimension(:,:,:) :: tbl
-    real(rk8) , pointer , dimension(:,:,:) :: dif
-    real(rk8) , pointer , dimension(:,:,:) :: bdy
-    real(rk8) , pointer , dimension(:,:,:) :: con
-    real(rk8) , pointer , dimension(:,:,:) :: adi
-    real(rk8) , pointer , dimension(:,:,:) :: rad
-    real(rk8) , pointer , dimension(:,:,:) :: lsc
-  end type tendiag
-  
-  type surfstate
-    real(rk8) , pointer , dimension(:,:) :: psa
-    real(rk8) , pointer , dimension(:,:) :: psb
-    real(rk8) , pointer , dimension(:,:) :: tga
-    real(rk8) , pointer , dimension(:,:) :: tgb
-    real(rk8) , pointer , dimension(:,:) :: rainc
-    real(rk8) , pointer , dimension(:,:) :: rainnc
-    real(rk8) , pointer , dimension(:,:) :: snownc
-    real(rk8) , pointer , dimension(:,:) :: hfx
-    real(rk8) , pointer , dimension(:,:) :: qfx
-    real(rk8) , pointer , dimension(:,:) :: tgbb
-    real(rk8) , pointer , dimension(:,:) :: uvdrag
-  end type surfstate
-
-  type slice
-    real(rk8) , pointer , dimension(:,:,:) :: tb3d
-    real(rk8) , pointer , dimension(:,:,:) :: thx3d
-    real(rk8) , pointer , dimension(:,:,:) :: pb3d
-    real(rk8) , pointer , dimension(:,:,:) :: pf3d
-    real(rk8) , pointer , dimension(:,:,:) :: rhob3d
-    real(rk8) , pointer , dimension(:,:,:) :: ubx3d
-    real(rk8) , pointer , dimension(:,:,:) :: vbx3d
-    real(rk8) , pointer , dimension(:,:,:) :: ubd3d
-    real(rk8) , pointer , dimension(:,:,:) :: vbd3d
-    real(rk8) , pointer , dimension(:,:,:) :: rhb3d
-    real(rk8) , pointer , dimension(:,:,:) :: qsb3d
-    real(rk8) , pointer , dimension(:,:,:,:) :: qxb3d
-    real(rk8) , pointer , dimension(:,:,:) :: zq
-    real(rk8) , pointer , dimension(:,:,:) :: za
-    real(rk8) , pointer , dimension(:,:,:) :: dzq
-    real(rk8) , pointer , dimension(:,:) :: rhox2d
-    real(rk8) , pointer , dimension(:,:,:) :: tkeb3d
-    real(rk8) , pointer , dimension(:,:,:,:) :: chib3d
-  end type slice
-
-  type diffx
-    real(rk8) , pointer , dimension(:,:,:) :: difft
-    real(rk8) , pointer , dimension(:,:,:) :: difuu
-    real(rk8) , pointer , dimension(:,:,:) :: difuv
-    real(rk8) , pointer , dimension(:,:,:,:) :: diffqx
-  end type diffx
-
-  type v3dbound
-    real(rk8) , pointer , dimension(:,:,:) :: b0
-    real(rk8) , pointer , dimension(:,:,:) :: b1
-    real(rk8) , pointer , dimension(:,:,:) :: bt
-  end type v3dbound
-
-  type v2dbound
-    real(rk8) , pointer , dimension(:,:) :: b0
-    real(rk8) , pointer , dimension(:,:) :: b1
-    real(rk8) , pointer , dimension(:,:) :: bt
-  end type v2dbound
-
-  type bound_area
-    logical :: dotflag
-    logical :: havebound
-    logical , pointer , dimension(:,:) :: bsouth
-    logical , pointer , dimension(:,:) :: bnorth
-    logical , pointer , dimension(:,:) :: beast
-    logical , pointer , dimension(:,:) :: bwest
-    integer(ik4) :: ns , nn , ne , nw
-    integer(ik4) :: nsp
-    integer(ik4) , pointer , dimension(:,:) :: ibnd
-  end type bound_area
-
-  public :: atmstate , domain , surfstate , slice , tendiag
-  public :: diffx , v2dbound , v3dbound , bound_area , model_area
 
   type(domain) , public :: mddom
   type(atmstate) , public :: atm1 , atm2

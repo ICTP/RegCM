@@ -89,11 +89,11 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:) :: lndcat        ! mddom%lndcat
   real(rk8) , pointer , dimension(:,:) :: ht            ! mddom%ht
   real(rk8) , pointer , dimension(:,:) :: snowam        ! mddom%snowam
-  real(rk8) , pointer , dimension(:,:,:) :: uatm        ! atms%ubx3d
-  real(rk8) , pointer , dimension(:,:,:) :: vatm        ! atms%vbx3d
-  real(rk8) , pointer , dimension(:,:,:) :: tatm        ! atms%tb3d
-  real(rk8) , pointer , dimension(:,:,:) :: thatm       ! atms%thx3d
-  real(rk8) , pointer , dimension(:,:,:,:) :: qxatm     ! atms%qxb3d
+  real(rk8) , pointer , dimension(:,:) :: uatm          ! atms%ubx3d(:,:,kz)
+  real(rk8) , pointer , dimension(:,:) :: vatm          ! atms%vbx3d(:,:,kz)
+  real(rk8) , pointer , dimension(:,:) :: tatm          ! atms%tb3d(:,:,kz)
+  real(rk8) , pointer , dimension(:,:) :: thatm         ! atms%thx3d(:,:,kz)
+  real(rk8) , pointer , dimension(:,:) :: qvatm         ! atms%qxb3d(:,:,kz,iqv)
   real(rk8) , pointer , dimension(:,:) :: hpbl          ! zpbl
   real(rk8) , pointer , dimension(:,:) :: hfx           ! sfs%hfx
   real(rk8) , pointer , dimension(:,:) :: qfx           ! sfs%qfx
@@ -102,7 +102,7 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:) :: tground1      ! sfs%tga
   real(rk8) , pointer , dimension(:,:) :: tground2      ! sfs%tgb
   real(rk8) , pointer , dimension(:,:) :: sfps          ! sfs%psb
-  real(rk8) , pointer , dimension(:,:,:) :: hgt         ! za
+  real(rk8) , pointer , dimension(:,:) :: hgt           ! za(:,:,kz)
   real(rk8) , pointer , dimension(:,:) :: rhox          ! rhox2d
   integer(ik4) , pointer , dimension(:,:) :: lmask      ! CLM landmask
 

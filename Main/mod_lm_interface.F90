@@ -24,7 +24,7 @@ module mod_lm_interface
   use mod_bats_common
   use mod_runparams
   use mod_memutil
-  use mod_atm_interface , only : slice , surfstate , domain
+  use mod_regcm_types
 #ifdef CLM
   use mod_mtrxclm
   use mod_clm
@@ -61,13 +61,13 @@ module mod_lm_interface
     call assignpnt(dom%lndcat,lndcat)
     call assignpnt(dom%ht,ht)
     call assignpnt(dom%snowam,snowam)
-    call assignpnt(atm%ubx3d,uatm)
-    call assignpnt(atm%vbx3d,vatm)
-    call assignpnt(atm%tb3d,tatm)
-    call assignpnt(atm%qxb3d,qxatm)
-    call assignpnt(atm%thx3d,thatm)
+    call assignpnt(atm%ubx3d,uatm,kz)
+    call assignpnt(atm%vbx3d,vatm,kz)
+    call assignpnt(atm%tb3d,tatm,kz)
+    call assignpnt(atm%qxb3d,qvatm,kz,iqv)
+    call assignpnt(atm%thx3d,thatm,kz)
     call assignpnt(atm%rhox2d,rhox)
-    call assignpnt(atm%za,hgt)
+    call assignpnt(atm%za,hgt,kz)
     call assignpnt(sfs%hfx,hfx)
     call assignpnt(sfs%qfx,qfx)
     call assignpnt(sfs%uvdrag,uvdrag)

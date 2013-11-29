@@ -20,7 +20,7 @@
 module mod_rad_interface
 !
   use mod_realkinds
-  use mod_atm_interface , only : atmstate , slice , surfstate , domain
+  use mod_regcm_types
   use mod_rad_common
   use mod_rad_aerosol
   use mod_rad_colmod3

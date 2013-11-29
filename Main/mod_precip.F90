@@ -28,7 +28,7 @@ module mod_precip
   use mod_runparams
   use mod_memutil
   use mod_mpmessage
-  use mod_atm_interface , only : atmstate , slice , surfstate
+  use mod_regcm_types
 !
   private
 !
