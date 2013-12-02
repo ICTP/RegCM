@@ -20,12 +20,13 @@
 module mod_stdio
 !
   use mod_intkinds
+  use iso_fortran_env
 
   private
 
-  integer(ik4) , public , parameter :: stdin = 5
-  integer(ik4) , public , parameter :: stdout = 6
-  integer(ik4) , public , parameter :: stderr = 0
+  integer(ik4) , public , parameter :: stdin = input_unit
+  integer(ik4) , public , parameter :: stdout = output_unit
+  integer(ik4) , public , parameter :: stderr = error_unit
 
   integer(ik4) , parameter :: file_maxunit = 99
   integer(ik4) , parameter :: file_minunit = 10
