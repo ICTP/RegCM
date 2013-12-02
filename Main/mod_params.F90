@@ -1079,8 +1079,6 @@ module mod_params
 
   call allocate_mod_pbl_common
 
-  call allocate_mod_cu_common(ichem)
-
   if ( ipptls > 0 ) then
     call allocate_mod_precip(ichem)
   end if
@@ -1322,7 +1320,8 @@ module mod_params
   call init_bats(mddom,atms,sfs,zpbl)
 #endif
   call init_cuscheme(mddom,atm1,aten,atms,chiten,sfs,qdot,pptc,ldmsk, &
-                     cldfra,cldlwc,ktrop)
+                     cldfra,cldlwc,ktrop,cucontrol,icumtop,icumbot,   &
+                     convpr)
   if ( ichem == 1 ) then
 #ifdef CLM
     call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat, &

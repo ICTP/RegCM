@@ -231,12 +231,12 @@ module mod_cu_bm
     lshu = 0
     prainx = d_zero
     !
-    ! icumtop = top level of cumulus clouds
-    ! icumbot = bottom level of cumulus clouds
+    ! kcumtop = top level of cumulus clouds
+    ! kcumbot = bottom level of cumulus clouds
     !
-    icumtop(:,:) = 0
-    icumbot(:,:) = 0
-    if ( ichem == 1 ) convpr(:,:,:) = d_zero
+    kcumtop(:,:) = 0
+    kcumbot(:,:) = 0
+    if ( ichem == 1 ) cprate(:,:,:) = d_zero
     total_precip_points = 0
     iconss = 0
     tauk = dtsec/trel
@@ -1018,11 +1018,11 @@ module mod_cu_bm
           end if
 !         find cloud fractional cover and liquid water content
           kbaseb = min0(lbtk,kzm2)
-          icumtop(j,i) = ltpk
-          icumbot(j,i) = kbaseb
+          kcumtop(j,i) = ltpk
+          kcumbot(j,i) = kbaseb
           if ( ichem == 1 ) then
             do k = ltpk , kz
-              convpr(j,i,k) = prainx/dtsec
+              cprate(j,i,k) = prainx/dtsec
             end do
           end if
         end if

@@ -31,11 +31,6 @@ module mod_cu_common
 !
   real(rk8) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
 
-  integer(ik4) , pointer , dimension(:,:) :: cucontrol ! which scheme to use
-
-  ! Grell shared parameters for tracers removal
-  integer(ik4) , pointer , dimension(:,:) :: icumtop , icumbot
-!
   real(rk8) , pointer , dimension(:,:) :: sfhgt    ! mddom%ht
   real(rk8) , pointer , dimension(:,:,:) :: ptatm  ! atm1%t
   real(rk8) , pointer , dimension(:,:,:) :: puatm  ! atm1%u
@@ -58,7 +53,7 @@ module mod_cu_common
   real(rk8) , pointer , dimension(:,:) :: psfcps   ! sfs%psa
   real(rk8) , pointer , dimension(:,:) :: sfcps    ! sfs%psb
   real(rk8) , pointer , dimension(:,:) :: rainc    ! sfs%rainc
-  real(rk8) , pointer , dimension(:,:,:) :: convpr ! prec rate ( used in chem) 
+  real(rk8) , pointer , dimension(:,:,:) :: cprate ! prec rate ( used in chem) 
   real(rk8) , pointer , dimension(:,:) :: qfx      ! sfs%qfx
   real(rk8) , pointer , dimension(:,:) :: hfx      ! sfs%hfx
   real(rk8) , pointer , dimension(:,:,:) :: svv    ! qdot
@@ -67,6 +62,9 @@ module mod_cu_common
   real(rk8) , pointer , dimension(:,:,:) :: rcldlwc  ! rcldlwc 
   real(rk8) , pointer , dimension(:,:,:) :: rcldfra  ! rcldfra
   integer(ik4) , pointer , dimension(:,:) :: rktrop  ! ktrop
+  integer(ik4) , pointer , dimension(:,:) :: cuscheme ! which scheme to use
+  integer(ik4) , pointer , dimension(:,:) :: kcumtop
+  integer(ik4) , pointer , dimension(:,:) :: kcumbot
 
   integer(ik4) :: total_precip_points
 
@@ -78,20 +76,11 @@ module mod_cu_common
 
   contains
 !
-  subroutine allocate_mod_cu_common(ichem)
+  subroutine init_mod_cumulus
     implicit none
-    integer(ik4) , intent(in) :: ichem
     integer(ik4) , dimension(:) , allocatable:: iseed
     integer :: k , nseed
     real(rk4) :: cputime
-    if ( icup > 90 ) then
-      call getmem2d(cucontrol,jci1,jci2,ici1,ici2,'mod_cu_common:cucontrol')
-    end if
-    call getmem2d(icumbot,jci1,jci2,ici1,ici2,'mod_cu_common:icumbot')
-    call getmem2d(icumtop,jci1,jci2,ici1,ici2,'mod_cu_common:icumtop')
-    if ( ichem == 1 ) then
-      call getmem3d(convpr,jci1,jci2,ici1,ici2,1,kz,'mod_cu_common:convpr')
-    end if
     if ( icumcloud == 2 ) then
       !
       ! Free hand draw of a generic ten layer cumulus cloud shape.
@@ -119,16 +108,14 @@ module mod_cu_common
         cld_profile = fixed_cld_profile
       end if
     end if
-  end subroutine allocate_mod_cu_common
+  end subroutine init_mod_cumulus
 !
   subroutine model_cumulus_cloud
     implicit none
     real(rk8) :: akclth , tcel , scalep , scalef
     integer(ik4):: i , j , k , ktop , kbot , kclth , ikh
-
     rcldfra(:,:,:) = d_zero
     rcldlwc(:,:,:) = d_zero
-
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -146,17 +133,15 @@ module mod_cu_common
         end do
       end do
     end do
-
     scalef = (d_one-clfrcv)
-
     if ( icumcloud == 1 ) then
       iloop1: &
       do i = ici1 , ici2
         jloop1: &
         do j = jci1 , jci2
           ! The regcm model is top to bottom
-          ktop = icumtop(j,i)
-          kbot = icumbot(j,i)
+          ktop = kcumtop(j,i)
+          kbot = kcumbot(j,i)
           kclth = kbot - ktop + 1
           if ( kclth < 2 ) cycle jloop1
           akclth = d_one/dble(kclth)
@@ -175,8 +160,8 @@ module mod_cu_common
       do i = ici1 , ici2
         jloop3: &
         do j = jci1 , jci2
-          ktop = icumtop(j,i)
-          kbot = icumbot(j,i)
+          ktop = kcumtop(j,i)
+          kbot = kcumbot(j,i)
           kclth = kbot - ktop
           if ( kclth < 1 ) cycle jloop3
           scalep = min((pas(j,i,kbot)-pas(j,i,ktop))/maxcloud_dp,d_one)
@@ -187,11 +172,9 @@ module mod_cu_common
         end do jloop3
       end do iloop3
     end if
-
     where ( rcldfra < 1.0D-4 )
       rcldlwc = 0.001D0
     end where
-
   end subroutine model_cumulus_cloud
 !
 end module mod_cu_common

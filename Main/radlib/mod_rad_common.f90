@@ -90,7 +90,6 @@ module mod_rad_common
   real(rk8) , pointer , dimension(:,:,:,:) :: taucldsp
 
   real(rk8) , pointer , dimension(:,:) :: ptrop
-  integer(ik4) , pointer , dimension(:,:) :: ktrop
 
   logical :: doabsems , dolw , dosw
   integer(ik4) :: ichso4 , ichbc , ichoc
@@ -108,7 +107,6 @@ module mod_rad_common
     call getmem3d(heatrt,jci1,jci2,ici1,ici2,1,kz,'rad:heatrt')
     call getmem3d(o3prof,jci1,jci2,ici1,ici2,1,kzp1,'rad:o3prof')
     call getmem2d(ptrop,jci1,jci2,ici1,ici2,'rad:ptrop')
-    call getmem2d(ktrop,jci1,jci2,ici1,ici2,'rad:ktrop')
     if ( irrtm == 0 ) then
       call getmem4d(gasabsnxt,jci1,jci2,ici1,ici2,1,kz,1,4,'rad:gasabsnxt')
       call getmem4d(gasabstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1,'rad:gasabstot')

@@ -65,11 +65,11 @@ module mod_cu_em
     real(rk8) , dimension(kzp1) :: phcup
 !
     total_precip_points = 0
-    icumtop(:,:) = 0
-    icumbot(:,:) = 0
+    kcumtop(:,:) = 0
+    kcumbot(:,:) = 0
     ktop = 1
     if ( ichem == 1 ) then 
-      convpr(:,:,:) = d_zero
+      cprate(:,:,:) = d_zero
       ntra = ntr      
     else
       ntra = 0
@@ -78,7 +78,7 @@ module mod_cu_em
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( icup /= 4 ) then
-          if ( cucontrol(j,i) /= 4 ) cycle
+          if ( cuscheme(j,i) /= 4 ) cycle
         end if
         do k = 1 , kz
           kk = kzp1 - k
@@ -143,14 +143,14 @@ module mod_cu_em
           end if
 
           ! The order top/bottom for regcm is reversed.
-          icumtop(j,i) = kzp1 - ktop
-          icumbot(j,i) = kzp1 - kbase
+          kcumtop(j,i) = kzp1 - ktop
+          kcumbot(j,i) = kzp1 - kbase
 
           ! Build for chemistry 3d table of constant precipitation rate
           ! from the surface to the top of the convection
           if ( ichem == 1 ) then
             do k = 1 , ktop-1
-              convpr(j,i,kz-k+1) = pret
+              cprate(j,i,kz-k+1) = pret
             end do
           end if
    

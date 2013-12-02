@@ -209,7 +209,7 @@ module mod_cu_grell
     psur(:,:)  = d_zero
     qcrit(:,:) = d_zero
     ter11(:,:) = d_zero
-    if ( ichem == 1 ) convpr(:,:,:) = d_zero 
+    if ( ichem == 1 ) cprate(:,:,:) = d_zero 
 !
     kdet(:,:)  = 2
     k22(:,:)   = 1
@@ -424,7 +424,7 @@ module mod_cu_grell
           xac(j,i) = -d_one
         end if
         if ( icup /= 2 ) then
-          if (cucontrol(j,i) /= 2 ) then
+          if (cuscheme(j,i) /= 2 ) then
             xac(j,i) = -d_one
           end if
         end if
@@ -1119,7 +1119,7 @@ module mod_cu_grell
       do i = ici1 , ici2
         do j = jci1 , jci2
           do k = 1 , ktop(j,i)-1
-            convpr(j,i,kz-k+1) = pret(j,i)
+            cprate(j,i,kz-k+1) = pret(j,i)
           end do
         end do
       end do
@@ -1128,8 +1128,8 @@ module mod_cu_grell
 !
 !   calculate cloud fraction and water content
 !
-    icumtop(:,:) = 0
-    icumbot(:,:) = 0
+    kcumtop(:,:) = 0
+    kcumbot(:,:) = 0
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( xac(j,i) >= d_zero ) then
@@ -1138,8 +1138,8 @@ module mod_cu_grell
           !
           if ( ktop(j,i) > 1 .and. kbcon(j,i) > 1 ) then
             if ( ktop(j,i) > 1 .and. k22(j,i) >= 1 ) then
-              icumtop(j,i) = kzp1 - ktop(j,i)
-              icumbot(j,i) = kzp1 - k22(j,i)
+              kcumtop(j,i) = kzp1 - ktop(j,i)
+              kcumbot(j,i) = kzp1 - k22(j,i)
             end if
           end if
         end if

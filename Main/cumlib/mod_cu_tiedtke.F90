@@ -78,7 +78,7 @@ module mod_cu_tiedtke
       nipoi = 0
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( cucontrol(j,i) == 5 ) then
+          if ( cuscheme(j,i) == 5 ) then
             nipoi = nipoi + 1
           end if
         end do
@@ -89,7 +89,7 @@ module mod_cu_tiedtke
       ii = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( cucontrol(j,i) == 5 ) then
+          if ( cuscheme(j,i) == 5 ) then
             imap(ii) = i
             jmap(ii) = j
             ii = ii + 1
@@ -155,7 +155,7 @@ module mod_cu_tiedtke
     q_detr(:,:,:) = d_zero
 
     if ( ichem == 1 ) then    
-      convpr(:,:,:) = d_zero
+      cprate(:,:,:) = d_zero
       do k = 1 , kz
         do ii = 1 , nipoi
           i = imap(ii)
@@ -296,21 +296,21 @@ module mod_cu_tiedtke
             ! build for chemistry 3d table of constant precipitation rate
             ! from the surface to the top of the convection
             if ( k > kctop(ii) ) then
-              convpr(j,i,k) = (prsfc(ii)+pssfc(ii))
+              cprate(j,i,k) = (prsfc(ii)+pssfc(ii))
             end if
           end if
         end if
       end do
     end do
 
-    icumtop(:,:) = 0
-    icumbot(:,:) = 0
+    kcumtop(:,:) = 0
+    kcumbot(:,:) = 0
     do ii = 1 , nipoi
       if (ktype(ii) > 0) then
         i = imap(ii)
         j = jmap(ii)
-        icumtop(j,i) = kctop(ii)
-        icumbot(j,i) = kcbot(ii)
+        kcumtop(j,i) = kctop(ii)
+        kcumbot(j,i) = kcbot(ii)
       end if
     end do
 

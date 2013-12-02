@@ -88,12 +88,12 @@ module mod_cu_kuo
     qmax = d_zero
     tmax = d_zero
     !
-    ! icumtop = top level of cumulus clouds
-    ! icumbot = bottom level of cumulus clouds
+    ! kcumtop = top level of cumulus clouds
+    ! kcumbot = bottom level of cumulus clouds
     !
-    icumtop(:,:) = 0
-    icumbot(:,:) = 0
-    if ( ichem == 1 ) convpr(:,:,:) = d_zero
+    kcumtop(:,:) = 0
+    kcumbot(:,:) = 0
+    if ( ichem == 1 ) cprate(:,:,:) = d_zero
 !
 !   compute the moisture convergence in a column:
 !   at this stage, qxten(j,i,k,iqv) only includes horizontal advection.
@@ -255,8 +255,8 @@ module mod_cu_kuo
               end do
 !
               kbaseb = min0(kbase,kzm2)
-              icumtop(j,i) = ktop
-              icumbot(j,i) = kbaseb
+              kcumtop(j,i) = ktop
+              kcumbot(j,i) = kbaseb
 
 !             the unit for rainfall is mm.
               prainx = (d_one-c301)*sca*dtsec*d_1000*regrav
@@ -269,7 +269,7 @@ module mod_cu_kuo
                 ! build for chemistry 3d table of constant precipitation rate
                 ! from the surface to the top of the convection
                 do k = 1 , ktop-1
-                  convpr(j,i,kz-k+1) = prainx/dtsec
+                  cprate(j,i,kz-k+1) = prainx/dtsec
                 end do
               end if
               cycle

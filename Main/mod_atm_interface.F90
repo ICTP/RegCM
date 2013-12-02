@@ -54,9 +54,22 @@ module mod_atm_interface
   real(rk8) , public , pointer , dimension(:,:,:) :: dstor
   real(rk8) , public , pointer , dimension(:,:,:) :: hstor
   real(rk8) , public , pointer , dimension(:,:) :: ts0 , ts1
-!
+
   real(rk8) , public , pointer , dimension(:,:,:) :: qdot , omega
-!
+
+  ! Cumulus
+  integer(ik4) , pointer , public , dimension(:,:) :: cucontrol
+  integer(ik4) , pointer , public , dimension(:,:) :: icumbot
+  integer(ik4) , pointer , public , dimension(:,:) :: icumtop
+  integer(ik4) , pointer , public , dimension(:,:) :: ktrop
+  real(rk8) , pointer , public , dimension(:,:,:) :: convpr
+
+  ! Radiation
+  !real(rk8) , pointer , dimension(:,:) :: ptrop
+  !real(rk8) , pointer , dimension(:,:,:) :: cldfra
+  !real(rk8) , pointer , dimension(:,:,:) :: cldlwc
+  !real(rk8) , pointer , dimension(:,:,:) :: heatrt
+
   integer(ik4) , public , parameter :: zero_exchange_point = 0
   integer(ik4) , public , parameter :: one_exchange_point = 1
   integer(ik4) , public , parameter :: two_exchange_point = 2
@@ -68,7 +81,6 @@ module mod_atm_interface
   type(grid_nc_var3d) , public :: nc_3d
   type(grid_nc_var2d) , public :: nc_2d
   type(grid_nc_var4d) , public :: qqxp
-
 #endif
 
   contains 
@@ -460,36 +472,36 @@ module mod_atm_interface
 
       if (lpar) then
         call getmem2d(dom%ht,jde1-ma%jbl1,jde2+ma%jbr1, &
-                             ide1-ma%ibb1,ide2+ma%ibt1,'atm_interface:ht')
-        call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'atm_interface:lndcat')
-        call getmem2d(dom%xlat,jde1,jde2,ide1,ide2,'atm_interface:xlat')
-        call getmem2d(dom%xlon,jde1,jde2,ide1,ide2,'atm_interface:xlon')
-        call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'atm_interface:mask')
-        call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'atm_interface:dlat')
-        call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'atm_interface:dlon')
+                             ide1-ma%ibb1,ide2+ma%ibt1,'sorage:ht')
+        call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'sorage:lndcat')
+        call getmem2d(dom%xlat,jde1,jde2,ide1,ide2,'sorage:xlat')
+        call getmem2d(dom%xlon,jde1,jde2,ide1,ide2,'sorage:xlon')
+        call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'sorage:mask')
+        call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'sorage:dlat')
+        call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'sorage:dlon')
         call getmem2d(dom%msfx,jde1-ma%jbl2,jde2+ma%jbr2, &
-                               ide1-ma%ibb2,ide2+ma%ibt2,'atm_interface:msfx')
+                               ide1-ma%ibb2,ide2+ma%ibt2,'sorage:msfx')
         call getmem2d(dom%msfd,jde1-ma%jbl2,jde2+ma%jbr2, &
-                               ide1-ma%ibb2,ide2+ma%ibt2,'atm_interface:msfd')
-        call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'atm_interface:f')
-        call getmem2d(dom%snowam,jde1,jde2,ide1,ide2,'atm_interface:snowam')
+                               ide1-ma%ibb2,ide2+ma%ibt2,'sorage:msfd')
+        call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'sorage:f')
+        call getmem2d(dom%snowam,jde1,jde2,ide1,ide2,'sorage:snowam')
         if ( lakemod == 1 ) &
-          call getmem2d(dom%dhlake,jde1,jde2,ide1,ide2,'atm_interface:dhlake')
+          call getmem2d(dom%dhlake,jde1,jde2,ide1,ide2,'sorage:dhlake')
       else
-        call getmem2d(dom%ht,jdot1,jdot2,idot1,idot2,'atm_interface:ht')
-        call getmem2d(dom%lndcat,jdot1,jdot2,idot1,idot2,'atm_interface:lndcat')
-        call getmem2d(dom%xlat,jdot1,jdot2,idot1,idot2,'atm_interface:xlat')
-        call getmem2d(dom%xlon,jdot1,jdot2,idot1,idot2,'atm_interface:xlon')
-        call getmem2d(dom%mask,jdot1,jdot2,idot1,idot2,'atm_interface:mask')
-        call getmem2d(dom%dlat,jdot1,jdot2,idot1,idot2,'atm_interface:dlat')
-        call getmem2d(dom%dlon,jdot1,jdot2,idot1,idot2,'atm_interface:dlon')
-        call getmem2d(dom%msfx,jdot1,jdot2,idot1,idot2,'atm_interface:msfx')
-        call getmem2d(dom%msfd,jdot1,jdot2,idot1,idot2,'atm_interface:msfd')
-        call getmem2d(dom%coriol,jdot1,jdot2,idot1,idot2,'atm_interface:f')
-        call getmem2d(dom%snowam,jdot1,jdot2,idot1,idot2,'atm_interface:snowam')
+        call getmem2d(dom%ht,jdot1,jdot2,idot1,idot2,'sorage:ht')
+        call getmem2d(dom%lndcat,jdot1,jdot2,idot1,idot2,'sorage:lndcat')
+        call getmem2d(dom%xlat,jdot1,jdot2,idot1,idot2,'sorage:xlat')
+        call getmem2d(dom%xlon,jdot1,jdot2,idot1,idot2,'sorage:xlon')
+        call getmem2d(dom%mask,jdot1,jdot2,idot1,idot2,'sorage:mask')
+        call getmem2d(dom%dlat,jdot1,jdot2,idot1,idot2,'sorage:dlat')
+        call getmem2d(dom%dlon,jdot1,jdot2,idot1,idot2,'sorage:dlon')
+        call getmem2d(dom%msfx,jdot1,jdot2,idot1,idot2,'sorage:msfx')
+        call getmem2d(dom%msfd,jdot1,jdot2,idot1,idot2,'sorage:msfd')
+        call getmem2d(dom%coriol,jdot1,jdot2,idot1,idot2,'sorage:f')
+        call getmem2d(dom%snowam,jdot1,jdot2,idot1,idot2,'sorage:snowam')
         if ( lakemod == 1 ) then
           call getmem2d(dom%dhlake,jdot1,jdot2, &
-            idot1,idot2,'atm_interface:dhlake')
+            idot1,idot2,'sorage:dhlake')
         end if
       end if
     end subroutine allocate_domain
@@ -597,18 +609,26 @@ module mod_atm_interface
         call allocate_tendiag(tdiag)
       end if
 
-      call getmem2d(ts0,jce1,jce2,ice1,ice2,'atm_interface:ts0')
-      call getmem2d(ts1,jce1,jce2,ice1,ice2,'atm_interface:ts1')
+      call getmem2d(ts0,jce1,jce2,ice1,ice2,'sorage:ts0')
+      call getmem2d(ts1,jce1,jce2,ice1,ice2,'sorage:ts1')
 
-      call getmem3d(dstor,jde1,jde2,ide1,ide2,1,nsplit,'atm_interface:dstor')
-      call getmem3d(hstor,jde1,jde2,ide1,ide2,1,nsplit,'atm_interface:hstor')
+      call getmem3d(dstor,jde1,jde2,ide1,ide2,1,nsplit,'sorage:dstor')
+      call getmem3d(hstor,jde1,jde2,ide1,ide2,1,nsplit,'sorage:hstor')
 !
-      call getmem2d(hgfact,jde1,jde2,ide1,ide2,'atm_interface:hgfact')
-      call getmem2d(psdot,jde1,jde2,ide1,ide2,'atm_interface:psdot')
-      call getmem3d(omega,jci1,jci2,ici1,ici2,1,kz,'atm_interface:omega')
+      call getmem2d(hgfact,jde1,jde2,ide1,ide2,'sorage:hgfact')
+      call getmem2d(psdot,jde1,jde2,ide1,ide2,'sorage:psdot')
+      call getmem3d(omega,jci1,jci2,ici1,ici2,1,kz,'sorage:omega')
       call getmem3d(qdot,jce1-ma%jbl1,jce2+ma%jbr1, &
-                         ice1-ma%ibb1,ice2+ma%ibt1,1,kzp1,'atm_interface:qdot')
-
+                         ice1-ma%ibb1,ice2+ma%ibt1,1,kzp1,'sorage:qdot')
+      call getmem2d(ktrop,jci1,jci2,ici1,ici2,'storage:ktrop')
+      if ( icup > 90 ) then
+        call getmem2d(cucontrol,jci1,jci2,ici1,ici2,'storage:cucontrol')
+      end if
+      call getmem2d(icumbot,jci1,jci2,ici1,ici2,'storage:icumbot')
+      call getmem2d(icumtop,jci1,jci2,ici1,ici2,'storage:icumtop')
+      if ( ichem == 1 ) then
+        call getmem3d(convpr,jci1,jci2,ici1,ici2,1,kz,'storage:convpr')
+      end if
     end subroutine allocate_mod_atm_interface 
-!
+
 end module mod_atm_interface

@@ -35,7 +35,8 @@ module mod_cu_interface
   contains
 
   subroutine init_cuscheme(mddom,atm1,aten,atms,chiten,sfs,qdot,pptc, &
-                           ldmsk,cldfra,cldlwc,ktrop)
+                           ldmsk,cldfra,cldlwc,ktrop,iccontr,ictop,   &
+                           icbot,cconvpr)
     implicit none
     type(domain) , intent(in) :: mddom
     type(atmstate) , intent(in) :: atm1 , aten
@@ -45,7 +46,9 @@ module mod_cu_interface
     real(rk8) , pointer , intent(in) , dimension(:,:,:) :: qdot
     real(rk8) , pointer , intent(in) , dimension(:,:) :: pptc
     integer(ik4) , pointer , intent(in) , dimension(:,:) :: ldmsk , ktrop
-    real(rk8) , pointer , dimension(:,:,:) :: cldlwc , cldfra
+    integer(ik4) , pointer , intent(in) , dimension(:,:) :: iccontr , ictop
+    integer(ik4) , pointer , intent(in) , dimension(:,:) :: icbot
+    real(rk8) , pointer , dimension(:,:,:) :: cldlwc , cldfra , cconvpr
 !
     call assignpnt(mddom%ht,sfhgt)
     call assignpnt(atm1%t,ptatm)
@@ -77,6 +80,13 @@ module mod_cu_interface
     call assignpnt(cldfra,rcldfra)
     call assignpnt(cldlwc,rcldlwc)
     call assignpnt(ktrop,rktrop)
+    call assignpnt(iccontr,cuscheme)
+    call assignpnt(ictop,kcumtop)
+    call assignpnt(icbot,kcumbot)
+    call assignpnt(cconvpr,cprate)
+
+    call init_mod_cumulus
+
   end subroutine init_cuscheme
 !
 end module mod_cu_interface
