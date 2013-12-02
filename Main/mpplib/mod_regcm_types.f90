@@ -165,4 +165,69 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: lnd_sub
   end type atm_2_lm
 
+  type atm_2_ocn
+    real(rk8) , pointer , dimension(:,:) :: sfps
+    real(rk8) , pointer , dimension(:,:) :: tatm
+    real(rk8) , pointer , dimension(:,:) :: thatm
+    real(rk8) , pointer , dimension(:,:) :: zatm
+    real(rk8) , pointer , dimension(:,:) :: qvatm
+    real(rk8) , pointer , dimension(:,:) :: uatm
+    real(rk8) , pointer , dimension(:,:) :: vatm
+    real(rk8) , pointer , dimension(:,:) :: ncprp
+    real(rk8) , pointer , dimension(:,:) :: cprp
+    real(rk8) , pointer , dimension(:,:) :: rhox
+    real(rk8) , pointer , dimension(:,:) :: tgrd
+    real(rk8) , pointer , dimension(:,:) :: sst
+    logical , pointer , dimension(:,:) :: icemsk
+  end type atm_2_ocn
+
+  type rad_2_ocn
+    real(rk8) , pointer , dimension(:,:) :: fsw
+    real(rk8) , pointer , dimension(:,:) :: flw
+    real(rk8) , pointer , dimension(:,:) :: flwd
+  end type rad_2_ocn
+
+  type pbl_2_ocn
+    real(rk8) , pointer , dimension(:,:) :: hpbl
+  end type pbl_2_ocn
+
+  type ocn_2_atm
+    real(rk8) , pointer , dimension(:,:) :: tgrd
+    real(rk8) , pointer , dimension(:,:) :: drag
+    real(rk8) , pointer , dimension(:,:) :: evpr
+    real(rk8) , pointer , dimension(:,:) :: sent
+    real(rk8) , pointer , dimension(:,:) :: emiss
+    real(rk8) , pointer , dimension(:,:) :: u10m
+    real(rk8) , pointer , dimension(:,:) :: v10m
+    real(rk8) , pointer , dimension(:,:) :: t2m
+    real(rk8) , pointer , dimension(:,:) :: q2m
+    real(rk8) , pointer , dimension(:,:) :: tgbrd
+    real(rk8) , pointer , dimension(:,:) :: taux
+    real(rk8) , pointer , dimension(:,:) :: tauy
+    real(rk8) , pointer , dimension(:,:) :: sfice
+    real(rk8) , pointer , dimension(:,:) :: sm
+    real(rk8) , pointer , dimension(:,:) :: tm
+    logical , pointer , dimension(:,:) :: icemsk
+  end type ocn_2_atm
+
+  type sun_2_ocn
+    real(rk8) , pointer , dimension(:,:) :: cosz
+  end type sun_2_ocn
+
+  type ocn_2_rad
+    real(rk8) , pointer , dimension(:,:) :: aldirs
+    real(rk8) , pointer , dimension(:,:) :: aldifs
+    real(rk8) , pointer , dimension(:,:) :: aldirl
+    real(rk8) , pointer , dimension(:,:) :: aldifl
+  end type ocn_2_rad
+
+  type ocn_2_sav
+    real(rk8) , pointer , dimension(:,:) :: snag
+    real(rk8) , pointer , dimension(:,:) :: sncv
+    real(rk8) , pointer , dimension(:,:) :: scvk
+    real(rk8) , pointer , dimension(:,:) :: deltas
+    real(rk8) , pointer , dimension(:,:) :: tdeltas
+    real(rk8) , pointer , dimension(:,:) :: dtskin
+  end type ocn_2_sav
+
 end module mod_regcm_types
