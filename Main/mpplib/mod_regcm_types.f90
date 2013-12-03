@@ -223,6 +223,7 @@ module mod_regcm_types
   end type static_2_rad
 
   type rcm_2_rad
+    integer(ik4) , pointer , dimension(:,:) :: ldmsk
     real(rk8) , pointer , dimension(:,:,:) :: tatms
     real(rk8) , pointer , dimension(:,:,:) :: rhatms
     real(rk8) , pointer , dimension(:,:) :: tground
@@ -238,7 +239,6 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: emiss
     real(rk8) , pointer , dimension(:,:,:,:) :: qxatms
     real(rk8) , pointer , dimension(:,:,:,:) :: chia
-    integer(ik4) , pointer , intent(in) , dimension(:,:) :: ldmsk
   end type rcm_2_rad
 
   type rad_2_rcm
