@@ -2392,6 +2392,7 @@ module mod_cloud_s1
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine ludcmp
+
   subroutine addpath_array(src,snk,proc2,zsqa,zsqb,beta,fg,j,i)
     implicit none
     real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: zsqa , zsqb
@@ -2400,11 +2401,11 @@ module mod_cloud_s1
     integer(ik4) , intent(in) :: src, snk
     integer(ik4), intent(in)  :: i , j  
     real(rk8) , intent(in) :: beta
-        zsqa(j,i,src,snk) = zsqa(j,i,src,snk) + (d_one-beta)*proc2(j,i)
-        zsqa(j,i,snk,src) = zsqa(j,i,snk,src) - (d_one-beta)*proc2(j,i)
-        fg(j,i,src) = fg(j,i,src) + (d_one-beta)*proc2(j,i)
-        fg(j,i,snk) = fg(j,i,snk) - (d_one-beta)*proc2(j,i)
-        zsqb(j,i,src,snk) = zsqb(j,i,src,snk) + beta*proc2(j,i)
+    zsqa(j,i,src,snk) = zsqa(j,i,src,snk) + (d_one-beta)*proc2(j,i)
+    zsqa(j,i,snk,src) = zsqa(j,i,snk,src) - (d_one-beta)*proc2(j,i)
+    fg(j,i,src) = fg(j,i,src) + (d_one-beta)*proc2(j,i)
+    fg(j,i,snk) = fg(j,i,snk) - (d_one-beta)*proc2(j,i)
+    zsqb(j,i,src,snk) = zsqb(j,i,src,snk) + beta*proc2(j,i)
   end subroutine addpath_array
 
   subroutine addpath_real(src,snk,proc,zsqa,zsqb,beta,fg)
@@ -2412,15 +2413,18 @@ module mod_cloud_s1
     real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: zsqa , zsqb
     real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: fg
     real(rk8) , intent(in) :: proc
-    integer(ik4) , intent(in) :: src, snk
-    integer(ik4) :: i , j  
+    integer(ik4) , intent(in) :: src , snk
+    integer(ik4) :: i , j
     real(rk8) , intent(in) :: beta
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         zsqa(j,i,src,snk) = zsqa(j,i,src,snk) + (d_one-beta)*proc
         zsqa(j,i,snk,src) = zsqa(j,i,snk,src) - (d_one-beta)*proc
         fg(j,i,src) = fg(j,i,src) + (d_one-beta)*proc
         fg(j,i,snk) = fg(j,i,snk) - (d_one-beta)*proc
         zsqb(j,i,src,snk) = zsqb(j,i,src,snk) + beta*proc
+      end do
+    end do
   end subroutine addpath_real
-
 
 end module mod_cloud_s1

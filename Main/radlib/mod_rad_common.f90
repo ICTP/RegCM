@@ -28,8 +28,8 @@ module mod_rad_common
 
   public
 
-  real(rk8) , pointer , dimension(:,:) :: sfps    ! sfs%psb
-  real(rk8) , pointer , dimension(:,:) :: psfps   ! sfs%psa
+  real(rk8) , pointer , dimension(:,:) :: psb    ! sfs%psb
+  real(rk8) , pointer , dimension(:,:) :: psa   ! sfs%psa
 
   real(rk8) , pointer , dimension(:,:,:) :: tatms    ! atms%tb3d
   real(rk8) , pointer , dimension(:,:,:,:) :: qxatms ! atms%qxb3d
@@ -70,7 +70,7 @@ module mod_rad_common
   real(rk8) , pointer , dimension(:,:) :: srflwflxdw ! flwd
 
   ! Land Ocean Ice (1,0,2) mask
-  integer(ik4) , pointer , dimension(:,:,:) :: lndocnicemsk ! ldmsk12d
+  integer(ik4) , pointer , dimension(:,:) :: lndocnicemsk ! ldmsk
 
   real(rk8) , pointer , dimension(:,:,:,:) :: chspmix  ! chia
 

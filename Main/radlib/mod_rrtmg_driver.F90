@@ -431,7 +431,7 @@ module mod_rrtmg_driver
 !
     integer(ik4) , intent(in) :: iyear , inflagsw
     real(rk8) :: ccvtem , clwtem , w1 , w2
-    integer(ik4) :: i , j , k , kj , ncldm1 , ns , n , jj0 , jj1 , jj2
+    integer(ik4) :: i , j , k , kj , ncldm1 , ns , n
     real(rk8) , parameter :: lowcld = 1.0D-30
     real(rk8) , parameter :: verynearone = 0.999999D0
     real(rk8) :: tmp1l , tmp2l , tmp3l , tmp1i , tmp2i , tmp3i
@@ -516,7 +516,7 @@ module mod_rrtmg_driver
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        psfc(n) = (sfps(j,i)+ptop)*d_10
+        psfc(n) = (psb(j,i)+ptop)*d_10
         n = n + 1
       end do
     end do
@@ -526,7 +526,7 @@ module mod_rrtmg_driver
       kj = kzp1-k
       do i = ici1 , ici2
         do j = jci1 , jci2
-          play(n,kj) = (sfps(j,i)*hsigma(k)+ptop)*d_10
+          play(n,kj) = (psb(j,i)*hsigma(k)+ptop)*d_10
           n = n + 1
         end do
       end do
@@ -542,7 +542,7 @@ module mod_rrtmg_driver
       kj = kzp1-k+1   
       do i = ici1 , ici2
         do j = jci1 , jci2
-          plev(n,kj) = (sfps(j,i)*sigma(k)+ptop)*d_10
+          plev(n,kj) = (psb(j,i)*sigma(k)+ptop)*d_10
           n = n + 1
         end do
       end do
@@ -772,27 +772,12 @@ module mod_rrtmg_driver
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        jj0 = 0
-        jj1 = 0
-        jj2 = 0
-        do n = 1 , nnsg
-          if ( lndocnicemsk(n,j,i) == 2 ) then
-            jj2 = jj2 + 1
-          else if ( lndocnicemsk(n,j,i) == 1 ) then
-            jj1 = jj1 + 1
-          else
-            jj0 = jj0 + 1
-          end if
-        end do
-        if ( jj0 >= jj1 .and. jj0 >= jj2 ) ioro(n) = 0
-        if ( jj1 > jj0 .and. jj1 >= jj2 ) ioro(n) = 1
-        if ( jj2 > jj0 .and. jj2 > jj1 ) ioro(n) = 2
+        ioro(n) = lndocnicemsk(j,i)
         n = n + 1
       end do
     end do
     !
     call cldefr_rrtm(tlay,rel,rei,fice,play)
-    !
     !
     !  partition of total  water path betwwen liquide and ice.
     ! ( waiting for prognostic ice !) 

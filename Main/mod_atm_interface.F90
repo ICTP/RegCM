@@ -65,10 +65,10 @@ module mod_atm_interface
   real(rk8) , pointer , public , dimension(:,:,:) :: convpr
 
   ! Radiation
-  !real(rk8) , pointer , dimension(:,:) :: ptrop
-  !real(rk8) , pointer , dimension(:,:,:) :: cldfra
-  !real(rk8) , pointer , dimension(:,:,:) :: cldlwc
-  !real(rk8) , pointer , dimension(:,:,:) :: heatrt
+  real(rk8) , pointer , dimension(:,:) :: ptrop
+  real(rk8) , pointer , dimension(:,:,:) :: cldfra
+  real(rk8) , pointer , dimension(:,:,:) :: cldlwc
+  real(rk8) , pointer , dimension(:,:,:) :: heatrt
 
   integer(ik4) , public , parameter :: zero_exchange_point = 0
   integer(ik4) , public , parameter :: one_exchange_point = 1
@@ -629,6 +629,10 @@ module mod_atm_interface
       if ( ichem == 1 ) then
         call getmem3d(convpr,jci1,jci2,ici1,ici2,1,kz,'storage:convpr')
       end if
+      call getmem3d(cldfra,jci1,jci2,ici1,ici2,1,kz,'storage:cldfra')
+      call getmem3d(cldlwc,jci1,jci2,ici1,ici2,1,kz,'storage:cldlwc')
+      call getmem3d(heatrt,jci1,jci2,ici1,ici2,1,kz,'storage:heatrt')
+      call getmem2d(ptrop,jci1,jci2,ici1,ici2,'storage:ptrop')
     end subroutine allocate_mod_atm_interface 
 
 end module mod_atm_interface

@@ -1340,7 +1340,7 @@ module mod_params
   end if
   call init_rad(atms,sfs,mddom,sabveg,solis,coszrs,aldirs,aldifs,  &
                 aldirl,aldifl,albvs,albvl,aemiss,sinc,solvs,solvd, &
-                fsw,flw,flwd,ldmsk1,chia)
+                fsw,flw,flwd,ldmsk,chia)
 #ifdef CLM
   call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
 #endif

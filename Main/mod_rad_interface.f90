@@ -37,7 +37,7 @@ module mod_rad_interface
 !
   subroutine init_rad(atms,sfs,mddom,sabveg,solis,coszrs, &
                       aldirs,aldifs,aldirl,aldifl,albvs,albvl,emiss,  &
-                      sinc,solvs,solvd,fsw,flw,flwd,ldmsk1,chia)
+                      sinc,solvs,solvd,fsw,flw,flwd,ldmsk,chia)
     implicit none
     type(slice) , intent(in) :: atms
     type(surfstate) , intent(in) :: sfs
@@ -58,15 +58,15 @@ module mod_rad_interface
     real(rk8) , pointer , intent(in) , dimension(:,:) :: fsw
     real(rk8) , pointer , intent(in) , dimension(:,:) :: flw
     real(rk8) , pointer , intent(in) , dimension(:,:) :: flwd
-    integer(ik4) , pointer , intent(in) , dimension(:,:,:) :: ldmsk1
+    integer(ik4) , pointer , intent(in) , dimension(:,:) :: ldmsk
     real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: chia
 
     call assignpnt(atms%tb3d,tatms)
     call assignpnt(atms%qxb3d,qxatms)
     call assignpnt(atms%rhb3d,rhatms)
     call assignpnt(sfs%tgbb,tground)
-    call assignpnt(sfs%psa,psfps)
-    call assignpnt(sfs%psb,sfps)
+    call assignpnt(sfs%psa,psa)
+    call assignpnt(sfs%psb,psb)
     call assignpnt(mddom%xlat,xlat)
     call assignpnt(sabveg,abveg)
     call assignpnt(solis,solar)
@@ -84,7 +84,7 @@ module mod_rad_interface
     call assignpnt(fsw,srfabswflx)
     call assignpnt(flw,srflwflxup)
     call assignpnt(flwd,srflwflxdw)
-    call assignpnt(ldmsk1,lndocnicemsk)
+    call assignpnt(ldmsk,lndocnicemsk)
     call assignpnt(chia,chspmix)
   end subroutine init_rad
 !

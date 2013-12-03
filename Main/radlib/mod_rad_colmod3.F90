@@ -233,7 +233,7 @@ module mod_rad_colmod3
     logical , intent(in) :: lout , labsem
     real(rk8) , intent(in) :: eccf
 !
-    integer(ik4) :: i , j , k , n , m , k2 , jj0 , jj1 , jj2
+    integer(ik4) :: i , j , k , n , m , k2
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'colmod3'
     integer(ik4) :: indx = 0
@@ -351,7 +351,6 @@ module mod_rad_colmod3
     rei(:,:) = d_zero
     rel(:,:) = d_zero
     tm1(:,:) = d_zero
-    ioro(:) = -1
     !
     ! radini sets many radiation parameters
     !
@@ -359,25 +358,11 @@ module mod_rad_colmod3
     !
     ! NB: orography types are specified in the following
     !
-    m = 1
+    n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        jj0 = 0
-        jj1 = 0
-        jj2 = 0
-        do n = 1 , nnsg
-          if ( lndocnicemsk(n,j,i) == 2 ) then
-            jj2 = jj2 + 1
-          else if ( lndocnicemsk(n,j,i) == 1 ) then
-            jj1 = jj1 + 1
-          else
-            jj0 = jj0 + 1
-          end if
-        end do
-        if ( jj0 >= jj1 .and. jj0 >= jj2 ) ioro(m) = 0
-        if ( jj1 >  jj0 .and. jj1 >= jj2 ) ioro(m) = 1
-        if ( jj2 >  jj0 .and. jj2 >  jj1 ) ioro(m) = 2
-        m = m + 1
+        ioro(n) = lndocnicemsk(j,i)
+        n = n + 1
       end do
     end do
     !
@@ -724,7 +709,7 @@ module mod_rad_colmod3
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        ps(n) = (sfps(j,i)+ptop)*d_1000
+        ps(n) = (psb(j,i)+ptop)*d_1000
         n = n + 1
       end do
     end do
@@ -735,7 +720,7 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          pmidm1(n,k) = (sfps(j,i)*hsigma(k)+ptop)*d_1000
+          pmidm1(n,k) = (psb(j,i)*hsigma(k)+ptop)*d_1000
           n = n + 1
         end do
       end do
@@ -745,7 +730,7 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          pintm1(n,k) = (sfps(j,i)*sigma(k)+ptop)*d_1000
+          pintm1(n,k) = (psb(j,i)*sigma(k)+ptop)*d_1000
           n = n + 1
         end do
       end do
@@ -873,7 +858,7 @@ module mod_rad_colmod3
           n = 1
           do i = ici1 , ici2
             do j = jci1 , jci2
-              aermmr(n,k,itr) = chspmix(j,i,k,itr)/psfps(j,i)
+              aermmr(n,k,itr) = chspmix(j,i,k,itr)/psa(j,i)
               n = n + 1
             end do
           end do
