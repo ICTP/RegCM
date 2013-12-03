@@ -35,9 +35,9 @@ module mod_rad_interface
 !
   contains 
 !
-  subroutine init_rad(atms,sfs,mddom,sabveg,solis,coszrs, &
-                      aldirs,aldifs,aldirl,aldifl,albvs,albvl,emiss,  &
-                      sinc,solvs,solvd,fsw,flw,flwd,ldmsk,chia)
+  subroutine init_rad(atms,sfs,mddom,sabveg,solis,coszrs,aldirs,aldifs, &
+                      aldirl,aldifl,albvs,albvl,emiss,sinc,solvs,solvd, &
+                      fsw,flw,flwd,ldmsk,chia)
     implicit none
     type(slice) , intent(in) :: atms
     type(surfstate) , intent(in) :: sfs

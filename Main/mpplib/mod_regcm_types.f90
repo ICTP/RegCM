@@ -165,7 +165,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: lnd_sub
   end type atm_2_lm
 
-  type rcm_2_ocn
+  type mod_2_ocn
     real(rk8) , pointer , dimension(:,:) :: sfps
     real(rk8) , pointer , dimension(:,:) :: tatm
     real(rk8) , pointer , dimension(:,:) :: thatm
@@ -184,9 +184,9 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: flwd
     real(rk8) , pointer , dimension(:,:) :: hpbl
     real(rk8) , pointer , dimension(:,:) :: cosz
-  end type rcm_2_ocn
+  end type mod_2_ocn
 
-  type ocn_2_rcm
+  type ocn_2_mod
     real(rk8) , pointer , dimension(:,:) :: tgrd
     real(rk8) , pointer , dimension(:,:) :: drag
     real(rk8) , pointer , dimension(:,:) :: evpr
@@ -207,7 +207,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: aldifs
     real(rk8) , pointer , dimension(:,:) :: aldirl
     real(rk8) , pointer , dimension(:,:) :: aldifl
-  end type ocn_2_rcm
+  end type ocn_2_mod
 
   type ocn_2_sav
     real(rk8) , pointer , dimension(:,:) :: snag
@@ -218,12 +218,9 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: dtskin
   end type ocn_2_sav
 
-  type static_2_rad
-    real(rk8) , pointer , dimension(:,:) :: xlat
-  end type static_2_rad
-
-  type rcm_2_rad
+  type mod_2_rad
     integer(ik4) , pointer , dimension(:,:) :: ldmsk
+    real(rk8) , pointer , dimension(:,:) :: xlat
     real(rk8) , pointer , dimension(:,:,:) :: tatms
     real(rk8) , pointer , dimension(:,:,:) :: rhatms
     real(rk8) , pointer , dimension(:,:) :: tground
@@ -239,9 +236,9 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: emiss
     real(rk8) , pointer , dimension(:,:,:,:) :: qxatms
     real(rk8) , pointer , dimension(:,:,:,:) :: chia
-  end type rcm_2_rad
+  end type mod_2_rad
 
-  type rad_2_rcm
+  type rad_2_mod
     real(rk8) , pointer , dimension(:,:) :: abveg
     real(rk8) , pointer , dimension(:,:) :: solar
     real(rk8) , pointer , dimension(:,:) :: totsol
@@ -251,6 +248,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: netlwflx
     real(rk8) , pointer , dimension(:,:) :: uplwflx
     real(rk8) , pointer , dimension(:,:) :: downlwflx
-  end type rad_2_rcm
+    real(rk8) , pointer , dimension(:,:,:) :: heatrt
+  end type rad_2_mod
 
 end module mod_regcm_types
