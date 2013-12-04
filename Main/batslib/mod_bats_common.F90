@@ -40,23 +40,17 @@ module mod_bats_common
   real(rk4) :: fdaysrf
 
   real(rk8) , pointer , dimension(:,:,:) :: delq , delt ,  taf , &
-         drag , evpr , gwet , ldew , q2m , sfcp , trnof , &
-         srnof , rsw , snag , sncv , sent , sfice , ssw , &
-         t2m , tgrd , tgbrd , tlef , tsw , u10m , v10m , lncl, &
-         taux, tauy
+         drag , evpr , gwet , ldew , q2m , sfcp , trnof ,        &
+         srnof , rsw , snag , sncv , sent , sfice , ssw ,        &
+         t2m , tgrd , tgbrd , tlef , tsw , u10m , v10m , lncl ,  &
+         taux , tauy
 !
   real(rk8) :: rdnnsg
   real(rk4) :: rrnnsg
 !
-  real(rk8) , pointer , dimension(:,:) :: flw , fsw , fracd , &
-         solis , czen , aemiss
-  real(rk8) , pointer , dimension(:,:) :: albvl , albvs , albvsd , &
-         aldifl , aldifs , aldirl , aldirs , sabveg
+  real(rk8) , pointer , dimension(:,:) :: solis , czen , aemiss
 !
-  real(rk8) , pointer , dimension(:,:) :: coszrs
-!
-  real(rk8) , pointer , dimension(:,:) :: flwd , pptc , pptnc , &
-         prca , prnca , sinc , solvd , solvs , totpr
+  real(rk8) , pointer , dimension(:,:) :: sinc , solvd , solvs , totpr , fracd
 !
   real(rk8) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
         sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
@@ -94,16 +88,31 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:) :: tatm          ! atms%tb3d(:,:,kz)
   real(rk8) , pointer , dimension(:,:) :: thatm         ! atms%thx3d(:,:,kz)
   real(rk8) , pointer , dimension(:,:) :: qvatm         ! atms%qxb3d(:,:,kz,iqv)
+  real(rk8) , pointer , dimension(:,:) :: hgt           ! za(:,:,kz)
   real(rk8) , pointer , dimension(:,:) :: hpbl          ! zpbl
   real(rk8) , pointer , dimension(:,:) :: hfx           ! sfs%hfx
   real(rk8) , pointer , dimension(:,:) :: qfx           ! sfs%qfx
-  real(rk8) , pointer , dimension(:,:) :: uvdrag        ! sfs%uvdrag
-  real(rk8) , pointer , dimension(:,:) :: tgbb          ! sfs%tgbb
   real(rk8) , pointer , dimension(:,:) :: tground1      ! sfs%tga
   real(rk8) , pointer , dimension(:,:) :: tground2      ! sfs%tgb
   real(rk8) , pointer , dimension(:,:) :: sfps          ! sfs%psb
-  real(rk8) , pointer , dimension(:,:) :: hgt           ! za(:,:,kz)
+  real(rk8) , pointer , dimension(:,:) :: uvdrag        ! sfs%uvdrag
+  real(rk8) , pointer , dimension(:,:) :: tgbb          ! sfs%tgbb
   real(rk8) , pointer , dimension(:,:) :: rhox          ! rhox2d
+  real(rk8) , pointer , dimension(:,:) :: rswf          ! fsw
+  real(rk8) , pointer , dimension(:,:) :: rlwf          ! flw
+  real(rk8) , pointer , dimension(:,:) :: dwrlwf        ! flwd
+  real(rk8) , pointer , dimension(:,:) :: zencos        ! coszrs
+  real(rk8) , pointer , dimension(:,:) :: ncprate       ! pptnc 
+  real(rk8) , pointer , dimension(:,:) :: ncapr         ! prnca 
+  real(rk8) , pointer , dimension(:,:) :: cprate        ! cprate 
+  real(rk8) , pointer , dimension(:,:) :: capr          ! prca 
+  real(rk8) , pointer , dimension(:,:) :: vegswab       ! sabveg 
+  real(rk8) , pointer , dimension(:,:) :: lwalb         ! albvl
+  real(rk8) , pointer , dimension(:,:) :: swalb         ! albvs
+  real(rk8) , pointer , dimension(:,:) :: swdiralb      ! aldirs
+  real(rk8) , pointer , dimension(:,:) :: swdifalb      ! aldifs
+  real(rk8) , pointer , dimension(:,:) :: lwdiralb      ! aldirl
+  real(rk8) , pointer , dimension(:,:) :: lwdifalb      ! aldifl
   integer(ik4) , pointer , dimension(:,:) :: lmask      ! CLM landmask
 
   integer(ik4) :: nlakep = 0
@@ -119,11 +128,8 @@ module mod_bats_common
       rdnnsg = d_one/dble(nnsg)
 
       call getmem2d(iveg,jci1,jci2,ici1,ici2,'bats:iveg')
-      call getmem2d(pptc,jci1,jci2,ici1,ici2,'bats:pptc')
-      call getmem2d(pptnc,jci1,jci2,ici1,ici2,'bats:pptnc')
       call getmem2d(totpr,jci1,jci2,ici1,ici2,'bats:totpr')
-      call getmem2d(prca,jci1,jci2,ici1,ici2,'bats:prca')
-      call getmem2d(prnca,jci1,jci2,ici1,ici2,'bats:prnca')
+      call getmem2d(fracd,jci1,jci2,ici1,ici2,'bats:fracd')
 
       call getmem2d(sinc,jci1,jci2,ici1,ici2,'bats:sinc')
       call getmem2d(ldmsk,jci1,jci2,ici1,ici2,'bats:ldmsk')
@@ -133,7 +139,6 @@ module mod_bats_common
         ! This is for the RTM component
         call getmem3d(dailyrnf,jci1,jci2,ici1,ici2,1,2,'bats:dailyrnf')
       end if
-      call getmem2d(flwd,jci1,jci2,ici1,ici2,'bats:flwd')
       call getmem2d(solvd,jci1,jci2,ici1,ici2,'bats:solvd')
       call getmem2d(solvs,jci1,jci2,ici1,ici2,'bats:solvs')
       if ( ichem == 1 ) then
@@ -192,19 +197,7 @@ module mod_bats_common
       call getmem3d(tauy,1,nnsg,jci1,jci2,ici1,ici2,'bats:tauy')
       call getmem3d(lncl,1,nnsg,jci1,jci2,ici1,ici2,'bats:lncl')
 
-      call getmem2d(flw,jci1,jci2,ici1,ici2,'bats:flw')
-      call getmem2d(fsw,jci1,jci2,ici1,ici2,'bats:fsw')
-      call getmem2d(fracd,jci1,jci2,ici1,ici2,'bats:fracd')
       call getmem2d(solis,jci1,jci2,ici1,ici2,'bats:solis')
-      call getmem2d(sabveg,jci1,jci2,ici1,ici2,'bats:sabveg')
-
-      call getmem2d(coszrs,jci1,jci2,ici1,ici2,'bats:coszrs')
-      call getmem2d(albvl,jci1,jci2,ici1,ici2,'bats:albvl')
-      call getmem2d(albvs,jci1,jci2,ici1,ici2,'bats:albvs')
-      call getmem2d(aldifl,jci1,jci2,ici1,ici2,'bats:aldifl')
-      call getmem2d(aldifs,jci1,jci2,ici1,ici2,'bats:aldifs')
-      call getmem2d(aldirl,jci1,jci2,ici1,ici2,'bats:aldirl')
-      call getmem2d(aldirs,jci1,jci2,ici1,ici2,'bats:aldirs')
 
       if ( lakemod == 1 ) then
         call getmem3d(lakemsk,1,nnsg,jci1,jci2,ici1,ici2,'bats:lakemsk')

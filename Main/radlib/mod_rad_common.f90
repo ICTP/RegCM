@@ -28,9 +28,8 @@ module mod_rad_common
 
   public
 
-  real(rk8) , pointer , dimension(:,:) :: psb    ! sfs%psb
-  real(rk8) , pointer , dimension(:,:) :: psa   ! sfs%psa
-
+  real(rk8) , pointer , dimension(:,:) :: psa    ! sfs%psb
+  real(rk8) , pointer , dimension(:,:) :: psb   ! sfs%psa
   real(rk8) , pointer , dimension(:,:,:) :: tatms    ! atms%tb3d
   real(rk8) , pointer , dimension(:,:,:,:) :: qxatms ! atms%qxb3d
   real(rk8) , pointer , dimension(:,:,:) :: rhatms   ! atms%rhb3d
@@ -70,12 +69,12 @@ module mod_rad_common
   real(rk8) , pointer , dimension(:,:) :: srflwflxdw ! flwd
 
   ! Land Ocean Ice (1,0,2) mask
-  integer(ik4) , pointer , dimension(:,:) :: lndocnicemsk ! ldmsk
+  integer(ik4) , pointer , dimension(:,:) :: lndocnicemsk ! ldmsk12d
 
   real(rk8) , pointer , dimension(:,:,:,:) :: chspmix  ! chia
 
-  real(rk8) , pointer , dimension(:,:,:) :: cldfra , cldlwc
-  real(rk8) , pointer , dimension(:,:,:) :: heatrt
+  real(rk8) , pointer , dimension(:,:,:) :: cloudfrac , cloudlwc
+  real(rk8) , pointer , dimension(:,:,:) :: heatingrate
   real(rk8) , pointer , dimension(:,:,:) :: o3prof
   real(rk8) , pointer , dimension(:,:,:) :: aerasp , aerext , aerssa
   real(rk8) , pointer , dimension(:,:) :: aersrrf , aertarf
@@ -89,7 +88,7 @@ module mod_rad_common
 
   real(rk8) , pointer , dimension(:,:,:,:) :: taucldsp
 
-  real(rk8) , pointer , dimension(:,:) :: ptrop
+  real(rk8) , pointer , dimension(:,:) :: ptropo
 
   logical :: doabsems , dolw , dosw
   integer(ik4) :: ichso4 , ichbc , ichoc
@@ -102,11 +101,7 @@ module mod_rad_common
 
   subroutine allocate_mod_rad_common
     implicit none
-    call getmem3d(cldfra,jci1,jci2,ici1,ici2,1,kz,'rad:cldfra')
-    call getmem3d(cldlwc,jci1,jci2,ici1,ici2,1,kz,'rad:cldlwc')
-    call getmem3d(heatrt,jci1,jci2,ici1,ici2,1,kz,'rad:heatrt')
     call getmem3d(o3prof,jci1,jci2,ici1,ici2,1,kzp1,'rad:o3prof')
-    call getmem2d(ptrop,jci1,jci2,ici1,ici2,'rad:ptrop')
     if ( irrtm == 0 ) then
       call getmem4d(gasabsnxt,jci1,jci2,ici1,ici2,1,kz,1,4,'rad:gasabsnxt')
       call getmem4d(gasabstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1,'rad:gasabstot')

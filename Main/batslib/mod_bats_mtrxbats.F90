@@ -338,8 +338,8 @@ module mod_bats_mtrxbats
             qs(n,j,i) = dmax1(rh0*ep2*satvp/(sfcp(n,j,i)*0.01D0-satvp),d_zero)
             rhs(n,j,i) = sfcp(n,j,i)/(rgas*sts(n,j,i))
             ! Average over the priod
-            prcp(n,j,i) = (pptnc(j,i) + pptc(j,i))*rtsrf
-            totpr(j,i) = (pptnc(j,i) + pptc(j,i))*rtsrf
+            prcp(n,j,i) = (ncprate(j,i) + cprate(j,i))*rtsrf
+            totpr(j,i) = (ncprate(j,i) + cprate(j,i))*rtsrf
             !
             ! quantities stored on 2d surface array for bats use only
             !
@@ -510,13 +510,13 @@ module mod_bats_mtrxbats
           if ( associated(srf_tpr_out) ) &
             srf_tpr_out = srf_tpr_out + totpr
           if ( associated(srf_prcv_out) ) &
-            srf_prcv_out = srf_prcv_out + pptc
+            srf_prcv_out = srf_prcv_out + cprate
           if ( associated(srf_zpbl_out) ) &
             srf_zpbl_out = srf_zpbl_out + hpbl
           if ( associated(srf_scv_out) ) &
             srf_scv_out = srf_scv_out + sum(sncv,1)*rdnnsg
           if ( associated(srf_sund_out) ) then
-            where( fsw > 120.0D0 )
+            where( rswf > 120.0D0 )
               srf_sund_out = srf_sund_out + dtbat
             end where
           end if
@@ -528,11 +528,11 @@ module mod_bats_mtrxbats
             srf_sena_out = srf_sena_out + sum(sent,1)*rdnnsg
           end if
           if ( associated(srf_flw_out) ) &
-            srf_flw_out = srf_flw_out + flw
+            srf_flw_out = srf_flw_out + rlwf
           if ( associated(srf_fsw_out) ) &
-            srf_fsw_out = srf_fsw_out + fsw
+            srf_fsw_out = srf_fsw_out + rswf
           if ( associated(srf_fld_out) ) &
-            srf_fld_out = srf_fld_out + flwd
+            srf_fld_out = srf_fld_out + dwrlwf
           if ( associated(srf_sina_out) ) &
             srf_sina_out = srf_sina_out + sinc
           if ( associated(srf_snowmelt_out) ) &
@@ -573,7 +573,7 @@ module mod_bats_mtrxbats
             sts_psmin_out = min(sts_psmin_out, &
               (sfps(jci1:jci2,ici1:ici2)+ptop)*d_10)
           if ( associated(sts_sund_out) ) then
-            where( fsw > 120.0D0 )
+            where( rswf > 120.0D0 )
               sts_sund_out = sts_sund_out + dtbat
             end where
           end if
@@ -590,11 +590,11 @@ module mod_bats_mtrxbats
           if ( associated(lak_sena_out) ) &
             lak_sena_out = lak_sena_out + sum(sent,1)*rdnnsg
           if ( associated(lak_flw_out) ) &
-            lak_flw_out = lak_flw_out + flw
+            lak_flw_out = lak_flw_out + rlwf
           if ( associated(lak_fsw_out) ) &
-            lak_fsw_out = lak_fsw_out + fsw
+            lak_fsw_out = lak_fsw_out + rswf
           if ( associated(lak_fld_out) ) &
-            lak_fld_out = lak_fld_out + flwd
+            lak_fld_out = lak_fld_out + dwrlwf
           if ( associated(lak_sina_out) ) &
             lak_sina_out = lak_sina_out + sinc
           if ( associated(lak_evp_out) ) &
@@ -623,9 +623,9 @@ module mod_bats_mtrxbats
             end where
           end if
           if ( associated(srf_aldirs_out) ) &
-            srf_aldirs_out = aldirs
+            srf_aldirs_out = swdiralb
           if ( associated(srf_aldifs_out) ) &
-            srf_aldifs_out = aldifs
+            srf_aldifs_out = swdifalb
           if ( associated(srf_seaice_out) ) &
             srf_seaice_out = sum(sfice,1)*rdnnsg*d_r1000
           if ( associated(srf_t2m_out) ) &
@@ -674,9 +674,9 @@ module mod_bats_mtrxbats
           if ( associated(lak_tg_out) ) &
             lak_tg_out = tground1
           if ( associated(lak_aldirs_out) ) &
-            lak_aldirs_out = aldirs
+            lak_aldirs_out = swdiralb
           if ( associated(lak_aldifs_out) ) &
-            lak_aldifs_out = aldifs
+            lak_aldifs_out = swdifalb
           if ( associated(lak_hsnow_out) ) &
             lak_hsnow_out = sum(sncv*lakemsk,1)*rdnnsg
           if ( associated(lak_tlake_out) ) &
@@ -693,8 +693,8 @@ module mod_bats_mtrxbats
       end if
 
       ! Reset accumulation from precip and cumulus
-      pptnc = d_zero
-      pptc  = d_zero
+      ncprate = d_zero
+      cprate  = d_zero
 
     end if ! Versus of the interface (1,2)
 
@@ -707,15 +707,15 @@ module mod_bats_mtrxbats
 ! wavelength regions split at 0.7um.
 !
 ! CM hands albedos to radiation package which computes
-! fsw(i) = net solar absorbed over full grid square
-! sabveg(j,i) = vegetation absorbed (full solar spectrum)
+! rswf(i) = net solar absorbed over full grid square
+! vegswab(j,i) = vegetation absorbed (full solar spectrum)
 ! solis(j,i) = shortwave  solar incident
 !
 ! Here these are calculated at the end of albedo - they use only
 ! direct albedos for now
 !
-! in both versions :  lftemp uses sabveg
-! tgrund uses sabveg & fsw(i) to get
+! in both versions :  lftemp uses vegswab
+! tgrund uses vegswab & rswf(i) to get
 ! ground absorbed solar
 ! photosynthesis uses solis - see subrouts
 ! stomat and co2 (carbon)
@@ -733,8 +733,8 @@ module mod_bats_mtrxbats
                albld , albs , albsd , albzn , alwet , cf1 , cff ,     &
                conn , cons , czeta , czf , dfalbl , dfalbs , dralbl , &
                dralbs , sfac , sl , sl2 , sli , tdiff , tdiffs , wet
-    real(rk8) , dimension(nnsg) :: albvl_s , albvs_s , aldifl_s ,       &
-                                 aldifs_s , aldirl_s , aldirs_s
+    real(rk8) , dimension(nnsg) :: lwalb_s , swalb_s , lwdifalb_s ,       &
+                                 swdifalb_s , lwdiralb_s , swdiralb_s
     integer(ik4) :: kolour , n , i , j
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'albedobats'
@@ -789,7 +789,7 @@ module mod_bats_mtrxbats
     call fseas(tgbrd)
     do i = ici1 , ici2
       do j = jci1 , jci2
-        czeta = coszrs(j,i)
+        czeta = zencos(j,i)
         do n = 1 , nnsg
           lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*aseas(n,j,i)
           sts(n,j,i) = thatm(j,i)-lrate*regrav*(ht1(n,j,i)-ht(j,i))
@@ -802,8 +802,8 @@ module mod_bats_mtrxbats
           albsd = d_zero
           albld = d_zero
  
-          albvs_s(n) = d_zero
-          albvl_s(n) = d_zero
+          swalb_s(n) = d_zero
+          lwalb_s(n) = d_zero
           ! 
           !================================================================
           !       2.   get albedo
@@ -862,7 +862,7 @@ module mod_bats_mtrxbats
               albgsd = albgs
               albsd = albs
               albld = albl
-              ! Dec. 15   albzn=0.85D0+d_one/(d_one+d_10*coszrs(j,i))
+              ! Dec. 15   albzn=0.85D0+d_one/(d_one+d_10*zencos(j,i))
               ! Dec. 12, 2008
               albzn = d_one
               ! Dec. 15, 2008
@@ -873,8 +873,8 @@ module mod_bats_mtrxbats
               albs = albs*albzn
               albl = albl*albzn
               ! albedo over vegetation after zenith angle corr
-              albvs_s(n) = albs
-              albvl_s(n) = albl
+              swalb_s(n) = albs
+              lwalb_s(n) = albl
             else if ( iveg1(n,j,i) == 12 ) then
               ! 2.2   permanent ice sheet
               albgs = 0.8D0
@@ -910,7 +910,7 @@ module mod_bats_mtrxbats
               ! snal1= new snow albedo for long-wave rad
               dfalbs = snal0*(d_one-cons*age)
               ! czf corrects albedo of new snow for solar zenith
-              cf1 = ((d_one+sli)/(d_one+sl2*coszrs(j,i))-sli)
+              cf1 = ((d_one+sli)/(d_one+sl2*zencos(j,i))-sli)
               cff = dmax1(cf1,d_zero)
               czf = 0.4D0*cff*(d_one-dfalbs)
               dralbs = dfalbs + czf
@@ -936,17 +936,17 @@ module mod_bats_mtrxbats
           !
           ! not part of albedo in the ccm
           !
-          aldirs_s(n) = (d_one-lncl(n,j,i))*albgs + lncl(n,j,i)*albs
-          aldirl_s(n) = (d_one-lncl(n,j,i))*albgl + lncl(n,j,i)*albl
-          aldifs_s(n) = (d_one-lncl(n,j,i))*albgsd + lncl(n,j,i)*albsd
-          aldifl_s(n) = (d_one-lncl(n,j,i))*albgld + lncl(n,j,i)*albld
+          swdiralb_s(n) = (d_one-lncl(n,j,i))*albgs + lncl(n,j,i)*albs
+          lwdiralb_s(n) = (d_one-lncl(n,j,i))*albgl + lncl(n,j,i)*albl
+          swdifalb_s(n) = (d_one-lncl(n,j,i))*albgsd + lncl(n,j,i)*albsd
+          lwdifalb_s(n) = (d_one-lncl(n,j,i))*albgld + lncl(n,j,i)*albld
         end do
-        albvs(j,i)  = sum(albvs_s)*rdnnsg
-        albvl(j,i)  = sum(albvl_s)*rdnnsg
-        aldirs(j,i) = sum(aldirs_s)*rdnnsg
-        aldirl(j,i) = sum(aldirl_s)*rdnnsg
-        aldifs(j,i) = sum(aldifs_s)*rdnnsg
-        aldifl(j,i) = sum(aldifl_s)*rdnnsg
+        swalb(j,i)  = sum(swalb_s)*rdnnsg
+        lwalb(j,i)  = sum(lwalb_s)*rdnnsg
+        swdiralb(j,i) = sum(swdiralb_s)*rdnnsg
+        lwdiralb(j,i) = sum(lwdiralb_s)*rdnnsg
+        swdifalb(j,i) = sum(swdifalb_s)*rdnnsg
+        lwdifalb(j,i) = sum(lwdifalb_s)*rdnnsg
       end do
     end do
     aemiss = sum(emiss,1)*rdnnsg

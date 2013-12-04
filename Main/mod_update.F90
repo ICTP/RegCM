@@ -383,11 +383,11 @@
       use mod_constants
       use mod_runparams, only : kday, ktau, rnsrf_for_day
       use mod_dynparam, only : ici1, ici2, jci1, jci2, nnsg, ptop
-      use mod_bats_common, only : sfps, t2m, q2m, flw, flwd,            &
-                                  evpr, sent, totpr, u10m, v10m, fsw,   &
-                                  srnof, trnof, rdnnsg, ldmsk, dailyrnf,&
-                                  taux, tauy, sncv, solvd, solvs,       &
-                                  runoffcount
+      use mod_bats_common, only : sfps, t2m, q2m, evpr, sent, totpr, &
+                                  u10m, v10m, srnof, trnof, rdnnsg,  &
+                                  ldmsk, dailyrnf, taux, tauy, sncv, &
+                                  solvd, solvs, runoffcount
+      use mod_atm_interface, only : flw, flwd, fsw
 !
       implicit none
 !

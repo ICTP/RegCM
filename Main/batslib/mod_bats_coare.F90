@@ -144,8 +144,8 @@
 !     Compute net longwave and shortwave radiation (W/m2) 
 !-----------------------------------------------------------------------
 !
-      Rns = fsw(j,i)
-      Rnl = emsw*(sigm*(ts+tzero)**4-flwd(j,i))
+      Rns = rswf(j,i)
+      Rnl = emsw*(sigm*(ts+tzero)**4-dwrlwf(j,i))
 !     
 !-----------------------------------------------------------------------
 !     Begin bulk loop - first guess 

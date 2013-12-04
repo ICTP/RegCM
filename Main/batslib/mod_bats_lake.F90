@@ -230,8 +230,8 @@ module mod_bats_lake
       vl = dsqrt(usw(j,i)**2+vsw(j,i)**2)
       zl = zh(n,j,i)
       ql = qs(n,j,i)
-      fswx = fsw(j,i)
-      flwx = -d_one*flw(j,i)
+      fswx = rswf(j,i)
+      flwx = -d_one*rlwf(j,i)
       prec = prcp(n,j,i)*dtbat
       hsen = -d_one*sent(n,j,i)
       evp = evpr(n,j,i)

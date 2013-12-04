@@ -44,12 +44,29 @@ module mod_lm_interface
 
   contains
 
-  subroutine init_bats(dom,atm,sfs,zpbl)
+  subroutine init_bats(dom,atm,sfs,zpbl,pptc,prca,pptnc,prnca,coszrs, &
+                  fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs,aldirl, &
+                  aldifl)
     implicit none
     type(domain) , intent(in) :: dom
     type(slice) , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
     real(rk8) , pointer , intent(in) , dimension(:,:) :: zpbl
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: pptc
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: prca
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: pptnc
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: prnca
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: coszrs
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: flw
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: fsw
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: flwd
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: sabveg
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: albvs
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: albvl
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: aldirs
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: aldifs
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: aldirl
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: aldifl
     ntcpl  = idnint(cpldt/dtsec)
     ntsrf2 = idnint(dtsrf/dtsec)
     if ( idcsst   == 1 ) ldcsst    = .true.
@@ -76,18 +93,51 @@ module mod_lm_interface
     call assignpnt(sfs%tga,tground1)
     call assignpnt(sfs%tgb,tground2)
     call assignpnt(zpbl,hpbl)
+    call assignpnt(pptc,cprate)
+    call assignpnt(prca,capr)
+    call assignpnt(pptnc,ncprate)
+    call assignpnt(prnca,ncapr)
+    call assignpnt(coszrs,zencos)
+    call assignpnt(fsw,rswf)
+    call assignpnt(flw,rlwf)
+    call assignpnt(flwd,dwrlwf)
+    call assignpnt(sabveg,vegswab)
+    call assignpnt(albvl,lwalb)
+    call assignpnt(albvs,swalb)
+    call assignpnt(aldirs,swdiralb)
+    call assignpnt(aldifs,swdifalb)
+    call assignpnt(aldirl,lwdiralb)
+    call assignpnt(aldifl,lwdifalb)
   end subroutine init_bats
 !
 #ifdef CLM
-  subroutine init_clm(dom,atm,sfs,zpbl,lm)
+  subroutine init_clm(dom,atm,sfs,zpbl,pptc,prca,pptnc,prnca,coszrs, &
+                      fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs, &
+                      aldirl,aldifl,lm)
     implicit none
-    type(domain)    , intent(in) :: dom
-    type(slice)     , intent(in) :: atm
+    type(domain) , intent(in) :: dom
+    type(slice) , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
-    real(rk8)       , pointer , intent(in) , dimension(:,:) :: zpbl
-    integer         , pointer , intent(in) , dimension(:,:) :: lm
-
-    call init_bats(dom,atm,sfs,zpbl)
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: zpbl
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: pptc
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: prca
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: pptnc
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: prnca
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: coszrs
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: flw
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: fsw
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: flwd
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: sabveg
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: albvs
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: albvl
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: aldirs
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: aldifs
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: aldirl
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: aldifl
+    integer , pointer , intent(in) , dimension(:,:) :: lm
+    call init_bats(dom,atm,sfs,zpbl,pptc,prca,pptnc,prnca,coszrs, &
+                   fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs, &
+                   aldirl,aldifl)
     call assignpnt(lm,lmask)
   end subroutine init_clm
 #endif

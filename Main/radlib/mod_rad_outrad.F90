@@ -100,7 +100,7 @@ module mod_rad_outrad
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          heatrt(j,i,k) = qrs(n,k) + qrl(n,k)
+          heatingrate(j,i,k) = qrs(n,k) + qrl(n,k)
           n = n + 1
         end do
       end do

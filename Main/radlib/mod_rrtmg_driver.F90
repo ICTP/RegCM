@@ -508,7 +508,7 @@ module mod_rrtmg_driver
     do i = ici1 , ici2
       do j = jci1 , jci2
         dlat(n) = dabs(xlat(j,i))
-        xptrop(n) = ptrop(j,i)/100.0D0
+        xptrop(n) = ptropo(j,i)/100.0D0
         n = n + 1
       end do
     end do
@@ -719,13 +719,13 @@ module mod_rrtmg_driver
       do i = ici1 , ici2
         do j = jci1 , jci2
           ccvtem = d_zero   !cqc mod
-          cldf(n,kj) = dmax1(cldfra(j,i,k)*0.9999999D0,ccvtem)
+          cldf(n,kj) = dmax1(cloudfrac(j,i,k)*0.9999999D0,ccvtem)
           cldf(n,kj) = dmin1(cldf(n,kj),0.9999999D0)
           !
           ! convert liquid water content into liquid water path, i.e.
           ! multiply b deltaz
           !
-          clwtem = cldlwc(j,i,kj) ! put on the right grid !
+          clwtem = cloudlwc(j,i,kj) ! put on the right grid !
           !
           ! deltaz,clwp are on the right grid since plev and tlay are
           ! care pressure is on botom/toa grid

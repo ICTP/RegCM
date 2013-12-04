@@ -626,7 +626,7 @@ module mod_rad_colmod3
       do i = ici1 , ici2
         do j = jci1 , jci2
           dlat(n) = dabs(xlat(j,i))
-          xptrop(n) = ptrop(j,i)
+          xptrop(n) = ptropo(j,i)
           n = n + 1
         end do
       end do
@@ -784,7 +784,7 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          cld(n,k) = dmax1(cldfra(j,i,k),lowcld)
+          cld(n,k) = dmax1(cloudfrac(j,i,k),lowcld)
           cld(n,k) = dmin1(cld(n,k),hicld)
 !
 !qc       gary's mods for clouds/radiation tie-in to exmois
@@ -803,8 +803,8 @@ module mod_rad_colmod3
           ! Convert liquid water content into liquid water path, i.e.
           ! multiply b deltaz
           !
-          clwp(n,k) = cldlwc(j,i,k)*deltaz(n,k)
-          if ( cldfra(j,i,k) < lowcld ) then
+          clwp(n,k) = cloudlwc(j,i,k)*deltaz(n,k)
+          if ( cloudfrac(j,i,k) < lowcld ) then
             clwp(n,k) = d_zero
           end if
           totcl(n) = totcl(n)+clwp(n,k)*d_r1000

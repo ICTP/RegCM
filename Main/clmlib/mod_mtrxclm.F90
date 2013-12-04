@@ -251,20 +251,20 @@ module mod_mtrxclm
     !
     if ( .not. ifrest ) then
       ! Rainfall
-      pptc(:,:)  = d_zero
-      pptnc(:,:) = d_zero
+      cprate(:,:)  = d_zero
+      ncprate(:,:) = d_zero
       ! Radiation
       sols2d(:,:)  = d_zero
       soll2d(:,:)  = d_zero
       solsd2d(:,:) = d_zero
       solld2d(:,:) = d_zero
-      flwd(:,:)    = d_zero
+      dwrlwf(:,:)  = d_zero
       ! Albedo
       ! Set initial albedos to clm dry soil values for mid-colored soils
-      aldirs(:,:) = 0.16D0
-      aldifs(:,:) = 0.16D0
-      aldirl(:,:) = 0.32D0
-      aldifl(:,:) = 0.32D0
+      swdiralb(:,:) = 0.16D0
+      swdifalb(:,:) = 0.16D0
+      lwdiralb(:,:) = 0.32D0
+      lwdifalb(:,:) = 0.32D0
     end if
 
     call fill_frame(xlat,r2cxlatd)
@@ -288,13 +288,13 @@ module mod_mtrxclm
       call fill_frame(vatm,r2cvxb)
       call fill_frame(sfps,r2cpsb)
       r2cpsb = (r2cpsb+ptop)*d_1000
-      call fill_frame(pptc,r2crnc)
-      call fill_frame(pptnc,r2crnnc)
+      call fill_frame(cprate,r2crnc)
+      call fill_frame(ncprate,r2crnnc)
       call fill_frame(sols2d,r2csols)
       call fill_frame(soll2d,r2csoll)
       call fill_frame(solsd2d,r2csolsd)
       call fill_frame(solld2d,r2csolld)
-      call fill_frame(flwd,r2cflwd)
+      call fill_frame(dwrlwf,r2cflwd)
 
       call grid_fill(r2ctb,r2ctb_all)
       call grid_fill(r2cqb,r2cqb_all)
@@ -404,9 +404,9 @@ module mod_mtrxclm
         ig = global_cross_istart+i-1
         do j = jci1 , jci2
           jg = global_cross_jstart+j-1
-          fsw(j,i)    = d_zero
-          flw(j,i)    = d_zero
-          sabveg(j,i) = d_zero
+          rswf(j,i)    = d_zero
+          rlwf(j,i)    = d_zero
+          vegswab(j,i) = d_zero
           !
           ! Set some clm land surface/vegetation variables to the ones
           ! used in RegCM.  Make sure all are consistent
@@ -481,19 +481,19 @@ module mod_mtrxclm
           ! in the albedo (good when < 1)
           !
           if ( (d_one-c2ralbdirs(jg,ig)) > dlowval ) then
-            aldirs(j,i) = aldirs(j,i)*(d_one-landfrac(jg,ig)) + &
+            swdiralb(j,i) = swdiralb(j,i)*(d_one-landfrac(jg,ig)) + &
                           c2ralbdirs(j,i)*landfrac(jg,ig)
           end if
           if ( (d_one-c2ralbdirl(jg,ig)) > dlowval ) then
-            aldirl(j,i) = aldirl(j,i)*(d_one-landfrac(jg,ig)) + &
+            lwdiralb(j,i) = lwdiralb(j,i)*(d_one-landfrac(jg,ig)) + &
                           c2ralbdirl(j,i)*landfrac(jg,ig)
           end if
           if ( (d_one-c2ralbdifs(jg,ig)) > dlowval ) then 
-            aldifs(j,i) = aldifs(j,i)*(d_one-landfrac(jg,ig)) + &
+            swdifalb(j,i) = swdifalb(j,i)*(d_one-landfrac(jg,ig)) + &
                           c2ralbdifs(jg,ig)*landfrac(jg,ig)
           end if
           if ( (d_one-c2ralbdifl(jg,ig)) > dlowval ) then
-            aldifl(j,i) = aldifl(j,i)*(d_one-landfrac(jg,ig)) + &
+            lwdifalb(j,i) = lwdifalb(j,i)*(d_one-landfrac(jg,ig)) + &
                           c2ralbdifl(jg,ig)
           end if
         else if (ldmsk(j,i) /= 0 ) then
@@ -501,20 +501,20 @@ module mod_mtrxclm
           ! Use over land CLM calculated albedo (good when < 1)
           !
           if ( (d_one-c2ralbdirs(jg,ig)) > dlowval ) then
-            aldirs(j,i) = c2ralbdirs(jg,ig)
+            swdiralb(j,i) = c2ralbdirs(jg,ig)
           end if
           if ( (d_one-c2ralbdirl(jg,ig)) > dlowval ) then
-            aldirl(j,i) = c2ralbdirl(jg,ig)
+            lwdiralb(j,i) = c2ralbdirl(jg,ig)
           end if
           if ( (d_one-c2ralbdifs(jg,ig)) > dlowval ) then 
-            aldifs(j,i) = c2ralbdifs(jg,ig)
+            swdifalb(j,i) = c2ralbdifs(jg,ig)
           end if
           if ( (d_one-c2ralbdifl(jg,ig)) > dlowval ) then
-            aldifl(j,i) = c2ralbdifl(jg,ig)
+            lwdifalb(j,i) = c2ralbdifl(jg,ig)
           end if
         end if
-        albvs(j,i) = aldirs(j,i)+aldifs(j,i)
-        albvl(j,i) = aldirl(j,i)+aldifl(j,i)
+        swalb(j,i) = swdiralb(j,i)+swdifalb(j,i)
+        lwalb(j,i) = lwdiralb(j,i)+lwdifalb(j,i)
       end do
     end do
 #ifdef DEBUG
@@ -560,13 +560,13 @@ module mod_mtrxclm
       call fill_frame(vatm,r2cvxb)
       call fill_frame(sfps,r2cpsb)
       r2cpsb = (r2cpsb+ptop)*d_1000
-      call fill_frame(pptc,r2crnc)
-      call fill_frame(pptnc,r2crnnc)
+      call fill_frame(cprate,r2crnc)
+      call fill_frame(ncprate,r2crnnc)
       call fill_frame(sols2d,r2csols)
       call fill_frame(soll2d,r2csoll)
       call fill_frame(solsd2d,r2csolsd)
       call fill_frame(solld2d,r2csolld)
-      call fill_frame(flwd,r2cflwd)
+      call fill_frame(dwrlwf,r2cflwd)
 
       call grid_fill(r2ctb,r2ctb_all)
       call grid_fill(r2cqb,r2cqb_all)
@@ -876,16 +876,16 @@ module mod_mtrxclm
           if ( associated(srf_tpr_out) ) &
             srf_tpr_out = srf_tpr_out + totpr
           if ( associated(srf_prcv_out) ) &
-            srf_prcv_out = srf_prcv_out + pptc
+            srf_prcv_out = srf_prcv_out + cprate
           ! Reset accumulation from precip and cumulus
-          pptnc = d_zero
-          pptc  = d_zero
+          ncprate = d_zero
+          cprate  = d_zero
           if ( associated(srf_zpbl_out) ) &
             srf_zpbl_out = srf_zpbl_out + hpbl
           if ( associated(srf_scv_out) ) &
             srf_scv_out = srf_scv_out + sum(sncv,1)*rdnnsg
           if ( associated(srf_sund_out) ) then
-            where( fsw > 120.0D0 )
+            where( rswf > 120.0D0 )
               srf_sund_out = srf_sund_out + dtbat
             end where
           end if
@@ -896,11 +896,11 @@ module mod_mtrxclm
           if ( associated(srf_sena_out) ) &
             srf_sena_out = srf_sena_out + sum(sent,1)*rdnnsg
           if ( associated(srf_flw_out) ) &
-            srf_flw_out = srf_flw_out + flw
+            srf_flw_out = srf_flw_out + rlwf
           if ( associated(srf_fsw_out) ) &
-            srf_fsw_out = srf_fsw_out + fsw
+            srf_fsw_out = srf_fsw_out + rswf
           if ( associated(srf_fld_out) ) &
-            srf_fld_out = srf_fld_out + flwd
+            srf_fld_out = srf_fld_out + dwrlwf
           if ( associated(srf_sina_out) ) &
             srf_sina_out = srf_sina_out + sinc
         end if
@@ -939,7 +939,7 @@ module mod_mtrxclm
             sts_psmin_out = min(sts_psmin_out, &
               (sfps(jci1:jci2,ici1:ici2)+ptop)*d_10)
           if ( associated(sts_sund_out) ) then
-            where( fsw > 120.0D0 )
+            where( rswf > 120.0D0 )
               sts_sund_out = sts_sund_out + dtbat
             end where
           end if
@@ -965,9 +965,9 @@ module mod_mtrxclm
             end where
           end if
           if ( associated(srf_aldirs_out) ) &
-            srf_aldirs_out = aldirs
+            srf_aldirs_out = swdiralb
           if ( associated(srf_aldifs_out) ) &
-            srf_aldifs_out = aldifs
+            srf_aldifs_out = swdifalb
           if ( associated(srf_seaice_out) ) &
             srf_seaice_out = sum(sfice,1)*rdnnsg*d_r1000
           if ( associated(srf_t2m_out) ) &

@@ -37,7 +37,7 @@ module mod_rad_interface
 !
   subroutine init_rad(atms,sfs,mddom,sabveg,solis,coszrs,aldirs,aldifs, &
                       aldirl,aldifl,albvs,albvl,emiss,sinc,solvs,solvd, &
-                      fsw,flw,flwd,ldmsk,chia)
+                      fsw,flw,flwd,ldmsk,chia,cldfra,cldlwc,heatrt,ptrop)
     implicit none
     type(slice) , intent(in) :: atms
     type(surfstate) , intent(in) :: sfs
@@ -60,6 +60,10 @@ module mod_rad_interface
     real(rk8) , pointer , intent(in) , dimension(:,:) :: flwd
     integer(ik4) , pointer , intent(in) , dimension(:,:) :: ldmsk
     real(rk8) , pointer , intent(in) , dimension(:,:,:,:) :: chia
+    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: cldfra
+    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: cldlwc
+    real(rk8) , pointer , intent(in) , dimension(:,:,:) :: heatrt
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: ptrop
 
     call assignpnt(atms%tb3d,tatms)
     call assignpnt(atms%qxb3d,qxatms)
@@ -86,6 +90,10 @@ module mod_rad_interface
     call assignpnt(flwd,srflwflxdw)
     call assignpnt(ldmsk,lndocnicemsk)
     call assignpnt(chia,chspmix)
+    call assignpnt(ptrop,ptropo)
+    call assignpnt(cldfra,cloudfrac)
+    call assignpnt(cldlwc,cloudlwc)
+    call assignpnt(heatrt,heatingrate)
   end subroutine init_rad
 !
   subroutine init_rad_clm(sols,soll,solsd,solld)

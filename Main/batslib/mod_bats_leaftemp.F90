@@ -252,7 +252,7 @@ module mod_bats_leaftemp
                 else
                   sgtg3 = sigm*tgrd(n,j,i)**3
                 end if
-                sf1 = sigf(n,j,i)*(sabveg(j,i)-flw(j,i)-(d_one-sigf(n,j,i))* &
+                sf1 = sigf(n,j,i)*(vegswab(j,i)-rlwf(j,i)-(d_one-sigf(n,j,i))* &
                       flneto(n,j,i)+d_four*sgtg3*tgrd(n,j,i))
                 sf2 = d_four*sigf(n,j,i)*sgtg3 + &
                            df(n,j,i)*wtga(n,j,i) + dcd(n,j,i)
@@ -372,7 +372,7 @@ module mod_bats_leaftemp
 !     radfi = average of upper and lower canopy light factors
 !        rs = stomatal resistance = min.res. * rad.factor * leaf factor
 !      trup = transmission of the upper canopy, assumed to be the same
-!             for the lower canopy,i.e., trup=dexp(-0.5*g*rlai/coszrs),
+!             for the lower canopy,i.e., trup=dexp(-0.5*g*rlai/zencos),
 !             where g = attenuation factor
 !
 !     documented in NCAR Tech Note, Dickinson et al., 1986
@@ -397,7 +397,7 @@ module mod_bats_leaftemp
     ! g is average leaf crosssection per unit lai
     ! difzen is ave of inverse of cos of angle of diffuse vis light
     ! ilmax is number of canopy layers
-    ! coszrs is cosine solar zenith angle for incident light
+    ! zencos is cosine solar zenith angle for incident light
     ! (to spec from input data need a good treatment of diffuse rad)
     ! trup is transmission of direct beam light in one canopy layer
     ! trupd is transmission of diffuse light in one canopy layer
@@ -413,8 +413,8 @@ module mod_bats_leaftemp
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
               ! zenith angle set in zenitm
-              if ( (coszrs(j,i)/rilmax) > 0.001D0 ) then
-                trup = dexp(-g*rlai(n,j,i)/(rilmax*coszrs(j,i)))
+              if ( (zencos(j,i)/rilmax) > 0.001D0 ) then
+                trup = dexp(-g*rlai(n,j,i)/(rilmax*zencos(j,i)))
                 trupd = dexp(-difzen*g*rlai(n,j,i)/rilmax)
                 if ( trup  < dlowval ) trup  = d_zero
                 if ( trupd < dlowval ) trupd = d_zero

@@ -453,7 +453,7 @@ module mod_bats_bndry
             ! and melt (below) calculation
             fseng(n,j,i) = (sent(n,j,i)-aarea*hsl)/(d_one-aarea)
             fevpg(n,j,i) = (evpr(n,j,i)-aarea*hrl)/(d_one-aarea)
-            hs = fsw(j,i) - flw(j,i) - fseng(n,j,i) - wlhs*fevpg(n,j,i)
+            hs = rswf(j,i) - rlwf(j,i) - fseng(n,j,i) - wlhs*fevpg(n,j,i)
             bb = dtbat*(hs+fss)/rsd1
             ! snow melt
             if ( tgrd(n,j,i) >= tzero ) sm(n,j,i) = (hs+fss)/wlhf
@@ -1022,8 +1022,8 @@ module mod_bats_bndry
             ! 2.2  large thermal inertial for permanent ice cap
             if ( lveg(n,j,i) == 12 ) fct2(n,j,i) = d_1000*fct2(n,j,i)
             ! 2.3  collect energy flux terms
-            rnet(n,j,i) = fsw(j,i) - sigf(n,j,i)*(sabveg(j,i)-flnet(n,j,i)) - &
-                     (d_one-sigf(n,j,i))*(flw(j,i)-sigf(n,j,i)*flneto(n,j,i))
+            rnet(n,j,i) = rswf(j,i) - sigf(n,j,i)*(vegswab(j,i)-flnet(n,j,i)) - &
+                     (d_one-sigf(n,j,i))*(rlwf(j,i)-sigf(n,j,i)*flneto(n,j,i))
             hs = rnet(n,j,i) - fseng(n,j,i) - fevpg(n,j,i)*htvp(n,j,i)
             bb(n,j,i) = bcoef(n,j,i)*hs + xdtime*tgbrd(n,j,i)
             ! 2.4  add in snowmelt (melt enough snow to reach freezing temp)

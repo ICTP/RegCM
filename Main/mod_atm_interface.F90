@@ -57,24 +57,44 @@ module mod_atm_interface
 
   real(rk8) , public , pointer , dimension(:,:,:) :: qdot , omega
 
+  ! Sun
+  real(rk8) , public , pointer , dimension(:,:) :: coszrs
+
   ! Cumulus
   integer(ik4) , pointer , public , dimension(:,:) :: cucontrol
   integer(ik4) , pointer , public , dimension(:,:) :: icumbot
   integer(ik4) , pointer , public , dimension(:,:) :: icumtop
   integer(ik4) , pointer , public , dimension(:,:) :: ktrop
   real(rk8) , pointer , public , dimension(:,:,:) :: convpr
+  real(rk8) , pointer , public , dimension(:,:) :: pptc
+  real(rk8) , pointer , public , dimension(:,:) :: prca
 
   ! Radiation
-  real(rk8) , pointer , dimension(:,:) :: ptrop
-  real(rk8) , pointer , dimension(:,:,:) :: cldfra
-  real(rk8) , pointer , dimension(:,:,:) :: cldlwc
-  real(rk8) , pointer , dimension(:,:,:) :: heatrt
+  real(rk8) , pointer , public , dimension(:,:) :: ptrop
+  real(rk8) , pointer , public , dimension(:,:) :: sabveg
+  real(rk8) , pointer , public , dimension(:,:) :: flw
+  real(rk8) , pointer , public , dimension(:,:) :: fsw
+  real(rk8) , pointer , public , dimension(:,:) :: flwd
+  real(rk8) , pointer , public , dimension(:,:,:) :: cldfra
+  real(rk8) , pointer , public , dimension(:,:,:) :: cldlwc
+  real(rk8) , pointer , public , dimension(:,:,:) :: heatrt
+
+  ! Surface
+  real(rk8) , pointer , public , dimension(:,:) :: albvl
+  real(rk8) , pointer , public , dimension(:,:) :: albvs
+  real(rk8) , pointer , public , dimension(:,:) :: aldirs
+  real(rk8) , pointer , public , dimension(:,:) :: aldifs
+  real(rk8) , pointer , public , dimension(:,:) :: aldirl
+  real(rk8) , pointer , public , dimension(:,:) :: aldifl
+
+  ! Precip
+  real(rk8) , pointer , public , dimension(:,:) :: pptnc
+  real(rk8) , pointer , public , dimension(:,:) :: prnca
 
   integer(ik4) , public , parameter :: zero_exchange_point = 0
   integer(ik4) , public , parameter :: one_exchange_point = 1
   integer(ik4) , public , parameter :: two_exchange_point = 2
   integer(ik4) , public , parameter :: four_exchange_point = 4
-
 
 #ifdef DEBUG
   type(grid_nc_var4d) , public :: nc_4d
@@ -621,6 +641,9 @@ module mod_atm_interface
       call getmem3d(qdot,jce1-ma%jbl1,jce2+ma%jbr1, &
                          ice1-ma%ibb1,ice2+ma%ibt1,1,kzp1,'sorage:qdot')
       call getmem2d(ktrop,jci1,jci2,ici1,ici2,'storage:ktrop')
+      call getmem2d(coszrs,jci1,jci2,ici1,ici2,'storage:coszrs')
+      call getmem2d(pptc,jci1,jci2,ici1,ici2,'storage:pptc')
+      call getmem2d(prca,jci1,jci2,ici1,ici2,'storage:prca')
       if ( icup > 90 ) then
         call getmem2d(cucontrol,jci1,jci2,ici1,ici2,'storage:cucontrol')
       end if
@@ -629,10 +652,23 @@ module mod_atm_interface
       if ( ichem == 1 ) then
         call getmem3d(convpr,jci1,jci2,ici1,ici2,1,kz,'storage:convpr')
       end if
+      call getmem2d(pptnc,jci1,jci2,ici1,ici2,'storage:pptnc')
+      call getmem2d(prnca,jci1,jci2,ici1,ici2,'storage:prnca')
+      call getmem2d(ptrop,jci1,jci2,ici1,ici2,'storage:ptrop')
       call getmem3d(cldfra,jci1,jci2,ici1,ici2,1,kz,'storage:cldfra')
       call getmem3d(cldlwc,jci1,jci2,ici1,ici2,1,kz,'storage:cldlwc')
       call getmem3d(heatrt,jci1,jci2,ici1,ici2,1,kz,'storage:heatrt')
-      call getmem2d(ptrop,jci1,jci2,ici1,ici2,'storage:ptrop')
+      call getmem2d(flw,jci1,jci2,ici1,ici2,'storage:flw')
+      call getmem2d(flwd,jci1,jci2,ici1,ici2,'storage:flwd')
+      call getmem2d(fsw,jci1,jci2,ici1,ici2,'storage:fsw')
+      call getmem2d(sabveg,jci1,jci2,ici1,ici2,'storage:sabveg')
+      call getmem2d(albvl,jci1,jci2,ici1,ici2,'storage:albvl')
+      call getmem2d(albvs,jci1,jci2,ici1,ici2,'storage:albvs')
+      call getmem2d(aldirs,jci1,jci2,ici1,ici2,'storage:aldirs')
+      call getmem2d(aldifs,jci1,jci2,ici1,ici2,'storage:aldifs')
+      call getmem2d(aldirl,jci1,jci2,ici1,ici2,'storage:aldirl')
+      call getmem2d(aldifl,jci1,jci2,ici1,ici2,'storage:aldifl')
+
     end subroutine allocate_mod_atm_interface 
 
 end module mod_atm_interface
