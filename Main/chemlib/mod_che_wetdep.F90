@@ -732,18 +732,17 @@ module mod_che_wetdep
     totppt(:,:) = d_zero
     do i =  ici1 , ici2
       if ( kcumtop(j,i) > 0 ) then
-        n = 0
-        nk = 0
-        do k =  kcumtop(j,i) , kz 
-          nk = kcumbot(j,i) -  kcumtop(j,i) + 1 
-          nkh = nk / 2      
-          if ( n <=  nkh ) then 
+        nk = kcumbot(j,i) - kcumtop(j,i) + 1
+        n = 1
+        do k =  kcumtop(j,i) , kz
+          nkh = nk / 2
+          if ( n <= nkh ) then 
             totppt(i,k) = (dble(n) / dble(nkh)) * convppt(i,kz)
           else
             totppt(i,k)  = convppt(i,kz)
           end if
-          n = n+1
-        end do 
+          n = n + 1
+        end do
       end if 
     end do 
     ! add the contribution of strat prec

@@ -859,7 +859,7 @@ module mod_rad_colmod3
           n = 1
           do i = ici1 , ici2
             do j = jci1 , jci2
-              aermmr(n,k,itr) = m2r%chia(j,i,k,itr)/m2r%psa(j,i)
+              aermmr(n,k,itr) = m2r%chiatms(j,i,k,itr)
               n = n + 1
             end do
           end do

@@ -219,11 +219,13 @@ module mod_regcm_types
   end type ocn_2_sav
 
   type mod_2_rad
-    real(rk8) , pointer , dimension(:,:) :: psa             ! sfs%psa
     real(rk8) , pointer , dimension(:,:) :: psb             ! sfs%psb
+    real(rk8) , pointer , dimension(:,:,:) :: cldfrc
+    real(rk8) , pointer , dimension(:,:,:) :: cldlwc
     real(rk8) , pointer , dimension(:,:,:) :: tatms         ! atms%tb3d
-    real(rk8) , pointer , dimension(:,:,:,:) :: qxatms      ! atms%qxb3d
     real(rk8) , pointer , dimension(:,:,:) :: rhatms        ! atms%rhb3d
+    real(rk8) , pointer , dimension(:,:,:,:) :: qxatms      ! atms%qxb3d
+    real(rk8) , pointer , dimension(:,:,:,:) :: chiatms     ! atms%chib3d
     real(rk8) , pointer , dimension(:,:) :: tg              ! sfs%tgbb
     real(rk8) , pointer , dimension(:,:) :: xlat            ! mddom%xlat
     real(rk8) , pointer , dimension(:,:) :: ptrop
@@ -235,9 +237,6 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: aldirl
     real(rk8) , pointer , dimension(:,:) :: aldifl
     real(rk8) , pointer , dimension(:,:) :: emiss
-    real(rk8) , pointer , dimension(:,:,:) :: cldfrc
-    real(rk8) , pointer , dimension(:,:,:) :: cldlwc
-    real(rk8) , pointer , dimension(:,:,:,:) :: chia
     integer(ik4) , pointer , dimension(:,:) :: ldmsk
   end type mod_2_rad
 
