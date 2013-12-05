@@ -23,14 +23,13 @@ module mod_rad_interface
   use mod_runparams
   use mod_regcm_types
   use mod_rad_common
-  use mod_rad_aerosol
-  use mod_rad_colmod3
-  use mod_rrtmg_driver
-  use mod_rad_o3blk
-  use mod_rad_outrad
-  use mod_rad_radiation
-  use mod_rad_scenarios
-  use mod_rad_tracer
+  use mod_rad_colmod3 , only : allocate_mod_rad_colmod3 , colmod3
+  use mod_rrtmg_driver , only : allocate_mod_rad_rrtmg , rrtmg_driver
+  use mod_rad_o3blk , only : allocate_mod_rad_o3blk , o3data , read_o3data
+  use mod_rad_scenarios , only : set_scenario
+  use mod_rad_aerosol , only : allocate_mod_rad_aerosol
+  use mod_rad_radiation , only : allocate_mod_rad_radiation
+  use mod_rad_outrad , only : allocate_mod_rad_outrad
 
   private
 
