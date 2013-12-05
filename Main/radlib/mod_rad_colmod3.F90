@@ -23,7 +23,7 @@ module mod_rad_colmod3
   use mod_realkinds
   use mod_dynparam
   use mod_service
-  use mod_runparams , only : iemiss , iqv
+  use mod_runparams
   use mod_rad_radiation
   use mod_rad_common
   use mod_rad_outrad

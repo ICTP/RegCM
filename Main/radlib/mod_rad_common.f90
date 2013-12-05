@@ -21,10 +21,6 @@ module mod_rad_common
 
   use mod_intkinds
   use mod_realkinds
-  use mod_constants
-  use mod_dynparam
-  use mod_runparams
-  use mod_memutil
 
   public
 
@@ -43,20 +39,5 @@ module mod_rad_common
   integer(ik4) :: ichso4 , ichbc , ichoc
 
   real(rk8) :: chfrovrradfr ! chfrq/rafrq
-
-  contains 
-
-  subroutine allocate_mod_rad_common
-    implicit none
-    call getmem3d(o3prof,jci1,jci2,ici1,ici2,1,kzp1,'rad:o3prof')
-    if ( irrtm == 0 ) then
-      call getmem4d(gasabsnxt,jci1,jci2,ici1,ici2,1,kz,1,4,'rad:gasabsnxt')
-      call getmem4d(gasabstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1,'rad:gasabstot')
-      call getmem3d(gasemstot,jci1,jci2,ici1,ici2,1,kzp1,'rad:gasemstot')
-    end if
-    if ( ichem == 1 ) then
-      call getmem4d(taucldsp,jci1,jci2,ici1,ici2,0,kz,1,nspi,'rad:taucldsp')
-    end if
-  end subroutine  allocate_mod_rad_common
 
 end module mod_rad_common

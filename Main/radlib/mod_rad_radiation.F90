@@ -24,7 +24,7 @@ module mod_rad_radiation
   use mod_dynparam
   use mod_mpmessage
   use mod_service
-  use mod_runparams , only : iemiss , idirect , scon , ichem
+  use mod_runparams , only : iemiss , idirect , scon , ichem , cftotmax
   use mod_memutil
 
 ! Used by this module only

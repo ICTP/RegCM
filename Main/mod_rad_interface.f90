@@ -20,6 +20,7 @@
 module mod_rad_interface
 !
   use mod_realkinds
+  use mod_runparams
   use mod_regcm_types
   use mod_rad_common
   use mod_rad_aerosol
@@ -33,23 +34,45 @@ module mod_rad_interface
 
   private
 
-  public :: init_rad , init_rad_clm , radiation
+  ! Procedures
+  public :: allocate_mod_radiation
+  public :: init_rad
+  public :: set_scenario
+  public :: o3data
+  public :: read_o3data
+  public :: radiation
 
-  public :: o3prof , gasabsnxt , gasabstot , gasemstot , taucldsp
-
-  public :: allocate_mod_rad_common
-  public :: allocate_mod_rad_aerosol
-  public :: allocate_mod_rad_o3blk
-  public :: allocate_mod_rad_outrad
-  public :: allocate_mod_rad_colmod3
-  public :: allocate_mod_rad_radiation
-  public :: allocate_mod_rad_rrtmg
-  public :: set_scenario , o3data , read_o3data
+  ! Data
+  public :: o3prof
+  public :: gasabsnxt
+  public :: gasabstot
+  public :: gasemstot
+  public :: taucldsp
 
   type(mod_2_rad) :: m2r
   type(rad_2_mod) :: r2m
 
   contains
+
+  subroutine allocate_mod_radiation
+    implicit none
+    call getmem3d(o3prof,jci1,jci2,ici1,ici2,1,kzp1,'rad:o3prof')
+    call allocate_mod_rad_aerosol
+    call allocate_mod_rad_o3blk
+    call allocate_mod_rad_outrad
+    if ( irrtm == 1 ) then
+      call allocate_mod_rad_rrtmg
+    else
+      call allocate_mod_rad_radiation
+      call allocate_mod_rad_colmod3
+      call getmem4d(gasabsnxt,jci1,jci2,ici1,ici2,1,kz,1,4,'rad:gasabsnxt')
+      call getmem4d(gasabstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1,'rad:gasabstot')
+      call getmem3d(gasemstot,jci1,jci2,ici1,ici2,1,kzp1,'rad:gasemstot')
+    end if
+    if ( ichem == 1 ) then
+      call getmem4d(taucldsp,jci1,jci2,ici1,ici2,0,kz,1,nspi,'rad:taucldsp')
+    end if
+  end subroutine allocate_mod_radiation
 
   subroutine init_rad
     use mod_atm_interface

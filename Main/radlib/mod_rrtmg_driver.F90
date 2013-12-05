@@ -39,7 +39,7 @@ module mod_rrtmg_driver
   use rrtmg_lw_rad
   use mod_rad_outrad
   use mod_mpmessage
-  use mod_runparams , only : calday , iqv , solcon
+  use mod_runparams
   use mod_regcm_types
 
   private

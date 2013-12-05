@@ -1095,16 +1095,8 @@ module mod_params
   if ( ipptls == 2 ) then
     call allocate_mod_cloud_s1
   end if
-  call allocate_mod_rad_common
-  call allocate_mod_rad_aerosol
-  call allocate_mod_rad_o3blk
-  call allocate_mod_rad_outrad
-  if ( irrtm == 1 ) then
-    call allocate_mod_rad_rrtmg
-  else
-    call allocate_mod_rad_radiation 
-    call allocate_mod_rad_colmod3
-  end if
+
+  call allocate_mod_radiation
 
   call allocate_mod_che_common(isladvec)
   call allocate_mod_che_mppio

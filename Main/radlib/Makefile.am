@@ -73,8 +73,8 @@ mod_atm_msis.o : mod_atm_msis.f90 mod_intkinds.o mod_realkinds.o mod_constants.o
 mod_rad_aerosol.o : mod_rad_aerosol.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_runparams.o mod_constants.o mod_memutil.o mod_mpmessage.o mod_rad_common.o
 mod_rad_atmosphere.o : mod_rad_atmosphere.f90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o
 mod_rad_colmod3.o : mod_rad_colmod3.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_service.o mod_runparams.o mod_rad_radiation.o mod_rad_common.o mod_rad_outrad.o mod_rrtmg_driver.o mod_rad_aerosol.o
-mod_rad_common.o : mod_rad_common.f90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_realkinds.o mod_memutil.o
-mod_rad_o3blk.o : mod_rad_o3blk.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_date.o mod_interp.o mod_vertint.o mod_mppparam.o mod_mpmessage.o mod_dynparam.o mod_memutil.o mod_rad_common.o mod_stdio.o
+mod_rad_common.o : mod_rad_common.f90 mod_intkinds.o mod_realkinds.o
+mod_rad_o3blk.o : mod_rad_o3blk.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_date.o mod_interp.o mod_vertint.o mod_mppparam.o mod_mpmessage.o mod_dynparam.o mod_memutil.o mod_rad_common.o mod_stdio.o mod_runparams.o
 mod_rad_outrad.o : mod_rad_outrad.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_mpmessage.o mod_rad_common.o mod_runparams.o mod_outvars.o
 mod_rad_radiation.o : mod_rad_radiation.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_mpmessage.o mod_service.o mod_runparams.o mod_memutil.o mod_rad_common.o mod_rad_tracer.o mod_rad_scenarios.o mod_rad_aerosol.o
 mod_rad_scenarios.o : mod_rad_scenarios.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_mpmessage.o
