@@ -77,7 +77,9 @@ module mod_atm_interface
   ! Incident solar flux
   real(rk8) , pointer , public , dimension(:,:) :: solis
   real(rk8) , pointer , public , dimension(:,:) :: solvs
-  real(rk8) , pointer , public , dimension(:,:) :: solvd
+  real(rk8) , pointer , public , dimension(:,:) :: solvsd
+  real(rk8) , pointer , public , dimension(:,:) :: solvl
+  real(rk8) , pointer , public , dimension(:,:) :: solvld
   real(rk8) , pointer , public , dimension(:,:) :: flw
   real(rk8) , pointer , public , dimension(:,:) :: fsw
   real(rk8) , pointer , public , dimension(:,:) :: flwd
@@ -682,7 +684,9 @@ module mod_atm_interface
       call getmem2d(sabveg,jci1,jci2,ici1,ici2,'storage:sabveg')
       call getmem2d(solis,jci1,jci2,ici1,ici2,'storage:solis')
       call getmem2d(solvs,jci1,jci2,ici1,ici2,'storage:solvs')
-      call getmem2d(solvd,jci1,jci2,ici1,ici2,'storage:solvd')
+      call getmem2d(solvsd,jci1,jci2,ici1,ici2,'storage:solvsd')
+      call getmem2d(solvl,jci1,jci2,ici1,ici2,'storage:solvl')
+      call getmem2d(solvld,jci1,jci2,ici1,ici2,'storage:solvld')
       call getmem2d(albvl,jci1,jci2,ici1,ici2,'storage:albvl')
       call getmem2d(albvs,jci1,jci2,ici1,ici2,'storage:albvs')
       call getmem2d(aldirs,jci1,jci2,ici1,ici2,'storage:aldirs')

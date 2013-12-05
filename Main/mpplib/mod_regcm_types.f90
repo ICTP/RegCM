@@ -245,12 +245,12 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: solis
     real(rk8) , pointer , dimension(:,:) :: sinc
     real(rk8) , pointer , dimension(:,:) :: sabveg
-    real(rk8) , pointer , dimension(:,:) :: solvs
-    real(rk8) , pointer , dimension(:,:) :: solvd
     real(rk8) , pointer , dimension(:,:) :: sols
     real(rk8) , pointer , dimension(:,:) :: soll
-    real(rk8) , pointer , dimension(:,:) :: solsd
-    real(rk8) , pointer , dimension(:,:) :: solld
+    real(rk8) , pointer , dimension(:,:) :: solvs
+    real(rk8) , pointer , dimension(:,:) :: solvsd
+    real(rk8) , pointer , dimension(:,:) :: solvl
+    real(rk8) , pointer , dimension(:,:) :: solvld
     real(rk8) , pointer , dimension(:,:) :: fsw
     real(rk8) , pointer , dimension(:,:) :: flw
     real(rk8) , pointer , dimension(:,:) :: flwd

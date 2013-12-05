@@ -50,7 +50,8 @@ module mod_bats_common
 !
   real(rk8) , pointer , dimension(:,:) :: solar , czen , emissivity
   real(rk8) , pointer , dimension(:,:) :: solinc
-  real(rk8) , pointer , dimension(:,:) :: swdif , swdir , totpr , fracd
+  real(rk8) , pointer , dimension(:,:) :: swdif , swdir , lwdif , lwdir
+  real(rk8) , pointer , dimension(:,:) :: totpr , fracd
 !
   real(rk8) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
         sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d

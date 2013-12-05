@@ -623,8 +623,10 @@ module mod_output
         call subgrid_collect(ldmsk1,ldmsk1_io,jci1,jci2,ici1,ici2)
 
         call grid_collect(solis,solis_io,jci1,jci2,ici1,ici2)
-        call grid_collect(solvd,solvd_io,jci1,jci2,ici1,ici2)
         call grid_collect(solvs,solvs_io,jci1,jci2,ici1,ici2)
+        call grid_collect(solvsd,solvsd_io,jci1,jci2,ici1,ici2)
+        call grid_collect(solvl,solvl_io,jci1,jci2,ici1,ici2)
+        call grid_collect(solvld,solvld_io,jci1,jci2,ici1,ici2)
         call grid_collect(sabveg,sabveg_io,jci1,jci2,ici1,ici2)
         call grid_collect(flw,flw_io,jci1,jci2,ici1,ici2)
         call grid_collect(flwd,flwd_io,jci1,jci2,ici1,ici2)
@@ -646,10 +648,6 @@ module mod_output
           call subgrid_collect(tlake,tlak_io,jci1,jci2,ici1,ici2,1,ndpmax)
         end if
 #else
-        call grid_collect(sols2d,sols2d_io,jci1,jci2,ici1,ici2)
-        call grid_collect(soll2d,soll2d_io,jci1,jci2,ici1,ici2)
-        call grid_collect(solsd2d,solsd2d_io,jci1,jci2,ici1,ici2)
-        call grid_collect(solld2d,solld2d_io,jci1,jci2,ici1,ici2)
         call grid_collect(lndcat2d,lndcat2d_io,jci1,jci2,ici1,ici2)
 #endif
         if ( idcsst == 1 ) then

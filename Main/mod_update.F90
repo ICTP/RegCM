@@ -387,8 +387,8 @@
       use mod_bats_common, only : sfps, t2m, q2m, evpr, sent, totpr, &
                                   u10m, v10m, srnof, trnof, rdnnsg,  &
                                   dailyrnf, taux, tauy, sncv, runoffcount
-      use mod_atm_interface, only : flw, flwd, fsw , ldmsk , solvd, &
-                                    solvs
+      use mod_atm_interface, only : flw, flwd, fsw , ldmsk , solvs, &
+                                    solvsd
 !
       implicit none
 !
@@ -427,7 +427,7 @@
           exportFields%nflx(j,i) = fsw(j,i)-evpr(1,j,i)*wlhv-sent(1,j,i)-flw(j,i)
           exportFields%sflx(j,i) = evpr(1,j,i)-totpr(j,i)
           exportFields%snow(j,i) = sncv(1,j,i)
-          exportFields%dswr(j,i) = solvd(j,i)+solvs(j,i) 
+          exportFields%dswr(j,i) = solvsd(j,i)+solvs(j,i) 
         end do
       end do
 !

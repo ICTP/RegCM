@@ -115,7 +115,6 @@ module mod_rad_outrad
     do i = ici1 , ici2
       do j = jci1 , jci2
         r2m%fsw(j,i) = frsa(n)
-        r2m%sabveg(j,i) = abv(n)
         r2m%solis(j,i) = sol(n)
         r2m%flw(j,i) = frla(n)
         r2m%flwd(j,i) = slwd(n)  ! BATS Output
@@ -133,15 +132,12 @@ module mod_rad_outrad
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        r2m%sinc(j,i) = soll(n) + sols(n) + solsd(n) + solld(n)
+        r2m%sabveg(j,i) = abv(n)
         r2m%solvs(j,i) = sols(n)
-        r2m%solvd(j,i) = solsd(n)
-#ifdef CLM
-        r2m%sols(j,i) = sols(n)
-        r2m%soll(j,i) = soll(n)
-        r2m%solsd(j,i) = solsd(n)
-        r2m%solld(j,i) = solld(n)
-#endif
+        r2m%solvsd(j,i) = solsd(n)
+        r2m%solvl(j,i) = soll(n)
+        r2m%solvld(j,i) = solld(n)
+        r2m%sinc(j,i) = soll(n) + sols(n) + solsd(n) + solld(n)
         n = n + 1
       end do
     end do

@@ -326,8 +326,10 @@ module mod_init
     call subgrid_distribute(ldmsk1_io,ldmsk1,jci1,jci2,ici1,ici2)
 
     call grid_distribute(solis_io,solis,jci1,jci2,ici1,ici2)
-    call grid_distribute(solvd_io,solvd,jci1,jci2,ici1,ici2)
     call grid_distribute(solvs_io,solvs,jci1,jci2,ici1,ici2)
+    call grid_distribute(solvsd_io,solvsd,jci1,jci2,ici1,ici2)
+    call grid_distribute(solvl_io,solvl,jci1,jci2,ici1,ici2)
+    call grid_distribute(solvld_io,solvld,jci1,jci2,ici1,ici2)
     call grid_distribute(sabveg_io,sabveg,jci1,jci2,ici1,ici2)
     call grid_distribute(flw_io,flw,jci1,jci2,ici1,ici2)
     call grid_distribute(flwd_io,flwd,jci1,jci2,ici1,ici2)
@@ -349,10 +351,6 @@ module mod_init
       call lake_fillvar(var_tlak,tlake,1)
     endif
 #else
-    call grid_distribute(sols2d_io,sols2d,jci1,jci2,ici1,ici2)
-    call grid_distribute(soll2d_io,soll2d,jci1,jci2,ici1,ici2)
-    call grid_distribute(solsd2d_io,solsd2d,jci1,jci2,ici1,ici2)
-    call grid_distribute(solld2d_io,solld2d,jci1,jci2,ici1,ici2)
     call grid_distribute(lndcat2d_io,lndcat2d,jci1,jci2,ici1,ici2)
     !
     ! CLM modifies landuse table. Get the modified one from restart file

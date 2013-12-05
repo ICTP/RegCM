@@ -254,10 +254,10 @@ module mod_mtrxclm
       cprate(:,:)  = d_zero
       ncprate(:,:) = d_zero
       ! Radiation
-      sols2d(:,:)  = d_zero
-      soll2d(:,:)  = d_zero
-      solsd2d(:,:) = d_zero
-      solld2d(:,:) = d_zero
+      swdir(:,:)  = d_zero
+      lwdir(:,:)  = d_zero
+      swdif(:,:) = d_zero
+      lwdif(:,:) = d_zero
       dwrlwf(:,:)  = d_zero
       ! Albedo
       ! Set initial albedos to clm dry soil values for mid-colored soils
@@ -290,10 +290,10 @@ module mod_mtrxclm
       r2cpsb = (r2cpsb+ptop)*d_1000
       call fill_frame(cprate,r2crnc)
       call fill_frame(ncprate,r2crnnc)
-      call fill_frame(sols2d,r2csols)
-      call fill_frame(soll2d,r2csoll)
-      call fill_frame(solsd2d,r2csolsd)
-      call fill_frame(solld2d,r2csolld)
+      call fill_frame(swdir,r2csols)
+      call fill_frame(lwdir,r2csoll)
+      call fill_frame(swdif,r2csolsd)
+      call fill_frame(lwdif,r2csolld)
       call fill_frame(dwrlwf,r2cflwd)
 
       call grid_fill(r2ctb,r2ctb_all)
@@ -562,10 +562,10 @@ module mod_mtrxclm
       r2cpsb = (r2cpsb+ptop)*d_1000
       call fill_frame(cprate,r2crnc)
       call fill_frame(ncprate,r2crnnc)
-      call fill_frame(sols2d,r2csols)
-      call fill_frame(soll2d,r2csoll)
-      call fill_frame(solsd2d,r2csolsd)
-      call fill_frame(solld2d,r2csolld)
+      call fill_frame(swdir,r2csols)
+      call fill_frame(lwdir,r2csoll)
+      call fill_frame(swdif,r2csolsd)
+      call fill_frame(lwdif,r2csolld)
       call fill_frame(dwrlwf,r2cflwd)
 
       call grid_fill(r2ctb,r2ctb_all)

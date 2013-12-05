@@ -46,7 +46,7 @@ module mod_lm_interface
 
   subroutine init_bats(dom,atm,sfs,zpbl,pptc,prca,pptnc,prnca,coszrs, &
                   fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs,aldirl, &
-                  aldifl,solis,emiss,sinc,ldmsk,solvs,solvd)
+                  aldifl,solis,emiss,sinc,ldmsk,solvs,solvsd,solvl,solvld)
     implicit none
     type(domain) , intent(in) :: dom
     type(slice) , intent(in) :: atm
@@ -71,7 +71,9 @@ module mod_lm_interface
     real(rk8) , pointer , intent(in) , dimension(:,:) :: emiss
     real(rk8) , pointer , intent(in) , dimension(:,:) :: sinc
     real(rk8) , pointer , intent(in) , dimension(:,:) :: solvs
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: solvd
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: solvsd
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: solvl
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: solvld
     integer(ik4) , pointer , intent(in) , dimension(:,:) :: ldmsk
     ntcpl  = idnint(cpldt/dtsec)
     ntsrf2 = idnint(dtsrf/dtsec)
@@ -118,7 +120,9 @@ module mod_lm_interface
     call assignpnt(emiss,emissivity)
     call assignpnt(sinc,solinc)
     call assignpnt(solvs,swdir)
-    call assignpnt(solvd,swdif)
+    call assignpnt(solvsd,swdif)
+    call assignpnt(solvl,lwdir)
+    call assignpnt(solvld,lwdif)
     call assignpnt(ldmsk,landmsk)
   end subroutine init_bats
 !

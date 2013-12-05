@@ -145,14 +145,6 @@ module mod_clm
   integer(ik4) , pointer , dimension(:) :: c2rngc
   integer(ik4) , pointer , dimension(:) :: c2rdisps
 !
-  ! Direct solar rad incident on surface (<0.7)
-  real(rk8) , pointer , dimension(:,:) :: sols2d
-  ! Direct solar rad incident on surface (>=0.7)
-  real(rk8) , pointer , dimension(:,:) :: soll2d
-  ! Diffuse solar rad incident on surface (<0.7)
-  real(rk8) , pointer , dimension(:,:) :: solsd2d
-  ! Diffuse solar rad incident on surface (>=0.7)
-  real(rk8) , pointer , dimension(:,:) :: solld2d
   real(rk8) , pointer , dimension(:,:) :: lndcat2d
   real(rk8) , pointer , dimension(:,:) :: rs2d
   real(rk8) , pointer , dimension(:,:) :: ra2d
@@ -242,10 +234,6 @@ module mod_clm
     call getmem1d(c2rngc,1,nproc,'clm:c2rngc')
     call getmem1d(c2rdisps,1,nproc,'clm:c2rdisps')
 
-    call getmem2d(sols2d,jci1,jci2,ici1,ici2,'clm:sols2d')
-    call getmem2d(soll2d,jci1,jci2,ici1,ici2,'clm:soll2d')
-    call getmem2d(solsd2d,jci1,jci2,ici1,ici2,'clm:solsd2d')
-    call getmem2d(solld2d,jci1,jci2,ici1,ici2,'clm:solld2d')
     call getmem2d(rs2d,jci1,jci2,ici1,ici2,'clm:rs2d')
     call getmem2d(ra2d,jci1,jci2,ici1,ici2,'clm:ra2d')
     call getmem2d(lndcat2d,jci1,jci2,ici1,ici2,'clm:lndcat2d')

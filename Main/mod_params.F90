@@ -1315,7 +1315,8 @@ module mod_params
   call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
   call init_bats(mddom,atms,sfs,zpbl,pptc,prca,pptnc,prnca,coszrs, &
                  fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs,    &
-                 aldirl,aldifl,solis,emiss,sinc,ldmsk,solvs,solvd)
+                 aldirl,aldifl,solis,emiss,sinc,ldmsk,solvs,       &
+                 solvsd,solvl,solvld)
 #ifdef CLM
   allocate(landmask(jx,iy))
   call init_clm(landmask)
@@ -1340,9 +1341,6 @@ module mod_params
     end do
   end if
   call init_rad
-#ifdef CLM
-  call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
-#endif
   if ( islab_ocean == 1 ) then
     call allocate_mod_slabocean
     call init_slabocean(sfs,ldmsk,fsw,flw)

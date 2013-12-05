@@ -83,25 +83,15 @@ module mod_rad_interface
     call assignpnt(sabveg,r2m%sabveg)
     call assignpnt(sinc,r2m%sinc)
     call assignpnt(solvs,r2m%solvs)
-    call assignpnt(solvd,r2m%solvd)
+    call assignpnt(solvsd,r2m%solvsd)
+    call assignpnt(solvl,r2m%solvl)
+    call assignpnt(solvld,r2m%solvld)
     call assignpnt(fsw,r2m%fsw)
     call assignpnt(flw,r2m%flw)
     call assignpnt(flwd,r2m%flwd)
     call assignpnt(heatrt,r2m%heatrt)
   end subroutine init_rad
 !
-  subroutine init_rad_clm(sols,soll,solsd,solld)
-    implicit none
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: sols
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: soll
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: solsd
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: solld
-    call assignpnt(sols,r2m%sols)
-    call assignpnt(soll,r2m%soll)
-    call assignpnt(solsd,r2m%solsd)
-    call assignpnt(solld,r2m%solld)
-  end subroutine init_rad_clm
-
   subroutine radiation(iyear,eccf,loutrad,labsem)
     implicit none
     integer(ik4) , intent(in) :: iyear
