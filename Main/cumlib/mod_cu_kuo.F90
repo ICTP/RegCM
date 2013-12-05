@@ -29,6 +29,7 @@ module mod_cu_kuo
   use mod_mppparam
   use mod_cu_common
   use mod_runparams , only : iqv
+  use mod_regcm_types
 
   private
 
@@ -69,14 +70,15 @@ module mod_cu_kuo
                           ice1-ma%ibb1,ice2+ma%ibt1,1,kz,'tendency:wrkkuo2')
   end subroutine allocate_mod_cu_kuo
 !
-  subroutine cupara
+  subroutine cupara(m2c,c2m)
     implicit none
-    real(rk8) :: apcnt , arh , c301 , dalr ,    &
-               deqt , dlnp , dplr , dsc , e1 , eddyf , emax ,   &
-               eqt , eqtm , es , plcl , pmax , prainx , psg ,   &
-               psx , pux , q , qmax , qs , rh , rsht , rswt ,   &
-               sca , siglcl , suma , sumb , t1 , tdmax , tlcl , &
-               tmax , tmean , ttconv , ttp , ttsum , xsav , zlcl
+    type(mod_2_cum) , intent(in) :: m2c
+    type(cum_2_mod) , intent(inout) :: c2m
+    real(rk8) :: apcnt , arh , c301 , dalr , deqt , dlnp , dplr , dsc ,   &
+            e1 , eddyf , emax , eqt , eqtm , es , plcl , pmax , prainx ,  &
+            psg , pux , q , qmax , qs , rh , rsht , rswt , sca , siglcl , &
+            suma , sumb , t1 , tdmax , tlcl , tmax , tmean , ttconv ,     &
+            ttp , ttsum , xsav , zlcl
     integer(ik4) :: i , j , k , kbase , kbaseb , kk , ktop
     real(rk8) , dimension(kz) :: seqt
     real(rk8) , dimension(kz) :: tmp3
@@ -88,15 +90,15 @@ module mod_cu_kuo
     qmax = d_zero
     tmax = d_zero
     !
-    ! kcumtop = top level of cumulus clouds
-    ! kcumbot = bottom level of cumulus clouds
+    ! c2m%kcumtop = top level of cumulus clouds
+    ! c2m%kcumbot = bottom level of cumulus clouds
     !
-    kcumtop(:,:) = 0
-    kcumbot(:,:) = 0
-    if ( ichem == 1 ) cprate(:,:,:) = d_zero
+    c2m%kcumtop(:,:) = 0
+    c2m%kcumbot(:,:) = 0
+    if ( ichem == 1 ) c2m%convpr(:,:,:) = d_zero
 !
 !   compute the moisture convergence in a column:
-!   at this stage, qxten(j,i,k,iqv) only includes horizontal advection.
+!   at this stage, c2m%qxten(j,i,k,iqv) only includes horizontal advection.
 !   sca: is the amount of total moisture convergence
 !
     total_precip_points = 0
@@ -105,7 +107,7 @@ module mod_cu_kuo
 !
         sca = d_zero
         do k = 1 , kz
-          sca = sca + qxten(j,i,k,iqv)*dsigma(k)
+          sca = sca + c2m%qxten(j,i,k,iqv)*dsigma(k)
         end do
 !
 !       determine if moist convection exists:
@@ -121,9 +123,9 @@ module mod_cu_kuo
 !
           eqtm = d_zero
           do k = k700 , kz
-            ttp = ptatm(j,i,k)/psfcps(j,i) + pert
-            q = pvqxtm(j,i,k,iqv)/psfcps(j,i) + perq
-            psg = psfcps(j,i)*hsigma(k) + ptop
+            ttp = m2c%tas(j,i,k) + pert
+            q = m2c%qxas(j,i,k,iqv) + perq
+            psg = m2c%pas(j,i,k)
             t1 = ttp*(d_100/psg)**rovcp
             eqt = t1*dexp(wlhvocp*q/ttp)
             if ( eqt > eqtm ) then
@@ -145,7 +147,7 @@ module mod_cu_kuo
           tmean = (tmax+tlcl)*d_half
           dlnp = (egrav*zlcl)/(rgas*tmean)
           plcl = pmax*dexp(-dlnp)
-          siglcl = (plcl-ptop)/psfcps(j,i)
+          siglcl = (plcl-ptop)/m2c%psb(j,i)
 !
 !         3) compute seqt (saturation equivalent potential temperature)
 !         of all the levels that are above the lcl
@@ -159,8 +161,8 @@ module mod_cu_kuo
 !         kbase is the layer where lcl is located.
 !
           do k = 1 , kbase
-            ttp = ptatm(j,i,k)/psfcps(j,i)
-            psg = psfcps(j,i)*hsigma(k) + ptop
+            ttp = m2c%tas(j,i,k)
+            psg = m2c%pas(j,i,k)
             es = 0.611D0*dexp(19.84659D0-5418.12D0/ttp)
             qs = ep2*es/(psg-es)
             t1 = ttp*(d_100/psg)**rovcp
@@ -218,15 +220,14 @@ module mod_cu_kuo
               suma = d_zero
               sumb = d_zero
               arh = d_zero
-              psx = psfcps(j,i)
               do k = 1 , kz
                 qwght(k) = d_zero
               end do
               do k = ktop , kz
-                pux = psx*hsigma(k) + ptop
-                e1 = 0.611D0*dexp(19.84659D0-5418.12D0/(ptatm(j,i,k)/psx))
+                pux = m2c%pas(j,i,k)
+                e1 = 0.611D0*dexp(19.84659D0-5418.12D0/m2c%tas(j,i,k))
                 qs = ep2*e1/(pux-e1)
-                rh = pvqxtm(j,i,k,iqv)/(qs*psx)
+                rh = m2c%qxas(j,i,k,iqv)/qs
                 rh = dmin1(rh,d_one)
                 xsav = (d_one-rh)*qs
                 qwght(k) = xsav
@@ -250,26 +251,26 @@ module mod_cu_kuo
                 rsheat(j,i,k) = rsheat(j,i,k) + ttconv*dt*d_half
                 apcnt = (d_one-c301)*sca/4.3D-3
                 eddyf = apcnt*vqflx(k,kbase,ktop)
-                qxten(j,i,k,iqv) = eddyf
+                c2m%qxten(j,i,k,iqv) = eddyf
                 rswat(j,i,k) = rswat(j,i,k) + c301*qwght(k)*sca*dt*d_half
               end do
 !
               kbaseb = min0(kbase,kzm2)
-              kcumtop(j,i) = ktop
-              kcumbot(j,i) = kbaseb
+              c2m%kcumtop(j,i) = ktop
+              c2m%kcumbot(j,i) = kbaseb
 
 !             the unit for rainfall is mm.
               prainx = (d_one-c301)*sca*dtsec*d_1000*regrav
               if ( prainx > dlowval ) then
-                rainc(j,i) = rainc(j,i) + prainx
+                c2m%rainc(j,i) = c2m%rainc(j,i) + prainx
 !               instantaneous precipitation rate for use in bats (mm/s)
-                lmpcpc(j,i) = lmpcpc(j,i) + prainx/dtsec
+                c2m%pcratec(j,i) = c2m%pcratec(j,i) + prainx/dtsec
               end if
               if ( ichem == 1 ) then
                 ! build for chemistry 3d table of constant precipitation rate
                 ! from the surface to the top of the convection
                 do k = 1 , ktop-1
-                  cprate(j,i,kz-k+1) = prainx/dtsec
+                  c2m%convpr(j,i,kz-k+1) = prainx/dtsec
                 end do
               end if
               cycle
@@ -281,19 +282,19 @@ module mod_cu_kuo
 !
         tmp3(1) = d_zero
         do k = 2 , kz
-          if ( pvqxtm(j,i,k,iqv) < 1.0D-15 ) then
+          if ( m2c%qxas(j,i,k,iqv) < 1.0D-8 ) then
             tmp3(k) = d_zero
           else
-            tmp3(k) = pvqxtm(j,i,k,iqv)* &
-                      (pvqxtm(j,i,k-1,iqv)/pvqxtm(j,i,k,iqv))**qcon(k)
+            tmp3(k) = m2c%qxas(j,i,k,iqv) * &
+                      (m2c%qxas(j,i,k-1,iqv)/m2c%qxas(j,i,k,iqv))**qcon(k)
           end if
         end do
-        qxten(j,i,1,iqv) = qxten(j,i,1,iqv)-svv(j,i,2)*tmp3(2)/dsigma(1)
+        c2m%qxten(j,i,1,iqv) = c2m%qxten(j,i,1,iqv)-m2c%qdot(j,i,2)*tmp3(2)/dsigma(1)
         do k = 2 , kzm1
-          qxten(j,i,k,iqv) = qxten(j,i,k,iqv)-(svv(j,i,k+1)*tmp3(k+1) - &
-                                       svv(j,i,k)*tmp3(k))/dsigma(k)
+          c2m%qxten(j,i,k,iqv) = c2m%qxten(j,i,k,iqv)-(m2c%qdot(j,i,k+1)*tmp3(k+1) - &
+                                       m2c%qdot(j,i,k)*tmp3(k))/dsigma(k)
         end do
-        qxten(j,i,kz,iqv) = qxten(j,i,kz,iqv) + svv(j,i,kz)*tmp3(kz)/dsigma(kz)
+        c2m%qxten(j,i,kz,iqv) = c2m%qxten(j,i,kz,iqv) + m2c%qdot(j,i,kz)*tmp3(kz)/dsigma(kz)
 !
       end do
     end do
@@ -305,15 +306,13 @@ module mod_cu_kuo
           rswat(j,i,k) = dmax1(rswat(j,i,k),d_zero)
           rsht = rsheat(j,i,k)/tauht
           rswt = rswat(j,i,k)/tauht
-          tten(j,i,k) = tten(j,i,k) + rsht
-          qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + rswt
+          c2m%tten(j,i,k) = c2m%tten(j,i,k) + rsht
+          c2m%qxten(j,i,k,iqv) = c2m%qxten(j,i,k,iqv) + rswt
           rsheat(j,i,k) = rsheat(j,i,k)*(d_one-dt/(d_two*tauht))
           rswat(j,i,k) = rswat(j,i,k)*(d_one-dt/(d_two*tauht))
         end do
       end do
     end do
-
-    call model_cumulus_cloud
 
 99001 format (/,' >>in **cupara**: (i,j)=(',i2,',',i2,'),   ',&
         ' kbase/ktop are non-standard:',2I3, &

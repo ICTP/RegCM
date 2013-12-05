@@ -104,9 +104,7 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:) :: dwrlwf        ! flwd
   real(rk8) , pointer , dimension(:,:) :: zencos        ! coszrs
   real(rk8) , pointer , dimension(:,:) :: ncprate       ! pptnc 
-  real(rk8) , pointer , dimension(:,:) :: ncapr         ! prnca 
   real(rk8) , pointer , dimension(:,:) :: cprate        ! cprate 
-  real(rk8) , pointer , dimension(:,:) :: capr          ! prca 
   real(rk8) , pointer , dimension(:,:) :: vegswab       ! sabveg 
   real(rk8) , pointer , dimension(:,:) :: lwalb         ! albvl
   real(rk8) , pointer , dimension(:,:) :: swalb         ! albvs

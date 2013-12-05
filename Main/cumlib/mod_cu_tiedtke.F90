@@ -30,6 +30,7 @@ module mod_cu_tiedtke
   use mod_service
   use mod_runparams , only : iqc , iqv
   use mod_cu_tiedtke_38r2 , only : sucumf , cumastrn
+  use mod_regcm_types
 !
   private
 !
@@ -137,8 +138,10 @@ module mod_cu_tiedtke
 !
 ! This subroutines calls cucall
 !
-  subroutine tiedtkedrv
+  subroutine tiedtkedrv(m2c,c2m)
     implicit none
+    type(mod_2_cum) , intent(in) :: m2c
+    type(cum_2_mod) , intent(inout) :: c2m
     integer(ik4) :: i , j , k , ii , iplmlc
     real(rk8) :: pxf
 #ifdef DEBUG
@@ -155,14 +158,14 @@ module mod_cu_tiedtke
     q_detr(:,:,:) = d_zero
 
     if ( ichem == 1 ) then    
-      cprate(:,:,:) = d_zero
+      c2m%convpr(:,:,:) = d_zero
       do k = 1 , kz
         do ii = 1 , nipoi
           i = imap(ii)
           j = jmap(ii)
           ! tracers input profile : implicit loop on tracer
-          pxtm1(ii,k,:) = chias(j,i,k,:)
-          pxtte(ii,k,:) = tchiten(j,i,k,:)/sfcps(j,i)
+          pxtm1(ii,k,:) = m2c%chias(j,i,k,:)
+          pxtte(ii,k,:) = c2m%chiten(j,i,k,:)/m2c%psb(j,i)
         end do 
       end do
     else
@@ -178,35 +181,35 @@ module mod_cu_tiedtke
       ! this array will then be obsolete 
       i = imap(ii)
       j = jmap(ii)
-      xpqfx(ii) = qfx(j,i)
-      xphfx(ii) = hfx(j,i)
-      ldland(ii) = (lmask(j,i) /= 0)
+      xpqfx(ii) = m2c%qfx(j,i)
+      xphfx(ii) = m2c%hfx(j,i)
+      ldland(ii) = (m2c%ldmsk(j,i) /= 0)
     end do
 
     do k = 1 , kz
       do ii = 1 , nipoi
         i = imap(ii)
         j = jmap(ii)
-        pxf = sfcps(j,i)
+        pxf = m2c%psb(j,i)
         ! Pascal
         papp1(ii,k) = (hsigma(k)*pxf+ptop)*d_1000
-        ptm1(ii,k)  = tas(j,i,k)  ! temperature
-        pum1(ii,k)  = uas(j,i,k)  ! u (guessing!)
-        pvm1(ii,k)  = vas(j,i,k)  ! v     "
-        pqm1(ii,k)  = qxas(j,i,k,iqv) ! humidity
-        pxlm1(ii,k) = qxas(j,i,k,iqc) ! cloud liquid water
-        ptte(ii,k)  = tten(j,i,k)/pxf
-        pvom(ii,k)  = uten(j,i,k)/pxf
-        pvol(ii,k)  = vten(j,i,k)/pxf
-        pqte(ii,k)  = qxten(j,i,k,iqv)/pxf
-        pxlte(ii,k) = qxten(j,i,k,iqc)/pxf
-        pverv(ii,k)  = d_half*(svv(j,i,k) + svv(j,i,k+1))
+        ptm1(ii,k)  = m2c%tas(j,i,k)  ! temperature
+        pum1(ii,k)  = m2c%uas(j,i,k)  ! u (guessing!)
+        pvm1(ii,k)  = m2c%vas(j,i,k)  ! v     "
+        pqm1(ii,k)  = m2c%qxas(j,i,k,iqv) ! humidity
+        pxlm1(ii,k) = m2c%qxas(j,i,k,iqc) ! cloud liquid water
+        ptte(ii,k)  = c2m%tten(j,i,k)/pxf
+        pvom(ii,k)  = c2m%uten(j,i,k)/pxf
+        pvol(ii,k)  = c2m%vten(j,i,k)/pxf
+        pqte(ii,k)  = c2m%qxten(j,i,k,iqv)/pxf
+        pxlte(ii,k) = c2m%qxten(j,i,k,iqc)/pxf
+        pverv(ii,k)  = d_half*(m2c%qdot(j,i,k) + m2c%qdot(j,i,k+1))
         pxim1(ii,k) = d_zero ! cloud ice water
         pxite(ii,k) = d_zero ! ice tend
         ! scheme diagnostic output - tendencies due to convection
         pxtec(ii,k) = d_zero ! detrained cloud water tendency
         pqtec(ii,k) = d_zero ! detrained humidity tendency
-        xpg(ii,k) = hgt(j,i,k)*egrav  !   geopotential
+        xpg(ii,k) = m2c%zas(j,i,k)*egrav  !   geopotential
         ! pressure top limit for convection: the level above tropopause
       end do
     end do
@@ -220,7 +223,7 @@ module mod_cu_tiedtke
       do ii = 1 , nipoi
         i = imap(ii)
         j = jmap(ii)
-        ptopmax(ii) = papp1(ii,max(1,rktrop(j,i)-1))
+        ptopmax(ii) = papp1(ii,max(1,m2c%ktrop(j,i)-1))
       end do
     end if
 
@@ -229,8 +232,8 @@ module mod_cu_tiedtke
         i = imap(ii)
         j = jmap(ii)
         ! 1st guess pressure at full levels
-        paphp1(ii,k) = (sigma(k)*sfcps(j,i)+ptop)*d_1000
-        xpgh(ii,k) = hgth(j,i,k)*egrav  !   geopotential
+        paphp1(ii,k) = (sigma(k)*m2c%psb(j,i)+ptop)*d_1000
+        xpgh(ii,k) = m2c%zfs(j,i,k)*egrav  !   geopotential
       end do
     end do
 
@@ -271,9 +274,9 @@ module mod_cu_tiedtke
           j = jmap(ii)
           total_precip_points = total_precip_points + 1
           ! total precip cumulative 
-          rainc(j,i) = rainc(j,i) + paprc(ii)
+          c2m%rainc(j,i) = c2m%rainc(j,i) + paprc(ii)
           ! rainfall for bats
-          lmpcpc(j,i)= lmpcpc(j,i) + (prsfc(ii)+pssfc(ii))
+          c2m%pcratec(j,i)= c2m%pcratec(j,i) + (prsfc(ii)+pssfc(ii))
         end if
       end if
     end do
@@ -285,36 +288,34 @@ module mod_cu_tiedtke
         if (ktype(ii) > 0) then
           i = imap(ii)
           j = jmap(ii)
-          tten(j,i,k)  = ptte(ii,k)  * sfcps(j,i)
-          uten(j,i,k)  = pvom(ii,k)  * sfcps(j,i)
-          vten(j,i,k)  = pvol(ii,k)  * sfcps(j,i)
-          qxten(j,i,k,iqv) = pqte(ii,k)  * sfcps(j,i)
-          qxten(j,i,k,iqc) = pxlte(ii,k) * sfcps(j,i)
+          c2m%tten(j,i,k)  = ptte(ii,k)  * m2c%psb(j,i)
+          c2m%uten(j,i,k)  = pvom(ii,k)  * m2c%psb(j,i)
+          c2m%vten(j,i,k)  = pvol(ii,k)  * m2c%psb(j,i)
+          c2m%qxten(j,i,k,iqv) = pqte(ii,k)  * m2c%psb(j,i)
+          c2m%qxten(j,i,k,iqc) = pxlte(ii,k) * m2c%psb(j,i)
           q_detr(j,i,k) = zlude(ii,k)
           if ( ichem == 1 ) then
-            tchiten(j,i,k,:) = pxtte(ii,k,:) * sfcps(j,i)
+            c2m%chiten(j,i,k,:) = pxtte(ii,k,:) * m2c%psb(j,i)
             ! build for chemistry 3d table of constant precipitation rate
             ! from the surface to the top of the convection
             if ( k > kctop(ii) ) then
-              cprate(j,i,k) = (prsfc(ii)+pssfc(ii))
+              c2m%convpr(j,i,k) = (prsfc(ii)+pssfc(ii))
             end if
           end if
         end if
       end do
     end do
 
-    kcumtop(:,:) = 0
-    kcumbot(:,:) = 0
+    c2m%kcumtop(:,:) = 0
+    c2m%kcumbot(:,:) = 0
     do ii = 1 , nipoi
       if (ktype(ii) > 0) then
         i = imap(ii)
         j = jmap(ii)
-        kcumtop(j,i) = kctop(ii)
-        kcumbot(j,i) = kcbot(ii)
+        c2m%kcumtop(j,i) = kctop(ii)
+        c2m%kcumbot(j,i) = kcbot(ii)
       end if
     end do
-
-    call model_cumulus_cloud
 
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)

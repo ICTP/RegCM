@@ -27,6 +27,7 @@ module mod_cu_grell
   use mod_cu_common
   use mod_mpmessage
   use mod_runparams , only : iqv
+  use mod_regcm_types
  
   private
 
@@ -182,8 +183,10 @@ module mod_cu_grell
     ae(2) = be(2)*rtzero + alsixt
   end subroutine allocate_mod_cu_grell
 
-  subroutine cuparan
+  subroutine cuparan(m2c,c2m)
     implicit none
+    type(mod_2_cum) , intent(in) :: m2c
+    type(cum_2_mod) , intent(inout) :: c2m
     real(rk8) :: pkdcut , pkk , prainx , us , vs
     integer(ik4) :: i , j , k , jp1 , kk
 #ifdef DEBUG
@@ -209,7 +212,7 @@ module mod_cu_grell
     psur(:,:)  = d_zero
     qcrit(:,:) = d_zero
     ter11(:,:) = d_zero
-    if ( ichem == 1 ) cprate(:,:,:) = d_zero 
+    if ( ichem == 1 ) c2m%convpr(:,:,:) = d_zero 
 !
     kdet(:,:)  = 2
     k22(:,:)   = 1
@@ -293,30 +296,24 @@ module mod_cu_grell
         do j = jci1 , jci2
           kk = kz - k + 1
           jp1 = j + 1
-          us = (puatm(j,i,kk)/sfcps(j,i)+       &
-                puatm(j,i+1,kk)/sfcps(j,i+1)+   &
-                puatm(jp1,i,kk)/sfcps(jp1,i)+   &
-                puatm(jp1,i+1,kk)/sfcps(jp1,i+1))*d_rfour
-          vs = (pvatm(j,i,kk)/sfcps(j,i)+       &
-                pvatm(j,i+1,kk)/sfcps(j,i+1)+   &
-                pvatm(jp1,i,kk)/sfcps(jp1,i)+   &
-                pvatm(jp1,i+1,kk)/sfcps(jp1,i+1))*d_rfour
-          t(j,i,k) = tas(j,i,kk)
-          q(j,i,k) = qxas(j,i,kk,iqv)
+          us = m2c%uas(j,i,kk)
+          vs = m2c%vas(j,i,kk)
+          p(j,i,k) = m2c%pas(j,i,k)*d_10
+          t(j,i,k) = m2c%tas(j,i,kk)
+          q(j,i,k) = m2c%qxas(j,i,kk,iqv)
           if ( q(j,i,k) < 1.0D-08 ) q(j,i,k) = 1.0D-08
-          tn(j,i,k) = t(j,i,k) + (tten(j,i,kk))/sfcps(j,i)*dt
-          qo(j,i,k) = q(j,i,k) + (qxten(j,i,kk,iqv))/sfcps(j,i)*dt
-          p(j,i,k) = d_10*sfcps(j,i)*hsigma(kk) + d_10*ptop
+          tn(j,i,k) = t(j,i,k) + (c2m%tten(j,i,kk))/m2c%psb(j,i)*dt
+          qo(j,i,k) = q(j,i,k) + (c2m%qxten(j,i,kk,iqv))/m2c%psb(j,i)*dt
           vsp(j,i,k) = dsqrt(us**2+vs**2)
           if ( qo(j,i,k) < 1.0D-08 ) qo(j,i,k) = 1.0D-08
 !
           po(j,i,k) = p(j,i,k)
-          psur(j,i) = d_10*sfcps(j,i) + d_10*ptop
+          psur(j,i) = (m2c%psb(j,i)+ptop)*d_10
           pkk = psur(j,i) - po(j,i,k)
           if ( pkk <= pkdcut ) kdet(j,i) = kdet(j,i) + 1
-          ter11(j,i) = sfhgt(j,i)*regrav
+          ter11(j,i) = m2c%ht(j,i)*regrav
           if ( ter11(j,i) <= d_zero ) ter11(j,i) = 1.0D-05
-          qcrit(j,i) = qcrit(j,i) + qxten(j,i,kk,iqv)
+          qcrit(j,i) = qcrit(j,i) + c2m%qxten(j,i,kk,iqv)
         end do
       end do
     end do
@@ -331,7 +328,7 @@ module mod_cu_grell
 !
 !   call cumulus parameterization
 !
-    call cup
+    call cup(c2m)
 !
 !   return cumulus parameterization
 !
@@ -340,8 +337,9 @@ module mod_cu_grell
         do j = jci1 , jci2
           if ( pret(j,i) > d_zero ) then
             kk = kz - k + 1
-            tten(j,i,kk) = sfcps(j,i)*outt(j,i,k) + tten(j,i,kk)
-            qxten(j,i,kk,iqv) = sfcps(j,i)*outq(j,i,k) + qxten(j,i,kk,iqv)
+            c2m%tten(j,i,kk) = m2c%psb(j,i)*outt(j,i,k) + c2m%tten(j,i,kk)
+            c2m%qxten(j,i,kk,iqv) = m2c%psb(j,i)*outq(j,i,k) + &
+                    c2m%qxten(j,i,kk,iqv)
           end if
         end do
       end do
@@ -354,16 +352,13 @@ module mod_cu_grell
       do j = jci1 , jci2
         prainx = pret(j,i)*dtsec
         if ( prainx > dlowval ) then
-          rainc(j,i) = rainc(j,i) + prainx
+          c2m%rainc(j,i) = c2m%rainc(j,i) + prainx
 !         precipitation rate for bats (mm/s)
-          lmpcpc(j,i) = lmpcpc(j,i) + pret(j,i)
+          c2m%pcratec(j,i) = c2m%pcratec(j,i) + pret(j,i)
           total_precip_points = total_precip_points + 1
         end if
       end do
     end do
-    !
-    call model_cumulus_cloud
-    !
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -371,12 +366,9 @@ module mod_cu_grell
 !
 !   GRELL CUMULUS SCHEME
 !
-  subroutine cup
-
-!ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
+  subroutine cup(c2m)
     implicit none
-!
+    type(cum_2_mod) , intent(inout) :: c2m
     real(rk8) :: adw , aup , detdo , detdoq , dg , dh ,   &
                dhh , dp_s , dq , xdt , dv1 , dv1q , dv2 , dv2q , &
                dv3 , dv3q , dz , dz1 , dz2 , dzo , e , eo , f ,  &
@@ -1119,7 +1111,7 @@ module mod_cu_grell
       do i = ici1 , ici2
         do j = jci1 , jci2
           do k = 1 , ktop(j,i)-1
-            cprate(j,i,kz-k+1) = pret(j,i)
+            c2m%convpr(j,i,kz-k+1) = pret(j,i)
           end do
         end do
       end do
@@ -1128,8 +1120,8 @@ module mod_cu_grell
 !
 !   calculate cloud fraction and water content
 !
-    kcumtop(:,:) = 0
-    kcumbot(:,:) = 0
+    c2m%kcumtop(:,:) = 0
+    c2m%kcumbot(:,:) = 0
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( xac(j,i) >= d_zero ) then
@@ -1138,8 +1130,8 @@ module mod_cu_grell
           !
           if ( ktop(j,i) > 1 .and. kbcon(j,i) > 1 ) then
             if ( ktop(j,i) > 1 .and. k22(j,i) >= 1 ) then
-              kcumtop(j,i) = kzp1 - ktop(j,i)
-              kcumbot(j,i) = kzp1 - k22(j,i)
+              c2m%kcumtop(j,i) = kzp1 - ktop(j,i)
+              c2m%kcumbot(j,i) = kzp1 - k22(j,i)
             end if
           end if
         end if

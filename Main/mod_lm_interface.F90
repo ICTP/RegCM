@@ -44,7 +44,7 @@ module mod_lm_interface
 
   contains
 
-  subroutine init_bats(dom,atm,sfs,zpbl,pptc,prca,pptnc,prnca,coszrs, &
+  subroutine init_bats(dom,atm,sfs,zpbl,pptc,pptnc,coszrs, &
                   fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs,aldirl, &
                   aldifl,solis,emiss,sinc,ldmsk,solvs,solvsd,solvl,solvld)
     implicit none
@@ -53,9 +53,7 @@ module mod_lm_interface
     type(surfstate) , intent(in) :: sfs
     real(rk8) , pointer , intent(in) , dimension(:,:) :: zpbl
     real(rk8) , pointer , intent(in) , dimension(:,:) :: pptc
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: prca
     real(rk8) , pointer , intent(in) , dimension(:,:) :: pptnc
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: prnca
     real(rk8) , pointer , intent(in) , dimension(:,:) :: coszrs
     real(rk8) , pointer , intent(in) , dimension(:,:) :: flw
     real(rk8) , pointer , intent(in) , dimension(:,:) :: fsw
@@ -102,9 +100,7 @@ module mod_lm_interface
     call assignpnt(sfs%tgb,tground2)
     call assignpnt(zpbl,hpbl)
     call assignpnt(pptc,cprate)
-    call assignpnt(prca,capr)
     call assignpnt(pptnc,ncprate)
-    call assignpnt(prnca,ncapr)
     call assignpnt(coszrs,zencos)
     call assignpnt(fsw,rswf)
     call assignpnt(flw,rlwf)

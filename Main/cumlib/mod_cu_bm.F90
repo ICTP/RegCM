@@ -25,6 +25,7 @@ module mod_cu_bm
   use mod_memutil
   use mod_cu_common
   use mod_runparams , only : iqv , dtsec
+  use mod_regcm_types
 
 !*****************************************************************
 !
@@ -145,8 +146,10 @@ module mod_cu_bm
     call getmem1d(jshal,1,intall,'cu_bm:jshal')
   end subroutine allocate_mod_cu_bm
 
-  subroutine bmpara
+  subroutine bmpara(m2c,c2m)
     implicit none
+    type(mod_2_cum) , intent(in) :: m2c
+    type(cum_2_mod) , intent(inout) :: c2m
     real(rk8) , parameter :: h1 = 1.0D0
     real(rk8) , parameter :: h3000 = 3000.0D0
     real(rk8) , parameter :: h10e5 = 100000.0D0
@@ -231,12 +234,12 @@ module mod_cu_bm
     lshu = 0
     prainx = d_zero
     !
-    ! kcumtop = top level of cumulus clouds
-    ! kcumbot = bottom level of cumulus clouds
+    ! c2m%kcumtop = top level of cumulus clouds
+    ! c2m%kcumbot = bottom level of cumulus clouds
     !
-    kcumtop(:,:) = 0
-    kcumbot(:,:) = 0
-    if ( ichem == 1 ) cprate(:,:,:) = d_zero
+    c2m%kcumtop(:,:) = 0
+    c2m%kcumbot(:,:) = 0
+    if ( ichem == 1 ) c2m%convpr(:,:,:) = d_zero
     total_precip_points = 0
     iconss = 0
     tauk = dtsec/trel
@@ -248,7 +251,7 @@ module mod_cu_bm
 !
     do i = ici1 , ici2
       do j = jci1 , jci2
-        if ( lmask(j,i) == 0 ) then
+        if ( m2c%ldmsk(j,i) == 0 ) then
           xsm(j,i) = d_one
         else
           xsm(j,i) = d_zero
@@ -287,10 +290,10 @@ module mod_cu_bm
     do i = ici1 , ici2
       do j = jci1 , jci2
         do k = 1 , kz
-          t(j,i,k) = tas(j,i,k)
+          t(j,i,k) = m2c%tas(j,i,k)
           if ( t(j,i,k) > tzero .and. ml(j,i) == kzp1 ) ml(j,i) = k
-          q(j,i,k) = qxas(j,i,k,iqv)
-          pppk = (hsigma(k)*sfcps(j,i)+ptop)*d_1000
+          q(j,i,k) = m2c%qxas(j,i,k,iqv)
+          pppk = m2c%pas(j,i,k)*d_1000
           ape(j,i,k) = (pppk/h10e5)**dm2859
         end do
         lbot(j,i) = kz
@@ -302,7 +305,7 @@ module mod_cu_bm
         ! p300 is the highest model level in the lowest 300 mb...
         ifbuoy(j,i) = 0
         ip300(j,i) = 0
-        cell = ptop/sfcps(j,i)
+        cell = ptop/m2c%psb(j,i)
         do k = 1 , kz
           ddzq(k) = rovg*tbase(j,i,k)*dlog((sigma(k+1)+cell)/(sigma(k)+cell))
         end do
@@ -319,7 +322,7 @@ module mod_cu_bm
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( q(j,i,k) < epsq ) q(j,i,k) = epsq
-          pdiff = (d_one-hsigma(k))*sfcps(j,i)
+          pdiff = (d_one-hsigma(k))*m2c%psb(j,i)
           if ( pdiff < 30.0D0 .and. ip300(j,i) == 0 ) ip300(j,i) = k
         end do
       end do
@@ -330,8 +333,8 @@ module mod_cu_bm
     do kb = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          pkl = (hsigma(kb)*sfcps(j,i)+ptop)*d_1000
-          psfck = (hsigma(kz)*sfcps(j,i)+ptop)*d_1000
+          pkl = m2c%pas(j,i,kb)*d_1000
+          psfck = m2c%pas(j,i,kz)*d_1000
           if ( pkl >= psfck-pbm ) then
             tthbt(j,i) = t(j,i,kb)*ape(j,i,kb)
             ee = pkl*q(j,i,kb)/(ep2+q(j,i,kb))
@@ -357,7 +360,7 @@ module mod_cu_bm
       ak = hsigma(k)
       do i = ici1 , ici2
         do j = jci1 , jci2
-          p(j,i) = (ak*sfcps(j,i)+ptop)*d_1000
+          p(j,i) = m2c%pas(j,i,k)*d_1000
 !         cloud bottom cannot be above 200 mb
           if ( p(j,i) < psp(j,i) .and. p(j,i) >= pqm ) lbot(j,i) = k + 1
         end do
@@ -369,15 +372,15 @@ module mod_cu_bm
 !
     do i = ici1 , ici2
       do j = jci1 , jci2
-        pbot(j,i) = (hsigma(lbot(j,i))*sfcps(j,i)+ptop)*d_1000
-        psfck = (hsigma(kz)*sfcps(j,i)+ptop)*d_1000
+        pbot(j,i) = m2c%pas(j,i,lbot(j,i))*d_1000
+        psfck = m2c%pas(j,i,kz)*d_1000
         if ( pbot(j,i) >= psfck-pone .or. lbot(j,i) >= kz ) then
 !         cloud bottom is at the surface so recalculate cloud bottom
           do k = 1 , kzm1
-            p(j,i) = (hsigma(kz)*sfcps(j,i)+ptop)*d_1000
+            p(j,i) = m2c%pas(j,i,kz)*d_1000
             if ( p(j,i) < psfck-pone ) lbot(j,i) = k
           end do
-          pbot(j,i) = (hsigma(lbot(j,i))*sfcps(j,i)+ptop)*d_1000
+          pbot(j,i) = m2c%pas(j,i,lbot(j,i))*d_1000
         end if
       end do
     end do
@@ -395,7 +398,7 @@ module mod_cu_bm
 !     find environmental saturation equiv pot temp...
       do i = ici1 , ici2
         do j = jci1 , jci2
-          p(j,i) = (hsigma(l)*sfcps(j,i)+ptop)*d_1000
+          p(j,i) = m2c%pas(j,i,l)*d_1000
           es = aliq*dexp((bliq*t(j,i,l)-cliq)/(t(j,i,l)-dliq))
           qs = ep2*es/(p(j,i)-es)
           ths(j,i) = t(j,i,l)*ape(j,i,l)*dexp(elocp*qs/t(j,i,l))
@@ -417,7 +420,7 @@ module mod_cu_bm
 !    
     do i = ici1 , ici2
       do j = jci1 , jci2
-        prtop(j,i) = (hsigma(ltop(j,i))*sfcps(j,i)+ptop)*d_1000
+        prtop(j,i) = m2c%pas(j,i,ltop(j,i))*d_1000
       end do
     end do
 !
@@ -522,7 +525,7 @@ module mod_cu_bm
         qkl = q(j,i,k)
         qk(k) = qkl
         qrefk(k) = qkl
-        pkl = (hsigma(k)*sfcps(j,i)+ptop)*d_1000
+        pkl = m2c%pas(j,i,k)*d_1000
         tref(j,i,k) = tpfc(pkl,thesp(j,i),t(j,i,k),wlhv,qu,ape(j,i,k))
         pk(k) = pkl
         psk(k) = pkl
@@ -675,9 +678,9 @@ module mod_cu_bm
 !     deep convection otherwise
 !
       total_precip_points = total_precip_points + 1
-!     keep the land value of efi equal to 1 until precip surpasses
+!     keep the land value of efi equal to 1 until precip surm2c%passes
 !     a threshold value, currently set to 0.25 inches per 24 hrs
-      pthrs = cthrs/sfcps(j,i)
+      pthrs = cthrs/m2c%psb(j,i)
       drheat = (preck*xsm(j,i)+dmax1(epsp,preck-pthrs)*(h1-xsm(j,i)))*cpd/avrgt
       efi = efifc*dentpy/drheat
 !
@@ -703,11 +706,11 @@ module mod_cu_bm
 !
 !     update precipitation, temperature & moisture
 !
-      prainx = d_half*((sfcps(j,i)*d_1000*preck*cprlg)*d_100)
+      prainx = d_half*((m2c%psb(j,i)*d_1000*preck*cprlg)*d_100)
       if ( prainx > dlowval ) then
-        rainc(j,i) = rainc(j,i) + prainx
+        c2m%rainc(j,i) = c2m%rainc(j,i) + prainx
 !       precipitation rate for bats (mm/s)
-        lmpcpc(j,i) = lmpcpc(j,i) + (prainx/dtsec)
+        c2m%pcratec(j,i) = c2m%pcratec(j,i) + (prainx/dtsec)
       end if
       do l = ltpk , lb
         tmod(j,i,l) = dift(l)*fefi/dtsec
@@ -768,7 +771,7 @@ module mod_cu_bm
         qk(k) = qkl
         qrefk(k) = qkl
         qsatk(k) = qkl
-        pkl = (hsigma(k)*sfcps(j,i)+ptop)*d_1000
+        pkl = m2c%pas(j,i,k)*d_1000
         pk(k) = pkl
         apekl = ape(j,i,k)
         apek(k) = apekl
@@ -849,7 +852,7 @@ module mod_cu_bm
       end if
 !     scaling potential temperature & table index at top
       thtpk = t(j,i,ltp1)*ape(j,i,ltp1)
-      pkl = (hsigma(ltp1)*sfcps(j,i)+ptop)*d_1000
+      pkl = m2c%pas(j,i,ltp1)*d_1000
       ee = pkl*q(j,i,ltp1)/(ep2+q(j,i,ltp1))
       tdpt = d_one/(rtzero-rwat/wlhv*dlog(ee/611.D0))
       tdpt = dmin1(tdpt,t(j,i,ltp1))
@@ -1018,11 +1021,11 @@ module mod_cu_bm
           end if
 !         find cloud fractional cover and liquid water content
           kbaseb = min0(lbtk,kzm2)
-          kcumtop(j,i) = ltpk
-          kcumbot(j,i) = kbaseb
+          c2m%kcumtop(j,i) = ltpk
+          c2m%kcumbot(j,i) = kbaseb
           if ( ichem == 1 ) then
             do k = ltpk , kz
-              cprate(j,i,k) = prainx/dtsec
+              c2m%convpr(j,i,k) = prainx/dtsec
             end do
           end if
         end if
@@ -1031,14 +1034,11 @@ module mod_cu_bm
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          tten(j,i,k)  = tten(j,i,k)  + tmod(j,i,k) *sfcps(j,i)
-          qxten(j,i,k,iqv) = qxten(j,i,k,iqv) + qqmod(j,i,k)*sfcps(j,i)
+          c2m%tten(j,i,k)  = c2m%tten(j,i,k)  + tmod(j,i,k) *m2c%psb(j,i)
+          c2m%qxten(j,i,k,iqv) = c2m%qxten(j,i,k,iqv) + qqmod(j,i,k)*m2c%psb(j,i)
         end do
       end do
     end do
-
-    call model_cumulus_cloud
-
   end subroutine bmpara
 !
 ! Look up table (calculated version)

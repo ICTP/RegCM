@@ -629,21 +629,8 @@ module mod_tendency
     !
     ! Call cumulus parametrization
     !
-    if ( icup == 1 ) then
-      call cupara
-    end if
-    if ( icup == 2 .or. icup == 99 .or. icup == 98 .or. icup == 96 ) then
-      call cuparan
-    end if
-    if ( icup == 3 ) then
-      call bmpara
-    end if
-    if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
-      call cupemandrv
-    end if
+    if ( ktau > 0 ) call cumulus
     if ( icup == 5 .or. icup == 96 .or. icup == 97 ) then
-      ! Tiedtke needs surface heat fluxes to be computed.
-      if ( ktau > 0 ) call tiedtkedrv
       if ( ipptls /= 2 ) then
         ! Put back detrained water
         do k = 1 , kz

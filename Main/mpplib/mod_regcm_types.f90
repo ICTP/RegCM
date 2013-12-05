@@ -256,4 +256,38 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: heatrt
   end type rad_2_mod
 
+  type mod_2_cum
+    real(rk8) , pointer , dimension(:,:) :: ht        ! mddom%ht
+    real(rk8) , pointer , dimension(:,:) :: psb       ! sfs%psb
+    real(rk8) , pointer , dimension(:,:,:) :: pas     ! atms%tb3d
+    real(rk8) , pointer , dimension(:,:,:) :: zas     ! atms%za
+    real(rk8) , pointer , dimension(:,:,:) :: tas     ! atms%pb3d
+    real(rk8) , pointer , dimension(:,:,:) :: uas     ! atms%ubx3d
+    real(rk8) , pointer , dimension(:,:,:) :: vas     ! atms%vbx3d
+    real(rk8) , pointer , dimension(:,:,:) :: qsas    ! atms%qsb3d
+    real(rk8) , pointer , dimension(:,:,:) :: zfs     ! atms%zq
+    real(rk8) , pointer , dimension(:,:,:) :: qdot    ! qdot
+    real(rk8) , pointer , dimension(:,:,:,:) :: qxas  ! atms%qxb3d
+    real(rk8) , pointer , dimension(:,:,:,:) :: chias ! atms%chib3d
+    real(rk8) , pointer , dimension(:,:) :: qfx       ! sfs%qfx
+    real(rk8) , pointer , dimension(:,:) :: hfx       ! sfs%hfx
+    integer(ik4) , pointer , dimension(:,:) :: ktrop
+    integer(ik4) , pointer , dimension(:,:) :: ldmsk
+  end type mod_2_cum
+
+  type cum_2_mod
+    real(rk8) , pointer , dimension(:,:,:) :: tten     ! aten%t
+    real(rk8) , pointer , dimension(:,:,:) :: uten     ! aten%u
+    real(rk8) , pointer , dimension(:,:,:) :: vten     ! aten%v
+    real(rk8) , pointer , dimension(:,:,:,:) :: qxten  ! aten%qx
+    real(rk8) , pointer , dimension(:,:,:,:) :: chiten ! chiten
+    real(rk8) , pointer , dimension(:,:) :: rainc
+    real(rk8) , pointer , dimension(:,:) :: pcratec
+    real(rk8) , pointer , dimension(:,:,:) :: convpr
+    real(rk8) , pointer , dimension(:,:,:) :: cldfrc
+    real(rk8) , pointer , dimension(:,:,:) :: cldlwc
+    integer(ik4) , pointer , dimension(:,:) :: kcumtop
+    integer(ik4) , pointer , dimension(:,:) :: kcumbot
+  end type cum_2_mod
+
 end module mod_regcm_types

@@ -26,46 +26,13 @@ module mod_cu_common
   use mod_dynparam
   use mod_memutil
   use mod_runparams
+  use mod_regcm_types
 
   public
 !
   real(rk8) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
 
-  real(rk8) , pointer , dimension(:,:) :: sfhgt    ! mddom%ht
-  real(rk8) , pointer , dimension(:,:,:) :: ptatm  ! atm1%t
-  real(rk8) , pointer , dimension(:,:,:) :: puatm  ! atm1%u
-  real(rk8) , pointer , dimension(:,:,:) :: pvatm  ! atm1%v
-  real(rk8) , pointer , dimension(:,:,:,:) :: pvqxtm ! atm1%qx
-  real(rk8) , pointer , dimension(:,:,:) :: tas    ! atms%tb3d
-  real(rk8) , pointer , dimension(:,:,:) :: uas    ! atms%ubx3d
-  real(rk8) , pointer , dimension(:,:,:) :: vas    ! atms%vbx3d
-  real(rk8) , pointer , dimension(:,:,:) :: pas    ! atms%pb3d
-  real(rk8) , pointer , dimension(:,:,:) :: qsas   ! atms%qsb3d
-  real(rk8) , pointer , dimension(:,:,:,:) :: qxas ! atms%qxb3d
-  real(rk8) , pointer , dimension(:,:,:,:) :: chias   ! atms%chib3d
-  real(rk8) , pointer , dimension(:,:,:) :: hgt    ! atms%za
-  real(rk8) , pointer , dimension(:,:,:) :: hgth   ! atms%zq
-  real(rk8) , pointer , dimension(:,:,:) :: tten   ! aten%t
-  real(rk8) , pointer , dimension(:,:,:) :: uten   ! aten%u
-  real(rk8) , pointer , dimension(:,:,:) :: vten   ! aten%v
-  real(rk8) , pointer , dimension(:,:,:,:) :: qxten    ! aten%qx
-  real(rk8) , pointer , dimension(:,:,:,:) :: tchiten  ! chiten 
-  real(rk8) , pointer , dimension(:,:) :: psfcps   ! sfs%psa
-  real(rk8) , pointer , dimension(:,:) :: sfcps    ! sfs%psb
-  real(rk8) , pointer , dimension(:,:) :: rainc    ! sfs%rainc
-  real(rk8) , pointer , dimension(:,:,:) :: cprate ! prec rate ( used in chem) 
-  real(rk8) , pointer , dimension(:,:) :: qfx      ! sfs%qfx
-  real(rk8) , pointer , dimension(:,:) :: hfx      ! sfs%hfx
-  real(rk8) , pointer , dimension(:,:,:) :: svv    ! qdot
-  real(rk8) , pointer , dimension(:,:) :: lmpcpc   ! pptc
-  integer(ik4) , pointer , dimension(:,:) :: lmask    ! ldmsk
-  real(rk8) , pointer , dimension(:,:,:) :: rcldlwc  ! rcldlwc 
-  real(rk8) , pointer , dimension(:,:,:) :: rcldfra  ! rcldfra
-  integer(ik4) , pointer , dimension(:,:) :: rktrop  ! ktrop
   integer(ik4) , pointer , dimension(:,:) :: cuscheme ! which scheme to use
-  integer(ik4) , pointer , dimension(:,:) :: kcumtop
-  integer(ik4) , pointer , dimension(:,:) :: kcumbot
-
   integer(ik4) :: total_precip_points
 
   real(rk8) , dimension(10) :: cld_profile
@@ -110,25 +77,27 @@ module mod_cu_common
     end if
   end subroutine init_mod_cumulus
 !
-  subroutine model_cumulus_cloud
+  subroutine model_cumulus_cloud(m2c,c2m)
     implicit none
+    type(mod_2_cum) , intent(in) :: m2c
+    type(cum_2_mod) , intent(inout) :: c2m
     real(rk8) :: akclth , tcel , scalep , scalef
     integer(ik4):: i , j , k , ktop , kbot , kclth , ikh
-    rcldfra(:,:,:) = d_zero
-    rcldlwc(:,:,:) = d_zero
+    c2m%cldfrc(:,:,:) = d_zero
+    c2m%cldlwc(:,:,:) = d_zero
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          tcel = tas(j,i,k)-tzero
+          tcel = m2c%tas(j,i,k)-tzero
           ! Temperature dependance for convective cloud water content
           ! in g/m3 (Lemus et al., 1997)
           if ( tcel < -50D0 ) then
-            rcldlwc(j,i,k) = 0.001D0
+            c2m%cldlwc(j,i,k) = 0.001D0
           else
-            rcldlwc(j,i,k) = 0.127D+00 + 6.78D-03 * tcel + &
+            c2m%cldlwc(j,i,k) = 0.127D+00 + 6.78D-03 * tcel + &
                              1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
-            if ( rcldlwc(j,i,k) > 0.300D0 ) rcldlwc(j,i,k) = 0.300D0
-            if ( rcldlwc(j,i,k) < 0.001D0 ) rcldlwc(j,i,k) = 0.001D0
+            if ( c2m%cldlwc(j,i,k) > 0.300D0 ) c2m%cldlwc(j,i,k) = 0.300D0
+            if ( c2m%cldlwc(j,i,k) < 0.001D0 ) c2m%cldlwc(j,i,k) = 0.001D0
           end if
         end do
       end do
@@ -140,13 +109,13 @@ module mod_cu_common
         jloop1: &
         do j = jci1 , jci2
           ! The regcm model is top to bottom
-          ktop = kcumtop(j,i)
-          kbot = kcumbot(j,i)
+          ktop = c2m%kcumtop(j,i)
+          kbot = c2m%kcumbot(j,i)
           kclth = kbot - ktop + 1
           if ( kclth < 2 ) cycle jloop1
           akclth = d_one/dble(kclth)
           do k = ktop , kbot
-            rcldfra(j,i,k) = d_one - scalef**akclth
+            c2m%cldfrc(j,i,k) = d_one - scalef**akclth
           end do
         end do jloop1
       end do iloop1
@@ -160,20 +129,20 @@ module mod_cu_common
       do i = ici1 , ici2
         jloop3: &
         do j = jci1 , jci2
-          ktop = kcumtop(j,i)
-          kbot = kcumbot(j,i)
+          ktop = c2m%kcumtop(j,i)
+          kbot = c2m%kcumbot(j,i)
           kclth = kbot - ktop
           if ( kclth < 1 ) cycle jloop3
-          scalep = min((pas(j,i,kbot)-pas(j,i,ktop))/maxcloud_dp,d_one)
+          scalep = min((m2c%pas(j,i,kbot)-m2c%pas(j,i,ktop))/maxcloud_dp,d_one)
           do k = ktop , kbot
             ikh = max(1,min(10,int((dble(k-ktop+1)/dble(kclth))*d_10)))
-            rcldfra(j,i,k) = cld_profile(ikh)*clfrcv*scalep
+            c2m%cldfrc(j,i,k) = cld_profile(ikh)*clfrcv*scalep
           end do
         end do jloop3
       end do iloop3
     end if
-    where ( rcldfra < 1.0D-4 )
-      rcldlwc = 0.001D0
+    where ( c2m%cldfrc < 1.0D-4 )
+      c2m%cldlwc = 0.001D0
     end where
   end subroutine model_cumulus_cloud
 !

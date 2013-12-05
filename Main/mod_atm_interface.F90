@@ -62,7 +62,6 @@ module mod_atm_interface
   real(rk8) , public , pointer , dimension(:,:) :: coszrs
 
   ! Cumulus
-  integer(ik4) , pointer , public , dimension(:,:) :: cucontrol
   integer(ik4) , pointer , public , dimension(:,:) :: icumbot
   integer(ik4) , pointer , public , dimension(:,:) :: icumtop
   integer(ik4) , pointer , public , dimension(:,:) :: ktrop
@@ -664,9 +663,6 @@ module mod_atm_interface
       call getmem2d(coszrs,jci1,jci2,ici1,ici2,'storage:coszrs')
       call getmem2d(pptc,jci1,jci2,ici1,ici2,'storage:pptc')
       call getmem2d(prca,jci1,jci2,ici1,ici2,'storage:prca')
-      if ( icup > 90 ) then
-        call getmem2d(cucontrol,jci1,jci2,ici1,ici2,'storage:cucontrol')
-      end if
       call getmem2d(icumbot,jci1,jci2,ici1,ici2,'storage:icumbot')
       call getmem2d(icumtop,jci1,jci2,ici1,ici2,'storage:icumtop')
       if ( ichem == 1 ) then

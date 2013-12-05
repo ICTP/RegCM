@@ -993,7 +993,6 @@ module mod_params
   end if
  
   if ( icup.eq.5 ) then
-    call init_convect_tables
     call bcast(iconv)
     call bcast(entrpen)
     call bcast(entrscv)
@@ -1305,7 +1304,7 @@ module mod_params
 
   call init_advection(mddom,sfs,atm1,qdot,kpbl)
   call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
-  call init_bats(mddom,atms,sfs,zpbl,pptc,prca,pptnc,prnca,coszrs, &
+  call init_bats(mddom,atms,sfs,zpbl,pptc,pptnc,coszrs, &
                  fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs,    &
                  aldirl,aldifl,solis,emiss,sinc,ldmsk,solvs,       &
                  solvsd,solvl,solvld)
@@ -1313,9 +1312,7 @@ module mod_params
   allocate(landmask(jx,iy))
   call init_clm(landmask)
 #endif
-  call init_cuscheme(mddom,atm1,aten,atms,chiten,sfs,qdot,pptc,ldmsk, &
-                     cldfra,cldlwc,ktrop,cucontrol,icumtop,icumbot,   &
-                     convpr)
+  call init_cuscheme
   if ( ichem == 1 ) then
 #ifdef CLM
     call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat, &
@@ -1578,6 +1575,8 @@ module mod_params
     end if
   end if
 
+  call allocate_cumulus
+
   if ( icup == 99 ) then
     if ( myid == italk ) then
       write(stdout,*) 'Cumulus scheme: will use Grell '// &
@@ -1587,9 +1586,9 @@ module mod_params
       do j = jci1 , jci2
         if ( mddom%lndcat(j,i) > 14.5D0 .and. &
              mddom%lndcat(j,i) < 15.5D0 ) then
-          cucontrol(j,i) = 4
+          cuscheme(j,i) = 4
         else
-          cucontrol(j,i) = 2
+          cuscheme(j,i) = 2
         end if
       end do
     end do
@@ -1603,9 +1602,9 @@ module mod_params
       do j = jci1 , jci2
         if ( mddom%lndcat(j,i) > 14.5D0 .and. &
              mddom%lndcat(j,i) < 15.5D0 ) then
-          cucontrol(j,i) = 2
+          cuscheme(j,i) = 2
         else
-          cucontrol(j,i) = 4
+          cuscheme(j,i) = 4
         end if
       end do
     end do
@@ -1619,9 +1618,9 @@ module mod_params
       do j = jci1 , jci2
         if ( mddom%lndcat(j,i) > 14.5D0 .and. &
              mddom%lndcat(j,i) < 15.5D0 ) then
-          cucontrol(j,i) = 4
+          cuscheme(j,i) = 4
         else
-          cucontrol(j,i) = 5
+          cuscheme(j,i) = 5
         end if
       end do
     end do
@@ -1635,16 +1634,15 @@ module mod_params
       do j = jci1 , jci2
         if ( mddom%lndcat(j,i) > 14.5D0 .and. &
              mddom%lndcat(j,i) < 15.5D0 ) then
-          cucontrol(j,i) = 2
+          cuscheme(j,i) = 2
         else
-          cucontrol(j,i) = 5
+          cuscheme(j,i) = 5
         end if
       end do
     end do
   end if
 
   if ( icup == 1 ) then
-    call allocate_mod_cu_kuo
 !
 !   specify heating profile (twght) and weighted function
 !   for moisture fluxes due to convection (vqflx)
@@ -1710,7 +1708,6 @@ module mod_params
     end if
   end if
   if ( icup == 2 .or. icup == 99 .or. icup == 98 .or. icup == 96 ) then
-    call allocate_mod_cu_grell
     kbmax = kz
     do k = 1 , kz - 1
       if ( hsigma(k) <= skbmax ) kbmax = kz - k
@@ -1770,14 +1767,12 @@ module mod_params
     end do
   end if
   if ( icup == 3 ) then
-    call allocate_mod_cu_bm
     if ( myid == italk ) then
       write(stderr,*) 'WARNING : The Betts-Miller Convection scheme is not ', &
                       'properly implemented'
     end if
   end if
   if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
-    call allocate_mod_cu_em
     minorig = kz
     do k = 1 , kz
       if ( hsigma(k) <= minsig ) minorig = kz - k
@@ -1809,7 +1804,6 @@ module mod_params
     end if
   end if
   if ( icup == 5 .or. icup == 97 .or. icup == 96 ) then
-    call allocate_mod_cu_tiedtke
     if ( myid == italk ) then
       write(stdout,*) 'Tiedtke (1986) Convection Scheme ECHAM 5.4 used.'
       write(stdout,'(a,i2)')    '  Used Scheme                       : ',iconv

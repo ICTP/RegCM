@@ -5364,7 +5364,7 @@ end module mod_cu_tiedtke_38r2
 ! P. Bechtold              ECMWF/Reading
 !                          last update 10/2006
 ! --------------------------------------------------------------------
-! #### This program reads the GATE dataset (161 soundings) and
+! #### This program reads the GATE dam2c%taset (161 soundings) and
 ! #### calls the convection routine.
 ! 
 ! #### All thermodynamic and dynamic variables are supposed to be
@@ -5616,13 +5616,13 @@ program testgate
         '---  [   ]  ---'
       do jk = 1 , klev
         zdz = egrav/(ppresh(jl,jk+1)-ppresh(jl,jk))
-        write(8,17)jk,ppres(jl,jk)*1.e-2,pgeo(jl,jk)/egrav,&
+        write(8,17)jk,ppres(jl,jk)*1.0D-2,pgeo(jl,jk)/egrav,&
          (ptten(jl,jk)-ztten(jl,jk))*xtjour, &
          (pqten(jl,jk)-zrvten(jl,jk))*zeps,  &
          (prcten(jl,jk)+priten(jl,jk))*zeps, &
          ! pumf(jl,jk),pdmf(jl,jk),(pprlflx(jl,jk)+pprsflx(jl,jk))*3.6e3,&
          pumf(jl,jk),pdmf(jl,jk),pprlflx(jl,jk)*3.6e3,pprsflx(jl,jk)*3.6e3,&
-         purci(jl,jk)*1.e3,puten(jl,jk)*xtjour,pvten(jl,jk)*xtjour, &
+         purci(jl,jk)*1.0D3,puten(jl,jk)*xtjour,pvten(jl,jk)*xtjour, &
          pc(jl,jk,1),pc(jl,jk,1)+pcten(jl,jk,1)*pdtconv ,&
          pc(jl,jk,2),pc(jl,jk,2)+pcten(jl,jk,2)*pdtconv 
       end do 
@@ -5632,18 +5632,18 @@ program testgate
       write(8,*)' %  [hPa]     [m]        ---- [K/day] ----     '// &
         '[kg/(sm^2] [mm/h]   [g/kg]     [m/s/day]'
       do jk = 1 , klev
-        write(8,18)jk,ppres(jl,jk)*1.e-2,pgeo(jl,jk)/egrav, &
+        write(8,18)jk,ppres(jl,jk)*1.0D-2,pgeo(jl,jk)/egrav, &
           (ptten(jl,jk)-ztten(jl,jk))*xtjour, &
           (pqten(jl,jk)-zrvten(jl,jk))*zeps,  &
           (prcten(jl,jk)+priten(jl,jk))*zeps, &
           pumf(jl,jk),pdmf(jl,jk),(pprlflx(jl,jk)+pprsflx(jl,jk))*3.6e3,&
-          purci(jl,jk)*1.e3,puten(jl,jk)*xtjour,pvten(jl,jk)*xtjour
+          purci(jl,jk)*1.0D3,puten(jl,jk)*xtjour,pvten(jl,jk)*xtjour
       end do 
     end if
     !
     ! print rainfall tend (mm/h) -> transform from m/s to mm/h
     write(8,'(a37,2f8.3)')'%liquid and solid surf precip [mm/h]:', &
-                pprlflx(jl,klev+1)*3600.*1.e3, pprsflx(jl,klev+1)*3600.*1.e3
+                pprlflx(jl,klev+1)*3600.*1.0D3, pprsflx(jl,klev+1)*3600.*1.0D3
     write(8,'(a38,3i4,2f9.0)')'%conv-type cloud-top cloud-base CAPE CIN:', &
       ktype(jl),kcltop(jl),kclbas(jl),pcape(jl),pcin(jl)
   end do
@@ -5652,7 +5652,7 @@ program testgate
   write(9,*)'% P[hPa]    Z[m]    dT/dt_conv   dr_t/dt_conv    '// &
     'dT/dt_obs dr_t/dt_obs    du/dt    dv/dt    Mfl    Mfl_obs'
   do jk = 1 , klev
-    write(9,19)sum(ppres(:,jk))/zlon*1.e-2,sum(pgeo(:,jk))/(egrav*zlon), &
+    write(9,19)sum(ppres(:,jk))/zlon*1.0D-2,sum(pgeo(:,jk))/(egrav*zlon), &
       sum(ptten(:,jk)-ztten(:,jk))/zlon*xtjour, &
       sum(pqten(:,jk)-zrvten(:,jk)+prcten(:,jk))/zlon*zeps,&         
       sum(zq1(:,jk))/zlon,-sum(zq2(:,jk))/zlon, &

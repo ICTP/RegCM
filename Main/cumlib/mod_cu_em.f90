@@ -27,6 +27,7 @@ module mod_cu_em
   use mod_memutil
   use mod_cu_common
   use mod_runparams
+  use mod_regcm_types
 !
   private
 !
@@ -54,8 +55,10 @@ module mod_cu_em
 ! **** Driver for Emanuel Convection Scheme ****
 ! **********************************************
 !
-  subroutine cupemandrv
+  subroutine cupemandrv(m2c,c2m)
     implicit none
+    type(mod_2_cum) , intent(in) :: m2c
+    type(cum_2_mod) , intent(inout) :: c2m
     integer(ik4) :: ntra
     real(rk8) :: cbmf , pret , qprime , tprime , wd , prainx , elcrit , epmax
     real(rk8) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
@@ -65,11 +68,11 @@ module mod_cu_em
     real(rk8) , dimension(kzp1) :: phcup
 !
     total_precip_points = 0
-    kcumtop(:,:) = 0
-    kcumbot(:,:) = 0
+    c2m%kcumtop(:,:) = 0
+    c2m%kcumbot(:,:) = 0
     ktop = 1
     if ( ichem == 1 ) then 
-      cprate(:,:,:) = d_zero
+      c2m%convpr(:,:,:) = d_zero
       ntra = ntr      
     else
       ntra = 0
@@ -82,22 +85,22 @@ module mod_cu_em
         end if
         do k = 1 , kz
           kk = kzp1 - k
-          tcup(k) = tas(j,i,kk)                         ! [k]
-          qcup(k) = qxas(j,i,kk,iqv)/(d_one+qxas(j,i,kk,iqv)) ! [kg/kg]
-          qscup(k) = qsas(j,i,kk)/(d_one+qsas(j,i,kk))  ! [kg/kg]
-          ucup(k) = uas(j,i,kk)                         ! [m/s]
-          vcup(k) = vas(j,i,kk)                         ! [m/s]
-          pcup(k) = pas(j,i,kk)*d_10                    ! [hPa]
+          tcup(k) = m2c%tas(j,i,kk)                         ! [k]
+          qcup(k) = m2c%qxas(j,i,kk,iqv)/(d_one+m2c%qxas(j,i,kk,iqv)) ! [kg/kg]
+          qscup(k) = m2c%qsas(j,i,kk)/(d_one+m2c%qsas(j,i,kk))  ! [kg/kg]
+          ucup(k) = m2c%uas(j,i,kk)                         ! [m/s]
+          vcup(k) = m2c%vas(j,i,kk)                         ! [m/s]
+          pcup(k) = m2c%pas(j,i,kk)*d_10                    ! [hPa]
         end do
         if (ichem == 1 ) then 
           do k=1, kz       
             kk = kzp1 - k
-            tra(k,:) = chias(j,i,kk,:)                  ! [kg/kg]
+            tra(k,:) = m2c%chias(j,i,kk,:)                  ! [kg/kg]
           end do
         end if
         do k = 1 , kzp1
           kk = kzp1 - k + 1
-          phcup(k) = (sigma(kk)*sfcps(j,i)+ptop)*d_10 ! [hPa]
+          phcup(k) = (sigma(kk)*m2c%psb(j,i)+ptop)*d_10 ! [hPa]
         end do
         cbmf = cbmf2d(j,i)                              ! [(kg/m**2)/s]
         elcrit = elcrit2d(j,i)
@@ -124,51 +127,46 @@ module mod_cu_em
           ! Tendencies
           do k = 1 , kz
             kk = kzp1 - k
-            tten(j,i,kk) = ft(k)*sfcps(j,i) + tten(j,i,kk)
-            qxten(j,i,kk,iqv) = fq(k)/(d_one-fq(k))* &
-                              sfcps(j,i)+qxten(j,i,kk,iqv)
+            c2m%tten(j,i,kk) = ft(k)*m2c%psb(j,i) + c2m%tten(j,i,kk)
+            c2m%qxten(j,i,kk,iqv) = fq(k)/(d_one-fq(k))* &
+                              m2c%psb(j,i)+c2m%qxten(j,i,kk,iqv)
             ! There is a bit of an inconsistency here...  The wind
             ! tendencies from convection are on cross points, but the
             ! model wants them on dot points.
-            uten(j,i,kk) = fu(k)*sfcps(j,i) + uten(j,i,kk)
-            vten(j,i,kk) = fv(k)*sfcps(j,i) + vten(j,i,kk)
+            c2m%uten(j,i,kk) = fu(k)*m2c%psb(j,i) + c2m%uten(j,i,kk)
+            c2m%vten(j,i,kk) = fv(k)*m2c%psb(j,i) + c2m%vten(j,i,kk)
           end do
 
           ! Tracer tendency
           if (ichem ==1 ) then
             do k = 1 , kz
               kk = kzp1 - k
-              tchiten(j,i,kk,:) = ftra(k,:) * sfcps(j,i) 
+              c2m%chiten(j,i,kk,:) = ftra(k,:) * m2c%psb(j,i) 
             end do 
           end if
 
           ! The order top/bottom for regcm is reversed.
-          kcumtop(j,i) = kzp1 - ktop
-          kcumbot(j,i) = kzp1 - kbase
+          c2m%kcumtop(j,i) = kzp1 - ktop
+          c2m%kcumbot(j,i) = kzp1 - kbase
 
           ! Build for chemistry 3d table of constant precipitation rate
           ! from the surface to the top of the convection
           if ( ichem == 1 ) then
             do k = 1 , ktop-1
-              cprate(j,i,kz-k+1) = pret
+              c2m%convpr(j,i,kz-k+1) = pret
             end do
           end if
    
           ! Precipitation
           prainx = pret*dtsec
           if ( prainx > dlowval ) then
-            rainc(j,i)  = rainc(j,i)  + prainx  ! mm
-            lmpcpc(j,i) = lmpcpc(j,i) + pret
+            c2m%rainc(j,i)  = c2m%rainc(j,i)  + prainx  ! mm
+            c2m%pcratec(j,i) = c2m%pcratec(j,i) + pret
             total_precip_points = total_precip_points + 1
           end if
         end if
       end do
     end do
-
-    ! Cloud fraction and cloud water
-
-    call model_cumulus_cloud
-! 
   end subroutine cupemandrv
 !
 !**************************************************************************
