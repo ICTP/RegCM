@@ -261,7 +261,6 @@ module mod_bats_mtrxbats
           nlveg = iveg1(n,j,i)
           itex  = iexsol(nlveg)
           if ( ldmsk1(n,j,i) == 2 ) then
-            if ( iemiss == 1 ) emiss(n,j,i) = 0.97D0
             nlveg = 12
           end if
           if ( ldmsk1(n,j,i) > 0 ) then
@@ -287,6 +286,32 @@ module mod_bats_mtrxbats
         end do
       end do
     end do
+    !
+    ! Calculate emission coefficients
+    !
+    if ( iemiss == 1 ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n = 1 , nnsg
+            nlveg = iveg1(n,j,i)
+            if ( nlveg == 14 .or. nlveg == 15 ) then
+              sfcemiss(n,j,i) = 0.955D0
+            else if ( nlveg == 8 ) then
+              sfcemiss(n,j,i) = 0.76D0
+            else if ( nlveg == 11 ) then
+              sfcemiss(n,j,i) = 0.85D0
+            else if ( nlveg == 12 ) then
+              sfcemiss(n,j,i) = 0.97D0
+            else
+              sfcemiss(n,j,i) = 0.99D0-(albvgs(nlveg)+albvgl(nlveg))*0.1D0
+            end if
+          end do
+        end do
+      end do
+    else
+      sfcemiss(:,:,:) = 1.0D0
+    end if
+    emissivity = sum(sfcemiss,1)*rdnnsg
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -348,9 +373,6 @@ module mod_bats_mtrxbats
             lveg(n,j,i) = iveg1(n,j,i)
             if ( ldmsk1(n,j,i) == 2 ) then
               lveg(n,j,i) = 12
-              if ( iemiss == 1 ) emiss(n,j,i) = 0.97D0
-            else if ( ldmsk1(n,j,i) == 0 ) then
-              if ( iemiss == 1 ) emiss(n,j,i) = 0.995D0
             end if
             lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*aseas(n,j,i)
             zh(n,j,i) = hgt(j,i)
@@ -376,9 +398,9 @@ module mod_bats_mtrxbats
  
           usw(j,i) = uatm(j,i)
           vsw(j,i) = vatm(j,i)
-          solvt = solvd(j,i) + solvs(j,i)
+          solvt = swdif(j,i) + swdir(j,i)
           if ( solvt > d_zero ) then
-            fracd(j,i) = solvd(j,i)/solvt
+            fracd(j,i) = swdif(j,i)/solvt
           else
             fracd(j,i) = 0.2D0
           end if
@@ -405,13 +427,13 @@ module mod_bats_mtrxbats
       if ( lseaice .or. llake ) then
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( ldmsk(j,i) == 2 ) then
+            if ( landmsk(j,i) == 2 ) then
               icemsk = 0
               do n = 1 , nnsg
                 if ( ldmsk1(n,j,i) > 1 ) icemsk = icemsk + 1
               end do
               if ( icemsk <= nnsg/2 ) then
-                ldmsk(j,i) = 0
+                landmsk(j,i) = 0
               end if
             end if
           end do
@@ -487,7 +509,7 @@ module mod_bats_mtrxbats
         svegfrac2d = sum(lncl,1)*rdnnsg
       end if
 
-      where ( ldmsk /= 0 )
+      where ( landmsk /= 0 )
         tgbb = sum(((d_one-lncl)*tgrd**4+lncl*tlef**4)**d_rfour,1)*rdnnsg
       else where
         tgbb = sum(tgrd,1)*rdnnsg
@@ -534,7 +556,7 @@ module mod_bats_mtrxbats
           if ( associated(srf_fld_out) ) &
             srf_fld_out = srf_fld_out + dwrlwf
           if ( associated(srf_sina_out) ) &
-            srf_sina_out = srf_sina_out + sinc
+            srf_sina_out = srf_sina_out + solinc
           if ( associated(srf_snowmelt_out) ) &
             srf_snowmelt_out = srf_snowmelt_out + sum(sm,1)*rdnnsg
         end if
@@ -596,7 +618,7 @@ module mod_bats_mtrxbats
           if ( associated(lak_fld_out) ) &
             lak_fld_out = lak_fld_out + dwrlwf
           if ( associated(lak_sina_out) ) &
-            lak_sina_out = lak_sina_out + sinc
+            lak_sina_out = lak_sina_out + solinc
           if ( associated(lak_evp_out) ) &
             lak_evp_out = lak_evp_out + sum(evpr,1)*rdnnsg
           if ( associated(lak_aveice_out) ) then
@@ -616,7 +638,7 @@ module mod_bats_mtrxbats
           if ( associated(srf_tg_out) ) &
             srf_tg_out = tground1
           if ( associated(srf_tlef_out) ) then
-            where ( ldmsk > 0 )
+            where ( landmsk > 0 )
               srf_tlef_out = sum(tlef,1)*rdnnsg
             elsewhere
               srf_tlef_out = dmissval
@@ -709,7 +731,7 @@ module mod_bats_mtrxbats
 ! CM hands albedos to radiation package which computes
 ! rswf(i) = net solar absorbed over full grid square
 ! vegswab(j,i) = vegetation absorbed (full solar spectrum)
-! solis(j,i) = shortwave  solar incident
+! solar(j,i) = shortwave  solar incident
 !
 ! Here these are calculated at the end of albedo - they use only
 ! direct albedos for now
@@ -717,7 +739,7 @@ module mod_bats_mtrxbats
 ! in both versions :  lftemp uses vegswab
 ! tgrund uses vegswab & rswf(i) to get
 ! ground absorbed solar
-! photosynthesis uses solis - see subrouts
+! photosynthesis uses solar - see subrouts
 ! stomat and co2 (carbon)
 !
 ! For sea, sea-ice veg albedos are not set these albedos are not
@@ -752,9 +774,6 @@ module mod_bats_mtrxbats
           lveg(n,j,i) = iveg1(n,j,i)
           if ( ldmsk1(n,j,i) == 2 ) then
             lveg(n,j,i) = 12
-            if ( iemiss == 1 ) emiss(n,j,i) = 0.97D0
-          else if ( ldmsk1(n,j,i) == 0 ) then
-            if ( iemiss == 1 ) emiss(n,j,i) = 0.995D0
           end if
         end do
       end do
@@ -949,7 +968,6 @@ module mod_bats_mtrxbats
         lwdifalb(j,i) = sum(lwdifalb_s)*rdnnsg
       end do
     end do
-    aemiss = sum(emiss,1)*rdnnsg
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif

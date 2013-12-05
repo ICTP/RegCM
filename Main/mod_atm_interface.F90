@@ -58,6 +58,7 @@ module mod_atm_interface
   real(rk8) , public , pointer , dimension(:,:,:) :: qdot , omega
 
   ! Sun
+  ! Cosine of zenithal solar angle
   real(rk8) , public , pointer , dimension(:,:) :: coszrs
 
   ! Cumulus
@@ -71,7 +72,12 @@ module mod_atm_interface
 
   ! Radiation
   real(rk8) , pointer , public , dimension(:,:) :: ptrop
+  ! vegetation absorbed radiation (full solar spectrum)
   real(rk8) , pointer , public , dimension(:,:) :: sabveg
+  ! Incident solar flux
+  real(rk8) , pointer , public , dimension(:,:) :: solis
+  real(rk8) , pointer , public , dimension(:,:) :: solvs
+  real(rk8) , pointer , public , dimension(:,:) :: solvd
   real(rk8) , pointer , public , dimension(:,:) :: flw
   real(rk8) , pointer , public , dimension(:,:) :: fsw
   real(rk8) , pointer , public , dimension(:,:) :: flwd
@@ -80,12 +86,24 @@ module mod_atm_interface
   real(rk8) , pointer , public , dimension(:,:,:) :: heatrt
 
   ! Surface
+  ! Total Long wave albedo (0.7-5.0 micro-meter)
   real(rk8) , pointer , public , dimension(:,:) :: albvl
+  ! Total Short wave albedo (0.2-0.7 micro-meter)
   real(rk8) , pointer , public , dimension(:,:) :: albvs
+  ! 0.2-0.7 micro-meter srfc alb to direct radiation
   real(rk8) , pointer , public , dimension(:,:) :: aldirs
+  ! 0.2-0.7 micro-meter srfc alb to diffuse radiation
   real(rk8) , pointer , public , dimension(:,:) :: aldifs
+  ! 0.7-5.0 micro-meter srfc alb to direct radiation
   real(rk8) , pointer , public , dimension(:,:) :: aldirl
+  ! 0.7-5.0 micro-meter srfc alb to diffuse radiation
   real(rk8) , pointer , public , dimension(:,:) :: aldifl
+  ! Emissivity at surface
+  real(rk8) , pointer , public , dimension(:,:) :: emiss
+  ! Total solar incoming radiation
+  real(rk8) , pointer , public , dimension(:,:) :: sinc
+  ! Land / water pask
+  integer(ik4) , pointer , public , dimension(:,:) :: ldmsk
 
   ! Precip
   real(rk8) , pointer , public , dimension(:,:) :: pptnc
@@ -662,12 +680,18 @@ module mod_atm_interface
       call getmem2d(flwd,jci1,jci2,ici1,ici2,'storage:flwd')
       call getmem2d(fsw,jci1,jci2,ici1,ici2,'storage:fsw')
       call getmem2d(sabveg,jci1,jci2,ici1,ici2,'storage:sabveg')
+      call getmem2d(solis,jci1,jci2,ici1,ici2,'storage:solis')
+      call getmem2d(solvs,jci1,jci2,ici1,ici2,'storage:solvs')
+      call getmem2d(solvd,jci1,jci2,ici1,ici2,'storage:solvd')
       call getmem2d(albvl,jci1,jci2,ici1,ici2,'storage:albvl')
       call getmem2d(albvs,jci1,jci2,ici1,ici2,'storage:albvs')
       call getmem2d(aldirs,jci1,jci2,ici1,ici2,'storage:aldirs')
       call getmem2d(aldifs,jci1,jci2,ici1,ici2,'storage:aldifs')
       call getmem2d(aldirl,jci1,jci2,ici1,ici2,'storage:aldirl')
       call getmem2d(aldifl,jci1,jci2,ici1,ici2,'storage:aldifl')
+      call getmem2d(emiss,jci1,jci2,ici1,ici2,'storage:emiss')
+      call getmem2d(sinc,jci1,jci2,ici1,ici2,'storage:sinc')
+      call getmem2d(ldmsk,jci1,jci2,ici1,ici2,'storage:ldmsk')
 
     end subroutine allocate_mod_atm_interface 
 

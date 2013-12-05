@@ -66,7 +66,7 @@ module mod_init
   subroutine init
   implicit none
 !
-  integer(ik4) :: i , j , k , n , ist
+  integer(ik4) :: i , j , k , n
   real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax
   real(rk8) :: sfice_temp
   character(len=32) :: appdat
@@ -136,10 +136,13 @@ module mod_init
               sfs%tgb(j,i) = sfice_temp
               ts0(j,i) = icetemp
               ldmsk(j,i) = 2
+              if ( iemiss == 1 ) emiss(j,i) = 0.97D0
               do n = 1, nnsg
                 ldmsk1(n,j,i) = 2
                 sfice(n,j,i) = d_10
               end do
+            else
+              if ( iemiss == 1 ) emiss(j,i) = 0.995D0
             end if
           end if
         end do
@@ -158,10 +161,13 @@ module mod_init
               sfs%tgb(j,i) = icetemp
               ts0(j,i) = icetemp
               ldmsk(j,i) = 2
+              if ( iemiss == 1 ) emiss(j,i) = 0.97D0
               do n = 1, nnsg
                 ldmsk1(n,j,i) = 2
                 sfice(n,j,i) = d_10
               end do
+            else
+              if ( iemiss == 1 ) emiss(j,i) = 0.995D0
             end if
           end if
         end do
@@ -218,7 +224,7 @@ module mod_init
     !
     ! Inizialize Ozone profiles
     !
-    call o3data
+    call o3data(sfs%psb)
     if ( myid == italk ) then
       call vprntv(o3prof(3,3,:),kzp1,'Ozone profile at (3,3)')
     end if
@@ -316,7 +322,7 @@ module mod_init
     call subgrid_distribute(ldew_io,ldew,jci1,jci2,ici1,ici2)
     call subgrid_distribute(taf_io,taf,jci1,jci2,ici1,ici2)
     call subgrid_distribute(tsw_io,tsw,jci1,jci2,ici1,ici2)
-    call subgrid_distribute(emiss_io,emiss,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(emiss_io,sfcemiss,jci1,jci2,ici1,ici2)
     call subgrid_distribute(ldmsk1_io,ldmsk1,jci1,jci2,ici1,ici2)
 
     call grid_distribute(solis_io,solis,jci1,jci2,ici1,ici2)
@@ -478,29 +484,6 @@ module mod_init
   call mkslice
   call initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf,igaschem,iaerosol,chtrname)
 #endif
-  !
-  ! Calculate emission coefficients
-  !
-  if ( iemiss == 1 .and. ktau == 0 ) then
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          ist = iveg1(n,j,i)
-          if ( ist == 14 .or. ist == 15 ) then
-            emiss(n,j,i) = 0.955D0
-          else if ( ist == 8 ) then
-            emiss(n,j,i) = 0.76D0
-          else if ( ist == 11 ) then
-            emiss(n,j,i) = 0.85D0
-          else if ( ist == 12 ) then
-            emiss(n,j,i) = 0.97D0
-          else
-            emiss(n,j,i) = 0.99D0-(albvgs(ist)+albvgl(ist))*0.1D0
-          end if
-        end do
-      end do
-    end do
-  end if
   !  
   ! Calculate topographical correction to diffusion coefficient
   !

@@ -81,7 +81,6 @@ module mod_rad_o3blk
   subroutine allocate_mod_rad_o3blk
     implicit none
     call getmem1d(prlevh,1,kzp2,'mod_o3blk:prlevh')
-
     if ( iclimao3 == 1 ) then
       if ( myid == iocpu ) then
         call getmem2d(alon,jcross1,jcross2,icross1,icross2,'mod_o3blk:alon')
@@ -99,17 +98,15 @@ module mod_rad_o3blk
 !
 !----------------------------------------------------------------------
 !
-  subroutine o3data
+  subroutine o3data(psb)
     implicit none
-!
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: psb
     integer(ik4) :: i , j , jj , k , kj
     real(rk8) :: pb1 , pb2 , pt1 , pt2
-!
     do k = 1 , 31
       ppann(k) = ppsum(k)
     end do
     o3ann(1) = 0.5D0*(o3sum(1)+o3win(1))
-!
     do k = 2 , 31
       o3ann(k) = o3win(k-1) + (o3win(k)-o3win(k-1)) / &
                  (ppwin(k)-ppwin(k-1))*(ppsum(k)-ppwin(k-1))
@@ -164,7 +161,6 @@ module mod_rad_o3blk
         end do
       end do
     end do
-!
   end subroutine o3data
 !
   subroutine read_o3data(idatex,scenario,xlat,xlon,ps,ptop,sigma)
@@ -174,7 +170,6 @@ module mod_rad_o3blk
     real(rk8) , pointer , dimension(:) :: sigma
     real(rk8) , intent(in) :: ptop
     character(len=8) , intent(in) :: scenario
-!
     character(len=64) :: infile
     logical , save :: ifirst
     logical :: dointerp

@@ -774,16 +774,12 @@ module mod_tendency
       call albedoclm
 #endif
       loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
+      labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
       if ( iclimao3 == 1 ) then
         call read_o3data(idatex,scenario,mddom%xlat,mddom%xlon, &
-          sfs%psa,ptop,sigma)
+                         sfs%psa,ptop,sigma)
       end if
-      if ( irrtm == 1 ) then
-        call rrtmg_driver(xyear,eccf,loutrad)
-      else
-        labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
-        call colmod3(xyear,eccf,loutrad,labsem)
-      end if
+      call radiation(xyear,eccf,loutrad,labsem)
     end if
 
 #ifndef CLM

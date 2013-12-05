@@ -68,7 +68,7 @@ module mod_runparams
   ! Seconds counter in between boundary conditions read
   integer(ik8) :: nbdytime
   ! Step counters to activate surface and radiation schemes
-  integer(ik8) :: ntsrf , ntrad
+  integer(ik8) :: ntsrf , ntrad , ntabem
   real(rk8) :: rtsrf , rtrad , rnsrf_for_srffrq , rnsrf_for_day , &
                rnsrf_for_lakfrq , rnsrf_for_subfrq , rnrad_for_chem , &
                rnrad_for_radfrq

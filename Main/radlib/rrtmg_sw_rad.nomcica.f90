@@ -80,7 +80,7 @@
              play    ,plev    ,tlay    ,tlev    ,tsfc    , &
              h2ovmr  ,o3vmr   ,co2vmr  ,ch4vmr  ,n2ovmr  ,o2vmr, &
              asdir   ,asdif   ,aldir   ,aldif   , &
-             coszen  ,adjes   ,dyofyr  ,scon    , &
+             coszrs  ,adjes   ,dyofyr  ,scon    , &
              inflgsw ,iceflgsw,liqflgsw,cldfr   , &
              taucld  ,ssacld  ,asmcld  ,fsfcld  , &
              cicewp  ,cliqwp  ,reice   ,reliq   , &
@@ -224,7 +224,7 @@
       integer(kind=im), intent(in) :: dyofyr          ! Day of the year (used to get Earth/Sun
                                                       !  distance if adjflx not provided)
       real(kind=rb), intent(in) :: adjes              ! Flux adjustment for Earth/Sun distance
-      real(kind=rb), intent(in) :: coszen(:)          ! Cosine of solar zenith angle
+      real(kind=rb), intent(in) :: coszrs(:)          ! Cosine of solar zenith angle
                                                       !    Dimensions: (ncol)
       real(kind=rb), intent(in) :: scon               ! Solar constant (W/m2)
 
@@ -542,7 +542,7 @@
 !  Prevent using value of zero; ideally, SW model is not called from host model when sun 
 !  is below horizon
 
-         cossza = coszen(iplon)
+         cossza = coszrs(iplon)
          if (cossza .lt. zepzen) cossza = zepzen
 
 

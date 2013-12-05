@@ -219,35 +219,41 @@ module mod_regcm_types
   end type ocn_2_sav
 
   type mod_2_rad
-    integer(ik4) , pointer , dimension(:,:) :: ldmsk
-    real(rk8) , pointer , dimension(:,:) :: xlat
-    real(rk8) , pointer , dimension(:,:,:) :: tatms
-    real(rk8) , pointer , dimension(:,:,:) :: rhatms
-    real(rk8) , pointer , dimension(:,:) :: tground
-    real(rk8) , pointer , dimension(:,:) :: psa
-    real(rk8) , pointer , dimension(:,:) :: psb
-    real(rk8) , pointer , dimension(:,:) :: cosz
+    real(rk8) , pointer , dimension(:,:) :: psa             ! sfs%psa
+    real(rk8) , pointer , dimension(:,:) :: psb             ! sfs%psb
+    real(rk8) , pointer , dimension(:,:,:) :: tatms         ! atms%tb3d
+    real(rk8) , pointer , dimension(:,:,:,:) :: qxatms      ! atms%qxb3d
+    real(rk8) , pointer , dimension(:,:,:) :: rhatms        ! atms%rhb3d
+    real(rk8) , pointer , dimension(:,:) :: tg              ! sfs%tgbb
+    real(rk8) , pointer , dimension(:,:) :: xlat            ! mddom%xlat
+    real(rk8) , pointer , dimension(:,:) :: ptrop
+    real(rk8) , pointer , dimension(:,:) :: coszrs
+    real(rk8) , pointer , dimension(:,:) :: albvs
+    real(rk8) , pointer , dimension(:,:) :: albvl
     real(rk8) , pointer , dimension(:,:) :: aldirs
     real(rk8) , pointer , dimension(:,:) :: aldifs
     real(rk8) , pointer , dimension(:,:) :: aldirl
     real(rk8) , pointer , dimension(:,:) :: aldifl
-    real(rk8) , pointer , dimension(:,:) :: swalb
-    real(rk8) , pointer , dimension(:,:) :: lwalb
     real(rk8) , pointer , dimension(:,:) :: emiss
-    real(rk8) , pointer , dimension(:,:,:,:) :: qxatms
+    real(rk8) , pointer , dimension(:,:,:) :: cldfrc
+    real(rk8) , pointer , dimension(:,:,:) :: cldlwc
     real(rk8) , pointer , dimension(:,:,:,:) :: chia
+    integer(ik4) , pointer , dimension(:,:) :: ldmsk
   end type mod_2_rad
 
   type rad_2_mod
-    real(rk8) , pointer , dimension(:,:) :: abveg
-    real(rk8) , pointer , dimension(:,:) :: solar
-    real(rk8) , pointer , dimension(:,:) :: totsol
-    real(rk8) , pointer , dimension(:,:) :: soldir
-    real(rk8) , pointer , dimension(:,:) :: soldif
-    real(rk8) , pointer , dimension(:,:) :: netswflx
-    real(rk8) , pointer , dimension(:,:) :: netlwflx
-    real(rk8) , pointer , dimension(:,:) :: uplwflx
-    real(rk8) , pointer , dimension(:,:) :: downlwflx
+    real(rk8) , pointer , dimension(:,:) :: solis
+    real(rk8) , pointer , dimension(:,:) :: sinc
+    real(rk8) , pointer , dimension(:,:) :: sabveg
+    real(rk8) , pointer , dimension(:,:) :: solvs
+    real(rk8) , pointer , dimension(:,:) :: solvd
+    real(rk8) , pointer , dimension(:,:) :: sols
+    real(rk8) , pointer , dimension(:,:) :: soll
+    real(rk8) , pointer , dimension(:,:) :: solsd
+    real(rk8) , pointer , dimension(:,:) :: solld
+    real(rk8) , pointer , dimension(:,:) :: fsw
+    real(rk8) , pointer , dimension(:,:) :: flw
+    real(rk8) , pointer , dimension(:,:) :: flwd
     real(rk8) , pointer , dimension(:,:,:) :: heatrt
   end type rad_2_mod
 

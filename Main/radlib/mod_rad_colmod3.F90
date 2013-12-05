@@ -29,6 +29,7 @@ module mod_rad_colmod3
   use mod_rad_outrad
   use mod_rrtmg_driver
   use mod_rad_aerosol
+  use mod_regcm_types
 !
   private
 !
@@ -47,7 +48,7 @@ module mod_rad_colmod3
   real(rk8) , pointer , dimension(:) :: alb , albc , &
     flns , flnsc , flnt , flntc , flwds , fsds ,  fsnirt , fsnirtsq ,  &
     fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,      &
-    sols , solsd , ps , ts , emsvt1 , totcf , totcl , totci , xptrop , &
+    sols , solsd , ps , ts , emiss , totcf , totcl , totci , xptrop , &
     dlat , czen
   real(rk8) , pointer , dimension(:) :: aeradfo , aeradfos
   real(rk8) , pointer , dimension(:) :: aerlwfo , aerlwfos
@@ -99,7 +100,7 @@ module mod_rad_colmod3
       call getmem1d(totci,1,npr,'colmod3:totci')
       call getmem1d(ps,1,npr,'colmod3:ps')
       call getmem1d(ts,1,npr,'colmod3:ts')
-      call getmem1d(emsvt1,1,npr,'colmod3:emsvt1')
+      call getmem1d(emiss,1,npr,'colmod3:emiss')
       call getmem1d(xptrop,1,npr,'rad:xptrop')
       call getmem1d(dlat,1,npr,'rad:dlat')
       call getmem1d(adirsw,1,npr,'rad:adirsw')
@@ -225,10 +226,10 @@ module mod_rad_colmod3
 !
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  subroutine colmod3(iyear,eccf,lout,labsem)
-!
+  subroutine colmod3(iyear,eccf,lout,labsem,m2r,r2m)
     implicit none
-!
+    type(mod_2_rad) , intent(in) :: m2r
+    type(rad_2_mod) , intent(inout) :: r2m
     integer(ik4) , intent(in) :: iyear
     logical , intent(in) :: lout , labsem
     real(rk8) , intent(in) :: eccf
@@ -361,14 +362,14 @@ module mod_rad_colmod3
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        ioro(n) = lndocnicemsk(j,i)
+        ioro(n) = m2r%ldmsk(j,i)
         n = n + 1
       end do
     end do
     !
     ! Copy data from atmosphere
     !
-    call getdat
+    call getdat(m2r)
     !
     ! Cloud particle size and fraction of ice
     !
@@ -387,7 +388,7 @@ module mod_rad_colmod3
     !
     call radctl(1,npr,dlat,xptrop,ts,pmidm1,pintm1,pmlnm1,pilnm1,       &
                 tm1,qm1,rh1,cld,effcld,clwp,aermmr,fsns,qrs,qrl,flwds,  &
-                rel,rei,fice,sols,soll,solsd,solld,emsvt1,fsnt,fsntc,   &
+                rel,rei,fice,sols,soll,solsd,solld,emiss,fsnt,fsntc,   &
                 fsnsc,flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt, &
                 fsnrtc,fsnirtsq,totcf,eccf,o3vmr,czen,czengt0,adirsw,   &
                 adifsw,adirlw,adiflw,asw,alw,abv,sol,aeradfo,aeradfos,  &
@@ -450,7 +451,7 @@ module mod_rad_colmod3
                 flntc,flnsc,qrl,flwds,sols,soll,solsd,solld,     &
                 totcf,totcl,totci,cld,clwp,abv,sol,aeradfo,      &
                 aeradfos,aerlwfo,aerlwfos,tauxar3d,tauasc3d,     &
-                gtota3d,deltaz,outtaucl,outtauci)
+                gtota3d,deltaz,outtaucl,outtauci,r2m)
 #ifdef DEBUG
     call time_end(subroutine_name,indx)
 #endif
@@ -605,9 +606,9 @@ module mod_rad_colmod3
 !
 !-----------------------------------------------------------------------
 !
-  subroutine getdat
+  subroutine getdat(m2r)
     implicit none
-!
+    type(mod_2_rad) , intent(in) :: m2r
     integer(ik4) :: n , m , i , j , k , k2 , itr , krev , kmincld , kmaxcld
     real(rk8) , parameter :: amd = 28.9644D0
     real(rk8) , parameter :: amo = 48.0000D0
@@ -625,8 +626,8 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          dlat(n) = dabs(xlat(j,i))
-          xptrop(n) = ptropo(j,i)
+          dlat(n) = dabs(m2r%xlat(j,i))
+          xptrop(n) = m2r%ptrop(j,i)
           n = n + 1
         end do
       end do
@@ -634,12 +635,12 @@ module mod_rad_colmod3
         n = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            emsvt1(n) = emsvt(j,i)
+            emiss(n) = m2r%emiss(j,i)
             n = n + 1
           end do
         end do
       else
-        emsvt1(:) = 0.9995D0
+        emiss(:) = 0.9995D0
       end if
       ifirst = .false.
     end if
@@ -649,12 +650,12 @@ module mod_rad_colmod3
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        adirsw(n) = swdiralb(j,i)
-        adifsw(n) = swdifalb(j,i)
-        adirlw(n) = lwdiralb(j,i)
-        adiflw(n) = lwdifalb(j,i)
-        asw(n)    = swalb(j,i)
-        alw(n)    = lwalb(j,i)
+        adirsw(n) = m2r%aldirs(j,i)
+        adifsw(n) = m2r%aldifs(j,i)
+        adirlw(n) = m2r%aldirl(j,i)
+        adiflw(n) = m2r%aldifl(j,i)
+        asw(n)    = m2r%albvs(j,i)
+        alw(n)    = m2r%albvl(j,i)
         n = n + 1
       end do
     end do
@@ -664,7 +665,7 @@ module mod_rad_colmod3
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        czen(n) = coszen(j,i)
+        czen(n) = m2r%coszrs(j,i)
         if ( czen(n) > d_zero ) czengt0(n) = .true.
         n = n + 1
       end do
@@ -709,7 +710,7 @@ module mod_rad_colmod3
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        ps(n) = (psb(j,i)+ptop)*d_1000
+        ps(n) = (m2r%psb(j,i)+ptop)*d_1000
         n = n + 1
       end do
     end do
@@ -720,7 +721,7 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          pmidm1(n,k) = (psb(j,i)*hsigma(k)+ptop)*d_1000
+          pmidm1(n,k) = (m2r%psb(j,i)*hsigma(k)+ptop)*d_1000
           n = n + 1
         end do
       end do
@@ -730,7 +731,7 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          pintm1(n,k) = (psb(j,i)*sigma(k)+ptop)*d_1000
+          pintm1(n,k) = (m2r%psb(j,i)*sigma(k)+ptop)*d_1000
           n = n + 1
         end do
       end do
@@ -743,8 +744,8 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          tm1(n,k) = tatms(j,i,k)
-          rh1(n,k) = dmax1(dmin1(rhatms(j,i,k),nearone),d_zero)
+          tm1(n,k) = m2r%tatms(j,i,k)
+          rh1(n,k) = dmax1(dmin1(m2r%rhatms(j,i,k),nearone),d_zero)
           n = n + 1
         end do
       end do
@@ -756,7 +757,7 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          h2ommr(n,k) = dmax1(minqx,qxatms(j,i,k,iqv))
+          h2ommr(n,k) = dmax1(minqx,m2r%qxatms(j,i,k,iqv))
           n = n + 1
         end do
       end do
@@ -784,7 +785,7 @@ module mod_rad_colmod3
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          cld(n,k) = dmax1(cloudfrac(j,i,k),lowcld)
+          cld(n,k) = dmax1(m2r%cldfrc(j,i,k),lowcld)
           cld(n,k) = dmin1(cld(n,k),hicld)
 !
 !qc       gary's mods for clouds/radiation tie-in to exmois
@@ -803,8 +804,8 @@ module mod_rad_colmod3
           ! Convert liquid water content into liquid water path, i.e.
           ! multiply b deltaz
           !
-          clwp(n,k) = cloudlwc(j,i,k)*deltaz(n,k)
-          if ( cloudfrac(j,i,k) < lowcld ) then
+          clwp(n,k) = m2r%cldlwc(j,i,k)*deltaz(n,k)
+          if ( m2r%cldfrc(j,i,k) < lowcld ) then
             clwp(n,k) = d_zero
           end if
           totcl(n) = totcl(n)+clwp(n,k)*d_r1000
@@ -831,7 +832,7 @@ module mod_rad_colmod3
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        ts(n) = tground(j,i)
+        ts(n) = m2r%tg(j,i)
         n = n + 1
       end do
     end do
@@ -858,7 +859,7 @@ module mod_rad_colmod3
           n = 1
           do i = ici1 , ici2
             do j = jci1 , jci2
-              aermmr(n,k,itr) = chspmix(j,i,k,itr)/psa(j,i)
+              aermmr(n,k,itr) = m2r%chia(j,i,k,itr)/m2r%psa(j,i)
               n = n + 1
             end do
           end do

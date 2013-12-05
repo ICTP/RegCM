@@ -779,7 +779,7 @@ module mod_rad_radiation
 !
   subroutine radctl(n1,n2,dlat,xptrop,ts,pmid,pint,pmln,piln,   &
                     t,h2ommr,rh,cld,effcld,clwp,aermmr,fsns,qrs,qrl,  &
-                    flwds,rel,rei,fice,sols,soll,solsd,solld,emsvt,   &
+                    flwds,rel,rei,fice,sols,soll,solsd,solld,emiss,   &
                     fsnt,fsntc,fsnsc,flnt,flns,flntc,flnsc,solin,alb, &
                     albc,fsds,fsnirt,fsnrtc,fsnirtsq,totcf,eccf,o3vmr,&
                     czen,czengt0,adirsw,adifsw,adirlw,adiflw,asw,alw, &
@@ -822,7 +822,7 @@ module mod_rad_radiation
     integer(ik4) , intent(in) :: n1 , n2
     logical , intent(in) :: labsem
     real(rk8) , intent(in) :: eccf
-    real(rk8) , pointer , dimension(:) :: alb , albc , emsvt , &
+    real(rk8) , pointer , dimension(:) :: alb , albc , emiss , &
             flns , flnsc , flnt , flntc , flwds , fsds , fsnirt , fsnirtsq , &
             fsnrtc , fsns , fsnsc , fsnt , fsntc , solin , soll , solld ,    &
             sols , solsd , ts , totcf , aeradfo , aeradfos , aerlwfo ,       &
@@ -969,7 +969,7 @@ module mod_rad_radiation
 
       call radclw(n1,n2,ts,t,h2ommr,o3vmr,pbr,pnm,pmln, &
                   piln,n2o,ch4,cfc11,cfc12,effcld,tclrsf,qrl,flns,   &
-                  flnt,flnsc,flntc,flwds,fslwdcs,emsvt,aerlwfo,      &
+                  flnt,flnsc,flntc,flwds,fslwdcs,emiss,aerlwfo,      &
                   aerlwfos,absgasnxt,absgastot,emsgastot,labsem)
       !
       ! Convert units of longwave fields needed by rest of model from CGS to MKS
@@ -1805,7 +1805,7 @@ module mod_rad_radiation
 !     Input arguments
 !
 ! ts      - Ground (skin) temperature
-! emsvt   - Emissivity of surface
+! emiss   - Emissivity of surface
 !
 !     Input arguments which are only passed to other routines
 !
@@ -1839,7 +1839,7 @@ module mod_rad_radiation
 !
   subroutine radclw(n1,n2,ts,tnm,qnm,o3vmr,pmid,pint,pmln,     &
                     piln,n2o,ch4,cfc11,cfc12,cld,tclrsf,qrl,flns,flnt, &
-                    flnsc,flntc,flwds,fslwdcs,emsvt,aerlwfo,aerlwfos,  &
+                    flnsc,flntc,flwds,fslwdcs,emiss,aerlwfo,aerlwfos,  &
                     absgasnxt,absgastot,emsgastot,labsem)
 !
     implicit none
@@ -1851,10 +1851,10 @@ module mod_rad_radiation
     real(rk8) , pointer , dimension(:,:) :: cld , piln , pint , tclrsf
     real(rk8) , pointer , dimension(:,:,:) :: absgasnxt , absgastot
     real(rk8) , pointer , dimension(:,:) :: emsgastot
-    real(rk8) , pointer , dimension(:) :: emsvt , flns , flnsc , flnt , &
+    real(rk8) , pointer , dimension(:) :: emiss , flns , flnsc , flnt , &
                flntc , flwds , fslwdcs , ts
     real(rk8), pointer , dimension(:) :: aerlwfo , aerlwfos
-    intent (in) cld , emsvt
+    intent (in) cld , emiss
     intent (out) flns , flnsc , flnt , flntc , flwds , qrl , aerlwfo , aerlwfos
     intent (inout) tclrsf
 !
@@ -2041,7 +2041,7 @@ module mod_rad_radiation
 !
       do n = n1 , n2
         if ( iemiss == 1 ) then
-          fsul(n,kzp1) = emsvt(n)*(stebol*(ts(n)**4))
+          fsul(n,kzp1) = emiss(n)*(stebol*(ts(n)**4))
         else
           fsul(n,kzp1) = stebol*(ts(n)**4)
         end if

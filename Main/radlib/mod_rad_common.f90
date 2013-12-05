@@ -28,74 +28,21 @@ module mod_rad_common
 
   public
 
-  real(rk8) , pointer , dimension(:,:) :: psa    ! sfs%psb
-  real(rk8) , pointer , dimension(:,:) :: psb   ! sfs%psa
-  real(rk8) , pointer , dimension(:,:,:) :: tatms    ! atms%tb3d
-  real(rk8) , pointer , dimension(:,:,:,:) :: qxatms ! atms%qxb3d
-  real(rk8) , pointer , dimension(:,:,:) :: rhatms   ! atms%rhb3d
-  real(rk8) , pointer , dimension(:,:) :: tground    ! sfs%tgbb
-  real(rk8) , pointer , dimension(:,:) :: xlat       ! mddom%xlat
+  ! absnxt  - Nearest layer absorptivities
+  ! abstot  - Non-adjacent layer absorptivites
+  ! emstot  - Total emissivity
 
-  ! vegetation absorbed radiation (full solar spectrum)
-  real(rk8) , pointer , dimension(:,:) :: abveg   ! sabveg
-  ! Incident solar flux
-  real(rk8) , pointer , dimension(:,:) :: solar   ! solis
-  ! Cosine of zenithal solar angle
-  real(rk8) , pointer , dimension(:,:) :: coszen  ! coszrs
-  ! 0.2-0.7 micro-meter srfc alb to direct radiation
-  real(rk8) , pointer , dimension(:,:) :: swdiralb ! aldirs
-  ! 0.2-0.7 micro-meter srfc alb to diffuse radiation
-  real(rk8) , pointer , dimension(:,:) :: swdifalb ! aldifs
-  ! 0.7-5.0 micro-meter srfc alb to direct radiation
-  real(rk8) , pointer , dimension(:,:) :: lwdiralb ! aldirl
-  ! 0.7-5.0 micro-meter srfc alb to diffuse radiation
-  real(rk8) , pointer , dimension(:,:) :: lwdifalb ! aldifl
-  ! Total Short wave albedo (0.2-0.7 micro-meter)
-  real(rk8) , pointer , dimension(:,:) :: swalb   ! albvs
-  ! Total Long wave albedo (0.7-5.0 micro-meter)
-  real(rk8) , pointer , dimension(:,:) :: lwalb   ! albvl
-  ! Emissivity at surface
-  real(rk8) , pointer , dimension(:,:) :: emsvt   ! emiss1d
-  ! Bidimensional collector storage for above
-  real(rk8) , pointer , dimension(:,:) :: totsol ! sinc
-  real(rk8) , pointer , dimension(:,:) :: soldir ! solvs
-  real(rk8) , pointer , dimension(:,:) :: soldif ! solvd
-  real(rk8) , pointer , dimension(:,:) :: solswdir ! sols
-  real(rk8) , pointer , dimension(:,:) :: sollwdir ! soll
-  real(rk8) , pointer , dimension(:,:) :: solswdif ! solsd
-  real(rk8) , pointer , dimension(:,:) :: sollwdif ! solld
-  real(rk8) , pointer , dimension(:,:) :: srfabswflx ! fsw
-  real(rk8) , pointer , dimension(:,:) :: srflwflxup ! flw
-  real(rk8) , pointer , dimension(:,:) :: srflwflxdw ! flwd
-
-  ! Land Ocean Ice (1,0,2) mask
-  integer(ik4) , pointer , dimension(:,:) :: lndocnicemsk ! ldmsk12d
-
-  real(rk8) , pointer , dimension(:,:,:,:) :: chspmix  ! chia
-
-  real(rk8) , pointer , dimension(:,:,:) :: cloudfrac , cloudlwc
-  real(rk8) , pointer , dimension(:,:,:) :: heatingrate
+  ! Those need to be saved in output file
   real(rk8) , pointer , dimension(:,:,:) :: o3prof
-  real(rk8) , pointer , dimension(:,:,:) :: aerasp , aerext , aerssa
-  real(rk8) , pointer , dimension(:,:) :: aersrrf , aertarf
-  real(rk8) , pointer , dimension(:,:) :: aertalwrf , aersrlwrf
-! absnxt  - Nearest layer absorptivities
-! abstot  - Non-adjacent layer absorptivites
-! emstot  - Total emissivity
   real(rk8) , pointer , dimension(:,:,:,:)  :: gasabsnxt
   real(rk8) , pointer , dimension(:,:,:,:)  :: gasabstot
   real(rk8) , pointer , dimension(:,:,:) :: gasemstot
-
   real(rk8) , pointer , dimension(:,:,:,:) :: taucldsp
-
-  real(rk8) , pointer , dimension(:,:) :: ptropo
 
   logical :: doabsems , dolw , dosw
   integer(ik4) :: ichso4 , ichbc , ichoc
 
   real(rk8) :: chfrovrradfr ! chfrq/rafrq
-
-  integer(ik8) :: ntabem
 
   contains 
 
@@ -107,16 +54,8 @@ module mod_rad_common
       call getmem4d(gasabstot,jci1,jci2,ici1,ici2,1,kzp1,1,kzp1,'rad:gasabstot')
       call getmem3d(gasemstot,jci1,jci2,ici1,ici2,1,kzp1,'rad:gasemstot')
     end if
-
     if ( ichem == 1 ) then
       call getmem4d(taucldsp,jci1,jci2,ici1,ici2,0,kz,1,nspi,'rad:taucldsp')
-      call getmem3d(aerasp,jci1,jci2,ici1,ici2,1,kz,'rad:aerasp')
-      call getmem3d(aerext,jci1,jci2,ici1,ici2,1,kz,'rad:aerext')
-      call getmem3d(aerssa,jci1,jci2,ici1,ici2,1,kz,'rad:aerssa')
-      call getmem2d(aersrrf,jci1,jci2,ici1,ici2,'rad:aersrrf')
-      call getmem2d(aertalwrf,jci1,jci2,ici1,ici2,'rad:aertalwrf')
-      call getmem2d(aersrlwrf,jci1,jci2,ici1,ici2,'rad:aersrlwrf')
-      call getmem2d(aertarf,jci1,jci2,ici1,ici2,'rad:aertarf')
     end if
   end subroutine  allocate_mod_rad_common
 

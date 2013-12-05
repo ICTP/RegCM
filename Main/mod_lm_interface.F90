@@ -46,7 +46,7 @@ module mod_lm_interface
 
   subroutine init_bats(dom,atm,sfs,zpbl,pptc,prca,pptnc,prnca,coszrs, &
                   fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs,aldirl, &
-                  aldifl)
+                  aldifl,solis,emiss,sinc,ldmsk,solvs,solvd)
     implicit none
     type(domain) , intent(in) :: dom
     type(slice) , intent(in) :: atm
@@ -67,6 +67,12 @@ module mod_lm_interface
     real(rk8) , pointer , intent(in) , dimension(:,:) :: aldifs
     real(rk8) , pointer , intent(in) , dimension(:,:) :: aldirl
     real(rk8) , pointer , intent(in) , dimension(:,:) :: aldifl
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: solis
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: emiss
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: sinc
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: solvs
+    real(rk8) , pointer , intent(in) , dimension(:,:) :: solvd
+    integer(ik4) , pointer , intent(in) , dimension(:,:) :: ldmsk
     ntcpl  = idnint(cpldt/dtsec)
     ntsrf2 = idnint(dtsrf/dtsec)
     if ( idcsst   == 1 ) ldcsst    = .true.
@@ -108,36 +114,18 @@ module mod_lm_interface
     call assignpnt(aldifs,swdifalb)
     call assignpnt(aldirl,lwdiralb)
     call assignpnt(aldifl,lwdifalb)
+    call assignpnt(solis,solar)
+    call assignpnt(emiss,emissivity)
+    call assignpnt(sinc,solinc)
+    call assignpnt(solvs,swdir)
+    call assignpnt(solvd,swdif)
+    call assignpnt(ldmsk,landmsk)
   end subroutine init_bats
 !
 #ifdef CLM
-  subroutine init_clm(dom,atm,sfs,zpbl,pptc,prca,pptnc,prnca,coszrs, &
-                      fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs, &
-                      aldirl,aldifl,lm)
+  subroutine init_clm(lm)
     implicit none
-    type(domain) , intent(in) :: dom
-    type(slice) , intent(in) :: atm
-    type(surfstate) , intent(in) :: sfs
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: zpbl
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: pptc
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: prca
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: pptnc
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: prnca
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: coszrs
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: flw
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: fsw
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: flwd
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: sabveg
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: albvs
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: albvl
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: aldirs
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: aldifs
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: aldirl
-    real(rk8) , pointer , intent(in) , dimension(:,:) :: aldifl
-    integer , pointer , intent(in) , dimension(:,:) :: lm
-    call init_bats(dom,atm,sfs,zpbl,pptc,prca,pptnc,prnca,coszrs, &
-                   fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs, &
-                   aldirl,aldifl)
+     integer , pointer , intent(in) , dimension(:,:) :: lm
     call assignpnt(lm,lmask)
   end subroutine init_clm
 #endif

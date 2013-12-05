@@ -40,7 +40,7 @@ module mod_cloud_s1
   use mod_precip , only : fcc
   use mod_runparams , only : rtsrf
   use mod_service
-  use mod_lm_interface , only : ldmsk
+  use mod_atm_interface , only : ldmsk
 
   private
 

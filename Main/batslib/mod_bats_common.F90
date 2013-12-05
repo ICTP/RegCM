@@ -43,24 +43,24 @@ module mod_bats_common
          drag , evpr , gwet , ldew , q2m , sfcp , trnof ,        &
          srnof , rsw , snag , sncv , sent , sfice , ssw ,        &
          t2m , tgrd , tgbrd , tlef , tsw , u10m , v10m , lncl ,  &
-         taux , tauy
+         taux , tauy , sfcemiss
 !
   real(rk8) :: rdnnsg
   real(rk4) :: rrnnsg
 !
-  real(rk8) , pointer , dimension(:,:) :: solis , czen , aemiss
-!
-  real(rk8) , pointer , dimension(:,:) :: sinc , solvd , solvs , totpr , fracd
+  real(rk8) , pointer , dimension(:,:) :: solar , czen , emissivity
+  real(rk8) , pointer , dimension(:,:) :: solinc
+  real(rk8) , pointer , dimension(:,:) :: swdif , swdir , totpr , fracd
 !
   real(rk8) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
         sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
 !
   integer(ik4) , pointer , dimension(:,:,:) :: ldmsk1 , iveg1
   integer(ik4) , pointer , dimension(:,:,:) :: lakemsk
-  integer(ik4) , pointer , dimension(:,:) :: iveg , ldmsk
+  integer(ik4) , pointer , dimension(:,:) :: iveg , landmsk
 !
   real(rk8) , pointer , dimension(:,:,:) :: ht1 , lndcat1 , &
-    mask1 , xlat1 , xlon1 , emiss
+    mask1 , xlat1 , xlon1
 !
   ! Coupling variables
   real(rk8) , pointer , dimension(:,:,:) :: dailyrnf
@@ -131,16 +131,12 @@ module mod_bats_common
       call getmem2d(totpr,jci1,jci2,ici1,ici2,'bats:totpr')
       call getmem2d(fracd,jci1,jci2,ici1,ici2,'bats:fracd')
 
-      call getmem2d(sinc,jci1,jci2,ici1,ici2,'bats:sinc')
-      call getmem2d(ldmsk,jci1,jci2,ici1,ici2,'bats:ldmsk')
       if ( iocncpl == 1 ) then
         call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'bats:cplmsk')
         cplmsk(:,:) = 0 
         ! This is for the RTM component
         call getmem3d(dailyrnf,jci1,jci2,ici1,ici2,1,2,'bats:dailyrnf')
       end if
-      call getmem2d(solvd,jci1,jci2,ici1,ici2,'bats:solvd')
-      call getmem2d(solvs,jci1,jci2,ici1,ici2,'bats:solvs')
       if ( ichem == 1 ) then
         call getmem2d(ssw2da,jci1,jci2,ici1,ici2,'bats:ssw2da')
         call getmem2d(sdeltk2d,jci1,jci2,ici1,ici2,'bats:sdeltk2d')
@@ -152,8 +148,9 @@ module mod_bats_common
       end if
       call getmem3d(iveg1,1,nnsg,jci1,jci2,ici1,ici2,'bats:iveg1')
 
+      call getmem3d(delq,1,nnsg,jci1,jci2,ici1,ici2,'bats:delq')
+      call getmem3d(delt,1,nnsg,jci1,jci2,ici1,ici2,'bats:delt')
       call getmem3d(ldmsk1,1,nnsg,jci1,jci2,ici1,ici2,'bats:ldmsk1')
-      call getmem3d(emiss,1,nnsg,jci1,jci2,ici1,ici2,'bats:emiss')
       call getmem3d(gwet,1,nnsg,jci1,jci2,ici1,ici2,'bats:gwet')
       call getmem3d(rsw,1,nnsg,jci1,jci2,ici1,ici2,'bats:rsw')
       call getmem3d(snag,1,nnsg,jci1,jci2,ici1,ici2,'bats:snag')
@@ -167,7 +164,6 @@ module mod_bats_common
       call getmem3d(tsw,1,nnsg,jci1,jci2,ici1,ici2,'bats:tsw')
       call getmem3d(taf,1,nnsg,jci1,jci2,ici1,ici2,'bats:taf')
       call getmem3d(ldew,1,nnsg,jci1,jci2,ici1,ici2,'bats:ldew')
-      call getmem2d(aemiss,jci1,jci2,ici1,ici2,'bats:aemiss')
 
       call getmem3d(ht1,1,nnsg,jde1,jde2,ide1,ide2,'bats:ht1')
       call getmem3d(lndcat1,1,nnsg,jde1,jde2,ide1,ide2,'bats:lndcat1')
@@ -182,8 +178,6 @@ module mod_bats_common
         call getmem2d(sst,jci1,jci2,ici1,ici2,'bats:sst')
       end if
 
-      call getmem3d(delq,1,nnsg,jci1,jci2,ici1,ici2,'bats:delq')
-      call getmem3d(delt,1,nnsg,jci1,jci2,ici1,ici2,'bats:delt')
       call getmem3d(drag,1,nnsg,jci1,jci2,ici1,ici2,'bats:drag')
       call getmem3d(evpr,1,nnsg,jci1,jci2,ici1,ici2,'bats:evpr')
       call getmem3d(sfcp,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfcp')
@@ -195,9 +189,8 @@ module mod_bats_common
       call getmem3d(v10m,1,nnsg,jci1,jci2,ici1,ici2,'bats:v10m')
       call getmem3d(taux,1,nnsg,jci1,jci2,ici1,ici2,'bats:taux')
       call getmem3d(tauy,1,nnsg,jci1,jci2,ici1,ici2,'bats:tauy')
+      call getmem3d(sfcemiss,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfcemiss')
       call getmem3d(lncl,1,nnsg,jci1,jci2,ici1,ici2,'bats:lncl')
-
-      call getmem2d(solis,jci1,jci2,ici1,ici2,'bats:solis')
 
       if ( lakemod == 1 ) then
         call getmem3d(lakemsk,1,nnsg,jci1,jci2,ici1,ici2,'bats:lakemsk')

@@ -619,7 +619,7 @@ module mod_output
         call subgrid_collect(ldew,ldew_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(taf,taf_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(tsw,tsw_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(emiss,emiss_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(sfcemiss,emiss_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(ldmsk1,ldmsk1_io,jci1,jci2,ici1,ici2)
 
         call grid_collect(solis,solis_io,jci1,jci2,ici1,ici2)

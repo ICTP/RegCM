@@ -26,6 +26,7 @@ module mod_rad_outrad
   use mod_rad_common
   use mod_runparams
   use mod_outvars
+  use mod_regcm_types
 
   private
 
@@ -44,7 +45,7 @@ module mod_rad_outrad
                     frla,clrlt,clrls,qrl,slwd,sols,soll,solsd,solld,     &
                     totcf,totcl,totci,cld,clwp,abv,sol,aeradfo,aeradfos, &
                     aerlwfo,aerlwfos,tauxar3d,tauasc3d,gtota3d,deltaz,   &
-                    outtaucl,outtauci)
+                    outtaucl,outtauci,r2m)
 !
 ! copy radiation output quantities to model buffer
 !
@@ -91,6 +92,7 @@ module mod_rad_outrad
                 slwd , solin , soll , solld , sols , solsd ,      &
                 totcf , totcl , totci , aeradfo , aeradfos,       &
                 aerlwfo , aerlwfos , deltaz , outtaucl , outtauci
+    type(rad_2_mod) , intent(inout) :: r2m
 !
     integer(ik4) :: i , j , k , n
     !
@@ -100,7 +102,7 @@ module mod_rad_outrad
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          heatingrate(j,i,k) = qrs(n,k) + qrl(n,k)
+          r2m%heatrt(j,i,k) = qrs(n,k) + qrl(n,k)
           n = n + 1
         end do
       end do
@@ -112,18 +114,18 @@ module mod_rad_outrad
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        srfabswflx(j,i) = frsa(n)
-        abveg(j,i) = abv(n)
-        solar(j,i) = sol(n)
-        srflwflxup(j,i) = frla(n)
-        srflwflxdw(j,i) = slwd(n)  ! BATS Output
+        r2m%fsw(j,i) = frsa(n)
+        r2m%sabveg(j,i) = abv(n)
+        r2m%solis(j,i) = sol(n)
+        r2m%flw(j,i) = frla(n)
+        r2m%flwd(j,i) = slwd(n)  ! BATS Output
         n = n + 1
       end do
     end do
 !
 !   for coupling with bats
 !
-!   for now assume abveg (solar absorbed by vegetation) is equal
+!   for now assume sabveg (solar absorbed by vegetation) is equal
 !   to frsa (solar absorbed by surface). possible problems are
 !   over sparsely vegetated areas in which vegetation and ground
 !   albedo are significantly different
@@ -131,14 +133,14 @@ module mod_rad_outrad
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
-        totsol(j,i) = soll(n) + sols(n) + solsd(n) + solld(n)
-        soldir(j,i) = sols(n)
-        soldif(j,i) = solsd(n)
+        r2m%sinc(j,i) = soll(n) + sols(n) + solsd(n) + solld(n)
+        r2m%solvs(j,i) = sols(n)
+        r2m%solvd(j,i) = solsd(n)
 #ifdef CLM
-        solswdir(j,i) = sols(n)
-        sollwdir(j,i) = soll(n)
-        solswdif(j,i) = solsd(n)
-        sollwdif(j,i) = solld(n)
+        r2m%sols(j,i) = sols(n)
+        r2m%soll(j,i) = soll(n)
+        r2m%solsd(j,i) = solsd(n)
+        r2m%solld(j,i) = solld(n)
 #endif
         n = n + 1
       end do
@@ -165,7 +167,6 @@ module mod_rad_outrad
         call copy3d(qrl,rad_qrl_out)
         call copy4d1(outtaucl,rad_taucl_out,4)
         call copy4d1(outtauci,rad_tauci_out,4)
-
         call copy2d(frsa,rad_frsa_out)
         call copy2d(frla,rad_frla_out)
         call copy2d(clrst,rad_clrst_out)

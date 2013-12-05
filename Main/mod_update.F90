@@ -95,7 +95,8 @@
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
-      use mod_bats_common, only : ldmsk, cplmsk
+      use mod_bats_common, only : cplmsk
+      use mod_atm_interface , only : ldmsk
       use mod_dynparam, only : ice1, ice2, jce1, jce2
       use mod_dynparam, only : ici1, ici2, jci1, jci2
 !
@@ -186,8 +187,8 @@
 !-----------------------------------------------------------------------
 !
       use mod_constants
-      use mod_atm_interface, only : sfs, mddom
-      use mod_bats_common, only : ldmsk, ldmsk1, cplmsk, ntcpl, tgbrd
+      use mod_atm_interface, only : sfs, mddom , ldmsk
+      use mod_bats_common, only : ldmsk1, cplmsk, ntcpl, tgbrd
       use mod_bats_common, only : lveg, iveg1, sfice, sent, sncv, tgrd
       use mod_dynparam, only : ice1, ice2, jce1, jce2
       use mod_dynparam, only : ici1, ici2, jci1, jci2, nnsg
@@ -385,9 +386,9 @@
       use mod_dynparam, only : ici1, ici2, jci1, jci2, nnsg, ptop
       use mod_bats_common, only : sfps, t2m, q2m, evpr, sent, totpr, &
                                   u10m, v10m, srnof, trnof, rdnnsg,  &
-                                  ldmsk, dailyrnf, taux, tauy, sncv, &
-                                  solvd, solvs, runoffcount
-      use mod_atm_interface, only : flw, flwd, fsw
+                                  dailyrnf, taux, tauy, sncv, runoffcount
+      use mod_atm_interface, only : flw, flwd, fsw , ldmsk , solvd, &
+                                    solvs
 !
       implicit none
 !

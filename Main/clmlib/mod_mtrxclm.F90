@@ -422,7 +422,7 @@ module mod_mtrxclm
             iveg1(n,j,i) = idnint(lndcat1(n,j,i))
           end do
           if ( ( iveg(j,i) == 14 .or. iveg(j,i) == 15 ) .and. &
-                 ldmsk(j,i) /= 0 ) then
+                 landmsk(j,i) /= 0 ) then
             iveg(j,i)   =  2
             lndcat(j,i) =  d_two
           end if
@@ -475,7 +475,7 @@ module mod_mtrxclm
       ig = global_cross_istart+i-1
       do j = jci1 , jci2
         jg = global_cross_jstart+j-1
-        if ( ( ldmsk(j,i) == 0 .and. landfrac(jg,ig) > d_zero ) ) then
+        if ( ( landmsk(j,i) == 0 .and. landfrac(jg,ig) > d_zero ) ) then
           !
           ! Correct "Mixed points" from CLM for their water fraction
           ! in the albedo (good when < 1)
@@ -496,7 +496,7 @@ module mod_mtrxclm
             lwdifalb(j,i) = lwdifalb(j,i)*(d_one-landfrac(jg,ig)) + &
                           c2ralbdifl(jg,ig)
           end if
-        else if (ldmsk(j,i) /= 0 ) then
+        else if (landmsk(j,i) /= 0 ) then
           !
           ! Use over land CLM calculated albedo (good when < 1)
           !
@@ -663,7 +663,7 @@ module mod_mtrxclm
         call dragc
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( ldmsk(j,i) == 0 ) then
+            if ( landmsk(j,i) == 0 ) then
               tgrd(:,j,i) = tground2(j,i)
               drag(:,j,i) = cdrx(:,j,i)*vspda(:,j,i)*rhs(:,j,i)
               tlef(:,j,i) = sts(:,j,i)
@@ -902,7 +902,7 @@ module mod_mtrxclm
           if ( associated(srf_fld_out) ) &
             srf_fld_out = srf_fld_out + dwrlwf
           if ( associated(srf_sina_out) ) &
-            srf_sina_out = srf_sina_out + sinc
+            srf_sina_out = srf_sina_out + solinc
         end if
         if ( ifsub ) then
           call reorder_add_subgrid(sfcp,sub_ps_out)

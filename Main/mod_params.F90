@@ -1313,15 +1313,12 @@ module mod_params
 
   call init_advection(mddom,sfs,atm1,qdot,kpbl)
   call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
-#ifdef CLM
-  allocate(landmask(jx,iy))
-  call init_clm(mddom,atms,sfs,zpbl,pptc,prca,pptnc,prnca,coszrs, &
-                fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs,    &
-                aldirl,aldifl,landmask)
-#else
   call init_bats(mddom,atms,sfs,zpbl,pptc,prca,pptnc,prnca,coszrs, &
                  fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs,    &
-                 aldirl,aldifl)
+                 aldirl,aldifl,solis,emiss,sinc,ldmsk,solvs,solvd)
+#ifdef CLM
+  allocate(landmask(jx,iy))
+  call init_clm(landmask)
 #endif
   call init_cuscheme(mddom,atm1,aten,atms,chiten,sfs,qdot,pptc,ldmsk, &
                      cldfra,cldlwc,ktrop,cucontrol,icumtop,icumbot,   &
@@ -1342,9 +1339,7 @@ module mod_params
       call bcast(chtrname(n),6)
     end do
   end if
-  call init_rad(atms,sfs,mddom,sabveg,solis,coszrs,aldirs,aldifs,  &
-                aldirl,aldifl,albvs,albvl,aemiss,sinc,solvs,solvd, &
-                fsw,flw,flwd,ldmsk,chia,cldfra,cldlwc,heatrt,ptrop)
+  call init_rad
 #ifdef CLM
   call init_rad_clm(sols2d,soll2d,solsd2d,solld2d)
 #endif

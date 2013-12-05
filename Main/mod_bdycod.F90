@@ -530,6 +530,7 @@ module mod_bdycod
                 sfs%tgb(j,i) = sfice_temp
                 ts1(j,i) = icetemp
                 ldmsk(j,i) = 2
+                if ( iemiss == 1 ) emiss(j,i) = 0.97D0
                 do n = 1, nnsg
                   ldmsk1(n,j,i) = 2
                   sfice(n,j,i) = d_10
@@ -541,6 +542,7 @@ module mod_bdycod
                 do n = 1, nnsg
                   sfice(n,j,i) = sfice(n,j,i)*d_r10
                 end do
+                if ( iemiss == 1 ) emiss(j,i) = 0.995D0
               end if
             end if
           end if

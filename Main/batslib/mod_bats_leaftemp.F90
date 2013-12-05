@@ -26,7 +26,6 @@ module mod_bats_leaftemp
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : iemiss
   use mod_memutil
   use mod_bats_common
   use mod_bats_internal
@@ -113,11 +112,7 @@ module mod_bats_leaftemp
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
               vpdc(n,j,i) = d_10
-              if ( iemiss == 1 ) then
-                sgtg3 = emiss(n,j,i)*(sigm*tgrd(n,j,i)**3)
-              else
-                sgtg3 = sigm*tgrd(n,j,i)**3
-              end if
+              sgtg3 = sfcemiss(n,j,i)*(sigm*tgrd(n,j,i)**3)
               flneto(n,j,i) = d_four*sgtg3*(tlef(n,j,i)-tgrd(n,j,i))
             end if
           end if
@@ -247,11 +242,7 @@ module mod_bats_leaftemp
               if ( sigf(n,j,i) > 0.001D0 ) then
                 dcn = dcd(n,j,i)*tlef(n,j,i)
                 ! 1.2  radiative forcing for leaf temperature calculation
-                if ( iemiss == 1 ) then
-                  sgtg3 = emiss(n,j,i)*(sigm*tgrd(n,j,i)**3)
-                else
-                  sgtg3 = sigm*tgrd(n,j,i)**3
-                end if
+                sgtg3 = sfcemiss(n,j,i)*(sigm*tgrd(n,j,i)**3)
                 sf1 = sigf(n,j,i)*(vegswab(j,i)-rlwf(j,i)-(d_one-sigf(n,j,i))* &
                       flneto(n,j,i)+d_four*sgtg3*tgrd(n,j,i))
                 sf2 = d_four*sigf(n,j,i)*sgtg3 + &
@@ -302,11 +293,7 @@ module mod_bats_leaftemp
               delq(n,j,i) = wtglq(n,j,i)*qs(n,j,i) - &
                            (wtlq0(n,j,i)*qsatl(n,j,i) + &
                             wtgq0(n,j,i)*qgrd(n,j,i))
-              if ( iemiss == 1 ) then
-                sgtg3 = emiss(n,j,i)*(sigm*tgrd(n,j,i)**3)
-              else
-                sgtg3 = sigm*tgrd(n,j,i)**3
-              end if
+              sgtg3 = sfcemiss(n,j,i)*(sigm*tgrd(n,j,i)**3)
               flnet(n,j,i) = sgtg3*(tlef(n,j,i)-tgrd(n,j,i))*d_four
               xxkb = dmin1(rough(lveg(n,j,i)),d_one)
               vakb = (d_one-sigf(n,j,i))*vspda(n,j,i) + sigf(n,j,i) * &
@@ -418,8 +405,8 @@ module mod_bats_leaftemp
                 trupd = dexp(-difzen*g*rlai(n,j,i)/rilmax)
                 if ( trup  < dlowval ) trup  = d_zero
                 if ( trupd < dlowval ) trupd = d_zero
-                fsold = fracd(j,i)*solis(j,i)*fc(lveg(n,j,i))
-                fsol0 = (d_one-fracd(j,i))*solis(j,i)*fc(lveg(n,j,i))
+                fsold = fracd(j,i)*solar(j,i)*fc(lveg(n,j,i))
+                fsol0 = (d_one-fracd(j,i))*solar(j,i)*fc(lveg(n,j,i))
                 rmini = rsmin(lveg(n,j,i))/rmax0
                 rad(1)  = (d_one-trup) *fsol0*rilmax/rlai(n,j,i)
                 radd(1) = (d_one-trupd)*fsold*rilmax/rlai(n,j,i)
