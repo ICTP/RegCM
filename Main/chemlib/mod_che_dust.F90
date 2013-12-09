@@ -555,7 +555,7 @@ module mod_che_dust
                    rsfrow(i,n)*egrav/(dsigma(kz)*1.D3)
             elseif ( ichdrdepo == 2 ) then  
               ! pass the flux to BL scheme 
-              cchifxuw(jloop,i,idust(n)) = cchifxuw(jloop,i,idust(n)) + &
+              chifxuw(jloop,i,idust(n)) = chifxuw(jloop,i,idust(n)) + &
                    rsfrow(i,n)
             end if
             ! diagnostic source (accumulated)

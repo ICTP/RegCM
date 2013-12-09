@@ -23,6 +23,8 @@ module mod_pbl_thetal
   use mod_realkinds
   use mod_constants
 
+  implicit none
+
   private
 
   real(rk8) :: myp , mythetal , myqt , myexner , mylovcp

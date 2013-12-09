@@ -25,6 +25,8 @@ module mod_pbl_common
   use mod_realkinds
   use mod_regcm_types
 
+  implicit none
+
   public
 
   real(rk8) , public , pointer , dimension(:,:) :: ricr
@@ -36,10 +38,7 @@ module mod_pbl_common
   !
   type(tcm_state) , public :: uwstatea , uwstateb
 
-  real(rk8) , public :: tkemin
-
   real(rk8) , public , pointer , dimension(:,:,:) :: dotqdot , ftmp
   real(rk8) , public , pointer , dimension(:,:,:,:) :: chiuwten
-  real(rk8) , public , pointer , dimension(:,:,:) :: chifxuw
 !
 end module mod_pbl_common

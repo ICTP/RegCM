@@ -325,6 +325,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: dzq       ! atms%dzq
     real(rk8) , pointer , dimension(:,:,:) :: heatrt    ! heatrt
     real(rk8) , pointer , dimension(:,:,:,:) :: chib    ! chib
+    real(rk8) , pointer , dimension(:,:,:) :: chifxuw   ! chifxuw
     real(rk8) , pointer , dimension(:,:,:) :: drydepv   ! drydepv
     real(rk8) , pointer , dimension(:,:) :: rhox2d      ! rhox2d 
   end type mod_2_pbl

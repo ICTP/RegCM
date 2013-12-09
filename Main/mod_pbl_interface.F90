@@ -26,12 +26,12 @@ module mod_pbl_interface
   use mod_memutil
   use mod_mppparam
   use mod_regcm_types
-  use mod_pbl_common , only : ricr , chiuwten , chifxuw , uwstatea , uwstateb
-  use mod_pbl_common , only : dotqdot , ftmp , kmxpbl , tkemin
+  use mod_pbl_common , only : ricr , chiuwten , uwstatea , uwstateb
+  use mod_pbl_common , only : dotqdot , ftmp , kmxpbl
   use mod_pbl_holtbl , only : holtbl , allocate_mod_pbl_holtbl
   use mod_pbl_uwtcm , only : nuk , ilenparam , allocate_tcm_state
   use mod_pbl_uwtcm , only : hadvtke , vadvtke , uwtcm , get_data_from_tcm
-  use mod_pbl_uwtcm , only : set_tke_bc , init_mod_pbl_uwtcm
+  use mod_pbl_uwtcm , only : set_tke_bc , init_mod_pbl_uwtcm , tkemin
   use mod_pbl_uwtcm , only : check_conserve_qt
   use mod_runparams , only : ibltyp
   use mod_runparams , only : iqc , iqv , dt , rdt , ichem , hsigma , dsigma
@@ -76,7 +76,6 @@ module mod_pbl_interface
       if ( ichem == 1 ) then
         call getmem4d(chiuwten,jci1,jci2,ici1,ici2, &
                                1,kz,1,ntr,'pbl_common:chiuwten')
-        call getmem3d(chifxuw,jci1,jci2,ici1,ici2,1,ntr,'pbl_common:chifxuw')
       end if
       call init_mod_pbl_uwtcm
     end if
@@ -86,8 +85,6 @@ module mod_pbl_interface
     use mod_atm_interface
     use mod_che_interface
     implicit none
-
-    tkemin = 1.0D-8
 
     ! INPUT to PBL
     call assignpnt(mddom%coriol,m2p%coriol)
@@ -111,6 +108,7 @@ module mod_pbl_interface
     call assignpnt(atm2%tke,m2p%tkests)
     call assignpnt(heatrt,m2p%heatrt)
     call assignpnt(drydepv,m2p%drydepv)
+    call assignpnt(chifxuw,m2p%chifxuw)
 
     ! OUTPUT FROM PBL
     call assignpnt(aten%u,p2m%uten)
@@ -130,7 +128,6 @@ module mod_pbl_interface
     call assignpnt(zpbl,p2m%zpbl)
     call assignpnt(kpbl,p2m%kpbl)
 
-    ! call assignpnt(cchifxuw,chifxuw)
   end subroutine init_pblscheme
 
   subroutine pblscheme

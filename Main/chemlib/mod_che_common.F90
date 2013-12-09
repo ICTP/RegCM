@@ -53,7 +53,7 @@ module mod_che_common
   real(rk8) , pointer , dimension(:,:)   :: chtrsize
   real(rk8) , pointer , dimension(:)     :: chtrsol
 
-  real(rk8), pointer , dimension(:,:,:)  :: cchifxuw
+  real(rk8), pointer , dimension(:,:,:)  :: chifxuw
 !
   integer(ik4) , pointer , dimension(:) :: isslt , icarb , idust
   integer(ik4) , parameter :: nphoto = 56
@@ -126,8 +126,8 @@ module mod_che_common
         call getmem3d(tmpsrc,jce1,jce2,ice1,ice2, &
                       1,ntr,'mod_che_common:tmpsrc')
 
-        call getmem3d(cchifxuw,jci1,jci2,ici1,ici2, &
-                      1,ntr,'mod_che_common:cchifxuw')
+        call getmem3d(chifxuw,jci1,jci2,ici1,ici2, &
+                      1,ntr,'mod_che_common:chifxuw')
        
         call getmem3d(convcldfra,jci1,jci2,ici1,ici2, &
                       1,kz,'mod_che_common:convcldfra')

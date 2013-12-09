@@ -139,7 +139,7 @@ module mod_che_output
         end if
         cseddpdiag(:,:,:,itr) = d_zero      
         if ( associated(che_pblten_out) ) then
-          che_pblten_out = cchifxuw(jci1:jci2,ici1:ici2,itr)
+          che_pblten_out = chifxuw(jci1:jci2,ici1:ici2,itr)
         end if
         if ( associated(che_emten_out) ) then
           do k = 1 , kz

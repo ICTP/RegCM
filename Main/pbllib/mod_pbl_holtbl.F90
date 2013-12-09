@@ -34,11 +34,13 @@ module mod_pbl_holtbl
   use mod_mpmessage
   use mod_pbl_common
   use mod_regcm_types
-!
+
+  implicit none
+
   private
-!
+
   public :: allocate_mod_pbl_holtbl , holtbl
-!
+
   real(rk8) , pointer , dimension(:,:,:) :: vv , cgh , kvc , kvh ,   &
                                           kvm , kvq ! , cgq
   real(rk8) , pointer, dimension(:,:) :: hfxv , obklen , th10 , &

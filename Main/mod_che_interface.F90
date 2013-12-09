@@ -41,16 +41,17 @@ module mod_che_interface
   contains 
 !
 #if (defined CLM)
-  subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,   &
-                       rembc,remrat,coszrs,iveg,svegfrac2d,     &
+  subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,          &
+                       rembc,remrat,coszrs,iveg,svegfrac2d,           &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdeltk2d,     &
                        sdelqk2d,ssw2da,convpr,icutop,icubot,taucldsp, &
                        voc_em,voc_em1,voc_em2,dep_vels)
 #else
-  subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,   &
-                       rembc,remrat,coszrs,iveg,svegfrac2d,     &
-                       sfracv2d,sfracb2d,sfracs2d,solis,sdeltk2d,     &
-                       sdelqk2d,ssw2da,convpr,icutop,icubot,taucldsp)
+  subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,      &
+                       rembc,remrat,coszrs,iveg,svegfrac2d,       &
+                       sfracv2d,sfracb2d,sfracs2d,solis,sdeltk2d, &
+                       sdelqk2d,ssw2da,convpr,icutop,icubot,      &
+                       taucldsp)
 #endif
 
     ! this routine define the pointer interface between the chem module and

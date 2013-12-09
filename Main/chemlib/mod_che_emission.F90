@@ -203,7 +203,7 @@ module mod_che_emission
              chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0D3)
             end if 
             ! otherwise emission is injected in the PBL scheme ( together with dry deposition)for tend calculation 
-            cchifxuw(j,i,itr) = cchifxuw(j,i,itr) +  chemsrc(j,i,itr)
+            chifxuw(j,i,itr) = chifxuw(j,i,itr) +  chemsrc(j,i,itr)
             ! diagnostic for source, cumul
             cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
             if ( ichdiag == 1 ) then

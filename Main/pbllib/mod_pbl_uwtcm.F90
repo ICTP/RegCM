@@ -79,7 +79,11 @@ module mod_pbl_uwtcm
   use mod_regcm_types
   use mod_service
 
+  implicit none
+
   private
+
+  real(rk8) , public , parameter :: tkemin = 1.0D-8
 
   real(rk8) , public , parameter :: nuk = 5.0D0 ! multiplier for kethl
   integer(ik4) , public :: ktmin = 3
@@ -135,7 +139,6 @@ module mod_pbl_uwtcm
   public :: hadvtke
   public :: vadvtke
   public :: check_conserve_qt
-  public :: set_tracer_surface_fluxes
 
   contains
 
@@ -410,21 +413,6 @@ module mod_pbl_uwtcm
       end do
     end do
   end subroutine check_conserve_qt
-!
-  ! Set the net surface flux (wet/dry dep + emission) to send to the UW TCM
-  !  This routine is called in mod_tendency.F90 just prior to the call of
-  !  uwtcm()
-  subroutine set_tracer_surface_fluxes()
-  implicit none 
-  integer(ik4) :: itr
-
-    !Set the variable chifxuw to be the net flux for each tracer
-    ! (dummy declaration below -- declared and allocated in mod_pbl_common.F90)
-    tracerfluxloop:  &
-    do itr = 1,ntr
-      !chifxuw(:,:,ntr) = ...
-    end do tracerfluxloop
-  end subroutine set_tracer_surface_fluxes
 
   subroutine init_mod_pbl_uwtcm
     implicit none
@@ -553,7 +541,7 @@ module mod_pbl_uwtcm
         qfxx = m2p%qfx(j,i)
         hfxx = m2p%hfx(j,i)
         uvdragx = m2p%uvdrag(j,i)
-        if ( ichem == 1 ) chifxx(:) = chifxuw(j,i,:)
+        if ( ichem == 1 ) chifxx(:) = m2p%chifxuw(j,i,:)
 
         ! Integrate the hydrostatic equation to calculate the level height
         zqx(kzp1) = d_zero
