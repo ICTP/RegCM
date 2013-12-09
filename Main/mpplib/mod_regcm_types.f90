@@ -332,6 +332,8 @@ module mod_regcm_types
   type pbl_2_mod
     real(rk8) , pointer , dimension(:,:,:) :: uten       ! aten%u
     real(rk8) , pointer , dimension(:,:,:) :: vten       ! aten%v
+    real(rk8) , pointer , dimension(:,:,:,:) :: qxten    ! aten%qx
+    real(rk8) , pointer , dimension(:,:,:) :: tketen     ! aten%tke
     real(rk8) , pointer , dimension(:,:,:) :: uuwten     ! uwten%u
     real(rk8) , pointer , dimension(:,:,:) :: vuwten     ! uwten%v
     real(rk8) , pointer , dimension(:,:,:) :: tuwten     ! uwten%t

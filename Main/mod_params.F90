@@ -23,6 +23,7 @@ module mod_params
   use mod_mppparam
   use mod_mpmessage
   use mod_domain
+  use mod_service
   use mod_cu_interface
   use mod_lm_interface
   use mod_atm_interface
@@ -1076,7 +1077,7 @@ module mod_params
 
   call allocate_mod_bdycon(iboudy)
 
-  call allocate_mod_pbl_common
+  call allocate_pbl
 
   if ( ipptls > 0 ) then
     call allocate_mod_precip(ichem)
@@ -1831,19 +1832,12 @@ module mod_params
     cevapu = cevaplnd
   end if
 
-  if ( ibltyp == 1 .or. ibltyp == 99 ) then
-    call allocate_mod_pbl_holtbl
-  end if
-  if ( ibltyp == 2 .or. ibltyp == 99 ) then
-    call init_mod_pbl_uwtcm
-  end if
-
   if ( ipptls == 2 ) then
     call init_cloud_s1(atms,aten,heatrt,sfs,q_detr,pptnc)
   end if
 
-  call init_pbl(atm2,atms,aten,holtten,uwten,adf,heatrt,chiten,remdrd,   &
-                cchifxuw,psdot,sfs,mddom,ldmsk,drydepv)
+  call init_pbl
+
   !
   ! Convective Cloud Cover
   !
@@ -1881,23 +1875,6 @@ module mod_params
     if ( pk <= chibot ) kchi = k
   end do
  
-!
-!-----compute the k level under which the maximum equivalent potential
-!     temperature will be regarded as the origin of air parcel that
-!     produces cloud (used in the cumulus parameterization scheme).
-!
-  sig700 = (70.0D0-ptop)/(d_100-ptop)
-  do k = 1 , kz
-    k700 = k
-    if ( sig700 <= sigma(k+1) .and. sig700 > sigma(k) ) exit
-  end do
-!
-!-----specify the coefficients for sponge boundary conditions.
-!
-!
-! Move back form init : the land categories are read just here,
-! they are no more in the restart file.
-!
   if ( ipptls > 0 ) then
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -1946,6 +1923,13 @@ module mod_params
           epmax2d(j,i) = epmax_ocn
         end if
       end do
+    end do
+  end if
+  if ( icup == 1 ) then
+    sig700 = (70.0D0-ptop)/(d_100-ptop)
+    do k = 1 , kz
+      k700 = k
+      if ( sig700 <= sigma(k+1) .and. sig700 > sigma(k) ) exit
     end do
   end if
   !

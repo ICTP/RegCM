@@ -35,7 +35,6 @@ module mod_cloud_s1
   use mod_runparams , only : ipptls
   use mod_runparams , only : budget_compute , nssopt , kautoconv !, ksemi
   use mod_runparams , only : ktau
-  use mod_pbl_common
   use mod_constants
   use mod_precip , only : fcc
   use mod_runparams , only : rtsrf
@@ -44,19 +43,19 @@ module mod_cloud_s1
 
   private
 
-  real(rk8) :: zfall                                 ! constant fall speed
-  real(rk8) :: zqtmst                                ! 1/dt
-  real(rk8) , pointer , dimension(:,:,:) :: pres     ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: zt       ! from atms
+  real(rk8) :: zfall                                  ! constant fall speed
+  real(rk8) :: zqtmst                                 ! 1/dt
+  real(rk8) , pointer , dimension(:,:,:) :: pres      ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: zt        ! from atms
   real(rk8) , public , pointer , dimension(:,:,:) :: zeta     ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: dzeta    ! from atms
-  real(rk8) , pointer , dimension(:,:,:,:) :: zqxx   ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: rhob3d   ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: omega    ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: heatrt   ! radiation heat rate
-  real(rk8) , pointer , dimension(:,:,:) :: ztten    ! tendency of temperature
-  real(rk8) , pointer , dimension(:,:,:) :: qdetr    ! conv. detrained water
-  real(rk8) , pointer , dimension(:,:,:,:) :: zqxten ! tendency of zqx
+  real(rk8) , pointer , dimension(:,:,:) :: dzeta     ! from atms
+  real(rk8) , pointer , dimension(:,:,:,:) :: zqxx    ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: rhob3d    ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: omega     ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: radheatrt ! radiation heat rate
+  real(rk8) , pointer , dimension(:,:,:) :: ztten     ! tendency of temperature
+  real(rk8) , pointer , dimension(:,:,:) :: qdetr     ! conv. detrained water
+  real(rk8) , pointer , dimension(:,:,:,:) :: zqxten  ! tendency of zqx
   real(rk8) , pointer , dimension(:,:) :: psf , rainnc, lsmrnc, snownc
 
   public :: allocate_mod_cloud_s1 , init_cloud_s1 , microphys
@@ -326,7 +325,6 @@ module mod_cloud_s1
     call assignpnt(aten%t,ztten)
     call assignpnt(q_detr,qdetr)
     call assignpnt(sfs%psb,psf)
-    call assignpnt(sfs%psb,sfcps)
     call assignpnt(sfs%rainnc,rainnc)
     call assignpnt(sfs%snownc,snownc)
     call assignpnt(pptnc,lsmrnc)
@@ -491,7 +489,7 @@ module mod_cloud_s1
     do k = 1 , kz+1
       do i = ici1 , ici2
         do j = jci1 , jci2
-          papf(j,i,k) = (sigma(k)*sfcps(j,i)+ptop)*d_1000  ! (Pa), [ptop]=cb
+          papf(j,i,k) = (sigma(k)*psf(j,i)+ptop)*d_1000  ! (Pa), [ptop]=cb
         end do
       end do
     end do

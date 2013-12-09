@@ -42,6 +42,7 @@ module mod_init
   use mod_slice
   use mod_constants
   use mod_outvars
+  use mod_service
 #ifdef CLM
   use mod_clm
   use mod_lm_interface

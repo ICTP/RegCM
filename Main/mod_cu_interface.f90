@@ -35,11 +35,13 @@ module mod_cu_interface
   use mod_cu_em , only : allocate_mod_cu_em , cupemandrv , cbmf2d ,        &
       elcrit2d , epmax2d
   use mod_cu_kuo , only : allocate_mod_cu_kuo , cupara , htdiff , rsheat , &
-      rswat , twght , vqflx
+      rswat , twght , vqflx , k700
   use mod_cu_grell , only : allocate_mod_cu_grell , cuparan , mincld2d ,   &
       shrmax2d , shrmin2d , edtmax2d , edtmin2d ,  edtmaxo2d , edtmaxx2d , &
       edtmino2d , edtminx2d , htmax2d , htmin2d , pbcmax2d , dtauc2d ,     &
       pbcmax2d , kbmax2d
+
+  implicit none
 
   private
 
@@ -63,8 +65,6 @@ module mod_cu_interface
   public :: shrmin2d
   public :: edtmax2d
   public :: edtmin2d
-  public :: shrmaxo2d
-  public :: shrmino2d
   public :: edtmaxo2d
   public :: edtmino2d
   public :: edtmaxx2d

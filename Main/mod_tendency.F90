@@ -806,21 +806,16 @@ module mod_tendency
     if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
     ! care : pbl update the difft table at this level 
     if ( idiag > 0 ) ten0(jci1:jci2,ici1:ici2,:) = adf%difft
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      ! Call the Grenier and Bretherton (2001) / Bretherton (2004) TCM
-      call uwtcm
-      call uvcross2dot(uwten%u,uwten%v,aten%u,aten%v)
-      call get_data_from_tcm(uwstateb,uwten,aten,atm1,atm2,.true.)
-    end if
     if ( ibltyp == 1 .or. ibltyp == 99 ) then
       ! Call the Holtslag PBL
       call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
       call psc2psd(sfs%psb,psdot)
-      call holtbl
     end if
+    call pblscheme
     if ( ibltyp == 99 ) then
-      call check_conserve_qt(holtten%qx,uwten,uwstateb,kz)
-      adf%diffqx(:,:,:,:) = adf%diffqx(:,:,:,:) + holtten%qx(:,:,:,:)
+      adf%diffqx(jci1:jci2,ici1:ici2,:,:) = &
+         adf%diffqx(jci1:jci2,ici1:ici2,:,:) + &
+         holtten%qx(jci1:jci2,ici1:ici2,:,:)
     end if
     if ( ichem == 1 .and. ichdiag == 1 ) then
       ctbldiag = ctbldiag + (chiten - chiten0) * cfdout 
@@ -1311,7 +1306,7 @@ module mod_tendency
     end if
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       ! Calculate the horizontal advective tendency for TKE
-      call hadvtke(uwstatea,atm1,twt,dx4)
+      call hadvtke(uwstatea,atm1,twt,mddom%msfx,dx4)
       ! Calculate the vertical advective tendency for TKE
       call vadvtke(uwstatea,qdot,2)
       ! Calculate the horizontal, diffusive tendency for TKE

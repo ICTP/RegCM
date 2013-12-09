@@ -207,7 +207,7 @@ module mod_output
         end if
         if ( associated(atm_zf_out) ) then
            do k = 1 , kz
-            atm_zf_out(:,:,k) = zq(jci1:jci2,ici1:ici2,k)
+            atm_zf_out(:,:,k) = atms%zq(jci1:jci2,ici1:ici2,k)
           end do
         end if
         if ( associated(atm_zh_out) ) then

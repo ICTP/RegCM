@@ -31,6 +31,8 @@ module mod_rad_interface
   use mod_rad_radiation , only : allocate_mod_rad_radiation
   use mod_rad_outrad , only : allocate_mod_rad_outrad
 
+  implicit none
+
   private
 
   ! Procedures
