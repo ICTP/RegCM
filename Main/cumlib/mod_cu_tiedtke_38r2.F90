@@ -6,6 +6,8 @@ module mod_cu_tiedtke_38r2
   use mod_dynparam
   use mod_mpmessage
 
+  implicit none
+ 
   private
 
   public :: sucumf , custrat , cumastrn , cuancape2

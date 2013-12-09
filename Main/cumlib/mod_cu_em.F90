@@ -23,12 +23,14 @@ module mod_cu_em
 !
   use mod_intkinds
   use mod_realkinds
-  use mod_dynparam
   use mod_memutil
-  use mod_cu_common
   use mod_runparams
+  use mod_cu_common
+  use mod_service
   use mod_regcm_types
 !
+  implicit none
+
   private
 !
   public :: allocate_mod_cu_em , cupemandrv
@@ -66,6 +68,11 @@ module mod_cu_em
     real(rk8) , dimension(kz,ntr) :: ftra , tra
     integer(ik4) :: i , j , k , iflag , kbase , kk , ktop
     real(rk8) , dimension(kzp1) :: phcup
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'cupemandrv'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
 !
     total_precip_points = 0
     c2m%kcumtop(:,:) = 0
@@ -167,6 +174,9 @@ module mod_cu_em
         end if
       end do
     end do
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
   end subroutine cupemandrv
 !
 !**************************************************************************
@@ -1122,80 +1132,78 @@ module mod_cu_em
         ftra(i,k) = ftra(i,k) - traav
       end do
     end do
-!
-  end subroutine cupeman
-!
-! Calculate lifting level temperature
-!
-  subroutine tlift(p,t,q,qs,gz,icb,nk,tvp,tpk,clw,nd,nl,kk)
 
-    implicit none
-!
-    integer(ik4) :: icb , kk , nd , nk , nl
-    real(rk8) , dimension(nd) :: clw , gz , p , q , qs , t , tpk , tvp
-    intent (in) gz , icb , kk , nd , nk , nl , p , q , qs , t
-    intent (out) tvp
-    intent (inout) clw , tpk
-!
-    real(rk8) :: ah0 , ahg , alv , cpinv , cpp , denom , es , &
-               qg , rg , s , tc , tg
-    integer(ik4) :: i , j , nsb , nst
-!
-!   calculate certain parcel quantities, including static energy
-!
-    ah0 = (cpd*(d_one-q(nk))+cl*q(nk))*t(nk) + q(nk) * &
-          (wlhv-cpvmcl*(t(nk)-tzero)) + gz(nk)
-    cpp = cpd*(d_one-q(nk)) + q(nk)*cpv
-    cpinv = d_one/cpp
-!
-    if ( kk == 1 ) then
-!
-!     calculate lifted parcel quantities below cloud base
-!
-      do i = 1 , icb - 1
-        clw(i) = d_zero
-      end do
-      do i = nk , icb - 1
-        tpk(i) = t(nk) - (gz(i)-gz(nk))*cpinv
-        tvp(i) = tpk(i)*(d_one+q(nk)*rgowi)
-      end do
-    end if
-!
-!   find lifted parcel quantities above cloud base
-!
-    nst = icb
-    nsb = icb
-    if ( kk == 2 ) then
-      nst = nl
-      nsb = icb + 1
-    end if
-    do i = nsb , nst
-      tg = t(i)
-      qg = qs(i)
-      alv = wlhv - cpvmcl*(t(i)-tzero)
-      do j = 1 , 2
-        s = cpd + alv*alv*qg/(rwat*t(i)*t(i))
-        s = d_one/s
-        ahg = cpd*tg + (cl-cpd)*q(nk)*t(i) + alv*qg + gz(i)
-        tg = tg + s*(ah0-ahg)
-        tg = dmax1(tg,35.0D0)
-        tc = tg - tzero
-        denom = 243.5D0 + tc
-        if ( tc >= d_zero ) then
-          es = 6.112D0*dexp(17.67D0*tc/denom)
-        else
-          es = dexp(23.33086D0-6111.72784D0/tg+0.15215D0*dlog(tg))
+    contains
+
+      !
+      ! Calculate lifting level temperature
+      !
+      subroutine tlift(p,t,q,qs,gz,icb,nk,tvp,tpk,clw,nd,nl,kk)
+        implicit none
+        integer(ik4) :: icb , kk , nd , nk , nl
+        real(rk8) , dimension(nd) :: clw , gz , p , q , qs , t , tpk , tvp
+        intent (in) gz , icb , kk , nd , nk , nl , p , q , qs , t
+        intent (out) tvp
+        intent (inout) clw , tpk
+        real(rk8) :: ah0 , ahg , alv , cpinv , cpp , denom , es , &
+                     qg , rg , s , tc , tg
+        integer(ik4) :: i , j , nsb , nst
+        !
+        ! calculate certain parcel quantities, including static energy
+        !
+        ah0 = (cpd*(d_one-q(nk))+cl*q(nk))*t(nk) + q(nk) * &
+              (wlhv-cpvmcl*(t(nk)-tzero)) + gz(nk)
+        cpp = cpd*(d_one-q(nk)) + q(nk)*cpv
+        cpinv = d_one/cpp
+        if ( kk == 1 ) then
+          !
+          ! calculate lifted parcel quantities below cloud base
+          !
+          do i = 1 , icb - 1
+            clw(i) = d_zero
+          end do
+          do i = nk , icb - 1
+            tpk(i) = t(nk) - (gz(i)-gz(nk))*cpinv
+            tvp(i) = tpk(i)*(d_one+q(nk)*rgowi)
+          end do
         end if
-        qg = rgow*es/(p(i)-es*(d_one-rgow))
-      end do
-      alv = wlhv - cpvmcl*(t(i)-tzero)
-      tpk(i) = (ah0-(cl-cpd)*q(nk)*t(i)-gz(i)-alv*qg)*rcpd
-      clw(i) = q(nk) - qg
-      clw(i) = dmax1(d_zero,clw(i))
-      rg = qg/(d_one-q(nk))
-      tvp(i) = tpk(i)*(d_one+rg*rgowi)
-    end do
-!
-  end subroutine tlift
+        !
+        ! find lifted parcel quantities above cloud base
+        !
+        nst = icb
+        nsb = icb
+        if ( kk == 2 ) then
+          nst = nl
+          nsb = icb + 1
+        end if
+        do i = nsb , nst
+          tg = t(i)
+          qg = qs(i)
+          alv = wlhv - cpvmcl*(t(i)-tzero)
+          do j = 1 , 2
+            s = cpd + alv*alv*qg/(rwat*t(i)*t(i))
+            s = d_one/s
+            ahg = cpd*tg + (cl-cpd)*q(nk)*t(i) + alv*qg + gz(i)
+            tg = tg + s*(ah0-ahg)
+            tg = dmax1(tg,35.0D0)
+            tc = tg - tzero
+            denom = 243.5D0 + tc
+            if ( tc >= d_zero ) then
+              es = 6.112D0*dexp(17.67D0*tc/denom)
+            else
+              es = dexp(23.33086D0-6111.72784D0/tg+0.15215D0*dlog(tg))
+            end if
+            qg = rgow*es/(p(i)-es*(d_one-rgow))
+          end do
+          alv = wlhv - cpvmcl*(t(i)-tzero)
+          tpk(i) = (ah0-(cl-cpd)*q(nk)*t(i)-gz(i)-alv*qg)*rcpd
+          clw(i) = q(nk) - qg
+          clw(i) = dmax1(d_zero,clw(i))
+          rg = qg/(d_one-q(nk))
+          tvp(i) = tpk(i)*(d_one+rg*rgowi)
+        end do
+      end subroutine tlift
+
+  end subroutine cupeman
 !
 end module mod_cu_em

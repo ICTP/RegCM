@@ -21,14 +21,15 @@ module mod_cu_grell
 
   use mod_intkinds
   use mod_realkinds
-  use mod_dynparam
-  use mod_memutil
   use mod_service 
+  use mod_memutil
   use mod_cu_common
   use mod_mpmessage
   use mod_runparams , only : iqv
   use mod_regcm_types
  
+  implicit none
+
   private
 
   real(rk8) , parameter :: xacact = -0.99999D0

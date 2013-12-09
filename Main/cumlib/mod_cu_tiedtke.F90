@@ -31,11 +31,13 @@ module mod_cu_tiedtke
   use mod_runparams , only : iqc , iqv
   use mod_cu_tiedtke_38r2 , only : sucumf , cumastrn
   use mod_regcm_types
-!
+
+  implicit none
+
   private
-!
+
   public :: allocate_mod_cu_tiedtke , tiedtkedrv , q_detr
-!
+
   ! evaporation coefficient for kuo0
   real(rk8) , pointer , dimension(:) :: cevapcu
   integer(ik4) , pointer , dimension(:,:) :: ilab

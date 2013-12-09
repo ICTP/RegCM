@@ -23,6 +23,7 @@ module mod_cu_bm
   use mod_realkinds
   use mod_dynparam
   use mod_memutil
+  use mod_service
   use mod_cu_common
   use mod_runparams , only : iqv , dtsec
   use mod_regcm_types
@@ -227,6 +228,11 @@ module mod_cu_bm
                khdeep , khshal , kk , l , l0 , l0m1 , lb ,    &
                lbm1 , lbtk , lcor , lqm , lshu , ltp1 , ltpk , ltsh , &
                n , ndeep , ndepth , ndstn , ndstp , nshal , nswap , ll
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'bmpara'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif
 !
 !-----------------------------------------------------------------------
 !
@@ -1035,24 +1041,61 @@ module mod_cu_bm
       do i = ici1 , ici2
         do j = jci1 , jci2
           c2m%tten(j,i,k)  = c2m%tten(j,i,k)  + tmod(j,i,k) *m2c%psb(j,i)
-          c2m%qxten(j,i,k,iqv) = c2m%qxten(j,i,k,iqv) + qqmod(j,i,k)*m2c%psb(j,i)
+          c2m%qxten(j,i,k,iqv) = c2m%qxten(j,i,k,iqv) + &
+                  qqmod(j,i,k)*m2c%psb(j,i)
         end do
       end do
     end do
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
+    contains
+      !
+      ! Calculates tpfc
+      !
+      function tpfc(press,thetae,tgs,rl,qs,pi)
+        implicit none
+        real(rk8) :: pi , press , qs , rl , tgs , thetae
+        real(rk8) :: tpfc
+        intent (in) pi , press , rl , tgs , thetae
+        intent (inout) qs
+        real(rk8) :: dtx , es , f1 , fo , rlocpd , rlorw , rp , t1 , tguess
+        !
+        ! iteratively extract temperature from equivalent potential temperature.
+        !
+        rlorw = rl/rwat
+        rlocpd = rl*rcpd
+        rp = thetae/pi
+        es = 611.0D0*dexp(rlorw*(rtzero-d_one/tgs))
+        qs = ep2*es/(press-es)
+        fo = tgs*dexp(rlocpd*qs/tgs) - rp
+        t1 = tgs - d_half*fo
+        tguess = tgs
+        do
+          es = 611.0D0*dexp(rlorw*(rtzero-d_one/t1))
+          qs = ep2*es/(press-es)
+          f1 = t1*dexp(rlocpd*qs/t1) - rp
+          if ( dabs(f1) < 0.1D0 ) then
+            tpfc = t1
+            exit
+          else
+            dtx = f1*(t1-tguess)/(f1-fo)
+            tguess = t1
+            fo = f1
+            t1 = t1 - dtx
+          end if
+        end do
+      end function tpfc
+
   end subroutine bmpara
 !
 ! Look up table (calculated version)
 !
   subroutine lutbl(ptop)
-!
     implicit none
-!
     real(rk8) , parameter :: eps = 2.0D-12 ! little number
-
-!
     real(rk8) :: ptop
     intent (in) ptop
-!
     real(rk8) :: ape , xdp , dqs , dth , dthe , p , pt , qs , qs0k , &
                sqsk , sthek , th , the0k
     real(rk8) , dimension(jtb) :: pnew , pold , qsnew , qsold ,  &
@@ -1158,179 +1201,113 @@ module mod_cu_bm
       y2t(kthm) = d_zero
 !
       call spline(kthm,theold,told,y2t,kthm,thenew,tnew)
-!
     end do
-!
-  end subroutine lutbl
-!
-!*****************************************************************
-!                                                                *
-!  This is a one-dimensional cubic spline fitting routine        *
-!  programed for a small scalar machine.                         *
-!                                                                *
-!  Programer: Z. Janjic, Yugoslav Fed. Hydromet. Inst., Beograd  *
-!                                                                *
-!  nold - number of given values of the function.  must be ge 3. *
-!  xold - locations of the points at which the values of the     *
-!         function are given.  must be in ascending order.       *
-!  yold - the given values of the function at the points xold.   *
-!  y2   - the second derivatives at the points xold.  if natural *
-!         spline is fitted y2(1)=0. and y2(nold)=0. must be      *
-!         specified.                                             *
-!  nnew - number of values of the function to be calculated.     *
-!  xnew - locations of the points at which the values of the     *
-!         function are calculated.  xnew(k) must be ge xold(1)   *
-!         and le xold(nold).                                     *
-!  ynew - the values of the function to be calculated.           *
-!  p, q - auxiliary vectors of the length nold-2.                *
-!                                                                *
-!*****************************************************************
-!
-  subroutine spline(nold,xold,yold,y2,nnew,xnew,ynew)
- 
-    implicit none
-!
-    integer(ik4) :: nnew , nold
-    real(rk8) , dimension(nold) :: xold , yold , y2
-    real(rk8) , dimension(nnew) :: xnew, ynew
-    intent (in) nnew , nold , xnew , xold , yold
-    intent (out) ynew
-    intent (inout) y2
-!
-    real(rk8) , dimension(nold-2) :: p , q
-    real(rk8) :: ak , bk , ck , den , dx , dxc , dxl , dxr , dydxl ,    &
-               dydxr , rdx , rtdxc , x , xk , xsq , y2k , y2kp1
-    integer(ik4) :: k , k1 , k2 , kold , noldm1
-!
-!-----------------------------------------------------------------------
-!
-    ak = d_zero
-    bk = d_zero
-    ck = d_zero
-    noldm1 = nold - 1
-!
-    dxl = xold(2) - xold(1)
-    dxr = xold(3) - xold(2)
-    dydxl = (yold(2)-yold(1))/dxl
-    dydxr = (yold(3)-yold(2))/dxr
-    rtdxc = d_half/(dxl+dxr)
-!
-    p(1) = rtdxc*(6.0D0*(dydxr-dydxl)-dxl*y2(1))
-    q(1) = -rtdxc*dxr
-!
-    if ( nold == 3 ) then
-      k = noldm1
-    else
-      k = 3
+
+    contains
+    !
+    !*****************************************************************
+    !                                                                *
+    !  This is a one-dimensional cubic spline fitting routine        *
+    !  programed for a small scalar machine.                         *
+    !                                                                *
+    !  Programer: Z. Janjic, Yugoslav Fed. Hydromet. Inst., Beograd  *
+    !                                                                *
+    !  nold - number of given values of the function.  must be ge 3. *
+    !  xold - locations of the points at which the values of the     *
+    !         function are given.  must be in ascending order.       *
+    !  yold - the given values of the function at the points xold.   *
+    !  y2   - the second derivatives at the points xold.  if natural *
+    !         spline is fitted y2(1)=0. and y2(nold)=0. must be      *
+    !         specified.                                             *
+    !  nnew - number of values of the function to be calculated.     *
+    !  xnew - locations of the points at which the values of the     *
+    !         function are calculated.  xnew(k) must be ge xold(1)   *
+    !         and le xold(nold).                                     *
+    !  ynew - the values of the function to be calculated.           *
+    !  p, q - auxiliary vectors of the length nold-2.                *
+    !                                                                *
+    !*****************************************************************
+    !
+    subroutine spline(nold,xold,yold,y2,nnew,xnew,ynew)
+      implicit none
+      integer(ik4) :: nnew , nold
+      real(rk8) , dimension(nold) :: xold , yold , y2
+      real(rk8) , dimension(nnew) :: xnew, ynew
+      intent (in) nnew , nold , xnew , xold , yold
+      intent (out) ynew
+      intent (inout) y2
+      real(rk8) , dimension(nold-2) :: p , q
+      real(rk8) :: ak , bk , ck , den , dx , dxc , dxl , dxr , dydxl ,    &
+                   dydxr , rdx , rtdxc , x , xk , xsq , y2k , y2kp1
+      integer(ik4) :: k , k1 , k2 , kold , noldm1
+      ak = d_zero
+      bk = d_zero
+      ck = d_zero
+      noldm1 = nold - 1
+      dxl = xold(2) - xold(1)
+      dxr = xold(3) - xold(2)
+      dydxl = (yold(2)-yold(1))/dxl
+      dydxr = (yold(3)-yold(2))/dxr
+      rtdxc = d_half/(dxl+dxr)
+      p(1) = rtdxc*(6.0D0*(dydxr-dydxl)-dxl*y2(1))
+      q(1) = -rtdxc*dxr
+      if ( nold == 3 ) then
+        k = noldm1
+      else
+        k = 3
+        do
+          dxl = dxr
+          dydxl = dydxr
+          dxr = xold(k+1) - xold(k)
+          dydxr = (yold(k+1)-yold(k))/dxr
+          dxc = dxl + dxr
+          den = d_one/(dxl*q(k-2)+dxc+dxc)
+          p(k-1) = den*(6.0D0*(dydxr-dydxl)-dxl*p(k-2))
+          q(k-1) = -den*dxr
+          k = k + 1
+          if ( k >= nold ) then
+            k = noldm1
+            exit
+          end if
+        end do
+      end if
       do
-!
-        dxl = dxr
-        dydxl = dydxr
-        dxr = xold(k+1) - xold(k)
-        dydxr = (yold(k+1)-yold(k))/dxr
-        dxc = dxl + dxr
-        den = d_one/(dxl*q(k-2)+dxc+dxc)
-!
-        p(k-1) = den*(6.0D0*(dydxr-dydxl)-dxl*p(k-2))
-        q(k-1) = -den*dxr
-!
-        k = k + 1
-        if ( k >= nold ) then
-          k = noldm1
+        y2(k) = p(k-1) + q(k-1)*y2(k+1)
+        k = k - 1
+        if ( k <= 1 ) then
+          k1 = 1
           exit
         end if
       end do
-    end if
-!
-    do
-!
-      y2(k) = p(k-1) + q(k-1)*y2(k+1)
-!
-      k = k - 1
-      if ( k <= 1 ) then
-!-----------------------------------------------------------------------
-        k1 = 1
-        exit
-      end if
-    end do
-!
  100  continue
-
-    xk = xnew(k1)
-!
-    do k2 = 2 , nold
-      if ( xold(k2) > xk ) then
-        kold = k2 - 1
-!
-        if ( k1 == 1 ) go to 200
-        if ( k /= kold ) go to 200
-        go to 300
-      end if
-    end do
-    ynew(k1) = yold(nold)
-    go to 400
-!
-   200  continue
-    k = kold
-!
-    y2k = y2(k)
-    y2kp1 = y2(k+1)
-    dx = xold(k+1) - xold(k)
-    rdx = d_one/dx
-    ak = (d_five/d_three)*rdx*(y2kp1-y2k)
-    bk = d_half*y2k
-    ck = rdx*(yold(k+1)-yold(k))-(d_five/d_three)*dx*(y2kp1+y2k+y2k)
-!
-   300  continue
-    x = xk - xold(k)
-    xsq = x*x
-!
-    ynew(k1) = ak*xsq*x + bk*xsq + ck*x + yold(k)
-!
-   400  continue
-!
-    k1 = k1 + 1
-    if ( k1 <= nnew ) go to 100
-!-----------------------------------------------------------------------
-  end subroutine spline
-!
-! Calculates tpfc
-!
-  function tpfc(press,thetae,tgs,rl,qs,pi)
- 
-    implicit none
-!
-    real(rk8) :: pi , press , qs , rl , tgs , thetae
-    real(rk8) :: tpfc
-    intent (in) pi , press , rl , tgs , thetae
-    intent (inout) qs
-!
-    real(rk8) :: dtx , es , f1 , fo , rlocpd , rlorw , rp , t1 , tguess
-!
-!   iteratively extract temperature from equivalent potential temperature.
-!
-    rlorw = rl/rwat
-    rlocpd = rl*rcpd
-    rp = thetae/pi
-    es = 611.0D0*dexp(rlorw*(rtzero-d_one/tgs))
-    qs = ep2*es/(press-es)
-    fo = tgs*dexp(rlocpd*qs/tgs) - rp
-    t1 = tgs - d_half*fo
-    tguess = tgs
-    do
-      es = 611.0D0*dexp(rlorw*(rtzero-d_one/t1))
-      qs = ep2*es/(press-es)
-      f1 = t1*dexp(rlocpd*qs/t1) - rp
-      if ( dabs(f1) < 0.1D0 ) then
-        tpfc = t1
-        exit
-      else
-        dtx = f1*(t1-tguess)/(f1-fo)
-        tguess = t1
-        fo = f1
-        t1 = t1 - dtx
-      end if
-    end do
-  end function tpfc
+      xk = xnew(k1)
+      do k2 = 2 , nold
+        if ( xold(k2) > xk ) then
+          kold = k2 - 1
+          if ( k1 == 1 ) go to 200
+          if ( k /= kold ) go to 200
+          go to 300
+        end if
+      end do
+      ynew(k1) = yold(nold)
+      go to 400
+ 200  continue
+      k = kold
+      y2k = y2(k)
+      y2kp1 = y2(k+1)
+      dx = xold(k+1) - xold(k)
+      rdx = d_one/dx
+      ak = (d_five/d_three)*rdx*(y2kp1-y2k)
+      bk = d_half*y2k
+      ck = rdx*(yold(k+1)-yold(k))-(d_five/d_three)*dx*(y2kp1+y2k+y2k)
+ 300  continue
+      x = xk - xold(k)
+      xsq = x*x
+      ynew(k1) = ak*xsq*x + bk*xsq + ck*x + yold(k)
+ 400  continue
+      k1 = k1 + 1
+      if ( k1 <= nnew ) go to 100
+    end subroutine spline
+  end subroutine lutbl
 !
 end module mod_cu_bm
