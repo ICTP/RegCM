@@ -36,12 +36,14 @@ module mod_rad_interface
   private
 
   ! Procedures
-  public :: allocate_mod_radiation
-  public :: init_rad
+  public :: allocate_radiation
+  public :: init_radiation
+  public :: radiation
+
+  ! Procedures exported from internal modules
   public :: set_scenario
   public :: o3data
   public :: read_o3data
-  public :: radiation
 
   ! Data
   public :: o3prof
@@ -55,7 +57,7 @@ module mod_rad_interface
 
   contains
 
-  subroutine allocate_mod_radiation
+  subroutine allocate_radiation
     implicit none
     call getmem3d(o3prof,jci1,jci2,ici1,ici2,1,kzp1,'rad:o3prof')
     call allocate_mod_rad_aerosol
@@ -73,9 +75,9 @@ module mod_rad_interface
     if ( ichem == 1 ) then
       call getmem4d(taucldsp,jci1,jci2,ici1,ici2,0,kz,1,nspi,'rad:taucldsp')
     end if
-  end subroutine allocate_mod_radiation
+  end subroutine allocate_radiation
 
-  subroutine init_rad
+  subroutine init_radiation
     use mod_atm_interface
     use mod_che_interface
     implicit none
@@ -113,7 +115,7 @@ module mod_rad_interface
     call assignpnt(flw,r2m%flw)
     call assignpnt(flwd,r2m%flwd)
     call assignpnt(heatrt,r2m%heatrt)
-  end subroutine init_rad
+  end subroutine init_radiation
 !
   subroutine radiation(iyear,eccf,loutrad,labsem)
     implicit none

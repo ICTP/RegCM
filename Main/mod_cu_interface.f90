@@ -24,6 +24,7 @@ module mod_cu_interface
   use mod_realkinds
   use mod_intkinds
   use mod_runparams
+  use mod_memutil
   use mod_regcm_types
 
   use mod_cu_common , only : cuscheme , total_precip_points , cevapu ,     &
@@ -46,7 +47,7 @@ module mod_cu_interface
   private
 
   public :: allocate_cumulus
-  public :: init_cuscheme
+  public :: init_cumulus
   public :: cumulus
 
   public :: htdiff
@@ -122,7 +123,7 @@ module mod_cu_interface
     end select
   end subroutine allocate_cumulus
 
-  subroutine init_cuscheme
+  subroutine init_cumulus
     use mod_atm_interface
     use mod_che_interface
     implicit none
@@ -157,7 +158,7 @@ module mod_cu_interface
     call assignpnt(icumbot,c2m%kcumbot)
     call assignpnt(convpr,c2m%convpr)
     call init_mod_cumulus
-  end subroutine init_cuscheme
+  end subroutine init_cumulus
 !
   subroutine cumulus
     implicit none

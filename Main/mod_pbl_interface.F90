@@ -43,8 +43,8 @@ module mod_pbl_interface
   type(mod_2_pbl) :: m2p
   type(pbl_2_mod) :: p2m
 
-  public :: allocate_pbl
-  public :: init_pbl
+  public :: allocate_pblscheme
+  public :: init_pblscheme
   public :: pblscheme
 
   public :: uwstatea
@@ -61,7 +61,7 @@ module mod_pbl_interface
 
   contains
 
-  subroutine allocate_pbl
+  subroutine allocate_pblscheme
     implicit none
     if ( ibltyp == 1 .or. ibltyp == 99) then
       call getmem2d(ricr,jci1,jci2,ici1,ici2,'pbl_common:ricr')
@@ -80,9 +80,9 @@ module mod_pbl_interface
       end if
       call init_mod_pbl_uwtcm
     end if
-  end subroutine allocate_pbl
+  end subroutine allocate_pblscheme
 
-  subroutine init_pbl
+  subroutine init_pblscheme
     use mod_atm_interface
     use mod_che_interface
     implicit none
@@ -131,7 +131,7 @@ module mod_pbl_interface
     call assignpnt(kpbl,p2m%kpbl)
 
     ! call assignpnt(cchifxuw,chifxuw)
-  end subroutine init_pbl
+  end subroutine init_pblscheme
 
   subroutine pblscheme
     use mod_atm_interface

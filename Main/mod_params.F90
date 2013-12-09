@@ -1077,7 +1077,7 @@ module mod_params
 
   call allocate_mod_bdycon(iboudy)
 
-  call allocate_pbl
+  call allocate_pblscheme
 
   if ( ipptls > 0 ) then
     call allocate_mod_precip(ichem)
@@ -1096,7 +1096,7 @@ module mod_params
     call allocate_mod_cloud_s1
   end if
 
-  call allocate_mod_radiation
+  call allocate_radiation
 
   call allocate_mod_che_common(isladvec)
   call allocate_mod_che_mppio
@@ -1313,7 +1313,7 @@ module mod_params
   allocate(landmask(jx,iy))
   call init_clm(landmask)
 #endif
-  call init_cuscheme
+  call init_cumulus
   if ( ichem == 1 ) then
 #ifdef CLM
     call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat, &
@@ -1330,7 +1330,7 @@ module mod_params
       call bcast(chtrname(n),6)
     end do
   end if
-  call init_rad
+  call init_radiation
   if ( islab_ocean == 1 ) then
     call allocate_mod_slabocean
     call init_slabocean(sfs,ldmsk,fsw,flw)
@@ -1836,7 +1836,7 @@ module mod_params
     call init_cloud_s1(atms,aten,heatrt,sfs,q_detr,pptnc)
   end if
 
-  call init_pbl
+  call init_pblscheme
 
   !
   ! Convective Cloud Cover
