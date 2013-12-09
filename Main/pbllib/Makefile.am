@@ -46,7 +46,7 @@ clean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-mod_pbl_common.o : mod_pbl_common.f90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_memutil.o mod_runparams.o mod_regcm_types.o
-mod_pbl_holtbl.o : mod_pbl_holtbl.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_runparams.o mod_mppparam.o mod_memutil.o mod_service.o mod_mpmessage.o mod_pbl_common.o mod_regcm_types.o
-mod_pbl_thetal.o : mod_pbl_thetal.f90 mod_intkinds.o mod_realkinds.o mod_constants.o
-mod_pbl_uwtcm.o : mod_pbl_uwtcm.F90 mod_intkinds.o mod_realkinds.o mod_memutil.o mod_dynparam.o mod_constants.o mod_mpmessage.o mod_pbl_common.o mod_pbl_thetal.o mod_runparams.o mod_mppparam.o mod_runparams.o mod_regcm_types.o
+mod_pbl_common.o : mod_pbl_common.f90 mod_intkinds.o mod_realkinds.o mod_regcm_types.o
+mod_pbl_holtbl.o : mod_pbl_holtbl.F90 mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_pbl_common.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o
+mod_pbl_thetal.o : mod_pbl_thetal.f90 mod_constants.o mod_intkinds.o mod_realkinds.o
+mod_pbl_uwtcm.o : mod_pbl_uwtcm.F90 mod_constants.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_pbl_common.o mod_pbl_thetal.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o
