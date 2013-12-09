@@ -716,9 +716,8 @@ module mod_ncout
         ! The following may be enabled/disabled
 
         if ( enable_srf2d_vars(srf_uvdrag) ) then
-          call setup_var(v2dvar_srf,srf_uvdrag,vsize,'drag','1', &
-            'Surface drag stress coefficient in air', &
-            'surface_drag_coefficient_in_air',.true.)
+          call setup_var(v2dvar_srf,srf_uvdrag,vsize,'ustar','s-1', &
+            'Surface friction velocity','wind_speed_shear',.true.)
           srf_uvdrag_out => v2dvar_srf(srf_uvdrag)%rval
         end if
         if ( enable_srf2d_vars(srf_tg) ) then

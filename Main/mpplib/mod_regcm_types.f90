@@ -57,6 +57,21 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: tke
   end type atmstate
 
+  type tcm_state
+    ! TKE*ps
+    real(rk8) , pointer , dimension(:,:,:) :: tkeps  ! (m^2/s^2 * cb)
+    ! Coupled TKE Advective Tendency
+    real(rk8) , pointer , dimension(:,:,:) :: advtke ! (m^2/s^3 * cb)
+    ! Vertical momentum diffusivity
+    real(rk8) , pointer , dimension(:,:,:) :: kzm    ! (m^2/s)
+    ! Vertical scalar diffusivity
+    real(rk8) , pointer , dimension(:,:,:) :: kth    ! (m^2/s)
+    ! Boundary layer height (m)
+    real(rk8) , pointer , dimension(:,:) :: zpbl     ! (m)
+    ! Surface layer TKE
+    real(rk8) , pointer , dimension(:,:) :: srftke   ! (m^2/s^2)
+  end type tcm_state
+
   type tendiag
     real(rk8) , pointer , dimension(:,:,:) :: adh
     real(rk8) , pointer , dimension(:,:,:) :: adv
@@ -289,5 +304,46 @@ module mod_regcm_types
     integer(ik4) , pointer , dimension(:,:) :: kcumtop
     integer(ik4) , pointer , dimension(:,:) :: kcumbot
   end type cum_2_mod
+
+  type mod_2_pbl
+    real(rk8) , pointer , dimension(:,:) :: coriol      ! mddom%coriol
+    real(rk8) , pointer , dimension(:,:) :: psdot       ! psdot
+    real(rk8) , pointer , dimension(:,:) :: psb         ! sfs%psb
+    real(rk8) , pointer , dimension(:,:) :: tgb         ! sfs%tgb
+    real(rk8) , pointer , dimension(:,:) :: qfx         ! sfs%qfx
+    real(rk8) , pointer , dimension(:,:) :: hfx         ! sfs%hfx
+    real(rk8) , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag
+    real(rk8) , pointer , dimension(:,:,:) :: uxatm     ! atms%ubx3d
+    real(rk8) , pointer , dimension(:,:,:) :: vxatm     ! atms%vbx3d
+    real(rk8) , pointer , dimension(:,:,:) :: udatm     ! atms%ubd3d
+    real(rk8) , pointer , dimension(:,:,:) :: vdatm     ! atms%vbd3d
+    real(rk8) , pointer , dimension(:,:,:) :: tatm      ! atms%tb3d
+    real(rk8) , pointer , dimension(:,:,:,:) :: qxatm   ! atms%qx
+    real(rk8) , pointer , dimension(:,:,:) :: tkests    ! atms%tke
+    real(rk8) , pointer , dimension(:,:,:) :: thxatm    ! atms%thx3d
+    real(rk8) , pointer , dimension(:,:,:) :: za        ! atms%za
+    real(rk8) , pointer , dimension(:,:,:) :: dzq       ! atms%dzq
+    real(rk8) , pointer , dimension(:,:,:) :: heatrt    ! heatrt
+    real(rk8) , pointer , dimension(:,:,:,:) :: chib    ! chib
+    real(rk8) , pointer , dimension(:,:,:) :: drydepv   ! drydepv
+    real(rk8) , pointer , dimension(:,:) :: rhox2d      ! rhox2d 
+  end type mod_2_pbl
+
+  type pbl_2_mod
+    real(rk8) , pointer , dimension(:,:,:) :: uten       ! aten%u
+    real(rk8) , pointer , dimension(:,:,:) :: vten       ! aten%v
+    real(rk8) , pointer , dimension(:,:,:) :: uuwten     ! uwten%u
+    real(rk8) , pointer , dimension(:,:,:) :: vuwten     ! uwten%v
+    real(rk8) , pointer , dimension(:,:,:) :: tuwten     ! uwten%t
+    real(rk8) , pointer , dimension(:,:,:) :: tkeuwten   ! uwten%tke
+    real(rk8) , pointer , dimension(:,:,:,:) :: qxuwten  ! uwten%qx
+    real(rk8) , pointer , dimension(:,:,:) :: difft      ! adf%difft
+    real(rk8) , pointer , dimension(:,:,:,:) :: diffqx   ! adf%diffqx
+    real(rk8) , pointer , dimension(:,:,:,:) :: diagqx   ! holtten%qx
+    real(rk8) , pointer , dimension(:,:,:,:) :: chiten   ! chiten
+    real(rk8) , pointer , dimension(:,:,:) :: remdrd     ! remdrd
+    real(rk8) , pointer , dimension(:,:) :: zpbl
+    integer(ik4) , pointer , dimension(:,:) :: kpbl
+  end type pbl_2_mod
 
 end module mod_regcm_types

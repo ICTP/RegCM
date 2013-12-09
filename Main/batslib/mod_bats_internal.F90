@@ -41,7 +41,7 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:,:,:) :: gwmx0 , gwmx1 , gwmx2
   real(rk8) , pointer , dimension(:,:,:) :: porsl , relfc , relaw , rnet
   real(rk8) , pointer , dimension(:,:,:) :: texrat , vegt , wiltr , wt , xkmx
-  real(rk8) , pointer , dimension(:,:,:) :: cdr , cdrn , cdrx , cf ,  &
+  real(rk8) , pointer , dimension(:,:,:) :: cdr , cdrn , cf ,  &
     cgrnd , cgrndl , cgrnds , clead , efpr , eg , etr , etrrun , &
     evaps , evapw , fevpg , flnet , flneto , fseng , htvp , ps , &
     pw , qsatl , rhosw , ribd , rlai , rpp , scrat ,      &
@@ -60,7 +60,7 @@ module mod_bats_internal
             dcd , etrc , dels , aseas , rib
   public :: prcp , qgrd , qs , resp , rhs , sts , zh , bfc , bsw
   public :: evmx0 , fdry , fwet , gwmx0 , gwmx1 , gwmx2 , porsl , relfc ,  &
-            rnet , texrat , vegt , wiltr , wt , xkmx , cdr , cdrn , cdrx , &
+            rnet , texrat , vegt , wiltr , wt , xkmx , cdr , cdrn ,        &
             cf , cgrnd , cgrndl , cgrnds , clead , efpr , eg , etr ,       &
             etrrun , evaps , evapw , fevpg , flnet , flneto , fseng ,      &
             htvp , ps , pw , qsatl , rhosw , ribd , relaw , rlai ,  &
@@ -129,7 +129,6 @@ module mod_bats_internal
     call getmem3d(xkmx,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:xkmx')
     call getmem3d(cdr,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cdr')
     call getmem3d(cdrn,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cdrn')
-    call getmem3d(cdrx,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cdrx')
     call getmem3d(cf,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cf')
     call getmem3d(cgrnd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cgrnd')
     call getmem3d(cgrndl,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cgrndl')

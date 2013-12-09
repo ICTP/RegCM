@@ -43,7 +43,7 @@ module mod_bats_common
          drag , evpr , gwet , ldew , q2m , sfcp , trnof ,        &
          srnof , rsw , snag , sncv , sent , sfice , ssw ,        &
          t2m , tgrd , tgbrd , tlef , tsw , u10m , v10m , lncl ,  &
-         taux , tauy , sfcemiss
+         taux , tauy , sfcemiss , cdrx
 !
   real(rk8) :: rdnnsg
   real(rk4) :: rrnnsg
@@ -178,6 +178,7 @@ module mod_bats_common
       end if
 
       call getmem3d(drag,1,nnsg,jci1,jci2,ici1,ici2,'bats:drag')
+      call getmem3d(cdrx,1,nnsg,jci1,jci2,ici1,ici2,'bats:cdrx')
       call getmem3d(evpr,1,nnsg,jci1,jci2,ici1,ici2,'bats:evpr')
       call getmem3d(sfcp,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfcp')
       call getmem3d(q2m,1,nnsg,jci1,jci2,ici1,ici2,'bats:q2m')

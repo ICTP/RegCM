@@ -634,7 +634,7 @@ module mod_bats_mtrxbats
 
         if ( ifsrf ) then
           if ( associated(srf_uvdrag_out) ) &
-            srf_uvdrag_out = uvdrag
+            srf_uvdrag_out = sum(drag,1)*rdnnsg
           if ( associated(srf_tg_out) ) &
             srf_tg_out = tground1
           if ( associated(srf_tlef_out) ) then
