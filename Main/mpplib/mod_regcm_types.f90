@@ -49,6 +49,15 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: dhlake
   end type domain
 
+  type domain_subgrid
+    real(rk8) , pointer , dimension(:,:,:) :: ht
+    real(rk8) , pointer , dimension(:,:,:) :: lndcat
+    real(rk8) , pointer , dimension(:,:,:) :: xlat
+    real(rk8) , pointer , dimension(:,:,:) :: xlon
+    real(rk8) , pointer , dimension(:,:,:) :: mask
+    real(rk8) , pointer , dimension(:,:,:) :: dhlake
+  end type domain_subgrid
+
   type atmstate
     real(rk8) , pointer , dimension(:,:,:) :: u
     real(rk8) , pointer , dimension(:,:,:) :: v

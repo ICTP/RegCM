@@ -35,6 +35,7 @@ module mod_atm_interface
   logical , public , parameter :: dot = .true.
 
   type(domain) , public :: mddom
+  type(domain_subgrid) , public :: mdsub
   type(atmstate) , public :: atm1 , atm2
   type(atmstate) , public :: atmx , atmc , aten , holtten , uwten
   type(tendiag) , public :: tdiag
@@ -508,47 +509,41 @@ module mod_atm_interface
       call getmem3d(dia%lsc,jce1,jce2,ice1,ice2,1,kz,'tendiag:lsc') 
     end subroutine allocate_tendiag
 !
-    subroutine allocate_domain(dom,lpar)
+    subroutine allocate_domain(dom)
       implicit none
-      logical , intent(in) :: lpar
       type(domain) , intent(out) :: dom
-
-      if (lpar) then
-        call getmem2d(dom%ht,jde1-ma%jbl1,jde2+ma%jbr1, &
-                             ide1-ma%ibb1,ide2+ma%ibt1,'sorage:ht')
-        call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'sorage:lndcat')
-        call getmem2d(dom%xlat,jde1,jde2,ide1,ide2,'sorage:xlat')
-        call getmem2d(dom%xlon,jde1,jde2,ide1,ide2,'sorage:xlon')
-        call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'sorage:mask')
-        call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'sorage:dlat')
-        call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'sorage:dlon')
-        call getmem2d(dom%msfx,jde1-ma%jbl2,jde2+ma%jbr2, &
-                               ide1-ma%ibb2,ide2+ma%ibt2,'sorage:msfx')
-        call getmem2d(dom%msfd,jde1-ma%jbl2,jde2+ma%jbr2, &
-                               ide1-ma%ibb2,ide2+ma%ibt2,'sorage:msfd')
-        call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'sorage:f')
-        call getmem2d(dom%snowam,jde1,jde2,ide1,ide2,'sorage:snowam')
-        if ( lakemod == 1 ) &
-          call getmem2d(dom%dhlake,jde1,jde2,ide1,ide2,'sorage:dhlake')
-      else
-        call getmem2d(dom%ht,jdot1,jdot2,idot1,idot2,'sorage:ht')
-        call getmem2d(dom%lndcat,jdot1,jdot2,idot1,idot2,'sorage:lndcat')
-        call getmem2d(dom%xlat,jdot1,jdot2,idot1,idot2,'sorage:xlat')
-        call getmem2d(dom%xlon,jdot1,jdot2,idot1,idot2,'sorage:xlon')
-        call getmem2d(dom%mask,jdot1,jdot2,idot1,idot2,'sorage:mask')
-        call getmem2d(dom%dlat,jdot1,jdot2,idot1,idot2,'sorage:dlat')
-        call getmem2d(dom%dlon,jdot1,jdot2,idot1,idot2,'sorage:dlon')
-        call getmem2d(dom%msfx,jdot1,jdot2,idot1,idot2,'sorage:msfx')
-        call getmem2d(dom%msfd,jdot1,jdot2,idot1,idot2,'sorage:msfd')
-        call getmem2d(dom%coriol,jdot1,jdot2,idot1,idot2,'sorage:f')
-        call getmem2d(dom%snowam,jdot1,jdot2,idot1,idot2,'sorage:snowam')
-        if ( lakemod == 1 ) then
-          call getmem2d(dom%dhlake,jdot1,jdot2, &
-            idot1,idot2,'sorage:dhlake')
-        end if
+      call getmem2d(dom%ht,jde1-ma%jbl1,jde2+ma%jbr1, &
+                           ide1-ma%ibb1,ide2+ma%ibt1,'storage:ht')
+      call getmem2d(dom%lndcat,jde1,jde2,ide1,ide2,'storage:lndcat')
+      call getmem2d(dom%xlat,jde1,jde2,ide1,ide2,'storage:xlat')
+      call getmem2d(dom%xlon,jde1,jde2,ide1,ide2,'storage:xlon')
+      call getmem2d(dom%mask,jde1,jde2,ide1,ide2,'storage:mask')
+      call getmem2d(dom%dlat,jde1,jde2,ide1,ide2,'storage:dlat')
+      call getmem2d(dom%dlon,jde1,jde2,ide1,ide2,'storage:dlon')
+      call getmem2d(dom%msfx,jde1-ma%jbl2,jde2+ma%jbr2, &
+                             ide1-ma%ibb2,ide2+ma%ibt2,'storage:msfx')
+      call getmem2d(dom%msfd,jde1-ma%jbl2,jde2+ma%jbr2, &
+                             ide1-ma%ibb2,ide2+ma%ibt2,'storage:msfd')
+      call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'storage:f')
+      call getmem2d(dom%snowam,jde1,jde2,ide1,ide2,'storage:snowam')
+      if ( lakemod == 1 ) then
+        call getmem2d(dom%dhlake,jde1,jde2,ide1,ide2,'storage:dhlake')
       end if
     end subroutine allocate_domain
 !
+    subroutine allocate_domain_subgrid(sub)
+      implicit none
+      type(domain_subgrid) , intent(out) :: sub
+      call getmem3d(sub%ht,1,nnsg,jde1,jde2,ide1,ide2,'storage:ht')
+      call getmem3d(sub%lndcat,1,nnsg,jde1,jde2,ide1,ide2,'storage:lndcat')
+      call getmem3d(sub%xlat,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlat')
+      call getmem3d(sub%xlon,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlon')
+      call getmem3d(sub%mask,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlon')
+      if ( lakemod == 1 ) then
+        call getmem3d(sub%dhlake,1,nnsg,jde1,jde2,ide1,ide2,'storage:dhlake')
+      end if
+    end subroutine allocate_domain_subgrid
+
     subroutine allocate_surfstate(sfs)
       implicit none
       type(surfstate) , intent(out) :: sfs
@@ -620,7 +615,8 @@ module mod_atm_interface
       implicit none
       integer(ik4) , intent(in) :: ibltyp , isladvec
 !
-      call allocate_domain(mddom,.true.)
+      call allocate_domain(mddom)
+      call allocate_domain_subgrid(mdsub)
 
       if ( isladvec == 1 ) then
         call allocate_atmstate(atmx,ibltyp,four_exchange_point)
@@ -652,17 +648,17 @@ module mod_atm_interface
         call allocate_tendiag(tdiag)
       end if
 
-      call getmem2d(ts0,jce1,jce2,ice1,ice2,'sorage:ts0')
-      call getmem2d(ts1,jce1,jce2,ice1,ice2,'sorage:ts1')
+      call getmem2d(ts0,jce1,jce2,ice1,ice2,'storage:ts0')
+      call getmem2d(ts1,jce1,jce2,ice1,ice2,'storage:ts1')
 
-      call getmem3d(dstor,jde1,jde2,ide1,ide2,1,nsplit,'sorage:dstor')
-      call getmem3d(hstor,jde1,jde2,ide1,ide2,1,nsplit,'sorage:hstor')
+      call getmem3d(dstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:dstor')
+      call getmem3d(hstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:hstor')
 !
-      call getmem2d(hgfact,jde1,jde2,ide1,ide2,'sorage:hgfact')
-      call getmem2d(psdot,jde1,jde2,ide1,ide2,'sorage:psdot')
-      call getmem3d(omega,jci1,jci2,ici1,ici2,1,kz,'sorage:omega')
+      call getmem2d(hgfact,jde1,jde2,ide1,ide2,'storage:hgfact')
+      call getmem2d(psdot,jde1,jde2,ide1,ide2,'storage:psdot')
+      call getmem3d(omega,jci1,jci2,ici1,ici2,1,kz,'storage:omega')
       call getmem3d(qdot,jce1-ma%jbl1,jce2+ma%jbr1, &
-                         ice1-ma%ibb1,ice2+ma%ibt1,1,kzp1,'sorage:qdot')
+                         ice1-ma%ibb1,ice2+ma%ibt1,1,kzp1,'storage:qdot')
       call getmem2d(ktrop,jci1,jci2,ici1,ici2,'storage:ktrop')
       call getmem2d(coszrs,jci1,jci2,ici1,ici2,'storage:coszrs')
       call getmem2d(pptc,jci1,jci2,ici1,ici2,'storage:pptc')

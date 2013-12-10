@@ -359,7 +359,7 @@ module mod_init
     if ( imask == 2 ) then
       mddom%lndcat(jci1:jci2,ici1:ici2) = lndcat2d(jci1:jci2,ici1:ici2)
       do n = 1 , nnsg
-        lndcat1(n,jci1:jci2,ici1:ici2) = lndcat2d(jci1:jci2,ici1:ici2)
+        mdsub%lndcat(n,jci1:jci2,ici1:ici2) = lndcat2d(jci1:jci2,ici1:ici2)
       end do
     end if
 #endif
@@ -467,9 +467,9 @@ module mod_init
   !
   do i = ici1 , ici2
     do j = jci1 , jci2
-      iveg(j,i) = idnint(lndcat(j,i))
+      iveg(j,i) = idnint(mddom%lndcat(j,i))
       do n = 1 , nnsg
-        iveg1(n,j,i) = idnint(lndcat1(n,j,i))
+        iveg1(n,j,i) = idnint(mdsub%lndcat(n,j,i))
       end do
     end do
   end do

@@ -74,10 +74,10 @@ module mod_output
         topo_out = topo_out*regrav
       end if
       if ( associated(sub_xlon_out) ) then
-        call reorder_subgrid(xlon1,sub_xlon_out)
-        call reorder_subgrid(xlat1,sub_xlat_out)
-        call reorder_subgrid(mask1,sub_mask_out)
-        call reorder_subgrid(ht1,sub_topo_out)
+        call reorder_subgrid(mdsub%xlon,sub_xlon_out)
+        call reorder_subgrid(mdsub%xlat,sub_xlat_out)
+        call reorder_subgrid(mdsub%mask,sub_mask_out)
+        call reorder_subgrid(mdsub%ht,sub_topo_out)
         sub_topo_out = sub_topo_out*regrav
       end if
       !

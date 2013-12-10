@@ -61,7 +61,7 @@ module mod_bats_common
   integer(ik4) , pointer , dimension(:,:) :: iveg , landmsk
 !
   real(rk8) , pointer , dimension(:,:,:) :: ht1 , lndcat1 , &
-    mask1 , xlat1 , xlon1
+    mask1 , xlat1 , xlon1 , dhlake1
 !
   ! Coupling variables
   real(rk8) , pointer , dimension(:,:,:) :: dailyrnf
@@ -71,7 +71,6 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:) :: deltas , tdeltas , dtskin
   real(rk8) , pointer , dimension(:,:) :: sst
   ! Lake model
-  real(rk8) , pointer , dimension(:,:,:) :: dhlake1
   real(rk8) , pointer , dimension(:,:,:,:) :: tlake
   real(rk8) , pointer , dimension(:,:,:) :: xlake
 !
@@ -164,12 +163,6 @@ module mod_bats_common
       call getmem3d(taf,1,nnsg,jci1,jci2,ici1,ici2,'bats:taf')
       call getmem3d(ldew,1,nnsg,jci1,jci2,ici1,ici2,'bats:ldew')
 
-      call getmem3d(ht1,1,nnsg,jde1,jde2,ide1,ide2,'bats:ht1')
-      call getmem3d(lndcat1,1,nnsg,jde1,jde2,ide1,ide2,'bats:lndcat1')
-      call getmem3d(xlat1,1,nnsg,jde1,jde2,ide1,ide2,'bats:xlat1')
-      call getmem3d(xlon1,1,nnsg,jde1,jde2,ide1,ide2,'bats:xlon1')
-      call getmem3d(mask1,1,nnsg,jde1,jde2,ide1,ide2,'bats:mask1')
-
       if (idcsst == 1) then
         call getmem2d(deltas,jci1,jci2,ici1,ici2,'bats:deltas')
         call getmem2d(tdeltas,jci1,jci2,ici1,ici2,'bats:tdeltas')
@@ -194,7 +187,6 @@ module mod_bats_common
 
       if ( lakemod == 1 ) then
         call getmem3d(lakemsk,1,nnsg,jci1,jci2,ici1,ici2,'bats:lakemsk')
-        call getmem3d(dhlake1,1,nnsg,jci1,jci2,ici1,ici2,'bats:dhlake1')
         call getmem3d(xlake,1,nnsg,jci1,jci2,ici1,ici2,'bats:xlake')
         call getmem4d(tlake,1,nnsg,jci1,jci2,ici1,ici2,1,ndpmax,'bats:tlake')
       end if

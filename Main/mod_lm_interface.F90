@@ -44,11 +44,12 @@ module mod_lm_interface
 
   contains
 
-  subroutine init_bats(dom,atm,sfs,zpbl,pptc,pptnc,coszrs, &
+  subroutine init_bats(dom,sub,atm,sfs,zpbl,pptc,pptnc,coszrs, &
                   fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs,aldirl, &
                   aldifl,solis,emiss,sinc,ldmsk,solvs,solvsd,solvl,solvld)
     implicit none
     type(domain) , intent(in) :: dom
+    type(domain_subgrid) , intent(in) :: sub
     type(slice) , intent(in) :: atm
     type(surfstate) , intent(in) :: sfs
     real(rk8) , pointer , intent(in) , dimension(:,:) :: zpbl
@@ -83,6 +84,11 @@ module mod_lm_interface
     call assignpnt(dom%xlon,xlon)
     call assignpnt(dom%lndcat,lndcat)
     call assignpnt(dom%ht,ht)
+    call assignpnt(sub%xlat,xlat1)
+    call assignpnt(sub%xlon,xlon1)
+    call assignpnt(sub%lndcat,lndcat1)
+    call assignpnt(sub%ht,ht1)
+    call assignpnt(sub%dhlake,dhlake1)
     call assignpnt(dom%snowam,snowam)
     call assignpnt(atm%ubx3d,uatm,kz)
     call assignpnt(atm%vbx3d,vatm,kz)

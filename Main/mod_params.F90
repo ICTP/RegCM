@@ -1305,7 +1305,7 @@ module mod_params
 
   call init_advection(mddom,sfs,atm1,qdot,kpbl)
   call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
-  call init_bats(mddom,atms,sfs,zpbl,pptc,pptnc,coszrs, &
+  call init_bats(mddom,mdsub,atms,sfs,zpbl,pptc,pptnc,coszrs, &
                  fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs,    &
                  aldirl,aldifl,solis,emiss,sinc,ldmsk,solvs,       &
                  solvsd,solvl,solvld)
@@ -1418,22 +1418,23 @@ module mod_params
   end if
 
   if ( nsg > 1 ) then
-    call read_subdomain_info(ht1,lndcat1,mask1,xlat1,xlon1,dhlake1)
-    ht1 = ht1*egrav
+    call read_subdomain_info(mdsub%ht,mdsub%lndcat,mdsub%mask, &
+             mdsub%xlat,mdsub%xlon,mdsub%dhlake)
+    mdsub%ht = mdsub%ht*egrav
   else
     do i = ide1 , ide2
       do j = jde1 , jde2
-        ht1(1,j,i) = mddom%ht(j,i)*egrav
-        lndcat1(1,j,i) = mddom%lndcat(j,i)
-        xlat1(1,j,i) = mddom%xlat(j,i)
-        xlon1(1,j,i) = mddom%xlon(j,i)
-        mask1(1,j,i) = mddom%mask(j,i)
+        mdsub%ht(1,j,i) = mddom%ht(j,i)*egrav
+        mdsub%lndcat(1,j,i) = mddom%lndcat(j,i)
+        mdsub%xlat(1,j,i) = mddom%xlat(j,i)
+        mdsub%xlon(1,j,i) = mddom%xlon(j,i)
+        mdsub%mask(1,j,i) = mddom%mask(j,i)
       end do
     end do
     if ( lakemod == 1 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
-          dhlake1(1,j,i) = mddom%dhlake(j,i)
+          mdsub%dhlake(1,j,i) = mddom%dhlake(j,i)
         end do
       end do
     end if
@@ -1995,7 +1996,8 @@ module mod_params
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
-          if ( lndcat1(n,j,i) > 13.0 .and. lndcat1(n,j,i) < 15.0 ) then
+          if ( mdsub%lndcat(n,j,i) > 13.0 .and. &
+               mdsub%lndcat(n,j,i) < 15.0 ) then
             lakemsk(n,j,i) = 1
           end if
         end do

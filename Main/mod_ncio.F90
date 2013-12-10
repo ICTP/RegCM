@@ -207,20 +207,19 @@ module mod_ncio
     end if
   end subroutine read_domain_info
 
-  subroutine read_subdomain_info(ht1,lnd1,mask1,xlat1,xlon1,hlake1)
+  subroutine read_subdomain_info(ht,lnd,mask,xlat,xlon,hlake)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ht1
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: lnd1
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: mask1
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: xlat1
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: xlon1
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: hlake1
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ht
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: lnd
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: mask
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: xlat
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: xlon
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: hlake
     character(len=256) :: dname
     integer(ik4) :: idmin
     integer(ik4) , dimension(2) :: istart , icount
     real(rk8) , dimension(:,:) , pointer :: rspace
     real(rk8) , dimension(:,:,:) , pointer :: rspace0
-    logical :: has_snow = .true.
     logical :: has_dhlake = .true.
     character(len=3) :: sbstring
 
@@ -238,9 +237,9 @@ module mod_ncio
       allocate(rspace(icount(1),icount(2)))
       call openfile_withname(dname,idmin)
       call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
-      call input_reorder(rspace,xlat1,jde1,jde2,ide1,ide2)
+      call input_reorder(rspace,xlat,jde1,jde2,ide1,ide2)
       call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
-      call input_reorder(rspace,xlon1,jde1,jde2,ide1,ide2)
+      call input_reorder(rspace,xlon,jde1,jde2,ide1,ide2)
       call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
       if ( ensemble_run ) then
         if ( myid == italk ) then
@@ -254,15 +253,15 @@ module mod_ncio
           call randify(rspace,perturb_frac_topo,icount(1),icount(2))
         end if
       end if
-      call input_reorder(rspace,ht1,jde1,jde2,ide1,ide2)
+      call input_reorder(rspace,ht,jde1,jde2,ide1,ide2)
       call read_var2d_static(idmin,'mask',rspace,istart=istart,icount=icount)
-      call input_reorder(rspace,mask1,jde1,jde2,ide1,ide2)
+      call input_reorder(rspace,mask,jde1,jde2,ide1,ide2)
       call read_var2d_static(idmin,'landuse',rspace,istart=istart,icount=icount)
-      call input_reorder(rspace,lnd1,jde1,jde2,ide1,ide2)
+      call input_reorder(rspace,lnd,jde1,jde2,ide1,ide2)
       if ( lakemod == 1 ) then
         call read_var2d_static(idmin,'dhlake',rspace,has_dhlake, &
                                istart=istart,icount=icount)
-        if ( has_dhlake ) call input_reorder(rspace,hlake1,jde1,jde2,ide1,ide2)
+        if ( has_dhlake ) call input_reorder(rspace,hlake,jde1,jde2,ide1,ide2)
       end if
       call closefile(idmin)
       deallocate(rspace)
@@ -277,10 +276,10 @@ module mod_ncio
         call openfile_withname(dname,idmin)
         call read_var2d_static(idmin,'xlat',rspace,istart=istart,icount=icount)
         call input_reorder(rspace,rspace0,1,jx,1,iy)
-        call subgrid_distribute(rspace0,xlat1,jde1,jde2,ide1,ide2)
+        call subgrid_distribute(rspace0,xlat,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'xlon',rspace,istart=istart,icount=icount)
         call input_reorder(rspace,rspace0,1,jx,1,iy)
-        call subgrid_distribute(rspace0,xlon1,jde1,jde2,ide1,ide2)
+        call subgrid_distribute(rspace0,xlon,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'topo',rspace,istart=istart,icount=icount)
         if ( ensemble_run ) then
           write(stdout,*) 'Appling perturbation to input dataset:'
@@ -291,31 +290,31 @@ module mod_ncio
           end if
         end if
         call input_reorder(rspace,rspace0,1,jx,1,iy)
-        call subgrid_distribute(rspace0,ht1,jde1,jde2,ide1,ide2)
+        call subgrid_distribute(rspace0,ht,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'mask',rspace,istart=istart,icount=icount)
         call input_reorder(rspace,rspace0,1,jx,1,iy)
-        call subgrid_distribute(rspace0,mask1,jde1,jde2,ide1,ide2)
+        call subgrid_distribute(rspace0,mask,jde1,jde2,ide1,ide2)
         call read_var2d_static(idmin,'landuse', &
                 rspace,istart=istart,icount=icount)
         call input_reorder(rspace,rspace0,1,jx,1,iy)
-        call subgrid_distribute(rspace0,lnd1,jde1,jde2,ide1,ide2)
+        call subgrid_distribute(rspace0,lnd,jde1,jde2,ide1,ide2)
         if ( lakemod == 1 ) then
           call read_var2d_static(idmin,'dhlake',rspace,has_dhlake, &
                                  istart=istart,icount=icount)
           if ( has_dhlake ) call input_reorder(rspace,rspace0,1,jx,1,iy)
-          call subgrid_distribute(rspace0,hlake1,jci1,jci2,ici1,ici2)
+          call subgrid_distribute(rspace0,hlake,jci1,jci2,ici1,ici2)
         end if
         call closefile(idmin)
         deallocate(rspace)
         deallocate(rspace0)
       else
-        call subgrid_distribute(rspace0,xlat1,jde1,jde2,ide1,ide2)
-        call subgrid_distribute(rspace0,xlon1,jde1,jde2,ide1,ide2)
-        call subgrid_distribute(rspace0,ht1,jde1,jde2,ide1,ide2)
-        call subgrid_distribute(rspace0,mask1,jde1,jde2,ide1,ide2)
-        call subgrid_distribute(rspace0,lnd1,jde1,jde2,ide1,ide2)
+        call subgrid_distribute(rspace0,xlat,jde1,jde2,ide1,ide2)
+        call subgrid_distribute(rspace0,xlon,jde1,jde2,ide1,ide2)
+        call subgrid_distribute(rspace0,ht,jde1,jde2,ide1,ide2)
+        call subgrid_distribute(rspace0,mask,jde1,jde2,ide1,ide2)
+        call subgrid_distribute(rspace0,lnd,jde1,jde2,ide1,ide2)
         if ( lakemod == 1 ) then
-          call subgrid_distribute(rspace0,hlake1,jci1,jci2,ici1,ici2)
+          call subgrid_distribute(rspace0,hlake,jci1,jci2,ici1,ici2)
         end if
       end if
     end if
