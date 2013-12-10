@@ -125,8 +125,6 @@ module mod_init
     !    1 -> Land
     !    2 -> Sea Ice
     !
-    ! We have the grid (ldmsk) and subgrid (ldmsk1) versions of this
-    !
     sfice_temp = icetemp
     if ( iseaice == 1 ) then
       do i = ici1 , ici2
@@ -136,10 +134,10 @@ module mod_init
               sfs%tga(j,i) = sfice_temp
               sfs%tgb(j,i) = sfice_temp
               ts0(j,i) = icetemp
-              ldmsk(j,i) = 2
+              mddom%ldmsk(j,i) = 2
               if ( iemiss == 1 ) emiss(j,i) = 0.97D0
               do n = 1, nnsg
-                ldmsk1(n,j,i) = 2
+                mdsub%ldmsk(n,j,i) = 2
                 sfice(n,j,i) = d_10
               end do
             else
@@ -161,10 +159,10 @@ module mod_init
               sfs%tga(j,i) = icetemp
               sfs%tgb(j,i) = icetemp
               ts0(j,i) = icetemp
-              ldmsk(j,i) = 2
+              mddom%ldmsk(j,i) = 2
               if ( iemiss == 1 ) emiss(j,i) = 0.97D0
               do n = 1, nnsg
-                ldmsk1(n,j,i) = 2
+                mdsub%ldmsk(n,j,i) = 2
                 sfice(n,j,i) = d_10
               end do
             else
@@ -324,7 +322,7 @@ module mod_init
     call subgrid_distribute(taf_io,taf,jci1,jci2,ici1,ici2)
     call subgrid_distribute(tsw_io,tsw,jci1,jci2,ici1,ici2)
     call subgrid_distribute(emiss_io,sfcemiss,jci1,jci2,ici1,ici2)
-    call subgrid_distribute(ldmsk1_io,ldmsk1,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(ldmsk1_io,mdsub%ldmsk,jci1,jci2,ici1,ici2)
 
     call grid_distribute(solis_io,solis,jci1,jci2,ici1,ici2)
     call grid_distribute(solvs_io,solvs,jci1,jci2,ici1,ici2)
@@ -336,7 +334,7 @@ module mod_init
     call grid_distribute(flwd_io,flwd,jci1,jci2,ici1,ici2)
     call grid_distribute(fsw_io,fsw,jci1,jci2,ici1,ici2)
     call grid_distribute(sinc_io,sinc,jci1,jci2,ici1,ici2)
-    call grid_distribute(ldmsk_io,ldmsk,jci1,jci2,ici1,ici2)
+    call grid_distribute(ldmsk_io,mddom%ldmsk,jci1,jci2,ici1,ici2)
 
 #ifndef CLM
     if ( lakemod == 1 ) then
@@ -408,7 +406,7 @@ module mod_init
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( iswater(mddom%lndcat(j,i)) ) then
-            if ( ldmsk(j,i) == 0 ) then
+            if ( mddom%ldmsk(j,i) == 0 ) then
               if ( idcsst == 1 ) then
                 sst(j,i) = ts1(j,i)
                 sfs%tga(j,i) = sst(j,i) + dtskin(j,i)
@@ -421,16 +419,16 @@ module mod_init
             end if
             if ( iseaice == 1 ) then
               if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-              if ( ts1(j,i) <= icetemp .and. ldmsk(j,i) == 0 ) then
+              if ( ts1(j,i) <= icetemp .and. mddom%ldmsk(j,i) == 0 ) then
                 sfs%tga(j,i) = sfice_temp
                 sfs%tgb(j,i) = sfice_temp
                 ts1(j,i) = icetemp
-                ldmsk(j,i) = 2
+                mddom%ldmsk(j,i) = 2
                 do n = 1, nnsg
-                  ldmsk1(n,j,i) = 2
+                  mdsub%ldmsk(n,j,i) = 2
                   sfice(n,j,i) = d_10
                 end do
-              else if ( ts1(j,i) > icetemp .and. ldmsk(j,i) == 2 ) then
+              else if ( ts1(j,i) > icetemp .and. mddom%ldmsk(j,i) == 2 ) then
                 sfs%tga(j,i) = ts1(j,i)
                 sfs%tgb(j,i) = ts1(j,i)
                 ! Decrease the surface ice to melt it

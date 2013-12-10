@@ -46,7 +46,7 @@ module mod_lm_interface
 
   subroutine init_bats(dom,sub,atm,sfs,zpbl,pptc,pptnc,coszrs, &
                   fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs,aldirl, &
-                  aldifl,solis,emiss,sinc,ldmsk,solvs,solvsd,solvl,solvld)
+                  aldifl,solis,emiss,sinc,solvs,solvsd,solvl,solvld)
     implicit none
     type(domain) , intent(in) :: dom
     type(domain_subgrid) , intent(in) :: sub
@@ -73,7 +73,6 @@ module mod_lm_interface
     real(rk8) , pointer , intent(in) , dimension(:,:) :: solvsd
     real(rk8) , pointer , intent(in) , dimension(:,:) :: solvl
     real(rk8) , pointer , intent(in) , dimension(:,:) :: solvld
-    integer(ik4) , pointer , intent(in) , dimension(:,:) :: ldmsk
     ntcpl  = idnint(cpldt/dtsec)
     ntsrf2 = idnint(dtsrf/dtsec)
     if ( idcsst   == 1 ) ldcsst    = .true.
@@ -83,10 +82,12 @@ module mod_lm_interface
     call assignpnt(dom%xlat,xlat)
     call assignpnt(dom%xlon,xlon)
     call assignpnt(dom%lndcat,lndcat)
+    call assignpnt(dom%ldmsk,landmsk)
     call assignpnt(dom%ht,ht)
     call assignpnt(sub%xlat,xlat1)
     call assignpnt(sub%xlon,xlon1)
     call assignpnt(sub%lndcat,lndcat1)
+    call assignpnt(sub%ldmsk,ldmsk1)
     call assignpnt(sub%ht,ht1)
     call assignpnt(sub%dhlake,dhlake1)
     call assignpnt(dom%snowam,snowam)
@@ -125,7 +126,6 @@ module mod_lm_interface
     call assignpnt(solvsd,swdif)
     call assignpnt(solvl,lwdir)
     call assignpnt(solvld,lwdif)
-    call assignpnt(ldmsk,landmsk)
   end subroutine init_bats
 !
 #ifdef CLM

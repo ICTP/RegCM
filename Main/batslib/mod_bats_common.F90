@@ -56,12 +56,13 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
         sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
 !
-  integer(ik4) , pointer , dimension(:,:,:) :: ldmsk1 , iveg1
+  integer(ik4) , pointer , dimension(:,:,:) :: iveg1
   integer(ik4) , pointer , dimension(:,:,:) :: lakemsk
   integer(ik4) , pointer , dimension(:,:) :: iveg , landmsk
 !
   real(rk8) , pointer , dimension(:,:,:) :: ht1 , lndcat1 , &
     mask1 , xlat1 , xlon1 , dhlake1
+  integer(ik4) , pointer , dimension(:,:,:) :: ldmsk1
 !
   ! Coupling variables
   real(rk8) , pointer , dimension(:,:,:) :: dailyrnf
@@ -148,7 +149,6 @@ module mod_bats_common
 
       call getmem3d(delq,1,nnsg,jci1,jci2,ici1,ici2,'bats:delq')
       call getmem3d(delt,1,nnsg,jci1,jci2,ici1,ici2,'bats:delt')
-      call getmem3d(ldmsk1,1,nnsg,jci1,jci2,ici1,ici2,'bats:ldmsk1')
       call getmem3d(gwet,1,nnsg,jci1,jci2,ici1,ici2,'bats:gwet')
       call getmem3d(rsw,1,nnsg,jci1,jci2,ici1,ici2,'bats:rsw')
       call getmem3d(snag,1,nnsg,jci1,jci2,ici1,ici2,'bats:snag')

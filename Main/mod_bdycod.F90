@@ -230,7 +230,7 @@ module mod_bdycod
         call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
       end if
       call read_som(qflb0)
-      where ( ldmsk > 0 ) qflb0 = d_zero
+      where ( mddom%ldmsk > 0 ) qflb0 = d_zero
       tdif = bdydate1-monfirst(bdydate1)
       xslabtime = tohours(tdif)*secph
     end if
@@ -270,7 +270,7 @@ module mod_bdycod
         call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
       end if
       call read_som(qflb1)
-      where ( ldmsk > 0 ) qflb1 = d_zero
+      where ( mddom%ldmsk > 0 ) qflb1 = d_zero
       tdif = bdydate2-prevmon(bdydate2)
       qflbt = (qflb1-qflb0)/(tohours(tdif)*secph)
     end if
@@ -439,7 +439,7 @@ module mod_bdycod
         call fatal(__FILE__,__LINE__,'SOM for '//appdat//' not found')
       end if
       call read_som(qflb1)
-      where ( ldmsk > 0 ) qflb1 = d_zero
+      where ( mddom%ldmsk > 0 ) qflb1 = d_zero
       tdif = bdydate2-prevmon(bdydate2)
       qflbt = (qflb1-qflb0)/(tohours(tdif)*secph)
     end if
@@ -509,7 +509,7 @@ module mod_bdycod
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( iswater(mddom%lndcat(j,i)) ) then
-            if ( ldmsk(j,i) == 0 ) then
+            if ( mddom%ldmsk(j,i) == 0 ) then
               if ( idcsst == 1 ) then
                 sst(j,i) = ts1(j,i)
                 sfs%tga(j,i) = sst(j,i) + dtskin(j,i)
@@ -525,17 +525,17 @@ module mod_bdycod
               if ( iocncpl == 1 ) then
                 if ( cplmsk(j,i) /= 0 ) cycle
               end if
-              if ( ts1(j,i) <= icetemp .and. ldmsk(j,i) == 0 ) then
+              if ( ts1(j,i) <= icetemp .and. mddom%ldmsk(j,i) == 0 ) then
                 sfs%tga(j,i) = sfice_temp
                 sfs%tgb(j,i) = sfice_temp
                 ts1(j,i) = icetemp
-                ldmsk(j,i) = 2
+                mddom%ldmsk(j,i) = 2
                 if ( iemiss == 1 ) emiss(j,i) = 0.97D0
                 do n = 1, nnsg
-                  ldmsk1(n,j,i) = 2
+                  mdsub%ldmsk(n,j,i) = 2
                   sfice(n,j,i) = d_10
                 end do
-              else if ( ts1(j,i) > icetemp .and. ldmsk(j,i) == 2 ) then
+              else if ( ts1(j,i) > icetemp .and. mddom%ldmsk(j,i) == 2 ) then
                 ! Decrease the surface ice to melt it
                 sfs%tga(j,i) = ts1(j,i)
                 sfs%tgb(j,i) = ts1(j,i)

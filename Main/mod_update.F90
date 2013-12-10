@@ -96,7 +96,7 @@
 !-----------------------------------------------------------------------
 !
       use mod_bats_common, only : cplmsk
-      use mod_atm_interface , only : ldmsk
+      use mod_atm_interface , only : mddom
       use mod_dynparam, only : ice1, ice2, jce1, jce2
       use mod_dynparam, only : ici1, ici2, jci1, jci2
 !
@@ -173,7 +173,7 @@
           importFields%sit(j,i) = initval
           importFields%msk(j,i) = initval 
 !
-          ldmskb(j,i) = ldmsk(j,i)
+          ldmskb(j,i) = mddom%ldmsk(j,i)
           wetdry(j,i) = 0
         end do
       end do
@@ -187,8 +187,8 @@
 !-----------------------------------------------------------------------
 !
       use mod_constants
-      use mod_atm_interface, only : sfs, mddom , ldmsk
-      use mod_bats_common, only : ldmsk1, cplmsk, ntcpl, tgbrd
+      use mod_atm_interface, only : sfs, mddom , mdsub
+      use mod_bats_common, only : cplmsk, ntcpl, tgbrd
       use mod_bats_common, only : lveg, iveg1, sfice, sent, sncv, tgrd
       use mod_dynparam, only : ice1, ice2, jce1, jce2
       use mod_dynparam, only : ici1, ici2, jci1, jci2, nnsg
@@ -250,11 +250,11 @@
 !      if (importFields%msk(j,i) .lt. tol .and. ldmskb(j,i) == 0) then
 !        if (importFields%msk(j,i) .lt. 1.0) then
 !          flag = .false.
-!          if (ldmsk(j,i) == 0 .or. ldmsk(j,i) == 2) flag = .true.
+!          if (mddom%ldmsk(j,i) == 0 .or. mddom%ldmsk(j,i) == 2) flag = .true.
 !          ! set land-sea mask
-!          ldmsk(j,i) = 1
+!          mddom%ldmsk(j,i) = 1
 !          do n = 1, nnsg
-!            ldmsk1(n,j,i) = ldmsk(j,i)
+!            mdsub%ldmsk(n,j,i) = mddom%ldmsk(j,i)
 !          end do
 !          ! count land-use type in a specified search radius (srad)
 !          srad = 10
@@ -285,16 +285,16 @@
 !          ! write debug info
 !          if (flag) then
 !            write(*,20) jj, ii, 'water', 'land ',                       &
-!                        lveg(1,j,i), ldmsk(j,i)
+!                        lveg(1,j,i), mddom%ldmsk(j,i)
 !          end if
 !        else
-!          if (ldmsk(j,i) == 1 .and. wetdry(j,i) == 1) then
+!          if (mddom%ldmsk(j,i) == 1 .and. wetdry(j,i) == 1) then
 !            flag = .false.
-!            if (ldmskb(j,i) /= ldmsk(j,i)) flag = .true.
+!            if (ldmskb(j,i) /= mddom%ldmsk(j,i)) flag = .true.
 !            ! set land-sea mask to its original value
-!            ldmsk(j,i) = ldmskb(j,i)             
+!            mddom%ldmsk(j,i) = ldmskb(j,i)             
 !            do n = 1, nnsg
-!              ldmsk1(n,j,i) = ldmsk(j,i)
+!              mdsub%ldmsk(n,j,i) = mddom%ldmsk(j,i)
 !            end do
 !            ! set land-use type to its original value
 !            lveg(n,j,i) = iveg1(n,j,i)
@@ -303,7 +303,7 @@
 !            ! write debug info
 !            if (flag) then
 !              write(*,20) jj, ii, 'land ', 'water',                     &
-!                        lveg(1,j,i), ldmsk(j,i)
+!                        lveg(1,j,i), mddom%ldmsk(j,i)
 !            end if
 !          end if
 !        end if
@@ -313,14 +313,14 @@
 !     Update: Sea-ice, mask and land-use type (based on sea-ice module) 
 !-----------------------------------------------------------------------
 ! 
-      if (importFields%sit(j,i) < tol .and. ldmsk(j,i) /= 1) then
+      if (importFields%sit(j,i) < tol .and. mddom%ldmsk(j,i) /= 1) then
         if (importFields%sit(j,i) > iceminh) then
           flag = .false.
-          if (ldmsk(j,i) == 0) flag = .true.
+          if (mddom%ldmsk(j,i) == 0) flag = .true.
           ! set land-sea mask
-          ldmsk(j,i) = 2
+          mddom%ldmsk(j,i) = 2
           do n = 1, nnsg
-            ldmsk1(n,j,i) = 2
+            mdsub%ldmsk(n,j,i) = 2
             ! set land-use type
             lveg(n,j,i) = 12
             ! set sea ice thikness (in mm)
@@ -329,18 +329,18 @@
           ! write debug info
           if (flag) then
             write(*,30) jj, ii, 'water', 'ice  ',                       &
-                        lveg(1,j,i), ldmsk(j,i), sfice(1,j,i)
+                        lveg(1,j,i), mddom%ldmsk(j,i), sfice(1,j,i)
           end if
         else
-          if (ldmskb(j,i) == 0 .and. ldmsk(j,i) == 2) then
+          if (ldmskb(j,i) == 0 .and. mddom%ldmsk(j,i) == 2) then
             ! reduce to one tenth surface ice: it should melt away
             do n = 1, nnsg
               ! check that sea ice is melted or not
               if (sfice(n,j,i) <= iceminh) then
-                if (ldmskb(j,i) /= ldmsk(j,i)) flag = .true.
+                if (ldmskb(j,i) /= mddom%ldmsk(j,i)) flag = .true.
                 ! set land-sea mask to its original value
-                ldmsk(j,i) = ldmskb(j,i)
-                ldmsk1(n,j,i) = ldmskb(j,i)
+                mddom%ldmsk(j,i) = ldmskb(j,i)
+                mdsub%ldmsk(n,j,i) = ldmskb(j,i)
                 ! set land-use type to its original value
                 lveg(n,j,i) = iveg1(n,j,i)
                 ! set sea ice thikness (in mm)
@@ -352,7 +352,7 @@
             ! write debug info
             if (flag) then
               write(*,40) jj, ii, 'ice  ', 'water',                     &
-                          lveg(1,j,i), ldmsk(j,i), sfice(1,j,i)
+                          lveg(1,j,i), mddom%ldmsk(j,i), sfice(1,j,i)
             end if 
           end if           
         end if
@@ -387,7 +387,7 @@
       use mod_bats_common, only : sfps, t2m, q2m, evpr, sent, totpr, &
                                   u10m, v10m, srnof, trnof, rdnnsg,  &
                                   dailyrnf, taux, tauy, sncv, runoffcount
-      use mod_atm_interface, only : flw, flwd, fsw , ldmsk , solvs, &
+      use mod_atm_interface, only : flw, flwd, fsw , mddom , solvs, &
                                     solvsd
 !
       implicit none
@@ -436,7 +436,7 @@
 !-----------------------------------------------------------------------
 !
       if (mod(ktau+1,kday) == 0) then
-        where (ldmsk > 0)
+        where (mddom%ldmsk > 0)
           exportFields%rnof = dailyrnf(:,:,1)/runoffcount
           exportFields%snof = dailyrnf(:,:,2)/runoffcount
         else where

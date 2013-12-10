@@ -526,6 +526,7 @@ module mod_atm_interface
                              ide1-ma%ibb2,ide2+ma%ibt2,'storage:msfd')
       call getmem2d(dom%coriol,jde1,jde2,ide1,ide2,'storage:f')
       call getmem2d(dom%snowam,jde1,jde2,ide1,ide2,'storage:snowam')
+      call getmem2d(dom%ldmsk,jci1,jci2,ici1,ici2,'storage:ldmsk')
       if ( lakemod == 1 ) then
         call getmem2d(dom%dhlake,jde1,jde2,ide1,ide2,'storage:dhlake')
       end if
@@ -539,6 +540,7 @@ module mod_atm_interface
       call getmem3d(sub%xlat,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlat')
       call getmem3d(sub%xlon,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlon')
       call getmem3d(sub%mask,1,nnsg,jde1,jde2,ide1,ide2,'storage:xlon')
+      call getmem3d(sub%ldmsk,1,nnsg,jci1,jci2,ici1,ici2,'storage:ldmsk')
       if ( lakemod == 1 ) then
         call getmem3d(sub%dhlake,1,nnsg,jde1,jde2,ide1,ide2,'storage:dhlake')
       end if

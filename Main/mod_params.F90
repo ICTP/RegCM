@@ -1307,7 +1307,7 @@ module mod_params
   call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
   call init_bats(mddom,mdsub,atms,sfs,zpbl,pptc,pptnc,coszrs, &
                  fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs,    &
-                 aldirl,aldifl,solis,emiss,sinc,ldmsk,solvs,       &
+                 aldirl,aldifl,solis,emiss,sinc,solvs,       &
                  solvsd,solvl,solvld)
 #ifdef CLM
   allocate(landmask(jx,iy))
@@ -1333,7 +1333,7 @@ module mod_params
   call init_radiation
   if ( islab_ocean == 1 ) then
     call allocate_mod_slabocean
-    call init_slabocean(sfs,ldmsk,fsw,flw)
+    call init_slabocean(sfs,mddom%ldmsk,fsw,flw)
   end if
 !
   if ( myid == italk ) then
@@ -1487,14 +1487,14 @@ module mod_params
      do j = jci1 , jci2
        if ( mddom%lndcat(j,i) > 13.5D0 .and. &
             mddom%lndcat(j,i) < 15.5D0 ) then
-         ldmsk(j,i) = 0
+         mddom%ldmsk(j,i) = 0
          do n = 1, nnsg
-           ldmsk1(n,j,i) = 0
+           mdsub%ldmsk(n,j,i) = 0
          end do
        else
-         ldmsk(j,i) = 1
+         mddom%ldmsk(j,i) = 1
          do n = 1, nnsg
-           ldmsk1(n,j,i) = 1
+           mdsub%ldmsk(n,j,i) = 1
          end do
        end if
      end do
@@ -1902,7 +1902,7 @@ module mod_params
   if ( ibltyp == 1 .or. ibltyp == 99 ) then
     do i = ici1 , ici2
       do j = jci1 , jci2
-        if ( ldmsk(j,i) == 1 ) then
+        if ( mddom%ldmsk(j,i) == 1 ) then
           ricr(j,i) = ricr_lnd
         else
           ricr(j,i) = ricr_ocn
@@ -1916,7 +1916,7 @@ module mod_params
   if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
     do i = ici1 , ici2
       do j = jci1 , jci2
-        if ( ldmsk(j,i) == 1 ) then
+        if ( mddom%ldmsk(j,i) == 1 ) then
           elcrit2d(j,i) = elcrit_lnd
           epmax2d(j,i) = epmax_lnd
         else

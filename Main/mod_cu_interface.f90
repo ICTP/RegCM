@@ -129,7 +129,7 @@ module mod_cu_interface
     implicit none
     ! INPUT
     call assignpnt(mddom%ht,m2c%ht)
-    call assignpnt(ldmsk,m2c%ldmsk)
+    call assignpnt(mddom%ldmsk,m2c%ldmsk)
     call assignpnt(sfs%psb,m2c%psb)
     call assignpnt(atms%za,m2c%zas)
     call assignpnt(atms%zq,m2c%zfs)

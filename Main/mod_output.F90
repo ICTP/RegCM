@@ -323,14 +323,14 @@ module mod_output
         if ( associated(srf_evp_out) ) &
           srf_evp_out = srf_evp_out*rnsrf_for_srffrq
         if ( associated(srf_scv_out) ) then
-          where ( ldmsk > 0 )
+          where ( mddom%ldmsk > 0 )
             srf_scv_out = srf_scv_out*rnsrf_for_srffrq
           elsewhere
             srf_scv_out = dmissval
           end where
         end if
         if ( associated(srf_runoff_out) ) then
-          where ( ldmsk > 0 )
+          where ( mddom%ldmsk > 0 )
             srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1)*rnsrf_for_srffrq
             srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2)*rnsrf_for_srffrq - &
               srf_runoff_out(:,:,1)
@@ -412,7 +412,7 @@ module mod_output
         if ( associated(lak_tpr_out) ) &
           lak_tpr_out = lak_tpr_out*rnsrf_for_lakfrq
         if ( associated(lak_scv_out) ) then
-          where ( ldmsk > 0 )
+          where ( mddom%ldmsk > 0 )
             lak_scv_out = lak_scv_out*rnsrf_for_lakfrq
           else where
             lak_scv_out = dmissval
@@ -498,7 +498,7 @@ module mod_output
         if ( associated(sts_t2avg_out) ) &
           sts_t2avg_out = sts_t2avg_out*rnsrf_for_day
         if ( associated(sts_runoff_out) ) then
-          where ( ldmsk > 0 )
+          where ( mddom%ldmsk > 0 )
             sts_runoff_out(:,:,1) = sts_runoff_out(:,:,1)*rnsrf_for_day
             sts_runoff_out(:,:,2) = sts_runoff_out(:,:,2)*rnsrf_for_day - &
                                     sts_runoff_out(:,:,1)
@@ -620,7 +620,7 @@ module mod_output
         call subgrid_collect(taf,taf_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(tsw,tsw_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(sfcemiss,emiss_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(ldmsk1,ldmsk1_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(mdsub%ldmsk,ldmsk1_io,jci1,jci2,ici1,ici2)
 
         call grid_collect(solis,solis_io,jci1,jci2,ici1,ici2)
         call grid_collect(solvs,solvs_io,jci1,jci2,ici1,ici2)
@@ -632,7 +632,7 @@ module mod_output
         call grid_collect(flwd,flwd_io,jci1,jci2,ici1,ici2)
         call grid_collect(fsw,fsw_io,jci1,jci2,ici1,ici2)
         call grid_collect(sinc,sinc_io,jci1,jci2,ici1,ici2)
-        call grid_collect(ldmsk,ldmsk_io,jci1,jci2,ici1,ici2)
+        call grid_collect(mddom%ldmsk,ldmsk_io,jci1,jci2,ici1,ici2)
 
 #ifndef CLM
         if ( lakemod == 1 ) then

@@ -47,6 +47,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: coriol
     real(rk8) , pointer , dimension(:,:) :: snowam
     real(rk8) , pointer , dimension(:,:) :: dhlake
+    integer(ik4) , pointer , dimension(:,:) :: ldmsk
   end type domain
 
   type domain_subgrid
@@ -56,6 +57,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: xlon
     real(rk8) , pointer , dimension(:,:,:) :: mask
     real(rk8) , pointer , dimension(:,:,:) :: dhlake
+    integer(ik4) , pointer , dimension(:,:,:) :: ldmsk
   end type domain_subgrid
 
   type atmstate

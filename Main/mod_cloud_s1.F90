@@ -39,7 +39,7 @@ module mod_cloud_s1
   use mod_precip , only : fcc
   use mod_runparams , only : rtsrf
   use mod_service
-  use mod_atm_interface , only : ldmsk
+  use mod_atm_interface , only : mddom
 
   private
 
@@ -1359,7 +1359,7 @@ module mod_cloud_s1
                   ! land (polluted, high ccn, smaller droplets, higher
                   !       threshold)
                   ! sea  (clean, low ccn, larger droplets, lower threshold)
-                  if (ldmsk(j,i) == 0 ) then  ! landmask =0 land, =1 ocean
+                  if (mddom%ldmsk(j,i) == 0 ) then  ! landmask =0 land, =1 ocean
                     ! THRESHOLD VALUE FOR RAIN AUTOCONVERSION OVER LAND
                     zlcrit = rclcrit_land ! landrclcrit_land = 5.e-4_jprb
                   else
