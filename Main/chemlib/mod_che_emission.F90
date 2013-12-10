@@ -147,7 +147,7 @@ module mod_che_emission
 #endif
     end if
 
-    if ( iapin >0 ) then
+    if ( iapin > 0 ) then
 #if (defined VOC && defined CLM)
       jglob = global_dot_jstart+j-1
       if ( bvoc_trmask(iapin) /= 0 ) then
@@ -160,7 +160,7 @@ module mod_che_emission
 #endif
     end if
 
-    if ( ilimo >0 ) then
+    if ( ilimo > 0 ) then
 #if (defined VOC && defined CLM)
       jglob = global_dot_jstart+j-1
       if ( bvoc_trmask(ilimo) /= 0 ) then
@@ -172,54 +172,58 @@ module mod_che_emission
       end if
 #endif
     end if
-
     !
     ! add the source term to tracer tendency
     !
     if ( ichdrdepo /= 2 ) then  
       do itr = 1 , ntr
         do i = ici1 , ici2
-          if ( chtrname(itr)(1:4).eq.'DUST' .or. chtrname(itr)(1:4).eq.'SSLT' .or. chtrname(itr)(1:6).eq.'POLLEN' ) cycle 
-            chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
-            chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0D3)
-            ! diagnostic for source, cumul
-            cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
-            if ( ichdiag == 1 ) then
-             cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
-                        chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
-            end if 
-            
+          if ( chtrname(itr)(1:4) == 'DUST' .or. &
+               chtrname(itr)(1:4) == 'SSLT' .or. &
+               chtrname(itr)(1:6) == 'POLLEN' ) cycle 
+          chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
+              chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0D3)
+          ! diagnostic for source, cumul
+          cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
+          if ( ichdiag == 1 ) then
+            cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
+                chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
+          end if 
         end do
       end do
-    elseif ( ichdrdepo ==2) then
+    else if ( ichdrdepo == 2 ) then
       do itr = 1 , ntr
         do i = ici1 , ici2
           if ( chtrname(itr)(1:4).ne.'DUST' .or. &
                chtrname(itr)(1:4).ne.'SSLT' .or. &
                chtrname(itr)(1:6).ne.'POLLEN' ) then 
             ! if PBL scheme is not UW then calculate emission tendency
-            if (ibltyp .ne. 2 ) then
-             chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
-             chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0D3)
+            if ( ibltyp /= 2 ) then
+              chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
+                 chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0D3)
             end if 
-            ! otherwise emission is injected in the PBL scheme ( together with dry deposition)for tend calculation 
+            ! otherwise emission is injected in the PBL scheme ( together
+            ! with dry deposition) for tend calculation 
             chifxuw(j,i,itr) = chifxuw(j,i,itr) +  chemsrc(j,i,itr)
             ! diagnostic for source, cumul
             cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
             if ( ichdiag == 1 ) then
-            ! in this case we calculate emission  tendency diagnostic, but this term will also be included in BL tendency diagnostic 
-            ! if UW scheme is used.           
-            if(ibltyp .ne. 2) cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
-                        chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
+              ! in this case we calculate emission tendency diagnostic, but 
+              ! this term will also be included in BL tendency diagnostic 
+              ! if UW scheme is used.           
+              if ( ibltyp /= 2 ) then
+                cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
+                   chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
+              end if
             end if 
           end if 
         end do
       end do
     end if
     ! put back isop source to its nominal value 
-      if ( iisop > 0 ) then 
-        chemsrc(j,:,iisop) = tmpsrc(j,:,iisop)
-      end if 
+    if ( iisop > 0 ) then 
+      chemsrc(j,:,iisop) = tmpsrc(j,:,iisop)
+    end if 
 
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)

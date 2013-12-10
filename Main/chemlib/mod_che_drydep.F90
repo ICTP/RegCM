@@ -609,7 +609,8 @@ module mod_che_drydep
             end if
             ! diagnostic for dry deposition flux (in kg .m2.s-1) accumulated 
             remdrd(j,i,indsp(ib)) = remdrd(j,i,indsp(ib)) + &
-                                    chib3d(j,i,kz,indsp(ib)) *crhob3d(j,i,kz)*  ddepv(i,indsp(ib)) * cfdout                         
+                 chib3d(j,i,kz,indsp(ib)) *crhob3d(j,i,kz)* &
+                 ddepv(i,indsp(ib)) * cfdout                         
             ! no net flux is passed to BL schemes in this case
             chifxuw(j,i,indsp(ib)) = d_zero
             drydepv(j,i,indsp(ib)) = d_zero
