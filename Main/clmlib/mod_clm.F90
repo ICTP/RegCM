@@ -145,7 +145,6 @@ module mod_clm
   integer(ik4) , pointer , dimension(:) :: c2rngc
   integer(ik4) , pointer , dimension(:) :: c2rdisps
 !
-  real(rk8) , pointer , dimension(:,:) :: lndcat2d
   real(rk8) , pointer , dimension(:,:) :: rs2d
   real(rk8) , pointer , dimension(:,:) :: ra2d
 
@@ -236,7 +235,6 @@ module mod_clm
 
     call getmem2d(rs2d,jci1,jci2,ici1,ici2,'clm:rs2d')
     call getmem2d(ra2d,jci1,jci2,ici1,ici2,'clm:ra2d')
-    call getmem2d(lndcat2d,jci1,jci2,ici1,ici2,'clm:lndcat2d')
  
   end subroutine allocate_mod_clm
 !

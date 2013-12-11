@@ -48,6 +48,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: snowam
     real(rk8) , pointer , dimension(:,:) :: dhlake
     integer(ik4) , pointer , dimension(:,:) :: ldmsk
+    integer(ik4) , pointer , dimension(:,:) :: iveg
   end type domain
 
   type domain_subgrid
@@ -58,6 +59,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: mask
     real(rk8) , pointer , dimension(:,:,:) :: dhlake
     integer(ik4) , pointer , dimension(:,:,:) :: ldmsk
+    integer(ik4) , pointer , dimension(:,:,:) :: iveg
   end type domain_subgrid
 
   type atmstate

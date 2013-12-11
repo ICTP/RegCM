@@ -189,7 +189,7 @@
       use mod_constants
       use mod_atm_interface, only : sfs, mddom , mdsub
       use mod_bats_common, only : cplmsk, ntcpl, tgbrd
-      use mod_bats_common, only : lveg, iveg1, sfice, sent, sncv, tgrd
+      use mod_bats_common, only : lveg, sfice, sent, sncv, tgrd
       use mod_dynparam, only : ice1, ice2, jce1, jce2
       use mod_dynparam, only : ici1, ici2, jci1, jci2, nnsg
       use mod_dynparam, only : global_cross_istart, global_cross_jstart
@@ -270,7 +270,7 @@
 !          do ix = imin, imax
 !            do jy = jmin, jmax
 !              do n = 1, nnsg
-!                hveg(iveg1(n,jy,ix)) = hveg(iveg1(n,jy,ix))+1
+!                hveg(mdsub%iveg(n,jy,ix)) = hveg(mdsub%iveg(n,jy,ix))+1
 !              end do
 !            end do
 !          end do        
@@ -297,7 +297,7 @@
 !              mdsub%ldmsk(n,j,i) = mddom%ldmsk(j,i)
 !            end do
 !            ! set land-use type to its original value
-!            lveg(n,j,i) = iveg1(n,j,i)
+!            lveg(n,j,i) = mdsub%iveg(n,j,i)
 !            ! set array to store change
 !            wetdry(j,i) = 0
 !            ! write debug info
@@ -342,7 +342,7 @@
                 mddom%ldmsk(j,i) = ldmskb(j,i)
                 mdsub%ldmsk(n,j,i) = ldmskb(j,i)
                 ! set land-use type to its original value
-                lveg(n,j,i) = iveg1(n,j,i)
+                lveg(n,j,i) = mdsub%iveg(n,j,i)
                 ! set sea ice thikness (in mm)
                 sfice(n,j,i) = d_zero 
               else

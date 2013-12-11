@@ -42,13 +42,13 @@ module mod_che_interface
 !
 #if (defined CLM)
   subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,          &
-                       rembc,remrat,coszrs,iveg,svegfrac2d,           &
+                       rembc,remrat,coszrs,svegfrac2d,                &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdeltk2d,     &
                        sdelqk2d,ssw2da,convpr,icutop,icubot,taucldsp, &
                        voc_em,voc_em1,voc_em2,dep_vels)
 #else
   subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,      &
-                       rembc,remrat,coszrs,iveg,svegfrac2d,       &
+                       rembc,remrat,coszrs,svegfrac2d,            &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdeltk2d, &
                        sdelqk2d,ssw2da,convpr,icutop,icubot,      &
                        taucldsp)
@@ -65,7 +65,7 @@ module mod_che_interface
              sdelqk2d , ssw2da , sfracv2d , sfracb2d , sfracs2d
     real(rk8), pointer, dimension(:,:,:) :: cldfra , rembc , remrat , convpr
     real(rk8), pointer, dimension(:,:,:,:) :: taucldsp
-    integer(ik4) , pointer , dimension(:,:)  :: icutop , icubot, iveg
+    integer(ik4) , pointer , dimension(:,:)  :: icutop , icubot
     type(slice) , intent(in) :: atms
     type(domain) , intent(in) :: mddom
     type(surfstate) , intent(in) :: sfs
@@ -91,6 +91,7 @@ module mod_che_interface
     call assignpnt(mddom%lndcat,clndcat)
     call assignpnt(mddom%xlat,cxlat)
     call assignpnt(mddom%ht,cht)
+    call assignpnt(mddom%iveg,cveg2d) 
     call assignpnt(sfs%psb,cpsb)
     call assignpnt(xpsb%b0,psbb0)
     call assignpnt(xpsb%b1,psbb1)
@@ -109,7 +110,6 @@ module mod_che_interface
 
     call assignpnt(sdeltk2d,csdeltk2d) 
     call assignpnt(sdelqk2d,csdelqk2d)
-    call assignpnt(iveg,cveg2d) 
 
     call assignpnt(atms%za,cza)
     call assignpnt(atms%dzq,cdzq)

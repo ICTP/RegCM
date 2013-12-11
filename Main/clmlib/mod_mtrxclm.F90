@@ -417,26 +417,8 @@ module mod_mtrxclm
             lndcat1(n,j,i) = clm2bats_veg(jg,ig)
             if ( clm2bats_veg(jg,ig) < 0.1D0 ) lndcat1(n,j,i) = 15.0D0
           end do
-          iveg(j,i) = idnint(lndcat(j,i))
-          do n = 1 , nnsg
-            iveg1(n,j,i) = idnint(lndcat1(n,j,i))
-          end do
-          if ( ( iveg(j,i) == 14 .or. iveg(j,i) == 15 ) .and. &
-                 landmsk(j,i) /= 0 ) then
-            iveg(j,i)   =  2
-            lndcat(j,i) =  d_two
-          end if
-          do n = 1 , nnsg
-            if ( ( iveg1(n,j,i) == 14 .or. iveg1(n,j,i) == 15 ) .and. &
-                 ldmsk1(n,j,i) /= 0 ) then
-              iveg1(n,j,i)   =  2
-              lndcat1(n,j,i) =  d_two
-            end if
-          end do
         end do
       end do
-      ! Save CLM modified landuse for restart
-      lndcat2d(jci1:jci2,ici1:ici2) = lndcat(jci1:jci2,ici1:ici2)
     end if !end ifrest test
 
     ! deallocate some variables used in CLM initialization only

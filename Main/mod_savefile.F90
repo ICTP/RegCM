@@ -152,7 +152,7 @@ module mod_savefile
   real(rk8) , public , pointer , dimension(:,:,:) :: qflux_restore_sst_io
 
 #ifdef CLM
-  real(rk8) , public , pointer , dimension(:,:) :: lndcat2d_io
+  real(rk8) , public , pointer , dimension(:,:) :: lndcat_io
 #endif
 
   contains
@@ -270,7 +270,9 @@ module mod_savefile
         call getmem3d(tbase_io,jcross1,jcross2,icross1,icross2,1,kz,'tbase_io')
       end if
 #ifdef CLM
-      call getmem2d(lndcat2d_io,jcross1,jcross2,icross1,icross2,'lndcat2d_io')
+      if ( imask == 2 ) then
+        call getmem2d(lndcat_io,jcross1,jcross2,icross1,icross2,'lndcat_io')
+      end if
 #else
       if ( lakemod == 1 ) then
         call getmem3d(eta_io,1,nnsg,jcross1,jcross2,icross1,icross2,'eta_io')
@@ -523,8 +525,10 @@ module mod_savefile
         call check_ok(__FILE__,__LINE__,'Cannot read stepcount')
       end if
 #ifdef CLM
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'lndcat2d'),lndcat2d_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read lndcat2d')
+      if ( imask == 2 ) then
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'lndcat'),lndcat_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read lndcat')
+      end if
 #endif
       ncstatus = nf90_close(ncid)
       call check_ok(__FILE__,__LINE__,'Cannot close savefile '//trim(ffin))
@@ -860,11 +864,13 @@ module mod_savefile
         call check_ok(__FILE__,__LINE__,'Cannot create var stepcount')
       end if
 #ifdef CLM
-      wrkdim(1) = dimids(idjcross)
-      wrkdim(2) = dimids(idicross)
-      ncstatus = nf90_def_var(ncid,'lndcat2d',nf90_double,wrkdim(1:2), &
-                              varids(86))
-      call check_ok(__FILE__,__LINE__,'Cannot create var lndcat2d')
+      if ( imask == 2 ) then
+        wrkdim(1) = dimids(idjcross)
+        wrkdim(2) = dimids(idicross)
+        ncstatus = nf90_def_var(ncid,'lndcat',nf90_double,wrkdim(1:2), &
+                                varids(86))
+        call check_ok(__FILE__,__LINE__,'Cannot create var lndcat')
+      end if
 #endif
 
       ncstatus = nf90_put_att(ncid,nf90_global,'ktau',ktau)
@@ -1078,8 +1084,10 @@ module mod_savefile
         call check_ok(__FILE__,__LINE__,'Cannot write stepcount')
       end if
 #ifdef CLM
-      ncstatus = nf90_put_var(ncid,varids(86),lndcat2d_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write lndcat2d')
+      if ( imask == 2 ) then
+        ncstatus = nf90_put_var(ncid,varids(86),lndcat_io)
+        call check_ok(__FILE__,__LINE__,'Cannot write lndcat')
+      end if
 #endif
       ncstatus = nf90_close(ncid)
       call check_ok(__FILE__,__LINE__,'Cannot close savefile '//trim(ffout))

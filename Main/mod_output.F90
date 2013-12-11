@@ -648,7 +648,9 @@ module mod_output
           call subgrid_collect(tlake,tlak_io,jci1,jci2,ici1,ici2,1,ndpmax)
         end if
 #else
-        call grid_collect(lndcat2d,lndcat2d_io,jci1,jci2,ici1,ici2)
+        if ( imask == 2 ) then
+          call grid_collect(mddom%lndcat,lndcat_io,jci1,jci2,ici1,ici2)
+        end if
 #endif
         if ( idcsst == 1 ) then
           call grid_collect(dtskin,dtskin_io,jci1,jci2,ici1,ici2)

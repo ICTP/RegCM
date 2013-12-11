@@ -350,14 +350,13 @@ module mod_init
       call lake_fillvar(var_tlak,tlake,1)
     endif
 #else
-    call grid_distribute(lndcat2d_io,lndcat2d,jci1,jci2,ici1,ici2)
     !
     ! CLM modifies landuse table. Get the modified one from restart file
     !
     if ( imask == 2 ) then
-      mddom%lndcat(jci1:jci2,ici1:ici2) = lndcat2d(jci1:jci2,ici1:ici2)
+      call grid_distribute(lndcat_io,mddom%lndcat,jci1,jci2,ici1,ici2)
       do n = 1 , nnsg
-        mdsub%lndcat(n,jci1:jci2,ici1:ici2) = lndcat2d(jci1:jci2,ici1:ici2)
+        mdsub%lndcat(n,jci1:jci2,ici1:ici2) = mddom%lndcat(jci1:jci2,ici1:ici2)
       end do
     end if
 #endif
@@ -465,9 +464,9 @@ module mod_init
   !
   do i = ici1 , ici2
     do j = jci1 , jci2
-      iveg(j,i) = idnint(mddom%lndcat(j,i))
+      mddom%iveg(j,i) = idnint(mddom%lndcat(j,i))
       do n = 1 , nnsg
-        iveg1(n,j,i) = idnint(mdsub%lndcat(n,j,i))
+        mdsub%iveg(n,j,i) = idnint(mdsub%lndcat(n,j,i))
       end do
     end do
   end do
@@ -480,6 +479,27 @@ module mod_init
 #ifdef CLM
   call mkslice
   call initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf,igaschem,iaerosol,chtrname)
+  if ( ktau == 0 .and. imask == 2 ) then
+    ! CLM may have changed the landuse again !
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        mddom%iveg(j,i) = idnint(mddom%lndcat(j,i))
+      end do
+    end do
+    ! Correct land/water misalign : set to short grass
+    where ( (mddom%iveg == 14 .or. mddom%iveg == 15) .and. mddom%ldmsk == 1 )
+      mddom%iveg = 2
+      mddom%lndcat = d_two
+    end where
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          mdsub%iveg(n,j,i) = mddom%iveg(j,i)
+          mdsub%lndcat(n,j,i) = mddom%lndcat(j,i)
+        end do
+     end do
+    end do
+  end if
 #endif
   !  
   ! Calculate topographical correction to diffusion coefficient
