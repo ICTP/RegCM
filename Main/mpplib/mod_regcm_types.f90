@@ -163,6 +163,35 @@ module mod_regcm_types
     integer(ik4) , pointer , dimension(:,:) :: ibnd
   end type bound_area
 
+  type exp_data
+    real(rk8) , pointer , dimension(:,:) :: psfc
+    real(rk8) , pointer , dimension(:,:) :: tsfc
+    real(rk8) , pointer , dimension(:,:) :: qsfc
+    real(rk8) , pointer , dimension(:,:) :: swrd
+    real(rk8) , pointer , dimension(:,:) :: lwrd
+    real(rk8) , pointer , dimension(:,:) :: dlwr
+    real(rk8) , pointer , dimension(:,:) :: lhfx
+    real(rk8) , pointer , dimension(:,:) :: shfx
+    real(rk8) , pointer , dimension(:,:) :: prec
+    real(rk8) , pointer , dimension(:,:) :: wndu
+    real(rk8) , pointer , dimension(:,:) :: wndv
+    real(rk8) , pointer , dimension(:,:) :: rnof
+    real(rk8) , pointer , dimension(:,:) :: snof
+    real(rk8) , pointer , dimension(:,:) :: taux
+    real(rk8) , pointer , dimension(:,:) :: tauy
+    real(rk8) , pointer , dimension(:,:) :: wspd
+    real(rk8) , pointer , dimension(:,:) :: nflx
+    real(rk8) , pointer , dimension(:,:) :: sflx
+    real(rk8) , pointer , dimension(:,:) :: snow
+    real(rk8) , pointer , dimension(:,:) :: dswr
+  end type exp_data
+
+  type imp_data
+    real(rk8) , pointer , dimension(:,:) :: sst
+    real(rk8) , pointer , dimension(:,:) :: sit
+    real(rk8) , pointer , dimension(:,:) :: msk
+  end type imp_data
+
   type atm_2_lm
     real(rk8) , pointer , dimension(:,:) :: sfps
     real(rk8) , pointer , dimension(:,:) :: tatm

@@ -27,7 +27,7 @@ module mod_bats_common
   use mod_dynparam
   use mod_bats_param
   use mod_bats_internal , only : allocate_mod_bats_internal
-!
+
   real(rk8) :: dtbat  ! BATS1e internal timestep
   real(rk8) :: dtlake ! Lake model internal timestep
 
@@ -42,33 +42,32 @@ module mod_bats_common
   real(rk4) :: fdaysrf
 
   ! TO be pushed in savefile
-  real(rk8) , pointer , dimension(:,:,:) :: taf
+  real(rk8) , pointer , dimension(:,:,:) :: ldew
+  real(rk8) , pointer , dimension(:,:,:) :: gwet
+  real(rk8) , pointer , dimension(:,:,:) :: snag
+  real(rk8) , pointer , dimension(:,:,:) :: sncv
+  real(rk8) , pointer , dimension(:,:,:) :: sfice
   real(rk8) , pointer , dimension(:,:,:) :: rsw
   real(rk8) , pointer , dimension(:,:,:) :: ssw
   real(rk8) , pointer , dimension(:,:,:) :: tsw
+  real(rk8) , pointer , dimension(:,:,:) :: taf
+  real(rk8) , pointer , dimension(:,:,:) :: tgrd
+  real(rk8) , pointer , dimension(:,:,:) :: tgbrd
+  real(rk8) , pointer , dimension(:,:,:) :: tlef
+  real(rk8) , pointer , dimension(:,:,:) :: sfcemiss
 
   real(rk8) , pointer , dimension(:,:,:) :: drag
   real(rk8) , pointer , dimension(:,:,:) :: evpr
-  real(rk8) , pointer , dimension(:,:,:) :: gwet
-  real(rk8) , pointer , dimension(:,:,:) :: ldew
   real(rk8) , pointer , dimension(:,:,:) :: q2m
   real(rk8) , pointer , dimension(:,:,:) :: sfcp
   real(rk8) , pointer , dimension(:,:,:) :: trnof
   real(rk8) , pointer , dimension(:,:,:) :: srnof
-  real(rk8) , pointer , dimension(:,:,:) :: snag
-  real(rk8) , pointer , dimension(:,:,:) :: sncv
   real(rk8) , pointer , dimension(:,:,:) :: sent
-  real(rk8) , pointer , dimension(:,:,:) :: sfice
   real(rk8) , pointer , dimension(:,:,:) :: t2m
-  real(rk8) , pointer , dimension(:,:,:) :: tgrd
-  real(rk8) , pointer , dimension(:,:,:) :: tgbrd
-  real(rk8) , pointer , dimension(:,:,:) :: tlef
   real(rk8) , pointer , dimension(:,:,:) :: u10m
   real(rk8) , pointer , dimension(:,:,:) :: v10m
-  real(rk8) , pointer , dimension(:,:,:) :: lncl
   real(rk8) , pointer , dimension(:,:,:) :: taux
   real(rk8) , pointer , dimension(:,:,:) :: tauy
-  real(rk8) , pointer , dimension(:,:,:) :: sfcemiss
   real(rk8) , pointer , dimension(:,:,:) :: cdrx
   real(rk8) , pointer , dimension(:,:,:) :: prcp
 !
@@ -211,7 +210,6 @@ module mod_bats_common
       call getmem3d(taux,1,nnsg,jci1,jci2,ici1,ici2,'bats:taux')
       call getmem3d(tauy,1,nnsg,jci1,jci2,ici1,ici2,'bats:tauy')
       call getmem3d(sfcemiss,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfcemiss')
-      call getmem3d(lncl,1,nnsg,jci1,jci2,ici1,ici2,'bats:lncl')
 
       if ( lakemod == 1 ) then
         call getmem3d(lakemsk,1,nnsg,jci1,jci2,ici1,ici2,'bats:lakemsk')

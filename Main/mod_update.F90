@@ -25,40 +25,12 @@
 !
        use mod_intkinds, only : ik4
        use mod_realkinds, only : rk8
+       use mod_regcm_types
        use mod_memutil
 !
       implicit none
       private
 
-      type exp_data
-        real(rk8), pointer :: psfc(:,:)
-        real(rk8), pointer :: tsfc(:,:)
-        real(rk8), pointer :: qsfc(:,:)
-        real(rk8), pointer :: swrd(:,:)
-        real(rk8), pointer :: lwrd(:,:)
-        real(rk8), pointer :: dlwr(:,:)
-        real(rk8), pointer :: lhfx(:,:)
-        real(rk8), pointer :: shfx(:,:)
-        real(rk8), pointer :: prec(:,:)
-        real(rk8), pointer :: wndu(:,:)
-        real(rk8), pointer :: wndv(:,:)
-        real(rk8), pointer :: rnof(:,:)
-        real(rk8), pointer :: snof(:,:)
-        real(rk8), pointer :: taux(:,:)
-        real(rk8), pointer :: tauy(:,:)
-        real(rk8), pointer :: wspd(:,:)
-        real(rk8), pointer :: nflx(:,:)
-        real(rk8), pointer :: sflx(:,:)
-        real(rk8), pointer :: snow(:,:)
-        real(rk8), pointer :: dswr(:,:)
-      end type exp_data      
-!
-      type imp_data
-        real(rk8), pointer :: sst(:,:)
-        real(rk8), pointer :: sit(:,:)
-        real(rk8), pointer :: msk(:,:)
-      end type imp_data
-!
       type(imp_data), public :: importFields
       type(exp_data), public :: exportFields
 !
@@ -189,7 +161,7 @@
       use mod_constants
       use mod_atm_interface, only : sfs, mddom , mdsub
       use mod_bats_common, only : cplmsk, ntcpl, tgbrd
-      use mod_bats_common, only : lveg, sfice, sent, sncv, tgrd
+      use mod_bats_common, only : sfice, sent, sncv, tgrd
       use mod_dynparam, only : ice1, ice2, jce1, jce2
       use mod_dynparam, only : ici1, ici2, jci1, jci2, nnsg
       use mod_dynparam, only : global_cross_istart, global_cross_jstart
@@ -276,16 +248,12 @@
 !          end do        
 !          hveg(14) = 0
 !          hveg(15) = 0
-!          ! set land-use type to dominant value
-!          do n = 1, nnsg
-!            lveg(n,j,i) = maxloc(hveg, dim=1)
-!          end do
 !          ! set array to store change
 !          wetdry(j,i) = 1
 !          ! write debug info
 !          if (flag) then
 !            write(*,20) jj, ii, 'water', 'land ',                       &
-!                        lveg(1,j,i), mddom%ldmsk(j,i)
+!                        mddom%ldmsk(j,i)
 !          end if
 !        else
 !          if (mddom%ldmsk(j,i) == 1 .and. wetdry(j,i) == 1) then
@@ -296,14 +264,12 @@
 !            do n = 1, nnsg
 !              mdsub%ldmsk(n,j,i) = mddom%ldmsk(j,i)
 !            end do
-!            ! set land-use type to its original value
-!            lveg(n,j,i) = mdsub%iveg(n,j,i)
 !            ! set array to store change
 !            wetdry(j,i) = 0
 !            ! write debug info
 !            if (flag) then
 !              write(*,20) jj, ii, 'land ', 'water',                     &
-!                        lveg(1,j,i), mddom%ldmsk(j,i)
+!                        mddom%ldmsk(j,i)
 !            end if
 !          end if
 !        end if
@@ -321,15 +287,13 @@
           mddom%ldmsk(j,i) = 2
           do n = 1, nnsg
             mdsub%ldmsk(n,j,i) = 2
-            ! set land-use type
-            lveg(n,j,i) = 12
             ! set sea ice thikness (in mm)
             sfice(n,j,i) = importFields%sit(j,i) 
           end do
           ! write debug info
           if (flag) then
             write(*,30) jj, ii, 'water', 'ice  ',                       &
-                        lveg(1,j,i), mddom%ldmsk(j,i), sfice(1,j,i)
+                        mddom%ldmsk(j,i), sfice(1,j,i)
           end if
         else
           if (ldmskb(j,i) == 0 .and. mddom%ldmsk(j,i) == 2) then
@@ -342,7 +306,6 @@
                 mddom%ldmsk(j,i) = ldmskb(j,i)
                 mdsub%ldmsk(n,j,i) = ldmskb(j,i)
                 ! set land-use type to its original value
-                lveg(n,j,i) = mdsub%iveg(n,j,i)
                 ! set sea ice thikness (in mm)
                 sfice(n,j,i) = d_zero 
               else
@@ -352,7 +315,7 @@
             ! write debug info
             if (flag) then
               write(*,40) jj, ii, 'ice  ', 'water',                     &
-                          lveg(1,j,i), mddom%ldmsk(j,i), sfice(1,j,i)
+                          mddom%ldmsk(j,i), sfice(1,j,i)
             end if 
           end if           
         end if
@@ -367,11 +330,11 @@
 !-----------------------------------------------------------------------
 !
  20   format(' ATM land-sea mask is changed at (',I3,',',I3,') : ',     &
-             A5,' --> ',A5,' [',I2,' - ',I2,']')
+             A5,' --> ',A5,' [',I2,']')
  30   format(' ATM sea-ice is formed at (',I3,',',I3,') : ',            &
-             A5,' --> ',A5,' [',I2,' - ',I2,' - ',F12.4,']')
+             A5,' --> ',A5,' ['I2,' - ',F12.4,']')
  40   format(' ATM sea-ice is melted at (',I3,',',I3,') : ',       &
-             A5,' --> ',A5,' [',I2,' - ',I2,' - ',F12.4,']')
+             A5,' --> ',A5,' [',I2,' - ',F12.4,']')
 !
       end subroutine RCM_Get
 !

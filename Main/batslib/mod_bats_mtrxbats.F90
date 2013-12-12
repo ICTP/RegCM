@@ -772,16 +772,6 @@ module mod_bats_mtrxbats
     ! 1. set initial parameters
     ! =================================================================
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          lveg(n,j,i) = iveg1(n,j,i)
-          if ( ldmsk1(n,j,i) == 2 ) then
-            lveg(n,j,i) = 12
-          end if
-        end do
-      end do
-    end do
     !
     ! Desert seasonal albedo
     ! Works for Sahara desert and generally northern emisphere
