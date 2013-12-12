@@ -29,6 +29,7 @@ module mod_bats_internal
   public
 
   real(rk8) , pointer , dimension(:,:,:) :: delq
+  real(rk8) , pointer , dimension(:,:,:) :: delt
   real(rk8) , pointer , dimension(:,:,:) :: rnof
   real(rk8) , pointer , dimension(:,:,:) :: rsubst
   real(rk8) , pointer , dimension(:,:,:) :: rsur
@@ -161,6 +162,7 @@ module mod_bats_internal
   subroutine allocate_mod_bats_internal
     implicit none
     call getmem3d(delq,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:delq')
+    call getmem3d(delt,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:delt')
     call getmem3d(lfta,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:lfta')
     call getmem3d(lftb,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:lftb')
     call getmem3d(lftra,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:lftra')

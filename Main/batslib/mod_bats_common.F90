@@ -41,14 +41,42 @@ module mod_bats_common
   ! How many soil model steps for a day
   real(rk4) :: fdaysrf
 
-  real(rk8) , pointer , dimension(:,:,:) :: delt ,  taf , &
-         drag , evpr , gwet , ldew , q2m , sfcp , trnof ,        &
-         srnof , rsw , snag , sncv , sent , sfice , ssw ,        &
-         t2m , tgrd , tgbrd , tlef , tsw , u10m , v10m , lncl ,  &
-         taux , tauy , sfcemiss , cdrx , prcp
+  ! TO be pushed in savefile
+  real(rk8) , pointer , dimension(:,:,:) :: taf
+  real(rk8) , pointer , dimension(:,:,:) :: rsw
+  real(rk8) , pointer , dimension(:,:,:) :: ssw
+  real(rk8) , pointer , dimension(:,:,:) :: tsw
+
+  real(rk8) , pointer , dimension(:,:,:) :: drag
+  real(rk8) , pointer , dimension(:,:,:) :: evpr
+  real(rk8) , pointer , dimension(:,:,:) :: gwet
+  real(rk8) , pointer , dimension(:,:,:) :: ldew
+  real(rk8) , pointer , dimension(:,:,:) :: q2m
+  real(rk8) , pointer , dimension(:,:,:) :: sfcp
+  real(rk8) , pointer , dimension(:,:,:) :: trnof
+  real(rk8) , pointer , dimension(:,:,:) :: srnof
+  real(rk8) , pointer , dimension(:,:,:) :: snag
+  real(rk8) , pointer , dimension(:,:,:) :: sncv
+  real(rk8) , pointer , dimension(:,:,:) :: sent
+  real(rk8) , pointer , dimension(:,:,:) :: sfice
+  real(rk8) , pointer , dimension(:,:,:) :: t2m
+  real(rk8) , pointer , dimension(:,:,:) :: tgrd
+  real(rk8) , pointer , dimension(:,:,:) :: tgbrd
+  real(rk8) , pointer , dimension(:,:,:) :: tlef
+  real(rk8) , pointer , dimension(:,:,:) :: u10m
+  real(rk8) , pointer , dimension(:,:,:) :: v10m
+  real(rk8) , pointer , dimension(:,:,:) :: lncl
+  real(rk8) , pointer , dimension(:,:,:) :: taux
+  real(rk8) , pointer , dimension(:,:,:) :: tauy
+  real(rk8) , pointer , dimension(:,:,:) :: sfcemiss
+  real(rk8) , pointer , dimension(:,:,:) :: cdrx
+  real(rk8) , pointer , dimension(:,:,:) :: prcp
 !
-  real(rk8) , pointer , dimension(:,:) :: ssw2da , &
-        sfracv2d , sfracb2d , sfracs2d , svegfrac2d
+  real(rk8) , pointer , dimension(:,:) :: ssw2da
+  real(rk8) , pointer , dimension(:,:) :: sfracv2d
+  real(rk8) , pointer , dimension(:,:) :: sfracb2d
+  real(rk8) , pointer , dimension(:,:) :: sfracs2d
+  real(rk8) , pointer , dimension(:,:) :: svegfrac2d
 !
   integer(ik4) , pointer , dimension(:,:,:) :: lakemsk
   integer(ik4) , pointer , dimension(:,:) :: landmsk
@@ -58,7 +86,9 @@ module mod_bats_common
   integer(ik4) , pointer , dimension(:,:) :: cplmsk
   real(rk8) :: runoffcount = 0.0D0
   ! dtskin is difference between skin temp and bulk sst
-  real(rk8) , pointer , dimension(:,:) :: deltas , tdeltas , dtskin
+  real(rk8) , pointer , dimension(:,:) :: deltas
+  real(rk8) , pointer , dimension(:,:) :: tdeltas
+  real(rk8) , pointer , dimension(:,:) :: dtskin
   real(rk8) , pointer , dimension(:,:) :: sst
   ! Lake model
   real(rk8) , pointer , dimension(:,:,:,:) :: tlake
@@ -146,7 +176,6 @@ module mod_bats_common
         call getmem2d(svegfrac2d,jci1,jci2,ici1,ici2,'bats:svegfrac2d')
       end if
 
-      call getmem3d(delt,1,nnsg,jci1,jci2,ici1,ici2,'bats:delt')
       call getmem3d(gwet,1,nnsg,jci1,jci2,ici1,ici2,'bats:gwet')
       call getmem3d(rsw,1,nnsg,jci1,jci2,ici1,ici2,'bats:rsw')
       call getmem3d(snag,1,nnsg,jci1,jci2,ici1,ici2,'bats:snag')
