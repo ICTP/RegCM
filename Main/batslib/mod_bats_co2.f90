@@ -76,7 +76,7 @@ module mod_bats_co2
               rsp = lftrs(n,j,i)*1.7D0
               rap = lftra(n,j,i)*1.5D0
               rt = rsp + rap + rmp
-              rcar = carbon(solar(j,i)*rlai(n,j,i),tlef(n,j,i),rt, &
+              rcar = carbon(swsi(n,j,i)*rlai(n,j,i),tlef(n,j,i),rt, &
                             tgrd(n,j,i),xlai(n,j,i),xlsai(n,j,i))
               cari = sigf(n,j,i)*xlsai(n,j,i)*fdry(n,j,i)*rcar
               apbm = apbm + cari*dtbat

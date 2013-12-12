@@ -354,6 +354,7 @@ module mod_bats_mtrxbats
           hl = lh0 - lh1*(ts0-tzero)
           satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/ts0))
           rh0 = dmax1(qs0/(ep2*satvp/(p0*0.01D0-satvp)),d_zero)
+          solvt = swdif(j,i) + swdir(j,i)
           do n = 1 , nnsg
             qs(n,j,i) = qs0
             sts(n,j,i) = ts0-lrate*regrav*(ht1(n,j,i)-ht(j,i))
@@ -362,9 +363,9 @@ module mod_bats_mtrxbats
             satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/sts(n,j,i)))
             qs(n,j,i) = dmax1(rh0*ep2*satvp/(sfcp(n,j,i)*0.01D0-satvp),d_zero)
             rhs(n,j,i) = sfcp(n,j,i)/(rgas*sts(n,j,i))
+            czenith(n,j,i) = zencos(j,i)
             ! Average over the priod
             prcp(n,j,i) = (ncprate(j,i) + cprate(j,i))*rtsrf
-            totpr(j,i) = (ncprate(j,i) + cprate(j,i))*rtsrf
             !
             ! quantities stored on 2d surface array for bats use only
             !
@@ -385,6 +386,14 @@ module mod_bats_mtrxbats
             zlgveg(n,j,i) = dlog(zh(n,j,i)/rough(lveg(n,j,i)))
             zlgdis(n,j,i) = dlog(zh(n,j,i)-displa(lveg(n,j,i)) / &
                                            rough(lveg(n,j,i)))
+            if ( solvt > d_zero ) then
+              fracd(n,j,i) = swdif(j,i)/solvt
+            else
+              fracd(n,j,i) = 0.2D0
+            end if
+            usw(n,j,i) = uatm(j,i)
+            vsw(n,j,i) = vatm(j,i)
+            swsi(n,j,i) = solar(j,i)
           end do
  
           rh0 = d_zero
@@ -396,14 +405,6 @@ module mod_bats_mtrxbats
             qs(n,j,i) = dmax1(qs(n,j,i)-rh0,d_zero)
           end do
  
-          usw(j,i) = uatm(j,i)
-          vsw(j,i) = vatm(j,i)
-          solvt = swdif(j,i) + swdir(j,i)
-          if ( solvt > d_zero ) then
-            fracd(j,i) = swdif(j,i)/solvt
-          else
-            fracd(j,i) = 0.2D0
-          end if
         end do
 
       end do
@@ -457,16 +458,16 @@ module mod_bats_mtrxbats
               facb = z10fra(n,j,i)/zlglnd(n,j,i)
               facs = z10fra(n,j,i)/zlgsno(n,j,i)
               factuv = fracv*facv + fracb*facb + fracs*facs
-              u10m(n,j,i) = usw(j,i)*(d_one-factuv)
-              v10m(n,j,i) = vsw(j,i)*(d_one-factuv)
+              u10m(n,j,i) = usw(n,j,i)*(d_one-factuv)
+              v10m(n,j,i) = vsw(n,j,i)*(d_one-factuv)
               t2m(n,j,i) = sts(n,j,i) - delt(n,j,i)*fact
               q2m(n,j,i) = qs(n,j,i) - delq(n,j,i)*fact
             else
               if ( iocnflx == 1 ) then
                 fact = z2fra(n,j,i)/zlgocn(n,j,i)
                 factuv = z10fra(n,j,i)/zlgocn(n,j,i)
-                u10m(n,j,i) = usw(j,i)*(d_one-factuv)
-                v10m(n,j,i) = vsw(j,i)*(d_one-factuv)
+                u10m(n,j,i) = usw(n,j,i)*(d_one-factuv)
+                v10m(n,j,i) = vsw(n,j,i)*(d_one-factuv)
                 t2m(n,j,i) = sts(n,j,i) - delt(n,j,i)*fact
                 q2m(n,j,i) = qs(n,j,i) - delq(n,j,i)*fact
               end if
@@ -530,7 +531,7 @@ module mod_bats_mtrxbats
           if ( associated(srf_evp_out) ) &
             srf_evp_out = srf_evp_out + sum(evpr,1)*rdnnsg
           if ( associated(srf_tpr_out) ) &
-            srf_tpr_out = srf_tpr_out + totpr
+            srf_tpr_out = srf_tpr_out + prcp(1,:,:)
           if ( associated(srf_prcv_out) ) &
             srf_prcv_out = srf_prcv_out + cprate
           if ( associated(srf_zpbl_out) ) &
@@ -588,9 +589,9 @@ module mod_bats_mtrxbats
             sts_w10max_out(:,:,1) = max(sts_w10max_out(:,:,1), &
               sqrt(sum((u10m**2+v10m**2),1)*rdnnsg))
           if ( associated(sts_pcpmax_out) ) &
-            sts_pcpmax_out = max(sts_pcpmax_out,totpr)
+            sts_pcpmax_out = max(sts_pcpmax_out,prcp(1,:,:))
           if ( associated(sts_pcpavg_out) ) &
-            sts_pcpavg_out = sts_pcpavg_out + totpr
+            sts_pcpavg_out = sts_pcpavg_out + prcp(1,:,:)
           if ( associated(sts_psmin_out) ) &
             sts_psmin_out = min(sts_psmin_out, &
               (sfps(jci1:jci2,ici1:ici2)+ptop)*d_10)
@@ -606,7 +607,7 @@ module mod_bats_mtrxbats
         end if
         if ( iflak ) then
           if ( associated(lak_tpr_out) ) &
-            lak_tpr_out = lak_tpr_out + totpr
+            lak_tpr_out = lak_tpr_out + prcp(1,:,:)
           if ( associated(lak_scv_out) ) &
             lak_scv_out = lak_scv_out + sum(sncv,1)*rdnnsg
           if ( associated(lak_sena_out) ) &

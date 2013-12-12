@@ -227,7 +227,7 @@ module mod_bats_lake
         if ( cplmsk(j,i) /= 0 ) cycle
       end if
       tl = sts(n,j,i)
-      vl = dsqrt(usw(j,i)**2+vsw(j,i)**2)
+      vl = dsqrt(usw(n,j,i)**2+vsw(n,j,i)**2)
       zl = zh(n,j,i)
       ql = qs(n,j,i)
       fswx = rswf(j,i)

@@ -384,7 +384,7 @@
       use mod_constants
       use mod_runparams, only : kday, ktau, rnsrf_for_day
       use mod_dynparam, only : ici1, ici2, jci1, jci2, nnsg, ptop
-      use mod_bats_common, only : sfps, t2m, q2m, evpr, sent, totpr, &
+      use mod_bats_common, only : sfps, t2m, q2m, evpr, sent, prcp, &
                                   u10m, v10m, srnof, trnof, rdnnsg,  &
                                   dailyrnf, taux, tauy, sncv, runoffcount
       use mod_atm_interface, only : flw, flwd, fsw , mddom , solvs, &
@@ -418,14 +418,14 @@
           exportFields%dlwr(j,i) = flwd(j,i)
           exportFields%lhfx(j,i) = evpr(1,j,i)*wlhv
           exportFields%shfx(j,i) = sent(1,j,i)
-          exportFields%prec(j,i) = totpr(j,i)
+          exportFields%prec(j,i) = prcp(1,j,i)
           exportFields%wndu(j,i) = u10m(1,j,i)
           exportFields%wndv(j,i) = v10m(1,j,i)
           exportFields%taux(j,i) = taux(1,j,i)
           exportFields%tauy(j,i) = tauy(1,j,i)
           exportFields%wspd(j,i) = dsqrt(u10m(1,j,i)**2+v10m(1,j,i)**2)
           exportFields%nflx(j,i) = fsw(j,i)-evpr(1,j,i)*wlhv-sent(1,j,i)-flw(j,i)
-          exportFields%sflx(j,i) = evpr(1,j,i)-totpr(j,i)
+          exportFields%sflx(j,i) = evpr(1,j,i)-prcp(1,j,i)
           exportFields%snow(j,i) = sncv(1,j,i)
           exportFields%dswr(j,i) = solvsd(j,i)+solvs(j,i) 
         end do

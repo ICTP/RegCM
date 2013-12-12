@@ -35,6 +35,8 @@ module mod_bats_common
 
   integer(ik8) :: ntcpl  ! Number of time step to call ROMS update 
   integer(ik8) :: ntsrf2 ! Number of time step to call BATs 
+  real(rk8) :: rdnnsg
+  real(rk4) :: rrnnsg
 
   ! How many soil model steps for a day
   real(rk4) :: fdaysrf
@@ -43,25 +45,13 @@ module mod_bats_common
          drag , evpr , gwet , ldew , q2m , sfcp , trnof ,        &
          srnof , rsw , snag , sncv , sent , sfice , ssw ,        &
          t2m , tgrd , tgbrd , tlef , tsw , u10m , v10m , lncl ,  &
-         taux , tauy , sfcemiss , cdrx
-!
-  real(rk8) :: rdnnsg
-  real(rk4) :: rrnnsg
-!
-  real(rk8) , pointer , dimension(:,:) :: solar , czen , emissivity
-  real(rk8) , pointer , dimension(:,:) :: solinc
-  real(rk8) , pointer , dimension(:,:) :: swdif , swdir , lwdif , lwdir
-  real(rk8) , pointer , dimension(:,:) :: totpr , fracd
+         taux , tauy , sfcemiss , cdrx , prcp
 !
   real(rk8) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
         sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
 !
   integer(ik4) , pointer , dimension(:,:,:) :: lakemsk
   integer(ik4) , pointer , dimension(:,:) :: landmsk
-!
-  real(rk8) , pointer , dimension(:,:,:) :: ht1 , lndcat1 , &
-    mask1 , xlat1 , xlon1 , dhlake1
-  integer(ik4) , pointer , dimension(:,:,:) :: ldmsk1 , iveg1
 !
   ! Coupling variables
   real(rk8) , pointer , dimension(:,:,:) :: dailyrnf
@@ -83,6 +73,14 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:) :: lndcat        ! mddom%lndcat
   real(rk8) , pointer , dimension(:,:) :: ht            ! mddom%ht
   real(rk8) , pointer , dimension(:,:) :: snowam        ! mddom%snowam
+  real(rk8) , pointer , dimension(:,:,:) :: ht1         ! mdsub%ht
+  real(rk8) , pointer , dimension(:,:,:) :: lndcat1     ! mdsub%lndcat
+  real(rk8) , pointer , dimension(:,:,:) :: mask1       ! mdsub%mask
+  real(rk8) , pointer , dimension(:,:,:) :: xlat1       ! mdsub%xlat
+  real(rk8) , pointer , dimension(:,:,:) :: xlon1       ! mdsub%xlon
+  real(rk8) , pointer , dimension(:,:,:) :: dhlake1     ! mdsub%dhlake
+  integer(ik4) , pointer , dimension(:,:,:) :: ldmsk1   ! mdsub%ldmsk
+  integer(ik4) , pointer , dimension(:,:,:) :: iveg1    ! mdsub%iveg
   real(rk8) , pointer , dimension(:,:) :: uatm          ! atms%ubx3d(:,:,kz)
   real(rk8) , pointer , dimension(:,:) :: vatm          ! atms%vbx3d(:,:,kz)
   real(rk8) , pointer , dimension(:,:) :: tatm          ! atms%tb3d(:,:,kz)
@@ -111,6 +109,13 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:) :: swdifalb      ! aldifs
   real(rk8) , pointer , dimension(:,:) :: lwdiralb      ! aldirl
   real(rk8) , pointer , dimension(:,:) :: lwdifalb      ! aldifl
+  real(rk8) , pointer , dimension(:,:) :: swdir         ! solvs
+  real(rk8) , pointer , dimension(:,:) :: swdif         ! solvsd
+  real(rk8) , pointer , dimension(:,:) :: lwdir         ! solvl
+  real(rk8) , pointer , dimension(:,:) :: lwdif         ! solvld
+  real(rk8) , pointer , dimension(:,:) :: solinc        ! sinc
+  real(rk8) , pointer , dimension(:,:) :: solar         ! solis
+  real(rk8) , pointer , dimension(:,:) :: emissivity    ! emiss
   integer(ik4) , pointer , dimension(:,:) :: lmask      ! CLM landmask
 
   integer(ik4) :: nlakep = 0
@@ -124,9 +129,6 @@ module mod_bats_common
 
       rrnnsg = 1.0/real(nnsg)
       rdnnsg = d_one/dble(nnsg)
-
-      call getmem2d(totpr,jci1,jci2,ici1,ici2,'bats:totpr')
-      call getmem2d(fracd,jci1,jci2,ici1,ici2,'bats:fracd')
 
       if ( iocncpl == 1 ) then
         call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'bats:cplmsk')
@@ -168,6 +170,7 @@ module mod_bats_common
       end if
 
       call getmem3d(drag,1,nnsg,jci1,jci2,ici1,ici2,'bats:drag')
+      call getmem3d(prcp,1,nnsg,jci1,jci2,ici1,ici2,'bats:prcp')
       call getmem3d(cdrx,1,nnsg,jci1,jci2,ici1,ici2,'bats:cdrx')
       call getmem3d(evpr,1,nnsg,jci1,jci2,ici1,ici2,'bats:evpr')
       call getmem3d(sfcp,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfcp')
@@ -189,7 +192,7 @@ module mod_bats_common
       end if
 
       call allocate_mod_bats_internal
-!
+
     end subroutine allocate_mod_bats_common
-!
+
 end module mod_bats_common

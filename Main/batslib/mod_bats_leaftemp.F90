@@ -359,7 +359,7 @@ module mod_bats_leaftemp
 !     radfi = average of upper and lower canopy light factors
 !        rs = stomatal resistance = min.res. * rad.factor * leaf factor
 !      trup = transmission of the upper canopy, assumed to be the same
-!             for the lower canopy,i.e., trup=dexp(-0.5*g*rlai/zencos),
+!             for the lower canopy,i.e., trup=dexp(-0.5*g*rlai/czenith),
 !             where g = attenuation factor
 !
 !     documented in NCAR Tech Note, Dickinson et al., 1986
@@ -384,7 +384,7 @@ module mod_bats_leaftemp
     ! g is average leaf crosssection per unit lai
     ! difzen is ave of inverse of cos of angle of diffuse vis light
     ! ilmax is number of canopy layers
-    ! zencos is cosine solar zenith angle for incident light
+    ! czenith is cosine solar zenith angle for incident light
     ! (to spec from input data need a good treatment of diffuse rad)
     ! trup is transmission of direct beam light in one canopy layer
     ! trupd is transmission of diffuse light in one canopy layer
@@ -400,13 +400,13 @@ module mod_bats_leaftemp
           if ( ldmsk1(n,j,i) /= 0 ) then
             if ( sigf(n,j,i) > 0.001D0 ) then
               ! zenith angle set in zenitm
-              if ( (zencos(j,i)/rilmax) > 0.001D0 ) then
-                trup = dexp(-g*rlai(n,j,i)/(rilmax*zencos(j,i)))
+              if ( (czenith(n,j,i)/rilmax) > 0.001D0 ) then
+                trup = dexp(-g*rlai(n,j,i)/(rilmax*czenith(n,j,i)))
                 trupd = dexp(-difzen*g*rlai(n,j,i)/rilmax)
                 if ( trup  < dlowval ) trup  = d_zero
                 if ( trupd < dlowval ) trupd = d_zero
-                fsold = fracd(j,i)*solar(j,i)*fc(lveg(n,j,i))
-                fsol0 = (d_one-fracd(j,i))*solar(j,i)*fc(lveg(n,j,i))
+                fsold = fracd(n,j,i)*swsi(n,j,i)*fc(lveg(n,j,i))
+                fsol0 = (d_one-fracd(n,j,i))*swsi(n,j,i)*fc(lveg(n,j,i))
                 rmini = rsmin(lveg(n,j,i))/rmax0
                 rad(1)  = (d_one-trup) *fsol0*rilmax/rlai(n,j,i)
                 radd(1) = (d_one-trupd)*fsold*rilmax/rlai(n,j,i)
@@ -622,10 +622,10 @@ module mod_bats_leaftemp
                 dthdz = (d_one-sigf(n,j,i))*tgrd(n,j,i) + &
                          sigf(n,j,i)*tkb-sts(n,j,i)
                 u1 = wtur + d_two*dsqrt(dthdz)
-                ribd(n,j,i) = usw(j,i)**2 + vsw(j,i)**2 + u1**2
+                ribd(n,j,i) = usw(n,j,i)**2 + vsw(n,j,i)**2 + u1**2
               else
                 u2 = wtur
-                ribd(n,j,i) = usw(j,i)**2 + vsw(j,i)**2 + u2**2
+                ribd(n,j,i) = usw(n,j,i)**2 + vsw(n,j,i)**2 + u2**2
               end if
               vspda(n,j,i) = dsqrt(ribd(n,j,i))
               if ( vspda(n,j,i) < d_one ) then

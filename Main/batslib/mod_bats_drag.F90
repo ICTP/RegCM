@@ -94,7 +94,7 @@ module mod_bats_drag
               u1 = wtur
             end if
           end if
-          ribd(n,j,i) = usw(j,i)**2 + vsw(j,i)**2 + u1**2
+          ribd(n,j,i) = usw(n,j,i)**2 + vsw(n,j,i)**2 + u1**2
           vspda(n,j,i) = dsqrt(ribd(n,j,i))
           if ( ldmsk1(n,j,i) == 0 ) then
             if ( ribd(n,j,i) < d_one ) then

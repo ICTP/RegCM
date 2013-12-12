@@ -654,8 +654,8 @@ module mod_mtrxclm
               evpr(:,j,i) = -drag(:,j,i)*delq(:,j,i)
               sent(:,j,i) = -drag(:,j,i)*cpd*delt(:,j,i)
               fact = z10fra(1,j,i)/zlgocn(1,j,i)
-              u10m(:,j,i) = usw(j,i)*(d_one-fact)
-              v10m(:,j,i) = vsw(j,i)*(d_one-fact)
+              u10m(:,j,i) = usw(n,j,i)*(d_one-fact)
+              v10m(:,j,i) = vsw(n,j,i)*(d_one-fact)
               fact = z2fra(1,j,i)/zlgocn(1,j,i)
               t2m(:,j,i) = sts(:,j,i) - delt(:,j,i)*fact
               q2m(:,j,i) = qs(:,j,i) - delq(:,j,i)*fact
