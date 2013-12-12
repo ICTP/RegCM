@@ -26,7 +26,7 @@ module mod_bats_common
   use mod_memutil
   use mod_dynparam
   use mod_bats_param
-  use mod_bats_internal
+  use mod_bats_internal , only : allocate_mod_bats_internal
 !
   real(rk8) :: dtbat  ! BATS1e internal timestep
   real(rk8) :: dtlake ! Lake model internal timestep
@@ -41,14 +41,14 @@ module mod_bats_common
   ! How many soil model steps for a day
   real(rk4) :: fdaysrf
 
-  real(rk8) , pointer , dimension(:,:,:) :: delq , delt ,  taf , &
+  real(rk8) , pointer , dimension(:,:,:) :: delt ,  taf , &
          drag , evpr , gwet , ldew , q2m , sfcp , trnof ,        &
          srnof , rsw , snag , sncv , sent , sfice , ssw ,        &
          t2m , tgrd , tgbrd , tlef , tsw , u10m , v10m , lncl ,  &
          taux , tauy , sfcemiss , cdrx , prcp
 !
-  real(rk8) , pointer , dimension(:,:) :: ssw2da , sdeltk2d , &
-        sdelqk2d , sfracv2d , sfracb2d , sfracs2d , svegfrac2d
+  real(rk8) , pointer , dimension(:,:) :: ssw2da , &
+        sfracv2d , sfracb2d , sfracs2d , svegfrac2d
 !
   integer(ik4) , pointer , dimension(:,:,:) :: lakemsk
   integer(ik4) , pointer , dimension(:,:) :: landmsk
@@ -116,6 +116,8 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:) :: solinc        ! sinc
   real(rk8) , pointer , dimension(:,:) :: solar         ! solis
   real(rk8) , pointer , dimension(:,:) :: emissivity    ! emiss
+  real(rk8) , pointer , dimension(:,:) :: deltaq        ! sdelq
+  real(rk8) , pointer , dimension(:,:) :: deltat        ! sdelt
   integer(ik4) , pointer , dimension(:,:) :: lmask      ! CLM landmask
 
   integer(ik4) :: nlakep = 0
@@ -138,15 +140,12 @@ module mod_bats_common
       end if
       if ( ichem == 1 ) then
         call getmem2d(ssw2da,jci1,jci2,ici1,ici2,'bats:ssw2da')
-        call getmem2d(sdeltk2d,jci1,jci2,ici1,ici2,'bats:sdeltk2d')
-        call getmem2d(sdelqk2d,jci1,jci2,ici1,ici2,'bats:sdelqk2d')
         call getmem2d(sfracv2d,jci1,jci2,ici1,ici2,'bats:sfracv2d')
         call getmem2d(sfracb2d,jci1,jci2,ici1,ici2,'bats:sfracb2d')
         call getmem2d(sfracs2d,jci1,jci2,ici1,ici2,'bats:sfracs2d')
         call getmem2d(svegfrac2d,jci1,jci2,ici1,ici2,'bats:svegfrac2d')
       end if
 
-      call getmem3d(delq,1,nnsg,jci1,jci2,ici1,ici2,'bats:delq')
       call getmem3d(delt,1,nnsg,jci1,jci2,ici1,ici2,'bats:delt')
       call getmem3d(gwet,1,nnsg,jci1,jci2,ici1,ici2,'bats:gwet')
       call getmem3d(rsw,1,nnsg,jci1,jci2,ici1,ici2,'bats:rsw')

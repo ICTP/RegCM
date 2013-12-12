@@ -243,7 +243,8 @@ module mod_bats_leaftemp
                 dcn = dcd(n,j,i)*tlef(n,j,i)
                 ! 1.2  radiative forcing for leaf temperature calculation
                 sgtg3 = sfcemiss(n,j,i)*(sigm*tgrd(n,j,i)**3)
-                sf1 = sigf(n,j,i)*(vegswab(j,i)-rlwf(j,i)-(d_one-sigf(n,j,i))* &
+                sf1 = sigf(n,j,i)*(abswveg(n,j,i)-lwflx(n,j,i) - &
+                        (d_one-sigf(n,j,i))* &
                       flneto(n,j,i)+d_four*sgtg3*tgrd(n,j,i))
                 sf2 = d_four*sigf(n,j,i)*sgtg3 + &
                            df(n,j,i)*wtga(n,j,i) + dcd(n,j,i)

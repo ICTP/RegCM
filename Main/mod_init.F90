@@ -384,8 +384,8 @@ module mod_init
       end if
 
       call grid_distribute(ssw2da_io,ssw2da,jci1,jci2,ici1,ici2)
-      call grid_distribute(sdeltk2d_io,sdeltk2d,jci1,jci2,ici1,ici2)
-      call grid_distribute(sdelqk2d_io,sdelqk2d,jci1,jci2,ici1,ici2)
+      call grid_distribute(sdelt_io,sdelt,jci1,jci2,ici1,ici2)
+      call grid_distribute(sdelq_io,sdelq,jci1,jci2,ici1,ici2)
       call grid_distribute(sfracv2d_io,sfracv2d,jci1,jci2,ici1,ici2)
       call grid_distribute(sfracb2d_io,sfracb2d,jci1,jci2,ici1,ici2)
       call grid_distribute(sfracs2d_io,sfracs2d,jci1,jci2,ici1,ici2)

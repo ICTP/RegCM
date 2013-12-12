@@ -106,6 +106,9 @@ module mod_atm_interface
   real(rk8) , pointer , public , dimension(:,:) :: sinc
   ! Land / water pask
   integer(ik4) , pointer , public , dimension(:,:) :: ldmsk
+  ! Surface fluxes
+  real(rk8) , pointer , public , dimension(:,:) :: sdelq
+  real(rk8) , pointer , public , dimension(:,:) :: sdelt
 
   ! Precip
   real(rk8) , pointer , public , dimension(:,:) :: pptnc
@@ -695,6 +698,8 @@ module mod_atm_interface
       call getmem2d(aldifl,jci1,jci2,ici1,ici2,'storage:aldifl')
       call getmem2d(emiss,jci1,jci2,ici1,ici2,'storage:emiss')
       call getmem2d(sinc,jci1,jci2,ici1,ici2,'storage:sinc')
+      call getmem2d(sdelq,jci1,jci2,ici1,ici2,'storage:sdelq')
+      call getmem2d(sdelt,jci1,jci2,ici1,ici2,'storage:sdelt')
       call getmem2d(ldmsk,jci1,jci2,ici1,ici2,'storage:ldmsk')
 
       call getmem2d(zpbl,jci1,jci2,ici1,ici2,'storage:zpbl')

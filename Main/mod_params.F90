@@ -1305,10 +1305,7 @@ module mod_params
 
   call init_advection(mddom,sfs,atm1,qdot,kpbl)
   call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
-  call init_bats(mddom,mdsub,atms,sfs,zpbl,pptc,pptnc,coszrs, &
-                 fsw,flw,flwd,sabveg,albvs,albvl,aldirs,aldifs,    &
-                 aldirl,aldifl,solis,emiss,sinc,solvs,       &
-                 solvsd,solvl,solvld)
+  call init_bats
 #ifdef CLM
   allocate(landmask(jx,iy))
   call init_clm(landmask)
@@ -1318,12 +1315,12 @@ module mod_params
 #ifdef CLM
     call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat, &
                    coszrs,svegfrac2d,sfracv2d,sfracb2d,sfracs2d,      &
-                   solis,sdeltk2d,sdelqk2d,ssw2da,convpr,icumtop,     &
+                   solis,sdelt,sdelq,ssw2da,convpr,icumtop,     &
                    icumbot,taucldsp,voc_em,voc_em1,voc_em2,dep_vels)
 #else
     call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat, &
                    coszrs,svegfrac2d,sfracv2d,sfracb2d,sfracs2d,      &
-                   solis,sdeltk2d,sdelqk2d,ssw2da,convpr,icumtop,     &
+                   solis,sdelt,sdelq,ssw2da,convpr,icumtop,     &
                    icumbot,taucldsp)
 #endif
     do n = 1 , ntr

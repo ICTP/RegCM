@@ -31,6 +31,7 @@ module mod_mtrxclm
   use mod_mppparam
   use mod_date
   use mod_clm
+  use mod_bats_internal
   use mod_bats_common
   use mod_bats_mtrxbats
   use mod_bats_drag
@@ -677,8 +678,8 @@ module mod_mtrxclm
 
           if ( ichem == 1 ) then
             ssw2da(j,i) = d_zero
-            sdeltk2d(j,i) = d_zero
-            sdelqk2d(j,i) = d_zero
+            deltat(j,i) = d_zero
+            deltaq(j,i) = d_zero
             sfracv2d(j,i) = d_zero
             sfracb2d(j,i) = d_zero
             sfracs2d(j,i) = d_zero
@@ -711,8 +712,8 @@ module mod_mtrxclm
 
               if ( ichem == 1 ) then
                 ssw2da(j,i)   = ssw2da(j,i) + ssw(n,j,i)
-                sdeltk2d(j,i) = sdeltk2d(j,i) + delt(n,j,i)
-                sdelqk2d(j,i) = sdelqk2d(j,i) + delq(n,j,i)
+                deltat(j,i) = deltat(j,i) + delt(n,j,i)
+                deltaq(j,i) = deltaq(j,i) + delq(n,j,i)
                 sfracv2d(j,i) = sfracv2d(j,i) + c2rfvegnosno(jg,ig)
                 sfracb2d(j,i) = sfracb2d(j,i) + d_one -               &
                                (c2rfvegnosno(jg,ig)+c2rfracsno(jg,ig))
@@ -729,8 +730,8 @@ module mod_mtrxclm
 
               if ( ichem == 1  ) then
                 ssw2da(j,i)   = ssw2da(j,i) + ssw(n,j,i)
-                sdeltk2d(j,i) = sdeltk2d(j,i) + delt(n,j,i)
-                sdelqk2d(j,i) = sdelqk2d(j,i) + delq(n,j,i)
+                deltat(j,i) = deltat(j,i) + delt(n,j,i)
+                deltaq(j,i) = deltaq(j,i) + deltaq(n,j,i)
                 sfracv2d(j,i) = sfracv2d(j,i) + sigf(n,j,i)
                 sfracb2d(j,i) = sfracb2d(j,i) + (d_one-sigf(n,j,i))    &
                                 *(d_one-scvk(n,j,i))
@@ -768,17 +769,17 @@ module mod_mtrxclm
 
               if ( ichem == 1 ) then
                 ssw2da(j,i)   = ssw2da(j,i) + ssw(n,j,i)
-                sdeltk2d(j,i) = sdeltk2d(j,i) + delt(n,j,i)
-                sdelqk2d(j,i) = sdelqk2d(j,i) + delq(n,j,i)
+                deltat(j,i) = deltat(j,i) + delt(n,j,i)
+                deltaq(j,i) = deltaq(j,i) + delq(n,j,i)
                 sfracv2d(j,i) = sfracv2d(j,i) + c2rfvegnosno(jg,ig)
                 sfracb2d(j,i) = sfracb2d(j,i) + d_one - &
                                (c2rfvegnosno(jg,ig) + c2rfracsno(jg,ig))
                 sfracs2d(j,i) = sfracs2d(j,i) + c2rfracsno(jg,ig)
                 ssw2da(j,i) = ssw2da(j,i)*landfrac(jg,ig)             &
                               + (d_one-landfrac(jg,ig))*ssw(n,j,i)
-                sdeltk2d(j,i) = sdeltk2d(j,i)*landfrac(jg,ig)         &
+                deltat(j,i) = deltat(j,i)*landfrac(jg,ig)         &
                                 + (d_one-landfrac(jg,ig))*delt(n,j,i)
-                sdelqk2d(j,i) = sdelqk2d(j,i)*landfrac(jg,ig)         &
+                deltaq(j,i) = deltaq(j,i)*landfrac(jg,ig)         &
                                 + (d_one-landfrac(jg,ig))*delq(n,j,i)
                 sfracv2d(j,i) = sfracv2d(j,i)*landfrac(jg,ig)         &
                                 + (d_one-landfrac(jg,ig))*sigf(n,j,i)

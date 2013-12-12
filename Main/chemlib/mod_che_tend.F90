@@ -182,10 +182,10 @@
           v10 = (cvbx3d(j,i,kz))*(1-fact)
           wid10(i,j) = sqrt(u10**2+v10**2)
           ! 10 m air temperature
-          temp10(i,j) = ctb3d(j,i,kz) - csdeltk2d(j,i)*fact
+          temp10(i,j) = ctb3d(j,i,kz) - csdelt(j,i)*fact
           ! specific  humidity at 10m
           shu10 = cqxb3d(j,i,kz,iqv)/ &
-            (d_one+cqxb3d(j,i,kz,iqv))-csdelqk2d(j,i)*fact
+            (d_one+cqxb3d(j,i,kz,iqv))-csdelq(j,i)*fact
           ! back to mixing ratio
           shu10 = shu10/(1-shu10)
           ! saturation mixing ratio at 10m
@@ -216,7 +216,7 @@
           ! temperature account for a composite temperature between
           ! bare ground and vegetation
           if ( ivegcov(i,j) /= 0 ) then
-            tsurf(i,j) = ctb3d(j,i,kz) - csdeltk2d(j,i)
+            tsurf(i,j) = ctb3d(j,i,kz) - csdelt(j,i)
           else
             ! ocean temperature in this case
             tsurf(i,j) = ctg(j,i)

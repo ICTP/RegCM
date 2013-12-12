@@ -675,8 +675,8 @@ module mod_output
           end if
 
           call grid_collect(ssw2da,ssw2da_io,jci1,jci2,ici1,ici2)
-          call grid_collect(sdeltk2d,sdeltk2d_io,jci1,jci2,ici1,ici2)
-          call grid_collect(sdelqk2d,sdelqk2d_io,jci1,jci2,ici1,ici2)
+          call grid_collect(sdelt,sdelt_io,jci1,jci2,ici1,ici2)
+          call grid_collect(sdelq,sdelq_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfracv2d,sfracv2d_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfracb2d,sfracb2d_io,jci1,jci2,ici1,ici2)
           call grid_collect(sfracs2d,sfracs2d_io,jci1,jci2,ici1,ici2)

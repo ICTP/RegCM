@@ -29,6 +29,7 @@
       use mod_dynparam
       use mod_service
       use mod_bats_common
+      use mod_bats_internal
       use mod_runparams , only : iqv , iocnrough
 !
       implicit none
@@ -144,7 +145,7 @@
 !     Compute net longwave and shortwave radiation (W/m2) 
 !-----------------------------------------------------------------------
 !
-      Rns = rswf(j,i)
+      Rns = swflx(n,j,i)
       Rnl = emsw*(sigm*(ts+tzero)**4-dwrlwf(j,i))
 !     
 !-----------------------------------------------------------------------

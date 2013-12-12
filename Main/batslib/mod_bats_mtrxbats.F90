@@ -394,6 +394,9 @@ module mod_bats_mtrxbats
             usw(n,j,i) = uatm(j,i)
             vsw(n,j,i) = vatm(j,i)
             swsi(n,j,i) = solar(j,i)
+            swflx(n,j,i) = rswf(j,i)
+            lwflx(n,j,i) = rlwf(j,i)
+            abswveg(n,j,i) = vegswab(j,i)
           end do
  
           rh0 = d_zero
@@ -502,8 +505,8 @@ module mod_bats_mtrxbats
       tground1 = sum(tgrd,1)*rdnnsg
       if ( ichem == 1 ) then
         ssw2da = sum(ssw,1)*rdnnsg
-        sdeltk2d = sum(delt,1)*rdnnsg
-        sdelqk2d = sum(delq,1)*rdnnsg
+        deltat = sum(delt,1)*rdnnsg
+        deltaq = sum(delq,1)*rdnnsg
         sfracv2d = sum(sigf,1)*rdnnsg
         sfracb2d = sum((d_one-lncl)*(d_one-scvk),1)*rdnnsg
         sfracs2d = sum(lncl*wt+(d_one-lncl)*scvk,1)*rdnnsg

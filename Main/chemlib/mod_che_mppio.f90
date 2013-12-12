@@ -34,8 +34,8 @@ module mod_che_mppio
 
   real(rk8) , pointer , dimension(:,:,:,:) :: remlsc_io , remcvc_io
   real(rk8) , pointer , dimension(:,:,:) :: remdrd_io
-  real(rk8) , pointer , dimension(:,:) :: ssw2da_io , sdeltk2d_io ,   &
-                                         sdelqk2d_io , sfracv2d_io , &
+  real(rk8) , pointer , dimension(:,:) :: ssw2da_io , sdelt_io ,   &
+                                         sdelq_io , sfracv2d_io , &
                                          sfracb2d_io , sfracs2d_io , &
                                          svegfrac2d_io
   real(rk8) , pointer , dimension(:,:,:,:) :: chia_io , chib_io
@@ -60,10 +60,10 @@ module mod_che_mppio
 
           call getmem2d(ssw2da_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:ssw2da_io')
-          call getmem2d(sdelqk2d_io,jcross1,jcross2,icross1,icross2, &
-                        'che_mppio:sdelqk2d_io')
-          call getmem2d(sdeltk2d_io,jcross1,jcross2,icross1,icross2, &
-                        'che_mppio:sdeltk2d_io')
+          call getmem2d(sdelq_io,jcross1,jcross2,icross1,icross2, &
+                        'che_mppio:sdelq_io')
+          call getmem2d(sdelt_io,jcross1,jcross2,icross1,icross2, &
+                        'che_mppio:sdelt_io')
           call getmem2d(sfracb2d_io,jcross1,jcross2,icross1,icross2, &
                         'che_mppio:sfracb2d_io')
           call getmem2d(sfracs2d_io,jcross1,jcross2,icross1,icross2, &

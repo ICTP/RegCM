@@ -500,10 +500,10 @@ module mod_savefile
         call check_ok(__FILE__,__LINE__,'Cannot read remdrd')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'ssw2da'),ssw2da_io)
         call check_ok(__FILE__,__LINE__,'Cannot read ssw2da')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'sdelqk2d'),sdelqk2d_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read sdelqk2d')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'sdeltk2d'),sdeltk2d_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read sdeltk2d')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'sdelq'),sdelq_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read sdelq')
+        ncstatus = nf90_get_var(ncid,get_varid(ncid,'sdelt'),sdelt_io)
+        call check_ok(__FILE__,__LINE__,'Cannot read sdelt')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfracb2d'),sfracb2d_io)
         call check_ok(__FILE__,__LINE__,'Cannot read sfracb2d')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfracs2d'),sfracs2d_io)
@@ -826,12 +826,12 @@ module mod_savefile
         ncstatus = nf90_def_var(ncid,'ssw2da',nf90_double, &
                                 wrkdim(1:2),varids(75))
         call check_ok(__FILE__,__LINE__,'Cannot create var ssw2da')
-        ncstatus = nf90_def_var(ncid,'sdelqk2d',nf90_double, &
+        ncstatus = nf90_def_var(ncid,'sdelq',nf90_double, &
                                 wrkdim(1:2),varids(76))
-        call check_ok(__FILE__,__LINE__,'Cannot create var sdelqk2d')
-        ncstatus = nf90_def_var(ncid,'sdeltk2d',nf90_double, &
+        call check_ok(__FILE__,__LINE__,'Cannot create var sdelq')
+        ncstatus = nf90_def_var(ncid,'sdelt',nf90_double, &
                                 wrkdim(1:2),varids(77))
-        call check_ok(__FILE__,__LINE__,'Cannot create var sdeltk2d')
+        call check_ok(__FILE__,__LINE__,'Cannot create var sdelt')
         ncstatus = nf90_def_var(ncid,'sfracb2d',nf90_double, &
                                 wrkdim(1:2),varids(78))
         call check_ok(__FILE__,__LINE__,'Cannot create var sfracb2d')
@@ -1060,10 +1060,10 @@ module mod_savefile
         call check_ok(__FILE__,__LINE__,'Cannot write remdrd')
         ncstatus = nf90_put_var(ncid,varids(75),ssw2da_io)
         call check_ok(__FILE__,__LINE__,'Cannot write ssw2da')
-        ncstatus = nf90_put_var(ncid,varids(76),sdelqk2d_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write sdelqk2d')
-        ncstatus = nf90_put_var(ncid,varids(77),sdeltk2d_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write sdeltk2d')
+        ncstatus = nf90_put_var(ncid,varids(76),sdelq_io)
+        call check_ok(__FILE__,__LINE__,'Cannot write sdelq')
+        ncstatus = nf90_put_var(ncid,varids(77),sdelt_io)
+        call check_ok(__FILE__,__LINE__,'Cannot write sdelt')
         ncstatus = nf90_put_var(ncid,varids(78),sfracb2d_io)
         call check_ok(__FILE__,__LINE__,'Cannot write sfracb2d')
         ncstatus = nf90_put_var(ncid,varids(79),sfracs2d_io)
