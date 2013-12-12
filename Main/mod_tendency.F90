@@ -774,7 +774,7 @@ module mod_tendency
     ! call mtrxbats for surface physics calculations
     !
     if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
-      call mtrxbats(ktau)
+      call mtrxbats
       if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
     end if
 #else

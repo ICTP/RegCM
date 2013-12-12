@@ -23,7 +23,7 @@ module mod_bats_mtrxbats
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : iqv , iocnflx , iocncpl , ichem , &
-                             iemiss , ksrf , xmonth , rtsrf
+              iemiss , ksrf , xmonth , rtsrf , ktau , kday
   use mod_mppparam
   use mod_mpmessage
   use mod_constants
@@ -37,6 +37,7 @@ module mod_bats_mtrxbats
   use mod_bats_zengocn
   use mod_bats_coare
   use mod_outvars
+  use mod_regcm_types
 
   private
 
@@ -56,9 +57,9 @@ module mod_bats_mtrxbats
   real(rk8) , parameter :: sical0 = 0.6D0
   real(rk8) , parameter :: sical1 = 0.4D0
   !
-
   public :: interf , initb , mtrxbats , albedobats
-
+  public :: export_data_from_surface , import_data_into_surface
+  !
   contains
 
 !=======================================================================
@@ -180,9 +181,8 @@ module mod_bats_mtrxbats
 !                            in mm/s.
 !=======================================================================
 ! 
-  subroutine mtrxbats(ktau)
+  subroutine mtrxbats
     implicit none
-    integer(ik8) , intent(in) :: ktau
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'mtrxbats'
     integer(ik4) , save :: idindx = 0
@@ -193,7 +193,7 @@ module mod_bats_mtrxbats
 !
 !   Excange from model to BATS
 
-    call interf(1,ktau)
+    call interf(1)
 
 !   Calculate surface fluxes and hydrology budgets
 
@@ -219,7 +219,7 @@ module mod_bats_mtrxbats
 
 !   Accumulate quantities for energy and moisture budgets
 
-    call interf(2,ktau)
+    call interf(2)
 !
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -326,10 +326,9 @@ module mod_bats_mtrxbats
 !
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine interf(ivers,ktau)
+  subroutine interf(ivers)
     implicit none
     integer(ik4) , intent (in) :: ivers
-    integer(ik8) , intent(in) :: ktau
 !
     real(rk8) :: facb , facs , fact , factuv , facv , fracb ,  &
                 fracs , fracv , hl , rh0 , satvp ,     &
@@ -431,13 +430,13 @@ module mod_bats_mtrxbats
       if ( lseaice .or. llake ) then
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( landmsk(j,i) == 2 ) then
+            if ( ldmsk(j,i) == 2 ) then
               icemsk = 0
               do n = 1 , nnsg
                 if ( ldmsk1(n,j,i) > 1 ) icemsk = icemsk + 1
               end do
               if ( icemsk <= nnsg/2 ) then
-                landmsk(j,i) = 0
+                ldmsk(j,i) = 0
               end if
             end if
           end do
@@ -513,7 +512,7 @@ module mod_bats_mtrxbats
         svegfrac2d = sum(lncl,1)*rdnnsg
       end if
 
-      where ( landmsk /= 0 )
+      where ( ldmsk /= 0 )
         tgbb = sum(((d_one-lncl)*tgrd**4+lncl*tlef**4)**d_rfour,1)*rdnnsg
       else where
         tgbb = sum(tgrd,1)*rdnnsg
@@ -642,7 +641,7 @@ module mod_bats_mtrxbats
           if ( associated(srf_tg_out) ) &
             srf_tg_out = tground1
           if ( associated(srf_tlef_out) ) then
-            where ( landmsk > 0 )
+            where ( ldmsk > 0 )
               srf_tlef_out = sum(tlef,1)*rdnnsg
             elsewhere
               srf_tlef_out = dmissval
@@ -967,71 +966,200 @@ module mod_bats_mtrxbats
 #endif
   end subroutine albedobats
 !
-!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
-!   this subrout overwrites many of the soil constants
-!   as a function of location(jlon,jlat)
-!
-!:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
-  subroutine soilbc
+  subroutine export_data_from_surface(expfie)
     implicit none
-    real(rk8) :: ck , dmax , dmin , dmnor , phi0 , tweak1
-    integer(ik4) :: itex , n , i , j
-!
-!   ================================================================
-!   new soils data as a fn of texture make porosity, soil suction,
-!   hydraul conduc, wilting frac variables rather than consts
-!   relfc is the ratio of field capacity to saturated water content,
-!   defined so the rate of gravitational drainage at field
-!   capacity is assumed to be 2 mm/day (baver et al., 1972)
-!   ===============================================================
-!
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'soilbc'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif 
+    type(exp_data) , intent(inout) :: expfie
+    integer(ik4) :: j , i
     do i = ici1 , ici2
       do j = jci1 , jci2
-        do n = 1 , nnsg
-          if ( ldmsk1(n,j,i) /= 0 ) then
-            ! lveg is set in subr. interf
-            freza(lveg(n,j,i)) = 0.15D0*deprv(lveg(n,j,i))
-            frezu(lveg(n,j,i)) = 0.15D0*depuv(lveg(n,j,i))
-            itex = iexsol(lveg(n,j,i))
-            texrat(n,j,i) = skrat(itex)
-            porsl(n,j,i) = xmopor(itex)
-            xkmx(n,j,i) = xmohyd(itex)
-            bsw(n,j,i) = bee(itex)
-            bfc(n,j,i) = 5.8D0 - bsw(n,j,i)*(0.8D0+0.12D0*(bsw(n,j,i)-d_four)* &
-                       dlog10(1.0D2*xkmx(n,j,i)))
-            phi0 = xmosuc(itex)
-            dmax = bsw(n,j,i)*phi0*xkmx(n,j,i)/porsl(n,j,i)
-            dmin = 1.0D-3
-            dmnor = 1550.0D0*dmin/dmax
-            tweak1 = (bsw(n,j,i)*(bsw(n,j,i)-6.0D0)+10.3D0) / &
-                     (bsw(n,j,i)*bsw(n,j,i)+40.0D0*bsw(n,j,i))
-            ck = (d_one+dmnor)*tweak1*0.23D0/0.02356D0
-            evmx0(n,j,i) = 1.02D0*dmax*ck / &
-                 dsqrt(depuv(lveg(n,j,i))*deprv(lveg(n,j,i)))
-            gwmx0(n,j,i) = depuv(lveg(n,j,i))*porsl(n,j,i)
-            gwmx1(n,j,i) = deprv(lveg(n,j,i))*porsl(n,j,i)
-            gwmx2(n,j,i) = deptv(lveg(n,j,i))*porsl(n,j,i)
-            wiltr(n,j,i) = xmowil(itex)
-            ! force irrigated crop to be at field capacity
-            relfc(n,j,i) = xmofc(itex)
-            ! Imported Lara Kuepper's Irrigated Crop modification from RegCM3
-            ! see Kueppers et al. (2008)
-            ! relaw is between field capacity and wilting point
-            relaw(n,j,i) = 0.75*(xmofc(itex)-xmowil(itex))+xmowil(itex)
-          end if
-        end do
+        expfie%psfc(j,i) = (sfps(j,i)+ptop)*d_10
+        expfie%tsfc(j,i) = sum(t2m(:,j,i))*rdnnsg
+        expfie%qsfc(j,i) = sum(q2m(:,j,i))*rdnnsg
+        expfie%swrd(j,i) = rswf(j,i)
+        expfie%swrd(j,i) = rlwf(j,i)
+        expfie%dlwr(j,i) = dwrlwf(j,i)
+        expfie%lhfx(j,i) = sum(evpr(:,j,i))*rdnnsg*wlhv
+        expfie%shfx(j,i) = sum(sent(:,j,i))*rdnnsg
+        expfie%prec(j,i) = sum(prcp(:,j,i))*rdnnsg
+        expfie%wndu(j,i) = sum(u10m(:,j,i))*rdnnsg
+        expfie%wndv(j,i) = sum(v10m(:,j,i))*rdnnsg
+        expfie%taux(j,i) = sum(taux(:,j,i))*rdnnsg
+        expfie%tauy(j,i) = sum(tauy(:,j,i))*rdnnsg
+        expfie%sflx(j,i) = (sum(evpr(:,j,i))-sum(prcp(:,j,i)))*rdnnsg
+        expfie%snow(j,i) = sum(sncv(:,j,i))*rdnnsg
+        expfie%dswr(j,i) = swdif(j,i)+swdir(j,i)
       end do
     end do
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
-  end subroutine soilbc
+    expfie%wspd = dsqrt(expfie%wndu**2+expfie%wndv**2)
+    expfie%nflx = rswf - expfie%lhfx - expfie%shfx - rlwf
+    if ( mod(ktau+1,kday) == 0 ) then
+      where ( ldmsk > 0 )
+        expfie%rnof = dailyrnf(:,:,1)/runoffcount
+        expfie%snof = dailyrnf(:,:,2)/runoffcount
+      else where
+        expfie%rnof = d_zero
+        expfie%snof = d_zero
+      end where
+    end if
+  end subroutine export_data_from_surface
 !
+  subroutine import_data_into_surface(impfie,ldmskb,wetdry,tol)
+    implicit none
+    type(imp_data) , intent(in) :: impfie
+    real(rk8) , intent(in) :: tol
+    integer(ik4) , pointer , dimension(:,:) , intent(in) :: ldmskb , wetdry
+    integer :: i , j , ii , jj , n
+    logical :: flag = .false.
+    real(rk8) , parameter :: iceminh = d_10
+    ! real(rk8) :: toth
+    ! real(rk8) , parameter :: href = d_two * iceminh
+    ! real(rk8) , parameter :: steepf = 1.0D0
+    ! integer(ik4) :: ix , jy , imin , imax , jmin , jmax , srad , hveg(22)
+    !
+    !-----------------------------------------------------------------------
+    ! Retrieve information from OCN component
+    !-----------------------------------------------------------------------
+    !
+    do i = ici1, ici2
+      ii = global_cross_istart + i - 1
+      do j = jci1, jci2
+        jj = global_cross_jstart + j - 1
+        if ( iveg(j,i) == 14 .or. iveg(j,i) == 15 ) then
+          !
+          !--------------------------------------
+          ! Update: Sea Surface Temperature (SST)
+          !--------------------------------------
+          !
+          if ( impfie%sst(j,i) < tol ) then
+            ! create fixed coupling mask
+            if ( mod(ktau+1, ntcpl*2) == 0 ) then
+              cplmsk(j,i) = 1
+            end if
+            tground1(j,i) = impfie%sst(j,i)
+            tground2(j,i) = impfie%sst(j,i)
+            tgbb(j,i)     = impfie%sst(j,i)
+            tgrd(:,j,i)   = impfie%sst(j,i)
+            tgbrd(:,j,i)  = impfie%sst(j,i)
+          end if
+          !
+          !----------------------------------------------------------
+          ! Update: Mask and land-use type (based on dynamic wet-dry)
+          !----------------------------------------------------------
+          !
+!         if (importFields%msk(j,i) .lt. tol .and. ldmskb(j,i) == 0) then
+!           if (importFields%msk(j,i) .lt. 1.0) then
+!             flag = .false.
+!             if (ldmsk(j,i) == 0 .or. &
+!                 ldmsk(j,i) == 2) flag = .true.
+!             ! set land-sea mask
+!             ldmsk(j,i) = 1
+!             do n = 1, nnsg
+!               ldmsk1(n,j,i) = ldmsk(j,i)
+!             end do
+!             ! count land-use type in a specified search radius (srad)
+!             srad = 10
+!             jmin = j-srad
+!             if (j-srad < jci1) jmin = jci1
+!             jmax = j+srad
+!             if (j+srad > jci2) jmax = jci2
+!             imin = i-srad
+!             if (i-srad < ici1) imin = ici1
+!             imax = i+srad
+!             if (i+srad > ici2) imax = ici2
+!             hveg = 0
+!             do ix = imin, imax
+!               do jy = jmin, jmax
+!                 do n = 1, nnsg
+!                   hveg(iveg1(n,jy,ix)) = hveg(iveg1(n,jy,ix))+1
+!                 end do
+!               end do
+!             end do        
+!             hveg(14) = 0
+!             hveg(15) = 0
+!             ! set array to store change
+!             wetdry(j,i) = 1
+!             ! write debug info
+!             if (flag) then
+!               write(*,20) jj, ii, 'water', 'land ', ldmsk(j,i)
+!             end if
+!           else
+!             if (ldmsk(j,i) == 1 .and. wetdry(j,i) == 1) then
+!               flag = .false.
+!               if (ldmskb(j,i) /= ldmsk(j,i)) flag = .true.
+!               ! set land-sea mask to its original value
+!               ldmsk(j,i) = ldmskb(j,i)             
+!               do n = 1, nnsg
+!                 ldmsk1(n,j,i) = ldmsk(j,i)
+!               end do
+!               ! set array to store change
+!               wetdry(j,i) = 0
+!               ! write debug info
+!               if (flag) then
+!                 write(*,20) jj, ii, 'land ', 'water', ldmsk(j,i)
+!               end if
+!             end if
+!           end if
+!         end if
+          !
+          !------------------------------------------------------------------
+          ! Update: Sea-ice, mask and land-use type (based on sea-ice module) 
+          !------------------------------------------------------------------
+          ! 
+          if ( impfie%sit(j,i) < tol .and. ldmsk(j,i) /= 1 ) then
+            if ( impfie%sit(j,i) > iceminh ) then
+              flag = .false.
+              if ( ldmsk(j,i) == 0 ) flag = .true.
+              ! set land-sea mask
+              ldmsk(j,i) = 2
+              do n = 1, nnsg
+                ldmsk1(n,j,i) = 2
+                ! set sea ice thikness (in mm)
+                sfice(n,j,i) = impfie%sit(j,i) 
+              end do
+              ! write debug info
+              if ( flag ) then
+                write(*,30) jj, ii, 'water', 'ice  ', &
+                   ldmsk(j,i), sfice(1,j,i)
+              end if
+            else
+              if ( ldmskb(j,i) == 0 .and. ldmsk(j,i) == 2 ) then
+                ! reduce to one tenth surface ice: it should melt away
+                do n = 1, nnsg
+                  ! check that sea ice is melted or not
+                  if ( sfice(n,j,i) <= iceminh ) then
+                    if ( ldmskb(j,i) /= ldmsk(j,i) ) flag = .true.
+                    ! set land-sea mask to its original value
+                    ldmsk(j,i) = ldmskb(j,i)
+                    ldmsk1(n,j,i) = ldmskb(j,i)
+                    ! set land-use type to its original value
+                    ! set sea ice thikness (in mm)
+                    sfice(n,j,i) = d_zero 
+                  else
+                    flag = .false.
+                  end if
+                end do
+                ! write debug info
+                if ( flag ) then
+                  write(*,40) jj, ii, 'ice  ', 'water',  &
+                    ldmsk(j,i), sfice(1,j,i)
+                end if
+              end if
+            end if
+          end if
+        end if
+      end do
+    end do
+    !
+    !-----------------------------------------------------------------------
+    ! Format definition 
+    !-----------------------------------------------------------------------
+    !
+! 20 format(' ATM land-sea mask is changed at (',I3,',',I3,') : ',     &
+!             A5,' --> ',A5,' [',I2,']')
+ 30 format(' ATM sea-ice is formed at (',I3,',',I3,') : ',            &
+             A5,' --> ',A5,' [',I2,' - ',F12.4,']')
+ 40 format(' ATM sea-ice is melted at (',I3,',',I3,') : ',       &
+             A5,' --> ',A5,' [',I2,' - ',F12.4,']')
+  end subroutine import_data_into_surface
+
 end module mod_bats_mtrxbats

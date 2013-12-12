@@ -30,14 +30,82 @@ module mod_bats_bndry
 !
   private
 !
-  public :: bndry
+  public :: soilbc , bndry
 !
   real(rk8) , parameter :: minsigf = 0.001D+00
   real(rk8) , parameter :: lowsice = 1.0D-22
   real(rk8) , parameter :: rainsnowtemp = 2.2D0
   real(rk8) , parameter :: xnu = twopi/secpd
-!
+
   contains
+
+  !
+  !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  !
+  ! this subrout overwrites many of the soil constants
+  ! as a function of location(jlon,jlat)
+  !
+  !:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+  !
+  subroutine soilbc
+    implicit none
+    real(rk8) :: ck , dmax , dmin , dmnor , phi0 , tweak1
+    integer(ik4) :: itex , n , i , j
+    !
+    ! ================================================================
+    ! new soils data as a fn of texture make porosity, soil suction,
+    ! hydraul conduc, wilting frac variables rather than consts
+    ! relfc is the ratio of field capacity to saturated water content,
+    ! defined so the rate of gravitational drainage at field
+    ! capacity is assumed to be 2 mm/day (baver et al., 1972)
+    ! ===============================================================
+    !
+#ifdef DEBUG
+    character(len=dbgslen) :: subroutine_name = 'soilbc'
+    integer(ik4) , save :: idindx = 0
+    call time_begin(subroutine_name,idindx)
+#endif 
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          if ( ldmsk1(n,j,i) /= 0 ) then
+            ! lveg is set in subr. interf
+            freza(lveg(n,j,i)) = 0.15D0*deprv(lveg(n,j,i))
+            frezu(lveg(n,j,i)) = 0.15D0*depuv(lveg(n,j,i))
+            itex = iexsol(lveg(n,j,i))
+            texrat(n,j,i) = skrat(itex)
+            porsl(n,j,i) = xmopor(itex)
+            xkmx(n,j,i) = xmohyd(itex)
+            bsw(n,j,i) = bee(itex)
+            bfc(n,j,i) = 5.8D0 - bsw(n,j,i)*(0.8D0+0.12D0*(bsw(n,j,i)-d_four)* &
+                       dlog10(1.0D2*xkmx(n,j,i)))
+            phi0 = xmosuc(itex)
+            dmax = bsw(n,j,i)*phi0*xkmx(n,j,i)/porsl(n,j,i)
+            dmin = 1.0D-3
+            dmnor = 1550.0D0*dmin/dmax
+            tweak1 = (bsw(n,j,i)*(bsw(n,j,i)-6.0D0)+10.3D0) / &
+                     (bsw(n,j,i)*bsw(n,j,i)+40.0D0*bsw(n,j,i))
+            ck = (d_one+dmnor)*tweak1*0.23D0/0.02356D0
+            evmx0(n,j,i) = 1.02D0*dmax*ck / &
+                 dsqrt(depuv(lveg(n,j,i))*deprv(lveg(n,j,i)))
+            gwmx0(n,j,i) = depuv(lveg(n,j,i))*porsl(n,j,i)
+            gwmx1(n,j,i) = deprv(lveg(n,j,i))*porsl(n,j,i)
+            gwmx2(n,j,i) = deptv(lveg(n,j,i))*porsl(n,j,i)
+            wiltr(n,j,i) = xmowil(itex)
+            ! force irrigated crop to be at field capacity
+            relfc(n,j,i) = xmofc(itex)
+            ! Imported Lara Kuepper's Irrigated Crop modification from RegCM3
+            ! see Kueppers et al. (2008)
+            ! relaw is between field capacity and wilting point
+            relaw(n,j,i) = 0.75*(xmofc(itex)-xmowil(itex))+xmowil(itex)
+          end if
+        end do
+      end do
+    end do
+#ifdef DEBUG
+    call time_end(subroutine_name,idindx)
+#endif
+  end subroutine soilbc
 !
 !=======================================================================
 !l  based on: bats version 1e          copyright 18 august 1989
