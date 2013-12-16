@@ -100,10 +100,10 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:) :: xlat          ! mddom%xlat
   real(rk8) , pointer , dimension(:,:) :: xlon          ! mddom%xlon
   real(rk8) , pointer , dimension(:,:) :: lndcat        ! mddom%lndcat
-  real(rk8) , pointer , dimension(:,:) :: ldmsk         ! mddom%ldmsk
   real(rk8) , pointer , dimension(:,:) :: ht            ! mddom%ht
   real(rk8) , pointer , dimension(:,:) :: snowam        ! mddom%snowam
   integer(ik4) , pointer , dimension(:,:) :: iveg       ! mddom%iveg
+  integer(ik4) , pointer , dimension(:,:) :: ldmsk      ! mddom%ldmsk
   real(rk8) , pointer , dimension(:,:,:) :: ht1         ! mdsub%ht
   real(rk8) , pointer , dimension(:,:,:) :: lndcat1     ! mdsub%lndcat
   real(rk8) , pointer , dimension(:,:,:) :: mask1       ! mdsub%mask
