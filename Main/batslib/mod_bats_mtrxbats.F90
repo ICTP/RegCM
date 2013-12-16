@@ -238,7 +238,7 @@ module mod_bats_mtrxbats
 !
   subroutine initb
     implicit none
-    integer(ik4) :: i , itex , j , n , nlveg
+    integer(ik4) :: i , itex , j , n
     logical , parameter :: snowhack = .false.
 !
 #ifdef DEBUG
@@ -254,14 +254,14 @@ module mod_bats_mtrxbats
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
+          lveg(n,j,i) = iveg1(n,j,i)
           tgrd(n,j,i) = tground2(j,i)
           tgbrd(n,j,i) = tground2(j,i)
           taf(n,j,i) = tground2(j,i)
           tlef(n,j,i) = tground2(j,i)
-          nlveg = iveg1(n,j,i)
-          itex  = iexsol(nlveg)
+          itex  = iexsol(lveg(n,j,i))
           if ( ldmsk1(n,j,i) == 2 ) then
-            nlveg = 12
+            lveg(n,j,i) = 12
           end if
           if ( ldmsk1(n,j,i) > 0 ) then
             if ( snowam(j,i) > d_zero .and. snowam(j,i) < dmissval ) then
@@ -279,9 +279,9 @@ module mod_bats_mtrxbats
             end if
           end if
 !         Initialize soil moisture in the 3 layers
-          tsw(n,j,i) = deptv(nlveg)*xmopor(itex)*slmo(nlveg)
-          rsw(n,j,i) = deprv(nlveg)*xmopor(itex)*slmo(nlveg)
-          ssw(n,j,i) = depuv(nlveg)*xmopor(itex)*slmo(nlveg)
+          tsw(n,j,i) = deptv(lveg(n,j,i))*xmopor(itex)*slmo(lveg(n,j,i))
+          rsw(n,j,i) = deprv(lveg(n,j,i))*xmopor(itex)*slmo(lveg(n,j,i))
+          ssw(n,j,i) = depuv(lveg(n,j,i))*xmopor(itex)*slmo(lveg(n,j,i))
           gwet(n,j,i) = d_half
         end do
       end do
@@ -293,17 +293,17 @@ module mod_bats_mtrxbats
       do i = ici1 , ici2
         do j = jci1 , jci2
           do n = 1 , nnsg
-            nlveg = iveg1(n,j,i)
-            if ( nlveg == 14 .or. nlveg == 15 ) then
+            if ( lveg(n,j,i) == 14 .or. lveg(n,j,i) == 15 ) then
               sfcemiss(n,j,i) = 0.955D0
-            else if ( nlveg == 8 ) then
+            else if ( lveg(n,j,i) == 8 ) then
               sfcemiss(n,j,i) = 0.76D0
-            else if ( nlveg == 11 ) then
+            else if ( lveg(n,j,i) == 11 ) then
               sfcemiss(n,j,i) = 0.85D0
-            else if ( nlveg == 12 ) then
+            else if ( lveg(n,j,i) == 12 ) then
               sfcemiss(n,j,i) = 0.97D0
             else
-              sfcemiss(n,j,i) = 0.99D0-(albvgs(nlveg)+albvgl(nlveg))*0.1D0
+              sfcemiss(n,j,i) = 0.99D0-(albvgs(lveg(n,j,i)) + &
+                                        albvgl(lveg(n,j,i)))*0.1D0
             end if
           end do
         end do
