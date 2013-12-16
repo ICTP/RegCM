@@ -182,8 +182,7 @@ abort.o: abort.f90
 # CPL model 
 #
 if DO_COMPILE_CPL
-mod_update.o: mod_update.F90 mod_runparams.o mod_dynparam.o mod_mppparam.o \
-              mod_constants.o mod_bats_common.o mod_atm_interface.o
+mod_update.o: mod_update.F90 mod_runparams.o mod_dynparam.o mod_mppparam.o mod_constants.o mod_lm_interface.o mod_atm_interface.o
 endif
 #
 # RegCM Main Program
