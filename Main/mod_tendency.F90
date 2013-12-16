@@ -793,7 +793,7 @@ module mod_tendency
       else
         r2cnstep = (ktau+1)/ntsrf
       end if
-      call mtrxclm(ktau)
+      call mtrxclm
       if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
     end if
 #endif

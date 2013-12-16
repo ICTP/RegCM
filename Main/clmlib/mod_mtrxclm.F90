@@ -25,7 +25,7 @@ module mod_mtrxclm
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : idate0 , iqv , solcon , clmfrq , &
-                             imask , ilawrence_albedo , ichem , ksrf , xmonth
+             imask , ilawrence_albedo , ichem , ksrf , xmonth , ktau
   use mod_mpmessage
   use mod_service
   use mod_mppparam
@@ -76,24 +76,23 @@ module mod_mtrxclm
 !                            in mm/s.
 !=======================================================================
 !
-  subroutine mtrxclm(ktau)
+  subroutine mtrxclm
 !
     use atmdrvMod , only : rcmdrv
     use clm_comp , only : clm_run1 , clm_run2
 !
     implicit none
-    integer(ik8) , intent(in) :: ktau
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'mtrxclm'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
-    call interfclm(1,ktau)
+    call interfclm(1)
     call rcmdrv()
     call clm_run1(r2cdoalb,r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
     call clm_run2(r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
-    call interfclm(2,ktau)
+    call interfclm(2)
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -458,7 +457,7 @@ module mod_mtrxclm
       ig = global_cross_istart+i-1
       do j = jci1 , jci2
         jg = global_cross_jstart+j-1
-        if ( ( landmsk(j,i) == 0 .and. landfrac(jg,ig) > d_zero ) ) then
+        if ( ( ldmsk(j,i) == 0 .and. landfrac(jg,ig) > d_zero ) ) then
           !
           ! Correct "Mixed points" from CLM for their water fraction
           ! in the albedo (good when < 1)
@@ -479,7 +478,7 @@ module mod_mtrxclm
             lwdifalb(j,i) = lwdifalb(j,i)*(d_one-landfrac(jg,ig)) + &
                           c2ralbdifl(jg,ig)
           end if
-        else if (landmsk(j,i) /= 0 ) then
+        else if (ldmsk(j,i) /= 0 ) then
           !
           ! Use over land CLM calculated albedo (good when < 1)
           !
@@ -505,7 +504,7 @@ module mod_mtrxclm
 #endif
   end subroutine albedoclm
 !
-  subroutine interfclm(ivers,ktau)
+  subroutine interfclm(ivers)
     use clmtype
     use clm_varsur , only : landmask , landfrac
     use clm_varsur , only : c2r_allout , omap_i , omap_j
@@ -522,7 +521,6 @@ module mod_mtrxclm
     ! ivers = 2 : clm -> regcm
     !
     integer(ik4) , intent(in) :: ivers
-    integer(ik8) , intent(in) :: ktau
 !
     integer(ik4) :: i , j , ic , jc , ib , jg , ig , kk , n
     integer(ik4) :: idep , icpu , nout
@@ -638,7 +636,7 @@ module mod_mtrxclm
         end if
       end do
 
-      call interf(1,ktau)
+      call interf(1)
 
       if ( iocnflx == 2 ) then
         call zengocndrv
@@ -646,7 +644,7 @@ module mod_mtrxclm
         call dragc
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( landmsk(j,i) == 0 ) then
+            if ( ldmsk(j,i) == 0 ) then
               tgrd(:,j,i) = tground2(j,i)
               drag(:,j,i) = cdrx(:,j,i)*vspda(:,j,i)*rhs(:,j,i)
               tlef(:,j,i) = sts(:,j,i)
@@ -731,7 +729,7 @@ module mod_mtrxclm
               if ( ichem == 1  ) then
                 ssw2da(j,i)   = ssw2da(j,i) + ssw(n,j,i)
                 deltat(j,i) = deltat(j,i) + delt(n,j,i)
-                deltaq(j,i) = deltaq(j,i) + deltaq(n,j,i)
+                deltaq(j,i) = deltaq(j,i) + delq(n,j,i)
                 sfracv2d(j,i) = sfracv2d(j,i) + sigf(n,j,i)
                 sfracb2d(j,i) = sfracb2d(j,i) + (d_one-sigf(n,j,i))    &
                                 *(d_one-scvk(n,j,i))
@@ -857,7 +855,7 @@ module mod_mtrxclm
           if ( associated(srf_evp_out) ) &
             srf_evp_out = srf_evp_out + sum(evpr,1)*rdnnsg
           if ( associated(srf_tpr_out) ) &
-            srf_tpr_out = srf_tpr_out + totpr
+            srf_tpr_out = srf_tpr_out + prcp(1,:,:)
           if ( associated(srf_prcv_out) ) &
             srf_prcv_out = srf_prcv_out + cprate
           ! Reset accumulation from precip and cumulus
@@ -915,9 +913,9 @@ module mod_mtrxclm
             sts_w10max_out(:,:,1) = max(sts_w10max_out(:,:,1), &
               sqrt(sum((u10m**2+v10m**2),1)*rdnnsg))
           if ( associated(sts_pcpmax_out) ) &
-            sts_pcpmax_out = max(sts_pcpmax_out,totpr)
+            sts_pcpmax_out = max(sts_pcpmax_out,prcp(1,:,:))
           if ( associated(sts_pcpavg_out) ) &
-            sts_pcpavg_out = sts_pcpavg_out + totpr
+            sts_pcpavg_out = sts_pcpavg_out + prcp(1,:,:)
           if ( associated(sts_psmin_out) ) &
             sts_psmin_out = min(sts_psmin_out, &
               (sfps(jci1:jci2,ici1:ici2)+ptop)*d_10)
