@@ -3696,6 +3696,14 @@ module mod_che_isorropia
   subroutine calcmdrh(rhi,rhdry,rhliq,drycase,liqcase)
     use mod_che_common_isorropia
     implicit none
+    interface
+      subroutine drycase
+      end subroutine drycase
+    end interface
+    interface
+      subroutine liqcase
+      end subroutine liqcase
+    end interface
     real(rk8) :: clco , cna2so , cnaclo , cnahso , cnano , cnh42so , cnh4clo , &
          cnh4hso , cnh4n3o , dambis , damchl , damg , damnit , damsul ,   &
          dhag , dlc , dnag , dsobis , dsochl , dsonit
@@ -3843,6 +3851,14 @@ module mod_che_isorropia
   subroutine calcmdrh2(rhi,rhdry,rhliq,drycase,liqcase)
     use mod_che_common_isorropia
     implicit none
+    interface
+      subroutine drycase
+      end subroutine drycase
+    end interface
+    interface
+      subroutine liqcase
+      end subroutine liqcase
+    end interface
     real(rk8) :: ccac2l , ccan32o , ccaso , ck2so , ckclo , ckhso , ckn3o , &
          clco , cmgc2l , cmgn32o , cmgso , cna2so , cnaclo , cnahso , cnano , &
          cnh42so , cnh4clo , cnh4hso , cnh4n3o , dambis
@@ -4056,6 +4072,14 @@ module mod_che_isorropia
   subroutine calcmdrp(rhi,rhdry,rhliq,drycase,liqcase)
     use mod_che_common_isorropia
     implicit none
+    interface
+      subroutine drycase
+      end subroutine drycase
+    end interface
+    interface
+      subroutine liqcase
+      end subroutine liqcase
+    end interface
     real(rk8) :: a2 , a3 , a4 , a8 , clco , cna2so , cnaclo , cnahso , cnano , &
          cnh42so , cnh4clo , cnh4hso , cnh4n3o , dambis , dlc , dsobis ,  &
          hien , hieq , onemwf , rhdry
@@ -4190,6 +4214,14 @@ module mod_che_isorropia
   subroutine calcmdrpii(rhi,rhdry,rhliq,drycase,liqcase)
     use mod_che_common_isorropia
     implicit none
+    interface
+      subroutine drycase
+      end subroutine drycase
+    end interface
+    interface
+      subroutine liqcase
+      end subroutine liqcase
+    end interface
     real(rk8) :: a2 , a3 , a4 , a8 , ccac2l , ccan32o , ccaso , ck2so , ckclo ,&
          ckhso , ckn3o , clco , cmgc2l , cmgn32o , cmgso , cna2so ,       &
          cnaclo , cnahso , cnano , cnh42so
