@@ -36,7 +36,6 @@ module mod_mtrxclm
   use mod_bats_mtrxbats
   use mod_bats_drag
   use mod_bats_zengocn
-  use mod_outvars
 
   use clm_time_manager , only : get_curr_calday
   use shr_orb_mod , only : shr_orb_cosz , shr_orb_decl , &

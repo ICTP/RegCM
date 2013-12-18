@@ -38,7 +38,6 @@ module mod_bats_mtrxbats
   use mod_bats_zengocn
   use mod_bats_albedo
   use mod_bats_coare
-  use mod_outvars
   use mod_regcm_types
 
   private
