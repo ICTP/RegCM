@@ -42,10 +42,6 @@ module mod_params
   use mod_savefile
   use mod_slabocean
   use mod_sldepparam
-#ifdef CLM
-  use mod_clm
-  use clm_varsur , only : landmask
-#endif
 
   private
 
@@ -1090,10 +1086,7 @@ module mod_params
 
   call allocate_mod_savefile
 
-  call allocate_mod_bats_common(ichem,idcsst,lakemod,iocncpl)
-#ifdef CLM
-  call allocate_mod_clm(ntr,igaschem,ioxclim)
-#endif
+  call allocate_land_model
 
   if ( ipptls == 2 ) then
     call allocate_mod_cloud_s1
@@ -1308,12 +1301,9 @@ module mod_params
 
   call init_advection(mddom,sfs,atm1,qdot,kpbl)
   call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
-  call init_bats
-#ifdef CLM
-  allocate(landmask(jx,iy))
-  call init_clm(landmask)
-#endif
+  call init_land_model
   call init_cumulus
+
   if ( ichem == 1 ) then
 #ifdef CLM
     call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat, &

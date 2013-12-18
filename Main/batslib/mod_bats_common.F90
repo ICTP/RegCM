@@ -23,9 +23,6 @@ module mod_bats_common
 !
   use mod_intkinds
   use mod_realkinds
-  use mod_memutil
-  use mod_dynparam
-  use mod_bats_param
   use mod_bats_internal , only : allocate_mod_bats_internal , dtlake , dtbat
   use mod_bats_internal , only : llake
 
@@ -148,74 +145,5 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:) :: deltaq        ! sdelq
   real(rk8) , pointer , dimension(:,:) :: deltat        ! sdelt
   integer(ik4) , pointer , dimension(:,:) :: lmask      ! CLM landmask
-
-  contains
-
-    subroutine allocate_mod_bats_common(ichem,idcsst,lakemod,iocncpl)
-      implicit none
-      integer(ik4) , intent(in) :: ichem , idcsst , lakemod , iocncpl
-
-      rrnnsg = 1.0/real(nnsg)
-      rdnnsg = d_one/dble(nnsg)
-
-      if ( iocncpl == 1 ) then
-        call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'bats:cplmsk')
-        cplmsk(:,:) = 0 
-        ! This is for the RTM component
-        call getmem3d(dailyrnf,jci1,jci2,ici1,ici2,1,2,'bats:dailyrnf')
-      end if
-      if ( ichem == 1 ) then
-        call getmem2d(ssw2da,jci1,jci2,ici1,ici2,'bats:ssw2da')
-        call getmem2d(sfracv2d,jci1,jci2,ici1,ici2,'bats:sfracv2d')
-        call getmem2d(sfracb2d,jci1,jci2,ici1,ici2,'bats:sfracb2d')
-        call getmem2d(sfracs2d,jci1,jci2,ici1,ici2,'bats:sfracs2d')
-        call getmem2d(svegfrac2d,jci1,jci2,ici1,ici2,'bats:svegfrac2d')
-      end if
-
-      call getmem3d(gwet1,1,nnsg,jci1,jci2,ici1,ici2,'bats:gwet1')
-      call getmem3d(rsw1,1,nnsg,jci1,jci2,ici1,ici2,'bats:rsw1')
-      call getmem3d(snag1,1,nnsg,jci1,jci2,ici1,ici2,'bats:snag1')
-      call getmem3d(sncv1,1,nnsg,jci1,jci2,ici1,ici2,'bats:sncv1')
-      call getmem3d(sfice1,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfice1')
-      call getmem3d(ssw1,1,nnsg,jci1,jci2,ici1,ici2,'bats:ssw1')
-      call getmem3d(tgrd1,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgrd1')
-      call getmem3d(tgbrd1,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgbrd1')
-      call getmem3d(tlef1,1,nnsg,jci1,jci2,ici1,ici2,'bats:tlef1')
-      call getmem3d(tsw1,1,nnsg,jci1,jci2,ici1,ici2,'bats:tsw1')
-      call getmem3d(taf1,1,nnsg,jci1,jci2,ici1,ici2,'bats:taf1')
-      call getmem3d(ldew1,1,nnsg,jci1,jci2,ici1,ici2,'bats:ldew1')
-
-      if (idcsst == 1) then
-        call getmem2d(deltas,jci1,jci2,ici1,ici2,'bats:deltas')
-        call getmem2d(tdeltas,jci1,jci2,ici1,ici2,'bats:tdeltas')
-        call getmem2d(dtskin,jci1,jci2,ici1,ici2,'bats:dtskin')
-        call getmem2d(sst,jci1,jci2,ici1,ici2,'bats:sst')
-      end if
-
-      call getmem3d(sent1,1,nnsg,jci1,jci2,ici1,ici2,'bats:sent1')
-      call getmem3d(evpr1,1,nnsg,jci1,jci2,ici1,ici2,'bats:evpr1')
-      call getmem3d(drag1,1,nnsg,jci1,jci2,ici1,ici2,'bats:drag1')
-      call getmem3d(prcp1,1,nnsg,jci1,jci2,ici1,ici2,'bats:prcp1')
-      call getmem3d(q2m,1,nnsg,jci1,jci2,ici1,ici2,'bats:q2m')
-      call getmem3d(ps1,1,nnsg,jci1,jci2,ici1,ici2,'bats:ps1')
-      call getmem3d(trnof1,1,nnsg,jci1,jci2,ici1,ici2,'bats:trnof1')
-      call getmem3d(srnof1,1,nnsg,jci1,jci2,ici1,ici2,'bats:srnof1')
-      call getmem3d(t2m,1,nnsg,jci1,jci2,ici1,ici2,'bats:t2m')
-      call getmem3d(u10m,1,nnsg,jci1,jci2,ici1,ici2,'bats:u10m')
-      call getmem3d(v10m,1,nnsg,jci1,jci2,ici1,ici2,'bats:v10m')
-      call getmem3d(taux,1,nnsg,jci1,jci2,ici1,ici2,'bats:taux')
-      call getmem3d(tauy,1,nnsg,jci1,jci2,ici1,ici2,'bats:tauy')
-      call getmem3d(emiss1,1,nnsg,jci1,jci2,ici1,ici2,'bats:emiss1')
-
-      if ( lakemod == 1 ) then
-        call getmem3d(lakmsk1,1,nnsg,jci1,jci2,ici1,ici2,'bats:lakmsk1')
-        call getmem3d(llakmsk1,1,nnsg,jci1,jci2,ici1,ici2,'bats:llakmsk1')
-        call getmem3d(xlake,1,nnsg,jci1,jci2,ici1,ici2,'bats:xlake')
-        call getmem4d(tlake,1,nnsg,jci1,jci2,ici1,ici2,1,ndpmax,'bats:tlake')
-      end if
-
-      call allocate_mod_bats_internal
-
-    end subroutine allocate_mod_bats_common
 
 end module mod_bats_common

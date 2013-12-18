@@ -140,11 +140,7 @@ mod_output.o: mod_output.F90 mod_runparams.o mod_header.o mod_mpmessage.o mod_mp
 else
 mod_output.o: mod_output.F90 mod_runparams.o mod_header.o mod_mpmessage.o mod_mppparam.o mod_service.o mod_atm_interface.o mod_che_interface.o mod_che_output.o mod_lm_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_ncout.o mod_bdycod.o mod_precip.o mod_split.o mod_savefile.o mod_slabocean.o mod_cloud_s1.o
 endif
-if DO_COMPILE_LIBCLM
-mod_params.o : mod_params.F90 clm_varsur.o mod_advection.o mod_atm_interface.o mod_bdycod.o mod_che_interface.o mod_clm.o mod_cloud_s1.o mod_cu_interface.o mod_domain.o mod_lm_interface.o mod_mpmessage.o mod_mppparam.o mod_ncio.o mod_ncout.o mod_pbl_interface.o mod_precip.o mod_rad_interface.o mod_runparams.o mod_savefile.o mod_slabocean.o mod_sldepparam.o mod_slice.o mod_split.o mod_tendency.o
-else
 mod_params.o : mod_params.F90 mod_advection.o mod_atm_interface.o mod_bdycod.o mod_che_interface.o mod_cloud_s1.o mod_cu_interface.o mod_domain.o mod_lm_interface.o mod_mpmessage.o mod_mppparam.o mod_ncio.o mod_ncout.o mod_pbl_interface.o mod_precip.o mod_rad_interface.o mod_runparams.o mod_savefile.o mod_slabocean.o mod_sldepparam.o mod_slice.o mod_split.o mod_tendency.o
-endif
 mod_pbl_interface.o : mod_pbl_interface.F90 mod_regcm_types.o mod_constants.o mod_dynparam.o mod_memutil.o mod_mppparam.o mod_pbl_common.o mod_pbl_holtbl.o mod_pbl_uwtcm.o mod_realkinds.o mod_runparams.o mod_service.o
 mod_precip.o : mod_precip.F90 mod_regcm_types.o mod_memutil.o mod_mpmessage.o mod_runparams.o
 mod_rad_interface.o : mod_rad_interface.f90 mod_regcm_types.o mod_rad_aerosol.o mod_rad_colmod3.o mod_rad_common.o mod_rad_o3blk.o mod_rad_outrad.o mod_rad_radiation.o mod_rad_scenarios.o mod_rad_tracer.o mod_realkinds.o mod_rrtmg_driver.o mod_runparams.o

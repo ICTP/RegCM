@@ -20,18 +20,16 @@
 #ifdef CLM
 
 module mod_clm
-!
-! Storage and parameters for CLM model v3.5
-!
+  !
+  ! Storage and parameters for CLM model v3.5
+  !
   use mod_intkinds
   use mod_realkinds
-  use mod_dynparam
-  use mod_constants
-  use mod_memutil
-  use mod_runparams , only : ichem , iocnflx
-!
+  use mod_dynparam , only : domname , pthsep
+  use mod_runparams , only : ichem
+
   implicit none
-!
+
   integer(ik4) :: r2comm        ! RegCM MPI communicator
   integer(ik4) :: r2cdtime      ! timestep in seconds
   integer(ik4) :: r2cnsrest     ! 0=initial, 1=restart
@@ -148,96 +146,6 @@ module mod_clm
   real(rk8) , pointer , dimension(:,:) :: rs2d
   real(rk8) , pointer , dimension(:,:) :: ra2d
 
-  contains
-!
-  subroutine allocate_mod_clm(n_tr,igases,ioxcl)
-
-    implicit none
-
-    integer(ik4), intent(in) :: igases , ioxcl
-    integer(ik4), intent(in) :: n_tr
-
-    call getmem2d(r2ctb,1,jxp,1,iyp,'clm:r2ctb')
-    call getmem2d(r2cqb,1,jxp,1,iyp,'clm:r2cqb')
-    call getmem2d(r2czga,1,jxp,1,iyp,'clm:r2czga')
-    call getmem2d(r2cpsb,1,jxp,1,iyp,'clm:r2cpsb')
-    call getmem2d(r2cuxb,1,jxp,1,iyp,'clm:r2cuxb')
-    call getmem2d(r2cvxb,1,jxp,1,iyp,'clm:r2cvxb')
-    call getmem2d(r2crnc,1,jxp,1,iyp,'clm:r2crnc')
-    call getmem2d(r2crnnc,1,jxp,1,iyp,'clm:r2crnnc')
-    call getmem2d(r2csols,1,jxp,1,iyp,'clm:r2csols')
-    call getmem2d(r2csoll,1,jxp,1,iyp,'clm:r2csoll')
-    call getmem2d(r2csolsd,1,jxp,1,iyp,'clm:r2csolsd')
-    call getmem2d(r2csolld,1,jxp,1,iyp,'clm:r2csolld')
-    call getmem2d(r2cflwd,1,jxp,1,iyp,'clm:r2cflwd')
-    call getmem2d(r2cxlat,1,jxp,1,iyp,'clm:r2cxlat')
-    call getmem2d(r2cxlon,1,jxp,1,iyp,'clm:r2cxlon')
-    call getmem2d(r2cxlatd,1,jxp,1,iyp,'clm:r2cxlatd')
-    call getmem2d(r2cxlond,1,jxp,1,iyp,'clm:r2cxlond')
-
-    call getmem2d(r2ctb_all,1,jx,1,iy,'clm:r2ctb_all')
-    call getmem2d(r2cqb_all,1,jx,1,iy,'clm:r2cqb_all')
-    call getmem2d(r2czga_all,1,jx,1,iy,'clm:r2czga_all')
-    call getmem2d(r2cpsb_all,1,jx,1,iy,'clm:r2cpsb_all')
-    call getmem2d(r2cuxb_all,1,jx,1,iy,'clm:r2cuxb_all')
-    call getmem2d(r2cvxb_all,1,jx,1,iy,'clm:r2cvxb_all')
-    call getmem2d(r2crnc_all,1,jx,1,iy,'clm:r2crnc_all')
-    call getmem2d(r2crnnc_all,1,jx,1,iy,'clm:r2crnnc_all')
-    call getmem2d(r2csols_all,1,jx,1,iy,'clm:r2csols_all')
-    call getmem2d(r2csoll_all,1,jx,1,iy,'clm:r2csoll_all')
-    call getmem2d(r2csolsd_all,1,jx,1,iy,'clm:r2csolsd_all')
-    call getmem2d(r2csolld_all,1,jx,1,iy,'clm:r2csolld_all')
-    call getmem2d(r2cflwd_all,1,jx,1,iy,'clm:r2cflwd_all')
-    call getmem2d(r2ccosz_all,1,jx,1,iy,'clm:r2ccosz_all')
-    call getmem2d(r2cxlat_all,1,jx,1,iy,'clm:r2cxlat_all')
-    call getmem2d(r2cxlon_all,1,jx,1,iy,'clm:r2cxlon_all')
-    call getmem2d(r2cxlatd_all,1,jx,1,iy,'clm:r2cxlatd_all')
-    call getmem2d(r2cxlond_all,1,jx,1,iy,'clm:r2cxlond_all')
-
-    call getmem2d(c2rtgb,1,jx,1,iy,'clm:c2rtgb')
-    call getmem2d(c2rsenht,1,jx,1,iy,'clm:c2rsenht')
-    call getmem2d(c2rlatht,1,jx,1,iy,'clm:c2rlatht')
-    call getmem2d(c2ralbdirs,1,jx,1,iy,'clm:c2ralbdirs')
-    call getmem2d(c2ralbdirl,1,jx,1,iy,'clm:c2ralbdirl')
-    call getmem2d(c2ralbdifs,1,jx,1,iy,'clm:c2ralbdifs')
-    call getmem2d(c2ralbdifl,1,jx,1,iy,'clm:c2ralbdifl')
-    call getmem2d(c2rtaux,1,jx,1,iy,'clm:c2rtaux')
-    call getmem2d(c2rtauy,1,jx,1,iy,'clm:c2rtauy')
-    call getmem2d(c2ruvdrag,1,jx,1,iy,'clm:c2ruvdrag')
-    call getmem2d(c2rlsmask,1,jx,1,iy,'clm:c2rlsmask')
-    call getmem2d(c2rtgbb,1,jx,1,iy,'clm:c2rtgbb')
-    call getmem2d(c2rsnowc,1,jx,1,iy,'clm:c2rsnowc')
-    call getmem2d(c2rtest,1,jx,1,iy,'clm:c2rtest')
-    call getmem2d(c2r2mt,1,jx,1,iy,'clm:c2r2mt')
-    call getmem2d(c2r2mq,1,jx,1,iy,'clm:c2r2mq')
-    call getmem2d(c2rtlef,1,jx,1,iy,'clm:c2rtlef')
-    call getmem2d(c2ru10,1,jx,1,iy,'clm:c2ru10')
-    call getmem2d(c2rsm10cm,1,jx,1,iy,'clm:c2rsm10cm')
-    call getmem2d(c2rsm1m,1,jx,1,iy,'clm:c2rsm1m')
-    call getmem2d(c2rsmtot,1,jx,1,iy,'clm:c2rsmtot')
-    call getmem2d(c2rinfl,1,jx,1,iy,'clm:c2rinfl')
-    call getmem2d(c2rro_sur,1,jx,1,iy,'clm:c2rro_sur')
-    call getmem2d(c2rro_sub,1,jx,1,iy,'clm:c2rro_sub')
-    call getmem2d(c2rfracsno,1,jx,1,iy,'clm:c2rfracsno')
-    call getmem2d(c2rfvegnosno,1,jx,1,iy,'clm:c2rfvegnosno')
-    call getmem2d(c2rprocmap,1,jx,1,iy,'clm:c2rprocmap')
-#if (defined VOC)
-    call getmem2d(voc_em,1,jx,1,iy,'clm:voc_em')
-    call getmem2d(voc_em1,1,jx,1,iy,'clm:voc_em1')
-    call getmem2d(voc_em2,1,jx,1,iy,'clm:voc_em2')
-#endif
-    if ( igases == 1 .or. ioxcl == 1 ) then
-      call getmem3d(dep_vels,1,jx,1,iy,1,n_tr,'clm:dep_vels')
-    end if
-
-    call getmem1d(c2rngc,1,nproc,'clm:c2rngc')
-    call getmem1d(c2rdisps,1,nproc,'clm:c2rdisps')
-
-    call getmem2d(rs2d,jci1,jci2,ici1,ici2,'clm:rs2d')
-    call getmem2d(ra2d,jci1,jci2,ici1,ici2,'clm:ra2d')
- 
-  end subroutine allocate_mod_clm
-!
 end module mod_clm
 !
 #endif

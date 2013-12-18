@@ -754,11 +754,7 @@ module mod_tendency
       !
       ! calculate albedo
       !
-#ifndef CLM
-      call albedobats
-#else
-      call albedoclm
-#endif
+      call land_albedo
       loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
       labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
       if ( iclimao3 == 1 ) then
@@ -768,34 +764,11 @@ module mod_tendency
       call radiation(xyear,eccf,loutrad,labsem)
     end if
 
-#ifndef CLM
-    !
-    ! call mtrxbats for surface physics calculations
-    !
     if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
-      call mtrxbats
+      call land_model
       if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
     end if
-#else
-    !
-    ! call mtrxclm for surface physics calculations
-    !
-    if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
-      r2cdoalb = .true.
-    else
-      r2cdoalb = .false.
-    end if
-    if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
-      ! Timestep used is the same as for bats
-      if ( ktau == 0 ) then
-        r2cnstep = 0
-      else
-        r2cnstep = (ktau+1)/ntsrf
-      end if
-      call mtrxclm
-      if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
-    end if
-#endif
+
     if ( icup == 1 ) then
       call htdiff(dxsq,akht1)
     end if

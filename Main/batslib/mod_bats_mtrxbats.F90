@@ -28,6 +28,7 @@ module mod_bats_mtrxbats
   use mod_mpmessage
   use mod_constants
   use mod_service
+  use mod_bats_param
   use mod_bats_common
   use mod_bats_internal
   use mod_bats_lake
@@ -42,7 +43,7 @@ module mod_bats_mtrxbats
 
   private
 
-  public :: interf , initb , mtrxbats , albedobats
+  public :: interf , initbats , mtrxbats , albedobats
   public :: export_data_from_surface , import_data_into_surface
 
   contains
@@ -141,7 +142,7 @@ module mod_bats_mtrxbats
 !
 !  flow from this driver and order of subroutines is:
 !
-!   initb
+!   initbats
 !   mtrxbats ==> soilbc
 !                bndry   ==>   drag  ==> dragdn  ==> depth
 !                             satur
@@ -220,13 +221,13 @@ module mod_bats_mtrxbats
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
-  subroutine initb
+  subroutine initbats
     implicit none
     integer(ik4) :: i , itex , j , n , ib
     logical , parameter :: snowhack = .false.
 !
 #ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'initb'
+    character(len=dbgslen) :: subroutine_name = 'initbats'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
@@ -347,7 +348,7 @@ module mod_bats_mtrxbats
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
-  end subroutine initb
+  end subroutine initbats
 !
 ! ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !

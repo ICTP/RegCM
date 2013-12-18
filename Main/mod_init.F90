@@ -473,7 +473,7 @@ module mod_init
   !
   ! Initialize the BATS variable (Used also by CLM)
   !
-  call initb
+  call initbats
 #ifdef CLM
   call mkslice
   call initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf,igaschem,iaerosol,chtrname)
