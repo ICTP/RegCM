@@ -533,14 +533,14 @@ module mod_bdycod
                 if ( iemiss == 1 ) emiss(j,i) = 0.97D0
                 do n = 1, nnsg
                   mdsub%ldmsk(n,j,i) = 2
-                  sfice(n,j,i) = d_10
+                  sfice1(n,j,i) = d_10
                 end do
               else if ( ts1(j,i) > icetemp .and. mddom%ldmsk(j,i) == 2 ) then
                 ! Decrease the surface ice to melt it
                 sfs%tga(j,i) = ts1(j,i)
                 sfs%tgb(j,i) = ts1(j,i)
                 do n = 1, nnsg
-                  sfice(n,j,i) = sfice(n,j,i)*d_r10
+                  sfice1(n,j,i) = sfice1(n,j,i)*d_r10
                 end do
                 if ( iemiss == 1 ) emiss(j,i) = 0.995D0
               end if

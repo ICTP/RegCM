@@ -28,269 +28,342 @@ module mod_bats_internal
 
   public
 
-  real(rk8) , pointer , dimension(:,:,:) :: abswveg
-  real(rk8) , pointer , dimension(:,:,:) :: aseas
-  real(rk8) , pointer , dimension(:,:,:) :: bb
-  real(rk8) , pointer , dimension(:,:,:) :: bcoef
-  real(rk8) , pointer , dimension(:,:,:) :: bfc
-  real(rk8) , pointer , dimension(:,:,:) :: bsw
-  real(rk8) , pointer , dimension(:,:,:) :: cc
-  real(rk8) , pointer , dimension(:,:,:) :: cdr
-  real(rk8) , pointer , dimension(:,:,:) :: cdrd
-  real(rk8) , pointer , dimension(:,:,:) :: cdrn
-  real(rk8) , pointer , dimension(:,:,:) :: cf
-  real(rk8) , pointer , dimension(:,:,:) :: cgrnd
-  real(rk8) , pointer , dimension(:,:,:) :: cgrndl
-  real(rk8) , pointer , dimension(:,:,:) :: cgrnds
-  real(rk8) , pointer , dimension(:,:,:) :: clead
-  real(rk8) , pointer , dimension(:,:,:) :: cn1
-  real(rk8) , pointer , dimension(:,:,:) :: czenith
-  real(rk8) , pointer , dimension(:,:,:) :: dcd
-  real(rk8) , pointer , dimension(:,:,:) :: delq
-  real(rk8) , pointer , dimension(:,:,:) :: dels
-  real(rk8) , pointer , dimension(:,:,:) :: delt
-  real(rk8) , pointer , dimension(:,:,:) :: deprat
-  real(rk8) , pointer , dimension(:,:,:) :: df
-  real(rk8) , pointer , dimension(:,:,:) :: efe
-  real(rk8) , pointer , dimension(:,:,:) :: efpr
-  real(rk8) , pointer , dimension(:,:,:) :: eg
-  real(rk8) , pointer , dimension(:,:,:) :: etr
-  real(rk8) , pointer , dimension(:,:,:) :: etrc
-  real(rk8) , pointer , dimension(:,:,:) :: etrrun
-  real(rk8) , pointer , dimension(:,:,:) :: evaps
-  real(rk8) , pointer , dimension(:,:,:) :: evapw
-  real(rk8) , pointer , dimension(:,:,:) :: evmx0
-  real(rk8) , pointer , dimension(:,:,:) :: fct2
-  real(rk8) , pointer , dimension(:,:,:) :: fdry
-  real(rk8) , pointer , dimension(:,:,:) :: fevpg
-  real(rk8) , pointer , dimension(:,:,:) :: flnet
-  real(rk8) , pointer , dimension(:,:,:) :: flneto
-  real(rk8) , pointer , dimension(:,:,:) :: fracd
-  real(rk8) , pointer , dimension(:,:,:) :: fseng
-  real(rk8) , pointer , dimension(:,:,:) :: fwet
-  real(rk8) , pointer , dimension(:,:,:) :: gwmx0
-  real(rk8) , pointer , dimension(:,:,:) :: gwmx1
-  real(rk8) , pointer , dimension(:,:,:) :: gwmx2
-  real(rk8) , pointer , dimension(:,:,:) :: htvp
-  real(rk8) , pointer , dimension(:,:,:) :: lfta
-  real(rk8) , pointer , dimension(:,:,:) :: lftb
-  real(rk8) , pointer , dimension(:,:,:) :: lftra
-  real(rk8) , pointer , dimension(:,:,:) :: lftrs
-  real(rk8) , pointer , dimension(:,:,:) :: lncl
-  real(rk8) , pointer , dimension(:,:,:) :: lwflx
-  real(rk8) , pointer , dimension(:,:,:) :: porsl
-  real(rk8) , pointer , dimension(:,:,:) :: ps
-  real(rk8) , pointer , dimension(:,:,:) :: pw
-  real(rk8) , pointer , dimension(:,:,:) :: qgrd
-  real(rk8) , pointer , dimension(:,:,:) :: qs
-  real(rk8) , pointer , dimension(:,:,:) :: qsatl
-  real(rk8) , pointer , dimension(:,:,:) :: relaw
-  real(rk8) , pointer , dimension(:,:,:) :: relfc
-  real(rk8) , pointer , dimension(:,:,:) :: resp
-  real(rk8) , pointer , dimension(:,:,:) :: rgr
-  real(rk8) , pointer , dimension(:,:,:) :: rhosw
-  real(rk8) , pointer , dimension(:,:,:) :: rhs
-  real(rk8) , pointer , dimension(:,:,:) :: rib
-  real(rk8) , pointer , dimension(:,:,:) :: ribd
-  real(rk8) , pointer , dimension(:,:,:) :: rlai
-  real(rk8) , pointer , dimension(:,:,:) :: rnet
-  real(rk8) , pointer , dimension(:,:,:) :: rnof
-  real(rk8) , pointer , dimension(:,:,:) :: rpp
-  real(rk8) , pointer , dimension(:,:,:) :: rppq
-  real(rk8) , pointer , dimension(:,:,:) :: rsubst
-  real(rk8) , pointer , dimension(:,:,:) :: rsur
-  real(rk8) , pointer , dimension(:,:,:) :: scrat
-  real(rk8) , pointer , dimension(:,:,:) :: scvk
-  real(rk8) , pointer , dimension(:,:,:) :: sdrop
-  real(rk8) , pointer , dimension(:,:,:) :: seasb
-  real(rk8) , pointer , dimension(:,:,:) :: sigf
-  real(rk8) , pointer , dimension(:,:,:) :: sm
-  real(rk8) , pointer , dimension(:,:,:) :: sts
-  real(rk8) , pointer , dimension(:,:,:) :: swflx
-  real(rk8) , pointer , dimension(:,:,:) :: swsi
-  real(rk8) , pointer , dimension(:,:,:) :: texrat
-  real(rk8) , pointer , dimension(:,:,:) :: tm
-  real(rk8) , pointer , dimension(:,:,:) :: uaf
-  real(rk8) , pointer , dimension(:,:,:) :: usw
-  real(rk8) , pointer , dimension(:,:,:) :: vegt
-  real(rk8) , pointer , dimension(:,:,:) :: vpdc
-  real(rk8) , pointer , dimension(:,:,:) :: vspda
-  real(rk8) , pointer , dimension(:,:,:) :: vsw
-  real(rk8) , pointer , dimension(:,:,:) :: wata
-  real(rk8) , pointer , dimension(:,:,:) :: watr
-  real(rk8) , pointer , dimension(:,:,:) :: watt
-  real(rk8) , pointer , dimension(:,:,:) :: watu
-  real(rk8) , pointer , dimension(:,:,:) :: wflux1
-  real(rk8) , pointer , dimension(:,:,:) :: wflux2
-  real(rk8) , pointer , dimension(:,:,:) :: wfluxc
-  real(rk8) , pointer , dimension(:,:,:) :: wiltr
-  real(rk8) , pointer , dimension(:,:,:) :: wt
-  real(rk8) , pointer , dimension(:,:,:) :: wta
-  real(rk8) , pointer , dimension(:,:,:) :: wta0
-  real(rk8) , pointer , dimension(:,:,:) :: wtaq0
-  real(rk8) , pointer , dimension(:,:,:) :: wtg
-  real(rk8) , pointer , dimension(:,:,:) :: wtg0
-  real(rk8) , pointer , dimension(:,:,:) :: wtg2
-  real(rk8) , pointer , dimension(:,:,:) :: wtga
-  real(rk8) , pointer , dimension(:,:,:) :: wtgaq
-  real(rk8) , pointer , dimension(:,:,:) :: wtgl
-  real(rk8) , pointer , dimension(:,:,:) :: wtglq
-  real(rk8) , pointer , dimension(:,:,:) ::  wtgq
-  real(rk8) , pointer , dimension(:,:,:) :: wtgq0
-  real(rk8) , pointer , dimension(:,:,:) :: wtl0
-  real(rk8) , pointer , dimension(:,:,:) :: wtlh
-  real(rk8) , pointer , dimension(:,:,:) :: wtlq
-  real(rk8) , pointer , dimension(:,:,:) :: wtlq0
-  real(rk8) , pointer , dimension(:,:,:) :: wtshi
-  real(rk8) , pointer , dimension(:,:,:) :: wtsqi
-  real(rk8) , pointer , dimension(:,:,:) :: xkmx
-  real(rk8) , pointer , dimension(:,:,:) :: xlai
-  real(rk8) , pointer , dimension(:,:,:) :: xlsai
-  real(rk8) , pointer , dimension(:,:,:) :: xrun
-  real(rk8) , pointer , dimension(:,:,:) :: z10fra
-  real(rk8) , pointer , dimension(:,:,:) :: z1log
-  real(rk8) , pointer , dimension(:,:,:) :: z2fra
-  real(rk8) , pointer , dimension(:,:,:) :: zh
-  real(rk8) , pointer , dimension(:,:,:) :: zlgdis
-  real(rk8) , pointer , dimension(:,:,:) :: zlglnd
-  real(rk8) , pointer , dimension(:,:,:) :: zlgocn
-  real(rk8) , pointer , dimension(:,:,:) :: zlgsno
-  real(rk8) , pointer , dimension(:,:,:) :: zlgveg
-  integer(ik4) , pointer , dimension(:,:,:) :: lveg
+  real(rk8) :: dtbat , dtlake
+
+  integer(ik4) :: nlandp
+  integer(ik4) :: ilndbeg , ilndend
+  logical :: llake = .false.
+
+  real(rk8) , pointer , dimension(:) :: abswveg
+  real(rk8) , pointer , dimension(:) :: aseas
+  real(rk8) , pointer , dimension(:) :: bb
+  real(rk8) , pointer , dimension(:) :: bcoef
+  real(rk8) , pointer , dimension(:) :: bfc
+  real(rk8) , pointer , dimension(:) :: bsw
+  real(rk8) , pointer , dimension(:) :: cc
+  real(rk8) , pointer , dimension(:) :: cdr
+  real(rk8) , pointer , dimension(:) :: cdrd
+  real(rk8) , pointer , dimension(:) :: cdrn
+  real(rk8) , pointer , dimension(:) :: cdrx
+  real(rk8) , pointer , dimension(:) :: cf
+  real(rk8) , pointer , dimension(:) :: cgrnd
+  real(rk8) , pointer , dimension(:) :: cgrndl
+  real(rk8) , pointer , dimension(:) :: cgrnds
+  real(rk8) , pointer , dimension(:) :: clead
+  real(rk8) , pointer , dimension(:) :: cn1
+  real(rk8) , pointer , dimension(:) :: czenith
+  real(rk8) , pointer , dimension(:) :: dcd
+  real(rk8) , pointer , dimension(:) :: delq
+  real(rk8) , pointer , dimension(:) :: dels
+  real(rk8) , pointer , dimension(:) :: delt
+  real(rk8) , pointer , dimension(:) :: deprat
+  real(rk8) , pointer , dimension(:) :: df
+  real(rk8) , pointer , dimension(:) :: dhlake
+  real(rk8) , pointer , dimension(:) :: drag
+  real(rk8) , pointer , dimension(:) :: efe
+  real(rk8) , pointer , dimension(:) :: efpr
+  real(rk8) , pointer , dimension(:) :: eg
+  real(rk8) , pointer , dimension(:) :: emiss
+  real(rk8) , pointer , dimension(:) :: etr
+  real(rk8) , pointer , dimension(:) :: etrc
+  real(rk8) , pointer , dimension(:) :: etrrun
+  real(rk8) , pointer , dimension(:) :: evaps
+  real(rk8) , pointer , dimension(:) :: evapw
+  real(rk8) , pointer , dimension(:) :: evmx0
+  real(rk8) , pointer , dimension(:) :: evpr
+  real(rk8) , pointer , dimension(:) :: fct2
+  real(rk8) , pointer , dimension(:) :: fdry
+  real(rk8) , pointer , dimension(:) :: fevpg
+  real(rk8) , pointer , dimension(:) :: flnet
+  real(rk8) , pointer , dimension(:) :: flneto
+  real(rk8) , pointer , dimension(:) :: fracd
+  real(rk8) , pointer , dimension(:) :: fseng
+  real(rk8) , pointer , dimension(:) :: fwet
+  real(rk8) , pointer , dimension(:) :: gwet
+  real(rk8) , pointer , dimension(:) :: gwmx0
+  real(rk8) , pointer , dimension(:) :: gwmx1
+  real(rk8) , pointer , dimension(:) :: gwmx2
+  real(rk8) , pointer , dimension(:) :: htvp
+  real(rk8) , pointer , dimension(:) :: lat
+  real(rk8) , pointer , dimension(:) :: ldew
+  real(rk8) , pointer , dimension(:) :: lfta
+  real(rk8) , pointer , dimension(:) :: lftb
+  real(rk8) , pointer , dimension(:) :: lftra
+  real(rk8) , pointer , dimension(:) :: lftrs
+  real(rk8) , pointer , dimension(:) :: lncl
+  real(rk8) , pointer , dimension(:) :: lwal
+  real(rk8) , pointer , dimension(:) :: lwdifal
+  real(rk8) , pointer , dimension(:) :: lwdiral
+  real(rk8) , pointer , dimension(:) :: lwflx
+  real(rk8) , pointer , dimension(:) :: porsl
+  real(rk8) , pointer , dimension(:) :: prcp
+  real(rk8) , pointer , dimension(:) :: ps
+  real(rk8) , pointer , dimension(:) :: pw
+  real(rk8) , pointer , dimension(:) :: qgrd
+  real(rk8) , pointer , dimension(:) :: qs
+  real(rk8) , pointer , dimension(:) :: qsatl
+  real(rk8) , pointer , dimension(:) :: relaw
+  real(rk8) , pointer , dimension(:) :: relfc
+  real(rk8) , pointer , dimension(:) :: resp
+  real(rk8) , pointer , dimension(:) :: rgr
+  real(rk8) , pointer , dimension(:) :: rhosw
+  real(rk8) , pointer , dimension(:) :: rhs
+  real(rk8) , pointer , dimension(:) :: rib
+  real(rk8) , pointer , dimension(:) :: ribd
+  real(rk8) , pointer , dimension(:) :: rlai
+  real(rk8) , pointer , dimension(:) :: rnet
+  real(rk8) , pointer , dimension(:) :: rnof
+  real(rk8) , pointer , dimension(:) :: rpp
+  real(rk8) , pointer , dimension(:) :: rppq
+  real(rk8) , pointer , dimension(:) :: rsubst
+  real(rk8) , pointer , dimension(:) :: rsur
+  real(rk8) , pointer , dimension(:) :: rsw
+  real(rk8) , pointer , dimension(:) :: scrat
+  real(rk8) , pointer , dimension(:) :: scvk
+  real(rk8) , pointer , dimension(:) :: sdrop
+  real(rk8) , pointer , dimension(:) :: seasb
+  real(rk8) , pointer , dimension(:) :: sent
+  real(rk8) , pointer , dimension(:) :: sfcp
+  real(rk8) , pointer , dimension(:) :: sfice
+  real(rk8) , pointer , dimension(:) :: sigf
+  real(rk8) , pointer , dimension(:) :: sm
+  real(rk8) , pointer , dimension(:) :: snag
+  real(rk8) , pointer , dimension(:) :: sncv
+  real(rk8) , pointer , dimension(:) :: srnof
+  real(rk8) , pointer , dimension(:) :: ssw
+  real(rk8) , pointer , dimension(:) :: sts
+  real(rk8) , pointer , dimension(:) :: swal
+  real(rk8) , pointer , dimension(:) :: swdifal
+  real(rk8) , pointer , dimension(:) :: swdiral
+  real(rk8) , pointer , dimension(:) :: swflx
+  real(rk8) , pointer , dimension(:) :: swsi
+  real(rk8) , pointer , dimension(:) :: taf
+  real(rk8) , pointer , dimension(:) :: texrat
+  real(rk8) , pointer , dimension(:) :: tgbrd
+  real(rk8) , pointer , dimension(:) :: tgrd
+  real(rk8) , pointer , dimension(:) :: tlef
+  real(rk8) , pointer , dimension(:) :: tm
+  real(rk8) , pointer , dimension(:) :: trnof
+  real(rk8) , pointer , dimension(:) :: tsw
+  real(rk8) , pointer , dimension(:) :: uaf
+  real(rk8) , pointer , dimension(:) :: usw
+  real(rk8) , pointer , dimension(:) :: vegt
+  real(rk8) , pointer , dimension(:) :: vpdc
+  real(rk8) , pointer , dimension(:) :: vspda
+  real(rk8) , pointer , dimension(:) :: vsw
+  real(rk8) , pointer , dimension(:) :: wata
+  real(rk8) , pointer , dimension(:) :: watr
+  real(rk8) , pointer , dimension(:) :: watt
+  real(rk8) , pointer , dimension(:) :: watu
+  real(rk8) , pointer , dimension(:) :: wflux1
+  real(rk8) , pointer , dimension(:) :: wflux2
+  real(rk8) , pointer , dimension(:) :: wfluxc
+  real(rk8) , pointer , dimension(:) :: wiltr
+  real(rk8) , pointer , dimension(:) :: wt
+  real(rk8) , pointer , dimension(:) :: wta
+  real(rk8) , pointer , dimension(:) :: wta0
+  real(rk8) , pointer , dimension(:) :: wtaq0
+  real(rk8) , pointer , dimension(:) :: wtg
+  real(rk8) , pointer , dimension(:) :: wtg0
+  real(rk8) , pointer , dimension(:) :: wtg2
+  real(rk8) , pointer , dimension(:) :: wtga
+  real(rk8) , pointer , dimension(:) :: wtgaq
+  real(rk8) , pointer , dimension(:) :: wtgl
+  real(rk8) , pointer , dimension(:) :: wtglq
+  real(rk8) , pointer , dimension(:) :: wtgq
+  real(rk8) , pointer , dimension(:) :: wtgq0
+  real(rk8) , pointer , dimension(:) :: wtl0
+  real(rk8) , pointer , dimension(:) :: wtlh
+  real(rk8) , pointer , dimension(:) :: wtlq
+  real(rk8) , pointer , dimension(:) :: wtlq0
+  real(rk8) , pointer , dimension(:) :: wtshi
+  real(rk8) , pointer , dimension(:) :: wtsqi
+  real(rk8) , pointer , dimension(:) :: xkmx
+  real(rk8) , pointer , dimension(:) :: xlai
+  real(rk8) , pointer , dimension(:) :: xlsai
+  real(rk8) , pointer , dimension(:) :: xrun
+  real(rk8) , pointer , dimension(:) :: z10fra
+  real(rk8) , pointer , dimension(:) :: z1log
+  real(rk8) , pointer , dimension(:) :: z2fra
+  real(rk8) , pointer , dimension(:) :: zh
+  real(rk8) , pointer , dimension(:) :: zlgdis
+  real(rk8) , pointer , dimension(:) :: zlglnd
+  real(rk8) , pointer , dimension(:) :: zlgocn
+  real(rk8) , pointer , dimension(:) :: zlgsno
+  real(rk8) , pointer , dimension(:) :: zlgveg
+
+  integer(ik4) , pointer , dimension(:) :: lakmsk
+  integer(ik4) , pointer , dimension(:) :: lveg
+  integer(ik4) , pointer , dimension(:) :: mask
 
   contains
 
   subroutine allocate_mod_bats_internal
     implicit none
-    call getmem3d(abswveg,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:abswveg')
-    call getmem3d(aseas,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:aseas')
-    call getmem3d(bb,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:bb')
-    call getmem3d(bcoef,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:bcoef')
-    call getmem3d(bfc,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:bfc')
-    call getmem3d(bsw,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:bsw')
-    call getmem3d(cc,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cc')
-    call getmem3d(cdr,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cdr')
-    call getmem3d(cdrd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cdrd')
-    call getmem3d(cdrn,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cdrn')
-    call getmem3d(cf,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cf')
-    call getmem3d(cgrnd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cgrnd')
-    call getmem3d(cgrndl,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cgrndl')
-    call getmem3d(cgrnds,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cgrnds')
-    call getmem3d(clead,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:clead')
-    call getmem3d(cn1,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:cn1')
-    call getmem3d(czenith,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:czenith')
-    call getmem3d(dcd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:dcd')
-    call getmem3d(delq,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:delq')
-    call getmem3d(dels,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:dels')
-    call getmem3d(delt,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:delt')
-    call getmem3d(deprat,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:deprat')
-    call getmem3d(df,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:df')
-    call getmem3d(efe,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:efe')
-    call getmem3d(efpr,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:efpr')
-    call getmem3d(eg,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:eg')
-    call getmem3d(etr,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:etr')
-    call getmem3d(etrc,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:etrc')
-    call getmem3d(etrrun,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:etrrun')
-    call getmem3d(evaps,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:evaps')
-    call getmem3d(evapw,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:evapw')
-    call getmem3d(evmx0,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:evmx0')
-    call getmem3d(fct2,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:fct2')
-    call getmem3d(fdry,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:fdry')
-    call getmem3d(fevpg,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:fevpg')
-    call getmem3d(flnet,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:flnet')
-    call getmem3d(flneto,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:flneto')
-    call getmem3d(fracd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:fracd')
-    call getmem3d(fseng,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:fseng')
-    call getmem3d(fwet,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:fwet')
-    call getmem3d(gwmx0,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:gwmx0')
-    call getmem3d(gwmx1,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:gwmx1')
-    call getmem3d(gwmx2,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:gwmx2')
-    call getmem3d(htvp,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:htvp')
-    call getmem3d(lfta,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:lfta')
-    call getmem3d(lftb,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:lftb')
-    call getmem3d(lftra,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:lftra')
-    call getmem3d(lftrs,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:lftrs')
-    call getmem3d(lncl,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:lncl')
-    call getmem3d(lveg,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:lveg')
-    call getmem3d(lwflx,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:lwflx')
-    call getmem3d(porsl,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:porsl')
-    call getmem3d(ps,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:ps')
-    call getmem3d(pw,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:pw')
-    call getmem3d(qgrd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:qgrd')
-    call getmem3d(qs,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:qs')
-    call getmem3d(qsatl,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:qsatl')
-    call getmem3d(relaw,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:relaw')
-    call getmem3d(relfc,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:relfc')
-    call getmem3d(resp,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:resp')
-    call getmem3d(rgr,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rgr')
-    call getmem3d(rhosw,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rhosw')
-    call getmem3d(rhs,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rhs')
-    call getmem3d(rib,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rib')
-    call getmem3d(ribd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:ribd')
-    call getmem3d(rlai,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rlai')
-    call getmem3d(rnet,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rnet')
-    call getmem3d(rnof,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rnof')
-    call getmem3d(rpp,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rpp')
-    call getmem3d(rppq,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rppq')
-    call getmem3d(rsubst,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rsubst')
-    call getmem3d(rsur,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:rsur')
-    call getmem3d(scrat,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:scrat')
-    call getmem3d(scvk,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:scvk')
-    call getmem3d(sdrop,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:sdrop')
-    call getmem3d(seasb,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:seasb')
-    call getmem3d(sigf,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:sigf')
-    call getmem3d(sm,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:sm')
-    call getmem3d(sts,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:sts')
-    call getmem3d(swflx,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:swflx')
-    call getmem3d(swsi,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:swsi')
-    call getmem3d(texrat,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:texrat')
-    call getmem3d(tm,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:tm')
-    call getmem3d(uaf,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:uaf')
-    call getmem3d(usw,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:usw')
-    call getmem3d(vegt,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:vegt')
-    call getmem3d(vpdc,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:vpdc')
-    call getmem3d(vspda,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:vspda')
-    call getmem3d(vsw,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:vsw')
-    call getmem3d(wata,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wata')
-    call getmem3d(watr,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:watr')
-    call getmem3d(watt,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:watt')
-    call getmem3d(watu,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:watu')
-    call getmem3d(wflux1,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wflux1')
-    call getmem3d(wflux2,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wflux2')
-    call getmem3d(wfluxc,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wfluxc')
-    call getmem3d(wiltr,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wiltr')
-    call getmem3d(wt,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wt')
-    call getmem3d(wta0,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wta0')
-    call getmem3d(wta,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wta')
-    call getmem3d(wtaq0,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wtaq0')
-    call getmem3d(wtg0,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wtg0')
-    call getmem3d(wtg,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wtg')
-    call getmem3d(wtg2,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wtg2')
-    call getmem3d(wtga,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wtga')
-    call getmem3d(wtgaq,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wtgaq')
-    call getmem3d(wtgl,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wtgl')
-    call getmem3d(wtglq,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wtglq')
-    call getmem3d(wtgq0,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wtgq0')
-    call getmem3d(wtgq,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wtgq')
-    call getmem3d(wtl0,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wtl0')
-    call getmem3d(wtlh,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wtlh')
-    call getmem3d(wtlq0,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wtlq0')
-    call getmem3d(wtlq,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wtlq')
-    call getmem3d(wtshi,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wtshi')
-    call getmem3d(wtsqi,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:wtsqi')
-    call getmem3d(xkmx,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:xkmx')
-    call getmem3d(xlai,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:xlai')
-    call getmem3d(xlsai,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:xlsai')
-    call getmem3d(xrun,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:xrun')
-    call getmem3d(z10fra,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:z10fra')
-    call getmem3d(z1log,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:z1log')
-    call getmem3d(z2fra,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:z2fra')
-    call getmem3d(zh,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:zh')
-    call getmem3d(zlgdis,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:zlgdis')
-    call getmem3d(zlglnd,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:zlglnd')
-    call getmem3d(zlgocn,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:zlgocn')
-    call getmem3d(zlgsno,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:zlgsno')
-    call getmem3d(zlgveg,1,nnsg,jci1,jci2,ici1,ici2,'bats_internal:zlgveg')
+    nlandp = nnsg*(jci2-jci1+1)*(ici2-ici1+1)
+    ilndbeg = 1
+    ilndend = nlandp
+    call getmem1d(abswveg,1,nlandp,'bats_internal:abswveg')
+    call getmem1d(aseas,1,nlandp,'bats_internal:aseas')
+    call getmem1d(bb,1,nlandp,'bats_internal:bb')
+    call getmem1d(bcoef,1,nlandp,'bats_internal:bcoef')
+    call getmem1d(bfc,1,nlandp,'bats_internal:bfc')
+    call getmem1d(bsw,1,nlandp,'bats_internal:bsw')
+    call getmem1d(cc,1,nlandp,'bats_internal:cc')
+    call getmem1d(cdr,1,nlandp,'bats_internal:cdr')
+    call getmem1d(cdrd,1,nlandp,'bats_internal:cdrd')
+    call getmem1d(cdrn,1,nlandp,'bats_internal:cdrn')
+    call getmem1d(cdrx,1,nlandp,'bats_internal:cdrx')
+    call getmem1d(cf,1,nlandp,'bats_internal:cf')
+    call getmem1d(cgrnd,1,nlandp,'bats_internal:cgrnd')
+    call getmem1d(cgrndl,1,nlandp,'bats_internal:cgrndl')
+    call getmem1d(cgrnds,1,nlandp,'bats_internal:cgrnds')
+    call getmem1d(clead,1,nlandp,'bats_internal:clead')
+    call getmem1d(cn1,1,nlandp,'bats_internal:cn1')
+    call getmem1d(czenith,1,nlandp,'bats_internal:czenith')
+    call getmem1d(dcd,1,nlandp,'bats_internal:dcd')
+    call getmem1d(delq,1,nlandp,'bats_internal:delq')
+    call getmem1d(dels,1,nlandp,'bats_internal:dels')
+    call getmem1d(delt,1,nlandp,'bats_internal:delt')
+    call getmem1d(deprat,1,nlandp,'bats_internal:deprat')
+    call getmem1d(df,1,nlandp,'bats_internal:df')
+    call getmem1d(dhlake,1,nlandp,'bats_internal:dhlake')
+    call getmem1d(drag,1,nlandp,'bats_internal:drag')
+    call getmem1d(efe,1,nlandp,'bats_internal:efe')
+    call getmem1d(efpr,1,nlandp,'bats_internal:efpr')
+    call getmem1d(eg,1,nlandp,'bats_internal:eg')
+    call getmem1d(emiss,1,nlandp,'bats_internal:emiss')
+    call getmem1d(etr,1,nlandp,'bats_internal:etr')
+    call getmem1d(etrc,1,nlandp,'bats_internal:etrc')
+    call getmem1d(etrrun,1,nlandp,'bats_internal:etrrun')
+    call getmem1d(evaps,1,nlandp,'bats_internal:evaps')
+    call getmem1d(evapw,1,nlandp,'bats_internal:evapw')
+    call getmem1d(evmx0,1,nlandp,'bats_internal:evmx0')
+    call getmem1d(evpr,1,nlandp,'bats_internal:evpr')
+    call getmem1d(fct2,1,nlandp,'bats_internal:fct2')
+    call getmem1d(fdry,1,nlandp,'bats_internal:fdry')
+    call getmem1d(fevpg,1,nlandp,'bats_internal:fevpg')
+    call getmem1d(flnet,1,nlandp,'bats_internal:flnet')
+    call getmem1d(flneto,1,nlandp,'bats_internal:flneto')
+    call getmem1d(fracd,1,nlandp,'bats_internal:fracd')
+    call getmem1d(fseng,1,nlandp,'bats_internal:fseng')
+    call getmem1d(fwet,1,nlandp,'bats_internal:fwet')
+    call getmem1d(gwet,1,nlandp,'bats_internal:gwet')
+    call getmem1d(gwmx0,1,nlandp,'bats_internal:gwmx0')
+    call getmem1d(gwmx1,1,nlandp,'bats_internal:gwmx1')
+    call getmem1d(gwmx2,1,nlandp,'bats_internal:gwmx2')
+    call getmem1d(htvp,1,nlandp,'bats_internal:htvp')
+    call getmem1d(lat,1,nlandp,'bats_internal:lat')
+    call getmem1d(ldew,1,nlandp,'bats_internal:ldew')
+    call getmem1d(lfta,1,nlandp,'bats_internal:lfta')
+    call getmem1d(lftb,1,nlandp,'bats_internal:lftb')
+    call getmem1d(lftra,1,nlandp,'bats_internal:lftra')
+    call getmem1d(lftrs,1,nlandp,'bats_internal:lftrs')
+    call getmem1d(lncl,1,nlandp,'bats_internal:lncl')
+    call getmem1d(lwal,1,nlandp,'bats_internal:lwalb')
+    call getmem1d(lwdifal,1,nlandp,'bats_internal:lwdifal')
+    call getmem1d(lwdiral,1,nlandp,'bats_internal:lwdiral')
+    call getmem1d(lwflx,1,nlandp,'bats_internal:lwflx')
+    call getmem1d(porsl,1,nlandp,'bats_internal:porsl')
+    call getmem1d(prcp,1,nlandp,'bats_internal:prcp')
+    call getmem1d(ps,1,nlandp,'bats_internal:ps')
+    call getmem1d(pw,1,nlandp,'bats_internal:pw')
+    call getmem1d(qgrd,1,nlandp,'bats_internal:qgrd')
+    call getmem1d(qs,1,nlandp,'bats_internal:qs')
+    call getmem1d(qsatl,1,nlandp,'bats_internal:qsatl')
+    call getmem1d(relaw,1,nlandp,'bats_internal:relaw')
+    call getmem1d(relfc,1,nlandp,'bats_internal:relfc')
+    call getmem1d(resp,1,nlandp,'bats_internal:resp')
+    call getmem1d(rgr,1,nlandp,'bats_internal:rgr')
+    call getmem1d(rhosw,1,nlandp,'bats_internal:rhosw')
+    call getmem1d(rhs,1,nlandp,'bats_internal:rhs')
+    call getmem1d(rib,1,nlandp,'bats_internal:rib')
+    call getmem1d(ribd,1,nlandp,'bats_internal:ribd')
+    call getmem1d(rlai,1,nlandp,'bats_internal:rlai')
+    call getmem1d(rnet,1,nlandp,'bats_internal:rnet')
+    call getmem1d(rnof,1,nlandp,'bats_internal:rnof')
+    call getmem1d(rpp,1,nlandp,'bats_internal:rpp')
+    call getmem1d(rppq,1,nlandp,'bats_internal:rppq')
+    call getmem1d(rsubst,1,nlandp,'bats_internal:rsubst')
+    call getmem1d(rsur,1,nlandp,'bats_internal:rsur')
+    call getmem1d(rsw,1,nlandp,'bats_internal:rsw')
+    call getmem1d(scrat,1,nlandp,'bats_internal:scrat')
+    call getmem1d(scvk,1,nlandp,'bats_internal:scvk')
+    call getmem1d(sdrop,1,nlandp,'bats_internal:sdrop')
+    call getmem1d(seasb,1,nlandp,'bats_internal:seasb')
+    call getmem1d(sent,1,nlandp,'bats_internal:sent')
+    call getmem1d(sfcp,1,nlandp,'bats_internal:sfcp')
+    call getmem1d(sfice,1,nlandp,'bats_internal:sfice')
+    call getmem1d(sigf,1,nlandp,'bats_internal:sigf')
+    call getmem1d(sm,1,nlandp,'bats_internal:sm')
+    call getmem1d(snag,1,nlandp,'bats_internal:snag')
+    call getmem1d(sncv,1,nlandp,'bats_internal:sncv')
+    call getmem1d(srnof,1,nlandp,'bats_internal:srnof')
+    call getmem1d(ssw,1,nlandp,'bats_internal:ssw')
+    call getmem1d(sts,1,nlandp,'bats_internal:sts')
+    call getmem1d(swal,1,nlandp,'bats_internal:swal')
+    call getmem1d(swdifal,1,nlandp,'bats_internal:swdifal')
+    call getmem1d(swdiral,1,nlandp,'bats_internal:swdiral')
+    call getmem1d(swflx,1,nlandp,'bats_internal:swflx')
+    call getmem1d(swsi,1,nlandp,'bats_internal:swsi')
+    call getmem1d(taf,1,nlandp,'bats_internal:taf')
+    call getmem1d(texrat,1,nlandp,'bats_internal:texrat')
+    call getmem1d(tgbrd,1,nlandp,'bats_internal:tgbrd')
+    call getmem1d(tgrd,1,nlandp,'bats_internal:tgrd')
+    call getmem1d(tlef,1,nlandp,'bats_internal:tlef')
+    call getmem1d(tm,1,nlandp,'bats_internal:tm')
+    call getmem1d(trnof,1,nlandp,'bats_internal:trnof')
+    call getmem1d(tsw,1,nlandp,'bats_internal:tsw')
+    call getmem1d(uaf,1,nlandp,'bats_internal:uaf')
+    call getmem1d(usw,1,nlandp,'bats_internal:usw')
+    call getmem1d(vegt,1,nlandp,'bats_internal:vegt')
+    call getmem1d(vpdc,1,nlandp,'bats_internal:vpdc')
+    call getmem1d(vspda,1,nlandp,'bats_internal:vspda')
+    call getmem1d(vsw,1,nlandp,'bats_internal:vsw')
+    call getmem1d(wata,1,nlandp,'bats_internal:wata')
+    call getmem1d(watr,1,nlandp,'bats_internal:watr')
+    call getmem1d(watt,1,nlandp,'bats_internal:watt')
+    call getmem1d(watu,1,nlandp,'bats_internal:watu')
+    call getmem1d(wflux1,1,nlandp,'bats_internal:wflux1')
+    call getmem1d(wflux2,1,nlandp,'bats_internal:wflux2')
+    call getmem1d(wfluxc,1,nlandp,'bats_internal:wfluxc')
+    call getmem1d(wiltr,1,nlandp,'bats_internal:wiltr')
+    call getmem1d(wt,1,nlandp,'bats_internal:wt')
+    call getmem1d(wta0,1,nlandp,'bats_internal:wta0')
+    call getmem1d(wta,1,nlandp,'bats_internal:wta')
+    call getmem1d(wtaq0,1,nlandp,'bats_internal:wtaq0')
+    call getmem1d(wtg0,1,nlandp,'bats_internal:wtg0')
+    call getmem1d(wtg,1,nlandp,'bats_internal:wtg')
+    call getmem1d(wtg2,1,nlandp,'bats_internal:wtg2')
+    call getmem1d(wtga,1,nlandp,'bats_internal:wtga')
+    call getmem1d(wtgaq,1,nlandp,'bats_internal:wtgaq')
+    call getmem1d(wtgl,1,nlandp,'bats_internal:wtgl')
+    call getmem1d(wtglq,1,nlandp,'bats_internal:wtglq')
+    call getmem1d(wtgq0,1,nlandp,'bats_internal:wtgq0')
+    call getmem1d(wtgq,1,nlandp,'bats_internal:wtgq')
+    call getmem1d(wtl0,1,nlandp,'bats_internal:wtl0')
+    call getmem1d(wtlh,1,nlandp,'bats_internal:wtlh')
+    call getmem1d(wtlq0,1,nlandp,'bats_internal:wtlq0')
+    call getmem1d(wtlq,1,nlandp,'bats_internal:wtlq')
+    call getmem1d(wtshi,1,nlandp,'bats_internal:wtshi')
+    call getmem1d(wtsqi,1,nlandp,'bats_internal:wtsqi')
+    call getmem1d(xkmx,1,nlandp,'bats_internal:xkmx')
+    call getmem1d(xlai,1,nlandp,'bats_internal:xlai')
+    call getmem1d(xlsai,1,nlandp,'bats_internal:xlsai')
+    call getmem1d(xrun,1,nlandp,'bats_internal:xrun')
+    call getmem1d(z10fra,1,nlandp,'bats_internal:z10fra')
+    call getmem1d(z1log,1,nlandp,'bats_internal:z1log')
+    call getmem1d(z2fra,1,nlandp,'bats_internal:z2fra')
+    call getmem1d(zh,1,nlandp,'bats_internal:zh')
+    call getmem1d(zlgdis,1,nlandp,'bats_internal:zlgdis')
+    call getmem1d(zlglnd,1,nlandp,'bats_internal:zlglnd')
+    call getmem1d(zlgocn,1,nlandp,'bats_internal:zlgocn')
+    call getmem1d(zlgsno,1,nlandp,'bats_internal:zlgsno')
+    call getmem1d(zlgveg,1,nlandp,'bats_internal:zlgveg')
+
+    call getmem1d(lakmsk,1,nlandp,'bats_internal:lakmsk')
+    call getmem1d(lveg,1,nlandp,'bats_internal:lveg')
+    call getmem1d(mask,1,nlandp,'bats_internal:mask')
   end subroutine allocate_mod_bats_internal
 !
 end module mod_bats_internal

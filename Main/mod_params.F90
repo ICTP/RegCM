@@ -74,6 +74,9 @@ module mod_params
   integer(ik8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
   integer(ik8) :: nlakfrq , nsubfrq , nbdyfrq , nslabfrq
   integer(ik4) :: n , len_path
+#ifndef CLM
+  integer(ik4) :: totlakep , nlakep
+#endif
   character(len=32) :: appdat
   type(rcm_time_interval) :: bdif
 #ifdef DEBUG
@@ -1339,6 +1342,11 @@ module mod_params
       write(stderr,*) 'Cannot set idate0 == idate1 on restart run'
       write(stderr,*) 'Correct idate0.'
       call fatal(__FILE__,__LINE__,'IDATE0==IDATE1 ON RESTART')
+    else if ( .not. ifrest .and. idate0 /= idate1 ) then
+      write(stderr,*) 'Error in parameter set.'
+      write(stderr,*) 'Cannot set idate0 /= idate1 on non restart run'
+      write(stderr,*) 'Correct idate1.'
+      call fatal(__FILE__,__LINE__,'IDATE0/=IDATE1 ON NON RESTART')
     end if
   end if
 !
@@ -1473,11 +1481,11 @@ module mod_params
 !
 #ifndef CLM
   if ( lakemod == 1 ) then
-    write(0,*) 'nlakepts = ', nlakep
     call count_lakepoints
-    write(0,*) 'nlakepts = ', nlakep
-    write(0,*) 'totlakpts = ', totlakep
-    call allocate_mod_bats_lake
+    if ( myid == italk ) then
+      write(stdout,*) 'LAKE activated on ', totlakep , ' points.'
+    end if
+    call allocate_mod_bats_lake(lakmsk1)
   end if
 #endif
    do i = ici1 , ici2
@@ -1982,27 +1990,31 @@ module mod_params
 #ifdef DEBUG
   call time_end(subroutine_name,idindx)
 #endif
-!
-  end subroutine param
+
+  contains
 
 #ifndef CLM
   subroutine count_lakepoints
     implicit none
     integer(ik4) :: i , j , n
-    lakemsk(:,:,:) = 0
+    lakmsk1(:,:,:) = 0
+    llakmsk1(:,:,:) = .false.
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
           if ( mdsub%lndcat(n,j,i) > 13.0 .and. &
                mdsub%lndcat(n,j,i) < 15.0 ) then
-            lakemsk(n,j,i) = 1
+            lakmsk1(n,j,i) = 1
+            llakmsk1(n,j,i) = .true.
           end if
         end do
       end do
     end do
-    nlakep = sum(lakemsk)
+    nlakep = count(lakmsk1>0)
     call sumall(nlakep,totlakep)
   end subroutine count_lakepoints
 #endif
+!
+  end subroutine param
 !
 end module mod_params

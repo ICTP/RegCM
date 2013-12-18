@@ -26,12 +26,12 @@ module mod_bats_common
   use mod_memutil
   use mod_dynparam
   use mod_bats_param
-  use mod_bats_internal , only : allocate_mod_bats_internal
+  use mod_bats_internal , only : allocate_mod_bats_internal , dtlake , dtbat
+  use mod_bats_internal , only : llake
 
-  real(rk8) :: dtbat  ! BATS1e internal timestep
-  real(rk8) :: dtlake ! Lake model internal timestep
+  public :: dtlake , dtbat , llake
 
-  logical :: ldcsst , llake , lseaice , ldesseas
+  logical :: ldcsst , lseaice , ldesseas
 
   integer(ik8) :: ntcpl  ! Number of time step to call ROMS update 
   integer(ik8) :: ntsrf2 ! Number of time step to call BATs 
@@ -42,43 +42,41 @@ module mod_bats_common
   real(rk4) :: fdaysrf
 
   ! TO be pushed in savefile
-  real(rk8) , pointer , dimension(:,:,:) :: ldew
-  real(rk8) , pointer , dimension(:,:,:) :: gwet
-  real(rk8) , pointer , dimension(:,:,:) :: snag
-  real(rk8) , pointer , dimension(:,:,:) :: sncv
-  real(rk8) , pointer , dimension(:,:,:) :: sfice
-  real(rk8) , pointer , dimension(:,:,:) :: rsw
-  real(rk8) , pointer , dimension(:,:,:) :: ssw
-  real(rk8) , pointer , dimension(:,:,:) :: tsw
-  real(rk8) , pointer , dimension(:,:,:) :: taf
-  real(rk8) , pointer , dimension(:,:,:) :: tgrd
-  real(rk8) , pointer , dimension(:,:,:) :: tgbrd
-  real(rk8) , pointer , dimension(:,:,:) :: tlef
-  real(rk8) , pointer , dimension(:,:,:) :: sfcemiss
+  real(rk8) , pointer , dimension(:,:,:) :: ldew1
+  real(rk8) , pointer , dimension(:,:,:) :: gwet1
+  real(rk8) , pointer , dimension(:,:,:) :: snag1
+  real(rk8) , pointer , dimension(:,:,:) :: sncv1
+  real(rk8) , pointer , dimension(:,:,:) :: sfice1
+  real(rk8) , pointer , dimension(:,:,:) :: rsw1
+  real(rk8) , pointer , dimension(:,:,:) :: ssw1
+  real(rk8) , pointer , dimension(:,:,:) :: tsw1
+  real(rk8) , pointer , dimension(:,:,:) :: taf1
+  real(rk8) , pointer , dimension(:,:,:) :: tgrd1
+  real(rk8) , pointer , dimension(:,:,:) :: tgbrd1
+  real(rk8) , pointer , dimension(:,:,:) :: tlef1
+  real(rk8) , pointer , dimension(:,:,:) :: emiss1
 
-  real(rk8) , pointer , dimension(:,:,:) :: drag
-  real(rk8) , pointer , dimension(:,:,:) :: evpr
+  real(rk8) , pointer , dimension(:,:,:) :: sent1
+  real(rk8) , pointer , dimension(:,:,:) :: drag1
+  real(rk8) , pointer , dimension(:,:,:) :: evpr1
   real(rk8) , pointer , dimension(:,:,:) :: q2m
-  real(rk8) , pointer , dimension(:,:,:) :: sfcp
-  real(rk8) , pointer , dimension(:,:,:) :: trnof
-  real(rk8) , pointer , dimension(:,:,:) :: srnof
-  real(rk8) , pointer , dimension(:,:,:) :: sent
+  real(rk8) , pointer , dimension(:,:,:) :: ps1
+  real(rk8) , pointer , dimension(:,:,:) :: trnof1
+  real(rk8) , pointer , dimension(:,:,:) :: srnof1
   real(rk8) , pointer , dimension(:,:,:) :: t2m
   real(rk8) , pointer , dimension(:,:,:) :: u10m
   real(rk8) , pointer , dimension(:,:,:) :: v10m
   real(rk8) , pointer , dimension(:,:,:) :: taux
   real(rk8) , pointer , dimension(:,:,:) :: tauy
-  real(rk8) , pointer , dimension(:,:,:) :: cdrx
-  real(rk8) , pointer , dimension(:,:,:) :: prcp
+  real(rk8) , pointer , dimension(:,:,:) :: prcp1
+  logical , pointer , dimension(:,:,:) :: llakmsk1
+  integer(ik4) , pointer , dimension(:,:,:) :: lakmsk1
 !
   real(rk8) , pointer , dimension(:,:) :: ssw2da
   real(rk8) , pointer , dimension(:,:) :: sfracv2d
   real(rk8) , pointer , dimension(:,:) :: sfracb2d
   real(rk8) , pointer , dimension(:,:) :: sfracs2d
   real(rk8) , pointer , dimension(:,:) :: svegfrac2d
-!
-  integer(ik4) , pointer , dimension(:,:,:) :: lakemsk
-  integer(ik4) , pointer , dimension(:,:) :: landmsk
 !
   ! Coupling variables
   real(rk8) , pointer , dimension(:,:,:) :: dailyrnf
@@ -94,7 +92,6 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:,:) :: xlake
 !
   data ldcsst /.false./
-  data llake  /.false./
   data ldesseas /.false./
 
   real(rk8) , pointer , dimension(:,:) :: xlat          ! mddom%xlat
@@ -104,14 +101,15 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:) :: snowam        ! mddom%snowam
   integer(ik4) , pointer , dimension(:,:) :: iveg       ! mddom%iveg
   integer(ik4) , pointer , dimension(:,:) :: ldmsk      ! mddom%ldmsk
+
   real(rk8) , pointer , dimension(:,:,:) :: ht1         ! mdsub%ht
   real(rk8) , pointer , dimension(:,:,:) :: lndcat1     ! mdsub%lndcat
-  real(rk8) , pointer , dimension(:,:,:) :: mask1       ! mdsub%mask
   real(rk8) , pointer , dimension(:,:,:) :: xlat1       ! mdsub%xlat
   real(rk8) , pointer , dimension(:,:,:) :: xlon1       ! mdsub%xlon
   real(rk8) , pointer , dimension(:,:,:) :: dhlake1     ! mdsub%dhlake
   integer(ik4) , pointer , dimension(:,:,:) :: ldmsk1   ! mdsub%ldmsk
   integer(ik4) , pointer , dimension(:,:,:) :: iveg1    ! mdsub%iveg
+
   real(rk8) , pointer , dimension(:,:) :: uatm          ! atms%ubx3d(:,:,kz)
   real(rk8) , pointer , dimension(:,:) :: vatm          ! atms%vbx3d(:,:,kz)
   real(rk8) , pointer , dimension(:,:) :: tatm          ! atms%tb3d(:,:,kz)
@@ -151,9 +149,6 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:) :: deltat        ! sdelt
   integer(ik4) , pointer , dimension(:,:) :: lmask      ! CLM landmask
 
-  integer(ik4) :: nlakep = 0
-  integer(ik4) :: totlakep = 0
-
   contains
 
     subroutine allocate_mod_bats_common(ichem,idcsst,lakemod,iocncpl)
@@ -177,19 +172,18 @@ module mod_bats_common
         call getmem2d(svegfrac2d,jci1,jci2,ici1,ici2,'bats:svegfrac2d')
       end if
 
-      call getmem3d(gwet,1,nnsg,jci1,jci2,ici1,ici2,'bats:gwet')
-      call getmem3d(rsw,1,nnsg,jci1,jci2,ici1,ici2,'bats:rsw')
-      call getmem3d(snag,1,nnsg,jci1,jci2,ici1,ici2,'bats:snag')
-      call getmem3d(sncv,1,nnsg,jci1,jci2,ici1,ici2,'bats:sncv')
-      call getmem3d(sent,1,nnsg,jci1,jci2,ici1,ici2,'bats:sent')
-      call getmem3d(sfice,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfice')
-      call getmem3d(ssw,1,nnsg,jci1,jci2,ici1,ici2,'bats:ssw')
-      call getmem3d(tgrd,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgrd')
-      call getmem3d(tgbrd,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgbrd')
-      call getmem3d(tlef,1,nnsg,jci1,jci2,ici1,ici2,'bats:tlef')
-      call getmem3d(tsw,1,nnsg,jci1,jci2,ici1,ici2,'bats:tsw')
-      call getmem3d(taf,1,nnsg,jci1,jci2,ici1,ici2,'bats:taf')
-      call getmem3d(ldew,1,nnsg,jci1,jci2,ici1,ici2,'bats:ldew')
+      call getmem3d(gwet1,1,nnsg,jci1,jci2,ici1,ici2,'bats:gwet1')
+      call getmem3d(rsw1,1,nnsg,jci1,jci2,ici1,ici2,'bats:rsw1')
+      call getmem3d(snag1,1,nnsg,jci1,jci2,ici1,ici2,'bats:snag1')
+      call getmem3d(sncv1,1,nnsg,jci1,jci2,ici1,ici2,'bats:sncv1')
+      call getmem3d(sfice1,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfice1')
+      call getmem3d(ssw1,1,nnsg,jci1,jci2,ici1,ici2,'bats:ssw1')
+      call getmem3d(tgrd1,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgrd1')
+      call getmem3d(tgbrd1,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgbrd1')
+      call getmem3d(tlef1,1,nnsg,jci1,jci2,ici1,ici2,'bats:tlef1')
+      call getmem3d(tsw1,1,nnsg,jci1,jci2,ici1,ici2,'bats:tsw1')
+      call getmem3d(taf1,1,nnsg,jci1,jci2,ici1,ici2,'bats:taf1')
+      call getmem3d(ldew1,1,nnsg,jci1,jci2,ici1,ici2,'bats:ldew1')
 
       if (idcsst == 1) then
         call getmem2d(deltas,jci1,jci2,ici1,ici2,'bats:deltas')
@@ -198,23 +192,24 @@ module mod_bats_common
         call getmem2d(sst,jci1,jci2,ici1,ici2,'bats:sst')
       end if
 
-      call getmem3d(drag,1,nnsg,jci1,jci2,ici1,ici2,'bats:drag')
-      call getmem3d(prcp,1,nnsg,jci1,jci2,ici1,ici2,'bats:prcp')
-      call getmem3d(cdrx,1,nnsg,jci1,jci2,ici1,ici2,'bats:cdrx')
-      call getmem3d(evpr,1,nnsg,jci1,jci2,ici1,ici2,'bats:evpr')
-      call getmem3d(sfcp,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfcp')
+      call getmem3d(sent1,1,nnsg,jci1,jci2,ici1,ici2,'bats:sent1')
+      call getmem3d(evpr1,1,nnsg,jci1,jci2,ici1,ici2,'bats:evpr1')
+      call getmem3d(drag1,1,nnsg,jci1,jci2,ici1,ici2,'bats:drag1')
+      call getmem3d(prcp1,1,nnsg,jci1,jci2,ici1,ici2,'bats:prcp1')
       call getmem3d(q2m,1,nnsg,jci1,jci2,ici1,ici2,'bats:q2m')
-      call getmem3d(trnof,1,nnsg,jci1,jci2,ici1,ici2,'bats:trnof')
-      call getmem3d(srnof,1,nnsg,jci1,jci2,ici1,ici2,'bats:srnof')
+      call getmem3d(ps1,1,nnsg,jci1,jci2,ici1,ici2,'bats:ps1')
+      call getmem3d(trnof1,1,nnsg,jci1,jci2,ici1,ici2,'bats:trnof1')
+      call getmem3d(srnof1,1,nnsg,jci1,jci2,ici1,ici2,'bats:srnof1')
       call getmem3d(t2m,1,nnsg,jci1,jci2,ici1,ici2,'bats:t2m')
       call getmem3d(u10m,1,nnsg,jci1,jci2,ici1,ici2,'bats:u10m')
       call getmem3d(v10m,1,nnsg,jci1,jci2,ici1,ici2,'bats:v10m')
       call getmem3d(taux,1,nnsg,jci1,jci2,ici1,ici2,'bats:taux')
       call getmem3d(tauy,1,nnsg,jci1,jci2,ici1,ici2,'bats:tauy')
-      call getmem3d(sfcemiss,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfcemiss')
+      call getmem3d(emiss1,1,nnsg,jci1,jci2,ici1,ici2,'bats:emiss1')
 
       if ( lakemod == 1 ) then
-        call getmem3d(lakemsk,1,nnsg,jci1,jci2,ici1,ici2,'bats:lakemsk')
+        call getmem3d(lakmsk1,1,nnsg,jci1,jci2,ici1,ici2,'bats:lakmsk1')
+        call getmem3d(llakmsk1,1,nnsg,jci1,jci2,ici1,ici2,'bats:llakmsk1')
         call getmem3d(xlake,1,nnsg,jci1,jci2,ici1,ici2,'bats:xlake')
         call getmem4d(tlake,1,nnsg,jci1,jci2,ici1,ici2,1,ndpmax,'bats:tlake')
       end if

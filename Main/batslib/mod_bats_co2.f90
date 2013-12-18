@@ -22,10 +22,11 @@ module mod_bats_co2
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_bats_common
   use mod_bats_leaftemp
   use mod_bats_internal
 !
+  implicit none
+
   private
 !
   public :: co2
@@ -50,7 +51,7 @@ module mod_bats_co2
 !              rs  = stomatal resistance
 !             rsp  = stomatal resistance to co2
 !              rt  = total mechanical resistance to co2
-!      resp(n,j,i) = carbon in soil and in veg (kg c / m**2 / sec)
+!      resp(i) = carbon in soil and in veg (kg c / m**2 / sec)
 !
 !     0.33 pptv co2 = 0.30 pptm dry matter in plants
 !
@@ -64,31 +65,26 @@ module mod_bats_co2
   subroutine co2
     implicit none
 !
-    integer(ik4) :: n , i , j
+    integer(ik4) :: i
     real(rk8) :: rap , resps , rsp , rt , rcar , cari , apbm
     real(rk8) , parameter :: rmp = 800.0D0
 !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          if ( ldmsk1(n,j,i) /= 0 ) then
-            if ( sigf(n,j,i) > 0.001D0 ) then
-              rsp = lftrs(n,j,i)*1.7D0
-              rap = lftra(n,j,i)*1.5D0
-              rt = rsp + rap + rmp
-              rcar = carbon(swsi(n,j,i)*rlai(n,j,i),tlef(n,j,i),rt, &
-                            tgrd(n,j,i),xlai(n,j,i),xlsai(n,j,i))
-              cari = sigf(n,j,i)*xlsai(n,j,i)*fdry(n,j,i)*rcar
-              apbm = apbm + cari*dtbat
-              if ( apbm < d_zero ) apbm = d_zero
-              resps = 0.7D-7*resp(n,j,i)*dexp(0.1D0*(tgrd(n,j,i)-300.0D0)) * &
-                      dmin1(d_one,ssw(n,j,i)/(0.6D0*gwmx0(n,j,i)))
-              resp(n,j,i) = resp(n,j,i) + (cari-resps)*dtbat
-              if ( resp(n,j,i) < d_zero ) resp(n,j,i) = d_zero
-            end if
-          end if
-        end do
-      end do
+    do i = ilndbeg , ilndend
+      if ( mask(i) /= 0 ) then
+        if ( sigf(i) > 0.001D0 ) then
+          rsp = lftrs(i)*1.7D0
+          rap = lftra(i)*1.5D0
+          rt = rsp + rap + rmp
+          rcar = carbon(swsi(i)*rlai(i),tlef(i),rt,tgrd(i),xlai(i),xlsai(i))
+          cari = sigf(i)*xlsai(i)*fdry(i)*rcar
+          apbm = apbm + cari*dtbat
+          if ( apbm < d_zero ) apbm = d_zero
+          resps = 0.7D-7*resp(i)*dexp(0.1D0*(tgrd(i)-300.0D0)) * &
+                  dmin1(d_one,ssw(i)/(0.6D0*gwmx0(i)))
+          resp(i) = resp(i) + (cari-resps)*dtbat
+          if ( resp(i) < d_zero ) resp(i) = d_zero
+        end if
+      end if
     end do
    
   end subroutine co2
@@ -110,62 +106,58 @@ module mod_bats_co2
 !
   function carbon(vf,t,rm,tg,xlai,xlsai)
     implicit none
-!
     real(rk8) :: rm , t , tg , vf , xlai , xlsai
     real(rk8) :: carbon
     intent (in) rm , tg , vf , xlai , xlsai
-!
     real(rk8) :: ab , ac , al , alphtl , b , bc , betatl , cco2 ,   &
                cco2i , ccold , gt , p , pm , pml , rt , w , &
                wd , wp , xk , xkb , xl
     integer(ik4) :: it
-!
-!====================================================================
-!   this fn is not in si - vf (radn) and rm (res) handed in are in si
-!   result of fn (carbon) is handed back in si (kg/m**2/s)
-!======================================================================
-!
+    !
+    !====================================================================
+    ! this fn is not in si - vf (radn) and rm (res) handed in are in si
+    ! result of fn (carbon) is handed back in si (kg/m**2/s)
+    !======================================================================
+    !
     p = d_zero
     rt = r(t)
     ! alphtl=sai/lai     betatl=rai/lai  (rai=root area index)
     alphtl = (xlsai-xlai)/xlai
     betatl = d_half
     if ( vf < d_two ) then
-   
       ! nighttime maintenance respiration only
       carbon = -0.36D-8*((d_one+alphtl)*0.877D0*rt+ &
                  betatl*(r(tg)-0.123D0*rt))
     else
-!       **** convert lambda less than 0.7 micron solar into photon units
-!       *****  light intensity (e/m2)
+      ! convert lambda less than 0.7 micron solar into photon units
+      ! light intensity (e/m2)
       xl = 4.6D-3*vf
-!       *** co2 external concentration(mm/m3)
-!       ****    335ppm/v
+      ! co2 external concentration(mm/m3)
+      ! 335ppm/v
       cco2 = 13.5D0
-!       ***initial guess for co2 concentration inside chloroplast
+      ! initial guess for co2 concentration inside chloroplast
       cco2i = cco2
-!       ****  co2 half max in absence of oxygen  (mm/m3)
+      ! co2 half max in absence of oxygen  (mm/m3)
       xk = d_half
-!       ****  oxygen inhibition factor
+      ! oxygen inhibition factor
       b = 3.56D0
       xkb = xk*b
-!       ****  maximum temperature optimum light saturated photosynthesis
+      ! maximum temperature optimum light saturated photosynthesis
       pml = 0.050D0
-!       ****    quantum yield(mm/e)
+      ! quantum yield(mm/e)
       al = 0.05D0
       gt = g(t,320.0D0,4.0D3)
-!       ****  maximum photosynthesis
+      ! maximum photosynthesis
       pm = e(xl,al,pml*gt)
-!       ******   iterate
-   
+      ! iterate
       do it = 1 , 30
-!         ****  photorespiration
+        ! photorespiration
         wp = pm/(d_one+0.4D0*(d_one+cco2i/xk))
-!         ****    total respiration
-!         **** dark respiration within daytime leaves
+        ! total respiration
+        ! dark respiration within daytime leaves
         wd = 3.0D-4*rt + 0.14D0*p
         w = wp + wd
-!         *****    carbon uptake factors
+        ! carbon uptake factors
         ac = cco2 + xkb + rm*(pm-w)
         bc = d_four*rm*(cco2*(pm-w)-xkb*w)
         ab = dsqrt(ac**2-bc)
@@ -174,10 +166,9 @@ module mod_bats_co2
         cco2i = cco2 - p*rm
         if ( dabs(cco2i-ccold) <= 0.05D0 .and. it > 9 ) exit
       end do
-!       **** respiration outside leaves
+      ! respiration outside leaves
       carbon = 1.2D-5*((d_one-0.14D0*(alphtl+betatl)) * &
                p-3.0D-4*(alphtl*rt+betatl*r(tg)))
-      return
     end if
 
     contains
@@ -200,6 +191,7 @@ module mod_bats_co2
         real(rk8) , intent(in) :: xl , a , pml
         e = a*xl/sqrt(d_one+(a*xl/pml)**2)
       end function e
+
   end function carbon
 !
 end module mod_bats_co2

@@ -98,7 +98,7 @@
 !-----------------------------------------------------------------------
 !
       iflag = .false.
-      if (sfice(n,j,i) > 0.0d0) iflag = .true.
+      if (sfice1(n,j,i) > 0.0d0) iflag = .true.
 !
       ps = (sfps(j,i)+ptop)*d_10
       ts = tground2(j,i)-tzero
@@ -145,7 +145,7 @@
 !     Compute net longwave and shortwave radiation (W/m2) 
 !-----------------------------------------------------------------------
 !
-      Rns = swflx(n,j,i)
+      Rns = rswf(j,i)
       Rnl = emsw*(sigm*(ts+tzero)**4-dwrlwf(j,i))
 !     
 !-----------------------------------------------------------------------
@@ -354,12 +354,12 @@
 !-----------------------------------------------------------------------
 !
       ! heat fluxes
-      sent(n,j,i) = hsb 
-      evpr(n,j,i) = hlb/Le
+      sent1(n,j,i) = hsb 
+      evpr1(n,j,i) = hlb/Le
 
       ! drag coefficents
       facttq = dlog(z995*d_half)/dlog(z995/zo)
-      drag(n,j,i) = usr**2*rhox(j,i)/uv995      
+      drag1(n,j,i) = usr**2*rhox(j,i)/uv995      
 
       ! wind stress components 
       tau = rhoa*usr*usr*du/ut

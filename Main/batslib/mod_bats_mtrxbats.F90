@@ -35,6 +35,7 @@ module mod_bats_mtrxbats
   use mod_bats_drag
   use mod_bats_leaftemp
   use mod_bats_zengocn
+  use mod_bats_albedo
   use mod_bats_coare
   use mod_outvars
   use mod_regcm_types
@@ -158,7 +159,6 @@ module mod_bats_mtrxbats
 !
 !   initb
 !   mtrxbats ==> soilbc
- !               albedobats
 !                bndry   ==>   drag  ==> dragdn  ==> depth
 !                             satur
 !                            vcover
@@ -238,7 +238,7 @@ module mod_bats_mtrxbats
 !
   subroutine initb
     implicit none
-    integer(ik4) :: i , itex , j , n
+    integer(ik4) :: i , itex , j , n , ib
     logical , parameter :: snowhack = .false.
 !
 #ifdef DEBUG
@@ -246,72 +246,120 @@ module mod_bats_mtrxbats
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    !
-    ! initialize hostetler lake model
-    !
-    if ( llake ) call initlake
- 
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          lveg(n,j,i) = iveg1(n,j,i)
-          tgrd(n,j,i) = tground2(j,i)
-          tgbrd(n,j,i) = tground2(j,i)
-          taf(n,j,i) = tground2(j,i)
-          tlef(n,j,i) = tground2(j,i)
-          itex  = iexsol(lveg(n,j,i))
-          if ( ldmsk1(n,j,i) == 2 ) then
-            lveg(n,j,i) = 12
-          end if
-          if ( ldmsk1(n,j,i) > 0 ) then
-            if ( snowam(j,i) > d_zero .and. snowam(j,i) < dmissval ) then
-              sncv(n,j,i) = snowam(j,i)
-            else
-              if ( snowhack ) then
-                if ( ht1(n,j,i) > 2000.0D0 ) then
-                  sncv(n,j,i) = 0.01D0
-                else
-                  sncv(n,j,i) = d_zero
-                end if
-              else
-                sncv(n,j,i) = d_zero
-              end if
-            end if
-          end if
-!         Initialize soil moisture in the 3 layers
-          tsw(n,j,i) = deptv(lveg(n,j,i))*xmopor(itex)*slmo(lveg(n,j,i))
-          rsw(n,j,i) = deprv(lveg(n,j,i))*xmopor(itex)*slmo(lveg(n,j,i))
-          ssw(n,j,i) = depuv(lveg(n,j,i))*xmopor(itex)*slmo(lveg(n,j,i))
-          gwet(n,j,i) = d_half
-        end do
-      end do
-    end do
-    !
-    ! Calculate emission coefficients
-    !
-    if ( iemiss == 1 ) then
+
+    if ( ktau == 0 ) then
+      ib = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
           do n = 1 , nnsg
-            if ( lveg(n,j,i) == 14 .or. lveg(n,j,i) == 15 ) then
-              sfcemiss(n,j,i) = 0.955D0
-            else if ( lveg(n,j,i) == 8 ) then
-              sfcemiss(n,j,i) = 0.76D0
-            else if ( lveg(n,j,i) == 11 ) then
-              sfcemiss(n,j,i) = 0.85D0
-            else if ( lveg(n,j,i) == 12 ) then
-              sfcemiss(n,j,i) = 0.97D0
-            else
-              sfcemiss(n,j,i) = 0.99D0-(albvgs(lveg(n,j,i)) + &
-                                        albvgl(lveg(n,j,i)))*0.1D0
+            lveg(ib) = iveg1(n,j,i)
+            mask(ib) = ldmsk1(n,j,i)
+            lat(ib) = xlat1(n,j,i)
+            tgrd(ib) = tground2(j,i)
+            tgbrd(ib) = tground2(j,i)
+            taf(ib) = tground2(j,i)
+            tlef(ib) = tground2(j,i)
+            itex  = iexsol(lveg(ib))
+            if ( mask(ib) == 2 ) then
+              lveg(ib) = 12
             end if
+            if ( mask(ib) > 0 ) then
+              if ( snowam(j,i) > d_zero .and. snowam(j,i) < dmissval ) then
+                sncv(ib) = snowam(j,i)
+              else
+                if ( snowhack ) then
+                  if ( ht1(n,j,i) > 2000.0D0 ) then
+                    sncv(ib) = 0.01D0
+                  else
+                    sncv(ib) = d_zero
+                  end if
+                else
+                  sncv(ib) = d_zero
+                end if
+              end if
+            end if
+            ! Initialize soil moisture in the 3 layers
+            tsw(ib) = deptv(lveg(ib))*xmopor(itex)*slmo(lveg(ib))
+            rsw(ib) = deprv(lveg(ib))*xmopor(itex)*slmo(lveg(ib))
+            ssw(ib) = depuv(lveg(ib))*xmopor(itex)*slmo(lveg(ib))
+            gwet(ib) = d_half
+            ib = ib + 1
           end do
         end do
       end do
+      !
+      ! Calculate emission coefficients
+      !
+      if ( iemiss == 1 ) then
+        do i = ilndbeg , ilndend
+          if ( lveg(i) == 14 .or. lveg(i) == 15 ) then
+            emiss(i) = 0.955D0
+          else if ( lveg(i) == 8 ) then
+            emiss(i) = 0.76D0
+          else if ( lveg(i) == 11 ) then
+            emiss(i) = 0.85D0
+          else if ( lveg(i) == 12 ) then
+            emiss(i) = 0.97D0
+          else
+            emiss(i) = 0.99D0-(albvgs(lveg(i)) + albvgl(lveg(i)))*0.1D0
+          end if
+        end do
+      else
+        emiss(:) = 1.0D0
+      end if
+      !
+      ! Export emissivity
+      !
+      ib = 1
+      do i = ici1, ici2
+        do j = jci1, jci2
+          do n = 1 , nnsg
+            emiss1(n,j,i) = emiss(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      emissivity = sum(emiss1,1)*rdnnsg
     else
-      sfcemiss(:,:,:) = 1.0D0
+      ib = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n = 1 , nnsg
+            lat(ib) = xlat1(n,j,i)
+            tgrd(ib) = tgrd1(n,j,i)
+            tgbrd(ib) = tgbrd1(n,j,i)
+            sncv(ib) = sncv1(n,j,i)
+            gwet(ib) = gwet1(n,j,i)
+            snag(ib) = snag1(n,j,i)
+            sfice(ib) = sfice1(n,j,i)
+            ldew(ib) = ldew1(n,j,i)
+            taf(ib) = taf1(n,j,i)
+            emiss(ib) = emiss1(n,j,i)
+            mask(ib) = ldmsk1(n,j,i)
+            tlef(ib) = tlef1(n,j,i)
+            ssw(ib) = ssw1(n,j,i)
+            rsw(ib) = rsw1(n,j,i)
+            tsw(ib) = tsw1(n,j,i)
+            ib = ib + 1
+          end do
+        end do
+      end do
     end if
-    emissivity = sum(sfcemiss,1)*rdnnsg
+    !
+    ! initialize hostetler lake model
+    !
+    if ( llake ) then
+      ib = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n = 1 , nnsg
+            dhlake(ib) = dhlake1(n,j,i)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call initlake
+    end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -331,9 +379,8 @@ module mod_bats_mtrxbats
     integer(ik4) , intent (in) :: ivers
 !
     real(rk8) :: facb , facs , fact , factuv , facv , fracb ,  &
-                fracs , fracv , hl , rh0 , satvp ,     &
-                solvt , p0 , qs0 , ts0
-    integer(ik4) :: i , j , n , icemsk
+                 fracs , fracv , hl , rh0 , satvp , solvt , p0 , qs0 , ts0
+    integer(ik4) :: i , j , n , icemsk , ib , ii
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'interf'
     integer(ik4) , save :: idindx = 0
@@ -345,6 +392,7 @@ module mod_bats_mtrxbats
 
       call fseas(tgbrd)
 
+      ib = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
           p0 = (sfps(j,i)+ptop)*d_1000
@@ -355,69 +403,81 @@ module mod_bats_mtrxbats
           rh0 = dmax1(qs0/(ep2*satvp/(p0*0.01D0-satvp)),d_zero)
           solvt = swdif(j,i) + swdir(j,i)
           do n = 1 , nnsg
-            qs(n,j,i) = qs0
-            sts(n,j,i) = ts0-lrate*regrav*(ht1(n,j,i)-ht(j,i))
-            sfcp(n,j,i) = p0*(sts(n,j,i)/ts0)
-            hl = lh0 - lh1*(sts(n,j,i)-tzero)
-            satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/sts(n,j,i)))
-            qs(n,j,i) = dmax1(rh0*ep2*satvp/(sfcp(n,j,i)*0.01D0-satvp),d_zero)
-            rhs(n,j,i) = sfcp(n,j,i)/(rgas*sts(n,j,i))
-            czenith(n,j,i) = zencos(j,i)
+            mask(ib) = ldmsk1(n,j,i)
+            lveg(ib) = iveg1(n,j,i)
+            if ( mask(ib) == 2 ) then
+              lveg(ib) = 12
+            end if
+            qs(ib) = qs0
+            sts(ib) = ts0-lrate*regrav*(ht1(n,j,i)-ht(j,i))
+            sfcp(ib) = p0*(sts(ib)/ts0)
+            hl = lh0 - lh1*(sts(ib)-tzero)
+            satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/sts(ib)))
+            qs(ib) = dmax1(rh0*ep2*satvp/(sfcp(ib)*0.01D0-satvp),d_zero)
+            rhs(ib) = sfcp(ib)/(rgas*sts(ib))
+            czenith(ib) = zencos(j,i)
             ! Average over the priod
-            prcp(n,j,i) = (ncprate(j,i) + cprate(j,i))*rtsrf
+            prcp(ib) = (ncprate(j,i) + cprate(j,i))*rtsrf
             !
             ! quantities stored on 2d surface array for bats use only
             !
-            sent(n,j,i) = hfx(j,i)
-            evpr(n,j,i) = qfx(j,i)
-            lveg(n,j,i) = iveg1(n,j,i)
-            if ( ldmsk1(n,j,i) == 2 ) then
-              lveg(n,j,i) = 12
-            end if
-            lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*aseas(n,j,i)
-            zh(n,j,i) = hgt(j,i)
-            z1log(n,j,i)  = dlog(zh(n,j,i))
-            z2fra(n,j,i)  = dlog(zh(n,j,i)*d_half)
-            z10fra(n,j,i) = dlog(zh(n,j,i)*d_r10)
-            zlgocn(n,j,i) = dlog(zh(n,j,i)/zoce)
-            zlglnd(n,j,i) = dlog(zh(n,j,i)/zlnd)
-            zlgsno(n,j,i) = dlog(zh(n,j,i)/zsno)
-            zlgveg(n,j,i) = dlog(zh(n,j,i)/rough(lveg(n,j,i)))
-            zlgdis(n,j,i) = dlog(zh(n,j,i)-displa(lveg(n,j,i)) / &
-                                           rough(lveg(n,j,i)))
+            sent(ib) = hfx(j,i)
+            evpr(ib) = qfx(j,i)
+            lncl(ib) = mfcv(lveg(ib)) - seasf(lveg(ib))*aseas(ib)
+            zh(ib) = hgt(j,i)
+            z1log(ib)  = dlog(zh(ib))
+            z2fra(ib)  = dlog(zh(ib)*d_half)
+            z10fra(ib) = dlog(zh(ib)*d_r10)
+            zlgocn(ib) = dlog(zh(ib)/zoce)
+            zlglnd(ib) = dlog(zh(ib)/zlnd)
+            zlgsno(ib) = dlog(zh(ib)/zsno)
+            zlgveg(ib) = dlog(zh(ib)/rough(lveg(ib)))
+            zlgdis(ib) = dlog(zh(ib)-displa(lveg(ib))/rough(lveg(ib)))
             if ( solvt > d_zero ) then
-              fracd(n,j,i) = swdif(j,i)/solvt
+              fracd(ib) = swdif(j,i)/solvt
             else
-              fracd(n,j,i) = 0.2D0
+              fracd(ib) = 0.2D0
             end if
-            usw(n,j,i) = uatm(j,i)
-            vsw(n,j,i) = vatm(j,i)
-            swsi(n,j,i) = solar(j,i)
-            swflx(n,j,i) = rswf(j,i)
-            lwflx(n,j,i) = rlwf(j,i)
-            abswveg(n,j,i) = vegswab(j,i)
+            usw(ib) = uatm(j,i)
+            vsw(ib) = vatm(j,i)
+            swsi(ib) = solar(j,i)
+            swflx(ib) = rswf(j,i)
+            lwflx(ib) = rlwf(j,i)
+            abswveg(ib) = vegswab(j,i)
+            ib = ib + 1
           end do
+        end do
+      end do
  
+      ib = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           rh0 = d_zero
+          qs0 = qvatm(j,i)/(d_one+qvatm(j,i))
+          ii = 0
           do n = 1 , nnsg
-            rh0 = rh0 + (qs(n,j,i)-qs0)
+            rh0 = rh0 + (qs(ib+ii)-qs0)
+            ii = ii + 1
           end do
           rh0 = rh0/nnsg
+          ii = 0
           do n = 1 , nnsg
-            qs(n,j,i) = dmax1(qs(n,j,i)-rh0,d_zero)
+            qs(ib+ii) = dmax1(qs(ib+ii)-rh0,d_zero)
+            ii = ii + 1
           end do
- 
+          ib = ib+nnsg 
         end do
-
       end do
 
       if ( iocnflx == 1 ) then
+        ib = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
             do n = 1 , nnsg
-              if ( ldmsk1(n,j,i) == 0 ) then
-                tgrd(n,j,i) = tground2(j,i)
+              if ( mask(ib) == 0 ) then
+                tgrd(ib) = tground2(j,i)
               end if
+              ib = ib+1
             end do
           end do
         end do
@@ -425,9 +485,20 @@ module mod_bats_mtrxbats
 
     else if ( ivers == 2 ) then ! bats --> regcm2d
  
+      call bats1dto3d
+
       ! Re-create the land sea mask to account for ice sheet melting
 
       if ( lseaice .or. llake ) then
+        ib = 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            do n = 1 , nnsg
+              ldmsk1(n,j,i) = mask(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
         do i = ici1 , ici2
           do j = jci1 , jci2
             if ( ldmsk(j,i) == 2 ) then
@@ -445,35 +516,37 @@ module mod_bats_mtrxbats
 
       ! Those are needed elsewhere in the model (pbl,cumulus,chem,etc)
 
+      ib = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
           do n = 1 , nnsg
-            if ( ldmsk1(n,j,i) /= 0 ) then
-              fracv = sigf(n,j,i)
-              fracb = (d_one-lncl(n,j,i))*(d_one-scvk(n,j,i))
-              fracs = lncl(n,j,i)*wt(n,j,i) + (d_one-lncl(n,j,i))*scvk(n,j,i)
-              facv = z2fra(n,j,i)/zlgveg(n,j,i)
-              facb = z2fra(n,j,i)/zlglnd(n,j,i)
-              facs = z2fra(n,j,i)/zlgsno(n,j,i)
+            if ( mask(ib) /= 0 ) then
+              fracv = sigf(ib)
+              fracb = (d_one-lncl(ib))*(d_one-scvk(ib))
+              fracs = lncl(ib)*wt(ib) + (d_one-lncl(ib))*scvk(ib)
+              facv = z2fra(ib)/zlgveg(ib)
+              facb = z2fra(ib)/zlglnd(ib)
+              facs = z2fra(ib)/zlgsno(ib)
               fact = fracv*facv + fracb*facb + fracs*facs
-              facv = z10fra(n,j,i)/zlgveg(n,j,i)
-              facb = z10fra(n,j,i)/zlglnd(n,j,i)
-              facs = z10fra(n,j,i)/zlgsno(n,j,i)
+              facv = z10fra(ib)/zlgveg(ib)
+              facb = z10fra(ib)/zlglnd(ib)
+              facs = z10fra(ib)/zlgsno(ib)
               factuv = fracv*facv + fracb*facb + fracs*facs
-              u10m(n,j,i) = usw(n,j,i)*(d_one-factuv)
-              v10m(n,j,i) = vsw(n,j,i)*(d_one-factuv)
-              t2m(n,j,i) = sts(n,j,i) - delt(n,j,i)*fact
-              q2m(n,j,i) = qs(n,j,i) - delq(n,j,i)*fact
+              u10m(n,j,i) = usw(ib)*(d_one-factuv)
+              v10m(n,j,i) = vsw(ib)*(d_one-factuv)
+              t2m(n,j,i) = sts(ib) - delt(ib)*fact
+              q2m(n,j,i) = qs(ib) - delq(ib)*fact
             else
               if ( iocnflx == 1 ) then
-                fact = z2fra(n,j,i)/zlgocn(n,j,i)
-                factuv = z10fra(n,j,i)/zlgocn(n,j,i)
-                u10m(n,j,i) = usw(n,j,i)*(d_one-factuv)
-                v10m(n,j,i) = vsw(n,j,i)*(d_one-factuv)
-                t2m(n,j,i) = sts(n,j,i) - delt(n,j,i)*fact
-                q2m(n,j,i) = qs(n,j,i) - delq(n,j,i)*fact
+                fact = z2fra(ib)/zlgocn(ib)
+                factuv = z10fra(ib)/zlgocn(ib)
+                u10m(n,j,i) = usw(ib)*(d_one-factuv)
+                v10m(n,j,i) = vsw(ib)*(d_one-factuv)
+                t2m(n,j,i) = sts(ib) - delt(ib)*fact
+                q2m(n,j,i) = qs(ib) - delq(ib)*fact
               end if
             end if
+            ib = ib + 1
           end do
         end do
       end do
@@ -483,11 +556,11 @@ module mod_bats_mtrxbats
       do i = ici1 , ici2
         do j = jci1 , jci2
           do n = 1 , nnsg
-            if ( tgrd(n,j,i) < 150.0D0 ) then
+            if ( tgrd1(n,j,i) < 150.0D0 ) then
               write(stderr,*) 'Likely error: Surface temperature too low'
               write(stderr,*) 'J   = ',global_dot_jstart+j
               write(stderr,*) 'I   = ',global_dot_istart+i
-              write(stderr,*) 'VAL = ',tgrd(n,j,i)
+              write(stderr,*) 'VAL = ',tgrd1(n,j,i)
               ierr = ierr + 1
             end if
           end do
@@ -497,13 +570,13 @@ module mod_bats_mtrxbats
         call fatal(__FILE__,__LINE__,'TEMP CHECK ERROR')
       end if
 #endif
-      uvdrag = sum(drag,1)*rdnnsg
-      hfx = sum(sent,1)*rdnnsg
-      qfx = sum(evpr,1)*rdnnsg
-      tground2 = sum(tgrd,1)*rdnnsg
-      tground1 = sum(tgrd,1)*rdnnsg
+      uvdrag = sum(drag1,1)*rdnnsg
+      hfx = sum(sent1,1)*rdnnsg
+      qfx = sum(evpr1,1)*rdnnsg
+      tground2 = sum(tgrd1,1)*rdnnsg
+      tground1 = sum(tgrd1,1)*rdnnsg
       if ( ichem == 1 ) then
-        ssw2da = sum(ssw,1)*rdnnsg
+        ssw2da = sum(ssw1,1)*rdnnsg
         deltat = sum(delt,1)*rdnnsg
         deltaq = sum(delq,1)*rdnnsg
         sfracv2d = sum(sigf,1)*rdnnsg
@@ -512,11 +585,19 @@ module mod_bats_mtrxbats
         svegfrac2d = sum(lncl,1)*rdnnsg
       end if
 
-      where ( ldmsk /= 0 )
-        tgbb = sum(((d_one-lncl)*tgrd**4+lncl*tlef**4)**d_rfour,1)*rdnnsg
-      else where
-        tgbb = sum(tgrd,1)*rdnnsg
-      end where
+      ib = 1
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( ldmsk(j,i) == 0 ) then
+            tgbb(j,i) = sum(tgrd(ib:ib+nnsg-1))*rdnnsg
+          else
+            tgbb(j,i) = sum(                                  &
+             ((d_one-lncl(ib:ib+nnsg-1))*tgrd(ib:ib+nnsg-1)**4+ &
+                    (lncl(ib:ib+nnsg-1))*tlef(ib:ib+nnsg-1)**4)**d_rfour)*rdnnsg
+          end if
+          ib = ib + nnsg
+        end do
+      end do
 
       ! Those are needed for output purposes
 
@@ -525,32 +606,32 @@ module mod_bats_mtrxbats
       if ( ktau > 0 ) then
         if ( ifatm ) then
           if ( associated(atm_tgb_out) ) &
-            atm_tgb_out = atm_tgb_out + sum(tgbrd,1)*rdnnsg
+            atm_tgb_out = atm_tgb_out + sum(tgbrd1,1)*rdnnsg
           if ( associated(atm_tsw_out) ) &
-            atm_tsw_out = atm_tsw_out + sum(tsw,1)*rdnnsg
+            atm_tsw_out = atm_tsw_out + sum(tsw1,1)*rdnnsg
         end if
         if ( ifsrf ) then
           if ( associated(srf_evp_out) ) &
-            srf_evp_out = srf_evp_out + sum(evpr,1)*rdnnsg
+            srf_evp_out = srf_evp_out + sum(evpr1,1)*rdnnsg
           if ( associated(srf_tpr_out) ) &
-            srf_tpr_out = srf_tpr_out + prcp(1,:,:)
+            srf_tpr_out = srf_tpr_out + prcp1(1,:,:)
           if ( associated(srf_prcv_out) ) &
             srf_prcv_out = srf_prcv_out + cprate
           if ( associated(srf_zpbl_out) ) &
             srf_zpbl_out = srf_zpbl_out + hpbl
           if ( associated(srf_scv_out) ) &
-            srf_scv_out = srf_scv_out + sum(sncv,1)*rdnnsg
+            srf_scv_out = srf_scv_out + sum(sncv1,1)*rdnnsg
           if ( associated(srf_sund_out) ) then
             where( rswf > 120.0D0 )
               srf_sund_out = srf_sund_out + dtbat
             end where
           end if
           if ( associated(srf_runoff_out) ) then
-            srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1) + sum(srnof,1)*rdnnsg
-            srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2) + sum(trnof,1)*rdnnsg
+            srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1) + sum(srnof1,1)*rdnnsg
+            srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2) + sum(trnof1,1)*rdnnsg
           end if
           if ( associated(srf_sena_out) ) then
-            srf_sena_out = srf_sena_out + sum(sent,1)*rdnnsg
+            srf_sena_out = srf_sena_out + sum(sent1,1)*rdnnsg
           end if
           if ( associated(srf_flw_out) ) &
             srf_flw_out = srf_flw_out + rlwf
@@ -564,23 +645,23 @@ module mod_bats_mtrxbats
             srf_snowmelt_out = srf_snowmelt_out + sum(sm,1)*rdnnsg
         end if
         if ( ifsub ) then
-          call reorder_add_subgrid(sfcp,sub_ps_out)
+          call reorder_add_subgrid(ps1,sub_ps_out)
           if ( associated(sub_evp_out) ) &
-            call reorder_add_subgrid(evpr,sub_evp_out)
+            call reorder_add_subgrid(evpr1,sub_evp_out)
           if ( associated(sub_scv_out) ) &
-            call reorder_add_subgrid(sncv,sub_scv_out,mask=ldmsk1)
+            call reorder_add_subgrid(sncv1,sub_scv_out,mask=ldmsk1)
           if ( associated(sub_sena_out) ) &
-            call reorder_add_subgrid(sent,sub_sena_out)
+            call reorder_add_subgrid(sent1,sub_sena_out)
           if ( associated(sub_runoff_out) ) then
-            call reorder_add_subgrid(srnof,sub_runoff_out,1,ldmsk1)
-            call reorder_add_subgrid(trnof,sub_runoff_out,2,ldmsk1)
+            call reorder_add_subgrid(srnof1,sub_runoff_out,1,ldmsk1)
+            call reorder_add_subgrid(trnof1,sub_runoff_out,2,ldmsk1)
           end if
         end if
         if ( ifsts ) then
           if ( associated(sts_tgmax_out) ) &
-            sts_tgmax_out = max(sts_tgmax_out,sum(tgrd,1)*rdnnsg)
+            sts_tgmax_out = max(sts_tgmax_out,sum(tgrd1,1)*rdnnsg)
           if ( associated(sts_tgmin_out) ) &
-            sts_tgmin_out = min(sts_tgmin_out,sum(tgrd,1)*rdnnsg)
+            sts_tgmin_out = min(sts_tgmin_out,sum(tgrd1,1)*rdnnsg)
           if ( associated(sts_t2max_out) ) &
             sts_t2max_out(:,:,1) = max(sts_t2max_out(:,:,1),sum(t2m,1)*rdnnsg)
           if ( associated(sts_t2min_out) ) &
@@ -591,9 +672,9 @@ module mod_bats_mtrxbats
             sts_w10max_out(:,:,1) = max(sts_w10max_out(:,:,1), &
               sqrt(sum((u10m**2+v10m**2),1)*rdnnsg))
           if ( associated(sts_pcpmax_out) ) &
-            sts_pcpmax_out = max(sts_pcpmax_out,prcp(1,:,:))
+            sts_pcpmax_out = max(sts_pcpmax_out,prcp1(1,:,:))
           if ( associated(sts_pcpavg_out) ) &
-            sts_pcpavg_out = sts_pcpavg_out + prcp(1,:,:)
+            sts_pcpavg_out = sts_pcpavg_out + prcp1(1,:,:)
           if ( associated(sts_psmin_out) ) &
             sts_psmin_out = min(sts_psmin_out, &
               (sfps(jci1:jci2,ici1:ici2)+ptop)*d_10)
@@ -603,17 +684,17 @@ module mod_bats_mtrxbats
             end where
           end if
           if ( associated(sts_runoff_out) ) then
-            sts_runoff_out(:,:,1) = sts_runoff_out(:,:,1) + sum(srnof,1)*rdnnsg
-            sts_runoff_out(:,:,2) = sts_runoff_out(:,:,2) + sum(trnof,1)*rdnnsg
+            sts_runoff_out(:,:,1) = sts_runoff_out(:,:,1) + sum(srnof1,1)*rdnnsg
+            sts_runoff_out(:,:,2) = sts_runoff_out(:,:,2) + sum(trnof1,1)*rdnnsg
           end if
         end if
         if ( iflak ) then
           if ( associated(lak_tpr_out) ) &
-            lak_tpr_out = lak_tpr_out + prcp(1,:,:)
+            lak_tpr_out = lak_tpr_out + prcp1(1,:,:)
           if ( associated(lak_scv_out) ) &
-            lak_scv_out = lak_scv_out + sum(sncv,1)*rdnnsg
+            lak_scv_out = lak_scv_out + sum(sncv1,1)*rdnnsg
           if ( associated(lak_sena_out) ) &
-            lak_sena_out = lak_sena_out + sum(sent,1)*rdnnsg
+            lak_sena_out = lak_sena_out + sum(sent1,1)*rdnnsg
           if ( associated(lak_flw_out) ) &
             lak_flw_out = lak_flw_out + rlwf
           if ( associated(lak_fsw_out) ) &
@@ -623,10 +704,10 @@ module mod_bats_mtrxbats
           if ( associated(lak_sina_out) ) &
             lak_sina_out = lak_sina_out + solinc
           if ( associated(lak_evp_out) ) &
-            lak_evp_out = lak_evp_out + sum(evpr,1)*rdnnsg
+            lak_evp_out = lak_evp_out + sum(evpr1,1)*rdnnsg
           if ( associated(lak_aveice_out) ) then
             lak_aveice_out = lak_aveice_out + &
-              sum(sfice*lakemsk,1)*rdnnsg*d_r1000
+              sum(sfice1*lakmsk1,1)*rdnnsg*d_r1000
           end if
         end if
       end if
@@ -637,12 +718,12 @@ module mod_bats_mtrxbats
 
         if ( ifsrf ) then
           if ( associated(srf_uvdrag_out) ) &
-            srf_uvdrag_out = sum(drag,1)*rdnnsg
+            srf_uvdrag_out = sum(drag1,1)*rdnnsg
           if ( associated(srf_tg_out) ) &
             srf_tg_out = tground1
           if ( associated(srf_tlef_out) ) then
             where ( ldmsk > 0 )
-              srf_tlef_out = sum(tlef,1)*rdnnsg
+              srf_tlef_out = sum(tlef1,1)*rdnnsg
             elsewhere
               srf_tlef_out = dmissval
             end where
@@ -652,7 +733,7 @@ module mod_bats_mtrxbats
           if ( associated(srf_aldifs_out) ) &
             srf_aldifs_out = swdifalb
           if ( associated(srf_seaice_out) ) &
-            srf_seaice_out = sum(sfice,1)*rdnnsg*d_r1000
+            srf_seaice_out = sum(sfice1,1)*rdnnsg*d_r1000
           if ( associated(srf_t2m_out) ) &
             srf_t2m_out(:,:,1) = sum(t2m,1)*rdnnsg
           if ( associated(srf_q2m_out) ) &
@@ -662,21 +743,21 @@ module mod_bats_mtrxbats
           if ( associated(srf_v10m_out) ) &
             srf_v10m_out(:,:,1) = sum(v10m,1)*rdnnsg
           if ( associated(srf_smw_out) ) then
-            srf_smw_out(:,:,1) = sum(ssw,1)*rdnnsg
-            srf_smw_out(:,:,2) = sum(rsw,1)*rdnnsg
+            srf_smw_out(:,:,1) = sum(ssw1,1)*rdnnsg
+            srf_smw_out(:,:,2) = sum(rsw1,1)*rdnnsg
           end if
         end if
 
         if ( ifsub ) then
           if ( associated(sub_uvdrag_out) ) &
-            call reorder_subgrid(drag,sub_uvdrag_out)
+            call reorder_subgrid(drag1,sub_uvdrag_out)
           if ( associated(sub_tg_out) ) &
-            call reorder_subgrid(tgrd,sub_tg_out)
+            call reorder_subgrid(tgrd1,sub_tg_out)
           if ( associated(sub_tlef_out) ) &
-            call reorder_subgrid(tlef,sub_tlef_out,mask=ldmsk1)
+            call reorder_subgrid(tlef1,sub_tlef_out,mask=ldmsk1)
           if ( llake ) then
             if ( associated(sub_tlake_out) ) then
-              call lake_fillvar(1,tlake,0)
+              call lake_fillvar(var_tlak,tlake,0,llakmsk1)
               call reorder_subgrid(tlake,sub_tlake_out,1)
               sub_tlake_out = sub_tlake_out + tzero
             end if
@@ -690,8 +771,8 @@ module mod_bats_mtrxbats
           if ( associated(sub_q2m_out) ) &
             call reorder_subgrid(q2m,sub_q2m_out)
           if ( associated(sub_smw_out) ) then
-            call reorder_subgrid(ssw,sub_smw_out,1,ldmsk1)
-            call reorder_subgrid(rsw,sub_smw_out,2,ldmsk1)
+            call reorder_subgrid(ssw1,sub_smw_out,1,ldmsk1)
+            call reorder_subgrid(rsw1,sub_smw_out,2,ldmsk1)
           end if
         end if
 
@@ -703,17 +784,19 @@ module mod_bats_mtrxbats
           if ( associated(lak_aldifs_out) ) &
             lak_aldifs_out = swdifalb
           if ( associated(lak_hsnow_out) ) &
-            lak_hsnow_out = sum(sncv*lakemsk,1)*rdnnsg
-          if ( associated(lak_tlake_out) ) &
+            lak_hsnow_out = sum(sncv1*lakmsk1,1)*rdnnsg
+          if ( associated(lak_tlake_out) ) then
+            call lake_fillvar(var_tlak,tlake,0,llakmsk1)
             lak_tlake_out = sum(tlake,1)*rdnnsg+tzero
+          end if
         end if
 
       end if ! IF output time
 
       if ( iocncpl == 1 ) then
         ! Fill for the RTM component
-        dailyrnf(:,:,1) = dailyrnf(:,:,1) + sum(srnof,1)*rdnnsg
-        dailyrnf(:,:,2) = dailyrnf(:,:,2) + (sum(trnof,1)-sum(srnof,1))*rdnnsg
+        dailyrnf(:,:,1) = dailyrnf(:,:,1) + sum(srnof1,1)*rdnnsg
+        dailyrnf(:,:,2) = dailyrnf(:,:,2) + (sum(trnof1,1)-sum(srnof1,1))*rdnnsg
         runoffcount = runoffcount + d_one
       end if
 
@@ -727,245 +810,7 @@ module mod_bats_mtrxbats
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine interf
-!
-! Albedo calculates fragmented albedos (direct and diffuse) in
-! wavelength regions split at 0.7um.
-!
-! CM hands albedos to radiation package which computes
-! rswf(i) = net solar absorbed over full grid square
-! vegswab(j,i) = vegetation absorbed (full solar spectrum)
-! solar(j,i) = shortwave  solar incident
-!
-! Here these are calculated at the end of albedo - they use only
-! direct albedos for now
-!
-! in both versions :  lftemp uses vegswab
-! tgrund uses vegswab & rswf(i) to get
-! ground absorbed solar
-! photosynthesis uses solar - see subrouts
-! stomat and co2 (carbon)
-!
-! For sea, sea-ice veg albedos are not set these albedos are not
-! treated as arrays here
-!
-! (depuv/10.0)= the ratio of upper soil layer to total root depth
-! Used to compute "wet" for soil albedo
-!
-  subroutine albedobats
-    implicit none
-!
-    real(rk8) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
-               albld , albs , albsd , albzn , alwet , cf1 , cff ,     &
-               conn , cons , czeta , czf , dfalbl , dfalbs , dralbl , &
-               dralbs , sfac , sl , sl2 , sli , tdiff , tdiffs , wet
-    real(rk8) , dimension(nnsg) :: lwalb_s , swalb_s , lwdifalb_s ,       &
-                                 swdifalb_s , lwdiralb_s , swdiralb_s
-    integer(ik4) :: kolour , n , i , j
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'albedobats'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
-    !
-    ! =================================================================
-    ! 1. set initial parameters
-    ! =================================================================
-    !
-    !
-    ! Desert seasonal albedo
-    ! Works for Sahara desert and generally northern emisphere
-    ! In souther emisphere only some points have this class
-    !
-    if ( ldesseas ) then
-      if ( xmonth == 1 .or. xmonth == 2 .or. xmonth == 12 ) then
-        solour(1) = 0.12D0
-      endif        
-      if ( xmonth == 3 .or. xmonth == 4 .or. xmonth == 5 ) then
-        solour(1) = 0.15D0
-      endif        
-      if ( xmonth == 6 .or. xmonth == 7 .or. xmonth == 8) then
-        solour(1) = 0.18D0
-      endif        
-      if ( xmonth == 9 .or. xmonth == 10 .or. xmonth == 11) then
-        solour(1) = 0.15D0
-      endif
-    end if
-    !
-    ! In depth, wt is frac of grid square covered by snow;
-    ! depends on average snow depth, vegetation, etc.
-    !
-    call depth
-    !
-    ! 1.2  set default vegetation and albedo
-    !
-    call fseas(tgbrd)
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        czeta = zencos(j,i)
-        do n = 1 , nnsg
-          lncl(n,j,i) = mfcv(lveg(n,j,i)) - seasf(lveg(n,j,i))*aseas(n,j,i)
-          sts(n,j,i) = thatm(j,i)-lrate*regrav*(ht1(n,j,i)-ht(j,i))
-          albgs = d_zero
-          albgl = d_zero
-          albgsd = d_zero
-          albgld = d_zero
-          albs = d_zero
-          albl = d_zero
-          albsd = d_zero
-          albld = d_zero
- 
-          swalb_s(n) = d_zero
-          lwalb_s(n) = d_zero
-          ! 
-          !================================================================
-          !       2.   get albedo
-          !================================================================
-          !
-          if ( ldmsk1(n,j,i) == 0 ) then
-            ! ocean albedo depends on zenith angle
-            if ( czeta >= d_zero ) then
-              ! albedo independent of wavelength
-              albg = 0.05D0/(czeta+0.15D0)
-              albgs = albg
-              albgl = albg
-              albgsd = 0.08D0
-              albgld = 0.08D0
-            else
-              albg = 0.05D0
-              albgs = albg
-              albgl = albg
-              albgsd = 0.08D0
-              albgld = 0.08D0
-            end if
-          else if ( ldmsk1(n,j,i) == 2 ) then
-            ! Ice over ocean or lake
-            tdiffs = sts(n,j,i) - tzero
-            tdiff = dmax1(tdiffs,d_zero)
-            tdiffs = dmin1(tdiff,20.0D0)
-            albgl = sical1 - 1.1D-2*tdiffs
-            albgs = sical0 - 2.45D-2*tdiffs
-            albg = fsol1*albgs + fsol2*albgl
-            albgsd = albgs
-            albgld = albgl
-          else if ( ldmsk1(n,j,i) == 1 ) then
-            ! Land
-            sfac = d_one - aseas(n,j,i)
-            !
-            ! ccm tests here on land mask for veg and soils data
-            ! reduces albedo at low temps !!!!!
-            ! should respond to moisture too (commented out) (pat, 27 oct 86)
-            ! lncl(i) = lncl(iveg1(i)) - seasf(iveg1(i)) * sfac
-            !
-            albs = albvgs(iveg1(n,j,i))
-            albl = albvgl(iveg1(n,j,i))
-            !---------------------------------------------------------------
-            if ( (iveg1(n,j,i) < 12) .or. (iveg1(n,j,i) > 15) ) then
-              ! 2.1  bare soil albedos
-              !      (soil albedo depends on moisture)
-              kolour = kolsol(iveg1(n,j,i))
-              wet = ssw(n,j,i)/depuv(iveg1(n,j,i))
-              alwet = dmax1((11.0D0-40.0D0*wet),d_zero)*0.01D0
-              alwet = dmin1(alwet,solour(kolour))
-              albg = solour(kolour) + alwet
-              albgs = albg
-              albgl = d_two*albg
-              ! higher nir albedos set diffuse albedo
-              albgld = albgl
-              albgsd = albgs
-              albsd = albs
-              albld = albl
-              ! Dec. 15   albzn=0.85D0+d_one/(d_one+d_10*zencos(j,i))
-              ! Dec. 12, 2008
-              albzn = d_one
-              ! Dec. 15, 2008
-              !
-              ! leafless hardwood canopy: no or inverse zen dep
-              if ( iveg1(n,j,i) == 5 .and. sfac < 0.1D0 ) albzn = d_one
-              ! multiply by zenith angle correction
-              albs = albs*albzn
-              albl = albl*albzn
-              ! albedo over vegetation after zenith angle corr
-              swalb_s(n) = albs
-              lwalb_s(n) = albl
-            else if ( iveg1(n,j,i) == 12 ) then
-              ! 2.2   permanent ice sheet
-              albgs = 0.8D0
-              albgsd = 0.8D0
-              albgl = 0.55D0
-              albgld = 0.55D0
-            else
-              ! 2.3  inland water, swamps, rice paddies etc.
-              albg = 0.05D0/(czeta+0.15D0)
-              albgs = albg
-              albgsd = albg
-              albgl = albg
-              albgld = albg
-            end if
-          end if
-          ! ==============================================================
-          ! 4.  correct for snow cover
-          ! ==============================================================
-          if ( ldmsk1(n,j,i) > 0 ) then
-            if ( sncv(n,j,i) > d_zero ) then
-              ! Snow albedo depends on snow-age, zenith angle, and thickness
-              ! of snow. snow albedoes for visible and ir solar rad visible
-              ! albedo depends on snow age
-              ! age gives reduction of visible rad snow albedo due to age
-              cons = 0.2D0
-              conn = 0.5D0
-              age = (d_one-d_one/(d_one+snag(n,j,i)))
-              ! sl helps control albedo zenith dependence
-              sl = d_two
-              sli = d_one/sl
-              sl2 = d_two*sl
-              ! snal0= new snow albedo for vis rad, sol zen le 6
-              ! snal1= new snow albedo for long-wave rad
-              dfalbs = snal0*(d_one-cons*age)
-              ! czf corrects albedo of new snow for solar zenith
-              cf1 = ((d_one+sli)/(d_one+sl2*zencos(j,i))-sli)
-              cff = dmax1(cf1,d_zero)
-              czf = 0.4D0*cff*(d_one-dfalbs)
-              dralbs = dfalbs + czf
-              dfalbl = snal1*(d_one-conn*age)
-              czf = 0.4D0*cff*(d_one-dfalbl)
-              dralbl = dfalbl + czf
-              if ( lncl(n,j,i) > 0.001D0 ) then
-                ! effective albedo over vegetation with snow
-                albl = (d_one-wt(n,j,i))*albl + dralbl*wt(n,j,i)
-                albld = (d_one-wt(n,j,i))*albld + dfalbl*wt(n,j,i)
-                albs = (d_one-wt(n,j,i))*albs + dralbs*wt(n,j,i)
-                albsd = (d_one-wt(n,j,i))*albsd + dfalbs*wt(n,j,i)
-              end if
-              !----------------------------------------------------------------
-              !         4.1  compute albedo for snow on bare ground
-              !----------------------------------------------------------------
-              albgs = (d_one-scvk(n,j,i))*albgs + dralbs*scvk(n,j,i)
-              albgl = (d_one-scvk(n,j,i))*albgl + dralbl*scvk(n,j,i)
-              albgsd = (d_one-scvk(n,j,i))*albgsd + dfalbs*scvk(n,j,i)
-              albgld = (d_one-scvk(n,j,i))*albgld + dfalbl*scvk(n,j,i)
-            end if
-          end if
-          !
-          ! not part of albedo in the ccm
-          !
-          swdiralb_s(n) = (d_one-lncl(n,j,i))*albgs + lncl(n,j,i)*albs
-          lwdiralb_s(n) = (d_one-lncl(n,j,i))*albgl + lncl(n,j,i)*albl
-          swdifalb_s(n) = (d_one-lncl(n,j,i))*albgsd + lncl(n,j,i)*albsd
-          lwdifalb_s(n) = (d_one-lncl(n,j,i))*albgld + lncl(n,j,i)*albld
-        end do
-        swalb(j,i)  = sum(swalb_s)*rdnnsg
-        lwalb(j,i)  = sum(lwalb_s)*rdnnsg
-        swdiralb(j,i) = sum(swdiralb_s)*rdnnsg
-        lwdiralb(j,i) = sum(lwdiralb_s)*rdnnsg
-        swdifalb(j,i) = sum(swdifalb_s)*rdnnsg
-        lwdifalb(j,i) = sum(lwdifalb_s)*rdnnsg
-      end do
-    end do
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
-  end subroutine albedobats
-!
+
   subroutine export_data_from_surface(expfie)
     implicit none
     type(exp_data) , intent(inout) :: expfie
@@ -978,15 +823,15 @@ module mod_bats_mtrxbats
         expfie%swrd(j,i) = rswf(j,i)
         expfie%swrd(j,i) = rlwf(j,i)
         expfie%dlwr(j,i) = dwrlwf(j,i)
-        expfie%lhfx(j,i) = sum(evpr(:,j,i))*rdnnsg*wlhv
-        expfie%shfx(j,i) = sum(sent(:,j,i))*rdnnsg
-        expfie%prec(j,i) = sum(prcp(:,j,i))*rdnnsg
+        expfie%lhfx(j,i) = sum(evpr1(:,j,i))*rdnnsg*wlhv
+        expfie%shfx(j,i) = sum(sent1(:,j,i))*rdnnsg
+        expfie%prec(j,i) = sum(prcp1(:,j,i))*rdnnsg
         expfie%wndu(j,i) = sum(u10m(:,j,i))*rdnnsg
         expfie%wndv(j,i) = sum(v10m(:,j,i))*rdnnsg
         expfie%taux(j,i) = sum(taux(:,j,i))*rdnnsg
         expfie%tauy(j,i) = sum(tauy(:,j,i))*rdnnsg
-        expfie%sflx(j,i) = (sum(evpr(:,j,i))-sum(prcp(:,j,i)))*rdnnsg
-        expfie%snow(j,i) = sum(sncv(:,j,i))*rdnnsg
+        expfie%sflx(j,i) = (sum(evpr1(:,j,i))-sum(prcp1(:,j,i)))*rdnnsg
+        expfie%snow(j,i) = sum(sncv1(:,j,i))*rdnnsg
         expfie%dswr(j,i) = swdif(j,i)+swdir(j,i)
       end do
     end do
@@ -1038,8 +883,8 @@ module mod_bats_mtrxbats
             tground1(j,i) = impfie%sst(j,i)
             tground2(j,i) = impfie%sst(j,i)
             tgbb(j,i)     = impfie%sst(j,i)
-            tgrd(:,j,i)   = impfie%sst(j,i)
-            tgbrd(:,j,i)  = impfie%sst(j,i)
+            tgrd1(:,j,i)  = impfie%sst(j,i)
+            tgbrd1(:,j,i)  = impfie%sst(j,i)
           end if
           !
           !----------------------------------------------------------
@@ -1114,26 +959,26 @@ module mod_bats_mtrxbats
               do n = 1, nnsg
                 ldmsk1(n,j,i) = 2
                 ! set sea ice thikness (in mm)
-                sfice(n,j,i) = impfie%sit(j,i) 
+                sfice1(n,j,i) = impfie%sit(j,i) 
               end do
               ! write debug info
               if ( flag ) then
                 write(*,30) jj, ii, 'water', 'ice  ', &
-                   ldmsk(j,i), sfice(1,j,i)
+                   ldmsk(j,i), sfice1(1,j,i)
               end if
             else
               if ( ldmskb(j,i) == 0 .and. ldmsk(j,i) == 2 ) then
                 ! reduce to one tenth surface ice: it should melt away
                 do n = 1, nnsg
                   ! check that sea ice is melted or not
-                  if ( sfice(n,j,i) <= iceminh ) then
+                  if ( sfice1(n,j,i) <= iceminh ) then
                     if ( ldmskb(j,i) /= ldmsk(j,i) ) flag = .true.
                     ! set land-sea mask to its original value
                     ldmsk(j,i) = ldmskb(j,i)
                     ldmsk1(n,j,i) = ldmskb(j,i)
                     ! set land-use type to its original value
                     ! set sea ice thikness (in mm)
-                    sfice(n,j,i) = d_zero 
+                    sfice1(n,j,i) = d_zero 
                   else
                     flag = .false.
                   end if
@@ -1141,7 +986,7 @@ module mod_bats_mtrxbats
                 ! write debug info
                 if ( flag ) then
                   write(*,40) jj, ii, 'ice  ', 'water',  &
-                    ldmsk(j,i), sfice(1,j,i)
+                    ldmsk(j,i), sfice1(1,j,i)
                 end if
               end if
             end if
@@ -1161,5 +1006,60 @@ module mod_bats_mtrxbats
  40 format(' ATM sea-ice is melted at (',I3,',',I3,') : ',       &
              A5,' --> ',A5,' [',I2,' - ',F12.4,']')
   end subroutine import_data_into_surface
+
+  subroutine bats1dto3d
+    implicit none
+    integer(ik4) :: i , j , n , ib
+    ib = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+
+          tlef1(n,j,i) = tlef(ib)
+          tgrd1(n,j,i) = tgrd(ib)
+          tgbrd1(n,j,i) = tgbrd(ib)
+          gwet1(n,j,i) = gwet(ib)
+          ldew1(n,j,i) = ldew(ib)
+          snag1(n,j,i) = snag(ib)
+          sncv1(n,j,i) = sncv(ib)
+          sfice1(n,j,i) = sfice(ib)
+          ssw1(n,j,i) = ssw(ib)
+          rsw1(n,j,i) = rsw(ib)
+          tsw1(n,j,i) = tsw(ib)
+          emiss1(n,j,i) = emiss(ib)
+          taf1(n,j,i) = taf(ib)
+
+          ps1(n,j,i) = sfcp(ib)
+          sent1(n,j,i) = sent(ib)
+          evpr1(n,j,i) = evpr(ib)
+          prcp1(n,j,i) = prcp(ib)
+          trnof1(n,j,i) = trnof(ib)
+          srnof1(n,j,i) = srnof(ib)
+          drag1(n,j,i) = drag(ib)
+
+          ib = ib + 1
+        end do
+      end do
+    end do
+  end subroutine bats1dto3d
+
+  subroutine albedobats
+    implicit none
+    integer :: i , j , ib
+    call interf(1)
+    call albedo
+    ib = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        swalb(j,i)  = sum(swal(ib:ib+nnsg-1))*rdnnsg
+        lwalb(j,i)  = sum(lwal(ib:ib+nnsg-1))*rdnnsg
+        swdiralb(j,i)  = sum(swdiral(ib:ib+nnsg-1))*rdnnsg
+        lwdiralb(j,i)  = sum(lwdiral(ib:ib+nnsg-1))*rdnnsg
+        swdifalb(j,i)  = sum(swdifal(ib:ib+nnsg-1))*rdnnsg
+        lwdifalb(j,i)  = sum(lwdifal(ib:ib+nnsg-1))*rdnnsg
+        ib = ib + nnsg
+      end do
+    end do
+  end subroutine albedobats
 
 end module mod_bats_mtrxbats

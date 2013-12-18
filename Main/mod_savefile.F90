@@ -92,19 +92,19 @@ module mod_savefile
   real(rk8) , public , pointer , dimension(:,:) :: tgbb_io
   real(rk8) , public , pointer , dimension(:,:) :: uvdrag_io
 
-  real(rk8) , public , pointer , dimension(:,:,:) :: ldew_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: gwet_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: snag_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: sncv_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: sfice_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: rsw_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: ssw_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: tsw_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: taf_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: tgrd_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: tgbrd_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: tlef_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: emiss_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: ldew1_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: gwet1_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: snag1_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: sncv1_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: sfice1_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: rsw1_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: ssw1_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: tsw1_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: taf1_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: tgrd1_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: tgbrd1_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: tlef1_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: emiss1_io
   real(rk8) , public , pointer , dimension(:,:,:) :: eta_io
   real(rk8) , public , pointer , dimension(:,:,:) :: hi_io
   real(rk8) , public , pointer , dimension(:,:,:) :: hsnow_io
@@ -194,19 +194,19 @@ module mod_savefile
       call getmem2d(tgbb_io,jcross1,jcross2,icross1,icross2,'tgbb_io')
       call getmem2d(uvdrag_io,jcross1,jcross2,icross1,icross2,'uvdrag_io')
 
-      call getmem3d(ldew_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldew_io')
-      call getmem3d(gwet_io,1,nnsg,jcross1,jcross2,icross1,icross2,'gwet_io')
-      call getmem3d(snag_io,1,nnsg,jcross1,jcross2,icross1,icross2,'snag_io')
-      call getmem3d(sncv_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sncv_io')
-      call getmem3d(sfice_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sfice_io')
-      call getmem3d(rsw_io,1,nnsg,jcross1,jcross2,icross1,icross2,'rsw_io')
-      call getmem3d(ssw_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ssw_io')
-      call getmem3d(tsw_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tsw_io')
-      call getmem3d(taf_io,1,nnsg,jcross1,jcross2,icross1,icross2,'taf_io')
-      call getmem3d(tgrd_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgrd_io')
-      call getmem3d(tgbrd_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgbrd_io')
-      call getmem3d(tlef_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tlef_io')
-      call getmem3d(emiss_io,1,nnsg,jcross1,jcross2,icross1,icross2,'emiss_io')
+      call getmem3d(ldew1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldew1_io')
+      call getmem3d(gwet1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'gwet1_io')
+      call getmem3d(snag1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'snag1_io')
+      call getmem3d(sncv1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sncv1_io')
+      call getmem3d(sfice1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'sfice1_io')
+      call getmem3d(rsw1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'rsw1_io')
+      call getmem3d(ssw1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ssw1_io')
+      call getmem3d(tsw1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tsw1_io')
+      call getmem3d(taf1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'taf1_io')
+      call getmem3d(tgrd1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgrd1_io')
+      call getmem3d(tgbrd1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tgbrd1_io')
+      call getmem3d(tlef1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tlef1_io')
+      call getmem3d(emiss1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'emiss1_io')
       call getmem3d(ldmsk1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldmsk1')
       call getmem2d(ldmsk_io,jcross1,jcross2,icross1,icross2,'ldmsk_io')
       call getmem2d(flw_io,jcross1,jcross2,icross1,icross2,'flw_io')
@@ -421,33 +421,33 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read solvld')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'sabveg'),sabveg_io)
       call check_ok(__FILE__,__LINE__,'Cannot read sabveg')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tlef'),tlef_io)
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tlef'),tlef1_io)
       call check_ok(__FILE__,__LINE__,'Cannot read tlef')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ssw'),ssw_io)
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ssw'),ssw1_io)
       call check_ok(__FILE__,__LINE__,'Cannot read ssw')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'rsw'),rsw_io)
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'rsw'),rsw1_io)
       call check_ok(__FILE__,__LINE__,'Cannot read rsw')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tsw'),tsw_io)
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tsw'),tsw1_io)
       call check_ok(__FILE__,__LINE__,'Cannot read tsw')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tgrd'),tgrd_io)
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tgrd'),tgrd1_io)
       call check_ok(__FILE__,__LINE__,'Cannot read tgrd')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tgbrd'),tgbrd_io)
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'tgbrd'),tgbrd1_io)
       call check_ok(__FILE__,__LINE__,'Cannot read tgbrd')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sncv'),sncv_io)
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sncv'),sncv1_io)
       call check_ok(__FILE__,__LINE__,'Cannot read sncv')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'gwet'),gwet_io)
-      call check_ok(__FILE__,__LINE__,'Cannot read gwet')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'snag'),snag_io)
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'gwet1'),gwet1_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read gwet1')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'snag'),snag1_io)
       call check_ok(__FILE__,__LINE__,'Cannot read snag')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfice'),sfice_io)
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'sfice'),sfice1_io)
       call check_ok(__FILE__,__LINE__,'Cannot read sfice')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldew'),ldew_io)
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldew'),ldew1_io)
       call check_ok(__FILE__,__LINE__,'Cannot read ldew')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldmsk1'),ldmsk1_io)
       call check_ok(__FILE__,__LINE__,'Cannot read ldmsk1')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'taf'),taf_io)
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'taf'),taf1_io)
       call check_ok(__FILE__,__LINE__,'Cannot read taf')
-      ncstatus = nf90_get_var(ncid,get_varid(ncid,'emiss'),emiss_io)
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'emiss'),emiss1_io)
       call check_ok(__FILE__,__LINE__,'Cannot read emiss')
 #ifndef CLM
       if ( lakemod == 1 ) then
@@ -738,14 +738,14 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot create var tgbrd')
       ncstatus = nf90_def_var(ncid,'sncv',nf90_double,wrkdim(1:3),varids(47))
       call check_ok(__FILE__,__LINE__,'Cannot create var sncv')
-      ncstatus = nf90_def_var(ncid,'gwet',nf90_double,wrkdim(1:3),varids(48))
-      call check_ok(__FILE__,__LINE__,'Cannot create var gwet')
+      ncstatus = nf90_def_var(ncid,'gwet1',nf90_double,wrkdim(1:3),varids(48))
+      call check_ok(__FILE__,__LINE__,'Cannot create var gwet1')
       ncstatus = nf90_def_var(ncid,'snag',nf90_double,wrkdim(1:3),varids(49))
       call check_ok(__FILE__,__LINE__,'Cannot create var snag')
       ncstatus = nf90_def_var(ncid,'sfice',nf90_double,wrkdim(1:3),varids(50))
       call check_ok(__FILE__,__LINE__,'Cannot create var sfice')
       ncstatus = nf90_def_var(ncid,'ldew',nf90_double,wrkdim(1:3),varids(51))
-      call check_ok(__FILE__,__LINE__,'Cannot create var ldmskldew')
+      call check_ok(__FILE__,__LINE__,'Cannot create var ldew')
       ncstatus = nf90_def_var(ncid,'ldmsk1',nf90_int,wrkdim(1:3),varids(52))
       call check_ok(__FILE__,__LINE__,'Cannot create var ldmsk1')
       ncstatus = nf90_def_var(ncid,'taf',nf90_double,wrkdim(1:3),varids(53))
@@ -864,9 +864,9 @@ module mod_savefile
         call check_ok(__FILE__,__LINE__,'Cannot create var stepcount')
       end if
 #ifdef CLM
+      wrkdim(1) = dimids(idjcross)
+      wrkdim(2) = dimids(idicross)
       if ( imask == 2 ) then
-        wrkdim(1) = dimids(idjcross)
-        wrkdim(2) = dimids(idicross)
         ncstatus = nf90_def_var(ncid,'lndcat',nf90_double,wrkdim(1:2), &
                                 varids(86))
         call check_ok(__FILE__,__LINE__,'Cannot create var lndcat')
@@ -981,33 +981,33 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot write solvld')
       ncstatus = nf90_put_var(ncid,varids(40),sabveg_io)
       call check_ok(__FILE__,__LINE__,'Cannot write sabveg')
-      ncstatus = nf90_put_var(ncid,varids(41),tlef_io)
+      ncstatus = nf90_put_var(ncid,varids(41),tlef1_io)
       call check_ok(__FILE__,__LINE__,'Cannot write tlef')
-      ncstatus = nf90_put_var(ncid,varids(42),ssw_io)
+      ncstatus = nf90_put_var(ncid,varids(42),ssw1_io)
       call check_ok(__FILE__,__LINE__,'Cannot write ssw')
-      ncstatus = nf90_put_var(ncid,varids(43),rsw_io)
+      ncstatus = nf90_put_var(ncid,varids(43),rsw1_io)
       call check_ok(__FILE__,__LINE__,'Cannot write rsw')
-      ncstatus = nf90_put_var(ncid,varids(44),tsw_io)
+      ncstatus = nf90_put_var(ncid,varids(44),tsw1_io)
       call check_ok(__FILE__,__LINE__,'Cannot write tsw')
-      ncstatus = nf90_put_var(ncid,varids(45),tgrd_io)
+      ncstatus = nf90_put_var(ncid,varids(45),tgrd1_io)
       call check_ok(__FILE__,__LINE__,'Cannot write tgrd')
-      ncstatus = nf90_put_var(ncid,varids(46),tgbrd_io)
+      ncstatus = nf90_put_var(ncid,varids(46),tgbrd1_io)
       call check_ok(__FILE__,__LINE__,'Cannot write tgbrd')
-      ncstatus = nf90_put_var(ncid,varids(47),sncv_io)
+      ncstatus = nf90_put_var(ncid,varids(47),sncv1_io)
       call check_ok(__FILE__,__LINE__,'Cannot write sncv')
-      ncstatus = nf90_put_var(ncid,varids(48),gwet_io)
-      call check_ok(__FILE__,__LINE__,'Cannot write gwet')
-      ncstatus = nf90_put_var(ncid,varids(49),snag_io)
+      ncstatus = nf90_put_var(ncid,varids(48),gwet1_io)
+      call check_ok(__FILE__,__LINE__,'Cannot write gwet1')
+      ncstatus = nf90_put_var(ncid,varids(49),snag1_io)
       call check_ok(__FILE__,__LINE__,'Cannot write snag')
-      ncstatus = nf90_put_var(ncid,varids(50),sfice_io)
+      ncstatus = nf90_put_var(ncid,varids(50),sfice1_io)
       call check_ok(__FILE__,__LINE__,'Cannot write sfice')
-      ncstatus = nf90_put_var(ncid,varids(51),ldew_io)
+      ncstatus = nf90_put_var(ncid,varids(51),ldew1_io)
       call check_ok(__FILE__,__LINE__,'Cannot write ldew')
       ncstatus = nf90_put_var(ncid,varids(52),ldmsk1_io)
       call check_ok(__FILE__,__LINE__,'Cannot write ldmsk1')
-      ncstatus = nf90_put_var(ncid,varids(53),taf_io)
+      ncstatus = nf90_put_var(ncid,varids(53),taf1_io)
       call check_ok(__FILE__,__LINE__,'Cannot write taf')
-      ncstatus = nf90_put_var(ncid,varids(54),emiss_io)
+      ncstatus = nf90_put_var(ncid,varids(54),emiss1_io)
       call check_ok(__FILE__,__LINE__,'Cannot write emiss')
 #ifndef CLM
       if ( lakemod == 1 ) then

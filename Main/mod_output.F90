@@ -571,10 +571,10 @@ module mod_output
 
         call grid_collect(sfs%hfx,hfx_io,jci1,jci2,ici1,ici2)
         call grid_collect(sfs%qfx,qfx_io,jci1,jci2,ici1,ici2)
-        call grid_collect(sfs%rainc,rainc_io,jci1,jci2,ici1,ici2)
-        call grid_collect(sfs%rainnc,rainnc_io,jci1,jci2,ici1,ici2)
         call grid_collect(sfs%tgbb,tgbb_io,jci1,jci2,ici1,ici2)
         call grid_collect(sfs%uvdrag,uvdrag_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%rainc,rainc_io,jci1,jci2,ici1,ici2)
+        call grid_collect(sfs%rainnc,rainnc_io,jci1,jci2,ici1,ici2)
 
         if ( ipptls > 0 ) then
           call grid_collect(fcc,fcc_io,jci1,jci2,ici1,ici2,1,kz)
@@ -607,19 +607,19 @@ module mod_output
           call grid_collect(gasemstot,gasemstot_io,jci1,jci2,ici1,ici2,1,kzp1)
         end if
 
-        call subgrid_collect(tlef,tlef_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(ssw,ssw_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(rsw,rsw_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(tgrd,tgrd_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(tgbrd,tgbrd_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(sncv,sncv_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(gwet,gwet_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(snag,snag_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(sfice,sfice_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(ldew,ldew_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(taf,taf_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(tsw,tsw_io,jci1,jci2,ici1,ici2)
-        call subgrid_collect(sfcemiss,emiss_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(tlef1,tlef1_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(ssw1,ssw1_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(rsw1,rsw1_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(tgrd1,tgrd1_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(tgbrd1,tgbrd1_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(sncv1,sncv1_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(gwet1,gwet1_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(snag1,snag1_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(sfice1,sfice1_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(ldew1,ldew1_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(taf1,taf1_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(tsw1,tsw1_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(emiss1,emiss1_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(mdsub%ldmsk,ldmsk1_io,jci1,jci2,ici1,ici2)
 
         call grid_collect(solis,solis_io,jci1,jci2,ici1,ici2)
@@ -636,15 +636,15 @@ module mod_output
 
 #ifndef CLM
         if ( lakemod == 1 ) then
-          call lake_fillvar(var_eta,xlake,0)
+          call lake_fillvar(var_eta,xlake,0,llakmsk1)
           call subgrid_collect(xlake,eta_io,jci1,jci2,ici1,ici2)
-          call lake_fillvar(var_hi,xlake,0)
+          call lake_fillvar(var_hi,xlake,0,llakmsk1)
           call subgrid_collect(xlake,hi_io,jci1,jci2,ici1,ici2)
-          call lake_fillvar(var_aveice,xlake,0)
+          call lake_fillvar(var_aveice,xlake,0,llakmsk1)
           call subgrid_collect(xlake,aveice_io,jci1,jci2,ici1,ici2)
-          call lake_fillvar(var_hsnow,xlake,0)
+          call lake_fillvar(var_hsnow,xlake,0,llakmsk1)
           call subgrid_collect(xlake,hsnow_io,jci1,jci2,ici1,ici2)
-          call lake_fillvar(var_tlak,tlake,0)
+          call lake_fillvar(var_tlak,tlake,0,llakmsk1)
           call subgrid_collect(tlake,tlak_io,jci1,jci2,ici1,ici2,1,ndpmax)
         end if
 #else

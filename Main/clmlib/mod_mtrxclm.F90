@@ -273,7 +273,7 @@ module mod_mtrxclm
     r2cxlat = r2cxlatd*degrad
     r2cxlon = r2cxlond*degrad
 
-    if ( .not.ifrest ) then
+    if ( .not. ifrest ) then
       !
       !    Gather values of each nproc work_in array and fill
       !      work_out(jx*iy) array.
@@ -383,20 +383,20 @@ module mod_mtrxclm
     ! Initialize accumulation variables at zero
 
     if ( .not. ifrest ) then
-      do n = 1 , nnsg
-        do i = ici1 , ici2
-          ig = global_cross_istart+i-1
-          do j = jci1 , jci2
-            jg = global_cross_jstart+j-1
+      do i = ici1 , ici2
+        ig = global_cross_istart+i-1
+        do j = jci1 , jci2
+          jg = global_cross_jstart+j-1
+          do n = 1 , nnsg
             ldmsk1(n,j,i) = landmask(jg,ig)
-            tgbrd(n,j,i)  = tground2(j,i)
-            taf(n,j,i)    = tground2(j,i)
-            tlef(n,j,i)   = tground2(j,i)
-            ldew(n,j,i)   = d_zero
-            snag(n,j,i)   = d_zero
-            sncv(n,j,i)   = dmax1(sncv(n,j,i),d_zero)
-            sfice(n,j,i)  = d_zero
-            gwet(n,j,i)   = d_half
+            tgbrd1(n,j,i) = tground2(j,i)
+            taf1(n,j,i)   = tground2(j,i)
+            tlef1(n,j,i)  = tground2(j,i)
+            ldew1(n,j,i)  = d_zero
+            snag1(n,j,i)  = d_zero
+            sncv1(n,j,i)  = dmax1(sncv1(n,j,i),d_zero)
+            sfice1(n,j,i) = d_zero
+            gwet1(n,j,i)  = d_half
           end do
         end do
       end do
@@ -533,6 +533,8 @@ module mod_mtrxclm
 !
     if ( ivers == 1 ) then
 
+      call interf(1)
+
       call fill_frame(tatm,r2ctb)
       call fill_frame(qvatm,r2cqb)
       r2cqb = r2cqb/(d_one+r2cqb)
@@ -636,33 +638,35 @@ module mod_mtrxclm
         end if
       end do
 
-      call interf(1)
-
       if ( iocnflx == 2 ) then
         call zengocndrv
       else if ( iocnflx == 1 ) then
         call dragc
+        ib = 1
         do i = ici1 , ici2
           do j = jci1 , jci2
             if ( ldmsk(j,i) == 0 ) then
-              tgrd(:,j,i) = tground2(j,i)
-              drag(:,j,i) = cdrx(:,j,i)*vspda(:,j,i)*rhs(:,j,i)
-              tlef(:,j,i) = sts(:,j,i)
-              delq(:,j,i) =  qs(:,j,i) - qgrd(:,j,i)
-              delt(:,j,i) = sts(:,j,i) - tgrd(:,j,i)
-              evpr(:,j,i) = -drag(:,j,i)*delq(:,j,i)
-              sent(:,j,i) = -drag(:,j,i)*cpd*delt(:,j,i)
-              fact = z10fra(1,j,i)/zlgocn(1,j,i)
-              u10m(:,j,i) = usw(n,j,i)*(d_one-fact)
-              v10m(:,j,i) = vsw(n,j,i)*(d_one-fact)
-              fact = z2fra(1,j,i)/zlgocn(1,j,i)
-              t2m(:,j,i) = sts(:,j,i) - delt(:,j,i)*fact
-              q2m(:,j,i) = qs(:,j,i) - delq(:,j,i)*fact
+              tgrd1(:,j,i) = tground2(j,i)
+              drag1(:,j,i) = cdrx(ib:ib+nnsg-1)*vspda(ib:ib+nnsg-1)* &
+                      rhs(ib:ib+nnsg-1)
+              tlef1(:,j,i) = sts(ib:ib+nnsg-1)
+              delq(ib:ib+nnsg-1) =  qs(ib:ib+nnsg-1) - qgrd(ib:ib+nnsg-1)
+              delt(ib:ib+nnsg-1) = sts(ib:ib+nnsg-1) - tgrd(ib:ib+nnsg-1)
+              evpr1(:,j,i) = -drag(ib:ib+nnsg-1)*delq(ib:ib+nnsg-1)
+              sent1(:,j,i) = -drag(ib:ib+nnsg-1)*cpd*delt(ib:ib+nnsg-1)
+              fact = z10fra(ib)/zlgocn(ib)
+              u10m(:,j,i) = usw(ib:ib+nnsg-1)*(d_one-fact)
+              v10m(:,j,i) = vsw(ib:ib+nnsg-1)*(d_one-fact)
+              fact = z2fra(ib)/zlgocn(ib)
+              t2m(:,j,i) = sts(ib:ib+nnsg-1) - delt(ib:ib+nnsg-1)*fact
+              q2m(:,j,i) = qs(ib:ib+nnsg-1) - delq(ib:ib+nnsg-1)*fact
             end if
+            ib = ib + nnsg
           end do
         end do
       end if
 
+      ib = 1
       do i = ici1 , ici2
         ig = global_cross_istart+i-1
         do j = jci1 , jci2
@@ -692,111 +696,121 @@ module mod_mtrxclm
             tgbb(j,i)     = c2rtgbb(jg,ig)
 
             do n = 1 , nnsg
-              tgrd(n,j,i)   = c2rtgb(jg,ig)
-              tgbrd(n,j,i)  = c2rtgb(jg,ig)
+              prcp1(n,j,i)  = prcp(ib)
+              tgrd1(n,j,i)  = c2rtgb(jg,ig)
+              tgbrd1(n,j,i) = c2rtgb(jg,ig)
+              evpr1(n,j,i)  = c2rlatht(jg,ig)/wlhv
+              sent1(n,j,i)  = c2rsenht(jg,ig)
               ! supposed to be lower soil layer temp not tgrnd
-              taf(n,j,i)    = c2r2mt(jg,ig)
+              taf1(n,j,i)   = c2r2mt(jg,ig)
               t2m(n,j,i)    = c2r2mt(jg,ig)
               u10m(n,j,i)   = uatm(j,i)
               v10m(n,j,i)   = vatm(j,i)
-              tlef(n,j,i)   = c2rtlef(jg,ig)
-              tsw(n,j,i)    = c2rsmtot(jg,ig)
-              rsw(n,j,i)    = c2rsm1m(jg,ig)
-              ssw(n,j,i)    = c2rsm10cm(jg,ig)
-              sncv(n,j,i)   = c2rsnowc(jg,ig)
-              srnof(n,j,i)  = c2rro_sur(jg,ig)*dtbat
-              trnof(n,j,i)  = (c2rro_sub(jg,ig)+c2rro_sur(jg,ig))*dtbat
+              tlef1(n,j,i)  = c2rtlef(jg,ig)
+              tsw1(n,j,i)   = c2rsmtot(jg,ig)
+              rsw1(n,j,i)   = c2rsm1m(jg,ig)
+              ssw1(n,j,i)   = c2rsm10cm(jg,ig)
+              sncv1(n,j,i)  = c2rsnowc(jg,ig)
+              srnof1(n,j,i) = c2rro_sur(jg,ig)*dtbat
+              trnof1(n,j,i) = (c2rro_sub(jg,ig)+c2rro_sur(jg,ig))*dtbat
               q2m(n,j,i)    = c2r2mq(jg,ig)
 
               if ( ichem == 1 ) then
-                ssw2da(j,i)   = ssw2da(j,i) + ssw(n,j,i)
-                deltat(j,i) = deltat(j,i) + delt(n,j,i)
-                deltaq(j,i) = deltaq(j,i) + delq(n,j,i)
+                ssw2da(j,i)   = ssw2da(j,i) + ssw1(n,j,i)
+                deltat(j,i) = deltat(j,i) + delt(ib)
+                deltaq(j,i) = deltaq(j,i) + delq(ib)
                 sfracv2d(j,i) = sfracv2d(j,i) + c2rfvegnosno(jg,ig)
                 sfracb2d(j,i) = sfracb2d(j,i) + d_one -               &
                                (c2rfvegnosno(jg,ig)+c2rfracsno(jg,ig))
                 sfracs2d(j,i) = sfracs2d(j,i) + c2rfracsno(jg,ig)
               end if
+              ib = ib + 1
             end do
           else if ( landmask(jg,ig) == 0 ) then !ocean
             do n = 1 , nnsg
-              uvdrag(j,i)   = uvdrag(j,i) + drag(n,j,i)
-              hfx(j,i)      = hfx(j,i) + sent(n,j,i)
-              qfx(j,i)      = qfx(j,i) + evpr(n,j,i)
-              tground2(j,i) = tground2(j,i) + tgrd(n,j,i)
-              tground1(j,i) = tground1(j,i) + tgrd(n,j,i)
+              prcp1(n,j,i)  = prcp(ib)
+              uvdrag(j,i)   = uvdrag(j,i) + drag1(n,j,i)
+              hfx(j,i)      = hfx(j,i) + sent1(n,j,i)
+              qfx(j,i)      = qfx(j,i) + evpr1(n,j,i)
+              tground2(j,i) = tground2(j,i) + tgrd1(n,j,i)
+              tground1(j,i) = tground1(j,i) + tgrd1(n,j,i)
 
               if ( ichem == 1  ) then
-                ssw2da(j,i)   = ssw2da(j,i) + ssw(n,j,i)
-                deltat(j,i) = deltat(j,i) + delt(n,j,i)
-                deltaq(j,i) = deltaq(j,i) + delq(n,j,i)
-                sfracv2d(j,i) = sfracv2d(j,i) + sigf(n,j,i)
-                sfracb2d(j,i) = sfracb2d(j,i) + (d_one-sigf(n,j,i))    &
-                                *(d_one-scvk(n,j,i))
-                sfracs2d(j,i) = sfracs2d(j,i) + sigf(n,j,i)*wt(n,j,i) &
-                                + (d_one-sigf(n,j,i))*scvk(n,j,i)
+                ssw2da(j,i)   = ssw2da(j,i) + ssw1(n,j,i)
+                deltat(j,i)   = deltat(j,i) + delt(ib)
+                deltaq(j,i)   = deltaq(j,i) + delq(ib)
+                sfracv2d(j,i) = sfracv2d(j,i) + sigf(ib)
+                sfracb2d(j,i) = sfracb2d(j,i) + (d_one-sigf(ib))    &
+                                *(d_one-scvk(ib))
+                sfracs2d(j,i) = sfracs2d(j,i) + sigf(ib)*wt(ib) &
+                                + (d_one-sigf(ib))*scvk(ib)
               end if
 
               if ( ldmsk1(n,j,i) /= 0 ) then
                 tgbb(j,i) = tgbb(j,i) + &
-                     ((d_one-lncl(n,j,i))*tgrd(n,j,i)**4 +   &
-                     lncl(n,j,i)*tlef(n,j,i)**4)**d_rfour
+                     ((d_one-lncl(ib))*tgrd(ib)**4 +   &
+                     lncl(ib)*tlef(ib)**4)**d_rfour
               else
-                tgbb(j,i) = tgbb(j,i) + tgrd(n,j,i)
+                tgbb(j,i) = tgbb(j,i) + tgrd(ib)
               end if
-              ssw(n,j,i)   = dmissval
-              rsw(n,j,i)   = dmissval
-              tsw(n,j,i)   = dmissval
-              trnof(n,j,i) = dmissval
-              srnof(n,j,i) = dmissval
-              sncv(n,j,i)  = dmissval
+              ssw1(n,j,i)   = dmissval
+              rsw1(n,j,i)   = dmissval
+              tsw1(n,j,i)   = dmissval
+              trnof1(n,j,i) = dmissval
+              srnof1(n,j,i) = dmissval
+              sncv1(n,j,i)  = dmissval
+              ib = ib + 1
             end do
 
             do n = 1 , nnsg
-              taf(n,j,i)  = t2m(n,j,i)
-              sncv(n,j,i) = sncv(n,j,i)
+              taf1(n,j,i)  = t2m(n,j,i)
             end do
           else if ( landmask(jg,ig) == 3 ) then
             !gridcell with some % land and ocean
             do n = 1 , nnsg
-              uvdrag(j,i)   = uvdrag(j,i) + drag(n,j,i)
-              hfx(j,i)      = hfx(j,i) + sent(n,j,i)
-              qfx(j,i)      = qfx(j,i) + evpr(n,j,i)
-              tground2(j,i) = tground2(j,i) + tgrd(n,j,i)
-              tground1(j,i) = tground1(j,i) + tgrd(n,j,i)
+              prcp1(n,j,i)  = prcp(ib)
+              evpr1(n,j,i)  = c2rlatht(jg,ig)*landfrac(jg,ig)/wlhv + &
+                              (d_one-landfrac(jg,ig))*evpr1(n,j,i)
+              sent1(n,j,i)  = c2rsenht(jg,ig)*landfrac(jg,ig) + &
+                              (d_one-landfrac(jg,ig))*sent1(n,j,i)
+              uvdrag(j,i)   = uvdrag(j,i) + drag1(n,j,i)
+              hfx(j,i)      = hfx(j,i) + sent1(n,j,i)
+              qfx(j,i)      = qfx(j,i) + evpr1(n,j,i)
+              tground2(j,i) = tground2(j,i) + tgrd1(n,j,i)
+              tground1(j,i) = tground1(j,i) + tgrd1(n,j,i)
 
               if ( ichem == 1 ) then
-                ssw2da(j,i)   = ssw2da(j,i) + ssw(n,j,i)
-                deltat(j,i) = deltat(j,i) + delt(n,j,i)
-                deltaq(j,i) = deltaq(j,i) + delq(n,j,i)
+                ssw2da(j,i)   = ssw2da(j,i) + ssw1(n,j,i)
+                deltat(j,i) = deltat(j,i) + delt(ib)
+                deltaq(j,i) = deltaq(j,i) + delq(ib)
                 sfracv2d(j,i) = sfracv2d(j,i) + c2rfvegnosno(jg,ig)
                 sfracb2d(j,i) = sfracb2d(j,i) + d_one - &
                                (c2rfvegnosno(jg,ig) + c2rfracsno(jg,ig))
                 sfracs2d(j,i) = sfracs2d(j,i) + c2rfracsno(jg,ig)
-                ssw2da(j,i) = ssw2da(j,i)*landfrac(jg,ig)             &
-                              + (d_one-landfrac(jg,ig))*ssw(n,j,i)
-                deltat(j,i) = deltat(j,i)*landfrac(jg,ig)         &
-                                + (d_one-landfrac(jg,ig))*delt(n,j,i)
-                deltaq(j,i) = deltaq(j,i)*landfrac(jg,ig)         &
-                                + (d_one-landfrac(jg,ig))*delq(n,j,i)
-                sfracv2d(j,i) = sfracv2d(j,i)*landfrac(jg,ig)         &
-                                + (d_one-landfrac(jg,ig))*sigf(n,j,i)
-                sfracb2d(j,i) = sfracb2d(j,i)*landfrac(jg,ig)         &
-                                + (d_one-landfrac(jg,ig))*            &
-                                (d_one-sigf(n,j,i))*(d_one-scvk(n,j,i))
-                sfracs2d(j,i) = sfracs2d(j,i)*landfrac(jg,ig)         &
-                                + (d_one-landfrac(jg,ig))             &
-                                *(sigf(n,j,i)*wt(n,j,i)+(d_one-sigf(n,j,i)) &
-                                *scvk(n,j,i))
+                ssw2da(j,i) = ssw2da(j,i)*landfrac(jg,ig) + &
+                              (d_one-landfrac(jg,ig))*ssw1(n,j,i)
+                deltat(j,i) = deltat(j,i)*landfrac(jg,ig) + &
+                              (d_one-landfrac(jg,ig))*delt(ib)
+                deltaq(j,i) = deltaq(j,i)*landfrac(jg,ig) + &
+                              (d_one-landfrac(jg,ig))*delq(ib)
+                sfracv2d(j,i) = sfracv2d(j,i)*landfrac(jg,ig) + &
+                              (d_one-landfrac(jg,ig))*sigf(ib)
+                sfracb2d(j,i) = sfracb2d(j,i)*landfrac(jg,ig) + &
+                                (d_one-landfrac(jg,ig)) *       &
+                                (d_one-sigf(ib))*(d_one-scvk(ib))
+                sfracs2d(j,i) = sfracs2d(j,i)*landfrac(jg,ig) + &
+                                (d_one-landfrac(jg,ig)) *       &
+                                (sigf(ib)*wt(ib)+(d_one-sigf(ib))*scvk(ib))
               end if
 
               if ( ldmsk1(n,j,i) /= 0 ) then
                 tgbb(j,i) = tgbb(j,i) + &
-                          ((d_one-lncl(n,j,i))*tgrd(n,j,i)**4+ &
-                              lncl(n,j,i)*tlef(n,j,i)**4)**d_rfour
+                          ((d_one-lncl(ib))*tgrd(ib)**4+ &
+                              lncl(ib)*tlef(ib)**4)**d_rfour
               else
-                tgbb(j,i) = tgbb(j,i) + tgrd(n,j,i)
+                tgbb(j,i) = tgbb(j,i) + tgrd(ib)
               end if
+              ib = ib + 1
             end do
 
             uvdrag(j,i)   = uvdrag(j,i)*(d_one-landfrac(jg,ig)) + &
@@ -814,27 +828,27 @@ module mod_mtrxclm
 
             do n = 1 , nnsg
               !abt added below for the landfraction method
-              sncv(n,j,i)   = c2rsnowc(jg,ig)*landfrac(jg,ig)          &
-                             + sncv(n,j,i)*(d_one-landfrac(jg,ig))
-              tgrd(n,j,i)   = c2rtgb(jg,ig)*landfrac(jg,ig) + tgrd(n,j,i) &
-                             *(d_one-landfrac(jg,ig))
-              tgbrd(n,j,i)  = c2rtgb(jg,ig)*landfrac(jg,ig)            &
-                             + tgbrd(n,j,i)*(d_one-landfrac(jg,ig))
-              taf(n,j,i)    = c2r2mt(jg,ig)*landfrac(jg,ig)            &
+              sncv1(n,j,i)   = c2rsnowc(jg,ig)*landfrac(jg,ig)          &
+                               + sncv1(n,j,i)*(d_one-landfrac(jg,ig))
+              tgrd1(n,j,i)   = c2rtgb(jg,ig)*landfrac(jg,ig) + tgrd(ib) &
+                               *(d_one-landfrac(jg,ig))
+              tgbrd1(n,j,i)  = c2rtgb(jg,ig)*landfrac(jg,ig)            &
+                             + tgbrd(ib)*(d_one-landfrac(jg,ig))
+              taf1(n,j,i)    = c2r2mt(jg,ig)*landfrac(jg,ig)            &
                              + t2m(n,j,i)*(d_one-landfrac(jg,ig))
               !note taf is 2m temp not temp in foilage
-              tlef(n,j,i)   = c2rtlef(jg,ig)*landfrac(jg,ig)          &
-                             + tlef(n,j,i)*(d_one-landfrac(jg,ig))
-              tsw(n,j,i)    = c2rsmtot(jg,ig)*landfrac(jg,ig)          &
-                             + tsw(n,j,i)*(d_one-landfrac(jg,ig))
-              rsw(n,j,i)    = c2rsm1m(jg,ig)*landfrac(jg,ig)           &
-                             + rsw(n,j,i)*(d_one-landfrac(jg,ig))
-              ssw(n,j,i)    = c2rsm10cm(jg,ig)*landfrac(jg,ig)         &
-                             + ssw(n,j,i)*(d_one-landfrac(jg,ig))
+              tlef1(n,j,i)   = c2rtlef(jg,ig)*landfrac(jg,ig)          &
+                              + tlef1(n,j,i)*(d_one-landfrac(jg,ig))
+              tsw1(n,j,i)    = c2rsmtot(jg,ig)*landfrac(jg,ig)          &
+                              + tsw1(n,j,i)*(d_one-landfrac(jg,ig))
+              rsw1(n,j,i)    = c2rsm1m(jg,ig)*landfrac(jg,ig)           &
+                             + rsw1(n,j,i)*(d_one-landfrac(jg,ig))
+              ssw1(n,j,i)    = c2rsm10cm(jg,ig)*landfrac(jg,ig)         &
+                             + ssw1(n,j,i)*(d_one-landfrac(jg,ig))
               q2m(n,j,i)    = c2r2mq(jg,ig)*landfrac(jg,ig) + q2m(n,j,i)  &
                              *(d_one-landfrac(jg,ig))
-              srnof(n,j,i)  = c2rro_sur(jg,ig)*dtbat
-              trnof(n,j,i) = c2rro_sub(jg,ig)*dtbat + c2rro_sur(jg,ig)*dtbat
+              srnof1(n,j,i)  = c2rro_sur(jg,ig)*dtbat
+              trnof1(n,j,i) = c2rro_sub(jg,ig)*dtbat + c2rro_sur(jg,ig)*dtbat
             end do
           end if
         end do
@@ -847,15 +861,15 @@ module mod_mtrxclm
       if ( ktau > 0 ) then
         if ( ifatm ) then
           if ( associated(atm_tgb_out) ) &
-            atm_tgb_out = atm_tgb_out + sum(tgbrd,1)*rdnnsg
+            atm_tgb_out = atm_tgb_out + sum(tgbrd1,1)*rdnnsg
           if ( associated(atm_tsw_out) ) &
-            atm_tsw_out = atm_tsw_out + sum(tsw,1)*rdnnsg
+            atm_tsw_out = atm_tsw_out + sum(tsw1,1)*rdnnsg
         end if
         if ( ifsrf ) then
           if ( associated(srf_evp_out) ) &
-            srf_evp_out = srf_evp_out + sum(evpr,1)*rdnnsg
+            srf_evp_out = srf_evp_out + sum(evpr1,1)*rdnnsg
           if ( associated(srf_tpr_out) ) &
-            srf_tpr_out = srf_tpr_out + prcp(1,:,:)
+            srf_tpr_out = srf_tpr_out + prcp1(1,:,:)
           if ( associated(srf_prcv_out) ) &
             srf_prcv_out = srf_prcv_out + cprate
           ! Reset accumulation from precip and cumulus
@@ -864,18 +878,18 @@ module mod_mtrxclm
           if ( associated(srf_zpbl_out) ) &
             srf_zpbl_out = srf_zpbl_out + hpbl
           if ( associated(srf_scv_out) ) &
-            srf_scv_out = srf_scv_out + sum(sncv,1)*rdnnsg
+            srf_scv_out = srf_scv_out + sum(sncv1,1)*rdnnsg
           if ( associated(srf_sund_out) ) then
             where( rswf > 120.0D0 )
               srf_sund_out = srf_sund_out + dtbat
             end where
           end if
           if ( associated(srf_runoff_out) ) then
-            srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1) + sum(srnof,1)*rdnnsg
-            srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2) + sum(trnof,1)*rdnnsg
+            srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1) + sum(srnof1,1)*rdnnsg
+            srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2) + sum(trnof1,1)*rdnnsg
           end if
           if ( associated(srf_sena_out) ) &
-            srf_sena_out = srf_sena_out + sum(sent,1)*rdnnsg
+            srf_sena_out = srf_sena_out + sum(sent1,1)*rdnnsg
           if ( associated(srf_flw_out) ) &
             srf_flw_out = srf_flw_out + rlwf
           if ( associated(srf_fsw_out) ) &
@@ -886,23 +900,23 @@ module mod_mtrxclm
             srf_sina_out = srf_sina_out + solinc
         end if
         if ( ifsub ) then
-          call reorder_add_subgrid(sfcp,sub_ps_out)
+          call reorder_add_subgrid(ps1,sub_ps_out)
           if ( associated(sub_evp_out) ) &
-            call reorder_add_subgrid(evpr,sub_evp_out)
+            call reorder_add_subgrid(evpr1,sub_evp_out)
           if ( associated(sub_scv_out) ) &
-            call reorder_add_subgrid(sncv,sub_scv_out,mask=ldmsk1)
+            call reorder_add_subgrid(sncv1,sub_scv_out,mask=ldmsk1)
           if ( associated(sub_sena_out) ) &
-            call reorder_add_subgrid(sent,sub_sena_out)
+            call reorder_add_subgrid(sent1,sub_sena_out)
           if ( associated(sub_runoff_out) ) then
-            call reorder_add_subgrid(srnof,sub_runoff_out,1,ldmsk1)
-            call reorder_add_subgrid(trnof,sub_runoff_out,2,ldmsk1)
+            call reorder_add_subgrid(srnof1,sub_runoff_out,1,ldmsk1)
+            call reorder_add_subgrid(trnof1,sub_runoff_out,2,ldmsk1)
           end if
         end if
         if ( ifsts ) then
           if ( associated(sts_tgmax_out) ) &
-            sts_tgmax_out = max(sts_tgmax_out,sum(tgrd,1)*rdnnsg)
+            sts_tgmax_out = max(sts_tgmax_out,sum(tgrd1,1)*rdnnsg)
           if ( associated(sts_tgmin_out) ) &
-            sts_tgmin_out = min(sts_tgmin_out,sum(tgrd,1)*rdnnsg)
+            sts_tgmin_out = min(sts_tgmin_out,sum(tgrd1,1)*rdnnsg)
           if ( associated(sts_t2max_out) ) &
             sts_t2max_out(:,:,1) = max(sts_t2max_out(:,:,1),sum(t2m,1)*rdnnsg)
           if ( associated(sts_t2min_out) ) &
@@ -913,9 +927,9 @@ module mod_mtrxclm
             sts_w10max_out(:,:,1) = max(sts_w10max_out(:,:,1), &
               sqrt(sum((u10m**2+v10m**2),1)*rdnnsg))
           if ( associated(sts_pcpmax_out) ) &
-            sts_pcpmax_out = max(sts_pcpmax_out,prcp(1,:,:))
+            sts_pcpmax_out = max(sts_pcpmax_out,prcp1(1,:,:))
           if ( associated(sts_pcpavg_out) ) &
-            sts_pcpavg_out = sts_pcpavg_out + prcp(1,:,:)
+            sts_pcpavg_out = sts_pcpavg_out + prcp1(1,:,:)
           if ( associated(sts_psmin_out) ) &
             sts_psmin_out = min(sts_psmin_out, &
               (sfps(jci1:jci2,ici1:ici2)+ptop)*d_10)
@@ -940,7 +954,7 @@ module mod_mtrxclm
             srf_tg_out = tground1(jci1:jci2,ici1:ici2)
           if ( associated(srf_tlef_out) ) then
             where ( sum(ldmsk1,1) > nnsg/2 )
-              srf_tlef_out = sum(tlef,1)*rdnnsg
+              srf_tlef_out = sum(tlef1,1)*rdnnsg
             elsewhere
               srf_tlef_out = dmissval
             end where
@@ -950,7 +964,7 @@ module mod_mtrxclm
           if ( associated(srf_aldifs_out) ) &
             srf_aldifs_out = swdifalb
           if ( associated(srf_seaice_out) ) &
-            srf_seaice_out = sum(sfice,1)*rdnnsg*d_r1000
+            srf_seaice_out = sum(sfice1,1)*rdnnsg*d_r1000
           if ( associated(srf_t2m_out) ) &
             srf_t2m_out(:,:,1) = sum(t2m,1)*rdnnsg
           if ( associated(srf_q2m_out) ) &
@@ -960,18 +974,18 @@ module mod_mtrxclm
           if ( associated(srf_v10m_out) ) &
             srf_v10m_out(:,:,1) = sum(v10m,1)*rdnnsg
           if ( associated(srf_smw_out) ) then
-            srf_smw_out(:,:,1) = sum(ssw,1)*rdnnsg
-            srf_smw_out(:,:,2) = sum(rsw,1)*rdnnsg
+            srf_smw_out(:,:,1) = sum(ssw1,1)*rdnnsg
+            srf_smw_out(:,:,2) = sum(rsw1,1)*rdnnsg
           end if
         end if
 
         if ( ifsub ) then
           if ( associated(sub_uvdrag_out) ) &
-            call reorder_subgrid(drag,sub_uvdrag_out)
+            call reorder_subgrid(drag1,sub_uvdrag_out)
           if ( associated(sub_tg_out) ) &
-            call reorder_subgrid(tgrd,sub_tg_out)
+            call reorder_subgrid(tgrd1,sub_tg_out)
           if ( associated(sub_tlef_out) ) &
-            call reorder_subgrid(tlef,sub_tlef_out,mask=ldmsk1)
+            call reorder_subgrid(tlef1,sub_tlef_out,mask=ldmsk1)
           if ( associated(sub_u10m_out) ) &
             call reorder_subgrid(u10m,sub_u10m_out)
           if ( associated(sub_v10m_out) ) &
@@ -981,8 +995,8 @@ module mod_mtrxclm
           if ( associated(sub_q2m_out) ) &
             call reorder_subgrid(q2m,sub_q2m_out)
           if ( associated(sub_smw_out) ) then
-            call reorder_subgrid(ssw,sub_smw_out,1,ldmsk1)
-            call reorder_subgrid(rsw,sub_smw_out,2,ldmsk1)
+            call reorder_subgrid(ssw1,sub_smw_out,1,ldmsk1)
+            call reorder_subgrid(rsw1,sub_smw_out,2,ldmsk1)
           end if
         end if
 

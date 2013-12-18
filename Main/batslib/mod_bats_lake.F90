@@ -26,17 +26,20 @@ module mod_bats_lake
   use mod_realkinds
   use mod_dynparam
   use mod_service
-  use mod_bats_common
-  use mod_runparams , only : xmonth , iocncpl
+  use mod_runparams , only : xmonth , ktau
   use mod_bats_internal
-!
+
+  implicit none
+
   private
-!
+
   public :: allocate_mod_bats_lake , initlake , lakedrv
   public :: lake_fillvar
-!
+
+  integer(ik4) :: nlakep = 0
+
   real(rk8) , dimension(ndpmax) :: de , dnsty , tt , ttx
-!
+
   ! surface thickness
   real(rk8) , parameter :: surf = d_one
   ! vertical grid spacing in m
@@ -50,7 +53,7 @@ module mod_bats_lake
 !
   real(rk8) , pointer , dimension(:,:) :: tlak
   real(rk8) , pointer , dimension(:) :: hi , aveice , hsnow , eta
-  integer(ik4) , pointer , dimension(:) :: idep , ilp , jlp , nlp
+  integer(ik4) , pointer , dimension(:) :: idep , ilp
 
   integer , public , parameter :: var_eta    = 1
   integer , public , parameter :: var_hi     = 2
@@ -67,38 +70,45 @@ module mod_bats_lake
 !
 !-----------------------------------------------------------------------
 !
-  subroutine allocate_mod_bats_lake
+  subroutine allocate_mod_bats_lake(xmsk)
     implicit none
-    integer :: i , j , n , lp
+    integer(ik4) , pointer , intent(in) , dimension(:,:,:) :: xmsk
+    integer :: i , j , n , lp , ib
+    nlakep = 0
+    ib = 1
+    do i = ici1 , ici2
+      do j  = jci1 , jci2
+        do n = 1 , nnsg
+          lakmsk(ib) = xmsk(n,j,i)
+          ib = ib + 1
+        end do
+      end do
+    end do
+    do i = ilndbeg , ilndend
+      if ( lakmsk(i) == 1 ) then
+        nlakep = nlakep + 1
+      end if
+    end do
     if ( nlakep == 0 ) return
     call getmem1d(idep,1,nlakep,'bats::initlake::idep')
     call getmem1d(ilp,1,nlakep,'bats::initlake::ilp')
-    call getmem1d(jlp,1,nlakep,'bats::initlake::jlp')
-    call getmem1d(nlp,1,nlakep,'bats::initlake::nlp')
     call getmem1d(hi,1,nlakep,'bats::initlake::hi')
     call getmem1d(aveice,1,nlakep,'bats::initlake::aveice')
     call getmem1d(hsnow,1,nlakep,'bats::initlake::hsnow')
     call getmem1d(eta,1,nlakep,'bats::initlake::eta')
     call getmem2d(tlak,1,nlakep,1,ndpmax,'bats::initlake::tlak')
     lp = 1
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          if ( lakemsk(n,j,i) == 1 ) then
-            jlp(lp) = j
-            ilp(lp) = i
-            nlp(lp) = n
-            idep(lp) = idint(dmax1(d_two,dmin1(dhlake1(n,j,i),dble(ndpmax)))/dz)
-            lp = lp + 1
-          end if
-        end do
-      end do
+    do i = ilndbeg , ilndend
+      if ( lakmsk(i) == 1 ) then
+        ilp(lp) = i
+        lp = lp + 1
+      end if
     end do
   end subroutine allocate_mod_bats_lake
 
   subroutine initlake
     implicit none
-    integer(ik4) :: i , j , n , lp
+    integer(ik4) :: i , lp
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'initlake'
     integer(ik4) , save :: idindx = 0
@@ -114,6 +124,17 @@ module mod_bats_lake
       return
     end if
 
+    if ( ktau /= 0 ) then
+      do lp = 1 , nlakep
+        i = ilp(lp)
+        idep(lp) = idint(dmax1(d_two,dmin1(dhlake(i),dble(ndpmax)))/dz)
+      end do
+#ifdef DEBUG
+      call time_end(subroutine_name,idindx)
+#endif
+      return
+    end if
+
     hi(:)     = dmissval
     aveice(:) = dmissval
     hsnow(:)  = dmissval
@@ -121,10 +142,9 @@ module mod_bats_lake
     tlak(:,:) = dmissval
 
     do lp = 1 , nlakep
-      n = nlp(lp)
-      j = jlp(lp)
       i = ilp(lp)
-      if ( ldmsk1(n,j,i) == 2 ) then
+      idep(lp) = idint(dmax1(d_two,dmin1(dhlake(i),dble(ndpmax)))/dz)
+      if ( mask(i) == 2 ) then
         tlak(lp,1) = -2.0D0
         tlak(lp,2) = -2.0D0
         aveice(lp) = d_10
@@ -160,7 +180,7 @@ module mod_bats_lake
       ! Put winter surface water a bit colder and summer or tropical
       ! surface water a little warmer to ease spinup nudging in the
       ! correct direction the profile.
-      if ( xlat1(n,j,i) > 30.0 ) then
+      if ( lat(i) > 30.0 ) then
         if ( xmonth < 4 .or. xmonth > 9 ) then
           tlak(lp,1) = 3.0
           tlak(lp,2) = 3.5
@@ -171,7 +191,7 @@ module mod_bats_lake
         if ( idep(lp) > 2 ) then
           tlak(lp,3:idep(lp)) = 4.0D0
         end if
-      else if ( xlat1(n,j,i) < 30.0 ) then
+      else if ( lat(i) < 30.0 ) then
         if ( xmonth > 4 .and. xmonth < 9 ) then
           tlak(lp,1) = 3.0
           tlak(lp,2) = 3.5
@@ -205,7 +225,7 @@ module mod_bats_lake
     implicit none
     real(rk8) :: flwx , fswx , hsen , prec , ql , tgl , tl , vl , zl , &
                 xl , evp , toth
-    integer(ik4) :: lp , i , j , n
+    integer(ik4) :: lp , i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'lakedrv'
     integer(ik4) , save :: idindx = 0
@@ -220,22 +240,17 @@ module mod_bats_lake
     end if
 
     do lp = 1 , nlakep
-      n = nlp(lp)
-      j = jlp(lp)
       i = ilp(lp)
-      if ( iocncpl == 1 ) then
-        if ( cplmsk(j,i) /= 0 ) cycle
-      end if
-      tl = sts(n,j,i)
-      vl = dsqrt(usw(n,j,i)**2+vsw(n,j,i)**2)
-      zl = zh(n,j,i)
-      ql = qs(n,j,i)
-      fswx = swflx(n,j,i)
-      flwx = -d_one*lwflx(n,j,i)
-      prec = prcp(n,j,i)*dtbat
-      hsen = -d_one*sent(n,j,i)
-      evp = evpr(n,j,i)
-      xl = xlat1(n,j,i)
+      tl = sts(i)
+      vl = dsqrt(usw(i)**2+vsw(i)**2)
+      zl = zh(i)
+      ql = qs(i)
+      fswx = swflx(i)
+      flwx = -d_one*lwflx(i)
+      prec = prcp(i)*dtbat
+      hsen = -d_one*sent(i)
+      evp = evpr(i)
+      xl = lat(i)
       ttx(:) = tlak(lp,:)
       call lake( dtlake,tl,vl,zl,ql,fswx,flwx,hsen,xl, &
                  tgl,prec,idep(lp),eta(lp),hi(lp),aveice(lp), &
@@ -243,28 +258,28 @@ module mod_bats_lake
       tlak(lp,:) = ttx(:)
 
       ! Feed back ground temperature
-      tgrd(n,j,i) = tgl
-      tgbrd(n,j,i) = tgl
+      tgrd(i) = tgl
+      tgbrd(i) = tgl
 
       if ( aveice(lp) <= iceminh ) then
-        ldmsk1(n,j,i) = 0 
-        lveg(n,j,i) = 14
-        sfice(n,j,i) = d_zero
-        sncv(n,j,i) = d_zero
-        snag(n,j,i) = d_zero
+        mask(i) = 0
+        lveg(i) = 14
+        sfice(i) = d_zero
+        sncv(i) = d_zero
+        snag(i) = d_zero
       else
-        ldmsk1(n,j,i) = 2 
-        lveg(n,j,i) = 12
-        sfice(n,j,i) = aveice(lp)  !  units of ice = mm
-        sncv(n,j,i)  = hsnow(lp)   !  units of snw = mm
-        evpr(n,j,i) = evp          !  units of evp = mm/sec
+        mask(i) = 2 
+        lveg(i) = 12
+        sfice(i) = aveice(lp)  !  units of ice = mm
+        sncv(i)  = hsnow(lp)   !  units of snw = mm
+        evpr(i) = evp          !  units of evp = mm/sec
         ! Reduce sensible heat flux for ice presence
-        toth = sfice(n,j,i) + sncv(n,j,i)
+        toth = sfice(i) + sncv(i)
         if ( toth > href ) then
-          sent(n,j,i) = sent(n,j,i) * (href/toth)**steepf
+          sent(i) = sent(i) * (href/toth)**steepf
         end if
-        if ( dabs(sent(n,j,i)) < dlowval ) sent(n,j,i) = d_zero
-        if ( dabs(evpr(n,j,i)) < dlowval ) evpr(n,j,i) = d_zero
+        if ( dabs(sent(i)) < dlowval ) sent(i) = d_zero
+        if ( dabs(evpr(i)) < dlowval ) evpr(i) = d_zero
       end if
     end do
 #ifdef DEBUG
@@ -522,7 +537,7 @@ module mod_bats_lake
     intent (out) evl
     intent (inout) hi , aveice , hs , fsw , tprof
     real(rk8) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
-               t2 , tf , theta , rho , xlexpc
+                 t2 , tf , theta , rho , xlexpc
     real(rk8) :: xea , xeb , xec
     integer(ik4) :: nits
     real(rk8) , parameter :: isurf = 0.6D0
@@ -693,14 +708,17 @@ module mod_bats_lake
 !
 !-----------------------------------------------------------------------
 !
-  subroutine lake_fillvar_real8_3d(ivar,rvar,idir)
+  subroutine lake_fillvar_real8_3d(ivar,rvar,idir,xmsk)
     implicit none
     integer(ik4) , intent(in) :: ivar , idir
     real(rk8) , intent(inout) , pointer , dimension(:,:,:) :: rvar
+    logical , intent(in) , pointer , dimension(:,:,:) :: xmsk
     real(rk8) , pointer , dimension(:) :: p
-    integer(ik4) :: i , j , n , lp
 
-    if ( nlakep == 0 ) return
+    if ( nlakep == 0 ) then
+      if ( idir == 0 ) rvar = dmissval
+      return
+    end if
     select case (ivar)
       case (var_eta)
         p => eta
@@ -714,31 +732,25 @@ module mod_bats_lake
         return
     end select
     if ( idir == 1 ) then
-      do lp = 1 , nlakep
-        n = nlp(lp)
-        j = jlp(lp)
-        i = ilp(lp)
-        p(lp) = rvar(n,j,i)
-      end do
+      p = pack(rvar,xmsk)
     else
-      rvar(:,:,:) = dmissval
-      do lp = 1 , nlakep
-        n = nlp(lp)
-        j = jlp(lp)
-        i = ilp(lp)
-        rvar(n,j,i) = p(lp)
-      end do
+      rvar = dmissval
+      rvar = unpack(p,xmsk,rvar)
     end if
   end subroutine lake_fillvar_real8_3d
 !
-  subroutine lake_fillvar_real8_4d(ivar,rvar,idir)
+  subroutine lake_fillvar_real8_4d(ivar,rvar,idir,xmsk)
     implicit none
     integer(ik4) , intent(in) :: ivar , idir
     real(rk8) , intent(inout) , pointer , dimension(:,:,:,:) :: rvar
+    logical , intent(in) , pointer , dimension(:,:,:) :: xmsk
     real(rk8) , pointer , dimension(:,:) :: p
-    integer(ik4) :: i , j , k , n , lp
+    integer(ik4) :: k
 
-    if ( nlakep == 0 ) return
+    if ( nlakep == 0 ) then
+      if ( idir == 0 ) rvar = dmissval
+      return
+    end if
     select case (ivar)
       case (var_tlak)
         p => tlak
@@ -747,22 +759,12 @@ module mod_bats_lake
     end select
     if ( idir == 1 ) then
       do k = 1 , ndpmax
-        do lp = 1 , nlakep
-          n = nlp(lp)
-          j = jlp(lp)
-          i = ilp(lp)
-          p(lp,k) = rvar(n,j,i,k)
-        end do
+        p(:,k) = pack(rvar(:,:,:,k),xmsk)
       end do
     else
-      rvar(:,:,:,:) = dmissval
+      rvar = dmissval
       do k = 1 , ndpmax
-        do lp = 1 , nlakep
-          n = nlp(lp)
-          j = jlp(lp)
-          i = ilp(lp)
-          rvar(n,j,i,k) = p(lp,k)
-        end do
+        rvar(:,:,:,k) = unpack(p(:,k),xmsk,rvar(:,:,:,k))
       end do
     end if
   end subroutine lake_fillvar_real8_4d

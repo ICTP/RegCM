@@ -23,8 +23,10 @@ module mod_bats_drag
   use mod_realkinds
   use mod_dynparam
   use mod_service
-  use mod_bats_common
   use mod_bats_internal
+  use mod_bats_param
+
+  implicit none
 !
   private
 !
@@ -50,7 +52,7 @@ module mod_bats_drag
   subroutine dragc
     implicit none
     real(rk8) :: dthdz , u1 , ribn , ribl , zatild , cdrmin
-    integer(ik4) :: n , i , j
+    integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'dragc'
     integer(ik4) , save :: idindx = 0
@@ -63,71 +65,65 @@ module mod_bats_drag
      
     call dragdn
    
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          !==================================================
-          ! 2.  compute stability as bulk rich. no. = rin/rid
-          !     ri(numerator)/ri(denominator)
-          !==================================================
-          if ( ldmsk1(n,j,i) /= 0 ) then
-            zatild = (zh(n,j,i)-displa(lveg(n,j,i)))*sigf(n,j,i) + &
-                      zh(n,j,i)*(d_one-sigf(n,j,i))
-            ribn = zatild*egrav*(sts(n,j,i)-sigf(n,j,i)*taf(n,j,i)- &
-                      (d_one-sigf(n,j,i))*tgrd(n,j,i))/sts(n,j,i)
-          else
-            ribn = zh(n,j,i)*egrav*(sts(n,j,i)-tgrd(n,j,i))/sts(n,j,i)
-          end if
-          !===========================================================
-          ! 2.1  compute the bulk richardson number;
-          !    first get avg winds to use for ri number by summing the
-          !    squares of horiz., vertical, and convective velocities
-          !===========================================================
-          if ( ldmsk1(n,j,i) == 0 ) then
-            u1 = wtur
-          else
-            if ( ribn <= d_zero ) then
-              dthdz = (d_one-sigf(n,j,i))*tgrd(n,j,i) + &
-                       sigf(n,j,i)*taf(n,j,i) - sts(n,j,i)
-              u1 = wtur + d_two*dsqrt(dthdz)
-            else
-              u1 = wtur
-            end if
-          end if
-          ribd(n,j,i) = usw(n,j,i)**2 + vsw(n,j,i)**2 + u1**2
-          vspda(n,j,i) = dsqrt(ribd(n,j,i))
-          if ( ldmsk1(n,j,i) == 0 ) then
-            if ( ribd(n,j,i) < d_one ) then
-              ribd(n,j,i) = d_one
-            end if
-          else
-            if ( vspda(n,j,i) < d_one ) then
-              vspda(n,j,i) = d_one
-              ribd(n,j,i) = d_one
-            end if
-          end if
-          rib(n,j,i) = ribn/ribd(n,j,i)
-          !=========================================================
-          ! 3.   obtain drag coefficient as product of neutral value
-          !      and stability correction
-          !=========================================================
-          ! -0.4 < rib < 0.2   (deardorff, jgr, 1968, 2549-2557)
-          if ( rib(n,j,i) < d_zero ) then
-            cdr(n,j,i) = cdrn(n,j,i)* &
-                     (d_one+24.5D0*dsqrt(-cdrn(n,j,i)*rib(n,j,i)))
-          else
-            cdr(n,j,i) = cdrn(n,j,i)/(d_one+11.5D0*rib(n,j,i))
-          end if
-          ! 3.1  apply lower limit to drag coefficient value
-          !if ( ldmsk1(n,j,i) == 0 ) then
-          !  cdrmin = dmin1(0.25D0*cdrn(n,j,i),6.0D-4)
-          !else
-            cdrmin = dmax1(0.25D0*cdrn(n,j,i),6.0D-4)
-          !end if
-          if ( cdr(n,j,i) < cdrmin ) cdr(n,j,i) = cdrmin
-          cdrx(n,j,i) = cdr(n,j,i)
-        end do
-      end do
+    do i = ilndbeg , ilndend
+      !==================================================
+      ! 2.  compute stability as bulk rich. no. = rin/rid
+      !     ri(numerator)/ri(denominator)
+      !==================================================
+      if ( mask(i) /= 0 ) then
+        zatild = (zh(i)-displa(lveg(i)))*sigf(i) + &
+                  zh(i)*(d_one-sigf(i))
+        ribn = zatild*egrav*(sts(i)-sigf(i)*taf(i)- &
+               (d_one-sigf(i))*tgrd(i))/sts(i)
+      else
+        ribn = zh(i)*egrav*(sts(i)-tgrd(i))/sts(i)
+      end if
+      !===========================================================
+      ! 2.1  compute the bulk richardson number;
+      !    first get avg winds to use for ri number by summing the
+      !    squares of horiz., vertical, and convective velocities
+      !===========================================================
+      if ( mask(i) == 0 ) then
+        u1 = wtur
+      else
+        if ( ribn <= d_zero ) then
+          dthdz = (d_one-sigf(i))*tgrd(i) + sigf(i)*taf(i) - sts(i)
+          u1 = wtur + d_two*dsqrt(dthdz)
+        else
+          u1 = wtur
+        end if
+      end if
+      ribd(i) = usw(i)**2 + vsw(i)**2 + u1**2
+      vspda(i) = dsqrt(ribd(i))
+      if ( mask(i) == 0 ) then
+        if ( ribd(i) < d_one ) then
+          ribd(i) = d_one
+        end if
+      else
+        if ( vspda(i) < d_one ) then
+          vspda(i) = d_one
+          ribd(i) = d_one
+        end if
+      end if
+      rib(i) = ribn/ribd(i)
+      !=========================================================
+      ! 3.   obtain drag coefficient as product of neutral value
+      !      and stability correction
+      !=========================================================
+      ! -0.4 < rib < 0.2   (deardorff, jgr, 1968, 2549-2557)
+      if ( rib(i) < d_zero ) then
+        cdr(i) = cdrn(i)*(d_one+24.5D0*dsqrt(-cdrn(i)*rib(i)))
+      else
+        cdr(i) = cdrn(i)/(d_one+11.5D0*rib(i))
+      end if
+      ! 3.1  apply lower limit to drag coefficient value
+      !if ( mask(i) == 0 ) then
+      !  cdrmin = dmin1(0.25D0*cdrn(i),6.0D-4)
+      !else
+      cdrmin = dmax1(0.25D0*cdrn(i),6.0D-4)
+      !end if
+      if ( cdr(i) < cdrmin ) cdr(i) = cdrmin
+      cdrx(i) = cdr(i)
     end do
 
     !============================================================
@@ -136,26 +132,20 @@ module mod_bats_drag
     !============================================================
    
     ! 4.1  neutral cd over lead water
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          if ( ldmsk1(n,j,i) == 2 ) then       !  check each point
-            cdrn(n,j,i) = (vonkar/zlgsno(n,j,i))**2
-            ! 4.1  drag coefficient over leads
-            ribl = (d_one-271.5D0/sts(n,j,i))* &
-                          zh(n,j,i)*egrav/ribd(n,j,i)
-            if ( ribl >= d_zero ) then
-              clead(n,j,i) = cdrn(n,j,i)/(d_one+11.5D0*ribl)
-            else
-              clead(n,j,i) = cdrn(n,j,i)*(d_one+24.5D0* &
-                           dsqrt(-cdrn(n,j,i)*ribl))
-            end if
-            ! 4.2  calculate weighted avg of ice and lead drag
-            !      coefficients
-            cdrx(n,j,i) = (d_one-aarea)*cdr(n,j,i) + aarea*clead(n,j,i)
-          end if
-        end do
-      end do
+    do i = ilndbeg , ilndend
+      if ( mask(i) == 2 ) then       !  check each point
+        cdrn(i) = (vonkar/zlgsno(i))**2
+        ! 4.1  drag coefficient over leads
+        ribl = (d_one-271.5D0/sts(i))*zh(i)*egrav/ribd(i)
+        if ( ribl >= d_zero ) then
+          clead(i) = cdrn(i)/(d_one+11.5D0*ribl)
+        else
+          clead(i) = cdrn(i)*(d_one+24.5D0*dsqrt(-cdrn(i)*ribl))
+        end if
+        ! 4.2  calculate weighted avg of ice and lead drag
+        !      coefficients
+        cdrx(i) = (d_one-aarea)*cdr(i) + aarea*clead(i)
+      end if
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -186,7 +176,7 @@ module mod_bats_drag
   subroutine dragdn
     implicit none
     real(rk8) :: asigf , cdb , cds , cdv , frab , fras , frav
-    integer(ik4) :: n , i , j
+    integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'dragdn'
     integer(ik4) , save :: idindx = 0
@@ -195,30 +185,26 @@ module mod_bats_drag
     !
     call depth
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          if ( ldmsk1(n,j,i) == 2 ) then
-            ! drag coeff over seaice
-            sigf(n,j,i) = d_zero
-            cdrn(n,j,i) = ( vonkar / zlglnd(n,j,i) )**2
-          else if ( ldmsk1(n,j,i) == 1 ) then
-            ! drag coeff over land
-            frav = sigf(n,j,i)
-            asigf = lncl(n,j,i)
-            fras = asigf*wt(n,j,i) + (d_one-asigf)*scvk(n,j,i)
-            frab = (d_one-asigf)*(d_one-scvk(n,j,i))
-            cdb = (vonkar/zlglnd(n,j,i))**2
-            cds = (vonkar/zlgsno(n,j,i))**2
-            cdv = (vonkar/zlgdis(n,j,i))**2
-            cdrn(n,j,i) = frav*cdv + frab*cdb + fras*cds
-          else
-            ! drag coeff over ocean
-            sigf(n,j,i) = d_zero
-            cdrn(n,j,i) = (vonkar/zlgocn(n,j,i))**2
-          end if
-        end do
-      end do
+    do i = ilndbeg , ilndend
+      if ( mask(i) == 2 ) then
+        ! drag coeff over seaice
+        sigf(i) = d_zero
+        cdrn(i) = ( vonkar / zlglnd(i) )**2
+      else if ( mask(i) == 1 ) then
+        ! drag coeff over land
+        frav = sigf(i)
+        asigf = lncl(i)
+        fras = asigf*wt(i) + (d_one-asigf)*scvk(i)
+        frab = (d_one-asigf)*(d_one-scvk(i))
+        cdb = (vonkar/zlglnd(i))**2
+        cds = (vonkar/zlgsno(i))**2
+        cdv = (vonkar/zlgdis(i))**2
+        cdrn(i) = frav*cdv + frab*cdb + fras*cds
+      else
+        ! drag coeff over ocean
+        sigf(i) = d_zero
+        cdrn(i) = (vonkar/zlgocn(i))**2
+      end if
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -247,31 +233,27 @@ module mod_bats_drag
   subroutine depth
     implicit none
     real(rk8) :: age , densi
-    integer(ik4) :: n , i , j
+    integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'depth'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          if ( ldmsk1(n,j,i) /= 0 ) then
-            age = (d_one-d_one/(d_one+snag(n,j,i)))
-            densi = 0.01D0/(d_one+d_three*age)
-            scrat(n,j,i) = sncv(n,j,i)*densi
-            wt(n,j,i) = d_one
-            if ( ldmsk1(n,j,i) /= 2 ) then
-              wt(n,j,i) = 0.1D0*scrat(n,j,i)/rough(lveg(n,j,i))
-              wt(n,j,i) = wt(n,j,i)/(d_one+wt(n,j,i))
-            end if
-            sigf(n,j,i) = (d_one-wt(n,j,i))*lncl(n,j,i)
-            scvk(n,j,i) = scrat(n,j,i)/(0.1D0+scrat(n,j,i))
-            rhosw(n,j,i) = 0.10D0*(d_one+d_three*age)
-          end if
-        end do
-      end do
+    do i = ilndbeg , ilndend
+      if ( mask(i) /= 0 ) then
+        age = (d_one-d_one/(d_one+snag(i)))
+        densi = 0.01D0/(d_one+d_three*age)
+        scrat(i) = sncv(i)*densi
+        wt(i) = d_one
+        if ( mask(i) /= 2 ) then
+          wt(i) = 0.1D0*scrat(i)/rough(lveg(i))
+          wt(i) = wt(i)/(d_one+wt(i))
+        end if
+        sigf(i) = (d_one-wt(i))*lncl(i)
+        scvk(i) = scrat(i)/(0.1D0+scrat(i))
+        rhosw(i) = 0.10D0*(d_one+d_three*age)
+      end if
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
