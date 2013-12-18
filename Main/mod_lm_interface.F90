@@ -26,6 +26,8 @@ module mod_lm_interface
   use mod_memutil
   use mod_regcm_types
   use mod_bats_mtrxbats
+  use mod_outvars
+  use mod_mppparam
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
@@ -169,6 +171,7 @@ module mod_lm_interface
     call getmem3d(evpr1,1,nnsg,jci1,jci2,ici1,ici2,'bats:evpr1')
     call getmem3d(drag1,1,nnsg,jci1,jci2,ici1,ici2,'bats:drag1')
     call getmem3d(prcp1,1,nnsg,jci1,jci2,ici1,ici2,'bats:prcp1')
+    call getmem3d(snwm1,1,nnsg,jci1,jci2,ici1,ici2,'bats:snwm1')
     call getmem3d(q2m,1,nnsg,jci1,jci2,ici1,ici2,'bats:q2m')
     call getmem3d(ps1,1,nnsg,jci1,jci2,ici1,ici2,'bats:ps1')
     call getmem3d(trnof1,1,nnsg,jci1,jci2,ici1,ici2,'bats:trnof1')
@@ -352,6 +355,7 @@ module mod_lm_interface
 #else
     call mtrxbats
 #endif
+    call collect_output
   end subroutine land_model
 
   subroutine land_albedo
@@ -558,5 +562,217 @@ module mod_lm_interface
  40 format(' ATM sea-ice is melted at (',I3,',',I3,') : ',       &
              A5,' --> ',A5,' [',I2,' - ',F12.4,']')
   end subroutine import_data_into_surface
+
+  subroutine collect_output
+    implicit none
+
+    ! Fill accumulators
+
+    if ( ktau > 0 ) then
+      if ( ifatm ) then
+        if ( associated(atm_tgb_out) ) &
+          atm_tgb_out = atm_tgb_out + sum(tgbrd1,1)*rdnnsg
+        if ( associated(atm_tsw_out) ) &
+          atm_tsw_out = atm_tsw_out + sum(tsw1,1)*rdnnsg
+      end if
+      if ( ifsrf ) then
+        if ( associated(srf_evp_out) ) &
+          srf_evp_out = srf_evp_out + sum(evpr1,1)*rdnnsg
+        if ( associated(srf_tpr_out) ) &
+          srf_tpr_out = srf_tpr_out + prcp1(1,:,:)
+        if ( associated(srf_prcv_out) ) &
+          srf_prcv_out = srf_prcv_out + cprate
+        if ( associated(srf_zpbl_out) ) &
+          srf_zpbl_out = srf_zpbl_out + hpbl
+        if ( associated(srf_scv_out) ) &
+          srf_scv_out = srf_scv_out + sum(sncv1,1)*rdnnsg
+        if ( associated(srf_sund_out) ) then
+          where( rswf > 120.0D0 )
+            srf_sund_out = srf_sund_out + dtbat
+          end where
+        end if
+        if ( associated(srf_runoff_out) ) then
+          srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1) + sum(srnof1,1)*rdnnsg
+          srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2) + sum(trnof1,1)*rdnnsg
+        end if
+        if ( associated(srf_sena_out) ) then
+          srf_sena_out = srf_sena_out + sum(sent1,1)*rdnnsg
+        end if
+        if ( associated(srf_flw_out) ) &
+          srf_flw_out = srf_flw_out + rlwf
+        if ( associated(srf_fsw_out) ) &
+          srf_fsw_out = srf_fsw_out + rswf
+        if ( associated(srf_fld_out) ) &
+          srf_fld_out = srf_fld_out + dwrlwf
+        if ( associated(srf_sina_out) ) &
+          srf_sina_out = srf_sina_out + solinc
+        if ( associated(srf_snowmelt_out) ) &
+          srf_snowmelt_out = srf_snowmelt_out + sum(snwm1,1)*rdnnsg
+      end if
+      if ( ifsub ) then
+        call reorder_add_subgrid(ps1,sub_ps_out)
+        if ( associated(sub_evp_out) ) &
+          call reorder_add_subgrid(evpr1,sub_evp_out)
+        if ( associated(sub_scv_out) ) &
+          call reorder_add_subgrid(sncv1,sub_scv_out,mask=ldmsk1)
+        if ( associated(sub_sena_out) ) &
+          call reorder_add_subgrid(sent1,sub_sena_out)
+        if ( associated(sub_runoff_out) ) then
+          call reorder_add_subgrid(srnof1,sub_runoff_out,1,ldmsk1)
+          call reorder_add_subgrid(trnof1,sub_runoff_out,2,ldmsk1)
+        end if
+      end if
+      if ( ifsts ) then
+        if ( associated(sts_tgmax_out) ) &
+          sts_tgmax_out = max(sts_tgmax_out,sum(tgrd1,1)*rdnnsg)
+        if ( associated(sts_tgmin_out) ) &
+          sts_tgmin_out = min(sts_tgmin_out,sum(tgrd1,1)*rdnnsg)
+        if ( associated(sts_t2max_out) ) &
+          sts_t2max_out(:,:,1) = max(sts_t2max_out(:,:,1),sum(t2m,1)*rdnnsg)
+        if ( associated(sts_t2min_out) ) &
+          sts_t2min_out(:,:,1) = min(sts_t2min_out(:,:,1),sum(t2m,1)*rdnnsg)
+        if ( associated(sts_t2min_out) ) &
+          sts_t2avg_out(:,:,1) = sts_t2avg_out(:,:,1) + sum(t2m,1)*rdnnsg
+        if ( associated(sts_w10max_out) ) &
+          sts_w10max_out(:,:,1) = max(sts_w10max_out(:,:,1), &
+            sqrt(sum((u10m**2+v10m**2),1)*rdnnsg))
+        if ( associated(sts_pcpmax_out) ) &
+          sts_pcpmax_out = max(sts_pcpmax_out,prcp1(1,:,:))
+        if ( associated(sts_pcpavg_out) ) &
+          sts_pcpavg_out = sts_pcpavg_out + prcp1(1,:,:)
+        if ( associated(sts_psmin_out) ) &
+          sts_psmin_out = min(sts_psmin_out, &
+            (sfps(jci1:jci2,ici1:ici2)+ptop)*d_10)
+        if ( associated(sts_sund_out) ) then
+          where( rswf > 120.0D0 )
+            sts_sund_out = sts_sund_out + dtbat
+          end where
+        end if
+        if ( associated(sts_runoff_out) ) then
+          sts_runoff_out(:,:,1) = sts_runoff_out(:,:,1) + sum(srnof1,1)*rdnnsg
+          sts_runoff_out(:,:,2) = sts_runoff_out(:,:,2) + sum(trnof1,1)*rdnnsg
+        end if
+      end if
+      if ( iflak ) then
+        if ( associated(lak_tpr_out) ) &
+          lak_tpr_out = lak_tpr_out + prcp1(1,:,:)
+        if ( associated(lak_scv_out) ) &
+          lak_scv_out = lak_scv_out + sum(sncv1,1)*rdnnsg
+        if ( associated(lak_sena_out) ) &
+          lak_sena_out = lak_sena_out + sum(sent1,1)*rdnnsg
+        if ( associated(lak_flw_out) ) &
+          lak_flw_out = lak_flw_out + rlwf
+        if ( associated(lak_fsw_out) ) &
+          lak_fsw_out = lak_fsw_out + rswf
+        if ( associated(lak_fld_out) ) &
+          lak_fld_out = lak_fld_out + dwrlwf
+        if ( associated(lak_sina_out) ) &
+          lak_sina_out = lak_sina_out + solinc
+        if ( associated(lak_evp_out) ) &
+          lak_evp_out = lak_evp_out + sum(evpr1,1)*rdnnsg
+        if ( associated(lak_aveice_out) ) then
+          lak_aveice_out = lak_aveice_out + &
+            sum(sfice1*lakmsk1,1)*rdnnsg*d_r1000
+        end if
+      end if
+    end if
+
+    ! Those are for the output, but collected only at POINT in time
+
+    if ( mod(ktau+1,ksrf) == 0 ) then
+
+      if ( ifsrf ) then
+        if ( associated(srf_uvdrag_out) ) &
+          srf_uvdrag_out = sum(drag1,1)*rdnnsg
+        if ( associated(srf_tg_out) ) &
+          srf_tg_out = tground1
+        if ( associated(srf_tlef_out) ) then
+          where ( ldmsk > 0 )
+            srf_tlef_out = sum(tlef1,1)*rdnnsg
+          elsewhere
+            srf_tlef_out = dmissval
+          end where
+        end if
+        if ( associated(srf_aldirs_out) ) &
+          srf_aldirs_out = swdiralb
+        if ( associated(srf_aldifs_out) ) &
+          srf_aldifs_out = swdifalb
+        if ( associated(srf_seaice_out) ) &
+          srf_seaice_out = sum(sfice1,1)*rdnnsg*d_r1000
+        if ( associated(srf_t2m_out) ) &
+          srf_t2m_out(:,:,1) = sum(t2m,1)*rdnnsg
+        if ( associated(srf_q2m_out) ) &
+          srf_q2m_out(:,:,1) = sum(q2m,1)*rdnnsg
+        if ( associated(srf_u10m_out) ) &
+          srf_u10m_out(:,:,1) = sum(u10m,1)*rdnnsg
+        if ( associated(srf_v10m_out) ) &
+          srf_v10m_out(:,:,1) = sum(v10m,1)*rdnnsg
+        if ( associated(srf_smw_out) ) then
+          srf_smw_out(:,:,1) = sum(ssw1,1)*rdnnsg
+          srf_smw_out(:,:,2) = sum(rsw1,1)*rdnnsg
+        end if
+      end if
+
+      if ( ifsub ) then
+        if ( associated(sub_uvdrag_out) ) &
+          call reorder_subgrid(drag1,sub_uvdrag_out)
+        if ( associated(sub_tg_out) ) &
+          call reorder_subgrid(tgrd1,sub_tg_out)
+        if ( associated(sub_tlef_out) ) &
+          call reorder_subgrid(tlef1,sub_tlef_out,mask=ldmsk1)
+#ifndef CLM
+        if ( llake ) then
+          if ( associated(sub_tlake_out) ) then
+            call lake_fillvar(var_tlak,tlake,0,llakmsk1)
+            call reorder_subgrid(tlake,sub_tlake_out,1)
+            sub_tlake_out = sub_tlake_out + tzero
+          end if
+        end if
+#endif
+        if ( associated(sub_u10m_out) ) &
+          call reorder_subgrid(u10m,sub_u10m_out)
+        if ( associated(sub_v10m_out) ) &
+          call reorder_subgrid(v10m,sub_v10m_out)
+        if ( associated(sub_t2m_out) ) &
+          call reorder_subgrid(t2m,sub_t2m_out)
+        if ( associated(sub_q2m_out) ) &
+          call reorder_subgrid(q2m,sub_q2m_out)
+        if ( associated(sub_smw_out) ) then
+          call reorder_subgrid(ssw1,sub_smw_out,1,ldmsk1)
+          call reorder_subgrid(rsw1,sub_smw_out,2,ldmsk1)
+        end if
+      end if
+
+#ifndef CLM
+      if ( iflak ) then
+        if ( associated(lak_tg_out) ) &
+          lak_tg_out = tground1
+        if ( associated(lak_aldirs_out) ) &
+          lak_aldirs_out = swdiralb
+        if ( associated(lak_aldifs_out) ) &
+          lak_aldifs_out = swdifalb
+        if ( associated(lak_hsnow_out) ) &
+          lak_hsnow_out = sum(sncv1*lakmsk1,1)*rdnnsg
+        if ( associated(lak_tlake_out) ) then
+          call lake_fillvar(var_tlak,tlake,0,llakmsk1)
+          lak_tlake_out = sum(tlake,1)*rdnnsg+tzero
+        end if
+      end if
+#endif
+
+    end if ! IF output time
+
+    if ( iocncpl == 1 ) then
+      ! Fill for the RTM component
+      dailyrnf(:,:,1) = dailyrnf(:,:,1) + sum(srnof1,1)*rdnnsg
+      dailyrnf(:,:,2) = dailyrnf(:,:,2) + (sum(trnof1,1)-sum(srnof1,1))*rdnnsg
+      runoffcount = runoffcount + d_one
+    end if
+
+    ! Reset accumulation from precip and cumulus
+    ncprate = d_zero
+    cprate  = d_zero
+
+  end subroutine collect_output
 
 end module mod_lm_interface

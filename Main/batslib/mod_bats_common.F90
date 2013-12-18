@@ -66,6 +66,7 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:,:) :: taux
   real(rk8) , pointer , dimension(:,:,:) :: tauy
   real(rk8) , pointer , dimension(:,:,:) :: prcp1
+  real(rk8) , pointer , dimension(:,:,:) :: snwm1
   logical , pointer , dimension(:,:,:) :: llakmsk1
   integer(ik4) , pointer , dimension(:,:,:) :: lakmsk1
 !
