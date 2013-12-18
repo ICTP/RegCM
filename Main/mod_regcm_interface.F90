@@ -42,12 +42,6 @@ module mod_regcm_interface
   use mod_service
   use mod_cloud_s1
   use mod_sun
-#ifdef CLM
-  use perf_mod
-  use mod_mtrxclm
-  use spmdMod, only: mpicom
-  use clm_varsur , only : numdays
-#endif
 #ifdef CPL
   use mod_update, only: rcm_get, rcm_put
 #endif

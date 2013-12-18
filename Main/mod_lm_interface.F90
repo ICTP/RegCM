@@ -25,19 +25,24 @@ module mod_lm_interface
   use mod_runparams
   use mod_memutil
   use mod_regcm_types
-#ifdef CLM
-  use mod_mtrxclm
-  use mod_clm
   use mod_bats_mtrxbats
-  use clm_varsur , only : landmask
+#ifdef CLM
+  use mod_clm
+  use mod_mtrxclm
+  use clm_varsur , only : landmask , numdays
+  use clm_varctl , only : filer_rest
+  use clm_time_manager , only : get_step_size
+  use restFileMod , only : restFile_write, restFile_write_binary
+  use restFileMod , only : restFile_filename
+  use spmdMod , only : mpicom
+  use perf_mod , only : t_prf , t_finalizef
 #else
-  use mod_bats_param
+  ! use mod_bats_param
   use mod_bats_bndry
   use mod_bats_co2
   use mod_bats_drag
   use mod_bats_lake
   use mod_bats_leaftemp
-  use mod_bats_mtrxbats
   use mod_bats_zengocn
 #endif
 
@@ -100,7 +105,19 @@ module mod_lm_interface
   public :: initclm
   public :: mtrxclm
   public :: zenit_clm
+  public :: get_step_size
+  public :: filer_rest
+  public :: restFile_write
+  public :: restFile_write_binary
+  public :: restFile_filename
+  public :: numdays
+  public :: r2ceccf
+  public :: solar_clm
+  public :: mpicom
+  public :: t_prf
+  public :: t_finalizef
 #endif
+
   contains
 
   subroutine allocate_land_model

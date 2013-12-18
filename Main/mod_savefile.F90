@@ -23,14 +23,9 @@ module mod_savefile
   use mod_mpmessage
   use mod_mppparam
   use mod_memutil
+  use mod_lm_interface
   use mod_che_mppio
-#ifdef CLM
-  use mod_clm
-  use restFileMod, only : restFile_write, restFile_write_binary
-  use restFileMod, only : restFile_filename
-  use clm_varctl , only : filer_rest
-  use clm_time_manager, only : get_step_size
-#endif
+
   private
 
   public :: allocate_mod_savefile

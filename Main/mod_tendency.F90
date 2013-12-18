@@ -41,10 +41,6 @@ module mod_tendency
   use mod_cloud_s1
   use mod_sladvection
   use mod_slabocean
-#ifdef CLM
-  use mod_clm
-  use clm_varsur
-#endif
 
   private
 

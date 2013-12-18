@@ -43,11 +43,6 @@ module mod_init
   use mod_constants
   use mod_outvars
   use mod_service
-#ifdef CLM
-  use mod_clm
-  use mod_lm_interface
-  use clm_varsur , only : init_tgb , init_grid
-#endif
 !
   private
 !
