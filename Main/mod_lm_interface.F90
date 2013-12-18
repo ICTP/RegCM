@@ -77,6 +77,9 @@ module mod_lm_interface
   public :: deltas
   public :: tdeltas
 
+  public :: import_data_into_surface
+  public :: export_data_from_surface
+
 #ifndef CLM
   public :: var_aveice
   public :: var_eta
@@ -359,5 +362,201 @@ module mod_lm_interface
     call albedobats
 #endif
   end subroutine land_albedo
+
+  subroutine export_data_from_surface(expfie)
+    implicit none
+    type(exp_data) , intent(inout) :: expfie
+    integer(ik4) :: j , i
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        expfie%psfc(j,i) = (sfps(j,i)+ptop)*d_10
+        expfie%tsfc(j,i) = sum(t2m(:,j,i))*rdnnsg
+        expfie%qsfc(j,i) = sum(q2m(:,j,i))*rdnnsg
+        expfie%swrd(j,i) = rswf(j,i)
+        expfie%swrd(j,i) = rlwf(j,i)
+        expfie%dlwr(j,i) = dwrlwf(j,i)
+        expfie%lhfx(j,i) = sum(evpr1(:,j,i))*rdnnsg*wlhv
+        expfie%shfx(j,i) = sum(sent1(:,j,i))*rdnnsg
+        expfie%prec(j,i) = sum(prcp1(:,j,i))*rdnnsg
+        expfie%wndu(j,i) = sum(u10m(:,j,i))*rdnnsg
+        expfie%wndv(j,i) = sum(v10m(:,j,i))*rdnnsg
+        expfie%taux(j,i) = sum(taux(:,j,i))*rdnnsg
+        expfie%tauy(j,i) = sum(tauy(:,j,i))*rdnnsg
+        expfie%sflx(j,i) = (sum(evpr1(:,j,i))-sum(prcp1(:,j,i)))*rdnnsg
+        expfie%snow(j,i) = sum(sncv1(:,j,i))*rdnnsg
+        expfie%dswr(j,i) = swdif(j,i)+swdir(j,i)
+      end do
+    end do
+    expfie%wspd = dsqrt(expfie%wndu**2+expfie%wndv**2)
+    expfie%nflx = rswf - expfie%lhfx - expfie%shfx - rlwf
+    if ( mod(ktau+1,kday) == 0 ) then
+      where ( ldmsk > 0 )
+        expfie%rnof = dailyrnf(:,:,1)/runoffcount
+        expfie%snof = dailyrnf(:,:,2)/runoffcount
+      else where
+        expfie%rnof = d_zero
+        expfie%snof = d_zero
+      end where
+    end if
+  end subroutine export_data_from_surface
+!
+  subroutine import_data_into_surface(impfie,ldmskb,wetdry,tol)
+    implicit none
+    type(imp_data) , intent(in) :: impfie
+    real(rk8) , intent(in) :: tol
+    integer(ik4) , pointer , dimension(:,:) , intent(in) :: ldmskb , wetdry
+    integer :: i , j , ii , jj , n
+    logical :: flag = .false.
+    real(rk8) , parameter :: iceminh = d_10
+    ! real(rk8) :: toth
+    ! real(rk8) , parameter :: href = d_two * iceminh
+    ! real(rk8) , parameter :: steepf = 1.0D0
+    ! integer(ik4) :: ix , jy , imin , imax , jmin , jmax , srad , hveg(22)
+    !
+    !-----------------------------------------------------------------------
+    ! Retrieve information from OCN component
+    !-----------------------------------------------------------------------
+    !
+    do i = ici1, ici2
+      ii = global_cross_istart + i - 1
+      do j = jci1, jci2
+        jj = global_cross_jstart + j - 1
+        if ( iveg(j,i) == 14 .or. iveg(j,i) == 15 ) then
+          !
+          !--------------------------------------
+          ! Update: Sea Surface Temperature (SST)
+          !--------------------------------------
+          !
+          if ( impfie%sst(j,i) < tol ) then
+            ! create fixed coupling mask
+            if ( mod(ktau+1, ntcpl*2) == 0 ) then
+              cplmsk(j,i) = 1
+            end if
+            tground1(j,i) = impfie%sst(j,i)
+            tground2(j,i) = impfie%sst(j,i)
+            tgbb(j,i)     = impfie%sst(j,i)
+            tgrd1(:,j,i)  = impfie%sst(j,i)
+            tgbrd1(:,j,i)  = impfie%sst(j,i)
+          end if
+          !
+          !----------------------------------------------------------
+          ! Update: Mask and land-use type (based on dynamic wet-dry)
+          !----------------------------------------------------------
+          !
+!         if (importFields%msk(j,i) .lt. tol .and. ldmskb(j,i) == 0) then
+!           if (importFields%msk(j,i) .lt. 1.0) then
+!             flag = .false.
+!             if (ldmsk(j,i) == 0 .or. &
+!                 ldmsk(j,i) == 2) flag = .true.
+!             ! set land-sea mask
+!             ldmsk(j,i) = 1
+!             do n = 1, nnsg
+!               ldmsk1(n,j,i) = ldmsk(j,i)
+!             end do
+!             ! count land-use type in a specified search radius (srad)
+!             srad = 10
+!             jmin = j-srad
+!             if (j-srad < jci1) jmin = jci1
+!             jmax = j+srad
+!             if (j+srad > jci2) jmax = jci2
+!             imin = i-srad
+!             if (i-srad < ici1) imin = ici1
+!             imax = i+srad
+!             if (i+srad > ici2) imax = ici2
+!             hveg = 0
+!             do ix = imin, imax
+!               do jy = jmin, jmax
+!                 do n = 1, nnsg
+!                   hveg(iveg1(n,jy,ix)) = hveg(iveg1(n,jy,ix))+1
+!                 end do
+!               end do
+!             end do        
+!             hveg(14) = 0
+!             hveg(15) = 0
+!             ! set array to store change
+!             wetdry(j,i) = 1
+!             ! write debug info
+!             if (flag) then
+!               write(*,20) jj, ii, 'water', 'land ', ldmsk(j,i)
+!             end if
+!           else
+!             if (ldmsk(j,i) == 1 .and. wetdry(j,i) == 1) then
+!               flag = .false.
+!               if (ldmskb(j,i) /= ldmsk(j,i)) flag = .true.
+!               ! set land-sea mask to its original value
+!               ldmsk(j,i) = ldmskb(j,i)             
+!               do n = 1, nnsg
+!                 ldmsk1(n,j,i) = ldmsk(j,i)
+!               end do
+!               ! set array to store change
+!               wetdry(j,i) = 0
+!               ! write debug info
+!               if (flag) then
+!                 write(*,20) jj, ii, 'land ', 'water', ldmsk(j,i)
+!               end if
+!             end if
+!           end if
+!         end if
+          !
+          !------------------------------------------------------------------
+          ! Update: Sea-ice, mask and land-use type (based on sea-ice module) 
+          !------------------------------------------------------------------
+          ! 
+          if ( impfie%sit(j,i) < tol .and. ldmsk(j,i) /= 1 ) then
+            if ( impfie%sit(j,i) > iceminh ) then
+              flag = .false.
+              if ( ldmsk(j,i) == 0 ) flag = .true.
+              ! set land-sea mask
+              ldmsk(j,i) = 2
+              do n = 1, nnsg
+                ldmsk1(n,j,i) = 2
+                ! set sea ice thikness (in mm)
+                sfice1(n,j,i) = impfie%sit(j,i) 
+              end do
+              ! write debug info
+              if ( flag ) then
+                write(*,30) jj, ii, 'water', 'ice  ', &
+                   ldmsk(j,i), sfice1(1,j,i)
+              end if
+            else
+              if ( ldmskb(j,i) == 0 .and. ldmsk(j,i) == 2 ) then
+                ! reduce to one tenth surface ice: it should melt away
+                do n = 1, nnsg
+                  ! check that sea ice is melted or not
+                  if ( sfice1(n,j,i) <= iceminh ) then
+                    if ( ldmskb(j,i) /= ldmsk(j,i) ) flag = .true.
+                    ! set land-sea mask to its original value
+                    ldmsk(j,i) = ldmskb(j,i)
+                    ldmsk1(n,j,i) = ldmskb(j,i)
+                    ! set land-use type to its original value
+                    ! set sea ice thikness (in mm)
+                    sfice1(n,j,i) = d_zero 
+                  else
+                    flag = .false.
+                  end if
+                end do
+                ! write debug info
+                if ( flag ) then
+                  write(*,40) jj, ii, 'ice  ', 'water',  &
+                    ldmsk(j,i), sfice1(1,j,i)
+                end if
+              end if
+            end if
+          end if
+        end if
+      end do
+    end do
+    !
+    !-----------------------------------------------------------------------
+    ! Format definition 
+    !-----------------------------------------------------------------------
+    !
+! 20 format(' ATM land-sea mask is changed at (',I3,',',I3,') : ',     &
+!             A5,' --> ',A5,' [',I2,']')
+ 30 format(' ATM sea-ice is formed at (',I3,',',I3,') : ',            &
+             A5,' --> ',A5,' [',I2,' - ',F12.4,']')
+ 40 format(' ATM sea-ice is melted at (',I3,',',I3,') : ',       &
+             A5,' --> ',A5,' [',I2,' - ',F12.4,']')
+  end subroutine import_data_into_surface
 
 end module mod_lm_interface
