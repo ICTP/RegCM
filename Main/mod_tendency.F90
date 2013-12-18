@@ -43,7 +43,6 @@ module mod_tendency
   use mod_slabocean
 #ifdef CLM
   use mod_clm
-  use mod_mtrxclm
   use clm_varsur
 #endif
 

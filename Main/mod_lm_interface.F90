@@ -39,9 +39,64 @@ module mod_lm_interface
   use mod_bats_mtrxbats
   use mod_bats_zengocn
 #endif
-!
-  public
 
+  implicit none
+
+  private
+
+  public :: dtbat
+  public :: dtlake
+  public :: fdaysrf
+  public :: cplmsk
+  public :: sfice1
+  public :: emiss1
+  public :: gwet1
+  public :: ldew1
+  public :: rsw1
+  public :: snag1
+  public :: sncv1
+  public :: ssw1
+  public :: taf1
+  public :: tgbrd1
+  public :: tgrd1
+  public :: tlef1
+  public :: tsw1
+  public :: sfracb2d
+  public :: sfracs2d
+  public :: sfracv2d
+  public :: ssw2da
+  public :: svegfrac2d
+  public :: sst
+  public :: dtskin
+  public :: deltas
+  public :: tdeltas
+
+#ifndef CLM
+  public :: var_aveice
+  public :: var_eta
+  public :: var_hi
+  public :: var_hsnow
+  public :: var_tlak
+  public :: tlake
+  public :: xlake
+  public :: llakmsk1
+  public :: lakmsk1
+  public :: allocate_mod_bats_lake
+  public :: lake_fillvar
+#endif
+
+  public :: init_bats
+  public :: albedobats
+  public :: mtrxbats
+  public :: initb
+  public :: allocate_mod_bats_common
+#ifdef CLM
+  public :: init_clm
+  public :: initclm
+  public :: mtrxclm
+  public :: albedoclm
+  public :: zenit_clm
+#endif
   contains
 
   subroutine init_bats

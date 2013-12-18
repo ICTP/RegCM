@@ -42,25 +42,9 @@ module mod_bats_mtrxbats
 
   private
 
-  !
-  ! Solar flux partitioned at wavelength of 0.7micr
-  !
-  real(rk8) , parameter :: fsol1 = 0.5D0
-  real(rk8) , parameter :: fsol2 = 0.5D0
-  !
-  ! Short and long wave albedo for new snow
-  !
-  real(rk8) , parameter :: snal0 = 0.95D0
-  real(rk8) , parameter :: snal1 = 0.65D0
-  !
-  ! Short and long wave albedo for sea ice
-  !
-  real(rk8) , parameter :: sical0 = 0.6D0
-  real(rk8) , parameter :: sical1 = 0.4D0
-  !
   public :: interf , initb , mtrxbats , albedobats
   public :: export_data_from_surface , import_data_into_surface
-  !
+
   contains
 
 !=======================================================================
