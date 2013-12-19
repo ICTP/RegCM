@@ -192,7 +192,8 @@
           if ( temp10(i,j) > tzero ) then
             satvp = svp1*1.0D3*dexp(svp2*(temp10(i,j)-tzero)/(temp10(i,j)-svp3))
           else
-            satvp = svp4*1.0D3*dexp(svp5-svp6/temp10(i,j))
+            satvp = svp4*1.0D3* &
+              dexp(min(max(svp5-svp6/temp10(i,j),-25.0D0),25.0D0))
           end if
           pres10 = psurf(i,j) - 98.0D0
           qsat10 = ep2*satvp/(pres10-satvp)
