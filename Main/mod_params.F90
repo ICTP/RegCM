@@ -1496,7 +1496,7 @@ module mod_params
       write(stdout,*) 'LAKE activated on ', totlakep , ' points.'
     end if
     call allocate_mod_bats_lake(lakmsk1)
-    where llakmsk1
+    where ( llakmsk1 )
       locnmsk1 = .false.
     end where
   end if
