@@ -78,6 +78,8 @@ module mod_lm_interface
   public :: dtskin
   public :: deltas
   public :: tdeltas
+  public :: locnmsk1
+  public :: llndmsk1
 
   public :: import_data_into_surface
   public :: export_data_from_surface
@@ -182,6 +184,8 @@ module mod_lm_interface
     call getmem3d(taux,1,nnsg,jci1,jci2,ici1,ici2,'bats:taux')
     call getmem3d(tauy,1,nnsg,jci1,jci2,ici1,ici2,'bats:tauy')
     call getmem3d(emiss1,1,nnsg,jci1,jci2,ici1,ici2,'bats:emiss1')
+    call getmem3d(llndmsk1,1,nnsg,jci1,jci2,ici1,ici2,'bats:llndmsk1')
+    call getmem3d(locnmsk1,1,nnsg,jci1,jci2,ici1,ici2,'bats:locnmsk1')
 
     if ( lakemod == 1 ) then
       call getmem3d(lakmsk1,1,nnsg,jci1,jci2,ici1,ici2,'bats:lakmsk1')

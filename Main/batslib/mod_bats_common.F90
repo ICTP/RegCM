@@ -68,6 +68,8 @@ module mod_bats_common
   real(rk8) , pointer , dimension(:,:,:) :: prcp1
   real(rk8) , pointer , dimension(:,:,:) :: snwm1
   logical , pointer , dimension(:,:,:) :: llakmsk1
+  logical , pointer , dimension(:,:,:) :: llndmsk1
+  logical , pointer , dimension(:,:,:) :: locnmsk1
   integer(ik4) , pointer , dimension(:,:,:) :: lakmsk1
 !
   real(rk8) , pointer , dimension(:,:) :: ssw2da

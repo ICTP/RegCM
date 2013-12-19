@@ -1469,15 +1469,8 @@ module mod_params
 !
 !-----compute land/water mask on subgrid space
 !
-#ifndef CLM
-  if ( lakemod == 1 ) then
-    call count_lakepoints
-    if ( myid == italk ) then
-      write(stdout,*) 'LAKE activated on ', totlakep , ' points.'
-    end if
-    call allocate_mod_bats_lake(lakmsk1)
-  end if
-#endif
+   locnmsk1 = .false.
+   llndmsk1 = .false.
    do i = ici1 , ici2
      do j = jci1 , jci2
        if ( mddom%lndcat(j,i) > 13.5D0 .and. &
@@ -1485,15 +1478,29 @@ module mod_params
          mddom%ldmsk(j,i) = 0
          do n = 1, nnsg
            mdsub%ldmsk(n,j,i) = 0
+           locnmsk1(n,j,i) = .true.
          end do
        else
          mddom%ldmsk(j,i) = 1
          do n = 1, nnsg
            mdsub%ldmsk(n,j,i) = 1
+           llndmsk1(n,j,i) = .true.
          end do
        end if
      end do
    end do
+#ifndef CLM
+  if ( lakemod == 1 ) then
+    call count_lakepoints
+    if ( myid == italk ) then
+      write(stdout,*) 'LAKE activated on ', totlakep , ' points.'
+    end if
+    call allocate_mod_bats_lake(lakmsk1)
+    where llakmsk1
+      locnmsk1 = .false.
+    end where
+  end if
+#endif
 !
 !-----compute dsigma and half sigma levels.
 !
