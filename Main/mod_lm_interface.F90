@@ -39,7 +39,6 @@ module mod_lm_interface
   use spmdMod , only : mpicom
   use perf_mod , only : t_prf , t_finalizef
 #else
-  ! use mod_bats_param
   use mod_bats_bndry
   use mod_bats_co2
   use mod_bats_drag
@@ -52,28 +51,19 @@ module mod_lm_interface
 
   private
 
+  public :: lms
+
   public :: dtbat
   public :: dtlake
   public :: fdaysrf
   public :: cplmsk
-  public :: sfice1
-  public :: emiss1
-  public :: gwet1
-  public :: ldew1
-  public :: rsw1
-  public :: snag1
-  public :: sncv1
-  public :: ssw1
-  public :: taf1
-  public :: tgbrd1
-  public :: tgrd1
-  public :: tlef1
-  public :: tsw1
+
   public :: sfracb2d
   public :: sfracs2d
   public :: sfracv2d
   public :: ssw2da
   public :: svegfrac2d
+
   public :: sst
   public :: dtskin
   public :: deltas
@@ -149,18 +139,34 @@ module mod_lm_interface
       call getmem2d(svegfrac2d,jci1,jci2,ici1,ici2,'bats:svegfrac2d')
     end if
 
-    call getmem3d(gwet1,1,nnsg,jci1,jci2,ici1,ici2,'bats:gwet1')
-    call getmem3d(rsw1,1,nnsg,jci1,jci2,ici1,ici2,'bats:rsw1')
-    call getmem3d(snag1,1,nnsg,jci1,jci2,ici1,ici2,'bats:snag1')
-    call getmem3d(sncv1,1,nnsg,jci1,jci2,ici1,ici2,'bats:sncv1')
-    call getmem3d(sfice1,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfice1')
-    call getmem3d(ssw1,1,nnsg,jci1,jci2,ici1,ici2,'bats:ssw1')
-    call getmem3d(tgrd1,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgrd1')
-    call getmem3d(tgbrd1,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgbrd1')
-    call getmem3d(tlef1,1,nnsg,jci1,jci2,ici1,ici2,'bats:tlef1')
-    call getmem3d(tsw1,1,nnsg,jci1,jci2,ici1,ici2,'bats:tsw1')
-    call getmem3d(taf1,1,nnsg,jci1,jci2,ici1,ici2,'bats:taf1')
-    call getmem3d(ldew1,1,nnsg,jci1,jci2,ici1,ici2,'bats:ldew1')
+    call getmem3d(lms%sent,1,nnsg,jci1,jci2,ici1,ici2,'bats:sent')
+    call getmem3d(lms%evpr,1,nnsg,jci1,jci2,ici1,ici2,'bats:evpr')
+    call getmem3d(lms%drag,1,nnsg,jci1,jci2,ici1,ici2,'bats:drag')
+    call getmem3d(lms%prcp,1,nnsg,jci1,jci2,ici1,ici2,'bats:prcp')
+    call getmem3d(lms%snwm,1,nnsg,jci1,jci2,ici1,ici2,'bats:snwm')
+    call getmem3d(lms%trnof,1,nnsg,jci1,jci2,ici1,ici2,'bats:trnof')
+    call getmem3d(lms%srnof,1,nnsg,jci1,jci2,ici1,ici2,'bats:srnof')
+    call getmem3d(lms%sfcp,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfcp')
+    call getmem3d(lms%q2m,1,nnsg,jci1,jci2,ici1,ici2,'bats:q2m')
+    call getmem3d(lms%t2m,1,nnsg,jci1,jci2,ici1,ici2,'bats:t2m')
+    call getmem3d(lms%u10m,1,nnsg,jci1,jci2,ici1,ici2,'bats:u10m')
+    call getmem3d(lms%v10m,1,nnsg,jci1,jci2,ici1,ici2,'bats:v10m')
+    call getmem3d(lms%taux,1,nnsg,jci1,jci2,ici1,ici2,'bats:taux')
+    call getmem3d(lms%tauy,1,nnsg,jci1,jci2,ici1,ici2,'bats:tauy')
+
+    call getmem3d(lms%gwet,1,nnsg,jci1,jci2,ici1,ici2,'bats:gwet')
+    call getmem3d(lms%ldew,1,nnsg,jci1,jci2,ici1,ici2,'bats:ldew')
+    call getmem3d(lms%ssw,1,nnsg,jci1,jci2,ici1,ici2,'bats:ssw')
+    call getmem3d(lms%rsw,1,nnsg,jci1,jci2,ici1,ici2,'bats:rsw')
+    call getmem3d(lms%tsw,1,nnsg,jci1,jci2,ici1,ici2,'bats:tsw')
+    call getmem3d(lms%tgrd,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgrd')
+    call getmem3d(lms%tgbrd,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgbrd')
+    call getmem3d(lms%tlef,1,nnsg,jci1,jci2,ici1,ici2,'bats:tlef')
+    call getmem3d(lms%taf,1,nnsg,jci1,jci2,ici1,ici2,'bats:taf')
+    call getmem3d(lms%sfice,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfice')
+    call getmem3d(lms%snag,1,nnsg,jci1,jci2,ici1,ici2,'bats:snag')
+    call getmem3d(lms%sncv,1,nnsg,jci1,jci2,ici1,ici2,'bats:sncv')
+    call getmem3d(lms%emisv,1,nnsg,jci1,jci2,ici1,ici2,'bats:emisv')
 
     if (idcsst == 1) then
       call getmem2d(deltas,jci1,jci2,ici1,ici2,'bats:deltas')
@@ -169,21 +175,6 @@ module mod_lm_interface
       call getmem2d(sst,jci1,jci2,ici1,ici2,'bats:sst')
     end if
 
-    call getmem3d(sent1,1,nnsg,jci1,jci2,ici1,ici2,'bats:sent1')
-    call getmem3d(evpr1,1,nnsg,jci1,jci2,ici1,ici2,'bats:evpr1')
-    call getmem3d(drag1,1,nnsg,jci1,jci2,ici1,ici2,'bats:drag1')
-    call getmem3d(prcp1,1,nnsg,jci1,jci2,ici1,ici2,'bats:prcp1')
-    call getmem3d(snwm1,1,nnsg,jci1,jci2,ici1,ici2,'bats:snwm1')
-    call getmem3d(q2m,1,nnsg,jci1,jci2,ici1,ici2,'bats:q2m')
-    call getmem3d(ps1,1,nnsg,jci1,jci2,ici1,ici2,'bats:ps1')
-    call getmem3d(trnof1,1,nnsg,jci1,jci2,ici1,ici2,'bats:trnof1')
-    call getmem3d(srnof1,1,nnsg,jci1,jci2,ici1,ici2,'bats:srnof1')
-    call getmem3d(t2m,1,nnsg,jci1,jci2,ici1,ici2,'bats:t2m')
-    call getmem3d(u10m,1,nnsg,jci1,jci2,ici1,ici2,'bats:u10m')
-    call getmem3d(v10m,1,nnsg,jci1,jci2,ici1,ici2,'bats:v10m')
-    call getmem3d(taux,1,nnsg,jci1,jci2,ici1,ici2,'bats:taux')
-    call getmem3d(tauy,1,nnsg,jci1,jci2,ici1,ici2,'bats:tauy')
-    call getmem3d(emiss1,1,nnsg,jci1,jci2,ici1,ici2,'bats:emiss1')
     call getmem3d(llndmsk1,1,nnsg,jci1,jci2,ici1,ici2,'bats:llndmsk1')
     call getmem3d(locnmsk1,1,nnsg,jci1,jci2,ici1,ici2,'bats:locnmsk1')
 
@@ -378,20 +369,20 @@ module mod_lm_interface
     do i = ici1 , ici2
       do j = jci1 , jci2
         expfie%psfc(j,i) = (sfps(j,i)+ptop)*d_10
-        expfie%tsfc(j,i) = sum(t2m(:,j,i))*rdnnsg
-        expfie%qsfc(j,i) = sum(q2m(:,j,i))*rdnnsg
+        expfie%tsfc(j,i) = sum(lms%t2m(:,j,i))*rdnnsg
+        expfie%qsfc(j,i) = sum(lms%q2m(:,j,i))*rdnnsg
         expfie%swrd(j,i) = rswf(j,i)
         expfie%swrd(j,i) = rlwf(j,i)
         expfie%dlwr(j,i) = dwrlwf(j,i)
-        expfie%lhfx(j,i) = sum(evpr1(:,j,i))*rdnnsg*wlhv
-        expfie%shfx(j,i) = sum(sent1(:,j,i))*rdnnsg
-        expfie%prec(j,i) = sum(prcp1(:,j,i))*rdnnsg
-        expfie%wndu(j,i) = sum(u10m(:,j,i))*rdnnsg
-        expfie%wndv(j,i) = sum(v10m(:,j,i))*rdnnsg
-        expfie%taux(j,i) = sum(taux(:,j,i))*rdnnsg
-        expfie%tauy(j,i) = sum(tauy(:,j,i))*rdnnsg
-        expfie%sflx(j,i) = (sum(evpr1(:,j,i))-sum(prcp1(:,j,i)))*rdnnsg
-        expfie%snow(j,i) = sum(sncv1(:,j,i))*rdnnsg
+        expfie%lhfx(j,i) = sum(lms%evpr(:,j,i))*rdnnsg*wlhv
+        expfie%shfx(j,i) = sum(lms%sent(:,j,i))*rdnnsg
+        expfie%prec(j,i) = sum(lms%prcp(:,j,i))*rdnnsg
+        expfie%wndu(j,i) = sum(lms%u10m(:,j,i))*rdnnsg
+        expfie%wndv(j,i) = sum(lms%v10m(:,j,i))*rdnnsg
+        expfie%taux(j,i) = sum(lms%taux(:,j,i))*rdnnsg
+        expfie%tauy(j,i) = sum(lms%tauy(:,j,i))*rdnnsg
+        expfie%sflx(j,i) = (sum(lms%evpr(:,j,i))-sum(lms%prcp(:,j,i)))*rdnnsg
+        expfie%snow(j,i) = sum(lms%sncv(:,j,i))*rdnnsg
         expfie%dswr(j,i) = swdif(j,i)+swdir(j,i)
       end do
     end do
@@ -443,8 +434,8 @@ module mod_lm_interface
             tground1(j,i) = impfie%sst(j,i)
             tground2(j,i) = impfie%sst(j,i)
             tgbb(j,i)     = impfie%sst(j,i)
-            tgrd1(:,j,i)  = impfie%sst(j,i)
-            tgbrd1(:,j,i)  = impfie%sst(j,i)
+            lms%tgrd(:,j,i)  = impfie%sst(j,i)
+            lms%tgbrd(:,j,i)  = impfie%sst(j,i)
           end if
           !
           !----------------------------------------------------------
@@ -519,26 +510,26 @@ module mod_lm_interface
               do n = 1, nnsg
                 ldmsk1(n,j,i) = 2
                 ! set sea ice thikness (in mm)
-                sfice1(n,j,i) = impfie%sit(j,i) 
+                lms%sfice(n,j,i) = impfie%sit(j,i) 
               end do
               ! write debug info
               if ( flag ) then
                 write(*,30) jj, ii, 'water', 'ice  ', &
-                   ldmsk(j,i), sfice1(1,j,i)
+                   ldmsk(j,i), lms%sfice(1,j,i)
               end if
             else
               if ( ldmskb(j,i) == 0 .and. ldmsk(j,i) == 2 ) then
                 ! reduce to one tenth surface ice: it should melt away
                 do n = 1, nnsg
                   ! check that sea ice is melted or not
-                  if ( sfice1(n,j,i) <= iceminh ) then
+                  if ( lms%sfice(n,j,i) <= iceminh ) then
                     if ( ldmskb(j,i) /= ldmsk(j,i) ) flag = .true.
                     ! set land-sea mask to its original value
                     ldmsk(j,i) = ldmskb(j,i)
                     ldmsk1(n,j,i) = ldmskb(j,i)
                     ! set land-use type to its original value
                     ! set sea ice thikness (in mm)
-                    sfice1(n,j,i) = d_zero 
+                    lms%sfice(n,j,i) = d_zero 
                   else
                     flag = .false.
                   end if
@@ -546,7 +537,7 @@ module mod_lm_interface
                 ! write debug info
                 if ( flag ) then
                   write(*,40) jj, ii, 'ice  ', 'water',  &
-                    ldmsk(j,i), sfice1(1,j,i)
+                    ldmsk(j,i), lms%sfice(1,j,i)
                 end if
               end if
             end if
@@ -575,32 +566,32 @@ module mod_lm_interface
     if ( ktau > 0 ) then
       if ( ifatm ) then
         if ( associated(atm_tgb_out) ) &
-          atm_tgb_out = atm_tgb_out + sum(tgbrd1,1)*rdnnsg
+          atm_tgb_out = atm_tgb_out + sum(lms%tgbrd,1)*rdnnsg
         if ( associated(atm_tsw_out) ) &
-          atm_tsw_out = atm_tsw_out + sum(tsw1,1)*rdnnsg
+          atm_tsw_out = atm_tsw_out + sum(lms%tsw,1)*rdnnsg
       end if
       if ( ifsrf ) then
         if ( associated(srf_evp_out) ) &
-          srf_evp_out = srf_evp_out + sum(evpr1,1)*rdnnsg
+          srf_evp_out = srf_evp_out + sum(lms%evpr,1)*rdnnsg
         if ( associated(srf_tpr_out) ) &
-          srf_tpr_out = srf_tpr_out + prcp1(1,:,:)
+          srf_tpr_out = srf_tpr_out + lms%prcp(1,:,:)
         if ( associated(srf_prcv_out) ) &
           srf_prcv_out = srf_prcv_out + cprate
         if ( associated(srf_zpbl_out) ) &
           srf_zpbl_out = srf_zpbl_out + hpbl
         if ( associated(srf_scv_out) ) &
-          srf_scv_out = srf_scv_out + sum(sncv1,1)*rdnnsg
+          srf_scv_out = srf_scv_out + sum(lms%sncv,1)*rdnnsg
         if ( associated(srf_sund_out) ) then
           where( rswf > 120.0D0 )
             srf_sund_out = srf_sund_out + dtbat
           end where
         end if
         if ( associated(srf_runoff_out) ) then
-          srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1) + sum(srnof1,1)*rdnnsg
-          srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2) + sum(trnof1,1)*rdnnsg
+          srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1)+sum(lms%srnof,1)*rdnnsg
+          srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2)+sum(lms%trnof,1)*rdnnsg
         end if
         if ( associated(srf_sena_out) ) then
-          srf_sena_out = srf_sena_out + sum(sent1,1)*rdnnsg
+          srf_sena_out = srf_sena_out + sum(lms%sent,1)*rdnnsg
         end if
         if ( associated(srf_flw_out) ) &
           srf_flw_out = srf_flw_out + rlwf
@@ -611,39 +602,39 @@ module mod_lm_interface
         if ( associated(srf_sina_out) ) &
           srf_sina_out = srf_sina_out + solinc
         if ( associated(srf_snowmelt_out) ) &
-          srf_snowmelt_out = srf_snowmelt_out + sum(snwm1,1)*rdnnsg
+          srf_snowmelt_out = srf_snowmelt_out + sum(lms%snwm,1)*rdnnsg
       end if
       if ( ifsub ) then
-        call reorder_add_subgrid(ps1,sub_ps_out)
+        call reorder_add_subgrid(lms%sfcp,sub_ps_out)
         if ( associated(sub_evp_out) ) &
-          call reorder_add_subgrid(evpr1,sub_evp_out)
+          call reorder_add_subgrid(lms%evpr,sub_evp_out)
         if ( associated(sub_scv_out) ) &
-          call reorder_add_subgrid(sncv1,sub_scv_out,mask=ldmsk1)
+          call reorder_add_subgrid(lms%sncv,sub_scv_out,mask=ldmsk1)
         if ( associated(sub_sena_out) ) &
-          call reorder_add_subgrid(sent1,sub_sena_out)
+          call reorder_add_subgrid(lms%sent,sub_sena_out)
         if ( associated(sub_runoff_out) ) then
-          call reorder_add_subgrid(srnof1,sub_runoff_out,1,ldmsk1)
-          call reorder_add_subgrid(trnof1,sub_runoff_out,2,ldmsk1)
+          call reorder_add_subgrid(lms%srnof,sub_runoff_out,1,ldmsk1)
+          call reorder_add_subgrid(lms%trnof,sub_runoff_out,2,ldmsk1)
         end if
       end if
       if ( ifsts ) then
         if ( associated(sts_tgmax_out) ) &
-          sts_tgmax_out = max(sts_tgmax_out,sum(tgrd1,1)*rdnnsg)
+          sts_tgmax_out = max(sts_tgmax_out,sum(lms%tgrd,1)*rdnnsg)
         if ( associated(sts_tgmin_out) ) &
-          sts_tgmin_out = min(sts_tgmin_out,sum(tgrd1,1)*rdnnsg)
+          sts_tgmin_out = min(sts_tgmin_out,sum(lms%tgrd,1)*rdnnsg)
         if ( associated(sts_t2max_out) ) &
-          sts_t2max_out(:,:,1) = max(sts_t2max_out(:,:,1),sum(t2m,1)*rdnnsg)
+          sts_t2max_out(:,:,1) = max(sts_t2max_out(:,:,1),sum(lms%t2m,1)*rdnnsg)
         if ( associated(sts_t2min_out) ) &
-          sts_t2min_out(:,:,1) = min(sts_t2min_out(:,:,1),sum(t2m,1)*rdnnsg)
+          sts_t2min_out(:,:,1) = min(sts_t2min_out(:,:,1),sum(lms%t2m,1)*rdnnsg)
         if ( associated(sts_t2min_out) ) &
-          sts_t2avg_out(:,:,1) = sts_t2avg_out(:,:,1) + sum(t2m,1)*rdnnsg
+          sts_t2avg_out(:,:,1) = sts_t2avg_out(:,:,1) + sum(lms%t2m,1)*rdnnsg
         if ( associated(sts_w10max_out) ) &
           sts_w10max_out(:,:,1) = max(sts_w10max_out(:,:,1), &
-            sqrt(sum((u10m**2+v10m**2),1)*rdnnsg))
+            sqrt(sum((lms%u10m**2+lms%v10m**2),1)*rdnnsg))
         if ( associated(sts_pcpmax_out) ) &
-          sts_pcpmax_out = max(sts_pcpmax_out,prcp1(1,:,:))
+          sts_pcpmax_out = max(sts_pcpmax_out,lms%prcp(1,:,:))
         if ( associated(sts_pcpavg_out) ) &
-          sts_pcpavg_out = sts_pcpavg_out + prcp1(1,:,:)
+          sts_pcpavg_out = sts_pcpavg_out + lms%prcp(1,:,:)
         if ( associated(sts_psmin_out) ) &
           sts_psmin_out = min(sts_psmin_out, &
             (sfps(jci1:jci2,ici1:ici2)+ptop)*d_10)
@@ -653,17 +644,17 @@ module mod_lm_interface
           end where
         end if
         if ( associated(sts_runoff_out) ) then
-          sts_runoff_out(:,:,1) = sts_runoff_out(:,:,1) + sum(srnof1,1)*rdnnsg
-          sts_runoff_out(:,:,2) = sts_runoff_out(:,:,2) + sum(trnof1,1)*rdnnsg
+          sts_runoff_out(:,:,1) = sts_runoff_out(:,:,1)+sum(lms%srnof,1)*rdnnsg
+          sts_runoff_out(:,:,2) = sts_runoff_out(:,:,2)+sum(lms%trnof,1)*rdnnsg
         end if
       end if
       if ( iflak ) then
         if ( associated(lak_tpr_out) ) &
-          lak_tpr_out = lak_tpr_out + prcp1(1,:,:)
+          lak_tpr_out = lak_tpr_out + lms%prcp(1,:,:)
         if ( associated(lak_scv_out) ) &
-          lak_scv_out = lak_scv_out + sum(sncv1,1)*rdnnsg
+          lak_scv_out = lak_scv_out + sum(lms%sncv,1)*rdnnsg
         if ( associated(lak_sena_out) ) &
-          lak_sena_out = lak_sena_out + sum(sent1,1)*rdnnsg
+          lak_sena_out = lak_sena_out + sum(lms%sent,1)*rdnnsg
         if ( associated(lak_flw_out) ) &
           lak_flw_out = lak_flw_out + rlwf
         if ( associated(lak_fsw_out) ) &
@@ -673,10 +664,10 @@ module mod_lm_interface
         if ( associated(lak_sina_out) ) &
           lak_sina_out = lak_sina_out + solinc
         if ( associated(lak_evp_out) ) &
-          lak_evp_out = lak_evp_out + sum(evpr1,1)*rdnnsg
+          lak_evp_out = lak_evp_out + sum(lms%evpr,1)*rdnnsg
         if ( associated(lak_aveice_out) ) then
           lak_aveice_out = lak_aveice_out + &
-            sum(sfice1*lakmsk1,1)*rdnnsg*d_r1000
+            sum(lms%sfice*lakmsk1,1)*rdnnsg*d_r1000
         end if
       end if
     end if
@@ -687,12 +678,12 @@ module mod_lm_interface
 
       if ( ifsrf ) then
         if ( associated(srf_uvdrag_out) ) &
-          srf_uvdrag_out = sum(drag1,1)*rdnnsg
+          srf_uvdrag_out = sum(lms%drag,1)*rdnnsg
         if ( associated(srf_tg_out) ) &
           srf_tg_out = tground1
         if ( associated(srf_tlef_out) ) then
           where ( ldmsk > 0 )
-            srf_tlef_out = sum(tlef1,1)*rdnnsg
+            srf_tlef_out = sum(lms%tlef,1)*rdnnsg
           elsewhere
             srf_tlef_out = dmissval
           end where
@@ -702,28 +693,28 @@ module mod_lm_interface
         if ( associated(srf_aldifs_out) ) &
           srf_aldifs_out = swdifalb
         if ( associated(srf_seaice_out) ) &
-          srf_seaice_out = sum(sfice1,1)*rdnnsg*d_r1000
+          srf_seaice_out = sum(lms%sfice,1)*rdnnsg*d_r1000
         if ( associated(srf_t2m_out) ) &
-          srf_t2m_out(:,:,1) = sum(t2m,1)*rdnnsg
+          srf_t2m_out(:,:,1) = sum(lms%t2m,1)*rdnnsg
         if ( associated(srf_q2m_out) ) &
-          srf_q2m_out(:,:,1) = sum(q2m,1)*rdnnsg
+          srf_q2m_out(:,:,1) = sum(lms%q2m,1)*rdnnsg
         if ( associated(srf_u10m_out) ) &
-          srf_u10m_out(:,:,1) = sum(u10m,1)*rdnnsg
+          srf_u10m_out(:,:,1) = sum(lms%u10m,1)*rdnnsg
         if ( associated(srf_v10m_out) ) &
-          srf_v10m_out(:,:,1) = sum(v10m,1)*rdnnsg
+          srf_v10m_out(:,:,1) = sum(lms%v10m,1)*rdnnsg
         if ( associated(srf_smw_out) ) then
-          srf_smw_out(:,:,1) = sum(ssw1,1)*rdnnsg
-          srf_smw_out(:,:,2) = sum(rsw1,1)*rdnnsg
+          srf_smw_out(:,:,1) = sum(lms%ssw,1)*rdnnsg
+          srf_smw_out(:,:,2) = sum(lms%rsw,1)*rdnnsg
         end if
       end if
 
       if ( ifsub ) then
         if ( associated(sub_uvdrag_out) ) &
-          call reorder_subgrid(drag1,sub_uvdrag_out)
+          call reorder_subgrid(lms%drag,sub_uvdrag_out)
         if ( associated(sub_tg_out) ) &
-          call reorder_subgrid(tgrd1,sub_tg_out)
+          call reorder_subgrid(lms%tgrd,sub_tg_out)
         if ( associated(sub_tlef_out) ) &
-          call reorder_subgrid(tlef1,sub_tlef_out,mask=ldmsk1)
+          call reorder_subgrid(lms%tlef,sub_tlef_out,mask=ldmsk1)
 #ifndef CLM
         if ( llake ) then
           if ( associated(sub_tlake_out) ) then
@@ -734,16 +725,16 @@ module mod_lm_interface
         end if
 #endif
         if ( associated(sub_u10m_out) ) &
-          call reorder_subgrid(u10m,sub_u10m_out)
+          call reorder_subgrid(lms%u10m,sub_u10m_out)
         if ( associated(sub_v10m_out) ) &
-          call reorder_subgrid(v10m,sub_v10m_out)
+          call reorder_subgrid(lms%v10m,sub_v10m_out)
         if ( associated(sub_t2m_out) ) &
-          call reorder_subgrid(t2m,sub_t2m_out)
+          call reorder_subgrid(lms%t2m,sub_t2m_out)
         if ( associated(sub_q2m_out) ) &
-          call reorder_subgrid(q2m,sub_q2m_out)
+          call reorder_subgrid(lms%q2m,sub_q2m_out)
         if ( associated(sub_smw_out) ) then
-          call reorder_subgrid(ssw1,sub_smw_out,1,ldmsk1)
-          call reorder_subgrid(rsw1,sub_smw_out,2,ldmsk1)
+          call reorder_subgrid(lms%ssw,sub_smw_out,1,ldmsk1)
+          call reorder_subgrid(lms%rsw,sub_smw_out,2,ldmsk1)
         end if
       end if
 
@@ -756,7 +747,7 @@ module mod_lm_interface
         if ( associated(lak_aldifs_out) ) &
           lak_aldifs_out = swdifalb
         if ( associated(lak_hsnow_out) ) &
-          lak_hsnow_out = sum(sncv1*lakmsk1,1)*rdnnsg
+          lak_hsnow_out = sum(lms%sncv*lakmsk1,1)*rdnnsg
         if ( associated(lak_tlake_out) ) then
           call lake_fillvar(var_tlak,tlake,0,llakmsk1)
           lak_tlake_out = sum(tlake,1)*rdnnsg+tzero
@@ -768,8 +759,9 @@ module mod_lm_interface
 
     if ( iocncpl == 1 ) then
       ! Fill for the RTM component
-      dailyrnf(:,:,1) = dailyrnf(:,:,1) + sum(srnof1,1)*rdnnsg
-      dailyrnf(:,:,2) = dailyrnf(:,:,2) + (sum(trnof1,1)-sum(srnof1,1))*rdnnsg
+      dailyrnf(:,:,1) = dailyrnf(:,:,1) + sum(lms%srnof,1)*rdnnsg
+      dailyrnf(:,:,2) = dailyrnf(:,:,2) + &
+        (sum(lms%trnof,1)-sum(lms%srnof,1))*rdnnsg
       runoffcount = runoffcount + d_one
     end if
 

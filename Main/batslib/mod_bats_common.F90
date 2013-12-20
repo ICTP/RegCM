@@ -25,6 +25,7 @@ module mod_bats_common
   use mod_realkinds
   use mod_bats_internal , only : allocate_mod_bats_internal , dtlake , dtbat
   use mod_bats_internal , only : llake
+  use mod_regcm_types
 
   public :: dtlake , dtbat , llake
 
@@ -38,35 +39,8 @@ module mod_bats_common
   ! How many soil model steps for a day
   real(rk4) :: fdaysrf
 
-  ! TO be pushed in savefile
-  real(rk8) , pointer , dimension(:,:,:) :: ldew1
-  real(rk8) , pointer , dimension(:,:,:) :: gwet1
-  real(rk8) , pointer , dimension(:,:,:) :: snag1
-  real(rk8) , pointer , dimension(:,:,:) :: sncv1
-  real(rk8) , pointer , dimension(:,:,:) :: sfice1
-  real(rk8) , pointer , dimension(:,:,:) :: rsw1
-  real(rk8) , pointer , dimension(:,:,:) :: ssw1
-  real(rk8) , pointer , dimension(:,:,:) :: tsw1
-  real(rk8) , pointer , dimension(:,:,:) :: taf1
-  real(rk8) , pointer , dimension(:,:,:) :: tgrd1
-  real(rk8) , pointer , dimension(:,:,:) :: tgbrd1
-  real(rk8) , pointer , dimension(:,:,:) :: tlef1
-  real(rk8) , pointer , dimension(:,:,:) :: emiss1
+  type(lm_state) , public :: lms
 
-  real(rk8) , pointer , dimension(:,:,:) :: sent1
-  real(rk8) , pointer , dimension(:,:,:) :: drag1
-  real(rk8) , pointer , dimension(:,:,:) :: evpr1
-  real(rk8) , pointer , dimension(:,:,:) :: q2m
-  real(rk8) , pointer , dimension(:,:,:) :: ps1
-  real(rk8) , pointer , dimension(:,:,:) :: trnof1
-  real(rk8) , pointer , dimension(:,:,:) :: srnof1
-  real(rk8) , pointer , dimension(:,:,:) :: t2m
-  real(rk8) , pointer , dimension(:,:,:) :: u10m
-  real(rk8) , pointer , dimension(:,:,:) :: v10m
-  real(rk8) , pointer , dimension(:,:,:) :: taux
-  real(rk8) , pointer , dimension(:,:,:) :: tauy
-  real(rk8) , pointer , dimension(:,:,:) :: prcp1
-  real(rk8) , pointer , dimension(:,:,:) :: snwm1
   logical , pointer , dimension(:,:,:) :: llakmsk1
   logical , pointer , dimension(:,:,:) :: llndmsk1
   logical , pointer , dimension(:,:,:) :: locnmsk1

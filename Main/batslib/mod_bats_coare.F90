@@ -98,7 +98,7 @@
 !-----------------------------------------------------------------------
 !
       iflag = .false.
-      if (sfice1(n,j,i) > 0.0d0) iflag = .true.
+      if (lms%sfice(n,j,i) > 0.0d0) iflag = .true.
 !
       ps = (sfps(j,i)+ptop)*d_10
       ts = tground2(j,i)-tzero
@@ -354,29 +354,29 @@
 !-----------------------------------------------------------------------
 !
       ! heat fluxes
-      sent1(n,j,i) = hsb 
-      evpr1(n,j,i) = hlb/Le
+      lms%sent(n,j,i) = hsb 
+      lms%evpr(n,j,i) = hlb/Le
 
       ! drag coefficents
       facttq = dlog(z995*d_half)/dlog(z995/zo)
-      drag1(n,j,i) = usr**2*rhox(j,i)/uv995      
+      lms%drag(n,j,i) = usr**2*rhox(j,i)/uv995      
 
       ! wind stress components 
       tau = rhoa*usr*usr*du/ut
-      taux(n,j,i) = tau*(uatm(j,i)/uv995)
-      tauy(n,j,i) = tau*(vatm(j,i)/uv995)
+      lms%taux(n,j,i) = tau*(uatm(j,i)/uv995)
+      lms%tauy(n,j,i) = tau*(vatm(j,i)/uv995)
 
       ! wind components
-      u10m(n,j,i) = uatm(j,i)*uv10/uv995
-      v10m(n,j,i) = vatm(j,i)*uv10/uv995 
+      lms%u10m(n,j,i) = uatm(j,i)*uv10/uv995
+      lms%v10m(n,j,i) = vatm(j,i)*uv10/uv995 
 
       ! surface atmospheric variables
-      t2m(n,j,i) = t995+tzero-dt*facttq
-      q2m(n,j,i) = q995-dq*facttq
+      lms%t2m(n,j,i) = t995+tzero-dt*facttq
+      lms%q2m(n,j,i) = q995-dq*facttq
 !
       !write(*,fmt="(2I5,2F10.3,4F12.6,3F10.3,F12.6)") i, j, hsb, hlb, &
-      !  facttq, drag(n,j,i), taux(n,j,i), tauy(n,j,i), u10m(n,j,i),   &
-      !  v10m(n,j,i), t2m(n,j,i), q2m(n,j,i)
+      !  facttq, drag(n,j,i), lms%taux(n,j,i), lms%tauy(n,j,i),        &
+      !  lms%u10m(n,j,i), lms%v10m(n,j,i), lms%t2m(n,j,i), lms%q2m(n,j,i)
 !
       end if
       end do

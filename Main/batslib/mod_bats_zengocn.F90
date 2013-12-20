@@ -238,8 +238,8 @@ module mod_bats_zengocn
             sh = -xdens*cpd*tstar*ustar
 !
 !           x and y components of tau:
-!           taux=xdens*ustar*ustar*u_x/um
-!           tauy=xdens*ustar*ustar*u_y/um
+!           lms%taux=xdens*ustar*ustar*u_x/um
+!           lms%tauy=xdens*ustar*ustar*u_y/um
 !           10-meter wind (without w_* part)
 !
             zeta = z10/obu
@@ -332,19 +332,19 @@ module mod_bats_zengocn
               tground2(j,i) = tskin
             end if ! dcsst
 
-            tgrd1(n,j,i)  = tground2(j,i)
-            tgbrd1(n,j,i) = tground2(j,i)
-            sent1(n,j,i)  = sh
-            evpr1(n,j,i)  = lh/wlhv
+            lms%tgrd(n,j,i)  = tground2(j,i)
+            lms%tgbrd(n,j,i) = tground2(j,i)
+            lms%sent(n,j,i)  = sh
+            lms%evpr(n,j,i)  = lh/wlhv
             ! Back out Drag Coefficient
             facttq = dlog(z995*d_half)/dlog(z995/zo)
-            drag1(n,j,i) = ustar**2*rhox(j,i)/uv995
-            u10m(n,j,i) = uatm(j,i)*uv10/uv995
-            v10m(n,j,i) = vatm(j,i)*uv10/uv995
-            taux(n,j,i) = tau*(uatm(j,i)/uv995) 
-            tauy(n,j,i) = tau*(vatm(j,i)/uv995) 
-            t2m(n,j,i)  = t995 + tzero - dth*facttq
-            q2m(n,j,i)  = q995 - dqh*facttq
+            lms%drag(n,j,i) = ustar**2*rhox(j,i)/uv995
+            lms%u10m(n,j,i) = uatm(j,i)*uv10/uv995
+            lms%v10m(n,j,i) = vatm(j,i)*uv10/uv995
+            lms%taux(n,j,i) = tau*(uatm(j,i)/uv995) 
+            lms%tauy(n,j,i) = tau*(vatm(j,i)/uv995) 
+            lms%t2m(n,j,i)  = t995 + tzero - dth*facttq
+            lms%q2m(n,j,i)  = q995 - dqh*facttq
           end if
         end do
       end do

@@ -277,32 +277,32 @@ module mod_bats_mtrxbats
       do i = ici1, ici2
         do j = jci1, jci2
           do n = 1 , nnsg
-            emiss1(n,j,i) = emiss(ib)
+            lms%emisv(n,j,i) = emiss(ib)
             ib = ib + 1
           end do
         end do
       end do
-      emissivity = sum(emiss1,1)*rdnnsg
+      emissivity = sum(lms%emisv,1)*rdnnsg
     else
       ib = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
           do n = 1 , nnsg
             lat(ib) = xlat1(n,j,i)
-            tgrd(ib) = tgrd1(n,j,i)
-            tgbrd(ib) = tgbrd1(n,j,i)
-            sncv(ib) = sncv1(n,j,i)
-            gwet(ib) = gwet1(n,j,i)
-            snag(ib) = snag1(n,j,i)
-            sfice(ib) = sfice1(n,j,i)
-            ldew(ib) = ldew1(n,j,i)
-            taf(ib) = taf1(n,j,i)
-            emiss(ib) = emiss1(n,j,i)
+            tgrd(ib) = lms%tgrd(n,j,i)
+            tgbrd(ib) = lms%tgbrd(n,j,i)
+            sncv(ib) = lms%sncv(n,j,i)
+            gwet(ib) = lms%gwet(n,j,i)
+            snag(ib) = lms%snag(n,j,i)
+            sfice(ib) = lms%sfice(n,j,i)
+            ldew(ib) = lms%ldew(n,j,i)
+            taf(ib) = lms%taf(n,j,i)
+            emiss(ib) = lms%emisv(n,j,i)
             mask(ib) = ldmsk1(n,j,i)
-            tlef(ib) = tlef1(n,j,i)
-            ssw(ib) = ssw1(n,j,i)
-            rsw(ib) = rsw1(n,j,i)
-            tsw(ib) = tsw1(n,j,i)
+            tlef(ib) = lms%tlef(n,j,i)
+            ssw(ib) = lms%ssw(n,j,i)
+            rsw(ib) = lms%rsw(n,j,i)
+            tsw(ib) = lms%tsw(n,j,i)
             ib = ib + 1
           end do
         end do
@@ -494,18 +494,18 @@ module mod_bats_mtrxbats
               facb = z10fra(ib)/zlglnd(ib)
               facs = z10fra(ib)/zlgsno(ib)
               factuv = fracv*facv + fracb*facb + fracs*facs
-              u10m(n,j,i) = usw(ib)*(d_one-factuv)
-              v10m(n,j,i) = vsw(ib)*(d_one-factuv)
-              t2m(n,j,i) = sts(ib) - delt(ib)*fact
-              q2m(n,j,i) = qs(ib) - delq(ib)*fact
+              lms%u10m(n,j,i) = usw(ib)*(d_one-factuv)
+              lms%v10m(n,j,i) = vsw(ib)*(d_one-factuv)
+              lms%t2m(n,j,i) = sts(ib) - delt(ib)*fact
+              lms%q2m(n,j,i) = qs(ib) - delq(ib)*fact
             else
               if ( iocnflx == 1 ) then
                 fact = z2fra(ib)/zlgocn(ib)
                 factuv = z10fra(ib)/zlgocn(ib)
-                u10m(n,j,i) = usw(ib)*(d_one-factuv)
-                v10m(n,j,i) = vsw(ib)*(d_one-factuv)
-                t2m(n,j,i) = sts(ib) - delt(ib)*fact
-                q2m(n,j,i) = qs(ib) - delq(ib)*fact
+                lms%u10m(n,j,i) = usw(ib)*(d_one-factuv)
+                lms%v10m(n,j,i) = vsw(ib)*(d_one-factuv)
+                lms%t2m(n,j,i) = sts(ib) - delt(ib)*fact
+                lms%q2m(n,j,i) = qs(ib) - delq(ib)*fact
               end if
             end if
             ib = ib + 1
@@ -518,11 +518,11 @@ module mod_bats_mtrxbats
       do i = ici1 , ici2
         do j = jci1 , jci2
           do n = 1 , nnsg
-            if ( tgrd1(n,j,i) < 150.0D0 ) then
+            if ( lms%tgrd(n,j,i) < 150.0D0 ) then
               write(stderr,*) 'Likely error: Surface temperature too low'
               write(stderr,*) 'J   = ',global_dot_jstart+j
               write(stderr,*) 'I   = ',global_dot_istart+i
-              write(stderr,*) 'VAL = ',tgrd1(n,j,i)
+              write(stderr,*) 'VAL = ',lms%tgrd(n,j,i)
               ierr = ierr + 1
             end if
           end do
@@ -532,13 +532,13 @@ module mod_bats_mtrxbats
         call fatal(__FILE__,__LINE__,'TEMP CHECK ERROR')
       end if
 #endif
-      uvdrag = sum(drag1,1)*rdnnsg
-      hfx = sum(sent1,1)*rdnnsg
-      qfx = sum(evpr1,1)*rdnnsg
-      tground2 = sum(tgrd1,1)*rdnnsg
-      tground1 = sum(tgrd1,1)*rdnnsg
+      uvdrag = sum(lms%drag,1)*rdnnsg
+      hfx = sum(lms%sent,1)*rdnnsg
+      qfx = sum(lms%evpr,1)*rdnnsg
+      tground2 = sum(lms%tgrd,1)*rdnnsg
+      tground1 = sum(lms%tgrd,1)*rdnnsg
       if ( ichem == 1 ) then
-        ssw2da = sum(ssw1,1)*rdnnsg
+        ssw2da = sum(lms%ssw,1)*rdnnsg
         deltat = sum(delt,1)*rdnnsg
         deltaq = sum(delq,1)*rdnnsg
         sfracv2d = sum(sigf,1)*rdnnsg
@@ -576,28 +576,28 @@ module mod_bats_mtrxbats
       do j = jci1 , jci2
         do n = 1 , nnsg
 
-          tlef1(n,j,i) = tlef(ib)
-          tgrd1(n,j,i) = tgrd(ib)
-          tgbrd1(n,j,i) = tgbrd(ib)
-          gwet1(n,j,i) = gwet(ib)
-          ldew1(n,j,i) = ldew(ib)
-          snag1(n,j,i) = snag(ib)
-          sncv1(n,j,i) = sncv(ib)
-          sfice1(n,j,i) = sfice(ib)
-          ssw1(n,j,i) = ssw(ib)
-          rsw1(n,j,i) = rsw(ib)
-          tsw1(n,j,i) = tsw(ib)
-          emiss1(n,j,i) = emiss(ib)
-          taf1(n,j,i) = taf(ib)
+          lms%tlef(n,j,i) = tlef(ib)
+          lms%tgrd(n,j,i) = tgrd(ib)
+          lms%tgbrd(n,j,i) = tgbrd(ib)
+          lms%gwet(n,j,i) = gwet(ib)
+          lms%ldew(n,j,i) = ldew(ib)
+          lms%snag(n,j,i) = snag(ib)
+          lms%sncv(n,j,i) = sncv(ib)
+          lms%sfice(n,j,i) = sfice(ib)
+          lms%ssw(n,j,i) = ssw(ib)
+          lms%rsw(n,j,i) = rsw(ib)
+          lms%tsw(n,j,i) = tsw(ib)
+          lms%emisv(n,j,i) = emiss(ib)
+          lms%taf(n,j,i) = taf(ib)
 
-          ps1(n,j,i) = sfcp(ib)
-          sent1(n,j,i) = sent(ib)
-          evpr1(n,j,i) = evpr(ib)
-          prcp1(n,j,i) = prcp(ib)
-          trnof1(n,j,i) = trnof(ib)
-          srnof1(n,j,i) = srnof(ib)
-          drag1(n,j,i) = drag(ib)
-          snwm1(n,j,i) = sm(ib)
+          lms%sfcp(n,j,i) = sfcp(ib)
+          lms%sent(n,j,i) = sent(ib)
+          lms%evpr(n,j,i) = evpr(ib)
+          lms%prcp(n,j,i) = prcp(ib)
+          lms%trnof(n,j,i) = trnof(ib)
+          lms%srnof(n,j,i) = srnof(ib)
+          lms%drag(n,j,i) = drag(ib)
+          lms%snwm(n,j,i) = sm(ib)
 
           ib = ib + 1
         end do

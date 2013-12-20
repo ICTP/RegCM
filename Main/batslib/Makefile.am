@@ -51,7 +51,7 @@ clean-local:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 mod_bats_bndry.o : mod_bats_bndry.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_service.o mod_bats_common.o mod_bats_leaftemp.o mod_bats_drag.o mod_bats_internal.o
 mod_bats_co2.o : mod_bats_co2.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_bats_common.o mod_bats_leaftemp.o mod_bats_internal.o
-mod_bats_common.o : mod_bats_common.F90 mod_intkinds.o mod_realkinds.o mod_bats_internal.o
+mod_bats_common.o : mod_bats_common.F90 mod_intkinds.o mod_realkinds.o mod_bats_internal.o mod_regcm_types.o
 mod_bats_drag.o : mod_bats_drag.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_bats_common.o mod_bats_internal.o mod_service.o
 mod_bats_internal.o : mod_bats_internal.F90 mod_intkinds.o mod_realkinds.o mod_memutil.o mod_dynparam.o
 mod_bats_lake.o : mod_bats_lake.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_bats_common.o mod_bats_internal.o mod_service.o

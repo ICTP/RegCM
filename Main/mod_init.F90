@@ -133,7 +133,7 @@ module mod_init
               if ( iemiss == 1 ) emiss(j,i) = 0.97D0
               do n = 1, nnsg
                 mdsub%ldmsk(n,j,i) = 2
-                sfice1(n,j,i) = d_10
+                lms%sfice(n,j,i) = d_10
               end do
             else
               if ( iemiss == 1 ) emiss(j,i) = 0.995D0
@@ -158,7 +158,7 @@ module mod_init
               if ( iemiss == 1 ) emiss(j,i) = 0.97D0
               do n = 1, nnsg
                 mdsub%ldmsk(n,j,i) = 2
-                sfice1(n,j,i) = d_10
+                lms%sfice(n,j,i) = d_10
               end do
             else
               if ( iemiss == 1 ) emiss(j,i) = 0.995D0
@@ -304,19 +304,20 @@ module mod_init
       call grid_distribute(gasemstot_io,gasemstot,jci1,jci2,ici1,ici2,1,kzp1)
     end if
 
-    call subgrid_distribute(tlef1_io,tlef1,jci1,jci2,ici1,ici2)
-    call subgrid_distribute(ssw1_io,ssw1,jci1,jci2,ici1,ici2)
-    call subgrid_distribute(rsw1_io,rsw1,jci1,jci2,ici1,ici2)
-    call subgrid_distribute(tgrd1_io,tgrd1,jci1,jci2,ici1,ici2)
-    call subgrid_distribute(tgbrd1_io,tgbrd1,jci1,jci2,ici1,ici2)
-    call subgrid_distribute(sncv1_io,sncv1,jci1,jci2,ici1,ici2)
-    call subgrid_distribute(gwet1_io,gwet1,jci1,jci2,ici1,ici2)
-    call subgrid_distribute(snag1_io,snag1,jci1,jci2,ici1,ici2)
-    call subgrid_distribute(sfice1_io,sfice1,jci1,jci2,ici1,ici2)
-    call subgrid_distribute(ldew1_io,ldew1,jci1,jci2,ici1,ici2)
-    call subgrid_distribute(taf1_io,taf1,jci1,jci2,ici1,ici2)
-    call subgrid_distribute(tsw1_io,tsw1,jci1,jci2,ici1,ici2)
-    call subgrid_distribute(emiss1_io,emiss1,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(gwet_io,lms%gwet,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(ssw_io,lms%ssw,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(rsw_io,lms%rsw,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(tsw_io,lms%tsw,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(ldew_io,lms%ldew,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(tgrd_io,lms%tgrd,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(tgbrd_io,lms%tgbrd,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(taf_io,lms%taf,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(tlef_io,lms%tlef,jci1,jci2,ici1,ici2)
+
+    call subgrid_distribute(sncv_io,lms%sncv,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(snag_io,lms%snag,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(sfice_io,lms%sfice,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(emisv_io,lms%emisv,jci1,jci2,ici1,ici2)
     call subgrid_distribute(ldmsk1_io,mdsub%ldmsk,jci1,jci2,ici1,ici2)
 
     call grid_distribute(solis_io,solis,jci1,jci2,ici1,ici2)
@@ -420,14 +421,14 @@ module mod_init
                 mddom%ldmsk(j,i) = 2
                 do n = 1, nnsg
                   mdsub%ldmsk(n,j,i) = 2
-                  sfice1(n,j,i) = d_10
+                  lms%sfice(n,j,i) = d_10
                 end do
               else if ( ts1(j,i) > icetemp .and. mddom%ldmsk(j,i) == 2 ) then
                 sfs%tga(j,i) = ts1(j,i)
                 sfs%tgb(j,i) = ts1(j,i)
                 ! Decrease the surface ice to melt it
                 do n = 1, nnsg
-                  sfice1(n,j,i) = sfice1(n,j,i)*d_r10
+                  lms%sfice(n,j,i) = lms%sfice(n,j,i)*d_r10
                 end do
               end if
             end if
