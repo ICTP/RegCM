@@ -1988,9 +1988,9 @@ module mod_params
   call time_end(subroutine_name,idindx)
 #endif
 
+#ifndef CLM
   contains
 
-#ifndef CLM
   subroutine count_lakepoints
     implicit none
     integer(ik4) :: i , j , n
