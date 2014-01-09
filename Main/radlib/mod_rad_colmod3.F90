@@ -591,7 +591,7 @@ module mod_rad_colmod3
         ! longwave absorption coeff (m**2/g)
         kabs = kabsl*(d_one-fice(n,k)) + kabsi*fice(n,k)
         ! cloud emissivity (fraction)
-        emis(n,k) = d_one - dexp(-1.66D0*kabs*clwp(n,k))
+        emis(n,k) = d_one - dexp(-min(1.66D0*kabs*clwp(n,k),25.0D0))
       end do
     end do
 #ifdef DEBUG
