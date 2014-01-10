@@ -549,7 +549,8 @@ module mod_mtrxclm
       call fill_frame(swdif,r2csolsd)
       call fill_frame(lwdif,r2csolld)
       call fill_frame(dwrlwf,r2cflwd)
-
+      r2crnc = r2crnc * rtsrf
+      r2crnnc = r2crnnc * rtsrf
       call grid_fill(r2ctb,r2ctb_all)
       call grid_fill(r2cqb,r2cqb_all)
       call grid_fill(r2czga,r2czga_all)
