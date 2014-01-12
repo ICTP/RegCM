@@ -70,20 +70,18 @@ module mod_bats_co2
     real(rk8) , parameter :: rmp = 800.0D0
 !
     do i = ilndbeg , ilndend
-      if ( mask(i) /= 0 ) then
-        if ( sigf(i) > 0.001D0 ) then
-          rsp = lftrs(i)*1.7D0
-          rap = lftra(i)*1.5D0
-          rt = rsp + rap + rmp
-          rcar = carbon(swsi(i)*rlai(i),tlef(i),rt,tgrd(i),xlai(i),xlsai(i))
-          cari = sigf(i)*xlsai(i)*fdry(i)*rcar
-          apbm = apbm + cari*dtbat
-          if ( apbm < d_zero ) apbm = d_zero
-          resps = 0.7D-7*resp(i)*dexp(0.1D0*(tgrd(i)-300.0D0)) * &
-                  dmin1(d_one,ssw(i)/(0.6D0*gwmx0(i)))
-          resp(i) = resp(i) + (cari-resps)*dtbat
-          if ( resp(i) < d_zero ) resp(i) = d_zero
-        end if
+      if ( sigf(i) > 0.001D0 ) then
+        rsp = lftrs(i)*1.7D0
+        rap = lftra(i)*1.5D0
+        rt = rsp + rap + rmp
+        rcar = carbon(swsi(i)*rlai(i),tlef(i),rt,tgrd(i),xlai(i),xlsai(i))
+        cari = sigf(i)*xlsai(i)*fdry(i)*rcar
+        apbm = apbm + cari*dtbat
+        if ( apbm < d_zero ) apbm = d_zero
+        resps = 0.7D-7*resp(i)*dexp(0.1D0*(tgrd(i)-300.0D0)) * &
+                dmin1(d_one,ssw(i)/(0.6D0*gwmx0(i)))
+        resp(i) = resp(i) + (cari-resps)*dtbat
+        if ( resp(i) < d_zero ) resp(i) = d_zero
       end if
     end do
    

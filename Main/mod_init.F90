@@ -64,7 +64,7 @@ module mod_init
 !
   integer(ik4) :: i , j , k , n
   real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax
-  real(rk8) :: sfice_temp
+  real(rk8) :: sfice_temp , ocnpct
   character(len=32) :: appdat
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'init'
@@ -130,13 +130,10 @@ module mod_init
               sfs%tgb(j,i) = sfice_temp
               ts0(j,i) = icetemp
               mddom%ldmsk(j,i) = 2
-              if ( iemiss == 1 ) emiss(j,i) = 0.97D0
               do n = 1, nnsg
                 mdsub%ldmsk(n,j,i) = 2
                 lms%sfice(n,j,i) = d_10
               end do
-            else
-              if ( iemiss == 1 ) emiss(j,i) = 0.995D0
             end if
           end if
         end do
@@ -155,13 +152,10 @@ module mod_init
               sfs%tgb(j,i) = icetemp
               ts0(j,i) = icetemp
               mddom%ldmsk(j,i) = 2
-              if ( iemiss == 1 ) emiss(j,i) = 0.97D0
               do n = 1, nnsg
                 mdsub%ldmsk(n,j,i) = 2
                 lms%sfice(n,j,i) = d_10
               end do
-            else
-              if ( iemiss == 1 ) emiss(j,i) = 0.995D0
             end if
           end if
         end do
@@ -210,10 +204,12 @@ module mod_init
     ! Init the diurnal cycle SST scheme
     !
     if ( idcsst == 1 ) then
-      dtskin(:,:) = d_zero
-      deltas(:,:) = 0.001D0
-      sst(:,:) = ts0(jci1:jci2,ici1:ici2)
-      tdeltas(:,:) = sst(:,:) - deltas(:,:)
+      do n = 1 , nnsg
+        lms%sst(n,jci1:jci2,ici1:ici2) = ts0(jci1:jci2,ici1:ici2)
+      end do
+      lms%dtskin(:,:,:) = d_zero
+      lms%deltas(:,:,:) = 0.001D0
+      lms%tdeltas(:,:,:) = lms%sst(:,:,:) - lms%deltas(:,:,:)
     end if
     !
     ! Inizialize Ozone profiles
@@ -318,6 +314,7 @@ module mod_init
     call subgrid_distribute(snag_io,lms%snag,jci1,jci2,ici1,ici2)
     call subgrid_distribute(sfice_io,lms%sfice,jci1,jci2,ici1,ici2)
     call subgrid_distribute(emisv_io,lms%emisv,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(scvk_io,lms%scvk,jci1,jci2,ici1,ici2)
     call subgrid_distribute(ldmsk1_io,mdsub%ldmsk,jci1,jci2,ici1,ici2)
 
     call grid_distribute(solis_io,solis,jci1,jci2,ici1,ici2)
@@ -334,16 +331,9 @@ module mod_init
 
 #ifndef CLM
     if ( lakemod == 1 ) then
-      call subgrid_distribute(eta_io,xlake,jci1,jci2,ici1,ici2)
-      call lake_fillvar(var_eta,xlake,1,llakmsk1)
-      call subgrid_distribute(hi_io,xlake,jci1,jci2,ici1,ici2)
-      call lake_fillvar(var_hi,xlake,1,llakmsk1)
-      call subgrid_distribute(aveice_io,xlake,jci1,jci2,ici1,ici2)
-      call lake_fillvar(var_aveice,xlake,1,llakmsk1)
-      call subgrid_distribute(hsnow_io,xlake,jci1,jci2,ici1,ici2)
-      call lake_fillvar(var_hsnow,xlake,1,llakmsk1)
-      call subgrid_distribute(tlak_io,tlake,jci1,jci2,ici1,ici2,1,ndpmax)
-      call lake_fillvar(var_tlak,tlake,1,llakmsk1)
+      call subgrid_distribute(eta_io,lms%eta,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(hi_io,lms%hi,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(tlak_io,lms%tlake,jci1,jci2,ici1,ici2,1,ndpmax)
     endif
 #else
     !
@@ -358,9 +348,9 @@ module mod_init
 #endif
 !
     if ( idcsst == 1 ) then
-      call grid_distribute(dtskin_io,dtskin,jci1,jci2,ici1,ici2)
-      call grid_distribute(deltas_io,deltas,jci1,jci2,ici1,ici2)
-      call grid_distribute(tdeltas_io,tdeltas,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(dtskin_io,lms%dtskin,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(deltas_io,lms%deltas,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(tdeltas_io,lms%tdeltas,jci1,jci2,ici1,ici2)
     end if
 
     call grid_distribute(dstor_io,dstor,jde1,jde2,ide1,ide2,1,nsplit)
@@ -403,9 +393,10 @@ module mod_init
           if ( iswater(mddom%lndcat(j,i)) ) then
             if ( mddom%ldmsk(j,i) == 0 ) then
               if ( idcsst == 1 ) then
-                sst(j,i) = ts1(j,i)
-                sfs%tga(j,i) = sst(j,i) + dtskin(j,i)
-                sfs%tgb(j,i) = sst(j,i) + dtskin(j,i)
+                ocnpct = dble(count(mdsub%ldmsk(:,j,i)==0))/dble(nnsg)
+                lms%sst(:,j,i) = ts1(j,i)
+                sfs%tga(j,i) = ts1(j,i) + sum(lms%dtskin(:,j,i),1)*ocnpct
+                sfs%tgb(j,i) = ts1(j,i) + sum(lms%dtskin(:,j,i),1)*ocnpct
               else
                 ! Update temperature where NO ice
                 sfs%tga(j,i) = ts1(j,i)
@@ -469,7 +460,7 @@ module mod_init
   !
   ! Initialize the BATS variable (Used also by CLM)
   !
-  call initbats
+  call initialize_surface_model
 #ifdef CLM
   call mkslice
   call initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf,igaschem,iaerosol,chtrname)

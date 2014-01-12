@@ -70,9 +70,6 @@ module mod_params
   integer(ik8) :: ndbgfrq , nsavfrq , natmfrq , nradfrq , nchefrq , nsrffrq
   integer(ik8) :: nlakfrq , nsubfrq , nbdyfrq , nslabfrq
   integer(ik4) :: n , len_path
-#ifndef CLM
-  integer(ik4) :: totlakep , nlakep
-#endif
   character(len=32) :: appdat
   type(rcm_time_interval) :: bdif
 #ifdef DEBUG
@@ -1086,7 +1083,7 @@ module mod_params
 
   call allocate_mod_savefile
 
-  call allocate_land_model
+  call allocate_surface_model
 
   if ( ipptls == 2 ) then
     call allocate_mod_cloud_s1
@@ -1219,7 +1216,6 @@ module mod_params
   rnrad_for_radfrq = d_one/(dble(krad)*rtrad)
   rnrad_for_chem = dble(ntrad)/dble(kche)
 
-  fdaysrf = real(secpd/dtsrf)
   rsrf_in_atm = dble(ntsrf)/dble(katm)
   rsrffrq_sec = d_one/(srffrq*secph)
 
@@ -1238,7 +1234,6 @@ module mod_params
   intbdy = rcm_time_interval(ibdyfrq,uhrs)
   intsom = rcm_time_interval(1,umnt)
   deltmx = dt
-  dtlake = dtsrf
 !
   if ( myid == italk ) then
     appdat = tochar(idate0)
@@ -1299,32 +1294,6 @@ module mod_params
   if ( myid == italk ) write(stdout,*) 'Setting IPCC scenario to ', scenario
   call set_scenario(scenario)
 
-  call init_advection(mddom,sfs,atm1,qdot,kpbl)
-  call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
-  call init_land_model
-  call init_cumulus
-
-  if ( ichem == 1 ) then
-#ifdef CLM
-    call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat, &
-                   coszrs,svegfrac2d,sfracv2d,sfracb2d,sfracs2d,      &
-                   solis,sdelt,sdelq,ssw2da,convpr,icumtop,     &
-                   icumbot,taucldsp,voc_em,voc_em1,voc_em2,dep_vels)
-#else
-    call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat, &
-                   coszrs,svegfrac2d,sfracv2d,sfracb2d,sfracs2d,      &
-                   solis,sdelt,sdelq,ssw2da,convpr,icumtop,     &
-                   icumbot,taucldsp)
-#endif
-    do n = 1 , ntr
-      call bcast(chtrname(n),6)
-    end do
-  end if
-  call init_radiation
-  if ( islab_ocean == 1 ) then
-    call allocate_mod_slabocean
-    call init_slabocean(sfs,mddom%ldmsk,fsw,flw)
-  end if
 !
   if ( myid == italk ) then
     if ( ifrest .and. idate0 == idate1 ) then
@@ -1444,10 +1413,38 @@ module mod_params
       mddom%msfx(j,i) = d_one/mddom%msfx(j,i)
     end do
   end do
-!
+
   call exchange(mddom%ht,1,jde1,jde2,ide1,ide2)
   call exchange(mddom%msfx,2,jde1,jde2,ide1,ide2)
   call exchange(mddom%msfd,2,jde1,jde2,ide1,ide2)
+!
+
+  call init_advection(mddom,sfs,atm1,qdot,kpbl)
+  call init_precip(atms,atm2,aten,sfs,pptnc,cldfra,cldlwc)
+  call init_surface_model
+  call init_cumulus
+
+  if ( ichem == 1 ) then
+#ifdef CLM
+    call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat, &
+                   coszrs,svegfrac2d,sfracv2d,sfracb2d,sfracs2d,      &
+                   solis,sdelt,sdelq,ssw2da,convpr,icumtop,     &
+                   icumbot,taucldsp,voc_em,voc_em1,voc_em2,dep_vels)
+#else
+    call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat, &
+                   coszrs,svegfrac2d,sfracv2d,sfracb2d,sfracs2d,      &
+                   solis,sdelt,sdelq,ssw2da,convpr,icumtop,     &
+                   icumbot,taucldsp)
+#endif
+    do n = 1 , ntr
+      call bcast(chtrname(n),6)
+    end do
+  end if
+  call init_radiation
+  if ( islab_ocean == 1 ) then
+    call allocate_mod_slabocean
+    call init_slabocean(sfs,mddom%ldmsk,fsw,flw)
+  end if
 !
   if ( myid == italk ) then
     write(stdout,*) 'Domain grid parameters:'
@@ -1469,8 +1466,6 @@ module mod_params
 !
 !-----compute land/water mask on subgrid space
 !
-   locnmsk1 = .false.
-   llndmsk1 = .false.
    do i = ici1 , ici2
      do j = jci1 , jci2
        if ( mddom%lndcat(j,i) > 13.5D0 .and. &
@@ -1478,29 +1473,15 @@ module mod_params
          mddom%ldmsk(j,i) = 0
          do n = 1, nnsg
            mdsub%ldmsk(n,j,i) = 0
-           locnmsk1(n,j,i) = .true.
          end do
        else
          mddom%ldmsk(j,i) = 1
          do n = 1, nnsg
            mdsub%ldmsk(n,j,i) = 1
-           llndmsk1(n,j,i) = .true.
          end do
        end if
      end do
    end do
-#ifndef CLM
-  if ( lakemod == 1 ) then
-    call count_lakepoints
-    if ( myid == italk ) then
-      write(stdout,*) 'LAKE activated on ', totlakep , ' points.'
-    end if
-    call allocate_mod_bats_lake(lakmsk1)
-    where ( llakmsk1 )
-      locnmsk1 = .false.
-    end where
-  end if
-#endif
 !
 !-----compute dsigma and half sigma levels.
 !
@@ -1988,30 +1969,6 @@ module mod_params
   call time_end(subroutine_name,idindx)
 #endif
 
-#ifndef CLM
-  contains
-
-  subroutine count_lakepoints
-    implicit none
-    integer(ik4) :: i , j , n
-    lakmsk1(:,:,:) = 0
-    llakmsk1(:,:,:) = .false.
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          if ( mdsub%lndcat(n,j,i) > 13.0 .and. &
-               mdsub%lndcat(n,j,i) < 15.0 ) then
-            lakmsk1(n,j,i) = 1
-            llakmsk1(n,j,i) = .true.
-          end if
-        end do
-      end do
-    end do
-    nlakep = count(lakmsk1>0)
-    call sumall(nlakep,totlakep)
-  end subroutine count_lakepoints
-#endif
-!
   end subroutine param
 !
 end module mod_params

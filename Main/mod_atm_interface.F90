@@ -121,6 +121,17 @@ module mod_atm_interface
   integer(ik4) , public , parameter :: two_exchange_point = 2
   integer(ik4) , public , parameter :: four_exchange_point = 4
 
+  ! Surface for chemistry
+  real(rk8) , public , pointer , dimension(:,:) :: ssw2da
+  real(rk8) , public , pointer , dimension(:,:) :: sfracv2d
+  real(rk8) , public , pointer , dimension(:,:) :: sfracb2d
+  real(rk8) , public , pointer , dimension(:,:) :: sfracs2d
+  real(rk8) , public , pointer , dimension(:,:) :: svegfrac2d
+
+  ! Coupling
+  real(rk8) , public , pointer , dimension(:,:,:) :: dailyrnf
+  integer(ik4) , public , pointer , dimension(:,:) :: cplmsk
+
 #ifdef DEBUG
   type(grid_nc_var4d) , public :: nc_4d
   type(grid_nc_var3d) , public :: nc_3d
@@ -672,6 +683,16 @@ module mod_atm_interface
       call getmem2d(icumtop,jci1,jci2,ici1,ici2,'storage:icumtop')
       if ( ichem == 1 ) then
         call getmem3d(convpr,jci1,jci2,ici1,ici2,1,kz,'storage:convpr')
+        call getmem2d(ssw2da,jci1,jci2,ici1,ici2,'storage:ssw2da')
+        call getmem2d(sfracv2d,jci1,jci2,ici1,ici2,'storage:sfracv2d')
+        call getmem2d(sfracb2d,jci1,jci2,ici1,ici2,'storage:sfracb2d')
+        call getmem2d(sfracs2d,jci1,jci2,ici1,ici2,'storage:sfracs2d')
+        call getmem2d(svegfrac2d,jci1,jci2,ici1,ici2,'storage:svegfrac2d')
+      end if
+      if ( iocncpl == 1 ) then
+        call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'storage:cplmsk')
+        cplmsk(:,:) = 0
+        call getmem3d(dailyrnf,1,nnsg,jci1,jci2,ici1,ici2,'storage:dailyrnf')
       end if
       call getmem2d(pptnc,jci1,jci2,ici1,ici2,'storage:pptnc')
       call getmem2d(prnca,jci1,jci2,ici1,ici2,'storage:prnca')

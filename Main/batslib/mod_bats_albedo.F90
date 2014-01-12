@@ -42,11 +42,6 @@ module mod_bats_albedo
   !
   real(rk8) , parameter :: snal0 = 0.95D0
   real(rk8) , parameter :: snal1 = 0.65D0
-  !
-  ! Short and long wave albedo for sea ice
-  !
-  real(rk8) , parameter :: sical0 = 0.6D0
-  real(rk8) , parameter :: sical1 = 0.4D0
 
   logical :: ldesseas = .false.
 
@@ -84,7 +79,7 @@ module mod_bats_albedo
     real(rk8) :: age , albg , albgl , albgld , albgs , albgsd , albl ,  &
                  albld , albs , albsd , albzn , alwet , cf1 , cff ,     &
                  conn , cons , czeta , czf , dfalbl , dfalbs , dralbl , &
-                 dralbs , sfac , sl , sl2 , sli , tdiff , tdiffs , wet
+                 dralbs , sfac , sl , sl2 , sli , wet
     integer(ik4) :: kolour , i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'albedo'
@@ -125,145 +120,107 @@ module mod_bats_albedo
     !
     do i = ilndbeg , ilndend
       czeta = czenith(i)
-      albgs = d_zero
-      albgl = d_zero
-      albgsd = d_zero
-      albgld = d_zero
-      albs = d_zero
-      albl = d_zero
-      albsd = d_zero
-      albld = d_zero
- 
       swal(i) = d_zero
       lwal(i) = d_zero
+      albld = d_zero
+      albsd = d_zero
       ! 
       !================================================================
       !       2.   get albedo
       !================================================================
       !
-      if ( mask(i) == 0 ) then
-        ! ocean albedo depends on zenith angle
-        if ( czeta >= d_zero ) then
-          ! albedo independent of wavelength
-          albg = 0.05D0/(czeta+0.15D0)
-          albgs = albg
-          albgl = albg
-          albgsd = 0.08D0
-          albgld = 0.08D0
-        else
-          albg = 0.05D0
-          albgs = albg
-          albgl = albg
-          albgsd = 0.08D0
-          albgld = 0.08D0
-        end if
-      else if ( mask(i) == 2 ) then
-        ! Ice over ocean or lake
-        tdiffs = sts(i) - tzero
-        tdiff = dmax1(tdiffs,d_zero)
-        tdiffs = dmin1(tdiff,20.0D0)
-        albgl = sical1 - 1.1D-2*tdiffs
-        albgs = sical0 - 2.45D-2*tdiffs
-        albg = fsol1*albgs + fsol2*albgl
-        albgsd = albgs
+      sfac = d_one - aseas(i)
+      !
+      ! ccm tests here on land mask for veg and soils data
+      ! reduces albedo at low temps !!!!!
+      ! should respond to moisture too (commented out) (pat, 27 oct 86)
+      ! lncl(i) = lncl(iveg1(i)) - seasf(iveg1(i)) * sfac
+      !
+      albs = albvgs(lveg(i))
+      albl = albvgl(lveg(i))
+      !---------------------------------------------------------------
+      if ( (lveg(i) < 12) .or. (lveg(i) > 15) ) then
+        ! 2.1  bare soil albedos
+        !      (soil albedo depends on moisture)
+        kolour = kolsol(lveg(i))
+        wet = ssw(i)/depuv(lveg(i))
+        alwet = dmax1((11.0D0-40.0D0*wet),d_zero)*0.01D0
+        alwet = dmin1(alwet,solour(kolour))
+        albg = solour(kolour) + alwet
+        albgs = albg
+        albgl = d_two*albg
+        ! higher nir albedos set diffuse albedo
         albgld = albgl
-      else if ( mask(i) == 1 ) then
-        ! Land
-        sfac = d_one - aseas(i)
+        albgsd = albgs
+        albsd = albs
+        albld = albl
+        ! Dec. 15   albzn=0.85D0+d_one/(d_one+d_10*czeta))
+        ! Dec. 12, 2008
+        albzn = d_one
+        ! Dec. 15, 2008
         !
-        ! ccm tests here on land mask for veg and soils data
-        ! reduces albedo at low temps !!!!!
-        ! should respond to moisture too (commented out) (pat, 27 oct 86)
-        ! lncl(i) = lncl(iveg1(i)) - seasf(iveg1(i)) * sfac
-        !
-        albs = albvgs(lveg(i))
-        albl = albvgl(lveg(i))
-        !---------------------------------------------------------------
-        if ( (lveg(i) < 12) .or. (lveg(i) > 15) ) then
-          ! 2.1  bare soil albedos
-          !      (soil albedo depends on moisture)
-          kolour = kolsol(lveg(i))
-          wet = ssw(i)/depuv(lveg(i))
-          alwet = dmax1((11.0D0-40.0D0*wet),d_zero)*0.01D0
-          alwet = dmin1(alwet,solour(kolour))
-          albg = solour(kolour) + alwet
-          albgs = albg
-          albgl = d_two*albg
-          ! higher nir albedos set diffuse albedo
-          albgld = albgl
-          albgsd = albgs
-          albsd = albs
-          albld = albl
-          ! Dec. 15   albzn=0.85D0+d_one/(d_one+d_10*czeta))
-          ! Dec. 12, 2008
-          albzn = d_one
-          ! Dec. 15, 2008
-          !
-          ! leafless hardwood canopy: no or inverse zen dep
-          if ( lveg(i) == 5 .and. sfac < 0.1D0 ) albzn = d_one
-          ! multiply by zenith angle correction
-          albs = albs*albzn
-          albl = albl*albzn
-          ! albedo over vegetation after zenith angle corr
-          swal(i) = albs
-          lwal(i) = albl
-        else if ( lveg(i) == 12 ) then
-          ! 2.2   permanent ice sheet
-          albgs = 0.8D0
-          albgsd = 0.8D0
-          albgl = 0.55D0
-          albgld = 0.55D0
-        else
-          ! 2.3  inland water, swamps, rice paddies etc.
-          albg = 0.05D0/(czeta+0.15D0)
-          albgs = albg
-          albgsd = albg
-          albgl = albg
-          albgld = albg
-        end if
+        ! leafless hardwood canopy: no or inverse zen dep
+        if ( lveg(i) == 5 .and. sfac < 0.1D0 ) albzn = d_one
+        ! multiply by zenith angle correction
+        albs = albs*albzn
+        albl = albl*albzn
+        ! albedo over vegetation after zenith angle corr
+        swal(i) = albs
+        lwal(i) = albl
+      else if ( lveg(i) == 12 ) then
+        ! 2.2   permanent ice sheet
+        albgs = 0.8D0
+        albgsd = 0.8D0
+        albgl = 0.55D0
+        albgld = 0.55D0
+      else
+        ! 2.3  inland water, swamps, rice paddies etc.
+        albg = 0.05D0/(czeta+0.15D0)
+        albgs = albg
+        albgsd = albg
+        albgl = albg
+        albgld = albg
       end if
       ! ==============================================================
       ! 4.  correct for snow cover
       ! ==============================================================
-      if ( mask(i) > 0 ) then
-        if ( sncv(i) > d_zero ) then
-          ! Snow albedo depends on snow-age, zenith angle, and thickness
-          ! of snow. snow albedoes for visible and ir solar rad visible
-          ! albedo depends on snow age
-          ! age gives reduction of visible rad snow albedo due to age
-          cons = 0.2D0
-          conn = 0.5D0
-          age = (d_one-d_one/(d_one+snag(i)))
-          ! sl helps control albedo zenith dependence
-          sl = d_two
-          sli = d_one/sl
-          sl2 = d_two*sl
-          ! snal0= new snow albedo for vis rad, sol zen le 6
-          ! snal1= new snow albedo for long-wave rad
-          dfalbs = snal0*(d_one-cons*age)
-          ! czf corrects albedo of new snow for solar zenith
-          cf1 = ((d_one+sli)/(d_one+sl2*czeta)-sli)
-          cff = dmax1(cf1,d_zero)
-          czf = 0.4D0*cff*(d_one-dfalbs)
-          dralbs = dfalbs + czf
-          dfalbl = snal1*(d_one-conn*age)
-          czf = 0.4D0*cff*(d_one-dfalbl)
-          dralbl = dfalbl + czf
-          if ( lncl(i) > 0.001D0 ) then
-            ! effective albedo over vegetation with snow
-            albl = (d_one-wt(i))*albl + dralbl*wt(i)
-            albld = (d_one-wt(i))*albld + dfalbl*wt(i)
-            albs = (d_one-wt(i))*albs + dralbs*wt(i)
-            albsd = (d_one-wt(i))*albsd + dfalbs*wt(i)
-          end if
-          !----------------------------------------------------------------
-          !         4.1  compute albedo for snow on bare ground
-          !----------------------------------------------------------------
-          albgs = (d_one-scvk(i))*albgs + dralbs*scvk(i)
-          albgl = (d_one-scvk(i))*albgl + dralbl*scvk(i)
-          albgsd = (d_one-scvk(i))*albgsd + dfalbs*scvk(i)
-          albgld = (d_one-scvk(i))*albgld + dfalbl*scvk(i)
+      if ( sncv(i) > d_zero ) then
+        ! Snow albedo depends on snow-age, zenith angle, and thickness
+        ! of snow. snow albedoes for visible and ir solar rad visible
+        ! albedo depends on snow age
+        ! age gives reduction of visible rad snow albedo due to age
+        cons = 0.2D0
+        conn = 0.5D0
+        age = (d_one-d_one/(d_one+snag(i)))
+        ! sl helps control albedo zenith dependence
+        sl = d_two
+        sli = d_one/sl
+        sl2 = d_two*sl
+        ! snal0= new snow albedo for vis rad, sol zen le 6
+        ! snal1= new snow albedo for long-wave rad
+        dfalbs = snal0*(d_one-cons*age)
+        ! czf corrects albedo of new snow for solar zenith
+        cf1 = ((d_one+sli)/(d_one+sl2*czeta)-sli)
+        cff = dmax1(cf1,d_zero)
+        czf = 0.4D0*cff*(d_one-dfalbs)
+        dralbs = dfalbs + czf
+        dfalbl = snal1*(d_one-conn*age)
+        czf = 0.4D0*cff*(d_one-dfalbl)
+        dralbl = dfalbl + czf
+        if ( lncl(i) > 0.001D0 ) then
+          ! effective albedo over vegetation with snow
+          albl = (d_one-wt(i))*albl + dralbl*wt(i)
+          albld = (d_one-wt(i))*albld + dfalbl*wt(i)
+          albs = (d_one-wt(i))*albs + dralbs*wt(i)
+          albsd = (d_one-wt(i))*albsd + dfalbs*wt(i)
         end if
+        !----------------------------------------------------------------
+        !         4.1  compute albedo for snow on bare ground
+        !----------------------------------------------------------------
+        albgs = (d_one-scvk(i))*albgs + dralbs*scvk(i)
+        albgl = (d_one-scvk(i))*albgl + dralbl*scvk(i)
+        albgsd = (d_one-scvk(i))*albgsd + dfalbs*scvk(i)
+        albgld = (d_one-scvk(i))*albgld + dfalbl*scvk(i)
       end if
       !
       ! not part of albedo in the ccm

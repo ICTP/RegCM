@@ -388,7 +388,7 @@ module mod_bdycod
     integer(ik4) :: i , j , k , n , datefound
     character(len=32) :: appdat
     logical :: update_slabocn
-    real(rk8) :: sfice_temp
+    real(rk8) :: sfice_temp , ocnpct
     type (rcm_time_interval) :: tdif
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyin'
@@ -511,9 +511,10 @@ module mod_bdycod
           if ( iswater(mddom%lndcat(j,i)) ) then
             if ( mddom%ldmsk(j,i) == 0 ) then
               if ( idcsst == 1 ) then
-                sst(j,i) = ts1(j,i)
-                sfs%tga(j,i) = sst(j,i) + dtskin(j,i)
-                sfs%tgb(j,i) = sst(j,i) + dtskin(j,i)
+                ocnpct = dble(count(mdsub%ldmsk(:,j,i)==0))/dble(nnsg)
+                lms%sst(:,j,i) = ts1(j,i)
+                sfs%tga(j,i) = ts1(j,i) + sum(lms%dtskin(:,j,i),1)*ocnpct
+                sfs%tgb(j,i) = ts1(j,i) + sum(lms%dtskin(:,j,i),1)*ocnpct
               else
                 ! Update temperature where NO ice
                 sfs%tga(j,i) = ts1(j,i)
@@ -530,7 +531,6 @@ module mod_bdycod
                 sfs%tgb(j,i) = sfice_temp
                 ts1(j,i) = icetemp
                 mddom%ldmsk(j,i) = 2
-                if ( iemiss == 1 ) emiss(j,i) = 0.97D0
                 do n = 1, nnsg
                   mdsub%ldmsk(n,j,i) = 2
                   lms%sfice(n,j,i) = d_10
@@ -542,7 +542,6 @@ module mod_bdycod
                 do n = 1, nnsg
                   lms%sfice(n,j,i) = lms%sfice(n,j,i)*d_r10
                 end do
-                if ( iemiss == 1 ) emiss(j,i) = 0.995D0
               end if
             end if
           end if

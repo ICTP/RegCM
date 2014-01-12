@@ -21,13 +21,13 @@ module mod_lm_interface
 !
 ! Link surface and atmospheric models
 !
-  use mod_bats_common
   use mod_runparams
   use mod_memutil
   use mod_regcm_types
-  use mod_bats_mtrxbats
   use mod_outvars
   use mod_mppparam
+  use mod_mpmessage
+  use mod_service
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
@@ -39,68 +39,36 @@ module mod_lm_interface
   use spmdMod , only : mpicom
   use perf_mod , only : t_prf , t_finalizef
 #else
-  use mod_bats_bndry
-  use mod_bats_co2
-  use mod_bats_drag
-  use mod_bats_lake
-  use mod_bats_leaftemp
-  use mod_bats_zengocn
+  use mod_bats_common
 #endif
+  use mod_ocn_common
 
   implicit none
 
   private
 
+  ! Coupling variables
+  real(rk8) , public :: runoffcount = 0.0D0
   public :: lms
 
   public :: dtbat
-  public :: dtlake
-  public :: fdaysrf
-  public :: cplmsk
 
-  public :: sfracb2d
-  public :: sfracs2d
-  public :: sfracv2d
-  public :: ssw2da
-  public :: svegfrac2d
-
-  public :: sst
-  public :: dtskin
-  public :: deltas
-  public :: tdeltas
-  public :: locnmsk1
-  public :: llndmsk1
+  public :: ocncomm , lndcomm
 
   public :: import_data_into_surface
   public :: export_data_from_surface
 
-#ifndef CLM
-  public :: var_aveice
-  public :: var_eta
-  public :: var_hi
-  public :: var_hsnow
-  public :: var_tlak
-  public :: tlake
-  public :: xlake
-  public :: llakmsk1
-  public :: lakmsk1
-  public :: allocate_mod_bats_lake
-  public :: lake_fillvar
-#endif
-
-  public :: allocate_land_model
-  public :: land_albedo
-  public :: land_model
-  public :: init_land_model
-  public :: initbats
-  public :: mtrxbats
+  public :: allocate_surface_model
+  public :: surface_albedo
+  public :: surface_model
+  public :: init_surface_model
+  public :: initialize_surface_model
 #ifdef CLM
   public :: voc_em
   public :: voc_em1
   public :: voc_em2
   public :: dep_vels
   public :: initclm
-  public :: mtrxclm
   public :: zenit_clm
   public :: get_step_size
   public :: filer_rest
@@ -115,33 +83,22 @@ module mod_lm_interface
   public :: t_finalizef
 #endif
 
+  type(lm_exchange) :: lm
+  type(lm_state) :: lms
+
   contains
 
-  subroutine allocate_land_model
+  subroutine allocate_surface_model
     implicit none
 
-    rrnnsg = 1.0/real(nnsg)
     rdnnsg = d_one/dble(nnsg)
-
-    call allocate_mod_bats_internal
-
-    if ( iocncpl == 1 ) then
-      call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'bats:cplmsk')
-      cplmsk(:,:) = 0 
-      ! This is for the RTM component
-      call getmem3d(dailyrnf,jci1,jci2,ici1,ici2,1,2,'bats:dailyrnf')
-    end if
-    if ( ichem == 1 ) then
-      call getmem2d(ssw2da,jci1,jci2,ici1,ici2,'bats:ssw2da')
-      call getmem2d(sfracv2d,jci1,jci2,ici1,ici2,'bats:sfracv2d')
-      call getmem2d(sfracb2d,jci1,jci2,ici1,ici2,'bats:sfracb2d')
-      call getmem2d(sfracs2d,jci1,jci2,ici1,ici2,'bats:sfracs2d')
-      call getmem2d(svegfrac2d,jci1,jci2,ici1,ici2,'bats:svegfrac2d')
-    end if
 
     call getmem3d(lms%sent,1,nnsg,jci1,jci2,ici1,ici2,'bats:sent')
     call getmem3d(lms%evpr,1,nnsg,jci1,jci2,ici1,ici2,'bats:evpr')
+    call getmem3d(lms%deltat,1,nnsg,jci1,jci2,ici1,ici2,'bats:deltat')
+    call getmem3d(lms%deltaq,1,nnsg,jci1,jci2,ici1,ici2,'bats:deltaq')
     call getmem3d(lms%drag,1,nnsg,jci1,jci2,ici1,ici2,'bats:drag')
+    call getmem3d(lms%lncl,1,nnsg,jci1,jci2,ici1,ici2,'bats:lncl')
     call getmem3d(lms%prcp,1,nnsg,jci1,jci2,ici1,ici2,'bats:prcp')
     call getmem3d(lms%snwm,1,nnsg,jci1,jci2,ici1,ici2,'bats:snwm')
     call getmem3d(lms%trnof,1,nnsg,jci1,jci2,ici1,ici2,'bats:trnof')
@@ -153,37 +110,30 @@ module mod_lm_interface
     call getmem3d(lms%v10m,1,nnsg,jci1,jci2,ici1,ici2,'bats:v10m')
     call getmem3d(lms%taux,1,nnsg,jci1,jci2,ici1,ici2,'bats:taux')
     call getmem3d(lms%tauy,1,nnsg,jci1,jci2,ici1,ici2,'bats:tauy')
+    call getmem3d(lms%wt,1,nnsg,jci1,jci2,ici1,ici2,'bats:wt')
+    call getmem3d(lms%swalb,1,nnsg,jci1,jci2,ici1,ici2,'bats:swalb')
+    call getmem3d(lms%lwalb,1,nnsg,jci1,jci2,ici1,ici2,'bats:lwalb')
+    call getmem3d(lms%swdiralb,1,nnsg,jci1,jci2,ici1,ici2,'bats:swdiralb')
+    call getmem3d(lms%lwdiralb,1,nnsg,jci1,jci2,ici1,ici2,'bats:lwdiralb')
+    call getmem3d(lms%swdifalb,1,nnsg,jci1,jci2,ici1,ici2,'bats:swdifalb')
+    call getmem3d(lms%lwdifalb,1,nnsg,jci1,jci2,ici1,ici2,'bats:lwdifalb')
 
     call getmem3d(lms%gwet,1,nnsg,jci1,jci2,ici1,ici2,'bats:gwet')
     call getmem3d(lms%ldew,1,nnsg,jci1,jci2,ici1,ici2,'bats:ldew')
     call getmem3d(lms%ssw,1,nnsg,jci1,jci2,ici1,ici2,'bats:ssw')
     call getmem3d(lms%rsw,1,nnsg,jci1,jci2,ici1,ici2,'bats:rsw')
     call getmem3d(lms%tsw,1,nnsg,jci1,jci2,ici1,ici2,'bats:tsw')
+    call getmem3d(lms%tgbb,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgbb')
     call getmem3d(lms%tgrd,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgrd')
     call getmem3d(lms%tgbrd,1,nnsg,jci1,jci2,ici1,ici2,'bats:tgbrd')
     call getmem3d(lms%tlef,1,nnsg,jci1,jci2,ici1,ici2,'bats:tlef')
     call getmem3d(lms%taf,1,nnsg,jci1,jci2,ici1,ici2,'bats:taf')
+    call getmem3d(lms%sigf,1,nnsg,jci1,jci2,ici1,ici2,'bats:sigf')
     call getmem3d(lms%sfice,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfice')
     call getmem3d(lms%snag,1,nnsg,jci1,jci2,ici1,ici2,'bats:snag')
     call getmem3d(lms%sncv,1,nnsg,jci1,jci2,ici1,ici2,'bats:sncv')
+    call getmem3d(lms%scvk,1,nnsg,jci1,jci2,ici1,ici2,'bats:scvk')
     call getmem3d(lms%emisv,1,nnsg,jci1,jci2,ici1,ici2,'bats:emisv')
-
-    if (idcsst == 1) then
-      call getmem2d(deltas,jci1,jci2,ici1,ici2,'bats:deltas')
-      call getmem2d(tdeltas,jci1,jci2,ici1,ici2,'bats:tdeltas')
-      call getmem2d(dtskin,jci1,jci2,ici1,ici2,'bats:dtskin')
-      call getmem2d(sst,jci1,jci2,ici1,ici2,'bats:sst')
-    end if
-
-    call getmem3d(llndmsk1,1,nnsg,jci1,jci2,ici1,ici2,'bats:llndmsk1')
-    call getmem3d(locnmsk1,1,nnsg,jci1,jci2,ici1,ici2,'bats:locnmsk1')
-
-    if ( lakemod == 1 ) then
-      call getmem3d(lakmsk1,1,nnsg,jci1,jci2,ici1,ici2,'bats:lakmsk1')
-      call getmem3d(llakmsk1,1,nnsg,jci1,jci2,ici1,ici2,'bats:llakmsk1')
-      call getmem3d(xlake,1,nnsg,jci1,jci2,ici1,ici2,'bats:xlake')
-      call getmem4d(tlake,1,nnsg,jci1,jci2,ici1,ici2,1,ndpmax,'bats:tlake')
-    end if
 
 #ifdef CLM
     call getmem2d(r2ctb,1,jxp,1,iyp,'clm:r2ctb')
@@ -262,78 +212,113 @@ module mod_lm_interface
     call getmem1d(c2rdisps,1,nproc,'clm:c2rdisps')
     call getmem2d(rs2d,jci1,jci2,ici1,ici2,'clm:rs2d')
     call getmem2d(ra2d,jci1,jci2,ici1,ici2,'clm:ra2d')
+#else
+    if ( lakemod == 1 ) then
+      call getmem3d(lms%eta,1,nnsg,jci1,jci2,ici1,ici2,'lake:eta')
+      call getmem3d(lms%hi,1,nnsg,jci1,jci2,ici1,ici2,'lake:hi')
+      call getmem3d(lms%lakmsk,1,nnsg,jci1,jci2,ici1,ici2,'lake:lakmsk')
+      call getmem4d(lms%tlake,1,nnsg,jci1,jci2,ici1,ici2,1,ndpmax,'lake:tlake')
+    end if
 #endif
-  end subroutine allocate_land_model
+    if ( idcsst == 1 ) then
+      call getmem3d(lms%deltas,1,nnsg,jci1,jci2,ici1,ici2,'sst:deltas')
+      call getmem3d(lms%tdeltas,1,nnsg,jci1,jci2,ici1,ici2,'sst:tdeltas')
+      call getmem3d(lms%dtskin,1,nnsg,jci1,jci2,ici1,ici2,'sst:dtskin')
+      call getmem3d(lms%sst,1,nnsg,jci1,jci2,ici1,ici2,'sst:sst')
+    end if
+  end subroutine allocate_surface_model
 
-  subroutine init_land_model
+  subroutine init_surface_model
     use mod_atm_interface
     use mod_che_interface
     implicit none
+
+    call cl_setup(lndcomm,mddom%mask,mdsub%mask)
+    call cl_setup(ocncomm,mddom%mask,mdsub%mask,.true.)
+
+#ifdef DEBUG
+    write(ndebug+myid,*) 'TOTAL POINTS FOR LAND  IN LNDCOMM : ', &
+      lndcomm%linear_npoint_sg(myid+1)
+    write(ndebug+myid,*) 'TOTAL POINTS FOR OCEAN IN OCNCOMM : ', &
+      ocncomm%linear_npoint_sg(myid+1)
+#endif
+
+    call allocate_mod_bats_internal(lndcomm)
+    call allocate_mod_ocn_internal(ocncomm)
+
     ntcpl  = idnint(cpldt/dtsec)
-    ntsrf2 = idnint(dtsrf/dtsec)
     if ( idcsst   == 1 ) ldcsst    = .true.
     if ( lakemod  == 1 ) llake     = .true.
     if ( idesseas == 1 ) ldesseas  = .true.
     if ( iseaice  == 1 ) lseaice   = .true.
-    call assignpnt(mddom%xlat,xlat)
-    call assignpnt(mddom%xlon,xlon)
-    call assignpnt(mddom%lndcat,lndcat)
-    call assignpnt(mddom%ldmsk,ldmsk)
-    call assignpnt(mddom%iveg,iveg)
-    call assignpnt(mddom%ht,ht)
-    call assignpnt(mddom%snowam,snowam)
-    call assignpnt(mdsub%xlat,xlat1)
-    call assignpnt(mdsub%xlon,xlon1)
-    call assignpnt(mdsub%lndcat,lndcat1)
-    call assignpnt(mdsub%ldmsk,ldmsk1)
-    call assignpnt(mdsub%ht,ht1)
-    call assignpnt(mdsub%dhlake,dhlake1)
-    call assignpnt(mdsub%iveg,iveg1)
-    call assignpnt(atms%ubx3d,uatm,kz)
-    call assignpnt(atms%vbx3d,vatm,kz)
-    call assignpnt(atms%tb3d,tatm,kz)
-    call assignpnt(atms%qxb3d,qvatm,kz,iqv)
-    call assignpnt(atms%thx3d,thatm,kz)
-    call assignpnt(atms%rhox2d,rhox)
-    call assignpnt(atms%za,hgt,kz)
-    call assignpnt(sfs%hfx,hfx)
-    call assignpnt(sfs%qfx,qfx)
-    call assignpnt(sfs%uvdrag,uvdrag)
-    call assignpnt(sfs%tgbb,tgbb)
-    call assignpnt(sfs%psb,sfps)
-    call assignpnt(sfs%tga,tground1)
-    call assignpnt(sfs%tgb,tground2)
-    call assignpnt(zpbl,hpbl)
-    call assignpnt(pptc,cprate)
-    call assignpnt(pptnc,ncprate)
-    call assignpnt(coszrs,zencos)
-    call assignpnt(fsw,rswf)
-    call assignpnt(flw,rlwf)
-    call assignpnt(flwd,dwrlwf)
-    call assignpnt(sabveg,vegswab)
-    call assignpnt(albvl,lwalb)
-    call assignpnt(albvs,swalb)
-    call assignpnt(aldirs,swdiralb)
-    call assignpnt(aldifs,swdifalb)
-    call assignpnt(aldirl,lwdiralb)
-    call assignpnt(aldifl,lwdifalb)
-    call assignpnt(solis,solar)
-    call assignpnt(emiss,emissivity)
-    call assignpnt(sinc,solinc)
-    call assignpnt(solvs,swdir)
-    call assignpnt(solvsd,swdif)
-    call assignpnt(solvl,lwdir)
-    call assignpnt(solvld,lwdif)
-    call assignpnt(sdelq,deltaq)
-    call assignpnt(sdelt,deltat)
+    call assignpnt(mddom%xlat,lm%xlat)
+    call assignpnt(mddom%xlon,lm%xlon)
+    call assignpnt(mddom%lndcat,lm%lndcat)
+    call assignpnt(mddom%ldmsk,lm%ldmsk)
+    call assignpnt(mddom%iveg,lm%iveg)
+    call assignpnt(mddom%ht,lm%ht)
+    call assignpnt(mddom%snowam,lm%snowam)
+    call assignpnt(mdsub%xlat,lm%xlat1)
+    call assignpnt(mdsub%xlon,lm%xlon1)
+    call assignpnt(mdsub%lndcat,lm%lndcat1)
+    call assignpnt(mdsub%ldmsk,lm%ldmsk1)
+    call assignpnt(mdsub%ht,lm%ht1)
+    call assignpnt(mdsub%iveg,lm%iveg1)
+    call assignpnt(mdsub%dhlake,lm%dhlake1)
+    call assignpnt(atms%ubx3d,lm%uatm,kz)
+    call assignpnt(atms%vbx3d,lm%vatm,kz)
+    call assignpnt(atms%tb3d,lm%tatm,kz)
+    call assignpnt(atms%qxb3d,lm%qvatm,kz,iqv)
+    call assignpnt(atms%thx3d,lm%thatm,kz)
+    call assignpnt(atms%rhox2d,lm%rhox)
+    call assignpnt(atms%za,lm%hgt,kz)
+    call assignpnt(sfs%hfx,lm%hfx)
+    call assignpnt(sfs%qfx,lm%qfx)
+    call assignpnt(sfs%uvdrag,lm%uvdrag)
+    call assignpnt(sfs%tgbb,lm%tgbb)
+    call assignpnt(sfs%psb,lm%sfps)
+    call assignpnt(sfs%tga,lm%tground1)
+    call assignpnt(sfs%tgb,lm%tground2)
+    call assignpnt(zpbl,lm%hpbl)
+    call assignpnt(pptc,lm%cprate)
+    call assignpnt(pptnc,lm%ncprate)
+    call assignpnt(coszrs,lm%zencos)
+    call assignpnt(fsw,lm%rswf)
+    call assignpnt(flw,lm%rlwf)
+    call assignpnt(flwd,lm%dwrlwf)
+    call assignpnt(sabveg,lm%vegswab)
+    call assignpnt(albvl,lm%lwalb)
+    call assignpnt(albvs,lm%swalb)
+    call assignpnt(aldirs,lm%swdiralb)
+    call assignpnt(aldifs,lm%swdifalb)
+    call assignpnt(aldirl,lm%lwdiralb)
+    call assignpnt(aldifl,lm%lwdifalb)
+    call assignpnt(solis,lm%solar)
+    call assignpnt(emiss,lm%emissivity)
+    call assignpnt(sinc,lm%solinc)
+    call assignpnt(solvs,lm%swdir)
+    call assignpnt(solvsd,lm%swdif)
+    call assignpnt(solvl,lm%lwdir)
+    call assignpnt(solvld,lm%lwdif)
+    call assignpnt(sdelq,lm%deltaq)
+    call assignpnt(sdelt,lm%deltat)
+    call assignpnt(dailyrnf,lm%dailyrnf)
 #ifdef CLM
     allocate(landmask(jx,iy))
     call assignpnt(landmask,lmask)
 #endif
-  end subroutine init_land_model
+  end subroutine init_surface_model
 
-  subroutine land_model
+  subroutine initialize_surface_model
     implicit none
+    call initbats(lm,lms)
+    call initocn(lm,lms)
+    lm%emissivity = sum(lms%emisv,1) * rdnnsg
+  end subroutine initialize_surface_model
+
+  subroutine surface_model
+    implicit none
+    integer(ik4) :: i , j , n , ierr , i1 , i2
 #ifdef CLM
     if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
       r2cdoalb = .true.
@@ -346,21 +331,81 @@ module mod_lm_interface
     else
       r2cnstep = (ktau+1)/ntsrf
     end if
-    call mtrxclm
+    call mtrxclm(lm,lms)
 #else
-    call mtrxbats
+    call vecbats(lm,lms)
 #endif
+    call vecocn(lm,lms)
+    lm%hfx = sum(lms%sent,1)*rdnnsg 
+    lm%qfx = sum(lms%evpr,1)*rdnnsg 
+    lm%uvdrag = sum(lms%drag,1)*rdnnsg 
+    lm%tgbb = sum(lms%tgbb,1)*rdnnsg 
+    lm%tground1 = sum(lms%tgrd,1)*rdnnsg
+    lm%tground2 = sum(lms%tgrd,1)*rdnnsg
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( lm%ldmsk(j,i) /= 1 ) then
+          i1 = count(lm%ldmsk1(:,j,i) == 0)
+          i2 = count(lm%ldmsk1(:,j,i) == 2)
+          if ( i1 > i2 ) then
+            lm%ldmsk(j,i) = 0
+          else
+            lm%ldmsk(j,i) = 2
+          end if
+        end if
+      end do
+    end do
+    if ( ichem == 1 ) then
+      lm%deltat = sum(lms%deltat,1)*rdnnsg
+      lm%deltaq = sum(lms%deltaq,1)*rdnnsg
+      lm%sfracv2d = sum(lms%sigf,1)*rdnnsg
+      lm%svegfrac2d = sum(lms%lncl,1)*rdnnsg
+      lm%sfracb2d = sum(((d_one-lms%lncl)*(d_one-lms%scvk)),1)*rdnnsg
+      lm%sfracs2d = sum((lms%lncl*lms%wt+(d_one-lms%lncl)*lms%scvk),1)*rdnnsg
+      lm%ssw2da = sum(lms%ssw,1)*rdnnsg
+    end if
+    if ( iemiss == 1 ) then
+      lm%emissivity = sum(lms%emisv,1) * rdnnsg
+    end if
     call collect_output
-  end subroutine land_model
+#ifdef DEBUG
+    ! Sanity check of surface temperatures
+    ierr = 0
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          if ( lms%tgrd(n,j,i) < 150.0D0 ) then
+            write(stderr,*) 'Likely error: Surface temperature too low'
+            write(stderr,*) 'J    = ',global_dot_jstart+j
+            write(stderr,*) 'I    = ',global_dot_istart+i
+            write(stderr,*) 'MASK = ',lm%ldmsk1(n,j,i)
+            write(stderr,*) 'VAL  = ',lms%tgrd(n,j,i)
+            ierr = ierr + 1
+          end if
+        end do
+      end do
+    end do
+    if ( ierr /= 0 ) then
+      call fatal(__FILE__,__LINE__,'TEMP CHECK ERROR')
+    end if
+#endif
+  end subroutine surface_model
 
-  subroutine land_albedo
+  subroutine surface_albedo
     implicit none
 #ifdef CLM
     call albedoclm
 #else
-    call albedobats
+    call albedobats(lm,lms)
 #endif
-  end subroutine land_albedo
+    call albedoocn(lm,lms)
+    lm%swalb = sum(lms%swalb,1)*rdnnsg
+    lm%lwalb = sum(lms%lwalb,1)*rdnnsg
+    lm%swdiralb = sum(lms%swdiralb,1)*rdnnsg 
+    lm%lwdiralb = sum(lms%lwdiralb,1)*rdnnsg 
+    lm%swdifalb = sum(lms%swdifalb,1)*rdnnsg 
+    lm%lwdifalb = sum(lms%lwdifalb,1)*rdnnsg 
+  end subroutine surface_albedo
 
   subroutine export_data_from_surface(expfie)
     implicit none
@@ -368,12 +413,12 @@ module mod_lm_interface
     integer(ik4) :: j , i
     do i = ici1 , ici2
       do j = jci1 , jci2
-        expfie%psfc(j,i) = (sfps(j,i)+ptop)*d_10
+        expfie%psfc(j,i) = (lm%sfps(j,i)+ptop)*d_10
         expfie%tsfc(j,i) = sum(lms%t2m(:,j,i))*rdnnsg
         expfie%qsfc(j,i) = sum(lms%q2m(:,j,i))*rdnnsg
-        expfie%swrd(j,i) = rswf(j,i)
-        expfie%swrd(j,i) = rlwf(j,i)
-        expfie%dlwr(j,i) = dwrlwf(j,i)
+        expfie%swrd(j,i) = lm%rswf(j,i)
+        expfie%swrd(j,i) = lm%rlwf(j,i)
+        expfie%dlwr(j,i) = lm%dwrlwf(j,i)
         expfie%lhfx(j,i) = sum(lms%evpr(:,j,i))*rdnnsg*wlhv
         expfie%shfx(j,i) = sum(lms%sent(:,j,i))*rdnnsg
         expfie%prec(j,i) = sum(lms%prcp(:,j,i))*rdnnsg
@@ -383,15 +428,15 @@ module mod_lm_interface
         expfie%tauy(j,i) = sum(lms%tauy(:,j,i))*rdnnsg
         expfie%sflx(j,i) = (sum(lms%evpr(:,j,i))-sum(lms%prcp(:,j,i)))*rdnnsg
         expfie%snow(j,i) = sum(lms%sncv(:,j,i))*rdnnsg
-        expfie%dswr(j,i) = swdif(j,i)+swdir(j,i)
+        expfie%dswr(j,i) = lm%swdif(j,i)+lm%swdir(j,i)
       end do
     end do
     expfie%wspd = dsqrt(expfie%wndu**2+expfie%wndv**2)
-    expfie%nflx = rswf - expfie%lhfx - expfie%shfx - rlwf
+    expfie%nflx = lm%rswf - expfie%lhfx - expfie%shfx - lm%rlwf
     if ( mod(ktau+1,kday) == 0 ) then
-      where ( ldmsk > 0 )
-        expfie%rnof = dailyrnf(:,:,1)/runoffcount
-        expfie%snof = dailyrnf(:,:,2)/runoffcount
+      where ( lm%ldmsk > 0 )
+        expfie%rnof = lm%dailyrnf(:,:,1)/runoffcount
+        expfie%snof = lm%dailyrnf(:,:,2)/runoffcount
       else where
         expfie%rnof = d_zero
         expfie%snof = d_zero
@@ -400,6 +445,7 @@ module mod_lm_interface
   end subroutine export_data_from_surface
 !
   subroutine import_data_into_surface(impfie,ldmskb,wetdry,tol)
+    use mod_atm_interface
     implicit none
     type(imp_data) , intent(in) :: impfie
     real(rk8) , intent(in) :: tol
@@ -420,7 +466,7 @@ module mod_lm_interface
       ii = global_cross_istart + i - 1
       do j = jci1, jci2
         jj = global_cross_jstart + j - 1
-        if ( iveg(j,i) == 14 .or. iveg(j,i) == 15 ) then
+        if ( lm%iveg(j,i) == 14 .or. lm%iveg(j,i) == 15 ) then
           !
           !--------------------------------------
           ! Update: Sea Surface Temperature (SST)
@@ -431,9 +477,9 @@ module mod_lm_interface
             if ( mod(ktau+1, ntcpl*2) == 0 ) then
               cplmsk(j,i) = 1
             end if
-            tground1(j,i) = impfie%sst(j,i)
-            tground2(j,i) = impfie%sst(j,i)
-            tgbb(j,i)     = impfie%sst(j,i)
+            lm%tground1(j,i) = impfie%sst(j,i)
+            lm%tground2(j,i) = impfie%sst(j,i)
+            lm%tgbb(j,i)     = impfie%sst(j,i)
             lms%tgrd(:,j,i)  = impfie%sst(j,i)
             lms%tgbrd(:,j,i)  = impfie%sst(j,i)
           end if
@@ -445,12 +491,12 @@ module mod_lm_interface
 !         if (importFields%msk(j,i) .lt. tol .and. ldmskb(j,i) == 0) then
 !           if (importFields%msk(j,i) .lt. 1.0) then
 !             flag = .false.
-!             if (ldmsk(j,i) == 0 .or. &
-!                 ldmsk(j,i) == 2) flag = .true.
+!             if (lm%ldmsk(j,i) == 0 .or. &
+!                 lm%ldmsk(j,i) == 2) flag = .true.
 !             ! set land-sea mask
-!             ldmsk(j,i) = 1
+!             lm%ldmsk(j,i) = 1
 !             do n = 1, nnsg
-!               ldmsk1(n,j,i) = ldmsk(j,i)
+!               lm%ldmsk1(n,j,i) = lm%ldmsk(j,i)
 !             end do
 !             ! count land-use type in a specified search radius (srad)
 !             srad = 10
@@ -476,22 +522,22 @@ module mod_lm_interface
 !             wetdry(j,i) = 1
 !             ! write debug info
 !             if (flag) then
-!               write(*,20) jj, ii, 'water', 'land ', ldmsk(j,i)
+!               write(*,20) jj, ii, 'water', 'land ', lm%ldmsk(j,i)
 !             end if
 !           else
-!             if (ldmsk(j,i) == 1 .and. wetdry(j,i) == 1) then
+!             if (lm%ldmsk(j,i) == 1 .and. wetdry(j,i) == 1) then
 !               flag = .false.
-!               if (ldmskb(j,i) /= ldmsk(j,i)) flag = .true.
+!               if (lm%ldmskb(j,i) /= lm%ldmsk(j,i)) flag = .true.
 !               ! set land-sea mask to its original value
-!               ldmsk(j,i) = ldmskb(j,i)             
+!               lm%ldmsk(j,i) = ldmskb(j,i)             
 !               do n = 1, nnsg
-!                 ldmsk1(n,j,i) = ldmsk(j,i)
+!                 lm%ldmsk1(n,j,i) = lm%ldmsk(j,i)
 !               end do
 !               ! set array to store change
 !               wetdry(j,i) = 0
 !               ! write debug info
 !               if (flag) then
-!                 write(*,20) jj, ii, 'land ', 'water', ldmsk(j,i)
+!                 write(*,20) jj, ii, 'land ', 'water', lm%ldmsk(j,i)
 !               end if
 !             end if
 !           end if
@@ -501,32 +547,32 @@ module mod_lm_interface
           ! Update: Sea-ice, mask and land-use type (based on sea-ice module) 
           !------------------------------------------------------------------
           ! 
-          if ( impfie%sit(j,i) < tol .and. ldmsk(j,i) /= 1 ) then
+          if ( impfie%sit(j,i) < tol .and. lm%ldmsk(j,i) /= 1 ) then
             if ( impfie%sit(j,i) > iceminh ) then
               flag = .false.
-              if ( ldmsk(j,i) == 0 ) flag = .true.
+              if ( lm%ldmsk(j,i) == 0 ) flag = .true.
               ! set land-sea mask
-              ldmsk(j,i) = 2
+              lm%ldmsk(j,i) = 2
               do n = 1, nnsg
-                ldmsk1(n,j,i) = 2
+                lm%ldmsk1(n,j,i) = 2
                 ! set sea ice thikness (in mm)
                 lms%sfice(n,j,i) = impfie%sit(j,i) 
               end do
               ! write debug info
               if ( flag ) then
                 write(*,30) jj, ii, 'water', 'ice  ', &
-                   ldmsk(j,i), lms%sfice(1,j,i)
+                   lm%ldmsk(j,i), lms%sfice(1,j,i)
               end if
             else
-              if ( ldmskb(j,i) == 0 .and. ldmsk(j,i) == 2 ) then
+              if ( ldmskb(j,i) == 0 .and. lm%ldmsk(j,i) == 2 ) then
                 ! reduce to one tenth surface ice: it should melt away
                 do n = 1, nnsg
                   ! check that sea ice is melted or not
                   if ( lms%sfice(n,j,i) <= iceminh ) then
-                    if ( ldmskb(j,i) /= ldmsk(j,i) ) flag = .true.
+                    if ( ldmskb(j,i) /= lm%ldmsk(j,i) ) flag = .true.
                     ! set land-sea mask to its original value
-                    ldmsk(j,i) = ldmskb(j,i)
-                    ldmsk1(n,j,i) = ldmskb(j,i)
+                    lm%ldmsk(j,i) = ldmskb(j,i)
+                    lm%ldmsk1(n,j,i) = ldmskb(j,i)
                     ! set land-use type to its original value
                     ! set sea ice thikness (in mm)
                     lms%sfice(n,j,i) = d_zero 
@@ -537,7 +583,7 @@ module mod_lm_interface
                 ! write debug info
                 if ( flag ) then
                   write(*,40) jj, ii, 'ice  ', 'water',  &
-                    ldmsk(j,i), lms%sfice(1,j,i)
+                    lm%ldmsk(j,i), lms%sfice(1,j,i)
                 end if
               end if
             end if
@@ -560,6 +606,7 @@ module mod_lm_interface
 
   subroutine collect_output
     implicit none
+    integer(ik4) :: k
 
     ! Fill accumulators
 
@@ -576,13 +623,13 @@ module mod_lm_interface
         if ( associated(srf_tpr_out) ) &
           srf_tpr_out = srf_tpr_out + lms%prcp(1,:,:)
         if ( associated(srf_prcv_out) ) &
-          srf_prcv_out = srf_prcv_out + cprate
+          srf_prcv_out = srf_prcv_out + lm%cprate
         if ( associated(srf_zpbl_out) ) &
-          srf_zpbl_out = srf_zpbl_out + hpbl
+          srf_zpbl_out = srf_zpbl_out + lm%hpbl
         if ( associated(srf_scv_out) ) &
           srf_scv_out = srf_scv_out + sum(lms%sncv,1)*rdnnsg
         if ( associated(srf_sund_out) ) then
-          where( rswf > 120.0D0 )
+          where( lm%rswf > 120.0D0 )
             srf_sund_out = srf_sund_out + dtbat
           end where
         end if
@@ -594,13 +641,13 @@ module mod_lm_interface
           srf_sena_out = srf_sena_out + sum(lms%sent,1)*rdnnsg
         end if
         if ( associated(srf_flw_out) ) &
-          srf_flw_out = srf_flw_out + rlwf
+          srf_flw_out = srf_flw_out + lm%rlwf
         if ( associated(srf_fsw_out) ) &
-          srf_fsw_out = srf_fsw_out + rswf
+          srf_fsw_out = srf_fsw_out + lm%rswf
         if ( associated(srf_fld_out) ) &
-          srf_fld_out = srf_fld_out + dwrlwf
+          srf_fld_out = srf_fld_out + lm%dwrlwf
         if ( associated(srf_sina_out) ) &
-          srf_sina_out = srf_sina_out + solinc
+          srf_sina_out = srf_sina_out + lm%solinc
         if ( associated(srf_snowmelt_out) ) &
           srf_snowmelt_out = srf_snowmelt_out + sum(lms%snwm,1)*rdnnsg
       end if
@@ -609,12 +656,12 @@ module mod_lm_interface
         if ( associated(sub_evp_out) ) &
           call reorder_add_subgrid(lms%evpr,sub_evp_out)
         if ( associated(sub_scv_out) ) &
-          call reorder_add_subgrid(lms%sncv,sub_scv_out,mask=ldmsk1)
+          call reorder_add_subgrid(lms%sncv,sub_scv_out,mask=lm%ldmsk1)
         if ( associated(sub_sena_out) ) &
           call reorder_add_subgrid(lms%sent,sub_sena_out)
         if ( associated(sub_runoff_out) ) then
-          call reorder_add_subgrid(lms%srnof,sub_runoff_out,1,ldmsk1)
-          call reorder_add_subgrid(lms%trnof,sub_runoff_out,2,ldmsk1)
+          call reorder_add_subgrid(lms%srnof,sub_runoff_out,1,lm%ldmsk1)
+          call reorder_add_subgrid(lms%trnof,sub_runoff_out,2,lm%ldmsk1)
         end if
       end if
       if ( ifsts ) then
@@ -637,9 +684,9 @@ module mod_lm_interface
           sts_pcpavg_out = sts_pcpavg_out + lms%prcp(1,:,:)
         if ( associated(sts_psmin_out) ) &
           sts_psmin_out = min(sts_psmin_out, &
-            (sfps(jci1:jci2,ici1:ici2)+ptop)*d_10)
+            (lm%sfps(jci1:jci2,ici1:ici2)+ptop)*d_10)
         if ( associated(sts_sund_out) ) then
-          where( rswf > 120.0D0 )
+          where( lm%rswf > 120.0D0 )
             sts_sund_out = sts_sund_out + dtbat
           end where
         end if
@@ -656,19 +703,15 @@ module mod_lm_interface
         if ( associated(lak_sena_out) ) &
           lak_sena_out = lak_sena_out + sum(lms%sent,1)*rdnnsg
         if ( associated(lak_flw_out) ) &
-          lak_flw_out = lak_flw_out + rlwf
+          lak_flw_out = lak_flw_out + lm%rlwf
         if ( associated(lak_fsw_out) ) &
-          lak_fsw_out = lak_fsw_out + rswf
+          lak_fsw_out = lak_fsw_out + lm%rswf
         if ( associated(lak_fld_out) ) &
-          lak_fld_out = lak_fld_out + dwrlwf
+          lak_fld_out = lak_fld_out + lm%dwrlwf
         if ( associated(lak_sina_out) ) &
-          lak_sina_out = lak_sina_out + solinc
+          lak_sina_out = lak_sina_out + lm%solinc
         if ( associated(lak_evp_out) ) &
           lak_evp_out = lak_evp_out + sum(lms%evpr,1)*rdnnsg
-        if ( associated(lak_aveice_out) ) then
-          lak_aveice_out = lak_aveice_out + &
-            sum(lms%sfice*lakmsk1,1)*rdnnsg*d_r1000
-        end if
       end if
     end if
 
@@ -680,18 +723,18 @@ module mod_lm_interface
         if ( associated(srf_uvdrag_out) ) &
           srf_uvdrag_out = sum(lms%drag,1)*rdnnsg
         if ( associated(srf_tg_out) ) &
-          srf_tg_out = tground1
+          srf_tg_out = lm%tground1
         if ( associated(srf_tlef_out) ) then
-          where ( ldmsk > 0 )
+          where ( lm%ldmsk > 0 )
             srf_tlef_out = sum(lms%tlef,1)*rdnnsg
           elsewhere
             srf_tlef_out = dmissval
           end where
         end if
         if ( associated(srf_aldirs_out) ) &
-          srf_aldirs_out = swdiralb
+          srf_aldirs_out = lm%swdiralb
         if ( associated(srf_aldifs_out) ) &
-          srf_aldifs_out = swdifalb
+          srf_aldifs_out = lm%swdifalb
         if ( associated(srf_seaice_out) ) &
           srf_seaice_out = sum(lms%sfice,1)*rdnnsg*d_r1000
         if ( associated(srf_t2m_out) ) &
@@ -714,16 +757,7 @@ module mod_lm_interface
         if ( associated(sub_tg_out) ) &
           call reorder_subgrid(lms%tgrd,sub_tg_out)
         if ( associated(sub_tlef_out) ) &
-          call reorder_subgrid(lms%tlef,sub_tlef_out,mask=ldmsk1)
-#ifndef CLM
-        if ( llake ) then
-          if ( associated(sub_tlake_out) ) then
-            call lake_fillvar(var_tlak,tlake,0,llakmsk1)
-            call reorder_subgrid(tlake,sub_tlake_out,1)
-            sub_tlake_out = sub_tlake_out + tzero
-          end if
-        end if
-#endif
+          call reorder_subgrid(lms%tlef,sub_tlef_out,mask=lm%ldmsk1)
         if ( associated(sub_u10m_out) ) &
           call reorder_subgrid(lms%u10m,sub_u10m_out)
         if ( associated(sub_v10m_out) ) &
@@ -733,24 +767,23 @@ module mod_lm_interface
         if ( associated(sub_q2m_out) ) &
           call reorder_subgrid(lms%q2m,sub_q2m_out)
         if ( associated(sub_smw_out) ) then
-          call reorder_subgrid(lms%ssw,sub_smw_out,1,ldmsk1)
-          call reorder_subgrid(lms%rsw,sub_smw_out,2,ldmsk1)
+          call reorder_subgrid(lms%ssw,sub_smw_out,1,lm%ldmsk1)
+          call reorder_subgrid(lms%rsw,sub_smw_out,2,lm%ldmsk1)
         end if
       end if
 
 #ifndef CLM
       if ( iflak ) then
         if ( associated(lak_tg_out) ) &
-          lak_tg_out = tground1
+          lak_tg_out = lm%tground1
         if ( associated(lak_aldirs_out) ) &
-          lak_aldirs_out = swdiralb
+          lak_aldirs_out = lm%swdiralb
         if ( associated(lak_aldifs_out) ) &
-          lak_aldifs_out = swdifalb
-        if ( associated(lak_hsnow_out) ) &
-          lak_hsnow_out = sum(lms%sncv*lakmsk1,1)*rdnnsg
+          lak_aldifs_out = lm%swdifalb
         if ( associated(lak_tlake_out) ) then
-          call lake_fillvar(var_tlak,tlake,0,llakmsk1)
-          lak_tlake_out = sum(tlake,1)*rdnnsg+tzero
+          do k = 1 , ndpmax
+            lak_tlake_out(:,:,k) = sum(lms%tlake(:,:,:,k),1,lms%lakmsk)*rdnnsg
+          end do
         end if
       end if
 #endif
@@ -759,15 +792,15 @@ module mod_lm_interface
 
     if ( iocncpl == 1 ) then
       ! Fill for the RTM component
-      dailyrnf(:,:,1) = dailyrnf(:,:,1) + sum(lms%srnof,1)*rdnnsg
-      dailyrnf(:,:,2) = dailyrnf(:,:,2) + &
+      lm%dailyrnf(:,:,1) = lm%dailyrnf(:,:,1) + sum(lms%srnof,1)*rdnnsg
+      lm%dailyrnf(:,:,2) = lm%dailyrnf(:,:,2) + &
         (sum(lms%trnof,1)-sum(lms%srnof,1))*rdnnsg
       runoffcount = runoffcount + d_one
     end if
 
     ! Reset accumulation from precip and cumulus
-    ncprate = d_zero
-    cprate  = d_zero
+    lm%ncprate = d_zero
+    lm%cprate  = d_zero
 
   end subroutine collect_output
 

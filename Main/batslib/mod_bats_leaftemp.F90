@@ -109,12 +109,10 @@ module mod_bats_leaftemp
     ! 1.1  get stress-free stomatal resistance
     !      (1st guess at vapor pressure deficit)
     do i = ilndbeg , ilndend
-      if ( mask(i) /= 0 ) then
-        if ( sigf(i) > 0.001D0 ) then
-          vpdc(i) = d_10
-          sgtg3 = emiss(i)*(sigm*tgrd(i)**3)
-          flneto(i) = d_four*sgtg3*(tlef(i)-tgrd(i))
-        end if
+      if ( sigf(i) > 0.001D0 ) then
+        vpdc(i) = d_10
+        sgtg3 = emiss(i)*(sigm*tgrd(i)**3)
+        flneto(i) = d_four*sgtg3*(tlef(i)-tgrd(i))
       end if
     end do
 
@@ -154,23 +152,21 @@ module mod_bats_leaftemp
       call condch
    
       do i = ilndbeg , ilndend
-        if ( mask(i) /= 0 ) then
-          if ( sigf(i) > 0.001D0 ) then
-            lftra(i) = d_one/(cf(i)*uaf(i))
-            cn1(i) = wtlh(i)*rhs(i)
-            df(i) = cn1(i)*cpd
-            ! 
-            ! 2.2  decrease foliage conductance for stomatal
-            !      resistance
-            rppdry = lftra(i)*fdry(i)/(lftrs(i)+lftra(i))
-            rpp(i) = rppdry + fwet(i)
-            ! 
-            ! 2.3  recalculate saturation vapor pressure
-            !
-            eg1 = eg(i)
-            eg(i) = c1es*dexp(lfta(i)*(tlef(i)-tzero)/(tlef(i)-lftb(i)))
-            qsatl(i) = qsatl(i)*eg(i)/eg1
-          end if
+        if ( sigf(i) > 0.001D0 ) then
+          lftra(i) = d_one/(cf(i)*uaf(i))
+          cn1(i) = wtlh(i)*rhs(i)
+          df(i) = cn1(i)*cpd
+          ! 
+          ! 2.2  decrease foliage conductance for stomatal
+          !      resistance
+          rppdry = lftra(i)*fdry(i)/(lftrs(i)+lftra(i))
+          rpp(i) = rppdry + fwet(i)
+          ! 
+          ! 2.3  recalculate saturation vapor pressure
+          !
+          eg1 = eg(i)
+          eg(i) = c1es*dexp(lfta(i)*(tlef(i)-tzero)/(tlef(i)-lftb(i)))
+          qsatl(i) = qsatl(i)*eg(i)/eg1
         end if
       end do
    
@@ -179,32 +175,29 @@ module mod_bats_leaftemp
    
       epss = 1.0D-10
       do i = ilndbeg , ilndend
-        if ( mask(i) /= 0 ) then
-          if ( sigf(i) > 0.001D0 ) then
-            efpot = cn1(i)*(wtgaq(i)*qsatl(i) - &
-                    wtgq0(i)*qgrd(i) - wtaq0(i)*qs(i))
-            if ( efpot > d_zero ) then
-              etr(i) = efpot*lftra(i)*fdry(i)/(lftrs(i)+lftra(i))
-              rpp(i) = dmin1(rpp(i),(etr(i)+ldew(i)/dtbat)/efpot-epss)
-            else
-              etr(i) = d_zero
-              rpp(i) = d_one
-            end if
-            if ( ( efpot >= d_zero ) .and. ( etr(i) >= etrc(i) ) )  then
-              ! transpiration demand exceeds supply, stomat adjust
-              ! demand
-              rppdry = lftra(i)*fdry(i)/(lftrs(i)+lftra(i))
-              rppdry = rppdry/(etr(i)/etrc(i))
-              etr(i) = etrc(i)
-              ! recalculate stomatl resistance and rpp
-              lftrs(i) = lftra(i)*(fdry(i)/rppdry-d_one)
-              rpp(i) = rppdry + fwet(i)
-              rpp(i) = dmin1(rpp(i),(etr(i)+ldew(i)/dtbat)/efpot-epss)
-            end if
-            rppq(i) = wlhv*rpp(i)
-            efe(i) = rppq(i)*efpot
-            if ( efe(i)*efeb < d_zero ) efe(i) = 0.1D0*efe(i)
+        if ( sigf(i) > 0.001D0 ) then
+          efpot = cn1(i)*(wtgaq(i)*qsatl(i) - wtgq0(i)*qgrd(i) - wtaq0(i)*qs(i))
+          if ( efpot > d_zero ) then
+            etr(i) = efpot*lftra(i)*fdry(i)/(lftrs(i)+lftra(i))
+            rpp(i) = dmin1(rpp(i),(etr(i)+ldew(i)/dtbat)/efpot-epss)
+          else
+            etr(i) = d_zero
+            rpp(i) = d_one
           end if
+          if ( ( efpot >= d_zero ) .and. ( etr(i) >= etrc(i) ) )  then
+            ! transpiration demand exceeds supply, stomat adjust
+            ! demand
+            rppdry = lftra(i)*fdry(i)/(lftrs(i)+lftra(i))
+            rppdry = rppdry/(etr(i)/etrc(i))
+            etr(i) = etrc(i)
+            ! recalculate stomatl resistance and rpp
+            lftrs(i) = lftra(i)*(fdry(i)/rppdry-d_one)
+            rpp(i) = rppdry + fwet(i)
+            rpp(i) = dmin1(rpp(i),(etr(i)+ldew(i)/dtbat)/efpot-epss)
+          end if
+          rppq(i) = wlhv*rpp(i)
+          efe(i) = rppq(i)*efpot
+          if ( efe(i)*efeb < d_zero ) efe(i) = 0.1D0*efe(i)
         end if
       end do
       !=====================================
@@ -221,29 +214,26 @@ module mod_bats_leaftemp
       !
       !  3.3  compute dcn from dcd, output from subr. deriv
       do i = ilndbeg , ilndend
-        if ( mask(i) /= 0 ) then
-          if ( sigf(i) > 0.001D0 ) then
-            dcn = dcd(i)*tlef(i)
-            ! 1.2  radiative forcing for leaf temperature calculation
-            sgtg3 = emiss(i)*(sigm*tgrd(i)**3)
-            sf1 = sigf(i)*(abswveg(i)-lwflx(i)-(d_one-sigf(i))* &
-                  flneto(i)+d_four*sgtg3*tgrd(i))
-            sf2 = d_four*sigf(i)*sgtg3 + df(i)*wtga(i) + dcd(i)
-            ! 3.4  iterative leaf temperature calculation
-            tbef = tlef(i)
-            tlef(i) = (sf1+df(i)*(wta0(i)*sts(i)+wtg0(i)*tgrd(i)) - &
-                      efe(i)+dcn)/sf2
-            !
-            ! 3.5  chk magnitude of change; limit to max allowed value
-            dels(i) = tlef(i) - tbef
-            if ( dabs(dels(i)) > delmax ) then
-              tlef(i) = tbef + delmax*dels(i)/dabs(dels(i))
-            end if
-            ! 3.6  update dependence of stomatal resistance
-            !      on vapor pressure deficit
-            qcan = wtlq0(i)*qsatl(i) + qgrd(i)*wtgq0(i) + qs(i)*wtaq0(i)
-            vpdc(i) = (d_one-rpp(i))*(qsatl(i)-qcan)*d_1000/ep2
+        if ( sigf(i) > 0.001D0 ) then
+          dcn = dcd(i)*tlef(i)
+          ! 1.2  radiative forcing for leaf temperature calculation
+          sgtg3 = emiss(i)*(sigm*tgrd(i)**3)
+          sf1 = sigf(i)*(abswveg(i)-lwflx(i)-(d_one-sigf(i))* &
+                flneto(i)+d_four*sgtg3*tgrd(i))
+          sf2 = d_four*sigf(i)*sgtg3 + df(i)*wtga(i) + dcd(i)
+          ! 3.4  iterative leaf temperature calculation
+          tbef = tlef(i)
+          tlef(i) = (sf1+df(i)*(wta0(i)*sts(i)+wtg0(i)*tgrd(i))-efe(i)+dcn)/sf2
+          !
+          ! 3.5  chk magnitude of change; limit to max allowed value
+          dels(i) = tlef(i) - tbef
+          if ( dabs(dels(i)) > delmax ) then
+            tlef(i) = tbef + delmax*dels(i)/dabs(dels(i))
           end if
+          ! 3.6  update dependence of stomatal resistance
+          !      on vapor pressure deficit
+          qcan = wtlq0(i)*qsatl(i) + qgrd(i)*wtgq0(i) + qs(i)*wtaq0(i)
+          vpdc(i) = (d_one-rpp(i))*(qsatl(i)-qcan)*d_1000/ep2
         end if
       end do
       call stomat
@@ -251,54 +241,52 @@ module mod_bats_leaftemp
     end do
    
     do i = ilndbeg , ilndend
-      if ( mask(i) /= 0 ) then
-        if ( sigf(i) > 0.001D0 ) then
-          !=========================================
-          ! 4.   update dew accumulation (kg/m**2/s)
-          !=========================================
-          ldew(i) = ldew(i) + (etr(i) - efe(i)/wlhv)*dtbat
-          !===========================================
-          ! 5.   collect parameters needed to evaluate
-          !      sensible and latent fluxes
-          !===========================================
-          !  5.1  canopy properties
-          taf(i) = wtg0(i)*tgrd(i) + wta0(i)*sts(i) + wtl0(i)*tlef(i)
-          delt(i) = wtgl(i)*sts(i) - (wtl0(i)*tlef(i) + wtg0(i)*tgrd(i))
-          delq(i) = wtglq(i)*qs(i) - (wtlq0(i)*qsatl(i) + wtgq0(i)*qgrd(i))
-          sgtg3 = emiss(i)*(sigm*tgrd(i)**3)
-          flnet(i) = sgtg3*(tlef(i)-tgrd(i))*d_four
-          xxkb = dmin1(rough(lveg(i)),d_one)
-          vakb = (d_one-sigf(i))*vspda(i) + sigf(i) * &
-                 (xxkb*uaf(i)+(d_one-xxkb)*vspda(i))
-          wtg2(i) = (d_one-sigf(i))*cdr(i)*vakb
-          fbare = wtg2(i)*(tgrd(i)-sts(i))
-          qbare = wtg2(i)*(qgrd(i)-qs(i))
-          !  5.2  fluxes from soil
-          fseng(i) = cpd*rhs(i)*(wtg(i)*((wta0(i) +    &
-                     wtl0(i))*tgrd(i)-wta0(i)*sts(i) - &
-                     wtl0(i)*tlef(i))+fbare)
-          fevpg(i) = rhs(i)*rgr(i) * (wtg(i)*((wtaq0(i) +  &
-                     wtlq0(i))*qgrd(i)-wtaq0(i)*qs(i) -    &
-                     wtlq0(i)*qsatl(i))+qbare)
-          !  5.3  deriv of soil energy flux with respect to soil temp
-          qsatdg = qgrd(i)*rgr(i)*lfta(i)*(tzero-lftb(i)) * &
-                   (d_one/(tgrd(i)-lftb(i)))**2
-          cgrnds(i) = rhs(i)*cpd*(wtg(i)*(wta0(i)+wtl0(i))+wtg2(i))
-          cgrndl(i) = rhs(i)*qsatdg*((wta(i)+wtlq(i)) * &
-                      wtg(i)*wtsqi(i)+wtg2(i))
-          cgrnd(i) = cgrnds(i) + cgrndl(i)*htvp(i)
-          !  5.4  reinitialize cdrx
-          !     shuttleworth mods #3 removed here !!!!!!
-          cdrx(i) = cdr(i)
-          !
-          !  5.5  fluxes from canopy and soil to overlying air
-          fbare = wtg2(i)*(tgrd(i)-sts(i))
-          qbare = wtg2(i)*(qgrd(i)-qs(i))
-          sent(i) = cpd*rhs(i)*(-wta(i)*delt(i)+fbare)
-          evpr(i) = rhs(i)*(-wta(i)*delq(i) + rgr(i)*qbare)
-          if ( dabs(sent(i)) < dlowval ) sent(i) = d_zero
-          if ( dabs(evpr(i)) < dlowval ) evpr(i) = d_zero
-        end if
+      if ( sigf(i) > 0.001D0 ) then
+        !=========================================
+        ! 4.   update dew accumulation (kg/m**2/s)
+        !=========================================
+        ldew(i) = ldew(i) + (etr(i) - efe(i)/wlhv)*dtbat
+        !===========================================
+        ! 5.   collect parameters needed to evaluate
+        !      sensible and latent fluxes
+        !===========================================
+        !  5.1  canopy properties
+        taf(i) = wtg0(i)*tgrd(i) + wta0(i)*sts(i) + wtl0(i)*tlef(i)
+        delt(i) = wtgl(i)*sts(i) - (wtl0(i)*tlef(i) + wtg0(i)*tgrd(i))
+        delq(i) = wtglq(i)*qs(i) - (wtlq0(i)*qsatl(i) + wtgq0(i)*qgrd(i))
+        sgtg3 = emiss(i)*(sigm*tgrd(i)**3)
+        flnet(i) = sgtg3*(tlef(i)-tgrd(i))*d_four
+        xxkb = dmin1(rough(lveg(i)),d_one)
+        vakb = (d_one-sigf(i))*vspda(i) + sigf(i) * &
+               (xxkb*uaf(i)+(d_one-xxkb)*vspda(i))
+        wtg2(i) = (d_one-sigf(i))*cdr(i)*vakb
+        fbare = wtg2(i)*(tgrd(i)-sts(i))
+        qbare = wtg2(i)*(qgrd(i)-qs(i))
+        !  5.2  fluxes from soil
+        fseng(i) = cpd*rhs(i)*(wtg(i)*((wta0(i) +    &
+                   wtl0(i))*tgrd(i)-wta0(i)*sts(i) - &
+                   wtl0(i)*tlef(i))+fbare)
+        fevpg(i) = rhs(i)*rgr(i) * (wtg(i)*((wtaq0(i) +  &
+                   wtlq0(i))*qgrd(i)-wtaq0(i)*qs(i) -    &
+                   wtlq0(i)*qsatl(i))+qbare)
+        !  5.3  deriv of soil energy flux with respect to soil temp
+        qsatdg = qgrd(i)*rgr(i)*lfta(i)*(tzero-lftb(i)) * &
+                 (d_one/(tgrd(i)-lftb(i)))**2
+        cgrnds(i) = rhs(i)*cpd*(wtg(i)*(wta0(i)+wtl0(i))+wtg2(i))
+        cgrndl(i) = rhs(i)*qsatdg*((wta(i)+wtlq(i)) * &
+                    wtg(i)*wtsqi(i)+wtg2(i))
+        cgrnd(i) = cgrnds(i) + cgrndl(i)*htvp(i)
+        !  5.4  reinitialize cdrx
+        !     shuttleworth mods #3 removed here !!!!!!
+        cdrx(i) = cdr(i)
+        !
+        !  5.5  fluxes from canopy and soil to overlying air
+        fbare = wtg2(i)*(tgrd(i)-sts(i))
+        qbare = wtg2(i)*(qgrd(i)-qs(i))
+        sent(i) = cpd*rhs(i)*(-wta(i)*delt(i)+fbare)
+        evpr(i) = rhs(i)*(-wta(i)*delq(i) + rgr(i)*qbare)
+        if ( dabs(sent(i)) < dlowval ) sent(i) = d_zero
+        if ( dabs(evpr(i)) < dlowval ) evpr(i) = d_zero
       end if
     end do
 #ifdef DEBUG
@@ -361,35 +349,33 @@ module mod_bats_leaftemp
     rilmax = d_four
     call fseas(tlef)
     do i = ilndbeg , ilndend
-      if ( mask(i) /= 0 ) then
-        if ( sigf(i) > 0.001D0 ) then
-          ! zenith angle set in zenitm
-          if ( (czenith(i)/rilmax) > 0.001D0 ) then
-            trup = dexp(-g*rlai(i)/(rilmax*czenith(i)))
-            trupd = dexp(-difzen*g*rlai(i)/rilmax)
-            if ( trup  < dlowval ) trup  = d_zero
-            if ( trupd < dlowval ) trupd = d_zero
-            fsold = fracd(i)*swsi(i)*fc(lveg(i))
-            fsol0 = (d_one-fracd(i))*swsi(i)*fc(lveg(i))
-            rmini = rsmin(lveg(i))/rmax0
-            rad(1)  = (d_one-trup) *fsol0*rilmax/rlai(i)
-            radd(1) = (d_one-trupd)*fsold*rilmax/rlai(i)
-            do il = 2 , ilmax
-              rad(il)  = trup* rad(il-1)
-              radd(il) = trupd*radd(il-1)
-            end do
-            radfi = d_zero
-            do il = 1 , ilmax
-              radfi = radfi+(rmini+rad(il)+radd(il))/(d_one+rad(il)+radd(il))
-            end do
-            radf = rilmax/radfi
-            vpdf = d_one/dmax1(0.3D0,d_one-vpdc(i)*0.025D0)
-            seas = d_one/(rmini+aseas(i))
-            lftrs(i) = rsmin(lveg(i))*radf*seas*vpdf
-            lftrs(i) = dmin1(lftrs(i),rmax0)
-          else
-            lftrs(i) = rmax0
-          end if
+      if ( sigf(i) > 0.001D0 ) then
+        ! zenith angle set in zenitm
+        if ( (czenith(i)/rilmax) > 0.001D0 ) then
+          trup = dexp(-g*rlai(i)/(rilmax*czenith(i)))
+          trupd = dexp(-difzen*g*rlai(i)/rilmax)
+          if ( trup  < dlowval ) trup  = d_zero
+          if ( trupd < dlowval ) trupd = d_zero
+          fsold = fracd(i)*swsi(i)*fc(lveg(i))
+          fsol0 = (d_one-fracd(i))*swsi(i)*fc(lveg(i))
+          rmini = rsmin(lveg(i))/rmax0
+          rad(1)  = (d_one-trup) *fsol0*rilmax/rlai(i)
+          radd(1) = (d_one-trupd)*fsold*rilmax/rlai(i)
+          do il = 2 , ilmax
+            rad(il)  = trup* rad(il-1)
+            radd(il) = trupd*radd(il-1)
+          end do
+          radfi = d_zero
+          do il = 1 , ilmax
+            radfi = radfi+(rmini+rad(il)+radd(il))/(d_one+rad(il)+radd(il))
+          end do
+          radf = rilmax/radfi
+          vpdf = d_one/dmax1(0.3D0,d_one-vpdc(i)*0.025D0)
+          seas = d_one/(rmini+aseas(i))
+          lftrs(i) = rsmin(lveg(i))*radf*seas*vpdf
+          lftrs(i) = dmin1(lftrs(i),rmax0)
+        else
+          lftrs(i) = rmax0
         end if
       end if
     end do
@@ -423,15 +409,13 @@ module mod_bats_leaftemp
     call time_begin(subroutine_name,idindx)
 #endif
     do i = ilndbeg , ilndend
-      if ( mask(i) /= 0 ) then
-        if ( sigf(i) > 0.001D0 ) then
-          fwet(i) = d_zero
-          if ( ldew(i) > d_zero ) then
-            fwet(i) = ((dewmaxi/vegt(i))*ldew(i))**twot
-            fwet(i) = dmin1(fwet(i),d_one)
-          end if
-          fdry(i) = (d_one-fwet(i))*xlai(i)/xlsai(i)
+      if ( sigf(i) > 0.001D0 ) then
+        fwet(i) = d_zero
+        if ( ldew(i) > d_zero ) then
+          fwet(i) = ((dewmaxi/vegt(i))*ldew(i))**twot
+          fwet(i) = dmin1(fwet(i),d_one)
         end if
+        fdry(i) = (d_one-fwet(i))*xlai(i)/xlsai(i)
       end if
     end do
 #ifdef DEBUG
@@ -477,25 +461,23 @@ module mod_bats_leaftemp
 #endif
 !
     do i = ilndbeg , ilndend
-      if ( mask(i) /= 0 ) then
-        if ( sigf(i) > 0.001D0 ) then
-          ! trsmx = trsmx0*sigf(i)*seasb(i)
-          trsmx = trsmx0*sigf(i)
-          rotf = rootf(lveg(i))
-          bneg = -bsw(i)
-          wmli = d_one/(wiltr(i)**bneg-d_one)
-          wlttb = (watr(i)**bneg-d_one)*wmli
-          wltub = (watu(i)**bneg-d_one)*wmli
-          wlttb = dmin1(wlttb,d_one)
-          wltub = dmin1(wltub,d_one)
-          etrc(i) = trsmx*(d_one-(d_one-rotf)*wlttb-rotf*wltub)
-          efpr(i) = trsmx*rotf*(d_one-wltub)
-          if ( etrc(i) < 1.0D-12 ) then
-            etrc(i) = 1.0D-12
-            efpr(i) = d_one
-          else
-            efpr(i) = efpr(i)/etrc(i)
-          end if
+      if ( sigf(i) > 0.001D0 ) then
+        ! trsmx = trsmx0*sigf(i)*seasb(i)
+        trsmx = trsmx0*sigf(i)
+        rotf = rootf(lveg(i))
+        bneg = -bsw(i)
+        wmli = d_one/(wiltr(i)**bneg-d_one)
+        wlttb = (watr(i)**bneg-d_one)*wmli
+        wltub = (watu(i)**bneg-d_one)*wmli
+        wlttb = dmin1(wlttb,d_one)
+        wltub = dmin1(wltub,d_one)
+        etrc(i) = trsmx*(d_one-(d_one-rotf)*wlttb-rotf*wltub)
+        efpr(i) = trsmx*rotf*(d_one-wltub)
+        if ( etrc(i) < 1.0D-12 ) then
+          etrc(i) = 1.0D-12
+          efpr(i) = d_one
+        else
+          efpr(i) = efpr(i)/etrc(i)
         end if
       end if
     end do
@@ -558,39 +540,37 @@ module mod_bats_leaftemp
     call time_begin(subroutine_name,idindx)
 #endif
     do i = ilndbeg , ilndend
-      if ( mask(i) /= 0 ) then
-        if ( sigf(i) > 0.001D0 ) then
-          tkb = wta0(i)*sts(i) + wtl0(i)*tlef(i) + wtg0(i)*tgrd(i)
-          dlstaf = sts(i) - sigf(i)*tkb - (d_one-sigf(i))*tgrd(i)
-          if ( dlstaf <= d_zero ) then
-            dthdz = (d_one-sigf(i))*tgrd(i) + sigf(i)*tkb-sts(i)
-            u1 = wtur + d_two*dsqrt(dthdz)
-            ribd(i) = usw(i)**2 + vsw(i)**2 + u1**2
-          else
-            u2 = wtur
-            ribd(i) = usw(i)**2 + vsw(i)**2 + u2**2
-          end if
-          vspda(i) = dsqrt(ribd(i))
-          if ( vspda(i) < d_one ) then
-            vspda(i) = d_one
-            ribd(i) = d_one
-          end if
-          zatild = (zh(i)-displa(lveg(i)))*sigf(i) + zh(i)*(d_one-sigf(i))
-          rib1 = egrav*zatild/(ribd(i)*sts(i))
-          rib(i) = rib1*dlstaf
-          if ( rib(i) < d_zero ) then
-            cdr(i) = cdrn(i)*(d_one+24.5D0 * dsqrt(-cdrn(i)*rib(i)))
-            sqrtf = dmin1(dsqrt(-cdrn(i)/rib(i)),11.5D0/12.25D0)
-            cdrd(i) = cdrn(i)*12.25D0*wtl0(i)*rib1*sigf(i)*sqrtf
-          else
-            ribi = d_one/(d_one+11.5D0*rib(i))
-            cdr(i) = cdrn(i)*ribi
-            cdrd(i) = cdr(i)*ribi*11.5D0*rib1*wtl0(i)*sigf(i)
-            cdrmin = dmax1(cdrn(i)*d_rfour,6.0D-4)
-            if ( (cdr(i) < cdrmin) ) then
-              cdr(i) = cdrmin
-              cdrd(i) = d_zero
-            end if
+      if ( sigf(i) > 0.001D0 ) then
+        tkb = wta0(i)*sts(i) + wtl0(i)*tlef(i) + wtg0(i)*tgrd(i)
+        dlstaf = sts(i) - sigf(i)*tkb - (d_one-sigf(i))*tgrd(i)
+        if ( dlstaf <= d_zero ) then
+          dthdz = (d_one-sigf(i))*tgrd(i) + sigf(i)*tkb-sts(i)
+          u1 = wtur + d_two*dsqrt(dthdz)
+          ribd(i) = usw(i)**2 + vsw(i)**2 + u1**2
+        else
+          u2 = wtur
+          ribd(i) = usw(i)**2 + vsw(i)**2 + u2**2
+        end if
+        vspda(i) = dsqrt(ribd(i))
+        if ( vspda(i) < d_one ) then
+          vspda(i) = d_one
+          ribd(i) = d_one
+        end if
+        zatild = (zh(i)-displa(lveg(i)))*sigf(i) + zh(i)*(d_one-sigf(i))
+        rib1 = egrav*zatild/(ribd(i)*sts(i))
+        rib(i) = rib1*dlstaf
+        if ( rib(i) < d_zero ) then
+          cdr(i) = cdrn(i)*(d_one+24.5D0 * dsqrt(-cdrn(i)*rib(i)))
+          sqrtf = dmin1(dsqrt(-cdrn(i)/rib(i)),11.5D0/12.25D0)
+          cdrd(i) = cdrn(i)*12.25D0*wtl0(i)*rib1*sigf(i)*sqrtf
+        else
+          ribi = d_one/(d_one+11.5D0*rib(i))
+          cdr(i) = cdrn(i)*ribi
+          cdrd(i) = cdr(i)*ribi*11.5D0*rib1*wtl0(i)*sigf(i)
+          cdrmin = dmax1(cdrn(i)*d_rfour,6.0D-4)
+          if ( (cdr(i) < cdrmin) ) then
+            cdr(i) = cdrmin
+            cdrd(i) = d_zero
           end if
         end if
       end if
@@ -628,20 +608,18 @@ module mod_bats_leaftemp
     !     g : ground
     !
     do i = ilndbeg , ilndend
-      if ( mask(i) /= 0 ) then
-        if ( sigf(i) > 0.001D0 ) then
-          uaf(i) = vspda(i)*dsqrt(cdr(i))
-          cf(i) = 0.01D0*sqrtdi(lveg(i))/dsqrt(uaf(i))
-          wta(i) = sigf(i)*cdr(i)*vspda(i)
-          wtlh(i) = cf(i)*uaf(i)*vegt(i)
-          wtg(i) = csoilc*uaf(i)*sigf(i)
-          wtshi(i) = d_one/(wta(i)+wtlh(i)+wtg(i))
-          wtl0(i) = wtlh(i)*wtshi(i)
-          wtg0(i) = wtg(i)*wtshi(i)
-          wtgl(i) = wtl0(i) + wtg0(i)
-          wta0(i) = d_one - wtgl(i)
-          wtga(i) = wta0(i) + wtg0(i)
-        end if
+      if ( sigf(i) > 0.001D0 ) then
+        uaf(i) = vspda(i)*dsqrt(cdr(i))
+        cf(i) = 0.01D0*sqrtdi(lveg(i))/dsqrt(uaf(i))
+        wta(i) = sigf(i)*cdr(i)*vspda(i)
+        wtlh(i) = cf(i)*uaf(i)*vegt(i)
+        wtg(i) = csoilc*uaf(i)*sigf(i)
+        wtshi(i) = d_one/(wta(i)+wtlh(i)+wtg(i))
+        wtl0(i) = wtlh(i)*wtshi(i)
+        wtg0(i) = wtg(i)*wtshi(i)
+        wtgl(i) = wtl0(i) + wtg0(i)
+        wta0(i) = d_one - wtgl(i)
+        wtga(i) = wta0(i) + wtg0(i)
       end if
     end do
 #ifdef DEBUG
@@ -678,18 +656,16 @@ module mod_bats_leaftemp
     !     g : ground
     !
     do i = ilndbeg , ilndend
-      if ( mask(i) /= 0 ) then
-        if ( sigf(i) > 0.001D0 ) then
-          rgr(i) = gwet(i)
-          wtlq(i) = wtlh(i)*rpp(i)
-          wtgq(i) = wtg(i)*rgr(i)
-          wtsqi(i) = d_one/(wta(i)+wtlq(i)+wtgq(i))
-          wtgq0(i) = wtgq(i)*wtsqi(i)
-          wtlq0(i) = wtlq(i)*wtsqi(i)
-          wtglq(i) = wtgq0(i) + wtlq0(i)
-          wtaq0(i) = d_one - wtglq(i)
-          wtgaq(i) = wtaq0(i) + wtgq0(i)
-        end if
+      if ( sigf(i) > 0.001D0 ) then
+        rgr(i) = gwet(i)
+        wtlq(i) = wtlh(i)*rpp(i)
+        wtgq(i) = wtg(i)*rgr(i)
+        wtsqi(i) = d_one/(wta(i)+wtlq(i)+wtgq(i))
+        wtgq0(i) = wtgq(i)*wtsqi(i)
+        wtlq0(i) = wtlq(i)*wtsqi(i)
+        wtglq(i) = wtgq0(i) + wtlq0(i)
+        wtaq0(i) = d_one - wtglq(i)
+        wtgaq(i) = wtaq0(i) + wtgq0(i)
       end if
     end do
 #ifdef DEBUG
@@ -720,17 +696,15 @@ module mod_bats_leaftemp
 #endif
 !
     do i = ilndbeg , ilndend
-      if ( mask(i) /= 0 ) then
-        if ( sigf(i) > 0.001D0 ) then
-          dne = d_one/(tlef(i)-lftb(i))
-          qsatld = qsatl(i)*lfta(i)*(tzero-lftb(i))*dne**2
-          xkb = cdrd(i)/cdr(i)
-          hfl = df(i)*(wtga(i)*tlef(i) - wtg0(i)*tgrd(i) - wta0(i)*sts(i))
-          dcd(i) = cn1(i)*rppq(i)*wtgaq(i) * qsatld + (d_one-wtgaq(i)) *   &
-                   efe(i) * xkb + (d_one-wtga(i)) * hfl * xkb
-          dcd(i) = dmax1(dcd(i),d_zero)
-          dcd(i) = dmin1(dcd(i),500.0D0)
-        end if
+      if ( sigf(i) > 0.001D0 ) then
+        dne = d_one/(tlef(i)-lftb(i))
+        qsatld = qsatl(i)*lfta(i)*(tzero-lftb(i))*dne**2
+        xkb = cdrd(i)/cdr(i)
+        hfl = df(i)*(wtga(i)*tlef(i) - wtg0(i)*tgrd(i) - wta0(i)*sts(i))
+        dcd(i) = cn1(i)*rppq(i)*wtgaq(i) * qsatld + (d_one-wtgaq(i)) *   &
+                 efe(i) * xkb + (d_one-wtga(i)) * hfl * xkb
+        dcd(i) = dmax1(dcd(i),d_zero)
+        dcd(i) = dmin1(dcd(i),500.0D0)
       end if
     end do
 #ifdef DEBUG
@@ -750,26 +724,18 @@ module mod_bats_leaftemp
 #endif
     if ( lcrop_cutoff ) then
       do i = ilndbeg , ilndend
-        if ( mask(i) == 1 ) then
-          if ( lveg(i) == 1 ) then
-            aseas(i) = dmax1(d_zero,d_one-0.0016D0* &
-                             dmax1(298.0D0-temp(i),d_zero)**4)
-          else
-            aseas(i) = dmax1(d_zero,d_one-0.0016D0* &
-                             dmax1(298.0D0-temp(i),d_zero)**2)
-          end if
+        if ( lveg(i) == 1 ) then
+          aseas(i) = dmax1(d_zero,d_one-0.0016D0* &
+                     dmax1(298.0D0-temp(i),d_zero)**4)
         else
-          aseas(i) = d_zero
+          aseas(i) = dmax1(d_zero,d_one-0.0016D0* &
+                     dmax1(298.0D0-temp(i),d_zero)**2)
         end if
       end do
     else
       do i = ilndbeg , ilndend
-        if ( mask(i) == 1 ) then
-          aseas(i) = dmax1(d_zero,d_one-0.0016D0* &
-                  dmax1(298.0D0-temp(i),d_zero)**2)
-        else
-          aseas(i) = d_zero
-        end if
+        aseas(i) = dmax1(d_zero,d_one-0.0016D0* &
+                   dmax1(298.0D0-temp(i),d_zero)**2)
       end do
     end if
 #ifdef DEBUG

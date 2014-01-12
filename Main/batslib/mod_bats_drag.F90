@@ -51,7 +51,7 @@ module mod_bats_drag
 !
   subroutine dragc
     implicit none
-    real(rk8) :: dthdz , u1 , ribn , ribl , zatild , cdrmin
+    real(rk8) :: dthdz , u1 , ribn , zatild , cdrmin
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'dragc'
@@ -70,40 +70,26 @@ module mod_bats_drag
       ! 2.  compute stability as bulk rich. no. = rin/rid
       !     ri(numerator)/ri(denominator)
       !==================================================
-      if ( mask(i) /= 0 ) then
-        zatild = (zh(i)-displa(lveg(i)))*sigf(i) + &
-                  zh(i)*(d_one-sigf(i))
-        ribn = zatild*egrav*(sts(i)-sigf(i)*taf(i)- &
-               (d_one-sigf(i))*tgrd(i))/sts(i)
-      else
-        ribn = zh(i)*egrav*(sts(i)-tgrd(i))/sts(i)
-      end if
+      zatild = (zh(i)-displa(lveg(i)))*sigf(i) + &
+                zh(i)*(d_one-sigf(i))
+      ribn = zatild*egrav*(sts(i)-sigf(i)*taf(i)- &
+             (d_one-sigf(i))*tgrd(i))/sts(i)
       !===========================================================
       ! 2.1  compute the bulk richardson number;
       !    first get avg winds to use for ri number by summing the
       !    squares of horiz., vertical, and convective velocities
       !===========================================================
-      if ( mask(i) == 0 ) then
-        u1 = wtur
+      if ( ribn <= d_zero ) then
+        dthdz = (d_one-sigf(i))*tgrd(i) + sigf(i)*taf(i) - sts(i)
+        u1 = wtur + d_two*dsqrt(dthdz)
       else
-        if ( ribn <= d_zero ) then
-          dthdz = (d_one-sigf(i))*tgrd(i) + sigf(i)*taf(i) - sts(i)
-          u1 = wtur + d_two*dsqrt(dthdz)
-        else
-          u1 = wtur
-        end if
+        u1 = wtur
       end if
       ribd(i) = usw(i)**2 + vsw(i)**2 + u1**2
       vspda(i) = dsqrt(ribd(i))
-      if ( mask(i) == 0 ) then
-        if ( ribd(i) < d_one ) then
-          ribd(i) = d_one
-        end if
-      else
-        if ( vspda(i) < d_one ) then
-          vspda(i) = d_one
-          ribd(i) = d_one
-        end if
+      if ( vspda(i) < d_one ) then
+        vspda(i) = d_one
+        ribd(i) = d_one
       end if
       rib(i) = ribn/ribd(i)
       !=========================================================
@@ -117,35 +103,10 @@ module mod_bats_drag
         cdr(i) = cdrn(i)/(d_one+11.5D0*rib(i))
       end if
       ! 3.1  apply lower limit to drag coefficient value
-      !if ( mask(i) == 0 ) then
-      !  cdrmin = dmin1(0.25D0*cdrn(i),6.0D-4)
-      !else
       cdrmin = dmax1(0.25D0*cdrn(i),6.0D-4)
       !end if
       if ( cdr(i) < cdrmin ) cdr(i) = cdrmin
       cdrx(i) = cdr(i)
-    end do
-
-    !============================================================
-    ! 4. obtain drag coefficient over sea ice as weighted average
-    !    over ice and leads
-    !============================================================
-   
-    ! 4.1  neutral cd over lead water
-    do i = ilndbeg , ilndend
-      if ( mask(i) == 2 ) then       !  check each point
-        cdrn(i) = (vonkar/zlgsno(i))**2
-        ! 4.1  drag coefficient over leads
-        ribl = (d_one-271.5D0/sts(i))*zh(i)*egrav/ribd(i)
-        if ( ribl >= d_zero ) then
-          clead(i) = cdrn(i)/(d_one+11.5D0*ribl)
-        else
-          clead(i) = cdrn(i)*(d_one+24.5D0*dsqrt(-cdrn(i)*ribl))
-        end if
-        ! 4.2  calculate weighted avg of ice and lead drag
-        !      coefficients
-        cdrx(i) = (d_one-aarea)*cdr(i) + aarea*clead(i)
-      end if
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -186,25 +147,15 @@ module mod_bats_drag
     call depth
     !
     do i = ilndbeg , ilndend
-      if ( mask(i) == 2 ) then
-        ! drag coeff over seaice
-        sigf(i) = d_zero
-        cdrn(i) = ( vonkar / zlglnd(i) )**2
-      else if ( mask(i) == 1 ) then
-        ! drag coeff over land
-        frav = sigf(i)
-        asigf = lncl(i)
-        fras = asigf*wt(i) + (d_one-asigf)*scvk(i)
-        frab = (d_one-asigf)*(d_one-scvk(i))
-        cdb = (vonkar/zlglnd(i))**2
-        cds = (vonkar/zlgsno(i))**2
-        cdv = (vonkar/zlgdis(i))**2
-        cdrn(i) = frav*cdv + frab*cdb + fras*cds
-      else
-        ! drag coeff over ocean
-        sigf(i) = d_zero
-        cdrn(i) = (vonkar/zlgocn(i))**2
-      end if
+      ! drag coeff over land
+      frav = sigf(i)
+      asigf = lncl(i)
+      fras = asigf*wt(i) + (d_one-asigf)*scvk(i)
+      frab = (d_one-asigf)*(d_one-scvk(i))
+      cdb = (vonkar/zlglnd(i))**2
+      cds = (vonkar/zlgsno(i))**2
+      cdv = (vonkar/zlgdis(i))**2
+      cdrn(i) = frav*cdv + frab*cdb + fras*cds
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -241,19 +192,13 @@ module mod_bats_drag
 #endif
     !
     do i = ilndbeg , ilndend
-      if ( mask(i) /= 0 ) then
-        age = (d_one-d_one/(d_one+snag(i)))
-        densi = 0.01D0/(d_one+d_three*age)
-        scrat(i) = sncv(i)*densi
-        wt(i) = d_one
-        if ( mask(i) /= 2 ) then
-          wt(i) = 0.1D0*scrat(i)/rough(lveg(i))
-          wt(i) = wt(i)/(d_one+wt(i))
-        end if
-        sigf(i) = (d_one-wt(i))*lncl(i)
-        scvk(i) = scrat(i)/(0.1D0+scrat(i))
-        rhosw(i) = 0.10D0*(d_one+d_three*age)
-      end if
+      age = (d_one-d_one/(d_one+snag(i)))
+      densi = 0.01D0/(d_one+d_three*age)
+      scrat(i) = sncv(i)*densi
+      wt(i) = d_one
+      sigf(i) = (d_one-wt(i))*lncl(i)
+      scvk(i) = scrat(i)/(0.1D0+scrat(i))
+      rhosw(i) = 0.10D0*(d_one+d_three*age)
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)

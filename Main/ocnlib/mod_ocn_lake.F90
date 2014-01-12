@@ -20,25 +20,25 @@
 !
 !     LAKE MODEL
 !
-module mod_bats_lake
+module mod_ocn_lake
 !
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_service
   use mod_runparams , only : xmonth , ktau
-  use mod_bats_internal
+  use mod_ocn_internal
 
   implicit none
 
   private
 
-  public :: allocate_mod_bats_lake , initlake , lakedrv
+  public :: allocate_mod_ocn_lake , initlake , lakedrv
   public :: lake_fillvar
 
   integer(ik4) :: nlakep = 0
 
-  real(rk8) , dimension(ndpmax) :: de , dnsty , tt , ttx
+  real(rk8) , dimension(ndpmax) :: de , dnsty , tt
 
   ! surface thickness
   real(rk8) , parameter :: surf = d_one
@@ -52,59 +52,47 @@ module mod_bats_lake
   real(rk8) , parameter :: steepf = 1.0D0  ! Tuning needed !
 !
   real(rk8) , pointer , dimension(:,:) :: tlak
-  real(rk8) , pointer , dimension(:) :: hi , aveice , hsnow , eta
+  real(rk8) , pointer , dimension(:) :: hi , eta
+  logical , pointer , public , dimension(:) :: lakmsk
   integer(ik4) , pointer , dimension(:) :: idep , ilp
 
   integer , public , parameter :: var_eta    = 1
   integer , public , parameter :: var_hi     = 2
-  integer , public , parameter :: var_aveice = 3
-  integer , public , parameter :: var_hsnow  = 4
   integer , public , parameter :: var_tlak   = 5
 
   interface lake_fillvar
-    module procedure lake_fillvar_real8_3d
-    module procedure lake_fillvar_real8_4d
+    module procedure lake_fillvar_real8_1d
+    module procedure lake_fillvar_real8_2d
   end interface lake_fillvar
 
   contains
 !
 !-----------------------------------------------------------------------
 !
-  subroutine allocate_mod_bats_lake(xmsk)
+  subroutine allocate_mod_ocn_lake
     implicit none
-    integer(ik4) , pointer , intent(in) , dimension(:,:,:) :: xmsk
-    integer :: i , j , n , lp , ib
+    integer :: i , lp
     nlakep = 0
-    ib = 1
-    do i = ici1 , ici2
-      do j  = jci1 , jci2
-        do n = 1 , nnsg
-          lakmsk(ib) = xmsk(n,j,i)
-          ib = ib + 1
-        end do
-      end do
-    end do
-    do i = ilndbeg , ilndend
-      if ( lakmsk(i) == 1 ) then
-        nlakep = nlakep + 1
-      end if
-    end do
+    call getmem1d(lakmsk,1,nocnp,'ocn::initlake::lakmsk')
+    lakmsk = (mask >= 3)
+    nlakep = count(lakmsk)
+#ifdef DEBUG
+    write(ndebug+myid,*) 'NUMBER OF LAKE POINTS : ',nlakep
+#endif
     if ( nlakep == 0 ) return
-    call getmem1d(idep,1,nlakep,'bats::initlake::idep')
-    call getmem1d(ilp,1,nlakep,'bats::initlake::ilp')
-    call getmem1d(hi,1,nlakep,'bats::initlake::hi')
-    call getmem1d(aveice,1,nlakep,'bats::initlake::aveice')
-    call getmem1d(hsnow,1,nlakep,'bats::initlake::hsnow')
-    call getmem1d(eta,1,nlakep,'bats::initlake::eta')
-    call getmem2d(tlak,1,nlakep,1,ndpmax,'bats::initlake::tlak')
+    call getmem1d(idep,1,nlakep,'ocn::initlake::idep')
+    call getmem1d(ilp,1,nlakep,'ocn::initlake::ilp')
+    call getmem1d(hi,1,nlakep,'ocn::initlake::hi')
+    call getmem1d(eta,1,nlakep,'ocn::initlake::eta')
+    call getmem2d(tlak,1,nlakep,1,ndpmax,'ocn::initlake::tlak')
     lp = 1
-    do i = ilndbeg , ilndend
-      if ( lakmsk(i) == 1 ) then
+    do i = iocnbeg , iocnend
+      if ( lakmsk(i) ) then
         ilp(lp) = i
         lp = lp + 1
       end if
     end do
-  end subroutine allocate_mod_bats_lake
+  end subroutine allocate_mod_ocn_lake
 
   subroutine initlake
     implicit none
@@ -136,21 +124,12 @@ module mod_bats_lake
     end if
 
     hi(:)     = dmissval
-    aveice(:) = dmissval
-    hsnow(:)  = dmissval
     eta(:)    = dmissval
     tlak(:,:) = dmissval
 
     do lp = 1 , nlakep
       i = ilp(lp)
       idep(lp) = idint(dmax1(d_two,dmin1(dhlake(i),dble(ndpmax)))/dz)
-      if ( mask(i) == 2 ) then
-        tlak(lp,1) = -2.0D0
-        tlak(lp,2) = -2.0D0
-        aveice(lp) = d_10
-        hi(lp) = d_one
-        hsnow(lp) = d_zero
-      end if
       ! Azar Zarrin: Fixed unrealistic high ice tickness and
       ! high water temperatures during warm months.
       ! Graziano: Take a data driven approach.
@@ -212,9 +191,16 @@ module mod_bats_lake
           tlak(lp,3:idep(lp)) = 18.0D0
         end if
       end if
-      hi(lp) = 0.01D0
-      aveice(lp) = d_zero
-      hsnow(lp)  = d_zero
+      ! Ice over lake from the start
+      if ( mask(i) == 4 ) then
+        tlak(lp,1) = -2.0D0
+        tlak(lp,2) = -2.0D0
+        sfice(i) = d_10
+        hi(lp) = d_one
+      else
+        sfice(i) = d_zero
+        hi(lp) = 0.01D0
+      end if
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -223,8 +209,14 @@ module mod_bats_lake
 !
   subroutine lakedrv
     implicit none
-    real(rk8) :: flwx , fswx , hsen , prec , ql , tgl , tl , vl , zl , &
-                xl , evp , toth
+    real(rk8) :: flwx , fswx , hsen , prec , qs , tgl , tl , vl , zl
+    real(rk8) :: xl , toth , lfta , lftb , rhs , eg
+    real(rk8) :: age , age1 , age2 , arg , arg2 , cdr , cdrmin , cdrn
+    real(rk8) :: cdrx , clead , dela , dela0 , delq , dels , delt
+    real(rk8) :: fact , factuv , qgrd , qgrnd , qice , rhosw , rhosw3
+    real(rk8) :: rib , ribd , ribl , ribn , scrat , tage , tgrnd
+    real(rk8) :: sold , vspda , u1 , psurf
+
     integer(ik4) :: lp , i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'lakedrv'
@@ -243,45 +235,135 @@ module mod_bats_lake
       i = ilp(lp)
       tl = sts(i)
       vl = dsqrt(usw(i)**2+vsw(i)**2)
-      zl = zh(i)
-      ql = qs(i)
-      fswx = swflx(i)
-      flwx = -d_one*lwflx(i)
-      prec = prcp(i)*dtbat
+      zl = ht(i)
+      qs = qv(i)/(d_one+qv(i))
+      fswx = rswf(i)
+      flwx = -d_one*rlwf(i)
+      prec = prcp(i)*dtlake
       hsen = -d_one*sent(i)
-      evp = evpr(i)
+      psurf = (sfps(i)+ptop)*d_1000
       xl = lat(i)
-      ttx(:) = tlak(lp,:)
-      call lake( dtlake,tl,vl,zl,ql,fswx,flwx,hsen,xl, &
-                 tgl,prec,idep(lp),eta(lp),hi(lp),aveice(lp), &
-                 hsnow(lp),evp,ttx )
-      tlak(lp,:) = ttx(:)
+
+      call lake( dtlake,tl,vl,zl,qs,fswx,flwx,hsen,xl, &
+                 tgl,prec,idep(lp),eta(lp),hi(lp),sfice(i), &
+                 sncv(i),evpr(i),tlak(lp,:) )
 
       ! Feed back ground temperature
       tgrd(i) = tgl
-      tgbrd(i) = tgl
 
-      if ( aveice(lp) <= iceminh ) then
-        mask(i) = 0
-        lveg(i) = 14
+      if ( tgrd(i) <= tzero ) then
+        lfta = c3ies
+        lftb = c4ies
+      else
+        lfta = c3les
+        lftb = c4les
+      end if
+      rhs = psurf/(rgas*sts(i))
+      eg = c1es*dexp(lfta*(tgrd(i)-tzero)/(tgrd(i)-lftb))
+      qgrd = ep2*eg/(psurf-0.378D0*eg)
+      delt = sts(i) - tgrd(i)
+      delq = (qs - qgrd)
+
+      if ( sfice(i) <= iceminh ) then
+        mask(i) = 3
+        tgbrd(i) = tgrd(i)
         sfice(i) = d_zero
         sncv(i) = d_zero
         snag(i) = d_zero
+        sm(i) = d_zero
+        ribd = usw(i)**2 + vsw(i)**2 + wtur**2
+        vspda = dsqrt(ribd)
+        cdrn = (vonkar/dlog(ht(i)/zoce))**2
+        ribn = ht(i)*egrav*(delt/sts(i))
+        rib = ribn/ribd
+        if ( rib < d_zero ) then
+          cdrx = cdrn*(d_one+24.5D0*dsqrt(-cdrn*rib))
+        else
+          cdrx = cdrn/(d_one+11.5D0*rib)
+        end if
+        cdrmin = dmax1(0.25D0*cdrn,6.0D-4)
+        if ( cdrx < cdrmin ) cdrx = cdrmin
+        drag(i) = cdrx*vspda*rhs
+        evpr(i) = -drag(i)*delq
+        sent(i) = -drag(i)*cpd*delt
       else
-        mask(i) = 2 
-        lveg(i) = 12
-        sfice(i) = aveice(lp)  !  units of ice = mm
-        sncv(i)  = hsnow(lp)   !  units of snw = mm
-        evpr(i) = evp          !  units of evp = mm/sec
+        mask(i) = 4 
+        tgbrd(i) = -d_two + tzero
+
         ! Reduce sensible heat flux for ice presence
         toth = sfice(i) + sncv(i)
         if ( toth > href ) then
           sent(i) = sent(i) * (href/toth)**steepf
         end if
-        if ( dabs(sent(i)) < dlowval ) sent(i) = d_zero
-        if ( dabs(evpr(i)) < dlowval ) evpr(i) = d_zero
+
+        sncv(i) = sncv(i) + dtocn*(prcp(i)-evpr(i))
+        if ( sncv(i) < dlowval ) then
+          sncv(i) = d_zero
+          snag(i) = d_zero
+        else
+          arg = 5.0D3*(d_one/tzero-d_one/tgrd(i))
+          age1 = dexp(arg)
+          arg2 = dmin1(d_zero,d_10*arg)
+          age2 = dexp(arg2)
+          tage = age1 + age2 + age3
+          dela0 = 1.0D-6*dtocn
+          dela = dela0*tage
+          dels = d_r10*dmax1(d_zero,sncv(i)-sold)
+          snag(i) = (snag(i)+dela)*(d_one-dels)
+          if ( snag(i) < dlowval ) snag(i) = d_zero
+        end if
+        if ( sncv(i) > 800.0D0 ) snag(i) = d_zero
+        age = (d_one-d_one/(d_one+snag(i)))
+        scrat = sncv(i)*0.01D0/(d_one+d_three*age)
+        scvk(i) = scrat/(0.1D0+scrat)
+        cdrn = (vonkar/dlog(ht(i)/zlnd))**2
+        if ( delt < d_zero ) then
+          u1 = wtur + d_two*dsqrt(-delt)
+        else
+          u1 = wtur
+        end if
+        ribd = usw(i)**2 + vsw(i)**2 + u1**2
+        vspda = dsqrt(ribd)
+        ribn = ht(i)*egrav*(delt/sts(i))
+        rib = ribn/ribd
+        if ( rib < d_zero ) then
+          cdr = cdrn*(d_one+24.5D0*dsqrt(-cdrn*rib))
+        else
+          cdr = cdrn/(d_one+11.5D0*rib)
+        end if
+        cdrmin = dmax1(0.25D0*cdrn,6.0D-4)
+        if ( cdr < cdrmin ) cdr = cdrmin
+        rhosw = 0.10D0*(d_one+d_three*age)
+        rhosw3 = rhosw**3
+        cdrn = (vonkar/dlog(ht(i)/zsno))**2
+        ribl = (d_one-271.5D0/sts(i))*ht(i)*egrav/ribd
+        if ( ribl < d_zero ) then
+          clead = cdrn*(d_one+24.5D0*dsqrt(-cdrn*ribl))
+        else
+          clead = cdrn/(d_one+11.5D0*rib)
+        end if
+        cdrx = (d_one-aarea)*cdr + aarea*clead
+        rhs = psurf/(rgas*sts(i))
+        drag(i) = cdrx*vspda*rhs
+        qice = 3.3D-3 * stdp/psurf
+        qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx
+        tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*(tzero-1.8D0))/cdrx
+        fact = -drag(i)
+        delt = sts(i) - tgrnd
+        delq = qs - qgrnd
       end if
+      if ( dabs(sent(i)) < dlowval ) sent(i) = d_zero
+      if ( dabs(evpr(i)) < dlowval ) evpr(i) = d_zero
+      fact = dlog(ht(i)*d_half)/dlog(ht(i)/zoce)
+      factuv = dlog(ht(i)*d_r10)/dlog(ht(i)/zoce)
+      u10m(i) = usw(i)*(d_one-factuv)
+      v10m(i) = vsw(i)*(d_one-factuv)
+      taux(i) = dmissval
+      tauy(i) = dmissval
+      t2m(i) = sts(i) - delt*fact
+      q2m(i) = qs - delq*fact
     end do
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -299,8 +381,8 @@ module mod_bats_lake
     intent (in) hsen , ql , tl , vl , zl
     intent (in) ndpt , eta
     intent (out) tgl
-    intent (inout) evl , aveice , hsnow
-    intent (inout) tprof
+    intent (in) hsnow
+    intent (inout) tprof , evl , aveice
     real(rk8) :: ai , ea , ev , hs , ld , lu , qe , qh , tac , tk , u2
     ! zo: surface roughness length
     real(rk8) , parameter :: zo = 0.001D0
@@ -333,7 +415,6 @@ module mod_bats_lake
 
       hi     = 0.01D0
       aveice = d_zero
-      hsnow  = d_zero
 
     else
       ! Lake ice
@@ -352,9 +433,7 @@ module mod_bats_lake
 
       evl    = ev/secph       ! convert evl  from mm/hr to mm/sec
       aveice = ai*d_1000      ! convert ice  from m to mm
-      hsnow  = hs*d_100       ! convert snow from m depth to mm h20
       if (aveice < dlowval) aveice = d_zero
-      if (hsnow < dlowval) hsnow = d_zero
 
     end if
     tgl = tprof(1) + tzero
@@ -708,11 +787,10 @@ module mod_bats_lake
 !
 !-----------------------------------------------------------------------
 !
-  subroutine lake_fillvar_real8_3d(ivar,rvar,idir,xmsk)
+  subroutine lake_fillvar_real8_1d(ivar,rvar,idir)
     implicit none
     integer(ik4) , intent(in) :: ivar , idir
-    real(rk8) , intent(inout) , pointer , dimension(:,:,:) :: rvar
-    logical , intent(in) , pointer , dimension(:,:,:) :: xmsk
+    real(rk8) , intent(inout) , pointer , dimension(:) :: rvar
     real(rk8) , pointer , dimension(:) :: p
 
     if ( nlakep == 0 ) then
@@ -724,26 +802,21 @@ module mod_bats_lake
         p => eta
       case (var_hi)
         p => hi
-      case (var_aveice)
-        p => aveice
-      case (var_hsnow)
-        p => hsnow
       case default
         return
     end select
     if ( idir == 1 ) then
-      p = pack(rvar,xmsk)
+      p = pack(rvar,lakmsk)
     else
       rvar = dmissval
-      rvar = unpack(p,xmsk,rvar)
+      rvar = unpack(p,lakmsk,rvar)
     end if
-  end subroutine lake_fillvar_real8_3d
+  end subroutine lake_fillvar_real8_1d
 !
-  subroutine lake_fillvar_real8_4d(ivar,rvar,idir,xmsk)
+  subroutine lake_fillvar_real8_2d(ivar,rvar,idir)
     implicit none
     integer(ik4) , intent(in) :: ivar , idir
-    real(rk8) , intent(inout) , pointer , dimension(:,:,:,:) :: rvar
-    logical , intent(in) , pointer , dimension(:,:,:) :: xmsk
+    real(rk8) , intent(inout) , pointer , dimension(:,:) :: rvar
     real(rk8) , pointer , dimension(:,:) :: p
     integer(ik4) :: k
 
@@ -759,14 +832,14 @@ module mod_bats_lake
     end select
     if ( idir == 1 ) then
       do k = 1 , ndpmax
-        p(:,k) = pack(rvar(:,:,:,k),xmsk)
+        p(:,k) = pack(rvar(:,k),lakmsk)-tzero
       end do
     else
       rvar = dmissval
       do k = 1 , ndpmax
-        rvar(:,:,:,k) = unpack(p(:,k),xmsk,rvar(:,:,:,k))
+        rvar(:,k) = unpack(p(:,k),lakmsk,rvar(:,k))+tzero
       end do
     end if
-  end subroutine lake_fillvar_real8_4d
+  end subroutine lake_fillvar_real8_2d
 !
-end module mod_bats_lake
+end module mod_ocn_lake

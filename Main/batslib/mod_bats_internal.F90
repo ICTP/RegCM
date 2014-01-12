@@ -23,16 +23,16 @@ module mod_bats_internal
   use mod_realkinds
   use mod_memutil
   use mod_dynparam
+  use mod_regcm_types
 
   implicit none
 
   public
 
-  real(rk8) :: dtbat , dtlake
+  real(rk8) :: dtbat
 
   integer(ik4) :: nlandp
   integer(ik4) :: ilndbeg , ilndend
-  logical :: llake = .false.
 
   real(rk8) , pointer , dimension(:) :: abswveg
   real(rk8) , pointer , dimension(:) :: aseas
@@ -49,7 +49,6 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:) :: cgrnd
   real(rk8) , pointer , dimension(:) :: cgrndl
   real(rk8) , pointer , dimension(:) :: cgrnds
-  real(rk8) , pointer , dimension(:) :: clead
   real(rk8) , pointer , dimension(:) :: cn1
   real(rk8) , pointer , dimension(:) :: czenith
   real(rk8) , pointer , dimension(:) :: dcd
@@ -58,8 +57,8 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:) :: delt
   real(rk8) , pointer , dimension(:) :: deprat
   real(rk8) , pointer , dimension(:) :: df
-  real(rk8) , pointer , dimension(:) :: dhlake
   real(rk8) , pointer , dimension(:) :: drag
+  real(rk8) , pointer , dimension(:) :: dzh
   real(rk8) , pointer , dimension(:) :: efe
   real(rk8) , pointer , dimension(:) :: efpr
   real(rk8) , pointer , dimension(:) :: eg
@@ -71,6 +70,8 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:) :: evapw
   real(rk8) , pointer , dimension(:) :: evmx0
   real(rk8) , pointer , dimension(:) :: evpr
+  real(rk8) , pointer , dimension(:) :: fact10
+  real(rk8) , pointer , dimension(:) :: fact2
   real(rk8) , pointer , dimension(:) :: fct2
   real(rk8) , pointer , dimension(:) :: fdry
   real(rk8) , pointer , dimension(:) :: fevpg
@@ -83,6 +84,8 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:) :: gwmx0
   real(rk8) , pointer , dimension(:) :: gwmx1
   real(rk8) , pointer , dimension(:) :: gwmx2
+  real(rk8) , pointer , dimension(:) :: ht
+  real(rk8) , pointer , dimension(:) :: hts
   real(rk8) , pointer , dimension(:) :: htvp
   real(rk8) , pointer , dimension(:) :: lat
   real(rk8) , pointer , dimension(:) :: ldew
@@ -124,7 +127,6 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:) :: seasb
   real(rk8) , pointer , dimension(:) :: sent
   real(rk8) , pointer , dimension(:) :: sfcp
-  real(rk8) , pointer , dimension(:) :: sfice
   real(rk8) , pointer , dimension(:) :: sigf
   real(rk8) , pointer , dimension(:) :: sm
   real(rk8) , pointer , dimension(:) :: snag
@@ -139,6 +141,7 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:) :: swsi
   real(rk8) , pointer , dimension(:) :: taf
   real(rk8) , pointer , dimension(:) :: texrat
+  real(rk8) , pointer , dimension(:) :: tgbb
   real(rk8) , pointer , dimension(:) :: tgbrd
   real(rk8) , pointer , dimension(:) :: tgrd
   real(rk8) , pointer , dimension(:) :: tlef
@@ -188,19 +191,25 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:) :: zh
   real(rk8) , pointer , dimension(:) :: zlgdis
   real(rk8) , pointer , dimension(:) :: zlglnd
-  real(rk8) , pointer , dimension(:) :: zlgocn
   real(rk8) , pointer , dimension(:) :: zlgsno
   real(rk8) , pointer , dimension(:) :: zlgveg
 
-  integer(ik4) , pointer , dimension(:) :: lakmsk
   integer(ik4) , pointer , dimension(:) :: lveg
-  integer(ik4) , pointer , dimension(:) :: mask
+
+  real(rk8) , pointer , dimension(:) :: p0
+  real(rk8) , pointer , dimension(:) :: qs0
+  real(rk8) , pointer , dimension(:) :: ts0
+  real(rk8) , pointer , dimension(:) :: swd0
+  real(rk8) , pointer , dimension(:) :: swf0
+  real(rk8) , pointer , dimension(:) :: ncpr0
+  real(rk8) , pointer , dimension(:) :: cpr0
 
   contains
 
-  subroutine allocate_mod_bats_internal
+  subroutine allocate_mod_bats_internal(cl)
     implicit none
-    nlandp = nnsg*(jci2-jci1+1)*(ici2-ici1+1)
+    type (masked_comm) , intent(in) :: cl
+    nlandp = cl%linear_npoint_sg(myid+1)
     ilndbeg = 1
     ilndend = nlandp
     call getmem1d(abswveg,1,nlandp,'bats_internal:abswveg')
@@ -218,7 +227,6 @@ module mod_bats_internal
     call getmem1d(cgrnd,1,nlandp,'bats_internal:cgrnd')
     call getmem1d(cgrndl,1,nlandp,'bats_internal:cgrndl')
     call getmem1d(cgrnds,1,nlandp,'bats_internal:cgrnds')
-    call getmem1d(clead,1,nlandp,'bats_internal:clead')
     call getmem1d(cn1,1,nlandp,'bats_internal:cn1')
     call getmem1d(czenith,1,nlandp,'bats_internal:czenith')
     call getmem1d(dcd,1,nlandp,'bats_internal:dcd')
@@ -227,8 +235,8 @@ module mod_bats_internal
     call getmem1d(delt,1,nlandp,'bats_internal:delt')
     call getmem1d(deprat,1,nlandp,'bats_internal:deprat')
     call getmem1d(df,1,nlandp,'bats_internal:df')
-    call getmem1d(dhlake,1,nlandp,'bats_internal:dhlake')
     call getmem1d(drag,1,nlandp,'bats_internal:drag')
+    call getmem1d(dzh,1,nlandp,'bats_internal:dzh')
     call getmem1d(efe,1,nlandp,'bats_internal:efe')
     call getmem1d(efpr,1,nlandp,'bats_internal:efpr')
     call getmem1d(eg,1,nlandp,'bats_internal:eg')
@@ -240,6 +248,8 @@ module mod_bats_internal
     call getmem1d(evapw,1,nlandp,'bats_internal:evapw')
     call getmem1d(evmx0,1,nlandp,'bats_internal:evmx0')
     call getmem1d(evpr,1,nlandp,'bats_internal:evpr')
+    call getmem1d(fact10,1,nlandp,'bats_internal:fact10')
+    call getmem1d(fact2,1,nlandp,'bats_internal:fact2')
     call getmem1d(fct2,1,nlandp,'bats_internal:fct2')
     call getmem1d(fdry,1,nlandp,'bats_internal:fdry')
     call getmem1d(fevpg,1,nlandp,'bats_internal:fevpg')
@@ -252,6 +262,8 @@ module mod_bats_internal
     call getmem1d(gwmx0,1,nlandp,'bats_internal:gwmx0')
     call getmem1d(gwmx1,1,nlandp,'bats_internal:gwmx1')
     call getmem1d(gwmx2,1,nlandp,'bats_internal:gwmx2')
+    call getmem1d(ht,1,nlandp,'bats_internal:ht')
+    call getmem1d(hts,1,nlandp,'bats_internal:hts')
     call getmem1d(htvp,1,nlandp,'bats_internal:htvp')
     call getmem1d(lat,1,nlandp,'bats_internal:lat')
     call getmem1d(ldew,1,nlandp,'bats_internal:ldew')
@@ -293,7 +305,6 @@ module mod_bats_internal
     call getmem1d(seasb,1,nlandp,'bats_internal:seasb')
     call getmem1d(sent,1,nlandp,'bats_internal:sent')
     call getmem1d(sfcp,1,nlandp,'bats_internal:sfcp')
-    call getmem1d(sfice,1,nlandp,'bats_internal:sfice')
     call getmem1d(sigf,1,nlandp,'bats_internal:sigf')
     call getmem1d(sm,1,nlandp,'bats_internal:sm')
     call getmem1d(snag,1,nlandp,'bats_internal:snag')
@@ -308,6 +319,7 @@ module mod_bats_internal
     call getmem1d(swsi,1,nlandp,'bats_internal:swsi')
     call getmem1d(taf,1,nlandp,'bats_internal:taf')
     call getmem1d(texrat,1,nlandp,'bats_internal:texrat')
+    call getmem1d(tgbb,1,nlandp,'bats_internal:tgbb')
     call getmem1d(tgbrd,1,nlandp,'bats_internal:tgbrd')
     call getmem1d(tgrd,1,nlandp,'bats_internal:tgrd')
     call getmem1d(tlef,1,nlandp,'bats_internal:tlef')
@@ -357,13 +369,16 @@ module mod_bats_internal
     call getmem1d(zh,1,nlandp,'bats_internal:zh')
     call getmem1d(zlgdis,1,nlandp,'bats_internal:zlgdis')
     call getmem1d(zlglnd,1,nlandp,'bats_internal:zlglnd')
-    call getmem1d(zlgocn,1,nlandp,'bats_internal:zlgocn')
     call getmem1d(zlgsno,1,nlandp,'bats_internal:zlgsno')
     call getmem1d(zlgveg,1,nlandp,'bats_internal:zlgveg')
-
-    call getmem1d(lakmsk,1,nlandp,'bats_internal:lakmsk')
     call getmem1d(lveg,1,nlandp,'bats_internal:lveg')
-    call getmem1d(mask,1,nlandp,'bats_internal:mask')
+    call getmem1d(p0,1,nlandp,'bats_internal:p0')
+    call getmem1d(qs0,1,nlandp,'bats_internal:qs0')
+    call getmem1d(ts0,1,nlandp,'bats_internal:ts0')
+    call getmem1d(swd0,1,nlandp,'bats_internal:swd0')
+    call getmem1d(swf0,1,nlandp,'bats_internal:swf0')
+    call getmem1d(ncpr0,1,nlandp,'bats_internal:ncpr0')
+    call getmem1d(cpr0,1,nlandp,'bats_internal:cpr0')
   end subroutine allocate_mod_bats_internal
 !
 end module mod_bats_internal

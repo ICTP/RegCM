@@ -372,7 +372,7 @@ module mod_output
     if ( sub_stream > 0 ) then
       if ( ldosub ) then
 
-        sub_ps_out = sub_ps_out*rnsrf_for_subfrq
+        sub_ps_out = (sub_ps_out*rnsrf_for_subfrq)/d_100
 
         if ( associated(sub_evp_out) ) &
           sub_evp_out = sub_evp_out*rnsrf_for_subfrq
@@ -427,11 +427,6 @@ module mod_output
           lak_sina_out = lak_sina_out*rnsrf_for_lakfrq
         if ( associated(lak_evp_out) ) &
           lak_evp_out = lak_evp_out*rnsrf_for_lakfrq
-        if ( associated(lak_aveice_out) ) then
-          where ( lak_aveice_out < dmissval )
-            lak_aveice_out = lak_aveice_out*rnsrf_for_lakfrq
-          end where
-        end if
 
         call write_record_output_stream(lak_stream,idatex)
         if ( myid == italk ) &
@@ -445,11 +440,6 @@ module mod_output
         if ( associated(lak_fld_out) )    lak_fld_out = d_zero
         if ( associated(lak_sina_out) )   lak_sina_out = d_zero
         if ( associated(lak_evp_out) )    lak_evp_out = d_zero
-        if ( associated(lak_aveice_out) ) then
-          where ( lak_aveice_out < dmissval )
-            lak_aveice_out = d_zero
-          end where
-        end if
       end if
     end if
 
@@ -617,6 +607,7 @@ module mod_output
         call subgrid_collect(lms%snag,snag_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%sfice,sfice_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(lms%emisv,emisv_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%scvk,scvk_io,jci1,jci2,ici1,ici2)
         call subgrid_collect(mdsub%ldmsk,ldmsk1_io,jci1,jci2,ici1,ici2)
 
         call grid_collect(solis,solis_io,jci1,jci2,ici1,ici2)
@@ -633,16 +624,9 @@ module mod_output
 
 #ifndef CLM
         if ( lakemod == 1 ) then
-          call lake_fillvar(var_eta,xlake,0,llakmsk1)
-          call subgrid_collect(xlake,eta_io,jci1,jci2,ici1,ici2)
-          call lake_fillvar(var_hi,xlake,0,llakmsk1)
-          call subgrid_collect(xlake,hi_io,jci1,jci2,ici1,ici2)
-          call lake_fillvar(var_aveice,xlake,0,llakmsk1)
-          call subgrid_collect(xlake,aveice_io,jci1,jci2,ici1,ici2)
-          call lake_fillvar(var_hsnow,xlake,0,llakmsk1)
-          call subgrid_collect(xlake,hsnow_io,jci1,jci2,ici1,ici2)
-          call lake_fillvar(var_tlak,tlake,0,llakmsk1)
-          call subgrid_collect(tlake,tlak_io,jci1,jci2,ici1,ici2,1,ndpmax)
+          call subgrid_collect(lms%eta,eta_io,jci1,jci2,ici1,ici2)
+          call subgrid_collect(lms%hi,hi_io,jci1,jci2,ici1,ici2)
+          call subgrid_collect(lms%tlake,tlak_io,jci1,jci2,ici1,ici2,1,ndpmax)
         end if
 #else
         if ( imask == 2 ) then
@@ -650,9 +634,9 @@ module mod_output
         end if
 #endif
         if ( idcsst == 1 ) then
-          call grid_collect(dtskin,dtskin_io,jci1,jci2,ici1,ici2)
-          call grid_collect(deltas,deltas_io,jci1,jci2,ici1,ici2)
-          call grid_collect(tdeltas,tdeltas_io,jci1,jci2,ici1,ici2)
+          call subgrid_collect(lms%dtskin,dtskin_io,jci1,jci2,ici1,ici2)
+          call subgrid_collect(lms%deltas,deltas_io,jci1,jci2,ici1,ici2)
+          call subgrid_collect(lms%tdeltas,tdeltas_io,jci1,jci2,ici1,ici2)
         end if
 
         call grid_collect(dstor,dstor_io,jde1,jde2,ide1,ide2,1,nsplit)

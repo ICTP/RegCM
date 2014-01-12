@@ -112,7 +112,6 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: sub_evp_out => null()
   real(rk8) , dimension(:,:) , pointer :: sub_scv_out => null()
   real(rk8) , dimension(:,:) , pointer :: sub_sena_out => null()
-  real(rk8) , dimension(:,:) , pointer :: sub_tlake_out => null()
 
   real(rk8) , dimension(:,:,:) , pointer :: sub_u10m_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: sub_v10m_out => null()
@@ -152,8 +151,6 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: lak_evp_out => null()
   real(rk8) , dimension(:,:) , pointer :: lak_aldirs_out => null()
   real(rk8) , dimension(:,:) , pointer :: lak_aldifs_out => null()
-  real(rk8) , dimension(:,:) , pointer :: lak_aveice_out => null()
-  real(rk8) , dimension(:,:) , pointer :: lak_hsnow_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: lak_tlake_out => null()
 
   real(rk8) , dimension(:,:) , pointer :: opt_acstoarf_out => null()

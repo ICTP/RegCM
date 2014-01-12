@@ -750,7 +750,7 @@ module mod_tendency
       !
       ! calculate albedo
       !
-      call land_albedo
+      call surface_albedo
       loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
       labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
       if ( iclimao3 == 1 ) then
@@ -761,7 +761,7 @@ module mod_tendency
     end if
 
     if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then
-      call land_model
+      call surface_model
       if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
     end if
 
@@ -1530,8 +1530,8 @@ module mod_tendency
       ierr = 0
       mean_tt = (maxval(aten%t)+minval(aten%t))/d_two
       do k = 1 , kz
-        do i = ice1, ice2
-          do j = jce1 , jce2
+        do i = ici1, ici2
+          do j = jci1 , jci2
             check_tt = (aten%t(j,i,k)-mean_tt)/psc(j,i)
             if ( dabs(check_tt) > temp_tend_maxval ) then
               write(stderr,*) 'After ', loc, ' at ktau = ', ktau

@@ -27,7 +27,10 @@ module mod_mppparam
   use mod_date
   use mod_stdio
   use netcdf
+  use mod_regcm_types
   use mpi
+
+  implicit none
 
   private
 
@@ -36,36 +39,11 @@ module mod_mppparam
   integer(ik4) , parameter :: mpi_proc_null = -2
 #endif
 
-  type masked_comm
-    integer(ik4) :: linear_communicator
-    logical , pointer , dimension(:,:) :: lmask2
-    logical , pointer , dimension(:,:,:) :: lmask3
-    integer(ik4) , public , pointer , dimension(:) :: linear_npoint
-    integer(ik4) , public , pointer , dimension(:) :: linear_displ
-    integer(ik4) , public , pointer , dimension(:) :: cartesian_npoint
-    integer(ik4) , public , pointer , dimension(:) :: cartesian_displ
-  end type masked_comm
-
-  public :: masked_comm
-
   public :: set_nproc , broadcast_params
 
   integer(ik4) :: cartesian_communicator
 
   integer(ik4) , public :: ncout_mpi_info = mpi_info_null
-
-  type model_area
-    logical :: bandflag
-    logical :: has_bdy
-    logical :: has_bdyleft , has_bdyright , has_bdytop , has_bdybottom
-    logical :: has_bdytopleft , has_bdytopright
-    logical :: has_bdybottomleft , has_bdybottomright
-    integer(ik4) , dimension(2) :: location
-    integer(ik4) :: left , right , top , bottom
-    integer(ik4) :: topleft , topright , bottomleft , bottomright
-    integer(ik4) :: ibt1 , ibt2 , ibt4 , ibb1 , ibb2 , ibb4
-    integer(ik4) :: jbl1 , jbl2 , jbl4 , jbr1 , jbr2 , jbr4
-  end type model_area
 
   type grid_nc_var2d
     character(len=64) :: varname
@@ -247,32 +225,43 @@ module mod_mppparam
                      recv_array_real8
   end interface recv_array
 
-  interface cl_setup
-    module procedure cl_setup_from_integer_2d, &
-                     cl_setup_from_integer_3d, &
-                     cl_setup_from_double_2d,  &
-                     cl_setup_from_double_3d,  &
-                     cl_setup_from_logical_2d, &
-                     cl_setup_from_logical_3d
-  end interface cl_setup
+  interface c2l_gg
+    module procedure cartesian_to_linear_integer_grid_grid, &
+                     cartesian_to_linear_logical_grid_grid, &
+                     cartesian_to_linear_real8_grid_grid
+  end interface c2l_gg
 
-  interface c2l
-    module procedure cartesian3d_to_linear_integer, &
-                     cartesian2d_to_linear_integer, &
-                     cartesian3d_to_linear_logical, &
-                     cartesian2d_to_linear_logical, &
-                     cartesian3d_to_linear_real8,   &
-                     cartesian2d_to_linear_real8
-  end interface c2l
+  interface c2l_ss
+    module procedure cartesian_to_linear_integer_subgrid_subgrid, &
+                     cartesian_to_linear_logical_subgrid_subgrid, &
+                     cartesian_to_linear_real8_subgrid_subgrid,   &
+                     cartesian_to_linear_real8_subgrid_subgrid_4d
+  end interface c2l_ss
 
-  interface l2c
-    module procedure linear_to_cartesian3d_integer, &
-                     linear_to_cartesian2d_integer, &
-                     linear_to_cartesian3d_logical, &
-                     linear_to_cartesian2d_logical, &
-                     linear_to_cartesian3d_real8,   &
-                     linear_to_cartesian2d_real8
-  end interface l2c
+  interface c2l_gs
+    module procedure cartesian_to_linear_integer_grid_subgrid, &
+                     cartesian_to_linear_logical_grid_subgrid, &
+                     cartesian_to_linear_real8_grid_subgrid
+  end interface c2l_gs
+
+  interface l2c_gg
+    module procedure linear_to_cartesian_integer_grid_grid, &
+                     linear_to_cartesian_logical_grid_grid, &
+                     linear_to_cartesian_real8_grid_grid
+  end interface l2c_gg
+
+  interface l2c_ss
+    module procedure linear_to_cartesian_integer_subgrid_subgrid, &
+                     linear_to_cartesian_logical_subgrid_subgrid, &
+                     linear_to_cartesian_real8_subgrid_subgrid,   &
+                     linear_to_cartesian_real8_subgrid_subgrid_4d
+  end interface l2c_ss
+
+  interface l2c_gs
+    module procedure linear_to_cartesian_integer_grid_subgrid, &
+                     linear_to_cartesian_logical_grid_subgrid, &
+                     linear_to_cartesian_real8_grid_subgrid
+  end interface l2c_gs
 
   interface reorder_subgrid
     module procedure reorder_subgrid_2d , &
@@ -286,7 +275,6 @@ module mod_mppparam
                      reorder_add_subgrid_3d
   end interface reorder_add_subgrid
 
-  public :: model_area
   type(model_area) , public :: ma
 !
   real(rk8) , pointer , dimension(:) :: r8vector1
@@ -299,6 +287,12 @@ module mod_mppparam
   logical , pointer , dimension(:) :: lvector2
   integer(ik4) , dimension(4) :: window
   integer(ik4) :: mpierr
+  real(rk8) , pointer , dimension(:,:,:) :: r8subgrid
+  real(rk8) , pointer , dimension(:,:) :: r8grid
+  integer(ik4) , pointer , dimension(:,:,:) :: i4subgrid
+  integer(ik4) , pointer , dimension(:,:) :: i4grid
+  logical , pointer , dimension(:,:,:) :: lsubgrid
+  logical , pointer , dimension(:,:) :: lgrid
 !
   integer(ik4) , public , parameter :: iocpu = 0 ! The id of the cpu doing I/O
   integer(ik4) , public , parameter :: italk = 0 ! Who is doing the print ?
@@ -326,10 +320,11 @@ module mod_mppparam
   public :: trueforall
   public :: allsync
   public :: cl_setup , cl_dispose
-  public :: c2l , l2c
-!
+  public :: c2l_gg , l2c_gg , c2l_ss , l2c_ss
+  public :: c2l_gs , l2c_gs
+
   contains
-!
+
 #ifdef MPI_SERIAL
   subroutine mpi_sendrecv(sendbuf, sendcount, sendtype, dest, sendtag, &
                           recvbuf, recvcount, recvtype, source, recvtag, &
@@ -5731,572 +5726,672 @@ module mod_mppparam
     end if
   end subroutine allsync
 
-  subroutine clset(ncart_tot,cl)
+  subroutine clset(ncart_tot_g,ncart_tot_sg,cl)
     implicit none
     type(masked_comm) , intent(inout) :: cl
-    integer(ik4) , intent(in) :: ncart_tot
+    integer(ik4) , intent(in) :: ncart_tot_g , ncart_tot_sg
     integer(ik4) :: linp , nrem , np , ntotg
-    call mpi_allgather(ncart_tot,1,mpi_integer4,            &
-                       cl%cartesian_npoint,1,mpi_integer4,  &
+    call mpi_allgather(ncart_tot_g,1,mpi_integer4,           &
+                       cl%cartesian_npoint_g,1,mpi_integer4, &
                        cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allgather error.')
     end if
-    cl%cartesian_displ(:) = 1
+    cl%cartesian_displ_g(:) = 1
     do np = 2 , nproc
-      cl%cartesian_displ(np) = cl%cartesian_displ(np-1) + &
-                               cl%cartesian_npoint(np-1)
+      cl%cartesian_displ_g(np) = cl%cartesian_displ_g(np-1) + &
+                                 cl%cartesian_npoint_g(np-1)
     end do
-    cl%linear_npoint(:) = 0
-    ntotg = sum(cl%cartesian_npoint)
+    cl%linear_npoint_g(:) = 0
+    ntotg = sum(cl%cartesian_npoint_g)
     if ( ntotg < nproc ) then
-      cl%linear_npoint(2) = ntotg
+      cl%linear_npoint_g(2) = ntotg
     else
       linp = ntotg / nproc
-      cl%linear_npoint(:) = linp
+      cl%linear_npoint_g(:) = linp
       nrem = ntotg - linp*nproc
       if ( nrem > 0 ) then
         np = 2
         do while (nrem > 0)
-          cl%linear_npoint(np) = cl%linear_npoint(np) + 1
+          cl%linear_npoint_g(np) = cl%linear_npoint_g(np) + 1
           nrem = nrem - 1
           np = np + 1
         end do
       end if
     end if 
-    cl%linear_displ(:) = 1
+    cl%linear_displ_g(:) = 1
     do np = 2 , nproc
-      cl%linear_displ(np) = cl%linear_displ(np-1) + cl%linear_npoint(np-1)
+      cl%linear_displ_g(np) = cl%linear_displ_g(np-1) + cl%linear_npoint_g(np-1)
     end do
+    if ( nsg > 1 ) then
+      call mpi_allgather(ncart_tot_sg,1,mpi_integer4,           &
+                         cl%cartesian_npoint_sg,1,mpi_integer4, &
+                         cartesian_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_allgather error.')
+      end if
+      cl%cartesian_displ_sg(:) = 1
+      do np = 2 , nproc
+        cl%cartesian_displ_sg(np) = cl%cartesian_displ_sg(np-1) + &
+                                    cl%cartesian_npoint_sg(np-1)
+      end do
+      cl%linear_npoint_sg(:) = 0
+      ntotg = sum(cl%cartesian_npoint_sg)
+      if ( ntotg < nproc ) then
+        cl%linear_npoint_sg(2) = ntotg
+      else
+        linp = ntotg / nproc
+        cl%linear_npoint_sg(:) = linp
+        nrem = ntotg - linp*nproc
+        if ( nrem > 0 ) then
+          np = 2
+          do while (nrem > 0)
+            cl%linear_npoint_sg(np) = cl%linear_npoint_sg(np) + 1
+            nrem = nrem - 1
+            np = np + 1
+          end do
+        end if
+      end if 
+      cl%linear_displ_sg(:) = 1
+      do np = 2 , nproc
+        cl%linear_displ_sg(np) = cl%linear_displ_sg(np-1) + &
+          cl%linear_npoint_sg(np-1)
+      end do
+    else
+      cl%cartesian_npoint_sg = cl%cartesian_npoint_g
+      cl%cartesian_displ_sg = cl%cartesian_displ_g
+      cl%linear_npoint_sg = cl%linear_npoint_g
+      cl%linear_displ_sg = cl%linear_displ_g
+    end if
+    call getmem3d(r8subgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:r8subgrid')
+    call getmem3d(i4subgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:i4subgrid')
+    call getmem3d(lsubgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:lsubgrid')
+    call getmem2d(r8grid,jci1,jci2,ici1,ici2,'mpp:r8grid')
+    call getmem2d(i4grid,jci1,jci2,ici1,ici2,'mpp:i4grid')
+    call getmem2d(lgrid,jci1,jci2,ici1,ici2,'mpp:lgrid')
   end subroutine clset
 
-  subroutine cl_setup_from_double_2d(cl,mask,lrev)
+  subroutine cl_setup(cl,gmask,sgmask,lrev)
     implicit none
     type(masked_comm) , intent(inout) :: cl
-    real(rk8) , dimension(:,:) , intent(in) :: mask
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: gmask
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: sgmask
     logical , optional , intent(in) :: lrev
-    integer(ik4) :: ncart_tot
-    if ( .not. associated(cl%linear_npoint) ) then
+    integer(ik4) :: ncart_tot_g , ncart_tot_sg
+    if ( .not. associated(cl%linear_npoint_g) ) then
       call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
       end if
-      call getmem1d(cl%linear_npoint,1,nproc,'cl:linear_npoint')
-      call getmem1d(cl%linear_displ,1,nproc,'cl:linear_displ')
-      call getmem1d(cl%cartesian_npoint,1,nproc,'cl:cartesian_npoint')
-      call getmem1d(cl%cartesian_displ,1,nproc,'cl:cartesian_displ')
-      call getmem2d(cl%lmask2,lbound(mask,1),ubound(mask,1), &
-                              lbound(mask,2),ubound(mask,2),'cl:lmask2')
+      call getmem1d(cl%linear_npoint_g,1,nproc,'cl:linear_npoint_g')
+      call getmem1d(cl%linear_displ_g,1,nproc,'cl:linear_displ_g')
+      call getmem1d(cl%cartesian_npoint_g,1,nproc,'cl:cartesian_npoint_g')
+      call getmem1d(cl%cartesian_displ_g,1,nproc,'cl:cartesian_displ_g')
+      call getmem1d(cl%linear_npoint_sg,1,nproc,'cl:linear_npoint_sg')
+      call getmem1d(cl%linear_displ_sg,1,nproc,'cl:linear_displ_sg')
+      call getmem1d(cl%cartesian_npoint_sg,1,nproc,'cl:cartesian_npoint_sg')
+      call getmem1d(cl%cartesian_displ_sg,1,nproc,'cl:cartesian_displ_sg')
+      call getmem2d(cl%gmask,jci1,jci2,ici1,ici2,'cl:gmask')
+      call getmem3d(cl%sgmask,1,nnsg,jci1,jci2,ici1,ici2,'cl:sgmask')
     end if
-    cl%lmask2 = mask > 0.0D0
+    cl%gmask = gmask(jci1:jci2,ici1:ici2) > 0.0D0
+    cl%sgmask = sgmask(1:nnsg,jci1:jci2,ici1:ici2) > 0.0D0
     if ( present(lrev) ) then
-      if ( lrev ) cl%lmask2 = .not. cl%lmask2
-    end if
-    ncart_tot = count(cl%lmask2)
-    call clset(ncart_tot,cl)
-  end subroutine cl_setup_from_double_2d
-
-  subroutine cl_setup_from_integer_2d(cl,mask,lrev)
-    implicit none
-    type(masked_comm) , intent(inout) :: cl
-    integer(ik4) , dimension(:,:) , intent(in) :: mask
-    logical , optional , intent(in) :: lrev
-    integer(ik4) :: ncart_tot
-    if ( .not. associated(cl%linear_npoint) ) then
-      call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
+      if ( lrev ) then
+        cl%gmask = .not. cl%gmask
+        cl%sgmask = .not. cl%sgmask
       end if
-      call getmem1d(cl%linear_npoint,1,nproc,'cl:linear_npoint')
-      call getmem1d(cl%linear_displ,1,nproc,'cl:linear_displ')
-      call getmem1d(cl%cartesian_npoint,1,nproc,'cl:cartesian_npoint')
-      call getmem1d(cl%cartesian_displ,1,nproc,'cl:cartesian_displ')
-      call getmem2d(cl%lmask2,lbound(mask,1),ubound(mask,1), &
-                              lbound(mask,2),ubound(mask,2),'cl:lmask2')
     end if
-    cl%lmask2 = mask > 0
-    if ( present(lrev) ) then
-      if ( lrev ) cl%lmask2 = .not. cl%lmask2
-    end if
-    ncart_tot = count(cl%lmask2)
-    call clset(ncart_tot,cl)
-  end subroutine cl_setup_from_integer_2d
+    ncart_tot_g = count(cl%gmask)
+    ncart_tot_sg = count(cl%sgmask)
+    call clset(ncart_tot_g,ncart_tot_sg,cl)
+  end subroutine cl_setup
 
-  subroutine cl_setup_from_logical_2d(cl,mask,lrev)
-    implicit none
-    type(masked_comm) , intent(inout) :: cl
-    logical , dimension(:,:) , intent(in) :: mask
-    logical , optional , intent(in) :: lrev
-    integer(ik4) :: ncart_tot
-    if ( .not. associated(cl%linear_npoint) ) then
-      call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
-      end if
-      call getmem1d(cl%linear_npoint,1,nproc,'cl:linear_npoint')
-      call getmem1d(cl%linear_displ,1,nproc,'cl:linear_displ')
-      call getmem1d(cl%cartesian_npoint,1,nproc,'cl:cartesian_npoint')
-      call getmem1d(cl%cartesian_displ,1,nproc,'cl:cartesian_displ')
-      call getmem2d(cl%lmask2,lbound(mask,1),ubound(mask,1), &
-                              lbound(mask,2),ubound(mask,2),'cl:lmask2')
-    end if
-    cl%lmask2 = mask
-    if ( present(lrev) ) then
-      if ( lrev ) cl%lmask2 = .not. cl%lmask2
-    end if
-    ncart_tot = count(cl%lmask2)
-    call clset(ncart_tot,cl)
-  end subroutine cl_setup_from_logical_2d
-
-  subroutine cl_setup_from_double_3d(cl,mask,lrev)
-    implicit none
-    type(masked_comm) , intent(inout) :: cl
-    real(rk8) , dimension(:,:,:) , intent(in) :: mask
-    logical , optional , intent(in) :: lrev
-    integer(ik4) :: ncart_tot
-    if ( .not. associated(cl%linear_npoint) ) then
-      call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
-      end if
-      call getmem1d(cl%linear_npoint,1,nproc,'cl:linear_npoint')
-      call getmem1d(cl%linear_displ,1,nproc,'cl:linear_displ')
-      call getmem1d(cl%cartesian_npoint,1,nproc,'cl:cartesian_npoint')
-      call getmem1d(cl%cartesian_displ,1,nproc,'cl:cartesian_displ')
-      call getmem3d(cl%lmask3,lbound(mask,1),ubound(mask,1), &
-                              lbound(mask,2),ubound(mask,2), &
-                              lbound(mask,3),ubound(mask,3), 'mppparam:lmask3')
-    end if
-    cl%lmask3 = mask > 0.0D0
-    if ( present(lrev) ) then
-      if ( lrev ) cl%lmask3 = .not. cl%lmask3
-    end if
-    ncart_tot = count(cl%lmask3)
-    call clset(ncart_tot,cl)
-  end subroutine cl_setup_from_double_3d
-
-  subroutine cl_setup_from_integer_3d(cl,mask,lrev)
-    implicit none
-    type(masked_comm) , intent(inout) :: cl
-    integer(ik4) , dimension(:,:,:) , intent(in) :: mask
-    logical , optional , intent(in) :: lrev
-    integer(ik4) :: ncart_tot
-    if ( .not. associated(cl%linear_npoint) ) then
-      call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
-      end if
-      call getmem1d(cl%linear_npoint,1,nproc,'cl:linear_npoint')
-      call getmem1d(cl%linear_displ,1,nproc,'cl:linear_displ')
-      call getmem1d(cl%cartesian_npoint,1,nproc,'cl:cartesian_npoint')
-      call getmem1d(cl%cartesian_displ,1,nproc,'cl:cartesian_displ')
-      call getmem3d(cl%lmask3,lbound(mask,1),ubound(mask,1), &
-                              lbound(mask,2),ubound(mask,2), &
-                              lbound(mask,3),ubound(mask,3), 'mppparam:lmask3')
-    end if
-    cl%lmask3 = mask > 0
-    if ( present(lrev) ) then
-      if ( lrev ) cl%lmask3 = .not. cl%lmask3
-    end if
-    ncart_tot = count(cl%lmask3)
-    call clset(ncart_tot,cl)
-  end subroutine cl_setup_from_integer_3d
-
-  subroutine cl_setup_from_logical_3d(cl,mask,lrev)
-    implicit none
-    type(masked_comm) , intent(inout) :: cl
-    logical , dimension(:,:,:) , intent(in) :: mask
-    logical , optional , intent(in) :: lrev
-    integer(ik4) :: ncart_tot
-    if ( .not. associated(cl%linear_npoint) ) then
-      call mpi_comm_dup(mycomm,cl%linear_communicator,mpierr)
-      if ( mpierr /= mpi_success ) then
-        call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
-      end if
-      call getmem1d(cl%linear_npoint,1,nproc,'cl:linear_npoint')
-      call getmem1d(cl%linear_displ,1,nproc,'cl:linear_displ')
-      call getmem1d(cl%cartesian_npoint,1,nproc,'cl:cartesian_npoint')
-      call getmem1d(cl%cartesian_displ,1,nproc,'cl:cartesian_displ')
-      call getmem3d(cl%lmask3,lbound(mask,1),ubound(mask,1), &
-                              lbound(mask,2),ubound(mask,2), &
-                              lbound(mask,3),ubound(mask,3), 'mppparam:lmask3')
-    end if
-    cl%lmask3 = mask
-    if ( present(lrev) ) then
-      if ( lrev ) cl%lmask3 = .not. cl%lmask3
-    end if
-    ncart_tot = count(cl%lmask3)
-    call clset(ncart_tot,cl)
-  end subroutine cl_setup_from_logical_3d
-
-  subroutine cartesian2d_to_linear_logical(cl,matrix,vector)
+  subroutine cartesian_to_linear_logical_grid_grid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    logical , dimension(:,:) :: matrix
-    logical , dimension(:) :: vector
+    logical , pointer , dimension(:,:) :: matrix
+    logical , pointer , dimension(:) :: vector
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint(myid+1)
+    nval = cl%cartesian_npoint_g(myid+1)
     if ( nproc == 1 ) then
-      vector(1:nval) = pack(matrix,cl%lmask2)
+      vector(1:nval) = pack(matrix(jci1:jci2,ici1:ici2),cl%gmask)
       return
     end if
     if ( nval > 0 ) then
-      lvector1 = pack(matrix,cl%lmask2)
+      lvector1 = pack(matrix(jci1:jci2,ici1:ici2),cl%gmask)
     end if
-    call mpi_gatherv(lvector1,nval,mpi_logical,                       &
-                     lvector2,cl%cartesian_npoint,cl%cartesian_displ, &
+    call mpi_gatherv(lvector1,nval,mpi_logical,                           &
+                     lvector2,cl%cartesian_npoint_g,cl%cartesian_displ_g, &
                      mpi_logical,iocpu,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    npt = cl%linear_npoint(myid+1)
-    call mpi_scatterv(lvector2,cl%linear_npoint,cl%linear_displ, &
-                      mpi_logical,vector,npt,mpi_logical,        &
+    npt = cl%linear_npoint_g(myid+1)
+    call mpi_scatterv(lvector2,cl%linear_npoint_g,cl%linear_displ_g, &
+                      mpi_logical,vector,npt,mpi_logical,            &
                       iocpu,cl%linear_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
-  end subroutine cartesian2d_to_linear_logical
+  end subroutine cartesian_to_linear_logical_grid_grid
 
-  subroutine linear_to_cartesian2d_logical(cl,vector,matrix)
+  subroutine linear_to_cartesian_logical_grid_grid(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    logical , dimension(:) , intent(in) :: vector
-    logical , dimension(:,:) , intent(out) :: matrix
+    logical , pointer , dimension(:) , intent(in) :: vector
+    logical , pointer , dimension(:,:) , intent(out) :: matrix
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint(myid+1)
+    nval = cl%cartesian_npoint_g(myid+1)
     if ( nproc == 1 ) then
-      matrix = unpack(vector(1:nval),cl%lmask2,matrix)
+      matrix(jci1:jci2,ici1:ici2) = unpack(vector(1:nval), &
+        cl%gmask,matrix(jci1:jci2,ici1:ici2))
       return
     end if
-    npt = cl%linear_npoint(myid+1)
-    call mpi_gatherv(vector,npt,mpi_logical,                    &
-                     lvector2,cl%linear_npoint,cl%linear_displ, &
+    npt = cl%linear_npoint_g(myid+1)
+    call mpi_gatherv(vector,npt,mpi_logical,                        &
+                     lvector2,cl%linear_npoint_g,cl%linear_displ_g, &
                      mpi_logical,iocpu,cl%linear_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    call mpi_scatterv(lvector2,cl%cartesian_npoint,   &
-                      cl%cartesian_displ,mpi_logical, &
-                      lvector1,nval,mpi_logical,      &
+    call mpi_scatterv(lvector2,cl%cartesian_npoint_g,   &
+                      cl%cartesian_displ_g,mpi_logical, &
+                      lvector1,nval,mpi_logical,        &
                       iocpu,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
     if ( nval > 0 ) then
-      matrix = unpack(lvector1(1:nval),cl%lmask2,matrix)
+      matrix(jci1:jci2,ici1:ici2) = unpack(lvector1(1:nval), &
+        cl%gmask,matrix(jci1:jci2,ici1:ici2))
     end if
-  end subroutine linear_to_cartesian2d_logical
+  end subroutine linear_to_cartesian_logical_grid_grid
 
-  subroutine cartesian3d_to_linear_logical(cl,matrix,vector)
+  subroutine cartesian_to_linear_logical_subgrid_subgrid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    logical , dimension(:,:,:) :: matrix
-    logical , dimension(:) :: vector
+    logical , pointer , dimension(:,:,:) :: matrix
+    logical , pointer , dimension(:) :: vector
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint(myid+1)
+    nval = cl%cartesian_npoint_sg(myid+1)
     if ( nproc == 1 ) then
-      vector(1:nval) = pack(matrix,cl%lmask3)
+      vector(1:nval) = pack(matrix(1:nnsg,jci1:jci2,ici1:ici2),cl%sgmask)
       return
     end if
     if ( nval > 0 ) then
-      lvector1 = pack(matrix,cl%lmask3)
+      lvector1 = pack(matrix(1:nnsg,jci1:jci2,ici1:ici2),cl%sgmask)
     end if
-    call mpi_gatherv(lvector1,nval,mpi_logical,                       &
-                     lvector2,cl%cartesian_npoint,cl%cartesian_displ, &
+    call mpi_gatherv(lvector1,nval,mpi_logical,                             &
+                     lvector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
                      mpi_logical,iocpu,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    npt = cl%linear_npoint(myid+1)
-    call mpi_scatterv(lvector2,cl%linear_npoint,cl%linear_displ, &
-                      mpi_logical,vector,npt,mpi_logical,        &
+    npt = cl%linear_npoint_sg(myid+1)
+    call mpi_scatterv(lvector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                      mpi_logical,vector,npt,mpi_logical,              &
                       iocpu,cl%linear_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
-  end subroutine cartesian3d_to_linear_logical
+  end subroutine cartesian_to_linear_logical_subgrid_subgrid
 
-  subroutine linear_to_cartesian3d_logical(cl,vector,matrix)
+  subroutine linear_to_cartesian_logical_subgrid_subgrid(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    logical , dimension(:) , intent(in) :: vector
-    logical , dimension(:,:,:) , intent(out) :: matrix
+    logical , pointer , dimension(:) , intent(in) :: vector
+    logical , pointer , dimension(:,:,:) , intent(out) :: matrix
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint(myid+1)
+    nval = cl%cartesian_npoint_sg(myid+1)
     if ( nproc == 1 ) then
-      matrix = unpack(vector(1:nval),cl%lmask3,matrix)
+      matrix(1:nnsg,jci1:jci2,ici1:ici2) = unpack(vector(1:nval), &
+        cl%sgmask,matrix(1:nnsg,jci1:jci2,ici1:ici2))
       return
     end if
-    npt = cl%linear_npoint(myid+1)
-    call mpi_gatherv(vector,npt,mpi_logical,                    &
-                     lvector2,cl%linear_npoint,cl%linear_displ, &
+    npt = cl%linear_npoint_sg(myid+1)
+    call mpi_gatherv(vector,npt,mpi_logical,                          &
+                     lvector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                      mpi_logical,iocpu,cl%linear_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    call mpi_scatterv(lvector2,cl%cartesian_npoint,   &
-                      cl%cartesian_displ,mpi_logical, &
-                      lvector1,nval,mpi_logical,      &
+    call mpi_scatterv(lvector2,cl%cartesian_npoint_sg,   &
+                      cl%cartesian_displ_sg,mpi_logical, &
+                      lvector1,nval,mpi_logical,         &
                       iocpu,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
     if ( nval > 0 ) then
-      matrix = unpack(lvector1(1:nval),cl%lmask3,matrix)
+      matrix(1:nnsg,jci1:jci2,ici1:ici2) = unpack(lvector1(1:nval), &
+        cl%sgmask,matrix(1:nnsg,jci1:jci2,ici1:ici2))
     end if
-  end subroutine linear_to_cartesian3d_logical
+  end subroutine linear_to_cartesian_logical_subgrid_subgrid
 
-  subroutine cartesian2d_to_linear_integer(cl,matrix,vector)
+  subroutine cartesian_to_linear_integer_grid_grid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    integer(ik4) , dimension(:,:) :: matrix
-    integer(ik4) , dimension(:) :: vector
+    integer(ik4) , pointer , dimension(:,:) :: matrix
+    integer(ik4) , pointer , dimension(:) :: vector
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint(myid+1)
+    nval = cl%cartesian_npoint_g(myid+1)
     if ( nproc == 1 ) then
-      vector(1:nval) = pack(matrix,cl%lmask2)
+      vector(1:nval) = pack(matrix(jci1:jci2,ici1:ici2),cl%gmask)
       return
     end if
     if ( nval > 0 ) then
-      i4vector1 = pack(matrix,cl%lmask2)
+      i4vector1 = pack(matrix(jci1:jci2,ici1:ici2),cl%gmask)
     end if
-    call mpi_gatherv(i4vector1,nval,mpi_integer4,                      &
-                     i4vector2,cl%cartesian_npoint,cl%cartesian_displ, &
+    call mpi_gatherv(i4vector1,nval,mpi_integer4,                           &
+                     i4vector2,cl%cartesian_npoint_g,cl%cartesian_displ_g, &
                      mpi_integer4,iocpu,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    npt = cl%linear_npoint(myid+1)
-    call mpi_scatterv(i4vector2,cl%linear_npoint,cl%linear_displ, &
-                      mpi_integer4,vector,npt,mpi_integer4,       &
+    npt = cl%linear_npoint_g(myid+1)
+    call mpi_scatterv(i4vector2,cl%linear_npoint_g,cl%linear_displ_g, &
+                      mpi_integer4,vector,npt,mpi_integer4,            &
                       iocpu,cl%linear_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
-  end subroutine cartesian2d_to_linear_integer
+  end subroutine cartesian_to_linear_integer_grid_grid
 
-  subroutine linear_to_cartesian2d_integer(cl,vector,matrix)
+  subroutine linear_to_cartesian_integer_grid_grid(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    integer(ik4) , dimension(:) , intent(in) :: vector
-    integer(ik4) , dimension(:,:) , intent(out) :: matrix
+    integer(ik4) , pointer , dimension(:) , intent(in) :: vector
+    integer(ik4) , pointer , dimension(:,:) , intent(out) :: matrix
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint(myid+1)
+    nval = cl%cartesian_npoint_g(myid+1)
     if ( nproc == 1 ) then
-      matrix = unpack(vector(1:nval),cl%lmask2,matrix)
+      matrix(jci1:jci2,ici1:ici2) = unpack(vector(1:nval), &
+        cl%gmask,matrix(jci1:jci2,ici1:ici2))
       return
     end if
-    npt = cl%linear_npoint(myid+1)
-    call mpi_gatherv(vector,npt,mpi_integer4,                    &
-                     i4vector2,cl%linear_npoint,cl%linear_displ, &
+    npt = cl%linear_npoint_g(myid+1)
+    call mpi_gatherv(vector,npt,mpi_integer4,                        &
+                     i4vector2,cl%linear_npoint_g,cl%linear_displ_g, &
                      mpi_integer4,iocpu,cl%linear_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    call mpi_scatterv(i4vector2,cl%cartesian_npoint,   &
-                      cl%cartesian_displ,mpi_integer4, &
-                      i4vector1,nval,mpi_integer4,     &
+    call mpi_scatterv(i4vector2,cl%cartesian_npoint_g,   &
+                      cl%cartesian_displ_g,mpi_integer4, &
+                      i4vector1,nval,mpi_integer4,        &
                       iocpu,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
     if ( nval > 0 ) then
-      matrix = unpack(i4vector1(1:nval),cl%lmask2,matrix)
+      matrix(jci1:jci2,ici1:ici2) = unpack(i4vector1(1:nval), &
+        cl%gmask,matrix(jci1:jci2,ici1:ici2))
     end if
-  end subroutine linear_to_cartesian2d_integer
+  end subroutine linear_to_cartesian_integer_grid_grid
 
-  subroutine cartesian3d_to_linear_integer(cl,matrix,vector)
+  subroutine cartesian_to_linear_integer_subgrid_subgrid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    integer(ik4) , dimension(:,:,:) :: matrix
-    integer(ik4) , dimension(:) :: vector
+    integer(ik4) , pointer , dimension(:,:,:) :: matrix
+    integer(ik4) , pointer , dimension(:) :: vector
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint(myid+1)
+    nval = cl%cartesian_npoint_sg(myid+1)
     if ( nproc == 1 ) then
-      vector(1:nval) = pack(matrix,cl%lmask3)
+      vector(1:nval) = pack(matrix(1:nnsg,jci1:jci2,ici1:ici2),cl%sgmask)
       return
     end if
     if ( nval > 0 ) then
-      i4vector1 = pack(matrix,cl%lmask3)
+      i4vector1 = pack(matrix(1:nnsg,jci1:jci2,ici1:ici2),cl%sgmask)
     end if
-    call mpi_gatherv(i4vector1,nval,mpi_integer4,                      &
-                     i4vector2,cl%cartesian_npoint,cl%cartesian_displ, &
+    call mpi_gatherv(i4vector1,nval,mpi_integer4,                             &
+                     i4vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
                      mpi_integer4,iocpu,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    npt = cl%linear_npoint(myid+1)
-    call mpi_scatterv(i4vector2,cl%linear_npoint,cl%linear_displ, &
-                      mpi_integer4,vector,npt,mpi_integer4,       &
+    npt = cl%linear_npoint_sg(myid+1)
+    call mpi_scatterv(i4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                      mpi_integer4,vector,npt,mpi_integer4,              &
                       iocpu,cl%linear_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
-  end subroutine cartesian3d_to_linear_integer
+  end subroutine cartesian_to_linear_integer_subgrid_subgrid
 
-  subroutine linear_to_cartesian3d_integer(cl,vector,matrix)
+  subroutine linear_to_cartesian_integer_subgrid_subgrid(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    integer(ik4) , dimension(:) , intent(in) :: vector
-    integer(ik4) , dimension(:,:,:) , intent(out) :: matrix
+    integer(ik4) , pointer , dimension(:) , intent(in) :: vector
+    integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: matrix
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint(myid+1)
+    nval = cl%cartesian_npoint_sg(myid+1)
     if ( nproc == 1 ) then
-      matrix = unpack(vector(1:nval),cl%lmask3,matrix)
+      matrix(1:nnsg,jci1:jci2,ici1:ici2) = unpack(vector(1:nval), &
+        cl%sgmask,matrix(1:nnsg,jci1:jci2,ici1:ici2))
       return
     end if
-    npt = cl%linear_npoint(myid+1)
-    call mpi_gatherv(vector,npt,mpi_integer4,                    &
-                     i4vector2,cl%linear_npoint,cl%linear_displ, &
+    npt = cl%linear_npoint_sg(myid+1)
+    call mpi_gatherv(vector,npt,mpi_integer4,                          &
+                     i4vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                      mpi_integer4,iocpu,cl%linear_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    call mpi_scatterv(i4vector2,cl%cartesian_npoint,   &
-                      cl%cartesian_displ,mpi_integer4, &
-                      i4vector1,nval,mpi_integer4,     &
+    call mpi_scatterv(i4vector2,cl%cartesian_npoint_sg,   &
+                      cl%cartesian_displ_sg,mpi_integer4, &
+                      i4vector1,nval,mpi_integer4,         &
                       iocpu,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
     if ( nval > 0 ) then
-      matrix = unpack(i4vector1(1:nval),cl%lmask3,matrix)
+      matrix(1:nnsg,jci1:jci2,ici1:ici2) = unpack(i4vector1(1:nval), &
+        cl%sgmask,matrix(1:nnsg,jci1:jci2,ici1:ici2))
     end if
-  end subroutine linear_to_cartesian3d_integer
+  end subroutine linear_to_cartesian_integer_subgrid_subgrid
 
-  subroutine cartesian2d_to_linear_real8(cl,matrix,vector)
+  subroutine cartesian_to_linear_real8_grid_grid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(rk8) , dimension(:,:) :: matrix
-    real(rk8) , dimension(:) :: vector
+    real(rk8) , pointer , dimension(:,:) :: matrix
+    real(rk8) , pointer , dimension(:) :: vector
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint(myid+1)
+    nval = cl%cartesian_npoint_g(myid+1)
     if ( nproc == 1 ) then
-      vector(1:nval) = pack(matrix,cl%lmask2)
+      vector(1:nval) = pack(matrix(jci1:jci2,ici1:ici2),cl%gmask)
       return
     end if
     if ( nval > 0 ) then
-      r8vector1 = pack(matrix,cl%lmask2)
+      r8vector1 = pack(matrix(jci1:jci2,ici1:ici2),cl%gmask)
     end if
-    call mpi_gatherv(r8vector1,nval,mpi_real8,                         &
-                     r8vector2,cl%cartesian_npoint,cl%cartesian_displ, &
+    call mpi_gatherv(r8vector1,nval,mpi_real8,                           &
+                     r8vector2,cl%cartesian_npoint_g,cl%cartesian_displ_g, &
                      mpi_real8,iocpu,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    npt = cl%linear_npoint(myid+1)
-    call mpi_scatterv(r8vector2,cl%linear_npoint, &
-                      cl%linear_displ,mpi_real8,  &
-                      vector,npt,mpi_real8,iocpu, &
-                      cl%linear_communicator,mpierr)
+    npt = cl%linear_npoint_g(myid+1)
+    call mpi_scatterv(r8vector2,cl%linear_npoint_g,cl%linear_displ_g, &
+                      mpi_real8,vector,npt,mpi_real8,            &
+                      iocpu,cl%linear_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
-  end subroutine cartesian2d_to_linear_real8
+  end subroutine cartesian_to_linear_real8_grid_grid
 
-  subroutine linear_to_cartesian2d_real8(cl,vector,matrix)
+  subroutine cartesian_to_linear_real8_subgrid_subgrid_4d(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(rk8) , dimension(:) , intent(in) :: vector
-    real(rk8) , dimension(:,:) , intent(out) :: matrix
+    real(rk8) , pointer , dimension(:,:,:,:) :: matrix
+    real(rk8) , pointer , dimension(:,:) :: vector
+    integer(ik4) :: nval , npt , nlev , k
+    nval = cl%cartesian_npoint_sg(myid+1)
+    nlev = size(matrix,4)
+    do k = 1 , nlev
+      if ( nproc == 1 ) then
+        vector(1:nval,k) = pack(matrix(1:nnsg,jci1:jci2,ici1:ici2,k),cl%sgmask)
+        return
+      end if
+      if ( nval > 0 ) then
+        r8vector1 = pack(matrix(1:nnsg,jci1:jci2,ici1:ici2,k),cl%sgmask)
+      end if
+      call mpi_gatherv(r8vector1,nval,mpi_real8,                               &
+                       r8vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
+                       mpi_real8,iocpu,cartesian_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+      end if
+      npt = cl%linear_npoint_sg(myid+1)
+      call mpi_scatterv(r8vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                        mpi_real8,vector(:,k),npt,mpi_real8,              &
+                        iocpu,cl%linear_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+      end if
+    end do
+  end subroutine cartesian_to_linear_real8_subgrid_subgrid_4d
+
+  subroutine linear_to_cartesian_real8_grid_grid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:) , intent(in) :: vector
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: matrix
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint(myid+1)
+    nval = cl%cartesian_npoint_g(myid+1)
     if ( nproc == 1 ) then
-      matrix = unpack(vector(1:nval),cl%lmask2,matrix)
+      matrix(jci1:jci2,ici1:ici2) = unpack(vector(1:nval), &
+        cl%gmask,matrix(jci1:jci2,ici1:ici2))
       return
     end if
-    npt = cl%linear_npoint(myid+1)
-    call mpi_gatherv(vector,npt,mpi_real8,                       &
-                     r8vector2,cl%linear_npoint,cl%linear_displ, &
+    npt = cl%linear_npoint_g(myid+1)
+    call mpi_gatherv(vector,npt,mpi_real8,                        &
+                     r8vector2,cl%linear_npoint_g,cl%linear_displ_g, &
                      mpi_real8,iocpu,cl%linear_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    call mpi_scatterv(r8vector2,cl%cartesian_npoint, &
-                      cl%cartesian_displ,mpi_real8,  &
-                      r8vector1,nval,mpi_real8,      &
+    call mpi_scatterv(r8vector2,cl%cartesian_npoint_g,   &
+                      cl%cartesian_displ_g,mpi_real8, &
+                      r8vector1,nval,mpi_real8,        &
                       iocpu,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
     if ( nval > 0 ) then
-      matrix = unpack(r8vector1(1:nval),cl%lmask2,matrix)
+      matrix(jci1:jci2,ici1:ici2) = unpack(r8vector1(1:nval), &
+        cl%gmask,matrix(jci1:jci2,ici1:ici2))
     end if
-  end subroutine linear_to_cartesian2d_real8
+  end subroutine linear_to_cartesian_real8_grid_grid
 
-  subroutine cartesian3d_to_linear_real8(cl,matrix,vector)
+  subroutine linear_to_cartesian_real8_subgrid_subgrid_4d(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(rk8) , dimension(:,:,:) :: matrix
-    real(rk8) , dimension(:) :: vector
-    integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint(myid+1)
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: vector
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: matrix
+    integer(ik4) :: nval , npt , nlev , k
+    nval = cl%cartesian_npoint_sg(myid+1)
+    nlev = size(vector,2)
     if ( nproc == 1 ) then
-      vector(1:nval) = pack(matrix,cl%lmask3)
+      do k = 1 , nlev
+        matrix(1:nnsg,jci1:jci2,ici1:ici2,k) = unpack(vector(1:nval,k), &
+          cl%sgmask,matrix(1:nnsg,jci1:jci2,ici1:ici2,k))
+      end do
+      return
+    end if
+    do k = 1 , nlev
+      npt = cl%linear_npoint_sg(myid+1)
+      call mpi_gatherv(vector(:,k),npt,mpi_real8,                        &
+                       r8vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                       mpi_real8,iocpu,cl%linear_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+      end if
+      call mpi_scatterv(r8vector2,cl%cartesian_npoint_sg, &
+                        cl%cartesian_displ_sg,mpi_real8,  &
+                        r8vector1,nval,mpi_real8,         &
+                        iocpu,cartesian_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+      end if
+      if ( nval > 0 ) then
+        matrix(1:nnsg,jci1:jci2,ici1:ici2,k) = unpack(r8vector1(1:nval), &
+          cl%sgmask,matrix(1:nnsg,jci1:jci2,ici1:ici2,k))
+      end if
+    end do
+  end subroutine linear_to_cartesian_real8_subgrid_subgrid_4d
+
+  subroutine cartesian_to_linear_real8_subgrid_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:,:,:) :: matrix
+    real(rk8) , pointer , dimension(:) :: vector
+    integer(ik4) :: nval , npt
+    nval = cl%cartesian_npoint_sg(myid+1)
+    if ( nproc == 1 ) then
+      vector(1:nval) = pack(matrix(1:nnsg,jci1:jci2,ici1:ici2),cl%sgmask)
       return
     end if
     if ( nval > 0 ) then
-      r8vector1 = pack(matrix,cl%lmask3)
+      r8vector1 = pack(matrix(1:nnsg,jci1:jci2,ici1:ici2),cl%sgmask)
     end if
-    call mpi_gatherv(r8vector1,nval,mpi_real8,                         &
-                     r8vector2,cl%cartesian_npoint,cl%cartesian_displ, &
+    call mpi_gatherv(r8vector1,nval,mpi_real8,                             &
+                     r8vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
                      mpi_real8,iocpu,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    npt = cl%linear_npoint(myid+1)
-    call mpi_scatterv(r8vector2,cl%linear_npoint,cl%linear_displ,mpi_real8, &
-                      vector,npt,mpi_real8,iocpu,cl%linear_communicator,mpierr)
+    npt = cl%linear_npoint_sg(myid+1)
+    call mpi_scatterv(r8vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                      mpi_real8,vector,npt,mpi_real8,              &
+                      iocpu,cl%linear_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
-  end subroutine cartesian3d_to_linear_real8
+  end subroutine cartesian_to_linear_real8_subgrid_subgrid
 
-  subroutine linear_to_cartesian3d_real8(cl,vector,matrix)
+  subroutine linear_to_cartesian_real8_subgrid_subgrid(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(rk8) , dimension(:) , intent(in) :: vector
-    real(rk8) , dimension(:,:,:) , intent(out) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(in) :: vector
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: matrix
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint(myid+1)
+    nval = cl%cartesian_npoint_sg(myid+1)
     if ( nproc == 1 ) then
-      matrix = unpack(vector(1:nval),cl%lmask3,matrix)
+      matrix(1:nnsg,jci1:jci2,ici1:ici2) = unpack(vector(1:nval), &
+        cl%sgmask,matrix(1:nnsg,jci1:jci2,ici1:ici2))
       return
     end if
-    npt = cl%linear_npoint(myid+1)
-    call mpi_gatherv(vector,npt,mpi_real8,                       &
-                     r8vector2,cl%linear_npoint,cl%linear_displ, &
+    npt = cl%linear_npoint_sg(myid+1)
+    call mpi_gatherv(vector,npt,mpi_real8,                          &
+                     r8vector2,cl%linear_npoint_sg,cl%linear_displ_sg, &
                      mpi_real8,iocpu,cl%linear_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
-    call mpi_scatterv(r8vector2,cl%cartesian_npoint, &
-                      cl%cartesian_displ,mpi_real8,  &
-                      r8vector1,nval,mpi_real8,      &
+    call mpi_scatterv(r8vector2,cl%cartesian_npoint_sg,   &
+                      cl%cartesian_displ_sg,mpi_real8, &
+                      r8vector1,nval,mpi_real8,         &
                       iocpu,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
     if ( nval > 0 ) then
-      matrix = unpack(r8vector1(1:nval),cl%lmask3,matrix)
+      matrix(1:nnsg,jci1:jci2,ici1:ici2) = unpack(r8vector1(1:nval), &
+        cl%sgmask,matrix(1:nnsg,jci1:jci2,ici1:ici2))
     end if
-  end subroutine linear_to_cartesian3d_real8
+  end subroutine linear_to_cartesian_real8_subgrid_subgrid
+
+  subroutine cartesian_to_linear_logical_grid_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    logical , pointer , dimension(:,:) :: matrix
+    logical , pointer , dimension(:) :: vector
+    integer(ik4) :: i , j , n
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          lsubgrid(n,j,i) = matrix(j,i)
+        end do
+      end do
+    end do
+    call cartesian_to_linear_logical_subgrid_subgrid(cl,lsubgrid,vector)
+  end subroutine cartesian_to_linear_logical_grid_subgrid
+
+  subroutine cartesian_to_linear_integer_grid_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    integer(ik4) , pointer , dimension(:,:) :: matrix
+    integer(ik4) , pointer , dimension(:) :: vector
+    integer(ik4) :: i , j , n
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          i4subgrid(n,j,i) = matrix(j,i)
+        end do
+      end do
+    end do
+    call cartesian_to_linear_integer_subgrid_subgrid(cl,i4subgrid,vector)
+  end subroutine cartesian_to_linear_integer_grid_subgrid
+
+  subroutine cartesian_to_linear_real8_grid_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:,:) :: matrix
+    real(rk8) , pointer , dimension(:) :: vector
+    integer(ik4) :: i , j , n
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          r8subgrid(n,j,i) = matrix(j,i)
+        end do
+      end do
+    end do
+    call cartesian_to_linear_real8_subgrid_subgrid(cl,r8subgrid,vector)
+  end subroutine cartesian_to_linear_real8_grid_subgrid
+
+  subroutine linear_to_cartesian_logical_grid_subgrid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    logical , pointer , dimension(:) , intent(in) :: vector
+    logical , pointer , dimension(:,:,:) , intent(out) :: matrix
+    integer(ik4) :: i , j , n
+    call linear_to_cartesian_logical_grid_grid(cl,vector,lgrid)
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          if ( cl%sgmask(n,j,i) ) matrix(n,j,i) = lgrid(j,i)
+        end do
+      end do
+    end do
+  end subroutine linear_to_cartesian_logical_grid_subgrid
+
+  subroutine linear_to_cartesian_integer_grid_subgrid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    integer(ik4) , pointer , dimension(:) , intent(in) :: vector
+    integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: matrix
+    integer(ik4) :: i , j , n
+    call linear_to_cartesian_integer_grid_grid(cl,vector,i4grid)
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          if ( cl%sgmask(n,j,i) ) matrix(n,j,i) = i4grid(j,i)
+        end do
+      end do
+    end do
+  end subroutine linear_to_cartesian_integer_grid_subgrid
+
+  subroutine linear_to_cartesian_real8_grid_subgrid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:) , intent(in) :: vector
+    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: matrix
+    integer(ik4) :: i , j , n
+    call linear_to_cartesian_real8_grid_grid(cl,vector,r8grid)
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          if ( cl%sgmask(n,j,i) ) matrix(n,j,i) = r8grid(j,i)
+        end do
+      end do
+    end do
+  end subroutine linear_to_cartesian_real8_grid_subgrid
 
   subroutine cl_dispose(cl)
     implicit none
     type(masked_comm) , intent(inout) :: cl
-    if ( associated(cl%linear_npoint) ) then
-      call relmem1d(cl%linear_npoint)
-      call relmem1d(cl%linear_displ)
-      call relmem1d(cl%cartesian_npoint)
-      call relmem1d(cl%cartesian_displ)
-      if ( associated(cl%lmask3) ) then
-        call relmem3d(cl%lmask3)
-      end if
-      if ( associated(cl%lmask2) ) then
-        call relmem2d(cl%lmask2)
-      end if
+    if ( associated(cl%linear_npoint_g) ) then
+      call relmem1d(cl%linear_npoint_g)
+      call relmem1d(cl%linear_displ_g)
+      call relmem1d(cl%cartesian_npoint_g)
+      call relmem1d(cl%cartesian_displ_g)
+      call relmem1d(cl%linear_npoint_sg)
+      call relmem1d(cl%linear_displ_sg)
+      call relmem1d(cl%cartesian_npoint_sg)
+      call relmem1d(cl%cartesian_displ_sg)
+      call relmem2d(cl%gmask)
+      call relmem3d(cl%sgmask)
       call mpi_comm_free(cl%linear_communicator,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_comm_free error.')

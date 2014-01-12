@@ -631,25 +631,15 @@ module mod_rad_colmod3
           n = n + 1
         end do
       end do
-      if ( iemiss == 1 ) then
-        n = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            emiss(n) = m2r%emiss(j,i)
-            n = n + 1
-          end do
-        end do
-      else
-        emiss(:) = 0.9995D0
-      end if
       ifirst = .false.
     end if
     !
-    ! Albedoes
+    ! Albedoes and surface emissivity
     !
     n = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
+        emiss(n)  = m2r%emiss(j,i)
         adirsw(n) = m2r%aldirs(j,i)
         adifsw(n) = m2r%aldifs(j,i)
         adirlw(n) = m2r%aldirl(j,i)

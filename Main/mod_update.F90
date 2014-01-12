@@ -68,7 +68,6 @@ module mod_update
 !     Used module declarations 
 !-----------------------------------------------------------------------
 !
-    use mod_bats_common, only : cplmsk
     use mod_atm_interface , only : mddom
     use mod_dynparam, only : ice1, ice2, jce1, jce2
     use mod_dynparam, only : ici1, ici2, jci1, jci2

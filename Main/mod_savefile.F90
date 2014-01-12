@@ -100,10 +100,9 @@ module mod_savefile
   real(rk8) , public , pointer , dimension(:,:,:) :: tgbrd_io
   real(rk8) , public , pointer , dimension(:,:,:) :: tlef_io
   real(rk8) , public , pointer , dimension(:,:,:) :: emisv_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: scvk_io
   real(rk8) , public , pointer , dimension(:,:,:) :: eta_io
   real(rk8) , public , pointer , dimension(:,:,:) :: hi_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: hsnow_io
-  real(rk8) , public , pointer , dimension(:,:,:) :: aveice_io
   real(rk8) , public , pointer , dimension(:,:,:,:) :: tlak_io
 
   real(rk8) , public , pointer , dimension(:,:) :: flw_io
@@ -117,9 +116,9 @@ module mod_savefile
   real(rk8) , public , pointer , dimension(:,:) :: solvl_io
   real(rk8) , public , pointer , dimension(:,:) :: solvld_io
 
-  real(rk8) , public , pointer , dimension(:,:) :: dtskin_io
-  real(rk8) , public , pointer , dimension(:,:) :: tdeltas_io
-  real(rk8) , public , pointer , dimension(:,:) :: deltas_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: dtskin_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: tdeltas_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: deltas_io
 
   integer(ik4) , public , pointer , dimension(:,:) :: kpbl_io
   real(rk8) , public , pointer , dimension(:,:) :: zpbl_io
@@ -202,6 +201,7 @@ module mod_savefile
       call getmem3d(taf_io,1,nnsg,jcross1,jcross2,icross1,icross2,'taf_io')
       call getmem3d(tlef_io,1,nnsg,jcross1,jcross2,icross1,icross2,'tlef_io')
       call getmem3d(emisv_io,1,nnsg,jcross1,jcross2,icross1,icross2,'emisv_io')
+      call getmem3d(scvk_io,1,nnsg,jcross1,jcross2,icross1,icross2,'scvk_io')
       call getmem3d(ldmsk1_io,1,nnsg,jcross1,jcross2,icross1,icross2,'ldmsk1')
       call getmem2d(ldmsk_io,jcross1,jcross2,icross1,icross2,'ldmsk_io')
       call getmem2d(flw_io,jcross1,jcross2,icross1,icross2,'flw_io')
@@ -218,9 +218,12 @@ module mod_savefile
         call getmem2d(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
       end if
       if ( idcsst == 1 ) then
-        call getmem2d(dtskin_io,jcross1,jcross2,icross1,icross2,'dtskin_io')
-        call getmem2d(deltas_io,jcross1,jcross2,icross1,icross2,'deltas_io')
-        call getmem2d(tdeltas_io,jcross1,jcross2,icross1,icross2,'tdeltas_io')
+        call getmem3d(dtskin_io,1,nnsg,jcross1,jcross2, &
+                                       icross1,icross2,'dtskin_io')
+        call getmem3d(deltas_io,1,nnsg,jcross1,jcross2, &
+                                       icross1,icross2,'deltas_io')
+        call getmem3d(tdeltas_io,1,nnsg,jcross1,jcross2, &
+                                        icross1,icross2,'tdeltas_io')
       end if
 
       if ( icup == 4 .or. icup == 97 .or. icup == 98 .or. icup == 99 ) then
@@ -272,12 +275,8 @@ module mod_savefile
       if ( lakemod == 1 ) then
         call getmem3d(eta_io,1,nnsg,jcross1,jcross2,icross1,icross2,'eta_io')
         call getmem3d(hi_io,1,nnsg,jcross1,jcross2,icross1,icross2,'hi_io')
-        call getmem3d(hsnow_io,1,nnsg,jcross1,jcross2, &
-                                      icross1,icross2,'hsnow_io')
-        call getmem3d(aveice_io,1,nnsg,jcross1,jcross2, &
-                                       icross1,icross2,'aveice_io')
         call getmem4d(tlak_io,1,nnsg,jcross1,jcross2, &
-                                     icross1,icross2,1,ndpmax,'tlak_io')
+                              icross1,icross2,1,ndpmax,'tlak_io')
       end if
 #endif
     endif
@@ -444,16 +443,14 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read taf')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'emiss'),emisv_io)
       call check_ok(__FILE__,__LINE__,'Cannot read emiss')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'scvk'),scvk_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read scvk')
 #ifndef CLM
       if ( lakemod == 1 ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'eta'),eta_io)
         call check_ok(__FILE__,__LINE__,'Cannot read eta')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'hi'),hi_io)
         call check_ok(__FILE__,__LINE__,'Cannot read hi')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'aveice'),aveice_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read aveice')
-        ncstatus = nf90_get_var(ncid,get_varid(ncid,'hsnow'),hsnow_io)
-        call check_ok(__FILE__,__LINE__,'Cannot read hsnow')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'tlak'),tlak_io)
         call check_ok(__FILE__,__LINE__,'Cannot read tlak')
       end if
@@ -670,17 +667,23 @@ module mod_savefile
         call check_ok(__FILE__,__LINE__,'Cannot create var cbmf2d')
       end if
       if ( idcsst == 1 ) then
+        wrkdim(1) = dimids(idnnsg)
+        wrkdim(2) = dimids(idjcross)
+        wrkdim(3) = dimids(idicross)
         ncstatus = nf90_def_var(ncid,'dtskin',nf90_double, &
-                                wrkdim(1:2),varids(27))
+                                wrkdim(1:3),varids(27))
         call check_ok(__FILE__,__LINE__,'Cannot create var dtskin')
         ncstatus = nf90_def_var(ncid,'deltas',nf90_double, &
-                                wrkdim(1:2),varids(28))
+                                wrkdim(1:3),varids(28))
         call check_ok(__FILE__,__LINE__,'Cannot create var deltas')
         ncstatus = nf90_def_var(ncid,'tdeltas',nf90_double, &
-                                wrkdim(1:2),varids(29))
+                                wrkdim(1:3),varids(29))
         call check_ok(__FILE__,__LINE__,'Cannot create var tdeltas')
       end if
+      wrkdim(1) = dimids(idjcross)
+      wrkdim(2) = dimids(idicross)
       if ( irrtm == 0 ) then
+        wrkdim(3) = dimids(idkh)
         wrkdim(4) = dimids(idspw)
         ncstatus = nf90_def_var(ncid,'gasabsnxt',nf90_double, &
                                 wrkdim(1:4),varids(30))
@@ -747,21 +750,19 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot create var taf')
       ncstatus = nf90_def_var(ncid,'emiss',nf90_double,wrkdim(1:3),varids(54))
       call check_ok(__FILE__,__LINE__,'Cannot create var emiss')
+      ncstatus = nf90_def_var(ncid,'scvk',nf90_double,wrkdim(1:3),varids(55))
+      call check_ok(__FILE__,__LINE__,'Cannot create var scvk')
 #ifndef CLM
       if ( lakemod == 1 ) then
-        ncstatus = nf90_def_var(ncid,'eta',nf90_double,wrkdim(1:3),varids(55))
+        wrkdim(1) = dimids(idnnsg)
+        wrkdim(2) = dimids(idjcross)
+        wrkdim(3) = dimids(idicross)
+        ncstatus = nf90_def_var(ncid,'eta',nf90_double,wrkdim(1:3),varids(56))
         call check_ok(__FILE__,__LINE__,'Cannot create var eta')
-        ncstatus = nf90_def_var(ncid,'hi',nf90_double,wrkdim(1:3),varids(56))
+        ncstatus = nf90_def_var(ncid,'hi',nf90_double,wrkdim(1:3),varids(57))
         call check_ok(__FILE__,__LINE__,'Cannot create var hi')
-        ncstatus = nf90_def_var(ncid,'aveice',nf90_double, &
-                                wrkdim(1:3),varids(57))
-        call check_ok(__FILE__,__LINE__,'Cannot create var aveice')
-        ncstatus = nf90_def_var(ncid,'hsnow',nf90_double, &
-                                wrkdim(1:3),varids(58))
-        call check_ok(__FILE__,__LINE__,'Cannot create var hsnow')
         wrkdim(4) = dimids(iddpt)
-        ncstatus = nf90_def_var(ncid,'tlak',nf90_double, &
-                                wrkdim(1:4),varids(59))
+        ncstatus = nf90_def_var(ncid,'tlak',nf90_double,wrkdim(1:4),varids(58))
         call check_ok(__FILE__,__LINE__,'Cannot create var tlak')
       end if
 #endif
@@ -1004,17 +1005,15 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot write taf')
       ncstatus = nf90_put_var(ncid,varids(54),emisv_io)
       call check_ok(__FILE__,__LINE__,'Cannot write emiss')
+      ncstatus = nf90_put_var(ncid,varids(55),scvk_io)
+      call check_ok(__FILE__,__LINE__,'Cannot write scvk')
 #ifndef CLM
       if ( lakemod == 1 ) then
-        ncstatus = nf90_put_var(ncid,varids(55),eta_io)
+        ncstatus = nf90_put_var(ncid,varids(56),eta_io)
         call check_ok(__FILE__,__LINE__,'Cannot write eta')
-        ncstatus = nf90_put_var(ncid,varids(56),hi_io)
+        ncstatus = nf90_put_var(ncid,varids(57),hi_io)
         call check_ok(__FILE__,__LINE__,'Cannot write hi')
-        ncstatus = nf90_put_var(ncid,varids(57),aveice_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write aveice')
-        ncstatus = nf90_put_var(ncid,varids(58),hsnow_io)
-        call check_ok(__FILE__,__LINE__,'Cannot write hsnow')
-        ncstatus = nf90_put_var(ncid,varids(59),tlak_io)
+        ncstatus = nf90_put_var(ncid,varids(58),tlak_io)
         call check_ok(__FILE__,__LINE__,'Cannot write tlak')
       end if
 #endif

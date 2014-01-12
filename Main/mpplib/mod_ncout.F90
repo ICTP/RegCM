@@ -63,11 +63,11 @@ module mod_ncout
   integer(ik4) , parameter :: nsts3dvars = 5
   integer(ik4) , parameter :: nstsvars = nsts2dvars+nsts3dvars
 
-  integer(ik4) , parameter :: nsub2dvars = 7 + nbase
+  integer(ik4) , parameter :: nsub2dvars = 6 + nbase
   integer(ik4) , parameter :: nsub3dvars = 6
   integer(ik4) , parameter :: nsubvars = nsub2dvars+nsub3dvars
 
-  integer(ik4) , parameter :: nlak2dvars = 13 + nbase
+  integer(ik4) , parameter :: nlak2dvars = 11 + nbase
   integer(ik4) , parameter :: nlak3dvars = 1
   integer(ik4) , parameter :: nlakvars = nlak2dvars+nlak3dvars
 
@@ -249,7 +249,6 @@ module mod_ncout
   integer(ik4) , parameter :: sub_evp    = 9
   integer(ik4) , parameter :: sub_scv    = 10
   integer(ik4) , parameter :: sub_sena   = 11
-  integer(ik4) , parameter :: sub_tlake  = 12
 
   integer(ik4) , parameter :: sub_u10m   = 1
   integer(ik4) , parameter :: sub_v10m   = 2
@@ -300,8 +299,6 @@ module mod_ncout
   integer(ik4) , parameter :: lak_aldirs = 14
   integer(ik4) , parameter :: lak_aldifs = 15
   integer(ik4) , parameter :: lak_evp    = 16
-  integer(ik4) , parameter :: lak_aveice = 17
-  integer(ik4) , parameter :: lak_hsnow  = 18
 
   integer(ik4) , parameter :: lak_tlake  = 1
 
@@ -1088,15 +1085,6 @@ module mod_ncout
             .true.,'time: mean')
           sub_sena_out => v2dvar_sub(sub_sena)%rval
         end if
-        if ( lakemod == 1 ) then
-          if ( enable_sub2d_vars(sub_tlake) ) then
-            call setup_var(v2dvar_sub,sub_tlake,vsize,'tslake','K', &
-              'Lake water surface temperature','water_temperature',.true.)
-            sub_tlake_out => v2dvar_sub(sub_tlake)%rval
-          end if
-        else
-          enable_sub2d_vars(sub_tlake) = .false.
-        end if
 
         vsize%k2 = 1
         v3dvar_sub(sub_u10m)%axis = 'xyw'
@@ -1420,18 +1408,6 @@ module mod_ncout
             'water_evaporation_flux_where_sea_ice',.true.)
           lak_evp_out => v2dvar_lak(lak_evp)%rval
         end if
-        if ( enable_lak2d_vars(lak_aveice) ) then
-          call setup_var(v2dvar_lak,lak_aveice,vsize,'lakeice','mm', &
-            'Floating ice thickness','floating_ice_thickness',.true., &
-            l_fill=.true.)
-          lak_aveice_out => v2dvar_lak(lak_aveice)%rval
-        end if
-        if ( enable_lak2d_vars(lak_hsnow) ) then
-          call setup_var(v2dvar_lak,lak_hsnow,vsize,'lakesnow','mm', &
-            'Floating snow thickness','surface_snow_thickness_where_sea_ice', &
-            .true.,l_fill=.true.)
-          lak_hsnow_out => v2dvar_lak(lak_hsnow)%rval
-        end if
 
         vsize%k2 = ndpmax
         v3dvar_lak(lak_tlake)%axis = 'xyd'
@@ -1439,6 +1415,7 @@ module mod_ncout
           call setup_var(v3dvar_lak,lak_tlake,vsize,'lakets','K', &
             'Lake water temperature','water_temperature',.true.,l_fill=.true.)
           lak_tlake_out => v3dvar_lak(lak_tlake)%rval
+          lak_tlake_out = dmissval
         end if
 
         enable_lak_vars(1:nlak2dvars) = enable_lak2d_vars

@@ -25,14 +25,32 @@ module mod_regcm_types
 ! Storage for all the 3d prognostic variables in two
 ! timesteps and all the 2d variables and constants
 !
-  type classmsk
-    logical , pointer , dimension(:,:) :: landmsk
-    logical , pointer , dimension(:,:) :: lakemsk
-    logical , pointer , dimension(:,:) :: ocenmsk
-    logical , pointer , dimension(:,:,:) :: landmsk1
-    logical , pointer , dimension(:,:,:) :: lakemsk1
-    logical , pointer , dimension(:,:,:) :: ocenmsk1
-  end type classmsk
+  type masked_comm
+    integer(ik4) :: linear_communicator
+    logical , pointer , dimension(:,:) :: gmask
+    logical , pointer , dimension(:,:,:) :: sgmask
+    integer(ik4) , public , pointer , dimension(:) :: linear_npoint_g
+    integer(ik4) , public , pointer , dimension(:) :: linear_displ_g
+    integer(ik4) , public , pointer , dimension(:) :: cartesian_npoint_g
+    integer(ik4) , public , pointer , dimension(:) :: cartesian_displ_g
+    integer(ik4) , public , pointer , dimension(:) :: linear_npoint_sg
+    integer(ik4) , public , pointer , dimension(:) :: linear_displ_sg
+    integer(ik4) , public , pointer , dimension(:) :: cartesian_npoint_sg
+    integer(ik4) , public , pointer , dimension(:) :: cartesian_displ_sg
+  end type masked_comm
+
+  type model_area
+    logical :: bandflag 
+    logical :: has_bdy
+    logical :: has_bdyleft , has_bdyright , has_bdytop , has_bdybottom
+    logical :: has_bdytopleft , has_bdytopright
+    logical :: has_bdybottomleft , has_bdybottomright 
+    integer(ik4) , dimension(2) :: location
+    integer(ik4) :: left , right , top , bottom 
+    integer(ik4) :: topleft , topright , bottomleft , bottomright
+    integer(ik4) :: ibt1 , ibt2 , ibt4 , ibb1 , ibb2 , ibb4
+    integer(ik4) :: jbl1 , jbl2 , jbl4 , jbr1 , jbr2 , jbr4
+  end type model_area
 
   type domain
     real(rk8) , pointer , dimension(:,:) :: ht
@@ -198,6 +216,8 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: rsw
     real(rk8) , pointer , dimension(:,:,:) :: tsw
     real(rk8) , pointer , dimension(:,:,:) :: ldew
+    real(rk8) , pointer , dimension(:,:,:) :: lncl
+    real(rk8) , pointer , dimension(:,:,:) :: tgbb
     real(rk8) , pointer , dimension(:,:,:) :: tgrd
     real(rk8) , pointer , dimension(:,:,:) :: tgbrd
     real(rk8) , pointer , dimension(:,:,:) :: taf
@@ -205,50 +225,102 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: sfice
     real(rk8) , pointer , dimension(:,:,:) :: snag
     real(rk8) , pointer , dimension(:,:,:) :: sncv
+    real(rk8) , pointer , dimension(:,:,:) :: scvk
     real(rk8) , pointer , dimension(:,:,:) :: emisv
     real(rk8) , pointer , dimension(:,:,:) :: sent
     real(rk8) , pointer , dimension(:,:,:) :: evpr
+    real(rk8) , pointer , dimension(:,:,:) :: deltat
+    real(rk8) , pointer , dimension(:,:,:) :: deltaq
     real(rk8) , pointer , dimension(:,:,:) :: drag
     real(rk8) , pointer , dimension(:,:,:) :: prcp
     real(rk8) , pointer , dimension(:,:,:) :: snwm
     real(rk8) , pointer , dimension(:,:,:) :: trnof
-    real(rk8) , pointer , dimension(:,:,:) :: srnof
+    real(rk8) , pointer , dimension(:,:,:) :: sigf
     real(rk8) , pointer , dimension(:,:,:) :: sfcp
+    real(rk8) , pointer , dimension(:,:,:) :: srnof
     real(rk8) , pointer , dimension(:,:,:) :: q2m
     real(rk8) , pointer , dimension(:,:,:) :: t2m
     real(rk8) , pointer , dimension(:,:,:) :: u10m
     real(rk8) , pointer , dimension(:,:,:) :: v10m
     real(rk8) , pointer , dimension(:,:,:) :: taux
     real(rk8) , pointer , dimension(:,:,:) :: tauy
+    real(rk8) , pointer , dimension(:,:,:) :: swalb
+    real(rk8) , pointer , dimension(:,:,:) :: lwalb
+    real(rk8) , pointer , dimension(:,:,:) :: swdiralb
+    real(rk8) , pointer , dimension(:,:,:) :: lwdiralb
+    real(rk8) , pointer , dimension(:,:,:) :: swdifalb
+    real(rk8) , pointer , dimension(:,:,:) :: lwdifalb
+    real(rk8) , pointer , dimension(:,:,:) :: wt
+    real(rk8) , pointer , dimension(:,:,:) :: eta
+    real(rk8) , pointer , dimension(:,:,:) :: hi
+    real(rk8) , pointer , dimension(:,:,:) :: hsnow
+    real(rk8) , pointer , dimension(:,:,:,:) :: tlake
+    logical , pointer , dimension(:,:,:) :: lakmsk
+    real(rk8) , pointer , dimension(:,:,:) :: deltas
+    real(rk8) , pointer , dimension(:,:,:) :: tdeltas
+    real(rk8) , pointer , dimension(:,:,:) :: dtskin
+    real(rk8) , pointer , dimension(:,:,:) :: sst
   end type lm_state
 
-  type mod_2_lm
-    real(rk8) , pointer , dimension(:,:) :: sfps
-    real(rk8) , pointer , dimension(:,:) :: tatm
-    real(rk8) , pointer , dimension(:,:) :: thatm
-    real(rk8) , pointer , dimension(:,:) :: zatm
-    real(rk8) , pointer , dimension(:,:) :: qvatm
-    real(rk8) , pointer , dimension(:,:) :: uatm
-    real(rk8) , pointer , dimension(:,:) :: vatm
-    real(rk8) , pointer , dimension(:,:) :: topo
-    real(rk8) , pointer , dimension(:,:) :: xlat
-    real(rk8) , pointer , dimension(:,:) :: xlon
-    real(rk8) , pointer , dimension(:,:) :: lnd
-    real(rk8) , pointer , dimension(:,:) :: snow
-    real(rk8) , pointer , dimension(:,:) :: rhox
-    real(rk8) , pointer , dimension(:,:) :: hpbl
-    real(rk8) , pointer , dimension(:,:) :: hfx
-    real(rk8) , pointer , dimension(:,:) :: qfx
-    real(rk8) , pointer , dimension(:,:) :: tgb
-    real(rk8) , pointer , dimension(:,:) :: tgbb
-    real(rk8) , pointer , dimension(:,:) :: cosz
-    real(rk8) , pointer , dimension(:,:) :: albvgs
-    real(rk8) , pointer , dimension(:,:) :: albvgl
-    real(rk8) , pointer , dimension(:,:) :: aldirs
-    real(rk8) , pointer , dimension(:,:) :: aldifs
-    real(rk8) , pointer , dimension(:,:) :: aldirl
-    real(rk8) , pointer , dimension(:,:) :: aldifl
-  end type mod_2_lm
+  type lm_exchange
+    real(rk8) , pointer , dimension(:,:) :: ssw2da
+    real(rk8) , pointer , dimension(:,:) :: sfracv2d
+    real(rk8) , pointer , dimension(:,:) :: sfracb2d
+    real(rk8) , pointer , dimension(:,:) :: sfracs2d
+    real(rk8) , pointer , dimension(:,:) :: svegfrac2d
+    real(rk8) , pointer , dimension(:,:,:) :: dailyrnf
+    real(rk8) , pointer , dimension(:,:) :: xlat        ! mddom%xlat
+    real(rk8) , pointer , dimension(:,:) :: xlon        ! mddom%xlon
+    real(rk8) , pointer , dimension(:,:) :: lndcat      ! mddom%lndcat
+    real(rk8) , pointer , dimension(:,:) :: ht          ! mddom%ht
+    real(rk8) , pointer , dimension(:,:) :: snowam      ! mddom%snowam
+    integer(ik4) , pointer , dimension(:,:) :: iveg     ! mddom%iveg
+    integer(ik4) , pointer , dimension(:,:) :: ldmsk    ! mddom%ldmsk
+    real(rk8) , pointer , dimension(:,:,:) :: ht1       ! mdsub%ht
+    real(rk8) , pointer , dimension(:,:,:) :: lndcat1   ! mdsub%lndcat
+    real(rk8) , pointer , dimension(:,:,:) :: xlat1     ! mdsub%xlat
+    real(rk8) , pointer , dimension(:,:,:) :: xlon1     ! mdsub%xlon
+    real(rk8) , pointer , dimension(:,:,:) :: dhlake1   ! mdsub%dhlake
+    integer(ik4) , pointer , dimension(:,:,:) :: ldmsk1 ! mdsub%ldmsk
+    integer(ik4) , pointer , dimension(:,:,:) :: iveg1  ! mdsub%iveg
+    real(rk8) , pointer , dimension(:,:) :: uatm        ! atms%ubx3d(:,:,kz)
+    real(rk8) , pointer , dimension(:,:) :: vatm        ! atms%vbx3d(:,:,kz)
+    real(rk8) , pointer , dimension(:,:) :: tatm        ! atms%tb3d(:,:,kz)
+    real(rk8) , pointer , dimension(:,:) :: thatm       ! atms%thx3d(:,:,kz)
+    real(rk8) , pointer , dimension(:,:) :: qvatm       ! atms%qxb3d(:,:,kz,iqv)
+    real(rk8) , pointer , dimension(:,:) :: hgt         ! za(:,:,kz)
+    real(rk8) , pointer , dimension(:,:) :: hpbl        ! zpbl
+    real(rk8) , pointer , dimension(:,:) :: hfx         ! sfs%hfx
+    real(rk8) , pointer , dimension(:,:) :: qfx         ! sfs%qfx
+    real(rk8) , pointer , dimension(:,:) :: tground1    ! sfs%tga
+    real(rk8) , pointer , dimension(:,:) :: tground2    ! sfs%tgb
+    real(rk8) , pointer , dimension(:,:) :: sfps        ! sfs%psb
+    real(rk8) , pointer , dimension(:,:) :: uvdrag      ! sfs%uvdrag
+    real(rk8) , pointer , dimension(:,:) :: tgbb        ! sfs%tgbb
+    real(rk8) , pointer , dimension(:,:) :: rhox        ! rhox2d
+    real(rk8) , pointer , dimension(:,:) :: rswf        ! fsw
+    real(rk8) , pointer , dimension(:,:) :: rlwf        ! flw
+    real(rk8) , pointer , dimension(:,:) :: dwrlwf      ! flwd
+    real(rk8) , pointer , dimension(:,:) :: zencos      ! coszrs
+    real(rk8) , pointer , dimension(:,:) :: ncprate     ! pptnc 
+    real(rk8) , pointer , dimension(:,:) :: cprate      ! cprate 
+    real(rk8) , pointer , dimension(:,:) :: vegswab     ! sabveg 
+    real(rk8) , pointer , dimension(:,:) :: lwalb       ! albvl
+    real(rk8) , pointer , dimension(:,:) :: swalb       ! albvs
+    real(rk8) , pointer , dimension(:,:) :: swdiralb    ! aldirs
+    real(rk8) , pointer , dimension(:,:) :: swdifalb    ! aldifs
+    real(rk8) , pointer , dimension(:,:) :: lwdiralb    ! aldirl
+    real(rk8) , pointer , dimension(:,:) :: lwdifalb    ! aldifl
+    real(rk8) , pointer , dimension(:,:) :: swdir       ! solvs
+    real(rk8) , pointer , dimension(:,:) :: swdif       ! solvsd
+    real(rk8) , pointer , dimension(:,:) :: lwdir       ! solvl
+    real(rk8) , pointer , dimension(:,:) :: lwdif       ! solvld
+    real(rk8) , pointer , dimension(:,:) :: solinc      ! sinc
+    real(rk8) , pointer , dimension(:,:) :: solar       ! solis
+    real(rk8) , pointer , dimension(:,:) :: emissivity  ! emiss
+    real(rk8) , pointer , dimension(:,:) :: deltaq      ! sdelq
+    real(rk8) , pointer , dimension(:,:) :: deltat      ! sdelt
+  end type lm_exchange
 
   type mod_2_rad
     real(rk8) , pointer , dimension(:,:) :: psb             ! sfs%psb

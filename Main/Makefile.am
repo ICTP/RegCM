@@ -17,16 +17,17 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-vpath %.o $(REGCM_ROOT)/Share:mpplib:netlib:batslib:chemlib:clmlib:\
+vpath %.o $(REGCM_ROOT)/Share:mpplib:netlib:batslib:ocnlib:chemlib:clmlib:\
           cumlib:radlib:pbllib:.
 
-SUBDIRS = mpplib netlib batslib chemlib clmlib cumlib radlib pbllib
+SUBDIRS = mpplib netlib batslib ocnlib chemlib clmlib cumlib radlib pbllib
 
 include $(REGCM_ROOT)/makeinc
 
 MPPLIBPTH = ./mpplib
 CLMLIBPTH = ./clmlib
 BATLIBPTH = ./batslib
+OCNLIBPTH = ./ocnlib
 NETLIBPTH = ./netlib
 CHELIBPTH = ./chemlib
 CUMLIBPTH = ./cumlib
@@ -38,6 +39,7 @@ RRTMSWLIBPTH = radlib/RRTMG_SW
 MPPLIB = $(MPPLIBPTH)/libmpp.a
 CLMLIB = $(CLMLIBPTH)/libclm.a
 BATLIB = $(BATLIBPTH)/libbats.a
+OCNLIB = $(OCNLIBPTH)/libocn.a
 NETLIB = $(NETLIBPTH)/libnetlib.a
 CHELIB = $(CHELIBPTH)/libchem.a
 CUMLIB = $(CUMLIBPTH)/libcum.a
@@ -60,6 +62,7 @@ program_transform_name = s&$$&$(rcsuffix)$(rcaddsuffix)&
 
 LMPPLIB = -L$(MPPLIBPTH) -lmpp
 LBATLIB = -L$(BATLIBPTH) -lbats
+LOCNLIB = -L$(OCNLIBPTH) -locn
 LCLMLIB = -L$(CLMLIBPTH) -lclm
 LNETLIB = -L$(NETLIBPTH) -lnetlib
 LCHELIB = -L$(CHELIBPTH) -lchem
@@ -71,16 +74,16 @@ LRRTMSWLIB = -L$(RRTMSWLIBPTH) -lrrtmgsw
 
 if COMPILER_SUN
   CPPFLAGS += -M$(MPPLIBPTH) -M$(CLMLIBPTH) -M$(NETLIBPTH) -M$(CBMZLIBPTH) \
-              -M$(CHELIBPTH) -M$(BATLIBPTH) -M$(CUMLIBPTH) -M$(RADLIBPTH)  \
-              -M$(PBLLIBPTH) -M$(RRTMSWLIBPTH)
+              -M$(CHELIBPTH) -M$(BATLIBPTH) -M$(OCNLIBPTH) -M$(CUMLIBPTH)  \
+              -M$(RADLIBPTH) -M$(PBLLIBPTH) -M$(RRTMSWLIBPTH)
 else
   CPPFLAGS += -I$(MPPLIBPTH) -I$(CLMLIBPTH) -I$(NETLIBPTH) -I$(CBMZLIBPTH) \
-              -I$(CHELIBPTH) -I$(BATLIBPTH) -I$(CUMLIBPTH) -I$(RADLIBPTH)  \
-              -I$(PBLLIBPTH) -I$(RRTMSWLIBPTH)
+              -I$(CHELIBPTH) -I$(BATLIBPTH) -I$(OCNLIBPTH) -I$(CUMLIBPTH)  \
+              -I$(RADLIBPTH) -I$(PBLLIBPTH) -I$(RRTMSWLIBPTH)
 endif
 
 LIBS = $(LMPPLIB) $(LCLMLIB) $(LNETLIB) $(LCHELIB) $(LCBMZLIB) $(LBATLIB) \
-       $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) $(SYSLIBS)
+       $(LOCNLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) $(SYSLIBS)
 
 bin_PROGRAMS = regcm
 
@@ -126,9 +129,9 @@ mod_diffusion.o: mod_diffusion.F90 mod_atm_interface.o mod_runparams.o mod_mpppa
 mod_header.o: mod_header.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_mppparam.o mod_date.o mod_stdio.o
 mod_init.o: mod_init.F90 mod_runparams.o mod_mppparam.o mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_cu_interface.o mod_rad_interface.o mod_pbl_interface.o mod_slabocean.o rrtmg_sw_init.o rrtmg_lw_init.o mod_pbl_interface.o mod_precip.o mod_bdycod.o mod_mpmessage.o mod_sun.o mod_ncio.o mod_savefile.o mod_slice.o mod_constants.o mod_outvars.o mod_lm_interface.o
 if DO_COMPILE_LIBCLM
-mod_lm_interface.o : mod_lm_interface.F90 mod_regcm_types.o mod_bats_bndry.o mod_bats_co2.o mod_bats_common.o mod_bats_drag.o mod_bats_lake.o mod_bats_leaftemp.o mod_bats_mtrxbats.o mod_bats_param.o mod_bats_zengocn.o mod_clm.o mod_memutil.o mod_mtrxclm.o mod_runparams.o clm_varsur.o clm_varctl.o clm_time_manager.o restFileMod.o spmdMod.o perf_mod.o
+mod_lm_interface.o : mod_lm_interface.F90 mod_regcm_types.o mod_bats_common.o mod_ocn_common.o mod_clm.o mod_memutil.o mod_mtrxclm.o mod_runparams.o clm_varsur.o clm_varctl.o clm_time_manager.o restFileMod.o spmdMod.o perf_mod.o
 else
-mod_lm_interface.o : mod_lm_interface.F90 mod_atm_interface.o mod_bats_bndry.o mod_bats_co2.o mod_bats_common.o mod_bats_drag.o mod_bats_lake.o mod_bats_leaftemp.o mod_bats_param.o mod_bats_zengocn.o mod_memutil.o mod_runparams.o
+mod_lm_interface.o : mod_lm_interface.F90 mod_regcm_types.o mod_bats_common.o mod_ocn_common.o mod_memutil.o mod_runparams.o
 endif
 mod_ncio.o : mod_ncio.F90 mod_domain.o mod_dynparam.o mod_ensemble.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_nchelper.o mod_runparams.o
 mod_output.o: mod_output.F90 mod_runparams.o mod_header.o mod_mpmessage.o mod_mppparam.o mod_service.o mod_atm_interface.o mod_che_interface.o mod_che_output.o mod_lm_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_ncout.o mod_bdycod.o mod_precip.o mod_split.o mod_savefile.o mod_slabocean.o mod_cloud_s1.o
@@ -165,5 +168,5 @@ endif
 #
 regcm.o: regcm.f90 mod_regcm_interface.o mod_dynparam.o \
          $(MPPLIB) $(CLMLIB) $(NETLIB) $(CHELIB) $(CBMZLIB) \
-         $(BATLIB) $(CUMLIB) $(RADLIB) $(PBLLIB) $(RRTMSWLIB)
+         $(BATLIB) $(OCNLIB) $(CUMLIB) $(RADLIB) $(PBLLIB) $(RRTMSWLIB)
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
