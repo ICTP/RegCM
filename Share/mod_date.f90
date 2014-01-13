@@ -258,7 +258,6 @@ module mod_date
       x%days_from_reference = id - (yeardays(iy,d%calendar)-idayofyear(d)) - &
         icorrection
     end if
-    print *, x%days_from_reference
   end subroutine date_to_days_from_reference
 
   subroutine days_from_reference_to_date(x,d)
@@ -279,7 +278,11 @@ module mod_date
       call idayofyear_to_monthdate(id+1,d%year,d%calendar,d%month,d%day)
     else
       d%year = d%year - 1
-      id = yeardays(d%year,d%calendar)+id
+      if ( id > 0 ) then
+        id = yeardays(d%year,d%calendar)+id
+      else
+        id = yeardays(d%year,d%calendar)+id+1
+      end if
       call idayofyear_to_monthdate(id,d%year,d%calendar,d%month,d%day)
     end if
   end subroutine days_from_reference_to_date
@@ -1232,7 +1235,7 @@ module mod_date
     if ( csave == cunit .and. csavecal == ccal ) then
       z = abs(xval)
       z%iunit = iunit
-      if ( xval > 0.0D0 ) then
+      if ( xval >= 0.0D0 ) then
         dd = dref + z
       else
         dd = dref - z
@@ -1245,7 +1248,7 @@ module mod_date
         zz%ival = (idint((abs(xval)-abs(dble(z%ival)))*24.0D0))
         zz%iunit = uhrs
         if ( zz%ival /= 0 ) then
-          if ( xval > 0.0D0 ) then
+          if ( xval >= 0.0D0 ) then
             dd = dd + zz
           else
             dd = dd - zz
@@ -1376,7 +1379,7 @@ module mod_date
       end if
       call date_time_to_internal(d,t,dref)
       z%iunit = iunit
-      if ( xval > 0.0D0 ) then
+      if ( xval >= 0.0D0 ) then
         dd = dref + z
       else
         dd = dref - z
