@@ -25,21 +25,19 @@ module mod_mtrxclm
   use mod_realkinds
   use mod_dynparam
   use mod_runparams , only : idate0 , iqv , solcon , clmfrq , iocnflx , &
-       imask , ilawrence_albedo , ichem , ksrf , xmonth , ktau , rtsrf
+      imask , ilawrence_albedo , ichem , ksrf , xmonth , ktau , rtsrf , &
+      dx , dtsrf , dtrad , igaschem , iaerosol , chtrname , idate1 , idate2
   use mod_mpmessage
   use mod_service
   use mod_mppparam
   use mod_date
   use mod_clm
-  use mod_bats_internal
-  use mod_bats_common
-  use mod_bats_mtrxbats
-  use mod_bats_drag
-  use mod_bats_zengocn
+  use mod_regcm_types
 
   use clm_time_manager , only : get_curr_calday
   use shr_orb_mod , only : shr_orb_cosz , shr_orb_decl , &
                            shr_orb_params
+  use clm_varsur,    only : clm_fracveg
 
   private
 
@@ -75,23 +73,23 @@ module mod_mtrxclm
 !                            in mm/s.
 !=======================================================================
 !
-  subroutine mtrxclm
-!
+  subroutine mtrxclm(lm,lms)
     use atmdrvMod , only : rcmdrv
     use clm_comp , only : clm_run1 , clm_run2
-!
     implicit none
+    type(lm_exchange) , intent(inout) :: lm
+    type(lm_state) , intent(inout) :: lms
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'mtrxclm'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
-    call interfclm(1)
+    call interfclm(lm,lms,1)
     call rcmdrv()
     call clm_run1(r2cdoalb,r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
     call clm_run2(r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
-    call interfclm(2)
+    call interfclm(lm,lms,2)
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -134,15 +132,14 @@ module mod_mtrxclm
 !
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  subroutine initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf,igases,iaeros,ctracers)
-!
+  subroutine initclm(lm,lms)
     use initializeMod
     use shr_orb_mod
     use clm_varpar,    only : lsmlon , lsmlat
     use clm_varsur,    only : landmask , landfrac , satbrt_clm
     use clm_varsur,    only : r2cimask , init_tgb , init_snow , r2coutfrq
     use clm_varsur,    only : clm2bats_veg , ht_rcm
-    use clm_varsur,    only : clm_fracveg , r2cilawrence_albedo
+    use clm_varsur,    only : r2cilawrence_albedo
     use clm_varsur,    only : cgaschem, caerosol
     use atmdrvMod
     use program_offMod
@@ -156,13 +153,8 @@ module mod_mtrxclm
     use clm_drydep,    only : seq_drydep_init
 !
     implicit none
-!
-    logical , intent(in)                   :: ifrest
-    type(rcm_time_and_date) , intent(in)   :: idate1 , idate2
-    real(rk8) , intent(in)                 :: dtrad , dtsrf , dx
-    integer(ik4) , intent(in), optional         :: igases
-    integer(ik4) , intent(in), optional         :: iaeros
-    character(len=6), intent(in), optional :: ctracers(*) 
+    type(lm_exchange) , intent(inout) :: lm
+    type(lm_state) , intent(inout) :: lms
 !
     integer(ik4) :: i , j , ig , jg , n
     integer(ik4) :: year , month , day , hour
@@ -175,7 +167,7 @@ module mod_mtrxclm
     ! Initialize run control variables for clm
     !
     r2comm = mycomm
-    if ( ifrest ) then
+    if ( ktau > 0 ) then
       r2cnsrest = 1
     else
       r2cnsrest = 0
@@ -215,8 +207,8 @@ module mod_mtrxclm
     r2cilawrence_albedo = ilawrence_albedo
 
     !chemistry fields
-    cgaschem = igases
-    caerosol = iaeros
+    cgaschem = igaschem
+    caerosol = iaerosol
 
     ! Set elevation and BATS landuse type (abt added)
     allocate(ht_rcm(jx,iy))
@@ -232,14 +224,14 @@ module mod_mtrxclm
     voc_em1(:,:) = d_zero
     voc_em2(:,:) = d_zero
 #endif
-    if ( igases == 1 ) then
+    if ( igaschem == 1 ) then
       dep_vels(:,:,:) = d_zero
     end if
 
-    call grid_fill(ht,ht_rcm)
-    call grid_fill(lndcat,satbrt_clm)
-    call grid_fill(tground1,init_tgb)
-    call grid_fill(snowam,init_snow)
+    call grid_fill(lm%ht,ht_rcm)
+    call grid_fill(lm%lndcat,satbrt_clm)
+    call grid_fill(lm%tground1,init_tgb)
+    call grid_fill(lm%snowam,init_snow)
 
     !
     ! End of clm run control variable initialization
@@ -248,52 +240,36 @@ module mod_mtrxclm
     ! regcm writes uneven # of j values to arrays. for now fix by
     ! copying neighboring values
     !
-    if ( .not. ifrest ) then
-      ! Rainfall
-      cprate(:,:)  = d_zero
-      ncprate(:,:) = d_zero
-      ! Radiation
-      swdir(:,:)  = d_zero
-      lwdir(:,:)  = d_zero
-      swdif(:,:) = d_zero
-      lwdif(:,:) = d_zero
-      dwrlwf(:,:)  = d_zero
-      ! Albedo
-      ! Set initial albedos to clm dry soil values for mid-colored soils
-      swdiralb(:,:) = 0.16D0
-      swdifalb(:,:) = 0.16D0
-      lwdiralb(:,:) = 0.32D0
-      lwdifalb(:,:) = 0.32D0
-    end if
-
-    call fill_frame(xlat,r2cxlatd)
-    call fill_frame(xlon,r2cxlond)
+    call fill_frame(lm%xlat,r2cxlatd)
+    call fill_frame(lm%xlon,r2cxlond)
 
     r2cxlat = r2cxlatd*degrad
     r2cxlon = r2cxlond*degrad
 
-    if ( .not. ifrest ) then
+    if ( ktau == 0 ) then
       !
       !    Gather values of each nproc work_in array and fill
       !      work_out(jx*iy) array.
       !    3. Copy 1d work_out array to 2d (jx,iy) array for passing
       !    to clm.
       !
-      call fill_frame(tatm,r2ctb)
-      call fill_frame(qvatm,r2cqb)
+      call fill_frame(lm%tatm,r2ctb)
+      call fill_frame(lm%qvatm,r2cqb)
       r2cqb = r2cqb/(d_one+r2cqb)
-      call fill_frame(hgt,r2czga)
-      call fill_frame(uatm,r2cuxb)
-      call fill_frame(vatm,r2cvxb)
-      call fill_frame(sfps,r2cpsb)
+      call fill_frame(lm%hgt,r2czga)
+      call fill_frame(lm%uatm,r2cuxb)
+      call fill_frame(lm%vatm,r2cvxb)
+      call fill_frame(lm%sfps,r2cpsb)
       r2cpsb = (r2cpsb+ptop)*d_1000
-      call fill_frame(cprate,r2crnc)
-      call fill_frame(ncprate,r2crnnc)
-      call fill_frame(swdir,r2csols)
-      call fill_frame(lwdir,r2csoll)
-      call fill_frame(swdif,r2csolsd)
-      call fill_frame(lwdif,r2csolld)
-      call fill_frame(dwrlwf,r2cflwd)
+      call fill_frame(lm%cprate,r2crnc)
+      call fill_frame(lm%ncprate,r2crnnc)
+      r2crnc = r2crnc * rtsrf
+      r2crnnc = r2crnnc * rtsrf
+      call fill_frame(lm%swdir,r2csols)
+      call fill_frame(lm%lwdir,r2csoll)
+      call fill_frame(lm%swdif,r2csolsd)
+      call fill_frame(lm%lwdif,r2csolld)
+      call fill_frame(lm%dwrlwf,r2cflwd)
 
       call grid_fill(r2ctb,r2ctb_all)
       call grid_fill(r2cqb,r2cqb_all)
@@ -345,7 +321,7 @@ module mod_mtrxclm
 
     call program_off(r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
     call clm_init0()
-    if ( igases == 1 ) call seq_drydep_init(ntr, ctracers)
+    if ( igaschem == 1 ) call seq_drydep_init(ntr, chtrname)
     call clm_init1()
     call clm_init2()
 
@@ -364,9 +340,32 @@ module mod_mtrxclm
     if ( myid == iocpu ) write (stdout,*) 'Successfully  make atmospheric grid'
 
     ! Initialize radiation and atmosphere variables
-    if ( .not. ifrest ) then
+    if ( ktau == 0 ) then
       call rcmdrv()
-    end if !end ifrest test
+    end if
+
+    do i = ici1 , ici2
+      ig = global_cross_istart+i-1
+      do j = jci1 , jci2
+        jg = global_cross_jstart+j-1
+        do n = 1 , nnsg
+          if ( ichem == 1 ) then
+            lm%svegfrac2d(j,i) = clm_fracveg(jg,ig)
+          end if
+          if ( ktau == 0 ) then
+            ! Set initial albedos to clm dry soil values for mid-colored soils
+            lms%swdiralb(n,j,i) = 0.16D0
+            lms%swdifalb(n,j,i) = 0.16D0
+            lms%lwdiralb(n,j,i) = 0.32D0
+            lms%lwdifalb(n,j,i) = 0.32D0
+            lms%swalb(n,j,i) = (lms%swdiralb(n,j,i)+lms%swdifalb(n,j,i)) * &
+                clm_fracveg(jg,ig)
+            lms%lwalb(n,j,i) = (lms%lwdiralb(n,j,i)+lms%lwdifalb(n,j,i)) * &
+                clm_fracveg(jg,ig)
+          end if
+        end do
+      end do
+    end do
 
     ! Correct landmask
     do i = 1 , iy
@@ -381,16 +380,20 @@ module mod_mtrxclm
     ! Initialize ldmsk1 now that clm has determined the land sea mask
     ! Initialize accumulation variables at zero
 
-    if ( .not. ifrest ) then
+    if ( ktau == 0 ) then
       do i = ici1 , ici2
         ig = global_cross_istart+i-1
         do j = jci1 , jci2
           jg = global_cross_jstart+j-1
           do n = 1 , nnsg
-            ldmsk1(n,j,i) = landmask(jg,ig)
-            lms%tgbrd(n,j,i) = tground2(j,i)
-            lms%taf(n,j,i)   = tground2(j,i)
-            lms%tlef(n,j,i)  = tground2(j,i)
+            if ( landmask(jg,ig) == 3 ) then
+              lm%ldmsk1(n,j,i) = 5
+            else
+              lm%ldmsk1(n,j,i) = landmask(jg,ig)
+            end if
+            lms%tgbrd(n,j,i) = lm%tground2(j,i)
+            lms%taf(n,j,i)   = lm%tground2(j,i)
+            lms%tlef(n,j,i)  = lm%tground2(j,i)
             lms%snag(n,j,i)  = d_zero
             lms%sncv(n,j,i)  = dmax1(lms%sncv(n,j,i),d_zero)
             lms%sfice(n,j,i) = d_zero
@@ -403,22 +406,19 @@ module mod_mtrxclm
         ig = global_cross_istart+i-1
         do j = jci1 , jci2
           jg = global_cross_jstart+j-1
-          rswf(j,i)    = d_zero
-          rlwf(j,i)    = d_zero
-          vegswab(j,i) = d_zero
           !
           ! Set some clm land surface/vegetation variables to the ones
           ! used in RegCM.  Make sure all are consistent
           !
-          lndcat(j,i) = clm2bats_veg(jg,ig)
-          if ( clm2bats_veg(jg,ig) < 0.1D0 ) lndcat(j,i) = 15.0D0
+          lm%lndcat(j,i) = clm2bats_veg(jg,ig)
+          if ( clm2bats_veg(jg,ig) < 0.1D0 ) lm%lndcat(j,i) = 15.0D0
           do n = 1 , nnsg
-            lndcat1(n,j,i) = clm2bats_veg(jg,ig)
-            if ( clm2bats_veg(jg,ig) < 0.1D0 ) lndcat1(n,j,i) = 15.0D0
+            lm%lndcat1(n,j,i) = clm2bats_veg(jg,ig)
+            if ( clm2bats_veg(jg,ig) < 0.1D0 ) lm%lndcat1(n,j,i) = 15.0D0
           end do
         end do
       end do
-    end if !end ifrest test
+    end if
 
     ! deallocate some variables used in CLM initialization only
     deallocate(ht_rcm)
@@ -426,26 +426,23 @@ module mod_mtrxclm
     deallocate(init_snow)
     deallocate(satbrt_clm)
     deallocate(clm2bats_veg)
-    deallocate(clm_fracveg)
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine initclm
 !
-  subroutine albedoclm
+  subroutine albedoclm(lm,lms)
     use clm_varsur , only : landfrac
     implicit none
-    integer(ik4) :: i , j , ig , jg
+    type(lm_exchange) , intent(inout) :: lm
+    type(lm_state) , intent(inout) :: lms
+    integer(ik4) :: i , j , n , ig , jg
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'albedoclm'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 !
-    !
-    ! Calculate DEFAULT albedo to be the BATS one
-    !
-    call albedobats
     !
     ! Section Below added for albedo to be corrected by CLM
     ! calculated albedo.  NOTE: for cosz<=0 CLM assigns albedo
@@ -456,46 +453,27 @@ module mod_mtrxclm
       ig = global_cross_istart+i-1
       do j = jci1 , jci2
         jg = global_cross_jstart+j-1
-        if ( ( ldmsk(j,i) == 0 .and. landfrac(jg,ig) > d_zero ) ) then
-          !
-          ! Correct "Mixed points" from CLM for their water fraction
-          ! in the albedo (good when < 1)
-          !
-          if ( (d_one-c2ralbdirs(jg,ig)) > dlowval ) then
-            swdiralb(j,i) = swdiralb(j,i)*(d_one-landfrac(jg,ig)) + &
-                          c2ralbdirs(j,i)*landfrac(jg,ig)
-          end if
-          if ( (d_one-c2ralbdirl(jg,ig)) > dlowval ) then
-            lwdiralb(j,i) = lwdiralb(j,i)*(d_one-landfrac(jg,ig)) + &
-                          c2ralbdirl(j,i)*landfrac(jg,ig)
-          end if
-          if ( (d_one-c2ralbdifs(jg,ig)) > dlowval ) then 
-            swdifalb(j,i) = swdifalb(j,i)*(d_one-landfrac(jg,ig)) + &
-                          c2ralbdifs(jg,ig)*landfrac(jg,ig)
-          end if
-          if ( (d_one-c2ralbdifl(jg,ig)) > dlowval ) then
-            lwdifalb(j,i) = lwdifalb(j,i)*(d_one-landfrac(jg,ig)) + &
-                          c2ralbdifl(jg,ig)
-          end if
-        else if (ldmsk(j,i) /= 0 ) then
+        do n = 1 , nnsg
           !
           ! Use over land CLM calculated albedo (good when < 1)
           !
           if ( (d_one-c2ralbdirs(jg,ig)) > dlowval ) then
-            swdiralb(j,i) = c2ralbdirs(jg,ig)
+            lms%swdiralb(n,j,i) = c2ralbdirs(jg,ig)
           end if
           if ( (d_one-c2ralbdirl(jg,ig)) > dlowval ) then
-            lwdiralb(j,i) = c2ralbdirl(jg,ig)
+            lms%lwdiralb(n,j,i) = c2ralbdirl(jg,ig)
           end if
           if ( (d_one-c2ralbdifs(jg,ig)) > dlowval ) then 
-            swdifalb(j,i) = c2ralbdifs(jg,ig)
+            lms%swdifalb(n,j,i) = c2ralbdifs(jg,ig)
           end if
           if ( (d_one-c2ralbdifl(jg,ig)) > dlowval ) then
-            lwdifalb(j,i) = c2ralbdifl(jg,ig)
+            lms%lwdifalb(n,j,i) = c2ralbdifl(jg,ig)
           end if
-        end if
-        swalb(j,i) = swdiralb(j,i)+swdifalb(j,i)
-        lwalb(j,i) = lwdiralb(j,i)+lwdifalb(j,i)
+          lms%swalb(n,j,i) = (lms%swdiralb(n,j,i)+lms%swdifalb(n,j,i)) * &
+                  clm_fracveg(jg,ig)
+          lms%lwalb(n,j,i) = (lms%lwdiralb(n,j,i)+lms%lwdifalb(n,j,i)) * &
+                  clm_fracveg(jg,ig)
+        end do
       end do
     end do
 #ifdef DEBUG
@@ -503,7 +481,7 @@ module mod_mtrxclm
 #endif
   end subroutine albedoclm
 !
-  subroutine interfclm(ivers)
+  subroutine interfclm(lm,lms,ivers)
     use clmtype
     use clm_varsur , only : landmask , landfrac
     use clm_varsur , only : c2r_allout , omap_i , omap_j
@@ -520,10 +498,11 @@ module mod_mtrxclm
     ! ivers = 2 : clm -> regcm
     !
     integer(ik4) , intent(in) :: ivers
-!
+    type(lm_exchange) , intent(inout) :: lm
+    type(lm_state) , intent(inout) :: lms
+
     integer(ik4) :: i , j , ic , jc , ib , jg , ig , kk , n
     integer(ik4) :: idep , icpu , nout
-    real(rk8) :: fact
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'interfclm'
     integer(ik4) , save :: idindx = 0
@@ -532,23 +511,21 @@ module mod_mtrxclm
 !
     if ( ivers == 1 ) then
 
-      call interf(1)
-
-      call fill_frame(tatm,r2ctb)
-      call fill_frame(qvatm,r2cqb)
+      call fill_frame(lm%tatm,r2ctb)
+      call fill_frame(lm%qvatm,r2cqb)
       r2cqb = r2cqb/(d_one+r2cqb)
-      call fill_frame(hgt,r2czga)
-      call fill_frame(uatm,r2cuxb)
-      call fill_frame(vatm,r2cvxb)
-      call fill_frame(sfps,r2cpsb)
+      call fill_frame(lm%hgt,r2czga)
+      call fill_frame(lm%uatm,r2cuxb)
+      call fill_frame(lm%vatm,r2cvxb)
+      call fill_frame(lm%sfps,r2cpsb)
       r2cpsb = (r2cpsb+ptop)*d_1000
-      call fill_frame(cprate,r2crnc)
-      call fill_frame(ncprate,r2crnnc)
-      call fill_frame(swdir,r2csols)
-      call fill_frame(lwdir,r2csoll)
-      call fill_frame(swdif,r2csolsd)
-      call fill_frame(lwdif,r2csolld)
-      call fill_frame(dwrlwf,r2cflwd)
+      call fill_frame(lm%cprate,r2crnc)
+      call fill_frame(lm%ncprate,r2crnnc)
+      call fill_frame(lm%swdir,r2csols)
+      call fill_frame(lm%lwdir,r2csoll)
+      call fill_frame(lm%swdif,r2csolsd)
+      call fill_frame(lm%lwdif,r2csolld)
+      call fill_frame(lm%dwrlwf,r2cflwd)
       r2crnc = r2crnc * rtsrf
       r2crnnc = r2crnnc * rtsrf
       call grid_fill(r2ctb,r2ctb_all)
@@ -638,217 +615,33 @@ module mod_mtrxclm
         end if
       end do
 
-      if ( iocnflx == 2 ) then
-        call zengocndrv
-      else if ( iocnflx == 1 ) then
-        call dragc
-        ib = 1
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( ldmsk(j,i) == 0 ) then
-              lms%tgrd(:,j,i) = tground2(j,i)
-              lms%drag(:,j,i) = cdrx(ib:ib+nnsg-1)*vspda(ib:ib+nnsg-1)* &
-                      rhs(ib:ib+nnsg-1)
-              lms%tlef(:,j,i) = sts(ib:ib+nnsg-1)
-              delq(ib:ib+nnsg-1) =  qs(ib:ib+nnsg-1) - qgrd(ib:ib+nnsg-1)
-              delt(ib:ib+nnsg-1) = sts(ib:ib+nnsg-1) - tgrd(ib:ib+nnsg-1)
-              lms%evpr(:,j,i) = -drag(ib:ib+nnsg-1)*delq(ib:ib+nnsg-1)
-              lms%sent(:,j,i) = -drag(ib:ib+nnsg-1)*cpd*delt(ib:ib+nnsg-1)
-              fact = z10fra(ib)/zlgocn(ib)
-              lms%u10m(:,j,i) = usw(ib:ib+nnsg-1)*(d_one-fact)
-              lms%v10m(:,j,i) = vsw(ib:ib+nnsg-1)*(d_one-fact)
-              fact = z2fra(ib)/zlgocn(ib)
-              lms%t2m(:,j,i) = sts(ib:ib+nnsg-1) - delt(ib:ib+nnsg-1)*fact
-              lms%q2m(:,j,i) = qs(ib:ib+nnsg-1) - delq(ib:ib+nnsg-1)*fact
-            end if
-            ib = ib + nnsg
-          end do
-        end do
-      end if
-
       ib = 1
       do i = ici1 , ici2
         ig = global_cross_istart+i-1
         do j = jci1 , jci2
           jg = global_cross_jstart+j-1
-          uvdrag(j,i)   = d_zero
-          hfx(j,i)      = d_zero
-          qfx(j,i)      = d_zero
-          tground2(j,i) = d_zero
-          tground1(j,i) = d_zero
-          tgbb(j,i)     = d_zero
-
-          if ( ichem == 1 ) then
-            ssw2da(j,i) = d_zero
-            deltat(j,i) = d_zero
-            deltaq(j,i) = d_zero
-            sfracv2d(j,i) = d_zero
-            sfracb2d(j,i) = d_zero
-            sfracs2d(j,i) = d_zero
-          end if
-
-          if ( landmask(jg,ig) == 1 ) then
-            tground2(j,i) = c2rtgb(jg,ig)
-            tground1(j,i) = c2rtgb(jg,ig)
-            hfx(j,i)      = c2rsenht(jg,ig)
-            qfx(j,i)      = c2rlatht(jg,ig)
-            uvdrag(j,i)   = c2ruvdrag(jg,ig)
-            tgbb(j,i)     = c2rtgbb(jg,ig)
-
+          if ( landmask(jg,ig) == 1 .or. landmask(jg,ig) == 3 ) then
             do n = 1 , nnsg
-              lms%prcp(n,j,i)  = prcp(ib)
+              lms%tgbb(n,j,i)  = c2rtgbb(jg,ig)
+              lms%drag(n,j,i)  = c2ruvdrag(jg,ig)
+              lms%prcp(n,j,i)  = r2crnc(j,i) + r2crnnc(j,i)
               lms%tgrd(n,j,i)  = c2rtgb(jg,ig)
               lms%tgbrd(n,j,i) = c2rtgb(jg,ig)
               lms%evpr(n,j,i)  = c2rlatht(jg,ig)/wlhv
               lms%sent(n,j,i)  = c2rsenht(jg,ig)
-              ! supposed to be lower soil layer temp not tgrnd
               lms%taf(n,j,i)   = c2r2mt(jg,ig)
-              lms%t2m(n,j,i)    = c2r2mt(jg,ig)
-              lms%u10m(n,j,i)   = uatm(j,i)
-              lms%v10m(n,j,i)   = vatm(j,i)
+              lms%t2m(n,j,i)   = c2r2mt(jg,ig)
+              lms%u10m(n,j,i)  = lm%uatm(j,i)
+              lms%v10m(n,j,i)  = lm%vatm(j,i)
               lms%tlef(n,j,i)  = c2rtlef(jg,ig)
               lms%tsw(n,j,i)   = c2rsmtot(jg,ig)
               lms%rsw(n,j,i)   = c2rsm1m(jg,ig)
               lms%ssw(n,j,i)   = c2rsm10cm(jg,ig)
               lms%sncv(n,j,i)  = c2rsnowc(jg,ig)
-              lms%srnof(n,j,i) = c2rro_sur(jg,ig)*dtbat
-              lms%trnof(n,j,i) = (c2rro_sub(jg,ig)+c2rro_sur(jg,ig))*dtbat
-              lms%q2m(n,j,i)    = c2r2mq(jg,ig)
-
-              if ( ichem == 1 ) then
-                ssw2da(j,i)   = ssw2da(j,i) + lms%ssw(n,j,i)
-                deltat(j,i) = deltat(j,i) + delt(ib)
-                deltaq(j,i) = deltaq(j,i) + delq(ib)
-                sfracv2d(j,i) = sfracv2d(j,i) + c2rfvegnosno(jg,ig)
-                sfracb2d(j,i) = sfracb2d(j,i) + d_one -               &
-                               (c2rfvegnosno(jg,ig)+c2rfracsno(jg,ig))
-                sfracs2d(j,i) = sfracs2d(j,i) + c2rfracsno(jg,ig)
-              end if
+              lms%srnof(n,j,i) = c2rro_sur(jg,ig)*dtsrf
+              lms%trnof(n,j,i) = (c2rro_sub(jg,ig)+c2rro_sur(jg,ig))*dtsrf
+              lms%q2m(n,j,i)   = c2r2mq(jg,ig)
               ib = ib + 1
-            end do
-          else if ( landmask(jg,ig) == 0 ) then !ocean
-            do n = 1 , nnsg
-              lms%prcp(n,j,i)  = prcp(ib)
-              uvdrag(j,i)   = uvdrag(j,i) + lms%drag(n,j,i)
-              hfx(j,i)      = hfx(j,i) + lms%sent(n,j,i)
-              qfx(j,i)      = qfx(j,i) + lms%evpr(n,j,i)
-              tground2(j,i) = tground2(j,i) + lms%tgrd(n,j,i)
-              tground1(j,i) = tground1(j,i) + lms%tgrd(n,j,i)
-
-              if ( ichem == 1  ) then
-                ssw2da(j,i)   = ssw2da(j,i) + lms%ssw(n,j,i)
-                deltat(j,i)   = deltat(j,i) + delt(ib)
-                deltaq(j,i)   = deltaq(j,i) + delq(ib)
-                sfracv2d(j,i) = sfracv2d(j,i) + sigf(ib)
-                sfracb2d(j,i) = sfracb2d(j,i) + (d_one-sigf(ib))    &
-                                *(d_one-scvk(ib))
-                sfracs2d(j,i) = sfracs2d(j,i) + sigf(ib)*wt(ib) &
-                                + (d_one-sigf(ib))*scvk(ib)
-              end if
-
-              if ( ldmsk1(n,j,i) /= 0 ) then
-                tgbb(j,i) = tgbb(j,i) + &
-                     ((d_one-lncl(ib))*tgrd(ib)**4 +   &
-                     lncl(ib)*tlef(ib)**4)**d_rfour
-              else
-                tgbb(j,i) = tgbb(j,i) + tgrd(ib)
-              end if
-              lms%ssw(n,j,i)   = dmissval
-              lms%rsw(n,j,i)   = dmissval
-              lms%tsw(n,j,i)   = dmissval
-              lms%trnof(n,j,i) = dmissval
-              lms%srnof(n,j,i) = dmissval
-              lms%sncv(n,j,i)  = dmissval
-              ib = ib + 1
-            end do
-
-            do n = 1 , nnsg
-              lms%taf(n,j,i)  = lms%t2m(n,j,i)
-            end do
-          else if ( landmask(jg,ig) == 3 ) then
-            !gridcell with some % land and ocean
-            do n = 1 , nnsg
-              lms%prcp(n,j,i)  = prcp(ib)
-              lms%evpr(n,j,i)  = c2rlatht(jg,ig)*landfrac(jg,ig)/wlhv + &
-                              (d_one-landfrac(jg,ig))*lms%evpr(n,j,i)
-              lms%sent(n,j,i)  = c2rsenht(jg,ig)*landfrac(jg,ig) + &
-                              (d_one-landfrac(jg,ig))*lms%sent(n,j,i)
-              uvdrag(j,i)   = uvdrag(j,i) + lms%drag(n,j,i)
-              hfx(j,i)      = hfx(j,i) + lms%sent(n,j,i)
-              qfx(j,i)      = qfx(j,i) + lms%evpr(n,j,i)
-              tground2(j,i) = tground2(j,i) + lms%tgrd(n,j,i)
-              tground1(j,i) = tground1(j,i) + lms%tgrd(n,j,i)
-
-              if ( ichem == 1 ) then
-                ssw2da(j,i)   = ssw2da(j,i) + lms%ssw(n,j,i)
-                deltat(j,i) = deltat(j,i) + delt(ib)
-                deltaq(j,i) = deltaq(j,i) + delq(ib)
-                sfracv2d(j,i) = sfracv2d(j,i) + c2rfvegnosno(jg,ig)
-                sfracb2d(j,i) = sfracb2d(j,i) + d_one - &
-                               (c2rfvegnosno(jg,ig) + c2rfracsno(jg,ig))
-                sfracs2d(j,i) = sfracs2d(j,i) + c2rfracsno(jg,ig)
-                ssw2da(j,i) = ssw2da(j,i)*landfrac(jg,ig) + &
-                              (d_one-landfrac(jg,ig))*lms%ssw(n,j,i)
-                deltat(j,i) = deltat(j,i)*landfrac(jg,ig) + &
-                              (d_one-landfrac(jg,ig))*delt(ib)
-                deltaq(j,i) = deltaq(j,i)*landfrac(jg,ig) + &
-                              (d_one-landfrac(jg,ig))*delq(ib)
-                sfracv2d(j,i) = sfracv2d(j,i)*landfrac(jg,ig) + &
-                              (d_one-landfrac(jg,ig))*sigf(ib)
-                sfracb2d(j,i) = sfracb2d(j,i)*landfrac(jg,ig) + &
-                                (d_one-landfrac(jg,ig)) *       &
-                                (d_one-sigf(ib))*(d_one-scvk(ib))
-                sfracs2d(j,i) = sfracs2d(j,i)*landfrac(jg,ig) + &
-                                (d_one-landfrac(jg,ig)) *       &
-                                (sigf(ib)*wt(ib)+(d_one-sigf(ib))*scvk(ib))
-              end if
-
-              if ( ldmsk1(n,j,i) /= 0 ) then
-                tgbb(j,i) = tgbb(j,i) + &
-                          ((d_one-lncl(ib))*tgrd(ib)**4+ &
-                              lncl(ib)*tlef(ib)**4)**d_rfour
-              else
-                tgbb(j,i) = tgbb(j,i) + tgrd(ib)
-              end if
-              ib = ib + 1
-            end do
-
-            uvdrag(j,i)   = uvdrag(j,i)*(d_one-landfrac(jg,ig)) + &
-                            c2ruvdrag(jg,ig)*landfrac(jg,ig)
-            hfx(j,i)      = hfx(j,i)*(d_one-landfrac(jg,ig)) + &
-                            c2rsenht(jg,ig)*landfrac(jg,ig)
-            qfx(j,i)      = qfx(j,i)*(d_one-landfrac(jg,ig)) + &
-                            c2rlatht(jg,ig)*landfrac(jg,ig)
-            tground2(j,i) = tground2(j,i)*(d_one-landfrac(jg,ig)) + &
-                            c2rtgb(jg,ig)*landfrac(jg,ig)
-            tgbb(j,i)     = tgbb(j,i)* (d_one-landfrac(jg,ig)) +   &
-                            c2rtgbb(jg,ig)*landfrac(jg,ig)
-            tground1(j,i) = tground1(j,i)*(d_one-landfrac(jg,ig)) + &
-                            c2rtgb(jg,ig)*landfrac(jg,ig)
-
-            do n = 1 , nnsg
-              !abt added below for the landfraction method
-              lms%sncv(n,j,i)   = c2rsnowc(jg,ig)*landfrac(jg,ig)          &
-                               + lms%sncv(n,j,i)*(d_one-landfrac(jg,ig))
-              lms%tgrd(n,j,i)   = c2rtgb(jg,ig)*landfrac(jg,ig) + tgrd(ib) &
-                               *(d_one-landfrac(jg,ig))
-              lms%tgbrd(n,j,i)  = c2rtgb(jg,ig)*landfrac(jg,ig) + &
-                                tgbrd(ib)*(d_one-landfrac(jg,ig))
-              lms%taf(n,j,i)    = c2r2mt(jg,ig)*landfrac(jg,ig) + &
-                                lms%t2m(n,j,i)*(d_one-landfrac(jg,ig))
-              !note taf is 2m temp not temp in foilage
-              lms%tlef(n,j,i)   = c2rtlef(jg,ig)*landfrac(jg,ig) + &
-                                lms%tlef(n,j,i)*(d_one-landfrac(jg,ig))
-              lms%tsw(n,j,i)    = c2rsmtot(jg,ig)*landfrac(jg,ig) + &
-                                lms%tsw(n,j,i)*(d_one-landfrac(jg,ig))
-              lms%rsw(n,j,i)    = c2rsm1m(jg,ig)*landfrac(jg,ig) + &
-                                lms%rsw(n,j,i)*(d_one-landfrac(jg,ig))
-              lms%ssw(n,j,i)    = c2rsm10cm(jg,ig)*landfrac(jg,ig)+ &
-                                lms%ssw(n,j,i)*(d_one-landfrac(jg,ig))
-              lms%q2m(n,j,i)    = c2r2mq(jg,ig)*landfrac(jg,ig) + &
-                                lms%q2m(n,j,i)*(d_one-landfrac(jg,ig))
-              lms%srnof(n,j,i) = c2rro_sur(jg,ig)*dtbat
-              lms%trnof(n,j,i) = c2rro_sub(jg,ig)*dtbat + c2rro_sur(jg,ig)*dtbat
             end do
           end if
         end do
@@ -1014,9 +807,11 @@ module mod_mtrxclm
 !
   end subroutine solar_clm
 
-  subroutine zenit_clm(coszrs)
+  subroutine zenit_clm(coszrs,xlat,xlon)
     implicit none
     real(rk8) , pointer , intent(out), dimension(:,:) :: coszrs
+    real(rk8) , pointer , intent(out), dimension(:,:) :: xlat
+    real(rk8) , pointer , intent(out), dimension(:,:) :: xlon
 !
     integer(ik4) :: i , j
     real(rk8) :: cldy , declinp1 , xxlon

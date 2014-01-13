@@ -28,6 +28,8 @@ module mod_lm_interface
   use mod_mppparam
   use mod_mpmessage
   use mod_service
+  use mod_bats_common
+  use mod_ocn_common
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
@@ -38,10 +40,7 @@ module mod_lm_interface
   use restFileMod , only : restFile_filename
   use spmdMod , only : mpicom
   use perf_mod , only : t_prf , t_finalizef
-#else
-  use mod_bats_common
 #endif
-  use mod_ocn_common
 
   implicit none
 
@@ -68,7 +67,6 @@ module mod_lm_interface
   public :: voc_em1
   public :: voc_em2
   public :: dep_vels
-  public :: initclm
   public :: zenit_clm
   public :: get_step_size
   public :: filer_rest
@@ -305,20 +303,49 @@ module mod_lm_interface
     call assignpnt(dailyrnf,lm%dailyrnf)
 #ifdef CLM
     allocate(landmask(jx,iy))
-    call assignpnt(landmask,lmask)
 #endif
   end subroutine init_surface_model
 
   subroutine initialize_surface_model
     implicit none
+#ifdef CLM
+    integer(ik4) :: i , j , n
+#endif
     call initbats(lm,lms)
     call initocn(lm,lms)
+#ifdef CLM
+    call initclm(lm,lms)
+    if ( ktau == 0 .and. imask == 2 ) then
+      ! CLM may have changed the landuse again !
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          lm%iveg(j,i) = idnint(lm%lndcat(j,i))
+        end do
+      end do
+      ! Correct land/water misalign : set to short grass
+      where ( (lm%iveg == 14 .or. lm%iveg == 15) .and. lm%ldmsk == 1 )
+        lm%iveg = 2
+        lm%lndcat = d_two
+      end where
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n = 1 , nnsg
+            lm%iveg1(n,j,i) = lm%iveg(j,i)
+            lm%lndcat1(n,j,i) = lm%lndcat(j,i)
+          end do
+        end do
+      end do
+    end if
+#endif
     lm%emissivity = sum(lms%emisv,1) * rdnnsg
   end subroutine initialize_surface_model
 
   subroutine surface_model
     implicit none
     integer(ik4) :: i , j , n , ierr , i1 , i2
+#ifdef CLM
+    integer(ik4) :: ig , jg
+#endif
 #ifdef CLM
     if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
       r2cdoalb = .true.
@@ -356,6 +383,20 @@ module mod_lm_interface
       end do
     end do
     if ( ichem == 1 ) then
+#ifdef CLM
+      do i = ici1 , ici2
+        ig = global_cross_istart+i-1
+        do j = jci1 , jci2
+          jg = global_cross_jstart+j-1
+          lm%deltat(j,i) = sum(lms%deltat(:,j,i))*rdnnsg
+          lm%deltaq(j,i) = sum(lms%deltaq(:,j,i))*rdnnsg
+          lm%sfracv2d(j,i) = c2rfvegnosno(jg,ig)
+          lm%sfracb2d(j,i) = d_one - (c2rfvegnosno(jg,ig)+c2rfracsno(jg,ig))
+          lm%sfracs2d(j,i) = c2rfracsno(jg,ig)
+          lm%ssw2da = sum(lms%ssw,1)*rdnnsg
+        end do
+      end do
+#else
       lm%deltat = sum(lms%deltat,1)*rdnnsg
       lm%deltaq = sum(lms%deltaq,1)*rdnnsg
       lm%sfracv2d = sum(lms%sigf,1)*rdnnsg
@@ -363,6 +404,7 @@ module mod_lm_interface
       lm%sfracb2d = sum(((d_one-lms%lncl)*(d_one-lms%scvk)),1)*rdnnsg
       lm%sfracs2d = sum((lms%lncl*lms%wt+(d_one-lms%lncl)*lms%scvk),1)*rdnnsg
       lm%ssw2da = sum(lms%ssw,1)*rdnnsg
+#endif
     end if
     if ( iemiss == 1 ) then
       lm%emissivity = sum(lms%emisv,1) * rdnnsg
@@ -394,7 +436,7 @@ module mod_lm_interface
   subroutine surface_albedo
     implicit none
 #ifdef CLM
-    call albedoclm
+    call albedoclm(lm,lms)
 #else
     call albedobats(lm,lms)
 #endif

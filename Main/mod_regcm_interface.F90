@@ -193,7 +193,7 @@ module mod_regcm_interface
 !**********************************************************************
 !
 #ifdef CLM
-    call zenit_clm(coszrs)
+    call zenit_clm(coszrs,mddom%xlat,mddom%xlon)
 #else
     call zenitm(coszrs)
 #endif

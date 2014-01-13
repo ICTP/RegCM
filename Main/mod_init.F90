@@ -460,32 +460,10 @@ module mod_init
   !
   ! Initialize the BATS variable (Used also by CLM)
   !
-  call initialize_surface_model
 #ifdef CLM
   call mkslice
-  call initclm(ifrest,idate1,idate2,dx,dtrad,dtsrf,igaschem,iaerosol,chtrname)
-  if ( ktau == 0 .and. imask == 2 ) then
-    ! CLM may have changed the landuse again !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        mddom%iveg(j,i) = idnint(mddom%lndcat(j,i))
-      end do
-    end do
-    ! Correct land/water misalign : set to short grass
-    where ( (mddom%iveg == 14 .or. mddom%iveg == 15) .and. mddom%ldmsk == 1 )
-      mddom%iveg = 2
-      mddom%lndcat = d_two
-    end where
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          mdsub%iveg(n,j,i) = mddom%iveg(j,i)
-          mdsub%lndcat(n,j,i) = mddom%lndcat(j,i)
-        end do
-     end do
-    end do
-  end if
 #endif
+  call initialize_surface_model
   !  
   ! Calculate topographical correction to diffusion coefficient
   !

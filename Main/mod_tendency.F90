@@ -457,7 +457,7 @@ module mod_tendency
     if ( ktau == 0 .or. ichem == 1 .or. &
          mod(ktau+1,ntsrf) == 0 .or. mod(ktau+1,ntrad) == 0 ) then
 #ifdef CLM
-      call zenit_clm(coszrs)
+      call zenit_clm(coszrs,mddom%xlat,mddom%xlon)
 #else
       call zenitm(coszrs)
 #endif
