@@ -237,7 +237,7 @@ module mod_date
   subroutine date_to_days_from_reference(d,x)
     type(iadate) , intent(in) :: d
     type(rcm_time_and_date) , intent(inout) :: x
-    integer(ik4) :: ny , ipm , id , iy
+    integer(ik4) :: ny , ipm , id , iy , icorrection
     x%calendar = d%calendar
     ny = d%year - reference_year
     ipm = isign(1,ny)
@@ -253,8 +253,12 @@ module mod_date
     if ( ipm > 0 ) then
       x%days_from_reference = id + idayofyear(d) - 1
     else
-      x%days_from_reference = id - (yeardays(iy,d%calendar)-idayofyear(d)) - 1
+      icorrection = 0
+      if ( d%year <= 1000 ) icorrection = 2
+      x%days_from_reference = id - (yeardays(iy,d%calendar)-idayofyear(d)) - &
+        icorrection
     end if
+    print *, x%days_from_reference
   end subroutine date_to_days_from_reference
 
   subroutine days_from_reference_to_date(x,d)
@@ -1226,24 +1230,32 @@ module mod_date
     t%second = 0
 
     if ( csave == cunit .and. csavecal == ccal ) then
-      z = xval
+      z = abs(xval)
       z%iunit = iunit
-      dd = dref + z
+      if ( xval > 0.0D0 ) then
+        dd = dref + z
+      else
+        dd = dref - z
+      end if
       ! Some datasets have fraction of days as hours.
       ! I.e. 15.5 days from a date means 15 days + 12 hours.
       ! Never seen fraction of minutes or hours.
       ! Months fraction are almost nonsense.
       if (iunit == uday) then
-        zz%ival = idint((xval-dble(z%ival))*24.0D0)
+        zz%ival = (idint((abs(xval)-abs(dble(z%ival)))*24.0D0))
         zz%iunit = uhrs
         if ( zz%ival /= 0 ) then
-          dd = dd + zz
+          if ( xval > 0.0D0 ) then
+            dd = dd + zz
+          else
+            dd = dd - zz
+          end if
         end if
       end if
     else
       csave = cunit
       csavecal = ccal
-      z = xval
+      z = abs(xval)
       if (cunit(1:5) == 'hours') then
         ! Unit is hours since reference
         if (len_trim(cunit) >= 30) then
@@ -1364,16 +1376,24 @@ module mod_date
       end if
       call date_time_to_internal(d,t,dref)
       z%iunit = iunit
-      dd = dref + z
+      if ( xval > 0.0D0 ) then
+        dd = dref + z
+      else
+        dd = dref - z
+      end if
       ! Some datasets have fraction of days as hours.
       ! I.e. 15.5 days from a date means 15 days + 12 hours.
       ! Never seen fraction of minutes or hours.
       ! Months fraction are almost nonsense.
       if (iunit == uday) then
-        zz%ival = idint((xval-dble(z%ival))*24.0D0)
+        zz%ival = idint((abs(xval)-abs(dble(z%ival)))*24.0D0)
         zz%iunit = uhrs
-        if (zz%ival /= 0) then
-          dd = dd + zz
+        if ( zz%ival > 0 ) then
+          if ( xval > 0 ) then
+            dd = dd + zz
+          else if ( xval < 0 ) then
+            dd = dd -zz
+          end if
         end if
       end if
     end if
