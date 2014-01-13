@@ -622,25 +622,28 @@ module mod_mtrxclm
           jg = global_cross_jstart+j-1
           if ( landmask(jg,ig) == 1 .or. landmask(jg,ig) == 3 ) then
             do n = 1 , nnsg
-              lms%tgbb(n,j,i)  = c2rtgbb(jg,ig)
-              lms%drag(n,j,i)  = c2ruvdrag(jg,ig)
-              lms%prcp(n,j,i)  = r2crnc(j,i) + r2crnnc(j,i)
-              lms%tgrd(n,j,i)  = c2rtgb(jg,ig)
-              lms%tgbrd(n,j,i) = c2rtgb(jg,ig)
-              lms%evpr(n,j,i)  = c2rlatht(jg,ig)/wlhv
-              lms%sent(n,j,i)  = c2rsenht(jg,ig)
-              lms%taf(n,j,i)   = c2r2mt(jg,ig)
-              lms%t2m(n,j,i)   = c2r2mt(jg,ig)
-              lms%u10m(n,j,i)  = lm%uatm(j,i)
-              lms%v10m(n,j,i)  = lm%vatm(j,i)
-              lms%tlef(n,j,i)  = c2rtlef(jg,ig)
-              lms%tsw(n,j,i)   = c2rsmtot(jg,ig)
-              lms%rsw(n,j,i)   = c2rsm1m(jg,ig)
-              lms%ssw(n,j,i)   = c2rsm10cm(jg,ig)
-              lms%sncv(n,j,i)  = c2rsnowc(jg,ig)
-              lms%srnof(n,j,i) = c2rro_sur(jg,ig)*dtsrf
-              lms%trnof(n,j,i) = (c2rro_sub(jg,ig)+c2rro_sur(jg,ig))*dtsrf
-              lms%q2m(n,j,i)   = c2r2mq(jg,ig)
+              lms%tgbb(n,j,i)   = c2rtgbb(jg,ig)
+              lms%drag(n,j,i)   = c2ruvdrag(jg,ig)
+              lms%prcp(n,j,i)   = r2crnc(j,i) + r2crnnc(j,i)
+              lms%tgrd(n,j,i)   = c2rtgb(jg,ig)
+              lms%tgbrd(n,j,i)  = c2rtgb(jg,ig)
+              lms%evpr(n,j,i)   = c2rlatht(jg,ig)/wlhv
+              lms%sent(n,j,i)   = c2rsenht(jg,ig)
+              lms%taf(n,j,i)    = c2r2mt(jg,ig)
+              lms%t2m(n,j,i)    = c2r2mt(jg,ig)
+              lms%u10m(n,j,i)   = lm%uatm(j,i)/dlog(lm%hgt(j,i)*d_r10)
+              lms%v10m(n,j,i)   = lm%vatm(j,i)/dlog(lm%hgt(j,i)*d_r10)
+              lms%tlef(n,j,i)   = c2rtlef(jg,ig)
+              lms%tsw(n,j,i)    = c2rsmtot(jg,ig)
+              lms%rsw(n,j,i)    = c2rsm1m(jg,ig)
+              lms%ssw(n,j,i)    = c2rsm10cm(jg,ig)
+              lms%sncv(n,j,i)   = c2rsnowc(jg,ig)
+              lms%srnof(n,j,i)  = c2rro_sur(jg,ig)*dtsrf
+              lms%trnof(n,j,i)  = (c2rro_sub(jg,ig)+c2rro_sur(jg,ig))*dtsrf
+              lms%q2m(n,j,i)    = c2r2mq(jg,ig)
+              lms%deltat(n,j,i) = lms%tgbrd(n,j,i)-lm%tatm(j,i)
+              lms%deltaq(n,j,i) = (lm%qvatm(j,i)/(d_one+lm%qvatm(j,i))) - &
+                      c2r2mq(jg,ig)
               ib = ib + 1
             end do
           end if
