@@ -148,6 +148,7 @@ module mod_ocn_common
     integer , intent(in) :: ivers
     if ( ivers == 1 ) then
       ! RegCM -> OCN
+      prcp = (cprate+ncprate) * rtsrf
       if ( llake .or. lseaice ) then
         call c2l_ss(ocncomm,lm%ldmsk1,xmask)
         where ( xmask == 2 )
@@ -158,7 +159,6 @@ module mod_ocn_common
         call c2l_ss(ocncomm,lms%sfice,sfice)
         call c2l_gs(ocncomm,lm%cprate,cprate)
         call c2l_gs(ocncomm,lm%ncprate,ncprate)
-        prcp = (cprate+ncprate) * rtsrf
       end if
       call c2l_gs(ocncomm,lm%hgt,ht)
       call c2l_gs(ocncomm,lm%uatm,usw)
