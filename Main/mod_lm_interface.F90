@@ -648,6 +648,9 @@ module mod_lm_interface
 
   subroutine collect_output
     implicit none
+#ifndef CLM
+    integer(ik4) :: k
+#endif
 
     ! Fill accumulators
 
