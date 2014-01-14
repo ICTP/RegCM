@@ -200,6 +200,7 @@ module mod_ocn_common
       call l2c_ss(ocncomm,tauy,lms%tauy)
       call l2c_ss(ocncomm,t2m,lms%t2m)
       call l2c_ss(ocncomm,q2m,lms%q2m)
+      call l2c_ss(ocncomm,prcp,lms%prcp)
       if ( ldcsst ) then
         call l2c_ss(ocncomm,deltas,lms%deltas)
         call l2c_ss(ocncomm,tdeltas,lms%tdeltas)
