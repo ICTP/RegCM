@@ -511,10 +511,12 @@ module mod_bdycod
           if ( iswater(mddom%lndcat(j,i)) ) then
             if ( mddom%ldmsk(j,i) == 0 ) then
               if ( idcsst == 1 ) then
-                ocnpct = dble(count(mdsub%ldmsk(:,j,i)==0))/dble(nnsg)
                 lms%sst(:,j,i) = ts1(j,i)
-                sfs%tga(j,i) = ts1(j,i) + sum(lms%dtskin(:,j,i),1)*ocnpct
-                sfs%tgb(j,i) = ts1(j,i) + sum(lms%dtskin(:,j,i),1)*ocnpct
+                ocnpct = dble(count(mdsub%ldmsk(:,j,i)==0))/dble(nnsg)
+                if ( isocean(mddom%lndcat(j,i)) ) then
+                  sfs%tga(j,i) = ts1(j,i) + sum(lms%dtskin(:,j,i),1)*ocnpct
+                  sfs%tgb(j,i) = ts1(j,i) + sum(lms%dtskin(:,j,i),1)*ocnpct
+                end if
               else
                 ! Update temperature where NO ice
                 sfs%tga(j,i) = ts1(j,i)
