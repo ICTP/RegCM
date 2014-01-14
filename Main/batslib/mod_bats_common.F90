@@ -359,7 +359,9 @@ module mod_bats_common
             rh0 = d_zero
             xqs0 = lm%qvatm(j,i)/(d_one+lm%qvatm(j,i))
             do n = 1 , nnsg
-              rh0 = rh0 + (xqs(n,j,i)-xqs0)
+              if ( lm%ldmsk1(n,j,i) == 1 ) then
+                rh0 = rh0 + (xqs(n,j,i)-xqs0)
+              end if
             end do
             rh0 = rh0/rdnnsg
             do n = 1 , nnsg
