@@ -671,11 +671,11 @@ module mod_lm_interface
       end if
       if ( ifsrf ) then
         if ( associated(srf_evp_out) ) &
-          srf_evp_out = srf_evp_out + sum(lms%evpr,1)*rdnnsg
+          srf_evp_out = srf_evp_out + lm%qfx
         if ( associated(srf_tpr_out) ) &
-          srf_tpr_out = srf_tpr_out + lms%prcp(1,:,:)
+          srf_tpr_out = srf_tpr_out + sum(lms%prcp,1)*rdnnsg
         if ( associated(srf_prcv_out) ) &
-          srf_prcv_out = srf_prcv_out + lm%cprate
+          srf_prcv_out = srf_prcv_out + lm%cprate*rtsrf
         if ( associated(srf_zpbl_out) ) &
           srf_zpbl_out = srf_zpbl_out + lm%hpbl
         if ( associated(srf_scv_out) ) &
@@ -749,7 +749,7 @@ module mod_lm_interface
       end if
       if ( iflak ) then
         if ( associated(lak_tpr_out) ) &
-          lak_tpr_out = lak_tpr_out + lms%prcp(1,:,:)
+          lak_tpr_out = lak_tpr_out + sum(lms%prcp,1)*rdnnsg
         if ( associated(lak_scv_out) ) &
           lak_scv_out = lak_scv_out + sum(lms%sncv,1)*rdnnsg
         if ( associated(lak_sena_out) ) &
