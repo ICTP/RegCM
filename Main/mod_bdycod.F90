@@ -388,7 +388,7 @@ module mod_bdycod
     integer(ik4) :: i , j , k , n , datefound
     character(len=32) :: appdat
     logical :: update_slabocn
-    real(rk8) :: sfice_temp , ocnpct
+    real(rk8) :: sfice_temp
     type (rcm_time_interval) :: tdif
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'bdyin'
@@ -506,45 +506,48 @@ module mod_bdycod
     !
     if ( islab_ocean == 0 ) then
       sfice_temp = icetemp
+      if ( idcsst == 1 ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            do n = 1 , nnsg
+              lms%sst(n,j,i) = ts1(j,i)
+            end do
+          end do
+        end do
+      end if
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( iswater(mddom%lndcat(j,i)) ) then
-            if ( mddom%ldmsk(j,i) == 0 ) then
-              if ( idcsst == 1 ) then
-                lms%sst(:,j,i) = ts1(j,i)
-                ocnpct = dble(count(mdsub%ldmsk(:,j,i)==0))/dble(nnsg)
-                if ( isocean(mddom%lndcat(j,i)) ) then
-                  sfs%tga(j,i) = ts1(j,i) + sum(lms%dtskin(:,j,i),1)*ocnpct
-                  sfs%tgb(j,i) = ts1(j,i) + sum(lms%dtskin(:,j,i),1)*ocnpct
-                end if
-              else
-                ! Update temperature where NO ice
-                sfs%tga(j,i) = ts1(j,i)
-                sfs%tgb(j,i) = ts1(j,i)
-              end if
+          ! Update temperatures iver water
+          if ( mddom%ldmsk(j,i) == 0 ) then
+            sfs%tga(j,i) = ts1(j,i)
+            sfs%tgb(j,i) = ts1(j,i)
+          end if
+          ! Sea ice correction
+          if ( iseaice == 1 ) then
+            if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+            if ( iocncpl == 1 ) then
+              if ( cplmsk(j,i) /= 0 ) cycle
             end if
-            if ( iseaice == 1 ) then
-              if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-              if ( iocncpl == 1 ) then
-                if ( cplmsk(j,i) /= 0 ) cycle
-              end if
-              if ( ts1(j,i) <= icetemp .and. mddom%ldmsk(j,i) == 0 ) then
-                sfs%tga(j,i) = sfice_temp
-                sfs%tgb(j,i) = sfice_temp
-                ts1(j,i) = icetemp
-                mddom%ldmsk(j,i) = 2
-                do n = 1, nnsg
+            if ( ts1(j,i) <= icetemp .and. mddom%ldmsk(j,i) == 0 ) then
+              sfs%tga(j,i) = sfice_temp
+              sfs%tgb(j,i) = sfice_temp
+              ts1(j,i) = icetemp
+              mddom%ldmsk(j,i) = 2
+              do n = 1, nnsg
+                if ( mdsub%ldmsk(n,j,i) == 0 ) then
                   mdsub%ldmsk(n,j,i) = 2
                   lms%sfice(n,j,i) = d_10
-                end do
-              else if ( ts1(j,i) > icetemp .and. mddom%ldmsk(j,i) == 2 ) then
-                ! Decrease the surface ice to melt it
-                sfs%tga(j,i) = ts1(j,i)
-                sfs%tgb(j,i) = ts1(j,i)
-                do n = 1, nnsg
+                end if
+              end do
+            else if ( ts1(j,i) > icetemp .and. mddom%ldmsk(j,i) == 2 ) then
+              ! Decrease the surface ice to melt it
+              sfs%tga(j,i) = ts1(j,i)
+              sfs%tgb(j,i) = ts1(j,i)
+              do n = 1, nnsg
+                if ( mdsub%ldmsk(n,j,i) == 2 ) then
                   lms%sfice(n,j,i) = lms%sfice(n,j,i)*d_r10
-                end do
-              end if
+                end if
+              end do
             end if
           end if
         end do

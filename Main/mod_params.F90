@@ -1386,8 +1386,8 @@ module mod_params
              mdsub%xlat,mdsub%xlon,mdsub%dhlake)
     mdsub%ht = mdsub%ht*egrav
   else
-    do i = ide1 , ide2
-      do j = jde1 , jde2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
         mdsub%ht(1,j,i) = mddom%ht(j,i)*egrav
         mdsub%lndcat(1,j,i) = mddom%lndcat(j,i)
         mdsub%xlat(1,j,i) = mddom%xlat(j,i)
@@ -1468,18 +1468,22 @@ module mod_params
 !
    do i = ici1 , ici2
      do j = jci1 , jci2
-       if ( mddom%lndcat(j,i) > 13.5D0 .and. &
-            mddom%lndcat(j,i) < 15.5D0 ) then
-         mddom%ldmsk(j,i) = 0
-         do n = 1, nnsg
-           mdsub%ldmsk(n,j,i) = 0
-         end do
-       else
+       if ( mddom%mask(j,i) > 0.1D0 ) then
          mddom%ldmsk(j,i) = 1
-         do n = 1, nnsg
-           mdsub%ldmsk(n,j,i) = 1
-         end do
+       else
+         mddom%ldmsk(j,i) = 0
        end if
+     end do
+   end do
+   do i = ici1 , ici2
+     do j = jci1 , jci2
+       do n = 1 , nnsg
+         if ( mdsub%mask(n,j,i) > 0.1D0 ) then
+           mdsub%ldmsk(n,j,i) = 1
+         else
+           mdsub%ldmsk(n,j,i) = 0
+         end if
+       end do
      end do
    end do
 !

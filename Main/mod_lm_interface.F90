@@ -221,7 +221,7 @@ module mod_lm_interface
     if ( idcsst == 1 ) then
       call getmem3d(lms%deltas,1,nnsg,jci1,jci2,ici1,ici2,'sst:deltas')
       call getmem3d(lms%tdeltas,1,nnsg,jci1,jci2,ici1,ici2,'sst:tdeltas')
-      call getmem3d(lms%dtskin,1,nnsg,jci1,jci2,ici1,ici2,'sst:dtskin')
+      call getmem3d(lms%tskin,1,nnsg,jci1,jci2,ici1,ici2,'sst:tskin')
       call getmem3d(lms%sst,1,nnsg,jci1,jci2,ici1,ici2,'sst:sst')
     end if
   end subroutine allocate_surface_model
@@ -342,7 +342,7 @@ module mod_lm_interface
 
   subroutine surface_model
     implicit none
-    integer(ik4) :: i , j , n , ierr , i1 , i2
+    integer(ik4) :: i , j , n , nn , ierr , i1 , i2
 #ifdef CLM
     integer(ik4) :: ig , jg
 #endif
@@ -369,19 +369,21 @@ module mod_lm_interface
     lm%tgbb = sum(lms%tgbb,1)*rdnnsg 
     lm%tground1 = sum(lms%tgrd,1)*rdnnsg
     lm%tground2 = sum(lms%tgrd,1)*rdnnsg
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        if ( lm%ldmsk(j,i) /= 1 ) then
-          i1 = count(lm%ldmsk1(:,j,i) == 0)
-          i2 = count(lm%ldmsk1(:,j,i) == 2)
-          if ( i1 > i2 ) then
-            lm%ldmsk(j,i) = 0
-          else
-            lm%ldmsk(j,i) = 2
+    if ( iseaice == 1 .or. lakemod == 1 ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( lm%ldmsk(j,i) /= 1 ) then
+            i1 = count(lm%ldmsk1(:,j,i) == 0)
+            i2 = count(lm%ldmsk1(:,j,i) == 2)
+            if ( i1 > i2 ) then
+              lm%ldmsk(j,i) = 0
+            else
+              lm%ldmsk(j,i) = 2
+            end if
           end if
-        end if
+        end do
       end do
-    end do
+    end if
     if ( ichem == 1 ) then
 #ifdef CLM
       do i = ici1 , ici2
@@ -418,10 +420,16 @@ module mod_lm_interface
         do n = 1 , nnsg
           if ( lms%tgrd(n,j,i) < 150.0D0 ) then
             write(stderr,*) 'Likely error: Surface temperature too low'
+            write(stderr,*) 'MYID = ', myid
             write(stderr,*) 'J    = ',global_dot_jstart+j
             write(stderr,*) 'I    = ',global_dot_istart+i
-            write(stderr,*) 'MASK = ',lm%ldmsk1(n,j,i)
-            write(stderr,*) 'VAL  = ',lms%tgrd(n,j,i)
+            do nn = 1 , nnsg
+              write(stderr,*) 'N    = ',nn
+              write(stderr,*) 'VAL  = ',lms%tgrd(nn,j,i)
+              write(stderr,*) 'MASK = ',lm%ldmsk1(n,j,i)
+            end do
+            write(stderr,*) 'VAL2 = ',lm%tground1(j,i)
+            write(stderr,*) 'VAL2 = ',lm%tground2(j,i)
             ierr = ierr + 1
           end if
         end do

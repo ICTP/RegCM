@@ -634,7 +634,8 @@ module mod_output
         end if
 #endif
         if ( idcsst == 1 ) then
-          call subgrid_collect(lms%dtskin,dtskin_io,jci1,jci2,ici1,ici2)
+          call subgrid_collect(lms%sst,sst_io,jci1,jci2,ici1,ici2)
+          call subgrid_collect(lms%tskin,tskin_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(lms%deltas,deltas_io,jci1,jci2,ici1,ici2)
           call subgrid_collect(lms%tdeltas,tdeltas_io,jci1,jci2,ici1,ici2)
         end if

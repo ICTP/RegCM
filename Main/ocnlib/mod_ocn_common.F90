@@ -118,7 +118,7 @@ module mod_ocn_common
       if ( ldcsst ) then
         call c2l_ss(ocncomm,lms%deltas,deltas)
         call c2l_ss(ocncomm,lms%tdeltas,tdeltas)
-        call c2l_ss(ocncomm,lms%dtskin,dtskin)
+        call c2l_ss(ocncomm,lms%tskin,tskin)
       end if
       if ( llake .or. lseaice ) then
         call c2l_ss(ocncomm,lms%sfice,sfice)
@@ -178,7 +178,7 @@ module mod_ocn_common
       if ( ldcsst ) then
         call c2l_ss(ocncomm,lms%deltas,deltas)
         call c2l_ss(ocncomm,lms%tdeltas,tdeltas)
-        call c2l_ss(ocncomm,lms%dtskin,dtskin)
+        call c2l_ss(ocncomm,lms%tskin,tskin)
         call c2l_ss(ocncomm,lms%sst,sst)
       end if
       if ( llake ) then
@@ -203,7 +203,7 @@ module mod_ocn_common
       if ( ldcsst ) then
         call l2c_ss(ocncomm,deltas,lms%deltas)
         call l2c_ss(ocncomm,tdeltas,lms%tdeltas)
-        call l2c_ss(ocncomm,dtskin,lms%dtskin)
+        call l2c_ss(ocncomm,tskin,lms%tskin)
       end if
       if ( llake .or. lseaice ) then
         xmask = mask

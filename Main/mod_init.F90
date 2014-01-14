@@ -64,7 +64,6 @@ module mod_init
 !
   integer(ik4) :: i , j , k , n
   real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax
-  real(rk8) :: sfice_temp , ocnpct
   character(len=32) :: appdat
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'init'
@@ -120,19 +119,20 @@ module mod_init
     !    1 -> Land
     !    2 -> Sea Ice
     !
-    sfice_temp = icetemp
     if ( iseaice == 1 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( isocean(mddom%lndcat(j,i)) ) then
             if ( ts0(j,i) <= icetemp ) then
-              sfs%tga(j,i) = sfice_temp
-              sfs%tgb(j,i) = sfice_temp
+              sfs%tga(j,i) = icetemp
+              sfs%tgb(j,i) = icetemp
               ts0(j,i) = icetemp
               mddom%ldmsk(j,i) = 2
               do n = 1, nnsg
-                mdsub%ldmsk(n,j,i) = 2
-                lms%sfice(n,j,i) = d_10
+                if ( mdsub%ldmsk(n,j,i) == 0 ) then
+                  mdsub%ldmsk(n,j,i) = 2
+                  lms%sfice(n,j,i) = d_10
+                end if
               end do
             end if
           end if
@@ -153,8 +153,10 @@ module mod_init
               ts0(j,i) = icetemp
               mddom%ldmsk(j,i) = 2
               do n = 1, nnsg
-                mdsub%ldmsk(n,j,i) = 2
-                lms%sfice(n,j,i) = d_10
+                if ( mdsub%ldmsk(n,j,i) == 0 ) then
+                  mdsub%ldmsk(n,j,i) = 2
+                  lms%sfice(n,j,i) = d_10
+                end if
               end do
             end if
           end if
@@ -207,7 +209,7 @@ module mod_init
       do n = 1 , nnsg
         lms%sst(n,jci1:jci2,ici1:ici2) = ts0(jci1:jci2,ici1:ici2)
       end do
-      lms%dtskin(:,:,:) = d_zero
+      lms%tskin(:,:,:) = lms%sst
       lms%deltas(:,:,:) = 0.001D0
       lms%tdeltas(:,:,:) = lms%sst(:,:,:) - lms%deltas(:,:,:)
     end if
@@ -348,7 +350,8 @@ module mod_init
 #endif
 !
     if ( idcsst == 1 ) then
-      call subgrid_distribute(dtskin_io,lms%dtskin,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(sst_io,lms%sst,jci1,jci2,ici1,ici2)
+      call subgrid_distribute(tskin_io,lms%tskin,jci1,jci2,ici1,ici2)
       call subgrid_distribute(deltas_io,lms%deltas,jci1,jci2,ici1,ici2)
       call subgrid_distribute(tdeltas_io,lms%tdeltas,jci1,jci2,ici1,ici2)
     end if
@@ -387,43 +390,45 @@ module mod_init
     ! Restore ground temperature on Ocean/Lakes
     !
     if ( islab_ocean == 0 ) then
-      sfice_temp = icetemp
+      if ( idcsst == 1 ) then
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            do n = 1 , nnsg
+              lms%sst(n,j,i) = ts1(j,i)
+            end do
+          end do
+        end do
+      end if
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( iswater(mddom%lndcat(j,i)) ) then
-            if ( mddom%ldmsk(j,i) == 0 ) then
-              if ( idcsst == 1 ) then
-                lms%sst(:,j,i) = ts1(j,i)
-                ocnpct = dble(count(mdsub%ldmsk(:,j,i)==0))/dble(nnsg)
-                if ( isocean(mddom%lndcat(j,i)) ) then
-                  sfs%tga(j,i) = ts1(j,i) + sum(lms%dtskin(:,j,i),1)*ocnpct
-                  sfs%tgb(j,i) = ts1(j,i) + sum(lms%dtskin(:,j,i),1)*ocnpct
-                end if
-              else
-                ! Update temperature where NO ice
-                sfs%tga(j,i) = ts1(j,i)
-                sfs%tgb(j,i) = ts1(j,i)
-              end if
-            end if
-            if ( iseaice == 1 ) then
-              if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
-              if ( ts1(j,i) <= icetemp .and. mddom%ldmsk(j,i) == 0 ) then
-                sfs%tga(j,i) = sfice_temp
-                sfs%tgb(j,i) = sfice_temp
-                ts1(j,i) = icetemp
-                mddom%ldmsk(j,i) = 2
-                do n = 1, nnsg
+          ! Update temperatures over water
+          if ( mddom%ldmsk(j,i) == 0 ) then
+            sfs%tga(j,i) = ts1(j,i)
+            sfs%tgb(j,i) = ts1(j,i)
+          end if
+          ! Sea ice correction
+          if ( iseaice == 1 ) then
+            if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+            if ( ts1(j,i) <= icetemp .and. mddom%ldmsk(j,i) == 0 ) then
+              sfs%tga(j,i) = icetemp
+              sfs%tgb(j,i) = icetemp
+              ts1(j,i) = icetemp
+              mddom%ldmsk(j,i) = 2
+              do n = 1, nnsg
+                if ( mdsub%ldmsk(n,j,i) == 0 ) then
                   mdsub%ldmsk(n,j,i) = 2
                   lms%sfice(n,j,i) = d_10
-                end do
-              else if ( ts1(j,i) > icetemp .and. mddom%ldmsk(j,i) == 2 ) then
-                sfs%tga(j,i) = ts1(j,i)
-                sfs%tgb(j,i) = ts1(j,i)
-                ! Decrease the surface ice to melt it
-                do n = 1, nnsg
+                end if
+              end do
+            else if ( ts1(j,i) > icetemp .and. mddom%ldmsk(j,i) == 2 ) then
+              sfs%tga(j,i) = ts1(j,i)
+              sfs%tgb(j,i) = ts1(j,i)
+              ! Decrease the surface ice to melt it
+              do n = 1, nnsg
+                if ( mdsub%ldmsk(n,j,i) == 2 ) then
                   lms%sfice(n,j,i) = lms%sfice(n,j,i)*d_r10
-                end do
-              end if
+                end if
+              end do
             end if
           end if
         end do

@@ -258,7 +258,7 @@ module mod_regcm_types
     logical , pointer , dimension(:,:,:) :: lakmsk
     real(rk8) , pointer , dimension(:,:,:) :: deltas
     real(rk8) , pointer , dimension(:,:,:) :: tdeltas
-    real(rk8) , pointer , dimension(:,:,:) :: dtskin
+    real(rk8) , pointer , dimension(:,:,:) :: tskin
     real(rk8) , pointer , dimension(:,:,:) :: sst
   end type lm_state
 

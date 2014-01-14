@@ -75,7 +75,7 @@ module mod_ocn_zeng
 !   real(rk8) :: lwds , lwus
     real(rk8) :: rs , rd , td , tdelta , delta
     real(rk8) :: q , ustarw , fd , l , phidl , aa , bb , lamb
-    real(rk8) :: dtstend , dts , fs , tskin
+    real(rk8) :: dtstend , dts , fs , tskin_new
 !
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'zengocndrv'
@@ -86,7 +86,11 @@ module mod_ocn_zeng
       if ( mask(i) /= 1 ) cycle
 
       ! Get temperature from SST
-      tgrd(i) = tgb(i)
+      if ( ldcsst ) then
+        tgrd(i) = tskin(i)
+      else
+        tgrd(i) = tgb(i)
+      end if
       tgbrd(i) = tgb(i)
 
       uv995 = dsqrt(usw(i)**2+vsw(i)**2)
@@ -292,18 +296,20 @@ module mod_ocn_zeng
           ! case of cool skin layer correction
           lamb = 6.0D0*((d_one+(aa*(q+rs*fs))**0.75D0)**(-onet))
           delta = lamb*nuw/ustarw
-          tskin = delta/(rhoh2o*cpw0*kw)*(q+rs*fs) + tdelta
+          tskin_new = delta/(rhoh2o*cpw0*kw)*(q+rs*fs) + tdelta
         else
-          ! no cool skin layer in this case, tskin = warm layer temp
-          tskin = tdelta
+          ! no cool skin layer in this case, tskin_new = warm layer temp
+          tskin_new = tdelta
         end if
         ! save the temperature difference and skin layer thickness
         ! for next time step
         deltas(i)   = delta
         tdeltas(i)  = tdelta
-        dtskin(i)   = tskin-td
-        ! now feedback tskin in surface variable
-        tgb(i) = tskin
+        tskin(i)   = tskin_new
+        ! now feedback tskin in surface variables
+        tgb(i) = tskin_new
+        tgrd(i) = tskin_new
+        tgbrd(i) = sst(i)
       end if ! dcsst
 
       sent(i)  = sh

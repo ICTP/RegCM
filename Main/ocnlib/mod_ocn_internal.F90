@@ -47,7 +47,7 @@ module mod_ocn_internal
   real(rk8) , pointer , dimension(:) :: deltas
   real(rk8) , pointer , dimension(:) :: dhlake
   real(rk8) , pointer , dimension(:) :: drag
-  real(rk8) , pointer , dimension(:) :: dtskin
+  real(rk8) , pointer , dimension(:) :: tskin
   real(rk8) , pointer , dimension(:) :: dwrlwf
   real(rk8) , pointer , dimension(:) :: emiss
   real(rk8) , pointer , dimension(:) :: evpr
@@ -138,7 +138,7 @@ module mod_ocn_internal
     dtocn = dtsrf
     if ( ldcsst ) then
       call getmem1d(deltas,1,nocnp,'ocn_internal:deltas')
-      call getmem1d(dtskin,1,nocnp,'ocn_internal:dtskin')
+      call getmem1d(tskin,1,nocnp,'ocn_internal:tskin')
       call getmem1d(tdeltas,1,nocnp,'ocn_internal:tdeltas')
       call getmem1d(sst,1,nocnp,'ocn_internal:sst')
       dtsst = dtsrf
