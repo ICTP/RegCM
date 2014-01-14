@@ -148,7 +148,6 @@ module mod_ocn_common
     integer , intent(in) :: ivers
     if ( ivers == 1 ) then
       ! RegCM -> OCN
-      prcp = (cprate+ncprate) * rtsrf
       if ( llake .or. lseaice ) then
         call c2l_ss(ocncomm,lm%ldmsk1,xmask)
         where ( xmask == 2 )
@@ -157,8 +156,6 @@ module mod_ocn_common
           mask = 1
         end where
         call c2l_ss(ocncomm,lms%sfice,sfice)
-        call c2l_gs(ocncomm,lm%cprate,cprate)
-        call c2l_gs(ocncomm,lm%ncprate,ncprate)
       end if
       call c2l_gs(ocncomm,lm%hgt,ht)
       call c2l_gs(ocncomm,lm%uatm,usw)
@@ -175,6 +172,9 @@ module mod_ocn_common
       call c2l_gs(ocncomm,lm%sfps,sfps)
       call c2l_gs(ocncomm,lm%hfx,sent)
       call c2l_gs(ocncomm,lm%qfx,evpr)
+      call c2l_gs(ocncomm,lm%cprate,cprate)
+      call c2l_gs(ocncomm,lm%ncprate,ncprate)
+      prcp = (cprate+ncprate) * rtsrf
       if ( ldcsst ) then
         call c2l_ss(ocncomm,lms%deltas,deltas)
         call c2l_ss(ocncomm,lms%tdeltas,tdeltas)

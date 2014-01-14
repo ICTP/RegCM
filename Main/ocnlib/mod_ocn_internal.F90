@@ -132,6 +132,9 @@ module mod_ocn_internal
     call getmem1d(vsw,1,nocnp,'ocn_internal:vsw')
     call getmem1d(mask,1,nocnp,'ocn_internal:mask')
     call getmem1d(czenith,1,nocnp,'ocn_internal:czenith')
+    call getmem1d(cprate,1,nocnp,'ocn_internal:cprate')
+    call getmem1d(ncprate,1,nocnp,'ocn_internal:ncprate')
+    call getmem1d(prcp,1,nocnp,'ocn_internal:prcp')
     if ( lakemod == 1 ) llake = .true.
     if ( idcsst == 1 ) ldcsst = .true.
     if ( iseaice == 1 ) lseaice = .true.
@@ -146,9 +149,6 @@ module mod_ocn_internal
     if ( lseaice .or. llake ) then
       call getmem1d(xmask,1,nocnp,'ocn_internal:xmask')
       call getmem1d(ilake,1,nocnp,'ocn_internal:ilake')
-      call getmem1d(prcp,1,nocnp,'ocn_internal:prcp')
-      call getmem1d(cprate,1,nocnp,'ocn_internal:cprate')
-      call getmem1d(ncprate,1,nocnp,'ocn_internal:ncprate')
       call getmem1d(scvk,1,nocnp,'ocn_internal:scvk')
       call getmem1d(sfice,1,nocnp,'ocn_internal:sfice')
       call getmem1d(snag,1,nocnp,'ocn_internal:snag')
