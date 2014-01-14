@@ -5859,7 +5859,7 @@ module mod_mppparam
       return
     end if
     if ( nval > 0 ) then
-      lvector1 = pack(matrix(jci1:jci2,ici1:ici2),cl%gmask)
+      lvector1(1:nval) = pack(matrix(jci1:jci2,ici1:ici2),cl%gmask)
     end if
     call mpi_gatherv(lvector1,nval,mpi_logical,                           &
                      lvector2,cl%cartesian_npoint_g,cl%cartesian_displ_g, &
@@ -5920,7 +5920,7 @@ module mod_mppparam
       return
     end if
     if ( nval > 0 ) then
-      lvector1 = pack(matrix(1:nnsg,jci1:jci2,ici1:ici2),cl%sgmask)
+      lvector1(1:nval) = pack(matrix(1:nnsg,jci1:jci2,ici1:ici2),cl%sgmask)
     end if
     call mpi_gatherv(lvector1,nval,mpi_logical,                             &
                      lvector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
@@ -5981,7 +5981,7 @@ module mod_mppparam
       return
     end if
     if ( nval > 0 ) then
-      i4vector1 = pack(matrix(jci1:jci2,ici1:ici2),cl%gmask)
+      i4vector1(1:nval) = pack(matrix(jci1:jci2,ici1:ici2),cl%gmask)
     end if
     call mpi_gatherv(i4vector1,nval,mpi_integer4,                           &
                      i4vector2,cl%cartesian_npoint_g,cl%cartesian_displ_g, &
@@ -6042,7 +6042,7 @@ module mod_mppparam
       return
     end if
     if ( nval > 0 ) then
-      i4vector1 = pack(matrix(1:nnsg,jci1:jci2,ici1:ici2),cl%sgmask)
+      i4vector1(1:nval) = pack(matrix(1:nnsg,jci1:jci2,ici1:ici2),cl%sgmask)
     end if
     call mpi_gatherv(i4vector1,nval,mpi_integer4,                             &
                      i4vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
@@ -6103,7 +6103,7 @@ module mod_mppparam
       return
     end if
     if ( nval > 0 ) then
-      r8vector1 = pack(matrix(jci1:jci2,ici1:ici2),cl%gmask)
+      r8vector1(1:nval) = pack(matrix(jci1:jci2,ici1:ici2),cl%gmask)
     end if
     call mpi_gatherv(r8vector1,nval,mpi_real8,                           &
                      r8vector2,cl%cartesian_npoint_g,cl%cartesian_displ_g, &
@@ -6134,7 +6134,7 @@ module mod_mppparam
         return
       end if
       if ( nval > 0 ) then
-        r8vector1 = pack(matrix(1:nnsg,jci1:jci2,ici1:ici2,k),cl%sgmask)
+        r8vector1(1:nval) = pack(matrix(1:nnsg,jci1:jci2,ici1:ici2,k),cl%sgmask)
       end if
       call mpi_gatherv(r8vector1,nval,mpi_real8,                               &
                        r8vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
@@ -6233,7 +6233,7 @@ module mod_mppparam
       return
     end if
     if ( nval > 0 ) then
-      r8vector1 = pack(matrix(1:nnsg,jci1:jci2,ici1:ici2),cl%sgmask)
+      r8vector1(1:nval) = pack(matrix(1:nnsg,jci1:jci2,ici1:ici2),cl%sgmask)
     end if
     call mpi_gatherv(r8vector1,nval,mpi_real8,                             &
                      r8vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
