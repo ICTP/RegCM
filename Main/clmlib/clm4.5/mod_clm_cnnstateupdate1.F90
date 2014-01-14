@@ -226,12 +226,12 @@ subroutine NStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp)
    ! new pointers for dynamic landcover
    dwt_seedn_to_leaf              => clm3%g%l%c%cnf%dwt_seedn_to_leaf
    dwt_seedn_to_deadstem          => clm3%g%l%c%cnf%dwt_seedn_to_deadstem
-   dwt_frootn_to_litr_met_n 	  => clm3%g%l%c%cnf%dwt_frootn_to_litr_met_n
-   dwt_frootn_to_litr_cel_n 	  => clm3%g%l%c%cnf%dwt_frootn_to_litr_cel_n
-   dwt_frootn_to_litr_lig_n 	  => clm3%g%l%c%cnf%dwt_frootn_to_litr_lig_n
-   dwt_livecrootn_to_cwdn	  => clm3%g%l%c%cnf%dwt_livecrootn_to_cwdn
-   dwt_deadcrootn_to_cwdn	  => clm3%g%l%c%cnf%dwt_deadcrootn_to_cwdn
-   seedn			  => clm3%g%l%c%cns%seedn
+   dwt_frootn_to_litr_met_n     => clm3%g%l%c%cnf%dwt_frootn_to_litr_met_n
+   dwt_frootn_to_litr_cel_n     => clm3%g%l%c%cnf%dwt_frootn_to_litr_cel_n
+   dwt_frootn_to_litr_lig_n     => clm3%g%l%c%cnf%dwt_frootn_to_litr_lig_n
+   dwt_livecrootn_to_cwdn    => clm3%g%l%c%cnf%dwt_livecrootn_to_cwdn
+   dwt_deadcrootn_to_cwdn    => clm3%g%l%c%cnf%dwt_deadcrootn_to_cwdn
+   seedn        => clm3%g%l%c%cns%seedn
 
 
    ! assign local pointers at the pft level
@@ -332,7 +332,7 @@ subroutine NStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp)
          decomp_npools_sourcesink(c,j,i_met_lit) = ( phenology_n_to_litr_met_n(c,j) + dwt_frootn_to_litr_met_n(c,j) ) *dt
          decomp_npools_sourcesink(c,j,i_cel_lit) = ( phenology_n_to_litr_cel_n(c,j) + dwt_frootn_to_litr_cel_n(c,j) ) *dt
          decomp_npools_sourcesink(c,j,i_lig_lit) = ( phenology_n_to_litr_lig_n(c,j) + dwt_frootn_to_litr_lig_n(c,j) ) *dt
-         decomp_npools_sourcesink(c,j,i_cwd)	=  ( dwt_livecrootn_to_cwdn(c,j) + dwt_deadcrootn_to_cwdn(c,j) )*dt
+         decomp_npools_sourcesink(c,j,i_cwd)  =  ( dwt_livecrootn_to_cwdn(c,j) + dwt_deadcrootn_to_cwdn(c,j) )*dt
 
       end do
    end do

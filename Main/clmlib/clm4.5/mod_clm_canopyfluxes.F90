@@ -127,7 +127,7 @@ contains
    real(rk8), pointer :: eflx_sh_soil(:)  ! sensible heat flux from soil (W/m**2) [+ to atm]
    real(rk8), pointer :: eflx_sh_h2osfc(:)! sensible heat flux from soil (W/m**2) [+ to atm]
    integer , pointer :: snl(:)           ! number of snow layers
-   real(rk8), pointer :: t_h2osfc(:) 	 ! surface water temperature
+   real(rk8), pointer :: t_h2osfc(:)    ! surface water temperature
    real(rk8), pointer :: frac_h2osfc(:)   ! fraction of surface water 
    real(rk8), pointer :: qg_snow(:)       ! specific humidity at snow surface [kg/kg]
    real(rk8), pointer :: qg_soil(:)       ! specific humidity at soil surface [kg/kg]
@@ -256,7 +256,7 @@ contains
    real(rk8), pointer :: fpsn_wj(:)         ! RuBP-limited photosynthesis (umol CO2 /m**2 /s)
    real(rk8), pointer :: fpsn_wp(:)         ! product-limited photosynthesis (umol CO2 /m**2 /s)
    real(rk8), pointer :: rootr(:,:)         ! effective fraction of roots in each soil layer
-   real(rk8), pointer :: rresis(:,:)        ! root resistance by layer (0-1)  (nlevgrnd)	
+   real(rk8), pointer :: rresis(:,:)        ! root resistance by layer (0-1)  (nlevgrnd)  
 !KO
    real(rk8), pointer :: rhaf(:)            ! fractional humidity of canopy air [dimensionless]
 !KO

@@ -515,7 +515,7 @@ contains
        if (flag == 'read') then 
           cptr%cps%zi(begc:endc,-nlevsno:-1) = temp2d(begc:endc,-nlevsno:-1)
        end if
-       deallocate(temp2d)	
+       deallocate(temp2d)  
     end if
 
     ! column type physical state variable - coszen

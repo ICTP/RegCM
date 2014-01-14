@@ -109,7 +109,7 @@ contains
     real(rk8), pointer :: frac_sno_eff(:)    !eff. fraction of ground covered by snow (0 to 1)
     real(rk8), pointer :: frac_sno(:)        ! fraction of ground covered by snow (0 to 1)
     real(rk8), pointer :: h2osfc(:)          ! surface water (mm)
-    real(rk8), pointer :: t_h2osfc(:) 	    ! surface water temperature
+    real(rk8), pointer :: t_h2osfc(:)       ! surface water temperature
     real(rk8), pointer :: t_h2osfc_bef(:)    ! saved surface water temperature
     real(rk8), pointer :: frac_h2osfc(:)     ! fraction of ground covered by surface water (0 to 1)
     real(rk8), pointer :: qflx_ev_snow(:)    ! evaporation flux from snow (W/m**2) [+ to atm]
@@ -469,12 +469,12 @@ contains
 
        if (qflx_ev_snow(p) >= 0.D0) then
           ! for evaporation partitioning between liquid evap and ice sublimation, 
-	  ! use the ratio of liquid to (liquid+ice) in the top layer to determine split
-	  if ((h2osoi_liq(c,j)+h2osoi_ice(c,j)) > 0.) then
+    ! use the ratio of liquid to (liquid+ice) in the top layer to determine split
+    if ((h2osoi_liq(c,j)+h2osoi_ice(c,j)) > 0.) then
              qflx_evap_grnd(p) = max(qflx_ev_snow(p)*(h2osoi_liq(c,j)/(h2osoi_liq(c,j)+h2osoi_ice(c,j))), 0.D0)
-	  else
-	     qflx_evap_grnd(p) = 0.
-	  end if
+    else
+       qflx_evap_grnd(p) = 0.
+    end if
           qflx_sub_snow(p) = qflx_ev_snow(p) - qflx_evap_grnd(p)
        else
           if (t_grnd(c) < tfrz) then

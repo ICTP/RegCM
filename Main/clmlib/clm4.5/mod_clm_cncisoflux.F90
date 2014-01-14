@@ -78,7 +78,7 @@ subroutine CIsoFlux1(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
 !
 !EOP
 !-----------------------------------------------------------------------
-	! set local pointers
+  ! set local pointers
    p => clm3%g%l%c%p
    c => clm3%g%l%c
    select case (isotope)
@@ -97,238 +97,238 @@ subroutine CIsoFlux1(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
         'CNCIsoFluxMod: iso must be either c13 or c14')
    end select
    cascade_donor_pool                => decomp_cascade_con%cascade_donor_pool
-	
+  
    ! pft-level non-mortality fluxes
    
    call CIsoFluxCalc(pcisof%leafc_xfer_to_leafc, p%pcf%leafc_xfer_to_leafc, &
                     pcisos%leafc_xfer, p%pcs%leafc_xfer, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%frootc_xfer_to_frootc, p%pcf%frootc_xfer_to_frootc, &
+  call CIsoFluxCalc(pcisof%frootc_xfer_to_frootc, p%pcf%frootc_xfer_to_frootc, &
                     pcisos%frootc_xfer, p%pcs%frootc_xfer, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%livestemc_xfer_to_livestemc, p%pcf%livestemc_xfer_to_livestemc, &
+  call CIsoFluxCalc(pcisof%livestemc_xfer_to_livestemc, p%pcf%livestemc_xfer_to_livestemc, &
                     pcisos%livestemc_xfer, p%pcs%livestemc_xfer, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%deadstemc_xfer_to_deadstemc, p%pcf%deadstemc_xfer_to_deadstemc, &
+  call CIsoFluxCalc(pcisof%deadstemc_xfer_to_deadstemc, p%pcf%deadstemc_xfer_to_deadstemc, &
                     pcisos%deadstemc_xfer, p%pcs%deadstemc_xfer, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%livecrootc_xfer_to_livecrootc, p%pcf%livecrootc_xfer_to_livecrootc, &
+  call CIsoFluxCalc(pcisof%livecrootc_xfer_to_livecrootc, p%pcf%livecrootc_xfer_to_livecrootc, &
                     pcisos%livecrootc_xfer, p%pcs%livecrootc_xfer, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%deadcrootc_xfer_to_deadcrootc, p%pcf%deadcrootc_xfer_to_deadcrootc, &
+  call CIsoFluxCalc(pcisof%deadcrootc_xfer_to_deadcrootc, p%pcf%deadcrootc_xfer_to_deadcrootc, &
                     pcisos%deadcrootc_xfer, p%pcs%deadcrootc_xfer, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%leafc_to_litter, p%pcf%leafc_to_litter, &
+  call CIsoFluxCalc(pcisof%leafc_to_litter, p%pcf%leafc_to_litter, &
                     pcisos%leafc, p%pcs%leafc, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%frootc_to_litter, p%pcf%frootc_to_litter, &
+  call CIsoFluxCalc(pcisof%frootc_to_litter, p%pcf%frootc_to_litter, &
                     pcisos%frootc, p%pcs%frootc, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%livestemc_to_deadstemc, p%pcf%livestemc_to_deadstemc, &
+  call CIsoFluxCalc(pcisof%livestemc_to_deadstemc, p%pcf%livestemc_to_deadstemc, &
                     pcisos%livestemc, p%pcs%livestemc, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%livecrootc_to_deadcrootc, p%pcf%livecrootc_to_deadcrootc, &
+  call CIsoFluxCalc(pcisof%livecrootc_to_deadcrootc, p%pcf%livecrootc_to_deadcrootc, &
                     pcisos%livecrootc, p%pcs%livecrootc, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%leaf_curmr, p%pcf%leaf_curmr, &
+  call CIsoFluxCalc(pcisof%leaf_curmr, p%pcf%leaf_curmr, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%froot_curmr, p%pcf%froot_curmr, &
+  call CIsoFluxCalc(pcisof%froot_curmr, p%pcf%froot_curmr, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%livestem_curmr, p%pcf%livestem_curmr, &
+  call CIsoFluxCalc(pcisof%livestem_curmr, p%pcf%livestem_curmr, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%livecroot_curmr, p%pcf%livecroot_curmr, &
+  call CIsoFluxCalc(pcisof%livecroot_curmr, p%pcf%livecroot_curmr, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%leaf_xsmr, p%pcf%leaf_xsmr, &
+  call CIsoFluxCalc(pcisof%leaf_xsmr, p%pcf%leaf_xsmr, &
                     pcisos%totvegc, p%pcs%totvegc, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%froot_xsmr, p%pcf%froot_xsmr, &
+  call CIsoFluxCalc(pcisof%froot_xsmr, p%pcf%froot_xsmr, &
                     pcisos%totvegc, p%pcs%totvegc, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%livestem_xsmr, p%pcf%livestem_xsmr, &
+  call CIsoFluxCalc(pcisof%livestem_xsmr, p%pcf%livestem_xsmr, &
                     pcisos%totvegc, p%pcs%totvegc, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%livecroot_xsmr, p%pcf%livecroot_xsmr, &
+  call CIsoFluxCalc(pcisof%livecroot_xsmr, p%pcf%livecroot_xsmr, &
                     pcisos%totvegc, p%pcs%totvegc, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_to_xsmrpool, p%pcf%cpool_to_xsmrpool, &
+  call CIsoFluxCalc(pcisof%cpool_to_xsmrpool, p%pcf%cpool_to_xsmrpool, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_to_leafc, p%pcf%cpool_to_leafc, &
+  call CIsoFluxCalc(pcisof%cpool_to_leafc, p%pcf%cpool_to_leafc, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_to_leafc_storage, p%pcf%cpool_to_leafc_storage, &
+  call CIsoFluxCalc(pcisof%cpool_to_leafc_storage, p%pcf%cpool_to_leafc_storage, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_to_frootc, p%pcf%cpool_to_frootc, &
+  call CIsoFluxCalc(pcisof%cpool_to_frootc, p%pcf%cpool_to_frootc, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_to_frootc_storage, p%pcf%cpool_to_frootc_storage, &
+  call CIsoFluxCalc(pcisof%cpool_to_frootc_storage, p%pcf%cpool_to_frootc_storage, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_to_livestemc, p%pcf%cpool_to_livestemc, &
+  call CIsoFluxCalc(pcisof%cpool_to_livestemc, p%pcf%cpool_to_livestemc, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_to_livestemc_storage, p%pcf%cpool_to_livestemc_storage, &
+  call CIsoFluxCalc(pcisof%cpool_to_livestemc_storage, p%pcf%cpool_to_livestemc_storage, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_to_deadstemc, p%pcf%cpool_to_deadstemc, &
+  call CIsoFluxCalc(pcisof%cpool_to_deadstemc, p%pcf%cpool_to_deadstemc, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_to_deadstemc_storage, p%pcf%cpool_to_deadstemc_storage, &
+  call CIsoFluxCalc(pcisof%cpool_to_deadstemc_storage, p%pcf%cpool_to_deadstemc_storage, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_to_livecrootc, p%pcf%cpool_to_livecrootc, &
+  call CIsoFluxCalc(pcisof%cpool_to_livecrootc, p%pcf%cpool_to_livecrootc, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_to_livecrootc_storage, p%pcf%cpool_to_livecrootc_storage, &
+  call CIsoFluxCalc(pcisof%cpool_to_livecrootc_storage, p%pcf%cpool_to_livecrootc_storage, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_to_deadcrootc, p%pcf%cpool_to_deadcrootc, &
+  call CIsoFluxCalc(pcisof%cpool_to_deadcrootc, p%pcf%cpool_to_deadcrootc, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_to_deadcrootc_storage, p%pcf%cpool_to_deadcrootc_storage, &
+  call CIsoFluxCalc(pcisof%cpool_to_deadcrootc_storage, p%pcf%cpool_to_deadcrootc_storage, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_leaf_gr, p%pcf%cpool_leaf_gr, &
+  call CIsoFluxCalc(pcisof%cpool_leaf_gr, p%pcf%cpool_leaf_gr, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_froot_gr, p%pcf%cpool_froot_gr, &
+  call CIsoFluxCalc(pcisof%cpool_froot_gr, p%pcf%cpool_froot_gr, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_livestem_gr, p%pcf%cpool_livestem_gr, &
+  call CIsoFluxCalc(pcisof%cpool_livestem_gr, p%pcf%cpool_livestem_gr, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_deadstem_gr, p%pcf%cpool_deadstem_gr, &
+  call CIsoFluxCalc(pcisof%cpool_deadstem_gr, p%pcf%cpool_deadstem_gr, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_livecroot_gr, p%pcf%cpool_livecroot_gr, &
+  call CIsoFluxCalc(pcisof%cpool_livecroot_gr, p%pcf%cpool_livecroot_gr, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_deadcroot_gr, p%pcf%cpool_deadcroot_gr, &
+  call CIsoFluxCalc(pcisof%cpool_deadcroot_gr, p%pcf%cpool_deadcroot_gr, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_leaf_storage_gr, p%pcf%cpool_leaf_storage_gr, &
+  call CIsoFluxCalc(pcisof%cpool_leaf_storage_gr, p%pcf%cpool_leaf_storage_gr, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_froot_storage_gr, p%pcf%cpool_froot_storage_gr, &
+  call CIsoFluxCalc(pcisof%cpool_froot_storage_gr, p%pcf%cpool_froot_storage_gr, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_livestem_storage_gr, p%pcf%cpool_livestem_storage_gr, &
+  call CIsoFluxCalc(pcisof%cpool_livestem_storage_gr, p%pcf%cpool_livestem_storage_gr, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_deadstem_storage_gr, p%pcf%cpool_deadstem_storage_gr, &
+  call CIsoFluxCalc(pcisof%cpool_deadstem_storage_gr, p%pcf%cpool_deadstem_storage_gr, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_livecroot_storage_gr, p%pcf%cpool_livecroot_storage_gr, &
+  call CIsoFluxCalc(pcisof%cpool_livecroot_storage_gr, p%pcf%cpool_livecroot_storage_gr, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_deadcroot_storage_gr, p%pcf%cpool_deadcroot_storage_gr, &
+  call CIsoFluxCalc(pcisof%cpool_deadcroot_storage_gr, p%pcf%cpool_deadcroot_storage_gr, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%cpool_to_gresp_storage, p%pcf%cpool_to_gresp_storage, &
+  call CIsoFluxCalc(pcisof%cpool_to_gresp_storage, p%pcf%cpool_to_gresp_storage, &
                     pcisos%cpool, p%pcs%cpool, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%transfer_leaf_gr, p%pcf%transfer_leaf_gr, &
+  call CIsoFluxCalc(pcisof%transfer_leaf_gr, p%pcf%transfer_leaf_gr, &
                     pcisos%gresp_xfer, p%pcs%gresp_xfer, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%transfer_froot_gr, p%pcf%transfer_froot_gr, &
+  call CIsoFluxCalc(pcisof%transfer_froot_gr, p%pcf%transfer_froot_gr, &
                     pcisos%gresp_xfer, p%pcs%gresp_xfer, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%transfer_livestem_gr, p%pcf%transfer_livestem_gr, &
+  call CIsoFluxCalc(pcisof%transfer_livestem_gr, p%pcf%transfer_livestem_gr, &
                     pcisos%gresp_xfer, p%pcs%gresp_xfer, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%transfer_deadstem_gr, p%pcf%transfer_deadstem_gr, &
+  call CIsoFluxCalc(pcisof%transfer_deadstem_gr, p%pcf%transfer_deadstem_gr, &
                     pcisos%gresp_xfer, p%pcs%gresp_xfer, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%transfer_livecroot_gr, p%pcf%transfer_livecroot_gr, &
+  call CIsoFluxCalc(pcisof%transfer_livecroot_gr, p%pcf%transfer_livecroot_gr, &
                     pcisos%gresp_xfer, p%pcs%gresp_xfer, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%transfer_deadcroot_gr, p%pcf%transfer_deadcroot_gr, &
+  call CIsoFluxCalc(pcisof%transfer_deadcroot_gr, p%pcf%transfer_deadcroot_gr, &
                     pcisos%gresp_xfer, p%pcs%gresp_xfer, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%leafc_storage_to_xfer, p%pcf%leafc_storage_to_xfer, &
+  call CIsoFluxCalc(pcisof%leafc_storage_to_xfer, p%pcf%leafc_storage_to_xfer, &
                     pcisos%leafc_storage, p%pcs%leafc_storage, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%frootc_storage_to_xfer, p%pcf%frootc_storage_to_xfer, &
+  call CIsoFluxCalc(pcisof%frootc_storage_to_xfer, p%pcf%frootc_storage_to_xfer, &
                     pcisos%frootc_storage, p%pcs%frootc_storage, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%livestemc_storage_to_xfer, p%pcf%livestemc_storage_to_xfer, &
+  call CIsoFluxCalc(pcisof%livestemc_storage_to_xfer, p%pcf%livestemc_storage_to_xfer, &
                     pcisos%livestemc_storage, p%pcs%livestemc_storage, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%deadstemc_storage_to_xfer, p%pcf%deadstemc_storage_to_xfer, &
+  call CIsoFluxCalc(pcisof%deadstemc_storage_to_xfer, p%pcf%deadstemc_storage_to_xfer, &
                     pcisos%deadstemc_storage, p%pcs%deadstemc_storage, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%livecrootc_storage_to_xfer, p%pcf%livecrootc_storage_to_xfer, &
+  call CIsoFluxCalc(pcisof%livecrootc_storage_to_xfer, p%pcf%livecrootc_storage_to_xfer, &
                     pcisos%livecrootc_storage, p%pcs%livecrootc_storage, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%deadcrootc_storage_to_xfer, p%pcf%deadcrootc_storage_to_xfer, &
+  call CIsoFluxCalc(pcisof%deadcrootc_storage_to_xfer, p%pcf%deadcrootc_storage_to_xfer, &
                     pcisos%deadcrootc_storage, p%pcs%deadcrootc_storage, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	call CIsoFluxCalc(pcisof%gresp_storage_to_xfer, p%pcf%gresp_storage_to_xfer, &
+  call CIsoFluxCalc(pcisof%gresp_storage_to_xfer, p%pcf%gresp_storage_to_xfer, &
                     pcisos%gresp_storage, p%pcs%gresp_storage, &
                     num_soilp, filter_soilp, 1.D0, 0, isotope)
                     
-	! call routine to shift pft-level litterfall fluxes to column, for isotopes
+  ! call routine to shift pft-level litterfall fluxes to column, for isotopes
    ! the non-isotope version of this routine is called in CNPhenologyMod.F90
    ! For later clean-up, it would be possible to generalize this function to operate on a single 
    ! pft-to-column flux.
@@ -408,7 +408,7 @@ subroutine CIsoFlux2(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
 !
 !EOP
 !-----------------------------------------------------------------------
-	! set local pointers
+  ! set local pointers
    p => clm3%g%l%c%p
    select case (isotope)
    case ('c14')
@@ -506,10 +506,10 @@ subroutine CIsoFlux2(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
                      pcisos%gresp_xfer, p%pcs%gresp_xfer, &
                      num_soilp, filter_soilp, 1.D0, 0, isotope)
    
-	! call routine to shift pft-level gap mortality fluxes to column, for isotopes
+  ! call routine to shift pft-level gap mortality fluxes to column, for isotopes
    ! the non-isotope version of this routine is in CNGapMortalityMod.F90.
 
-	call CNCIsoGapPftToColumn(num_soilc, filter_soilc, isotope)
+  call CNCIsoGapPftToColumn(num_soilc, filter_soilc, isotope)
    
 end subroutine CIsoFlux2
 !-----------------------------------------------------------------------
@@ -550,7 +550,7 @@ subroutine CIsoFlux2h(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
 !
 !EOP
 !-----------------------------------------------------------------------
-	! set local pointers
+  ! set local pointers
    p => clm3%g%l%c%p
    select case (isotope)
    case ('c14')
@@ -563,7 +563,7 @@ subroutine CIsoFlux2h(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
       call fatal(__FILE__,__LINE__, &
         'CNCIsoFluxMod: iso must be either c13 or c14')
    end select
-	
+  
    ! pft-level gap mortality fluxes
    
    call CIsoFluxCalc(pcisof%hrv_leafc_to_litter, p%pcf%hrv_leafc_to_litter, &
@@ -715,7 +715,7 @@ subroutine CIsoFlux3(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
 !
 !EOP
 !-----------------------------------------------------------------------
-	! set local pointers
+  ! set local pointers
    p => clm3%g%l%c%p
    c => clm3%g%l%c
    select case (isotope)
@@ -740,7 +740,7 @@ subroutine CIsoFlux3(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
    wtcol                          => clm3%g%l%c%p%wtcol
    pactive                        => clm3%g%l%c%p%active
 
-	
+  
    ! pft-level fire mortality fluxes
    
    call CIsoFluxCalc(pcisof%m_leafc_to_fire, p%pcf%m_leafc_to_fire, &
@@ -1471,7 +1471,7 @@ subroutine CNCIsoHarvestPftToColumn (num_soilc, filter_soilc, isotope)
 !
 ! !INTERFACE, isotope:
 subroutine CIsoFluxCalc(ciso_flux, ctot_flux, ciso_state, ctot_state, &
-	                    num, filter, frax_c13, diag, isotope)
+                      num, filter, frax_c13, diag, isotope)
 !
 ! !DESCRIPTION:
 ! On the radiation time step, set the carbon isotopic flux
@@ -1519,9 +1519,9 @@ subroutine CIsoFluxCalc(ciso_flux, ctot_flux, ciso_state, ctot_state, &
    do f = 1,num
       i = filter(f)
       if (ctot_state(i) /= 0.D0) then
-      	ciso_flux(i) = ctot_flux(i) * (ciso_state(i)/ctot_state(i)) * frax
+        ciso_flux(i) = ctot_flux(i) * (ciso_state(i)/ctot_state(i)) * frax
       else
-      	ciso_flux(i) = 0.D0
+        ciso_flux(i) = 0.D0
       end if
       
       if (diag == 1) then

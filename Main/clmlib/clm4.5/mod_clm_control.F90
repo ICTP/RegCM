@@ -210,7 +210,7 @@ contains
 
     ! Time step
     namelist / clm_inparm/ &
-	 dtime	
+   dtime  
 
     ! CLM namelist settings
 

@@ -123,7 +123,7 @@ CONTAINS
 
     integer, pointer :: pcolumn(:)        ! column index associated with each pft
     integer :: c
-    integer , pointer :: itypelun(:) 	   ! landunit type
+    integer , pointer :: itypelun(:)      ! landunit type
 
     real(rk8), pointer :: h2osoi_vol(:,:)    ! volumetric soil water (0<=h2osoi_vol<=watsat)
     real(rk8) :: soilw, var_soilw, fact_h2, dv_soil_h2

@@ -883,7 +883,7 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
 
       ! stored vegetation carbon, excluding cpool (STORVEGC)
       storvegc(p) = &
-      	cpool(p)              + &
+        cpool(p)              + &
          leafc_storage(p)      + &
          frootc_storage(p)     + &
          livestemc_storage(p)  + &
@@ -1274,7 +1274,7 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
       ! total wood product carbon
       totprodc(c) = &
            prod10c(c) + &
-           prod100c(c)	 
+           prod100c(c)   
       
       ! total ecosystem carbon, including veg but excluding cpool (TOTECOSYSC)
       totecosysc(c) = &
@@ -1744,7 +1744,7 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
          deadstemn_xfer(p)     + &
          livecrootn_xfer(p)    + &
          deadcrootn_xfer(p)    + &
-		 npool(p)              + &
+     npool(p)              + &
          retransn(p)
 
       if ( crop_prog .and. ivt(p) >= npcropmin )then
@@ -2037,7 +2037,7 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
       ! total wood product nitrogen
       totprodn(c) = &
          prod10n(c) + &
-	     prod100n(c)	 
+       prod100n(c)   
 
       ! total ecosystem nitrogen, including veg (TOTECOSYSN)
       totecosysn(c) = &
@@ -2045,7 +2045,7 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
          totlitn(c) + &
          totsomn(c) + &
          sminn(c) + &
-	     totprodn(c) + &
+       totprodn(c) + &
          col_totvegn(c)
 
       ! total column nitrogen, including pft (TOTCOLN)
@@ -2055,9 +2055,9 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
          totlitn(c) + &
          totsomn(c) + &
          sminn(c) + &
-	     totprodn(c) + &
-		 seedn(c) + &
-		 col_ntrunc(c)
+       totprodn(c) + &
+     seedn(c) + &
+     col_ntrunc(c)
    end do
    
    ! add up all vertical transport tendency terms and calculate total som leaching loss as the sum of these

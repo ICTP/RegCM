@@ -149,7 +149,7 @@ contains
        if (readvar) then
           do j = 1,nj
           do i = 1,ni
-             n = (j-1)*ni + i	
+             n = (j-1)*ni + i  
              mask(n) = idata2d(i,j)
           enddo
           enddo
@@ -1102,7 +1102,7 @@ contains
     integer  :: m,mp7,mp8,mp11,n,nl            ! indices
     integer  :: begg,endg                      ! beg/end gcell index
     integer  :: dimid,varid                    ! netCDF id's
-    integer  :: ier                            ! error status	
+    integer  :: ier                            ! error status  
     logical  :: readvar                        ! is variable on dataset
     real(rk8) :: sumpct                         ! sum of %pft over maxpatch_pft
     real(rk8),allocatable :: pctpft(:,:)        ! percent of vegetated gridcell area for PFTs

@@ -1396,7 +1396,7 @@ type, public :: column_estate_type
    real(rk8), pointer :: hc_soisno(:)          !soil plus snow heat content (MJ/m2)
    real(rk8), pointer :: forc_t(:)             !atm temperature, downscaled to column (Kelvin)
    real(rk8), pointer :: forc_th(:)            !atm potl temperature, downscaled to column (Kelvin)
-   real(rk8), pointer :: t_h2osfc(:) 	      !surface water temperature
+   real(rk8), pointer :: t_h2osfc(:)         !surface water temperature
    real(rk8), pointer :: t_h2osfc_bef(:)       !surface water temperature from time-step before
 end type column_estate_type
 
@@ -1555,7 +1555,7 @@ type, public :: column_ch4_type
    real(rk8), pointer :: o2stress_sat(:,:) ! Ratio of oxygen available to that demanded by roots, aerobes, & methanotrophs (nlevsoi)
    real(rk8), pointer :: ch4stress_unsat(:,:) ! Ratio of methane available to the total per-timestep methane sinks (nlevsoi)
    real(rk8), pointer :: ch4stress_sat(:,:) ! Ratio of methane available to the total per-timestep methane sinks (nlevsoi)
-   real(rk8), pointer :: qflx_surf_lag(:)	! time-lagged surface runoff (mm H2O /s)
+   real(rk8), pointer :: qflx_surf_lag(:)  ! time-lagged surface runoff (mm H2O /s)
    real(rk8), pointer :: finundated_lag(:)       ! time-lagged fractional inundated area
    real(rk8), pointer :: layer_sat_lag(:,:) ! Lagged saturation status of soil layer in the unsaturated zone (1 = sat)
 
@@ -1625,11 +1625,11 @@ end type column_dstate_type
 ! column energy flux variables structure
 !----------------------------------------------------
 type, public :: column_eflux_type
-   type(pft_eflux_type):: pef_a	              ! pft-level energy flux variables averaged to the column
+   type(pft_eflux_type):: pef_a                ! pft-level energy flux variables averaged to the column
    real(rk8), pointer :: eflx_snomelt(:)       ! snow melt heat flux (W/m**2)
    real(rk8), pointer :: eflx_snomelt_u(:)     ! urban snow melt heat flux (W/m**2)
    real(rk8), pointer :: eflx_snomelt_r(:)     ! rural snow melt heat flux (W/m**2)
-   real(rk8), pointer :: eflx_impsoil(:)	      ! implicit evaporation for soil temperature equation
+   real(rk8), pointer :: eflx_impsoil(:)        ! implicit evaporation for soil temperature equation
    real(rk8), pointer :: eflx_fgr12(:)         ! ground heat flux between soil layers 1 and 2 (W/m2)
    real(rk8), pointer :: eflx_fgr(:,:)         ! (rural) soil downward heat flux (W/m2) (1:nlevgrnd)
    ! Urban variable
@@ -1651,24 +1651,24 @@ end type column_mflux_type
 ! column water flux variables structure
 !----------------------------------------------------
 type, public :: column_wflux_type
-   type(pft_wflux_type):: pwf_a	        ! pft-level water flux variables averaged to the column
-   real(rk8), pointer :: qflx_infl(:)	! infiltration (mm H2O /s)
-   real(rk8), pointer :: qflx_surf(:)	! surface runoff (mm H2O /s)
-   real(rk8), pointer :: qflx_drain(:) 	! sub-surface runoff (mm H2O /s)
+   type(pft_wflux_type):: pwf_a          ! pft-level water flux variables averaged to the column
+   real(rk8), pointer :: qflx_infl(:)  ! infiltration (mm H2O /s)
+   real(rk8), pointer :: qflx_surf(:)  ! surface runoff (mm H2O /s)
+   real(rk8), pointer :: qflx_drain(:)   ! sub-surface runoff (mm H2O /s)
    real(rk8), pointer :: qflx_top_soil(:)! net water input into soil from top (mm/s)
    real(rk8), pointer :: qflx_h2osfc_to_ice(:) ! conversion of h2osfc to ice
    real(rk8), pointer :: qflx_h2osfc_surf(:)   !surface water runoff
    real(rk8), pointer :: qflx_snow_h2osfc(:)   !snow falling on surface water
    real(rk8), pointer :: qflx_drain_perched(:) ! sub-surface runoff from perched wt (mm H2O /s)
-   real(rk8), pointer :: qflx_floodc(:) 	      ! flood water flux at column level
+   real(rk8), pointer :: qflx_floodc(:)         ! flood water flux at column level
    real(rk8), pointer :: qflx_sl_top_soil(:)   ! liquid water + ice from layer above soil to top soil layer or sent to qflx_qrgwl (mm H2O/s)
    real(rk8), pointer :: qflx_snomelt(:)       ! snow melt (mm H2O /s)
    real(rk8), pointer :: qflx_snow_melt(:)     ! snow melt (net)
-   real(rk8), pointer :: qflx_qrgwl(:) 	    ! qflx_surf at glaciers, wetlands, lakes
-   real(rk8), pointer :: qflx_runoff(:) 	    ! total runoff (qflx_drain+qflx_surf+qflx_qrgwl) (mm H2O /s)
+   real(rk8), pointer :: qflx_qrgwl(:)       ! qflx_surf at glaciers, wetlands, lakes
+   real(rk8), pointer :: qflx_runoff(:)       ! total runoff (qflx_drain+qflx_surf+qflx_qrgwl) (mm H2O /s)
    real(rk8), pointer :: qflx_runoff_u(:)    ! Urban total runoff (qflx_drain+qflx_surf) (mm H2O /s)
    real(rk8), pointer :: qflx_runoff_r(:)    ! Rural total runoff (qflx_drain+qflx_surf+qflx_qrgwl) (mm H2O /s)
-   real(rk8), pointer :: qmelt(:) 	    ! snow melt [mm/s]
+   real(rk8), pointer :: qmelt(:)       ! snow melt [mm/s]
    real(rk8), pointer :: h2ocan_loss(:)      ! mass balance correction term for dynamic weights
    real(rk8), pointer :: qflx_rsub_sat(:)    ! soil saturation excess [mm/s]
    real(rk8), pointer :: flx_bc_dep_dry(:)   ! dry (BCPHO+BCPHI) BC deposition on ground (positive definite) (col) [kg/s]
@@ -2000,7 +2000,7 @@ end type landunit_pstate_type
 ! landunit energy flux variables structure
 !----------------------------------------------------
 type, public :: landunit_eflux_type
-   type(column_eflux_type)::	cef_a		! column-level energy flux variables averaged to landunit
+   type(column_eflux_type)::  cef_a    ! column-level energy flux variables averaged to landunit
    ! Urban variables
    real(rk8), pointer :: eflx_traffic_factor(:)  ! multiplicative traffic factor for sensible heat flux from urban traffic (-)
    real(rk8), pointer :: eflx_traffic(:)         ! traffic sensible heat flux (W/m**2)
@@ -2351,7 +2351,7 @@ type, public :: gridcell_type
    real(rk8), pointer :: latdeg(:)       !latitude (degrees)
    real(rk8), pointer :: londeg(:)       !longitude (degrees)
    integer , pointer :: gindex_a(:)     !"atm" global index
-   real(rk8), pointer :: lat_a(:) 	!"atm" latitude (radians) for albedo
+   real(rk8), pointer :: lat_a(:)   !"atm" latitude (radians) for albedo
    real(rk8), pointer :: lon_a(:)        !"atm" longitude (radians) for albedo
    real(rk8), pointer :: latdeg_a(:)     !"atm" latitude (degrees) for albedo
    real(rk8), pointer :: londeg_a(:)     !"atm" longitude (degrees) for albedo
@@ -2370,7 +2370,7 @@ type, public :: gridcell_type
    ! state variables defined at the gridcell level
    type(gridcell_estate_type) :: ges    !average of energy states all landunits
    type(gridcell_wstate_type) :: gws    !average of water states all landunits
-   type(gridcell_efstate_type):: gve	!gridcell VOC emission factors
+   type(gridcell_efstate_type):: gve  !gridcell VOC emission factors
    
    ! flux variables defined at the gridcell level
    type(gridcell_eflux_type) :: gef     !average of energy fluxes all landunits

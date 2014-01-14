@@ -181,28 +181,28 @@ subroutine CNiniSpecial ()
       
       ! adding dynpft code
       clm3%g%l%c%ccs%seedc(c) = 0.D0
-      clm3%g%l%c%ccs%prod10c(c) = 0.D0	  
-      clm3%g%l%c%ccs%prod100c(c) = 0.D0	  
-      clm3%g%l%c%ccs%totprodc(c) = 0.D0	  
+      clm3%g%l%c%ccs%prod10c(c) = 0.D0    
+      clm3%g%l%c%ccs%prod100c(c) = 0.D0    
+      clm3%g%l%c%ccs%totprodc(c) = 0.D0    
       
       if ( use_c13 ) then
          clm3%g%l%c%cc13s%seedc(c) = 0.D0
-         clm3%g%l%c%cc13s%prod10c(c) = 0.D0	  
-         clm3%g%l%c%cc13s%prod100c(c) = 0.D0	  
-         clm3%g%l%c%cc13s%totprodc(c) = 0.D0	  
+         clm3%g%l%c%cc13s%prod10c(c) = 0.D0    
+         clm3%g%l%c%cc13s%prod100c(c) = 0.D0    
+         clm3%g%l%c%cc13s%totprodc(c) = 0.D0    
       endif
       
       if ( use_c14 ) then
          clm3%g%l%c%cc14s%seedc(c) = 0.D0
-         clm3%g%l%c%cc14s%prod10c(c) = 0.D0	  
-         clm3%g%l%c%cc14s%prod100c(c) = 0.D0	  
-         clm3%g%l%c%cc14s%totprodc(c) = 0.D0	  
+         clm3%g%l%c%cc14s%prod10c(c) = 0.D0    
+         clm3%g%l%c%cc14s%prod100c(c) = 0.D0    
+         clm3%g%l%c%cc14s%totprodc(c) = 0.D0    
       endif
       
       clm3%g%l%c%cns%seedn(c) = 0.D0
-      clm3%g%l%c%cns%prod10n(c) = 0.D0	  
-      clm3%g%l%c%cns%prod100n(c) = 0.D0	  
-      clm3%g%l%c%cns%totprodn(c) = 0.D0	  
+      clm3%g%l%c%cns%prod10n(c) = 0.D0    
+      clm3%g%l%c%cns%prod100n(c) = 0.D0    
+      clm3%g%l%c%cns%totprodn(c) = 0.D0    
       clm3%g%l%c%ccf%dwt_seedc_to_leaf(c) = 0.D0
       clm3%g%l%c%ccf%dwt_seedc_to_deadstem(c) = 0.D0
       clm3%g%l%c%ccf%dwt_conv_cflux(c) = 0.D0

@@ -791,11 +791,11 @@ subroutine CNiniTimeVar()
          totcoln(c)    = 0.D0
          cwdn(c)       = 0.D0
 
-	 ! dynamic landcover state variables
+   ! dynamic landcover state variables
      seedc(c)  = 0.D0
-	 prod10c(c)    = 0.D0
-	 prod100c(c)   = 0.D0
-	 totprodc(c)   = 0.D0
+   prod10c(c)    = 0.D0
+   prod100c(c)   = 0.D0
+   totprodc(c)   = 0.D0
 
          if ( use_c13 ) then
             seedc13(c)    = 0.D0
@@ -811,21 +811,21 @@ subroutine CNiniTimeVar()
             totprodc14(c) = 0.D0
          endif
 
-	 seedn(c)      = 0.D0
-	 prod10n(c)    = 0.D0
-	 prod100n(c)   = 0.D0
-	 totprodn(c)   = 0.D0
-	 
-	 ! also initialize dynamic landcover fluxes so that they have
-	 ! real values on first timestep, prior to calling pftdyn_cnbal
-	 clm3%g%l%c%ccf%dwt_seedc_to_leaf(c) = 0.D0
-	 clm3%g%l%c%ccf%dwt_seedc_to_deadstem(c) = 0.D0
-	 clm3%g%l%c%ccf%dwt_conv_cflux(c) = 0.D0
+   seedn(c)      = 0.D0
+   prod10n(c)    = 0.D0
+   prod100n(c)   = 0.D0
+   totprodn(c)   = 0.D0
+   
+   ! also initialize dynamic landcover fluxes so that they have
+   ! real values on first timestep, prior to calling pftdyn_cnbal
+   clm3%g%l%c%ccf%dwt_seedc_to_leaf(c) = 0.D0
+   clm3%g%l%c%ccf%dwt_seedc_to_deadstem(c) = 0.D0
+   clm3%g%l%c%ccf%dwt_conv_cflux(c) = 0.D0
         clm3%g%l%c%ccf%lf_conv_cflux(c) = 0.D0
-	 clm3%g%l%c%ccf%dwt_prod10c_gain(c) = 0.D0
-	 clm3%g%l%c%ccf%prod10c_loss(c) = 0.D0
-	 clm3%g%l%c%ccf%dwt_prod100c_gain(c) = 0.D0
-	 clm3%g%l%c%ccf%prod100c_loss(c) = 0.D0
+   clm3%g%l%c%ccf%dwt_prod10c_gain(c) = 0.D0
+   clm3%g%l%c%ccf%prod10c_loss(c) = 0.D0
+   clm3%g%l%c%ccf%dwt_prod100c_gain(c) = 0.D0
+   clm3%g%l%c%ccf%prod100c_loss(c) = 0.D0
          do j = 1, nlevdecomp_full
             clm3%g%l%c%ccf%dwt_frootc_to_litr_met_c(c,j) = 0.D0
             clm3%g%l%c%ccf%dwt_frootc_to_litr_cel_c(c,j) = 0.D0
@@ -833,7 +833,7 @@ subroutine CNiniTimeVar()
             clm3%g%l%c%ccf%dwt_livecrootc_to_cwdc(c,j) = 0.D0
             clm3%g%l%c%ccf%dwt_deadcrootc_to_cwdc(c,j) = 0.D0
           end do
-	 clm3%g%l%c%ccf%dwt_closs(c) = 0.D0
+   clm3%g%l%c%ccf%dwt_closs(c) = 0.D0
 
          if ( use_c13 ) then
             clm3%g%l%c%cc13f%dwt_seedc_to_leaf(c) = 0.D0
@@ -871,13 +871,13 @@ subroutine CNiniTimeVar()
             clm3%g%l%c%cc14f%dwt_closs(c) = 0.D0
          endif
 
-	 clm3%g%l%c%cnf%dwt_seedn_to_leaf(c) = 0.D0
-	 clm3%g%l%c%cnf%dwt_seedn_to_deadstem(c) = 0.D0
-	 clm3%g%l%c%cnf%dwt_conv_nflux(c) = 0.D0
-	 clm3%g%l%c%cnf%dwt_prod10n_gain(c) = 0.D0
-	 clm3%g%l%c%cnf%prod10n_loss(c) = 0.D0
-	 clm3%g%l%c%cnf%dwt_prod100n_gain(c) = 0.D0
-	 clm3%g%l%c%cnf%prod100n_loss(c) = 0.D0
+   clm3%g%l%c%cnf%dwt_seedn_to_leaf(c) = 0.D0
+   clm3%g%l%c%cnf%dwt_seedn_to_deadstem(c) = 0.D0
+   clm3%g%l%c%cnf%dwt_conv_nflux(c) = 0.D0
+   clm3%g%l%c%cnf%dwt_prod10n_gain(c) = 0.D0
+   clm3%g%l%c%cnf%prod10n_loss(c) = 0.D0
+   clm3%g%l%c%cnf%dwt_prod100n_gain(c) = 0.D0
+   clm3%g%l%c%cnf%prod100n_loss(c) = 0.D0
          do j = 1, nlevdecomp_full
             clm3%g%l%c%cnf%dwt_frootn_to_litr_met_n(c,j) = 0.D0
             clm3%g%l%c%cnf%dwt_frootn_to_litr_cel_n(c,j) = 0.D0
@@ -885,7 +885,7 @@ subroutine CNiniTimeVar()
             clm3%g%l%c%cnf%dwt_livecrootn_to_cwdn(c,j) = 0.D0
             clm3%g%l%c%cnf%dwt_deadcrootn_to_cwdn(c,j) = 0.D0
          end do
-	 clm3%g%l%c%cnf%dwt_nloss(c) = 0.D0
+   clm3%g%l%c%cnf%dwt_nloss(c) = 0.D0
       end if
    end do
 

@@ -445,7 +445,7 @@ CONTAINS
     implicit none
 
     character(len=*), intent(in)  :: NLFilename ! Namelist filename
-    character(len=*), intent(out) :: seq_drydep_fields	
+    character(len=*), intent(out) :: seq_drydep_fields  
 
     !----- local -----
     integer :: i                ! Indices
@@ -491,7 +491,7 @@ CONTAINS
     n_drydep = 0
 
     !--- Loop over species to fill list of fields to communicate for drydep ---
-    seq_drydep_fields = ' '	
+    seq_drydep_fields = ' '  
     do i=1,maxspc
        if ( len_trim(drydep_list(i))==0 ) exit
        write(token,333) i

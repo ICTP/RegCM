@@ -95,7 +95,7 @@ contains
     integer  :: sec                             ! seconds into current date for nstep+1
     integer  :: ier, ret                        ! error status
     logical  :: found                           ! true => input dataset bounding dates found
-    logical  :: readvar	                        ! true => variable is on input dataset
+    logical  :: readvar                          ! true => variable is on input dataset
     integer  :: begg,endg                       ! beg/end indices for land gridcells
     integer  :: begl,endl                       ! beg/end indices for land landunits
     integer  :: begc,endc                       ! beg/end indices for land columns
@@ -477,11 +477,11 @@ contains
     character(len=32) :: subname='pftdyn_getdata' ! subroutine name
 !-----------------------------------------------------------------------
     
-    allocate(arrayl(begg:endg,pft0:maxpft))	
+    allocate(arrayl(begg:endg,pft0:maxpft))  
     call ncd_io(ncid=ncid, varname= 'PCT_PFT', flag='read', data=arrayl, &
          dim1name=grlnd, nt=ntime, readvar=readvar)
     pctpft(begg:endg,pft0:maxpft) = arrayl(begg:endg,pft0:maxpft)
-    deallocate(arrayl)		
+    deallocate(arrayl)    
     if (.not. readvar) call fatal(__FILE__,__LINE__, &
             trim(subname)//' ERROR: PCT_PFT NOT on pftdyn file' )
 
@@ -1170,16 +1170,16 @@ contains
                 endif
                 
                 ! pft-level nitrogen state variables
-                pptr%pns%leafn(p)	           = 0._r8
+                pptr%pns%leafn(p)             = 0._r8
                 pptr%pns%leafn_storage(p)      = 0._r8
                 pptr%pns%leafn_xfer(p)         = 0._r8
-                pptr%pns%frootn(p)	           = 0._r8
+                pptr%pns%frootn(p)             = 0._r8
                 pptr%pns%frootn_storage(p)     = 0._r8
                 pptr%pns%frootn_xfer(p)        = 0._r8
-                pptr%pns%livestemn(p)	       = 0._r8
+                pptr%pns%livestemn(p)         = 0._r8
                 pptr%pns%livestemn_storage(p)  = 0._r8
                 pptr%pns%livestemn_xfer(p)     = 0._r8
-                pptr%pns%deadstemn(p)	       = 0._r8
+                pptr%pns%deadstemn(p)         = 0._r8
                 pptr%pns%deadstemn_storage(p)  = 0._r8
                 pptr%pns%deadstemn_xfer(p)     = 0._r8
                 pptr%pns%livecrootn(p)         = 0._r8
@@ -1188,8 +1188,8 @@ contains
                 pptr%pns%deadcrootn(p)         = 0._r8
                 pptr%pns%deadcrootn_storage(p) = 0._r8
                 pptr%pns%deadcrootn_xfer(p)    = 0._r8
-                pptr%pns%retransn(p)	       = 0._r8
-                pptr%pns%npool(p)	           = 0._r8
+                pptr%pns%retransn(p)         = 0._r8
+                pptr%pns%npool(p)             = 0._r8
                 pptr%pns%pft_ntrunc(p)         = 0._r8
                 pptr%pns%dispvegn(p)           = 0._r8
                 pptr%pns%storvegn(p)           = 0._r8
@@ -1363,30 +1363,30 @@ contains
              pptr%pcs%leafc(p)         = pptr%pcs%leafc(p)*t1         + leafc_seed*pleaf*t2
              pptr%pcs%leafc_storage(p) = pptr%pcs%leafc_storage(p)*t1 + leafc_seed*pstor*t2
              pptr%pcs%leafc_xfer(p)    = pptr%pcs%leafc_xfer(p)*t1    + leafc_seed*pxfer*t2
-             pptr%pcs%frootc(p)  		   = pptr%pcs%frootc(p) 			* t1
-             pptr%pcs%frootc_storage(p)     = pptr%pcs%frootc_storage(p) 	* t1
-             pptr%pcs%frootc_xfer(p) 	   = pptr%pcs%frootc_xfer(p)		* t1
-             pptr%pcs%livestemc(p)		   = pptr%pcs%livestemc(p)  		* t1
+             pptr%pcs%frootc(p)         = pptr%pcs%frootc(p)       * t1
+             pptr%pcs%frootc_storage(p)     = pptr%pcs%frootc_storage(p)   * t1
+             pptr%pcs%frootc_xfer(p)      = pptr%pcs%frootc_xfer(p)    * t1
+             pptr%pcs%livestemc(p)       = pptr%pcs%livestemc(p)      * t1
              pptr%pcs%livestemc_storage(p)  = pptr%pcs%livestemc_storage(p)  * t1
-             pptr%pcs%livestemc_xfer(p)     = pptr%pcs%livestemc_xfer(p) 	* t1
+             pptr%pcs%livestemc_xfer(p)     = pptr%pcs%livestemc_xfer(p)   * t1
              pptr%pcs%deadstemc(p)     = pptr%pcs%deadstemc(p)*t1     + deadstemc_seed*t2
              pptr%pcs%deadstemc_storage(p)  = pptr%pcs%deadstemc_storage(p)  * t1
-             pptr%pcs%deadstemc_xfer(p)     = pptr%pcs%deadstemc_xfer(p) 	* t1
-             pptr%pcs%livecrootc(p)  	   = pptr%pcs%livecrootc(p) 		* t1
+             pptr%pcs%deadstemc_xfer(p)     = pptr%pcs%deadstemc_xfer(p)   * t1
+             pptr%pcs%livecrootc(p)       = pptr%pcs%livecrootc(p)     * t1
              pptr%pcs%livecrootc_storage(p) = pptr%pcs%livecrootc_storage(p) * t1
-             pptr%pcs%livecrootc_xfer(p)    = pptr%pcs%livecrootc_xfer(p)	* t1
-             pptr%pcs%deadcrootc(p)  	   = pptr%pcs%deadcrootc(p) 		* t1
+             pptr%pcs%livecrootc_xfer(p)    = pptr%pcs%livecrootc_xfer(p)  * t1
+             pptr%pcs%deadcrootc(p)       = pptr%pcs%deadcrootc(p)     * t1
              pptr%pcs%deadcrootc_storage(p) = pptr%pcs%deadcrootc_storage(p) * t1
-             pptr%pcs%deadcrootc_xfer(p)    = pptr%pcs%deadcrootc_xfer(p)	* t1
-             pptr%pcs%gresp_storage(p)	   = pptr%pcs%gresp_storage(p)  	* t1
-             pptr%pcs%gresp_xfer(p)  	   = pptr%pcs%gresp_xfer(p) 		* t1
-             pptr%pcs%cpool(p)			   = pptr%pcs%cpool(p)  			* t1
-             pptr%pcs%xsmrpool(p)		   = pptr%pcs%xsmrpool(p)			* t1
-             pptr%pcs%pft_ctrunc(p)  	   = pptr%pcs%pft_ctrunc(p) 		* t1
-             pptr%pcs%dispvegc(p)		   = pptr%pcs%dispvegc(p)			* t1
-             pptr%pcs%storvegc(p)		   = pptr%pcs%storvegc(p)			* t1
-             pptr%pcs%totvegc(p) 		   = pptr%pcs%totvegc(p)			* t1
-             pptr%pcs%totpftc(p) 		   = pptr%pcs%totpftc(p)			* t1
+             pptr%pcs%deadcrootc_xfer(p)    = pptr%pcs%deadcrootc_xfer(p)  * t1
+             pptr%pcs%gresp_storage(p)     = pptr%pcs%gresp_storage(p)    * t1
+             pptr%pcs%gresp_xfer(p)       = pptr%pcs%gresp_xfer(p)     * t1
+             pptr%pcs%cpool(p)         = pptr%pcs%cpool(p)        * t1
+             pptr%pcs%xsmrpool(p)       = pptr%pcs%xsmrpool(p)      * t1
+             pptr%pcs%pft_ctrunc(p)       = pptr%pcs%pft_ctrunc(p)     * t1
+             pptr%pcs%dispvegc(p)       = pptr%pcs%dispvegc(p)      * t1
+             pptr%pcs%storvegc(p)       = pptr%pcs%storvegc(p)      * t1
+             pptr%pcs%totvegc(p)        = pptr%pcs%totvegc(p)      * t1
+             pptr%pcs%totpftc(p)        = pptr%pcs%totpftc(p)      * t1
              
              if ( use_c13 ) then
                 ! pft-level carbon-13 state variables 
@@ -1409,30 +1409,30 @@ contains
                 pptr%pc13s%leafc(p)         = pptr%pc13s%leafc(p)*t1         + leafc13_seed*pleaf*t2
                 pptr%pc13s%leafc_storage(p) = pptr%pc13s%leafc_storage(p)*t1 + leafc13_seed*pstor*t2
                 pptr%pc13s%leafc_xfer(p)    = pptr%pc13s%leafc_xfer(p)*t1    + leafc13_seed*pxfer*t2
-                pptr%pc13s%frootc(p)			 = pptr%pc13s%frootc(p) 		* t1
-                pptr%pc13s%frootc_storage(p)	         = pptr%pc13s%frootc_storage(p) 	* t1
-                pptr%pc13s%frootc_xfer(p)		 = pptr%pc13s%frootc_xfer(p)		* t1
-                pptr%pc13s%livestemc(p) 		 = pptr%pc13s%livestemc(p)  		* t1
+                pptr%pc13s%frootc(p)       = pptr%pc13s%frootc(p)     * t1
+                pptr%pc13s%frootc_storage(p)           = pptr%pc13s%frootc_storage(p)   * t1
+                pptr%pc13s%frootc_xfer(p)     = pptr%pc13s%frootc_xfer(p)    * t1
+                pptr%pc13s%livestemc(p)      = pptr%pc13s%livestemc(p)      * t1
                 pptr%pc13s%livestemc_storage(p)          = pptr%pc13s%livestemc_storage(p)      * t1
-                pptr%pc13s%livestemc_xfer(p)	         = pptr%pc13s%livestemc_xfer(p) 	* t1
+                pptr%pc13s%livestemc_xfer(p)           = pptr%pc13s%livestemc_xfer(p)   * t1
                 pptr%pc13s%deadstemc(p)                  = pptr%pc13s%deadstemc(p)*t1     + deadstemc13_seed*t2
                 pptr%pc13s%deadstemc_storage(p)          = pptr%pc13s%deadstemc_storage(p)      * t1
-                pptr%pc13s%deadstemc_xfer(p)	         = pptr%pc13s%deadstemc_xfer(p) 	* t1
-                pptr%pc13s%livecrootc(p)		 = pptr%pc13s%livecrootc(p) 		* t1
+                pptr%pc13s%deadstemc_xfer(p)           = pptr%pc13s%deadstemc_xfer(p)   * t1
+                pptr%pc13s%livecrootc(p)     = pptr%pc13s%livecrootc(p)     * t1
                 pptr%pc13s%livecrootc_storage(p)         = pptr%pc13s%livecrootc_storage(p)     * t1
-                pptr%pc13s%livecrootc_xfer(p)	         = pptr%pc13s%livecrootc_xfer(p)	* t1
-                pptr%pc13s%deadcrootc(p)		 = pptr%pc13s%deadcrootc(p) 		* t1
+                pptr%pc13s%livecrootc_xfer(p)           = pptr%pc13s%livecrootc_xfer(p)  * t1
+                pptr%pc13s%deadcrootc(p)     = pptr%pc13s%deadcrootc(p)     * t1
                 pptr%pc13s%deadcrootc_storage(p)         = pptr%pc13s%deadcrootc_storage(p)     * t1
-                pptr%pc13s%deadcrootc_xfer(p)	         = pptr%pc13s%deadcrootc_xfer(p)	* t1
-                pptr%pc13s%gresp_storage(p) 	         = pptr%pc13s%gresp_storage(p)  	* t1
-                pptr%pc13s%gresp_xfer(p)		 = pptr%pc13s%gresp_xfer(p) 		* t1
-                pptr%pc13s%cpool(p) 			 = pptr%pc13s%cpool(p)  		* t1
-                pptr%pc13s%xsmrpool(p)  		 = pptr%pc13s%xsmrpool(p)		* t1
-                pptr%pc13s%pft_ctrunc(p)		 = pptr%pc13s%pft_ctrunc(p) 		* t1
-                pptr%pc13s%dispvegc(p)  		 = pptr%pc13s%dispvegc(p)		* t1
-                pptr%pc13s%storvegc(p)  		 = pptr%pc13s%storvegc(p)		* t1
-                pptr%pc13s%totvegc(p)			 = pptr%pc13s%totvegc(p)		* t1
-                pptr%pc13s%totpftc(p)			 = pptr%pc13s%totpftc(p)		* t1
+                pptr%pc13s%deadcrootc_xfer(p)           = pptr%pc13s%deadcrootc_xfer(p)  * t1
+                pptr%pc13s%gresp_storage(p)            = pptr%pc13s%gresp_storage(p)    * t1
+                pptr%pc13s%gresp_xfer(p)     = pptr%pc13s%gresp_xfer(p)     * t1
+                pptr%pc13s%cpool(p)        = pptr%pc13s%cpool(p)      * t1
+                pptr%pc13s%xsmrpool(p)       = pptr%pc13s%xsmrpool(p)    * t1
+                pptr%pc13s%pft_ctrunc(p)     = pptr%pc13s%pft_ctrunc(p)     * t1
+                pptr%pc13s%dispvegc(p)       = pptr%pc13s%dispvegc(p)    * t1
+                pptr%pc13s%storvegc(p)       = pptr%pc13s%storvegc(p)    * t1
+                pptr%pc13s%totvegc(p)       = pptr%pc13s%totvegc(p)    * t1
+                pptr%pc13s%totpftc(p)       = pptr%pc13s%totpftc(p)    * t1
                 
              endif
              
@@ -1457,30 +1457,30 @@ contains
                 pptr%pc14s%leafc(p)         = pptr%pc14s%leafc(p)*t1         + leafc14_seed*pleaf*t2
                 pptr%pc14s%leafc_storage(p) = pptr%pc14s%leafc_storage(p)*t1 + leafc14_seed*pstor*t2
                 pptr%pc14s%leafc_xfer(p)    = pptr%pc14s%leafc_xfer(p)*t1    + leafc14_seed*pxfer*t2
-                pptr%pc14s%frootc(p)			 = pptr%pc14s%frootc(p) 		* t1
-                pptr%pc14s%frootc_storage(p)	         = pptr%pc14s%frootc_storage(p) 	* t1
-                pptr%pc14s%frootc_xfer(p)		 = pptr%pc14s%frootc_xfer(p)		* t1
-                pptr%pc14s%livestemc(p) 		 = pptr%pc14s%livestemc(p)  		* t1
+                pptr%pc14s%frootc(p)       = pptr%pc14s%frootc(p)     * t1
+                pptr%pc14s%frootc_storage(p)           = pptr%pc14s%frootc_storage(p)   * t1
+                pptr%pc14s%frootc_xfer(p)     = pptr%pc14s%frootc_xfer(p)    * t1
+                pptr%pc14s%livestemc(p)      = pptr%pc14s%livestemc(p)      * t1
                 pptr%pc14s%livestemc_storage(p)          = pptr%pc14s%livestemc_storage(p)      * t1
-                pptr%pc14s%livestemc_xfer(p)	         = pptr%pc14s%livestemc_xfer(p) 	* t1
+                pptr%pc14s%livestemc_xfer(p)           = pptr%pc14s%livestemc_xfer(p)   * t1
                 pptr%pc14s%deadstemc(p)                  = pptr%pc14s%deadstemc(p)*t1     + deadstemc14_seed*t2
                 pptr%pc14s%deadstemc_storage(p)          = pptr%pc14s%deadstemc_storage(p)      * t1
-                pptr%pc14s%deadstemc_xfer(p)	         = pptr%pc14s%deadstemc_xfer(p) 	* t1
-                pptr%pc14s%livecrootc(p)		 = pptr%pc14s%livecrootc(p) 		* t1
+                pptr%pc14s%deadstemc_xfer(p)           = pptr%pc14s%deadstemc_xfer(p)   * t1
+                pptr%pc14s%livecrootc(p)     = pptr%pc14s%livecrootc(p)     * t1
                 pptr%pc14s%livecrootc_storage(p)         = pptr%pc14s%livecrootc_storage(p)     * t1
-                pptr%pc14s%livecrootc_xfer(p)	         = pptr%pc14s%livecrootc_xfer(p)	* t1
-                pptr%pc14s%deadcrootc(p)		 = pptr%pc14s%deadcrootc(p) 		* t1
+                pptr%pc14s%livecrootc_xfer(p)           = pptr%pc14s%livecrootc_xfer(p)  * t1
+                pptr%pc14s%deadcrootc(p)     = pptr%pc14s%deadcrootc(p)     * t1
                 pptr%pc14s%deadcrootc_storage(p)         = pptr%pc14s%deadcrootc_storage(p)     * t1
-                pptr%pc14s%deadcrootc_xfer(p)	         = pptr%pc14s%deadcrootc_xfer(p)	* t1
-                pptr%pc14s%gresp_storage(p) 	         = pptr%pc14s%gresp_storage(p)  	* t1
-                pptr%pc14s%gresp_xfer(p)		 = pptr%pc14s%gresp_xfer(p) 		* t1
-                pptr%pc14s%cpool(p) 			 = pptr%pc14s%cpool(p)  		* t1
-                pptr%pc14s%xsmrpool(p)  		 = pptr%pc14s%xsmrpool(p)		* t1
-                pptr%pc14s%pft_ctrunc(p)		 = pptr%pc14s%pft_ctrunc(p) 		* t1
-                pptr%pc14s%dispvegc(p)  		 = pptr%pc14s%dispvegc(p)		* t1
-                pptr%pc14s%storvegc(p)  		 = pptr%pc14s%storvegc(p)		* t1
-                pptr%pc14s%totvegc(p)			 = pptr%pc14s%totvegc(p)		* t1
-                pptr%pc14s%totpftc(p)			 = pptr%pc14s%totpftc(p)		* t1
+                pptr%pc14s%deadcrootc_xfer(p)           = pptr%pc14s%deadcrootc_xfer(p)  * t1
+                pptr%pc14s%gresp_storage(p)            = pptr%pc14s%gresp_storage(p)    * t1
+                pptr%pc14s%gresp_xfer(p)     = pptr%pc14s%gresp_xfer(p)     * t1
+                pptr%pc14s%cpool(p)        = pptr%pc14s%cpool(p)      * t1
+                pptr%pc14s%xsmrpool(p)       = pptr%pc14s%xsmrpool(p)    * t1
+                pptr%pc14s%pft_ctrunc(p)     = pptr%pc14s%pft_ctrunc(p)     * t1
+                pptr%pc14s%dispvegc(p)       = pptr%pc14s%dispvegc(p)    * t1
+                pptr%pc14s%storvegc(p)       = pptr%pc14s%storvegc(p)    * t1
+                pptr%pc14s%totvegc(p)       = pptr%pc14s%totvegc(p)    * t1
+                pptr%pc14s%totpftc(p)       = pptr%pc14s%totpftc(p)    * t1
              endif
              
              
@@ -1504,28 +1504,28 @@ contains
              pptr%pns%leafn(p)         = pptr%pns%leafn(p)*t1         + leafn_seed*pleaf*t2
              pptr%pns%leafn_storage(p) = pptr%pns%leafn_storage(p)*t1 + leafn_seed*pstor*t2
              pptr%pns%leafn_xfer(p)    = pptr%pns%leafn_xfer(p)*t1    + leafn_seed*pxfer*t2
-             pptr%pns%frootn(p)  		   = pptr%pns%frootn(p) 		* t1
-             pptr%pns%frootn_storage(p)         = pptr%pns%frootn_storage(p) 	* t1
-             pptr%pns%frootn_xfer(p) 	   = pptr%pns%frootn_xfer(p)		* t1
-             pptr%pns%livestemn(p)		   = pptr%pns%livestemn(p)  		* t1
+             pptr%pns%frootn(p)         = pptr%pns%frootn(p)     * t1
+             pptr%pns%frootn_storage(p)         = pptr%pns%frootn_storage(p)   * t1
+             pptr%pns%frootn_xfer(p)      = pptr%pns%frootn_xfer(p)    * t1
+             pptr%pns%livestemn(p)       = pptr%pns%livestemn(p)      * t1
              pptr%pns%livestemn_storage(p)      = pptr%pns%livestemn_storage(p)      * t1
-             pptr%pns%livestemn_xfer(p)         = pptr%pns%livestemn_xfer(p) 	* t1
+             pptr%pns%livestemn_xfer(p)         = pptr%pns%livestemn_xfer(p)   * t1
              pptr%pns%deadstemn(p)              = pptr%pns%deadstemn(p)*t1     + deadstemn_seed*t2
              pptr%pns%deadstemn_storage(p)      = pptr%pns%deadstemn_storage(p)      * t1
-             pptr%pns%deadstemn_xfer(p)         = pptr%pns%deadstemn_xfer(p) 	* t1
-             pptr%pns%livecrootn(p)  	   = pptr%pns%livecrootn(p) 		* t1
+             pptr%pns%deadstemn_xfer(p)         = pptr%pns%deadstemn_xfer(p)   * t1
+             pptr%pns%livecrootn(p)       = pptr%pns%livecrootn(p)     * t1
              pptr%pns%livecrootn_storage(p)     = pptr%pns%livecrootn_storage(p)     * t1
-             pptr%pns%livecrootn_xfer(p)        = pptr%pns%livecrootn_xfer(p)	* t1
-             pptr%pns%deadcrootn(p)  	   = pptr%pns%deadcrootn(p) 		* t1
+             pptr%pns%livecrootn_xfer(p)        = pptr%pns%livecrootn_xfer(p)  * t1
+             pptr%pns%deadcrootn(p)       = pptr%pns%deadcrootn(p)     * t1
              pptr%pns%deadcrootn_storage(p)     = pptr%pns%deadcrootn_storage(p)     * t1
              pptr%pns%deadcrootn_xfer(p)        = pptr%pns%deadcrootn_xfer(p)        * t1
-             pptr%pns%retransn(p)		   = pptr%pns%retransn(p)		* t1
-             pptr%pns%npool(p)		   = pptr%pns%npool(p)  		* t1
-             pptr%pns%pft_ntrunc(p)  	   = pptr%pns%pft_ntrunc(p)        	* t1
-             pptr%pns%dispvegn(p)		   = pptr%pns%dispvegn(p)		* t1
-             pptr%pns%storvegn(p)		   = pptr%pns%storvegn(p)		* t1
-             pptr%pns%totvegn(p) 		   = pptr%pns%totvegn(p)		* t1
-             pptr%pns%totpftn(p) 		   = pptr%pns%totpftn(p)		* t1
+             pptr%pns%retransn(p)       = pptr%pns%retransn(p)    * t1
+             pptr%pns%npool(p)       = pptr%pns%npool(p)      * t1
+             pptr%pns%pft_ntrunc(p)       = pptr%pns%pft_ntrunc(p)          * t1
+             pptr%pns%dispvegn(p)       = pptr%pns%dispvegn(p)    * t1
+             pptr%pns%storvegn(p)       = pptr%pns%storvegn(p)    * t1
+             pptr%pns%totvegn(p)        = pptr%pns%totvegn(p)    * t1
+             pptr%pns%totpftn(p)        = pptr%pns%totpftn(p)    * t1
              
              ! update temporary seed source arrays
              ! These are calculated in terms of the required contributions from
@@ -2786,7 +2786,7 @@ contains
                      + dwt_deadstemc13_seed(p)/dt
              endif
              
-             if ( use_c14 ) then	
+             if ( use_c14 ) then  
                 cptr%cc14f%dwt_seedc_to_leaf(c) = cptr%cc14f%dwt_seedc_to_leaf(c) + dwt_leafc14_seed(p)/dt
                 cptr%cc14f%dwt_seedc_to_deadstem(c) = cptr%cc14f%dwt_seedc_to_deadstem(c) &
                      + dwt_deadstemc14_seed(p)/dt

@@ -410,8 +410,8 @@ contains
        call ncd_io(varname='annavg_t2m', data=pptr%pepv%annavg_t2m, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! tempavg_t2m
@@ -422,8 +422,8 @@ contains
        call ncd_io(varname='tempavg_t2m', data=pptr%pepv%tempavg_t2m, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! gpp
@@ -434,8 +434,8 @@ contains
        call ncd_io(varname='gpp_pepv', data=pptr%pepv%gpp, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! availc
@@ -446,8 +446,8 @@ contains
        call ncd_io(varname='availc', data=pptr%pepv%availc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! xsmrpool_recover
@@ -458,8 +458,8 @@ contains
        call ncd_io(varname='xsmrpool_recover', data=pptr%pepv%xsmrpool_recover, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     if ( use_c13 ) then
@@ -484,8 +484,8 @@ contains
        call ncd_io(varname='alloc_pnow', data=pptr%pepv%alloc_pnow, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! c_allometry
@@ -496,8 +496,8 @@ contains
        call ncd_io(varname='c_allometry', data=pptr%pepv%c_allometry, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! n_allometry
@@ -508,8 +508,8 @@ contains
        call ncd_io(varname='n_allometry', data=pptr%pepv%n_allometry, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! plant_ndemand
@@ -520,8 +520,8 @@ contains
        call ncd_io(varname='plant_ndemand', data=pptr%pepv%plant_ndemand, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! tempsum_potential_gpp
@@ -532,8 +532,8 @@ contains
        call ncd_io(varname='tempsum_potential_gpp', data=pptr%pepv%tempsum_potential_gpp, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     !annsum_potential_gpp 
@@ -544,8 +544,8 @@ contains
        call ncd_io(varname='annsum_potential_gpp', data=pptr%pepv%annsum_potential_gpp, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! tempmax_retransn
@@ -556,8 +556,8 @@ contains
        call ncd_io(varname='tempmax_retransn', data=pptr%pepv%tempmax_retransn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! annmax_retransn
@@ -568,8 +568,8 @@ contains
        call ncd_io(varname='annmax_retransn', data=pptr%pepv%annmax_retransn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! avail_retransn
@@ -592,8 +592,8 @@ contains
        call ncd_io(varname='plant_nalloc', data=pptr%pepv%plant_nalloc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! plant_calloc
@@ -604,8 +604,8 @@ contains
        call ncd_io(varname='plant_calloc', data=pptr%pepv%plant_calloc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! excess_cflux
@@ -616,8 +616,8 @@ contains
        call ncd_io(varname='excess_cflux', data=pptr%pepv%excess_cflux, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! downreg
@@ -628,8 +628,8 @@ contains
        call ncd_io(varname='downreg', data=pptr%pepv%downreg, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! prev_leafc_to_litter
@@ -640,8 +640,8 @@ contains
        call ncd_io(varname='prev_leafc_to_litter', data=pptr%pepv%prev_leafc_to_litter, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! prev_frootc_to_litter
@@ -652,8 +652,8 @@ contains
        call ncd_io(varname='prev_frootc_to_litter', data=pptr%pepv%prev_frootc_to_litter, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! tempsum_npp
@@ -664,8 +664,8 @@ contains
        call ncd_io(varname='tempsum_npp', data=pptr%pepv%tempsum_npp, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! annsum_npp
@@ -676,8 +676,8 @@ contains
        call ncd_io(varname='annsum_npp', data=pptr%pepv%annsum_npp, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     if ( use_c13 ) then
@@ -744,8 +744,8 @@ contains
        call ncd_io(varname='leafc', data=pptr%pcs%leafc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! leafc_storage
@@ -756,8 +756,8 @@ contains
        call ncd_io(varname='leafc_storage', data=pptr%pcs%leafc_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! leafc_xfer
@@ -768,8 +768,8 @@ contains
        call ncd_io(varname='leafc_xfer', data=pptr%pcs%leafc_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! frootc
@@ -780,8 +780,8 @@ contains
        call ncd_io(varname='frootc', data=pptr%pcs%frootc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! frootc_storage
@@ -792,8 +792,8 @@ contains
        call ncd_io(varname='frootc_storage', data=pptr%pcs%frootc_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     !frootc_xfer 
@@ -804,8 +804,8 @@ contains
        call ncd_io(varname='frootc_xfer', data=pptr%pcs%frootc_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! livestemc
@@ -816,8 +816,8 @@ contains
        call ncd_io(varname='livestemc', data=pptr%pcs%livestemc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! livestemc_storage
@@ -828,8 +828,8 @@ contains
        call ncd_io(varname='livestemc_storage', data=pptr%pcs%livestemc_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! livestemc_xfer
@@ -840,8 +840,8 @@ contains
        call ncd_io(varname='livestemc_xfer', data=pptr%pcs%livestemc_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! deadstemc
@@ -852,8 +852,8 @@ contains
        call ncd_io(varname='deadstemc', data=pptr%pcs%deadstemc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! deadstemc_storage
@@ -864,8 +864,8 @@ contains
        call ncd_io(varname='deadstemc_storage', data=pptr%pcs%deadstemc_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! deadstemc_xfer
@@ -876,8 +876,8 @@ contains
        call ncd_io(varname='deadstemc_xfer', data=pptr%pcs%deadstemc_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! livecrootc
@@ -888,8 +888,8 @@ contains
        call ncd_io(varname='livecrootc', data=pptr%pcs%livecrootc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! livecrootc_storage
@@ -900,8 +900,8 @@ contains
        call ncd_io(varname='livecrootc_storage', data=pptr%pcs%livecrootc_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! livecrootc_xfer
@@ -912,8 +912,8 @@ contains
        call ncd_io(varname='livecrootc_xfer', data=pptr%pcs%livecrootc_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! deadcrootc
@@ -924,8 +924,8 @@ contains
        call ncd_io(varname='deadcrootc', data=pptr%pcs%deadcrootc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! deadcrootc_storage
@@ -936,8 +936,8 @@ contains
        call ncd_io(varname='deadcrootc_storage', data=pptr%pcs%deadcrootc_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! deadcrootc_xfer
@@ -948,8 +948,8 @@ contains
        call ncd_io(varname='deadcrootc_xfer', data=pptr%pcs%deadcrootc_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! gresp_storage
@@ -960,8 +960,8 @@ contains
        call ncd_io(varname='gresp_storage', data=pptr%pcs%gresp_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! gresp_xfer
@@ -972,8 +972,8 @@ contains
        call ncd_io(varname='gresp_xfer', data=pptr%pcs%gresp_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! cpool
@@ -984,8 +984,8 @@ contains
        call ncd_io(varname='cpool', data=pptr%pcs%cpool, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! xsmrpool
@@ -996,8 +996,8 @@ contains
        call ncd_io(varname='xsmrpool', data=pptr%pcs%xsmrpool, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! pft_ctrunc
@@ -1008,8 +1008,8 @@ contains
        call ncd_io(varname='pft_ctrunc', data=pptr%pcs%pft_ctrunc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! totvegc
@@ -1020,8 +1020,8 @@ contains
        call ncd_io(varname='totvegc', data=pptr%pcs%totvegc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
 
@@ -2064,8 +2064,8 @@ contains
        call ncd_io(varname='leafn', data=pptr%pns%leafn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! leafn_storage
@@ -2076,8 +2076,8 @@ contains
        call ncd_io(varname='leafn_storage', data=pptr%pns%leafn_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! leafn_xfer
@@ -2088,8 +2088,8 @@ contains
        call ncd_io(varname='leafn_xfer', data=pptr%pns%leafn_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! frootn
@@ -2100,8 +2100,8 @@ contains
        call ncd_io(varname='frootn', data=pptr%pns%frootn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! frootn_storage
@@ -2112,8 +2112,8 @@ contains
        call ncd_io(varname='frootn_storage', data=pptr%pns%frootn_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! frootn_xfer
@@ -2124,8 +2124,8 @@ contains
        call ncd_io(varname='frootn_xfer', data=pptr%pns%frootn_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! livestemn
@@ -2136,8 +2136,8 @@ contains
        call ncd_io(varname='livestemn', data=pptr%pns%livestemn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! livestemn_storage
@@ -2148,8 +2148,8 @@ contains
        call ncd_io(varname='livestemn_storage', data=pptr%pns%livestemn_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! livestemn_xfer
@@ -2160,8 +2160,8 @@ contains
        call ncd_io(varname='livestemn_xfer', data=pptr%pns%livestemn_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! deadstemn
@@ -2172,8 +2172,8 @@ contains
        call ncd_io(varname='deadstemn', data=pptr%pns%deadstemn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     !deadstemn_storage 
@@ -2184,8 +2184,8 @@ contains
        call ncd_io(varname='deadstemn_storage', data=pptr%pns%deadstemn_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     !deadstemn_xfer 
@@ -2196,8 +2196,8 @@ contains
        call ncd_io(varname='deadstemn_xfer', data=pptr%pns%deadstemn_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! livecrootn
@@ -2208,8 +2208,8 @@ contains
        call ncd_io(varname='livecrootn', data=pptr%pns%livecrootn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! livecrootn_storage
@@ -2220,8 +2220,8 @@ contains
        call ncd_io(varname='livecrootn_storage', data=pptr%pns%livecrootn_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     !livecrootn_xfer 
@@ -2232,8 +2232,8 @@ contains
        call ncd_io(varname='livecrootn_xfer', data=pptr%pns%livecrootn_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! deadcrootn
@@ -2244,8 +2244,8 @@ contains
        call ncd_io(varname='deadcrootn', data=pptr%pns%deadcrootn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! deadcrootn_storage
@@ -2256,8 +2256,8 @@ contains
        call ncd_io(varname='deadcrootn_storage', data=pptr%pns%deadcrootn_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! deadcrootn_xfer
@@ -2268,8 +2268,8 @@ contains
        call ncd_io(varname='deadcrootn_xfer', data=pptr%pns%deadcrootn_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     !retransn 
@@ -2280,8 +2280,8 @@ contains
        call ncd_io(varname='retransn', data=pptr%pns%retransn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! npool
@@ -2292,8 +2292,8 @@ contains
        call ncd_io(varname='npool', data=pptr%pns%npool, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! pft_ntrunc
@@ -2304,8 +2304,8 @@ contains
        call ncd_io(varname='pft_ntrunc', data=pptr%pns%pft_ntrunc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     !--------------------------------
@@ -2320,8 +2320,8 @@ contains
        call ncd_io(varname='decl', data=cptr%cps%decl, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! fpi
@@ -2359,8 +2359,8 @@ contains
        call ncd_io(varname='fpg', data=cptr%cps%fpg, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! annsum_counter
@@ -2371,8 +2371,8 @@ contains
        call ncd_io(varname='annsum_counter', data=cptr%cps%annsum_counter, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! cannsum_npp
@@ -2383,8 +2383,8 @@ contains
        call ncd_io(varname='cannsum_npp', data=cptr%cps%cannsum_npp, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! col_lag_npp
@@ -2395,8 +2395,8 @@ contains
        call ncd_io(varname='col_lag_npp', data=cptr%cps%col_lag_npp, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! cannavg_t2m
@@ -2407,8 +2407,8 @@ contains
        call ncd_io(varname='cannavg_t2m', data=cptr%cps%cannavg_t2m, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
   ! for fire model changed by F. Li and S. Levis
@@ -2420,8 +2420,8 @@ contains
        call ncd_io(varname='burndate', data=pptr%pps%burndate, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
       
    !lfc
@@ -2432,8 +2432,8 @@ contains
        call ncd_io(varname='lfc', data=cptr%cps%lfc, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if  
    
     !wf
@@ -2444,8 +2444,8 @@ contains
        call ncd_io(varname='wf', data=cptr%cps%wf, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     
@@ -2457,8 +2457,8 @@ contains
        call ncd_io(varname='btran2', data=pptr%pps%btran2, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
 
@@ -2500,8 +2500,8 @@ contains
        call ncd_io(varname='altmax', data=cptr%cps%altmax, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! altmax_lastyear
@@ -2512,8 +2512,8 @@ contains
        call ncd_io(varname='altmax_lastyear', data=cptr%cps%altmax_lastyear, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! altmax_indx
@@ -2524,8 +2524,8 @@ contains
        call ncd_io(varname='altmax_indx', data=cptr%cps%altmax_indx, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! altmax_lastyear_indx
@@ -2536,8 +2536,8 @@ contains
        call ncd_io(varname='altmax_lastyear_indx', data=cptr%cps%altmax_lastyear_indx, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
 
@@ -2550,8 +2550,8 @@ contains
        call ncd_io(varname='seedc', data=cptr%ccs%seedc, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
         
     ! totlitc
@@ -2562,8 +2562,8 @@ contains
        call ncd_io(varname='totlitc', data=cptr%ccs%totlitc, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! totcolc
@@ -2574,8 +2574,8 @@ contains
        call ncd_io(varname='totcolc', data=cptr%ccs%totcolc, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! prod10c
@@ -2586,8 +2586,8 @@ contains
        call ncd_io(varname='prod10c', data=cptr%ccs%prod10c, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! prod100c
@@ -2598,8 +2598,8 @@ contains
        call ncd_io(varname='prod100c', data=cptr%ccs%prod100c, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! totsomc
@@ -2610,8 +2610,8 @@ contains
        call ncd_io(varname='totsomc', data=cptr%ccs%totsomc, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
 
@@ -2938,8 +2938,8 @@ contains
        call ncd_io(varname='totcoln', data=cptr%cns%totcoln, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! seedn
@@ -2950,8 +2950,8 @@ contains
        call ncd_io(varname='seedn', data=cptr%cns%seedn, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! prod10n
@@ -2962,8 +2962,8 @@ contains
        call ncd_io(varname='prod10n', data=cptr%cns%prod10n, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
     
     ! prod100n
@@ -2974,8 +2974,8 @@ contains
        call ncd_io(varname='prod100n', data=cptr%cns%prod100n, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-  	  if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if	
+      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+       end if  
     end if
 
     ! decomp_cascade_state  
@@ -2998,13 +2998,13 @@ contains
        call ncd_io(varname='decomp_cascade_state', data=restart_file_decomp_cascade_state, &
             ncid=ncid, flag=flag, readvar=readvar) 
        if ( .not. readvar) then
-  	  !!! assume, for sake of backwards compatibility, that if decomp_cascade_state is not in the restart file, then the current model state is the same as the prior model state
+      !!! assume, for sake of backwards compatibility, that if decomp_cascade_state is not in the restart file, then the current model state is the same as the prior model state
           restart_file_decomp_cascade_state = decomp_cascade_state
           if ( myid == italk ) then
             write(stderr,*) ' CNRest: WARNING!  Restart file does not contain info on decomp_cascade_state used to generate the restart file.  '
             write(stderr,*) '   Assuming the same as current setting: ', decomp_cascade_state
           end if
-       end if	
+       end if  
     else if (flag == 'write') then
        call ncd_io(varname='decomp_cascade_state', data=decomp_cascade_state, &
             ncid=ncid, flag=flag, readvar=readvar) 
@@ -3030,13 +3030,13 @@ contains
        call ncd_io(varname='spinup_state', data=restart_file_spinup_state, &
             ncid=ncid, flag=flag, readvar=readvar) 
        if ( .not. readvar) then
-  	  !!! assume, for sake of backwards compatibility, that if spinup_state is not in the restart file, then the current model state is the same as the prior model state
+      !!! assume, for sake of backwards compatibility, that if spinup_state is not in the restart file, then the current model state is the same as the prior model state
           restart_file_spinup_state = spinup_state
           if ( myid == italk ) then
             write(stderr,*) ' CNRest: WARNING!  Restart file does not contain info on spinup state used to generate the restart file. '
             write(stderr,*) '   Assuming the same as current setting: ', spinup_state
           end if
-       end if	
+       end if  
     else if (flag == 'write') then
        call ncd_io(varname='spinup_state', data=spinup_state, &
             ncid=ncid, flag=flag, readvar=readvar) 

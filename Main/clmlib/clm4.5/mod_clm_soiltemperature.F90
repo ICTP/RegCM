@@ -107,7 +107,7 @@ contains
     real(rk8), pointer :: frac_sno(:)        ! fraction of ground covered by snow (0 to 1)
     real(rk8), pointer :: frac_h2osfc(:)     ! fraction of ground covered by surface water (0 to 1)
     real(rk8), pointer :: h2osfc(:)          ! surface water (mm)
-    real(rk8), pointer :: t_h2osfc(:) 	    ! surface water temperature
+    real(rk8), pointer :: t_h2osfc(:)       ! surface water temperature
     real(rk8), pointer :: t_h2osfc_bef(:)    ! saved surface water temperature
     real(rk8), pointer :: eflx_sh_snow(:)    ! sensible heat flux from snow (W/m**2) [+ to atm]
     real(rk8), pointer :: eflx_sh_soil(:)    ! sensible heat flux from soil (W/m**2) [+ to atm]
@@ -1197,7 +1197,7 @@ contains
     real(rk8), pointer :: qflx_h2osfc_to_ice(:) ! conversion of h2osfc to ice
     real(rk8), pointer :: frac_sno(:)      ! fraction of ground covered by snow (0 to 1)
     real(rk8), pointer :: frac_h2osfc(:)   ! fraction of ground covered by surface water (0 to 1)
-    real(rk8), pointer :: t_h2osfc(:) 	  ! surface water temperature
+    real(rk8), pointer :: t_h2osfc(:)     ! surface water temperature
     real(rk8), pointer :: t_h2osfc_bef(:)  ! saved surface water temperature
     real(rk8), pointer :: h2osfc(:)        ! surface water (mm)
     real(rk8), pointer :: int_snow(:)      ! integrated snowfall [mm]

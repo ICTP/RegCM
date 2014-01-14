@@ -108,7 +108,7 @@ contains
     real(rk8), pointer :: qflx_evap_soi(:) ! soil evaporation
     real(rk8), pointer :: h2osfc(:)        ! surface water (mm)
     real(rk8), pointer :: frac_h2osfc(:)   ! fraction of ground covered by surface water (0 to 1)
-    real(rk8), pointer :: t_h2osfc(:) 	  ! surface water temperature
+    real(rk8), pointer :: t_h2osfc(:)     ! surface water temperature
     real(rk8), pointer :: qflx_drain_perched(:)    ! sub-surface runoff from perched zwt (mm H2O /s)
     real(rk8), pointer :: qflx_floodg(:)   ! gridcell flux of flood water from RTM
     real(rk8), pointer :: qflx_h2osfc_surf(:)!surface water runoff (mm/s)

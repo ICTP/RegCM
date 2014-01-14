@@ -100,7 +100,7 @@ contains
     real(rk8), pointer :: frac_sno_eff(:)  ! eff. fraction of ground covered by snow (0 to 1)
     real(rk8), pointer :: frac_h2osfc(:)   ! fraction of ground covered by surface water (0 to 1)
     real(rk8), pointer :: h2osfc(:)        ! surface water (mm)
-    real(rk8), pointer :: t_h2osfc(:) 	  ! surface water temperature
+    real(rk8), pointer :: t_h2osfc(:)     ! surface water temperature
     real(rk8), pointer :: t_h2osfc_bef(:)  ! saved surface water temperature
     real(rk8), pointer :: qg_snow(:)       ! specific humidity at snow surface [kg/kg]
     real(rk8), pointer :: qg_soil(:)       ! specific humidity at soil surface [kg/kg]
