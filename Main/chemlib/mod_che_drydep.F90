@@ -715,7 +715,7 @@ module mod_che_drydep
          drydepvg(:,io3)   =  vdg(4,:,1)!*0.5
          drydepvg(:,ih2o2) =  vdg(5,:,1)!*0.5
          drydepvg(:,ihno3) =  vdg(6,:,1)!*0.5
-         drydepvg(:,inh3)  =  vdg(9,:,1)!*0.5
+!         drydepvg(:,inh3)  =  vdg(9,:,1)!*0.5
          drydepvg(:,ipan)  =  vdg(10,:,1)!*0.5 
          drydepvg(:,ihcho) =  vdg(14,:,1)!*0.5
          drydepvg(:,iald2) =  vdg(15,:,1)!*0.5

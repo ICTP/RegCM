@@ -44,7 +44,7 @@ module mod_che_isorropia
     use mod_che_common
     use mod_che_indices
     use mod_che_species
-    use mod_cbmz_molwg
+    use mod_che_molwg
     implicit none
     character(len = 15) :: scasi
     integer(ik4) , parameter :: nctrl = 2

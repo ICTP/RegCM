@@ -307,14 +307,14 @@ module mod_che_ncio
       ! NO emission                  
       if ( ino /= 0 ) then
         call rvar(ncid,istart,icount,ino,echemsrc, &
-                  'NO_flux',.false.,sdim)
+                  'NOx_flux',.false.,sdim)
       end if
       ! NO2 emission 
       if ( ino2 /= 0 ) then
 !       call rvar(ncid,istart,icount,ino2,echemsrc, &
 !                 'NO_flux',.false.,sdim)
-        echemsrc(:,:,ino2) = 0.1D0 * echemsrc(:,:,ino)
-        echemsrc(:,:,ino)  = 0.9D0 * echemsrc(:,:,ino)
+!        echemsrc(:,:,ino2) = 0.1D0 * echemsrc(:,:,ino)
+!        echemsrc(:,:,ino)  = 0.9D0 * echemsrc(:,:,ino)
       end if
       ! HCHO emission                  
       if ( ihcho /= 0 ) then
@@ -324,12 +324,13 @@ module mod_che_ncio
       ! ACET emission                  
       if ( iacet /= 0 ) then
         call rvar(ncid,istart,icount,iacet,echemsrc, &
-            'ACET_flux',.false.,sdim)
+            'ACETONE_flux',.false.,sdim)
       end if
       ! SO2 emission
       if ( iso2 /= 0 ) then
         call rvar(ncid,istart,icount,iso2,echemsrc, &
                   'SO2_flux',.false.,sdim)
+      write(*,*)'SO2_flux',maxval(echemsrc(:,:,iso2))
       end if
       !NH3
       if ( iNH3 /= 0 ) then
@@ -353,16 +354,22 @@ module mod_che_ncio
       end if
       ! Ethene
       if ( iethe /= 0 ) then
+!        call rvar(ncid,istart,icount,iethe,echemsrc, &
+!                  'C2H4_flux',.false.,sdim)
         call rvar(ncid,istart,icount,iethe,echemsrc, &
                   'ETHE_flux',.false.,sdim)
       end if
       ! Termenal Alkene
       if ( iolt /= 0 ) then
+!old        call rvar(ncid,istart,icount,iolt,echemsrc, &
+!old                  'C5OLET_flux',.false.,sdim)
         call rvar(ncid,istart,icount,iolt,echemsrc, &
                   'OLT_flux',.false.,sdim)
       end if
       ! Internal Alkene
       if ( ioli /= 0 ) then
+!old        call rvar(ncid,istart,icount,ioli,echemsrc, &
+!old                  'C5OLEI_flux',.false.,sdim)
         call rvar(ncid,istart,icount,ioli,echemsrc, &
                   'OLI_flux',.false.,sdim)
       end if
@@ -372,9 +379,9 @@ module mod_che_ncio
                   'ISOP_BIO_flux',.false.,sdim)
         ! here use io3(never emuitted) to temporarily read anthropo
         ! isoprene and add to biogenic. Should be refined 
-        call rvar(ncid,istart,icount,io3,echemsrc,'ISO_flux',.false.,sdim)
-        echemsrc(:,:,iisop) =  echemsrc(:,:,iisop) + echemsrc(:,:,io3)
-        echemsrc(:,:,io3) = d_zero
+!ashalaby        call rvar(ncid,istart,icount,io3,echemsrc,'ISO_flux',.false.,sdim)
+!ashalaby        echemsrc(:,:,iisop) =  echemsrc(:,:,iisop) + echemsrc(:,:,io3)
+!ashalaby        echemsrc(:,:,io3) = d_zero
       end if
       ! Toluene
       if ( itolue /= 0 ) then
@@ -392,11 +399,15 @@ module mod_che_ncio
       end if
       ! Methanol + Ethanol
       if ( imoh /= 0 ) then
+!old        call rvar(ncid,istart,icount,imoh,echemsrc, &
+!old                 'METHANOL_flux',.false.,sdim)
         call rvar(ncid,istart,icount,imoh,echemsrc, &
                  'MOH_flux',.false.,sdim)
       end if           
       !acids
       if ( ircooh /= 0 ) then
+!        call rvar(ncid,istart,icount,ircooh,echemsrc, &
+!                  'ACETIC_flux',.false.,sdim)
         call rvar(ncid,istart,icount,ircooh,echemsrc, &
                   'RCOOH_flux',.false.,sdim)
       end if

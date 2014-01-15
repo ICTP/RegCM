@@ -33,7 +33,7 @@ CHELIBPTH = ./chemlib
 CUMLIBPTH = ./cumlib
 RADLIBPTH = ./radlib
 PBLLIBPTH = ./pbllib
-CBMZLIBPTH = chemlib/GAS_CBMZ
+CBMZLIBPTH = chemlib/GAS_CBMZ_NEW
 RRTMSWLIBPTH = radlib/RRTMG_SW
 
 MPPLIB = $(MPPLIBPTH)/libmpp.a

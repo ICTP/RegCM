@@ -36,10 +36,11 @@ module mod_che_indices
   integer(ik4) :: iisop , itolue , ixyl , inh3 , ipan , in2o
   integer(ik4) :: irooh , iacet , ibenz , ich4 , ico2
   integer(ik4) :: inox , ihox , isox , ieoh , imoh , iaco2 , ircooh,ihcooh
-  integer(ik4) :: ipar , iolt , ioli, imgly,icres,iopen,iisoprd, iethooh, ixo2
+  integer(ik4) :: ipar , iolt , ioli, imgly,icres,iopen,iisoprd, iethooh, ixo2,iro2
   integer(ik4) :: iapin , ilimo
   integer(ik4) :: ialk4, ialk7
   integer(ik4) :: ianh4, iano3
+  
 
   !*** abt added from wetdep scheme
   integer(ik4) :: iisopno3 , ich3ooh , ihydrald , ihyac , ipooh
@@ -52,75 +53,65 @@ module mod_che_indices
   integer(ik4) :: ipollen
 
   ! This the compound indecies
-  ! this list ishould absolutly be consistent with REACTION.DAT for Sillman/CBMZ mechanism
-  integer(ik4) , parameter :: ind_o3     = 1
-  integer(ik4) , parameter :: ind_no2    = 2 
-  integer(ik4) , parameter :: ind_no     = 3 
-  integer(ik4) , parameter :: ind_no3    = 4 
-  integer(ik4) , parameter :: ind_n2o5   = 5 
-  integer(ik4) , parameter :: ind_hno3   = 6 
-  integer(ik4) , parameter :: ind_hono   = 7 
-  integer(ik4) , parameter :: ind_hno4   = 8 
-  integer(ik4) , parameter :: ind_oh     = 9 
-  integer(ik4) , parameter :: ind_ho2    = 10 
-  integer(ik4) , parameter :: ind_h2o2   = 11 
-  integer(ik4) , parameter :: ind_so2    = 12 
-  integer(ik4) , parameter :: ind_sulf   = 13 
-  integer(ik4) , parameter :: ind_h2o    = 14 
-  integer(ik4) , parameter :: ind_co     = 15 
-  integer(ik4) , parameter :: ind_h2     = 16 
-  integer(ik4) , parameter :: ind_ch4    = 17 
-  integer(ik4) , parameter :: ind_c2h6   = 18 
-  integer(ik4) , parameter :: ind_par    = 19 !=3alk3+4.5alk4+alk7
-  integer(ik4) , parameter :: ind_moh    = 20 
-  integer(ik4) , parameter :: ind_roh    = 21
-  integer(ik4) , parameter :: ind_hcho   = 22 
-  integer(ik4) , parameter :: ind_ald2   = 23 
-  integer(ik4) , parameter :: ind_acet   = 24 
-  integer(ik4) , parameter :: ind_hcooh   = 25 
-  integer(ik4) , parameter :: ind_rcooh  = 26
-  integer(ik4) , parameter :: ind_ethe   = 27 
-  integer(ik4) , parameter :: ind_prpe   = 28 
-  integer(ik4) , parameter :: ind_bute   = 29 
-  integer(ik4) , parameter :: ind_isop   = 30 
-  integer(ik4) , parameter :: ind_isoprd   = 31 
-  integer(ik4) , parameter :: ind_tolu   = 32 
-  integer(ik4) , parameter :: ind_xyle   = 33 
-  integer(ik4) , parameter :: ind_ch3ooh = 34 
-  integer(ik4) , parameter :: ind_ethooh = 35 
-  integer(ik4) , parameter :: ind_rooh   = 36 
-  integer(ik4) , parameter :: ind_mgly   = 37
-  integer(ik4) , parameter :: ind_pan    = 38 
-  integer(ik4) , parameter :: ind_onit   = 39 
-  integer(ik4) , parameter :: ind_cres   = 40
-  integer(ik4) , parameter :: ind_cro    = 41
-  integer(ik4) , parameter :: ind_dms    = 42
-  integer(ik4) , parameter :: ind_open   = 43
-  integer(ik4) , parameter :: ind_prod   = 44
-  integer(ik4) , parameter :: ind_ch3o2  = 45
-  integer(ik4) , parameter :: ind_ethp   = 46
-  integer(ik4) , parameter :: ind_c2o3   = 47
-  integer(ik4) , parameter :: ind_ro2    = 48
-  integer(ik4) , parameter :: ind_to2    = 49
-  integer(ik4) , parameter :: ind_ano2   = 50
-  integer(ik4) , parameter :: ind_nap    = 51
-  integer(ik4) , parameter :: ind_isopp  = 52
-  integer(ik4) , parameter :: ind_isopn  = 53
-  integer(ik4) , parameter :: ind_isopo2 = 54
-  integer(ik4) , parameter :: ind_xo2    = 55
-  integer(ik4) , parameter :: ind_xpar   = 56
-  integer(ik4) , parameter :: ind_co2    = 57
-  integer(ik4) , parameter :: ind_nh3    = 58
-  integer(ik4) , parameter :: ind_hclg   = 59
-  integer(ik4) , parameter :: ind_naog   = 60
-  integer(ik4) , parameter :: ind_apin   = 61
-  integer(ik4) , parameter :: ind_limo   = 62
-  integer(ik4) , parameter :: ind_pip    = 63
-  integer(ik4) , parameter :: ind_pint   = 64
-  integer(ik4) , parameter :: ind_pio2   = 65
-  integer(ik4) , parameter :: ind_lio2   = 66
-  integer(ik4) , parameter :: ind_lip    = 67
-  integer(ik4) , parameter :: ind_pin2   = 68
+  ! this list ishould absolutly be consistent with KPP GAS_CBMZ/mod_cbmz_Parameters.f90 file
+  INTEGER(ik4), PARAMETER :: ind_CO2 = 1
+  INTEGER(ik4), PARAMETER :: ind_H2SO4 = 2
+  INTEGER(ik4), PARAMETER :: ind_HCOOH = 3
+  INTEGER(ik4), PARAMETER :: ind_RCOOH = 4
+  INTEGER(ik4), PARAMETER :: ind_MSA = 5
+  INTEGER(ik4), PARAMETER :: ind_DUMMY = 6
+  INTEGER(ik4), PARAMETER :: ind_PAN = 7
+  INTEGER(ik4), PARAMETER :: ind_TOL = 8
+  INTEGER(ik4), PARAMETER :: ind_O1D = 9
+  INTEGER(ik4), PARAMETER :: ind_H2O2 = 10
+  INTEGER(ik4), PARAMETER :: ind_SO2 = 11
+  INTEGER(ik4), PARAMETER :: ind_XYL = 12
+  INTEGER(ik4), PARAMETER :: ind_CH4 = 13
+  INTEGER(ik4), PARAMETER :: ind_C2H6 = 14
+  INTEGER(ik4), PARAMETER :: ind_CRO = 15
+  INTEGER(ik4), PARAMETER :: ind_DMS = 16
+  INTEGER(ik4), PARAMETER :: ind_HNO4 = 17
+  INTEGER(ik4), PARAMETER :: ind_H2 = 18
+  INTEGER(ik4), PARAMETER :: ind_TO2 = 19
+  INTEGER(ik4), PARAMETER :: ind_CH3OH = 20
+  INTEGER(ik4), PARAMETER :: ind_HNO2 = 21
+  INTEGER(ik4), PARAMETER :: ind_CH3OOH = 22
+  INTEGER(ik4), PARAMETER :: ind_ETHOOH = 23
+  INTEGER(ik4), PARAMETER :: ind_N2O5 = 24
+  INTEGER(ik4), PARAMETER :: ind_ETH = 25
+  INTEGER(ik4), PARAMETER :: ind_CRES = 26
+  INTEGER(ik4), PARAMETER :: ind_O3P = 27
+  INTEGER(ik4), PARAMETER :: ind_CO = 28
+  INTEGER(ik4), PARAMETER :: ind_HNO3 = 29
+  INTEGER(ik4), PARAMETER :: ind_PAR = 30
+  INTEGER(ik4), PARAMETER :: ind_OPEN = 31
+  INTEGER(ik4), PARAMETER :: ind_ISOPN = 32
+  INTEGER(ik4), PARAMETER :: ind_ISOPP = 33
+  INTEGER(ik4), PARAMETER :: ind_ISOPO2 = 34
+  INTEGER(ik4), PARAMETER :: ind_H2O = 35
+  INTEGER(ik4), PARAMETER :: ind_AONE = 36
+  INTEGER(ik4), PARAMETER :: ind_OLEI = 37
+  INTEGER(ik4), PARAMETER :: ind_ISOP = 38
+  INTEGER(ik4), PARAMETER :: ind_HCHO = 39
+  INTEGER(ik4), PARAMETER :: ind_OLET = 40
+  INTEGER(ik4), PARAMETER :: ind_XO2 = 41
+  INTEGER(ik4), PARAMETER :: ind_MGLY = 42
+  INTEGER(ik4), PARAMETER :: ind_ETHP = 43
+  INTEGER(ik4), PARAMETER :: ind_NAP = 44
+  INTEGER(ik4), PARAMETER :: ind_ALD2 = 45
+  INTEGER(ik4), PARAMETER :: ind_CH3O2 = 46
+  INTEGER(ik4), PARAMETER :: ind_ISOPRD = 47
+  INTEGER(ik4), PARAMETER :: ind_ANO2 = 48
+  INTEGER(ik4), PARAMETER :: ind_ROOH = 49
+  INTEGER(ik4), PARAMETER :: ind_RO2 = 50
+  INTEGER(ik4), PARAMETER :: ind_ONIT = 51
+  INTEGER(ik4), PARAMETER :: ind_HO2 = 52
+  INTEGER(ik4), PARAMETER :: ind_O3 = 53
+  INTEGER(ik4), PARAMETER :: ind_OH = 54
+  INTEGER(ik4), PARAMETER :: ind_NO = 55
+  INTEGER(ik4), PARAMETER :: ind_NO2 = 56
+  INTEGER(ik4), PARAMETER :: ind_NO3 = 57
+  INTEGER(ik4), PARAMETER :: ind_C2O3 = 58
 
 ! indices for jvalues 
   integer(ik4) , parameter :: jvO2 = 1

@@ -182,18 +182,17 @@
           v10 = (cvbx3d(j,i,kz))*(1-fact)
           wid10(i,j) = sqrt(u10**2+v10**2)
           ! 10 m air temperature
-          temp10(i,j) = ctb3d(j,i,kz) - csdelt(j,i)*fact
+          temp10(i,j) = ctb3d(j,i,kz) - csdeltk2d(j,i)*fact
           ! specific  humidity at 10m
           shu10 = cqxb3d(j,i,kz,iqv)/ &
-            (d_one+cqxb3d(j,i,kz,iqv))-csdelq(j,i)*fact
+            (d_one+cqxb3d(j,i,kz,iqv))-csdelqk2d(j,i)*fact
           ! back to mixing ratio
           shu10 = shu10/(1-shu10)
           ! saturation mixing ratio at 10m
           if ( temp10(i,j) > tzero ) then
             satvp = svp1*1.0D3*dexp(svp2*(temp10(i,j)-tzero)/(temp10(i,j)-svp3))
           else
-            satvp = svp4*1.0D3* &
-              dexp(min(max(svp5-svp6/temp10(i,j),-25.0D0),25.0D0))
+            satvp = svp4*1.0D3*dexp(svp5-svp6/temp10(i,j))
           end if
           pres10 = psurf(i,j) - 98.0D0
           qsat10 = ep2*satvp/(pres10-satvp)
@@ -217,7 +216,7 @@
           ! temperature account for a composite temperature between
           ! bare ground and vegetation
           if ( ivegcov(i,j) /= 0 ) then
-            tsurf(i,j) = ctb3d(j,i,kz) - csdelt(j,i)
+            tsurf(i,j) = ctb3d(j,i,kz) - csdeltk2d(j,i)
           else
             ! ocean temperature in this case
             tsurf(i,j) = ctg(j,i)
@@ -261,7 +260,7 @@
       ! Before emission and deposition routine set the surfecae netflux
       ! used by BL schems to zero
       !
-      chifxuw = d_zero
+      cchifxuw = d_zero
       !
       ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)       
       !

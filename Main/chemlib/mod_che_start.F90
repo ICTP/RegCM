@@ -31,11 +31,12 @@ module mod_che_start
   use mod_che_ncio
   use mod_che_mppio
   use mod_che_bdyco
-  use mod_cbmz_init1
   use mod_che_dust
   use mod_che_sox
   use mod_che_seasalt
   use mod_mppparam  
+  use mod_che_hvread
+
 
   implicit none
 
@@ -123,6 +124,7 @@ module mod_che_start
     iethooh = 0
     irooh   = 0
     ixo2 =    0
+    iro2 =    0
     iapin  =  0
     ilimo  =  0
 
@@ -227,6 +229,7 @@ module mod_che_start
       if ( chtrname(itr) == 'SO4'   ) iso4      = itr
       if ( chtrname(itr) == 'H2SO4' ) ih2so4    = itr
       if ( chtrname(itr) == 'HONO'  ) ihono     = itr
+      if ( chtrname(itr) == 'HNO2'  ) ihono     = itr
       if ( chtrname(itr) == 'N2O5'  ) in2o5     = itr
       if ( chtrname(itr) == 'HC'    ) ihc       = itr
       if ( chtrname(itr) == 'HCR'   ) ihcr      = itr
@@ -273,6 +276,7 @@ module mod_che_start
       if ( chtrname(itr) == 'HONO'  ) ihono     = itr
       if ( chtrname(itr) == 'HNO4'  ) ihno4     = itr
       if ( chtrname(itr) == 'XO2'   ) ixo2      = itr
+      if ( chtrname(itr) == 'RO2'   ) iro2      = itr
       if ( chtrname(itr) == 'APIN'  ) iapin     = itr
       if ( chtrname(itr) == 'LIMO'  ) ilimo     = itr
       if ( chtrname(itr) == 'POLLEN') ipollen   = itr
@@ -421,12 +425,13 @@ module mod_che_start
 
     if ( igaschem == 1 ) then
       open(26,file='TUVGRID2', status='old', err=900)
-      open(25,file='REACTION.DAT_CBMZ', status='old', err=901)
-      open(27,file='cbmz_chemmech.out', status='replace', err=902)
+!not used in KPP 
+!      open(25,file='REACTION.DAT_CBMZ', status='old', err=901)
+!      open(27,file='cbmz_chemmech.out', status='replace', err=902)
 902   continue
-      call chemread
+!      call chemread
       call hvread
-      call cheminit
+!      call cheminit
     end if
 
     call init_mod_che_ncio(chemsimtype)

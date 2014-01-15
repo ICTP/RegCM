@@ -271,18 +271,19 @@ module mod_che_common
         iisoropia = 1
         if ( myid == italk ) write(stdout,*) 'DCCB simulation'
       else if ( chemsimtype(1:4) == 'CBMZ' ) then 
-        ntr = 39
+!This does not include any aerosol(NH3) or monoterpens(APIN, LIMO)
+        ntr = 36
         allocate(chtrname(ntr))      
-        chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   ','NH3   ','O3    ', &
-                                 'NO2   ','NO    ','CO    ','H2O2  ', &
-                                 'HNO3  ','N2O5  ','HCHO  ','ALD2  ', &
-                                 'ISOP  ','C2H6  ','PAR   ','ACET  ', &
-                                 'MOH   ','OLT   ','OLI   ','TOLUE ', &
-                                 'XYL   ','ETHE  ','PAN   ','CH4   ', &
-                                 'MGLY  ','CRES  ','OPEN  ','ISOPRD', &
-                                 'ONIT  ','HCOOH ','RCOOH ','CH3OOH', &
-                                 'ETHOOH','ROOH  ','HONO  ','HNO4  ', &
-                                 'XO2   ','APIN  ','LIMO  ' /)
+        chtrname(1:ntr)(1:6) = (/'NO    ','NO2   ','N2O5  ','HNO2  ', &
+                                 'HNO3  ','HNO4  ','O3    ','OH    ', &
+                                 'HO2   ','H2O2  ','CO    ','SO2   ', &
+                                 'H2SO4 ','CH4   ','C2H6  ','PAR   ', &
+                                 'MOH   ','HCHO  ','ALD2  ','ACET  ', &
+                                 'ETHE  ','OLT   ','OLI   ','TOLUE ', &
+                                 'XYL   ','ISOP  ','ONIT  ','PAN   ', &
+                                 'HCOOH ','RCOOH ','CH3OOH','ETHOOH', &
+                                 'ROOH  ','RO2   ','XO2   ','DMS   '/)
+
         igaschem = 1
         if ( myid == italk ) write(stdout,*) 'CBMZ simulation'
       else if ( chemsimtype(1:6) == 'POLLEN' ) then 

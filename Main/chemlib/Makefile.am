@@ -17,11 +17,11 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:GAS_CBMZ/:.
+vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:GAS_CBMZ_NEW/:.
 
-SUBDIRS = GAS_CBMZ
+SUBDIRS = GAS_CBMZ_NEW
 
-CBMZLIB = GAS_CBMZ/libcbmz.a
+CBMZLIB = GAS_CBMZ_NEW/libcbmz.a
 
 noinst_LIBRARIES = libchem.a
 libchem_a_SOURCES = mod_che_param.f90 mod_che_common.F90 mod_che_mppio.F90 \
@@ -29,7 +29,7 @@ libchem_a_SOURCES = mod_che_param.f90 mod_che_common.F90 mod_che_mppio.F90 \
                     mod_che_drydep.F90 mod_che_species.f90 mod_che_indices.f90 \
                     mod_che_carbonaer.f90 mod_che_seasalt.f90 \
                     mod_che_start.F90 mod_che_cumtran.F90 mod_che_sox.f90 \
-                    mod_che_emission.F90 mod_che_wetdep.F90 \
+                    mod_che_emission.F90 mod_che_wetdep.F90 mod_che_molwg.f90 \
                     mod_che_chemistry.f90 mod_che_isorropia.f90 \
                     mod_che_common_isorropia.f90 mod_che_bdyco.F90 \
                     mod_che_output.F90 mod_che_pollen.f90
@@ -65,7 +65,7 @@ clean-local:
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 mod_che_bdyco.o : mod_che_bdyco.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o mod_mppparam.o mod_runparams.o mod_service.o mod_mpmessage.o mod_che_common.o mod_che_mppio.o mod_che_ncio.o mod_che_species.o mod_che_indices.o mod_che_emission.o mod_mppparam.o
 mod_che_carbonaer.o : mod_che_carbonaer.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_constants.o mod_che_common.o mod_che_species.o mod_che_indices.o
-mod_che_chemistry.o : mod_che_chemistry.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_constants.o mod_runparams.o mod_che_common.o mod_che_indices.o mod_che_species.o mod_cbmz_boxvars.o mod_cbmz_chemmech.o mod_cbmz_chemvars.o mod_cbmz_molwg.o mod_cbmz_main1.o
+mod_che_chemistry.o : mod_che_chemistry.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_constants.o mod_runparams.o mod_che_common.o mod_che_indices.o mod_che_species.o  mod_cbmz_Global.o mod_cbmz_Parameters.o mod_cbmz_Main.o mod_che_molwg.o
 mod_che_common.o : mod_che_common.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_mppparam.o mod_runparams.o mod_memutil.o mod_mpmessage.o mod_che_param.o mod_che_species.o
 mod_che_cumtran.o : mod_che_cumtran.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_che_common.o
 mod_che_drydep.o : mod_che_drydep.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_che_common.o mod_che_dust.o mod_mpmessage.o mod_service.o mod_che_ncio.o mod_che_mppio.o mod_che_indices.o mod_che_indices.o
@@ -80,8 +80,9 @@ mod_che_pollen.o : mod_che_pollen.f90 mod_intkinds.o mod_realkinds.o mod_constan
 mod_che_seasalt.o : mod_che_seasalt.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_constants.o mod_che_common.o
 mod_che_sox.o : mod_che_sox.f90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_che_common.o mod_che_species.o mod_che_indices.o mod_che_bdyco.o
 mod_che_species.o : mod_che_species.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_memutil.o
-mod_che_start.o : mod_che_start.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_mpmessage.o mod_che_common.o mod_che_indices.o mod_che_bdyco.o mod_che_wetdep.o mod_che_carbonaer.o mod_che_ncio.o mod_che_mppio.o mod_che_bdyco.o mod_cbmz_init1.o mod_che_dust.o mod_che_sox.o mod_che_seasalt.o mod_mppparam.o
+mod_che_start.o : mod_che_start.F90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_mpmessage.o mod_che_common.o mod_che_indices.o mod_che_bdyco.o mod_che_wetdep.o mod_che_carbonaer.o mod_che_ncio.o mod_che_mppio.o mod_che_bdyco.o  mod_che_dust.o mod_che_sox.o mod_che_seasalt.o mod_mppparam.o mod_che_hvread.o
 mod_che_tend.o : mod_che_tend.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_runparams.o mod_mppparam.o mod_che_common.o mod_che_indices.o mod_che_param.o mod_che_sox.o mod_che_drydep.o mod_che_wetdep.o mod_che_emission.o mod_che_dust.o mod_che_seasalt.o mod_che_carbonaer.o mod_che_mppio.o mod_che_chemistry.o mod_che_isorropia.o mod_che_pollen.o
 mod_che_wetdep.o : mod_che_wetdep.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_che_common.o mod_che_indices.o mod_che_drydep.o
 mod_che_common_isorropia.o : mod_che_common_isorropia.f90 mod_realkinds.o mod_intkinds.o
-mod_che_isorropia.o : mod_che_isorropia.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_constants.o mod_che_common.o mod_che_indices.o mod_che_species.o mod_che_common_isorropia.o mod_cbmz_molwg.o
+mod_che_isorropia.o : mod_che_isorropia.f90 mod_intkinds.o mod_realkinds.o mod_dynparam.o mod_constants.o mod_che_common.o mod_che_indices.o mod_che_species.o mod_che_common_isorropia.o mod_che_molwg.o
+mod_che_molwg.o: mod_che_molwg.f90 mod_intkinds.o mod_realkinds.o
