@@ -31,7 +31,7 @@ module mod_cloud_s1
   use mod_runparams , only : iqqi => iqi !ice
   use mod_runparams , only : iqqs => iqs !snow
   use mod_runparams , only : sigma
-  use mod_runparams , only : dt
+  use mod_runparams , only : dt!sec
   use mod_runparams , only : ipptls
   use mod_runparams , only : budget_compute , nssopt , kautoconv !, ksemi
   use mod_runparams , only : ktau
@@ -43,19 +43,20 @@ module mod_cloud_s1
 
   private
 
-  real(rk8) :: zfall                                  ! constant fall speed
-  real(rk8) :: zqtmst                                 ! 1/dt
-  real(rk8) , pointer , dimension(:,:,:) :: pres      ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: zt        ! from atms
+  logical , parameter :: stats = .true.
+  real(rk8) :: zfall                                 ! constant fall speed
+  real(rk8) :: zqtmst                                ! 1/dt
+  real(rk8) , pointer , dimension(:,:,:) :: pres     ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: zt       ! from atms
   real(rk8) , public , pointer , dimension(:,:,:) :: zeta     ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: dzeta     ! from atms
-  real(rk8) , pointer , dimension(:,:,:,:) :: zqxx    ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: rhob3d    ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: omega     ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: radheatrt ! radiation heat rate
-  real(rk8) , pointer , dimension(:,:,:) :: ztten     ! tendency of temperature
-  real(rk8) , pointer , dimension(:,:,:) :: qdetr     ! conv. detrained water
-  real(rk8) , pointer , dimension(:,:,:,:) :: zqxten  ! tendency of zqx
+  real(rk8) , pointer , dimension(:,:,:) :: dzeta    ! from atms
+  real(rk8) , pointer , dimension(:,:,:,:) :: zqxx   ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: rhob3d   ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: omega    ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: radheatrt   ! radiation heat rate
+  real(rk8) , pointer , dimension(:,:,:) :: ztten    ! tendency of temperature
+  real(rk8) , public , pointer , dimension(:,:,:) :: qdetr    ! conv. detrained water
+  real(rk8) , pointer , dimension(:,:,:,:) :: zqxten ! tendency of zqx
   real(rk8) , pointer , dimension(:,:) :: psf , rainnc, lsmrnc, snownc
 
   public :: allocate_mod_cloud_s1 , init_cloud_s1 , microphys
@@ -74,7 +75,7 @@ module mod_cloud_s1
   logical , pointer , dimension(:,:,:,:) :: llindex3
 
   real(rk8) :: zalfaw , zphases , zmelt , zice , zdelta , ztmpl , &
-               ztmpi , ztnew , zqe , zrain , zpreclr , zarg
+               ztmpi , ztnew , zqe , zrain , zpreclr , zarg , zsig
   real(rk8) , public , pointer , dimension(:,:,:) :: papf
   real(rk8) , pointer , dimension(:,:,:):: zsumh0 , zsumq0
   real(rk8) , pointer , dimension(:,:,:) :: zsumh1 , zsumq1
@@ -93,8 +94,6 @@ module mod_cloud_s1
   real(rk8) , pointer , dimension(:,:) :: prcflxw
   real(rk8) , pointer , dimension(:,:) :: prcflxc
   real(rk8) , pointer , dimension(:,:,:) :: dqsatdt
-  real(rk8) , pointer , dimension(:,:,:) :: satliq
-  real(rk8) , pointer , dimension(:,:,:) :: satice
   ! for sedimentation source/sink terms
   real(rk8) , pointer , dimension(:,:,:) :: zfallsink
   real(rk8) , pointer , dimension(:,:,:) :: zfallsrce
@@ -127,8 +126,10 @@ module mod_cloud_s1
   real(rk8) , pointer , dimension(:,:) :: zqold
   real(rk8) , pointer , dimension(:,:) :: ztold
   real(rk8) , pointer , dimension(:,:) :: zdqs
-  real(rk8) , pointer , dimension(:,:) :: zlevapi
-  real(rk8) , pointer , dimension(:,:) :: zlevapl
+  real(rk8) , pointer , dimension(:,:,:) :: ztcond
+  ! tropopause
+  real(rk8) , pointer , dimension(:,:) :: zpapfd
+  real(rk8) , pointer , dimension(:,:) :: ztrpaus
   ! distance from the top of the cloud
   real(rk8) , pointer , dimension(:,:) :: zcldtopdist
   ! ice nuclei concentration
@@ -164,7 +165,7 @@ module mod_cloud_s1
   ! decoupled temperature tendency
   real(rk8) , pointer , dimension(:,:,:) :: zttendc
   ! detrainment from tiedtke scheme
-  real(rk8) , pointer , dimension(:,:,:) :: zqdetr
+  real(rk8) , pointer , dimension(:,:,:) :: zqdetr , zqdetr2
   ! fall speeds of three categories
   real(rk8) , pointer , dimension(:) :: zvqx
   ! n x n matrix storing the LHS of implicit solver
@@ -182,10 +183,31 @@ module mod_cloud_s1
   real(rk8) , public  , pointer, dimension(:,:,:) :: zqxn
   ! first guess values including precip
   real(rk8) , public  , pointer, dimension(:,:,:)   :: zqxfg
+  ! first guess value for cloud fraction
+  real(rk8) , public, pointer, dimension(:,:,:)   :: fccfg
   ! relative humidity
   real(rk8) , public  , pointer, dimension(:,:,:)   :: relh
   ! saturation mixing ratio with respect to water
   real(rk8) , public  , pointer, dimension(:,:,:)   :: zqsliq
+
+  ! statistic only if stas =.true.
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statssupw  
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statssupc
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statserosw
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statserosc
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statsdetrw
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statsdetrc
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statsevapw
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statsevapc
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statscond1w
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statscond1c
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statscond2w
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statscond2c
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statsdepos
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statsmelt
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statsfrz
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statsrainev
+  real(rk8) , public  , pointer, dimension(:,:,:)   :: statssnowev
 
 #ifdef USE_LAPACK
   integer(ik4) , pointer , dimension(:) :: ipivot
@@ -213,8 +235,6 @@ module mod_cloud_s1
       call getmem2d(zldefr,jci1,jci2,ici1,ici2,'clouds1:zldefr')
       call getmem2d(zqold,jci1,jci2,ici1,ici2,'clouds1:zqold')
       call getmem2d(ztold,jci1,jci2,ici1,ici2,'clouds1:ztold')
-      call getmem2d(zlevapl,jci1,jci2,ici1,ici2,'clouds1:zdqs')
-      call getmem2d(zlevapi,jci1,jci2,ici1,ici2,'clouds1:zlevapi')
       call getmem2d(zdqs,jci1,jci2,ici1,ici2,'clouds1:zdqs')
       call getmem2d(koop,jci1,jci2,ici1,ici2,'clouds1:koop')
       call getmem2d(zicetot,jci1,jci2,ici1,ici2,'clouds1:zicetot')
@@ -245,6 +265,9 @@ module mod_cloud_s1
       call getmem2d(zcorqsice,jci1,jci2,ici1,ici2,'clouds1:zcorqsice')
       call getmem2d(zdqsliqdt,jci1,jci2,ici1,ici2,'clouds1:zdqsliqdt')
       call getmem2d(zcorqsliq,jci1,jci2,ici1,ici2,'clouds1:zcorqsliq')
+      call getmem2d(ztrpaus,jci1,jci2,ici1,ici2,'clouds1:ztrpaus')
+      call getmem2d(zpapfd,jci1,jci2,ici1,ici2,'clouds1:zpapfd')
+      call getmem3d(ztcond,jci1,jci2,ici1,ici2,1,kz,'clouds1:ztcond')
       call getmem3d(zliqfrac,jci1,jci2,ici1,ici2,1,kz,'clouds1:zliqfrac')
       call getmem3d(zicefrac,jci1,jci2,ici1,ici2,1,kz,'clouds1:zicefrac')
       call getmem3d(zfoeewmt,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeewmt')
@@ -257,6 +280,26 @@ module mod_cloud_s1
       call getmem3d(zfoeew,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeew')
       call getmem3d(zfoeeliq,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeeliq')
       call getmem3d(zqsice,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqsice')
+if (stats) then
+      call getmem3d(statssupw,jci1,jci2,ici1,ici2,1,kz,'clouds1:statssupw')
+      call getmem3d(statssupc,jci1,jci2,ici1,ici2,1,kz,'clouds1:statssupc')
+      call getmem3d(statsdetrw,jci1,jci2,ici1,ici2,1,kz,'clouds1:statsdetrw')
+      call getmem3d(statsdetrc,jci1,jci2,ici1,ici2,1,kz,'clouds1:statsdetrc')
+      call getmem3d(statserosw,jci1,jci2,ici1,ici2,1,kz,'clouds1:statserosw')
+      call getmem3d(statserosc,jci1,jci2,ici1,ici2,1,kz,'clouds1:statserosc')
+      call getmem3d(statsevapw,jci1,jci2,ici1,ici2,1,kz,'clouds1:statsevapw')
+      call getmem3d(statsevapc,jci1,jci2,ici1,ici2,1,kz,'clouds1:statsevapc')
+      call getmem3d(statscond1w,jci1,jci2,ici1,ici2,1,kz,'clouds1:statscond1w')
+      call getmem3d(statscond1c,jci1,jci2,ici1,ici2,1,kz,'clouds1:statscond1c')
+      call getmem3d(statscond2w,jci1,jci2,ici1,ici2,1,kz,'clouds1:statscond2w')
+      call getmem3d(statscond2c,jci1,jci2,ici1,ici2,1,kz,'clouds1:statscond2c')
+      call getmem3d(statsdepos,jci1,jci2,ici1,ici2,1,kz,'clouds1:statsdepos')
+      call getmem3d(statsmelt,jci1,jci2,ici1,ici2,1,kz,'clouds1:statsmelt')
+      call getmem3d(statsfrz,jci1,jci2,ici1,ici2,1,kz,'clouds1:statsfrz')
+      call getmem3d(statsrainev,jci1,jci2,ici1,ici2,1,kz,'clouds1:statsrainev')
+      call getmem3d(statssnowev,jci1,jci2,ici1,ici2,1,kz,'clouds1:statssnowev')
+end if
+
 #ifdef USE_LAPACK
       call getmem1d(ipivot,1,nqx,'clouds1:ipivot')
 #else
@@ -270,8 +313,6 @@ module mod_cloud_s1
       call getmem3d(zratio,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zratio')
       call getmem3d(zsinksum,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zsinksum')
       call getmem3d(dqsatdt,jci1,jci2,ici1,ici2,1,kz,'clouds1:dqsatdt')
-      call getmem3d(satliq,jci1,jci2,ici1,ici2,1,kz,'clouds1:satliq')
-      call getmem3d(satice,jci1,jci2,ici1,ici2,1,kz,'clouds1:satice')
       call getmem3d(zpfplsl,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:zpfplsl')
       call getmem3d(zpfplsn,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:zpfplsn')
       call getmem3d(pfsqlf,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:pfsqlf')
@@ -290,8 +331,10 @@ module mod_cloud_s1
       call getmem3d(papf,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:papf')
       call getmem3d(zliq,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:zliq')
       call getmem3d(zqxfg,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zqxfg')
+      call getmem3d(fccfg,jci1,jci2,ici1,ici2,1,kz,'clouds1:fccfg')
       call getmem3d(llindex1,jci1,jci2,ici1,ici2,1,nqx,'clouds1:llindex1')
       call getmem3d(zqdetr,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqdetr')
+      call getmem3d(zqdetr2,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqdetr2') !zqdetr after evaporation
       call getmem3d(zfoeeliqt,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeeliqt')
       call getmem3d(zfoeeicet,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeeicet')
       call getmem4d(zqxtendc,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:zqxtendc')
@@ -309,11 +352,12 @@ module mod_cloud_s1
 
   subroutine init_cloud_s1(atms,aten,heatrt,sfs,q_detr,pptnc)
     implicit none
-    type(slice) , intent(in) :: atms
+    type(slice) , intent(in) :: atms 
     type(atmstate) , intent(in) :: aten
     type(surfstate) , intent(in) :: sfs
     real(rk8) , pointer , intent(in), dimension(:,:,:) :: heatrt, q_detr
     real(rk8) , pointer , dimension(:,:) :: pptnc
+    real(rk8) , pointer , dimension(:,:,:) :: cldfra , cldlwc
     call assignpnt(atms%pb3d,pres)
     call assignpnt(atms%tb3d,zt)
     call assignpnt(atms%za,zeta)
@@ -328,12 +372,12 @@ module mod_cloud_s1
     call assignpnt(sfs%rainnc,rainnc)
     call assignpnt(sfs%snownc,snownc)
     call assignpnt(pptnc,lsmrnc)
+    call assignpnt(atms%rhb3d,relh)
   end subroutine init_cloud_s1
 
   subroutine microphys(omega)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: omega
-
     integer(ik4) :: i , j , k , n , m
     integer(ik4) :: iqqi , iqql , iqqr , iqqs , iqqv , jn , jo 
     logical :: llo1
@@ -349,7 +393,7 @@ module mod_cloud_s1
     real(rk8) :: zbeta , zbeta1
     ! local variables for condensation
     real(rk8) :: zcond , zdtdp , zcdmax , zrhc , zsigk , &
-                 zacond , zzdl , zlcondlim
+                 zacond , zzdl , zlcondlim , zbott
     ! local variables for freezing
     real(rk8) :: zfrz
     ! local variables for melting
@@ -369,11 +413,15 @@ module mod_cloud_s1
     ! constants for condensation
     real(rk8) :: zdpmxdt , zwtot , zzzdt , zdtdiab , zdtforc , &
                  zqp , zqsat , zcond1 , zlevap
+    ! constants for turbulent mixing erosion of clouds
+    real(rk8) :: zldifdt , ze , zleros 
+    real(rk8) , parameter :: rcldiff = 3.D-6
 #ifdef USE_LAPACK
     integer :: ires
 #endif
     real(rk8) :: zsrca , zsnka , zfgsrc , zfgsnk , zproc , zsrcb
     logical , parameter :: lmicro = .true.
+    logical , parameter :: fscheme = .true.
     real(rk8) , parameter :: ksemi =  d_one
     real(rk8) , parameter :: rovcp = rgas/cpd
     real(rk8) , parameter :: rlcritsnow = 3.D-5   !critical autoconversion
@@ -394,7 +442,7 @@ module mod_cloud_s1
     real(rk8) , parameter :: rprc1 = 3.D2           ! in Sundqvist = 300
     real(rk8) , parameter :: ramid = 0.8D0
     ! real(rk8) , parameter :: kevap = 0.100D-02  ! Raindrop evap rate coef
-    real(rk8) , parameter :: rlmin = 1.D-8
+    real(rk8) , parameter :: rlmin = 1.D-8!1.D-14
     ! real(rk8) , parameter :: ramin = 1.D-8
     ! max threshold rh for evaporation
     ! for a precip coverage of zero rmfsens20081111
@@ -412,7 +460,7 @@ module mod_cloud_s1
     real(rk8) :: zfac , zfaci , zfacw , zcor , zfokoop
     real(rk8) , parameter :: r5les =  4216.975D0  !r3les*(rtt-r4les)
     real(rk8) , parameter :: r5ies =  708.47582D0 !r3ies*(rtt-r4ies)
-    real(rk8) , parameter :: r4les =  32.19D0
+    real(rk8) , parameter :: r4les =  35.86D0
     real(rk8) , parameter :: r4ies = -0.7D0
     !  TIMESCALE FOR ICE SUPERSATURATION REMOVAL
     real(rk8) , parameter :: rkooptau = 10800.0D0
@@ -428,12 +476,15 @@ module mod_cloud_s1
     real(rk8), parameter :: riceinit = 1.D-12
     ! real path terms
     real(rk8) ::  zsupsatl , zsupsati
+    !real(rk8) :: dt
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'microphys'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
 
+if ( fscheme ) then
+    !dt = dtsec
     zfokoop = d_zero
 
     ! Define species tags
@@ -597,32 +648,6 @@ module mod_cloud_s1
       end do
     end if ! budget_compute
 
-    ! ----------------------------------------------------
-    ! Tidy up very small cloud cover or total cloud water
-    ! ----------------------------------------------------
-    ! do k = 1 , kz
-    !   do j = jci1 , jci2
-    !     do i = ici1 , ici2
-    !       if (zqxx(j,i,k,iqql)+zqxx(j,i,k,iqqi)<rlmin .or. &
-    !           fcc(j,i,k)<ramin) then
-    !         Evaporate small cloud liquid water amounts
-    !         zqadj              = zqxx(j,i,k,iqql)*zqtmst
-    !         zqxtendc(j,i,k,iqqv) = zqxtendc(j,i,k,iqqv)+zqadj
-    !         zttendc(j,i,k)     = zttendc(j,i,k)-wlhsocp*zqadj
-    !         zqxx(j,i,k,iqqv)   = zqxx(j,i,k,iqqv) + zqxx(j,i,k,iqql)
-    !         zqxx(j,i,k,iqql)   = d_zero
-    !
-    !         Evaporate small cloud ice water amounts
-    !         zqadj              = zqxx(j,i,k,iqqi)*zqtmst
-    !         zttendc(j,i,k)     = zttendc(j,i,k)-wlhvocp*zqadj
-    !         zqxtendc(j,i,k,iqqv) = zqxtendc(j,i,k,iqqv)+zqadj
-    !         zqxx(j,i,k,iqqv)=zqxx(j,i,k,iqqv)+zqxx(j,i,k,iqqi)
-    !         zqxx(j,i,k,iqqi)=d_zero
-    !       end if
-    !     end do
-    !   end do
-    ! end do
-
     ! -------------------------------
     ! Define saturation values
     !---------------------------
@@ -647,17 +672,19 @@ module mod_cloud_s1
           zfoeew(j,i,k) = min(d_half,zfoeew(j,i,k))
           !qsi saturation mixing ratio with respect to ice
           zqsice(j,i,k) = zfoeew(j,i,k)/(d_one-vtmpc1*zfoeew(j,i,k))
-          zfoeeicet(j,i,k) = min(foeeice(zt(j,i,k))/pres(j,i,k),d_half)
-          zqsice(j,i,k) = zfoeeicet(j,i,k)
-          zqsice(j,i,k) = zqsice(j,i,k)/(d_one-vtmpc1*zqsice(j,i,k))
+          !ice water saturation
+          !zfoeeicet(j,i,k) = min(foeeice(zt(j,i,k))/pres(j,i,k),d_half)
+          !zqsice(j,i,k) = zfoeeicet(j,i,k)
+          !zqsice(j,i,k) = zqsice(j,i,k)/(d_one-vtmpc1*zqsice(j,i,k))
           !----------------------------------
           ! liquid water saturation
           !----------------------------------
+          !foeeliq is the saturation vapor pressure es(T)
+          !the saturation mixing ratio is ws = es(T)/p *0.622
+          !ws=ws/(1-(1/eps - 1)*ws)
           zfoeeliqt(j,i,k) = min(foeeliq(zt(j,i,k))/pres(j,i,k),d_half)
-          ! zfoeeliqt(j,i,k) = foeeliq(zt(j,i,k))/pres(j,i,k)
           zqsliq(j,i,k) = zfoeeliqt(j,i,k)
           zqsliq(j,i,k) = zqsliq(j,i,k)/(d_one-vtmpc1*zqsliq(j,i,k))
-          relh(j,i,k) = (zqxx(j,i,k,iqqv)/zqsliq(j,i,k))*d_100
         end do
       end do
     end do
@@ -700,7 +727,6 @@ module mod_cloud_s1
       ! Reset matrix so missing pathways are set
       zsolqb(:,:,:,:)  = d_zero  !_JPRB
       zsolqa(:,:,:,:)  = d_zero  !_JPRB
-      zfluxq(:,:,:)    = d_zero  !_JPRB
       zfallsrce(:,:,:) = d_zero  !_JPRB
       zfallsink(:,:,:) = d_zero  !_JPRB
       zconvsrce(:,:,:) = d_zero
@@ -709,6 +735,7 @@ module mod_cloud_s1
       zicetot(:,:) = d_zero
       zsupsat(:,:) = d_zero
       zlicld(:,:) = d_zero
+      zldefr(:,:) = d_zero
       zlcond1(:,:) = d_zero
       zlcond2(:,:) = d_zero
 
@@ -716,6 +743,7 @@ module mod_cloud_s1
       zqpretot(:,:) = d_zero
       zrainaut(:,:) = d_zero
       zsnowaut(:,:) = d_zero
+      zqdetr2(:,:,:) = d_zero      
 
       ! Derived variables needed
       do i = ici1, ici2
@@ -726,7 +754,7 @@ module mod_cloud_s1
           zrdtgdp(j,i) = zdp(j,i)*(d_one/(dt*egrav)) !dp/(gdt)=m/dt
           zqtmst = d_one/dt                          !1/dt
           !------------------------------------
-          ! calculate dqs/dt correction factor
+          ! calculate dqs/dT 
           !------------------------------------
           ! liquid
           zfacw          = r5les/((zt(j,i,k)-r4les)**2)
@@ -743,7 +771,7 @@ module mod_cloud_s1
           zfac           = zalfaw*zfacw+(d_one-zalfaw)*zfaci
           zcor           = d_one/(d_one-vtmpc1*zfoeewmt(j,i,k))
           zdqsmixdt(j,i) = zfac*zcor*zqsmix(j,i,k)
-          zcorqsmix(j,i) = d_one+ foeldcmp(zt(j,i,k))*zdqsmixdt(j,i)
+          zcorqsmix(j,i) = d_one/(d_one+foeldcpm(zt(j,i,k))*zdqsmixdt(j,i))
           !--------------------------------
           ! evaporation/sublimation limits
           !--------------------------------
@@ -801,6 +829,8 @@ module mod_cloud_s1
       ! Note also that the KOOP factor automatically clips the supersaturation
       ! to a maximum set by the liquid water saturation mixing ratio
       ! important for temperatures near to but below 0C
+      !qv_max = qs * (fcc + (1-fcc) *RH_homo ) if T<0C
+      !qv_max = qs                             if T>0C  
       !-----------------------------------------------------------------------
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -808,13 +838,14 @@ module mod_cloud_s1
           ! Supersaturation limit (from Koop)
           !-----------------------------------
           zfokoop = fokoop(zt(j,i,k),foeeliq(zt(j,i,k)),foeeice(zt(j,i,k)))
-          if ( zt(j,i,k) >= tzero ) then
+          if ( zt(j,i,k) >= tzero ) then !or nssopt==0
             zfac  = d_one
             zfaci = d_one
           else
-            zfac  = fcc(j,i,k)+zfokoop*(d_one-fcc(j,i,k))
+            zfac  = fcc(j,i,k) + zfokoop*(d_one-fcc(j,i,k))
             zfaci = dt/rkooptau
           end if
+         
           !-------------------------------------------------------------------
           ! Calculate supersaturation wrt Koop including dqs/dT
           ! correction factor
@@ -822,6 +853,8 @@ module mod_cloud_s1
           ! Here the supersaturation is turned into liquid water
           ! However, if the temperature is below the threshold for homogeneous
           ! freezing then the supersaturation is turned instantly to ice.
+          ! Moreover the RH is clipped to the limit of
+          ! qv_max = qs * (fcc + (1-fcc) *RH_homo )
           !--------------------------------------------------------------------
           zsupsat(j,i) = max((zqxx(j,i,k,iqqv)-zfac*zqsice(j,i,k)) / &
                                zcorqsliq(j,i),d_zero)
@@ -832,14 +865,19 @@ module mod_cloud_s1
               zsolqa(j,i,iqqv,iqql) = zsolqa(j,i,iqqv,iqql)-zsupsat(j,i)
               zqxfg(j,i,iqql) = zqxfg(j,i,iqql)+zsupsat(j,i)
               zqxfg(j,i,iqqv) = zqxfg(j,i,iqqv)-zsupsat(j,i)
-       !       zsupsatl = zsupsat(j,i)
+
+              if ( stats ) then
+                statssupw(j,i,k) = zsupsat(j,i)
+              end if
             else
-       !       zsupsati = zsupsat(j,i)
               ! turn supersaturation into ice water
               zsolqa(j,i,iqqi,iqqv) = zsolqa(j,i,iqqi,iqqv)+zsupsat(j,i)
               zsolqa(j,i,iqqv,iqqi) = zsolqa(j,i,iqqv,iqqi)-zsupsat(j,i)
               zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi)+zsupsat(j,i)
               zqxfg(j,i,iqqv) = zqxfg(j,i,iqqv)-zsupsat(j,i)
+              if ( stats ) then
+                statssupc(j,i,k) = zsupsat(j,i)
+              end if
             end if
           end if
         end do
@@ -867,19 +905,6 @@ module mod_cloud_s1
       ! detrainment into explicit source/sink array diagnognal
       ! ZSOLQA(IQL,IQL)=PLUDE
       !--------------------------------------------------------
-      ! Calculate the saturation mixing ratio
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          !Teton's formula for the saturation mixing ratio:
-          if ( zt(j,i,k) > tzero ) then
-            satliq(j,i,k) = satw(zt(j,i,k),pres(j,i,k))
-            dqsatdt(j,i,k) = dqsatdtw(zt(j,i,k),satliq(j,i,k))
-          else
-            satice(j,i,k) = satc(zt(j,i,k),pres(j,i,k))
-            dqsatdt(j,i,k) = dqsatdtc(zt(j,i,k),satice(j,i,k))
-          end if
-        end do
-      end do
       ! Define the microphysics
       ! the matrix will be sparse is this a problem ?
       ! (X,Y) means a sink of X and a source of Y
@@ -889,6 +914,11 @@ module mod_cloud_s1
       ! and off.
       ! each of these is a parametrization for a microphysical process.
       if ( lmicro ) then
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              fccfg(j,i,k) = fcc(j,i,k)
+            end do
+         end do
         !------------------------------------------------------------------
         ! Turn on/off microphysics
         !------------------------------------------------------------------
@@ -897,11 +927,11 @@ module mod_cloud_s1
         if ( k < kz .and. k >= 1 ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
-              zalfaw              = zliq(j,i,k)
-              zice                = d_one-zalfaw  
-              !zice=1 if T<250, zice=0 if T>273
               zqdetr(j,i,k) = qdetr(j,i,k)*zdtgdp(j,i)  !kg/kg
               if ( zqdetr(j,i,k) > rlmin ) then
+                !zice=1 if T<250, zice=0 if T>273
+                zalfaw              = zliq(j,i,k)
+                zice                = d_one-zalfaw  
                 zconvsrce(j,i,iqql) = zalfaw*zqdetr(j,i,k)
                 zconvsrce(j,i,iqqi) = zice*zqdetr(j,i,k)
                 zsolqa(j,i,iqql,iqql) = zsolqa(j,i,iqql,iqql) + &
@@ -910,12 +940,76 @@ module mod_cloud_s1
                                         zconvsrce(j,i,iqqi)
                 zqxfg(j,i,iqql) = zqxfg(j,i,iqql)+zconvsrce(j,i,iqql)
                 zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi)+zconvsrce(j,i,iqqi)
+
+! adjustment of the cloud fraction, that increases when qdetr adds liquid
+! to the scheme
+                zqe = (zqxx(j,i,k,iqqv)-fcc(j,i,k)*zqsice(j,i,k)) / &
+                       max(zepsec,d_one-fcc(j,i,k))
+                zqe = max(d_zero,min(zqe,zqsice(j,i,k)))
+! define the new cloud
+!                fccfg(j,i,k) = (relh(j,i,k)**0.25D0)* &
+!                     (d_one-dexp((-100.0D0*(zqxfg(j,i,iqql)+zqxfg(j,i,iqqi))/ & ! qx3(j,i,k,iqi)
+!                     ((d_one-relh(j,i,k))*zqsice(j,i,k))**0.49D0)))
+!                fccfg(j,i,k) = dmin1(dmax1(fccfg(j,i,k),0.01D0),0.99D0)
+               
+!                zevap = min(zqdetr(j,i,k),(fccfg(j,i,k)-fcc(j,i,k))*(zqsice(j,i,k)-zqe))
+!                zevap = max(zevap,d_zero)
+!                zqdetr2(j,i,k) = zqdetr2(j,i,k) - zevap
+
+!               if (zqdetr2(j,i,k) > d_zero) then
+!                  fccfg(j,i,k) = fccfg(j,i,k)
+!                else 
+!                fccfg(j,i,k) = fcc(j,i,k) 
+!               end if
+!                zsolqa(j,i,iqqv,iqql) = zsolqa(j,i,iqqv,iqql) + zevap
+!                 zsolqa(j,i,iqql,iqqv) = zsolqa(j,i,iqql,iqqv) - zevap
+!                 zqxfg(j,i,iqql) = zqxfg(j,i,iqql) - zevap
+!                 zqxfg(j,i,iqqv) = zqxfg(j,i,iqqv) + zevap
               else
                 zqdetr(j,i,k) = d_zero
               end if
+             
+              if (stats) then
+                statsdetrw(j,i,k) = zconvsrce(j,i,iqql)        
+                statsdetrc(j,i,k) = zconvsrce(j,i,iqqi)
+              end if
+
             end do
           end do
         end if
+
+        !---------------------------------------
+        ! EROSION OF CLOUDS BY TURBULENT MIXING
+        !--------------------------------------
+        ! rcldiff  : Diffusion coefficient for evaporation by turbulent mixing (IBID., EQU. 30)
+        ! rcldiff = 3.0D-06
+             zldifdt = rcldiff*dt
+         do i = ici1 , ici2
+           do j = jci1 , jci2
+             if (zli(j,i,k) > zepsec) then 
+               ze = zldifdt*max(zqsmix(j,i,k)-zqxx(j,i,k,iqqv),d_zero)
+               zleros = fccfg(j,i,k)*ze
+               zleros = min(zleros,zevaplimmix(j,i))
+               zleros = min(zleros,zli(j,i,k))
+
+               zsolqa(j,i,iqql,iqqv) = zsolqa(j,i,iqql,iqqv) - zliqfrac(j,i,k)*zleros 
+               zsolqa(j,i,iqqv,iqql) = zsolqa(j,i,iqqv,iqql) + zliqfrac(j,i,k)*zleros 
+               zsolqa(j,i,iqqv,iqqi) = zsolqa(j,i,iqqv,iqqi) + zicefrac(j,i,k)*zleros
+               zsolqa(j,i,iqqi,iqqv) = zsolqa(j,i,iqqi,iqqv) - zicefrac(j,i,k)*zleros
+             
+               if (stats) then
+                 statserosw(j,i,k) = zliqfrac(j,i,k)*zleros 
+                 statserosc(j,i,k) = zicefrac(j,i,k)*zleros
+               end if               
+ 
+               zqxfg(j,i,iqqv) = zqxfg(j,i,iqqv) + zliqfrac(j,i,k)*zleros + zicefrac(j,i,k)*zleros
+               zqxfg(j,i,iqql) = zqxfg(j,i,iqql) - zliqfrac(j,i,k)*zleros
+               zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi) - zicefrac(j,i,k)*zleros
+               
+             end if
+           end do
+         end do
+
         !----------------------------------------------------------------------
         ! CONDENSATION/EVAPORATION DUE TO DQSAT/DT
         !----------------------------------------------------------------------
@@ -942,7 +1036,7 @@ module mod_cloud_s1
             ! if ( k < kz ) then
             !   zmfdn = pmfu(j,i,k+1)+pmfd(j,i,k+1) !conv. mass flux
             ! end if
-            zwtot   = omega(j,i,k)
+            zwtot   = omega(j,i,k)*d_1000    ![1cb = 1000 Pa]
             ! zvervel(j,i,k)+d_half*rg*(pmfu(j,i,k)+pmfd(j,i,k)+zmfdn)
             zwtot   = min(zdpmxdt,max(-zdpmxdt,zwtot))
             zzzdt   = radheatrt(j,i,k)
@@ -952,38 +1046,49 @@ module mod_cloud_s1
             ! zldefr = 0
             ! note: zldefr should be set to the difference between the mixed
             ! phase functions in the convection and cloud scheme, but this is
-            ! not calculated, so is zero and the functions must be the same
+            ! not calculated in the IFS, so is zero and the functions must be the same.
+            ! we should check what happens in RegCM
 
             zdtforc       = zdtdp*zwtot*dt + zdtdiab
             zqold(j,i)    = zqsmix(j,i,k)
             ztold(j,i)    = zt(j,i,k)
-            ! zt(j,i,k)   = zt(j,i,k)+zdtforc
-            ! zt(j,i,k)   = max(zt(j,i,k),160.0D0)
+            ztcond(j,i,k) = zt(j,i,k)+zdtforc
+            ztcond(j,i,k) = max(ztcond(j,i,k),160.0D0)
           end do
         end do
+
+        !this loop's goal is to produce zdqs = zqsmix - zqold, where zqsmix is 
+        !reduced because of the condensation. so that zdqs is negative?
 
         do i = ici1 , ici2
           do j = jci1 , jci2
             zqp = d_one/pres(j,i,k)
-            zqsat = foeewm(zt(j,i,k))*zqp   !saturation mixing ratio ws
-            zqsat = min(d_half,zqsat)       !ws<0.5
+            zqsat = foeewm(ztcond(j,i,k))*zqp   !saturation mixing ratio ws
+            zqsat = min(d_half,zqsat)       !ws<0.5        WHY?
             zcor  = d_one/(d_one-vtmpc1*zqsat)
             zqsat = zqsat*zcor
             zcond = (zqsmix(j,i,k)-zqsat) / &
-                    (d_one+zqsat*zcor*foedem(zt(j,i,k)))
-            ! zt(j,i,k) = zt(j,i,k)+foeldcpm(zt(j,i,k))*zcond
+                    (d_one+zqsat*foedem(ztcond(j,i,k)))
+            ztcond(j,i,k) = ztcond(j,i,k)+foeldcpm(ztcond(j,i,k))*zcond
             zqsmix(j,i,k) = zqsmix(j,i,k)-zcond
-            zqsat = foeewm(zt(j,i,k))*zqp
+            zqsat = foeewm(ztcond(j,i,k))*zqp
             zqsat = min(d_half,zqsat)
             zcor = d_one/(d_one-vtmpc1*zqsat)
             zqsat = zqsat*zcor
-            zcond1 = (zqsmix(j,i,k)-zqsat) / &
-                     (d_one+zqsat*zcor*foedem(zt(j,i,k)))
-            ! zt(j,i,k) = zt(j,i,k)+foeldcpm(zt(j,i,k))*zcond1
+            zcond1 = (zqsmix(j,i,k)-zqsat)  / &
+                     (d_one+zqsat*foedem(ztcond(j,i,k)))
+
+            ztcond(j,i,k) = ztcond(j,i,k)+foeldcpm(ztcond(j,i,k))*zcond1
+
             zqsmix(j,i,k) = zqsmix(j,i,k)-zcond1
+
+          end do 
+        end do
+        do i = ici1 , ici2
+          do j = jci1 , jci2
             zdqs(j,i)     = zqsmix(j,i,k)-zqold(j,i)
             zqsmix(j,i,k) = zqold(j,i)
-            ! zt(j,i,k)      = ztold(j,i)
+            ztcond(j,i,k) = ztold(j,i)
           end do
         end do
 
@@ -996,25 +1101,30 @@ module mod_cloud_s1
           do j = jci1 , jci2
             ! previous function based on delta distribution in cloud:
             if ( zdqs(j,i) > d_zero ) then
-              zlevap = fcc(j,i,k)*min(zdqs(j,i),zlicld(j,i))
+              !zlevap = C*min( dqs/dt , (qi+ql)/C )
+              zlevap = fccfg(j,i,k)*min(zdqs(j,i),zlicld(j,i))
               zlevap = min(zlevap,zevaplimmix(j,i))
               zlevap = min(zlevap,max(zqsmix(j,i,k)-zqxx(j,i,k,iqqv),d_zero))
-              ! for first guess call
-              zlevapl(j,i) = zliqfrac(j,i,k)*zlevap
-              zlevapi(j,i) = zicefrac(j,i,k)*zlevap
-          
+              
               zsolqa(j,i,iqqv,iqql) = zsolqa(j,i,iqqv,iqql) + &
                                       zliqfrac(j,i,k)*zlevap
               zsolqa(j,i,iqql,iqqv) = zsolqa(j,i,iqql,iqqv) - &
                                       zliqfrac(j,i,k)*zlevap
-              zqxfg(j,i,iqqv)=zqxfg(j,i,iqqv)+zliqfrac(j,i,k)*zlevap
-              zqxfg(j,i,iqql)=zqxfg(j,i,iqql)-zliqfrac(j,i,k)*zlevap
               zsolqa(j,i,iqqv,iqqi) = zsolqa(j,i,iqqv,iqqi) + &
                                       zicefrac(j,i,k)*zlevap
               zsolqa(j,i,iqqi,iqqv) = zsolqa(j,i,iqqi,iqqv) - &
                                       zicefrac(j,i,k)*zlevap
+
+              zqxfg(j,i,iqqv)=zqxfg(j,i,iqqv)+zliqfrac(j,i,k)*zlevap
+              zqxfg(j,i,iqql)=zqxfg(j,i,iqql)-zliqfrac(j,i,k)*zlevap
+
               zqxfg(j,i,iqqv) = zqxfg(j,i,iqqv)+zicefrac(j,i,k)*zlevap
               zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi)-zicefrac(j,i,k)*zlevap
+            
+              if ( stats ) then
+                statsevapw(j,i,k) = zliqfrac(j,i,k)*zlevap
+                statsevapc(j,i,k) = zicefrac(j,i,k)*zlevap
+              end if
             end if
           end do
         end do
@@ -1024,20 +1134,20 @@ module mod_cloud_s1
         ! (1) increase of cloud water in existing clouds
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( fcc(j,i,k) > zepsec.and.zdqs(j,i) <= -rlmin) then
+            if ( fccfg(j,i,k) > zepsec.and.zdqs(j,i) <= -rlmin) then
               zlcond1(j,i)=max(-zdqs(j,i),d_zero) !new limiter
-              ! old limiter
+             ! old limiter
               !  (significantly improves upper tropospheric humidity rms)
-              if (fcc(j,i,k) > 0.99D0) then
+              if (fccfg(j,i,k) > 0.99D0) then
                 zcor = d_one/(d_one-vtmpc1*zqsmix(j,i,k))
                 zcdmax = (zqxx(j,i,k,iqqv)-zqsmix(j,i,k)) / &
                          (d_one+zcor*zqsmix(j,i,k)*foedem(zt(j,i,k)))
               else
-                zcdmax = (zqxx(j,i,k,iqqv)-fcc(j,i,k)*zqsmix(j,i,k))/fcc(j,i,k)
+                zcdmax = (zqxx(j,i,k,iqqv)-fccfg(j,i,k)*zqsmix(j,i,k))/fccfg(j,i,k)
               end if
               zlcond1(j,i) = max(min(zlcond1(j,i),zcdmax),d_zero)
               ! end old limiter
-              zlcond1(j,i) = fcc(j,i,k)*zlcond1(j,i)
+              zlcond1(j,i) = fccfg(j,i,k)*zlcond1(j,i)
               if ( zlcond1(j,i) < rlmin ) zlcond1(j,i) = d_zero
               !----------------------------------------------------------------
               ! All increase goes into liquid unless so cold cloud
@@ -1050,29 +1160,35 @@ module mod_cloud_s1
                 zsolqa(j,i,iqqv,iqql) = zsolqa(j,i,iqqv,iqql)-zlcond1(j,i)
                 zqxfg(j,i,iqql) = zqxfg(j,i,iqql)+zlcond1(j,i)
                 zqxfg(j,i,iqqv) = zqxfg(j,i,iqqv)-zlcond1(j,i)
+                if ( stats ) then
+                  statscond1w(j,i,k) = zlcond1(j,i)
+                end if
               else
                 zsolqa(j,i,iqqi,iqqv) = zsolqa(j,i,iqqi,iqqv)+zlcond1(j,i)
                 zsolqa(j,i,iqqv,iqqi) = zsolqa(j,i,iqqv,iqqi)-zlcond1(j,i)
                 zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi)+zlcond1(j,i)
                 zqxfg(j,i,iqqv) = zqxfg(j,i,iqqv)-zlcond1(j,i)
+                if ( stats ) then
+                  statscond1c(j,i,k) = zlcond1(j,i)
+                end if
               end if
-           end if
+            end if
           end do
         end do
 
-        ! (2) generation of new clouds (da/dt>0)
+        ! (2) generation of new clouds (dc/dt>0)
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( zdqs(j,i) <= -rlmin .and. fcc(j,i,k) < d_one-zepsec ) then
+            if ( zdqs(j,i) <= -rlmin .and. fccfg(j,i,k) < d_one-zepsec ) then
               !---------------------------
               ! critical relative humidity
               !---------------------------
               !     *RAMID*   REAL    BASE VALUE FOR CALCULATION OF RELATIVE
               !                       HUMIDITY THRESHOLD FOR ONSET OF STRATIFORM
               !                       CONDENSATION (TIEDTKE, 1993, EQUATION 24)
-              zrhc = ramid
+              zrhc = ramid !=0.8
               zsigk = pres(j,i,k)/papf(j,i,k+1)
-              ! increase rhcrit to 1.0 towards the surface (eta>0.8)
+              ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
               if ( zsigk > 0.8D0 ) then
                 zrhc = ramid+(d_one-ramid)*((zsigk-0.8D0)/0.2D0)**2
               end if
@@ -1081,13 +1197,13 @@ module mod_cloud_s1
               !---------------------------
               if ( nssopt == 0 ) then
                 ! no scheme
-                zqe = (zqxx(j,i,k,iqqv)-fcc(j,i,k)*zqsice(j,i,k)) / &
-                        max(zepsec,d_one-fcc(j,i,k))
+                zqe = (zqxx(j,i,k,iqqv)-fccfg(j,i,k)*zqsice(j,i,k)) / &
+                        max(zepsec,d_one-fccfg(j,i,k))
                 zqe = max(d_zero,zqe)
               else if ( nssopt ==1 ) then
                 ! tompkins
-                zqe = (zqxx(j,i,k,iqqv)-fcc(j,i,k)*zqsice(j,i,k)) / &
-                       max(zepsec,d_one-fcc(j,i,k))
+                zqe = (zqxx(j,i,k,iqqv)-fccfg(j,i,k)*zqsice(j,i,k)) / &
+                       max(zepsec,d_one-fccfg(j,i,k))
                 zqe = max(d_zero,zqe)
               else if ( nssopt == 2 ) then
                 ! lohmann and karcher
@@ -1107,32 +1223,29 @@ module mod_cloud_s1
                   zqe < zqsice(j,i,k)*zfac) then
                 ! note: not **2 on 1-a term if zqe is used.
                 ! added correction term zfac to numerator 15/03/2010
-                zacond = -(d_one-fcc(j,i,k))*zfac*zdqs(j,i) / &
+                zacond = -(d_one-fccfg(j,i,k))*zfac*zdqs(j,i) / &
                           max(d_two*(zfac*zqsice(j,i,k)-zqe),zepsec)
-                zacond = min(zacond,d_one-fcc(j,i,k))  !put the limiter back
+                zacond = min(zacond,d_one-fccfg(j,i,k))  !put the limiter back
+
                 ! linear term:
                 ! added correction term zfac 15/03/2010
                 zlcond2(j,i) = -zfac*zdqs(j,i)*d_half*zacond !mine linear
                 ! new limiter formulation
                 zzdl = d_two*(zfac*zqsice(j,i,k)-zqe) / &
-                       max(zepsec,d_one-fcc(j,i,k))
+                       max(zepsec,d_one-fccfg(j,i,k))
                 ! added correction term zfac 15/03/2010
                 if (zfac*zdqs(j,i)<-zzdl) then
-                  ! zlcondlim = (za(jl,jk)-1.0_jprb)*zdqs(jl) - &
-                  !            zqsice(jl,jk)+zqx(jl,jk,ncldqv)
-                  zlcondlim = (fcc(j,i,k)-d_one)*zfac*zdqs(j,i)- &
+                  zlcondlim = (fccfg(j,i,k)-d_one)*zfac*zdqs(j,i)- &
                                zfac*zqsice(j,i,k)+zqxx(j,i,k,iqqv)
                   zlcond2(j,i) = min(zlcond2(j,i),zlcondlim)
                 end if
                 zlcond2(j,i) = max(zlcond2(j,i),d_zero)
                 if ( zlcond2(j,i) < rlmin .or. &
-                    (d_one-fcc(j,i,k)) < zepsec ) then
+                    (d_one-fccfg(j,i,k)) < zepsec ) then
                   zlcond2(j,i) = d_zero
                   zacond       = d_zero
                 end if
                 if ( zlcond2(j,i) == d_zero ) zacond = d_zero
-                ! large-scale generation is linear in a and linear in l
-                !  zsolac(jl) = zsolac(jl)+zacond !linear
                 !-------------------------------------------------------------
                 ! all increase goes into liquid unless so cold cloud
                 ! homogeneously freezes
@@ -1145,11 +1258,21 @@ module mod_cloud_s1
                   zqxfg(j,i,iqql) = zqxfg(j,i,iqql)+zlcond2(j,i)
                   zqxfg(j,i,iqqv) = zqxfg(j,i,iqqv)-zlcond2(j,i)
                   ! store cloud liquid diagnostic if required
+              
+                  if ( stats ) then
+                    statscond2w(j,i,k) = zlcond2(j,i)
+                  end if
                 else ! homogeneous freezing
                   zsolqa(j,i,iqqi,iqqv) = zsolqa(j,i,iqqi,iqqv)+zlcond2(j,i)
                   zsolqa(j,i,iqqv,iqqi) = zsolqa(j,i,iqqv,iqqi)-zlcond2(j,i)
                   zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi)+zlcond2(j,i)
+              
+              if ( stats ) then
+                statscond2c(j,i,k) = zlcond2(j,i)
+              end if
+              
                   zqxfg(j,i,iqqv) = zqxfg(j,i,iqqv)-zlcond2(j,i)
+
                 end if
               end if
             end if
@@ -1174,16 +1297,13 @@ module mod_cloud_s1
             ! ZDZ = ZDP(JL)/(ZRHO(JL)*RG)
             !--------------------------------------------------------------
             if ( k > 1 ) then
-              if (fcc(j,i,k-1) < rcldtopcf .and. &
-                  fcc(j,i,k) >= rcldtopcf) then
+              if (fccfg(j,i,k-1) < rcldtopcf .and. &
+                  fccfg(j,i,k) >= rcldtopcf) then
                 zcldtopdist(j,i) = d_zero
               else
                 zcldtopdist(j,i) = zcldtopdist(j,i) + &
                              zdp(j,i)/(rhob3d(j,i,k)*egrav)
               end if
-            else
-              zcldtopdist(j,i) = zcldtopdist(j,i) + &
-                           zdp(j,i)/(rhob3d(j,i,k)*egrav)
             end if
             !--------------------------------------------------------------
             ! only treat depositional growth if liquid present. due to fact
@@ -1224,7 +1344,7 @@ module mod_cloud_s1
               !---------------------------
               ! grid-mean deposition rate:
               !---------------------------
-              zdepos = max(fcc(j,i,k)*(zinew-zice0),d_zero)*2.0D0
+              zdepos = max(fccfg(j,i,k)*(zinew-zice0),d_zero)*2.0D0
               ! above increased by factor of 2 to retain similar mixed phase liq
               ! as in diagnostic scheme
               !---------------------------------------------------------------
@@ -1257,6 +1377,11 @@ module mod_cloud_s1
               zsolqa(j,i,iqql,iqqi) = zsolqa(j,i,iqql,iqqi)-zdepos
               zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi)+zdepos
               zqxfg(j,i,iqql) = zqxfg(j,i,iqql)-zdepos
+              
+              if ( stats ) then
+                statsdepos(j,i,k) = zdepos
+              end if
+
             end if
           end do
         end do
@@ -1307,11 +1432,11 @@ module mod_cloud_s1
           do j = jci1 , jci2
             if (zqpretot(j,i) > zepsec) then
               zcovptot(j,i) = d_one - ((d_one-zcovptot(j,i))*&
-                              (d_one - max(fcc(j,i,k),fcc(j,i,k-1)))/&
-                              (d_one - min(fcc(j,i,k-1),d_one-1.E-06)))
+                              (d_one - max(fccfg(j,i,k),fccfg(j,i,k-1)))/&
+                              (d_one - min(fccfg(j,i,k-1),d_one-1.E-06)))
               zcovptot(j,i) = max(zcovptot(j,i),rcovpmin)   !rcovpmin=0.1
               ! clear sky proportion
-              zcovpclr(j,i) = max(d_zero,zcovptot(j,i)-fcc(j,i,k))
+              zcovpclr(j,i) = max(d_zero,zcovptot(j,i)-fccfg(j,i,k))
             else
               zcovptot(j,i) = d_zero  ! no flux - reset cover
               zcovpclr(j,i) = d_zero  ! reset clear sky proportion
@@ -1325,7 +1450,7 @@ module mod_cloud_s1
         ! Warm clouds
         do i = ici1 , ici2
           do j = jci1 , jci2
-            ztmpa = d_one/max(fcc(j,i,k),zepsec)
+            ztmpa = d_one/max(fccfg(j,i,k),zepsec)
             zliqcld(j,i) = zqxfg(j,i,iqql)*ztmpa
             zicecld(j,i) = zqxfg(j,i,iqqi)*ztmpa
             if ( zliqcld(j,i) > zepsec ) then
@@ -1430,7 +1555,6 @@ module mod_cloud_s1
             zmeltmax(j,i) = d_zero
             if ( zicetot(j,i) > zepsec .and. zt(j,i,k) > tzero ) then
               ! Calculate subsaturation
-              ! satice(j,i,k)-zqxx(j,i,k,iqqv),d_zero)
               zsubsat = max(zqsice(j,i,k)-zqxx(j,i,k,iqqv),d_zero)
               ! Calculate difference between dry-bulb (zt)  and the temperature
               ! at which the wet-bulb=0degC
@@ -1473,6 +1597,10 @@ module mod_cloud_s1
                   zqxfg(j,i,m) =  zqxfg(j,i,m)+zmelt
                   zsolqa(j,i,m,n) =  zsolqa(j,i,m,n) + zmelt
                   zsolqa(j,i,n,m) =  zsolqa(j,i,n,m) - zmelt
+
+                  if ( stats ) then
+                    statsmelt(j,i,k) = zmelt
+                  end if
                 end if
               end do
             end do
@@ -1518,6 +1646,11 @@ module mod_cloud_s1
               zsolqa(j,i,iqql,iqqi) = zsolqa(j,i,iqql,iqqi) - zfrz
               zqxfg(j,i,iqqi)= zqxfg(j,i,iqqi)+zfrz
               zqxfg(j,i,iqql)= zqxfg(j,i,iqql)-zfrz
+
+              if ( stats ) then
+                statsfrz(j,i,k) = zfrz
+              end if
+
             end if
           end do
         end do
@@ -1527,27 +1660,28 @@ module mod_cloud_s1
         !------------------------------------------------------------
         ! recalculate zqpretot since melting term may have changed it
         !------------------------------------------------------------
-        do n = 1 , nqx
+        !do n = 1 , nqx
           do i = ici1 , ici2
             do j = jci1 , jci2
-              if ( kphase(n) == 2 ) then
-                zqpretot(j,i) = zqpretot(j,i)+zqxfg(j,i,n)
-              end if
+             ! if ( kphase(n) == 2 ) then
+                 !zqpretot(j,i) = zqpretot(j,i)+zqxfg(j,i,n)
+                zqpretot(j,i) = zqxfg(j,i,iqqs) +zqxfg(j,i,iqqr)   
+             ! end if
             end do
           end do
-        end do
+        !end do
 
         ! rain
         do i = ici1 , ici2
           do j = jci1 , jci2
             zzrh = rprecrhmax + &
-              (d_one-rprecrhmax)*zcovpclr(j,i)/max(zepsec,d_one-fcc(j,i,k))
+              (d_one-rprecrhmax)*zcovpclr(j,i)/max(zepsec,d_one-fccfg(j,i,k))
             zzrh = min(max(zzrh,rprecrhmax),d_one)
             ! This is a critical relative humidity that is used to limit
             ! moist environment to prevent the gridbox saturating when
             ! only part of the gridbox has evaporating precipitation
-            zqe = (zqxx(j,i,k,iqqv)-fcc(j,i,k)*zqsliq(j,i,k)) / &
-                      max(zepsec,d_one-fcc(j,i,k))
+            zqe = (zqxx(j,i,k,iqqv)-fccfg(j,i,k)*zqsliq(j,i,k)) / &
+                      max(zepsec,d_one-fccfg(j,i,k))
             !---------------------------------------------
             ! humidity in moistest zcovpclr part of domain
             !---------------------------------------------
@@ -1591,7 +1725,7 @@ module mod_cloud_s1
                 ! 2-flux treatment, abandoned due to the new prognostic precip
                 !-------------------------------------------------------------
                 zcovptot(j,i) = zcovptot(j,i) - max(d_zero, &
-                             (zcovptot(j,i)-fcc(j,i,k))*zdpevap/zqpretot(j,i))
+                             (zcovptot(j,i)-fccfg(j,i,k))*zdpevap/zqpretot(j,i))
               else
                 zevap = zqxfg(j,i,iqqr)
               end if
@@ -1599,70 +1733,83 @@ module mod_cloud_s1
               zsolqa(j,i,iqqr,iqqv) = zsolqa(j,i,iqqr,iqqv)-zevap
               zqxfg(j,i,iqqr)       = zqxfg(j,i,iqqr)-zevap
               zqxfg(j,i,iqqv)       = zqxfg(j,i,iqqv)+zevap
+
+
+
+              if ( stats ) then
+                statsrainev(j,i,k) = zevap
+
+              end if
+
             end if
           end do
         end do
 
-       ! snow
+        ! snow
+ 
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            zzrh = rprecrhmax + (d_one-rprecrhmax) * &
+                   zcovpclr(j,i)/max(zepsec,d_one-fccfg(j,i,k))
+            zzrh = min(max(zzrh,rprecrhmax),d_one)
+            zqe = (zqxx(j,i,k,iqqv)-fccfg(j,i,k)*zqsice(j,i,k))/&
+                  max(zepsec,d_one-fccfg(j,i,k))
+            !---------------------------------------------
+            ! humidity in moistest zcovpclr part of domain
+            !---------------------------------------------
+            zqe = max(d_zero,min(zqe,zqsice(j,i,k)))
+            llo1 = zcovpclr(j,i) > zepsec .and. &
+                   zqxfg(j,i,iqqs)>rlmin .and. &
+                   zqe < zzrh*zqsice(j,i,k)
+            if ( llo1 ) then
+              ! note: units of zpreclr and zqpretot differ
+              !       zqpretot is a mixing ratio (hence "q" in name)
+              !       zpreclr is a rain flux
+              zpreclr = zqpretot(j,i)*zcovpclr(j,i)/(zcovptot(j,i)*zdtgdp(j,i))
+              !--------------------------------------
+              ! actual microphysics formula in zbeta
+              !--------------------------------------
 
-       do i = ici1 , ici2
-         do j = jci1 , jci2
-           zzrh = rprecrhmax + (d_one-rprecrhmax) * &
-             zcovpclr(j,i)/max(zepsec,d_one-fcc(j,i,k))
-           zzrh = min(max(zzrh,rprecrhmax),d_one)
-           zqe = (zqxx(j,i,k,iqqv)-fcc(j,i,k)*zqsice(j,i,k))/&
-                 max(zepsec,d_one-fcc(j,i,k))
-           !---------------------------------------------
-           ! humidity in moistest zcovpclr part of domain
-           !---------------------------------------------
-           zqe = max(d_zero,min(zqe,zqsice(j,i,k)))
-           llo1 = zcovpclr(j,i) > zepsec .and. &
-                  zqxfg(j,i,iqqs)>rlmin .and. &
-                  zqe < zzrh*zqsice(j,i,k)
-           if ( llo1 ) then
-             ! note: units of zpreclr and zqpretot differ
-             !       zqpretot is a mixing ratio (hence "q" in name)
-             !       zpreclr is a rain flux
-             zpreclr = zqpretot(j,i)*zcovpclr(j,i)/(zcovptot(j,i)*zdtgdp(j,i))
-             !--------------------------------------
-             ! actual microphysics formula in zbeta
-             !--------------------------------------
-
-              zbeta1 = sqrt(pres(j,i,k)/&
+               zbeta1 = sqrt(pres(j,i,k)/&
                         papf(j,i,kz+1))/5.09D-3*zpreclr/&
                         max(zcovpclr(j,i),zepsec)
 
-             if ( zbeta1 >= d_zero ) then
-               zbeta = egrav*rpecons*(zbeta1)**0.5777D0
-               !rpecons=alpha1
-               zdenom = d_one + zbeta*dt*zcorqsice(j,i)
-               zdpr = zcovpclr(j,i) * zbeta * &
-                 (zqsice(j,i,k)-zqe)/zdenom*zdp(j,i)*regrav
-               zdpevap = zdpr*zdtgdp(j,i)
+              if ( zbeta1 >= d_zero ) then
+                zbeta = egrav*rpecons*(zbeta1)**0.5777D0
+                !rpecons=alpha1
+                zdenom = d_one + zbeta*dt*zcorqsice(j,i)
+                zdpr = zcovpclr(j,i) * zbeta * &
+                       (zqsice(j,i,k)-zqe)/zdenom*zdp(j,i)*regrav
+                zdpevap = zdpr*zdtgdp(j,i)
 
-               !---------------------------------------------------------
-               ! add evaporation term to explicit sink.
-               ! this has to be explicit since if treated in the implicit
-               ! term evaporation can not reduce snow to zero and model
-               ! produces small amounts of snowfall everywhere.
-               !---------------------------------------------------------
+                !---------------------------------------------------------
+                ! add evaporation term to explicit sink.
+                ! this has to be explicit since if treated in the implicit
+                ! term evaporation can not reduce snow to zero and model
+                ! produces small amounts of snowfall everywhere.
+                !---------------------------------------------------------
 
-               ! evaporate snow
-               zevap = min(zdpevap,zqxfg(j,i,iqqs))
-               !-------------------------------------------------------------
-               ! reduce the total precip coverage proportional to evaporation
-               ! to mimic the previous scheme which had a diagnostic
-               ! 2-flux treatment, abandoned due to the new prognostic precip
-               !-------------------------------------------------------------
-               zcovptot(j,i) = zcovptot(j,i)-max(d_zero, &
-                           (zcovptot(j,i)-fcc(j,i,k))*zdpevap/zqpretot(j,i))
-             else
-               zevap = zqxfg(j,i,iqqs)
-             end if
-             zsolqa(j,i,iqqv,iqqs) = zsolqa(j,i,iqqv,iqqs) + zevap
-             zsolqa(j,i,iqqs,iqqv) = zsolqa(j,i,iqqs,iqqv) - zevap
-             zqxfg(j,i,iqqs)       = zqxfg(j,i,iqqs) - zevap
-             zqxfg(j,i,iqqv)       = zqxfg(j,i,iqqv) + zevap
+                ! evaporate snow
+                zevap = min(zdpevap,zqxfg(j,i,iqqs))
+                !-------------------------------------------------------------
+                ! reduce the total precip coverage proportional to evaporation
+                ! to mimic the previous scheme which had a diagnostic
+                ! 2-flux treatment, abandoned due to the new prognostic precip
+                !-------------------------------------------------------------
+                zcovptot(j,i) = zcovptot(j,i)-max(d_zero, &
+                               (zcovptot(j,i)-fccfg(j,i,k))*zdpevap/zqpretot(j,i))
+              else
+                zevap = zqxfg(j,i,iqqs)
+              end if
+              zsolqa(j,i,iqqv,iqqs) = zsolqa(j,i,iqqv,iqqs) + zevap
+              zsolqa(j,i,iqqs,iqqv) = zsolqa(j,i,iqqs,iqqv) - zevap
+              zqxfg(j,i,iqqs)       = zqxfg(j,i,iqqs) - zevap
+              zqxfg(j,i,iqqv)       = zqxfg(j,i,iqqv) + zevap
+
+              if ( stats ) then
+                statssnowev(j,i,k) = zevap
+              end if
+
            end if
          end do
        end do
@@ -1858,7 +2005,6 @@ module mod_cloud_s1
       call ludcmp(zqlhs,jindex2)
       call lubksb(zqlhs,jindex2,zqxn)
 #endif
-
       !------------------------------------------------------------------------
       !  Precipitation/sedimentation fluxes to next level
       !     diagnostic precipitation fluxes
@@ -1895,26 +2041,29 @@ module mod_cloud_s1
           end do
         end do
       end do
-      ! Calculate the temperature tendencies
+
+     ! Calculate the temperature tendencies
       do n = 1 , nqx
         do i = ici1 , ici2
           do j = jci1 , jci2
             if ( kphase(n) == 1 ) then
               zttendc(j,i,k) = zttendc(j,i,k) + &
-                wlhvocp*(zqxn(n,j,i)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
+                               wlhvocp*(zqxn(n,j,i)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
             end if
             if ( kphase(n) == 2 ) then
               zttendc(j,i,k) = zttendc(j,i,k) + &
-                wlhsocp*(zqxn(n,j,i)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
+                               wlhsocp*(zqxn(n,j,i)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
             end if
           end do
         end do
       end do
+
+
       ! Couple tendencies with pressure
       do n = 1 , nqx
         do i = ici1 , ici2
           do j = jci1 , jci2
-            zqxten(j,i,k,n) = zqxtendc(j,i,k,n)*psf(j,i)
+            zqxten(j,i,k,n) =  zqxtendc(j,i,k,n)*psf(j,i)
           end do
         end do
       end do
@@ -2106,6 +2255,11 @@ module mod_cloud_s1
       end do
      end do
 
+else!fscheme
+
+end if
+
+
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -2127,27 +2281,20 @@ module mod_cloud_s1
        implicit none
        real(rk8) , intent(in):: zt
        real(rk8) , parameter :: rtice =  250.16D0 ! tzero - 23.0
-       !1.0_JPRB/(RTWAT-RTICE)
        real(rk8) , parameter :: rtwat_rtice_r = d_one/23.0D0
        phases = min(d_one,((max(rtice,min(tzero,zt))-rtice)*rtwat_rtice_r)**2)
      end function phases
 
-     pure real(rk8) function foeldcmp(zt)
-       implicit none
-       real(rk8) , intent(in):: zt
-       foeldcmp = phases(zt)*wlhvocp+(d_one-phases(zt))*wlhsocp
-     end function foeldcmp
-
      pure real(rk8) function foedem(zt)
        implicit none
        real(rk8) , intent(in):: zt
-       real(rk8) , parameter :: r4les = 32.19D0
+       real(rk8) , parameter :: r4les = 35.86D0
        real(rk8) , parameter :: r4ies = -0.7D0
        real(rk8) , parameter :: r5les = 4216.975
        real(rk8) , parameter :: r5alvcp = r5les*wlhvocp
        real(rk8) , parameter :: r5alscp = r5les*wlhsocp
        foedem = phases(zt)*r5alvcp*(d_one/(zt-r4les)**2) + &
-                (d_one-phases(zt))*r5alscp*(d_one/(zt-r4ies)**2)
+                (d_one-phases(zt))*r5alscp*(d_one/(zt)**2)
      end function foedem
 
      pure real(rk8) function foeldcpm(zt)
@@ -2161,15 +2308,8 @@ module mod_cloud_s1
        real(rk8) , intent(in):: zt
        real(rk8) , parameter :: r2es =  610.78D0*ep2
        real(rk8) , parameter :: r3les = 17.269D0
-       ! real(rk8) , parameter :: r3ies = 21.874D0
-       ! real(rk8) , parameter :: r4les = 35.86D0
-       real(rk8) , parameter :: r4ies = 7.66D0
-       ! real(rk8) , parameter :: r2es =  611.21D0*rgow
-       ! real(rk8) , parameter :: r3les = 17.502D0
-       ! real(rk8) , parameter :: r4les = 32.19D0
-       !foeewm = r2es*(phases(zt)*exp(r3les*(zt-tzero)/(zt-r4les))+&
-       !         (d_one-phases(zt))*exp(r3ies*(zt-tzero)/(zt-r4ies)))
-        foeewm = r2es*(phases(zt)*exp(r3les*(zt-tzero)/(zt-r4les))+&
+       real(rk8) , parameter :: r4les = 35.86D0
+       foeewm = r2es*(phases(zt)*exp(r3les*(zt-tzero)/(zt-r4les))+&
                  (d_one-phases(zt))*exp(22.514D0-6.15D+03/zt))
      end function foeewm
 
@@ -2185,49 +2325,9 @@ module mod_cloud_s1
      pure real(rk8) function foeeice(zt) ! = 0.622*esi
        implicit none
        real(rk8) , intent(in):: zt
-       !real(rk8) , parameter :: r3ies = 21.874D0
        real(rk8) , parameter :: r2es =  610.78D0*ep2
-       !real(rk8) , parameter :: r4ies = 7.66D0
-       ! real(rk8) , parameter :: r3ies = 22.587D0
-       ! real(rk8) , parameter :: r2es =  611.21D0*rgow
-       ! real(rk8) , parameter :: r4ies = -0.7D0
-       ! foeeice = r2es*exp(r3ies*(zt-tzero)/(zt-r4ies))
        foeeice = r2es*exp(22.514D0-6.15D+03/zt)
      end function foeeice
-
-     pure real(rk8) function satc(zt,xp)
-       implicit none
-       real(rk8) , intent(in) :: xp , zt
-       ! saturation mixing ratio for ice in Pa
-       ! (A Description of the Fifth-Generation Penn State/NCAR
-       !  Mesoscale Model (MM5)
-       !  Georg A. Grell, Jimy Dudhia, David R. Stauffer,
-       !  NCAR TECHNICAL NOTE Dec 1994)
-       satc = (380.14/xp)*dexp(22.514D0-6150.0D0/zt)
-     end function satc
-
-     pure real(rk8) function satw(zt,xp)
-       implicit none
-       real(rk8) , intent(in) :: xp , zt
-       ! saturation mixing ratio for water in Pa
-       ! (A Description of the Fifth-Generation Penn State/NCAR
-       !  Mesoscale Model (MM5)
-       !  Georg A. Grell, Jimy Dudhia, David R. Stauffer,
-       !  NCAR TECHNICAL NOTE Dec 1994)
-       satw = (380.14/xp)*dexp(17.67D0*(zt-tzero)/(zt-29.65D0))
-     end function satw
-
-     pure real(rk8) function dqsatdtc(zt,satc)
-       implicit none
-       real(rk8) , intent(in) :: satc , zt
-       dqsatdtc = satc*(6150.0D0/(zt)**2-d_one/zt)
-     end function dqsatdtc
-
-     pure real(rk8) function dqsatdtw(zt,satw)
-       implicit none
-       real(rk8) , intent(in) :: satw , zt
-       dqsatdtw = satw*(17.67D0*((tzero-29.65D0)/(zt-29.65D0)**2)-d_one/zt)
-     end function dqsatdtw
 
      pure real(rk8) function fokoop(zt,foeeliq,foeeice)
        implicit none
