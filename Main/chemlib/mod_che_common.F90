@@ -79,7 +79,7 @@ module mod_che_common
          crhob3d , cfcc , cza , cdzq , ccldfra , crembc , cremrat ,  &
          cconvpr , crhb3d
   real(rk8) , pointer , dimension(:,:) :: cpsb , ctg , clndcat , cht , &
-         cssw2da , cvegfrac , csol2d , csdelt , csdelq ,         &
+         cssw2da , cvegfrac , csol2d , csdeltk2d , csdelqk2d ,         &
          cuvdrag , csfracv2d , csfracb2d , csfracs2d , cxlat , crainc
   real(rk8) , pointer , dimension(:,:) :: psbb0 , psbb1
   real(rk8) , pointer , dimension(:,:) :: czen

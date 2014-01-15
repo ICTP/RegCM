@@ -1,5 +1,3 @@
-!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
 !    This file is part of ICTP RegCM.
 !
 !    ICTP RegCM is free software: you can redistribute it and/or modify
@@ -108,8 +106,8 @@ module mod_che_interface
     call assignpnt(sfracb2d,csfracb2d)
     call assignpnt(sfracs2d,csfracs2d)
 
-    call assignpnt(sdelt,csdelt) 
-    call assignpnt(sdelq,csdelq)
+    call assignpnt(sdelt,csdeltk2d) 
+    call assignpnt(sdelq,csdelqk2d)
 
     call assignpnt(atms%za,cza)
     call assignpnt(atms%dzq,cdzq)

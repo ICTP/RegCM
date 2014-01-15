@@ -260,7 +260,7 @@
       ! Before emission and deposition routine set the surfecae netflux
       ! used by BL schems to zero
       !
-      cchifxuw = d_zero
+      chifxuw = d_zero
       !
       ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)       
       !
