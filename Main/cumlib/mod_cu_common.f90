@@ -33,6 +33,7 @@ module mod_cu_common
   real(rk8) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
 
   integer(ik4) , pointer , dimension(:,:) :: cuscheme ! which scheme to use
+  real(rk8) , pointer , dimension(:,:,:) :: q_detr
   integer(ik4) :: total_precip_points
 
   real(rk8) , dimension(10) :: cld_profile
