@@ -272,7 +272,7 @@ module mod_params
   rfstrt = .false.      ! *
   ifsave = .false.
   ifatm  = .true.
-  ifrad  = .false.
+  ifrad  = .true.
   ifsrf  = .true.
   ifsts  = .true.
   ifsub  = .false.
@@ -598,11 +598,6 @@ module mod_params
         write(stderr,*) 'IPPTLS == 2 IS STILL EXPERIMENTAL !!!!'
         write(stderr,*) 'DO NOT USE IT ON A PRODUCTION RUN !!!!'
         ! call fatal(__FILE__,__LINE__,'EXPERIMENTAL FEATURE')
-        if ( icup /= 5 ) then
-          write(stderr,*) 'IPPTLS == 2 REQUIRES ICUP == 5.'
-          write(stderr,*) 'Setting icup to 5 (Tiedtke)'
-          icup = 5
-        end if
         if ( budget_compute ) then
           write(stdout,*) 'Will check the total enthalpy and moisture'
         end if
@@ -815,7 +810,7 @@ module mod_params
   if ( ipptls == 2 ) then
     nqx = 5
     iqfrst = iqc
-    iqlst = iqi
+    iqlst = iqs
   else
     nqx = 2
     iqfrst = iqc
