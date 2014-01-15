@@ -89,9 +89,10 @@ module mod_cu_interface
 
   subroutine allocate_cumulus
     implicit none
+    call getmem3d(q_detr,jci1,jci2,ici1,ici2,1,kz,'cumulus:q_detr')
     if ( icup > 90 ) then
       call getmem2d(cuscheme,jci1,jci2,ici1,ici2,'cumulus:cuscheme')
-     end if
+    end if
     select case ( icup )
       case (1)
         call allocate_mod_cu_kuo
