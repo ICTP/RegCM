@@ -429,7 +429,7 @@ AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  Main/mpplib/Makefile Main/netlib/Makefile \
                  Main/Makefile Main/batslib/Makefile Main/clmlib/Makefile \
                  Main/ocnlib/Makefile Main/clmlib/clm4.5/Makefile \
-                 Main/chemlib/Makefile Main/chemlib/GAS_CBMZ/Makefile \
+                 Main/chemlib/Makefile Main/chemlib/GAS_CBMZ_NEW/Makefile \
                  Main/cumlib/Makefile Main/radlib/Makefile \
                  Main/radlib/RRTMG_SW/Makefile Main/pbllib/Makefile \
                  Tools/Programs/CheckSun/Makefile \
