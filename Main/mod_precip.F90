@@ -28,7 +28,7 @@ module mod_precip
   use mod_runparams
   use mod_memutil
   use mod_mpmessage
-  use mod_regcm_types
+  use mod_atm_interface , only : atmstate , slice , surfstate
 !
   private
 !
@@ -45,7 +45,7 @@ module mod_precip
 !
   real(rk8) , parameter :: uch = d_1000*regrav*secph
 !
-  real(rk8) , public , pointer , dimension(:,:,:) :: fcc , remrat , rembc
+  real(rk8) , public , pointer , dimension(:,:,:) :: fcc , remrat , rembc , totc
   real(rk8) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0 , &
     cevap , caccr
   logical :: lchem = .false.
@@ -59,6 +59,7 @@ module mod_precip
       integer(ik4) , intent(in) :: ichem
       ! This needs to be saved in SAV file
       call getmem3d(fcc,jci1,jci2,ici1,ici2,1,kz,'pcp:fcc')
+      call getmem3d(totc,jci1,jci2,ici1,ici2,1,kz,'pcp:totc')
       ! Those not. Note the external, internal change.
       call getmem2d(qck1,jci1,jci2,ici1,ici2,'pcp:qck1')
       call getmem2d(cgul,jci1,jci2,ici1,ici2,'pcp:cgul')
@@ -164,38 +165,6 @@ module mod_precip
 !                and Isaac equation is for mean cloud water while qcth is the
 !                theshhold for auto-conversion.
           qcth = cgul(j,i)*(d_10**(-0.489D0+0.0134D0*tcel))*d_r1000 
-                                                             ![kg/kg][cld]
-!         1ae. Compute the gridcell average autoconversion [kg/k g/s]
-          pptnew = qck1(j,i)*(qcincld-qcth)*afc              ![kg/kg/s][avg]
-          pptnew = dmin1(dmax1(pptnew,d_zero),pptmax)        ![kg/kg/s][avg]
-          if ( pptnew < dlowval ) pptnew = d_zero
-
-          if ( pptnew > d_zero ) then !   New precipitation
-!           1af. Compute the cloud removal rate (for chemistry) [1/s]
-            if (lchem) remrat(j,i,1) = pptnew/qcw
-!           1ag. Compute the amount of cloud water removed by raindrop
-!                accretion [kg/kg/s].  In the layer where the precipitation
-!                is formed, only half of the precipitation is assumed to
-!                accrete. 1aga. Compute the amount of water remaining in the
-!                cloud [kg/kg]
-            qcleft = qcw - pptnew*dt                         ![kg/kg][avg]
-!           1agb. Add 1/2 of the new precipitation can accrete.
-            pptkm1 = d_half*pptnew/afc*rho*dt                ![kg/m3][cld]
-!           1agc. Accretion [kg/kg/s]=[m3/kg/s]*[kg/kg]*[kg/m3]
-            pptacc = caccr(j,i)*qcleft*pptkm1                ![kg/kg/s][avg]
-!           1agd. Update the precipitation accounting for the accretion
-!           [kg/kg/s]
-            pptnew = dmin1(pptmax,pptacc+pptnew)             ![kg/kg/s][avg]
-!           1ah. Accumulate precipitation and convert to kg/m2/s
-            dpovg = dsigma(1)*psf(j,i)*thog                  ![kg/m2]
-            pptsum(j,i) = pptnew*dpovg                         ![kg/m2/s][avg]
-!           1ai. Compute the cloud water tendency [kg/kg/s*cb]
-            qxten(j,i,1,iqc) = qxten(j,i,1,iqc) - pptnew*psf(j,i) ![kg/kg/s*cb][avg]
-          else  !   Cloud but no new precipitation
-            pptsum(j,i) = d_zero                               ![kg/m2/s][avg]
-          end if
-        else  !   No cloud
-          pptsum(j,i) = d_zero                                 ![kg/m2/s][avg]
         end if
       end do
     end do
@@ -390,15 +359,34 @@ module mod_precip
             else ! high cloud (less subgrid variability)
               rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15D0*(tc0-t3(j,i,k)))
             end if
-            if ( rh3(j,i,k) >= rhmax ) then        ! full cloud cover
-              fcc(j,i,k) = d_one
-            else if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
-              fcc(j,i,k) = d_zero
-            else                                   ! partial cloud cover
-              fcc(j,i,k) = d_one-dsqrt(d_one-(rh3(j,i,k)-rh0adj) / &
-                            (rhmax-rh0adj))
-              fcc(j,i,k) = dmin1(dmax1(fcc(j,i,k),0.01D0),0.99D0)
-            end if !  rh0 threshold
+!            if (ipptls == 1) then
+              if ( rh3(j,i,k) >= rhmax) then        ! full cloud cover
+                fcc(j,i,k) = d_one
+              else if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
+                fcc(j,i,k) = d_zero
+              else                                         ! partial cloud cover
+                fcc(j,i,k) = d_one-dsqrt(d_one-(rh3(j,i,k)-rh0adj) / &
+                             (rhmax-rh0adj))
+                          !  if (ipptls == 1) totc(j,i,k) = qx3(j,i,k,iqc)
+                          !  if (ipptls > 1)  totc(j,i,k) = qx3(j,i,k,iqc) + qx3(j,i,k,iqi)
+                 fcc(j,i,k) = dmin1(dmax1(fcc(j,i,k),0.01D0),0.99D0)
+               end if
+!            else
+!             if ( rh3(j,i,k) >= d_one) then        ! full cloud cover
+!               fcc(j,i,k) = d_one
+!             else 
+!               fcc(j,i,k) = (rh3(j,i,k)**0.25D0)* &
+!                            (d_one-dexp((-100.0D0*(qx3(j,i,k,iqc)+qx3(j,i,k,iqi))/ & 
+!                            ((d_one-rh3(j,i,k))*qs3(j,i,k))**0.49D0)))
+!               fcc(j,i,k) = dmin1(dmax1(fcc(j,i,k),0.01D0),0.99D0)
+!             end if !  rh0 threshold
+! Test CF either 1 or 0
+!              if (qx3(j,i,k,iqc)+qx3(j,i,k,iqi)>minqx) then
+!                fcc(j,i,k)=d_one
+!              else 
+!                fcc(j,i,k)=d_zero
+!              end if 
+!            end if
             !----------------------------------------------------------------
             ! Correction:
             !   Ivan Guettler, 14.10.2010.
@@ -434,7 +422,11 @@ module mod_precip
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( qx3(j,i,k,iqc) > minqx ) then
+          ! Calculate total condensate, in ipptls = 1 it is given by the liquid only,
+          ! in ipptls = 1 it is given by liquid and ice
+            if (ipptls == 1)  totc(j,i,k) = qx3(j,i,k,iqc)
+            if (ipptls == 2 ) totc(j,i,k) = qx3(j,i,k,iqc) + qx3(j,i,k,iqi)
+            if ( totc(j,i,k) > minqx ) then
               if ( iconvlwp == 1 ) then
                 ! Apply the parameterisation based on temperature to the
                 ! the large scale clouds.
@@ -450,7 +442,7 @@ module mod_precip
               else
                 ! Cloud Water Volume
                 ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-                exlwc = qx3(j,i,k,iqc)*rho3(j,i,k)*d_1000
+                exlwc = totc(j,i,k)*rho3(j,i,k)*d_1000
               end if
             else
               exlwc = 0.001D0
@@ -458,7 +450,7 @@ module mod_precip
             radlqwc(j,i,k) = &
               (radcldf(j,i,k)*radlqwc(j,i,k) + fcc(j,i,k)*exlwc) / &
                dmax1(radcldf(j,i,k)+fcc(j,i,k),0.01D0)
-            radcldf(j,i,k) = dmin1(dmax1(radcldf(j,i,k),fcc(j,i,k)),cftotmax)
+            radcldf(j,i,k) = dmin1(fcc(j,i,k),cftotmax)
           end do
         end do
       end do
@@ -542,14 +534,10 @@ module mod_precip
           if ( rhc >= rhmax .or. rhc < rh0adj ) then ! Full or no cloud cover
             dqv = qvcs - qvs*conf ! Water vapor in excess of sat
             tmp1 = r1*dqv
+            fccc=d_zero
           else                                       ! Partial cloud cover
-            if ( ipptls == 1 ) then
-              fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
-              fccc = dmin1(dmax1(fccc,0.01D0),d_one)
-            else ! (Xu & Randall 1996a)
-              fccc = rhc**0.25D0*(d_one-exp(-100.0D0*qxten(j,i,k,iqc)/((d_one-rhc)*qvs)**0.49D0))
-              fccc = dmin1(dmax1(fccc,0.01D0),d_one)
-            end if
+            fccc = d_one - dsqrt(d_one-(rhc-rh0adj)/(rhmax-rh0adj))
+            fccc = dmin1(dmax1(fccc,0.01D0),d_one)
             qvc_cld = dmax1((qs3(j,i,k)+dt*qxten(j,i,k,iqv)/psc(j,i)),d_zero)
             dqv = qvc_cld - qvs*conf  ! qv diff between predicted qv_c
             tmp1 = r1*dqv*fccc        ! grid cell average
