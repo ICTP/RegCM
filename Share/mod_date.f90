@@ -122,7 +122,8 @@ module mod_date
   end interface
 
   interface split_idate
-    module procedure split_i10 , split_rcm_time_and_date
+    module procedure split_i10 , split_rcm_time_and_date , &
+                    split_rcm_time_and_date_complete
   end interface
 
   public :: timeval2ym
@@ -1780,5 +1781,20 @@ module mod_date
     id = d%day
     ih = t%hour
   end subroutine split_rcm_time_and_date
+
+  subroutine split_rcm_time_and_date_complete(x,iy,im,id,ih,imm,iss)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(out) :: iy , im , id , ih , imm , iss
+    type(iadate) :: d
+    type(iatime) :: t
+    call internal_to_date_time(x,d,t)
+    iy = d%year
+    im = d%month
+    id = d%day
+    ih = t%hour
+    imm = t%minute
+    iss = t%second
+  end subroutine split_rcm_time_and_date_complete
 
 end module mod_date
