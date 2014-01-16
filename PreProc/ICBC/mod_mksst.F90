@@ -28,6 +28,7 @@ module mod_mksst
   use mod_dynparam
   use mod_message
   use mod_nchelper
+  use mod_interp
   use netcdf
 
   private
@@ -220,7 +221,7 @@ module mod_mksst
     implicit none
     integer(ik4) , intent(in) :: jp , ip
     real(rk8) , dimension(:,:) , intent(in) :: sst
-    real(rk8) :: wt , wtsum
+    real(rk8) :: wt , wtsum , distsig
     integer(ik4) :: i , j , nr , np
     nr = 1
     np = -1
@@ -233,7 +234,10 @@ module mod_mksst
           if ( j < 1 .or. j > jx ) cycle
           if ( sst(j,i) > -900.0 ) then
             wt = 1.0/sqrt(real(i-ip)**2+real(j-jp)**2)
-            nearn = nearn + sst(j,i)*wt
+            distsig = sign(1.0D0,xlat(jp,ip)-xlat(j,i))
+            nearn = nearn + (max(icetemp,sst(j,i) - lrate* &
+             (max(0.0,topogm(jp,ip)-topogm(j,i))) - distsig * &
+             gcdist(xlat(jp,ip),xlon(jp,ip),xlat(j,i),xlon(jp,ip))/100000.0))*wt
             wtsum = wtsum + wt
             np = np + 1
           end if
@@ -241,7 +245,7 @@ module mod_mksst
       end do
       nr = nr + 1
     end do
-    nearn = nearn / wtsum
+    nearn = (nearn / wtsum)
   end function nearn
 
   subroutine closesst
