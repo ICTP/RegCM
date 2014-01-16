@@ -126,6 +126,10 @@ module mod_date
                     split_rcm_time_and_date_complete , split_rcm_date
   end interface
 
+  interface date_is
+    module procedure full_date_is , daymon_is
+  end interface date_is
+
   public :: timeval2ym
   public :: rcm_time_and_date , assignment(=) , operator(==)
   public :: rcm_time_interval , operator(+) , operator(-)
@@ -1809,14 +1813,23 @@ module mod_date
     iss = t%second
   end subroutine split_rcm_time_and_date_complete
 
-  logical function date_is(x,y,m,d)
+  logical function full_date_is(x,y,m,d)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     integer(ik4) , intent(in) :: y , m , d
     integer(ik4) :: iy , im , id
     call split_rcm_date(x,iy,im,id)
-    date_is = ( y == iy .and. m == im .and. d == id )
-  end function date_is
+    full_date_is = ( y == iy .and. m == im .and. d == id )
+  end function full_date_is
+
+  logical function daymon_is(x,m,d)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(in) :: m , d
+    integer(ik4) :: iy , im , id
+    call split_rcm_date(x,iy,im,id)
+    daymon_is = ( m == im .and. d == id )
+  end function daymon_is
 
   logical function time_is(x,h,m,s,delta)
     implicit none
