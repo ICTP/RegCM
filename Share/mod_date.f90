@@ -130,6 +130,10 @@ module mod_date
     module procedure full_date_is , daymon_is
   end interface date_is
 
+  interface time_is
+    module procedure time_complete_is , time_of_day_is
+  end interface time_is
+
   public :: timeval2ym
   public :: rcm_time_and_date , assignment(=) , operator(==)
   public :: rcm_time_interval , operator(+) , operator(-)
@@ -1831,7 +1835,7 @@ module mod_date
     daymon_is = ( m == im .and. d == id )
   end function daymon_is
 
-  logical function time_is(x,h,m,s,delta)
+  logical function time_complete_is(x,h,m,s,delta)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     integer(ik4) , intent(in) :: h , m , s
@@ -1844,10 +1848,22 @@ module mod_date
     t%second = s
     call time_to_second_of_day(t,y)
     if ( present(delta) ) then
-      time_is = (( y%second_of_day - x%second_of_day ) / delta == 1 )
+      time_complete_is = (( y%second_of_day - x%second_of_day ) / delta == 1 )
     else
-      time_is = ( y%second_of_day == x%second_of_day )
+      time_complete_is = ( y%second_of_day == x%second_of_day )
     end if
-  end function time_is
+  end function time_complete_is
+
+  logical function time_of_day_is(x,s,delta)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(in) :: s
+    real(rk8) , optional , intent(in) :: delta
+    if ( present(delta) ) then
+      time_of_day_is = (( s - x%second_of_day ) / delta == 1 )
+    else
+      time_of_day_is = ( s == x%second_of_day )
+    end if
+  end function time_of_day_is
 
 end module mod_date
