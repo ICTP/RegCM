@@ -123,7 +123,7 @@ module mod_date
 
   interface split_idate
     module procedure split_i10 , split_rcm_time_and_date , &
-                    split_rcm_time_and_date_complete
+                    split_rcm_time_and_date_complete , split_rcm_date
   end interface
 
   public :: timeval2ym
@@ -141,6 +141,7 @@ module mod_date
   public :: split_idate , julianday
   public :: getyear , getmonth , getday
   public :: gethour , getminute , getsecond
+  public :: date_is , time_is
 
   data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
   data calstr /'gregorian','noleap','360_day'/
@@ -1769,6 +1770,17 @@ module mod_date
     getsecond = t%second
   end function getsecond
 
+  subroutine split_rcm_date(x,iy,im,id)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(out) :: iy , im , id
+    type(iadate) :: d
+    call days_from_reference_to_date(x,d)
+    iy = d%year
+    im = d%month
+    id = d%day
+  end subroutine split_rcm_date
+
   subroutine split_rcm_time_and_date(x,iy,im,id,ih)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
@@ -1796,5 +1808,33 @@ module mod_date
     imm = t%minute
     iss = t%second
   end subroutine split_rcm_time_and_date_complete
+
+  logical function date_is(x,y,m,d)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(in) :: y , m , d
+    integer(ik4) :: iy , im , id
+    call split_rcm_date(x,iy,im,id)
+    date_is = ( y == iy .and. m == im .and. d == id )
+  end function date_is
+
+  logical function time_is(x,h,m,s,delta)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(in) :: h , m , s
+    real(rk8) , optional , intent(in) :: delta
+    integer(ik4) :: ih , im , is
+    type(iatime) :: t
+    type (rcm_time_and_date) :: y
+    t%hour = h
+    t%minute = m
+    t%second = s
+    call time_to_second_of_day(t,y)
+    if ( present(delta) ) then
+      time_is = (( y%second_of_day - x%second_of_day ) / delta == 1 )
+    else
+      time_is = ( y%second_of_day == x%second_of_day )
+    end if
+  end function time_is
 
 end module mod_date
