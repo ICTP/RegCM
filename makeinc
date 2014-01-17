@@ -19,7 +19,7 @@
 
 SVNDEF := '-DSVN_REV="$(shell svnversion -n .)"'
 
-ifeq ($(OSNAME),AIX)
+ifeq ($(CPRDEF),XLF)
 null :=
 cpre := $(null)-WF,-D$(null)
 SVNDEF := $(patsubst -D%,$(cpre)%,$(SVNDEF))
