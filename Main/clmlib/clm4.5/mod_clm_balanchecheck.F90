@@ -1,103 +1,72 @@
 module mod_clm_balanchecheck
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !MODULE: BalanceCheckMod
-!
-! !DESCRIPTION:
-! Water and energy balance check.
-!
-! !USES:
+  !
+  ! Water and energy balance check.
+  !
+  use mod_intkinds
   use mod_realkinds
+  use mod_stdio
   use mod_mpmessage
+  use mod_runparams , only : ktau , dtsrf
+  use mod_clm_type , only : clm3
+  use mod_clm_atmlnd , only : clm_a2l
+  use mod_clm_varpar , only : nlevgrnd , nlevsoi , nlevurb
+  use mod_clm_varcon , only : icol_roof , icol_sunwall , icol_shadewall
+  use mod_clm_varcon , only : icol_road_perv , icol_road_imperv
+  use mod_clm_varcon , only : isturb , spval , istice_mec , istdlak
+  use mod_clm_varcon , only : istslak , istsoil , istcrop , istwet
+  use mod_clm_varctl , only : glc_dyntopo , create_glacier_mec_landunit
+  use mod_clm_subgridave
 
-! !PUBLIC TYPES:
   implicit none
-  save
-!
-! !PUBLIC MEMBER FUNCTIONS:
+
+  private
+
   public :: BeginWaterBalance  ! Initialize water balance check
   public :: BalanceCheck       ! Water and energy balance check
-!
-! !REVISION HISTORY:
-! Created by Mariana Vertenstein
-!
-!EOP
-!-----------------------------------------------------------------------
 
-contains
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: BeginWaterBalance
-!
-! !INTERFACE:
-  subroutine BeginWaterBalance(lbc, ubc, lbp, ubp, &
-             num_nolakec, filter_nolakec, num_lakec, filter_lakec, &
-             num_hydrologyc, filter_hydrologyc)
-!
-! !DESCRIPTION:
-! Initialize column-level water balance at beginning of time step
-!
-! !USES:
-    use mod_clm_type
-    use mod_clm_varpar   , only : nlevgrnd, nlevsoi, nlevurb
-    use mod_clm_subgridave, only : p2c
-    use mod_clm_varcon   , only : icol_roof, icol_sunwall, icol_shadewall, icol_road_perv, &
-                              icol_road_imperv
-    use mod_clm_varcon   , only : denh2o, denice
-!
-! !ARGUMENTS:
+  contains
+  !
+  ! Initialize column-level water balance at beginning of time step
+  !
+  subroutine BeginWaterBalance(lbc,ubc,num_nolakec,filter_nolakec, &
+                  num_lakec,filter_lakec,num_hydrologyc,filter_hydrologyc)
     implicit none
-    integer, intent(in) :: lbc, ubc                    ! column-index bounds
-    integer, intent(in) :: lbp, ubp                    ! pft-index bounds
-    integer, intent(in) :: num_nolakec                 ! number of column non-lake points in column filter
-    integer, intent(in) :: filter_nolakec(ubc-lbc+1)   ! column filter for non-lake points
-    integer, intent(in) :: num_lakec                   ! number of column non-lake points in column filter
-    integer, intent(in) :: filter_lakec(ubc-lbc+1)     ! column filter for non-lake points
-    integer , intent(in)  :: num_hydrologyc               ! number of column soil points in column filter
-    integer , intent(in)  :: filter_hydrologyc(ubc-lbc+1) ! column filter for soil points
-!
-! !CALLED FROM:
-! subroutine clm_driver1
-!
-! !REVISION HISTORY:
-! Created by Peter Thornton
-!
-!EOP
-!
-! !LOCAL VARIABLES:
-!
-! local pointers to original implicit in variables
-!
-    real(rk8), pointer :: h2osfc(:)             ! surface water (mm)
-    real(rk8), pointer :: londeg(:)             ! longitude
-    real(rk8), pointer :: latdeg(:)             ! latitude
-    integer , pointer :: cgridcell(:)          ! column's gridcell index
-    integer , pointer :: clandunit(:)          ! column's landunit
-    integer , pointer :: ltype(:)              ! landunit type
-    real(rk8), pointer :: h2osno(:)             ! snow water (mm H2O)
-    real(rk8), pointer :: h2osoi_ice(:,:)       ! ice lens (kg/m2)
-    real(rk8), pointer :: h2osoi_liq(:,:)       ! liquid water (kg/m2)
-    real(rk8), pointer :: h2ocan_pft(:)         ! canopy water (mm H2O) (pft-level) 
-    real(rk8), pointer :: wa(:)                 ! water in the unconfined aquifer (mm)
-    integer , pointer :: ctype(:)              ! column type 
-    real(rk8), pointer :: zwt(:)                ! water table depth (m)
-    real(rk8), pointer :: zi(:,:)               ! interface level below a "z" level (m)
-!
-! local pointers to original implicit out variables
-!
-    real(rk8), pointer :: h2ocan_col(:)         ! canopy water (mm H2O) (column level)
-    real(rk8), pointer :: begwb(:)              ! water mass begining of the time step
-!
-! !OTHER LOCAL VARIABLES:
-!
-    integer :: c, p, f, j, fc                  ! indices
-    real(rk8):: h2osoi_vol
-    real(rk8), pointer :: dz(:,:), watsat(:,:)
-!-----------------------------------------------------------------------
+    integer(ik4) , intent(in) :: lbc , ubc ! column-index bounds
+    ! number of column non-lake points in column filter
+    integer(ik4) , intent(in) :: num_nolakec
+    ! column filter for non-lake points
+    integer(ik4) , intent(in) , dimension(ubc-lbc+1) :: filter_nolakec
+    ! number of column non-lake points in column filter
+    integer(ik4) , intent(in) :: num_lakec
+    ! column filter for non-lake points
+    integer(ik4) , intent(in) , dimension(ubc-lbc+1) :: filter_lakec
+    ! number of column soil points in column filter
+    integer(ik4) , intent(in) :: num_hydrologyc
+    ! column filter for soil points
+    integer(ik4) , intent(in) , dimension(ubc-lbc+1) :: filter_hydrologyc
+    real(rk8) , pointer , dimension(:) :: h2osfc       ! surface water (mm)
+    real(rk8) , pointer , dimension(:) :: londeg       ! longitude
+    real(rk8) , pointer , dimension(:) :: latdeg       ! latitude
+    integer(ik4) , pointer , dimension(:) :: cgridcell ! column's gridcell index
+    integer(ik4) , pointer , dimension(:) :: clandunit ! column's landunit
+    integer(ik4) , pointer , dimension(:) :: ltype     ! landunit type
+    real(rk8) , pointer , dimension(:) :: h2osno       ! snow water (mm H2O)
+    real(rk8) , pointer , dimension(:,:) :: h2osoi_ice ! ice lens (kg/m2)
+    real(rk8) , pointer , dimension(:,:) :: h2osoi_liq ! liquid water (kg/m2)
+    ! canopy water (mm H2O) (pft-level) 
+    real(rk8) , pointer , dimension(:) :: h2ocan_pft
+    ! water in the unconfined aquifer (mm)
+    real(rk8) , pointer , dimension(:) :: wa
+    integer(ik4) , pointer , dimension(:) :: ctype ! column type 
+    real(rk8) , pointer , dimension(:) :: zwt ! water table depth (m)
+    ! interface level below a "z" level (m)
+    real(rk8) , pointer , dimension(:,:) :: zi
+    ! canopy water (mm H2O) (column level)
+    real(rk8) , pointer , dimension(:) :: h2ocan_col
+    ! water mass begining of the time step
+    real(rk8) , pointer , dimension(:) :: begwb
+    integer(ik4) :: c , f , j ! indices
+    real(rk8) , pointer , dimension(:,:) :: dz , watsat
 
     ! Assign local pointers to derived type members (column-level)
 
@@ -125,194 +94,228 @@ contains
 
     ! Determine beginning water balance for time step
     ! pft-level canopy water averaged to column
-    call p2c(num_nolakec, filter_nolakec, h2ocan_pft, h2ocan_col)
 
-    do f = 1, num_hydrologyc
-       c = filter_hydrologyc(f)
-       if(zwt(c) <= zi(c,nlevsoi)) then
-          wa(c) = 5000.D0
-       end if
+    call p2c(num_nolakec,filter_nolakec,h2ocan_pft,h2ocan_col)
+
+    do f = 1 , num_hydrologyc
+      c = filter_hydrologyc(f)
+      if ( zwt(c) <= zi(c,nlevsoi) ) then
+        wa(c) = 5000.D0
+      end if
     end do
 
-    do f = 1, num_nolakec
-       c = filter_nolakec(f)
-       if (ctype(c) == icol_roof .or. ctype(c) == icol_sunwall &
-          .or. ctype(c) == icol_shadewall .or. ctype(c) == icol_road_imperv) then
-         begwb(c) = h2ocan_col(c) + h2osno(c)
-       else
-         begwb(c) = h2ocan_col(c) + h2osno(c) + h2osfc(c) + wa(c)
-       end if
-
+    do f = 1 , num_nolakec
+      c = filter_nolakec(f)
+      if ( ctype(c) == icol_roof .or. ctype(c) == icol_sunwall .or. &
+           ctype(c) == icol_shadewall .or. ctype(c) == icol_road_imperv ) then
+        begwb(c) = h2ocan_col(c) + h2osno(c)
+      else
+        begwb(c) = h2ocan_col(c) + h2osno(c) + h2osfc(c) + wa(c)
+      end if
     end do
-    do j = 1, nlevgrnd
-      do f = 1, num_nolakec
-         c = filter_nolakec(f)
-         if ((ctype(c) == icol_sunwall .or. ctype(c) == icol_shadewall &
-          .or. ctype(c) == icol_roof) .and. j > nlevurb) then
-         else
-            begwb(c) = begwb(c) + h2osoi_ice(c,j) + h2osoi_liq(c,j)
-         end if
+    do j = 1 , nlevgrnd
+      do f = 1 , num_nolakec
+        c = filter_nolakec(f)
+        if ( (ctype(c) == icol_sunwall .or. ctype(c) == icol_shadewall .or. &
+              ctype(c) == icol_roof) .and. j > nlevurb ) then
+        else
+          begwb(c) = begwb(c) + h2osoi_ice(c,j) + h2osoi_liq(c,j)
+        end if
       end do
     end do
 
-    do f = 1, num_lakec
-       c = filter_lakec(f)
-       begwb(c) = h2osno(c)
+    do f = 1 , num_lakec
+      c = filter_lakec(f)
+      begwb(c) = h2osno(c)
     end do
-
   end subroutine BeginWaterBalance
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: BalanceCheck
-!
-! !INTERFACE:
-  subroutine BalanceCheck(lbp, ubp, lbc, ubc, lbl, ubl, lbg, ubg)
-!
-! !DESCRIPTION:
-! This subroutine accumulates the numerical truncation errors of the water
-! and energy balance calculation. It is helpful to see the performance of
-! the process of integration.
-!
-! The error for energy balance:
-!
-! error = abs(Net radiation - change of internal energy - Sensible heat
-!             - Latent heat)
-!
-! The error for water balance:
-!
-! error = abs(precipitation - change of water storage - evaporation - runoff)
-!
-! !USES:
-    use mod_clm_type
-    use mod_clm_atmlnd   , only : clm_a2l
-    use mod_clm_subgridave
-    use mod_clm_time_manager , only : get_step_size, get_nstep
-    use mod_clm_varcon   , only : isturb, icol_roof, icol_sunwall, icol_shadewall, &
-                              spval, icol_road_perv, icol_road_imperv, istice_mec, &
-                              istdlak, istslak,istsoil,istcrop,istwet
-    use mod_clm_varctl   , only : glc_dyntopo, create_glacier_mec_landunit
-!
-! !ARGUMENTS:
+  !
+  ! This subroutine accumulates the numerical truncation errors of the water
+  ! and energy balance calculation. It is helpful to see the performance of
+  ! the process of integration.
+  !
+  ! The error for energy balance:
+  !
+  ! error = abs(Net radiation - change of internal energy - Sensible heat
+  !             - Latent heat)
+  !
+  ! The error for water balance:
+  !
+  ! error = abs(precipitation - change of water storage - evaporation - runoff)
+  !
+  subroutine BalanceCheck(lbp,ubp,lbc,ubc,lbl,ubl,lbg,ubg)
     implicit none
-    integer :: lbp, ubp ! pft-index bounds
-    integer :: lbc, ubc ! column-index bounds
-    integer :: lbl, ubl ! landunit-index bounds
-    integer :: lbg, ubg ! grid-index bounds
-!
-! !CALLED FROM:
-! subroutine clm_driver
-!
-! !REVISION HISTORY:
-! 15 September 1999: Yongjiu Dai; Initial code
-! 15 December 1999:  Paul Houser and Jon Radakovich; F90 Revision
-! 10 November 2000: Mariana Vertenstein
-! Migrated to new data structures by Mariana Vertenstein and
-! Peter Thornton
-!
-! !LOCAL VARIABLES:
-!
-! local pointers to original implicit in arguments
-!
-    real(rk8), pointer :: tws(:)                !total water storage (mm H2O)
-    real(rk8), pointer :: volr(:)               !river water storage (m3)
-    real(rk8), pointer :: area(:)               !gridcell area (km2)
-    logical , pointer :: do_capsnow(:)         ! true => do snow capping
-    real(rk8), pointer :: qflx_rain_grnd_col(:) ! rain on ground after interception (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_snow_grnd_col(:) ! snow on ground after interception (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_snow_h2osfc(:)   ! snow falling on surface water (mm/s)
-    real(rk8), pointer :: frac_sno_eff(:)       ! effective snow fraction
-    real(rk8), pointer :: qflx_h2osfc_to_ice(:) ! conversion of h2osfc to ice
-    real(rk8), pointer :: qflx_snow_melt(:)     ! snow melt (net)
-    real(rk8), pointer :: frac_sno(:)           ! fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: qflx_drain_perched(:) ! sub-surface runoff (mm H2O /s)
-    real(rk8), pointer :: qflx_floodc(:)        ! total runoff due to flooding
-    real(rk8), pointer :: qflx_evap_soi(:)      ! soil evaporation (mm H2O/s) (+ = to atm)
-    real(rk8), pointer :: qflx_h2osfc_surf(:)!surface water runoff (mm/s)
-    real(rk8), pointer :: sabg_soil(:)       ! solar radiation absorbed by soil (W/m**2)
-    real(rk8), pointer :: sabg_snow(:)       ! solar radiation absorbed by snow (W/m**2)
-    real(rk8), pointer :: sabg_chk(:)        ! sum of soil/snow using current fsno, for balance check
-    integer , pointer :: pcolumn(:)         ! pft's column index
-    logical , pointer :: pactive(:)         ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer :: cactive(:)         ! true=>do computations on this column (see reweightMod for details)
-    integer , pointer :: pgridcell(:)       ! pft's gridcell index
-    integer , pointer :: plandunit(:)       ! pft's landunit index
-    integer , pointer :: cgridcell(:)       ! column's gridcell index
-    integer , pointer :: clandunit(:)       ! column's landunit index
-    integer , pointer :: ltype(:)           ! landunit type 
-    integer , pointer :: ctype(:)           ! column type 
-    real(rk8), pointer :: forc_rain(:)       ! rain rate [mm/s]
-    real(rk8), pointer :: forc_snow(:)       ! snow rate [mm/s]
-    real(rk8), pointer :: forc_lwrad(:)      ! downward infrared (longwave) radiation (W/m**2)
-    real(rk8), pointer :: endwb(:)           ! water mass end of the time step
-    real(rk8), pointer :: begwb(:)           ! water mass begining of the time step
-    real(rk8), pointer :: fsa(:)             ! solar radiation absorbed (total) (W/m**2)
-    real(rk8), pointer :: fsr(:)             ! solar radiation reflected (W/m**2)
-    real(rk8), pointer :: eflx_lwrad_out(:)  ! emitted infrared (longwave) radiation (W/m**2)
-    real(rk8), pointer :: eflx_lwrad_net(:)  ! net infrared (longwave) rad (W/m**2) [+ = to atm]
-    real(rk8), pointer :: sabv(:)            ! solar radiation absorbed by vegetation (W/m**2)
-    real(rk8), pointer :: sabg(:)            ! solar radiation absorbed by ground (W/m**2)
-    real(rk8), pointer :: eflx_sh_tot(:)     ! total sensible heat flux (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_totg(:)    ! total sensible heat flux at grid level (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_dynbal(:)     ! energy conversion flux due to dynamic land cover change(W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_lh_tot(:)     ! total latent heat flux (W/m8*2)  [+ to atm]
-    real(rk8), pointer :: eflx_soil_grnd(:)  ! soil heat flux (W/m**2) [+ = into soil]
-    real(rk8), pointer :: qflx_evap_tot(:)   ! qflx_evap_soi + qflx_evap_can + qflx_tran_veg
-    real(rk8), pointer :: qflx_irrig(:)      ! irrigation flux (mm H2O /s)
-    real(rk8), pointer :: qflx_surf(:)       ! surface runoff (mm H2O /s)
-    real(rk8), pointer :: qflx_qrgwl(:)      ! qflx_surf at glaciers, wetlands, lakes
-    real(rk8), pointer :: qflx_drain(:)      ! sub-surface runoff (mm H2O /s)
-    real(rk8), pointer :: qflx_runoff(:)     ! total runoff (mm H2O /s)
-    real(rk8), pointer :: qflx_runoffg(:)    ! total runoff at gridcell level inc land cover change flux (mm H2O /s)
-    real(rk8), pointer :: qflx_liq_dynbal(:) ! liq runoff due to dynamic land cover change (mm H2O /s)
-    real(rk8), pointer :: qflx_snwcp_ice(:)  ! excess snowfall due to snow capping (mm H2O /s) [+]`
-    real(rk8), pointer :: qflx_glcice(:)     ! flux of new glacier ice (mm H2O /s) [+ if ice grows]
-    real(rk8), pointer :: qflx_glcice_frz(:) ! ice growth (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_snwcp_iceg(:) ! excess snowfall due to snow cap inc land cover change flux (mm H20/s)
-    real(rk8), pointer :: qflx_ice_dynbal(:) ! ice runoff due to dynamic land cover change (mm H2O /s)
-    real(rk8), pointer :: forc_solad(:,:)    ! direct beam radiation (vis=forc_sols , nir=forc_soll )
-    real(rk8), pointer :: forc_solai(:,:)    ! diffuse radiation     (vis=forc_solsd, nir=forc_solld)
-    real(rk8), pointer :: eflx_traffic_pft(:)    ! traffic sensible heat flux (W/m**2)
-    real(rk8), pointer :: eflx_wasteheat_pft(:)  ! sensible heat flux from urban heating/cooling sources of waste heat (W/m**2)
-    real(rk8), pointer :: canyon_hwr(:)      ! ratio of building height to street width
-    real(rk8), pointer :: eflx_heat_from_ac_pft(:) !sensible heat flux put back into canyon due to removal by AC (W/m**2)
-    real(rk8), pointer :: h2osno(:)             ! snow water (mm H2O)
-    real(rk8), pointer :: h2osno_old(:)         ! snow water (mm H2O) at previous time step
-    real(rk8), pointer :: qflx_dew_snow(:)      ! surface dew added to snow pack (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_sub_snow(:)      ! sublimation rate from snow pack (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_top_soil(:)      ! net water input into soil from top (mm/s)
-    real(rk8), pointer :: qflx_dew_grnd(:)      ! ground surface dew formation (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_evap_grnd(:)     ! ground surface evaporation rate (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_prec_grnd(:)     ! water onto ground including canopy runoff [kg/(m2 s)]
-    real(rk8), pointer :: qflx_snwcp_liq(:)     ! excess liquid water due to snow capping (mm H2O /s) [+]`
-    real(rk8), pointer :: qflx_sl_top_soil(:)   ! liquid water + ice from layer above soil to top soil layer or sent to qflx_qrgwl (mm H2O/s)
-    integer , pointer :: snl(:)                ! number of snow layers
-!
-! local pointers to original implicit out arguments
-!
-    real(rk8), pointer :: errh2o(:)          ! water conservation error (mm H2O)
-    real(rk8), pointer :: errsol(:)          ! solar radiation conservation error (W/m**2)
-    real(rk8), pointer :: errlon(:)          ! longwave radiation conservation error (W/m**2)
-    real(rk8), pointer :: errseb(:)          ! surface energy conservation error (W/m**2)
-    real(rk8), pointer :: netrad(:)          ! net radiation (positive downward) (W/m**2)
-    real(rk8), pointer :: errsoi_col(:)      ! column-level soil/lake energy conservation error (W/m**2)
-    real(rk8), pointer :: snow_sources(:)    ! snow sources (mm H2O /s)
-    real(rk8), pointer :: snow_sinks(:)      ! snow sinks (mm H2O /s)
-    real(rk8), pointer :: errh2osno(:)       ! error in h2osno (kg m-2)
-!
-!EOP
-!
-! !OTHER LOCAL VARIABLES:
-    integer  :: p,c,l,g                     ! indices
-    real(rk8) :: dtime                       ! land model time step (sec)
-    integer  :: nstep                       ! time step number
-    logical  :: found                       ! flag in search loop
-    integer  :: indexp,indexc,indexl,indexg ! index of first found in search loop
-    real(rk8) :: forc_rain_col(lbc:ubc)      ! column level rain rate [mm/s]
-    real(rk8) :: forc_snow_col(lbc:ubc)      ! column level snow rate [mm/s]
-!-----------------------------------------------------------------------
+    integer(ik4) :: lbp , ubp ! pft-index bounds
+    integer(ik4) :: lbc , ubc ! column-index bounds
+    integer(ik4) :: lbl , ubl ! landunit-index bounds
+    integer(ik4) :: lbg , ubg ! grid-index bounds
+    real(rk8) , pointer , dimension(:) :: tws  !total water storage (mm H2O)
+    real(rk8) , pointer , dimension(:) :: volr !river water storage (m3)
+    real(rk8) , pointer , dimension(:) :: area !gridcell area (km2)
+    ! true => do snow capping
+    logical , pointer , dimension(:) :: do_capsnow
+    ! rain on ground after interception (mm H2O/s) [+]
+    real(rk8) , pointer , dimension(:) :: qflx_rain_grnd_col
+    ! snow on ground after interception (mm H2O/s) [+]
+    real(rk8) , pointer , dimension(:) :: qflx_snow_grnd_col
+    ! snow falling on surface water (mm/s)
+    real(rk8) , pointer , dimension(:) :: qflx_snow_h2osfc
+    ! effective snow fraction
+    real(rk8) , pointer , dimension(:) :: frac_sno_eff
+    ! conversion of h2osfc to ice
+    real(rk8) , pointer , dimension(:) :: qflx_h2osfc_to_ice
+    ! snow melt (net)
+    real(rk8) , pointer , dimension(:) :: qflx_snow_melt
+    ! fraction of ground covered by snow (0 to 1)
+    real(rk8) , pointer , dimension(:) :: frac_sno
+    ! sub-surface runoff (mm H2O /s)
+    real(rk8) , pointer , dimension(:) :: qflx_drain_perched
+    ! total runoff due to flooding
+    real(rk8) , pointer , dimension(:) :: qflx_floodc
+    ! soil evaporation (mm H2O/s) (+ = to atm)
+    real(rk8) , pointer , dimension(:) :: qflx_evap_soi
+    !surface water runoff (mm/s)
+    real(rk8) , pointer , dimension(:) :: qflx_h2osfc_surf
+    ! solar radiation absorbed by soil (W/m**2)
+    real(rk8) , pointer , dimension(:) :: sabg_soil
+    ! solar radiation absorbed by snow (W/m**2)
+    real(rk8) , pointer , dimension(:) :: sabg_snow
+    ! sum of soil/snow using current fsno, for balance check
+    real(rk8) , pointer , dimension(:) :: sabg_chk
+    ! pft's column index
+    integer(ik4) , pointer , dimension(:) :: pcolumn
+    ! true=>do computations on this pft (see reweightMod for details)
+    logical , pointer , dimension(:) :: pactive
+    ! true=>do computations on this column (see reweightMod for details)
+    logical , pointer , dimension(:) :: cactive
+    ! pft's gridcell index
+    integer(ik4) , pointer , dimension(:) :: pgridcell
+    ! pft's landunit index
+    integer(ik4) , pointer , dimension(:) :: plandunit
+    ! column's gridcell index
+    integer(ik4) , pointer , dimension(:) :: cgridcell
+    ! column's landunit index
+    integer(ik4) , pointer , dimension(:) :: clandunit
+    integer(ik4) , pointer , dimension(:) :: ltype  ! landunit type 
+    integer(ik4) , pointer , dimension(:) :: ctype  ! column type 
+    real(rk8) , pointer , dimension(:) :: forc_rain ! rain rate [mm/s]
+    real(rk8) , pointer , dimension(:) :: forc_snow ! snow rate [mm/s]
+    ! downward infrared (longwave) radiation (W/m**2)
+    real(rk8) , pointer , dimension(:) :: forc_lwrad
+    ! water mass end of the time step
+    real(rk8) , pointer , dimension(:) :: endwb
+    ! water mass begining of the time step
+    real(rk8) , pointer , dimension(:) :: begwb
+    ! solar radiation absorbed (total) (W/m**2)
+    real(rk8) , pointer , dimension(:) :: fsa
+    ! solar radiation reflected (W/m**2)
+    real(rk8) , pointer , dimension(:) :: fsr
+    ! emitted infrared (longwave) radiation (W/m**2)
+    real(rk8) , pointer , dimension(:) :: eflx_lwrad_out
+    ! net infrared (longwave) rad (W/m**2) [+ = to atm]
+    real(rk8) , pointer , dimension(:) :: eflx_lwrad_net
+    ! solar radiation absorbed by vegetation (W/m**2)
+    real(rk8) , pointer , dimension(:) :: sabv
+    ! solar radiation absorbed by ground (W/m**2)
+    real(rk8) , pointer , dimension(:) :: sabg
+    ! total sensible heat flux (W/m**2) [+ to atm]
+    real(rk8) , pointer , dimension(:) :: eflx_sh_tot
+    ! total sensible heat flux at grid level (W/m**2) [+ to atm]
+    real(rk8) , pointer , dimension(:) :: eflx_sh_totg
+    ! energy conversion flux due to dynamic land cover change(W/m**2) [+ to atm]
+    real(rk8) , pointer , dimension(:) :: eflx_dynbal
+    ! total latent heat flux (W/m8*2)  [+ to atm]
+    real(rk8) , pointer , dimension(:) :: eflx_lh_tot
+    ! soil heat flux (W/m**2) [+ = into soil]
+    real(rk8) , pointer , dimension(:) :: eflx_soil_grnd
+    ! qflx_evap_soi + qflx_evap_can + qflx_tran_veg
+    real(rk8) , pointer , dimension(:) :: qflx_evap_tot
+    ! irrigation flux (mm H2O /s)
+    real(rk8) , pointer , dimension(:) :: qflx_irrig
+    ! surface runoff (mm H2O /s)
+    real(rk8) , pointer , dimension(:) :: qflx_surf
+    ! qflx_surf at glaciers, wetlands, lakes
+    real(rk8) , pointer , dimension(:) :: qflx_qrgwl
+    ! sub-surface runoff (mm H2O /s)
+    real(rk8) , pointer , dimension(:) :: qflx_drain
+    ! total runoff (mm H2O /s)
+    real(rk8) , pointer , dimension(:) :: qflx_runoff
+    ! total runoff at gridcell level inc land cover change flux (mm H2O /s)
+    real(rk8) , pointer , dimension(:) :: qflx_runoffg
+    ! liq runoff due to dynamic land cover change (mm H2O /s)
+    real(rk8) , pointer , dimension(:) :: qflx_liq_dynbal
+    ! excess snowfall due to snow capping (mm H2O /s) [+]`
+    real(rk8) , pointer , dimension(:) :: qflx_snwcp_ice
+    ! flux of new glacier ice (mm H2O /s) [+ if ice grows]
+    real(rk8) , pointer , dimension(:) :: qflx_glcice
+    ! ice growth (mm H2O/s) [+]
+    real(rk8) , pointer , dimension(:) :: qflx_glcice_frz
+    ! excess snowfall due to snow cap inc land cover change flux (mm H20/s)
+    real(rk8) , pointer , dimension(:) :: qflx_snwcp_iceg
+    ! ice runoff due to dynamic land cover change (mm H2O /s)
+    real(rk8) , pointer , dimension(:) :: qflx_ice_dynbal
+    ! direct beam radiation (vis=forc_sols , nir=forc_soll )
+    real(rk8) , pointer , dimension(:,:) :: forc_solad
+    ! diffuse radiation     (vis=forc_solsd, nir=forc_solld)
+    real(rk8) , pointer , dimension(:,:) :: forc_solai
+    ! traffic sensible heat flux (W/m**2)
+    real(rk8) , pointer , dimension(:) :: eflx_traffic_pft
+    ! sensible heat flux from urban heating/cooling sources
+    !   of waste heat (W/m**2)
+    real(rk8) , pointer , dimension(:) :: eflx_wasteheat_pft
+    ! ratio of building height to street width
+    real(rk8) , pointer , dimension(:) :: canyon_hwr
+    ! sensible heat flux put back into canyon due to removal by AC (W/m**2)
+    real(rk8) , pointer , dimension(:) :: eflx_heat_from_ac_pft
+    ! snow water (mm H2O)
+    real(rk8) , pointer , dimension(:) :: h2osno
+    ! snow water (mm H2O) at previous time step
+    real(rk8) , pointer , dimension(:) :: h2osno_old
+    ! surface dew added to snow pack (mm H2O /s) [+]
+    real(rk8) , pointer , dimension(:) :: qflx_dew_snow
+    ! sublimation rate from snow pack (mm H2O /s) [+]
+    real(rk8) , pointer , dimension(:) :: qflx_sub_snow
+    ! net water input into soil from top (mm/s)
+    real(rk8) , pointer , dimension(:) :: qflx_top_soil
+    ! ground surface dew formation (mm H2O /s) [+]
+    real(rk8) , pointer , dimension(:) :: qflx_dew_grnd
+    ! ground surface evaporation rate (mm H2O/s) [+]
+    real(rk8) , pointer , dimension(:) :: qflx_evap_grnd
+    ! water onto ground including canopy runoff [kg/(m2 s)]
+    real(rk8) , pointer , dimension(:) :: qflx_prec_grnd
+    ! excess liquid water due to snow capping (mm H2O /s) [+]
+    real(rk8) , pointer , dimension(:) :: qflx_snwcp_liq
+    ! liquid water + ice from layer above soil to top soil layer or
+    !  sent to qflx_qrgwl (mm H2O/s)
+    real(rk8) , pointer , dimension(:) :: qflx_sl_top_soil
+    ! number of snow layers
+    integer(ik4) , pointer , dimension(:) :: snl
+    ! water conservation error (mm H2O)
+    real(rk8) , pointer , dimension(:) :: errh2o
+    ! solar radiation conservation error (W/m**2)
+    real(rk8) , pointer , dimension(:) :: errsol
+    ! longwave radiation conservation error (W/m**2)
+    real(rk8) , pointer , dimension(:) :: errlon
+    ! surface energy conservation error (W/m**2)
+    real(rk8) , pointer , dimension(:) :: errseb
+    ! net radiation (positive downward) (W/m**2)
+    real(rk8) , pointer , dimension(:) :: netrad
+    ! column-level soil/lake energy conservation error (W/m**2)
+    real(rk8) , pointer , dimension(:) :: errsoi_col
+    ! snow sources (mm H2O /s)
+    real(rk8) , pointer , dimension(:) :: snow_sources
+    ! snow sinks (mm H2O /s)
+    real(rk8) , pointer , dimension(:) :: snow_sinks
+    ! error in h2osno (kg m-2)
+    real(rk8) , pointer , dimension(:) :: errh2osno
+    integer(ik4) :: p , c , l , g ! indices
+    logical :: found                       ! flag in search loop
+    ! index of first found in search loop
+    integer(ik4) :: indexp , indexc , indexg
+    ! column level rain rate [mm/s]
+    real(rk8) , dimension(lbc:ubc) :: forc_rain_col
+    ! column level snow rate [mm/s]
+    real(rk8) , dimension(lbc:ubc) :: forc_snow_col
 
     ! Assign local pointers to derived type scalar members (gridcell-level)
 
@@ -343,64 +346,64 @@ contains
 
     ! Assign local pointers to derived type scalar members (landunit-level)
 
-    ltype             => clm3%g%l%itype
-    canyon_hwr        => clm3%g%l%canyon_hwr
+    ltype               => clm3%g%l%itype
+    canyon_hwr          => clm3%g%l%canyon_hwr
 
     ! Assign local pointers to derived type scalar members (column-level)
 
-    cactive           => clm3%g%l%c%active
-    ctype             => clm3%g%l%c%itype
-    cgridcell         => clm3%g%l%c%gridcell
-    clandunit         => clm3%g%l%c%landunit
-    endwb             => clm3%g%l%c%cwbal%endwb
-    begwb             => clm3%g%l%c%cwbal%begwb
-    qflx_irrig        => clm3%g%l%c%cwf%qflx_irrig
-    qflx_surf         => clm3%g%l%c%cwf%qflx_surf
-    qflx_qrgwl        => clm3%g%l%c%cwf%qflx_qrgwl
-    qflx_drain        => clm3%g%l%c%cwf%qflx_drain
-    qflx_runoff       => clm3%g%l%c%cwf%qflx_runoff
-    qflx_snwcp_ice    => clm3%g%l%c%cwf%pwf_a%qflx_snwcp_ice
-    qflx_evap_tot     => clm3%g%l%c%cwf%pwf_a%qflx_evap_tot
-    qflx_glcice       => clm3%g%l%c%cwf%qflx_glcice
-    qflx_glcice_frz   => clm3%g%l%c%cwf%qflx_glcice_frz
-    errh2o            => clm3%g%l%c%cwbal%errh2o
-    errsoi_col        => clm3%g%l%c%cebal%errsoi
-    h2osno             => clm3%g%l%c%cws%h2osno
-    h2osno_old         => clm3%g%l%c%cws%h2osno_old
-    qflx_dew_snow      => clm3%g%l%c%cwf%pwf_a%qflx_dew_snow
-    qflx_sub_snow      => clm3%g%l%c%cwf%pwf_a%qflx_sub_snow
-    qflx_top_soil      => clm3%g%l%c%cwf%qflx_top_soil
-    qflx_evap_grnd     => clm3%g%l%c%cwf%pwf_a%qflx_evap_grnd
-    qflx_dew_grnd      => clm3%g%l%c%cwf%pwf_a%qflx_dew_grnd
-    qflx_prec_grnd     => clm3%g%l%c%cwf%pwf_a%qflx_prec_grnd
-    qflx_snwcp_liq     => clm3%g%l%c%cwf%pwf_a%qflx_snwcp_liq
-    qflx_sl_top_soil   => clm3%g%l%c%cwf%qflx_sl_top_soil
-    snow_sources       => clm3%g%l%c%cws%snow_sources
-    snow_sinks         => clm3%g%l%c%cws%snow_sinks
-    errh2osno          => clm3%g%l%c%cws%errh2osno
-    snl                => clm3%g%l%c%cps%snl
+    cactive             => clm3%g%l%c%active
+    ctype               => clm3%g%l%c%itype
+    cgridcell           => clm3%g%l%c%gridcell
+    clandunit           => clm3%g%l%c%landunit
+    endwb               => clm3%g%l%c%cwbal%endwb
+    begwb               => clm3%g%l%c%cwbal%begwb
+    qflx_irrig          => clm3%g%l%c%cwf%qflx_irrig
+    qflx_surf           => clm3%g%l%c%cwf%qflx_surf
+    qflx_qrgwl          => clm3%g%l%c%cwf%qflx_qrgwl
+    qflx_drain          => clm3%g%l%c%cwf%qflx_drain
+    qflx_runoff         => clm3%g%l%c%cwf%qflx_runoff
+    qflx_snwcp_ice      => clm3%g%l%c%cwf%pwf_a%qflx_snwcp_ice
+    qflx_evap_tot       => clm3%g%l%c%cwf%pwf_a%qflx_evap_tot
+    qflx_glcice         => clm3%g%l%c%cwf%qflx_glcice
+    qflx_glcice_frz     => clm3%g%l%c%cwf%qflx_glcice_frz
+    errh2o              => clm3%g%l%c%cwbal%errh2o
+    errsoi_col          => clm3%g%l%c%cebal%errsoi
+    h2osno              => clm3%g%l%c%cws%h2osno
+    h2osno_old          => clm3%g%l%c%cws%h2osno_old
+    qflx_dew_snow       => clm3%g%l%c%cwf%pwf_a%qflx_dew_snow
+    qflx_sub_snow       => clm3%g%l%c%cwf%pwf_a%qflx_sub_snow
+    qflx_top_soil       => clm3%g%l%c%cwf%qflx_top_soil
+    qflx_evap_grnd      => clm3%g%l%c%cwf%pwf_a%qflx_evap_grnd
+    qflx_dew_grnd       => clm3%g%l%c%cwf%pwf_a%qflx_dew_grnd
+    qflx_prec_grnd      => clm3%g%l%c%cwf%pwf_a%qflx_prec_grnd
+    qflx_snwcp_liq      => clm3%g%l%c%cwf%pwf_a%qflx_snwcp_liq
+    qflx_sl_top_soil    => clm3%g%l%c%cwf%qflx_sl_top_soil
+    snow_sources        => clm3%g%l%c%cws%snow_sources
+    snow_sinks          => clm3%g%l%c%cws%snow_sinks
+    errh2osno           => clm3%g%l%c%cws%errh2osno
+    snl                 => clm3%g%l%c%cps%snl
 
     ! Assign local pointers to derived type scalar members (pft-level)
 
-    pactive           => clm3%g%l%c%p%active
-    pgridcell         => clm3%g%l%c%p%gridcell
-    plandunit         => clm3%g%l%c%p%landunit
-    fsa               => clm3%g%l%c%p%pef%fsa
-    fsr               => clm3%g%l%c%p%pef%fsr
-    eflx_lwrad_out    => clm3%g%l%c%p%pef%eflx_lwrad_out
-    eflx_lwrad_net    => clm3%g%l%c%p%pef%eflx_lwrad_net
-    sabv              => clm3%g%l%c%p%pef%sabv
-    sabg              => clm3%g%l%c%p%pef%sabg
-    eflx_sh_tot       => clm3%g%l%c%p%pef%eflx_sh_tot
-    eflx_lh_tot       => clm3%g%l%c%p%pef%eflx_lh_tot
-    eflx_soil_grnd    => clm3%g%l%c%p%pef%eflx_soil_grnd
-    errsol            => clm3%g%l%c%p%pebal%errsol
-    errseb            => clm3%g%l%c%p%pebal%errseb
-    errlon            => clm3%g%l%c%p%pebal%errlon
-    netrad            => clm3%g%l%c%p%pef%netrad
-    eflx_wasteheat_pft => clm3%g%l%c%p%pef%eflx_wasteheat_pft
+    pactive             => clm3%g%l%c%p%active
+    pgridcell           => clm3%g%l%c%p%gridcell
+    plandunit           => clm3%g%l%c%p%landunit
+    fsa                 => clm3%g%l%c%p%pef%fsa
+    fsr                 => clm3%g%l%c%p%pef%fsr
+    eflx_lwrad_out      => clm3%g%l%c%p%pef%eflx_lwrad_out
+    eflx_lwrad_net      => clm3%g%l%c%p%pef%eflx_lwrad_net
+    sabv                => clm3%g%l%c%p%pef%sabv
+    sabg                => clm3%g%l%c%p%pef%sabg
+    eflx_sh_tot         => clm3%g%l%c%p%pef%eflx_sh_tot
+    eflx_lh_tot         => clm3%g%l%c%p%pef%eflx_lh_tot
+    eflx_soil_grnd      => clm3%g%l%c%p%pef%eflx_soil_grnd
+    errsol              => clm3%g%l%c%p%pebal%errsol
+    errseb              => clm3%g%l%c%p%pebal%errseb
+    errlon              => clm3%g%l%c%p%pebal%errlon
+    netrad              => clm3%g%l%c%p%pef%netrad
+    eflx_wasteheat_pft  => clm3%g%l%c%p%pef%eflx_wasteheat_pft
     eflx_heat_from_ac_pft => clm3%g%l%c%p%pef%eflx_heat_from_ac_pft
-    eflx_traffic_pft  => clm3%g%l%c%p%pef%eflx_traffic_pft
+    eflx_traffic_pft    => clm3%g%l%c%p%pef%eflx_traffic_pft
 
     ! Assign local pointers to derived type scalar members (gridcell-level)
 
@@ -411,373 +414,405 @@ contains
     eflx_sh_totg       => clm3%g%gef%eflx_sh_totg
     eflx_dynbal        => clm3%g%gef%eflx_dynbal
 
-    ! Get step size and time step
-
-    nstep = get_nstep()
-    dtime = get_step_size()
-
     ! Determine column level incoming snow and rain
-    ! Assume no incident precipitation on urban wall columns (as in Hydrology1Mod.F90).
+    ! Assume no incident precipitation on urban wall columns
+    ! (as in Hydrology1Mod.F90).
 
-    do c = lbc,ubc
-       g = cgridcell(c)
-       if (ctype(c) == icol_sunwall .or.  ctype(c) == icol_shadewall) then
-          forc_rain_col(c) = 0.
-          forc_snow_col(c) = 0.
-       else
-          forc_rain_col(c) = forc_rain(g)
-          forc_snow_col(c) = forc_snow(g)
-       end if
+    do c = lbc , ubc
+      g = cgridcell(c)
+      if ( ctype(c) == icol_sunwall .or. ctype(c) == icol_shadewall ) then
+        forc_rain_col(c) = 0.0D0
+        forc_snow_col(c) = 0.0D0
+      else
+        forc_rain_col(c) = forc_rain(g)
+        forc_snow_col(c) = forc_snow(g)
+      end if
     end do
 
     ! Water balance check
 
-    do c = lbc, ubc
-       g = cgridcell(c)
-       l = clandunit(c)
+    do c = lbc , ubc
+      g = cgridcell(c)
+      l = clandunit(c)
       
-       ! add qflx_drain_perched and qflx_flood
-       if (cactive(c))then
-          errh2o(c) = endwb(c) - begwb(c) &
-               - (forc_rain_col(c) + forc_snow_col(c)  + qflx_floodc(c) + qflx_irrig(c) &
-                 - qflx_evap_tot(c) - qflx_surf(c)  - qflx_h2osfc_surf(c) &
-                 - qflx_qrgwl(c) - qflx_drain(c) - qflx_drain_perched(c) - qflx_snwcp_ice(c)) * dtime
-
-          ! Suppose glc_dyntopo = T:   
-          ! (1) We have qflx_snwcp_ice = 0, and excess snow has been incorporated in qflx_glcice.  
-          !     This flux must be included here to complete the water balance.
-          ! (2) Meltwater from ice is allowed to run off and is included in qflx_qrgwl,
-          !     but the water content of the ice column has not changed (at least for now) because
-          !     an equivalent ice mass has been "borrowed" from the base of the column.  That
-          !     meltwater is included in qflx_glcice.
-          !
-          ! Note that qflx_glcice is only valid over ice_mec landunits; elsewhere it is spval
-
-          if (glc_dyntopo .and. ltype(l)==istice_mec) then
-             errh2o(c) = errh2o(c) + qflx_glcice(c)*dtime
-          end if
-
-       else
-
-          errh2o(c) = 0.0D0
-
-       end if
-
+      ! add qflx_drain_perched and qflx_flood
+      if ( cactive(c) ) then
+        errh2o(c) = endwb(c) - begwb(c) - &
+                (forc_rain_col(c) + forc_snow_col(c) +                    &
+                 qflx_floodc(c) + qflx_irrig(c) -                         &
+                 qflx_evap_tot(c) - qflx_surf(c)  - qflx_h2osfc_surf(c) - &
+                 qflx_qrgwl(c) - qflx_drain(c) - qflx_drain_perched(c) -  &
+                 qflx_snwcp_ice(c)) * dtsrf
+        ! Suppose glc_dyntopo = T:   
+        ! (1) We have qflx_snwcp_ice = 0, and excess snow has been
+        !     incorporated in qflx_glcice.  
+        !     This flux must be included here to complete the water balance.
+        ! (2) Meltwater from ice is allowed to run off and is included in
+        !     qflx_qrgwl, but the water content of the ice column has not
+        !     changed (at least for now) because an equivalent ice mass has
+        !     been "borrowed" from the base of the column.  That meltwater
+        !     is included in qflx_glcice.
+        !
+        ! Note that qflx_glcice is only valid over ice_mec landunits;
+        ! elsewhere it is spval
+        if ( glc_dyntopo .and. ltype(l)==istice_mec ) then
+          errh2o(c) = errh2o(c) + qflx_glcice(c)*dtsrf
+        end if
+      else
+        errh2o(c) = 0.0D0
+      end if
     end do
 
     found = .false.
-    do c = lbc, ubc
-       if (abs(errh2o(c)) > 1D-7) then
-          found = .true.
-          indexc = c
-       end if
+    do c = lbc , ubc
+      if ( abs(errh2o(c)) > 1D-7 ) then
+        found = .true.
+        indexc = c
+      end if
     end do
 
     if ( found ) then
-       write(stderr,*)'WARNING:  water balance error ',&
-            ' nstep = ',nstep,' indexc= ',indexc,' errh2o= ',errh2o(indexc)
-       if ((ctype(indexc) .eq. icol_roof .or. ctype(indexc) .eq. icol_road_imperv .or. &
-            ctype(indexc) .eq. icol_road_perv) .and. abs(errh2o(indexc)) > 1.e-1 .and. (nstep > 2) ) then
-          write(stderr,*)'clm urban model is stopping - error is greater than 1.e-1'
-          write(stderr,*)'nstep = ',nstep,' indexc= ',indexc,' errh2o= ',errh2o(indexc)
-          write(stderr,*)'ctype(indexc): ',ctype(indexc)
-          write(stderr,*)'forc_rain    = ',forc_rain_col(indexc)
-          write(stderr,*)'forc_snow    = ',forc_snow_col(indexc)
-          write(stderr,*)'endwb        = ',endwb(indexc)
-          write(stderr,*)'begwb        = ',begwb(indexc)
-          write(stderr,*)'qflx_evap_tot= ',qflx_evap_tot(indexc)
-          write(stderr,*)'qflx_irrig   = ',qflx_irrig(indexc)
-          write(stderr,*)'qflx_surf    = ',qflx_surf(indexc)
-          write(stderr,*)'qflx_qrgwl   = ',qflx_qrgwl(indexc)
-          write(stderr,*)'qflx_drain   = ',qflx_drain(indexc)
-          write(stderr,*)'qflx_snwcp_ice   = ',qflx_snwcp_ice(indexc)
-          call fatal(__FILE__,__LINE__,'clm model is stopping')
-       else if (abs(errh2o(indexc)) > .10D0 .and. (nstep > 2) ) then
-          write(stderr,*)'clm model is stopping - error is greater than .10'
-          write(stderr,*)'nstep = ',nstep,' indexc= ',indexc,' errh2o= ',errh2o(indexc)
-          write(stderr,*)'ctype(indexc): ',ctype(indexc)
-          write(stderr,*)'forc_rain    = ',forc_rain_col(indexc)
-          write(stderr,*)'forc_snow    = ',forc_snow_col(indexc)
-          write(stderr,*)'endwb        = ',endwb(indexc)
-          write(stderr,*)'begwb        = ',begwb(indexc)
-          write(stderr,*)'qflx_evap_tot= ',qflx_evap_tot(indexc)
-          write(stderr,*)'qflx_irrig   = ',qflx_irrig(indexc)
-          write(stderr,*)'qflx_surf    = ',qflx_surf(indexc)
-          write(stderr,*)'qflx_h2osfc_surf    = ',qflx_h2osfc_surf(indexc)
-          write(stderr,*)'qflx_qrgwl   = ',qflx_qrgwl(indexc)
-          write(stderr,*)'qflx_drain   = ',qflx_drain(indexc)
-          write(stderr,*)'qflx_drain_perched   = ',qflx_drain_perched(indexc)
-          write(stderr,*)'qflx_flood   = ',qflx_floodc(indexc)
-          write(stderr,*)'qflx_snwcp_ice   = ',qflx_snwcp_ice(indexc)
-          call fatal(__FILE__,__LINE__,'clm model is stopping')
-       end if
+      write(stderr,*)'WARNING:  water balance error ',&
+         ' ktau = ',ktau,' indexc= ',indexc,' errh2o= ',errh2o(indexc)
+      if ( (ctype(indexc) .eq. icol_roof .or. &
+            ctype(indexc) .eq. icol_road_imperv .or. &
+            ctype(indexc) .eq. icol_road_perv) .and. &
+            abs(errh2o(indexc)) > 1.e-1 .and. (ktau > 2) ) then
+        write(stderr,*) &
+              'clm urban model is stopping - error is greater than 1.e-1'
+        write(stderr,*) &
+              'ktau = ',ktau,' indexc= ',indexc,' errh2o= ',errh2o(indexc)
+        write(stderr,*)'ctype(indexc): ',ctype(indexc)
+        write(stderr,*)'forc_rain    = ',forc_rain_col(indexc)
+        write(stderr,*)'forc_snow    = ',forc_snow_col(indexc)
+        write(stderr,*)'endwb        = ',endwb(indexc)
+        write(stderr,*)'begwb        = ',begwb(indexc)
+        write(stderr,*)'qflx_evap_tot= ',qflx_evap_tot(indexc)
+        write(stderr,*)'qflx_irrig   = ',qflx_irrig(indexc)
+        write(stderr,*)'qflx_surf    = ',qflx_surf(indexc)
+        write(stderr,*)'qflx_qrgwl   = ',qflx_qrgwl(indexc)
+        write(stderr,*)'qflx_drain   = ',qflx_drain(indexc)
+        write(stderr,*)'qflx_snwcp_ice   = ',qflx_snwcp_ice(indexc)
+        call fatal(__FILE__,__LINE__,'clm model is stopping')
+      else if ( abs(errh2o(indexc)) > .10D0 .and. (ktau > 2) ) then
+        write(stderr,*)'clm model is stopping - error is greater than .10'
+        write(stderr,*) &
+             'ktau = ',ktau,' indexc= ',indexc,' errh2o= ',errh2o(indexc)
+        write(stderr,*)'ctype(indexc): ',ctype(indexc)
+        write(stderr,*)'forc_rain    = ',forc_rain_col(indexc)
+        write(stderr,*)'forc_snow    = ',forc_snow_col(indexc)
+        write(stderr,*)'endwb        = ',endwb(indexc)
+        write(stderr,*)'begwb        = ',begwb(indexc)
+        write(stderr,*)'qflx_evap_tot= ',qflx_evap_tot(indexc)
+        write(stderr,*)'qflx_irrig   = ',qflx_irrig(indexc)
+        write(stderr,*)'qflx_surf    = ',qflx_surf(indexc)
+        write(stderr,*)'qflx_h2osfc_surf    = ',qflx_h2osfc_surf(indexc)
+        write(stderr,*)'qflx_qrgwl   = ',qflx_qrgwl(indexc)
+        write(stderr,*)'qflx_drain   = ',qflx_drain(indexc)
+        write(stderr,*)'qflx_drain_perched   = ',qflx_drain_perched(indexc)
+        write(stderr,*)'qflx_flood   = ',qflx_floodc(indexc)
+        write(stderr,*)'qflx_snwcp_ice   = ',qflx_snwcp_ice(indexc)
+        call fatal(__FILE__,__LINE__,'clm model is stopping')
+      end if
     end if
 
     ! Snow balance check
 
-    do c = lbc, ubc
-       g = cgridcell(c)
-       l = clandunit(c)
-          ! As defined here, snow_sources - snow_sinks will equal the change in h2osno at 
-          ! any given time step but only if there is at least one snow layer.  h2osno 
-          ! also includes snow that is part of the soil column (an initial snow layer is 
-          ! only created if h2osno > 10mm).
-          if (snl(c) .lt. 0) then
-             snow_sources(c) = qflx_prec_grnd(c) + qflx_dew_snow(c) + qflx_dew_grnd(c)
-             snow_sinks(c)   = qflx_sub_snow(c) + qflx_evap_grnd(c) + qflx_snow_melt(c) &
-                               + qflx_snwcp_ice(c) + qflx_snwcp_liq(c) + qflx_sl_top_soil(c)
-
-             if (ltype(l) == istdlak) then 
-                if ( do_capsnow(c) ) then
-                   snow_sources(c) = qflx_snow_grnd_col(c) &
-                        + frac_sno_eff(c) * (qflx_dew_snow(c) + qflx_dew_grnd(c) ) 
-                   
-                   snow_sinks(c)   = frac_sno_eff(c) * (qflx_sub_snow(c) + qflx_evap_grnd(c) ) &
-                        + (qflx_snwcp_ice(c) + qflx_snwcp_liq(c) - qflx_prec_grnd(c))  &
-                        + qflx_snow_melt(c)  + qflx_sl_top_soil(c)
-                else
-                   snow_sources(c) = qflx_snow_grnd_col(c) &
-                        + frac_sno_eff(c) * (qflx_rain_grnd_col(c) &
-                        +  qflx_dew_snow(c) + qflx_dew_grnd(c) ) 
-                   
-                   snow_sinks(c)   = frac_sno_eff(c) * (qflx_sub_snow(c) + qflx_evap_grnd(c) ) &
-                        + qflx_snow_melt(c)  + qflx_sl_top_soil(c)
-                endif
-             endif
-
-             if (ltype(l) == istsoil .or. ltype(l) == istcrop .or. ltype(l) == istwet ) then
-                 if ( do_capsnow(c) ) then
-                    snow_sources(c) = frac_sno_eff(c) * (qflx_dew_snow(c) + qflx_dew_grnd(c) ) &
-                         + qflx_h2osfc_to_ice(c) + qflx_prec_grnd(c)
-
-                    snow_sinks(c)   = frac_sno_eff(c) * (qflx_sub_snow(c) + qflx_evap_grnd(c)) &
-                         + qflx_snwcp_ice(c) + qflx_snwcp_liq(c) &
-                         + qflx_snow_melt(c) + qflx_sl_top_soil(c)
-                 else
-                    snow_sources(c) = (qflx_snow_grnd_col(c) - qflx_snow_h2osfc(c) ) &
-                         + frac_sno_eff(c) * (qflx_rain_grnd_col(c) &
-                         +  qflx_dew_snow(c) + qflx_dew_grnd(c) ) + qflx_h2osfc_to_ice(c)
-
-                   snow_sinks(c)   = frac_sno_eff(c) * (qflx_sub_snow(c) + qflx_evap_grnd(c)) &
-                        + qflx_snow_melt(c) + qflx_sl_top_soil(c)
-                endif
-             endif
-
-             ! For ice_mec landunits, if glc_dyntopo is true, then qflx_snwcp_ice = 0,
-             ! and qflx_glcice_frz instead stores this flux
-             if (ltype(l) == istice_mec .and. glc_dyntopo) then
-                snow_sinks(c) = snow_sinks(c) + qflx_glcice_frz(c)
-             end if
-
-             errh2osno(c) = (h2osno(c) - h2osno_old(c)) - (snow_sources(c) - snow_sinks(c)) * dtime
+    do c = lbc , ubc
+      g = cgridcell(c)
+      l = clandunit(c)
+      ! As defined here, snow_sources - snow_sinks will equal the change
+      ! in h2osno at any given time step but only if there is at least one
+      ! snow layer.  h2osno also includes snow that is part of the soil
+      ! column (an initial snow layer is only created if h2osno > 10mm).
+      if ( snl(c) < 0 ) then
+        snow_sources(c) = qflx_prec_grnd(c) + qflx_dew_snow(c) + &
+                qflx_dew_grnd(c)
+        snow_sinks(c)   = qflx_sub_snow(c) + qflx_evap_grnd(c) + &
+                qflx_snow_melt(c) + qflx_snwcp_ice(c) +          &
+                qflx_snwcp_liq(c) + qflx_sl_top_soil(c)
+        if ( ltype(l) == istdlak ) then 
+          if ( do_capsnow(c) ) then
+            snow_sources(c) = qflx_snow_grnd_col(c) + &
+                 frac_sno_eff(c) * (qflx_dew_snow(c) + qflx_dew_grnd(c) ) 
+            snow_sinks(c) = frac_sno_eff(c) * (qflx_sub_snow(c) + &
+                    qflx_evap_grnd(c) ) + (qflx_snwcp_ice(c) +    &
+                    qflx_snwcp_liq(c) - qflx_prec_grnd(c)) +      &
+                    qflx_snow_melt(c)  + qflx_sl_top_soil(c)
           else
-             snow_sources(c) = 0.D0
-             snow_sinks(c) = 0.D0
-             errh2osno(c) = 0.D0
+            snow_sources(c) = qflx_snow_grnd_col(c) +          &
+                    frac_sno_eff(c) * (qflx_rain_grnd_col(c) + &
+                    qflx_dew_snow(c) + qflx_dew_grnd(c) ) 
+            snow_sinks(c) = frac_sno_eff(c) * (qflx_sub_snow(c) + &
+                    qflx_evap_grnd(c) ) + qflx_snow_melt(c) +     &
+                    qflx_sl_top_soil(c)
           end if
+        end if
+
+        if ( ltype(l) == istsoil .or. &
+             ltype(l) == istcrop .or. &
+             ltype(l) == istwet ) then
+          if ( do_capsnow(c) ) then
+            snow_sources(c) = frac_sno_eff(c) * (qflx_dew_snow(c) + &
+                    qflx_dew_grnd(c) ) + qflx_h2osfc_to_ice(c) +    &
+                    qflx_prec_grnd(c)
+            snow_sinks(c) = frac_sno_eff(c) * (qflx_sub_snow(c) +  &
+                    qflx_evap_grnd(c)) + qflx_snwcp_ice(c) +       &
+                    qflx_snwcp_liq(c) + qflx_snow_melt(c) + qflx_sl_top_soil(c)
+          else
+            snow_sources(c) = (qflx_snow_grnd_col(c) - qflx_snow_h2osfc(c) ) + &
+                    frac_sno_eff(c) * (qflx_rain_grnd_col(c) +                 &
+                    qflx_dew_snow(c) + qflx_dew_grnd(c) ) +                    &
+                    qflx_h2osfc_to_ice(c)
+            snow_sinks(c) = frac_sno_eff(c) * (qflx_sub_snow(c) + &
+                    qflx_evap_grnd(c)) + qflx_snow_melt(c) + qflx_sl_top_soil(c)
+          end if
+        end if
+
+        ! For ice_mec landunits, if glc_dyntopo is true,
+        ! then qflx_snwcp_ice = 0, and qflx_glcice_frz instead stores this flux
+        if ( ltype(l) == istice_mec .and. glc_dyntopo ) then
+          snow_sinks(c) = snow_sinks(c) + qflx_glcice_frz(c)
+        end if
+
+        errh2osno(c) = (h2osno(c) - h2osno_old(c)) - &
+                (snow_sources(c) - snow_sinks(c)) * dtsrf
+      else
+        snow_sources(c) = 0.D0
+        snow_sinks(c) = 0.D0
+        errh2osno(c) = 0.D0
+      end if
     end do
 
     found = .false.
-    do c = lbc, ubc
-       if (cactive(c) .and. abs(errh2osno(c)) > 1.0D-7) then
-          found = .true.
-          indexc = c
-       end if
+    do c = lbc , ubc
+      if ( cactive(c) .and. abs(errh2osno(c)) > 1.0D-7 ) then
+        found = .true.
+        indexc = c
+      end if
     end do
     if ( found ) then
-       write(stderr,*)'WARNING:  snow balance error ',&
-            ' nstep = ',nstep,' indexc= ',indexc,'ltype: ', ltype(clandunit(indexc)),' errh2osno= ',errh2osno(indexc)
-       if (abs(errh2osno(indexc)) > 0.1D0 .and. (nstep > 2) ) then
-          write(stderr,*)'clm model is stopping - error is greater than .10'
-          write(stderr,*)'nstep = ',nstep,' indexc= ',indexc,' errh2osno= ',errh2osno(indexc)
-          write(stderr,*)'ltype: ', ltype(clandunit(indexc))
-          write(stderr,*)'ctype(indexc): ',ctype(indexc)
-          write(stderr,*)'snl: ',snl(indexc)
-          write(stderr,*)'h2osno: ',h2osno(indexc)
-          write(stderr,*)'h2osno_old: ',h2osno_old(indexc)
-          write(stderr,*)'snow_sources: ', snow_sources(indexc)
-          write(stderr,*)'snow_sinks: ', snow_sinks(indexc)
-          write(stderr,*)'qflx_prec_grnd: ',qflx_prec_grnd(indexc)*dtime
-          write(stderr,*)'qflx_sub_snow: ',qflx_sub_snow(indexc)*dtime
-          write(stderr,*)'qflx_evap_grnd: ',qflx_evap_grnd(indexc)*dtime
-          write(stderr,*)'qflx_top_soil: ',qflx_top_soil(indexc)*dtime
-          write(stderr,*)'qflx_dew_snow: ',qflx_dew_snow(indexc)*dtime
-          write(stderr,*)'qflx_dew_grnd: ',qflx_dew_grnd(indexc)*dtime
-          write(stderr,*)'qflx_snwcp_ice: ',qflx_snwcp_ice(indexc)*dtime
-          write(stderr,*)'qflx_snwcp_liq: ',qflx_snwcp_liq(indexc)*dtime
-          write(stderr,*)'qflx_sl_top_soil: ',qflx_sl_top_soil(indexc)*dtime
-          if (create_glacier_mec_landunit) &
-          write(stderr,*)'qflx_glcice_frz: ',qflx_glcice_frz(indexc)*dtime
-          call fatal(__FILE__,__LINE__,'clm model is stopping')
-       end if
+      write(stderr,*)'WARNING:  snow balance error ', &
+         ' ktau = ',ktau,' indexc= ',indexc,        &
+         ' ltype: ', ltype(clandunit(indexc)),        &
+         ' errh2osno= ',errh2osno(indexc)
+      if ( abs(errh2osno(indexc)) > 0.1D0 .and. (ktau > 2) ) then
+        write(stderr,*)'clm model is stopping - error is greater than .10'
+        write(stderr,*)'ktau = ',ktau,' indexc= ',indexc, &
+                ' errh2osno= ',errh2osno(indexc)
+        write(stderr,*)'ltype: ', ltype(clandunit(indexc))
+        write(stderr,*)'ctype(indexc): ',ctype(indexc)
+        write(stderr,*)'snl: ',snl(indexc)
+        write(stderr,*)'h2osno: ',h2osno(indexc)
+        write(stderr,*)'h2osno_old: ',h2osno_old(indexc)
+        write(stderr,*)'snow_sources: ', snow_sources(indexc)
+        write(stderr,*)'snow_sinks: ', snow_sinks(indexc)
+        write(stderr,*)'qflx_prec_grnd: ',qflx_prec_grnd(indexc)*dtsrf
+        write(stderr,*)'qflx_sub_snow: ',qflx_sub_snow(indexc)*dtsrf
+        write(stderr,*)'qflx_evap_grnd: ',qflx_evap_grnd(indexc)*dtsrf
+        write(stderr,*)'qflx_top_soil: ',qflx_top_soil(indexc)*dtsrf
+        write(stderr,*)'qflx_dew_snow: ',qflx_dew_snow(indexc)*dtsrf
+        write(stderr,*)'qflx_dew_grnd: ',qflx_dew_grnd(indexc)*dtsrf
+        write(stderr,*)'qflx_snwcp_ice: ',qflx_snwcp_ice(indexc)*dtsrf
+        write(stderr,*)'qflx_snwcp_liq: ',qflx_snwcp_liq(indexc)*dtsrf
+        write(stderr,*)'qflx_sl_top_soil: ',qflx_sl_top_soil(indexc)*dtsrf
+        if ( create_glacier_mec_landunit ) then
+          write(stderr,*)'qflx_glcice_frz: ',qflx_glcice_frz(indexc)*dtsrf
+        end if
+        call fatal(__FILE__,__LINE__,'clm model is stopping')
+      end if
     end if
 
     ! Energy balance checks
 
-    do p = lbp, ubp
-       if (pactive(p)) then
-          l = plandunit(p)
-          g = pgridcell(p)
+    do p = lbp , ubp
+      if ( pactive(p) ) then
+        l = plandunit(p)
+        g = pgridcell(p)
 
-          ! Solar radiation energy balance
-          ! Do not do this check for an urban pft since it will not balance on a per-column
-          ! level because of interactions between columns and since a separate check is done
-          ! in the urban radiation module
-          if (ltype(l) /= isturb) then
-             errsol(p) = fsa(p) + fsr(p) &
-                  - (forc_solad(g,1) + forc_solad(g,2) + forc_solai(g,1) + forc_solai(g,2))
-          else
-             errsol(p) = spval
-          end if
+        ! Solar radiation energy balance
+        ! Do not do this check for an urban pft since it will not
+        ! balance on a per-column level because of interactions between
+        ! columns and since a separate check is done in the urban radiation
+        ! module
+        if ( ltype(l) /= isturb ) then
+          errsol(p) = fsa(p) + fsr(p) -                &
+                  (forc_solad(g,1) + forc_solad(g,2) + &
+                   forc_solai(g,1) + forc_solai(g,2))
+        else
+          errsol(p) = spval
+        end if
           
-          ! Longwave radiation energy balance
-          ! Do not do this check for an urban pft since it will not balance on a per-column
-          ! level because of interactions between columns and since a separate check is done
-          ! in the urban radiation module
-          if (ltype(l) /= isturb) then
-             errlon(p) = eflx_lwrad_out(p) - eflx_lwrad_net(p) - forc_lwrad(g)
-          else
-             errlon(p) = spval
-          end if
+        ! Longwave radiation energy balance
+        ! Do not do this check for an urban pft since it will not
+        ! balance on a per-column level because of interactions between
+        ! columns and since a separate check is done in the urban radiation
+        ! module
+        if ( ltype(l) /= isturb ) then
+          errlon(p) = eflx_lwrad_out(p) - eflx_lwrad_net(p) - forc_lwrad(g)
+        else
+          errlon(p) = spval
+        end if
           
-          ! Surface energy balance
-          ! Changed to using (eflx_lwrad_net) here instead of (forc_lwrad - eflx_lwrad_out) because
-          ! there are longwave interactions between urban columns (and therefore pfts). 
-          ! For surfaces other than urban, (eflx_lwrad_net) equals (forc_lwrad - eflx_lwrad_out),
-          ! and a separate check is done above for these terms.
+        ! Surface energy balance
+        ! Changed to using (eflx_lwrad_net) here instead of
+        ! (forc_lwrad - eflx_lwrad_out) because
+        ! there are longwave interactions between urban columns
+        ! (and therefore pfts). 
+        ! For surfaces other than urban, (eflx_lwrad_net) equals
+        ! (forc_lwrad - eflx_lwrad_out),
+        ! and a separate check is done above for these terms.
           
-          if (ltype(l) /= isturb) then
-             c=pcolumn(p)
-             errseb(p) = sabv(p) + sabg_chk(p) + forc_lwrad(g) - eflx_lwrad_out(p) &
-                         - eflx_sh_tot(p) - eflx_lh_tot(p) - eflx_soil_grnd(p)
-          else
-             errseb(p) = sabv(p) + sabg(p) &
-                         - eflx_lwrad_net(p) &
-                         - eflx_sh_tot(p) - eflx_lh_tot(p) - eflx_soil_grnd(p) &
-                         + eflx_wasteheat_pft(p) + eflx_heat_from_ac_pft(p) + eflx_traffic_pft(p)
-          end if
-          netrad(p) = fsa(p) - eflx_lwrad_net(p)
-       end if
+        if ( ltype(l) /= isturb ) then
+          c = pcolumn(p)
+          errseb(p) = sabv(p) + sabg_chk(p) + forc_lwrad(g) - &
+                  eflx_lwrad_out(p) - eflx_sh_tot(p) -        &
+                  eflx_lh_tot(p) - eflx_soil_grnd(p)
+        else
+          errseb(p) = sabv(p) + sabg(p) - eflx_lwrad_net(p) -           &
+                  eflx_sh_tot(p) - eflx_lh_tot(p) - eflx_soil_grnd(p) + &
+                  eflx_wasteheat_pft(p) + eflx_heat_from_ac_pft(p) +    &
+                  eflx_traffic_pft(p)
+        end if
+        netrad(p) = fsa(p) - eflx_lwrad_net(p)
+      end if
     end do
 
     ! Solar radiation energy balance check
 
     found = .false.
-    do p = lbp, ubp
-       if (pactive(p)) then
-          if ( (errsol(p) /= spval) .and. (abs(errsol(p)) > .10D0) ) then
-             found = .true.
-             indexp = p
-             indexg = pgridcell(p)
-          end if
-       end if
+    indexg = 0
+    indexp = 0
+    do p = lbp , ubp
+      if (pactive(p)) then
+        if ( (errsol(p) /= spval) .and. (abs(errsol(p)) > .10D0) ) then
+          found = .true.
+          indexp = p
+          indexg = pgridcell(p)
+        end if
+      end if
     end do
-    if ( found  .and. (nstep > 2) ) then
-       write(stderr,100)'BalanceCheck: solar radiation balance error', nstep, indexp, errsol(indexp)
-       write(stderr,*)'fsa          = ',fsa(indexp)
-       write(stderr,*)'fsr          = ',fsr(indexp)
-       write(stderr,*)'forc_solad(1)= ',forc_solad(indexg,1)
-       write(stderr,*)'forc_solad(2)= ',forc_solad(indexg,2)
-       write(stderr,*)'forc_solai(1)= ',forc_solai(indexg,1)
-       write(stderr,*)'forc_solai(2)= ',forc_solai(indexg,2)
-       write(stderr,*)'forc_tot     = ',forc_solad(indexg,1)+forc_solad(indexg,2)&
-                                  +forc_solai(indexg,1)+forc_solai(indexg,2)
-       call fatal(__FILE__,__LINE__,'clm model is stopping')
+    if ( found  .and. (ktau > 2) ) then
+      write(stderr,100) &
+         'BalanceCheck: solar radiation balance error', ktau, indexp, &
+         errsol(indexp)
+      write(stderr,*)'fsa          = ',fsa(indexp)
+      write(stderr,*)'fsr          = ',fsr(indexp)
+      write(stderr,*)'forc_solad(1)= ',forc_solad(indexg,1)
+      write(stderr,*)'forc_solad(2)= ',forc_solad(indexg,2)
+      write(stderr,*)'forc_solai(1)= ',forc_solai(indexg,1)
+      write(stderr,*)'forc_solai(2)= ',forc_solai(indexg,2)
+      write(stderr,*)'forc_tot     = ',forc_solad(indexg,1) + &
+                                       forc_solad(indexg,2) + &
+                                       forc_solai(indexg,1) + &
+                                       forc_solai(indexg,2)
+      call fatal(__FILE__,__LINE__,'clm model is stopping')
     end if
 
     ! Longwave radiation energy balance check
 
     found = .false.
-    do p = lbp, ubp
-       if (pactive(p)) then
-          if ( (errlon(p) /= spval) .and. (abs(errlon(p)) > .10D0) ) then
-             found = .true.
-             indexp = p
-          end if
-       end if
+    do p = lbp , ubp
+      if ( pactive(p) ) then
+        if ( (errlon(p) /= spval) .and. (abs(errlon(p)) > .10D0) ) then
+          found = .true.
+          indexp = p
+        end if
+      end if
     end do
-    if ( found  .and. (nstep > 2) ) then
-       write(stderr,100)'BalanceCheck: longwave enery balance error',nstep,indexp,errlon(indexp)
-       call fatal(__FILE__,__LINE__,'clm model is stopping')
+    if ( found  .and. (ktau > 2) ) then
+      write(stderr,100) &
+          'BalanceCheck: longwave enery balance error',ktau,indexp, &
+          errlon(indexp)
+      call fatal(__FILE__,__LINE__,'clm model is stopping')
     end if
 
     ! Surface energy balance check
 
     found = .false.
-    do p = lbp, ubp
-       if (pactive(p)) then
-          if (abs(errseb(p)) > .10D0 ) then
-             found = .true.
-             indexp = p
-          end if
-       end if
+    do p = lbp , ubp
+      if ( pactive(p) ) then
+        if ( abs(errseb(p)) > 0.10D0 ) then
+          found = .true.
+          indexp = p
+        end if
+      end if
     end do
-    if ( found  .and. (nstep > 2) ) then
-       write(stderr,100)'BalanceCheck: surface flux energy balance error',nstep,indexp,errseb(indexp)
-       write(stderr,*)' sabv           = ',sabv(indexp)
-       c=pcolumn(indexp)
-       write(stderr,*)' column      = ',c
-       write(stderr,*)' sabg           = ',sabg(indexp), &
-         ((1.D0- frac_sno(c))*sabg_soil(indexp) + &
+    if ( found  .and. (ktau > 2) ) then
+      write(stderr,100) &
+         'BalanceCheck: surface flux energy balance error',ktau,indexp, &
+         errseb(indexp)
+      write(stderr,*)' sabv           = ',sabv(indexp)
+      c = pcolumn(indexp)
+      write(stderr,*)' column      = ',c
+      write(stderr,*)' sabg           = ',sabg(indexp), &
+               ((1.D0- frac_sno(c))*sabg_soil(indexp) + &
                   frac_sno(c)*sabg_snow(indexp)),sabg_chk(indexp)
-       write(stderr,*)' eflx_lwrad_net = ',eflx_lwrad_net(indexp)
-       write(stderr,*)' eflx_sh_tot    = ',eflx_sh_tot(indexp)
-       write(stderr,*)' eflx_lh_tot    = ',eflx_lh_tot(indexp)
-       write(stderr,*)' eflx_soil_grnd = ',eflx_soil_grnd(indexp)
-       call fatal(__FILE__,__LINE__,'clm model is stopping')
+      write(stderr,*)' eflx_lwrad_net = ',eflx_lwrad_net(indexp)
+      write(stderr,*)' eflx_sh_tot    = ',eflx_sh_tot(indexp)
+      write(stderr,*)' eflx_lh_tot    = ',eflx_lh_tot(indexp)
+      write(stderr,*)' eflx_soil_grnd = ',eflx_soil_grnd(indexp)
+      call fatal(__FILE__,__LINE__,'clm model is stopping')
     end if
 
     ! Soil energy balance check
 
     found = .false.
-    do c = lbc, ubc
-       if (abs(errsoi_col(c)) > 1.0D-7 ) then
-          found = .true.
-          indexc = c
-       end if
+    do c = lbc , ubc
+      if ( abs(errsoi_col(c)) > 1.0D-7 ) then
+        found = .true.
+        indexc = c
+      end if
     end do
     if ( found ) then
-       if (abs(errsoi_col(indexc)) > .10D0 .and. (nstep > 2) ) then
-          write(stderr,100)'BalanceCheck: soil balance error',nstep,indexc,errsoi_col(indexc)
-          write(stderr,*)'nstep = ',nstep,' indexc= ',indexc,' errsoi_col= ',errsoi_col(indexc)
-          call fatal(__FILE__,__LINE__,'clm model is stopping')
-       end if
+      if (abs(errsoi_col(indexc)) > .10D0 .and. (ktau > 2) ) then
+        write(stderr,100) &
+          'BalanceCheck: soil balance error',ktau,indexc,errsoi_col(indexc)
+        write(stderr,*)'ktau = ',ktau,' indexc= ',indexc, &
+                ' errsoi_col= ',errsoi_col(indexc)
+        call fatal(__FILE__,__LINE__,'clm model is stopping')
+      end if
     end if
 
     ! Update SH and RUNOFF for dynamic land cover change energy and water fluxes
-    call c2g( lbc, ubc, lbl, ubl, lbg, ubg,                &
-              qflx_runoff(lbc:ubc), qflx_runoffg(lbg:ubg), &
-              c2l_scale_type= 'urbanf', l2g_scale_type='unity' )
-    do g = lbg, ubg
-       qflx_runoffg(g) = qflx_runoffg(g) - qflx_liq_dynbal(g)
+    call c2g( lbc,ubc,lbl,ubl,lbg,ubg,                    &
+              qflx_runoff(lbc:ubc),qflx_runoffg(lbg:ubg), &
+              c2l_scale_type= 'urbanf',l2g_scale_type='unity' )
+    do g = lbg , ubg
+      qflx_runoffg(g) = qflx_runoffg(g) - qflx_liq_dynbal(g)
     enddo
 
-    call c2g( lbc, ubc, lbl, ubl, lbg, ubg,                      &
-              qflx_snwcp_ice(lbc:ubc), qflx_snwcp_iceg(lbg:ubg), &
-              c2l_scale_type= 'urbanf', l2g_scale_type='unity' )
-    do g = lbg, ubg
-       qflx_snwcp_iceg(g) = qflx_snwcp_iceg(g) - qflx_ice_dynbal(g)
+    call c2g( lbc,ubc,lbl,ubl,lbg,ubg,                          &
+              qflx_snwcp_ice(lbc:ubc),qflx_snwcp_iceg(lbg:ubg), &
+              c2l_scale_type= 'urbanf',l2g_scale_type='unity' )
+    do g = lbg , ubg
+      qflx_snwcp_iceg(g) = qflx_snwcp_iceg(g) - qflx_ice_dynbal(g)
     enddo
 
-    call p2g( lbp, ubp, lbc, ubc, lbl, ubl, lbg, ubg,      &
-              eflx_sh_tot(lbp:ubp), eflx_sh_totg(lbg:ubg), &
-              p2c_scale_type='unity',c2l_scale_type='urbanf',l2g_scale_type='unity')
-    do g = lbg, ubg
-       eflx_sh_totg(g) =  eflx_sh_totg(g) - eflx_dynbal(g)
+    call p2g( lbp,ubp,lbc,ubc,lbl,ubl,lbg,ubg,            &
+              eflx_sh_tot(lbp:ubp),eflx_sh_totg(lbg:ubg), &
+              p2c_scale_type='unity',                     &
+              c2l_scale_type='urbanf',                    &
+              l2g_scale_type='unity' )
+    do g = lbg , ubg
+      eflx_sh_totg(g) =  eflx_sh_totg(g) - eflx_dynbal(g)
     enddo
 
-! calculate total water storage for history files
-! first set tws to gridcell total endwb
-    call c2g( lbc, ubc, lbl, ubl, lbg, ubg,                &
-         endwb(lbc:ubc), tws(lbg:ubg), &
-         c2l_scale_type= 'urbanf', l2g_scale_type='unity' )
-! second add river storage as gridcell average depth
-! 1.e-3 converts [m3/km2] to [mm]
-    do g = lbg, ubg
-       tws(g) = tws(g) + volr(g) / area(g) * 1.D-3
+    ! calculate total water storage for history files
+    ! first set tws to gridcell total endwb
+
+    call c2g( lbc,ubc,lbl,ubl,lbg,ubg,                &
+              endwb(lbc:ubc),tws(lbg:ubg),            &
+              c2l_scale_type= 'urbanf',l2g_scale_type='unity' )
+
+    ! second add river storage as gridcell average depth
+    ! 1.e-3 converts [m3/km2] to [mm]
+    do g = lbg , ubg
+      tws(g) = tws(g) + volr(g) / area(g) * 1.D-3
     enddo
-100 format (1x,a,' nstep =',i10,' point =',i6,' imbalance =',f12.6,' W/m2')
-200 format (1x,a,' nstep =',i10,' point =',i6,' imbalance =',f12.6,' mm')
+
+100 format (1x,a,' ktau =',i10,' point =',i6,' imbalance =',f12.6,' W/m2')
+! 200 format (1x,a,' ktau =',i10,' point =',i6,' imbalance =',f12.6,' mm')
 
   end subroutine BalanceCheck
 

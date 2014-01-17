@@ -89,15 +89,15 @@ mod_clm_varcon.o : mod_clm_varcon.F90 mod_clm_varpar.o mod_constants.o mod_realk
 mod_clm_varsur.o : mod_clm_varsur.F90 mod_realkinds.o
 mod_clm_regcm.o : mod_clm_regcm.F90 mod_realkinds.o
 mod_clm_time_manager.o : mod_clm_time_manager.F90 mod_date.o mod_mpmessage.o mod_runparams.o mod_clm_regcm.o mod_clm_varctl.o
-mod_clm_activelayer.o : mod_clm_activelayer.F90 mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_constants.o mod_realkinds.o
+mod_clm_activelayer.o : mod_clm_activelayer.F90 mod_intkinds.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_constants.o mod_realkinds.o
 mod_clm_varctl.o : mod_clm_varctl.F90 mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o
-mod_clm_subgridave.o : mod_clm_subgridave.F90 mod_clm_varpar.o mod_clm_type.o mod_clm_varcon.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
+mod_clm_subgridave.o : mod_clm_subgridave.F90 mod_intkinds.o mod_clm_varpar.o mod_clm_type.o mod_clm_varcon.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
 mod_clm_decomp.o : mod_clm_decomp.F90 mod_clm_domain.o mod_clm_type.o mod_realkinds.o
 mod_clm_drydep.o : mod_clm_drydep.F90 mod_constants.o mod_realkinds.o mod_stdio.o
 mod_clm_megan.o : mod_clm_megan.F90 mod_mpmessage.o mod_realkinds.o mod_stdio.o
 mod_clm_ch4varcon.o : mod_clm_ch4varcon.F90 mod_clm_varctl.o mod_dynparam.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_stdio.o
 mod_clm_atmlnd.o : mod_clm_atmlnd.F90 mod_clm_ch4varcon.o mod_clm_decomp.o mod_clm_drydep.o mod_clm_megan.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_realkinds.o mod_clm_subgridave.o
-mod_clm_balanchecheck.o : mod_clm_balanchecheck.F90 mod_clm_atmlnd.o mod_clm_subgridave.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o
+mod_clm_balanchecheck.o : mod_clm_balanchecheck.F90 mod_intkinds.o mod_clm_atmlnd.o mod_clm_subgridave.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o mod_runparams.o
 mod_clm_banddiagonal.o : mod_clm_banddiagonal.F90 mod_realkinds.o mod_stdio.o
 mod_clm_qsat.o : mod_clm_qsat.F90 mod_constants.o mod_realkinds.o
 mod_clm_frictionvelocity.o : mod_clm_frictionvelocity.F90 mod_clm_atmlnd.o mod_clm_type.o mod_clm_varcon.o mod_constants.o mod_realkinds.o
