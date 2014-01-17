@@ -627,7 +627,7 @@ module mod_mtrxclm
               lms%prcp(n,j,i)   = r2crnc(j,i) + r2crnnc(j,i)
               lms%tgrd(n,j,i)   = c2rtgb(jg,ig)
               lms%tgbrd(n,j,i)  = c2rtgb(jg,ig)
-              lms%evpr(n,j,i)   = c2rlatht(jg,ig)/wlhv
+              lms%evpr(n,j,i)   = c2rlatht(jg,ig)
               lms%sent(n,j,i)   = c2rsenht(jg,ig)
               lms%taf(n,j,i)    = c2r2mt(jg,ig)
               lms%t2m(n,j,i)    = c2r2mt(jg,ig)
