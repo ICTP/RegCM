@@ -28,8 +28,8 @@ module mod_cu_interface
   use mod_regcm_types
 
   use mod_cu_common , only : cuscheme , total_precip_points , cevapu ,     &
-      model_cumulus_cloud , init_mod_cumulus
-  use mod_cu_tiedtke , only : allocate_mod_cu_tiedtke , tiedtkedrv , q_detr
+      model_cumulus_cloud , init_mod_cumulus , q_detr
+  use mod_cu_tiedtke , only : allocate_mod_cu_tiedtke , tiedtkedrv
   use mod_cu_tables , only : init_convect_tables
   use mod_cu_bm , only : allocate_mod_cu_bm , bmpara , lutbl , cldefi ,    &
       tbase
