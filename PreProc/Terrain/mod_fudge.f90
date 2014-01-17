@@ -331,17 +331,14 @@ module mod_fudge
 
   subroutine lakfudge(fudge,dpth,lnd,jx,iy,char_lak)
     implicit none
-!
-    character(len=*) :: char_lak
-    logical :: fudge , there
-    integer(ik4) :: iy , jx
-    real(rk8) , dimension(jx,iy) :: dpth , lnd
-    intent (in) char_lak , fudge , iy , jx , lnd
-    intent (inout) dpth
-!
+    character(len=*) , intent(in) :: char_lak
+    logical , intent(in) :: fudge
+    integer(ik4) , intent(in) :: iy , jx
+    real(rk8) , dimension(jx,iy) , intent(inout) :: dpth , lnd
+    logical :: there
     integer(ik4) :: i , j
     character(len=1) , dimension(jx,iy) :: ch
-!
+
     if ( fudge ) then
       inquire (file=char_lak,exist=there)
       if ( .not.there ) then
@@ -361,6 +358,7 @@ module mod_fudge
           if (lnd(j,i) > 13.5 .and. lnd(j,i) < 14.5) then
             if ( ch(j,i)/='L' ) then
               dpth(j,i) = 0.0
+              lnd(j,i) = 15.0
              end if
            end if
         end do
