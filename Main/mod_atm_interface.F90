@@ -692,7 +692,7 @@ module mod_atm_interface
       if ( iocncpl == 1 ) then
         call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'storage:cplmsk')
         cplmsk(:,:) = 0
-        call getmem3d(dailyrnf,1,nnsg,jci1,jci2,ici1,ici2,'storage:dailyrnf')
+        call getmem3d(dailyrnf,jci1,jci2,ici1,ici2,1,2,'storage:dailyrnf')
       end if
       call getmem2d(pptnc,jci1,jci2,ici1,ici2,'storage:pptnc')
       call getmem2d(prnca,jci1,jci2,ici1,ici2,'storage:prnca')
