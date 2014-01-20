@@ -451,10 +451,13 @@ module mod_precip
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-          ! Calculate total condensate, in ipptls = 1 it is given by the liquid only,
-          ! in ipptls = 1 it is given by liquid and ice
-            if (ipptls == 1)  totc(j,i,k) = qx3(j,i,k,iqc)
-            if (ipptls == 2 ) totc(j,i,k) = qx3(j,i,k,iqc) + qx3(j,i,k,iqi)
+            ! Calculate total condensate, in ipptls = 1 it is given by the
+            ! liquid only, in ipptls = 2 it is given by liquid and ice
+            if ( ipptls == 1 ) then
+              totc(j,i,k) = qx3(j,i,k,iqc)
+            else if ( ipptls == 2 ) then
+              totc(j,i,k) = qx3(j,i,k,iqc) + qx3(j,i,k,iqi)
+            end if
             if ( totc(j,i,k) > minqx ) then
               if ( iconvlwp == 1 ) then
                 ! Apply the parameterisation based on temperature to the

@@ -1,12 +1,10 @@
 module decompInitMod
-
-!------------------------------------------------------------------------------
-!BOP
-!
-! !MODULE: decompInitMod
-!
-! !USES:
+  !
+  ! Module provides a descomposition into a clumped data structure which can
+  ! be mapped back to atmosphere physics chunks.
+  !
   use mod_realkinds
+  use mod_intkinds
   use mod_mpmessage
   use mod_stdio
   use mod_dynparam
@@ -15,82 +13,42 @@ module decompInitMod
   use spmdMod     , only : comp_id
   use spmdGathScatMod
   use mct_mod
-!
-! !PUBLIC TYPES:
-  implicit none
-!
-! !PUBLIC MEMBER FUNCTIONS:
-  public decompInit_lnd  ! initializes atm grid decomposition into clumps and processors
-  public decompInit_glcp ! initializes g,l,c,p decomp info
 
-!
-! !DESCRIPTION:
-! Module provides a descomposition into a clumped data structure which can
-! be mapped back to atmosphere physics chunks.
-!
-! !REVISION HISTORY:
-! 2002.09.11  Forrest Hoffman  Creation.
-! 2005.11.01  T Craig  Rewrite
-! 2006.06.06  T Craig  Reduce memory, cleanup
-!
-!
-! !PRIVATE TYPES:
+  implicit none
+
   private
 
-  integer, pointer :: lcid(:)       ! temporary for setting ldecomp
+  ! initializes atm grid decomposition into clumps and processors
+  public :: decompInit_lnd
+  ! initializes g,l,c,p decomp info
+  public :: decompInit_glcp
 
-!EOP
-!------------------------------------------------------------------------------
+  integer(ik4) , pointer , dimension(:) :: lcid ! temporary for setting ldecomp
 
-contains
-
-!------------------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: decompInit_lnd
-!
-! !INTERFACE:
+  contains
+  !
+  ! This subroutine initializes the land surface decomposition into a clump
+  ! data structure.  This assumes each pe has the same number of clumps
+  ! set by clump_pproc
+  !
   subroutine decompInit_lnd(lni,lnj,amask)
-!
-! !DESCRIPTION:
-! This subroutine initializes the land surface decomposition into a clump
-! data structure.  This assumes each pe has the same number of clumps
-! set by clump_pproc
-!
-! !USES:
     use mod_clm_varctl, only : nsegspc
-!
-! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: amask(:)
-    integer , intent(in) :: lni,lnj   ! domain global size
-!
-! !LOCAL VARIABLES:
-    integer :: lns                    ! global domain size
-    integer :: ln,lj                  ! indices
-    integer :: ag,an,ai,aj            ! indices
-    integer :: numg                   ! number of land gridcells
+    integer(ik4) , intent(in) , dimension(:) :: amask
+    integer(ik4) , intent(in) :: lni , lnj   ! domain global size
+    integer(ik4) :: lns                    ! global domain size
+    integer(ik4) :: ln,lj                  ! indices
+    integer(ik4) :: ag,an,ai,aj            ! indices
+    integer(ik4) :: numg                   ! number of land gridcells
     logical :: seglen1                ! is segment length one
-    real(r8):: seglen                 ! average segment length
-    real(r8):: rcid                   ! real value of cid
-    integer :: cid,pid                ! indices
-    integer :: n,m,ng                 ! indices
-    integer :: ier                    ! error code
-    integer :: beg,end,lsize,gsize    ! used for gsmap init
-    integer, pointer :: gindex(:)     ! global index for gsmap init
-    integer, parameter :: dbug=1      ! 0 = min, 1=normal, 2=much, 3=max
-
-! !CALLED FROM:
-! subroutine initialize
-!
-! !REVISION HISTORY:
-! 2002.09.11  Forrest Hoffman  Creation.
-! 2005.12.15  T Craig  Updated for finemesh
-! 2006.08.18  P Worley Performance optimizations
-! 2007.01.24  T Craig  Created decompInit_atm from decomp_init
-!
-!EOP
-!------------------------------------------------------------------------------
+    real(rk8):: seglen                 ! average segment length
+    real(rk8):: rcid                   ! real value of cid
+    integer(ik4) :: cid,pid                ! indices
+    integer(ik4) :: n,m,ng                 ! indices
+    integer(ik4) :: ier                    ! error code
+    integer(ik4) :: beg,end,lsize,gsize    ! used for gsmap init
+    integer(ik4), pointer :: gindex(:)     ! global index for gsmap init
+    integer(ik4), parameter :: dbug=1      ! 0 = min, 1=normal, 2=much, 3=max
 
     lns = lni * lnj
 
@@ -189,7 +147,7 @@ contains
 
     if (float(numg)/float(nclumps) < float(nsegspc)) then
        seglen1 = .true.
-       seglen = 1.0_r8
+       seglen = 1.0D0
     else
        seglen1 = .false.
        seglen = dble(numg)/(dble(nsegspc)*dble(nclumps))
@@ -325,44 +283,44 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: lns,lni,lnj ! land domain global size
-    integer , pointer, optional   :: glcmask(:)  ! glc mask
+    integer(ik4) , intent(in) :: lns,lni,lnj ! land domain global size
+    integer(ik4) , pointer, optional   :: glcmask(:)  ! glc mask
 !
 ! !LOCAL VARIABLES:
-    integer :: ln,an              ! indices
-    integer :: i,g,l,k            ! indices
-    integer :: cid,pid            ! indices
-    integer :: n,m,np             ! indices
-    integer :: anumg              ! lnd num gridcells
-    integer :: begg,endg          ! beg,end gridcells
-    integer :: begl,endl          ! beg,end landunits
-    integer :: begc,endc          ! beg,end columns
-    integer :: begp,endp          ! beg,end pfts
-    integer :: icells             ! temporary
-    integer :: ilunits            ! temporary
-    integer :: icols              ! temporary
-    integer :: ipfts              ! temporary
-    integer :: ier                ! error code
-    integer :: npmin,npmax,npint  ! do loop values for printing
-    integer :: clmin,clmax        ! do loop values for printing
-    integer :: lsize,gsize        ! used for gsmap init
-    integer :: ng                 ! number of gridcells in gsmap
-    integer :: beg,end,num        ! temporaries
-    integer :: val1, val2         ! temporaries
-    integer, pointer :: gindex(:) ! global index for gsmap init
-    integer, pointer :: arrayg(:)
-    integer, pointer :: gstart(:),gcount(:)
-    integer, pointer :: lstart(:),lcount(:)
-    integer, pointer :: cstart(:),ccount(:)
-    integer, pointer :: pstart(:),pcount(:)
-    integer, pointer :: start(:),count(:)
-    integer, pointer :: tarr1(:),tarr2(:)
-    integer, allocatable :: allvecg(:,:)  ! temporary vector "global"
-    integer, allocatable :: allvecl(:,:)  ! temporary vector "local"
+    integer(ik4) :: ln,an              ! indices
+    integer(ik4) :: i,g,l,k            ! indices
+    integer(ik4) :: cid,pid            ! indices
+    integer(ik4) :: n,m,np             ! indices
+    integer(ik4) :: anumg              ! lnd num gridcells
+    integer(ik4) :: begg,endg          ! beg,end gridcells
+    integer(ik4) :: begl,endl          ! beg,end landunits
+    integer(ik4) :: begc,endc          ! beg,end columns
+    integer(ik4) :: begp,endp          ! beg,end pfts
+    integer(ik4) :: icells             ! temporary
+    integer(ik4) :: ilunits            ! temporary
+    integer(ik4) :: icols              ! temporary
+    integer(ik4) :: ipfts              ! temporary
+    integer(ik4) :: ier                ! error code
+    integer(ik4) :: npmin,npmax,npint  ! do loop values for printing
+    integer(ik4) :: clmin,clmax        ! do loop values for printing
+    integer(ik4) :: lsize,gsize        ! used for gsmap init
+    integer(ik4) :: ng                 ! number of gridcells in gsmap
+    integer(ik4) :: beg,end,num        ! temporaries
+    integer(ik4) :: val1, val2         ! temporaries
+    integer(ik4), pointer :: gindex(:) ! global index for gsmap init
+    integer(ik4), pointer :: arrayg(:)
+    integer(ik4), pointer :: gstart(:),gcount(:)
+    integer(ik4), pointer :: lstart(:),lcount(:)
+    integer(ik4), pointer :: cstart(:),ccount(:)
+    integer(ik4), pointer :: pstart(:),pcount(:)
+    integer(ik4), pointer :: start(:),count(:)
+    integer(ik4), pointer :: tarr1(:),tarr2(:)
+    integer(ik4), allocatable :: allvecg(:,:)  ! temporary vector "global"
+    integer(ik4), allocatable :: allvecl(:,:)  ! temporary vector "local"
     type(mct_gsmap),pointer :: gsmap
     character(len=8) :: clmlevel
-    integer :: ntest
-    integer, parameter :: dbug=1      ! 0 = min, 1=normal, 2=much, 3=max
+    integer(ik4) :: ntest
+    integer(ik4), parameter :: dbug=1      ! 0 = min, 1=normal, 2=much, 3=max
     character(len=32), parameter :: subname = 'decompInit_glcp'
 
 ! !CALLED FROM:
