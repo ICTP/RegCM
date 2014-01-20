@@ -25,7 +25,7 @@ module mod_cu_grell
   use mod_memutil
   use mod_cu_common
   use mod_mpmessage
-  use mod_runparams , only : iqv
+  use mod_runparams , only : iqv , dtsec
   use mod_regcm_types
  
   implicit none
@@ -291,7 +291,7 @@ module mod_cu_grell
     xqcd(:,:) = d_zero
     xqck(:,:) = d_zero
     xqkb(:,:) = d_zero
-!
+
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -299,15 +299,14 @@ module mod_cu_grell
           jp1 = j + 1
           us = m2c%uas(j,i,kk)
           vs = m2c%vas(j,i,kk)
-          p(j,i,k) = m2c%pas(j,i,k)*d_10
+          p(j,i,k) = m2c%pas(j,i,kk)*d_10
           t(j,i,k) = m2c%tas(j,i,kk)
           q(j,i,k) = m2c%qxas(j,i,kk,iqv)
           if ( q(j,i,k) < 1.0D-08 ) q(j,i,k) = 1.0D-08
-          tn(j,i,k) = t(j,i,k) + (c2m%tten(j,i,kk))/m2c%psb(j,i)*dt
-          qo(j,i,k) = q(j,i,k) + (c2m%qxten(j,i,kk,iqv))/m2c%psb(j,i)*dt
+          tn(j,i,k) = t(j,i,k) + (c2m%tten(j,i,kk))/m2c%psb(j,i)*dtsec
+          qo(j,i,k) = q(j,i,k) + (c2m%qxten(j,i,kk,iqv))/m2c%psb(j,i)*dtsec
           vsp(j,i,k) = dsqrt(us**2+vs**2)
           if ( qo(j,i,k) < 1.0D-08 ) qo(j,i,k) = 1.0D-08
-!
           po(j,i,k) = p(j,i,k)
           psur(j,i) = (m2c%psb(j,i)+ptop)*d_10
           pkk = psur(j,i) - po(j,i,k)
@@ -345,9 +344,9 @@ module mod_cu_grell
         end do
       end do
     end do
-!
-!   rain in cm.
-!
+    !
+    ! rain in cm.
+    !
     total_precip_points = 0
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -384,7 +383,7 @@ module mod_cu_grell
     call time_begin(subroutine_name,idindx)
 #endif
 
-    mbdt = dt*5.0D-03
+    mbdt = dtsec*5.0D-03
     f  = -d_one
     xk = -d_one
 !
@@ -1071,7 +1070,7 @@ module mod_cu_grell
       do j = jci1 , jci2
         if ( xac(j,i) >= d_zero ) then
           if ( igcc == 1 ) then
-            f = (xao(j,i)-xac(j,i))/dt ! Arakawa-Schubert closure
+            f = (xao(j,i)-xac(j,i))/dtsec ! Arakawa-Schubert closure
           else if ( igcc == 2 ) then
             f = xac(j,i)/dtauc2d(j,i)    ! Fritsch-Chappell closure
           end if

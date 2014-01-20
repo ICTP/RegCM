@@ -31,7 +31,7 @@ module mod_pbl_interface
   use mod_pbl_holtbl , only : holtbl , allocate_mod_pbl_holtbl
   use mod_pbl_uwtcm , only : nuk , ilenparam , allocate_tcm_state
   use mod_pbl_uwtcm , only : hadvtke , vadvtke , uwtcm , get_data_from_tcm
-  use mod_pbl_uwtcm , only : set_tke_bc , init_mod_pbl_uwtcm , tkemin
+  use mod_pbl_uwtcm , only : init_mod_pbl_uwtcm , tkemin
   use mod_pbl_uwtcm , only : check_conserve_qt
   use mod_runparams , only : ibltyp
   use mod_runparams , only : iqc , iqv , dt , rdt , ichem , hsigma , dsigma
@@ -55,7 +55,6 @@ module mod_pbl_interface
   public :: ricr
   public :: tkemin
 
-  public :: set_tke_bc
   public :: hadvtke
   public :: vadvtke
 

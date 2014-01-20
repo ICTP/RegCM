@@ -26,7 +26,7 @@ module mod_bdycod
   use mod_mppparam
   use mod_memutil
   use mod_atm_interface
-  use mod_pbl_interface , only : set_tke_bc
+  use mod_pbl_interface , only : tkemin
   use mod_che_interface
   use mod_lm_interface
   use mod_mpmessage 
@@ -810,7 +810,7 @@ module mod_bdycod
 !
     real(rk8) , intent(in) :: xt
 !
-    real(rk8) :: qcx , qcint , qvx , qext , qint
+    real(rk8) :: qcx , qcint , tkeint , tkex , qvx , qext , qint
     integer(ik4) :: i , j , k , n
     real(rk8) :: windavg
 #ifdef DEBUG
@@ -849,6 +849,13 @@ module mod_bdycod
             end do
           end do
         end do
+        if ( ibltyp == 2 .or. ibltyp == 99 ) then
+          do k = 1 , kzp1
+            do i = ici1 , ici2
+              atm2%tke(jce1,i,k) = atm1%tke(jce1,i,k)
+            end do
+          end do
+        end if
       end if
       !
       ! East boundary
@@ -875,6 +882,13 @@ module mod_bdycod
             end do
           end do
         end do
+        if ( ibltyp == 2 .or. ibltyp == 99 ) then
+          do k = 1 , kzp1
+            do i = ici1 , ici2
+              atm2%tke(jce2,i,k) = atm1%tke(jce2,i,k)
+            end do
+          end do
+        end if
       end if
       !
       ! North and South boundaries
@@ -901,6 +915,13 @@ module mod_bdycod
             end do
           end do
         end do
+        if ( ibltyp == 2 .or. ibltyp == 99 ) then
+          do k = 1 , kzp1
+            do j = jce1 , jce2
+              atm2%tke(j,ice1,k) = atm1%tke(j,ice1,k)
+            end do
+          end do
+        end if
       end if
       if ( ma%has_bdytop ) then
         do j = jce1 , jce2
@@ -924,6 +945,13 @@ module mod_bdycod
             end do
           end do
         end do
+        if ( ibltyp == 2 .or. ibltyp == 99 ) then
+          do k = 1 , kzp1
+            do j = jce1 , jce2
+              atm2%tke(j,ice2,k) = atm1%tke(j,ice2,k)
+            end do
+          end do
+        end if
       end if
     end if
     !
@@ -1320,7 +1348,152 @@ module mod_bdycod
     end if
 
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      call set_tke_bc(atm1,atm2)
+      if ( ktau == 0 ) then
+        if ( ma%has_bdyleft ) then
+          atm1%tke(jce1,:,:) = tkemin ! East boundary
+          atm2%tke(jce1,:,:) = tkemin ! East boundary
+        end if
+        if ( ma%has_bdyright ) then
+          atm1%tke(jce2,:,:) = tkemin ! West boundary
+          atm2%tke(jce2,:,:) = tkemin ! West boundary
+        end if
+        if ( ma%has_bdytop ) then
+          atm1%tke(:,ice2,:) = tkemin  ! South boundary
+          atm2%tke(:,ice2,:) = tkemin  ! South boundary
+        end if
+        if ( ma%has_bdybottom ) then
+          atm1%tke(:,ice1,:) = tkemin  ! North boundary
+          atm2%tke(:,ice1,:) = tkemin  ! North boundary
+        end if
+      else
+        ! if the boundary values and tendencies are not available,
+        ! determine boundary values depends on inflow/outflow:
+        ! inflow  : set it equal to zero.
+        ! outflow : get from interior point.
+        !
+        ! west boundary:
+        !
+        if ( ma%has_bdyleft ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              tkeint = atm1%tke(jci1,i,k+1)/sfs%psa(jci1,i)
+              windavg = wue(i,k) + wue(i+1,k) + wui(i,k) + wui(i+1,k)
+              if ( windavg >= d_zero ) then
+                tkex = tkemin
+              else
+                tkex = tkeint
+              end if
+              atm1%tke(jce1,i,k+1) = tkex*sfs%psa(jce1,i)
+            end do
+          end do
+        end if
+        !
+        ! east boundary:
+        !
+        if ( ma%has_bdyright ) then
+          do k = 1 , kz
+            do i = ici1 , ici2
+              tkeint = atm1%tke(jci2,i,k+1)/sfs%psa(jci2,i)
+              windavg = eue(i,k) + eue(i+1,k) + eui(i,k) + eui(i+1,k)
+              if ( windavg < d_zero ) then
+                tkex = tkemin
+              else
+                tkex = tkeint
+              end if
+              atm1%tke(jce2,i,k+1) = tkex*sfs%psa(jce2,i)
+            end do
+          end do
+        end if
+        !
+        ! south boundary:
+        !
+        if ( ma%has_bdybottom ) then
+          do k = 1 , kz
+            do j = jci1 , jci2
+              tkeint = atm1%tke(j,ici1,k+1)/sfs%psa(j,ici1)
+              windavg = sve(j,k) + sve(j+1,k) + svi(j,k) + svi(j+1,k)
+              if ( windavg >= d_zero ) then
+                tkex = tkemin
+              else
+                tkex = tkeint
+              end if
+              atm1%tke(j,ice1,k+1) = tkex*sfs%psa(j,ice1)
+            end do
+          end do
+        end if
+        !
+        ! north boundary:
+        !
+        if ( ma%has_bdytop ) then
+          do k = 1 , kz
+            do j = jci1 , jci2
+              tkeint = atm1%tke(j,ici2,k+1)/sfs%psa(j,ici2)
+              windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
+              if ( windavg < d_zero ) then
+                tkex = tkemin   
+              else
+                tkex = tkeint
+              end if
+              atm1%tke(j,ice2,k+1) = tkex*sfs%psa(j,ice2)
+            end do
+          end do
+        end if
+        !
+        ! Corners
+        !
+        if ( ma%has_bdytop .and. ma%has_bdyright ) then
+          do k = 1 , kz
+            tkeint = atm1%tke(jci2,ici2,k+1)/sfs%psa(jci2,ici2)
+            windavg = nve(jci2,k) + nve(jce2,k) + nvi(jci2,k) + nvi(jce2,k) + &
+                      eue(ici2,k) + eue(ice2,k) + eui(ici2,k) + eui(ice2,k)
+            if ( windavg <= d_zero ) then
+              tkex = tkemin
+            else
+              tkex = tkeint
+            end if
+            atm1%tke(jce2,ice2,k+1) = tkex*sfs%psa(jce2,ice2)
+          end do
+        end if
+        if ( ma%has_bdytop .and. ma%has_bdyleft ) then
+          do k = 1 , kz
+            tkeint = atm1%tke(jci1,ici2,k+1)/sfs%psa(jci1,ici2)
+            windavg = nve(jci1,k) + nve(jce1,k) + nvi(jci1,k) + nvi(jce1,k) + &
+                      wue(ici2,k) + wue(ice2,k) + wui(ici2,k) + wui(ice2,k)
+            if ( windavg <= d_zero ) then
+              tkex = tkemin
+            else
+              tkex = tkeint
+            end if
+            atm1%tke(jce1,ice2,k+1) = tkeint*sfs%psa(jce1,ice2)
+          end do
+        end if
+        if ( ma%has_bdybottom .and. ma%has_bdyright ) then
+          do k = 1 , kz
+            tkeint = atm1%tke(jci2,ici1,k+1)/sfs%psa(jci2,ici1)
+            windavg = sve(jci2,k) + sve(jce2,k) + svi(jci2,k) + svi(jce2,k) + &
+                      eue(ici1,k) + eue(ice1,k) + eui(ici1,k) + eui(ice1,k)
+            if ( windavg <= d_zero ) then
+              tkex = tkemin
+            else
+              tkex = tkeint
+            end if
+            atm1%tke(jce2,ice1,k+1) = tkex*sfs%psa(jce2,ice1)
+          end do
+        end if
+        if ( ma%has_bdybottom .and. ma%has_bdyleft ) then
+          do k = 1 , kz
+            tkeint = atm1%tke(jci1,ici1,k+1)/sfs%psa(jci1,ici1)
+            windavg = sve(jci1,k) + sve(jce1,k) + svi(jci1,k) + svi(jce1,k) + &
+                      wue(ici1,k) + wue(ice1,k) + wui(ici1,k) + wui(ice1,k)
+            if ( windavg <= d_zero ) then
+              tkex = tkemin
+            else
+              tkex = tkeint
+            end if
+            atm1%tke(jce1,ice1,k+1) = tkex*sfs%psa(jce1,ice1)
+          end do
+        end if
+      end if
     end if
 !
     if ( ichem == 1 ) then

@@ -521,13 +521,14 @@ module mod_mtrxclm
       r2cpsb = (r2cpsb+ptop)*d_1000
       call fill_frame(lm%cprate,r2crnc)
       call fill_frame(lm%ncprate,r2crnnc)
+      r2crnc = r2crnc * rtsrf
+      r2crnnc = r2crnnc * rtsrf
       call fill_frame(lm%swdir,r2csols)
       call fill_frame(lm%lwdir,r2csoll)
       call fill_frame(lm%swdif,r2csolsd)
       call fill_frame(lm%lwdif,r2csolld)
       call fill_frame(lm%dwrlwf,r2cflwd)
-      r2crnc = r2crnc * rtsrf
-      r2crnnc = r2crnnc * rtsrf
+
       call grid_fill(r2ctb,r2ctb_all)
       call grid_fill(r2cqb,r2cqb_all)
       call grid_fill(r2czga,r2czga_all)
