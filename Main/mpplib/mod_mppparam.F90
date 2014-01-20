@@ -4965,8 +4965,8 @@ module mod_mppparam
 !
   subroutine uvcross2dot(ux,vx,ud,vd)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ux , vx
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ud , vd
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ux , vx
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ud , vd
     integer(ik4) :: i , j
 
     ! TODO:  It might make sense to encapsulate the following code
@@ -5004,10 +5004,10 @@ module mod_mppparam
 
     do i = idi1 , idi2
       do j = jdi1 , jdi2
-        ud(j,i,:) =  ud(j,i,:) +             &
+        ud(j,i,:) =  ud(j,i,:) +               &
           d_rfour*(ux(j,i,:) + ux(j-1,i,:) +   &
                    ux(j,i-1,:) + ux(j-1,i-1,:))
-        vd(j,i,:) =  vd(j,i,:) +             &
+        vd(j,i,:) =  vd(j,i,:) +               &
           d_rfour*(vx(j,i,:) + vx(j-1,i,:) +   &
                    vx(j,i-1,:) + vx(j-1,i-1,:))
       end do
