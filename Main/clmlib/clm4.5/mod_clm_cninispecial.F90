@@ -18,7 +18,8 @@ subroutine CNiniSpecial ()
    use mod_realkinds
    use mod_clm_pftvarcon   , only: noveg
    use mod_clm_decomp   , only: get_proc_bounds
-   use mod_clm_varcon  , only: spval, nlevdecomp_full
+   use mod_clm_varcon  , only: spval
+   use mod_clm_varpar  , only: nlevdecomp_full
    use mod_clm_varctl  , only: use_c13, use_c14
    use mod_clm_type
    use mod_clm_cnsetvalue
