@@ -1,7 +1,9 @@
 module mod_clm_decomp
   !
-  ! Module provides a descomposition into a clumped data structure which can
+  ! Module provides a descomposition into a data structure which can
   ! be mapped back to atmosphere physics chunks.
+  ! This has been simplified, as in regional model the communication
+  ! ATM <-> LND is managed in the RegCM code.
   !
   use mod_stdio
   use mod_realkinds
@@ -13,23 +15,18 @@ module mod_clm_decomp
 
   private
 
-  integer(ik4) , public :: clump_pproc ! number of clumps per MPI process
+  ! this processor beg and end gridcell , landunit , column,pft
+  public :: get_proc_bounds
 
-  ! clump beg and end gridcell,landunit,column,pft
-  public get_clump_bounds
-  ! number of clumps for this processor
-  public get_proc_clumps
-  ! this processor beg and end gridcell,landunit,column,pft
-  public get_proc_bounds
-  ! total number of gridcells, landunits, columns and pfts for any processor
-  public get_proc_total
-  ! total gridcells, landunits, columns, pfts across all processors
-  public get_proc_global
+  ! total number of gridcells , landunits , columns and pfts for any processor
+  public :: get_proc_total
+
+  ! total gridcells , landunits , columns , pfts across all processors
+  public :: get_proc_global
+
   ! get global size associated with clmlevel
-  public get_clmlevel_gsize
+  public :: get_clmlevel_gsize
 
-  ! total number of clumps across all processors
-  integer(ik4) , public :: nclumps
   ! total number of gridcells on all procs
   integer(ik4) , public :: numg
   ! total number of landunits on all procs
@@ -41,83 +38,20 @@ module mod_clm_decomp
 
   !---global information on each pe
   type processor_type
-    integer(ik4)  :: nclumps          ! number of clumps for processor_type iam
-    integer(ik4) , pointer , dimension(:) :: cid  ! clump indices
     integer(ik4)  :: ncells           ! number of gridcells in proc
     integer(ik4)  :: nlunits          ! number of landunits in proc
     integer(ik4)  :: ncols            ! number of columns in proc
     integer(ik4)  :: npfts            ! number of pfts in proc
-    integer(ik4)  :: begg, endg       ! beginning and ending gridcell index
-    integer(ik4)  :: begl, endl       ! beginning and ending landunit index
-    integer(ik4)  :: begc, endc       ! beginning and ending column index
-    integer(ik4)  :: begp, endp       ! beginning and ending pft index
+    integer(ik4)  :: begg , endg      ! beginning and ending gridcell index
+    integer(ik4)  :: begl , endl      ! beginning and ending landunit index
+    integer(ik4)  :: begc , endc      ! beginning and ending column index
+    integer(ik4)  :: begp , endp      ! beginning and ending pft index
   end type processor_type
 
   public processor_type
   type(processor_type) , public :: procinfo
 
-  !---global information on each pe
-  type clump_type
-    integer(ik4)  :: owner            ! process id owning clump
-    integer(ik4)  :: ncells           ! number of gridcells in clump
-    integer(ik4)  :: nlunits          ! number of landunits in clump
-    integer(ik4)  :: ncols            ! number of columns in clump
-    integer(ik4)  :: npfts            ! number of pfts in clump
-    integer(ik4)  :: begg , endg      ! beginning and ending gridcell index
-    integer(ik4)  :: begl , endl      ! beginning and ending landunit index
-    integer(ik4)  :: begc , endc      ! beginning and ending column index
-    integer(ik4)  :: begp , endp      ! beginning and ending pft index
-  end type clump_type
-
-  public clump_type
-  type(clump_type) , public , allocatable , dimension(:) :: clumps
-
-  !---global information on each pe
-  !--- i,j = 2d global
-  !--- glo = 1d global sn ordered
-  !--- gsn = 1d global sn ordered compressed
-  !--- gdc = 1d global dc ordered compressed
-  type decomp_type
-     integer(ik4) , pointer , dimension(:) :: glo2gdc    ! 1d glo to 1d gdc
-     integer(ik4) , pointer , dimension(:) :: gdc2glo    ! 1d gdc to 1d glo
-  end type decomp_type
-
-  public decomp_type
-  type(decomp_type) , public , target :: ldecomp
-
-!  type(mct_gsMap)  ,public,target :: gsMap_lnd_gdc2glo
-!  type(mct_gsMap)  ,public,target :: gsMap_gce_gdc2glo
-!  type(mct_gsMap)  ,public,target :: gsMap_lun_gdc2glo
-!  type(mct_gsMap)  ,public,target :: gsMap_col_gdc2glo
-!  type(mct_gsMap)  ,public,target :: gsMap_pft_gdc2glo
-
   contains
-    !
-    ! Determine clump beginning and ending pft, column, landunit and
-    ! gridcell indices.
-    !
-    subroutine get_clump_bounds(n,begg,endg,begl,endl,begc,endc,begp,endp)
-      implicit none
-      integer(ik4) , intent(in)  :: n           ! proc clump index
-      ! clump beg and end pft indices
-      integer(ik4) , intent(out) :: begp , endp
-      ! clump beg and end column indices
-      integer(ik4) , intent(out) :: begc , endc
-      ! clump beg and end landunit indices
-      integer(ik4) , intent(out) :: begl , endl
-      ! clump beg and end gridcell indices
-      integer(ik4) , intent(out) :: begg , endg
-      integer(ik4)  :: cid ! clump id
-      cid  = procinfo%cid(n)
-      begp = clumps(cid)%begp
-      endp = clumps(cid)%endp
-      begc = clumps(cid)%begc
-      endc = clumps(cid)%endc
-      begl = clumps(cid)%begl
-      endl = clumps(cid)%endl
-      begg = clumps(cid)%begg
-      endg = clumps(cid)%endg
-    end subroutine get_clump_bounds
     !
     ! Retrieve gridcell, landunit, column, and pft bounds for process.
     !
@@ -154,21 +88,10 @@ module mod_clm_decomp
       integer(ik4) , intent(out) :: ncols
       ! total number of pfts on the processor
       integer(ik4) , intent(out) :: npfts
-
-      integer(ik4)  :: cid       ! clump index
-
-      npfts   = 0
-      nlunits = 0
-      ncols   = 0
-      ncells  = 0
-      do cid = 1 , nclumps
-        if ( clumps(cid)%owner == pid ) then
-          ncells  = ncells  + clumps(cid)%ncells
-          nlunits = nlunits + clumps(cid)%nlunits
-          ncols   = ncols   + clumps(cid)%ncols
-          npfts   = npfts   + clumps(cid)%npfts
-        end if
-      end do
+      ncells   = procinfo%ncells
+      nlunits  = procinfo%nlunits
+      ncols    = procinfo%ncols
+      npfts    = procinfo%npfts
     end subroutine get_proc_total
     !
     ! Return number of gridcells, landunits, columns, and pfts across all
@@ -189,13 +112,6 @@ module mod_clm_decomp
       nl = numl
       ng = numg
     end subroutine get_proc_global
-    !
-    ! Return the number of clumps.
-    !
-    integer(ik4) function get_proc_clumps()
-      implicit none
-      get_proc_clumps = procinfo%nclumps
-    end function get_proc_clumps
     !
     ! Determine 1d size from clmlevel
     !

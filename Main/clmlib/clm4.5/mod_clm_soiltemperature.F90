@@ -78,7 +78,7 @@ contains
     integer , intent(in)  :: num_nolakec                 ! number of column non-lake points in column filter
     integer , intent(in)  :: filter_nolakec(ubc-lbc+1)   ! column filter for non-lake points
     integer , intent(in)  :: lbl, ubl                    ! landunit-index bounds
-    integer , intent(in)  :: num_urbanl                  ! number of urban landunits in clump
+    integer , intent(in)  :: num_urbanl                  ! number of urban landunits
     integer , intent(in)  :: filter_urbanl(ubl-lbl+1)    ! urban landunit filter
     real(rk8), intent(out) :: xmf(lbc:ubc)                ! total latent heat of phase change of ground water
     real(rk8), intent(out) :: fact(lbc:ubc, -nlevsno+1:nlevgrnd) ! used in computing tridiagonal matrix

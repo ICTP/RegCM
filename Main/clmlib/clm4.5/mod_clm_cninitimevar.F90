@@ -325,10 +325,10 @@ subroutine CNiniTimeVar()
 !
 ! !LOCAL VARIABLES:
    integer :: g,l,c,p,j,k      ! indices
-   integer :: begp, endp   ! per-clump/proc beginning and ending pft indices
-   integer :: begc, endc   ! per-clump/proc beginning and ending column indices
-   integer :: begl, endl   ! per-clump/proc beginning and ending landunit indices
-   integer :: begg, endg   ! per-clump/proc gridcell ending gridcell indices
+   integer :: begp, endp   ! per-proc beginning and ending pft indices
+   integer :: begc, endc   ! per-proc beginning and ending column indices
+   integer :: begl, endl   ! per-proc beginning and ending landunit indices
+   integer :: begg, endg   ! per-proc gridcell ending gridcell indices
 
 !EOP
 !-----------------------------------------------------------------------

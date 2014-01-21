@@ -88,7 +88,7 @@ contains
     integer, intent(in) :: lbl, ubl                    ! landunit bounds
     integer, intent(in) :: num_nolakec                 ! number of column non-lake points in column filter
     integer, intent(in) :: filter_nolakec(ubc-lbc+1)   ! column filter for non-lake points
-    integer, intent(in) :: num_urbanl                  ! number of urban landunits in clump
+    integer, intent(in) :: num_urbanl                  ! number of urban landunits
     integer, intent(in) :: filter_urbanl(ubl-lbl+1)    ! urban landunit filter
     integer, intent(in) :: num_nolakep                 ! number of column non-lake points in pft filter
     integer, intent(in) :: filter_nolakep(ubp-lbp+1)   ! pft filter for non-lake points

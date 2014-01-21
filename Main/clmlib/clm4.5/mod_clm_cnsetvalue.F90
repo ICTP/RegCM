@@ -13,8 +13,7 @@ module mod_clm_cnsetvalue
 ! setting fluxes to 0.0 at the beginning of each time step
 ! 3/23/09, Peter Thornton: Added new subroutine, CNZeroFluxes_dwt(), 
 !     which initialize flux variables used in the pftdyn
-!     routines. This is called from clm_driver1, as
-!     these variables need to be initialized outside of the clumps loop.
+!     routines. This is called from clm_driver1
 !
 ! !USES:
     use mod_realkinds

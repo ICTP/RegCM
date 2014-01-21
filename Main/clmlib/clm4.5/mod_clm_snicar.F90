@@ -1052,7 +1052,7 @@ contains
     !   is zeroed here because we are accounting for dry snowing with a 
     !   different representation
     !
-    ! Re-freezing of liquid water: Assume that re-frozen liquid water clumps
+    ! Re-freezing of liquid water: Assume that re-frozen liquid water
     !   into an arbitrarily large effective grain size (snw_rds_refrz). 
     !   The phenomenon is observed (Grenfell), but so far unquantified, as far as 
     !   I am aware.

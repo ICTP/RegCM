@@ -120,10 +120,6 @@ module mod_clm_varctl
   character(len=16), public :: inst_name
   character(len=16), public :: inst_suffix
 !
-! Decomp control variables
-!
-  integer, public :: nsegspc = 20                       ! number of segments per clump for decomp
-!
 ! Derived variables (run, history and restart file)
 !
   character(len=256), public :: rpntdir = '.'            ! directory name for local restart pointer file

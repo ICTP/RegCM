@@ -48,7 +48,7 @@ contains
 ! !ARGUMENTS:
     implicit none
 !
-! local pointers to original implicit in arguments (urban clump)
+! local pointers to original implicit in arguments (urban)
 !
     real(rk8), pointer :: ht_roof(:)    ! height of urban roof (m)
     real(rk8), pointer :: canyon_hwr(:) ! ratio of building height to street width (-)
@@ -75,10 +75,10 @@ contains
     real(rk8) :: frontal_ai                 ! frontal area index of buildings (-)
     real(rk8) :: build_lw_ratio             ! building short/long side ratio (-)
     integer  :: l,g                        ! indices
-    integer  :: begp, endp                 ! clump beginning and ending pft indices
-    integer  :: begc, endc                 ! clump beginning and ending column indices
-    integer  :: begl, endl                 ! clump beginning and ending landunit indices
-    integer  :: begg, endg                 ! clump beginning and ending gridcell indices
+    integer  :: begp, endp                 ! beginning and ending pft indices
+    integer  :: begc, endc                 ! beginning and ending column indices
+    integer  :: begl, endl                 ! beginning and ending landunit indices
+    integer  :: begg, endg                 ! beginning and ending gridcell indices
 !-----------------------------------------------------------------------
 
     ! Assign local pointers to derived type members (landunit level)
@@ -149,7 +149,7 @@ contains
     use mod_clm_varcon   , only : isturb, icol_roof, icol_sunwall, icol_shadewall, &
                               icol_road_perv, icol_road_imperv, spval, &
                               udens_base
-    use mod_clm_decomp    , only : get_proc_bounds, ldecomp
+    use mod_clm_decomp    , only : get_proc_bounds
     use mod_clm_urbaninput, only : urbinp
 !
 ! !ARGUMENTS:
@@ -193,10 +193,10 @@ contains
 !EOP
     integer  :: nc,fl,ib,l,c,p,g          ! indices
     integer  :: ier                       ! error status
-    integer  :: begp, endp                ! clump beginning and ending pft indices
-    integer  :: begc, endc                ! clump beginning and ending column indices
-    integer  :: begl, endl                ! clump beginning and ending landunit indices
-    integer  :: begg, endg                ! clump beginning and ending gridcell indices
+    integer  :: begp, endp                ! beginning and ending pft indices
+    integer  :: begc, endc                ! beginning and ending column indices
+    integer  :: begl, endl                ! beginning and ending landunit indices
+    integer  :: begg, endg                ! beginning and ending gridcell indices
     integer  :: dindx                     ! urban density type index
 
     ! Assign local pointers to derived type members (landunit-level)
@@ -309,7 +309,7 @@ contains
 ! !ARGUMENTS:
     implicit none
 !
-! local pointers to original implicit in arguments (urban clump)
+! local pointers to original implicit in arguments (urban)
 !
     integer , pointer :: ltype(:)      ! landunit type
     integer , pointer :: lgridcell(:)  ! gridcell of corresponding landunit
@@ -357,10 +357,10 @@ contains
 ! !LOCAL VARIABLES:
 !EOP
     integer :: l,g,c,p       ! indices
-    integer :: begp, endp    ! clump beginning and ending pft indices
-    integer :: begc, endc    ! clump beginning and ending column indices
-    integer :: begl, endl    ! clump beginning and ending landunit indices
-    integer :: begg, endg    ! clump beginning and ending gridcell indices
+    integer :: begp, endp    ! beginning and ending pft indices
+    integer :: begc, endc    ! beginning and ending column indices
+    integer :: begl, endl    ! beginning and ending landunit indices
+    integer :: begg, endg    ! beginning and ending gridcell indices
 !-----------------------------------------------------------------------
 
     ! Assign local pointers to derived type members (landunit level)

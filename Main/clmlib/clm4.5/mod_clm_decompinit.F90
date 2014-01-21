@@ -1,6 +1,6 @@
 module decompInitMod
   !
-  ! Module provides a descomposition into a clumped data structure which can
+  ! Module provides a descomposition into a data structure which can
   ! be mapped back to atmosphere physics chunks.
   !
   use mod_realkinds
@@ -9,687 +9,156 @@ module decompInitMod
   use mod_stdio
   use mod_dynparam
   use mod_mppparam
+  use mod_regcm_types
+  use mod_service
   use mod_clm_decomp
-  use spmdMod     , only : comp_id
-  use spmdGathScatMod
-  use mct_mod
+  use mod_clm_subgrid , only : subgrid_get_gcellinfo
 
   implicit none
 
   private
 
-  ! initializes atm grid decomposition into clumps and processors
+  ! initializes atm grid decomposition into processors
   public :: decompInit_lnd
-  ! initializes g,l,c,p decomp info
+  ! initializes g , l , c , p decomp info
   public :: decompInit_glcp
-
-  integer(ik4) , pointer , dimension(:) :: lcid ! temporary for setting ldecomp
 
   contains
   !
-  ! This subroutine initializes the land surface decomposition into a clump
-  ! data structure.  This assumes each pe has the same number of clumps
-  ! set by clump_pproc
+  ! This subroutine initializes the land surface decomposition into a
+  ! processor_type data structure.
   !
-  subroutine decompInit_lnd(lni,lnj,amask)
-    use mod_clm_varctl, only : nsegspc
+  subroutine decompInit_lnd(cl)
     implicit none
-    integer(ik4) , intent(in) , dimension(:) :: amask
-    integer(ik4) , intent(in) :: lni , lnj   ! domain global size
-    integer(ik4) :: lns                    ! global domain size
-    integer(ik4) :: ln,lj                  ! indices
-    integer(ik4) :: ag,an,ai,aj            ! indices
-    integer(ik4) :: numg                   ! number of land gridcells
-    logical :: seglen1                ! is segment length one
-    real(rk8):: seglen                 ! average segment length
-    real(rk8):: rcid                   ! real value of cid
-    integer(ik4) :: cid,pid                ! indices
-    integer(ik4) :: n,m,ng                 ! indices
-    integer(ik4) :: ier                    ! error code
-    integer(ik4) :: beg,end,lsize,gsize    ! used for gsmap init
-    integer(ik4), pointer :: gindex(:)     ! global index for gsmap init
-    integer(ik4), parameter :: dbug=1      ! 0 = min, 1=normal, 2=much, 3=max
+    type (masked_comm) , intent(in) :: cl
 
-    lns = lni * lnj
+    procinfo%ncells  = cl%linear_npoint_sg(myid+1)
 
-    !--- set and verify nclumps ---
-    if (clump_pproc > 0) then
-       nclumps = clump_pproc * nproc
-       if (nclumps < nproc) then
-          write(stderr,*) 'decompInit_lnd(): Number of gridcell clumps= ',nclumps, &
-               ' is less than the number of processes = ', nproc
-          call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
-    else
-       write(stderr,*)'clump_pproc= ',clump_pproc,'  must be greater than 0'
-       call fatal(__FILE__,__LINE__,'clm now stopping')
-    end if
-
-    !--- allocate and initialize procinfo and clumps ---
-    !--- beg and end indices initialized for simple addition of cells later ---
-
-    allocate(procinfo%cid(clump_pproc), stat=ier)
-    if (ier /= 0) then
-       write(stderr,*) 'decompInit_lnd(): allocation error for procinfo%cid'
-       call fatal(__FILE__,__LINE__,'clm now stopping')
-    endif
-    procinfo%nclumps = clump_pproc
-    procinfo%cid(:)  = -1
-    procinfo%ncells  = 0
     procinfo%nlunits = 0
     procinfo%ncols   = 0
     procinfo%npfts   = 0
+
     procinfo%begg    = 1
     procinfo%begl    = 1
     procinfo%begc    = 1
     procinfo%begp    = 1
+
     procinfo%endg    = 0
     procinfo%endl    = 0
     procinfo%endc    = 0
     procinfo%endp    = 0
-
-    allocate(clumps(nclumps), stat=ier)
-    if (ier /= 0) then
-       write(stderr,*) 'decompInit_lnd(): allocation error for clumps'
-       call fatal(__FILE__,__LINE__,'clm now stopping')
-    end if
-    clumps(:)%owner   = -1
-    clumps(:)%ncells  = 0
-    clumps(:)%nlunits = 0
-    clumps(:)%ncols   = 0
-    clumps(:)%npfts   = 0
-    clumps(:)%begg    = 1
-    clumps(:)%begl    = 1
-    clumps(:)%begc    = 1
-    clumps(:)%begp    = 1
-    clumps(:)%endg    = 0
-    clumps(:)%endl    = 0
-    clumps(:)%endc    = 0
-    clumps(:)%endp    = 0
-
-    !--- assign clumps to proc round robin ---
-    cid = 0
-    do n = 1,nclumps
-       pid = mod(n-1,nproc)
-       if (pid < 0 .or. pid > nproc-1) then
-          write(stderr,*) 'decompInit_lnd(): round robin pid error ',n,pid,nproc
-          call fatal(__FILE__,__LINE__,'clm now stopping')
-       endif
-       clumps(n)%owner = pid
-       if (myid == pid) then
-          cid = cid + 1
-          if (cid < 1 .or. cid > clump_pproc) then
-             write(stderr,*) 'decompInit_lnd(): round robin pid error ',n,pid,nproc
-             call fatal(__FILE__,__LINE__,'clm now stopping')
-          endif
-          procinfo%cid(cid) = n
-       endif
-    enddo
-
-    !--- count total land gridcells
-    numg = 0
-    do ln = 1,lns
-       if (amask(ln) == 1) then
-          numg = numg + 1
-       endif
-    enddo
-
-    if (nproc > numg) then
-       write(stderr,*) 'decompInit_lnd(): Number of processes exceeds number ', &
-            'of land grid cells',nproc,numg
-       call fatal(__FILE__,__LINE__,'clm now stopping')
-    end if
-    if (nclumps > numg) then
-       write(stderr,*) 'decompInit_lnd(): Number of clumps exceeds number ', &
-            'of land grid cells',nclumps,numg
-       call fatal(__FILE__,__LINE__,'clm now stopping')
-    end if
-
-    if (float(numg)/float(nclumps) < float(nsegspc)) then
-       seglen1 = .true.
-       seglen = 1.0D0
-    else
-       seglen1 = .false.
-       seglen = dble(numg)/(dble(nsegspc)*dble(nclumps))
-    endif
-
-    if (myid == italk) then
-       write(stderr,*) ' decomp precompute numg,nclumps,seglen1,avg_seglen,nsegspc=', &
-            numg,nclumps,seglen1,&
-            sngl(seglen),sngl(dble(numg)/(seglen*dble(nclumps)))
-    end if
-
-    ! Assign gridcells to clumps (and thus pes) ---
-
-    allocate(lcid(lns))
-    lcid(:) = 0
-    ng = 0
-    do ln = 1,lns
-       if (amask(ln) == 1) then
-          ng = ng  + 1
-
-          !--- give to clumps in order based on nsegspc
-          if (seglen1) then
-             cid = mod(ng-1,nclumps) + 1
-          else
-             rcid = (dble(ng-1)/dble(numg))*dble(nsegspc)*dble(nclumps)
-             cid = mod(int(rcid),nclumps) + 1
-          endif
-          lcid(ln) = cid
-
-          !--- give gridcell cell to pe that owns cid ---
-          !--- this needs to be done to subsequently use function
-          !--- get_proc_bounds(begg,endg) 
-          if (myid == clumps(cid)%owner) then
-             procinfo%ncells  = procinfo%ncells  + 1
-          endif
-          if (myid >  clumps(cid)%owner) then
-             procinfo%begg = procinfo%begg + 1
-          endif
-          if (myid >= clumps(cid)%owner) then
-             procinfo%endg = procinfo%endg + 1
-          endif
-
-          !--- give gridcell to cid ---
-          !--- increment the beg and end indices ---
-          clumps(cid)%ncells  = clumps(cid)%ncells  + 1
-          do m = 1,nclumps
-             if ((clumps(m)%owner >  clumps(cid)%owner) .or. &
-                 (clumps(m)%owner == clumps(cid)%owner .and. m > cid)) then
-                clumps(m)%begg = clumps(m)%begg + 1
-             endif
-             
-             if ((clumps(m)%owner >  clumps(cid)%owner) .or. &
-                 (clumps(m)%owner == clumps(cid)%owner .and. m >= cid)) then
-                clumps(m)%endg = clumps(m)%endg + 1
-             endif
-          enddo
-
-       end if
-    enddo
-
-    ! Set ldecomp
-
-    allocate(ldecomp%gdc2glo(numg), ldecomp%glo2gdc(lns), stat=ier)
-    if (ier /= 0) then
-       write(stderr,*) 'decompInit_lnd(): allocation error1 for ldecomp, etc'
-       call fatal(__FILE__,__LINE__,'clm now stopping')
-    end if
-
-    ldecomp%gdc2glo(:) = 0
-    ldecomp%glo2gdc(:) = 0
-    ag = 0
-    do pid = 0,nproc-1
-    do cid = 1,nclumps
-       if (clumps(cid)%owner == pid) then
-          do aj = 1,lnj
-          do ai = 1,lni
-             an = (aj-1)*lni + ai
-             if (lcid(an) == cid) then
-                ag = ag + 1
-                ldecomp%gdc2glo(ag) = an
-                ldecomp%glo2gdc(an) = ag
-             end if
-          end do
-          end do
-       end if
-    end do
-    end do
-
-    ! Set gsMap_lnd_gdc2glo
-
-    call get_proc_bounds(beg, end)
-    allocate(gindex(beg:end))
-    do n = beg,end
-       gindex(n) = ldecomp%gdc2glo(n)
-    enddo
-    lsize = end-beg+1
-    gsize = lni * lnj
-    call mct_gsMap_init(gsMap_lnd_gdc2glo, gindex, mycomm, comp_id, lsize, gsize)
-    deallocate(gindex)
-
-    ! Diagnostic output
-
-    if (myid == italk) then
-       write(stdout,*)' Surface Grid Characteristics'
-       write(stdout,*)'   longitude points               = ',lni
-       write(stdout,*)'   latitude points                = ',lnj
-       write(stdout,*)'   total number of land gridcells = ',numg
-       write(stdout,*)' Decomposition Characteristics'
-       write(stdout,*)'   clumps per process             = ',clump_pproc
-       write(stdout,*)' gsMap Characteristics'
-       write(stdout,*) '  lnd gsmap glo num of segs      = ',mct_gsMap_ngseg(gsMap_lnd_gdc2glo)
-       write(stdout,*)
-    end if
-
   end subroutine decompInit_lnd
-
-!------------------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: decompInit_glcp
-!
-! !INTERFACE:
-  subroutine decompInit_glcp(lns,lni,lnj,glcmask)
-!
-! !DESCRIPTION:
-! This subroutine initializes the land surface decomposition into a clump
-! data structure.  This assumes each pe has the same number of clumps
-! set by clump_pproc
-!
-! !USES:
-    use mod_clm_type   , only : grlnd, nameg, namel, namec, namep
-    use mod_clm_subgrid, only : subgrid_get_gcellinfo
-!
-! !ARGUMENTS:
+  !
+  ! This subroutine initializes the land surface decomposition into a
+  ! data structure. 
+  !
+  subroutine decompInit_glcp
     implicit none
-    integer(ik4) , intent(in) :: lns,lni,lnj ! land domain global size
-    integer(ik4) , pointer, optional   :: glcmask(:)  ! glc mask
-!
-! !LOCAL VARIABLES:
-    integer(ik4) :: ln,an              ! indices
-    integer(ik4) :: i,g,l,k            ! indices
-    integer(ik4) :: cid,pid            ! indices
-    integer(ik4) :: n,m,np             ! indices
-    integer(ik4) :: anumg              ! lnd num gridcells
-    integer(ik4) :: begg,endg          ! beg,end gridcells
-    integer(ik4) :: begl,endl          ! beg,end landunits
-    integer(ik4) :: begc,endc          ! beg,end columns
-    integer(ik4) :: begp,endp          ! beg,end pfts
-    integer(ik4) :: icells             ! temporary
-    integer(ik4) :: ilunits            ! temporary
-    integer(ik4) :: icols              ! temporary
-    integer(ik4) :: ipfts              ! temporary
-    integer(ik4) :: ier                ! error code
-    integer(ik4) :: npmin,npmax,npint  ! do loop values for printing
-    integer(ik4) :: clmin,clmax        ! do loop values for printing
-    integer(ik4) :: lsize,gsize        ! used for gsmap init
-    integer(ik4) :: ng                 ! number of gridcells in gsmap
-    integer(ik4) :: beg,end,num        ! temporaries
-    integer(ik4) :: val1, val2         ! temporaries
-    integer(ik4), pointer :: gindex(:) ! global index for gsmap init
-    integer(ik4), pointer :: arrayg(:)
-    integer(ik4), pointer :: gstart(:),gcount(:)
-    integer(ik4), pointer :: lstart(:),lcount(:)
-    integer(ik4), pointer :: cstart(:),ccount(:)
-    integer(ik4), pointer :: pstart(:),pcount(:)
-    integer(ik4), pointer :: start(:),count(:)
-    integer(ik4), pointer :: tarr1(:),tarr2(:)
-    integer(ik4), allocatable :: allvecg(:,:)  ! temporary vector "global"
-    integer(ik4), allocatable :: allvecl(:,:)  ! temporary vector "local"
-    type(mct_gsmap),pointer :: gsmap
-    character(len=8) :: clmlevel
-    integer(ik4) :: ntest
-    integer(ik4), parameter :: dbug=1      ! 0 = min, 1=normal, 2=much, 3=max
-    character(len=32), parameter :: subname = 'decompInit_glcp'
+    integer(ik4) :: begg , endg  ! beg , end gridcells
+    integer(ik4) :: anumg        ! lnd num gridcells
+    integer(ik4) :: mynumg , mynumc , mynump , mynuml
+    integer(ik4) , pointer , dimension(:) :: gcount
+    integer(ik4) , pointer , dimension(:) :: lcount
+    integer(ik4) , pointer , dimension(:) :: ccount
+    integer(ik4) , pointer , dimension(:) :: pcount
+    integer(ik4) , pointer , dimension(:,:) :: xstart , xend
 
-! !CALLED FROM:
-! subroutine initialize
-!
-! !REVISION HISTORY:
-! 2002.09.11  Forrest Hoffman  Creation.
-! 2005.12.15  T Craig  Updated for finemesh
-! 2006.08.18  P Worley Performance optimizations
-!
-!EOP
-!------------------------------------------------------------------------------
+    allocate(gcount(procinfo%ncells))
+    allocate(lcount(procinfo%ncells))
+    allocate(ccount(procinfo%ncells))
+    allocate(pcount(procinfo%ncells))
+    allocate(xstart(nproc,4))
 
-    !--- assign gridcells to clumps (and thus pes) ---
-    call get_proc_bounds(begg, endg)
-
-    allocate(gstart(begg:endg),lstart(begg:endg),cstart(begg:endg),pstart(begg:endg))
-    allocate(gcount(begg:endg),lcount(begg:endg),ccount(begg:endg),pcount(begg:endg))
-    allocate(allvecg(nclumps,4),allvecl(nclumps,4))   ! 3 = gcells,lunit,cols,pfts
-
-    allvecg= 0
-    allvecl= 0
     gcount = 0
     lcount = 0
     ccount = 0
     pcount = 0
-    do anumg = begg,endg
-       an  = ldecomp%gdc2glo(anumg)
-       cid = lcid(an)
-       ln  = anumg
-       if (present(glcmask)) then
-          call subgrid_get_gcellinfo (ln, nlunits=ilunits, &
-               ncols=icols, npfts=ipfts, glcmask=glcmask(ln))
-       else
-          call subgrid_get_gcellinfo (ln, nlunits=ilunits, &
-               ncols=icols, npfts=ipfts)
-       endif
-       allvecl(cid,1) = allvecl(cid,1) + 1
-       allvecl(cid,2) = allvecl(cid,2) + ilunits
-       allvecl(cid,3) = allvecl(cid,3) + icols
-       allvecl(cid,4) = allvecl(cid,4) + ipfts
-       gcount(ln) = 1
-       lcount(ln) = ilunits
-       ccount(ln) = icols
-       pcount(ln) = ipfts
-    enddo
-    call sumall(allvecl,allvecg)
+    begg = 1
+    endg = procinfo%ncells
 
-    numg  = 0
-    numl  = 0
-    numc  = 0
-    nump  = 0
-    do cid = 1,nclumps
-       icells  = allvecg(cid,1)
-       ilunits = allvecg(cid,2)
-       icols   = allvecg(cid,3)
-       ipfts   = allvecg(cid,4)
+    do anumg = begg , endg
+      ln  = anumg
+      call subgrid_get_gcellinfo(ln,nlunits=ilunits,ncols=icols,npfts=ipfts)
+      gcount(ln) = 1
+      lcount(ln) = ilunits
+      ccount(ln) = icols
+      pcount(ln) = ipfts
+    end do
 
-       !--- overall total ---
-       numg = numg + icells
-       numl = numl + ilunits
-       numc = numc + icols
-       nump = nump + ipfts
+    mynumg  = sum(gcount)
+    mynuml  = sum(lcount)
+    mynumc  = sum(ccount)
+    mynump  = sum(pcount)
 
-       !--- give gridcell to cid ---
-       !--- increment the beg and end indices ---
-       clumps(cid)%nlunits = clumps(cid)%nlunits + ilunits
-       clumps(cid)%ncols   = clumps(cid)%ncols   + icols
-       clumps(cid)%npfts   = clumps(cid)%npfts   + ipfts
+    procinfo%nlunits = mynuml
+    procinfo%ncols   = mynumc
+    procinfo%npfts   = mynump
 
-       do m = 1,nclumps
-          if ((clumps(m)%owner >  clumps(cid)%owner) .or. &
-              (clumps(m)%owner == clumps(cid)%owner .and. m > cid)) then
-             clumps(m)%begl = clumps(m)%begl + ilunits
-             clumps(m)%begc = clumps(m)%begc + icols
-             clumps(m)%begp = clumps(m)%begp + ipfts
-          endif
+    call sumall(mynumg,numg)
+    call sumall(mynuml,numl)
+    call sumall(mynumc,numc)
+    call sumall(mynump,nump)
 
-          if ((clumps(m)%owner >  clumps(cid)%owner) .or. &
-              (clumps(m)%owner == clumps(cid)%owner .and. m >= cid)) then
-             clumps(m)%endl = clumps(m)%endl + ilunits
-             clumps(m)%endc = clumps(m)%endc + icols
-             clumps(m)%endp = clumps(m)%endp + ipfts
-          endif
-       enddo
+    call gather_i(mynumg,xstart(:,1))
+    call gather_i(mynuml,xstart(:,2))
+    call gather_i(mynumc,xstart(:,3))
+    call gather_i(mynump,xstart(:,4))
 
-       !--- give gridcell to the proc that owns the cid ---
-       !--- increment the beg and end indices ---
-       if (myid == clumps(cid)%owner) then
-          procinfo%nlunits = procinfo%nlunits + ilunits
-          procinfo%ncols   = procinfo%ncols   + icols
-          procinfo%npfts   = procinfo%npfts   + ipfts
-       endif
+    if ( myid > 1 ) then
+      procinfo%begg = sum(xstart(1:myid,1))
+      procinfo%endg = procinfo%begg + mynumg
+      procinfo%begl = sum(xstart(1:myid,2))
+      procinfo%endl = procinfo%begl + mynuml
+      procinfo%begc = sum(xstart(1:myid,3))
+      procinfo%endc = procinfo%begc + mynumc
+      procinfo%begp = sum(xstart(1:myid,4))
+      procinfo%endp = procinfo%begp + mynump
+    else
+      procinfo%begg = 1
+      procinfo%endg = mynumg
+      procinfo%begl = 1
+      procinfo%endl = mynuml
+      procinfo%begc = 1
+      procinfo%endc = mynumc
+      procinfo%begp = 1
+      procinfo%endp = mynump
+    end if
 
-       if (myid >  clumps(cid)%owner) then
-          procinfo%begl = procinfo%begl + ilunits
-          procinfo%begc = procinfo%begc + icols
-          procinfo%begp = procinfo%begp + ipfts
-       endif
-
-       if (myid >= clumps(cid)%owner) then
-          procinfo%endl = procinfo%endl + ilunits
-          procinfo%endc = procinfo%endc + icols
-          procinfo%endp = procinfo%endp + ipfts
-       endif
-    enddo
-
-    do n = 1,nclumps
-       if (clumps(n)%ncells  /= allvecg(n,1) .or. &
-           clumps(n)%nlunits /= allvecg(n,2) .or. &
-           clumps(n)%ncols   /= allvecg(n,3) .or. &
-           clumps(n)%npfts   /= allvecg(n,4)) then
-          write(stderr,*) 'decompInit_glcp(): allvecg error ncells ',myid,n,clumps(n)%ncells ,allvecg(n,1)
-          write(stderr,*) 'decompInit_glcp(): allvecg error lunits ',myid,n,clumps(n)%nlunits,allvecg(n,2)
-          write(stderr,*) 'decompInit_glcp(): allvecg error ncols  ',myid,n,clumps(n)%ncols  ,allvecg(n,3)
-          write(stderr,*) 'decompInit_glcp(): allvecg error pfts   ',myid,n,clumps(n)%npfts  ,allvecg(n,4)
-          call fatal(__FILE__,__LINE__,'clm now stopping')
-       endif
-    enddo
-
-    deallocate(allvecg,allvecl)
-    deallocate(lcid)
-
-    ! set gsMaps, perms for lun, col, pft
-
-    ! this was just "set" above in procinfo, be careful not to move it up
-    call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
-
-    ng = mct_gsmap_gsize(gsmap_lnd_gdc2glo)
-    allocate(arrayg(ng))
-
-    ! for each subgrid gsmap (l, c, p)
-    ! gather the gdc subgrid counts to masterproc in glo order
-    ! compute glo ordered start indices from the counts
-    ! scatter the subgrid start indices back out to the gdc gridcells
-    ! set the local gindex array for the subgrid from the subgrid start and count arrays
-
-    do k = 1,4
-       if (k == 1) then
-          clmlevel = nameg
-          beg = begg
-          end = endg
-          num = numg
-          gsmap => gsmap_gce_gdc2glo
-          start => gstart
-          count => gcount
-       elseif (k == 2) then
-          clmlevel = namel
-          beg = begl
-          end = endl
-          num = numl
-          gsmap => gsmap_lun_gdc2glo
-          start => lstart
-          count => lcount
-       elseif (k == 3) then
-          clmlevel = namec
-          beg = begc
-          end = endc
-          num = numc
-          gsmap => gsmap_col_gdc2glo
-          start => cstart
-          count => ccount
-       elseif (k == 4) then
-          clmlevel = namep
-          beg = begp
-          end = endp
-          num = nump
-          gsmap => gsmap_pft_gdc2glo
-          start => pstart
-          count => pcount
-       else
-          write(stderr,*) 'decompInit_glcp error in k ',k
-          call fatal(__FILE__,__LINE__,'clm now stopping')
-       endif
-
-       arrayg = 0
-       call gather_data_to_master(count,arrayg,grlnd)
-       if (myid == italk) then
-          gsize = arrayg(1)
-          val1 = arrayg(1)
-          arrayg(1) = 1
-          do n = 2,ng
-             gsize = gsize + arrayg(n)
-             val2 = arrayg(n)
-             arrayg(n) = arrayg(n-1) + val1
-             val1 = val2
-          enddo
-       endif
-       call scatter_data_from_master(start,arrayg,grlnd)
-
-       allocate(gindex(beg:end))
-
-       i = beg-1
-       do g = begg,endg
-          if (count(g) <  1) then
-             write(stderr,*) 'decompInit_glcp warning count g ',k,myid,g,count(g)
-          endif
-          do l = 1,count(g)
-             i = i + 1
-             if (i < beg .or. i > end) then
-                write(stderr,*) 'decompInit_glcp error i ',i,beg,end
-                call fatal(__FILE__,__LINE__,'clm now stopping')
-             endif
-             gindex(i) = start(g) + l - 1
-          enddo
-       enddo
-       if (i /= end) then
-          write(stderr,*) 'decompInit_glcp error size ',i,beg,end
-          call fatal(__FILE__,__LINE__,'clm now stopping')
-       endif
-       lsize = end-beg+1
-       gsize = num
-       call mct_gsMap_init(gsMap, gindex, mycomm, comp_id, lsize, gsize)
-
-       if (dbug > 1) then
-          !--- test gsmap ---
-          ntest = mct_gsMap_gsize(gsMap)
-          allocate(tarr1(ntest),tarr2(beg:end))
-          call gather_data_to_master(gindex,tarr1,clmlevel)
-          call scatter_data_from_master(tarr2,tarr1,clmlevel)
-          !--- verify gather/scatter produces same result
-          do l = beg,end
-             if (tarr2(l) /= gindex(l)) then
-                write(stderr,*) 'decompInit_glcp error tarr2 ',k,l,gindex(l),tarr2(l)
-                call fatal(__FILE__,__LINE__,'clm now stopping')
-             endif
-          enddo
-          !--- verify gather of gindex on new gsmap produces ordered indices
-          if (myid == italk) then
-             if (tarr1(1) /= 1) then
-                write(stderr,*) 'decompInit_glcp error tarr1 ',k,1,tarr1(1)
-                call fatal(__FILE__,__LINE__,'clm now stopping')
-             endif
-             do l = 2,ntest
-                if (tarr1(l)-tarr1(l-1) /= 1) then
-                   write(stderr,*) 'decompInit_glcp error tarr1 ',k,l,tarr1(l-1),tarr1(l)
-                   call fatal(__FILE__,__LINE__,'clm now stopping')
-                endif
-             enddo
-          endif
-          deallocate(tarr1,tarr2)
-          if (myid == italk) then
-             write(stdout,*) 'decompInit_glcp gsmap [l,c,p] test passes for ',k
-          endif
-          !--- end test section      
-       end if
-       deallocate(gindex)
-
-    enddo
-
-    deallocate(gstart,lstart,cstart,pstart)
-    deallocate(gcount,lcount,ccount,pcount)
+    deallocate(gcount)
+    deallocate(lcount)
+    deallocate(ccount)
+    deallocate(pcount)
+    deallocate(xstart)
 
     ! Diagnostic output
 
-    if (myid == italk) then
-       write(stdout,*)' Surface Grid Characteristics'
-       write(stdout,*)'   longitude points          = ',lni
-       write(stdout,*)'   latitude points           = ',lnj
-       write(stdout,*)'   total number of gridcells = ',numg
-       write(stdout,*)'   total number of landunits = ',numl
-       write(stdout,*)'   total number of columns   = ',numc
-       write(stdout,*)'   total number of pfts      = ',nump
-       write(stdout,*)' Decomposition Characteristics'
-       write(stdout,*)'   clumps per process        = ',clump_pproc
-       write(stdout,*)' gsMap Characteristics'
-       write(stdout,*) '  lnd gsmap glo num of segs = ',mct_gsMap_ngseg(gsMap_lnd_gdc2glo)
-       write(stdout,*) '  gce gsmap glo num of segs = ',mct_gsMap_ngseg(gsMap_gce_gdc2glo)
-       write(stdout,*) '  lun gsmap glo num of segs = ',mct_gsMap_ngseg(gsMap_lun_gdc2glo)
-       write(stdout,*) '  col gsmap glo num of segs = ',mct_gsMap_ngseg(gsMap_col_gdc2glo)
-       write(stdout,*) '  pft gsmap glo num of segs = ',mct_gsMap_ngseg(gsMap_pft_gdc2glo)
-       write(stdout,*)
+    if ( myid == italk ) then
+      write(stdout,*)' Surface Grid Characteristics'
+      write(stdout,*)'   total number of gridcells = ',numg
+      write(stdout,*)'   total number of landunits = ',numl
+      write(stdout,*)'   total number of columns   = ',numc
+      write(stdout,*)'   total number of pfts      = ',nump
     end if
 
-    ! Write out clump and proc info, one pe at a time, 
-    ! barrier to control pes overwriting each other on stdout
-
-    call allsync
-    npmin = 0
-    npmax = nproc-1
-    npint = 1
-    if (dbug == 0) then
-       npmax = 0
-    elseif (dbug == 1) then
-       npmax = min(nproc-1,4)
-    elseif (dbug == 2) then
-       npint = nproc/8
-    endif
-    do np = npmin,npmax,npint
-       pid = np
-       if (dbug == 1) then
-          if (np == 2) pid=nproc/2-1
-          if (np == 3) pid=nproc-2
-          if (np == 4) pid=nproc-1
-       endif
-       pid = max(pid,0)
-       pid = min(pid,nproc-1)
-
-       if (myid == pid) then
-          write(stdout,*)
-          write(stdout,*)'proc= ',pid,&
+#ifdef DEBUG
+    write(ndebug+myid,*)'proc= ',pid,&
                ' beg gridcell= ',procinfo%begg, &
                ' end gridcell= ',procinfo%endg,                   &
                ' total gridcells per proc= ',procinfo%ncells
-          write(stdout,*)'proc= ',pid,&
+    write(ndebug+myid,*)'proc= ',pid,&
                ' beg landunit= ',procinfo%begl, &
                ' end landunit= ',procinfo%endl,                   &
                ' total landunits per proc= ',procinfo%nlunits
-          write(stdout,*)'proc= ',pid,&
+    write(ndebug+myid,*)'proc= ',pid,&
                ' beg column  = ',procinfo%begc, &
                ' end column  = ',procinfo%endc,                   &
                ' total columns per proc  = ',procinfo%ncols
-          write(stdout,*)'proc= ',pid,&
+    write(ndebug+myid,*)'proc= ',pid,&
                ' beg pft     = ',procinfo%begp, &
                ' end pft     = ',procinfo%endp,                   &
                ' total pfts per proc     = ',procinfo%npfts
-          write(stdout,*)'proc= ',pid,&
-               ' lnd ngseg   = ',mct_gsMap_ngseg(gsMap_lnd_gdc2glo), &
-               ' lnd nlseg   = ',mct_gsMap_nlseg(gsMap_lnd_gdc2glo,myid)
-          write(stdout,*)'proc= ',pid,&
-               ' gce ngseg   = ',mct_gsMap_ngseg(gsMap_gce_gdc2glo), &
-               ' gce nlseg   = ',mct_gsMap_nlseg(gsMap_gce_gdc2glo,myid)
-          write(stdout,*)'proc= ',pid,&
-               ' lun ngseg   = ',mct_gsMap_ngseg(gsMap_lun_gdc2glo), &
-               ' lun nlseg   = ',mct_gsMap_nlseg(gsMap_lun_gdc2glo,myid)
-          write(stdout,*)'proc= ',pid,&
-               ' col ngseg   = ',mct_gsMap_ngseg(gsMap_col_gdc2glo), &
-               ' col nlseg   = ',mct_gsMap_nlseg(gsMap_col_gdc2glo,myid)
-          write(stdout,*)'proc= ',pid,&
-               ' pft ngseg   = ',mct_gsMap_ngseg(gsMap_pft_gdc2glo), &
-               ' pft nlseg   = ',mct_gsMap_nlseg(gsMap_pft_gdc2glo,myid)
-          write(stdout,*)'proc= ',pid,' nclumps = ',procinfo%nclumps
-
-          clmin = 1
-          clmax = procinfo%nclumps
-          if (dbug == 1) then
-            clmax = 1
-          elseif (dbug == 0) then
-            clmax = -1
-          endif
-          do n = clmin,clmax
-             cid = procinfo%cid(n)
-             write(stdout,*)'proc= ',pid,' clump no = ',n, &
-                  ' clump id= ',procinfo%cid(n),    &
-                  ' beg gridcell= ',clumps(cid)%begg, &
-                  ' end gridcell= ',clumps(cid)%endg, &
-                  ' total gridcells per clump= ',clumps(cid)%ncells
-             write(stdout,*)'proc= ',pid,' clump no = ',n, &
-                  ' clump id= ',procinfo%cid(n),    &
-                  ' beg landunit= ',clumps(cid)%begl, &
-                  ' end landunit= ',clumps(cid)%endl, &
-                  ' total landunits per clump = ',clumps(cid)%nlunits
-             write(stdout,*)'proc= ',pid,' clump no = ',n, &
-                  ' clump id= ',procinfo%cid(n),    &
-                  ' beg column  = ',clumps(cid)%begc, &
-                  ' end column  = ',clumps(cid)%endc, &
-                  ' total columns per clump  = ',clumps(cid)%ncols
-             write(stdout,*)'proc= ',pid,' clump no = ',n, &
-                  ' clump id= ',procinfo%cid(n),    &
-                  ' beg pft     = ',clumps(cid)%begp, &
-                  ' end pft     = ',clumps(cid)%endp, &
-                  ' total pfts per clump     = ',clumps(cid)%npfts
-          end do
-       end if
-       call allsync
-    end do
+#endif
 
   end subroutine decompInit_glcp
-
-!------------------------------------------------------------------------------
 
 end module decompInitMod

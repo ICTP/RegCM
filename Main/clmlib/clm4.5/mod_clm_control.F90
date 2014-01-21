@@ -22,7 +22,7 @@ module mod_clm_control
                             iulog, outnc_large_files, finidat, fsurdat, fatmlndfrc,  &
                             fatmtopo, flndtopo, fpftdyn, fpftcon, nrevsn, &
                             create_crop_landunit, allocate_all_vegpfts,   &
-                            co2_type, wrtdia, co2_ppmv, nsegspc, pertlim,       &
+                            co2_type, wrtdia, co2_ppmv, pertlim,       &
                             username, fsnowaging, fsnowoptics, fglcmask, &
                             create_glacier_mec_landunit, glc_dyntopo, glc_smb, &
                             glc_topomax, glc_grid, subgridflag, &
@@ -47,7 +47,6 @@ module mod_clm_control
   use CNNDynamicsMod, only : nfix_timeconst
 #endif
   use spmdMod      , only : masterproc
-  use decompMod    , only : clump_pproc
   use histFileMod  , only : max_tapes, max_namlen, &
                             hist_empty_htapes, hist_dov2xy, &
                             hist_avgflag_pertape, hist_type1d_pertape, &
@@ -266,8 +265,8 @@ contains
     ! Other options
 
     namelist /clm_inparm/  &
-         clump_pproc, wrtdia, pertlim, &
-         create_crop_landunit, nsegspc, co2_ppmv, override_nsrest, &
+         wrtdia, pertlim, &
+         create_crop_landunit, co2_ppmv, override_nsrest, &
          albice, more_vertlayers, subgridflag, irrigate
     ! Urban options
 
@@ -313,14 +312,6 @@ contains
     runtyp(nsrStartup  + 1) = 'initial'
     runtyp(nsrContinue + 1) = 'restart'
     runtyp(nsrBranch   + 1) = 'branch '
-
-    ! Set clumps per procoessor
-
-#if (defined _OPENMP)
-    clump_pproc = omp_get_max_threads()
-#else
-    clump_pproc = 1
-#endif
 
     override_nsrest = nsrest
 
@@ -543,7 +534,6 @@ contains
 
     call mpi_bcast (urban_hac     , len(urban_hac), MPI_CHARACTER, 0, mpicom, ier)
     call mpi_bcast (urban_traffic , 1, MPI_LOGICAL, 0, mpicom, ier)
-    call mpi_bcast (nsegspc     , 1, MPI_INTEGER, 0, mpicom, ier)
     call mpi_bcast (subgridflag , 1, MPI_INTEGER, 0, mpicom, ier)
     call mpi_bcast (wrtdia      , 1, MPI_LOGICAL, 0, mpicom, ier)
     call mpi_bcast (single_column,1, MPI_LOGICAL, 0, mpicom, ier)
@@ -591,10 +581,6 @@ contains
     ! restart file variables
 
     call mpi_bcast (rpntfil, len(rpntfil), MPI_CHARACTER, 0, mpicom, ier)
-
-    ! clump decomposition variables
-
-    call mpi_bcast (clump_pproc, 1, MPI_INTEGER, 0, mpicom, ier)
 
     ! error growth perturbation limit
     call mpi_bcast (pertlim, 1, MPI_REAL8, 0, mpicom, ier)
@@ -776,7 +762,6 @@ contains
     write(iulog,*) '   perturbation limit   = ',pertlim
     write(iulog,*) '   maxpatch_pft         = ',maxpatch_pft
     write(iulog,*) '   allocate_all_vegpfts = ',allocate_all_vegpfts
-    write(iulog,*) '   nsegspc              = ',nsegspc
 ! New fields
     write(iulog,*) ' perchroot (plant water stress based on unfrozen layers only) = ',perchroot
     write(iulog,*) ' perchroot (plant water stress based on time-integrated active layer only) = ',perchroot

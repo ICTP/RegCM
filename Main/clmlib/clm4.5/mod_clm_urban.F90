@@ -1,75 +1,65 @@
 module mod_clm_urban
-
-!----------------------------------------------------------------------- 
-!BOP
-!
-! !MODULE: UrbanMod
-! 
-! !DESCRIPTION: 
-! Calculate solar and longwave radiation, and turbulent fluxes for urban landunit
-!
-! !USES:
+  ! 
+  ! Calculate solar and longwave radiation, and turbulent fluxes for
+  ! urban landunit
+  !
+  use mod_intkinds
   use mod_realkinds
   use mod_clm_varpar  , only : numrad
   use mod_clm_varcon  , only : isecspday, degpsec
   use mod_mpmessage
   use mod_stdio
-!
-! !PUBLIC TYPES:
+
   implicit none
-  save
-!
-! !PUBLIC MEMBER FUNCTIONS:
-  public :: UrbanClumpInit    ! Initialization of urban clump data structure
+
+  private
+
+  public :: UrbanClumpInit    ! Initialization of urban data structure
   public :: UrbanRadiation    ! Urban radiative fluxes
   public :: UrbanAlbedo       ! Urban albedos  
   public :: UrbanSnowAlbedo   ! Urban snow albedos
   public :: UrbanFluxes       ! Urban turbulent fluxes
 
-! !Urban control variables
-  character(len= *), parameter, public :: urban_hac_off = 'OFF'               ! 
-  character(len= *), parameter, public :: urban_hac_on =  'ON'                ! 
-  character(len= *), parameter, public :: urban_wasteheat_on = 'ON_WASTEHEAT' ! 
-  character(len= 16), public :: urban_hac = urban_hac_off
-  logical, public :: urban_traffic = .false.        ! urban traffic fluxes
-!
-! !REVISION HISTORY:
-! Created by Gordon Bonan and Mariana Vertenstein and Keith Oleson 04/2003
-!
-!EOP
-!
-! PRIVATE MEMBER FUNCTIONS
-  private :: view_factor      ! View factors for road and one wall
-  private :: incident_direct  ! Direct beam solar rad incident on walls and road in urban canyon 
-  private :: incident_diffuse ! Diffuse solar rad incident on walls and road in urban canyon
-  private :: net_solar        ! Solar radiation absorbed by road and both walls in urban canyon 
-  private :: net_longwave     ! Net longwave radiation for road and both walls in urban canyon 
+  ! Urban control variables
+  character(len= *) , parameter , public :: urban_hac_off = 'OFF'
+  character(len= *) , parameter , public :: urban_hac_on =  'ON'
+  character(len= *) , parameter , public :: urban_wasteheat_on = 'ON_WASTEHEAT'
+  character(len= 16) , public :: urban_hac = urban_hac_off
+  logical , public :: urban_traffic = .false. ! urban traffic fluxes
+  ! View factors for road and one wall
+  private :: view_factor
+  ! Direct beam solar rad incident on walls and road in urban canyon 
+  private :: incident_direct
+  ! Diffuse solar rad incident on walls and road in urban canyon
+  private :: incident_diffuse
+  ! Solar radiation absorbed by road and both walls in urban canyon 
+  private :: net_solar
+  ! Net longwave radiation for road and both walls in urban canyon 
+  private :: net_longwave
 
-! PRIVATE TYPES
-  private
-  type urban_clump_t
-     real(rk8), pointer :: canyon_hwr(:)            ! ratio of building height to street width 
-     real(rk8), pointer :: wtroad_perv(:)           ! weight of pervious road wrt total road
-     real(rk8), pointer :: ht_roof(:)               ! height of urban roof (m)
-     real(rk8), pointer :: wtlunit_roof(:)          ! weight of roof with respect to landunit
-     real(rk8), pointer :: wind_hgt_canyon(:)       ! height above road at which wind in canyon is to be computed (m)
-     real(rk8), pointer :: em_roof(:)               ! roof emissivity
-     real(rk8), pointer :: em_improad(:)            ! impervious road emissivity
-     real(rk8), pointer :: em_perroad(:)            ! pervious road emissivity
-     real(rk8), pointer :: em_wall(:)               ! wall emissivity
-     real(rk8), pointer :: alb_roof_dir(:,:)        ! direct  roof albedo
-     real(rk8), pointer :: alb_roof_dif(:,:)        ! diffuse roof albedo
-     real(rk8), pointer :: alb_improad_dir(:,:)     ! direct  impervious road albedo
-     real(rk8), pointer :: alb_improad_dif(:,:)     ! diffuse impervious road albedo
-     real(rk8), pointer :: alb_perroad_dir(:,:)     ! direct  pervious road albedo
-     real(rk8), pointer :: alb_perroad_dif(:,:)     ! diffuse pervious road albedo
-     real(rk8), pointer :: alb_wall_dir(:,:)        ! direct  wall albedo
-     real(rk8), pointer :: alb_wall_dif(:,:)        ! diffuse wall albedo
-  end type urban_clump_t
+  type urban_t
+    real(rk8), pointer :: canyon_hwr(:)            ! ratio of building height to street width 
+    real(rk8), pointer :: wtroad_perv(:)           ! weight of pervious road wrt total road
+    real(rk8), pointer :: ht_roof(:)               ! height of urban roof (m)
+    real(rk8), pointer :: wtlunit_roof(:)          ! weight of roof with respect to landunit
+    real(rk8), pointer :: wind_hgt_canyon(:)       ! height above road at which wind in canyon is to be computed (m)
+    real(rk8), pointer :: em_roof(:)               ! roof emissivity
+    real(rk8), pointer :: em_improad(:)            ! impervious road emissivity
+    real(rk8), pointer :: em_perroad(:)            ! pervious road emissivity
+    real(rk8), pointer :: em_wall(:)               ! wall emissivity
+    real(rk8), pointer :: alb_roof_dir(:,:)        ! direct  roof albedo
+    real(rk8), pointer :: alb_roof_dif(:,:)        ! diffuse roof albedo
+    real(rk8), pointer :: alb_improad_dir(:,:)     ! direct  impervious road albedo
+    real(rk8), pointer :: alb_improad_dif(:,:)     ! diffuse impervious road albedo
+    real(rk8), pointer :: alb_perroad_dir(:,:)     ! direct  pervious road albedo
+    real(rk8), pointer :: alb_perroad_dif(:,:)     ! diffuse pervious road albedo
+    real(rk8), pointer :: alb_wall_dir(:,:)        ! direct  wall albedo
+    real(rk8), pointer :: alb_wall_dif(:,:)        ! diffuse wall albedo
+  end type urban_t
 
-  type (urban_clump_t), private, pointer :: urban_clump(:)  ! array of urban clumps for this processor
+  type (urban_t) , private , pointer :: urban  ! array of urban for this processor
 
-  integer,  private, parameter :: noonsec   = isecspday / 2 ! seconds at local noon
+  integer(ik4) ,  private, parameter :: noonsec   = isecspday / 2 ! seconds at local noon
 !----------------------------------------------------------------------- 
 
 contains
@@ -80,7 +70,7 @@ contains
 ! !IROUTINE: UrbanAlbedo
 !
 ! !INTERFACE:
-  subroutine UrbanAlbedo (nc, lbl, ubl, lbc, ubc, lbp, ubp, &
+  subroutine UrbanAlbedo (lbl, ubl, lbc, ubc, lbp, ubp, &
                           num_urbanl, filter_urbanl, &
                           num_urbanc, filter_urbanc, &
                           num_urbanp, filter_urbanp)
@@ -96,16 +86,15 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: nc                        ! clump index
-    integer,  intent(in) :: lbl, ubl                  ! landunit-index bounds
-    integer,  intent(in) :: lbc, ubc                  ! column-index bounds
-    integer,  intent(in) :: lbp, ubp                  ! pft-index bounds
-    integer , intent(in) :: num_urbanl                ! number of urban landunits in clump
-    integer , intent(in) :: filter_urbanl(ubl-lbl+1) ! urban landunit filter
-    integer , intent(in) :: num_urbanc                ! number of urban columns in clump
-    integer , intent(in) :: filter_urbanc(ubc-lbc+1) ! urban column filter
-    integer , intent(in) :: num_urbanp                ! number of urban pfts in clump
-    integer , intent(in) :: filter_urbanp(ubp-lbp+1) ! urban pft filter
+    integer(ik4) ,  intent(in) :: lbl, ubl                  ! landunit-index bounds
+    integer(ik4) ,  intent(in) :: lbc, ubc                  ! column-index bounds
+    integer(ik4) ,  intent(in) :: lbp, ubp                  ! pft-index bounds
+    integer(ik4) , intent(in) :: num_urbanl                ! number of urban landunits
+    integer(ik4) , intent(in) :: filter_urbanl(ubl-lbl+1) ! urban landunit filter
+    integer(ik4) , intent(in) :: num_urbanc                ! number of urban columns
+    integer(ik4) , intent(in) :: filter_urbanc(ubc-lbc+1) ! urban column filter
+    integer(ik4) , intent(in) :: num_urbanp                ! number of urban pfts
+    integer(ik4) , intent(in) :: filter_urbanp(ubp-lbp+1) ! urban pft filter
 !
 ! !CALLED FROM:
 ! subroutine clm_driver1
@@ -119,14 +108,14 @@ contains
 !
 ! local pointers to original implicit in arguments
 !
-    integer , pointer :: pgridcell(:) ! gridcell of corresponding pft
-    integer , pointer :: lgridcell(:) ! gridcell of corresponding landunit
-    integer , pointer :: clandunit(:) ! column's landunit
-    integer , pointer :: cgridcell(:) ! gridcell of corresponding column
-    integer , pointer :: coli(:)      ! beginning column index for landunit 
-    integer , pointer :: colf(:)      ! ending column index for landunit
-    integer , pointer :: ctype(:)     ! column type
-    integer , pointer :: pcolumn(:)   ! column of corresponding pft
+    integer(ik4) , pointer :: pgridcell(:) ! gridcell of corresponding pft
+    integer(ik4) , pointer :: lgridcell(:) ! gridcell of corresponding landunit
+    integer(ik4) , pointer :: clandunit(:) ! column's landunit
+    integer(ik4) , pointer :: cgridcell(:) ! gridcell of corresponding column
+    integer(ik4) , pointer :: coli(:)      ! beginning column index for landunit 
+    integer(ik4) , pointer :: colf(:)      ! ending column index for landunit
+    integer(ik4) , pointer :: ctype(:)     ! column type
+    integer(ik4) , pointer :: pcolumn(:)   ! column of corresponding pft
     real(rk8), pointer :: czen(:)      ! cosine of solar zenith angle for each column
     real(rk8), pointer :: lat(:)       ! latitude (radians)
     real(rk8), pointer :: lon(:)       ! longitude (radians)
@@ -187,9 +176,9 @@ contains
     real(rk8) :: albsnd_perroad(num_urbanl,numrad)  ! snow albedo for pervious road (direct)
     real(rk8) :: albsni_perroad(num_urbanl,numrad)  ! snow albedo for pervious road (diffuse)
                                        
-    integer  :: fl,fp,fc,g,l,p,c,ib                ! indices
-    integer  :: ic                                 ! 0=unit incoming direct; 1=unit incoming diffuse
-    integer  :: num_solar                          ! counter
+    integer(ik4)  :: fl,fp,fc,g,l,p,c,ib                ! indices
+    integer(ik4)  :: ic                                 ! 0=unit incoming direct; 1=unit incoming diffuse
+    integer(ik4)  :: num_solar                          ! counter
     real(rk8) :: alb_roof_dir_s(num_urbanl,numrad)    ! direct roof albedo with snow effects
     real(rk8) :: alb_roof_dif_s(num_urbanl,numrad)    ! diffuse roof albedo with snow effects
     real(rk8) :: alb_improad_dir_s(num_urbanl,numrad) ! direct impervious road albedo with snow effects
@@ -218,18 +207,18 @@ contains
     real(rk8), pointer :: alb_wall_dif(:,:)         ! diffuse wall albedo
 !-----------------------------------------------------------------------
 
-    ! Assign pointers into module urban clumps
+    ! Assign pointers into module urban 
 
-    canyon_hwr         => urban_clump(nc)%canyon_hwr
-    wtroad_perv        => urban_clump(nc)%wtroad_perv
-    alb_roof_dir       => urban_clump(nc)%alb_roof_dir
-    alb_roof_dif       => urban_clump(nc)%alb_roof_dif  
-    alb_improad_dir    => urban_clump(nc)%alb_improad_dir  
-    alb_improad_dif    => urban_clump(nc)%alb_improad_dif  
-    alb_perroad_dir    => urban_clump(nc)%alb_perroad_dir  
-    alb_perroad_dif    => urban_clump(nc)%alb_perroad_dif  
-    alb_wall_dir       => urban_clump(nc)%alb_wall_dir  
-    alb_wall_dif       => urban_clump(nc)%alb_wall_dif  
+    canyon_hwr         => urban%canyon_hwr
+    wtroad_perv        => urban%wtroad_perv
+    alb_roof_dir       => urban%alb_roof_dir
+    alb_roof_dif       => urban%alb_roof_dif  
+    alb_improad_dir    => urban%alb_improad_dir  
+    alb_improad_dif    => urban%alb_improad_dif  
+    alb_perroad_dir    => urban%alb_perroad_dir  
+    alb_perroad_dif    => urban%alb_perroad_dif  
+    alb_wall_dir       => urban%alb_wall_dir  
+    alb_wall_dif       => urban%alb_wall_dif  
 
     ! Assign gridcell level pointers
 
@@ -353,7 +342,7 @@ contains
        if (coszen(fl) > 0.D0) num_solar = num_solar + 1
     end do
 
-    ! Initialize urban clump components
+    ! Initialize urban components
 
     do ib = 1,numrad
        do fl = 1,num_urbanl
@@ -519,10 +508,10 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer,  intent(in) :: lbl, ubl                    ! landunit-index bounds
-    integer , intent(in) :: num_urbanl                  ! number of urban landunits in clump
-    integer , intent(in) :: filter_urbanl(ubl-lbl+1)    ! urban landunit filter
-    integer , intent(in) :: ind                         ! 0=direct beam, 1=diffuse radiation
+    integer(ik4) ,  intent(in) :: lbl, ubl                    ! landunit-index bounds
+    integer(ik4) , intent(in) :: num_urbanl                  ! number of urban landunits
+    integer(ik4) , intent(in) :: filter_urbanl(ubl-lbl+1)    ! urban landunit filter
+    integer(ik4) , intent(in) :: ind                         ! 0=direct beam, 1=diffuse radiation
     real(rk8), intent(in) :: coszen(num_urbanl)          ! cosine solar zenith angle
     real(rk8), intent(out):: albsn_roof(num_urbanl,2)    ! roof snow albedo by waveband (assume 2 wavebands)
     real(rk8), intent(out):: albsn_improad(num_urbanl,2) ! impervious road snow albedo by waveband (assume 2 wavebands)
@@ -537,15 +526,15 @@ contains
 ! !LOCAL VARIABLES:
 !
 ! local pointers to implicit in arguments
-    integer , pointer :: coli(:)      ! beginning column index for landunit
-    integer , pointer :: colf(:)      ! ending column index for landunit
+    integer(ik4) , pointer :: coli(:)      ! beginning column index for landunit
+    integer(ik4) , pointer :: colf(:)      ! ending column index for landunit
     real(rk8), pointer :: h2osno(:)    ! snow water (mm H2O)
-    integer , pointer :: ctype(:)     ! column type
+    integer(ik4) , pointer :: ctype(:)     ! column type
 !
 !
 ! !OTHER LOCAL VARIABLES:
 !EOP
-    integer  :: fl,c,l              ! indices
+    integer(ik4)  :: fl,c,l              ! indices
 !
 ! variables and constants for snow albedo calculation
 !
@@ -605,7 +594,7 @@ contains
 ! !IROUTINE: UrbanRadiation
 !
 ! !INTERFACE:
-  subroutine UrbanRadiation (nc, lbl, ubl, lbc, ubc, lbp, ubp, &
+  subroutine UrbanRadiation (lbl, ubl, lbc, ubc, lbp, ubp, &
                              num_nourbanl, filter_nourbanl, &
                              num_urbanl, filter_urbanl, &
                              num_urbanc, filter_urbanc, &
@@ -625,18 +614,17 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: nc                         ! clump index
-    integer,  intent(in) :: lbl, ubl                   ! landunit-index bounds
-    integer,  intent(in) :: lbc, ubc                   ! column-index bounds
-    integer,  intent(in) :: lbp, ubp                   ! pft-index bounds
-    integer , intent(in) :: num_nourbanl               ! number of non-urban landunits in clump
-    integer , intent(in) :: filter_nourbanl(ubl-lbl+1) ! non-urban landunit filter
-    integer , intent(in) :: num_urbanl                 ! number of urban landunits in clump
-    integer , intent(in) :: filter_urbanl(ubl-lbl+1)   ! urban landunit filter
-    integer , intent(in) :: num_urbanc                 ! number of urban columns in clump
-    integer , intent(in) :: filter_urbanc(ubc-lbc+1)   ! urban column filter
-    integer , intent(in) :: num_urbanp                 ! number of urban pfts in clump
-    integer , intent(in) :: filter_urbanp(ubp-lbp+1)   ! urban pft filter
+    integer(ik4) ,  intent(in) :: lbl, ubl                   ! landunit-index bounds
+    integer(ik4) ,  intent(in) :: lbc, ubc                   ! column-index bounds
+    integer(ik4) ,  intent(in) :: lbp, ubp                   ! pft-index bounds
+    integer(ik4) , intent(in) :: num_nourbanl               ! number of non-urban landunits
+    integer(ik4) , intent(in) :: filter_nourbanl(ubl-lbl+1) ! non-urban landunit filter
+    integer(ik4) , intent(in) :: num_urbanl                 ! number of urban landunits
+    integer(ik4) , intent(in) :: filter_urbanl(ubl-lbl+1)   ! urban landunit filter
+    integer(ik4) , intent(in) :: num_urbanc                 ! number of urban columns
+    integer(ik4) , intent(in) :: filter_urbanc(ubc-lbc+1)   ! urban column filter
+    integer(ik4) , intent(in) :: num_urbanp                 ! number of urban pfts
+    integer(ik4) , intent(in) :: filter_urbanp(ubp-lbp+1)   ! urban pft filter
 !
 ! !CALLED FROM:
 ! subroutine clm_driver1
@@ -649,7 +637,7 @@ contains
 !
 ! !LOCAL VARIABLES:
 !
-! local pointers to original implicit in arguments (urban clump)
+! local pointers to original implicit in arguments (urban)
 !
     real(rk8), pointer :: canyon_hwr(:)           ! ratio of building height to street width
     real(rk8), pointer :: wtroad_perv(:)          ! weight of pervious road wrt total road
@@ -660,14 +648,14 @@ contains
 !
 ! local pointers to original implicit in arguments (clmtype)
 !
-    integer , pointer :: pgridcell(:)            ! gridcell of corresponding pft
-    integer , pointer :: pcolumn(:)              ! column of corresponding pft
-    integer , pointer :: lgridcell(:)            ! gridcell of corresponding landunit
-    integer , pointer :: ctype(:)                ! column type
-    integer , pointer :: coli(:)                 ! beginning column index for landunit 
-    integer , pointer :: colf(:)                 ! ending column index for landunit
-    integer , pointer :: pfti(:)                 ! beginning pfti index for landunit 
-    integer , pointer :: pftf(:)                 ! ending pftf index for landunit
+    integer(ik4) , pointer :: pgridcell(:)            ! gridcell of corresponding pft
+    integer(ik4) , pointer :: pcolumn(:)              ! column of corresponding pft
+    integer(ik4) , pointer :: lgridcell(:)            ! gridcell of corresponding landunit
+    integer(ik4) , pointer :: ctype(:)                ! column type
+    integer(ik4) , pointer :: coli(:)                 ! beginning column index for landunit 
+    integer(ik4) , pointer :: colf(:)                 ! ending column index for landunit
+    integer(ik4) , pointer :: pfti(:)                 ! beginning pfti index for landunit 
+    integer(ik4) , pointer :: pftf(:)                 ! ending pftf index for landunit
     real(rk8), pointer :: londeg(:)               ! longitude (degrees)
     real(rk8), pointer :: forc_lwrad(:)           ! downward infrared (longwave) radiation (W/m**2)
     real(rk8), pointer :: forc_solad(:,:)         ! direct beam radiation  (vis=forc_sols , nir=forc_soll ) (W/m**2)
@@ -723,11 +711,11 @@ contains
 ! !OTHER LOCAL VARIABLES
 !EOP
 !
-    integer  :: fp,fl,p,c,l,g              ! indices
-    integer  :: local_secp1                ! seconds into current date in local time
+    integer(ik4)  :: fp,fl,p,c,l,g              ! indices
+    integer(ik4)  :: local_secp1                ! seconds into current date in local time
     real(rk8) :: dtime                      ! land model time step (sec)
-    integer  :: year,month,day             ! temporaries (not used)
-    integer  :: secs                       ! seconds into current date
+    integer(ik4)  :: year,month,day             ! temporaries (not used)
+    integer(ik4)  :: secs                       ! seconds into current date
 
     real(rk8), parameter :: mpe    = 1.D-06 ! prevents overflow for division by zero
     real(rk8), parameter :: snoem  = 0.97D0   ! snow emissivity (should use value from Biogeophysics1)
@@ -755,15 +743,15 @@ contains
     real(rk8) :: em_perroad_s(num_urbanl)   ! pervious road emissivity with snow effects
 !-----------------------------------------------------------------------
 
-    ! Assign pointers into module urban clumps
+    ! Assign pointers into module urban
 
     if( num_urbanl > 0 )then
-       canyon_hwr         => urban_clump(nc)%canyon_hwr
-       wtroad_perv        => urban_clump(nc)%wtroad_perv
-       em_roof            => urban_clump(nc)%em_roof
-       em_improad         => urban_clump(nc)%em_improad
-       em_perroad         => urban_clump(nc)%em_perroad
-       em_wall            => urban_clump(nc)%em_wall
+       canyon_hwr         => urban%canyon_hwr
+       wtroad_perv        => urban%wtroad_perv
+       em_roof            => urban%em_roof
+       em_improad         => urban%em_improad
+       em_perroad         => urban%em_perroad
+       em_wall            => urban%em_wall
     end if
 
     ! Assign local pointers to multi-level derived type members (gridcell level)
@@ -907,7 +895,7 @@ contains
     call get_curr_date (year, month, day, secs)
     
     ! Determine clmtype variables needed for history output and communication with atm
-    ! Loop over urban pfts in clump
+    ! Loop over urban pfts
 
     do fp = 1,num_urbanp
        p = filter_urbanp(fp)
@@ -955,7 +943,7 @@ contains
        
     end do
 
-    ! Loop over urban landunits in clump
+    ! Loop over urban landunits
 
     do fl = 1,num_urbanl
        l = filter_urbanl(fl)
@@ -1055,9 +1043,9 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer,  intent(in) :: lbl, ubl                  ! landunit-index bounds
-    integer , intent(in)  :: num_urbanl               ! number of urban landunits
-    integer , intent(in)  :: filter_urbanl(ubl-lbl+1) ! urban landunit filter
+    integer(ik4) ,  intent(in) :: lbl, ubl                  ! landunit-index bounds
+    integer(ik4) , intent(in)  :: num_urbanl               ! number of urban landunits
+    integer(ik4) , intent(in)  :: filter_urbanl(ubl-lbl+1) ! urban landunit filter
     real(rk8), intent(in)  :: canyon_hwr(num_urbanl)   ! ratio of building height to street width
 !
 ! local pointers to original implicit out arguments (clmtype)
@@ -1079,7 +1067,7 @@ contains
 !
 ! !LOCAL VARIABLES:
 !EOP
-    integer :: l, fl   ! indices
+    integer(ik4) :: l, fl   ! indices
     real(rk8) :: sum    ! sum of view factors for wall or road
 !-----------------------------------------------------------------------
 
@@ -1175,8 +1163,8 @@ contains
     implicit none
 !
 ! !ARGUMENTS:
-    integer,  intent(in)  :: lbl, ubl                           ! landunit-index bounds
-    integer , intent(in)  :: num_urbanl                         ! number of urban landunits
+    integer(ik4) ,  intent(in)  :: lbl, ubl                           ! landunit-index bounds
+    integer(ik4) , intent(in)  :: num_urbanl                         ! number of urban landunits
     real(rk8), intent(in)  :: canyon_hwr(num_urbanl)             ! ratio of building height to street width
     real(rk8), intent(in)  :: coszen(num_urbanl)                 ! cosine solar zenith angle
     real(rk8), intent(in)  :: zen(num_urbanl)                    ! solar zenith angle (radians)
@@ -1194,7 +1182,7 @@ contains
 !
 ! !LOCAL VARIABLES:
 !EOP
-    integer  :: l,i,ib             ! indices
+    integer(ik4)  :: l,i,ib             ! indices
 !KO   logical  :: numchk = .true.     ! true => perform numerical check of analytical solution
     logical  :: numchk = .false.   ! true => perform numerical check of analytical solution
     real(rk8) :: theta0(num_urbanl) ! critical canyon orientation for which road is no longer illuminated
@@ -1316,9 +1304,9 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer,  intent(in)  :: lbl, ubl                           ! landunit-index bounds
-    integer , intent(in)  :: num_urbanl                         ! number of urban landunits
-    integer , intent(in)  :: filter_urbanl(ubl-lbl+1)           ! urban landunit filter
+    integer(ik4) ,  intent(in)  :: lbl, ubl                           ! landunit-index bounds
+    integer(ik4) , intent(in)  :: num_urbanl                         ! number of urban landunits
+    integer(ik4) , intent(in)  :: filter_urbanl(ubl-lbl+1)           ! urban landunit filter
     real(rk8), intent(in)  :: canyon_hwr(num_urbanl)             ! ratio of building height to street width
     real(rk8), intent(in)  :: sdif(num_urbanl, numrad)           ! diffuse solar radiation incident on horizontal surface
     real(rk8), intent(out) :: sdif_road(num_urbanl, numrad)      ! diffuse solar radiation incident on road
@@ -1339,7 +1327,7 @@ contains
 !
 ! !LOCAL VARIABLES:
 !EOP
-    integer  :: l, fl, ib       ! indices      
+    integer(ik4)  :: l, fl, ib       ! indices      
     real(rk8) :: err(num_urbanl) ! energy conservation error (W/m**2)
     real(rk8) :: swall_projected ! diffuse solar radiation (per unit ground area) incident on wall (W/m**2)
 !-----------------------------------------------------------------------
@@ -1401,9 +1389,9 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer,  intent(in)  :: lbl, ubl                               ! landunit-index bounds
-    integer , intent(in)  :: num_urbanl                             ! number of urban landunits
-    integer , intent(in)  :: filter_urbanl(ubl-lbl+1)               ! urban landunit filter
+    integer(ik4) ,  intent(in)  :: lbl, ubl                               ! landunit-index bounds
+    integer(ik4) , intent(in)  :: num_urbanl                             ! number of urban landunits
+    integer(ik4) , intent(in)  :: filter_urbanl(ubl-lbl+1)               ! urban landunit filter
     real(rk8), intent(in)  :: coszen(num_urbanl)                     ! cosine solar zenith angle
     real(rk8), intent(in)  :: canyon_hwr(num_urbanl)                 ! ratio of building height to street width
     real(rk8), intent(in)  :: wtroad_perv(num_urbanl)                ! weight of pervious road wrt total road
@@ -1530,12 +1518,12 @@ contains
     real(rk8) :: stot_dir(num_urbanl)                ! sum of direct radiative terms
     real(rk8) :: stot_dif(num_urbanl)                ! sum of diffuse radiative terms
 
-    integer  :: l,fl,ib                             ! indices
-    integer  :: iter_dir,iter_dif                   ! iteration counter
+    integer(ik4)  :: l,fl,ib                             ! indices
+    integer(ik4)  :: iter_dir,iter_dif                   ! iteration counter
     real(rk8) :: crit                                ! convergence criterion
     real(rk8) :: err                                 ! energy conservation error
-    integer  :: pass
-    integer, parameter :: n = 50                    ! number of interations
+    integer(ik4)  :: pass
+    integer(ik4) , parameter :: n = 50                    ! number of interations
     real(rk8) :: sabs_road                           ! temporary for absorption over road
     real(rk8) :: sref_road                           ! temporary for reflected over road
     real(rk8), parameter :: errcrit  = .00001D0     ! error criteria
@@ -1965,9 +1953,9 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer , intent(in)  :: num_urbanl                 ! number of urban landunits
-    integer,  intent(in)  :: lbl, ubl                   ! landunit-index bounds
-    integer , intent(in)  :: filter_urbanl(ubl-lbl+1)   ! urban landunit filter
+    integer(ik4) , intent(in)  :: num_urbanl                 ! number of urban landunits
+    integer(ik4) ,  intent(in)  :: lbl, ubl                   ! landunit-index bounds
+    integer(ik4) , intent(in)  :: filter_urbanl(ubl-lbl+1)   ! urban landunit filter
     real(rk8), intent(in)  :: canyon_hwr(num_urbanl)     ! ratio of building height to street width
     real(rk8), intent(in)  :: wtroad_perv(num_urbanl)     ! weight of pervious road wrt total road
 
@@ -2068,8 +2056,8 @@ contains
     real(rk8) :: shadewall_e_sky(num_urbanl)     ! shadewall_e to sky (W/m**2)
     real(rk8) :: shadewall_e_road(num_urbanl)    ! shadewall_e to road (W/m**2)
     real(rk8) :: shadewall_e_sunwall(num_urbanl) ! shadewall_e to opposing (sunlit) wall (W/m**2)
-    integer  :: l,fl,iter                       ! indices
-    integer, parameter  :: n = 50               ! number of interations
+    integer(ik4)  :: l,fl,iter                       ! indices
+    integer(ik4) , parameter  :: n = 50               ! number of interations
     real(rk8) :: crit                            ! convergence criterion (W/m**2)
     real(rk8) :: err                             ! energy conservation error (W/m**2)
     real(rk8) :: wtroad_imperv(num_urbanl)       ! weight of impervious road wrt total road
@@ -2349,7 +2337,6 @@ contains
     use mod_clm_type
     use mod_clm_varcon   , only : spval, icol_roof, icol_sunwall, icol_shadewall, &
                               icol_road_perv, icol_road_imperv, udens_base
-    use mod_clm_decomp    , only : get_proc_clumps, ldecomp
     use mod_clm_filter    , only : filter
     use mod_clm_urbaninput, only : urbinp
 !
@@ -2366,21 +2353,20 @@ contains
 !
 ! local pointers to original implicit in arguments
 !
-    integer , pointer :: coli(:)         ! beginning column index for landunit 
-    integer , pointer :: colf(:)         ! ending column index for landunit
-    integer , pointer :: lgridcell(:)    ! gridcell of corresponding landunit
-    integer , pointer :: ctype(:)        ! column type
-    integer , pointer :: udenstype(:)    ! urban density type
+    integer(ik4) , pointer :: coli(:)         ! beginning column index for landunit 
+    integer(ik4) , pointer :: colf(:)         ! ending column index for landunit
+    integer(ik4) , pointer :: lgridcell(:)    ! gridcell of corresponding landunit
+    integer(ik4) , pointer :: ctype(:)        ! column type
+    integer(ik4) , pointer :: udenstype(:)    ! urban density type
 !
 !
 ! !OTHER LOCAL VARIABLES
 !EOP
 !
-    integer :: nc,fl,ib,l,c,p,g          ! indices
-    integer :: nclumps                   ! number of clumps on processor 
-    integer :: num_urbanl                ! number of per-clump urban landunits
-    integer :: ier                       ! error status
-    integer :: dindx                     ! urban density type index
+    integer(ik4) :: nc,fl,ib,l,c,p,g          ! indices
+    integer(ik4) :: num_urbanl                ! number of urban landunits
+    integer(ik4) :: ier                       ! error status
+    integer(ik4) :: dindx                     ! urban density type index
 !-----------------------------------------------------------------------
 
     ! Assign local pointers to derived type members (landunit-level)
@@ -2394,111 +2380,87 @@ contains
 
     ctype      => clm3%g%l%c%itype
 
-    ! Allocate memory 
+    ! Determine number of urban landunits
 
-    nclumps = get_proc_clumps()
-    allocate(urban_clump(nclumps), stat=ier)
-    if (ier /= 0) then
-       write (stderr,*) 'UrbanInit: allocation error for urban clumps'
-       call fatal(__FILE__,__LINE__,'clm now stopping')
-    end if
+    num_urbanl = filter%num_urbanl
 
-    ! Loop over all clumps on this processor
+    ! Consistency check for urban columns
 
-    do nc = 1, nclumps
-
-       ! Determine number of urban landunits in clump
-
-       num_urbanl = filter(nc)%num_urbanl
-
-       ! Consistency check for urban columns
-
-       do fl = 1,num_urbanl
-          l = filter(nc)%urbanl(fl)
-          do c = coli(l),colf(l)
-             if ( ctype(c) /= icol_roof .and.  &
-                  ctype(c) /= icol_sunwall .and. ctype(c) /= icol_shadewall .and. &
-                  ctype(c) /= icol_road_perv .and.  ctype(c) /= icol_road_imperv) then
-                write(stderr,*)'error in urban column types for landunit = ',l
+    do fl = 1,num_urbanl
+      l = filter%urbanl(fl)
+      do c = coli(l),colf(l)
+        if ( ctype(c) /= icol_roof .and.  &
+             ctype(c) /= icol_sunwall .and. ctype(c) /= icol_shadewall .and. &
+             ctype(c) /= icol_road_perv .and.  ctype(c) /= icol_road_imperv) then
+          write(stderr,*)'error in urban column types for landunit = ',l
                 write(stderr,*)'ctype= ',ctype(c)
                 call fatal(__FILE__,__LINE__,'clm now stopping')
              endif
           end do
        end do
 
-       ! Allocate memory for urban clump clumponents
+       ! Allocate memory for urban components
 
        if (num_urbanl > 0) then
-          allocate( urban_clump(nc)%canyon_hwr        (num_urbanl),        &
-                    urban_clump(nc)%wtroad_perv       (num_urbanl),        &
-                    urban_clump(nc)%ht_roof           (num_urbanl),        &
-                    urban_clump(nc)%wtlunit_roof      (num_urbanl),        &
-                    urban_clump(nc)%wind_hgt_canyon   (num_urbanl),        &
-                    urban_clump(nc)%em_roof           (num_urbanl),        &
-                    urban_clump(nc)%em_improad        (num_urbanl),        &
-                    urban_clump(nc)%em_perroad        (num_urbanl),        &
-                    urban_clump(nc)%em_wall           (num_urbanl),        &
-                    urban_clump(nc)%alb_roof_dir      (num_urbanl,numrad), &
-                    urban_clump(nc)%alb_roof_dif      (num_urbanl,numrad), &        
-                    urban_clump(nc)%alb_improad_dir   (num_urbanl,numrad), &        
-                    urban_clump(nc)%alb_perroad_dir   (num_urbanl,numrad), &        
-                    urban_clump(nc)%alb_improad_dif   (num_urbanl,numrad), &        
-                    urban_clump(nc)%alb_perroad_dif   (num_urbanl,numrad), &        
-                    urban_clump(nc)%alb_wall_dir      (num_urbanl,numrad), &        
-                    urban_clump(nc)%alb_wall_dif      (num_urbanl,numrad), stat=ier )
-          if (ier /= 0) then
-             write(stderr,*)'UrbanClumpInit: allocation error for urban derived type'
-             call fatal(__FILE__,__LINE__,'clm now stopping')
-          endif
-       end if
+          allocate( urban%canyon_hwr        (num_urbanl),        &
+                    urban%wtroad_perv       (num_urbanl),        &
+                    urban%ht_roof           (num_urbanl),        &
+                    urban%wtlunit_roof      (num_urbanl),        &
+                    urban%wind_hgt_canyon   (num_urbanl),        &
+                    urban%em_roof           (num_urbanl),        &
+                    urban%em_improad        (num_urbanl),        &
+                    urban%em_perroad        (num_urbanl),        &
+                    urban%em_wall           (num_urbanl),        &
+                    urban%alb_roof_dir      (num_urbanl,numrad), &
+                    urban%alb_roof_dif      (num_urbanl,numrad), &        
+                    urban%alb_improad_dir   (num_urbanl,numrad), &        
+                    urban%alb_perroad_dir   (num_urbanl,numrad), &        
+                    urban%alb_improad_dif   (num_urbanl,numrad), &        
+                    urban%alb_perroad_dif   (num_urbanl,numrad), &        
+                    urban%alb_wall_dir      (num_urbanl,numrad), &        
+                    urban%alb_wall_dif      (num_urbanl,numrad), stat=ier )
+      if (ier /= 0) then
+        write(stderr,*)'UrbanClumpInit: allocation error for urban derived type'
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      endif
+    end if
 
-       ! Set constants in derived type values for urban clump
+    ! Set constants in derived type values for urban
 
-       do fl = 1,num_urbanl
-          l = filter(nc)%urbanl(fl)
-          g = clm3%g%l%gridcell(l)
-          dindx = udenstype(l) - udens_base
-          urban_clump(nc)%canyon_hwr     (fl) = urbinp%canyon_hwr     (g,dindx)
-          urban_clump(nc)%wtroad_perv    (fl) = urbinp%wtroad_perv    (g,dindx)
-          urban_clump(nc)%ht_roof        (fl) = urbinp%ht_roof        (g,dindx)
-          urban_clump(nc)%wtlunit_roof   (fl) = urbinp%wtlunit_roof   (g,dindx)
-          urban_clump(nc)%wind_hgt_canyon(fl) = urbinp%wind_hgt_canyon(g,dindx)
-          do ib = 1,numrad
-             urban_clump(nc)%alb_roof_dir   (fl,ib) = urbinp%alb_roof_dir   (g,dindx,ib)
-             urban_clump(nc)%alb_roof_dif   (fl,ib) = urbinp%alb_roof_dif   (g,dindx,ib)
-             urban_clump(nc)%alb_improad_dir(fl,ib) = urbinp%alb_improad_dir(g,dindx,ib)
-             urban_clump(nc)%alb_perroad_dir(fl,ib) = urbinp%alb_perroad_dir(g,dindx,ib)
-             urban_clump(nc)%alb_improad_dif(fl,ib) = urbinp%alb_improad_dif(g,dindx,ib)
-             urban_clump(nc)%alb_perroad_dif(fl,ib) = urbinp%alb_perroad_dif(g,dindx,ib)
-             urban_clump(nc)%alb_wall_dir   (fl,ib) = urbinp%alb_wall_dir   (g,dindx,ib)
-             urban_clump(nc)%alb_wall_dif   (fl,ib) = urbinp%alb_wall_dif   (g,dindx,ib)
-          end do
-          urban_clump(nc)%em_roof   (fl) = urbinp%em_roof   (g,dindx)
-          urban_clump(nc)%em_improad(fl) = urbinp%em_improad(g,dindx)
-          urban_clump(nc)%em_perroad(fl) = urbinp%em_perroad(g,dindx)
-          urban_clump(nc)%em_wall   (fl) = urbinp%em_wall   (g,dindx)
-       end do
-    end do   ! end of loop over clumps
-
+    do fl = 1,num_urbanl
+      l = filter%urbanl(fl)
+      g = clm3%g%l%gridcell(l)
+      dindx = udenstype(l) - udens_base
+      urban%canyon_hwr     (fl) = urbinp%canyon_hwr     (g,dindx)
+      urban%wtroad_perv    (fl) = urbinp%wtroad_perv    (g,dindx)
+      urban%ht_roof        (fl) = urbinp%ht_roof        (g,dindx)
+      urban%wtlunit_roof   (fl) = urbinp%wtlunit_roof   (g,dindx)
+      urban%wind_hgt_canyon(fl) = urbinp%wind_hgt_canyon(g,dindx)
+      do ib = 1 , numrad
+        urban%alb_roof_dir   (fl,ib) = urbinp%alb_roof_dir   (g,dindx,ib)
+        urban%alb_roof_dif   (fl,ib) = urbinp%alb_roof_dif   (g,dindx,ib)
+        urban%alb_improad_dir(fl,ib) = urbinp%alb_improad_dir(g,dindx,ib)
+        urban%alb_perroad_dir(fl,ib) = urbinp%alb_perroad_dir(g,dindx,ib)
+        urban%alb_improad_dif(fl,ib) = urbinp%alb_improad_dif(g,dindx,ib)
+        urban%alb_perroad_dif(fl,ib) = urbinp%alb_perroad_dif(g,dindx,ib)
+        urban%alb_wall_dir   (fl,ib) = urbinp%alb_wall_dir   (g,dindx,ib)
+        urban%alb_wall_dif   (fl,ib) = urbinp%alb_wall_dif   (g,dindx,ib)
+      end do
+      urban%em_roof   (fl) = urbinp%em_roof   (g,dindx)
+      urban%em_improad(fl) = urbinp%em_improad(g,dindx)
+      urban%em_perroad(fl) = urbinp%em_perroad(g,dindx)
+      urban%em_wall   (fl) = urbinp%em_wall   (g,dindx)
+    end do
   end subroutine UrbanClumpInit
+  !
+  ! Turbulent and momentum fluxes from urban canyon (consisting of roof,
+  ! sunwall, shadewall, pervious and impervious road).
 
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: UrbanFluxes
-!
-! !INTERFACE:
-  subroutine UrbanFluxes (nc, lbp, ubp, lbl, ubl, lbc, ubc, &
+  subroutine UrbanFluxes (lbp, ubp, lbl, ubl, lbc, ubc, &
                           num_nourbanl, filter_nourbanl, &
                           num_urbanl, filter_urbanl, &
                           num_urbanc, filter_urbanc, &
                           num_urbanp, filter_urbanp)
-!
-! !DESCRIPTION: 
-! Turbulent and momentum fluxes from urban canyon (consisting of roof, sunwall, 
-! shadewall, pervious and impervious road).
-
-! !USES:
     use mod_clm_type
     use mod_clm_varcon         , only : cpair, vkc, spval, icol_roof, icol_sunwall, &
                                     icol_shadewall, icol_road_perv, icol_road_imperv, &
@@ -2511,22 +2473,18 @@ contains
     use mod_clm_varpar         , only : maxpatch_urb, nlevurb, nlevgrnd
     use mod_clm_time_manager   , only : get_curr_date, get_step_size, get_nstep
     use mod_clm_atmlnd         , only : clm_a2l
-
-!
-! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: nc                         ! clump index
-    integer, intent(in)  :: lbp, ubp                   ! pft-index bounds
-    integer, intent(in)  :: lbl, ubl                   ! landunit-index bounds
-    integer, intent(in)  :: lbc, ubc                   ! column-index bounds
-    integer , intent(in) :: num_nourbanl               ! number of non-urban landunits in clump
-    integer , intent(in) :: filter_nourbanl(ubl-lbl+1) ! non-urban landunit filter
-    integer , intent(in) :: num_urbanl                 ! number of urban landunits in clump
-    integer , intent(in) :: filter_urbanl(ubl-lbl+1)   ! urban landunit filter
-    integer , intent(in) :: num_urbanc                 ! number of urban columns in clump
-    integer , intent(in) :: filter_urbanc(ubc-lbc+1)   ! urban column filter
-    integer , intent(in) :: num_urbanp                 ! number of urban pfts in clump
-    integer , intent(in) :: filter_urbanp(ubp-lbp+1)   ! urban pft filter
+    integer(ik4) , intent(in)  :: lbp, ubp                   ! pft-index bounds
+    integer(ik4) , intent(in)  :: lbl, ubl                   ! landunit-index bounds
+    integer(ik4) , intent(in)  :: lbc, ubc                   ! column-index bounds
+    integer(ik4) , intent(in) :: num_nourbanl               ! number of non-urban landunits
+    integer(ik4) , intent(in) :: filter_nourbanl(ubl-lbl+1) ! non-urban landunit filter
+    integer(ik4) , intent(in) :: num_urbanl                 ! number of urban landunits
+    integer(ik4) , intent(in) :: filter_urbanl(ubl-lbl+1)   ! urban landunit filter
+    integer(ik4) , intent(in) :: num_urbanc                 ! number of urban columns
+    integer(ik4) , intent(in) :: filter_urbanc(ubc-lbc+1)   ! urban column filter
+    integer(ik4) , intent(in) :: num_urbanp                 ! number of urban pfts
+    integer(ik4) , intent(in) :: filter_urbanp(ubp-lbp+1)   ! urban pft filter
 !
 ! !CALLED FROM:
 ! subroutine clm_driver1
@@ -2536,7 +2494,7 @@ contains
 !
 ! !LOCAL VARIABLES:
 !
-! local pointers to original implicit in arguments (urban clump)
+! local pointers to original implicit in arguments (urban)
 !
     real(rk8), pointer :: ht_roof(:)         ! height of urban roof (m)
     real(rk8), pointer :: wtlunit_roof(:)    ! weight of roof with respect to landunit
@@ -2559,19 +2517,19 @@ contains
     real(rk8), pointer :: z_0_town(:)   ! momentum roughness length of urban landunit (m)
     real(rk8), pointer :: z_d_town(:)   ! displacement height of urban landunit (m)
 
-    integer , pointer :: pgridcell(:)  ! gridcell of corresponding pft
-    integer , pointer :: pcolumn(:)    ! column of corresponding pft
-    integer , pointer :: lgridcell(:)  ! gridcell of corresponding landunit
-    integer , pointer :: plandunit(:)  ! pft's landunit index
-    integer , pointer :: ctype(:)      ! column type
-    integer , pointer :: coli(:)       ! beginning column index for landunit 
-    integer , pointer :: colf(:)       ! ending column index for landunit
-    integer , pointer :: pfti(:)       ! beginning pft index for landunit 
-    integer , pointer :: pftf(:)       ! ending pft index for landunit
+    integer(ik4) , pointer :: pgridcell(:)  ! gridcell of corresponding pft
+    integer(ik4) , pointer :: pcolumn(:)    ! column of corresponding pft
+    integer(ik4) , pointer :: lgridcell(:)  ! gridcell of corresponding landunit
+    integer(ik4) , pointer :: plandunit(:)  ! pft's landunit index
+    integer(ik4) , pointer :: ctype(:)      ! column type
+    integer(ik4) , pointer :: coli(:)       ! beginning column index for landunit 
+    integer(ik4) , pointer :: colf(:)       ! ending column index for landunit
+    integer(ik4) , pointer :: pfti(:)       ! beginning pft index for landunit 
+    integer(ik4) , pointer :: pftf(:)       ! ending pft index for landunit
 
     real(rk8), pointer :: taf(:)        ! urban canopy air temperature (K)
     real(rk8), pointer :: qaf(:)        ! urban canopy air specific humidity (kg/kg)
-    integer , pointer :: npfts(:)      ! landunit's number of pfts (columns)
+    integer(ik4) , pointer :: npfts(:)      ! landunit's number of pfts (columns)
     real(rk8), pointer :: t_grnd(:)     ! ground surface temperature (K)
     real(rk8), pointer :: qg(:)         ! specific humidity at ground surface (kg/kg)
     real(rk8), pointer :: htvp(:)       ! latent heat of evaporation (/sublimation) (J/kg)
@@ -2589,7 +2547,7 @@ contains
     real(rk8), pointer :: frac_sno(:)          ! fraction of ground covered by snow (0 to 1)
     real(rk8), pointer :: snow_depth(:)            ! snow height (m)
     real(rk8), pointer :: h2osno(:)            ! snow water (mm H2O)
-    integer , pointer :: snl(:)               ! number of snow layers
+    integer(ik4) , pointer :: snl(:)               ! number of snow layers
     real(rk8), pointer :: rootr_road_perv(:,:) ! effective fraction of roots in each soil layer for urban pervious road
     real(rk8), pointer :: soilalpha_u(:)       ! Urban factor that reduces ground saturated specific humidity (-)
 !
@@ -2629,7 +2587,7 @@ contains
 !EOP
 !
     character(len=*), parameter :: sub="UrbanFluxes"
-    integer  :: fp,fc,fl,f,p,c,l,g,j,pi,i     ! indices
+    integer(ik4)  :: fp,fc,fl,f,p,c,l,g,j,pi,i     ! indices
                                  
     real(rk8) :: canyontop_wind(num_urbanl)    ! wind at canyon top (m/s) 
     real(rk8) :: canyon_u_wind(num_urbanl)     ! u-component of wind speed inside canyon (m/s)
@@ -2668,7 +2626,7 @@ contains
     real(rk8) :: wtus(lbc:ubc)      ! sensible heat conductance for urban columns (m/s)
     real(rk8) :: wtuq(lbc:ubc)      ! latent heat conductance for urban columns (m/s)
 
-    integer  :: iter               ! iteration index
+    integer(ik4)  :: iter               ! iteration index
     real(rk8) :: dthv               ! diff of vir. poten. temp. between ref. height and surface
     real(rk8) :: tstar              ! temperature scaling parameter
     real(rk8) :: qstar              ! moisture scaling parameter
@@ -2706,13 +2664,13 @@ contains
     real(rk8) :: fwet_roof                         ! fraction of roof surface that is wet (-)
     real(rk8) :: fwet_road_imperv                  ! fraction of impervious road surface that is wet (-)
 
-    integer, parameter  :: niters = 3  ! maximum number of iterations for surface temperature
-    integer  :: local_secp1(lbl:ubl)   ! seconds into current date in local time (sec)
+    integer(ik4) , parameter  :: niters = 3  ! maximum number of iterations for surface temperature
+    integer(ik4)  :: local_secp1(lbl:ubl)   ! seconds into current date in local time (sec)
     real(rk8) :: dtime                  ! land model time step (sec)
-    integer  :: year,month,day,secs    ! calendar info for current time step
+    integer(ik4)  :: year,month,day,secs    ! calendar info for current time step
     logical  :: found                  ! flag in search loop
-    integer  :: indexl                 ! index of first found in search loop
-    integer  :: nstep                  ! time step number
+    integer(ik4)  :: indexl                 ! index of first found in search loop
+    integer(ik4)  :: nstep                  ! time step number
     real(rk8) :: z_d_town_loc(lbl:ubl)  ! temporary copy
     real(rk8) :: z_0_town_loc(lbl:ubl)  ! temporary copy
     real(rk8), parameter :: lapse_rate = 0.0098D0     ! Dry adiabatic lapse rate (K/m)
@@ -2723,14 +2681,14 @@ contains
 
 !-----------------------------------------------------------------------
 
-    ! Assign pointers into module urban clumps
+    ! Assign pointers into module urban
 
     if ( num_urbanl > 0 )then
-       ht_roof            => urban_clump(nc)%ht_roof
-       wtlunit_roof       => urban_clump(nc)%wtlunit_roof
-       canyon_hwr         => urban_clump(nc)%canyon_hwr
-       wtroad_perv        => urban_clump(nc)%wtroad_perv
-       wind_hgt_canyon    => urban_clump(nc)%wind_hgt_canyon
+       ht_roof            => urban%ht_roof
+       wtlunit_roof       => urban%wtlunit_roof
+       canyon_hwr         => urban%canyon_hwr
+       wtroad_perv        => urban%wtroad_perv
+       wind_hgt_canyon    => urban%wind_hgt_canyon
     end if
 
     ! Assign local pointers to multi-level derived type members (gridcell level)
