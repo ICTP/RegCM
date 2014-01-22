@@ -32,7 +32,7 @@ module decompInitMod
   !
   subroutine decompInit_lnd(cl)
     implicit none
-    type (masked_comm) , intent(in) :: cl
+    type (masked_comm) , intent(in) , target :: cl
 
     clm_cl => cl
     procinfo%ncells  = cl%linear_npoint_sg(myid+1)
@@ -59,7 +59,9 @@ module decompInitMod
     implicit none
     integer(ik4) :: begg , endg  ! beg , end gridcells
     integer(ik4) :: anumg        ! lnd num gridcells
+    integer(ik4) :: ln           ! lnd num gridcells
     integer(ik4) :: mynumg , mynumc , mynump , mynuml
+    integer(ik4) :: ilunits , icols , ipfts
     integer(ik4) , pointer , dimension(:) :: gcount
     integer(ik4) , pointer , dimension(:) :: lcount
     integer(ik4) , pointer , dimension(:) :: ccount
@@ -102,10 +104,10 @@ module decompInitMod
     call sumall(mynumc,numc)
     call sumall(mynump,nump)
 
-    call gather_i(mynumg,xstart(:,1))
-    call gather_i(mynuml,xstart(:,2))
-    call gather_i(mynumc,xstart(:,3))
-    call gather_i(mynump,xstart(:,4))
+    call gather_i(xstart(:,1),mynumg)
+    call gather_i(xstart(:,2),mynuml)
+    call gather_i(xstart(:,3),mynumc)
+    call gather_i(xstart(:,4),mynump)
 
     if ( myid > 1 ) then
       procinfo%begg = sum(xstart(1:myid,1))
