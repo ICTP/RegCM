@@ -5592,12 +5592,12 @@ program testgate
   zrvten = pqten ! save tendencies to print out later only convective part
   ztten = ptten
 
-  call cumastrn(kidia,kfdia,klon,klev,ldland,pdtconv,  &
+  call cumastrn(kidia,kfdia,klon,klev,ldland,pdtconv,             &
                 pt,pq,pu,pv,prc+pri,pvervel,-plhflx/wlhv,-pshflx, &
-                ppres,ppresh,pgeo,pgeoh,ptten,pqten,puten,pvten, &
-                prcten,priten,ldcum,ktype,kclbas,kcltop,kbotsc,  &
-                ldsc,ptu,purv,purci,pprlflx,pprsflx,purain,      &
-                pumf,pdmf,pmfude_rate,pmfdde_rate,pcape,ktrac,   &
+                ppres,ppresh,pgeo,pgeoh,ptten,pqten,puten,pvten,  &
+                prcten,priten,ldcum,ktype,kclbas,kcltop,kbotsc,   &
+                ldsc,ptu,purv,purci,pprlflx,pprsflx,purain,       &
+                pumf,pdmf,pmfude_rate,pmfdde_rate,pcape,ktrac,    &
                 pc,pcten)
   !
   ! only for CAPE diagnostic - this provides better/smoother CAPE estimation 

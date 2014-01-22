@@ -410,14 +410,14 @@ module mod_cu_tiedtke
 !
   do jk = 1 , klev
     do jl = 1 , kproma
-      ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dtsec
-      zqp1(jl,jk) = max(d_zero,pqm1(jl,jk)+pqte(jl,jk)*dtsec)
-      zxlp1 = pxlm1(jl,jk) + pxlte(jl,jk)*dtsec
-      zxip1 = pxim1(jl,jk) + pxite(jl,jk)*dtsec
+      ztp1(jl,jk) = ptm1(jl,jk) + ptte(jl,jk)*dt
+      zqp1(jl,jk) = max(d_zero,pqm1(jl,jk)+pqte(jl,jk)*dt)
+      zxlp1 = pxlm1(jl,jk) + pxlte(jl,jk)*dt
+      zxip1 = pxim1(jl,jk) + pxite(jl,jk)*dt
       zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
       ztvp1(jl,jk) = ztp1(jl,jk)*(d_one+vtmpc1*zqp1(jl,jk)-zxp1(jl,jk))
-      zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dtsec
-      zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dtsec
+      zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
+      zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
       it = int(ztp1(jl,jk)*d_1000)
       if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
       it = max(min(it,jptlucu2),jptlucu1)
@@ -432,7 +432,7 @@ module mod_cu_tiedtke
  
     do jt = 1 , ktrac
       do jl = 1 , kproma
-        zxtp1(jl,jk,jt) = pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dtsec
+        zxtp1(jl,jk,jt) = pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dt
       end do
     end do
  
@@ -481,7 +481,7 @@ module mod_cu_tiedtke
     pahfs(:,1) = pahfs(:,2)
     pmflxr = d_zero
     pmflxs = d_zero
-    call cumastrn(1,kproma,kbdim,klev,ldland,dtsec,ztp1,zqp1,    &
+    call cumastrn(1,kproma,kbdim,klev,ldland,dt,ztp1,zqp1,       &
                   zup1,zvp1,zxp1,pverv,pqhfl,pahfs,papp1,paphp1, &
                   pgeo,pgeoh,ptte,pqte,pvom,pvol,pxtec,pxite,    &
                   locum,ktype,kcbot,kctop,kbotsc,ldsc,ztu,zqu,   &
