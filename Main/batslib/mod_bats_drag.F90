@@ -195,7 +195,8 @@ module mod_bats_drag
       age = (d_one-d_one/(d_one+snag(i)))
       densi = 0.01D0/(d_one+d_three*age)
       scrat(i) = sncv(i)*densi
-      wt(i) = d_one
+      wt(i) = 0.1D0*scrat(i)/rough(lveg(i))
+      wt(i) = wt(i)/(d_one+wt(i))
       sigf(i) = (d_one-wt(i))*lncl(i)
       scvk(i) = scrat(i)/(0.1D0+scrat(i))
       rhosw(i) = 0.10D0*(d_one+d_three*age)
