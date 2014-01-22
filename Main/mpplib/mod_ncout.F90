@@ -437,7 +437,7 @@ module mod_ncout
 
 #ifdef DEBUG
     if ( myid == italk) &
-      write(stdout,*) 'Enabling ',nstream,' output file streams'
+      write(ndebug+myid,*) 'Enabling ',nstream,' output file streams'
 #endif
 
     enabled_stream_loop: &
@@ -2678,17 +2678,18 @@ module mod_ncout
 
 #ifdef DEBUG
     if ( debug_level > 2 ) then
-      write(stderr,*) 'Writing var ',trim(vp%vname),' at time ',tochar(idate)
+      write(ndebug+myid,*) &
+              'Writing var ',trim(vp%vname),' at time ',tochar(idate)
       select type(vp)
         type is (ncvariable2d_real)
-          write(stderr,*) 'Max Value : ', maxval(vp%rval)
-          write(stderr,*) 'Min Value : ', minval(vp%rval)
+          write(ndebug+myid,*) 'Max Value : ', maxval(vp%rval)
+          write(ndebug+myid,*) 'Min Value : ', minval(vp%rval)
         type is (ncvariable3d_real)
-          write(stderr,*) 'Max Value : ', maxval(vp%rval)
-          write(stderr,*) 'Min Value : ', minval(vp%rval)
+          write(ndebug+myid,*) 'Max Value : ', maxval(vp%rval)
+          write(ndebug+myid,*) 'Min Value : ', minval(vp%rval)
         type is (ncvariable4d_real)
-          write(stderr,*) 'Max Value : ', maxval(vp%rval)
-          write(stderr,*) 'Min Value : ', minval(vp%rval)
+          write(ndebug+myid,*) 'Max Value : ', maxval(vp%rval)
+          write(ndebug+myid,*) 'Min Value : ', minval(vp%rval)
         class default
       end select
     end if
@@ -2772,7 +2773,7 @@ module mod_ncout
 
 #ifdef DEBUG
     if ( debug_level > 2 ) then
-      write(stdout,*) 'Writing var ',trim(vp%vname)
+      write(ndebug+myid,*) 'Writing var ',trim(vp%vname)
     end if
 #endif
     call outstream_writevar(outstream(istream)%ncout(jfile),vp)
@@ -2835,7 +2836,7 @@ module mod_ncout
 
 #ifdef DEBUG
     if ( debug_level > 2 ) then
-      write(stdout,*) 'Writing var ',trim(vp%vname)
+      write(ndebug+myid,*) 'Writing var ',trim(vp%vname)
     end if
 #endif
     call outstream_writevar(outstream(istream)%ncout(jfile),vp)
@@ -2893,7 +2894,7 @@ module mod_ncout
 
 #ifdef DEBUG
     if ( debug_level > 2 ) then
-      write(stdout,*) 'Writing var ',trim(vp%vname)
+      write(ndebug+myid,*) 'Writing var ',trim(vp%vname)
     end if
 #endif
     call outstream_writevar(outstream(istream)%ncout(jfile),vp)

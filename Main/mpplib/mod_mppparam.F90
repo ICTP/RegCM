@@ -481,9 +481,9 @@ module mod_mppparam
     implicit none
     real(rk8) , intent(in) :: rlval
     real(rk8) , intent(out) :: rtval
-    call mpi_reduce(rlval,rtval,1,mpi_real8,mpi_sum,iocpu,mycomm,mpierr)
+    call mpi_allreduce(rlval,rtval,1,mpi_real8,mpi_sum,iocpu,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_reduce error.')
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
   end subroutine sumall_real8
 
@@ -491,9 +491,9 @@ module mod_mppparam
     implicit none
     real(rk8) , intent(in) :: rlval
     real(rk8) , intent(out) :: rtval
-    call mpi_reduce(rlval,rtval,1,mpi_real8,mpi_max,iocpu,mycomm,mpierr)
+    call mpi_allreduce(rlval,rtval,1,mpi_real8,mpi_max,iocpu,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_reduce error.')
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
   end subroutine maxall
 
@@ -501,9 +501,9 @@ module mod_mppparam
     implicit none
     integer(ik4) , intent(in) :: ilval
     integer(ik4) , intent(out) :: itval
-    call mpi_reduce(ilval,itval,1,mpi_integer4,mpi_sum,iocpu,mycomm,mpierr)
+    call mpi_allreduce(ilval,itval,1,mpi_integer4,mpi_sum,iocpu,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_reduce error.')
+      call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
   end subroutine sumall_int4
 
