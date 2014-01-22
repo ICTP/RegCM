@@ -23,6 +23,8 @@ module decompInitMod
   ! initializes g , l , c , p decomp info
   public :: decompInit_glcp
 
+  type (masked_comm) , pointer :: clm_cl
+
   contains
   !
   ! This subroutine initializes the land surface decomposition into a
@@ -32,6 +34,7 @@ module decompInitMod
     implicit none
     type (masked_comm) , intent(in) :: cl
 
+    clm_cl => cl
     procinfo%ncells  = cl%linear_npoint_sg(myid+1)
 
     procinfo%nlunits = 0
