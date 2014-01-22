@@ -146,19 +146,19 @@ module decompInitMod
     end if
 
 #ifdef DEBUG
-    write(ndebug+myid,*)'proc= ',pid,&
+    write(ndebug+myid,*)'proc= ',myid,&
                ' beg gridcell= ',procinfo%begg, &
                ' end gridcell= ',procinfo%endg,                   &
                ' total gridcells per proc= ',procinfo%ncells
-    write(ndebug+myid,*)'proc= ',pid,&
+    write(ndebug+myid,*)'proc= ',myid,&
                ' beg landunit= ',procinfo%begl, &
                ' end landunit= ',procinfo%endl,                   &
                ' total landunits per proc= ',procinfo%nlunits
-    write(ndebug+myid,*)'proc= ',pid,&
+    write(ndebug+myid,*)'proc= ',myid,&
                ' beg column  = ',procinfo%begc, &
                ' end column  = ',procinfo%endc,                   &
                ' total columns per proc  = ',procinfo%ncols
-    write(ndebug+myid,*)'proc= ',pid,&
+    write(ndebug+myid,*)'proc= ',myid,&
                ' beg pft     = ',procinfo%begp, &
                ' end pft     = ',procinfo%endp,                   &
                ' total pfts per proc     = ',procinfo%npfts
