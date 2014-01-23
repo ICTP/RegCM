@@ -25,6 +25,7 @@ module mod_ncout
   use mod_ncstream_types
   use mod_ncstream
   use mod_outvars
+  use mod_service
 
   use netcdf
 !
