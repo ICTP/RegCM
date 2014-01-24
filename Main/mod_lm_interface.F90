@@ -237,8 +237,24 @@ module mod_lm_interface
 #ifdef DEBUG
     write(ndebug+myid,*) 'TOTAL POINTS FOR LAND  IN LNDCOMM : ', &
       lndcomm%linear_npoint_sg(myid+1)
+    write(ndebug+myid,*) 'Cartesian p ', lndcomm%cartesian_npoint_g
+    write(ndebug+myid,*) 'Cartesian d ', lndcomm%cartesian_displ_g
+    write(ndebug+myid,*) 'Linear    p ', lndcomm%linear_npoint_g
+    write(ndebug+myid,*) 'Linear    d ', lndcomm%linear_displ_g
+    write(ndebug+myid,*) 'Subgrid Cartesian p ', lndcomm%cartesian_npoint_sg
+    write(ndebug+myid,*) 'Subgrid Cartesian d ', lndcomm%cartesian_displ_sg
+    write(ndebug+myid,*) 'Subgrid Linear    p ', lndcomm%linear_npoint_sg
+    write(ndebug+myid,*) 'Subgrid Linear    d ', lndcomm%linear_displ_sg
     write(ndebug+myid,*) 'TOTAL POINTS FOR OCEAN IN OCNCOMM : ', &
       ocncomm%linear_npoint_sg(myid+1)
+    write(ndebug+myid,*) 'Cartesian p ', ocncomm%cartesian_npoint_g
+    write(ndebug+myid,*) 'Cartesian d ', ocncomm%cartesian_displ_g
+    write(ndebug+myid,*) 'Linear    p ', ocncomm%linear_npoint_g
+    write(ndebug+myid,*) 'Linear    d ', ocncomm%linear_displ_g
+    write(ndebug+myid,*) 'Subgrid Cartesian p ', ocncomm%cartesian_npoint_sg
+    write(ndebug+myid,*) 'Subgrid Cartesian d ', ocncomm%cartesian_displ_sg
+    write(ndebug+myid,*) 'Subgrid Linear    p ', ocncomm%linear_npoint_sg
+    write(ndebug+myid,*) 'Subgrid Linear    d ', ocncomm%linear_displ_sg
 #endif
 
     call allocate_mod_bats_internal(lndcomm)

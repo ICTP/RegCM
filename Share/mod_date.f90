@@ -1840,7 +1840,6 @@ module mod_date
     type (rcm_time_and_date) , intent(in) :: x
     integer(ik4) , intent(in) :: h , m , s
     real(rk8) , optional , intent(in) :: delta
-    integer(ik4) :: ih , im , is
     type(iatime) :: t
     type (rcm_time_and_date) :: y
     t%hour = h

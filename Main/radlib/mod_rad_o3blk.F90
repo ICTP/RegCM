@@ -185,6 +185,7 @@ module mod_rad_o3blk
     integer(ik4) , save :: ncid = -1
     integer(ik4) :: im1 , iy1 , im2 , iy2
     integer(ik4) , save :: ism , isy
+    real(rk8) , dimension(kzp1) :: printarr
     type (rcm_time_and_date) :: iref1 , iref2
     type (rcm_time_interval) :: tdif
     data ifirst /.true./
@@ -280,7 +281,8 @@ module mod_rad_o3blk
     end if
     call grid_distribute(ozone,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
     if ( dointerp .and. myid == italk ) then
-      call vprntv(o3prof(3,3,:),kzp1,'Ozone profile at (3,3)')
+      printarr = o3prof(3,3,:)
+      call vprntv(printarr,kzp1,'Ozone profile at (3,3)')
     end if
   end subroutine read_o3data
 !

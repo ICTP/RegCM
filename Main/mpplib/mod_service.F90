@@ -41,10 +41,10 @@ module mod_service
     integer(ik4) :: total_size
   end type timing_info
 
-  integer(ik4) , parameter :: maxentry = 100
-  type(timing_info) , dimension(maxentry) :: info_serial , info_comm
-  real(rk8) , dimension(maxentry) :: time_et , time_bt
-  integer(ik4) :: n_of_entry = 0
+  integer(ik4) , parameter :: maxnsubs = 100
+  type(timing_info) , dimension(maxnsubs) :: info_serial , info_comm
+  real(rk8) , dimension(maxnsubs) :: time_et , time_bt
+  integer(ik4) :: n_of_nsubs = 0
 
   character(len=120) :: errmsg   !! a string where to compose an error message
 
@@ -70,7 +70,7 @@ module mod_service
       character(len=3) :: np = '   '
       character(len=9) :: string
       character(len=dbgslen) :: sub = 'activate_debug'
-      integer(ik4) :: idum
+      integer(ik4) :: idum , iretval
 
       ! Number of processes
       node = myid
@@ -102,7 +102,11 @@ module mod_service
         end if
       end if
       write(string,'(a6,a3)') "debug_",np
-      open(ndebug+node,file=string,status='unknown')
+      open(ndebug+node,file=string,status='replace', &
+              action='write',form='formatted',iostat=iretval)
+      if ( iretval /= 0 ) then
+        call fatal(__FILE__,__LINE__,'Cannot open debug files!')
+      end if
       idum = ndebug+node
       write(ndebug+node,'(A20,'':'',A,i10)') &
           sub(1:20), 'DEBUGGING FILE CORRECTLY OPEN: unit is ', idum
@@ -165,8 +169,8 @@ module mod_service
       integer(ik4) , intent(inout) :: indx
       character(len=dbgslen) :: name
       if ( indx == 0 ) then
-        n_of_entry = n_of_entry + 1
-        indx = n_of_entry
+        n_of_nsubs = n_of_nsubs + 1
+        indx = n_of_nsubs
       end if
       time_bt(indx) = timer()
       ! debugging stuff: if debug_level is greater than 3 print out name of the
@@ -220,12 +224,12 @@ module mod_service
       implicit none
       character(len=*) , optional :: name_of_section
       integer(ik4) :: iunit
-      integer(ik4) :: entry , imin , imax , i , test , ilen , ierr
+      integer(ik4) :: nsubs , imin , imax , i , test , ilen , ierr
       real(rk8) :: avg , xmin , xmax
       real(rk8) , allocatable :: array_tmp(:)
       integer(ik4) , allocatable :: array_entries(:)
       logical :: l_times_on_pe = .false.
-      logical :: l_entry = .true.
+      logical :: l_nsubs = .true.
       real(dp) :: total_comm_time = 0.0D0
       real(dp) :: avg_value = 0.0D0
       character(len=128) :: cname
@@ -233,7 +237,7 @@ module mod_service
 
       call mpi_barrier(mycomm,ierr)
 
-      l_entry=.TRUE.
+      l_nsubs=.TRUE.
       if ( myid == italk ) then
         if ( present(name_of_section) )  then
           ilen = len_strim(name_of_section)
@@ -252,21 +256,21 @@ module mod_service
       allocate(array_entries(0:mxnode-1))
 
       ! check if the calling tree is the same on all nodes
-      call gather_i(array_entries,n_of_entry)
+      call allgather_i(array_entries,n_of_nsubs)
       test = array_entries(0)
       do i = 1 , mxnode-1
         if ( array_entries(i) /= test ) then
           write(ndebug+node,*) 'Warning:Different trees on different pe:',  &
-               n_of_entry
+               n_of_nsubs
           call fatal(__FILE__,__LINE__,'different trees on different pe!')
         end if
       end do
 
       ! if the calling tree is the same print out gathered data on OUTPUT file
-      if ( l_entry ) then
-        do entry = 1 , n_of_entry
+      if ( l_nsubs ) then
+        do nsubs = 1 , n_of_nsubs
           l_times_on_pe = .false.
-          call gather_i(a_tmp,info_serial(entry)%n_of_time)
+          call allgather_i(a_tmp,info_serial(nsubs)%n_of_time)
           ! check the number of time
           test = a_tmp(0)
           avg_value = sum(a_tmp)/mxnode
@@ -277,20 +281,20 @@ module mod_service
             call MPI_barrier(mycomm,ierr)
           end do
           ! set to zero times less then 0.1 microseconds
-          if ( info_serial(entry)%total_time <= 0.0000001D0 ) &
-               info_serial(entry)%total_time = 0.0000001D0
+          if ( info_serial(nsubs)%total_time <= 0.0000001D0 ) &
+               info_serial(nsubs)%total_time = 0.0000001D0
 
-          if ( info_serial(entry)%n_of_time >= 1 ) then
-            call gather_r(array_tmp,info_serial(entry)%total_time)
-            ! compute avg, max and min
+          if ( info_serial(nsubs)%n_of_time >= 1 ) then
+            call allgather_r(array_tmp,info_serial(nsubs)%total_time)
             call av_max_min(array_tmp,avg,xmax,imax,xmin,imin)
+            ! compute avg, max and min
             if ( myid == italk ) then
-              cname = info_serial(entry)%name_of_section
+              cname = info_serial(nsubs)%name_of_section
               if ( l_times_on_pe ) then
-                cname = "*" // info_serial(entry)%name_of_section
+                cname = "*" // info_serial(nsubs)%name_of_section
               end if
               write(iunit,100) cname(1:15), &
-                     info_serial(entry)%n_of_time, &
+                     info_serial(nsubs)%n_of_time, &
                      avg,xmax,imax-1,xmin,imin-1
             end if
           end if
@@ -306,16 +310,16 @@ module mod_service
       if ( ldebug ) then
         write(ndebug+node,'(A20,'':'',A,i10)') &
           sub(1:20), 'Specific local time up to checkpoint for node', node
-        do entry = 1 , n_of_entry
-          cname = info_serial(entry)%name_of_section
+        do nsubs = 1 , n_of_nsubs
+          cname = info_serial(nsubs)%name_of_section
           if ( l_times_on_pe ) then
-            cname = "*" // info_serial(entry)%name_of_section
+            cname = "*" // info_serial(nsubs)%name_of_section
           end if
-          if ( info_serial(entry)%n_of_time >= 1 ) then
-            write(ndebug+NODE,102) cname, &
-               info_serial(entry)%n_of_time, &
-               info_serial(entry)%total_time
-            call flusha(ndebug+NODE)
+          if ( info_serial(nsubs)%n_of_time >= 1 ) then
+            write(ndebug+node,102) cname, &
+               info_serial(nsubs)%n_of_time, &
+               info_serial(nsubs)%total_time
+            call flusha(ndebug+node)
           end if
         end do
       endif
@@ -324,19 +328,19 @@ module mod_service
         write(iunit,*) &
          '! section       times avg-time  max(PE)  min(PE) data  ratio(Mb/sec)'
       end if
-      do entry = 1 , n_of_entry
+      do nsubs = 1 , n_of_nsubs
         ! set to zero times less then 0.1 microseconds
-        if ( info_comm(entry)%total_time<=0.0000001D0 ) &
-              info_comm(entry)%total_time=0.0000001D0
-        if ( info_comm(entry)%n_of_time >= 1 ) then
-          call gather_r(array_tmp,info_comm(entry)%total_time)
+        if ( info_comm(nsubs)%total_time<=0.0000001D0 ) &
+              info_comm(nsubs)%total_time=0.0000001D0
+        if ( info_comm(nsubs)%n_of_time >= 1 ) then
+          call allgather_r(array_tmp,info_comm(nsubs)%total_time)
           call av_max_min(array_tmp,avg,xmax,imax,xmin,imin)
           if ( myid == italk ) then
-            write(iunit,101) info_comm(entry)%name_of_section, &
-                info_comm(entry)%n_of_time, &
+            write(iunit,101) info_comm(nsubs)%name_of_section, &
+                info_comm(nsubs)%n_of_time, &
                 avg,xmax,imax-1,xmin,imin-1, &
-                info_comm(entry)%total_size, &
-                info_comm(entry)%total_size/(info_comm(entry)%total_time*1D6)
+                info_comm(nsubs)%total_size, &
+                info_comm(nsubs)%total_size/(info_comm(nsubs)%total_time*1D6)
             total_comm_time = total_comm_time+avg
           end if
         end if
@@ -360,14 +364,14 @@ module mod_service
 
     subroutine time_reset
       implicit none
-      integer(ik4) :: entry
-      do entry = 1 , maxentry
-        info_serial(entry)%n_of_time = 0
-        info_serial(entry)%total_time = 0.0D0
-        info_serial(entry)%total_size = 0
-        info_comm(entry)%n_of_time = 0
-        info_comm(entry)%total_time = 0.0D0
-        info_comm(entry)%total_size = 0
+      integer(ik4) :: nsubs
+      do nsubs = 1 , maxnsubs
+        info_serial(nsubs)%n_of_time = 0
+        info_serial(nsubs)%total_time = 0.0D0
+        info_serial(nsubs)%total_size = 0
+        info_comm(nsubs)%n_of_time = 0
+        info_comm(nsubs)%total_time = 0.0D0
+        info_comm(nsubs)%total_size = 0
       end do
     end subroutine time_reset
 

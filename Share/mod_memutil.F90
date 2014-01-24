@@ -2279,11 +2279,7 @@ module mod_memutil
     end if
     theshape = shape(a(:,:,1))
     call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k)),x,theshape)
-#ifndef __GFORTRAN__
-    b => x
-#else
     b(lbound(a,1):,lbound(a,2):) => x
-#endif
   end subroutine assignp2d3_l
 
   subroutine assignp2d3_s(a,b,k)
@@ -2300,11 +2296,7 @@ module mod_memutil
     end if
     theshape = shape(a(:,:,1))
     call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k)),x,theshape)
-#ifndef __GFORTRAN__
-    b => x
-#else
     b(lbound(a,1):,lbound(a,2):) => x
-#endif
   end subroutine assignp2d3_s
 
   subroutine assignp2d3_i(a,b,k)
@@ -2321,11 +2313,7 @@ module mod_memutil
     end if
     theshape = shape(a(:,:,1))
     call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k)),x,theshape)
-#ifndef __GFORTRAN__
-    b => x
-#else
     b(lbound(a,1):,lbound(a,2):) => x
-#endif
   end subroutine assignp2d3_i
 
   subroutine assignp2d3_r(a,b,k)
@@ -2342,11 +2330,7 @@ module mod_memutil
     end if
     theshape = shape(a(:,:,1))
     call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k)),x,theshape)
-#ifndef __GFORTRAN__
-    b => x
-#else
     b(lbound(a,1):,lbound(a,2):) => x
-#endif
   end subroutine assignp2d3_r
 
   subroutine assignp2d3_d(a,b,k)
@@ -2363,11 +2347,7 @@ module mod_memutil
     end if
     theshape = shape(a(:,:,1))
     call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k)),x,theshape)
-#ifndef __GFORTRAN__
-    b => x
-#else
     b(lbound(a,1):,lbound(a,2):) => x
-#endif
   end subroutine assignp2d3_d
 
   subroutine assignp3d_l(a,b)
@@ -2459,11 +2439,7 @@ module mod_memutil
     end if
     theshape = shape(a(:,:,:,1))
     call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k)),x,theshape)
-#ifndef __GFORTRAN__
-    b => x
-#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => x
-#endif
   end subroutine assignp3d4_l
 
   subroutine assignp3d4_s(a,b,k)
@@ -2480,11 +2456,7 @@ module mod_memutil
     end if
     theshape = shape(a(:,:,:,1))
     call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k)),x,theshape)
-#ifndef __GFORTRAN__
-    b => x
-#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => x
-#endif
   end subroutine assignp3d4_s
 
   subroutine assignp3d4_i(a,b,k)
@@ -2501,11 +2473,7 @@ module mod_memutil
     end if
     theshape = shape(a(:,:,:,1))
     call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k)),x,theshape)
-#ifndef __GFORTRAN__
-    b => x
-#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => x
-#endif
   end subroutine assignp3d4_i
 
   subroutine assignp3d4_r(a,b,k)
@@ -2522,11 +2490,7 @@ module mod_memutil
     end if
     theshape = shape(a(:,:,:,1))
     call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k)),x,theshape)
-#ifndef __GFORTRAN__
-    b => x
-#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => x
-#endif
   end subroutine assignp3d4_r
 
   subroutine assignp3d4_d(a,b,k)
@@ -2543,11 +2507,7 @@ module mod_memutil
     end if
     theshape = shape(a(:,:,:,1))
     call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k)),x,theshape)
-#ifndef __GFORTRAN__
-    b => x
-#else
     b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => x
-#endif
   end subroutine assignp3d4_d
 
   subroutine assignp2d4_l(a,b,k,l)
@@ -2564,11 +2524,7 @@ module mod_memutil
     end if
     theshape = shape(a(:,:,1,1))
     call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k,l)),x,theshape)
-#ifndef __GFORTRAN__
-    b => x
-#else
     b(lbound(a,1):,lbound(a,2):) => x
-#endif
   end subroutine assignp2d4_l
 
   subroutine assignp2d4_s(a,b,k,l)
@@ -2585,11 +2541,7 @@ module mod_memutil
     end if
     theshape = shape(a(:,:,1,1))
     call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k,l)),x,theshape)
-#ifndef __GFORTRAN__
-    b => x
-#else
     b(lbound(a,1):,lbound(a,2):) => x
-#endif
   end subroutine assignp2d4_s
 
   subroutine assignp2d4_i(a,b,k,l)
@@ -2606,11 +2558,7 @@ module mod_memutil
     end if
     theshape = shape(a(:,:,1,1))
     call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k,l)),x,theshape)
-#ifndef __GFORTRAN__
-    b => x
-#else
     b(lbound(a,1):,lbound(a,2):) => x
-#endif
   end subroutine assignp2d4_i
 
   subroutine assignp2d4_r(a,b,k,l)
@@ -2627,11 +2575,7 @@ module mod_memutil
     end if
     theshape = shape(a(:,:,1,1))
     call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k,l)),x,theshape)
-#ifndef __GFORTRAN__
-    b => x
-#else
     b(lbound(a,1):,lbound(a,2):) => x
-#endif
   end subroutine assignp2d4_r
 
   subroutine assignp2d4_d(a,b,k,l)
@@ -2648,11 +2592,7 @@ module mod_memutil
     end if
     theshape = shape(a(:,:,1,1))
     call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k,l)),x,theshape)
-#ifndef __GFORTRAN__
-    b => x
-#else
     b(lbound(a,1):,lbound(a,2):) => x
-#endif
   end subroutine assignp2d4_d
 
   subroutine assignp4d_l(a,b)
