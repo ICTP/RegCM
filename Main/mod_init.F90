@@ -64,6 +64,7 @@ module mod_init
 !
   integer(ik4) :: i , j , k , n
   real(rk8) :: hg1 , hg2 , hg3 , hg4 , hgmax
+  real(rk8) , dimension(kzp1) :: ozprnt
   character(len=32) :: appdat
 #ifdef DEBUG
   character(len=dbgslen) :: subroutine_name = 'init'
@@ -218,7 +219,8 @@ module mod_init
     !
     call o3data(sfs%psb)
     if ( myid == italk ) then
-      call vprntv(o3prof(3,3,:),kzp1,'Ozone profile at (3,3)')
+      ozprnt = o3prof(3,3,:)
+      call vprntv(ozprnt,kzp1,'Ozone profile at (3,3)')
     end if
     !
     ! End of initial run case
@@ -277,7 +279,8 @@ module mod_init
     call grid_distribute(o3prof_io,o3prof,jci1,jci2,ici1,ici2,1,kzp1)
 !
     if ( myid == italk ) then
-      call vprntv(o3prof(3,3,:),kzp1,'Ozone profiles restart')
+      ozprnt = o3prof(3,3,:)
+      call vprntv(ozprnt,kzp1,'Ozone profiles restart')
     end if
 !
     if ( iocnflx == 2 ) then
