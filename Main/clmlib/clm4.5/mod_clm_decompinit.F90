@@ -66,7 +66,7 @@ module decompInitMod
     integer(ik4) , pointer , dimension(:) :: lcount
     integer(ik4) , pointer , dimension(:) :: ccount
     integer(ik4) , pointer , dimension(:) :: pcount
-    integer(ik4) , pointer , dimension(:,:) :: xstart , xend
+    integer(ik4) , pointer , dimension(:,:) :: xstart
 
     allocate(gcount(procinfo%ncells))
     allocate(lcount(procinfo%ncells))
@@ -104,10 +104,10 @@ module decompInitMod
     call sumall(mynumc,numc)
     call sumall(mynump,nump)
 
-    call gather_i(xstart(:,1),mynumg)
-    call gather_i(xstart(:,2),mynuml)
-    call gather_i(xstart(:,3),mynumc)
-    call gather_i(xstart(:,4),mynump)
+    call allgather_i(xstart(:,1),mynumg)
+    call allgather_i(xstart(:,2),mynuml)
+    call allgather_i(xstart(:,3),mynumc)
+    call allgather_i(xstart(:,4),mynump)
 
     if ( myid > 1 ) then
       procinfo%begg = sum(xstart(1:myid,1))
