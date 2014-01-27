@@ -19,6 +19,7 @@ module mod_clm_initialize
   use mod_clm_surfrd , only : surfrd_get_globmask , surfrd_get_grid , &
           surfrd_get_topo , surfrd_get_data 
   use mod_clm_control , only : control_init , control_print , nlfilename
+  use mod_clm_urbaninput , only : UrbanInput
 
   implicit none
 
@@ -47,13 +48,12 @@ module mod_clm_initialize
   ! o Initializes accumulation variables.
   !
   subroutine initialize1(cl)
-    use UrbanInputMod   , only : UrbanInput
     use ncdio_pio       , only : ncd_pio_init
     use clm_atmlnd      , only : init_atm2lnd_type, init_lnd2atm_type, clm_a2l, clm_l2a
     use clm_glclnd      , only : init_glc2lnd_type, init_lnd2glc_type, clm_x2s, clm_s2x
     use initGridCellsMod, only : initGridCells
 #if (defined LCH4)
-    use ch4varcon       , only : ch4conrd
+    use mod_clm_ch4varcon , only : ch4conrd
 #endif
     implicit none
     (type (masked_comm) , intent(in) :: cl

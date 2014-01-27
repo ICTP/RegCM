@@ -55,13 +55,14 @@ libclm45_a_SOURCES = mod_clm_domain.F90 mod_clm_type.F90 \
   mod_clm_slaketemperature.F90 mod_clm_slakerest.F90 mod_clm_surfacealbedo.F90 \
   mod_clm_surfaceradiation.F90 mod_clm_urban.F90 mod_clm_urbaninit.F90 \
   mod_clm_vocemission.F90 mod_clm_typeinit.F90 mod_clm_driverinit.F90 \
-  mod_clm_reweight.F90 mod_clm_subgrid.F90 mod_clm_decompinit.F90
+  mod_clm_reweight.F90 mod_clm_subgrid.F90 mod_clm_decompinit.F90 \
+  mod_clm_initgridcells.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
 MPP_INCLUDE = $(MPP)
 if COMPILER_SUN
-FCFLAGS += -M$(MPP_INCLUDE) 
+FCFLAGS += -M$(MPP_INCLUDE)
 else
 FCFLAGS += -I$(MPP_INCLUDE)
 endif
@@ -174,3 +175,4 @@ mod_clm_driverinit.o : mod_clm_driverinit.F90 mod_clm_atmlnd.o mod_clm_domain.o 
 mod_clm_reweight.o : mod_clm_reweight.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_filter.o mod_clm_type.o mod_clm_varcon.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
 mod_clm_subgrid.o : mod_clm_subgrid.F90 mod_clm_varctl.o mod_clm_varpar.o mod_clm_varsur.o mod_intkinds.o mod_realkinds.o
 mod_clm_decompinit.o : mod_clm_decompinit.F90 mod_clm_decomp.o mod_clm_subgrid.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_regcm_types.o mod_service.o mod_stdio.o
+mod_clm_initgridcells.o : mod_clm_initgridcells.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_subgrid.o mod_clm_surfrd.o mod_clm_type.o mod_clm_urbaninput.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_clm_varsur.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_stdio.o
