@@ -1,152 +1,101 @@
 module mod_clm_cnallocation
 #ifdef CN
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !MODULE: CNAllocationMod
-!
-! !DESCRIPTION:
-! Module holding routines used in allocation model for coupled carbon
-! nitrogen code.
-!
-! !USES:
+  !
+  ! Module holding routines used in allocation model for coupled carbon
+  ! nitrogen code.
+  !
+  use mod_intkinds
   use mod_realkinds
   use mod_clm_varcon, only: dzsoi_decomp
   use mod_stdio
   use mod_mpmessage
   use mod_clm_varctl, only: use_c13, use_c14
+
   implicit none
-  save
+
   private
-! !PUBLIC MEMBER FUNCTIONS:
+
   public :: CNAllocationInit         ! Initialization
   public :: CNAllocation             ! run method
   public :: CNAllocation_Carbon_only ! Return Carbon_only status
 
-! !PUBLIC DATA MEMBERS:
-   character(len=*), parameter, public :: suplnAll=& ! Supplemental Nitrogen for all PFT's
-                     'ALL'
-   character(len=*), parameter, public :: suplnNon=& ! No supplemental Nitrogen
-                     'NONE'
-   character(len=15), public :: suplnitro = suplnNon ! Supplemental Nitrogen mode
-   logical, public :: Carbon_only = .false.  ! Carbon only mode 
-                                             ! (Nitrogen is prescribed NOT prognostic)
+  ! Supplemental Nitrogen for all PFT's
+  character(len=*) , parameter , public :: suplnAll = 'ALL'
+  ! No supplemental Nitrogen
+  character(len=*) , parameter , public :: suplnNon = 'NONE'
+  ! Supplemental Nitrogen mode
+  character(len=15) , public :: suplnitro = suplnNon
+  ! Carbon only mode 
+  ! (Nitrogen is prescribed NOT prognostic)
+  logical , public :: Carbon_only = .false.
 
-! !PRIVATE DATA MEMBERS:
-   real(rk8):: dt                            !decomp timestep (seconds)
-   real(rk8):: bdnr                          !bulk denitrification rate (1/s)
-   real(rk8):: dayscrecover                  !number of days to recover negative cpool
-   real(rk8), pointer :: arepr(:)            !reproduction allocation coefficient
-   real(rk8), pointer :: aroot(:)            !root allocation coefficient
-   real(rk8), pointer:: col_plant_ndemand(:) !column-level plant N demand
-!  logical :: crop_supln  = .false.         ! Prognostic crop receives supplemental Nitrogen
-!
-! !REVISION HISTORY:
-! 8/5/03: Created by Peter Thornton
-!
-!EOP
-!-----------------------------------------------------------------------
+  real(rk8) :: dt           !decomp timestep (seconds)
+  real(rk8) :: bdnr         !bulk denitrification rate (1/s)
+  real(rk8) :: dayscrecover !number of days to recover negative cpool
+  !reproduction allocation coefficient
+  real(rk8) , pointer , dimension(:) :: arepr
+  !root allocation coefficient
+  real(rk8) , pointer , dimension(:) :: aroot
+  !column-level plant N demand
+  real(rk8) , pointer , dimension(:) :: col_plant_ndemand
+  ! Prognostic crop receives supplemental Nitrogen
+  ! logical :: crop_supln  = .false.
 
-contains
+  contains
 
+  logical function CNAllocation_Carbon_only()
+    CNAllocation_Carbon_only = Carbon_only
+  end function CNAllocation_Carbon_only
 
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNAllocation_Carbon_only
-!
-! !INTERFACE:
-logical function CNAllocation_Carbon_only()
-!
-! !DESCRIPTION: Return Carbon_only flag.
-!
-!EOP
-!-----------------------------------------------------------------------
-  CNAllocation_Carbon_only = Carbon_only
-end function CNAllocation_Carbon_only
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNAllocationInit
-!
-! !INTERFACE:
-subroutine CNAllocationInit ( lbc, ubc, lbp, ubp )
-!
-! !DESCRIPTION:
-!
-! !USES:
-   use mod_clm_varcon      , only: secspday
-   use mod_clm_time_manager, only: get_step_size
-   use mod_clm_surfrd      , only: crop_prog
-! !ARGUMENTS:
-   implicit none
-   integer, intent(in) :: lbc, ubc        ! column-index bounds
-   integer, intent(in) :: lbp, ubp        ! pft-index bounds
-!
-! !CALLED FROM:
-!
-! !REVISION HISTORY:
-! 4/6/11: Created by Erik Kluzek
-!
-! !LOCAL VARIABLES:
+  subroutine CNAllocationInit ( lbc, ubc, lbp, ubp )
+    use mod_clm_varcon      , only: secspday
+    use mod_clm_time_manager, only: get_step_size
+    use mod_clm_surfrd      , only: crop_prog
+    implicit none
+    integer(ik4), intent(in) :: lbc, ubc        ! column-index bounds
+    integer(ik4), intent(in) :: lbp, ubp        ! pft-index bounds
     character(len=32) :: subname = 'CNAllocationInit'
-!EOP
-!-----------------------------------------------------------------------
-   if ( crop_prog )then
+    if ( crop_prog )then
       allocate(arepr(lbp:ubp))
       allocate(aroot(lbp:ubp))
       arepr(:) = nan
       aroot(:) = nan
-   end if
-   allocate(col_plant_ndemand(lbc:ubc))
-   col_plant_ndemand(:) = nan
+    end if
+    allocate(col_plant_ndemand(lbc:ubc))
+    col_plant_ndemand(:) = nan
 
-   ! set time steps
-   dt = real( get_step_size(), rk8 )
+    ! set time steps
+    dt = real( get_step_size(), rk8 )
 
-   ! set some space-and-time constant parameters 
-   bdnr         = 0.5D0 * (dt/secspday)
-   dayscrecover = 30.0D0
+    ! set some space-and-time constant parameters 
+    bdnr         = 0.5D0 * (dt/secspday)
+    dayscrecover = 30.0D0
 
-   ! Change namelist settings into private logical variables
-   select case(suplnitro)
+    ! Change namelist settings into private logical variables
+    select case(suplnitro)
       case(suplnNon)
-         Carbon_only = .false.
+        Carbon_only = .false.
       case(suplnAll)
-         Carbon_only = .true.
+        Carbon_only = .true.
       case default
-         write(stderr,*) 'Supplemental Nitrogen flag (suplnitro) can only be: ', &
-                        suplnNon, ' or ', suplnAll
-         call fatal(__FILE__,__LINE__, &
+        write(stderr,*) &
+                'Supplemental Nitrogen flag (suplnitro) can only be: ', &
+               suplnNon, ' or ', suplnAll
+        call fatal(__FILE__,__LINE__, &
           trim(subname)//'ERROR: supplemental Nitrogen flag is not correct' )
-   end select
+    end select
+  end subroutine CNAllocationInit
 
-end subroutine CNAllocationInit
-
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNAllocation
-!
-! !INTERFACE:
-subroutine CNAllocation (lbp, ubp, lbc, ubc, &
+  subroutine CNAllocation (lbp, ubp, lbc, ubc, &
        num_soilc, filter_soilc, num_soilp, filter_soilp )
-!
-! !DESCRIPTION:
-!
-! !USES:
-   use mod_clm_type
-   use mod_clm_pft2col, only: p2c
-   use mod_clm_varpar   , only: nlevsoi, nlevdecomp
+    use mod_clm_type
+    use mod_clm_pft2col, only: p2c
+    use mod_clm_varpar   , only: nlevsoi, nlevdecomp
 #ifdef NITRIF_DENITRIF
-   use mod_clm_varcon, only: nitrif_n2o_loss_frac
+    use mod_clm_varcon, only: nitrif_n2o_loss_frac
 #endif
 
-   use mod_clm_pftvarcon , only: npcropmin, declfact, bfact, aleaff, arootf, astemf, &
+    use mod_clm_pftvarcon , only: npcropmin, declfact, bfact, aleaff, arootf, astemf, &
                          arooti, fleafi, allconsl, allconss, grperc, grpnow, &
                          nsoybean
    use mod_clm_varcon, only: secspday, istsoil, istcrop
@@ -155,12 +104,12 @@ subroutine CNAllocation (lbp, ubp, lbc, ubc, &
 !
 ! !ARGUMENTS:
    implicit none
-   integer, intent(in) :: lbp, ubp        ! pft-index bounds
-   integer, intent(in) :: lbc, ubc        ! column-index bounds
-   integer, intent(in) :: num_soilc       ! number of soil columns in filter
-   integer, intent(in) :: filter_soilc(ubc-lbc+1) ! filter for soil columns
-   integer, intent(in) :: num_soilp       ! number of soil pfts in filter
-   integer, intent(in) :: filter_soilp(ubp-lbp+1) ! filter for soil pfts
+   integer(ik4), intent(in) :: lbp, ubp        ! pft-index bounds
+   integer(ik4), intent(in) :: lbc, ubc        ! column-index bounds
+   integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+   integer(ik4), intent(in) :: filter_soilc(ubc-lbc+1) ! filter for soil columns
+   integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
+   integer(ik4), intent(in) :: filter_soilp(ubp-lbp+1) ! filter for soil pfts
 !
 ! !CALLED FROM:
 ! subroutine CNdecompAlloc in module CNdecompMod.F90
@@ -173,9 +122,9 @@ subroutine CNAllocation (lbp, ubp, lbc, ubc, &
 ! local pointers to implicit in arrays
 !
    ! pft level
-   integer , pointer :: ivt(:)        ! pft vegetation type
-   integer , pointer :: pcolumn(:)    ! pft's column index
-   integer , pointer :: pfti(:)       ! initial pft index in landunit
+   integer(ik4) , pointer :: ivt(:)        ! pft vegetation type
+   integer(ik4) , pointer :: pcolumn(:)    ! pft's column index
+   integer(ik4) , pointer :: pfti(:)       ! initial pft index in landunit
    real(rk8), pointer :: lgsf(:)       ! long growing season factor [0-1]
    real(rk8), pointer :: xsmrpool(:)   ! (gC/m2) temporary photosynthate C pool
    real(rk8), pointer :: retransn(:)   ! (gN/m2) plant pool of retranslocated N
@@ -221,11 +170,11 @@ subroutine CNAllocation (lbp, ubp, lbc, ubc, &
    real(rk8), pointer :: livewdcn(:)   ! live wood (phloem and ray parenchyma) C:N (gC/gN)
    real(rk8), pointer :: deadwdcn(:)   ! dead wood (xylem and heartwood) C:N (gC/gN)
    real(rk8), pointer :: fcur2(:)      ! allocation parameter: fraction of allocation that goes to currently displayed growth, remainder to storage
-   integer, pointer :: plandunit(:)   ! index into landunit level quantities
-   integer, pointer :: clandunit(:)   ! index into landunit level quantities
-   integer , pointer :: itypelun(:)   ! landunit type
+   integer(ik4), pointer :: plandunit(:)   ! index into landunit level quantities
+   integer(ik4), pointer :: clandunit(:)   ! index into landunit level quantities
+   integer(ik4) , pointer :: itypelun(:)   ! landunit type
    logical , pointer :: croplive(:)   ! flag, true if planted, not harvested
-   integer , pointer :: peaklai(:)    ! 1: max allowed lai; 0: not at max
+   integer(ik4) , pointer :: peaklai(:)    ! 1: max allowed lai; 0: not at max
    real(rk8), pointer :: gddmaturity(:)! gdd needed to harvest
    real(rk8), pointer :: huileaf(:)    ! heat unit index needed from planting to leaf emergence
    real(rk8), pointer :: huigrain(:)   ! same to reach vegetative maturity
@@ -348,9 +297,9 @@ subroutine CNAllocation (lbp, ubp, lbc, ubc, &
    real(rk8), pointer :: livestemn_to_retransn(:)
 !
 ! !OTHER LOCAL VARIABLES:
-   integer :: c,p,l,pi             !indices
-   integer :: fp                   !lake filter pft index
-   integer :: fc                   !lake filter column index
+   integer(ik4) :: c,p,l,pi             !indices
+   integer(ik4) :: fp                   !lake filter pft index
+   integer(ik4) :: fc                   !lake filter column index
    real(rk8):: mr                   !maintenance respiration (gC/m2/s)
    real(rk8):: f1,f2,f3,f4,g1,g2    !allocation parameters
    real(rk8):: cnl,cnfr,cnlw,cndw   !C:N ratios for leaf, fine root, and wood
@@ -359,7 +308,7 @@ subroutine CNAllocation (lbp, ubp, lbc, ubc, &
    real(rk8):: nlc                  !temporary variable for total new leaf carbon allocation
    real(rk8):: curmr, curmr_ratio   !xsmrpool temporary variables
    real(rk8):: sum_ndemand_vr(lbc:ubc, 1:nlevdecomp)          !total column N demand (gN/m3/s) at a given level
-   integer :: j                    ! level index
+   integer(ik4) :: j                    ! level index
    real(rk8):: nuptake_prof(lbc:ubc, 1:nlevdecomp)
    real(rk8):: sminn_tot(lbc:ubc)
    real(rk8) f5                     !grain allocation parameter
@@ -368,12 +317,12 @@ subroutine CNAllocation (lbp, ubp, lbc, ubc, &
    real(rk8) t1                     !temporary variable
 
 #ifndef NITRIF_DENITRIF
-   integer :: nlimit(lbc:ubc,0:nlevdecomp)               !flag for N limitation
+   integer(ik4) :: nlimit(lbc:ubc,0:nlevdecomp)               !flag for N limitation
    real(rk8):: residual_sminn_vr(lbc:ubc, 1:nlevdecomp)
    real(rk8):: residual_sminn(lbc:ubc)
 #else
-   integer :: nlimit_no3(lbc:ubc,0:nlevdecomp)               !flag for NO3 limitation
-   integer :: nlimit_nh4(lbc:ubc,0:nlevdecomp)               !flag for NH4 limitation
+   integer(ik4) :: nlimit_no3(lbc:ubc,0:nlevdecomp)               !flag for NO3 limitation
+   integer(ik4) :: nlimit_nh4(lbc:ubc,0:nlevdecomp)               !flag for NH4 limitation
    real(rk8):: residual_smin_nh4_vr(lbc:ubc, 1:nlevdecomp)
    real(rk8):: residual_smin_no3_vr(lbc:ubc, 1:nlevdecomp)
    real(rk8):: residual_smin_nh4(lbc:ubc)
@@ -1473,7 +1422,7 @@ subroutine CNAllocation (lbp, ubp, lbc, ubc, &
    end do ! end pft loop
 
 
-end subroutine CNAllocation
+  end subroutine CNAllocation
 
 #endif
 

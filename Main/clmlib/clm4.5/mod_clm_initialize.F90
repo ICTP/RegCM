@@ -6,8 +6,19 @@ module mod_clm_initialize
   use mod_realkinds
   use mod_stdio
   use mod_clm_varctl , only : nsrest , nsrStartup , nsrContinue , &
-          nsrBranch , create_glacier_mec_landunit
+          nsrBranch , create_glacier_mec_landunit , fsurdat ,     &
+          fatmlndfrc , flndtopo , fglcmask , noland
   use mod_clm_varsur , only : wtxy , vegxy , topoxy
+  use mod_clm_typeinit , only : initClmtype
+  use mod_clm_varpar , only : maxpatch , clm_varpar_init
+  use mod_clm_varcon , only : clm_varcon_init
+  use mod_clm_pftvarcon , only : pftconrd
+  use mod_clm_decompInit , only : decompInit_lnd , decompInit_glcp
+  use mod_clm_decomp , only : get_proc_bounds
+  use mod_clm_domain , only : domain_check , ldomain , domain_init
+  use mod_clm_surfrd , only : surfrd_get_globmask , surfrd_get_grid , &
+          surfrd_get_topo , surfrd_get_data 
+  use mod_clm_control , only : control_init , control_print , nlfilename
 
   implicit none
 
@@ -36,17 +47,6 @@ module mod_clm_initialize
   ! o Initializes accumulation variables.
   !
   subroutine initialize1(cl)
-    use clmtypeInitMod  , only : initClmtype
-    use clm_varpar      , only : maxpatch, clm_varpar_init
-    use clm_varcon      , only : clm_varcon_init
-    use clm_varctl      , only : fsurdat, fatmlndfrc, flndtopo, fglcmask, noland 
-    use pftvarcon       , only : pftconrd
-    use decompInitMod   , only : decompInit_lnd, decompInit_glcp
-    use decompMod       , only : get_proc_bounds
-    use domainMod       , only : domain_check, ldomain, domain_init
-    use surfrdMod       , only : surfrd_get_globmask, surfrd_get_grid, surfrd_get_topo, &
-                                 surfrd_get_data 
-    use controlMod      , only : control_init, control_print, nlfilename
     use UrbanInputMod   , only : UrbanInput
     use ncdio_pio       , only : ncd_pio_init
     use clm_atmlnd      , only : init_atm2lnd_type, init_lnd2atm_type, clm_a2l, clm_l2a

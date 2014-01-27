@@ -1,52 +1,47 @@
 module mod_clm_control
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !MODULE: controlMod
-!
-! !DESCRIPTION:
-! Module which initializes run control variables. The following possible
-! namelist variables are set default values and possibly read in on startup
-!
-! Note: For definitions of namelist variables see
-!       ../../bld/namelist_files/namelist_definition.xml
-!       Display the file in a browser to see it neatly formatted in html.
-!
-
-! !USES:
+  !
+  ! Module which initializes run control variables. The following possible
+  ! namelist variables are set default values and possibly read in on startup
+  !
+  ! Note: For definitions of namelist variables see
+  !       ../../bld/namelist_files/namelist_definition.xml
+  !       Display the file in a browser to see it neatly formatted in html.
+  !
+  use mod_intkinds
   use mod_realkinds
-  use mod_clm_varpar   , only : maxpatch_pft, maxpatch_glcmec, more_vertlayers
-  use mod_clm_varctl   , only : caseid, ctitle, nsrest, brnch_retain_casename, hostname, &
-                            model_version=>version,    &
-                            iulog, outnc_large_files, finidat, fsurdat, fatmlndfrc,  &
-                            fatmtopo, flndtopo, fpftdyn, fpftcon, nrevsn, &
-                            create_crop_landunit, allocate_all_vegpfts,   &
-                            co2_type, wrtdia, co2_ppmv, pertlim,       &
-                            username, fsnowaging, fsnowoptics, fglcmask, &
-                            create_glacier_mec_landunit, glc_dyntopo, glc_smb, &
-                            glc_topomax, glc_grid, subgridflag, &
-                            use_c13, use_c14, irrigate, &
-                            spinup_state, override_bgc_restart_mismatch_dump
-  use mod_clm_canopyfluxes , only : perchroot, perchroot_alt
+  use mod_stdio
+  use mod_clm_varpar , only : maxpatch_pft , maxpatch_glcmec , more_vertlayers
+  use mod_clm_varctl , only : caseid , ctitle , nsrest ,                 &
+          brnch_retain_casename , hostname , model_version=>version ,    &
+          outnc_large_files , finidat , fsurdat , fatmlndfrc ,           &
+          fatmtopo , flndtopo , fpftdyn , fpftcon , nrevsn ,             &
+          create_crop_landunit , allocate_all_vegpfts ,                  &
+          co2_type , wrtdia , co2_ppmv , pertlim ,                       &
+          username , fsnowaging , fsnowoptics , fglcmask ,               &
+          create_glacier_mec_landunit , glc_dyntopo , glc_smb ,          &
+          glc_topomax , glc_grid , subgridflag ,                         &
+          use_c13 , use_c14 , irrigate , spinup_state ,                  &
+          override_bgc_restart_mismatch_dump
+  use mod_clm_canopyfluxes , only : perchroot , perchroot_alt
 #if (defined LCH4) && (defined CN)
-  use mod_clm_varctl   , only : anoxia
+  use mod_clm_varctl , only : anoxia
 #ifndef CENTURY_DECOMP
   use mod_clm_cndecompcascadebgc , only : anoxia_wtsat
 #else
   use mod_clm_cndecompcascadecentury , only : anoxia_wtsat
 #endif
 #endif
-! Lakes
-  use SLakeCon, only : deepmixing_depthcrit, deepmixing_mixfact, lake_melt_icealb
-  ! lake_use_old_fcrit_minz0, lakepuddling, lake_puddle_thick, and lake_no_ed are currently hardwired.
+  ! Lakes
+  ! lake_use_old_fcrit_minz0 , lakepuddling , lake_puddle_thick 
+  ! and lake_no_ed are currently hardwired.
+  use mod_clm_sLakecon , only : deepmixing_depthcrit , deepmixing_mixfact , &
+          lake_melt_icealb
 !
-  use SurfaceAlbedoMod, only : albice
+  use mod_clm_surfacealbedo , only : albice
 #ifdef CN
-  use CNAllocationMod, only : suplnitro
-  use CNNDynamicsMod, only : nfix_timeconst
+  use mod_clm_cnallocation , only : suplnitro
+  use mod_clm_CNNDynamics , only : nfix_timeconst
 #endif
-  use spmdMod      , only : masterproc
   use histFileMod  , only : max_tapes, max_namlen, &
                             hist_empty_htapes, hist_dov2xy, &
                             hist_avgflag_pertape, hist_type1d_pertape, &
@@ -59,8 +54,7 @@ module mod_clm_control
   use histFileMod  , only : hist_wrtch4diag
 #endif
   use shr_const_mod, only : SHR_CONST_CDAY
-  use abortutils   , only : endrun
-  use UrbanMod     , only : urban_hac, urban_traffic
+  use mod_clm_urban     , only : urban_hac, urban_traffic
 
 #if (defined CN) && (defined VERTSOILC)
   use CNSoilLittVertTranspMod, only: som_diffus, som_adv_flux, cryoturb_diffusion_k, max_altdepth_cryoturbation, max_depth_cryoturb
@@ -152,14 +146,17 @@ contains
 
     ! Error checking...
     if ( len_trim(NLFile) == 0 )then
-       call endrun( subname//' error: nlfilename entered is not set' )
+       call fatal(__FILE__,__LINE__, &
+               subname//' error: nlfilename entered is not set' )
     end if
     inquire (file = trim(NLFile), exist = lexist)
     if ( .not. lexist )then
-       call endrun( subname//' error: NLfilename entered does NOT exist:'//trim(NLFile) )
+       call fatal(__FILE__,__LINE__, &
+          subname//' error: NLfilename entered does NOT exist:'//trim(NLFile) )
     end if
     if ( len_trim(NLFile) > len(NLFilename) )then
-       call endrun( subname//' error: entered NLFile is too long' )
+       call fatal(__FILE__,__LINE__,&
+               subname//' error: entered NLFile is too long' )
     end if
     ! Set the filename
     NLFilename = NLFile
@@ -304,8 +301,8 @@ contains
     ! Default values
     ! ----------------------------------------------------------------------
 
-    if (masterproc) then
-       write(iulog,*) 'Attempting to initialize run control settings .....'
+    if (myid == italk) then
+       write(stdout,*) 'Attempting to initialize run control settings .....'
     endif
 
     runtyp(:)               = 'missing'
@@ -315,23 +312,24 @@ contains
 
     override_nsrest = nsrest
 
-    if (masterproc) then
+    if (myid == italk) then
 
        ! ----------------------------------------------------------------------
        ! Read namelist from standard input. 
        ! ----------------------------------------------------------------------
 
        if ( len_trim(NLFilename) == 0  )then
-          call endrun( subname//' error: nlfilename not set' )
+          call fatal(__FILE__,__LINE__,subname//' error: nlfilename not set' )
        end if
        unitn = getavu()
-       write(iulog,*) 'Read in clm_inparm namelist from: ', trim(NLFilename)
+       write(stdout,*) 'Read in clm_inparm namelist from: ', trim(NLFilename)
        open( unitn, file=trim(NLFilename), status='old' )
        call find_nlgroup_name(unitn, 'clm_inparm', status=ierr)
        if (ierr == 0) then
           read(unitn, clm_inparm, iostat=ierr)
           if (ierr /= 0) then
-             call endrun(subname // ':: ERROR reading clm_inparm namelist')
+             call fatal(__FILE__,__LINE__, &
+               subname // ':: ERROR reading clm_inparm namelist')
           end if
        end if
        call relavu( unitn )
@@ -344,20 +342,20 @@ contains
 
 #if (defined CNDV)
        if (is_perpetual()) then
-          write(iulog,*)'RTM or CNDV cannot be defined in perpetual mode'
-          call endrun()
+          write(stderr,*)'RTM or CNDV cannot be defined in perpetual mode'
+          call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
 #endif
        if (is_perpetual()) then
           if (finidat == ' ') then
-             write(iulog,*)'must specify initial dataset for perpetual mode'
-             call endrun()
+             write(stderr,*)'must specify initial dataset for perpetual mode'
+            call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
 
        if (urban_traffic) then
-          write(iulog,*)'Urban traffic fluxes are not implemented currently'
-          call endrun()
+          write(stderr,*)'Urban traffic fluxes are not implemented currently'
+          call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
 
        ! History and restart files
@@ -374,8 +372,9 @@ contains
        ! if the driver is a startup type
        if ( override_nsrest /= nsrest )then
            if ( override_nsrest /= nsrBranch .and. nsrest /= nsrStartup )then
-              call endrun( subname//' ERROR: can ONLY override clm start-type ' // &
-                           'to branch type and ONLY if driver is a startup type' )
+          call fatal(__FILE__,__LINE__, &
+              subname//' ERROR: can ONLY override clm start-type ' // &
+              'to branch type and ONLY if driver is a startup type' )
            end if
            call set_clmvarctl( nsrest_in=override_nsrest )
        end if
@@ -386,9 +385,9 @@ contains
           create_glacier_mec_landunit = .false.
        end if
        
-    endif   ! end of if-masterproc if-block
+    endif   ! end if-block
 
-    call clmvarctl_init( masterproc, dtime )
+    call clmvarctl_init( myid, dtime )
 
     ! ----------------------------------------------------------------------
     ! Read in other namelists for other modules
@@ -404,9 +403,9 @@ contains
 
     call control_spmd()
     
-    if (masterproc) then
-       write(iulog,*) 'Successfully initialized run control settings'
-       write(iulog,*)
+    if (myid == italk) then
+       write(stdout,*) 'Successfully initialized run control settings'
+       write(stdout,*)
     endif
 
   end subroutine control_init
@@ -619,163 +618,164 @@ contains
     character(len=32) :: subname = 'control_print'  ! subroutine name
 !------------------------------------------------------------------------
 
-    write(iulog,*) 'define run:'
-    write(iulog,*) '   source                = ',trim(source)
-    write(iulog,*) '   model_version         = ',trim(model_version)
-    write(iulog,*) '   run type              = ',runtyp(nsrest+1)
-    write(iulog,*) '   case title            = ',trim(ctitle)
-    write(iulog,*) '   username              = ',trim(username)
-    write(iulog,*) '   hostname              = ',trim(hostname)
-    write(iulog,*) 'input data files:'
-    write(iulog,*) '   PFT physiology = ',trim(fpftcon)
+    write(stdout,*) 'define run:'
+    write(stdout,*) '   source                = ',trim(source)
+    write(stdout,*) '   model_version         = ',trim(model_version)
+    write(stdout,*) '   run type              = ',runtyp(nsrest+1)
+    write(stdout,*) '   case title            = ',trim(ctitle)
+    write(stdout,*) '   username              = ',trim(username)
+    write(stdout,*) '   hostname              = ',trim(hostname)
+    write(stdout,*) 'input data files:'
+    write(stdout,*) '   PFT physiology = ',trim(fpftcon)
     if (fsurdat == ' ') then
-       write(iulog,*) '   fsurdat, surface dataset not set'
+       write(stdout,*) '   fsurdat, surface dataset not set'
     else
-       write(iulog,*) '   surface data   = ',trim(fsurdat)
+       write(stdout,*) '   surface data   = ',trim(fsurdat)
     end if
     if (fatmlndfrc == ' ') then
-       write(iulog,*) '   fatmlndfrc not set, setting frac/mask to 1'
+       write(stdout,*) '   fatmlndfrc not set, setting frac/mask to 1'
     else
-       write(iulog,*) '   land frac data = ',trim(fatmlndfrc)
+       write(stdout,*) '   land frac data = ',trim(fatmlndfrc)
     end if
     if (flndtopo == ' ') then
-       write(iulog,*) '   flndtopo not set'
+       write(stdout,*) '   flndtopo not set'
     else
-       write(iulog,*) '   land topographic data = ',trim(flndtopo)
+       write(stdout,*) '   land topographic data = ',trim(flndtopo)
     end if
     if (fatmtopo == ' ') then
-       write(iulog,*) '   fatmtopo not set'
+       write(stdout,*) '   fatmtopo not set'
     else
-       write(iulog,*) '   atm topographic data = ',trim(fatmtopo)
+       write(stdout,*) '   atm topographic data = ',trim(fatmtopo)
     end if
 #ifdef CN
     if (suplnitro /= suplnNon)then
-        write(iulog,*) '   Supplemental Nitrogen mode is set to run over PFTs: ', &
+        write(stdout,*) '   Supplemental Nitrogen mode is set to run over PFTs: ', &
                        trim(suplnitro)
     end if
 
     if (nfix_timeconst /= 0.D0) then
-       write(iulog,*) '   nfix_timeconst, timescale for smoothing npp in N fixation term: ', nfix_timeconst
+       write(stdout,*) '   nfix_timeconst, timescale for smoothing npp in N fixation term: ', nfix_timeconst
     else
-       write(iulog,*) '   nfix_timeconst == zero, use standard N fixation scheme. '
+       write(stdout,*) '   nfix_timeconst == zero, use standard N fixation scheme. '
     end if
 
-    write(iulog,*) '   spinup_state, (0 = normal mode; 1 = AD spinup)         : ', spinup_state
+    write(stdout,*) '   spinup_state, (0 = normal mode; 1 = AD spinup)         : ', spinup_state
     if ( spinup_state .eq. 0 ) then
-       write(iulog,*) '   model is currently NOT in AD spinup mode.'
+       write(stdout,*) '   model is currently NOT in AD spinup mode.'
     else if ( spinup_state .eq. 1 ) then
-       write(iulog,*) '   model is currently in AD spinup mode.'
+       write(stdout,*) '   model is currently in AD spinup mode.'
     else
-       call endrun( subname//' error: spinup_state can only have integer value of 0 or 1' )
+       call fatal(__FILE__,__LINE__, &
+       subname//' error: spinup_state can only have integer value of 0 or 1' )
     end if
 
-    write(iulog,*) '   override_bgc_restart_mismatch_dump                     : ', override_bgc_restart_mismatch_dump
+    write(stdout,*) '   override_bgc_restart_mismatch_dump                     : ', override_bgc_restart_mismatch_dump
 #endif
 
 #if (defined CN) && (defined VERTSOILC)
-    write(iulog, *) '   som_adv_flux, the advection term in soil mixing (m/s) : ', som_adv_flux
-    write(iulog, *) '   som_diffus, the diffusion term in soil mixing (m/s^2) : ', som_diffus
-    write(iulog, *) '   cryoturb_diffusion_k  (m/s^2)                         : ', cryoturb_diffusion_k
-    write(iulog, *) '   max_altdepth_cryoturbation (m)                        : ', max_altdepth_cryoturbation
-    write(iulog, *) '   max_depth_cryoturb (m)                                : ', max_depth_cryoturb
+    write(stdout, *) '   som_adv_flux, the advection term in soil mixing (m/s) : ', som_adv_flux
+    write(stdout, *) '   som_diffus, the diffusion term in soil mixing (m/s^2) : ', som_diffus
+    write(stdout, *) '   cryoturb_diffusion_k  (m/s^2)                         : ', cryoturb_diffusion_k
+    write(stdout, *) '   max_altdepth_cryoturbation (m)                        : ', max_altdepth_cryoturbation
+    write(stdout, *) '   max_depth_cryoturb (m)                                : ', max_depth_cryoturb
 
-    write(iulog, *) '   decomp_depth_efolding                                 : ', decomp_depth_efolding
-    write(iulog, *) '   froz_q10                                              : ', froz_q10
+    write(stdout, *) '   decomp_depth_efolding                                 : ', decomp_depth_efolding
+    write(stdout, *) '   froz_q10                                              : ', froz_q10
 
-    write(iulog, *) '   exponential_rooting_profile                           : ', exponential_rooting_profile
-    write(iulog, *) '   rootprof_exp                                          : ', rootprof_exp
-    write(iulog, *) '   surfprof_exp                                          : ', surfprof_exp
-    write(iulog, *) '   pftspecific_rootingprofile                            : ', pftspecific_rootingprofile
+    write(stdout, *) '   exponential_rooting_profile                           : ', exponential_rooting_profile
+    write(stdout, *) '   rootprof_exp                                          : ', rootprof_exp
+    write(stdout, *) '   surfprof_exp                                          : ', surfprof_exp
+    write(stdout, *) '   pftspecific_rootingprofile                            : ', pftspecific_rootingprofile
 #endif
 
 #if (defined CN) && (defined NITRIF_DENITRIF)
-    write(iulog, *) '   no_frozen_nitrif_denitrif                             : ', no_frozen_nitrif_denitrif
+    write(stdout, *) '   no_frozen_nitrif_denitrif                             : ', no_frozen_nitrif_denitrif
 #endif
 
 #if (defined CN)
-    write(iulog, *) '  use_c13                                                : ', use_c13
-    write(iulog, *) '  use_c14                                                : ', use_c14
+    write(stdout, *) '  use_c13                                                : ', use_c13
+    write(stdout, *) '  use_c14                                                : ', use_c14
     !!! C14
-    write(iulog, *) '  use_c14_bombspike                                      : ', use_c14_bombspike
-    write(iulog, *) '  atm_c14_filename                                       : ', atm_c14_filename
+    write(stdout, *) '  use_c14_bombspike                                      : ', use_c14_bombspike
+    write(stdout, *) '  atm_c14_filename                                       : ', atm_c14_filename
 #endif
 
     if (fsnowoptics == ' ') then
-       write(iulog,*) '   snow optical properties file NOT set'
+       write(stdout,*) '   snow optical properties file NOT set'
     else
-       write(iulog,*) '   snow optical properties file = ',trim(fsnowoptics)
+       write(stdout,*) '   snow optical properties file = ',trim(fsnowoptics)
     endif
     if (fsnowaging == ' ') then
-       write(iulog,*) '   snow aging parameters file NOT set'
+       write(stdout,*) '   snow aging parameters file NOT set'
     else
-       write(iulog,*) '   snow aging parameters file = ',trim(fsnowaging)
+       write(stdout,*) '   snow aging parameters file = ',trim(fsnowaging)
     endif
 
     if (create_glacier_mec_landunit) then
-       write(iulog,*) '   glc number of elevation classes =', maxpatch_glcmec
-       write(iulog,*) '   glc grid for glacier mask file = ',trim(glc_grid)
-       write(iulog,*) '   glc glacier mask file = ',trim(fglcmask)
+       write(stdout,*) '   glc number of elevation classes =', maxpatch_glcmec
+       write(stdout,*) '   glc grid for glacier mask file = ',trim(glc_grid)
+       write(stdout,*) '   glc glacier mask file = ',trim(fglcmask)
        if (glc_dyntopo) then
-          write(iulog,*) '   glc CLM glacier topography will evolve dynamically'
+          write(stdout,*) '   glc CLM glacier topography will evolve dynamically'
        else
-          write(iulog,*) '   glc CLM glacier topography will NOT evolve dynamically'
+          write(stdout,*) '   glc CLM glacier topography will NOT evolve dynamically'
        endif
        if (glc_smb) then
-          write(iulog,*) '   glc surface mass balance will be passed to ice sheet model'
+          write(stdout,*) '   glc surface mass balance will be passed to ice sheet model'
        else
-          write(iulog,*) '   glc positive-degree-day info will be passed to ice sheet model'
+          write(stdout,*) '   glc positive-degree-day info will be passed to ice sheet model'
        endif
     endif
 
-    if (nsrest == nsrStartup .and. finidat == ' ') write(iulog,*) '   initial data created by model'
-    if (nsrest == nsrStartup .and. finidat /= ' ') write(iulog,*) '   initial data   = ',trim(finidat)
-    if (nsrest /= nsrStartup) write(iulog,*) '   restart data   = ',trim(nrevsn)
-    write(iulog,*) '   atmospheric forcing data is from cesm atm model'
-    write(iulog,*) 'Restart parameters:'
-    write(iulog,*)'   restart pointer file directory     = ',trim(rpntdir)
-    write(iulog,*)'   restart pointer file name          = ',trim(rpntfil)
+    if (nsrest == nsrStartup .and. finidat == ' ') write(stdout,*) '   initial data created by model'
+    if (nsrest == nsrStartup .and. finidat /= ' ') write(stdout,*) '   initial data   = ',trim(finidat)
+    if (nsrest /= nsrStartup) write(stdout,*) '   restart data   = ',trim(nrevsn)
+    write(stdout,*) '   atmospheric forcing data is from cesm atm model'
+    write(stdout,*) 'Restart parameters:'
+    write(stdout,*)'   restart pointer file directory     = ',trim(rpntdir)
+    write(stdout,*)'   restart pointer file name          = ',trim(rpntfil)
     if ( outnc_large_files ) then
-       write(iulog,*)'Large file support for output files is ON'
+       write(stdout,*)'Large file support for output files is ON'
     end if
-    write(iulog,*) 'model physics parameters:'
+    write(stdout,*) 'model physics parameters:'
 #if (defined PERGRO)
-    write(iulog,*) '   flag for random perturbation test is set'
+    write(stdout,*) '   flag for random perturbation test is set'
 #else
-    write(iulog,*) '   flag for random perturbation test is not set'
+    write(stdout,*) '   flag for random perturbation test is not set'
 #endif
-    write(iulog,*) '   CO2 volume mixing ratio   (umol/mol)   = ', co2_ppmv
-    write(iulog,*) '   land-ice albedos      (unitless 0-1)   = ', albice
-    write(iulog,*) '   urban air conditioning/heating and wasteheat   = ', urban_hac
-    write(iulog,*) '   urban traffic flux   = ', urban_traffic
-    write(iulog,*) '   more vertical layers = ', more_vertlayers
+    write(stdout,*) '   CO2 volume mixing ratio   (umol/mol)   = ', co2_ppmv
+    write(stdout,*) '   land-ice albedos      (unitless 0-1)   = ', albice
+    write(stdout,*) '   urban air conditioning/heating and wasteheat   = ', urban_hac
+    write(stdout,*) '   urban traffic flux   = ', urban_traffic
+    write(stdout,*) '   more vertical layers = ', more_vertlayers
     if (nsrest == nsrContinue) then
-       write(iulog,*) 'restart warning:'
-       write(iulog,*) '   Namelist not checked for agreement with initial run.'
-       write(iulog,*) '   Namelist should not differ except for ending time step and run type'
+       write(stdout,*) 'restart warning:'
+       write(stdout,*) '   Namelist not checked for agreement with initial run.'
+       write(stdout,*) '   Namelist should not differ except for ending time step and run type'
     end if
     if (nsrest == nsrBranch) then
-       write(iulog,*) 'branch warning:'
-       write(iulog,*) '   Namelist not checked for agreement with initial run.'
-       write(iulog,*) '   Surface data set and reference date should not differ from initial run'
+       write(stdout,*) 'branch warning:'
+       write(stdout,*) '   Namelist not checked for agreement with initial run.'
+       write(stdout,*) '   Surface data set and reference date should not differ from initial run'
     end if
     if ( pertlim /= 0.0D0 ) &
-    write(iulog,*) '   perturbation limit   = ',pertlim
-    write(iulog,*) '   maxpatch_pft         = ',maxpatch_pft
-    write(iulog,*) '   allocate_all_vegpfts = ',allocate_all_vegpfts
+    write(stdout,*) '   perturbation limit   = ',pertlim
+    write(stdout,*) '   maxpatch_pft         = ',maxpatch_pft
+    write(stdout,*) '   allocate_all_vegpfts = ',allocate_all_vegpfts
 ! New fields
-    write(iulog,*) ' perchroot (plant water stress based on unfrozen layers only) = ',perchroot
-    write(iulog,*) ' perchroot (plant water stress based on time-integrated active layer only) = ',perchroot
+    write(stdout,*) ' perchroot (plant water stress based on unfrozen layers only) = ',perchroot
+    write(stdout,*) ' perchroot (plant water stress based on time-integrated active layer only) = ',perchroot
 #ifdef LCH4
-    write(iulog,*) ' anoxia (applied to soil decomposition)             = ',anoxia
-    write(iulog,*) ' anoxia_wtsat (weight anoxia by inundated fraction) = ',anoxia_wtsat
+    write(stdout,*) ' anoxia (applied to soil decomposition)             = ',anoxia
+    write(stdout,*) ' anoxia_wtsat (weight anoxia by inundated fraction) = ',anoxia_wtsat
 #endif
 ! Lakes
-    write(iulog,*)
-    write(iulog,*) 'Lake Model Namelists:'
-    write(iulog,*) 'Increased mixing relative to Hostetler wind-driven eddy expression ',&
+    write(stdout,*)
+    write(stdout,*) 'Lake Model Namelists:'
+    write(stdout,*) 'Increased mixing relative to Hostetler wind-driven eddy expression ',&
                    'will be used for deep lakes exceeding depth ', deepmixing_depthcrit,&
                       ' by a factor of ', deepmixing_mixfact, '.'
-    write(iulog,*) 'Albedo over melting lakes will approach values (visible, NIR):', lake_melt_icealb, &
+    write(stdout,*) 'Albedo over melting lakes will approach values (visible, NIR):', lake_melt_icealb, &
                    'as compared with 0.60, 0.40 for cold frozen lakes with no snow.'
 
   end subroutine control_print
