@@ -48,6 +48,7 @@ module mod_sunorbit
   ! Assumes 365.0 days/year.
   !
   real(rk8) function orb_cosz(jday,lat,lon,declin)
+    implicit none
     real(rk8) , intent(in) :: jday   ! Julian cal day (1.xx to 365.xx)
     real(rk8) , intent(in) :: lat    ! Centered latitude (radians)
     real(rk8) , intent(in) :: lon    ! Centered longitude (radians)
@@ -63,6 +64,7 @@ module mod_sunorbit
   !
   !
   subroutine orb_params(iyear_AD,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
+    implicit none
     integer(ik4) , intent(in) :: iyear_AD  ! Year to calculate orbit for
     real(rk8) , intent(inout) :: eccen   ! orbital eccentricity
     real(rk8) , intent(inout) :: obliq   ! obliquity in degrees
@@ -465,7 +467,8 @@ module mod_sunorbit
   ! Compute earth/orbit parameters using formula suggested by
   ! Duane Thresher.
   !
-  subroutine orb_decl(calday ,eccen ,mvelpp ,lambm0 ,obliqr ,delta ,eccf)
+  subroutine orb_decl(calday,eccen,mvelpp,lambm0,obliqr,delta,eccf)
+    implicit none
     real(rk8) , intent(in) :: calday ! Calendar day, including fraction
     real(rk8) , intent(in) :: eccen  ! Eccentricity
     real(rk8) , intent(in) :: obliqr ! Earths obliquity in radians
