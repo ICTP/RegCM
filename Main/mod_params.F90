@@ -1984,7 +1984,9 @@ module mod_params
 111 call fatal(__FILE__,__LINE__, 'Error reading RRTMPARAM')
 112 call fatal(__FILE__,__LINE__, 'Error reading SLABOCPARAM')
 113 call fatal(__FILE__,__LINE__, 'Error reading CHEMPARAM')
+#ifdef CLM
 114 call fatal(__FILE__,__LINE__, 'Error reading CLMPARAM')
+#endif
 115 call fatal(__FILE__,__LINE__, 'Error reading CPLPARAM')
 
   end subroutine param

@@ -226,13 +226,12 @@ module mod_rad_colmod3
 !
 !ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
 !
-  subroutine colmod3(iyear,eccf,lout,labsem,m2r,r2m)
+  subroutine colmod3(iyear,lout,labsem,m2r,r2m)
     implicit none
     type(mod_2_rad) , intent(in) :: m2r
     type(rad_2_mod) , intent(inout) :: r2m
     integer(ik4) , intent(in) :: iyear
     logical , intent(in) :: lout , labsem
-    real(rk8) , intent(in) :: eccf
 !
     integer(ik4) :: i , j , k , n , m , k2
 #ifdef DEBUG

@@ -51,7 +51,7 @@ module mod_clm_initialize
     use ncdio_pio       , only : ncd_pio_init
     use clm_atmlnd      , only : init_atm2lnd_type, init_lnd2atm_type, clm_a2l, clm_l2a
     use clm_glclnd      , only : init_glc2lnd_type, init_lnd2glc_type, clm_x2s, clm_s2x
-    use initGridCellsMod, only : initGridCells
+    use mod_clm_initgridcells , only : initGridCells
 #if (defined LCH4)
     use mod_clm_ch4varcon , only : ch4conrd
 #endif

@@ -41,6 +41,13 @@ module mod_runparams
   type(rcm_time_and_date) , save :: idatex
   integer(ik4) :: xyear , xmonth , xday , xhour
 
+  ! Orbital paramters
+  real(rk8) , public :: eccen
+  real(rk8) , public :: obliqr
+  real(rk8) , public :: lambm0
+  real(rk8) , public :: mvelpp
+  real(rk8) , public :: eccf
+
   type(rcm_time_and_date) , save :: bdydate1 , bdydate2
   type(rcm_time_and_date) , save :: somdate1 , somdate2
 

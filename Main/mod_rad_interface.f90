@@ -117,16 +117,15 @@ module mod_rad_interface
     call assignpnt(heatrt,r2m%heatrt)
   end subroutine init_radiation
 !
-  subroutine radiation(iyear,eccf,loutrad,labsem)
+  subroutine radiation(iyear,loutrad,labsem)
     implicit none
     integer(ik4) , intent(in) :: iyear
-    real(rk8) , intent(in) :: eccf
     logical , intent(in) :: loutrad
     logical , intent(in) :: labsem
     if ( irrtm == 1 ) then
-      call rrtmg_driver(iyear,eccf,loutrad,m2r,r2m)
+      call rrtmg_driver(iyear,loutrad,m2r,r2m)
     else
-      call colmod3(iyear,eccf,loutrad,labsem,m2r,r2m)
+      call colmod3(iyear,loutrad,labsem,m2r,r2m)
     end if
   end subroutine radiation
 

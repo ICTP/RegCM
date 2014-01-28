@@ -248,13 +248,12 @@ module mod_rrtmg_driver
 
   end subroutine allocate_mod_rad_rrtmg
 !
-  subroutine rrtmg_driver(iyear,eccf,lout,m2r,r2a)
+  subroutine rrtmg_driver(iyear,lout,m2r,r2a)
     implicit none
     type(mod_2_rad) , intent(in) :: m2r
     type(rad_2_mod) , intent(inout) :: r2a
     integer(ik4) , intent(in) :: iyear
     logical, intent(in) :: lout
-    real(rk8), intent(in) :: eccf
     integer(ik4) :: dyofyr , iplon , k , kj , n , i , j
     real(rk8) :: adjes
 

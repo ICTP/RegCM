@@ -80,7 +80,6 @@ contains
 !
 ! !USES:
     use mod_clm_type
-    use mod_clm_surfacealbedo  , only : shr_orb_decl, shr_orb_cosz
     use mod_clm_varcon   , only : icol_roof, icol_sunwall, icol_shadewall, &
             icol_road_perv, icol_road_imperv, sb
 !

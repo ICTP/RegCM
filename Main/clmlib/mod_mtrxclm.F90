@@ -26,13 +26,15 @@ module mod_mtrxclm
   use mod_dynparam
   use mod_runparams , only : idate0 , iqv , solcon , clmfrq , iocnflx , &
       imask , ilawrence_albedo , ichem , ksrf , xmonth , ktau , rtsrf , &
-      dx , dtsrf , dtrad , igaschem , iaerosol , chtrname , idate1 , idate2
+      dx , dtsrf , dtrad , igaschem , iaerosol , chtrname , idate1 ,    &
+      idate2 , eccen , obliqr , lambm0 , mvelpp
   use mod_mpmessage
   use mod_service
   use mod_mppparam
   use mod_date
   use mod_clm
   use mod_regcm_types
+  use mod_sunorbit
 
   use clm_time_manager , only : get_curr_calday
   use shr_orb_mod , only : shr_orb_cosz , shr_orb_decl , &
@@ -87,8 +89,8 @@ module mod_mtrxclm
 
     call interfclm(lm,lms,1)
     call rcmdrv()
-    call clm_run1(r2cdoalb,r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
-    call clm_run2(r2ceccen,r2cobliqr,r2clambm0,r2cmvelpp)
+    call clm_run1(r2cdoalb,eccen,obliqr,lambm0,mvelpp)
+    call clm_run2(eccen,obliqr,lambm0,mvelpp)
     call interfclm(lm,lms,2)
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -140,7 +142,7 @@ module mod_mtrxclm
     use clm_varsur,    only : r2cimask , init_tgb , init_snow , r2coutfrq
     use clm_varsur,    only : clm2bats_veg , ht_rcm
     use clm_varsur,    only : r2cilawrence_albedo
-    use clm_varsur,    only : cgaschem, caerosol
+    use clm_varsur,    only : cgaschem, caerosol, numdays
     use atmdrvMod
     use program_offMod
     use clm_comp
@@ -166,6 +168,7 @@ module mod_mtrxclm
     !
     ! Initialize run control variables for clm
     !
+    numdays = dayspy
     r2comm = mycomm
     if ( ktau > 0 ) then
       r2cnsrest = 1
@@ -771,76 +774,6 @@ module mod_mtrxclm
       b(jde2,ide2) = a(jci2,ici2,kz,l)
     end if
   end subroutine fill_frame4d
-
-  subroutine solar_clm(idatex,calday,declin,xyear)
-    implicit none
-    type(rcm_time_and_date) , intent(in) :: idatex
-    integer(ik4) , intent(in)  :: xyear
-    real(rk8) , intent(out) :: calday , declin
-    real(rk8) :: decdeg
-    real(rk8) :: mvelp , obliq
-    integer(ik4) :: iyear_ad
-    logical :: log_print
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'solar_clm'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
-    calday = yeardayfrac(idatex)
-    log_print = .false.
-    iyear_ad = xyear
-!   Get eccen,obliq,mvelp,obliqr,lambm0,mvelpp
-    call shr_orb_params(iyear_ad,r2ceccen,obliq,mvelp,r2cobliqr,      &
-                        r2clambm0,r2cmvelpp,log_print)
-!
-!   Get declin,eccf
-    call shr_orb_decl(calday,r2ceccen,r2cmvelpp,r2clambm0,r2cobliqr,  &
-                      declin,r2ceccf)
-
-!   convert declin to degrees
-    decdeg = declin/degrad
-    if ( myid == italk ) then
-      write (stdout,'(a,f12.2,a,f12.8,a)') ' JDay ', calday , &
-        ' solar declination angle = ', decdeg , ' degrees'
-      write(stdout, '(18x,a,f12.4,a)') ' solar TSI irradiance    = ' , &
-        solcon, ' W/m^2'
-    end if
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
-!
-  end subroutine solar_clm
-
-  subroutine zenit_clm(coszrs,xlat,xlon)
-    implicit none
-    real(rk8) , pointer , intent(out), dimension(:,:) :: coszrs
-    real(rk8) , pointer , intent(out), dimension(:,:) :: xlat
-    real(rk8) , pointer , intent(out), dimension(:,:) :: xlon
-!
-    integer(ik4) :: i , j
-    real(rk8) :: cldy , declinp1 , xxlon
-    real(rk8) :: xxlat
-#ifdef DEBUG
-    character(len=dbgslen) :: subroutine_name = 'zenitm_clm'
-    integer(ik4) , save :: idindx = 0
-    call time_begin(subroutine_name,idindx)
-#endif
-    cldy = get_curr_calday()
-    call shr_orb_decl(cldy,r2ceccen,r2cmvelpp,r2clambm0, &
-                      r2cobliqr,declinp1,r2ceccf)
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        xxlat = xlat(j,i)*degrad
-        xxlon = xlon(j,i)*degrad
-        coszrs(j,i) = shr_orb_cosz(cldy,xxlat,xxlon,declinp1)
-        coszrs(j,i) = dmax1(0.0D0,coszrs(j,i))
-        coszrs(j,i) = dmin1(1.0D0,coszrs(j,i))
-      end do
-    end do
-#ifdef DEBUG
-    call time_end(subroutine_name,idindx)
-#endif
-  end subroutine zenit_clm
 
 end module mod_mtrxclm
 

@@ -96,7 +96,7 @@ module mod_tendency
                psasum , pt2bar , pt2tot , ptnbar , maxv , lowq ,     &
                ptntot , qxas , qxbs , rovcpm , rtbar , sigpsa , tv , &
                tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,     &
-               xmsf , theta , eccf
+               xmsf
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
@@ -104,19 +104,6 @@ module mod_tendency
     character(len=dbgslen) :: subroutine_name = 'tend'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
-#endif
-    !
-    ! Calculate eccentricity factor for radiation calculations
-    !
-    theta = twopi*calday/dayspy
-#ifdef CLM
-    eccf  = r2ceccf
-#else
-    calday = yeardayfrac(idatex)
-    eccf = 1.000110D0 + 0.034221D0*dcos(theta) +  &
-           0.001280D0 * dsin(theta) + &
-           0.000719D0 * dcos(d_two*theta) + &
-           0.000077D0 * dsin(d_two*theta)
 #endif
     !
     ! multiply ua and va by inverse of mapscale factor at dot point:
@@ -456,11 +443,8 @@ module mod_tendency
     !
     if ( ktau == 0 .or. ichem == 1 .or. &
          mod(ktau+1,ntsrf) == 0 .or. mod(ktau+1,ntrad) == 0 ) then
-#ifdef CLM
-      call zenit_clm(coszrs,mddom%xlat,mddom%xlon)
-#else
+      call solar1
       call zenitm(coszrs)
-#endif
     end if
     !
     ! No diffusion of TKE on lower boundary (kzp1)
@@ -757,7 +741,7 @@ module mod_tendency
         call read_o3data(idatex,scenario,mddom%xlat,mddom%xlon, &
                          sfs%psa,ptop,sigma)
       end if
-      call radiation(xyear,eccf,loutrad,labsem)
+      call radiation(xyear,loutrad,labsem)
     end if
 
     if ( ktau == 0 .or. mod(ktau+1,ntsrf) == 0 ) then

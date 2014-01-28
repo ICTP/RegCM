@@ -30,7 +30,10 @@ module mod_sun
    use mod_mpmessage
    use mod_mppparam
    use mod_service
+   use mod_sunorbit
 !
+   implicit none
+
    private
 !
    real(rk8) , dimension(3,1610:2008) :: tsi
@@ -246,36 +249,37 @@ module mod_sun
        2004.5D0,1366.0480D0,1366.0480D0, 2005.5D0,1365.8545D0,1365.8545D0, &
        2006.5D0,1365.8107D0,1365.8107D0, 2007.5D0,1365.7240D0,1365.7240D0, &
        2008.5D0,1365.6918D0,1365.6918 /
+
   contains
   !
   ! This subroutine computes the solar declination angle
   ! from the julian date.
   !
-  subroutine solar1
+  subroutine solar1(mute)
     implicit none
-    real(rk8) :: decdeg , theta
+    real(rk8) :: decdeg , obliq , mvelp
+    logical , optional , intent(in) :: mute
+    logical :: quiet
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'solar1'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+    quiet = .false.
+    if ( present(mute) ) then
+      quiet = mute
+    end if
     calday = yeardayfrac(idatex)
-    theta = twopi*calday/dayspy
-    !
-    ! Solar declination in radians:
-    !
-    declin = 0.006918D0 - 0.399912D0*dcos(theta) + &
-             0.070257D0*dsin(theta) -              &
-             0.006758D0*dcos(2.0D0*theta) +        &
-             0.000907D0*dsin(2.0D0*theta) -        &
-             0.002697D0*dcos(3.0D0*theta) +        &
-             0.001480D0*dsin(3.0D0*theta)
+    call orb_params(xyear,eccen,obliq,mvelp,obliqr,lambm0,mvelpp)
+    call orb_decl(calday,eccen,mvelpp,lambm0,obliqr,declin,eccf)
     decdeg = declin/degrad
-    if ( myid == italk ) then
-      write (stdout,'(a,f12.2,a,f12.8,a)') ' JDay ', calday , &
-        ' solar declination angle = ', decdeg , ' degrees'
-      write(stdout, '(18x,a,f12.4,a)') ' solar TSI irradiance    = ' , &
-        solcon, ' W/m^2'
+    if ( .not. quiet ) then
+      if ( myid == italk .and. (ktau == 0 .or. mod(ktau+1,kday) == 0) ) then
+        write (stdout,'(a,f12.2,a,f12.8,a)') ' JDay ', calday , &
+          ' solar declination angle = ', decdeg , ' degrees'
+        write(stdout, '(18x,a,f12.4,a)') ' solar TSI irradiance    = ' , &
+          solcon, ' W/m^2'
+      end if
     end if
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
@@ -292,23 +296,18 @@ module mod_sun
     implicit none
     real(rk8) , pointer , intent (out), dimension(:,:) :: coszrs
     integer(ik4) :: i , j
-    real(rk8) :: omga , tlocap , xt24
-    real(rk8) :: xxlat
+    real(rk8) :: xxlat , xxlon
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'zenitm'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-    xt24 = dble(idatex%second_of_day)/secph
+    calday = yeardayfrac(idatex)
     do i = ici1 , ici2
       do j = jci1 , jci2
-        tlocap = xt24 + mddom%xlon(j,i)/15.0D0
-        tlocap = dmod(tlocap+houpd,houpd)
-        omga = 15.0D0*(tlocap-12.0D0)*degrad
         xxlat = mddom%xlat(j,i)*degrad
-!       coszrs = cosine of solar zenith angle
-        coszrs(j,i) = dsin(declin)*dsin(xxlat) +           &
-                      dcos(declin)*dcos(xxlat)*dcos(omga)
+        xxlon = mddom%xlon(j,i)*degrad
+        coszrs(j,i) = orb_cosz(calday,xxlat,xxlon,declin)
         coszrs(j,i) = dmax1(0.0D0,coszrs(j,i))
         coszrs(j,i) = dmin1(1.0D0,coszrs(j,i))
       end do
@@ -331,6 +330,7 @@ module mod_sun
       solar_irradiance = 1367.0D0
       return
     end if
+    calday = yeardayfrac(idatex)
     if ( calday > dayspy/2.0D0 ) then
       w2 = calday/dayspy-0.5D0
       w1 = 1.0D0-w2

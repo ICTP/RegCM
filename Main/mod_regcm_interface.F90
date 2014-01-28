@@ -139,18 +139,6 @@ module mod_regcm_interface
     ! Update solar constant from TSI dataset
     solcon = solar_irradiance( )
     scon = solcon*d_1000
-    !
-    ! Calculate solar declination angle at startup
-    !
-    if ( myid == italk ) then
-      write (stdout,*) 'Calculate solar declination angle at ',toint10(idatex)
-    end if
-#ifdef CLM
-    numdays = dayspy
-    call solar_clm(idatex,calday,declin,xyear)
-#else
-    call solar1
-#endif
     call init_bdy
 !
 !**********************************************************************
@@ -192,11 +180,8 @@ module mod_regcm_interface
 !
 !**********************************************************************
 !
-#ifdef CLM
-    call zenit_clm(coszrs,mddom%xlat,mddom%xlon)
-#else
+    call solar1(mute=.true.)
     call zenitm(coszrs)
-#endif
 !
 !**********************************************************************
 !
@@ -273,28 +258,14 @@ module mod_regcm_interface
       if ( ktau /= mtau ) then
         if ( nbdytime == kbdy ) then
           !
-          ! recalculate solar declination angle if reading bdy
-          !
-          if ( myid == italk ) then
-            write (stdout,*) &
-              'Calculate solar declination angle at ',toint10(idatex)
-          end if
-#ifdef CLM
-          call solar_clm(idatex,calday,declin,xyear)
-#else
-          call solar1
-#endif
-          !
           ! Read in new boundary conditions
           !
           call bdyin
-
         end if
         !
         ! fill up the boundary values for xxb and xxa variables:
         !
         call bdyval(xbctime)
-
       end if
       !
       ! Write output for this timestep if requested
