@@ -316,6 +316,15 @@ module mod_lm_interface
     call assignpnt(solvld,lm%lwdif)
     call assignpnt(sdelq,lm%deltaq)
     call assignpnt(sdelt,lm%deltat)
+    if ( ichem == 1 ) then
+      call assignpnt(sdelt,lm%deltat)
+      call assignpnt(sdelq,lm%deltaq)
+      call assignpnt(ssw2da,lm%ssw2da)
+      call assignpnt(sfracv2d,lm%sfracv2d)
+      call assignpnt(sfracb2d,lm%sfracb2d)
+      call assignpnt(sfracs2d,lm%sfracs2d)
+      call assignpnt(svegfrac2d,lm%svegfrac2d)
+    end if
     call assignpnt(dailyrnf,lm%dailyrnf)
 #ifdef CLM
     allocate(landmask(jx,iy))

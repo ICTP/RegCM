@@ -104,9 +104,6 @@ module mod_atm_interface
   real(rk8) , pointer , public , dimension(:,:) :: emiss
   ! Total solar incoming radiation
   real(rk8) , pointer , public , dimension(:,:) :: sinc
-  ! Surface fluxes
-  real(rk8) , pointer , public , dimension(:,:) :: sdelq
-  real(rk8) , pointer , public , dimension(:,:) :: sdelt
 
   ! Precip
   real(rk8) , pointer , public , dimension(:,:) :: pptnc
@@ -122,6 +119,8 @@ module mod_atm_interface
   integer(ik4) , public , parameter :: four_exchange_point = 4
 
   ! Surface for chemistry
+  real(rk8) , pointer , public , dimension(:,:) :: sdelq
+  real(rk8) , pointer , public , dimension(:,:) :: sdelt
   real(rk8) , public , pointer , dimension(:,:) :: ssw2da
   real(rk8) , public , pointer , dimension(:,:) :: sfracv2d
   real(rk8) , public , pointer , dimension(:,:) :: sfracb2d

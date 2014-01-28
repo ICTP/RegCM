@@ -79,7 +79,6 @@ module mod_che_emission
     end if
     ! Also lmonth is not really necessary here, but KEEP THIS DIMENSION
     ! FOR HIGHER TEMPORAL RESOLUTION INVENTORIES
-      write(stdout,*)'READ CHEM EMISSION for ',lyear*1000000+lmonth*10000+lday
     call read_emission(ifreq,lyear,lmonth,lday,lhour,chemsrc)
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)

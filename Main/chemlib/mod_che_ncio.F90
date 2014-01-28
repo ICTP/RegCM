@@ -330,7 +330,9 @@ module mod_che_ncio
       if ( iso2 /= 0 ) then
         call rvar(ncid,istart,icount,iso2,echemsrc, &
                   'SO2_flux',.false.,sdim)
-      write(*,*)'SO2_flux',maxval(echemsrc(:,:,iso2))
+        if ( myid == italk ) then
+          write(*,*)'SO2_flux',maxval(echemsrc(:,:,iso2))
+        end if
       end if
       !NH3
       if ( iNH3 /= 0 ) then
