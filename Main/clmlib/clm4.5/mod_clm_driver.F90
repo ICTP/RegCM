@@ -590,7 +590,7 @@ module mod_clm_driver
     call BalanceCheck(begp,endp,begc,endc,begl,endl,begg,endg)
 
 #if (defined CN)
-    if ( ktau < 2 ) then
+    if ( ktau < ntsrf*2 ) then
       if ( myid == italk ) then
         write(stdout,*) &
           '--WARNING-- skipping CN balance check for first timestep'

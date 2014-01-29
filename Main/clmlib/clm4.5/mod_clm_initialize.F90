@@ -7,7 +7,8 @@ module mod_clm_initialize
   use mod_stdio
   use mod_clm_varctl , only : nsrest , nsrStartup , nsrContinue , &
           nsrBranch , create_glacier_mec_landunit , fsurdat ,     &
-          fatmlndfrc , flndtopo , fglcmask , noland
+          fatmlndfrc , flndtopo , fglcmask , noland , finidat ,   &
+          fpftdyn
   use mod_clm_varsur , only : wtxy , vegxy , topoxy
   use mod_clm_typeinit , only : initClmtype
   use mod_clm_varpar , only : maxpatch , clm_varpar_init
@@ -23,11 +24,13 @@ module mod_clm_initialize
   use clm_atmlnd
   use mod_clm_initgridcells , only : initGridCells
   use mod_clm_filter , only : allocFilters
+  use mod_clm_reweight , only : reweightWrapup
 #if (defined LCH4)
   use mod_clm_ch4varcon , only : ch4conrd
   use mod_clm_initch4 , only : initch4
 #endif
   use mod_clm_initslake , only : initSLake
+  use mod_clm_mkarbinit , only : mkarbinit
 
   implicit none
 
@@ -200,14 +203,11 @@ module mod_clm_initialize
   ! o Initializes accumulation variables.
   !
   subroutine initialize2( )
-    use clm_varctl      , only : finidat, fpftdyn
-    use reweightMod     , only : reweightWrapup
     use histFldsMod     , only : hist_initFlds
     use histFileMod     , only : hist_htapes_build, htapes_fieldlist
     use restFileMod     , only : restFile_getfile, &
                                  restFile_open, restFile_close, restFile_read 
     use accFldsMod      , only : initAccFlds, initAccClmtype
-    use mkarbinitMod    , only : mkarbinit
     use pftdynMod       , only : pftdyn_init, pftdyn_interp
 #ifdef CN
     use ndepStreamMod    , only : ndep_init, ndep_interp
