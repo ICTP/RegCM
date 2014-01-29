@@ -31,6 +31,7 @@ module mod_clm_initialize
 #endif
   use mod_clm_initslake , only : initSLake
   use mod_clm_mkarbinit , only : mkarbinit
+  use mod_clm_pftdyn , only : pftdyn_init , pftdyn_interp
 
   implicit none
 
@@ -208,7 +209,6 @@ module mod_clm_initialize
     use restFileMod     , only : restFile_getfile, &
                                  restFile_open, restFile_close, restFile_read 
     use accFldsMod      , only : initAccFlds, initAccClmtype
-    use pftdynMod       , only : pftdyn_init, pftdyn_interp
 #ifdef CN
     use ndepStreamMod    , only : ndep_init, ndep_interp
     use CNEcosystemDynMod, only : CNEcosystemDynInit
