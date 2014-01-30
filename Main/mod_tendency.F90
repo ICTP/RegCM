@@ -1388,9 +1388,7 @@ module mod_tendency
     ! Print out noise parameter
     !
     if ( ktau > 1 ) then
-      ! Added a check for nan... The following inequality is wanted.
-      if ((ptntot /= ptntot) .or. &
-         ((ptntot > d_zero) .eqv. (ptntot <= d_zero))) then
+      if ( is_nan(ptntot) ) then
         maxv = dabs(maxval(aten%t))
         if ( (maxv/dtsec) > 0.01D0 ) then ! 50 K per hour
           write(stderr,*) 'MAXVAL ATEN T :', maxv
