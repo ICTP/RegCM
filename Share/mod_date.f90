@@ -1791,16 +1791,25 @@ module mod_date
     isec = 0
   end subroutine get_ref_date
 
-  subroutine get_curr_date(x,iy,im,id,isec)
+  subroutine get_curr_date(x,iy,im,id,isec,offset)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     integer(ik4) , intent(out) :: iy , im , id , isec
+    integer(ik4) , intent(in) , optional :: offset
+    type (rcm_time_interval) :: tdif
+    type (rcm_time_and_date) :: y
     type(iadate) :: d
-    call days_from_reference_to_date(x,d)
+    if ( present(offset) ) then
+      tdif = offset
+      y = x + tdif
+    else
+      y = x
+    end if
+    call days_from_reference_to_date(y,d)
     iy = d%year
     im = d%month
     id = d%day
-    isec = x%second_of_day
+    isec = y%second_of_day
   end subroutine get_curr_date
 
   ! Returns days and seconds from cordex reference date
@@ -1808,7 +1817,6 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     integer(ik4) , intent(out) :: iday , isec
-    type (rcm_time_interval) :: tdif
     type (rcm_time_and_date) , save :: y 
     logical , save :: isinit = .false.
     if ( .not. isinit ) then
