@@ -150,6 +150,7 @@ module mod_date
   public :: getyear , getmonth , getday
   public :: gethour , getminute , getsecond
   public :: date_is , time_is
+  public :: get_curr_date
 
   data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
   data calstr /'gregorian','noleap','360_day'/
@@ -1777,6 +1778,18 @@ module mod_date
     call second_of_day_to_time(x,t)
     getsecond = t%second
   end function getsecond
+
+  subroutine get_curr_date(x,iy,im,id,isec)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(out) :: iy , im , id , isec
+    type(iadate) :: d
+    call days_from_reference_to_date(x,d)
+    iy = d%year
+    im = d%month
+    id = d%day
+    isec = x%second_of_day
+  end subroutine get_curr_date
 
   subroutine split_rcm_date(x,iy,im,id)
     implicit none
