@@ -29,6 +29,10 @@ module mod_clm_initialize
   use mod_clm_ch4varcon , only : ch4conrd
   use mod_clm_initch4 , only : initch4
 #endif
+#ifdef CN
+  use ndepStreamMod    , only : ndep_init, ndep_interp
+  use CNEcosystemDynMod, only : CNEcosystemDynInit
+#endif
   use mod_clm_initslake , only : initSLake
   use mod_clm_mkarbinit , only : mkarbinit
   use mod_clm_pftdyn , only : pftdyn_init , pftdyn_interp
@@ -209,13 +213,9 @@ module mod_clm_initialize
     use restFileMod     , only : restFile_getfile, &
                                  restFile_open, restFile_close, restFile_read 
     use accFldsMod      , only : initAccFlds, initAccClmtype
-#ifdef CN
-    use ndepStreamMod    , only : ndep_init, ndep_interp
-    use CNEcosystemDynMod, only : CNEcosystemDynInit
-#endif
 #if (defined CNDV)
-    use pftdynMod             , only : pftwt_init
-    use CNDVEcosystemDyniniMod, only : CNDVEcosystemDynini
+    use mod_clm_pftdyn , only : pftwt_init
+    use mod_clm_cndvecosystemdynini , only : CNDVEcosystemDynini
 #endif
     use STATICEcosysDynMod , only : EcosystemDynini, readAnnualVegetation
     use STATICEcosysDynMod , only : interpMonthlyVeg
