@@ -50,6 +50,7 @@ module mod_date
   integer(ik4) , public , parameter :: ucnt = 7
 
   integer(ik4) , parameter :: reference_year = 1900
+  integer(ik4) , parameter :: cordex_refdate = 1949120100
 
   character (len=16) , public , dimension(7) :: cintstr
   character (len=12) , public , dimension(3) :: calstr
@@ -150,7 +151,7 @@ module mod_date
   public :: getyear , getmonth , getday
   public :: gethour , getminute , getsecond
   public :: date_is , time_is
-  public :: get_curr_date
+  public :: get_curr_date , get_ref_date , get_curr_time
 
   data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
   data calstr /'gregorian','noleap','360_day'/
@@ -422,7 +423,9 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(inout) :: x
     type (rcm_time_and_date) , intent(in) :: y
-    x%calendar = y%calendar
+    if ( y%calendar /= x%calendar) then
+      call set_calint(x,y%calendar)
+    end if
   end subroutine set_caltype
 
   subroutine set_calint(x, c)
@@ -1779,6 +1782,15 @@ module mod_date
     getsecond = t%second
   end function getsecond
 
+  subroutine get_ref_date(iy,im,id,isec)
+    implicit none
+    integer(ik4) , intent(out) :: iy , im , id , isec
+    iy = 1949
+    im = 12
+    id = 1
+    isec = 0
+  end subroutine get_ref_date
+
   subroutine get_curr_date(x,iy,im,id,isec)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
@@ -1790,6 +1802,28 @@ module mod_date
     id = d%day
     isec = x%second_of_day
   end subroutine get_curr_date
+
+  ! Returns days and seconds from cordex reference date
+  subroutine get_curr_time(x,iday,isec)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(out) :: iday , isec
+    type (rcm_time_interval) :: tdif
+    type (rcm_time_and_date) , save :: y 
+    logical , save :: isinit = .false.
+    if ( .not. isinit ) then
+      y = cordex_refdate
+      call set_caltype(y,x)
+      isinit = .true.
+    else
+      if ( x%calendar /= y%calendar ) then
+        y = cordex_refdate
+        call set_caltype(y,x) 
+      end if
+    end if
+    iday = x%days_from_reference - y%days_from_reference
+    isec = x%second_of_day
+  end subroutine get_curr_time
 
   subroutine split_rcm_date(x,iy,im,id)
     implicit none
