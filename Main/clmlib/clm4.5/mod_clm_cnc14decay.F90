@@ -14,6 +14,7 @@ module mod_clm_cnc14decay
     use mod_realkinds
     use mod_clm_nchelper
     use mod_mpmessage
+    use mod_runparams
     use mod_stdio
     use mod_dynparam
     use mod_mppparam
@@ -58,7 +59,6 @@ subroutine C14Decay(num_soilc, filter_soilc, num_soilp, filter_soilp)
 !
 ! !USES:
    use mod_clm_type
-   use mod_clm_time_manager, only: get_step_size, get_days_per_year
    use mod_clm_varcon, only: secspday
    use mod_clm_varctl, only : spinup_state
 !
@@ -109,7 +109,6 @@ subroutine C14Decay(num_soilc, filter_soilc, num_soilp, filter_soilp)
    real(rk8) :: half_life
    real(rk8) :: decay_const
    real(rk8), pointer :: spinup_factor(:)      ! factor for AD spinup associated with each pool
-   real(rk8) :: days_per_year                  ! days per year
    real(rk8) :: spinup_term               ! spinup accelerated decomposition factor, used to accelerate transport as well
 
 
@@ -148,11 +147,10 @@ subroutine C14Decay(num_soilc, filter_soilc, num_soilp, filter_soilp)
 
 
     ! set time steps
-    dt = real( get_step_size(), rk8 )
-    days_per_year = get_days_per_year()
+    dt = dtsrf
 
-    half_life = 5568.D0 * secspday * days_per_year  !! libby half-life value, for comparison against ages calculated with this value
-    ! half_life = 5730.D0 * secspday * days_per_year  !! recent half-life value
+    half_life = 5568.D0 * secspday * dayspy  !! libby half-life value, for comparison against ages calculated with this value
+    ! half_life = 5730.D0 * secspday * dayspy  !! recent half-life value
     decay_const = - log(0.5D0) / half_life
 
 
@@ -223,7 +221,6 @@ subroutine C14BombSpike(num_soilp, filter_soilp)
 !
 ! !USES:
    use mod_clm_type
-   use mod_clm_time_manager, only: get_curr_date,get_days_per_year
    use mod_clm_varcon  , only : c14ratio,secspday
 !
 ! !ARGUMENTS:
@@ -233,11 +230,10 @@ subroutine C14BombSpike(num_soilp, filter_soilp)
 
 
 ! !OTHER LOCAL VARIABLES:
-   integer :: yr, mon, day, tod, offset
+   integer :: yr, mon, day, tod
    real(rk8) :: dateyear
    real(rk8), pointer :: rc14_atm(:)             !C14O2/C12O2 in atmosphere
    real(rk8) :: delc14o2_atm 
-   real(rk8) :: days_per_year                    ! days per year
    integer :: fp, p, nt
    integer :: ind_below
    integer :: ntim_atm_ts
@@ -248,9 +244,9 @@ subroutine C14BombSpike(num_soilp, filter_soilp)
    if ( use_c14_bombspike ) then
 
       ! get current date
-      call get_curr_date(yr, mon, day, tod, offset)
-      days_per_year = get_days_per_year()
-      dateyear = real(yr) + real(mon)/12.D0 + real(day)/days_per_year + real(tod)/(secspday*days_per_year)
+      call get_curr_date(idatex,yr,mon,day,tod)
+      dateyear = real(yr) + real(mon)/12.D0 + real(day)/dayspy + &
+              real(tod)/(secspday*dayspy)
 
       ! find points in atm timeseries to interpolate between
       ntim_atm_ts = size(atm_c14file_time)

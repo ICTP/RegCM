@@ -14,6 +14,8 @@ module mod_clm_cnphenology
   use mod_realkinds
   use mod_intkinds
   use mod_stdio
+  use mod_date
+  use mod_runparams
   use mod_clm_type
   use mod_clm_varcon  , only: tfrz
   use mod_clm_varpar  , only: numpft
@@ -32,7 +34,6 @@ module mod_clm_cnphenology
 
 ! !PRIVATE DATA MEMBERS:
 
-  real(rk8)           :: dt              ! radiation time step delta t (seconds)
   real(rk8)           :: fracday         ! dtime as a fraction of day
   real(rk8)           :: crit_dayl       ! critical daylength for offset (seconds)
   real(rk8)           :: ndays_on        ! number of days to complete onset
@@ -177,8 +178,7 @@ subroutine CNPhenologyInit( begp, endp )
     !
     ! Get time-step and what fraction of a day it is
     !
-    dt      = real( get_step_size(), rk8 )
-    fracday = dt/secspday
+    fracday = dtsrf/secspday
 
     ! set some local parameters - these will be moved into
     ! parameter file after testing
@@ -246,7 +246,6 @@ subroutine CNPhenologyClimate (num_soilp, filter_soilp, num_pcropp, filter_pcrop
 !
 ! !USES:
    use mod_clm_time_manager, only: get_days_per_year
-   use mod_clm_time_manager, only: get_curr_date
    use mod_clm_croprest    , only: CropRestYear, CropRestIncYear
 !
 ! !ARGUMENTS:
@@ -326,7 +325,7 @@ subroutine CNPhenologyClimate (num_soilp, filter_soilp, num_pcropp, filter_pcrop
 
    if ( num_pcropp > 0 )then
       ! get time-related info
-      call get_curr_date (   kyr, kmo, kda, mcsec)
+      call get_curr_date(idatex,kyr,kmo,kda,mcsec)
       if ( nyrs == -999 ) then
          nyrs = CropRestYear()
       else
@@ -666,7 +665,7 @@ subroutine CNSeasonDecidPhenology (num_soilp, filter_soilp)
          ! update offset_counter and test for the end of the offset period
          if (offset_flag(p) == 1.0D0) then
             ! decrement counter for offset period
-            offset_counter(p) = offset_counter(p) - dt
+            offset_counter(p) = offset_counter(p) - dtsrf
 
             ! if this is the end of the offset_period, reset phenology
             ! flags and indices
@@ -691,7 +690,7 @@ subroutine CNSeasonDecidPhenology (num_soilp, filter_soilp)
          ! update onset_counter and test for the end of the onset period
          if (onset_flag(p) == 1.0D0) then
             ! decrement counter for onset period
-            onset_counter(p) = onset_counter(p) - dt
+            onset_counter(p) = onset_counter(p) - dtsrf
 
             ! if this is the end of the onset period, reset phenology
             ! flags and indices
@@ -778,24 +777,24 @@ subroutine CNSeasonDecidPhenology (num_soilp, filter_soilp)
                ! inlined during vectorization
 
                ! set carbon fluxes for shifting storage pools to transfer pools
-               leafc_storage_to_xfer(p)  = fstor2tran * leafc_storage(p)/dt
-               frootc_storage_to_xfer(p) = fstor2tran * frootc_storage(p)/dt
+               leafc_storage_to_xfer(p)  = fstor2tran * leafc_storage(p)/dtsrf
+               frootc_storage_to_xfer(p) = fstor2tran * frootc_storage(p)/dtsrf
                if (woody(ivt(p)) == 1.0D0) then
-                  livestemc_storage_to_xfer(p)  = fstor2tran * livestemc_storage(p)/dt
-                  deadstemc_storage_to_xfer(p)  = fstor2tran * deadstemc_storage(p)/dt
-                  livecrootc_storage_to_xfer(p) = fstor2tran * livecrootc_storage(p)/dt
-                  deadcrootc_storage_to_xfer(p) = fstor2tran * deadcrootc_storage(p)/dt
-                  gresp_storage_to_xfer(p)      = fstor2tran * gresp_storage(p)/dt
+                  livestemc_storage_to_xfer(p)  = fstor2tran * livestemc_storage(p)/dtsrf
+                  deadstemc_storage_to_xfer(p)  = fstor2tran * deadstemc_storage(p)/dtsrf
+                  livecrootc_storage_to_xfer(p) = fstor2tran * livecrootc_storage(p)/dtsrf
+                  deadcrootc_storage_to_xfer(p) = fstor2tran * deadcrootc_storage(p)/dtsrf
+                  gresp_storage_to_xfer(p)      = fstor2tran * gresp_storage(p)/dtsrf
                end if
 
                ! set nitrogen fluxes for shifting storage pools to transfer pools
-               leafn_storage_to_xfer(p)  = fstor2tran * leafn_storage(p)/dt
-               frootn_storage_to_xfer(p) = fstor2tran * frootn_storage(p)/dt
+               leafn_storage_to_xfer(p)  = fstor2tran * leafn_storage(p)/dtsrf
+               frootn_storage_to_xfer(p) = fstor2tran * frootn_storage(p)/dtsrf
                if (woody(ivt(p)) == 1.0D0) then
-                  livestemn_storage_to_xfer(p)  = fstor2tran * livestemn_storage(p)/dt
-                  deadstemn_storage_to_xfer(p)  = fstor2tran * deadstemn_storage(p)/dt
-                  livecrootn_storage_to_xfer(p) = fstor2tran * livecrootn_storage(p)/dt
-                  deadcrootn_storage_to_xfer(p) = fstor2tran * deadcrootn_storage(p)/dt
+                  livestemn_storage_to_xfer(p)  = fstor2tran * livestemn_storage(p)/dtsrf
+                  deadstemn_storage_to_xfer(p)  = fstor2tran * deadstemn_storage(p)/dtsrf
+                  livecrootn_storage_to_xfer(p) = fstor2tran * livecrootn_storage(p)/dtsrf
+                  deadcrootn_storage_to_xfer(p) = fstor2tran * deadcrootn_storage(p)/dtsrf
                end if
             end if
 
@@ -1074,7 +1073,7 @@ subroutine CNStressDecidPhenology (num_soilp, filter_soilp)
          ! update offset_counter and test for the end of the offset period
          if (offset_flag(p) == 1.D0) then
             ! decrement counter for offset period
-            offset_counter(p) = offset_counter(p) - dt
+            offset_counter(p) = offset_counter(p) - dtsrf
 
             ! if this is the end of the offset_period, reset phenology
             ! flags and indices
@@ -1095,7 +1094,7 @@ subroutine CNStressDecidPhenology (num_soilp, filter_soilp)
          ! update onset_counter and test for the end of the onset period
          if (onset_flag(p) == 1.0D0) then
             ! decrement counter for onset period
-            onset_counter(p) = onset_counter(p) - dt
+            onset_counter(p) = onset_counter(p) - dtsrf
 
             ! if this is the end of the onset period, reset phenology
             ! flags and indices
@@ -1205,24 +1204,24 @@ subroutine CNStressDecidPhenology (num_soilp, filter_soilp)
                ! inlined during vectorization
 
                ! set carbon fluxes for shifting storage pools to transfer pools
-               leafc_storage_to_xfer(p)  = fstor2tran * leafc_storage(p)/dt
-               frootc_storage_to_xfer(p) = fstor2tran * frootc_storage(p)/dt
+               leafc_storage_to_xfer(p)  = fstor2tran * leafc_storage(p)/dtsrf
+               frootc_storage_to_xfer(p) = fstor2tran * frootc_storage(p)/dtsrf
                if (woody(ivt(p)) == 1.0D0) then
-                  livestemc_storage_to_xfer(p)  = fstor2tran * livestemc_storage(p)/dt
-                  deadstemc_storage_to_xfer(p)  = fstor2tran * deadstemc_storage(p)/dt
-                  livecrootc_storage_to_xfer(p) = fstor2tran * livecrootc_storage(p)/dt
-                  deadcrootc_storage_to_xfer(p) = fstor2tran * deadcrootc_storage(p)/dt
-                  gresp_storage_to_xfer(p)      = fstor2tran * gresp_storage(p)/dt
+                  livestemc_storage_to_xfer(p)  = fstor2tran * livestemc_storage(p)/dtsrf
+                  deadstemc_storage_to_xfer(p)  = fstor2tran * deadstemc_storage(p)/dtsrf
+                  livecrootc_storage_to_xfer(p) = fstor2tran * livecrootc_storage(p)/dtsrf
+                  deadcrootc_storage_to_xfer(p) = fstor2tran * deadcrootc_storage(p)/dtsrf
+                  gresp_storage_to_xfer(p)      = fstor2tran * gresp_storage(p)/dtsrf
                end if
 
                ! set nitrogen fluxes for shifting storage pools to transfer pools
-               leafn_storage_to_xfer(p)  = fstor2tran * leafn_storage(p)/dt
-               frootn_storage_to_xfer(p) = fstor2tran * frootn_storage(p)/dt
+               leafn_storage_to_xfer(p)  = fstor2tran * leafn_storage(p)/dtsrf
+               frootn_storage_to_xfer(p) = fstor2tran * frootn_storage(p)/dtsrf
                if (woody(ivt(p)) == 1.0D0) then
-                  livestemn_storage_to_xfer(p)  = fstor2tran * livestemn_storage(p)/dt
-                  deadstemn_storage_to_xfer(p)  = fstor2tran * deadstemn_storage(p)/dt
-                  livecrootn_storage_to_xfer(p) = fstor2tran * livecrootn_storage(p)/dt
-                  deadcrootn_storage_to_xfer(p) = fstor2tran * deadcrootn_storage(p)/dt
+                  livestemn_storage_to_xfer(p)  = fstor2tran * livestemn_storage(p)/dtsrf
+                  deadstemn_storage_to_xfer(p)  = fstor2tran * deadstemn_storage(p)/dtsrf
+                  livecrootn_storage_to_xfer(p) = fstor2tran * livecrootn_storage(p)/dtsrf
+                  deadcrootn_storage_to_xfer(p) = fstor2tran * deadcrootn_storage(p)/dtsrf
                end if
             end if
 
@@ -1355,7 +1354,7 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
 ! handle CN fluxes during the phenological onset & offset periods.
 
 ! !USES:
-  use mod_clm_time_manager, only : get_curr_date, get_curr_calday, get_days_per_year
+  use mod_clm_time_manager, only : get_curr_calday, get_days_per_year
   use mod_clm_pftvarcon       , only : ncorn, nscereal, nwcereal, nsoybean, gddmin, hybgdd, &
                                nwcerealirrig, nsoybeanirrig, ncornirrig, nscerealirrig, &
                                lfemerg, grnfill, mxmat, minplanttemp, planttemp
@@ -1478,7 +1477,7 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
       ! get time info
       dayspyr = get_days_per_year()
       jday    = get_curr_calday()
-      call get_curr_date(kyr, kmo, kda, mcsec)
+      call get_curr_date(idatex,kyr,kmo,kda,mcsec)
 
       ndays_on = 20.D0 ! number of days to fertilize
 
@@ -1577,8 +1576,8 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
                   gddmaturity(p) = hybgdd(ivt(p))
                   leafc_xfer(p)  = 1.D0 ! initial seed at planting to appear
                   leafn_xfer(p)  = leafc_xfer(p) / leafcn(ivt(p)) ! with onset
-                  dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) + leafc_xfer(p)/dt
-                  dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) + leafn_xfer(p)/dt
+                  dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) + leafc_xfer(p)/dtsrf
+                  dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) + leafn_xfer(p)/dtsrf
 
                   ! latest possible date to plant winter cereal and after all other 
                   ! crops were harvested for that year
@@ -1597,8 +1596,8 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
                   gddmaturity(p) = hybgdd(ivt(p))
                   leafc_xfer(p)  = 1.D0 ! initial seed at planting to appear
                   leafn_xfer(p)  = leafc_xfer(p) / leafcn(ivt(p)) ! with onset
-                  dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) + leafc_xfer(p)/dt
-                  dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) + leafn_xfer(p)/dt
+                  dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) + leafc_xfer(p)/dtsrf
+                  dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) + leafn_xfer(p)/dtsrf
                else
                   gddmaturity(p) = 0.D0
                end if
@@ -1633,8 +1632,8 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
 
                   leafc_xfer(p) = 1.D0 ! initial seed at planting to appear
                   leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p)) ! with onset
-                  dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) + leafc_xfer(p)/dt
-                  dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) + leafn_xfer(p)/dt
+                  dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) + leafc_xfer(p)/dtsrf
+                  dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) + leafn_xfer(p)/dtsrf
 
                ! If hit the max planting julian day -- go ahead and plant
                else if (jday == maxplantjday(ivt(p),h) .and. gdd820(p) > 0.D0 .and. &
@@ -1650,8 +1649,8 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
 
                   leafc_xfer(p) = 1.D0 ! initial seed at planting to appear
                   leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p)) ! with onset
-                  dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) + leafc_xfer(p)/dt
-                  dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) + leafn_xfer(p)/dt
+                  dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) + leafc_xfer(p)/dtsrf
+                  dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) + leafn_xfer(p)/dtsrf
 
                else
                   gddmaturity(p) = 0.D0
@@ -1762,7 +1761,7 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
             ! onset_counter initialized to zero when .not. croplive
             ! offset_counter relevant only at time step of harvest
 
-            onset_counter(p) = onset_counter(p) - dt
+            onset_counter(p) = onset_counter(p) - dtsrf
 
             ! enter phase 2 onset for one time step:
             ! transfer seed carbon to leaf emergence
@@ -1770,22 +1769,22 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
             if (leafout(p) >= huileaf(p) .and. hui(p) < huigrain(p) .and. idpp < mxmat(ivt(p))) then
                if (abs(onset_counter(p)) > 1.D-6) then
                   onset_flag(p)    = 1.D0
-                  onset_counter(p) = dt
+                  onset_counter(p) = dtsrf
                   fert_counter(p)  = ndays_on * secspday
                   fert(p) = fertnitro(ivt(p)) * 1000.D0 / fert_counter(p)
                else
                   ! this ensures no re-entry to onset of phase2
-                  ! b/c onset_counter(p) = onset_counter(p) - dt
+                  ! b/c onset_counter(p) = onset_counter(p) - dtsrf
                   ! at every time step
 
-                  onset_counter(p) = dt
+                  onset_counter(p) = dtsrf
                end if
 
             ! enter harvest for one time step:
             ! - transfer live biomass to litter and to crop yield
             ! - send xsmrpool to the atmosphere
             ! if onset and harvest needed to last longer than one timestep
-            ! the onset_counter would change from dt and you'd need to make
+            ! the onset_counter would change from dtsrf and you'd need to make
             ! changes to the offset subroutine below
 
             else if (hui(p) >= gddmaturity(p) .or. idpp >= mxmat(ivt(p))) then
@@ -1793,10 +1792,10 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
                croplive(p) = .false.     ! no re-entry in greater if-block
                if (tlai(p) > 0.D0) then ! plant had emerged before harvest
                   offset_flag(p) = 1.D0
-                  offset_counter(p) = dt
+                  offset_counter(p) = dtsrf
                else                      ! plant never emerged from the ground
-                  dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) - leafc_xfer(p)/dt
-                  dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) - leafn_xfer(p)/dt
+                  dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) - leafc_xfer(p)/dtsrf
+                  dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) - leafn_xfer(p)/dtsrf
                   leafc_xfer(p) = 0.D0  ! revert planting transfers
                   leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))
                end if
@@ -1817,13 +1816,13 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
             if (fert_counter(p) <= 0.D0) then
                fert(p) = 0.D0
             else ! continue same fert application every timestep
-               fert_counter(p) = fert_counter(p) - dt
+               fert_counter(p) = fert_counter(p) - dtsrf
             end if
 
          else   ! crop not live
             ! next 2 lines conserve mass if leaf*_xfer > 0 due to interpinic
-            dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) - leafc_xfer(p)/dt
-            dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) - leafn_xfer(p)/dt
+            dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) - leafc_xfer(p)/dtsrf
+            dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) - leafn_xfer(p)/dtsrf
             onset_counter(p) = 0.D0
             leafc_xfer(p) = 0.D0
             leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))
@@ -2184,8 +2183,8 @@ subroutine CNOnsetGrowth (num_soilp, filter_soilp)
          ! The transfer rate is a linearly decreasing function of time,
          ! going to zero on the last timestep of the onset period
 
-         if (onset_counter(p) == dt) then
-             t1 = 1.0D0 / dt
+         if (onset_counter(p) == dtsrf) then
+             t1 = 1.0D0 / dtsrf
          else
              t1 = 2.0D0 / (onset_counter(p))
          end if
@@ -2211,19 +2210,19 @@ subroutine CNOnsetGrowth (num_soilp, filter_soilp)
       ! pools should be moved to displayed growth in each timestep.
 
       if (bgtr(p) > 0.D0) then
-         leafc_xfer_to_leafc(p)   = leafc_xfer(p) / dt
-         frootc_xfer_to_frootc(p) = frootc_xfer(p) / dt
-         leafn_xfer_to_leafn(p)   = leafn_xfer(p) / dt
-         frootn_xfer_to_frootn(p) = frootn_xfer(p) / dt
+         leafc_xfer_to_leafc(p)   = leafc_xfer(p) / dtsrf
+         frootc_xfer_to_frootc(p) = frootc_xfer(p) / dtsrf
+         leafn_xfer_to_leafn(p)   = leafn_xfer(p) / dtsrf
+         frootn_xfer_to_frootn(p) = frootn_xfer(p) / dtsrf
          if (woody(ivt(p)) == 1.0D0) then
-             livestemc_xfer_to_livestemc(p)   = livestemc_xfer(p) / dt
-             deadstemc_xfer_to_deadstemc(p)   = deadstemc_xfer(p) / dt
-             livecrootc_xfer_to_livecrootc(p) = livecrootc_xfer(p) / dt
-             deadcrootc_xfer_to_deadcrootc(p) = deadcrootc_xfer(p) / dt
-             livestemn_xfer_to_livestemn(p)   = livestemn_xfer(p) / dt
-             deadstemn_xfer_to_deadstemn(p)   = deadstemn_xfer(p) / dt
-             livecrootn_xfer_to_livecrootn(p) = livecrootn_xfer(p) / dt
-             deadcrootn_xfer_to_deadcrootn(p) = deadcrootn_xfer(p) / dt
+             livestemc_xfer_to_livestemc(p)   = livestemc_xfer(p) / dtsrf
+             deadstemc_xfer_to_deadstemc(p)   = deadstemc_xfer(p) / dtsrf
+             livecrootc_xfer_to_livecrootc(p) = livecrootc_xfer(p) / dtsrf
+             deadcrootc_xfer_to_deadcrootc(p) = deadcrootc_xfer(p) / dtsrf
+             livestemn_xfer_to_livestemn(p)   = livestemn_xfer(p) / dtsrf
+             deadstemn_xfer_to_deadstemn(p)   = deadstemn_xfer(p) / dtsrf
+             livecrootn_xfer_to_livecrootn(p) = livecrootn_xfer(p) / dtsrf
+             deadcrootn_xfer_to_deadcrootn(p) = deadcrootn_xfer(p) / dtsrf
          end if
       end if ! end if bgtr
 
@@ -2342,18 +2341,18 @@ subroutine CNOffsetLitterfall (num_soilp, filter_soilp)
       ! only calculate fluxes during offset period
       if (offset_flag(p) == 1.D0) then
 
-         if (offset_counter(p) == dt) then
-             t1 = 1.0D0 / dt
+         if (offset_counter(p) == dtsrf) then
+             t1 = 1.0D0 / dtsrf
              leafc_to_litter(p)  = t1 * leafc(p)  + cpool_to_leafc(p)
              frootc_to_litter(p) = t1 * frootc(p) + cpool_to_frootc(p)
-             ! this assumes that offset_counter == dt for crops
+             ! this assumes that offset_counter == dtsrf for crops
              ! if this were ever changed, we'd need to add code to the "else"
              if (ivt(p) >= npcropmin) then
                 grainc_to_food(p) = t1 * grainc(p)  + cpool_to_grainc(p) 
                 livestemc_to_litter(p) = t1 * livestemc(p)  + cpool_to_livestemc(p)
              end if
          else
-             t1 = dt * 2.0D0 / (offset_counter(p) * offset_counter(p))
+             t1 = dtsrf * 2.0D0 / (offset_counter(p) * offset_counter(p))
              leafc_to_litter(p)  = prev_leafc_to_litter(p)  + t1*(leafc(p)  - prev_leafc_to_litter(p)*offset_counter(p))
              frootc_to_litter(p) = prev_frootc_to_litter(p) + t1*(frootc(p) - prev_frootc_to_litter(p)*offset_counter(p))
          end if

@@ -15,6 +15,8 @@ module mod_clm_cndv
 ! !USES:
   use mod_realkinds
   use mod_dynparam
+  use mod_runparams
+  use mod_date
   use mod_mppparam
   use mod_clm_nchelper
   use mod_clm_cnvegstructupdate, only : CNVegStructUpdate
@@ -159,7 +161,7 @@ contains
     use mod_clm_domain       , only : ldomain
     use mod_clm_varctl      , only : caseid, ctitle, finidat, fsurdat, fpftcon
     use mod_clm_varcon      , only : spval
-    use mod_clm_time_manager, only : get_ref_date, get_nstep, get_curr_date, get_curr_time
+    use mod_clm_time_manager, only : get_nstep
     use mod_clm_varcon  , only : secspday
 !
 ! !ARGUMENTS:
@@ -314,8 +316,8 @@ contains
          'coordinate latitude','degrees_north')
     end if
     
-    call get_curr_time(mdcur, mscur)
-    call get_ref_date(yr, mon, day, nbsec)
+    call get_curr_time(idatex,mdcur, mscur)
+    call get_ref_date(yr,mon,day,nbsec)
     hours   = nbsec / 3600
     minutes = (nbsec - hours*3600) / 60
     secs    = (nbsec - hours*3600 - minutes*60)
@@ -399,7 +401,7 @@ contains
 
     ! Write current date, current seconds, current day, current nstep
 
-    call get_curr_date(yr, mon, day, mcsec)
+    call get_curr_date(idatex,yr,mon,day,mcsec)
     mcdate = yr*10000 + mon*100 + day
     nstep = get_nstep()
 
@@ -461,7 +463,6 @@ contains
 !
 ! !USES:
     use mod_clm_varctl       , only : caseid, inst_suffix
-    use mod_clm_time_manager , only : get_curr_date
 !
 ! !ARGUMENTS:
     implicit none
@@ -481,7 +482,7 @@ contains
     integer :: sec                    !seconds into current day
 !-----------------------------------------------------------------------
 
-    call get_curr_date (yr, mon, day, sec)
+    call get_curr_date(idatex,yr,mon,day,sec)
     write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day,sec
     set_dgvm_filename = "./"//trim(caseid)//".clm2"//trim(inst_suffix)//&
                         ".hv."//trim(cdate)//".nc"

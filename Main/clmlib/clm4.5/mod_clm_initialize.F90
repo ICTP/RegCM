@@ -30,12 +30,17 @@ module mod_clm_initialize
   use mod_clm_initch4 , only : initch4
 #endif
 #ifdef CN
-  use ndepStreamMod    , only : ndep_init, ndep_interp
-  use CNEcosystemDynMod, only : CNEcosystemDynInit
+  use mod_clm_cnecosystemdyn , only : CNEcosystemDynInit
 #endif
   use mod_clm_initslake , only : initSLake
   use mod_clm_mkarbinit , only : mkarbinit
   use mod_clm_pftdyn , only : pftdyn_init , pftdyn_interp
+#if (defined CNDV)
+  use mod_clm_pftdyn , only : pftwt_init
+  use mod_clm_cndvecosystemdynini , only : CNDVEcosystemDynini
+#endif
+  use mod_clm_staticecosysdyn , only : EcosystemDynini , readAnnualVegetation
+  use mod_clm_staticecosysdyn , only : interpMonthlyVeg
 
   implicit none
 
@@ -213,12 +218,6 @@ module mod_clm_initialize
     use restFileMod     , only : restFile_getfile, &
                                  restFile_open, restFile_close, restFile_read 
     use accFldsMod      , only : initAccFlds, initAccClmtype
-#if (defined CNDV)
-    use mod_clm_pftdyn , only : pftwt_init
-    use mod_clm_cndvecosystemdynini , only : CNDVEcosystemDynini
-#endif
-    use STATICEcosysDynMod , only : EcosystemDynini, readAnnualVegetation
-    use STATICEcosysDynMod , only : interpMonthlyVeg
     use DustMod         , only : Dustini
     use clm_time_manager, only : get_curr_date, advance_timestep, &
                                  timemgr_init, timemgr_restart_io, timemgr_restart
@@ -406,15 +405,6 @@ module mod_clm_initialize
       ! then CN would no longer be in eq.
     end if
 
-    ! ------------------------------------------------------------------------
-    ! Initialize nitrogen deposition
-    ! ------------------------------------------------------------------------
-
-#ifdef CN
-    call ndep_init()
-    call ndep_interp()
-#endif
-    
     ! ------------------------------------------------------------------------
     ! Initialization of model parameterizations that are needed after
     ! restart file is read in

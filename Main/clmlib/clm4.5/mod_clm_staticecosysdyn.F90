@@ -10,6 +10,7 @@ module mod_clm_staticecosysdyn
   use mod_intkinds
   use mod_mpmessage
   use mod_stdio
+  use mod_date
   use mod_dynparam
   use mod_mppparam
   use mod_runparams
@@ -20,8 +21,6 @@ module mod_clm_staticecosysdyn
   use mod_clm_type
   use mod_clm_pftvarcon , only : noveg , nc3crop , nbrdlf_dcd_brl_shrub
   use mod_clm_varctl , only : fsurdat
-  use mod_clm_time_manager , only : get_curr_date, get_step_size, &
-                               get_perp_date, is_perpetual, get_nstep
   use mod_clm_varpar , only : numpft
   use mod_clm_domain , only : ldomain
 
@@ -216,12 +215,7 @@ module mod_clm_staticecosysdyn
     integer(ik4) , dimension(12) :: ndaypm= &
          (/31,28,31,30,31,30,31,31,30,31,30,31/) !days per month
 
-    if ( is_perpetual() ) then
-      call get_perp_date(kyr, kmo, kda, ksec, offset=int(dtsrf))
-    else
-      call get_curr_date(kyr, kmo, kda, ksec, offset=int(dtsrf))
-    end if
-
+    call get_curr_date(idatex,kyr,kmo,kda,ksec,offset=int(dtsrf))
     t = (kda-0.5D0) / ndaypm(kmo)
     it(1) = t + 0.5D0
     it(2) = it(1) + 1
@@ -234,7 +228,7 @@ module mod_clm_staticecosysdyn
     if ( InterpMonths1 /= months(1) ) then
       if (myid == italk) then
         write(stderr,*) 'Attempting to read monthly vegetation data .....'
-        write(stderr,*) 'nstep = ',get_nstep(),' month = ',kmo,' day = ',kda
+        write(stderr,*) 'ktau = ',ktau,' month = ',kmo,' day = ',kda
       end if
       call readMonthlyVegetation (fsurdat, months)
       InterpMonths1 = months(1)

@@ -1,638 +1,648 @@
-
 module mod_clm_cnfire
 #ifdef CN
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !MODULE: CNFireMod
-!
-! !DESCRIPTION:
-! module for fire dynamics 
-! created in Nov, 2012  and revised in Apr, 2013 by F. Li and S. Levis
-! based on Li et al. (2012a,b; 2013)"
-! Fire-related parameters were calibrated or tuned in Apr, 2013 based on the 
-! 20th Century transient simulations at f19_g16 with (newfire05_clm45sci15_clm4_0_58) 
-! a CLM4.5 version, Qian et al. (2006) atmospheric forcing, and
-! climatological lightning data.
-!
-! !USES:
+  !
+  ! module for fire dynamics 
+  ! created in Nov, 2012  and revised in Apr, 2013 by F. Li and S. Levis
+  ! based on Li et al. (2012a,b; 2013)"
+  ! Fire-related parameters were calibrated or tuned in Apr, 2013 based on the 
+  ! 20th Century transient simulations at f19_g16 with
+  ! (newfire05_clm45sci15_clm4_0_58) 
+  ! a CLM4.5 version, Qian et al. (2006) atmospheric forcing, and
+  ! climatological lightning data.
+  !
+  use mod_intkinds
   use mod_realkinds
   use mod_mppparam
   use mod_dynparam
   use mod_stdio
-  use shr_strdata_mod, only: shr_strdata_type, shr_strdata_create, shr_strdata_print, &
-                             shr_strdata_advance
   use mod_clm_pft2col, only: p2c
   use mod_clm_varpar , only: nlevdecomp, ndecomp_pools
   use mod_clm_varcon , only: dzsoi_decomp, rpi , tfrz
   use mod_clm_pftvarcon , only: fsr_pft, fd_pft, noveg
-  use spmdMod        , only: mpicom, comp_id
   use mod_clm_control, only: NLFilename
   use mod_clm_decomp , only: gsmap_lnd_gdc2glo
   use mod_clm_domain , only: ldomain
-  use mct_mod
-  implicit none
-  save
-  private
-! !PUBLIC TYPES:
+  use mod_clm_type
+  use mod_clm_varpar , only: max_pft_per_col
+  use mod_clm_varcon , only: secspday
+  use mod_clm_atmlnd , only: clm_a2l
+  use mod_clm_varctl , only: fpftdyn
+  use mod_clm_pftvarcon , only: nc4_grass, nc3crop, ndllf_evr_tmp_tree, &
+                              nbrdlf_evr_trp_tree, nbrdlf_dcd_trp_tree,      &
+                               nbrdlf_evr_shrub
 
-! !PUBLIC MEMBER FUNCTIONS:
+  implicit none
+
+  private
+
   public :: CNFireInit    ! Initialization of CNFire
   public :: CNFireInterp  ! Interpolate fire data
   public :: CNFireArea    ! Calculate fire area
   public :: CNFireFluxes  ! Calculate fire fluxes
 
-! !PRIVATE MEMBER FUNCTIONS:
-  private :: hdm_init    ! position datasets for dynamic human population density
-  private :: hdm_interp  ! interpolates between two years of human pop. density file data
-  private :: lnfm_init   ! position datasets for Lightning
-  private :: lnfm_interp ! interpolates between two years of Lightning file data
+  ! position datasets for dynamic human population density
+  private :: hdm_init
+  ! interpolates between two years of human pop. density file data
+  private :: hdm_interp
+  ! position datasets for Lightning
+  private :: lnfm_init
+  ! interpolates between two years of Lightning file data
+  private :: lnfm_interp
 
-! !PRIVATE MEMBER DATA:
-  real(rk8), pointer     :: forc_lnfm(:)        ! Lightning frequency
-  real(rk8), pointer     :: forc_hdm(:)         ! Human population density
-  real(rk8), parameter   :: secsphr = 3600.D0  ! Seconds in an hour
-  real(rk8), parameter   :: borealat = 40.D0   ! Latitude for boreal peat fires
+  real(rk8) , pointer , dimension(:) :: forc_lnfm  ! Lightning frequency
+  real(rk8) , pointer , dimension(:) :: forc_hdm   ! Human population density
+  real(rk8) , parameter :: secsphr = 3600.D0  ! Seconds in an hour
+  real(rk8) , parameter :: borealat = 40.D0   ! Latitude for boreal peat fires
 
-  type(shr_strdata_type) :: sdat_hdm    ! Human population density input data stream
-  type(shr_strdata_type) :: sdat_lnfm   ! Lightning input data stream
-!
-! !REVISION HISTORY:
-!
-!EOP
-!-----------------------------------------------------------------------
+  ! Human population density input data stream
+  type(shr_strdata_type) :: sdat_hdm
+  ! Lightning input data stream
+  type(shr_strdata_type) :: sdat_lnfm
 
-contains
+  contains
+  !
+  ! Initialize CN Fire module
+  !
+  subroutine CNFireInit( begg, endg )
+    implicit none
+    integer(ik4) , intent(in) :: begg , endg   ! gridcell index bounds
+    call hdm_init(   begg, endg )
+    call hdm_interp( )
+    call lnfm_init(  begg, endg )
+    call lnfm_interp()
+  end subroutine CNFireInit
+  !
+  ! Interpolate CN Fire datasets
+  !
+  subroutine CNFireInterp()
+    implicit none
+    call hdm_interp()
+    call lnfm_interp()
+  end subroutine CNFireInterp
+  !
+  ! Computes column-level burned area in each timestep
+  !
+  subroutine CNFireArea (num_soilc, filter_soilc, num_soilp, filter_soilp)
+    implicit none
+    ! number of soil columns in filter
+    integer(ik4) , intent(in) :: num_soilc
+    ! filter for soil columns
+    integer(ik4) , dimension(:) , intent(in) :: filter_soilc
+    ! number of soil pfts in filter
+    integer(ik4) , intent(in) :: num_soilp
+    ! filter for soil pfts
+    integer(ik4) , dimension(:) , intent(in) :: filter_soilp
+    ! 10-day running mean of tot. precipitation
+    real(rk8) , pointer , dimension(:) :: prec10
+    ! 60-day running mean of tot. precipitation
+    real(rk8) , pointer , dimension(:) :: prec60
+    ! decrease of pft weight (0-1) on the col. for timestep 
+    real(rk8) , pointer , dimension(:) :: lfpftd
+    ! pft weight on the column
+    real(rk8) , pointer , dimension(:) :: wtcol
+    ! vegetation type for this pft
+    integer(ik4) , pointer , dimension(:) :: ivt
+    ! (gC/m2) dead coarse root C
+    real(rk8) , pointer , dimension(:) :: deadcrootc
+    ! (gC/m2) dead coarse root C storage
+    real(rk8) , pointer , dimension(:) :: deadcrootc_storage
+    ! (gC/m2) dead coarse root C transfer
+    real(rk8) , pointer , dimension(:) :: deadcrootc_xfer
+    ! (gC/m2) fine root C
+    real(rk8) , pointer , dimension(:) :: frootc
+    ! (gC/m2) fine root C storage
+    real(rk8) , pointer , dimension(:) :: frootc_storage
+    ! (gC/m2) fine root C transfer
+    real(rk8) , pointer , dimension(:) :: frootc_xfer
+    ! (gC/m2) live coarse root C
+    real(rk8) , pointer , dimension(:) :: livecrootc
+    ! (gC/m2) live coarse root C storage
+    real(rk8) , pointer , dimension(:) :: livecrootc_storage
+    ! (gC/m2) live coarse root C transfer
+    real(rk8) , pointer , dimension(:) :: livecrootc_xfer
+    ! (gC/m2) total vegetation carbon, excluding cpool 
+    real(rk8) , pointer , dimension(:) :: totvegc
+    ! root zone soil wetness
+    real(rk8) , pointer , dimension(:) :: btran2
+    ! pft's column index
+    integer(ik4) , pointer , dimension(:) :: pcolumn
+    ! (gC/m2) leaf C
+    real(rk8) , pointer , dimension(:) :: leafc
+    ! (gC/m2) leaf C storage
+    real(rk8) , pointer , dimension(:) :: leafc_storage
+    ! (gC/m2) leaf C transfer
+    real(rk8) , pointer , dimension(:) :: leafc_xfer
+    ! (gC/m2) live stem C
+    real(rk8) , pointer , dimension(:) :: livestemc
+    ! (gC/m2) live stem C storage
+    real(rk8) , pointer , dimension(:) :: livestemc_storage
+    ! (gC/m2) live stem C transfer
+    real(rk8) , pointer , dimension(:) :: livestemc_xfer
+    ! (gC/m2) dead stem C
+    real(rk8) , pointer , dimension(:) :: deadstemc
+    ! (gC/m2) dead stem C storage
+    real(rk8) , pointer , dimension(:) :: deadstemc_storage
+    ! (gC/m2) dead stem C transfer
+    real(rk8) , pointer , dimension(:) :: deadstemc_xfer
+    ! burn date for crop
+    integer(ik4) , pointer , dimension(:) :: burndate
 
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNFireInit
-!
-! !INTERFACE:
-subroutine CNFireInit( begg, endg )
-!
-! !DESCRIPTION:
-! Initialize CN Fire module
-!
-! !USES:
-!
-! !ARGUMENTS:
-   implicit none
-   integer, intent(IN) :: begg, endg   ! gridcell index bounds
-!
-! !REVISION HISTORY:
-! !LOCAL VARIABLES:
-!EOP
-!-----------------------------------------------------------------------
-   call hdm_init(   begg, endg )
-   call hdm_interp( )
-   call lnfm_init(  begg, endg )
-   call lnfm_interp()
+    ! column-level
+    ! fractional area with water table at surface
+    real(rk8) , pointer , dimension(:) :: fsat
+    ! conversion area frac. of BET+BDT that haven't burned before
+    real(rk8) , pointer , dimension(:) :: lfc
+    ! column's weight relative to corresponding gridcell
+    real(rk8) , pointer , dimension(:) :: cwtgcell
+    ! annual decreased fraction coverage of BET+BDT on gridcell
+    real(rk8) , pointer , dimension(:) :: dtrotr_col
+    ! pft weight of BET on the gridcell (0-1)
+    real(rk8) , pointer , dimension(:) :: trotr1_col
+    ! pft weight of BDT on the gridcell (0-1)
+    real(rk8) , pointer , dimension(:) :: trotr2_col
+    ! 10-day running mean of tot. precipitation
+    real(rk8) , pointer , dimension(:) :: prec10_col
+    ! 60-day running mean of tot. precipitation
+    real(rk8) , pointer , dimension(:) :: prec60_col
+    ! number of pfts on the column
+    integer(ik4) , pointer , dimension(:) :: npfts
+    ! pft index array
+    integer(ik4) , pointer , dimension(:) :: pfti
+    ! gridcell of corresponding column
+    integer(ik4) , pointer , dimension(:) :: cgridcell
+    ! soil water as frac. of whc for top 0.05 m   
+    real(rk8) , pointer , dimension(:) :: wf
+    ! soil water as frac. of whc for top 0.17 m   
+    real(rk8) , pointer , dimension(:) :: wf2
+    ! soil T for top 0.17 m   
+    real(rk8) , pointer , dimension(:) :: tsoi17
+    ! gdp data
+    real(rk8) , pointer , dimension(:) :: gdp_lf
+    ! peatland fraction data
+    real(rk8) , pointer , dimension(:) :: peatf_lf
+    ! proscribed crop fire time
+    integer(ik4), pointer , dimension(:) :: abm_lf
+    ! (gC/m2) total lit C (column-level mean)
+    real(rk8) , pointer , dimension(:) :: totlitc
+    ! fire spread rate at column level
+    real(rk8) , pointer , dimension(:) :: fsr_col
+    ! fire duration at column level 
+    real(rk8) , pointer , dimension(:) :: fd_col
+    ! root carbon 
+    real(rk8) , pointer , dimension(:) :: rootc_col
+    ! burned area fraction for cropland
+    real(rk8) , pointer , dimension(:) :: baf_crop
+    ! burned area fraction for peatland
+    real(rk8) , pointer , dimension(:) :: baf_peatf
+    ! total burned area out of conversion 
+    real(rk8) , pointer , dimension(:) :: fbac
+    ! burned area out of conversion region due to land use fire
+    real(rk8) , pointer , dimension(:) :: fbac1
+    ! cropland fraction in veg column
+    real(rk8) , pointer , dimension(:) :: cropf_col
+    ! transpiration wetness factor (0 to 1)
+    real(rk8) , pointer , dimension(:) :: btran_col
+    ! fractional coverage of non-crop PFTs
+    real(rk8) , pointer , dimension(:) :: wtlf
+    ! fractional coverage of non-crop and non-bare-soil PFTs
+    real(rk8) , pointer , dimension(:) :: lfwt
+    ! totvegc at column level
+    real(rk8) , pointer , dimension(:) :: totvegc_col
+    ! leaf carbon at column level
+    real(rk8) , pointer , dimension(:) :: leafc_col
+    ! gdp limitation factor for nfire
+    real(rk8) , pointer , dimension(:) :: lgdp_col
+    ! gdp limitation factor for baf per fire
+    real(rk8) , pointer , dimension(:) :: lgdp1_col
+    ! pop limitation factor for baf per fire
+    real(rk8) , pointer , dimension(:) :: lpop_col
+    ! fuel avalability factor for Reg.C
+    real(rk8) , pointer , dimension(:) :: fuelc
+    ! fuel avalability factor for Reg.A
+    real(rk8) , pointer , dimension(:) :: fuelc_crop
+    ! (gC/m3)  vert.-resolved decomposing c pools
+    real(rk8) , pointer , dimension(:,:,:) :: decomp_cpools_vr
 
-!-----------------------------------------------------------------------
-end subroutine CNFireInit
+    ! grid-level
+    ! latitude (degrees)
+    real(rk8) , pointer , dimension(:) :: latdeg
+    ! rain
+    real(rk8) , pointer , dimension(:) :: forc_rain
+    ! snow
+    real(rk8) , pointer , dimension(:) :: forc_snow
+    ! relative humidity 
+    real(rk8) , pointer , dimension(:) :: forc_rh
+    ! atmospheric temperature (Kelvin)
+    real(rk8) , pointer , dimension(:) :: forc_t
+    !atmospheric wind speed (m/s)
+    real(rk8) , pointer , dimension(:) :: forc_wind
+    ! column-level
+    ! fire counts (count/km2/timestep), valid only in Reg. C
+    real(rk8) , pointer , dimension(:) :: nfire
+    ! fractional area burned in this timestep
+    real(rk8) , pointer , dimension(:) :: farea_burned
+    ! TRUE => pool is a cwd pool
+    logical , pointer , dimension(:) :: is_cwd
+    ! lower threshold of fuel mass (gC/m2) for ignition
+    real(rk8) , parameter :: lfuel =  110.D0
+    ! upper threshold of fuel mass(gC/m2) for ignition 
+    real(rk8) , parameter :: ufuel = 1050.D0
+    ! g(W) when W=0 m/s
+    real(rk8) , parameter :: g0 = 0.05D0
+    ! a1 parameter for cropland fire in Li et. al. 2013 (was different in paper)
+    real(rk8) , parameter :: cropfire_a1 = 0.153D0
+    ! c parameter for peatland fire in Li et. al. 2013
+    ! boreal peat fires (was different in paper)
+    real(rk8) , parameter :: boreal_peatfire_c = 2.1d-5
+    ! non-boreal peat fires (was different in paper)
+    real(rk8) , parameter :: non_boreal_peatfire_c = 0.0005d00
 
+    integer(ik4) :: g , l , c , p , pi , j , fc , fp
+    integer(ik4) :: kyr , kmo , kda ! index variables
+    real(rk8) :: dt        ! time step variable (s)
+    real(rk8) :: m         ! top-layer soil moisture (proportion)
+    real(rk8) ::cli       !
+    real(rk8) , parameter ::cli_scale = 1370.0D0
+    real(rk8) ::cri       !
+    real(rk8) :: fb        ! availability of fuel 
+    real(rk8) :: fhd       ! impact of hd on agricultural fire
+    real(rk8) :: fgdp      ! impact of gdp on agricultural fire
+    real(rk8) :: fire_m    ! combustability of fuel on fire occurrence
+    real(rk8) :: spread_m  ! combustability of fuel on fire spread
+    real(rk8) :: Lb_lf     ! length-to-breadth ratio added by Lifang 
+    integer(ik4) :: i_cwd     ! cwd pool
+    real(rk8) :: lh       !
+    real(rk8) :: fs       !
+    real(rk8) :: ig       !
+    real(rk8) :: hdmlf    ! human density
 
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNFireInterp
-!
-! !INTERFACE:
-subroutine CNFireInterp()
-!
-! !DESCRIPTION:
-! Interpolate CN Fire datasets
-!
-! !USES:
-!
-! !ARGUMENTS:
-   implicit none
-!
-! !REVISION HISTORY:
-! !LOCAL VARIABLES:
-!EOP
-!-----------------------------------------------------------------------
-   call hdm_interp()
-   call lnfm_interp()
+    wtcol              => clm3%g%l%c%p%wtcol
+    ivt                => clm3%g%l%c%p%itype 
+    prec60             => clm3%g%l%c%p%pps%prec60
+    prec10             => clm3%g%l%c%p%pps%prec10
+    deadcrootc         => clm3%g%l%c%p%pcs%deadcrootc
+    deadcrootc_storage => clm3%g%l%c%p%pcs%deadcrootc_storage
+    deadcrootc_xfer    => clm3%g%l%c%p%pcs%deadcrootc_xfer
+    frootc             => clm3%g%l%c%p%pcs%frootc
+    frootc_storage     => clm3%g%l%c%p%pcs%frootc_storage
+    frootc_xfer        => clm3%g%l%c%p%pcs%frootc_xfer
+    livecrootc         => clm3%g%l%c%p%pcs%livecrootc
+    livecrootc_storage => clm3%g%l%c%p%pcs%livecrootc_storage
+    livecrootc_xfer    => clm3%g%l%c%p%pcs%livecrootc_xfer
+    totvegc            => clm3%g%l%c%p%pcs%totvegc
+    btran2             => clm3%g%l%c%p%pps%btran2
+    pcolumn            => clm3%g%l%c%p%column
+    leafc              => clm3%g%l%c%p%pcs%leafc
+    leafc_storage      => clm3%g%l%c%p%pcs%leafc_storage
+    leafc_xfer         => clm3%g%l%c%p%pcs%leafc_xfer
+    livestemc          => clm3%g%l%c%p%pcs%livestemc
+    livestemc_storage  => clm3%g%l%c%p%pcs%livestemc_storage
+    livestemc_xfer     => clm3%g%l%c%p%pcs%livestemc_xfer
+    deadstemc          => clm3%g%l%c%p%pcs%deadstemc
+    deadstemc_storage  => clm3%g%l%c%p%pcs%deadstemc_storage
+    deadstemc_xfer     => clm3%g%l%c%p%pcs%deadstemc_xfer
+    lfpftd             => clm3%g%l%c%p%pps%lfpftd
+    burndate           => clm3%g%l%c%p%pps%burndate
 
-!-----------------------------------------------------------------------
-end subroutine CNFireInterp
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNFireArea
-!
-! !INTERFACE:
-subroutine CNFireArea (num_soilc, filter_soilc, num_soilp, filter_soilp)
-!
-! !DESCRIPTION:
-! Computes column-level burned area in each timestep
-!
-! !USES:
-   use shr_sys_mod     , only: shr_sys_flush
-   use clmtype
-   use clm_time_manager, only: get_step_size, get_days_per_year, get_curr_date, get_nstep
-   use clm_varpar      , only: max_pft_per_col
-   use clm_varcon      , only: secspday
-   use clm_atmlnd      , only: clm_a2l
-   use shr_infnan_mod  , only: shr_infnan_isnan
-   use clm_varctl      , only: fpftdyn
-   use pftvarcon       , only: nc4_grass, nc3crop, ndllf_evr_tmp_tree, &
-                               nbrdlf_evr_trp_tree, nbrdlf_dcd_trp_tree,      &
-                               nbrdlf_evr_shrub
-!  use shr_sys_mod  , only: shr_sys_flush
-!
-! !ARGUMENTS:
-   implicit none
-   integer, intent(in) :: num_soilc       ! number of soil columns in filter
-   integer, intent(in) :: filter_soilc(:) ! filter for soil columns
-   integer, intent(in) :: num_soilp       ! number of soil pfts in filter
-   integer, intent(in) :: filter_soilp(:) ! filter for soil pfts
-!
-! !CALLED FROM:
-! subroutine CNEcosystemDyn in module CNEcosystemDynMod.F90
-!
-! !REVISION HISTORY:
-! !LOCAL VARIABLES:
-! local pointers to implicit in scalars
-!
-   ! pft-level
-   real(rk8), pointer :: prec10(:)       ! 10-day running mean of tot. precipitation
-   real(rk8), pointer :: prec60(:)       ! 60-day running mean of tot. precipitation
-   real(rk8), pointer :: lfpftd(:)       ! decrease of pft weight (0-1) on the col. for timestep 
-   real(rk8), pointer :: wtcol(:)        ! pft weight on the column
-   integer , pointer :: ivt(:)          ! vegetation type for this pft
-   real(rk8), pointer :: deadcrootc(:)         ! (gC/m2) dead coarse root C
-   real(rk8), pointer :: deadcrootc_storage(:) ! (gC/m2) dead coarse root C storage
-   real(rk8), pointer :: deadcrootc_xfer(:)    ! (gC/m2) dead coarse root C transfer
-   real(rk8), pointer :: frootc(:)             ! (gC/m2) fine root C
-   real(rk8), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
-   real(rk8), pointer :: frootc_xfer(:)        ! (gC/m2) fine root C transfer
-   real(rk8), pointer :: livecrootc(:)         ! (gC/m2) live coarse root C
-   real(rk8), pointer :: livecrootc_storage(:) ! (gC/m2) live coarse root C storage
-   real(rk8), pointer :: livecrootc_xfer(:)    ! (gC/m2) live coarse root C transfer
-   real(rk8), pointer :: totvegc(:)            ! (gC/m2) total vegetation carbon, excluding cpool 
-   real(rk8), pointer :: btran2(:)             ! root zone soil wetness
-   integer , pointer :: pcolumn(:)            ! pft's column index
-   real(rk8), pointer :: leafc(:)              ! (gC/m2) leaf C
-   real(rk8), pointer :: leafc_storage(:)      ! (gC/m2) leaf C storage
-   real(rk8), pointer :: leafc_xfer(:)         ! (gC/m2) leaf C transfer
-   real(rk8), pointer :: livestemc(:)          ! (gC/m2) live stem C
-   real(rk8), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
-   real(rk8), pointer :: livestemc_xfer(:)     ! (gC/m2) live stem C transfer
-   real(rk8), pointer :: deadstemc(:)          ! (gC/m2) dead stem C
-   real(rk8), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
-   real(rk8), pointer :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
-   integer , pointer :: burndate(:)           ! burn date for crop
-
-
-   ! column-level
-   real(rk8), pointer :: fsat(:)        ! fractional area with water table at surface
-   real(rk8), pointer :: lfc(:)         ! conversion area frac. of BET+BDT that haven't burned before
-   real(rk8), pointer :: cwtgcell(:)    ! column's weight relative to corresponding gridcell
-   real(rk8), pointer :: dtrotr_col(:)  ! annual decreased fraction coverage of BET+BDT on gridcell
-   real(rk8), pointer :: trotr1_col(:)  ! pft weight of BET on the gridcell (0-1)
-   real(rk8), pointer :: trotr2_col(:)  ! pft weight of BDT on the gridcell (0-1)
-   real(rk8), pointer :: prec10_col(:)  ! 10-day running mean of tot. precipitation
-   real(rk8), pointer :: prec60_col(:)  ! 60-day running mean of tot. precipitation
-   integer , pointer :: npfts(:)       ! number of pfts on the column
-   integer , pointer :: pfti(:)        ! pft index array
-   integer , pointer :: cgridcell(:)   ! gridcell of corresponding column
-   real(rk8), pointer :: wf(:)          ! soil water as frac. of whc for top 0.05 m   
-   real(rk8), pointer :: wf2(:)         ! soil water as frac. of whc for top 0.17 m   
-   real(rk8), pointer :: tsoi17(:)      ! soil T for top 0.17 m   
-   real(rk8), pointer :: gdp_lf(:)      ! gdp data
-   real(rk8), pointer :: peatf_lf(:)    ! peatland fraction data
-   integer, pointer :: abm_lf(:)       ! proscribed crop fire time
-   real(rk8), pointer :: totlitc(:)     ! (gC/m2) total lit C (column-level mean)
-   real(rk8), pointer :: fsr_col(:)     ! fire spread rate at column level
-   real(rk8), pointer :: fd_col(:)      ! fire duration at column level 
-   real(rk8), pointer :: rootc_col(:)   ! root carbon 
-   real(rk8), pointer :: baf_crop(:)    ! burned area fraction for cropland
-   real(rk8), pointer :: baf_peatf(:)   ! burned area fraction for peatland
-   real(rk8), pointer :: fbac(:)        ! total burned area out of conversion 
-   real(rk8), pointer :: fbac1(:)       ! burned area out of conversion region due to land use fire
-   real(rk8), pointer :: cropf_col(:)   ! cropland fraction in veg column
-   real(rk8), pointer :: btran_col(:)   ! transpiration wetness factor (0 to 1)
-   real(rk8), pointer :: wtlf(:)        ! fractional coverage of non-crop PFTs
-   real(rk8), pointer :: lfwt(:)        ! fractional coverage of non-crop and non-bare-soil PFTs
-   real(rk8), pointer :: totvegc_col(:) ! totvegc at column level
-   real(rk8), pointer :: leafc_col(:)   ! leaf carbon at column level
-   real(rk8), pointer :: lgdp_col(:)    ! gdp limitation factor for nfire
-   real(rk8), pointer :: lgdp1_col(:)   ! gdp limitation factor for baf per fire
-   real(rk8), pointer :: lpop_col(:)    ! pop limitation factor for baf per fire
-   real(rk8), pointer :: fuelc(:)       ! fuel avalability factor for Reg.C
-   real(rk8), pointer :: fuelc_crop(:)  ! fuel avalability factor for Reg.A
-   real(rk8), pointer  :: decomp_cpools_vr(:,:,:) ! (gC/m3)  vert.-resolved decomposing c pools
-
-   ! grid-level
-   real(rk8), pointer :: latdeg(:)      ! latitude (degrees)
-   real(rk8), pointer :: forc_rain(:)   ! rain
-   real(rk8), pointer :: forc_snow(:)   ! snow
-   real(rk8), pointer :: forc_rh(:)     ! relative humidity 
-   real(rk8), pointer :: forc_t(:)      ! atmospheric temperature (Kelvin)
-   real(rk8), pointer :: forc_wind(:)   !atmospheric wind speed (m/s)
+    ! assign local pointers to derived type members (column-level)
+    cwtgcell         => clm3%g%l%c%wtgcell
+    npfts            => clm3%g%l%c%npfts
+    pfti             => clm3%g%l%c%pfti
+    wf               => clm3%g%l%c%cps%wf
+    wf2              => clm3%g%l%c%cps%wf2
+    tsoi17           => clm3%g%l%c%ces%tsoi17
+    farea_burned     => clm3%g%l%c%cps%farea_burned
+    baf_crop         => clm3%g%l%c%cps%baf_crop 
+    baf_peatf        => clm3%g%l%c%cps%baf_peatf 
+    fbac             => clm3%g%l%c%cps%fbac
+    fbac1            => clm3%g%l%c%cps%fbac1
+    cropf_col        => clm3%g%l%c%cps%cropf_col 
+    gdp_lf           => clm3%g%l%c%cps%gdp_lf
+    peatf_lf         => clm3%g%l%c%cps%peatf_lf
+    abm_lf           => clm3%g%l%c%cps%abm_lf
+    nfire            => clm3%g%l%c%cps%nfire             
+    totlitc          => clm3%g%l%c%ccs%totlitc
+    fsr_col          => clm3%g%l%c%cps%fsr_col 
+    fd_col           => clm3%g%l%c%cps%fd_col   
+    rootc_col        => clm3%g%l%c%ccs%rootc_col 
+    totvegc_col      => clm3%g%l%c%ccs%totvegc_col     
+    leafc_col        => clm3%g%l%c%ccs%leafc_col     
+    lgdp_col         => clm3%g%l%c%cps%lgdp_col  
+    lgdp1_col        => clm3%g%l%c%cps%lgdp1_col  
+    lpop_col         => clm3%g%l%c%cps%lpop_col  
+    fuelc            => clm3%g%l%c%ccs%fuelc 
+    fuelc_crop       => clm3%g%l%c%ccs%fuelc_crop  
+    btran_col        => clm3%g%l%c%cps%btran_col
+    wtlf             => clm3%g%l%c%cps%wtlf  
+    lfwt             => clm3%g%l%c%cps%lfwt    
+    cgridcell        => clm3%g%l%c%gridcell
+    trotr1_col       => clm3%g%l%c%cps%trotr1_col
+    trotr2_col       => clm3%g%l%c%cps%trotr2_col
+    dtrotr_col       => clm3%g%l%c%cps%dtrotr_col
+    prec60_col       => clm3%g%l%c%cps%prec60_col
+    prec10_col       => clm3%g%l%c%cps%prec10_col
+    lfc              => clm3%g%l%c%cps%lfc
+    fsat             => clm3%g%l%c%cws%fsat
+    is_cwd           => decomp_cascade_con%is_cwd
+    decomp_cpools_vr => clm3%g%l%c%ccs%decomp_cpools_vr
    
-! local pointers to implicit in/out scalars
-!
-   ! column-level
-   real(rk8), pointer :: nfire(:)       ! fire counts (count/km2/timestep), valid only in Reg. C
-   real(rk8), pointer :: farea_burned(:)! fractional area burned in this timestep
-   logical, pointer :: is_cwd(:)       ! TRUE => pool is a cwd pool
-!
-! !OTHER LOCAL VARIABLES:
-   real(rk8), parameter  :: lfuel=110.D0   ! lower threshold of fuel mass (gC/m2) for ignition
-   real(rk8), parameter  :: ufuel=1050.D0  ! upper threshold of fuel mass(gC/m2) for ignition 
-   real(rk8), parameter  :: g0=0.05D0      ! g(W) when W=0 m/s
-   ! a1 parameter for cropland fire in Li et. al. 2013 (was different in paper)
-   real(rk8), parameter :: cropfire_a1 = 0.153D0
-   ! c parameter for peatland fire in Li et. al. 2013
-   ! boreal peat fires (was different in paper)
-   real(rk8), parameter :: boreal_peatfire_c = 2.1d-5
-   ! non-boreal peat fires (was different in paper)
-   real(rk8), parameter :: non_boreal_peatfire_c = 0.0005d00
-
-   integer :: g,l,c,p,pi,j,fc,fp,jday,kyr, kmo, kda, mcsec   ! index variables
-   real(rk8):: dt        ! time step variable (s)
-   real(rk8):: m         ! top-layer soil moisture (proportion)
-   real(rk8):: dayspyr   ! days per year
-   real(rk8) ::cli       !
-   real(rk8), parameter ::cli_scale = 1370.0D0
-   real(rk8) ::cri       !
-   real(rk8):: fb        ! availability of fuel 
-   real(rk8):: fhd       ! impact of hd on agricultural fire
-   real(rk8):: fgdp      ! impact of gdp on agricultural fire
-   real(rk8):: fire_m    ! combustability of fuel on fire occurrence
-   real(rk8):: spread_m  ! combustability of fuel on fire spread
-   real(rk8):: Lb_lf     ! length-to-breadth ratio added by Lifang 
-   integer :: i_cwd     ! cwd pool
-   real(rk8) :: lh       !
-   real(rk8) :: fs       !
-   real(rk8) :: ig       !
-   real(rk8) :: hdmlf    ! human density
-!EOP
-!-----------------------------------------------------------------------
-  ! assign local pointers to derived type members (pft-level)
-  wtcol              => clm3%g%l%c%p%wtcol
-  ivt                => clm3%g%l%c%p%itype 
-  prec60             => clm3%g%l%c%p%pps%prec60
-  prec10             => clm3%g%l%c%p%pps%prec10
-  deadcrootc         => clm3%g%l%c%p%pcs%deadcrootc
-  deadcrootc_storage => clm3%g%l%c%p%pcs%deadcrootc_storage
-  deadcrootc_xfer    => clm3%g%l%c%p%pcs%deadcrootc_xfer
-  frootc             => clm3%g%l%c%p%pcs%frootc
-  frootc_storage     => clm3%g%l%c%p%pcs%frootc_storage
-  frootc_xfer        => clm3%g%l%c%p%pcs%frootc_xfer
-  livecrootc         => clm3%g%l%c%p%pcs%livecrootc
-  livecrootc_storage => clm3%g%l%c%p%pcs%livecrootc_storage
-  livecrootc_xfer    => clm3%g%l%c%p%pcs%livecrootc_xfer
-  totvegc            => clm3%g%l%c%p%pcs%totvegc
-  btran2             => clm3%g%l%c%p%pps%btran2
-  pcolumn            => clm3%g%l%c%p%column
-  leafc              => clm3%g%l%c%p%pcs%leafc
-  leafc_storage      => clm3%g%l%c%p%pcs%leafc_storage
-  leafc_xfer         => clm3%g%l%c%p%pcs%leafc_xfer
-  livestemc          => clm3%g%l%c%p%pcs%livestemc
-  livestemc_storage  => clm3%g%l%c%p%pcs%livestemc_storage
-  livestemc_xfer     => clm3%g%l%c%p%pcs%livestemc_xfer
-  deadstemc          => clm3%g%l%c%p%pcs%deadstemc
-  deadstemc_storage  => clm3%g%l%c%p%pcs%deadstemc_storage
-  deadstemc_xfer     => clm3%g%l%c%p%pcs%deadstemc_xfer
-  lfpftd             => clm3%g%l%c%p%pps%lfpftd
-  burndate           => clm3%g%l%c%p%pps%burndate
-
-  ! assign local pointers to derived type members (column-level)
-  cwtgcell         => clm3%g%l%c%wtgcell
-  npfts            => clm3%g%l%c%npfts
-  pfti             => clm3%g%l%c%pfti
-  wf               => clm3%g%l%c%cps%wf
-  wf2              => clm3%g%l%c%cps%wf2
-  tsoi17           => clm3%g%l%c%ces%tsoi17
-  farea_burned     => clm3%g%l%c%cps%farea_burned
-  baf_crop         => clm3%g%l%c%cps%baf_crop 
-  baf_peatf        => clm3%g%l%c%cps%baf_peatf 
-  fbac             => clm3%g%l%c%cps%fbac
-  fbac1            => clm3%g%l%c%cps%fbac1
-  cropf_col        => clm3%g%l%c%cps%cropf_col 
-  gdp_lf           => clm3%g%l%c%cps%gdp_lf
-  peatf_lf         => clm3%g%l%c%cps%peatf_lf
-  abm_lf           => clm3%g%l%c%cps%abm_lf
-  nfire            => clm3%g%l%c%cps%nfire             
-  totlitc          => clm3%g%l%c%ccs%totlitc
-  fsr_col          => clm3%g%l%c%cps%fsr_col 
-  fd_col           => clm3%g%l%c%cps%fd_col   
-  rootc_col        => clm3%g%l%c%ccs%rootc_col 
-  totvegc_col      => clm3%g%l%c%ccs%totvegc_col     
-  leafc_col        => clm3%g%l%c%ccs%leafc_col     
-  lgdp_col         => clm3%g%l%c%cps%lgdp_col  
-  lgdp1_col        => clm3%g%l%c%cps%lgdp1_col  
-  lpop_col         => clm3%g%l%c%cps%lpop_col  
-  fuelc            => clm3%g%l%c%ccs%fuelc 
-  fuelc_crop       => clm3%g%l%c%ccs%fuelc_crop  
-  btran_col        => clm3%g%l%c%cps%btran_col
-  wtlf             => clm3%g%l%c%cps%wtlf  
-  lfwt             => clm3%g%l%c%cps%lfwt    
-  cgridcell        => clm3%g%l%c%gridcell
-  trotr1_col       => clm3%g%l%c%cps%trotr1_col
-  trotr2_col       => clm3%g%l%c%cps%trotr2_col
-  dtrotr_col       => clm3%g%l%c%cps%dtrotr_col
-  prec60_col       => clm3%g%l%c%cps%prec60_col
-  prec10_col       => clm3%g%l%c%cps%prec10_col
-  lfc              => clm3%g%l%c%cps%lfc
-  fsat             => clm3%g%l%c%cws%fsat
-  is_cwd           => decomp_cascade_con%is_cwd
-  decomp_cpools_vr => clm3%g%l%c%ccs%decomp_cpools_vr
+    !assign local pointers to derived type members (grid-level) 
+    forc_rh    => clm_a2l%forc_rh
+    forc_wind  => clm_a2l%forc_wind
+    forc_t     => clm_a2l%forc_t 
+    forc_rain  => clm_a2l%forc_rain
+    forc_snow  => clm_a2l%forc_snow
+    latdeg     => clm3%g%latdeg
  
-  !assign local pointers to derived type members (grid-level) 
-  forc_rh    => clm_a2l%forc_rh
-  forc_wind  => clm_a2l%forc_wind
-  forc_t     => clm_a2l%forc_t 
-  forc_rain  => clm_a2l%forc_rain
-  forc_snow  => clm_a2l%forc_snow
-  latdeg     => clm3%g%latdeg
- 
-  !pft to column average 
-  call p2c(num_soilc, filter_soilc, prec10,  prec10_col)
-  call p2c(num_soilc, filter_soilc, prec60,  prec60_col)
-  call p2c(num_soilc, filter_soilc,totvegc, totvegc_col)
-  call p2c(num_soilc, filter_soilc,leafc, leafc_col)
-  call get_curr_date (kyr, kmo, kda, mcsec)
-  dayspyr = get_days_per_year()
-  ! Get model step size
-  dt      = real( get_step_size(), r8 )
-  !
-  ! On first time-step, just set area burned to zero and exit
-  !
-  if ( get_nstep() == 0 )then
-     do fc = 1,num_soilc
+    !pft to column average 
+    call p2c(num_soilc, filter_soilc, prec10,  prec10_col)
+    call p2c(num_soilc, filter_soilc, prec60,  prec60_col)
+    call p2c(num_soilc, filter_soilc,totvegc, totvegc_col)
+    call p2c(num_soilc, filter_soilc,leafc, leafc_col)
+    ! Get model step size
+    dt = dtsrf
+    !
+    ! On first time-step, just set area burned to zero and exit
+    !
+    if ( ktau == 0 ) then
+      do fc = 1 , num_soilc
         c = filter_soilc(fc)
         farea_burned(c) = 0.D0
         baf_crop(c)     = 0.D0
         baf_peatf(c)    = 0.D0
         fbac(c)         = 0.D0
         fbac1(c)        = 0.D0
-     end do
-     return
-  end if
-  !
-  ! Calculate fraction of crop (cropf_col) and non-crop and non-bare-soil 
-  ! vegetation (lfwt) in vegetated column
-  !
-  do fc = 1,num_soilc
-     c = filter_soilc(fc)
-     cropf_col(c) = 0.D0 
-     lfwt(c)      = 0.D0   
-  end do
-  do pi = 1,max_pft_per_col
-     do fc = 1,num_soilc
+      end do
+      return
+    end if
+    !
+    ! Calculate fraction of crop (cropf_col) and non-crop and non-bare-soil 
+    ! vegetation (lfwt) in vegetated column
+    !
+    do fc = 1 , num_soilc
+      c = filter_soilc(fc)
+      cropf_col(c) = 0.D0 
+      lfwt(c)      = 0.D0   
+    end do
+    do pi = 1 , max_pft_per_col
+      do fc = 1 , num_soilc
         c = filter_soilc(fc)
-        if (pi <=  npfts(c)) then
-           p = pfti(c) + pi - 1
-           ! For crop veg types
-           if( ivt(p) > nc4_grass )then
-               cropf_col(c) = cropf_col(c) + wtcol(p)
-           end if
-           ! For natural vegetation (non-crop)
-           if( ivt(p) >= ndllf_evr_tmp_tree .and. ivt(p) <= nc4_grass )then
-               lfwt(c) = lfwt(c) + wtcol(p)
-           end if
+        if ( pi <=  npfts(c) ) then
+          p = pfti(c) + pi - 1
+          ! For crop veg types
+          if ( ivt(p) > nc4_grass ) then
+            cropf_col(c) = cropf_col(c) + wtcol(p)
+          end if
+          ! For natural vegetation (non-crop)
+          if ( ivt(p) >= ndllf_evr_tmp_tree .and. ivt(p) <= nc4_grass ) then
+            lfwt(c) = lfwt(c) + wtcol(p)
+          end if
         end if
-     end do
-  end do
-  ! 
-  ! Calculate crop fuel   
-  !
-  do fc = 1,num_soilc
-     c = filter_soilc(fc)
-     fuelc_crop(c)=0.D0
-  end do
-  do pi = 1,max_pft_per_col
-     do fc = 1,num_soilc
+      end do
+    end do
+    ! 
+    ! Calculate crop fuel   
+    !
+    do fc = 1 , num_soilc
+      c = filter_soilc(fc)
+      fuelc_crop(c)=0.D0
+    end do
+    do pi = 1 , max_pft_per_col
+      do fc = 1 , num_soilc
         c = filter_soilc(fc)
-        if (pi <=  npfts(c)) then
-           p = pfti(c) + pi - 1
-           ! For crop PFT's
-           if( ivt(p) > nc4_grass .and. wtcol(p) > 0.D0 .and. leafc_col(c) > 0.D0 )then
-              fuelc_crop(c)=fuelc_crop(c) + (leafc(p) + leafc_storage(p) + &
-                            leafc_xfer(p))*wtcol(p)/cropf_col(c)     + &
-                            totlitc(c)*leafc(p)/leafc_col(c)*wtcol(p)/cropf_col(c)
-           end if
+        if ( pi <=  npfts(c) ) then
+          p = pfti(c) + pi - 1
+          ! For crop PFT's
+          if ( ivt(p) > nc4_grass .and. wtcol(p) > 0.D0 .and. &
+                  leafc_col(c) > 0.D0 ) then
+            fuelc_crop(c) = fuelc_crop(c) + (leafc(p) + leafc_storage(p) + &
+                      leafc_xfer(p))*wtcol(p)/cropf_col(c)     + &
+                      totlitc(c)*leafc(p)/leafc_col(c)*wtcol(p)/cropf_col(c)
+          end if
         end if
-     end do
-  end do          
-  !   
-  ! Calculate noncrop column variables
-  !
-  do fc = 1,num_soilc
-     c = filter_soilc(fc)
-     fsr_col(c)   = 0.D0
-     fd_col(c)    = 0.D0
-     rootc_col(c) = 0.D0
-     lgdp_col(c)  = 0.D0
-     lgdp1_col(c) = 0.D0
-     lpop_col(c)  = 0.D0
-     btran_col(c) = 0.D0
-     wtlf(c)      = 0.D0
-     if (fpftdyn /= ' ') then    !true when landuse data is used
+      end do
+    end do          
+    !   
+    ! Calculate noncrop column variables
+    !
+    do fc = 1 , num_soilc
+      c = filter_soilc(fc)
+      fsr_col(c)   = 0.D0
+      fd_col(c)    = 0.D0
+      rootc_col(c) = 0.D0
+      lgdp_col(c)  = 0.D0
+      lgdp1_col(c) = 0.D0
+      lpop_col(c)  = 0.D0
+      btran_col(c) = 0.D0
+      wtlf(c)      = 0.D0
+      if ( fpftdyn /= ' ' ) then    !true when landuse data is used
         trotr1_col(c)=0.D0
         trotr2_col(c)=0.D0
         dtrotr_col(c)=0.D0
-     end if
-  end do
-  do pi = 1,max_pft_per_col
-     do fc = 1,num_soilc
+      end if
+    end do
+    do pi = 1 , max_pft_per_col
+      do fc = 1 , num_soilc
         c = filter_soilc(fc)
         g = cgridcell(c)
-        if (pi <=  npfts(c)) then
-           p = pfti(c) + pi - 1
-           ! For non-crop -- natural vegetation and bare-soil
-           if( ivt(p) .lt. nc3crop .and. cropf_col(c) .lt. 1.0D0 )then
-              if( .not. shr_infnan_isnan(btran2(p)) .and. btran2(p) .le. 1.D0 )then
-                 btran_col(c) = btran_col(c)+btran2(p)*wtcol(p)
-                 wtlf(c)      = wtlf(c)+wtcol(p)
+        if ( pi <= npfts(c) ) then
+          p = pfti(c) + pi - 1
+          ! For non-crop -- natural vegetation and bare-soil
+          if ( ivt(p) .lt. nc3crop .and. cropf_col(c) .lt. 1.0D0 ) then
+            if ( .not. ieee_is_nan(btran2(p)) .and. &
+                    btran2(p) .le. 1.D0 ) then
+              btran_col(c) = btran_col(c)+btran2(p)*wtcol(p)
+              wtlf(c)      = wtlf(c)+wtcol(p)
+            end if
+            if ( fpftdyn /= ' ' ) then    !true when landuse data is used
+              if ( ivt(p) == nbrdlf_evr_trp_tree .and. wtcol(p) .gt. 0.D0 ) then
+                trotr1_col(c)=trotr1_col(c)+wtcol(p)*cwtgcell(c)
               end if
-              if ( fpftdyn /= ' ' ) then    !true when landuse data is used
-                 if( ivt(p) == nbrdlf_evr_trp_tree .and. wtcol(p) .gt. 0.D0 )then
-                    trotr1_col(c)=trotr1_col(c)+wtcol(p)*cwtgcell(c)
-                 end if
-                 if( ivt(p) == nbrdlf_dcd_trp_tree .and. wtcol(p) .gt. 0.D0 )then
-                    trotr2_col(c)=trotr2_col(c)+wtcol(p)*cwtgcell(c)
-                 end if
-                 if( ivt(p) == nbrdlf_evr_trp_tree .or. ivt(p) == nbrdlf_dcd_trp_tree )then
-                    if(lfpftd(p).gt.0.D0)then
-                       dtrotr_col(c)=dtrotr_col(c)+lfpftd(p)*cwtgcell(c)
-                    end if
-                 end if
+              if ( ivt(p) == nbrdlf_dcd_trp_tree .and. wtcol(p) .gt. 0.D0 ) then
+                trotr2_col(c)=trotr2_col(c)+wtcol(p)*cwtgcell(c)
               end if
-              rootc_col(c) = rootc_col(c) + (frootc(p) + frootc_storage(p) + &
-                             frootc_xfer(p) + deadcrootc(p) +                &
-                             deadcrootc_storage(p) + deadcrootc_xfer(p) +    &
-                             livecrootc(p)+livecrootc_storage(p) +           &
-                             livecrootc_xfer(p))*wtcol(p)
+              if ( ivt(p) == nbrdlf_evr_trp_tree .or. &
+                   ivt(p) == nbrdlf_dcd_trp_tree ) then
+                if ( lfpftd(p).gt.0.D0 ) then
+                  dtrotr_col(c)=dtrotr_col(c)+lfpftd(p)*cwtgcell(c)
+                end if
+              end if
+            end if
+            rootc_col(c) = rootc_col(c) + (frootc(p) + frootc_storage(p) + &
+                           frootc_xfer(p) + deadcrootc(p) +                &
+                           deadcrootc_storage(p) + deadcrootc_xfer(p) +    &
+                           livecrootc(p)+livecrootc_storage(p) +           &
+                           livecrootc_xfer(p))*wtcol(p)
 
-              fsr_col(c) = fsr_col(c) + fsr_pft(ivt(p))*wtcol(p)/(1.0D0-cropf_col(c))
+            fsr_col(c) = fsr_col(c) + &
+                    fsr_pft(ivt(p))*wtcol(p)/(1.0D0-cropf_col(c))
     
-              if( lfwt(c) .ne. 0.0D0 )then    
-                 hdmlf=forc_hdm(g)
+            if ( lfwt(c) .ne. 0.0D0 ) then    
+              hdmlf = forc_hdm(g)
               
-                 ! all these constants are in Li et al. BG (2012a,b;2013)
+              ! all these constants are in Li et al. BG (2012a,b;2013)
 
-                 if( hdmlf .gt. 0.1D0 )then            
-                    ! For NOT bare-soil
-                    if( ivt(p) .ne. noveg )then
-                       ! For shrub and grass (crop already excluded above)
-                       if( ivt(p) .ge. nbrdlf_evr_shrub )then      !for shurb and grass
-                          lgdp_col(c)  = lgdp_col(c) + (0.1D0 + 0.9D0*    &
-                                         exp(-1.D0*rpi* &
-                                         (gdp_lf(c)/8.D0)**0.5D0))*wtcol(p) &
-                                         /(1.0D0 - cropf_col(c))
-                          lgdp1_col(c) = lgdp1_col(c) + (0.2D0 + 0.8D0*   &
-                                         exp(-1.D0*rpi* &
-                                         (gdp_lf(c)/7.D0)))*wtcol(p)/lfwt(c)
-                          lpop_col(c)  = lpop_col(c) + (0.2D0 + 0.8D0*    &
-                                         exp(-1.D0*rpi* &
-                                         (hdmlf/450.D0)**0.5D0))*wtcol(p)/lfwt(c)
-                       else   ! for trees
-                          if( gdp_lf(c) .gt. 20.D0 )then
-                             lgdp_col(c)  =lgdp_col(c)+0.39D0*wtcol(p)/(1.0D0 - cropf_col(c))
-                          else    
-                             lgdp_col(c) = lgdp_col(c)+wtcol(p)/(1.0D0 - cropf_col(c))
-                          end if
-                          if( gdp_lf(c) .gt. 20.D0 )then   
-                             lgdp1_col(c) = lgdp1_col(c)+0.62D0*wtcol(p)/lfwt(c)
-                          else
-                             if( gdp_lf(c) .gt. 8.D0 ) then
-                                lgdp1_col(c)=lgdp1_col(c)+0.83D0*wtcol(p)/lfwt(c)
-                             else
-                                lgdp1_col(c)=lgdp1_col(c)+wtcol(p)/lfwt(c)
-                             end if
-                          end if
-                          lpop_col(c) = lpop_col(c) + (0.4D0 + 0.6D0*    &
+              if ( hdmlf .gt. 0.1D0 ) then            
+                ! For NOT bare-soil
+                if ( ivt(p) .ne. noveg ) then
+                  ! For shrub and grass (crop already excluded above)
+                  if ( ivt(p) .ge. nbrdlf_evr_shrub ) then !for shurb and grass
+                    lgdp_col(c)  = lgdp_col(c) + (0.1D0 + 0.9D0*    &
+                                      exp(-1.D0*rpi* &
+                                      (gdp_lf(c)/8.D0)**0.5D0))*wtcol(p) &
+                                      /(1.0D0 - cropf_col(c))
+                    lgdp1_col(c) = lgdp1_col(c) + (0.2D0 + 0.8D0*   &
+                                     exp(-1.D0*rpi* &
+                                     (gdp_lf(c)/7.D0)))*wtcol(p)/lfwt(c)
+                    lpop_col(c)  = lpop_col(c) + (0.2D0 + 0.8D0*    &
+                                     exp(-1.D0*rpi* &
+                                   (hdmlf/450.D0)**0.5D0))*wtcol(p)/lfwt(c)
+                  else   ! for trees
+                    if ( gdp_lf(c) .gt. 20.D0 ) then
+                      lgdp_col(c) = lgdp_col(c) + &
+                              0.39D0*wtcol(p)/(1.0D0 - cropf_col(c))
+                    else    
+                      lgdp_col(c) = lgdp_col(c)+wtcol(p)/(1.0D0 - cropf_col(c))
+                    end if
+                    if ( gdp_lf(c) .gt. 20.D0 ) then   
+                      lgdp1_col(c) = lgdp1_col(c)+0.62D0*wtcol(p)/lfwt(c)
+                    else
+                      if ( gdp_lf(c) .gt. 8.D0 ) then
+                        lgdp1_col(c)=lgdp1_col(c)+0.83D0*wtcol(p)/lfwt(c)
+                      else
+                        lgdp1_col(c)=lgdp1_col(c)+wtcol(p)/lfwt(c)
+                      end if
+                    end if
+                    lpop_col(c) = lpop_col(c) + (0.4D0 + 0.6D0*    &
                                         exp(-1.D0*rpi* &
                                         (hdmlf/125.D0)))*wtcol(p)/lfwt(c) 
-                       end if
-                    end if
-                 else
-                    lgdp_col(c)  = lgdp_col(c)+wtcol(p)/(1.0D0 - cropf_col(c))
-                    lgdp1_col(c) = lgdp1_col(c)+wtcol(p)/lfwt(c)
-                    lpop_col(c)  = lpop_col(c)+wtcol(p)/lfwt(c)
-                 end if   
-              end if
+                  end if
+                end if
+              else
+                lgdp_col(c)  = lgdp_col(c)+wtcol(p)/(1.0D0 - cropf_col(c))
+                lgdp1_col(c) = lgdp1_col(c)+wtcol(p)/lfwt(c)
+                lpop_col(c)  = lpop_col(c)+wtcol(p)/lfwt(c)
+              end if   
+            end if
            
-              fd_col(c) = fd_col(c) + fd_pft(ivt(p))*wtcol(p)*secsphr/(1.0D0-cropf_col(c))         
-           end if                  
+            fd_col(c) = fd_col(c) + &
+                    fd_pft(ivt(p))*wtcol(p)*secsphr/(1.0D0-cropf_col(c))         
+          end if                  
         end if
-     end do
-  end do
+      end do
+    end do
 
-  if (fpftdyn /= ' ') then    !true when landuse data is used
-     do fc = 1,num_soilc
+    if ( fpftdyn /= ' ' ) then    !true when landuse data is used
+      do fc = 1 , num_soilc
         c = filter_soilc(fc)
-        if( dtrotr_col(c) .gt. 0.D0 )then
-           if( kmo == 1 .and. kda == 1 .and. mcsec == 0)then
-              lfc(c) = 0.D0
-           end if
-           if( kmo == 1 .and. kda == 1 .and. mcsec == dt)then
-              lfc(c) = dtrotr_col(c)*dayspyr*secspday/dt
-           end if
+        if ( dtrotr_col(c) .gt. 0.D0 ) then
+          if ( date_is(idatex,1,1) .and. time_is(idatex,0) ) then
+            lfc(c) = 0.D0
+          end if
+          if ( date_is(idatex,1,1) .and. time_is(idatex,dt) ) then
+            lfc(c) = dtrotr_col(c)*dayspy*secspday/dt
+          end if
         else
-           lfc(c)=0.D0
+          lfc(c)=0.D0
         end if
-     end do
-  end if
-  !
-  ! calculate burned area fraction in cropland
-  !
-  do fc = 1,num_soilc
-     c = filter_soilc(fc)
-     baf_crop(c)=0.D0
-  end do
+      end do
+    end if
+    !
+    ! calculate burned area fraction in cropland
+    !
+    do fc = 1 , num_soilc
+      c = filter_soilc(fc)
+      baf_crop(c)=0.D0
+    end do
 
-  do fp = 1,num_soilp
-     p = filter_soilp(fp)  
-     if( kmo == 1 .and. kda == 1 .and. mcsec == 0 )then
-         burndate(p) = 10000 ! init. value; actual range [0 365]
-     end if
-  end do
+    do fp = 1 , num_soilp
+      p = filter_soilp(fp)
+      if ( date_is(idatex,1,1) .and. time_is(idatex,0) ) then
+        burndate(p) = 10000 ! init. value; actual range [0 365]
+      end if
+    end do
  
-  do pi = 1,max_pft_per_col
-     do fc = 1,num_soilc
+    call split_idate(idatex,kyr,kmo,kda)
+    do pi = 1 , max_pft_per_col
+      do fc = 1,num_soilc
         c = filter_soilc(fc)
-        g= cgridcell(c)
-        hdmlf=forc_hdm(g)
-        if (pi <=  npfts(c)) then
-           p = pfti(c) + pi - 1
-           ! For crop
-           if( forc_t(g) .ge. tfrz .and. ivt(p) .gt. nc4_grass .and.  &
-              kmo == abm_lf(c) .and. forc_rain(g)+forc_snow(g) .eq. 0.D0  .and. &
-              burndate(p) >= 999 .and. wtcol(p) .gt. 0.D0 )then ! catch  crop burn time
-              ! calculate human density impact on ag. fire
-              fhd = 0.04D0+0.96D0*exp(-1.D0*rpi*(hdmlf/350.D0)**0.5D0)
-              ! calculate impact of GDP on ag. fire
-              fgdp = 0.01D0+0.99D0*exp(-1.D0*rpi*(gdp_lf(c)/10.D0))
-              ! calculate burned area
-              fb   = max(0.0D0,min(1.0D0,(fuelc_crop(c)-lfuel)/(ufuel-lfuel)))
-              ! crop fire only for generic crop types at this time
-              ! managed crops are treated as grasses if crop model is turned on
-              ! NOTE: THIS SHOULD TAKE INTO ACCOUNT THE TIME-STEP AND CURRENTLY DOES NOT!
-              !       As such results are only valid for a time-step of a half-hour.
-              baf_crop(c) = baf_crop(c) + cropfire_a1*fb*fhd*fgdp*wtcol(p)
-              if( fb*fhd*fgdp*wtcol(p) .gt. 0.D0)then
-                 burndate(p)=kda
-              end if
-           end if
+        g = cgridcell(c)
+        hdmlf = forc_hdm(g)
+        if ( pi <=  npfts(c) ) then
+          p = pfti(c) + pi - 1
+          ! For crop
+          if ( forc_t(g) .ge. tfrz .and. &
+               ivt(p) .gt. nc4_grass .and.  &
+               kmo == abm_lf(c) .and. &
+               forc_rain(g)+forc_snow(g) .eq. 0.D0  .and. &
+               burndate(p) >= 999 .and. &
+               wtcol(p) .gt. 0.D0 ) then ! catch  crop burn time
+            ! calculate human density impact on ag. fire
+            fhd = 0.04D0+0.96D0*exp(-1.D0*rpi*(hdmlf/350.D0)**0.5D0)
+            ! calculate impact of GDP on ag. fire
+            fgdp = 0.01D0+0.99D0*exp(-1.D0*rpi*(gdp_lf(c)/10.D0))
+            ! calculate burned area
+            fb   = max(0.0D0,min(1.0D0,(fuelc_crop(c)-lfuel)/(ufuel-lfuel)))
+            ! crop fire only for generic crop types at this time
+            ! managed crops are treated as grasses if crop model is turned on
+            ! NOTE: THIS SHOULD TAKE INTO ACCOUNT THE TIME-STEP AND
+            ! CURRENTLY DOES NOT!
+            !  As such results are only valid for a time-step of a half-hour.
+            baf_crop(c) = baf_crop(c) + cropfire_a1*fb*fhd*fgdp*wtcol(p)
+            if ( fb*fhd*fgdp*wtcol(p) .gt. 0.D0 ) then
+              burndate(p) = kda
+            end if
+          end if
         end if
-     end do
-  end do
-  !
-  ! calculate peatland fire
-  !
-  do fc = 1, num_soilc
-     c = filter_soilc(fc)
-     g= cgridcell(c)
-     ! NOTE: THIS SHOULD TAKE INTO ACCOUNT THE TIME-STEP AND CURRENTLY DOES NOT!
-     !       As such results are only valid for a time-step of a half-hour.
-     if(latdeg(g).lt.borealat )then
+      end do
+    end do
+    !
+    ! calculate peatland fire
+    !
+    do fc = 1 , num_soilc
+      c = filter_soilc(fc)
+      g = cgridcell(c)
+      ! NOTE: THIS SHOULD TAKE INTO ACCOUNT THE TIME-STEP AND
+      ! CURRENTLY DOES NOT!
+      ! As such results are only valid for a time-step of a half-hour.
+      if ( latdeg(g).lt.borealat ) then
         baf_peatf(c) = non_boreal_peatfire_c*max(0.D0, &
                        min(1.D0,(4.0D0-prec60_col(c)*secspday)/ &
                        4.0D0))**2*peatf_lf(c)*(1.D0-fsat(c))
-     else
+      else
         baf_peatf(c) = boreal_peatfire_c*exp(-rpi*(max(wf2(c),0.D0)/0.3D0))* &
-        max(0.D0,min(1.D0,(tsoi17(c)-tfrz)/10.D0))*peatf_lf(c)* &
-        (1.D0-fsat(c))
-     end if
-  end do
-  !
-  ! calculate other fires
-  !
+          max(0.D0,min(1.D0,(tsoi17(c)-tfrz)/10.D0))*peatf_lf(c)* &
+          (1.D0-fsat(c))
+      end if
+    end do
+    !
+    ! calculate other fires
+    !
 
-  ! Set the number of timesteps for e-folding.
-  ! When the simulation has run fewer than this number of steps,
-  ! re-scale the e-folding time to get a stable early estimate.
+    ! Set the number of timesteps for e-folding.
+    ! When the simulation has run fewer than this number of steps,
+    ! re-scale the e-folding time to get a stable early estimate.
   
-  ! find which pool is the cwd pool
-  i_cwd = 0
-  do l = 1, ndecomp_pools
-     if ( is_cwd(l) ) then
+    ! find which pool is the cwd pool
+    i_cwd = 0
+    do l = 1 , ndecomp_pools
+      if ( is_cwd(l) ) then
         i_cwd = l
-     endif
-  end do
+      endif
+    end do
  
-  !
-  ! begin column loop to calculate fractional area affected by fire
-  !
-  do fc = 1, num_soilc
-     c = filter_soilc(fc)
-     g = cgridcell(c)
-     hdmlf=forc_hdm(g)
-     if( cropf_col(c) .lt. 1.0 )then
-        fuelc(c) = totlitc(c)+totvegc_col(c)-rootc_col(c)-fuelc_crop(c)*cropf_col(c)
-        do j = 1, nlevdecomp  
-           fuelc(c) = fuelc(c)+decomp_cpools_vr(c,j,i_cwd) * dzsoi_decomp(j)
+    !
+    ! begin column loop to calculate fractional area affected by fire
+    !
+    do fc = 1 , num_soilc
+      c = filter_soilc(fc)
+      g = cgridcell(c)
+      hdmlf = forc_hdm(g)
+      if ( cropf_col(c) .lt. 1.0 ) then
+        fuelc(c) = totlitc(c)+totvegc_col(c) - &
+                   rootc_col(c)-fuelc_crop(c)*cropf_col(c)
+        do j = 1 , nlevdecomp  
+          fuelc(c) = fuelc(c)+decomp_cpools_vr(c,j,i_cwd) * dzsoi_decomp(j)
         end do
         fuelc(c) = fuelc(c)/(1.D0-cropf_col(c))
         fb       = max(0.0D0,min(1.0D0,(fuelc(c)-lfuel)/(ufuel-lfuel)))
@@ -646,103 +656,97 @@ subroutine CNFireArea (num_soilc, filter_soilc, num_soilp, filter_soilp)
         nfire(c) = ig/secsphr*dt*fb*fire_m*lgdp_col(c) !fire counts/km2/timestep
         Lb_lf    = 1.D0+10.0D0*(1.D0-EXP(-0.06D0*forc_wind(g)))
         if ( wtlf(c) > 0.0D0 )then
-           spread_m = (1.0D0 - max(0.D0,min(1.D0,(btran_col(c)/wtlf(c)-0.3D0)/ &
-                      (0.7D0-0.3D0))))*(1.0-max(0.D0, &
-                      min(1.D0,(forc_rh(g)-30.D0)/(70.D0-30.D0))))
+          spread_m = (1.0D0 - max(0.D0,min(1.D0,(btran_col(c)/wtlf(c)-0.3D0)/ &
+                     (0.7D0-0.3D0))))*(1.0-max(0.D0, &
+                     min(1.D0,(forc_rh(g)-30.D0)/(70.D0-30.D0))))
         else
-           spread_m = 0.0D0
+          spread_m = 0.0D0
         end if
         farea_burned(c) = min(1.D0,(g0*spread_m*fsr_col(c)* &
-                          fd_col(c)/1000.D0)**2*lgdp1_col(c)* &
-                          lpop_col(c)*nfire(c)*rpi*Lb_lf+ &
-                          baf_crop(c)+baf_peatf(c))  ! fraction (0-1) per timestep
+             fd_col(c)/1000.D0)**2*lgdp1_col(c)* &
+             lpop_col(c)*nfire(c)*rpi*Lb_lf+ &
+             baf_crop(c)+baf_peatf(c))  ! fraction (0-1) per timestep
           
         !
         ! if landuse change data is used, calculate deforestation fires and 
         ! add it in the total of burned area fraction
         !
-        if (fpftdyn /= ' ') then    !true when landuse change data is used
-           if( trotr1_col(c)+trotr2_col(c) > 0.6D0 )then
-              if(( kmo == 1 .and. kda == 1 .and. mcsec == 0) .or. &
-                   dtrotr_col(c) <=0.D0 )then
-                 fbac1(c)        = 0.D0
-                 farea_burned(c) = baf_crop(c)+baf_peatf(c)
-              else
-                 cri = (4.0D0*trotr1_col(c)+1.8D0*trotr2_col(c))/(trotr1_col(c)+trotr2_col(c))
-                 cli = (max(0.D0,min(1.D0,(cri-prec60_col(c)*secspday)/cri))**0.5)* &
-                       (max(0.D0,min(1.D0,(cri-prec10_col(c)*secspday)/cri))**0.5)* &
-                       max(0.0005D0,min(1.D0,19.D0*dtrotr_col(c)*dayspyr*secspday/dt-0.001D0))* &
-                       max(0.D0,min(1.D0,(0.25D0-(forc_rain(g)+forc_snow(g))*secsphr)/0.25D0))
-                 ! NOTE: THIS SHOULD TAKE INTO ACCOUNT THE TIME-STEP AND CURRENTLY DOES NOT!
-                 !       As such results are only valid for a time-step of a half-hour.
-                 farea_burned(c) = cli/cli_scale +baf_crop(c)+baf_peatf(c)
-                 ! burned area out of conversion region due to land use fire
-                 fbac1(c) = max(0.D0,cli/cli_scale - 2.0D0*lfc(c))   
-              end if
-              ! total burned area out of conversion 
-              fbac(c) = fbac1(c)+baf_crop(c)+baf_peatf(c) 
-           else
-              fbac(c) = farea_burned(c)
-           end if
+        if ( fpftdyn /= ' ' ) then    !true when landuse change data is used
+          if ( trotr1_col(c)+trotr2_col(c) > 0.6D0 ) then
+            if ( (date_is(idatex,1,1) .and. time_is(idatex,0)) .or. &
+                   dtrotr_col(c) <=0.D0 ) then
+              fbac1(c)        = 0.D0
+              farea_burned(c) = baf_crop(c)+baf_peatf(c)
+            else
+              cri = (4.0D0*trotr1_col(c)+1.8D0*trotr2_col(c)) / &
+                      (trotr1_col(c)+trotr2_col(c))
+              cli = (max(0.D0,min(1.D0,(cri-prec60_col(c) * &
+                      secspday)/cri))**0.5)* &
+                    (max(0.D0,min(1.D0,(cri-prec10_col(c) * &
+                      secspday)/cri))**0.5)* &
+                     max(0.0005D0,min(1.D0,19.D0*dtrotr_col(c) * &
+                      dayspy*secspday/dt-0.001D0))* &
+                     max(0.D0,min(1.D0,(0.25D0-(forc_rain(g) + &
+                     forc_snow(g))*secsphr)/0.25D0))
+              ! NOTE: THIS SHOULD TAKE INTO ACCOUNT THE TIME-STEP AND
+              ! CURRENTLY DOES NOT!
+              !  As such results are only valid for a time-step of a half-hour.
+              farea_burned(c) = cli/cli_scale +baf_crop(c)+baf_peatf(c)
+              ! burned area out of conversion region due to land use fire
+              fbac1(c) = max(0.D0,cli/cli_scale - 2.0D0*lfc(c))   
+            end if
+            ! total burned area out of conversion 
+            fbac(c) = fbac1(c)+baf_crop(c)+baf_peatf(c) 
+          else
+            fbac(c) = farea_burned(c)
+          end if
         end if
-
-    else
-       farea_burned(c) = min(1.D0,baf_crop(c)+baf_peatf(c))
-    end if
-
+      else
+        farea_burned(c) = min(1.D0,baf_crop(c)+baf_peatf(c))
+      end if
 #if (defined NOFIRE)
-    ! zero out the fire area if NOFIRE flag is on
-
-    farea_burned(c) = 0.D0
-    baf_crop(c)     = 0.D0
-    baf_peatf(c)    = 0.D0
-    fbac(c)         = 0.D0
-    fbac1(c)        = 0.D0
-    ! with NOFIRE, tree carbon is still removed in landuse change regions by the
-    ! landuse code
+      ! zero out the fire area if NOFIRE flag is on
+      farea_burned(c) = 0.D0
+      baf_crop(c)     = 0.D0
+      baf_peatf(c)    = 0.D0
+      fbac(c)         = 0.D0
+      fbac1(c)        = 0.D0
+      ! with NOFIRE, tree carbon is still removed in landuse change
+      ! regions by the landuse code
 #endif
-
-  end do  ! end of column loop
-
-end subroutine CNFireArea
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNFireFluxes
-!
-! !INTERFACE:
-subroutine CNFireFluxes (num_soilc, filter_soilc, num_soilp, filter_soilp)
-!
-! !DESCRIPTION:
-! Fire effects routine for coupled carbon-nitrogen code (CN).
-! Relies primarily on estimate of fractional area burned in this
-! timestep, from CNFireArea().
-!
-! Total fire carbon emissions (g C/m2 land area/yr) 
-!  =avg(COL_FIRE_CLOSS)*seconds_per_year + avg(SOMC_FIRE)*seconds_per_year + 
-!   avg(LF_CONV_CFLUX)*seconds_per_year*min(1.0,avg(LFC2)/dt*seconds_per_year)*0.8
-! where dt is the time step size (sec),avg means the temporal average in a year
-! seconds_per_year is the number of seconds in a year.
-!
-! !USES:
-   use clmtype
-   use pftvarcon, only: cc_leaf,cc_lstem,cc_dstem,cc_other,fm_leaf,fm_lstem,fm_dstem,fm_other,fm_root,fm_lroot,fm_droot
-   use pftvarcon, only: nc3crop,lf_flab,lf_fcel,lf_flig,fr_flab,fr_fcel,fr_flig
-   use clm_time_manager, only: get_step_size,get_days_per_year,get_curr_date
-   use clm_varpar, only : maxpatch_pft,max_pft_per_col
-   use surfrdMod   , only: crop_prog
-   use clm_varctl  , only: fpftdyn
-   use shr_sys_mod , only: shr_sys_flush
-   use clm_varcon  , only: secspday
+    end do  ! end of column loop
+  end subroutine CNFireArea
+  !
+  ! Fire effects routine for coupled carbon-nitrogen code (CN).
+  ! Relies primarily on estimate of fractional area burned in this
+  ! timestep, from CNFireArea().
+  !
+  ! Total fire carbon emissions (g C/m2 land area/yr) 
+  !   = avg(COL_FIRE_CLOSS)*seconds_per_year +
+  !     avg(SOMC_FIRE)*seconds_per_year + 
+  !     avg(LF_CONV_CFLUX)*seconds_per_year * 
+  !         min(1.0,avg(LFC2)/dt*seconds_per_year)*0.8
+  ! where dt is the time step size (sec),avg means the temporal average
+  ! in a year seconds_per_year is the number of seconds in a year.
+  !
+  subroutine CNFireFluxes (num_soilc, filter_soilc, num_soilp, filter_soilp)
+    use mod_clm_type
+    use mod_clm_pftvarcon , only: cc_leaf , cc_lstem , cc_dstem , cc_other
+    use mod_clm_pftvarcon , only: fm_leaf , fm_lstem , fm_dstem , fm_other
+    use mod_clm_pftvarcon , only: fm_root , fm_lroot , fm_droot
+    use mod_clm_pftvarcon , only: nc3crop , lf_flab , lf_fcel , lf_flig
+    use mod_clm_pftvarcon , only: fr_flab , fr_fcel , fr_flig
+    use mod_clm_varpar , only : maxpatch_pft ,max_pft_per_col
+    use mod_clm_surfrd , only : crop_prog
+    use mod_clm_varctl , only : fpftdyn
+    use mod_clm_varcon , only : secspday
 !
 ! !ARGUMENTS:
    implicit none
-   integer, intent(in) :: num_soilc       ! number of soil columns in filter
-   integer, intent(in) :: filter_soilc(:) ! filter for soil columns
-   integer, intent(in) :: num_soilp       ! number of soil pfts in filter
-   integer, intent(in) :: filter_soilp(:) ! filter for soil pfts
+   integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+   integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
+   integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
+   integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 !
 ! !CALLED FROM:
 ! subroutine CNEcosystemDyn()
@@ -756,13 +760,13 @@ subroutine CNFireFluxes (num_soilc, filter_soilc, num_soilp, filter_soilp)
 #endif
    real(rk8), pointer :: woody(:)              ! woody lifeform (1=woody, 0=not woody) 
    logical , pointer :: pactive(:)      ! true=>do computations on this pft (see reweightMod for details)
-   integer , pointer :: ivt(:)          ! pft vegetation type
+   integer(ik4) , pointer :: ivt(:)          ! pft vegetation type
    real(rk8), pointer :: wtcol(:)        ! pft weight relative to column 
    real(rk8), pointer :: latdeg(:)       ! latitude (degrees)
-   integer , pointer :: cgridcell(:)    ! gridcell of corresponding column
-   integer , pointer :: npfts(:)        ! number of pfts for each column
-   integer , pointer :: pfti(:)         ! beginning pft index for each column
-   integer , pointer :: pcolumn(:)      ! pft's column index
+   integer(ik4) , pointer :: cgridcell(:)    ! gridcell of corresponding column
+   integer(ik4) , pointer :: npfts(:)        ! number of pfts for each column
+   integer(ik4) , pointer :: pfti(:)         ! beginning pft index for each column
+   integer(ik4) , pointer :: pcolumn(:)      ! pft's column index
    real(rk8), pointer :: farea_burned(:) ! timestep fractional area burned (proportion)
    real(rk8), pointer :: fire_mortality_c_to_cwdc(:,:)              ! C fluxes associated with fire mortality to CWD pool (gC/m3/s)
    real(rk8), pointer :: decomp_cpools_vr(:,:,:)    ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
@@ -929,11 +933,10 @@ subroutine CNFireFluxes (num_soilc, filter_soilc, num_soilp, filter_soilp)
    real(rk8), pointer :: leaf_prof(:,:)          ! (1/m) profile of leaves
 !
 ! !OTHER LOCAL VARIABLES:
-   integer :: g,c,p,j,l,k,pi,kyr, kmo, kda, mcsec   ! indices
-   integer :: fp,fc                ! filter indices
+   integer(ik4) :: g,c,p,j,l,k,pi
+   integer(ik4) :: fp,fc                ! filter indices
    real(rk8):: f                    ! rate for fire effects (1/s)
    real(rk8):: dt                   ! time step variable (s)
-   real(rk8):: dayspyr              ! days per year
 !EOP
 !-----------------------------------------------------------------------
 
@@ -1118,9 +1121,7 @@ subroutine CNFireFluxes (num_soilc, filter_soilc, num_soilp, filter_soilp)
 
    ! Get model step size
    ! calculate burned area fraction per sec
-   dt = real( get_step_size(), r8 )
-
-   dayspyr = get_days_per_year()
+   dt = dtsrf
    !
    ! pft loop
    !
@@ -1429,15 +1430,14 @@ subroutine CNFireFluxes (num_soilc, filter_soilc, num_soilp, filter_soilp)
    ! carbon loss due to deforestation fires
    !
    if (fpftdyn /= ' ') then    !true when landuse data is used
-      call get_curr_date (kyr, kmo, kda, mcsec)
       do fc = 1,num_soilc
          c = filter_soilc(fc)
          lfc2(c)=0.D0
-         if( .not. (kmo == 1 .and. kda == 1 .and. mcsec == 0) )then
+         if ( date_is(idatex,1,1) .and. time_is(idatex,0) ) then
             if( trotr1_col(c)+trotr2_col(c) > 0.6D0 .and. dtrotr_col(c) > 0.D0 .and. &
                 lfc(c) > 0.D0 .and. fbac1(c) == 0.D0) then
                lfc2(c) = max(0.D0,min(lfc(c),(farea_burned(c)-baf_crop(c) - &
-                         baf_peatf(c))/2.0))/(dtrotr_col(c)*dayspyr*secspday/dt)
+                         baf_peatf(c))/2.0))/(dtrotr_col(c)*dayspy*secspday/dt)
                lfc(c)  = lfc(c)-max(0.D0,min(lfc(c),(farea_burned(c)-baf_crop(c) - &
                          baf_peatf(c))/2.0D0))
             end if
@@ -1490,14 +1490,14 @@ subroutine hdm_init( begg, endg )
 !
 ! !ARGUMENTS:
    implicit none
-   integer, intent(IN) :: begg, endg   ! gridcell index bounds
+   integer(ik4), intent(IN) :: begg, endg   ! gridcell index bounds
 !
 ! !LOCAL VARIABLES:
-   integer            :: stream_year_first_popdens   ! first year in pop. dens. stream to use
-   integer            :: stream_year_last_popdens    ! last year in pop. dens. stream to use
-   integer            :: model_year_align_popdens    ! align stream_year_first_hdm with 
-   integer            :: nu_nml                      ! unit for namelist file
-   integer            :: nml_error                   ! namelist i/o error flag
+   integer(ik4)            :: stream_year_first_popdens   ! first year in pop. dens. stream to use
+   integer(ik4)            :: stream_year_last_popdens    ! last year in pop. dens. stream to use
+   integer(ik4)            :: model_year_align_popdens    ! align stream_year_first_hdm with 
+   integer(ik4)            :: nu_nml                      ! unit for namelist file
+   integer(ik4)            :: nml_error                   ! namelist i/o error flag
    type(mct_ggrid)    :: dom_clm                     ! domain information 
    character(len=256)  :: stream_fldFileName_popdens  ! population density streams filename
    character(len=256)  :: popdensmapalgo = 'bilinear' ! mapping alogrithm for population density
@@ -1590,40 +1590,23 @@ subroutine hdm_init( begg, endg )
          avgflag='A', long_name='human population density',   &
          ptr_lnd=forc_hdm, default='inactive')
 
-end subroutine hdm_init
-  
-!================================================================
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: hdm_interp
-!
-! !INTERFACE:
-subroutine hdm_interp( )
-!
-! !DESCRIPTION:
-!
-! Interpolate data stream information for population density.
-!
-! !USES:
-   use decompMod       , only : get_proc_bounds
-   use clm_time_manager, only : get_curr_date
-!
-! !ARGUMENTS:
+  end subroutine hdm_init
+  !
+  ! Interpolate data stream information for population density.
+  !
+  subroutine hdm_interp( )
+   use mod_clm_decomp , only : get_proc_bounds
    implicit none
 !
 ! !LOCAL VARIABLES:
-   integer :: g, ig, begg, endg
-   integer :: year    ! year (0, ...) for nstep+1
-   integer :: mon     ! month (1, ..., 12) for nstep+1
-   integer :: day     ! day of month (1, ..., 31) for nstep+1
-   integer :: sec     ! seconds into current date for nstep+1
-   integer :: mcdate  ! Current model date (yyyymmdd)
-!EOP
-!-----------------------------------------------------------------------
+   integer(ik4) :: g, ig, begg, endg
+   integer(ik4) :: year    ! year (0, ...) for nstep+1
+   integer(ik4) :: mon     ! month (1, ..., 12) for nstep+1
+   integer(ik4) :: day     ! day of month (1, ..., 31) for nstep+1
+   integer(ik4) :: sec     ! seconds into current date for nstep+1
+   integer(ik4) :: mcdate  ! Current model date (yyyymmdd)
 
-   call get_curr_date(year, mon, day, sec)
+   call split_idate(idatex,year,mon,day,sec)
    mcdate = year*10000 + mon*100 + day
 
    call shr_strdata_advance(sdat_hdm, mcdate, sec, mpicom, 'hdmdyn')
@@ -1660,14 +1643,14 @@ subroutine lnfm_init( begg, endg )
 !
 ! !ARGUMENTS:
    implicit none
-   integer, intent(IN) :: begg, endg   ! gridcell index bounds
+   integer(ik4), intent(IN) :: begg, endg   ! gridcell index bounds
 !
 ! !LOCAL VARIABLES:
-   integer            :: stream_year_first_lightng  ! first year in Lightning stream to use
-   integer            :: stream_year_last_lightng   ! last year in Lightning stream to use
-   integer            :: model_year_align_lightng   ! align stream_year_first_lnfm with 
-   integer            :: nu_nml                     ! unit for namelist file
-   integer            :: nml_error                  ! namelist i/o error flag
+   integer(ik4)            :: stream_year_first_lightng  ! first year in Lightning stream to use
+   integer(ik4)            :: stream_year_last_lightng   ! last year in Lightning stream to use
+   integer(ik4)            :: model_year_align_lightng   ! align stream_year_first_lnfm with 
+   integer(ik4)            :: nu_nml                     ! unit for namelist file
+   integer(ik4)            :: nml_error                  ! namelist i/o error flag
    type(mct_ggrid)    :: dom_clm                    ! domain information 
    character(len=256)  :: stream_fldFileName_lightng ! lightning stream filename to read
    character(len=256)  :: lightngmapalgo = 'bilinear'! Mapping alogrithm
@@ -1782,12 +1765,12 @@ subroutine lnfm_interp( )
    implicit none
 !
 ! !LOCAL VARIABLES:
-   integer :: g, ig, begg, endg
-   integer :: year    ! year (0, ...) for nstep+1
-   integer :: mon     ! month (1, ..., 12) for nstep+1
-   integer :: day     ! day of month (1, ..., 31) for nstep+1
-   integer :: sec     ! seconds into current date for nstep+1
-   integer :: mcdate  ! Current model date (yyyymmdd)
+   integer(ik4) :: g, ig, begg, endg
+   integer(ik4) :: year    ! year (0, ...) for nstep+1
+   integer(ik4) :: mon     ! month (1, ..., 12) for nstep+1
+   integer(ik4) :: day     ! day of month (1, ..., 31) for nstep+1
+   integer(ik4) :: sec     ! seconds into current date for nstep+1
+   integer(ik4) :: mcdate  ! Current model date (yyyymmdd)
 !EOP
 !-----------------------------------------------------------------------
 

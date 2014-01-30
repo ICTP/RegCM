@@ -5,6 +5,8 @@ module mod_clm_urban
   !
   use mod_intkinds
   use mod_realkinds
+  use mod_date
+  use mod_runparams
   use mod_clm_varpar  , only : numrad
   use mod_clm_varcon  , only : isecspday, degpsec
   use mod_mpmessage
@@ -608,7 +610,6 @@ contains
     use mod_clm_varcon       , only : spval, icol_roof, icol_sunwall, icol_shadewall, &
                                   icol_road_perv, icol_road_imperv, sb
     use mod_clm_varcon       , only : tfrz                ! To use new constant..
-    use mod_clm_time_manager , only : get_curr_date, get_step_size
     use mod_clm_atmlnd       , only : clm_a2l
 !
 ! !ARGUMENTS:
@@ -890,8 +891,8 @@ contains
                           lwup_roof, lwup_improad, lwup_perroad, lwup_sunwall, lwup_shadewall, lwup_canyon)
     end if
     
-    dtime = get_step_size()
-    call get_curr_date (year, month, day, secs)
+    dtime = int(dtsrf)
+    call get_curr_date(idatex,year,month,day,secs)
     
     ! Determine clmtype variables needed for history output and communication with atm
     ! Loop over urban pfts
@@ -2470,7 +2471,6 @@ contains
     use mod_clm_frictionvelocity, only : FrictionVelocity, MoninObukIni
     use mod_clm_qsat            , only : QSat
     use mod_clm_varpar         , only : maxpatch_urb, nlevurb, nlevgrnd
-    use mod_clm_time_manager   , only : get_curr_date, get_step_size, get_nstep
     use mod_clm_atmlnd         , only : clm_a2l
     implicit none
     integer(ik4) , intent(in)  :: lbp, ubp                   ! pft-index bounds
@@ -2669,7 +2669,6 @@ contains
     integer(ik4)  :: year,month,day,secs    ! calendar info for current time step
     logical  :: found                  ! flag in search loop
     integer(ik4)  :: indexl                 ! index of first found in search loop
-    integer(ik4)  :: nstep                  ! time step number
     real(rk8) :: z_d_town_loc(lbl:ubl)  ! temporary copy
     real(rk8) :: z_0_town_loc(lbl:ubl)  ! temporary copy
     real(rk8), parameter :: lapse_rate = 0.0098D0     ! Dry adiabatic lapse rate (K/m)
@@ -2783,16 +2782,13 @@ contains
        qaf(l) = spval
     end do
 
-    ! Get time step
-    nstep = get_nstep()
-
     ! Set constants (same as in Biogeophysics1Mod)
     beta(:) = 1.D0             ! Should be set to the same values as in Biogeophysics1Mod
     zii(:)  = 1000.D0          ! Should be set to the same values as in Biogeophysics1Mod
 
     ! Get current date
-    dtime = get_step_size()
-    call get_curr_date (year, month, day, secs)
+    dtime = int(dtsrf)
+    call get_curr_date(idatex,year,month,day,secs)
     
     ! Compute canyontop wind using Masson (2000)
 
@@ -3316,7 +3312,7 @@ contains
     end do
     if ( found ) then
        write(stderr,*)'WARNING:  Total sensible heat does not equal sum of scaled heat fluxes for urban columns ',&
-            ' nstep = ',nstep,' indexl= ',indexl,' eflx_err= ',eflx_err(indexl)
+            ' ktau = ',ktau,' indexl= ',indexl,' eflx_err= ',eflx_err(indexl)
        if (abs(eflx_err(indexl)) > .01D0) then
           write(stderr,*)'clm model is stopping - error is greater than .01 W/m**2'
           write(stderr,*)'eflx_scale    = ',eflx_scale(indexl)
@@ -3338,7 +3334,7 @@ contains
     end do
     if ( found ) then
        write(stderr,*)'WARNING:  Total water vapor flux does not equal sum of scaled water vapor fluxes for urban columns ',&
-            ' nstep = ',nstep,' indexl= ',indexl,' qflx_err= ',qflx_err(indexl)
+            ' ktau = ',ktau,' indexl= ',indexl,' qflx_err= ',qflx_err(indexl)
        if (abs(qflx_err(indexl)) > 4.D-9) then
           write(stderr,*)'clm model is stopping - error is greater than 4.e-9 kg/m**2/s'
           write(stderr,*)'qflx_scale    = ',qflx_scale(indexl)

@@ -55,7 +55,6 @@ Module mod_clm_drydepvelocity
   use mod_mpmessage
   use mod_stdio
   use mod_clm_type 
-  use mod_clm_time_manager,     only : get_nstep, get_curr_date, get_curr_time 
   use mod_clm_atmlnd,           only : clm_a2l
   use mod_clm_drydep,       only : n_drydep, drydep_list
   use mod_clm_drydep,       only : drydep_method, DD_XLND

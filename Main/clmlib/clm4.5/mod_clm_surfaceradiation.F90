@@ -11,6 +11,7 @@ module mod_clm_surfaceradiation
 ! !USES:
    use mod_realkinds
    use mod_stdio
+   use mod_runparams
 
 ! !PUBLIC TYPES:
   implicit none
@@ -63,7 +64,6 @@ contains
      use mod_clm_varcon      , only : spval, istsoil, degpsec, isecspday
      use mod_clm_varcon      , only : istcrop
      use mod_clm_varctl      , only : subgridflag
-     use mod_clm_time_manager, only : get_curr_date, get_step_size
      use mod_clm_varpar      , only : nlevsno
      use mod_clm_snicar      , only : DO_SNO_OC
 !
@@ -364,8 +364,8 @@ contains
 
      ! Determine seconds off current time step
      
-     dtime = get_step_size()
-     call get_curr_date (year, month, day, secs)
+     dtime = int(dtsrf)
+     call get_curr_date(idatex,year,month,day,secs)
 
      ! Initialize fluxes
 

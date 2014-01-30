@@ -1,94 +1,44 @@
 module mod_clm_cnecosystemdyn
 #ifdef CN
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !MODULE: CNEcosystemDynMod
-!
-! !DESCRIPTION:
-! Ecosystem dynamics: phenology, vegetation
-!
-! !USES:
+  !
+  ! Ecosystem dynamics: phenology, vegetation
+  !
   use mod_realkinds
   use mod_clm_varctl  , only: fpftdyn, use_c13, use_c14
-!
-! !PUBLIC TYPES:
+
   implicit none
-  save
-!
-! !PUBLIC MEMBER FUNCTIONS:
+
+  private
+
   public :: CNEcosystemDynInit   ! Ecosystem dynamics initialization
   public :: CNEcosystemDyn       ! Ecosystem dynamics: phenology, vegetation
-!
-!
-! !REVISION HISTORY:
-! Created by Peter Thornton
-! 19 May 2009: PET - modified to include call to harvest routine
-!F. Li and S. Levis (11/06/12)
-!
-! !PRIVATE MEMBER FUNCTIONS:
-!
-! !PRIVATE TYPES:
-!EOP
-!-----------------------------------------------------------------------
 
-contains
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNEcosystemDynInit
-!
-! !INTERFACE:
+  contains
+  !
+  ! Initialzation of the CN Ecosystem dynamics.
+  !
   subroutine CNEcosystemDynInit(lbg, ubg, lbc, ubc, lbp, ubp )
-!
-! !DESCRIPTION:
-! Initialzation of the CN Ecosystem dynamics.
-!
-! !USES:
     use mod_clm_cnallocation, only : CNAllocationInit
     use mod_clm_cnphenology , only : CNPhenologyInit
-    use CNFireMod      , only : CNFireInit
+    use mod_clm_cnfire , only : CNFireInit
     use mod_clm_cnc14decay  , only : C14_init_BombSpike
-!
-! !ARGUMENTS:
     implicit none
-    integer, intent(in) :: lbg, ubg        ! gridcell bounds
-    integer, intent(in) :: lbc, ubc        ! column bounds
-    integer, intent(in) :: lbp, ubp        ! pft bounds
-!
-! !CALLED FROM:
-!
-! !REVISION HISTORY:
-! 04/05/11, Erik Kluzek creation
-!
-! !LOCAL VARIABLES:
-!EOP
-!-----------------------------------------------------------------------
-     call CNAllocationInit ( lbc, ubc, lbp, ubp )
-     call CNPhenologyInit  ( lbp, ubp )
-     call CNFireInit       ( lbg, ubg )
-
-     if ( use_c14 ) call C14_init_BombSpike()
-
+    integer(ik4) , intent(in) :: lbg , ubg        ! gridcell bounds
+    integer(ik4) , intent(in) :: lbc , ubc        ! column bounds
+    integer(ik4) , intent(in) :: lbp , ubp        ! pft bounds
+    call CNAllocationInit ( lbc, ubc, lbp, ubp )
+    call CNPhenologyInit  ( lbp, ubp )
+    call CNFireInit       ( lbg, ubg )
+    if ( use_c14 ) call C14_init_BombSpike()
   end subroutine CNEcosystemDynInit
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNEcosystemDyn
-!
-! !INTERFACE:
+  !
+  ! The core CN code is executed here. Calculates fluxes for maintenance
+  ! respiration, decomposition, allocation, phenology, and growth respiration.
+  ! These routines happen on the radiation time step so that canopy structure
+  ! stays synchronized with albedo calculations.
+  !
   subroutine CNEcosystemDyn(lbc, ubc, lbp, ubp, num_soilc, filter_soilc, &
                      num_soilp, filter_soilp, num_pcropp, filter_pcropp, doalb)
-!
-! !DESCRIPTION:
-! The core CN code is executed here. Calculates fluxes for maintenance
-! respiration, decomposition, allocation, phenology, and growth respiration.
-! These routines happen on the radiation time step so that canopy structure
-! stays synchronized with albedo calculations.
-!
 ! !USES:
     use clmtype
     use spmdMod              , only: masterproc
@@ -121,14 +71,14 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer, intent(in) :: lbc, ubc        ! column bounds
-    integer, intent(in) :: lbp, ubp        ! pft bounds
-    integer, intent(in) :: num_soilc       ! number of soil columns in filter
-    integer, intent(in) :: filter_soilc(ubc-lbc+1) ! filter for soil columns
-    integer, intent(in) :: num_soilp       ! number of soil pfts in filter
-    integer, intent(in) :: filter_soilp(ubp-lbp+1) ! filter for soil pfts
-    integer, intent(in) :: num_pcropp      ! number of prog. crop pfts in filter
-    integer, intent(in) :: filter_pcropp(ubp-lbp+1)! filter for prognostic crop pfts
+    integer(ik4), intent(in) :: lbc, ubc        ! column bounds
+    integer(ik4), intent(in) :: lbp, ubp        ! pft bounds
+    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: filter_soilc(ubc-lbc+1) ! filter for soil columns
+    integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
+    integer(ik4), intent(in) :: filter_soilp(ubp-lbp+1) ! filter for soil pfts
+    integer(ik4), intent(in) :: num_pcropp      ! number of prog. crop pfts in filter
+    integer(ik4), intent(in) :: filter_pcropp(ubp-lbp+1)! filter for prognostic crop pfts
     logical, intent(in) :: doalb           ! true = surface albedo calculation time step
 !
 ! !CALLED FROM:

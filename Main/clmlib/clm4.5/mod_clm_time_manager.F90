@@ -35,9 +35,6 @@ module mod_clm_time_manager
       get_prev_date,            &! return date components at beginning of current timestep
       get_start_date,           &! return components of the start date
       get_driver_start_ymd,     &! return year/month/day (as integer in YYYYMMDD format) of driver start date
-      get_ref_date,             &! return components of the reference date
-      get_perp_date,            &! return components of the perpetual date, and current time of day
-      get_curr_time,            &! return components of elapsed time since reference date at end of current timestep
       get_prev_time,            &! return components of elapsed time since reference date at beg of current timestep
       get_curr_calday,          &! return calendar day at end of current timestep
       get_calday,               &! return calendar day from input date
@@ -220,48 +217,6 @@ end function get_nstep
 
 !=========================================================================================
 
-subroutine get_curr_date(yr, mon, day, tod, offset)
-
-  !-----------------------------------------------------------------------------------------
-  ! Return date components valid at end of current timestep with an optional
-  ! offset (positive or negative) in seconds.
-  
-  integer, intent(out) ::&
-      yr,    &! year
-      mon,   &! month
-      day,   &! day of month
-      tod     ! time of day (seconds past 0Z)
-
-   integer, optional, intent(in) :: offset  ! Offset from current time in seconds.
-                                            ! Positive for future times, negative 
-                                            ! for previous times.
-    type (rcm_time_and_date) :: id
-    type (rcm_time_interval) :: tdif
-    integer :: ih
-    id = idatex
-    ih = ioffset
-    if ( present(offset) ) then
-      ih = ih + offset
-    end if
-    tdif = ih
-    id = id + tdif
-    call split_idate(id,yr,mon,day,ih)
-    tod = id%second_of_day
-
-end subroutine get_curr_date
-
-!=========================================================================================
-
-subroutine get_perp_date(yr, mon, day, tod, offset)
-
-  integer , intent(in) :: yr, mon, day, tod, offset
-
-  call fatal(__FILE__,__LINE__,'NOT IMPLEMENTED get_perp_date')
-
-end subroutine get_perp_date
-
-!=========================================================================================
-
 subroutine get_prev_date(yr, mon, day, tod)
 
 ! Return date components valid at beginning of current timestep.
@@ -323,50 +278,6 @@ integer function get_driver_start_ymd( tod )
     if (present(tod)) tod = idate0%second_of_day
 
 end function get_driver_start_ymd
-
-!=========================================================================================
-
-subroutine get_ref_date(yr, mon, day, tod)
-
-! Return date components of the reference date.
-
-! Arguments
-   integer, intent(out) ::&
-      yr,    &! year
-      mon,   &! month
-      day,   &! day of month
-      tod     ! time of day (seconds past 0Z)
-
-    integer :: ih
-
-    yr = 1949
-    mon = 12
-    day = 1
-    tod = 0
-
-end subroutine get_ref_date
-
-!=========================================================================================
-
-subroutine get_curr_time(days, seconds)
-
-! Return time components valid at end of current timestep.
-! Current time is the time interval between the current date and the reference date.
-
-! Arguments
-   integer, intent(out) ::&
-      days,   &! number of whole days in time interval
-      seconds  ! remaining seconds in time interval
-
-    type (rcm_time_interval) :: tdif
-    real(rk8) :: rh
-
-    tdif = idatex - cordex_refdate
-    rh = tohours(tdif) + dble(ioffset)/3600.0D0
-    days = idint(rh/24.0D0)
-    seconds = (rh-days*24.0D0)*3600.0D0
-
-end subroutine get_curr_time
 
 !=========================================================================================
 
