@@ -40,4 +40,18 @@ module mod_realkinds
   real(rk8), parameter :: nan = O'0777610000000000000000'
 #endif
 
+  contains
+
+  logical function is_nan(x)
+    implicit none
+    real(rk8) , intent(in) :: x
+    is_nan = ( (x /= x) .or. ((x > 0.0D0) .eqv. (x <= 0.0D0)) )
+  end function is_nan
+
+  logical function is_inf(x)
+    implicit none
+    real(rk8) , intent(in) :: x
+    is_inf = ( x > huge(x) )
+  end function is_inf
+
 end module mod_realkinds
