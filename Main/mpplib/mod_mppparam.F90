@@ -228,6 +228,20 @@ module mod_mppparam
                      recv_array_real8
   end interface recv_array
 
+  interface l_l2g
+    module procedure linear_local_to_global_logical, &
+                     linear_local_to_global_integer, &
+                     linear_local_to_global_real4,   &
+                     linear_local_to_global_real8
+  end interface l_l2g
+
+  interface l_g2l
+    module procedure linear_global_to_local_logical, &
+                     linear_global_to_local_integer, &
+                     linear_global_to_local_real4,   &
+                     linear_global_to_local_real8
+  end interface l_g2l
+
   interface c2l_gg
     module procedure cartesian_to_linear_integer_grid_grid, &
                      cartesian_to_linear_logical_grid_grid, &
@@ -345,6 +359,7 @@ module mod_mppparam
   public :: cl_setup , cl_dispose
   public :: c2l_gg , l2c_gg , c2l_ss , l2c_ss
   public :: c2l_gs , l2c_gs
+  public :: l_l2g , l_g2l
 
   contains
 
@@ -6728,5 +6743,157 @@ module mod_mppparam
       end do
     end do
   end subroutine myunpack_real8_subgrid_slice
+
+  subroutine linear_local_to_global_logical(cl,vectorl,vectorg)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    logical , pointer , dimension(:) , intent(in) :: vectorl
+    logical , pointer , dimension(:) , intent(in) :: vectorg
+    integer(ik4) :: npt
+    npt  = cl%linear_npoint_g(myid+1)
+    if ( nproc == 1 ) then
+      vectorg(1:npt) = vectorl(1:npt)
+      return
+    end if
+    call mpi_gatherv(vectorl,npt,mpi_logical,                      &
+                     vectorg,cl%linear_npoint_g,cl%linear_displ_g, &
+                     mpi_logical,iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+  end subroutine linear_local_to_global_logical
+
+  subroutine linear_local_to_global_integer(cl,vectorl,vectorg)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    integer(ik4) , pointer , dimension(:) , intent(in) :: vectorl
+    integer(ik4) , pointer , dimension(:) , intent(in) :: vectorg
+    integer(ik4) :: npt
+    npt  = cl%linear_npoint_g(myid+1)
+    if ( nproc == 1 ) then
+      vectorg(1:npt) = vectorl(1:npt)
+      return
+    end if
+    call mpi_gatherv(vectorl,npt,mpi_integer4,                     &
+                     vectorg,cl%linear_npoint_g,cl%linear_displ_g, &
+                     mpi_integer4,iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+  end subroutine linear_local_to_global_integer
+
+  subroutine linear_local_to_global_real4(cl,vectorl,vectorg)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:) , intent(in) :: vectorl
+    real(rk4) , pointer , dimension(:) , intent(in) :: vectorg
+    integer(ik4) :: npt
+    npt  = cl%linear_npoint_g(myid+1)
+    if ( nproc == 1 ) then
+      vectorg(1:npt) = vectorl(1:npt)
+      return
+    end if
+    call mpi_gatherv(vectorl,npt,mpi_real4,                        &
+                     vectorg,cl%linear_npoint_g,cl%linear_displ_g, &
+                     mpi_real4,iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+  end subroutine linear_local_to_global_real4
+
+  subroutine linear_local_to_global_real8(cl,vectorl,vectorg)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:) , intent(in) :: vectorl
+    real(rk8) , pointer , dimension(:) , intent(in) :: vectorg
+    integer(ik4) :: npt
+    npt  = cl%linear_npoint_g(myid+1)
+    if ( nproc == 1 ) then
+      vectorg(1:npt) = vectorl(1:npt)
+      return
+    end if
+    call mpi_gatherv(vectorl,npt,mpi_real8,                        &
+                     vectorg,cl%linear_npoint_g,cl%linear_displ_g, &
+                     mpi_real8,iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+  end subroutine linear_local_to_global_real8
+
+  subroutine linear_global_to_local_logical(cl,vectorg,vectorl)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    logical , pointer , dimension(:) , intent(in) :: vectorg
+    logical , pointer , dimension(:) , intent(out) :: vectorl
+    integer(ik4) :: npt
+    npt  = cl%linear_npoint_g(myid+1)
+    if ( nproc == 1 ) then
+      vectorl(1:npt) = vectorg(1:npt)
+      return
+    end if
+    call mpi_scatterv(vectorg,cl%linear_npoint_g,cl%linear_displ_g, &
+                      mpi_logical,vectorl,npt,mpi_logical,          &
+                      iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+  end subroutine linear_global_to_local_logical
+
+  subroutine linear_global_to_local_integer(cl,vectorg,vectorl)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    integer(ik4) , pointer , dimension(:) , intent(in) :: vectorg
+    integer(ik4) , pointer , dimension(:) , intent(out) :: vectorl
+    integer(ik4) :: npt
+    npt  = cl%linear_npoint_g(myid+1)
+    if ( nproc == 1 ) then
+      vectorl(1:npt) = vectorg(1:npt)
+      return
+    end if
+    call mpi_scatterv(vectorg,cl%linear_npoint_g,cl%linear_displ_g, &
+                      mpi_integer4,vectorl,npt,mpi_integer4,        &
+                      iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+  end subroutine linear_global_to_local_integer
+
+  subroutine linear_global_to_local_real4(cl,vectorg,vectorl)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk4) , pointer , dimension(:) , intent(in) :: vectorg
+    real(rk4) , pointer , dimension(:) , intent(out) :: vectorl
+    integer(ik4) :: npt
+    npt  = cl%linear_npoint_g(myid+1)
+    if ( nproc == 1 ) then
+      vectorl(1:npt) = vectorg(1:npt)
+      return
+    end if
+    call mpi_scatterv(vectorg,cl%linear_npoint_g,cl%linear_displ_g, &
+                      mpi_real4,vectorl,npt,mpi_real4,              &
+                      iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+  end subroutine linear_global_to_local_real4
+
+  subroutine linear_global_to_local_real8(cl,vectorg,vectorl)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:) , intent(in) :: vectorg
+    real(rk8) , pointer , dimension(:) , intent(out) :: vectorl
+    integer(ik4) :: npt
+    npt  = cl%linear_npoint_g(myid+1)
+    if ( nproc == 1 ) then
+      vectorl(1:npt) = vectorg(1:npt)
+      return
+    end if
+    call mpi_scatterv(vectorg,cl%linear_npoint_g,cl%linear_displ_g, &
+                      mpi_real8,vectorl,npt,mpi_real8,              &
+                      iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+  end subroutine linear_global_to_local_real8
 
 end module mod_mppparam
