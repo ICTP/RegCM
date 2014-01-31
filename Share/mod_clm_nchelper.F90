@@ -50,6 +50,10 @@ module mod_clm_nchelper
   real(rk8) , public , parameter :: clmvar_double     = 1.0D0
   integer(ik4) , public , parameter :: clmvar_unlim   = -1
 
+  interface assignment(=)
+    module procedure copy_filetype
+  end interface assignment(=)
+
   public :: clm_filetype
 
   public :: clm_createfile
@@ -2325,5 +2329,21 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_3d
-!
+
+  subroutine copy_filetype(ncid2,ncid1)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid1
+    type(clm_filetype) , intent(out) :: ncid2
+    ncid2%ncid = ncid1%ncid
+    ncid2%fname = ncid1%fname
+    ncid2%idimlast = ncid1%idimlast
+    ncid2%ivarlast = ncid1%ivarlast
+    ncid2%dimids = ncid1%dimids
+    ncid2%dimhash = ncid1%dimhash
+    ncid2%dimname = ncid1%dimname
+    ncid2%varids = ncid1%varids
+    ncid2%varhash = ncid1%varhash
+    ncid2%varname = ncid1%varname
+  end subroutine copy_filetype
+
 end module mod_clm_nchelper
