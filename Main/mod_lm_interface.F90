@@ -388,10 +388,10 @@ module mod_lm_interface
     call vecbats(lm,lms)
 #endif
     call vecocn(lm,lms)
-    lm%hfx = sum(lms%sent,1)*rdnnsg 
-    lm%qfx = sum(lms%evpr,1)*rdnnsg 
-    lm%uvdrag = sum(lms%drag,1)*rdnnsg 
-    lm%tgbb = sum(lms%tgbb,1)*rdnnsg 
+    lm%hfx = sum(lms%sent,1)*rdnnsg
+    lm%qfx = sum(lms%evpr,1)*rdnnsg
+    lm%uvdrag = sum(lms%drag,1)*rdnnsg
+    lm%tgbb = sum(lms%tgbb,1)*rdnnsg
     lm%tground1 = sum(lms%tgrd,1)*rdnnsg
     lm%tground2 = sum(lms%tgrd,1)*rdnnsg
     if ( iseaice == 1 .or. lakemod == 1 ) then

@@ -1,4 +1,4 @@
-#SUBDIRS = clm4.5
+# SUBDIRS = clm4.5
 
 REGCMSRC = $(REGCM_ROOT)/Main
 BATS     = $(REGCMSRC)/batslib
