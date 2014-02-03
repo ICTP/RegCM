@@ -251,12 +251,16 @@ AM_CONDITIONAL(COMPILER_GNU, [test x"$FC" = xgfortran])
 AM_CONDITIONAL(COMPILER_G95, [test x"$FC" = xg95])
 AM_CONDITIONAL(COMPILER_SUN, [test x"$FC" = xsunf95])
 AM_CONDITIONAL(COMPILER_PGI, [test x"$FC" = xpgf90 -o x"$FC" = xpgf95])
-AM_CONDITIONAL(COMPILER_INTEL, [test x"$FC" = xifort])
+
+AM_CONDITIONAL(COMPILER_INTEL, [test x`$FC --version | head -1 | \
+                                cut -d " " -f 1` = "xifort"])
 
 AM_CONDITIONAL(REGCM_PARALLEL, [test x"$PARALLEL" = "x1"])
 
+echo COMPILER_INTEL_TRUE
+
 # Force Big endian I/O for known compilers
-if eval "test x"$FC" = xgfortran"; then
+if test -z "$COMPILER_GNU_TRUE"; then
   # Following check seems not to work on SuSE, need investigation
 #  GFORTRAN_VERSION="`gfortran --version | head -1 | cut -d " " -f 4`"
 #  GFORTRAN_MAJOR="`echo $GFORTRAN_VERSION | cut -d "." -f 1`"
@@ -275,39 +279,39 @@ if eval "test x"$FC" = xgfortran"; then
   CPRDEF="GNU"
   AC_SUBST(FCFLAGS)
 fi
-if eval "test x"$FC" = xifort"; then
+if test -z "$COMPILER_INTEL_TRUE"; then
   FCFLAGS="-convert big_endian -assume byterecl -heap-arrays"
   CPRDEF="INTEL"
   AC_SUBST(FCFLAGS)
   LIBS=`echo $LIBS | sed -e 's/-Wl,--as-needed//g'`
   AC_SUBST(LIBS)
 fi
-if eval "test x"$FC" = xg95"; then
+if test -z "$COMPILER_G95_TRUE"; then
   FCFLAGS="-fendian=big -fmultiple-save"
   CPRDEF="GNU"
   AC_SUBST(FCFLAGS)
 fi
-if eval "test x"$FC" = xpgf90"; then
+if test -z "$COMPILER_PGI_TRUE"; then
   FCFLAGS="-byteswapio"
   CPRDEF="PGI"
   AC_SUBST(FCFLAGS)
 fi
-if eval "test x"$FC" = xxlf2003"; then
+if test -z "$COMPILER_IBM_TRUE"; then
   AM_CPPFLAGS="-WF,-DIBM $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
   CPRDEF="XLF"
 fi
-if eval "test x"$FC" = xsun95"; then
+if test -x "$COMPILER_SUN_TRUE"; then
   CPRDEF="WORKSHOP"
 fi
 
 # Set debug/production flags
 if eval "test x$DEBUG = x1"; then
-  if eval "test x"$FC" = xg95"; then
+  if test -z "$COMPILER_G95_TRUE"; then
     FCFLAGS="-O0 -g -Wall -Wextra -fbounds-check -ftrace=full $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
-  if eval "test x"$FC" = xgfortran"; then
+  if test -z "$COMPILER_GNU_TRUE"; then
     FCFLAGS="-O2 -g -ffpe-trap=zero,invalid,overflow,underflow -fbacktrace \
             -fdump-core -Wall -pedantic -Wconversion -Wsurprising -Waliasing \
             -Wampersand -Warray-bounds -Wcharacter-truncation \
@@ -316,59 +320,59 @@ if eval "test x$DEBUG = x1"; then
             -fno-range-check"
     AC_SUBST(FCFLAGS)
   fi
-  if eval "test x"$FC" = xifort"; then
+  if test -z "$COMPILER_INTEL_TRUE"; then
     FCFLAGS="-O0 -g \
              -check arg_temp_created,bounds,format,output_conversion,uninit \
              -traceback -warn all -fp-model precise -fp-model source -ftz \
              -fimf-arch-consistency=true $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
-  if eval "test x"$FC" = xxlf2003"; then
+  if test -z "$COMPILER_IBM_TRUE"; then
     FCFLAGS="-O0 -qsuppress=1501-245 -bnoquiet -qcheck -qffltrap=nanq,overflow \
              -qmaxmem=-1 -qzerosize $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
-  if eval "test x"$FC" = xsunf95"; then
+  if test -z "$COMPILER_PGI_TRUE"; then
     FCFLAGS="-g -O0 -C -w3 -ansi -xfilebyteorder=big16:%all \
              -D__DATE__="'`date +%D`'" -D__TIME__="'`date +%T`'" $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
-  if eval "test x"$FC" = xpgf90 -o x"$FC" = xpgf95"; then
+  if test -z "$COMPILER_PGI_TRUE"; then
     FCFLAGS="-Mbounds -Mcache_align -Mchkfpstk -Mchkstk -Mdalign -Mdclchk \
              -Mdepchk -Miomutex -Mrecursive -Msave -Ktrap=fp -O0 -g $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
 else
-  if eval "test x"$FC" = xg95"; then
+  if test -z "$COMPILER_G95_TRUE"; then
     FCFLAGS="-O3 $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
-  if eval "test x"$FC" = xgfortran"; then
+  if test -z "$COMPILER_GNU_TRUE"; then
     FCFLAGS="-O3 -mtune=native $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
-  if eval "test x"$FC" = xifort"; then
+  if test -z "$COMPILER_INTEL_TRUE"; then
     FCFLAGS="-O3 -fp-model fast=2 -ip $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
-  if eval "test x"$FC" = xxlf2003"; then
+  if test -z "$COMPILER_IBM_TRUE"; then
     FCFLAGS="-qsuppress=1501-245 -bnoquiet -O3 -qstrict \
              -qmaxmem=-1 -qzerosize $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
-  if eval "test x"$FC" = xsunf95"; then
+  if test -z "$COMPILER_SUN_TRUE"; then
     FCFLAGS="-O3 -xfilebyteorder=big16:%all \
              -D__DATE__="'`date +%D`'" -D__TIME__="'`date +%T`'" $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
-  if eval "test x"$FC" = xpgf90 -o x"$FC" = xpgf95"; then
+  if test -z "$COMPILER_PGI_TRUE"; then
     FCFLAGS="-fastsse $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
 fi
 
 MCTPATH="${PWD}/external"
-if eval "test x"$FC" = xsunf95"; then
+if test -z "$COMPILER_SUN_TRUE"; then
   MCTFLAGS="-M$MCTPATH"
   AM_CPPFLAGS="$MCTFLAGS $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
@@ -407,7 +411,7 @@ REGCM_ROOT=${PWD}
 AC_SUBST(REGCM_ROOT)
 AC_PREFIX_DEFAULT(${PWD})
 
-if eval "test x"$FC" = xsunf95"; then
+if test -z "$COMPILER_SUN_TRUE"; then
   CPPFLAGS="$AM_CPPFLAGS -M$REGCM_ROOT/Share"
   AC_SUBST(CPPFLAGS)
 else
