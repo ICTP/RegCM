@@ -151,7 +151,7 @@ module mod_date
   public :: getyear , getmonth , getday
   public :: gethour , getminute , getsecond
   public :: date_is , time_is
-  public :: get_curr_date , get_ref_date , get_curr_time
+  public :: curr_date , ref_date , curr_time
 
   data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
   data calstr /'gregorian','noleap','360_day'/
@@ -1782,16 +1782,16 @@ module mod_date
     getsecond = t%second
   end function getsecond
 
-  subroutine get_ref_date(iy,im,id,isec)
+  subroutine ref_date(iy,im,id,isec)
     implicit none
     integer(ik4) , intent(out) :: iy , im , id , isec
     iy = 1949
     im = 12
     id = 1
     isec = 0
-  end subroutine get_ref_date
+  end subroutine ref_date
 
-  subroutine get_curr_date(x,iy,im,id,isec,offset)
+  subroutine curr_date(x,iy,im,id,isec,offset)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     integer(ik4) , intent(out) :: iy , im , id , isec
@@ -1810,10 +1810,10 @@ module mod_date
     im = d%month
     id = d%day
     isec = y%second_of_day
-  end subroutine get_curr_date
+  end subroutine curr_date
 
   ! Returns days and seconds from cordex reference date
-  subroutine get_curr_time(x,iday,isec)
+  subroutine curr_time(x,iday,isec)
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     integer(ik4) , intent(out) :: iday , isec
@@ -1831,7 +1831,7 @@ module mod_date
     end if
     iday = x%days_from_reference - y%days_from_reference
     isec = x%second_of_day
-  end subroutine get_curr_time
+  end subroutine curr_time
 
   subroutine split_rcm_date(x,iy,im,id)
     implicit none
