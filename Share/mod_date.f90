@@ -151,7 +151,7 @@ module mod_date
   public :: getyear , getmonth , getday
   public :: gethour , getminute , getsecond
   public :: date_is , time_is
-  public :: curr_date , ref_date , curr_time
+  public :: curr_date , ref_date , curr_time , calendar_str
 
   data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
   data calstr /'gregorian','noleap','360_day'/
@@ -1919,5 +1919,20 @@ module mod_date
       time_of_day_is = ( s == x%second_of_day )
     end if
   end function time_of_day_is
+
+  character(len=16) function calendar_str(x) result(calstr)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    select case (x%calendar)
+      case(gregorian)
+        calstr = 'gregorian'
+      case(noleap)
+        calstr = 'noleap'
+      case(y360)
+        calstr = '360_day'
+      case default
+        call die('mod_date','Unknown Calendar!!!')
+    end select
+  end function calendar_str
 
 end module mod_date
