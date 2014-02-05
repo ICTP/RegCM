@@ -26,6 +26,10 @@ module mod_che_indices
   !ah   gas_phase chemistry indecies for potential transported species 
   !ah   some of them correspond to the same compounds like isulf, ih2so4
   !ah   we did this just for flexibility
+
+
+  
+ 
   integer(ik4) :: iso2 , iso4 , idms , ibchl , ibchb , iochl , iochb
 
   integer(ik4) :: imsa
@@ -52,8 +56,76 @@ module mod_che_indices
   !
   integer(ik4) :: ipollen
 
-  ! This the compound indecies
-  ! this list ishould absolutly be consistent with KPP GAS_CBMZ/mod_cbmz_Parameters.f90 file
+
+  ! list and name of cbmz species : must be absolutely consistant with 
+  ! mod_cbmz_Parameters 
+
+  integer(ik4) , parameter :: totsp = 58
+  character(len=8),target, dimension(totsp) :: cbmzspec
+  data  cbmzspec /'CO2', & ! 1
+  'H2SO4', & ! 2
+  'HCOOH', & ! 3
+  'RCOOH', & ! 4
+  'MSA', & ! 5
+  'DUMMY', & ! 6
+  'PAN', & ! 7
+  'TOL', & ! 8
+  'O1D', & ! 9
+  'H2O2', & ! 10
+  'SO2', & ! 11
+  'XYL', & ! 12
+  'CH4', & ! 13
+  'C2H6', & ! 14
+  'CRO', & ! 15
+  'DMS', & ! 16
+  'HNO4', & ! 17
+  'H2', & ! 18
+  'TO2', & ! 19
+  'CH3OH', & ! 20
+  'HNO2', & ! 21
+  'CH3OOH', & ! 22
+  'ETHOOH', & ! 23
+  'N2O5', & ! 24
+  'ETH', & ! 25
+  'CRES', & ! 26
+  'O3P', & ! 27
+  'CO', & ! 28
+  'HNO3', & ! 29
+  'PAR', & ! 30
+  'OPEN', & ! 31
+  'ISOPN', & ! 32
+  'ISOPP', & ! 33
+  'ISOPO2', & ! 34
+  'H2O', & ! 35
+  'AONE', & ! 36
+  'OLEI', & ! 37
+  'ISOP', & ! 38
+  'HCHO', & ! 39
+  'OLET', & ! 40
+  'XO2', & ! 41
+  'MGLY', & ! 42
+  'ETHP', & ! 43
+  'NAP', & ! 44
+  'ALD2', & ! 45
+  'CH3O2', & ! 46
+  'ISOPRD', & ! 47
+  'ANO2', & ! 48
+  'ROOH', & ! 49
+  'RO2', & ! 50
+  'ONIT', & ! 51
+  'HO2', & ! 52
+  'O3', & ! 53
+  'OH', & ! 54
+  'NO', & ! 55
+  'NO2', & ! 56
+  'NO3', & ! 57
+  'C2O3'/
+
+
+
+
+!!!!!!!!!!!!!!!!!!
+
   INTEGER(ik4), PARAMETER :: ind_CO2 = 1
   INTEGER(ik4), PARAMETER :: ind_H2SO4 = 2
   INTEGER(ik4), PARAMETER :: ind_HCOOH = 3

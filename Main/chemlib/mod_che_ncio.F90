@@ -321,10 +321,10 @@ module mod_che_ncio
          call rvar(ncid,istart,icount,ihcho,echemsrc, &
            'HCHO_flux',.false.,sdim)
       end if
-      ! ACET emission                  
+      ! AONE emission                  
       if ( iacet /= 0 ) then
         call rvar(ncid,istart,icount,iacet,echemsrc, &
-            'ACETONE_flux',.false.,sdim)
+            'AONE_flux',.false.,sdim)
       end if
       ! SO2 emission
       if ( iso2 /= 0 ) then
@@ -335,7 +335,7 @@ module mod_che_ncio
         end if
       end if
       !NH3
-      if ( iNH3 /= 0 ) then
+      if ( inh3 /= 0 ) then
         call rvar(ncid,istart,icount,inh3,echemsrc, &
                  'NH3_flux',.false.,sdim)
       end if
@@ -356,24 +356,18 @@ module mod_che_ncio
       end if
       ! Ethene
       if ( iethe /= 0 ) then
-!        call rvar(ncid,istart,icount,iethe,echemsrc, &
-!                  'C2H4_flux',.false.,sdim)
         call rvar(ncid,istart,icount,iethe,echemsrc, &
-                  'ETHE_flux',.false.,sdim)
+                  'ETH_flux',.false.,sdim)
       end if
       ! Termenal Alkene
       if ( iolt /= 0 ) then
-!old        call rvar(ncid,istart,icount,iolt,echemsrc, &
-!old                  'C5OLET_flux',.false.,sdim)
         call rvar(ncid,istart,icount,iolt,echemsrc, &
-                  'OLT_flux',.false.,sdim)
+                  'OLET_flux',.false.,sdim)
       end if
       ! Internal Alkene
       if ( ioli /= 0 ) then
-!old        call rvar(ncid,istart,icount,ioli,echemsrc, &
-!old                  'C5OLEI_flux',.false.,sdim)
         call rvar(ncid,istart,icount,ioli,echemsrc, &
-                  'OLI_flux',.false.,sdim)
+                  'OLEI_flux',.false.,sdim)
       end if
       ! Isoprene
       if ( iisop /= 0 ) then
@@ -399,17 +393,13 @@ module mod_che_ncio
       if ( iald2 /= 0 ) then
         call rvar(ncid,istart,icount,iald2,echemsrc,'ALD2_flux',.false.,sdim)
       end if
-      ! Methanol + Ethanol
+      ! Methanol
       if ( imoh /= 0 ) then
-!old        call rvar(ncid,istart,icount,imoh,echemsrc, &
-!old                 'METHANOL_flux',.false.,sdim)
         call rvar(ncid,istart,icount,imoh,echemsrc, &
-                 'MOH_flux',.false.,sdim)
+                 'CH3OH_flux',.false.,sdim)
       end if           
       !acids
       if ( ircooh /= 0 ) then
-!        call rvar(ncid,istart,icount,ircooh,echemsrc, &
-!                  'ACETIC_flux',.false.,sdim)
         call rvar(ncid,istart,icount,ircooh,echemsrc, &
                   'RCOOH_flux',.false.,sdim)
       end if

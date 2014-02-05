@@ -28,12 +28,23 @@ module mod_che_common
   use mod_mpmessage
   use mod_che_param
   use mod_che_species
+  use mod_che_indices
 !
   public
 
   integer(ik4) , parameter :: nbin = 4
   integer(ik4) , parameter :: sbin = 2
   integer(ik4) , parameter :: maxntr = 50 
+
+
+  ! tracer indices :
+   type tracer
+     integer(ik4) , pointer , dimension(:) :: index
+     integer(ik4) , pointer , dimension(:) :: indcbmz 
+     real(rk8)    , pointer , dimension(:) :: mw
+   end type tracer
+     type(tracer) trac
+
 
   ! tracer variables
 
@@ -102,6 +113,12 @@ module mod_che_common
       integer(ik4) , intent(in) :: isladvec
 
       if ( ichem == 1 ) then
+      
+        call getmem1d(trac%index,1,ntr,'mod_che_common:trac%index') 
+        call getmem1d(trac%indcbmz,1,ntr,'mod_che_common:trac%indcbmz') 
+        call getmem1d(trac%mw,1,ntr,'mod_che_common:trac%mw')  
+
+
         call getmem4d(chia,jce1-ma%jbl2,jce2+ma%jbr2, &
                       ice1-ma%ibb2,ice2+ma%ibt2,1,kz,1,ntr,'che_common:chia')
         if ( isladvec == 1 ) then
@@ -148,7 +165,7 @@ module mod_che_common
         call getmem1d(idust,1,nbin,'mod_che_common:idust')
         call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
         call getmem1d(icarb,1,7,'mod_che_common:icarb')
-        call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
+        call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')       
 
         call getmem4d(chemall,jci1,jci2,ici1,ici2, &
                       1,kz,1,totsp,'mod_che_common:chemall')
@@ -251,39 +268,39 @@ module mod_che_common
                                  'DUST03','DUST04','SSLT01','SSLT02' /)
         if ( myid == italk ) write(stdout,*) 'AERO simulation'
       else if ( chemsimtype(1:4) == 'DCCB' ) then 
-        ntr = 49
+        ntr = 50
         allocate(chtrname(ntr))      
-        chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   ','NH3   ','O3    ', &
-                                 'NO2   ','NO    ','CO    ','H2O2  ', &
-                                 'HNO3  ','N2O5  ','HCHO  ','ALD2  ', &
-                                 'ISOP  ','C2H6  ','PAR   ','ACET  ', &
-                                 'MOH   ','OLT   ','OLI   ','TOLUE ', &
-                                 'XYL   ','ETHE  ','PAN   ','CH4   ', &
-                                 'MGLY  ','CRES  ','OPEN  ','ISOPRD', &
-                                 'ONIT  ','HCOOH ','RCOOH ','CH3OOH', &
-                                 'ETHOOH','ROOH  ','HONO  ','HNO4  ', &
-                                 'XO2   ','DUST01','DUST02','DUST03', &
-                                 'DUST04','BC_HL ','BC_HB ','OC_HL ', &
-                                 'OC_HB ','SSLT01','SSLT02','ANO3  ', &
-                                 'ANH4  ' /)
+        chtrname(1:ntr)(1:6) = (/'NO    ','NO2   ','N2O5  ','HNO2  ',&
+                                 'HNO3  ','HNO4  ','O3    ','H2O2  ',&
+                                 'CO    ','SO2   ','DMS   ','H2SO4 ',&
+                                 'CH4   ','C2H6  ','PAR   ','CH3OH ',&
+                                 'HCHO  ','ALD2  ','AONE  ','ETH   ',&
+                                 'OLET  ','OLEI  ','TOL   ','XYL   ',&
+                                 'ISOP  ','ONIT  ','PAN   ','HCOOH ',&
+                                 'RCOOH ','CH3OOH','ETHOOH','ROOH  ',&
+                                 'MGLY  ','ISOPRD','ISOPN ','OPEN  ',&
+                                 'CRES  ','NH3   ','DUST01','DUST02',&
+                                 'DUST03','DUST04','BC_HL ','BC_HB ',&
+                                 'OC_HL ','OC_HB ','SSLT01','SSLT02',&
+                                 'ANO3  ','ANH4  ' /)
         iaerosol = 1
         igaschem = 1
         iisoropia = 1
         if ( myid == italk ) write(stdout,*) 'DCCB simulation'
       else if ( chemsimtype(1:4) == 'CBMZ' ) then 
 !This does not include any aerosol(NH3) or monoterpens(APIN, LIMO)
-        ntr = 36
+        ntr = 37
         allocate(chtrname(ntr))      
-        chtrname(1:ntr)(1:6) = (/'NO    ','NO2   ','N2O5  ','HNO2  ', &
-                                 'HNO3  ','HNO4  ','O3    ','OH    ', &
-                                 'HO2   ','H2O2  ','CO    ','SO2   ', &
-                                 'H2SO4 ','CH4   ','C2H6  ','PAR   ', &
-                                 'MOH   ','HCHO  ','ALD2  ','ACET  ', &
-                                 'ETHE  ','OLT   ','OLI   ','TOLUE ', &
-                                 'XYL   ','ISOP  ','ONIT  ','PAN   ', &
-                                 'HCOOH ','RCOOH ','CH3OOH','ETHOOH', &
-                                 'ROOH  ','RO2   ','XO2   ','DMS   '/)
-
+        chtrname(1:ntr)(1:6) = (/'NO    ','NO2   ','N2O5  ','HNO2  ',&
+                                 'HNO3  ','HNO4  ','O3    ','H2O2  ',&
+                                 'CO    ','SO2   ','DMS   ','H2SO4 ',&
+                                 'CH4   ','C2H6  ','PAR   ','CH3OH ',&
+                                 'HCHO  ','ALD2  ','AONE  ','ETH   ',&
+                                 'OLET  ','OLEI  ','TOL   ','XYL   ',&
+                                 'ISOP  ','ONIT  ','PAN   ','HCOOH ',&
+                                 'RCOOH ','CH3OOH','ETHOOH','ROOH  ',&
+                                 'MGLY  ','ISOPRD','ISOPN ','OPEN  ',&
+                                 'CRES  '/)
         igaschem = 1
         if ( myid == italk ) write(stdout,*) 'CBMZ simulation'
       else if ( chemsimtype(1:6) == 'POLLEN' ) then 

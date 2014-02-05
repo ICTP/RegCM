@@ -263,6 +263,7 @@ module mod_runparams
   integer(ik4) :: ichdustemd
   integer(ik4) :: ichdiag
   integer(ik4) :: ichebdy
+  integer(ik4) :: ichjphcld
   real(rk8) :: rdstemfac
 
   ! Large scale SUBEX parameters

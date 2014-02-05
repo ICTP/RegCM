@@ -36,7 +36,7 @@ module mod_che_start
   use mod_che_seasalt
   use mod_mppparam  
   use mod_che_hvread
-
+  use mod_che_molwg
 
   implicit none
 
@@ -52,7 +52,7 @@ module mod_che_start
 
   subroutine start_chem
     implicit none
-    integer(ik4) :: i , j , k , itr , ibin , jbin , kbin
+    integer(ik4) :: i , j , k , itr , ibin , jbin , kbin,n
 
     ! A : Intialise chemistry tracer indices         
 
@@ -213,8 +213,25 @@ module mod_che_start
         chtrsol(itr) = solsslt(jbin)   
       end if
 
-      ! gas phas species (CBMZ)
+      ! gas phas species (CBMZ), 
+      ! max configuration : number of tracer = number of species
 
+      do n = 1,totsp
+       if ( chtrname(itr) == cbmzspec(n))then 
+        trac%indcbmz(itr) = n     ! index of the tracer in the CBMZ list of species
+        trac%mw(itr) = mw_cbmz(n) ! correponding molecular weight 
+       end if
+      end do
+
+       if ( myid == italk ) then
+       if(itr == 1)  write(*,*) 'tracer', 'cbmz index','molw' 
+       write(*,*) chtrname(itr),  trac%indcbmz(itr),  trac%mw(itr)
+       end if
+
+!!$ Define also some specific indices for practical purpose
+!  Not all the possible cbmz species have a tracer index:
+!  however this information is also contained in trac%indcbmz table 
+! 
       if ( chtrname(itr) == 'O3'    ) io3       = itr
       if ( chtrname(itr) == 'NO'    ) ino       = itr
       if ( chtrname(itr) == 'NO2'   ) ino2      = itr
@@ -234,26 +251,26 @@ module mod_che_start
       if ( chtrname(itr) == 'HC'    ) ihc       = itr
       if ( chtrname(itr) == 'HCR'   ) ihcr      = itr
       if ( chtrname(itr) == 'C2H4'  ) ic2h4     = itr
-      if ( chtrname(itr) == 'OLT'   ) iolt      = itr
-      if ( chtrname(itr) == 'OLI'   ) ioli      = itr
+      if ( chtrname(itr) == 'OLET'   ) iolt      = itr
+      if ( chtrname(itr) == 'OLEI'   ) ioli      = itr
       if ( chtrname(itr) == 'ALK4'  ) ialk4     = itr
       if ( chtrname(itr) == 'ALK7'  ) ialk7     = itr
       if ( chtrname(itr) == 'CO'    ) ico       = itr
       if ( chtrname(itr) == 'HCHO'  ) ihcho     = itr
       if ( chtrname(itr) == 'ALD2'  ) iald2     = itr
-      if ( chtrname(itr) == 'ETHE'  ) iethe     = itr
+      if ( chtrname(itr) == 'ETH'  ) iethe     = itr
       if ( chtrname(itr) == 'C2H6'  ) ic2h6     = itr
       if ( chtrname(itr) == 'C3H8'  ) ic3h8     = itr
       if ( chtrname(itr) == 'ISOP'  ) iisop     = itr
-      if ( chtrname(itr) == 'TOLUE' ) itolue    = itr
+      if ( chtrname(itr) == 'TOL' ) itolue    = itr
       if ( chtrname(itr) == 'XYL'   ) ixyl      = itr
       if ( chtrname(itr) == 'NH3'   ) inh3      = itr
       if ( chtrname(itr) == 'PAN'   ) ipan      = itr
       if ( chtrname(itr) == 'ROOH'  ) irooh     = itr
-      if ( chtrname(itr) == 'ACET'  ) iacet     = itr
+      if ( chtrname(itr) == 'AONE'  ) iacet     = itr
       if ( chtrname(itr) == 'BENZ'  ) ibenz     = itr
       if ( chtrname(itr) == 'CH4'   ) ich4      = itr
-      if ( chtrname(itr) == 'MOH'   ) imoh      = itr
+      if ( chtrname(itr) == 'CH3OH'   ) imoh      = itr
       if ( chtrname(itr) == 'EOH'   ) ieoh      = itr
       if ( chtrname(itr) == 'ACO2'  ) iaco2     = itr
       if ( chtrname(itr) == 'RCOOH' ) ircooh    = itr
@@ -264,9 +281,6 @@ module mod_che_start
       if ( chtrname(itr) == 'SOX'   ) isox      = itr
       if ( chtrname(itr) == 'PAR'   ) ipar      = itr
       if ( chtrname(itr) == 'MGLY'  ) imgly     = itr
-      if ( chtrname(itr) == 'CRES'  ) icres     = itr
-      if ( chtrname(itr) == 'OPEN'  ) iopen     = itr
-      if ( chtrname(itr) == 'ISOPRD') iisoprd   = itr 
       if ( chtrname(itr) == 'ONIT'  ) ionit     = itr
       if ( chtrname(itr) == 'HCOOH' ) ihcooh    = itr
       if ( chtrname(itr) == 'RCOOH' ) ircooh    = itr
@@ -279,6 +293,10 @@ module mod_che_start
       if ( chtrname(itr) == 'RO2'   ) iro2      = itr
       if ( chtrname(itr) == 'APIN'  ) iapin     = itr
       if ( chtrname(itr) == 'LIMO'  ) ilimo     = itr
+      if ( chtrname(itr) == 'CO2'  )  ico2      = itr
+!!$
+
+
       if ( chtrname(itr) == 'POLLEN') ipollen   = itr
 
       !abt *** Check to make sure SO4 is not defined twice as SULF or SO4 in
@@ -371,14 +389,41 @@ module mod_che_start
         ichbdy2trac(15) = iacet
         ichbdy2trac(16) = ioli
         ! ichbdy2trac(chbc_ivar(17)) = bigalk is no used here !!
-        ichbdy2trac(17) = iolt
-        ichbdy2trac(18) = ic3h8
-        ichbdy2trac(19) = iisop
-        ichbdy2trac(20) = itolue
-        ichbdy2trac(21) = ipan
-        ichbdy2trac(22) = iso2
-        ichbdy2trac(23) = iso4
-        ichbdy2trac(24) = idms
+        ichbdy2trac(18) = iolt
+        ichbdy2trac(19) = ic3h8
+        ichbdy2trac(20) = iisop
+        ichbdy2trac(21) = itolue
+        ichbdy2trac(22) = ipan
+        ichbdy2trac(23) = iso2
+        ichbdy2trac(24) = iso4
+        ichbdy2trac(25) = idms
+! fab add a temporary case for debugging
+     case ('CBM1')
+        ichbdy2trac(1)  = io3
+        ichbdy2trac(2)  = ino
+        ichbdy2trac(3)  = ino2
+        ichbdy2trac(4)  = ihno3
+        ichbdy2trac(5)  = in2o5
+        ichbdy2trac(6)  = ih2o2
+        ichbdy2trac(7)  = ich4
+        ichbdy2trac(8)  = ico
+        ichbdy2trac(9)  = ihcho
+        ichbdy2trac(10) = imoh
+        ichbdy2trac(11) = ieoh
+        ichbdy2trac(12) = iethe
+        ichbdy2trac(13) = ic2h6
+        ichbdy2trac(14) = iald2
+        ichbdy2trac(15) = iacet
+        ichbdy2trac(16) = ioli
+        ! ichbdy2trac(chbc_ivar(17)) = bigalk is no used here !!
+        ichbdy2trac(18) = iolt
+        ichbdy2trac(19) = ic3h8
+        ichbdy2trac(20) = iisop
+        ichbdy2trac(21) = itolue
+        ichbdy2trac(22) = ipan
+        ichbdy2trac(23) = iso2
+        ichbdy2trac(24) = iso4
+        ichbdy2trac(25) = idms
       case ('DCCB')
         ichbdy2trac(1)  = io3
         ichbdy2trac(2)  = ino
@@ -419,9 +464,6 @@ module mod_che_start
       call inidust
     end if
 
-    !*** abt added for wet deposition scheme
-    ! if ( .not.allocated(chevap) ) allocate(chevap(iy,kz))
-    ! if ( .not.allocated(checum) ) allocate(checum(iy,kz))
 
     if ( igaschem == 1 ) then
       open(26,file='TUVGRID2', status='old', err=900)

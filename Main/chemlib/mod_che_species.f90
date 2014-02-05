@@ -26,7 +26,6 @@ module mod_che_species
 
   public
 
-  integer(ik4) , parameter :: totsp = 68
   integer(ik4) , parameter :: nchsp = 25
   integer(ik4) , parameter :: noxsp = 5
 

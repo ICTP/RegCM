@@ -21,6 +21,7 @@ module mod_che_molwg
 !
   use mod_intkinds
   use mod_realkinds
+  use mod_che_indices
 !
   public
 !
@@ -65,6 +66,7 @@ module mod_che_molwg
 
 !Alkene species in RADM2 and CBMZ
   real(rk8) , parameter :: w_ethene = 28.0D0
+  real(rk8) , parameter :: w_eth = 28.0D0
   real(rk8) , parameter :: w_ol2    = 28.0D0
   real(rk8) , parameter :: w_olt    = 42.0D0
   real(rk8) , parameter :: w_oli    = 56.0D0
@@ -113,15 +115,92 @@ module mod_che_molwg
 
 !Other species  
   real(rk8) , parameter :: w_dms     = 62.0D0
+  real(rk8) , parameter :: w_msa     = 96.0D0
   real(rk8) , parameter :: w_nh3     = 17.0D0
   real(rk8) , parameter :: w_apin    = 136.230D0
   real(rk8) , parameter :: w_limo    = 136.230D0
 
+! intermediate species that do not undergo other process than chemistry are 
+! assigned an arbitrary molecular weight , as anyway chemistry works with mol.
+! and the conversion to mass is done for compatibility with other processes than chem.
+! if these species are outputed in mass, the unit will be however wrong ! 
+ 
+ real(rk8) , parameter :: w_O1D = 16.D0
+ real(rk8) , parameter :: w_cro =48.D0
+real(rk8) , parameter :: w_to2 = 32.D0
+ real(rk8) , parameter :: w_dummy = 1.D0
+  real(rk8) , parameter :: w_open = 1.D0
+ real(rk8) , parameter :: w_O3P = 48.D0
+  real(rk8) , parameter :: w_isopn   = 68.0D0
+  real(rk8) , parameter :: w_isopp   = 68.0D0
+  real(rk8) , parameter :: w_isopo2   = 68.0D0
+ real(rk8) , parameter :: w_isoprd   = 68.0D0
+ real(rk8) , parameter :: w_ethp   = 28.0D0
+ real(rk8) , parameter :: w_nap   = 1.0D0
+ real(rk8) , parameter :: w_ch3o2   = 47.0D0
+real(rk8) , parameter :: w_ano2   =  46.0D0
+real(rk8) , parameter :: w_c2o3   =  72.0D0
+! define here a table of molecular weight for the CBMZ species.
 
+  real(rk8),dimension(totsp) ::  mw_cbmz
 
-
-
-
-
+  data mw_cbmz / W_CO2 , &
+       W_H2SO4, & ! 2
+       W_HCOOH, & ! 3
+       W_RCOOH, & ! 4
+       W_MSA, & ! 5
+       W_DUMMY, & ! 6
+       W_PAN, & ! 7
+       W_TOL, & ! 8
+       W_O1D, & ! 9
+       W_H2O2, & ! 10
+       W_SO2, & ! 11
+       W_XYL, & ! 12
+       W_CH4, & ! 13
+       W_C2H6, & ! 14
+       W_CRO, & ! 15
+       W_DMS, & ! 16
+       W_HNO4, & ! 17
+       W_H2, & ! 18
+       W_TO2, & ! 19
+       W_CH3OH, & ! 20
+       W_HNO2, & ! 21
+       W_CH3OOH, & ! 22
+       W_ETHOOH, & ! 23
+       W_N2O5, & ! 24
+       W_ETH, & ! 25
+       W_CRES, & ! 26
+       W_O3P, & ! 27
+       W_CO, & ! 28
+       W_HNO3, & ! 29
+       W_PAR, & ! 30
+       W_OPEN, & ! 31
+       W_ISOPN, & ! 32
+       W_ISOPP, & ! 33
+       W_ISOPO2, & ! 34
+       W_H2O, & ! 35
+       W_AONE, & ! 36
+       W_OLEI, & ! 37
+       W_ISOP, & ! 38
+       W_HCHO, & ! 39
+       W_OLET, & ! 40
+       W_XO2, & ! 41
+       W_MGLY, & ! 42
+       W_ETHP, & ! 43
+       W_NAP, & ! 44
+       W_ALD2, & ! 45
+       W_CH3O2, & ! 46
+       W_ISOPRD, & ! 47
+       W_ANO2, & ! 48
+       W_ROOH, & ! 49
+       W_RO2, & ! 50
+       W_ONIT, & ! 51
+       W_HO2, & ! 52
+       W_O3, & ! 53
+       W_OH, & ! 54
+       W_NO, & ! 55
+       W_NO2, & ! 56
+       W_NO3, & ! 57
+       W_C2O3 / ! 58
 
 end module mod_che_molwg

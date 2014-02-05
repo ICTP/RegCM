@@ -36,7 +36,7 @@ EMISSDIR=`cat $INPFILE | grep inpglob | cut -d "=" -f 2 | tr "'" " " | \
            sed -e 's/ //g' -e 's/,//'`
 
 ## global emissions file locations / output of creation ##
-data_dir="$EMISSDIR/RCP_EMGLOB_PROCESSED/global_cmip"
+data_dir="$EMISSDIR/RCP_EMGLOB_PROCESSED/IIASA"
 ## grid of RCPs location
 CMIP5_dir="$EMISSDIR/RCP_EMGLOB_PROCESSED/grids"
 ## grid of REGMC location
