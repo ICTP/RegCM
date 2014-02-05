@@ -26,9 +26,6 @@ module mod_che_indices
   !ah   gas_phase chemistry indecies for potential transported species 
   !ah   some of them correspond to the same compounds like isulf, ih2so4
   !ah   we did this just for flexibility
-
-
-  
  
   integer(ik4) :: iso2 , iso4 , idms , ibchl , ibchb , iochl , iochb
 
@@ -40,152 +37,148 @@ module mod_che_indices
   integer(ik4) :: iisop , itolue , ixyl , inh3 , ipan , in2o
   integer(ik4) :: irooh , iacet , ibenz , ich4 , ico2
   integer(ik4) :: inox , ihox , isox , ieoh , imoh , iaco2 , ircooh,ihcooh
-  integer(ik4) :: ipar , iolt , ioli, imgly,icres,iopen,iisoprd, iethooh, ixo2,iro2
+  integer(ik4) :: ipar , iolt , ioli , imgly , icres , iopen , iisoprd
+  integer(ik4) :: iethooh , ixo2 , iro2
   integer(ik4) :: iapin , ilimo
   integer(ik4) :: ialk4, ialk7
   integer(ik4) :: ianh4, iano3
-  
 
   !*** abt added from wetdep scheme
   integer(ik4) :: iisopno3 , ich3ooh , ihydrald , ihyac , ipooh
   integer(ik4) :: ic3h7ooh , ic2h5ooh 
-  integer(ik4) :: iisopooh , imacrooh , ipb , ionit , ich3coooh , ich3cocho , ixooh
-  integer(ik4) :: ionitr , iglyald , imvk , imacr , isoa , inh4 , inh4no3 , ich3cooh
+  integer(ik4) :: iisopooh , imacrooh , ipb , ionit , ich3coooh
+  integer(ik4) :: ich3cocho , ixooh
+  integer(ik4) :: ionitr , iglyald , imvk , imacr , isoa , inh4
+  integer(ik4) :: inh4no3 , ich3cooh
   integer(ik4) :: iterpooh , itolooh , imekooh , ialkooh
 
   !
   integer(ik4) :: ipollen
-
 
   ! list and name of cbmz species : must be absolutely consistant with 
   ! mod_cbmz_Parameters 
 
   integer(ik4) , parameter :: totsp = 58
   character(len=8),target, dimension(totsp) :: cbmzspec
-  data  cbmzspec /'CO2', & ! 1
-  'H2SO4', & ! 2
-  'HCOOH', & ! 3
-  'RCOOH', & ! 4
-  'MSA', & ! 5
-  'DUMMY', & ! 6
-  'PAN', & ! 7
-  'TOL', & ! 8
-  'O1D', & ! 9
-  'H2O2', & ! 10
-  'SO2', & ! 11
-  'XYL', & ! 12
-  'CH4', & ! 13
-  'C2H6', & ! 14
-  'CRO', & ! 15
-  'DMS', & ! 16
-  'HNO4', & ! 17
-  'H2', & ! 18
-  'TO2', & ! 19
-  'CH3OH', & ! 20
-  'HNO2', & ! 21
-  'CH3OOH', & ! 22
-  'ETHOOH', & ! 23
-  'N2O5', & ! 24
-  'ETH', & ! 25
-  'CRES', & ! 26
-  'O3P', & ! 27
-  'CO', & ! 28
-  'HNO3', & ! 29
-  'PAR', & ! 30
-  'OPEN', & ! 31
-  'ISOPN', & ! 32
-  'ISOPP', & ! 33
-  'ISOPO2', & ! 34
-  'H2O', & ! 35
-  'AONE', & ! 36
-  'OLEI', & ! 37
-  'ISOP', & ! 38
-  'HCHO', & ! 39
-  'OLET', & ! 40
-  'XO2', & ! 41
-  'MGLY', & ! 42
-  'ETHP', & ! 43
-  'NAP', & ! 44
-  'ALD2', & ! 45
-  'CH3O2', & ! 46
-  'ISOPRD', & ! 47
-  'ANO2', & ! 48
-  'ROOH', & ! 49
-  'RO2', & ! 50
-  'ONIT', & ! 51
-  'HO2', & ! 52
-  'O3', & ! 53
-  'OH', & ! 54
-  'NO', & ! 55
-  'NO2', & ! 56
-  'NO3', & ! 57
-  'C2O3'/
+  data  cbmzspec /'CO2',     & ! 1
+                  'H2SO4',   & ! 2
+                  'HCOOH',   & ! 3
+                  'RCOOH',   & ! 4
+                  'MSA',     & ! 5
+                  'DUMMY',   & ! 6
+                  'PAN',     & ! 7
+                  'TOL',     & ! 8
+                  'O1D',     & ! 9
+                  'H2O2',    & ! 10
+                  'SO2',     & ! 11
+                  'XYL',     & ! 12
+                  'CH4',     & ! 13
+                  'C2H6',    & ! 14
+                  'CRO',     & ! 15
+                  'DMS',     & ! 16
+                  'HNO4',    & ! 17
+                  'H2',      & ! 18
+                  'TO2',     & ! 19
+                  'CH3OH',   & ! 20
+                  'HNO2',    & ! 21
+                  'CH3OOH',  & ! 22
+                  'ETHOOH',  & ! 23
+                  'N2O5',    & ! 24
+                  'ETH',     & ! 25
+                  'CRES',    & ! 26
+                  'O3P',     & ! 27
+                  'CO',      & ! 28
+                  'HNO3',    & ! 29
+                  'PAR',     & ! 30
+                  'OPEN',    & ! 31
+                  'ISOPN',   & ! 32
+                  'ISOPP',   & ! 33
+                  'ISOPO2',  & ! 34
+                  'H2O',     & ! 35
+                  'AONE',    & ! 36
+                  'OLEI',    & ! 37
+                  'ISOP',    & ! 38
+                  'HCHO',    & ! 39
+                  'OLET',    & ! 40
+                  'XO2',     & ! 41
+                  'MGLY',    & ! 42
+                  'ETHP',    & ! 43
+                  'NAP',     & ! 44
+                  'ALD2',    & ! 45
+                  'CH3O2',   & ! 46
+                  'ISOPRD',  & ! 47
+                  'ANO2',    & ! 48
+                  'ROOH',    & ! 49
+                  'RO2',     & ! 50
+                  'ONIT',    & ! 51
+                  'HO2',     & ! 52
+                  'O3',      & ! 53
+                  'OH',      & ! 54
+                  'NO',      & ! 55
+                  'NO2',     & ! 56
+                  'NO3',     & ! 57
+                  'C2O3'/      ! 58
 
+  integer(ik4) , parameter :: ind_CO2 = 1
+  integer(ik4) , parameter :: ind_H2SO4 = 2
+  integer(ik4) , parameter :: ind_HCOOH = 3
+  integer(ik4) , parameter :: ind_RCOOH = 4
+  integer(ik4) , parameter :: ind_MSA = 5
+  integer(ik4) , parameter :: ind_DUMMY = 6
+  integer(ik4) , parameter :: ind_PAN = 7
+  integer(ik4) , parameter :: ind_TOL = 8
+  integer(ik4) , parameter :: ind_O1D = 9
+  integer(ik4) , parameter :: ind_H2O2 = 10
+  integer(ik4) , parameter :: ind_SO2 = 11
+  integer(ik4) , parameter :: ind_XYL = 12
+  integer(ik4) , parameter :: ind_CH4 = 13
+  integer(ik4) , parameter :: ind_C2H6 = 14
+  integer(ik4) , parameter :: ind_CRO = 15
+  integer(ik4) , parameter :: ind_DMS = 16
+  integer(ik4) , parameter :: ind_HNO4 = 17
+  integer(ik4) , parameter :: ind_H2 = 18
+  integer(ik4) , parameter :: ind_TO2 = 19
+  integer(ik4) , parameter :: ind_CH3OH = 20
+  integer(ik4) , parameter :: ind_HNO2 = 21
+  integer(ik4) , parameter :: ind_CH3OOH = 22
+  integer(ik4) , parameter :: ind_ETHOOH = 23
+  integer(ik4) , parameter :: ind_N2O5 = 24
+  integer(ik4) , parameter :: ind_ETH = 25
+  integer(ik4) , parameter :: ind_CRES = 26
+  integer(ik4) , parameter :: ind_O3P = 27
+  integer(ik4) , parameter :: ind_CO = 28
+  integer(ik4) , parameter :: ind_HNO3 = 29
+  integer(ik4) , parameter :: ind_PAR = 30
+  integer(ik4) , parameter :: ind_OPEN = 31
+  integer(ik4) , parameter :: ind_ISOPN = 32
+  integer(ik4) , parameter :: ind_ISOPP = 33
+  integer(ik4) , parameter :: ind_ISOPO2 = 34
+  integer(ik4) , parameter :: ind_H2O = 35
+  integer(ik4) , parameter :: ind_AONE = 36
+  integer(ik4) , parameter :: ind_OLEI = 37
+  integer(ik4) , parameter :: ind_ISOP = 38
+  integer(ik4) , parameter :: ind_HCHO = 39
+  integer(ik4) , parameter :: ind_OLET = 40
+  integer(ik4) , parameter :: ind_XO2 = 41
+  integer(ik4) , parameter :: ind_MGLY = 42
+  integer(ik4) , parameter :: ind_ETHP = 43
+  integer(ik4) , parameter :: ind_NAP = 44
+  integer(ik4) , parameter :: ind_ALD2 = 45
+  integer(ik4) , parameter :: ind_CH3O2 = 46
+  integer(ik4) , parameter :: ind_ISOPRD = 47
+  integer(ik4) , parameter :: ind_ANO2 = 48
+  integer(ik4) , parameter :: ind_ROOH = 49
+  integer(ik4) , parameter :: ind_RO2 = 50
+  integer(ik4) , parameter :: ind_ONIT = 51
+  integer(ik4) , parameter :: ind_HO2 = 52
+  integer(ik4) , parameter :: ind_O3 = 53
+  integer(ik4) , parameter :: ind_OH = 54
+  integer(ik4) , parameter :: ind_NO = 55
+  integer(ik4) , parameter :: ind_NO2 = 56
+  integer(ik4) , parameter :: ind_NO3 = 57
+  integer(ik4) , parameter :: ind_C2O3 = 58
 
-
-
-!!!!!!!!!!!!!!!!!!
-
-  INTEGER(ik4), PARAMETER :: ind_CO2 = 1
-  INTEGER(ik4), PARAMETER :: ind_H2SO4 = 2
-  INTEGER(ik4), PARAMETER :: ind_HCOOH = 3
-  INTEGER(ik4), PARAMETER :: ind_RCOOH = 4
-  INTEGER(ik4), PARAMETER :: ind_MSA = 5
-  INTEGER(ik4), PARAMETER :: ind_DUMMY = 6
-  INTEGER(ik4), PARAMETER :: ind_PAN = 7
-  INTEGER(ik4), PARAMETER :: ind_TOL = 8
-  INTEGER(ik4), PARAMETER :: ind_O1D = 9
-  INTEGER(ik4), PARAMETER :: ind_H2O2 = 10
-  INTEGER(ik4), PARAMETER :: ind_SO2 = 11
-  INTEGER(ik4), PARAMETER :: ind_XYL = 12
-  INTEGER(ik4), PARAMETER :: ind_CH4 = 13
-  INTEGER(ik4), PARAMETER :: ind_C2H6 = 14
-  INTEGER(ik4), PARAMETER :: ind_CRO = 15
-  INTEGER(ik4), PARAMETER :: ind_DMS = 16
-  INTEGER(ik4), PARAMETER :: ind_HNO4 = 17
-  INTEGER(ik4), PARAMETER :: ind_H2 = 18
-  INTEGER(ik4), PARAMETER :: ind_TO2 = 19
-  INTEGER(ik4), PARAMETER :: ind_CH3OH = 20
-  INTEGER(ik4), PARAMETER :: ind_HNO2 = 21
-  INTEGER(ik4), PARAMETER :: ind_CH3OOH = 22
-  INTEGER(ik4), PARAMETER :: ind_ETHOOH = 23
-  INTEGER(ik4), PARAMETER :: ind_N2O5 = 24
-  INTEGER(ik4), PARAMETER :: ind_ETH = 25
-  INTEGER(ik4), PARAMETER :: ind_CRES = 26
-  INTEGER(ik4), PARAMETER :: ind_O3P = 27
-  INTEGER(ik4), PARAMETER :: ind_CO = 28
-  INTEGER(ik4), PARAMETER :: ind_HNO3 = 29
-  INTEGER(ik4), PARAMETER :: ind_PAR = 30
-  INTEGER(ik4), PARAMETER :: ind_OPEN = 31
-  INTEGER(ik4), PARAMETER :: ind_ISOPN = 32
-  INTEGER(ik4), PARAMETER :: ind_ISOPP = 33
-  INTEGER(ik4), PARAMETER :: ind_ISOPO2 = 34
-  INTEGER(ik4), PARAMETER :: ind_H2O = 35
-  INTEGER(ik4), PARAMETER :: ind_AONE = 36
-  INTEGER(ik4), PARAMETER :: ind_OLEI = 37
-  INTEGER(ik4), PARAMETER :: ind_ISOP = 38
-  INTEGER(ik4), PARAMETER :: ind_HCHO = 39
-  INTEGER(ik4), PARAMETER :: ind_OLET = 40
-  INTEGER(ik4), PARAMETER :: ind_XO2 = 41
-  INTEGER(ik4), PARAMETER :: ind_MGLY = 42
-  INTEGER(ik4), PARAMETER :: ind_ETHP = 43
-  INTEGER(ik4), PARAMETER :: ind_NAP = 44
-  INTEGER(ik4), PARAMETER :: ind_ALD2 = 45
-  INTEGER(ik4), PARAMETER :: ind_CH3O2 = 46
-  INTEGER(ik4), PARAMETER :: ind_ISOPRD = 47
-  INTEGER(ik4), PARAMETER :: ind_ANO2 = 48
-  INTEGER(ik4), PARAMETER :: ind_ROOH = 49
-  INTEGER(ik4), PARAMETER :: ind_RO2 = 50
-  INTEGER(ik4), PARAMETER :: ind_ONIT = 51
-  INTEGER(ik4), PARAMETER :: ind_HO2 = 52
-  INTEGER(ik4), PARAMETER :: ind_O3 = 53
-  INTEGER(ik4), PARAMETER :: ind_OH = 54
-  INTEGER(ik4), PARAMETER :: ind_NO = 55
-  INTEGER(ik4), PARAMETER :: ind_NO2 = 56
-  INTEGER(ik4), PARAMETER :: ind_NO3 = 57
-  INTEGER(ik4), PARAMETER :: ind_C2O3 = 58
-
-! indices for jvalues 
+  ! indices for jvalues 
   integer(ik4) , parameter :: jvO2 = 1
   integer(ik4) , parameter :: jvO3a = 2
   integer(ik4) , parameter :: jvO3b = 3

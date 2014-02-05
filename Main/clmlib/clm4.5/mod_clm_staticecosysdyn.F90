@@ -215,7 +215,7 @@ module mod_clm_staticecosysdyn
     integer(ik4) , dimension(12) :: ndaypm= &
          (/31,28,31,30,31,30,31,31,30,31,30,31/) !days per month
 
-    call get_curr_date(idatex,kyr,kmo,kda,ksec,offset=int(dtsrf))
+    call curr_date(idatex,kyr,kmo,kda,ksec,offset=int(dtsrf))
     t = (kda-0.5D0) / ndaypm(kmo)
     it(1) = t + 0.5D0
     it(2) = it(1) + 1

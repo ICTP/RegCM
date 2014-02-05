@@ -378,7 +378,6 @@ module mod_savefile
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'tbase'),tbase_io)
         call check_ok(__FILE__,__LINE__,'Cannot read tbase')
       end if
-     print* , 'FAB1'
       if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'cbmf2d'),cbmf2d_io)
         call check_ok(__FILE__,__LINE__,'Cannot read cbmf2d')
@@ -401,7 +400,6 @@ module mod_savefile
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'gasemstot'),gasemstot_io)
         call check_ok(__FILE__,__LINE__,'Cannot read gasemstot')
       end if
-      print*,'FAB01'
       if ( ipptls > 0 ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'fcc'),fcc_io)
         call check_ok(__FILE__,__LINE__,'Cannot read fcc')
@@ -476,12 +474,10 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read sinc')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'ldmsk'),ldmsk_io)
       call check_ok(__FILE__,__LINE__,'Cannot read ldmsk')
-      print*,'FAB03'
       if ( iocnflx == 2 ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'zpbl'),zpbl_io)
         call check_ok(__FILE__,__LINE__,'Cannot read zpbl')
       end if
-      print*,'FAB04'
       if ( ichem == 1 ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'chia'),chia_io)
         call check_ok(__FILE__,__LINE__,'Cannot read chia')

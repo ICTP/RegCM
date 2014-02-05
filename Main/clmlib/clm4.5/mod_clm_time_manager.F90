@@ -31,7 +31,7 @@ module mod_clm_time_manager
       advance_timestep,         &! increment timestep number
       get_step_size,            &! return step size in seconds
       get_nstep,                &! return timestep number
-      get_curr_date,            &! return date components at end of current timestep
+      curr_date,            &! return date components at end of current timestep
       get_prev_date,            &! return date components at beginning of current timestep
       get_start_date,           &! return components of the start date
       get_driver_start_ymd,     &! return year/month/day (as integer in YYYYMMDD format) of driver start date

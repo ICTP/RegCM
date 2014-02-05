@@ -365,7 +365,7 @@ contains
      ! Determine seconds off current time step
      
      dtime = int(dtsrf)
-     call get_curr_date(idatex,year,month,day,secs)
+     call curr_date(idatex,year,month,day,secs)
 
      ! Initialize fluxes
 

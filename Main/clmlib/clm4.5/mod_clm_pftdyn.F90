@@ -51,7 +51,7 @@ module mod_clm_pftdyn
   ! that bound the initial model date)
   !
   subroutine pftdyn_init()
-    use mod_clm_time_manager , only : get_curr_date
+    use mod_clm_time_manager , only : curr_date
     use mod_clm_varctl , only : fpftdyn
     use mod_clm_varpar , only : numpft , maxpatch_pft , numurbl
     implicit none
@@ -203,7 +203,7 @@ module mod_clm_pftdyn
     ! harvest is zero for the period before the beginning and after the end
     ! of the dynpft timeseries.
 
-    call get_curr_date(year, mon, day, sec)
+    call curr_date(year, mon, day, sec)
 
     if (year < yearspft(1)) then
       nt1 = 1
@@ -263,7 +263,7 @@ module mod_clm_pftdyn
   ! year runs past the end of the dynpft time series.
   !
   subroutine pftdyn_interp()
-    use mod_clm_time_manager, only : get_curr_date, get_curr_calday, &
+    use mod_clm_time_manager, only : curr_date, get_curr_calday, &
                                  get_days_per_year
     use mod_clm_varcon , only : istsoil
     use mod_clm_varcon , only : istcrop
@@ -317,7 +317,7 @@ module mod_clm_pftdyn
 
     ! Get current date
 
-    call get_curr_date(year, mon, day, sec)
+    call curr_date(year, mon, day, sec)
 
     ! Obtain new time sample if necessary.
     ! The first condition is the regular crossing of a year boundary
@@ -2965,7 +2965,7 @@ module mod_clm_pftdyn
 ! Time interpolate cndv pft weights from annual to time step
 !
 ! !USES:
-    use mod_clm_time_manager, only : get_curr_calday, get_curr_date, &
+    use mod_clm_time_manager, only : get_curr_calday, curr_date, &
                                  get_days_per_year
     use mod_clm_time_manager, only : get_step_size, get_nstep
     use mod_clm_varcon      , only : istsoil ! CNDV incompatible with dynLU
@@ -3013,7 +3013,7 @@ module mod_clm_pftdyn
 
     wt1 = ((days_per_year + 1._r8) - cday)/days_per_year
 
-    call get_curr_date(year, mon, day, sec, offset=int(dtime))
+    call curr_date(year, mon, day, sec, offset=int(dtime))
 
     do p = begp,endp
        g = pptr%gridcell(p)

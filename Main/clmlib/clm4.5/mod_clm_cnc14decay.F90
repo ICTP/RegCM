@@ -244,7 +244,7 @@ subroutine C14BombSpike(num_soilp, filter_soilp)
    if ( use_c14_bombspike ) then
 
       ! get current date
-      call get_curr_date(idatex,yr,mon,day,tod)
+      call curr_date(idatex,yr,mon,day,tod)
       dateyear = real(yr) + real(mon)/12.D0 + real(day)/dayspy + &
               real(tod)/(secspday*dayspy)
 

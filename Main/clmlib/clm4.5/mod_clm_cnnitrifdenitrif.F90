@@ -44,7 +44,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
 ! !USES:
    use mod_clm_type
    use mod_clm_varpar      , only : nlevgrnd,nlevdecomp
-   use mod_clm_time_manager    , only : get_curr_date, get_step_size
+   use mod_clm_time_manager    , only : curr_date, get_step_size
    use mod_clm_varcon, only: rpi, denh2o, dzsoi, zisoi, grav
 #ifdef LCH4
    use mod_clm_varcon, only: d_con_g, d_con_w

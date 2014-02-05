@@ -325,7 +325,7 @@ subroutine CNPhenologyClimate (num_soilp, filter_soilp, num_pcropp, filter_pcrop
 
    if ( num_pcropp > 0 )then
       ! get time-related info
-      call get_curr_date(idatex,kyr,kmo,kda,mcsec)
+      call curr_date(idatex,kyr,kmo,kda,mcsec)
       if ( nyrs == -999 ) then
          nyrs = CropRestYear()
       else
@@ -1477,7 +1477,7 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
       ! get time info
       dayspyr = get_days_per_year()
       jday    = get_curr_calday()
-      call get_curr_date(idatex,kyr,kmo,kda,mcsec)
+      call curr_date(idatex,kyr,kmo,kda,mcsec)
 
       ndays_on = 20.D0 ! number of days to fertilize
 

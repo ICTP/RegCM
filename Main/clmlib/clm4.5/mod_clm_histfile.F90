@@ -1963,8 +1963,8 @@ module mod_clm_histfile
   subroutine htape_timeconst(t, mode)
     use clm_varcon   , only : zsoi, zlak, secspday
     use domainMod    , only : ldomain, lon1d, lat1d
-    use clm_time_manager, only : get_nstep, get_curr_date, get_curr_time
-    use clm_time_manager, only : get_ref_date, get_calendar, NO_LEAP_C, GREGORIAN_C
+    use clm_time_manager, only : get_nstep, curr_date, get_curr_time
+    use clm_time_manager, only : ref_date, get_calendar, NO_LEAP_C, GREGORIAN_C
 !
 ! !ARGUMENTS:
     implicit none
@@ -2046,7 +2046,7 @@ module mod_clm_histfile
 
     ! For define mode -- only do this for first time-sample
     if (mode == 'define' .and. tape(t)%ntimes == 1) then
-       call get_ref_date(yr, mon, day, nbsec)
+       call ref_date(yr, mon, day, nbsec)
        nstep = get_nstep()
        hours   = nbsec / 3600
        minutes = (nbsec - hours*3600) / 60
@@ -2101,7 +2101,7 @@ module mod_clm_histfile
     elseif (mode == 'write') then
 
        call get_curr_time (mdcur, mscur)
-       call get_curr_date (yr, mon, day, mcsec)
+       call curr_date (yr, mon, day, mcsec)
        mcdate = yr*10000 + mon*100 + day
        nstep = get_nstep()
 
@@ -2740,7 +2740,7 @@ module mod_clm_histfile
 !   date = yyyy/mm+1/01 with mscur = 0.
 !
 ! !USES:
-    use clm_time_manager, only : get_nstep, get_curr_date, get_curr_time, get_prev_date
+    use clm_time_manager, only : get_nstep, curr_date, get_curr_time, get_prev_date
     use clm_varcon      , only : secspday
     use clmtype
     use perf_mod        , only : t_startf, t_stopf
@@ -2783,7 +2783,7 @@ module mod_clm_histfile
 
     ! Set calendar for current time step
 
-    call get_curr_date (yr, mon, day, mcsec)
+    call curr_date (yr, mon, day, mcsec)
     call get_curr_time (mdcur, mscur)
     time = mdcur + mscur/secspday
 
@@ -3805,7 +3805,7 @@ end function max_nFields
   !
   character(len=256) function set_hist_filename(hist_freq,hist_mfilt,hist_file)
     use mod_clm_varctl , only : caseid , inst_suffix
-    use clm_time_manager , only : get_curr_date, get_prev_date
+    use clm_time_manager , only : curr_date, get_prev_date
     implicit none
     integer(ik4) , intent(in) :: hist_freq  !history file frequency
     integer(ik4) , intent(in) :: hist_mfilt !history file number of time-samples
@@ -3822,7 +3822,7 @@ end function max_nFields
       call get_prev_date (yr, mon, day, sec)
       write(cdate,'(i4.4,"-",i2.2)') yr,mon
     else                        !other
-      call get_curr_date (yr, mon, day, sec)
+      call curr_date (yr, mon, day, sec)
       write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day,sec
     endif
     write(hist_index,'(i1.1)') hist_file - 1

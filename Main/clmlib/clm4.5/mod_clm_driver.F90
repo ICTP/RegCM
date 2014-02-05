@@ -84,7 +84,7 @@ module mod_clm_driver
 #endif
   use dynlandMod          , only : dynland_hwcontent
   use clm_varcon          , only : zlnd, isturb
-  use clm_time_manager    , only : get_step_size,get_curr_date,get_ref_date
+  use clm_time_manager    , only : get_step_size,curr_date,ref_date
   use histFileMod         , only : hist_update_hbuf, hist_htapes_wrapup
   use restFileMod         , only : restFile_write, restFile_filename
   use inicPerpMod         , only : inicPerp  
@@ -673,7 +673,7 @@ module mod_clm_driver
     tdif = dtsrf
     nextdate = idatex + tdif
     call split_idate(nextdate,yrp1,monp1,dayp1,hourp1,monp1,secp1)
-    call get_curr_date(yrp1, monp1, dayp1, secp1, offset=int(dtssrf))
+    call curr_date(yrp1, monp1, dayp1, secp1, offset=int(dtssrf))
     if ( daymon_is(nextdate,1,1) .and. &
          time_of_day_is(nextdate,s,dtsrf) .and. &
          ktau > 0 )  then

@@ -29,28 +29,26 @@ module mod_che_common
   use mod_che_param
   use mod_che_species
   use mod_che_indices
-!
+
   public
 
   integer(ik4) , parameter :: nbin = 4
   integer(ik4) , parameter :: sbin = 2
   integer(ik4) , parameter :: maxntr = 50 
 
-
   ! tracer indices :
-   type tracer
-     integer(ik4) , pointer , dimension(:) :: index
-     integer(ik4) , pointer , dimension(:) :: indcbmz 
-     real(rk8)    , pointer , dimension(:) :: mw
-   end type tracer
-     type(tracer) trac
-
+  type tracer
+    integer(ik4) , pointer , dimension(:) :: index
+    integer(ik4) , pointer , dimension(:) :: indcbmz 
+    real(rk8)    , pointer , dimension(:) :: mw
+  end type tracer
+  type(tracer) trac
 
   ! tracer variables
 
   real(rk8) , pointer , dimension(:,:,:,:) :: chi
   real(rk8) , pointer , dimension(:,:,:,:) :: chic , chiten , chiten0 , chemten 
-!
+
   real(rk8) , pointer , dimension(:,:,:) :: chemsrc, tmpsrc
   real(rk8) , pointer , dimension(:,:,:,:) :: chia , chib
   real(rk8) , pointer , dimension(:,:,:) :: srclp2
@@ -60,18 +58,18 @@ module mod_che_common
 
   real(rk8) , pointer , dimension(:,:,:,:) :: chemall , jphoto
   integer(ik4) , pointer , dimension(:,:) :: kcumtop , kcumbot , cveg2d
-!
+
   real(rk8) , pointer , dimension(:,:)   :: chtrsize
   real(rk8) , pointer , dimension(:)     :: chtrsol
 
   real(rk8), pointer , dimension(:,:,:)  :: chifxuw
-!
+
   integer(ik4) , pointer , dimension(:) :: isslt , icarb , idust
   integer(ik4) , parameter :: nphoto = 56
-!
+
   real(rk8) , pointer , dimension(:,:,:) :: convcldfra , cemtrac , remdrd
 
-!diagnostic
+  ! diagnostic
   real(rk8) , pointer , dimension(:,:,:,:) :: remcvc , remlsc , &
                                              rxsaq1 , rxsaq2 , rxsg
   real(rk8) , pointer , dimension(:,:,:,:) :: chemdiag , cadvhdiag , &
@@ -108,216 +106,215 @@ module mod_che_common
 
   contains
 
-    subroutine allocate_mod_che_common(isladvec)
-      implicit none
-      integer(ik4) , intent(in) :: isladvec
+  subroutine allocate_mod_che_common(isladvec)
+    implicit none
+    integer(ik4) , intent(in) :: isladvec
 
-      if ( ichem == 1 ) then
+    if ( ichem == 1 ) then
       
-        call getmem1d(trac%index,1,ntr,'mod_che_common:trac%index') 
-        call getmem1d(trac%indcbmz,1,ntr,'mod_che_common:trac%indcbmz') 
-        call getmem1d(trac%mw,1,ntr,'mod_che_common:trac%mw')  
+      call getmem1d(trac%index,1,ntr,'mod_che_common:trac%index') 
+      call getmem1d(trac%indcbmz,1,ntr,'mod_che_common:trac%indcbmz') 
+      call getmem1d(trac%mw,1,ntr,'mod_che_common:trac%mw')  
 
+      call getmem4d(chia,jce1-ma%jbl2,jce2+ma%jbr2, &
+                    ice1-ma%ibb2,ice2+ma%ibt2,1,kz,1,ntr,'che_common:chia')
+      if ( isladvec == 1 ) then
+        call getmem4d(chib,jce1-ma%jbl4,jce2+ma%jbr4, &
+                      ice1-ma%ibb4,ice2+ma%ibt4,1,kz,1,ntr,'che_common:chib')
+        call getmem4d(chi,jce1-ma%jbl4,jce2+ma%jbr4, &
+                      ice1-ma%ibb4,ice2+ma%ibt4,1,kz,1,ntr,'che_common:chi')
+      else
+        call getmem4d(chib,jce1-ma%jbl2,jce2+ma%jbr2, &
+                      ice1-ma%ibb2,ice2+ma%ibt2,1,kz,1,ntr,'che_common:chib')
+        call getmem4d(chi,jce1-ma%jbl1,jce2+ma%jbr1, &
+                      ice1-ma%ibb1,ice2+ma%ibt1,1,kz,1,ntr,'che_common:chi')
+      end if
+      call getmem4d(chic,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chic')
+      call getmem4d(chiten,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chiten')
+      call getmem4d(chemten,jce1,jce2, &
+                    ice1,ice2,1,kz,1,ntr,'che_common:chemten')
 
-        call getmem4d(chia,jce1-ma%jbl2,jce2+ma%jbr2, &
-                      ice1-ma%ibb2,ice2+ma%ibt2,1,kz,1,ntr,'che_common:chia')
-        if ( isladvec == 1 ) then
-          call getmem4d(chib,jce1-ma%jbl4,jce2+ma%jbr4, &
-                        ice1-ma%ibb4,ice2+ma%ibt4,1,kz,1,ntr,'che_common:chib')
-          call getmem4d(chi,jce1-ma%jbl4,jce2+ma%jbr4, &
-                        ice1-ma%ibb4,ice2+ma%ibt4,1,kz,1,ntr,'che_common:chi')
-        else
-          call getmem4d(chib,jce1-ma%jbl2,jce2+ma%jbr2, &
-                        ice1-ma%ibb2,ice2+ma%ibt2,1,kz,1,ntr,'che_common:chib')
-          call getmem4d(chi,jce1-ma%jbl1,jce2+ma%jbr1, &
-                        ice1-ma%ibb1,ice2+ma%ibt1,1,kz,1,ntr,'che_common:chi')
-        end if
-        call getmem4d(chic,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chic')
-        call getmem4d(chiten,jce1,jce2,ice1,ice2,1,kz,1,ntr,'che_common:chiten')
-        call getmem4d(chemten,jce1,jce2, &
-                      ice1,ice2,1,kz,1,ntr,'che_common:chemten')
+      call getmem3d(chemsrc,jce1,jce2,ice1,ice2, &
+                    1,ntr,'mod_che_common:chemsrc')
 
-        call getmem3d(chemsrc,jce1,jce2,ice1,ice2, &
-                      1,ntr,'mod_che_common:chemsrc')
+      call getmem3d(tmpsrc,jce1,jce2,ice1,ice2, &
+                    1,ntr,'mod_che_common:tmpsrc')
 
-        call getmem3d(tmpsrc,jce1,jce2,ice1,ice2, &
-                      1,ntr,'mod_che_common:tmpsrc')
-
-        call getmem3d(chifxuw,jci1,jci2,ici1,ici2, &
-                      1,ntr,'mod_che_common:chifxuw')
+      call getmem3d(chifxuw,jci1,jci2,ici1,ici2, &
+                    1,ntr,'mod_che_common:chifxuw')
        
-        call getmem3d(convcldfra,jci1,jci2,ici1,ici2, &
-                      1,kz,'mod_che_common:convcldfra')
+      call getmem3d(convcldfra,jci1,jci2,ici1,ici2, &
+                    1,kz,'mod_che_common:convcldfra')
         
-        call getmem4d(rxsg,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
-                      'che_common:rxsg')
-        call getmem4d(rxsaq1,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
-                      'che_common:rxsaq1')
-        call getmem4d(rxsaq2,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
-                      'che_common:rxsaq2')
-        call getmem4d(remlsc,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
-                      'che_common:remlsc')
-        call getmem4d(remcvc,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
-                      'che_common:remcvc')
-        call getmem3d(remdrd,jce1,jce2,ice1,ice2,1,ntr,'che_common:remdrd')
+      call getmem4d(rxsg,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
+                    'che_common:rxsg')
+      call getmem4d(rxsaq1,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
+                    'che_common:rxsaq1')
+      call getmem4d(rxsaq2,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
+                    'che_common:rxsaq2')
+      call getmem4d(remlsc,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
+                    'che_common:remlsc')
+      call getmem4d(remcvc,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
+                    'che_common:remcvc')
+      call getmem3d(remdrd,jce1,jce2,ice1,ice2,1,ntr,'che_common:remdrd')
 
-        call getmem1d(chtrsol,1,ntr,'mod_che_common:chtrsol')
-        call getmem1d(idust,1,nbin,'mod_che_common:idust')
-        call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
-        call getmem1d(icarb,1,7,'mod_che_common:icarb')
-        call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')       
+      call getmem1d(chtrsol,1,ntr,'mod_che_common:chtrsol')
+      call getmem1d(idust,1,nbin,'mod_che_common:idust')
+      call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
+      call getmem1d(icarb,1,7,'mod_che_common:icarb')
+      call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')       
 
-        call getmem4d(chemall,jci1,jci2,ici1,ici2, &
-                      1,kz,1,totsp,'mod_che_common:chemall')
-        call getmem3d(srclp2,jci1,jci2,ici1,ici2,1,ntr,'mod_che_common:srclp2')
-        call getmem4d(jphoto,jci1,jci2,ici1,ici2,1,kz, &
-          1,nphoto,'che_common:jphoto')
+      call getmem4d(chemall,jci1,jci2,ici1,ici2, &
+                    1,kz,1,totsp,'mod_che_common:chemall')
+      call getmem3d(srclp2,jci1,jci2,ici1,ici2,1,ntr,'mod_che_common:srclp2')
+      call getmem4d(jphoto,jci1,jci2,ici1,ici2,1,kz, &
+                    1,nphoto,'che_common:jphoto')
 
-        call getmem3d(dtrace,jce1,jce2,ice1,ice2,1,ntr,'che_common:dtrace')
-        call getmem3d(wdlsc,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdlsc')
-        call getmem3d(wdcvc,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdcvc')
+      call getmem3d(dtrace,jce1,jce2,ice1,ice2,1,ntr,'che_common:dtrace')
+      call getmem3d(wdlsc,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdlsc')
+      call getmem3d(wdcvc,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdcvc')
  
-        call getmem3d(wxsg,jce1,jce2,ice1,ice2,1,ntr,'che_common:wxsg')
-        call getmem3d(wxaq,jce1,jce2,ice1,ice2,1,ntr,'che_common:wxaq')
-        call getmem3d(cemtrac,jce1,jce2,ice1,ice2,1,ntr,'che_common:cemtrac')
-        call getmem3d(drydepv,jce1,jce2,ice1,ice2,1,ntr,'che_common:drydepv')
-        call getmem3d(ddv_out,jce1,jce2,ice1,ice2,1,ntr,'che_common:ddv_out')
+      call getmem3d(wxsg,jce1,jce2,ice1,ice2,1,ntr,'che_common:wxsg')
+      call getmem3d(wxaq,jce1,jce2,ice1,ice2,1,ntr,'che_common:wxaq')
+      call getmem3d(cemtrac,jce1,jce2,ice1,ice2,1,ntr,'che_common:cemtrac')
+      call getmem3d(drydepv,jce1,jce2,ice1,ice2,1,ntr,'che_common:drydepv')
+      call getmem3d(ddv_out,jce1,jce2,ice1,ice2,1,ntr,'che_common:ddv_out')
 
-        if ( ichdiag > 0 ) then 
-          call getmem4d(chiten0,jce1,jce2, &
-                        ice1,ice2,1,kz,1,ntr,'che_common:chiten0')
-          call getmem4d(chemdiag,jce1,jce2, &
-                        ice1,ice2,1,kz,1,ntr,'che_common:chemdiag')
-          call getmem4d(cadvhdiag,jce1,jce2, &
-                        ice1,ice2,1,kz,1,ntr,'che_common:cadvhdiag')
-          call getmem4d(cadvvdiag,jce1,jce2, &
-                        ice1,ice2,1,kz,1,ntr,'che_common:cadvvdiag')
-          call getmem4d(cdifhdiag,jce1,jce2, &
-                        ice1,ice2,1,kz,1,ntr,'che_common:cdifhdiag')
-          call getmem4d(cconvdiag,jce1,jce2, &
-                        ice1,ice2,1,kz,1,ntr,'che_common:cconvdiag')
-          call getmem4d(ctbldiag,jce1,jce2, &
-                        ice1,ice2,1,kz,1,ntr,'che_common:ctbldiag')
-          call getmem4d(cbdydiag,jce1,jce2, &
-                        ice1,ice2,1,kz,1,ntr,'che_common:cbdydiag')
-          call getmem4d(cseddpdiag,jce1,jce2, &
-                        ice1,ice2,1,kz,1,ntr,'che_common:cseddpdiag')
-          call getmem4d(cemisdiag,jce1,jce2, &
-                        ice1,ice2,1,kz,1,ntr,'che_common:cemisdiag')
-        end if
+      if ( ichdiag > 0 ) then 
+        call getmem4d(chiten0,jce1,jce2, &
+                      ice1,ice2,1,kz,1,ntr,'che_common:chiten0')
+        call getmem4d(chemdiag,jce1,jce2, &
+                      ice1,ice2,1,kz,1,ntr,'che_common:chemdiag')
+        call getmem4d(cadvhdiag,jce1,jce2, &
+                      ice1,ice2,1,kz,1,ntr,'che_common:cadvhdiag')
+        call getmem4d(cadvvdiag,jce1,jce2, &
+                      ice1,ice2,1,kz,1,ntr,'che_common:cadvvdiag')
+        call getmem4d(cdifhdiag,jce1,jce2, &
+                      ice1,ice2,1,kz,1,ntr,'che_common:cdifhdiag')
+        call getmem4d(cconvdiag,jce1,jce2, &
+                      ice1,ice2,1,kz,1,ntr,'che_common:cconvdiag')
+        call getmem4d(ctbldiag,jce1,jce2, &
+                      ice1,ice2,1,kz,1,ntr,'che_common:ctbldiag')
+        call getmem4d(cbdydiag,jce1,jce2, &
+                      ice1,ice2,1,kz,1,ntr,'che_common:cbdydiag')
+        call getmem4d(cseddpdiag,jce1,jce2, &
+                      ice1,ice2,1,kz,1,ntr,'che_common:cseddpdiag')
+        call getmem4d(cemisdiag,jce1,jce2, &
+                      ice1,ice2,1,kz,1,ntr,'che_common:cemisdiag')
+      end if
 #if (defined VOC && defined CLM)
-        call getmem1d(bvoc_trmask,1,ntr,'mod_che_common:bvoc_trmask')
+      call getmem1d(bvoc_trmask,1,ntr,'mod_che_common:bvoc_trmask')
 #endif
-      end if
-    end subroutine allocate_mod_che_common
+    end if
+  end subroutine allocate_mod_che_common
 !
-    subroutine chem_config
-      implicit none
-      ! Define here the possible types of simulation and fix the dimension
-      ! of relevant tracer dimension and parameters 
-      igaschem = 0
-      iaerosol = 0
-      iisoropia = 0
-      if ( chemsimtype(1:4) == 'DUST' ) then
-        ntr = nbin
-        allocate(chtrname(nbin))
-        chtrname(1:ntr)(1:6) = (/'DUST01','DUST02','DUST03','DUST04'/)
-        iaerosol = 1
-        if ( myid == italk ) write(stdout,*) 'DUST simulation'
-      else if ( chemsimtype(1:4) == 'SSLT' ) then 
-        ntr = sbin
-        allocate(chtrname(ntr))
-        chtrname(1:ntr)(1:6) = (/'SSLT01','SSLT02'/)
-        iaerosol = 1
-        if ( myid == italk ) write(stdout,*) 'SSLT simulation'
-      else if ( chemsimtype(1:4) == 'DUSS' ) then
-        ntr = sbin + nbin
-        allocate(chtrname(ntr))
-        chtrname(1:ntr)(1:6) = (/'DUST01','DUST02','DUST03','DUST04', &
-                                 'SSLT01','SSLT02'/)
-        iaerosol = 1
-        if ( myid == italk ) write(stdout,*) 'DUSS simulation'
-       else if ( chemsimtype(1:4) == 'CARB' ) then 
-        ntr = 4
-        allocate(chtrname(ntr))
-        chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB '/)
-        iaerosol = 1
-        if ( myid == italk ) write(stdout,*) 'CARB simulation'
-      else if ( chemsimtype(1:4) == 'SULF' ) then 
-        ntr = 2
-        allocate(chtrname(ntr))
-        chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   '/)
-        iaerosol = 1
-        ioxclim  = 1
-        if ( myid == italk ) write(stdout,*) 'SULF simulation'
-      else if ( chemsimtype(1:4) == 'SUCA' ) then 
-        ntr = 6
-        allocate(chtrname(ntr))
-        chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
-                                 'SO2   ','SO4   '/)
-        iaerosol = 1
-        ioxclim  = 1
-        if ( myid == italk ) write(stdout,*) 'SUCA simulation'
-      else if ( chemsimtype(1:4) == 'AERO' ) then 
-        ntr = 12 
-        allocate(chtrname(ntr))
-        iaerosol = 1
-        ioxclim  = 1
-        chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
-                                 'SO2   ','SO4   ','DUST01','DUST02', &
-                                 'DUST03','DUST04','SSLT01','SSLT02' /)
-        if ( myid == italk ) write(stdout,*) 'AERO simulation'
-      else if ( chemsimtype(1:4) == 'DCCB' ) then 
-        ntr = 50
-        allocate(chtrname(ntr))      
-        chtrname(1:ntr)(1:6) = (/'NO    ','NO2   ','N2O5  ','HNO2  ',&
-                                 'HNO3  ','HNO4  ','O3    ','H2O2  ',&
-                                 'CO    ','SO2   ','DMS   ','H2SO4 ',&
-                                 'CH4   ','C2H6  ','PAR   ','CH3OH ',&
-                                 'HCHO  ','ALD2  ','AONE  ','ETH   ',&
-                                 'OLET  ','OLEI  ','TOL   ','XYL   ',&
-                                 'ISOP  ','ONIT  ','PAN   ','HCOOH ',&
-                                 'RCOOH ','CH3OOH','ETHOOH','ROOH  ',&
-                                 'MGLY  ','ISOPRD','ISOPN ','OPEN  ',&
-                                 'CRES  ','NH3   ','DUST01','DUST02',&
-                                 'DUST03','DUST04','BC_HL ','BC_HB ',&
-                                 'OC_HL ','OC_HB ','SSLT01','SSLT02',&
-                                 'ANO3  ','ANH4  ' /)
-        iaerosol = 1
-        igaschem = 1
-        iisoropia = 1
-        if ( myid == italk ) write(stdout,*) 'DCCB simulation'
-      else if ( chemsimtype(1:4) == 'CBMZ' ) then 
-!This does not include any aerosol(NH3) or monoterpens(APIN, LIMO)
-        ntr = 37
-        allocate(chtrname(ntr))      
-        chtrname(1:ntr)(1:6) = (/'NO    ','NO2   ','N2O5  ','HNO2  ',&
-                                 'HNO3  ','HNO4  ','O3    ','H2O2  ',&
-                                 'CO    ','SO2   ','DMS   ','H2SO4 ',&
-                                 'CH4   ','C2H6  ','PAR   ','CH3OH ',&
-                                 'HCHO  ','ALD2  ','AONE  ','ETH   ',&
-                                 'OLET  ','OLEI  ','TOL   ','XYL   ',&
-                                 'ISOP  ','ONIT  ','PAN   ','HCOOH ',&
-                                 'RCOOH ','CH3OOH','ETHOOH','ROOH  ',&
-                                 'MGLY  ','ISOPRD','ISOPN ','OPEN  ',&
-                                 'CRES  '/)
-        igaschem = 1
-        if ( myid == italk ) write(stdout,*) 'CBMZ simulation'
-      else if ( chemsimtype(1:6) == 'POLLEN' ) then 
-        ntr = 1
-        allocate(chtrname(ntr))      
-        chtrname(1:ntr)(1:6) = (/'POLLEN' /)
-        iaerosol = 1
-        if ( myid == italk ) write(stdout,*) 'POLLEN simulation'
-      else 
-        if ( myid == italk ) then
-          write (stderr,*) 'Not a valid chemtype simulation : STOP !'
-          write (stderr,*) 'Valid simulations are : ' , &
-             'DUST SSLT DUSS CARB SULF SUCA AERO CBMZ DCCB POLLEN'
-        end if
-        call fatal(__FILE__,__LINE__,'INVALID CHEM CONFIGURATION')
+  subroutine chem_config
+    implicit none
+    ! Define here the possible types of simulation and fix the dimension
+    ! of relevant tracer dimension and parameters 
+    igaschem = 0
+    iaerosol = 0
+    iisoropia = 0
+    if ( chemsimtype(1:4) == 'DUST' ) then
+      ntr = nbin
+      allocate(chtrname(nbin))
+      chtrname(1:ntr)(1:6) = (/'DUST01','DUST02','DUST03','DUST04'/)
+      iaerosol = 1
+      if ( myid == italk ) write(stdout,*) 'DUST simulation'
+    else if ( chemsimtype(1:4) == 'SSLT' ) then 
+      ntr = sbin
+      allocate(chtrname(ntr))
+      chtrname(1:ntr)(1:6) = (/'SSLT01','SSLT02'/)
+      iaerosol = 1
+      if ( myid == italk ) write(stdout,*) 'SSLT simulation'
+    else if ( chemsimtype(1:4) == 'DUSS' ) then
+      ntr = sbin + nbin
+      allocate(chtrname(ntr))
+      chtrname(1:ntr)(1:6) = (/'DUST01','DUST02','DUST03','DUST04', &
+                               'SSLT01','SSLT02'/)
+      iaerosol = 1
+      if ( myid == italk ) write(stdout,*) 'DUSS simulation'
+    else if ( chemsimtype(1:4) == 'CARB' ) then 
+      ntr = 4
+      allocate(chtrname(ntr))
+      chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB '/)
+      iaerosol = 1
+      if ( myid == italk ) write(stdout,*) 'CARB simulation'
+    else if ( chemsimtype(1:4) == 'SULF' ) then 
+      ntr = 2
+      allocate(chtrname(ntr))
+      chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   '/)
+      iaerosol = 1
+      ioxclim  = 1
+      if ( myid == italk ) write(stdout,*) 'SULF simulation'
+    else if ( chemsimtype(1:4) == 'SUCA' ) then 
+      ntr = 6
+      allocate(chtrname(ntr))
+      chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
+                               'SO2   ','SO4   '/)
+      iaerosol = 1
+      ioxclim  = 1
+      if ( myid == italk ) write(stdout,*) 'SUCA simulation'
+    else if ( chemsimtype(1:4) == 'AERO' ) then 
+      ntr = 12 
+      allocate(chtrname(ntr))
+      iaerosol = 1
+      ioxclim  = 1
+      chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
+                               'SO2   ','SO4   ','DUST01','DUST02', &
+                               'DUST03','DUST04','SSLT01','SSLT02' /)
+      if ( myid == italk ) write(stdout,*) 'AERO simulation'
+    else if ( chemsimtype(1:4) == 'DCCB' ) then 
+      ntr = 50
+      allocate(chtrname(ntr))      
+      chtrname(1:ntr)(1:6) = (/'NO    ','NO2   ','N2O5  ','HNO2  ',&
+                               'HNO3  ','HNO4  ','O3    ','H2O2  ',&
+                               'CO    ','SO2   ','DMS   ','H2SO4 ',&
+                               'CH4   ','C2H6  ','PAR   ','CH3OH ',&
+                               'HCHO  ','ALD2  ','AONE  ','ETH   ',&
+                               'OLET  ','OLEI  ','TOL   ','XYL   ',&
+                               'ISOP  ','ONIT  ','PAN   ','HCOOH ',&
+                               'RCOOH ','CH3OOH','ETHOOH','ROOH  ',&
+                               'MGLY  ','ISOPRD','ISOPN ','OPEN  ',&
+                               'CRES  ','NH3   ','DUST01','DUST02',&
+                               'DUST03','DUST04','BC_HL ','BC_HB ',&
+                               'OC_HL ','OC_HB ','SSLT01','SSLT02',&
+                               'ANO3  ','ANH4  ' /)
+      iaerosol = 1
+      igaschem = 1
+      iisoropia = 1
+      if ( myid == italk ) write(stdout,*) 'DCCB simulation'
+    else if ( chemsimtype(1:4) == 'CBMZ' ) then 
+      ! This does not include any aerosol(NH3) or monoterpens(APIN, LIMO)
+      ntr = 37
+      allocate(chtrname(ntr))      
+      chtrname(1:ntr)(1:6) = (/'NO    ','NO2   ','N2O5  ','HNO2  ',&
+                               'HNO3  ','HNO4  ','O3    ','H2O2  ',&
+                               'CO    ','SO2   ','DMS   ','H2SO4 ',&
+                               'CH4   ','C2H6  ','PAR   ','CH3OH ',&
+                               'HCHO  ','ALD2  ','AONE  ','ETH   ',&
+                               'OLET  ','OLEI  ','TOL   ','XYL   ',&
+                               'ISOP  ','ONIT  ','PAN   ','HCOOH ',&
+                               'RCOOH ','CH3OOH','ETHOOH','ROOH  ',&
+                               'MGLY  ','ISOPRD','ISOPN ','OPEN  ',&
+                               'CRES  '/)
+      igaschem = 1
+      if ( myid == italk ) write(stdout,*) 'CBMZ simulation'
+    else if ( chemsimtype(1:6) == 'POLLEN' ) then 
+      ntr = 1
+      allocate(chtrname(ntr))      
+      chtrname(1:ntr)(1:6) = (/'POLLEN' /)
+      iaerosol = 1
+      if ( myid == italk ) write(stdout,*) 'POLLEN simulation'
+    else 
+      if ( myid == italk ) then
+        write (stderr,*) 'Not a valid chemtype simulation : STOP !'
+        write (stderr,*) 'Valid simulations are : ' , &
+           'DUST SSLT DUSS CARB SULF SUCA AERO CBMZ DCCB POLLEN'
       end if
+      call fatal(__FILE__,__LINE__,'INVALID CHEM CONFIGURATION')
+    end if
 
-    end subroutine chem_config
+  end subroutine chem_config
 
 end module mod_che_common

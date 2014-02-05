@@ -892,7 +892,7 @@ contains
     end if
     
     dtime = int(dtsrf)
-    call get_curr_date(idatex,year,month,day,secs)
+    call curr_date(idatex,year,month,day,secs)
     
     ! Determine clmtype variables needed for history output and communication with atm
     ! Loop over urban pfts
@@ -2788,7 +2788,7 @@ contains
 
     ! Get current date
     dtime = int(dtsrf)
-    call get_curr_date(idatex,year,month,day,secs)
+    call curr_date(idatex,year,month,day,secs)
     
     ! Compute canyontop wind using Masson (2000)
 

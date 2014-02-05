@@ -196,7 +196,7 @@ contains
     integer :: ihost
     integer :: ier                     ! error status
     integer :: mdcur, mscur, mcdate    ! outputs from get_curr_time
-    integer :: yr,mon,day,mcsec        ! outputs from get_curr_date
+    integer :: yr,mon,day,mcsec        ! outputs from curr_date
     integer :: hours,minutes,secs      ! hours,minutes,seconds of hh:mm:ss
     integer :: nstep                   ! time step
     integer :: nbsec                   ! seconds components of a date
@@ -317,7 +317,7 @@ contains
     end if
     
     call get_curr_time(idatex,mdcur, mscur)
-    call get_ref_date(yr,mon,day,nbsec)
+    call ref_date(yr,mon,day,nbsec)
     hours   = nbsec / 3600
     minutes = (nbsec - hours*3600) / 60
     secs    = (nbsec - hours*3600 - minutes*60)
@@ -401,7 +401,7 @@ contains
 
     ! Write current date, current seconds, current day, current nstep
 
-    call get_curr_date(idatex,yr,mon,day,mcsec)
+    call curr_date(idatex,yr,mon,day,mcsec)
     mcdate = yr*10000 + mon*100 + day
     nstep = get_nstep()
 
@@ -482,7 +482,7 @@ contains
     integer :: sec                    !seconds into current day
 !-----------------------------------------------------------------------
 
-    call get_curr_date(idatex,yr,mon,day,sec)
+    call curr_date(idatex,yr,mon,day,sec)
     write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day,sec
     set_dgvm_filename = "./"//trim(caseid)//".clm2"//trim(inst_suffix)//&
                         ".hv."//trim(cdate)//".nc"

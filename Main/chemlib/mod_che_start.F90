@@ -218,20 +218,20 @@ module mod_che_start
 
       do n = 1,totsp
        if ( chtrname(itr) == cbmzspec(n))then 
-        trac%indcbmz(itr) = n     ! index of the tracer in the CBMZ list of species
+        trac%indcbmz(itr) = n  ! index of the tracer in the CBMZ list of species
         trac%mw(itr) = mw_cbmz(n) ! correponding molecular weight 
        end if
       end do
 
-       if ( myid == italk ) then
-       if(itr == 1)  write(*,*) 'tracer', 'cbmz index','molw' 
-       write(*,*) chtrname(itr),  trac%indcbmz(itr),  trac%mw(itr)
-       end if
+      if ( myid == italk ) then
+        if ( itr == 1 )  write(*,*) 'tracer', 'cbmz index','molw' 
+        write(*,*) chtrname(itr),  trac%indcbmz(itr),  trac%mw(itr)
+      end if
 
-!!$ Define also some specific indices for practical purpose
-!  Not all the possible cbmz species have a tracer index:
-!  however this information is also contained in trac%indcbmz table 
-! 
+      !!$ Define also some specific indices for practical purpose
+      !  Not all the possible cbmz species have a tracer index:
+      !  however this information is also contained in trac%indcbmz table 
+      ! 
       if ( chtrname(itr) == 'O3'    ) io3       = itr
       if ( chtrname(itr) == 'NO'    ) ino       = itr
       if ( chtrname(itr) == 'NO2'   ) ino2      = itr
@@ -294,8 +294,7 @@ module mod_che_start
       if ( chtrname(itr) == 'APIN'  ) iapin     = itr
       if ( chtrname(itr) == 'LIMO'  ) ilimo     = itr
       if ( chtrname(itr) == 'CO2'  )  ico2      = itr
-!!$
-
+      !!$
 
       if ( chtrname(itr) == 'POLLEN') ipollen   = itr
 
@@ -397,7 +396,7 @@ module mod_che_start
         ichbdy2trac(23) = iso2
         ichbdy2trac(24) = iso4
         ichbdy2trac(25) = idms
-! fab add a temporary case for debugging
+        ! fab add a temporary case for debugging
      case ('CBM1')
         ichbdy2trac(1)  = io3
         ichbdy2trac(2)  = ino
@@ -467,13 +466,13 @@ module mod_che_start
 
     if ( igaschem == 1 ) then
       open(26,file='TUVGRID2', status='old', err=900)
-!not used in KPP 
-!      open(25,file='REACTION.DAT_CBMZ', status='old', err=901)
-!      open(27,file='cbmz_chemmech.out', status='replace', err=902)
-902   continue
-!      call chemread
+      ! not used in KPP 
+!       open(25,file='REACTION.DAT_CBMZ', status='old', err=901)
+!       open(27,file='cbmz_chemmech.out', status='replace', err=902)
+! 902   continue
+!       call chemread
       call hvread
-!      call cheminit
+!       call cheminit
     end if
 
     call init_mod_che_ncio(chemsimtype)
@@ -491,13 +490,13 @@ module mod_che_start
         end do
       end do
     end if
-!
+
     return
 
 900 write(stderr,*) 'Cannot open required file TUVGRID2.'
     call fatal(__FILE__,__LINE__,'TUVGRID2 NOT FOUND')
-901 write(stderr,*) 'Cannot open required file REACTION.DAT_CBMZ.'
-    call fatal(__FILE__,__LINE__,'REACTION.DAT_CBMZ NOT FOUND')
+!901 write(stderr,*) 'Cannot open required file REACTION.DAT_CBMZ.'
+!    call fatal(__FILE__,__LINE__,'REACTION.DAT_CBMZ NOT FOUND')
 
   end subroutine start_chem
 

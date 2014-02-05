@@ -219,7 +219,7 @@ module mod_clm_initialize
                                  restFile_open, restFile_close, restFile_read 
     use accFldsMod      , only : initAccFlds, initAccClmtype
     use DustMod         , only : Dustini
-    use clm_time_manager, only : get_curr_date, advance_timestep, &
+    use clm_time_manager, only : curr_date, advance_timestep, &
                                  timemgr_init, timemgr_restart_io, timemgr_restart
     use clm_time_manager, only : get_step_size, get_curr_calday
     use fileutils       , only : getfil
@@ -471,7 +471,7 @@ module mod_clm_initialize
       else
         write(stdout,*) 'begin continuation run at:'
       end if
-      call get_curr_date(yr, mon, day, ncsec)
+      call curr_date(yr, mon, day, ncsec)
       write(stdout,*) '   ktau= ',ktau, ' year= ',yr,' month= ',mon,&
             ' day= ',day,' seconds= ',ncsec
       write(stdout,*)

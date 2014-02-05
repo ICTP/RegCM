@@ -1850,7 +1850,7 @@ subroutine lnfm_interp( )
 !
 ! !USES:
    use decompMod       , only : get_proc_bounds
-   use clm_time_manager, only : get_curr_date
+   use clm_time_manager, only : curr_date
 !
 ! !ARGUMENTS:
    implicit none
@@ -1865,7 +1865,7 @@ subroutine lnfm_interp( )
 !EOP
 !-----------------------------------------------------------------------
 
-   call get_curr_date(year, mon, day, sec)
+   call curr_date(year, mon, day, sec)
    mcdate = year*10000 + mon*100 + day
 
    call shr_strdata_advance(sdat_lnfm, mcdate, sec, mpicom, 'lnfmdyn')
