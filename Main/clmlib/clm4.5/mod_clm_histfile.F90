@@ -4,6 +4,7 @@ module mod_clm_histfile
   !
   use mod_intkinds
   use mod_realkinds
+  use mod_date
   use mod_clm_type
   use mod_clm_netcdfhelper
   use mod_clm_varcon , only : spval , ispval
@@ -11,13 +12,14 @@ module mod_clm_histfile
   use mod_clm_varcon , only : dzsoi_decomp
   use mod_clm_subgridave , only : p2g , c2g , l2g
   use mod_clm_time_manager , only : get_prev_time
+  use mod_clm_varcon , only : zsoi , zlak
   use mod_clm_varcon , only : secspday
   use mod_clm_varpar , only : nlevgrnd , nlevlak , nlevurb , numrad , &
                               maxpatch_glcmec , nlevdecomp_full
   use mod_clm_varctl , only : caseid , ctitle , fsurdat , finidat , fpftcon , &
                               version , hostname , username , conventions ,   &
                               source
-  use mod_clm_domain , only : ldomain
+  use mod_clm_domain , only : ldomain , lon1d , lat1d
 
   implicit none
 
@@ -295,17 +297,8 @@ module mod_clm_histfile
   type(clm_filetype) :: nfid(max_tapes)
   ! file ids for history restart files
   type(clm_filetype) :: ncid_hist(max_tapes)
-  ! time dimension id
-  integer(ik4) :: time_dimidi
-  ! time bounds dimension id
-  integer(ik4) :: hist_interval_dimid
   ! string dimension id
   integer(ik4) :: strlen_dimid
-  !
-  ! Time Constant variable names and filename
-  !
-  character(len=max_chars) :: TimeConst3DVars_Filename = ' '
-  character(len=max_chars) :: TimeConst3DVars = ' '
 
   contains
   !
@@ -1668,7 +1661,7 @@ module mod_clm_histfile
     call clm_adddim(lnfid, 'levdcmp', nlevdecomp_full)
     if ( .not. lhistrest ) then
       call clm_adddim(lnfid, 'hist_interval', 2)
-      call clm_adddim(lnfid, 'time', ncd_unlimited)
+      call clm_adddim(lnfid, 'time', clmvar_unlim)
       nfid(t) = lnfid
       if ( myid == italk ) then
         write(stdout,*) trim(subname), &
@@ -1762,21 +1755,16 @@ module mod_clm_histfile
                      long_name=long_name, units=units, &
                      missing_value=spval, fill_value=spval)
           else
-            call ncd_defvar(clmvar_double,ncid=nfid(t), &
+            call clm_addvar(clmvar_double,ncid=nfid(t), &
                      varname=trim(varnames(ifld)), (/grlnd,'levgrnd'/), &
                      long_name=long_name, units=units, &
                      missing_value=spval, fill_value=spval)
           end if
         else
-          call ncd_defvar(clmvar_double,ncid=nfid(t), &
+          call clm_addvar(clmvar_double,ncid=nfid(t), &
                   varname=trim(varnames(ifld)), (/namec,'levgrnd'/), &
                   long_name=long_name, units=units, &
                   missing_value=spval, fill_value=spval)
-        end if
-        if ( len_trim(TimeConst3DVars) == 0 )
-          TimeConst3DVars = trim(varnames(ifld))
-        else
-          TimeConst3DVars = trim(TimeConst3DVars)//':'//trim(varnames(ifld))
         end if
       end do
     else if (mode == 'write') then
@@ -1894,11 +1882,6 @@ module mod_clm_histfile
                    long_name=long_name, units=units, &
                    missing_value=spval, fill_value=spval)
         end if
-        if ( len_trim(TimeConst3DVars) == 0 )
-          TimeConst3DVars = trim(varnamesl(ifld))
-        else
-          TimeConst3DVars = trim(TimeConst3DVars)//':'//trim(varnamesl(ifld))
-        end if
       end do
     else if ( mode == 'write' ) then
 
@@ -1961,274 +1944,190 @@ module mod_clm_histfile
   ! contents.
   !
   subroutine htape_timeconst(t, mode)
-    use clm_varcon   , only : zsoi, zlak, secspday
-    use domainMod    , only : ldomain, lon1d, lat1d
-    use clm_time_manager, only : get_nstep, curr_date, get_curr_time
-    use clm_time_manager, only : ref_date, get_calendar, NO_LEAP_C, GREGORIAN_C
-!
-! !ARGUMENTS:
     implicit none
-    integer(ik4), intent(in) :: t              ! tape index
-    character(len=*), intent(in) :: mode  ! 'define' or 'write'
-!
-! !REVISION HISTORY:
-! Created by Mariana Vertenstein
-!
-!
-! !LOCAL VARIABLES:
-!EOP
-    integer(ik4) :: vid,n,i,j,m                ! indices
-    integer(ik4) :: nstep                      ! current step
-    integer(ik4) :: mcsec                      ! seconds of current date
-    integer(ik4) :: mdcur                      ! current day
-    integer(ik4) :: mscur                      ! seconds of current day
-    integer(ik4) :: mcdate                     ! current date
-    integer(ik4) :: yr,mon,day,nbsec           ! year,month,day,seconds components of a date
-    integer(ik4) :: hours,minutes,secs         ! hours,minutes,seconds of hh:mm:ss
-    character(len= 10) :: basedate        ! base date (yyyymmdd)
-    character(len=  8) :: basesec         ! base seconds
-    character(len=  8) :: cdate           ! system date
-    character(len=  8) :: ctime           ! system time
-    real(rk8):: time                       ! current time
-    real(rk8):: timedata(2)                ! time interval boundaries
-    integer(ik4) :: dim1id(1)                  ! netCDF dimension id
-    integer(ik4) :: dim2id(2)                  ! netCDF dimension id
-    integer(ik4) :: varid                      ! netCDF variable id
-    type(Var_desc_t) :: vardesc           ! netCDF variable description
-    integer(ik4) :: begp, endp                 ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc, endc                 ! per-proc beginning and ending column indices
-    integer(ik4) :: begl, endl                 ! per-proc beginning and ending landunit indices
-    integer(ik4) :: begg, endg                 ! per-proc gridcell ending gridcell indices
+    integer(ik4) , intent(in) :: t          ! tape index
+    character(len=*) , intent(in) :: mode   ! 'define' or 'write'
+    integer(ik4) :: vid , n , i , j , m     ! indices
+    integer(ik4) :: nstep                   ! current step
+    integer(ik4) :: mcsec                   ! seconds of current date
+    integer(ik4) :: mdcur                   ! current day
+    integer(ik4) :: mscur                   ! seconds of current day
+    integer(ik4) :: mcdate                  ! current date
+    integer(ik4) :: yr , mon , day , nbsec  ! year,month,day,seconds
+    integer(ik4) :: hours , minutes , secs  ! hours,minutes,seconds of hh:mm:ss
+    character(len= 10) :: basedate          ! base date (yyyymmdd)
+    character(len=  8) :: basesec           ! base seconds
+    character(len=  8) :: cdate             ! system date
+    character(len=  8) :: ctime             ! system time
+    real(rk8) :: time                       ! current time
+    real(rk8) :: timedata(2)                ! time interval boundaries
+    integer(ik4) :: dim1id(1)               ! netCDF dimension id
+    integer(ik4) :: dim2id(2)               ! netCDF dimension id
+    integer(ik4) :: varid                   ! netCDF variable id
+    type(Var_desc_t) :: vardesc             ! netCDF variable description
+    integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
+    integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
+    integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
     character(len=max_chars) :: long_name ! variable long name
-    character(len=max_namlen):: varname   ! variable name
-    character(len=max_namlen):: units     ! variable units
-    character(len=max_namlen):: cal       ! calendar from the time-manager
-    character(len=max_namlen):: caldesc   ! calendar description to put on file
-    character(len=256):: str              ! global attribute string
-    real(rk8), pointer :: histo(:,:)       ! temporary
-    type(landunit_type), pointer :: lptr  ! pointer to landunit derived subtype
-    type(column_type)  , pointer :: cptr  ! pointer to column derived subtype
+    character(len=max_namlen) :: varname  ! variable name
+    character(len=max_namlen) :: units    ! variable units
+    character(len=max_namlen) :: cal      ! calendar from the time-manager
+    character(len=max_namlen) :: caldesc  ! calendar description to put on file
+    character(len=256) :: str             ! global attribute string
+    real(rk8) , pointer :: histo(:,:)     ! temporary
+    type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
+    type(column_type) , pointer :: cptr   ! pointer to column derived subtype
     integer(ik4) :: status
     real(rk8) :: zsoi_1d(1)
 
-    character(len=*),parameter :: subname = 'htape_timeconst'
-!-----------------------------------------------------------------------
+    character(len=*) , parameter :: subname = 'htape_timeconst'
 
-    !-------------------------------------------------------------------------------
-    !***     Time constant grid variables only on first time-sample of file ***
-    !-------------------------------------------------------------------------------
-    if (tape(t)%ntimes == 1) then
-       if (mode == 'define') then
-          call ncd_defvar(varname='levgrnd', xtype=tape(t)%ncprec, &
-               dim1name='levgrnd', &
-               long_name='coordinate soil levels', units='m', ncid=nfid(t))
-          call ncd_defvar(varname='levlak', xtype=tape(t)%ncprec, &
-               dim1name='levlak', &
-               long_name='coordinate lake levels', units='m', ncid=nfid(t))
-          call ncd_defvar(varname='levdcmp', xtype=tape(t)%ncprec, dim1name='levdcmp', &
-               long_name='coordinate soil levels', units='m', ncid=nfid(t))
-       elseif (mode == 'write') then
-          if ( myid == italk ) write(stdout, *) ' zsoi:',zsoi
-          call ncd_io(varname='levgrnd', data=zsoi            , ncid=nfid(t), flag='write')
-          call ncd_io(varname='levlak' , data=zlak            , ncid=nfid(t), flag='write')
+    ! Time constant grid variables only on first time-sample of file
+
+    if ( tape(t)%ntimes == 1 ) then
+      if (mode == 'define') then
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                     varname='levgrnd',(/'levgrnd'/) , &
+                     long_name='coordinate soil levels', units='m')
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                     varname='levlak',(/'levlak'/) , &
+                     long_name='coordinate lake levels', units='m')
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                     varname='levdcmp',(/'levlak'/) , &
+                     long_name='coordinate soil levels', units='m')
+      else if ( mode == 'write' ) then
+        call clm_writevar(nfid(t),'levgrnd',zsoi)
+        call clm_writevar(nfid(t),'levlak',zlak)
 #ifdef VERTSOILC
-          call ncd_io(varname='levdcmp', data=zsoi            , ncid=nfid(t), flag='write')
+        call clm_writevar(nfid(t),'levdcmp',zsoi)
 #else
-          zsoi_1d(1) = 1.D0
-          call ncd_io(varname='levdcmp', data=zsoi_1d              , ncid=nfid(t), flag='write')
+        zsoi_1d(1) = 1.D0
+        call clm_writevar(nfid(t),'levdcmp',zsoi_1d)
 #endif
-       endif
-    endif
+      end if
+    end if
 
-    !-------------------------------------------------------------------------------
-    !***     Time definition variables ***
-    !-------------------------------------------------------------------------------
+    ! Time definition variables
 
     ! For define mode -- only do this for first time-sample
     if (mode == 'define' .and. tape(t)%ntimes == 1) then
-       call ref_date(yr, mon, day, nbsec)
-       nstep = get_nstep()
-       hours   = nbsec / 3600
-       minutes = (nbsec - hours*3600) / 60
-       secs    = (nbsec - hours*3600 - minutes*60)
-       write(basedate,80) yr,mon,day
-80     format(i4.4,'-',i2.2,'-',i2.2)
-       write(basesec ,90) hours, minutes, secs
-90     format(i2.2,':',i2.2,':',i2.2)
-
-       dim1id(1) = time_dimid
-       str = 'days since ' // basedate // " " // basesec
-       call ncd_defvar(nfid(t), 'time', tape(t)%ncprec, 1, dim1id, varid, &
-            long_name='time',units=str) 
-       cal = get_calendar()
-       if (      trim(cal) == NO_LEAP_C   )then
-          caldesc = "noleap"
-       else if ( trim(cal) == GREGORIAN_C )then
-          caldesc = "gregorian"
-       end if
-       call ncd_putatt(nfid(t), varid, 'calendar', caldesc)
-       call ncd_putatt(nfid(t), varid, 'bounds', 'time_bounds')
-
-       dim1id(1) = time_dimid
-       call ncd_defvar(nfid(t) , 'mcdate', ncd_int, 1, dim1id , varid, &
-          long_name = 'current date (YYYYMMDD)')
-       call ncd_defvar(nfid(t) , 'mcsec' , ncd_int, 1, dim1id , varid, &
-          long_name = 'current seconds of current date', units='s')
-       call ncd_defvar(nfid(t) , 'mdcur' , ncd_int, 1, dim1id , varid, &
-          long_name = 'current day (from base day)')
-       call ncd_defvar(nfid(t) , 'mscur' , ncd_int, 1, dim1id , varid, &
-          long_name = 'current seconds of current day')
-       call ncd_defvar(nfid(t) , 'nstep' , ncd_int, 1, dim1id , varid, &
-          long_name = 'time step')
-
-       dim2id(1) = hist_interval_dimid;  dim2id(2) = time_dimid
-       call ncd_defvar(nfid(t), 'time_bounds', ncd_double, 2, dim2id, varid, &
-          long_name = 'history time interval endpoints')
-
-       dim2id(1) = strlen_dimid;  dim2id(2) = time_dimid
-       call ncd_defvar(nfid(t), 'date_written', ncd_char, 2, dim2id, varid)
-       call ncd_defvar(nfid(t), 'time_written', ncd_char, 2, dim2id, varid)
-
-       if ( len_trim(TimeConst3DVars_Filename) > 0 )then
-          call ncd_putatt(nfid(t), ncd_global, 'Time_constant_3Dvars_filename', &
-                          trim(TimeConst3DVars_Filename))
-       end if
-       if ( len_trim(TimeConst3DVars)          > 0 )then
-          call ncd_putatt(nfid(t), ncd_global, 'Time_constant_3Dvars',          &
-                          trim(TimeConst3DVars))
-       end if
-
-    elseif (mode == 'write') then
-
-       call get_curr_time (mdcur, mscur)
-       call curr_date (yr, mon, day, mcsec)
-       mcdate = yr*10000 + mon*100 + day
-       nstep = get_nstep()
-
-       call ncd_io('mcdate', mcdate, 'write', nfid(t), nt=tape(t)%ntimes)
-       call ncd_io('mcsec' , mcsec , 'write', nfid(t), nt=tape(t)%ntimes)
-       call ncd_io('mdcur' , mdcur , 'write', nfid(t), nt=tape(t)%ntimes)
-       call ncd_io('mscur' , mscur , 'write', nfid(t), nt=tape(t)%ntimes)
-       call ncd_io('nstep' , nstep , 'write', nfid(t), nt=tape(t)%ntimes)
-
-       time = mdcur + mscur/secspday
-       call ncd_io('time'  , time  , 'write', nfid(t), nt=tape(t)%ntimes)
-
-       timedata(1) = tape(t)%begtime
-       timedata(2) = time
-       call ncd_io('time_bounds', timedata, 'write', nfid(t), nt=tape(t)%ntimes)
-
-       call getdatetime (cdate, ctime)
-       call ncd_io('date_written', cdate, 'write', nfid(t), nt=tape(t)%ntimes)
-
-       call ncd_io('time_written', ctime, 'write', nfid(t), nt=tape(t)%ntimes)
-
-    endif
-
-    !-------------------------------------------------------------------------------
-    !***     Grid definition variables ***
-    !-------------------------------------------------------------------------------
-    ! For define mode -- only do this for first time-sample
-    if (mode == 'define' .and. tape(t)%ntimes == 1) then
-
-       if (ldomain%isgrid2d) then
-          call ncd_defvar(varname='lon', xtype=tape(t)%ncprec, dim1name='lon', &
-              long_name='coordinate longitude', units='degrees_east', &
-              ncid=nfid(t), missing_value=spval, fill_value=spval)
-       else
-          call ncd_defvar(varname='lon', xtype=tape(t)%ncprec, &
-              dim1name=grlnd, &
-              long_name='coordinate longitude', units='degrees_east', ncid=nfid(t), &
-              missing_value=spval, fill_value=spval)
-       end if
-       if (ldomain%isgrid2d) then
-          call ncd_defvar(varname='lat', xtype=tape(t)%ncprec, dim1name='lat', &
-              long_name='coordinate latitude', units='degrees_north', &
-              ncid=nfid(t), missing_value=spval, fill_value=spval)
-       else
-          call ncd_defvar(varname='lat', xtype=tape(t)%ncprec, &
-              dim1name=grlnd, &
-              long_name='coordinate latitude', units='degrees_north', ncid=nfid(t), &
-              missing_value=spval, fill_value=spval)
-       end if
-       if (ldomain%isgrid2d) then
-          call ncd_defvar(varname='area', xtype=tape(t)%ncprec, &
-              dim1name='lon', dim2name='lat',&
-              long_name='grid cell areas', units='km^2', ncid=nfid(t), &
-              missing_value=spval, fill_value=spval)
-       else
-          call ncd_defvar(varname='area', xtype=tape(t)%ncprec, &
-              dim1name=grlnd, &
-              long_name='grid cell areas', units='km^2', ncid=nfid(t), &
-              missing_value=spval, fill_value=spval)
-       end if
-       if (ldomain%isgrid2d) then
-          call ncd_defvar(varname='topo', xtype=tape(t)%ncprec, &
-              dim1name='lon', dim2name='lat',&
-              long_name='grid cell topography', units='m', ncid=nfid(t), &
-              missing_value=spval, fill_value=spval)
-       else
-          call ncd_defvar(varname='topo', xtype=tape(t)%ncprec, &
-              dim1name=grlnd, &
-              long_name='grid cell topography', units='m', ncid=nfid(t), &
-              missing_value=spval, fill_value=spval)
-       end if
-       if (ldomain%isgrid2d) then
-          call ncd_defvar(varname='landfrac', xtype=tape(t)%ncprec, &
-              dim1name='lon', dim2name='lat', &
-              long_name='land fraction', ncid=nfid(t), &
-              missing_value=spval, fill_value=spval)
-       else
-          call ncd_defvar(varname='landfrac', xtype=tape(t)%ncprec, &
-              dim1name=grlnd, &
-              long_name='land fraction', ncid=nfid(t), &
-              missing_value=spval, fill_value=spval)
-       end if
-       if (ldomain%isgrid2d) then
-          call ncd_defvar(varname='landmask', xtype=ncd_int, &
-              dim1name='lon', dim2name='lat', &
-              long_name='land/ocean mask (0.=ocean and 1.=land)', ncid=nfid(t), &
-              imissing_value=ispval, ifill_value=ispval)
-       else
-          call ncd_defvar(varname='landmask', xtype=ncd_int, &
-              dim1name=grlnd, &
-              long_name='land/ocean mask (0.=ocean and 1.=land)', ncid=nfid(t), &
-              imissing_value=ispval, ifill_value=ispval)
-       end if
-       if (ldomain%isgrid2d) then
-          call ncd_defvar(varname='pftmask' , xtype=ncd_int, &
-              dim1name='lon', dim2name='lat', &
-              long_name='pft real/fake mask (0.=fake and 1.=real)', ncid=nfid(t), &
-              imissing_value=ispval, ifill_value=ispval)
-       else
-          call ncd_defvar(varname='pftmask' , xtype=ncd_int, &
-              dim1name=grlnd, &
-              long_name='pft real/fake mask (0.=fake and 1.=real)', ncid=nfid(t), &
-              imissing_value=ispval, ifill_value=ispval)
-       end if
-
+      call ref_date(yr, mon, day, nbsec)
+      nstep = get_nstep()
+      hours   = nbsec / 3600
+      minutes = (nbsec - hours*3600) / 60
+      secs    = (nbsec - hours*3600 - minutes*60)
+      write(basedate,80) yr,mon,day
+80    format(i4.4,'-',i2.2,'-',i2.2)
+      write(basesec ,90) hours, minutes, secs
+90    format(i2.2,':',i2.2,':',i2.2)
+      str = 'hours since ' // basedate // " " // basesec
+      call clm_addvar(clmvar_double,ncid=nfid(t), &
+                      varname='time',(/'time'/),long_name='time', units=str)
+      call clm_addatt(nfid(t),'calendar',trim(calendar_str(idatex)),'time')
+      call clm_addatt(nfid(t),'bounds','time_bounds','time')
+      call clm_addvar(clmvar_double,ncid=nfid(t), &
+                      varname='time_bounds',(/'time','hist_interval'/) &
+                      long_name='history time interval endpoints')
     else if (mode == 'write') then
+      call curr_time(idatex,mdcur,mscur)
+      time = mdcur*24.0D0 + mscur/secph
+      call clm_writevar(nfid(t),'time',time,tape(t)%ntimes)
+      timedata(1) = tape(t)%begtime
+      timedata(2) = time
+      call clm_writevar(nfid(t),'time_bounds',timedata,tape(t)%ntimes)
+    end if
 
-       ! Most of this is constant and only needs to be done on tape(t)%ntimes=1
-       ! But, some may change for dynamic PFT mode for example
-       ! Set pointers into derived type and get necessary bounds
+    ! Grid definition variables
+    ! For define mode -- only do this for first time-sample
 
-       lptr => clm3%g%l
-       cptr => clm3%g%l%c
+    if ( mode == 'define' .and. tape(t)%ntimes == 1 ) then
+      if ( ldomain%isgrid2d ) then
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                      varname='lon',(/'lon','lat'/), &
+                      long_name='coordinate longitude', units='degrees_east')
+      else
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                      varname='lon',(/'grlnd'/), &
+                      long_name='coordinate longitude', units='degrees_east')
+      end if
+      if ( ldomain%isgrid2d ) then
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                      varname='lat',(/'lon','lat'/), &
+                      long_name='coordinate latitude', units='degrees_north')
+      else
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                      varname='lat',(/'grlnd'/), &
+                      long_name='coordinate latitude', units='degrees_north')
+      end if
+      if ( ldomain%isgrid2d ) then
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                      varname='area',(/'lon','lat'/), &
+                      long_name='grid cell areas', units='km^2')
+      else
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                      varname='area',(/grlnd/), &
+                      long_name='grid cell areas', units='km^2')
+      end if
+      if ( ldomain%isgrid2d ) then
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                      varname='topo',(/'lon','lat'/), &
+                      long_name='grid cell topography', units='m')
+      else
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                      varname='topo',(/grlnd/), &
+                      long_name='grid cell topography', units='m')
+      end if
+      if ( ldomain%isgrid2d ) then
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                      varname='landfrac',(/'lon','lat'/), &
+                      long_name='land fraction', units='1')
+      else
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                      varname='landfrac',(/grlnd/), &
+                      long_name='land fraction', units='1')
+      end if
+      if ( ldomain%isgrid2d ) then
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                      varname='landmask',(/'lon','lat'/), &
+                      long_name='land/ocean mask', units='1')
+      else
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                      varname='landmask',(/grlnd/), &
+                      long_name='land/ocean mask', units='1')
+      end if
+      if ( ldomain%isgrid2d ) then
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                      varname='pftmask',(/'lon','lat'/), &
+                      long_name='pft real/fake mask', units='1')
+      else
+        call clm_addvar(clmvar_double,ncid=nfid(t), &
+                      varname='pftmask',(/grlnd/), &
+                      long_name='pft real/fake mask', units='1')
+      end if
 
-       call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
+    else if ( mode == 'write' ) then
 
-       if (ldomain%isgrid2d) then
-          call ncd_io(varname='lon', data=lon1d, ncid=nfid(t), flag='write')
-          call ncd_io(varname='lat', data=lat1d, ncid=nfid(t), flag='write')
-       else
-          call ncd_io(varname='lon', data=ldomain%lonc, dim1name=grlnd, ncid=nfid(t), flag='write')
-          call ncd_io(varname='lat', data=ldomain%latc, dim1name=grlnd, ncid=nfid(t), flag='write')
-       end if
-       call ncd_io(varname='area'    , data=ldomain%area, dim1name=grlnd, ncid=nfid(t), flag='write')
-       call ncd_io(varname='landfrac', data=ldomain%frac, dim1name=grlnd, ncid=nfid(t), flag='write')
-       call ncd_io(varname='landmask', data=ldomain%mask, dim1name=grlnd, ncid=nfid(t), flag='write')
-       call ncd_io(varname='pftmask' , data=ldomain%pftm, dim1name=grlnd, ncid=nfid(t), flag='write')
+      ! Most of this is constant and only needs to be done on tape(t)%ntimes=1
+      ! But, some may change for dynamic PFT mode for example
+      ! Set pointers into derived type and get necessary bounds
+
+      lptr => clm3%g%l
+      cptr => clm3%g%l%c
+
+      call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
+
+      if (ldomain%isgrid2d) then
+        call ncd_io(varname='lon', data=lon1d, ncid=nfid(t), flag='write')
+        call ncd_io(varname='lat', data=lat1d, ncid=nfid(t), flag='write')
+      else
+        call ncd_io(varname='lon', data=ldomain%lonc, dim1name=grlnd, ncid=nfid(t), flag='write')
+        call ncd_io(varname='lat', data=ldomain%latc, dim1name=grlnd, ncid=nfid(t), flag='write')
+      end if
+      call ncd_io(varname='area'    , data=ldomain%area, dim1name=grlnd, ncid=nfid(t), flag='write')
+      call ncd_io(varname='landfrac', data=ldomain%frac, dim1name=grlnd, ncid=nfid(t), flag='write')
+      call ncd_io(varname='landmask', data=ldomain%mask, dim1name=grlnd, ncid=nfid(t), flag='write')
+      call ncd_io(varname='pftmask' , data=ldomain%pftm, dim1name=grlnd, ncid=nfid(t), flag='write')
 
     end if  ! (define/write mode
 
