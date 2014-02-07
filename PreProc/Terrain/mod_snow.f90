@@ -88,9 +88,9 @@ module mod_snow
     end if
 
     allocate(snow_in(njx,niy))
-    istat = nf90_inq_varid(ncid,'scv',varid)
+    istat = nf90_inq_varid(ncid,'snv',varid)
     if ( istat /= nf90_noerr ) then
-      write(stderr,*) 'Error finding variable scv in file snow.nc'
+      write(stderr,*) 'Error finding variable snv in file snow.nc'
       return
     end if
 
@@ -98,7 +98,7 @@ module mod_snow
     if ( istat /= nf90_noerr ) then
       istat = nf90_get_var(ncid,varid,snow_in)
       if ( istat /= nf90_noerr ) then
-        write(stderr,*) 'Error reading variable scv in file snow.nc'
+        write(stderr,*) 'Error reading variable snv in file snow.nc'
         return
       end if
     else
@@ -116,7 +116,7 @@ module mod_snow
       icount(3) = 1
       istat = nf90_get_var(ncid,varid,snow_in,istart,icount)
       if ( istat /= nf90_noerr ) then
-        write(stderr,*) 'Error reading variable scv in file snow.nc'
+        write(stderr,*) 'Error reading variable snv in file snow.nc'
         return
       end if
     end if
