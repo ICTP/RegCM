@@ -41,6 +41,28 @@ module mod_clm_initialize
 #endif
   use mod_clm_staticecosysdyn , only : EcosystemDynini , readAnnualVegetation
   use mod_clm_staticecosysdyn , only : interpMonthlyVeg
+  use mod_clm_histflds , only : hist_initFlds , hist_htapes_build
+  use mod_clm_histflds , only : htapes_fieldlist
+  use mod_clm_restfile , only : restFile_getfile, &
+                                 restFile_open, restFile_close, restFile_read 
+    use accFldsMod      , only : initAccFlds, initAccClmtype
+    use DustMod         , only : Dustini
+    use clm_time_manager, only : curr_date, advance_timestep, &
+                                 timemgr_init, timemgr_restart_io, timemgr_restart
+    use clm_time_manager, only : get_step_size, get_curr_calday
+    use fileutils       , only : getfil
+    use UrbanMod        , only : UrbanClumpInit
+    use UrbanInitMod    , only : UrbanInitTimeConst, UrbanInitTimeVar, UrbanInitAero 
+    use UrbanInputMod   , only : UrbanInput
+#if (defined LCH4)
+#endif
+    use clm_glclnd      , only : init_glc2lnd_type, init_lnd2glc_type, &
+                                 clm_x2s, clm_s2x
+    use seq_drydep_mod  , only : n_drydep, drydep_method, DD_XLND
+    use shr_orb_mod        , only : shr_orb_decl
+    use initSurfAlbMod     , only : initSurfAlb, do_initsurfalb 
+    use clm_varorb         , only : eccen, mvelpp, lambm0, obliqr
+    use VOCEmissionMod  , only : VOCEmission_init
 
   implicit none
 
@@ -213,28 +235,6 @@ module mod_clm_initialize
   ! o Initializes accumulation variables.
   !
   subroutine initialize2( )
-    use histFldsMod     , only : hist_initFlds
-    use histFileMod     , only : hist_htapes_build, htapes_fieldlist
-    use restFileMod     , only : restFile_getfile, &
-                                 restFile_open, restFile_close, restFile_read 
-    use accFldsMod      , only : initAccFlds, initAccClmtype
-    use DustMod         , only : Dustini
-    use clm_time_manager, only : curr_date, advance_timestep, &
-                                 timemgr_init, timemgr_restart_io, timemgr_restart
-    use clm_time_manager, only : get_step_size, get_curr_calday
-    use fileutils       , only : getfil
-    use UrbanMod        , only : UrbanClumpInit
-    use UrbanInitMod    , only : UrbanInitTimeConst, UrbanInitTimeVar, UrbanInitAero 
-    use UrbanInputMod   , only : UrbanInput
-#if (defined LCH4)
-#endif
-    use clm_glclnd      , only : init_glc2lnd_type, init_lnd2glc_type, &
-                                 clm_x2s, clm_s2x
-    use seq_drydep_mod  , only : n_drydep, drydep_method, DD_XLND
-    use shr_orb_mod        , only : shr_orb_decl
-    use initSurfAlbMod     , only : initSurfAlb, do_initsurfalb 
-    use clm_varorb         , only : eccen, mvelpp, lambm0, obliqr
-    use VOCEmissionMod  , only : VOCEmission_init
     implicit none
     integer(ik4) :: nl , na , nag     ! indices
     integer(ik4) :: i , j , k         ! indices

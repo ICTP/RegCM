@@ -181,4 +181,4 @@ mod_clm_initch4.o : mod_clm_initch4.F90 mod_clm_ch4varcon.o mod_clm_decomp.o mod
 mod_clm_initslake.o : mod_clm_initslake.F90 mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_slakecon.o mod_clm_snicar.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_stdio.o
 mod_clm_mkarbinit.o : mod_clm_mkarbinit.F90 mod_clm_decomp.o mod_clm_snicar.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mppparam.o mod_realkinds.o mod_stdio.o
 mod_clm_staticecosysdyn.o : mod_clm_staticecosysdyn.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_nchelper.o mod_clm_pftvarcon.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_stdio.o
-mod_clm_nchelper.o : mod_clm_nchelper.F90 mod_intkinds.o mod_message.o mod_realkinds.o mod_stdio.o
+mod_clm_nchelper.o : mod_clm_nchelper.F90 mod_intkinds.o mod_message.o mod_realkinds.o mod_stdio.o mod_mppparam.o mod_dynparam.o mod_regcm_types.o mod_clm_decomp.o

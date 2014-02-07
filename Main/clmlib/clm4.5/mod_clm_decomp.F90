@@ -8,6 +8,8 @@ module mod_clm_decomp
   use mod_stdio
   use mod_realkinds
   use mod_intkinds
+  use mod_mpmessage
+  use mod_regcm_types
   use mod_clm_type , only : grlnd , nameg , namel , namec , namep
   use mod_clm_domain , only : ldomain
 
@@ -38,18 +40,40 @@ module mod_clm_decomp
 
   !---global information on each pe
   type processor_type
-    integer(ik4)  :: ncells           ! number of gridcells in proc
-    integer(ik4)  :: nlunits          ! number of landunits in proc
-    integer(ik4)  :: ncols            ! number of columns in proc
-    integer(ik4)  :: npfts            ! number of pfts in proc
-    integer(ik4)  :: begg , endg      ! beginning and ending gridcell index
-    integer(ik4)  :: begl , endl      ! beginning and ending landunit index
-    integer(ik4)  :: begc , endc      ! beginning and ending column index
-    integer(ik4)  :: begp , endp      ! beginning and ending pft index
+    type (masked_comm) , pointer :: cl
+    integer(ik4) :: ncells           ! number of gridcells in proc
+    integer(ik4) :: nlunits          ! number of landunits in proc
+    integer(ik4) :: ncols            ! number of columns in proc
+    integer(ik4) :: npfts            ! number of pfts in proc
+    integer(ik4) :: begg , endg      ! beginning and ending gridcell index
+    integer(ik4) :: begl , endl      ! beginning and ending landunit index
+    integer(ik4) :: begc , endc      ! beginning and ending column index
+    integer(ik4) :: begp , endp      ! beginning and ending pft index
+    integer(ik4) , pointer , dimension(:) :: gc
+    integer(ik4) , pointer , dimension(:) :: gd
+    integer(ik4) , pointer , dimension(:) :: lc
+    integer(ik4) , pointer , dimension(:) :: ld
+    integer(ik4) , pointer , dimension(:) :: cc
+    integer(ik4) , pointer , dimension(:) :: cd
+    integer(ik4) , pointer , dimension(:) :: pc
+    integer(ik4) , pointer , dimension(:) :: pd
   end type processor_type
 
-  public processor_type
+  type subgrid_type
+    integer(ik4) :: icomm
+    integer(ik4) :: ns , is , ie
+    integer(ik4) , pointer , dimension(:) :: ic
+    integer(ik4) , pointer , dimension(:) :: id
+  end type subgrid_type
+
+  public processor_type , subgrid_type
+
   type(processor_type) , public :: procinfo
+
+  type(subgrid_type) , public :: gcomm_gridcell
+  type(subgrid_type) , public :: gcomm_landunit
+  type(subgrid_type) , public :: gcomm_column
+  type(subgrid_type) , public :: gcomm_pft
 
   contains
     !
