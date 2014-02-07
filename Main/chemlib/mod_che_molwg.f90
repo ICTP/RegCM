@@ -204,6 +204,6 @@ module mod_che_molwg
                  W_NO,     & ! 55
                  W_NO2,    & ! 56
                  W_NO3,    & ! 57
-                 W_C2O3 /  & ! 58
+                 W_C2O3 /    ! 58
 
 end module mod_che_molwg
