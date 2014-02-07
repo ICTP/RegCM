@@ -70,63 +70,46 @@ module mod_che_start
     ianh4 = 0
     iano3 = 0
 
-    io3    =  0
-    ino    =  0
-    ino2   =  0
-    ino3   =  0
-    ioh    =  0
-    iho2   =  0
-    ih2o2  =  0
-    ihno2  =  0
-    ihno3  =  0
-    ihno4  =  0
-    isulf  =  0
-    ih2so4 =  0
-    ihono  =  0
-    in2o5  =  0
-    ihc    =  0
-    ihcr   =  0
-    ic2h4  =  0
-    ico    =  0
-    ihcho  =  0
-    iald2  =  0
-    iethe  =  0
-    ic2h6  =  0
-    ic3h8  =  0
-    iisop  =  0
-    itolue =  0
-    ixyl   =  0
-    inh3   =  0
-    ipan   =  0
-    irooh  =  0
-    iacet  =  0
-    ibenz  =  0
-    inox   =  0
-    ihox   =  0
-    isox   =  0
-    ich4   =  0
-    ieoh   =  0
-    imoh   =  0
-    iaco2  =  0
-    ircooh =  0
-    ico2   =  0
-    in2o   =  0
-    ipar   =  0
-    iolt   =  0
-    ioli   =  0
-    imgly  =  0
-    icres  =  0
-    iopen  =  0
-    iisoprd = 0
+    
+    ino     = 0
+    ino2    = 0
+    in2o5   = 0
+    ihno2   = 0
+    ihno3   = 0
+    ihno4   = 0
+    io3     = 0
+    ih2o2   = 0
+    ico     = 0
+    iso2    = 0  
+    idms    = 0
+    ih2so4  = 0
+    ich4    = 0
+    ic2h6   = 0 
+    ipar    = 0
+    ich3oh  = 0 
+    ihcho   = 0
+    iald2   = 0
+    iaone   = 0
+    ieth    = 0
+    iolet   = 0 
+    iolei   = 0
+    itol    = 0
+    ixyl    = 0
+    iisop   = 0
     ionit   = 0
+    ipan    = 0
     ihcooh  = 0
+    ircooh  = 0 
     ich3ooh = 0
     iethooh = 0
     irooh   = 0
-    ixo2 =    0
-    iro2 =    0
-    iapin  =  0
-    ilimo  =  0
+    imgly   = 0
+    iisoprd = 0
+    iisopn  = 0
+    iopen   = 0
+    icres   = 0
+    
+      
 
     ipollen = 0
 
@@ -232,68 +215,44 @@ module mod_che_start
       !  Not all the possible cbmz species have a tracer index:
       !  however this information is also contained in trac%indcbmz table 
       ! 
-      if ( chtrname(itr) == 'O3'    ) io3       = itr
-      if ( chtrname(itr) == 'NO'    ) ino       = itr
-      if ( chtrname(itr) == 'NO2'   ) ino2      = itr
-      if ( chtrname(itr) == 'NO3'   ) ino3      = itr
-      if ( chtrname(itr) == 'OH'    ) ioh       = itr
-      if ( chtrname(itr) == 'HO2'   ) iho2      = itr
-      if ( chtrname(itr) == 'H2O2'  ) ih2o2     = itr
-      if ( chtrname(itr) == 'HNO2'  ) ihno2     = itr
-      if ( chtrname(itr) == 'HNO3'  ) ihno3     = itr
-      if ( chtrname(itr) == 'HNO4'  ) ihno4     = itr
-      if ( chtrname(itr) == 'SULF'  ) isulf     = itr
-      if ( chtrname(itr) == 'SO4'   ) iso4      = itr
-      if ( chtrname(itr) == 'H2SO4' ) ih2so4    = itr
-      if ( chtrname(itr) == 'HONO'  ) ihono     = itr
-      if ( chtrname(itr) == 'HNO2'  ) ihono     = itr
-      if ( chtrname(itr) == 'N2O5'  ) in2o5     = itr
-      if ( chtrname(itr) == 'HC'    ) ihc       = itr
-      if ( chtrname(itr) == 'HCR'   ) ihcr      = itr
-      if ( chtrname(itr) == 'C2H4'  ) ic2h4     = itr
-      if ( chtrname(itr) == 'OLET'   ) iolt      = itr
-      if ( chtrname(itr) == 'OLEI'   ) ioli      = itr
-      if ( chtrname(itr) == 'ALK4'  ) ialk4     = itr
-      if ( chtrname(itr) == 'ALK7'  ) ialk7     = itr
-      if ( chtrname(itr) == 'CO'    ) ico       = itr
-      if ( chtrname(itr) == 'HCHO'  ) ihcho     = itr
-      if ( chtrname(itr) == 'ALD2'  ) iald2     = itr
-      if ( chtrname(itr) == 'ETH'  ) iethe     = itr
-      if ( chtrname(itr) == 'C2H6'  ) ic2h6     = itr
-      if ( chtrname(itr) == 'C3H8'  ) ic3h8     = itr
-      if ( chtrname(itr) == 'ISOP'  ) iisop     = itr
-      if ( chtrname(itr) == 'TOL' ) itolue    = itr
-      if ( chtrname(itr) == 'XYL'   ) ixyl      = itr
-      if ( chtrname(itr) == 'NH3'   ) inh3      = itr
-      if ( chtrname(itr) == 'PAN'   ) ipan      = itr
-      if ( chtrname(itr) == 'ROOH'  ) irooh     = itr
-      if ( chtrname(itr) == 'AONE'  ) iacet     = itr
-      if ( chtrname(itr) == 'BENZ'  ) ibenz     = itr
-      if ( chtrname(itr) == 'CH4'   ) ich4      = itr
-      if ( chtrname(itr) == 'CH3OH'   ) imoh      = itr
-      if ( chtrname(itr) == 'EOH'   ) ieoh      = itr
-      if ( chtrname(itr) == 'ACO2'  ) iaco2     = itr
-      if ( chtrname(itr) == 'RCOOH' ) ircooh    = itr
-      if ( chtrname(itr) == 'CO2'   ) ico2      = itr
-      if ( chtrname(itr) == 'DMS'   ) idms      = itr
-      if ( chtrname(itr) == 'NOX'   ) inox      = itr
-      if ( chtrname(itr) == 'HOX'   ) ihox      = itr
-      if ( chtrname(itr) == 'SOX'   ) isox      = itr
-      if ( chtrname(itr) == 'PAR'   ) ipar      = itr
-      if ( chtrname(itr) == 'MGLY'  ) imgly     = itr
-      if ( chtrname(itr) == 'ONIT'  ) ionit     = itr
-      if ( chtrname(itr) == 'HCOOH' ) ihcooh    = itr
-      if ( chtrname(itr) == 'RCOOH' ) ircooh    = itr
-      if ( chtrname(itr) == 'CH3OOH') ich3ooh   = itr 
-      if ( chtrname(itr) == 'ETHOOH') iethooh   = itr 
-      if ( chtrname(itr) == 'ROOH'  ) irooh     = itr
-      if ( chtrname(itr) == 'HONO'  ) ihono     = itr
-      if ( chtrname(itr) == 'HNO4'  ) ihno4     = itr
-      if ( chtrname(itr) == 'XO2'   ) ixo2      = itr
-      if ( chtrname(itr) == 'RO2'   ) iro2      = itr
-      if ( chtrname(itr) == 'APIN'  ) iapin     = itr
-      if ( chtrname(itr) == 'LIMO'  ) ilimo     = itr
-      if ( chtrname(itr) == 'CO2'  )  ico2      = itr
+!CBMZ mechanims
+      if ( chtrname(itr) == 'NO'     ) ino         = itr
+      if ( chtrname(itr) == 'NO2'    ) ino2        = itr
+      if ( chtrname(itr) == 'N2O5'   ) in2o5       = itr
+      if ( chtrname(itr) == 'HNO2'   ) ihno2       = itr
+      if ( chtrname(itr) == 'HNO3'   ) ihno3       = itr
+      if ( chtrname(itr) == 'HNO4'   ) ihno4       = itr
+      if ( chtrname(itr) == 'O3'     ) io3         = itr
+      if ( chtrname(itr) == 'H2O2'   ) ih2o2       = itr
+      if ( chtrname(itr) == 'CO'     ) ico         = itr
+      if ( chtrname(itr) == 'SO2'    ) iso2        = itr
+      if ( chtrname(itr) == 'DMS'    ) idms        = itr
+      if ( chtrname(itr) == 'H2SO4'  ) ih2so4      = itr
+      if ( chtrname(itr) == 'CH4'    ) ich4        = itr
+      if ( chtrname(itr) == 'C2H6'   ) ic2h6       = itr
+      if ( chtrname(itr) == 'PAR'    ) ipar        = itr
+      if ( chtrname(itr) == 'CH3OH'  ) ich3oh      = itr
+      if ( chtrname(itr) == 'HCHO'   ) ihcho       = itr
+      if ( chtrname(itr) == 'ALD2'   ) iald2       = itr
+      if ( chtrname(itr) == 'AONE'   ) iaone       = itr
+      if ( chtrname(itr) == 'ETH'    ) ieth        = itr
+      if ( chtrname(itr) == 'OLET'   ) iolet       = itr
+      if ( chtrname(itr) == 'OLEI'   ) iolei       = itr
+      if ( chtrname(itr) == 'TOL'    ) itol        = itr
+      if ( chtrname(itr) == 'XYL'    ) ixyl        = itr
+      if ( chtrname(itr) == 'ISOP'   ) iisop       = itr
+      if ( chtrname(itr) == 'ONIT'   ) ionit       = itr
+      if ( chtrname(itr) == 'PAN'    ) ipan        = itr
+      if ( chtrname(itr) == 'HCOOH'  ) ihcooh      = itr
+      if ( chtrname(itr) == 'RCOOH'  ) ircooh      = itr
+      if ( chtrname(itr) == 'CH3OOH' ) ich3ooh     = itr
+      if ( chtrname(itr) == 'ETHOOH' ) iethooh     = itr
+      if ( chtrname(itr) == 'ROOH'   ) irooh       = itr
+      if ( chtrname(itr) == 'MGLY'   ) imgly       = itr
+      if ( chtrname(itr) == 'ISOPRD' ) iisoprd     = itr
+      if ( chtrname(itr) == 'ISOPN'  ) iisopn      = itr
+      if ( chtrname(itr) == 'OPEN'   ) iopen       = itr
+      if ( chtrname(itr) == 'CRES'   ) icres       = itr
       !!$
 
       if ( chtrname(itr) == 'POLLEN') ipollen   = itr
@@ -371,90 +330,82 @@ module mod_che_start
           ichbdy2trac(itr+i) = idust(i)
         end do
       case ('CBMZ')
-        ichbdy2trac(1)  = io3
-        ichbdy2trac(2)  = ino
-        ichbdy2trac(3)  = ino2
-        ichbdy2trac(4)  = ihno3
-        ichbdy2trac(5)  = in2o5
-        ichbdy2trac(6)  = ih2o2
-        ichbdy2trac(7)  = ich4
-        ichbdy2trac(8)  = ico
-        ichbdy2trac(9)  = ihcho
-        ichbdy2trac(10) = imoh
-        ichbdy2trac(11) = ieoh
-        ichbdy2trac(12) = iethe
-        ichbdy2trac(13) = ic2h6
-        ichbdy2trac(14) = iald2
-        ichbdy2trac(15) = iacet
-        ichbdy2trac(16) = ioli
-        ! ichbdy2trac(chbc_ivar(17)) = bigalk is no used here !!
-        ichbdy2trac(18) = iolt
-        ichbdy2trac(19) = ic3h8
-        ichbdy2trac(20) = iisop
-        ichbdy2trac(21) = itolue
-        ichbdy2trac(22) = ipan
-        ichbdy2trac(23) = iso2
-        ichbdy2trac(24) = iso4
-        ichbdy2trac(25) = idms
-        ! fab add a temporary case for debugging
-     case ('CBM1')
-        ichbdy2trac(1)  = io3
-        ichbdy2trac(2)  = ino
-        ichbdy2trac(3)  = ino2
-        ichbdy2trac(4)  = ihno3
-        ichbdy2trac(5)  = in2o5
-        ichbdy2trac(6)  = ih2o2
-        ichbdy2trac(7)  = ich4
-        ichbdy2trac(8)  = ico
-        ichbdy2trac(9)  = ihcho
-        ichbdy2trac(10) = imoh
-        ichbdy2trac(11) = ieoh
-        ichbdy2trac(12) = iethe
-        ichbdy2trac(13) = ic2h6
-        ichbdy2trac(14) = iald2
-        ichbdy2trac(15) = iacet
-        ichbdy2trac(16) = ioli
-        ! ichbdy2trac(chbc_ivar(17)) = bigalk is no used here !!
-        ichbdy2trac(18) = iolt
-        ichbdy2trac(19) = ic3h8
-        ichbdy2trac(20) = iisop
-        ichbdy2trac(21) = itolue
-        ichbdy2trac(22) = ipan
-        ichbdy2trac(23) = iso2
-        ichbdy2trac(24) = iso4
-        ichbdy2trac(25) = idms
+        ichbdy2trac(1)    = io3
+        ichbdy2trac(2)    = ino
+        ichbdy2trac(3)    = ino2
+        ichbdy2trac(4)    = ihno3
+        ichbdy2trac(5)    = ihno4
+        ichbdy2trac(6)    = in2o5
+        ichbdy2trac(7)    = ih2o2
+        ichbdy2trac(8)    = ich4
+        ichbdy2trac(9)    = ico
+        ichbdy2trac(10)   = iso2
+        ichbdy2trac(11)   = ih2so4
+        ichbdy2trac(12)   = idms
+        ichbdy2trac(13)   = ipar
+        ichbdy2trac(14)   = ic2h6
+        ichbdy2trac(15)   = ieth
+        ichbdy2trac(16)   = iolet
+        ichbdy2trac(17)   = iolei
+        ichbdy2trac(18)   = itol
+        ichbdy2trac(19)   = ixyl
+        ichbdy2trac(20)   = iisop
+        ichbdy2trac(21)   = icres
+        ichbdy2trac(22)   = iopen
+        ichbdy2trac(23)   = iisopn
+        ichbdy2trac(24)   = iisoprd
+        ichbdy2trac(25)   = ionit
+        ichbdy2trac(26)   = imgly
+        ichbdy2trac(27)   = iaone
+        ichbdy2trac(28)   = ipan
+        ichbdy2trac(29)   = ich3ooh
+        ichbdy2trac(30)   = iethooh
+        ichbdy2trac(31)   = iald2
+        ichbdy2trac(32)   = ihcho
+        ichbdy2trac(33)   = ich3oh
+        
       case ('DCCB')
-        ichbdy2trac(1)  = io3
-        ichbdy2trac(2)  = ino
-        ichbdy2trac(3)  = ino2
-        ichbdy2trac(4)  = ihno3
-        ichbdy2trac(5)  = in2o5
-        ichbdy2trac(6)  = ih2o2
-        ichbdy2trac(7)  = ich4
-        ichbdy2trac(8)  = ico
-        ichbdy2trac(9)  = ihcho
-        ichbdy2trac(10) = imoh
-        ichbdy2trac(11) = ieoh
-        ichbdy2trac(12) = iethe
-        ichbdy2trac(13) = ic2h6
-        ichbdy2trac(14) = iald2
-        ichbdy2trac(15) = iacet
-        ichbdy2trac(16) = ioli
-        ichbdy2trac(17) = iolt
-        ichbdy2trac(18) = ic3h8
-        ichbdy2trac(19) = iisop
-        ichbdy2trac(20) = itolue
-        ichbdy2trac(21) = ipan
-        ichbdy2trac(22) = iso2
-        ichbdy2trac(23) = iso4
-        ichbdy2trac(24) = idms
+        ichbdy2trac(1)    = io3
+        ichbdy2trac(2)    = ino
+        ichbdy2trac(3)    = ino2
+        ichbdy2trac(4)    = ihno3
+        ichbdy2trac(5)    = ihno4
+        ichbdy2trac(6)    = in2o5
+        ichbdy2trac(7)    = ih2o2
+        ichbdy2trac(8)    = ich4
+        ichbdy2trac(9)    = ico
+        ichbdy2trac(10)   = iso2
+        ichbdy2trac(11)   = ih2so4
+        ichbdy2trac(12)   = idms
+        ichbdy2trac(13)   = ipar
+        ichbdy2trac(14)   = ic2h6
+        ichbdy2trac(15)   = ieth
+        ichbdy2trac(16)   = iolet
+        ichbdy2trac(17)   = iolei
+        ichbdy2trac(18)   = itol
+        ichbdy2trac(19)   = ixyl
+        ichbdy2trac(20)   = iisop
+        ichbdy2trac(21)   = icres
+        ichbdy2trac(22)   = iopen
+        ichbdy2trac(23)   = iisopn
+        ichbdy2trac(24)   = iisoprd
+        ichbdy2trac(25)   = ionit
+        ichbdy2trac(26)   = imgly
+        ichbdy2trac(27)   = iaone
+        ichbdy2trac(28)   = ipan
+        ichbdy2trac(29)   = ich3ooh
+        ichbdy2trac(30)   = iethooh
+        ichbdy2trac(31)   = iald2
+        ichbdy2trac(32)   = ihcho
+        ichbdy2trac(33)   = ich3oh
+
         do i = 1 , ibin
-          ichbdy2trac(i+24) = idust(i)
+          ichbdy2trac(i+33) = idust(i)
         end do
-        ichbdy2trac(ibin+24+1) = ibchb
-        ichbdy2trac(ibin+24+2) = ibchl
-        ichbdy2trac(ibin+24+3) = iochb
-        ichbdy2trac(ibin+24+4) = iochl
+        ichbdy2trac(ibin+33+1) = ibchb
+        ichbdy2trac(ibin+33+2) = ibchl
+        ichbdy2trac(ibin+33+3) = iochb
+        ichbdy2trac(ibin+33+4) = iochl
     end select
 
     if ( idust(1) > 0 ) then

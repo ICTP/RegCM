@@ -719,7 +719,7 @@ module mod_che_drydep
          drydepvg(:,ipan)  =  vdg(10,:,1)!*0.5 
          drydepvg(:,ihcho) =  vdg(14,:,1)!*0.5
          drydepvg(:,iald2) =  vdg(15,:,1)!*0.5
-         drydepvg(:,imoh)  =  vdg(23,:,1)!*0.5
+         drydepvg(:,ich3oh)  =  vdg(23,:,1)!*0.5
        end if 
 
        ! Finally : gas phase dry dep tendency calculation 

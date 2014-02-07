@@ -44,7 +44,8 @@ module mod_che_ncio
   integer(ik4) , parameter :: n_chevar = 20
   integer(ik4) , parameter :: n_oxbcvar = 5
   integer(ik4) , parameter :: n_optvar = 10
-  integer(ik4) , parameter :: n_chbcvar = 25
+!ashalaby  integer(ik4) , parameter :: n_chbcvar = 25
+  integer(ik4) , parameter :: n_chbcvar = 33
   integer(ik4) :: n_aebcvar
   integer(ik4) :: ichin , iaein , ioxin
 
@@ -81,13 +82,18 @@ module mod_che_ncio
   data ibcnrec / 0/
   data ioxin   /-1/
 
-  data chbcname /'O3      ','NO      ','NO2     ','HNO3    ', &
-                 'N2O5    ','H2O2    ','CH4     ','CO      ', &
-                 'CH2O    ','CH3OH   ','C2H5OH  ','C2H4    ', &
-                 'C2H6    ','CH3CHO  ','CH3COCH3','BIGENE  ', &
-                 'BIGALK  ','C3H6    ','C3H8    ','ISOP    ', &
-                 'TOLUENE ','PAN     ','SO2     ','SO4     ', &
-                 'DMS     '/
+!  data chbcname /'O3      ','NO      ','NO2     ','HNO3    ', &
+!                 'N2O5    ','H2O2    ','CH4     ','CO      ', &
+!                 'CH2O    ','CH3OH   ','C2H5OH  ','C2H4    ', &
+!                 'C2H6    ','CH3CHO  ','CH3COCH3','BIGENE  ', &
+!                 'BIGALK  ','C3H6    ','C3H8    ','ISOP    ', &
+!                 'TOLUENE ','PAN     ','SO2     ','SO4     ', &
+!                 'DMS     '/
+ data chbcname / 'O3      ','NO      ','NO2     ','HNO3    ','HNO4    ','N2O5    ','H2O2    ','CH4     ',  &
+                 'CO      ','SO2     ','H2SO4   ','DMS     ','PAR     ','C2H6    ','ETH     ','OLET    ',  &
+                 'OLEI    ','TOL     ','XYL     ','ISOP    ','CRES    ','OPEN    ','ISOPN   ','ISOPRD  ',  &
+                 'ONIT    ','MGLY    ','AONE    ','PAN     ','CH3OOH  ','ETHOOH  ','ALD2    ','HCHO    ','CH3OH   '/
+
   data oxbcname /'OH      ','HO2     ','O3      ', 'NO3    ','H2O2   ' /
   data aedust / 'DUST01' , 'DUST02' , 'DUST03', 'DUST04' /
   data aesslt / 'SSLT01' , 'SSLT02' /
@@ -296,19 +302,89 @@ module mod_che_ncio
         allocate(rspace2_loc(jci1:jci2,ici1:ici2))
       end if
 
-      ! CO emission                  
+! ALD2
+      if ( iald2 /= 0 ) then
+        call rvar(ncid,istart,icount,iald2,echemsrc,'ALD2_flux',.false.,sdim)
+      end if
+! AONE
+      if ( iaone /= 0 ) then
+        call rvar(ncid,istart,icount,iaone,echemsrc,'AONE_flux',.false.,sdim)
+      end if
+!BCHB
+      if ( ibchb /= 0 ) then
+        call rvar(ncid,istart,icount,ibchb,echemsrc,'BC_flux',.false.,sdim)
+      end if
+
+!C2H6
+      if ( ic2h6 /= 0 ) then
+        call rvar(ncid,istart,icount,ic2h6,echemsrc,'C2H6_flux',.false.,sdim)
+      end if
+!CH3OH
+      if ( ich3oh /= 0 ) then
+        call rvar(ncid,istart,icount,ich3oh,echemsrc,'CH3OH_flux',.false.,sdim)
+      end if
+!CH4
+      if ( ich4 /= 0 ) then
+        call rvar(ncid,istart,icount,ich4,echemsrc,'CH4_flux',.false.,sdim)
+      end if
+!CO
       if ( ico /= 0 ) then
         call rvar(ncid,istart,icount,ico,echemsrc,'CO_flux',.false.,sdim)
-        if ( myid == italk ) then
-          write(stdout,*) 'Emission max co flux : ', &
-            maxval(echemsrc(:,:,ico))
-        end if
       end if
-      ! NO emission                  
+!ETH
+      if ( ieth /= 0 ) then
+        call rvar(ncid,istart,icount,ieth,echemsrc,'ETH_flux',.false.,sdim)
+      end if
+!HCHO
+      if ( ihcho /= 0 ) then
+        call rvar(ncid,istart,icount,ihcho,echemsrc,'HCHO_flux',.false.,sdim)
+      end if
+!NH3
+      if ( inh3 /= 0 ) then
+        call rvar(ncid,istart,icount,inh3,echemsrc,'NH3_flux',.false.,sdim)
+      end if
+!NO
       if ( ino /= 0 ) then
-        call rvar(ncid,istart,icount,ino,echemsrc, &
-                  'NOx_flux',.false.,sdim)
+        call rvar(ncid,istart,icount,ino,echemsrc,'NOx_flux',.false.,sdim)
       end if
+!OCHB
+      if ( iochb /= 0 ) then
+        call rvar(ncid,istart,icount,iochb,echemsrc,'OC_flux',.false.,sdim)
+      end if
+!OLET
+      if ( iolet /= 0 ) then
+        call rvar(ncid,istart,icount,iolet,echemsrc,'OLET_flux',.false.,sdim)
+      end if
+!OLEI
+      if ( iolei /= 0 ) then
+        call rvar(ncid,istart,icount,iolei,echemsrc,'OLEI_flux',.false.,sdim)
+      end if
+!PAR
+      if ( ipar/= 0 ) then
+        call rvar(ncid,istart,icount,ipar,echemsrc,'PAR_flux',.false.,sdim)
+      end if
+!RCOOH
+      if ( ircooh/= 0 ) then
+        call rvar(ncid,istart,icount,ircooh,echemsrc,'RCOOH_flux',.false.,sdim)
+      end if
+!SO2
+      if ( iso2/= 0 ) then
+        call rvar(ncid,istart,icount,iso2,echemsrc,'SO2_flux',.false.,sdim)
+      end if
+!TOL
+      if ( itol/= 0 ) then
+        call rvar(ncid,istart,icount,itol,echemsrc,'TOL_flux',.false.,sdim)
+      end if
+!XYL
+      if ( ixyl/= 0 ) then
+        call rvar(ncid,istart,icount,ixyl,echemsrc,'XYL_flux',.false.,sdim)
+      end if
+!ISOP
+      if ( iisop/= 0 ) then
+        call rvar(ncid,istart,icount,iisop,echemsrc,'ISOP_BIO_flux',.false.,sdim)
+      end if
+
+
       ! NO2 emission 
       if ( ino2 /= 0 ) then
 !       call rvar(ncid,istart,icount,ino2,echemsrc, &
@@ -316,108 +392,7 @@ module mod_che_ncio
 !        echemsrc(:,:,ino2) = 0.1D0 * echemsrc(:,:,ino)
 !        echemsrc(:,:,ino)  = 0.9D0 * echemsrc(:,:,ino)
       end if
-      ! HCHO emission                  
-      if ( ihcho /= 0 ) then
-         call rvar(ncid,istart,icount,ihcho,echemsrc, &
-           'HCHO_flux',.false.,sdim)
-      end if
-      ! AONE emission                  
-      if ( iacet /= 0 ) then
-        call rvar(ncid,istart,icount,iacet,echemsrc, &
-            'AONE_flux',.false.,sdim)
-      end if
-      ! SO2 emission
-      if ( iso2 /= 0 ) then
-        call rvar(ncid,istart,icount,iso2,echemsrc, &
-                  'SO2_flux',.false.,sdim)
-        if ( myid == italk ) then
-          write(*,*)'SO2_flux',maxval(echemsrc(:,:,iso2))
-        end if
-      end if
-      !NH3
-      if ( inh3 /= 0 ) then
-        call rvar(ncid,istart,icount,inh3,echemsrc, &
-                 'NH3_flux',.false.,sdim)
-      end if
-      ! CH4
-      if ( ich4 /= 0 ) then
-        call rvar(ncid,istart,icount,ich4,echemsrc, &
-                  'CH4_flux',.false.,sdim)
-      end if
-      ! Ethane
-      if ( ic2h6 /= 0 ) then
-        call rvar(ncid,istart,icount,ic2h6,echemsrc, &
-                  'C2H6_flux',.false.,sdim)
-      end if
-      ! PAR
-      if ( ipar /= 0 ) then
-       call rvar(ncid,istart,icount,ipar,echemsrc, &
-               'PAR_flux',.false.,sdim)
-      end if
-      ! Ethene
-      if ( iethe /= 0 ) then
-        call rvar(ncid,istart,icount,iethe,echemsrc, &
-                  'ETH_flux',.false.,sdim)
-      end if
-      ! Termenal Alkene
-      if ( iolt /= 0 ) then
-        call rvar(ncid,istart,icount,iolt,echemsrc, &
-                  'OLET_flux',.false.,sdim)
-      end if
-      ! Internal Alkene
-      if ( ioli /= 0 ) then
-        call rvar(ncid,istart,icount,ioli,echemsrc, &
-                  'OLEI_flux',.false.,sdim)
-      end if
-      ! Isoprene
-      if ( iisop /= 0 ) then
-        call rvar(ncid,istart,icount,iisop,echemsrc, &
-                  'ISOP_BIO_flux',.false.,sdim)
-        ! here use io3(never emuitted) to temporarily read anthropo
-        ! isoprene and add to biogenic. Should be refined 
-!ashalaby        call rvar(ncid,istart,icount,io3,echemsrc,'ISO_flux',.false.,sdim)
-!ashalaby        echemsrc(:,:,iisop) =  echemsrc(:,:,iisop) + echemsrc(:,:,io3)
-!ashalaby        echemsrc(:,:,io3) = d_zero
-      end if
-      ! Toluene
-      if ( itolue /= 0 ) then
-        call rvar(ncid,istart,icount,itolue,echemsrc, &
-                  'TOL_flux',.false.,sdim)
-      end if
-      ! Xylene
-      if ( ixyl /= 0 ) then
-        call rvar(ncid,istart,icount,ixyl,echemsrc, &
-                 'XYL_flux',.false.,sdim)
-      end if
-      ! Acetaldehyde
-      if ( iald2 /= 0 ) then
-        call rvar(ncid,istart,icount,iald2,echemsrc,'ALD2_flux',.false.,sdim)
-      end if
-      ! Methanol
-      if ( imoh /= 0 ) then
-        call rvar(ncid,istart,icount,imoh,echemsrc, &
-                 'CH3OH_flux',.false.,sdim)
-      end if           
-      !acids
-      if ( ircooh /= 0 ) then
-        call rvar(ncid,istart,icount,ircooh,echemsrc, &
-                  'RCOOH_flux',.false.,sdim)
-      end if
 
-!!$   ! DMS
-!!$   if ( idms /= 0 ) then
-!!$     ! call rvar(ncid,istart,icount,idms,echemsrc,'o_DMS',.false.)
-!!$   end if
-
-      ! OC and BC anthropogenic + biomass burning
-      if ( ibchb /= 0 ) then
-        call rvar(ncid,istart,icount,ibchb,echemsrc, &
-                  'BC_flux',.false.,sdim)
-      end if
-      if ( iochb /= 0 ) then
-        call rvar(ncid,istart,icount,iochb,echemsrc, &
-                  'OC_flux',.false.,sdim)
-      end if
 
       if (ipollen /=0 ) then 
         call  rvar(ncid,istart,icount,ipollen,echemsrc, &

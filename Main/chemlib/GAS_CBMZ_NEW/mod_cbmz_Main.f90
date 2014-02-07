@@ -123,7 +123,6 @@ contains
 
       DO i=1,NVAR
       VAR(i)  = xrin(i)
-!      write(*,*)i,VAR(i),xr(1,i)
       END DO
       T = TSTART
       TEND = TSTART+(DT)

@@ -417,8 +417,8 @@ module mod_che_wetdep
       if ( irooh > 0 ) then
         het_rates(:,k,irooh) = work3(:)
       end if
-      if ( imoh > 0 ) then
-        het_rates(:,k,imoh) = work3(:)
+      if ( ich3oh > 0 ) then
+        het_rates(:,k,ich3oh) = work3(:)
       end if
       if ( ieoh > 0 ) then
         het_rates(:,k,ieoh) = work3(:)
