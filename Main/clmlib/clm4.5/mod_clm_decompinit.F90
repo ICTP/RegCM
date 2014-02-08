@@ -5,6 +5,7 @@ module mod_clm_decompinit
   !
   use mod_realkinds
   use mod_intkinds
+  use mod_memutil
   use mod_mpmessage
   use mod_stdio
   use mod_dynparam
@@ -41,9 +42,13 @@ module mod_clm_decompinit
     allocate(procinfo%pc(nproc))
     allocate(procinfo%pd(nproc))
 
+    call getmem2d(procinfo%gcmask,jout1,jout2,iout1,iout2,'clm decomp')
+    call grid_collect(cl%gmask,procinfo%gcmask,jci1,jci2,ici1,ici2)
+
     procinfo%cl => cl
     procinfo%ncells = cl%linear_npoint_sg(myid+1)
 
+    procinfo%icomm = cl%linear_communicator
     gcomm_gridcell%icomm = cl%linear_communicator
     gcomm_landunit%icomm = cl%linear_communicator
     gcomm_column%icomm = cl%linear_communicator

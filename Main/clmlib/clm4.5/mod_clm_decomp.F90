@@ -41,6 +41,8 @@ module mod_clm_decomp
   !---global information on each pe
   type processor_type
     type (masked_comm) , pointer :: cl
+    logical , dimension(:,:) , pointer :: gcmask
+    integer(ik4) :: icomm
     integer(ik4) :: ncells           ! number of gridcells in proc
     integer(ik4) :: nlunits          ! number of landunits in proc
     integer(ik4) :: ncols            ! number of columns in proc

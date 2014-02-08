@@ -30,6 +30,8 @@ module mod_clm_nchelper
   use mod_clm_decomp
   use mpi
 
+  implicit none
+
   private
 
   integer(ik4) , parameter :: clm_maxdims = 64
@@ -46,6 +48,9 @@ module mod_clm_nchelper
     integer(ik4) , dimension(clm_maxvars) :: varids
     integer(ik4) , dimension(clm_maxdims) :: varhash
     character(len=32) , dimension(clm_maxvars) :: varname
+    integer(ik4) , dimension(:,:) , allocatable :: i4buf
+    real(rk4) , dimension(:,:) , allocatable :: r4buf
+    real(rk8) , dimension(:,:) , allocatable :: r8buf
   end type clm_filetype
 
   character , public , parameter :: clmvar_text       = 'c'
@@ -78,9 +83,8 @@ module mod_clm_nchelper
   public :: clm_addvar
 
   public :: clm_readvar
-  public :: clm_readrec
   public :: clm_writevar
-  public :: clm_writerec
+  public :: clm_writevar_par
 
   integer(ik4) :: incstat
 
@@ -186,42 +190,62 @@ module mod_clm_nchelper
   end interface clm_writevar
 
   interface clm_writevar_par
-    module procedure clm_writevar_logical_0d_par
-    module procedure clm_writevar_logical_1d_par
-    module procedure clm_writevar_logical_2d_par
-    module procedure clm_writevar_logical_3d_par
-    module procedure clm_writevar_logical_4d_par
-    module procedure clm_writevar_integer_0d_par
-    module procedure clm_writevar_integer_1d_par
-    module procedure clm_writevar_integer_2d_par
-    module procedure clm_writevar_integer_3d_par
-    module procedure clm_writevar_integer_4d_par
-    module procedure clm_writevar_real4_0d_par
-    module procedure clm_writevar_real4_1d_par
-    module procedure clm_writevar_real4_2d_par
-    module procedure clm_writevar_real4_3d_par
-    module procedure clm_writevar_real4_4d_par
-    module procedure clm_writevar_real8_0d_par
-    module procedure clm_writevar_real8_1d_par
-    module procedure clm_writevar_real8_2d_par
-    module procedure clm_writevar_real8_3d_par
-    module procedure clm_writevar_real8_4d_par
-    module procedure clm_writerec_logical_0d_par
-    module procedure clm_writerec_logical_1d_par
-    module procedure clm_writerec_logical_2d_par
-    module procedure clm_writerec_logical_3d_par
-    module procedure clm_writerec_integer_0d_par
-    module procedure clm_writerec_integer_1d_par
-    module procedure clm_writerec_integer_2d_par
-    module procedure clm_writerec_integer_3d_par
-    module procedure clm_writerec_real4_0d_par
-    module procedure clm_writerec_real4_1d_par
-    module procedure clm_writerec_real4_2d_par
-    module procedure clm_writerec_real4_3d_par
-    module procedure clm_writerec_real8_0d_par
-    module procedure clm_writerec_real8_1d_par
-    module procedure clm_writerec_real8_2d_par
-    module procedure clm_writerec_real8_3d_par
+    module procedure clm_writevar_logical_0d_par_sg
+    module procedure clm_writevar_logical_1d_par_sg
+    module procedure clm_writevar_logical_2d_par_sg
+    module procedure clm_writevar_logical_3d_par_sg
+    module procedure clm_writevar_logical_4d_par_sg
+    module procedure clm_writevar_integer_0d_par_sg
+    module procedure clm_writevar_integer_1d_par_sg
+    module procedure clm_writevar_integer_2d_par_sg
+    module procedure clm_writevar_integer_3d_par_sg
+    module procedure clm_writevar_integer_4d_par_sg
+    module procedure clm_writevar_real4_0d_par_sg
+    module procedure clm_writevar_real4_1d_par_sg
+    module procedure clm_writevar_real4_2d_par_sg
+    module procedure clm_writevar_real4_3d_par_sg
+    module procedure clm_writevar_real4_4d_par_sg
+    module procedure clm_writevar_real8_0d_par_sg
+    module procedure clm_writevar_real8_1d_par_sg
+    module procedure clm_writevar_real8_2d_par_sg
+    module procedure clm_writevar_real8_3d_par_sg
+    module procedure clm_writevar_real8_4d_par_sg
+    module procedure clm_writerec_logical_0d_par_sg
+    module procedure clm_writerec_logical_1d_par_sg
+    module procedure clm_writerec_logical_2d_par_sg
+    module procedure clm_writerec_logical_3d_par_sg
+    module procedure clm_writerec_integer_0d_par_sg
+    module procedure clm_writerec_integer_1d_par_sg
+    module procedure clm_writerec_integer_2d_par_sg
+    module procedure clm_writerec_integer_3d_par_sg
+    module procedure clm_writerec_real4_0d_par_sg
+    module procedure clm_writerec_real4_1d_par_sg
+    module procedure clm_writerec_real4_2d_par_sg
+    module procedure clm_writerec_real4_3d_par_sg
+    module procedure clm_writerec_real8_0d_par_sg
+    module procedure clm_writerec_real8_1d_par_sg
+    module procedure clm_writerec_real8_2d_par_sg
+    module procedure clm_writerec_real8_3d_par_sg
+!    module procedure clm_writevar_logical_2d_par_gg
+!    module procedure clm_writevar_logical_3d_par_gg
+!    module procedure clm_writevar_logical_4d_par_gg
+!    module procedure clm_writevar_integer_2d_par_gg
+!    module procedure clm_writevar_integer_3d_par_gg
+!    module procedure clm_writevar_integer_4d_par_gg
+!    module procedure clm_writevar_real4_2d_par_gg
+!    module procedure clm_writevar_real4_3d_par_gg
+!    module procedure clm_writevar_real4_4d_par_gg
+!    module procedure clm_writevar_real8_2d_par_gg
+!    module procedure clm_writevar_real8_3d_par_gg
+!    module procedure clm_writevar_real8_4d_par_gg
+    module procedure clm_writerec_logical_2d_par_gg
+    module procedure clm_writerec_logical_3d_par_gg
+    module procedure clm_writerec_integer_2d_par_gg
+    module procedure clm_writerec_integer_3d_par_gg
+!    module procedure clm_writerec_real4_2d_par_gg
+!    module procedure clm_writerec_real4_3d_par_gg
+!    module procedure clm_writerec_real8_2d_par_gg
+!    module procedure clm_writerec_real8_3d_par_gg
   end interface clm_writevar_par
 
   contains
@@ -241,6 +265,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
                     'Error creating NetCDF output '//trim(fname))
     ncid%fname = fname
+    allocate(ncid%i4buf(iout1:iout2,jout1:jout2))
+    allocate(ncid%r4buf(iout1:iout2,jout1:jout2))
+    allocate(ncid%r8buf(iout1:iout2,jout1:jout2))
   end subroutine clm_createfile
 
   subroutine clm_openfile(fname,ncid)
@@ -834,6 +861,9 @@ module mod_clm_nchelper
     ncid%fname = ' '
     ncid%idimlast = -1
     ncid%ivarlast = -1
+    if ( allocated(ncid%i4buf) ) deallocate(ncid%i4buf)
+    if ( allocated(ncid%r4buf) ) deallocate(ncid%r4buf)
+    if ( allocated(ncid%r8buf) ) deallocate(ncid%r8buf)
   end subroutine clm_closefile
 
   subroutine clm_checkncerr(filename,line,arg)
@@ -850,7 +880,7 @@ module mod_clm_nchelper
 
   integer(ik4) function hash(text) result(hashed) 
     implicit none 
-    character(len=*) , intent(in) :: text 
+    character(len=*) , intent(in) :: text
     integer(ik4) , parameter :: magic_numb = z'5d7a9f43'
     integer(ik4) :: i, j 
     hashed = 0
@@ -2441,7 +2471,7 @@ module mod_clm_nchelper
     ncid2%varname = ncid1%varname
   end subroutine copy_filetype
 
-  subroutine clm_writevar_logical_0d_par(ncid,vname,xval)
+  subroutine clm_writevar_logical_0d_par_sg(ncid,vname,xval)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2462,9 +2492,9 @@ module mod_clm_nchelper
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writevar_logical_0d_par
+  end subroutine clm_writevar_logical_0d_par_sg
 
-  subroutine clm_writevar_logical_1d_par(ncid,vname,xval,sg)
+  subroutine clm_writevar_logical_1d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2494,9 +2524,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
-  end subroutine clm_writevar_logical_1d_par
+  end subroutine clm_writevar_logical_1d_par_sg
 
-  subroutine clm_writevar_logical_2d_par(ncid,vname,xval,sg)
+  subroutine clm_writevar_logical_2d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2529,9 +2559,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
-  end subroutine clm_writevar_logical_2d_par
+  end subroutine clm_writevar_logical_2d_par_sg
 
-  subroutine clm_writevar_logical_3d_par(ncid,vname,xval,sg)
+  subroutine clm_writevar_logical_3d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2567,9 +2597,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
-  end subroutine clm_writevar_logical_3d_par
+  end subroutine clm_writevar_logical_3d_par_sg
 
-  subroutine clm_writevar_logical_4d_par(ncid,vname,xval,sg)
+  subroutine clm_writevar_logical_4d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2608,9 +2638,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
-  end subroutine clm_writevar_logical_4d_par
+  end subroutine clm_writevar_logical_4d_par_sg
 
-  subroutine clm_writevar_integer_0d_par(ncid,vname,xval)
+  subroutine clm_writevar_integer_0d_par_sg(ncid,vname,xval)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2627,9 +2657,9 @@ module mod_clm_nchelper
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writevar_integer_0d_par
+  end subroutine clm_writevar_integer_0d_par_sg
 
-  subroutine clm_writevar_integer_1d_par(ncid,vname,xval,sg)
+  subroutine clm_writevar_integer_1d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2652,9 +2682,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
-  end subroutine clm_writevar_integer_1d_par
+  end subroutine clm_writevar_integer_1d_par_sg
 
-  subroutine clm_writevar_integer_2d_par(ncid,vname,xval,sg)
+  subroutine clm_writevar_integer_2d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2680,9 +2710,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
-  end subroutine clm_writevar_integer_2d_par
+  end subroutine clm_writevar_integer_2d_par_sg
 
-  subroutine clm_writevar_integer_3d_par(ncid,vname,xval,sg)
+  subroutine clm_writevar_integer_3d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2711,9 +2741,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
-  end subroutine clm_writevar_integer_3d_par
+  end subroutine clm_writevar_integer_3d_par_sg
 
-  subroutine clm_writevar_integer_4d_par(ncid,vname,xval,sg)
+  subroutine clm_writevar_integer_4d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2745,9 +2775,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
-  end subroutine clm_writevar_integer_4d_par
+  end subroutine clm_writevar_integer_4d_par_sg
 
-  subroutine clm_writevar_real4_0d_par(ncid,vname,xval)
+  subroutine clm_writevar_real4_0d_par_sg(ncid,vname,xval)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2764,9 +2794,9 @@ module mod_clm_nchelper
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writevar_real4_0d_par
+  end subroutine clm_writevar_real4_0d_par_sg
 
-  subroutine clm_writevar_real4_1d_par(ncid,vname,xval,sg)
+  subroutine clm_writevar_real4_1d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2789,9 +2819,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
-  end subroutine clm_writevar_real4_1d_par
+  end subroutine clm_writevar_real4_1d_par_sg
 
-  subroutine clm_writevar_real4_2d_par(ncid,vname,xval,sg)
+  subroutine clm_writevar_real4_2d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2817,9 +2847,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
-  end subroutine clm_writevar_real4_2d_par
+  end subroutine clm_writevar_real4_2d_par_sg
 
-  subroutine clm_writevar_real4_3d_par(ncid,vname,xval,sg)
+  subroutine clm_writevar_real4_3d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2848,9 +2878,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
-  end subroutine clm_writevar_real4_3d_par
+  end subroutine clm_writevar_real4_3d_par_sg
 
-  subroutine clm_writevar_real4_4d_par(ncid,vname,xval,sg)
+  subroutine clm_writevar_real4_4d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2882,9 +2912,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
-  end subroutine clm_writevar_real4_4d_par
+  end subroutine clm_writevar_real4_4d_par_sg
 
-  subroutine clm_writevar_real8_0d_par(ncid,vname,xval)
+  subroutine clm_writevar_real8_0d_par_sg(ncid,vname,xval)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2901,9 +2931,9 @@ module mod_clm_nchelper
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writevar_real8_0d_par
+  end subroutine clm_writevar_real8_0d_par_sg
 
-  subroutine clm_writevar_real8_1d_par(ncid,vname,xval,sg)
+  subroutine clm_writevar_real8_1d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2926,9 +2956,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
-  end subroutine clm_writevar_real8_1d_par
+  end subroutine clm_writevar_real8_1d_par_sg
 
-  subroutine clm_writevar_real8_2d_par(ncid,vname,xval,sg)
+  subroutine clm_writevar_real8_2d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2954,9 +2984,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
-  end subroutine clm_writevar_real8_2d_par
+  end subroutine clm_writevar_real8_2d_par_sg
 
-  subroutine clm_writevar_real8_3d_par(ncid,vname,xval,sg)
+  subroutine clm_writevar_real8_3d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -2985,9 +3015,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
-  end subroutine clm_writevar_real8_3d_par
+  end subroutine clm_writevar_real8_3d_par_sg
 
-  subroutine clm_writevar_real8_4d_par(ncid,vname,xval,sg)
+  subroutine clm_writevar_real8_4d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3019,9 +3049,9 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
-  end subroutine clm_writevar_real8_4d_par
+  end subroutine clm_writevar_real8_4d_par_sg
 
-  subroutine clm_writerec_logical_0d_par(ncid,vname,xval,nt)
+  subroutine clm_writerec_logical_0d_par_sg(ncid,vname,xval,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3042,9 +3072,9 @@ module mod_clm_nchelper
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_logical_0d_par
+  end subroutine clm_writerec_logical_0d_par_sg
 
-  subroutine clm_writerec_logical_1d_par(ncid,vname,xval,sg,nt)
+  subroutine clm_writerec_logical_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3080,9 +3110,9 @@ module mod_clm_nchelper
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_logical_1d_par
+  end subroutine clm_writerec_logical_1d_par_sg
 
-  subroutine clm_writerec_logical_2d_par(ncid,vname,xval,sg,nt)
+  subroutine clm_writerec_logical_2d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3123,9 +3153,9 @@ module mod_clm_nchelper
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_logical_2d_par
+  end subroutine clm_writerec_logical_2d_par_sg
 
-  subroutine clm_writerec_logical_3d_par(ncid,vname,xval,sg,nt)
+  subroutine clm_writerec_logical_3d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3171,9 +3201,9 @@ module mod_clm_nchelper
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_logical_3d_par
+  end subroutine clm_writerec_logical_3d_par_sg
 
-  subroutine clm_writerec_integer_0d_par(ncid,vname,xval,nt)
+  subroutine clm_writerec_integer_0d_par_sg(ncid,vname,xval,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3193,9 +3223,9 @@ module mod_clm_nchelper
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_integer_0d_par
+  end subroutine clm_writerec_integer_0d_par_sg
 
-  subroutine clm_writerec_integer_1d_par(ncid,vname,xval,sg,nt)
+  subroutine clm_writerec_integer_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3223,9 +3253,9 @@ module mod_clm_nchelper
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_integer_1d_par
+  end subroutine clm_writerec_integer_1d_par_sg
 
-  subroutine clm_writerec_integer_2d_par(ncid,vname,xval,sg,nt)
+  subroutine clm_writerec_integer_2d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3258,9 +3288,9 @@ module mod_clm_nchelper
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_integer_2d_par
+  end subroutine clm_writerec_integer_2d_par_sg
 
-  subroutine clm_writerec_integer_3d_par(ncid,vname,xval,sg,nt)
+  subroutine clm_writerec_integer_3d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3298,9 +3328,9 @@ module mod_clm_nchelper
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_integer_3d_par
+  end subroutine clm_writerec_integer_3d_par_sg
 
-  subroutine clm_writerec_real4_0d_par(ncid,vname,xval,nt)
+  subroutine clm_writerec_real4_0d_par_sg(ncid,vname,xval,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3320,9 +3350,9 @@ module mod_clm_nchelper
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_real4_0d_par
+  end subroutine clm_writerec_real4_0d_par_sg
 
-  subroutine clm_writerec_real4_1d_par(ncid,vname,xval,sg,nt)
+  subroutine clm_writerec_real4_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3350,9 +3380,9 @@ module mod_clm_nchelper
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_real4_1d_par
+  end subroutine clm_writerec_real4_1d_par_sg
 
-  subroutine clm_writerec_real4_2d_par(ncid,vname,xval,sg,nt)
+  subroutine clm_writerec_real4_2d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3385,9 +3415,9 @@ module mod_clm_nchelper
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_real4_2d_par
+  end subroutine clm_writerec_real4_2d_par_sg
 
-  subroutine clm_writerec_real4_3d_par(ncid,vname,xval,sg,nt)
+  subroutine clm_writerec_real4_3d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3425,9 +3455,9 @@ module mod_clm_nchelper
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_real4_3d_par
+  end subroutine clm_writerec_real4_3d_par_sg
 
-  subroutine clm_writerec_real8_0d_par(ncid,vname,xval,nt)
+  subroutine clm_writerec_real8_0d_par_sg(ncid,vname,xval,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3447,9 +3477,9 @@ module mod_clm_nchelper
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_real8_0d_par
+  end subroutine clm_writerec_real8_0d_par_sg
 
-  subroutine clm_writerec_real8_1d_par(ncid,vname,xval,sg,nt)
+  subroutine clm_writerec_real8_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3477,9 +3507,9 @@ module mod_clm_nchelper
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_real8_1d_par
+  end subroutine clm_writerec_real8_1d_par_sg
 
-  subroutine clm_writerec_real8_2d_par(ncid,vname,xval,sg,nt)
+  subroutine clm_writerec_real8_2d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3512,9 +3542,9 @@ module mod_clm_nchelper
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_real8_2d_par
+  end subroutine clm_writerec_real8_2d_par_sg
 
-  subroutine clm_writerec_real8_3d_par(ncid,vname,xval,sg,nt)
+  subroutine clm_writerec_real8_3d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
     character(len=*) , intent(in) :: vname
@@ -3552,7 +3582,195 @@ module mod_clm_nchelper
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_real8_3d_par
+  end subroutine clm_writerec_real8_3d_par_sg
+
+  subroutine clm_writerec_logical_2d_par_gg(ncid,vname,xval,gg,nt)
+    implicit none
+    type(clm_filetype) , intent(inout) :: ncid
+    character(len=*) , intent(in) :: vname
+    logical , dimension(:) , intent(in) :: xval
+    type(processor_type) , intent(in) :: gg
+    integer(ik4) , intent(in) :: nt
+    logical , dimension(:) , allocatable :: lval
+    integer(ik4) :: i , j , ib , ivarid , mpierr
+    if ( myid == iocpu ) then
+      allocate(lval(gg%ncells))
+      ivarid = searchvar(ncid,vname)
+    end if
+    call mpi_gatherv(xval,gg%gc(myid+1),mpi_logical, &
+                     lval,gg%gc,gg%gd,mpi_logical,   &
+                     iocpu,gg%icomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( myid /= iocpu ) return
+    ib = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        if ( gg%gcmask(j,i) ) then
+          if ( lval(ib) ) then
+            ncid%i4buf(j,i) = 1
+          else
+            ncid%i4buf(j,i) = 0
+          end if
+          ib = ib + 1
+        end if
+      end do
+    end do
+    deallocate(lval)
+    istart(3) = nt
+    istart(2) = 1
+    istart(1) = 1
+    icount(3) = 1
+    icount(2) = niout
+    icount(1) = njout
+    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf,istart(1:3),icount(1:3))
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+  end subroutine clm_writerec_logical_2d_par_gg
+
+  subroutine clm_writerec_integer_2d_par_gg(ncid,vname,xval,gg,nt)
+    implicit none
+    type(clm_filetype) , intent(inout) :: ncid
+    character(len=*) , intent(in) :: vname
+    integer(ik4) , dimension(:) , intent(in) :: xval
+    type(processor_type) , intent(in) :: gg
+    integer(ik4) , intent(in) :: nt
+    integer(ik4) , dimension(:) , allocatable :: ival
+    integer(ik4) :: i , j , ib , ivarid , mpierr
+    if ( myid == iocpu ) then
+      allocate(ival(gg%ncells))
+      ivarid = searchvar(ncid,vname)
+    end if
+    call mpi_gatherv(xval,gg%gc(myid+1),mpi_integer4, &
+                     ival,gg%gc,gg%gd,mpi_integer4,   &
+                     iocpu,gg%icomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    if ( myid /= iocpu ) return
+    ib = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        if ( gg%gcmask(j,i) ) then
+          ncid%i4buf(j,i) = ival(ib)
+          ib = ib + 1
+        end if
+      end do
+    end do
+    deallocate(ival)
+    istart(3) = nt
+    istart(2) = 1
+    istart(1) = 1
+    icount(3) = 1
+    icount(2) = niout
+    icount(1) = njout
+    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf,istart(1:3),icount(1:3))
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+  end subroutine clm_writerec_integer_2d_par_gg
+
+  subroutine clm_writerec_logical_3d_par_gg(ncid,vname,xval,gg,nt)
+    implicit none
+    type(clm_filetype) , intent(inout) :: ncid
+    character(len=*) , intent(in) :: vname
+    logical , dimension(:,:) , intent(in) :: xval
+    type(processor_type) , intent(in) :: gg
+    integer(ik4) , intent(in) :: nt
+    logical , dimension(:) , allocatable :: lval
+    integer(ik4) :: i , j , k , nk , ib , ivarid , mpierr
+    nk = size(xval,2)
+    if ( myid == iocpu ) then
+      allocate(lval(gg%ncells))
+      ivarid = searchvar(ncid,vname)
+    end if
+    do k = 1 , nk
+      call mpi_gatherv(xval(:,k),gg%gc(myid+1),mpi_logical, &
+                       lval,gg%gc,gg%gd,mpi_logical,   &
+                       iocpu,gg%icomm,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+      end if
+      if ( myid == iocpu ) then
+        ib = 1
+        do i = iout1 , iout2
+          do j = jout1 , jout2
+            if ( gg%gcmask(j,i) ) then
+              if ( lval(ib) ) then
+                ncid%i4buf(j,i) = 1
+              else
+                ncid%i4buf(j,i) = 0
+              end if
+              ib = ib + 1
+            end if
+          end do
+        end do
+        istart(4) = nt
+        istart(3) = k
+        istart(2) = 1
+        istart(1) = 1
+        icount(4) = 1
+        icount(3) = 1
+        icount(2) = niout
+        icount(1) = njout
+        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+                               istart(1:4),icount(1:4))
+        call clm_checkncerr(__FILE__,__LINE__, &
+          'Error read '//vname//' to file '//trim(ncid%fname))
+      end if
+    end do
+    if ( myid /= iocpu ) return
+    deallocate(lval)
+  end subroutine clm_writerec_logical_3d_par_gg
+
+  subroutine clm_writerec_integer_3d_par_gg(ncid,vname,xval,gg,nt)
+    implicit none
+    type(clm_filetype) , intent(inout) :: ncid
+    character(len=*) , intent(in) :: vname
+    integer(ik4) , dimension(:,:) , intent(in) :: xval
+    type(processor_type) , intent(in) :: gg
+    integer(ik4) , intent(in) :: nt
+    integer(ik4) , dimension(:) , allocatable :: ival
+    integer(ik4) :: i , j , k , nk , ib , ivarid , mpierr
+    nk = size(xval,2)
+    if ( myid == iocpu ) then
+      allocate(ival(gg%ncells))
+      ivarid = searchvar(ncid,vname)
+    end if
+    do k = 1 , nk
+      call mpi_gatherv(xval(:,k),gg%gc(myid+1),mpi_integer4, &
+                       ival,gg%gc,gg%gd,mpi_integer4,   &
+                       iocpu,gg%icomm,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+      end if
+      if ( myid == iocpu ) then
+        ib = 1
+        do i = iout1 , iout2
+          do j = jout1 , jout2
+            if ( gg%gcmask(j,i) ) then
+              ncid%i4buf(j,i) = ival(ib)
+              ib = ib + 1
+            end if
+          end do
+        end do
+        istart(4) = nt
+        istart(3) = k
+        istart(2) = 1
+        istart(1) = 1
+        icount(4) = 1
+        icount(3) = 1
+        icount(2) = niout
+        icount(1) = njout
+        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+                               istart(1:4),icount(1:4))
+        call clm_checkncerr(__FILE__,__LINE__, &
+          'Error read '//vname//' to file '//trim(ncid%fname))
+      end if
+    end do
+    if ( myid /= iocpu ) return
+    deallocate(ival)
+  end subroutine clm_writerec_integer_3d_par_gg
 
   subroutine test_clmhelper
     implicit none
@@ -3566,7 +3784,7 @@ module mod_clm_nchelper
     allocate(xval(gcomm_pft%is:gcomm_pft%ie))
     xval = .false.
     if ( myid == 1 ) xval = .true.
-    call clm_writevar_par(ncid,'test',xval,gcomm_pft)
+    call clm_writevar_par_sg(ncid,'test',xval,gcomm_pft)
     call clm_closefile(ncid)
   end subroutine test_clmhelper
 
