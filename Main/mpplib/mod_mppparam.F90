@@ -151,7 +151,8 @@ module mod_mppparam
                      real4_4d_collect ,    &
                      integer_2d_collect ,  &
                      integer_3d_collect ,  &
-                     integer_4d_collect
+                     integer_4d_collect ,  &
+                     logical_2d_collect
   end interface grid_collect
 
   interface subgrid_collect
@@ -2622,6 +2623,60 @@ module mod_mppparam
       call send_array(r4vector2,lsize,iocpu,tag_base)
     end if
   end subroutine real4_4d_collect
+!
+  subroutine logical_2d_collect(ml,mg,j1,j2,i1,i2)
+    implicit none
+    logical , pointer , dimension(:,:) , intent(in) :: ml  ! model local
+    logical , pointer , dimension(:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
+    if ( myid == iocpu ) then
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          mg(global_dot_jstart+j-1,global_dot_istart+i-1) = ml(j,i)
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call recv_array(window,4,icpu,tag_w)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize
+        if ( size(lvector1) < lsize ) then
+          call getmem1d(lvector1,1,lsize,'logical_2d_collect')
+        end if
+        call recv_array(lvector1,lsize,icpu,tag_base)
+        ib = 1
+        do i = window(1) , window(2)
+          do j = window(3) , window(4)
+            mg(j,i) = lvector1(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize
+      if ( size(lvector2) < lsize ) then
+        call getmem1d(lvector2,1,lsize,'logical_2d_collect')
+      end if
+      window(1) = global_dot_istart+i1-1
+      window(2) = window(1)+isize-1
+      window(3) = global_dot_jstart+j1-1
+      window(4) = window(3)+jsize-1
+      call send_array(window,4,iocpu,tag_w)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          lvector2(ib) = ml(j,i)
+          ib = ib + 1
+        end do
+      end do
+      call send_array(lvector2,lsize,iocpu,tag_base)
+    end if
+  end subroutine logical_2d_collect
 !
   subroutine integer_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
