@@ -26,10 +26,11 @@ OPENMPI=http://www.open-mpi.org/software/ompi/v1.6/downloads
 HDFGROUP=http://www.hdfgroup.org/ftp/HDF5/current/src
 ZLIB=http://zlib.net
 
-netcdf_c_ver=4.3.0
+netcdf_c_ver=4.3.1.1
 netcdf_f_ver=4.2
 hdf5_ver=1.8.12
 zlib_ver=1.2.8
+ompi_ver=
 
 if [ -z "$DEST" ]
 then
@@ -85,7 +86,7 @@ then
   exit 1
 fi
 echo "Downloading OPENMPI Library..."
-wget -c $OPENMPI/openmpi-1.6.5.tar.bz2 -o $DEST/logs/download_M.log
+wget -c $OPENMPI/openmpi-${ompi_ver}.tar.bz2 -o $DEST/logs/download_M.log
 if [ $? -ne 0 ]
 then
   echo "Error downloading OPENMPI from OPENMPI website"
@@ -93,13 +94,13 @@ then
 fi
 
 echo "Compiling MPI library."
-tar jxvf openmpi-1.6.5.tar.bz2 > /dev/null
+tar jxvf openmpi-${ompi_ver}.tar.bz2 > /dev/null
 if [ $? -ne 0 ]
 then
   echo "Error uncompressing openmpi library"
   exit 1
 fi
-cd openmpi-1.6.5
+cd openmpi-${ompi_ver}
 ./configure CC="$CC" FC="$FC" F77="$FC" CXX="$CXX" \
 	--prefix=$DEST > $DEST/logs/configure.log 2>&1
 make > $DEST/logs/compile.log 2>&1 && \
@@ -110,7 +111,7 @@ then
   exit 1
 fi
 cd $DEST
-rm -fr openmpi-1.6.5
+rm -fr openmpi-${ompi_ver}
 echo "Compiled MPI library."
 echo "Compiling zlib Library."
 tar zxvf zlib-${zlib_ver}.tar.gz > /dev/null
