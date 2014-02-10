@@ -9,6 +9,9 @@ module mod_clm_restfile
   use mod_dynparam
   use mod_mppparam
   use mod_clm_surfrd , only : crop_prog
+  use clm_time_manager , only : timemgr_restart_io , get_nstep
+  use mod_clm_subgridrest , only : SubgridRest
+  use mod_clm_biogeophysrest , only : BiogeophysRest
 
   implicit none
 
@@ -35,9 +38,6 @@ module mod_clm_restfile
   ! Read/write CLM restart file.
   !
   subroutine restFile_write(file,nlend,noptr,rdate)
-    use clm_time_manager , only : timemgr_restart_io, get_nstep
-    use subgridRestMod   , only : SubgridRest
-    use BiogeophysRestMod, only : BiogeophysRest
 #if (defined CN)
     use CNRestMod        , only : CNRest
     use CropRestMod      , only : CropRest

@@ -128,13 +128,13 @@ module mod_clm_subgridrest
       do l = begl , endl
         rlarr(l) = gptr%londeg(lptr%gridcell(l))
       end do
-      call clm_writevar_par(ncid,'land1d_lon',rlarr,gcomm_landunit)
+      call clm_writevar(ncid,'land1d_lon',rlarr,gcomm_landunit)
       do l = begl , endl
         rlarr(l) = gptr%latdeg(lptr%gridcell(l))
       end do
-      call clm_writevar_par(ncid,'land1d_lat',rlarr,gcomm_landunit)
-      call clm_writevar_par(ncid,'land1d_wtxy',lptr%wtgcell,gcomm_landunit)
-      call clm_writevar_par(ncid,'land1d_ityplun',lptr%itype,gcomm_landunit)
+      call clm_writevar(ncid,'land1d_lat',rlarr,gcomm_landunit)
+      call clm_writevar(ncid,'land1d_wtxy',lptr%wtgcell,gcomm_landunit)
+      call clm_writevar(ncid,'land1d_ityplun',lptr%itype,gcomm_landunit)
     end if
 
     ! Write column info
@@ -159,21 +159,21 @@ module mod_clm_subgridrest
       do c = begc , endc
         rcarr(c) = gptr%londeg(cptr%gridcell(c))
       end do
-      call clm_writevar_par(ncid,'cols1d_lon',rcarr,gcomm_column)
+      call clm_writevar(ncid,'cols1d_lon',rcarr,gcomm_column)
       do c = begc , endc
         rcarr(c) = gptr%latdeg(cptr%gridcell(c))
       end do
-      call clm_writevar_par(ncid,'cols1d_lat',rcarr,gcomm_column)
-      call clm_writevar_par(ncid,'cols1d_wtxy',cptr%wtgcell,gcomm_column)
-      call clm_writevar_par(ncid,'cols1d_wtlnd',cptr%wtlunit,gcomm_column)
+      call clm_writevar(ncid,'cols1d_lat',rcarr,gcomm_column)
+      call clm_writevar(ncid,'cols1d_wtxy',cptr%wtgcell,gcomm_column)
+      call clm_writevar(ncid,'cols1d_wtlnd',cptr%wtlunit,gcomm_column)
       do c = begc , endc
         icarr(c) = lptr%itype(cptr%landunit(c))
       end do
-      call clm_writevar_par(ncid,'cols1d_ityplun',icarr,gcomm_column)
+      call clm_writevar(ncid,'cols1d_ityplun',icarr,gcomm_column)
       do c = begc , endc
         icarr(c) = cptr%itype((c))
       end do
-      call clm_writevar_par(ncid,'cols1d_ityp',icarr,gcomm_column)
+      call clm_writevar(ncid,'cols1d_ityp',icarr,gcomm_column)
     end if
 
     ! Write pft info
@@ -199,19 +199,19 @@ module mod_clm_subgridrest
       do p = begp , endp
         rparr(p) = gptr%londeg(pptr%gridcell(p))
       end do
-      call clm_writevar_par(ncid,'pfts1d_lon',rparr,gcomm_pft)
+      call clm_writevar(ncid,'pfts1d_lon',rparr,gcomm_pft)
       do p = begp , endp
         rparr(p) = gptr%latdeg(pptr%gridcell(p))
       end do
-      call clm_writevar_par(ncid,'pfts1d_lat',rparr,gcomm_pft)
-      call clm_writevar_par(ncid,'pfts1d_wtxy',pptr%wtgcell,gcomm_pft)
-      call clm_writevar_par(ncid,'pfts1d_wtlnd',pptr%wtlunit,gcomm_pft)
-      call clm_writevar_par(ncid,'pfts1d_wtcol',pptr%wtcol,gcomm_pft)
-      call clm_writevar_par(ncid,'pfts1d_itypveg',pptr%itype,gcomm_pft)
+      call clm_writevar(ncid,'pfts1d_lat',rparr,gcomm_pft)
+      call clm_writevar(ncid,'pfts1d_wtxy',pptr%wtgcell,gcomm_pft)
+      call clm_writevar(ncid,'pfts1d_wtlnd',pptr%wtlunit,gcomm_pft)
+      call clm_writevar(ncid,'pfts1d_wtcol',pptr%wtcol,gcomm_pft)
+      call clm_writevar(ncid,'pfts1d_itypveg',pptr%itype,gcomm_pft)
       do p = begp , endp
         iparr(p) = lptr%itype(pptr%landunit(p))
       end do
-      call clm_writevar_par(ncid,'pfts1d_ityplun',iparr,gcomm_pft)
+      call clm_writevar(ncid,'pfts1d_ityplun',iparr,gcomm_pft)
     end if
 
     if ( flag == 'write' ) then

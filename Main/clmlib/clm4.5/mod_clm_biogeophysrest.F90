@@ -1,119 +1,74 @@
-module BiogeophysRestMod
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !MODULE: BiogeophysRestMod
-!
-! !DESCRIPTION:
-! Reads from or biogeophysics restart/initial data
-!
-! !USES:
+module mod_clm_biogeophysrest
+  !
+  ! Reads from or biogeophysics restart/initial data
+  !
+  use mod_intkinds
   use mod_realkinds
   use mod_mpmessage
   use mod_clm_nchelper
-!
-! !PUBLIC TYPES:
+  use mod_clm_type
+  use mod_clm_decomp , only : get_proc_bounds
+  use mod_clm_varpar , only : nlevgrnd, nlevsno, nlevlak, nlevurb, nlevsoi, &
+                              nlevcan
+  use mod_clm_varcon , only : istcrop
+  use mod_clm_varcon , only : denice , denh2o , istdlak , istslak , isturb , &
+               istsoil , pondmx , watmin , spval , icol_roof , icol_sunwall, &
+               icol_shadewall
+  use mod_clm_varctl , only : allocate_all_vegpfts, nsrest, fpftdyn,    &
+                              pertlim, iulog, nsrContinue, nsrStartup,  &
+                              nsrBranch
+  use mod_clm_initsurfalb , only : do_initsurfalb
+  use mod_clm_snicar , only : snw_rds_min
+  use mod_clm_mkarbinit , only : perturbIC
+  use mod_clm_atmlnd , only : clm_a2l
+
   implicit none
 
   private
-! save
-!
-! !PUBLIC MEMBER FUNCTIONS:
+
   public :: BiogeophysRest
-!
-! !REVISION HISTORY:
-! 2005-06-12: Created by Mariana Vertenstein
-!
-!EOP
-!-----------------------------------------------------------------------
 
   private :: weights_exactly_the_same
   private :: weights_within_roundoff_different
   private :: weights_tooDifferent
 
-contains
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: BiogeophysRest
-!
-! !INTERFACE:
+  contains
+  !
+  ! Read/Write biogeophysics information to/from restart file.
+  !
   subroutine BiogeophysRest( ncid, flag )
-!
-! !DESCRIPTION:
-! Read/Write biogeophysics information to/from restart file.
-!
-! !USES:
-    use mod_clm_type
-    use mod_clm_decomp       , only : get_proc_bounds
-    use mod_clm_varpar      , only : nlevgrnd, nlevsno, nlevlak, nlevurb, nlevsoi, &
-                                 nlevcan
-    use mod_clm_varcon      , only : istcrop
-    use mod_clm_varcon      , only : denice, denh2o, istdlak, istslak, isturb, &
-                                 istsoil, pondmx, watmin, spval, icol_roof, icol_sunwall, &
-                                 icol_shadewall
-    use mod_clm_varctl      , only : allocate_all_vegpfts, nsrest, fpftdyn,    &
-                                 pertlim, iulog, nsrContinue, nsrStartup,  &
-                                 nsrBranch
-    use mod_clm_initsurfalb , only : do_initsurfalb
-    use mod_clm_time_manager, only : is_first_step
-    use SNICARMod       , only : snw_rds_min
-    use shr_infnan_mod  , only : shr_infnan_isnan
-    use mkarbinitMod    , only : perturbIC
-    use mod_clm_time_manager, only : is_restart
-    use mod_clm_atmlnd      , only : clm_a2l
-!
-! !ARGUMENTS:
     implicit none
-    type(clm_filetype), intent(inout) :: ncid ! netcdf id
+    type(clm_filetype) , intent(inout) :: ncid ! netcdf id
     character(len=*) , intent(in)    :: flag ! 'read' or 'write'
-!
-! !CALLED FROM:
-!
-! !REVISION HISTORY:
-! Author: Mariana Vertenstein
-! 12/11/2003, Peter Thornton: Added cps%coszen, pps%gdir, and pps%omega
-!   for new sunlit/shaded canopy algorithm (in SUNSHA ifdef block)
-! 4/25/2005, Peter Thornton: Removed the SUNSHA ifdefs, since this is now the
-!   default code behavior.
-! 6/12/2005, Moved to netcdf format and renamed file
-!
-!
-! !LOCAL VARIABLES:
-!EOP
-!
-! local pointers to implicit in arguments
-!
     real(rk8) :: maxwatsat                 !maximum porosity    
     real(rk8) :: excess                    !excess volumetric soil water
     real(rk8) :: totwat                    !total soil water (mm)
     real(rk8) :: maxdiff                   !maximum difference in PFT weights
-    real(rk8), pointer :: wtgcell(:)       ! Grid cell weights for PFT
-    real(rk8), pointer :: wtlunit(:)       ! Land-unit weights for PFT
-    real(rk8), pointer :: wtcol(:)         ! Column weights for PFT
-    integer :: p,c,l,g,j,iv ! indices
-    real(rk8), pointer :: zi(:,:)          ! interface level below a "z" level (m)
-    integer :: nlevs        ! number of layers
-    integer :: begp, endp   ! per-proc beginning and ending pft indices
-    integer :: begc, endc   ! per-proc beginning and ending column indices
-    integer :: begl, endl   ! per-proc beginning and ending landunit indices
-    integer :: begg, endg   ! per-proc gridcell ending gridcell indices
+    real(rk8) , pointer :: wtgcell(:)      ! Grid cell weights for PFT
+    real(rk8) , pointer :: wtlunit(:)      ! Land-unit weights for PFT
+    real(rk8) , pointer :: wtcol(:)        ! Column weights for PFT
+    integer(ik4) :: p , c , l , g , j , iv ! indices
+    real(rk8) , pointer :: zi(:,:)    ! interface level below a "z" level (m)
+    integer(ik4) :: nlevs       ! number of layers
+    integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
+    integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
+    integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
     logical :: readvar      ! determine if variable is on initial file
     character(len=128) :: varname         ! temporary
-    integer , pointer :: clandunit(:)     ! landunit of corresponding column
-    integer , pointer :: ltype(:)         ! landunit type
-    integer , pointer :: ctype(:)         ! column type
-    type(landunit_type), pointer :: lptr  ! pointer to landunit derived subtype
-    type(column_type)  , pointer :: cptr  ! pointer to column derived subtype
-    type(pft_type)     , pointer :: pptr  ! pointer to pft derived subtype
-    real(rk8), pointer   :: temp2d(:,:)    ! temporary for zisno
-    real(rk8), parameter :: adiff = 5.D-04   ! tolerance of acceptible difference
-    character(len=7)  :: filetypes(0:3)
+    integer(ik4) , pointer :: clandunit(:) ! landunit of corresponding column
+    integer(ik4) , pointer :: ltype(:)     ! landunit type
+    integer(ik4) , pointer :: ctype(:)     ! column type
+    type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
+    type(column_type) , pointer :: cptr  ! pointer to column derived subtype
+    type(pft_type) , pointer :: pptr     ! pointer to pft derived subtype
+    real(rk8) , pointer   :: temp2d(:,:) ! temporary for zisno
+    ! tolerance of acceptible difference
+    real(rk8) , parameter :: adiff = 5.D-04
+    character(len=7) :: filetypes(0:3)
     character(len=32) :: fileusing
-    character(len=*), parameter :: sub="BiogeophysRest"
-!-----------------------------------------------------------------------
+    character(len=*) , parameter :: sub = "BiogeophysRest"
+
     filetypes(:)           = "missing"
     filetypes(nsrStartup)  = "finidat"
     filetypes(nsrContinue) = "restart"
@@ -130,124 +85,140 @@ contains
     zi         => clm3%g%l%c%cps%zi
     ctype      => cptr%itype
 
-    call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
+    call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
     !
     ! Read in weights if allocating all vegetation types
     !
 
-    if (allocate_all_vegpfts) then
+    if ( allocate_all_vegpfts ) then
 
-       ! pft weight wrt gridcell 
+      ! pft weight wrt gridcell 
 
-       if (flag == 'define') then
-         call clm_addvar(clmvar_double,ncid,'PFT_WTGCELL',(/'pft'/), &
-               long_name='pft weight relative to corresponding gridcell', &
-               units='')
-       else if (flag == 'read' ) then
-         if ( is_restart() .and. .not. clm_check_var(ncid,'PFT_WTGCELL') ) then
-           call fatal(__FILE__,__LINE__,'clm_now_stopping')
-         else
-          ! Copy weights calculated from fsurdat/fpftdyn to temp array for comparision
-          ! Don't read directly into temp array -- so that answers are identical with clm3.6.58. EBK 1/9/2010
-           allocate( wtgcell(begp:endp) )
-           wtgcell(:) = pptr%wtgcell(:)
-           call clm_readvar(ncid,'PFT_WTGCELL',pptr%wtgcell)
-         end if
-       else if (flag == 'write' ) then
-          call clm_writevar(ncid,'PFT_WTGCELL',pptr%wtgcell)
-       end if
+      if ( flag == 'define' ) then
+        call clm_addvar(clmvar_double,ncid,'PFT_WTGCELL',(/'pft'/), &
+              long_name='pft weight relative to corresponding gridcell', &
+              units='')
+      else if ( flag == 'read' ) then
+        if ( ktau /= 0 .and. .not. clm_check_var(ncid,'PFT_WTGCELL') ) then
+          call fatal(__FILE__,__LINE__,'clm_now_stopping')
+        else
+          ! Copy weights calculated from fsurdat/fpftdyn to temp array
+          ! for comparision
+          ! Don't read directly into temp array -- so that answers are
+          ! identical with clm3.6.58. EBK 1/9/2010
+          allocate( wtgcell(begp:endp) )
+          wtgcell(:) = pptr%wtgcell(:)
+          call clm_readvar(ncid,'PFT_WTGCELL',pptr%wtgcell,gcomm%pft)
+        end if
+      else if (flag == 'write' ) then
+        call clm_writevar(ncid,'PFT_WTGCELL',pptr%wtgcell,gcomm%pft)
+      end if
 
-       ! pft weight wrt landunit
+      ! pft weight wrt landunit
 
-       if (flag == 'define') then
-         call clm_addvar(clmvar_double,ncid,'PFT_WTLUNIT',(/'pft'/), &
-               long_name='pft weight relative to corresponding landunit', &
-               units='')
-       else if (flag == 'read') then
-         if ( is_restart() .and. .not. clm_check_var(ncid,'PFT_WTLUNIT') ) then
-           call fatal(__FILE__,__LINE__,'clm_now_stopping')
-         else
-          ! Copy weights calculated from fsurdat/fpftdyn to temp array for comparision
-          ! Don't read directly into temp array -- so that answers are identical with clm3.6.58. EBK 1/9/2010
-           allocate( wtlunit(begp:endp) )
-           wtlunit(:) = pptr%wtlunit(:)
-           call clm_readvar(ncid,'PFT_WTLUNIT',pptr%wtlunit)
-         end if
-       else if (flag == 'write') then
-          call clm_writevar(ncid,'PFT_WTLUNIT',pptr%wtlunit)
-       end if
+      if ( flag == 'define' ) then
+        call clm_addvar(clmvar_double,ncid,'PFT_WTLUNIT',(/'pft'/), &
+              long_name='pft weight relative to corresponding landunit', &
+              units='')
+      else if ( flag == 'read' ) then
+        if ( ktau /= 0 .and. .not. clm_check_var(ncid,'PFT_WTLUNIT') ) then
+          call fatal(__FILE__,__LINE__,'clm_now_stopping')
+        else
+          ! Copy weights calculated from fsurdat/fpftdyn to temp array
+          ! for comparision
+          ! Don't read directly into temp array -- so that answers are
+          ! identical with clm3.6.58. EBK 1/9/2010
+          allocate( wtlunit(begp:endp) )
+          wtlunit(:) = pptr%wtlunit(:)
+          call clm_readvar(ncid,'PFT_WTLUNIT',pptr%wtlunit,gcomm%pft)
+        end if
+      else if ( flag == 'write' ) then
+        call clm_writevar(ncid,'PFT_WTLUNIT',pptr%wtlunit,gcomm%pft)
+      end if
 
-       ! pft weight wrt column
+      ! pft weight wrt column
 
-       if (flag == 'define') then
-         call clm_addvar(clmvar_double,ncid,'PFT_WTCOL',(/'pft'/), &
+      if ( flag == 'define' ) then
+        call clm_addvar(clmvar_double,ncid,'PFT_WTCOL',(/'pft'/), &
                long_name='pft weight relative to corresponding column', &
                units='')
-       else if (flag == 'read') then
-         if ( is_restart() .and. .not. clm_check_var(ncid,'PFT_WTCOL') ) then
-           call fatal(__FILE__,__LINE__,'clm_now_stopping')
-         else
-          ! Copy weights calculated from fsurdat/fpftdyn to temp array for comparision
-          ! Don't read directly into temp array -- so that answers are identical with clm3.6.58. EBK 1/9/2010
-           allocate( wtcol(begp:endp)   )
-           wtcol(:) = pptr%wtcol(:)
-           call clm_readvar(ncid,'PFT_WTCOL',pptr%wtcol)
-         end if
-       else if (flag == 'write') then
-          call clm_writevar(ncid,'PFT_WTCOL',pptr%wtcol)
-       end if
+      else if ( flag == 'read' ) then
+        if ( ktau /= 0 .and. .not. clm_check_var(ncid,'PFT_WTCOL') ) then
+          call fatal(__FILE__,__LINE__,'clm_now_stopping')
+        else
+          ! Copy weights calculated from fsurdat/fpftdyn to temp array
+          ! for comparision
+          ! Don't read directly into temp array -- so that answers are
+          ! identical with clm3.6.58. EBK 1/9/2010
+          allocate( wtcol(begp:endp)   )
+          wtcol(:) = pptr%wtcol(:)
+          call clm_readvar(ncid,'PFT_WTCOL',pptr%wtcol,gcomm%pft)
+        end if
+      else if ( flag == 'write' ) then
+        call clm_writevar(ncid,'PFT_WTCOL',pptr%wtcol,gcomm%pft)
+      end if
 
-       if (flag == 'read' )then
-
-          if ( fpftdyn /= ' ' )then
-             fileusing = "fsurdat/fpftdyn"
-          else
-             fileusing = "fsurdat"
-          end if
-          !
-          ! Note: Do not compare weights if restart or if dynamic-pft branch
-          !
-          if ( nsrest == nsrContinue .or. fpftdyn /= ' ' )then
-             ! Do NOT do any testing for restart or a pftdyn case
+      if ( flag == 'read' ) then
+        if ( fpftdyn /= ' ' ) then
+          fileusing = "fsurdat/fpftdyn"
+        else
+          fileusing = "fsurdat"
+        end if
+        !
+        ! Note: Do not compare weights if restart or if dynamic-pft branch
+        !
+        if ( nsrest == nsrContinue .or. fpftdyn /= ' ' ) then
+          ! Do NOT do any testing for restart or a pftdyn case
           !
           ! Otherwise test and make sure weights agree to reasonable tolerence
           !
-          else if ( .not.weights_exactly_the_same( pptr, wtgcell, wtlunit, wtcol ) )then
+        else if ( .not. weights_exactly_the_same(pptr,wtgcell, &
+                                                 wtlunit,wtcol) ) then
 #if (!defined CNDV)
   
-             if (      weights_within_roundoff_different( pptr, wtgcell, wtlunit, wtcol ) )then
-                write(iulog,*) sub//"::NOTE, PFT weights from ", filetypes(nsrest),      &
-                               " file and ", trim(fileusing), " file(s) are different to roundoff -- using ", &
-                               trim(fileusing), " values."
-             else if ( weights_tooDifferent( begp, endp, pptr, wtgcell, adiff, maxdiff ) )then
-                write(stderr,*) "ERROR:: PFT weights are SIGNIFICANTLY different from the input ", &
-                               filetypes(nsrest), " file and ", trim(fileusing), " file(s)."
-                write(stderr,*) "ERROR:: maximum difference is ", maxdiff, " max allowed = ", adiff
-                write(stderr,*) "ERROR:: Run interpinic on your initial condition file to interpolate to the new surface dataset"
-                call fatal(__FILE__,__LINE__,&
-                  sub//"::ERROR:: Weights between initial condition file and surface dataset are too different" )
-             else
-                write(iulog,*) sub//"::NOTE, PFT weights from ", filetypes(nsrest),      &
-                               " file and ", trim(fileusing), " file(s) are different to < ", &
-                               adiff, " -- using ", trim(fileusing), " values."
-             end if
-             write(iulog,*) sub//"::WARNING, weights different between ", filetypes(nsrest), &
-                            " file and ", trim(fileusing), " file(s), but close enough -- using ",    &
-                            trim(fileusing), " values."
-             ! Copy weights from fsurdat file back in -- they are only off by roundoff to 1% or so...
-             pptr%wtgcell(:) = wtgcell(:)
-             pptr%wtlunit(:) = wtlunit(:)
-             pptr%wtcol(:)   = wtcol(:)
-#endif
+          if ( weights_within_roundoff_different(pptr,wtgcell, &
+                                                 wtlunit,wtcol) ) then
+            write(stderr,*) &
+               sub//"::NOTE, PFT weights from ", filetypes(nsrest),      &
+                    " file and ", trim(fileusing), &
+                    " file(s) are different to roundoff -- using ", &
+                    trim(fileusing), " values."
+          else if (weights_tooDifferent(begp,endp,pptr, &
+                                        wtgcell,adiff,maxdiff) ) then
+            write(stderr,*) &
+            "ERROR:: PFT weights are SIGNIFICANTLY different from the input ", &
+            filetypes(nsrest), " file and ", trim(fileusing), " file(s)."
+            write(stderr,*) &
+            "ERROR:: maximum difference is ", maxdiff, " max allowed = ", adiff
+            write(stderr,*) &
+            "ERROR:: Run interpinic on your initial condition file to "// &
+            "interpolate to the new surface dataset"
+            call fatal(__FILE__,__LINE__,&
+                  sub//"::ERROR:: Weights between initial condition "// &
+                       "file and surface dataset are too different")
+          else
+            write(stderr,*) sub//"::NOTE, PFT weights from ", &
+                    filetypes(nsrest), " file and ", trim(fileusing), &
+                   " file(s) are different to < ", &
+                   adiff, " -- using ", trim(fileusing), " values."
           end if
- 
-          deallocate( wtgcell )
-          deallocate( wtlunit )
-          deallocate( wtcol   )
-
-       end if
-
+          write(stderr,*) &
+            sub//"::WARNING, weights different between ", filetypes(nsrest), &
+            " file and ", trim(fileusing), &
+            " file(s), but close enough -- using ",    &
+            trim(fileusing), " values."
+          ! Copy weights from fsurdat file back in -- they are only off
+          ! by roundoff to 1% or so...
+          pptr%wtgcell(:) = wtgcell(:)
+          pptr%wtlunit(:) = wtlunit(:)
+          pptr%wtcol(:)   = wtcol(:)
+#endif
+        end if
+        deallocate( wtgcell )
+        deallocate( wtlunit )
+        deallocate( wtcol   )
+      end if
     end if
 
     ! Note - for the snow interfaces, are only examing the snow interfaces
@@ -256,271 +227,271 @@ contains
     
     ! pft energy flux - eflx_lwrad_out
 
-    if (flag == 'define') then
-       call clm_addvar(clmvar_double,ncid,'EFLX_LWRAD_OUT',(/'pft'/), &
-            long_name='emitted infrared (longwave) radiation', units='watt/m^2')
-    else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'EFLX_LWRAD_OUT') ) then
+    if ( flag == 'define' ) then
+      call clm_addvar(clmvar_double,ncid,'EFLX_LWRAD_OUT',(/'pft'/), &
+           long_name='emitted infrared (longwave) radiation', units='watt/m^2')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'EFLX_LWRAD_OUT') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
-        call clm_readvar(ncid,'EFLX_LWRAD_OUT',pptr%pef%eflx_lwrad_out)
+        call clm_readvar(ncid,'EFLX_LWRAD_OUT', &
+                pptr%pef%eflx_lwrad_out,gcomm%pft)
       end if
-    else if (flag == 'write') then
-       call clm_writevar(ncid,'EFLX_LWRAD_OUT',pptr%pef%eflx_lwrad_out)
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'EFLX_LWRAD_OUT', &
+               pptr%pef%eflx_lwrad_out,gcomm%pft)
     end if
 
     ! column water state variable - snow levels
 
-    if (flag == 'define') then
-       call clm_addvar(clmvar_integer,ncid,'SNLSNO',(/'column'/), &
+    if ( flag == 'define' ) then
+      call clm_addvar(clmvar_integer(ik4),ncid,'SNLSNO',(/'column'/), &
             long_name='number of snow layers', units='unitless')
-    else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'SNLSNO') ) then
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'SNLSNO') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
-        call clm_readvar(ncid,'SNLSNO',cptr%cps%snl)
+        call clm_readvar(ncid,'SNLSNO',cptr%cps%snl,gcomm%column)
       end if
-    else if (flag == 'write') then
-       call clm_writevar(ncid,'SNLSNO',cptr%cps%snl)
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'SNLSNO',cptr%cps%snl,gcomm%column)
     end if
 
     ! column water state variable - snow_depth
     ! As of clm4_0_76, SNOW_DEPTH is written to restarts.
 
-    if (flag == 'define') then
-       call clm_addvar(clmvar_double,ncid,'SNOW_DEPTH',(/'column'/), &
+    if ( flag == 'define' ) then
+      call clm_addvar(clmvar_double,ncid,'SNOW_DEPTH',(/'column'/), &
             long_name='snow depth', units='m')
-    else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'SNOW_DEPTH') ) then
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0  .and. .not. clm_check_var(ncid,'SNOW_DEPTH') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
-        call clm_readvar(ncid,'SNOW_DEPTH',cptr%cps%snow_depth)
+        call clm_readvar(ncid,'SNOW_DEPTH',cptr%cps%snow_depth,gcomm%column)
       end if
-    else if (flag == 'write') then
-       call clm_writevar(ncid,'SNOW_DEPTH',cptr%cps%snow_depth)
+    else if ( flag == 'write' ) then
+       call clm_writevar(ncid,'SNOW_DEPTH',cptr%cps%snow_depth,gcomm%column)
     end if
 
     ! column water state variable - int_snow
 
-    if (flag == 'define') then
-       call clm_addvar(clmvar_double,ncid,'INT_SNOW',(/'column'/), &
+    if ( flag == 'define' ) then
+      call clm_addvar(clmvar_double,ncid,'INT_SNOW',(/'column'/), &
             long_name='accumulated snow', units='mm')
-    else if (flag == 'read') then
+    else if ( flag == 'read' ) then
       readvar = clm_check_var(ncid,'INT_SNOW')
-      if ( is_restart() .and. .not. readvar ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'INT_SNOW') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else if ( readvar )
-        call clm_readvar(ncid,'INT_SNOW',cptr%cws%int_snow)
+        call clm_readvar(ncid,'INT_SNOW',cptr%cws%int_snow,gcomm%column)
       else
         cptr%cws%int_snow(:) = 0.0D0
       end if
-    else if (flag == 'write') then
-      call clm_writevar(ncid,'INT_SNOW',cptr%cws%int_snow)
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'INT_SNOW',cptr%cws%int_snow,gcomm%column)
     end if
 
     ! column water state variable - wa
 
-    if (flag == 'define') then
-       call clm_addvar(clmvar_double,ncid,'WA',(/'column'/), &
+    if ( flag == 'define' ) then
+      call clm_addvar(clmvar_double,ncid,'WA',(/'column'/), &
             long_name='water in the unconfined aquifer', units='mm')
-    else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'WA') ) then
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'WA') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
-        call clm_readvar(ncid,'WA',cptr%cws%wa)
+        call clm_readvar(ncid,'WA',cptr%cws%wa,gcomm%column)
       end if
-    else if (flag == 'write') then
-      call clm_writevar(ncid,'WA',cptr%cws%wa)
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'WA',cptr%cws%wa,gcomm%column)
     end if
 
     ! gridcell type water flux variable - tws
-     if (flag == 'define') then
-       call clm_addvar(clmvar_double,ncid,'TWS',(/'gridcell'/), &
+
+    if ( flag == 'define' ) then
+      call clm_addvar(clmvar_double,ncid,'TWS',(/'gridcell'/), &
              long_name='total water storage', units='mm/s')
-     else if (flag == 'read') then
-       readvar = clm_check_var(ncid,'TWS')
-       if ( is_restart() .and. .not. readvar ) then
-         call fatal(__FILE__,__LINE__,'clm_now_stopping')
-       else
-         if ( readvar ) then
-           call clm_readvar(ncid,'TWS',clm3%g%tws)
-         else
-           ! initial run, not restart: initialize flood to zero
-           clm3%g%tws = 0.D0
-         end if
-       end if
-     else if (flag == 'write') then
-       call clm_writevar(ncid,'TWS',clm3%g%tws)
-     end if
+    else if ( flag == 'read' ) then
+      readvar = clm_check_var(ncid,'TWS')
+      if ( ktau /= 0 .and. .not. readvar ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        if ( readvar ) then
+          call clm_readvar(ncid,'TWS',clm3%g%tws,gcomm%gridcell)
+        else
+          ! initial run, not restart: initialize flood to zero
+          clm3%g%tws = 0.D0
+        end if
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'TWS',clm3%g%tws,gcomm%gridcell)
+    end if
 
     ! column water state variable - zwt
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'ZWT',(/'column'/), &
             long_name='water table depth', units='m')
-    else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'ZWT') ) then
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'ZWT') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
-        call clm_readvar(ncid,'ZWT',cptr%cws%zwt)
+        call clm_readvar(ncid,'ZWT',cptr%cws%zwt,gcomm%column)
       end if
-    else if (flag == 'write') then
-      call clm_writevar(ncid,'ZWT',cptr%cws%zwt)
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'ZWT',cptr%cws%zwt,gcomm%column)
     end if
 
     ! column water state variable - frost_table
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'FROST_TABLE',(/'column'/), &
             long_name='frost table depth', units='m')
-    else if (flag == 'read') then
+    else if ( flag == 'read' ) then
       readvar = clm_check_var(ncid,'FROST_TABLE')
-      if ( is_restart() .and. .not. readvar ) then
+      if ( ktau /= 0 .and. .not. readvar ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         if ( readvar ) then
-          call clm_readvar(ncid,'FROST_TABLE',cptr%cws%frost_table)
+          call clm_readvar(ncid,'FROST_TABLE',cptr%cws%frost_table,gcomm%column)
         else
-          do c = begc, endc
+          do c = begc , endc
             cptr%cws%frost_table(c) = zi(c,nlevsoi)
           end do
         end if
       end if
-    else if (flag == 'write') then
-      call clm_writevar(ncid,'FROST_TABLE',cptr%cws%frost_table)
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'FROST_TABLE',cptr%cws%frost_table,gcomm%column)
     end if
 
     ! column water state variable - zwt_perched
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'ZWT_PERCH',(/'column'/), &
             long_name='perched water table depth', units='m')
-    else if (flag == 'read') then
+    else if ( flag == 'read' ) then
       readvar = clm_check_var(ncid,'ZWT_PERCH')
-      if ( is_restart() .and. .not. readvar ) then
+      if ( ktau /= 0 .and. .not. readvar ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         if ( readvar ) then
-          call clm_readvar(ncid,'ZWT_PERCH',cptr%cws%zwt_perched)
+          call clm_readvar(ncid,'ZWT_PERCH',cptr%cws%zwt_perched,gcomm%column)
         else
-          do c = begc, endc
+          do c = begc , endc
             cptr%cws%zwt_perched(c) = zi(c,nlevsoi)
           end do
         end if
       end if
-    else if (flag == 'write') then
-      call clm_writevar(ncid,'ZWT_PERCH',cptr%cws%zwt_perched)
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'ZWT_PERCH',cptr%cws%zwt_perched,gcomm%column)
     end if
 
     ! column type physical state variable - frac_sno_eff
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'frac_sno_eff',(/'column'/), &
             long_name='fraction of ground covered by snow (0 to 1)', &
             units='unitless')
-    else if (flag == 'read') then
+    else if ( flag == 'read' ) then
       readvar = clm_check_var(ncid,'frac_sno_eff')
-      if ( is_restart() .and. .not. readvar ) then
+      if ( ktau /= 0 .and. .not. readvar ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         if ( readvar ) then
-          call clm_readvar(ncid,'frac_sno_eff',cptr%cps%frac_sno_eff)
+          call clm_readvar(ncid,'frac_sno_eff', &
+                  cptr%cps%frac_sno_eff,gcomm%column)
         else
-          do c = begc, endc
-             cptr%cps%frac_sno_eff(c) = 0.0D0
+          do c = begc , endc
+            cptr%cps%frac_sno_eff(c) = 0.0D0
           end do
         end if
       end if
-    else if (flag == 'write') then
-      call clm_writevar(ncid,'frac_sno_eff',cptr%cps%frac_sno_eff)
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'frac_sno_eff',cptr%cps%frac_sno_eff,gcomm%column)
     end if
 
     ! column type physical state variable - frac_sno
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'frac_sno',(/'column'/), &
             long_name='fraction of ground covered by snow (0 to 1)', &
             units='unitless')
-    else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'frac_sno') ) then
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'frac_sno') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
-        call clm_readvar(ncid,'frac_sno',cptr%cps%frac_sno)
+        call clm_readvar(ncid,'frac_sno',cptr%cps%frac_sno,gcomm%column)
       end if
-    else if (flag == 'write') then
-      call clm_writevar(ncid,'frac_sno',cptr%cps%frac_sno)
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'frac_sno',cptr%cps%frac_sno,gcomm%column)
     end if
 
     ! column type physical state variable - dzsno
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'DZSNO',(/'column','levsno'/), &
             long_name='snow layer thickness', units='m')
-    else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'DZSNO') ) then
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'DZSNO') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
         allocate(temp2d(begc:endc,-nlevsno+1:0))
-        call clm_readvar(ncid,'DZSNO',temp2d)
+        call clm_readvar(ncid,'DZSNO',temp2d,gcomm%column)
         cptr%cps%dz(begc:endc,-nlevsno+1:0) = temp2d(begc:endc,-nlevsno+1:0)
         deallocate(temp2d)
       end if
-    else if (flag == 'write') then
+    else if ( flag == 'write' ) then
       allocate(temp2d(begc:endc,-nlevsno+1:0))
       temp2d(begc:endc,-nlevsno+1:0) = cptr%cps%dz(begc:endc,-nlevsno+1:0)
-      call clm_writevar(ncid,'DZSNO',temp2d)
+      call clm_writevar(ncid,'DZSNO',temp2d,gcomm%column)
       deallocate(temp2d)
     end if
 
     ! column type physical state variable - zsno
 
-    if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='ZSNO', xtype=ncd_double,  &
-            dim1name='column', dim2name='levsno', switchdim=.true., &
+    if ( flag == 'define' ) then
+      call clm_addvar(clmvar_double,ncid,'ZSNO',(/'column','levsno'/), &
             long_name='snow layer depth', units='m')
-    else if (flag == 'read' .or. flag == 'write') then
-       allocate(temp2d(begc:endc,-nlevsno+1:0))
-       if (flag == 'write') then 
-          temp2d(begc:endc,-nlevsno+1:0) = cptr%cps%z(begc:endc,-nlevsno+1:0)
-       end if
-       call ncd_io(varname='ZSNO', data=temp2d, &
-            dim1name=namec, switchdim=.true., &
-            lowerb2=-nlevsno+1, upperb2=0, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
-       end if
-       if (flag == 'read') then
-          cptr%cps%z(begc:endc,-nlevsno+1:0) = temp2d(begc:endc,-nlevsno+1:0) 
-       end if
-       deallocate(temp2d)
+    else if (flag == 'read' )
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'ZSNO') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        allocate(temp2d(begc:endc,-nlevsno+1:0))
+        call clm_readvar(ncid,'ZSNO',temp2d,gcomm%column)
+        cptr%cps%z(begc:endc,-nlevsno+1:0) = temp2d(begc:endc,-nlevsno+1:0) 
+        deallocate(temp2d)
+      end if
+    else if ( flag == 'write') then
+      allocate(temp2d(begc:endc,-nlevsno+1:0))
+      temp2d(begc:endc,-nlevsno+1:0) = cptr%cps%z(begc:endc,-nlevsno+1:0)
+      call clm_writevar(ncid,'ZSNO',temp2d,gcomm%column)
+      deallocate(temp2d)
     end if
 
     ! column type physical state variable - zisno
 
-    if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='ZISNO', xtype=ncd_double,  &
-            dim1name='column', dim2name='levsno', switchdim=.true., &
-            long_name='snow interface depth', units='m')
-    else if (flag == 'read' .or. flag == 'write') then
-       allocate(temp2d(begc:endc,-nlevsno:-1))
-       if (flag == 'write') then 
-          temp2d(begc:endc,-nlevsno:-1) = cptr%cps%zi(begc:endc,-nlevsno:-1)
-       end if
-       call ncd_io(varname='ZISNO', data=temp2d, &
-            dim1name=namec, switchdim=.true., &
-            lowerb2=-nlevsno, upperb2=-1, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
-       end if
-       if (flag == 'read') then 
-          cptr%cps%zi(begc:endc,-nlevsno:-1) = temp2d(begc:endc,-nlevsno:-1)
-       end if
-       deallocate(temp2d)  
+    if ( flag == 'define' ) then
+      call clm_addvar(clmvar_double,ncid,'ZISNO',(/'column','levsno'/), &
+              long_name='snow interface depth', units='m')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'ZISNO') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        allocate(temp2d(begc:endc,-nlevsno+1:0))
+        call clm_readvar(ncid,'ZISNO',temp2d,gcomm%column)
+        cptr%cps%zi(begc:endc,-nlevsno+1:0) = temp2d(begc:endc,-nlevsno+1:0)
+        deallocate(temp2d)
+      end if
+    else if ( flag == 'write' ) then
+      allocate(temp2d(begc:endc,-nlevsno+1:0))
+      temp2d(begc:endc,-nlevsno+1:0) = cptr%cps%zi(begc:endc,-nlevsno+1:0)
+      call clm_writevar(ncid,'ZISNO',temp2d,gcomm%column)
+      deallocate(temp2d)
     end if
 
     ! column type physical state variable - coszen
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='coszen', xtype=ncd_double,  &
             dim1name='column', &
             long_name='cosine of solar zenith angle', units='unitless')
@@ -529,13 +500,13 @@ contains
             dim1name=namec, &
             ncid=ncid, flag=flag, readvar=readvar) 
        if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - sabs_roof_dir
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='sabs_roof_dir', xtype=ncd_double,  &
             dim1name='landunit', dim2name='numrad', switchdim=.true., &
             long_name='direct solar absorbed by roof per unit ground area per unit incident flux',units='')
@@ -543,13 +514,13 @@ contains
        call ncd_io(varname='sabs_roof_dir', data=lptr%lps%sabs_roof_dir, &
             dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - sabs_roof_dif
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='sabs_roof_dif', xtype=ncd_double,  &
             dim1name='landunit', dim2name='numrad', switchdim=.true., &
             long_name='diffuse solar absorbed by roof per unit ground area per unit incident flux',units='')
@@ -557,13 +528,13 @@ contains
        call ncd_io(varname='sabs_roof_dif', data=lptr%lps%sabs_roof_dif, &
             dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - sabs_sunwall_dir
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='sabs_sunwall_dir', xtype=ncd_double,  &
             dim1name='landunit', dim2name='numrad', switchdim=.true., &
             long_name='direct solar absorbed by sunwall per unit wall area per unit incident flux',units='')
@@ -571,13 +542,13 @@ contains
        call ncd_io(varname='sabs_sunwall_dir', data=lptr%lps%sabs_sunwall_dir, &
             dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - sabs_sunwall_dif
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='sabs_sunwall_dif', xtype=ncd_double,  &
             dim1name='landunit', dim2name='numrad', switchdim=.true., &
             long_name='diffuse solar absorbed by sunwall per unit wall area per unit incident flux',units='')
@@ -585,13 +556,13 @@ contains
        call ncd_io(varname='sabs_sunwall_dif', data=lptr%lps%sabs_sunwall_dif, &
             dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - sabs_shadewall_dir
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='sabs_shadewall_dir', xtype=ncd_double,  &
             dim1name='landunit', dim2name='numrad', switchdim=.true., &
             long_name='direct solar absorbed by shadewall per unit wall area per unit incident flux',units='')
@@ -599,13 +570,13 @@ contains
        call ncd_io(varname='sabs_shadewall_dir', data=lptr%lps%sabs_shadewall_dir, &
             dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - sabs_shadewall_dif
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='sabs_shadewall_dif', xtype=ncd_double,  &
             dim1name='landunit', dim2name='numrad', switchdim=.true., &
             long_name='diffuse solar absorbed by shadewall per unit wall area per unit incident flux',units='')
@@ -613,13 +584,13 @@ contains
        call ncd_io(varname='sabs_shadewall_dif', data=lptr%lps%sabs_shadewall_dif, &
             dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - sabs_improad_dir
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='sabs_improad_dir', xtype=ncd_double,  &
             dim1name='landunit', dim2name='numrad', switchdim=.true., &
             long_name='direct solar absorbed by impervious road per unit ground area per unit incident flux',units='')
@@ -627,13 +598,13 @@ contains
        call ncd_io(varname='sabs_improad_dir', data=lptr%lps%sabs_improad_dir, &
             dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - sabs_improad_dif
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='sabs_improad_dif', xtype=ncd_double,  &
             dim1name='landunit', dim2name='numrad', switchdim=.true., &
             long_name='diffuse solar absorbed by impervious road per unit ground area per unit incident flux',units='')
@@ -641,13 +612,13 @@ contains
        call ncd_io(varname='sabs_improad_dif', data=lptr%lps%sabs_improad_dif, &
             dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - sabs_perroad_dir
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='sabs_perroad_dir', xtype=ncd_double,  &
             dim1name='landunit', dim2name='numrad', switchdim=.true., &
             long_name='direct solar absorbed by pervious road per unit ground area per unit incident flux',units='')
@@ -655,13 +626,13 @@ contains
        call ncd_io(varname='sabs_perroad_dir', data=lptr%lps%sabs_perroad_dir, &
             dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - sabs_perroad_dif
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='sabs_perroad_dif', xtype=ncd_double,  &
             dim1name='landunit', dim2name='numrad', switchdim=.true., &
             long_name='diffuse solar absorbed by pervious road per unit ground area per unit incident flux',units='')
@@ -669,13 +640,13 @@ contains
        call ncd_io(varname='sabs_perroad_dif', data=lptr%lps%sabs_perroad_dif, &
             dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - vf_sr
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='vf_sr', xtype=ncd_double,  &
             dim1name='landunit', &
             long_name='view factor of sky for road',units='')
@@ -684,13 +655,13 @@ contains
             dim1name=namel, &
             ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - vf_wr
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='vf_wr', xtype=ncd_double,  &
             dim1name='landunit', &
             long_name='view factor of one wall for road',units='')
@@ -699,13 +670,13 @@ contains
             dim1name=namel, &
             ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - vf_sw
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='vf_sw', xtype=ncd_double,  &
             dim1name='landunit', &
             long_name='view factor of sky for one wall',units='')
@@ -714,13 +685,13 @@ contains
             dim1name=namel, &
             ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - vf_rw
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='vf_rw', xtype=ncd_double,  &
             dim1name='landunit', &
             long_name='view factor of road for one wall',units='')
@@ -729,13 +700,13 @@ contains
             dim1name=namel, &
             ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - vf_ww
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='vf_ww', xtype=ncd_double,  &
             dim1name='landunit', &
             long_name='view factor of opposing wall for one wall',units='')
@@ -744,13 +715,13 @@ contains
             dim1name=namel, &
             ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - taf
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='taf', xtype=ncd_double,  &
             dim1name='landunit', &
             long_name='urban canopy air temperature',units='K')
@@ -759,13 +730,13 @@ contains
             dim1name=namel, &
             ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! landunit type physical state variable - qaf
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='qaf', xtype=ncd_double,  &
             dim1name='landunit', &
             long_name='urban canopy specific humidity',units='kg/kg')
@@ -774,13 +745,13 @@ contains
             dim1name=namel, &
             ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft type physical state variable - albd
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='albd', xtype=ncd_double,  &
             dim1name='pft', dim2name='numrad', switchdim=.true., &
             long_name='surface albedo (direct) (0 to 1)',units='')
@@ -788,7 +759,7 @@ contains
        call ncd_io(varname='albd', data=pptr%pps%albd, &
             dim1name=namep, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) then
+          if (ktau /= 0) then
              call endrun()
           else
              if (nsrest == nsrStartup) do_initsurfalb = .true.
@@ -798,7 +769,7 @@ contains
 
     ! pft type physical state variable - albi
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='albi', xtype=ncd_double,  &
             dim1name='pft', dim2name='numrad', switchdim=.true., &
             long_name='surface albedo (diffuse) (0 to 1)',units='')
@@ -806,7 +777,7 @@ contains
        call ncd_io(varname='albi', data=pptr%pps%albi, &
             dim1name=namep, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) then
+          if (ktau /= 0) then
              call endrun()
           else
              if (nsrest == nsrStartup) do_initsurfalb = .true.
@@ -816,7 +787,7 @@ contains
 
     ! column type physical state variable - albgrd
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='albgrd', xtype=ncd_double,  &
             dim1name='column', dim2name='numrad', switchdim=.true., &
             long_name='ground albedo (direct) (0 to 1)',units='')
@@ -824,13 +795,13 @@ contains
        call ncd_io(varname='albgrd', data=cptr%cps%albgrd, &
             dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! column type physical state variable - albgri
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='albgri', xtype=ncd_double,  &
             dim1name='column', dim2name='numrad', switchdim=.true., &
             long_name='ground albedo (indirect) (0 to 1)',units='')
@@ -838,13 +809,13 @@ contains
        call ncd_io(varname='albgri', data=cptr%cps%albgri, &
             dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! column type physical state variable - albsod
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='albsod', xtype=ncd_double,  &
             dim1name='column', dim2name='numrad', switchdim=.true., &
             long_name='soil albedo (direct) (0 to 1)',units='')
@@ -852,14 +823,14 @@ contains
        call ncd_io(varname='albsod', data=cptr%cps%albsod, &
             dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
           if (nsrest == nsrStartup) do_initsurfalb = .true.
        end if
     end if
 
     ! column type physical state variable - albsoi
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='albsoi', xtype=ncd_double,  &
             dim1name='column', dim2name='numrad', switchdim=.true., &
             long_name='soil albedo (indirect) (0 to 1)',units='')
@@ -867,14 +838,14 @@ contains
        call ncd_io(varname='albsoi', data=cptr%cps%albsoi, &
             dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
           if (nsrest == nsrStartup) do_initsurfalb = .true.
        end if
     end if
 
 #ifdef SNICAR_FRC
     ! column type physical state variable - albgrd_bc
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='albgrd_bc', xtype=ncd_double,  &
             dim1name='column', dim2name='numrad', switchdim=.true., &
             long_name='ground albedo without BC (direct) (0 to 1)',units='')
@@ -888,11 +859,11 @@ contains
           end if
           do c=begc,endc
              cptr%cps%albgrd_bc(c,:) = cptr%cps%albgrd(c,:)
-          enddo
+          end do
        end if
     end if
     ! column type physical state variable - albgri_bc
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='albgri_bc', xtype=ncd_double,  &
             dim1name='column', dim2name='numrad', switchdim=.true., &
             long_name='ground albedo without BC (diffuse) (0 to 1)',units='')
@@ -906,11 +877,11 @@ contains
           end if
           do c=begc,endc
              cptr%cps%albgri_bc(c,:) = cptr%cps%albgri(c,:)
-          enddo
+          end do
        end if
     end if
     ! column type physical state variable - albgrd_pur
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='albgrd_pur', xtype=ncd_double,  &
             dim1name='column', dim2name='numrad', switchdim=.true., &
             long_name='pure snow ground albedo (direct) (0 to 1)',units='')
@@ -924,11 +895,11 @@ contains
           end if
           do c=begc,endc
              cptr%cps%albgrd_pur(c,:) = cptr%cps%albgrd(c,:)
-          enddo
+          end do
        end if
     end if
     ! column type physical state variable - albgri_pur
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='albgri_pur', xtype=ncd_double,  &
             dim1name='column', dim2name='numrad', switchdim=.true., &
             long_name='pure snow ground albedo (diffuse) (0 to 1)',units='')
@@ -942,11 +913,11 @@ contains
           end if
           do c=begc,endc
              cptr%cps%albgri_pur(c,:) = cptr%cps%albgri(c,:)
-          enddo
+          end do
        end if
     end if
     ! column type physical state variable - albgrd_oc
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='albgrd_oc', xtype=ncd_double,  &
             dim1name='column', dim2name='numrad', switchdim=.true., &
             long_name='ground albedo without OC (direct) (0 to 1)',units='')
@@ -960,11 +931,11 @@ contains
           end if
           do c=begc,endc
              cptr%cps%albgrd_oc(c,:) = cptr%cps%albgrd(c,:)
-          enddo
+          end do
        end if
     end if
     ! column type physical state variable - albgri_oc
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='albgri_oc', xtype=ncd_double,  &
             dim1name='column', dim2name='numrad', switchdim=.true., &
             long_name='ground albedo without OC (diffuse) (0 to 1)',units='')
@@ -978,11 +949,11 @@ contains
           end if
           do c=begc,endc
              cptr%cps%albgri_oc(c,:) = cptr%cps%albgri(c,:)
-          enddo
+          end do
        end if
     end if
     ! column type physical state variable - albgrd_dst
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='albgrd_dst', xtype=ncd_double,  &
             dim1name='column', dim2name='numrad', switchdim=.true., &
             long_name='ground albedo without dust (direct) (0 to 1)',units='')
@@ -996,11 +967,11 @@ contains
           end if
           do c=begc,endc
              cptr%cps%albgrd_dst(c,:) = cptr%cps%albgrd(c,:)
-          enddo
+          end do
        end if
     end if
     ! column type physical state variable - albgri_dst
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='albgri_dst', xtype=ncd_double,  &
             dim1name='column', dim2name='numrad', switchdim=.true., &
             long_name='ground albedo without dust (diffuse) (0 to 1)',units='')
@@ -1014,14 +985,14 @@ contains
           end if
           do c=begc,endc
              cptr%cps%albgri_dst(c,:) = cptr%cps%albgri(c,:)
-          enddo
+          end do
        end if
     end if
-#endif
+#end if
 
     ! column water state variable - h2osfc
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='H2OSFC', xtype=ncd_double,  &
             dim1name='column', &
             long_name='surface water', units='kg/m2')
@@ -1030,14 +1001,14 @@ contains
             dim1name=namec, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
           cptr%cws%h2osfc(begc:endc) = 0.0D0
        end if
     end if
 
     ! column type physical state variable - frac_h2osfc
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='FH2OSFC', xtype=ncd_double,  &
             dim1name='column',&
             long_name='fraction of ground covered by h2osfc (0 to 1)',units='')
@@ -1046,14 +1017,14 @@ contains
             dim1name=namec, &
             ncid=ncid, flag=flag, readvar=readvar) 
        if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
           cptr%cps%frac_h2osfc(begc:endc) = 0.0D0
        end if
     end if
 
    ! column energy state variable - t_h2osfc
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='TH2OSFC', xtype=ncd_double,  &
             dim1name='column', &
             long_name='surface water temperature', units='K')
@@ -1062,14 +1033,14 @@ contains
             dim1name=namec, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
           cptr%ces%t_h2osfc(begc:endc) = 274.0D0
        end if
     end if
 
    ! column water state variable - h2osno
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='H2OSNO', xtype=ncd_double,  &
             dim1name='column', &
             long_name='snow water', units='kg/m2')
@@ -1078,13 +1049,13 @@ contains
             dim1name=namec, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! column water state variable - h2osoi_liq
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='H2OSOI_LIQ', xtype=ncd_double,  &
             dim1name='column', dim2name='levtot', switchdim=.true., &
             long_name='liquid water', units='kg/m2')
@@ -1092,13 +1063,13 @@ contains
        call ncd_io(varname='H2OSOI_LIQ', data=cptr%cws%h2osoi_liq, &
             dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! column water state variable - h2osoi_ice
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='H2OSOI_ICE', xtype=ncd_double,   &
             dim1name='column', dim2name='levtot', switchdim=.true., &
             long_name='ice lens', units='kg/m2')
@@ -1106,13 +1077,13 @@ contains
        call ncd_io(varname='H2OSOI_ICE', data=cptr%cws%h2osoi_ice, &
             dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
    ! column energy state variable - t_grnd
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_GRND', xtype=ncd_double,  &
             dim1name='column', &
             long_name='ground temperature', units='K')
@@ -1121,13 +1092,13 @@ contains
             dim1name=namec, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
    ! column urban energy state variable - eflx_urban_ac
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='URBAN_AC', xtype=ncd_double,  &
             dim1name='column', &
             long_name='urban air conditioning flux', units='watt/m^2')
@@ -1136,13 +1107,13 @@ contains
             dim1name=namec, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
    ! column urban energy state variable - eflx_urban_heat
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='URBAN_HEAT', xtype=ncd_double,  &
             dim1name='column', &
             long_name='urban heating flux', units='watt/m^2')
@@ -1151,13 +1122,13 @@ contains
             dim1name=namec, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
    ! pft energy state variable - t_ref2m_min
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_REF2M_MIN', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='daily minimum of average 2 m height surface air temperature (K)', units='K')
@@ -1166,13 +1137,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
-    endif
+    end if
 
    ! pft energy state variable - t_ref2m_max
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_REF2M_MAX', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='daily maximum of average 2 m height surface air temperature (K)', units='K')
@@ -1181,13 +1152,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
-    endif
+    end if
 
    ! pft energy state variable - t_ref2m_min_inst
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_REF2M_MIN_INST', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='instantaneous daily min of average 2 m height surface air temp (K)', units='K')
@@ -1196,13 +1167,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
-    endif
+    end if
 
    ! pft energy state variable - t_ref2m_max_inst
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_REF2M_MAX_INST', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='instantaneous daily max of average 2 m height surface air temp (K)', units='K')
@@ -1211,13 +1182,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
-    endif
+    end if
 
     ! pft energy state variable - t_ref2m_u
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname="T_REF2M_U", xtype=ncd_double,  &
             dim1name='pft', &
             long_name='Urban 2m height surface air temperature', units='K')
@@ -1226,13 +1197,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
    ! column energy state variable - t_grnd_u
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_GRND_U', xtype=ncd_double,  &
             dim1name='column', &
             long_name='urban ground temperature', units='K')
@@ -1241,13 +1212,13 @@ contains
             dim1name=namec, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
    ! pft energy state variable - t_ref2m_min_u
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_REF2M_MIN_U', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='urban daily minimum of average 2 m height surface air temperature (K)', units='K')
@@ -1256,13 +1227,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
-    endif
+    end if
 
    ! pft energy state variable - t_ref2m_max_u
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_REF2M_MAX_U', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='urban daily maximum of average 2 m height surface air temperature (K)', units='K')
@@ -1271,13 +1242,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
-    endif
+    end if
 
    ! pft energy state variable - t_ref2m_min_inst_u
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_REF2M_MIN_INST_U', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='urban instantaneous daily min of average 2 m height surface air temp (K)', units='K')
@@ -1286,13 +1257,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
-    endif
+    end if
 
    ! pft energy state variable - t_ref2m_max_inst_u
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_REF2M_MAX_INST_U', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='urban instantaneous daily max of average 2 m height surface air temp (K)', units='K')
@@ -1301,13 +1272,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
-    endif
+    end if
 
     ! pft energy state variable - t_ref2m_r
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname="T_REF2M_R", xtype=ncd_double,  &
             dim1name='pft', &
             long_name='Rural 2m height surface air temperature', units='K')
@@ -1316,13 +1287,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
    ! column energy state variable - t_grnd_r
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_GRND_R', xtype=ncd_double,  &
             dim1name='column', &
             long_name='rural ground temperature', units='K')
@@ -1331,13 +1302,13 @@ contains
             dim1name=namec, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
    ! pft energy state variable - t_ref2m_min_r
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_REF2M_MIN_R', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='rural daily minimum of average 2 m height surface air temperature (K)', units='K')
@@ -1346,13 +1317,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
-    endif
+    end if
 
    ! pft energy state variable - t_ref2m_max_r
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_REF2M_MAX_R', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='rural daily maximum of average 2 m height surface air temperature (K)', units='K')
@@ -1361,13 +1332,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
-    endif
+    end if
 
    ! pft energy state variable - t_ref2m_min_inst_r
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_REF2M_MIN_INST_R', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='rural instantaneous daily min of average 2 m height surface air temp (K)', units='K')
@@ -1376,13 +1347,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
-    endif
+    end if
 
    ! pft energy state variable - t_ref2m_max_inst_r
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_REF2M_MAX_INST_R', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='rural instantaneous daily max of average 2 m height surface air temp (K)', units='K')
@@ -1391,13 +1362,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
-    endif
+    end if
 
     ! column energy state variable - t_soisno
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_SOISNO', xtype=ncd_double,   &
             dim1name='column', dim2name='levtot', switchdim=.true., &
             long_name='soil-snow temperature', units='K')
@@ -1405,13 +1376,13 @@ contains
        call ncd_io(varname='T_SOISNO', data=cptr%ces%t_soisno, &
             dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! column type energy state variable - t_lake
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_LAKE', xtype=ncd_double,  &
             dim1name='column', dim2name='levlak', switchdim=.true., &
             long_name='lake temperature', units='K')
@@ -1419,13 +1390,13 @@ contains
        call ncd_io(varname='T_LAKE', data=cptr%ces%t_lake, &
             dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft physical state variable - frac_veg_nosno_alb
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='FRAC_VEG_NOSNO_ALB', xtype=ncd_int,  &
             dim1name='pft',&
             long_name='fraction of vegetation not covered by snow (0 or 1)',units='')
@@ -1434,13 +1405,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft type physical state variable - fwet
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='FWET', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='fraction of canopy that is wet (0 to 1)', units='')
@@ -1449,13 +1420,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft type physical state variable - tlai
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='tlai', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='one-sided leaf area index, no burying by snow', units='')
@@ -1464,13 +1435,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft type physical state variable - tsai
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='tsai', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='one-sided stem area index, no burying by snow', units='')
@@ -1479,13 +1450,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft type physical state variable - tlai_z
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='tlai_z', xtype=ncd_double,  &
             dim1name='pft', dim2name='levcan', switchdim=.true., &
             long_name='tlai increment for canopy layer', units='')
@@ -1501,13 +1472,13 @@ contains
              do iv=1,nlevcan
                 pptr%pps%tlai_z(p,iv) = pptr%pps%tlai(p)/nlevcan
              end do
-          enddo
+          end do
        end if
     end if 
 
     ! pft type physical state variable - tsai_z
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='tsai_z', xtype=ncd_double,  &
             dim1name='pft', dim2name='levcan', switchdim=.true., &
             long_name='tsai increment for canopy layer', units='')
@@ -1523,13 +1494,13 @@ contains
              do iv=1,nlevcan
                 pptr%pps%tsai_z(p,iv) = pptr%pps%tsai(p)/nlevcan
              end do
-          enddo
+          end do
        end if
     end if 
 
     ! pft type physical state variable - ncan
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='ncan', xtype=ncd_int,  &
             dim1name='pft', long_name='number of canopy layers', units='')
     else if (flag == 'read' .or. flag == 'write') then
@@ -1542,13 +1513,13 @@ contains
           end if
           do p=begp,endp
              pptr%pps%ncan(p) = nlevcan
-          enddo
+          end do
        end if
     end if 
 
     ! pft type physical state variable - nrad
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='nrad', xtype=ncd_int,  &
             dim1name='pft', long_name='number of canopy layers, above snow for radiative transfer', units='')
     else if (flag == 'read' .or. flag == 'write') then
@@ -1561,11 +1532,11 @@ contains
           end if
           do p=begp,endp
              pptr%pps%nrad(p) = nlevcan
-          enddo
+          end do
        end if
     end if 
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='mlaidiff', xtype=ncd_double,  &
             dim1name='pft',&
             long_name='difference between lai month one and month two',units='')
@@ -1574,13 +1545,13 @@ contains
             dim1name='pft', &
             ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft type physical state variable - elai
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='elai', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='one-sided leaf area index, with burying by snow', units='')
@@ -1589,13 +1560,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft type physical state variable - esai
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='esai', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='one-sided stem area index, with burying by snow', units='')
@@ -1604,13 +1575,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft type physical state variable - fsun
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='fsun', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='sunlit fraction of canopy', units='')
@@ -1620,10 +1591,10 @@ contains
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' )then
           if ( .not. readvar) then
-             if (is_restart()) call endrun()
+             if (ktau /= 0) call endrun()
           else
              do p = begp, endp
-                if ( shr_infnan_isnan( pptr%pps%fsun(p) ) )then
+                if ( is_nan( pptr%pps%fsun(p) ) )then
                    pptr%pps%fsun(p) = spval
                 end if
              end do
@@ -1633,7 +1604,7 @@ contains
 
     ! pft type physical state variable - vcmaxcintsun
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='vcmaxcintsun', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='sunlit canopy scaling coefficient', units='')
@@ -1647,13 +1618,13 @@ contains
           end if
           do p=begp,endp
              pptr%pps%vcmaxcintsun(p) = 1.D0
-          enddo
+          end do
        end if
     end if
 
     ! pft type physical state variable - vcmaxcintsha
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='vcmaxcintsha', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='shaded canopy scaling coefficient', units='')
@@ -1667,13 +1638,13 @@ contains
           end if
           do p=begp,endp
              pptr%pps%vcmaxcintsha(p) = 1.D0
-          enddo
+          end do
        end if
     end if
 
     ! pft type physical state variable - htop
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='htop', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='canopy top', units='m')
@@ -1682,13 +1653,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft type physical state variable - hbot
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='hbot', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='canopy botton', units='m')
@@ -1697,13 +1668,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft type physical state variable - fabd
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='fabd', xtype=ncd_double,  &
             dim1name='pft', dim2name='numrad', switchdim=.true., &
             long_name='flux absorbed by veg per unit direct flux',units='')
@@ -1711,13 +1682,13 @@ contains
        call ncd_io(varname='fabd', data=pptr%pps%fabd, &
             dim1name=namep, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft type physical state variable - fabi
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='fabi', xtype=ncd_double,  &
             dim1name='pft', dim2name='numrad', switchdim=.true., &
             long_name='flux absorbed by veg per unit diffuse flux',units='')
@@ -1725,13 +1696,13 @@ contains
        call ncd_io(varname='fabi', data=pptr%pps%fabi, &
             dim1name=namep, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft type physical state variable - fabd_sun
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='fabd_sun', xtype=ncd_double,  &
             dim1name='pft', dim2name='numrad', switchdim=.true., &
             long_name='flux absorbed by sunlit leaf per unit direct flux',units='')
@@ -1745,13 +1716,13 @@ contains
           end if
           do p=begp,endp
              pptr%pps%fabd_sun(p,:) = pptr%pps%fabd(p,:)/2.D0
-          enddo
+          end do
        end if
     end if
 
     ! pft type physical state variable - fabd_sha
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='fabd_sha', xtype=ncd_double,  &
             dim1name='pft', dim2name='numrad', switchdim=.true., &
             long_name='flux absorbed by shaded leaf per unit direct flux',units='')
@@ -1765,13 +1736,13 @@ contains
           end if
           do p=begp,endp
              pptr%pps%fabd_sha(p,:) = pptr%pps%fabd(p,:)/2.D0
-          enddo
+          end do
        end if
     end if
 
     ! pft type physical state variable - fabi_sun
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='fabi_sun', xtype=ncd_double,  &
             dim1name='pft', dim2name='numrad', switchdim=.true., &
             long_name='flux absorbed by sunlit leaf per unit diffuse flux',units='')
@@ -1785,13 +1756,13 @@ contains
           end if
           do p=begp,endp
              pptr%pps%fabi_sun(p,:) = pptr%pps%fabi(p,:)/2.D0
-          enddo
+          end do
        end if
     end if
 
     ! pft type physical state variable - fabi_sha
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='fabi_sha', xtype=ncd_double,  &
             dim1name='pft', dim2name='numrad', switchdim=.true., &
             long_name='flux absorbed by shaded leaf per unit diffuse flux',units='')
@@ -1805,13 +1776,13 @@ contains
           end if
           do p=begp,endp
              pptr%pps%fabi_sha(p,:) = pptr%pps%fabi(p,:)/2.D0
-          enddo
+          end do
        end if
     end if
 
     ! pft type physical state variable - fabd_sun_z
     
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='fabd_sun_z', xtype=ncd_double,  &
             dim1name='pft', dim2name='levcan', switchdim=.true., &
             long_name='absorbed sunlit leaf direct PAR (per unit lai+sai) for canopy layer',units='')
@@ -1827,13 +1798,13 @@ contains
              do iv=1,nlevcan
                 pptr%pps%fabd_sun_z(p,iv) = (pptr%pps%fabd(p,1)/2.D0)/nlevcan
              end do
-          enddo
+          end do
        end if
     end if 
     
     ! pft type physical state variable - fabd_sha_z
     
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='fabd_sha_z', xtype=ncd_double,  &
             dim1name='pft', dim2name='levcan', switchdim=.true., &
             long_name='absorbed shaded leaf direct PAR (per unit lai+sai) for canopy layer',units='')
@@ -1849,13 +1820,13 @@ contains
              do iv=1,nlevcan
                 pptr%pps%fabd_sha_z(p,iv) = (pptr%pps%fabd(p,1)/2.D0)/nlevcan
              end do
-          enddo
+          end do
        end if
     end if
 
     ! pft type physical state variable - fabi_sun_z
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='fabi_sun_z', xtype=ncd_double,  &
             dim1name='pft', dim2name='levcan', switchdim=.true., &
             long_name='absorbed sunlit leaf diffuse PAR (per unit lai+sai) for canopy layer',units='')
@@ -1871,13 +1842,13 @@ contains
              do iv=1,nlevcan
                 pptr%pps%fabi_sun_z(p,iv) = (pptr%pps%fabi(p,1)/2.D0)/nlevcan
              end do
-          enddo
+          end do
        end if
     end if
 
     ! pft type physical state variable - fabi_sha_z
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='fabi_sha_z', xtype=ncd_double,  &
             dim1name='pft', dim2name='levcan', switchdim=.true., &
             long_name='absorbed shaded leaf diffuse PAR (per unit lai+sai) for canopy layer',units='')
@@ -1893,13 +1864,13 @@ contains
              do iv=1,nlevcan
                 pptr%pps%fabi_sha_z(p,iv) = (pptr%pps%fabi(p,1)/2.D0)/nlevcan
              end do
-          enddo
+          end do
        end if
     end if
 
     ! pft type physical state variable - fsun_z
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='fsun_z', xtype=ncd_double,  &
             dim1name='pft', dim2name='levcan', switchdim=.true., &
             long_name='sunlit fraction for canopy layer',units='')
@@ -1915,13 +1886,13 @@ contains
              do iv=1,nlevcan
                 pptr%pps%fsun_z(p,iv) = 0.D0
              end do
-          enddo
+          end do
        end if
     end if
 
     ! pft type physical state variable - ftdd
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='ftdd', xtype=ncd_double,  &
             dim1name='pft', dim2name='numrad', switchdim=.true., &
             long_name='down direct flux below veg per unit direct flux',units='')
@@ -1929,13 +1900,13 @@ contains
        call ncd_io(varname='ftdd', data=pptr%pps%ftdd, &
             dim1name=namep, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft type physical state variable - ftid
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='ftid', xtype=ncd_double,  &
             dim1name='pft', dim2name='numrad', switchdim=.true., &
             long_name='down diffuse flux below veg per unit direct flux',units='')
@@ -1943,13 +1914,13 @@ contains
        call ncd_io(varname='ftid', data=pptr%pps%ftid, &
             dim1name=namep, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft type physical state variable - ftii
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='ftii', xtype=ncd_double,  &
             dim1name='pft', dim2name='numrad', switchdim=.true., &
             long_name='down diffuse flux below veg per unit diffuse flux',units='')
@@ -1957,13 +1928,13 @@ contains
        call ncd_io(varname='ftii', data=pptr%pps%ftii, &
             dim1name=namep, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft energy state variable - t_veg
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='T_VEG', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='vegetation temperature', units='K')
@@ -1972,14 +1943,14 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! pft energy state variable - t_ref2m
 
     varname = 'T_REF2M'
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname=varname, xtype=ncd_double,  &
             dim1name='pft', &
             long_name='2m height surface air temperature', units='K')
@@ -1991,14 +1962,14 @@ contains
           if (allocate_all_vegpfts) then
              call endrun()
           else
-             if (is_restart()) call endrun()
+             if (ktau /= 0) call endrun()
           end if
        end if
     end if
 
     ! pft type water state variable - h2ocan
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='H2OCAN', xtype=ncd_double,  &
             dim1name='pft', &
             long_name='canopy water', units='kg/m2')
@@ -2007,13 +1978,13 @@ contains
             dim1name=namep, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
    ! column irrigation variable - n_irrig_steps_left
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='n_irrig_steps_left', xtype=ncd_int,  &
             dim1name='column', &
             long_name='number of irrigation time steps left', units='#')
@@ -2022,14 +1993,14 @@ contains
             dim1name=namec, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
           cptr%cps%n_irrig_steps_left = 0
        end if
     end if
 
    ! column irrigation variable - irrig_rate
 
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='irrig_rate', xtype=ncd_double,  &
             dim1name='column', &
             long_name='irrigation rate', units='mm/s')
@@ -2038,7 +2009,7 @@ contains
             dim1name=namec, &
             ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
           cptr%cps%irrig_rate = 0.0D0
        end if
     end if
@@ -2070,7 +2041,7 @@ contains
        ! If initial run -- ensure that water is properly bounded
        ! ------------------------------------------------------------
 
-       if ( is_first_step() )then
+       if ( ktau == 0 ) then
           do c = begc,endc
              l = clandunit(c)
              if ( ctype(c) == icol_sunwall .or. ctype(c) == icol_shadewall .or. &
@@ -2108,17 +2079,17 @@ contains
              end do
           end do
        end if
-    endif
+    end if
     !
     ! Perturb initial conditions if not restart
     !
-    if ( .not. is_restart() .and. flag=='read' .and. pertlim /= 0.0D0 ) then
+    if ( .not. ktau /= 0 .and. flag=='read' .and. pertlim /= 0.0D0 ) then
        call perturbIC( lptr ) 
     end if
     ! variables needed for SNICAR
     !
     ! column type physical state variable - snw_rds
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='snw_rds', xtype=ncd_double,  &
             dim1name='column', dim2name='levsno', switchdim=.true., &
             long_name='snow layer effective radius', units='um')
@@ -2130,7 +2101,7 @@ contains
           if (myid == italk) then
             write(iulog,*) "SNICAR: can't find snw_rds in restart (or initial) file..."
           end if
-          if (is_restart()) then
+          if (ktau /= 0) then
              call endrun()
           else
              ! initial run, not restart: initialize snw_rds
@@ -2138,7 +2109,7 @@ contains
                 write(iulog,*) "SNICAR: This is an initial run (not a restart), and grain size/aerosol " // &
                                "mass data are not defined in initial condition file. Initialize snow " // &
                                "effective radius to fresh snow value, and snow/aerosol masses to zero."
-             endif
+             end if
              do c=begc,endc
                 if (cptr%cps%snl(c) < 0) then
                    cptr%cps%snw_rds(c,cptr%cps%snl(c)+1:0) = snw_rds_min
@@ -2155,14 +2126,14 @@ contains
                    cptr%cps%snw_rds(c,:) = 0.D0
                    cptr%cps%snw_rds_top(c) = spval
                    cptr%cps%sno_liq_top(c) = spval
-                endif
-             enddo
-          endif
+                end if
+             end do
+          end if
        end if
     end if
 
     ! column type physical state variable - mss_bcpho
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='mss_bcpho', xtype=ncd_double,  &
             dim1name='column', dim2name='levsno', switchdim=.true., &
             long_name='snow layer hydrophobic black carbon mass', units='kg m-2')
@@ -2171,19 +2142,19 @@ contains
             dim1name='column', switchdim=.true., &
             lowerb2=-nlevsno+1, upperb2=0, ncid=ncid, flag=flag, readvar=readvar)
        if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) then
+          if (ktau /= 0) then
              call endrun()
           else
              ! initial run, not restart: initialize mss_bcpho to zero
              do c=begc,endc
                 cptr%cps%mss_bcpho(c,-nlevsno+1:0) = 0.D0
-             enddo
-          endif
+             end do
+          end if
        end if
     end if
 
     ! column type physical state variable - mss_bcphi
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='mss_bcphi', xtype=ncd_double,  &
             dim1name='column', dim2name='levsno', switchdim=.true., &
             long_name='snow layer hydrophilic black carbon mass', units='kg m-2')
@@ -2192,19 +2163,19 @@ contains
             dim1name='column', switchdim=.true., &
             lowerb2=-nlevsno+1, upperb2=0, ncid=ncid, flag=flag, readvar=readvar)
        if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) then
+          if (ktau /= 0) then
              call endrun()
           else
              ! initial run, not restart: initialize mss_bcphi to zero
              do c=begc,endc
                 cptr%cps%mss_bcphi(c,-nlevsno+1:0) = 0.D0
-             enddo
-          endif
+             end do
+          end if
        end if
     end if
 
     ! column type physical state variable - mss_ocpho
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='mss_ocpho', xtype=ncd_double,  &
             dim1name='column', dim2name='levsno', switchdim=.true., &
             long_name='snow layer hydrophobic organic carbon mass', units='kg m-2')
@@ -2213,19 +2184,19 @@ contains
             dim1name='column', switchdim=.true., &
             lowerb2=-nlevsno+1, upperb2=0, ncid=ncid, flag=flag, readvar=readvar)
        if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) then
+          if (ktau /= 0) then
              call endrun()
           else
              ! initial run, not restart: initialize mss_ocpho to zero
              do c=begc,endc
                 cptr%cps%mss_ocpho(c,-nlevsno+1:0) = 0.D0
-             enddo
-          endif
+             end do
+          end if
        end if
     end if
 
     ! column type physical state variable - mss_ocphi
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='mss_ocphi', xtype=ncd_double,  &
             dim1name='column', dim2name='levsno', switchdim=.true., &
             long_name='snow layer hydrophilic organic carbon mass', units='kg m-2')
@@ -2234,19 +2205,19 @@ contains
             dim1name='column', switchdim=.true., &
             lowerb2=-nlevsno+1, upperb2=0, ncid=ncid, flag=flag, readvar=readvar)
        if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) then
+          if (ktau /= 0) then
              call endrun()
           else
              ! initial run, not restart: initialize mss_ocphi to zero
              do c=begc,endc
                 cptr%cps%mss_ocphi(c,-nlevsno+1:0) = 0.D0
-             enddo
-          endif
+             end do
+          end if
        end if
     end if
 
     ! column type physical state variable - mss_dst1
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='mss_dst1', xtype=ncd_double,  &
             dim1name='column', dim2name='levsno', switchdim=.true., &
             long_name='snow layer dust species 1 mass', units='kg m-2')
@@ -2255,19 +2226,19 @@ contains
             dim1name='column', switchdim=.true., &
             lowerb2=-nlevsno+1, upperb2=0, ncid=ncid, flag=flag, readvar=readvar)
        if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) then
+          if (ktau /= 0) then
              call endrun()
           else
              ! initial run, not restart: initialize mss_dst1 to zero
              do c=begc,endc
                 cptr%cps%mss_dst1(c,-nlevsno+1:0) = 0.D0
-             enddo
-          endif
+             end do
+          end if
        end if
     end if
 
     ! column type physical state variable - mss_dst2
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='mss_dst2', xtype=ncd_double,  &
             dim1name='column', dim2name='levsno', switchdim=.true., &
             long_name='snow layer dust species 2 mass', units='kg m-2')
@@ -2276,19 +2247,19 @@ contains
             dim1name='column', switchdim=.true., &
             lowerb2=-nlevsno+1, upperb2=0, ncid=ncid, flag=flag, readvar=readvar)
        if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) then
+          if (ktau /= 0) then
              call endrun()
           else
              ! initial run, not restart: initialize mss_dst2 to zero
              do c=begc,endc
                 cptr%cps%mss_dst2(c,-nlevsno+1:0) = 0.D0
-             enddo
-          endif
+             end do
+          end if
        end if
     end if
 
     ! column type physical state variable - mss_dst3
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='mss_dst3', xtype=ncd_double,  &
             dim1name='column', dim2name='levsno', switchdim=.true., &
             long_name='snow layer dust species 3 mass', units='kg m-2')
@@ -2297,19 +2268,19 @@ contains
             dim1name='column', switchdim=.true., &
             lowerb2=-nlevsno+1, upperb2=0, ncid=ncid, flag=flag, readvar=readvar)
        if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) then
+          if (ktau /= 0) then
              call endrun()
           else
              ! initial run, not restart: initialize mss_dst3 to zero
              do c=begc,endc
                 cptr%cps%mss_dst3(c,-nlevsno+1:0) = 0.D0
-             enddo
-          endif
+             end do
+          end if
        end if
     end if
 
     ! column type physical state variable - mss_dst4
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='mss_dst4', xtype=ncd_double,  &
             dim1name='column', dim2name='levsno', switchdim=.true., &
             long_name='snow layer dust species 4 mass', units='kg m-2')
@@ -2318,19 +2289,19 @@ contains
             dim1name='column', switchdim=.true., &
             lowerb2=-nlevsno+1, upperb2=0, ncid=ncid, flag=flag, readvar=readvar)
        if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) then
+          if (ktau /= 0) then
              call endrun()
           else
              ! initial run, not restart: initialize mss_dst4 to zero
              do c=begc,endc
                 cptr%cps%mss_dst4(c,-nlevsno+1:0) = 0.D0
-             enddo
-          endif
+             end do
+          end if
        end if
     end if
 
     ! column type physical state variable - flx_absdv
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='flx_absdv', xtype=ncd_double,  &
             dim1name='column', dim2name='levsno1', switchdim=.true., &
             long_name='snow layer flux absorption factors (direct, VIS)', units='fraction')
@@ -2339,14 +2310,14 @@ contains
             dim1name='column', switchdim=.true., &
             lowerb2=-nlevsno+1, upperb2=1, ncid=ncid, flag=flag, readvar=readvar)
        if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
           ! SNICAR, via SurfaceAlbedo, will define the needed flux absorption factors
           if (nsrest == nsrStartup) do_initsurfalb = .true.
        end if
     end if
 
     ! column type physical state variable - flx_absdn
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='flx_absdn', xtype=ncd_double,  &
             dim1name='column', dim2name='levsno1', switchdim=.true., &
             long_name='snow layer flux absorption factors (direct, NIR)', units='fraction')
@@ -2355,14 +2326,14 @@ contains
             dim1name='column', switchdim=.true., &
             lowerb2=-nlevsno+1, upperb2=1, ncid=ncid, flag=flag, readvar=readvar)
        if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
           ! SNICAR, via SurfaceAlbedo, will define the needed flux absorption factors
           if (nsrest == nsrStartup) do_initsurfalb = .true.
        end if
     end if
 
     ! column type physical state variable - flx_absiv
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='flx_absiv', xtype=ncd_double,  &
             dim1name='column', dim2name='levsno1', switchdim=.true., &
             long_name='snow layer flux absorption factors (diffuse, VIS)', units='fraction')
@@ -2371,14 +2342,14 @@ contains
             dim1name='column', switchdim=.true., &
             lowerb2=-nlevsno+1, upperb2=1, ncid=ncid, flag=flag, readvar=readvar)
        if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
           ! SNICAR, via SurfaceAlbedo, will define the needed flux absorption factors
           if (nsrest == nsrStartup) do_initsurfalb = .true.
        end if
     end if
 
     ! column type physical state variable - flx_absin
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='flx_absin', xtype=ncd_double,  &
             dim1name='column', dim2name='levsno1', switchdim=.true., &
             long_name='snow layer flux absorption factors (diffuse, NIR)', units='fraction')
@@ -2387,14 +2358,14 @@ contains
             dim1name='column', switchdim=.true., &
             lowerb2=-nlevsno+1, upperb2=1, ncid=ncid, flag=flag, readvar=readvar)
        if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
           ! SNICAR, via SurfaceAlbedo, will define the needed flux absorption factors
           if (nsrest == nsrStartup) do_initsurfalb = .true.
        end if
     end if
 
     ! column type physical state variable - albsnd_hst
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='albsnd_hst', xtype=ncd_double,  &
             dim1name='column', dim2name='numrad', switchdim=.true., &
             long_name='snow albedo (direct) (0 to 1)',units='proportion')
@@ -2402,12 +2373,12 @@ contains
        call ncd_io(varname='albsnd_hst', data=cptr%cps%albsnd_hst, &
             dim1name='column', switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! column type physical state variable - albsni_hst
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='albsni_hst', xtype=ncd_double,  &
             dim1name='column', dim2name='numrad', switchdim=.true., &
             long_name='snow albedo (diffuse) (0 to 1)',units='proportion')
@@ -2415,12 +2386,12 @@ contains
        call ncd_io(varname='albsni_hst', data=cptr%cps%albsni_hst, &
             dim1name='column', switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call endrun()
+          if (ktau /= 0) call endrun()
        end if
     end if
 
     ! column type water flux variable - qflx_snofrz_lyr
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='qflx_snofrz_lyr', xtype=ncd_double,  &
             dim1name='column', dim2name='levsno', switchdim=.true., &
             long_name='snow layer ice freezing rate', units='kg m-2 s-1')
@@ -2429,205 +2400,152 @@ contains
             dim1name='column', switchdim=.true., &
             lowerb2=-nlevsno+1, upperb2=0, ncid=ncid, flag=flag, readvar=readvar)
        if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) then
+          if (ktau /= 0) then
              call endrun()
           else
              ! initial run, not restart: initialize qflx_snofrz_lyr to zero
              do c=begc,endc
                 cptr%cwf%qflx_snofrz_lyr(c,-nlevsno+1:0) = 0.D0
-             enddo
-          endif
+             end do
+          end if
        end if
     end if
 
     ! column type water flux variable - qflx_snow_melt
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='qflx_snow_melt', xtype=ncd_double,  &
             dim1name='column', long_name='net snow melt', units='mm/s')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='qflx_snow_melt', data=cptr%cwf%qflx_snow_melt, &
             dim1name='column', ncid=ncid, flag=flag, readvar=readvar)
        if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) then
+          if (ktau /= 0) then
              call endrun()
           else
              ! initial run, not restart: initialize qflx_snow_melt to zero
              cptr%cwf%qflx_snow_melt = 0.D0
-          endif
+          end if
        end if
     end if
 
     ! gridcell type water flux variable - qflx_floodg
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname='qflx_floodg', xtype=ncd_double, &
             dim1name='gridcell', long_name='flood water flux', units='mm/s')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='qflx_floodg', data=clm_a2l%forc_flood, &
             dim1name='gridcell', ncid=ncid, flag=flag, readvar=readvar)
-       if (flag == 'read' .and. .not. readvar) then
-          if (is_restart()) then
-             call endrun()
-          else
-             ! initial run, not restart: initialize flood to zero
-             clm_a2l%forc_flood = 0.D0
-          endif
-       end if
+      if ( flag == 'read' .and. .not. readvar ) then
+        if ( ktau /= 0 ) then
+          call fatal(__FILE__,__LINE__,'clm now stopping')
+        else
+          ! initial run, not restart: initialize flood to zero
+          clm_a2l%forc_flood = 0.D0
+        end if
+      end if
     end if
 
     ! initialize other variables that are derived from those
     ! stored in the restart buffer. (there may be a more appropriate
     ! place to do this, but functionally this works)
-   if (flag == 'read' ) then
-       do j = -nlevsno+1,0
-          do c = begc,endc
-             ! mass concentrations of aerosols in snow
-             if (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j) > 0.D0) then
-                cptr%cps%mss_cnc_bcpho(c,j) = cptr%cps%mss_bcpho(c,j) / (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j))
-                cptr%cps%mss_cnc_bcphi(c,j) = cptr%cps%mss_bcphi(c,j) / (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j))
-                cptr%cps%mss_cnc_ocpho(c,j) = cptr%cps%mss_ocpho(c,j) / (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j))
-                cptr%cps%mss_cnc_ocphi(c,j) = cptr%cps%mss_ocphi(c,j) / (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j))
-             
-                cptr%cps%mss_cnc_dst1(c,j) = cptr%cps%mss_dst1(c,j) / (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j))
-                cptr%cps%mss_cnc_dst2(c,j) = cptr%cps%mss_dst2(c,j) / (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j))
-                cptr%cps%mss_cnc_dst3(c,j) = cptr%cps%mss_dst3(c,j) / (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j))
-                cptr%cps%mss_cnc_dst4(c,j) = cptr%cps%mss_dst4(c,j) / (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j))
-             else
-                cptr%cps%mss_cnc_bcpho(c,j) = 0.D0
-                cptr%cps%mss_cnc_bcphi(c,j) = 0.D0
-                cptr%cps%mss_cnc_ocpho(c,j) = 0.D0
-                cptr%cps%mss_cnc_ocphi(c,j) = 0.D0
-             
-                cptr%cps%mss_cnc_dst1(c,j) = 0.D0
-                cptr%cps%mss_cnc_dst2(c,j) = 0.D0
-                cptr%cps%mss_cnc_dst3(c,j) = 0.D0
-                cptr%cps%mss_cnc_dst4(c,j) = 0.D0
-             endif
-          enddo
-       enddo
-    endif
-    !-- SNICAR variables
-
-
+    if (flag == 'read' ) then
+      do j = -nlevsno+1 , 0
+        do c = begc , endc
+          ! mass concentrations of aerosols in snow
+          if ( cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j) > 0.D0 ) then
+            cptr%cps%mss_cnc_bcpho(c,j) = cptr%cps%mss_bcpho(c,j) / &
+                    (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j))
+            cptr%cps%mss_cnc_bcphi(c,j) = cptr%cps%mss_bcphi(c,j) / &
+                    (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j))
+            cptr%cps%mss_cnc_ocpho(c,j) = cptr%cps%mss_ocpho(c,j) / &
+                    (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j))
+            cptr%cps%mss_cnc_ocphi(c,j) = cptr%cps%mss_ocphi(c,j) / &
+                    (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j))
+            cptr%cps%mss_cnc_dst1(c,j) = cptr%cps%mss_dst1(c,j) / &
+                    (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j))
+            cptr%cps%mss_cnc_dst2(c,j) = cptr%cps%mss_dst2(c,j) / &
+                    (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j))
+            cptr%cps%mss_cnc_dst3(c,j) = cptr%cps%mss_dst3(c,j) / &
+                    (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j))
+            cptr%cps%mss_cnc_dst4(c,j) = cptr%cps%mss_dst4(c,j) / &
+                    (cptr%cws%h2osoi_ice(c,j)+cptr%cws%h2osoi_liq(c,j))
+          else
+            cptr%cps%mss_cnc_bcpho(c,j) = 0.D0
+            cptr%cps%mss_cnc_bcphi(c,j) = 0.D0
+            cptr%cps%mss_cnc_ocpho(c,j) = 0.D0
+            cptr%cps%mss_cnc_ocphi(c,j) = 0.D0
+            cptr%cps%mss_cnc_dst1(c,j) = 0.D0
+            cptr%cps%mss_cnc_dst2(c,j) = 0.D0
+            cptr%cps%mss_cnc_dst3(c,j) = 0.D0
+            cptr%cps%mss_cnc_dst4(c,j) = 0.D0
+          end if
+        end do
+      end do
+    end if
   end subroutine BiogeophysRest
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: weights_exactly_the_same
-!
-! !INTERFACE:
-  logical function weights_exactly_the_same( pptr, wtgcell, wtlunit, wtcol )
-!
-! !DESCRIPTION:
-! Determine if the weights read in are exactly the same as those from surface dataset
-!
-! !USES:
-    use mod_clm_type     , only : pft_type
-!
-! !ARGUMENTS:
+  !
+  ! Determine if the weights read in are exactly the same as those
+  ! from surface dataset
+  !
+  logical function weights_exactly_the_same(pptr,wtgcell,wtlunit,wtcol)
     implicit none
-    type(pft_type), pointer :: pptr       ! pointer to pft derived subtype
-    real(rk8), intent(IN)    :: wtgcell(:) ! grid cell weights for each PFT
-    real(rk8), intent(IN)    :: wtlunit(:) ! land-unit weights for each PFT
-    real(rk8), intent(IN)    :: wtcol(:)   ! column weights for each PFT
-!
-! !REVISION HISTORY:
-! Created by Erik Kluzek
-!
-!EOP
-!-----------------------------------------------------------------------
-
-     ! Check that weights are identical for all PFT's and all weight types
-     if (  all( pptr%wtgcell(:) == wtgcell ) .and. all( pptr%wtlunit(:) == wtlunit ) &
-     .and. all( pptr%wtcol(:) == wtcol ) )then
-        weights_exactly_the_same = .true.
-     else
-        weights_exactly_the_same = .false.
-     end if
-
+    type(pft_type) , pointer :: pptr     ! pointer to pft derived subtype
+    real(rk8) , intent(in) :: wtgcell(:) ! grid cell weights for each PFT
+    real(rk8) , intent(in) :: wtlunit(:) ! land-unit weights for each PFT
+    real(rk8) , intent(in) :: wtcol(:)   ! column weights for each PFT
+    ! Check that weights are identical for all PFT's and all weight types
+    if ( all( pptr%wtgcell(:) == wtgcell ) .and. &
+         all( pptr%wtlunit(:) == wtlunit ) .and. &
+         all( pptr%wtcol(:) == wtcol ) ) then
+      weights_exactly_the_same = .true.
+    else
+      weights_exactly_the_same = .false.
+    end if
   end function weights_exactly_the_same
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: weights_within_roundoff_different
-!
-! !INTERFACE:
-  logical function weights_within_roundoff_different( pptr, wtgcell, wtlunit, wtcol )
-!
-! !DESCRIPTION:
-! Determine if the weights are within roundoff different from each other
-!
-! !USES:
-    use mod_clm_type     , only : pft_type
-!
-! !ARGUMENTS:
+  !
+  ! Determine if the weights are within roundoff different from each other
+  !
+  logical function weights_within_roundoff_different(pptr,wtgcell,wtlunit,wtcol)
     implicit none
-    type(pft_type), pointer :: pptr       ! pointer to pft derived subtype
-    real(rk8), intent(IN)    :: wtgcell(:) ! grid cell weights for each PFT
-    real(rk8), intent(IN)    :: wtlunit(:) ! land-unit weights for each PFT
-    real(rk8), intent(IN)    :: wtcol(:)   ! column weights for each PFT
-!
-! !REVISION HISTORY:
-! Created by Erik Kluzek
-!
-!EOP
-!-----------------------------------------------------------------------
-     real(rk8), parameter :: rndVal  = 1.D-13
-
-     ! If differences between all weights for each PFT and each weight type is
-     ! less than or equal to double precision roundoff level -- weights are close
-     if (  all( abs(pptr%wtgcell(:) - wtgcell) <= rndVal ) &
-     .and. all( abs(pptr%wtlunit(:) - wtlunit) <= rndVal ) &
-     .and. all( abs(pptr%wtcol(:)   - wtcol  ) <= rndVal ) )then
-        weights_within_roundoff_different = .true.
-     else
-        weights_within_roundoff_different = .false.
-     end if
-
+    type(pft_type) , pointer :: pptr ! pointer to pft derived subtype
+    real(rk8) , intent(in) :: wtgcell(:) ! grid cell weights for each PFT
+    real(rk8) , intent(in) :: wtlunit(:) ! land-unit weights for each PFT
+    real(rk8) , intent(in) :: wtcol(:)   ! column weights for each PFT
+    real(rk8) , parameter :: rndVal = 1.D-13
+    ! If differences between all weights for each PFT and each weight type is
+    ! less than or equal to double precision roundoff level 
+    ! weights are close
+    if ( all(abs(pptr%wtgcell(:) - wtgcell) <= rndVal) .and. &
+       . all(abs(pptr%wtlunit(:) - wtlunit) <= rndVal) .and. &
+         all(abs(pptr%wtcol(:)   - wtcol  ) <= rndVal) ) then
+      weights_within_roundoff_different = .true.
+    else
+      weights_within_roundoff_different = .false.
+    end if
   end function weights_within_roundoff_different
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: weights_tooDifferent
-!
-! !INTERFACE:
-  logical function weights_tooDifferent( begp, endp, pptr, wtgcell, adiff, maxdiff )
-!
-! !DESCRIPTION:
-! Determine if the weights read in are too different and should flag an error
-!
-! !USES:
-    use mod_clm_type     , only : pft_type
+  !
+  ! Determine if the weights read in are too different and should flag an error
+  !
+  logical function weights_tooDifferent(begp,endp,pptr,wtgcell,adiff,maxdiff)
     implicit none
-!
-! !ARGUMENTS:
-    integer, intent(IN)     :: begp, endp         ! per-proc beginning and ending pft indices
-    type(pft_type), pointer :: pptr               ! pointer to pft derived subtype
-    real(rk8), intent(IN)    :: wtgcell(begp:endp) ! grid cell weights for each PFT
-    real(rk8), intent(IN)    :: adiff              ! tolerance of acceptible difference
-    real(rk8), intent(OUT)   :: maxdiff            ! maximum difference found
-!
-! !REVISION HISTORY:
-! Created by Erik Kluzek
-!
-!EOP
-!-----------------------------------------------------------------------
-     integer  :: p        ! PFT index
-     real(rk8) :: diff     ! difference in weights
-
-     ! Assume weights are NOT different and only change if find weights too different
-     weights_tooDifferent = .false.
-     maxdiff = 0.0D0
-     do p = begp, endp
-
-        diff = abs(pptr%wtgcell(p) - wtgcell(p))
-        if ( diff > maxdiff ) maxdiff = diff
-        if ( diff > adiff   ) weights_tooDifferent = .true.
-     end do
-
+    ! per-proc beginning and ending pft indices
+    integer(ik4) , intent(in) :: begp, endp
+    type(pft_type) , pointer :: pptr ! pointer to pft derived subtype
+    ! grid cell weights for each PFT
+    real(rk8) , intent(in) :: wtgcell(begp:endp)
+    real(rk8) , intent(in) :: adiff ! tolerance of acceptible difference
+    real(rk8) , intent(out) :: maxdiff ! maximum difference found
+    integer(ik4) :: p     ! PFT index
+    real(rk8) :: diff     ! difference in weights
+    ! Assume weights are NOT different and only change if find
+    ! weights too different
+    weights_tooDifferent = .false.
+    maxdiff = 0.0D0
+    do p = begp , endp
+      diff = abs(pptr%wtgcell(p) - wtgcell(p))
+      if ( diff > maxdiff ) maxdiff = diff
+      if ( diff > adiff ) weights_tooDifferent = .true.
+    end do
   end function weights_tooDifferent
 
-
-end module BiogeophysRestMod
+end module mod_clm_biogeophysrest

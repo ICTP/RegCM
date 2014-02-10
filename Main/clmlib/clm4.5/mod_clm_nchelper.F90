@@ -85,7 +85,6 @@ module mod_clm_nchelper
 
   public :: clm_readvar
   public :: clm_writevar
-  public :: clm_writevar_par
 
   integer(ik4) :: incstat
 
@@ -147,6 +146,34 @@ module mod_clm_nchelper
     module procedure clm_readrec_real8_1d
     module procedure clm_readrec_real8_2d
     module procedure clm_readrec_real8_3d
+    module procedure clm_readvar_logical_1d_par_sg
+    module procedure clm_readvar_logical_2d_par_sg
+    module procedure clm_readvar_logical_3d_par_sg
+    module procedure clm_readvar_logical_4d_par_sg
+    module procedure clm_readvar_integer_1d_par_sg
+    module procedure clm_readvar_integer_2d_par_sg
+    module procedure clm_readvar_integer_3d_par_sg
+    module procedure clm_readvar_integer_4d_par_sg
+    module procedure clm_readvar_real4_1d_par_sg
+    module procedure clm_readvar_real4_2d_par_sg
+    module procedure clm_readvar_real4_3d_par_sg
+    module procedure clm_readvar_real4_4d_par_sg
+    module procedure clm_readvar_real8_1d_par_sg
+    module procedure clm_readvar_real8_2d_par_sg
+    module procedure clm_readvar_real8_3d_par_sg
+    module procedure clm_readvar_real8_4d_par_sg
+    module procedure clm_readrec_logical_1d_par_sg
+    module procedure clm_readrec_logical_2d_par_sg
+    module procedure clm_readrec_logical_3d_par_sg
+    module procedure clm_readrec_integer_1d_par_sg
+    module procedure clm_readrec_integer_2d_par_sg
+    module procedure clm_readrec_integer_3d_par_sg
+    module procedure clm_readrec_real4_1d_par_sg
+    module procedure clm_readrec_real4_2d_par_sg
+    module procedure clm_readrec_real4_3d_par_sg
+    module procedure clm_readrec_real8_1d_par_sg
+    module procedure clm_readrec_real8_2d_par_sg
+    module procedure clm_readrec_real8_3d_par_sg
   end interface clm_readvar
 
   interface clm_writevar
@@ -188,42 +215,31 @@ module mod_clm_nchelper
     module procedure clm_writerec_real8_1d
     module procedure clm_writerec_real8_2d
     module procedure clm_writerec_real8_3d
-  end interface clm_writevar
-
-  interface clm_writevar_par
-    module procedure clm_writevar_logical_0d_par_sg
     module procedure clm_writevar_logical_1d_par_sg
     module procedure clm_writevar_logical_2d_par_sg
     module procedure clm_writevar_logical_3d_par_sg
     module procedure clm_writevar_logical_4d_par_sg
-    module procedure clm_writevar_integer_0d_par_sg
     module procedure clm_writevar_integer_1d_par_sg
     module procedure clm_writevar_integer_2d_par_sg
     module procedure clm_writevar_integer_3d_par_sg
     module procedure clm_writevar_integer_4d_par_sg
-    module procedure clm_writevar_real4_0d_par_sg
     module procedure clm_writevar_real4_1d_par_sg
     module procedure clm_writevar_real4_2d_par_sg
     module procedure clm_writevar_real4_3d_par_sg
     module procedure clm_writevar_real4_4d_par_sg
-    module procedure clm_writevar_real8_0d_par_sg
     module procedure clm_writevar_real8_1d_par_sg
     module procedure clm_writevar_real8_2d_par_sg
     module procedure clm_writevar_real8_3d_par_sg
     module procedure clm_writevar_real8_4d_par_sg
-    module procedure clm_writerec_logical_0d_par_sg
     module procedure clm_writerec_logical_1d_par_sg
     module procedure clm_writerec_logical_2d_par_sg
     module procedure clm_writerec_logical_3d_par_sg
-    module procedure clm_writerec_integer_0d_par_sg
     module procedure clm_writerec_integer_1d_par_sg
     module procedure clm_writerec_integer_2d_par_sg
     module procedure clm_writerec_integer_3d_par_sg
-    module procedure clm_writerec_real4_0d_par_sg
     module procedure clm_writerec_real4_1d_par_sg
     module procedure clm_writerec_real4_2d_par_sg
     module procedure clm_writerec_real4_3d_par_sg
-    module procedure clm_writerec_real8_0d_par_sg
     module procedure clm_writerec_real8_1d_par_sg
     module procedure clm_writerec_real8_2d_par_sg
     module procedure clm_writerec_real8_3d_par_sg
@@ -247,7 +263,7 @@ module mod_clm_nchelper
     module procedure clm_writerec_real4_3d_par_gg
     module procedure clm_writerec_real8_2d_par_gg
     module procedure clm_writerec_real8_3d_par_gg
-  end interface clm_writevar_par
+  end interface clm_writevar
 
   contains
 !
@@ -1630,6 +1646,635 @@ module mod_clm_nchelper
       'Error read '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_readrec_real8_3d
 
+  subroutine clm_readvar_logical_1d_par_sg(ncid,vname,xval,sg)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    logical , dimension(:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , dimension(:) , allocatable :: rval
+    integer(ik4) :: ivarid
+
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns))
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie) = (rval(sg%is:sg%ie) > 0)
+    deallocate(rval)
+  end subroutine clm_readvar_logical_1d_par_sg
+
+  subroutine clm_readvar_logical_2d_par_sg(ncid,vname,xval,sg)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    logical , dimension(:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , dimension(:,:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns,size(xval,2)))
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:) = (rval(sg%is:sg%ie,:) > 0)
+    deallocate(rval)
+  end subroutine clm_readvar_logical_2d_par_sg
+
+  subroutine clm_readvar_logical_3d_par_sg(ncid,vname,xval,sg)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    logical , dimension(:,:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , dimension(:,:,:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns,size(xval,2),size(xval,3)))
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:,:) = (rval(sg%is:sg%ie,:,:) > 0)
+    deallocate(rval)
+  end subroutine clm_readvar_logical_3d_par_sg
+
+  subroutine clm_readvar_logical_4d_par_sg(ncid,vname,xval,sg)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    logical , dimension(:,:,:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , dimension(:,:,:,:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns,size(xval,2),size(xval,3),size(xval,4)))
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:,:,:) = (rval(sg%is:sg%ie,:,:,:) > 0)
+    deallocate(rval)
+  end subroutine clm_readvar_logical_4d_par_sg
+
+  subroutine clm_readvar_integer_1d_par_sg(ncid,vname,xval,sg)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , dimension(:) , intent(out) :: xval
+    integer(ik4) , dimension(:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns))
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie) = rval(sg%is:sg%ie)
+    deallocate(rval)
+  end subroutine clm_readvar_integer_1d_par_sg
+
+  subroutine clm_readvar_integer_2d_par_sg(ncid,vname,xval,sg)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    integer(ik4) , dimension(:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , dimension(:,:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns,size(xval,2)))
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:) = rval(sg%is:sg%ie,:)
+    deallocate(rval)
+  end subroutine clm_readvar_integer_2d_par_sg
+
+  subroutine clm_readvar_integer_3d_par_sg(ncid,vname,xval,sg)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    integer(ik4) , dimension(:,:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , dimension(:,:,:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns,size(xval,2),size(xval,3)))
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:,:) = rval(sg%is:sg%ie,:,:)
+    deallocate(rval)
+  end subroutine clm_readvar_integer_3d_par_sg
+
+  subroutine clm_readvar_integer_4d_par_sg(ncid,vname,xval,sg)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    integer(ik4) , dimension(:,:,:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , dimension(:,:,:,:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns,size(xval,2),size(xval,3),size(xval,4)))
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:,:,:) = rval(sg%is:sg%ie,:,:,:)
+    deallocate(rval)
+  end subroutine clm_readvar_integer_4d_par_sg
+
+  subroutine clm_readvar_real4_1d_par_sg(ncid,vname,xval,sg)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(rk4) , dimension(:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    real(rk4) , dimension(:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns))
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie) = rval(sg%is:sg%ie)
+    deallocate(rval)
+  end subroutine clm_readvar_real4_1d_par_sg
+
+  subroutine clm_readvar_real4_2d_par_sg(ncid,vname,xval,sg)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(rk4) , dimension(:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    real(rk4) , dimension(:,:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns,size(xval,2)))
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:) = rval(sg%is:sg%ie,:)
+    deallocate(rval)
+  end subroutine clm_readvar_real4_2d_par_sg
+
+  subroutine clm_readvar_real4_3d_par_sg(ncid,vname,xval,sg)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(rk4) , dimension(:,:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    real(rk4) , dimension(:,:,:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns,size(xval,2),size(xval,3)))
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:,:) = rval(sg%is:sg%ie,:,:)
+    deallocate(rval)
+  end subroutine clm_readvar_real4_3d_par_sg
+
+  subroutine clm_readvar_real4_4d_par_sg(ncid,vname,xval,sg)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(rk4) , dimension(:,:,:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    real(rk4) , dimension(:,:,:,:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns,size(xval,2),size(xval,3),size(xval,4)))
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:,:,:) = rval(sg%is:sg%ie,:,:,:)
+    deallocate(rval)
+  end subroutine clm_readvar_real4_4d_par_sg
+
+  subroutine clm_readvar_real8_1d_par_sg(ncid,vname,xval,sg)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(rk8) , dimension(:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    real(rk8) , dimension(:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns))
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie) = rval(sg%is:sg%ie)
+    deallocate(rval)
+  end subroutine clm_readvar_real8_1d_par_sg
+
+  subroutine clm_readvar_real8_2d_par_sg(ncid,vname,xval,sg)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(rk8) , dimension(:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    real(rk8) , dimension(:,:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns,size(xval,2)))
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:) = rval(sg%is:sg%ie,:)
+    deallocate(rval)
+  end subroutine clm_readvar_real8_2d_par_sg
+
+  subroutine clm_readvar_real8_3d_par_sg(ncid,vname,xval,sg)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(rk8) , dimension(:,:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    real(rk8) , dimension(:,:,:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns,size(xval,2),size(xval,3)))
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:,:) = rval(sg%is:sg%ie,:,:)
+    deallocate(rval)
+  end subroutine clm_readvar_real8_3d_par_sg
+
+  subroutine clm_readvar_real8_4d_par_sg(ncid,vname,xval,sg)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(rk8) , dimension(:,:,:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    real(rk8) , dimension(:,:,:,:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns,size(xval,2),size(xval,3),size(xval,4)))
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:,:,:) = rval(sg%is:sg%ie,:,:,:)
+    deallocate(rval)
+  end subroutine clm_readvar_real8_4d_par_sg
+
+  subroutine clm_readrec_logical_1d_par_sg(ncid,vname,xval,sg,nt)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    logical , dimension(:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , intent(in) :: nt
+    integer(ik4) :: ivarid
+    integer(ik4) , dimension(:) , allocatable :: rval
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns))
+    istart(2) = nt
+    istart(1) = 1
+    icount(2) = 1
+    icount(1) = sg%ns
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie) = (rval(sg%is:sg%ie) > 0)
+    deallocate(rval)
+  end subroutine clm_readrec_logical_1d_par_sg
+
+  subroutine clm_readrec_logical_2d_par_sg(ncid,vname,xval,sg,nt)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    logical , dimension(:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , intent(in) :: nt
+    integer(ik4) , dimension(:,:) , allocatable :: rval
+    integer(ik4) :: ivarid , nv2
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    nv2 = size(xval,2)
+    allocate(rval(sg%ns,nv2))
+    istart(3) = nt
+    istart(2) = 1
+    istart(1) = 1
+    icount(3) = 1
+    icount(2) = nv2
+    icount(1) = sg%ns
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:) = (rval(sg%is:sg%ie,:) > 0)
+    deallocate(rval)
+  end subroutine clm_readrec_logical_2d_par_sg
+
+  subroutine clm_readrec_logical_3d_par_sg(ncid,vname,xval,sg,nt)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    logical , dimension(:,:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , intent(in) :: nt
+    integer(ik4) , dimension(:,:,:) , allocatable :: rval
+    integer(ik4) :: ivarid , nv2 , nv3
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    nv2 = size(xval,2)
+    nv3 = size(xval,3)
+    allocate(rval(sg%ns,nv2,nv3))
+    istart(4) = nt
+    istart(3) = 1
+    istart(2) = 1
+    istart(1) = 1
+    icount(4) = 1
+    icount(3) = nv3
+    icount(2) = nv2
+    icount(1) = sg%ns
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:,:) = (rval(sg%is:sg%ie,:,:) > 0)
+    deallocate(rval)
+  end subroutine clm_readrec_logical_3d_par_sg
+
+  subroutine clm_readrec_integer_1d_par_sg(ncid,vname,xval,sg,nt)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    integer(ik4) , dimension(:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , intent(in) :: nt
+    integer(ik4) , dimension(:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns))
+    istart(2) = nt
+    istart(1) = 1
+    icount(2) = 1
+    icount(1) = sg%ns
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie) = rval(sg%is:sg%ie)
+    deallocate(rval)
+  end subroutine clm_readrec_integer_1d_par_sg
+
+  subroutine clm_readrec_integer_2d_par_sg(ncid,vname,xval,sg,nt)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    integer(ik4) , dimension(:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , intent(in) :: nt
+    integer(ik4) , dimension(:,:) , allocatable :: rval
+    integer(ik4) :: ivarid , nv2
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    nv2 = size(xval,2)
+    allocate(rval(sg%ns,nv2))
+    istart(3) = nt
+    istart(2) = 1
+    istart(1) = 1
+    icount(3) = 1
+    icount(2) = nv2
+    icount(1) = sg%ns
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:) = rval(sg%is:sg%ie,:)
+    deallocate(rval)
+  end subroutine clm_readrec_integer_2d_par_sg
+
+  subroutine clm_readrec_integer_3d_par_sg(ncid,vname,xval,sg,nt)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    integer(ik4) , dimension(:,:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , intent(in) :: nt
+    integer(ik4) , dimension(:,:,:) , allocatable :: rval
+    integer(ik4) :: ivarid , nv2 , nv3
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    nv2 = size(xval,2)
+    nv3 = size(xval,3)
+    allocate(rval(sg%ns,nv2,nv3))
+    istart(4) = nt
+    istart(3) = 1
+    istart(2) = 1
+    istart(1) = 1
+    icount(4) = 1
+    icount(3) = nv3
+    icount(2) = nv2
+    icount(1) = sg%ns
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:,:) = rval(sg%is:sg%ie,:,:)
+    deallocate(rval)
+  end subroutine clm_readrec_integer_3d_par_sg
+
+  subroutine clm_readrec_real4_1d_par_sg(ncid,vname,xval,sg,nt)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(rk4) , dimension(:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , intent(in) :: nt
+    real(rk4) , dimension(:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns))
+    istart(2) = nt
+    istart(1) = 1
+    icount(2) = 1
+    icount(1) = sg%ns
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie) = rval(sg%is:sg%ie)
+    deallocate(rval)
+  end subroutine clm_readrec_real4_1d_par_sg
+
+  subroutine clm_readrec_real4_2d_par_sg(ncid,vname,xval,sg,nt)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(rk4) , dimension(:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , intent(in) :: nt
+    real(rk4) , dimension(:,:) , allocatable :: rval
+    integer(ik4) :: ivarid , nv2
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    nv2 = size(xval,2)
+    allocate(rval(sg%ns,nv2))
+    istart(3) = nt
+    istart(2) = 1
+    istart(1) = 1
+    icount(3) = 1
+    icount(2) = nv2
+    icount(1) = sg%ns
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:) = rval(sg%is:sg%ie,:)
+    deallocate(rval)
+  end subroutine clm_readrec_real4_2d_par_sg
+
+  subroutine clm_readrec_real4_3d_par_sg(ncid,vname,xval,sg,nt)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(rk4) , dimension(:,:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , intent(in) :: nt
+    real(rk4) , dimension(:,:,:) , allocatable :: rval
+    integer(ik4) :: ivarid , nv2 , nv3
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    nv2 = size(xval,2)
+    nv3 = size(xval,3)
+    allocate(rval(sg%ns,nv2,nv3))
+    istart(4) = nt
+    istart(3) = 1
+    istart(2) = 1
+    istart(1) = 1
+    icount(4) = 1
+    icount(3) = nv3
+    icount(2) = nv2
+    icount(1) = sg%ns
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:,:) = rval(sg%is:sg%ie,:,:)
+    deallocate(rval)
+  end subroutine clm_readrec_real4_3d_par_sg
+
+  subroutine clm_readrec_real8_1d_par_sg(ncid,vname,xval,sg,nt)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(rk8) , dimension(:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , intent(in) :: nt
+    real(rk8) , dimension(:) , allocatable :: rval
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    allocate(rval(sg%ns))
+    istart(2) = nt
+    istart(1) = 1
+    icount(2) = 1
+    icount(1) = sg%ns
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie) = rval(sg%is:sg%ie)
+    deallocate(rval)
+  end subroutine clm_readrec_real8_1d_par_sg
+
+  subroutine clm_readrec_real8_2d_par_sg(ncid,vname,xval,sg,nt)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(rk8) , dimension(:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , intent(in) :: nt
+    real(rk8) , dimension(:,:) , allocatable :: rval
+    integer(ik4) :: ivarid , nv2
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    nv2 = size(xval,2)
+    allocate(rval(sg%ns,nv2))
+    istart(3) = nt
+    istart(2) = 1
+    istart(1) = 1
+    icount(3) = 1
+    icount(2) = nv2
+    icount(1) = sg%ns
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:) = rval(sg%is:sg%ie,:)
+    deallocate(rval)
+  end subroutine clm_readrec_real8_2d_par_sg
+
+  subroutine clm_readrec_real8_3d_par_sg(ncid,vname,xval,sg,nt)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    real(rk8) , dimension(:,:,:) , intent(out) :: xval
+    type(subgrid_type) , intent(in) :: sg
+    integer(ik4) , intent(in) :: nt
+    real(rk8) , dimension(:,:,:) , allocatable :: rval
+    integer(ik4) :: ivarid , nv2 , nv3
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    nv2 = size(xval,2)
+    nv3 = size(xval,3)
+    allocate(rval(sg%ns,nv2,nv3))
+    istart(4) = nt
+    istart(3) = 1
+    istart(2) = 1
+    istart(1) = 1
+    icount(4) = 1
+    icount(3) = nv3
+    icount(2) = nv2
+    icount(1) = sg%ns
+    incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+    xval(sg%is:sg%ie,:,:) = rval(sg%is:sg%ie,:,:)
+    deallocate(rval)
+  end subroutine clm_readrec_real8_3d_par_sg
+
   subroutine clm_writevar_text_0d(ncid,vname,xval)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
@@ -2473,29 +3118,6 @@ module mod_clm_nchelper
     ncid2%varname = ncid1%varname
   end subroutine copy_filetype
 
-  subroutine clm_writevar_logical_0d_par_sg(ncid,vname,xval)
-    implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , intent(in) :: xval
-    integer(ik4) :: ivarid
-    integer(ik4) , dimension(1) :: ivar
-    if ( myid /= iocpu ) return
-    ivarid = searchvar(ncid,vname)
-    if ( ivarid < 0 ) then
-      incstat = nf90_enotvar
-    else
-      if ( xval ) then
-        ivar(1) = 1
-      else
-        ivar(1) = 0
-      end if
-      incstat = nf90_put_var(ncid%ncid,ivarid,ivar)
-    end if
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writevar_logical_0d_par_sg
-
   subroutine clm_writevar_logical_1d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
@@ -2642,25 +3264,6 @@ module mod_clm_nchelper
     deallocate(rval)
   end subroutine clm_writevar_logical_4d_par_sg
 
-  subroutine clm_writevar_integer_0d_par_sg(ncid,vname,xval)
-    implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , intent(in) :: xval
-    integer(ik4) :: ivarid
-    integer(ik4) , dimension(1) :: ivar
-    if ( myid /= iocpu ) return
-    ivarid = searchvar(ncid,vname)
-    if ( ivarid < 0 ) then
-      incstat = nf90_enotvar
-    else
-      ivar(1) = xval
-      incstat = nf90_put_var(ncid%ncid,ivarid,ivar)
-    end if
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writevar_integer_0d_par_sg
-
   subroutine clm_writevar_integer_1d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
@@ -2778,25 +3381,6 @@ module mod_clm_nchelper
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
   end subroutine clm_writevar_integer_4d_par_sg
-
-  subroutine clm_writevar_real4_0d_par_sg(ncid,vname,xval)
-    implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , intent(in) :: xval
-    integer(ik4) :: ivarid
-    real(rk4) , dimension(1) :: ivar
-    if ( myid /= iocpu ) return
-    ivarid = searchvar(ncid,vname)
-    if ( ivarid < 0 ) then
-      incstat = nf90_enotvar
-    else
-      ivar(1) = xval
-      incstat = nf90_put_var(ncid%ncid,ivarid,ivar)
-    end if
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writevar_real4_0d_par_sg
 
   subroutine clm_writevar_real4_1d_par_sg(ncid,vname,xval,sg)
     implicit none
@@ -2916,25 +3500,6 @@ module mod_clm_nchelper
     deallocate(rval)
   end subroutine clm_writevar_real4_4d_par_sg
 
-  subroutine clm_writevar_real8_0d_par_sg(ncid,vname,xval)
-    implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , intent(in) :: xval
-    integer(ik4) :: ivarid
-    real(rk8) , dimension(1) :: ivar
-    if ( myid /= iocpu ) return
-    ivarid = searchvar(ncid,vname)
-    if ( ivarid < 0 ) then
-      incstat = nf90_enotvar
-    else
-      ivar(1) = xval
-      incstat = nf90_put_var(ncid%ncid,ivarid,ivar)
-    end if
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error write '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writevar_real8_0d_par_sg
-
   subroutine clm_writevar_real8_1d_par_sg(ncid,vname,xval,sg)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
@@ -3052,29 +3617,6 @@ module mod_clm_nchelper
       'Error write '//vname//' to file '//trim(ncid%fname))
     deallocate(rval)
   end subroutine clm_writevar_real8_4d_par_sg
-
-  subroutine clm_writerec_logical_0d_par_sg(ncid,vname,xval,nt)
-    implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    logical , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid , mpierr
-    integer(ik4) , dimension(1) :: rval
-    if ( myid /= iocpu ) return
-    istart(1) = nt
-    icount(1) = 1
-    ivarid = searchvar(ncid,vname)
-    if ( ivarid < 0 ) then
-      incstat = nf90_enotvar
-    else
-      rval = 0
-      if ( xval ) rval = 1
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
-    end if
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_logical_0d_par_sg
 
   subroutine clm_writerec_logical_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
@@ -3205,28 +3747,6 @@ module mod_clm_nchelper
       'Error read '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_logical_3d_par_sg
 
-  subroutine clm_writerec_integer_0d_par_sg(ncid,vname,xval,nt)
-    implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    integer(ik4) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid
-    integer(ik4) , dimension(1) :: rval
-    if ( myid /= iocpu ) return
-    istart(1) = nt
-    icount(1) = 1
-    ivarid = searchvar(ncid,vname)
-    if ( ivarid < 0 ) then
-      incstat = nf90_enotvar
-    else
-      rval(1) = xval
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
-    end if
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_integer_0d_par_sg
-
   subroutine clm_writerec_integer_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
@@ -3332,28 +3852,6 @@ module mod_clm_nchelper
       'Error read '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_integer_3d_par_sg
 
-  subroutine clm_writerec_real4_0d_par_sg(ncid,vname,xval,nt)
-    implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk4) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid
-    real(rk4) , dimension(1) :: rval
-    if ( myid /= iocpu ) return
-    istart(1) = nt
-    icount(1) = 1
-    ivarid = searchvar(ncid,vname)
-    if ( ivarid < 0 ) then
-      incstat = nf90_enotvar
-    else
-      rval(1) = xval
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
-    end if
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_real4_0d_par_sg
-
   subroutine clm_writerec_real4_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
     type(clm_filetype) , intent(in) :: ncid
@@ -3458,28 +3956,6 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_3d_par_sg
-
-  subroutine clm_writerec_real8_0d_par_sg(ncid,vname,xval,nt)
-    implicit none
-    type(clm_filetype) , intent(in) :: ncid
-    character(len=*) , intent(in) :: vname
-    real(rk8) , intent(in) :: xval
-    integer(ik4) , intent(in) :: nt
-    integer(ik4) :: ivarid
-    real(rk8) , dimension(1) :: rval
-    if ( myid /= iocpu ) return
-    istart(1) = nt
-    icount(1) = 1
-    ivarid = searchvar(ncid,vname)
-    if ( ivarid < 0 ) then
-      incstat = nf90_enotvar
-    else
-      rval(1) = xval
-      incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
-    end if
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
-  end subroutine clm_writerec_real8_0d_par_sg
 
   subroutine clm_writerec_real8_1d_par_sg(ncid,vname,xval,sg,nt)
     implicit none
@@ -3891,7 +4367,7 @@ module mod_clm_nchelper
     do i = iout1 , iout2
       do j = jout1 , jout2
         if ( gg%gcmask(j,i) ) then
-          ncid%i4buf(j,i) = ival(ib)
+          ncid%r4buf(j,i) = ival(ib)
           ib = ib + 1
         end if
       end do
@@ -3901,7 +4377,7 @@ module mod_clm_nchelper
     istart(1) = 1
     icount(2) = niout
     icount(1) = njout
-    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf,istart(1:2),icount(1:2))
+    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf,istart(1:2),icount(1:2))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_real4_2d_par_gg
@@ -3931,7 +4407,7 @@ module mod_clm_nchelper
         do i = iout1 , iout2
           do j = jout1 , jout2
             if ( gg%gcmask(j,i) ) then
-              ncid%i4buf(j,i) = ival(ib)
+              ncid%r4buf(j,i) = ival(ib)
               ib = ib + 1
             end if
           end do
@@ -3942,7 +4418,7 @@ module mod_clm_nchelper
         icount(3) = 1
         icount(2) = niout
         icount(1) = njout
-        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf, &
                                istart(1:3),icount(1:3))
         call clm_checkncerr(__FILE__,__LINE__, &
           'Error read '//vname//' to file '//trim(ncid%fname))
@@ -3979,7 +4455,7 @@ module mod_clm_nchelper
           do i = iout1 , iout2
             do j = jout1 , jout2
               if ( gg%gcmask(j,i) ) then
-                ncid%i4buf(j,i) = ival(ib)
+                ncid%r4buf(j,i) = ival(ib)
                 ib = ib + 1
               end if
             end do
@@ -3992,7 +4468,7 @@ module mod_clm_nchelper
           icount(3) = 1
           icount(2) = niout
           icount(1) = njout
-          incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+          incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf, &
                                  istart(1:4),icount(1:4))
           call clm_checkncerr(__FILE__,__LINE__, &
             'Error read '//vname//' to file '//trim(ncid%fname))
@@ -4026,7 +4502,7 @@ module mod_clm_nchelper
     do i = iout1 , iout2
       do j = jout1 , jout2
         if ( gg%gcmask(j,i) ) then
-          ncid%i4buf(j,i) = ival(ib)
+          ncid%r8buf(j,i) = ival(ib)
           ib = ib + 1
         end if
       end do
@@ -4036,7 +4512,7 @@ module mod_clm_nchelper
     istart(1) = 1
     icount(2) = niout
     icount(1) = njout
-    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf,istart(1:2),icount(1:2))
+    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf,istart(1:2),icount(1:2))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_real8_2d_par_gg
@@ -4066,7 +4542,7 @@ module mod_clm_nchelper
         do i = iout1 , iout2
           do j = jout1 , jout2
             if ( gg%gcmask(j,i) ) then
-              ncid%i4buf(j,i) = ival(ib)
+              ncid%r8buf(j,i) = ival(ib)
               ib = ib + 1
             end if
           end do
@@ -4077,7 +4553,7 @@ module mod_clm_nchelper
         icount(3) = 1
         icount(2) = niout
         icount(1) = njout
-        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf, &
                                istart(1:3),icount(1:3))
         call clm_checkncerr(__FILE__,__LINE__, &
           'Error read '//vname//' to file '//trim(ncid%fname))
@@ -4114,7 +4590,7 @@ module mod_clm_nchelper
           do i = iout1 , iout2
             do j = jout1 , jout2
               if ( gg%gcmask(j,i) ) then
-                ncid%i4buf(j,i) = ival(ib)
+                ncid%r8buf(j,i) = ival(ib)
                 ib = ib + 1
               end if
             end do
@@ -4127,7 +4603,7 @@ module mod_clm_nchelper
           icount(3) = 1
           icount(2) = niout
           icount(1) = njout
-          incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+          incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf, &
                                  istart(1:4),icount(1:4))
           call clm_checkncerr(__FILE__,__LINE__, &
             'Error read '//vname//' to file '//trim(ncid%fname))
@@ -4350,7 +4826,7 @@ module mod_clm_nchelper
     do i = iout1 , iout2
       do j = jout1 , jout2
         if ( gg%gcmask(j,i) ) then
-          ncid%i4buf(j,i) = ival(ib)
+          ncid%r4buf(j,i) = ival(ib)
           ib = ib + 1
         end if
       end do
@@ -4362,7 +4838,7 @@ module mod_clm_nchelper
     icount(3) = 1
     icount(2) = niout
     icount(1) = njout
-    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf,istart(1:3),icount(1:3))
+    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf,istart(1:3),icount(1:3))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_2d_par_gg
@@ -4393,7 +4869,7 @@ module mod_clm_nchelper
         do i = iout1 , iout2
           do j = jout1 , jout2
             if ( gg%gcmask(j,i) ) then
-              ncid%i4buf(j,i) = ival(ib)
+              ncid%r4buf(j,i) = ival(ib)
               ib = ib + 1
             end if
           end do
@@ -4406,7 +4882,7 @@ module mod_clm_nchelper
         icount(3) = 1
         icount(2) = niout
         icount(1) = njout
-        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf, &
                                istart(1:4),icount(1:4))
         call clm_checkncerr(__FILE__,__LINE__, &
           'Error read '//vname//' to file '//trim(ncid%fname))
@@ -4440,7 +4916,7 @@ module mod_clm_nchelper
     do i = iout1 , iout2
       do j = jout1 , jout2
         if ( gg%gcmask(j,i) ) then
-          ncid%i4buf(j,i) = ival(ib)
+          ncid%r8buf(j,i) = ival(ib)
           ib = ib + 1
         end if
       end do
@@ -4452,7 +4928,7 @@ module mod_clm_nchelper
     icount(3) = 1
     icount(2) = niout
     icount(1) = njout
-    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf,istart(1:3),icount(1:3))
+    incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf,istart(1:3),icount(1:3))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_2d_par_gg
@@ -4483,7 +4959,7 @@ module mod_clm_nchelper
         do i = iout1 , iout2
           do j = jout1 , jout2
             if ( gg%gcmask(j,i) ) then
-              ncid%i4buf(j,i) = ival(ib)
+              ncid%r8buf(j,i) = ival(ib)
               ib = ib + 1
             end if
           end do
@@ -4496,7 +4972,7 @@ module mod_clm_nchelper
         icount(3) = 1
         icount(2) = niout
         icount(1) = njout
-        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
+        incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf, &
                                istart(1:4),icount(1:4))
         call clm_checkncerr(__FILE__,__LINE__, &
           'Error read '//vname//' to file '//trim(ncid%fname))
@@ -4525,8 +5001,8 @@ module mod_clm_nchelper
     ival = 1
     xval = .false.
     if ( myid == 1 ) xval = .true.
-    call clm_writevar_par(ncid,'test',xval,gcomm_pft)
-    call clm_writevar_par(ncid,'mask',ival,procinfo)
+    call clm_writevar(ncid,'test',xval,gcomm_pft)
+    call clm_writevar(ncid,'mask',ival,procinfo)
     deallocate(xval)
     deallocate(ival)
     call clm_closefile(ncid)
