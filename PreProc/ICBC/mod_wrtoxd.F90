@@ -42,11 +42,13 @@ module mod_wrtoxd
   character(len=256) :: ofname
   character(len=8) :: chtype
 
-  integer(ik4) , parameter :: nchsp = 25
+  integer(ik4) , parameter :: nchsp = 40   !species in Mozart output
+  integer(ik4) , parameter :: ncbmz = 33   !cbmz species in chemistry lateral boundaries 
   integer(ik4) , parameter :: noxsp = 5
   integer(ik4) :: naesp = -1
 
-  character(len=8) , dimension(nchsp) :: chspec
+  character(len=8) , dimension(nchsp) :: chspec      !Names of Mozart species
+  character(len=8) , dimension(ncbmz) :: cbmzspec    !Name of CBMZ species       
   character(len=8) , dimension(noxsp) :: oxspec
   real(rk8) , dimension(nchsp) :: mw
 
@@ -64,15 +66,25 @@ module mod_wrtoxd
   real(rk8) , pointer , dimension(:,:,:,:) :: aev4
   
   data oxspec / 'OH' , 'HO2' , 'O3' , 'NO3' , 'H2O2' /
-  data chspec / 'O3' , 'NO' , 'NO2' , 'HNO3' , 'N2O5' , 'H2O2' , 'CH4' , &
-                'CO' , 'CH2O' , 'CH3OH' , 'C2H5OH' , 'C2H4' , 'C2H6' ,   &
-                'CH3CHO' , 'CH3COCH3' , 'BIGENE' , 'BIGALK' , 'C3H6' ,   &
-                'C3H8' , 'ISOP' , 'TOLUENE' , 'PAN' , 'SO2' , 'SO4' , 'DMS' /
+
+  data chspec / 'NO      ','NO2     ','N2O5    ','HNO3    ','HO2NO2  ',         &
+                'O3      ','H2O2    ','SO2     ','SO4     ','CH4     ',         &
+                'CH2O    ','CH3OH   ','PAN     ','C2H6    ','C3H8    ',         &
+                'BIGALK  ','C2H4    ','C3H6    ','BIGENE  ','TOLUENE ',         &
+                'ISOP    ','CH3CHO  ','CH3COOH ','GLYALD  ','CH3OOH  ',         &
+                'C2H5OOH ','CH3COCH3','HYAC    ','CH3COCHO','ONIT    ',         &
+                'MEK     ','MVK     ','MACR    ','HYDRALD ','BIGALD  ',         &
+                'ISOPNO3 ','ONITR   ','CRESOL  ','CO      ','DMS     ' /
+
+
+ data cbmzspec / 'O3      ','NO      ','NO2     ','HNO3    ','HNO4    ','N2O5    ','H2O2    ','CH4     ',  &
+                 'CO      ','SO2     ','H2SO4   ','DMS     ','PAR     ','C2H6    ','ETH     ','OLET    ',  &
+                 'OLEI    ','TOL     ','XYL     ','ISOP    ','CRES    ','OPEN    ','ISOPN   ','ISOPRD  ',  &
+                 'ONIT    ','MGLY    ','AONE    ','PAN     ','CH3OOH  ','ETHOOH  ','ALD2    ','HCHO    ','CH3OH   '/
+
+
+
  
-  data mw / 48.0D0,  30.0D0,  46.0D0,  63.0D0, 108.0D0,  34.0D0,  16.0D0, & 
-            28.0D0,  30.0D0,  32.0D0,  46.0D0,  28.0D0,  30.0D0,  44.0D0, &
-            58.0D0,  56.0D0,  72.0D0,  42.0D0,  44.0D0,  68.0D0,  92.0D0, &
-           121.0D0,  64.0D0,  96.0D0,  62.0D0 /
 
   integer , parameter :: maxaeout = 16
 
@@ -98,7 +110,7 @@ module mod_wrtoxd
   type(nc_output_stream) , save :: ncoutae
 
   type(ncvariable2d_real) , save , dimension(2) :: v2dvar_base
-  type(ncvariable3d_real) , save , dimension(nchsp) :: v3dvar_ch
+  type(ncvariable3d_real) , save , dimension(ncbmz) :: v3dvar_ch
   type(ncvariable3d_real) , save , dimension(noxsp) :: v3dvar_ox
   type(ncvariable3d_real) , save , dimension(maxaeout) :: v3dvar_ae
 
@@ -168,7 +180,7 @@ module mod_wrtoxd
       end if
       call getmem4d(aev4,1,jx,1,iy,1,kz,1,naesp,'mod_wrtoxd:aev4')
     end if
-    if ( dochem ) call getmem4d(chv4,1,jx,1,iy,1,kz,1,nchsp,'mod_wrtoxd:chv4')
+    if ( dochem ) call getmem4d(chv4,1,jx,1,iy,1,kz,1,ncbmz,'mod_wrtoxd:chv4')
     if ( dooxcl ) call getmem4d(oxv4,1,jx,1,iy,1,kz,1,noxsp,'mod_wrtoxd:oxv4')
     if ( sum_soa_to_oc2 ) then
       ioc2 = -1
@@ -233,12 +245,12 @@ module mod_wrtoxd
       ncattribute_string('simulation_type',chtype))
     call outstream_addvar(ncoutch,v2dvar_base(1))
     call outstream_addvar(ncoutch,v2dvar_base(2))
-    do ivar = 1 , nchsp
-      v3dvar_ch(ivar)%vname = chspec(ivar)
+    do ivar = 1 , ncbmz
+      v3dvar_ch(ivar)%vname = cbmzspec(ivar)
       v3dvar_ch(ivar)%vunit = 'kg kg-1'
-      v3dvar_ch(ivar)%long_name = trim(chspec(ivar))//' Volume Mixing Ratio'
+      v3dvar_ch(ivar)%long_name = trim(cbmzspec(ivar))//' Volume Mixing Ratio'
       v3dvar_ch(ivar)%standard_name = &
-        'mass_fraction_of_'//trim(chspec(ivar))//'_in_air'
+        'mass_fraction_of_'//trim(cbmzspec(ivar))//'_in_air'
       v3dvar_ch(ivar)%lrecords = .true.
       v3dvar_ch(ivar)%is_slice = .true.
       v3dvar_ch(ivar)%rval_slice => chv4
@@ -339,7 +351,7 @@ module mod_wrtoxd
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4):: ivar
     call outstream_addrec(ncoutch,idate)
-    do ivar = 1 , nchsp
+    do ivar = 1 , ncbmz
       call outstream_writevar(ncoutch,v3dvar_ch(ivar),is=ivar)
     end do
     write (stdout ,*) 'Write ch_icbc : ', tochar(idate)
