@@ -87,8 +87,6 @@ module mod_clm_nchelper
   public :: clm_writevar
   public :: clm_writevar_par
 
-  public test_clmhelper
-
   integer(ik4) :: incstat
 
   integer(ik4) , dimension(clm_maxdims) :: usedims
