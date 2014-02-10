@@ -40,7 +40,8 @@ module mod_che_common
   type tracer
     integer(ik4) , pointer , dimension(:) :: index
     integer(ik4) , pointer , dimension(:) :: indcbmz 
-    real(rk8)    , pointer , dimension(:) :: mw
+    integer(ik4) , pointer , dimension(:) :: indchbdy
+    real(rk8)    , pointer , dimension(:) :: mw    
   end type tracer
   type(tracer) trac
 
@@ -115,6 +116,7 @@ module mod_che_common
       call getmem1d(trac%index,1,ntr,'mod_che_common:trac%index') 
       call getmem1d(trac%indcbmz,1,ntr,'mod_che_common:trac%indcbmz') 
       call getmem1d(trac%mw,1,ntr,'mod_che_common:trac%mw')  
+      call getmem1d(trac%indchbdy,1,ntr,'mod_che_common:trac%indchbdy')
 
       call getmem4d(chia,jce1-ma%jbl2,jce2+ma%jbr2, &
                     ice1-ma%ibb2,ice2+ma%ibt2,1,kz,1,ntr,'che_common:chia')

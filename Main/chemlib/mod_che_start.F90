@@ -108,9 +108,6 @@ module mod_che_start
     iisopn  = 0
     iopen   = 0
     icres   = 0
-    
-      
-
     ipollen = 0
 
 
@@ -134,10 +131,15 @@ module mod_che_start
     do itr = 1 , ntr
       if ( chtrname(itr) == 'SO2' ) iso2 = itr
       if ( chtrname(itr) == 'DMS' ) idms = itr
-      if ( chtrname(itr) == 'SO4' ) then
+!
+! for sulfuric acid and sulfate aer, we define here the same tracer index for compatibility with gas-phase
+! chemistry options, and simple sulfate aer option. this might change with adding explicit sulfate aq chemistry.       
+! we consider here that all h2so4 partition in aerosol phase
+      if ( chtrname(itr) == 'SO4' .or. chtrname(itr) == 'H2SO4'    ) then
         ! sulfate index is added to carb vector for treatment in drydep
         ! and wetdep sulfate effective diameter and bin is taken equal to ochl
         kbin = kbin + 1
+        ih2so4 = itr 
         iso4 = itr
         icarb(kbin) = itr
         carbed(kbin) = reffochl
@@ -207,7 +209,7 @@ module mod_che_start
       end do
 
       if ( myid == italk ) then
-        if ( itr == 1 )  write(*,*) 'tracer', 'cbmz index','molw' 
+        if ( itr == 1 )  write(*,*) 'tracer', ' cbmz index',' molw' 
         write(*,*) chtrname(itr),  trac%indcbmz(itr),  trac%mw(itr)
       end if
 
@@ -215,7 +217,7 @@ module mod_che_start
       !  Not all the possible cbmz species have a tracer index:
       !  however this information is also contained in trac%indcbmz table 
       ! 
-!CBMZ mechanims
+      !CBMZ mechanims
       if ( chtrname(itr) == 'NO'     ) ino         = itr
       if ( chtrname(itr) == 'NO2'    ) ino2        = itr
       if ( chtrname(itr) == 'N2O5'   ) in2o5       = itr
@@ -257,18 +259,7 @@ module mod_che_start
 
       if ( chtrname(itr) == 'POLLEN') ipollen   = itr
 
-      !abt *** Check to make sure SO4 is not defined twice as SULF or SO4 in
-      !    *** regcm.in namelist.  If both are defined then STOP
-      if ( iso4 /= 0 .and. isulf /= 0 ) then
-        if ( myid == italk ) then
-          write(*,*) "******* ERROR: Defined both SO4 and SULF"
-          write(*,*) "*******        in regcm.in              "
-          write(*,*) "*******        must choose one b/c they "
-          write(*,*) "*******        both represent Sulfate   "
-        end if
-        call fatal(__FILE__,__LINE__,'CHEM CANNOT START')
-      end if
-
+! special case of biogenic options 
 #if (defined VOC && defined CLM)
       !abt *** Added below to determine which MEGAN biogenic emission species
       !    *** will be passed to the gas phase mechanism
@@ -285,131 +276,53 @@ module mod_che_start
     end do
 
     ! define now correspndance between boundary species indices and
-    ! tracer indices
-    ! must be absoutely consistent with ch_bdy  / depends on chem mechanism
+    ! determine tracer indices corresponding to ch boundary conditions
+    ! 
 
     ichbdy2trac(:) = 0 
 
-    select case (chemsimtype)
-      case ('DUST')
-        do i = 1 , ibin
-          ichbdy2trac(i) = idust(i)
-        end do
-      case ('SSLT')
-        do i = 1 , jbin
-          ichbdy2trac(i) = isslt(i)
-        end do
-      case ('CARB')        
-        ichbdy2trac(1) = ibchb
-        ichbdy2trac(2) = ibchl
-        ichbdy2trac(3) = iochb
-        ichbdy2trac(4) = iochl
-      case ('SULF')
-        ichbdy2trac(1) = iso2
-        ichbdy2trac(2) = iso4
-      case ('SUCA')
-        ichbdy2trac(1) = ibchb
-        ichbdy2trac(2) = ibchl
-        ichbdy2trac(3) = iochb
-        ichbdy2trac(4) = iochl
-        ichbdy2trac(5) = iso2
-        ichbdy2trac(6) = iso4
-      case ('AERO')
-        ichbdy2trac(1) = ibchb
-        ichbdy2trac(2) = ibchl
-        ichbdy2trac(3) = iochb
-        ichbdy2trac(4) = iochl
-        ichbdy2trac(5) = iso2
-        ichbdy2trac(6) = iso4
-        itr = 6
-        do i = 1 , jbin
-          ichbdy2trac(itr+i) = isslt(i)
-        end do
-        itr = itr + jbin
-        do i = 1 , ibin
-          ichbdy2trac(itr+i) = idust(i)
-        end do
-      case ('CBMZ')
-        ichbdy2trac(1)    = io3
-        ichbdy2trac(2)    = ino
-        ichbdy2trac(3)    = ino2
-        ichbdy2trac(4)    = ihno3
-        ichbdy2trac(5)    = ihno4
-        ichbdy2trac(6)    = in2o5
-        ichbdy2trac(7)    = ih2o2
-        ichbdy2trac(8)    = ich4
-        ichbdy2trac(9)    = ico
-        ichbdy2trac(10)   = iso2
-        ichbdy2trac(11)   = ih2so4
-        ichbdy2trac(12)   = idms
-        ichbdy2trac(13)   = ipar
-        ichbdy2trac(14)   = ic2h6
-        ichbdy2trac(15)   = ieth
-        ichbdy2trac(16)   = iolet
-        ichbdy2trac(17)   = iolei
-        ichbdy2trac(18)   = itol
-        ichbdy2trac(19)   = ixyl
-        ichbdy2trac(20)   = iisop
-        ichbdy2trac(21)   = icres
-        ichbdy2trac(22)   = iopen
-        ichbdy2trac(23)   = iisopn
-        ichbdy2trac(24)   = iisoprd
-        ichbdy2trac(25)   = ionit
-        ichbdy2trac(26)   = imgly
-        ichbdy2trac(27)   = iaone
-        ichbdy2trac(28)   = ipan
-        ichbdy2trac(29)   = ich3ooh
-        ichbdy2trac(30)   = iethooh
-        ichbdy2trac(31)   = iald2
-        ichbdy2trac(32)   = ihcho
-        ichbdy2trac(33)   = ich3oh
-        
-      case ('DCCB')
-        ichbdy2trac(1)    = io3
-        ichbdy2trac(2)    = ino
-        ichbdy2trac(3)    = ino2
-        ichbdy2trac(4)    = ihno3
-        ichbdy2trac(5)    = ihno4
-        ichbdy2trac(6)    = in2o5
-        ichbdy2trac(7)    = ih2o2
-        ichbdy2trac(8)    = ich4
-        ichbdy2trac(9)    = ico
-        ichbdy2trac(10)   = iso2
-        ichbdy2trac(11)   = ih2so4
-        ichbdy2trac(12)   = idms
-        ichbdy2trac(13)   = ipar
-        ichbdy2trac(14)   = ic2h6
-        ichbdy2trac(15)   = ieth
-        ichbdy2trac(16)   = iolet
-        ichbdy2trac(17)   = iolei
-        ichbdy2trac(18)   = itol
-        ichbdy2trac(19)   = ixyl
-        ichbdy2trac(20)   = iisop
-        ichbdy2trac(21)   = icres
-        ichbdy2trac(22)   = iopen
-        ichbdy2trac(23)   = iisopn
-        ichbdy2trac(24)   = iisoprd
-        ichbdy2trac(25)   = ionit
-        ichbdy2trac(26)   = imgly
-        ichbdy2trac(27)   = iaone
-        ichbdy2trac(28)   = ipan
-        ichbdy2trac(29)   = ich3ooh
-        ichbdy2trac(30)   = iethooh
-        ichbdy2trac(31)   = iald2
-        ichbdy2trac(32)   = ihcho
-        ichbdy2trac(33)   = ich3oh
+    itr = 1
+    do i = 1,ntr 
+       if(igaschem ==1) then 
+          do n = 1, n_chbcvar
+             if (chbcname(n)==  chtrname(i)) then 
+                ichbdy2trac(itr) = i  
+                itr=itr+1
+             end if
+          end do
+       end if
+       ! look also in aerosol bc and pile them after.   
+       if(iaerosol==1) then 
+          do n = 1, size(aeaero)
+             if (aeaero(n)==  chtrname(i)) then 
+                ichbdy2trac(itr) = i  
+                itr = itr+1
+             end if
+          end do
+       end if
 
-        do i = 1 , ibin
-          ichbdy2trac(i+33) = idust(i)
-        end do
-        ichbdy2trac(ibin+33+1) = ibchb
-        ichbdy2trac(ibin+33+2) = ibchl
-        ichbdy2trac(ibin+33+3) = iochb
-        ichbdy2trac(ibin+33+4) = iochl
-    end select
+       if ( myid == italk ) then
+          if ( i == 1 )  write(*,*) 'tracer', '  chbdy index' 
+          write(*,*) chtrname(i),ichbdy2trac(i) 
+       end if
+    end do
+
+    
+!!$  FAB : work on that later
+!!$    do itr = 1,ntr
+!!$       do n = 1,n_chbcvar
+!!$       if ( chtrname(itr) == chbcname(n))then 
+!!$        trac%indchbdy(itr) = n  ! index of the tracer in the chbdy list
+!!$       end if
+!!$      end do
+!!$        print*,'test', itr, chtrname(itr), trac%indchbdy(itr) 
+!!$     end do
+
+
+
 
     if ( idust(1) > 0 ) then
-      ! fisrt activate dust initialization
+      ! activate dust initialization
       if ( myid == italk ) write(stdout,*) 'Calling inidust'
       call inidust
     end if

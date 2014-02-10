@@ -36,7 +36,7 @@ module mod_che_ncio
   public :: init_mod_che_ncio
   public :: open_chbc , close_chbc , chbc_search , read_chbc
 
-  public :: chbc_ivar , n_chbcvar , n_aebcvar
+  public :: chbc_ivar , n_chbcvar , n_aebcvar, chbcname,aeaero
 
   integer(ik4) :: istatus
   integer(ik4) :: recc
@@ -97,10 +97,10 @@ module mod_che_ncio
   data oxbcname /'OH      ','HO2     ','O3      ', 'NO3    ','H2O2   ' /
   data aedust / 'DUST01' , 'DUST02' , 'DUST03', 'DUST04' /
   data aesslt / 'SSLT01' , 'SSLT02' /
-  data aecarb / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' /
+  data aecarb / 'BC_HB' , 'BC_HL' , 'OC_HB' , 'OC_HL' /
   data aesulf / 'SO2' , 'SO4' /
-  data aesuca / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' , 'SO2' , 'SO4' /
-  data aeaero / 'BC_HL' , 'BC_HB' , 'OC_HL' , 'OC_HB' , 'SO2' , 'SO4' , &
+  data aesuca / 'BC_HB' , 'BC_HL' , 'OC_HB' , 'OC_HL' , 'SO2' , 'SO4' /
+  data aeaero / 'BC_HB' , 'BC_HL' , 'OC_HB' , 'OC_HL' , 'SO2' , 'SO4' , &
                 'SSLT01' , 'SSLT02', 'DUST01', 'DUST02', 'DUST03' , &
                 'DUST04' /
 

@@ -85,7 +85,7 @@ module mod_che_isorropia
           if ( rhi>1.0 ) rhi = 0.99
  
           wi = d_zero
-          wi(2) = max(chib3d(j,i,k,iso4)/w_so4*crhob3d(j,i,k)*massfactor,   &
+          wi(2) = max(chib3d(j,i,k,ih2so4)/w_so4*crhob3d(j,i,k)*massfactor,   &
                       conmin)                                     !so4
           wi(3) = max((chib3d(j,i,k,inh3)/w_nh3+chib3d(j,i,k,ianh4)/w_anh4) &
                       *crhob3d(j,i,k)*massfactor,conmin)          !nh4
@@ -94,16 +94,9 @@ module mod_che_isorropia
  
           call isoropia(wi,rhi,tempi,cntrl,wt,gas,aerliq,aersld,scasi,other)
 ! 
-!         if ( i == 20 .and. j==1 .and. k==kz ) then
-!           write(*,*) "input",wi(4), &
-!                      chib3d(j ,i ,k ,iano3)*crhob3d(j ,i ,k)*1e9 , &
-!                      chib3d(j ,i ,k ,ihno3)*crhob3d(j ,i ,k)*1e9
-!           write(*,*) "output",wt(4),wt(4)*63.0/1000.0*1e9, &
-!                      gas(2)*63.0/1000.0*1e9
-!         end if
 ! 
-          chemten(j,i,k,iso4) = (wt(2)*w_so4/massfactor/crhob3d(j,i,k)      &
-                                *cpsb(j,i)-chib3d(j,i,k,iso4)*cpsb(j,i))    &
+          chemten(j,i,k,ih2so4) = (wt(2)*w_so4/massfactor/crhob3d(j,i,k)      &
+                                *cpsb(j,i)-chib3d(j,i,k,ih2so4)*cpsb(j,i))    &
                                 /dtaesolv                        !so4
           chemten(j,i,k,inh3) = (gas(1)*w_nh3/massfactor/crhob3d(j,i,k)     &
                                 *cpsb(j,i)-chib3d(j,i,k,inh3)*cpsb(j,i))    &
