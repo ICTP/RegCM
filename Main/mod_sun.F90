@@ -328,31 +328,31 @@ module mod_sun
 #endif
     if ( isolconst == 1 ) then
       solar_irradiance = 1367.0D0
-      if ( itweak == 1 ) then
-        if ( itweak_solar_irradiance == 1 ) then
-          solar_irradiance = solar_irradiance + solar_tweak
-        end if
-      end if
-      return
-    end if
-    calday = yeardayfrac(idatex)
-    if ( calday > dayspy/2.0D0 ) then
-      w2 = calday/dayspy-0.5D0
-      w1 = 1.0D0-w2
-      iyear = xyear
     else
-      w1 = 0.5D0-calday/dayspy
-      w2 = 1.0D0-w1
-      iyear = xyear-1
+      calday = yeardayfrac(idatex)
+      if ( calday > dayspy/2.0D0 ) then
+        w2 = calday/dayspy-0.5D0
+        w1 = 1.0D0-w2
+        iyear = xyear
+      else
+        w1 = 0.5D0-calday/dayspy
+        w2 = 1.0D0-w1
+        iyear = xyear-1
+      end if
+      if ( xyear < 1610 ) then
+        call fatal(__FILE__,__LINE__,'TSI OUT OF RANGE.')
+      end if
+      iidate = xyear*10000+xmonth*100+xday
+      if ( iidate > 20080630 ) then
+        iyear = mod(xyear,12)+1996
+      end if
+      solar_irradiance = tsifac*(w1*tsi(3,iyear)+w2*tsi(3,iyear+1))
     end if
-    if ( xyear < 1610 ) then
-      call fatal(__FILE__,__LINE__,'TSI OUT OF RANGE.')
+    if ( itweak == 1 ) then
+      if ( itweak_solar_irradiance == 1 ) then
+        solar_irradiance = solar_irradiance + solar_tweak
+      end if
     end if
-    iidate = xyear*10000+xmonth*100+xday
-    if ( iidate > 20080630 ) then
-      iyear = mod(xyear,12)+1996
-    end if
-    solar_irradiance = tsifac*(w1*tsi(3,iyear)+w2*tsi(3,iyear+1))
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
