@@ -2018,11 +2018,11 @@ module mod_params
       write(stdout,*) 'THIS RUN IS TO BE CONSIDERED A NON STANDARD SCENARIO!'
       if ( itweak_temperature == 1 ) then
         write(stdout,*) ' Value added to temperature         : ', &
-                temperature_tweak
+                temperature_tweak , ' K'
       end if
       if ( itweak_solar_irradiance == 1 ) then
         write(stdout,*) ' Value added to solar irradiance    : ', &
-                solar_tweak
+                solar_tweak , ' W m-2'
       end if
       if ( itweak_greenhouse_gases == 1 ) then
         write(stdout,*) ' Greenhous gases multiplier factors : ', &
