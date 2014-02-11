@@ -216,6 +216,15 @@ module mod_runparams
   logical :: lmfdd     !  true if cumulus downdraft is switched on
   logical :: lmfdudv   !  true if cumulus friction is switched on
 
+  ! Tweak Global date
+  integer(ik4) :: itweak
+  integer(ik4) :: itweak_temperature
+  integer(ik4) :: itweak_solar_irradiance
+  integer(ik4) :: itweak_greenhouse_gases
+  real(rk8) :: temperature_tweak
+  real(rk8) :: solar_tweak
+  real(rk8) , dimension(5) :: gas_tweak_factors
+
   ! RRTM scheme parameters
 
   integer(ik4) :: irrtm
@@ -298,8 +307,8 @@ module mod_runparams
   real(rk8) :: mixed_layer_depth 
   integer(ik4) , dimension(mpy) :: stepcount
 
-  ! CLM options
 #ifdef CLM
+  ! CLM options
   integer(ik4) :: imask
   integer(ik4) :: ilawrence_albedo
   real(rk8) :: clmfrq
