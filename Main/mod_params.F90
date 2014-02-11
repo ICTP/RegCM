@@ -777,6 +777,13 @@ module mod_params
         write(stdout,*) 'Read tweakparam OK'
 #endif
       end if
+      if ( itweak_temperature == 0 .and.      &
+           itweak_solar_irradiance == 0 .and. &
+           itweak_greenhouse_gases == 0 ) then
+        write(stdout,*) 'Tweak parameters not enabled.'
+        write(stdout,*) 'Disable tweaking.'
+        itweak = 0
+      end if
     end if
 
     close(ipunit)
