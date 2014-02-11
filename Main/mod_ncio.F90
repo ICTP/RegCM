@@ -484,6 +484,8 @@ module mod_ncio
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: t
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: qv
     integer(ik4) , dimension(4) :: istart , icount
+    integer(ik4) :: i , j , k
+    real(rk8) :: told , pold , rhold , hl , satvp , tnew , pnew
 
     if ( do_parallel_netcdf_in ) then
       istart(1) = global_dot_jstart
@@ -651,6 +653,32 @@ module mod_ncio
         call grid_distribute(rspace3,v,jde1,jde2,ide1,ide2,1,kz)
         call grid_distribute(rspace3,t,jce1,jce2,ice1,ice2,1,kz)
         call grid_distribute(rspace3,qv,jce1,jce2,ice1,ice2,1,kz)
+      end if
+    end if
+    if ( itweak == 1 ) then
+      if ( itweak_temperature == 1 ) then
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            ts(j,i) = ts(j,i) + temperature_tweak
+          end do
+        end do
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              told = t(j,i,k)
+              pold = 10.0D0*(sigma(k)*ps(j,i)+ptop)
+              hl = lh0 - lh1 * (told-tzero)
+              satvp = lsvp1*dexp(lsvp2*hl*(rtzero-d_one/told))
+              rhold = max((qv(j,i,k)/(ep2*satvp/(pold-satvp))),d_zero)
+              tnew = t(j,i,k) + temperature_tweak
+              pnew = pold*(tnew/told)
+              hl = lh0 - lh1 * (tnew-tzero)
+              satvp = lsvp1*dexp(lsvp2*hl*(rtzero-d_one/tnew))
+              qv(j,i,k) = max(rhold*ep2*satvp/(pnew-satvp),d_zero)
+              t(j,i,k) = tnew
+            end do
+          end do
+        end do
       end if
     end if
   end subroutine read_icbc

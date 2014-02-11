@@ -100,7 +100,8 @@ module mod_params
   namelist /physicsparam/ ibltyp , iboudy , isladvec , icup , igcc , &
     ipgf , iemiss , lakemod , ipptls , iocnflx , iocncpl ,           &
     iocnrough , ichem , scenario , idcsst , iseaice , idesseas ,     &
-    iconvlwp , irrtm , iclimao3 , isolconst , icumcloud , islab_ocean
+    iconvlwp , irrtm , iclimao3 , isolconst , icumcloud ,            &
+    islab_ocean , itweak
 
   namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
     iceflglw , liqflglw , icld , irng , idrv
@@ -143,6 +144,10 @@ module mod_params
 
   namelist /slabocparam/ do_qflux_adj , do_restore_sst , &
     sst_restore_timescale , mixed_layer_depth
+
+  namelist /tweakparam/ itweak_temperature , itweak_solar_irradiance , &
+          itweak_greenhouse_gases , temperature_tweak , solar_tweak ,  &
+          gas_tweak_factors
 !
 #ifdef DEBUG
   call time_begin(subroutine_name,idindx)
@@ -468,6 +473,16 @@ module mod_params
   do_restore_sst = .true.
   do_qflux_adj = .false. 
 
+!c-----namelist tweakparam ;
+
+  itweak = 0
+  itweak_temperature = 0
+  itweak_solar_irradiance = 0
+  itweak_greenhouse_gases = 0
+  temperature_tweak = 0.0D0
+  solar_tweak = 0.0D0
+  gas_tweak_factors(:) = 1.0D0
+
 !c------namelist chemparam ; ( 0= none, 1= activated)
   ichsolver = 1     ! enable chem solver
   ichremlsc = 1     ! tracer removal by large scale clouds
@@ -738,7 +753,7 @@ module mod_params
 #endif
     end if
 #endif
-    if (iocncpl == 1) then
+    if ( iocncpl == 1 ) then
       rewind(ipunit)
       read (ipunit , cplparam, iostat=iretval, err=115)
       if ( iretval /= 0 ) then
@@ -746,6 +761,20 @@ module mod_params
 #ifdef DEBUG
       else
         write(stdout,*) 'Read cplparam OK'
+#endif
+      end if
+    end if
+
+    if ( itweak == 1 ) then
+      rewind(ipunit)
+      read (ipunit , tweakparam, iostat=iretval, err=116)
+      if ( iretval /= 0 ) then
+        write(stdout,*) 'Tweak parameters absent.'
+        write(stdout,*) 'Disable tweaking.'
+        itweak = 0
+#ifdef DEBUG
+      else
+        write(stdout,*) 'Read tweakparam OK'
 #endif
       end if
     end if
@@ -882,6 +911,7 @@ module mod_params
   call bcast(isolconst)
   call bcast(icumcloud)
   call bcast(islab_ocean)
+  call bcast(itweak)
   if ( idcsst == 1 .and. iocnflx /= 2 ) then
     if ( myid == italk ) then
       write(stderr,*) 'Cannot enable diurnal cycle sst without Zheng ocean flux'
@@ -1031,6 +1061,15 @@ module mod_params
     call bcast(mixed_layer_depth)
     ! Save the input restore flux file for the adjust run
     if ( do_restore_sst ) ifslaboc = .true.
+  end if
+
+  if ( itweak == 1 ) then
+    call bcast(itweak_temperature)
+    call bcast(itweak_solar_irradiance)
+    call bcast(itweak_greenhouse_gases)
+    call bcast(temperature_tweak)
+    call bcast(solar_tweak)
+    call bcast(gas_tweak_factors)
   end if
 
   if ( ichem == 1 ) then
@@ -1966,6 +2005,25 @@ module mod_params
       '  Maximumt hor. diff. coef. = ',xkhmax,' m^2 s-1'
   end if
 
+  if (itweak == 1 ) then
+    if ( myid == italk ) then
+      write(stdout,*) 'TWEAKING OF DATA ENABLED!'
+      write(stdout,*) 'THIS RUN IS TO BE CONSIDERED A NON STANDARD SCENARIO!'
+      if ( itweak_temperature == 1 ) then
+        write(stdout,*) ' Value added to temperature         : ', &
+                temperature_tweak
+      end if
+      if ( itweak_solar_irradiance == 1 ) then
+        write(stdout,*) ' Value added to solar irradiance    : ', &
+                solar_tweak
+      end if
+      if ( itweak_greenhouse_gases == 1 ) then
+        write(stdout,*) ' Greenhous gases multiplier factors : ', &
+                gas_tweak_factors
+      end if
+    end if
+  end if
+
 #ifdef DEBUG
   call time_end(subroutine_name,idindx)
 #endif
@@ -1990,6 +2048,7 @@ module mod_params
 114 call fatal(__FILE__,__LINE__, 'Error reading CLMPARAM')
 #endif
 115 call fatal(__FILE__,__LINE__, 'Error reading CPLPARAM')
+116 call fatal(__FILE__,__LINE__, 'Error reading TWEAKPARAM')
 
   end subroutine param
 !

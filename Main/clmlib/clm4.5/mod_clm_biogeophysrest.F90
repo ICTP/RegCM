@@ -492,701 +492,832 @@ module mod_clm_biogeophysrest
     ! column type physical state variable - coszen
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='coszen', xtype=ncd_double,  &
-            dim1name='column', &
-            long_name='cosine of solar zenith angle', units='unitless')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='coszen', data=cptr%cps%coszen, &
-            dim1name=namec, &
-            ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag == 'read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'coszen',(/'column'/), &
+            long_name='cosine of solar zenith angle',units='unitless')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'coszen') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'coszen',cptr%cps%coszen,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'coszen',cptr%cps%coszen,gcomm%column)
     end if
 
     ! landunit type physical state variable - sabs_roof_dir
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='sabs_roof_dir', xtype=ncd_double,  &
-            dim1name='landunit', dim2name='numrad', switchdim=.true., &
-            long_name='direct solar absorbed by roof per unit ground area per unit incident flux',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='sabs_roof_dir', data=lptr%lps%sabs_roof_dir, &
-            dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'sabs_roof_dir', &
+                      (/'landunit','numrad'/), &
+            long_name='direct solar absorbed by roof per unit '// &
+                'ground area per unit incident flux',units='')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_roof_dir') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'sabs_roof_dir',lptr%lps%sabs_roof_dir, &
+                gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'sabs_roof_dir',lptr%lps%sabs_roof_dir, &
+                gcomm%landunit)
     end if
 
     ! landunit type physical state variable - sabs_roof_dif
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='sabs_roof_dif', xtype=ncd_double,  &
-            dim1name='landunit', dim2name='numrad', switchdim=.true., &
-            long_name='diffuse solar absorbed by roof per unit ground area per unit incident flux',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='sabs_roof_dif', data=lptr%lps%sabs_roof_dif, &
-            dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'sabs_roof_dif', &
+                      (/'landunit','numrad'/), &
+            long_name='diffuse solar absorbed by roof per unit '// &
+                'ground area per unit incident flux',units='')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_roof_dif') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'sabs_roof_dif',lptr%lps%sabs_roof_dif, &
+                gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'sabs_roof_dif',lptr%lps%sabs_roof_dif, &
+                gcomm%landunit)
     end if
 
     ! landunit type physical state variable - sabs_sunwall_dir
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='sabs_sunwall_dir', xtype=ncd_double,  &
-            dim1name='landunit', dim2name='numrad', switchdim=.true., &
-            long_name='direct solar absorbed by sunwall per unit wall area per unit incident flux',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='sabs_sunwall_dir', data=lptr%lps%sabs_sunwall_dir, &
-            dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'sabs_sunwall_dir', &
+                      (/'landunit','numrad'/), &
+            long_name='direct solar absorbed by sunwall per unit'//
+                'wall area per unit incident flux',units='')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_sunwall_dir') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'sabs_sunwall_dir',lptr%lps%sabs_sunwall_dir, &
+                gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'sabs_sunwall_dir',lptr%lps%sabs_sunwall_dir, &
+                gcomm%landunit)
     end if
 
     ! landunit type physical state variable - sabs_sunwall_dif
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='sabs_sunwall_dif', xtype=ncd_double,  &
-            dim1name='landunit', dim2name='numrad', switchdim=.true., &
-            long_name='diffuse solar absorbed by sunwall per unit wall area per unit incident flux',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='sabs_sunwall_dif', data=lptr%lps%sabs_sunwall_dif, &
-            dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'sabs_sunwall_dif', &
+                      (/'landunit','numrad'/), &
+            long_name='diffuse solar absorbed by sunwall per unit'//
+                'wall area per unit incident flux',units='')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_sunwall_dif') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'sabs_sunwall_dif',lptr%lps%sabs_sunwall_dif, &
+                gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'sabs_sunwall_dif',lptr%lps%sabs_sunwall_dif, &
+                gcomm%landunit)
     end if
 
     ! landunit type physical state variable - sabs_shadewall_dir
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='sabs_shadewall_dir', xtype=ncd_double,  &
-            dim1name='landunit', dim2name='numrad', switchdim=.true., &
-            long_name='direct solar absorbed by shadewall per unit wall area per unit incident flux',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='sabs_shadewall_dir', data=lptr%lps%sabs_shadewall_dir, &
-            dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'sabs_shadewall_dir', &
+                      (/'landunit','numrad'/), &
+            long_name='direct solar absorbed by shadewall per unit'//
+                'wall area per unit incident flux',units='')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_shadewall_dir') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'sabs_shadewall_dir', &
+                lptr%lps%sabs_shadewall_dir, gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'sabs_shadewall_dir',lptr%lps%sabs_shadewall_dir, &
+                gcomm%landunit)
     end if
 
     ! landunit type physical state variable - sabs_shadewall_dif
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='sabs_shadewall_dif', xtype=ncd_double,  &
-            dim1name='landunit', dim2name='numrad', switchdim=.true., &
-            long_name='diffuse solar absorbed by shadewall per unit wall area per unit incident flux',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='sabs_shadewall_dif', data=lptr%lps%sabs_shadewall_dif, &
-            dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'sabs_shadewall_dif', &
+                      (/'landunit','numrad'/), &
+            long_name='diffuse solar absorbed by shadewall per unit'//
+                'wall area per unit incident flux',units='')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_shadewall_dif') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'sabs_shadewall_dif', &
+                lptr%lps%sabs_shadewall_dif,gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'sabs_shadewall_dif', &
+              lptr%lps%sabs_shadewall_dif,gcomm%landunit)
     end if
 
     ! landunit type physical state variable - sabs_improad_dir
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='sabs_improad_dir', xtype=ncd_double,  &
-            dim1name='landunit', dim2name='numrad', switchdim=.true., &
-            long_name='direct solar absorbed by impervious road per unit ground area per unit incident flux',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='sabs_improad_dir', data=lptr%lps%sabs_improad_dir, &
-            dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'sabs_improad_dir', &
+                      (/'landunit','numrad'/), &
+            long_name='direct solar absorbed by impervious road per unit'// &
+                'ground area per unit incident flux',units='')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_improad_dir') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'sabs_improad_dir', &
+                lptr%lps%sabs_improad_dir,gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'sabs_improad_dir', &
+              lptr%lps%sabs_improad_dir,gcomm%landunit)
     end if
 
     ! landunit type physical state variable - sabs_improad_dif
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='sabs_improad_dif', xtype=ncd_double,  &
-            dim1name='landunit', dim2name='numrad', switchdim=.true., &
-            long_name='diffuse solar absorbed by impervious road per unit ground area per unit incident flux',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='sabs_improad_dif', data=lptr%lps%sabs_improad_dif, &
-            dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'sabs_improad_dif', &
+                      (/'landunit','numrad'/), &
+            long_name='diffuse solar absorbed by impervious road per unit'// &
+                'ground area per unit incident flux',units='')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_improad_dif') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'sabs_improad_dif', &
+                lptr%lps%sabs_improad_dif,gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'sabs_improad_dif', &
+              lptr%lps%sabs_improad_dif,gcomm%landunit)
     end if
 
     ! landunit type physical state variable - sabs_perroad_dir
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='sabs_perroad_dir', xtype=ncd_double,  &
-            dim1name='landunit', dim2name='numrad', switchdim=.true., &
-            long_name='direct solar absorbed by pervious road per unit ground area per unit incident flux',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='sabs_perroad_dir', data=lptr%lps%sabs_perroad_dir, &
-            dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'sabs_perroad_dir', &
+                      (/'landunit','numrad'/), &
+            long_name='direct solar absorbed by pervious road per unit '//&
+                'ground area per unit incident flux',units='')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_perroad_dir') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'sabs_perroad_dir', &
+                lptr%lps%sabs_perroad_dir,gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'sabs_perroad_dir', &
+              lptr%lps%sabs_perroad_dir,gcomm%landunit)
     end if
 
     ! landunit type physical state variable - sabs_perroad_dif
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='sabs_perroad_dif', xtype=ncd_double,  &
-            dim1name='landunit', dim2name='numrad', switchdim=.true., &
-            long_name='diffuse solar absorbed by pervious road per unit ground area per unit incident flux',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='sabs_perroad_dif', data=lptr%lps%sabs_perroad_dif, &
-            dim1name=namel, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'sabs_perroad_dif', &
+                      (/'landunit','numrad'/), &
+            long_name='diffuse solar absorbed by pervious road per unit '//&
+                'ground area per unit incident flux',units='')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'sabs_perroad_dif') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'sabs_perroad_dif', &
+                lptr%lps%sabs_perroad_dif,gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'sabs_perroad_dif', &
+              lptr%lps%sabs_perroad_dif,gcomm%landunit)
     end if
 
     ! landunit type physical state variable - vf_sr
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='vf_sr', xtype=ncd_double,  &
-            dim1name='landunit', &
+      call clm_addvar(clmvar_double,ncid,'vf_sr', (/'landunit'/), &
             long_name='view factor of sky for road',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='vf_sr', data=lptr%lps%vf_sr, &
-            dim1name=namel, &
-            ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'vf_sr') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'vf_sr',lptr%lps%vf_sr,gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'vf_sr',lptr%lps%vf_sr,gcomm%landunit)
     end if
 
     ! landunit type physical state variable - vf_wr
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='vf_wr', xtype=ncd_double,  &
-            dim1name='landunit', &
+      call clm_addvar(clmvar_double,ncid,'vf_wr', (/'landunit'/), &
             long_name='view factor of one wall for road',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='vf_wr', data=lptr%lps%vf_wr, &
-            dim1name=namel, &
-            ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'vf_wr') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'vf_wr',lptr%lps%vf_wr,gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'vf_wr',lptr%lps%vf_wr,gcomm%landunit)
     end if
 
     ! landunit type physical state variable - vf_sw
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='vf_sw', xtype=ncd_double,  &
-            dim1name='landunit', &
+      call clm_addvar(clmvar_double,ncid,'vf_sw', (/'landunit'/), &
             long_name='view factor of sky for one wall',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='vf_sw', data=lptr%lps%vf_sw, &
-            dim1name=namel, &
-            ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'vf_sw') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'vf_sw',lptr%lps%vf_sw,gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'vf_sw',lptr%lps%vf_sw,gcomm%landunit)
     end if
 
     ! landunit type physical state variable - vf_rw
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='vf_rw', xtype=ncd_double,  &
-            dim1name='landunit', &
+      call clm_addvar(clmvar_double,ncid,'vf_rw', (/'landunit'/), &
             long_name='view factor of road for one wall',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='vf_rw', data=lptr%lps%vf_rw, &
-            dim1name=namel, &
-            ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'vf_rw') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'vf_rw',lptr%lps%vf_rw,gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'vf_rw',lptr%lps%vf_rw,gcomm%landunit)
     end if
 
     ! landunit type physical state variable - vf_ww
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='vf_ww', xtype=ncd_double,  &
-            dim1name='landunit', &
+      call clm_addvar(clmvar_double,ncid,'vf_ww', (/'landunit'/), &
             long_name='view factor of opposing wall for one wall',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='vf_ww', data=lptr%lps%vf_ww, &
-            dim1name=namel, &
-            ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'vf_ww') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'vf_ww',lptr%lps%vf_ww,gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'vf_ww',lptr%lps%vf_ww,gcomm%landunit)
     end if
 
     ! landunit type physical state variable - taf
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='taf', xtype=ncd_double,  &
-            dim1name='landunit', &
+      call clm_addvar(clmvar_double,ncid,'taf', (/'landunit'/), &
             long_name='urban canopy air temperature',units='K')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='taf', data=lptr%lps%taf, &
-            dim1name=namel, &
-            ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'taf') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'taf',lptr%lps%taf,gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'taf',lptr%lps%taf,gcomm%landunit)
     end if
 
     ! landunit type physical state variable - qaf
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='qaf', xtype=ncd_double,  &
-            dim1name='landunit', &
+      call clm_addvar(clmvar_double,ncid,'qaf', (/'landunit'/), &
             long_name='urban canopy specific humidity',units='kg/kg')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='qaf', data=lptr%lps%qaf, &
-            dim1name=namel, &
-            ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'qaf') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'qaf',lptr%lps%qaf,gcomm%landunit)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'qaf',lptr%lps%qaf,gcomm%landunit)
     end if
 
     ! pft type physical state variable - albd
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='albd', xtype=ncd_double,  &
-            dim1name='pft', dim2name='numrad', switchdim=.true., &
+      call clm_addvar(clmvar_double,ncid,'albd', (/'pft','numrad'/), &
             long_name='surface albedo (direct) (0 to 1)',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='albd', data=pptr%pps%albd, &
-            dim1name=namep, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) then
-             call endrun()
-          else
-             if (nsrest == nsrStartup) do_initsurfalb = .true.
-          end if
-       end if
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albd') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        if ( ktau == 0 ) then
+          do_initsurfalb = .true.
+        else
+          call clm_readvar(ncid,'albd',pptr%pps%albd,gcomm%pft)
+        end if
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'albd',pptr%pps%albd,gcomm%pft)
     end if
 
     ! pft type physical state variable - albi
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='albi', xtype=ncd_double,  &
-            dim1name='pft', dim2name='numrad', switchdim=.true., &
+      call clm_addvar(clmvar_double,ncid,'albi', (/'pft','numrad'/), &
             long_name='surface albedo (diffuse) (0 to 1)',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='albi', data=pptr%pps%albi, &
-            dim1name=namep, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) then
-             call endrun()
-          else
-             if (nsrest == nsrStartup) do_initsurfalb = .true.
-          end if
-       end if
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albi') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        if ( ktau == 0 ) then
+          do_initsurfalb = .true.
+        else
+          call clm_readvar(ncid,'albi',pptr%pps%albi,gcomm%pft)
+        end if
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'albi',pptr%pps%albi,gcomm%pft)
     end if
 
     ! column type physical state variable - albgrd
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='albgrd', xtype=ncd_double,  &
-            dim1name='column', dim2name='numrad', switchdim=.true., &
+      call clm_addvar(clmvar_double,ncid,'albgrd', (/'pft','numrad'/), &
             long_name='ground albedo (direct) (0 to 1)',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='albgrd', data=cptr%cps%albgrd, &
-            dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albgrd') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'albgrd',pptr%pps%albgrd,gcomm%pft)
+        end if
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'albgrd',pptr%pps%albgrd,gcomm%pft)
     end if
 
     ! column type physical state variable - albgri
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='albgri', xtype=ncd_double,  &
-            dim1name='column', dim2name='numrad', switchdim=.true., &
-            long_name='ground albedo (indirect) (0 to 1)',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='albgri', data=cptr%cps%albgri, &
-            dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'albgri', (/'pft','numrad'/), &
+            long_name='ground albedo (diffuse) (0 to 1)',units='')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albgri') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        call clm_readvar(ncid,'albgri',pptr%pps%albgri,gcomm%pft)
+        end if
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'albgri',pptr%pps%albgri,gcomm%pft)
     end if
 
     ! column type physical state variable - albsod
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='albsod', xtype=ncd_double,  &
-            dim1name='column', dim2name='numrad', switchdim=.true., &
+      call clm_addvar(clmvar_double,ncid,'albsod', (/'column','numrad'/), &
             long_name='soil albedo (direct) (0 to 1)',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='albsod', data=cptr%cps%albsod, &
-            dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-          if (nsrest == nsrStartup) do_initsurfalb = .true.
-       end if
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albsod') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        if ( ktau == 0 ) then
+          do_initsurfalb = .true.
+        else
+          call clm_readvar(ncid,'albsod',cptr%cps%albsod,gcomm%column)
+        end if
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'albsod',cptr%cps%albsod,gcomm%column)
     end if
 
     ! column type physical state variable - albsoi
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='albsoi', xtype=ncd_double,  &
-            dim1name='column', dim2name='numrad', switchdim=.true., &
-            long_name='soil albedo (indirect) (0 to 1)',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='albsoi', data=cptr%cps%albsoi, &
-            dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-          if (nsrest == nsrStartup) do_initsurfalb = .true.
-       end if
+      call clm_addvar(clmvar_double,ncid,'albsoi', (/'column','numrad'/), &
+            long_name='soil albedo (diffuse) (0 to 1)',units='')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albsoi') ) then
+        call fatal(__FILE__,__LINE__,'clm_now_stopping')
+      else
+        if ( ktau == 0 ) then
+          do_initsurfalb = .true.
+        else
+          call clm_readvar(ncid,'albsoi',cptr%cps%albsoi,gcomm%column)
+        end if
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'albsoi',cptr%cps%albsoi,gcomm%column)
     end if
 
 #ifdef SNICAR_FRC
     ! column type physical state variable - albgrd_bc
+
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='albgrd_bc', xtype=ncd_double,  &
-            dim1name='column', dim2name='numrad', switchdim=.true., &
+      call clm_addvar(clmvar_double,ncid,'albgrd_bc', (/'column','numrad'/), &
             long_name='ground albedo without BC (direct) (0 to 1)',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='albgrd_bc', data=cptr%cps%albgrd_bc, &
-            dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (myid == italk) then
-            write(iulog,*) "SNICAR: can't find albgrd_bc in restart (or initial) file..."
-            write(iulog,*) "Initialize albgrd_bc to albgrd"
-          end if
-          do c=begc,endc
-             cptr%cps%albgrd_bc(c,:) = cptr%cps%albgrd(c,:)
-          end do
-       end if
+    else if ( flag == 'read' ) then
+      if ( .not. clm_check_var(ncid,'albgrd_bc') ) then
+        if (myid == italk) then
+          write(stderr,*) &
+            "SNICAR: can't find albgrd_bc in restart (or initial) file..."
+          write(stderr,*) "Initialize albgrd_bc to albgrd"
+        end if
+        do c = begc , endc
+          cptr%cps%albgrd_bc(c,:) = cptr%cps%albgrd(c,:)
+        end do
+      else
+        call clm_readvar(ncid,'albgrd_bc',cptr%cps%albgrd_bc,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'albgrd_bc',cptr%cps%albgrd_bc,gcomm%column)
     end if
+
     ! column type physical state variable - albgri_bc
+
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='albgri_bc', xtype=ncd_double,  &
-            dim1name='column', dim2name='numrad', switchdim=.true., &
+      call clm_addvar(clmvar_double,ncid,'albgri_bc', (/'column','numrad'/), &
             long_name='ground albedo without BC (diffuse) (0 to 1)',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='albgri_bc', data=cptr%cps%albgri_bc, &
-            dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (myid == italk) then
-            write(iulog,*) "SNICAR: can't find albgri_bc in restart (or initial) file..."
-            write(iulog,*) "Initialize albgri_bc to albgri"
-          end if
-          do c=begc,endc
-             cptr%cps%albgri_bc(c,:) = cptr%cps%albgri(c,:)
-          end do
-       end if
+    else if ( flag == 'read' ) then
+      if ( .not. clm_check_var(ncid,'albgri_bc') ) then
+        if (myid == italk) then
+          write(stderr,*) &
+            "SNICAR: can't find albgri_bc in restart (or initial) file..."
+          write(stderr,*) "Initialize albgri_bc to albgri"
+        end if
+        do c = begc , endc
+          cptr%cps%albgri_bc(c,:) = cptr%cps%albgri(c,:)
+        end do
+      else
+        call clm_readvar(ncid,'albgri_bc',cptr%cps%albgri_bc,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'albgri_bc',cptr%cps%albgri_bc,gcomm%column)
     end if
+
     ! column type physical state variable - albgrd_pur
+
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='albgrd_pur', xtype=ncd_double,  &
-            dim1name='column', dim2name='numrad', switchdim=.true., &
+      call clm_addvar(clmvar_double,ncid,'albgrd_pur', (/'column','numrad'/), &
             long_name='pure snow ground albedo (direct) (0 to 1)',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='albgrd_pur', data=cptr%cps%albgrd_pur, &
-            dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (myid == italk) then
-            write(iulog,*) "SNICAR: can't find albgrd_pur in restart (or initial) file..."
-            write(iulog,*) "Initialize albgrd_pur to albgrd"
-          end if
-          do c=begc,endc
-             cptr%cps%albgrd_pur(c,:) = cptr%cps%albgrd(c,:)
-          end do
-       end if
+    else if ( flag == 'read' ) then
+      if ( .not. clm_check_var(ncid,'albgrd_pur') ) then
+        if (myid == italk) then
+          write(stderr,*) &
+            "SNICAR: can't find albgrd_pur in restart (or initial) file..."
+          write(stderr,*) "Initialize albgrd_pur to albgrd"
+        end if
+        do c = begc , endc
+          cptr%cps%albgrd_pur(c,:) = cptr%cps%albgrd(c,:)
+        end do
+      else
+        call clm_readvar(ncid,'albgrd_pur',cptr%cps%albgrd_pur,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'albgrd_pur',cptr%cps%albgrd_pur,gcomm%column)
     end if
+
     ! column type physical state variable - albgri_pur
+
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='albgri_pur', xtype=ncd_double,  &
-            dim1name='column', dim2name='numrad', switchdim=.true., &
+      call clm_addvar(clmvar_double,ncid,'albgri_pur', (/'column','numrad'/), &
             long_name='pure snow ground albedo (diffuse) (0 to 1)',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='albgri_pur', data=cptr%cps%albgri_pur, &
-            dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (myid == italk) then
-            write(iulog,*) "SNICAR: can't find albgri_pur in restart (or initial) file..."
-            write(iulog,*) "Initialize albgri_pur to albgri"
-          end if
-          do c=begc,endc
-             cptr%cps%albgri_pur(c,:) = cptr%cps%albgri(c,:)
-          end do
-       end if
+    else if ( flag == 'read' ) then
+      if ( .not. clm_check_var(ncid,'albgri_pur') ) then
+        if (myid == italk) then
+          write(stderr,*) &
+            "SNICAR: can't find albgri_pur in restart (or initial) file..."
+          write(stderr,*) "Initialize albgri_pur to albgrd"
+        end if
+        do c = begc , endc
+          cptr%cps%albgri_pur(c,:) = cptr%cps%albgri(c,:)
+        end do
+      else
+        call clm_readvar(ncid,'albgri_pur',cptr%cps%albgri_pur,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'albgri_pur',cptr%cps%albgri_pur,gcomm%column)
     end if
+
     ! column type physical state variable - albgrd_oc
+
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='albgrd_oc', xtype=ncd_double,  &
-            dim1name='column', dim2name='numrad', switchdim=.true., &
+      call clm_addvar(clmvar_double,ncid,'albgrd_oc', (/'column','numrad'/), &
             long_name='ground albedo without OC (direct) (0 to 1)',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='albgrd_oc', data=cptr%cps%albgrd_oc, &
-            dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (myid == italk) then
-            write(iulog,*) "SNICAR: can't find albgrd_oc in restart (or initial) file..."
-            write(iulog,*) "Initialize albgrd_oc to albgrd"
-          end if
-          do c=begc,endc
-             cptr%cps%albgrd_oc(c,:) = cptr%cps%albgrd(c,:)
-          end do
-       end if
+    else if ( flag == 'read' ) then
+      if ( .not. clm_check_var(ncid,'albgrd_oc') ) then
+        if (myid == italk) then
+          write(stderr,*) &
+            "SNICAR: can't find albgrd_oc in restart (or initial) file..."
+          write(stderr,*) "Initialize albgrd_oc to albgrd"
+        end if
+        do c = begc , endc
+          cptr%cps%albgrd_oc(c,:) = cptr%cps%albgrd(c,:)
+        end do
+      else
+        call clm_readvar(ncid,'albgrd_oc',cptr%cps%albgrd_oc,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'albgrd_oc',cptr%cps%albgrd_oc,gcomm%column)
     end if
+
     ! column type physical state variable - albgri_oc
+
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='albgri_oc', xtype=ncd_double,  &
-            dim1name='column', dim2name='numrad', switchdim=.true., &
+      call clm_addvar(clmvar_double,ncid,'albgri_oc', (/'column','numrad'/), &
             long_name='ground albedo without OC (diffuse) (0 to 1)',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='albgri_oc', data=cptr%cps%albgri_oc, &
-            dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (myid == italk) then
-            write(iulog,*) "SNICAR: can't find albgri_oc in restart (or initial) file..."
-            write(iulog,*) "Initialize albgri_oc to albgri"
-          end if
-          do c=begc,endc
-             cptr%cps%albgri_oc(c,:) = cptr%cps%albgri(c,:)
-          end do
-       end if
+    else if ( flag == 'read' ) then
+      if ( .not. clm_check_var(ncid,'albgri_oc') ) then
+        if (myid == italk) then
+          write(stderr,*) &
+            "SNICAR: can't find albgri_oc in restart (or initial) file..."
+          write(stderr,*) "Initialize albgri_oc to albgri"
+        end if
+        do c = begc , endc
+          cptr%cps%albgri_oc(c,:) = cptr%cps%albgri(c,:)
+        end do
+      else
+        call clm_readvar(ncid,'albgri_oc',cptr%cps%albgri_oc,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'albgri_oc',cptr%cps%albgri_oc,gcomm%column)
     end if
+
     ! column type physical state variable - albgrd_dst
+
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='albgrd_dst', xtype=ncd_double,  &
-            dim1name='column', dim2name='numrad', switchdim=.true., &
+      call clm_addvar(clmvar_double,ncid,'albgrd_dst', (/'column','numrad'/), &
             long_name='ground albedo without dust (direct) (0 to 1)',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='albgrd_dst', data=cptr%cps%albgrd_dst, &
-            dim1name=namec, switchdim=.true.,  ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (myid == italk) then
-            write(iulog,*) "SNICAR: can't find albgrd_dst in restart (or initial) file..."
-            write(iulog,*) "Initialize albgrd_dst to albgrd"
-          end if
-          do c=begc,endc
-             cptr%cps%albgrd_dst(c,:) = cptr%cps%albgrd(c,:)
-          end do
-       end if
+    else if ( flag == 'read' ) then
+      if ( .not. clm_check_var(ncid,'albgrd_dst') ) then
+        if (myid == italk) then
+          write(stderr,*) &
+            "SNICAR: can't find albgrd_dst in restart (or initial) file..."
+          write(stderr,*) "Initialize albgrd_dst to albgrd"
+        end if
+        do c = begc , endc
+          cptr%cps%albgrd_dst(c,:) = cptr%cps%albgrd(c,:)
+        end do
+      else
+        call clm_readvar(ncid,'albgrd_dst',cptr%cps%albgrd_dst,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'albgrd_dst',cptr%cps%albgrd_dst,gcomm%column)
     end if
+
     ! column type physical state variable - albgri_dst
+
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='albgri_dst', xtype=ncd_double,  &
-            dim1name='column', dim2name='numrad', switchdim=.true., &
+      call clm_addvar(clmvar_double,ncid,'albgri_dst', (/'column','numrad'/), &
             long_name='ground albedo without dust (diffuse) (0 to 1)',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='albgri_dst', data=cptr%cps%albgri_dst, &
-            dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (myid == italk) then
-            write(iulog,*) "SNICAR: can't find albgri_dst in restart (or initial) file..."
-            write(iulog,*) "Initialize albgri_dst to albgri"
-          end if
-          do c=begc,endc
-             cptr%cps%albgri_dst(c,:) = cptr%cps%albgri(c,:)
-          end do
-       end if
+    else if ( flag == 'read' ) then
+      if ( .not. clm_check_var(ncid,'albgri_dst') ) then
+        if (myid == italk) then
+          write(stderr,*) &
+            "SNICAR: can't find albgri_dst in restart (or initial) file..."
+          write(stderr,*) "Initialize albgri_dst to albgrd"
+        end if
+        do c = begc , endc
+          cptr%cps%albgri_dst(c,:) = cptr%cps%albgri(c,:)
+        end do
+      else
+        call clm_readvar(ncid,'albgri_dst',cptr%cps%albgri_dst,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'albgri_dst',cptr%cps%albgri_dst,gcomm%column)
     end if
-#end if
+#endif
 
     ! column water state variable - h2osfc
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='H2OSFC', xtype=ncd_double,  &
-            dim1name='column', &
-            long_name='surface water', units='kg/m2')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='H2OSFC', data=cptr%cws%h2osfc, &
-            dim1name=namec, &
-            ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
+      call clm_addvar(clmvar_double,ncid,'H2OSFC', (/'column'/), &
+            long_name='surface water',units='kg/m2')
+    else if ( flag == 'read' ) then
+      if ( .not. clm_check_var(ncid,'H2OSFC') ) then
+        if ( ktau /= 0 ) then
+          call fatal(__FILE__,__LINE__,'clm now stopping')
+        else
           cptr%cws%h2osfc(begc:endc) = 0.0D0
-       end if
+        end if
+      else
+        call clm_readvar(ncid,'H2OSFC',cptr%cws%h2osfc,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'H2OSFC',cptr%cws%h2osfc,gcomm%column)
     end if
 
     ! column type physical state variable - frac_h2osfc
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='FH2OSFC', xtype=ncd_double,  &
-            dim1name='column',&
+      call clm_addvar(clmvar_double,ncid,'FH2OSFC', (/'column'/), &
             long_name='fraction of ground covered by h2osfc (0 to 1)',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='FH2OSFC', data=cptr%cps%frac_h2osfc, &
-            dim1name=namec, &
-            ncid=ncid, flag=flag, readvar=readvar) 
-       if (flag == 'read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-          cptr%cps%frac_h2osfc(begc:endc) = 0.0D0
-       end if
+    else if ( flag == 'read' ) then
+      if ( .not. clm_check_var(ncid,'FH2OSFC') ) then
+        if ( ktau /= 0 ) then
+          call fatal(__FILE__,__LINE__,'clm now stopping')
+        else
+          cptr%cws%frac_h2osfc(begc:endc) = 0.0D0
+        end if
+      else
+        call clm_readvar(ncid,'FH2OSFC',cptr%cws%frac_h2osfc,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'FH2OSFC',cptr%cws%frac_h2osfc,gcomm%column)
     end if
 
    ! column energy state variable - t_h2osfc
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='TH2OSFC', xtype=ncd_double,  &
-            dim1name='column', &
-            long_name='surface water temperature', units='K')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='TH2OSFC', data=cptr%ces%t_h2osfc, &
-            dim1name=namec, &
-            ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
+      call clm_addvar(clmvar_double,ncid,'TH2OSFC', (/'column'/), &
+            long_name='surface water temperature',units='K')
+    else if ( flag == 'read' ) then
+      if ( .not. clm_check_var(ncid,'TH2OSFC') ) then
+        if ( ktau /= 0 ) then
+          call fatal(__FILE__,__LINE__,'clm now stopping')
+        else
           cptr%ces%t_h2osfc(begc:endc) = 274.0D0
-       end if
+        end if
+      else
+        call clm_readvar(ncid,'TH2OSFC',cptr%ces%t_h2osfc,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'TH2OSFC',cptr%ces%t_h2osfc,gcomm%column)
     end if
 
    ! column water state variable - h2osno
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='H2OSNO', xtype=ncd_double,  &
-            dim1name='column', &
-            long_name='snow water', units='kg/m2')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='H2OSNO', data=cptr%cws%h2osno, &
-            dim1name=namec, &
-            ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'H2OSNO', (/'column'/), &
+            long_name='snow water',units='kg/m2')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'H2OSNO') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'H2OSNO',cptr%cws%h2osno,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'H2OSNO',cptr%cws%h2osno,gcomm%column)
     end if
 
     ! column water state variable - h2osoi_liq
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='H2OSOI_LIQ', xtype=ncd_double,  &
-            dim1name='column', dim2name='levtot', switchdim=.true., &
-            long_name='liquid water', units='kg/m2')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='H2OSOI_LIQ', data=cptr%cws%h2osoi_liq, &
-            dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'H2OSOI_LIQ', (/'column','levtot'/), &
+            long_name='liquid water',units='kg/m2')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'H2OSOI_LIQ') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'H2OSOI_LIQ',cptr%cws%h2osoi_liq,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'H2OSOI_LIQ',cptr%cws%h2osoi_liq,gcomm%column)
     end if
 
     ! column water state variable - h2osoi_ice
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='H2OSOI_ICE', xtype=ncd_double,   &
-            dim1name='column', dim2name='levtot', switchdim=.true., &
-            long_name='ice lens', units='kg/m2')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='H2OSOI_ICE', data=cptr%cws%h2osoi_ice, &
-            dim1name=namec, switchdim=.true., ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'H2OSOI_ICE', (/'column','levtot'/), &
+            long_name='ice lens',units='kg/m2')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'H2OSOI_ICE') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'H2OSOI_ICE',cptr%cws%h2osoi_ice,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'H2OSOI_ICE',cptr%cws%h2osoi_ice,gcomm%column)
     end if
 
    ! column energy state variable - t_grnd
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='T_GRND', xtype=ncd_double,  &
-            dim1name='column', &
-            long_name='ground temperature', units='K')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='T_GRND', data=cptr%ces%t_grnd, &
-            dim1name=namec, &
-            ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'T_GRND', (/'column'/), &
+            long_name='ground temperature',units='K')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_GRND') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'T_GRND',cptr%ces%t_grnd,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'T_GRND',cptr%ces%t_grnd,gcomm%column)
     end if
 
    ! column urban energy state variable - eflx_urban_ac
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='URBAN_AC', xtype=ncd_double,  &
-            dim1name='column', &
-            long_name='urban air conditioning flux', units='watt/m^2')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='URBAN_AC', data=cptr%cef%eflx_urban_ac, &
-            dim1name=namec, &
-            ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'URBAN_AC', (/'column'/), &
+            long_name='urban air conditioning flux',units='W/m^2')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'URBAN_AC') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'URBAN_AC',cptr%cef%eflx_urban_ac,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'URBAN_AC',cptr%cef%eflx_urban_ac,gcomm%column)
     end if
 
    ! column urban energy state variable - eflx_urban_heat
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='URBAN_HEAT', xtype=ncd_double,  &
-            dim1name='column', &
-            long_name='urban heating flux', units='watt/m^2')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='URBAN_HEAT', data=cptr%cef%eflx_urban_heat, &
-            dim1name=namec, &
-            ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'URBAN_HEAT', (/'column'/), &
+            long_name='urban heating flux',units='W/m^2')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'URBAN_HEAT') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'URBAN_HEAT', &
+                cptr%cef%eflx_urban_heat,gcomm%column)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'URBAN_HEAT',cptr%cef%eflx_urban_heat,gcomm%column)
     end if
 
    ! pft energy state variable - t_ref2m_min
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='T_REF2M_MIN', xtype=ncd_double,  &
-            dim1name='pft', &
-            long_name='daily minimum of average 2 m height surface air temperature (K)', units='K')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='T_REF2M_MIN', data=pptr%pes%t_ref2m_min, &
-            dim1name=namep, &
-            ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_MIN', (/'pft'/), &
+            long_name='daily minimum of average 2 m height '// &
+               'surface air temperature',units='K')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_MIN') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'T_REF2M_MIN',pptr%pes%t_ref2m_min,gcomm%pft)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'T_REF2M_MIN',pptr%pes%t_ref2m_min,gcomm%pft)
     end if
 
    ! pft energy state variable - t_ref2m_max
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='T_REF2M_MAX', xtype=ncd_double,  &
-            dim1name='pft', &
-            long_name='daily maximum of average 2 m height surface air temperature (K)', units='K')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='T_REF2M_MAX', data=pptr%pes%t_ref2m_max, &
-            dim1name=namep, &
-            ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_MAX', (/'pft'/), &
+            long_name='daily maximum of average 2 m height '// &
+               'surface air temperature',units='K')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_MAX') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'T_REF2M_MAX',pptr%pes%t_ref2m_max,gcomm%pft)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(ncid,'T_REF2M_MAX',pptr%pes%t_ref2m_max,gcomm%pft)
     end if
 
    ! pft energy state variable - t_ref2m_min_inst
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='T_REF2M_MIN_INST', xtype=ncd_double,  &
-            dim1name='pft', &
-            long_name='instantaneous daily min of average 2 m height surface air temp (K)', units='K')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='T_REF2M_MIN_INST', data=pptr%pes%t_ref2m_min_inst, &
-            dim1name=namep, &
-            ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_MIN_INST', (/'pft'/), &
+            long_name='instantaneous daily minimum of average 2 m height '// &
+               'surface air temperature',units='K')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_MIN_INST') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'T_REF2M_MIN_INST', &
+                pptr%pes%t_ref2m_min_inst,gcomm%pft)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(nncid,'T_REF2M_MIN_INST', &
+              pptr%pes%t_ref2m_min_inst,gcomm%pft)
     end if
 
    ! pft energy state variable - t_ref2m_max_inst
 
     if ( flag == 'define' ) then
-       call ncd_defvar(ncid=ncid, varname='T_REF2M_MAX_INST', xtype=ncd_double,  &
-            dim1name='pft', &
-            long_name='instantaneous daily max of average 2 m height surface air temp (K)', units='K')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='T_REF2M_MAX_INST', data=pptr%pes%t_ref2m_max_inst, &
-            dim1name=namep, &
-            ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call endrun()
-       end if
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_MAX_INST', (/'pft'/), &
+            long_name='instantaneous daily maximum of average 2 m height '// &
+               'surface air temperature',units='K')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_MAX_INST') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'T_REF2M_MAX_INST', &
+                pptr%pes%t_ref2m_max_inst,gcomm%pft)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(nncid,'T_REF2M_MAX_INST', &
+              pptr%pes%t_ref2m_max_inst,gcomm%pft)
     end if
 
     ! pft energy state variable - t_ref2m_u
+
+    if ( flag == 'define' ) then
+      call clm_addvar(clmvar_double,ncid,'T_REF2M_U', (/'pft'/), &
+            long_name='instantaneous daily maximum of average 2 m height '// &
+               'surface air temperature',units='K')
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_REF2M_U') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'T_REF2M_U', &
+                pptr%pes%t_ref2m_max_inst,gcomm%pft)
+      end if
+    else if ( flag == 'write' ) then
+      call clm_writevar(nncid,'T_REF2M_U', &
+              pptr%pes%t_ref2m_max_inst,gcomm%pft)
+    end if
 
     if ( flag == 'define' ) then
        call ncd_defvar(ncid=ncid, varname="T_REF2M_U", xtype=ncd_double,  &
