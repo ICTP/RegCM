@@ -27,20 +27,22 @@ module mod_rad_scenarios
   use mod_realkinds
   use mod_dynparam
   use mod_mpmessage
-!
+  use mod_runparams
+
   private
-!
+
   public :: set_scenario , cgas
-!
+
   integer(ik4) , parameter :: nsc = 9
+  integer(ik4) , parameter :: n_greenhouse_gases = 5
   character(len=8) , dimension(nsc) :: scenarios
-!
-  real(rk8) , dimension(10,1850:2100) :: cgas
-!
+
+  real(rk8) , dimension(1+n_greenhouse_gases,1850:2100) :: cgas
+
   integer(ik4) :: i , j
-!
-! SRES and RCP Scenarios
-!
+
+  ! SRES and RCP Scenarios
+
   data scenarios /'A1B','RF','A2','B1','B2','RCP3PD','RCP4.5','RCP6','RCP8.5'/
 !
 !-----------------------------------------------------------------------
@@ -204,8 +206,9 @@ module mod_rad_scenarios
 !
   subroutine set_scenario(csc)
     implicit none
-    character(8) , intent(in) :: csc
-!
+    character(len=8) , intent(in) :: csc
+    integer(ik4) :: ii , jj
+
     select case (csc)
       case ( 'A1B' )
         cgas(1:6,2001:2050) = reshape((/   &
@@ -1753,7 +1756,15 @@ module mod_rad_scenarios
         write (stderr,*) 'Use one in SRES/RCP ', scenarios
         call fatal(__FILE__,__LINE__,'UNSUPPORTED EMISSION SCENARIO')
     end select
-
+    if ( itweak == 1 ) then
+      if ( itweak_greenhouse_gases == 1 ) then
+        do ii = 1 , n_greenhouse_gases
+          do jj = 1850 , 2100
+            cgas(ii+1,jj) = cgas(ii+1,jj) * gas_tweak_factors(ii)
+          end do
+        end do
+      end if
+    end if
   end subroutine set_scenario
 !
 end module mod_rad_scenarios
