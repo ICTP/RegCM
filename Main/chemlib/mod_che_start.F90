@@ -282,31 +282,42 @@ module mod_che_start
     ichbdy2trac(:) = 0 
 
     itr = 1
-    do i = 1,ntr 
+    
        if(igaschem ==1) then 
           do n = 1, n_chbcvar
+            do i = 1,ntr
              if (chbcname(n)==  chtrname(i)) then 
+                ichbdy2trac(itr) = i                 
+                itr =itr + 1
+             end if
+           end do
+         end do 
+      end if
+!!$       ! look also in aerosol bc and pile them after.   
+       if(iaerosol==1) then 
+          do n = 1, size(aeaero)
+            do i = 1,ntr
+               if (aeaero(n)==  chtrname(i)) then 
                 ichbdy2trac(itr) = i  
                 itr=itr+1
              end if
           end do
+        end do
        end if
-       ! look also in aerosol bc and pile them after.   
-       if(iaerosol==1) then 
-          do n = 1, size(aeaero)
-             if (aeaero(n)==  chtrname(i)) then 
-                ichbdy2trac(itr) = i  
-                itr = itr+1
-             end if
-          end do
-       end if
+      
 
-       if ( myid == italk ) then
-          if ( i == 1 )  write(*,*) 'tracer', '  chbdy index' 
-          write(*,*) chtrname(i),ichbdy2trac(i) 
-       end if
-    end do
 
+
+
+
+
+
+      if ( myid == italk ) then
+       write(*,*) 'tracer index coreesponding to bdy species '
+       do n = 1,size(ichbdy2trac)          
+          write(*,*) ,ichbdy2trac(n) 
+       end do
+       end if
     
 !!$  FAB : work on that later
 !!$    do itr = 1,ntr
