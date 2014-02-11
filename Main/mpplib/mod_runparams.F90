@@ -216,7 +216,8 @@ module mod_runparams
   logical :: lmfdd     !  true if cumulus downdraft is switched on
   logical :: lmfdudv   !  true if cumulus friction is switched on
 
-  ! Tweak Global date
+  ! Tweak Global data
+
   integer(ik4) :: itweak
   integer(ik4) :: itweak_temperature
   integer(ik4) :: itweak_solar_irradiance

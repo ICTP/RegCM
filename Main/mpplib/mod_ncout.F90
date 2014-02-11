@@ -2294,6 +2294,29 @@ module mod_ncout
               mixed_layer_depth))
         end if
 
+        if ( itweak == 1 ) then
+          if ( itweak_temperature == 1 ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('tweak_temperature',temperature_tweak))
+          end if
+          if ( itweak_solar_irradiance == 1 ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('tweak_solar_irradiance',solar_tweak))
+          end if
+          if ( itweak_greenhouse_gases == 1 ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('tweak_co2_factor',gas_tweak_factors(1)))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('tweak_ch4_factor',gas_tweak_factors(2)))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('tweak_n2o_factor',gas_tweak_factors(3)))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('tweak_cfc11_factor',gas_tweak_factors(4)))
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('tweak_cfc12_factor',gas_tweak_factors(5)))
+          end if
+        end if
+
         do ivar = 1 , outstream(i)%nvar
           vp => outstream(i)%ncvars%vlist(ivar)%vp
           call outstream_addvar(outstream(i)%ncout(j),vp)
