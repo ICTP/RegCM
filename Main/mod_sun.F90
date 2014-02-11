@@ -328,6 +328,11 @@ module mod_sun
 #endif
     if ( isolconst == 1 ) then
       solar_irradiance = 1367.0D0
+      if ( itweak == 1 ) then
+        if ( itweak_solar_irradiance == 1 ) then
+          solar_irradiance = solar_irradiance + solar_tweak
+        end if
+      end if
       return
     end if
     calday = yeardayfrac(idatex)
