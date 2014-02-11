@@ -2017,16 +2017,24 @@ module mod_params
       write(stdout,*) 'TWEAKING OF DATA ENABLED!'
       write(stdout,*) 'THIS RUN IS TO BE CONSIDERED A NON STANDARD SCENARIO!'
       if ( itweak_temperature == 1 ) then
-        write(stdout,*) ' Value added to temperature         : ', &
+        write(stdout,'(a,f11.6,a)') ' Value added to temperature      : ', &
                 temperature_tweak , ' K'
       end if
       if ( itweak_solar_irradiance == 1 ) then
-        write(stdout,*) ' Value added to solar irradiance    : ', &
+        write(stdout,'(a,f11.6,a)') ' Value added to solar irradiance : ', &
                 solar_tweak , ' W m-2'
       end if
       if ( itweak_greenhouse_gases == 1 ) then
-        write(stdout,*) ' Greenhous gases multiplier factors : ', &
-                gas_tweak_factors
+        write(stdout,'(a,f11.6)') ' CO2 concentration factor        : ', &
+                gas_tweak_factors(1)
+        write(stdout,'(a,f11.6)') ' CH4 concentration factor        : ', &
+                gas_tweak_factors(2)
+        write(stdout,'(a,f11.6)') ' N2O concentration factor        : ', &
+                gas_tweak_factors(3)
+        write(stdout,'(a,f11.6)') ' CFC11 concentration factor      : ', &
+                gas_tweak_factors(4)
+        write(stdout,'(a,f11.6)') ' CFC12 concentration factor      : ', &
+                gas_tweak_factors(5)
       end if
     end if
   end if
