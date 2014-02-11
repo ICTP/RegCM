@@ -651,6 +651,7 @@ sensitivity experiments to select the best scheme for your application.
  isolconst =         1, ! Use a constant 1367 W/m^2 instead of the prescribed
                         ! TSI recommended CMIP5 solar forcing data.
  islab_ocean =       0, ! Activate the SLAB ocean model
+ itweak =            0, ! Enable tweak scenario
  \
 \end{Verbatim}
 }
@@ -865,6 +866,24 @@ model.
                                  ! q-flux adjustment
  mixed_layer_depth     = 50.0D0, ! Depth in meters of the Ocean mixed layer.
  /
+\end{Verbatim}
+}
+
+\subsection{tweakparam stanza}
+
+This stanza controls the tweaking of the model to obtain custom scenarioes,
+Is enabled if itweak is $1$ in \ref{physicsparam}.
+
+{\footnotesize
+\begin{Verbatim}
+&tweakparam
+ itweak_temperature = 0,      ! Enable adding temperature_tweak to input T
+ itweak_solar_irradiance = 0, ! Add solar_tweak to solar constant
+ itweak_greenhouse_gases = 0, ! Multiply gas_tweak_factors to GG concentrations
+ temperature_tweak = 0.0D0,   ! In K
+ solar_tweak = 0.0D0,         ! In W m-2 (1367.0 is default solar)
+ gas_tweak_factors = 1.0D0, 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0,
+ !                   CO2    CH4     N2O     CFC11   CFC12
 \end{Verbatim}
 }
 
