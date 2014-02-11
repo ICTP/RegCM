@@ -1851,6 +1851,7 @@ module mod_ncout
     real(rk8) , pointer , dimension(:,:) :: tmp2d
     real(rk8) , pointer , dimension(:,:) :: pnt2d => null()
     integer(ik4) :: i , j , ivar
+    real(rk8) :: dummy
 
     if ( .not. parallel_out .and. myid /= iocpu ) then
       stream_loop: &
@@ -2304,16 +2305,21 @@ module mod_ncout
               ncattribute_real8('tweak_solar_irradiance',solar_tweak))
           end if
           if ( itweak_greenhouse_gases == 1 ) then
+            dummy = gas_tweak_factors(1)
             call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tweak_co2_factor',gas_tweak_factors(1)))
+              ncattribute_real8('tweak_co2_factor',dummy))
+            dummy = gas_tweak_factors(2)
             call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tweak_ch4_factor',gas_tweak_factors(2)))
+              ncattribute_real8('tweak_ch4_factor',dummy))
+            dummy = gas_tweak_factors(3)
             call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tweak_n2o_factor',gas_tweak_factors(3)))
+              ncattribute_real8('tweak_n2o_factor',dummy))
+            dummy = gas_tweak_factors(4)
             call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tweak_cfc11_factor',gas_tweak_factors(4)))
+              ncattribute_real8('tweak_cfc11_factor',dummy))
+            dummy = gas_tweak_factors(5)
             call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tweak_cfc12_factor',gas_tweak_factors(5)))
+              ncattribute_real8('tweak_cfc12_factor',dummy))
           end if
         end if
 
