@@ -146,8 +146,8 @@ subroutine CNiniSpecial ()
       clm3%g%l%c%p%pps%hbot(p) = 0.D0
       clm3%g%l%c%p%pps%fwet(p) = 0.D0
       clm3%g%l%c%p%pps%fdry(p) = 0.D0
-      clm3%g%l%c%p%pps%frac_veg_nosno_alb(p) = 0.D0
-      clm3%g%l%c%p%pps%frac_veg_nosno(p) = 0.D0
+      clm3%g%l%c%p%pps%frac_veg_nosno_alb(p) = 0
+      clm3%g%l%c%p%pps%frac_veg_nosno(p) = 0
       clm3%g%l%c%p%pcf%psnsun(p) = 0.D0
       clm3%g%l%c%p%pcf%psnsha(p) = 0.D0
       if (crop_prog) clm3%g%l%c%p%pnf%fert(p)   = 0.D0

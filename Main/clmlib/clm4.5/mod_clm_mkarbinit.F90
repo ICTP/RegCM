@@ -290,7 +290,7 @@ module mod_clm_mkarbinit
        !clm3%g%l%c%p%pps%esai(p) = 0.D0
        !clm3%g%l%c%p%pps%htop(p) = 0.D0
        !clm3%g%l%c%p%pps%hbot(p) = 0.D0
-       !clm3%g%l%c%p%pps%frac_veg_nosno_alb(p) = 0.D0
+       !clm3%g%l%c%p%pps%frac_veg_nosno_alb(p) = 0
     end do
 
     ! initialize h2osfc, frac_h2osfc, t_h2osfc, qflx_snow_melt

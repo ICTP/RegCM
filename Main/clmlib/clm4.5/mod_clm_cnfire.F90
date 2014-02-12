@@ -632,7 +632,7 @@ module mod_clm_cnfire
     do l = 1 , ndecomp_pools
       if ( is_cwd(l) ) then
         i_cwd = l
-      endif
+      end if
     end do
 
     !
@@ -716,7 +716,7 @@ module mod_clm_cnfire
       fbac1(c)        = 0.D0
       ! with NOFIRE, tree carbon is still removed in landuse change
       ! regions by the landuse code
-#endif
+#end if
     end do  ! end of column loop
   end subroutine CNFireArea
   !
@@ -745,7 +745,7 @@ module mod_clm_cnfire
 #if (defined CNDV)
     ! number of individuals (#/m2)
     real(rk8) , pointer , dimension(:) :: nind
-#endif
+#end if
     ! woody lifeform (1=woody, 0=not woody)
     real(rk8) , pointer , dimension(:) :: woody
     ! true=>do computations on this pft (see reweightMod for details)
@@ -1042,7 +1042,7 @@ module mod_clm_cnfire
 
 #if (defined CNDV)
     nind                     => clm3%g%l%c%p%pdgvs%nind
-#endif
+#end if
     pcolumn                   => clm3%g%l%c%p%column
     cgridcell                 => clm3%g%l%c%gridcell
     farea_burned              => clm3%g%l%c%cps%farea_burned
@@ -1410,7 +1410,7 @@ module mod_clm_cnfire
       end if
       leafcmax(p) = max(leafc(p)-m_leafc_to_fire(p)*dt, leafcmax(p))
       if ( ivt(p) == noveg ) leafcmax(p) = 0.D0
-#endif
+#end if
     end do  ! end of pfts loop
     !
     ! fire-affected carbon to litter and cwd
@@ -1626,7 +1626,7 @@ module mod_clm_cnfire
        end if
      end if
      call file_freeunit( nu_nml )
-   endif
+   end if
 
    call bcast(stream_year_first_popdens)
    call bcast(stream_year_last_popdens)
@@ -1634,14 +1634,14 @@ module mod_clm_cnfire
    call bcast(stream_fldFileName_popdens)
 
    if (myid == italk) then
-      write(stdout,*) ' '
-      write(stdout,*) 'popdens_streams settings:'
-      write(stdout,*) '  stream_year_first_popdens  = ',stream_year_first_popdens
-      write(stdout,*) '  stream_year_last_popdens   = ',stream_year_last_popdens
-      write(stdout,*) '  model_year_align_popdens   = ',model_year_align_popdens
-      write(stdout,*) '  stream_fldFileName_popdens = ',stream_fldFileName_popdens
-      write(stdout,*) ' '
-   endif
+     write(stdout,*) ' '
+     write(stdout,*) 'popdens_streams settings:'
+     write(stdout,*) '  stream_year_first_popdens  = ',stream_year_first_popdens
+     write(stdout,*) '  stream_year_last_popdens   = ',stream_year_last_popdens
+     write(stdout,*) '  model_year_align_popdens   = ',model_year_align_popdens
+     write(stdout,*) '  stream_fldFileName_popdens = ',stream_fldFileName_popdens
+     write(stdout,*) ' '
+   end if
 
    call clm_domain_mct(dom_clm)
 
@@ -1674,7 +1674,7 @@ module mod_clm_cnfire
 
    if (myid == italk) then
      call shr_strdata_print(sdat_hdm,'population density data')
-   endif
+   end if
 
    ! Add history fields
    call hist_addfld1d (fname='HDM', units='counts/km^2',      &
@@ -1778,7 +1778,7 @@ subroutine lnfm_init( begg, endg )
          end if
       end if
       call file_freeunit( nu_nml )
-   endif
+   end if
 
    call bcast(stream_year_first_lightng)
    call bcast(stream_year_last_lightng)
@@ -1793,7 +1793,7 @@ subroutine lnfm_init( begg, endg )
       write(stdout,*) '  model_year_align_lightng   = ',model_year_align_lightng
       write(stdout,*) '  stream_fldFileName_lightng = ',stream_fldFileName_lightng
       write(stdout,*) ' '
-   endif
+   end if
 
    call clm_domain_mct (dom_clm)
 
@@ -1825,7 +1825,7 @@ subroutine lnfm_init( begg, endg )
 
    if (myid == italk) then
       call shr_strdata_print(sdat_lnfm,'Lightning data')
-   endif
+   end if
 
    ! Add history fields
    call hist_addfld1d (fname='LNFM', units='counts/km^2/hr',  &
@@ -1880,6 +1880,6 @@ subroutine lnfm_interp( )
 end subroutine lnfm_interp
 
 !-----------------------------------------------------------------------
-#endif
+#end if
 
 end module mod_clm_cnfire
