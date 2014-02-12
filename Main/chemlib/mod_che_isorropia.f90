@@ -94,21 +94,21 @@ module mod_che_isorropia
  
           call isoropia(wi,rhi,tempi,cntrl,wt,gas,aerliq,aersld,scasi,other)
 ! 
-! 
-          chemten(j,i,k,ih2so4) = (wt(2)*w_so4/massfactor/crhob3d(j,i,k)      &
+! add to the chemical tendency the tendendy linked to thermo equilibrium 
+          chemten(j,i,k,ih2so4) = chemten(j,i,k,ih2so4) + (wt(2)*w_so4/massfactor/crhob3d(j,i,k)      &
                                 *cpsb(j,i)-chib3d(j,i,k,ih2so4)*cpsb(j,i))    &
                                 /dtaesolv                        !so4
-          chemten(j,i,k,inh3) = (gas(1)*w_nh3/massfactor/crhob3d(j,i,k)     &
+          chemten(j,i,k,inh3) = chemten(j,i,k,inh3) + (gas(1)*w_nh3/massfactor/crhob3d(j,i,k)     &
                                 *cpsb(j,i)-chib3d(j,i,k,inh3)*cpsb(j,i))    &
                                 /dtaesolv                        !nh3
-          chemten(j,i,k,ihno3) = (gas(2)*w_hno3/massfactor/crhob3d(j,i,k)   &
+          chemten(j,i,k,ihno3) = chemten(j,i,k,ihno3) + (gas(2)*w_hno3/massfactor/crhob3d(j,i,k)   &
                                  *cpsb(j,i)-chib3d(j,i,k,ihno3)*cpsb(j,i))  &
                                  /dtaesolv                       !no3
-          chemten(j,i,k,ianh4) = ((wt(3)-gas(1))*w_anh4/massfactor/         &
+          chemten(j,i,k,ianh4) = chemten(j,i,k,ianh4) + ((wt(3)-gas(1))*w_anh4/massfactor/         &
                                   crhob3d(j,i,k)*cpsb(j,i)-                 &
                                   chib3d(j,i,k,ianh4)*                      &
                                   cpsb(j,i))/dtaesolv            !anh4
-        chemten(j,i,k,iano3) = ((wt(4)-gas(2))*w_ano3/massfactor/            &
+          chemten(j,i,k,iano3) = chemten(j,i,k,iano3) + ((wt(4)-gas(2))*w_ano3/massfactor/            &
                                 crhob3d(j,i,k)*cpsb(j,i)-chib3d(j,i,k,iano3) &
                                 *cpsb(j,i))/dtaesolv             !ano3
         end do

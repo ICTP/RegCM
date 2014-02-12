@@ -421,11 +421,11 @@
       ! tendency is still updated every dt ( =dt) time step
       ! ( insure smoothness)  
       !
-      chemten(:,:,:,:) = d_zero
+      
       if ( igaschem == 1 .and. ichsolver > 0 ) then   
         kchsolv = idnint(dtchsolv/dtsec)
-        kchsolv = 6 ! for the moment
         if ( mod(ktau+1,kchsolv) == 0 ) then   
+          chemten(:,:,:,:) = d_zero
           do j = jci1 , jci2
             call chemistry(j,lyear,lmonth,lday)
           end do
@@ -433,28 +433,19 @@
             write(stdout,'(a,2g12.5)') ' $$$ Jvalue min/max NO2surf : ', &
               minval(jphoto(:,:,kz,jvNO2 )),  maxval(jphoto(:,:,kz,jvNO2 ))  
           end if
-        end if
-        ! add tendency due to chemistry reaction (every dt)      
+       !    secondary inorganic aerosol solver ( modify also chemten !) 
+          if ( iisoropia == 1 ) then
+           call aerodriver
+          endif
+
+        end if ! end chem timestep
+       
+        ! add tendency due to chemistry reaction + thermo equilibrium (every dt)      
         chiten(jci1:jci2,:,:,:) = chiten(jci1:jci2,:,:,:) + &
                                   chemten(jci1:jci2,:,:,:)
         if ( ichdiag > 0 ) then
           chemdiag(jci1:jci2,:,:,:) = chemdiag(jci1:jci2,:,:,:) + &
               chemten(jci1:jci2,:,:,:) * cfdout 
-        end if
-      end if
-      !
-      ! secondary inorganic aerosol solver
-      !
-      chemten(:,:,:,:) = d_zero
-      if ( igaschem == 1 .and. ichsolver > 0 .and. iisoropia == 1 ) then
-        if ( mod(ktau+1,kchsolv) == 0 ) then     !kchsolv for the moment
-          call aerodriver
-        endif
-        chiten(jci1:jci2,:,:,:) = chiten(jci1:jci2,:,:,:) + &
-                                  chemten(jci1:jci2,:,:,:)
-        if ( ichdiag > 0 ) then
-           chemdiag(jci1:jci2,:,:,:) = chemdiag(jci1:jci2,:,:,:) + &
-               chemten(jci1:jci2,:,:,:) * cfdout
         end if
       end if
       !
