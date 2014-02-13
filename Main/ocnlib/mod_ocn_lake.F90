@@ -130,6 +130,7 @@ module mod_ocn_lake
     do lp = 1 , nlakep
       i = ilp(lp)
       idep(lp) = idint(dmax1(d_two,dmin1(dhlake(i),dble(ndpmax)))/dz)
+      hi(lp) = 0.01D0
       ! Azar Zarrin: Fixed unrealistic high ice tickness and
       ! high water temperatures during warm months.
       ! Graziano: Take a data driven approach.
@@ -195,11 +196,9 @@ module mod_ocn_lake
       if ( mask(i) == 4 ) then
         tlak(lp,1) = -2.0D0
         tlak(lp,2) = -2.0D0
-        sfice(i) = d_10
-        hi(lp) = d_one
+        sfice(i) = 0.10D0
       else
         sfice(i) = d_zero
-        hi(lp) = 0.01D0
       end if
     end do
 #ifdef DEBUG
@@ -398,7 +397,7 @@ module mod_ocn_lake
     if ( u2 < d_half ) u2 = d_half
 
     ! Check if conditions not exist for lake ice
-    if ( (aveice < 1.0D-8) .and. (tprof(1) > tcutoff) ) then
+    if ( (aveice < iceminh) .and. (tprof(1) > tcutoff) ) then
 
       ! Graziano: removed hlat. It is calculated from evaporation
       qe = -d_one*evl*wlhv
@@ -425,8 +424,8 @@ module mod_ocn_lake
       lu  = -emsw*sigm*tk**4
       ld  = flw - lu
       ev  = evl*secph         ! convert to mm/hr
-      ai  = aveice / d_1000   ! convert to m
-      hs  = hsnow / d_100     ! convert to m
+      ai  = aveice * d_r1000   ! convert to m
+      hs  = hsnow * d_r100     ! convert to m
 
       call lakeice(dtlake,fsw,ld,tac,u2,ea,hs,hi,ai,ev,prec,tprof)
       if ( .not. lfreeze ) tprof(1) = twatui

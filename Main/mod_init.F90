@@ -156,7 +156,6 @@ module mod_init
               do n = 1, nnsg
                 if ( mdsub%ldmsk(n,j,i) == 0 ) then
                   mdsub%ldmsk(n,j,i) = 2
-                  lms%sfice(n,j,i) = d_10
                 end if
               end do
             end if

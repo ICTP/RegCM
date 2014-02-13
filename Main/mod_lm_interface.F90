@@ -857,6 +857,8 @@ module mod_lm_interface
           lak_aldirs_out = lm%swdiralb
         if ( associated(lak_aldifs_out) ) &
           lak_aldifs_out = lm%swdifalb
+        if ( associated(lak_ice_out) ) &
+          lak_ice_out = sum(lms%sfice,1,lms%lakmsk)*rdnnsg
         if ( associated(lak_tlake_out) ) then
           do k = 1 , ndpmax
             lak_tlake_out(:,:,k) = sum(lms%tlake(:,:,:,k),1,lms%lakmsk)*rdnnsg

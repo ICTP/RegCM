@@ -149,6 +149,7 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: lak_flw_out => null()
   real(rk8) , dimension(:,:) , pointer :: lak_fld_out => null()
   real(rk8) , dimension(:,:) , pointer :: lak_evp_out => null()
+  real(rk8) , dimension(:,:) , pointer :: lak_ice_out => null()
   real(rk8) , dimension(:,:) , pointer :: lak_aldirs_out => null()
   real(rk8) , dimension(:,:) , pointer :: lak_aldifs_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: lak_tlake_out => null()

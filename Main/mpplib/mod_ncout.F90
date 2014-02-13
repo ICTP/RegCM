@@ -68,7 +68,7 @@ module mod_ncout
   integer(ik4) , parameter :: nsub3dvars = 6
   integer(ik4) , parameter :: nsubvars = nsub2dvars+nsub3dvars
 
-  integer(ik4) , parameter :: nlak2dvars = 11 + nbase
+  integer(ik4) , parameter :: nlak2dvars = 12 + nbase
   integer(ik4) , parameter :: nlak3dvars = 1
   integer(ik4) , parameter :: nlakvars = nlak2dvars+nlak3dvars
 
@@ -300,6 +300,7 @@ module mod_ncout
   integer(ik4) , parameter :: lak_aldirs = 14
   integer(ik4) , parameter :: lak_aldifs = 15
   integer(ik4) , parameter :: lak_evp    = 16
+  integer(ik4) , parameter :: lak_ice    = 17
 
   integer(ik4) , parameter :: lak_tlake  = 1
 
@@ -1408,6 +1409,11 @@ module mod_ncout
             'Water evaporation flux', &
             'water_evaporation_flux_where_sea_ice',.true.)
           lak_evp_out => v2dvar_lak(lak_evp)%rval
+        end if
+        if ( enable_lak2d_vars(lak_ice) ) then
+          call setup_var(v2dvar_lak,lak_ice,vsize,'lakice','mm', &
+            'Lake Ice depth', 'seaice_depth',.true.)
+          lak_ice_out => v2dvar_lak(lak_ice)%rval
         end if
 
         vsize%k2 = ndpmax

@@ -1,93 +1,62 @@
 module mod_clm_cnrest
 
 #if (defined CN)
-!----------------------------------------------------------------------- 
-!BOP
-!
-! !MODULE: CNrestMod
-! 
-! !DESCRIPTION: 
-! Read/Write to/from CN info to CLM restart file. 
-!
-! !USES:
+  !
+  ! Read/Write to/from CN info to CLM restart file. 
+  !
   use mod_realkinds
   use mod_dynparam
   use mod_mppparam
   use mod_mpmessage
   use mod_clm_nchelper
-  use mod_clm_varctl  , only : override_bgc_restart_mismatch_dump
-!
-! !PUBLIC TYPES:
+  use mod_clm_type
+  use mod_clm_decomp
+  use mod_clm_atmlnd, only : clm_a2l
+  use mod_clm_varpar, only : numrad , ndecomp_pools , nlevdecomp
+  use mod_clm_decomp , only : get_proc_bounds
+  use mod_clm_varcon , only : nlevgrnd
+  use mod_clm_varctl , only : override_bgc_restart_mismatch_dump
+  use mod_clm_varctl , only : use_c13 , use_c14 , spinup_state
+  use mod_clm_varcon , only : c13ratio , c14ratio , spval
+  use mod_constants , only : pdbratio
+
   implicit none
-  save
-!
-! !PUBLIC MEMBER FUNCTIONS:
+
+  private
+
   public :: CNrest
 
-! !PUBLIC DATA MEMBERS:
-!
-! !REVISION HISTORY:
-! 11/05/03: Module created by Peter Thornton
-!F. Li and S. Levis (11/06/12)
-!EOP
-!----------------------------------------------------------------------- 
-
-contains
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNRest
-!
-! !INTERFACE:
+  contains
+  !
+  ! Read/write CN restart data
+  !
   subroutine CNRest ( ncid, flag )
-!
-! !DESCRIPTION: 
-! Read/write CN restart data
-!
-! !USES:
-    use mod_clm_type
-    use mod_clm_atmlnd, only : clm_a2l
-    use mod_clm_varpar, only : numrad, ndecomp_pools, nlevdecomp
-    use mod_clm_decomp , only : get_proc_bounds
-    use mod_clm_time_manager, only : is_restart, get_nstep
-    use mod_clm_varcon, only : nlevgrnd
-    use mod_clm_varctl, only : use_c13, use_c14, spinup_state
-    use mod_clm_varcon, only : c13ratio, c14ratio, spval
-    use mod_constants , only : pdbratio
-!
-! !ARGUMENTS:
     implicit none
     type(clm_filetype)  :: ncid   ! netcdf id
-    character(len=*), intent(in) :: flag   !'read' or 'write'
-!
-! !CALLED FROM:
-! subroutine restart in module restFileMod
-!
-! !REVISION HISTORY:
-! Author: Peter Thornton
-!
-!
-!Other local variables
-    real(rk8) :: c3_del13c     ! typical del13C for C3 photosynthesis (permil, relative to PDB)
-    real(rk8) :: c4_del13c     ! typical del13C for C4 photosynthesis (permil, relative to PDB)
-    real(rk8) :: c3_r1         ! isotope ratio (13c/12c) for C3 photosynthesis
-    real(rk8) :: c4_r1         ! isotope ratio (13c/12c) for C4 photosynthesis
-    real(rk8) :: c3_r2         ! isotope ratio (13c/[12c+13c]) for C3 photosynthesis
-    real(rk8) :: c4_r2         ! isotope ratio (13c/[12c+13c]) for C4 photosynthesis
-!   real(rk8), pointer :: rc13_annsum_npp(:)
-!   real(rk8), pointer :: rc13_cannsum_npp(:)
-   type(pft_cstate_type), pointer :: pcisos
-   type(pft_cstate_type), pointer :: pcbulks
-! !LOCAL VARIABLES:
-!EOP
-    integer :: c,p,j,k,i,l           ! indices 
-    integer :: begp, endp   ! per-proc beginning and ending pft indices
-    integer :: begc, endc   ! per-proc beginning and ending column indices 
-    integer :: begl, endl   ! per-proc beginning and ending landunit indices
-    integer :: begg, endg   ! per-proc gridcell ending gridcell indices
+    character(len=*) , intent(in) :: flag   !'read' or 'write'
+    ! typical del13C for C3 photosynthesis (permil, relative to PDB)
+    real(rk8) :: c3_del13c
+    ! typical del13C for C4 photosynthesis (permil, relative to PDB)
+    real(rk8) :: c4_del13c
+    ! isotope ratio (13c/12c) for C3 photosynthesis
+    real(rk8) :: c3_r1
+    ! isotope ratio (13c/12c) for C4 photosynthesis
+    real(rk8) :: c4_r1
+    ! isotope ratio (13c/[12c+13c]) for C3 photosynthesis
+    real(rk8) :: c3_r2
+    ! isotope ratio (13c/[12c+13c]) for C4 photosynthesis
+    real(rk8) :: c4_r2
+!   real(rk8) , pointer :: rc13_annsum_npp(:)
+!   real(rk8) , pointer :: rc13_cannsum_npp(:)
+    type(pft_cstate_type) , pointer :: pcisos
+    type(pft_cstate_type) , pointer :: pcbulks
+    integer :: c , p , j , k , i , l ! indices 
+    integer :: begp , endp   ! per-proc beginning and ending pft indices
+    integer :: begc , endc   ! per-proc beginning and ending column indices 
+    integer :: begl , endl   ! per-proc beginning and ending landunit indices
+    integer :: begg , endg   ! per-proc gridcell ending gridcell indices
     real(rk8):: m            ! multiplier for the exit_spinup code
-    logical :: readvar      ! determine if variable is on initial file
+    logical :: readvar       ! determine if variable is on initial file
     character(len=128) :: varname         ! temporary
     type(gridcell_type), pointer :: gptr  ! pointer to gridcell derived subtype
     type(landunit_type), pointer :: lptr  ! pointer to landunit derived subtype
@@ -95,19 +64,20 @@ contains
     type(pft_type)     , pointer :: pptr  ! pointer to pft derived subtype
     integer , pointer :: iptemp(:) ! pointer to memory to be allocated
     integer :: ier                 ! error status
-    real(rk8), pointer :: ptr1d(:), ptr2d(:,:) !temporary arrays for slicing larger arrays
-    integer  :: nstep                    ! time step number
-    integer  :: restart_file_spinup_state  ! spinup state as read from restart file, for determining whether to enter or exit spinup mode.
+    !temporary arrays for slicing larger arrays
+    real(rk8) , pointer :: ptr1d(:), ptr2d(:,:)
+    ! spinup state as read from restart file, for determining whether
+    ! to enter or exit spinup mode.
+    integer  :: restart_file_spinup_state
     logical :: exit_spinup = .false.
     logical :: enter_spinup = .false.
-    integer :: decomp_cascade_state, restart_file_decomp_cascade_state      ! flags for comparing the model and restart decomposition cascades
-!-----------------------------------------------------------------------
+    ! flags for comparing the model and restart decomposition cascades
+    integer :: decomp_cascade_state, restart_file_decomp_cascade_state
 
-!-----------------------------------------------------------------------
     if ( use_c13 ) then
-       pcisos => clm3%g%l%c%p%pc13s
-       pcbulks => clm3%g%l%c%p%pcs
-    endif
+      pcisos => clm3%g%l%c%p%pc13s
+      pcbulks => clm3%g%l%c%p%pcs
+    end if
     ! Set pointers into derived type
 
     gptr => clm3%g
@@ -115,36 +85,35 @@ contains
     cptr => clm3%g%l%c
     pptr => clm3%g%l%c%p
 
-
     ! Determine necessary subgrid bounds
 
-    call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
+    call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
     if ( use_c13 ) then
-       c3_del13c = -28.D0
-       c4_del13c = -13.D0
-       c3_r1 = pdbratio + ((c3_del13c*pdbratio)/1000.D0)
-       c3_r2 = c3_r1/(1.D0 + c3_r1)
-       c4_r1 = pdbratio + ((c4_del13c*pdbratio)/1000.D0)
-       c4_r2 = c4_r1/(1.D0 + c4_r1)
-    endif
+      c3_del13c = -28.D0
+      c4_del13c = -13.D0
+      c3_r1 = pdbratio + ((c3_del13c*pdbratio)/1000.D0)
+      c3_r2 = c3_r1/(1.D0 + c3_r1)
+      c4_r1 = pdbratio + ((c4_del13c*pdbratio)/1000.D0)
+      c4_r2 = c4_r1/(1.D0 + c4_r1)
+    end if
 
     !--------------------------------
     ! pft ecophysiological variables 
     !--------------------------------
     
     ! dormant_flag
-    if (flag == 'define') then
+    if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'dormant_flag',(/'pft'/),
             long_name='dormancy flag',units='unitless' )
-    else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'dormant_flag') ) then
+    else if ( flag == 'read' ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'dormant_flag') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'dormant_flag',pptr%pepv%dormant_flag)
+        call clm_readvar(ncid,'dormant_flag',pptr%pepv%dormant_flag,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'dormant_flag',pptr%pepv%dormant_flag)
+      call clm_writevar(ncid,'dormant_flag',pptr%pepv%dormant_flag,gcomm_pft)
     end if
 
     ! days_active
@@ -152,13 +121,13 @@ contains
       call clm_addvar(clmvar_double,ncid,'days_active',(/'pft'/),
             long_name='number of days since last dormancy',units='days' )
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'days_active') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'days_active') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'days_active',pptr%pepv%days_active)
+        call clm_readvar(ncid,'days_active',pptr%pepv%days_active,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'days_active',pptr%pepv%days_active)
+      call clm_writevar(ncid,'days_active',pptr%pepv%days_active,gcomm_pft)
     end if
 
     ! onset_flag
@@ -167,13 +136,13 @@ contains
             long_name='flag if critical growing degree-day sum is exceeded', &
               units='unitless' )
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'onset_flag') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_flag') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'onset_flag',pptr%pepv%onset_flag)
+        call clm_readvar(ncid,'onset_flag',pptr%pepv%onset_flag,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'onset_flag',pptr%pepv%onset_flag)
+      call clm_writevar(ncid,'onset_flag',pptr%pepv%onset_flag,gcomm_pft)
     end if
 
     ! onset_counter
@@ -181,13 +150,13 @@ contains
       call clm_addvar(clmvar_double,ncid,'onset_counter',(/'pft'/),
             long_name='onset days counter',units='sec' )
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'onset_counter') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_counter') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'onset_counter',pptr%pepv%onset_counter)
+        call clm_readvar(ncid,'onset_counter',pptr%pepv%onset_counter,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'onset_counter',pptr%pepv%onset_counter)
+      call clm_writevar(ncid,'onset_counter',pptr%pepv%onset_counter,gcomm_pft)
     end if
 
     ! onset_gddflag
@@ -195,13 +164,13 @@ contains
       call clm_addvar(clmvar_double,ncid,'onset_gddflag',(/'pft'/),
             long_name='onset flag for growing degree day sum',units='' )
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'onset_gddflag') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_gddflag') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'onset_gddflag',pptr%pepv%onset_gddflag)
+        call clm_readvar(ncid,'onset_gddflag',pptr%pepv%onset_gddflag,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'onset_gddflag',pptr%pepv%onset_gddflag)
+      call clm_writevar(ncid,'onset_gddflag',pptr%pepv%onset_gddflag,gcomm_pft)
     end if
 
     ! onset_fdd
@@ -209,13 +178,13 @@ contains
       call clm_addvar(clmvar_double,ncid,'onset_fdd',(/'pft'/),
             long_name='onset freezing degree days counter',units='days' )
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'onset_fdd') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_fdd') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'onset_fdd',pptr%pepv%onset_fdd)
+        call clm_readvar(ncid,'onset_fdd',pptr%pepv%onset_fdd,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'onset_fdd',pptr%pepv%onset_fdd)
+      call clm_writevar(ncid,'onset_fdd',pptr%pepv%onset_fdd,gcomm_pft)
     end if
 
     ! onset_gdd
@@ -223,13 +192,13 @@ contains
       call clm_addvar(clmvar_double,ncid,'onset_gdd',(/'pft'/),
             long_name='onset growing degree days',units='days' )
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'onset_gdd') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_gdd') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-       call clm_readvar(ncid,'onset_gdd',pptr%pepv%onset_gdd)
+       call clm_readvar(ncid,'onset_gdd',pptr%pepv%onset_gdd,gcomm_pft)
      end if
    else if (flag == 'write') then
-     call clm_writevar(ncid,'onset_gdd',pptr%pepv%onset_gdd)
+     call clm_writevar(ncid,'onset_gdd',pptr%pepv%onset_gdd,gcomm_pft)
    end if
 
     ! onset_swi
@@ -237,13 +206,13 @@ contains
       call clm_addvar(clmvar_double,ncid,'onset_swi',(/'pft'/),
             long_name='onset soil water index',units='days' )
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'onset_swi') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_swi') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'onset_swi',pptr%pepv%onset_swi)
+        call clm_readvar(ncid,'onset_swi',pptr%pepv%onset_swi,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'onset_swi',pptr%pepv%onset_swi)
+      call clm_writevar(ncid,'onset_swi',pptr%pepv%onset_swi,gcomm_pft)
     end if
 
     ! offset_flag
@@ -251,13 +220,13 @@ contains
       call clm_addvar(clmvar_double,ncid,'offset_flag',(/'pft'/),
             long_name='offset flag',units='unitless' )
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'offset_flag') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'offset_flag') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'offset_flag',pptr%pepv%offset_flag)
+        call clm_readvar(ncid,'offset_flag',pptr%pepv%offset_flag,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'offset_flag',pptr%pepv%offset_flag)
+      call clm_writevar(ncid,'offset_flag',pptr%pepv%offset_flag,gcomm_pft)
     end if
 
     ! offset_counter
@@ -265,13 +234,15 @@ contains
       call clm_addvar(clmvar_double,ncid,'offset_counter',(/'pft'/),
             long_name='offset days counter',units='sec' )
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'offset_counter') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'offset_counter') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'offset_counter',pptr%pepv%offset_counter)
+        call clm_readvar(ncid,'offset_counter', &
+                pptr%pepv%offset_counter,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'offset_counter',pptr%pepv%offset_counter)
+      call clm_writevar(ncid,'offset_counter', &
+              pptr%pepv%offset_counter,gcomm_pft)
     end if
 
     ! offset_fdd
@@ -279,13 +250,13 @@ contains
       call clm_addvar(clmvar_double,ncid,'offset_fdd',(/'pft'/),
             long_name='offset freezing degree days counter',units='days' )
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'offset_fdd') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'offset_fdd') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'offset_fdd',pptr%pepv%offset_fdd)
+        call clm_readvar(ncid,'offset_fdd',pptr%pepv%offset_fdd,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'offset_fdd',pptr%pepv%offset_fdd)
+      call clm_writevar(ncid,'offset_fdd',pptr%pepv%offset_fdd,gcomm_pft)
     end if
 
     ! offset_swi
@@ -293,13 +264,13 @@ contains
       call clm_addvar(clmvar_double,ncid,'offset_swi',(/'pft'/),
             long_name='',units='')
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'offset_swi') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'offset_swi') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'offset_swi',pptr%pepv%offset_swi)
+        call clm_readvar(ncid,'offset_swi',pptr%pepv%offset_swi,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'offset_swi',pptr%pepv%offset_swi)
+      call clm_writevar(ncid,'offset_swi',pptr%pepv%offset_swi,gcomm_pft)
     end if
 
 #if (defined CROP)
@@ -308,13 +279,13 @@ contains
       call clm_addvar(clmvar_double,ncid,'fert_counter',(/'pft'/),
             long_name='',units='')
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'fert_counter') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fert_counter') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'fert_counter',pptr%pepv%fert_counter)
+        call clm_readvar(ncid,'fert_counter',pptr%pepv%fert_counter,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'fert_counter',pptr%pepv%fert_counter)
+      call clm_writevar(ncid,'fert_counter',pptr%pepv%fert_counter,gcomm_pft)
     end if
 
    ! fert
@@ -322,13 +293,13 @@ contains
       call clm_addvar(clmvar_double,ncid,'fert',(/'pft'/),
             long_name='',units='')
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'fert') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fert') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'fert',pptr%pnf%fert)
+        call clm_readvar(ncid,'fert',pptr%pnf%fert,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'fert',pptr%pnf%fert)
+      call clm_writevar(ncid,'fert',pptr%pnf%fert,gcomm_pft)
     end if
 #endif
 
@@ -337,13 +308,13 @@ contains
       call clm_addvar(clmvar_double,ncid,'lgsf',(/'pft'/),
             long_name='',units='')
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'lgsf') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'lgsf') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'lgsf',pptr%pepv%lgsf)
+        call clm_readvar(ncid,'lgsf',pptr%pepv%lgsf,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'lgsf',pptr%pepv%lgsf)
+      call clm_writevar(ncid,'lgsf',pptr%pepv%lgsf,gcomm_pft)
     end if
 
     ! bglfr
@@ -351,13 +322,13 @@ contains
       call clm_addvar(clmvar_double,ncid,'bglfr',(/'pft'/),
             long_name='',units='')
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'bglfr') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'bglfr') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'bglfr',pptr%pepv%bglfr)
+        call clm_readvar(ncid,'bglfr',pptr%pepv%bglfr,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'bglfr',pptr%pepv%bglfr)
+      call clm_writevar(ncid,'bglfr',pptr%pepv%bglfr,gcomm_pft)
     end if
 
     ! bgtr
@@ -365,13 +336,13 @@ contains
       call clm_addvar(clmvar_double,ncid,'bgtr',(/'pft'/),
             long_name='',units='')
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'bgtr') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'bgtr') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'bgtr',pptr%pepv%bgtr)
+        call clm_readvar(ncid,'bgtr',pptr%pepv%bgtr,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'bgtr',pptr%pepv%bgtr)
+      call clm_writevar(ncid,'bgtr',pptr%pepv%bgtr,gcomm_pft)
     end if
 
     ! dayl
@@ -379,13 +350,13 @@ contains
       call clm_addvar(clmvar_double,ncid,'dayl',(/'pft'/),
             long_name='',units='')
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'dayl') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'dayl') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'dayl',pptr%pepv%dayl)
+        call clm_readvar(ncid,'dayl',pptr%pepv%dayl,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'dayl',pptr%pepv%dayl)
+      call clm_writevar(ncid,'dayl',pptr%pepv%dayl,gcomm_pft)
     end if
 
     ! prev_dayl
@@ -393,16 +364,17 @@ contains
       call clm_addvar(clmvar_double,ncid,'prev_dayl',(/'pft'/),
             long_name='',units='')
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'prev_dayl') ) then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'prev_dayl') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'prev_dayl',pptr%pepv%prev_dayl)
+        call clm_readvar(ncid,'prev_dayl',pptr%pepv%prev_dayl,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'prev_dayl',pptr%pepv%prev_dayl)
+      call clm_writevar(ncid,'prev_dayl',pptr%pepv%prev_dayl,gcomm_pft)
     end if
 
     ! annavg_t2m
+
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='annavg_t2m', xtype=ncd_double,  &
             dim1name='pft',long_name='',units='')
@@ -410,7 +382,7 @@ contains
        call ncd_io(varname='annavg_t2m', data=pptr%pepv%annavg_t2m, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -422,7 +394,7 @@ contains
        call ncd_io(varname='tempavg_t2m', data=pptr%pepv%tempavg_t2m, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -434,7 +406,7 @@ contains
        call ncd_io(varname='gpp_pepv', data=pptr%pepv%gpp, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -446,7 +418,7 @@ contains
        call ncd_io(varname='availc', data=pptr%pepv%availc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -458,7 +430,7 @@ contains
        call ncd_io(varname='xsmrpool_recover', data=pptr%pepv%xsmrpool_recover, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -471,10 +443,10 @@ contains
           call ncd_io(varname='xsmrpool_c13ratio', data=pptr%pepv%xsmrpool_c13ratio, &
                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
           if (flag=='read' .and. .not. readvar) then
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
-    endif
+    end if
 
     ! alloc_pnow
     if (flag == 'define') then
@@ -484,7 +456,7 @@ contains
        call ncd_io(varname='alloc_pnow', data=pptr%pepv%alloc_pnow, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -496,7 +468,7 @@ contains
        call ncd_io(varname='c_allometry', data=pptr%pepv%c_allometry, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -508,7 +480,7 @@ contains
        call ncd_io(varname='n_allometry', data=pptr%pepv%n_allometry, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -520,7 +492,7 @@ contains
        call ncd_io(varname='plant_ndemand', data=pptr%pepv%plant_ndemand, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -532,7 +504,7 @@ contains
        call ncd_io(varname='tempsum_potential_gpp', data=pptr%pepv%tempsum_potential_gpp, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -544,7 +516,7 @@ contains
        call ncd_io(varname='annsum_potential_gpp', data=pptr%pepv%annsum_potential_gpp, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -556,7 +528,7 @@ contains
        call ncd_io(varname='tempmax_retransn', data=pptr%pepv%tempmax_retransn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -568,7 +540,7 @@ contains
        call ncd_io(varname='annmax_retransn', data=pptr%pepv%annmax_retransn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -580,7 +552,7 @@ contains
        call ncd_io(varname='avail_retransn', data=pptr%pepv%avail_retransn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-        if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+        if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if 
     end if
 
@@ -592,7 +564,7 @@ contains
        call ncd_io(varname='plant_nalloc', data=pptr%pepv%plant_nalloc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -604,7 +576,7 @@ contains
        call ncd_io(varname='plant_calloc', data=pptr%pepv%plant_calloc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -616,7 +588,7 @@ contains
        call ncd_io(varname='excess_cflux', data=pptr%pepv%excess_cflux, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -628,7 +600,7 @@ contains
        call ncd_io(varname='downreg', data=pptr%pepv%downreg, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -640,7 +612,7 @@ contains
        call ncd_io(varname='prev_leafc_to_litter', data=pptr%pepv%prev_leafc_to_litter, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -652,7 +624,7 @@ contains
        call ncd_io(varname='prev_frootc_to_litter', data=pptr%pepv%prev_frootc_to_litter, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -664,7 +636,7 @@ contains
        call ncd_io(varname='tempsum_npp', data=pptr%pepv%tempsum_npp, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -676,7 +648,7 @@ contains
        call ncd_io(varname='annsum_npp', data=pptr%pepv%annsum_npp, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -689,7 +661,7 @@ contains
           call ncd_io(varname='rc13_canair', data=pptr%pepv%rc13_canair, &
                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
           if (flag=='read' .and. .not. readvar) then
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
        
@@ -701,7 +673,7 @@ contains
           call ncd_io(varname='rc13_psnsun', data=pptr%pepv%rc13_psnsun, &
                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
           if (flag=='read' .and. .not. readvar) then
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
        
@@ -713,10 +685,10 @@ contains
           call ncd_io(varname='rc13_psnsha', data=pptr%pepv%rc13_psnsha, &
                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
           if (flag=='read' .and. .not. readvar) then
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
-    endif
+    end if
 
 #if (defined CROP)
     ! grain_flag
@@ -727,7 +699,7 @@ contains
        call ncd_io(varname='grain_flag', data=pptr%pepv%grain_flag, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+          if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
     end if
 #endif
@@ -744,7 +716,7 @@ contains
        call ncd_io(varname='leafc', data=pptr%pcs%leafc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -756,7 +728,7 @@ contains
        call ncd_io(varname='leafc_storage', data=pptr%pcs%leafc_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -768,7 +740,7 @@ contains
        call ncd_io(varname='leafc_xfer', data=pptr%pcs%leafc_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -780,7 +752,7 @@ contains
        call ncd_io(varname='frootc', data=pptr%pcs%frootc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -792,7 +764,7 @@ contains
        call ncd_io(varname='frootc_storage', data=pptr%pcs%frootc_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -804,7 +776,7 @@ contains
        call ncd_io(varname='frootc_xfer', data=pptr%pcs%frootc_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -816,7 +788,7 @@ contains
        call ncd_io(varname='livestemc', data=pptr%pcs%livestemc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -828,7 +800,7 @@ contains
        call ncd_io(varname='livestemc_storage', data=pptr%pcs%livestemc_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -840,7 +812,7 @@ contains
        call ncd_io(varname='livestemc_xfer', data=pptr%pcs%livestemc_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -852,7 +824,7 @@ contains
        call ncd_io(varname='deadstemc', data=pptr%pcs%deadstemc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -864,7 +836,7 @@ contains
        call ncd_io(varname='deadstemc_storage', data=pptr%pcs%deadstemc_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -876,7 +848,7 @@ contains
        call ncd_io(varname='deadstemc_xfer', data=pptr%pcs%deadstemc_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -888,7 +860,7 @@ contains
        call ncd_io(varname='livecrootc', data=pptr%pcs%livecrootc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -900,7 +872,7 @@ contains
        call ncd_io(varname='livecrootc_storage', data=pptr%pcs%livecrootc_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -912,7 +884,7 @@ contains
        call ncd_io(varname='livecrootc_xfer', data=pptr%pcs%livecrootc_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -924,7 +896,7 @@ contains
        call ncd_io(varname='deadcrootc', data=pptr%pcs%deadcrootc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -936,7 +908,7 @@ contains
        call ncd_io(varname='deadcrootc_storage', data=pptr%pcs%deadcrootc_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -948,7 +920,7 @@ contains
        call ncd_io(varname='deadcrootc_xfer', data=pptr%pcs%deadcrootc_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -960,7 +932,7 @@ contains
        call ncd_io(varname='gresp_storage', data=pptr%pcs%gresp_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -972,7 +944,7 @@ contains
        call ncd_io(varname='gresp_xfer', data=pptr%pcs%gresp_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -984,7 +956,7 @@ contains
        call ncd_io(varname='cpool', data=pptr%pcs%cpool, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -996,7 +968,7 @@ contains
        call ncd_io(varname='xsmrpool', data=pptr%pcs%xsmrpool, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -1008,7 +980,7 @@ contains
        call ncd_io(varname='pft_ctrunc', data=pptr%pcs%pft_ctrunc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -1020,7 +992,7 @@ contains
        call ncd_io(varname='totvegc', data=pptr%pcs%totvegc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -1057,12 +1029,12 @@ contains
                     pcisos%leafc(i) = pcbulks%leafc(i) * c3_r2
                  else
                     pcisos%leafc(i) = pcbulks%leafc(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%leafc(i) .ne. spval .and. pptr%pcs%leafc(i) .ne. nan ) then
 !                    pptr%pc13s%leafc(i) = pptr%pcs%leafc(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1080,12 +1052,12 @@ contains
                     pcisos%leafc_storage(i) = pcbulks%leafc_storage(i) * c3_r2
                  else
                     pcisos%leafc_storage(i) = pcbulks%leafc_storage(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%leafc_storage(i) .ne. spval .and. pptr%pcs%leafc_storage(i) .ne. nan ) then
 !                    pptr%pc13s%leafc_storage(i) = pptr%pcs%leafc_storage(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1103,12 +1075,12 @@ contains
                     pcisos%leafc_xfer(i) = pcbulks%leafc_xfer(i) * c3_r2
                  else
                     pcisos%leafc_xfer(i) = pcbulks%leafc_xfer(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%leafc_xfer(i) .ne. spval .and. pptr%pcs%leafc_xfer(i) .ne. nan ) then
 !                    pptr%pc13s%leafc_xfer(i) = pptr%pcs%leafc_xfer(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1126,12 +1098,12 @@ contains
                     pcisos%frootc(i) = pcbulks%frootc(i) * c3_r2
                  else
                     pcisos%frootc(i) = pcbulks%frootc(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%frootc(i) .ne. spval .and. pptr%pcs%frootc(i) .ne. nan ) then
 !                    pptr%pc13s%frootc(i) = pptr%pcs%frootc(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1149,12 +1121,12 @@ contains
                     pcisos%frootc_storage(i) = pcbulks%frootc_storage(i) * c3_r2
                  else
                     pcisos%frootc_storage(i) = pcbulks%frootc_storage(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%frootc_storage(i) .ne. spval .and. pptr%pcs%frootc_storage(i) .ne. nan ) then
 !                    pptr%pc13s%frootc_storage(i) = pptr%pcs%frootc_storage(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1172,12 +1144,12 @@ contains
                     pcisos%frootc_xfer(i) = pcbulks%frootc_xfer(i) * c3_r2
                  else
                     pcisos%frootc_xfer(i) = pcbulks%frootc_xfer(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%frootc_xfer(i) .ne. spval .and. pptr%pcs%frootc_xfer(i) .ne. nan ) then
 !                    pptr%pc13s%frootc_xfer(i) = pptr%pcs%frootc_xfer(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1195,12 +1167,12 @@ contains
                     pcisos%livestemc(i) = pcbulks%livestemc(i) * c3_r2
                  else
                     pcisos%livestemc(i) = pcbulks%livestemc(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%livestemc(i) .ne. spval .and. pptr%pcs%livestemc(i) .ne. nan ) then
 !                    pptr%pc13s%livestemc(i) = pptr%pcs%livestemc(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1218,12 +1190,12 @@ contains
                     pcisos%livestemc_storage(i) = pcbulks%livestemc_storage(i) * c3_r2
                  else
                     pcisos%livestemc_storage(i) = pcbulks%livestemc_storage(i) * c4_r2
-                 endif
+                 end if
 !                if (pptr%pcs%livestemc_storage(i) .ne. spval .and. pptr%pcs%livestemc_storage(i) .ne. nan ) then
 !                    pptr%pc13s%livestemc_storage(i) = pptr%pcs%livestemc_storage(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1241,12 +1213,12 @@ contains
                     pcisos%livestemc_xfer(i) = pcbulks%livestemc_xfer(i) * c3_r2
                  else
                     pcisos%livestemc_xfer(i) = pcbulks%livestemc_xfer(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%livestemc_xfer(i) .ne. spval .and. pptr%pcs%livestemc_xfer(i) .ne. nan ) then
 !                    pptr%pc13s%livestemc_xfer(i) = pptr%pcs%livestemc_xfer(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1264,12 +1236,12 @@ contains
                     pcisos%deadstemc(i) = pcbulks%deadstemc(i) * c3_r2
                  else
                     pcisos%deadstemc(i) = pcbulks%deadstemc(i) * c4_r2
-                 endif 
+                 end if 
 !                 if (pptr%pcs%deadstemc(i) .ne. spval .and. pptr%pcs%deadstemc(i) .ne. nan ) then
 !                    pptr%pc13s%deadstemc(i) = pptr%pcs%deadstemc(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1287,12 +1259,12 @@ contains
                     pcisos%deadstemc_storage(i) = pcbulks%deadstemc_storage(i) * c3_r2
                  else
                     pcisos%deadstemc_storage(i) = pcbulks%deadstemc_storage(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%deadstemc_storage(i) .ne. spval .and. pptr%pcs%deadstemc_storage(i) .ne. nan ) then
 !                    pptr%pc13s%deadstemc_storage(i) = pptr%pcs%deadstemc_storage(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1310,12 +1282,12 @@ contains
                     pcisos%deadstemc_xfer(i) = pcbulks%deadstemc_xfer(i) * c3_r2
                  else
                     pcisos%deadstemc_xfer(i) = pcbulks%deadstemc_xfer(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%deadstemc_xfer(i) .ne. spval .and. pptr%pcs%deadstemc_xfer(i) .ne. nan ) then
 !                    pptr%pc13s%deadstemc_xfer(i) = pptr%pcs%deadstemc_xfer(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1333,12 +1305,12 @@ contains
                     pcisos%livecrootc(i) = pcbulks%livecrootc(i) * c3_r2
                  else
                     pcisos%livecrootc(i) = pcbulks%livecrootc(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%livecrootc(i) .ne. spval .and. pptr%pcs%livecrootc(i) .ne. nan ) then
 !                    pptr%pc13s%livecrootc(i) = pptr%pcs%livecrootc(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1356,12 +1328,12 @@ contains
                     pcisos%livecrootc_storage(i) = pcbulks%livecrootc_storage(i) * c3_r2
                  else
                     pcisos%livecrootc_storage(i) = pcbulks%livecrootc_storage(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%livecrootc_storage(i) .ne. spval .and. pptr%pcs%livecrootc_storage(i) .ne. nan ) then
 !                    pptr%pc13s%livecrootc_storage(i) = pptr%pcs%livecrootc_storage(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1379,12 +1351,12 @@ contains
                     pcisos%livecrootc_xfer(i) = pcbulks%livecrootc_xfer(i) * c3_r2
                  else
                     pcisos%livecrootc_xfer(i) = pcbulks%livecrootc_xfer(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%livecrootc_xfer(i) .ne. spval .and. pptr%pcs%livecrootc_xfer(i) .ne. nan ) then
 !                    pptr%pc13s%livecrootc_xfer(i) = pptr%pcs%livecrootc_xfer(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1402,12 +1374,12 @@ contains
                     pcisos%deadcrootc(i) = pcbulks%deadcrootc(i) * c3_r2
                  else
                     pcisos%deadcrootc(i) = pcbulks%deadcrootc(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%deadcrootc(i) .ne. spval .and. pptr%pcs%deadcrootc(i) .ne. nan ) then
 !                    pptr%pc13s%deadcrootc(i) = pptr%pcs%deadcrootc(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1425,12 +1397,12 @@ contains
                     pcisos%deadcrootc_storage(i) = pcbulks%deadcrootc_storage(i) * c3_r2
                  else
                     pcisos%deadcrootc_storage(i) = pcbulks%deadcrootc_storage(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%deadcrootc_storage(i) .ne. spval .and. pptr%pcs%deadcrootc_storage(i) .ne. nan ) then
 !                    pptr%pc13s%deadcrootc_storage(i) = pptr%pcs%deadcrootc_storage(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1448,12 +1420,12 @@ contains
                     pcisos%deadcrootc_xfer(i) = pcbulks%deadcrootc_xfer(i) * c3_r2
                  else
                     pcisos%deadcrootc_xfer(i) = pcbulks%deadcrootc_xfer(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%deadcrootc_xfer(i) .ne. spval .and. pptr%pcs%deadcrootc_xfer(i) .ne. nan ) then
 !                    pptr%pc13s%deadcrootc_xfer(i) = pptr%pcs%deadcrootc_xfer(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1471,12 +1443,12 @@ contains
                     pcisos%gresp_storage(i) = pcbulks%gresp_storage(i) * c3_r2
                  else
                     pcisos%gresp_storage(i) = pcbulks%gresp_storage(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%gresp_storage(i) .ne. spval .and. pptr%pcs%gresp_storage(i) .ne. nan ) then
 !                    pptr%pc13s%gresp_storage(i) = pptr%pcs%gresp_storage(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1494,12 +1466,12 @@ contains
                     pcisos%gresp_xfer(i) = pcbulks%gresp_xfer(i) * c3_r2
                  else
                     pcisos%gresp_xfer(i) = pcbulks%gresp_xfer(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%gresp_xfer(i) .ne. spval .and. pptr%pcs%gresp_xfer(i) .ne. nan ) then
 !                    pptr%pc13s%gresp_xfer(i) = pptr%pcs%gresp_xfer(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1517,12 +1489,12 @@ contains
                     pcisos%cpool(i) = pcbulks%cpool(i) * c3_r2
                  else
                     pcisos%cpool(i) = pcbulks%cpool(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%cpool(i) .ne. spval .and. pptr%pcs%cpool(i) .ne. nan ) then
 !                    pptr%pc13s%cpool(i) = pptr%pcs%cpool(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1540,12 +1512,12 @@ contains
                     pcisos%xsmrpool(i) = pcbulks%xsmrpool(i) * c3_r2
                  else
                     pcisos%xsmrpool(i) = pcbulks%xsmrpool(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%xsmrpool(i) .ne. spval .and. pptr%pcs%xsmrpool(i) .ne. nan ) then
 !                    pptr%pc13s%xsmrpool(i) = pptr%pcs%xsmrpool(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1563,12 +1535,12 @@ contains
                     pcisos%pft_ctrunc(i) = pcbulks%pft_ctrunc(i) * c3_r2
                  else
                     pcisos%pft_ctrunc(i) = pcbulks%pft_ctrunc(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%pft_ctrunc(i) .ne. spval .and. pptr%pcs%pft_ctrunc(i) .ne. nan ) then
 !                    pptr%pc13s%pft_ctrunc(i) = pptr%pcs%pft_ctrunc(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1586,15 +1558,15 @@ contains
                     pcisos%totvegc(i) = pcbulks%totvegc(i) * c3_r2
                  else
                     pcisos%totvegc(i) = pcbulks%totvegc(i) * c4_r2
-                 endif
+                 end if
 !                 if (pptr%pcs%totvegc(i) .ne. spval .and. pptr%pcs%totvegc(i) .ne. nan ) then
 !                    pptr%pc13s%totvegc(i) = pptr%pcs%totvegc(i) * c13ratio
-!                 endif
+!                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-     endif
+     end if
      
      if ( use_c14 ) then
         !--------------------------------
@@ -1613,9 +1585,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%leafc(i) .ne. spval .and. pptr%pcs%leafc(i) .ne. nan ) then
                     pptr%pc14s%leafc(i) = pptr%pcs%leafc(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1632,9 +1604,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%leafc_storage(i) .ne. spval .and. pptr%pcs%leafc_storage(i) .ne. nan ) then
                     pptr%pc14s%leafc_storage(i) = pptr%pcs%leafc_storage(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1650,9 +1622,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%leafc_xfer(i) .ne. spval .and. pptr%pcs%leafc_xfer(i) .ne. nan ) then
                     pptr%pc14s%leafc_xfer(i) = pptr%pcs%leafc_xfer(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1668,9 +1640,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%frootc(i) .ne. spval .and. pptr%pcs%frootc(i) .ne. nan ) then
                     pptr%pc14s%frootc(i) = pptr%pcs%frootc(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1686,9 +1658,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%frootc_storage(i) .ne. spval .and. pptr%pcs%frootc_storage(i) .ne. nan ) then
                     pptr%pc14s%frootc_storage(i) = pptr%pcs%frootc_storage(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1704,9 +1676,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%frootc_xfer(i) .ne. spval .and. pptr%pcs%frootc_xfer(i) .ne. nan ) then
                     pptr%pc14s%frootc_xfer(i) = pptr%pcs%frootc_xfer(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1722,9 +1694,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%livestemc(i) .ne. spval .and. pptr%pcs%livestemc(i) .ne. nan ) then
                     pptr%pc14s%livestemc(i) = pptr%pcs%livestemc(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1740,9 +1712,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%livestemc_storage(i) .ne. spval .and. pptr%pcs%livestemc_storage(i) .ne. nan ) then
                     pptr%pc14s%livestemc_storage(i) = pptr%pcs%livestemc_storage(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1758,9 +1730,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%livestemc_xfer(i) .ne. spval .and. pptr%pcs%livestemc_xfer(i) .ne. nan ) then
                     pptr%pc14s%livestemc_xfer(i) = pptr%pcs%livestemc_xfer(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1776,9 +1748,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%deadstemc(i) .ne. spval .and. pptr%pcs%deadstemc(i) .ne. nan ) then
                     pptr%pc14s%deadstemc(i) = pptr%pcs%deadstemc(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1794,9 +1766,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%deadstemc_storage(i) .ne. spval .and. pptr%pcs%deadstemc_storage(i) .ne. nan ) then
                     pptr%pc14s%deadstemc_storage(i) = pptr%pcs%deadstemc_storage(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1812,9 +1784,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%deadstemc_xfer(i) .ne. spval .and. pptr%pcs%deadstemc_xfer(i) .ne. nan ) then
                     pptr%pc14s%deadstemc_xfer(i) = pptr%pcs%deadstemc_xfer(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1830,9 +1802,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%livecrootc(i) .ne. spval .and. pptr%pcs%livecrootc(i) .ne. nan ) then
                     pptr%pc14s%livecrootc(i) = pptr%pcs%livecrootc(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1848,9 +1820,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%livecrootc_storage(i) .ne. spval .and. pptr%pcs%livecrootc_storage(i) .ne. nan ) then
                     pptr%pc14s%livecrootc_storage(i) = pptr%pcs%livecrootc_storage(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1866,9 +1838,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%livecrootc_xfer(i) .ne. spval .and. pptr%pcs%livecrootc_xfer(i) .ne. nan ) then
                     pptr%pc14s%livecrootc_xfer(i) = pptr%pcs%livecrootc_xfer(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1884,9 +1856,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%deadcrootc(i) .ne. spval .and. pptr%pcs%deadcrootc(i) .ne. nan ) then
                     pptr%pc14s%deadcrootc(i) = pptr%pcs%deadcrootc(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1902,9 +1874,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%deadcrootc_storage(i) .ne. spval .and. pptr%pcs%deadcrootc_storage(i) .ne. nan ) then
                     pptr%pc14s%deadcrootc_storage(i) = pptr%pcs%deadcrootc_storage(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1920,9 +1892,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%deadcrootc_xfer(i) .ne. spval .and. pptr%pcs%deadcrootc_xfer(i) .ne. nan ) then
                     pptr%pc14s%deadcrootc_xfer(i) = pptr%pcs%deadcrootc_xfer(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1938,9 +1910,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%gresp_storage(i) .ne. spval .and. pptr%pcs%gresp_storage(i) .ne. nan ) then
                     pptr%pc14s%gresp_storage(i) = pptr%pcs%gresp_storage(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1956,9 +1928,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%gresp_xfer(i) .ne. spval .and. pptr%pcs%gresp_xfer(i) .ne. nan ) then
                     pptr%pc14s%gresp_xfer(i) = pptr%pcs%gresp_xfer(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1974,9 +1946,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%cpool(i) .ne. spval .and. pptr%pcs%cpool(i) .ne. nan ) then
                     pptr%pc14s%cpool(i) = pptr%pcs%cpool(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -1992,9 +1964,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%xsmrpool(i) .ne. spval .and. pptr%pcs%xsmrpool(i) .ne. nan ) then
                     pptr%pc14s%xsmrpool(i) = pptr%pcs%xsmrpool(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -2010,9 +1982,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%pft_ctrunc(i) .ne. spval .and. pptr%pcs%pft_ctrunc(i) .ne. nan ) then
                     pptr%pc14s%pft_ctrunc(i) = pptr%pcs%pft_ctrunc(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -2028,9 +2000,9 @@ contains
               do i = begp,endp
                  if (pptr%pcs%totvegc(i) .ne. spval .and. pptr%pcs%totvegc(i) .ne. nan ) then
                     pptr%pc14s%totvegc(i) = pptr%pcs%totvegc(i) * c14ratio
-                 endif
+                 end if
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
         
@@ -2046,11 +2018,11 @@ contains
               do i = begp,endp
                  pptr%pepv%rc14_atm(i) = c14ratio
               end do
-              if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
 
-     endif
+     end if
 
     !--------------------------------
     ! pft nitrogen state variables
@@ -2064,7 +2036,7 @@ contains
        call ncd_io(varname='leafn', data=pptr%pns%leafn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2076,7 +2048,7 @@ contains
        call ncd_io(varname='leafn_storage', data=pptr%pns%leafn_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2088,7 +2060,7 @@ contains
        call ncd_io(varname='leafn_xfer', data=pptr%pns%leafn_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2100,7 +2072,7 @@ contains
        call ncd_io(varname='frootn', data=pptr%pns%frootn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2112,7 +2084,7 @@ contains
        call ncd_io(varname='frootn_storage', data=pptr%pns%frootn_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2124,7 +2096,7 @@ contains
        call ncd_io(varname='frootn_xfer', data=pptr%pns%frootn_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2136,7 +2108,7 @@ contains
        call ncd_io(varname='livestemn', data=pptr%pns%livestemn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2148,7 +2120,7 @@ contains
        call ncd_io(varname='livestemn_storage', data=pptr%pns%livestemn_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2160,7 +2132,7 @@ contains
        call ncd_io(varname='livestemn_xfer', data=pptr%pns%livestemn_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2172,7 +2144,7 @@ contains
        call ncd_io(varname='deadstemn', data=pptr%pns%deadstemn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2184,7 +2156,7 @@ contains
        call ncd_io(varname='deadstemn_storage', data=pptr%pns%deadstemn_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2196,7 +2168,7 @@ contains
        call ncd_io(varname='deadstemn_xfer', data=pptr%pns%deadstemn_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2208,7 +2180,7 @@ contains
        call ncd_io(varname='livecrootn', data=pptr%pns%livecrootn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2220,7 +2192,7 @@ contains
        call ncd_io(varname='livecrootn_storage', data=pptr%pns%livecrootn_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2232,7 +2204,7 @@ contains
        call ncd_io(varname='livecrootn_xfer', data=pptr%pns%livecrootn_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2244,7 +2216,7 @@ contains
        call ncd_io(varname='deadcrootn', data=pptr%pns%deadcrootn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2256,7 +2228,7 @@ contains
        call ncd_io(varname='deadcrootn_storage', data=pptr%pns%deadcrootn_storage, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2268,7 +2240,7 @@ contains
        call ncd_io(varname='deadcrootn_xfer', data=pptr%pns%deadcrootn_xfer, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2280,7 +2252,7 @@ contains
        call ncd_io(varname='retransn', data=pptr%pns%retransn, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2292,7 +2264,7 @@ contains
        call ncd_io(varname='npool', data=pptr%pns%npool, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2304,7 +2276,7 @@ contains
        call ncd_io(varname='pft_ntrunc', data=pptr%pns%pft_ntrunc, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2320,7 +2292,7 @@ contains
        call ncd_io(varname='decl', data=cptr%cps%decl, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -2350,7 +2322,7 @@ contains
 
 !     ! tmean_monthly
 !     call cnrest_addfld_decomp(ncid=ncid, varname='tmean_monthly', longname='', units='', flag=flag, data_rl=cptr%cps%tmean_monthly, readvar=readvar)
-! #endif
+! #end if
     ! fpg
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='fpg', xtype=ncd_double,  &
@@ -2359,7 +2331,7 @@ contains
        call ncd_io(varname='fpg', data=cptr%cps%fpg, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -2371,7 +2343,7 @@ contains
        call ncd_io(varname='annsum_counter', data=cptr%cps%annsum_counter, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -2383,7 +2355,7 @@ contains
        call ncd_io(varname='cannsum_npp', data=cptr%cps%cannsum_npp, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -2395,7 +2367,7 @@ contains
        call ncd_io(varname='col_lag_npp', data=cptr%cps%col_lag_npp, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -2407,7 +2379,7 @@ contains
        call ncd_io(varname='cannavg_t2m', data=cptr%cps%cannavg_t2m, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -2420,7 +2392,7 @@ contains
        call ncd_io(varname='burndate', data=pptr%pps%burndate, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
       
@@ -2432,7 +2404,7 @@ contains
        call ncd_io(varname='lfc', data=cptr%cps%lfc, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if  
    
@@ -2444,7 +2416,7 @@ contains
        call ncd_io(varname='wf', data=cptr%cps%wf, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -2457,7 +2429,7 @@ contains
        call ncd_io(varname='btran2', data=pptr%pps%btran2, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -2500,7 +2472,7 @@ contains
        call ncd_io(varname='altmax', data=cptr%cps%altmax, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -2512,7 +2484,7 @@ contains
        call ncd_io(varname='altmax_lastyear', data=cptr%cps%altmax_lastyear, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -2524,7 +2496,7 @@ contains
        call ncd_io(varname='altmax_indx', data=cptr%cps%altmax_indx, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -2536,7 +2508,7 @@ contains
        call ncd_io(varname='altmax_lastyear_indx', data=cptr%cps%altmax_lastyear_indx, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -2550,7 +2522,7 @@ contains
        call ncd_io(varname='seedc', data=cptr%ccs%seedc, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
         
@@ -2562,7 +2534,7 @@ contains
        call ncd_io(varname='totlitc', data=cptr%ccs%totlitc, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2574,7 +2546,7 @@ contains
        call ncd_io(varname='totcolc', data=cptr%ccs%totcolc, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2586,7 +2558,7 @@ contains
        call ncd_io(varname='prod10c', data=cptr%ccs%prod10c, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2598,7 +2570,7 @@ contains
        call ncd_io(varname='prod100c', data=cptr%ccs%prod100c, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2610,7 +2582,7 @@ contains
        call ncd_io(varname='totsomc', data=cptr%ccs%totsomc, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -2630,7 +2602,7 @@ contains
                 do j = 1, nlevdecomp
                    if (cptr%ccs%decomp_cpools_vr(i,j,k) .ne. spval .and. cptr%ccs%decomp_cpools_vr(i,j,k) .ne. nan ) then
                       cptr%cc13s%decomp_cpools_vr(i,j,k) = cptr%ccs%decomp_cpools_vr(i,j,k) * c3_r2
-                   endif
+                   end if
                 end do
              end do
           end if
@@ -2647,9 +2619,9 @@ contains
              do i = begc,endc
                 if (cptr%ccs%seedc(i) .ne. spval .and. cptr%ccs%seedc(i) .ne. nan ) then
                    cptr%cc13s%seedc(i) = cptr%ccs%seedc(i) * c3_r2
-                endif
+                end if
              end do
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
        
@@ -2664,7 +2636,7 @@ contains
        !    call ncd_io(varname='col_ctrunc_13', data=cptr%cc13s%col_ctrunc, &
        !         dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        !    if (flag=='read' .and. .not. readvar) then
-       !       if (is_restart()) call fatal(__FILE__,__LINE__,'clm now
+       !       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now
        !       stopping')
        !    end if
        ! end if
@@ -2680,9 +2652,9 @@ contains
              do i = begc,endc
                 if (cptr%ccs%totlitc(i) .ne. spval .and. cptr%ccs%totlitc(i) .ne. nan ) then
                    cptr%cc13s%totlitc(i) = cptr%ccs%totlitc(i) * c3_r2
-                endif
+                end if
              end do
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
        
@@ -2697,9 +2669,9 @@ contains
              do i = begc,endc
                 if (cptr%ccs%totcolc(i) .ne. spval .and. cptr%ccs%totcolc(i) .ne. nan ) then
                    cptr%cc13s%totcolc(i) = cptr%ccs%totcolc(i) * c3_r2
-                endif
+                end if
              end do
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
        
@@ -2714,9 +2686,9 @@ contains
              do i = begc,endc
                 if (cptr%ccs%prod10c(i) .ne. spval .and. cptr%ccs%prod10c(i) .ne. nan ) then
                    cptr%cc13s%prod10c(i) = cptr%ccs%prod10c(i) * c3_r2
-                endif
+                end if
              end do
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
        
@@ -2731,12 +2703,12 @@ contains
              do i = begc,endc
                 if (cptr%ccs%prod100c(i) .ne. spval .and. cptr%ccs%prod100c(i) .ne. nan ) then
                    cptr%cc13s%prod100c(i) = cptr%ccs%prod100c(i) * c3_r2
-                endif
+                end if
              end do
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
-    endif
+    end if
 
     if ( use_c14 ) then
        !--------------------------------
@@ -2753,7 +2725,7 @@ contains
                 do j = 1, nlevdecomp
                    if (cptr%ccs%decomp_cpools_vr(i,j,k) .ne. spval .and. cptr%ccs%decomp_cpools_vr(i,j,k) .ne. nan ) then
                       cptr%cc14s%decomp_cpools_vr(i,j,k) = cptr%ccs%decomp_cpools_vr(i,j,k) * c14ratio
-                   endif
+                   end if
                 end do
              end do
           end if
@@ -2771,9 +2743,9 @@ contains
              do i = begc,endc
                 if (cptr%ccs%seedc(i) .ne. spval .and. cptr%ccs%seedc(i) .ne. nan ) then
                    cptr%cc14s%seedc(i) = cptr%ccs%seedc(i) * c14ratio
-                endif
+                end if
              end do
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
        
@@ -2792,9 +2764,9 @@ contains
        !       do i = begc,endc
        !          if (cptr%ccs%col_ctrunc(i) .ne. spval .and. cptr%ccs%col_ctrunc(i) .ne. nan ) then
        !             cptr%cc14s%col_ctrunc(i) = cptr%ccs%col_ctrunc(i) * c14ratio
-       !          endif
+       !          end if
        !       end do
-       !       if (is_restart()) call fatal(__FILE__,__LINE__,'clm now
+       !       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now
        !       stopping')
        !    end if
        ! end if
@@ -2811,9 +2783,9 @@ contains
              do i = begc,endc
                 if (cptr%ccs%totlitc(i) .ne. spval .and. cptr%ccs%totlitc(i) .ne. nan ) then
                    cptr%cc14s%totlitc(i) = cptr%ccs%totlitc(i) * c14ratio
-                endif
+                end if
              end do
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
        
@@ -2829,9 +2801,9 @@ contains
              do i = begc,endc
                 if (cptr%ccs%totcolc(i) .ne. spval .and. cptr%ccs%totcolc(i) .ne. nan ) then
                    cptr%cc14s%totcolc(i) = cptr%ccs%totcolc(i) * c14ratio
-                endif
+                end if
              end do
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
        
@@ -2847,9 +2819,9 @@ contains
              do i = begc,endc
                 if (cptr%ccs%prod10c(i) .ne. spval .and. cptr%ccs%prod10c(i) .ne. nan ) then
                    cptr%cc14s%prod10c(i) = cptr%ccs%prod10c(i) * c14ratio
-                endif
+                end if
              end do
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
        
@@ -2865,12 +2837,12 @@ contains
              do i = begc,endc
                 if (cptr%ccs%prod100c(i) .ne. spval .and. cptr%ccs%prod100c(i) .ne. nan ) then
                    cptr%cc14s%prod100c(i) = cptr%ccs%prod100c(i) * c14ratio
-                endif
+                end if
              end do
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
-    endif
+    end if
        
     !--------------------------------
     ! column nitrogen state variables
@@ -2938,7 +2910,7 @@ contains
        call ncd_io(varname='totcoln', data=cptr%cns%totcoln, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -2950,7 +2922,7 @@ contains
        call ncd_io(varname='seedn', data=cptr%cns%seedn, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2962,7 +2934,7 @@ contains
        call ncd_io(varname='prod10n', data=cptr%cns%prod10n, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
     
@@ -2974,7 +2946,7 @@ contains
        call ncd_io(varname='prod100n', data=cptr%cns%prod100n, &
             dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
        if (flag=='read' .and. .not. readvar) then
-      if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
 
@@ -3018,9 +2990,9 @@ contains
            if ( .not. override_bgc_restart_mismatch_dump ) then
               call fatal(__FILE__,__LINE__, &
                 ' CNRest: Stopping. Decomposition cascade mismatch error.')
-           endif
-        endif
-    endif
+           end if
+        end if
+    end if
 
     ! spinup_state
     if (flag == 'define') then
@@ -3045,8 +3017,6 @@ contains
     ! now compare the model and restart file spinup states, and either take the model into spinup mode or out of it if they are not identical
     ! taking model out of spinup mode requires multiplying each decomposing pool by the associated AD factor.
     ! putting model into spinup mode requires dividing each decomposing pool by the associated AD factor.
-    nstep = get_nstep()  ! only allow this to occur on first timestep of model run.
-
     if (flag == 'read' .and. spinup_state .ne. restart_file_spinup_state ) then
        if (spinup_state .eq. 0 .and. restart_file_spinup_state .eq. 1 ) then
           if ( myid == italk ) then
@@ -3062,10 +3032,10 @@ contains
           call fatal(__FILE__,__LINE__,&
             ' CNRest: error in entering/exiting spinup.  spinup_state != restart_file_spinup_state, but do not know what to do')
        end if
-       if (nstep .ge. 2) then
+       if (ktau >= ntsrf) then
           call fatal(__FILE__,__LINE__,&
             ' CNRest: error in entering/exiting spinup. this should occur only when nstep = 1 ')
-       endif
+       end if
        do k = 1, ndecomp_pools
           if ( exit_spinup ) then
              m = decomp_cascade_con%spinup_factor(k)
@@ -3078,11 +3048,11 @@ contains
                 
                 if ( use_c13 ) then
                    clm3%g%l%c%cc13s%decomp_cpools_vr(c,j,k) = clm3%g%l%c%cc13s%decomp_cpools_vr(c,j,k) * m
-                endif
+                end if
                 
                 if ( use_c14 ) then
                    clm3%g%l%c%cc14s%decomp_cpools_vr(c,j,k) = clm3%g%l%c%cc14s%decomp_cpools_vr(c,j,k) * m
-                endif
+                end if
                 
                 clm3%g%l%c%cns%decomp_npools_vr(c,j,k) = clm3%g%l%c%cns%decomp_npools_vr(c,j,k) * m
              end do
@@ -3090,7 +3060,7 @@ contains
        end do
     end if
 
-    if ( .not. is_restart() .and. nstep .eq. 1 ) then
+    if ( ktau == 0 ) then
        do i = begp, endp
           if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
              pcisos%grainc(i) = pcbulks%grainc(i) * c3_r2
@@ -3123,7 +3093,7 @@ contains
        call ncd_io(varname='CROWNAREA', data=pptr%pdgvs%crownarea, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+          if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
     end if
 
@@ -3135,7 +3105,7 @@ contains
        call ncd_io(varname='tempsum_litfall', data=pptr%pepv%tempsum_litfall, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+          if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
     end if
 
@@ -3147,7 +3117,7 @@ contains
        call ncd_io(varname='annsum_litfall', data=pptr%pepv%annsum_litfall, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+          if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
     end if
 
@@ -3159,7 +3129,7 @@ contains
        call ncd_io(varname='nind', data=pptr%pdgvs%nind, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+          if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
     end if
 
@@ -3171,7 +3141,7 @@ contains
        call ncd_io(varname='fpcgrid', data=pptr%pdgvs%fpcgrid, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+          if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
     end if
 
@@ -3183,7 +3153,7 @@ contains
        call ncd_io(varname='fpcgridold', data=pptr%pdgvs%fpcgridold, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+          if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
     end if
 
@@ -3195,7 +3165,7 @@ contains
        call ncd_io(varname='TMOMIN20', data=gptr%gdgvs%tmomin20, &
             dim1name=nameg, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+          if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
     end if
 
@@ -3207,7 +3177,7 @@ contains
        call ncd_io(varname='AGDD20', data=gptr%gdgvs%agdd20, &
             dim1name=nameg, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+          if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
     end if
 
@@ -3219,7 +3189,7 @@ contains
        call ncd_io(varname='T_MO_MIN', data=pptr%pdgvs%t_mo_min, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+          if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
     end if
 
@@ -3242,7 +3212,7 @@ contains
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read') then
           if (.not. readvar) then
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           else
              do p = begp,endp
                 pptr%pdgvs%present(p) = .false.
@@ -3261,7 +3231,7 @@ contains
        call ncd_io(varname='leafcmax', data=pptr%pcs%leafcmax, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+          if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
     end if
 
@@ -3273,7 +3243,7 @@ contains
        call ncd_io(varname='heatstress', data=pptr%pdgvs%heatstress, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+          if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
     end if
 
@@ -3285,7 +3255,7 @@ contains
        call ncd_io(varname='greffic', data=pptr%pdgvs%greffic, &
             dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
-          if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+          if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
     end if
 #endif
@@ -3304,7 +3274,6 @@ contains
 ! !USES:
     use mod_clm_varcon, only : nlevgrnd
     use mod_clm_type, only: namec
-    use mod_clm_time_manager, only : is_restart
 !
 ! !ARGUMENTS:
     implicit none
@@ -3320,7 +3289,6 @@ contains
 
     
 #ifdef VERTSOILC
-
        if (flag == 'define') then
           call ncd_defvar(ncid=ncid, varname=trim(varname)//'_vr', xtype=ncd_double,  &
                dim1name='column',dim2name='levgrnd', switchdim=.true., &
@@ -3329,10 +3297,9 @@ contains
           call ncd_io(varname=trim(varname)//'_vr', data=data_rl, &
                dim1name=namec,switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
           if (flag=='read' .and. .not. readvar) then
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
-
 #else
        !! nlevdecomp = 1; so treat as 1D variable
        ptr1d => data_rl(:,1)
@@ -3343,12 +3310,10 @@ contains
           call ncd_io(varname=trim(varname), data=ptr1d, &
                dim1name=namec,ncid=ncid, flag=flag, readvar=readvar) 
           if (flag=='read' .and. .not. readvar) then
-             if (is_restart()) call fatal(__FILE__,__LINE__,'clm now stopping')
+             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
 #endif
-
-    
   end subroutine cnrest_addfld_decomp
   
 #endif
