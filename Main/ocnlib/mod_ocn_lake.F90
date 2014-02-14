@@ -380,8 +380,7 @@ module mod_ocn_lake
     intent (in) hsen , ql , tl , vl , zl
     intent (in) ndpt , eta
     intent (out) tgl
-    intent (in) hsnow
-    intent (inout) tprof , evl , aveice
+    intent (inout) tprof , evl , aveice , hsnow
     real(rk8) :: ai , ea , ev , hs , ld , lu , qe , qh , tac , tk , u2
     ! zo: surface roughness length
     real(rk8) , parameter :: zo = 0.001D0
@@ -423,17 +422,20 @@ module mod_ocn_lake
       tk  = tzero + tprof(1)
       lu  = -emsw*sigm*tk**4
       ld  = flw - lu
-      ev  = evl*secph         ! convert to mm/hr
+      ev  = evl*secph          ! convert to mm/hr
       ai  = aveice * d_r1000   ! convert to m
-      hs  = hsnow * d_r100     ! convert to m
+      hs  = hsnow * d_r1000    ! convert to m
 
       call lakeice(dtlake,fsw,ld,tac,u2,ea,hs,hi,ai,ev,prec,tprof)
       if ( .not. lfreeze ) tprof(1) = twatui
 
       evl    = ev/secph       ! convert evl  from mm/hr to mm/sec
       aveice = ai*d_1000      ! convert ice  from m to mm
-      if (aveice < dlowval) aveice = d_zero
-
+      hsnow  = hs*d_1000      ! convert snow form m to mm
+      if (aveice < dlowval) then
+        aveice = d_zero
+        hsnow = d_zero
+      end if
     end if
     tgl = tprof(1) + tzero
   end subroutine lake
