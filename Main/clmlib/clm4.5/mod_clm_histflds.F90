@@ -1,23 +1,38 @@
-module histFldsMod
+module mod_clm_histflds
   !
   ! Module containing initialization of clm history fields and files
   ! This is the module that the user must modify in order to add new
   ! history fields or modify defaults associated with existing history
   ! fields.
   !
-  use mod_intkinds
-  use mod_realkinds
-  use mod_stdio
+  use mod_clm_intkinds
+  use mod_clm_realkinds
   use mod_mpmessage
-  use mod_clm_varcon, only: dzsoi_decomp
+  use mod_clm_type
+  use mod_clm_varcon , only : spval
+  use mod_clm_varcon , only : dzsoi_decomp
+  use mod_clm_varpar , only : maxpatch_glcmec , ndecomp_cascade_transitions
+  use mod_clm_varpar , only : ndecomp_pools , nlevdecomp , nlevdecomp_full
+  use mod_clm_atmlnd , only : clm_a2l
+  use mod_clm_varctl , only : create_glacier_mec_landunit , use_c13 , use_c14
+  use mod_clm_surfrd , only : crop_prog
+#if (defined LCH4)
+  use mod_clm_atmlnd , only : clm_l2a
+  use mod_clm_histfile , only : hist_wrtch4diag
+  use mod_clm_ch4varcon , only : allowlakeprod
+#endif
+  use mod_clm_histfile , only : hist_add_subscript
+  use mod_clm_histfile , only : hist_addfld1d , hist_addfld2d
+  use mod_clm_histfile , only : hist_printflds
+  use mod_clm_megan , only : shr_megan_linkedlist
+  use mod_clm_megan , only : shr_megan_megcomp_t , shr_megan_megcomps_n
 
   implicit none
 
   private
 
-  ! Build master field list of all possible history file fields
-  public :: hist_initFlds
-
+  public hist_initFlds ! Build master field list of all possible history
+                       ! file fields
   contains
   !
   ! Build master field list of all possible fields in a history file.
@@ -26,59 +41,32 @@ module histFldsMod
   ! called to add each field to the masterlist.
   !
   subroutine hist_initFlds()
-    use mod_clm_type
-    use mod_clm_varcon , only : spval
-    use mod_clm_varpar , only : maxpatch_glcmec
-    use mod_clm_atmlnd , only : clm_a2l , clm_l2a
-    use mod_clm_varctl , only : create_glacier_mec_landunit, &
-                            use_c13 , use_c14
-#if (defined LCH4)
-    use clm_atmlnd , only : clm_l2a
-    use histFileMod, only : hist_wrtch4diag
-    use ch4varcon  , only : allowlakeprod
-#endif
-    use clm_glclnd , only : clm_s2x
-    use histFileMod, only : hist_add_subscript, hist_addfld1d, hist_addfld2d, &
-                            hist_printflds
-    use surfrdMod  , only : crop_prog
-    use shr_megan_mod  , only : shr_megan_linkedlist, shr_megan_megcomp_t, shr_megan_megcomps_n
-
-    use clm_varpar , only :  ndecomp_cascade_transitions, ndecomp_pools, nlevdecomp, nlevdecomp_full
-!
-! !ARGUMENTS:
     implicit none
-
     type(shr_megan_megcomp_t), pointer :: meg_cmp
     integer(ik4) :: imeg
-!
-! !REVISION HISTORY:
-! Mariana Vertenstein: Created 03/2003
-! Mariana Vertenstein: Updated interface to create history fields 10/2003
-!
-!EOP
-!-----------------------------------------------------------------------
-    real(rk8), pointer :: data2dptr(:,:), data1dptr(:) ! temp. pointers for slicing larger arrays
-    integer(ik4) :: k,l, ii, jj
-    character(24) :: fieldname
-    character(100) :: longname
-    character(8) :: vr_suffix
-    character(10) :: active
+    ! temp. pointers for slicing larger arrays
+    real(rk8) , pointer :: data2dptr(:,:) , data1dptr(:)
+    integer(ik4) :: k , l , ii , jj
+    character(len=24) :: fieldname
+    character(len=100) :: longname
+    character(len=8) :: vr_suffix
+    character(len=10) :: active
 
     ! Determine what subscripts to add
     ! (uncomment the following call and modify it appropriately)
 
-    ! call hist_add_subscript(subname='subscript_name', subdim=subscript_dim)
+    ! call hist_add_subscript(subname='subscript_name',subdim=subscript_dim)
 
     ! NOTE: make a field not appear on the primary history tape by default -
-    ! add the keyword to default='inactive' to the call to addfld_1d or addfld_2d
+    ! add the keyword to default='inactive' to the call to
+    ! addfld_1d or addfld_2d
 
     ! add suffix if number of soil decomposition depths is greater than 1
-    if (nlevdecomp .gt. 1) then
-       vr_suffix = "_vr"
+    if ( nlevdecomp > 1 ) then
+      vr_suffix = "_vr"
     else 
-       vr_suffix = ""
-    endif
-
+      vr_suffix = ""
+    end if
 
     call hist_addfld1d (fname='H2OSFC',  units='mm',  &
          avgflag='A', long_name='surface water depth', &
@@ -108,13 +96,13 @@ module histFldsMod
          avgflag='A', long_name='river channel water storage', &
          ptr_lnd=clm_a2l%volr)
 
-
     ! Snow properties
     ! These will be vertically averaged over the snow profile
 
     call hist_addfld1d (fname='SNOW_DEPTH',  units='m',  &
          avgflag='A', long_name='snow height of snow covered area', &
-         ptr_col=clm3%g%l%c%cps%snow_depth, c2l_scale_type='urbanf')!, default='inactive')
+         ptr_col=clm3%g%l%c%cps%snow_depth, c2l_scale_type='urbanf')
+              !, default='inactive')
 
     call hist_addfld1d (fname='SNOWDP',  units='m',  &
          avgflag='A', long_name='gridcell mean snow height', &
@@ -125,8 +113,9 @@ module histFldsMod
          ptr_col=clm3%g%l%c%cps%frac_sno, c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='FSNO_EFF',  units='unitless',  &
-         avgflag='A', long_name='effective fraction of ground covered by snow', &
-         ptr_col=clm3%g%l%c%cps%frac_sno_eff, c2l_scale_type='urbanf')!, default='inactive')
+         avgflag='A', long_name='effective fraction of ground covered by snow',&
+         ptr_col=clm3%g%l%c%cps%frac_sno_eff, c2l_scale_type='urbanf')
+              !, default='inactive')
 
     ! Temperatures
 
@@ -144,7 +133,8 @@ module histFldsMod
 
     call hist_addfld1d(fname='TBUILD', units='K',  &
          avgflag='A', long_name='internal urban building temperature', &
-         ptr_lunit=clm3%g%l%lps%t_building, set_nourb=spval, l2g_scale_type='unity')
+         ptr_lunit=clm3%g%l%lps%t_building, set_nourb=spval, &
+         l2g_scale_type='unity')
 
     call hist_addfld1d (fname='TREFMNAV', units='K',  &
          avgflag='A', long_name='daily minimum of average 2-m temperature', &
@@ -154,20 +144,20 @@ module histFldsMod
          avgflag='A', long_name='daily maximum of average 2-m temperature', &
          ptr_pft=clm3%g%l%c%p%pes%t_ref2m_max)
 
-    call hist_addfld1d (fname='TREFMNAV_U', units='K',  &
-         avgflag='A', long_name='Urban daily minimum of average 2-m temperature', &
+    call hist_addfld1d (fname='TREFMNAV_U', units='K', avgflag='A', &
+         long_name='Urban daily minimum of average 2-m temperature', &
          ptr_pft=clm3%g%l%c%p%pes%t_ref2m_min_u, set_nourb=spval)
 
-    call hist_addfld1d (fname='TREFMXAV_U', units='K',  &
-         avgflag='A', long_name='Urban daily maximum of average 2-m temperature', &
+    call hist_addfld1d (fname='TREFMXAV_U', units='K', avgflag='A', &
+         long_name='Urban daily maximum of average 2-m temperature', &
          ptr_pft=clm3%g%l%c%p%pes%t_ref2m_max_u, set_nourb=spval)
 
-    call hist_addfld1d (fname='TREFMNAV_R', units='K',  &
-         avgflag='A', long_name='Rural daily minimum of average 2-m temperature', &
+    call hist_addfld1d (fname='TREFMNAV_R', units='K', avgflag='A', &
+         long_name='Rural daily minimum of average 2-m temperature', &
          ptr_pft=clm3%g%l%c%p%pes%t_ref2m_min_r, set_spec=spval)
 
-    call hist_addfld1d (fname='TREFMXAV_R', units='K',  &
-         avgflag='A', long_name='Rural daily maximum of average 2-m temperature', &
+    call hist_addfld1d (fname='TREFMXAV_R', units='K', avgflag='A', &
+         long_name='Rural daily maximum of average 2-m temperature', &
          ptr_pft=clm3%g%l%c%p%pes%t_ref2m_max_r, set_spec=spval)
 
     call hist_addfld1d (fname='TV', units='K',  &
@@ -188,7 +178,8 @@ module histFldsMod
 
     call hist_addfld1d (fname='TG_U', units='K',  &
          avgflag='A', long_name='Urban ground temperature', &
-         ptr_col=clm3%g%l%c%ces%t_grnd_u, set_nourb=spval, c2l_scale_type='urbans')
+         ptr_col=clm3%g%l%c%ces%t_grnd_u, set_nourb=spval, &
+         c2l_scale_type='urbans')
 
     call hist_addfld1d (fname='TG_R', units='K',  &
          avgflag='A', long_name='Rural ground temperature', &
@@ -196,7 +187,8 @@ module histFldsMod
 
     call hist_addfld1d (fname='HCSOI',  units='MJ/m2',  &
          avgflag='A', long_name='soil heat content', &
-         ptr_col=clm3%g%l%c%ces%hc_soi, set_lake=spval, set_urb=spval, l2g_scale_type='veg')
+         ptr_col=clm3%g%l%c%ces%hc_soi, set_lake=spval, set_urb=spval, &
+         l2g_scale_type='veg')
 
     call hist_addfld1d (fname='HC',  units='MJ/m2',  &
          avgflag='A', long_name='heat content of soil/snow/lake', &
@@ -219,13 +211,15 @@ module histFldsMod
          ptr_col=clm3%g%l%c%ces%t_lake)
 
     ! New lake fields
-    call hist_addfld2d (fname='LAKEICEFRAC',  units='unitless', type2d='levlak', &
-         avgflag='A', long_name='lake layer ice mass fraction', &
+    call hist_addfld2d (fname='LAKEICEFRAC',  units='unitless', &
+         type2d='levlak', avgflag='A', &
+         long_name='lake layer ice mass fraction', &
          ptr_col=clm3%g%l%c%cws%lake_icefrac)
 
          ! This will be more useful than LAKEICEFRAC for many users.
     call hist_addfld1d (fname='LAKEICETHICK', units='m', &
-         avgflag='A', long_name='thickness of lake ice (including physical expansion on freezing)', &
+         avgflag='A', &
+         long_name='thickness of lake ice (incl. phys. expn. on freezing)', &
          ptr_col=clm3%g%l%c%cws%lake_icethick, set_nolake=spval)
 
     call hist_addfld1d (fname='TKE1',  units='W/(mK)', &
@@ -233,12 +227,16 @@ module histFldsMod
          ptr_col=clm3%g%l%c%cps%savedtke1)
 
     call hist_addfld1d (fname='EFLX_GRND_LAKE', units='W/m^2', &
-         avgflag='A', long_name='net heat flux into lake/snow surface, excluding light transmission', &
+         avgflag='A', &
+         long_name='net heat flux into lake/snow surface, '// &
+         'excluding light transmission', &
          ptr_pft=clm3%g%l%c%p%pef%eflx_grnd_lake, set_nolake=spval)
 
     call hist_addfld1d (fname='RAM_LAKE', units='s/m', &
-         avgflag='A', long_name='aerodynamic resistance for momentum (lakes only)', &
-         ptr_pft=clm3%g%l%c%p%pps%ram1_lake, set_nolake=spval, default='inactive')
+         avgflag='A', &
+         long_name='aerodynamic resistance for momentum (lakes only)', &
+         ptr_pft=clm3%g%l%c%p%pps%ram1_lake, set_nolake=spval, &
+         default='inactive')
 
     call hist_addfld1d (fname='RH_LEAF', units='fraction', &
          avgflag='A', long_name='fractional humidity at leaf surface', &
@@ -752,7 +750,7 @@ module histFldsMod
             avgflag='A', long_name='shade PAR (240 hrs)', &
             ptr_pft=clm3%g%l%c%p%pvf%par240a_out, set_lake=0.D0, default='inactive')
 
-    endif
+    end if
 
     call hist_addfld1d (fname='FSUN24', units='K',  &
          avgflag='A', long_name='fraction sunlit (last 24hrs)', &
@@ -1029,7 +1027,7 @@ module histFldsMod
             avgflag='A', long_name='Antarctic ice area', &
             ptr_gcell=clm3%g%aais_area)
 
-   endif
+   end if
 
     ! Water and energy balance checks
 
@@ -1636,7 +1634,7 @@ module histFldsMod
        call hist_addfld1d (fname='C13_TOTPFTC', units='gC13/m^2', &
             avgflag='A', long_name='C13 total pft-level carbon, including cpool', &
             ptr_pft=clm3%g%l%c%p%pc13s%totpftc)
-    endif
+    end if
 
     if ( use_c14 ) then
        !-------------------------------
@@ -1750,7 +1748,7 @@ module histFldsMod
        call hist_addfld1d (fname='C14_TOTPFTC', units='gC14/m^2', &
             avgflag='A', long_name='C14 total pft-level carbon, including cpool', &
             ptr_pft=clm3%g%l%c%p%pc14s%totpftc)
-    endif
+    end if
 
     !-------------------------------
     ! C state variables - native to column
@@ -1773,7 +1771,7 @@ module histFldsMod
           call hist_addfld2d (fname=fieldname, units='gC/m^3',  type2d='levdcmp', &
                avgflag='A', long_name=longname, &
                ptr_col=data2dptr)
-       endif
+       end if
 
 
        data1dptr => clm3%g%l%c%ccs%decomp_cpools(:,l)
@@ -1791,7 +1789,7 @@ module histFldsMod
           call hist_addfld1d (fname=fieldname, units='gC/m^2', &
                avgflag='A', long_name=longname, &
                ptr_col=data1dptr, default = 'inactive')
-       endif
+       end if
 
     end do
 
@@ -1887,7 +1885,7 @@ module histFldsMod
              call hist_addfld2d (fname=fieldname, units='gC13/m^3',  type2d='levdcmp', &
                   avgflag='A', long_name=longname, &
                   ptr_col=data2dptr)
-          endif
+          end if
           data1dptr => clm3%g%l%c%cc13s%decomp_cpools(:,l)
           fieldname = 'C13_'//trim(decomp_cascade_con%decomp_pool_name_history(l))//'C'
           longname =  'C13 '//trim(decomp_cascade_con%decomp_pool_name_history(l))//' C'
@@ -1920,7 +1918,7 @@ module histFldsMod
           call hist_addfld1d (fname='C13_TOTSOMC_1m', units='gC13/m^2', &
                avgflag='A', long_name='C13 total soil organic matter carbon to 1 meter', &
                ptr_col=clm3%g%l%c%cc13s%totsomc_1m)
-       endif
+       end if
 
        call hist_addfld1d (fname='C13_TOTECOSYSC', units='gC13/m^2', &
             avgflag='A', long_name='C13 total ecosystem carbon, incl veg but excl cpool', &
@@ -1941,7 +1939,7 @@ module histFldsMod
        call hist_addfld1d (fname='C13_TOTPRODC', units='gC13/m^2', &
             avgflag='A', long_name='C13 total wood product C', &
             ptr_col=clm3%g%l%c%cc13s%totprodc)
-    endif
+    end if
     
     if ( use_c14 ) then
        !-------------------------------
@@ -1957,7 +1955,7 @@ module histFldsMod
              call hist_addfld2d (fname=fieldname, units='gC14/m^3',  type2d='levdcmp', &
                   avgflag='A', long_name=longname, &
                   ptr_col=data2dptr)
-          endif
+          end if
           
           data1dptr => clm3%g%l%c%cc14s%decomp_cpools(:,l)
           fieldname = 'C14_'//trim(decomp_cascade_con%decomp_pool_name_history(l))//'C'
@@ -1973,7 +1971,7 @@ module histFldsMod
              call hist_addfld1d (fname=fieldname, units='gC/m^2', &
                   avgflag='A', long_name=longname, &
                   ptr_col=data1dptr, default='inactive')
-          endif
+          end if
           
        end do
        
@@ -2001,7 +1999,7 @@ module histFldsMod
           call hist_addfld1d (fname='C14_TOTSOMC_1m', units='gC14/m^2', &
                avgflag='A', long_name='C14 total soil organic matter carbon to 1 meter', &
                ptr_col=clm3%g%l%c%cc14s%totsomc_1m)
-       endif
+       end if
 
        call hist_addfld1d (fname='C14_TOTECOSYSC', units='gC14/m^2', &
             avgflag='A', long_name='C14 total ecosystem carbon, incl veg but excl cpool', &
@@ -2022,7 +2020,7 @@ module histFldsMod
        call hist_addfld1d (fname='C14_TOTPRODC', units='gC14/m^2', &
             avgflag='A', long_name='C14 total wood product C', &
             ptr_col=clm3%g%l%c%cc14s%totprodc)
-    endif
+    end if
 
     !-------------------------------
     ! N state variables - native to PFT
@@ -2146,7 +2144,7 @@ module histFldsMod
           call hist_addfld2d (fname=fieldname, units='gN/m^3',  type2d='levdcmp', &
                avgflag='A', long_name=longname, &
                ptr_col=data2dptr)
-       endif
+       end if
        data1dptr => clm3%g%l%c%cns%decomp_npools(:,l)
        fieldname = trim(decomp_cascade_con%decomp_pool_name_history(l))//'N'
        longname =  trim(decomp_cascade_con%decomp_pool_name_history(l))//' N'
@@ -2161,7 +2159,7 @@ module histFldsMod
           call hist_addfld1d (fname=fieldname, units='gN/m^2', &
                avgflag='A', long_name=longname, &
                ptr_col=data1dptr, default = 'inactive')
-       endif
+       end if
     end do
 
 
@@ -2177,7 +2175,7 @@ module histFldsMod
        call hist_addfld1d (fname='TOTSOMN_1m', units='gN/m^2', &
             avgflag='A', long_name='total soil organic matter N to 1 meter', &
             ptr_col=clm3%g%l%c%cns%totsomn_1m)
-    endif
+    end if
 
     call hist_addfld1d (fname='COL_NTRUNC', units='gN/m^2',  &
          avgflag='A', long_name='column-level sink for N truncation', &
@@ -2202,7 +2200,7 @@ module histFldsMod
        call hist_addfld1d (fname='SMIN_NH4', units='gN/m^2', &
             avgflag='A', long_name='soil mineral NH4', &
             ptr_col=clm3%g%l%c%cns%smin_nh4)
-    endif
+    end if
 
     call hist_addfld_decomp (fname='SMINN'//trim(vr_suffix), units='gN/m^3',  type2d='levdcmp', &
          avgflag='A', long_name='soil mineral N', &
@@ -2474,7 +2472,7 @@ module histFldsMod
    call hist_addfld1d (fname='M_LIVESTEMC_XFER_TO_LITTER_FIRE', units='gC/m^2/s', &
          avgflag='A', long_name='live stem C transfer fire mortality to litter', &
          ptr_pft=clm3%g%l%c%p%pcf%m_livestemc_xfer_to_litter_fire, default='inactive')
-	 
+ 
  call hist_addfld1d (fname='M_LIVESTEMC_TO_DEADSTEMC_FIRE', units='gC/m^2/s', &
          avgflag='A', long_name='live stem C fire mortality to dead stem C', &
          ptr_pft=clm3%g%l%c%p%pcf%m_livestemc_to_deadstemc_fire, default='inactive')
@@ -2510,11 +2508,11 @@ module histFldsMod
    call hist_addfld1d (fname='M_LIVEROOTC_STORAGE_TO_LITTER_FIRE', units='gC/m^2/s', &
          avgflag='A', long_name='live root C storage fire mortality to litter', &
          ptr_pft=clm3%g%l%c%p%pcf%m_livecrootc_storage_to_litter_fire, default='inactive')
-	 
+ 
     call hist_addfld1d (fname='M_LIVEROOTC_XFER_TO_LITTER_FIRE', units='gC/m^2/s', &
          avgflag='A', long_name='live root C transfer fire mortality to litter', &
          ptr_pft=clm3%g%l%c%p%pcf%m_livecrootc_xfer_to_litter_fire, default='inactive')
-	 
+ 
    call hist_addfld1d (fname='M_LIVEROOTC_TO_DEADROOTC_FIRE', units='gC/m^2/s', &
          avgflag='A', long_name='live root C fire mortality to dead root C', &
          ptr_pft=clm3%g%l%c%p%pcf%m_livecrootc_to_deadcrootc_fire, default='inactive')
@@ -3284,7 +3282,7 @@ module histFldsMod
        call hist_addfld1d (fname='C13_PFT_FIRE_CLOSS', units='gC13/m^2/s', &
             avgflag='A', long_name='C13 total pft-level fire C loss', &
             ptr_pft=clm3%g%l%c%p%pc13f%pft_fire_closs)
-    endif
+    end if
     
     if ( use_c14 ) then
        !-------------------------------
@@ -3738,7 +3736,7 @@ module histFldsMod
        call hist_addfld1d (fname='C14_PFT_FIRE_CLOSS', units='gC14/m^2/s', &
             avgflag='A', long_name='C14 total pft-level fire C loss', &
             ptr_pft=clm3%g%l%c%p%pc14f%pft_fire_closs)
-    endif
+    end if
 
     !-------------------------------
     ! C flux variables - native to column 
@@ -3797,8 +3795,8 @@ module histFldsMod
              call hist_addfld_decomp (fname=fieldname, units='gC/m^3/s', type2d='levdcmp', &
                   avgflag='A', long_name=longname, &
                   ptr_col=data2dptr, default='inactive')
-          endif
-       endif
+          end if
+       end if
 
        ! decomposition k
        data2dptr => clm3%g%l%c%ccf%decomp_k(:,:,k)
@@ -3824,12 +3822,12 @@ module histFldsMod
           else
              fieldname = trim(decomp_cascade_con%decomp_pool_name_history(decomp_cascade_con%cascade_donor_pool(l)))//'_HR_'//&
              trim(decomp_cascade_con%decomp_pool_name_short(decomp_cascade_con%cascade_receiver_pool(l)))
-          endif
+          end if
           longname =  'Het. Resp. from '//trim(decomp_cascade_con%decomp_pool_name_long(decomp_cascade_con%cascade_donor_pool(l)))
           call hist_addfld1d (fname=fieldname, units='gC/m^2/s',  &
                avgflag='A', long_name=longname, &
                ptr_col=data1dptr)
-       endif
+       end if
        !-- transfer fluxes (none from terminal pool, if present)
        if ( decomp_cascade_con%cascade_receiver_pool(l) .ne. 0 ) then
           data1dptr => clm3%g%l%c%ccf%decomp_cascade_ctransfer(:,l)
@@ -3840,7 +3838,7 @@ module histFldsMod
           call hist_addfld1d (fname=fieldname, units='gC/m^2/s', &
                avgflag='A', long_name=longname, &
                ptr_col=data1dptr)
-       endif
+       end if
        
        ! output the vertically resolved fluxes 
        if ( nlevdecomp_full .gt. 1 ) then  
@@ -3857,12 +3855,12 @@ module histFldsMod
              else
                 fieldname = trim(decomp_cascade_con%decomp_pool_name_history(decomp_cascade_con%cascade_donor_pool(l)))//'_HR_'//&
                   trim(decomp_cascade_con%decomp_pool_name_short(decomp_cascade_con%cascade_receiver_pool(l)))//trim(vr_suffix)
-             endif
+             end if
              longname =  'Het. Resp. from '//trim(decomp_cascade_con%decomp_pool_name_long(decomp_cascade_con%cascade_donor_pool(l)))
              call hist_addfld_decomp (fname=fieldname, units='gC/m^3/s',  type2d='levdcmp', &
                   avgflag='A', long_name=longname, &
                   ptr_col=data2dptr, default='inactive')
-          endif
+          end if
           !-- transfer fluxes (none from terminal pool, if present)
           if ( decomp_cascade_con%cascade_receiver_pool(l) .ne. 0 ) then
              data2dptr => clm3%g%l%c%ccf%decomp_cascade_ctransfer_vr(:,:,l)
@@ -3873,7 +3871,7 @@ module histFldsMod
              call hist_addfld_decomp (fname=fieldname, units='gC/m^3/s',  type2d='levdcmp', &
                   avgflag='A', long_name=longname, &
                   ptr_col=data2dptr, default='inactive')
-          endif
+          end if
        end if
     end do
 
@@ -3908,7 +3906,7 @@ module histFldsMod
           call hist_addfld_decomp (fname=fieldname, units='gC/m^3/s',  type2d='levdcmp', &
                avgflag='A', long_name=longname, &
                ptr_col=data2dptr, default='inactive')
-       endif
+       end if
     end do
 
 
@@ -3924,7 +3922,7 @@ module histFldsMod
        call hist_addfld2d (fname='HR_vr', units='gC/m^3/s', type2d='levdcmp', &
             avgflag='A', long_name='total vertically resolved heterotrophic respiration', &
             ptr_col=clm3%g%l%c%ccf%hr_vr)
-    endif
+    end if
 
     call hist_addfld1d (fname='HR', units='gC/m^2/s', &
          avgflag='A', long_name='total heterotrophic respiration', &
@@ -4053,7 +4051,7 @@ module histFldsMod
                      avgflag='A', long_name=longname, &
                      ptr_col=data2dptr, default='inactive')
              end if
-          endif
+          end if
           
        end do
        
@@ -4071,12 +4069,12 @@ module histFldsMod
              else
                 fieldname = 'C13_'//trim(decomp_cascade_con%decomp_pool_name_history(decomp_cascade_con%cascade_donor_pool(l)))//'_HR_'//&
                      trim(decomp_cascade_con%decomp_pool_name_short(decomp_cascade_con%cascade_receiver_pool(l)))//trim(vr_suffix)
-             endif
+             end if
              longname =  'C13 Het. Resp. from '//trim(decomp_cascade_con%decomp_pool_name_long(decomp_cascade_con%cascade_donor_pool(l)))
              call hist_addfld_decomp (fname=fieldname, units='gC13/m^3',  type2d='levdcmp', &
                   avgflag='A', long_name=longname, &
                   ptr_col=data2dptr, default='inactive')
-          endif
+          end if
           !-- transfer fluxes (none from terminal pool, if present)
           if ( decomp_cascade_con%cascade_receiver_pool(l) .ne. 0 ) then
              data2dptr => clm3%g%l%c%cc13f%decomp_cascade_ctransfer_vr(:,:,l)
@@ -4087,7 +4085,7 @@ module histFldsMod
              call hist_addfld_decomp (fname=fieldname, units='gC13/m^3',  type2d='levdcmp', &
                   avgflag='A', long_name=longname, &
                   ptr_col=data2dptr, default='inactive')
-          endif
+          end if
        end do
        
        
@@ -4190,7 +4188,7 @@ module histFldsMod
        call hist_addfld1d (fname='C13_PRODUCT_CLOSS', units='gC13/m^2/s', &
             avgflag='A', long_name='C13 total carbon loss from wood product pools', &
             ptr_col=clm3%g%l%c%cc13f%product_closs)
-    endif
+    end if
 
     if ( use_c14 ) then
        !-------------------------------
@@ -4216,7 +4214,7 @@ module histFldsMod
                      avgflag='A', long_name=longname, &
                      ptr_col=data2dptr, default='inactive')
              end if
-          endif
+          end if
           
        end do
        
@@ -4234,12 +4232,12 @@ module histFldsMod
              else
                 fieldname = 'C14_'//trim(decomp_cascade_con%decomp_pool_name_history(decomp_cascade_con%cascade_donor_pool(l)))//'_HR_'//&
                      trim(decomp_cascade_con%decomp_pool_name_short(decomp_cascade_con%cascade_receiver_pool(l)))//trim(vr_suffix)
-             endif
+             end if
              longname =  'C14 Het. Resp. from '//trim(decomp_cascade_con%decomp_pool_name_long(decomp_cascade_con%cascade_donor_pool(l)))
              call hist_addfld_decomp (fname=fieldname, units='gC14/m^3',  type2d='levdcmp', &
                   avgflag='A', long_name=longname, &
                   ptr_col=data2dptr, default='inactive')
-          endif
+          end if
           !-- transfer fluxes (none from terminal pool, if present)
           if ( decomp_cascade_con%cascade_receiver_pool(l) .ne. 0 ) then
              data2dptr => clm3%g%l%c%cc14f%decomp_cascade_ctransfer_vr(:,:,l)
@@ -4250,7 +4248,7 @@ module histFldsMod
              call hist_addfld_decomp (fname=fieldname, units='gC14/m^3',  type2d='levdcmp', &
                   avgflag='A', long_name=longname, &
                   ptr_col=data2dptr, default='inactive')
-          endif
+          end if
        end do
        
        
@@ -4353,7 +4351,7 @@ module histFldsMod
        call hist_addfld1d (fname='C14_PRODUCT_CLOSS', units='gC14/m^2/s', &
             avgflag='A', long_name='C14 total carbon loss from wood product pools', &
             ptr_col=clm3%g%l%c%cc14f%product_closs)
-    endif
+    end if
 
     !-------------------------------
     ! N flux variables - native to PFT
@@ -4701,9 +4699,9 @@ module histFldsMod
              call hist_addfld_decomp (fname=fieldname, units='gN/m^3',  type2d='levdcmp', &
                   avgflag='A', long_name=longname, &
                   ptr_col=data2dptr, default='inactive')
-          endif
+          end if
 
-       endif
+       end if
     end do
     
     do l = 1, ndecomp_cascade_transitions
@@ -4719,11 +4717,11 @@ module histFldsMod
           else
              fieldname = trim(decomp_cascade_con%decomp_pool_name_history(decomp_cascade_con%cascade_donor_pool(l)))//'N_TO_SMINN'
              longname =  'mineral N flux for decomp. of '//trim(decomp_cascade_con%decomp_pool_name_history(decomp_cascade_con%cascade_donor_pool(l)))
-          endif
+          end if
              call hist_addfld1d (fname=fieldname, units='gN/m^2', &
                avgflag='A', long_name=longname, &
                ptr_col=data1dptr)
-       endif
+       end if
        !-- transfer fluxes (none from terminal pool, if present)
        if ( decomp_cascade_con%cascade_receiver_pool(l) .ne. 0 ) then
           data1dptr => clm3%g%l%c%cnf%decomp_cascade_ntransfer(:,l)
@@ -4734,7 +4732,7 @@ module histFldsMod
           call hist_addfld1d (fname=fieldname, units='gN/m^2',  &
                avgflag='A', long_name=longname, &
                ptr_col=data1dptr)
-       endif
+       end if
 
        ! vertically resolved fluxes
        if ( nlevdecomp_full .gt. 1 ) then
@@ -4749,11 +4747,11 @@ module histFldsMod
              else
                 fieldname = trim(decomp_cascade_con%decomp_pool_name_history(decomp_cascade_con%cascade_donor_pool(l)))//'N_TO_SMINN'//trim(vr_suffix)
                 longname =  'mineral N flux for decomp. of '//trim(decomp_cascade_con%decomp_pool_name_history(decomp_cascade_con%cascade_donor_pool(l)))
-             endif
+             end if
              call hist_addfld_decomp (fname=fieldname, units='gN/m^3',  type2d='levdcmp', &
                   avgflag='A', long_name=longname, &
                   ptr_col=data2dptr, default='inactive')
-          endif
+          end if
           !-- transfer fluxes (none from terminal pool, if present)
           if ( decomp_cascade_con%cascade_receiver_pool(l) .ne. 0 ) then
              data2dptr => clm3%g%l%c%cnf%decomp_cascade_ntransfer_vr(:,:,l)
@@ -4764,9 +4762,9 @@ module histFldsMod
              call hist_addfld_decomp (fname=fieldname, units='gN/m^3',  type2d='levdcmp', &
                   avgflag='A', long_name=longname, &
                   ptr_col=data2dptr, default='inactive')
-          endif
+          end if
           
-       endif
+       end if
 
     end do
 
@@ -4793,7 +4791,7 @@ module histFldsMod
           call hist_addfld_decomp (fname=fieldname, units='gN/m^3/s',  type2d='levdcmp', &
                avgflag='A', long_name=longname, &
                ptr_col=data2dptr)
-       endif
+       end if
     end do
 
 
@@ -4808,7 +4806,7 @@ module histFldsMod
           call hist_addfld1d (fname=fieldname, units='gN/m^2',  &
                avgflag='A', long_name=longname, &
                ptr_col=data1dptr)
-       endif
+       end if
 
        if ( nlevdecomp_full .gt. 1 ) then       
           !-- denitrification fluxes (none from CWD)
@@ -4820,8 +4818,8 @@ module histFldsMod
              call hist_addfld_decomp (fname=fieldname, units='gN/m^3',  type2d='levdcmp', &
                   avgflag='A', long_name=longname, &
                   ptr_col=data2dptr, default='inactive')
-          endif
-       endif
+          end if
+       end if
 
     end do
 
@@ -4841,7 +4839,7 @@ module histFldsMod
        call hist_addfld_decomp (fname='SMINN_LEACHED'//trim(vr_suffix), units='gN/m^3/s',  type2d='levdcmp', &
             avgflag='A', long_name='soil mineral N pool loss to leaching', &
             ptr_col=clm3%g%l%c%cnf%sminn_leached_vr, default='inactive')
-    endif
+    end if
     
 #else
 
@@ -4893,7 +4891,7 @@ module histFldsMod
        call hist_addfld_decomp (fname='SMIN_NO3_RUNOFF'//trim(vr_suffix), units='gN/m^3/s', type2d='levdcmp', &
             avgflag='A', long_name='soil NO3 pool loss to runoff', &
             ptr_col=clm3%g%l%c%cnf%smin_no3_runoff_vr, default='inactive')
-    endif
+    end if
 
     call hist_addfld_decomp (fname='n2_n2o_ratio_denit', units='gN/gN', type2d='levdcmp', &
          avgflag='A', long_name='n2_n2o_ratio_denit', &
@@ -5240,7 +5238,7 @@ module histFldsMod
        call hist_addfld1d (fname='XSMRPOOL_C13RATIO', units='proportion', &
             avgflag='A', long_name='C13/C(12+13) ratio for xsmrpool', &
             ptr_pft=clm3%g%l%c%p%pepv%xsmrpool_c13ratio, default='inactive')
-    endif
+    end if
 
     call hist_addfld1d (fname='ALLOC_PNOW', units='proportion', &
          avgflag='A', long_name='fraction of current allocation to display as new growth', &
@@ -5318,7 +5316,7 @@ module histFldsMod
        call hist_addfld1d (fname='RC13_PSNSHA', units='proportion', &
             avgflag='A', long_name='C13/C(12+13) for shaded photosynthesis', &
             ptr_pft=clm3%g%l%c%p%pepv%rc13_psnsha)
-    endif
+    end if
     
     !-------------------------------
     ! PFT physical state variables not already defined by default
@@ -5356,7 +5354,7 @@ module histFldsMod
        call hist_addfld1d (fname='ALPHAPSNSHA', units='proportion', &
             avgflag='A', long_name='shaded c13 fractionation', &
             ptr_pft=clm3%g%l%c%p%pps%alphapsnsha, default='inactive')
-    endif
+    end if
     
     call hist_addfld1d (fname='FWET', units='proportion', &
          avgflag='A', long_name='fraction of canopy that is wet', &
@@ -5496,16 +5494,18 @@ module histFldsMod
   
    ! add by F. Li and S. Levis  
      call hist_addfld1d (fname='LFC2', units='per timestep', &
-         avgflag='A', long_name='conversion area fraction of BET and BDT that burned in this timestep', &
-         ptr_col=clm3%g%l%c%cps%lfc2)
+         avgflag='A', &
+         long_name='conversion area fraction of BET and BDT that '// &
+          'burned in this timestep', ptr_col=clm3%g%l%c%cps%lfc2)
 
     if ( nlevdecomp_full .gt. 1 ) then
        call hist_addfld1d (fname='FPI', units='proportion', &
             avgflag='A', long_name='fraction of potential immobilization', &
             ptr_col=clm3%g%l%c%cps%fpi)
-    endif
+    end if
 
-    call hist_addfld_decomp (fname='FPI'//trim(vr_suffix), units='proportion', type2d='levdcmp', & 
+    call hist_addfld_decomp (fname='FPI'//trim(vr_suffix), &
+            units='proportion', type2d='levdcmp', & 
          avgflag='A', long_name='fraction of potential immobilization', &
          ptr_col=clm3%g%l%c%cps%fpi_vr)
 
@@ -5514,7 +5514,8 @@ module histFldsMod
          ptr_col=clm3%g%l%c%cps%fpg)
 
     call hist_addfld1d (fname='ANNSUM_COUNTER', units='s', &
-         avgflag='A', long_name='seconds since last annual accumulator turnover', &
+         avgflag='A', &
+         long_name='seconds since last annual accumulator turnover', &
          ptr_col=clm3%g%l%c%cps%annsum_counter, default='inactive')
 
     call hist_addfld1d (fname='CANNSUM_NPP', units='gC/m^2/s', &
@@ -5525,16 +5526,20 @@ module histFldsMod
          avgflag='A', long_name='annual average of 2m air temperature', &
          ptr_col=clm3%g%l%c%cps%cannavg_t2m, default='inactive')
 
-    call hist_addfld2d (fname='FRAC_ICEOLD', units='proportion', type2d='levgrnd', &
+    call hist_addfld2d (fname='FRAC_ICEOLD', units='proportion', &
+            type2d='levgrnd', &
          avgflag='A', long_name='fraction of ice relative to the tot water', &
          ptr_col=clm3%g%l%c%cps%frac_iceold, default='inactive')
 
-    call hist_addfld2d (fname='EFF_POROSITY', units='proportion', type2d='levgrnd', &
+    call hist_addfld2d (fname='EFF_POROSITY', units='proportion', &
+            type2d='levgrnd', &
          avgflag='A', long_name='effective porosity = porosity - vol_ice', &
          ptr_col=clm3%g%l%c%cps%eff_porosity, default='inactive')
 
-    call hist_addfld2d (fname='ROOTR_COLUMN', units='proportion', type2d='levgrnd', &
-         avgflag='A', long_name='effective fraction of roots in each soil layer', &
+    call hist_addfld2d (fname='ROOTR_COLUMN', units='proportion', &
+            type2d='levgrnd', &
+         avgflag='A', &
+         long_name='effective fraction of roots in each soil layer', &
          ptr_col=clm3%g%l%c%cps%rootr_column, default='inactive')
 
     call hist_addfld2d (fname='ALBGRD', units='proportion', type2d='numrad', &
@@ -5566,36 +5571,48 @@ module histFldsMod
     !-------------------------------
 
     call hist_addfld1d (fname='DLRAD', units='W/m^2', &
-         avgflag='A', long_name='downward longwave radiation below the canopy', &
-         ptr_pft=clm3%g%l%c%p%pef%dlrad, default='inactive', c2l_scale_type='urbanf')
+         avgflag='A', &
+         long_name='downward longwave radiation below the canopy', &
+         ptr_pft=clm3%g%l%c%p%pef%dlrad, default='inactive', &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='ULRAD', units='W/m^2', &
          avgflag='A', long_name='upward longwave radiation above the canopy', &
-         ptr_pft=clm3%g%l%c%p%pef%ulrad, default='inactive', c2l_scale_type='urbanf')
+         ptr_pft=clm3%g%l%c%p%pef%ulrad, default='inactive', &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='EFLX_SOIL_GRND', units='W/m^2', &
          avgflag='A', long_name='soil heat flux [+ into soil]', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_soil_grnd, default='inactive', c2l_scale_type='urbanf')
+         ptr_pft=clm3%g%l%c%p%pef%eflx_soil_grnd, default='inactive', &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='CGRND', units='W/m^2/K', &
          avgflag='A', long_name='deriv. of soil energy flux wrt to soil temp', &
-         ptr_pft=clm3%g%l%c%p%pef%cgrnd, default='inactive', c2l_scale_type='urbanf')
+         ptr_pft=clm3%g%l%c%p%pef%cgrnd, default='inactive', &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='CGRNDL', units='W/m^2/K', &
-         avgflag='A', long_name='deriv. of soil latent heat flux wrt soil temp', &
-         ptr_pft=clm3%g%l%c%p%pef%cgrndl, default='inactive', c2l_scale_type='urbanf')
+         avgflag='A', &
+         long_name='deriv. of soil latent heat flux wrt soil temp', &
+         ptr_pft=clm3%g%l%c%p%pef%cgrndl, default='inactive', &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='CGRNDS', units='W/m^2/K', &
-         avgflag='A', long_name='deriv. of soil sensible heat flux wrt soil temp', &
-         ptr_pft=clm3%g%l%c%p%pef%cgrnds, default='inactive', c2l_scale_type='urbanf')
+         avgflag='A', &
+         long_name='deriv. of soil sensible heat flux wrt soil temp', &
+         ptr_pft=clm3%g%l%c%p%pef%cgrnds, default='inactive', &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='EFLX_GNET', units='W/m^2', &
          avgflag='A', long_name='net heat flux into ground', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_gnet, default='inactive', c2l_scale_type='urbanf')
+         ptr_pft=clm3%g%l%c%p%pef%eflx_gnet, default='inactive', &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='DGNETDT', units='W/m^2/K', &
-         avgflag='A', long_name='derivative of net ground heat flux wrt soil temp', &
-         ptr_pft=clm3%g%l%c%p%pef%dgnetdT, default='inactive', c2l_scale_type='urbanf')
+         avgflag='A', &
+         long_name='derivative of net ground heat flux wrt soil temp', &
+         ptr_pft=clm3%g%l%c%p%pef%dgnetdT, default='inactive', &
+         c2l_scale_type='urbanf')
 
     !-------------------------------
     ! Water flux variables not already defined by default  - native PFT
@@ -5603,35 +5620,43 @@ module histFldsMod
 
     call hist_addfld1d (fname='QFLX_RAIN_GRND', units='mm H2O/s', &
          avgflag='A', long_name='rain on ground after interception', &
-         ptr_pft=clm3%g%l%c%p%pwf%qflx_rain_grnd, default='inactive', c2l_scale_type='urbanf')
+         ptr_pft=clm3%g%l%c%p%pwf%qflx_rain_grnd, default='inactive', &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QFLX_SNOW_GRND', units='mm H2O/s', &
          avgflag='A', long_name='snow on ground after interception', &
-         ptr_pft=clm3%g%l%c%p%pwf%qflx_snow_grnd, default='inactive', c2l_scale_type='urbanf')
+         ptr_pft=clm3%g%l%c%p%pwf%qflx_snow_grnd, default='inactive', &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QFLX_EVAP_GRND', units='mm H2O/s', &
          avgflag='A', long_name='ground surface evaporation', &
-         ptr_pft=clm3%g%l%c%p%pwf%qflx_evap_grnd, default='inactive', c2l_scale_type='urbanf')
+         ptr_pft=clm3%g%l%c%p%pwf%qflx_evap_grnd, default='inactive', &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QFLX_EVAP_VEG', units='mm H2O/s', &
          avgflag='A', long_name='vegetation evaporation', &
-         ptr_pft=clm3%g%l%c%p%pwf%qflx_evap_veg, default='inactive', c2l_scale_type='urbanf')
+         ptr_pft=clm3%g%l%c%p%pwf%qflx_evap_veg, default='inactive', &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QFLX_EVAP_TOT', units='mm H2O/s', &
-         avgflag='A', long_name='qflx_evap_soi + qflx_evap_can + qflx_tran_veg', &
-         ptr_pft=clm3%g%l%c%p%pwf%qflx_evap_tot, default='inactive', c2l_scale_type='urbanf')
+         avgflag='A', long_name='qflx_evap_soi+qflx_evap_can+qflx_tran_veg', &
+         ptr_pft=clm3%g%l%c%p%pwf%qflx_evap_tot, default='inactive', &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QFLX_DEW_GRND', units='mm H2O/s', &
          avgflag='A', long_name='ground surface dew formation', &
-         ptr_pft=clm3%g%l%c%p%pwf%qflx_dew_grnd, default='inactive', c2l_scale_type='urbanf')
+         ptr_pft=clm3%g%l%c%p%pwf%qflx_dew_grnd, default='inactive', &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QFLX_SUB_SNOW', units='mm H2O/s', &
          avgflag='A', long_name='sublimation rate from snow pack', &
-         ptr_pft=clm3%g%l%c%p%pwf%qflx_sub_snow, default='inactive', c2l_scale_type='urbanf')
+         ptr_pft=clm3%g%l%c%p%pwf%qflx_sub_snow, default='inactive', &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QFLX_DEW_SNOW', units='mm H2O/s', &
          avgflag='A', long_name='surface dew added to snow pacK', &
-         ptr_pft=clm3%g%l%c%p%pwf%qflx_dew_snow, default='inactive', c2l_scale_type='urbanf')
+         ptr_pft=clm3%g%l%c%p%pwf%qflx_dew_snow, default='inactive', &
+         c2l_scale_type='urbanf')
 
 #endif
 
@@ -5656,22 +5681,26 @@ module histFldsMod
          default='inactive')
 
     call hist_addfld1d (fname='SNOFSRVD', units='W/m^2',  &
-         avgflag='A', long_name='direct vis reflected solar radiation from snow', &
+         avgflag='A', long_name='direct vis reflected solar '// &
+         'radiation from snow', &
          ptr_pft=clm3%g%l%c%p%pef%fsr_sno_vd, &
          default='inactive')
 
     call hist_addfld1d (fname='SNOFSRND', units='W/m^2',  &
-         avgflag='A', long_name='direct nir reflected solar radiation from snow', &
+         avgflag='A', long_name='direct nir reflected solar '// &
+         'radiation from snow', &
          ptr_pft=clm3%g%l%c%p%pef%fsr_sno_nd, &
          default='inactive')
    
     call hist_addfld1d (fname='SNOFSRVI', units='W/m^2',  &
-         avgflag='A', long_name='diffuse vis reflected solar radiation from snow', &
+         avgflag='A', long_name='diffuse vis reflected solar '// &
+         'radiation from snow', &
          ptr_pft=clm3%g%l%c%p%pef%fsr_sno_vi, &
          default='inactive')
 
     call hist_addfld1d (fname='SNOFSRNI', units='W/m^2',  &
-         avgflag='A', long_name='diffuse nir reflected solar radiation from snow', &
+         avgflag='A', long_name='diffuse nir reflected solar '// &
+         'radiation from snow', &
          ptr_pft=clm3%g%l%c%p%pef%fsr_sno_ni, &
          default='inactive')
 
@@ -5686,12 +5715,14 @@ module histFldsMod
          default='inactive')
    
     call hist_addfld1d (fname='SNOFSDSVI', units='W/m^2',  &
-         avgflag='A', long_name='diffuse vis incident solar radiation on snow', &
+         avgflag='A', long_name='diffuse vis incident solar '// &
+         'radiation on snow', &
          ptr_pft=clm3%g%l%c%p%pef%fsds_sno_vi, &
          default='inactive')
    
     call hist_addfld1d (fname='SNOFSDSNI', units='W/m^2',  &
-         avgflag='A', long_name='diffuse nir incident solar radiation on snow', &
+         avgflag='A', long_name='diffuse nir incident solar '// &
+         'radiation on snow', &
          ptr_pft=clm3%g%l%c%p%pef%fsds_sno_ni, &
          default='inactive')
 
@@ -5725,24 +5756,29 @@ module histFldsMod
          ptr_col=clm3%g%l%c%cps%mss_dst_top, set_urb=spval)
 
     call hist_addfld1d (fname='DSTDEP', units='kg/m^2/s', &
-         avgflag='A', long_name='total dust deposition (dry+wet) from atmosphere', &
+         avgflag='A', long_name='total dust deposition (dry+wet) '// &
+         'from atmosphere', &
          ptr_col=clm3%g%l%c%cwf%flx_dst_dep, set_urb=spval)
 
     call hist_addfld1d (fname='BCDEP', units='kg/m^2/s', &
-         avgflag='A', long_name='total BC deposition (dry+wet) from atmosphere', &
+         avgflag='A', long_name='total BC deposition (dry+wet) '// &
+         'from atmosphere', &
          ptr_col=clm3%g%l%c%cwf%flx_bc_dep, set_urb=spval)
    
     call hist_addfld1d (fname='OCDEP', units='kg/m^2/s', &
-         avgflag='A', long_name='total OC deposition (dry+wet) from atmosphere', &
+         avgflag='A', long_name='total OC deposition (dry+wet) '// &
+         'from atmosphere', &
          ptr_col=clm3%g%l%c%cwf%flx_oc_dep, set_urb=spval)
 
 #if (defined SNICAR_FRC)
     call hist_addfld1d (fname='SNOAERFRCL', units='W/m^2', &
-         avgflag='A', long_name='surface forcing of all aerosols in snow (land) ', &
+         avgflag='A', long_name='surface forcing of all '// &
+         'aerosols in snow (land) ', &
          ptr_pft=clm3%g%l%c%p%pef%sfc_frc_aer, set_urb=spval)
    
     call hist_addfld1d (fname='SNOAERFRC2L', units='W/m^2', &
-         avgflag='A', long_name='surface forcing of all aerosols in snow, averaged only when snow is present (land)', &
+         avgflag='A', long_name='surface forcing of all aerosols in snow, '// &
+         'averaged only when snow is present (land)', &
          ptr_pft=clm3%g%l%c%p%pef%sfc_frc_aer_sno, set_urb=spval)
 
     call hist_addfld1d (fname='SNOBCFRCL', units='W/m^2', &
@@ -5750,7 +5786,8 @@ module histFldsMod
          ptr_pft=clm3%g%l%c%p%pef%sfc_frc_bc, set_urb=spval)
    
     call hist_addfld1d (fname='SNOBCFRC2L', units='W/m^2', &
-         avgflag='A', long_name='surface forcing of BC in snow, averaged only when snow is present (land)', &
+         avgflag='A', long_name='surface forcing of BC in snow, '// &
+         'averaged only when snow is present (land)', &
          ptr_pft=clm3%g%l%c%p%pef%sfc_frc_bc_sno, set_urb=spval)
 
     call hist_addfld1d (fname='SNOOCFRCL', units='W/m^2', &
@@ -5758,7 +5795,8 @@ module histFldsMod
          ptr_pft=clm3%g%l%c%p%pef%sfc_frc_oc, set_urb=spval)
    
     call hist_addfld1d (fname='SNOOCFRC2L', units='W/m^2', &
-         avgflag='A', long_name='surface forcing of OC in snow, averaged only when snow is present (land)', &
+         avgflag='A', long_name='surface forcing of OC in snow, '// &
+         'averaged only when snow is present (land)', &
          ptr_pft=clm3%g%l%c%p%pef%sfc_frc_oc_sno, set_urb=spval)
 
     call hist_addfld1d (fname='SNODSTFRCL', units='W/m^2', &
@@ -5766,119 +5804,87 @@ module histFldsMod
          ptr_pft=clm3%g%l%c%p%pef%sfc_frc_dst, set_urb=spval)
     
     call hist_addfld1d (fname='SNODSTFRC2L', units='W/m^2', &
-         avgflag='A', long_name='surface forcing of dust in snow, averaged only when snow is present (land)', &
+         avgflag='A', &
+         long_name='surface forcing of dust in snow, '// &
+         'averaged only when snow is present (land)', &
          ptr_pft=clm3%g%l%c%p%pef%sfc_frc_dst_sno, set_urb=spval)
 
 #endif
 
-    !-------------------------------
-    ! Forcings sent to GLC
-    !-------------------------------
-
-    if (maxpatch_glcmec > 0) then
-
-       call hist_addfld2d (fname='QICE_FORC', units='mm/s', type2d='glc_nec', &
-            avgflag='A', long_name='qice forcing sent to GLC', &
-            ptr_lnd=clm_s2x%qice, default='inactive')
-
-       call hist_addfld2d (fname='TSRF_FORC', units='K', type2d='glc_nec', &
-            avgflag='A', long_name='surface temperature sent to GLC', &
-            ptr_lnd=clm_s2x%tsrf, default='inactive')
-
-       call hist_addfld2d (fname='TOPO_FORC', units='m', type2d='glc_nec', &
-            avgflag='A', long_name='topographic height sent to GLC', &
-            ptr_lnd=clm_s2x%topo, default='inactive')
-
-    end if
-
     ! Print masterlist of history fields
-
     call hist_printflds()
-
   end subroutine hist_initFlds
 
-
-  subroutine hist_addfld_decomp (fname, type2d, units, avgflag, long_name, ptr_col, ptr_pft, default)
-
-! !USES:
-    use clm_varpar, only : nlevdecomp_full
-
-    use histFileMod, only : hist_addfld1d, hist_addfld2d
-    use surfrdMod , only : crop_prog
-!
-! !ARGUMENTS:
+  subroutine hist_addfld_decomp(fname,type2d,units,avgflag,long_name, &
+                  ptr_col,ptr_pft,default)
     implicit none
-    character(len=*), intent(in) :: fname                    ! field name
-    character(len=*), intent(in) :: type2d                   ! 2d output type
-    character(len=*), intent(in) :: units                    ! units of field
-    character(len=1), intent(in) :: avgflag                  ! time averaging flag
-    character(len=*), intent(in) :: long_name                ! long name of field
-    real(rk8)        , optional, pointer    :: ptr_col(:,:)   ! pointer to column array
-    real(rk8)        , optional, pointer    :: ptr_pft(:,:)   ! pointer to pft array
-    character(len=*), optional, intent(in) :: default        ! if set to 'inactive, field will not appear on primary tape
+    character(len=*) , intent(in) :: fname     ! field name
+    character(len=*) , intent(in) :: type2d    ! 2d output type
+    character(len=*) , intent(in) :: units     ! units of field
+    character(len=1) , intent(in) :: avgflag   ! time averaging flag
+    character(len=*) , intent(in) :: long_name ! long name of field
+    real(rk8) , optional , pointer :: ptr_col(:,:) ! pointer to column array
+    real(rk8) , optional , pointer :: ptr_pft(:,:) ! pointer to pft array
+    ! if set to 'inactive, field will not appear on primary tape
+    character(len=*) , optional , intent(in) :: default
+    real(rk8) , pointer :: ptr_1d(:)
 
-    real(rk8)        , pointer  :: ptr_1d(:)
-
-    if (present(ptr_col)) then
-
-       ! column-level data
-       if (present(default)) then
-          if ( nlevdecomp_full .gt. 1 ) then
-             call hist_addfld2d (fname=trim(fname), units=units, type2d=type2d, &
+    if ( present(ptr_col) ) then
+      ! column-level data
+      if ( present(default) ) then
+        if ( nlevdecomp_full .gt. 1 ) then
+          call hist_addfld2d (fname=trim(fname), units=units, type2d=type2d, &
                   avgflag=avgflag, long_name=long_name, &
                   ptr_col=ptr_col, default=default)
-          else
-             ptr_1d => ptr_col(:,1)
-             call hist_addfld1d (fname=trim(fname), units=units, &
+        else
+          ptr_1d => ptr_col(:,1)
+          call hist_addfld1d (fname=trim(fname), units=units, &
                   avgflag=avgflag, long_name=long_name, &
                   ptr_col=ptr_1d, default=default)
-          endif
-       else
-          if ( nlevdecomp_full .gt. 1 ) then
-             call hist_addfld2d (fname=trim(fname), units=units, type2d=type2d, &
+        end if
+      else
+        if ( nlevdecomp_full .gt. 1 ) then
+          call hist_addfld2d (fname=trim(fname), units=units, type2d=type2d, &
                   avgflag=avgflag, long_name=long_name, &
                   ptr_col=ptr_col)
-          else
-             ptr_1d => ptr_col(:,1)
-             call hist_addfld1d (fname=trim(fname), units=units, &
+        else
+          ptr_1d => ptr_col(:,1)
+          call hist_addfld1d (fname=trim(fname), units=units, &
                   avgflag=avgflag, long_name=long_name, &
                   ptr_col=ptr_1d)
-          endif
-       endif
-       
+        end if
+      end if
     else if (present(ptr_pft)) then
-       
        ! pft-level data
-       if (present(default)) then
-          if ( nlevdecomp_full .gt. 1 ) then
-             call hist_addfld2d (fname=trim(fname), units=units, type2d=type2d, &
+      if (present(default)) then
+        if ( nlevdecomp_full .gt. 1 ) then
+          call hist_addfld2d (fname=trim(fname), units=units, type2d=type2d, &
                   avgflag=avgflag, long_name=long_name, &
                   ptr_pft=ptr_pft, default=default)
-          else
-             ptr_1d => ptr_pft(:,1)
-             call hist_addfld1d (fname=trim(fname), units=units, &
+        else
+          ptr_1d => ptr_pft(:,1)
+          call hist_addfld1d (fname=trim(fname), units=units, &
                   avgflag=avgflag, long_name=long_name, &
                   ptr_pft=ptr_1d, default=default)
-          endif
-       else
-          if ( nlevdecomp_full .gt. 1 ) then
-             call hist_addfld2d (fname=trim(fname), units=units, type2d=type2d, &
-                  avgflag=avgflag, long_name=long_name, &
-                  ptr_pft=ptr_pft)
-          else
-             ptr_1d => ptr_pft(:,1)
-             call hist_addfld1d (fname=trim(fname), units=units, &
+        end if
+      else
+        if ( nlevdecomp_full .gt. 1 ) then
+          call hist_addfld2d (fname=trim(fname), units=units, type2d=type2d, &
+                avgflag=avgflag, long_name=long_name, &
+                ptr_pft=ptr_pft)
+        else
+          ptr_1d => ptr_pft(:,1)
+          call hist_addfld1d (fname=trim(fname), units=units, &
                   avgflag=avgflag, long_name=long_name, &
                   ptr_pft=ptr_1d)
-          endif
-       endif
-       
+        end if
+      end if
     else
-       write(stderr, *) ' error: hist_addfld_decomp needs either pft or column level pointer'
-       write(stderr, *) fname
-       call fatal(__FILE__,__LINE__,'clm now stopping.')
-    endif
+      write(stderr, *) &
+         ' error: hist_addfld_decomp needs either pft or column level pointer'
+      write(stderr, *) fname
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
   end subroutine hist_addfld_decomp
-  
 
-end module histFldsMod
+end module mod_clm_histflds

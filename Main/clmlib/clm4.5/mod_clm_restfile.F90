@@ -12,6 +12,12 @@ module mod_clm_restfile
   use clm_time_manager , only : timemgr_restart_io , get_nstep
   use mod_clm_subgridrest , only : SubgridRest
   use mod_clm_biogeophysrest , only : BiogeophysRest
+  use mod_clm_accumul , only : accumulRest
+  use mod_clm_slakerest , only : SLakeRest
+  use mod_clm_decomp ,  only : get_proc_bounds , get_proc_global
+  use mod_clm_varpar , only : nlevsno , nlevlak , nlevgrnd , nlevurb
+  use mod_clm_varpar , only : numrad , nlevcan
+  use mod_clm_varctl , only : single_column , nsrest , nsrStartup
 
   implicit none
 
@@ -42,55 +48,41 @@ module mod_clm_restfile
     use CNRestMod        , only : CNRest
     use CropRestMod      , only : CropRest
 #endif
-    use accumulMod       , only : accumulRest
-    use SLakeRestMod  , only : SLakeRest
 #if (defined LCH4)
     use ch4RestMod       , only : ch4Rest
 #endif
     use histFileMod      , only : hist_restart_ncd
-!
-! !ARGUMENTS:
     implicit none
-    character(len=*) , intent(in) :: file            ! output netcdf restart file
-    logical,           intent(in) :: nlend     ! if at the end of the simulation
-    character(len=*) , intent(in) :: rdate           ! restart file time stamp for name
-    logical,           intent(in), optional :: noptr ! if should NOT write to the restart pointer file
-!
-! !CALLED FROM:
-! subroutine clm_driver2
-!
-! !REVISION HISTORY:
-! Author: Mariana Vertenstein
-!
-!
-! !LOCAL VARIABLES:
-!EOP
-    type(file_desc_t) :: ncid ! netcdf id
+    character(len=*) , intent(in) :: file  ! output netcdf restart file
+    logical , intent(in) :: nlend          ! if at the end of the simulation
+    character(len=*) , intent(in) :: rdate ! restart file time stamp for name
+    ! if should NOT write to the restart pointer file
+    logical , intent(in) , optional :: noptr
+    type(clm_filetype) :: ncid ! netcdf id
     integer(ik4) :: i       ! index
     logical :: ptrfile ! write out the restart pointer file
-!-----------------------------------------------------------------------
 
-    if ( present(noptr) )then
-       ptrfile = .not. noptr
+    if ( present(noptr) ) then
+      ptrfile = .not. noptr
     else
-       ptrfile = .true.
+      ptrfile = .true.
     end if
 
     ! --------------------------------------------
     ! Open restart file
     ! --------------------------------------------
 
-    call restFile_open( flag='write', file=file, ncid=ncid )
+    call restFile_open(flag='write',file=file,ncid=ncid)
 
     ! --------------------------------------------
     ! Define dimensions and variables
     ! --------------------------------------------
 
-    call restFile_dimset ( ncid )
+    call restFile_dimset(ncid)
 
     ! Define restart file variables
 
-    call timemgr_restart_io( ncid, flag='define' )
+    call timemgr_restart_io(ncid,flag='define')
 
     call SubgridRest( ncid, flag='define' )
 
@@ -548,8 +540,6 @@ module mod_clm_restfile
     use spmdMod     , only : mpicom, MPI_LOGICAL
     use clm_varctl  , only : caseid, ctitle, version, username, hostname, fsurdat, &
                              conventions, source
-    use clm_varpar  , only : numrad, nlevlak, nlevsno, nlevgrnd, nlevurb, nlevcan
-    use decompMod   , only : get_proc_bounds, get_proc_global
 !
 ! !ARGUMENTS:
     implicit none
@@ -614,116 +604,55 @@ module mod_clm_restfile
     call ncd_putatt(ncid, NCD_GLOBAL, 'surface_dataset', trim(fsurdat))
     call ncd_putatt(ncid, NCD_GLOBAL, 'title', &
           'CLM Restart information, required to continue a simulation' )
-
-
   end subroutine restFile_dimset
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: restFile_dimcheck
-!
-! !INTERFACE:
+  !
+  ! Check dimensions of restart file
+  !
   subroutine restFile_dimcheck( ncid )
-!
-! !DESCRIPTION:
-! Check dimensions of restart file
-!
-! !USES:
-    use decompMod,  only : get_proc_bounds, get_proc_global
-    use clm_varpar, only : nlevsno, nlevlak, nlevgrnd, nlevurb
-    use clm_varctl, only : single_column, nsrest, nsrStartup
     implicit none
-!
-! !ARGUMENTS:
-    type(file_desc_t), intent(inout) :: ncid
-!
-! !REVISION HISTORY:
-! Author: Mariana Vertenstein
-!
-!
-! !LOCAL VARIABLES:
-!EOP
-    integer(ik4) :: numg     ! total number of gridcells across all processors
-    integer(ik4) :: numl     ! total number of landunits across all processors
-    integer(ik4) :: numc     ! total number of columns across all processors
-    integer(ik4) :: nump     ! total number of pfts across all processors
-    character(len=32) :: subname='restFile_dimcheck' ! subroutine name
-!-----------------------------------------------------------------------
+    type(clm_filetype), intent(inout) :: ncid
+    integer(ik4) :: numg  ! total number of gridcells across all processors
+    integer(ik4) :: numl  ! total number of landunits across all processors
+    integer(ik4) :: numc  ! total number of columns across all processors
+    integer(ik4) :: nump  ! total number of pfts across all processors
 
     ! Get relevant sizes
 
-    if ( .not. single_column .or. nsrest /= nsrStartup )then
-       call get_proc_global(numg, numl, numc, nump)
-       call check_dim(ncid, 'gridcell', numg)
-       call check_dim(ncid, 'landunit', numl)
-       call check_dim(ncid, 'column'  , numc)
-       call check_dim(ncid, 'pft'     , nump)
+    if ( .not. single_column .or. nsrest /= nsrStartup ) then
+      call get_proc_global(numg, numl, numc, nump)
+      if ( .not. clm_check_dimlen(ncid, 'gridcell', numg) ) &
+        call fatal(__FILE__,__LINE__,'NUM GRIDCELL DIFFER !')
+      if ( .not. clm_check_dimlen(ncid, 'landunit', numl) ) &
+        call fatal(__FILE__,__LINE__,'NUM LANDUNIT DIFFER !')
+      if ( .not. clm_check_dimlen(ncid, 'column', numc) ) &
+        call fatal(__FILE__,__LINE__,'NUM COLUMN DIFFER !')
+      if ( .not. clm_check_dimlen(ncid, 'pft', nump) ) &
+        call fatal(__FILE__,__LINE__,'NUM PFTS DIFFER !')
     end if
-    call check_dim(ncid, 'levsno'  , nlevsno)
-    call check_dim(ncid, 'levgrnd' , nlevgrnd)
-    call check_dim(ncid, 'levurb'  , nlevurb)
-    call check_dim(ncid, 'levlak'  , nlevlak)
-
+    if ( .not. clm_check_dimlen(ncid, 'levsno', nlevsno) ) &
+      call fatal(__FILE__,__LINE__,'NUM NLEVSNO DIFFER !')
+    if ( .not. clm_check_dimlen(ncid, 'levgrnd', nlevgrnd) ) &
+      call fatal(__FILE__,__LINE__,'NUM LEVGRND DIFFER !')
+    if ( .not. clm_check_dimlen(ncid, 'levurb', nlevurb) ) &
+      call fatal(__FILE__,__LINE__,'NUM LEVURB DIFFER !')
+    if ( .not. clm_check_dimlen(ncid, 'levlak', nlevlak) ) &
+      call fatal(__FILE__,__LINE__,'NUM LEVLAK DIFFER !')
   end subroutine restFile_dimcheck
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: restFile_enddef
-!
-! !INTERFACE:
+  !
+  ! Read a CLM restart file.
+  !
   subroutine restFile_enddef( ncid )
-!
-! !DESCRIPTION:
-! Read a CLM restart file.
-!
-! !USES:
-!
-! !ARGUMENTS:
     implicit none
-    type(file_desc_t), intent(inout) :: ncid
-!
-! !REVISION HISTORY:
-! Author: Mariana Vertenstein
-!
-!
-! !LOCAL VARIABLES:
-!EOP
-!-----------------------------------------------------------------------
-
-    call ncd_enddef(ncid)
-
+    type(clm_filetype), intent(inout) :: ncid
+    call clm_enddef(ncid)
   end subroutine restFile_enddef
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: restFile_close
-!
-! !INTERFACE:
+  !
+  ! Read a CLM restart file.
+  !
   subroutine restFile_close( ncid )
-!
-! !DESCRIPTION:
-! Read a CLM restart file.
-!
-! !USES:
-!
-! !ARGUMENTS:
     implicit none
-    type(file_desc_t), intent(inout) :: ncid
-!
-! !REVISION HISTORY:
-! Author: Mariana Vertenstein
-!
-!
-! !LOCAL VARIABLES:
-!EOP
-    character(len=32) :: subname='restFile_close' ! subroutine name
-!-----------------------------------------------------------------------
-
-    call ncd_pio_closefile(ncid)
-
+    type(clm_filetype) , intent(inout) :: ncid
+    call clm_closefile(ncid)
   end subroutine restFile_close
 
 end module mod_clm_restfile
