@@ -303,7 +303,7 @@ chv4(:,:,:,cb_CH3OH) = chv4_1(:,:,:,mz_CH3OH)*w_ch3oh/amd
    end do
    end if
               ccal = 'gregorian'
-              cunit="days since 0000-01-01 00:00:00"
+              cunit="days since 1950-01-01 00:00:00"
               timlen =124
               call getmem1d(itimes,1,timlen,'mod_ein:itimes')
    do i=1,nfile
@@ -362,7 +362,7 @@ chv4(:,:,:,cb_CH3OH) = chv4_1(:,:,:,mz_CH3OH)*w_ch3oh/amd
               call getmem1d(xtimes,1,timlen,'mod_ein:xtimes')
               istatus = nf90_get_var(ncid,timid,xtimes)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
-               cunit="days since 0000-01-01 00:00:00"
+               cunit="days since 1950-01-01 00:00:00"
               do it = 1 , timlen
                 itimes(it) = timeval2date(dble(xtimes(it)),cunit,ccal)
                 
