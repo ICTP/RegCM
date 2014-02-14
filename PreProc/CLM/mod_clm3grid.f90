@@ -38,7 +38,7 @@ module mod_clm3grid
   intent (out) icount , istart
   intent (inout) xlatmax , xlatmin , xlonmax , xlonmin
 !
-  integer(ik4) :: i , ilatmax , ilatmin , ilonmax , ilonmin , j
+  integer(ik4) :: ilatmax , ilatmin , ilonmax , ilonmin
 
   xlonmin = max(xlonmin-dlon,glon1)
   xlonmax = min(xlonmax+dlon,glon2)
