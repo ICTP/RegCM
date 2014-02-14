@@ -72,10 +72,10 @@ module mod_clm_decomp
 
   type(processor_type) , public :: procinfo
 
-  type(subgrid_type) , public :: gcomm_gridcell
-  type(subgrid_type) , public :: gcomm_landunit
-  type(subgrid_type) , public :: gcomm_column
-  type(subgrid_type) , public :: gcomm_pft
+  type(subgrid_type) , public , target :: gcomm_gridcell
+  type(subgrid_type) , public , target :: gcomm_landunit
+  type(subgrid_type) , public , target :: gcomm_column
+  type(subgrid_type) , public , target :: gcomm_pft
 
   contains
     !
