@@ -295,7 +295,6 @@ module mod_ocn_lake
           sent(i) = sent(i) * (href/toth)**steepf
         end if
 
-        sncv(i) = sncv(i) + dtocn*(prcp(i)-evpr(i))
         if ( sncv(i) < dlowval ) then
           sncv(i) = d_zero
           snag(i) = d_zero
