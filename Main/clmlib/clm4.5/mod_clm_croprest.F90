@@ -90,7 +90,7 @@ contains
     if (flag == 'define') then
       call clm_addvar(clmvar_integer,ncid,'restyear', &
           long_name='Number of years prognostic crop ran', units="years", &
-          missing_value=unset,fill_value=unset)
+          missing_value=1,fill_value=1)
     else if (flag == 'read' ) then
       if ( is_restart() .and. .not. clm_check_var(ncid,'restyear') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')

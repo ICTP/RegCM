@@ -2306,13 +2306,13 @@ module mod_clm_cnrest
     ! som_adv_coef
     call cnrest_addfld_decomp(ncid=ncid, varname='som_adv_coef',   &
                       longname='SOM advective flux', units='m/s',  &
-                      flag=flag, fill_value=spval,                 &
+                      flag=flag, fill_value=1,                 &
                       data_rl=cptr%cps%som_adv_coef, readvar=readvar)
 
     ! som_diffus_coef
     call cnrest_addfld_decomp(ncid=ncid, varname='som_diffus_coef',          &
                       longname='SOM diffusivity due to bio/cryo-turbation',  &
-                      units='m^2/s',  flag=flag, fill_value=spval,           &
+                      units='m^2/s',  flag=flag, fill_value=1,           &
                       data_rl=cptr%cps%som_diffus_coef, readvar=readvar)
 #endif
 

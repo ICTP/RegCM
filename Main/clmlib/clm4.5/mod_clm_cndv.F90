@@ -368,23 +368,23 @@ contains
          (/'lon ','lat ','pft ','time'/), &
             long_name='plant functional type cover', &
             units='fraction of vegetated area', &
-            missing_value=spval, fill_value=spval)
+            missing_value=1,fill_value=1)
        call clm_addvar(clmvar_double,ncid,'NIND', &
          (/'lon ','lat ','pft ','time'/), &
             long_name='number of individuals', &
             units='individuals/m2 vegetated land', &
-            missing_value=spval, fill_value=spval)
+            missing_value=1,fill_value=1)
     else 
        call clm_addvar(clmvar_double,ncid,'FPCGRID',&
             (/'gridcell','pft     ','time    '/), &
             long_name='plant functional type cover', &
             units='fraction of vegetated area', &
-            missing_value=spval, fill_value=spval)
+            missing_value=1,fill_value=1)
        call clm_addvar(clmvar_double,ncid,'NIND', &
             (/'gridcell','pft     ','time    '/), &
             long_name='number of individuals', &
             units='individuals/m2 vegetated land', &
-            missing_value=spval, fill_value=spval)
+            missing_value=1,fill_value=1)
     end if
 
     call clm_enddef(ncid)

@@ -29,6 +29,7 @@ module mod_clm_nchelper
   use mod_dynparam
   use mod_regcm_types
   use mod_clm_decomp
+  use mod_clm_varcon
   use mpi
 
   implicit none
@@ -54,11 +55,12 @@ module mod_clm_nchelper
     real(rk8) , dimension(:,:) , pointer :: r8buf => null()
   end type clm_filetype
 
-  character , public , parameter :: clmvar_text       = 'c'
-  logical , public , parameter :: clmvar_logical      = .false.
-  integer(ik4) , public , parameter :: clmvar_integer = 1
-  real(rk4) , public , parameter :: clmvar_real       = 1.0
-  real(rk8) , public , parameter :: clmvar_double     = 1.0D0
+  integer(ik4) , public , parameter :: clmvar_text    = 1
+  integer(ik4) , public , parameter :: clmvar_logical = 2
+  integer(ik4) , public , parameter :: clmvar_integer = 3
+  integer(ik4) , public , parameter :: clmvar_real    = 4
+  integer(ik4) , public , parameter :: clmvar_double  = 5
+
   integer(ik4) , public , parameter :: clmvar_unlim   = -1
 
   interface assignment(=)
@@ -91,14 +93,6 @@ module mod_clm_nchelper
   integer(ik4) , dimension(clm_maxdims) :: usedims
   integer(ik4) , dimension(4) :: istart
   integer(ik4) , dimension(4) :: icount
-
-  interface clm_addvar
-    module procedure clm_addvar_char
-    module procedure clm_addvar_int
-    module procedure clm_addvar_real4
-    module procedure clm_addvar_real8
-    module procedure clm_addvar_logical
-  end interface clm_addvar
 
   interface clm_addatt
     module procedure clm_addatt_text
@@ -289,11 +283,16 @@ module mod_clm_nchelper
     ncid%varhash = huge(1)
   end subroutine clm_createfile
 
-  subroutine clm_openfile(fname,ncid)
+  subroutine clm_openfile(fname,ncid,mode)
     implicit none
     character(len=*) , intent(in) :: fname
     type(clm_filetype) , intent(out) :: ncid
-    incstat = nf90_open(fname, nf90_nowrite, ncid%ncid)
+    integer(ik4) , intent(in) , optional :: mode
+    if ( present(mode) ) then
+      incstat = nf90_open(fname, mode, ncid%ncid)
+    else
+      incstat = nf90_open(fname, nf90_nowrite, ncid%ncid)
+    end if
     call clm_checkncerr(__FILE__,__LINE__, &
                     'Error open NetCDF input '//trim(fname))
     ncid%fname = fname
@@ -500,47 +499,11 @@ module mod_clm_nchelper
     ncid%idimlast = ncid%idimlast + 1
   end subroutine clm_adddim
 
-  subroutine clm_addvar_char(ctype,ncid,varname,cdims,long_name,units)
+  subroutine clm_addvar(ctype,ncid,varname,cdims,long_name,units, &
+                        cell_method,comment,flag_meanings,missing_value,  &
+                        fill_value,flag_values,valid_range)
     implicit none
-    character , intent(in) :: ctype
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: varname
-    character(len=*) , intent(in) , optional , dimension(:) :: cdims
-    character(len=*) , intent(in) , optional :: long_name
-    character(len=*) , intent(in) , optional :: units
-    integer(ik4) :: nd , i , varid
-    if ( myid /= iocpu ) return
-    call add_varhash(ncid,varname)
-    if ( present(cdims) ) then
-      nd = size(cdims)
-      do i = 1 , nd
-        usedims(i) = searchdim(ncid,cdims(i))
-      end do
-      incstat = nf90_def_var(ncid%ncid,varname,nf90_char,usedims(1:nd),varid)
-    else
-      incstat = nf90_def_var(ncid%ncid,varname,nf90_char,varid)
-    end if
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error adding variable '//varname//' to file '//trim(ncid%fname))
-    if ( present(long_name) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, 'long_name',long_name)
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error long_name to '//varname//' to file '//trim(ncid%fname))
-    end if
-    if ( present(units) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, 'units', units)
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error units to '//varname//' to file '//trim(ncid%fname))
-    end if
-    ncid%varids(ncid%ivarlast) = varid
-    ncid%ivarlast = ncid%ivarlast + 1
-  end subroutine clm_addvar_char
-
-  subroutine clm_addvar_int(itype,ncid,varname,cdims,long_name,units, &
-                            cell_method,comment,flag_meanings,missing_value,  &
-                            fill_value,flag_values,valid_range)
-    implicit none
-    integer(ik4) , intent(in) :: itype
+    integer(ik4) , intent(in) :: ctype
     type(clm_filetype) , intent(inout) :: ncid
     character(len=*) , intent(in) :: varname
     character(len=*) , intent(in) , optional , dimension(:) :: cdims
@@ -562,27 +525,89 @@ module mod_clm_nchelper
       do i = 1 , nd
         usedims(i) = searchdim(ncid,cdims(i))
       end do
-      incstat = nf90_def_var(ncid%ncid,varname,nf90_int4,usedims(1:nd),varid)
+      select case ( ctype )
+        case ( clmvar_text )
+          incstat = nf90_def_var(ncid%ncid,varname,nf90_char, &
+            usedims(1:nd),varid)
+        case ( clmvar_logical )
+          incstat = nf90_def_var(ncid%ncid,varname,nf90_int4, &
+            usedims(1:nd),varid)
+        case ( clmvar_integer )
+          incstat = nf90_def_var(ncid%ncid,varname,nf90_int4, &
+            usedims(1:nd),varid)
+        case ( clmvar_real )
+          incstat = nf90_def_var(ncid%ncid,varname,nf90_real4, &
+            usedims(1:nd),varid)
+        case ( clmvar_double )
+          incstat = nf90_def_var(ncid%ncid,varname,nf90_real8, &
+            usedims(1:nd),varid)
+      end select
     else
-      incstat = nf90_def_var(ncid%ncid,varname,nf90_int4,varid)
+      select case ( ctype )
+        case ( clmvar_text )
+          incstat = nf90_def_var(ncid%ncid,varname,nf90_char,varid)
+        case ( clmvar_logical )
+          incstat = nf90_def_var(ncid%ncid,varname,nf90_int4,varid)
+        case ( clmvar_integer )
+          incstat = nf90_def_var(ncid%ncid,varname,nf90_int4,varid)
+        case ( clmvar_real )
+          incstat = nf90_def_var(ncid%ncid,varname,nf90_real4,varid)
+        case ( clmvar_double )
+          incstat = nf90_def_var(ncid%ncid,varname,nf90_real8,varid)
+      end select
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error adding variable '//varname//' to file '//trim(ncid%fname))
-    incstat = nf90_put_att(ncid%ncid, varid, 'long_name',long_name)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error long_name to '//varname//' to file '//trim(ncid%fname))
-    incstat = nf90_put_att(ncid%ncid, varid, 'units', units)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error units to '//varname//' to file '//trim(ncid%fname))
-    if ( present(fill_value) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, '_FillValue', fill_value)
+
+    if ( present(long_name) ) then
+      incstat = nf90_put_att(ncid%ncid, varid, 'long_name',long_name)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error fill_value to '//varname//' to file '//trim(ncid%fname))
+        'Error long_name to '//varname//' to file '//trim(ncid%fname))
+    end if
+    if ( present(units) ) then
+      incstat = nf90_put_att(ncid%ncid, varid, 'units', units)
+      call clm_checkncerr(__FILE__,__LINE__, &
+        'Error units to '//varname//' to file '//trim(ncid%fname))
+    end if
+    if ( present(fill_value) ) then
+      select case ( ctype )
+        case ( clmvar_text )
+          incstat = nf90_put_att(ncid%ncid, varid, '_FillValue', ' ')
+          call clm_checkncerr(__FILE__,__LINE__, &
+            'Error fill_value to '//varname//' to file '//trim(ncid%fname))
+        case ( clmvar_integer )
+          incstat = nf90_put_att(ncid%ncid, varid, '_FillValue', ispval)
+          call clm_checkncerr(__FILE__,__LINE__, &
+            'Error fill_value to '//varname//' to file '//trim(ncid%fname))
+        case ( clmvar_real )
+          incstat = nf90_put_att(ncid%ncid, varid, '_FillValue', rspval)
+          call clm_checkncerr(__FILE__,__LINE__, &
+            'Error fill_value to '//varname//' to file '//trim(ncid%fname))
+        case ( clmvar_double )
+          incstat = nf90_put_att(ncid%ncid, varid, '_FillValue', spval)
+          call clm_checkncerr(__FILE__,__LINE__, &
+            'Error fill_value to '//varname//' to file '//trim(ncid%fname))
+      end select
     end if
     if ( present(missing_value) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, 'missing_value', missing_value)
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error missing_value to '//varname//' to file '//trim(ncid%fname))
+      select case ( ctype )
+        case ( clmvar_text )
+          incstat = nf90_put_att(ncid%ncid, varid, 'missing_value', ' ')
+          call clm_checkncerr(__FILE__,__LINE__, &
+            'Error missing_value to '//varname//' to file '//trim(ncid%fname))
+        case ( clmvar_integer )
+          incstat = nf90_put_att(ncid%ncid, varid, 'missing_value', ispval)
+          call clm_checkncerr(__FILE__,__LINE__, &
+            'Error missing_value to '//varname//' to file '//trim(ncid%fname))
+        case ( clmvar_real )
+          incstat = nf90_put_att(ncid%ncid, varid, 'missing_value', rspval)
+          call clm_checkncerr(__FILE__,__LINE__, &
+            'Error missing_value to '//varname//' to file '//trim(ncid%fname))
+        case ( clmvar_double )
+          incstat = nf90_put_att(ncid%ncid, varid, 'missing_value', spval)
+          call clm_checkncerr(__FILE__,__LINE__, &
+            'Error missing_value to '//varname//' to file '//trim(ncid%fname))
+      end select
     end if
     if ( present(comment) ) then
       incstat = nf90_put_att(ncid%ncid, varid, 'comment', comment)
@@ -614,241 +639,10 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error flag_meanings to '//varname//' to file '//trim(ncid%fname))
     end if
-    ncid%varids(ncid%ivarlast) = varid
-    ncid%ivarlast = ncid%ivarlast + 1
-  end subroutine clm_addvar_int
 
-  subroutine clm_addvar_logical(ltype,ncid,varname,cdims,long_name,units, &
-                            cell_method,comment,missing_value,fill_value)
-    implicit none
-    logical , intent(in) :: ltype
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: varname
-    character(len=*) , intent(in) , optional , dimension(:) :: cdims
-    character(len=*) , intent(in) , optional :: long_name
-    character(len=*) , intent(in) , optional :: units
-    character(len=*) , intent(in) , optional :: cell_method
-    character(len=*) , intent(in) , optional :: comment
-    integer(ik4) , intent(in) , optional :: missing_value
-    integer(ik4) , intent(in) , optional :: fill_value
-    integer(ik4) :: nd , i , varid
-    character(len=256) :: str
-    if ( myid /= iocpu ) return
-    call add_varhash(ncid,varname)
-    if ( present(cdims) ) then
-      nd = size(cdims)
-      do i = 1 , nd
-        usedims(i) = searchdim(ncid,cdims(i))
-      end do
-      incstat = nf90_def_var(ncid%ncid,varname,nf90_int,usedims(1:nd),varid)
-    else
-      incstat = nf90_def_var(ncid%ncid,varname,nf90_int,varid)
-    end if
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error adding variable '//varname//' to file '//trim(ncid%fname))
-    incstat = nf90_put_att(ncid%ncid, varid, 'long_name',long_name)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error long_name to '//varname//' to file '//trim(ncid%fname))
-    incstat = nf90_put_att(ncid%ncid, varid, 'units', units)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error units to '//varname//' to file '//trim(ncid%fname))
-    if ( present(fill_value) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, '_FillValue', fill_value)
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error fill_value to '//varname//' to file '//trim(ncid%fname))
-    end if
-    if ( present(missing_value) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, 'missing_value', missing_value)
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error missing_value to '//varname//' to file '//trim(ncid%fname))
-    end if
-    if ( present(comment) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, 'comment', comment)
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error comment to '//varname//' to file '//trim(ncid%fname))
-    end if
-    if ( present(cell_method) ) then
-      str = 'time: ' // trim(cell_method)
-      incstat = nf90_put_att(ncid%ncid, varid, 'cell_method', trim(str))
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error cell_method to '//varname//' to file '//trim(ncid%fname))
-    end if
-    incstat = nf90_put_att(ncid%ncid, varid, 'valid_range', (/0, 1/))
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error valid_range to '//varname//' to file '//trim(ncid%fname))
-    incstat = nf90_put_att(ncid%ncid, varid, 'flag_values', (/0, 1/))
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error flag_values to '//varname//' to file '//trim(ncid%fname))
-    incstat = nf90_put_att(ncid%ncid, varid, 'flag_meanings', 'FALSE TRUE')
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error flag_meanings to '//varname//' to file '//trim(ncid%fname))
     ncid%varids(ncid%ivarlast) = varid
     ncid%ivarlast = ncid%ivarlast + 1
-  end subroutine clm_addvar_logical
-
-  subroutine clm_addvar_real4(rtype,ncid,varname,cdims,long_name,units, &
-                            cell_method,comment,flag_meanings,missing_value,  &
-                            fill_value,flag_values,valid_range)
-    implicit none
-    real(rk4) , intent(in) :: rtype
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: varname
-    character(len=*) , intent(in) , optional , dimension(:) :: cdims
-    character(len=*) , intent(in) , optional :: long_name
-    character(len=*) , intent(in) , optional :: units
-    character(len=*) , intent(in) , optional :: cell_method
-    character(len=*) , intent(in) , optional :: comment
-    character(len=*) , intent(in) , dimension(:) , optional :: flag_meanings
-    real(rk4) , intent(in) , optional :: missing_value
-    real(rk4) , intent(in) , optional :: fill_value
-    real(rk4) , intent(in) , dimension(:) , optional :: flag_values
-    real(rk4) , intent(in) , dimension(2) , optional :: valid_range
-    integer(ik4) :: nd , i , varid
-    character(len=256) :: str
-    if ( myid /= iocpu ) return
-    call add_varhash(ncid,varname)
-    if ( present(cdims) ) then
-      nd = size(cdims)
-      do i = 1 , nd
-        usedims(i) = searchdim(ncid,cdims(i))
-      end do
-      incstat = nf90_def_var(ncid%ncid,varname,nf90_real4,usedims(1:nd),varid)
-    else
-      incstat = nf90_def_var(ncid%ncid,varname,nf90_real4,varid)
-    end if
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error adding variable '//varname//' to file '//trim(ncid%fname))
-    incstat = nf90_put_att(ncid%ncid, varid, 'long_name',long_name)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error long_name to '//varname//' to file '//trim(ncid%fname))
-    incstat = nf90_put_att(ncid%ncid, varid, 'units', units)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error units to '//varname//' to file '//trim(ncid%fname))
-    if ( present(fill_value) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, '_FillValue', fill_value)
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error fill_value to '//varname//' to file '//trim(ncid%fname))
-    end if
-    if ( present(missing_value) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, 'missing_value', missing_value)
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error missing_value to '//varname//' to file '//trim(ncid%fname))
-    end if
-    if ( present(comment) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, 'comment', comment)
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error comment to '//varname//' to file '//trim(ncid%fname))
-    end if
-    if ( present(cell_method) ) then
-      str = 'time: ' // trim(cell_method)
-      incstat = nf90_put_att(ncid%ncid, varid, 'cell_method', trim(str))
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error cell_method to '//varname//' to file '//trim(ncid%fname))
-    end if
-    if ( present(valid_range) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, 'valid_range', valid_range)
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error valid_range to '//varname//' to file '//trim(ncid%fname))
-    end if
-    if ( present(flag_values) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, 'flag_values', flag_values)
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error flag_values to '//varname//' to file '//trim(ncid%fname))
-    end if
-    if ( present(flag_meanings) ) then
-      str = ' '
-      do i = 1 , size(flag_meanings)
-        str = str//flag_meanings(i)
-      end do
-      incstat = nf90_put_att(ncid%ncid, varid, 'flag_meanings', trim(str))
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error flag_meanings to '//varname//' to file '//trim(ncid%fname))
-    end if
-    ncid%varids(ncid%ivarlast) = varid
-    ncid%ivarlast = ncid%ivarlast + 1
-  end subroutine clm_addvar_real4
-
-  subroutine clm_addvar_real8(rtype,ncid,varname,cdims,long_name,units, &
-                            cell_method,comment,flag_meanings,missing_value,  &
-                            fill_value,flag_values,valid_range)
-    implicit none
-    real(rk8) , intent(in) :: rtype
-    type(clm_filetype) , intent(inout) :: ncid
-    character(len=*) , intent(in) :: varname
-    character(len=*) , intent(in) , optional , dimension(:) :: cdims
-    character(len=*) , intent(in) , optional :: long_name
-    character(len=*) , intent(in) , optional :: units
-    character(len=*) , intent(in) , optional :: cell_method
-    character(len=*) , intent(in) , optional :: comment
-    character(len=*) , intent(in) , dimension(:) , optional :: flag_meanings
-    real(rk8) , intent(in) , optional :: missing_value
-    real(rk8) , intent(in) , optional :: fill_value
-    real(rk8) , intent(in) , dimension(:) , optional :: flag_values
-    real(rk8) , intent(in) , dimension(2) , optional :: valid_range
-    integer(ik4) :: nd , i , varid
-    character(len=256) :: str
-    if ( myid /= iocpu ) return
-    call add_varhash(ncid,varname)
-    if ( present(cdims) ) then
-      nd = size(cdims)
-      do i = 1 , nd
-        usedims(i) = searchdim(ncid,cdims(i))
-      end do
-      incstat = nf90_def_var(ncid%ncid,varname,nf90_real8,usedims(1:nd),varid)
-    else
-      incstat = nf90_def_var(ncid%ncid,varname,nf90_real8,varid)
-    end if
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error adding variable '//varname//' to file '//trim(ncid%fname))
-    incstat = nf90_put_att(ncid%ncid, varid, 'long_name',long_name)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error long_name to '//varname//' to file '//trim(ncid%fname))
-    incstat = nf90_put_att(ncid%ncid, varid, 'units', units)
-    call clm_checkncerr(__FILE__,__LINE__, &
-      'Error units to '//varname//' to file '//trim(ncid%fname))
-    if ( present(fill_value) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, '_FillValue', fill_value)
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error fill_value to '//varname//' to file '//trim(ncid%fname))
-    end if
-    if ( present(missing_value) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, 'missing_value', missing_value)
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error missing_value to '//varname//' to file '//trim(ncid%fname))
-    end if
-    if ( present(comment) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, 'comment', comment)
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error comment to '//varname//' to file '//trim(ncid%fname))
-    end if
-    if ( present(cell_method) ) then
-      str = 'time: ' // trim(cell_method)
-      incstat = nf90_put_att(ncid%ncid, varid, 'cell_method', trim(str))
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error cell_method to '//varname//' to file '//trim(ncid%fname))
-    end if
-    if ( present(valid_range) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, 'valid_range', valid_range)
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error valid_range to '//varname//' to file '//trim(ncid%fname))
-    end if
-    if ( present(flag_values) ) then
-      incstat = nf90_put_att(ncid%ncid, varid, 'flag_values', flag_values)
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error flag_values to '//varname//' to file '//trim(ncid%fname))
-    end if
-    if ( present(flag_meanings) ) then
-      str = ' '
-      do i = 1 , size(flag_meanings)
-        str = str//flag_meanings(i)
-      end do
-      incstat = nf90_put_att(ncid%ncid, varid, 'flag_meanings', trim(str))
-      call clm_checkncerr(__FILE__,__LINE__, &
-        'Error flag_meanings to '//varname//' to file '//trim(ncid%fname))
-    end if
-    ncid%varids(ncid%ivarlast) = varid
-    ncid%ivarlast = ncid%ivarlast + 1
-  end subroutine clm_addvar_real8
+  end subroutine clm_addvar
 
   logical function clm_check_dim(ncid,dname)
     implicit none
