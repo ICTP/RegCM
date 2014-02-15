@@ -102,7 +102,7 @@ module mod_che_emission
 #if (defined VOC && defined CLM)
     integer(ik4)  :: jglob, iglob  ! Full grid i- j-component
 #endif
-    real(rk8) :: daylen , fact , maxelev , amp
+    real(rk8) :: daylen , fact , maxelev , amp,dayhr
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'emis_tend'
     integer(ik4) , save :: idindx = 0
@@ -134,7 +134,13 @@ module mod_che_emission
 #else
       ! Modify chemsrc for species that need a dirunal cycle
       do i = ici1 , ici2
+        dayhr=-tan(declin)*tan(cxlat(j,i)*degrad)
+        if(dayhr .lt. -1 .or. dayhr .gt. 1) then
+        tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
+        chemsrc(j,i,iisop) = 0.0
+        else
         daylen = d_two*acos(-tan(declin)*tan(cxlat(j,i)*degrad))*raddeg
+        daylen = d_two*acos(dayhr)*raddeg
         daylen = daylen*24.0D0/360.0D0
         ! Maximum sun elevation
         maxelev = halfpi - ((cxlat(j,i)*degrad)-declin)
@@ -142,7 +148,8 @@ module mod_che_emission
         amp = 12.0D0*mathpi/daylen
         tmpsrc(j,i,iisop)  = chemsrc(j,i,iisop)
         chemsrc(j,i,iisop) = (amp)*chemsrc(j,i,iisop) * &
-                             sin(mathpi*fact)*egrav/(dsigma(kz)*1.0D3)
+                            sin(mathpi*fact)*egrav/(dsigma(kz)*1.0D3)
+        end if
       end do
 #endif
     end if
