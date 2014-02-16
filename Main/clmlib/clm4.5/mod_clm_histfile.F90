@@ -25,6 +25,7 @@ module mod_clm_histfile
                               version , hostname , username , conventions ,   &
                               source , inst_suffix
   use mod_clm_domain , only : ldomain , lon1d , lat1d
+  use mod_clm_time_manager , only : get_prev_date
 
   implicit none
 
@@ -2155,7 +2156,6 @@ module mod_clm_histfile
     end if  ! (define/write mode
 
   end subroutine htape_timeconst
-#ifdef UPTOHERE
   !
   ! Write history tape.  Issue the call to write the variable.
   !
@@ -2188,9 +2188,9 @@ module mod_clm_histfile
     ! Write/define 1d topological info
 
     if ( .not. tape(t)%dov2xy ) then
-      if (mode == 'define') then
+      if ( mode == 'define' ) then
         call hfields_1dinfo(t, mode='define')
-      else if (mode == 'write') then
+      else if ( mode == 'write' ) then
         call hfields_1dinfo(t, mode='write')
       end if
     end if
@@ -2246,28 +2246,23 @@ module mod_clm_histfile
 
         if ( dim2name == 'undefined' ) then
           if ( num2d == 1 ) then
-            call ncd_defvar(ncid=nfid(t), varname=varname, &
-              xtype=tape(t)%ncprec, dim1name=dim1name, dim2name='time', &
-              long_name=long_name, units=units, cell_method=avgstr, &
-              missing_value=1, fill_value=1)
+            call clm_addvar(tape(t)%ncprec,nfid(t),varname, &
+              cdims=(/dim1name,'time'/), long_name=long_name, &
+              units=units, cell_method=avgstr, missing_value=1, fill_value=1)
           else
-            call ncd_defvar(ncid=nfid(t), varname=varname, &
-              xtype=tape(t)%ncprec, dim1name=dim1name, dim2name=type2d, &
-              dim3name='time', long_name=long_name, units=units, &
-              cell_method=avgstr, missing_value=1, fill_value=1)
+            call clm_addvar(tape(t)%ncprec,nfid(t),varname, &
+              cdims=(/dim1name,type2d,'time'/), long_name=long_name, &
+              units=units, cell_method=avgstr, missing_value=1, fill_value=1)
           end if
         else
           if ( num2d == 1 ) then
-            call ncd_defvar(ncid=nfid(t), varname=varname, &
-              xtype=tape(t)%ncprec, dim1name=dim1name, dim2name=dim2name, &
-              dim3name='time', long_name=long_name, units=units, &
-              cell_method=avgstr, missing_value=1, fill_value=1)
+            call clm_addvar(tape(t)%ncprec,nfid(t),varname, &
+              cdims=(/dim1name,dim2name,'time'/), long_name=long_name, &
+              units=units, cell_method=avgstr, missing_value=1, fill_value=1)
           else
-            call ncd_defvar(ncid=nfid(t), varname=varname, &
-              xtype=tape(t)%ncprec, dim1name=dim1name, dim2name=dim2name, &
-              dim3name=type2d, dim4name='time', long_name=long_name, &
-              units=units, cell_method=avgstr, missing_value=1, &
-              fill_value=1)
+            call clm_addvar(tape(t)%ncprec,nfid(t),varname, &
+              cdims=(/dim1name,dim2name,type2d,'time'/), long_name=long_name, &
+              units=units, cell_method=avgstr, missing_value=1, fill_value=1)
           end if
         end if
 
@@ -2291,11 +2286,9 @@ module mod_clm_histfile
         ! Write history output.  Always output land and ocean runoff on xy grid.
 
         if ( num2d == 1 ) then
-          call ncd_io(flag='write', varname=varname, &
-                  dim1name=type1d_out, data=hist1do, ncid=nfid(t), nt=nt)
+          call clm_writevar(nfid(t),varname,hist1do,procinfo,nt)
         else
-          call ncd_io(flag='write', varname=varname, &
-                  dim1name=type1d_out, data=histo, ncid=nfid(t), nt=nt)
+          call clm_writevar(nfid(t),varname,histo,procinfo,nt)
         end if
 
         ! Deallocate dynamic memory
@@ -2329,487 +2322,345 @@ module mod_clm_histfile
     integer(ik4) , pointer :: icarr(:)     ! temporary
     integer(ik4) , pointer :: ilarr(:)     ! temporary
     integer(ik4) , pointer :: iparr(:)     ! temporary
-    type(clm_filetype) :: ncid              ! netcdf file
     type(gridcell_type), pointer :: gptr ! pointer to gridcell derived subtype
     type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
     type(column_type)  , pointer :: cptr ! pointer to column derived subtype
     type(pft_type)     , pointer :: pptr ! pointer to pft derived subtype
-    character(len=*),parameter :: subname = 'hfields_1dinfo'
-!-----------------------------------------------------------------------
+    character(len=*) , parameter :: subname = 'hfields_1dinfo'
 
-    ncid = nfid(t)
+    if ( mode == 'define' ) then
 
-    if (mode == 'define') then
+      ! Define gridcell info
 
-          ! Define gridcell info
+      call clm_addvar(clmvar_double,nfid(t),'grid1d_lon',cdims=(/nameg/), &
+              long_name='gridcell longitude', units='degrees_east')
+      call clm_addvar(clmvar_double,nfid(t),'grid1d_lat',cdims=(/nameg/), &
+              long_name='gridcell latitude', units='degrees_north')
 
-          call ncd_defvar(varname='grid1d_lon', xtype=ncd_double, dim1name=nameg, &
-               long_name='gridcell longitude', units='degrees_east', ncid=ncid)
+      ! Define landunit info
+      call clm_addvar(clmvar_double,nfid(t),'land1d_lon',cdims=(/namel/), &
+              long_name='ladunit longitude', units='degrees_east')
+      call clm_addvar(clmvar_double,nfid(t),'land1d_lat',cdims=(/namel/), &
+              long_name='ladunit latitude', units='degrees_north')
+      call clm_addvar(clmvar_double,nfid(t),'land1d_wtgcell',cdims=(/namel/), &
+              long_name='landunit weight relative to corresponding gridcell')
+      call clm_addvar(clmvar_integer,nfid(t),'land1d_ityplunit', &
+              cdims=(/namel/), &
+              long_name='landunit type (vegetated,urban,lake,wetland,glacier)')
+      call clm_addvar(clmvar_logical,nfid(t),'land1d_active', &
+              cdims=(/namel/), &
+              long_name='true => do computations on this landunit')
 
-          call ncd_defvar(varname='grid1d_lat', xtype=ncd_double,  dim1name=nameg, &
-               long_name='gridcell latitude', units='degrees_north', ncid=ncid)
+      ! Define column info
+      call clm_addvar(clmvar_double,nfid(t),'cols1d_lon',cdims=(/namec/), &
+              long_name='column longitude', units='degrees_east')
+      call clm_addvar(clmvar_double,nfid(t),'cols1d_lat',cdims=(/namec/), &
+              long_name='column latitude', units='degrees_north')
+      call clm_addvar(clmvar_double,nfid(t),'cols1d_wtgcell',cdims=(/namec/), &
+              long_name='column weight relative to corresponding gridcell')
+      call clm_addvar(clmvar_double,nfid(t),'cols1d_wtlunit',cdims=(/namec/), &
+              long_name='column weight relative to corresponding landunit')
+      call clm_addvar(clmvar_integer,nfid(t),'cols1d_itype_lunit', &
+        cdims=(/namec/), &
+        long_name='column landunit type (vegetated,urban,lake,wetland,glacier)')
+      call clm_addvar(clmvar_logical,nfid(t),'cols1d_active', &
+        cdims=(/namec/), long_name='true => do computations on this column')
 
-          call ncd_defvar(varname='grid1d_ixy', xtype=ncd_int, dim1name=nameg, &
-               long_name='2d longitude index of corresponding gridcell', ncid=ncid)
-
-          call ncd_defvar(varname='grid1d_jxy', xtype=ncd_int, dim1name=nameg, &
-               long_name='2d latitude index of corresponding gridcell', ncid=ncid)
-
-          ! Define landunit info
-
-          call ncd_defvar(varname='land1d_lon', xtype=ncd_double, dim1name=namel, &
-               long_name='landunit longitude', units='degrees_east', ncid=ncid)
-
-          call ncd_defvar(varname='land1d_lat', xtype=ncd_double, dim1name=namel, &
-               long_name='landunit latitude', units='degrees_north', ncid=ncid)
-
-          call ncd_defvar(varname='land1d_ixy', xtype=ncd_int, dim1name=namel, &
-               long_name='2d longitude index of corresponding landunit', ncid=ncid)
-
-          call ncd_defvar(varname='land1d_jxy', xtype=ncd_int, dim1name=namel, &
-               long_name='2d latitude index of corresponding landunit', ncid=ncid)
-
-          ! --- EBK Do NOT write out indices that are incorrect 4/1/2011 --- Bug 1310
-          !call ncd_defvar(varname='land1d_gi', xtype=ncd_int, dim1name='landunit', &
-          !     long_name='1d grid index of corresponding landunit', ncid=ncid)
-          ! ----------------------------------------------------------------
-
-          call ncd_defvar(varname='land1d_wtgcell', xtype=ncd_double, dim1name=namel, &
-               long_name='landunit weight relative to corresponding gridcell', ncid=ncid)
-
-          call ncd_defvar(varname='land1d_ityplunit', xtype=ncd_int, dim1name=namel, &
-               long_name='landunit type (vegetated,urban,lake,wetland,glacier or glacier_mec)', &
-                  ncid=ncid)
-
-          call ncd_defvar(varname='land1d_active', xtype=ncd_log, dim1name=namel, &
-               long_name='true => do computations on this landunit', ncid=ncid)
-
-          ! Define column info
-
-          call ncd_defvar(varname='cols1d_lon', xtype=ncd_double, dim1name=namec, &
-               long_name='column longitude', units='degrees_east', ncid=ncid)
-
-          call ncd_defvar(varname='cols1d_lat', xtype=ncd_double, dim1name=namec, &
-               long_name='column latitude', units='degrees_north', ncid=ncid)
-
-          call ncd_defvar(varname='cols1d_ixy', xtype=ncd_int, dim1name=namec, &
-               long_name='2d longitude index of corresponding column', ncid=ncid)
-
-          call ncd_defvar(varname='cols1d_jxy', xtype=ncd_int, dim1name=namec, &
-               long_name='2d latitude index of corresponding column', ncid=ncid)
-
-          ! --- EBK Do NOT write out indices that are incorrect 4/1/2011 --- Bug 1310
-          !call ncd_defvar(varname='cols1d_gi', xtype=ncd_int, dim1name='column', &
-          !     long_name='1d grid index of corresponding column', ncid=ncid)
-
-          !call ncd_defvar(varname='cols1d_li', xtype=ncd_int, dim1name='column', &
-          !     long_name='1d landunit index of corresponding column', ncid=ncid)
-          ! ----------------------------------------------------------------
-
-          call ncd_defvar(varname='cols1d_wtgcell', xtype=ncd_double, dim1name=namec, &
-               long_name='column weight relative to corresponding gridcell', ncid=ncid)
-
-          call ncd_defvar(varname='cols1d_wtlunit', xtype=ncd_double, dim1name=namec, &
-               long_name='column weight relative to corresponding landunit', ncid=ncid)
-
-          call ncd_defvar(varname='cols1d_itype_lunit', xtype=ncd_int, dim1name=namec, &
-               long_name='column landunit type (vegetated,urban,lake,wetland,glacier or glacier_mec)', &
-                  ncid=ncid)
-
-          call ncd_defvar(varname='cols1d_active', xtype=ncd_log, dim1name=namec, &
-               long_name='true => do computations on this column', ncid=ncid)
-
-          ! Define pft info
-
-          call ncd_defvar(varname='pfts1d_lon', xtype=ncd_double, dim1name=namep, &
-               long_name='pft longitude', units='degrees_east', ncid=ncid)
-
-          call ncd_defvar(varname='pfts1d_lat', xtype=ncd_double, dim1name=namep, &
-               long_name='pft latitude', units='degrees_north', ncid=ncid)
-
-          call ncd_defvar(varname='pfts1d_ixy', xtype=ncd_int, dim1name=namep, &
-               long_name='2d longitude index of corresponding pft', ncid=ncid)
-
-          call ncd_defvar(varname='pfts1d_jxy', xtype=ncd_int, dim1name=namep, &
-               long_name='2d latitude index of corresponding pft', ncid=ncid)
-
-          ! --- EBK Do NOT write out indices that are incorrect 4/1/2011 --- Bug 1310
-          !call ncd_defvar(varname='pfts1d_gi', xtype=ncd_int, dim1name='pft', &
-          !     long_name='1d grid index of corresponding pft', ncid=ncid)
-
-          !call ncd_defvar(varname='pfts1d_li', xtype=ncd_int, dim1name='pft', &
-          !     long_name='1d landunit index of corresponding pft', ncid=ncid)
-
-          !call ncd_defvar(varname='pfts1d_ci', xtype=ncd_int, dim1name='pft', &
-          !     long_name='1d column index of corresponding pft', ncid=ncid)
-          ! ----------------------------------------------------------------
-
-          call ncd_defvar(varname='pfts1d_wtgcell', xtype=ncd_double, dim1name=namep, &
-               long_name='pft weight relative to corresponding gridcell', ncid=ncid)
-
-          call ncd_defvar(varname='pfts1d_wtlunit', xtype=ncd_double, dim1name=namep, &
-               long_name='pft weight relative to corresponding landunit', ncid=ncid)
-
-          call ncd_defvar(varname='pfts1d_wtcol', xtype=ncd_double, dim1name=namep, &
-               long_name='pft weight relative to corresponding column', ncid=ncid)
-
-          call ncd_defvar(varname='pfts1d_itype_veg', xtype=ncd_int, dim1name=namep, &
-               long_name='pft vegetation type', ncid=ncid)
-
-          call ncd_defvar(varname='pfts1d_itype_lunit', xtype=ncd_int, dim1name=namep, &
-               long_name='pft landunit type (vegetated,urban,lake,wetland,glacier or glacier_mec)',  &
-                  ncid=ncid)
-
-          call ncd_defvar(varname='pfts1d_active', xtype=ncd_log, dim1name=namep, &
-               long_name='true => do computations on this pft', ncid=ncid)
+      ! Define pft info
+      call clm_addvar(clmvar_double,nfid(t),'pfts1d_lon',cdims=(/namep/), &
+              long_name='column longitude', units='degrees_east')
+      call clm_addvar(clmvar_double,nfid(t),'pfts1d_lat',cdims=(/namep/), &
+              long_name='column latitude', units='degrees_north')
+      call clm_addvar(clmvar_double,nfid(t),'pfts1d_wtgcell',cdims=(/namep/), &
+              long_name='pft weight relative to corresponding gridcell')
+      call clm_addvar(clmvar_double,nfid(t),'pfts1d_wtlunit',cdims=(/namep/), &
+              long_name='pft weight relative to corresponding landunit')
+      call clm_addvar(clmvar_double,nfid(t),'pfts1d_wtcol',cdims=(/namep/), &
+              long_name='pft weight relative to corresponding column')
+      call clm_addvar(clmvar_integer,nfid(t),'pfts1d_itype_veg', &
+        cdims=(/namep/),long_name='pft vegetation type')
+      call clm_addvar(clmvar_integer,nfid(t),'pfts1d_itype_lunit', &
+        cdims=(/namep/), &
+        long_name='pft landunit type (vegetated,urban,lake,wetland,glacier)')
+      call clm_addvar(clmvar_logical,nfid(t),'pfts1d_active', &
+        cdims=(/namep/), &
+        long_name='true => do computations on this pft')
 
     else if (mode == 'write') then
 
-       ! Set pointers into derived type
+      ! Set pointers into derived type
 
-       gptr => clm3%g
-       lptr => clm3%g%l
-       cptr => clm3%g%l%c
-       pptr => clm3%g%l%c%p
+      gptr => clm3%g
+      lptr => clm3%g%l
+      cptr => clm3%g%l%c
+      pptr => clm3%g%l%c%p
 
-       ! Determine bounds
+      ! Determine bounds
 
-       call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
+      call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
-       allocate(rgarr(begg:endg),rlarr(begl:endl),rcarr(begc:endc),rparr(begp:endp),stat=ier)
-       if (ier /= 0) call fatal(__FILE__,__LINE__, &
-               'hfields_1dinfo allocation error of rarrs')
+      allocate(rgarr(begg:endg),rlarr(begl:endl), &
+               rcarr(begc:endc),rparr(begp:endp),stat=ier)
+      if ( ier /= 0 ) then
+        call fatal(__FILE__,__LINE__,'hfields_1dinfo allocation error of rarrs')
+      end if
 
-       allocate(igarr(begg:endg),ilarr(begl:endl),icarr(begc:endc),iparr(begp:endp),stat=ier)
-       if (ier /= 0) call fatal(__FILE__,__LINE__, &
-               'hfields_1dinfo allocation error of iarrs')
+      allocate(igarr(begg:endg),ilarr(begl:endl), &
+               icarr(begc:endc),iparr(begp:endp),stat=ier)
+      if ( ier /= 0 ) then
+        call fatal(__FILE__,__LINE__,'hfields_1dinfo allocation error of iarrs')
+      end if
 
-       ! Write gridcell info
+      ! Write gridcell info
 
-       call ncd_io(varname='grid1d_lon', data=gptr%londeg, dim1name=nameg, ncid=ncid, flag='write')
-       call ncd_io(varname='grid1d_lat', data=gptr%latdeg, dim1name=nameg, ncid=ncid, flag='write')
-       do g=begg,endg
-         igarr(g)= mod(ldecomp%gdc2glo(g)-1,ldomain%ni) + 1
-       end do
-       call ncd_io(varname='grid1d_ixy', data=igarr      , dim1name=nameg, ncid=ncid, flag='write')
-       do g=begg,endg
-         igarr(g)= (ldecomp%gdc2glo(g) - 1)/ldomain%ni + 1
-       end do
-       call ncd_io(varname='grid1d_jxy', data=igarr      , dim1name=nameg, ncid=ncid, flag='write')
+      call clm_writevar(nfid(t),'grid1d_lon',gptr%londeg,gcomm_gridcell)
+      call clm_writevar(nfid(t),'grid1d_lat',gptr%latdeg,gcomm_gridcell)
 
-       ! Write landunit info
+      ! Write landunit info
 
-       do l=begl,endl
-         rlarr(l) = gptr%londeg(lptr%gridcell(l))
-       end do
-       call ncd_io(varname='land1d_lon', data=rlarr, dim1name=namel, ncid=ncid, flag='write')
-       do l=begl,endl
-         rlarr(l) = gptr%latdeg(lptr%gridcell(l))
-       end do
-       call ncd_io(varname='land1d_lat', data=rlarr, dim1name=namel, ncid=ncid, flag='write')
-       do l=begl,endl
-         ilarr(l) = mod(ldecomp%gdc2glo(lptr%gridcell(l))-1,ldomain%ni) + 1
-       end do
-       call ncd_io(varname='land1d_ixy', data=ilarr, dim1name=namel, ncid=ncid, flag='write')
-       do l=begl,endl
-         ilarr(l) = (ldecomp%gdc2glo(lptr%gridcell(l))-1)/ldomain%ni + 1
-       end do
-       call ncd_io(varname='land1d_jxy'      , data=ilarr        , dim1name=namel, ncid=ncid, flag='write')
-       ! --- EBK Do NOT write out indices that are incorrect 4/1/2011 Bug 1310
-       !call ncd_io(varname='land1d_gi'       , data=lptr%gridcell, dim1name=namel, ncid=ncid, flag='write')
-       ! ----------------------------------------------------------------
-       call ncd_io(varname='land1d_wtgcell'  , data=lptr%wtgcell , dim1name=namel, ncid=ncid, flag='write')
-       call ncd_io(varname='land1d_ityplunit', data=lptr%itype   , dim1name=namel, ncid=ncid, flag='write')
-       call ncd_io(varname='land1d_active'   , data=lptr%active  , dim1name=namel, ncid=ncid, flag='write')
+      do l = begl , endl
+        rlarr(l) = gptr%londeg(lptr%gridcell(l))
+      end do
+      call clm_writevar(nfid(t),'land1d_lon',rlarr,gcomm_landunit)
+      do l = begl , endl
+        rlarr(l) = gptr%latdeg(lptr%gridcell(l))
+      end do
+      call clm_writevar(nfid(t),'land1d_lat',rlarr,gcomm_landunit)
+      call clm_writevar(nfid(t),'land1d_wtgcell',lptr%wtgcell,gcomm_landunit)
+      call clm_writevar(nfid(t),'land1d_ityplunit',lptr%itype,gcomm_landunit)
+      call clm_writevar(nfid(t),'land1d_active',lptr%active,gcomm_landunit)
 
-       ! Write column info
+      ! Write column info
 
-       do c=begc,endc
-         rcarr(c) = gptr%londeg(cptr%gridcell(c))
-       end do
-       call ncd_io(varname='cols1d_lon', data=rcarr, dim1name=namec, ncid=ncid, flag='write')
-       do c=begc,endc
-         rcarr(c) = gptr%latdeg(cptr%gridcell(c))
-       end do
-       call ncd_io(varname='cols1d_lat', data=rcarr, dim1name=namec, ncid=ncid, flag='write')
-       do c=begc,endc
-         icarr(c) = mod(ldecomp%gdc2glo(cptr%gridcell(c))-1,ldomain%ni) + 1
-       end do
-       call ncd_io(varname='cols1d_ixy', data=icarr, dim1name=namec, ncid=ncid, flag='write')
-       do c=begc,endc
-         icarr(c) = (ldecomp%gdc2glo(cptr%gridcell(c))-1)/ldomain%ni + 1
-       end do
-       call ncd_io(varname='cols1d_jxy'    , data=icarr         ,dim1name=namec, ncid=ncid, flag='write')
-       ! --- EBK Do NOT write out indices that are incorrect 4/1/2011 Bug 1310
-       !call ncd_io(varname='cols1d_gi'     , data=cptr%gridcell, dim1name=namec, ncid=ncid, flag='write')
-       !call ncd_io(varname='cols1d_li'     , data=cptr%landunit, dim1name=namec, ncid=ncid, flag='write')
-       ! ----------------------------------------------------------------
-       call ncd_io(varname='cols1d_wtgcell', data=cptr%wtgcell , dim1name=namec, ncid=ncid, flag='write')
-       call ncd_io(varname='cols1d_wtlunit', data=cptr%wtlunit , dim1name=namec, ncid=ncid, flag='write')
-       do c=begc,endc
-         icarr(c) = lptr%itype(cptr%landunit(c))
-       end do
-       call ncd_io(varname='cols1d_itype_lunit', data=icarr    , dim1name=namec, ncid=ncid, flag='write')
-       call ncd_io(varname='cols1d_active' , data=cptr%active  , dim1name=namec, ncid=ncid, flag='write')
+      do c = begc , endc
+        rcarr(c) = gptr%londeg(cptr%gridcell(c))
+      end do
+      call clm_writevar(nfid(t),'cols1d_lon',rcarr,gcomm_column)
+      do c = begc , endc
+        rcarr(c) = gptr%latdeg(cptr%gridcell(c))
+      end do
+      call clm_writevar(nfid(t),'cols1d_lat',rcarr,gcomm_column)
+      call clm_writevar(nfid(t),'cols1d_wtgcell',cptr%wtgcell,gcomm_column)
+      call clm_writevar(nfid(t),'cols1d_wtlunit',cptr%wtlunit,gcomm_column)
+      do c = begc , endc
+        icarr(c) = lptr%itype(cptr%landunit(c))
+      end do
+      call clm_writevar(nfid(t),'cols1d_itype_lunit',icarr,gcomm_column)
+      call clm_writevar(nfid(t),'cols1d_active',cptr%active,gcomm_column)
 
-       ! Write pft info
+      ! Write pft info
 
-       do p=begp,endp
-         rparr(p) = gptr%londeg(pptr%gridcell(p))
-       end do
-       call ncd_io(varname='pfts1d_lon', data=rparr, dim1name=namep, ncid=ncid, flag='write')
-       do p=begp,endp
-         rparr(p) = gptr%latdeg(pptr%gridcell(p))
-       end do
-       call ncd_io(varname='pfts1d_lat', data=rparr, dim1name=namep, ncid=ncid, flag='write')
-       do p=begp,endp
-         iparr(p) = mod(ldecomp%gdc2glo(pptr%gridcell(p))-1,ldomain%ni) + 1
-       end do
-       call ncd_io(varname='pfts1d_ixy', data=iparr, dim1name=namep, ncid=ncid, flag='write')
-       do p=begp,endp
-         iparr(p) = (ldecomp%gdc2glo(pptr%gridcell(p))-1)/ldomain%ni + 1
-       end do
-       call ncd_io(varname='pfts1d_jxy'      , data=iparr        , dim1name=namep, ncid=ncid, flag='write')
-       ! --- EBK Do NOT write out indices that are incorrect 4/1/2011 --- Bug 1310
-       !call ncd_io(varname='pfts1d_gi'       , data=pptr%gridcell, dim1name=namep, ncid=ncid, flag='write')
-       !call ncd_io(varname='pfts1d_li'       , data=pptr%landunit, dim1name=namep, ncid=ncid, flag='write')
-       !call ncd_io(varname='pfts1d_ci'       , data=pptr%column  , dim1name=namep, ncid=ncid, flag='write')
-       ! ----------------------------------------------------------------
-       call ncd_io(varname='pfts1d_wtgcell'  , data=pptr%wtgcell , dim1name=namep, ncid=ncid, flag='write')
-       call ncd_io(varname='pfts1d_wtlunit'  , data=pptr%wtlunit , dim1name=namep, ncid=ncid, flag='write')
-       call ncd_io(varname='pfts1d_wtcol'    , data=pptr%wtcol   , dim1name=namep, ncid=ncid, flag='write')
-       call ncd_io(varname='pfts1d_itype_veg', data=pptr%itype   , dim1name=namep, ncid=ncid, flag='write')
+      do p = begp , endp
+        rparr(p) = gptr%londeg(pptr%gridcell(p))
+      end do
+      call clm_writevar(nfid(t),'pfts1d_lon',rparr,gcomm_pft)
+      do p = begp , endp
+        rparr(p) = gptr%latdeg(pptr%gridcell(p))
+      end do
+      call clm_writevar(nfid(t),'pfts1d_lat',rparr,gcomm_pft)
+      call clm_writevar(nfid(t),'pfts1d_wtgcell',pptr%wtgcell,gcomm_pft)
+      call clm_writevar(nfid(t),'pfts1d_wtlunit',pptr%wtlunit,gcomm_pft)
+      call clm_writevar(nfid(t),'pfts1d_wtcol',pptr%wtcol,gcomm_pft)
+      call clm_writevar(nfid(t),'pfts1d_itype_veg',pptr%itype,gcomm_pft)
+      do p = begp , endp
+        iparr(p) = lptr%itype(pptr%landunit(p))
+      end do
+      call clm_writevar(nfid(t),'pfts1d_itype_lunit',iparr,gcomm_pft)
+      call clm_writevar(nfid(t),'pfts1d_active',pptr%active,gcomm_pft)
 
-       do p=begp,endp
-          iparr(p) = lptr%itype(pptr%landunit(p))
-       end do
-       call ncd_io(varname='pfts1d_itype_lunit', data=iparr      , dim1name=namep, ncid=ncid, flag='write')
-       call ncd_io(varname='pfts1d_active'   , data=pptr%active  , dim1name=namep, ncid=ncid, flag='write')
-
-       deallocate(rgarr,rlarr,rcarr,rparr)
-       deallocate(igarr,ilarr,icarr,iparr)
+      deallocate(rgarr,rlarr,rcarr,rparr)
+      deallocate(igarr,ilarr,icarr,iparr)
 
     end if
-
   end subroutine hfields_1dinfo
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: hist_htapes_wrapup
-!
-! !INTERFACE:
+  !
+  ! Write history tape(s)
+  ! Determine if next time step is beginning of history interval and if so:
+  !   increment the current time sample counter, open a new history file
+  !   and if needed (i.e., when ntim = 1), write history data to current
+  !   history file, reset field accumulation counters to zero.
+  ! If primary history file is full or at the last time step of the simulation,
+  !   write restart dataset and close all history fiels.
+  ! If history file is full or at the last time step of the simulation:
+  !   close history file
+  !   and reset time sample counter to zero if file is full.
+  ! Daily-averaged data for the first day in September are written on
+  !   date = 00/09/02 with mscur = 0.
+  ! Daily-averaged data for the first day in month mm are written on
+  !   date = yyyy/mm/02 with mscur = 0.
+  ! Daily-averaged data for the 30th day (last day in September) are written
+  !   on date = 0000/10/01 mscur = 0.
+  ! Daily-averaged data for the last day in month mm are written on
+  !   date = yyyy/mm+1/01 with mscur = 0.
+  !
   subroutine hist_htapes_wrapup( rstwr, nlend )
-!
-! !DESCRIPTION:
-! Write history tape(s)
-! Determine if next time step is beginning of history interval and if so:
-!   increment the current time sample counter, open a new history file
-!   and if needed (i.e., when ntim = 1), write history data to current
-!   history file, reset field accumulation counters to zero.
-! If primary history file is full or at the last time step of the simulation,
-!   write restart dataset and close all history fiels.
-! If history file is full or at the last time step of the simulation:
-!   close history file
-!   and reset time sample counter to zero if file is full.
-! Daily-averaged data for the first day in September are written on
-!   date = 00/09/02 with mscur = 0.
-! Daily-averaged data for the first day in month mm are written on
-!   date = yyyy/mm/02 with mscur = 0.
-! Daily-averaged data for the 30th day (last day in September) are written
-!   on date = 0000/10/01 mscur = 0.
-! Daily-averaged data for the last day in month mm are written on
-!   date = yyyy/mm+1/01 with mscur = 0.
-!
-! !USES:
-    use clm_time_manager, only : get_curr_time, get_prev_date
-    use clm_varcon      , only : secspday
-    use clmtype
-    use perf_mod        , only : t_startf, t_stopf
-!
-! !ARGUMENTS:
     implicit none
-    logical, intent(in) :: rstwr    ! true => write restart file this step
-    logical, intent(in) :: nlend    ! true => end of run on this step
-!
-! !REVISION HISTORY:
-! Created by Mariana Vertenstein
-!
-!
-! !LOCAL VARIABLES:
-!EOP
-    integer(ik4) :: t                          ! tape index
-    integer(ik4) :: f                          ! field index
-    integer(ik4) :: ier                        ! error code
-    integer(ik4) :: day                        ! current day (1 -> 31)
-    integer(ik4) :: mon                        ! current month (1 -> 12)
-    integer(ik4) :: yr                         ! current year (0 -> ...)
-    integer(ik4) :: mdcur                      ! current day
-    integer(ik4) :: mscur                      ! seconds of current day
-    integer(ik4) :: mcsec                      ! current time of day [seconds]
-    integer(ik4) :: daym1                      ! nstep-1 day (1 -> 31)
-    integer(ik4) :: monm1                      ! nstep-1 month (1 -> 12)
-    integer(ik4) :: yrm1                       ! nstep-1 year (0 -> ...)
-    integer(ik4) :: mcsecm1                    ! nstep-1 time of day [seconds]
-    real(rk8):: time                       ! current time
-    character(len=256) :: str             ! global attribute string
-    logical :: if_stop                    ! true => last time step of run
-    logical, save :: do_3Dtconst = .true. ! true => write out 3D time-constant data
+    logical , intent(in) :: rstwr    ! true => write restart file this step
+    logical , intent(in) :: nlend    ! true => end of run on this step
+    integer(ik4) :: t                ! tape index
+    integer(ik4) :: f                ! field index
+    integer(ik4) :: ier              ! error code
+    integer(ik4) :: day              ! current day (1 -> 31)
+    integer(ik4) :: mon              ! current month (1 -> 12)
+    integer(ik4) :: yr               ! current year (0 -> ...)
+    integer(ik4) :: mdcur            ! current day
+    integer(ik4) :: mscur            ! seconds of current day
+    integer(ik4) :: mcsec            ! current time of day [seconds]
+    integer(ik4) :: daym1            ! nstep-1 day (1 -> 31)
+    integer(ik4) :: monm1            ! nstep-1 month (1 -> 12)
+    integer(ik4) :: yrm1             ! nstep-1 year (0 -> ...)
+    integer(ik4) :: mcsecm1          ! nstep-1 time of day [seconds]
+    real(rk8):: time                 ! current time
+    character(len=256) :: str        ! global attribute string
+    logical :: if_stop               ! true => last time step of run
+    ! true => write out 3D time-constant data
+    logical , save :: do_3Dtconst = .true.
     character(len=*),parameter :: subname = 'hist_htapes_wrapup'
-!-----------------------------------------------------------------------
-
-    ! get current step
 
     ! Set calendar for current time step
 
-    call curr_date (yr, mon, day, mcsec)
-    call get_curr_time (mdcur, mscur)
+    call curr_date(idatex, yr, mon, day, mcsec)
+    call get_curr_time(idatex, mdcur, mscur)
     time = mdcur + mscur/secspday
 
     ! Set calendar for current for previous time step
 
-    call get_prev_date (yrm1, monm1, daym1, mcsecm1)
+    call get_prev_date(yrm1, monm1, daym1, mcsecm1)
 
     ! Loop over active history tapes, create new history files if necessary
     ! and write data to history files if end of history interval.
-    do t = 1, ntapes
+    do t = 1 , ntapes
 
-       ! Skip nstep=0 if monthly average
+      ! Skip nstep=0 if monthly average
 
-       if (ktau==0 .and. tape(t)%nhtfrq==0) cycle
+      if ( ktau == 0 .and. tape(t)%nhtfrq == 0 ) cycle
 
-       ! Determine if end of history interval
-       tape(t)%is_endhist = .false.
-       if (tape(t)%nhtfrq==0) then   !monthly average
-          if (mon /= monm1) tape(t)%is_endhist = .true.
-       else
-          if (mod(ktau,tape(t)%nhtfrq) == 0) tape(t)%is_endhist = .true.
-       end if
+      ! Determine if end of history interval
+      tape(t)%is_endhist = .false.
+      if ( tape(t)%nhtfrq == 0 ) then   !monthly average
+        if ( mon /= monm1 ) tape(t)%is_endhist = .true.
+      else
+        if ( mod(ktau,tape(t)%nhtfrq) == 0 ) tape(t)%is_endhist = .true.
+      end if
 
-       ! If end of history interval
+      ! If end of history interval
 
-       if (tape(t)%is_endhist) then
+      if ( tape(t)%is_endhist ) then
 
-          ! Normalize history buffer if time averaged
+        ! Normalize history buffer if time averaged
 
-          call hfields_normalize(t)
+        call hfields_normalize(t)
 
-          ! Increment current time sample counter.
+        ! Increment current time sample counter.
 
-          tape(t)%ntimes = tape(t)%ntimes + 1
+        tape(t)%ntimes = tape(t)%ntimes + 1
 
-          ! Create history file if appropriate and build time comment
+        ! Create history file if appropriate and build time comment
 
-          ! If first time sample, generate unique history file name, open file,
-          ! define dims, vars, etc.
+        ! If first time sample, generate unique history file name, open file,
+        ! define dims, vars, etc.
 
+        if ( tape(t)%ntimes == 1 ) then
+          locfnh(t) = set_hist_filename(hist_freq=tape(t)%nhtfrq, &
+                                        hist_mfilt=tape(t)%mfilt, hist_file=t)
+          if ( myid == italk ) then
+            write(stdout,*) trim(subname), &
+              ' : Creating history file ', trim(locfnh(t)), &
+              ' at nstep = ',ktau
+            write(stdout,*)'calling htape_create for file t = ',t
+          end if
+          call htape_create (t)
 
-          if (tape(t)%ntimes == 1) then
-             call t_startf('hist_htapes_wrapup_define')
-             locfnh(t) = set_hist_filename (hist_freq=tape(t)%nhtfrq, &
-                                            hist_mfilt=tape(t)%mfilt, hist_file=t)
-             if (myid == italk) then
-                write(stdout,*) trim(subname),' : Creating history file ', trim(locfnh(t)), &
-                     ' at nstep = ',ktau
-                write(stdout,*)'calling htape_create for file t = ',t
-             end if
-             call htape_create (t)
+          ! Define time-constant field variables
+          call htape_timeconst(t, mode='define')
 
-             ! Define time-constant field variables
-             call htape_timeconst(t, mode='define')
+          ! Define 3D time-constant field variables only to first primary tape
 
-             ! Define 3D time-constant field variables only to first primary tape
-
-             if ( do_3Dtconst .and. t == 1 ) then
-                call htape_timeconst3D(t, mode='define')
-                TimeConst3DVars_Filename = trim(locfnh(t))
-             end if
-
-             ! Define model field variables
-
-             call hfields_write(t, mode='define')
-
-             ! Exit define model
-             call ncd_enddef(nfid(t))
-             call t_stopf('hist_htapes_wrapup_define')
-
+          if ( do_3Dtconst .and. t == 1 ) then
+            call htape_timeconst3D(t, mode='define')
           end if
 
-          call t_startf('hist_htapes_wrapup_tconst')
-          ! Write time constant history variables
-          call htape_timeconst(t, mode='write')
+          ! Define model field variables
 
-          ! Write 3D time constant history variables only to first primary tape
-          if ( do_3Dtconst .and. t == 1 .and. tape(t)%ntimes == 1 )then
-             call htape_timeconst3D(t, mode='write')
-             do_3Dtconst = .false.
-          end if
+          call hfields_write(t, mode='define')
 
-          if (myid == italk) then
-             write(stdout,*)
-             write(stdout,*) trim(subname),' : Writing current time sample to local history file ', &
-                  trim(locfnh(t)),' at nstep = ',ktau, &
-                  ' for history time interval beginning at ', tape(t)%begtime, &
-                  ' and ending at ',time
-             write(stdout,*)
-          end if
+          ! Exit define model
+          call clm_enddef(nfid(t))
 
-          ! Update beginning time of next interval
+        end if
 
-          tape(t)%begtime = time
-          call t_stopf('hist_htapes_wrapup_tconst')
+        ! Write time constant history variables
+        call htape_timeconst(t, mode='write')
 
-          ! Write history time samples
+        ! Write 3D time constant history variables only to first primary tape
+        if ( do_3Dtconst .and. t == 1 .and. tape(t)%ntimes == 1 ) then
+          call htape_timeconst3D(t, mode='write')
+          do_3Dtconst = .false.
+        end if
 
-          call t_startf('hist_htapes_wrapup_write')
-          call hfields_write(t, mode='write')
-          call t_stopf('hist_htapes_wrapup_write')
+        if ( myid == italk ) then
+          write(stdout,*)
+          write(stdout,*) trim(subname), &
+            ' : Writing current time sample to local history file ', &
+            trim(locfnh(t)),' at nstep = ',ktau, &
+            ' for history time interval beginning at ', tape(t)%begtime, &
+            ' and ending at ',time
+          write(stdout,*)
+        end if
 
-          ! Zero necessary history buffers
+        ! Update beginning time of next interval
 
-          call hfields_zero(t)
+        tape(t)%begtime = time
 
-       end if
+        ! Write history time samples
 
+        call hfields_write(t, mode='write')
+
+        ! Zero necessary history buffers
+
+        call hfields_zero(t)
+
+      end if
     end do  ! end loop over history tapes
 
     ! Determine if file needs to be closed
 
-    call hist_do_disp (ntapes, tape(:)%ntimes, tape(:)%mfilt, if_stop, if_disphist, rstwr, nlend)
+    call hist_do_disp(ntapes, tape(:)%ntimes, tape(:)%mfilt, &
+                      if_stop, if_disphist, rstwr, nlend)
 
     ! Close open history file
     ! Auxilary files may have been closed and saved off without being full,
     ! must reopen the files
 
-    do t = 1, ntapes
-       if (if_disphist(t)) then
-          if (tape(t)%ntimes /= 0) then
-             if (myid == italk) then
-                write(stdout,*)
-                write(stdout,*)  trim(subname),' : Closing local history file ',&
-                     trim(locfnh(t)),' at nstep = ', ktau
-                write(stdout,*)
-             end if
-             call ncd_pio_closefile(nfid(t))
-             if (.not.if_stop .and. (tape(t)%ntimes/=tape(t)%mfilt)) then
-                call ncd_pio_openfile (nfid(t), trim(locfnh(t)), ncd_write)
-             end if
-          else
-             if (myid == italk) then
-                write(stdout,*) trim(subname),' : history tape ',t,': no open file to close'
-             end if
+    do t = 1 , ntapes
+      if ( if_disphist(t) ) then
+        if ( tape(t)%ntimes /= 0 ) then
+          if ( myid == italk ) then
+            write(stdout,*)
+            write(stdout,*)  trim(subname),' : Closing local history file ',&
+               trim(locfnh(t)),' at nstep = ', ktau
+            write(stdout,*)
           end if
-       end if
+          call clm_closefile(nfid(t))
+          if ( .not. if_stop .and. (tape(t)%ntimes/=tape(t)%mfilt) ) then
+            call clm_openfile(trim(locfnh(t)), nfid(t), clm_readwrite)
+          end if
+        else
+          if ( myid == italk ) then
+            write(stdout,*) trim(subname), &
+              ' : history tape ',t,': no open file to close'
+          end if
+        end if
+      end if
     end do
 
     ! Reset number of time samples to zero if file is full 
     
-    do t = 1, ntapes
-       if (if_disphist(t) .and. tape(t)%ntimes==tape(t)%mfilt) then
-          tape(t)%ntimes = 0
-       end if
+    do t = 1 , ntapes
+      if ( if_disphist(t) .and. tape(t)%ntimes==tape(t)%mfilt ) then
+        tape(t)%ntimes = 0
+      end if
     end do
-    
   end subroutine hist_htapes_wrapup
   !
   ! Read/write history file restart data.
@@ -2817,6 +2668,7 @@ module mod_clm_histfile
   ! so that subsequent time samples are added until the file is full.
   ! A new history file is used on a branch run.
   !
+#ifdef UPTOHERE
   subroutine hist_restart_ncd (ncid, flag, rdate)
     use clm_varctl , only : nsrest, caseid, inst_suffix, nsrStartup, nsrBranch
     use fileutils , only : getfil
@@ -3325,8 +3177,9 @@ module mod_clm_histfile
                              'read', ncid_hist(t), start )
                 call ncd_io( c2l_scale_type_desc, tape(t)%hlist(f)%field%c2l_scale_type,   &
                              'read', ncid_hist(t), start )
-                call ncd_io( l2g_scale_type_desc, tape(t)%hlist(f)%field%l2g_scale_type,   &
-                             'read', ncid_hist(t), start )
+            call clm_readvar(ncid_hist(t),l2g_scale_type_desc, &
+                        tape(t)%hlist(f)%field%l2g_scale_type, &
+                             'read', start )
             call strip_null(tape(t)%hlist(f)%field%name)
             call strip_null(tape(t)%hlist(f)%field%long_name)
             call strip_null(tape(t)%hlist(f)%field%units)
@@ -3419,7 +3272,7 @@ module mod_clm_histfile
           ! If history file is not full, open it
 
           if (tape(t)%ntimes /= 0) then
-            call clm_openfile(nfid(t),trim(locfnh(t)),nf90_write)
+            call clm_openfile(trim(locfnh(t)),nfid(t),clm_readwrite)
           end if
 
         end do  ! end of tapes loop

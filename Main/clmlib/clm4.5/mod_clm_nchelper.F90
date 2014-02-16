@@ -62,6 +62,7 @@ module mod_clm_nchelper
   integer(ik4) , public , parameter :: clmvar_double  = 5
 
   integer(ik4) , public , parameter :: clmvar_unlim   = -1
+  integer(ik4) , public , parameter :: clm_readwrite  = 255
 
   interface assignment(=)
     module procedure copy_filetype
@@ -289,7 +290,11 @@ module mod_clm_nchelper
     type(clm_filetype) , intent(out) :: ncid
     integer(ik4) , intent(in) , optional :: mode
     if ( present(mode) ) then
-      incstat = nf90_open(fname, mode, ncid%ncid)
+      if ( mode == clm_readwrite ) then
+        incstat = nf90_open(fname, nf90_write, ncid%ncid)
+      else
+        incstat = nf90_open(fname, nf90_nowrite, ncid%ncid)
+      end if
     else
       incstat = nf90_open(fname, nf90_nowrite, ncid%ncid)
     end if
