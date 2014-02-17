@@ -238,7 +238,7 @@ module mod_clm_accumul
     character(len=*) , intent(in) :: fname     !field name
     !field values for current time step
     real(rk8) , pointer , dimension(:) :: field
-    integer(ik4) , intent(in) :: nstep         !timestep index
+    integer(ik8) , intent(in) :: nstep         !timestep index
     integer(ik4) :: i , k , nf        !indices
     integer(ik4) :: ibeg , iend         !subgrid beginning,ending indices
 !------------------------------------------------------------------------
@@ -289,7 +289,7 @@ module mod_clm_accumul
     character(len=*) , intent(in) :: fname       !field name
     !field values for current time step
     real(rk8) , pointer , dimension(:,:) :: field
-    integer(ik4) , intent(in) :: nstep           !timestep index
+    integer(ik8) , intent(in) :: nstep           !timestep index
     integer(ik4) :: i , j , k , nf     !indices
     integer(ik4) :: ibeg , iend        !subgrid beginning,ending indices
     integer(ik4) :: numlev             !number of vertical levels
@@ -349,7 +349,7 @@ module mod_clm_accumul
     character(len=*) , intent(in) :: fname     !field name
     !field values for current time step
     real(rk8) , pointer , dimension(:) :: field
-    integer(ik4) , intent(in) :: nstep   !time step index
+    integer(ik8) , intent(in) :: nstep   !time step index
     integer(ik4) :: i , k , nf           !indices
     integer(ik4) :: accper               !temporary accumulation period
     integer(ik4) :: ibeg , iend          !subgrid beginning,ending indices
@@ -439,7 +439,7 @@ module mod_clm_accumul
     character(len=*) , intent(in) :: fname        !field name
     !field values for current time step
     real(rk8) , pointer , dimension(:,:) :: field
-    integer(ik4) , intent(in) :: nstep    !time step index
+    integer(ik8) , intent(in) :: nstep    !time step index
     integer(ik4) :: i , j , k , nf        !indices
     integer(ik4) :: accper                !temporary accumulation period
     integer(ik4) :: ibeg , iend           !subgrid beginning,ending indices

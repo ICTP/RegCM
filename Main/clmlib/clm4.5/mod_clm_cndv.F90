@@ -1,96 +1,62 @@
 module mod_clm_cndv
 
 #if (defined CNDV)
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !MODULE: CNDVMod
-!
-! !DESCRIPTION:
-! Module containing routines to drive the annual dynamic vegetation
-! that works with CN, reset related variables,
-! and initialize/reset time invariant variables
-!
-! !USES:
+  !
+  ! Module containing routines to drive the annual dynamic vegetation
+  ! that works with CN, reset related variables,
+  ! and initialize/reset time invariant variables
+  !
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_runparams
   use mod_date
   use mod_mppparam
+  use mod_clm_type
   use mod_clm_nchelper
-  use mod_clm_cnvegstructupdate, only : CNVegStructUpdate
-!
-! !PUBLIC TYPES:
+  use mod_clm_varctl , only : caseid , inst_suffix
+  use mod_clm_varctl , only : ctitle, finidat, fsurdat, fpftcon
+  use mod_clm_cnvegstructupdate , only : CNVegStructUpdate
+  use mod_clm_cndvestablishment , only : Establishment
+  use mod_clm_cndvlight , only : Light
+  use mod_clm_decomp , only : get_proc_bounds , get_proc_global
+  use mod_clm_varpar , only : maxpatch_pft
+  use mod_clm_domain , only : ldomain
+  use mod_clm_varcon , only : spval
+  use mod_clm_varcon  , only : secspday
+
   implicit none
+
   private
-  save
-!
-! !PUBLIC MEMBER FUNCTIONS:
-  public dv                 ! Drives the annual dynamic vegetation that
+
+  public :: dv              ! Drives the annual dynamic vegetation that
                             ! works with CN
-  public histCNDV           ! Output CNDV history file
-!
-! !REVISION HISTORY:
-! Module modified by Sam Levis from similar module DGVMMod
-! created by Mariana Vertenstein
-!
-!EOP
-!-----------------------------------------------------------------------
+  public :: histCNDV        ! Output CNDV history file
 
-contains
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: dv
-!
-! !INTERFACE:
+  contains
+  !
+  ! Drives the annual dynamic vegetation that works with CN
+  !
   subroutine dv(lbg, ubg, lbp, ubp, num_natvegp, filter_natvegp, kyr)
-!
-! !DESCRIPTION:
-! Drives the annual dynamic vegetation that works with CN
-!
-! !USES:
-    use mod_clm_type
-    use mod_clm_cndvlight        , only : Light
-    use mod_clm_cndvestablishment, only : Establishment
-!
-! !ARGUMENTS:
     implicit none
-    integer, intent(in) :: lbg, ubg       ! gridcell bounds
-    integer, intent(in) :: lbp, ubp       ! pft bounds
-    integer, intent(inout) :: num_natvegp ! number of naturally-vegetated
-                                          ! pfts in filter
-    integer, intent(inout) :: filter_natvegp(ubp-lbp+1) ! filter for
-                                          ! naturally-vegetated pfts
-    integer, intent(in) :: kyr            ! used in routine climate20 below
-!
-! !CALLED FROM:
-!
-! !REVISION HISTORY:
-! Author: Sam Levis
-!
-! !LOCAL VARIABLES:
-!
-! local pointers to implicit in arguments
-!
-   integer , pointer :: mxy(:)         ! pft m index (for laixy(i,j,m),etc.)
-   integer , pointer :: pgridcell(:)   ! gridcell of corresponding pft
-   real(rk8), pointer :: fpcgrid(:)     ! foliar projective cover on gridcell (fraction)
-   real(rk8), pointer :: agdd(:)        ! accumulated growing degree days above 5
-   real(rk8), pointer :: t_mo_min(:)    ! annual min of t_mo (Kelvin)
-!
-! local pointers to implicit inout arguments
-!
-   real(rk8), pointer :: tmomin20(:)         ! 20-yr running mean of tmomin
-   real(rk8), pointer :: agdd20(:)           ! 20-yr running mean of agdd
-!
-!EOP
-!
-! !LOCAL VARIABLES:
-    integer  :: g,p                    ! indices
-!-----------------------------------------------------------------------
+    integer(ik4), intent(in) :: lbg , ubg  ! gridcell bounds
+    integer(ik4), intent(in) :: lbp , ubp  ! pft bounds
+    ! number of naturally-vegetated pfts in filter
+    integer(ik4), intent(inout) :: num_natvegp
+    ! filter for naturally-vegetated pfts
+    integer(ik4), intent(inout) :: filter_natvegp(ubp-lbp+1)
+    integer(ik4), intent(in) :: kyr   ! used in routine climate20 below
+    integer(ik4) , pointer :: mxy(:)  ! pft m index (for laixy(i,j,m),etc.)
+    integer(ik4) , pointer :: pgridcell(:)   ! gridcell of corresponding pft
+    ! foliar projective cover on gridcell (fraction)
+    real(rk8), pointer :: fpcgrid(:)
+    ! accumulated growing degree days above 5
+    real(rk8), pointer :: agdd(:)
+    ! annual min of t_mo (Kelvin)
+    real(rk8), pointer :: t_mo_min(:)
+    real(rk8), pointer :: tmomin20(:) ! 20-yr running mean of tmomin
+    real(rk8), pointer :: agdd20(:)   ! 20-yr running mean of agdd
+    integer(ik4)  :: g , p            ! indices
 
     ! Assign local pointers to derived type members (gridcell-level)
 
@@ -142,64 +108,36 @@ contains
        clm3%g%l%c%p%pdgvs%t_mo_min(p) = 1.0D+36
     end do
   end subroutine dv
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: histCNDV
-!
-! !INTERFACE:
+  !
+  ! Create CNDV history file
+  !
   subroutine histCNDV()
-!
-! !DESCRIPTION:
-! Create CNDV history file
-!
-! !USES:
-    use mod_clm_type
-    use mod_clm_decomp       , only : get_proc_bounds, get_proc_global
-    use mod_clm_varpar      , only : maxpatch_pft
-    use mod_clm_domain       , only : ldomain
-    use mod_clm_varctl      , only : caseid, ctitle, finidat, fsurdat, fpftcon
-    use mod_clm_varcon      , only : spval
-    use mod_clm_time_manager, only : get_nstep
-    use mod_clm_varcon  , only : secspday
-!
-! !ARGUMENTS:
     implicit none
-!
-! !CALLED FROM:
-!
-! !REVISION HISTORY:
-! Author: Sam Levis
-!
-! !LOCAL VARIABLES:
-!
-! local pointers to implicit in arguments
-!
-   logical , pointer :: ifspecial(:)        ! true=>landunit is not vegetated (landunit-level)
-   integer , pointer :: pgridcell(:)        ! gridcell index of corresponding pft (pft-level)
-   integer , pointer :: plandunit(:)        ! landunit index of corresponding pft (pft-level)
-   integer , pointer :: mxy(:)              ! pft m index (for laixy(i,j,m),etc.)
-   real(rk8), pointer :: fpcgrid(:)          ! foliar projective cover on gridcell (fraction)
-   real(rk8), pointer :: nind(:)             ! number of individuals (#/m**2)
-!
-!EOP
-!
-! !LOCAL VARIABLES:
-    character(len=256) :: dgvm_fn      ! dgvm history filename
-    type(clm_filetype) :: ncid         ! netcdf file id
-    integer :: g,p,l                   ! indices
-    integer :: begp, endp              ! per-proc beginning and ending pft indices
-    integer :: begc, endc              ! per-proc beginning and ending column indices
-    integer :: begl, endl              ! per-proc beginning and ending landunit indices
-    integer :: begg, endg              ! per-proc gridcell ending gridcell indices
-    integer :: ihost
-    integer :: ier                     ! error status
-    integer :: mdcur, mscur, mcdate    ! outputs from get_curr_time
-    integer :: yr,mon,day,mcsec        ! outputs from curr_date
-    integer :: hours,minutes,secs      ! hours,minutes,seconds of hh:mm:ss
-    integer :: nstep                   ! time step
-    integer :: nbsec                   ! seconds components of a date
+    ! true=>landunit is not vegetated (landunit-level)
+    logical , pointer :: ifspecial(:)
+    ! gridcell index of corresponding pft (pft-level)
+    integer(ik4) , pointer :: pgridcell(:)
+    ! landunit index of corresponding pft (pft-level)
+    integer(ik4) , pointer :: plandunit(:)
+    ! pft m index (for laixy(i,j,m),etc.)
+    integer(ik4) , pointer :: mxy(:)
+    ! foliar projective cover on gridcell (fraction)
+    real(rk8), pointer :: fpcgrid(:)
+    ! number of individuals (#/m**2)
+    real(rk8), pointer :: nind(:)
+    character(len=256) :: dgvm_fn   ! dgvm history filename
+    type(clm_filetype) :: ncid      ! netcdf file id
+    integer(ik4) :: g,p,l           ! indices
+    integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
+    integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
+    integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
+    integer(ik4) :: ihost , iktau
+    integer(ik4) :: ier                     ! error status
+    integer(ik4) :: mdcur, mscur, mcdate    ! outputs from get_curr_time
+    integer(ik4) :: yr,mon,day,mcsec        ! outputs from curr_date
+    integer(ik4) :: hours,minutes,secs      ! hours,minutes,seconds of hh:mm:ss
+    integer(ik4) :: nbsec                   ! seconds components of a date
     real(rk8):: time                   ! current time
     character(len=256) :: str          ! temporary string
     character(len=  8) :: curdate      ! current date
@@ -208,10 +146,9 @@ contains
     character(len=  8) :: basesec      ! base seconds
     real(rk8), pointer :: rbuf2dg(:,:)  ! temporary
     character(len=32) :: subname='histCNDV'
-    integer(ik4) :: hostnm
+    integer(ik4)(ik4) :: hostnm
     character (len=32) :: hostname='?'
     character (len=32) :: user='?'
-!-----------------------------------------------------------------------
 
     ! Assign local pointers to derived type members (gridcell-level)
 
@@ -330,35 +267,36 @@ contains
     
     call clm_addvar(clmvar_double,ncid,'time',(/'time'/),'time',trim(str))
        
-    ! Define surface grid (coordinate variables, latitude, longitude, surface type).
+    ! Define surface grid (coordinate variables, latitude, longitude,
+    ! surface type).
     
     if (ldomain%isgrid2d) then
       call clm_addvar(clmvar_double,ncid,'longxy',(/'lon','lat'/), &
             long_name='longitude', units='degrees_east')
       call clm_addvar(clmvar_double,ncid,'latixy',(/'lon','lat'/), &
             long_name='latitude', units='degrees_north')
-      call clm_addvar(clmvar_integer,ncid,'landmask',(/'lon','lat'/), &
+      call clm_addvar(clmvar_integer(ik4),ncid,'landmask',(/'lon','lat'/), &
             long_name='land/ocean mask (0.=ocean and 1.=land)')
     else
       call clm_addvar(clmvar_double,ncid,'longxy',(/'gridcell'/), &
             long_name='longitude', units='degrees_east')
       call clm_addvar(clmvar_double,ncid,'latixy',(/'gridcell'/), &
             long_name='latitude', units='degrees_north')
-      call clm_addvar(clmvar_integer,ncid,'landmask',(/'gridcell'/), &
+      call clm_addvar(clmvar_integer(ik4),ncid,'landmask',(/'gridcell'/), &
             long_name='land/ocean mask (0.=ocean and 1.=land)')
     end if
 
     ! Define time information
 
-    call clm_addvar(clmvar_integer,ncid,'mcdate',(/'time'/), &
+    call clm_addvar(clmvar_integer(ik4),ncid,'mcdate',(/'time'/), &
          long_name='current date (YYYYMMDD)')
-    call clm_addvar(clmvar_integer,ncid,'mcsec',(/'time'/), &
+    call clm_addvar(clmvar_integer(ik4),ncid,'mcsec',(/'time'/), &
          long_name='current seconds of current date', units='s')
-    call clm_addvar(clmvar_integer,ncid,'mdcur',(/'time'/), &
+    call clm_addvar(clmvar_integer(ik4),ncid,'mdcur',(/'time'/), &
          long_name='current day (from base day)')
-    call clm_addvar(clmvar_integer,ncid,'mscur',(/'time'/), &
+    call clm_addvar(clmvar_integer(ik4),ncid,'mscur',(/'time'/), &
          long_name='current seconds of current day', units='s')
-    call clm_addvar(clmvar_integer,ncid,'nstep',(/'time'/), &
+    call clm_addvar(clmvar_integer(ik4),ncid,'nstep',(/'time'/), &
          long_name='time step', units='s')
 
     ! Define time dependent variables
@@ -393,7 +331,8 @@ contains
     ! Write variables
     ! -----------------------------------------------------------------------
 
-    ! Write surface grid (coordinate variables, latitude, longitude, surface type).
+    ! Write surface grid (coordinate variables, latitude,
+    ! longitude, surface type).
 
     call clm_writevar(ncid,'longxy',ldomain%lonc)
     call clm_writevar(ncid,'latixy',ldomain%latc)
@@ -403,13 +342,13 @@ contains
 
     call curr_date(idatex,yr,mon,day,mcsec)
     mcdate = yr*10000 + mon*100 + day
-    nstep = get_nstep()
 
+    iktau = ktau
     call clm_writevar(ncid,'mcdate',mcdate,nt=1)
     call clm_writevar(ncid,'mcsec',mcsec,nt=1)
     call clm_writevar(ncid,'mdcur',mdcur,nt=1)
     call clm_writevar(ncid,'mscur',mscur,nt=1)
-    call clm_writevar(ncid,'nstep',nstep,nt=1)
+    call clm_writevar(ncid,'nstep',iktau,nt=1)
     call clm_writevar(ncid,'time',time,nt=1)
 
     ! Write time dependent variables to CNDV history file
@@ -445,96 +384,49 @@ contains
 
     if (myid == italk) then
        write(stdout,*)'(histCNDV): Finished writing CNDV history dataset ',&
-            trim(dgvm_fn), 'at nstep = ',get_nstep()
+            trim(dgvm_fn), 'at nstep = ',ktau
     end if
 
   end subroutine histCNDV
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: set_dgvm_filename
-!
-! !INTERFACE:
+  !
+  ! Determine initial dataset filenames
+  !
   character(len=256) function set_dgvm_filename ()
-!
-! !DESCRIPTION:
-! Determine initial dataset filenames
-!
-! !USES:
-    use mod_clm_varctl       , only : caseid, inst_suffix
-!
-! !ARGUMENTS:
     implicit none
-!
-! !CALLED FROM:
-!
-! !REVISION HISTORY:
-! Author: Mariana Vertenstein
-!
-!EOP
-!
-! !LOCAL VARIABLES:
     character(len=256) :: cdate       !date char string
-    integer :: day                    !day (1 -> 31)
-    integer :: mon                    !month (1 -> 12)
-    integer :: yr                     !year (0 -> ...)
-    integer :: sec                    !seconds into current day
-!-----------------------------------------------------------------------
-
+    integer(ik4) :: day                    !day (1 -> 31)
+    integer(ik4) :: mon                    !month (1 -> 12)
+    integer(ik4) :: yr                     !year (0 -> ...)
+    integer(ik4) :: sec                    !seconds into current day
     call curr_date(idatex,yr,mon,day,sec)
     write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day,sec
     set_dgvm_filename = "./"//trim(caseid)//".clm2"//trim(inst_suffix)//&
                         ".hv."//trim(cdate)//".nc"
-
   end function set_dgvm_filename
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: BuildNatVegFilter
-!
-! !INTERFACE:
+  !
+  ! Reconstruct a filter of naturally-vegetated PFTs for use in DGVM
+  !
   subroutine BuildNatVegFilter(lbp, ubp, num_natvegp, filter_natvegp)
-!
-! !DESCRIPTION:
-! Reconstruct a filter of naturally-vegetated PFTs for use in DGVM
-!
-! !USES:
-    use mod_clm_type
-!
-! !ARGUMENTS:
     implicit none
-    integer, intent(in)  :: lbp, ubp                   ! pft bounds
-    integer, intent(out) :: num_natvegp                ! number of pfts in naturally-vegetated filter
-    integer, intent(out) :: filter_natvegp(ubp-lbp+1)  ! pft filter for naturally-vegetated points
-!
-! !CALLED FROM:
-! subroutine lpj in this module
-!
-! !REVISION HISTORY:
-! Author: Forrest Hoffman
-!
-! !LOCAL VARIABLES:
-! local pointers to implicit in arguments
+    ! pft bounds
+    integer(ik4) , intent(in)  :: lbp , ubp
+    ! number of pfts in naturally-vegetated filter
+    integer(ik4) , intent(out) :: num_natvegp
+    ! pft filter for naturally-vegetated points
+    integer(ik4) , intent(out) :: filter_natvegp(ubp-lbp+1)
     logical , pointer :: present(:)     ! whether this pft present in patch
-!EOP
-!
-! !LOCAL VARIABLES:
-    integer :: p
-!-----------------------------------------------------------------------
+    integer(ik4) :: p
 
     ! Assign local pointers to derived type members (pft-level)
     present   => clm3%g%l%c%p%pdgvs%present
 
     num_natvegp = 0
     do p = lbp,ubp
-       if (present(p)) then
-          num_natvegp = num_natvegp + 1
-          filter_natvegp(num_natvegp) = p
-       end if
+      if (present(p)) then
+        num_natvegp = num_natvegp + 1
+        filter_natvegp(num_natvegp) = p
+      end if
     end do
-
   end subroutine BuildNatVegFilter
 
 #endif

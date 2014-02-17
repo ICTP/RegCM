@@ -61,7 +61,7 @@ libclm45_a_SOURCES = mod_clm_nchelper.F90 mod_clm_domain.F90 mod_clm_type.F90 \
   mod_clm_initgridcells.F90 mod_clm_initch4.F90 mod_clm_initslake.F90 \
   mod_clm_mkarbinit.F90 mod_clm_staticecosysdyn.F90 mod_clm_subgridrest.F90 \
   mod_clm_biogeophysrest.F90 mod_clm_initsurfalb.F90 mod_clm_accumul.F90 \
-  mod_clm_slakerest.F90 mod_clm_initsurfalb.F90 \
+  mod_clm_slakerest.F90 mod_clm_initsurfalb.F90 mod_clm_accflds.F90 \
   mod_clm_histfile.F90 mod_clm_histflds.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
@@ -200,3 +200,5 @@ mod_clm_varpar.o : mod_clm_varpar.F90 mod_intkinds.o mod_realkinds.o
 mod_clm_varsur.o : mod_clm_varsur.F90 mod_intkinds.o mod_realkinds.o
 mod_clm_vicmap.o : mod_clm_vicmap.F90 mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_realkinds.o
 mod_clm_vocemission.o : mod_clm_vocemission.F90 mod_clm_atmlnd.o mod_clm_domain.o mod_clm_meganfactors.o mod_clm_meganfactors.o mod_clm_megan.o mod_clm_pftvarcon.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
+mod_clm_accflds.o : mod_clm_accflds.F90 mod_clm_accumul.o mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
+mod_clm_initsurfalb.o : mod_clm_initsurfalb.F90 mod_clm_cnecosystemdyn.o mod_clm_cnvegstructupdate.o mod_clm_decomp.o mod_clm_filter.o mod_clm_fracwet.o mod_clm_staticecosysdyn.o mod_clm_surfacealbedo.o mod_clm_type.o mod_clm_urban.o mod_clm_varcon.o mod_clm_varpar.o mod_constants.o mod_intkinds.o mod_realkinds.o

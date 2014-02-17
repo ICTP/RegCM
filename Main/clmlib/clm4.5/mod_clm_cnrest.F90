@@ -2432,9 +2432,6 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-
-
-     
    
     !--------------------------------
     ! column carbon state variables
@@ -2511,8 +2508,6 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-
-
 
     ! seedc
     if (flag == 'define') then
@@ -3261,21 +3256,14 @@ module mod_clm_cnrest
 #endif
 
   end subroutine CNRest
-
-
-
-  subroutine cnrest_addfld_decomp(ncid, varname, longname, units, flag, data_rl, &
-                                  fill_value, readvar)
-
-!
-! !DESCRIPTION: 
-! Read/write CN restart data, for vertical decomp grid that can be set to have length = 1 or nlevgrnd
-!
-! !USES:
+  !
+  ! Read/write CN restart data, for vertical decomp grid that can be set
+  ! to have length = 1 or nlevgrnd
+  !
+  subroutine cnrest_addfld_decomp(ncid,varname,longname,units,flag,data_rl, &
+                                  fill_value,readvar)
     use mod_clm_varcon, only : nlevgrnd
     use mod_clm_type, only: namec
-!
-! !ARGUMENTS:
     implicit none
     type(clm_filetype)  :: ncid   ! netcdf id
     character(len=*), intent(in) :: varname
@@ -3286,7 +3274,6 @@ module mod_clm_cnrest
     real(rk8), optional, pointer :: data_rl(:,:)
     logical, optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
     real(rk8), pointer :: ptr1d(:)
-
     
 #ifdef VERTSOILC
        if (flag == 'define') then

@@ -45,7 +45,7 @@ module mod_clm_initialize
   use mod_clm_histflds , only : htapes_fieldlist
   use mod_clm_restfile , only : restFile_getfile, &
                                  restFile_open, restFile_close, restFile_read 
-    use accFldsMod      , only : initAccFlds, initAccClmtype
+  use mod_clm_accflds , only : initAccFlds , initAccClmtype
     use DustMod         , only : Dustini
     use clm_time_manager, only : curr_date, advance_timestep, &
                                  timemgr_init, timemgr_restart_io, timemgr_restart
