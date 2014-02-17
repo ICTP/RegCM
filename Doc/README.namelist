@@ -105,6 +105,9 @@
                              !          EHA1B, CCSMN, ECEXY, CA_XX, HA_XX,
                              !          EC_XX, IP_XX, GF_XX, CN_XX, MP_XX
                              ! with XX for CMIP5 datasets in RF, 26, 45, 85
+ chemtyp = 'MZ6HR',          ! Type of Global Chemistry boundary conditions
+                             ! One in : MZ6HR, 6 hours MOZART output
+                             !        : MZCLM, MOZART climatology 1999-2009
  gdate1 = 1990060100,        ! Start date for ICBC data generation
  gdate2 = 1990070100,        ! End data for ICBC data generation
  calendar = 'gregorian',     ! Calendar type : gregorian, noleap, 360_day
