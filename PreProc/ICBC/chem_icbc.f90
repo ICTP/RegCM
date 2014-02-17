@@ -32,6 +32,7 @@ program chem_icbc
   use mod_wrtoxd
   use mod_header
   use mod_ch_icbc
+  use mod_ch_icbc_clim
   use mod_ox_icbc
   use mod_ae_icbc
   use mod_memutil
@@ -122,6 +123,7 @@ program chem_icbc
   write (*,*) 'GLOBIDATE1 : ' , tochar(globidate1)
   write (*,*) 'GLOBIDATE2 : ' , tochar(globidate2)
   write (*,*) 'NSTEPS     : ' , nsteps
+  write (*,*) 'chemtyp     : ' , chemtyp
 
   idate = globidate1
   iodate = idate
@@ -130,7 +132,8 @@ program chem_icbc
   if ( dooxcl ) call newfile_ox_icbc(idate)
   if ( doaero ) call newfile_ae_icbc(idate)
 
-  if ( dochem ) call header_ch_icbc(idate)
+  if ( dochem .and. chemtyp .eq. 'MZ6HR' ) call header_ch_icbc(idate)
+  if ( dochem .and. chemtyp .eq. 'MZCLM' ) call header_ch_icbc_clim(idate)
   if ( dooxcl ) call header_ox_icbc
   if ( doaero ) call header_ae_icbc(idate)
 
@@ -140,7 +143,8 @@ program chem_icbc
      if ( dooxcl ) call newfile_ox_icbc(monfirst(idate))
      if ( doaero ) call newfile_ae_icbc(monfirst(idate))
    end if
-   if ( dochem ) call get_ch_icbc(idate)
+   if ( dochem .and. chemtyp .eq. 'MZ6HR' ) call get_ch_icbc(idate)
+   if ( dochem .and. chemtyp .eq. 'MZCLM' ) call get_ch_icbc_clim(idate)
    if ( dooxcl ) call get_ox_icbc(idate)
    if ( doaero ) call get_ae_icbc(idate)
    iodate = idate
@@ -148,7 +152,8 @@ program chem_icbc
   end do
 
   call close_outoxd
-  if ( dochem ) call close_ch_icbc
+  if ( dochem .and. chemtyp .eq. 'MZ6HR' ) call close_ch_icbc
+  if ( dochem .and. chemtyp .eq. 'MZCLM' ) call close_ch_icbc_clim
   if ( dooxcl ) call close_ox_icbc
   if ( doaero ) call close_ae_icbc
 
