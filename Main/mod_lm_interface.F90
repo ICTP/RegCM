@@ -101,6 +101,7 @@ module mod_lm_interface
     call getmem3d(lms%snwm,1,nnsg,jci1,jci2,ici1,ici2,'bats:snwm')
     call getmem3d(lms%trnof,1,nnsg,jci1,jci2,ici1,ici2,'bats:trnof')
     call getmem3d(lms%srnof,1,nnsg,jci1,jci2,ici1,ici2,'bats:srnof')
+    call getmem3d(lms%xlai,1,nnsg,jci1,jci2,ici1,ici2,'bats:xlai')
     call getmem3d(lms%sfcp,1,nnsg,jci1,jci2,ici1,ici2,'bats:sfcp')
     call getmem3d(lms%q2m,1,nnsg,jci1,jci2,ici1,ici2,'bats:q2m')
     call getmem3d(lms%t2m,1,nnsg,jci1,jci2,ici1,ici2,'bats:t2m')
@@ -324,6 +325,7 @@ module mod_lm_interface
       call assignpnt(sfracb2d,lm%sfracb2d)
       call assignpnt(sfracs2d,lm%sfracs2d)
       call assignpnt(svegfrac2d,lm%svegfrac2d)
+      call assignpnt(sxlai2d,lm%sxlai2d)
     end if
     call assignpnt(dailyrnf,lm%dailyrnf)
 #ifdef CLM
@@ -421,6 +423,7 @@ module mod_lm_interface
           lm%sfracb2d(j,i) = d_one - (c2rfvegnosno(jg,ig)+c2rfracsno(jg,ig))
           lm%sfracs2d(j,i) = c2rfracsno(jg,ig)
           lm%ssw2da = sum(lms%ssw,1)*rdnnsg
+          lm%sxlai2d = 0.0D0
         end do
       end do
 #else
@@ -428,6 +431,7 @@ module mod_lm_interface
       lm%deltaq = sum(lms%deltaq,1)*rdnnsg
       lm%sfracv2d = sum(lms%sigf,1)*rdnnsg
       lm%svegfrac2d = sum(lms%lncl,1)*rdnnsg
+      lm%sxlai2d = sum(lms%xlai,1)*rdnnsg
       lm%sfracb2d = sum(((d_one-lms%lncl)*(d_one-lms%scvk)),1)*rdnnsg
       lm%sfracs2d = sum((lms%lncl*lms%wt+(d_one-lms%lncl)*lms%scvk),1)*rdnnsg
       lm%ssw2da = sum(lms%ssw,1)*rdnnsg
