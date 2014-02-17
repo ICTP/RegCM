@@ -237,6 +237,7 @@
                         !   2 => Zeng et al (1998)
                         !   3 => Coare bulk flux algorithm (snowice),
                         !        only activated with coupling
+ icumcloud =        2,  ! Use different models for cumulus clouds
  iocncpl =          0,  ! Activates RegCM-ROMS coupled model
                         !   0 => no coupling
                         !   1 => coupling activated
