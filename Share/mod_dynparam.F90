@@ -148,6 +148,10 @@ module mod_dynparam
 !         NRP2W,GFS11,FVGCM,FNEST,EH5OM
 !
   character(len=5) :: dattyp
+!Type of Global chemistry boundary conditions
+!MZ6HR is for MOZART 6 hourly boundary conditions
+!MZCLM is for MOZART climatology
+  character(len=5) :: chemtyp
 
 ! Type of Sea Surface Temperature used
 !
@@ -379,7 +383,7 @@ module mod_dynparam
     namelist /debugparam/ debug_level , dbgfrq
     namelist /boundaryparam/ nspgx , nspgd , high_nudge , &
       medium_nudge , low_nudge
-    namelist /globdatparam/ dattyp , ssttyp , gdate1 , gdate2 , &
+    namelist /globdatparam/ dattyp , chemtyp, ssttyp , gdate1 , gdate2 , &
       dirglob , inpglob , calendar , ibdyfrq , ensemble_run
     namelist /perturbparam/ lperturb_ts , perturb_frac_ts ,         &
       lperturb_topo , perturb_frac_topo ,         &
