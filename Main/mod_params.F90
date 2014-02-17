@@ -1469,15 +1469,14 @@ module mod_params
 
   if ( ichem == 1 ) then
 #ifdef CLM
-    call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat, &
-                   coszrs,svegfrac2d,sfracv2d,sfracb2d,sfracs2d,      &
-                   solis,sdelt,sdelq,ssw2da,convpr,icumtop,     &
+    call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat,    &
+                   coszrs,svegfrac2d,sxlai2d,sfracv2d,sfracb2d,sfracs2d, &
+                   solis,sdelt,sdelq,ssw2da,convpr,icumtop,              &
                    icumbot,taucldsp,voc_em,voc_em1,voc_em2,dep_vels)
 #else
-    call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat, &
-                   coszrs,svegfrac2d,sfracv2d,sfracb2d,sfracs2d,      &
-                   solis,sdelt,sdelq,ssw2da,convpr,icumtop,     &
-                   icumbot,taucldsp)
+    call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat,    &
+                   coszrs,svegfrac2d,sxlai2d,sfracv2d,sfracb2d,sfracs2d, &
+                   solis,sdelt,sdelq,ssw2da,convpr,icumtop,icumbot,taucldsp)
 #endif
     do n = 1 , ntr
       call bcast(chtrname(n),6)

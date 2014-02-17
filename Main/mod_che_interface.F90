@@ -40,13 +40,13 @@ module mod_che_interface
 !
 #if (defined CLM)
   subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,          &
-                       rembc,remrat,coszrs,svegfrac2d,                &
+                       rembc,remrat,coszrs,svegfrac2d,sxlai2d,        &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdelt,     &
                        sdelq,ssw2da,convpr,icutop,icubot,taucldsp, &
                        voc_em,voc_em1,voc_em2,dep_vels)
 #else
   subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,      &
-                       rembc,remrat,coszrs,svegfrac2d,            &
+                       rembc,remrat,coszrs,svegfrac2d,sxlai2d,    &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdelt, &
                        sdelq,ssw2da,convpr,icutop,icubot,      &
                        taucldsp)
@@ -60,7 +60,7 @@ module mod_che_interface
 
     real(rk8), pointer, dimension(:,:,:),intent(in) :: fcc
     real(rk8), pointer, dimension(:,:) :: svegfrac2d , solis , sdelt , &
-             sdelq , ssw2da , sfracv2d , sfracb2d , sfracs2d
+             sdelq , ssw2da , sfracv2d , sfracb2d , sfracs2d , sxlai2d
     real(rk8), pointer, dimension(:,:,:) :: cldfra , rembc , remrat , convpr
     real(rk8), pointer, dimension(:,:,:,:) :: taucldsp
     integer(ik4) , pointer , dimension(:,:)  :: icutop , icubot
@@ -105,6 +105,7 @@ module mod_che_interface
     call assignpnt(sfracv2d,csfracv2d)
     call assignpnt(sfracb2d,csfracb2d)
     call assignpnt(sfracs2d,csfracs2d)
+    call assignpnt(sxlai2d,cxlai2d)
 
     call assignpnt(sdelt,csdeltk2d) 
     call assignpnt(sdelq,csdelqk2d)
