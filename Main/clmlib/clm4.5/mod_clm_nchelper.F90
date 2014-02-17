@@ -125,6 +125,7 @@ module mod_clm_nchelper
     module procedure clm_readvar_real8_2d
     module procedure clm_readvar_real8_3d
     module procedure clm_readvar_real8_4d
+    module procedure clm_readrec_text_0d
     module procedure clm_readrec_logical_0d
     module procedure clm_readrec_logical_1d
     module procedure clm_readrec_logical_2d
@@ -1080,6 +1081,23 @@ module mod_clm_nchelper
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error read '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_readvar_real8_4d
+
+  subroutine clm_readrec_text_0d(ncid,vname,xval,nt)
+    implicit none
+    type(clm_filetype) , intent(in) :: ncid
+    character(len=*) , intent(in) :: vname
+    character(len=*) , intent(out) :: xval
+    integer(ik4) , intent(in) :: nt
+    integer(ik4) :: ivarid
+    incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error search '//vname//' to file '//trim(ncid%fname))
+    istart(1) = nt
+    icount(1) = 1
+    incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:1),icount(1:1))
+    call clm_checkncerr(__FILE__,__LINE__, &
+      'Error read '//vname//' to file '//trim(ncid%fname))
+  end subroutine clm_readrec_text_0d
 
   subroutine clm_readrec_logical_0d(ncid,vname,xval,nt)
     implicit none

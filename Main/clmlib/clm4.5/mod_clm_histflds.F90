@@ -5,9 +5,10 @@ module mod_clm_histflds
   ! history fields or modify defaults associated with existing history
   ! fields.
   !
-  use mod_clm_intkinds
-  use mod_clm_realkinds
+  use mod_intkinds
+  use mod_realkinds
   use mod_mpmessage
+  use mod_stdio
   use mod_clm_type
   use mod_clm_varcon , only : spval
   use mod_clm_varcon , only : dzsoi_decomp

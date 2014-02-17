@@ -20,10 +20,10 @@ module mod_clm_histfile
   use mod_clm_varcon , only : zsoi , zlak
   use mod_clm_varcon , only : secspday
   use mod_clm_varpar , only : nlevgrnd , nlevlak , nlevurb , numrad , &
-                              maxpatch_glcmec , nlevdecomp_full
+         maxpatch_glcmec , nlevdecomp_full
   use mod_clm_varctl , only : caseid , ctitle , fsurdat , finidat , fpftcon , &
-                              version , hostname , username , conventions ,   &
-                              source , inst_suffix
+         version , hostname , username , conventions , source , inst_suffix , &
+         nsrest , nsrStartup , nsrBranch
   use mod_clm_domain , only : ldomain , lon1d , lat1d
   use mod_clm_time_manager , only : get_prev_date
 
@@ -105,7 +105,6 @@ module mod_clm_histfile
   !
   logical , private :: if_disphist(max_tapes)   ! true => save history file
 
-#ifdef NOTFORNOW
   ! Add a 1d single-level field to the master field list
   public :: hist_addfld1d
   ! Add a 2d multi-level field to the master field list
@@ -163,10 +162,9 @@ module mod_clm_histfile
   private :: pointer_index
   ! The max number of fields on any tape
   private :: max_nFields
-#endif
 
   ! max chars for char variables
-  integer(ik4) , parameter :: max_chars = 128
+  integer(ik4) , parameter :: max_chars = 256
   !
   ! Subscript dimensions
   !
@@ -879,11 +877,11 @@ module mod_clm_histfile
            type1d == namel .or. &
            type1d == namec .or. &
            type1d == namep) then
-        tape(t)%hlist(n)%field%type1d_out = grlnd
+        tape(t)%hlist(n)%field%type1d_out = grlnd(1:8)
         tape(t)%hlist(n)%field%gcomm => gcomm_gridcell
       end if
       if ( type1d == grlnd ) then
-        tape(t)%hlist(n)%field%type1d_out = grlnd
+        tape(t)%hlist(n)%field%type1d_out = grlnd(1:8)
         tape(t)%hlist(n)%field%gcomm => gcomm_gridcell
       end if
 
@@ -896,16 +894,16 @@ module mod_clm_histfile
 
       select case (trim(hist_type1d_pertape(t)))
         case('GRID')
-          tape(t)%hlist(n)%field%type1d_out = nameg
+          tape(t)%hlist(n)%field%type1d_out = nameg(1:8)
           tape(t)%hlist(n)%field%gcomm => gcomm_gridcell
         case('LAND')
-          tape(t)%hlist(n)%field%type1d_out = namel
+          tape(t)%hlist(n)%field%type1d_out = namel(1:8)
           tape(t)%hlist(n)%field%gcomm => gcomm_landunit
         case('COLS')
-          tape(t)%hlist(n)%field%type1d_out = namec
+          tape(t)%hlist(n)%field%type1d_out = namec(1:8)
           tape(t)%hlist(n)%field%gcomm => gcomm_column
         case ('PFTS')
-          tape(t)%hlist(n)%field%type1d_out = namep
+          tape(t)%hlist(n)%field%type1d_out = namep(1:8)
           tape(t)%hlist(n)%field%gcomm => gcomm_pft
         case default
           write(stderr,*) trim(subname), &
@@ -2510,6 +2508,7 @@ module mod_clm_histfile
     integer(ik4) :: monm1            ! nstep-1 month (1 -> 12)
     integer(ik4) :: yrm1             ! nstep-1 year (0 -> ...)
     integer(ik4) :: mcsecm1          ! nstep-1 time of day [seconds]
+    integer(ik8) :: temp
     real(rk8):: time                 ! current time
     character(len=256) :: str        ! global attribute string
     logical :: if_stop               ! true => last time step of run
@@ -2540,7 +2539,8 @@ module mod_clm_histfile
       if ( tape(t)%nhtfrq == 0 ) then   !monthly average
         if ( mon /= monm1 ) tape(t)%is_endhist = .true.
       else
-        if ( mod(ktau,tape(t)%nhtfrq) == 0 ) tape(t)%is_endhist = .true.
+        temp = tape(t)%nhtfrq
+        if ( mod(ktau,temp) == 0 ) tape(t)%is_endhist = .true.
       end if
 
       ! If end of history interval
@@ -2562,7 +2562,8 @@ module mod_clm_histfile
 
         if ( tape(t)%ntimes == 1 ) then
           locfnh(t) = set_hist_filename(hist_freq=tape(t)%nhtfrq, &
-                                        hist_mfilt=tape(t)%mfilt, hist_file=t)
+                                        hist_mfilt=tape(t)%mfilt, &
+                                        hist_file=t)
           if ( myid == italk ) then
             write(stdout,*) trim(subname), &
               ' : Creating history file ', trim(locfnh(t)), &
@@ -2668,12 +2669,7 @@ module mod_clm_histfile
   ! so that subsequent time samples are added until the file is full.
   ! A new history file is used on a branch run.
   !
-#ifdef UPTOHERE
   subroutine hist_restart_ncd (ncid, flag, rdate)
-    use clm_varctl , only : nsrest, caseid, inst_suffix, nsrStartup, nsrBranch
-    use fileutils , only : getfil
-    use clm_varpar , only : nlevgrnd, nlevlak, numrad, nlevdecomp_full
-    use clm_time_manager , only : is_restart
     implicit none
     type(clm_filetype), intent(inout) :: ncid  ! netcdf file
     character(len=*) , intent(in) :: flag      !'read' or 'write'
@@ -2717,19 +2713,6 @@ module mod_clm_histfile
     character(len=8) :: type2d          ! history buffer 2d type
     character(len=32) :: dim1name       ! temporary
     character(len=32) :: dim2name       ! temporary
-    type(var_desc_t) :: name_desc       ! variable descriptor for name
-    type(var_desc_t) :: longname_desc   ! variable descriptor for long_name
-    type(var_desc_t) :: units_desc      ! variable descriptor for units
-    type(var_desc_t) :: type1d_desc     ! variable descriptor for type1d
-    type(var_desc_t) :: type1d_out_desc ! variable descriptor for type1d_out
-    type(var_desc_t) :: type2d_desc     ! variable descriptor for type2d
-    type(var_desc_t) :: avgflag_desc    ! variable descriptor for avgflag
-    ! variable descriptor for p2c_scale_type
-    type(var_desc_t) :: p2c_scale_type_desc
-    ! variable descriptor for c2l_scale_type
-    type(var_desc_t) :: c2l_scale_type_desc
-    ! variable descriptor for l2g_scale_type
-    type(var_desc_t) :: l2g_scale_type_desc
     integer(ik4) :: status ! error status
     integer(ik4) :: dimid  ! dimension ID
     integer(ik4) :: k      ! 1d index
@@ -2781,24 +2764,26 @@ module mod_clm_histfile
       ! On master restart file add ntapes/max_chars dimension
       ! and then add the history and history restart filenames
       !
-      call ncd_defdim( ncid, 'ntapes'       , ntapes      , dimid)
-      call ncd_defdim( ncid, 'max_chars'    , max_chars   , dimid)
+      call clm_adddim(ncid, 'ntapes', ntapes)
+      call clm_adddim(ncid, 'max_chars', max_chars)
 
-      call ncd_defvar(ncid=ncid, varname='locfnh', xtype=ncd_char, &
-        long_name="History filename",     &
-        comment="This variable NOT needed for startup or branch simulations", &
-        dim1name='max_chars', dim2name="ntapes" )
-      call ncd_defvar(ncid=ncid, varname='locfnhr', xtype=ncd_char, &
-        long_name="Restart history filename",     &
-        comment="This variable NOT needed for startup or branch simulations", &
-        dim1name='max_chars', dim2name="ntapes" )
+      call clm_addvar(clmvar_text,ncid,'locfnh', &
+              cdims=(/'max_chars','ntapes   '/), &
+              long_name='History filename',      &
+              comment='This variable NOT needed for startup'&
+                     &' or branch simulations')
+      call clm_addvar(clmvar_text,ncid,'locfnhr', &
+              cdims=(/'max_chars','ntapes   '/), &
+              long_name='Restart history filename',      &
+              comment='This variable NOT needed for startup'&
+                     &' or branch simulations')
 
       ! max_nflds is the maximum number of fields on any tape
       ! max_flds is the maximum number possible number of fields 
 
       max_nflds = max_nFields()
 
-      call get_proc_global(numg, numl, numc, nump)
+      call get_proc_global(numg,numl,numc,nump)
 
       ! Loop over tapes - write out namelist information to each 
       ! restart-history tape only read/write accumulators and
@@ -2818,10 +2803,10 @@ module mod_clm_histfile
         !
         ! Add read/write accumultators and counters if needed
         !
-        if (.not. tape(t)%is_endhist) then
-          do f = 1,tape(t)%nflds
+        if ( .not. tape(t)%is_endhist ) then
+          do f = 1 , tape(t)%nflds
             name          =  tape(t)%hlist(f)%field%name
-            long_name     =  tape(t)%hlist(f)%field%long_name
+            long_name     =  tape(t)%hlist(f)%field%long_name(1:max_namlen)
             units         =  tape(t)%hlist(f)%field%units
             name_acc      =  trim(name) // "_acc"
             units_acc     =  "unitless positive integer(ik4)"
@@ -2845,39 +2830,37 @@ module mod_clm_histfile
               dim2name = 'undefined'
             end if
                    
-            if (dim2name == 'undefined') then
-              if (num2d == 1) then
-                call ncd_defvar(ncid=ncid_hist(t), varname=trim(name), &
-                  xtype=ncd_double, dim1name=dim1name, &
-                  long_name=trim(long_name), units=trim(units))
-                call ncd_defvar(ncid=ncid_hist(t), varname=trim(name_acc), &
-                  xtype=ncd_int,  dim1name=dim1name, &
-                  long_name=trim(long_name_acc), units=trim(units_acc))
+            if ( dim2name == 'undefined' ) then
+              if ( num2d == 1 ) then
+                call clm_addvar(clmvar_double,ncid_hist(t),trim(name), &
+                  cdims=(/dim1name/),long_name=trim(long_name), &
+                  units=trim(units))
+                call clm_addvar(clmvar_double,ncid_hist(t),trim(name_acc), &
+                  cdims=(/dim1name/),long_name=trim(long_name_acc), &
+                  units=trim(units_acc))
               else
-                call ncd_defvar(ncid=ncid_hist(t), varname=trim(name), &
-                  xtype=ncd_double, dim1name=dim1name, dim2name=type2d, &
-                  long_name=trim(long_name), units=trim(units))
-                call ncd_defvar(ncid=ncid_hist(t), varname=trim(name_acc), &
-                  xtype=ncd_int, dim1name=dim1name, dim2name=type2d, &
-                  long_name=trim(long_name_acc), units=trim(units_acc))
+                call clm_addvar(clmvar_double,ncid_hist(t),trim(name), &
+                  cdims=(/dim1name,type2d/),long_name=trim(long_name), &
+                  units=trim(units))
+                call clm_addvar(clmvar_double,ncid_hist(t),trim(name_acc), &
+                  cdims=(/dim1name,type2d/),long_name=trim(long_name_acc), &
+                  units=trim(units_acc))
               end if
             else
-              if (num2d == 1) then
-                call ncd_defvar(ncid=ncid_hist(t), varname=trim(name), &
-                  xtype=ncd_double, dim1name=dim1name, dim2name=dim2name, &
-                  long_name=trim(long_name), units=trim(units))
-                call ncd_defvar(ncid=ncid_hist(t), varname=trim(name_acc), &
-                  xtype=ncd_int, dim1name=dim1name, dim2name=dim2name, &
-                  long_name=trim(long_name_acc), units=trim(units_acc))
-              else
-                call ncd_defvar(ncid=ncid_hist(t), varname=trim(name), &
-                  xtype=ncd_double, dim1name=dim1name, dim2name=dim2name, &
-                  dim3name=type2d, long_name=trim(long_name), &
+              if ( num2d == 1 ) then
+                call clm_addvar(clmvar_double,ncid_hist(t),trim(name), &
+                  cdims=(/dim1name,dim2name/),long_name=trim(long_name), &
                   units=trim(units))
-                call ncd_defvar(ncid=ncid_hist(t), varname=trim(name_acc), &
-                  xtype=ncd_int, dim1name=dim1name, dim2name=dim2name, &
-                  dim3name=type2d, long_name=trim(long_name_acc), &
+                call clm_addvar(clmvar_double,ncid_hist(t),trim(name_acc), &
+                  cdims=(/dim1name,dim2name/),long_name=trim(long_name_acc), &
                   units=trim(units_acc))
+              else
+                call clm_addvar(clmvar_double,ncid_hist(t),trim(name), &
+                  cdims=(/dim1name,dim2name,type2d/), &
+                  long_name=trim(long_name), units=trim(units))
+                call clm_addvar(clmvar_double,ncid_hist(t),trim(name_acc), &
+                  cdims=(/dim1name,dim2name,type2d/), &
+                  long_name=trim(long_name_acc), units=trim(units_acc))
               end if
             end if
           end do
@@ -2886,110 +2869,95 @@ module mod_clm_histfile
         !
         ! Add namelist information to each restart history tape
         !
-        call ncd_defdim( ncid_hist(t), 'fname_lenp2'  , max_namlen+2, dimid)
-        call ncd_defdim( ncid_hist(t), 'fname_len'    , max_namlen  , dimid)
-        call ncd_defdim( ncid_hist(t), 'len1'         , 1           , dimid)
-        call ncd_defdim( ncid_hist(t), 'scalar'       , 1           , dimid)
-        call ncd_defdim( ncid_hist(t), 'max_chars'    , max_chars   , dimid)
-        call ncd_defdim( ncid_hist(t), 'max_nflds'    , max_nflds   ,  dimid)   
-        call ncd_defdim( ncid_hist(t), 'max_flds'     , max_flds    , dimid)   
+        call clm_adddim(ncid_hist(t),'fname_lenp2',max_namlen+2)
+        call clm_adddim(ncid_hist(t),'fname_len',max_namlen)
+        call clm_adddim(ncid_hist(t),'len1',1)
+        call clm_adddim(ncid_hist(t),'scalar',1)
+        call clm_adddim(ncid_hist(t),'max_chars',max_chars)
+        call clm_adddim(ncid_hist(t),'max_nflds',max_nflds)
+        call clm_adddim(ncid_hist(t),'max_flds',max_flds)
        
-        call ncd_defvar(ncid=ncid_hist(t), varname='nhtfrq', xtype=ncd_int, &
-          long_name="Frequency of history writes",               &
-          comment="Namelist item", &
-          units="absolute value of negative is in hours, 0=monthly, positive is time-steps",     &
-          dim1name='scalar')
-        call ncd_defvar(ncid=ncid_hist(t), varname='mfilt', xtype=ncd_int, &
-          long_name="Number of history time samples on a file", units="unitless",     &
-          comment="Namelist item", &
-          dim1name='scalar')
-        call ncd_defvar(ncid=ncid_hist(t), varname='ncprec', xtype=ncd_int, &
-               long_name="Flag for data precision", flag_values=(/1,2/), &
-               comment="Namelist item", &
-               nvalid_range=(/1,2/), &
-               flag_meanings=(/"single-precision", "double-precision"/), &
-               dim1name='scalar')
-        call ncd_defvar(ncid=ncid_hist(t), varname='dov2xy', xtype=ncd_log, &
-               long_name="Output on 2D grid format (TRUE) or vector format (FALSE)", &
-               comment="Namelist item", &
-               dim1name='scalar')
-        call ncd_defvar(ncid=ncid_hist(t), varname='fincl', xtype=ncd_char, &
-               comment="Namelist item", &
-               long_name="Fieldnames to include", &
-               dim1name='fname_lenp2', dim2name='max_flds' )
-        call ncd_defvar(ncid=ncid_hist(t), varname='fexcl', xtype=ncd_char, &
-               comment="Namelist item", &
-               long_name="Fieldnames to exclude",  &
-               dim1name='fname_lenp2', dim2name='max_flds' )
+        call clm_addvar(clmvar_integer,ncid_hist(t),'nhtfrq', &
+                  long_name="Frequency of history writes",    &
+                  comment="Namelist item", &
+                  units="absolute value of negative is in hours, 0=monthly,"&
+                       &" positive is time-steps")
+        call clm_addvar(clmvar_integer,ncid_hist(t),'mfilt', &
+                  long_name="Number of history time samples on a file", &
+                  comment="Namelist item")
+        call clm_addvar(clmvar_integer,ncid_hist(t),'ncprec', &
+                  long_name="Flag for data precision", &
+                  flag_values=(/1,2/),valid_range=(/1,2/), &
+                  flag_meanings=(/"single-precision", "double-precision"/))
+        call clm_addvar(clmvar_logical,ncid_hist(t),'dov2xy', &
+                  long_name="Output on 2D grid format (TRUE) or vector"&
+                           &" format (FALSE)", comment="Namelist item")
+        call clm_addvar(clmvar_text,ncid_hist(t),'fincl', &
+                  cdims=(/'fname_lenp2','max_flds   '/), &
+                  long_name="Fieldnames to include",comment="Namelist item")
+        call clm_addvar(clmvar_text,ncid_hist(t),'fexcl', &
+                  cdims=(/'fname_lenp2','max_flds   '/), &
+                  long_name="Fieldnames to exclude",comment="Namelist item")
+        call clm_addvar(clmvar_integer,ncid_hist(t),'nflds', &
+                  long_name="Number of fields on file")
+        call clm_addvar(clmvar_integer,ncid_hist(t),'ntimes', &
+                  long_name="Number of time steps on file")
+        call clm_addvar(clmvar_logical,ncid_hist(t),'is_endhist', &
+                long_name="End of history file")
+        call clm_addvar(clmvar_double,ncid_hist(t),'begtime', &
+                long_name="Beginning time")
+        call clm_addvar(clmvar_integer,ncid_hist(t),'num2d', &
+                cdims=(/'max_nflds'/), long_name="Size of second dimension")
+        call clm_addvar(clmvar_integer,ncid_hist(t),'hpindex', &
+                cdims=(/'max_nflds'/), long_name="History pointer index")
+        call clm_addvar(clmvar_text,ncid_hist(t),'avgflag', &
+                cdims=(/'len1     ','max_nflds'/), &
+                long_name="Averaging flag", &
+                comment="A=Average, X=Maximum, M=Minimum, I=Instantaneous")
+        call clm_addvar(clmvar_text,ncid_hist(t),'name', &
+                cdims=(/'fname_len','max_nflds'/), long_name="Fieldnames")
+        call clm_addvar(clmvar_text,ncid_hist(t),'long_name', &
+                cdims=(/'max_chars','max_nflds'/), &
+                long_name="Long descriptive names for fields")
+        call clm_addvar(clmvar_text,ncid_hist(t),'units', &
+                cdims=(/'max_chars','max_nflds'/), &
+                long_name="Units for each history field output")
+        call clm_addvar(clmvar_text,ncid_hist(t),'type1d', &
+                cdims=(/'string_length','max_nflds    '/), &
+                long_name="1st dimension type")
+        call clm_addvar(clmvar_text,ncid_hist(t),'type1d_out', &
+                cdims=(/'string_length','max_nflds    '/), &
+                long_name="1st output dimension type")
+        call clm_addvar(clmvar_text,ncid_hist(t),'type2d', &
+                cdims=(/'string_length','max_nflds    '/), &
+                long_name="2nd dimension type")
+        call clm_addvar(clmvar_text,ncid_hist(t),'p2c_scale_type', &
+                cdims=(/'string_length','max_nflds    '/), &
+                long_name="PFT to column scale type")
+        call clm_addvar(clmvar_text,ncid_hist(t),'c2l_scale_type', &
+                cdims=(/'string_length','max_nflds    '/), &
+                long_name="column to landunit scale type")
+        call clm_addvar(clmvar_text,ncid_hist(t),'l2g_scale_type', &
+                cdims=(/'string_length','max_nflds    '/), &
+                long_name="landunit to gridpoint scale type")
 
-        call ncd_defvar(ncid=ncid_hist(t), varname='nflds', xtype=ncd_int, &
-               long_name="Number of fields on file", units="unitless",        &
-               dim1name='scalar')
-        call ncd_defvar(ncid=ncid_hist(t), varname='ntimes', xtype=ncd_int, &
-               long_name="Number of time steps on file", units="time-step",     &
-               dim1name='scalar')
-        call ncd_defvar(ncid=ncid_hist(t), varname='is_endhist', xtype=ncd_log, &
-               long_name="End of history file", dim1name='scalar')
-        call ncd_defvar(ncid=ncid_hist(t), varname='begtime', xtype=ncd_double, &
-               long_name="Beginning time", units="time units",     &
-               dim1name='scalar')
-   
-        call ncd_defvar(ncid=ncid_hist(t), varname='num2d', xtype=ncd_int, &
-               long_name="Size of second dimension", units="unitless",     &
-               dim1name='max_nflds' )
-        call ncd_defvar(ncid=ncid_hist(t), varname='hpindex', xtype=ncd_int, &
-               long_name="History pointer index", units="unitless",     &
-               dim1name='max_nflds' )
-
-        call ncd_defvar(ncid=ncid_hist(t), varname='avgflag', xtype=ncd_char, &
-               long_name="Averaging flag", &
-               units="A=Average, X=Maximum, M=Minimum, I=Instantaneous", &
-               dim1name='len1', dim2name='max_nflds' )
-        call ncd_defvar(ncid=ncid_hist(t), varname='name', xtype=ncd_char, &
-               long_name="Fieldnames",  &
-               dim1name='fname_len', dim2name='max_nflds' )
-        call ncd_defvar(ncid=ncid_hist(t), varname='long_name', xtype=ncd_char, &
-               long_name="Long descriptive names for fields", &
-               dim1name='max_chars', dim2name='max_nflds' )
-        call ncd_defvar(ncid=ncid_hist(t), varname='units', xtype=ncd_char, &
-               long_name="Units for each history field output", &
-               dim1name='max_chars', dim2name='max_nflds' )
-        call ncd_defvar(ncid=ncid_hist(t), varname='type1d', xtype=ncd_char, &
-               long_name="1st dimension type", &
-               dim1name='string_length', dim2name='max_nflds' )
-        call ncd_defvar(ncid=ncid_hist(t), varname='type1d_out', xtype=ncd_char, &
-               long_name="1st output dimension type", &
-               dim1name='string_length', dim2name='max_nflds' )
-        call ncd_defvar(ncid=ncid_hist(t), varname='type2d', xtype=ncd_char, &
-               long_name="2nd dimension type", &
-               dim1name='string_length', dim2name='max_nflds' )
-        call ncd_defvar(ncid=ncid_hist(t), varname='p2c_scale_type', xtype=ncd_char, &
-               long_name="PFT to column scale type", &
-               dim1name='string_length', dim2name='max_nflds' )
-        call ncd_defvar(ncid=ncid_hist(t), varname='c2l_scale_type', xtype=ncd_char, &
-               long_name="column to landunit scale type", &
-               dim1name='string_length', dim2name='max_nflds' )
-        call ncd_defvar(ncid=ncid_hist(t), varname='l2g_scale_type', xtype=ncd_char, &
-               long_name="landunit to gridpoint scale type", &
-               dim1name='string_length', dim2name='max_nflds' )
-
-        call ncd_enddef(ncid_hist(t))
+        call clm_enddef(ncid_hist(t))
 
       end do   ! end of ntapes loop   
 
       return
 
     !================================================
-    else if (flag == 'write') then
+    else if ( flag == 'write' ) then
     !================================================
 
       !
       ! First write out namelist information to each restart history file
       !
       ! Add history filenames to master restart file
-      do t = 1,ntapes
-        call ncd_io('locfnh',  locfnh(t),  'write', ncid, nt=t)
-        call ncd_io('locfnhr', locfnhr(t), 'write', ncid, nt=t)
+      do t = 1 , ntapes
+        call clm_writevar(ncid,'locfnh',locfnh)
+        call clm_writevar(ncid,'locfnhr',locfnhr)
       end do
        
       fincl(:,1) = hist_fincl1(:)
@@ -3016,170 +2984,138 @@ module mod_clm_histfile
       ! Add history namelist data to each history restart tape
       !
       do t = 1 , ntapes
-        call ncd_io(varname='fincl', data=fincl(:,t), ncid=ncid_hist(t), flag='write')
+        call clm_writevar(ncid_hist(t),'fincl',fincl(:,t))
+        call clm_writevar(ncid_hist(t),'fexcl',fexcl(:,t))
+        call clm_writevar(ncid_hist(t),'is_endhist',tape(t)%is_endhist)
+        call clm_writevar(ncid_hist(t),'dov2xy',tape(t)%dov2xy)
+        itemp2d(:,:) = 0
+        do f = 1 , tape(t)%nflds
+          itemp2d(f,t) = tape(t)%hlist(f)%field%num2d
+        end do
+        call clm_writevar(ncid_hist(t),'num2d',itemp2d(:,t))
+        itemp2d(:,:) = 0
+        do f = 1 , tape(t)%nflds
+          itemp2d(f,t) = tape(t)%hlist(f)%field%hpindex
+        end do
+        call clm_writevar(ncid_hist(t),'hpindex',itemp2d(:,t))
+        call clm_writevar(ncid_hist(t),'nflds',tape(t)%nflds)
+        call clm_writevar(ncid_hist(t),'ntimes',tape(t)%ntimes)
+        call clm_writevar(ncid_hist(t),'nhtfrq',tape(t)%nhtfrq)
+        call clm_writevar(ncid_hist(t),'mfilt',tape(t)%mfilt)
+        call clm_writevar(ncid_hist(t),'ncprec',tape(t)%ncprec)
+        call clm_writevar(ncid_hist(t),'begtime',tape(t)%begtime)
+        allocate(tmpstr(tape(t)%nflds,6 ),tname(tape(t)%nflds), &
+                 tavgflag(tape(t)%nflds),tunits(tape(t)%nflds), &
+                 tlongname(tape(t)%nflds))
+        do f = 1 , tape(t)%nflds
+          tname(f)  = tape(t)%hlist(f)%field%name
+          tunits(f) = tape(t)%hlist(f)%field%units
+          tlongname(f) = tape(t)%hlist(f)%field%long_name
+          tmpstr(f,1) = tape(t)%hlist(f)%field%type1d
+          tmpstr(f,2) = tape(t)%hlist(f)%field%type1d_out
+          tmpstr(f,3) = tape(t)%hlist(f)%field%type2d
+          tavgflag(f) = tape(t)%hlist(f)%avgflag
+          tmpstr(f,4) = tape(t)%hlist(f)%field%p2c_scale_type
+          tmpstr(f,5) = tape(t)%hlist(f)%field%c2l_scale_type
+          tmpstr(f,6) = tape(t)%hlist(f)%field%l2g_scale_type
+        end do
+        call clm_writevar(ncid_hist(t),'name',tname)
+        call clm_writevar(ncid_hist(t),'long_name',tlongname)
+        call clm_writevar(ncid_hist(t),'units',tunits)
+        call clm_writevar(ncid_hist(t),'type1d',tmpstr(:,1))
+        call clm_writevar(ncid_hist(t),'type1d_out',tmpstr(:,2))
+        call clm_writevar(ncid_hist(t),'type2d',tmpstr(:,3))
+        call clm_writevar(ncid_hist(t),'avgflag',tavgflag)
+        call clm_writevar(ncid_hist(t),'p2c_scale_type',tmpstr(:,4))
+        call clm_writevar(ncid_hist(t),'c2l_scale_type',tmpstr(:,5))
+        call clm_writevar(ncid_hist(t),'l2g_scale_type',tmpstr(:,6))
+        deallocate(tname,tlongname,tunits,tmpstr,tavgflag)
+      end do       
+      deallocate(itemp2d)
 
-          call ncd_io(varname='fexcl', data=fexcl(:,t), ncid=ncid_hist(t), flag='write')
-
-          call ncd_io(varname='is_endhist', data=tape(t)%is_endhist, ncid=ncid_hist(t), flag='write')
-
-          call ncd_io(varname='dov2xy', data=tape(t)%dov2xy, ncid=ncid_hist(t), flag='write')
-
-          itemp2d(:,:) = 0
-          do f=1,tape(t)%nflds
-             itemp2d(f,t) = tape(t)%hlist(f)%field%num2d
-          end do
-          call ncd_io(varname='num2d', data=itemp2d(:,t), ncid=ncid_hist(t), flag='write')
-
-          itemp2d(:,:) = 0
-          do f=1,tape(t)%nflds
-             itemp2d(f,t) = tape(t)%hlist(f)%field%hpindex
-          end do
-          call ncd_io(varname='hpindex', data=itemp2d(:,t), ncid=ncid_hist(t), flag='write')
-
-          call ncd_io('nflds',        tape(t)%nflds,   'write', ncid_hist(t) )
-          call ncd_io('ntimes',       tape(t)%ntimes,  'write', ncid_hist(t) )
-          call ncd_io('nhtfrq',  tape(t)%nhtfrq,  'write', ncid_hist(t) )
-          call ncd_io('mfilt',   tape(t)%mfilt,   'write', ncid_hist(t) )
-          call ncd_io('ncprec',  tape(t)%ncprec,  'write', ncid_hist(t) )
-          call ncd_io('begtime',      tape(t)%begtime, 'write', ncid_hist(t) )
-          allocate(tmpstr(tape(t)%nflds,6 ),tname(tape(t)%nflds), &
-                   tavgflag(tape(t)%nflds),tunits(tape(t)%nflds),tlongname(tape(t)%nflds))
-          do f=1,tape(t)%nflds
-             tname(f)  = tape(t)%hlist(f)%field%name
-             tunits(f) = tape(t)%hlist(f)%field%units
-             tlongname(f) = tape(t)%hlist(f)%field%long_name
-             tmpstr(f,1) = tape(t)%hlist(f)%field%type1d
-             tmpstr(f,2) = tape(t)%hlist(f)%field%type1d_out
-             tmpstr(f,3) = tape(t)%hlist(f)%field%type2d
-             tavgflag(f) = tape(t)%hlist(f)%avgflag
-             tmpstr(f,4) = tape(t)%hlist(f)%field%p2c_scale_type
-             tmpstr(f,5) = tape(t)%hlist(f)%field%c2l_scale_type
-             tmpstr(f,6) = tape(t)%hlist(f)%field%l2g_scale_type
-          end do
-          call ncd_io( 'name', tname, 'write',ncid_hist(t))
-          call ncd_io('long_name', tlongname, 'write', ncid_hist(t))
-          call ncd_io('units', tunits, 'write',ncid_hist(t))
-          call ncd_io('type1d', tmpstr(:,1), 'write', ncid_hist(t))
-          call ncd_io('type1d_out', tmpstr(:,2), 'write', ncid_hist(t))
-          call ncd_io('type2d', tmpstr(:,3), 'write', ncid_hist(t))
-          call ncd_io('avgflag',tavgflag , 'write', ncid_hist(t))
-          call ncd_io('p2c_scale_type', tmpstr(:,4), 'write', ncid_hist(t))
-          call ncd_io('c2l_scale_type', tmpstr(:,5), 'write', ncid_hist(t))
-          call ncd_io('l2g_scale_type', tmpstr(:,6), 'write', ncid_hist(t))
-          deallocate(tname,tlongname,tunits,tmpstr,tavgflag)
-       end do       
-       deallocate(itemp2d)
-
-    !
-    ! Read in namelist information
-    !
     !================================================
-    else if (flag == 'read') then
+    else if ( flag == 'read' ) then
     !================================================
+      !
+      ! Read in namelist information
+      !
+      call clm_inqdim(ncid,'ntapes',dlen=ntapes_onfile)
+      if ( ktau > 0 .and. ntapes_onfile /= ntapes ) then
+        write(stderr,*) &
+            'ntapes = ', ntapes, ' ntapes_onfile = ', ntapes_onfile
+        call fatal(__FILE__,__LINE__, &
+          trim(subname)//' ERROR: number of ntapes different '// &
+          'than on restart file!, you can NOT change history options on '// &
+          'restart!' )
+      end if
+      if ( ktau > 0 .and. ntapes > 0 ) then
+        call clm_readvar(ncid,'locfnh',locfnh(1:ntapes))
+        call clm_readvar(ncid,'locfnhr',locrest(1:ntapes))
+        do t = 1,ntapes
+          call strip_null(locrest(t))
+          call strip_null(locfnh(t))
+        end do
+      end if
 
-       call ncd_inqdlen(ncid,dimid,ntapes_onfile, name='ntapes')
-       if ( is_restart() .and. ntapes_onfile /= ntapes )then
-          write(stderr,*) &
-                  'ntapes = ', ntapes, ' ntapes_onfile = ', ntapes_onfile
-          call fatal(__FILE__,__LINE__, &
-            trim(subname)//' ERROR: number of ntapes different '// &
-            'than on restart file!, you can NOT change history options on '// &
-            'restart!' )
-       end if
-       if ( is_restart() .and. ntapes > 0 )then
-          call ncd_io('locfnh',  locfnh(1:ntapes),  'read', ncid )
-          call ncd_io('locfnhr', locrest(1:ntapes), 'read', ncid )
-          do t = 1,ntapes
-             call strip_null(locrest(t))
-             call strip_null(locfnh(t))
-          end do
-       end if
-
-       ! Determine necessary indices - the following is needed if model decomposition is different on restart
+      ! Determine necessary indices - the following is needed if model
+      ! decomposition is different on restart
        
-       call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
-       call get_proc_global(numg, numl, numc, nump)
+      call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
+      call get_proc_global(numg,numl,numc,nump)
        
-       start(1)=1
-
-       if ( is_restart() )then
-          do t = 1,ntapes
-
-             call getfil( locrest(t), locfnhr(t), 0 )
-             call ncd_pio_openfile (ncid_hist(t), trim(locfnhr(t)), ncd_nowrite)
-
-             if ( t == 1 )then
-
-                call ncd_inqdlen(ncid_hist(1),dimid,max_nflds,name='max_nflds')
-   
-                allocate(itemp2d(max_nflds,ntapes))
-             end if
-
-             call ncd_inqvid(ncid_hist(t), 'name',           varid, name_desc)
-             call ncd_inqvid(ncid_hist(t), 'long_name',      varid, longname_desc)
-             call ncd_inqvid(ncid_hist(t), 'units',          varid, units_desc)
-             call ncd_inqvid(ncid_hist(t), 'type1d',         varid, type1d_desc)
-             call ncd_inqvid(ncid_hist(t), 'type1d_out',     varid, type1d_out_desc)
-             call ncd_inqvid(ncid_hist(t), 'type2d',         varid, type2d_desc)
-             call ncd_inqvid(ncid_hist(t), 'avgflag',        varid, avgflag_desc)
-             call ncd_inqvid(ncid_hist(t), 'p2c_scale_type', varid, p2c_scale_type_desc)
-             call ncd_inqvid(ncid_hist(t), 'c2l_scale_type', varid, c2l_scale_type_desc)
-             call ncd_inqvid(ncid_hist(t), 'l2g_scale_type', varid, l2g_scale_type_desc)
-
-             call ncd_io(varname='fincl', data=fincl(:,t), ncid=ncid_hist(t), flag='read')
-
-             call ncd_io(varname='fexcl', data=fexcl(:,t), ncid=ncid_hist(t), flag='read')
-
-             call ncd_io('nflds',   nflds_onfile, 'read', ncid_hist(t) )
-             if ( nflds_onfile /= tape(t)%nflds )then
-                write(stderr,*) &
-                    'nflds = ', tape(t)%nflds, ' nflds_onfile = ', nflds_onfile
-                call fatal(__FILE__,__LINE__, &
+      if ( ktau > 0 ) then
+        do t = 1 , ntapes
+          call clm_openfile(locrest(t),ncid_hist(t))
+          if ( t == 1 ) then
+            call clm_inqdim(ncid_hist(t),'max_nflds',dlen=max_nflds)
+            allocate(itemp2d(max_nflds,ntapes))
+          end if
+          call clm_readvar(ncid_hist(t),'fincl',fincl(:,t))
+          call clm_readvar(ncid_hist(t),'fexcl',fexcl(:,t))
+          call clm_readvar(ncid_hist(t),'nflds',nflds_onfile)
+          if ( nflds_onfile /= tape(t)%nflds ) then
+            write(stderr,*) &
+               'nflds = ', tape(t)%nflds, ' nflds_onfile = ', nflds_onfile
+            call fatal(__FILE__,__LINE__, &
                   trim(subname)//' ERROR: number of fields '// &
                   'different than on restart file!, you can NOT change '// &
                   'history options on restart!' )
-             end if
-             call ncd_io('ntimes',  tape(t)%ntimes, 'read', ncid_hist(t) )
-             call ncd_io('nhtfrq',  tape(t)%nhtfrq, 'read', ncid_hist(t) )
-             call ncd_io('mfilt',   tape(t)%mfilt, 'read', ncid_hist(t) )
-             call ncd_io('ncprec',  tape(t)%ncprec, 'read', ncid_hist(t) )
-             call ncd_io('begtime', tape(t)%begtime, 'read', ncid_hist(t) )
-
-             call ncd_io(varname='is_endhist', data=tape(t)%is_endhist, ncid=ncid_hist(t), flag='read')
-             call ncd_io(varname='dov2xy', data=tape(t)%dov2xy, ncid=ncid_hist(t), flag='read')
-             call ncd_io(varname='num2d', data=itemp2d(:,t), ncid=ncid_hist(t), flag='read')
-             do f=1,tape(t)%nflds
-                tape(t)%hlist(f)%field%num2d = itemp2d(f,t)
-             end do
-
-             call ncd_io(varname='hpindex', data=itemp2d(:,t), ncid=ncid_hist(t), flag='read')
-             do f=1,tape(t)%nflds
-                tape(t)%hlist(f)%field%hpindex = itemp2d(f,t)
-             end do
-
-             do f=1,tape(t)%nflds
-                start(2) = f
-                call ncd_io( name_desc,           tape(t)%hlist(f)%field%name,       &
-                             'read', ncid_hist(t), start )
-                call ncd_io( longname_desc,       tape(t)%hlist(f)%field%long_name,  &
-                             'read', ncid_hist(t), start )
-                call ncd_io( units_desc,          tape(t)%hlist(f)%field%units,      &
-                             'read', ncid_hist(t), start )
-                call ncd_io( type1d_desc,         tape(t)%hlist(f)%field%type1d,     &
-                             'read', ncid_hist(t), start )
-                call ncd_io( type1d_out_desc,     tape(t)%hlist(f)%field%type1d_out, &
-                             'read', ncid_hist(t), start )
-                call ncd_io( type2d_desc,         tape(t)%hlist(f)%field%type2d,     &
-                             'read', ncid_hist(t), start )
-                call ncd_io( avgflag_desc,        tape(t)%hlist(f)%avgflag,          &
-                             'read', ncid_hist(t), start )
-                call ncd_io( p2c_scale_type_desc, tape(t)%hlist(f)%field%p2c_scale_type,   &
-                             'read', ncid_hist(t), start )
-                call ncd_io( c2l_scale_type_desc, tape(t)%hlist(f)%field%c2l_scale_type,   &
-                             'read', ncid_hist(t), start )
-            call clm_readvar(ncid_hist(t),l2g_scale_type_desc, &
-                        tape(t)%hlist(f)%field%l2g_scale_type, &
-                             'read', start )
+          end if
+          call clm_readvar(ncid_hist(t),'ntimes',tape(t)%ntimes)
+          call clm_readvar(ncid_hist(t),'nhtfrq',tape(t)%nhtfrq)
+          call clm_readvar(ncid_hist(t),'mfilt',tape(t)%mfilt)
+          call clm_readvar(ncid_hist(t),'ncprec',tape(t)%ncprec)
+          call clm_readvar(ncid_hist(t),'begtime',tape(t)%begtime)
+          call clm_readvar(ncid_hist(t),'is_endhist',tape(t)%is_endhist)
+          call clm_readvar(ncid_hist(t),'dov2xy',tape(t)%dov2xy)
+          call clm_readvar(ncid_hist(t),'num2d',itemp2d(:,t))
+          do f = 1 , tape(t)%nflds
+            tape(t)%hlist(f)%field%num2d = itemp2d(f,t)
+          end do
+          call clm_readvar(ncid_hist(t),'hpindex',itemp2d(:,t))
+          do f = 1 , tape(t)%nflds
+            tape(t)%hlist(f)%field%hpindex = itemp2d(f,t)
+          end do
+          do f = 1 , tape(t)%nflds
+            call clm_readvar(ncid_hist(t),'name',tape(t)%hlist(f)%field%name,f)
+            call clm_readvar(ncid_hist(t),'long_name', &
+                    tape(t)%hlist(f)%field%long_name,f)
+            call clm_readvar(ncid_hist(t),'units', &
+                    tape(t)%hlist(f)%field%units,f)
+            call clm_readvar(ncid_hist(t),'type1d', &
+                    tape(t)%hlist(f)%field%type1d,f)
+            call clm_readvar(ncid_hist(t),'type1d_out', &
+                    tape(t)%hlist(f)%field%type1d_out,f)
+            call clm_readvar(ncid_hist(t),'type2d', &
+                    tape(t)%hlist(f)%field%type2d,f)
+            call clm_readvar(ncid_hist(t),'avgflag', &
+                    tape(t)%hlist(f)%avgflag,f)
+            call clm_readvar(ncid_hist(t),'p2c_scale_type', &
+                    tape(t)%hlist(f)%field%p2c_scale_type,f)
+            call clm_readvar(ncid_hist(t),'c2l_scale_type', &
+                    tape(t)%hlist(f)%field%c2l_scale_type,f)
+            call clm_readvar(ncid_hist(t),'l2g_scale_type', &
+                    tape(t)%hlist(f)%field%l2g_scale_type,f)
             call strip_null(tape(t)%hlist(f)%field%name)
             call strip_null(tape(t)%hlist(f)%field%long_name)
             call strip_null(tape(t)%hlist(f)%field%units)
@@ -3190,7 +3126,6 @@ module mod_clm_histfile
             call strip_null(tape(t)%hlist(f)%field%c2l_scale_type)
             call strip_null(tape(t)%hlist(f)%field%l2g_scale_type)
             call strip_null(tape(t)%hlist(f)%avgflag)
-
             type1d_out = trim(tape(t)%hlist(f)%field%type1d_out)
             select case (trim(type1d_out))
               case (grlnd)
@@ -3383,8 +3318,6 @@ module mod_clm_histfile
       end do
     end if
   end subroutine hist_restart_ncd
-
-#endif
   !
   ! Initialize a single level history field. The pointer, ptrhist,
   ! is a pointer to the clmtype array that the history buffer will use.
@@ -3453,16 +3386,16 @@ module mod_clm_histfile
     hpindex = pointer_index()
 
     if ( present(ptr_lnd) ) then
-      l_type1d = grlnd
-      l_type1d_out = grlnd
+      l_type1d = grlnd(1:8)
+      l_type1d_out = grlnd(1:8)
       clmptr_rs(hpindex)%ptr => ptr_lnd
     else if ( present(ptr_gcell) ) then
-      l_type1d = nameg
-      l_type1d_out = nameg
+      l_type1d = nameg(1:8)
+      l_type1d_out = nameg(1:8)
       clmptr_rs(hpindex)%ptr => ptr_gcell
     else if ( present(ptr_lunit) ) then
-      l_type1d = namel
-      l_type1d_out = namel
+      l_type1d = namel(1:8)
+      l_type1d_out = namel(1:8)
       clmptr_rs(hpindex)%ptr => ptr_lunit
       if ( present(set_lake) ) then
         do l = begl , endl
@@ -3490,8 +3423,8 @@ module mod_clm_histfile
         end do
       end if
     else if ( present(ptr_col) ) then
-      l_type1d = namec
-      l_type1d_out = namec
+      l_type1d = namec(1:8)
+      l_type1d_out = namec(1:8)
       clmptr_rs(hpindex)%ptr => ptr_col
       if ( present(set_lake) ) then
         do c = begc , endc
@@ -3530,8 +3463,8 @@ module mod_clm_histfile
         end do
       end if
     else if ( present(ptr_pft) ) then
-      l_type1d = namep
-      l_type1d_out = namep
+      l_type1d = namep(1:8)
+      l_type1d_out = namep(1:8)
       clmptr_rs(hpindex)%ptr => ptr_pft
       if ( present(set_lake) ) then
         do p = begp , endp
@@ -3697,16 +3630,16 @@ module mod_clm_histfile
     hpindex = pointer_index()
 
     if ( present(ptr_lnd) ) then
-      l_type1d = grlnd
-      l_type1d_out = grlnd
+      l_type1d = grlnd(1:8)
+      l_type1d_out = grlnd(1:8)
       clmptr_ra(hpindex)%ptr => ptr_lnd
     else if ( present(ptr_gcell) ) then
-      l_type1d = nameg
-      l_type1d_out = nameg
+      l_type1d = nameg(1:8)
+      l_type1d_out = nameg(1:8)
       clmptr_ra(hpindex)%ptr => ptr_gcell
     else if ( present(ptr_lunit) ) then
-      l_type1d = namel
-      l_type1d_out = namel
+      l_type1d = namel(1:8)
+      l_type1d_out = namel(1:8)
       clmptr_ra(hpindex)%ptr => ptr_lunit
       if ( present(set_lake) ) then
         do l = begl , endl
@@ -3734,8 +3667,8 @@ module mod_clm_histfile
         end do
       end if
     else if (present(ptr_col)) then
-      l_type1d = namec
-      l_type1d_out = namec
+      l_type1d = namec(1:8)
+      l_type1d_out = namec(1:8)
       clmptr_ra(hpindex)%ptr => ptr_col
       if ( present(set_lake) ) then
         do c = begc , endc
@@ -3768,8 +3701,8 @@ module mod_clm_histfile
         end do
       end if
     else if ( present(ptr_pft) ) then
-      l_type1d = namep
-      l_type1d_out = namep
+      l_type1d = namep(1:8)
+      l_type1d_out = namep(1:8)
       clmptr_ra(hpindex)%ptr => ptr_pft
       if ( present(set_lake) ) then
         do p = begp , endp
