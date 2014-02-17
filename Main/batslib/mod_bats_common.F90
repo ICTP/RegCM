@@ -427,6 +427,7 @@ module mod_bats_common
         call l2c_ss(lndcomm,sigf,lms%sigf)
         call l2c_ss(lndcomm,lncl,lms%lncl)
         call l2c_ss(lndcomm,wt,lms%wt)
+        call l2c_ss(lndcomm,xlai,lms%xlai)
       end if
     end if ! Versus of the interface (1,2)
 

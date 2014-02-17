@@ -126,6 +126,7 @@ module mod_atm_interface
   real(rk8) , public , pointer , dimension(:,:) :: sfracb2d
   real(rk8) , public , pointer , dimension(:,:) :: sfracs2d
   real(rk8) , public , pointer , dimension(:,:) :: svegfrac2d
+  real(rk8) , public , pointer , dimension(:,:) :: sxlai2d
 
   ! Coupling
   real(rk8) , public , pointer , dimension(:,:,:) :: dailyrnf
@@ -687,6 +688,7 @@ module mod_atm_interface
         call getmem2d(sfracb2d,jci1,jci2,ici1,ici2,'storage:sfracb2d')
         call getmem2d(sfracs2d,jci1,jci2,ici1,ici2,'storage:sfracs2d')
         call getmem2d(svegfrac2d,jci1,jci2,ici1,ici2,'storage:svegfrac2d')
+        call getmem2d(sxlai2d,jci1,jci2,ici1,ici2,'storage:sxlai2d')
       end if
       if ( iocncpl == 1 ) then
         call getmem2d(cplmsk,jci1,jci2,ici1,ici2,'storage:cplmsk')

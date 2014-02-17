@@ -238,6 +238,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: sigf
     real(rk8) , pointer , dimension(:,:,:) :: sfcp
     real(rk8) , pointer , dimension(:,:,:) :: srnof
+    real(rk8) , pointer , dimension(:,:,:) :: xlai
     real(rk8) , pointer , dimension(:,:,:) :: q2m
     real(rk8) , pointer , dimension(:,:,:) :: t2m
     real(rk8) , pointer , dimension(:,:,:) :: u10m
@@ -268,6 +269,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: sfracb2d
     real(rk8) , pointer , dimension(:,:) :: sfracs2d
     real(rk8) , pointer , dimension(:,:) :: svegfrac2d
+    real(rk8) , pointer , dimension(:,:) :: sxlai2d
     real(rk8) , pointer , dimension(:,:,:) :: dailyrnf
     real(rk8) , pointer , dimension(:,:) :: xlat        ! mddom%xlat
     real(rk8) , pointer , dimension(:,:) :: xlon        ! mddom%xlon

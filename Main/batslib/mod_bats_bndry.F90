@@ -819,8 +819,8 @@ module mod_bats_bndry
       sm(i) = d_zero
       if ( sncv(i) > d_zero ) then
         cder = bcoef(i)*cgrnd(i)
-        sm(i) = (bb(i) + (cc(i)-xdt2+cder)*tgrd(i) - tzero * &
-                         (cc(i)+xdt2+cder))/(bcoef(i)*wlhf)
+        sm(i) = (bb(i) + (cc(i)-xdt2+cder)*tgrd(i) - &
+                         (cc(i)+xdt2+cder)*tzero) / (bcoef(i)*wlhf)
         ! snow melt always between 0 and total snow
         sm(i) = dmax1(d_zero,dmin1(sm(i),sncv(i)*d_two*rdtbat2))
         bb(i) = bb(i) - bcoef(i)*wlhf*sm(i)
