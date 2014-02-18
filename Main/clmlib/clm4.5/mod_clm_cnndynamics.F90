@@ -1,89 +1,50 @@
-
 module mod_clm_cnndynamics
 #ifdef CN
+  !
+  ! Module for mineral nitrogen dynamics (deposition, fixation, leaching)
+  ! for coupled carbon-nitrogen code.
+  !
+  use mod_intkinds
+  use mod_realkinds
+  use mod_clm_varcon, only: dzsoi_decomp, zisoi
+  implicit none
 
-!-----------------------------------------------------------------------
-!BOP
-!
-! !MODULE: CNNDynamicsMod
-!
-! !DESCRIPTION:
-! Module for mineral nitrogen dynamics (deposition, fixation, leaching)
-! for coupled carbon-nitrogen code.
-!
-! !USES:
-   use mod_realkinds
-   use mod_clm_varcon, only: dzsoi_decomp, zisoi
-   implicit none
-   save
-   private
-! !PUBLIC MEMBER FUNCTIONS:
-   public :: CNNDeposition
-   public :: CNNFixation
-   public :: CNNLeaching
-   public :: CNNFert
-   public :: CNSoyfix
+  private
+
+  public :: CNNDeposition
+  public :: CNNFixation
+  public :: CNNLeaching
+  public :: CNNFert
+  public :: CNSoyfix
 
 #ifndef NITRIF_DENITRIF
-   real(rk8), public :: nfix_timeconst = 0.D0  ! (days) time over which to exponentially relax the npp flux for N fixation term (if .le. 0. or .ge. 365; use old annual method)
+  ! (days) time over which to exponentially relax the npp flux for N
+  ! fixation term (if .le. 0. or .ge. 365; use old annual method)
+  real(rk8), public :: nfix_timeconst = 0.D0
 #else
-   real(rk8), public :: nfix_timeconst = 10.D0  ! (days) time over which to exponentially relax the npp flux for N fixation term (if .le. 0. or .ge. 365; use old annual method)
+  ! (days) time over which to exponentially relax the npp flux for N
+  ! fixation term (if .le. 0. or .ge. 365; use old annual method)
+  real(rk8), public :: nfix_timeconst = 10.D0
 #endif
 
-!
-! !REVISION HISTORY:
-! 6/1/04: Created by Peter Thornton
-!
-!EOP
-!-----------------------------------------------------------------------
-
-contains
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNNDeposition
-!
-! !INTERFACE:
-subroutine CNNDeposition( lbc, ubc )
-!
-! !DESCRIPTION:
-! On the radiation time step, update the nitrogen deposition rate
-! from atmospheric forcing. For now it is assumed that all the atmospheric
-! N deposition goes to the soil mineral N pool.
-! This could be updated later to divide the inputs between mineral N absorbed
-! directly into the canopy and mineral N entering the soil pool.
-!
-! !USES:
+  contains
+  !
+  ! On the radiation time step, update the nitrogen deposition rate
+  ! from atmospheric forcing. For now it is assumed that all the atmospheric
+  ! N deposition goes to the soil mineral N pool.
+  ! This could be updated later to divide the inputs between mineral N absorbed
+  ! directly into the canopy and mineral N entering the soil pool.
+  !
+  subroutine CNNDeposition( lbc, ubc )
    use mod_clm_type
-   use mod_clm_atmlnd   , only : clm_a2l
-!
-! !ARGUMENTS:
+   use mod_clm_atmlnd , only : clm_a2l
    implicit none
-   integer, intent(in) :: lbc, ubc        ! column bounds
-!
-! !CALLED FROM:
-! subroutine CNEcosystemDyn, in module CNEcosystemDynMod.F90
-!
-! !REVISION HISTORY:
-! 6/1/04: Created by Peter Thornton
-! 11/06/09: Copy to all columns NOT just over soil. S. Levis
-!
-! !LOCAL VARIABLES:
-! local pointers to implicit in scalars
-!
-   real(rk8), pointer :: forc_ndep(:)  ! nitrogen deposition rate (gN/m2/s)
-   integer , pointer :: gridcell(:)   ! index into gridcell level quantities
-!
-! local pointers to implicit out scalars
-!
+   integer(ik4), intent(in) :: lbc, ubc        ! column bounds
+   real(rk8) , pointer :: forc_ndep(:)  ! nitrogen deposition rate (gN/m2/s)
+   integer(ik4) , pointer :: gridcell(:)   ! index into gridcell level quantities
    real(rk8), pointer :: ndep_to_sminn(:)
-!
-! !OTHER LOCAL VARIABLES:
-   integer :: g,c                    ! indices
+   integer(ik4) :: g,c                    ! indices
 
-!EOP
-!-----------------------------------------------------------------------
    ! Assign local pointers to derived type arrays (in)
    forc_ndep     => clm_a2l%forc_ndep
    gridcell      => clm3%g%l%c%gridcell
@@ -93,66 +54,29 @@ subroutine CNNDeposition( lbc, ubc )
 
    ! Loop through columns
    do c = lbc, ubc
-      g = gridcell(c)
-
-      ndep_to_sminn(c) = forc_ndep(g)
-      
+     g = gridcell(c)
+     ndep_to_sminn(c) = forc_ndep(g)
    end do
-
-end subroutine CNNDeposition
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNNFixation
-!
-! !INTERFACE:
-subroutine CNNFixation(num_soilc, filter_soilc)
-!
-! !DESCRIPTION:
-! On the radiation time step, update the nitrogen fixation rate
-! as a function of annual total NPP. This rate gets updated once per year.
-! All N fixation goes to the soil mineral N pool.
-!
-! !USES:
+  end subroutine CNNDeposition
+  !
+  ! On the radiation time step, update the nitrogen fixation rate
+  ! as a function of annual total NPP. This rate gets updated once per year.
+  ! All N fixation goes to the soil mineral N pool.
+  !
+  subroutine CNNFixation(num_soilc, filter_soilc)
    use mod_clm_type
    use mod_clm_time_manager, only: get_days_per_year, get_step_size
    use mod_clm_varcon      , only: secspday, spval
-
-
-!
-! !ARGUMENTS:
    implicit none
-   integer, intent(in) :: num_soilc       ! number of soil columns in filter
-   integer, intent(in) :: filter_soilc(:) ! filter for soil columns
-!
-! !CALLED FROM:
-! subroutine CNEcosystemDyn, in module CNEcosystemDynMod.F90
-!
-! !REVISION HISTORY:
-! 6/1/04: Created by Peter Thornton
-! 2/14/05, PET: After looking at a number of point simulations,
-!               it looks like a constant Nfix might be more efficient and 
-!               maybe more realistic - setting to constant 0.4 gN/m2/yr.
-!
-! !LOCAL VARIABLES:
-! local pointers to implicit in scalars
-!
+   integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+   integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
    real(rk8), pointer :: cannsum_npp(:) ! nitrogen deposition rate (gN/m2/s)
-!
-! local pointers to implicit out scalars
-!
    real(rk8), pointer :: nfix_to_sminn(:)      ! symbiotic/asymbiotic N fixation to soil mineral N (gN/m2/s) 
    real(rk8), pointer :: col_lag_npp(:)        ! (gC/m2/s) lagged net primary production
-
-!
-! !OTHER LOCAL VARIABLES:
-   integer  :: c,fc                  ! indices
+   integer(ik4)  :: c,fc                  ! indices
    real(rk8) :: t                     ! temporary
    real(rk8) :: dayspyr               ! days per year
 
-!EOP
-!-----------------------------------------------------------------------
    ! Assign local pointers to derived type arrays (in)
    cannsum_npp   => clm3%g%l%c%cps%cannsum_npp
 
@@ -160,7 +84,7 @@ subroutine CNNFixation(num_soilc, filter_soilc)
    nfix_to_sminn => clm3%g%l%c%cnf%nfix_to_sminn
 
    if (nfix_timeconst .gt. 0.D0 .and. nfix_timeconst .lt. 500.D0 ) then
-      col_lag_npp                    => clm3%g%l%c%cps%col_lag_npp
+     col_lag_npp                    => clm3%g%l%c%cps%col_lag_npp
    endif
 
    dayspyr = get_days_per_year()
@@ -217,9 +141,9 @@ subroutine CNNLeaching(lbc, ubc, num_soilc, filter_soilc)
 !
 ! !ARGUMENTS:
    implicit none
-   integer, intent(in) :: lbc, ubc        ! column bounds
-   integer, intent(in) :: num_soilc       ! number of soil columns in filter
-   integer, intent(in) :: filter_soilc(:) ! filter for soil columns
+   integer(ik4), intent(in) :: lbc, ubc        ! column bounds
+   integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+   integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
 !
 ! !CALLED FROM:
 ! subroutine CNEcosystemDyn
@@ -248,7 +172,7 @@ subroutine CNNLeaching(lbc, ubc, num_soilc, filter_soilc)
    real(rk8), pointer :: dz(:,:)          !layer thickness (m)
 !
 ! !OTHER LOCAL VARIABLES:
-   integer  :: j,c,fc             ! indices
+   integer(ik4)  :: j,c,fc             ! indices
    real(rk8) :: dt                 ! radiation time step (seconds)
    real(rk8) :: tot_water(lbc:ubc) ! total column liquid water (kg water/m2)
    real(rk8) :: surface_water(lbc:ubc) ! liquid water to shallow surface depth (kg water/m2)
@@ -462,8 +386,8 @@ subroutine CNNFert(num_soilc, filter_soilc)
 !
 ! !ARGUMENTS:
    implicit none
-   integer, intent(in) :: num_soilc       ! number of soil columns in filter
-   integer, intent(in) :: filter_soilc(:) ! filter for soil columns
+   integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+   integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
 !
 ! !CALLED FROM:
 ! subroutine CNEcosystemDyn, in module CNEcosystemDynMod.F90
@@ -481,7 +405,7 @@ subroutine CNNFert(num_soilc, filter_soilc)
    real(rk8), pointer :: fert_to_sminn(:)
 !
 ! !OTHER LOCAL VARIABLES:
-   integer :: c,fc                 ! indices
+   integer(ik4) :: c,fc                 ! indices
 
 !EOP
 !-----------------------------------------------------------------------
@@ -522,10 +446,10 @@ subroutine CNSoyfix (num_soilc, filter_soilc, num_soilp, filter_soilp)
 !
 ! !ARGUMENTS:
    implicit none
-   integer, intent(in) :: num_soilc       ! number of soil columns in filter
-   integer, intent(in) :: filter_soilc(:) ! filter for soil columns
-   integer, intent(in) :: num_soilp       ! number of soil pfts in filter
-   integer, intent(in) :: filter_soilp(:) ! filter for soil pfts
+   integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+   integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
+   integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
+   integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
 
 !
 ! !CALLED FROM:
@@ -537,8 +461,8 @@ subroutine CNSoyfix (num_soilc, filter_soilc, num_soilp, filter_soilp)
 ! !LOCAL VARIABLES:
 ! local pointers to implicit in scalars
 !
-   integer , pointer :: ivt(:)             ! pft vegetation type
-   integer , pointer :: pcolumn(:)         ! pft's column index
+   integer(ik4) , pointer :: ivt(:)             ! pft vegetation type
+   integer(ik4) , pointer :: pcolumn(:)         ! pft's column index
    real(rk8), pointer :: fpg(:)             ! fraction of potential gpp (no units)
    real(rk8), pointer :: wf(:)              ! soil water as frac. of whc for top 0.5 m
    real(rk8), pointer :: plant_ndemand(:)   ! N flux required to support initial GPP (gN/m2/s)
@@ -552,7 +476,7 @@ subroutine CNSoyfix (num_soilc, filter_soilc, num_soilp, filter_soilp)
    real(rk8), pointer :: soyfixn_to_sminn(:)
 
 ! !OTHER LOCAL VARIABLES:
-   integer :: fp,p,c
+   integer(ik4) :: fp,p,c
    real(rk8):: fxw,fxn,fxg,fxr             ! soil water factor, nitrogen factor, growth stage factor
    real(rk8):: soy_ndemand                 ! difference between nitrogen supply and demand
    real(rk8):: GDDfrac

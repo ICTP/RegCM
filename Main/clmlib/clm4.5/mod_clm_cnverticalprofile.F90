@@ -1,46 +1,32 @@
 module mod_clm_cnverticalprofile
 #ifdef CN
-!-----------------------------------------------------------------------
-!BOP
-!
-! !MODULE: CNVerticalProfileMod
-!
-! !DESCRIPTION:
-! Module holding routines for vertical discretization of C and N inputs into deocmposing pools
-!
-  ! !USES:
+  !
+  ! Module holding routines for vertical discretization of C and N
+  ! inputs into deocmposing pools
+  !
   use mod_realkinds
   use mod_stdio
   use mod_clm_varcon, only: dzsoi_decomp
   
   implicit none
-  save
+
   private
-  ! !PUBLIC MEMBER FUNCTIONS:
+
   public:: decomp_vertprofiles
   
 #ifdef VERTSOILC
-  logical, public :: exponential_rooting_profile = .true.
-  logical, public :: pftspecific_rootingprofile = .true.
-  real(rk8), public :: rootprof_exp  = 3.       ! parameter for how steep the profile is for root C inputs (1/ e-folding depth) (1/m)
-  real(rk8), public :: surfprof_exp  = 10.      ! parameter for how steep the profile is for surface components (1/ e_folding depth) (1/m)
+  logical , public :: exponential_rooting_profile = .true.
+  logical , public :: pftspecific_rootingprofile = .true.
+  ! parameter for how steep the profile is for root C inputs
+  ! (1/ e-folding depth) (1/m)
+  real(rk8) , public :: rootprof_exp  = 3.0D0
+  ! parameter for how steep the profile is for surface components
+  ! (1/ e_folding depth) (1/m)
+  real(rk8) , public :: surfprof_exp  = 10.0D0
 #endif
   
-!
-! !REVISION HISTORY:
-! 6/27/2011 Created by C. Koven
-!
-!EOP
-!-----------------------------------------------------------------------
-contains
-  
-  
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: decomp_vertprofiles
-!
-! !INTERFACE:
+  contains
+
   subroutine decomp_vertprofiles(lbp, ubp, lbc,ubc,num_soilc,filter_soilc,num_soilp,filter_soilp)
 !
 ! !DESCRIPTION:

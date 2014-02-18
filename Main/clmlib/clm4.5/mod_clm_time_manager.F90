@@ -43,7 +43,6 @@ module mod_clm_time_manager
       is_end_curr_day,          &! return true on last timestep in current day
       is_end_curr_month,        &! return true on last timestep in current month
       is_last_step,             &! return true on last timestep
-      is_perpetual,             &! return true if perpetual calendar is in use
       is_restart,               &! return true if this is a restart run
       get_days_per_year,        &
       get_rad_step_size
@@ -74,7 +73,6 @@ module mod_clm_time_manager
 ! Private module data
 
    logical :: tm_first_restart_step = .false.  ! true for first step of a restart or branch run
-   logical :: tm_perp_calendar = .false.       ! true when using perpetual calendar
    integer :: cal_type = uninit_int            ! calendar type
 
 ! Private module methods
@@ -86,8 +84,7 @@ contains
 !=========================================================================================
 
 subroutine timemgr_init( calendar_in, start_ymd_in, start_tod_in, ref_ymd_in, &
-                         ref_tod_in, stop_ymd_in, stop_tod_in,                &
-                         perpetual_run_in, perpetual_ymd_in )
+                         ref_tod_in, stop_ymd_in, stop_tod_in)
 
   !---------------------------------------------------------------------------------
   ! 
@@ -99,8 +96,6 @@ subroutine timemgr_init( calendar_in, start_ymd_in, start_tod_in, ref_ymd_in, &
   integer         , optional, intent(IN) :: ref_tod_in        ! Reference time of day (sec)
   integer         , optional, intent(IN) :: stop_ymd_in       ! Stop date (YYYYMMDD)
   integer         , optional, intent(IN) :: stop_tod_in       ! Stop time of day (sec)
-  logical         , optional, intent(IN) :: perpetual_run_in  ! If in perpetual mode or not
-  integer         , optional, intent(IN) :: perpetual_ymd_in  ! Perpetual date (YYYYMMDD)
   !
   calendar = calstr(idatex%calendar)
   cordex_refdate = 1949120100
@@ -395,14 +390,6 @@ logical function is_last_step()
    is_last_step = ( ktau == mtau )
 
 end function is_last_step
-
-!=========================================================================================
-
-logical function is_perpetual()
-
-   is_perpetual = .false.
-
-end function is_perpetual
 
 !=========================================================================================
 

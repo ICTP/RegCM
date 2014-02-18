@@ -1,21 +1,16 @@
 module mod_clm_dust
-
-!----------------------------------------------------------------------- 
-!BOP
-!
-! !MODULE: DUSTMod
-!
-! !DESCRIPTION: 
-! Routines in this module calculate Dust mobilization and dry deposition for dust.
-! Simulates dust mobilization due to wind from the surface into the 
-! lowest atmospheric layer. On output flx_mss_vrt_dst(ndst) is the surface dust 
-! emission (kg/m**2/s) [ + = to atm].
-! Calculates the turbulent component of dust dry deposition, (the turbulent deposition 
-! velocity through the lowest atmospheric layer). CAM will calculate the settling 
-! velocity through the whole atmospheric column. The two calculations will determine 
-! the dust dry deposition flux to the surface.
-!                              
-! !USES:
+  !
+  ! Routines in this module calculate Dust mobilization and dry deposition
+  ! for dust.
+  ! Simulates dust mobilization due to wind from the surface into the 
+  ! lowest atmospheric layer. On output flx_mss_vrt_dst(ndst) is the surface
+  ! dust emission (kg/m**2/s) [ + = to atm].
+  ! Calculates the turbulent component of dust dry deposition, (the turbulent
+  ! deposition velocity through the lowest atmospheric layer).
+  ! CAM will calculate the settling velocity through the whole atmospheric
+  ! column. The two calculations will determine the dust dry deposition flux
+  ! to the surface.
+  use mod_intkinds
   use mod_realkinds
   use mod_mpmessage
   use mod_stdio
@@ -24,70 +19,43 @@ module mod_clm_dust
   use mod_clm_varcon  , only : grav, istsoil
   use mod_clm_varcon  , only : istcrop, istice_mec
   use mod_clm_subgridave, only: p2l
-  use mod_clm_varcon, only: spval
-!  
-! !PUBLIC TYPES
+  use mod_clm_varcon , only: spval , denh2o
+  use mod_clm_atmlnd   , only : clm_a2l
+
   implicit none
-  save
-!
-! !PUBLIC MEMBER FUNCTIONS:
-!
-  public Dustini        ! Initialize variables used in subroutine Dust
-  public DustEmission   ! Dust mobilization 
-  public DustDryDep     ! Turbulent dry deposition for dust
-!
-! !REVISION HISTORY
-! Created by Sam Levis, updated to clm2.1 by Mariana Vertenstein
-! Source: C. Zender's dust model
-!
-!EOP
-!
-! Data private to this module
-!
+
   private
-  real(rk8) ovr_src_snk_mss(dst_src_nbr,ndst)  
-  real(rk8) tmp1          !Factor in saltation computation (named as in Charlie's code)
-  real(rk8) dmt_vwr(ndst) ![m] Mass-weighted mean diameter resolved
-  real(rk8) stk_crc(ndst) ![frc] Correction to Stokes settling velocity
-  real(rk8) dns_aer       ![kg m-3] Aerosol density
-!------------------------------------------------------------------------
+  public :: Dustini        ! Initialize variables used in subroutine Dust
+  public :: DustEmission   ! Dust mobilization 
+  public :: DustDryDep     ! Turbulent dry deposition for dust
 
-contains
+  real(rk8) :: ovr_src_snk_mss(dst_src_nbr,ndst)  
+  !Factor in saltation computation (named as in Charlie's code)
+  real(rk8) :: tmp1
+  real(rk8) :: dmt_vwr(ndst) ![m] Mass-weighted mean diameter resolved
+  real(rk8) :: stk_crc(ndst) ![frc] Correction to Stokes settling velocity
+  real(rk8) :: dns_aer       ![kg m-3] Aerosol density
 
-!------------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: DustEmission
-!
-! !INTERFACE:
-  subroutine DustEmission (lbp, ubp, lbc,ubc,lbl,ubl,num_nolakep, filter_nolakep)
-!
-! !DESCRIPTION: 
-! Dust mobilization. This code simulates dust mobilization due to wind
-! from the surface into the lowest atmospheric layer
-! On output flx_mss_vrt_dst(ndst) is the surface dust emission 
-! (kg/m**2/s) [ + = to atm]
-! Source: C. Zender's dust model
-!
-! !USES
-   use mod_clm_atmlnd   , only : clm_a2l
-   use mod_clm_varcon , only : denh2o
-!
-! !ARGUMENTS:
+  contains
+  !
+  ! Dust mobilization. This code simulates dust mobilization due to wind
+  ! from the surface into the lowest atmospheric layer
+  ! On output flx_mss_vrt_dst(ndst) is the surface dust emission 
+  ! (kg/m**2/s) [ + = to atm]
+  ! Source: C. Zender's dust model
+  !
+  subroutine DustEmission(lbp,ubp,lbc,ubc,lbl,ubl,num_nolakep,filter_nolakep)
     implicit none
-    integer, intent(in) :: lbp, ubp,lbc,ubc,ubl,lbl                    ! pft bounds
-    integer, intent(in) :: num_nolakep                 ! number of column non-lake points in pft filter
-    integer, intent(in) :: filter_nolakep(num_nolakep) ! pft filter for non-lake points
-!
-! !LOCAL VARIABLES
-!
-! local pointers to implicit in arguments
-!
+    integer(ik4), intent(in) :: lbp,ubp,lbc,ubc,ubl,lbl ! pft bounds
+    ! number of column non-lake points in pft filter
+    integer(ik4), intent(in) :: num_nolakep
+    ! pft filter for non-lake points
+    integer(ik4), intent(in) :: filter_nolakep(num_nolakep)
     logical , pointer :: pactive(:)         ! true=>do computations on this pft (see reweightMod for details)
-    integer , pointer :: pcolumn(:)         ! pft's column index
-    integer , pointer :: plandunit(:)       ! pft's landunit index
-    integer , pointer :: pgridcell(:)       ! pft's gridcell index
-    integer , pointer :: ityplun(:)         ! landunit type
+    integer(ik4) , pointer :: pcolumn(:)         ! pft's column index
+    integer(ik4) , pointer :: plandunit(:)       ! pft's landunit index
+    integer(ik4) , pointer :: pgridcell(:)       ! pft's gridcell index
+    integer(ik4) , pointer :: ityplun(:)         ! landunit type
     real(rk8), pointer :: tlai(:)            ! one-sided leaf area index, no burying by snow
     real(rk8), pointer :: tsai(:)            ! one-sided stem area index, no burying by snow
     real(rk8), pointer :: frac_sno(:)        ! fraction of ground covered by snow (0 to 1)
@@ -107,16 +75,7 @@ contains
     real(rk8), pointer :: flx_mss_vrt_dst(:,:)   ! surface dust emission (kg/m**2/s) 
     real(rk8), pointer :: flx_mss_vrt_dst_tot(:) ! total dust flux into atmosphere 
 
-! !REVISION HISTORY
-! Created by Sam Levis
-! Migrated to new data structures by Peter Thornton and Mariana Vertenstein
-! !Created by Peter Thornton and Mariana Vertenstein
-!
-!
-! !OTHER LOCAL VARIABLES:
-!EOP
-!
-    integer  :: fp,p,c,l,g,m,n      ! indices
+    integer(ik4)  :: fp,p,c,l,g,m,n      ! indices
     real(rk8) :: liqfrac             ! fraction of total water that is liquid
     real(rk8) :: wnd_frc_rat         ! [frc] Wind friction threshold over wind friction
     real(rk8) :: wnd_frc_slt_dlt     ! [m s-1] Friction velocity increase from saltatn
@@ -143,9 +102,7 @@ contains
     real(rk8), pointer :: wtlunit(:)         ! weight of pft relative to landunit
     real(rk8) :: sumwt(lbl:ubl)              ! sum of weights
     logical  :: found                       ! temporary for error check
-    integer  :: index
-
-!------------------------------------------------------------------------
+    integer(ik4)  :: index
 
     ! Assign local pointers to derived type scalar members (gridcell-level)
 
@@ -379,48 +336,29 @@ contains
     end do
 
   end subroutine DustEmission
-
-!------------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: subroutine DustDryDep
-!
-! !INTERFACE:
-!
+  !
+  ! Determine Turbulent dry deposition for dust. Calculate the turbulent 
+  ! component of dust dry deposition, (the turbulent deposition velocity 
+  ! through the lowest atmospheric layer. CAM will calculate the settling 
+  ! velocity through the whole atmospheric column. The two calculations 
+  ! will determine the dust dry deposition flux to the surface.
+  ! Note: Same process should occur over oceans. For the coupled CESM,
+  ! we may find it more efficient to let CAM calculate the turbulent dep
+  ! velocity over all surfaces. This would require passing the
+  ! aerodynamic resistance, ram(1), and the friction velocity, fv, from
+  ! the land to the atmosphere component. In that case, dustini need not
+  ! calculate particle diamter (dmt_vwr) and particle density (dns_aer).
+  ! Source: C. Zender's dry deposition code
+  !
   subroutine DustDryDep (lbp, ubp)
-!
-! !DESCRIPTION: 
-!
-! Determine Turbulent dry deposition for dust. Calculate the turbulent 
-! component of dust dry deposition, (the turbulent deposition velocity 
-! through the lowest atmospheric layer. CAM will calculate the settling 
-! velocity through the whole atmospheric column. The two calculations 
-! will determine the dust dry deposition flux to the surface.
-! Note: Same process should occur over oceans. For the coupled CESM,
-! we may find it more efficient to let CAM calculate the turbulent dep
-! velocity over all surfaces. This would require passing the
-! aerodynamic resistance, ram(1), and the friction velocity, fv, from
-! the land to the atmosphere component. In that case, dustini need not
-! calculate particle diamter (dmt_vwr) and particle density (dns_aer).
-! Source: C. Zender's dry deposition code
-!
-! !USES
-!
-    use mod_constants, only : boltzk
+    use mod_constants , only : boltzk
     use mod_clm_varcon , only : rpi , rair
-    use mod_clm_atmlnd   , only : clm_a2l
-!
-! !ARGUMENTS:
-!
+    use mod_clm_atmlnd , only : clm_a2l
     implicit none
-    integer, intent(in) :: lbp, ubp     ! pft bounds
-!
-! !LOCAL VARIABLES
-!
-! local pointers to implicit in arguments
-!
-    logical , pointer :: pactive(:)     ! true=>do computations on this pft (see reweightMod for details)
-    integer , pointer :: pgridcell(:)   ! pft's gridcell index
+    integer(ik4), intent(in) :: lbp, ubp     ! pft bounds
+    ! true=>do computations on this pft (see reweightMod for details)
+    logical , pointer :: pactive(:)
+    integer(ik4) , pointer :: pgridcell(:)   ! pft's gridcell index
     real(rk8), pointer :: forc_t(:)      ! atm temperature (K)
     real(rk8), pointer :: forc_pbot(:)   ! atm pressure (Pa)
     real(rk8), pointer :: forc_rho(:)    ! atm density (kg/m**3)
@@ -431,15 +369,7 @@ contains
     real(rk8), pointer :: vlc_trb_2(:)   ! Turbulent deposition velocity 2
     real(rk8), pointer :: vlc_trb_3(:)   ! Turbulent deposition velocity 3
     real(rk8), pointer :: vlc_trb_4(:)   ! Turbulent deposition velocity 4
-!
-! !REVISION HISTORY
-! Created by Sam Levis
-!
-!
-! !LOCAL VARIABLES
-!EOP
-!
-    integer  :: p,g,m,n               ! indices
+    integer(ik4)  :: p,g,m                 ! indices
     real(rk8) :: vsc_dyn_atm(lbp:ubp)  ! [kg m-1 s-1] Dynamic viscosity of air
     real(rk8) :: vsc_knm_atm(lbp:ubp)  ! [m2 s-1] Kinematic viscosity of atmosphere
     real(rk8) :: shm_nbr_xpn           ! [frc] Sfc-dep exponent for aerosol-diffusion dependence on Schmidt number
@@ -456,7 +386,6 @@ contains
 ! constants
 
     real(rk8),parameter::shm_nbr_xpn_lnd=-2.D0/3.D0 ![frc] shm_nbr_xpn over land
-!------------------------------------------------------------------------
 
     ! Assign local pointers to derived type members (gridcell-level)
 
@@ -549,48 +478,22 @@ contains
     end do 
 
   end subroutine DustDryDep
-
-!------------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: subroutine Dustini
-!
-! !INTERFACE:
-!
+  !
+  ! Compute source efficiency factor from topography
+  ! Initialize other variables used in subroutine Dust:
+  ! ovr_src_snk_mss(m,n) and tmp1.
+  ! Define particle diameter and density needed by atm model
+  ! as well as by dry dep model
+  ! Source: Paul Ginoux (for source efficiency factor)
+  ! Modifications by C. Zender and later by S. Levis
+  ! Rest of subroutine from C. Zender's dust model
+  !
   subroutine Dustini()
-!
-! !DESCRIPTION: 
-!
-! Compute source efficiency factor from topography
-! Initialize other variables used in subroutine Dust:
-! ovr_src_snk_mss(m,n) and tmp1.
-! Define particle diameter and density needed by atm model
-! as well as by dry dep model
-! Source: Paul Ginoux (for source efficiency factor)
-! Modifications by C. Zender and later by S. Levis
-! Rest of subroutine from C. Zender's dust model
-!
-! !USES
     use mod_clm_varcon , only : rpi , rair
-    use mod_clm_decomp, only : get_proc_bounds
-!
-! !ARGUMENTS:
+    use mod_clm_decomp , only : get_proc_bounds
     implicit none
-!
-! !REVISION HISTORY
-! Created by Samual Levis
-!
-! !LOCAL VARIABLES
-!
-! local pointers to implicit in arguments
-!
     real(rk8), pointer :: mbl_bsn_fct(:) !basin factor
-!
-!
-! !LOCAL VARIABLES
-!EOP
-!
-    integer  :: fc,c,l,m,n              ! indices
+    integer(ik4)  :: c,l,m,n              ! indices
     real(rk8) :: ovr_src_snk_frc
     real(rk8) :: sqrt2lngsdi             ! [frc] Factor in erf argument
     real(rk8) :: lndmaxjovrdmdni         ! [frc] Factor in erf argument
@@ -650,10 +553,10 @@ contains
 #define ERF derf
     real(rk8) derf
 #endif
-    integer :: begp, endp   ! per-proc beginning and ending pft indices
-    integer :: begc, endc   ! per-proc beginning and ending column indices 
-    integer :: begl, endl   ! per-proc beginning and ending landunit indices
-    integer :: begg, endg   ! per-proc gridcell ending gridcell indices
+    integer(ik4) :: begp, endp   ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc, endc   ! per-proc beginning and ending column indices 
+    integer(ik4) :: begl, endl   ! per-proc beginning and ending landunit indices
+    integer(ik4) :: begg, endg   ! per-proc gridcell ending gridcell indices
 !------------------------------------------------------------------------
 
     ! Assign local pointers to derived type scalar members (column-level)

@@ -23,7 +23,7 @@ include $(REGCM_ROOT)/makeinc
 
 noinst_LIBRARIES = libclm45.a
 libclm45_a_SOURCES = mod_clm_nchelper.F90 mod_clm_domain.F90 mod_clm_type.F90 \
-  mod_clm_varpar.F90 mod_clm_varcon.F90 mod_clm_varsur.F90  \
+  mod_clm_varpar.F90 mod_clm_varcon.F90 mod_clm_varsur.F90 mod_clm_control.F90 \
   mod_clm_time_manager.F90 mod_clm_regcm.F90 mod_clm_varctl.F90 \
   mod_clm_subgridave.F90 mod_clm_decomp.F90 mod_clm_drydep.F90 \
   mod_clm_megan.F90 mod_clm_ch4varcon.F90 mod_clm_atmlnd.F90 \
@@ -62,7 +62,8 @@ libclm45_a_SOURCES = mod_clm_nchelper.F90 mod_clm_domain.F90 mod_clm_type.F90 \
   mod_clm_mkarbinit.F90 mod_clm_staticecosysdyn.F90 mod_clm_subgridrest.F90 \
   mod_clm_biogeophysrest.F90 mod_clm_initsurfalb.F90 mod_clm_accumul.F90 \
   mod_clm_slakerest.F90 mod_clm_initsurfalb.F90 mod_clm_accflds.F90 \
-  mod_clm_histfile.F90 mod_clm_histflds.F90
+  mod_clm_histfile.F90 mod_clm_histflds.F90 mod_clm_initialize.F90 \
+  mod_clm_pftdyn.F90 mod_clm_soillittverttransp.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -136,7 +137,6 @@ mod_clm_cnsummary.o : mod_clm_cnsummary.F90 mod_clm_cnndynamics.o mod_clm_pft2co
 mod_clm_cnvegstructupdate.o : mod_clm_cnvegstructupdate.F90 mod_clm_atmlnd.o mod_clm_pftvarcon.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_realkinds.o
 mod_clm_cnverticalprofile.o : mod_clm_cnverticalprofile.F90 mod_clm_pft2col.o mod_clm_pftvarcon.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_realkinds.o mod_stdio.o
 mod_clm_cnwoodproducts.o : mod_clm_cnwoodproducts.F90 mod_clm_decomp.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_realkinds.o
-mod_clm_control.o : mod_clm_control.F90 clm_cpl_indices.o clm_nlUtilsMod.o clm_time_manager.o clm_varctl.o clm_varpar.o CNAllocationMod.o CNC14DecayMod.o CNDecompCascadeMod_BGC.o CNDecompCascadeMod_CENTURY.o CNNitrifDenitrifMod.o CNSoilLittVertTranspMod.o CNVerticalProfileMod.o fileutils.o histFileMod.o Hydrology1Mod.o mod_clm_canopyfluxes.o mod_clm_cnallocation.o mod_clm_cndecompcascadebgc.o mod_clm_cndecompcascadecentury.o mod_clm_CNNDynamics.o mod_clm_sLakecon.o mod_clm_surfacealbedo.o mod_clm_urban.o mod_clm_varctl.o mod_clm_varpar.o mod_intkinds.o mod_realkinds.o mod_stdio.o shr_const_mod.o shr_string_mod.o SoilHydrologyMod.o spmdMod.o SurfaceAlbedoMod.o
 mod_clm_croprest.o : mod_clm_croprest.F90 mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_nchelper.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o
 mod_clm_decomp.o : mod_clm_decomp.F90 mod_clm_domain.o mod_clm_type.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_regcm_types.o mod_stdio.o
 mod_clm_decompinit.o : mod_clm_decompinit.F90 mod_clm_decomp.o mod_clm_subgrid.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_regcm_types.o mod_service.o mod_stdio.o
@@ -165,7 +165,7 @@ mod_clm_mkarbinit.o : mod_clm_mkarbinit.F90 mod_clm_decomp.o mod_clm_snicar.o mo
 mod_clm_nchelper.o : mod_clm_nchelper.F90 mod_clm_decomp.o mod_clm_varcon.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_message.o mod_mppparam.o mod_realkinds.o mod_regcm_types.o mod_stdio.o
 	$(MPIFC) $(CPPFLAGS) $(FCFLAGS) -c $<
 mod_clm_pft2col.o : mod_clm_pft2col.F90 mod_clm_subgridave.o mod_clm_type.o mod_realkinds.o
-mod_clm_pftdyn.o : mod_clm_pftdyn.F90 mod_clm_decomp.o mod_clm_nchelper.o mod_clm_pftvarcon.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_clm_varsur.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_stdio.o shr_const_mod.o
+mod_clm_pftdyn.o : mod_clm_pftdyn.F90 mod_clm_decomp.o mod_clm_nchelper.o mod_clm_pftvarcon.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_clm_varsur.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_stdio.o mod_constants.o
 mod_clm_pftvarcon.o : mod_clm_pftvarcon.F90 mod_clm_nchelper.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o
 mod_clm_qsat.o : mod_clm_qsat.F90 mod_constants.o mod_realkinds.o
 mod_clm_regcm.o : mod_clm_regcm.F90 mod_realkinds.o
@@ -202,3 +202,4 @@ mod_clm_vicmap.o : mod_clm_vicmap.F90 mod_clm_type.o mod_clm_varcon.o mod_clm_va
 mod_clm_vocemission.o : mod_clm_vocemission.F90 mod_clm_atmlnd.o mod_clm_domain.o mod_clm_meganfactors.o mod_clm_meganfactors.o mod_clm_megan.o mod_clm_pftvarcon.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
 mod_clm_accflds.o : mod_clm_accflds.F90 mod_clm_accumul.o mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
 mod_clm_initsurfalb.o : mod_clm_initsurfalb.F90 mod_clm_cnecosystemdyn.o mod_clm_cnvegstructupdate.o mod_clm_decomp.o mod_clm_filter.o mod_clm_fracwet.o mod_clm_staticecosysdyn.o mod_clm_surfacealbedo.o mod_clm_type.o mod_clm_urban.o mod_clm_varcon.o mod_clm_varpar.o mod_constants.o mod_intkinds.o mod_realkinds.o
+mod_clm_control.o : mod_clm_control.F90 mod_clm_canopyfluxes.o mod_clm_cnallocation.o mod_clm_cnc14decay.o mod_clm_cndecompcascadebgc.o mod_clm_cndecompcascadecentury.o mod_clm_cnndynamics.o mod_clm_cnnitrifdenitrif.o mod_clm_cnsoillittverttransp.o mod_clm_cnverticalprofile.o mod_clm_histfile.o mod_clm_hydrology1.o mod_clm_slakecon.o mod_clm_soilhydrology.o mod_clm_surfacealbedo.o mod_clm_time_manager.o mod_clm_urban.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_intkinds.o mod_realkinds.o mod_stdio.o

@@ -4,6 +4,8 @@ module mod_clm_initialize
   !
   use mod_intkinds
   use mod_realkinds
+  use mod_runparams
+  use mod_date
   use mod_stdio
   use mod_clm_varctl , only : nsrest , nsrStartup , nsrContinue , &
           nsrBranch , create_glacier_mec_landunit , fsurdat ,     &
@@ -19,9 +21,9 @@ module mod_clm_initialize
   use mod_clm_domain , only : domain_check , ldomain , domain_init
   use mod_clm_surfrd , only : surfrd_get_globmask , surfrd_get_grid , &
           surfrd_get_topo , surfrd_get_data 
-  use mod_clm_control , only : control_init , control_print , nlfilename
+  use mod_clm_control , only : control_init , control_print
   use mod_clm_urbaninput , only : UrbanInput
-  use clm_atmlnd
+  use mod_clm_atmlnd
   use mod_clm_initgridcells , only : initGridCells
   use mod_clm_filter , only : allocFilters
   use mod_clm_reweight , only : reweightWrapup
@@ -41,28 +43,24 @@ module mod_clm_initialize
 #endif
   use mod_clm_staticecosysdyn , only : EcosystemDynini , readAnnualVegetation
   use mod_clm_staticecosysdyn , only : interpMonthlyVeg
-  use mod_clm_histflds , only : hist_initFlds , hist_htapes_build
-  use mod_clm_histflds , only : htapes_fieldlist
+  use mod_clm_histflds , only : hist_initFlds
+  use mod_clm_histfile , only : hist_htapes_build , htapes_fieldlist
   use mod_clm_restfile , only : restFile_getfile, &
                                  restFile_open, restFile_close, restFile_read 
   use mod_clm_accflds , only : initAccFlds , initAccClmtype
-    use DustMod         , only : Dustini
-    use clm_time_manager, only : curr_date, advance_timestep, &
-                                 timemgr_init, timemgr_restart_io, timemgr_restart
-    use clm_time_manager, only : get_step_size, get_curr_calday
-    use fileutils       , only : getfil
-    use UrbanMod        , only : UrbanClumpInit
-    use UrbanInitMod    , only : UrbanInitTimeConst, UrbanInitTimeVar, UrbanInitAero 
-    use UrbanInputMod   , only : UrbanInput
+  use mod_clm_dust , only : Dustini
+  use mod_clm_time_manager, only : advance_timestep, &
+             timemgr_init, timemgr_restart_io, timemgr_restart
+  use mod_clm_time_manager, only : get_curr_calday
+  use mod_clm_urban , only : UrbanClumpInit
+  use mod_clm_urbaninit , only : UrbanInitTimeConst , UrbanInitTimeVar , &
+          UrbanInitAero 
+  use mod_clm_urbaninput , only : UrbanInput
 #if (defined LCH4)
 #endif
-    use clm_glclnd      , only : init_glc2lnd_type, init_lnd2glc_type, &
-                                 clm_x2s, clm_s2x
-    use seq_drydep_mod  , only : n_drydep, drydep_method, DD_XLND
-    use shr_orb_mod        , only : shr_orb_decl
-    use initSurfAlbMod     , only : initSurfAlb, do_initsurfalb 
-    use clm_varorb         , only : eccen, mvelpp, lambm0, obliqr
-    use VOCEmissionMod  , only : VOCEmission_init
+  use mod_clm_drydep , only : n_drydep, drydep_method, DD_XLND
+  use mod_clm_initsurfalb , only : initSurfAlb, do_initsurfalb 
+  use mod_clm_vocemission , only : VOCEmission_init
 
   implicit none
 
