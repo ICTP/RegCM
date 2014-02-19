@@ -25,7 +25,6 @@ module mod_clm_time_manager
 
    public ::&
       timemgr_init,             &! time manager initialization
-      timemgr_restart_io,       &! read/write time manager restart info and restart time manager
       timemgr_restart,          &! restart the time manager using info from timemgr_restart
       timemgr_datediff,         &! calculate difference between two time instants
       advance_timestep,         &! increment timestep number
@@ -103,27 +102,6 @@ subroutine timemgr_init( calendar_in, start_ymd_in, start_tod_in, ref_ymd_in, &
   ioffset = -idnint(dtsec)*(ntsrf-1)
 
 end subroutine timemgr_init
-
-!=========================================================================================
-
-subroutine timemgr_restart_io( ncid, flag )
-
-  !---------------------------------------------------------------------------------
-  ! Read/Write information needed on restart to a netcdf file. 
-
-  ! Arguments
-  integer         , intent(in) :: ncid  ! netcdf id
-  character(len=*), intent(in) :: flag  ! 'read' or 'write'
-  !
-
-  calendar = calstr(idatex%calendar)
-  cordex_refdate = 1949120100
-  call setcal(cordex_refdate,idatex)
-  ioffset = -idnint(dtsec)*(ntsrf-1)
-
-  call calc_nestep( )
-
-end subroutine timemgr_restart_io
 
 !=========================================================================================
 

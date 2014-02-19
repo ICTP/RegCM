@@ -63,7 +63,7 @@ libclm45_a_SOURCES = mod_clm_nchelper.F90 mod_clm_domain.F90 mod_clm_type.F90 \
   mod_clm_biogeophysrest.F90 mod_clm_initsurfalb.F90 mod_clm_accumul.F90 \
   mod_clm_slakerest.F90 mod_clm_initsurfalb.F90 mod_clm_accflds.F90 \
   mod_clm_histfile.F90 mod_clm_histflds.F90 mod_clm_initialize.F90 \
-  mod_clm_pftdyn.F90 mod_clm_soillittverttransp.F90
+  mod_clm_pftdyn.F90 mod_clm_soillittverttransp.F90 mod_clm_ch4rest.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -169,7 +169,6 @@ mod_clm_pftdyn.o : mod_clm_pftdyn.F90 mod_clm_decomp.o mod_clm_nchelper.o mod_cl
 mod_clm_pftvarcon.o : mod_clm_pftvarcon.F90 mod_clm_nchelper.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o
 mod_clm_qsat.o : mod_clm_qsat.F90 mod_constants.o mod_realkinds.o
 mod_clm_regcm.o : mod_clm_regcm.F90 mod_realkinds.o
-mod_clm_restfile.o : mod_clm_restfile.F90 accumulMod.o BiogeophysRestMod.o ch4RestMod.o clm_time_manager.o clm_varctl.o CNRestMod.o CropRestMod.o fileutils.o histFileMod.o mod_clm_accumul.o mod_clm_biogeophysrest.o mod_clm_decomp.o mod_clm_slakerest.o mod_clm_subgridrest.o mod_clm_surfrd.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_stdio.o shr_kind_mod.o SLakeRestMod.o spmdMod.o
 mod_clm_reweight.o : mod_clm_reweight.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_filter.o mod_clm_type.o mod_clm_varcon.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
 mod_clm_slakecon.o : mod_clm_slakecon.F90 mod_clm_varpar.o mod_intkinds.o mod_realkinds.o
 mod_clm_slakefluxes.o : mod_clm_slakefluxes.F90 mod_clm_atmlnd.o mod_clm_frictionvelocity.o mod_clm_qsat.o mod_clm_slakecon.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_realkinds.o
@@ -203,3 +202,6 @@ mod_clm_vocemission.o : mod_clm_vocemission.F90 mod_clm_atmlnd.o mod_clm_domain.
 mod_clm_accflds.o : mod_clm_accflds.F90 mod_clm_accumul.o mod_clm_atmlnd.o mod_clm_decomp.o mod_clm_pftvarcon.o mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
 mod_clm_initsurfalb.o : mod_clm_initsurfalb.F90 mod_clm_cnecosystemdyn.o mod_clm_cnvegstructupdate.o mod_clm_decomp.o mod_clm_filter.o mod_clm_fracwet.o mod_clm_staticecosysdyn.o mod_clm_surfacealbedo.o mod_clm_type.o mod_clm_urban.o mod_clm_varcon.o mod_clm_varpar.o mod_constants.o mod_intkinds.o mod_realkinds.o
 mod_clm_control.o : mod_clm_control.F90 mod_clm_canopyfluxes.o mod_clm_cnallocation.o mod_clm_cnc14decay.o mod_clm_cndecompcascadebgc.o mod_clm_cndecompcascadecentury.o mod_clm_cnndynamics.o mod_clm_cnnitrifdenitrif.o mod_clm_cnsoillittverttransp.o mod_clm_cnverticalprofile.o mod_clm_histfile.o mod_clm_hydrology1.o mod_clm_slakecon.o mod_clm_soilhydrology.o mod_clm_surfacealbedo.o mod_clm_time_manager.o mod_clm_urban.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_intkinds.o mod_realkinds.o mod_stdio.o
+mod_clm_restfile.o : mod_clm_restfile.F90 mod_clm_accumul.o mod_clm_biogeophysrest.o mod_clm_ch4rest.o mod_clm_cnrest.o mod_clm_croprest.o mod_clm_decomp.o mod_clm_histfile.o mod_clm_slakerest.o mod_clm_subgridrest.o mod_clm_surfrd.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_stdio.o
+mod_clm_ch4rest.o : mod_clm_ch4rest.F90 mod_clm_decomp.o mod_clm_nchelper.o mod_clm_type.o mod_clm_varctl.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_runparams.o mod_stdio.o
+mod_clm_initialize.o : mod_clm_initialize.F90 mod_clm_accflds.o mod_clm_atmlnd.o mod_clm_ch4varcon.o mod_clm_cndvecosystemdynini.o mod_clm_cnecosystemdyn.o mod_clm_control.o mod_clm_decompinit.o mod_clm_decomp.o mod_clm_domain.o mod_clm_drydep.o mod_clm_dust.o mod_clm_filter.o mod_clm_histfile.o mod_clm_histflds.o mod_clm_initch4.o mod_clm_initgridcells.o mod_clm_initslake.o mod_clm_initsurfalb.o mod_clm_mkarbinit.o mod_clm_pftdyn.o mod_clm_pftvarcon.o mod_clm_restfile.o mod_clm_reweight.o mod_clm_staticecosysdyn.o mod_clm_surfrd.o mod_clm_time_manager.o mod_clm_typeinit.o mod_clm_urbaninit.o mod_clm_urbaninput.o mod_clm_urban.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_clm_varsur.o mod_clm_vocemission.o mod_date.o mod_intkinds.o mod_realkinds.o mod_runparams.o mod_stdio.o

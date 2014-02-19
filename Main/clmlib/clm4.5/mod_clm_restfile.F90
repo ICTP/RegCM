@@ -8,8 +8,9 @@ module mod_clm_restfile
   use mod_mpmessage
   use mod_dynparam
   use mod_mppparam
+  use mod_runparams
+  use mod_clm_nchelper
   use mod_clm_surfrd , only : crop_prog
-  use clm_time_manager , only : timemgr_restart_io , get_nstep
   use mod_clm_subgridrest , only : SubgridRest
   use mod_clm_biogeophysrest , only : BiogeophysRest
   use mod_clm_accumul , only : accumulRest
@@ -17,7 +18,19 @@ module mod_clm_restfile
   use mod_clm_decomp ,  only : get_proc_bounds , get_proc_global
   use mod_clm_varpar , only : nlevsno , nlevlak , nlevgrnd , nlevurb
   use mod_clm_varpar , only : numrad , nlevcan
-  use mod_clm_varctl , only : single_column , nsrest , nsrStartup
+  use mod_clm_varctl , only : caseid , ctitle , version , username ,    &
+          hostname , finidat , fsurdat , single_column , nsrest ,       &
+          nrevsn , nsrStartup , nsrContinue , nsrBranch , inst_suffix , &
+          brnch_retain_casename , conventions , source
+  use mod_clm_varctl , only : rpntfil, rpntdir, inst_suffix
+#if (defined CN)
+  use mod_clm_cnrest , only : CNRest
+  use mod_clm_croprest , only : CropRest
+#endif
+#if (defined LCH4)
+  use mod_clm_ch4rest , only : ch4Rest
+#endif
+  use mod_clm_histfile , only : hist_restart_ncd
 
   implicit none
 
@@ -43,17 +56,9 @@ module mod_clm_restfile
   !
   ! Read/write CLM restart file.
   !
-  subroutine restFile_write(file,nlend,noptr,rdate)
-#if (defined CN)
-    use CNRestMod        , only : CNRest
-    use CropRestMod      , only : CropRest
-#endif
-#if (defined LCH4)
-    use ch4RestMod       , only : ch4Rest
-#endif
-    use histFileMod      , only : hist_restart_ncd
+  subroutine restFile_write(rfile,nlend,noptr,rdate)
     implicit none
-    character(len=*) , intent(in) :: file  ! output netcdf restart file
+    character(len=*) , intent(in) :: rfile  ! output netcdf restart file
     logical , intent(in) :: nlend          ! if at the end of the simulation
     character(len=*) , intent(in) :: rdate ! restart file time stamp for name
     ! if should NOT write to the restart pointer file
@@ -72,7 +77,7 @@ module mod_clm_restfile
     ! Open restart file
     ! --------------------------------------------
 
-    call restFile_open(flag='write',file=file,ncid=ncid)
+    call restFile_open(flag='write',rfile=rfile,ncid=ncid)
 
     ! --------------------------------------------
     ! Define dimensions and variables
@@ -81,8 +86,6 @@ module mod_clm_restfile
     call restFile_dimset(ncid)
 
     ! Define restart file variables
-
-    call timemgr_restart_io(ncid,flag='define')
 
     call SubgridRest( ncid, flag='define' )
 
@@ -106,8 +109,6 @@ module mod_clm_restfile
     ! Write restart file variables
     ! --------------------------------------------
 
-    call timemgr_restart_io( ncid, flag='write' )
-
     call SubgridRest( ncid, flag='write' )
 
     call BiogeophysRest( ncid, flag='write' )
@@ -130,43 +131,32 @@ module mod_clm_restfile
     ! --------------------------------------------
 
     call restFile_close( ncid )
-    call restFile_closeRestart( file, nlend )
+    call restFile_closeRestart( rfile, nlend )
 
     ! Write restart pointer file
 
-    if ( ptrfile ) call restFile_write_pfile( file )
+    if ( ptrfile ) call restFile_write_pfile( rfile )
 
     ! Write out diagnostic info
 
     if (myid == italk) then
       write(stdout,*) &
-              'Successfully wrote out restart data at nstep = ',get_nstep()
+              'Successfully wrote out restart data at nstep = ',ktau
       write(stdout,'(72a1)') ("-",i=1,60)
     end if
   end subroutine restFile_write
   !
   ! Read a CLM restart file.
   !
-  subroutine restFile_read( file )
-    use mod_clm_biogeophysrest , only : BiogeophysRest
-#if (defined CN)
-    use mod_clm_cnrest , only : CNRest
-    use mod_clm_croprest , only : CropRest
-#endif
-    use mod_clm_slakerest , only : SLakeRest
-#if (defined LCH4)
-    use mod_clm_ch4rest , only : ch4Rest
-#endif
-    use mod_clm_accumul , only : accumulRest
-    use mod_clm_histfile , only : hist_restart_ncd
+  subroutine restFile_read( rfile )
     implicit none
-    character(len=*), intent(in) :: file  ! output netcdf restart file
+    character(len=*), intent(in) :: rfile  ! output netcdf restart file
     type(clm_filetype) :: ncid ! netcdf id
     integer(ik4) :: i          ! index
 
     ! Open file
 
-    call restFile_open( flag='read', file=file, ncid=ncid )
+    call restFile_open( flag='read', rfile=rfile, ncid=ncid )
 
     ! Read file
 
@@ -204,11 +194,9 @@ module mod_clm_restfile
   !
   ! Determine and obtain netcdf restart file
   !
-  subroutine restFile_getfile( file, path )
-    use mod_clm_varctl , only : caseid, finidat, nrevsn, nsrest, &
-            brnch_retain_casename, nsrContinue, nsrBranch, nsrStartup
+  subroutine restFile_getfile( rfile, path )
     implicit none
-    character(len=*), intent(out) :: file  ! name of netcdf restart file
+    character(len=*), intent(out) :: rfile  ! name of netcdf restart file
     ! full pathname of netcdf restart file
     character(len=*), intent(out) :: path
     integer(ik4) :: status                      ! return status
@@ -220,7 +208,7 @@ module mod_clm_restfile
 
     if (nsrest==nsrContinue) then
        call restFile_read_pfile( path )
-       call getfil( path, file, 0 )
+       call getfil( path, rfile, 0 )
     end if
 
     ! Branch run:
@@ -235,16 +223,16 @@ module mod_clm_restfile
       else
         path = trim(nrevsn) // '.nc'
       end if
-      call getfil( path, file, 0 )
+      call getfil( path, rfile, 0 )
 
       ! tcraig, adding xx. and .clm2 makes this more robust
       ctest = 'xx.'//trim(caseid)//'.clm2'
-      ftest = 'xx.'//trim(file)
+      ftest = 'xx.'//trim(rfile)
       status = index(trim(ftest),trim(ctest))
       if (status /= 0 .and. .not.(brnch_retain_casename)) then
         write(stderr,*) 'Must change case name on branch run if ',&
                'brnch_retain_casename namelist is not set'
-        write(stderr,*) 'previous case filename= ',trim(file),&
+        write(stderr,*) 'previous case filename= ',trim(rfile),&
                ' current case = ',trim(caseid), ' ctest = ',trim(ctest), &
                ' ftest = ',trim(ftest)
         call fatal(__FILE__,__LINE__,'clm now stopping')
@@ -255,21 +243,19 @@ module mod_clm_restfile
     ! Restart file pathname is obtained from namelist "finidat"
 
     if (nsrest==nsrStartup) then
-      call getfil( finidat, file, 0 )
+      call getfil( finidat, rfile, 0 )
     end if
   end subroutine restFile_getfile
   !
   ! Setup restart file and perform necessary consistency checks
   !
   subroutine restFile_read_pfile( pnamer )
-    use fileutils , only : opnfil, getavu, relavu
-    use clm_varctl, only : rpntfil, rpntdir, inst_suffix
     implicit none
     character(len=*), intent(out) :: pnamer ! full path of restart file
-    integer(ik4) :: i                  ! indices
-    integer(ik4) :: nio                ! restart unit
-    integer(ik4) :: status             ! substring check status
-    character(len=256) :: locfn   ! Restart pointer file name
+    integer(ik4) :: i      ! indices
+    integer(ik4) :: nio    ! restart unit
+    integer(ik4) :: ier    ! substring check status
+    character(len=256) :: locfn ! Restart pointer file name
     ! Obtain the restart file from the restart pointer file
     ! For restart runs, the restart pointer file contains the full pathname
     ! of the restart file. For branch runs, the namelist variable
@@ -278,12 +264,16 @@ module mod_clm_restfile
     if (myid == italk) then
        write(stdout,*) 'Reading restart pointer file....'
     endif
-    nio = getavu()
+    nio = file_getunit( )
     locfn = trim(rpntdir) //'/'// trim(rpntfil)//trim(inst_suffix)
-    call opnfil (locfn, nio, 'f')
+    open(unit=nio,file=locfn,form='formatted', &
+         status='old',action='read',iostat=ier)
+    if ( ier /= 0 ) then
+      write(stderr,*) 'Cannot open pointer file ',trim(locfn)
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
     read (nio,'(a256)') pnamer
-    call relavu (nio)
-
+    call file_freeunit(nio)
     if (myid == italk) then
       write(stdout,*) 'Reading restart data.....'
       write(stdout,'(72a1)') ("-",i=1,60)
@@ -293,14 +283,13 @@ module mod_clm_restfile
   ! Close restart file and write restart pointer file if
   ! in write mode, otherwise just close restart file if in read mode
   !
-  subroutine restFile_closeRestart( file, nlend )
-    use clm_time_manager, only : is_last_step
+  subroutine restFile_closeRestart( rfile, nlend )
     implicit none
-    character(len=*) , intent(in) :: file  ! local output filename
+    character(len=*) , intent(in) :: rfile  ! local output filename
     logical,           intent(in) :: nlend
     integer(ik4) :: i                   !index
     if (myid == italk) then
-      write(stdout,*) 'Successfully wrote local restart file ',trim(file)
+      write(stdout,*) 'Successfully wrote local restart file ',trim(rfile)
       write(stdout,'(72a1)') ("-",i=1,60)
       write(stdout,*)
     end if
@@ -309,58 +298,52 @@ module mod_clm_restfile
   ! Open restart pointer file. Write names of current netcdf restart file.
   !
   subroutine restFile_write_pfile( fnamer )
-    use clm_varctl, only : rpntdir, rpntfil, inst_suffix
-    use fileutils , only : relavu
-    use fileutils , only : getavu, opnfil
     implicit none
     character(len=*), intent(in) :: fnamer
-    integer(ik4) :: m                    ! index
+    integer(ik4) :: m , ier              ! index
     integer(ik4) :: nio                  ! restart pointer file
     character(len=256) :: filename  ! local file name
     if (myid == italk) then
-      nio = getavu()
+      nio = file_getunit( )
       filename= trim(rpntdir) //'/'// trim(rpntfil)//trim(inst_suffix)
-      call opnfil( filename, nio, 'f' )
+      open(unit=nio,file=filename,form='formatted', &
+           status='replace',action='write',iostat=ier)
+      if ( ier /= 0 ) then
+        write(stderr,*) 'Cannot open pointer file ',trim(filename)
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      end if
       write(nio,'(a)') fnamer
-      call relavu( nio )
+      call file_freeunit(nio)
       write(stdout,*)'Successfully wrote local restart pointer file'
     end if
   end subroutine restFile_write_pfile
 
-  subroutine restFile_open( flag, file, ncid )
-    use clm_time_manager, only : get_nstep
+  subroutine restFile_open( flag, rfile, ncid )
     implicit none
     character(len=*),  intent(in) :: flag ! flag to specify read or write
-    character(len=*),  intent(in) :: file ! filename
-    type(file_desc_t), intent(out):: ncid ! netcdf id
+    character(len=*),  intent(in) :: rfile ! filename
+    type(clm_filetype), intent(out):: ncid ! netcdf id
     integer(ik4) :: omode                              ! netCDF dummy variable
-    character(len= 32) :: subname='restFile_open' ! subroutine name
     if (flag == 'write') then
-
       ! Create new netCDF file (in define mode) and set fill mode
       ! to "no fill" to optimize performance
-
       if (myid == italk) then
         write(stdout,*)
-        write(stdout,*)'restFile_open: writing restart dataset at ',&
-             trim(file), ' at nstep = ',get_nstep()
+        write(stdout,*)'Writing restart dataset at ', trim(rfile), &
+                ' at ktau = ', ktau
         write(stdout,*)
       end if
-      call ncd_pio_createfile(ncid, trim(file))
-
+      call clm_createfile(trim(rfile),ncid)
     else if (flag == 'read') then
-
       ! Open netcdf restart file
-
       if (myid == italk) then
-        write(stdout,*) 'Reading restart dataset'
+        write(stdout,*) 'Reading restart dataset at ', trim(rfile)
       end if
-      call ncd_pio_openfile (ncid, trim(file), 0)
+      call clm_openfile(trim(rfile),ncid)
     end if
   end subroutine restFile_open
 
   character(len=256) function restFile_filename( rdate )
-    use mod_clm_varctl , only : caseid, inst_suffix
     implicit none
     character(len=*) , intent(in) :: rdate ! input date for restart file name
     restFile_filename = "./"//trim(caseid)//".clm2"//trim(inst_suffix)//&
@@ -375,11 +358,8 @@ module mod_clm_restfile
   ! Read/Write initial data from/to netCDF instantaneous initial data file
   !
   subroutine restFile_dimset( ncid )
-    use clm_time_manager, only : get_nstep, get_curr_date
-    use spmdMod     , only : mpicom, MPI_LOGICAL
-    use clm_varctl  , only : caseid, ctitle, version, username, hostname, fsurdat, &
     implicit none
-    type(file_desc_t), intent(inout) :: ncid
+    type(clm_filetype), intent(inout) :: ncid
     integer(ik4) :: yr                  ! current year (0 -> ...)
     integer(ik4) :: mon                 ! current month (1 -> 12)
     integer(ik4) :: day                 ! current day (1 -> 31)
@@ -401,37 +381,35 @@ module mod_clm_restfile
 
     ! Define dimensions
 
-    call ncd_defdim(ncid, 'gridcell', numg           , dimid)
-    call ncd_defdim(ncid, 'landunit', numl           , dimid)
-    call ncd_defdim(ncid, 'column'  , numc           , dimid)
-    call ncd_defdim(ncid, 'pft'     , nump           , dimid)
+    call clm_adddim(ncid,'gridcell',numg)
+    call clm_adddim(ncid,'landunit',numl)
+    call clm_adddim(ncid,'column',numc)
+    call clm_adddim(ncid,'pft',nump)
 
-    call ncd_defdim(ncid, 'levgrnd' , nlevgrnd       , dimid)
-    call ncd_defdim(ncid, 'levurb'  , nlevurb        , dimid)
-    call ncd_defdim(ncid, 'levlak'  , nlevlak        , dimid)
-    call ncd_defdim(ncid, 'levsno'  , nlevsno        , dimid)
-    call ncd_defdim(ncid, 'levsno1'  , nlevsno+1     , dimid)
-    call ncd_defdim(ncid, 'levtot'  , nlevsno+nlevgrnd, dimid)
-    call ncd_defdim(ncid, 'numrad'  , numrad         , dimid)
-    call ncd_defdim(ncid, 'levcan'  , nlevcan        , dimid)
-    call ncd_defdim(ncid, 'string_length', 64        , dimid)
+    call clm_adddim(ncid,'levgrnd',nlevgrnd)
+    call clm_adddim(ncid,'levurb',nlevurb)
+    call clm_adddim(ncid,'levlak',nlevlak)
+    call clm_adddim(ncid,'levsno',nlevsno)
+    call clm_adddim(ncid,'levsno1',nlevsno+1)
+    call clm_adddim(ncid,'levtot',nlevsno+nlevgrnd)
+    call clm_adddim(ncid,'numrad',numrad)
+    call clm_adddim(ncid,'levcan',nlevcan)
+    call clm_adddim(ncid,'string_length', 64)
 
     ! Define global attributes
 
-    call ncd_putatt(ncid, NCD_GLOBAL, 'Conventions', trim(conventions))
+    call clm_addatt(ncid,'Conventions',trim(conventions))
     call getdatetime(curdate, curtime)
     str = 'created on ' // curdate // ' ' // curtime
-    call ncd_putatt(ncid, NCD_GLOBAL, 'history' , trim(str))
-    call ncd_putatt(ncid, NCD_GLOBAL, 'username', trim(username))
-    call ncd_putatt(ncid, NCD_GLOBAL, 'host'    , trim(hostname))
-    call ncd_putatt(ncid, NCD_GLOBAL, 'version' , trim(version))
-    call ncd_putatt(ncid, NCD_GLOBAL, 'source'  , trim(source))
-    str = '$Id: restFileMod.F90 41292 2012-10-26 13:51:45Z erik $'
-    call ncd_putatt(ncid, NCD_GLOBAL, 'revision_id'    , trim(str))
-    call ncd_putatt(ncid, NCD_GLOBAL, 'case_title'     , trim(ctitle))
-    call ncd_putatt(ncid, NCD_GLOBAL, 'case_id'        , trim(caseid))
-    call ncd_putatt(ncid, NCD_GLOBAL, 'surface_dataset', trim(fsurdat))
-    call ncd_putatt(ncid, NCD_GLOBAL, 'title', &
+    call clm_addatt(ncid, 'history',trim(str))
+    call clm_addatt(ncid, 'username',trim(username))
+    call clm_addatt(ncid, 'host',trim(hostname))
+    call clm_addatt(ncid, 'version',trim(version))
+    call clm_addatt(ncid, 'source',trim(source))
+    call clm_addatt(ncid, 'case_title',trim(ctitle))
+    call clm_addatt(ncid, 'case_id', trim(caseid))
+    call clm_addatt(ncid, 'surface_dataset',trim(fsurdat))
+    call clm_addatt(ncid, 'title', &
           'CLM Restart information, required to continue a simulation' )
   end subroutine restFile_dimset
   !

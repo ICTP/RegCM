@@ -7,6 +7,10 @@ module mod_clm_initialize
   use mod_runparams
   use mod_date
   use mod_stdio
+  use mod_mppparam
+  use mod_dynparam
+  use mod_regcm_types
+  use mod_clm_nchelper
   use mod_clm_varctl , only : nsrest , nsrStartup , nsrContinue , &
           nsrBranch , create_glacier_mec_landunit , fsurdat ,     &
           fatmlndfrc , flndtopo , fglcmask , noland , finidat ,   &
@@ -16,7 +20,7 @@ module mod_clm_initialize
   use mod_clm_varpar , only : maxpatch , clm_varpar_init
   use mod_clm_varcon , only : clm_varcon_init
   use mod_clm_pftvarcon , only : pftconrd
-  use mod_clm_decompInit , only : decompInit_lnd , decompInit_glcp
+  use mod_clm_decompinit , only : decompInit_lnd , decompInit_glcp
   use mod_clm_decomp , only : get_proc_bounds
   use mod_clm_domain , only : domain_check , ldomain , domain_init
   use mod_clm_surfrd , only : surfrd_get_globmask , surfrd_get_grid , &
@@ -50,7 +54,7 @@ module mod_clm_initialize
   use mod_clm_accflds , only : initAccFlds , initAccClmtype
   use mod_clm_dust , only : Dustini
   use mod_clm_time_manager, only : advance_timestep, &
-             timemgr_init, timemgr_restart_io, timemgr_restart
+             timemgr_init, timemgr_restart
   use mod_clm_time_manager, only : get_curr_calday
   use mod_clm_urban , only : UrbanClumpInit
   use mod_clm_urbaninit , only : UrbanInitTimeConst , UrbanInitTimeVar , &
@@ -90,7 +94,7 @@ module mod_clm_initialize
   !
   subroutine initialize1(cl)
     implicit none
-    (type (masked_comm) , intent(in) :: cl
+    type (masked_comm) , intent(in) :: cl
     integer(ik4)  :: ier              ! error status
     integer(ik4)  :: i , j , n , k    ! loop indices
     integer(ik4)  :: nl               ! gdc and glo lnd indices
@@ -133,11 +137,7 @@ module mod_clm_initialize
     if (myid == italk) then
        write(stdout,*) 'Attempting to read ldomain from ',trim(fatmlndfrc)
     endif
-    if (create_glacier_mec_landunit) then
-       call surfrd_get_grid(ldomain, fatmlndfrc, fglcmask)
-    else
-       call surfrd_get_grid(ldomain, fatmlndfrc)
-    endif
+    call surfrd_get_grid(ldomain, fatmlndfrc)
     if (myid == italk) then
        call domain_check(ldomain)
     endif
@@ -183,11 +183,7 @@ module mod_clm_initialize
 
     ! Determine decomposition of subgrid scale landunits, columns, pfts
 
-    if (create_glacier_mec_landunit) then
-       call decompInit_glcp (ns, ni, nj, ldomain%glcmask)
-    else
-       call decompInit_glcp (ns, ni, nj)
-    endif
+    call decompInit_glcp
 
 #if (defined LCH4)
     ! Set CH4 Model Parameters from namelist.
@@ -203,11 +199,6 @@ module mod_clm_initialize
 
     call init_atm2lnd_type(begg,endg,clm_a2l)
     call init_lnd2atm_type(begg,endg,clm_l2a)
-
-    ! if (create_glacier_mec_landunit) then
-    !    call init_glc2lnd_type(begg, endg, clm_x2s)
-    !    call init_lnd2glc_type(begg, endg, clm_s2x)
-    ! endif
 
     ! Build hierarchy and topological info for derived types
 
@@ -246,7 +237,7 @@ module mod_clm_initialize
     integer(ik4) :: begg , endg       ! beg and ending gridcell indices
     character(len=256) :: fnamer      ! name of netcdf restart file 
     character(len=256) :: pnamer      ! full pathname of netcdf restart file
-    type(file_desc_t) :: ncid         ! netcdf id
+    type(clm_filetype) :: ncid         ! netcdf id
     real(rk8) :: calday               ! calendar day
     real(rk8) :: caldaym1             ! calendar day for nstep-1
     real(rk8) :: declin               ! solar declination angle in radians
@@ -300,7 +291,7 @@ module mod_clm_initialize
     ! ------------------------------------------------------------------------
 
     if ( do_restread() ) then
-      call restFile_getfile(file=fnamer,path=pnamer)
+      call restFile_getfile(rfile=fnamer,path=pnamer)
     end if
 
     ! ------------------------------------------------------------------------
@@ -469,7 +460,7 @@ module mod_clm_initialize
       else
         write(stdout,*) 'begin continuation run at:'
       end if
-      call curr_date(yr, mon, day, ncsec)
+      call curr_date(idatex, yr, mon, day, ncsec)
       write(stdout,*) '   ktau= ',ktau, ' year= ',yr,' month= ',mon,&
             ' day= ',day,' seconds= ',ncsec
       write(stdout,*)
