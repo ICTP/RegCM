@@ -63,7 +63,8 @@ libclm45_a_SOURCES = mod_clm_nchelper.F90 mod_clm_domain.F90 mod_clm_type.F90 \
   mod_clm_biogeophysrest.F90 mod_clm_initsurfalb.F90 mod_clm_accumul.F90 \
   mod_clm_slakerest.F90 mod_clm_initsurfalb.F90 mod_clm_accflds.F90 \
   mod_clm_histfile.F90 mod_clm_histflds.F90 mod_clm_initialize.F90 \
-  mod_clm_pftdyn.F90 mod_clm_soillittverttransp.F90 mod_clm_ch4rest.F90
+  mod_clm_pftdyn.F90 mod_clm_soillittverttransp.F90 mod_clm_ch4rest.F90 \
+  mod_clm_cnecosystemdyn.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
