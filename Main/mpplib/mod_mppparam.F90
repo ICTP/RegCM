@@ -202,6 +202,7 @@ module mod_mppparam
                      bcast_real8,         &
                      bcast_arr_logical,   &
                      bcast_arr_character, &
+                     bcast_arr_text_list, &
                      bcast_arr_int4,      &
                      bcast_arr_int8,      &
                      bcast_arr_real4,     &
@@ -461,6 +462,16 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
   end subroutine bcast_arr_character
+
+  subroutine bcast_arr_text_list(cval,is)
+    implicit none
+    character(len=*) , intent(inout) , dimension(:) :: cval
+    integer(ik4) , intent(in) :: is
+    call mpi_bcast(cval,is*size(cval),mpi_character,iocpu,mycomm,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_bcast error.')
+    end if
+  end subroutine bcast_arr_text_list
 
   subroutine bcast_arr_int4(ival)
     implicit none
