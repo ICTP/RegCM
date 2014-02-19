@@ -479,9 +479,9 @@ module mod_precip
             else
               exlwc = 0.001D0
             end if
-            radcldf(j,i,k) = min(max(fcc(j,i,k),radcldf(j,i,k)),cftotmax)
             radlqwc(j,i,k) = (radcldf(j,i,k)*radlqwc(j,i,k) + &
                fcc(j,i,k)*exlwc) / max(radcldf(j,i,k)+fcc(j,i,k),0.01D0)
+            radcldf(j,i,k) = min(max(fcc(j,i,k),radcldf(j,i,k)),cftotmax)
           end do
         end do
       end do
