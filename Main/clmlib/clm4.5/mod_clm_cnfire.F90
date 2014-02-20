@@ -1725,7 +1725,6 @@ module mod_clm_cnfire
     use clm_varctl       , only : inst_name
     use ncdio_pio        , only : pio_subsystem
     use shr_pio_mod      , only : shr_pio_getiotype
-    use clm_nlUtilsMod   , only : find_nlgroup_name
     use ndepStreamMod    , only : clm_domain_mct
     use histFileMod      , only : hist_addfld1d
     implicit none
@@ -1767,7 +1766,6 @@ module mod_clm_cnfire
     if ( myid == iocpu ) then
       nu_nml = file_getunit()
       open( nu_nml, file=trim(NLFilename), status='old', iostat=nml_error )
-      call find_nlgroup_name(nu_nml, 'light_streams', status=nml_error)
       if ( nml_error == 0 ) then
         read(nu_nml, nml=light_streams,iostat=nml_error)
         if ( nml_error /= 0 ) then

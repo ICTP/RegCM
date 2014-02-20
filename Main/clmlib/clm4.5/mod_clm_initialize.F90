@@ -65,6 +65,7 @@ module mod_clm_initialize
   use mod_clm_drydep , only : n_drydep, drydep_method, DD_XLND
   use mod_clm_initsurfalb , only : initSurfAlb, do_initsurfalb 
   use mod_clm_vocemission , only : VOCEmission_init
+  use mod_clm_initimeconst , only : iniTimeConst
 
   implicit none
 
