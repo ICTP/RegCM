@@ -2,7 +2,7 @@ module mod_clm_activelayer
   !
   ! Module holding routines for calculation of active layer dynamics
   !
-  use mod_constants
+  use mod_intkinds
   use mod_realkinds
   use mod_constants
   use mod_runparams

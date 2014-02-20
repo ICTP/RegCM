@@ -1,4 +1,4 @@
-module mod_clm_balanchecheck
+module mod_clm_balancecheck
   !
   ! Water and energy balance check.
   !
@@ -816,4 +816,4 @@ module mod_clm_balanchecheck
 
   end subroutine BalanceCheck
 
-end module mod_clm_balanchecheck
+end module mod_clm_balancecheck
