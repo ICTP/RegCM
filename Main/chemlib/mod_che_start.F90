@@ -256,6 +256,7 @@ module mod_che_start
       if ( chtrname(itr) == 'OPEN'   ) iopen       = itr
       if ( chtrname(itr) == 'CRES'   ) icres       = itr
       !!$
+      if ( chtrname(itr) == 'NH3'   ) inh3       = itr
 
       if ( chtrname(itr) == 'POLLEN') ipollen   = itr
 
