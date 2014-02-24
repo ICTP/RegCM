@@ -7,7 +7,6 @@ module mod_clm_reweight
                             column_type, pft_type
   use mod_clm_filter , only : setFilters
   use mod_clm_decomp , only : get_proc_bounds
-  use mod_clm_varcon , only : istice_mec
   use mod_clm_domain , only : ldomain
 
   implicit none
@@ -221,10 +220,6 @@ module mod_clm_reweight
 
     if (clm3%g%l%c%p%wtgcell(p) > 0) is_active_p = .true.
 
-    ! always run over ice_mec landunits within the glcmask, because this is
-    ! where glc might need input from virtual (0-weight) landunits
-    if ( clm3%g%l%itype(l) == istice_mec .and. &
-         ldomain%glcmask(g) == 1 ) is_active_p = .true.
   end function is_active_p
   !
   ! Determine whether the given column is active
@@ -242,10 +237,6 @@ module mod_clm_reweight
 
     if ( clm3%g%l%c%wtgcell(c) > 0 ) is_active_c = .true.
 
-    ! always run over ice_mec landunits within the glcmask, because this is
-    ! where glc might need input from virtual (0-weight) landunits
-    if ( clm3%g%l%itype(l) == istice_mec .and. &
-         ldomain%glcmask(g) == 1)  is_active_c = .true.
   end function is_active_c
   !
   ! Determine whether the given landunit is active
@@ -261,10 +252,6 @@ module mod_clm_reweight
     
     if ( clm3%g%l%wtgcell(l) > 0 ) is_active_l = .true.
 
-    ! always run over ice_mec landunits within the glcmask, because this is
-    ! where glc might need input from virtual (0-weight) landunits
-    if ( clm3%g%l%itype(l) == istice_mec .and. &
-         ldomain%glcmask(g) == 1 ) is_active_l = .true.
   end function is_active_l
   !
   ! Check subgrid weights.

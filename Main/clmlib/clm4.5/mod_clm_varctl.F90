@@ -27,11 +27,6 @@ module mod_clm_varctl
   integer(ik4) , public , parameter :: nsrStartup  = 0
   ! Continue from restart files
   integer(ik4) , public , parameter :: nsrContinue = 1
-  ! Branch from restart files
-  integer(ik4) , public , parameter :: nsrBranch   = 2
-  ! true => allow case name to remain the same for branch run
-  ! by default this is not allowed
-  logical , public :: brnch_retain_casename = .false.
   ! true => no valid land points -- do NOT run
   logical , public :: noland = .false.
   ! Hostname of machine running on
@@ -70,7 +65,7 @@ module mod_clm_varctl
   character(len=256) , public :: fpftdyn    = ' '
   ! ASCII data file with PFT physiological constants
   character(len=256) , public :: fpftcon    = ' '
-  ! restart data file name for branch run
+  ! Restart file name
   character(len=256) , public :: nrevsn     = ' '
   ! snow optical properties file name
   character(len=256) , public :: fsnowoptics  = ' '
@@ -122,32 +117,12 @@ module mod_clm_varctl
   ! true => use C-14 model
   logical , public :: use_c14 = .false.
   !
-  ! glacier_mec control variables: default values
-  !  (may be overwritten by namelist)
-  ! NOTE: glc_smb must have the same values for CLM and GLC
-  !  
-  ! glacier_mec landunit is not created (set in controlMod)
-  logical , public :: create_glacier_mec_landunit = .false.
-  ! if true, pass surface mass balance info to GLC
-  ! if false, pass positive-degree-day info to GLC
-  logical , public :: glc_smb = .true.
-  ! true => CLM glacier topography changes dynamically
-  logical , public :: glc_dyntopo = .false.
   ! upper limit of each class (m)  (set in surfrd)
   real(rk8) , public , allocatable , dimension(:) :: glc_topomax
   ! glc_grid used to determine fglcmask  
   character(len=256) , public :: glc_grid = ' '
   ! glacier mask file name (based on glc_grid)
   character(len=256) , public :: fglcmask = ' '
-  !
-  ! single column control variables
-  !
-  ! true => single column mode
-  logical , public :: single_column = .false.
-  ! single column lat
-  real(rk8) , public :: scmlat = rundef
-  ! single column lon
-  real(rk8) , public :: scmlon = rundef
   !
   ! instance control
   !
@@ -176,20 +151,11 @@ module mod_clm_varctl
   !
   ! Set input control variables.
   !
-  subroutine set_clmvarctl( caseid_in, ctitle_in, brnch_retain_casename_in,    &
-                            single_column_in, scmlat_in, scmlon_in, nsrest_in, &
+  subroutine set_clmvarctl( caseid_in, ctitle_in, nsrest_in, &
                             version_in, hostname_in, username_in)
     character(len=256) , optional , intent(in) :: caseid_in  ! case id
     character(len=256) , optional , intent(in) :: ctitle_in  ! case title
-    ! true => allow case name to remain the same for branch run
-    logical , optional , intent(in) :: brnch_retain_casename_in
-    ! true => single column mode
-    logical , optional , intent(in) :: single_column_in
-    ! single column lat
-    real(rk8) , optional , intent(in) :: scmlat_in
-    ! single column lon
-    real(rk8) , optional , intent(in) :: scmlon_in
-    ! 0: initial run. 1: restart: 3: branch
+    ! 0: initial run. 1: restart
     integer(ik4) , optional , intent(in) :: nsrest_in
     ! model version
     character(len=256) , optional , intent(in) :: version_in
@@ -207,13 +173,7 @@ module mod_clm_varctl
     end if
     if ( present(caseid_in       ) ) caseid        = caseid_in
     if ( present(ctitle_in       ) ) ctitle        = ctitle_in
-    if ( present(single_column_in) ) single_column = single_column_in
-    if ( present(scmlat_in       ) ) scmlat        = scmlat_in
-    if ( present(scmlon_in       ) ) scmlon        = scmlon_in
     if ( present(nsrest_in       ) ) nsrest        = nsrest_in
-    if ( present(brnch_retain_casename_in) ) then
-      brnch_retain_casename = brnch_retain_casename_in
-    end if
     if ( present(version_in      ) ) version       = version_in
     if ( present(username_in     ) ) username      = username_in
     if ( present(hostname_in     ) ) hostname      = hostname_in
@@ -267,12 +227,6 @@ module mod_clm_varctl
 #endif
       end if
 
-      ! Check on run type
-      if ( nsrest == iundef ) &
-        call fatal(__FILE__,__LINE__,subname//' ERROR:: must set nsrest' )
-      if (nsrest == nsrBranch .and. nrevsn == ' ') &
-        call fatal(__FILE__,__LINE__, &
-           subname//' ERROR: need to set restart data file name' )
       ! Model physics
 
       if ( (co2_ppmv <= 0.0D0) .or. (co2_ppmv > 3000.0D0) ) &
@@ -282,15 +236,9 @@ module mod_clm_varctl
       if ( nsrest == nsrStartup ) nrevsn = ' '
       if ( nsrest == nsrContinue ) nrevsn = 'set by restart pointer file file'
       if ( nsrest /= nsrStartup .and. &
-           nsrest /= nsrContinue .and. &
-           nsrest /= nsrBranch ) &
+           nsrest /= nsrContinue ) &
         call fatal(__FILE__,__LINE__, &
            subname//' ERROR: nsrest NOT set to a valid value' )
-
-      if ( single_column .and. (scmlat == rundef  .or. scmlon == rundef ) ) &
-        call fatal(__FILE__,__LINE__, &
-           subname//' ERROR:: single column mode on -- but scmlat '//&
-           'and scmlon are NOT set' )
 
 #ifndef LCH4
       if ( anoxia ) then

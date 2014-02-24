@@ -78,7 +78,8 @@ CONTAINS
     use mod_clm_drydep    , only :  seq_drydep_setHCoeff, mapping, drat, foxd, &
                                     rcls, h2_a, h2_b, h2_c, ri, rac, rclo, rlu, &
                                     rgss, rgso
-    use mod_clm_varcon        , only : istsoil, istice, istice_mec, istslak, istdlak, istwet, isturb
+    use mod_clm_varcon        , only : istsoil, istice, istslak, istdlak, &
+            istwet, isturb
     use mod_clm_pftvarcon         , only : noveg, ndllf_evr_tmp_tree, ndllf_evr_brl_tree,   &
                                    ndllf_dcd_brl_tree,        nbrdlf_evr_trp_tree,  &
                                    nbrdlf_evr_tmp_tree,       nbrdlf_dcd_trp_tree,  &
@@ -303,7 +304,7 @@ CONTAINS
           index_season = -1
 
           if ( itypelun(l) /= istsoil )then
-             if ( itypelun(l) == istice .or. itypelun(l) == istice_mec ) then
+             if ( itypelun(l) == istice ) then
                 wesveg       = 8
                 index_season = 4
              elseif ( itypelun(l) == istdlak .or. itypelun(l) == istslak ) then

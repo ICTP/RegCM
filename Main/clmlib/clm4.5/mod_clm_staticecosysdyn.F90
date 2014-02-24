@@ -16,7 +16,6 @@ module mod_clm_staticecosysdyn
   use mod_runparams
   use mod_mpmessage
   use mod_clm_nchelper
-  use mod_clm_varctl , only : scmlat , scmlon , single_column
   use mod_clm_decomp , only : get_proc_bounds
   use mod_clm_type
   use mod_clm_pftvarcon , only : noveg , nc3crop , nbrdlf_dcd_brl_shrub

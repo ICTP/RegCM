@@ -38,7 +38,7 @@ module mod_clm_time_manager
       get_curr_calday,          &! return calendar day at end of current timestep
       get_calday,               &! return calendar day from input date
       is_first_step,            &! return true on first step of initial run
-      is_first_restart_step,    &! return true on first step of restart or branch run
+      is_first_restart_step,    &! return true on first step of restart run
       is_end_curr_day,          &! return true on last timestep in current day
       is_end_curr_month,        &! return true on last timestep in current month
       is_last_step,             &! return true on last timestep
@@ -72,7 +72,7 @@ module mod_clm_time_manager
 
 ! Private module data
 
-   logical :: tm_first_restart_step = .false.  ! true for first step of a restart or branch run
+   logical :: tm_first_restart_step = .false.  ! true for first step of a restart run
    integer :: cal_type = uninit_int            ! calendar type
 
 ! Private module methods

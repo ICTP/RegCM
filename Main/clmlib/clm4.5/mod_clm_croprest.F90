@@ -757,7 +757,7 @@ contains
 ! Make sure the dates are compatible. The date given to startup the model
 ! and the date on the restart file must be the same although years can be
 ! different. The dates need to be checked when the restart file is being
-! read in for a startup or branch case (they are NOT allowed to be different
+! read in for a startup (they are NOT allowed to be different
 ! for a restart case).
 !
 ! For the prognostic crop model the date of planting is tracked and growing
@@ -768,7 +768,7 @@ contains
 !
 ! !ARGUMENTS:
     use mod_clm_time_manager, only : get_driver_start_ymd, get_start_date
-    use mod_clm_varctl      , only : nsrest, nsrBranch, nsrStartup
+    use mod_clm_varctl      , only : nsrest, nsrStartup
 !
 ! !REVISION HISTORY:
 ! Author: Erik Kluzek
@@ -787,10 +787,10 @@ contains
     character(len=*), parameter :: formDate = '(A,i4.4,"/",i2.2,"/",i2.2)' ! log output format
     character(len=32) :: subname = 'CropRest::checkDates'
     !
-    ! If branch or startup make sure the startdate is compatible with the date
+    ! If startup make sure the startdate is compatible with the date
     ! on the restart file.
     !
-    if ( nsrest == nsrBranch .or. nsrest == nsrStartup )then
+    if ( nsrest == nsrStartup ) then
        stymd       = get_driver_start_ymd()
        styr        = stymd / 10000
        stmon_day   = stymd - styr*10000

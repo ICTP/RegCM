@@ -23,7 +23,7 @@ module mod_clm_histfile
          maxpatch_glcmec , nlevdecomp_full
   use mod_clm_varctl , only : caseid , ctitle , fsurdat , finidat , fpftcon , &
          version , hostname , username , conventions , source , inst_suffix , &
-         nsrest , nsrStartup , nsrBranch
+         nsrest , nsrStartup
   use mod_clm_domain , only : ldomain , lon1d , lat1d
   use mod_clm_time_manager , only : get_prev_date , getdatetime
 
@@ -476,8 +476,6 @@ module mod_clm_histfile
 
     ! Define field list information for all history files.
     ! Update ntapes to reflect number of active history files
-    ! Note - branch runs can have additional auxiliary history files
-    ! declared).
 
     call htapes_fieldlist()
 
@@ -601,7 +599,7 @@ module mod_clm_histfile
   end subroutine masterlist_change_timeavg
   !
   ! Define the contents of each history file based on namelist
-  ! input for initial or branch run, and restart data if a restart run.
+  ! input for initial, and restart data if a restart run.
   ! Use arrays fincl and fexcl to modify default history tape contents.
   ! Then sort the result alphanumerically.
   !
@@ -1612,7 +1610,7 @@ module mod_clm_histfile
       call clm_addatt(lnfid,'title', &
           'CLM Restart History information, required to continue a simulation' )
       call clm_addatt(lnfid,'comment', &
-          'This entire file NOT needed for startup or branch simulations')
+          'This entire file NOT needed for startup simulations')
     end if
 
     ! Create global attributes. Attributes are used to store information
@@ -2667,7 +2665,6 @@ module mod_clm_histfile
   ! Read/write history file restart data.
   ! If the current history file(s) are not full, file(s) are opened
   ! so that subsequent time samples are added until the file is full.
-  ! A new history file is used on a branch run.
   !
   subroutine hist_restart_ncd (ncid, flag, rdate)
     implicit none
@@ -2731,22 +2728,14 @@ module mod_clm_histfile
     character(len=*) , parameter :: subname = 'hist_restart_ncd'
     type(subgrid_type) , pointer :: gcomm
 
-    ! If branch run, initialize file times and return
-
     if ( flag == 'read' ) then
-      if ( nsrest == nsrBranch ) then
-        do t = 1 , ntapes
-          tape(t)%ntimes = 0
-        end do
-        return
-      end if
       ! If startup run just return
       if ( nsrest == nsrStartup ) then
         return
       end if
     end if
 
-    ! Read history file data only for restart run (not for branch run)
+    ! Read history file data only for restart run
     !
     ! First when writing out and in define mode, create files and define
     ! all variables
@@ -2771,12 +2760,12 @@ module mod_clm_histfile
               cdims=(/'max_chars','ntapes   '/), &
               long_name='History filename',      &
               comment='This variable NOT needed for startup'&
-                     &' or branch simulations')
+                     &' simulations')
       call clm_addvar(clmvar_text,ncid,'locfnhr', &
               cdims=(/'max_chars','ntapes   '/), &
               long_name='Restart history filename',      &
               comment='This variable NOT needed for startup'&
-                     &' or branch simulations')
+                     &' simulations')
 
       ! max_nflds is the maximum number of fields on any tape
       ! max_flds is the maximum number possible number of fields 
@@ -3236,7 +3225,6 @@ module mod_clm_histfile
     ! Read/write history file restart data.
     ! If the current history file(s) are not full, file(s) are opened
     ! so that subsequent time samples are added until the file is full.
-    ! A new history file is used on a branch run.
     !======================================================================
     
     if ( flag == 'write' ) then     
@@ -3326,7 +3314,7 @@ module mod_clm_histfile
   ! buffer field). Default history contents for given field on all tapes
   ! are set by calling [masterlist\_make\_active] for the appropriate tape.
   ! After the masterlist is built, routine [htapes\_build] is called for an
-  ! initial or branch run to initialize the actual history tapes.
+  ! initial run to initialize the actual history tapes.
   !
   subroutine hist_addfld1d (fname, units, avgflag, long_name, type1d_out, &
                         ptr_gcell, ptr_lunit, ptr_col, ptr_pft, ptr_lnd, &
@@ -3542,7 +3530,7 @@ module mod_clm_histfile
   ! buffer field). Default history contents for given field on all tapes
   ! are set by calling [masterlist\_make\_active] for the appropriatae tape.
   ! After the masterlist is built, routine [htapes\_build] is called for an
-  ! initial or branch run to initialize the actual history tapes.
+  ! initial run to initialize the actual history tapes.
   !
   subroutine hist_addfld2d(fname,type2d,units,avgflag,long_name,type1d_out, &
                         ptr_gcell,ptr_lunit,ptr_col,ptr_pft,ptr_lnd,ptr_atm, &

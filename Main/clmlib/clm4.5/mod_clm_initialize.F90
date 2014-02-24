@@ -14,8 +14,7 @@ module mod_clm_initialize
   use mod_regcm_types
   use mod_clm_nchelper
   use mod_clm_varctl , only : nsrest , nsrStartup , nsrContinue , &
-          nsrBranch , create_glacier_mec_landunit , fsurdat ,     &
-          fatmlndfrc , flndtopo , fglcmask , noland , finidat ,   &
+          fsurdat , fatmlndfrc , flndtopo , fglcmask , noland , finidat ,   &
           fpftdyn
   use mod_clm_varsur , only : wtxy , vegxy , topoxy
   use mod_clm_typeinit , only : initClmtype
@@ -88,7 +87,7 @@ module mod_clm_initialize
   ! o Builds the appropriate subgrid <-> grid mapping indices and weights.
   ! o Set up parallel processing.
   ! o Initializes time constant variables.
-  ! o Reads restart data for a restart or branch run.
+  ! o Reads restart data for a restart run.
   ! o Reads initial data and initializes the time variant variables for
   !   an initial run.
   ! o Initializes history file output.
@@ -162,12 +161,8 @@ module mod_clm_initialize
     ! Allocate additional dynamic memory for glacier_mec topo and thickness
 
     call get_proc_bounds(begg, endg)
-    allocate (vegxy(begg:endg,maxpatch), wtxy(begg:endg,maxpatch), stat=ier)   
-    if (create_glacier_mec_landunit) then
-       allocate (topoxy(begg:endg,maxpatch), stat=ier)
-    else
-       allocate (topoxy(1,1), stat=ier)
-    endif
+    allocate (vegxy(begg:endg,maxpatch), wtxy(begg:endg,maxpatch), &
+              topoxy(1,1) , stat=ier)   
     if (ier /= 0) then
        write(stderr,*)'initialize allocation error'
        call fatal(__FILE__,__LINE__,'clm now stopping')
@@ -218,7 +213,7 @@ module mod_clm_initialize
   ! o Builds the appropriate subgrid <-> grid mapping indices and weights.
   ! o Set up parallel processing.
   ! o Initializes time constant variables.
-  ! o Reads restart data for a restart or branch run.
+  ! o Reads restart data for a restart run.
   ! o Reads initial data and initializes the time variant variables for an
   !   initial run.
   ! o Initializes history file output.
@@ -411,7 +406,7 @@ module mod_clm_initialize
     ! Note that routine hist_htapes_build needs time manager information, so
     ! this call must be made after the restart information has been read.
 
-    if ( nsrest == nsrStartup .or. nsrest == nsrBranch ) then
+    if ( nsrest == nsrStartup ) then
       call hist_htapes_build()
     end if
 
@@ -486,10 +481,6 @@ module mod_clm_initialize
       ! Determine gridcell averaged properties to send to atm
       call clm_map2gcell(init=.true.)
     end if
-    ! Initialize sno export state
-    !if (create_glacier_mec_landunit) then
-    !  call create_clm_s2x(init=.true.)
-    !end if
   end subroutine initialize2
   !
   ! Echo and save model version number

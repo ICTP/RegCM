@@ -15,10 +15,9 @@ module mod_clm_control
   use mod_mppparam
   use mod_runparams
   use mod_clm_varctl , only : clmvarctl_init , set_clmvarctl , &
-          nsrBranch , nsrStartup , nsrContinue
+          nsrStartup , nsrContinue
   use mod_clm_varpar , only : maxpatch_pft , more_vertlayers
-  use mod_clm_varctl , only : single_column , scmlat , scmlon , rpntfil, &
-          brnch_retain_casename , hostname , model_version=>version ,    &
+  use mod_clm_varctl , only : rpntfil, hostname , model_version=>version , &
           outnc_large_files , finidat , fsurdat , fatmlndfrc ,           &
           fatmtopo , flndtopo , fpftdyn , fpftcon , nrevsn ,             &
           create_crop_landunit , allocate_all_vegpfts ,                  &
@@ -110,7 +109,6 @@ module mod_clm_control
     integer(ik4) :: ierr                 ! error code
     integer(ik4) :: unitn                ! unit for namelist file
     ! If want to override the startup type sent from driver
-    integer(ik4) :: override_nsrest
     character(len=32) :: subname = 'control_init'  ! subroutine name
 
     ! ----------------------------------------------------------------------
@@ -169,7 +167,7 @@ module mod_clm_control
 
     namelist /clm_inparm/  &
          wrtdia, pertlim, &
-         create_crop_landunit, co2_ppmv, override_nsrest, &
+         create_crop_landunit, co2_ppmv, &
          albice, more_vertlayers, subgridflag, irrigate
 
     ! Urban options
@@ -209,6 +207,9 @@ module mod_clm_control
     ! Default values
     ! ----------------------------------------------------------------------
 
+    nsrest = 0
+    if ( ifrest ) nsrest = 1
+
     if (myid == italk) then
       write(stdout,*) 'Attempting to initialize run control settings .....'
     end if
@@ -216,9 +217,6 @@ module mod_clm_control
     runtyp(:)               = 'missing'
     runtyp(nsrStartup  + 1) = 'initial'
     runtyp(nsrContinue + 1) = 'restart'
-    runtyp(nsrBranch   + 1) = 'branch '
-
-    override_nsrest = nsrest
 
     if ( myid == italk ) then
 
@@ -260,17 +258,6 @@ module mod_clm_control
         end if
       end do
 
-      ! Override start-type (can only override to branch (3)  and only 
-      ! if the driver is a startup type
-      if ( override_nsrest /= nsrest ) then
-        if ( override_nsrest /= nsrBranch .and. &
-             nsrest /= nsrStartup )then
-          call fatal(__FILE__,__LINE__, &
-              subname//' ERROR: can ONLY override clm start-type ' // &
-              'to branch type and ONLY if driver is a startup type' )
-         end if
-         call set_clmvarctl( nsrest_in=override_nsrest )
-      end if
     end if   ! end if-block
 
     call clmvarctl_init
@@ -394,9 +381,6 @@ module mod_clm_control
     call bcast(urban_traffic)
     call bcast(subgridflag)
     call bcast(wrtdia)
-    call bcast(single_column)
-    call bcast(scmlat)
-    call bcast(scmlon)
     call bcast(co2_ppmv)
     call bcast(albice)
     call bcast(more_vertlayers)
@@ -603,12 +587,6 @@ module mod_clm_control
       write(stdout,*) '   Namelist not checked for agreement with initial run.'
       write(stdout,*) '   Namelist should not differ except for '&
                       &'ending time step and run type'
-    end if
-    if (nsrest == nsrBranch) then
-      write(stdout,*) 'branch warning:'
-      write(stdout,*) '   Namelist not checked for agreement with initial run.'
-      write(stdout,*) '   Surface data set and reference date should '&
-                     &'not differ from initial run'
     end if
     if ( pertlim /= 0.0D0 ) &
       write(stdout,*) '   perturbation limit   = ',pertlim

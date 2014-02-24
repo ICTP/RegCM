@@ -238,41 +238,6 @@ module mod_clm_subgrid
     if ( present(nglacier ) ) nglacier  = npfts_per_lunit
     if ( present(wtglacier) ) wtglacier = wtlunit
 
-    ! Set glacier_mec landunit
-    ! If glcmask = 1, we create a column for each elevation class
-    ! even if wtxy = 0.
-
-    if ( create_glacier_mec_landunit ) then
-      npfts_per_lunit = 0
-      wtlunit = 0.D0
-      do m = npatch_glacier+1 , npatch_glacier_mec
-        if ( wtxy(nw,m) > 0.D0 ) then
-          npfts_per_lunit = npfts_per_lunit + 1
-          wtlunit = wtlunit + wtxy(nw,m)
-          topoxy(nw,m) = max (topoxy(nw,m), 0.D0)
-        else if ( present(glcmask) ) then
-          if ( glcmask == 1 ) then      ! create a virtual column
-            npfts_per_lunit = npfts_per_lunit + 1
-            n = m - npatch_glacier    ! elevation class index
-            if ( m < npatch_glacier_mec ) then ! classes 1 to maxpatch_glcmec-1
-              topoxy(nw,m) = 0.5D0 * (glc_topomax(n-1) + glc_topomax(n))
-            else                               ! class maxpatch_glcmec
-              ! somewhat arbitrary
-              topoxy(nw,m) = 2.0D0*glc_topomax(n-1) - glc_topomax(n-2)
-            end if 
-          end if  ! glcmask = 1 
-        end if  ! wtxy > 0
-      end do   ! npatch_glacier_mec
-      if ( npfts_per_lunit > 0 ) then
-        ilunits = ilunits + 1
-        icols   = icols + npfts_per_lunit
-      end if
-      ipfts = ipfts + npfts_per_lunit
-      if ( present(nglacier_mec ) ) nglacier_mec  = npfts_per_lunit
-      if ( present(wtglacier_mec) ) wtglacier_mec = wtlunit
-
-    end if    ! create_glacier_mec_landunit
-
     ! Set crop landunit if appropriate
 
     npfts_per_lunit = 0

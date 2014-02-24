@@ -20,7 +20,7 @@ module mod_clm_initimeconst
   use mod_clm_varcon , only : icol_road_imperv, zlak , dzlak
   use mod_clm_varcon , only : zsoi , dzsoi , zisoi , dzsoi_decomp
   use mod_clm_varcon , only : pc , mu
-  use mod_clm_varctl , only : fsurdat , scmlon , scmlat , single_column
+  use mod_clm_varctl , only : fsurdat
   use mod_clm_varctl , only : fsnowoptics, fsnowaging
   use mod_clm_varsur , only : pctspec
   use mod_clm_pftvarcon

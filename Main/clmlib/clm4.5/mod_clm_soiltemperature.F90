@@ -66,7 +66,7 @@ contains
                                icol_roof, icol_sunwall, icol_shadewall, &
                                icol_road_perv, icol_road_imperv, istwet, &
                                denh2o, denice, cpice,  cpliq,hfus, tfrz,&
-                               istice, istice_mec, istsoil, istcrop
+                               istice, istsoil, istcrop
     use mod_clm_varpar    , only : nlevsno, nlevgrnd, max_pft_per_col, nlevurb
     use mod_clm_banddiagonal, only : BandDiagonal
 
@@ -909,7 +909,7 @@ contains
 ! !USES:
     use mod_clm_type
     use mod_clm_varcon  , only : denh2o, denice, tfrz, tkwat, tkice, tkair, &
-                             cpice,  cpliq,  istice, istice_mec, istwet, &
+                             cpice,  cpliq,  istice, istwet, &
                              icol_roof, icol_sunwall, icol_shadewall, &
                              icol_road_perv, icol_road_imperv, thk_bedrock
     use mod_clm_varpar  , only : nlevsno, nlevgrnd, nlevurb, nlevsoi
@@ -1030,8 +1030,10 @@ contains
                 thk(c,j) = tk_roof(l,j)
              else if (ctype(c) == icol_road_imperv .and. j >= 1 .and. j <= nlev_improad(l)) then
                 thk(c,j) = tk_improad(l,j)
-             else if (ltype(l) /= istwet .AND. ltype(l) /= istice .AND. ltype(l) /= istice_mec &
-                      .AND. ctype(c) /= icol_sunwall .AND. ctype(c) /= icol_shadewall .AND. &
+             else if (ltype(l) /= istwet .AND.  &
+                      ltype(l) /= istice  .AND. &
+                      ctype(c) /= icol_sunwall .AND. &
+                      ctype(c) /= icol_shadewall .AND. &
                       ctype(c) /= icol_roof) then
 
                 satw = (h2osoi_liq(c,j)/denh2o + h2osoi_ice(c,j)/denice)/(dz(c,j)*watsat(c,j))
@@ -1050,7 +1052,7 @@ contains
                    thk(c,j) = tkdry(c,j)
                 endif
                 if (j > nlevsoi) thk(c,j) = thk_bedrock
-             else if (ltype(l) == istice .OR. ltype(l) == istice_mec) then
+             else if ( ltype(l) == istice ) then
                 thk(c,j) = tkwat
                 if (t_soisno(c,j) < tfrz) thk(c,j) = tkice
              else if (ltype(l) == istwet) then                         
@@ -1125,14 +1127,16 @@ contains
              cv(c,j) = cv_roof(l,j) * dz(c,j)
           else if (ctype(c) == icol_road_imperv .and. j >= 1 .and. j <= nlev_improad(l)) then
              cv(c,j) = cv_improad(l,j) * dz(c,j)
-          else if (ltype(l) /= istwet .AND. ltype(l) /= istice .AND. ltype(l) /= istice_mec &
-                   .AND. ctype(c) /= icol_sunwall .AND. ctype(c) /= icol_shadewall .AND. &
+          else if (ltype(l) /= istwet .AND. &
+                   ltype(l) /= istice .AND. &
+                   ctype(c) /= icol_sunwall .AND. &
+                   ctype(c) /= icol_shadewall .AND. &
                    ctype(c) /= icol_roof) then
              cv(c,j) = csol(c,j)*(1-watsat(c,j))*dz(c,j) + (h2osoi_ice(c,j)*cpice + h2osoi_liq(c,j)*cpliq)
           else if (ltype(l) == istwet) then 
              cv(c,j) = (h2osoi_ice(c,j)*cpice + h2osoi_liq(c,j)*cpliq)
              if (j > nlevsoi) cv(c,j) = csol(c,j)*dz(c,j)
-          else if (ltype(l) == istice .OR. ltype(l) == istice_mec) then
+          else if ( ltype(l) == istice ) then
              cv(c,j) = (h2osoi_ice(c,j)*cpice + h2osoi_liq(c,j)*cpliq)
           endif
           if (j == 1) then
@@ -1407,7 +1411,7 @@ contains
     use mod_clm_type
     use mod_clm_time_manager, only : get_step_size
     use mod_clm_varcon  , only : tfrz, hfus, grav, isturb, istsoil, &
-                             istcrop, icol_roof, icol_sunwall, icol_shadewall, icol_road_perv,istice_mec
+                             istcrop, icol_roof, icol_sunwall, icol_shadewall, icol_road_perv
     use mod_clm_varpar  , only : nlevsno, nlevgrnd,nlevurb
 !
 ! !ARGUMENTS:
@@ -1542,11 +1546,6 @@ contains
        xmf(c) = 0.D0
        qflx_snofrz_lyr(c,-nlevsno+1:0) = 0.D0
        qflx_snofrz_col(c) = 0.D0
-       if (ltype(l)==istice_mec) then
-          ! only need to initialize qflx_glcice_melt over ice_mec landunits, because
-          ! those are the only places where it is computed
-          qflx_glcice_melt(c) = 0.D0
-       end if
        qflx_snow_melt(c) = 0.D0
     end do
 
@@ -1780,24 +1779,7 @@ contains
 
           endif
 
-          ! For glacier_mec columns, compute negative ice flux from melted ice.
-          ! Note that qflx_glcice can also include a positive component from excess snow,
-          !  as computed in Hydrology2Mod.F90.
-
           l = clandunit(c)
-          if (ltype(l)==istice_mec) then
-
-             if (j>=1 .and. h2osoi_liq(c,j) > 0.D0) then   ! ice layer with meltwater
-                ! melting corresponds to a negative ice flux
-                qflx_glcice_melt(c) = qflx_glcice_melt(c) + h2osoi_liq(c,j)/dtime
-                qflx_glcice(c) = qflx_glcice(c) - h2osoi_liq(c,j)/dtime
-
-                ! convert layer back to pure ice by "borrowing" ice from below the column
-                h2osoi_ice(c,j) = h2osoi_ice(c,j) + h2osoi_liq(c,j)
-                h2osoi_liq(c,j) = 0.D0
-
-             endif  ! liquid water is present
-          endif     ! istice_mec
 
        end do   ! end of column-loop
     enddo   ! end of level-loop

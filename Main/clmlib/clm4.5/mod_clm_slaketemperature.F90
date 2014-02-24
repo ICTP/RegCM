@@ -758,7 +758,7 @@ contains
 
     ! 8!) Sum energy content and total energy into lake for energy check. Any errors will be from the
     !     Tridiagonal solution.
-    ! This section was for debugging only and has been removed.  See original "ch4" branch code.
+    ! This section was for debugging only and has been removed.  See original "ch4" code.
 
 !!!!!!!!!!!!!!!!!!!!!!!
 
@@ -772,7 +772,7 @@ contains
     !       using initial heat capacity in the first step, final heat capacity in the second step,
     !       and differences from tfrz only to avoid enthalpy correction for (cpliq-cpice)*melt*tfrz.
     !       Also check soil water sum.
-    ! This section was for debugging only and has been removed.  See original "ch4" branch code.
+    ! This section was for debugging only and has been removed.  See original "ch4" code.
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!
     ! 10!) Convective mixing: make sure fracice*dz is conserved, heat content c*dz*T is conserved, and

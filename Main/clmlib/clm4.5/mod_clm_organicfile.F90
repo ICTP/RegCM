@@ -8,7 +8,7 @@ module mod_clm_organicfile
   use mod_clm_nchelper
   use mod_clm_domain , only : ldomain
   use mod_clm_type , only : grlnd
-  use mod_clm_varctl , only : fsurdat , single_column
+  use mod_clm_varctl , only : fsurdat
 
   implicit none
 

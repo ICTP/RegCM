@@ -546,7 +546,7 @@ contains
 ! !USES:
     use mod_clm_type
     use mod_clm_time_manager, only : get_step_size
-    use mod_clm_varcon      , only : denice, denh2o, tfrz, istice_mec
+    use mod_clm_varcon      , only : denice, denh2o, tfrz
     use mod_clm_varcon      , only : rpi, isturb, istdlak, istsoil, istcrop
     use mod_clm_varctl      , only : subgridflag
 !
@@ -656,12 +656,8 @@ contains
              void = 1.D0 - (h2osoi_ice(c,j)/denice + h2osoi_liq(c,j)/denh2o)&
                   /(frac_sno(c) * dz(c,j))
              ! If void is negative, then increase dz such that void = 0.
-             ! This should be done for any landunit, but for now is done only for glacier_mec 1andunits.
+             ! This should be done for any landunit
              l = clandunit(c)
-             if (ltype(l)==istice_mec .and. void < 0.D0) then
-                dz(c,j) = h2osoi_ice(c,j)/denice + h2osoi_liq(c,j)/denh2o
-                void = 0.D0
-             endif
 
              ! Allow compaction only for non-saturated node and higher ice lens node.
              if (void > 0.001D0 .and. h2osoi_ice(c,j) > .1D0) then
@@ -742,7 +738,7 @@ contains
     use mod_clm_type
     use mod_clm_varcon, only : istsoil, isturb, istdlak
     use mod_clm_slakecon  , only : lsadz
-    use mod_clm_varcon, only : istsoil, isturb,istwet,istice, istice_mec
+    use mod_clm_varcon, only : istsoil, isturb,istwet,istice
     use mod_clm_varcon, only : istcrop
     use mod_clm_time_manager, only : get_step_size
 !
@@ -1009,7 +1005,7 @@ contains
              if (ltype(l) == istwet) then             
                 h2osoi_liq(c,0) = 0.0D0
              endif
-             if (ltype(l) == istice .or. ltype(l)==istice_mec) then             
+             if ( ltype(l) == istice ) then
                 h2osoi_liq(c,0) = 0.0D0
              endif
           endif

@@ -73,9 +73,9 @@ contains
     use mod_clm_type
     use mod_clm_atmlnd        , only : clm_a2l
     use mod_clm_time_manager  , only : get_step_size
-    use mod_clm_varcon        , only : hvap, cpair, grav, vkc, tfrz, sb, icol_road_perv, &
-                                   isturb, icol_roof, icol_sunwall, icol_shadewall, istsoil, &
-                                   istice_mec
+    use mod_clm_varcon        , only : hvap, cpair, grav, vkc, tfrz, sb, &
+            icol_road_perv, isturb, icol_roof, icol_sunwall, icol_shadewall, &
+            istsoil
     use mod_clm_varcon        , only : istcrop
     use mod_clm_varpar        , only : nlevsno, nlevgrnd, nlevurb, max_pft_per_col
     use mod_clm_soiltemperature, only : SoilTemperature

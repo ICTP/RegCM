@@ -2015,7 +2015,7 @@ contains
                write (stderr,*) gs_mol(p,iv), gs_mol_err
             end if
 
-         end if    ! night or day if branch
+         end if    ! night or day if
       end do       ! canopy layer loop
    end do          ! pft loop
 

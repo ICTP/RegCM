@@ -106,7 +106,7 @@ contains
 ! !USES:
     use mod_clm_type
     use mod_clm_atmlnd   , only : clm_a2l
-    use mod_clm_varcon   , only : tfrz, istice, istwet, istsoil, istice_mec, isturb, &
+    use mod_clm_varcon   , only : tfrz, istice, istwet, istsoil, isturb, &
                               istcrop, icol_roof, icol_sunwall, icol_shadewall,&
                               hfus,denice, &
                               zlnd,rpi,spval
@@ -411,7 +411,7 @@ contains
              end if
           end if
 
-       else if (ltype(l)==istice .or. ltype(l)==istice_mec) then
+       else if ( ltype(l)==istice ) then
 
           h2ocan(p)            = 0.D0
           qflx_candrip(p)      = 0.D0

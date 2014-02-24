@@ -17,7 +17,7 @@ module mod_clm_dust
   use mod_clm_type
   use mod_clm_varpar  , only : dst_src_nbr, ndst, sz_nbr
   use mod_clm_varcon  , only : grav, istsoil
-  use mod_clm_varcon  , only : istcrop, istice_mec
+  use mod_clm_varcon  , only : istcrop
   use mod_clm_subgridave, only: p2l
   use mod_clm_varcon , only: spval , denh2o
   use mod_clm_atmlnd   , only : clm_a2l

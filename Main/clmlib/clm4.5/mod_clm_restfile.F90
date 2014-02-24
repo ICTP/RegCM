@@ -19,9 +19,9 @@ module mod_clm_restfile
   use mod_clm_varpar , only : nlevsno , nlevlak , nlevgrnd , nlevurb
   use mod_clm_varpar , only : numrad , nlevcan
   use mod_clm_varctl , only : caseid , ctitle , version , username ,    &
-          hostname , finidat , fsurdat , single_column , nsrest ,       &
-          nrevsn , nsrStartup , nsrContinue , nsrBranch , inst_suffix , &
-          brnch_retain_casename , conventions , source
+          hostname , finidat , fsurdat , nsrest ,       &
+          nrevsn , nsrStartup , nsrContinue , inst_suffix , &
+          conventions , source
   use mod_clm_varctl , only : rpntfil, rpntdir, inst_suffix
 #if (defined CN)
   use mod_clm_cnrest , only : CNRest
@@ -207,35 +207,8 @@ module mod_clm_restfile
     ! Continue run:
     ! Restart file pathname is read restart pointer file
 
-    if (nsrest==nsrContinue) then
+    if ( nsrest == nsrContinue ) then
        call restFile_read_pfile( path )
-    end if
-
-    ! Branch run:
-    ! Restart file pathname is obtained from namelist "nrevsn"
-    ! Check case name consistency (case name must be different for branch run,
-    ! unless namelist specification states otherwise)
-
-    if (nsrest==nsrBranch) then
-      length = len_trim(nrevsn)
-      if (nrevsn(length-2:length) == '.nc') then
-        path = trim(nrevsn)
-      else
-        path = trim(nrevsn) // '.nc'
-      end if
-
-      ! tcraig, adding xx. and .clm2 makes this more robust
-      ctest = 'xx.'//trim(caseid)//'.clm2'
-      ftest = 'xx.'//trim(rfile)
-      status = index(trim(ftest),trim(ctest))
-      if (status /= 0 .and. .not.(brnch_retain_casename)) then
-        write(stderr,*) 'Must change case name on branch run if ',&
-               'brnch_retain_casename namelist is not set'
-        write(stderr,*) 'previous case filename= ',trim(rfile),&
-               ' current case = ',trim(caseid), ' ctest = ',trim(ctest), &
-               ' ftest = ',trim(ftest)
-        call fatal(__FILE__,__LINE__,'clm now stopping')
-      end if
     end if
 
   end subroutine restFile_getfile
@@ -251,9 +224,7 @@ module mod_clm_restfile
     character(len=256) :: locfn ! Restart pointer file name
     ! Obtain the restart file from the restart pointer file
     ! For restart runs, the restart pointer file contains the full pathname
-    ! of the restart file. For branch runs, the namelist variable
-    ! [nrevsn] contains the full pathname of the restart file.
-    ! New history files are always created for branch runs.
+    ! of the restart file.
     if (myid == italk) then
        write(stdout,*) 'Reading restart pointer file....'
     endif
@@ -418,7 +389,7 @@ module mod_clm_restfile
 
     ! Get relevant sizes
 
-    if ( .not. single_column .or. nsrest /= nsrStartup ) then
+    if ( nsrest /= nsrStartup ) then
       call get_proc_global(numg, numl, numc, nump)
       if ( .not. clm_check_dimlen(ncid, 'gridcell', numg) ) &
         call fatal(__FILE__,__LINE__,'NUM GRIDCELL DIFFER !')

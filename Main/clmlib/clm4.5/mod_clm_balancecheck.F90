@@ -12,9 +12,8 @@ module mod_clm_balancecheck
   use mod_clm_varpar , only : nlevgrnd , nlevsoi , nlevurb
   use mod_clm_varcon , only : icol_roof , icol_sunwall , icol_shadewall
   use mod_clm_varcon , only : icol_road_perv , icol_road_imperv
-  use mod_clm_varcon , only : isturb , spval , istice_mec , istdlak
+  use mod_clm_varcon , only : isturb , spval , istdlak
   use mod_clm_varcon , only : istslak , istsoil , istcrop , istwet
-  use mod_clm_varctl , only : glc_dyntopo , create_glacier_mec_landunit
   use mod_clm_subgridave
 
   implicit none
@@ -443,21 +442,6 @@ module mod_clm_balancecheck
                  qflx_evap_tot(c) - qflx_surf(c)  - qflx_h2osfc_surf(c) - &
                  qflx_qrgwl(c) - qflx_drain(c) - qflx_drain_perched(c) -  &
                  qflx_snwcp_ice(c)) * dtsrf
-        ! Suppose glc_dyntopo = T:   
-        ! (1) We have qflx_snwcp_ice = 0, and excess snow has been
-        !     incorporated in qflx_glcice.  
-        !     This flux must be included here to complete the water balance.
-        ! (2) Meltwater from ice is allowed to run off and is included in
-        !     qflx_qrgwl, but the water content of the ice column has not
-        !     changed (at least for now) because an equivalent ice mass has
-        !     been "borrowed" from the base of the column.  That meltwater
-        !     is included in qflx_glcice.
-        !
-        ! Note that qflx_glcice is only valid over ice_mec landunits;
-        ! elsewhere it is spval
-        if ( glc_dyntopo .and. ltype(l)==istice_mec ) then
-          errh2o(c) = errh2o(c) + qflx_glcice(c)*dtsrf
-        end if
       else
         errh2o(c) = 0.0D0
       end if
@@ -569,12 +553,6 @@ module mod_clm_balancecheck
           end if
         end if
 
-        ! For ice_mec landunits, if glc_dyntopo is true,
-        ! then qflx_snwcp_ice = 0, and qflx_glcice_frz instead stores this flux
-        if ( ltype(l) == istice_mec .and. glc_dyntopo ) then
-          snow_sinks(c) = snow_sinks(c) + qflx_glcice_frz(c)
-        end if
-
         errh2osno(c) = (h2osno(c) - h2osno_old(c)) - &
                 (snow_sources(c) - snow_sinks(c)) * dtsrf
       else
@@ -616,9 +594,6 @@ module mod_clm_balancecheck
         write(stderr,*)'qflx_snwcp_ice: ',qflx_snwcp_ice(indexc)*dtsrf
         write(stderr,*)'qflx_snwcp_liq: ',qflx_snwcp_liq(indexc)*dtsrf
         write(stderr,*)'qflx_sl_top_soil: ',qflx_sl_top_soil(indexc)*dtsrf
-        if ( create_glacier_mec_landunit ) then
-          write(stderr,*)'qflx_glcice_frz: ',qflx_glcice_frz(indexc)*dtsrf
-        end if
         call fatal(__FILE__,__LINE__,'clm model is stopping')
       end if
     end if

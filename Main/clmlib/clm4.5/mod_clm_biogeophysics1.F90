@@ -64,7 +64,7 @@ contains
     use mod_clm_type
     use mod_clm_atmlnd         , only : clm_a2l
     use mod_clm_varcon         , only : denh2o, denice, roverg, hvap, hsub, &
-                                    istice, istice_mec, istwet, istsoil, isturb, istdlak, &
+                                    istice, istwet, istsoil, isturb, istdlak, &
                                     zlnd, zsno, tfrz, &
                                     icol_roof, icol_sunwall, icol_shadewall,     &
                                     icol_road_imperv, icol_road_perv, tfrz, spval, istdlak
@@ -362,8 +362,7 @@ contains
        ! at ground surface
 
        qred = 1.D0
-       if (ityplun(l)/=istwet .AND. ityplun(l)/=istice  &
-                              .AND. ityplun(l)/=istice_mec) then
+       if (ityplun(l)/=istwet .AND. ityplun(l)/=istice ) then
           if (ityplun(l) == istsoil .or. ityplun(l) == istcrop) then
              wx   = (h2osoi_liq(c,1)/denh2o+h2osoi_ice(c,1)/denice)/dz(c,1)
              fac  = min(1.D0, wx/watsat(c,1))
@@ -485,10 +484,10 @@ contains
        ! Urban emissivities are currently read in from data file
 
        if (ityplun(l) /= isturb) then
-          if (ityplun(l)==istice .or. ityplun(l)==istice_mec) then
-             emg(c) = 0.97D0
+          if ( ityplun(l)==istice ) then
+            emg(c) = 0.97D0
           else
-             emg(c) = (1.D0-frac_sno(c))*0.96D0 + frac_sno(c)*0.97D0
+            emg(c) = (1.D0-frac_sno(c))*0.96D0 + frac_sno(c)*0.97D0
           end if
        end if
 
@@ -590,8 +589,7 @@ contains
                   forc_hgt_t_pft(p) = forc_hgt_t(g) + z0m(p) + displa(p)
                   forc_hgt_q_pft(p) = forc_hgt_q(g) + z0m(p) + displa(p)
                 end if
-              else if (ityplun(l) == istwet .or. ityplun(l) == istice      &
-                                            .or. ityplun(l) == istice_mec) then
+              else if (ityplun(l) == istwet .or. ityplun(l) == istice ) then
                 forc_hgt_u_pft(p) = forc_hgt_u(g) + z0mg(c)
                 forc_hgt_t_pft(p) = forc_hgt_t(g) + z0mg(c)
                 forc_hgt_q_pft(p) = forc_hgt_q(g) + z0mg(c)

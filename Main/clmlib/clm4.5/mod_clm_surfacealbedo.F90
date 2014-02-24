@@ -973,7 +973,7 @@ module mod_clm_surfacealbedo
                   coszen, albsnd, albsni)
     use mod_clm_type
     use mod_clm_varpar , only : numrad
-    use mod_clm_varcon , only : albsat , albdry , tfrz , istice , istice_mec
+    use mod_clm_varcon , only : albsat , albdry , tfrz , istice
     use mod_clm_varcon , only : istdlak
     use mod_clm_slakecon , only : alblak
     use mod_clm_slakecon , only : alblakwi , calb , lakepuddling
@@ -1065,8 +1065,7 @@ module mod_clm_surfacealbedo
             !albsoi = albsod
             albsod(c,ib) = min(albsat(soilcol,ib)+inc, albdry(soilcol,ib))
             albsoi(c,ib) = albsod(c,ib)
-          else if ( ltype(l) == istice .or. &
-                    ltype(l) == istice_mec)  then  ! land ice
+          else if ( ltype(l) == istice ) then ! land ice
             ! changed from local variable to clm_type:
             !albsod = albice(ib)
             !albsoi = albsod

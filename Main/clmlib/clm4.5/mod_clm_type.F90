@@ -22,7 +22,6 @@ module mod_clm_type
   !          SLake implementation has variable depth)
   !   5  => (istwet)     wetland
   !   6  => (isturb)     urban
-  !   7  => (istice_mec) land ice (multiple elevation classes)
   !   8  => (istcrop)    crop (only for crop configuration)
   ! --------------------------------------------------------
   ! column types can have values of
@@ -32,7 +31,6 @@ module mod_clm_type
   !   3  => (istdlak)          deep lake
   !   4  => (istslak)          shallow lake
   !   5  => (istwet)           wetland
-  !   7  => (istice_mec)       land ice (multiple elevation classes)
   !   61 => (icol_roof)        urban roof
   !   62 => (icol_sunwall)     urban sunwall
   !   63 => (icol_shadewall)   urban shadewall

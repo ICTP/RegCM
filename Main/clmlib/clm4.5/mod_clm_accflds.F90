@@ -908,7 +908,7 @@ module mod_clm_accflds
     ! Initialize 2m ref temperature max and min values
 
     if ( nsrest == nsrStartup ) then
-      ! Why not restart&branch? These vars are not in clmr.
+      ! Why not restart? These vars are not in clmr.
       do p = begp , endp
         t_ref2m_max(p) = spval
         t_ref2m_min(p) = spval

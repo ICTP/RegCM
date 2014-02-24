@@ -55,7 +55,7 @@ module mod_clm_urbaninput
   !
   subroutine UrbanInput(mode)
     use mod_clm_varpar , only : numrad , nlevurb , numurbl
-    use mod_clm_varctl , only : fsurdat , single_column
+    use mod_clm_varctl , only : fsurdat
     use mod_clm_type , only : grlnd
     use mod_clm_decomp , only : get_proc_bounds
     use mod_clm_domain , only : ldomain

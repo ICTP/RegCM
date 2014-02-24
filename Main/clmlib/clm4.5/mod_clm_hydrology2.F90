@@ -61,12 +61,11 @@ contains
 ! !USES:
     use mod_clm_type
     use mod_clm_atmlnd      , only : clm_a2l
-    use mod_clm_varcon      , only : denh2o, denice, istice, istwet, istsoil, isturb, istice_mec, spval, &
+    use mod_clm_varcon      , only : denh2o, denice, istice, istwet, istsoil, isturb, spval, &
                                  icol_roof, icol_road_imperv, icol_road_perv, icol_sunwall, &
                                  icol_shadewall, istdlak, &
                                  tfrz, hfus, grav
     use mod_clm_varcon      , only : istcrop
-    use mod_clm_varctl      , only : glc_dyntopo
     use mod_clm_varpar      , only : nlevgrnd, nlevsno, nlevsoi, nlevurb
     use mod_clm_snowhydrology, only : SnowCompaction, CombineSnowLayers, DivideSnowLayers, &
                                  SnowWater, BuildSnowFilter
@@ -538,8 +537,7 @@ contains
        c = filter_nolakec(fc)
        l = clandunit(c)
        g = cgridcell(c)
-       if (ityplun(l)==istwet .or. ityplun(l)==istice      &
-                              .or. ityplun(l)==istice_mec) then
+       if ( ityplun(l) == istwet .or. ityplun(l) == istice ) then
           qflx_drain(c)         = 0.D0
           qflx_drain_perched(c) = 0.D0
           qflx_h2osfc_surf(c)   = 0.D0
@@ -555,10 +553,6 @@ contains
           !       This code will not work if Hydrology2 is called before Biogeophysics2, or if
           !        qflx_snwcp_ice has alread been included in qflx_glcice.
           !       (The snwcp flux is added to qflx_glcice later in this subroutine.)
-
-          if (glc_dyntopo .and. ityplun(l)==istice_mec) then
-             qflx_qrgwl(c) = qflx_qrgwl(c) - qflx_glcice(c)   ! meltwater from melted ice
-          endif
           fcov(c)       = spval
           fsat(c)       = spval
           qcharge(c)    = spval
@@ -571,24 +565,6 @@ contains
           qcharge(c)            = spval
           qflx_rsub_sat(c)      = spval
        end if
-       ! If snow exceeds the thickness limit in glacier_mec columns, convert to an ice flux.
-       ! For dynamic glacier topography, remove qflx_snwcp_ice from the runoff.
-       ! Note that qflx_glcice can also have a negative component from melting of bare ice,
-       !  as computed in SoilTemperatureMod.F90
-
-       if (ityplun(l)==istice_mec) then
-
-          qflx_glcice_frz(c) = qflx_snwcp_ice(c)
-          qflx_glcice(c) = qflx_glcice(c) + qflx_glcice_frz(c)
-
-          ! For dynamic topography, set qflx_snwcp_ice = 0 so that this ice mass does not run off.
-          ! For static topography, qflx_glc_ice is passed to the ice sheet model, but the 
-          !  CLM runoff terms are not changed.
- 
-          if (glc_dyntopo) qflx_snwcp_ice(c) = 0.D0
-
-       endif   ! istice_mec
-
 
        qflx_runoff(c) = qflx_drain(c) + qflx_surf(c)  + qflx_h2osfc_surf(c) + qflx_qrgwl(c) + qflx_drain_perched(c)
 

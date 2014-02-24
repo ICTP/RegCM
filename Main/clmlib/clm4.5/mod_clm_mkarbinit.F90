@@ -10,7 +10,7 @@ module mod_clm_mkarbinit
        denice , denh2o , spval , sb , icol_road_perv, icol_road_imperv ,   &
        icol_roof , icol_sunwall , icol_shadewall , tfrz
   use mod_clm_varcon , only : istcrop
-  use mod_clm_varcon , only : istice_mec, h2osno_max
+  use mod_clm_varcon , only : h2osno_max
   use mod_clm_varctl , only : pertlim
   use mod_clm_decomp , only : get_proc_bounds
   use mod_clm_snicar , only : snw_rds_min
@@ -317,8 +317,6 @@ module mod_clm_mkarbinit
       ! delaying ice formation in columns with net accumulation.
       if ( ltype(l) == istice ) then
         h2osno(c) = h2osno_max
-      else if ( ltype(l) == istice_mec ) then
-        h2osno(c) = 0.5D0 * h2osno_max   ! 50 cm if h2osno_max = 1 m
       else
         h2osno(c) = 0.D0
       end if
@@ -361,7 +359,7 @@ module mod_clm_mkarbinit
             t_soisno(c,j) = 250.D0
           end do
         end if
-        if (ltype(l)==istice .or. ltype(l)==istice_mec) then
+        if ( ltype(l)==istice ) then
           do j = 1 , nlevgrnd
             t_soisno(c,j) = 250.D0
           end do
@@ -577,7 +575,7 @@ module mod_clm_mkarbinit
               h2osoi_vol(c,j) = 1.0D0
             end if
           end do
-        else if ( ltype(l) == istice .or. ltype(l) == istice_mec ) then
+        else if ( ltype(l) == istice ) then
           nlevs = nlevgrnd 
           do j = 1 , nlevs
             h2osoi_vol(c,j) = 1.0D0

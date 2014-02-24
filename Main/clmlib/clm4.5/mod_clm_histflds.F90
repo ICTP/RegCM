@@ -15,7 +15,7 @@ module mod_clm_histflds
   use mod_clm_varpar , only : maxpatch_glcmec , ndecomp_cascade_transitions
   use mod_clm_varpar , only : ndecomp_pools , nlevdecomp , nlevdecomp_full
   use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_varctl , only : create_glacier_mec_landunit , use_c13 , use_c14
+  use mod_clm_varctl , only : use_c13 , use_c14
   use mod_clm_surfrd , only : crop_prog
 #if (defined LCH4)
   use mod_clm_atmlnd , only : clm_l2a
@@ -997,38 +997,6 @@ module mod_clm_histflds
     call hist_addfld1d (fname='QIRRIG', units='mm/s', &
          avgflag='A', long_name='water added through irrigation', &
          ptr_col=clm3%g%l%c%cwf%qflx_irrig, set_lake=0.D0)
-
-    if (create_glacier_mec_landunit) then
-
-       call hist_addfld1d (fname='QICE',  units='mm/s',  &
-            avgflag='A', long_name='ice growth/melt', &
-            ptr_col=clm3%g%l%c%cwf%qflx_glcice, set_noglcmec=spval)
-
-       call hist_addfld1d (fname='QICE_FRZ',  units='mm/s',  &
-            avgflag='A', long_name='ice growth', &
-            ptr_col=clm3%g%l%c%cwf%qflx_glcice_frz, set_noglcmec=spval)
-
-       call hist_addfld1d (fname='QICE_MELT',  units='mm/s',  &
-            avgflag='A', long_name='ice melt', &
-            ptr_col=clm3%g%l%c%cwf%qflx_glcice_melt, set_noglcmec=spval)
-
-       call hist_addfld1d (fname='gris_mask',  units='unitless',  &
-            avgflag='A', long_name='Greenland mask', &
-            ptr_gcell=clm3%g%gris_mask)
-
-       call hist_addfld1d (fname='gris_area',  units='km^2',  &
-            avgflag='A', long_name='Greenland ice area', &
-            ptr_gcell=clm3%g%gris_area)
-
-       call hist_addfld1d (fname='aais_mask',  units='unitless',  &
-            avgflag='A', long_name='Antarctic mask', &
-            ptr_gcell=clm3%g%aais_mask)
-
-       call hist_addfld1d (fname='aais_area',  units='km^2',  &
-            avgflag='A', long_name='Antarctic ice area', &
-            ptr_gcell=clm3%g%aais_area)
-
-   end if
 
     ! Water and energy balance checks
 

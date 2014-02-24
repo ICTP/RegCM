@@ -15,7 +15,7 @@ module mod_clm_subgridave
   use mod_clm_varpar,  only : max_pft_per_gcell
   use mod_clm_varcon , only : max_lunit
   use mod_clm_varcon , only : istsoil, istice, istdlak, istslak, istwet, &
-                              isturb, istice_mec, istcrop, max_lunit, spval
+                              isturb, istcrop, max_lunit, spval
 
   implicit none
 
@@ -1524,7 +1524,6 @@ module mod_clm_subgridave
       scale_lookup(istcrop) = 1.0D0
     else if ( l2g_scale_type == 'ice' ) then
       scale_lookup(istice) = 1.0D0
-      scale_lookup(istice_mec) = 1.0D0
     else if ( l2g_scale_type == 'nonurb' ) then
       scale_lookup(:) = 1.0D0
       scale_lookup(isturb) = spval

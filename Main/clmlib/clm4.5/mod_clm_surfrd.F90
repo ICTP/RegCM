@@ -21,8 +21,7 @@ module mod_clm_surfrd
          maxpatch , npatch_urban_tbd , npatch_urban_hd , npatch_urban_md , &
          numurbl , npatch_lake , npatch_wet , npatch_glacier ,             &
          maxpatch_urb , npatch_glacier_mec , maxpatch_glcmec
-  use mod_clm_varctl , only : glc_topomax , scmlat , scmlon ,              &
-         single_column , create_glacier_mec_landunit
+  use mod_clm_varctl , only : glc_topomax
   use mod_clm_varsur , only : wtxy , vegxy , topoxy , pctspec
   use mod_clm_decomp , only : get_proc_bounds
   use mod_clm_type
@@ -602,12 +601,6 @@ module mod_clm_surfrd
 
     allocate(pctgla(begg:endg),pctlak(begg:endg))
     allocate(pctwet(begg:endg),pcturb(begg:endg,numurbl),pcturb_tot(begg:endg))
-    if (create_glacier_mec_landunit) then
-      allocate(pctglc_mec(begg:endg,maxpatch_glcmec))
-      allocate(pctglc_mec_tot(begg:endg))
-      allocate(topoglc_mec(begg:endg,maxpatch_glcmec))
-      allocate(glc_topomax(0:maxpatch_glcmec))
-    end if
 
     if ( .not. clm_check_dimlen(ncid,'nlevsoi',nlevsoifl) ) then
       call fatal(__FILE__,__LINE__, &
@@ -664,122 +657,7 @@ module mod_clm_surfrd
       end do
     end do
 
-    if ( create_glacier_mec_landunit ) then  ! call ncd_io_gs_int2d
-      if ( .not. clm_check_dimlen(ncid,'nglcec',maxpatch_glcmec) ) then
-        call fatal(__FILE__,__LINE__, &
-                trim(subname)//'nglcec /= maxpatch_glcmec' )
-      end if
-      if ( .not. clm_check_dimlen(ncid,'nglcecp1',maxpatch_glcmec+1) ) then
-         call fatal(__FILE__,__LINE__, &
-                 trim(subname)//'nglcecp1 /= maxpatch_glcmec+1' )
-      end if
-      if ( clm_check_var(ncid,'GLC_MEC') ) then
-        call clm_readvar(ncid,'GLC_MEC',glc_topomax)
-      else
-        call fatal(__FILE__,__LINE__, &
-           trim(subname)//'ERROR: GLC_MEC was NOT on the input surfdata file' )
-      end if
-      if ( clm_check_var(ncid,'PCT_GLC_MEC') ) then
-        call clm_readvar(ncid,'PCT_GLC_MEC',pctglc_mec)
-      else
-        call fatal(__FILE__,__LINE__, &
-          trim(subname)//' ERROR: PCT_GLC_MEC NOT on surfdata file' )
-      end if
-      if ( clm_check_var(ncid,'TOPO_GLC_MEC') ) then
-        call clm_readvar(ncid,'TOPO_GLC_MEC',topoglc_mec)
-      else
-        call fatal(__FILE__,__LINE__, &
-          trim(subname)//' ERROR: TOPO_GLC_MEC NOT on surfdata file' )
-      end if
-      pctglc_mec_tot(:) = 0.D0
-      do n = 1 , maxpatch_glcmec
-        do nl = begg , endg
-          pctglc_mec_tot(nl) = pctglc_mec_tot(nl) + pctglc_mec(nl,n)
-        end do
-      end do
-
-      ! Make sure sum of pctglc_mec = pctgla (approximately), then
-      ! correct pctglc_mec so that its sum more exactly equals pctgla,
-      ! then zero out pctgla 
-      ! WJS (9-28-12): The reason for the correction piece of this is:
-      ! in the surface dataset, pctgla underwent various minor corrections
-      ! that make it the trusted value (as opposed to sum(pctglc_mec).
-      ! sum(pctglc_mec) can differ from pctgla by single precision roundoff.
-      ! This difference can cause problems later (e.g., in the consistency
-      ! check in pftdynMod), so we do this correction here. It might be
-      ! better to do this correction in mksurfdata_map, but because of time
-      ! constraints, which make me unable to recreate surface datasets, I
-      ! have to do it here instead (and there are arguments for putting it
-      ! here anyway).
-
-      do nl = begg , endg
-        ! We need to use a fairly high threshold for equality (2.0e-5) because
-        ! pctgla and pctglc_mec are computed using single precision inputs.
-        ! Note that this threshold agrees with the threshold in the error
-        ! checks in mkglcmecMod: mkglcmec in mksurfdata_map. 
-        if (abs(pctgla(nl) - pctglc_mec_tot(nl)) > 2.0e-5) then
-          write(stderr,*) ' '
-          write(stderr,*) &
-              'surfrd error: pctgla not equal to sum of pctglc_mec for nl=', nl
-          write(stderr,*) 'pctgla =', pctgla(nl)
-          write(stderr,*) 'pctglc_mec_tot =', pctglc_mec_tot(nl)
-          call fatal(__FILE__,__LINE__,'clm now stopping')
-        end if
-
-        ! Correct the remaining minor differences in pctglc_mec so sum more
-        ! exactly equals pctglc (see notes above for justification)
-        if (pctglc_mec_tot(nl) > 0.0D0) then
-          pctglc_mec(nl,:) = pctglc_mec(nl,:) * pctgla(nl)/pctglc_mec_tot(nl)
-        end if
-
-        ! Now recompute pctglc_mec_tot, and confirm that we are now much
-        ! closer to pctgla
-        pctglc_mec_tot(nl) = 0.D0
-        do n = 1 , maxpatch_glcmec
-          pctglc_mec_tot(nl) = pctglc_mec_tot(nl) + pctglc_mec(nl,n)
-        end do
-
-        if (abs(pctgla(nl) - pctglc_mec_tot(nl)) > 1.0e-13) then
-          write(stderr,*) ' '
-          write(stderr,*) 'surfrd error: after correction, pctgla not equal'// &
-                 ' to sum of pctglc_mec for nl=', nl
-          write(stderr,*) 'pctgla =', pctgla(nl)
-          write(stderr,*) 'pctglc_mec_tot =', pctglc_mec_tot(nl)
-          call fatal(__FILE__,__LINE__,'clm now stopping')
-        end if
-
-        ! Finally, zero out pctgla
-        pctgla(nl) = 0.D0
-      end do
-
-      ! If pctglc_mec_tot is very close to 100%, round to 100%
-
-      do nl = begg , endg
-        ! The inequality here ( <= 2.0e-5 ) is designed to be the complement
-        ! of the above check that makes sure pctglc_mec_tot is close to pctgla:
-        ! so if pctglc=100 (exactly), then exactly one of these conditionals
-        ! will be triggered.
-        ! Update 9-28-12: Now that there is a rescaling of pctglc_mec to bring
-        ! it more in line with pctgla, we could probably decrease this
-        ! tolerance again (the point about exactly one of these conditionals
-        ! being triggered no longer holds)
-        ! - or perhaps even get rid of this whole block of code. But I'm
-        ! keeping this as is for now because that's how I tested it, and I
-        ! don't think it will hurt anything to use this larger tolerance.
-        if (abs(pctglc_mec_tot(nl) - 100.D0) <= 2.0e-5) then
-          pctglc_mec(nl,:) = pctglc_mec(nl,:) * 100.D0 / pctglc_mec_tot(nl)
-          pctglc_mec_tot(nl) = 100.D0
-        end if
-      end do
-
-      pctspec = pctwet + pctlak + pcturb_tot + pctglc_mec_tot
-
-      if ( myid == italk ) then
-        write(stdout,*) '   elevation limits = ', glc_topomax
-      end if
-    else
-      pctspec = pctwet + pctlak + pcturb_tot + pctgla
-    end if
+    pctspec = pctwet + pctlak + pcturb_tot + pctgla
 
     ! Error check: glacier, lake, wetland, urban sum must be less than 100
 
@@ -960,19 +838,6 @@ module mod_clm_surfrd
       call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
 
-    ! Initialize glacier_mec weights
-
-    if (create_glacier_mec_landunit) then
-      do n = 1 , maxpatch_glcmec
-        npatch = npatch_glacier_mec - maxpatch_glcmec + n
-        do nl = begg , endg
-          vegxy (nl,npatch) = noveg
-          wtxy  (nl,npatch) = pctglc_mec(nl,n)/100.D0
-          topoxy(nl,npatch) = topoglc_mec(nl,n)
-        end do   ! nl
-      end do      ! maxpatch_glcmec
-      deallocate(pctglc_mec, pctglc_mec_tot, topoglc_mec)
-    end if          ! create_glacier_mec_landunit
     deallocate(pctgla,pctlak,pctwet,pcturb,pcturb_tot)
   end subroutine surfrd_wtxy_special
   !
