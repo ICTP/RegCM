@@ -5578,7 +5578,7 @@ module mod_mppparam
     real(rk8) , dimension(:) , intent(out) :: f_collect 
     real(rk8) , intent(in) :: f_sub
     real(rk8) , dimension(1) :: tmp
-    tmp(1) = fsub
+    tmp(1) = f_sub
     call mpi_allgather(tmp,      1,mpi_real8, &
                        f_collect,1,mpi_real8,mycomm,mpierr)
     if ( mpierr /= mpi_success ) THEN
