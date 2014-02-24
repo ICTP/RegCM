@@ -521,7 +521,7 @@ module mod_mppparam
     implicit none
     logical , intent(in) :: rlval
     logical , intent(out) :: rtval
-    call mpi_allreduce(rlval,rtval,1,mpi_logical,mpi_lor,mpierr)
+    call mpi_allreduce(rlval,rtval,1,mpi_logical,mpi_lor,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_allreduce error.')
     end if
@@ -666,7 +666,7 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_irecv error.')
     end if
     call mpi_send(r8vector1,isize,mpi_real8,icpu,tag2, &
-                  cartesian_communicator,mpi_status_ignore,mpierr)
+                  cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_send error.')
     end if
@@ -5555,7 +5555,9 @@ module mod_mppparam
     implicit none 
     real(rk8) , dimension(:) , intent(out) :: f_collect 
     real(rk8) , intent(in) :: f_sub
-    call mpi_gather(f_sub,    1,mpi_real8, &
+    real(rk8) , dimension(1) :: tmp
+    tmp(1) = f_sub
+    call mpi_gather(tmp,      1,mpi_real8, &
                     f_collect,1,mpi_real8,iocpu,mycomm,mpierr)
     if ( mpierr /= mpi_success ) THEN
       call fatal(__FILE__,__LINE__,'error in mpi_gather!!')
@@ -5566,7 +5568,9 @@ module mod_mppparam
     implicit none 
     integer(ik4) , dimension(:) , intent(out) :: i_collect 
     integer(ik4) , intent(in) :: i_sub
-    call mpi_gather(i_sub,    1,mpi_integer4, &
+    integer(ik4) , dimension(1) :: tmp
+    tmp(1) = i_sub
+    call mpi_gather(tmp,      1,mpi_integer4, &
                     i_collect,1,mpi_integer4,iocpu,mycomm,mpierr)
     if ( mpierr /= mpi_success ) THEN
       call fatal(__FILE__,__LINE__,'error in mpi_gather!!')
@@ -5590,7 +5594,9 @@ module mod_mppparam
     implicit none 
     integer(ik4) , dimension(:) , intent(out) :: i_collect 
     integer(ik4) , intent(in) :: i_sub
-    call mpi_allgather(i_sub,    1,mpi_integer4, &
+    integer(ik4) , dimension(1) :: tmp
+    tmp(1) = i_sub
+    call mpi_allgather(tmp,      1,mpi_integer4, &
                        i_collect,1,mpi_integer4,mycomm,mpierr)
     if ( mpierr /= mpi_success ) THEN
       call fatal(__FILE__,__LINE__,'error in mpi_allgather!!')
@@ -5859,7 +5865,9 @@ module mod_mppparam
     type(masked_comm) , intent(inout) :: cl
     integer(ik4) , intent(in) :: ncart_tot_g , ncart_tot_sg
     integer(ik4) :: linp , nrem , np , ntotg
-    call mpi_allgather(ncart_tot_g,1,mpi_integer4,           &
+    integer(ik4) , dimension(1) :: tmp
+    tmp(1) = ncart_tot_g
+    call mpi_allgather(tmp,1,mpi_integer4,                   &
                        cl%cartesian_npoint_g,1,mpi_integer4, &
                        cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
@@ -5893,7 +5901,8 @@ module mod_mppparam
                               cl%linear_npoint_g(np-1)
     end do
     if ( nsg > 1 ) then
-      call mpi_allgather(ncart_tot_sg,1,mpi_integer4,           &
+      tmp(1) = ncart_tot_sg
+      call mpi_allgather(tmp,1,mpi_integer4,                    &
                          cl%cartesian_npoint_sg,1,mpi_integer4, &
                          cartesian_communicator,mpierr)
       if ( mpierr /= mpi_success ) then
