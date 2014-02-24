@@ -5577,7 +5577,9 @@ module mod_mppparam
     implicit none 
     real(rk8) , dimension(:) , intent(out) :: f_collect 
     real(rk8) , intent(in) :: f_sub
-    call mpi_allgather(f_sub,    1,mpi_real8, &
+    real(rk8) , dimension(1) :: tmp
+    tmp(1) = fsub
+    call mpi_allgather(tmp,      1,mpi_real8, &
                        f_collect,1,mpi_real8,mycomm,mpierr)
     if ( mpierr /= mpi_success ) THEN
       call fatal(__FILE__,__LINE__,'error in mpi_allgather!!')
