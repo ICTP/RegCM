@@ -469,16 +469,51 @@ module mod_cu_tiedtke
                   zqude,locum,ktype,kcbot,kctop,ztu,zqu,zlu,zlude,  &
                   zmfu,zmfd,zrain)
   case (4)
-    pqhfl(:,klev+1) = pqhfla(:)*wlhv
+    ! =====================
+    ! ABOUT pqhfl and pahfs
+    ! =====================
+    ! The variables in question are defined in the turbulence scheme and 
+    ! are the turbulence flux of water vapour and sensible heat as expected...
+    !  The naming changes in the turbulence scheme; they are PDIFTQ and PDIFTS,
+    ! respectively...
+    ! The flux values are just backed out from the new-old tendency values
+    ! differences over the scheme (because of course the scheme employs an
+    ! implicit solver.)
+    ! 
+    ! These are the definitions at the start of vdfmain.f90
+    !
+    ! *PDIFTQ*       TURBULENT FLUX OF SPECIFIC HUMIDITY           KG/(M2*S)
+    ! *PDIFTS*       TURBULENT FLUX OF HEAT                        J/(M2*S)
+    !
+    ! And the code where they are defined is here:
+    !
+    !DO JK=KLEV-1,1,-1
+    !  DO JL=KIDIA,KFDIA
+    !   ZGDPH = - (PAPHM1(JL,JK)-PAPHM1(JL,JK+1)) * ZRG
+    !   !...changes in q,l,i tendencies are converted to fluxes
+    !   PDIFTQ(JL,JK) = (PQE (JL,JK+1) - ZQEA(JL,JK+1)) * ZGDPH +
+    !         PDIFTQ(JL,JK+1)
+    !   PDIFTL(JL,JK) = (PLE (JL,JK+1) - ZLEA(JL,JK+1)) * ZGDPH +
+    !         PDIFTL(JL,JK+1)
+    !   PDIFTI(JL,JK) = (PIE (JL,JK+1) - ZIEA(JL,JK+1)) * ZGDPH +
+    !         PDIFTI(JL,JK+1)
+    !   !...slg=s-Lc*ql-Ld*qi (same for fluxes)
+    !   PDIFTS(JL,JK) = ZDIFTSLG(JL,JK) &
+    !         & + RLVTT * PDIFTL(JL,JK) + RLSTT * PDIFTI(JL,JK)
+    !  ENDDO
+    !ENDDO
+    ! ZGDPH - is just the mass of the layers (g/dp) defined at half level
+    ! PQE and ZQEA are the new and old tendencies
+    ! *PQE*          MOISTURE TENDENCY KG/(KG S)
+    ! The sensible heat calculation is slightly more complicated as it is
+    ! backed out of the conserved variables used in the turbulence scheme.
+    ! I presume REGCM's turbulence scheme already or can easily provide these
+    ! quantities...
+    ! Will only set for now fluxes at surface
+    pqhfl(:,1:klev) = d_zero
+    pqhfl(:,klev+1) = pqhfla(:)
+    pahfs(:,1:klev) = d_zero
     pahfs(:,klev+1) = pshfla(:)
-    ! Just for test !!!! Make sensible heat have same shape of
-    ! the profile of T and latent heat same shape of the Q profile
-    do jk = klev , 2 , -1
-      pqhfl(:,jk) = pqhfl(:,jk+1) * (zqp1(:,jk-1)/zqp1(:,jk))
-      pahfs(:,jk) = pahfs(:,jk+1) * (ztp1(:,jk-1)/ztp1(:,jk))
-    end do
-    pqhfl(:,1) = pqhfl(:,2)
-    pahfs(:,1) = pahfs(:,2)
     pmflxr = d_zero
     pmflxs = d_zero
     call cumastrn(1,kproma,kbdim,klev,ldland,dt,ztp1,zqp1,       &
