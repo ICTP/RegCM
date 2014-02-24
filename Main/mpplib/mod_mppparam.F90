@@ -573,7 +573,7 @@ module mod_mppparam
     logical , dimension(:) , intent(in) :: lval
     integer(ik4) , intent(in) :: isize , icpu , itag
     call mpi_send(lval,isize,mpi_logical,icpu,itag, &
-                  cartesian_communicator,mpi_status_ignore,mpierr)
+                  cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_send error.')
     end if
@@ -584,7 +584,7 @@ module mod_mppparam
     integer(ik4) , dimension(:) , intent(in) :: ival
     integer(ik4) , intent(in) :: isize , icpu , itag
     call mpi_send(ival,isize,mpi_integer4,icpu,itag, &
-                  cartesian_communicator,mpi_status_ignore,mpierr)
+                  cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_send error.')
     end if
@@ -595,7 +595,7 @@ module mod_mppparam
     real(rk4) , dimension(:) , intent(in) :: rval
     integer(ik4) , intent(in) :: isize , icpu , itag
     call mpi_send(rval,isize,mpi_real4,icpu,itag, &
-                  cartesian_communicator,mpi_status_ignore,mpierr)
+                  cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_send error.')
     end if
@@ -606,7 +606,7 @@ module mod_mppparam
     real(rk8) , dimension(:) , intent(in) :: rval
     integer(ik4), intent(in) :: isize , icpu , itag
     call mpi_send(rval,isize,mpi_real8,icpu,itag, &
-                  cartesian_communicator,mpi_status_ignore,mpierr)
+                  cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_send error.')
     end if
@@ -6814,7 +6814,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     logical , pointer , dimension(:) , intent(in) :: vectorl
-    logical , pointer , dimension(:) , intent(in) :: vectorg
+    logical , pointer , dimension(:) , intent(out) :: vectorg
     integer(ik4) :: npt
     npt  = cl%linear_npoint_g(myid+1)
     if ( nproc == 1 ) then
@@ -6833,7 +6833,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     integer(ik4) , pointer , dimension(:) , intent(in) :: vectorl
-    integer(ik4) , pointer , dimension(:) , intent(in) :: vectorg
+    integer(ik4) , pointer , dimension(:) , intent(out) :: vectorg
     integer(ik4) :: npt
     npt  = cl%linear_npoint_g(myid+1)
     if ( nproc == 1 ) then
@@ -6852,7 +6852,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     real(rk4) , pointer , dimension(:) , intent(in) :: vectorl
-    real(rk4) , pointer , dimension(:) , intent(in) :: vectorg
+    real(rk4) , pointer , dimension(:) , intent(out) :: vectorg
     integer(ik4) :: npt
     npt  = cl%linear_npoint_g(myid+1)
     if ( nproc == 1 ) then
@@ -6871,7 +6871,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     real(rk8) , pointer , dimension(:) , intent(in) :: vectorl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vectorg
+    real(rk8) , pointer , dimension(:) , intent(out) :: vectorg
     integer(ik4) :: npt
     npt  = cl%linear_npoint_g(myid+1)
     if ( nproc == 1 ) then
