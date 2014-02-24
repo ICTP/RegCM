@@ -41,7 +41,7 @@ module mod_clm_varctl
   ! description of this source
   character(len=256) , public :: source   = "Community Land Model CLM4.5"
   ! version of program
-  character(len=256) , public :: version  = " "
+  character(len=256) , public :: version  = SVN_REV
   ! dataset conventions
   character(len=256) , public :: conventions = "CF-1.0"
   !

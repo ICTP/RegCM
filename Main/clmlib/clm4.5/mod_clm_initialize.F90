@@ -118,7 +118,6 @@ module mod_clm_initialize
 
     if ( myid == italk ) then
       write(stdout,*) 'Attempting to initialize the land model .....'
-      write(stdout,*)
     endif
 
     call control_init()
@@ -499,8 +498,7 @@ module mod_clm_initialize
     use mod_clm_varctl , only : version
     implicit none
     if ( myid == italk ) then
-      write(stdout,*) trim(version)
-      write(stdout,*)
+      write(stdout,*) 'CLM version: 4.5 - RegCM ', trim(version)
     end if
   end subroutine header
   !

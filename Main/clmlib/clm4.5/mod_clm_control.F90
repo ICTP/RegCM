@@ -94,43 +94,12 @@ module mod_clm_control
 
   private
 
-  public :: control_setNL ! Set namelist filename
   public :: control_init  ! initial run control information
   public :: control_print ! print run control information
 
   character(len=  7) :: runtyp(4)                        ! run type
-  character(len=256) :: NLFilename = 'lnd.stdin' ! Namelist filename
 
   contains
-  !
-  ! Set the namelist filename to use
-  !
-  subroutine control_setNL( NLfile )
-    implicit none
-    character(len=*) , intent(in) :: NLFile ! Namelist filename
-    character(len=32) :: subname = 'control_setNL'  ! subroutine name
-    logical :: lexist                               ! File exists
-
-    ! Error checking...
-    if ( len_trim(NLFile) == 0 ) then
-       call fatal(__FILE__,__LINE__, &
-               subname//' error: nlfilename entered is not set' )
-    end if
-    inquire(file=trim(NLFile),exist=lexist)
-    if ( .not. lexist ) then
-       call fatal(__FILE__,__LINE__, &
-          subname//' error: NLfilename entered does NOT exist:'//trim(NLFile) )
-    end if
-    if ( len_trim(NLFile) > len(NLFilename) ) then
-       call fatal(__FILE__,__LINE__,&
-               subname//' error: entered NLFile is too long' )
-    end if
-    ! Set the filename
-    NLFilename = NLFile
-    ! For use in external namelists and to avoid creating
-    ! dependencies on controlMod
-    NLFilename_in = NLFilename
-  end subroutine control_setNL
   !
   ! Initialize CLM run control information
   !
@@ -156,8 +125,8 @@ module mod_clm_control
     ! Input datasets
 
     namelist /clm_inparm/  &
-         fsurdat, fatmtopo, flndtopo, &
-         fpftcon, fpftdyn,  fsnowoptics, fsnowaging
+         fsurdat , fatmtopo , flndtopo , fpftcon , fpftdyn , &
+         fsnowoptics , fsnowaging
 
     ! History, restart options
 
@@ -202,6 +171,7 @@ module mod_clm_control
          wrtdia, pertlim, &
          create_crop_landunit, co2_ppmv, override_nsrest, &
          albice, more_vertlayers, subgridflag, irrigate
+
     ! Urban options
 
     namelist /clm_inparm/  &
@@ -256,12 +226,12 @@ module mod_clm_control
       ! Read namelist from standard input. 
       ! ----------------------------------------------------------------------
 
-      if ( len_trim(NLFilename) == 0  )then
+      if ( len_trim(namelistfile) == 0  )then
         call fatal(__FILE__,__LINE__,subname//' error: nlfilename not set' )
       end if
       unitn = file_getunit( )
-      write(stdout,*) 'Read in clm_inparm namelist from: ', trim(NLFilename)
-      open( unitn, file=trim(NLFilename), status='old' )
+      write(stdout,*) 'Read in clm_inparm namelist from: ', trim(namelistfile)
+      open( unitn,file=trim(namelistfile),status='old',action='read')
       if (ierr == 0) then
         read(unitn, clm_inparm, iostat=ierr)
         if (ierr /= 0) then
@@ -275,14 +245,14 @@ module mod_clm_control
       ! Consistency checks on input namelist.
       ! ----------------------------------------------------------------------
 
-      if (urban_traffic) then
+      if ( urban_traffic ) then
         write(stderr,*)'Urban traffic fluxes are not implemented currently'
         call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
 
       ! History and restart files
 
-      do i = 1, max_tapes
+      do i = 1 , max_tapes
         if (hist_nhtfrq(i) == 0) then
           hist_mfilt(i) = 1
         else if (hist_nhtfrq(i) < 0) then
@@ -292,15 +262,15 @@ module mod_clm_control
 
       ! Override start-type (can only override to branch (3)  and only 
       ! if the driver is a startup type
-      if ( override_nsrest /= nsrest )then
-        if ( override_nsrest /= nsrBranch .and. nsrest /= nsrStartup )then
+      if ( override_nsrest /= nsrest ) then
+        if ( override_nsrest /= nsrBranch .and. &
+             nsrest /= nsrStartup )then
           call fatal(__FILE__,__LINE__, &
               subname//' ERROR: can ONLY override clm start-type ' // &
               'to branch type and ONLY if driver is a startup type' )
          end if
          call set_clmvarctl( nsrest_in=override_nsrest )
       end if
-       
     end if   ! end if-block
 
     call clmvarctl_init
@@ -309,8 +279,8 @@ module mod_clm_control
     ! Read in other namelists for other modules
     ! ----------------------------------------------------------------------
 
-    call Hydrology1_readnl(    NLFilename )
-    call SoilHydrology_readnl( NLFilename )
+    call Hydrology1_readnl(    namelistfile )
+    call SoilHydrology_readnl( namelistfile )
 
     ! ----------------------------------------------------------------------
     ! Broadcast all control information if appropriate
