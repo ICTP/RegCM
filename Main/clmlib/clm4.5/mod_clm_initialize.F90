@@ -7,6 +7,8 @@ module mod_clm_initialize
   use mod_runparams
   use mod_date
   use mod_stdio
+  use mod_sunorbit
+  use mod_mpmessage
   use mod_mppparam
   use mod_dynparam
   use mod_regcm_types

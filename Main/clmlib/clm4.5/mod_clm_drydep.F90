@@ -20,6 +20,7 @@ module mod_clm_drydep
   use mod_dynparam
   use mod_constants
   use mod_stdio
+  use mod_mpmessage
 
   implicit none 
   save 

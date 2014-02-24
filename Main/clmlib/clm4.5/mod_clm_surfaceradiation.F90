@@ -1,112 +1,48 @@
 module mod_clm_surfaceradiation
-
-!------------------------------------------------------------------------------
-!BOP
-!
-! !MODULE: SurfaceRadiationMod
-!
-! !DESCRIPTION:
-! Calculate solar fluxes absorbed by vegetation and ground surface
-!
-! !USES:
+  !
+  ! Calculate solar fluxes absorbed by vegetation and ground surface
+  !
    use mod_realkinds
    use mod_stdio
+   use mod_mpmessage
    use mod_runparams
 
-! !PUBLIC TYPES:
   implicit none
-  save
-!
-! !PUBLIC MEMBER FUNCTIONS:
+
+  private
+
   public :: SurfaceRadiation ! Solar fluxes absorbed by veg and ground surface
-!
-! !REVISION HISTORY:
-! Created by Mariana Vertenstein
-! 11/26/03, Peter Thornton: Added new routine for improved treatment of
-!    sunlit/shaded canopy radiation.
-! 4/26/05, Peter Thornton: Adopted the sun/shade algorithm as the default,
-!    removed the old SurfaceRadiation(), and renamed SurfaceRadiationSunShade()
-!    as SurfaceRadiation().
-!
-!EOP
-!------------------------------------------------------------------------------
 
-contains
-
-!------------------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: SurfaceRadiation
-!
-! !INTERFACE:
-   subroutine SurfaceRadiation(lbp, ubp, num_nourbanp, filter_nourbanp)
-!
-! !DESCRIPTION: 
-! Solar fluxes absorbed by vegetation and ground surface
-! Note possible problem when land is on different grid than atmosphere.
-! Land may have sun above the horizon (coszen > 0) but atmosphere may
-! have sun below the horizon (forc_solad = 0 and forc_solai = 0). This is okay
-! because all fluxes (absorbed, reflected, transmitted) are multiplied
-! by the incoming flux and all will equal zero.
-! Atmosphere may have sun above horizon (forc_solad > 0 and forc_solai > 0) but
-! land may have sun below horizon. This is okay because fabd, fabi,
-! ftdd, ftid, and ftii all equal zero so that sabv=sabg=fsa=0. Also,
-! albd and albi equal one so that fsr=forc_solad+forc_solai. In other words, all
-! the radiation is reflected. NDVI should equal zero in this case.
-! However, the way the code is currently implemented this is only true
-! if (forc_solad+forc_solai)|vis = (forc_solad+forc_solai)|nir.
-! Output variables are parsun,parsha,sabv,sabg,fsa,fsr,ndvi
-!
-! !USES:
-     use mod_clm_type
-     use mod_clm_atmlnd      , only : clm_a2l
-     use mod_clm_varpar      , only : numrad
-     use mod_clm_varcon      , only : spval, istsoil, degpsec, isecspday
-     use mod_clm_varcon      , only : istcrop
-     use mod_clm_varctl      , only : subgridflag
-     use mod_clm_varpar      , only : nlevsno
-     use mod_clm_snicar      , only : DO_SNO_OC
-!
-! !ARGUMENTS:
-     implicit none
-     integer, intent(in) :: lbp, ubp                   ! pft upper and lower bounds
-     integer, intent(in) :: num_nourbanp               ! number of pfts in non-urban points in pft filter
-     integer, intent(in) :: filter_nourbanp(ubp-lbp+1) ! pft filter for non-urban points
-!
-! !CALLED FROM:
-! subroutine Biogeophysics1 in module Biogeophysics1Mod
-! subroutine BiogeophysicsLake in module BiogeophysicsLakeMod
-!
-! !REVISION HISTORY:
-! Author: Gordon Bonan
-! 2/18/02, Peter Thornton: Migrated to new data structures. Added a pft loop.
-! 6/05/03, Peter Thornton: Modified sunlit/shaded canopy treatment. Original code
-! had all radiation being absorbed in the sunlit canopy, and now the sunlit and shaded
-! canopies are each given the appropriate fluxes.  There was also an inconsistency in
-! the original code, where parsun was not being scaled by leaf area, and so represented
-! the entire canopy flux.  This goes into Stomata (in CanopyFluxes) where it is assumed
-! to be a flux per unit leaf area. In addition, the fpsn flux coming out of Stomata was
-! being scaled back up to the canopy by multiplying by lai, but the input radiation flux was
-! for the entire canopy to begin with.  Corrected this inconsistency in this version, so that
-! the parsun and parsha fluxes going into canopy fluxes are per unit lai in the sunlit and
-! shaded canopies.
-! 6/9/03, Peter Thornton: Moved coszen from g%gps to c%cps to avoid problem
-! with OpenMP threading over columns, where different columns hit the radiation
-! time step at different times during execution.
-! 6/10/03, Peter Thornton: Added constraint on negative tot_aid, instead of
-! exiting with error. Appears to be happening only at roundoff level.
-! 6/11/03, Peter Thornton: Moved calculation of ext inside if (coszen),
-! and added check on laisun = 0 and laisha = 0 in calculation of sun_aperlai
-! and sha_aperlai.
-! 11/26/03, Peter Thornton: During migration to new vector code, created 
-!   this as a new routine to handle sunlit/shaded canopy calculations.
-! 03/28/08, Mark Flanner: Incorporated SNICAR, including absorbed solar radiation
-!   in each snow layer and top soil layer, and optional radiative forcing calculation
-!
-! !LOCAL VARIABLES:
-!
-! local pointers to original implicit in arguments
-!
+  contains
+  !
+  ! Solar fluxes absorbed by vegetation and ground surface
+  ! Note possible problem when land is on different grid than atmosphere.
+  ! Land may have sun above the horizon (coszen > 0) but atmosphere may
+  ! have sun below the horizon (forc_solad = 0 and forc_solai = 0). This is okay
+  ! because all fluxes (absorbed, reflected, transmitted) are multiplied
+  ! by the incoming flux and all will equal zero.
+  ! Atmosphere may have sun above horizon (forc_solad > 0 and forc_solai > 0)
+  ! but land may have sun below horizon. This is okay because fabd, fabi,
+  ! ftdd, ftid, and ftii all equal zero so that sabv=sabg=fsa=0. Also,
+  ! albd and albi equal one so that fsr=forc_solad+forc_solai. In other words,
+  ! all the radiation is reflected. NDVI should equal zero in this case.
+  ! However, the way the code is currently implemented this is only true
+  ! if (forc_solad+forc_solai)|vis = (forc_solad+forc_solai)|nir.
+  ! Output variables are parsun,parsha,sabv,sabg,fsa,fsr,ndvi
+  !
+  subroutine SurfaceRadiation(lbp, ubp, num_nourbanp, filter_nourbanp)
+    use mod_clm_type
+    use mod_clm_atmlnd      , only : clm_a2l
+    use mod_clm_varpar      , only : numrad
+    use mod_clm_varcon      , only : spval, istsoil, degpsec, isecspday
+    use mod_clm_varcon      , only : istcrop
+    use mod_clm_varctl      , only : subgridflag
+    use mod_clm_varpar      , only : nlevsno
+    use mod_clm_snicar      , only : DO_SNO_OC
+    implicit none
+    integer, intent(in) :: lbp, ubp                   ! pft upper and lower bounds
+    integer, intent(in) :: num_nourbanp               ! number of pfts in non-urban points in pft filter
+    integer, intent(in) :: filter_nourbanp(ubp-lbp+1) ! pft filter for non-urban points
      real(rk8), pointer :: albsod(:,:)      ! direct-beam soil albedo (col,bnd) [frc]
      real(rk8), pointer :: albsoi(:,:)      ! diffuse soil albedo (col,bnd) [frc]
      real(rk8), pointer :: sabg_soil(:)     ! solar radiation absorbed by soil (W/m**2)
@@ -143,9 +79,7 @@ contains
      real(rk8), pointer :: albgri(:,:)      ! ground albedo (diffuse)
      real(rk8), pointer :: albd(:,:)        ! surface albedo (direct)
      real(rk8), pointer :: albi(:,:)        ! surface albedo (diffuse)
-!
-! local pointers to original implicit out arguments
-!
+
      real(rk8), pointer :: fsun(:)          ! sunlit fraction of canopy
      real(rk8), pointer :: laisun(:)        ! sunlit leaf area
      real(rk8), pointer :: laisha(:)        ! shaded leaf area
@@ -210,11 +144,6 @@ contains
      real(rk8), pointer :: fsds_sno_ni(:)   ! incident near-IR, diffuse radiation on snow (for history files) (pft) [W/m2]
      real(rk8), pointer :: snow_depth(:)        ! snow height (m)
 
-!
-!
-! !OTHER LOCAL VARIABLES:
-!EOP
-!
      integer , parameter :: nband = numrad    ! number of solar radiation waveband classes
      real(rk8), parameter :: mpe = 1.D-06   ! prevents overflow for division by zero
      integer  :: fp                  ! non-urban filter pft index
@@ -246,7 +175,6 @@ contains
      real(rk8) :: sabg_dst(lbp:ubp)   ! solar radiation absorbed by ground without dust [W/m2]
      real(rk8) :: parveg(lbp:ubp)     ! absorbed par by vegetation (W/m**2)
      integer  :: nstep               ! time step number
-!------------------------------------------------------------------------------
 
      ! Assign local pointers to multi-level derived type members (gridcell level)
 

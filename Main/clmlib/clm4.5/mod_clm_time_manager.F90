@@ -44,6 +44,7 @@ module mod_clm_time_manager
       is_last_step,             &! return true on last timestep
       is_restart,               &! return true if this is a restart run
       get_days_per_year,        &
+      getdatetime,              &
       get_rad_step_size
 
 ! Public data for namelist input
@@ -422,5 +423,13 @@ end subroutine timemgr_datediff
       is_restart = .false.
     end if
   end function is_restart
+
+  subroutine getdatetime(currdate,currtime)
+    implicit none
+    character(len=8) , intent(out) :: currdate
+    character(len=8) , intent(out) :: currtime
+    currdate = '0000000'
+    currtime = '0000000'
+  end subroutine getdatetime
 
 end module mod_clm_time_manager

@@ -25,7 +25,7 @@ module mod_clm_histfile
          version , hostname , username , conventions , source , inst_suffix , &
          nsrest , nsrStartup , nsrBranch
   use mod_clm_domain , only : ldomain , lon1d , lat1d
-  use mod_clm_time_manager , only : get_prev_date
+  use mod_clm_time_manager , only : get_prev_date , getdatetime
 
   implicit none
 
@@ -2519,7 +2519,7 @@ module mod_clm_histfile
     ! Set calendar for current time step
 
     call curr_date(idatex, yr, mon, day, mcsec)
-    call get_curr_time(idatex, mdcur, mscur)
+    call curr_time(idatex, mdcur, mscur)
     time = mdcur + mscur/secspday
 
     ! Set calendar for current for previous time step

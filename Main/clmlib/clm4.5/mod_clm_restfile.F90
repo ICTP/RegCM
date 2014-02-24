@@ -31,6 +31,7 @@ module mod_clm_restfile
   use mod_clm_ch4rest , only : ch4Rest
 #endif
   use mod_clm_histfile , only : hist_restart_ncd
+  use mod_clm_time_manager
 
   implicit none
 
@@ -208,7 +209,6 @@ module mod_clm_restfile
 
     if (nsrest==nsrContinue) then
        call restFile_read_pfile( path )
-       call getfil( path, rfile, 0 )
     end if
 
     ! Branch run:
@@ -223,7 +223,6 @@ module mod_clm_restfile
       else
         path = trim(nrevsn) // '.nc'
       end if
-      call getfil( path, rfile, 0 )
 
       ! tcraig, adding xx. and .clm2 makes this more robust
       ctest = 'xx.'//trim(caseid)//'.clm2'
@@ -239,12 +238,6 @@ module mod_clm_restfile
       end if
     end if
 
-    ! Initial run:
-    ! Restart file pathname is obtained from namelist "finidat"
-
-    if (nsrest==nsrStartup) then
-      call getfil( finidat, rfile, 0 )
-    end if
   end subroutine restFile_getfile
   !
   ! Setup restart file and perform necessary consistency checks

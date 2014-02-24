@@ -1,64 +1,40 @@
 module mod_clm_soilhydrology
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !MODULE: SoilHydrologyMod
-!
-! !DESCRIPTION:
-! Calculate soil hydrology
-!
+  !
+  ! Calculate soil hydrology
+  !
   use mod_realkinds
   use mod_mppparam
   use mod_dynparam
-  use mod_clm_varcon    , only : e_ice,denh2o, denice,rpi
-! !PUBLIC TYPES:
+  use mod_mpmessage
+  use mod_clm_varcon , only : e_ice , denh2o , denice , rpi
+
   implicit none
-  save
-!
-! !PUBLIC MEMBER FUNCTIONS:
+
+  private
+
   public :: SoilHydrology_readnl ! Initialization for Soil Hydrology
-  public :: SurfaceRunoff        ! Calculate surface runoff
-  public :: Infiltration         ! Calculate infiltration into surface soil layer
-  public :: SoilWater            ! Calculate soil hydrology
-  public :: Drainage             ! Calculate subsurface drainage
-!-----------------------------------------------------------------------
-! !PUBLIC DATA MEMBERS:
-  integer, public :: h2osfcflag=1               !If surface water is active or not
-!-----------------------------------------------------------------------
-! !PRIVATE DATA MEMBERS:
-!
-  integer         :: origflag=0                 !use control soil hydraulic properties
-!
-! !REVISION HISTORY:
-! Created by Mariana Vertenstein
-! 04/25/07 Keith Oleson: CLM3.5 hydrology
-!
-!EOP
-!-----------------------------------------------------------------------
 
-contains
+  public :: SurfaceRunoff    ! Calculate surface runoff
+  public :: Infiltration     ! Calculate infiltration into surface soil layer
+  public :: SoilWater        ! Calculate soil hydrology
+  public :: Drainage         ! Calculate subsurface drainage
 
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: SoilHydrology_readnl
-!
-! !INTERFACE:
+  !If surface water is active or not
+  integer , public :: h2osfcflag = 1
+
+  !use control soil hydraulic properties
+  integer :: origflag = 0
+
+  contains
+  !
+  ! Read namelist for SoilHydrology
+  !
   subroutine SoilHydrology_readnl( NLFilename )
-!
-! !DESCRIPTION:
-! Read namelist for SoilHydrology
-!
-! !USES:
-! !ARGUMENTS:
     character(len=*), intent(IN) :: NLFilename ! Namelist filename
-! !LOCAL VARIABLES:
     integer :: ierr                 ! error code
     integer :: unitn                ! unit for namelist file
     character(len=32) :: subname = 'SoilHydrology_readnl'  ! subroutine name
-!EOP
-!-----------------------------------------------------------------------
+
     namelist / clm_soilhydrology_inparm / h2osfcflag, origflag
 
     ! ----------------------------------------------------------------------
@@ -66,39 +42,27 @@ contains
     ! ----------------------------------------------------------------------
 
     if ( myid == iocpu )then
-
-       unitn = file_getUnit( )
-       write(stdout,*) 'Read in clm_soilhydrology_inparm  namelist'
-       open(unitn,file=NLFilename,status='old',action='read')
-       if (ierr == 0) then
-          read(unitn, clm_soilhydrology_inparm, iostat=ierr)
-          if (ierr /= 0) then
-             call fatal(__FILE__,__LINE__,&
-                     subname // ':: ERROR reading clm_soilhydrology_inparm namelist')
-          end if
-       end if
-       call file_freeUnit( unitn )
-
+      unitn = file_getUnit( )
+      write(stdout,*) 'Read in clm_soilhydrology_inparm  namelist'
+      open(unitn,file=NLFilename,status='old',action='read')
+      if (ierr == 0) then
+        read(unitn, clm_soilhydrology_inparm, iostat=ierr)
+        if (ierr /= 0) then
+          call fatal(__FILE__,__LINE__,&
+              subname // ':: ERROR reading clm_soilhydrology_inparm namelist')
+        end if
+      end if
+      call file_freeUnit( unitn )
     end if
     ! Broadcast namelist variables read in
     call bcast(h2osfcflag)
     call bcast(origflag)
-
   end subroutine SoilHydrology_readnl
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: SurfaceRunoff
-!
-! !INTERFACE:
+  !
+  ! Calculate surface runoff
+  !
   subroutine SurfaceRunoff (lbc, ubc, lbp, ubp, num_hydrologyc, filter_hydrologyc, &
                             num_urbanc, filter_urbanc, icefrac)
-!
-! !DESCRIPTION:
-! Calculate surface runoff
-!
-! !USES:
     use mod_clm_type
     use mod_clm_varcon      , only : denice, denh2o, wimp, pondmx_urban, &
                                  icol_roof, icol_sunwall, icol_shadewall, &
@@ -109,8 +73,6 @@ contains
 #if (defined VICHYDRO)
     use mod_clm_varpar      , only : nlayer, nlayert
 #endif
-!
-! !ARGUMENTS:
     implicit none
     integer , intent(in)  :: lbc, ubc                     ! column bounds
     integer , intent(in)  :: lbp, ubp                     ! pft bounds   
@@ -119,23 +81,6 @@ contains
     integer , intent(in)  :: num_urbanc                   ! number of column urban points in column filter
     integer , intent(in)  :: filter_urbanc(ubc-lbc+1)     ! column filter for urban points
     real(rk8), intent(out) :: icefrac(lbc:ubc,1:nlevsoi)   ! fraction of ice in layer (-)
-!
-! !CALLED FROM:
-! subroutine Hydrology2 in module Hydrology2Mod
-!
-! !REVISION HISTORY:
-! 15 September 1999: Yongjiu Dai; Initial code
-! 12 November 1999:  Z.-L. Yang and G.-Y. Niu
-! 15 December 1999:  Paul Houser and Jon Radakovich; F90 Revision
-! 2/26/02, Peter Thornton: Migrated to new data structures.
-! 4/26/05, David Lawrence: Made surface runoff for dry soils a function
-!   of rooting fraction in top three soil layers.
-! 04/25/07  Keith Oleson: Completely new routine for CLM3.5 hydrology
-!
-! !LOCAL VARIABLES:
-!
-! local pointers to original implicit in arguments
-!
     real(rk8), pointer :: qflx_snow_h2osfc(:)! snow falling on surface water (mm/s)
     real(rk8), pointer :: frac_h2osfc(:)    ! fraction of ground covered by surface water (0 to 1)
     real(rk8), pointer :: frost_table(:)    ! frost table depth (m)
@@ -176,11 +121,6 @@ contains
     real(rk8), pointer :: max_infil(:)      !maximum infiltration capacity in VIC (mm)
     real(rk8), pointer :: i_0(:)            !column average soil moisture in top VIC layers (mm)
 #endif
-!
-!EOP
-!
-! !OTHER LOCAL VARIABLES:
-!
     integer  :: c,j,fc,g,l,i               !indices
     real(rk8) :: dtime                      ! land model time step (sec)
     real(rk8) :: xs(lbc:ubc)                ! excess soil water above urban ponding limit
@@ -200,8 +140,6 @@ contains
     real(rk8) :: top_fracice                !temporary, fraction covered by ice for runoff calculations
     character(len=32) :: subname = 'SurfaceRunoff'  ! subroutine name
 #endif
-
-!-----------------------------------------------------------------------
 
     ! Assign local pointers to derived subtype components (column-level)
 
