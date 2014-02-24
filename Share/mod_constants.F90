@@ -114,6 +114,8 @@ module mod_constants
   real(rk8) , parameter :: cpw = 4186.95D+00
   ! Specific heat of water at 0 Celsius J/kg/K
   real(rk8) , parameter :: cpw0 = 4218.0D+00
+  ! Specific heat of water vapour
+  real(rk8) , parameter :: cp_h2o = cpd * (4.0D0*amd) / (3.5D0*amw)
 
   ! Specific heats per m**3  (joules/m**3/k)
   real(rk8) , parameter :: ch2o = 4.18695D+06

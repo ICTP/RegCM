@@ -73,7 +73,7 @@ module mod_stdio
           if (.not. unit_tag(n)) then
             ! Grant it
             unit_tag(n) = .true.
-            file_getunit = unitn
+            file_getunit = n
             return
           end if
         end do
