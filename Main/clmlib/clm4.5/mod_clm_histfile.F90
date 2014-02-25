@@ -24,7 +24,7 @@ module mod_clm_histfile
   use mod_clm_varctl , only : caseid , ctitle , fsurdat , finidat , fpftcon , &
          version , hostname , username , conventions , source , inst_suffix , &
          nsrest , nsrStartup
-  use mod_clm_domain , only : ldomain , lon1d , lat1d
+  use mod_clm_domain , only : ldomain
   use mod_clm_time_manager , only : get_prev_date , getdatetime
 
   implicit none
@@ -1644,12 +1644,7 @@ module mod_clm_histfile
     ! an array of characters.
 
     ! Global uncompressed dimensions (including non-land points)
-    if ( ldomain%isgrid2d ) then
-      call clm_adddim(lnfid, 'lon', ldomain%ni)
-      call clm_adddim(lnfid, 'lat', ldomain%nj)
-    else
-      call clm_adddim(lnfid, trim(grlnd), ldomain%ns)
-    end if
+    call clm_adddim(lnfid, trim(grlnd), ldomain%ns)
 
     ! Global compressed dimensions (not including non-land points)
     call clm_adddim(lnfid, trim(nameg), numg)
@@ -1763,19 +1758,11 @@ module mod_clm_histfile
                trim(subname)//' ERROR: bad 3D time-constant field index' )
         end if
         if ( tape(t)%dov2xy ) then
-          if ( ldomain%isgrid2d ) then
-            call clm_addvar(clmvar_double,ncid=nfid(t),       &
-                     varname=trim(varnames(ifld)),            &
-                     cdims=(/'lon    ','lat    ','levgrnd'/), &
-                     long_name=long_name, units=units,        &
-                     missing_value=1, fill_value=1)
-          else
-            call clm_addvar(clmvar_double,ncid=nfid(t), &
-                     varname=trim(varnames(ifld)),      &
-                     cdims=(/grlnd,'levgrnd'/),         &
-                     long_name=long_name, units=units,  &
-                     missing_value=1, fill_value=1)
-          end if
+          call clm_addvar(clmvar_double,ncid=nfid(t), &
+                   varname=trim(varnames(ifld)),      &
+                   cdims=(/grlnd,'levgrnd'/),         &
+                   long_name=long_name, units=units,  &
+                   missing_value=1, fill_value=1)
         else
           call clm_addvar(clmvar_double,ncid=nfid(t), &
                   varname=trim(varnames(ifld)),       &
@@ -1853,11 +1840,7 @@ module mod_clm_histfile
           histo(:,:) = spval
           call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd,histi,histo, &
                    c2l_scale_type='unity',l2g_scale_type=l2g_scale_type)
-          if ( ldomain%isgrid2d ) then
-            call clm_writevar(nfid(t),trim(varnames(ifld)),histo,procinfo)
-          else
-            call clm_writevar(nfid(t),trim(varnames(ifld)),histo,gcomm_gridcell)
-          end if
+          call clm_writevar(nfid(t),trim(varnames(ifld)),histo,gcomm_gridcell)
         else
           call clm_writevar(nfid(t),trim(varnames(ifld)),histi,gcomm_gridcell)
         end if
@@ -1882,19 +1865,11 @@ module mod_clm_histfile
               trim(subname)//' ERROR: bad 3D time-constant field index' )
         end if
         if ( tape(t)%dov2xy ) then
-          if ( ldomain%isgrid2d ) then
-            call clm_addvar(clmvar_double,ncid=nfid(t),    &
-                     varname=trim(varnamesl(ifld)),        &
-                     cdims=(/'lon   ','lat   ','levlak'/), &
-                     long_name=long_name, units=units,     &
-                     missing_value=1, fill_value=1)
-          else
-            call clm_addvar(clmvar_double,ncid=nfid(t), &
-                     varname=trim(varnamesl(ifld)),     &
-                     cdims=(/grlnd,'levlak'/),          &
-                     long_name=long_name, units=units,  &
-                     missing_value=1, fill_value=1)
-          end if
+          call clm_addvar(clmvar_double,ncid=nfid(t), &
+                   varname=trim(varnamesl(ifld)),     &
+                   cdims=(/grlnd,'levlak'/),          &
+                   long_name=long_name, units=units,  &
+                   missing_value=1, fill_value=1)
         else
           call clm_addvar(clmvar_double,ncid=nfid(t), &
                    varname=trim(varnamesl(ifld)),     &
@@ -1944,12 +1919,8 @@ module mod_clm_histfile
           histol(:,:) = spval
           call c2g(begc,endc,begl,endl,begg,endg,nlevlak,histil,histol, &
                    c2l_scale_type='unity', l2g_scale_type='lake')
-          if ( ldomain%isgrid2d ) then
-            call clm_writevar(nfid(t),trim(varnamesl(ifld)),histol,procinfo)
-          else
-            call clm_writevar(nfid(t),trim(varnamesl(ifld)),histol, &
-              gcomm_gridcell)
-          end if
+          call clm_writevar(nfid(t),trim(varnamesl(ifld)),histol, &
+             gcomm_gridcell)
         else
           call clm_writevar(nfid(t),trim(varnamesl(ifld)),histil,gcomm_gridcell)
         end if
@@ -2062,69 +2033,27 @@ module mod_clm_histfile
     ! For define mode -- only do this for first time-sample
 
     if ( mode == 'define' .and. tape(t)%ntimes == 1 ) then
-      if ( ldomain%isgrid2d ) then
-        call clm_addvar(clmvar_double,ncid=nfid(t), &
-                      varname='lon',cdims=(/'lon','lat'/), &
-                      long_name='coordinate longitude', units='degrees_east')
-      else
-        call clm_addvar(clmvar_double,ncid=nfid(t), &
-                      varname='lon',cdims=(/'grlnd'/), &
-                      long_name='coordinate longitude', units='degrees_east')
-      end if
-      if ( ldomain%isgrid2d ) then
-        call clm_addvar(clmvar_double,ncid=nfid(t), &
-                      varname='lat',cdims=(/'lon','lat'/), &
-                      long_name='coordinate latitude', units='degrees_north')
-      else
-        call clm_addvar(clmvar_double,ncid=nfid(t), &
-                      varname='lat',cdims=(/'grlnd'/), &
-                      long_name='coordinate latitude', units='degrees_north')
-      end if
-      if ( ldomain%isgrid2d ) then
-        call clm_addvar(clmvar_double,ncid=nfid(t), &
-                      varname='area',cdims=(/'lon','lat'/), &
-                      long_name='grid cell areas', units='km^2')
-      else
-        call clm_addvar(clmvar_double,ncid=nfid(t), &
-                      varname='area',cdims=(/grlnd/), &
-                      long_name='grid cell areas', units='km^2')
-      end if
-      if ( ldomain%isgrid2d ) then
-        call clm_addvar(clmvar_double,ncid=nfid(t), &
-                      varname='topo',cdims=(/'lon','lat'/), &
-                      long_name='grid cell topography', units='m')
-      else
-        call clm_addvar(clmvar_double,ncid=nfid(t), &
-                      varname='topo',cdims=(/grlnd/), &
-                      long_name='grid cell topography', units='m')
-      end if
-      if ( ldomain%isgrid2d ) then
-        call clm_addvar(clmvar_double,ncid=nfid(t), &
-                      varname='landfrac',cdims=(/'lon','lat'/), &
-                      long_name='land fraction', units='1')
-      else
-        call clm_addvar(clmvar_double,ncid=nfid(t), &
-                      varname='landfrac',cdims=(/grlnd/), &
-                      long_name='land fraction', units='1')
-      end if
-      if ( ldomain%isgrid2d ) then
-        call clm_addvar(clmvar_double,ncid=nfid(t), &
-                      varname='landmask',cdims=(/'lon','lat'/), &
-                      long_name='land/ocean mask', units='1')
-      else
-        call clm_addvar(clmvar_double,ncid=nfid(t), &
-                      varname='landmask',cdims=(/grlnd/), &
-                      long_name='land/ocean mask', units='1')
-      end if
-      if ( ldomain%isgrid2d ) then
-        call clm_addvar(clmvar_double,ncid=nfid(t), &
-                      varname='pftmask',cdims=(/'lon','lat'/), &
-                      long_name='pft real/fake mask', units='1')
-      else
-        call clm_addvar(clmvar_double,ncid=nfid(t), &
-                      varname='pftmask',cdims=(/grlnd/), &
-                      long_name='pft real/fake mask', units='1')
-      end if
+      call clm_addvar(clmvar_double,ncid=nfid(t), &
+                    varname='lon',cdims=(/'grlnd'/), &
+                    long_name='coordinate longitude', units='degrees_east')
+      call clm_addvar(clmvar_double,ncid=nfid(t), &
+                    varname='lat',cdims=(/'grlnd'/), &
+                    long_name='coordinate latitude', units='degrees_north')
+      call clm_addvar(clmvar_double,ncid=nfid(t), &
+                    varname='area',cdims=(/grlnd/), &
+                    long_name='grid cell areas', units='km^2')
+      call clm_addvar(clmvar_double,ncid=nfid(t), &
+                    varname='topo',cdims=(/grlnd/), &
+                    long_name='grid cell topography', units='m')
+      call clm_addvar(clmvar_double,ncid=nfid(t), &
+                    varname='landfrac',cdims=(/grlnd/), &
+                    long_name='land fraction', units='1')
+      call clm_addvar(clmvar_double,ncid=nfid(t), &
+                    varname='landmask',cdims=(/grlnd/), &
+                    long_name='land/ocean mask', units='1')
+      call clm_addvar(clmvar_double,ncid=nfid(t), &
+                    varname='pftmask',cdims=(/grlnd/), &
+                    long_name='pft real/fake mask', units='1')
 
     else if ( mode == 'write' ) then
 
@@ -2137,13 +2066,8 @@ module mod_clm_histfile
 
       call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
-      if (ldomain%isgrid2d) then
-        call clm_writevar(nfid(t),'lon',lon1d,gcomm_gridcell)
-        call clm_writevar(nfid(t),'lat',lat1d,gcomm_gridcell)
-      else
-        call clm_writevar(nfid(t),'lon',ldomain%lonc,gcomm_gridcell)
-        call clm_writevar(nfid(t),'lat',ldomain%latc,gcomm_gridcell)
-      end if
+      call clm_writevar(nfid(t),'lon',ldomain%lonc,gcomm_gridcell)
+      call clm_writevar(nfid(t),'lat',ldomain%latc,gcomm_gridcell)
       call clm_writevar(nfid(t),'area',ldomain%area,gcomm_gridcell)
       call clm_writevar(nfid(t),'landfrac',ldomain%frac,gcomm_gridcell)
       call clm_writevar(nfid(t),'landmask',ldomain%mask,gcomm_gridcell)
@@ -2228,13 +2152,8 @@ module mod_clm_histfile
         end select
 
         if ( type1d_out == grlnd ) then
-          if ( ldomain%isgrid2d ) then
-            dim1name = 'lon'
-            dim2name = 'lat'
-          else
-            dim1name = trim(grlnd)
-            dim2name = 'undefined'
-          end if
+          dim1name = trim(grlnd)
+          dim2name = 'undefined'
         else
           dim1name = type1d_out
           dim2name = 'undefined'
@@ -2807,13 +2726,8 @@ module mod_clm_histfile
             hbuf          => tape(t)%hlist(f)%hbuf
 
             if (type1d_out == grlnd) then
-              if (ldomain%isgrid2d) then
-                dim1name = 'lon'
-                dim2name = 'lat'
-              else
-                dim1name = trim(grlnd)
-                dim2name = 'undefined'
-              end if
+              dim1name = trim(grlnd)
+              dim2name = 'undefined'
             else
               dim1name = type1d_out
               dim2name = 'undefined'
@@ -3028,7 +2942,7 @@ module mod_clm_histfile
       !
       ! Read in namelist information
       !
-      call clm_inqdim(ncid,'ntapes',dlen=ntapes_onfile)
+      call clm_inqdim(ncid,'ntapes',ntapes_onfile)
       if ( ktau > 0 .and. ntapes_onfile /= ntapes ) then
         write(stderr,*) &
             'ntapes = ', ntapes, ' ntapes_onfile = ', ntapes_onfile
@@ -3056,7 +2970,7 @@ module mod_clm_histfile
         do t = 1 , ntapes
           call clm_openfile(locrest(t),ncid_hist(t))
           if ( t == 1 ) then
-            call clm_inqdim(ncid_hist(t),'max_nflds',dlen=max_nflds)
+            call clm_inqdim(ncid_hist(t),'max_nflds',max_nflds)
             allocate(itemp2d(max_nflds,ntapes))
           end if
           call clm_readvar(ncid_hist(t),'fincl',fincl(:,t))

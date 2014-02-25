@@ -1,4 +1,6 @@
-# SUBDIRS = clm4.5
+if DO_COMPILE_LIBCLM45
+SUBDIRS = clm4.5
+endif
 
 REGCMSRC = $(REGCM_ROOT)/Main
 BATS     = $(REGCMSRC)/batslib

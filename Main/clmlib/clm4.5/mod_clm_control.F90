@@ -107,9 +107,12 @@ module mod_clm_control
     character(len=32)  :: starttype ! infodata start type
     integer(ik4) :: i , j , n            ! loop indices
     integer(ik4) :: ierr                 ! error code
+    integer(ik4) :: ihost
     integer(ik4) :: unitn                ! unit for namelist file
     ! If want to override the startup type sent from driver
     character(len=32) :: subname = 'control_init'  ! subroutine name
+    character(len=32) :: hostname = '?'
+    character(len=32) :: user = '?'
 
     ! ----------------------------------------------------------------------
     ! Namelist Variables
@@ -123,7 +126,7 @@ module mod_clm_control
     ! Input datasets
 
     namelist /clm_inparm/  &
-         fsurdat , fatmtopo , flndtopo , fpftcon , fpftdyn , &
+         fatmtopo , flndtopo , fpftcon , fpftdyn , &
          fsnowoptics , fsnowaging
 
     ! History, restart options
@@ -207,9 +210,6 @@ module mod_clm_control
     ! Default values
     ! ----------------------------------------------------------------------
 
-    nsrest = 0
-    if ( ifrest ) nsrest = 1
-
     if (myid == italk) then
       write(stdout,*) 'Attempting to initialize run control settings .....'
     end if
@@ -218,7 +218,7 @@ module mod_clm_control
     runtyp(nsrStartup  + 1) = 'initial'
     runtyp(nsrContinue + 1) = 'restart'
 
-    if ( myid == italk ) then
+    if ( myid == iocpu ) then
 
       ! ----------------------------------------------------------------------
       ! Read namelist from standard input. 
@@ -229,13 +229,16 @@ module mod_clm_control
       end if
       unitn = file_getunit( )
       write(stdout,*) 'Read in clm_inparm namelist from: ', trim(namelistfile)
-      open( unitn,file=trim(namelistfile),status='old',action='read')
+      open(unitn,file=namelistfile,status='old',action='read',iostat=ierr)
       if (ierr == 0) then
-        read(unitn, clm_inparm, iostat=ierr)
+        read(unitn, nml=clm_inparm, iostat=ierr ,err=100)
         if (ierr /= 0) then
           call fatal(__FILE__,__LINE__, &
               subname // ':: ERROR reading clm_inparm namelist')
         end if
+      else
+        write(stderr,*) 'Cannot open input namelist file ',trim(namelistfile)
+        call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
       call file_freeunit( unitn )
 
@@ -260,6 +263,21 @@ module mod_clm_control
 
     end if   ! end if-block
 
+#ifdef IBM
+    hostname='ibm platform '
+    user= 'Unknown'
+#else
+    ihost = hostnm(hostname)
+    call getlog(user)
+#endif
+    if ( ifrest ) then
+      call set_clmvarctl(domname, 'RegCM driven CLM4.5', nsrContinue, &
+                         SVN_REV, hostname, user)
+    else
+      call set_clmvarctl(domname, 'RegCM driven CLM4.5', nsrStartup, &
+                         SVN_REV, hostname, user)
+    end if
+
     call clmvarctl_init
 
     ! ----------------------------------------------------------------------
@@ -275,10 +293,22 @@ module mod_clm_control
 
     call control_spmd()
     
+    ! Set input file path in RegCM world
+
+    rpntdir = trim(dirout)
+    fpftcon = trim(inpglob)//pthsep//'CLM45'//pthsep// &
+            'pftdata'//pthsep//fpftcon
+    fsurdat = trim(dirglob)//pthsep//trim(domname)//'_CLM45_surface.nc'
+    write(fatmlndfrc,'(a,i0.3,a)') &
+      trim(dirglob)//pthsep//trim(domname)//'_DOMAIN',0,'.nc'
+
     if (myid == italk) then
       write(stdout,*) 'Successfully initialized run control settings'
       write(stdout,*)
     end if
+    return
+100 write (stderr,*) 'CLM : Error reading input namelist file !'
+    call fatal(__FILE__,__LINE__,'clm now stopping')
   end subroutine control_init
   !
   ! Distribute namelist data all processors. All program i/o is 
@@ -426,6 +456,8 @@ module mod_clm_control
     integer(ik4) :: i  !loop index
     character(len=32) :: subname = 'control_print'  ! subroutine name
 
+    if ( myid /= italk ) return
+
     write(stdout,*) 'define run:'
     write(stdout,*) '   source                = ',trim(source)
     write(stdout,*) '   model_version         = ',trim(model_version)
@@ -563,7 +595,7 @@ module mod_clm_control
       write(stdout,*) '   initial data   = ',trim(finidat)
     if (nsrest /= nsrStartup) &
       write(stdout,*) '   restart data   = ',trim(nrevsn)
-    write(stdout,*) '   atmospheric forcing data is from cesm atm model'
+    write(stdout,*) '   atmospheric forcing data is from RegCM atm model'
     write(stdout,*) 'Restart parameters:'
     write(stdout,*)'   restart pointer file directory     = ',trim(rpntdir)
     write(stdout,*)'   restart pointer file name          = ',trim(rpntfil)

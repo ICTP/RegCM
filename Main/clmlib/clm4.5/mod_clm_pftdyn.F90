@@ -136,7 +136,7 @@ module mod_clm_pftdyn
 
     ! Obtain pft years from dynamic landuse file
 
-    call clm_inqdim(ncid,'time',dlen=ntimes)
+    call clm_inqdim(ncid,'time',ntimes)
 
     ! Consistency check
 

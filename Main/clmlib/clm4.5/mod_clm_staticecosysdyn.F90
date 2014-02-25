@@ -256,7 +256,6 @@ module mod_clm_staticecosysdyn
     integer(ik4) :: npft_i         ! number of input data pft types
     integer(ik4) :: begp , endp    ! beg and end local p index
     integer(ik4) :: begg , endg    ! beg and end local g index
-    logical :: isgrid2d                   ! true => file is 2d
     character(len=32) :: subname = 'readAnnualVegetation'
 
     annlai    => clm3%g%l%c%p%pps%annlai
@@ -277,7 +276,6 @@ module mod_clm_staticecosysdyn
 
     call clm_openfile(trim(fsurdat),ncid)
     call clm_check_dims(ncid,ni,nj)
-    if ( nj == 1 ) isgrid2d = .false.
     ns = ni*nj
 
     if ( ldomain%ns /= ns .or. ldomain%ni /= ni .or. ldomain%nj /= nj ) then

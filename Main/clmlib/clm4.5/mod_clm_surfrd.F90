@@ -13,8 +13,9 @@ module mod_clm_surfrd
   use mod_intkinds
   use mod_realkinds
   use mod_stdio
+  use mod_memutil
   use mod_mpmessage
-  use mod_dynparam , only : myid
+  use mod_dynparam , only : myid , ds
   use mod_mppparam
   use mod_clm_nchelper
   use mod_clm_varpar , only : nlevsoifl , numpft , maxpatch_pft , numcft , &
@@ -23,19 +24,15 @@ module mod_clm_surfrd
          maxpatch_urb , npatch_glacier_mec , maxpatch_glcmec
   use mod_clm_varctl , only : glc_topomax
   use mod_clm_varsur , only : wtxy , vegxy , topoxy , pctspec
-  use mod_clm_decomp , only : get_proc_bounds
+  use mod_clm_decomp , only : get_proc_bounds , procinfo , numg
   use mod_clm_type
 
   implicit none
 
   private
 
-  ! Reads global land mask (needed for setting domain decomp)
-  public :: surfrd_get_globmask
   ! Read grid/ladnfrac data into domain (after domain decomp)
   public :: surfrd_get_grid
-  ! Read grid topography into domain (after domain decomp)
-  public :: surfrd_get_topo
   ! Read surface dataset and determine subgrid weights
   public :: surfrd_get_data
 
@@ -51,115 +48,33 @@ module mod_clm_surfrd
 
   contains
   !
-  ! Read the surface dataset grid related information:
-  ! This is the first routine called by clm_initialize 
-  ! NO DOMAIN DECOMPOSITION  HAS BEEN SET YET
-  !
-  subroutine surfrd_get_globmask(filename,mask,ni,nj)
-    implicit none
-    character(len=*) , intent(in) :: filename      ! grid filename
-    integer(ik4) , pointer , dimension(:) :: mask  ! grid mask 
-    integer(ik4) , intent(out) :: ni , nj          ! global grid sizes
-
-    logical :: isgrid2d = .true.   ! Default is grid 2D
-    integer(ik4) :: dimid , varid  ! netCDF id's
-    integer(ik4) :: ns             ! size of grid on file
-    integer(ik4) :: n , i , j      ! index 
-    integer(ik4) :: ier            ! error status
-    type(clm_filetype) :: ncid     ! netcdf id
-    character(len=256) :: varname  ! variable name
-    logical :: readvar             ! read variable in or not
-    integer(ik4) , allocatable , dimension(:,:) :: idata2d
-    character(len=32) :: subname = 'surfrd_get_globmask' ! subroutine name
-
-    if (filename == ' ') then
-      mask(:) = 1
-      return
-    end if
-    if ( myid == italk ) then
-      if (filename == ' ') then
-        write(stderr,*) trim(subname),' ERROR: filename must be specified '
-        call fatal(__FILE__,__LINE__,'clm now stopping')
-      end if
-    end if
-
-    call clm_openfile(filename,ncid)
-
-    ! Determine dimensions and if grid file is 2d or 1d
-
-    call clm_check_dims(ncid,ni,nj)
-    if ( nj == 1 ) isgrid2d = .false.
-    if (myid == italk) then
-      write(stdout,*)'lat/lon grid flag (isgrid2d) is ',isgrid2d
-    end if
-    ns = ni*nj
-
-    allocate(mask(ns))
-    mask(:) = 1
-
-    readvar = .false.
-    if (isgrid2d) then
-      allocate(idata2d(ni,nj))
-      idata2d(:,:) = 1
-      if ( clm_check_var(ncid,'LANDMASK') ) then
-        call clm_readvar(ncid,'LANDMASK',idata2d)
-        readvar = .true.
-      else if ( clm_check_var(ncid,'mask') ) then
-        call clm_readvar(ncid,'mask',idata2d)
-        readvar = .true.
-      end if
-      if (readvar) then
-        do j = 1,nj
-          do i = 1,ni
-             n = (j-1)*ni + i  
-             mask(n) = idata2d(i,j)
-          end do
-        end do
-      end if
-      deallocate(idata2d)
-    else
-      if ( clm_check_var(ncid,'LANDMASK') ) then
-        call clm_readvar(ncid,'LANDMASK',mask)
-        readvar = .true.
-      else if ( clm_check_var(ncid,'mask') ) then
-        call clm_readvar(ncid,'mask',mask)
-        readvar = .true.
-      end if
-    end if
-    if (.not. readvar) then
-      call fatal(__FILE__,__LINE__, &
-          trim(subname)//' ERROR: landmask not on fatmlndfrc file' )
-    end if
-    call clm_closefile(ncid)
-  end subroutine surfrd_get_globmask
-  !
   ! THIS IS CALLED AFTER THE DOMAIN DECOMPOSITION HAS BEEN CREATED
   ! Read the surface dataset grid related information:
   ! o real latitude  of grid cell (degrees)
   ! o real longitude of grid cell (degrees)
   !
-  subroutine surfrd_get_grid(ldomain, filename, glcfilename)
+  subroutine surfrd_get_grid(ldomain, filename)
     use mod_clm_varcon , only : spval , re
-    use mod_clm_domain , only : domain_type , domain_init , &
-                                domain_clean , lon1d , lat1d
+    use mod_clm_domain , only : domain_type , domain_init , domain_clean
     use mod_clm_decomp , only : get_proc_bounds
     implicit none
     type(domain_type) , intent(inout) :: ldomain   ! domain to init
     character(len=*) , intent(in)    :: filename  ! grid filename
-    character(len=*) , optional , intent(in) :: glcfilename ! glc mask filename
     type(clm_filetype) :: ncid       ! netcdf id
     type(clm_filetype ):: ncidg      ! netCDF id for glcmask
     integer(ik4) :: ibeg             ! local beg index
     integer(ik4) :: iend             ! local end index
     integer(ik4) :: ni , nj , ns     ! size of grid on file
+    integer(ik4) :: inni , innj      ! size of grid on file
     integer(ik4) :: dimid , varid    ! netCDF id's
     integer(ik4) :: ier , ret        ! error status
     logical :: readvar = .true.      ! true => variable is on input file 
-    logical :: isgrid2d = .true.     ! true => file is 2d lat/lon
     logical :: istype_domain         ! true => input file is of type domain
     real(rk8) , allocatable , dimension(:,:) :: rdata2d ! temporary
+    real(rk8) , allocatable , dimension(:) :: rdata1d ! temporary
+    real(rk8) , allocatable , dimension(:) :: rdata1dpack ! temporary
     character(len=16) :: vname       ! temporary
-    integer(ik4) :: n                ! indices
+    integer(ik4) :: n , i , j        ! indices
     real(rk8) :: eps = 1.0D-12       ! lat/lon error tolerance
     character(len=32) :: subname = 'surfrd_get_grid'     ! subroutine name
 
@@ -174,99 +89,60 @@ module mod_clm_surfrd
 
     ! Determine dimensions
 
-    call clm_check_dims(ncid,ni,nj)
-    if ( nj == 1 ) isgrid2d = .false.
+    call clm_inqdim(ncid,'jx',inni)
+    call clm_inqdim(ncid,'iy',innj)
+
+    ! RegCM INTERNAL grid is 2:jx-2,2:iy-2
+    allocate(rdata2d(inni,innj))
+    allocate(rdata1d(numg))
+    ni = inni - 3
+    nj = innj - 3
     ns = ni*nj
 
-    ! Determine isgrid2d flag for domain
+    call get_proc_bounds(ibeg,iend)
+    call domain_init(ldomain,ni=ni,nj=nj,nbeg=ibeg,nend=iend)
 
-    call get_proc_bounds(ibeg, iend)
-    call domain_init(ldomain,isgrid2d=isgrid2d,ni=ni,nj=nj,nbeg=ibeg,nend=iend)
-    ! Determine type of file - old style grid file or new style domain file
-
-    if ( clm_check_var(ncid,'LONGXY') ) istype_domain = .false.
-    if ( clm_check_var(ncid,'xc') ) istype_domain = .true.
-
-    ! Read in area, lon, lat
-
-    if ( istype_domain ) then
-      if ( clm_check_var(ncid,'area') ) then
-        call clm_readvar(ncid,'area',ldomain%area)
-      else
-        call fatal(__FILE__,__LINE__,trim(subname)//' ERROR: area NOT on file')
-      end if
-      ! convert from radians**2 to km**2
-      ldomain%area = ldomain%area * (re**2)
-      if ( clm_check_var(ncid,'xc') ) then
-        call clm_readvar(ncid,'xc',ldomain%lonc)
-      else
-        call fatal(__FILE__,__LINE__,trim(subname)//' ERROR: xc NOT on file')
-      end if
-      if ( clm_check_var(ncid,'yc') ) then
-        call clm_readvar(ncid,'yc',ldomain%latc)
-      else
-        call fatal(__FILE__,__LINE__,trim(subname)//' ERROR: yc NOT on file')
-      end if
-      if ( clm_check_var(ncid,'mask') )then
-        call clm_readvar(ncid,'mask',ldomain%mask)
-      else
-        call fatal(__FILE__,__LINE__,trim(subname)//' ERROR: mask NOT on file')
-      end if
-      if ( clm_check_var(ncid,'frac') ) then
-        call clm_readvar(ncid,'frac',ldomain%frac)
-      else
-        call fatal(__FILE__,__LINE__, &
-          trim(subname)//' ERROR: LANDMASK NOT on file')
-      end if
-    else
-      if ( clm_check_var(ncid,'AREA') ) then
-        call clm_readvar(ncid,'AREA',ldomain%area)
-      else
-        call fatal(__FILE__,__LINE__,trim(subname)//' ERROR: AREA NOT on file')
-      end if
-      if ( clm_check_var(ncid,'LONGXY') ) then
-        call clm_readvar(ncid,'LONGXY',ldomain%lonc)
-      else
-        call fatal(__FILE__,__LINE__, &
-          trim(subname)//' ERROR: LONGXY NOT on file')
-      end if
-      if ( clm_check_var(ncid,'LATIXY') ) then
-        call clm_readvar(ncid,'LATIXY',ldomain%latc)
-      else
-        call fatal(__FILE__,__LINE__, &
-          trim(subname)//' ERROR: LATIXY NOT on file')
-      end if
-      if ( clm_check_var(ncid,'LANDMASK') ) then
-        call clm_readvar(ncid,'LANDMASK',ldomain%mask)
-      else
-        call fatal(__FILE__,__LINE__, &
-          trim(subname)//' ERROR: LANDMASK NOT on file')
-      end if
-      if ( clm_check_var(ncid,'LANDFRAC') ) then
-        call clm_readvar(ncid,'LANDFRAC',ldomain%frac)
-      else
-        call fatal(__FILE__,__LINE__, &
-          trim(subname)//' ERROR: LANDMASK NOT on file')
-      end if
+    ! Read mask from input file
+    call clm_readvar(ncid,'mask',rdata2d)
+    call getmem2d(procinfo%gcmask,1,ni,1,nj,'surfrd:gcmask')
+    procinfo%gcmask = .false.
+    do j = 2 , innj-2
+      do i = 2 , inni-2
+        procinfo%gcmask(i-1,j-1) = (rdata2d(i,j) > 0)
+      end do
+    end do
+    if ( count(procinfo%gcmask) /= numg ) then
+      write(stderr,*) 'Unmatch from landmask in ATM and CLM'
+      write(stderr,*) 'ATM : ', count(procinfo%gcmask)
+      write(stderr,*) 'CLM : ', numg
+      call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
-    if ( isgrid2d ) then
-      allocate(rdata2d(ni,nj), lon1d(ns), lat1d(ns))
-      if (istype_domain) then
-         vname = 'xc'
-      else
-         vname = 'LONGXY'
-      end if
-      call clm_readvar(ncid,vname,rdata2d)
-      lon1d(:) = reshape(rdata2d,(/ns/))
-      if (istype_domain) then
-         vname = 'yc'
-      else
-         vname = 'LATIXY'
-      end if
-      call clm_readvar(ncid,vname,rdata2d)
-      lat1d(:) = reshape(rdata2d,(/ns/))
-      deallocate(rdata2d)
-    end if
+
+    rdata1d = pack(rdata2d(2:inni-2,2:innj-2),procinfo%gcmask)
+    ldomain%frac = rdata1d(ibeg:iend)
+
+    ! Read in lon, lat from RegCM Subgrid domain file
+    call clm_readvar(ncid,'xlon',rdata2d)
+    rdata1d = pack(rdata2d(2:inni-2,2:innj-2),procinfo%gcmask)
+    ldomain%lonc = rdata1d(ibeg:iend)
+    call clm_readvar(ncid,'xlat',rdata2d)
+    rdata1d = pack(rdata2d(2:inni-2,2:innj-2),procinfo%gcmask)
+    ldomain%latc = rdata1d(ibeg:iend)
+    call clm_readvar(ncid,'topo',rdata2d)
+    rdata1d = pack(rdata2d(2:inni-2,2:innj-2),procinfo%gcmask)
+    ldomain%topo = rdata1d(ibeg:iend)
+
+    deallocate(rdata2d)
+    deallocate(rdata1d)
+    call clm_closefile(ncid)
+
+    where ( ldomain%frac > 0 ) ldomain%frac = 100.0D0
+    ldomain%area = ds*ds
+    where ( ldomain%frac > 0 )
+      ldomain%mask = 1
+    else where
+      ldomain%mask = 0
+    end where
 
     ! Check lat limited to -90,90
 
@@ -274,128 +150,11 @@ module mod_clm_surfrd
         maxval(ldomain%latc) >  90.0D0) then
       write(stderr,*) trim(subname),' WARNING: lat/lon min/max is ', &
            minval(ldomain%latc),maxval(ldomain%latc)
-      ! call fatal(__FILE__,__LINE__, &
-      !    trim(subname)//' ERROR: lat is outside [-90,90]' )
-      ! write(stderr,*) trim(subname),' Limiting lat/lon to [-90/90] from ', &
-      !     minval(domain%latc),maxval(domain%latc)
-      ! where (ldomain%latc < -90.0D0) ldomain%latc = -90.0D0
-      ! where (ldomain%latc >  90.0D0) ldomain%latc =  90.0D0
+      call fatal(__FILE__,__LINE__, &
+          trim(subname)//' ERROR: lat is outside [-90,90]' )
     end if
 
-    call clm_closefile(ncid)
-
-    if ( present(glcfilename) ) then
-      if ( myid == italk ) then
-        if ( glcfilename == ' ' ) then
-          write(stderr,*) trim(subname), &
-                  ' ERROR: glc filename must be specified '
-          call fatal(__FILE__,__LINE__,'clm now stopping')
-        end if
-      end if
-      call clm_openfile(glcfilename,ncidg)
-
-      ldomain%glcmask(:) = 0
-      if ( clm_check_var(ncidg,'GLCMASK') ) then
-        call clm_readvar(ncidg,'GLCMASK',ldomain%glcmask)
-      else
-        call fatal(__FILE__,__LINE__, &
-          trim(subname)//' ERROR: GLCMASK NOT in file' )
-      end if
-
-      ! Make sure the glc mask is a subset of the land mask
-      do n = ibeg , iend
-        if ( ldomain%glcmask(n) == 1 .and. ldomain%mask(n) == 0 ) then
-          write(stderr,*)trim(subname),&
-                'initialize1: landmask/glcmask mismatch'
-          write(stderr,*)trim(subname),&
-                'glc requires input where landmask = 0, gridcell index', n
-          call fatal(__FILE__,__LINE__,'clm now stopping')
-        end if
-      end do
-      call clm_closefile(ncidg)
-    end if   ! present(glcfilename)
   end subroutine surfrd_get_grid
-  !
-  ! Read the topo dataset grid related information:
-  ! Assume domain has already been initialized and read
-  !
-  subroutine surfrd_get_topo(domain,filename)
-    use mod_clm_domain, only : domain_type
-    implicit none
-    type(domain_type) , intent(inout) :: domain   ! domain to init
-    character(len=*) , intent(in) :: filename     ! grid filename
-    type(clm_filetype) :: ncid     ! netcdf file id
-    integer(ik4) :: n              ! indices
-    integer(ik4) :: ni , nj , ns   ! size of grid on file
-    integer(ik4) :: dimid , varid  ! netCDF id's
-    integer(ik4) :: ier            ! error status
-    real(rk8) , parameter :: eps = 1.0D-12 ! lat/lon error tolerance
-    integer(ik4) :: ibeg , iend    ! local beg,end indices
-    logical :: isgrid2d = .false.  ! true => file is 2d lat/lon
-    real(rk8) , pointer , dimension(:) :: lonc , latc  ! local lat/lon
-    logical :: readvar = .true.    ! is variable on file
-    character(len=32) :: subname = 'surfrd_get_topo'     ! subroutine name
-
-    if (myid == italk) then
-      if (filename == ' ') then
-        write(stderr,*) trim(subname),' ERROR: filename must be specified '
-        call fatal(__FILE__,__LINE__,'clm now stopping')
-      else
-        write(stdout,*) &
-                'Attempting to read lnd topo from flndtopo ',trim(filename)
-      end if
-    end if
-
-    call clm_openfile(filename,ncid)
-    call clm_check_dims(ncid,ni,nj)
-    if ( nj == 1 ) isgrid2d = .true.
-    ns = ni*nj
-
-    if (domain%ns /= ns) then
-      write(stderr,*) trim(subname),' ERROR: topo file mismatch ns',&
-           domain%ns,ns
-      call fatal(__FILE__,__LINE__,'clm now stopping')
-    end if
-    
-    ibeg = domain%nbeg
-    iend = domain%nend
-
-    allocate(latc(ibeg:iend),lonc(ibeg:iend))
-    if ( clm_check_var(ncid,'LONGXY') ) then
-      call clm_readvar(ncid,'LONGXY',lonc)
-    else
-      call fatal(__FILE__,__LINE__, &
-        trim(subname)//' ERROR: LONGXY  NOT on topodata file' )
-    end if
-
-    if ( clm_check_var(ncid,'LATIXY') ) then
-      call clm_readvar(ncid,'LATIXY',latc)
-    else
-      call fatal(__FILE__,__LINE__, &
-        trim(subname)//' ERROR: LATIXY  NOT on topodata file' )
-    end if
-
-    do n = ibeg,iend
-      if (abs(latc(n)-domain%latc(n)) > eps .or. &
-          abs(lonc(n)-domain%lonc(n)) > eps) then
-        write(stderr,*) trim(subname), &
-                ' ERROR: topo file mismatch lat,lon',latc(n),&
-               domain%latc(n),lonc(n),domain%lonc(n),eps
-        call fatal(__FILE__,__LINE__,'clm now stopping')
-      end if
-    end do
-
-    if ( clm_check_var(ncid,'TOPO') ) then
-      call clm_readvar(ncid,'TOPO',domain%topo)
-    else
-      call fatal(__FILE__,__LINE__, &
-        trim(subname)//' ERROR: TOPO  NOT on topodata file' )
-    end if
-
-    deallocate(latc,lonc)
-
-    call clm_closefile(ncid)
-  end subroutine surfrd_get_topo
   !
   ! Read the surface dataset and create subgrid weights.
   ! The model's surface dataset recognizes 6 basic land cover types within
@@ -417,7 +176,7 @@ module mod_clm_surfrd
   !    o real % of cell that is glacier_mec for use as subgrid patch
   !    o integer(ik4) PFTs
   !    o real % abundance PFTs (as a percent of vegetated area)
-  subroutine surfrd_get_data (ldomain, lfsurdat)
+  subroutine surfrd_get_data(ldomain, lfsurdat)
     use mod_clm_varctl , only : allocate_all_vegpfts , create_crop_landunit
     use mod_clm_pftvarcon , only : noveg
     use mod_clm_domain , only : domain_type , domain_init , domain_clean
@@ -435,7 +194,6 @@ module mod_clm_surfrd
     type(clm_filetype) :: ncid               ! netcdf id
     integer(ik4) :: begg , endg              ! beg,end gridcell indices
     logical :: istype_domain              ! true => input file is of type domain
-    logical :: isgrid2d                   ! true => intut grid is 2d 
     character(len=32) :: subname = 'surfrd_get_data'    ! subroutine name
 
     if (myid == italk) then
@@ -489,10 +247,9 @@ module mod_clm_surfrd
               ' lon_var = ',trim(lon_var),' lat_var =',trim(lat_var)
     end if
     call clm_check_dims(ncid,ni,nj)
-    if ( nj == 1 ) isgrid2d = .true.
     ns = ni*nj
 
-    call domain_init(surfdata_domain,isgrid2d,ni,nj,begg,endg,clmlevel=grlnd)
+    call domain_init(surfdata_domain,ni,nj,begg,endg,clmlevel=grlnd)
     if ( clm_check_var(ncid,lon_var) ) then
       call clm_readvar(ncid,lon_var,surfdata_domain%lonc)
     else

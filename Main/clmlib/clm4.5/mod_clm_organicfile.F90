@@ -26,7 +26,6 @@ module mod_clm_organicfile
     character(len=256) :: locfn                 ! local file name
     type(clm_filetype) :: ncid                  ! netcdf id
     integer(ik4)       :: ni,nj,ns              ! dimension sizes  
-    logical            :: isgrid2d              ! true => file is 2d
     logical            :: readvar               ! true => variable is on dataset
     character(len=32)  :: subname = 'organicrd' ! subroutine name
 
@@ -45,7 +44,6 @@ module mod_clm_organicfile
       call clm_openfile (fsurdat,ncid)
 
       call clm_check_dims(ncid, ni, nj)
-      if ( nj == 1 ) isgrid2d = .false.
       ns = ni*nj
       if ( ldomain%ns /= ns .or. &
            ldomain%ni /= ni .or. &

@@ -161,7 +161,8 @@ module mod_mppparam
                      real4_2d_sub_collect ,   &
                      real4_3d_sub_collect ,   &
                      integer_2d_sub_collect , &
-                     integer_3d_sub_collect
+                     integer_3d_sub_collect , &
+                     logical_2d_sub_collect
   end interface subgrid_collect
 
   interface exchange
@@ -283,9 +284,10 @@ module mod_mppparam
   end interface l2c_gs
 
   interface reorder_subgrid
-    module procedure reorder_subgrid_2d , &
+    module procedure reorder_subgrid_2d ,   &
                      reorder_subgrid_2d3d , &
-                     reorder_subgrid_3d
+                     reorder_subgrid_3d ,   &
+                     reorder_subgrid_2d_logical
   end interface reorder_subgrid
 
   interface reorder_add_subgrid
@@ -3260,6 +3262,66 @@ module mod_mppparam
     end if
   end subroutine integer_3d_sub_collect
 !
+  subroutine logical_2d_sub_collect(ml,mg,j1,j2,i1,i2)
+    implicit none
+    logical(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
+    logical(ik4) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
+    if ( myid == iocpu ) then
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            mg(n,global_dot_jstart+j-1,global_dot_istart+i-1) = ml(n,j,i)
+          end do
+        end do
+      end do
+      ! Receive from other nodes the piece they have
+      do icpu = 1 , nproc-1
+        call recv_array(window,4,icpu,tag_w)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize*nnsg
+        if ( size(i4vector1) < lsize ) then
+          call getmem1d(lvector1,1,lsize,'logical_2d_sub_collect')
+        end if
+        call recv_array(lvector1,lsize,icpu,tag_base)
+        ib = 1
+        do i = window(1) , window(2)
+          do j = window(3) , window(4)
+            do n = 1 , nnsg
+              mg(n,j,i) = lvector1(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize*nnsg
+      if ( size(lvector2) < lsize ) then
+        call getmem1d(lvector2,1,lsize,'logical_2d_sub_collect')
+      end if
+      window(1) = global_dot_istart+i1-1
+      window(2) = window(1)+isize-1
+      window(3) = global_dot_jstart+j1-1
+      window(4) = window(3)+jsize-1
+      call send_array(window,4,iocpu,tag_w)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            lvector2(ib) = ml(n,j,i)
+            ib = ib + 1
+          end do
+        end do
+      end do
+      call send_array(lvector2,lsize,iocpu,tag_base)
+    end if
+  end subroutine logical_2d_sub_collect
+!
   subroutine real8_2d_exchange(ml,nex,j1,j2,i1,i2)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(out) :: ml
@@ -5676,6 +5738,24 @@ module mod_mppparam
       end do
     end if
   end subroutine reorder_subgrid_2d
+
+  subroutine reorder_subgrid_2d_logical(var3,var2)
+    implicit none
+    logical , pointer , dimension(:,:,:) , intent(in) :: var3
+    logical , pointer , dimension(:,:) , intent(out) :: var2
+    integer(ik4) :: i , j , ii , jj , n1 , n2
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n2 = 1 , nsg
+          ii = (i-1) * nsg + n2
+          do n1 = 1 , nsg
+            jj = (j-1) * nsg + n1
+            var2(jj,ii) = var3((n2-1)*nsg+n1,j,i)
+          end do
+        end do
+      end do
+    end do
+  end subroutine reorder_subgrid_2d_logical
 
   subroutine reorder_add_subgrid_2d3d(var3,var2_3,l,mask)
     implicit none

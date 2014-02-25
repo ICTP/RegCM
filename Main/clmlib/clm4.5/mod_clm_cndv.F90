@@ -231,12 +231,7 @@ module mod_clm_cndv
     ! Define dimensions.
     ! -----------------------------------------------------------------------
     
-    if (ldomain%isgrid2d) then
-      call clm_adddim(ncid,'lon',ldomain%ni)
-      call clm_adddim(ncid,'lat',ldomain%nj)
-    else
-      call clm_adddim(ncid,'gridcell',ldomain%ns)
-    end if
+    call clm_adddim(ncid,'gridcell',ldomain%ns)
     call clm_adddim(ncid,'pft',maxpatch_pft)
     call clm_adddim(ncid,'time',clmvar_unlim)
     call clm_adddim(ncid,'string_length',80)
@@ -244,14 +239,6 @@ module mod_clm_cndv
     ! -----------------------------------------------------------------------
     ! Define variables
     ! -----------------------------------------------------------------------
-    
-    ! Define coordinate variables (including time)
-    if (ldomain%isgrid2d) then
-       call clm_addvar(clmvar_double,ncid,'lon',(/'lon'/), &
-         'coordinate longitude','degrees_east')
-       call clm_addvar(clmvar_double,ncid,'lat',(/'lat'/), &
-         'coordinate latitude','degrees_north')
-    end if
     
     call get_curr_time(idatex,mdcur, mscur)
     call ref_date(yr,mon,day,nbsec)
@@ -270,21 +257,12 @@ module mod_clm_cndv
     ! Define surface grid (coordinate variables, latitude, longitude,
     ! surface type).
     
-    if (ldomain%isgrid2d) then
-      call clm_addvar(clmvar_double,ncid,'longxy',(/'lon','lat'/), &
-            long_name='longitude', units='degrees_east')
-      call clm_addvar(clmvar_double,ncid,'latixy',(/'lon','lat'/), &
-            long_name='latitude', units='degrees_north')
-      call clm_addvar(clmvar_integer(ik4),ncid,'landmask',(/'lon','lat'/), &
-            long_name='land/ocean mask (0.=ocean and 1.=land)')
-    else
-      call clm_addvar(clmvar_double,ncid,'longxy',(/'gridcell'/), &
-            long_name='longitude', units='degrees_east')
-      call clm_addvar(clmvar_double,ncid,'latixy',(/'gridcell'/), &
-            long_name='latitude', units='degrees_north')
-      call clm_addvar(clmvar_integer(ik4),ncid,'landmask',(/'gridcell'/), &
-            long_name='land/ocean mask (0.=ocean and 1.=land)')
-    end if
+    call clm_addvar(clmvar_double,ncid,'longxy',(/'gridcell'/), &
+          long_name='longitude', units='degrees_east')
+    call clm_addvar(clmvar_double,ncid,'latixy',(/'gridcell'/), &
+          long_name='latitude', units='degrees_north')
+    call clm_addvar(clmvar_integer(ik4),ncid,'landmask',(/'gridcell'/), &
+          long_name='land/ocean mask (0.=ocean and 1.=land)')
 
     ! Define time information
 
@@ -301,29 +279,16 @@ module mod_clm_cndv
 
     ! Define time dependent variables
 
-    if (ldomain%isgrid2d) then
-       call clm_addvar(clmvar_double,ncid,'FPCGRID', &
-         (/'lon ','lat ','pft ','time'/), &
-            long_name='plant functional type cover', &
-            units='fraction of vegetated area', &
-            missing_value=1,fill_value=1)
-       call clm_addvar(clmvar_double,ncid,'NIND', &
-         (/'lon ','lat ','pft ','time'/), &
-            long_name='number of individuals', &
-            units='individuals/m2 vegetated land', &
-            missing_value=1,fill_value=1)
-    else 
-       call clm_addvar(clmvar_double,ncid,'FPCGRID',&
-            (/'gridcell','pft     ','time    '/), &
-            long_name='plant functional type cover', &
-            units='fraction of vegetated area', &
-            missing_value=1,fill_value=1)
-       call clm_addvar(clmvar_double,ncid,'NIND', &
-            (/'gridcell','pft     ','time    '/), &
-            long_name='number of individuals', &
-            units='individuals/m2 vegetated land', &
-            missing_value=1,fill_value=1)
-    end if
+     call clm_addvar(clmvar_double,ncid,'FPCGRID',&
+          (/'gridcell','pft     ','time    '/), &
+          long_name='plant functional type cover', &
+          units='fraction of vegetated area', &
+          missing_value=1,fill_value=1)
+     call clm_addvar(clmvar_double,ncid,'NIND', &
+          (/'gridcell','pft     ','time    '/), &
+          long_name='number of individuals', &
+          units='individuals/m2 vegetated land', &
+          missing_value=1,fill_value=1)
 
     call clm_enddef(ncid)
 

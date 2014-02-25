@@ -626,13 +626,12 @@ module mod_clm_initgridcells
   ! Initialize wet_ice_lake landunits that are non-urban
   ! (lake, wetland, glacier, glacier_mec)
   !
-  subroutine set_landunit_wet_ice_lake (ltype,nw,gi,li,ci,pi,setdata,glcmask)
+  subroutine set_landunit_wet_ice_lake (ltype,nw,gi,li,ci,pi,setdata)
     use mod_clm_type , only : clm3 , model_type , gridcell_type , &
             landunit_type , column_type,pft_type
     use mod_clm_subgrid , only : subgrid_get_gcellinfo
     use mod_clm_varcon , only : istice , istwet , istdlak
     use mod_clm_varpar , only : npatch_lake , npatch_glacier , npatch_wet
-    use mod_clm_varpar , only : npatch_glacier_mec , maxpatch_glcmec
     implicit none
     integer(ik4) , intent(in) :: ltype ! landunit type
     integer(ik4) , intent(in) :: nw    ! cell index
@@ -641,9 +640,6 @@ module mod_clm_initgridcells
     integer(ik4) , intent(inout) :: ci ! column index
     integer(ik4) , intent(inout) :: pi ! pft index
     logical , intent(in) :: setdata    ! set info or just compute
-    ! = 1 where glc requires sfc mass balance
-    ! = 0 otherwise
-    integer(ik4) , intent(in), optional :: glcmask
     integer(ik4) :: m     ! m index in wtxy(nw,m)
     integer(ik4) :: c     ! column loop index
     integer(ik4) :: ctype ! column type

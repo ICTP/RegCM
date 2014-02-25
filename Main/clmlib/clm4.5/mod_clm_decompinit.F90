@@ -14,6 +14,7 @@ module mod_clm_decompinit
   use mod_service
   use mod_clm_decomp
   use mod_clm_subgrid , only : subgrid_get_gcellinfo
+  use mpi
 
   implicit none
 
@@ -32,6 +33,9 @@ module mod_clm_decompinit
   subroutine decompInit_lnd(cl)
     implicit none
     type (masked_comm) , intent(in) , target :: cl
+    integer(ik4) , pointer , dimension(:) :: gcount
+    integer(ik4) :: nout , mynumg , np
+    logical , dimension(:,:,:) , pointer  :: lsubgrid
 
     allocate(procinfo%gc(nproc))
     allocate(procinfo%gd(nproc))
@@ -42,9 +46,6 @@ module mod_clm_decompinit
     allocate(procinfo%pc(nproc))
     allocate(procinfo%pd(nproc))
 
-    call getmem2d(procinfo%gcmask,jout1,jout2,iout1,iout2,'clm decomp')
-    call grid_collect(cl%gmask,procinfo%gcmask,jci1,jci2,ici1,ici2)
-
     procinfo%cl => cl
     procinfo%ncells = cl%linear_npoint_sg(myid+1)
 
@@ -54,16 +55,43 @@ module mod_clm_decompinit
     gcomm_column%icomm = cl%linear_communicator
     gcomm_pft%icomm = cl%linear_communicator
 
+    allocate(gcount(procinfo%ncells))
+    gcount(:) = 1
+    mynumg  = sum(gcount)
+    call sumall(mynumg,numg)
+    call allgather_i(procinfo%gc,mynumg)
+
+    if ( myid > 0 ) then
+      procinfo%begg = sum(procinfo%gc(1:myid))+1
+      procinfo%endg = procinfo%begg + mynumg - 1
+    else
+      procinfo%begg = 1
+      procinfo%endg = mynumg
+    end if
+
+    procinfo%gd(:) = 0
+    do np = 2 , nproc
+      procinfo%gd(np) = sum(procinfo%gc(1:np-1))
+    end do
+
+    deallocate(gcount)
+
+    gcomm_gridcell%ns = numg
+    gcomm_gridcell%is = procinfo%begg
+    gcomm_gridcell%ie = procinfo%endg
+    gcomm_gridcell%ic => procinfo%gc
+    gcomm_gridcell%id => procinfo%gd
+
+    ! Set default for landunits , column and pfts
+
     procinfo%nlunits = 0
     procinfo%ncols   = 0
     procinfo%npfts   = 0
 
-    procinfo%begg    = 1
     procinfo%begl    = 1
     procinfo%begc    = 1
     procinfo%begp    = 1
 
-    procinfo%endg    = 0
     procinfo%endl    = 0
     procinfo%endc    = 0
     procinfo%endp    = 0
@@ -78,32 +106,27 @@ module mod_clm_decompinit
     integer(ik4) :: ln           ! lnd num gridcells
     integer(ik4) :: mynumg , mynumc , mynump , mynuml
     integer(ik4) :: np , ilunits , icols , ipfts
-    integer(ik4) , pointer , dimension(:) :: gcount
     integer(ik4) , pointer , dimension(:) :: lcount
     integer(ik4) , pointer , dimension(:) :: ccount
     integer(ik4) , pointer , dimension(:) :: pcount
 
-    allocate(gcount(procinfo%ncells))
     allocate(lcount(procinfo%ncells))
     allocate(ccount(procinfo%ncells))
     allocate(pcount(procinfo%ncells))
 
-    gcount = 0
     lcount = 0
     ccount = 0
     pcount = 0
+
     begg = 1
     endg = procinfo%ncells
-
     do ln = begg , endg
       call subgrid_get_gcellinfo(ln,nlunits=ilunits,ncols=icols,npfts=ipfts)
-      gcount(ln) = 1
       lcount(ln) = ilunits
       ccount(ln) = icols
       pcount(ln) = ipfts
     end do
 
-    mynumg  = sum(gcount)
     mynuml  = sum(lcount)
     mynumc  = sum(ccount)
     mynump  = sum(pcount)
@@ -112,28 +135,22 @@ module mod_clm_decompinit
     procinfo%ncols   = mynumc
     procinfo%npfts   = mynump
 
-    call sumall(mynumg,numg)
     call sumall(mynuml,numl)
     call sumall(mynumc,numc)
     call sumall(mynump,nump)
 
-    call allgather_i(procinfo%gc,mynumg)
     call allgather_i(procinfo%lc,mynuml)
     call allgather_i(procinfo%cc,mynumc)
     call allgather_i(procinfo%pc,mynump)
 
-    if ( myid > 1 ) then
-      procinfo%begg = sum(procinfo%gc(1:myid))
-      procinfo%endg = procinfo%begg + mynumg
-      procinfo%begl = sum(procinfo%lc(1:myid))
-      procinfo%endl = procinfo%begl + mynuml
-      procinfo%begc = sum(procinfo%cc(1:myid))
-      procinfo%endc = procinfo%begc + mynumc
-      procinfo%begp = sum(procinfo%pc(1:myid))
-      procinfo%endp = procinfo%begp + mynump
+    if ( myid > 0 ) then
+      procinfo%begl = sum(procinfo%lc(1:myid))+1
+      procinfo%endl = procinfo%begl + mynuml - 1
+      procinfo%begc = sum(procinfo%cc(1:myid))+1
+      procinfo%endc = procinfo%begc + mynumc - 1
+      procinfo%begp = sum(procinfo%pc(1:myid))+1
+      procinfo%endp = procinfo%begp + mynump - 1
     else
-      procinfo%begg = 1
-      procinfo%endg = mynumg
       procinfo%begl = 1
       procinfo%endl = mynuml
       procinfo%begc = 1
@@ -142,41 +159,35 @@ module mod_clm_decompinit
       procinfo%endp = mynump
     end if
 
-    procinfo%gd(:) = 0
     procinfo%ld(:) = 0
     procinfo%cd(:) = 0
     procinfo%pd(:) = 0
     do np = 2 , nproc
-      procinfo%gd(np) = sum(procinfo%gc(1:np-1))
       procinfo%ld(np) = sum(procinfo%lc(1:np-1))
       procinfo%cd(np) = sum(procinfo%cc(1:np-1))
       procinfo%pd(np) = sum(procinfo%pc(1:np-1))
     end do
 
-    deallocate(gcount)
     deallocate(lcount)
     deallocate(ccount)
     deallocate(pcount)
 
-    gcomm_gridcell%ns = numg
     gcomm_landunit%ns = numl
-    gcomm_column%ns = numc
-    gcomm_pft%ns = nump
-    gcomm_gridcell%is = procinfo%begg
     gcomm_landunit%is = procinfo%begl
-    gcomm_column%is = procinfo%begc
-    gcomm_pft%is = procinfo%begp
-    gcomm_gridcell%ie = procinfo%endg
     gcomm_landunit%ie = procinfo%endl
-    gcomm_column%ie = procinfo%endc
-    gcomm_pft%ie = procinfo%endp
-    gcomm_gridcell%ic => procinfo%gc
     gcomm_landunit%ic => procinfo%lc
-    gcomm_column%ic => procinfo%cc
-    gcomm_pft%ic => procinfo%pc
-    gcomm_gridcell%id => procinfo%gd
     gcomm_landunit%id => procinfo%ld
+
+    gcomm_column%ns = numc
+    gcomm_column%is = procinfo%begc
+    gcomm_column%ie = procinfo%endc
+    gcomm_column%ic => procinfo%cc
     gcomm_column%id => procinfo%cd
+
+    gcomm_pft%ns = nump
+    gcomm_pft%is = procinfo%begp
+    gcomm_pft%ie = procinfo%endp
+    gcomm_pft%ic => procinfo%pc
     gcomm_pft%id => procinfo%pd
 
     ! Diagnostic output

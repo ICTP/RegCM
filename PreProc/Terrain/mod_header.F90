@@ -48,11 +48,11 @@ module mod_header
     hostname='ibm platform '
     user= 'Unknown'
 #else
-    Ihost = hostnm(hostname)
+    ihost = hostnm(hostname)
     call getlog(user)
 #endif 
     call date_and_time(zone=czone,values=tval)
-    Idir = getcwd(directory)
+    idir = getcwd(directory)
 
     write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
        tval(1), tval(2), tval(3), tval(5), tval(6), tval(7), czone

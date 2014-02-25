@@ -42,6 +42,11 @@ module mod_lm_interface
   use perf_mod , only : t_prf , t_finalizef
 #endif
 
+#ifdef CLM45
+  use mod_clm_initialize
+  use mod_clm_driver
+#endif
+
   implicit none
 
   private
@@ -363,6 +368,10 @@ module mod_lm_interface
         end do
       end do
     end if
+#endif
+#ifdef CLM45
+    call initialize1(lndcomm)
+    call clm_drv(.true.,1.0D0,2.0D0,3.0D0,.true.,.false.,'000000')
 #endif
     lm%emissivity = sum(lms%emisv,1) * rdnnsg
   end subroutine initialize_surface_model

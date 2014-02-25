@@ -18,7 +18,6 @@ module mod_clm_domain
   type domain_type
     integer(ik4) :: ns         ! global size of domain
     integer(ik4) :: ni , nj    ! global axis if 2d (nj=1 if unstructured)
-    logical :: isgrid2d   ! true => global grid is lat/lon
     integer(ik4) :: nbeg , nend  ! local beg/end indices
     character(len=8) :: clmlevel   ! grid type
     ! land mask: 1 = land, 0 = ocean
@@ -35,17 +34,11 @@ module mod_clm_domain
     real(rk8) , pointer , dimension(:) :: area
     ! pft mask: 1=real, 0=fake, -1=notset
     integer(ik4) , pointer , dimension(:) :: pftm
-    ! glc mask: 1=sfc mass balance required by GLC component
-    ! 0=SMB not required (default)
-    integer(ik4) , pointer , dimension(:) :: glcmask
     character(len=16) :: set ! flag to check if domain is set
     logical :: decomped   ! decomposed locally or global copy
   end type domain_type
 
   type(domain_type) , public :: ldomain
-  ! 1d lat/lons for 2d grids
-  real(rk8) , allocatable , public , dimension(:) :: lon1d
-  real(rk8) , allocatable , public , dimension(:) :: lat1d
 
   public :: domain_init          ! allocates/nans domain types
   public :: domain_clean         ! deallocates domain types
@@ -58,10 +51,9 @@ module mod_clm_domain
   !
   ! This subroutine allocates and nans the domain type
   !
-  subroutine domain_init(domain,isgrid2d,ni,nj,nbeg,nend,clmlevel)
+  subroutine domain_init(domain,ni,nj,nbeg,nend,clmlevel)
     implicit none
     type(domain_type) :: domain           ! domain datatype
-    logical , intent(in) :: isgrid2d      ! true => global grid is lat/lon
     integer(ik4) , intent(in) :: ni , nj  ! grid size, 2d
     integer(ik4) , intent(in) , optional :: nbeg , nend  ! beg/end indices
     character(len=*) , intent(in) , optional  :: clmlevel   ! grid type
@@ -82,7 +74,7 @@ module mod_clm_domain
     end if
     allocate(domain%mask(nb:ne),domain%frac(nb:ne),domain%latc(nb:ne), &
              domain%pftm(nb:ne),domain%area(nb:ne),domain%lonc(nb:ne), &
-             domain%topo(nb:ne),domain%glcmask(nb:ne),stat=ier)
+             domain%topo(nb:ne),stat=ier)
     if (ier /= 0) then
       call fatal(__FILE__,__LINE__, &
          'domain_init ERROR: allocate mask, frac, lat, lon, area ')
@@ -92,7 +84,6 @@ module mod_clm_domain
       domain%clmlevel = clmlevel
     end if
 
-    domain%isgrid2d = isgrid2d
     domain%ns       = ni*nj
     domain%ni       = ni
     domain%nj       = nj
@@ -113,7 +104,6 @@ module mod_clm_domain
     end if
 
     domain%pftm     = -9999
-    domain%glcmask  = 0  
   end subroutine domain_init
   !
   ! This subroutine deallocates the domain type
@@ -128,7 +118,7 @@ module mod_clm_domain
       end if
       deallocate(domain%mask,domain%frac,domain%latc, &
                  domain%lonc,domain%area,domain%pftm, &
-                 domain%topo,domain%glcmask,stat=ier)
+                 domain%topo,stat=ier)
       if (ier /= 0) then
         call fatal(__FILE__,__LINE__, &
             'domain_clean ERROR: deallocate mask, frac, lat, lon, area ')
@@ -174,8 +164,6 @@ module mod_clm_domain
               minval(domain%area),maxval(domain%area)
       write(stdout,*) '  domain_check pftm      = ', &
               minval(domain%pftm),maxval(domain%pftm)
-      write(stdout,*) '  domain_check glcmask   = ', &
-              minval(domain%glcmask),maxval(domain%glcmask)
       write(stdout,*) ' '
     end if
   end subroutine domain_check

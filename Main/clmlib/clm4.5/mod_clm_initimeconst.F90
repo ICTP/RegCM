@@ -428,7 +428,7 @@ module mod_clm_initimeconst
 
     call clm_openfile(fsurdat,ncid)
 
-    call clm_inqdim(ncid,'nlevsoi',dlen=nlevsoifl)
+    call clm_inqdim(ncid,'nlevsoi',nlevsoifl)
     if ( .not. more_vertlayers ) then
        if ( nlevsoifl /= nlevsoi ) then
          call fatal(__FILE__,__LINE__, &

@@ -18,7 +18,7 @@
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 vpath %.o $(REGCM_ROOT)/Share:mpplib:netlib:batslib:ocnlib:chemlib:clmlib:\
-          cumlib:radlib:pbllib:.
+	cumlib:radlib:pbllib:clmlib/clm4.5/:.
 
 SUBDIRS = mpplib netlib batslib ocnlib chemlib clmlib cumlib radlib pbllib
 
@@ -64,7 +64,9 @@ LMPPLIB = -L$(MPPLIBPTH) -lmpp
 LBATLIB = -L$(BATLIBPTH) -lbats
 LOCNLIB = -L$(OCNLIBPTH) -locn
 LCLMLIB = -L$(CLMLIBPTH) -lclm
-LCLMLIB45 = # -L$(CLMLIBPTH)/clm4.5 -lclm45
+if DO_COMPILE_LIBCLM45
+LCLMLIB45 = -L$(CLMLIBPTH)/clm4.5 -lclm45 /usr/lib/liblapack.a /usr/lib/libblas.a /usr/lib/atlas-base/libatlas.a
+endif
 LNETLIB = -L$(NETLIBPTH) -lnetlib
 LCHELIB = -L$(CHELIBPTH) -lchem
 LCUMLIB = -L$(CUMLIBPTH) -lcum
@@ -85,8 +87,8 @@ else
 endif
 
 LIBS = $(LMPPLIB) $(LCLMLIB) $(LNETLIB) $(LCHELIB) $(LCBMZLIB) $(LBATLIB) \
-       $(LOCNLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) $(SYSLIBS) \
-       $(LCLMLIB45)
+       $(LOCNLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) $(LCLMLIB45) \
+       $(SYSLIBS)
 
 bin_PROGRAMS = regcm
 
@@ -134,7 +136,11 @@ mod_init.o: mod_init.F90 mod_runparams.o mod_mppparam.o mod_lm_interface.o mod_a
 if DO_COMPILE_LIBCLM
 mod_lm_interface.o : mod_lm_interface.F90 mod_regcm_types.o mod_bats_common.o mod_ocn_common.o mod_clm.o mod_memutil.o mod_mtrxclm.o mod_runparams.o clm_varsur.o clm_varctl.o clm_time_manager.o restFileMod.o spmdMod.o perf_mod.o
 else
+if  DO_COMPILE_LIBCLM45
+mod_lm_interface.o : mod_lm_interface.F90 mod_regcm_types.o mod_bats_common.o mod_ocn_common.o mod_memutil.o mod_runparams.o mod_clm_initialize.o mod_clm_driver.o
+else
 mod_lm_interface.o : mod_lm_interface.F90 mod_regcm_types.o mod_bats_common.o mod_ocn_common.o mod_memutil.o mod_runparams.o
+endif
 endif
 mod_ncio.o : mod_ncio.F90 mod_domain.o mod_dynparam.o mod_ensemble.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_nchelper.o mod_runparams.o
 mod_output.o: mod_output.F90 mod_runparams.o mod_header.o mod_mpmessage.o mod_mppparam.o mod_service.o mod_atm_interface.o mod_che_interface.o mod_che_output.o mod_lm_interface.o mod_rad_interface.o mod_cu_interface.o mod_pbl_interface.o mod_ncout.o mod_bdycod.o mod_precip.o mod_split.o mod_savefile.o mod_slabocean.o mod_cloud_s1.o

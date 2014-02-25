@@ -197,8 +197,8 @@ module mod_dynparam
   integer(ik4) :: nspgv
   integer(ik4) :: nspgp
 !
-  integer(ik4) :: njcross , njdot , njout
-  integer(ik4) :: nicross , nidot , niout
+  integer(ik4) :: njcross , njdot , njout , njoutsg
+  integer(ik4) :: nicross , nidot , niout , nioutsg
 !
   integer(ik4) :: jcross1 , icross1
   integer(ik4) :: jcross2 , icross2
@@ -479,6 +479,8 @@ module mod_dynparam
     nidot = idot2-idot1+1
     njout = jout2-jout1+1
     niout = iout2-iout1+1
+    njoutsg = joutsg2-joutsg1+1
+    nioutsg = ioutsg2-ioutsg1+1
 
     nveg = 22
 

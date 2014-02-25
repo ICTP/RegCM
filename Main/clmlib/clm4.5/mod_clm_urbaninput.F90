@@ -68,7 +68,6 @@ module mod_clm_urbaninput
     integer(ik4) :: numrad_i  ! input grid: number of solar bands (VIS/NIR)
     integer(ik4) :: numurbl_i ! input grid: number of urban landunits
     integer(ik4) :: ier , ret ! error status
-    logical :: isgrid2d    ! true => file is 2d 
     logical :: readvar     ! true => variable is on dataset
     logical :: has_numurbl ! true => numurbl dimension is on dataset
     logical :: has_nsolar  ! true => nsolar dimension is on dataset
@@ -149,19 +148,19 @@ module mod_clm_urbaninput
         write(stderr,*)trim(subname), 'ldomain%ns,ns,= ',ldomain%ns,ns
         call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
-      call clm_inqdim(ncid,'nlevurb',dlen=nlevurb_i)
+      call clm_inqdim(ncid,'nlevurb',nlevurb_i)
       if (nlevurb_i /= nlevurb) then
         write(stderr,*)trim(subname)// ': parameter nlevurb= ',nlevurb, &
              'does not equal input dataset nlevurb= ',nlevurb_i
         call fatal(__FILE__,__LINE__,'clm now stopping')
       endif
-      call clm_inqdim(ncid,'numrad',dlen=numrad_i)
+      call clm_inqdim(ncid,'numrad',numrad_i)
       if (numrad_i /= numrad) then
         write(stderr,*)trim(subname)// ': parameter numrad= ',numrad, &
              'does not equal input dataset numrad= ',numrad_i
         call fatal(__FILE__,__LINE__,'clm now stopping')
       endif
-      call clm_inqdim(ncid,'numurbl',dlen=numurbl_i)
+      call clm_inqdim(ncid,'numurbl',numurbl_i)
       if (numurbl_i /= numurbl) then
         write(stderr,*)trim(subname)// ': parameter numurbl= ',numurbl, &
              'does not equal input dataset numurbl= ',numurbl_i

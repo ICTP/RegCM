@@ -104,6 +104,20 @@ if eval "test x"$USECLM" = x1"; then
   fi
 fi
 
+USECLM45="0"
+AC_ARG_ENABLE(clm45,
+  AC_HELP_STRING([--enable-clm45],
+                 [Supply this option if you plan on using CLM45 option.]),
+  [USECLM45="1"],
+)
+AM_CONDITIONAL(DO_COMPILE_LIBCLM45, [test x"$USECLM45" = x1])
+
+if eval "test x"$USECLM45" = x1"; then
+  AC_MSG_WARN([Compiling CLM45 enabled code])
+  AM_CPPFLAGS="-DCLM45 $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
 USECPL="0"
 AC_ARG_ENABLE(cpl,
   AC_HELP_STRING([--enable-cpl],

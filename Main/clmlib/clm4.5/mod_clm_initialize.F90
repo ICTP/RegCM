@@ -15,7 +15,7 @@ module mod_clm_initialize
   use mod_clm_nchelper
   use mod_clm_varctl , only : nsrest , nsrStartup , nsrContinue , &
           fsurdat , fatmlndfrc , flndtopo , fglcmask , noland , finidat ,   &
-          fpftdyn
+          fpftdyn , version
   use mod_clm_varsur , only : wtxy , vegxy , topoxy
   use mod_clm_typeinit , only : initClmtype
   use mod_clm_varpar , only : maxpatch , clm_varpar_init
@@ -24,8 +24,7 @@ module mod_clm_initialize
   use mod_clm_decompinit , only : decompInit_lnd , decompInit_glcp
   use mod_clm_decomp , only : get_proc_bounds
   use mod_clm_domain , only : domain_check , ldomain , domain_init
-  use mod_clm_surfrd , only : surfrd_get_globmask , surfrd_get_grid , &
-          surfrd_get_topo , surfrd_get_data 
+  use mod_clm_surfrd , only : surfrd_get_grid , surfrd_get_data 
   use mod_clm_control , only : control_init , control_print
   use mod_clm_urbaninput , only : UrbanInput
   use mod_clm_atmlnd
@@ -101,7 +100,6 @@ module mod_clm_initialize
     integer(ik4)  :: i , j , n , k    ! loop indices
     integer(ik4)  :: nl               ! gdc and glo lnd indices
     integer(ik4)  :: ns , ni , nj     ! global grid sizes
-    logical  :: isgrid2d              ! true => global grid is regular lat/lon
     integer(ik4)  :: begp , endp      ! beg and ending pft indices
     integer(ik4)  :: begc , endc      ! beg and ending column indices
     integer(ik4)  :: begl , endl      ! beg and ending landunit indices
@@ -117,13 +115,15 @@ module mod_clm_initialize
 
     if ( myid == italk ) then
       write(stdout,*) 'Attempting to initialize the land model .....'
+      write(stdout,*) 'Mask given by RegCM model has a total of ', &
+              sum(cl%linear_npoint_sg), ' land points'
     endif
 
     call control_init()
+    call control_print()
+
     call clm_varpar_init()
     call clm_varcon_init()
-
-    if ( myid == italk ) call control_print()
 
     ! ------------------
     ! Set decomposition
@@ -143,15 +143,6 @@ module mod_clm_initialize
        call domain_check(ldomain)
     endif
     ldomain%mask = 1  !!! TODO - is this needed?
-
-    ! Get topo if appropriate (set ldomain%topo)
-
-    if (flndtopo /= " ") then
-       if (myid == italk) then
-          write(stdout,*) 'Attempting to read atm topo from ',trim(flndtopo)
-       endif
-       call surfrd_get_topo(ldomain, flndtopo)  
-    endif
 
     ! Initialize urban model input (initialize urbinp data structure)
 
@@ -486,7 +477,6 @@ module mod_clm_initialize
   ! Echo and save model version number
   !
   subroutine header()
-    use mod_clm_varctl , only : version
     implicit none
     if ( myid == italk ) then
       write(stdout,*) 'CLM version: 4.5 - RegCM ', trim(version)
@@ -496,7 +486,6 @@ module mod_clm_initialize
   ! Determine if restart file will be read
   !
   logical function do_restread( )
-    use mod_clm_varctl, only : finidat
     implicit none
     do_restread = ktau > 0
   end function do_restread

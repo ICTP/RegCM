@@ -153,16 +153,16 @@ module mod_clm_varctl
   !
   subroutine set_clmvarctl( caseid_in, ctitle_in, nsrest_in, &
                             version_in, hostname_in, username_in)
-    character(len=256) , optional , intent(in) :: caseid_in  ! case id
-    character(len=256) , optional , intent(in) :: ctitle_in  ! case title
+    character(len=*) , optional , intent(in) :: caseid_in  ! case id
+    character(len=*) , optional , intent(in) :: ctitle_in  ! case title
     ! 0: initial run. 1: restart
     integer(ik4) , optional , intent(in) :: nsrest_in
     ! model version
-    character(len=256) , optional , intent(in) :: version_in
+    character(len=*) , optional , intent(in) :: version_in
     ! hostname running on
-    character(len=256) , optional , intent(in) :: hostname_in
+    character(len=*) , optional , intent(in) :: hostname_in
     ! username running job
-    character(len=256) , optional , intent(in) :: username_in
+    character(len=*) , optional , intent(in) :: username_in
 
     character(len=32) :: subname = 'set_clmvarctl'  ! subroutine name
 
