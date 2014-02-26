@@ -19,7 +19,7 @@ module mod_clm_control
   use mod_clm_varpar , only : maxpatch_pft , more_vertlayers
   use mod_clm_varctl , only : rpntfil, hostname , model_version=>version , &
           outnc_large_files , finidat , fsurdat , fatmlndfrc ,           &
-          fatmtopo , flndtopo , fpftdyn , fpftcon , nrevsn ,             &
+          fpftdyn , fpftcon , nrevsn ,             &
           create_crop_landunit , allocate_all_vegpfts ,                  &
           co2_type , wrtdia , co2_ppmv , pertlim ,                       &
           username , fsnowaging , fsnowoptics , subgridflag ,            &
@@ -126,8 +126,7 @@ module mod_clm_control
     ! Input datasets
 
     namelist /clm_inparm/  &
-         fatmtopo , flndtopo , fpftcon , fpftdyn , &
-         fsnowoptics , fsnowaging
+         fpftcon , fpftdyn , fsnowoptics , fsnowaging
 
     ! History, restart options
 
@@ -334,8 +333,6 @@ module mod_clm_control
     call bcast(finidat,len(finidat))
     call bcast(fsurdat,len(fsurdat))
     call bcast(fatmlndfrc,len(fatmlndfrc))
-    call bcast(fatmtopo,len(fatmtopo))
-    call bcast(flndtopo,len(flndtopo))
     call bcast(fpftcon,len(fpftcon))
     call bcast(fpftdyn,len(fpftdyn))
     call bcast(fsnowoptics,len(fsnowoptics))
@@ -476,16 +473,6 @@ module mod_clm_control
       write(stdout,*) '   fatmlndfrc not set, setting frac/mask to 1'
     else
       write(stdout,*) '   land frac data = ',trim(fatmlndfrc)
-    end if
-    if (flndtopo == ' ') then
-      write(stdout,*) '   flndtopo not set'
-    else
-      write(stdout,*) '   land topographic data = ',trim(flndtopo)
-    end if
-    if (fatmtopo == ' ') then
-      write(stdout,*) '   fatmtopo not set'
-    else
-      write(stdout,*) '   atm topographic data = ',trim(fatmtopo)
     end if
 #ifdef CN
     if (suplnitro /= suplnNon)then

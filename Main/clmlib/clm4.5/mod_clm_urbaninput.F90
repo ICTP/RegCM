@@ -82,7 +82,7 @@ module mod_clm_urbaninput
       ! Read urban data
        
       if (myid == italk) then
-        write(stdout,*)' Reading in urban input data from fsurdat file ...'
+        write(stdout,*)' Reading in urban input data from surface data file ...'
       end if
        
       call clm_openfile(fsurdat,ncid)
@@ -99,7 +99,8 @@ module mod_clm_urbaninput
       ! in this case, set nlevurb to zero
       if (.not. has_numurbl) then
         nlevurb = 0
-        write(stdout,*)'PCT_URBAN is not multi-density, nlevurb set to 0'
+        if ( myid == italk ) &
+          write(stdout,*)'PCT_URBAN is not multi-density, nlevurb set to 0'
       end if
 
       if ( nlevurb == 0 ) return

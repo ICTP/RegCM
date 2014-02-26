@@ -14,9 +14,9 @@ module mod_clm_initialize
   use mod_regcm_types
   use mod_clm_nchelper
   use mod_clm_varctl , only : nsrest , nsrStartup , nsrContinue , &
-          fsurdat , fatmlndfrc , flndtopo , fglcmask , noland , finidat ,   &
+          fsurdat , fatmlndfrc , fglcmask , noland , finidat ,   &
           fpftdyn , version
-  use mod_clm_varsur , only : wtxy , vegxy , topoxy
+  use mod_clm_varsur , only : wtxy , vegxy
   use mod_clm_typeinit , only : initClmtype
   use mod_clm_varpar , only : maxpatch , clm_varpar_init
   use mod_clm_varcon , only : clm_varcon_init
@@ -142,7 +142,6 @@ module mod_clm_initialize
     if (myid == italk) then
        call domain_check(ldomain)
     endif
-    ldomain%mask = 1  !!! TODO - is this needed?
 
     ! Initialize urban model input (initialize urbinp data structure)
 
@@ -152,8 +151,7 @@ module mod_clm_initialize
     ! Allocate additional dynamic memory for glacier_mec topo and thickness
 
     call get_proc_bounds(begg, endg)
-    allocate (vegxy(begg:endg,maxpatch), wtxy(begg:endg,maxpatch), &
-              topoxy(1,1) , stat=ier)   
+    allocate (vegxy(begg:endg,maxpatch), wtxy(begg:endg,maxpatch), stat=ier)   
     if (ier /= 0) then
        write(stderr,*)'initialize allocation error'
        call fatal(__FILE__,__LINE__,'clm now stopping')
@@ -194,7 +192,7 @@ module mod_clm_initialize
 
     ! Deallocate surface grid dynamic memory (for wtxy and vegxy arrays)
 
-    deallocate(vegxy,wtxy,topoxy)
+    deallocate(vegxy,wtxy)
   end subroutine initialize1
   !
   ! Land model initialization.

@@ -547,7 +547,6 @@ module mod_clm_pftvarcon
 
     if (myid == italk) then
       write(stdout,*) 'Successfully read PFT physiological data'
-      write(stdout,*)
     end if
 
   end subroutine pftconrd

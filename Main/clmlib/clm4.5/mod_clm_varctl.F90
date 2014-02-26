@@ -53,14 +53,8 @@ module mod_clm_varctl
   character(len=256) , public :: finidat    = ' '
   ! surface data file name
   character(len=256) , public :: fsurdat    = ' '
-  ! atm grid file name
-  character(len=256) , public :: fatmgrid   = ' '
   ! lnd frac file on atm grid
   character(len=256) , public :: fatmlndfrc = ' '
-  ! topography on atm grid
-  character(len=256) , public :: fatmtopo   = ' '
-  ! topography on lnd grid
-  character(len=256) , public :: flndtopo   = ' '
   ! dynamic landuse dataset
   character(len=256) , public :: fpftdyn    = ' '
   ! ASCII data file with PFT physiological constants

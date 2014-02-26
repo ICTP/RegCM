@@ -15,8 +15,6 @@ module mod_clm_varsur
   real(rk8) , public , allocatable , dimension(:) :: pctspec
   ! vegetation type
   integer(ik4) , public , allocatable , dimension(:,:) :: vegxy
-  ! subgrid glacier_mec sfc elevation
-  real(rk8) , public , allocatable , dimension(:,:) , target :: topoxy
   ! subgrid weights
   real(rk8) , public , allocatable , dimension(:,:) , target :: wtxy
 

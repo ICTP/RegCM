@@ -9,7 +9,6 @@ module mod_clm_initgridcells
   use mod_dynparam
   use mod_mppparam
   use mod_clm_varsur , only : wtxy, vegxy
-  use mod_clm_varsur , only : topoxy
   use mod_clm_varcon , only : rpi
 
   implicit none

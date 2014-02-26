@@ -23,7 +23,7 @@ module mod_clm_surfrd
          numurbl , npatch_lake , npatch_wet , npatch_glacier ,             &
          maxpatch_urb , npatch_glacier_mec , maxpatch_glcmec
   use mod_clm_varctl , only : glc_topomax
-  use mod_clm_varsur , only : wtxy , vegxy , topoxy , pctspec
+  use mod_clm_varsur , only : wtxy , vegxy , pctspec
   use mod_clm_decomp , only : get_proc_bounds , procinfo , numg
   use mod_clm_type
 
@@ -61,19 +61,13 @@ module mod_clm_surfrd
     type(domain_type) , intent(inout) :: ldomain   ! domain to init
     character(len=*) , intent(in)    :: filename  ! grid filename
     type(clm_filetype) :: ncid       ! netcdf id
-    type(clm_filetype ):: ncidg      ! netCDF id for glcmask
     integer(ik4) :: ibeg             ! local beg index
     integer(ik4) :: iend             ! local end index
     integer(ik4) :: ni , nj , ns     ! size of grid on file
     integer(ik4) :: inni , innj      ! size of grid on file
-    integer(ik4) :: dimid , varid    ! netCDF id's
     integer(ik4) :: ier , ret        ! error status
-    logical :: readvar = .true.      ! true => variable is on input file 
-    logical :: istype_domain         ! true => input file is of type domain
     real(rk8) , allocatable , dimension(:,:) :: rdata2d ! temporary
     real(rk8) , allocatable , dimension(:) :: rdata1d ! temporary
-    real(rk8) , allocatable , dimension(:) :: rdata1dpack ! temporary
-    character(len=16) :: vname       ! temporary
     integer(ik4) :: n , i , j        ! indices
     real(rk8) :: eps = 1.0D-12       ! lat/lon error tolerance
     character(len=32) :: subname = 'surfrd_get_grid'     ! subroutine name
@@ -188,12 +182,14 @@ module mod_clm_surfrd
     type(domain_type) :: surfdata_domain
     integer(ik4) :: n                        ! loop indices
     integer(ik4) :: ni , nj , ns             ! domain sizes
-    character(len=16) :: lon_var , lat_var   ! names of lat/lon on dataset
+    integer(ik4) :: inni , innj              ! domain sizes
     logical :: readvar                       ! true => variable is on dataset
     real(rk8) :: rmaxlon , rmaxlat           ! local min/max vars
     type(clm_filetype) :: ncid               ! netcdf id
     integer(ik4) :: begg , endg              ! beg,end gridcell indices
     logical :: istype_domain              ! true => input file is of type domain
+    real(rk8) , allocatable , dimension(:,:) :: rdata2d ! temporary
+    real(rk8) , allocatable , dimension(:) :: rdata1d ! temporary
     character(len=32) :: subname = 'surfrd_get_data'    ! subroutine name
 
     if (myid == italk) then
@@ -210,78 +206,29 @@ module mod_clm_surfrd
     vegxy(:,:) = noveg
     wtxy(:,:)  = 0.D0
     pctspec(:) = 0.D0
-    if (allocated(topoxy)) topoxy(:,:) = 0.D0
 
     ! Read surface data
 
     call clm_openfile(lfsurdat,ncid)
 
-    ! Read in pft mask - this variable is only on the surface dataset - but not
-    ! on the domain dataset
-    if ( clm_check_var(ncid,'PFTDATA_MASK') ) then
-      call clm_readvar(ncid,'PFTDATA_MASK',ldomain%pftm)
-    else
-      call fatal(__FILE__,__LINE__, &
-        trim(subname)//' ERROR: pftm NOT on surface dataset' )
-    end if
+    ! Determine dimensions
 
-    ! Check if fsurdat grid is "close" to fatmlndfrc grid,
-    ! exit if lats/lon > 0.001
-    if ( clm_check_var(ncid,'xc') ) then
-      istype_domain = .true.
-    else if ( clm_check_var(ncid,'LONGXY') ) then
-      istype_domain = .false.
-    else
-      call fatal(__FILE__,__LINE__, &
-            trim(subname)//' ERROR: unknown domain type')
-    end if
-    if (istype_domain) then
-      lon_var  = 'xc'
-      lat_var  = 'yc'
-    else
-      lon_var  = 'LONGXY'
-      lat_var  = 'LATIXY'
-    end if
-    if ( myid == italk )then
-      write(stdout,*) trim(subname), &
-              ' lon_var = ',trim(lon_var),' lat_var =',trim(lat_var)
-    end if
-    call clm_check_dims(ncid,ni,nj)
+    call clm_inqdim(ncid,'jx',inni)
+    call clm_inqdim(ncid,'iy',innj)
+
+    ! RegCM INTERNAL grid is 2:jx-2,2:iy-2
+    allocate(rdata2d(inni,innj))
+    allocate(rdata1d(numg))
+    ni = inni - 3
+    nj = innj - 3
     ns = ni*nj
 
     call domain_init(surfdata_domain,ni,nj,begg,endg,clmlevel=grlnd)
-    if ( clm_check_var(ncid,lon_var) ) then
-      call clm_readvar(ncid,lon_var,surfdata_domain%lonc)
-    else
-      call fatal(__FILE__,__LINE__, &
-        trim(subname)//' ERROR: lon var NOT on surface dataset' )
-    end if
 
-    if ( clm_check_var(ncid,lat_var) ) then
-      call clm_readvar(ncid,lat_var,surfdata_domain%latc)
-    else
-      call fatal(__FILE__,__LINE__, &
-        trim(subname)//' ERROR: lat var NOT on surface dataset' )
-    end if
-
-    rmaxlon = 0.0D0
-    rmaxlat = 0.0D0
-    do n = begg , endg
-      if (ldomain%lonc(n)-surfdata_domain%lonc(n) > 300.) then
-        rmaxlon = max(rmaxlon,abs(ldomain%lonc(n)- &
-                                  surfdata_domain%lonc(n)-360.D0))
-      else if (ldomain%lonc(n)-surfdata_domain%lonc(n) < -300.) then
-        rmaxlon = max(rmaxlon,abs(ldomain%lonc(n)- &
-                                   surfdata_domain%lonc(n)+360.D0))
-      else
-        rmaxlon = max(rmaxlon,abs(ldomain%lonc(n)-surfdata_domain%lonc(n)))
-      end if
-       rmaxlat = max(rmaxlat,abs(ldomain%latc(n)-surfdata_domain%latc(n)))
-    end do
-    if ( rmaxlon > 0.001D0 .or. rmaxlat > 0.001D0 ) then
+    if ( ldomain%ni /= surfdata_domain%ni .or. &
+         ldomain%nj /= surfdata_domain%nj ) then
       write(stderr,*) &
-              trim(subname)//': surfdata/fatmgrid lon/lat mismatch error',&
-            rmaxlon,rmaxlat
+              trim(subname)//': surfdata/lon/lat size mismatch error'
       call fatal(__FILE__,__LINE__,trim(subname))
     end if
     call domain_clean(surfdata_domain)
