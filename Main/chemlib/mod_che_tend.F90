@@ -41,6 +41,7 @@
   use mod_che_chemistry
   use mod_che_isorropia
   use mod_che_pollen 
+  use mod_che_bionit
  private
 
   public :: tractend2
@@ -292,6 +293,13 @@
            prec(:,kz,j), convprec(:,kz,j))
         end do
       end if  
+      !
+      !biogenic nox emission
+      if (ichsursrc == 1 .and. ino > 0 .and. ichbion == 1) then
+       do j = jci1 , jci2
+          call soilnitro_emissions(j,ivegcov(:,j),wid10(:,j))
+       end do
+      end if
       !
       !update emission tendencies from inventories
       !

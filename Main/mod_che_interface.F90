@@ -94,6 +94,7 @@ module mod_che_interface
     call assignpnt(xpsb%b0,psbb0)
     call assignpnt(xpsb%b1,psbb1)
     call assignpnt(sfs%tgb,ctg)
+    call assignpnt(sfs%tga,ctga)
     call assignpnt(sfs%uvdrag,cuvdrag)
     call assignpnt(convpr,cconvpr)
     call assignpnt(fcc,cfcc)
