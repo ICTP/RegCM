@@ -85,7 +85,7 @@ module mod_clm_varpar
   integer(ik4) , public , parameter :: numcft = 2
 #endif
   ! Max number of plant functional types in naturally vegetated landunit
-  integer(ik4) , public , parameter :: maxpatch_pft = MAXPATCH_PFT
+  integer(ik4) , public , parameter :: maxpatch_pft = numpft+1
   ! Number of urban landunits
   integer(ik4) , public , parameter :: numurbl = 3
 

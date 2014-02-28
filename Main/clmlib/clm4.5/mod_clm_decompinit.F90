@@ -110,21 +110,24 @@ module mod_clm_decompinit
     integer(ik4) , pointer , dimension(:) :: ccount
     integer(ik4) , pointer , dimension(:) :: pcount
 
-    allocate(lcount(procinfo%ncells))
-    allocate(ccount(procinfo%ncells))
-    allocate(pcount(procinfo%ncells))
+    allocate(lcount(procinfo%begg:procinfo%endg))
+    allocate(ccount(procinfo%begg:procinfo%endg))
+    allocate(pcount(procinfo%begg:procinfo%endg))
 
     lcount = 0
     ccount = 0
     pcount = 0
 
-    begg = 1
-    endg = procinfo%ncells
+    begg = procinfo%begg
+    endg = procinfo%endg
+    write(0,*) 'MYID = ',myid, 'begg = ', begg
+    write(0,*) 'MYID = ',myid, 'endg = ', endg
     do ln = begg , endg
       call subgrid_get_gcellinfo(ln,nlunits=ilunits,ncols=icols,npfts=ipfts)
       lcount(ln) = ilunits
       ccount(ln) = icols
       pcount(ln) = ipfts
+      write(0,*) 'MYID = ',myid, ln , ilunits , icols , ipfts
     end do
 
     mynuml  = sum(lcount)
@@ -142,6 +145,12 @@ module mod_clm_decompinit
     call allgather_i(procinfo%lc,mynuml)
     call allgather_i(procinfo%cc,mynumc)
     call allgather_i(procinfo%pc,mynump)
+
+    write(0,*) 'MYID = ',myid, 'mynuml = ', mynuml
+    write(0,*) 'MYID = ',myid, 'mynumc = ', mynumc
+    write(0,*) 'MYID = ',myid, 'mynump = ', mynump
+
+    call fatal(__FILE__,__LINE__,'clm now stopping')
 
     if ( myid > 0 ) then
       procinfo%begl = sum(procinfo%lc(1:myid))+1

@@ -137,6 +137,7 @@ module mod_clm_surfrd
     else where
       ldomain%mask = 0
     end where
+    ldomain%pftm = ldomain%mask
 
     ! Check lat limited to -90,90
 
@@ -235,42 +236,46 @@ module mod_clm_surfrd
 
     ! Obtain special landunit info
 
-    call surfrd_wtxy_special(ncid, ldomain%ns)
+    call surfrd_wtxy_special(ncid, inni,innj,rdata2d,rdata1d)
 
     ! Obtain vegetated landunit info
 
 #if (defined CNDV)
     if (create_crop_landunit) then ! CNDV means allocate_all_vegpfts = .true.
-      call surfrd_wtxy_veg_all(ncid, ldomain%ns, ldomain%pftm)
+      call surfrd_wtxy_veg_all(ncid,inni,innj,rdata2d,rdata1d,ldomain)
     end if
     call surfrd_wtxy_veg_dgvm()
 #else
     if (allocate_all_vegpfts) then
-      call surfrd_wtxy_veg_all(ncid, ldomain%ns, ldomain%pftm)
+      call surfrd_wtxy_veg_all(ncid,inni,innj,rdata2d,rdata1d,ldomain)
     else
       call fatal(__FILE__,__LINE__, &
               trim(subname) // 'only allocate_all_vegpfts is supported')
     end if
 #endif
     call clm_closefile(ncid)
+    deallocate(rdata2d,rdata1d)
 
     if ( myid == italk )then
       write(stdout,*) 'Successfully read surface boundary data'
       write(stdout,*)
     end if
+
   end subroutine surfrd_get_data
   !
   ! Determine weight with respect to gridcell of all special "pfts" as well
   ! as soil color and percent sand and clay
   !
-  subroutine surfrd_wtxy_special(ncid, ns)
+  subroutine surfrd_wtxy_special(ncid,inni,innj,rdata2d,rdata1d)
     use mod_clm_pftvarcon , only : noveg
     use mod_clm_urbaninput , only : urbinp
     use mod_clm_varpar , only : maxpatch_glcmec , nlevurb
     use mod_clm_varcon , only : udens_base , udens_tbd , udens_hd , udens_md 
     implicit none
     type(clm_filetype) , intent(inout) :: ncid  ! netcdf id
-    integer(ik4) , intent(in) :: ns             ! domain size
+    real(rk8) , intent(inout) , dimension(:,:) :: rdata2d
+    real(rk8) , intent(inout) , dimension(:) :: rdata1d
+    integer(ik4) , intent(in) :: inni , innj
     integer(ik4)  :: n , nl , nurb , g          ! indices
     integer(ik4)  :: begg , endg                ! gcell beg/end
     integer(ik4)  :: dimid , varid              ! netCDF id's
@@ -303,8 +308,8 @@ module mod_clm_surfrd
 
     call get_proc_bounds(begg,endg)
 
-    allocate(pctgla(begg:endg),pctlak(begg:endg))
-    allocate(pctwet(begg:endg),pcturb(begg:endg,numurbl),pcturb_tot(begg:endg))
+    allocate(pctgla(begg:endg),pctlak(begg:endg),pctwet(begg:endg))
+    allocate(pcturb(begg:endg,numurbl),pcturb_tot(begg:endg))
 
     if ( .not. clm_check_dimlen(ncid,'nlevsoi',nlevsoifl) ) then
       call fatal(__FILE__,__LINE__, &
@@ -315,21 +320,27 @@ module mod_clm_surfrd
     ! than percent pft
 
     if ( clm_check_var(ncid,'PCT_WETLAND') ) then
-      call clm_readvar(ncid,'PCT_WETLAND',pctwet)
+      call clm_readvar(ncid,'PCT_WETLAND',rdata2d)
+      rdata1d = pack(rdata2d(2:inni-2,2:innj-2),procinfo%gcmask)
+      pctwet = rdata1d(begg:endg)
     else
       call fatal(__FILE__,__LINE__, &
         trim(subname)//' ERROR: PCT_WETLAND  NOT on surfdata file' )
     end if
 
     if ( clm_check_var(ncid,'PCT_LAKE') ) then
-      call clm_readvar(ncid,'PCT_LAKE',pctlak)
+      call clm_readvar(ncid,'PCT_LAKE',rdata2d)
+      rdata1d = pack(rdata2d(2:inni-2,2:innj-2),procinfo%gcmask)
+      pctlak = rdata1d(begg:endg)
     else
       call fatal(__FILE__,__LINE__, &
         trim(subname)//' ERROR: PCT_LAKE NOT on surfdata file' )
     end if
 
     if ( clm_check_var(ncid,'PCT_GLACIER') ) then
-      call clm_readvar(ncid,'PCT_GLACIER',pctgla)
+      call clm_readvar(ncid,'PCT_GLACIER',rdata2d)
+      rdata1d = pack(rdata2d(2:inni-2,2:innj-2),procinfo%gcmask)
+      pctgla = rdata1d(begg:endg)
     else
       call fatal(__FILE__,__LINE__, &
         trim(subname)//' ERROR: PCT_GLACIER NOT on surfdata file' )
@@ -338,10 +349,15 @@ module mod_clm_surfrd
     ! If PCT_URBAN is not multi-density then set pcturb and nlevurb to zero 
     if (nlevurb == 0) then
       pcturb = 0.D0
-      write(stdout,*)'PCT_URBAN is not multi-density, pcturb set to 0'
+      if ( myid == italk ) &
+        write(stdout,*)'PCT_URBAN is not multi-density, pcturb set to 0'
     else
       if ( clm_check_var(ncid,'PCT_URBAN') ) then
-        call clm_readvar(ncid,'PCT_URBAN',pcturb)
+        do n = 1 , numurbl
+          call clm_readvar(ncid,'PCT_URBAN',rdata2d,n)
+          rdata1d = pack(rdata2d(2:inni-2,2:innj-2),procinfo%gcmask)
+          pcturb(n,:) = rdata1d(begg:endg)
+        end do
       else
         call fatal(__FILE__,__LINE__, &
           trim(subname)//' ERROR: PCT_URBAN NOT on surfdata file' )
@@ -547,15 +563,18 @@ module mod_clm_surfrd
   !
   ! Determine wtxy and veg arrays for non-dynamic landuse mode
   !
-  subroutine surfrd_wtxy_veg_all(ncid, ns, pftm)
+  subroutine surfrd_wtxy_veg_all(ncid,inni,innj,rdata2d,rdata1d,ldomain)
     use mod_clm_varctl , only : create_crop_landunit , fpftdyn , irrigate
     use mod_clm_pftvarcon , only : nc3crop , nc3irrig , npcropmin ,  &
           ncorn , ncornirrig , nsoybean , nsoybeanirrig , nscereal , &
           nscerealirrig , nwcereal , nwcerealirrig
+    use mod_clm_domain , only : domain_type
     implicit none
     type(clm_filetype) , intent(inout) :: ncid   ! netcdf id
-    integer(ik4) , intent(in) :: ns     ! domain size
-    integer(ik4) , pointer , dimension(:) :: pftm
+    real(rk8) , intent(inout) , dimension(:,:) :: rdata2d
+    real(rk8) , intent(inout) , dimension(:) :: rdata1d
+    integer(ik4) , intent(in) :: inni , innj
+    type(domain_type) , intent(inout) :: ldomain
     integer(ik4) :: m , mp7 , mp8 , mp11 , n , nl ! indices
     integer(ik4) :: begg , endg               ! beg/end gcell index
     integer(ik4) :: dimid , varid             ! netCDF id's
@@ -564,7 +583,6 @@ module mod_clm_surfrd
     real(rk8) :: sumpct                       ! sum of %pft over maxpatch_pft
     ! percent of vegetated gridcell area for PFTs
     real(rk8) , allocatable , dimension(:,:) :: pctpft
-    real(rk8) , pointer , dimension(:,:) :: arrayl      ! local array
     real(rk8) , dimension(0:numpft) :: numpftp1data
     logical  :: crop = .false.  ! if crop data on this section of file
     character(len=32) :: subname = 'surfrd_wtxy_veg_all'  ! subroutine name
@@ -573,21 +591,26 @@ module mod_clm_surfrd
     allocate(pctpft(begg:endg,0:numpft))
 
     if ( .not. clm_check_dimlen(ncid, 'lsmpft', numpft+1) ) then
-      call fatal(__FILE__,__LINE__, trim(subname)//'lsmpft /= numpft+1' )
+      call fatal(__FILE__,__LINE__, trim(subname)//' lsmpft /= numpft+1' )
     end if
 
-    allocate(arrayl(begg:endg,0:numpft))
     if ( clm_check_var(ncid,'PCT_PFT') ) then
-      call clm_readvar(ncid,'PCT_PFT',arrayl)
+      do n = 1 , numpft
+        call clm_readvar(ncid,'PCT_PFT',rdata2d,n)
+        rdata1d = pack(rdata2d(2:inni-2,2:innj-2),procinfo%gcmask)
+        pctpft(:,n) = rdata1d(begg:endg)
+      end do
     else
       call fatal(__FILE__,__LINE__, &
         trim(subname)//' ERROR: PCT_PFT NOT on surfdata file' )
     end if
-    pctpft(begg:endg,0:numpft) = arrayl(begg:endg,0:numpft)
-    deallocate(arrayl)
+
+    where (pctpft < eps_fact*epsilon(1.D0) )
+      pctpft = 0.0D0
+    end where
 
     do nl = begg , endg
-      if ( pftm(nl) >= 0 ) then
+      if ( ldomain%pftm(nl) >= 0 ) then
         ! Error check: make sure PFTs sum to 100% cover for vegetated landunit 
         ! (convert pctpft from percent with respect to gridcel to percent with 
         ! respect to vegetated landunit)
@@ -601,7 +624,8 @@ module mod_clm_surfrd
           if ( abs(sumpct - 100.D0) > 0.1D-4 ) then
             write(stderr,*) trim(subname)// &
                     ' ERROR: sum(pct) over numpft+1 is not = 100.'
-            write(stderr,*) sumpct, sumpct-100.D0, nl
+            write(stderr,*) 'Unbalance ', sumpct-100.D0, ' AT LAT,LON ', &
+                    ldomain%latc(nl), ldomain%lonc(nl)
             call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
           if ( sumpct < -0.000001D0 ) then
@@ -648,7 +672,7 @@ module mod_clm_surfrd
     ! repeat do-loop for error checking and for rainfed crop case
 
     do nl = begg , endg
-      if ( pftm(nl) >= 0 ) then
+      if ( ldomain%pftm(nl) >= 0 ) then
         if ( pctspec(nl) < 100.D0 * (1.D0 - eps_fact*epsilon(1.D0)) ) then
           ! pctspec not within eps_fact*epsilon of 100
           if ( .not. crop_prog .and. wtxy(nl,nc3irrig+1) > 0.D0 ) then
