@@ -126,11 +126,11 @@ module mod_bilinear
         if ( .not. gt1 .and. .not. gt2 ) then
           mto(j,i) = vmisdat
         else if ( .not. gt1 ) then
-          mto(j,i) = temp2
+          mto(j,i) = max(temp2,0.0)
         else if ( .not. gt2 ) then
-          mto(j,i) = temp1
+          mto(j,i) = max(temp1,0.0)
         else
-          mto(j,i) = (1.0-q)*temp1 + q*temp2
+          mto(j,i) = max((1.0-q)*temp1 + q*temp2,0.0)
         end if
       end do
     end do
@@ -147,7 +147,8 @@ module mod_bilinear
     integer(ik4) :: k , nk
     nk = size(mti,3)
     if ( size(mto,3) /= nk ) then
-      write(stderr,*) 'Dimension error in bilinear2d_3d_in'
+      write(stderr,*) 'Dimension error in bilinear2d_3d_in : ', &
+              size(mti,3), size(mto,3)
       call die(__FILE__,'Now stopping',__LINE__)
     end if
     do k = 1 , nk

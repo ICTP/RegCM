@@ -36,19 +36,23 @@ program mksurfdata
   use mod_nchelper
   use mod_mkglacier
   use mod_mkwetland
+  use mod_mkurban
+  use mod_mkpft
   use netcdf
 
   implicit none
 
-  integer , parameter :: maxd3 = 12
+  integer , parameter :: maxd3 = 17
   integer , parameter :: maxd4 = 12
+  integer , parameter :: npft = 17
+  integer , parameter :: nsoil = 10
 
-  real(rk4) , parameter :: vmisdat=-9999.0
+  real(rk4) , parameter :: vmisdat = -9999.0
   logical , parameter :: bvoc = .false.
 
   integer(ik4) :: istatus , ncid , ndim , nvar
-  integer(ik4) , dimension(4) :: idims
-  integer(ik4) :: ivartime , iglcvar , iwetvar , ilakevar
+  integer(ik4) , dimension(6) :: idims , ivdims
+  integer(ik4) :: ivartime , iglcvar , iwetvar , ilakevar , iurbanvar , ipftvar
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
   real(rk4) , pointer , dimension(:) :: yiy
@@ -58,23 +62,17 @@ program mksurfdata
   integer(ik4) , dimension(2) :: ihvar
   integer(ik4) , dimension(2) :: illvar
   integer(ik4) , dimension(2) :: izvar
-  integer(ik4) , dimension(4) :: icount , istart
   integer(ik4) , dimension(1) :: istart1 , icount1
-  real(rk4) :: offset , xscale , xlatmin , xlatmax , xlonmin , xlonmax
-  real(rk4) :: pxerr , adjust , totpft , totadj
-  real(rk4) , pointer , dimension(:) :: glat , glon , zlat ,      &
-                                       zlev , zlon
-  real(rk4) , pointer , dimension(:,:) :: mpu
-  real(rk4) , pointer , dimension(:,:,:) :: regxyz
-  real(rk4) , pointer , dimension(:,:,:,:) :: regyxzt , zoom
-  real(rk4) , pointer , dimension(:,:) :: landmask , sandclay
-  integer(ik4) :: ipathdiv , ierr , npatch
-  integer(ik4) :: i , iz , it , j , k , l , ipnt
+  real(rk4) :: spft , diff
+  real(rk8) :: operat
+  integer(ik4) :: ierr
+  integer(ik4) :: i , j , np , it , ipnt
   character(len=256) :: namelistfile , prgname
-  character(len=256) :: inpfile , terfile , outfile
+  character(len=256) :: terfile , outfile
   character(len=64) :: csdate
   real(rk4) , dimension(:,:) , pointer :: pctspec
   real(rk4) , pointer , dimension(:,:,:,:) :: var4d
+  logical , dimension(npft) :: pft_gt0
 
   call get_command_argument(0,value=prgname)
   call get_command_argument(1,value=namelistfile)
@@ -112,6 +110,8 @@ program mksurfdata
   ndim = 1
   call define_basic_dimensions(ncid,jx,iy,kzp1,ndim,idims)
   call add_dimension(ncid,'time',nf90_unlimited,ndim,idims)
+  call add_dimension(ncid,'lsmpft',npft,ndim,idims)
+  call add_dimension(ncid,'nlevsoi',nsoil,ndim,idims)
   call define_horizontal_coord(ncid,jx,iy,xjx,yiy,idims,ihvar)
   call define_vertical_coord(ncid,idims,izvar)
 
@@ -136,7 +136,7 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add glacier long_name')
   istatus = nf90_put_att(ncid, iglcvar, 'units','%')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add glacier units')
-  istatus = nf90_put_att(ncid, iglcvar, '_FillValue',-9999.0)
+  istatus = nf90_put_att(ncid, iglcvar, '_FillValue',vmisdat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add glacier _FillValue')
   istatus = nf90_put_att(ncid, iglcvar, 'coordinates','xlat xlon')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add glacier coordinates')
@@ -147,7 +147,7 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add wetland long_name')
   istatus = nf90_put_att(ncid, iwetvar, 'units','%')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add wetland units')
-  istatus = nf90_put_att(ncid, iwetvar, '_FillValue',-9999.0)
+  istatus = nf90_put_att(ncid, iwetvar, '_FillValue',vmisdat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add wetland _FillValue')
   istatus = nf90_put_att(ncid, iwetvar, 'coordinates','xlat xlon')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add wetland coordinates')
@@ -158,10 +158,34 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add lake long_name')
   istatus = nf90_put_att(ncid, ilakevar, 'units','%')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add lake units')
-  istatus = nf90_put_att(ncid, ilakevar, '_FillValue',-9999.0)
+  istatus = nf90_put_att(ncid, ilakevar, '_FillValue',vmisdat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add lake _FillValue')
   istatus = nf90_put_att(ncid, ilakevar, 'coordinates','xlat xlon')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add lake coordinates')
+
+  istatus = nf90_def_var(ncid, 'PCT_URBAN', nf90_float, idims(1:2), iurbanvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var urban')
+  istatus = nf90_put_att(ncid, iurbanvar, 'long_name','percent urban')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add urban long_name')
+  istatus = nf90_put_att(ncid, iurbanvar, 'units','%')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add urban units')
+  istatus = nf90_put_att(ncid, iurbanvar, '_FillValue',vmisdat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add urban _FillValue')
+  istatus = nf90_put_att(ncid, iurbanvar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add urban coordinates')
+
+  ivdims(1:2) = idims(1:2)
+  ivdims(3) = idims(5)
+  istatus = nf90_def_var(ncid, 'PCT_PFT', nf90_float, ivdims(1:3), ipftvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var pft')
+  istatus = nf90_put_att(ncid, ipftvar, 'long_name','percent pft')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add pft long_name')
+  istatus = nf90_put_att(ncid, ipftvar, 'units','%')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add pft units')
+  istatus = nf90_put_att(ncid, ipftvar, '_FillValue',vmisdat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add pft _FillValue')
+  istatus = nf90_put_att(ncid, ipftvar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add pft coordinates')
 
   istatus = nf90_enddef(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,'Error exit define mode')
@@ -186,29 +210,119 @@ program mksurfdata
   end do
 
   call getmem2d(pctspec,1,jx,1,iy,'mksurfdata: pctspec')
-  call getmem4d(var4d,1,maxd4,1,maxd3,1,jx,1,iy,'mksurfdata: var4d')
+  call getmem4d(var4d,1,jx,1,iy,1,maxd3,1,maxd4,'mksurfdata: var4d')
   pctspec(:,:) = 0.0
  
-  call mkglacier('mksrf_glacier.nc',var4d(1,1,:,:))
+  call mkglacier('mksrf_glacier.nc',var4d(:,:,1,1))
   where ( xmask < 0.5 )
-    var4d(1,1,:,:) = -9999.0
+    var4d(:,:,1,1) = vmisdat
   end where
-  istatus = nf90_put_var(ncid, iglcvar, var4d(1,1,:,:))
+  where (var4d(:,:,1,1) >= 0.0)
+    pctspec(:,:) = pctspec(:,:) + var4d(:,:,1,1)
+  end where
+  istatus = nf90_put_var(ncid, iglcvar, var4d(:,:,1,1))
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write glacier')
-  pctspec = pctspec + var4d(1,1,:,:)
 
-  call mkwetland('mksrf_lanwat.nc',var4d(1,1,:,:),var4d(1,2,:,:))
+  call mkwetland('mksrf_lanwat.nc',var4d(:,:,1,1),var4d(:,:,2,1))
   where ( xmask < 0.5 )
-    var4d(1,1,:,:) = -9999.0
-    var4d(1,2,:,:) = -9999.0
+    var4d(:,:,1,1) = vmisdat
+    var4d(:,:,2,1) = vmisdat
   end where
-  istatus = nf90_put_var(ncid, iwetvar, var4d(1,1,:,:))
+  where (var4d(:,:,1,1) >= 0.0)
+    pctspec(:,:) = pctspec(:,:) + var4d(:,:,1,1)
+  end where
+  where (var4d(:,:,2,1) >= 0.0)
+    pctspec(:,:) = pctspec(:,:) + var4d(:,:,2,1)
+  end where
+  istatus = nf90_put_var(ncid, iwetvar, var4d(:,:,1,1))
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write wetland')
-  pctspec = pctspec + var4d(1,1,:,:)
-  istatus = nf90_put_var(ncid, ilakevar, var4d(1,2,:,:))
+  istatus = nf90_put_var(ncid, ilakevar, var4d(:,:,2,1))
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write lake')
-  pctspec = pctspec + var4d(1,2,:,:)
 
+  call mkurban('mksrf_urban.nc',var4d(:,:,1,1))
+  where ( xmask < 0.5 )
+    var4d(:,:,1,1) = vmisdat
+  end where
+  where (var4d(:,:,1,1) >= 0.0)
+    pctspec(:,:) = pctspec(:,:) + var4d(:,:,1,1)
+  end where
+  istatus = nf90_put_var(ncid, iurbanvar, var4d(:,:,1,1))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write urban')
+
+  call mkpft('mksrf_pft.nc',var4d(:,:,1:npft,1))
+  do np = 1 , npft
+    where ( xmask < 0.5 )
+      var4d(:,:,np,1) = vmisdat
+    end where
+  end do
+  ! Here adjustment !
+  do i = 1 , iy
+    do j = 1 , jx
+      if ( xmask(j,i) > 0.5 ) then
+        if ( pctspec(j,i) > 99.99999 ) then
+          var4d(j,i,:,1) = vmisdat
+        else if ( pctspec(j,i) < 0.00001 ) then
+          var4d(j,i,:,1) = 0.0
+          var4d(j,i,1,1) = 100.0
+        else
+          spft = 0.0
+          if ( pctspec(j,i) > 0.00001 ) then
+            do np = 1 , npft
+              if ( var4d(j,i,np,1) > 0.0 ) then
+                spft = spft + var4d(j,i,np,1) * 100.0/(100.0-pctspec(j,i))
+              end if
+            end do
+          else 
+            do np = 1 , npft
+              if ( var4d(j,i,np,1) > 0.0 ) then
+                spft = spft + var4d(j,i,np,1)
+              end if
+            end do
+          end if
+          diff = spft - 100.0
+          if ( abs(diff) > 1.0E-5 ) then
+            ! Normalize it !
+            if ( abs(diff) > 0.0001 ) then
+              ! Not worth doing if too small a diff...
+              do np = 1 , npft
+                if ( var4d(j,i,np,1) > 0.0 ) then
+                  operat = dble(diff)*(dble(var4d(j,i,np,1))/dble(spft))
+                  var4d(j,i,np,1) = var4d(j,i,np,1)-real(operat)
+                  if ( var4d(j,i,np,1) < 0.0 ) then
+                    var4d(j,i,np,1) = 0.0
+                  end if
+                end if
+              end do
+              ! Re-compute diff
+              spft = 0.0
+              if ( pctspec(j,i) > 0.00001 ) then
+                do np = 1 , npft
+                  if ( var4d(j,i,np,1) > 0.0 ) then
+                    spft = spft + var4d(j,i,np,1) * 100.0/(100.0-pctspec(j,i))
+                  end if
+                end do
+              else
+                do np = 1 , npft
+                  if ( var4d(j,i,np,1) > 0.0 ) then
+                    spft = spft + var4d(j,i,np,1)
+                  end if
+                end do
+              end if
+              diff = spft - 100.0
+            end if
+            if ( abs(diff) > 1.0E-5 ) then
+              pft_gt0 = (var4d(j,i,:,1) > diff/real(npft))
+              where (pft_gt0)
+                var4d(j,i,:,1) = var4d(j,i,:,1) - diff/real(count(pft_gt0))
+              end where
+            end if
+          end if
+        end if
+      end if
+    end do
+  end do
+  istatus = nf90_put_var(ncid, ipftvar, var4d(:,:,1:npft,1))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write pft')
   istatus = nf90_close(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,  &
     'Error close file '//trim(outfile))
