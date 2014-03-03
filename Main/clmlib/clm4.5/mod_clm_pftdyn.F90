@@ -426,7 +426,7 @@ module mod_clm_pftdyn
           do m = 0, numpft
              sumpct = sumpct + pctpft(n,m) * 100.D0/(100.D0-pctspec(n))
           end do
-          if (abs(sumpct - 100.D0) > 0.1D-4) then
+          if (abs(sumpct - 100.D0) > 1.0D-4) then
              err = 1; ierr = n; sumerr = sumpct
           end if
           if (sumpct < -0.000001D0) then

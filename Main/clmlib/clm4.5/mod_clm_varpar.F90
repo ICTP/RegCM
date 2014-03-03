@@ -135,8 +135,6 @@ module mod_clm_varpar
   integer(ik4) , public :: npatch_wet
   ! Number of glacier pfts (columns) in glacier landunit
   integer(ik4) , public :: npatch_glacier
-  ! Number of glacier_mec pfts (columns) in glacier_mec landunit
-  integer(ik4) , public :: npatch_glacier_mec
   integer(ik4) , public :: max_pft_per_gcell 
   integer(ik4) , public :: max_pft_per_lu 
   integer(ik4) , public :: max_pft_per_col
@@ -162,8 +160,7 @@ module mod_clm_varpar
     npatch_lake      = npatch_urban_md + maxpatch_urb
     npatch_wet     = npatch_lake  + 1
     npatch_glacier = npatch_wet   + 1
-    npatch_glacier_mec = npatch_glacier + maxpatch_glcmec
-    maxpatch       = npatch_glacier_mec
+    maxpatch       = npatch_glacier
     mach_eps       = epsilon(1.0D0)
 
     max_pft_per_gcell = numpft+1 + 3 + maxpatch_urb*numurbl + maxpatch_glcmec

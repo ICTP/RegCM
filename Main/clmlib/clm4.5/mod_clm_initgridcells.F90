@@ -46,8 +46,6 @@ module mod_clm_initgridcells
     real(rk8):: wtwetland      ! weight (gridcell) of wetland landunit
     integer(ik4) :: nglacier   ! number of pfts (columns) in glacier landunit
     real(rk8):: wtglacier      ! weight (gridcell) of glacier landunit
-    integer(ik4) :: nglacier_mec ! number of pfts (columns) in glacier landunit
-    real(rk8):: wtglacier_mec    ! weight (gridcell) of glacier_mec landunit
     integer(ik4) :: ier     ! error status
     integer(ik4) :: numg    ! total number of gridcells across all processors
     integer(ik4) :: numl    ! total number of landunits across all processors
@@ -623,7 +621,7 @@ module mod_clm_initgridcells
   end subroutine set_landunit_veg_compete
   !
   ! Initialize wet_ice_lake landunits that are non-urban
-  ! (lake, wetland, glacier, glacier_mec)
+  ! (lake, wetland, glacier)
   !
   subroutine set_landunit_wet_ice_lake (ltype,nw,gi,li,ci,pi,setdata)
     use mod_clm_type , only : clm3 , model_type , gridcell_type , &
@@ -743,7 +741,7 @@ module mod_clm_initgridcells
             landunit_type , column_type,pft_type
     use mod_clm_subgrid , only : subgrid_get_gcellinfo
     use mod_clm_varctl , only : create_crop_landunit
-    use mod_clm_varpar , only : maxpatch_pft , numcft , npatch_glacier_mec
+    use mod_clm_varpar , only : maxpatch_pft , numcft
     implicit none
     integer(ik4) , intent(in) :: ltype       ! landunit type
     integer(ik4) , intent(in) :: nw          ! cell index

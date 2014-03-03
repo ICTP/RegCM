@@ -181,8 +181,6 @@ module mod_clm_varctl
 
     ! landunit generation
 
-    write (0,*) 'START clmvarctl_init'
-    write (0,*) maxpatch_pft , numpft+1
     if (maxpatch_pft == numpft+1) then
       allocate_all_vegpfts = .true.
     else
@@ -194,8 +192,6 @@ module mod_clm_varctl
                 subname//' ERROR:: Can NOT turn CROP on without all PFTs' )
 #endif
     end if
-    write (0,*) allocate_all_vegpfts
-    write (0,*) 'END clmvarctl_init'
 
     if ( myid == italk ) then
 

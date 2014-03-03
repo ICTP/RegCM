@@ -120,14 +120,11 @@ module mod_clm_decompinit
 
     begg = procinfo%begg
     endg = procinfo%endg
-    write(0,*) 'MYID = ',myid, 'begg = ', begg
-    write(0,*) 'MYID = ',myid, 'endg = ', endg
     do ln = begg , endg
       call subgrid_get_gcellinfo(ln,nlunits=ilunits,ncols=icols,npfts=ipfts)
       lcount(ln) = ilunits
       ccount(ln) = icols
       pcount(ln) = ipfts
-      write(0,*) 'MYID = ',myid, ln , ilunits , icols , ipfts
     end do
 
     mynuml  = sum(lcount)
@@ -145,12 +142,6 @@ module mod_clm_decompinit
     call allgather_i(procinfo%lc,mynuml)
     call allgather_i(procinfo%cc,mynumc)
     call allgather_i(procinfo%pc,mynump)
-
-    write(0,*) 'MYID = ',myid, 'mynuml = ', mynuml
-    write(0,*) 'MYID = ',myid, 'mynumc = ', mynumc
-    write(0,*) 'MYID = ',myid, 'mynump = ', mynump
-
-    call fatal(__FILE__,__LINE__,'clm now stopping')
 
     if ( myid > 0 ) then
       procinfo%begl = sum(procinfo%lc(1:myid))+1

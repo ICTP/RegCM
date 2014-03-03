@@ -82,6 +82,8 @@ module mod_clm_domain
 
     if ( present(clmlevel) ) then
       domain%clmlevel = clmlevel
+    else
+      domain%clmlevel = 'gridcell'
     end if
 
     domain%ns       = ni*nj

@@ -20,8 +20,7 @@ module mod_clm_surfrd
   use mod_clm_nchelper
   use mod_clm_varpar , only : nlevsoifl , numpft , maxpatch_pft , numcft , &
          maxpatch , npatch_urban_tbd , npatch_urban_hd , npatch_urban_md , &
-         numurbl , npatch_lake , npatch_wet , npatch_glacier ,             &
-         maxpatch_urb , npatch_glacier_mec , maxpatch_glcmec
+         numurbl , npatch_lake , npatch_wet , npatch_glacier , maxpatch_urb
   use mod_clm_varctl , only : glc_topomax
   use mod_clm_varsur , only : wtxy , vegxy , pctspec
   use mod_clm_decomp , only : get_proc_bounds , procinfo , numg
@@ -349,8 +348,9 @@ module mod_clm_surfrd
     ! If PCT_URBAN is not multi-density then set pcturb and nlevurb to zero 
     if (nlevurb == 0) then
       pcturb = 0.D0
-      if ( myid == italk ) &
+      if ( myid == italk ) then
         write(stdout,*)'PCT_URBAN is not multi-density, pcturb set to 0'
+      end if
     else
       if ( clm_check_var(ncid,'PCT_URBAN') ) then
         do n = 1 , numurbl
@@ -376,6 +376,19 @@ module mod_clm_surfrd
         pcturb_tot(nl) = pcturb_tot(nl) + pcturb(nl,n)
       end do
     end do
+
+    where (pctwet < eps_fact*epsilon(1.D0) )
+      pctwet = 0.0D0
+    end where
+    where (pctlak < eps_fact*epsilon(1.D0) )
+      pctlak = 0.0D0
+    end where
+    where (pctgla < eps_fact*epsilon(1.D0) )
+      pctgla = 0.0D0
+    end where
+    where (pcturb_tot < eps_fact*epsilon(1.D0) )
+      pcturb_tot = 0.0D0
+    end where
 
     pctspec = pctwet + pctlak + pcturb_tot + pctgla
 
@@ -578,7 +591,7 @@ module mod_clm_surfrd
     integer(ik4) :: m , mp7 , mp8 , mp11 , n , nl ! indices
     integer(ik4) :: begg , endg               ! beg/end gcell index
     integer(ik4) :: dimid , varid             ! netCDF id's
-    integer(ik4) :: ier                       ! error status  
+    integer(ik4) :: ier , tot_ier             ! error status  
     logical :: readvar                        ! is variable on dataset
     real(rk8) :: sumpct                       ! sum of %pft over maxpatch_pft
     ! percent of vegetated gridcell area for PFTs
@@ -595,8 +608,8 @@ module mod_clm_surfrd
     end if
 
     if ( clm_check_var(ncid,'PCT_PFT') ) then
-      do n = 1 , numpft
-        call clm_readvar(ncid,'PCT_PFT',rdata2d,n)
+      do n = 0 , numpft-1
+        call clm_readvar(ncid,'PCT_PFT',rdata2d,n+1)
         rdata1d = pack(rdata2d(2:inni-2,2:innj-2),procinfo%gcmask)
         pctpft(:,n) = rdata1d(begg:endg)
       end do
@@ -609,6 +622,7 @@ module mod_clm_surfrd
       pctpft = 0.0D0
     end where
 
+    ier = 0
     do nl = begg , endg
       if ( ldomain%pftm(nl) >= 0 ) then
         ! Error check: make sure PFTs sum to 100% cover for vegetated landunit 
@@ -621,18 +635,21 @@ module mod_clm_surfrd
           do m = 0 , numpft
             sumpct = sumpct + pctpft(nl,m) * 100.D0/(100.D0-pctspec(nl))
           end do
-          if ( abs(sumpct - 100.D0) > 0.1D-4 ) then
+          if ( abs(sumpct - 100.D0) > 1.0D-4 ) then
+            write(stderr,*) 'SUMPFT  = ',sum(pctpft(nl,:))
+            write(stderr,*) 'PCTSPEC = ',pctspec(nl)
+            write(stderr,*) 'SUMPCT  = ',sumpct
             write(stderr,*) trim(subname)// &
                     ' ERROR: sum(pct) over numpft+1 is not = 100.'
             write(stderr,*) 'Unbalance ', sumpct-100.D0, ' AT LAT,LON ', &
                     ldomain%latc(nl), ldomain%lonc(nl)
-            call fatal(__FILE__,__LINE__,'clm now stopping')
+            ier = ier + 1
           end if
           if ( sumpct < -0.000001D0 ) then
             write(stderr,*) trim(subname)// &
                     ' ERROR: sum(pct) over numpft+1 is < 0.'
-            write(stderr,*) sumpct, nl
-            call fatal(__FILE__,__LINE__,'clm now stopping')
+            write(stderr,*) 'SUMPCT = ', sumpct, ' at nl : ',nl
+            ier = ier + 100000
           end if
           do m = npcropmin , numpft
             if ( pctpft(nl,m) > 0.0D0 ) crop = .true.
@@ -646,6 +663,12 @@ module mod_clm_surfrd
         end do
       end if
     end do
+
+    call sumall(ier,tot_ier)
+    if ( tot_ier /= 0 ) then
+      write(stderr,*) 'Total errors = ', tot_ier
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
 
     call trueforall(crop,crop_prog)
     if ( crop_prog .and. .not. create_crop_landunit ) then
