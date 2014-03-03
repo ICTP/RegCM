@@ -137,7 +137,7 @@ program clm2rcm
 
 !     ** Open Output checkfile in NetCDF format
 
-  checkfile = trim(dirglob)//pthsep//trim(domname)//'_CLM45_surface.nc'
+  checkfile = trim(dirglob)//pthsep//trim(domname)//'_CLM3.nc'
 
   call createfile_withname(checkfile,ncid)
   call add_common_global_params(ncid,'clm2rcm',.false.)
@@ -426,11 +426,7 @@ program clm2rcm
               end do
               call sortpatch(regyxzt(j,i,:,l),vals_swap,iord)
               pxerr = 100.-pctspec(j,i)
-#ifdef CLM
               npatch = min(MAXPATCH_PFT,nlev(ifld))
-#else
-              npatch = nlev(ifld)
-#endif
               do k = 1 , npatch
                 pxerr = pxerr - vals_swap(k)
               end do
@@ -479,11 +475,7 @@ program clm2rcm
                   call sortpatch(regyxzt(j,i,:,l),vals_swap,iord)
                   iprevf = -1
                   inowf = -1
-#ifdef CLM
                   npatch = min(MAXPATCH_PFT,nlev(ifld))
-#else
-                  npatch = nlev(ifld)
-#endif
                   do k = 1 , npatch
                     if ( iord(k)  == iforest ) inowf = k
                     if ( iord1(k) == iforest ) iprevf = k
@@ -526,10 +518,6 @@ program clm2rcm
       where ( regyxzt < vmin(ifld) )
         regyxzt = 0.0
       end where
-      if ( ifld == iurb .or. ifld == ilak .or. &
-           ifld == iwtl .or. ifld == iglc ) then
-        regyxzt = amax1(aint(regyxzt),0.0)
-      end if
       if ( ifld==icol ) then
         do k = 1 , nlev(ifld)
           do i = 1 , iy
@@ -549,6 +537,10 @@ program clm2rcm
       end if
       if ( ifld == iurb .or. ifld == ilak .or. &
            ifld == iwtl .or. ifld == iglc ) then
+        regxyz = amax1(aint(regxyz),0.0)
+        where ( regxyz < 5.0 )
+          regxyz = 0.0
+        end where
         pctspec = pctspec + regxyz(:,:,nlev(ifld))
         do i = 1 , iy
           do j = 1 , jx
@@ -587,15 +579,15 @@ program clm2rcm
       if (ldim < 0) then
         ldim = -ldim
         ilevs(ldim) = nlev(ifld)
-        if ( ifld == isnd .or. ifld == icly ) then
-          cldim = 'nlevsoi'
-        else
-          cldim = 'lsmpft'
-        end if
+        write (cldim,'(a,i0.3)') 'level_', nlev(ifld)
         istatus = nf90_def_dim(ncid, cldim, nlev(ifld), idum)
         call checkncerr(istatus,__FILE__,__LINE__,  &
           'Error create dim '//trim(cldim))
       end if
+    end if
+
+    if (vnam(ifld)(1:8) == 'MONTHLY_') then
+      vnam(ifld) = vnam(ifld)(9:)
     end if
 
     if (ntim(ifld) > 1) then
@@ -603,12 +595,12 @@ program clm2rcm
         ivdims(1) = idims(1)
         ivdims(2) = idims(2)
         ivdims(3) = idims(4)+ldim
-        ivdims(4) = idims(4)
+        ivdims(4) = idims(3)
         istatus = nf90_def_var(ncid, vnam(ifld), nf90_float, ivdims, ivar)
       else
         ivdims(1) = idims(1)
         ivdims(2) = idims(2)
-        ivdims(3) = idims(4)
+        ivdims(3) = idims(3)
         istatus = nf90_def_var(ncid, vnam(ifld), nf90_float, ivdims(1:3), ivar)
       end if
     else

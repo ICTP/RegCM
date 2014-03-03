@@ -3,9 +3,7 @@ include $(REGCM_ROOT)/makeinc
 
 vpath %.o $(REGCM_ROOT)/Share:.
 
-if DO_COMPILE_LIBCLM
 CPPFLAGS += -DMAXPATCH_PFT=4
-endif
 
 if OSNAME_AIX
   cpre = $(null)-WF,-D$(null)
