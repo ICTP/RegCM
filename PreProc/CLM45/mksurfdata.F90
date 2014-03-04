@@ -50,6 +50,8 @@ program mksurfdata
   integer , parameter :: nmon = 12
   integer , parameter :: nsoil = 10
 
+  integer :: ngcells
+
   integer , parameter :: maxd3 = max(npft,nsoil)
   integer , parameter :: maxd4 = nmon
 
@@ -57,30 +59,34 @@ program mksurfdata
   logical , parameter :: bvoc = .false.
 
   integer(ik4) :: istatus , ncid , ndim , nvar
-  integer(ik4) , dimension(6) :: idims , ivdims
+  integer(ik4) , dimension(7) :: idims , ivdims
   integer(ik4) :: ivartime , iglcvar , iwetvar , ilakevar , iurbanvar
   integer(ik4) :: ipftvar , ilaivar , isaivar , ivgtopvar , ivgbotvar
   integer(ik4) :: ifmaxvar , isoilcolvar , isandvar , iclayvar , islopevar
+  integer(ik4) :: ilndvar
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
   real(rk4) , pointer , dimension(:) :: yiy
   real(rk4) , pointer , dimension(:) :: xjx
   real(rk4) :: hptop
   real(rk8) , dimension(1) :: xdate
-  integer(ik4) , dimension(2) :: ihvar
+  integer(ik4) , dimension(2) :: ihvar , istart , icount
   integer(ik4) , dimension(2) :: illvar
   integer(ik4) , dimension(2) :: izvar
   integer(ik4) , dimension(1) :: istart1 , icount1
   real(rk4) :: spft , diff
   real(rk8) :: operat
   integer(ik4) :: ierr
-  integer(ik4) :: i , j , np , nm , it , ipnt
+  integer(ik4) :: i , j , ip , il , np , nm , it , ipnt
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile , outfile
   character(len=64) :: csdate
   real(rk4) , dimension(:,:) , pointer :: pctspec
   real(rk4) , pointer , dimension(:,:,:,:,:) :: var5d
+  real(rk4) , pointer , dimension(:) :: gcvar
+  integer , pointer , dimension(:) :: landpoint
   logical , dimension(npft) :: pft_gt0
+  logical , dimension(:,:) , pointer :: lmask
 
   call get_command_argument(0,value=prgname)
   call get_command_argument(1,value=namelistfile)
@@ -107,6 +113,7 @@ program mksurfdata
   end if
   call openfile_withname(terfile,ncid)
   call read_domain(ncid,sigx,xlat,xlon,ht=topo,mask=xmask)
+  ngcells = count(xmask(2:jx-2,2:iy-2) > 0.5)
   call closefile(ncid)
 
   ! Open Output in NetCDF format
@@ -120,6 +127,7 @@ program mksurfdata
   call add_dimension(ncid,'time',nf90_unlimited,ndim,idims)
   call add_dimension(ncid,'lsmpft',npft,ndim,idims)
   call add_dimension(ncid,'nlevsoi',nsoil,ndim,idims)
+  call add_dimension(ncid,'gridcell',ngcells,ndim,idims)
   call define_horizontal_coord(ncid,jx,iy,xjx,yiy,idims,ihvar)
   call define_vertical_coord(ncid,idims,izvar)
 
@@ -138,16 +146,17 @@ program mksurfdata
 
   ! Variables
 
-  istatus = nf90_def_var(ncid, 'SLOPE', nf90_float, idims(1:2), islopevar)
+  istatus = nf90_def_var(ncid, 'gridcell', nf90_int, idims(7), ilndvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var gridcell')
+  istatus = nf90_put_att(ncid, ilndvar, 'compress','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add gridcell compress')
+
+  istatus = nf90_def_var(ncid, 'SLOPE', nf90_float, idims(7), islopevar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var slope')
   istatus = nf90_put_att(ncid, islopevar, 'long_name','Elevation slope')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add slope long_name')
-  istatus = nf90_put_att(ncid, islopevar, 'units','m/km')
+  istatus = nf90_put_att(ncid, islopevar, 'units','km/km')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add slope units')
-  istatus = nf90_put_att(ncid, islopevar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add slope _FillValue')
-  istatus = nf90_put_att(ncid, islopevar, 'coordinates','xlat xlon')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add slope coordinates')
 
   istatus = nf90_def_var(ncid, 'PCT_GLACIER', nf90_float, idims(1:2), iglcvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var glacier')
@@ -252,52 +261,36 @@ program mksurfdata
   istatus = nf90_put_att(ncid, ivgbotvar, 'coordinates','xlat xlon')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_bot coordinates')
 
-  istatus = nf90_def_var(ncid, 'FMAX', nf90_float, idims(1:2), ifmaxvar)
+  istatus = nf90_def_var(ncid, 'FMAX', nf90_float, idims(7), ifmaxvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var fmax')
   istatus = nf90_put_att(ncid, ifmaxvar, 'long_name', &
           'maximum fractional saturated area at 1/8 degree')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add fmax long_name')
   istatus = nf90_put_att(ncid, ifmaxvar, 'units','1')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add fmax units')
-  istatus = nf90_put_att(ncid, ifmaxvar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add fmax _FillValue')
-  istatus = nf90_put_att(ncid, ifmaxvar, 'coordinates','xlat xlon')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add fmax coordinates')
 
-  istatus = nf90_def_var(ncid, 'SOIL_COLOR', nf90_float, idims(1:2),isoilcolvar)
+  istatus = nf90_def_var(ncid, 'SOIL_COLOR', nf90_float, idims(7),isoilcolvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var soilcol')
   istatus = nf90_put_att(ncid, isoilcolvar, 'long_name', &
           'maximum fractional saturated area at 1/8 degree')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add soilcol long_name')
   istatus = nf90_put_att(ncid, isoilcolvar, 'units','1')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add soilcol units')
-  istatus = nf90_put_att(ncid, isoilcolvar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add soilcol _FillValue')
-  istatus = nf90_put_att(ncid, isoilcolvar, 'coordinates','xlat xlon')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add soilcol coordinates')
 
-  ivdims(1:2) = idims(1:2)
-  ivdims(3) = idims(6)
-  istatus = nf90_def_var(ncid, 'PCT_SAND', nf90_float, ivdims(1:3), isandvar)
+  ivdims(1) = idims(7)
+  ivdims(2) = idims(6)
+  istatus = nf90_def_var(ncid, 'PCT_SAND', nf90_float, ivdims(1:2), isandvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var sand')
   istatus = nf90_put_att(ncid, isandvar, 'long_name','percent sand')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add sand long_name')
   istatus = nf90_put_att(ncid, isandvar, 'units','%')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add sand units')
-  istatus = nf90_put_att(ncid, isandvar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add sand _FillValue')
-  istatus = nf90_put_att(ncid, isandvar, 'coordinates','xlat xlon')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add sand coordinates')
-  istatus = nf90_def_var(ncid, 'PCT_CLAY', nf90_float, ivdims(1:3), iclayvar)
+  istatus = nf90_def_var(ncid, 'PCT_CLAY', nf90_float, ivdims(1:2), iclayvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var clay')
   istatus = nf90_put_att(ncid, iclayvar, 'long_name','percent clay')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add clay long_name')
   istatus = nf90_put_att(ncid, iclayvar, 'units','%')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add clay units')
-  istatus = nf90_put_att(ncid, iclayvar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add clay _FillValue')
-  istatus = nf90_put_att(ncid, iclayvar, 'coordinates','xlat xlon')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add clay coordinates')
 
   istatus = nf90_enddef(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,'Error exit define mode')
@@ -322,8 +315,23 @@ program mksurfdata
   end do
 
   call getmem2d(pctspec,1,jx,1,iy,'mksurfdata: pctspec')
+  call getmem2d(lmask,2,jx-2,2,iy-2,'mksurfdata: lmask')
+  call getmem1d(gcvar,1,ngcells,'mksurfdata: gcvar')
+  call getmem1d(landpoint,1,ngcells,'mksurfdata: gcvar')
   call getmem5d(var5d,1,jx,1,iy,1,maxd3,1,maxd4,1,4,'mksurfdata: var5d')
   pctspec(:,:) = 0.0
+  lmask = (xmask(2:jx-2,2:iy-2) > 0.5)
+  ip = 1
+  do i = 2 , iy-2
+    do j = 2 , jx-2
+      if ( xmask(j,i) > 0.5 ) then
+        landpoint(ip) = (i-1)*jx+j
+        ip = ip + 1
+      end if
+    end do
+  end do
+  istatus = nf90_put_var(ncid, ilndvar, landpoint)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write gridcell')
  
   var5d(:,:,1,1,1) = 0.0
   ! Calculate slope
@@ -342,7 +350,8 @@ program mksurfdata
   where ( xmask < 0.5 )
     var5d(:,:,1,1,1) = vmisdat
   end where
-  istatus = nf90_put_var(ncid, islopevar, var5d(:,:,1,1,1))
+  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)*0.001
+  istatus = nf90_put_var(ncid, islopevar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write slope')
 
   call mkglacier('mksrf_glacier.nc',var5d(:,:,1,1,1))
@@ -488,14 +497,17 @@ program mksurfdata
   where ( xmask < 0.5 )
     var5d(:,:,1,1,1) = vmisdat
   end where
-  istatus = nf90_put_var(ncid, ifmaxvar, var5d(:,:,1,1,1))
+  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
+  where ( gcvar < 0.0 ) gcvar = 0.05
+  istatus = nf90_put_var(ncid, ifmaxvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write fmax')
 
   call mksoilcol('mksrf_soicol.nc',var5d(:,:,1,1,1))
   where ( xmask < 0.5 )
     var5d(:,:,1,1,1) = vmisdat
   end where
-  istatus = nf90_put_var(ncid, isoilcolvar, var5d(:,:,1,1,1))
+  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
+  istatus = nf90_put_var(ncid, isoilcolvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write soil color')
 
   call mksoitex('mksrf_soitex.nc',var5d(:,:,1:nsoil,1,1),var5d(:,:,1:nsoil,2,1))
@@ -503,10 +515,18 @@ program mksurfdata
     var5d(:,:,1,1,1) = vmisdat
     var5d(:,:,2,1,1) = vmisdat
   end where
-  istatus = nf90_put_var(ncid, isandvar, var5d(:,:,1:nsoil,1,1))
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write sand pct')
-  istatus = nf90_put_var(ncid, iclayvar, var5d(:,:,1:nsoil,2,1))
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write clay pct')
+  do il = 1 , nsoil
+    istart(1) = 1
+    icount(1) = ngcells
+    istart(2) = il
+    icount(2) = 1
+    gcvar = pack(var5d(2:jx-2,2:iy-2,il,1,1),lmask)
+    istatus = nf90_put_var(ncid, isandvar, gcvar,istart(1:2),icount(1:2))
+    call checkncerr(istatus,__FILE__,__LINE__, 'Error write sand pct')
+    gcvar = pack(var5d(2:jx-2,2:iy-2,il,2,1),lmask)
+    istatus = nf90_put_var(ncid, iclayvar, gcvar,istart(1:2),icount(1:2))
+    call checkncerr(istatus,__FILE__,__LINE__, 'Error write clay pct')
+  end do
 
   istatus = nf90_close(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,  &
