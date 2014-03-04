@@ -44,6 +44,8 @@ program mksurfdata
   use mod_mksoilcol
   use mod_mksoitex
   use mod_mkgdp
+  use mod_mkpeatf
+  use mod_mkabm
   use netcdf
 
   implicit none
@@ -65,7 +67,7 @@ program mksurfdata
   integer(ik4) :: ivartime , iglcvar , iwetvar , ilakevar , iurbanvar
   integer(ik4) :: ipftvar , ilaivar , isaivar , ivgtopvar , ivgbotvar
   integer(ik4) :: ifmaxvar , isoilcolvar , isandvar , iclayvar
-  integer(ik4) :: islopevar , istdvar , igdpvar
+  integer(ik4) :: islopevar , istdvar , igdpvar , ipeatfvar , iabmvar
   integer(ik4) :: ilndvar
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
@@ -273,10 +275,26 @@ program mksurfdata
 
   istatus = nf90_def_var(ncid, 'gdp', nf90_float, idims(7),igdpvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var gdp')
-  istatus = nf90_put_att(ncid, isoilcolvar, 'long_name', 'real GDP')
+  istatus = nf90_put_att(ncid, igdpvar, 'long_name', 'real GDP')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add gdp long_name')
-  istatus = nf90_put_att(ncid, isoilcolvar, 'units','K 1995US$/capita')
+  istatus = nf90_put_att(ncid, igdpvar, 'units','K 1995US$/capita')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add gdp units')
+
+  istatus = nf90_def_var(ncid, 'peatf', nf90_float, idims(7),ipeatfvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var peatf')
+  istatus = nf90_put_att(ncid, ipeatfvar, 'long_name', &
+          'global fraction of peatland')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add peatf long_name')
+  istatus = nf90_put_att(ncid, ipeatfvar, 'units','1')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add peatf units')
+
+  istatus = nf90_def_var(ncid, 'abm', nf90_float, idims(7),iabmvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var abm')
+  istatus = nf90_put_att(ncid, iabmvar, 'long_name', &
+          'peak month for agri fire')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add abm long_name')
+  istatus = nf90_put_att(ncid, iabmvar, 'units','1')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add abm units')
 
   ivdims(1) = idims(7)
   ivdims(2) = idims(6)
@@ -550,6 +568,22 @@ program mksurfdata
   gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
   istatus = nf90_put_var(ncid, igdpvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write gdp')
+
+  call mkpeatf('mksrf_peatf.nc',var5d(:,:,1,1,1))
+  where ( xmask < 0.5 )
+    var5d(:,:,1,1,1) = vmisdat
+  end where
+  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
+  istatus = nf90_put_var(ncid, ipeatfvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write peatf')
+
+  call mkabm('mksrf_abm.nc',var5d(:,:,1,1,1))
+  where ( xmask < 0.5 )
+    var5d(:,:,1,1,1) = vmisdat
+  end where
+  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
+  istatus = nf90_put_var(ncid, iabmvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write abm')
 
   istatus = nf90_close(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,  &
