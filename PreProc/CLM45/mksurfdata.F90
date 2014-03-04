@@ -38,21 +38,25 @@ program mksurfdata
   use mod_mkwetland
   use mod_mkurban
   use mod_mkpft
+  use mod_mklaisai
   use netcdf
 
   implicit none
 
-  integer , parameter :: maxd3 = 17
-  integer , parameter :: maxd4 = 12
   integer , parameter :: npft = 17
+  integer , parameter :: nmon = 12
   integer , parameter :: nsoil = 10
+
+  integer , parameter :: maxd3 = max(npft,nsoil)
+  integer , parameter :: maxd4 = nmon
 
   real(rk4) , parameter :: vmisdat = -9999.0
   logical , parameter :: bvoc = .false.
 
   integer(ik4) :: istatus , ncid , ndim , nvar
   integer(ik4) , dimension(6) :: idims , ivdims
-  integer(ik4) :: ivartime , iglcvar , iwetvar , ilakevar , iurbanvar , ipftvar
+  integer(ik4) :: ivartime , iglcvar , iwetvar , ilakevar , iurbanvar
+  integer(ik4) :: ipftvar , ilaivar , isaivar , ivgtopvar , ivgbotvar
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
   real(rk4) , pointer , dimension(:) :: yiy
@@ -66,12 +70,12 @@ program mksurfdata
   real(rk4) :: spft , diff
   real(rk8) :: operat
   integer(ik4) :: ierr
-  integer(ik4) :: i , j , np , it , ipnt
+  integer(ik4) :: i , j , np , nm , it , ipnt
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile , outfile
   character(len=64) :: csdate
   real(rk4) , dimension(:,:) , pointer :: pctspec
-  real(rk4) , pointer , dimension(:,:,:,:) :: var4d
+  real(rk4) , pointer , dimension(:,:,:,:,:) :: var5d
   logical , dimension(npft) :: pft_gt0
 
   call get_command_argument(0,value=prgname)
@@ -187,6 +191,52 @@ program mksurfdata
   istatus = nf90_put_att(ncid, ipftvar, 'coordinates','xlat xlon')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft coordinates')
 
+  ivdims(1:2) = idims(1:2)
+  ivdims(3) = idims(5)
+  ivdims(4) = idims(4)
+  istatus = nf90_def_var(ncid, 'MONTHLY_LAI', nf90_float, ivdims(1:4), ilaivar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var monthly_lai')
+  istatus = nf90_put_att(ncid, ilaivar, 'long_name','monthly leaf area index')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_lai long_name')
+  istatus = nf90_put_att(ncid, ilaivar, 'units','1')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_lai units')
+  istatus = nf90_put_att(ncid, ilaivar, '_FillValue',vmisdat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_lai _FillValue')
+  istatus = nf90_put_att(ncid, ilaivar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_lai coordinates')
+  istatus = nf90_def_var(ncid, 'MONTHLY_SAI', nf90_float, ivdims(1:4), isaivar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var monthly_sai')
+  istatus = nf90_put_att(ncid, isaivar, 'long_name','monthly stem area index')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_sai long_name')
+  istatus = nf90_put_att(ncid, isaivar, 'units','1')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_sai units')
+  istatus = nf90_put_att(ncid, isaivar, '_FillValue',vmisdat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_sai _FillValue')
+  istatus = nf90_put_att(ncid, isaivar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_sai coordinates')
+  istatus = nf90_def_var(ncid, 'MONTHLY_HEIGHT_TOP', nf90_float, &
+          ivdims(1:4), ivgtopvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var monthly_top')
+  istatus = nf90_put_att(ncid, ivgtopvar, 'long_name','monthly height top')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_top long_name')
+  istatus = nf90_put_att(ncid, ivgtopvar, 'units','1')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_top units')
+  istatus = nf90_put_att(ncid, ivgtopvar, '_FillValue',vmisdat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_top _FillValue')
+  istatus = nf90_put_att(ncid, ivgtopvar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_top coordinates')
+  istatus = nf90_def_var(ncid, 'MONTHLY_HEIGHT_BOT', nf90_float, &
+          ivdims(1:4), ivgbotvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var monthly_bot')
+  istatus = nf90_put_att(ncid, ivgbotvar, 'long_name','monthly height bottom')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_bot long_name')
+  istatus = nf90_put_att(ncid, ivgbotvar, 'units','1')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_bot units')
+  istatus = nf90_put_att(ncid, ivgbotvar, '_FillValue',vmisdat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_bot _FillValue')
+  istatus = nf90_put_att(ncid, ivgbotvar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_bot coordinates')
+
   istatus = nf90_enddef(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,'Error exit define mode')
 
@@ -210,74 +260,76 @@ program mksurfdata
   end do
 
   call getmem2d(pctspec,1,jx,1,iy,'mksurfdata: pctspec')
-  call getmem4d(var4d,1,jx,1,iy,1,maxd3,1,maxd4,'mksurfdata: var4d')
+  call getmem5d(var5d,1,jx,1,iy,1,maxd3,1,maxd4,1,4,'mksurfdata: var5d')
   pctspec(:,:) = 0.0
  
-  call mkglacier('mksrf_glacier.nc',var4d(:,:,1,1))
+  call mkglacier('mksrf_glacier.nc',var5d(:,:,1,1,1))
   where ( xmask < 0.5 )
-    var4d(:,:,1,1) = vmisdat
+    var5d(:,:,1,1,1) = vmisdat
   end where
-  where (var4d(:,:,1,1) >= 0.0)
-    pctspec(:,:) = pctspec(:,:) + var4d(:,:,1,1)
+  where (var5d(:,:,1,1,1) >= 0.0)
+    pctspec(:,:) = pctspec(:,:) + var5d(:,:,1,1,1)
   end where
-  istatus = nf90_put_var(ncid, iglcvar, var4d(:,:,1,1))
+  istatus = nf90_put_var(ncid, iglcvar, var5d(:,:,1,1,1))
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write glacier')
 
-  call mkwetland('mksrf_lanwat.nc',var4d(:,:,1,1),var4d(:,:,2,1))
+  call mkwetland('mksrf_lanwat.nc',var5d(:,:,1,1,1),var5d(:,:,2,1,1))
   where ( xmask < 0.5 )
-    var4d(:,:,1,1) = vmisdat
-    var4d(:,:,2,1) = vmisdat
+    var5d(:,:,1,1,1) = vmisdat
+    var5d(:,:,2,1,1) = vmisdat
   end where
-  where (var4d(:,:,1,1) >= 0.0)
-    pctspec(:,:) = pctspec(:,:) + var4d(:,:,1,1)
+  where (var5d(:,:,1,1,1) >= 0.0)
+    pctspec(:,:) = pctspec(:,:) + var5d(:,:,1,1,1)
   end where
-  where (var4d(:,:,2,1) >= 0.0)
-    pctspec(:,:) = pctspec(:,:) + var4d(:,:,2,1)
+  where (var5d(:,:,2,1,1) >= 0.0)
+    pctspec(:,:) = pctspec(:,:) + var5d(:,:,2,1,1)
   end where
-  istatus = nf90_put_var(ncid, iwetvar, var4d(:,:,1,1))
+  istatus = nf90_put_var(ncid, iwetvar, var5d(:,:,1,1,1))
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write wetland')
-  istatus = nf90_put_var(ncid, ilakevar, var4d(:,:,2,1))
+  istatus = nf90_put_var(ncid, ilakevar, var5d(:,:,2,1,1))
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write lake')
 
-  call mkurban('mksrf_urban.nc',var4d(:,:,1,1))
+  call mkurban('mksrf_urban.nc',var5d(:,:,1,1,1))
   where ( xmask < 0.5 )
-    var4d(:,:,1,1) = vmisdat
+    var5d(:,:,1,1,1) = vmisdat
   end where
-  where (var4d(:,:,1,1) >= 0.0)
-    pctspec(:,:) = pctspec(:,:) + var4d(:,:,1,1)
+  where (var5d(:,:,1,1,1) >= 0.0)
+    pctspec(:,:) = pctspec(:,:) + var5d(:,:,1,1,1)
   end where
-  istatus = nf90_put_var(ncid, iurbanvar, var4d(:,:,1,1))
+  istatus = nf90_put_var(ncid, iurbanvar, var5d(:,:,1,1,1))
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write urban')
 
-  call mkpft('mksrf_pft.nc',var4d(:,:,1:npft,1))
+  call mkpft('mksrf_pft.nc',var5d(:,:,1:npft,1,1))
   do np = 1 , npft
     where ( xmask < 0.5 )
-      var4d(:,:,np,1) = vmisdat
+      var5d(:,:,np,1,1) = vmisdat
     end where
   end do
   ! Here adjustment !
   do i = 1 , iy
-    do j = 1 , jx
+    jloop: do j = 1 , jx
       if ( xmask(j,i) > 0.5 ) then
         if ( pctspec(j,i) > 99.99999 ) then
-          var4d(j,i,:,1) = vmisdat
-        else if ( pctspec(j,i) < 0.00001 ) then
-          var4d(j,i,:,1) = 0.0
-          var4d(j,i,1,1) = 100.0
+          var5d(j,i,:,1,1) = vmisdat
         else
           spft = 0.0
           if ( pctspec(j,i) > 0.00001 ) then
             do np = 1 , npft
-              if ( var4d(j,i,np,1) > 0.0 ) then
-                spft = spft + var4d(j,i,np,1) * 100.0/(100.0-pctspec(j,i))
+              if ( var5d(j,i,np,1,1) > 0.0 ) then
+                spft = spft + var5d(j,i,np,1,1) * 100.0/(100.0-pctspec(j,i))
               end if
             end do
           else 
             do np = 1 , npft
-              if ( var4d(j,i,np,1) > 0.0 ) then
-                spft = spft + var4d(j,i,np,1)
+              if ( var5d(j,i,np,1,1) > 0.0 ) then
+                spft = spft + var5d(j,i,np,1,1)
               end if
             end do
+          end if
+          if ( spft < 0.00001 ) then
+            var5d(j,i,1,1,1) = 100.0-pctspec(j,i)
+            var5d(j,i,2:npft,1,1) = 0.0D0
+            cycle jloop
           end if
           diff = spft - 100.0
           if ( abs(diff) > 1.0E-5 ) then
@@ -285,11 +337,11 @@ program mksurfdata
             if ( abs(diff) > 0.0001 ) then
               ! Not worth doing if too small a diff...
               do np = 1 , npft
-                if ( var4d(j,i,np,1) > 0.0 ) then
-                  operat = dble(diff)*(dble(var4d(j,i,np,1))/dble(spft))
-                  var4d(j,i,np,1) = var4d(j,i,np,1)-real(operat)
-                  if ( var4d(j,i,np,1) < 0.0 ) then
-                    var4d(j,i,np,1) = 0.0
+                if ( var5d(j,i,np,1,1) > 0.0 ) then
+                  operat = dble(diff)*(dble(var5d(j,i,np,1,1))/dble(spft))
+                  var5d(j,i,np,1,1) = var5d(j,i,np,1,1)-real(operat)
+                  if ( var5d(j,i,np,1,1) < 0.0 ) then
+                    var5d(j,i,np,1,1) = 0.0
                   end if
                 end if
               end do
@@ -297,32 +349,56 @@ program mksurfdata
               spft = 0.0
               if ( pctspec(j,i) > 0.00001 ) then
                 do np = 1 , npft
-                  if ( var4d(j,i,np,1) > 0.0 ) then
-                    spft = spft + var4d(j,i,np,1) * 100.0/(100.0-pctspec(j,i))
+                  if ( var5d(j,i,np,1,1) > 0.0 ) then
+                    spft = spft + var5d(j,i,np,1,1) * 100.0/(100.0-pctspec(j,i))
                   end if
                 end do
               else
                 do np = 1 , npft
-                  if ( var4d(j,i,np,1) > 0.0 ) then
-                    spft = spft + var4d(j,i,np,1)
+                  if ( var5d(j,i,np,1,1) > 0.0 ) then
+                    spft = spft + var5d(j,i,np,1,1)
                   end if
                 end do
               end if
               diff = spft - 100.0
             end if
             if ( abs(diff) > 1.0E-5 ) then
-              pft_gt0 = (var4d(j,i,:,1) > diff/real(npft))
+              pft_gt0 = (var5d(j,i,:,1,1) > diff/real(npft))
               where (pft_gt0)
-                var4d(j,i,:,1) = var4d(j,i,:,1) - diff/real(count(pft_gt0))
+                var5d(j,i,:,1,1) = var5d(j,i,:,1,1) - diff/real(count(pft_gt0))
               end where
             end if
           end if
         end if
       end if
+    end do jloop
+  end do
+  istatus = nf90_put_var(ncid, ipftvar, var5d(:,:,1:npft,1,1))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write pft')
+
+  call mklaisai('mksrf_lai.nc',var5d(:,:,1:npft,1:nmon,1), &
+                               var5d(:,:,1:npft,1:nmon,2), &
+                               var5d(:,:,1:npft,1:nmon,3), &
+                               var5d(:,:,1:npft,1:nmon,4))
+  do nm = 1 , nmon
+    do np = 1 , npft
+      where ( xmask < 0.5 )
+        var5d(:,:,np,nm,1) = vmisdat
+        var5d(:,:,np,nm,2) = vmisdat
+        var5d(:,:,np,nm,3) = vmisdat
+        var5d(:,:,np,nm,4) = vmisdat
+      end where
     end do
   end do
-  istatus = nf90_put_var(ncid, ipftvar, var4d(:,:,1:npft,1))
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write pft')
+  istatus = nf90_put_var(ncid, isaivar, var5d(:,:,1:npft,1:nmon,1))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_lai')
+  istatus = nf90_put_var(ncid, ilaivar, var5d(:,:,1:npft,1:nmon,2))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_sai')
+  istatus = nf90_put_var(ncid, ivgtopvar, var5d(:,:,1:npft,1:nmon,3))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_top')
+  istatus = nf90_put_var(ncid, ivgbotvar, var5d(:,:,1:npft,1:nmon,4))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_bot')
+
   istatus = nf90_close(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,  &
     'Error close file '//trim(outfile))
