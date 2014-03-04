@@ -181,7 +181,7 @@ module mod_mklaisai
     call bilinear(rvar3,rmask,rlon,rlat,monthly_bot,xlon,xlat,vmin,vmisdat)
     call bilinear(rvar4,rmask,rlon,rlat,monthly_top,xlon,xlat,vmin,vmisdat)
 
-    deallocate(glat,glon,rlat,rlon,rvar1,rvar2,rmask)
+    deallocate(glat,glon,rlat,rlon,rvar1,rvar2,rvar3,rvar4,rmask)
   end subroutine mklaisai
 
 end module mod_mklaisai
