@@ -60,7 +60,7 @@ program mksurfdata
   integer(ik4) , dimension(6) :: idims , ivdims
   integer(ik4) :: ivartime , iglcvar , iwetvar , ilakevar , iurbanvar
   integer(ik4) :: ipftvar , ilaivar , isaivar , ivgtopvar , ivgbotvar
-  integer(ik4) :: ifmaxvar , isoilcolvar , isandvar , iclayvar
+  integer(ik4) :: ifmaxvar , isoilcolvar , isandvar , iclayvar , islopevar
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
   real(rk4) , pointer , dimension(:) :: yiy
@@ -137,6 +137,17 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add time calendar')
 
   ! Variables
+
+  istatus = nf90_def_var(ncid, 'SLOPE', nf90_float, idims(1:2), islopevar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var slope')
+  istatus = nf90_put_att(ncid, islopevar, 'long_name','Elevation slope')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add slope long_name')
+  istatus = nf90_put_att(ncid, islopevar, 'units','m/km')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add slope units')
+  istatus = nf90_put_att(ncid, islopevar, '_FillValue',vmisdat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add slope _FillValue')
+  istatus = nf90_put_att(ncid, islopevar, 'coordinates','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add slope coordinates')
 
   istatus = nf90_def_var(ncid, 'PCT_GLACIER', nf90_float, idims(1:2), iglcvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var glacier')
@@ -314,6 +325,26 @@ program mksurfdata
   call getmem5d(var5d,1,jx,1,iy,1,maxd3,1,maxd4,1,4,'mksurfdata: var5d')
   pctspec(:,:) = 0.0
  
+  var5d(:,:,1,1,1) = 0.0
+  ! Calculate slope
+  do i = 2 , iy-1
+    do j = 2 , jx-1
+      var5d(j,i,1,1,1) = ((topo(j-1,i-1)-topo(j,i)) + &
+                          (topo(j,i-1)-topo(j,i)) + &
+                          (topo(j+1,i-1)-topo(j,i)) + &
+                          (topo(j-1,i)-topo(j,i)) + &
+                          (topo(j+1,i)-topo(j,i)) + &
+                          (topo(j-1,i+1)-topo(j,i)) + &
+                          (topo(j,i+1)-topo(j,i)) + &
+                          (topo(j+1,i+1)-topo(j,i)) ) / 8.0 / real(ds)
+    end do
+  end do
+  where ( xmask < 0.5 )
+    var5d(:,:,1,1,1) = vmisdat
+  end where
+  istatus = nf90_put_var(ncid, islopevar, var5d(:,:,1,1,1))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write slope')
+
   call mkglacier('mksrf_glacier.nc',var5d(:,:,1,1,1))
   where ( xmask < 0.5 )
     var5d(:,:,1,1,1) = vmisdat
