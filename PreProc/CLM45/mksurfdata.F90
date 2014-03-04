@@ -43,6 +43,7 @@ program mksurfdata
   use mod_mkfmax
   use mod_mksoilcol
   use mod_mksoitex
+  use mod_mkgdp
   use netcdf
 
   implicit none
@@ -64,7 +65,7 @@ program mksurfdata
   integer(ik4) :: ivartime , iglcvar , iwetvar , ilakevar , iurbanvar
   integer(ik4) :: ipftvar , ilaivar , isaivar , ivgtopvar , ivgbotvar
   integer(ik4) :: ifmaxvar , isoilcolvar , isandvar , iclayvar
-  integer(ik4) :: islopevar , istdvar
+  integer(ik4) :: islopevar , istdvar , igdpvar
   integer(ik4) :: ilndvar
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
@@ -72,7 +73,8 @@ program mksurfdata
   real(rk4) , pointer , dimension(:) :: xjx
   real(rk4) :: hptop
   real(rk8) , dimension(1) :: xdate
-  integer(ik4) , dimension(2) :: ihvar , istart , icount
+  integer(ik4) , dimension(3) :: istart , icount
+  integer(ik4) , dimension(2) :: ihvar
   integer(ik4) , dimension(2) :: illvar
   integer(ik4) , dimension(2) :: izvar
   integer(ik4) , dimension(1) :: istart1 , icount1
@@ -223,51 +225,35 @@ program mksurfdata
   istatus = nf90_put_att(ncid, ipftvar, 'coordinates','xlat xlon')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft coordinates')
 
-  ivdims(1:2) = idims(1:2)
-  ivdims(3) = idims(5)
-  ivdims(4) = idims(4)
-  istatus = nf90_def_var(ncid, 'MONTHLY_LAI', nf90_float, ivdims(1:4), ilaivar)
+  ivdims(1) = idims(7)
+  ivdims(2) = idims(5)
+  ivdims(3) = idims(4)
+  istatus = nf90_def_var(ncid, 'MONTHLY_LAI', nf90_float, ivdims(1:3), ilaivar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var monthly_lai')
   istatus = nf90_put_att(ncid, ilaivar, 'long_name','monthly leaf area index')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_lai long_name')
   istatus = nf90_put_att(ncid, ilaivar, 'units','1')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_lai units')
-  istatus = nf90_put_att(ncid, ilaivar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_lai _FillValue')
-  istatus = nf90_put_att(ncid, ilaivar, 'coordinates','xlat xlon')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_lai coordinates')
-  istatus = nf90_def_var(ncid, 'MONTHLY_SAI', nf90_float, ivdims(1:4), isaivar)
+  istatus = nf90_def_var(ncid, 'MONTHLY_SAI', nf90_float, ivdims(1:3), isaivar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var monthly_sai')
   istatus = nf90_put_att(ncid, isaivar, 'long_name','monthly stem area index')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_sai long_name')
   istatus = nf90_put_att(ncid, isaivar, 'units','1')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_sai units')
-  istatus = nf90_put_att(ncid, isaivar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_sai _FillValue')
-  istatus = nf90_put_att(ncid, isaivar, 'coordinates','xlat xlon')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_sai coordinates')
   istatus = nf90_def_var(ncid, 'MONTHLY_HEIGHT_TOP', nf90_float, &
-          ivdims(1:4), ivgtopvar)
+          ivdims(1:3), ivgtopvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var monthly_top')
   istatus = nf90_put_att(ncid, ivgtopvar, 'long_name','monthly height top')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_top long_name')
   istatus = nf90_put_att(ncid, ivgtopvar, 'units','1')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_top units')
-  istatus = nf90_put_att(ncid, ivgtopvar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_top _FillValue')
-  istatus = nf90_put_att(ncid, ivgtopvar, 'coordinates','xlat xlon')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_top coordinates')
   istatus = nf90_def_var(ncid, 'MONTHLY_HEIGHT_BOT', nf90_float, &
-          ivdims(1:4), ivgbotvar)
+          ivdims(1:3), ivgbotvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var monthly_bot')
   istatus = nf90_put_att(ncid, ivgbotvar, 'long_name','monthly height bottom')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_bot long_name')
   istatus = nf90_put_att(ncid, ivgbotvar, 'units','1')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_bot units')
-  istatus = nf90_put_att(ncid, ivgbotvar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_bot _FillValue')
-  istatus = nf90_put_att(ncid, ivgbotvar, 'coordinates','xlat xlon')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add monthly_bot coordinates')
 
   istatus = nf90_def_var(ncid, 'FMAX', nf90_float, idims(7), ifmaxvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var fmax')
@@ -284,6 +270,13 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add soilcol long_name')
   istatus = nf90_put_att(ncid, isoilcolvar, 'units','1')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add soilcol units')
+
+  istatus = nf90_def_var(ncid, 'gdp', nf90_float, idims(7),igdpvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var gdp')
+  istatus = nf90_put_att(ncid, isoilcolvar, 'long_name', 'real GDP')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add gdp long_name')
+  istatus = nf90_put_att(ncid, isoilcolvar, 'units','K 1995US$/capita')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add gdp units')
 
   ivdims(1) = idims(7)
   ivdims(2) = idims(6)
@@ -492,14 +485,28 @@ program mksurfdata
       end where
     end do
   end do
-  istatus = nf90_put_var(ncid, isaivar, var5d(:,:,1:npft,1:nmon,1))
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_lai')
-  istatus = nf90_put_var(ncid, ilaivar, var5d(:,:,1:npft,1:nmon,2))
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_sai')
-  istatus = nf90_put_var(ncid, ivgtopvar, var5d(:,:,1:npft,1:nmon,3))
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_top')
-  istatus = nf90_put_var(ncid, ivgbotvar, var5d(:,:,1:npft,1:nmon,4))
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_bot')
+  do it = 1 , nmon
+    do ip = 1 , npft
+      istart(1) = 1
+      icount(1) = ngcells
+      istart(2) = ip
+      icount(2) = 1
+      istart(3) = it
+      icount(3) = 1
+      gcvar = pack(var5d(2:jx-2,2:iy-2,ip,it,1),lmask)
+      istatus = nf90_put_var(ncid, isaivar, gcvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_lai')
+      gcvar = pack(var5d(2:jx-2,2:iy-2,ip,it,2),lmask)
+      istatus = nf90_put_var(ncid, ilaivar, gcvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_sai')
+      gcvar = pack(var5d(2:jx-2,2:iy-2,ip,it,3),lmask)
+      istatus = nf90_put_var(ncid, ivgtopvar, gcvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_top')
+      gcvar = pack(var5d(2:jx-2,2:iy-2,ip,it,4),lmask)
+      istatus = nf90_put_var(ncid, ivgbotvar, gcvar,istart,icount)
+      call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_bot')
+    end do
+  end do
 
   call mkfmax('mksrf_fmax.nc',var5d(:,:,1,1,1))
   where ( xmask < 0.5 )
@@ -535,6 +542,14 @@ program mksurfdata
     istatus = nf90_put_var(ncid, iclayvar, gcvar,istart(1:2),icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write clay pct')
   end do
+
+  call mkgdp('mksrf_gdp.nc',var5d(:,:,1,1,1))
+  where ( xmask < 0.5 )
+    var5d(:,:,1,1,1) = vmisdat
+  end where
+  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
+  istatus = nf90_put_var(ncid, igdpvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write gdp')
 
   istatus = nf90_close(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,  &
