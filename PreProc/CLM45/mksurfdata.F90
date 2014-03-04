@@ -25,6 +25,7 @@ end subroutine myabort
 program mksurfdata
  
   use mod_intkinds
+  use mod_constants , only : raddeg
   use mod_realkinds
   use mod_dynparam
   use mod_message
@@ -62,7 +63,8 @@ program mksurfdata
   integer(ik4) , dimension(7) :: idims , ivdims
   integer(ik4) :: ivartime , iglcvar , iwetvar , ilakevar , iurbanvar
   integer(ik4) :: ipftvar , ilaivar , isaivar , ivgtopvar , ivgbotvar
-  integer(ik4) :: ifmaxvar , isoilcolvar , isandvar , iclayvar , islopevar
+  integer(ik4) :: ifmaxvar , isoilcolvar , isandvar , iclayvar
+  integer(ik4) :: islopevar , istdvar
   integer(ik4) :: ilndvar
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
@@ -74,7 +76,7 @@ program mksurfdata
   integer(ik4) , dimension(2) :: illvar
   integer(ik4) , dimension(2) :: izvar
   integer(ik4) , dimension(1) :: istart1 , icount1
-  real(rk4) :: spft , diff
+  real(rk4) :: spft , diff , mean
   real(rk8) :: operat
   integer(ik4) :: ierr
   integer(ik4) :: i , j , ip , il , np , nm , it , ipnt
@@ -155,8 +157,14 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var slope')
   istatus = nf90_put_att(ncid, islopevar, 'long_name','Elevation slope')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add slope long_name')
-  istatus = nf90_put_att(ncid, islopevar, 'units','km/km')
+  istatus = nf90_put_att(ncid, islopevar, 'units','degree')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add slope units')
+  istatus = nf90_def_var(ncid, 'STD_ELEV', nf90_float, idims(7), istdvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var stddev')
+  istatus = nf90_put_att(ncid, istdvar, 'long_name','Elevation std dev')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add stddev long_name')
+  istatus = nf90_put_att(ncid, istdvar, 'units','m')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add stddev units')
 
   istatus = nf90_def_var(ncid, 'PCT_GLACIER', nf90_float, idims(1:2), iglcvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var glacier')
@@ -334,25 +342,25 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write gridcell')
  
   var5d(:,:,1,1,1) = 0.0
-  ! Calculate slope
-  do i = 2 , iy-1
-    do j = 2 , jx-1
-      var5d(j,i,1,1,1) = ((topo(j-1,i-1)-topo(j,i)) + &
-                          (topo(j,i-1)-topo(j,i)) + &
-                          (topo(j+1,i-1)-topo(j,i)) + &
-                          (topo(j-1,i)-topo(j,i)) + &
-                          (topo(j+1,i)-topo(j,i)) + &
-                          (topo(j-1,i+1)-topo(j,i)) + &
-                          (topo(j,i+1)-topo(j,i)) + &
-                          (topo(j+1,i+1)-topo(j,i)) ) / 8.0 / real(ds)
+  ! Calculate slope and std
+  do i = 2 , iy-2
+    do j = 2 , jx-2
+      var5d(j,i,1,1,1) = &
+          atan((sum(topo(j-1:j+1,i-1:i+1)-topo(j,i))/8.0)/real(ds*1000.0D0))
+      mean = sum(topo(j-1:j+1,i-1:i+1))/9.0
+      var5d(j,i,2,1,1) = sqrt(sum((topo(j-1:j+1,i-1:i+1)-mean)**2)/8.0)
     end do
   end do
   where ( xmask < 0.5 )
     var5d(:,:,1,1,1) = vmisdat
+    var5d(:,:,2,1,1) = vmisdat
   end where
-  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)*0.001
+  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)*real(raddeg)
   istatus = nf90_put_var(ncid, islopevar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write slope')
+  gcvar = pack(var5d(2:jx-2,2:iy-2,2,1,1),lmask)
+  istatus = nf90_put_var(ncid, istdvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write stddev')
 
   call mkglacier('mksrf_glacier.nc',var5d(:,:,1,1,1))
   where ( xmask < 0.5 )
