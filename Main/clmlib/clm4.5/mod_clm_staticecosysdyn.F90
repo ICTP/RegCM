@@ -16,7 +16,7 @@ module mod_clm_staticecosysdyn
   use mod_runparams
   use mod_mpmessage
   use mod_clm_nchelper
-  use mod_clm_decomp , only : get_proc_bounds
+  use mod_clm_decomp , only : get_proc_bounds , gcomm_gridcell
   use mod_clm_type
   use mod_clm_pftvarcon , only : noveg , nc3crop , nbrdlf_dcd_brl_shrub
   use mod_clm_varctl , only : fsurdat
@@ -216,7 +216,7 @@ module mod_clm_staticecosysdyn
 
     call curr_date(idatex,kyr,kmo,kda,ksec,offset=int(dtsrf))
     t = (kda-0.5D0) / ndaypm(kmo)
-    it(1) = t + 0.5D0
+    it(1) = int(t + 0.5D0)
     it(2) = it(1) + 1
     months(1) = kmo + it(1) - 1
     months(2) = kmo + it(2) - 1
@@ -291,7 +291,7 @@ module mod_clm_staticecosysdyn
     end if
 
     do k = 1 , 12   !! loop over months and read vegetated data
-      call clm_readvar(ncid,'MONTHLY_LAI',mlai,k)
+      call clm_readvar(ncid,'MONTHLY_LAI',mlai,gcomm_gridcell,k)
       !! store data directly in clmtype structure
       !! only vegetated pfts have nonzero values
       !! Assign lai/sai/hgtt/hgtb to the top [maxpatch_pft] pfts
@@ -333,7 +333,6 @@ module mod_clm_staticecosysdyn
     integer(ik4) :: begp , endp    ! beg and end local p index
     integer(ik4) :: begg , endg    ! beg and end local g index
     integer(ik4) :: ier                        ! error code
-    logical :: readvar
     ! lai read from input files
     real(rk8) , pointer , dimension(:,:) :: mlai
     ! sai read from input files
@@ -368,10 +367,10 @@ module mod_clm_staticecosysdyn
     call clm_openfile(fveg,ncid)
     
     do k = 1 , 2   !loop over months and read vegetated data
-      call clm_readvar(ncid,'MONTHLY_LAI',mlai,months(k))
-      call clm_readvar(ncid,'MONTHLY_SAI',msai,months(k))
-      call clm_readvar(ncid,'MONTHLY_HEIGHT_TOP',mhgtt,months(k))
-      call clm_readvar(ncid,'MONTHLY_HEIGHT_BOT',mhgtb,months(k))
+      call clm_readvar(ncid,'MONTHLY_LAI',mlai,gcomm_gridcell,months(k))
+      call clm_readvar(ncid,'MONTHLY_SAI',msai,gcomm_gridcell,months(k))
+      call clm_readvar(ncid,'MONTHLY_HEIGHT_TOP',mhgtt,gcomm_gridcell,months(k))
+      call clm_readvar(ncid,'MONTHLY_HEIGHT_BOT',mhgtb,gcomm_gridcell,months(k))
       ! Store data directly in clmtype structure
       ! only vegetated pfts have nonzero values
       ! Assign lai/sai/hgtt/hgtb to the top [maxpatch_pft] pfts

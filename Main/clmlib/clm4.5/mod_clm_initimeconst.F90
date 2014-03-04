@@ -466,9 +466,11 @@ module mod_clm_initimeconst
 
     ! Read lakedepth
     if ( .not. clm_check_var(ncid,'LAKEDEPTH') ) then
-      write(stderr,*) 'WARNING:: LAKEDEPTH not found on surface data set.'
-      write(stderr,*) 'All lake columns will have lake depth', &
-                      ' set equal to default value.'
+      if ( myid == italk ) then
+        write(stderr,*) 'WARNING:: LAKEDEPTH not found on surface data set.'
+        write(stderr,*) 'All lake columns will have lake depth', &
+                        ' set equal to default value.'
+      end if
       lakedepth_in(:) = spval
     else
       call clm_readvar(ncid,'LAKEDEPTH',lakedepth_in,gcomm_gridcell)
@@ -476,9 +478,12 @@ module mod_clm_initimeconst
 
     ! Read lake eta
     if ( .not. clm_check_var(ncid,'ETALAKE') ) then
-      write(stderr,*) 'WARNING:: ETALAKE not found on surface data set.'
-      write(stderr,*) 'All lake columns will have eta', &
-                      ' set equal to default value as a function of depth..'
+      if ( myid == italk ) then
+        write(stderr,*) 'WARNING:: ETALAKE not found on surface data set.'
+        write(stderr,*) 'All lake columns will have eta', &
+                        ' set equal to default value as a function'
+        write(stderr,*) 'of depth..'
+      end if
       etal_in(:) = -1.D0
     else
       call clm_readvar(ncid,'ETALAKE',etal_in,gcomm_gridcell)
@@ -486,9 +491,12 @@ module mod_clm_initimeconst
 
     ! lake fetch
     if ( .not. clm_check_var(ncid,'LAKEFETCH') ) then
-      write(stderr,*) 'WARNING:: LAKEFETCH not found on surface data set.'
-      write(stderr,*) 'All lake columns will have fetch', &
-                      ' set equal to default value as a function of depth.'
+      if ( myid == italk ) then
+        write(stderr,*) 'WARNING:: LAKEFETCH not found on surface data set.'
+        write(stderr,*) 'All lake columns will have fetch', &
+                        ' set equal to default value as a function'
+        write(stderr,*) 'of depth..'
+      end if
       lakefetch_in(:) = -1.D0
     else
       call clm_readvar(ncid,'LAKEFETCH',lakefetch_in,gcomm_gridcell)

@@ -193,6 +193,7 @@ module mod_clm_initialize
     ! Deallocate surface grid dynamic memory (for wtxy and vegxy arrays)
 
     deallocate(vegxy,wtxy)
+
   end subroutine initialize1
   !
   ! Land model initialization.
