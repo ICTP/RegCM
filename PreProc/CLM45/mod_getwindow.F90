@@ -39,7 +39,6 @@ module mod_getwindow
     real(rk4) :: minlat
     real(rk4) :: maxlon
     real(rk4) :: minlon
-    logical :: cross_timeline
     integer :: gi , gj , xi , xj , l1 , l2 , i
 
     xi = size(xlon,1)

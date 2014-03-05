@@ -1724,7 +1724,7 @@ module mod_clm_nchelper
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                       lval,sg%ic(myid+1),mpi_integer4, &
-                      sg%icomm,mpierr)
+                      iocpu,sg%icomm,mpierr)
     xval = (lval > 0)
     deallocate(lval)
     if ( myid == iocpu ) deallocate(rval)
@@ -1753,7 +1753,7 @@ module mod_clm_nchelper
     do k = 1 , nv2
       call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4, &
                         lval,sg%ic(myid+1),mpi_integer4,    &
-                        sg%icomm,mpierr)
+                        iocpu,sg%icomm,mpierr)
       xval(:,k) = (lval > 0)
     end do
     deallocate(lval)
@@ -1785,7 +1785,7 @@ module mod_clm_nchelper
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4, &
                           lval,sg%ic(myid+1),mpi_integer4,      &
-                          sg%icomm,mpierr)
+                          iocpu,sg%icomm,mpierr)
         xval(:,k,l) = (lval > 0)
       end do
     end do
@@ -1821,7 +1821,7 @@ module mod_clm_nchelper
         do k = 1 , nv2
           call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_integer4, &
                             lval,sg%ic(myid+1),mpi_integer4,        &
-                            sg%icomm,mpierr)
+                            iocpu,sg%icomm,mpierr)
           xval(:,k,l,n) = (lval > 0)
         end do
       end do
@@ -1849,7 +1849,7 @@ module mod_clm_nchelper
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                       xval,sg%ic(myid+1),mpi_integer4, &
-                      sg%icomm,mpierr)
+                      iocpu,sg%icomm,mpierr)
     if ( myid == iocpu ) deallocate(rval)
   end subroutine clm_readvar_integer_1d_par_sg
 
@@ -1874,7 +1874,7 @@ module mod_clm_nchelper
     do k = 1 , nv2
       call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4,   &
                         xval(:,k),sg%ic(myid+1),mpi_integer4, &
-                        sg%icomm,mpierr)
+                        iocpu,sg%icomm,mpierr)
     end do
     if ( myid == iocpu ) deallocate(rval)
   end subroutine clm_readvar_integer_2d_par_sg
@@ -1902,7 +1902,7 @@ module mod_clm_nchelper
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4,   &
                           xval(:,k,l),sg%ic(myid+1),mpi_integer4, &
-                          sg%icomm,mpierr)
+                          iocpu,sg%icomm,mpierr)
       end do
     end do
     if ( myid == iocpu ) deallocate(rval)
@@ -1933,7 +1933,7 @@ module mod_clm_nchelper
         do k = 1 , nv2
           call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_integer4,   &
                             xval(:,k,l,n),sg%ic(myid+1),mpi_integer4, &
-                            sg%icomm,mpierr)
+                            iocpu,sg%icomm,mpierr)
         end do
       end do
     end do
@@ -1959,7 +1959,7 @@ module mod_clm_nchelper
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,   &
                       xval,sg%ic(myid+1),mpi_real4, &
-                      sg%icomm,mpierr)
+                      iocpu,sg%icomm,mpierr)
     if ( myid == iocpu ) deallocate(rval)
   end subroutine clm_readvar_real4_1d_par_sg
 
@@ -1984,7 +1984,7 @@ module mod_clm_nchelper
     do k = 1 , nv2
       call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real4,   &
                         xval(:,k),sg%ic(myid+1),mpi_real4, &
-                        sg%icomm,mpierr)
+                        iocpu,sg%icomm,mpierr)
     end do
     if ( myid == iocpu ) deallocate(rval)
   end subroutine clm_readvar_real4_2d_par_sg
@@ -2012,7 +2012,7 @@ module mod_clm_nchelper
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real4,   &
                           xval(:,k,l),sg%ic(myid+1),mpi_real4, &
-                          sg%icomm,mpierr)
+                          iocpu,sg%icomm,mpierr)
       end do
     end do
     if ( myid == iocpu ) deallocate(rval)
@@ -2043,7 +2043,7 @@ module mod_clm_nchelper
         do k = 1 , nv2
           call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_real4,   &
                             xval(:,k,l,n),sg%ic(myid+1),mpi_real4, &
-                            sg%icomm,mpierr)
+                            iocpu,sg%icomm,mpierr)
         end do
       end do
     end do
@@ -2069,7 +2069,7 @@ module mod_clm_nchelper
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,   &
                       xval,sg%ic(myid+1),mpi_real8, &
-                      sg%icomm,mpierr)
+                      iocpu,sg%icomm,mpierr)
     if ( myid == iocpu ) deallocate(rval)
   end subroutine clm_readvar_real8_1d_par_sg
 
@@ -2094,7 +2094,7 @@ module mod_clm_nchelper
     do k = 1 , nv2
       call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real8,   &
                         xval(:,k),sg%ic(myid+1),mpi_real8, &
-                        sg%icomm,mpierr)
+                        iocpu,sg%icomm,mpierr)
     end do
     if ( myid == iocpu ) deallocate(rval)
   end subroutine clm_readvar_real8_2d_par_sg
@@ -2122,7 +2122,7 @@ module mod_clm_nchelper
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real8,   &
                           xval(:,k,l),sg%ic(myid+1),mpi_real8, &
-                          sg%icomm,mpierr)
+                          iocpu,sg%icomm,mpierr)
       end do
     end do
     if ( myid == iocpu ) deallocate(rval)
@@ -2153,7 +2153,7 @@ module mod_clm_nchelper
         do k = 1 , nv2
           call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_real8,   &
                             xval(:,k,l,n),sg%ic(myid+1),mpi_real8, &
-                            sg%icomm,mpierr)
+                            iocpu,sg%icomm,mpierr)
         end do
       end do
     end do
@@ -2186,7 +2186,7 @@ module mod_clm_nchelper
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                       lval,sg%ic(myid+1),mpi_integer4, &
-                      sg%icomm,mpierr)
+                      iocpu,sg%icomm,mpierr)
     xval = (lval > 0)
     deallocate(lval)
     if ( myid == iocpu ) deallocate(rval)
@@ -2222,7 +2222,7 @@ module mod_clm_nchelper
     do k = 1 , nv2
       call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4, &
                         lval,sg%ic(myid+1),mpi_integer4,    &
-                        sg%icomm,mpierr)
+                        iocpu,sg%icomm,mpierr)
       xval(:,k) = (lval > 0)
     end do
     deallocate(lval)
@@ -2263,7 +2263,7 @@ module mod_clm_nchelper
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4, &
                           lval,sg%ic(myid+1),mpi_integer4,      &
-                          sg%icomm,mpierr)
+                          iocpu,sg%icomm,mpierr)
         xval(:,k,l) = (lval > 0)
       end do
     end do
@@ -2295,7 +2295,7 @@ module mod_clm_nchelper
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                       xval,sg%ic(myid+1),mpi_integer4, &
-                      sg%icomm,mpierr)
+                      iocpu,sg%icomm,mpierr)
     if ( myid == iocpu ) deallocate(rval)
   end subroutine clm_readrec_integer_1d_par_sg
 
@@ -2327,7 +2327,7 @@ module mod_clm_nchelper
     do k = 1 , nv2
       call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4,   &
                         xval(:,k),sg%ic(myid+1),mpi_integer4, &
-                        sg%icomm,mpierr)
+                        iocpu,sg%icomm,mpierr)
     end do
     if ( myid == iocpu ) deallocate(rval)
   end subroutine clm_readrec_integer_2d_par_sg
@@ -2364,7 +2364,7 @@ module mod_clm_nchelper
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4,   &
                           xval(:,k,l),sg%ic(myid+1),mpi_integer4, &
-                          sg%icomm,mpierr)
+                          iocpu,sg%icomm,mpierr)
       end do
     end do
     if ( myid == iocpu ) deallocate(rval)
@@ -2394,7 +2394,7 @@ module mod_clm_nchelper
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,   &
                       xval,sg%ic(myid+1),mpi_real4, &
-                      sg%icomm,mpierr)
+                      iocpu,sg%icomm,mpierr)
     if ( myid == iocpu ) deallocate(rval)
   end subroutine clm_readrec_real4_1d_par_sg
 
@@ -2426,7 +2426,7 @@ module mod_clm_nchelper
     do k = 1 , nv2
       call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real4,   &
                         xval(:,k),sg%ic(myid+1),mpi_real4, &
-                        sg%icomm,mpierr)
+                        iocpu,sg%icomm,mpierr)
     end do
     if ( myid == iocpu ) deallocate(rval)
   end subroutine clm_readrec_real4_2d_par_sg
@@ -2463,7 +2463,7 @@ module mod_clm_nchelper
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real4,   &
                           xval(:,k,l),sg%ic(myid+1),mpi_real4, &
-                          sg%icomm,mpierr)
+                          iocpu,sg%icomm,mpierr)
       end do
     end do
     if ( myid == iocpu ) deallocate(rval)
@@ -2493,7 +2493,7 @@ module mod_clm_nchelper
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,   &
                       xval,sg%ic(myid+1),mpi_real8, &
-                      sg%icomm,mpierr)
+                      iocpu,sg%icomm,mpierr)
     if ( myid == iocpu ) deallocate(rval)
   end subroutine clm_readrec_real8_1d_par_sg
 
@@ -2525,7 +2525,7 @@ module mod_clm_nchelper
     do k = 1 , nv2
       call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real8,   &
                         xval(:,k),sg%ic(myid+1),mpi_real8, &
-                        sg%icomm,mpierr)
+                        iocpu,sg%icomm,mpierr)
     end do
     if ( myid == iocpu ) deallocate(rval)
   end subroutine clm_readrec_real8_2d_par_sg
@@ -2562,7 +2562,7 @@ module mod_clm_nchelper
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real8,   &
                           xval(:,k,l),sg%ic(myid+1),mpi_real8, &
-                          sg%icomm,mpierr)
+                          iocpu,sg%icomm,mpierr)
       end do
     end do
     if ( myid == iocpu ) deallocate(rval)

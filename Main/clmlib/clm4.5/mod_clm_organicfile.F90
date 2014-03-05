@@ -9,6 +9,7 @@ module mod_clm_organicfile
   use mod_clm_domain , only : ldomain
   use mod_clm_type , only : grlnd
   use mod_clm_varctl , only : fsurdat
+  use mod_clm_decomp , only : gcomm_gridcell
 
   implicit none
 
@@ -43,20 +44,9 @@ module mod_clm_organicfile
 
       call clm_openfile (fsurdat,ncid)
 
-      call clm_check_dims(ncid, ni, nj)
-      ns = ni*nj
-      if ( ldomain%ns /= ns .or. &
-           ldomain%ni /= ni .or. &
-           ldomain%nj /= nj ) then
-        write(stderr,*) &
-                trim(subname), 'ldomain and input file do not match dims '
-        write(stderr,*) trim(subname), 'ldomain%ni,ni,= ',ldomain%ni,ni
-        write(stderr,*) trim(subname), 'ldomain%nj,nj,= ',ldomain%nj,nj
-        write(stderr,*) trim(subname), 'ldomain%ns,ns,= ',ldomain%ns,ns
-        call fatal(__FILE__,__LINE__,'clm now stopping')
-      end if
-       
-      call clm_readvar(ncid,'ORGANIC',organic)
+      call clm_readvar(ncid,'ORGANIC',organic,gcomm_gridcell)
+
+      call clm_closefile (ncid)
 
       if ( myid == italk )then
         write(stdout,*) 'Successfully read organic matter data'

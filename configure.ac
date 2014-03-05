@@ -443,7 +443,7 @@ AC_CONFIG_FILES([Makefile external/Makefile Share/Makefile PreProc/Makefile \
                  PreProc/CH_EMISSIONS/interpolation/Makefile \
                  PreProc/CH_EMISSIONS/interpolation/tools/Makefile \
                  PreProc/CH_EMISSIONS/interpolation/tools/REGCM_grid/Makefile \
-                 PreProc/CLM/Makefile PostProc/Makefile \
+                 PreProc/CLM/Makefile PreProc/CLM45/Makefile PostProc/Makefile \
                  Main/mpplib/Makefile Main/netlib/Makefile \
                  Main/Makefile Main/batslib/Makefile Main/clmlib/Makefile \
                  Main/ocnlib/Makefile Main/clmlib/clm4.5/Makefile \

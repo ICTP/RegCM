@@ -371,6 +371,7 @@ module mod_lm_interface
 #endif
 #ifdef CLM45
     call initialize1(lndcomm)
+    call initialize2
     call clm_drv(.true.,1.0D0,2.0D0,3.0D0,.true.,.false.,'000000')
 #endif
     lm%emissivity = sum(lms%emisv,1) * rdnnsg

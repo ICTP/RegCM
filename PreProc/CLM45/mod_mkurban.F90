@@ -24,7 +24,7 @@ module mod_mkurban
     implicit none
     character(len=*) , intent(in) :: urbanfile
     real(rk4) , dimension(:,:) , intent(out) :: urban
-    urban = 0.0D0
+    urban = 0.0
   end subroutine mkurban
 
 end module mod_mkurban

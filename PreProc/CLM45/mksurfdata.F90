@@ -46,6 +46,8 @@ program mksurfdata
   use mod_mkgdp
   use mod_mkpeatf
   use mod_mkabm
+  use mod_mkvocef
+  use mod_mkorganic
   use netcdf
 
   implicit none
@@ -60,7 +62,6 @@ program mksurfdata
   integer , parameter :: maxd4 = nmon
 
   real(rk4) , parameter :: vmisdat = -9999.0
-  logical , parameter :: bvoc = .false.
 
   integer(ik4) :: istatus , ncid , ndim , nvar
   integer(ik4) , dimension(7) :: idims , ivdims
@@ -68,6 +69,8 @@ program mksurfdata
   integer(ik4) :: ipftvar , ilaivar , isaivar , ivgtopvar , ivgbotvar
   integer(ik4) :: ifmaxvar , isoilcolvar , isandvar , iclayvar
   integer(ik4) :: islopevar , istdvar , igdpvar , ipeatfvar , iabmvar
+  integer(ik4) :: ief_btrvar , ief_crpvar , ief_fdtvar , ief_fetvar
+  integer(ik4) :: ief_grsvar , ief_shrvar , iorganicvar
   integer(ik4) :: ilndvar
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
@@ -296,6 +299,49 @@ program mksurfdata
   istatus = nf90_put_att(ncid, iabmvar, 'units','1')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add abm units')
 
+  istatus = nf90_def_var(ncid, 'EF1_BTR', nf90_float, idims(7),ief_btrvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var ef_btr')
+  istatus = nf90_put_att(ncid, ief_btrvar, 'long_name', &
+          'broadleaf tree emission factor')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ef_btr long_name')
+  istatus = nf90_put_att(ncid,ief_btrvar,'units','micrograms isoprene m-2 h-1')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ef_btr units')
+  istatus = nf90_def_var(ncid, 'EF1_CRP', nf90_float, idims(7),ief_crpvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var ef_crp')
+  istatus = nf90_put_att(ncid, ief_crpvar, 'long_name', &
+          'crop emission factor')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ef_crp long_name')
+  istatus = nf90_put_att(ncid,ief_crpvar,'units','micrograms isoprene m-2 h-1')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ef_crp units')
+  istatus = nf90_def_var(ncid, 'EF1_FDT', nf90_float, idims(7),ief_fdtvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var ef_fdt')
+  istatus = nf90_put_att(ncid, ief_fdtvar, 'long_name', &
+          'Fineleaf deciduous tree emission factor')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ef_fdt long_name')
+  istatus = nf90_put_att(ncid,ief_fdtvar,'units','micrograms isoprene m-2 h-1')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ef_fdt units')
+  istatus = nf90_def_var(ncid, 'EF1_FET', nf90_float, idims(7),ief_fetvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var ef_fet')
+  istatus = nf90_put_att(ncid, ief_fetvar, 'long_name', &
+          'Fineleaf evergreen tree emission factor')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ef_fet long_name')
+  istatus = nf90_put_att(ncid,ief_fetvar,'units','micrograms isoprene m-2 h-1')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ef_fet units')
+  istatus = nf90_def_var(ncid, 'EF1_GRS', nf90_float, idims(7),ief_grsvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var ef_grs')
+  istatus = nf90_put_att(ncid, ief_grsvar, 'long_name', &
+          'grass, non-vascular plants and other ground cover emission factor')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ef_grs long_name')
+  istatus = nf90_put_att(ncid,ief_grsvar,'units','micrograms isoprene m-2 h-1')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ef_grs units')
+  istatus = nf90_def_var(ncid, 'EF1_SHR', nf90_float, idims(7),ief_shrvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var ef_shr')
+  istatus = nf90_put_att(ncid, ief_shrvar, 'long_name', &
+          'shrub emission factor')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ef_shr long_name')
+  istatus = nf90_put_att(ncid,ief_shrvar,'units','micrograms isoprene m-2 h-1')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ef_shr units')
+
   ivdims(1) = idims(7)
   ivdims(2) = idims(6)
   istatus = nf90_def_var(ncid, 'PCT_SAND', nf90_float, ivdims(1:2), isandvar)
@@ -310,6 +356,16 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add clay long_name')
   istatus = nf90_put_att(ncid, iclayvar, 'units','%')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add clay units')
+
+  istatus = nf90_def_var(ncid, 'ORGANIC', nf90_float, ivdims(1:2), iorganicvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var organic')
+  istatus = nf90_put_att(ncid, iorganicvar, 'long_name', &
+          'organic soil density at soil levels')
+  istatus = nf90_put_att(ncid, iorganicvar, 'comment', &
+          'assumed carbon content 0.58 gC per gOM')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add organic long_name')
+  istatus = nf90_put_att(ncid, iorganicvar, 'units','kg m-3')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add organic units')
 
   istatus = nf90_enddef(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,'Error exit define mode')
@@ -438,7 +494,7 @@ program mksurfdata
           end if
           if ( spft < 0.00001 ) then
             var5d(j,i,1,1,1) = 100.0-pctspec(j,i)
-            var5d(j,i,2:npft,1,1) = 0.0D0
+            var5d(j,i,2:npft,1,1) = 0.0
             cycle jloop
           end if
           diff = spft - 100.0
@@ -544,10 +600,12 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write soil color')
 
   call mksoitex('mksrf_soitex.nc',var5d(:,:,1:nsoil,1,1),var5d(:,:,1:nsoil,2,1))
-  where ( xmask < 0.5 )
-    var5d(:,:,1,1,1) = vmisdat
-    var5d(:,:,2,1,1) = vmisdat
-  end where
+  do il = 1 , nsoil
+    where ( xmask < 0.5 )
+      var5d(:,:,il,1,1) = vmisdat
+      var5d(:,:,il,2,1) = vmisdat
+    end where
+  end do
   do il = 1 , nsoil
     istart(1) = 1
     icount(1) = ngcells
@@ -584,6 +642,50 @@ program mksurfdata
   gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
   istatus = nf90_put_var(ncid, iabmvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write abm')
+
+  call mkvocef('mksrf_vocef.nc',var5d(:,:,1:6,1,1))
+  where ( xmask < 0.5 )
+    var5d(:,:,1,1,1) = vmisdat
+    var5d(:,:,2,1,1) = vmisdat
+    var5d(:,:,3,1,1) = vmisdat
+    var5d(:,:,4,1,1) = vmisdat
+    var5d(:,:,5,1,1) = vmisdat
+    var5d(:,:,6,1,1) = vmisdat
+  end where
+  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
+  istatus = nf90_put_var(ncid, ief_btrvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_btr')
+  gcvar = pack(var5d(2:jx-2,2:iy-2,2,1,1),lmask)
+  istatus = nf90_put_var(ncid, ief_crpvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_crp')
+  gcvar = pack(var5d(2:jx-2,2:iy-2,3,1,1),lmask)
+  istatus = nf90_put_var(ncid, ief_fdtvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_fdt')
+  gcvar = pack(var5d(2:jx-2,2:iy-2,4,1,1),lmask)
+  istatus = nf90_put_var(ncid, ief_fetvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_fet')
+  gcvar = pack(var5d(2:jx-2,2:iy-2,5,1,1),lmask)
+  istatus = nf90_put_var(ncid, ief_grsvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_grs')
+  gcvar = pack(var5d(2:jx-2,2:iy-2,6,1,1),lmask)
+  istatus = nf90_put_var(ncid, ief_shrvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_shr')
+
+  call mkorganic('mksrf_organic.nc',var5d(:,:,1:nsoil,1,1))
+  do il = 1 , nsoil
+    where ( xmask < 0.5 )
+      var5d(:,:,il,1,1) = vmisdat
+    end where
+  end do
+  do il = 1 , nsoil
+    istart(1) = 1
+    icount(1) = ngcells
+    istart(2) = il
+    icount(2) = 1
+    gcvar = pack(var5d(2:jx-2,2:iy-2,il,1,1),lmask)
+    istatus = nf90_put_var(ncid, iorganicvar, gcvar,istart(1:2),icount(1:2))
+    call checkncerr(istatus,__FILE__,__LINE__, 'Error write organic')
+  end do
 
   istatus = nf90_close(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,  &
