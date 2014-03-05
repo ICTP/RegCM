@@ -1394,38 +1394,59 @@ contains
 
     call clm_closefile(ncid)
     if (myid == italk) then
-       write(stdout,*) 'Successfully read snow optical properties'
-       ! print some diagnostics:
-       write (stdout,*) 'SNICAR: Mie single scatter albedos for direct-beam ice, rds=100um: ', &
-            ss_alb_snw_drc(71,1), ss_alb_snw_drc(71,2), ss_alb_snw_drc(71,3),     &
-            ss_alb_snw_drc(71,4), ss_alb_snw_drc(71,5)
-       write (stdout,*) 'SNICAR: Mie single scatter albedos for diffuse ice, rds=100um: ',     &
-            ss_alb_snw_dfs(71,1), ss_alb_snw_dfs(71,2), ss_alb_snw_dfs(71,3),     &
-            ss_alb_snw_dfs(71,4), ss_alb_snw_dfs(71,5)
-       if (DO_SNO_OC) then
-          write (stdout,*) 'SNICAR: Including OC aerosols from snow radiative transfer calculations'
-       else
-          write (stdout,*) 'SNICAR: Excluding OC aerosols from snow radiative transfer calculations'
-       endif
-       write (stdout,*) 'SNICAR: Mie single scatter albedos for hydrophillic BC: ', &
-            ss_alb_bc1(1), ss_alb_bc1(2), ss_alb_bc1(3), ss_alb_bc1(4), ss_alb_bc1(5)
-       write (stdout,*) 'SNICAR: Mie single scatter albedos for hydrophobic BC: ', &
-            ss_alb_bc2(1), ss_alb_bc2(2), ss_alb_bc2(3), ss_alb_bc2(4), ss_alb_bc2(5)
-       if (DO_SNO_OC) then
-          write (stdout,*) 'SNICAR: Mie single scatter albedos for hydrophillic OC: ', &
-               ss_alb_oc1(1), ss_alb_oc1(2), ss_alb_oc1(3), ss_alb_oc1(4), ss_alb_oc1(5)
-          write (stdout,*) 'SNICAR: Mie single scatter albedos for hydrophobic OC: ', &
-               ss_alb_oc2(1), ss_alb_oc2(2), ss_alb_oc2(3), ss_alb_oc2(4), ss_alb_oc2(5)
-       endif
-       write (stdout,*) 'SNICAR: Mie single scatter albedos for dust species 1: ', &
-            ss_alb_dst1(1), ss_alb_dst1(2), ss_alb_dst1(3), ss_alb_dst1(4), ss_alb_dst1(5)
-       write (stdout,*) 'SNICAR: Mie single scatter albedos for dust species 2: ', &
-            ss_alb_dst2(1), ss_alb_dst2(2), ss_alb_dst2(3), ss_alb_dst2(4), ss_alb_dst2(5)
-       write (stdout,*) 'SNICAR: Mie single scatter albedos for dust species 3: ', &
-            ss_alb_dst3(1), ss_alb_dst3(2), ss_alb_dst3(3), ss_alb_dst3(4), ss_alb_dst3(5)
-       write (stdout,*) 'SNICAR: Mie single scatter albedos for dust species 4: ', &
-            ss_alb_dst4(1), ss_alb_dst4(2), ss_alb_dst4(3), ss_alb_dst4(4), ss_alb_dst4(5)
-       write(stdout,*)
+      write(stdout,*) 'Successfully read snow optical properties'
+      ! print some diagnostics:
+      if ( debug_level > 3) thne
+        write (stdout,*) 'SNICAR: Mie single scatter albedos for '&
+              &'direct-beam ice, rds=100um: ', &
+          ss_alb_snw_drc(71,1), ss_alb_snw_drc(71,2), ss_alb_snw_drc(71,3), &
+          ss_alb_snw_drc(71,4), ss_alb_snw_drc(71,5)
+        write (stdout,*) 'SNICAR: Mie single scatter albedos for '&
+                &'diffuse ice, rds=100um: ', &
+          ss_alb_snw_dfs(71,1), ss_alb_snw_dfs(71,2), ss_alb_snw_dfs(71,3), &
+          ss_alb_snw_dfs(71,4), ss_alb_snw_dfs(71,5)
+        if (DO_SNO_OC) then
+          write (stdout,*) 'SNICAR: Including OC aerosols from snow '&
+                  &'radiative transfer calculations'
+        else
+          write (stdout,*) 'SNICAR: Excluding OC aerosols from snow '&
+                  &'radiative transfer calculations'
+        end if
+        write (stdout,*) 'SNICAR: Mie single scatter albedos for '&
+                &'hydrophillic BC: ', &
+          ss_alb_bc1(1), ss_alb_bc1(2), ss_alb_bc1(3), ss_alb_bc1(4), &
+          ss_alb_bc1(5)
+        write (stdout,*) 'SNICAR: Mie single scatter albedos for '&
+                &'hydrophobic BC: ', &
+          ss_alb_bc2(1), ss_alb_bc2(2), ss_alb_bc2(3), ss_alb_bc2(4), &
+          ss_alb_bc2(5)
+        if (DO_SNO_OC) then
+          write (stdout,*) 'SNICAR: Mie single scatter albedos for '&
+                  &'hydrophillic OC: ', &
+            ss_alb_oc1(1), ss_alb_oc1(2), ss_alb_oc1(3), ss_alb_oc1(4), &
+            ss_alb_oc1(5)
+          write (stdout,*) 'SNICAR: Mie single scatter albedos for '&
+                  &'hydrophobic OC: ', &
+            ss_alb_oc2(1), ss_alb_oc2(2), ss_alb_oc2(3), ss_alb_oc2(4), &
+            ss_alb_oc2(5)
+        end if
+        write (stdout,*) 'SNICAR: Mie single scatter albedos for '&
+                &'dust species 1: ', &
+          ss_alb_dst1(1), ss_alb_dst1(2), ss_alb_dst1(3), ss_alb_dst1(4), &
+          ss_alb_dst1(5)
+        write (stdout,*) 'SNICAR: Mie single scatter albedos for '&
+                &'dust species 2: ', &
+          ss_alb_dst2(1), ss_alb_dst2(2), ss_alb_dst2(3), ss_alb_dst2(4), &
+          ss_alb_dst2(5)
+        write (stdout,*) 'SNICAR: Mie single scatter albedos for '&
+                &'dust species 3: ', &
+          ss_alb_dst3(1), ss_alb_dst3(2), ss_alb_dst3(3), ss_alb_dst3(4), &
+          ss_alb_dst3(5)
+        write (stdout,*) 'SNICAR: Mie single scatter albedos for '&
+                &'dust species 4: ', &
+          ss_alb_dst4(1), ss_alb_dst4(2), ss_alb_dst4(3), ss_alb_dst4(4), &
+          ss_alb_dst4(5)
+      end if
     end if
   end subroutine SnowOptics_init
 
@@ -1445,8 +1466,6 @@ contains
    if (myid == italk) &
      write(stdout,*) 'Attempting to read snow aging parameters .....'
    call clm_openfile(fsnowaging,ncid)
-   if (myid == italk) &
-     write(stdout,*) subname,trim(fsnowaging)
    
     ! snow aging parameters
    
@@ -1457,15 +1476,17 @@ contains
    call clm_closefile(ncid)
 
    if (myid == italk) then
-      
-      write(stdout,*) 'Successfully read snow aging properties'
-      
-      ! print some diagnostics:
-      write (stdout,*) 'SNICAR: snowage tau for T=263K, dTdz = 100 K/m, rhos = 150 kg/m3: ', snowage_tau(3,11,9)
-      write (stdout,*) 'SNICAR: snowage kappa for T=263K, dTdz = 100 K/m, rhos = 150 kg/m3: ', snowage_kappa(3,11,9)
-      write (stdout,*) 'SNICAR: snowage dr/dt_0 for T=263K, dTdz = 100 K/m, rhos = 150 kg/m3: ', snowage_drdt0(3,11,9)
-   endif
-
+     write(stdout,*) 'Successfully read snow aging properties'
+     if ( debug_level > 3 ) then
+       ! print some diagnostics:
+       write (stdout,*) 'SNICAR: snowage tau for T=263K, '&
+               &'dTdz = 100 K/m, rhos = 150 kg/m3: ', snowage_tau(3,11,9)
+       write (stdout,*) 'SNICAR: snowage kappa for T=263K, '&
+               &'dTdz = 100 K/m, rhos = 150 kg/m3: ', snowage_kappa(3,11,9)
+       write (stdout,*) 'SNICAR: snowage dr/dt_0 for T=263K, '&
+               &'dTdz = 100 K/m, rhos = 150 kg/m3: ', snowage_drdt0(3,11,9)
+     end if
+   end if
   end subroutine SnowAge_init
 
 end module mod_clm_snicar

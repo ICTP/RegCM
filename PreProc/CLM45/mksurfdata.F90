@@ -71,7 +71,7 @@ program mksurfdata
   integer(ik4) :: islopevar , istdvar , igdpvar , ipeatfvar , iabmvar
   integer(ik4) :: ief_btrvar , ief_crpvar , ief_fdtvar , ief_fetvar
   integer(ik4) :: ief_grsvar , ief_shrvar , iorganicvar
-  integer(ik4) :: ilndvar
+  integer(ik4) :: ilndvar , iscvar
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
   real(rk4) , pointer , dimension(:) :: yiy
@@ -82,7 +82,7 @@ program mksurfdata
   integer(ik4) , dimension(2) :: ihvar
   integer(ik4) , dimension(2) :: illvar
   integer(ik4) , dimension(2) :: izvar
-  integer(ik4) , dimension(1) :: istart1 , icount1
+  integer(ik4) , dimension(1) :: istart1 , icount1 , mxsoil_color
   real(rk4) :: spft , diff , mean
   real(rk8) :: operat
   integer(ik4) :: ierr
@@ -154,6 +154,8 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add time calendar')
 
   ! Variables
+  istatus = nf90_def_var(ncid, 'mxsoil_color', nf90_int, iscvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var mxsoil_color')
 
   istatus = nf90_def_var(ncid, 'gridcell', nf90_int, idims(7), ilndvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var gridcell')
@@ -388,6 +390,10 @@ program mksurfdata
     imondate = nextmon(imondate)
     imondate = monmiddle(imondate)
   end do
+
+  mxsoil_color(1) = 20
+  istatus = nf90_put_var(ncid, iscvar, mxsoil_color)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write mxsoil_color')
 
   call getmem2d(pctspec,1,jx,1,iy,'mksurfdata: pctspec')
   call getmem2d(lmask,2,jx-2,2,iy-2,'mksurfdata: lmask')
