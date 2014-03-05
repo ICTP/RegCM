@@ -198,28 +198,30 @@ module mod_clm_accumul
   subroutine print_accum_fields()
     implicit none
     integer(ik4) :: i , nf   !indices
-    if ( myid == italk ) then
-      write(stdout,*)
-      write(stdout,*) 'Initializing variables for time accumulation .....'
-      write(stdout,'(72a1)') ("-",i=1,60)
-      write(stdout,*) 'Accumulated fields'
-      write(stdout,1002)
-      write(stdout,'(72a1)') ("_",i=1,71)
-      do nf = 1 , naccflds
-        if (accum(nf)%period /= bigint) then
-          write(stdout,1003) nf,accum(nf)%fname,accum(nf)%units,&
-                accum(nf)%acctype, accum(nf)%period, accum(nf)%initval, &
-                accum(nf)%desc
-        else
-          write(stdout,1004) nf,accum(nf)%fname,accum(nf)%units,&
-                accum(nf)%acctype, accum(nf)%initval, accum(nf)%desc
-        end if
-      end do
-      write(stdout,'(72a1)') ("_",i=1,71)
-      write(stdout,*)
-      write(stdout,'(72a1)') ("-",i=1,60)
-      write(stdout,*) 'Successfully initialized variables for accumulation'
-      write(stdout,*)
+    ! Do not bloat output !
+    if ( debug_level > 3 ) then
+      if ( myid == italk ) then
+        write(stdout,*)
+        write(stdout,*) 'Initializing variables for time accumulation .....'
+        write(stdout,'(72a1)') ("-",i=1,60)
+        write(stdout,*) 'Accumulated fields'
+        write(stdout,1002)
+        write(stdout,'(72a1)') ("_",i=1,71)
+        do nf = 1 , naccflds
+          if (accum(nf)%period /= bigint) then
+            write(stdout,1003) nf,accum(nf)%fname,accum(nf)%units,&
+                  accum(nf)%acctype, accum(nf)%period, accum(nf)%initval, &
+                  accum(nf)%desc
+          else
+            write(stdout,1004) nf,accum(nf)%fname,accum(nf)%units,&
+                  accum(nf)%acctype, accum(nf)%initval, accum(nf)%desc
+          end if
+        end do
+        write(stdout,'(72a1)') ("_",i=1,71)
+        write(stdout,*)
+        write(stdout,'(72a1)') ("-",i=1,60)
+     end if
+     write(stdout,*) 'Successfully initialized variables for accumulation'
     end if
 1002 format(' No',' Name    ',' Units   ',' Type    ', &
             'Period',' Inival',' Description')

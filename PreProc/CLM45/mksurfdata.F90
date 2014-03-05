@@ -672,6 +672,9 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_shr')
 
   call mkorganic('mksrf_organic.nc',var5d(:,:,1:nsoil,1,1))
+  where ( var5d(:,:,1:nsoil,1,1) < 0.0 )
+    var5d(:,:,1:nsoil,1,1) = 1.0
+  end where
   do il = 1 , nsoil
     where ( xmask < 0.5 )
       var5d(:,:,il,1,1) = vmisdat

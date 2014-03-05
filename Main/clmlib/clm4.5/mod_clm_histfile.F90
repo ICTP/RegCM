@@ -316,14 +316,20 @@ module mod_clm_histfile
     integer(ik4) :: nf
     character(len=*) ,parameter :: subname = 'CLM_hist_printflds'
 
+    ! This is just bloating the screen
     if ( myid == italk ) then
       write(stdout,*) trim(subname),' : number of master fields = ',nfmaster
-      write(stdout,*)' ******* MASTER FIELD LIST *******'
-      do nf = 1 , nfmaster
-        write(stdout,9000) nf, masterlist(nf)%field%name, &
-                masterlist(nf)%field%units
-9000    format (i5,1x,a32,1x,a16)
-      end do
+    end if
+
+    if ( debug_level > 3 ) then
+      if ( myid == italk ) then
+        write(stdout,*)' ******* MASTER FIELD LIST *******'
+        do nf = 1 , nfmaster
+          write(stdout,9000) nf, masterlist(nf)%field%name, &
+                  masterlist(nf)%field%units
+9000      format (i5,1x,a32,1x,a16)
+        end do
+      end if
     end if
   end subroutine hist_printflds
   !
@@ -483,8 +489,10 @@ module mod_clm_histfile
 
     do t = 1 , ntapes
       tape(t)%dov2xy = hist_dov2xy(t)
-      write(stdout,*) trim(subname),' hist tape = ',t,&
-            ' written with dov2xy= ',tape(t)%dov2xy
+      if ( myid == italk ) then
+        write(stdout,*) trim(subname),' hist tape = ',t,&
+              ' written with dov2xy= ',tape(t)%dov2xy
+      end if
     end do
 
     ! Set number of time samples in each history file and
@@ -727,15 +735,17 @@ module mod_clm_histfile
         end do
       end do
 
-      if ( myid == italk ) then
-        if ( tape(t)%nflds > 0 ) then
-          write(stdout,*) trim(subname), &
-                  ' : Included fields tape ',t,'=',tape(t)%nflds
+      if ( debug_level > 3 ) then
+        if ( myid == italk ) then
+          if ( tape(t)%nflds > 0 ) then
+            write(stdout,*) trim(subname), &
+                    ' : Included fields tape ',t,'=',tape(t)%nflds
+          end if
+          do f = 1 , tape(t)%nflds
+            write(stdout,*) f,' ',tape(t)%hlist(f)%field%name, &
+                  tape(t)%hlist(f)%field%num2d,' ',tape(t)%hlist(f)%avgflag
+          end do
         end if
-        do f = 1 , tape(t)%nflds
-          write(stdout,*) f,' ',tape(t)%hlist(f)%field%name, &
-                tape(t)%hlist(f)%field%num2d,' ',tape(t)%hlist(f)%avgflag
-        end do
       end if
     end do
 

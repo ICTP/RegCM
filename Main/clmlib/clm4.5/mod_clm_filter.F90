@@ -12,6 +12,7 @@ module mod_clm_filter
   use mod_clm_decomp , only : get_proc_bounds
   use mod_clm_pftvarcon , only : npcropmin
   use mod_clm_varcon , only : istsoil , isturb , icol_road_perv , istcrop
+  use mod_dynparam
 
   implicit none
 
@@ -108,7 +109,7 @@ module mod_clm_filter
 
   public :: procfilter
 
-  type(procfilter), allocatable, public :: filter
+  type(procfilter), public :: filter
 
   public :: allocFilters   ! allocate memory for filters
   public :: setFilters     ! set filters

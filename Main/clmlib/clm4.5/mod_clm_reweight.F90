@@ -423,7 +423,7 @@ module mod_clm_reweight
     logical , intent(in) :: i_am_active
     logical :: weights_equal_1
     ! tolerance for checking whether weights sum to 1
-    real(rk8) , parameter :: tolerance = 1.D-7
+    real(rk8) , parameter :: tolerance = 1.D-5
 
     weights_equal_1 = (abs(sumwts - 1.D0) <= tolerance)
 

@@ -547,12 +547,6 @@ module mod_clm_dust
 
     ! declare erf intrinsic function
     real(rk8) :: dum     ! dummy variable for erf test
-#if (defined AIX) 
-#define ERF erf
-#else
-#define ERF derf
-    real(rk8) derf
-#endif
     integer(ik4) :: begp, endp   ! per-proc beginning and ending pft indices
     integer(ik4) :: begc, endc   ! per-proc beginning and ending column indices 
     integer(ik4) :: begl, endl   ! per-proc beginning and ending landunit indices
@@ -566,14 +560,14 @@ module mod_clm_dust
     ! Sanity check on erf: erf() in SGI /usr/lib64/mips4/libftn.so is bogus
 
     dum = 1.0D0
-    if (abs(0.8427D0-ERF(dum))/0.8427D0>0.001D0) then
-       write(stderr,*) 'erf(1.0) = ',ERF(dum)
+    if (abs(0.8427D0-erf(dum))/0.8427D0>0.001D0) then
+       write(stderr,*) 'erf(1.0) = ',erf(dum)
        write(stderr,*) 'Dustini: Error function error'
        call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
     dum = 0.0D0
-    if (ERF(dum) /= 0.0D0) then
-       write(stderr,*) 'erf(0.0) = ',ERF(dum)
+    if (erf(dum) /= 0.0D0) then
+       write(stderr,*) 'erf(0.0) = ',erf(dum)
        write(stderr,*) 'Dustini: Error function error'
        call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
@@ -590,8 +584,8 @@ module mod_clm_dust
        do n = 1, ndst
           lndmaxjovrdmdni = log(dmt_grd(n+1)/dmt_vma_src(m))
           lndminjovrdmdni = log(dmt_grd(n  )/dmt_vma_src(m))
-          ovr_src_snk_frc = 0.5D0 * (ERF(lndmaxjovrdmdni/sqrt2lngsdi) - &
-                                   ERF(lndminjovrdmdni/sqrt2lngsdi))
+          ovr_src_snk_frc = 0.5D0 * (erf(lndmaxjovrdmdni/sqrt2lngsdi) - &
+                                   erf(lndminjovrdmdni/sqrt2lngsdi))
           ovr_src_snk_mss(m,n) = ovr_src_snk_frc * mss_frc_src(m)
        end do
     end do

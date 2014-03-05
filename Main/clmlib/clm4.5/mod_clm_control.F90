@@ -297,6 +297,10 @@ module mod_clm_control
     rpntdir = trim(dirout)
     fpftcon = trim(inpglob)//pthsep//'CLM45'//pthsep// &
             'pftdata'//pthsep//fpftcon
+    fsnowoptics = trim(inpglob)//pthsep//'CLM45'//pthsep// &
+            'snicardata'//pthsep//fsnowoptics
+    fsnowaging = trim(inpglob)//pthsep//'CLM45'//pthsep// &
+            'snicardata'//pthsep//fsnowaging
     fsurdat = trim(dirglob)//pthsep//trim(domname)//'_CLM45_surface.nc'
     write(fatmlndfrc,'(a,i0.3,a)') &
       trim(dirglob)//pthsep//trim(domname)//'_DOMAIN',0,'.nc'

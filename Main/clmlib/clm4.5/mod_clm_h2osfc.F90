@@ -73,13 +73,6 @@ contains
     integer , pointer :: ltype(:)          ! landunit type
     integer , pointer :: clandunit(:)      ! columns's landunit
 
-    !intrinsic :: derf
-    real(rk8)  :: derf
-!
-!EOP
-!
-! !OTHER LOCAL VARIABLES:
-!
     integer  :: c,f,l         ! indices
     real(rk8):: d,fd,dfdd      ! temporary variable for frac_h2oscs iteration
     real(rk8):: sigma          ! microtopography pdf sigma in mm
@@ -120,15 +113,15 @@ contains
 
              sigma=1.0e3*micro_sigma(c) ! convert to mm
              do l=1,10
-                fd = 0.5*d*(1.0D0+derf(d/(sigma*sqrt(2.0)))) &
+                fd = 0.5*d*(1.0D0+erf(d/(sigma*sqrt(2.0)))) &
                         +sigma/sqrt(2.0*rpi)*exp(-d**2/(2.0*sigma**2)) &
                         -h2osfc(c)
-                dfdd = 0.5*(1.0D0+derf(d/(sigma*sqrt(2.0))))
+                dfdd = 0.5*(1.0D0+erf(d/(sigma*sqrt(2.0))))
                 
                 d = d - fd/dfdd
              enddo
              !--  update the submerged areal fraction using the new d value
-             frac_h2osfc(c) = 0.5*(1.0D0+derf(d/(sigma*sqrt(2.0))))
+             frac_h2osfc(c) = 0.5*(1.0D0+erf(d/(sigma*sqrt(2.0))))
 
           else
              frac_h2osfc(c) = 0.D0

@@ -283,7 +283,6 @@ module mod_clm_initimeconst
     real(rk8) , pointer :: tslope(:)  ! read in - topo_slope
     real(rk8) :: maxslope , slopemax , minslope , d , fd
     real(rk8) :: dfdd , slope0 , slopebeta
-    real(rk8) :: derf
 
     if ( myid == italk ) then
       write(stdout,*) 'Attempting to initialize time invariant variables'
@@ -751,9 +750,9 @@ module mod_clm_initimeconst
     end do
     zisoi(nlevgrnd) = zsoi(nlevgrnd) + 0.5D0*dzsoi(nlevgrnd)
 
-    if (myid == italk) write(stdout, *) 'zsoi', zsoi(:) 
-    if (myid == italk) write(stdout, *) 'zisoi: ', zisoi(:)
-    if (myid == italk) write(stdout, *) 'dzsoi: ', dzsoi(:)
+    if (myid == italk) call vprntv(zsoi,size(zsoi),'zsoi')
+    if (myid == italk) call vprntv(zisoi,size(zisoi),'zisoi')
+    if (myid == italk) call vprntv(dzsoi,size(dzsoi),'dzsoi')
 
 #if (defined VICHYDRO)
     !define the depth of VIC soil layers here
@@ -1022,13 +1021,13 @@ module mod_clm_initimeconst
       if ( micro_sigma(c) > 1.D-6 ) then
         d = 0.0D0
         do p=1,4
-          fd = 0.5D0*(1.0D0+derf(d/(micro_sigma(c)*sqrt(2.0D0)))) - pc
+          fd = 0.5D0*(1.0D0+erf(d/(micro_sigma(c)*sqrt(2.0D0)))) - pc
           dfdd = exp(-d**2/(2.0D0*micro_sigma(c)**2)) / &
                   (micro_sigma(c)*sqrt(2.0D0*rpi))
           d = d - fd/dfdd
         end do
         h2osfc_thresh(c) = 0.5D0*d*(1.0D0 + &
-                derf(d/(micro_sigma(c)*sqrt(2.0D0)))) + &
+                erf(d/(micro_sigma(c)*sqrt(2.0D0)))) + &
                 micro_sigma(c)/sqrt(2.0D0*rpi) * &
                 exp(-d**2/(2.0D0*micro_sigma(c)**2))         
         h2osfc_thresh(c) = 1.D3 * h2osfc_thresh(c) !convert to mm from meters
@@ -1227,7 +1226,7 @@ module mod_clm_initimeconst
             end if
             hksat(c,lev) = uncon_frac*uncon_hksat + &
                     (perc_frac*om_frac)*om_hksat
-            tkmg(c,lev) = tkm ** (1.D0- watsat(c,lev))           
+            tkmg(c,lev) = tkm ** (1.D0- watsat(c,lev))
             tksatu(c,lev) = tkmg(c,lev)*0.57D0**watsat(c,lev)
             tkdry(c,lev) = ((0.135D0*bd(c,lev) + 64.7D0) / &
                      (2.7D3 - 0.947D0*bd(c,lev)))*(1.D0-om_frac) + &
