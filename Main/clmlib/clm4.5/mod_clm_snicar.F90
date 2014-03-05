@@ -1396,7 +1396,7 @@ contains
     if (myid == italk) then
       write(stdout,*) 'Successfully read snow optical properties'
       ! print some diagnostics:
-      if ( debug_level > 3) thne
+      if ( debug_level > 3) then
         write (stdout,*) 'SNICAR: Mie single scatter albedos for '&
               &'direct-beam ice, rds=100um: ', &
           ss_alb_snw_drc(71,1), ss_alb_snw_drc(71,2), ss_alb_snw_drc(71,3), &
