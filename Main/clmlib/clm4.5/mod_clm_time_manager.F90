@@ -8,7 +8,7 @@ module mod_clm_time_manager
    use mod_runparams , only : idate0 , idate1 , idate2 , idatex , &
                   ktau , mtau , dtsec , dtsrf , ntsrf , doing_restart , &
                   dayspy
-   use mod_clm_regcm , only : r2coutfrq
+   use mod_clm_varpar , only : outfrq
 
    implicit none
    private
@@ -206,7 +206,7 @@ subroutine get_prev_date(yr, mon, day, tod)
     type (rcm_time_interval) :: tdif
     integer :: ih
     id = idatex
-    tdif = (ioffset - r2coutfrq*60)
+    tdif = (ioffset - outfrq*60)
     id = id + tdif
     call split_idate(id,yr,mon,day,ih)
     tod = id%second_of_day
@@ -271,7 +271,7 @@ subroutine get_prev_time(days, seconds)
    tdif = idatex - cordex_refdate
    rh = tohours(tdif)
    if ( doing_restart ) then
-     rh = rh - r2coutfrq
+     rh = rh - outfrq
    end if
    days = idint(rh/24.0D0)
    seconds = (rh-days*24.0D0)*3600.0D0

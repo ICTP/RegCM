@@ -95,6 +95,8 @@ module mod_clm_varpar
   ! biogeochemically inactive)
   integer(ik4) , public :: nlevdecomp_full
 
+  real(rk8) , public :: outfrq
+
   ! -------------------------------------------------------
   ! Module Varaibles (initialized in clm_varpar_init)
   ! -------------------------------------------------------

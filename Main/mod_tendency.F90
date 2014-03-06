@@ -610,12 +610,12 @@ module mod_tendency
     !
     if ( ktau > 0 ) call cumulus
     if ( icup == 5 .or. icup == 96 .or. icup == 97 ) then
-      if ( ipptls /= 2 ) then
+      if ( ipptls /= 2 .and. iconv /= 4 ) then
         ! Put back detrained water
         do k = 1 , kz
           do i = ici1 , ici2
             do j = jci1 , jci2
-              aten%qx(j,i,k,iqv) = aten%qx(j,i,k,iqv) + &
+              aten%qx(j,i,k,iqc) = aten%qx(j,i,k,iqc) + &
                 q_detr(j,i,k)*sfs%psb(j,i)*egrav / &
                 ((atms%pf3d(j,i,k+1)-atms%pf3d(j,i,k))*d_1000) ! [kg/kg]
             end do

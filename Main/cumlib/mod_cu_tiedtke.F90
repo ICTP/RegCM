@@ -474,7 +474,7 @@ module mod_cu_tiedtke
     ! =====================
     ! The variables in question are defined in the turbulence scheme and 
     ! are the turbulence flux of water vapour and sensible heat as expected...
-    !  The naming changes in the turbulence scheme; they are PDIFTQ and PDIFTS,
+    ! The naming changes in the turbulence scheme; they are PDIFTQ and PDIFTS,
     ! respectively...
     ! The flux values are just backed out from the new-old tendency values
     ! differences over the scheme (because of course the scheme employs an
@@ -510,10 +510,14 @@ module mod_cu_tiedtke
     ! I presume REGCM's turbulence scheme already or can easily provide these
     ! quantities...
     ! Will only set for now fluxes at surface
-    pqhfl(:,1:klev) = d_zero
     pqhfl(:,klev+1) = pqhfla(:)
-    pahfs(:,1:klev) = d_zero
     pahfs(:,klev+1) = pshfla(:)
+    ! ### for this test case we just specify an arbitrary decrease of
+    ! turb. fluxes with height ###
+    do jk = klev , 1 , -1
+      pqhfl(:,jk) = 0.9D0*pqhfl(:,jk+1)
+      pahfs(:,jk) = 0.9D0*pahfs(:,jk+1)
+    end do
     pmflxr = d_zero
     pmflxs = d_zero
     call cumastrn(1,kproma,kbdim,klev,ldland,dt,ztp1,zqp1,       &

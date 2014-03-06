@@ -41,13 +41,12 @@ module mod_mtrxclm
                            shr_orb_params
   use clm_varsur,    only : clm_fracveg
 
+  implicit none
+
   private
 
   public :: mtrxclm
   public :: initclm
-  public :: interfclm
-  public :: solar_clm
-  public :: zenit_clm
   public :: albedoclm
 
   interface fill_frame

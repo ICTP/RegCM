@@ -43,8 +43,7 @@ module mod_lm_interface
 #endif
 
 #ifdef CLM45
-  use mod_clm_initialize
-  use mod_clm_driver
+  use mod_clm_regcm
 #endif
 
   implicit none
@@ -72,7 +71,6 @@ module mod_lm_interface
   public :: voc_em1
   public :: voc_em2
   public :: dep_vels
-  public :: zenit_clm
   public :: get_step_size
   public :: filer_rest
   public :: restFile_write
@@ -80,7 +78,6 @@ module mod_lm_interface
   public :: restFile_filename
   public :: numdays
   public :: r2ceccf
-  public :: solar_clm
   public :: mpicom
   public :: t_prf
   public :: t_finalizef
@@ -343,7 +340,11 @@ module mod_lm_interface
 #ifdef CLM
     integer(ik4) :: i , j , n
 #endif
+#ifndef CLM45
     call initbats(lm,lms)
+#else
+    call initclm45(lndcomm,lm,lms)
+#endif
     call initocn(lm,lms)
 #ifdef CLM
     call initclm(lm,lms)
@@ -368,11 +369,6 @@ module mod_lm_interface
         end do
       end do
     end if
-#endif
-#ifdef CLM45
-    call initialize1(lndcomm)
-    call initialize2
-    call clm_drv(.true.,1.0D0,2.0D0,3.0D0,.true.,.false.,'000000')
 #endif
     lm%emissivity = sum(lms%emisv,1) * rdnnsg
   end subroutine initialize_surface_model

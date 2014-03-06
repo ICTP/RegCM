@@ -5,7 +5,7 @@ module mod_clm_soillittverttransp
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_mppmessage
+  use mod_mpmessage
   use mod_stdio
   use mod_clm_type
   use mod_clm_varctl , only : use_c13 , use_c14 , spinup_state

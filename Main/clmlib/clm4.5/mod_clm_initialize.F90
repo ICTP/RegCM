@@ -181,7 +181,7 @@ module mod_clm_initialize
 
     call initClmtype()
 
-    ! Initialize lnd->atm data structure
+    ! Initialize lnd->atm and atm->lnd data structures
 
     call init_atm2lnd_type(begg,endg,clm_a2l)
     call init_lnd2atm_type(begg,endg,clm_l2a)
