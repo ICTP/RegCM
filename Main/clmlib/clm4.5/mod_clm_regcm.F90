@@ -10,6 +10,7 @@ module mod_clm_regcm
   use mod_regcm_types
   use mod_clm_initialize
   use mod_clm_driver
+  use mod_clm_varctl , only : use_c13
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a
   use mod_clm_decomp , only : procinfo
 
@@ -126,7 +127,9 @@ module mod_clm_regcm
     if ( ichem /= 1 ) then
       clm_a2l%forc_pco2 = 0.039*clm_a2l%forc_psrf
       clm_a2l%forc_ndep = 6.34D-5
-      clm_a2l%forc_pc13o2 = 0.0001*clm_a2l%forc_psrf
+      if ( use_c13 ) then
+        clm_a2l%forc_pc13o2 = 0.0001*clm_a2l%forc_psrf
+      end if
       clm_a2l%forc_po2 = 0.2095*clm_a2l%forc_psrf
       clm_a2l%forc_aer = 0.0D0
     else
