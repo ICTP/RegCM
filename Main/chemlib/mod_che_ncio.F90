@@ -34,7 +34,7 @@ module mod_che_ncio
 !
   public :: read_texture , read_emission , recc
   public :: init_mod_che_ncio
-  public :: open_chbc , close_chbc , chbc_search , read_chbc
+  public :: open_chbc , close_chbc , chbc_search , read_chbc,read_bionem
 
   public :: chbc_ivar , n_chbcvar , n_aebcvar, chbcname,aeaero
 
@@ -181,6 +181,75 @@ module mod_che_ncio
         end if
       end if
     end subroutine read_texture
+
+   subroutine read_bionem(nfert,nmanure,soilph)
+      implicit none
+     
+      real(rk8) , pointer , dimension(:,:) , intent(out) ::nfert,nmanure,soilph 
+      integer(ik4) :: idmin
+      integer(ik4) , dimension(2) :: istart , icount
+      character(len=256) :: dname
+      real(rk8) , pointer , dimension(:,:) ::  rspace
+
+      dname = trim(dirter)//pthsep//trim(domname)//'_BIONEM.nc'
+
+      if ( do_parallel_netcdf_in ) then
+        call openfile_withname(dname,idmin)
+        istart(1) = global_dot_jstart
+        istart(2) = global_dot_istart
+        !istart(3) = 1
+        icount(1) = global_dot_jend-global_dot_jstart+1
+        icount(2) = global_dot_iend-global_dot_istart+1
+        !icount(3) = nats
+        allocate(rspace(icount(1),icount(2)))
+        call read_var2d_static(idmin,'nfert',rspace, &
+          istart=istart,icount=icount)
+        nfert(jci1:jci2,ici1:ici2) = &
+          max(rspace(jci1:jci2,ici1:ici2),d_zero)
+
+        call read_var2d_static(idmin,'nmanure',rspace, &
+          istart=istart,icount=icount)
+           nmanure(jci1:jci2,ici1:ici2) = &
+          max(rspace(jci1:jci2,ici1:ici2),d_zero)
+
+         call read_var2d_static(idmin,'SoilpH',rspace, &
+          istart=istart,icount=icount)
+           soilph(jci1:jci2,ici1:ici2) = &
+          max(rspace(jci1:jci2,ici1:ici2),d_zero)
+
+        call closefile(idmin)
+      else
+        if ( myid == iocpu ) then
+          call openfile_withname(dname,idmin)
+          istart(1) = 1
+          istart(2) = 1
+      !    istart(3) = 1
+          icount(1) = jx
+          icount(2) = iy
+      !    icount(3) = nats
+          allocate(rspace(icount(1),icount(2)))
+          call read_var2d_static(idmin,'nfert',rspace, &
+            istart=istart,icount=icount)
+          rspace = max(rspace,d_zero)
+          call grid_distribute(rspace,nfert,jci1,jci2,ici1,ici2)
+
+          call read_var2d_static(idmin,'nmanure',rspace, &
+            istart=istart,icount=icount)
+          rspace = max(rspace,d_zero)
+          call grid_distribute(rspace,nmanure,jci1,jci2,ici1,ici2)
+
+           call read_var2d_static(idmin,'SoilpH',rspace, &
+            istart=istart,icount=icount)
+          rspace = max(rspace,d_zero)
+          call grid_distribute(rspace,soilph,jci1,jci2,ici1,ici2)
+          call closefile(idmin)
+        else
+          call grid_distribute(rspace,nfert,jci1,jci2,ici1,ici2)
+          call grid_distribute(rspace,nmanure,jci1,jci2,ici1,ici2)
+          call grid_distribute(rspace,soilph,jci1,jci2,ici1,ici2)
+        end if
+      end if
+    end subroutine read_bionem
 
     subroutine read_emission(ifreq,lyear,lmonth,lday,lhour,echemsrc)
       implicit none

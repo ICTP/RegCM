@@ -9,6 +9,10 @@ module mod_che_bionit
   use mod_che_dust
   use mod_dynparam
 
+ public :: allocate_mod_che_bionit, ini_bionit
+
+ real(rk8) , pointer, dimension(:,:) :: nmanure , nfert , soilph 
+
   !coefficients and weights derived from neural net analysis
   real(rk8), parameter :: xwgt0 =  0.561651794427011
   real(rk8), parameter :: xwgt1 = -0.48932473825312
@@ -82,6 +86,24 @@ contains
   !       - Hombori (Niger)
   !       - Neisouma (Niger)
 
+ subroutine allocate_mod_che_bionit 
+      implicit none
+      if ( ichem == 1 ) then
+        call getmem2d(nfert,jce1,jce2,ice1,ice2,'che_bionit:nfert')
+        call getmem2d(nmanure,jce1,jce2,ice1,ice2,'che_bionit:nmanure')
+        call getmem2d(soilph,jce1,jce2,ice1,ice2,'che_bionit:soilph')
+      end if
+  end subroutine allocate_mod_che_bionit
+
+ subroutine ini_bionit
+
+       call read_bionem (nfert,nmanure,soilph)
+
+ end subroutine ini_bionit
+
+
+
+
   subroutine soilnitro_emissions(j,ivegcov,wid10)
 
     implicit none
@@ -116,8 +138,6 @@ contains
          nsum2         ,&     !normalised sum 2
          nsum3             !normalised sum 3
 
-
-
     !      real(8), dimension(iy) :: soilph            !soil ph
 
     real (rk8), dimension(ici1:ici2) :: man1d, fert1d, ph1d, lai_int,   &    !1D manure/fertiliser app. rate + pH
@@ -127,11 +147,15 @@ contains
          noxflux       !calculated soil NOx flux
 
     !getting just 1D fert/man. rates
-    ! thsi should come from external data
-!!$      man1d = manrate(:,j)
-!!$      fert1d = fertrate(:,j)
-!!$      ph1d = soilph(:,j)
+    ! this  come from external data
+       man1d =   nmanure(j,:)
+       fert1d =  nfert(j,:)
+       ph1d = soilph(j,:)
 
+     ! iFAB  ! put interactive LAI
+       lai_int = 1.D0
+
+     ! 
          soiltemp_surf =d_zero
          soiltemp_deep  = d_zero     !deep soil temperature (C)
          sandper        = d_zero
@@ -152,13 +176,8 @@ contains
          nsum3        = d_zero
          noxflux      = d_zero 
 
-    !FAB arbitrary valuses for now
-    man1d = 1.
-    fert1d = 1.
-    ph1d = 6.
-    lai_int = 1.
 
-    totN1d = man1d + fert1d
+         totN1d = man1d + fert1d
 
 
     do i = ici1 , ici2
@@ -257,9 +276,8 @@ contains
        noxflux(i) = noxflux(i)*canred(i)
 
     enddo
-
+       if (j ==25 ) print*,maxval(noxflux)
     !test print output
-
     !
     !   update tendency for NO flux
     do i  = ici1 , ici2

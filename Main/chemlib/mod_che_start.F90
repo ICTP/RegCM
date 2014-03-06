@@ -37,6 +37,7 @@ module mod_che_start
   use mod_mppparam  
   use mod_che_hvread
   use mod_che_molwg
+  use mod_che_bionit
 
   implicit none
 
@@ -326,12 +327,13 @@ module mod_che_start
 
 
 
-    if ( idust(1) > 0 ) then
+    if ( idust(1) > 0 .or. ichbion==1) then
       ! activate dust initialization
       if ( myid == italk ) write(stdout,*) 'Calling inidust'
       call inidust
     end if
 
+    if (ichbion==1) call ini_bionit
 
     if ( igaschem == 1 ) then
       open(26,file='TUVGRID2', status='old', err=900)

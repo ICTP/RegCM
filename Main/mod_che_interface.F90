@@ -33,6 +33,7 @@ module mod_che_interface
   use mod_che_species
   use mod_che_tend
   use mod_che_start
+  use mod_che_bionit
 !
   public
 !
