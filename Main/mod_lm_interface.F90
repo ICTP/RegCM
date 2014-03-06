@@ -285,6 +285,7 @@ module mod_lm_interface
     call assignpnt(atms%ubx3d,lm%uatm,kz)
     call assignpnt(atms%vbx3d,lm%vatm,kz)
     call assignpnt(atms%tb3d,lm%tatm,kz)
+    call assignpnt(atms%pb3d,lm%patm,kz)
     call assignpnt(atms%qxb3d,lm%qvatm,kz,iqv)
     call assignpnt(atms%thx3d,lm%thatm,kz)
     call assignpnt(atms%rhox2d,lm%rhox)
@@ -393,7 +394,11 @@ module mod_lm_interface
     end if
     call mtrxclm(lm,lms)
 #else
+#ifdef CLM45
+    call runclm45(lm,lms)
+#else
     call vecbats(lm,lms)
+#endif
 #endif
     call vecocn(lm,lms)
     lm%hfx = sum(lms%sent,1)*rdnnsg
@@ -481,7 +486,11 @@ module mod_lm_interface
 #ifdef CLM
     call albedoclm(lm,lms)
 #else
+#ifdef CLM45
+    call albedoclm45(lm,lms)
+#else
     call albedobats(lm,lms)
+#endif
 #endif
     call albedoocn(lm,lms)
     lm%swalb = sum(lms%swalb,1)*rdnnsg

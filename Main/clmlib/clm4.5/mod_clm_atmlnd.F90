@@ -82,6 +82,7 @@ module mod_clm_atmlnd
     !CH4 partial pressure (Pa)
     real(rk8) , pointer , dimension(:) :: forc_pch4
 #endif
+    real(rk8) , pointer , dimension(:) :: notused
   end type atm2lnd_type
 
   public :: atm2lnd_type
@@ -194,6 +195,7 @@ module mod_clm_atmlnd
 #if (defined LCH4)
     allocate(a2l%forc_pch4(ibeg:iend))
 #endif
+    allocate(a2l%notused(ibeg:iend))
 
     ! ival = nan      ! causes core dump in map_maparray, tcx fix
     ival = 0.0D0

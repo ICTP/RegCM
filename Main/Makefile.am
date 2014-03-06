@@ -137,7 +137,7 @@ if DO_COMPILE_LIBCLM
 mod_lm_interface.o : mod_lm_interface.F90 mod_regcm_types.o mod_bats_common.o mod_ocn_common.o mod_clm.o mod_memutil.o mod_mtrxclm.o mod_runparams.o clm_varsur.o clm_varctl.o clm_time_manager.o restFileMod.o spmdMod.o perf_mod.o
 else
 if  DO_COMPILE_LIBCLM45
-mod_lm_interface.o : mod_lm_interface.F90 mod_regcm_types.o mod_bats_common.o mod_ocn_common.o mod_memutil.o mod_runparams.o mod_clm_initialize.o mod_clm_driver.o
+mod_lm_interface.o : mod_lm_interface.F90 mod_regcm_types.o mod_bats_common.o mod_ocn_common.o mod_memutil.o mod_runparams.o mod_clm_regcm.o
 else
 mod_lm_interface.o : mod_lm_interface.F90 mod_regcm_types.o mod_bats_common.o mod_ocn_common.o mod_memutil.o mod_runparams.o
 endif

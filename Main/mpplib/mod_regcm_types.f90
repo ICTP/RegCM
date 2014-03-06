@@ -285,6 +285,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: dhlake1   ! mdsub%dhlake
     integer(ik4) , pointer , dimension(:,:,:) :: ldmsk1 ! mdsub%ldmsk
     integer(ik4) , pointer , dimension(:,:,:) :: iveg1  ! mdsub%iveg
+    real(rk8) , pointer , dimension(:,:) :: patm        ! atms%pb3d(:,:,kz)
     real(rk8) , pointer , dimension(:,:) :: uatm        ! atms%ubx3d(:,:,kz)
     real(rk8) , pointer , dimension(:,:) :: vatm        ! atms%vbx3d(:,:,kz)
     real(rk8) , pointer , dimension(:,:) :: tatm        ! atms%tb3d(:,:,kz)
