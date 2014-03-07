@@ -48,6 +48,7 @@ program mksurfdata
   use mod_mkabm
   use mod_mkvocef
   use mod_mkorganic
+  use mod_mklake
   use netcdf
 
   implicit none
@@ -70,7 +71,7 @@ program mksurfdata
   integer(ik4) :: ifmaxvar , isoilcolvar , isandvar , iclayvar
   integer(ik4) :: islopevar , istdvar , igdpvar , ipeatfvar , iabmvar
   integer(ik4) :: ief_btrvar , ief_crpvar , ief_fdtvar , ief_fetvar
-  integer(ik4) :: ief_grsvar , ief_shrvar , iorganicvar
+  integer(ik4) :: ief_grsvar , ief_shrvar , iorganicvar , idepthvar
   integer(ik4) :: ilndvar , iscvar
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
@@ -90,7 +91,7 @@ program mksurfdata
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile , outfile
   character(len=64) :: csdate
-  real(rk4) , dimension(:,:) , pointer :: pctspec
+  real(rk4) , dimension(:,:) , pointer :: pctspec , pctslake
   real(rk4) , pointer , dimension(:,:,:,:,:) :: var5d
   real(rk4) , pointer , dimension(:) :: gcvar
   integer , pointer , dimension(:) :: landpoint
@@ -369,6 +370,14 @@ program mksurfdata
   istatus = nf90_put_att(ncid, iorganicvar, 'units','kg m-3')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add organic units')
 
+  istatus = nf90_def_var(ncid, 'LAKEDEPTH',nf90_float,idims(7),idepthvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var lake')
+  istatus = nf90_put_att(ncid, idepthvar, 'long_name', &
+          'Lake Depth (default = 10m)')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add lake long_name')
+  istatus = nf90_put_att(ncid, idepthvar, 'units','m')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add lake units')
+
   istatus = nf90_enddef(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,'Error exit define mode')
 
@@ -396,11 +405,13 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write mxsoil_color')
 
   call getmem2d(pctspec,1,jx,1,iy,'mksurfdata: pctspec')
+  call getmem2d(pctslake,1,jx,1,iy,'mksurfdata: pctslake')
   call getmem2d(lmask,2,jx-2,2,iy-2,'mksurfdata: lmask')
   call getmem1d(gcvar,1,ngcells,'mksurfdata: gcvar')
   call getmem1d(landpoint,1,ngcells,'mksurfdata: gcvar')
   call getmem5d(var5d,1,jx,1,iy,1,maxd3,1,maxd4,1,4,'mksurfdata: var5d')
   pctspec(:,:) = 0.0
+  pctslake(:,:) = 0.0
   lmask = (xmask(2:jx-2,2:iy-2) > 0.5)
   ip = 1
   do i = 2 , iy-2
@@ -455,6 +466,7 @@ program mksurfdata
   end where
   where (var5d(:,:,2,1,1) >= 0.0)
     pctspec(:,:) = pctspec(:,:) + var5d(:,:,2,1,1)
+    pctslake = var5d(:,:,2,1,1)
   end where
   istatus = nf90_put_var(ncid, iwetvar, var5d(:,:,1,1,1))
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write wetland')
@@ -695,6 +707,20 @@ program mksurfdata
     istatus = nf90_put_var(ncid, iorganicvar, gcvar,istart(1:2),icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write organic')
   end do
+
+  call mklake('mksrf_lake.nc',var5d(:,:,1,1,1))
+  where ( var5d(:,:,1,1,1) < 10.0 )
+    var5d(:,:,1,1,1) = 10.0
+  end where
+  where ( xmask < 0.5 )
+    var5d(:,:,1,1,1) = vmisdat
+  end where
+  where ( pctslake < epsilon(1.0) )
+    var5d(:,:,1,1,1) = vmisdat
+  end where
+  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
+  istatus = nf90_put_var(ncid, idepthvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write lake')
 
   istatus = nf90_close(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,  &
