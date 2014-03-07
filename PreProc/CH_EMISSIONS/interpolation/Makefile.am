@@ -24,6 +24,8 @@ include $(REGCM_ROOT)/makeinc
 install-exec-hook:
 	cp interp_emissions.sh $(DESTDIR)$(bindir)/interp_emissions
 	cp interp_pollen.sh $(DESTDIR)$(bindir)/interp_pollen
+        cp interp_bionox.sh $(DESTDIR)$(bindir)/interp_bionox
+        
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
