@@ -618,6 +618,10 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write soil color')
 
   call mksoitex('mksrf_soitex.nc',var5d(:,:,1:nsoil,1,1),var5d(:,:,1:nsoil,2,1))
+  where ( var5d(:,:,:,1,1) < 0.0 )
+    var5d(:,:,:,1,1) = 50.0
+    var5d(:,:,:,2,1) = 50.0
+  end where
   do il = 1 , nsoil
     where ( xmask < 0.5 )
       var5d(:,:,il,1,1) = vmisdat
@@ -646,6 +650,9 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write gdp')
 
   call mkpeatf('mksrf_peatf.nc',var5d(:,:,1,1,1))
+  where ( var5d(:,:,1,1,1) < 0.0 )
+   var5d(:,:,1,1,1) = 0.0
+  end where
   where ( xmask < 0.5 )
     var5d(:,:,1,1,1) = vmisdat
   end where
@@ -662,6 +669,14 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write abm')
 
   call mkvocef('mksrf_vocef.nc',var5d(:,:,1:6,1,1))
+  where ( var5d(:,:,1,1,1) < 0.0 )
+    var5d(:,:,1,1,1) = 0.0
+    var5d(:,:,2,1,1) = 0.0
+    var5d(:,:,3,1,1) = 0.0
+    var5d(:,:,4,1,1) = 0.0
+    var5d(:,:,5,1,1) = 0.0
+    var5d(:,:,6,1,1) = 0.0
+  end where
   where ( xmask < 0.5 )
     var5d(:,:,1,1,1) = vmisdat
     var5d(:,:,2,1,1) = vmisdat
@@ -711,12 +726,6 @@ program mksurfdata
   call mklake('mksrf_lake.nc',var5d(:,:,1,1,1))
   where ( var5d(:,:,1,1,1) < 10.0 )
     var5d(:,:,1,1,1) = 10.0
-  end where
-  where ( xmask < 0.5 )
-    var5d(:,:,1,1,1) = vmisdat
-  end where
-  where ( pctslake < epsilon(1.0) )
-    var5d(:,:,1,1,1) = vmisdat
   end where
   gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
   istatus = nf90_put_var(ncid, idepthvar, gcvar)
