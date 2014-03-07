@@ -97,7 +97,7 @@ contains
 
  subroutine ini_bionit
 
-       call read_bionem (nfert,nmanure,soilph)
+    if(ichbion == 1)   call read_bionem (nfert,nmanure,soilph)
 
  end subroutine ini_bionit
 
@@ -148,12 +148,12 @@ contains
 
     !getting just 1D fert/man. rates
     ! this  come from external data
-       man1d =   nmanure(j,:)
-       fert1d =  nfert(j,:)
-       ph1d = soilph(j,:)
+       man1d =   nmanure(j,ici1:ici2)
+       fert1d =  nfert(j,ici1:ici2)
+       ph1d = soilph(j,ici1:ici2)
 
      ! iFAB  ! put interactive LAI
-       lai_int = 1.D0
+       lai_int = cxlai2d(j,ici1:ici2)
 
      ! 
          soiltemp_surf =d_zero
