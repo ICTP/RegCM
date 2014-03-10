@@ -44,6 +44,7 @@ module mod_clm_regcm
                 lms%emisv(n,j,i) = 0.97D0
               else
                 ! We should take this from CLM !
+                lms%emisv(n,j,i) = 0.90D0
               end if
             end if
           end do
@@ -141,9 +142,14 @@ module mod_clm_regcm
       ! clm_a2l%forc_aer    ! aerosol deposition array
     end if
 
-    ! Runoff in input ? Chym ?
-    ! clm_a2l%forc_flood  ! flood (mm/s)
-    ! clm_a2l%volr        ! rof volr (m3)
+    if ( .true. ) then
+      clm_a2l%forc_flood = 0.000D0
+      clm_a2l%volr = 0.0D0
+    else
+      ! Runoff in input ? Chym ?
+      ! clm_a2l%forc_flood  ! flood (mm/s)
+      ! clm_a2l%volr        ! rof volr (m3)
+    end if
 
     ! Run CLM
     if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then

@@ -609,16 +609,13 @@ sensitivity experiments to select the best scheme for your application.
                         !   1 => Holtslag PBL (Holtslag, 1990)
                         !   2 => UW PBL (Bretherton and McCaa, 2004)
                         !  99 => Holtslag PBL, with UW in diag. mode
- icup    =          4,  ! Cumulus convection scheme
+ icup_lnd =          4, ! Cumulus convection scheme Over Land
+ icup_ocn =          4, ! Cumulus convection scheme Over Icean
                         !   1 => Kuo
                         !   2 => Grell
                         !   3 => Betts-Miller (1986) DOES NOT WORK !!!
                         !   4 => Emanuel (1991)
-                        !   5 => Tiedtke (1986) UNTESTED !!!
-                        !  96 => Use Tiedtke over land and Grell over ocean
-                        !  97 => Use Tiedtke over land and Emanuel over ocean
-                        !  98 => Use Emanuel over land and Grell over ocean
-                        !  99 => Use Grell over land and Emanuel over ocean
+                        !   5 => Tiedtke (1996)
    igcc  =          1,  ! Grell Scheme Cumulus closure scheme
                         !   1 => Arakawa & Schubert (1974)
                         !   2 => Fritsch & Chappell (1980)
@@ -722,8 +719,8 @@ This stanza controls the new microphysics scheme.
 \subsection{grellparam, emanparam and tiedtkeparam stanzas}
 
 You are allowed here to tune the convection scheme selected above in
-\ref{physicsparam} with the \verb=icup= number if selected number is
-$2, 4, 5, 96, 97,  98, 99$.
+\ref{physicsparam} with the \verb=icup_lnd= or \verb=icup_ocn= number if
+selected number is $2, 4, 5$.
 
 {\footnotesize
 \begin{Verbatim}
@@ -1238,8 +1235,9 @@ how to obtain needed datasets.
 \item The clmfrq is relative to the output produced by the \verb=CLM= model
 itself, and does not control the RegCM model output. To know the \verb=CLM=
 output file content, refer to CLM 3.5 documentation.
-\item The \verb'imask = 2' option cannot be used with the \verb'icup'
-cumulus convection schemes $2, 98, 99, 96$, which rely on the BATS1e landmask.
+\item The \verb'imask = 2' option cannot be used with the \verb'icup_lnd' or
+\verb'icup_ocn' cumulus convection schemes $2$, which rely on the BATS1e
+landmask.
 \end{enumerate}
 
 In the case of \verb=CLM= run, the user needs to run, after the \verb=terrain=

@@ -229,13 +229,13 @@ module mod_savefile
                                         icross1,icross2,'tdeltas_io')
       end if
 
-      if ( icup == 4 .or. icup == 97 .or. icup == 98 .or. icup == 99 ) then
+      if ( any(icup == 4) ) then
         call getmem2d(cbmf2d_io,jcross1,jcross2,icross1,icross2,'cbmf2d_io')
       end if
       if ( ipptls > 0 ) then
         call getmem3d(fcc_io,jcross1,jcross2,icross1,icross2,1,kz,'fcc_io')
       end if
-      if ( icup == 1 ) then
+      if ( any(icup == 1) ) then
         call getmem3d(rsheat_io,jcross1,jcross2, &
                                 icross1,icross2,1,kz,'rsheat_io')
         call getmem3d(rswat_io,jcross1,jcross2,icross1,icross2,1,kz,'rswat_io')
@@ -266,7 +266,7 @@ module mod_savefile
       if ( iocnflx == 2 ) then
         call getmem2d(zpbl_io,jcross1,jcross2,icross1,icross2,'zpbl_io')
       end if
-      if ( icup == 3 ) then
+      if ( any(icup == 3) ) then
         call getmem2d(cldefi_io,jcross1,jcross2,icross1,icross2,'cldefi_io')
         call getmem3d(tbase_io,jcross1,jcross2,icross1,icross2,1,kz,'tbase_io')
       end if
@@ -366,19 +366,19 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read tgbb')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'uvdrag'),uvdrag_io)
       call check_ok(__FILE__,__LINE__,'Cannot read uvdrag')
-      if ( icup == 1 ) then
+      if ( any(icup == 1) ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'rsheat'),rsheat_io)
         call check_ok(__FILE__,__LINE__,'Cannot read rsheat')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'rswat'),rswat_io)
         call check_ok(__FILE__,__LINE__,'Cannot read rswat')
       end if
-      if ( icup == 3 ) then
+      if ( any(icup == 3) ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'cldefi'),cldefi_io)
         call check_ok(__FILE__,__LINE__,'Cannot read cldefi')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'tbase'),tbase_io)
         call check_ok(__FILE__,__LINE__,'Cannot read tbase')
       end if
-      if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
+      if ( any(icup == 4) ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'cbmf2d'),cbmf2d_io)
         call check_ok(__FILE__,__LINE__,'Cannot read cbmf2d')
       end if
@@ -650,7 +650,7 @@ module mod_savefile
       ncstatus = nf90_def_var(ncid,'uvdrag',nf90_double,wrkdim(1:2),varids(21))
       call check_ok(__FILE__,__LINE__,'Cannot create var uvdrag')
       wrkdim(3) = dimids(idkh)
-      if ( icup == 1 ) then
+      if ( any(icup == 1) ) then
         ncstatus = nf90_def_var(ncid,'rsheat',nf90_double, &
                                 wrkdim(1:3),varids(22))
         call check_ok(__FILE__,__LINE__,'Cannot create var rsheat')
@@ -658,7 +658,7 @@ module mod_savefile
                                 wrkdim(1:3),varids(23))
         call check_ok(__FILE__,__LINE__,'Cannot create var rswat')
       end if
-      if ( icup == 3 ) then
+      if ( any(icup == 3) ) then
         ncstatus = nf90_def_var(ncid,'cldefi',nf90_double, &
                                 wrkdim(1:2),varids(24))
         call check_ok(__FILE__,__LINE__,'Cannot create var cldefi')
@@ -666,7 +666,7 @@ module mod_savefile
                                 wrkdim(1:3),varids(25))
         call check_ok(__FILE__,__LINE__,'Cannot create var tbase')
       end if
-      if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
+      if ( any(icup == 4) ) then
         ncstatus = nf90_def_var(ncid,'cbmf2d',nf90_double, &
                                 wrkdim(1:2),varids(26))
         call check_ok(__FILE__,__LINE__,'Cannot create var cbmf2d')
@@ -924,19 +924,19 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot write tgbb')
       ncstatus = nf90_put_var(ncid,varids(21),uvdrag_io)
       call check_ok(__FILE__,__LINE__,'Cannot write uvdrag')
-      if ( icup == 1 ) then
+      if ( any(icup == 1) ) then
         ncstatus = nf90_put_var(ncid,varids(22),rsheat_io)
         call check_ok(__FILE__,__LINE__,'Cannot write rsheat')
         ncstatus = nf90_put_var(ncid,varids(23),rswat_io)
         call check_ok(__FILE__,__LINE__,'Cannot write rswat')
       end if
-      if ( icup == 3 ) then
+      if ( any(icup == 3) ) then
         ncstatus = nf90_put_var(ncid,varids(24),cldefi_io)
         call check_ok(__FILE__,__LINE__,'Cannot write cldefi')
         ncstatus = nf90_put_var(ncid,varids(25),tbase_io)
         call check_ok(__FILE__,__LINE__,'Cannot write tbase')
       end if
-      if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
+      if ( any(icup == 4) ) then
         ncstatus = nf90_put_var(ncid,varids(26),cbmf2d_io)
         call check_ok(__FILE__,__LINE__,'Cannot write cbmf2d')
       end if

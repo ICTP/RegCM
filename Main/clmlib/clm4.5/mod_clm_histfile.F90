@@ -2639,6 +2639,8 @@ module mod_clm_histfile
     character(len=8) :: type2d          ! history buffer 2d type
     character(len=32) :: dim1name       ! temporary
     character(len=32) :: dim2name       ! temporary
+    character(len=32) :: dim3name       ! temporary
+    character(len=32) :: dim4name       ! temporary
     integer(ik4) :: status ! error status
     integer(ik4) :: dimid  ! dimension ID
     integer(ik4) :: k      ! 1d index
@@ -2752,11 +2754,12 @@ module mod_clm_histfile
                   cdims=(/dim1name/),long_name=trim(long_name_acc), &
                   units=trim(units_acc))
               else
+                dim2name = type2d
                 call clm_addvar(clmvar_double,ncid_hist(t),trim(name), &
-                  cdims=(/dim1name,type2d/),long_name=trim(long_name), &
+                  cdims=(/dim1name,dim2name/),long_name=trim(long_name), &
                   units=trim(units))
                 call clm_addvar(clmvar_double,ncid_hist(t),trim(name_acc), &
-                  cdims=(/dim1name,type2d/),long_name=trim(long_name_acc), &
+                  cdims=(/dim1name,dim2name/),long_name=trim(long_name_acc), &
                   units=trim(units_acc))
               end if
             else
@@ -2768,11 +2771,12 @@ module mod_clm_histfile
                   cdims=(/dim1name,dim2name/),long_name=trim(long_name_acc), &
                   units=trim(units_acc))
               else
+                dim3name = type2d
                 call clm_addvar(clmvar_double,ncid_hist(t),trim(name), &
-                  cdims=(/dim1name,dim2name,type2d/), &
+                  cdims=(/dim1name,dim2name,dim2name/), &
                   long_name=trim(long_name), units=trim(units))
                 call clm_addvar(clmvar_double,ncid_hist(t),trim(name_acc), &
-                  cdims=(/dim1name,dim2name,type2d/), &
+                  cdims=(/dim1name,dim2name,dim2name/), &
                   long_name=trim(long_name_acc), units=trim(units_acc))
               end if
             end if

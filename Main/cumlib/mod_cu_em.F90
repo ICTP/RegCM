@@ -87,9 +87,7 @@ module mod_cu_em
 
     do i = ici1 , ici2
       do j = jci1 , jci2
-        if ( icup /= 4 ) then
-          if ( cuscheme(j,i) /= 4 ) cycle
-        end if
+        if ( cuscheme(j,i) /= 4 ) cycle
         do k = 1 , kz
           kk = kzp1 - k
           tcup(k) = m2c%tas(j,i,kk)                         ! [k]

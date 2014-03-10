@@ -1,288 +1,344 @@
 module mod_clm_slaketemperature
+  !
+  ! Calculates lake temperatures.
+  !
+  use mod_intkinds
+  use mod_realkinds
+  use mod_runparams
 
-!-----------------------------------------------------------------------
-!BOP
-!
-! !MODULE: SLakeTemperatureMod
-!
-! !DESCRIPTION:
-! Calculates lake temperatures.
-!
-! !PUBLIC TYPES:
   implicit none
-  save
+
   private
-!
-! !PUBLIC MEMBER FUNCTIONS:
+
   public :: SLakeTemperature
-!
-! !PRIVATE MEMBER FUNCTIONS:
-  private :: SoilThermProp_Lake   ! Set therm conductivities and heat cap of snow/soil layers
-  private :: PhaseChange_Lake     ! Calculation of the phase change within snow/soil/lake layers
-!
-! !REVISION HISTORY:
-! Created by Zack Subin, 2009.
-!
-!EOP
-!-----------------------------------------------------------------------
 
-contains
+  ! Set therm conductivities and heat cap of snow/soil layers
+  private :: SoilThermProp_Lake
+  ! Calculation of the phase change within snow/soil/lake layers
+  private :: PhaseChange_Lake
 
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: SLakeTemperature
-!
-! !INTERFACE:
+  contains
+  !
+  ! Calculates temperatures in the 25-45 layer column of (possible) snow,
+  ! lake water, soil, and bedrock beneath lake.
+  ! Snow and soil temperatures are determined as in SoilTemperature, except
+  ! for appropriate boundary conditions at the top of the snow (the flux is
+  ! fixed to be the ground heat flux calculated in SLakeFluxes), the bottom
+  ! of the snow (adjacent to top lake layer), and the top of the soil
+  ! (adjacent to the bottom lake layer). Also, the soil is kept fully
+  ! saturated.
+  ! The whole column is solved simultaneously as one tridiagonal matrix.
+  ! Major changes from CLM4:
+  !    i) Lake water layers can freeze by any fraction and release latent
+  !       heat; thermal and mechanical properties are adjusted for ice fraction.
+  !   ii) Convective mixing (though not eddy diffusion) still occurs for
+  !       frozen lakes.
+  !  iii) No sunlight is absorbed in the lake if there are snow layersi
+  !       (except for that allowed through to the top "soil" layer by SNICAR)
+  !   iv) Light is allowed to reach the top soil layer (where it is assumed
+  !       to be completely absorbed).
+  !    v) Lakes have variable depth, set ultimately in surface data set but
+  !       now in initSLakeMod.
+  !   vi) The extinction coefficient is now variable with depth.
+  !  vii) The fraction of shortwave absorbed at the surface is now the NIR
+  !       fraction, rather than a fixed parameter.
+  ! viii) Enhanced background diffusion and option for increased mixing for
+  !       deep lakes is added.
+  !   See discussion in Subin et al. 2011
+  !   
+  !   Lakes are allowed to have variable depth, set in initSLakeMod.
+  !
+  ! Use the Crank-Nicholson method to set up tridiagonal system of equations to
+  ! solve for ts at time n+1, where the temperature equation for layer i is
+  ! r_i = a_i [ts_i-1] n+1 + b_i [ts_i] n+1 + c_i [ts_i+1] n+1
+  !
+  ! The solution conserves energy as:
+  !
+  !
+  ! cv*([ts(top soisno layer)] n+1 - [ts(top soisno layer)] n)*dz
+  !          (top soisno layer)/dt + ... +
+  ! cv*([ts(nlevlak+nlevgrnd)] n+1 - [ts(nlevlak+nlevgrnd)] n)*dz
+  !          (nlevlak+nlevgrnd)/dt = eflx_soil_grnd
+  ! cv is not constant.
+  ! ts is with respect to freezing temperature, as there is a discontinuity
+  ! in cv at this temperature.
+  !
+  ! where:
+  ! [ts] n   = old temperature (kelvin)
+  ! [ts] n+1 = new temperature (kelvin)
+  ! eflx_soil_grnd      = energy flux into lake (w/m**2)
+  !          = betaprime*sabg + forc_lwrad - eflx_lwrad_out -
+  !            eflx_sh_tot - eflx_lh_tot
+  !          (This is now the same as the ground heat flux.)
+  !            + phi(1) + ... + phi(nlevlak) + phi(top soil level)
+  ! betaprime = beta (NIR fraction) for no snow layers, and
+  !  sabg_lyr(p,jtop)/sabg(p) for snow layers.
+  !
+  ! WARNING: This subroutine assumes lake columns have one and only one pft.
+  !
+  ! Outline:
+  !   1!) Initialization
+  !   2!) Lake density
+  !   3!) Diffusivity
+  !   4!) Heat source term from solar radiation penetrating lake
+  !   5!) Set thermal props and find initial energy content
+  !   6!) Set up vectors for tridiagonal matrix solution
+  !   7!) Solve tridiagonal and back-substitute
+  !   8!) (Optional) Do first energy check using temperature change at
+  !     constant heat capacity.
+  !   9!) Phase change
+  ! 9.5!) (Optional) Do second energy check using temperature change
+  !       and latent heat, considering changed heat capacity.
+  !       Also do soil water balance check.
+  !  10!) Convective mixing 
+  !  11!) Do final energy check to detect small numerical errors
+  !       (especially from convection) and dump small imbalance into
+  !       sensible heat, or pass large errors to BalanceCheckMod for abort.
+  !
   subroutine SLakeTemperature(lbc, ubc, lbp, ubp, num_lakec, filter_lakec, &
                                num_lakep, filter_lakep)
-!
-! !DESCRIPTION:
-! Calculates temperatures in the 25-45 layer column of (possible) snow,
-! lake water, soil, and bedrock beneath lake.
-! Snow and soil temperatures are determined as in SoilTemperature, except
-! for appropriate boundary conditions at the top of the snow (the flux is fixed
-! to be the ground heat flux calculated in SLakeFluxes), the bottom of the snow
-! (adjacent to top lake layer), and the top of the soil (adjacent to the bottom
-! lake layer). Also, the soil is kept fully saturated.
-! The whole column is solved simultaneously as one tridiagonal matrix.
-! Major changes from CLM4:
-!    i) Lake water layers can freeze by any fraction and release latent heat; thermal
-!       and mechanical properties are adjusted for ice fraction.
-!   ii) Convective mixing (though not eddy diffusion) still occurs for frozen lakes.
-!  iii) No sunlight is absorbed in the lake if there are snow layers (except for that allowed through
-!                                                                     to the top "soil" layer by SNICAR)
-!   iv) Light is allowed to reach the top soil layer (where it is assumed to be completely absorbed).
-!    v) Lakes have variable depth, set ultimately in surface data set but now in initSLakeMod.
-!   vi) The extinction coefficient is now variable with depth.
-!   vii) The fraction of shortwave absorbed at the surface is now the NIR fraction, rather than a fixed parameter.
-!   viii) Enhanced background diffusion and option for increased mixing for deep lakes is added.
-!   See discussion in Subin et al. 2011
-!   
-!   Lakes are allowed to have variable depth, set in initSLakeMod.
-!
-! Use the Crank-Nicholson method to set up tridiagonal system of equations to
-! solve for ts at time n+1, where the temperature equation for layer i is
-! r_i = a_i [ts_i-1] n+1 + b_i [ts_i] n+1 + c_i [ts_i+1] n+1
-!
-! The solution conserves energy as:
-!
-!
-! cv*([ts(top soisno layer)] n+1 - [ts(top soisno layer)] n)*dz(top soisno layer)/dt + ... +
-! cv*([ts(nlevlak+nlevgrnd)] n+1 - [ts(nlevlak+nlevgrnd)] n)*dz(nlevlak+nlevgrnd)/dt = eflx_soil_grnd
-! cv is not constant.
-! ts is with respect to freezing temperature, as there is a discontinuity in cv at this temperature.
-!
-! where:
-! [ts] n   = old temperature (kelvin)
-! [ts] n+1 = new temperature (kelvin)
-! eflx_soil_grnd      = energy flux into lake (w/m**2)
-!          = betaprime*sabg + forc_lwrad - eflx_lwrad_out - eflx_sh_tot - eflx_lh_tot
-!          (This is now the same as the ground heat flux.)
-!            + phi(1) + ... + phi(nlevlak) + phi(top soil level)
-! betaprime = beta (NIR fraction) for no snow layers, and sabg_lyr(p,jtop)/sabg(p) for snow layers.
-!
-! WARNING: This subroutine assumes lake columns have one and only one pft.
-!
-! Outline:
-! 1!) Initialization
-! 2!) Lake density
-! 3!) Diffusivity
-! 4!) Heat source term from solar radiation penetrating lake
-! 5!) Set thermal props and find initial energy content
-! 6!) Set up vectors for tridiagonal matrix solution
-! 7!) Solve tridiagonal and back-substitute
-! 8!) (Optional) Do first energy check using temperature change at constant heat capacity.
-! 9!) Phase change
-! 9.5!) (Optional) Do second energy check using temperature change and latent heat, considering changed heat capacity.
-!                  Also do soil water balance check.
-!10!) Convective mixing 
-!11!) Do final energy check to detect small numerical errors (especially from convection)
-!     and dump small imbalance into sensible heat, or pass large errors to BalanceCheckMod for abort.
-!
-!
-! !USES:
     use mod_realkinds
     use mod_stdio
     use mod_clm_type
-    use mod_clm_atmlnd         , only : clm_a2l
-    use mod_clm_time_manager       , only : get_step_size
-    use mod_clm_varcon         , only : hfus, cpliq, cpice, tkwat, tkice, denice, &
-                                    vkc, grav, denh2o, tfrz, spval, cnfac
-    use mod_clm_slakecon           , only : betavis, za_lake, n2min, tdmax
-    use mod_clm_slakecon           , only : pudz
-    use mod_clm_slakecon           , only : depthcrit, mixfact
-    use mod_clm_varpar         , only : nlevlak, nlevgrnd, nlevsno
-    use mod_clm_qsat            , only : QSat
-    use mod_clm_tridiagonal     , only : Tridiagonal
-    use mod_clm_slakecon           , only : lakepuddling, lake_no_ed
-!
-! !ARGUMENTS:
+    use mod_clm_atmlnd , only : clm_a2l
+    use mod_clm_varcon , only : hfus, cpliq, cpice, tkwat, tkice, denice, &
+                                vkc, grav, denh2o, tfrz, spval, cnfac
+    use mod_clm_slakecon , only : betavis, za_lake, n2min, tdmax
+    use mod_clm_slakecon , only : pudz
+    use mod_clm_slakecon , only : depthcrit, mixfact
+    use mod_clm_varpar , only : nlevlak, nlevgrnd, nlevsno
+    use mod_clm_qsat , only : QSat
+    use mod_clm_tridiagonal , only : Tridiagonal
+    use mod_clm_slakecon , only : lakepuddling, lake_no_ed
     implicit none
-    integer, intent(in) :: lbc, ubc                ! column-index bounds
-    integer, intent(in) :: lbp, ubp                ! pft-index bounds
-    integer, intent(in) :: num_lakec               ! number of column non-lake points in column filter
-    integer, intent(in) :: filter_lakec(ubc-lbc+1) ! column filter for non-lake points
-    integer, intent(in) :: num_lakep               ! number of column non-lake points in pft filter
-    integer, intent(in) :: filter_lakep(ubp-lbp+1) ! pft filter for non-lake points
-!
-! !CALLED FROM:
-! subroutine driver
-!
-! !REVISION HISTORY:
-! Author: Zack Subin, 2009
-!
-! !LOCAL VARIABLES:
-!
-! local pointers to implicit in arguments
-!
-    integer , pointer :: pcolumn(:)         ! pft's column index
-    integer , pointer :: pgridcell(:)       ! pft's gridcell index
-    integer , pointer :: cgridcell(:)       ! column's gridcell index
-    real(rk8), pointer :: t_grnd(:)          ! ground temperature (Kelvin)
-    real(rk8), pointer :: h2osno(:)          ! snow water (mm H2O)
-    real(rk8), pointer :: sabg(:)            ! solar radiation absorbed by ground (W/m**2)
-    real(rk8), pointer :: dz(:,:)            ! layer thickness for snow & soil (m)
-    real(rk8), pointer :: dz_lake(:,:)       ! layer thickness for lake (m)
-    real(rk8), pointer :: z(:,:)             ! layer depth for snow & soil (m)
-    real(rk8), pointer :: zi(:,:)            ! interface level below a "z" level (m)
-                                            ! Note: this is defined for -nlevsno, unlike
-                                            ! the other z and dz variables
-    real(rk8), pointer :: z_lake(:,:)        ! layer depth for lake (m)
-    real(rk8), pointer :: ws(:)              ! surface friction velocity (m/s)
-    real(rk8), pointer :: ks(:)              ! coefficient passed to SLakeTemperature
-                                            !     for calculation of decay of eddy diffusivity with depth
-    integer , pointer :: snl(:)             ! negative of number of snow layers
-    real(rk8), pointer :: lakedepth(:)       ! column lake depth (m)
-    real(rk8), pointer :: etal(:)            ! extinction coefficient from surface data (1/m)
+    integer(ik4), intent(in) :: lbc, ubc ! column-index bounds
+    integer(ik4), intent(in) :: lbp, ubp ! pft-index bounds
+    ! number of column non-lake points in column filter
+    integer(ik4), intent(in) :: num_lakec
+    ! column filter for non-lake points
+    integer(ik4), intent(in) :: filter_lakec(ubc-lbc+1)
+    ! number of column non-lake points in pft filter
+    integer(ik4), intent(in) :: num_lakep
+    ! pft filter for non-lake points
+    integer(ik4), intent(in) :: filter_lakep(ubp-lbp+1)
+
+    integer(ik4) , pointer :: pcolumn(:)    ! pft's column index
+    integer(ik4) , pointer :: pgridcell(:)  ! pft's gridcell index
+    integer(ik4) , pointer :: cgridcell(:)  ! column's gridcell index
+    real(rk8), pointer :: t_grnd(:)  ! ground temperature (Kelvin)
+    real(rk8), pointer :: h2osno(:)  ! snow water (mm H2O)
+    real(rk8), pointer :: sabg(:)  ! solar radiation absorbed by ground (W/m**2)
+    real(rk8), pointer :: dz(:,:)  ! layer thickness for snow & soil (m)
+    real(rk8), pointer :: dz_lake(:,:) ! layer thickness for lake (m)
+    real(rk8), pointer :: z(:,:)       ! layer depth for snow & soil (m)
+    ! Note: this is defined for -nlevsno, unlike the other z and dz variables
+    real(rk8), pointer :: zi(:,:)      ! interface level below a "z" level (m)
+    real(rk8), pointer :: z_lake(:,:)  ! layer depth for lake (m)
+    real(rk8), pointer :: ws(:)        ! surface friction velocity (m/s)
+    ! for calculation of decay of eddy diffusivity with depth
+    real(rk8), pointer :: ks(:)    ! coefficient passed to SLakeTemperature
+    integer(ik4) , pointer :: snl(:)    ! negative of number of snow layers
+    real(rk8), pointer :: lakedepth(:)  ! column lake depth (m)
+    ! extinction coefficient from surface data (1/m)
+    real(rk8), pointer :: etal(:)
     ! variables needed for SNICAR
-    real(rk8), pointer :: sabg_lyr(:,:)      ! absorbed solar radiation (pft,lyr) [W/m2]
-    !   Calculation of beta depending on NIR fraction of sabg
-    real(rk8), pointer :: fsds_nir_d(:)    ! incident direct beam nir solar radiation (W/m**2)
-    real(rk8), pointer :: fsds_nir_i(:)    ! incident diffuse nir solar radiation (W/m**2)
-    real(rk8), pointer :: fsr_nir_d(:)     ! reflected direct beam nir solar radiation (W/m**2)
-    real(rk8), pointer :: fsr_nir_i(:)     ! reflected diffuse nir solar radiation (W/m**2)
+    ! absorbed solar radiation (pft,lyr) [W/m2]
+    real(rk8), pointer :: sabg_lyr(:,:)
+    ! Calculation of beta depending on NIR fraction of sabg
+    ! incident direct beam nir solar radiation (W/m**2)
+    real(rk8), pointer :: fsds_nir_d(:)
+    ! incident diffuse nir solar radiation (W/m**2)
+    real(rk8), pointer :: fsds_nir_i(:)
+    ! reflected direct beam nir solar radiation (W/m**2)
+    real(rk8), pointer :: fsr_nir_d(:)
+    ! reflected diffuse nir solar radiation (W/m**2)
+    real(rk8), pointer :: fsr_nir_i(:)
     ! New for CH4 Model
 #ifdef LCH4
-    real(rk8), pointer :: lake_raw(:)        !aerodynamic resistance for moisture (s/m)
+    !aerodynamic resistance for moisture (s/m)
+    real(rk8), pointer :: lake_raw(:)
 #endif
-!
-! local pointers to implicit out arguments
-!
-    real(rk8), pointer :: eflx_sh_grnd(:)    ! sensible heat flux from ground (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_tot(:)     ! total sensible heat flux (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_soil_grnd(:)  ! heat flux into snow / lake (W/m**2) [+ = into soil]
-                                            ! Here this includes the whole lake radiation absorbed.
-    real(rk8), pointer :: eflx_grnd_lake(:)  ! net heat flux into lake / snow surface, excluding light transmission (W/m**2)
-    real(rk8), pointer :: eflx_gnet(:)       ! net heat flux into ground (W/m**2) at the surface interface
-    real(rk8), pointer :: errsoi(:)          ! soil/lake energy conservation error (W/m**2)
-    real(rk8), pointer :: t_lake(:,:)        ! lake temperature (Kelvin)
-    real(rk8), pointer :: t_soisno(:,:)      ! soil (or snow) temperature (Kelvin)
-    real(rk8), pointer :: h2osoi_liq(:,:)    ! liquid water (kg/m2) [for snow & soil layers]
-    real(rk8), pointer :: h2osoi_ice(:,:)    ! ice lens (kg/m2) [for snow & soil layers]
-    real(rk8), pointer :: lake_icefrac(:,:)  ! mass fraction of lake layer that is frozen
-    real(rk8), pointer :: lake_icethick(:)   ! ice thickness (m) (integrated if lakepuddling)
-    real(rk8), pointer :: savedtke1(:)       ! top level eddy conductivity (W/mK)
-    real(rk8), pointer :: frac_iceold(:,:)   ! fraction of ice relative to the tot water
-    real(rk8), pointer :: qflx_snofrz_col(:) !column-integrated snow freezing rate (kg m-2 s-1) [+]
+    ! sensible heat flux from ground (W/m**2) [+ to atm]
+    real(rk8), pointer :: eflx_sh_grnd(:)
+    ! total sensible heat flux (W/m**2) [+ to atm]
+    real(rk8), pointer :: eflx_sh_tot(:)
+    ! heat flux into snow / lake (W/m**2) [+ = into soil]
+    ! Here this includes the whole lake radiation absorbed.
+    real(rk8), pointer :: eflx_soil_grnd(:)
+    ! net heat flux into lake / snow surface, excluding light
+    ! transmission (W/m**2)
+    real(rk8), pointer :: eflx_grnd_lake(:)
+    ! net heat flux into ground (W/m**2) at the surface interface
+    real(rk8), pointer :: eflx_gnet(:)
+    ! soil/lake energy conservation error (W/m**2)
+    real(rk8), pointer :: errsoi(:)
+    ! lake temperature (Kelvin)
+    real(rk8), pointer :: t_lake(:,:)
+    ! soil (or snow) temperature (Kelvin)
+    real(rk8), pointer :: t_soisno(:,:)
+    ! liquid water (kg/m2) [for snow & soil layers]
+    real(rk8), pointer :: h2osoi_liq(:,:)
+    ! ice lens (kg/m2) [for snow & soil layers]
+    real(rk8), pointer :: h2osoi_ice(:,:)
+    ! mass fraction of lake layer that is frozen
+    real(rk8), pointer :: lake_icefrac(:,:)
+    ! ice thickness (m) integrated if lakepuddling)
+    real(rk8), pointer :: lake_icethick(:)
+    ! top level eddy conductivity (W/mK)
+    real(rk8), pointer :: savedtke1(:)
+    ! fraction of ice relative to the tot water
+    real(rk8), pointer :: frac_iceold(:,:)
+    !column-integrated snow freezing rate (kg m-2 s-1) [+]
+    real(rk8), pointer :: qflx_snofrz_col(:)
     ! New for CLM 4
-    real(rk8), pointer :: hc_soi(:)          ! soil heat content (MJ/m2)
-    real(rk8), pointer :: hc_soisno(:)       ! soil plus snow plus lake heat content (MJ/m2)
+    ! soil heat content (MJ/m2)
+    real(rk8), pointer :: hc_soi(:)
+    ! soil plus snow plus lake heat content (MJ/m2)
+    real(rk8), pointer :: hc_soisno(:)
     ! For CH4 Model
 #ifdef LCH4
-    real(rk8), pointer :: grnd_ch4_cond(:)   ! tracer heat conductance for ground [m/s]
-                                            ! This will be calculated with the total lake thermal resistance
-                                            ! and the aerodyn. resist. (calc in SLakeFluxes).
-                                            ! In lakes, the column variable only is used.
+    ! tracer heat conductance for ground [m/s]
+    ! This will be calculated with the total lake thermal resistance
+    ! and the aerodyn. resist. (calc in SLakeFluxes).
+    ! In lakes, the column variable only is used.
+    real(rk8), pointer :: grnd_ch4_cond(:) 
 #endif
-!
-!EOP
-!
-! !OTHER LOCAL VARIABLES:
-!
-    real(rk8), parameter :: p0 = 1.D0   ! neutral value of turbulent prandtl number
-    integer  :: i,j,fc,fp,g,c,p         ! do loop or array index
-    real(rk8) :: dtime                   ! land model time step (sec)
-    real(rk8) :: beta(lbc:ubc)           ! fraction of solar rad absorbed at surface: equal to NIR fraction
-                                        ! of surface absorbed shortwave
-    real(rk8) :: eta                     ! light extinction coefficient (/m): depends on lake type
-    real(rk8) :: cwat                    ! specific heat capacity of water (j/m**3/kelvin)
-    real(rk8) :: cice_eff                ! effective heat capacity of ice (using density of
-                                        ! water because layer depth is not adjusted when freezing
-    real(rk8) :: cfus                    ! effective heat of fusion per unit volume
-                                        ! using water density as above
-    real(rk8) :: km                      ! molecular diffusion coefficient (m**2/s)
-    real(rk8) :: tkice_eff               ! effective conductivity since layer depth is constant
-    real(rk8) :: a(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)      ! "a" vector for tridiagonal matrix
-    real(rk8) :: b(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)      ! "b" vector for tridiagonal matrix
-    real(rk8) :: c1(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)     ! "c" vector for tridiagonal matrix
-    real(rk8) :: r(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)      ! "r" vector for tridiagonal solution
-    real(rk8) :: rhow(lbc:ubc,nlevlak)   ! density of water (kg/m**3)
-    real(rk8) :: phi(lbc:ubc,nlevlak)    ! solar radiation absorbed by layer (w/m**2)
-    real(rk8) :: kme(lbc:ubc,nlevlak)    ! molecular + eddy diffusion coefficient (m**2/s)
-    real(rk8) :: rsfin                   ! relative flux of solar radiation into layer
-    real(rk8) :: rsfout                  ! relative flux of solar radiation out of layer
-    real(rk8) :: phi_soil(lbc:ubc)       ! solar radiation into top soil layer (W/m**2)
-    real(rk8) :: ri                      ! richardson number
-    real(rk8) :: fin(lbc:ubc)            ! net heat flux into lake at ground interface (w/m**2)
-    real(rk8) :: ocvts(lbc:ubc)          ! (cwat*(t_lake[n  ])*dz
-    real(rk8) :: ncvts(lbc:ubc)          ! (cwat*(t_lake[n+1])*dz
-    real(rk8) :: ke                      ! eddy diffusion coefficient (m**2/s)
-    real(rk8) :: zin                     ! depth at top of layer (m)
-    real(rk8) :: zout                    ! depth at bottom of layer (m)
-    real(rk8) :: drhodz                  ! d [rhow] /dz (kg/m**4)
-    real(rk8) :: n2                      ! brunt-vaisala frequency (/s**2)
-    real(rk8) :: num                     ! used in calculating ri
-    real(rk8) :: den                     ! used in calculating ri
-    real(rk8) :: tav_froz(lbc:ubc)       ! used in aver temp for convectively mixed layers (C)
-    real(rk8) :: tav_unfr(lbc:ubc)       ! "
-    real(rk8) :: nav(lbc:ubc)            ! used in aver temp for convectively mixed layers
-    real(rk8) :: phidum                  ! temporary value of phi
-    real(rk8) :: iceav(lbc:ubc)          ! used in calc aver ice for convectively mixed layers
-    real(rk8) :: qav(lbc:ubc)            ! used in calc aver heat content for conv. mixed layers
-    integer  :: jtop(lbc:ubc)           ! top level for each column (no longer all 1)
-    real(rk8) :: cv (lbc:ubc,-nlevsno+1:nlevgrnd) ! heat capacity of soil/snow [J/(m2 K)]
-    real(rk8) :: tk (lbc:ubc,-nlevsno+1:nlevgrnd) ! thermal conductivity of soil/snow [W/(m K)]
-                                                 ! (at interface below, except for j=0)
-    real(rk8) :: cv_lake (lbc:ubc,1:nlevlak)      ! heat capacity [J/(m2 K)]
-    real(rk8) :: tk_lake (lbc:ubc,1:nlevlak)      ! thermal conductivity at layer node [W/(m K)]
-    real(rk8) :: cvx (lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd) ! heat capacity for whole column [J/(m2 K)]
-    real(rk8) :: tkix(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd) ! thermal conductivity at layer interfaces
-                                                          ! for whole column [W/(m K)]
-    real(rk8) :: tx(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)   ! temperature of whole column [K]
-    real(rk8) :: tktopsoillay(lbc:ubc)                     ! thermal conductivity [W/(m K)]
-    real(rk8) :: fnx(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)  ! heat diffusion through the layer interface below [W/m2]
-    real(rk8) :: phix(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd) ! solar source term for whole column [W/m**2]
-    real(rk8) :: zx(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)   ! interface depth (+ below surface) for whole column [m]
-    real(rk8) :: dzm                                       ! used in computing tridiagonal matrix [m]
-    real(rk8) :: dzp                                       ! used in computing tridiagonal matrix [m]
-    integer  :: jprime                                    ! j - nlevlak
-    real(rk8) :: factx(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)! coefficient used in computing tridiagonal matrix
-    real(rk8) :: t_lake_bef(lbc:ubc,1:nlevlak)             ! beginning lake temp for energy conservation check [K]
-    real(rk8) :: t_soisno_bef(lbc:ubc,-nlevsno+1:nlevgrnd) ! beginning soil temp for E cons. check [K]
-    real(rk8) :: lhabs(lbc:ubc)                            ! total per-column latent heat abs. from phase change  (J/m^2)
-    real(rk8) :: esum1(lbc:ubc)                            ! temp for checking energy (J/m^2)
-    real(rk8) :: esum2(lbc:ubc)                            ! ""
-    real(rk8) :: zsum(lbc:ubc)                             ! temp for putting ice at the top during convection (m)
-    real(rk8) :: wsum(lbc:ubc)                             ! temp for checking water (kg/m^2)
-    real(rk8) :: wsum_end(lbc:ubc)                         ! temp for checking water (kg/m^2)
-    real(rk8) :: sabg_col(lbc:ubc)                         ! absorbed ground solar for column (W/m^2)
-    real(rk8) :: sabg_lyr_col(lbc:ubc,-nlevsno+1:1)        ! absorbed ground solar in layer for column (W/m^2)
-    real(rk8) :: sabg_nir                                  ! NIR that is absorbed (W/m^2)
-    integer  :: jconvect(lbc:ubc)                         ! Lowest level where convection occurs
-    integer  :: jconvectbot(lbc:ubc)                      ! Hightest level where bottom-originating convection occurs
-    logical  :: bottomconvect(lbc:ubc)                    ! Convection originating in bottom layer of lake triggers special convection loop
-    real(rk8) :: lakeresist(lbc:ubc)                       ! [s/m] (Needed for calc. of grnd_ch4_cond)
-    real(rk8) :: fangkm ! (m^2/s) extra diffusivity based on Fang & Stefan 1996, citing Ellis, 1991
-                       ! They think that mixing energy will generally get into lake to make
-                       ! diffusivity exceed molecular; the energy is damped out according to the Brunt-Vaisala
-                       ! frequency, yielding a maximum diffusivity for neutral stability of about 6 times molecular
+    ! neutral value of turbulent prandtl number
+    real(rk8), parameter :: p0 = 1.D0
+    ! do loop or array index
+    integer(ik4)  :: i,j,fc,fp,g,c,p
+    ! fraction of solar rad absorbed at surface: equal to NIR fraction
+    ! of surface absorbed shortwave
+    real(rk8) :: beta(lbc:ubc)
+    ! light extinction coefficient (/m): depends on lake type
+    real(rk8) :: eta
+    ! specific heat capacity of water (j/m**3/kelvin)
+    real(rk8) :: cwat
+    ! effective heat capacity of ice (using density of
+    ! water because layer depth is not adjusted when freezing
+    real(rk8) :: cice_eff
+    ! effective heat of fusion per unit volume
+    ! using water density as above
+    real(rk8) :: cfus
+    ! molecular diffusion coefficient (m**2/s)
+    real(rk8) :: km
+    ! effective conductivity since layer depth is constant
+    real(rk8) :: tkice_eff
+    ! "a" vector for tridiagonal matrix
+    real(rk8) :: a(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)
+    ! "b" vector for tridiagonal matrix
+    real(rk8) :: b(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)
+    ! "c" vector for tridiagonal matrix
+    real(rk8) :: c1(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)
+    ! "r" vector for tridiagonal solution
+    real(rk8) :: r(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)
+    ! density of water (kg/m**3)
+    real(rk8) :: rhow(lbc:ubc,nlevlak)
+    ! solar radiation absorbed by layer (w/m**2)
+    real(rk8) :: phi(lbc:ubc,nlevlak)
+    ! molecular + eddy diffusion coefficient (m**2/s)
+    real(rk8) :: kme(lbc:ubc,nlevlak)
+    ! relative flux of solar radiation into layer
+    real(rk8) :: rsfin
+    ! relative flux of solar radiation out of layer
+    real(rk8) :: rsfout
+    ! solar radiation into top soil layer (W/m**2)
+    real(rk8) :: phi_soil(lbc:ubc)
+    ! richardson number
+    real(rk8) :: ri
+    ! net heat flux into lake at ground interface (w/m**2)
+    real(rk8) :: fin(lbc:ubc)
+    ! (cwat*(t_lake[n  ])*dz
+    real(rk8) :: ocvts(lbc:ubc)
+    ! (cwat*(t_lake[n+1])*dz
+    real(rk8) :: ncvts(lbc:ubc)
+    ! eddy diffusion coefficient (m**2/s)
+    real(rk8) :: ke
+    ! depth at top of layer (m)
+    real(rk8) :: zin
+    ! depth at bottom of layer (m)
+    real(rk8) :: zout
+    ! d [rhow] /dz (kg/m**4)
+    real(rk8) :: drhodz
+    ! brunt-vaisala frequency (/s**2)
+    real(rk8) :: n2
+    real(rk8) :: num ! used in calculating ri
+    real(rk8) :: den ! used in calculating ri
+    ! used in aver temp for convectively mixed layers (C)
+    real(rk8) :: tav_froz(lbc:ubc)
+    real(rk8) :: tav_unfr(lbc:ubc)
+    ! used in aver temp for convectively mixed layers
+    real(rk8) :: nav(lbc:ubc)
+    real(rk8) :: phidum  ! temporary value of phi
+    ! used in calc aver ice for convectively mixed layers
+    real(rk8) :: iceav(lbc:ubc)
+    ! used in calc aver heat content for conv. mixed layers
+    real(rk8) :: qav(lbc:ubc)
+    ! top level for each column (no longer all 1)
+    integer(ik4) :: jtop(lbc:ubc) 
+    ! heat capacity of soil/snow [J/(m2 K)]
+    real(rk8) :: cv (lbc:ubc,-nlevsno+1:nlevgrnd)
+    ! thermal conductivity of soil/snow [W/(m K)]
+    ! (at interface below, except for j=0)
+    real(rk8) :: tk (lbc:ubc,-nlevsno+1:nlevgrnd)
+    real(rk8) :: cv_lake (lbc:ubc,1:nlevlak) ! heat capacity [J/(m2 K)]
+    ! thermal conductivity at layer node [W/(m K)]
+    real(rk8) :: tk_lake (lbc:ubc,1:nlevlak)
+    ! heat capacity for whole column [J/(m2 K)]
+    real(rk8) :: cvx (lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)
+    ! thermal conductivity at layer interfaces
+    ! for whole column [W/(m K)]
+    real(rk8) :: tkix(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)
+    ! temperature of whole column [K]
+    real(rk8) :: tx(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)
+    ! thermal conductivity [W/(m K)]
+    real(rk8) :: tktopsoillay(lbc:ubc)
+    ! heat diffusion through the layer interface below [W/m2]
+    real(rk8) :: fnx(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)
+    ! solar source term for whole column [W/m**2]
+    real(rk8) :: phix(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)
+    ! interface depth (+ below surface) for whole column [m]
+    real(rk8) :: zx(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)
+    real(rk8) :: dzm     ! used in computing tridiagonal matrix [m]
+    real(rk8) :: dzp     ! used in computing tridiagonal matrix [m]
+    integer(ik4)  :: jprime   ! j - nlevlak
+    ! coefficient used in computing tridiagonal matrix
+    real(rk8) :: factx(lbc:ubc,-nlevsno+1:nlevlak+nlevgrnd)
+    ! beginning lake temp for energy conservation check [K]
+    real(rk8) :: t_lake_bef(lbc:ubc,1:nlevlak)
+    ! beginning soil temp for E cons. check [K]
+    real(rk8) :: t_soisno_bef(lbc:ubc,-nlevsno+1:nlevgrnd)
+    ! total per-column latent heat abs. from phase change  (J/m^2)
+    real(rk8) :: lhabs(lbc:ubc)
+    real(rk8) :: esum1(lbc:ubc)  ! temp for checking energy (J/m^2)
+    real(rk8) :: esum2(lbc:ubc)  ! ""
+    ! temp for putting ice at the top during convection (m)
+    real(rk8) :: zsum(lbc:ubc)
+    real(rk8) :: wsum(lbc:ubc)   ! temp for checking water (kg/m^2)
+    real(rk8) :: wsum_end(lbc:ubc) ! temp for checking water (kg/m^2)
+    real(rk8) :: sabg_col(lbc:ubc) ! absorbed ground solar for column (W/m^2)
+    ! absorbed ground solar in layer for column (W/m^2)
+    real(rk8) :: sabg_lyr_col(lbc:ubc,-nlevsno+1:1)
+    real(rk8) :: sabg_nir ! NIR that is absorbed (W/m^2)
+    ! Lowest level where convection occurs
+    integer(ik4)  :: jconvect(lbc:ubc)
+    ! Hightest level where bottom-originating convection occurs
+    integer(ik4)  :: jconvectbot(lbc:ubc)
+    ! Convection originating in bottom layer of lake triggers
+    ! special convection loop
+    logical  :: bottomconvect(lbc:ubc)
+    ! [s/m] (Needed for calc. of grnd_ch4_cond)
+    real(rk8) :: lakeresist(lbc:ubc)
+    ! (m^2/s) extra diffusivity based on Fang & Stefan 1996, citing Ellis, 1991
+    ! They think that mixing energy will generally get into lake to make
+    ! diffusivity exceed molecular; the energy is damped out according to
+    ! the Brunt-Vaisala frequency, yielding a maximum diffusivity for
+    ! neutral stability of about 6 times molecular
+    real(rk8) :: fangkm
     ! For puddling
     logical  :: puddle(lbc:ubc)
     real(rk8) :: icesum(lbc:ubc) ! m
     logical  :: frzn(lbc:ubc)
-
-!-----------------------------------------------------------------------
 
     ! Assign local pointers to derived type members (column-level)
 
@@ -335,7 +391,6 @@ contains
     ! 1!) Initialization
     ! Determine step size
 
-    dtime = get_step_size()
 
     ! Initialize constants
     cwat = cpliq*denh2o ! water heat capacity per unit volume
@@ -689,10 +744,10 @@ contains
           c = filter_lakec(fc)
           if (j >= jtop(c)) then
              if (j < nlevlak+nlevgrnd) then !top or interior layer
-                factx(c,j) = dtime/cvx(c,j)
+                factx(c,j) = dtsrf/cvx(c,j)
                 fnx(c,j) = tkix(c,j)*(tx(c,j+1)-tx(c,j))/(zx(c,j+1)-zx(c,j))
              else !bottom soil layer
-                factx(c,j) = dtime/cvx(c,j)
+                factx(c,j) = dtsrf/cvx(c,j)
                 fnx(c,j) = 0.D0 !not used
              end if
           end if
@@ -1072,7 +1127,7 @@ contains
     do fp = 1, num_lakep
        p = filter_lakep(fp)
        c = pcolumn(p)
-       errsoi(c) = (ncvts(c)-ocvts(c)) / dtime - fin(c)
+       errsoi(c) = (ncvts(c)-ocvts(c)) / dtsrf - fin(c)
        if (abs(errsoi(c)) < 0.10D0) then ! else send to Balance Check and abort
           eflx_sh_tot(p) = eflx_sh_tot(p) - errsoi(c)
           eflx_sh_grnd(p) = eflx_sh_grnd(p) - errsoi(c)
@@ -1137,9 +1192,9 @@ contains
 !
 ! !ARGUMENTS:
     implicit none
-    integer , intent(in)  :: lbc, ubc                       ! column bounds
-    integer , intent(in)  :: num_lakec                      ! number of column lake points in column filter
-    integer , intent(in)  :: filter_lakec(ubc-lbc+1)        ! column filter for lake points
+    integer(ik4) , intent(in)  :: lbc, ubc                       ! column bounds
+    integer(ik4) , intent(in)  :: num_lakec                      ! number of column lake points in column filter
+    integer(ik4) , intent(in)  :: filter_lakec(ubc-lbc+1)        ! column filter for lake points
     real(rk8), intent(out) :: cv(lbc:ubc,-nlevsno+1:nlevgrnd)! heat capacity [J/(m2 K)]
     real(rk8), intent(out) :: tk(lbc:ubc,-nlevsno+1:nlevgrnd)! thermal conductivity [W/(m K)]
     real(rk8), intent(out) :: tktopsoillay(lbc:ubc)          ! thermal conductivity [W/(m K)]
@@ -1158,7 +1213,7 @@ contains
 !
 ! local pointers to original implicit in scalars
 !
-    integer , pointer :: snl(:)           ! number of snow layers
+    integer(ik4) , pointer :: snl(:)           ! number of snow layers
 !
 ! local pointers to original implicit in arrays
 !
@@ -1178,8 +1233,8 @@ contains
 !
 ! !OTHER LOCAL VARIABLES:
 !
-    integer  :: l,c,j                     ! indices
-    integer  :: fc                        ! lake filtered column indices
+    integer(ik4)  :: l,c,j                     ! indices
+    integer(ik4)  :: fc                        ! lake filtered column indices
     real(rk8) :: bw                        ! partial density of water (ice + liquid)
     real(rk8) :: dksat                     ! thermal conductivity for saturated soil (j/(k s m))
     real(rk8) :: dke                       ! kersten number
@@ -1338,15 +1393,14 @@ contains
 ! !USES:
     use mod_realkinds
     use mod_clm_type
-    use mod_clm_time_manager, only : get_step_size
     use mod_clm_varcon  , only : tfrz, hfus, denh2o, denice, cpliq, cpice
     use mod_clm_varpar  , only : nlevsno, nlevgrnd, nlevlak
 !
 ! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: lbc, ubc                           ! column bounds
-    integer , intent(in) :: num_lakec                          ! number of lake columns
-    integer , intent(in) :: filter_lakec(ubc-lbc+1)            ! column filter for lake points
+    integer(ik4) , intent(in) :: lbc, ubc                           ! column bounds
+    integer(ik4) , intent(in) :: num_lakec                          ! number of lake columns
+    integer(ik4) , intent(in) :: filter_lakec(ubc-lbc+1)            ! column filter for lake points
     real(rk8), intent(inout) :: cv(lbc:ubc,-nlevsno+1:nlevgrnd) ! heat capacity [J/(m2 K)]
     real(rk8), intent(inout) :: cv_lake (lbc:ubc,1:nlevlak)     ! heat capacity [J/(m2 K)]
     real(rk8), intent(out):: lhabs(lbc:ubc)                     ! total per-column latent heat abs. (J/m^2)
@@ -1361,7 +1415,7 @@ contains
 !
 ! local pointers to original implicit in scalars
 !
-    integer , pointer :: snl(:)           ! number of snow layers
+    integer(ik4) , pointer :: snl(:)           ! number of snow layers
 !
 ! local pointers to original implicit inout scalars
 !
@@ -1392,16 +1446,15 @@ contains
 !
 ! local pointers to original implicit out arrays
 !
-    integer, pointer :: imelt(:,:)        ! flag for melting (=1), freezing (=2), Not=0 (new)
+    integer(ik4), pointer :: imelt(:,:)        ! flag for melting (=1), freezing (=2), Not=0 (new)
     ! Only needed for snow layers
 !
 !EOP
 !
 ! !OTHER LOCAL VARIABLES:
 !
-    integer  :: j,c,g                              ! do loop index
-    integer  :: fc                                 ! lake filtered column indices
-    real(rk8) :: dtime                              ! land model time step (sec)
+    integer(ik4)  :: j,c,g                              ! do loop index
+    integer(ik4)  :: fc                                 ! lake filtered column indices
     real(rk8) :: heatavail                          ! available energy for melting or freezing (J/m^2)
     real(rk8) :: heatrem                            ! energy residual or loss after melting or freezing
     real(rk8) :: melt                               ! actual melting (+) or freezing (-) [kg/m2]
@@ -1430,10 +1483,6 @@ contains
     dz_lake      => clm3%g%l%c%cps%dz_lake
     qflx_snofrz_lyr => clm3%g%l%c%cwf%qflx_snofrz_lyr
     qflx_snofrz_col=> clm3%g%l%c%cwf%qflx_snofrz_col
-
-    ! Get step size
-
-    dtime = get_step_size()
 
     ! Initialization
 
@@ -1470,8 +1519,8 @@ contains
           snow_depth(c) = snow_depth(c)*(1.D0 - melt/h2osno(c))
           h2osno(c) = h2osno(c) - melt
           lhabs(c) = lhabs(c) + melt*hfus
-          qflx_snomelt(c)   = qflx_snomelt(c)   + melt/dtime
-          qflx_snow_melt(c) = qflx_snow_melt(c) + melt/dtime
+          qflx_snomelt(c)   = qflx_snomelt(c)   + melt/dtsrf
+          qflx_snow_melt(c) = qflx_snow_melt(c) + melt/dtsrf
           ! Prevent tiny residuals
           if (h2osno(c) < smallnumber) h2osno(c) = 0.D0
           if (snow_depth(c) < smallnumber) snow_depth(c) = 0.D0
@@ -1532,7 +1581,7 @@ contains
                           !catch small negative value to keep t at tfrz
                 if (j <= 0) then !snow
                    imelt(c,j) = 1
-                   qflx_snomelt(c) = qflx_snomelt(c) + melt/dtime
+                   qflx_snomelt(c) = qflx_snomelt(c) + melt/dtsrf
                 end if
              else if (t_soisno(c,j) < tfrz .and. h2osoi_liq(c,j) > 0.D0) then !freezing
                 dophasechangeflag = .true.
@@ -1547,7 +1596,7 @@ contains
                    ! qflx_snomelt(c) is just output.
                    ! It looks like qflx_snomelt is just supposed to be positive.
                    ! New variable for CLM 4
-                   qflx_snofrz_lyr(c,j) = -melt/dtime
+                   qflx_snofrz_lyr(c,j) = -melt/dtsrf
                 end if
              end if
 

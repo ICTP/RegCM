@@ -63,41 +63,27 @@ module mod_cu_tiedtke
     implicit none
     integer(ik4) :: i , j , ii
     call getmem1d(cevapcu,1,kz,'mod_cu_tiedtke:cevapcu')
-    if ( icup == 5 ) then
-      nipoi = (ici2-ici1+1)*(jci2-jci1+1)
-      call getmem1d(imap,1,nipoi,'mod_cu_tiedtke:imap')
-      call getmem1d(jmap,1,nipoi,'mod_cu_tiedtke:jmap')
-      ii = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
+    nipoi = 0
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( cuscheme(j,i) == 5 ) then
+          nipoi = nipoi + 1
+        end if
+      end do
+    end do
+    if ( nipoi == 0 ) return
+    call getmem1d(imap,1,nipoi,'mod_cu_tiedtke:imap')
+    call getmem1d(jmap,1,nipoi,'mod_cu_tiedtke:jmap')
+    ii = 1
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( cuscheme(j,i) == 5 ) then
           imap(ii) = i
           jmap(ii) = j
           ii = ii + 1
-        end do
+        end if
       end do
-    else
-      nipoi = 0
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( cuscheme(j,i) == 5 ) then
-            nipoi = nipoi + 1
-          end if
-        end do
-      end do
-      if ( nipoi == 0 ) return
-      call getmem1d(imap,1,nipoi,'mod_cu_tiedtke:imap')
-      call getmem1d(jmap,1,nipoi,'mod_cu_tiedtke:jmap')
-      ii = 1
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          if ( cuscheme(j,i) == 5 ) then
-            imap(ii) = i
-            jmap(ii) = j
-            ii = ii + 1
-          end if
-        end do
-      end do
-    end if
+    end do
     call getmem2d(ptte,1,nipoi,1,kz,'mod_cu_tiedtke:ptte')
     call getmem2d(pvom,1,nipoi,1,kz,'mod_cu_tiedtke:pvom')
     call getmem2d(pvol,1,nipoi,1,kz,'mod_cu_tiedtke:pvol')

@@ -575,15 +575,15 @@ module mod_output
         if ( iocnflx == 2 ) then
           call grid_collect(zpbl,zpbl_io,jci1,jci2,ici1,ici2)
         end if
-        if ( icup == 1 ) then
+        if ( any(icup == 1) ) then
           call grid_collect(rsheat,rsheat_io,jci1,jci2,ici1,ici2,1,kz)
           call grid_collect(rswat,rswat_io,jci1,jci2,ici1,ici2,1,kz)
         end if
-        if ( icup == 3 ) then
+        if ( any(icup == 3) ) then
           call grid_collect(tbase,tbase_io,jci1,jci2,ici1,ici2,1,kz)
           call grid_collect(cldefi,cldefi_io,jci1,jci2,ici1,ici2)
         end if
-        if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
+        if ( any(icup == 4) ) then
           call grid_collect(cbmf2d,cbmf2d_io,jci1,jci2,ici1,ici2)
         end if
 

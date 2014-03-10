@@ -42,7 +42,8 @@ module mod_clm_driverinit
     real(rk8) , pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
     real(rk8) , pointer :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
     logical , pointer :: do_capsnow(:)     ! true => do snow capping
-    real(rk8) , pointer :: h2osno_old(:)   ! snow water (mm H2O) at previous time step
+    ! snow water (mm H2O) at previous time step
+    real(rk8) , pointer :: h2osno_old(:)
     ! fraction of ice relative to the tot water
     real(rk8) , pointer :: frac_iceold(:,:)
     integer(ik4) :: g , l , c , p , f , j  ! indices

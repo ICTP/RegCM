@@ -415,10 +415,8 @@ module mod_cu_grell
         if ( qcrit(j,i) <= d_zero ) then
           xac(j,i) = -d_one
         end if
-        if ( icup /= 2 ) then
-          if (cuscheme(j,i) /= 2 ) then
-            xac(j,i) = -d_one
-          end if
+        if (cuscheme(j,i) /= 2 ) then
+          xac(j,i) = -d_one
         end if
         z(j,i,1)  = ter11(j,i) - &
               (dlog(p(j,i,1))-dlog(psur(j,i)))*rgas*tv(j,i,1)*regrav

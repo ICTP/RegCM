@@ -585,7 +585,7 @@ module mod_tendency
     else
       call hadv(aten%qx,atmx%qx,kz,iqv)
     end if
-    if ( icup /= 1 ) then
+    if ( all(icup /= 1) ) then
       if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
         call vadv(aten%qx,atm1%qx,kz,1,iqv)
       else
@@ -609,7 +609,7 @@ module mod_tendency
     ! Call cumulus parametrization
     !
     if ( ktau > 0 ) call cumulus
-    if ( icup == 5 .or. icup == 96 .or. icup == 97 ) then
+    if ( any(icup == 5) ) then
       if ( ipptls /= 2 .and. iconv /= 4 ) then
         ! Put back detrained water
         do k = 1 , kz
@@ -699,7 +699,7 @@ module mod_tendency
         cadvhdiag = cadvhdiag + (chiten - chiten0) * cfdout
         chiten0 = chiten
       end if
-      if ( icup /= 1 ) then
+      if ( all(icup /= 1) ) then
         if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
           call vadv(chiten,chia,kz,2)
         else
@@ -749,7 +749,7 @@ module mod_tendency
       if ( islab_ocean == 1 ) call update_slabocean(xslabtime)
     end if
 
-    if ( icup == 1 ) then
+    if ( any(icup == 1) ) then
       call htdiff(dxsq,akht1)
     end if
     !
@@ -1381,7 +1381,7 @@ module mod_tendency
     ! do cumulus transport/mixing  of tracers for the schemes allowing it
     !
     if ( ichem == 1 .and. ichcumtra == 1 .and. &
-         ( icup == 4 .or. icup == 5 .or. icup == 97 ) ) then
+         any(icup == 4 .or. icup == 5) ) then
       call cumtran
     end if
     !

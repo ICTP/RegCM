@@ -1994,7 +1994,9 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('boundary_layer_scheme',ibltyp))
         call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('cumulus_convection_scheme',icup))
+          ncattribute_integer('cumulus_convection_scheme_lnd',icup(1)))
+        call outstream_addatt(outstream(i)%ncout(j), &
+          ncattribute_integer('cumulus_convection_scheme_ocn',icup(2)))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('moisture_scheme',ipptls))
         call outstream_addatt(outstream(i)%ncout(j), &
@@ -2078,7 +2080,7 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('micro_semi_implicit_option',ksemi))
         end if
-        if ( icup == 2 .or. icup == 98 .or. icup == 99 .or. icup == 96 ) then
+        if ( any(icup == 2) ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('grell_scheme_closure',igcc))
           call outstream_addatt(outstream(i)%ncout(j), &
@@ -2126,7 +2128,7 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('grell_FC_ABE_removal_timescale',dtauc))
          end if
-        if ( icup == 4 .or. icup == 98 .or. icup == 99 .or. icup == 97 ) then
+        if ( any(icup == 4) ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('mit_lowest_convection_sigma',minsig))
           call outstream_addatt(outstream(i)%ncout(j), &
@@ -2168,7 +2170,7 @@ module mod_ncout
             ncattribute_real8('mit_maximum_ocean_precipitation_efficiency', &
             epmax_ocn))
         end if
-        if ( icup == 5 .or. icup == 96 .or. icup == 97 ) then
+        if ( any(icup == 5) ) then
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('tiedtke_actual_scheme',iconv))
           call outstream_addatt(outstream(i)%ncout(j), &

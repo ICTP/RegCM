@@ -250,11 +250,10 @@ module mod_cu_bm
     iconss = 0
     tauk = dtsec/trel
     cthrs = (0.006350D0/secpd)*dtsec/cprlg
-!
-!-----------------------------------------------------------------------
-!
-!   xsm is surface mask: =1 water; =0 land
-!
+
+   !
+   ! xsm is surface mask: =1 water; =0 land
+   !
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( m2c%ldmsk(j,i) == 0 ) then
@@ -272,9 +271,9 @@ module mod_cu_bm
       end do
       efinit = .true.
     end if
-!
-!   lb is currently set to kz-1
-!
+    !
+    ! lb is currently set to kz-1
+    !
     lb = kz - 1
     do k = 1 , kz
       ntopd(k) = 0
@@ -284,9 +283,9 @@ module mod_cu_bm
       ndpths(k) = 0
       ndpthd(k) = 0
     end do
-!
-!   find melting level...
-!
+    !
+    ! find melting level...
+    !
     do i = ici1 , ici2
       do j = jci1 , jci2
         ml(j,i) = kzp1
@@ -321,9 +320,9 @@ module mod_cu_bm
         end do
       end do
     end do
-!
-!   padding specific humidity if too small
-!
+    !
+    ! padding specific humidity if too small
+    !
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -333,9 +332,9 @@ module mod_cu_bm
         end do
       end do
     end do
-!
-!   search for maximum buoyancy level
-!
+    !
+    ! search for maximum buoyancy level
+    !
     do kb = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -349,7 +348,7 @@ module mod_cu_bm
             tlcl = tdpt - (0.212D0+1.571D-3*(tdpt-tzero) - &
                            4.36D-4*(t(j,i,kb)-tzero))*(t(j,i,kb)-tdpt)
             tthes(j,i) = tthbt(j,i)*dexp(elocp*q(j,i,kb)/tlcl)
-!           check for maximum buoyancy
+            ! check for maximum buoyancy
             if ( tthes(j,i) > thesp(j,i) ) then
               psp(j,i) = h10e5*(tthbt(j,i)/tlcl)**cporng
               thbt(j,i) = tthbt(j,i)
@@ -359,29 +358,29 @@ module mod_cu_bm
         end do
       end do
     end do
-!
-!   choose cloud base as model level just below psp
-!
+    !
+    ! choose cloud base as model level just below psp
+    !
     do k = 1 , kzm1
       ak = hsigma(k)
       do i = ici1 , ici2
         do j = jci1 , jci2
           p(j,i) = m2c%pas(j,i,k)*d_1000
-!         cloud bottom cannot be above 200 mb
+          ! cloud bottom cannot be above 200 mb
           if ( p(j,i) < psp(j,i) .and. p(j,i) >= pqm ) lbot(j,i) = k + 1
         end do
       end do
     end do
-!    
-!   warning: lbot must not be gt kz-1 in shallow convection
-!   make sure the cloud base is at least 25 mb above the surface
-!
+    !
+    ! warning: lbot must not be gt kz-1 in shallow convection
+    ! make sure the cloud base is at least 25 mb above the surface
+    !
     do i = ici1 , ici2
       do j = jci1 , jci2
         pbot(j,i) = m2c%pas(j,i,lbot(j,i))*d_1000
         psfck = m2c%pas(j,i,kz)*d_1000
         if ( pbot(j,i) >= psfck-pone .or. lbot(j,i) >= kz ) then
-!         cloud bottom is at the surface so recalculate cloud bottom
+          ! cloud bottom is at the surface so recalculate cloud bottom
           do k = 1 , kzm1
             p(j,i) = m2c%pas(j,i,kz)*d_1000
             if ( p(j,i) < psfck-pone ) lbot(j,i) = k
@@ -390,9 +389,9 @@ module mod_cu_bm
         end if
       end do
     end do
-!    
-!   cloud top computation
-!    
+    !
+    ! cloud top computation
+    !    
     do i = ici1 , ici2
       do j = jci1 , jci2
         prtop(j,i) = pbot(j,i)
@@ -401,7 +400,7 @@ module mod_cu_bm
     end do
     do ivi = 1 , kz
       l = kzp1 - ivi
-!     find environmental saturation equiv pot temp...
+      ! find environmental saturation equiv pot temp...
       do i = ici1 , ici2
         do j = jci1 , jci2
           p(j,i) = m2c%pas(j,i,l)*d_1000
@@ -410,7 +409,7 @@ module mod_cu_bm
           ths(j,i) = t(j,i,l)*ape(j,i,l)*dexp(elocp*qs/t(j,i,l))
         end do
       end do
-!     buoyancy check
+      ! buoyancy check
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( l <= lbot(j,i) ) then
@@ -421,19 +420,17 @@ module mod_cu_bm
         end do
       end do
     end do
-!    
-!   cloud top pressure
-!    
+    !
+    ! cloud top pressure
+    !    
     do i = ici1 , ici2
       do j = jci1 , jci2
         prtop(j,i) = m2c%pas(j,i,ltop(j,i))*d_1000
       end do
     end do
-!
-!-----------------------------------------------------------------------
-!
-!   define and smooth dsps and cldefi
-!
+    !
+    ! define and smooth dsps and cldefi
+    !
     if ( unis ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -465,9 +462,9 @@ module mod_cu_bm
         end do
       end do
     end if
-!
-!   initialize changes of t and q due to convection
-!
+    !
+    ! initialize changes of t and q due to convection
+    !
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -476,9 +473,9 @@ module mod_cu_bm
         end do
       end do
     end do
-!
-!   clean up and gather deep convection points
-!
+    !
+    ! clean up and gather deep convection points
+    !
     khdeep = 0
     nswap = 0
     do i = ici1 , ici2
@@ -488,10 +485,10 @@ module mod_cu_bm
           prtop(j,i) = pbot(j,i)
         end if
         cldhgt(j,i) = z0(j,i,ltop(j,i)) - z0(j,i,lbot(j,i))
-!       cloud is less than 90 mb deep or less than 3 sigma layers deep
+        ! cloud is less than 90 mb deep or less than 3 sigma layers deep
         if ( cldhgt(j,i) < zno ) cldefi(j,i) = avgefi*xsm(j,i) &
              + stefi*(h1-xsm(j,i))
-!       cloud has to be at least 290 mb deep
+        ! cloud has to be at least 290 mb deep
         if ( cldhgt(j,i) >= zsh ) then
           khdeep = khdeep + 1
           ideep(khdeep) = i
@@ -499,9 +496,9 @@ module mod_cu_bm
         end if
       end do
     end do
-!
-!   horizontal loop for deep convection
-!
+    !
+    ! horizontal loop for deep convection
+    !
     do n = 1 , khdeep
       i = ideep(n)
       j = jdeep(n)
@@ -510,18 +507,18 @@ module mod_cu_bm
       preck = d_zero
       ltpk = ltop(j,i)
       lbtk = lbot(j,i)
-!
-!dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
-!dcdcdcdcdcdc  deep convection   dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
-!dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
-!
+      !
+      !dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+      !dcdcdcdcdcdc  deep convection   dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+      !dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+      !
       efi = cldefi(j,i)
       dspbk = dspb(j,i)
       dsp0k = dsp0(j,i)
       dsptk = dspt(j,i)
-!
-!     initialize variables in the convective column
-!
+      !
+      ! initialize variables in the convective column
+      !
       do k = 1 , kz
         dift(k) = d_zero
         difq(k) = d_zero
@@ -539,27 +536,26 @@ module mod_cu_bm
         apek(k) = apekl
         therk(k) = tref(j,i,k)*apekl
       end do
-!
-!     deep convection reference temperature profile
-!
+      !
+      ! deep convection reference temperature profile
+      !
       ltp1 = ltpk + 1
       lbm1 = lb - 1
       pkb = pk(lb)
       pkt = pk(ltpk)
-!
-!     temperature reference profile below freezing level
-!
+      !
+      ! temperature reference profile below freezing level
+      !
       l0 = lb
       l0m1 = l0-1
-!
       pk0 = pk(lb)
       tprofbfl: &
       do l = ltpk , lbm1
         ivi = ltpk + lbm1 - l
         if ( trefk(ivi+1) <= t1 ) then
-!
-!         temperature reference profile above freezing level
-!
+          !
+          ! temperature reference profile above freezing level
+          !
           rdp0t = h1/(pk0-pkt)
           dthem = therk(l0) - trefk(l0)*apek(l0)
           do ll = ltpk , l0m1
@@ -574,13 +570,13 @@ module mod_cu_bm
           pk0 = pk(l0)
         end if
       end do tprofbfl
-!
-!     deep convection reference humidity profile
-!
+      !
+      ! deep convection reference humidity profile
+      !
       do l = ltpk , lb
-!
-!       saturation pressure difference
-!
+        !
+        ! saturation pressure difference
+        !
         if ( pkb-pk0 < pfrz ) then
           dsp = dspc
         else if ( l < l0 ) then
@@ -588,11 +584,11 @@ module mod_cu_bm
         else
           dsp = ((pkb-pk(l))*dsp0k+(pk(l)-pk0)*dspbk)/(pkb-pk0)
         end if
-!
-!       humidity profile
-!
+        !
+        ! humidity profile
+        !
         if ( pk(l) > pqm ) then
-!         pressure must be below 200 mb
+          ! pressure must be below 200 mb
           psk(l) = pk(l) + dsp
           apesk(l) = (psk(l)/h10e5)**dm2859
           thsk(l) = trefk(l)*apek(l)
@@ -602,9 +598,9 @@ module mod_cu_bm
           qrefk(l) = q(j,i,l)
         end if
       end do
-!
-!     enthalpy conservation integral
-!
+      !
+      ! enthalpy conservation integral
+      !
       do iter = 1 , 2
         sumde = d_zero
         sumdp = d_zero
@@ -614,24 +610,24 @@ module mod_cu_bm
         end do
         hcorr = sumde/(sumdp-dsigma(ltpk))
         lcor = ltpk + 1
-!
-!       find lqm
-!
+        !
+        ! find lqm
+        !
         do l = 1 , lb
           if ( pk(l) <= pqm ) lqm = l
         end do
-!
-!       above lqm correct temperature only
-!
+        !
+        ! above lqm correct temperature only
+        !
         if ( lcor <= lqm ) then
           do l = lcor , lqm
             trefk(l) = trefk(l) + hcorr*rcpd
           end do
           lcor = lqm + 1
         end if
-!
-!       below lqm correct both temperature and moisture
-!
+        !
+        ! below lqm correct both temperature and moisture
+        !
         do l = lcor , lb
           tskl = trefk(l)*apek(l)/apesk(l)
           dhdt = qrefk(l)*a23m4l/(tskl-c4les)**2 + cpd
@@ -644,9 +640,9 @@ module mod_cu_bm
       do l = 1 , kz
         thvref(l) = trefk(l)*apek(l)*(qrefk(l)*d608+h1)
       end do
-!
-!     heating, moistening, precipitation
-!
+      !
+      ! heating, moistening, precipitation
+      !
       do l = ltpk , lb
         tkl = tk(l)
         diftl = (trefk(l)-tkl)*tauk
@@ -671,27 +667,27 @@ module mod_cu_bm
           if ( z0(j,i,l) >= ztop ) ltop(j,i) = l + 1
         end do
         prtop(j,i) = pk(ltop(j,i))
-!
-!       cloud must be at least 2 layers thick
-!
+        !
+        ! cloud must be at least 2 layers thick
+        !
         if ( lbot(j,i)-ltop(j,i) < 2 ) ltop(j,i) = lbot(j,i) - 2
         prtop(j,i) = pk(ltop(j,i))
         cldhgt(j,i) = z0(j,i,ltop(j,i)) - z0(j,i,lbot(j,i))
         nswap = nswap + 1
         cycle
       end if
-!
-!     deep convection otherwise
-!
+      !
+      ! deep convection otherwise
+      !
       total_precip_points = total_precip_points + 1
-!     keep the land value of efi equal to 1 until precip surm2c%passes
-!     a threshold value, currently set to 0.25 inches per 24 hrs
+      ! keep the land value of efi equal to 1 until precip surm2c%passes
+      ! a threshold value, currently set to 0.25 inches per 24 hrs
       pthrs = cthrs/m2c%psb(j,i)
       drheat = (preck*xsm(j,i)+dmax1(epsp,preck-pthrs)*(h1-xsm(j,i)))*cpd/avrgt
       efi = efifc*dentpy/drheat
-!
-!     unified or separate land/sea conv.
-!
+      !
+      ! unified or separate land/sea conv.
+      !
       if ( .not.(oct90) ) then
         efi = cldefi(j,i)*fcp + efi*fcc1
       else if ( unis ) then
@@ -701,33 +697,30 @@ module mod_cu_bm
       else
         efi = h1
       end if
-!
       if ( efi > h1 ) efi = h1
       if ( efi < efimn ) efi = efimn
       cldefi(j,i) = efi
-!
       fefi = efmnt + slope*(efi-efimn)
-!
       preck = preck*fefi
-!
-!     update precipitation, temperature & moisture
-!
+      !
+      ! update precipitation, temperature & moisture
+      !
       prainx = d_half*((m2c%psb(j,i)*d_1000*preck*cprlg)*d_100)
       if ( prainx > dlowval ) then
         c2m%rainc(j,i) = c2m%rainc(j,i) + prainx
-!       precipitation rate for bats (mm/s)
+        ! precipitation rate for bats (mm/s)
         c2m%pcratec(j,i) = c2m%pcratec(j,i) + (prainx/dtsec)
       end if
       do l = ltpk , lb
         tmod(j,i,l) = dift(l)*fefi/dtsec
         qqmod(j,i,l) = difq(l)*fefi/dtsec
       end do
-!
-!dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
-!dcdcdcdcdcdc  end of deep convection  dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
-!dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
-!
     end do
+    !
+    !dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+    !dcdcdcdcdcdc  end of deep convection  dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+    !dcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd
+    !
     ndeep = 0
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -743,9 +736,9 @@ module mod_cu_bm
         end if
       end do
     end do
-!
-!   gather shallow convection points
-!
+    !
+    ! gather shallow convection points
+    !
     khshal = 0
     ndstn = 0
     ndstp = 0
@@ -760,11 +753,11 @@ module mod_cu_bm
         end if
       end do
     end do
-!
-!scscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
-!scscscscscsc  shallow convection  cscscscscscscscscscscscscscscscscscsc
-!scscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
-!
+    !
+    !scscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
+    !scscscscscsc  shallow convection  cscscscscscscscscscscscscscscscscscsc
+    !scscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
+    !
     shallow: &
     do n = 1 , khshal
       i = ishal(n)
@@ -785,11 +778,11 @@ module mod_cu_bm
         thvref(k) = thvmkl
         pdp(k) = pk(k) - pmn
       end do
-!
-!     find kdp...kdp(k) is the model level closest to 65 mb (pmn) above k;
-!     this is the depth over which relative humidity drop is measured to
-!     estimate shallow cloud top... see do 545...
-!
+      !
+      ! find kdp...kdp(k) is the model level closest to 65 mb (pmn) above k;
+      ! this is the depth over which relative humidity drop is measured to
+      ! estimate shallow cloud top... see do 545...
+      !
       do kk = kz , 1 , -1
         pflag = dabs(pk(kz)-pdp(kk))
         do k = kz - 1 , 1 , -1
@@ -805,24 +798,24 @@ module mod_cu_bm
         end do
         kdp(kk) = max0(1,kdp(kk))
       end do
-!
-!     search for shallow cloud top
-!
+      !
+      ! search for shallow cloud top
+      !
       lbtk = lbot(j,i)
       ltsh = lbtk
       lbm1 = lbtk - 1
       ztop = z0(j,i,lbot(j,i)) + zsh - 0.000001D0
-!
-!     cloud top is level just above pbtk-psh
-!
+      !
+      ! cloud top is level just above pbtk-psh
+      !
       ltpk = 1
       do l = 1 , kz
         if ( z0(j,i,l) >= ztop ) ltpk = l
       end do
       ptpk = pk(ltpk)
-!
-!     highest level allowed is level just below pshu
-!
+      !
+      ! highest level allowed is level just below pshu
+      !
       if ( ptpk <= pshu ) then
         do l = 1 , kz
           if ( pk(l) <= pshu ) lshu = l + 1
@@ -844,19 +837,18 @@ module mod_cu_bm
         rhh = qk(kdp(l))/qsatk(kdp(l))
         if ( rhh+rhf < rhl ) ltsh = l
       end do
-!
       ltop(j,i) = ltsh
       prtop(j,i) = pk(ltsh)
       ltp1 = ltsh
       ltpk = ltsh - 1
       cldhgt(j,i) = z0(j,i,ltop(j,i)) - z0(j,i,lbot(j,i))
-!     if cloud is not at least 90 mb or 3 sigma layers deep, then no cloud
+      ! if cloud is not at least 90 mb or 3 sigma layers deep, then no cloud
       if ( cldhgt(j,i) < zno .or. ltop(j,i) > lbot(j,i)-2 ) then
         ltop(j,i) = lbot(j,i)
         prtop(j,i) = pbot(j,i)
         cycle
       end if
-!     scaling potential temperature & table index at top
+      ! scaling potential temperature & table index at top
       thtpk = t(j,i,ltp1)*ape(j,i,ltp1)
       pkl = m2c%pas(j,i,ltp1)*d_1000
       ee = pkl*q(j,i,ltp1)/(ep2+q(j,i,ltp1))
@@ -867,25 +859,24 @@ module mod_cu_bm
       ptpk = h10e5*(thtpk/tlcl)**cporng
       dpmix = ptpk - psp(j,i)
       if ( dabs(dpmix) < h3000 ) dpmix = -h3000
-!
-!     temperature propfile slope
-!
+      !
+      ! temperature propfile slope
+      !
       smix = (thtpk-thbt(j,i))/dpmix*stabs
       do l = ltp1 , lbtk
         ivi = min(ltp1+lbtk-l,kz-1)
         trefk(ivi) = ((pk(ivi)-pk(ivi+1))*smix + &
                      trefk(ivi+1)*apek(ivi+1))/apek(ivi)
       end do
-!
-!     temperature reference profile correction
-!
+      !
+      ! temperature reference profile correction
+      !
       sumdt = d_zero
       sumdp = d_zero
       do l = ltp1 , lbtk
         sumdt = (tk(l)-trefk(l))*dsigma(l) + sumdt
         sumdp = sumdp + dsigma(l)
       end do
-!
       rdpsum = d_one/sumdp
       fpk(lbtk) = trefk(lbtk)
       tcorr = sumdt*rdpsum
@@ -894,9 +885,9 @@ module mod_cu_bm
         trefk(l) = trfkl
         fpk(l) = trfkl
       end do
-!
-!     humidity profile equations
-!
+      !
+      ! humidity profile equations
+      !
       psum = d_zero
       qsum = d_zero
       potsum = d_zero
@@ -914,16 +905,16 @@ module mod_cu_bm
         qotsum = qk(l)*rtbar*dsigma(l) + qotsum
         dst = (trefk(l)-tk(l))*rtbar*dsigma(l) + dst
       end do
-!
+
       psum = psum*rdpsum
       qsum = qsum*rdpsum
       rotsum = d_one/otsum
       potsum = potsum*rotsum
       qotsum = qotsum*rotsum
       dst = dst*rotsum*cpd/wlhv
-!
-!     ensure positive entropy change
-!
+      !
+      ! ensure positive entropy change
+      !
       if ( dst > d_zero ) then
         prtop(j,i) = pbot(j,i)
         ltop(j,i) = lbot(j,i)
@@ -932,38 +923,38 @@ module mod_cu_bm
       else
         dstq = dst*epsdn
       end if
-!
-!     check for isothermal atmosphere
-!
+      !
+      ! check for isothermal atmosphere
+      !
       den = potsum - psum
       if ( -den/psum < 0.00005D0 ) then
         ltop(j,i) = lbot(j,i)
         prtop(j,i) = pbot(j,i)
         cycle
       else
-!
-!       slope of the reference humidity profile
-!
+        !
+        ! slope of the reference humidity profile
+        !
         dqref = (qotsum-dstq-qsum)/den
       end if
-!
-!     humidity doesn`t increase with height
-!
+      !
+      ! humidity doesn`t increase with height
+      !
       if ( dqref < d_zero ) then
         ltop(j,i) = lbot(j,i)
         prtop(j,i) = pbot(j,i)
         cycle
       end if
-!
-!     humidity at the cloud top
-!
+      !
+      ! humidity at the cloud top
+      !
       qrftp = qsum - dqref*psum
-!
-!     humidity profile
-!
+      !
+      ! humidity profile
+      !
       do l = ltp1 , lbtk
         qrfkl = (fpk(l)-fptk)*dqref + qrftp
-!       supersaturation not allowed
+        ! supersaturation not allowed
         qnew = (qrfkl-qk(l))*tauk + qk(l)
         if ( qnew > qsatk(l)*stresh ) then
           ltop(j,i) = lbot(j,i)
@@ -973,9 +964,9 @@ module mod_cu_bm
         thvref(l) = trefk(l)*apek(l)*(qrfkl*d608+h1)
         qrefk(l) = qrfkl
       end do
-!
-!     eliminate impossible slopes (betts, dtheta/dq)
-!
+      !
+      ! eliminate impossible slopes (betts, dtheta/dq)
+      !
       do l = ltp1 , lbtk
         dtdeta = (thvref(l-1)-thvref(l))/(hsigma(l)-hsigma(l-1))
         if ( dtdeta < epsth ) then
@@ -994,20 +985,20 @@ module mod_cu_bm
         dentpy = ((trefk(l)-tk(l))*cpd+(qrefk(l)-qk(l))*wlhv) / &
                   (tk(l)+trefk(l))*dsigma(l) + dentpy
       end do
-!
-!     relaxation towards reference profiles
-!
+      !
+      ! relaxation towards reference profiles
+      !
       iconss = iconss + 1
       do l = ltp1 , lbtk
         tmod(j,i,l) = (trefk(l)-tk(l))/trel
         qqmod(j,i,l) = (qrefk(l)-qk(l))/trel
       end do
-!
-!scscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
-!scscscscscsc  end of shallow convection   scscscscscscscscscscscscscscs
-!scscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
-!
     end do shallow
+    !
+    !scscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
+    !scscscscscsc  end of shallow convection   scscscscscscscscscscscscscscs
+    !scscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscscs
+    !
 
     nshal = 0
     do i = ici1 , ici2
@@ -1015,8 +1006,8 @@ module mod_cu_bm
         ltpk = ltop(j,i)
         lbtk = lbot(j,i)
         ptpk = prtop(j,i)
-!       no shallow convection if cloud is not at least 90 mb or 3 sigma
-!       layers deep
+        ! no shallow convection if cloud is not at least 90 mb or 3 sigma
+        ! layers deep
         if ( cldhgt(j,i) >= zno ) then
           if ( cldhgt(j,i) < zsh ) then
             nshal = nshal + 1
@@ -1025,7 +1016,7 @@ module mod_cu_bm
             ndepth = lbtk - ltpk
             if ( ndepth > 0 ) ndpths(ndepth) = ndpths(ndepth) + 1
           end if
-!         find cloud fractional cover and liquid water content
+          ! find cloud fractional cover and liquid water content
           kbaseb = min0(lbtk,kzm2)
           c2m%kcumtop(j,i) = ltpk
           c2m%kcumbot(j,i) = kbaseb
@@ -1088,9 +1079,9 @@ module mod_cu_bm
       end function tpfc
 
   end subroutine bmpara
-!
-! Look up table (calculated version)
-!
+  !
+  ! Look up table (calculated version)
+  !
   subroutine lutbl(ptop)
     implicit none
     real(rk8) , parameter :: eps = 2.0D-12 ! little number
@@ -1104,26 +1095,24 @@ module mod_cu_bm
     real(rk8) , parameter :: thl = 210.0D0
     real(rk8) , parameter :: thh = 385.0D0
     real(rk8) , parameter :: ph = 105000.0D0
-!
-!   coarse look-up table for saturation point
-!
+    !
+    ! coarse look-up table for saturation point
+    !
+    ! ptop in pascal
     pt = ptop*d_1000
-!   ptop in pascal
    
     kthm = jtb
     kpm = itb
     kthm1 = kthm - 1
     kpm1 = kpm - 1
-!
+
     pl = pt
-!
+
     dth = (thh-thl)/dble(kthm-1)
     xdp = (ph-pl)/dble(kpm-1)
-!
+
     th = thl - dth
-!
-!-----------------------------------------------------------------------
-!
+
     do kth = 1 , kthm
       th = th + dth
       p = pl - xdp
@@ -1133,37 +1122,37 @@ module mod_cu_bm
         qsold(kp) = pq0/p*dexp(c3les*(th-tzero*ape)/(th-c4les*ape))
         pold(kp) = p
       end do
-!
+
       qs0k = qsold(1)
       sqsk = qsold(kpm) - qsold(1)
       qsold(1) = d_zero
       qsold(kpm) = d_one
-!
+
       do kp = 2 , kpm1
         qsold(kp) = (qsold(kp)-qs0k)/sqsk
-!       fix due to cyber half prec. limitation
+        ! fix due to cyber half prec. limitation
         if ( (qsold(kp)-qsold(kp-1)) < eps ) then
           qsold(kp) = qsold(kp-1) + eps
         end if
       end do
-!
+
       qsnew(1) = d_zero
       qsnew(kpm) = d_one
       dqs = d_one/dble(kpm-1)
-!
+
       do kp = 2 , kpm1
         qsnew(kp) = qsnew(kp-1) + dqs
       end do
-!
+
       y2p(1) = d_zero
       y2p(kpm) = d_zero
-!
+
       call spline(kpm,qsold,pold,y2p,kpm,qsnew,pnew)
-!
+
     end do
-!
-!   coarse look-up table for t(p) from constant the
-!
+    !
+    ! coarse look-up table for t(p) from constant the
+    !
     p = pl - xdp
     do kp = 1 , kpm
       p = p + xdp
@@ -1175,31 +1164,31 @@ module mod_cu_bm
         told(kth) = th/ape
         theold(kth) = th*dexp(eliwv*qs/(cpd*told(kth)))
       end do
-!
+
       the0k = theold(1)
       sthek = theold(kthm) - theold(1)
       theold(1) = d_zero
       theold(kthm) = d_one
-!
+
       do kth = 2 , kthm1
         theold(kth) = (theold(kth)-the0k)/sthek
-!       fix due to cyber half prec. limitation
+        ! fix due to cyber half prec. limitation
         if ( (theold(kth)-theold(kth-1)) < eps ) then
           theold(kth) = theold(kth-1) + eps
         end if
       end do
-!
+
       thenew(1) = d_zero
       thenew(kthm) = d_one
       dthe = d_one/dble(kthm-1)
-!
+
       do kth = 2 , kthm1
         thenew(kth) = thenew(kth-1) + dthe
       end do
-!
+
       y2t(1) = d_zero
       y2t(kthm) = d_zero
-!
+
       call spline(kthm,theold,told,y2t,kthm,thenew,tnew)
     end do
 
@@ -1309,5 +1298,5 @@ module mod_cu_bm
       if ( k1 <= nnew ) go to 100
     end subroutine spline
   end subroutine lutbl
-!
+
 end module mod_cu_bm

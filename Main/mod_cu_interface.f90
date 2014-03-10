@@ -88,40 +88,37 @@ module mod_cu_interface
   contains
 
   subroutine allocate_cumulus
+    use mod_atm_interface
     implicit none
+    integer(ik4) :: i , j
     call getmem3d(q_detr,jci1,jci2,ici1,ici2,1,kz,'cumulus:q_detr')
-    if ( icup > 90 ) then
-      call getmem2d(cuscheme,jci1,jci2,ici1,ici2,'cumulus:cuscheme')
+    call getmem2d(cuscheme,jci1,jci2,ici1,ici2,'cumulus:cuscheme')
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        if ( mddom%lndcat(j,i) > 14.5D0 .and. &
+             mddom%lndcat(j,i) < 15.5D0 ) then
+          cuscheme(j,i) = icup_ocn
+        else
+          cuscheme(j,i) = icup_lnd
+        end if
+      end do
+    end do
+    if ( any(icup == 1) ) then
+      call allocate_mod_cu_kuo
     end if
-    select case ( icup )
-      case (1)
-        call allocate_mod_cu_kuo
-      case (2)
-        call allocate_mod_cu_grell
-      case (3)
-        call allocate_mod_cu_bm
-      case (4)
-        call allocate_mod_cu_em
-      case (5)
-        call init_convect_tables
-        call allocate_mod_cu_tiedtke
-      case (96)
-        call init_convect_tables
-        call allocate_mod_cu_tiedtke
-        call allocate_mod_cu_grell
-      case (97)
-        call init_convect_tables
-        call allocate_mod_cu_tiedtke
-        call allocate_mod_cu_em
-      case (98)
-        call allocate_mod_cu_grell
-        call allocate_mod_cu_em
-      case (99)
-        call allocate_mod_cu_grell
-        call allocate_mod_cu_em
-      case default
-        return
-    end select
+    if ( any(icup == 2) ) then
+      call allocate_mod_cu_grell
+    end if
+    if ( any(icup == 3) ) then
+      call allocate_mod_cu_bm
+    end if
+    if ( any(icup == 4) ) then
+      call allocate_mod_cu_em
+    end if
+    if ( any(icup == 5) ) then
+      call init_convect_tables
+      call allocate_mod_cu_tiedtke
+    end if
   end subroutine allocate_cumulus
 
   subroutine init_cumulus
@@ -160,35 +157,40 @@ module mod_cu_interface
     call assignpnt(convpr,c2m%convpr)
     call init_mod_cumulus
   end subroutine init_cumulus
-!
+
   subroutine cumulus
     implicit none
-    select case ( icup )
-      case (1)
-        call cupara(m2c,c2m)
-      case (2)
-        call cuparan(m2c,c2m)
-      case (3)
-        call bmpara(m2c,c2m)
-      case (4)
-        call cupemandrv(m2c,c2m)
-      case (5)
-        call tiedtkedrv(m2c,c2m)
-      case (96)
-        call tiedtkedrv(m2c,c2m)
-        call cuparan(m2c,c2m)
-      case (97)
-        call tiedtkedrv(m2c,c2m)
-        call cupemandrv(m2c,c2m)
-      case (98)
-        call cuparan(m2c,c2m)
-        call cupemandrv(m2c,c2m)
-      case (99)
-        call cuparan(m2c,c2m)
-        call cupemandrv(m2c,c2m)
-      case default
-        return
-    end select
+    if ( icup_lnd == icup_ocn ) then
+      select case ( icup_lnd )
+        case (1)
+          call cupara(m2c,c2m)
+        case (2)
+          call cuparan(m2c,c2m)
+        case (3)
+          call bmpara(m2c,c2m)
+        case (4)
+          call cupemandrv(m2c,c2m)
+        case (5)
+          call tiedtkedrv(m2c,c2m)
+      end select
+    else
+      select case ( icup_lnd )
+        case (2)
+          call cuparan(m2c,c2m)
+        case (4)
+          call cupemandrv(m2c,c2m)
+        case (5)
+          call tiedtkedrv(m2c,c2m)
+      end select
+      select case ( icup_ocn )
+        case (2)
+          call cuparan(m2c,c2m)
+        case (4)
+          call cupemandrv(m2c,c2m)
+        case (5)
+          call tiedtkedrv(m2c,c2m)
+      end select
+    end if
     call model_cumulus_cloud(m2c,c2m)
   end subroutine cumulus
 

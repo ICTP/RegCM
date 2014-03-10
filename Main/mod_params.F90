@@ -97,10 +97,10 @@ module mod_params
     enable_che_vars , dirout , lsync , do_parallel_netcdf_in ,         &
     do_parallel_netcdf_out , idiag
 
-  namelist /physicsparam/ ibltyp , iboudy , isladvec , icup , igcc , &
-    ipgf , iemiss , lakemod , ipptls , iocnflx , iocncpl ,           &
-    iocnrough , ichem , scenario , idcsst , iseaice , idesseas ,     &
-    iconvlwp , irrtm , iclimao3 , isolconst , icumcloud ,            &
+  namelist /physicsparam/ ibltyp , iboudy , isladvec , icup_lnd ,    &
+    icup_ocn , igcc , ipgf , iemiss , lakemod , ipptls , iocnflx ,   &
+    iocncpl , iocnrough , ichem , scenario , idcsst , iseaice ,      &
+    idesseas , iconvlwp , irrtm , iclimao3 , isolconst , icumcloud , &
     islab_ocean , itweak
 
   namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
@@ -195,16 +195,13 @@ module mod_params
 !     jxsex  : the j index of the north-south vertical slice for printer
 !     output.
 !
-!     icup   : type of cumulus parameterization
+!     icup_lnd , icup_ocn   : type of cumulus parameterization over
+!                             land and ocean
 !     = 1 ; kuo
 !     = 2 ; grell
 !     = 3 ; betts-miller (1986)
 !     = 4 ; emanuel (1991)
 !     = 5 ; Tiedtke (1986) - version from ECHAM 5.4 
-!     = 96; variable: tiedtke over land and grell over ocean
-!     = 97; variable: tiedtke over land and emanuel over ocean
-!     = 98; variable: emanuel over land and grell over ocean
-!     = 99; variable: grell over land and emanuel over ocean
 !
 !     igcc   : Grell Scheme Convective Closure Assumption
 !     = 1 ; Arakawa & Schubert (1974)
@@ -311,7 +308,8 @@ module mod_params
   ibltyp = 1
   iboudy = 1
   isladvec = 0
-  icup = 1
+  icup_lnd = 1
+  icup_ocn = 1
   ipptls = 1
   igcc = 1
   ipgf = 1
@@ -591,6 +589,20 @@ module mod_params
       write(stdout,*) 'Read physicsparam OK'
 #endif
     end if
+    icup(1) = icup_lnd
+    icup(2) = icup_ocn
+    if ( any(icup == 1) ) then
+      if ( icup_lnd /= icup_ocn ) then
+        write(stderr,*) 'ERROR: Kuo scheme MUST be used on both Land and Ocean'
+        call fatal(__FILE__,__LINE__,'INPUT NAMELIST ICUP INCONSISTENT')
+      end if
+    end if
+    if ( any(icup == 3) ) then
+      if ( icup_lnd /= icup_ocn ) then
+        write(stderr,*) 'ERROR: BM scheme MUST be used on both Land and Ocean'
+        call fatal(__FILE__,__LINE__,'INPUT NAMELIST ICUP INCONSISTENT')
+      end if
+    end if
 
     if ( ipptls > 0 ) then
       rewind(ipunit)
@@ -621,7 +633,7 @@ module mod_params
       end if
     end if
 
-    if ( icup == 2 .or. icup == 99 .or. icup == 98 .or. icup == 96 ) then
+    if ( any(icup == 2) ) then
       rewind(ipunit)
       read (ipunit, nml=grellparam, iostat=iretval, err=106)
       if ( iretval /= 0 ) then
@@ -632,7 +644,7 @@ module mod_params
 #endif
       end if
     end if
-    if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
+    if ( any(icup == 4) ) then
       rewind(ipunit)
       read (ipunit, nml=emanparam, iostat=iretval, err=107)
       if ( iretval /= 0 ) then
@@ -643,7 +655,7 @@ module mod_params
 #endif
       end if
     end if
-    if ( icup == 5 .or. icup == 96 .or. icup == 97 ) then
+    if ( any(icup == 5) ) then
       rewind(ipunit)
       read (ipunit, nml=tiedtkeparam, iostat=iretval, err=108)
       if ( iretval /= 0 ) then
@@ -659,7 +671,7 @@ module mod_params
       end if
       ctrigger = max(d_zero,min(ctrigger,d_one))
     end if
-    if ( icup < 0 .or. (icup > 5 .and. icup < 96) .or. icup > 99 ) then
+    if ( any(icup < 0) .or. any(icup > 5) ) then
       call fatal(__FILE__,__LINE__,'UNSUPPORTED CUMULUS SCHEME')
     end if
     if ( ibltyp < 0 .or. (ibltyp > 2 .and. ibltyp /= 99) ) then
@@ -833,6 +845,8 @@ module mod_params
   call bcast(iboudy)
   call bcast(isladvec)
   call bcast(ibltyp)
+  call bcast(icup_lnd)
+  call bcast(icup_ocn)
   call bcast(icup)
   call bcast(igcc)
   call bcast(ipptls)
@@ -977,7 +991,7 @@ module mod_params
   call bcast(clfrcvmax)
   call bcast(cllwcv)
  
-  if ( icup == 2 .or. icup == 99 .or. icup == 98 .or. icup == 96 ) then
+  if ( any(icup == 2) ) then
     call bcast(shrmin)
     call bcast(shrmax)
     call bcast(edtmin)
@@ -1002,7 +1016,7 @@ module mod_params
     call bcast(dtauc)
   end if
  
-  if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
+  if ( any(icup == 4) ) then
     call bcast(minsig)
     call bcast(elcrit_ocn)
     call bcast(elcrit_lnd)
@@ -1023,7 +1037,7 @@ module mod_params
     call bcast(epmax_ocn)
   end if
  
-  if ( icup.eq.5 ) then
+  if ( any(icup == 5) ) then
     call bcast(iconv)
     call bcast(entrpen)
     call bcast(entrscv)
@@ -1386,8 +1400,9 @@ module mod_params
     write(stdout,*) 'Physical Parameterizations'
     write(stdout,'(a,i2)') '  Lateral Boundary conditions : ' , iboudy
     write(stdout,'(a,i2)') '  Semi-Lagrangian Advection   : ' , isladvec
-    write(stdout,'(a,i2)') '  Cumulus convection scheme   : ' , icup
-    if ( icup == 2 .or. icup == 97 .or. icup == 98 .or. icup == 96 ) then
+    write(stdout,'(a,i2)') '  Land cumulus conv. scheme   : ' , icup_lnd
+    write(stdout,'(a,i2)') '  Ocean cumulus conv. scheme  : ' , icup_ocn
+    if ( any(icup == 2) ) then
       write(stdout,'(a,i2)') '  Grell closure scheme        : ' , igcc
     end if
     write(stdout,'(a,i2)') '  Moisture schem              : ' , ipptls
@@ -1610,89 +1625,24 @@ module mod_params
 
   call allocate_cumulus
 
-  if ( icup == 99 ) then
-    if ( myid == italk ) then
-      write(stdout,*) 'Cumulus scheme: will use Grell '// &
-           'over land and Emanuel over ocean.'
-    end if
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        if ( mddom%lndcat(j,i) > 14.5D0 .and. &
-             mddom%lndcat(j,i) < 15.5D0 ) then
-          cuscheme(j,i) = 4
-        else
-          cuscheme(j,i) = 2
-        end if
-      end do
-    end do
-  end if
-  if ( icup == 98 ) then
-    if ( myid == italk ) then
-      write(stdout,*) 'Cumulus scheme: will use Emanuel '// &
-           'over land and Grell over ocean.'
-    end if
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        if ( mddom%lndcat(j,i) > 14.5D0 .and. &
-             mddom%lndcat(j,i) < 15.5D0 ) then
-          cuscheme(j,i) = 2
-        else
-          cuscheme(j,i) = 4
-        end if
-      end do
-    end do
-  end if
-  if ( icup == 97 ) then
-    if ( myid == italk ) then
-      write(stdout,*) 'Cumulus scheme: will use Tiedtke '// &
-        'over land and Emanuel over ocean'
-    end if
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        if ( mddom%lndcat(j,i) > 14.5D0 .and. &
-             mddom%lndcat(j,i) < 15.5D0 ) then
-          cuscheme(j,i) = 4
-        else
-          cuscheme(j,i) = 5
-        end if
-      end do
-    end do
-  end if
-  if ( icup == 96 ) then
-    if ( myid == italk ) then
-      write(stdout,*) 'Cumulus scheme: will use Tiedtke '// &
-        'over land and Grell over ocean'
-    end if
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        if ( mddom%lndcat(j,i) > 14.5D0 .and. &
-             mddom%lndcat(j,i) < 15.5D0 ) then
-          cuscheme(j,i) = 2
-        else
-          cuscheme(j,i) = 5
-        end if
-      end do
-    end do
-  end if
-
-  if ( icup == 1 ) then
-!
-!   specify heating profile (twght) and weighted function
-!   for moisture fluxes due to convection (vqflx)
-!   assume base of cloud varies as  < kbase = 5,kz >
-!   top  of cloud varies as  < ktop  = 1,kbase-3 >
-!   exceptions to this are treated explicitly in subroutine
-!   "cupara".
-!
+  if ( any(icup == 1) ) then
+    !
+    ! specify heating profile (twght) and weighted function
+    ! for moisture fluxes due to convection (vqflx)
+    ! assume base of cloud varies as  < kbase = 5,kz >
+    ! top  of cloud varies as  < ktop  = 1,kbase-3 >
+    ! exceptions to this are treated explicitly in subroutine
+    ! "cupara".
+    !
     do kbase = 5 , kz
       do ktop = 1 , kbase - 3
         do k = 1 , kz
           twght(k,kbase,ktop) = d_zero
           vqflx(k,kbase,ktop) = d_zero
         end do
-!
-!       get twght from 1/2 level sigma values
-!
+        !
+        ! get twght from 1/2 level sigma values
+        !
         bb = dlog(hsigma(ktop)) + dlog(hsigma(kbase))
         cc = dlog(hsigma(ktop))*dlog(hsigma(kbase))
         ssum = d_zero
@@ -1704,10 +1654,10 @@ module mod_params
         do k = ktop , kbase
           twght(k,kbase,ktop) = twght(k,kbase,ktop)/ssum
         end do
-!
-!       get vqflx from  d(w*q) / dsigma on full levels
-!       do computations in p to avoid sigma=0. discontinuity
-!
+        !
+        ! get vqflx from  d(w*q) / dsigma on full levels
+        ! do computations in p to avoid sigma=0. discontinuity
+        !
         xtop = dlog((d_100-ptop)*sigma(ktop)+ptop)
         xbot = dlog((d_100-ptop)*sigma(kbase+1)+ptop)
         bb = xtop + xbot
@@ -1740,7 +1690,7 @@ module mod_params
       write(stdout, *) 'Anthes-Kuo Convection Scheme used.'
     end if
   end if
-  if ( icup == 2 .or. icup == 99 .or. icup == 98 .or. icup == 96 ) then
+  if ( any(icup == 2) ) then
     kbmax = kz
     do k = 1 , kz - 1
       if ( hsigma(k) <= skbmax ) kbmax = kz - k
@@ -1799,13 +1749,13 @@ module mod_params
       end do
     end do
   end if
-  if ( icup == 3 ) then
+  if ( any(icup == 3) ) then
     if ( myid == italk ) then
       write(stderr,*) 'WARNING : The Betts-Miller Convection scheme is not ', &
                       'properly implemented'
     end if
   end if
-  if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
+  if ( any(icup == 4) ) then
     minorig = kz
     do k = 1 , kz
       if ( hsigma(k) <= minsig ) minorig = kz - k
@@ -1836,7 +1786,7 @@ module mod_params
         epmax_ocn
     end if
   end if
-  if ( icup == 5 .or. icup == 97 .or. icup == 96 ) then
+  if ( any(icup == 5)  ) then
     if ( myid == italk ) then
       write(stdout,*) 'Tiedtke (1986) Convection Scheme ECHAM 5.4 used.'
       write(stdout,'(a,i2)')    '  Used Scheme                       : ',iconv
@@ -1944,7 +1894,7 @@ module mod_params
   !
   ! Setup Land/Ocean MIT autoconversion
   !
-  if ( icup == 4 .or. icup == 99 .or. icup == 98 .or. icup == 97 ) then
+  if ( any(icup == 4) ) then
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( mddom%ldmsk(j,i) == 1 ) then
@@ -1957,7 +1907,7 @@ module mod_params
       end do
     end do
   end if
-  if ( icup == 1 ) then
+  if ( any(icup == 1) ) then
     sig700 = (70.0D0-ptop)/(d_100-ptop)
     do k = 1 , kz
       k700 = k
@@ -1970,7 +1920,7 @@ module mod_params
   call setup_bdycon(hsigma)
   if ( ichem == 1 ) call setup_che_bdycon
 !
-  if ( icup == 3 ) call lutbl(ptop)
+  if ( any(icup == 3) ) call lutbl(ptop)
 !
   if ( iboudy < 0 .or. iboudy > 5 ) then
     call fatal(__FILE__,__LINE__,'UNSUPPORTED BDY SCHEME.')
