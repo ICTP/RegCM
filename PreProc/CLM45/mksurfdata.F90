@@ -83,7 +83,7 @@ program mksurfdata
   integer(ik4) , dimension(2) :: ihvar
   integer(ik4) , dimension(2) :: illvar
   integer(ik4) , dimension(2) :: izvar
-  integer(ik4) , dimension(1) :: istart1 , icount1 , mxsoil_color
+  integer(ik4) , dimension(1) :: istart1 , icount1 , mxsoil_color , iloc
   real(rk4) :: spft , diff , mean
   real(rk8) :: operat
   integer(ik4) :: ierr
@@ -106,7 +106,7 @@ program mksurfdata
     write(stderr,*) 'Usage : '
     write(stderr,*) '          ', trim(prgname), ' regcm.in'
     write(stderr,*) ' '
-    call die('clm2rcm','Check argument and namelist syntax',1)
+    call die('mksurfdata','Check argument and namelist syntax',1)
   end if
 
   call memory_init
@@ -131,7 +131,7 @@ program mksurfdata
   outfile = trim(dirglob)//pthsep//trim(domname)//'_CLM45_surface.nc'
 
   call createfile_withname(outfile,ncid)
-  call add_common_global_params(ncid,'clm2rcm',.false.)
+  call add_common_global_params(ncid,'mksurfdata',.false.)
   ndim = 1
   call define_basic_dimensions(ncid,jx,iy,kzp1,ndim,idims)
   call add_dimension(ncid,'time',nf90_unlimited,ndim,idims)
@@ -176,62 +176,44 @@ program mksurfdata
   istatus = nf90_put_att(ncid, istdvar, 'units','m')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add stddev units')
 
-  istatus = nf90_def_var(ncid, 'PCT_GLACIER', nf90_float, idims(1:2), iglcvar)
+  istatus = nf90_def_var(ncid, 'PCT_GLACIER', nf90_float, idims(7), iglcvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var glacier')
   istatus = nf90_put_att(ncid, iglcvar, 'long_name','percent glacier')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add glacier long_name')
   istatus = nf90_put_att(ncid, iglcvar, 'units','%')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add glacier units')
-  istatus = nf90_put_att(ncid, iglcvar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add glacier _FillValue')
-  istatus = nf90_put_att(ncid, iglcvar, 'coordinates','xlat xlon')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add glacier coordinates')
 
-  istatus = nf90_def_var(ncid, 'PCT_WETLAND', nf90_float, idims(1:2), iwetvar)
+  istatus = nf90_def_var(ncid, 'PCT_WETLAND', nf90_float, idims(7), iwetvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var wetland')
   istatus = nf90_put_att(ncid, iwetvar, 'long_name','percent wetland')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add wetland long_name')
   istatus = nf90_put_att(ncid, iwetvar, 'units','%')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add wetland units')
-  istatus = nf90_put_att(ncid, iwetvar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add wetland _FillValue')
-  istatus = nf90_put_att(ncid, iwetvar, 'coordinates','xlat xlon')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add wetland coordinates')
 
-  istatus = nf90_def_var(ncid, 'PCT_LAKE', nf90_float, idims(1:2), ilakevar)
+  istatus = nf90_def_var(ncid, 'PCT_LAKE', nf90_float, idims(7), ilakevar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var lake')
   istatus = nf90_put_att(ncid, ilakevar, 'long_name','percent lake')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add lake long_name')
   istatus = nf90_put_att(ncid, ilakevar, 'units','%')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add lake units')
-  istatus = nf90_put_att(ncid, ilakevar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add lake _FillValue')
-  istatus = nf90_put_att(ncid, ilakevar, 'coordinates','xlat xlon')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add lake coordinates')
 
-  istatus = nf90_def_var(ncid, 'PCT_URBAN', nf90_float, idims(1:2), iurbanvar)
+  istatus = nf90_def_var(ncid, 'PCT_URBAN', nf90_float, idims(7), iurbanvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var urban')
   istatus = nf90_put_att(ncid, iurbanvar, 'long_name','percent urban')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add urban long_name')
   istatus = nf90_put_att(ncid, iurbanvar, 'units','%')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add urban units')
-  istatus = nf90_put_att(ncid, iurbanvar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add urban _FillValue')
-  istatus = nf90_put_att(ncid, iurbanvar, 'coordinates','xlat xlon')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add urban coordinates')
 
-  ivdims(1:2) = idims(1:2)
-  ivdims(3) = idims(5)
-  istatus = nf90_def_var(ncid, 'PCT_PFT', nf90_float, ivdims(1:3), ipftvar)
+  ivdims(1) = idims(7)
+  ivdims(2) = idims(5)
+  istatus = nf90_def_var(ncid, 'PCT_PFT', nf90_float, ivdims(1:2), ipftvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var pft')
   istatus = nf90_put_att(ncid, ipftvar, 'long_name','percent pft')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft long_name')
   istatus = nf90_put_att(ncid, ipftvar, 'units','%')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft units')
   istatus = nf90_put_att(ncid, ipftvar, '_FillValue',vmisdat)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add pft _FillValue')
-  istatus = nf90_put_att(ncid, ipftvar, 'coordinates','xlat xlon')
-  call checkncerr(istatus,__FILE__,__LINE__,'Error add pft coordinates')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add pft Fill Value')
 
   ivdims(1) = idims(7)
   ivdims(2) = idims(5)
@@ -447,51 +429,79 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write stddev')
 
   call mkglacier('mksrf_glacier.nc',var5d(:,:,1,1,1))
-  where ( xmask < 0.5 )
-    var5d(:,:,1,1,1) = vmisdat
-  end where
-  where (var5d(:,:,1,1,1) >= 0.0)
-    pctspec(:,:) = pctspec(:,:) + var5d(:,:,1,1,1)
-  end where
-  istatus = nf90_put_var(ncid, iglcvar, var5d(:,:,1,1,1))
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write glacier')
-
-  call mkwetland('mksrf_lanwat.nc',var5d(:,:,1,1,1),var5d(:,:,2,1,1))
+  call mkwetland('mksrf_lanwat.nc',var5d(:,:,2,1,1),var5d(:,:,3,1,1))
+  call mkurban('mksrf_urban.nc',var5d(:,:,4,1,1))
+  var5d(:,:,1:4,1,1) = max(var5d(:,:,1:4,1,1),0.0)
   where ( xmask < 0.5 )
     var5d(:,:,1,1,1) = vmisdat
     var5d(:,:,2,1,1) = vmisdat
+    var5d(:,:,3,1,1) = vmisdat
+    var5d(:,:,4,1,1) = vmisdat
   end where
-  where (var5d(:,:,1,1,1) >= 0.0)
-    pctspec(:,:) = pctspec(:,:) + var5d(:,:,1,1,1)
-  end where
-  where (var5d(:,:,2,1,1) >= 0.0)
-    pctspec(:,:) = pctspec(:,:) + var5d(:,:,2,1,1)
-    pctslake = var5d(:,:,2,1,1)
-  end where
-  istatus = nf90_put_var(ncid, iwetvar, var5d(:,:,1,1,1))
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write wetland')
-  istatus = nf90_put_var(ncid, ilakevar, var5d(:,:,2,1,1))
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write lake')
 
-  call mkurban('mksrf_urban.nc',var5d(:,:,1,1,1))
-  where ( xmask < 0.5 )
-    var5d(:,:,1,1,1) = vmisdat
-  end where
-  where (var5d(:,:,1,1,1) >= 0.0)
-    pctspec(:,:) = pctspec(:,:) + var5d(:,:,1,1,1)
-  end where
-  istatus = nf90_put_var(ncid, iurbanvar, var5d(:,:,1,1,1))
+  do i = 2 , iy-2
+    do j = 2 , jx-2
+      if ( xmask(j,i) > 0.5 ) then
+        pctspec(j,i) = var5d(j,i,1,1,1) + var5d(j,i,2,1,1) + &
+                       var5d(j,i,3,1,1) + var5d(j,i,4,1,1)
+        if ( pctspec(j,i) < 0.0 ) then
+          write(stderr,*) 'Negative pctspec ',pctspec(j,i),' at j,i ', j , i
+          call die('mksurfdata','PCTSPEC error')
+        end if
+        if ( pctspec(j,i) > 100.0 ) then
+          if ( var5d(j,i,3,1,1) > 90.0 ) then
+            var5d(j,i,3,1,1) = 100.0
+            var5d(j,i,1,1,1) = 0.0
+            var5d(j,i,2,1,1) = 0.0
+            var5d(j,i,4,1,1) = 0.0
+          else
+            diff = pctspec(j,i) - 100.0
+            iloc = maxloc(var5d(j,i,:,1,1))
+            var5d(j,i,iloc(1),1,1) = var5d(j,i,iloc(1),1,1) - diff
+            pctspec(j,i) = var5d(j,i,1,1,1) + var5d(j,i,2,1,1) + &
+                           var5d(j,i,3,1,1) + var5d(j,i,4,1,1)
+            if ( pctspec(j,i) > 100.0 ) then
+              write(stderr,*) 'Cannot normalize pctspec at j,i ', j , i
+              call die('mksurfdata','PCTSPEC normalization error')
+            else
+              write(stdout,*) 'PCTSPEC now ',pctspec(j,i),' at j,i ', j , i
+              write(stdout,*) 'GLACIER = ', var5d(j,i,1,1,1)
+              write(stdout,*) 'WETLAND =' , var5d(j,i,2,1,1)
+              write(stdout,*) 'LAKE    =' , var5d(j,i,3,1,1)
+              write(stdout,*) 'URBAN   =' , var5d(j,i,4,1,1)
+              write(stdout,*) 'Adjusted PCTSPEC diff ',diff
+          end if
+          end if
+        end if
+      end if
+    end do
+  end do
+  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
+  istatus = nf90_put_var(ncid, iglcvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write glacier')
+  gcvar = pack(var5d(2:jx-2,2:iy-2,2,1,1),lmask)
+  istatus = nf90_put_var(ncid, iwetvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write wetland')
+  gcvar = pack(var5d(2:jx-2,2:iy-2,3,1,1),lmask)
+  istatus = nf90_put_var(ncid, ilakevar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write lake')
+  gcvar = pack(var5d(2:jx-2,2:iy-2,4,1,1),lmask)
+  istatus = nf90_put_var(ncid, iurbanvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write urban')
+  where ( var5d(:,:,3,1,1) > 0.0 )
+    pctslake = var5d(:,:,3,1,1)
+  end where
 
   call mkpft('mksrf_pft.nc',var5d(:,:,1:npft,1,1))
+  var5d(:,:,1:npft,1,1) = max(var5d(:,:,1:npft,1,1),0.0)
   do np = 1 , npft
     where ( xmask < 0.5 )
       var5d(:,:,np,1,1) = vmisdat
     end where
   end do
   ! Here adjustment !
-  do i = 1 , iy
-    jloop: do j = 1 , jx
+  do i = 2 , iy-2
+    jloop: do j = 2 , jx-2
       if ( xmask(j,i) > 0.5 ) then
         if ( pctspec(j,i) > 99.99999 ) then
           var5d(j,i,:,1,1) = vmisdat
@@ -557,8 +567,15 @@ program mksurfdata
       end if
     end do jloop
   end do
-  istatus = nf90_put_var(ncid, ipftvar, var5d(:,:,1:npft,1,1))
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write pft')
+  do ip = 1 , npft
+    istart(1) = 1
+    icount(1) = ngcells
+    istart(2) = ip
+    icount(2) = 1
+    gcvar = pack(var5d(2:jx-2,2:iy-2,ip,1,1),lmask)
+    istatus = nf90_put_var(ncid, ipftvar, gcvar, istart(1:2), icount(1:2))
+    call checkncerr(istatus,__FILE__,__LINE__, 'Error write pft')
+  end do
 
   call mklaisai('mksrf_lai.nc',var5d(:,:,1:npft,1:nmon,1), &
                                var5d(:,:,1:npft,1:nmon,2), &

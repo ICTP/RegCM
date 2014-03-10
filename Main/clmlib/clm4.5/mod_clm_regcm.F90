@@ -157,18 +157,54 @@ module mod_clm_regcm
     else
       doalb = .false.
     end if
-    if ( idatex == idate2 .or. &
-       (lfdomonth(idatex) .and. lmidnight(idatex)) ) then
-      rstwr = .true.
-      write(rdate,'(i10)') toint10(idatex)
+    if ( ktau > 0 ) then
+      if ( idatex == idate2 .or. &
+         (lfdomonth(idatex) .and. lmidnight(idatex)) ) then
+        rstwr = .true.
+        write(rdate,'(i10)') toint10(idatex)
+      end if
     else
       rstwr = .false.
     end if
     ! First declin should be for NEXT time step. Stay quiet for now...
     call clm_drv(doalb, calday, declin, declin, rstwr, nlend, rdate)
 
-    call fatal(__FILE__,__LINE__,'DONE CLM STEP!!!!')
     ! Get back data from clm_l2a
+    call l2c_ss(lndcomm,clm_l2a%t_rad,lms%tgbb)
+    call l2c_ss(lndcomm,clm_l2a%t_ref2m,lms%t2m)
+    call l2c_ss(lndcomm,clm_l2a%q_ref2m,lms%q2m)
+
+    ! CLM gives just wind speed, assume directions are same as input.
+    call l2c_ss(lndcomm,clm_l2a%u_ref10m,lms%u10m*acos(lm%uatm/lm%vatm))
+    call l2c_ss(lndcomm,clm_l2a%u_ref10m,lms%v10m*asin(lm%uatm/lm%vatm))
+
+    call l2c_ss(lndcomm,clm_l2a%h2osno,lms%sncv)
+    call l2c_ss(lndcomm,clm_l2a%albd,lms%sncv)
+
+    lms%tgrd = lms%tgbb
+    lms%tgbrd = lms%tgbb
+
+    clm_l2a%albd
+    clm_l2a%albi
+    clm_l2a%taux
+    clm_l2a%tauy
+    clm_l2a%eflx_lh_tot
+    clm_l2a%eflx_sh_tot
+    clm_l2a%eflx_lwrad_out
+    clm_l2a%qflx_evap_tot
+    clm_l2a%fsa
+    clm_l2a%nee
+    clm_l2a%ram1
+    clm_l2a%fv
+    clm_l2a%h2osoi_vol
+    clm_l2a%rofliq
+    clm_l2a%rofice
+    clm_l2a%flxdst
+    clm_l2a%ddvel
+    clm_l2a%flxvoc
+#ifdef LCH4
+    clm_l2a%flux_ch4
+#endif
 
   end subroutine runclm45
 
