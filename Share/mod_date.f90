@@ -1336,9 +1336,15 @@ module mod_date
       else if (cunit(1:4) == 'days') then
         ! Unit is days since reference
         if (len_trim(cunit) >= 30) then
-          read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
-            cdum, d%year, cdum, d%month, cdum, d%day, &
-            cdum, t%hour, cdum, t%minute, cdum, t%second
+          if ( cunit(30:30) == '.' ) then
+            read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i1)') &
+              cdum, d%year, cdum, d%month, cdum, d%day, &
+              cdum, t%hour, cdum, t%minute, cdum, t%second
+          else
+            read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2,a1,i2)') &
+              cdum, d%year, cdum, d%month, cdum, d%day, &
+              cdum, t%hour, cdum, t%minute, cdum, t%second
+          end if
         else if (len_trim(cunit) >= 27) then
           read(cunit,'(a11,i4,a1,i2,a1,i2,a1,i2,a1,i2)') &
             cdum, d%year, cdum, d%month, cdum, d%day, &
