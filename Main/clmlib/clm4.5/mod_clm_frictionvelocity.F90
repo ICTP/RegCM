@@ -30,28 +30,28 @@ module mod_clm_frictionvelocity
                   fm, landunit_index)
     implicit none
     ! pft/landunit array bounds
-    integer(ik4) , intent(in)  :: lbn, ubn
+    integer(ik4) , intent(in) :: lbn, ubn
     ! number of filtered pft/landunit elements
-    integer(ik4) , intent(in)  :: fn
+    integer(ik4) , intent(in) :: fn
     ! pft/landunit filter
-    integer(ik4) , intent(in)  :: filtern(fn)
+    integer(ik4) , intent(in) :: filtern(fn)
     ! displacement height (m)
-    real(rk8), intent(in)  :: displa(lbn:ubn)
+    real(rk8), intent(in) :: displa(lbn:ubn)
     ! roughness length over vegetation, momentum [m]
-    real(rk8), intent(in)  :: z0m(lbn:ubn)
+    real(rk8), intent(in) :: z0m(lbn:ubn)
     ! roughness length over vegetation, sensible heat [m]
-    real(rk8), intent(in)  :: z0h(lbn:ubn)
+    real(rk8), intent(in) :: z0h(lbn:ubn)
     ! roughness length over vegetation, latent heat [m]
-    real(rk8), intent(in)  :: z0q(lbn:ubn)
+    real(rk8), intent(in) :: z0q(lbn:ubn)
     ! monin-obukhov length (m)
-    real(rk8), intent(in)  :: obu(lbn:ubn)
-    integer(ik4),  intent(in)  :: iter  ! iteration number
+    real(rk8), intent(in) :: obu(lbn:ubn)
+    integer(ik4),  intent(in) :: iter  ! iteration number
     ! wind speed at reference height [m/s]
-    real(rk8), intent(in)  :: ur(lbn:ubn)
+    real(rk8), intent(in) :: ur(lbn:ubn)
     ! wind speed including the stablity effect [m/s]
-    real(rk8), intent(in)  :: um(lbn:ubn)
+    real(rk8), intent(in) :: um(lbn:ubn)
     ! optional argument that defines landunit or pft level
-    logical,  optional, intent(in)  :: landunit_index
+    logical,  optional, intent(in) :: landunit_index
     ! friction velocity [m/s]
     real(rk8), intent(out) :: ustar(lbn:ubn)
     ! relation for potential temperature profile
@@ -105,21 +105,21 @@ module mod_clm_frictionvelocity
     ! Assign local pointers to derived type members (gridcell-level)
 
     if (present(landunit_index)) then
-      ngridcell  => clm3%g%l%gridcell
+      ngridcell => clm3%g%l%gridcell
     else
-      ngridcell  => clm3%g%l%c%p%gridcell
+      ngridcell => clm3%g%l%c%p%gridcell
     end if
 
-    vds        => clm3%g%l%c%p%pps%vds
-    u10        => clm3%g%l%c%p%pps%u10
-    u10_clm    => clm3%g%l%c%p%pps%u10_clm
-    va         => clm3%g%l%c%p%pps%va
-    fv         => clm3%g%l%c%p%pps%fv
+    vds     => clm3%g%l%c%p%pps%vds
+    u10     => clm3%g%l%c%p%pps%u10
+    u10_clm => clm3%g%l%c%p%pps%u10_clm
+    va      => clm3%g%l%c%p%pps%va
+    fv      => clm3%g%l%c%p%pps%fv
 
     ! Assign local pointers to derived type members (pft or landunit-level)
 
-    pfti             => clm3%g%l%pfti
-    pftf             => clm3%g%l%pftf
+    pfti => clm3%g%l%pfti
+    pftf => clm3%g%l%pftf
 
     ! Assign local pointers to derived type members (pft-level)
 

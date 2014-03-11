@@ -141,6 +141,7 @@ module mod_clm_atmlnd
     !net CH4 flux (kg C/m**2/s) [+ to atm]
     real(rk8) , pointer , dimension(:) :: flux_ch4
 #endif
+    real(rk8) , pointer , dimension(:) :: notused
   end type lnd2atm_type
 
   public :: lnd2atm_type
@@ -274,6 +275,7 @@ end subroutine init_atm2lnd_type
     if ( n_drydep > 0 .and. drydep_method == DD_XLND )then
       allocate(l2a%ddvel(ibeg:iend,1:n_drydep))
     end if
+    allocate(l2a%notused(ibeg:iend))
 
     ! ival = nan   ! causes core dump in map_maparray, tcx fix
     ival = 0.0D0

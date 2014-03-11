@@ -482,7 +482,7 @@ module mod_clm_initimeconst
         write(stderr,*) 'All lake columns will have eta', &
                         ' set equal to default value'
       end if
-      etal_in(:) = 1.0D0/3.0D0
+      etal_in(:) = -1.0D0
     else
       call clm_readvar(ncid,'ETALAKE',etal_in,gcomm_gridcell)
     end if
@@ -494,7 +494,7 @@ module mod_clm_initimeconst
         write(stderr,*) 'All lake columns will have fetch', &
                         ' set equal to default value'
       end if
-      lakefetch_in(:) = ds*2.0D0*1000.0D0
+      lakefetch_in(:) = -1.0D0
     else
       call clm_readvar(ncid,'LAKEFETCH',lakefetch_in,gcomm_gridcell)
     end if

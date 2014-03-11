@@ -113,6 +113,7 @@ module mod_clm_control
     character(len=32) :: subname = 'control_init'  ! subroutine name
     character(len=32) :: hostname = '?'
     character(len=32) :: user = '?'
+    integer :: hostnm
 
     ! ----------------------------------------------------------------------
     ! Namelist Variables

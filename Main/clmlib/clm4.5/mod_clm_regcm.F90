@@ -12,7 +12,7 @@ module mod_clm_regcm
   use mod_clm_driver
   use mod_clm_varctl , only : use_c13
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a
-  use mod_clm_decomp , only : procinfo
+  use mod_clm_decomp , only : procinfo , get_proc_bounds
 
   private
 
@@ -69,7 +69,7 @@ module mod_clm_regcm
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: begg , endg , i
+    integer(ik4) :: begg , endg , i , j , n
     real(rk8) :: hl , satvp
     logical :: doalb , rstwr , nlend
     character(len=64) :: rdate
@@ -82,8 +82,7 @@ module mod_clm_regcm
       rprec = 0.0D0
     end where
 
-    begg = lbound(clm_a2l%forc_rh,1)
-    endg = ubound(clm_a2l%forc_rh,1)
+    call get_proc_bounds(begg,endg)
 
     ! Fill clm_a2l
     call c2l_gs(procinfo%cl,lm%tatm,clm_a2l%forc_t)
@@ -111,6 +110,7 @@ module mod_clm_regcm
     clm_a2l%forc_solai(:,2) = clm_a2l%notused
 
     ! Compute or alias
+    clm_a2l%forc_pbot = clm_a2l%forc_pbot * d_1000 ! In Pa
     clm_a2l%forc_wind = sqrt(clm_a2l%forc_u**2 + clm_a2l%forc_v**2)
     clm_a2l%forc_q = clm_a2l%forc_q/(1.0D0+clm_a2l%forc_q)
     clm_a2l%forc_hgt_u = clm_a2l%forc_hgt
@@ -157,53 +157,64 @@ module mod_clm_regcm
     else
       doalb = .false.
     end if
+    rstwr = .false.
+    nlend = .false.
     if ( ktau > 0 ) then
-      if ( idatex == idate2 .or. &
-         (lfdomonth(idatex) .and. lmidnight(idatex)) ) then
+      if ( idatex == idate2 ) then
+        nlend = .true.
         rstwr = .true.
         write(rdate,'(i10)') toint10(idatex)
       end if
-    else
-      rstwr = .false.
+      if ( (lfdomonth(idatex) .and. lmidnight(idatex)) ) then
+        rstwr = .true.
+        write(rdate,'(i10)') toint10(idatex)
+      end if
     end if
+
     ! First declin should be for NEXT time step. Stay quiet for now...
     call clm_drv(doalb, calday, declin, declin, rstwr, nlend, rdate)
 
     ! Get back data from clm_l2a
-    call l2c_ss(lndcomm,clm_l2a%t_rad,lms%tgbb)
-    call l2c_ss(lndcomm,clm_l2a%t_ref2m,lms%t2m)
-    call l2c_ss(lndcomm,clm_l2a%q_ref2m,lms%q2m)
+    call l2c_ss(procinfo%cl,clm_l2a%t_rad,lms%tgbb)
+
+    call l2c_ss(procinfo%cl,clm_l2a%t_ref2m,lms%t2m)
+    call l2c_ss(procinfo%cl,clm_l2a%q_ref2m,lms%q2m)
 
     ! CLM gives just wind speed, assume directions are same as input.
-    call l2c_ss(lndcomm,clm_l2a%u_ref10m,lms%u10m*acos(lm%uatm/lm%vatm))
-    call l2c_ss(lndcomm,clm_l2a%u_ref10m,lms%v10m*asin(lm%uatm/lm%vatm))
+    clm_a2l%notused = atan(clm_a2l%forc_v/clm_a2l%forc_u)
+    clm_l2a%notused = clm_l2a%u_ref10m*cos(clm_a2l%notused)
+    call l2c_ss(procinfo%cl,clm_l2a%notused,lms%u10m)
+    clm_l2a%notused = clm_l2a%u_ref10m*sin(clm_a2l%notused)
+    call l2c_ss(procinfo%cl,clm_l2a%notused,lms%v10m)
 
-    call l2c_ss(lndcomm,clm_l2a%h2osno,lms%sncv)
-    call l2c_ss(lndcomm,clm_l2a%albd,lms%sncv)
+    call l2c_ss(procinfo%cl,clm_l2a%eflx_sh_tot,lms%sent)
+    call l2c_ss(procinfo%cl,clm_l2a%qflx_evap_tot,lms%evpr)
+    call l2c_ss(procinfo%cl,clm_l2a%fv,lms%drag)
+
+    call l2c_ss(procinfo%cl,clm_l2a%h2osno,lms%sncv)
+    call l2c_ss(procinfo%cl,clm_l2a%taux,lms%taux)
+    call l2c_ss(procinfo%cl,clm_l2a%tauy,lms%tauy)
 
     lms%tgrd = lms%tgbb
     lms%tgbrd = lms%tgbb
+    lms%tlef = lms%t2m
 
-    clm_l2a%albd
-    clm_l2a%albi
-    clm_l2a%taux
-    clm_l2a%tauy
-    clm_l2a%eflx_lh_tot
-    clm_l2a%eflx_sh_tot
-    clm_l2a%eflx_lwrad_out
-    clm_l2a%qflx_evap_tot
-    clm_l2a%fsa
-    clm_l2a%nee
-    clm_l2a%ram1
-    clm_l2a%fv
-    clm_l2a%h2osoi_vol
-    clm_l2a%rofliq
-    clm_l2a%rofice
-    clm_l2a%flxdst
-    clm_l2a%ddvel
-    clm_l2a%flxvoc
+    ! From the input
+    call l2c_ss(procinfo%cl,clm_a2l%forc_rain,lms%prcp)
+
+    ! Will fix
+    !clm_l2a%eflx_lwrad_out
+    !clm_l2a%fsa
+    !clm_l2a%nee
+    !clm_l2a%ram1
+    !clm_l2a%h2osoi_vol
+    !clm_l2a%rofliq
+    !clm_l2a%rofice
+    !clm_l2a%flxdst
+    !clm_l2a%ddvel
+    !clm_l2a%flxvoc
 #ifdef LCH4
-    clm_l2a%flux_ch4
+    !clm_l2a%flux_ch4
 #endif
 
   end subroutine runclm45
@@ -213,6 +224,17 @@ module mod_clm_regcm
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
     ! Just get albedoes from clm_l2a
+    clm_l2a%notused = clm_l2a%albd(:,1)
+    call l2c_ss(procinfo%cl,clm_l2a%notused,lms%swdiralb)
+    clm_l2a%notused = clm_l2a%albd(:,2)
+    call l2c_ss(procinfo%cl,clm_l2a%notused,lms%lwdiralb)
+    clm_l2a%notused = clm_l2a%albi(:,1)
+    call l2c_ss(procinfo%cl,clm_l2a%notused,lms%swdifalb)
+    clm_l2a%notused = clm_l2a%albi(:,2)
+    call l2c_ss(procinfo%cl,clm_l2a%notused,lms%lwdifalb)
+    ! This should be the vegetation albedo!
+    lms%swalb = lms%swdiralb+lms%swdifalb
+    lms%lwalb = lms%lwdiralb+lms%lwdifalb
   end subroutine albedoclm45
 
 end module mod_clm_regcm

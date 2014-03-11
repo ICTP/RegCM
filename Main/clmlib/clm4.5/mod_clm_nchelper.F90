@@ -48,7 +48,7 @@ module mod_clm_nchelper
     integer(ik4) , dimension(clm_maxdims) :: dimhash
     character(len=32) , dimension(clm_maxdims) :: dimname
     integer(ik4) , dimension(clm_maxvars) :: varids
-    integer(ik4) , dimension(clm_maxdims) :: varhash
+    integer(ik4) , dimension(clm_maxvars) :: varhash
     character(len=32) , dimension(clm_maxvars) :: varname
     integer(ik4) , dimension(:,:) , pointer :: i4buf => null()
     real(rk4) , dimension(:,:) , pointer :: r4buf => null()

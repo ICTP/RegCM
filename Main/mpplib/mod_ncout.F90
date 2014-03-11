@@ -1994,9 +1994,9 @@ module mod_ncout
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('boundary_layer_scheme',ibltyp))
         call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('cumulus_convection_scheme_lnd',icup(1)))
+          ncattribute_integer('cumulus_convection_scheme_lnd',icup_lnd))
         call outstream_addatt(outstream(i)%ncout(j), &
-          ncattribute_integer('cumulus_convection_scheme_ocn',icup(2)))
+          ncattribute_integer('cumulus_convection_scheme_ocn',icup_ocn))
         call outstream_addatt(outstream(i)%ncout(j), &
           ncattribute_integer('moisture_scheme',ipptls))
         call outstream_addatt(outstream(i)%ncout(j), &

@@ -1,63 +1,37 @@
 module mod_clm_hydrology1
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !MODULE:  Hydrology1Mod
-!
-! !DESCRIPTION:
-! Calculation of
-! (1) water storage of intercepted precipitation
-! (2) direct throughfall and canopy drainage of precipitation
-! (3) the fraction of foliage covered by water and the fraction
-!     of foliage that is dry and transpiring.
-! (4) snow layer initialization if the snow accumulation exceeds 10 mm.
-!
-! !USES:
+  !
+  ! Calculation of
+  ! (1) water storage of intercepted precipitation
+  ! (2) direct throughfall and canopy drainage of precipitation
+  ! (3) the fraction of foliage covered by water and the fraction
+  !     of foliage that is dry and transpiring.
+  ! (4) snow layer initialization if the snow accumulation exceeds 10 mm.
+  !
   use mod_realkinds
   use mod_mpmessage
   use mod_dynparam
   use mod_mppparam
   use mod_stdio
 
-! !PUBLIC TYPES:
-   implicit none
-   save
-!
-! !PUBLIC MEMBER FUNCTIONS:
-   public :: Hydrology1_readnl ! Read namelist
-   public :: Hydrology1        ! Run
-!-----------------------------------------------------------------------
-! !PRIVATE DATA MEMBERS:
-!
-   integer :: oldfflag=0                 ! use old fsno parameterization (N&Y07) 
-! !REVISION HISTORY:
-! Created by Mariana Vertenstein
-!
-!EOP
-!-----------------------------------------------------------------------
+  implicit none
 
-contains
+  private
 
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: Hydrology1_readnl
-!
-! !INTERFACE:
-   subroutine Hydrology1_readnl( NLFilename )
-!
-! !DESCRIPTION:
-! Read the namelist for Hydrology1
-!
-! !ARGUMENTS:
+  public :: Hydrology1_readnl ! Read namelist
+  public :: Hydrology1        ! Run
+
+  integer , public :: oldfflag = 0 ! use old fsno parameterization (N&Y07) 
+
+  contains
+  !
+  ! Read the namelist for Hydrology1
+  !
+  subroutine Hydrology1_readnl( NLFilename )
     character(len=*), intent(IN) :: NLFilename ! Namelist filename
-! !LOCAL VARIABLES:
     integer :: ierr                 ! error code
     integer :: unitn                ! unit for namelist file
     character(len=32) :: subname = 'Hydrology1_readnl'  ! subroutine name
-!EOP
-!-----------------------------------------------------------------------
+
     namelist / clm_hydrology1_inparm / oldfflag
 
     ! ----------------------------------------------------------------------
@@ -65,45 +39,35 @@ contains
     ! ----------------------------------------------------------------------
 
     if ( myid == iocpu ) then
-
-       unitn = file_getUnit()
-       write(stdout,*) 'Read in clm_hydrology1_inparm  namelist'
-       open(unitn,file=NLFilename,status='old',action='read')
-       if (ierr == 0) then
-          read(unitn, clm_hydrology1_inparm, iostat=ierr)
-          if (ierr /= 0) then
-             call fatal(__FILE__,__LINE__, &
-                subname // ':: ERROR reading clm_hydrology1_inparm namelist')
-          end if
-       end if
-       call file_freeUnit( unitn )
+      unitn = file_getUnit()
+      write(stdout,*) 'Read in clm_hydrology1_inparm namelist'
+      open(unitn,file=NLFilename,status='old',action='read',iostat=ierr)
+      if (ierr /= 0) then
+        call fatal(__FILE__,__LINE__, &
+           subname // ':: ERROR open namelist file '//NLFilename)
+      end if
+      read(unitn, clm_hydrology1_inparm, iostat=ierr)
+      if (ierr /= 0) then
+        call fatal(__FILE__,__LINE__, &
+             subname // ':: ERROR reading clm_hydrology1_inparm namelist')
+      end if
+      call file_freeUnit( unitn )
     end if
     ! Broadcast namelist variables read in
     call bcast(oldfflag)
-   end subroutine Hydrology1_readnl
-
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: Hydrology1
-!
-! !INTERFACE:
-   subroutine Hydrology1(lbc, ubc, lbp, ubp, num_nolakec, filter_nolakec, &
-                         num_nolakep, filter_nolakep)
-!
-! !DESCRIPTION:
-! Calculation of
-! (1) water storage of intercepted precipitation
-! (2) direct throughfall and canopy drainage of precipitation
-! (3) the fraction of foliage covered by water and the fraction
-!     of foliage that is dry and transpiring.
-! (4) snow layer initialization if the snow accumulation exceeds 10 mm.
-! Note:  The evaporation loss is taken off after the calculation of leaf
-! temperature in the subroutine clm\_leaftem.f90, not in this subroutine.
-!
-! !USES:
+  end subroutine Hydrology1_readnl
+  !
+  ! Calculation of
+  ! (1) water storage of intercepted precipitation
+  ! (2) direct throughfall and canopy drainage of precipitation
+  ! (3) the fraction of foliage covered by water and the fraction
+  !     of foliage that is dry and transpiring.
+  ! (4) snow layer initialization if the snow accumulation exceeds 10 mm.
+  ! Note:  The evaporation loss is taken off after the calculation of leaf
+  ! temperature in the subroutine clm\_leaftem.f90, not in this subroutine.
+  !
+  subroutine Hydrology1(lbc, ubc, lbp, ubp, num_nolakec, filter_nolakec, &
+                        num_nolakep, filter_nolakep)
     use mod_clm_type
     use mod_clm_atmlnd   , only : clm_a2l
     use mod_clm_varcon   , only : tfrz, istice, istwet, istsoil, isturb, &
@@ -117,32 +81,18 @@ contains
     use mod_clm_time_manager , only : get_step_size
     use mod_clm_subgridave, only : p2c
     use mod_clm_snicar    , only : snw_rds_min
-
-!
-! !ARGUMENTS:
     implicit none
-    integer, intent(in) :: lbp, ubp                     ! pft bounds
-    integer, intent(in) :: lbc, ubc                     ! column bounds
-    integer, intent(in) :: num_nolakec                  ! number of column non-lake points in column filter
-    integer, intent(in) :: filter_nolakec(ubc-lbc+1)    ! column filter for non-lake points
-    integer, intent(in) :: num_nolakep                  ! number of pft non-lake points in pft filter
-    integer, intent(in) :: filter_nolakep(ubp-lbp+1)    ! pft filter for non-lake points
-!
-! !CALLED FROM:
-! subroutine clm_driver
-!
-! !REVISION HISTORY:
-! 15 September 1999: Yongjiu Dai; Initial code
-! 15 December 1999:  Paul Houser and Jon Radakovich; F90 Revision
-! 2/15/02, Peter Thornton: Migrated to new data structures. Required
-! adding a PFT loop.
-! 4/26/05, Peter Thornton: Made the canopy interception factor fpi max=0.25
-!   the default behavior
-!
-! !LOCAL VARIABLES:
-!
-! local pointers to original implicit in arrays
-!
+    integer, intent(in) :: lbp, ubp    ! pft bounds
+    integer, intent(in) :: lbc, ubc    ! column bounds
+    ! number of column non-lake points in column filter
+    integer, intent(in) :: num_nolakec
+    ! column filter for non-lake points
+    integer, intent(in) :: filter_nolakec(ubc-lbc+1)
+    ! number of pft non-lake points in pft filter
+    integer, intent(in) :: num_nolakep
+    ! pft filter for non-lake points
+    integer, intent(in) :: filter_nolakep(ubp-lbp+1)
+
     real(rk8), pointer :: swe_old(:,:)      ! snow water before update
     real(rk8), pointer :: frac_sno_eff(:)   ! eff. fraction of ground covered by snow (0 to 1)
     real(rk8), pointer :: frac_sno(:)       ! fraction of ground covered by snow (0 to 1)
@@ -221,10 +171,6 @@ contains
     real(rk8), pointer :: mss_dst_col(:)        ! total column mass of dust in snow (col,lyr) [kg]
     real(rk8), pointer :: mss_dst_top(:)        ! total top-layer mass of dust in snow (col,lyr) [kg]
 !
-!
-! !OTHER LOCAL VARIABLES:
-!EOP
-!
     integer  :: f                            ! filter index
     integer  :: pi                           ! pft index
     integer  :: p                            ! pft index
@@ -256,7 +202,6 @@ contains
     real(rk8) :: newsnow(lbc:ubc)
     real(rk8) :: snowmelt(lbc:ubc)
     integer  :: j
-!-----------------------------------------------------------------------
 
     ! Assign local pointers to derived type members (gridcell-level)
 

@@ -43,14 +43,16 @@ module mod_clm_soilhydrology
 
     if ( myid == iocpu )then
       unitn = file_getUnit( )
-      write(stdout,*) 'Read in clm_soilhydrology_inparm  namelist'
-      open(unitn,file=NLFilename,status='old',action='read')
-      if (ierr == 0) then
-        read(unitn, clm_soilhydrology_inparm, iostat=ierr)
-        if (ierr /= 0) then
-          call fatal(__FILE__,__LINE__,&
-              subname // ':: ERROR reading clm_soilhydrology_inparm namelist')
-        end if
+      write(stdout,*) 'Read in clm_soilhydrology_inparm namelist'
+      open(unitn,file=NLFilename,status='old',action='read',iostat=ierr)
+      if (ierr /= 0) then
+        call fatal(__FILE__,__LINE__, &
+           subname // ':: ERROR open namelist file '//NLFilename)
+      end if
+      read(unitn, clm_soilhydrology_inparm, iostat=ierr)
+      if (ierr /= 0) then
+        call fatal(__FILE__,__LINE__,&
+            subname // ':: ERROR reading clm_soilhydrology_inparm namelist')
       end if
       call file_freeUnit( unitn )
     end if
