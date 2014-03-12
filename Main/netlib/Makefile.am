@@ -1,6 +1,6 @@
 
 noinst_LIBRARIES = libnetlib.a
-libnetlib_a_SOURCES = linpack.f90 eispack.f90
+libnetlib_a_SOURCES = linpack.f90 eispack.f90 lapack_dgbsv.f90
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
@@ -17,5 +17,6 @@ clean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-linpack.o: linpack.f90
-eispack.o: eispack.f90
+linpack.o : linpack.f90
+eispack.o : eispack.f90
+lapack_dgbsv.o : lapack_dgbsv.f90
