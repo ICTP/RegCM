@@ -12,6 +12,8 @@ module mod_clm_meganfactors
 
   private
 
+  save
+
   public :: megan_factors_init
   public :: megan_factors_get
   public :: comp_names

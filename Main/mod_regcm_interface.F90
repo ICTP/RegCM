@@ -74,12 +74,24 @@ module mod_regcm_interface
     if (present(mpiCommunicator)) then
       mycomm = mpiCommunicator
     else
-      mycomm = MPI_COMM_WORLD
+      call mpi_comm_dup(MPI_COMM_WORLD,mycomm,ierr)
+      if ( ierr /= 0 ) then
+        call fatal(__FILE__,__LINE__,'Cannot get communicator!')
+      end if
     end if
     call mpi_comm_rank(mycomm, myid, ierr)
+    if ( ierr /= 0 ) then
+      call fatal(__FILE__,__LINE__,'mpi_comm_rank Failure!')
+    end if
     call mpi_comm_size(mycomm, nproc, ierr)
+    if ( ierr /= 0 ) then
+      call fatal(__FILE__,__LINE__,'mpi_comm_size Failure!')
+    end if
 #ifndef MPI_SERIAL
     call mpi_comm_set_errhandler(mycomm, mpi_errors_return, ierr)
+    if ( ierr /= 0 ) then
+      call fatal(__FILE__,__LINE__,'mpi_comm_set_errhandler Failure!')
+    end if
 #endif
 !
     call whoami(myid)

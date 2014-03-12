@@ -13,6 +13,8 @@ module mod_clm_initsoilparvic
 
   private
 
+  save
+
   public :: initSoilParVIC      ! map clm soil parameters to vic parameters
 
   contains

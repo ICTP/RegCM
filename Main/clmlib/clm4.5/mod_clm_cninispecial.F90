@@ -1,19 +1,20 @@
 module mod_clm_cninispecial
+ 
+  implicit none
 
-contains 
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNiniSpecial
-!
-! !INTERFACE:
-subroutine CNiniSpecial ()
+  private
+
+  save
+
+  public :: CNiniSpecial
+
+  contains 
+  !
+  ! One-time initialization of CN variables for special landunits
+  !
+  subroutine CNiniSpecial ()
 
 #ifdef CN
-!
-! !DESCRIPTION:
-! One-time initialization of CN variables for special landunits
-!
 ! !USES:
    use mod_realkinds
    use mod_clm_pftvarcon   , only: noveg
@@ -282,6 +283,6 @@ subroutine CNiniSpecial ()
    deallocate(specialp)
    
 #endif
-   
-end subroutine CNiniSpecial
+  end subroutine CNiniSpecial
+
 end module mod_clm_cninispecial

@@ -16,6 +16,8 @@ module mod_clm_cncstateupdate3
     implicit none
     save
     private
+
+  save
 ! !PUBLIC MEMBER FUNCTIONS:
     public:: CStateUpdate3
 !

@@ -17,6 +17,8 @@ module mod_clm_decomp
 
   private
 
+  save
+
   ! this processor beg and end gridcell , landunit , column,pft
   public :: get_proc_bounds
 
@@ -40,7 +42,6 @@ module mod_clm_decomp
 
   !---global information on each pe
   type processor_type
-    type (masked_comm) , pointer :: cl
     logical , dimension(:,:) , pointer :: gcmask
     integer(ik4) :: icomm
     integer(ik4) :: ncells           ! number of gridcells in proc

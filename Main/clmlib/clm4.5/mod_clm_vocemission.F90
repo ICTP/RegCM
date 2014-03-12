@@ -31,6 +31,8 @@ module mod_clm_vocemission
 
   private
 
+  save
+
   logical , parameter :: debug = .false.
 
   public :: VOCEmission

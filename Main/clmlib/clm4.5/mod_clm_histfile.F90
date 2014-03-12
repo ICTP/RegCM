@@ -31,6 +31,8 @@ module mod_clm_histfile
 
   private
 
+  save
+
   ! max number of history tapes
   integer(ik4) , public , parameter :: max_tapes = 6
   ! max number of history fields
@@ -258,6 +260,9 @@ module mod_clm_histfile
     ! array of active history tape entries
     type(history_entry) :: hlist(max_flds)
   end type history_tape
+
+  integer(ik4) , dimension(max_tapes) :: tapes_ntimes
+  integer(ik4) , dimension(max_tapes) :: tapes_mfilt
 
   type clmpoint_rs  ! Pointer to real scalar data (1D)
     real(rk8) , pointer :: ptr(:)
@@ -2553,7 +2558,9 @@ module mod_clm_histfile
 
     ! Determine if file needs to be closed
 
-    call hist_do_disp(ntapes, tape(:)%ntimes, tape(:)%mfilt, &
+    tapes_ntimes = tape(:)%ntimes
+    tapes_mfilt = tape(:)%mfilt
+    call hist_do_disp(ntapes, tapes_ntimes , tapes_mfilt, &
                       if_stop, if_disphist, rstwr, nlend)
 
     ! Close open history file

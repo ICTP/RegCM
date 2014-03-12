@@ -19,6 +19,8 @@ module mod_clm_cnnitrifdenitrif
    implicit none
    save
    private
+
+  save
 ! !PUBLIC MEMBER FUNCTIONS:
    public:: nitrif_denitrif
    logical, public :: no_frozen_nitrif_denitrif = .false.  ! stop nitrification and denitrification in frozen soils

@@ -15,6 +15,8 @@ module mod_clm_varctl
 
   private
 
+  save
+
   integer(ik4) , parameter , private :: iundef = -9999999
   integer(ik4) , parameter , private :: rundef = -9999999.D0
   !

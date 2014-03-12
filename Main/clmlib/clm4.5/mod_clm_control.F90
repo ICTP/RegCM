@@ -93,6 +93,8 @@ module mod_clm_control
 
   private
 
+  save
+
   public :: control_init  ! initial run control information
   public :: control_print ! print run control information
 

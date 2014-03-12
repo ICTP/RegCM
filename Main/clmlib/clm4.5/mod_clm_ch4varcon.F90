@@ -15,6 +15,8 @@ module mod_clm_ch4varcon
   implicit none
 
   private
+
+  save
   !
   ! Methane Model Parameters
   !

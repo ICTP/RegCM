@@ -21,6 +21,8 @@ module mod_clm_subgridave
 
   private
 
+  save
+
   public :: p2c   ! Perfrom an average from pfts to columns
   public :: p2l   ! Perfrom an average from pfts to landunits
   public :: p2g   ! Perfrom an average from pfts to gridcells

@@ -71,6 +71,8 @@ module mod_clm_initialize
 
   private
 
+  save
+
   public :: initialize1  ! Phase one initialization
   public :: initialize2  ! Phase two initialization
   private :: header      ! echo version numbers
@@ -93,9 +95,8 @@ module mod_clm_initialize
   ! o Initializes river routing model.
   ! o Initializes accumulation variables.
   !
-  subroutine initialize1(cl)
+  subroutine initialize1
     implicit none
-    type (masked_comm) , intent(in) :: cl
     integer(ik4)  :: ier              ! error status
     integer(ik4)  :: i , j , n , k    ! loop indices
     integer(ik4)  :: nl               ! gdc and glo lnd indices
@@ -116,7 +117,7 @@ module mod_clm_initialize
     if ( myid == italk ) then
       write(stdout,*) 'Attempting to initialize the land model .....'
       write(stdout,*) 'Mask given by RegCM model has a total of ', &
-              sum(cl%linear_npoint_sg), ' land points'
+              sum(lndcomm%linear_npoint_sg), ' land points'
     endif
 
     call control_init()
@@ -131,7 +132,7 @@ module mod_clm_initialize
 
     ! Determine clm decomposition
 
-    call decompInit_lnd(cl)
+    call decompInit_lnd
 
     ! Get grid and land fraction (set ldomain)
 

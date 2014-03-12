@@ -47,6 +47,8 @@ module mod_clm_initimeconst
 
   private
 
+  save
+
   public :: iniTimeConst
 
   contains

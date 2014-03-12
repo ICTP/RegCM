@@ -16,7 +16,11 @@ module mod_clm_biogeophysics1
 !
 ! !PUBLIC TYPES:
    implicit none
-   save
+
+   private
+
+  save
+
 !
 ! !PUBLIC MEMBER FUNCTIONS:
    public :: Biogeophysics1   ! Calculate leaf temperature and surface fluxes

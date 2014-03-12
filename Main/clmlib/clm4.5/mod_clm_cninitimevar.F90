@@ -1,20 +1,20 @@
 module mod_clm_cninitimevar
-  contains
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNiniTimeVar
-!
-! !INTERFACE:
-subroutine CNiniTimeVar()
 
+  implicit none
+
+  private
+
+  save
+
+  public :: CNiniTimeVar
+
+  contains
+  !
+  ! Initializes time varying variables used only in
+  ! coupled carbon-nitrogen mode (CN):
+  !
+  subroutine CNiniTimeVar()
 #ifdef CN
-!
-! !DESCRIPTION:
-! Initializes time varying variables used only in
-! coupled carbon-nitrogen mode (CN):
-!
-! !USES:
    use mod_realkinds
    use mod_clm_type
    use mod_clm_atmlnd  , only: clm_a2l

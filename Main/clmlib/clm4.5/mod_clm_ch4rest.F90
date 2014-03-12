@@ -17,6 +17,8 @@ module mod_clm_ch4rest
 
   private
 
+  save
+
   public :: ch4Rest
 
   contains

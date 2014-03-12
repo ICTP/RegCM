@@ -12,6 +12,8 @@ module mod_clm_subgrid
 
   private
 
+  save
+
   public :: subgrid_get_gcellinfo  ! Returns g,l,c,p properties from wtxy
 
   contains

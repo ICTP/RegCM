@@ -7,6 +7,7 @@ module mod_clm_decompinit
   use mod_intkinds
   use mod_memutil
   use mod_mpmessage
+  use mod_service
   use mod_stdio
   use mod_dynparam
   use mod_mppparam
@@ -20,6 +21,8 @@ module mod_clm_decompinit
 
   private
 
+  save
+
   ! initializes atm grid decomposition into processors
   public :: decompInit_lnd
   ! initializes g , l , c , p decomp info
@@ -30,12 +33,9 @@ module mod_clm_decompinit
   ! This subroutine initializes the land surface decomposition into a
   ! processor_type data structure.
   !
-  subroutine decompInit_lnd(cl)
+  subroutine decompInit_lnd
     implicit none
-    type (masked_comm) , intent(in) , target :: cl
-    integer(ik4) , pointer , dimension(:) :: gcount
-    integer(ik4) :: nout , mynumg , np
-    logical , dimension(:,:,:) , pointer  :: lsubgrid
+    integer(ik4) :: mpierr
 
     allocate(procinfo%gc(nproc))
     allocate(procinfo%gd(nproc))
@@ -46,35 +46,36 @@ module mod_clm_decompinit
     allocate(procinfo%pc(nproc))
     allocate(procinfo%pd(nproc))
 
-    procinfo%cl => cl
-    procinfo%ncells = cl%linear_npoint_sg(myid+1)
+    procinfo%ncells = lndcomm%linear_npoint_sg(myid+1)
 
-    procinfo%icomm = cl%linear_communicator
-    gcomm_gridcell%icomm = cl%linear_communicator
-    gcomm_landunit%icomm = cl%linear_communicator
-    gcomm_column%icomm = cl%linear_communicator
-    gcomm_pft%icomm = cl%linear_communicator
-
-    allocate(gcount(procinfo%ncells))
-    gcount(:) = 1
-    mynumg  = sum(gcount)
-    call sumall(mynumg,numg)
-    call allgather_i(procinfo%gc,mynumg)
-
-    if ( myid > 0 ) then
-      procinfo%begg = sum(procinfo%gc(1:myid))+1
-      procinfo%endg = procinfo%begg + mynumg - 1
-    else
-      procinfo%begg = 1
-      procinfo%endg = mynumg
+    call mpi_comm_dup(lndcomm%linear_communicator,procinfo%icomm,mpierr)
+    if ( mpierr /= 0 ) then
+      call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
+    end if
+    call mpi_comm_dup(lndcomm%linear_communicator,gcomm_gridcell%icomm,mpierr)
+    if ( mpierr /= 0 ) then
+      call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
+    end if
+    call mpi_comm_dup(lndcomm%linear_communicator,gcomm_landunit%icomm,mpierr)
+    if ( mpierr /= 0 ) then
+      call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
+    end if
+    call mpi_comm_dup(lndcomm%linear_communicator,gcomm_column%icomm,mpierr)
+    if ( mpierr /= 0 ) then
+      call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
+    end if
+    call mpi_comm_dup(lndcomm%linear_communicator,gcomm_pft%icomm,mpierr)
+    if ( mpierr /= 0 ) then
+      call fatal(__FILE__,__LINE__,'mpi_comm_dup error.')
     end if
 
-    procinfo%gd(:) = 0
-    do np = 2 , nproc
-      procinfo%gd(np) = sum(procinfo%gc(1:np-1))
-    end do
+    procinfo%gc = lndcomm%linear_npoint_sg
+    procinfo%gd = lndcomm%linear_displ_sg 
 
-    deallocate(gcount)
+    numg = sum(lndcomm%linear_npoint_sg)
+
+    procinfo%begg = procinfo%gd(myid+1) + 1
+    procinfo%endg = procinfo%begg + procinfo%ncells - 1
 
     gcomm_gridcell%ns = numg
     gcomm_gridcell%is = procinfo%begg
@@ -95,6 +96,15 @@ module mod_clm_decompinit
     procinfo%endl    = 0
     procinfo%endc    = 0
     procinfo%endp    = 0
+
+#ifdef DEBUG
+    write(ndebug+myid,*) 'TOTAL POINTS FOR LAND IN CLM45 DECOMP : ', numg
+    write(ndebug+myid,*) 'Linear    p ', procinfo%gc
+    write(ndebug+myid,*) 'Linear    d ', procinfo%gd
+    write(ndebug+myid,*) 'My begg     ', procinfo%begg
+    write(ndebug+myid,*) 'My endg     ', procinfo%endg
+#endif
+
   end subroutine decompInit_lnd
   !
   ! This subroutine initializes the land surface decomposition into a
@@ -104,7 +114,7 @@ module mod_clm_decompinit
     implicit none
     integer(ik4) :: begg , endg  ! beg , end gridcells
     integer(ik4) :: ln           ! lnd num gridcells
-    integer(ik4) :: mynumg , mynumc , mynump , mynuml
+    integer(ik4) :: mynumc , mynump , mynuml
     integer(ik4) :: np , ilunits , icols , ipfts
     integer(ik4) , pointer , dimension(:) :: lcount
     integer(ik4) , pointer , dimension(:) :: ccount

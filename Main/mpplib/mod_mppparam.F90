@@ -34,6 +34,9 @@ module mod_mppparam
 
   private
 
+  type(masked_comm) , public :: lndcomm
+  type(masked_comm) , public :: ocncomm
+
   integer(ik4) , public , parameter :: iocpu = 0 ! The id of the cpu doing I/O
   integer(ik4) , public , parameter :: italk = 0 ! Who is doing the print ?
 

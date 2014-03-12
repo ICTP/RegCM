@@ -13,6 +13,8 @@ module mod_clm_canopyfluxes
 
   private
 
+  save
+
   public :: CanopyFluxes !Calculates the leaf temperature and leaf fluxes
 
   ! true => btran is based only on unfrozen soil levels

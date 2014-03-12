@@ -41,6 +41,8 @@ module mod_clm_accflds
 
   private
 
+  save
+
   ! Initialization accumulator fields
   public :: initAccFlds
   ! Initialize clmtype variables obtained from accum fields

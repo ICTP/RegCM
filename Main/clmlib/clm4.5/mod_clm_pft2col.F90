@@ -12,6 +12,8 @@ module mod_clm_pft2col
 
   private
 
+  save
+
   public :: pft2col  ! obtain column properties from average over column pfts
 
   contains

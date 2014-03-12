@@ -16,6 +16,8 @@ module mod_clm_cnwoodproducts
     implicit none
     save
     private
+
+  save
 ! !PUBLIC MEMBER FUNCTIONS:
     public:: CNWoodProducts
 !

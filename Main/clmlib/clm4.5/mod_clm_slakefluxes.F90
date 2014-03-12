@@ -6,6 +6,8 @@ module mod_clm_slakefluxes
 
   private
 
+  save
+
   public :: SLakeFluxes
 
   contains

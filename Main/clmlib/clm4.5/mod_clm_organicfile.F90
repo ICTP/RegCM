@@ -15,6 +15,8 @@ module mod_clm_organicfile
 
   private
 
+  save
+
   public :: organicrd  ! Read organic matter dataset
 
   contains

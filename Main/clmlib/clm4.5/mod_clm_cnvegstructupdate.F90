@@ -14,6 +14,8 @@ module mod_clm_cnvegstructupdate
     implicit none
     save
     private
+
+  save
 ! !PUBLIC MEMBER FUNCTIONS:
     public :: CNVegStructUpdate
 !

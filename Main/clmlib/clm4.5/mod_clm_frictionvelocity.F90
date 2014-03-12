@@ -10,6 +10,10 @@ module mod_clm_frictionvelocity
 
   implicit none
 
+  private
+
+  save
+
   public :: FrictionVelocity       ! Calculate friction velocity
   public :: MoninObukIni           ! Initialization of the Monin-Obukhov length
 

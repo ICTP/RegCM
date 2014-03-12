@@ -10,6 +10,8 @@ module mod_clm_slakecon
 
   private
 
+  save
+
   integer(ik4) :: i
 
   !------------------------------------------------------------------

@@ -27,6 +27,8 @@ module mod_clm_staticecosysdyn
 
   private
 
+  save
+
 #if (!defined CN) && (!defined CNDV)
   ! CLMSP Ecosystem dynamics: phenology, vegetation
   public :: EcosystemDyn

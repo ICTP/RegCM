@@ -12,6 +12,8 @@ module mod_clm_time_manager
 
    implicit none
    private
+
+  save
    save
 
    real(rk8), parameter :: uninit_r8  = -999999999.0

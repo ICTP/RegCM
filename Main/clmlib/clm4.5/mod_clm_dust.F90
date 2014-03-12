@@ -26,6 +26,8 @@ module mod_clm_dust
   implicit none
 
   private
+
+  save
   public :: Dustini        ! Initialize variables used in subroutine Dust
   public :: DustEmission   ! Dust mobilization 
   public :: DustDryDep     ! Turbulent dry deposition for dust

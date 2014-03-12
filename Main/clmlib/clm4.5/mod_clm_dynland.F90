@@ -17,6 +17,8 @@ module mod_clm_dynland
 
   private
 
+  save
+
   public :: dynland_hwcontent
 
   contains

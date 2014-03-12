@@ -19,6 +19,8 @@ module mod_clm_croprest
 ! !PUBLIC TYPES:
   implicit none
   private
+
+  save
   save
 !
 ! !PUBLIC MEMBER FUNCTIONS:

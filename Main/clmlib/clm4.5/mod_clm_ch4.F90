@@ -36,6 +36,8 @@ module mod_clm_ch4
 
   private
 
+  save
+
   ! volumetric soil water defining top of water table or where
   ! production is allowed
   real(rk8) , parameter :: f_sat = 0.95D0

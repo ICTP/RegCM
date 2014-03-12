@@ -27,6 +27,8 @@ module mod_clm_surfacealbedo
   !----------------------------------------------------------------------------
   private
 
+  save
+
   real(rk8) , parameter :: pi                 = mathpi
   real(rk8) , parameter :: SHR_ORB_ECCEN_MIN  =   0.0D0 ! min value for eccen
   real(rk8) , parameter :: SHR_ORB_ECCEN_MAX  =   0.1D0 ! max value for eccen

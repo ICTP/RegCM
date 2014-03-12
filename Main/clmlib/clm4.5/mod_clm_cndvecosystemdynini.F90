@@ -7,6 +7,8 @@ module mod_clm_cndvecosystemdynini
   implicit none
 
   private
+
+  save
   public  :: CNDVEcosystemDynini ! CNDV related initializations
 
   contains

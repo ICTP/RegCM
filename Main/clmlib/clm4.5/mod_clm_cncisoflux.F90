@@ -15,6 +15,8 @@ module mod_clm_cncisoflux
     implicit none
     save
     private
+
+  save
 !
 ! !PUBLIC MEMBER FUNCTIONS:
     public:: CIsoFlux1

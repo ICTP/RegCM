@@ -11,8 +11,12 @@ module mod_clm_banddiagonal
 ! !USES:
   use mod_realkinds
   use mod_stdio
+  use lapack_dgbsv
 ! !PUBLIC TYPES:
   implicit none
+
+  private
+
   save
 !
 ! !PUBLIC MEMBER FUNCTIONS:

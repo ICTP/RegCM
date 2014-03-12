@@ -18,6 +18,8 @@ module mod_clm_cnsummary
     implicit none
     save
     private
+
+  save
 ! !PUBLIC MEMBER FUNCTIONS:
     public :: CSummary
     public :: NSummary

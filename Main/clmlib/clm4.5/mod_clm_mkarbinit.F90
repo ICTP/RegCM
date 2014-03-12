@@ -19,6 +19,8 @@ module mod_clm_mkarbinit
 
   private
 
+  save
+
   public mkarbinit   ! Make arbitrary initial conditions
   public perturbIC   ! Perturb the initial conditions by pertlim
 

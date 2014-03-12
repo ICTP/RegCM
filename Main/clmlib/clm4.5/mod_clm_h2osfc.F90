@@ -10,7 +10,11 @@ module mod_clm_h2osfc
 !
 ! !PUBLIC TYPES:
   implicit none
+
+  private
+
   save
+
 !
 ! !PUBLIC MEMBER FUNCTIONS:
   public :: FracH2oSfc     ! Calculate fraction of land surface that is wet

@@ -16,6 +16,8 @@ module mod_clm_driverinit
 
   private
 
+  save
+
   public :: clm_driverInit
 
   contains

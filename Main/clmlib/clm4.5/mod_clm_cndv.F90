@@ -29,6 +29,8 @@ module mod_clm_cndv
 
   private
 
+  save
+
   public :: dv              ! Drives the annual dynamic vegetation that
                             ! works with CN
   public :: histCNDV        ! Output CNDV history file

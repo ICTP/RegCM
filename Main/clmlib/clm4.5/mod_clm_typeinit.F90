@@ -23,6 +23,8 @@ module mod_clm_typeinit
 
   private
 
+  save
+
   public :: initClmtype
 
   contains

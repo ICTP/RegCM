@@ -36,6 +36,8 @@ module mod_clm_nchelper
 
   private
 
+  save
+
   integer(ik4) , parameter :: clm_maxdims = 64
   integer(ik4) , parameter :: clm_maxvars = 512
 

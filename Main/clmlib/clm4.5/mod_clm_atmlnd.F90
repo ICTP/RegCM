@@ -16,6 +16,8 @@ module mod_clm_atmlnd
 
   private
 
+  save
+
   !----------------------------------------------------
   ! atmosphere -> land variables structure
   !----------------------------------------------------

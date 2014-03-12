@@ -22,6 +22,8 @@ module mod_clm_cnc14decay
     implicit none
     save
     private
+
+  save
 !
 ! !PUBLIC MEMBER FUNCTIONS:
     public:: C14Decay

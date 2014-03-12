@@ -10,6 +10,8 @@ module mod_clm_urbaninit
 
   private
 
+  save
+
   public :: UrbanInitTimeVar   ! Initialize urban time varying variables
   public :: UrbanInitTimeConst ! Initialize urban time constant variables
   public :: UrbanInitAero      ! Calculate urban landunit aerodynamic constants

@@ -37,6 +37,8 @@ module mod_clm_restfile
 
   private
 
+  save
+
   public :: restFile_read
   public :: restFile_write
   public :: restFile_open

@@ -24,6 +24,8 @@ module mod_clm_cnrest
 
   private
 
+  save
+
   public :: CNrest
 
   contains

@@ -17,6 +17,8 @@ module mod_clm_soillittverttransp
 
   private
 
+  save
+
   public :: CNSoilLittVertTransp   
 
   ! [m^2/sec] = 1 cm^2 / yr

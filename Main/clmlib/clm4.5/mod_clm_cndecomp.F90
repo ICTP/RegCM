@@ -26,6 +26,8 @@ module mod_clm_cndecomp
    implicit none
    save
    private
+
+  save
 ! !PUBLIC MEMBER FUNCTIONS:
    public:: CNDecompAlloc
    

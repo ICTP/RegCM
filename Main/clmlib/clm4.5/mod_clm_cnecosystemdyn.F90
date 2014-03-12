@@ -41,6 +41,8 @@ module mod_clm_cnecosystemdyn
 
   private
 
+  save
+
   public :: CNEcosystemDynInit   ! Ecosystem dynamics initialization
   public :: CNEcosystemDyn       ! Ecosystem dynamics: phenology, vegetation
 

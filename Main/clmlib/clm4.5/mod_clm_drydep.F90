@@ -27,6 +27,8 @@ module mod_clm_drydep
 
   private
 
+  save
+
   ! !PUBLIC MEMBER FUNCTIONS
 
   public :: seq_drydep_read         ! Read namelist

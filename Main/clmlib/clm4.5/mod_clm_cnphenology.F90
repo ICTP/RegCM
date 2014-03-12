@@ -23,6 +23,8 @@ module mod_clm_cnphenology
   save
   private
 
+  save
+
 ! !PUBLIC MEMBER FUNCTIONS:
   public :: CNPhenologyInit      ! Initialization
   public :: CNPhenology          ! Update

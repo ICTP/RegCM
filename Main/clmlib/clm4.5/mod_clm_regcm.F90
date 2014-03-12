@@ -8,6 +8,7 @@ module mod_clm_regcm
   use mod_mpmessage
   use mod_constants
   use mod_regcm_types
+  use mod_service
   use mod_clm_initialize
   use mod_clm_driver
   use mod_clm_varctl , only : use_c13
@@ -16,19 +17,20 @@ module mod_clm_regcm
 
   private
 
+  save
+
   public :: initclm45 , runclm45 , albedoclm45
 
   real(rk8) , dimension(:,:) , pointer :: rprec , rsnow
 
   contains
 
-  subroutine initclm45(cl,lm,lms)
+  subroutine initclm45(lm,lms)
     implicit none
-    type (masked_comm) , intent(in) :: cl
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
     integer(ik4) :: i , j , n
-    call initialize1(cl)
+    call initialize1( )
     call initialize2( )
     ! Compute simple LAND emissivity for RegCM radiation
     if ( iemiss == 1 ) then
@@ -69,7 +71,7 @@ module mod_clm_regcm
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: begg , endg , i , j , n
+    integer(ik4) :: begg , endg , i
     real(rk8) :: hl , satvp
     logical :: doalb , rstwr , nlend
     character(len=64) :: rdate
@@ -85,28 +87,28 @@ module mod_clm_regcm
     call get_proc_bounds(begg,endg)
 
     ! Fill clm_a2l
-    call c2l_gs(procinfo%cl,lm%tatm,clm_a2l%forc_t)
-    call c2l_gs(procinfo%cl,lm%uatm,clm_a2l%forc_u)
-    call c2l_gs(procinfo%cl,lm%vatm,clm_a2l%forc_v)
-    call c2l_gs(procinfo%cl,lm%qvatm,clm_a2l%forc_q)
-    call c2l_gs(procinfo%cl,lm%hgt,clm_a2l%forc_hgt)
-    call c2l_gs(procinfo%cl,lm%patm,clm_a2l%forc_pbot)
-    call c2l_gs(procinfo%cl,lm%thatm,clm_a2l%forc_th)
+    call c2l_gs(lndcomm,lm%tatm,clm_a2l%forc_t)
+    call c2l_gs(lndcomm,lm%uatm,clm_a2l%forc_u)
+    call c2l_gs(lndcomm,lm%vatm,clm_a2l%forc_v)
+    call c2l_gs(lndcomm,lm%qvatm,clm_a2l%forc_q)
+    call c2l_gs(lndcomm,lm%hgt,clm_a2l%forc_hgt)
+    call c2l_gs(lndcomm,lm%patm,clm_a2l%forc_pbot)
+    call c2l_gs(lndcomm,lm%thatm,clm_a2l%forc_th)
     ! forc_vp IS UNUSED
-    call c2l_gs(procinfo%cl,lm%rhox,clm_a2l%forc_rho)
-    call c2l_gs(procinfo%cl,lm%sfps,clm_a2l%forc_psrf)
-    call c2l_gs(procinfo%cl,lm%dwrlwf,clm_a2l%forc_lwrad)
-    call c2l_gs(procinfo%cl,lm%solar,clm_a2l%forc_solar)
-    call c2l_gs(procinfo%cl,rprec,clm_a2l%forc_rain)
-    call c2l_gs(procinfo%cl,rsnow,clm_a2l%forc_snow)
+    call c2l_gs(lndcomm,lm%rhox,clm_a2l%forc_rho)
+    call c2l_gs(lndcomm,lm%sfps,clm_a2l%forc_psrf)
+    call c2l_gs(lndcomm,lm%dwrlwf,clm_a2l%forc_lwrad)
+    call c2l_gs(lndcomm,lm%solar,clm_a2l%forc_solar)
+    call c2l_gs(lndcomm,rprec,clm_a2l%forc_rain)
+    call c2l_gs(lndcomm,rsnow,clm_a2l%forc_snow)
 
-    call c2l_gs(procinfo%cl,lm%swdir,clm_a2l%notused)
+    call c2l_gs(lndcomm,lm%swdir,clm_a2l%notused)
     clm_a2l%forc_solad(:,1) = clm_a2l%notused
-    call c2l_gs(procinfo%cl,lm%lwdir,clm_a2l%notused)
+    call c2l_gs(lndcomm,lm%lwdir,clm_a2l%notused)
     clm_a2l%forc_solad(:,2) = clm_a2l%notused
-    call c2l_gs(procinfo%cl,lm%swdif,clm_a2l%notused)
+    call c2l_gs(lndcomm,lm%swdif,clm_a2l%notused)
     clm_a2l%forc_solai(:,1) = clm_a2l%notused
-    call c2l_gs(procinfo%cl,lm%lwdif,clm_a2l%notused)
+    call c2l_gs(lndcomm,lm%lwdif,clm_a2l%notused)
     clm_a2l%forc_solai(:,2) = clm_a2l%notused
 
     ! Compute or alias
@@ -122,7 +124,7 @@ module mod_clm_regcm
       hl = lh0 - lh1*(clm_a2l%forc_t(i)-tzero)
       satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/clm_a2l%forc_t(i)))
       clm_a2l%forc_rh(i) = max(clm_a2l%forc_q(i) / &
-              (ep2*satvp/(clm_a2l%forc_pbot(i)*0.01D0-satvp)),d_zero)
+              (ep2*satvp/(clm_a2l%forc_pbot(i)*0.01D0-satvp)),d_zero)*100.0D0
     end do
 
     if ( ichem /= 1 ) then
@@ -175,32 +177,33 @@ module mod_clm_regcm
     call clm_drv(doalb, calday, declin, declin, rstwr, nlend, rdate)
 
     ! Get back data from clm_l2a
-    call l2c_ss(procinfo%cl,clm_l2a%t_rad,lms%tgbb)
+    call l2c_ss(lndcomm,clm_l2a%t_rad,lms%tgbb)
 
-    call l2c_ss(procinfo%cl,clm_l2a%t_ref2m,lms%t2m)
-    call l2c_ss(procinfo%cl,clm_l2a%q_ref2m,lms%q2m)
+    call l2c_ss(lndcomm,clm_l2a%t_ref2m,lms%t2m)
+    call l2c_ss(lndcomm,clm_l2a%q_ref2m,lms%q2m)
 
     ! CLM gives just wind speed, assume directions are same as input.
     clm_a2l%notused = atan(clm_a2l%forc_v/clm_a2l%forc_u)
     clm_l2a%notused = clm_l2a%u_ref10m*cos(clm_a2l%notused)
-    call l2c_ss(procinfo%cl,clm_l2a%notused,lms%u10m)
+    call l2c_ss(lndcomm,clm_l2a%notused,lms%u10m)
     clm_l2a%notused = clm_l2a%u_ref10m*sin(clm_a2l%notused)
-    call l2c_ss(procinfo%cl,clm_l2a%notused,lms%v10m)
+    call l2c_ss(lndcomm,clm_l2a%notused,lms%v10m)
 
-    call l2c_ss(procinfo%cl,clm_l2a%eflx_sh_tot,lms%sent)
-    call l2c_ss(procinfo%cl,clm_l2a%qflx_evap_tot,lms%evpr)
-    call l2c_ss(procinfo%cl,clm_l2a%fv,lms%drag)
+    call l2c_ss(lndcomm,clm_l2a%eflx_sh_tot,lms%sent)
+    call l2c_ss(lndcomm,clm_l2a%qflx_evap_tot,lms%evpr)
+    call l2c_ss(lndcomm,clm_l2a%fv,lms%drag)
 
-    call l2c_ss(procinfo%cl,clm_l2a%h2osno,lms%sncv)
-    call l2c_ss(procinfo%cl,clm_l2a%taux,lms%taux)
-    call l2c_ss(procinfo%cl,clm_l2a%tauy,lms%tauy)
+    call l2c_ss(lndcomm,clm_l2a%h2osno,lms%sncv)
+
+    call l2c_ss(lndcomm,clm_l2a%taux,lms%taux)
+    call l2c_ss(lndcomm,clm_l2a%tauy,lms%tauy)
 
     lms%tgrd = lms%tgbb
     lms%tgbrd = lms%tgbb
     lms%tlef = lms%t2m
 
     ! From the input
-    call l2c_ss(procinfo%cl,clm_a2l%forc_rain,lms%prcp)
+    call l2c_ss(lndcomm,clm_a2l%forc_rain,lms%prcp)
 
     ! Will fix
     !clm_l2a%eflx_lwrad_out
@@ -225,13 +228,13 @@ module mod_clm_regcm
     type(lm_state) , intent(inout) :: lms
     ! Just get albedoes from clm_l2a
     clm_l2a%notused = clm_l2a%albd(:,1)
-    call l2c_ss(procinfo%cl,clm_l2a%notused,lms%swdiralb)
+    call l2c_ss(lndcomm,clm_l2a%notused,lms%swdiralb)
     clm_l2a%notused = clm_l2a%albd(:,2)
-    call l2c_ss(procinfo%cl,clm_l2a%notused,lms%lwdiralb)
+    call l2c_ss(lndcomm,clm_l2a%notused,lms%lwdiralb)
     clm_l2a%notused = clm_l2a%albi(:,1)
-    call l2c_ss(procinfo%cl,clm_l2a%notused,lms%swdifalb)
+    call l2c_ss(lndcomm,clm_l2a%notused,lms%swdifalb)
     clm_l2a%notused = clm_l2a%albi(:,2)
-    call l2c_ss(procinfo%cl,clm_l2a%notused,lms%lwdifalb)
+    call l2c_ss(lndcomm,clm_l2a%notused,lms%lwdifalb)
     ! This should be the vegetation albedo!
     lms%swalb = lms%swdiralb+lms%swdifalb
     lms%lwalb = lms%lwdiralb+lms%lwdifalb

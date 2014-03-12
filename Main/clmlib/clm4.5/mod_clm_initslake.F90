@@ -35,6 +35,8 @@ module mod_clm_initslake
 
   private
 
+  save
+
   public :: initSLake ! driver
 
   private :: initTimeConst        ! Set constant parameters (and h2osoi_vol).

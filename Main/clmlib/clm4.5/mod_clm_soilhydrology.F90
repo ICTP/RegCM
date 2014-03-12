@@ -12,6 +12,8 @@ module mod_clm_soilhydrology
 
   private
 
+  save
+
   public :: SoilHydrology_readnl ! Initialization for Soil Hydrology
 
   public :: SurfaceRunoff    ! Calculate surface runoff

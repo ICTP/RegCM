@@ -66,6 +66,8 @@ Module mod_clm_drydepvelocity
 
   private
 
+  save
+
   public :: depvel_compute
 
 CONTAINS 

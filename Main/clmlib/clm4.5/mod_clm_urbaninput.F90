@@ -12,6 +12,8 @@ module mod_clm_urbaninput
   implicit none
 
   private
+
+  save
   public :: UrbanInput ! Read in urban input data
 
   type urbinp_t

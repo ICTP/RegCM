@@ -28,6 +28,8 @@ module mod_clm_cndecompcascadecentury
    implicit none
    save
    private
+
+  save
 ! !PUBLIC MEMBER FUNCTIONS:
    public:: init_decompcascade, decomp_rate_constants
 !

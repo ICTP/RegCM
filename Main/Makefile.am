@@ -65,7 +65,7 @@ LBATLIB = -L$(BATLIBPTH) -lbats
 LOCNLIB = -L$(OCNLIBPTH) -locn
 LCLMLIB = -L$(CLMLIBPTH) -lclm
 if DO_COMPILE_LIBCLM45
-LCLMLIB45 = -L$(CLMLIBPTH)/clm4.5 -lclm45 /usr/lib/liblapack.a /usr/lib/libblas.a /usr/lib/atlas-base/libatlas.a
+LCLMLIB45 = -L$(CLMLIBPTH)/clm4.5 -lclm45
 endif
 LNETLIB = -L$(NETLIBPTH) -lnetlib
 LCHELIB = -L$(CHELIBPTH) -lchem
@@ -86,9 +86,9 @@ else
               -I$(CLMLIBPTH)/clm4.5
 endif
 
-LIBS = $(LMPPLIB) $(LCLMLIB) $(LNETLIB) $(LCHELIB) $(LCBMZLIB) $(LBATLIB) \
-       $(LOCNLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) $(LCLMLIB45) \
-       $(SYSLIBS)
+LIBS = $(LMPPLIB) $(LCLMLIB) $(LCHELIB) $(LCBMZLIB) $(LBATLIB) \
+       $(LOCNLIB) $(LCUMLIB) $(LRADLIB) $(LPBLLIB) $(LRRTMSWLIB) \
+       $(LCLMLIB45) $(SYSLIBS) $(LNETLIB)
 
 bin_PROGRAMS = regcm
 

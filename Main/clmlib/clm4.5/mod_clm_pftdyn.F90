@@ -23,6 +23,8 @@ module mod_clm_pftdyn
 
   private
 
+  save
+
   public :: pftdyn_init
   public :: pftdyn_interp
   public :: pftdyn_wbal_init

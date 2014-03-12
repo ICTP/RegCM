@@ -19,6 +19,8 @@ module mod_clm_initch4
 
   private
 
+  save
+
   public :: initch4
 
   private :: initTimeConst_ch4 ! Set constant parameters.

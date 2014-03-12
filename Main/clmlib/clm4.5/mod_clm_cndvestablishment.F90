@@ -19,7 +19,11 @@ module mod_clm_cndvestablishment
 !
 ! !PUBLIC TYPES:
   implicit none
+
+  private
+
   save
+
 !
 ! !PUBLIC MEMBER FUNCTIONS:
   public :: Establishment

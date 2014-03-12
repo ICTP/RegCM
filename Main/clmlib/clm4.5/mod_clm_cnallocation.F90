@@ -15,6 +15,8 @@ module mod_clm_cnallocation
 
   private
 
+  save
+
   public :: CNAllocationInit         ! Initialization
   public :: CNAllocation             ! run method
   public :: CNAllocation_Carbon_only ! Return Carbon_only status

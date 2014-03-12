@@ -17,6 +17,8 @@ module mod_clm_hydrology1
 
   private
 
+  save
+
   public :: Hydrology1_readnl ! Read namelist
   public :: Hydrology1        ! Run
 

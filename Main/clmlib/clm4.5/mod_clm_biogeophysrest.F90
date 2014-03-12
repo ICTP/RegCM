@@ -29,6 +29,8 @@ module mod_clm_biogeophysrest
 
   private
 
+  save
+
   public :: BiogeophysRest
 
   private :: weights_exactly_the_same

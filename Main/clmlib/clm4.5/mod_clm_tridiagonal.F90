@@ -13,7 +13,11 @@ module mod_clm_tridiagonal
 !
 ! !PUBLIC TYPES:
   implicit none
+
+  private
+
   save
+
 !
 ! !PUBLIC MEMBER FUNCTIONS:
   public :: Tridiagonal

@@ -71,6 +71,8 @@ module mod_clm_type
 
   private
 
+  save
+
   !----------------------------------------------------
   ! Begin definition of conservation check structures
   !----------------------------------------------------

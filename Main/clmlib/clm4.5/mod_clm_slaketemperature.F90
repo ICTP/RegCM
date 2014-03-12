@@ -10,6 +10,8 @@ module mod_clm_slaketemperature
 
   private
 
+  save
+
   public :: SLakeTemperature
 
   ! Set therm conductivities and heat cap of snow/soil layers

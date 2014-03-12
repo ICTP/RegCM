@@ -14,6 +14,10 @@ module mod_clm_snicar
 
   implicit none
 
+  private
+
+  save
+
   public :: SNICAR_RT ! Snow albedo and vertically-resolved solar absorption
   public :: SnowAge_grain    ! Snow effective grain size evolution
   public :: SnowAge_init     ! Initial read in of snow-aging file
@@ -1067,7 +1071,7 @@ module mod_clm_snicar
           energy_sum = (mu_not*pi*flx_slrd_lcl(bnd_idx)) + &
                   flx_slri_lcl(bnd_idx) - (F_abs_sum + F_btm_net + F_sfc_pls)
           if ( abs(energy_sum) > 0.00001D0 ) then
-            write (stderr,"(a,e12.6,a,i6,a,i6)") &
+            write (stderr,"(a,e14.7,a,i6,a,i6)") &
                "SNICAR ERROR: Energy conservation error of : ", energy_sum, &
                " at timestep: ", ktau, " at column: ", c_idx
             call fatal(__FILE__,__LINE__,'clm now stopping')

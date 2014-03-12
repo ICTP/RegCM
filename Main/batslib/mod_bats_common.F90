@@ -45,8 +45,6 @@ module mod_bats_common
 
   real(rk8) , public :: rdnnsg
 
-  type(masked_comm) , public :: lndcomm
-
   real(rk8) , public , pointer , dimension(:,:,:) :: xqs
 
   contains

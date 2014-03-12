@@ -15,6 +15,8 @@ module mod_clm_initgridcells
 
   private
 
+  save
+
   public :: initGridcells ! initialize sub-grid gridcell mapping
 
   contains

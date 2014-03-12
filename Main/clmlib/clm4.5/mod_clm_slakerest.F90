@@ -14,6 +14,8 @@ module mod_clm_slakerest
 
   private
 
+  save
+
   public :: SLakeRest
 
   contains

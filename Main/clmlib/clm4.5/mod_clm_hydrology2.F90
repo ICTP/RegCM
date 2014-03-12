@@ -13,7 +13,11 @@ module mod_clm_hydrology2
 
 ! !PUBLIC TYPES:
   implicit none
+
+  private
+
   save
+
 !
 ! !PUBLIC MEMBER FUNCTIONS:
   public :: Hydrology2        ! Calculates soil/snow hydrology

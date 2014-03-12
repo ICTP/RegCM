@@ -1,8 +1,6 @@
-
 module mod_clm_cnsoillittverttransp
+
 #ifdef CN
-  
-  
 !-----------------------------------------------------------------------
 !BOP
 !
@@ -20,7 +18,11 @@ module mod_clm_cnsoillittverttransp
 !
 ! !PUBLIC TYPES:
   implicit none
+
+  private
+
   save
+
 !
 ! !PUBLIC MEMBER FUNCTIONS:
   public :: CNSoilLittVertTransp   

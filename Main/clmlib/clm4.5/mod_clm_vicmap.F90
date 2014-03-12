@@ -18,7 +18,11 @@ module mod_clm_vicmap
 !
 ! !PUBLIC TYPES:
   implicit none
+
+  private
+
   save
+
 !
 ! !PUBLIC MEMBER FUNCTIONS:
 #if (defined VICHYDRO)

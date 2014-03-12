@@ -21,6 +21,8 @@ module mod_clm_megan
   save
   private
 
+  save
+
   public :: shr_megan_readnl           ! reads megan_emis_nl namelist
   public :: shr_megan_mechcomps        ! points to an array of chemical compounds (in CAM-Chem mechanism) than have MEGAN emissions
   public :: shr_megan_mechcomps_n      ! number of unique compounds in the CAM chemical mechanism  than have MEGAN emissions

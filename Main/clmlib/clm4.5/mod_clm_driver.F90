@@ -132,6 +132,8 @@ module mod_clm_driver
 
   private
 
+  save
+
   public :: clm_drv            ! clm physics,history, restart writes
 
   contains
@@ -152,7 +154,6 @@ module mod_clm_driver
     integer(ik4) , pointer , dimension(:) :: clandunit
     ! landunit type
     integer(ik4) , pointer , dimension(:) :: itypelun
-    real(rk8) :: dtime                    ! land model time step (sec)
     real(rk8) :: t1, t2, t3               ! temporary for mass balance checks
     integer(ik4)  :: fc, c, fp, p, l, g   ! indices
     integer(ik4)  :: begg, endg ! beginning and ending gridcell indices

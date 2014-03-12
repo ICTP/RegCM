@@ -11,6 +11,8 @@ module mod_clm_cnndynamics
 
   private
 
+  save
+
   public :: CNNDeposition
   public :: CNNFixation
   public :: CNNLeaching

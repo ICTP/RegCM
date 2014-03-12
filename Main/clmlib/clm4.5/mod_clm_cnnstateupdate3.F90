@@ -17,6 +17,8 @@ module mod_clm_cnnstateupdate3
     implicit none
     save
     private
+
+  save
 ! !PUBLIC MEMBER FUNCTIONS:
     public:: NStateUpdate3
 !

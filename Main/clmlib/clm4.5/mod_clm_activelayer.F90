@@ -15,6 +15,8 @@ module mod_clm_activelayer
 
   private
 
+  save
+
   public:: alt_calc
   
   contains

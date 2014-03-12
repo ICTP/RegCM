@@ -39,8 +39,6 @@ module mod_ocn_common
   public :: llake , ldcsst , lseaice
   public :: allocate_mod_ocn_internal
 
-  type(masked_comm) , public :: ocncomm
-
   contains
 
   subroutine vecocn(lm,lms)

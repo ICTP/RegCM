@@ -43,6 +43,8 @@ module mod_clm_cnfire
 
   private
 
+  save
+
   public :: CNFireInit    ! Initialization of CNFire
   public :: CNFireInterp  ! Interpolate fire data
   public :: CNFireArea    ! Calculate fire area

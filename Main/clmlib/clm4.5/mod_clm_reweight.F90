@@ -13,6 +13,8 @@ module mod_clm_reweight
 
   private
 
+  save
+
   !
   ! Handles modifications and error-checks related to changing subgrid weights
   !

@@ -11,6 +11,8 @@ module mod_clm_surfaceradiation
 
   private
 
+  save
+
   public :: SurfaceRadiation ! Solar fluxes absorbed by veg and ground surface
 
   contains

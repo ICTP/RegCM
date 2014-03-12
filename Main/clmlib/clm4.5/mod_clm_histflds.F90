@@ -32,6 +32,8 @@ module mod_clm_histflds
 
   private
 
+  save
+
   public hist_initFlds ! Build master field list of all possible history
                        ! file fields
   contains

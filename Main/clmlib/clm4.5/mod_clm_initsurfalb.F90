@@ -26,6 +26,8 @@ module mod_clm_initsurfalb
 
   private
 
+  save
+
   logical, public :: do_initsurfalb
 
   public :: InitSurfAlb

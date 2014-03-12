@@ -17,6 +17,8 @@ module mod_clm_cnbalancecheck
     implicit none
     save
     private
+
+  save
 ! !PUBLIC MEMBER FUNCTIONS:
     public :: BeginCBalance
     public :: BeginNBalance

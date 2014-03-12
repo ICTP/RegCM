@@ -12,6 +12,8 @@ module mod_clm_domain
 
   private
 
+  save
+
   public :: domain_type
 
   !--- this typically contains local domain info with arrays dim begg:endg ---

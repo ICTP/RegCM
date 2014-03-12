@@ -12,7 +12,11 @@ module mod_clm_soiltemperature
 
 ! !PUBLIC TYPES:
   implicit none
+
+  private
+
   save
+
 !
 ! !PUBLIC MEMBER FUNCTIONS:
   public :: SoilTemperature     ! Snow and soil temperatures including phase change

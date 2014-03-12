@@ -18,6 +18,8 @@ module mod_clm_filter
 
   private
 
+  save
+
   type procfilter
 #if (defined CNDV)
     ! CNDV nat-vegetated (present) filter (pfts)

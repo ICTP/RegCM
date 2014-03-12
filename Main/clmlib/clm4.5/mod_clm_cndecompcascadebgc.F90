@@ -25,6 +25,8 @@ module mod_clm_cndecompcascadebgc
    implicit none
    save
    private
+
+  save
 ! !PUBLIC MEMBER FUNCTIONS:
    public:: init_decompcascade, decomp_rate_constants
 !

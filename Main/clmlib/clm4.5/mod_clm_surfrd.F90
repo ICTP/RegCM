@@ -31,6 +31,8 @@ module mod_clm_surfrd
 
   private
 
+  save
+
   ! Read grid/ladnfrac data into domain (after domain decomp)
   public :: surfrd_get_grid
   ! Read surface dataset and determine subgrid weights

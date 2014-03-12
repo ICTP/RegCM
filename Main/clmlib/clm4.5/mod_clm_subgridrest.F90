@@ -13,6 +13,8 @@ module mod_clm_subgridrest
 
   private
 
+  save
+
   public :: subgridRest
 
   contains

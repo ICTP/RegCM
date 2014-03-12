@@ -11,7 +11,11 @@ module mod_clm_qsat
 !
 ! !PUBLIC TYPES:
   implicit none
+
+  private
+
   save
+
 !
 ! !PUBLIC MEMBER FUNCTIONS:
   public :: QSat

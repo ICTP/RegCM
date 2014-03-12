@@ -14,7 +14,10 @@ module mod_clm_baregroundfluxes
 !
 ! !PUBLIC TYPES:
    implicit none
-   save
+
+   private
+
+  save
 !
 ! !PUBLIC MEMBER FUNCTIONS:
    public :: BareGroundFluxes   ! Calculate sensible and latent heat fluxes

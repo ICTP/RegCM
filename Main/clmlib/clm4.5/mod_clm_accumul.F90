@@ -30,6 +30,8 @@ module mod_clm_accumul
 
   private
 
+  save
+
   ! Write/read restart of accumulation fields
   public :: accumulRest
   ! Initialize an accumulator field

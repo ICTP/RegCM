@@ -20,6 +20,8 @@ module mod_clm_balancecheck
 
   private
 
+  save
+
   public :: BeginWaterBalance  ! Initialize water balance check
   public :: BalanceCheck       ! Water and energy balance check
 

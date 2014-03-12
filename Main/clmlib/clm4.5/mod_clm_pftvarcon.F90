@@ -12,6 +12,8 @@ module mod_clm_pftvarcon
   implicit none
 
   private
+
+  save
   !
   ! Vegetation type constants
   !

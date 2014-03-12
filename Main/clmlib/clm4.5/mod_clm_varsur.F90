@@ -8,6 +8,8 @@ module mod_clm_varsur
   implicit none
 
   private
+
+  save
   !
   ! surface boundary data, these are all "gdc" local 
   !

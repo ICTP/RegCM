@@ -17,6 +17,8 @@ module mod_clm_cnprecisioncontrol
     implicit none
     save
     private
+
+  save
 ! !PUBLIC MEMBER FUNCTIONS:
     public:: CNPrecisionControl
 !

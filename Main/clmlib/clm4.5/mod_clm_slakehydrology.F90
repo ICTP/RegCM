@@ -24,6 +24,8 @@ module mod_clm_slakehydrology
   implicit none
   save
   private
+
+  save
 !
 ! !PUBLIC MEMBER FUNCTIONS:
   public :: SLakeHydrology        ! Calculates soil/snow hydrology

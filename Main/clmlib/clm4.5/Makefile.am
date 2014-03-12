@@ -70,10 +70,12 @@ libclm45_a_SOURCES = mod_clm_nchelper.F90 mod_clm_domain.F90 mod_clm_type.F90 \
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
 MPP_INCLUDE = $(MPP)
+NET = $(REGCMSRC)/netlib
+NET_INCLUDE = $(NET)
 if COMPILER_SUN
-FCFLAGS += -M$(MPP_INCLUDE)
+FCFLAGS += -M$(MPP_INCLUDE) -M$(NET_INCLUDE)
 else
-FCFLAGS += -I$(MPP_INCLUDE)
+FCFLAGS += -I$(MPP_INCLUDE) -I$(NET_INCLUDE)
 endif
 
 #CPPFLAGS += -DCN -DLCH4 -DCROP -DVERTSOILC \

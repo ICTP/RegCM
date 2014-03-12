@@ -14,7 +14,11 @@ module mod_clm_biogeophysics2
 !
 ! !PUBLIC TYPES:
   implicit none
+
+  private
+
   save
+
 !
 ! !PUBLIC MEMBER FUNCTIONS:
   public :: Biogeophysics2   ! Calculate soil/snow and ground temperatures

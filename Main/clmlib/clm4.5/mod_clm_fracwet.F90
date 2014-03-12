@@ -11,6 +11,8 @@ module mod_clm_fracwet
 
   private
 
+  save
+
   public :: FracWet
 
   contains

@@ -23,6 +23,8 @@ module mod_clm_cnsetvalue
     implicit none
     save
     private
+
+  save
 ! !PUBLIC MEMBER FUNCTIONS:
     public :: CNZeroFluxes
     public :: CNZeroFluxes_dwt

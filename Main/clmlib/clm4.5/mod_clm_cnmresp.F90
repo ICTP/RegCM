@@ -17,6 +17,8 @@ module mod_clm_cnmresp
    implicit none
    save
    private
+
+  save
 ! !PUBLIC MEMBER FUNCTIONS:
    public :: CNMResp
 !

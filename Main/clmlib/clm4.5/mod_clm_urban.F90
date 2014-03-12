@@ -16,6 +16,8 @@ module mod_clm_urban
 
   private
 
+  save
+
   public :: UrbanClumpInit    ! Initialization of urban data structure
   public :: UrbanRadiation    ! Urban radiative fluxes
   public :: UrbanAlbedo       ! Urban albedos  

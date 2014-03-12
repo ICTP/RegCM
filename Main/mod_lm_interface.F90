@@ -344,7 +344,7 @@ module mod_lm_interface
 #ifndef CLM45
     call initbats(lm,lms)
 #else
-    call initclm45(lndcomm,lm,lms)
+    call initclm45(lm,lms)
 #endif
     call initocn(lm,lms)
 #ifdef CLM

@@ -12,6 +12,8 @@ module mod_clm_cnverticalprofile
 
   private
 
+  save
+
   public:: decomp_vertprofiles
   
 #ifdef VERTSOILC
