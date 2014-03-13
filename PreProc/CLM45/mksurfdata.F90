@@ -98,7 +98,6 @@ program mksurfdata
   integer(ik4) , pointer , dimension(:) :: iiy , ijx
   integer , pointer , dimension(:) :: landpoint
   logical , dimension(npft) :: pft_gt0
-  logical , dimension(:,:) , pointer :: lmask
 
   call get_command_argument(0,value=prgname)
   call get_command_argument(1,value=namelistfile)
@@ -125,6 +124,7 @@ program mksurfdata
   end if
   call openfile_withname(terfile,ncid)
   call read_domain(ncid,sigx,xlat,xlon,ht=topo,mask=xmask)
+  call setup_pack()
   ngcells = count(xmask(2:jx-2,2:iy-2) > 0.5)
   call closefile(ncid)
 
@@ -415,7 +415,6 @@ program mksurfdata
 
   call getmem2d(pctspec,1,jx,1,iy,'mksurfdata: pctspec')
   call getmem2d(pctslake,1,jx,1,iy,'mksurfdata: pctslake')
-  call getmem2d(lmask,2,jx-2,2,iy-2,'mksurfdata: lmask')
   call getmem1d(gcvar,1,ngcells,'mksurfdata: gcvar')
   call getmem1d(iiy,1,ngcells,'mksurfdata: iiy')
   call getmem1d(ijx,1,ngcells,'mksurfdata: ijx')
@@ -423,7 +422,6 @@ program mksurfdata
   call getmem5d(var5d,1,jx,1,iy,1,maxd3,1,maxd4,1,4,'mksurfdata: var5d')
   pctspec(:,:) = 0.0
   pctslake(:,:) = 0.0
-  lmask = (xmask(2:jx-2,2:iy-2) > 0.5)
   ip = 1
   do i = 2 , iy-2
     do j = 2 , jx-2
@@ -435,13 +433,13 @@ program mksurfdata
   end do
   istatus = nf90_put_var(ncid, ilndvar, landpoint)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write gridcell')
-  gcvar = pack(xlat(2:jx-2,2:iy-2),lmask)
+  call mypack(xlat,gcvar)
   istatus = nf90_put_var(ncid, ilatvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write yclat')
-  gcvar = pack(xlon(2:jx-2,2:iy-2),lmask)
+  call mypack(xlon,gcvar)
   istatus = nf90_put_var(ncid, ilonvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write xclon')
-  gcvar = pack(topo(2:jx-2,2:iy-2),lmask)
+  call mypack(topo,gcvar)
   istatus = nf90_put_var(ncid, itopovar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write topo')
   ip = 1
@@ -473,10 +471,11 @@ program mksurfdata
     var5d(:,:,1,1,1) = vmisdat
     var5d(:,:,2,1,1) = vmisdat
   end where
-  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)*real(raddeg)
+  call mypack(var5d(:,:,1,1,1),gcvar)
+  gcvar = gcvar*real(raddeg)
   istatus = nf90_put_var(ncid, islopevar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write slope')
-  gcvar = pack(var5d(2:jx-2,2:iy-2,2,1,1),lmask)
+  call mypack(var5d(:,:,2,1,1),gcvar)
   istatus = nf90_put_var(ncid, istdvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write stddev')
 
@@ -528,16 +527,16 @@ program mksurfdata
       end if
     end do
   end do
-  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
+  call mypack(var5d(:,:,1,1,1),gcvar)
   istatus = nf90_put_var(ncid, iglcvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write glacier')
-  gcvar = pack(var5d(2:jx-2,2:iy-2,2,1,1),lmask)
+  call mypack(var5d(:,:,2,1,1),gcvar)
   istatus = nf90_put_var(ncid, iwetvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write wetland')
-  gcvar = pack(var5d(2:jx-2,2:iy-2,3,1,1),lmask)
+  call mypack(var5d(:,:,3,1,1),gcvar)
   istatus = nf90_put_var(ncid, ilakevar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write lake')
-  gcvar = pack(var5d(2:jx-2,2:iy-2,4,1,1),lmask)
+  call mypack(var5d(:,:,4,1,1),gcvar)
   istatus = nf90_put_var(ncid, iurbanvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write urban')
   where ( var5d(:,:,3,1,1) > 0.0 )
@@ -624,7 +623,7 @@ program mksurfdata
     icount(1) = ngcells
     istart(2) = ip
     icount(2) = 1
-    gcvar = pack(var5d(2:jx-2,2:iy-2,ip,1,1),lmask)
+    call mypack(var5d(:,:,ip,1,1),gcvar)
     istatus = nf90_put_var(ncid, ipftvar, gcvar, istart(1:2), icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write pft')
   end do
@@ -654,16 +653,16 @@ program mksurfdata
       icount(2) = 1
       istart(3) = it
       icount(3) = 1
-      gcvar = pack(var5d(2:jx-2,2:iy-2,ip,it,1),lmask)
+      call mypack(var5d(:,:,ip,it,1),gcvar)
       istatus = nf90_put_var(ncid, isaivar, gcvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_lai')
-      gcvar = pack(var5d(2:jx-2,2:iy-2,ip,it,2),lmask)
+      call mypack(var5d(:,:,ip,it,2),gcvar)
       istatus = nf90_put_var(ncid, ilaivar, gcvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_sai')
-      gcvar = pack(var5d(2:jx-2,2:iy-2,ip,it,3),lmask)
+      call mypack(var5d(:,:,ip,it,3),gcvar)
       istatus = nf90_put_var(ncid, ivgtopvar, gcvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_top')
-      gcvar = pack(var5d(2:jx-2,2:iy-2,ip,it,4),lmask)
+      call mypack(var5d(:,:,ip,it,4),gcvar)
       istatus = nf90_put_var(ncid, ivgbotvar, gcvar,istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_bot')
     end do
@@ -673,7 +672,7 @@ program mksurfdata
   where ( xmask < 0.5 )
     var5d(:,:,1,1,1) = vmisdat
   end where
-  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
+  call mypack(var5d(:,:,1,1,1),gcvar)
   where ( gcvar < 0.0 ) gcvar = 0.05
   istatus = nf90_put_var(ncid, ifmaxvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write fmax')
@@ -682,7 +681,7 @@ program mksurfdata
   where ( xmask < 0.5 )
     var5d(:,:,1,1,1) = vmisdat
   end where
-  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
+  call mypack(var5d(:,:,1,1,1),gcvar)
   istatus = nf90_put_var(ncid, isoilcolvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write soil color')
 
@@ -702,10 +701,10 @@ program mksurfdata
     icount(1) = ngcells
     istart(2) = il
     icount(2) = 1
-    gcvar = pack(var5d(2:jx-2,2:iy-2,il,1,1),lmask)
+    call mypack(var5d(:,:,il,1,1),gcvar)
     istatus = nf90_put_var(ncid, isandvar, gcvar,istart(1:2),icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write sand pct')
-    gcvar = pack(var5d(2:jx-2,2:iy-2,il,2,1),lmask)
+    call mypack(var5d(:,:,il,2,1),gcvar)
     istatus = nf90_put_var(ncid, iclayvar, gcvar,istart(1:2),icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write clay pct')
   end do
@@ -714,7 +713,7 @@ program mksurfdata
   where ( xmask < 0.5 )
     var5d(:,:,1,1,1) = vmisdat
   end where
-  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
+  call mypack(var5d(:,:,1,1,1),gcvar)
   istatus = nf90_put_var(ncid, igdpvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write gdp')
 
@@ -725,7 +724,7 @@ program mksurfdata
   where ( xmask < 0.5 )
     var5d(:,:,1,1,1) = vmisdat
   end where
-  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
+  call mypack(var5d(:,:,1,1,1),gcvar)
   istatus = nf90_put_var(ncid, ipeatfvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write peatf')
 
@@ -733,7 +732,7 @@ program mksurfdata
   where ( xmask < 0.5 )
     var5d(:,:,1,1,1) = vmisdat
   end where
-  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
+  call mypack(var5d(:,:,1,1,1),gcvar)
   istatus = nf90_put_var(ncid, iabmvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write abm')
 
@@ -754,22 +753,22 @@ program mksurfdata
     var5d(:,:,5,1,1) = vmisdat
     var5d(:,:,6,1,1) = vmisdat
   end where
-  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
+  call mypack(var5d(:,:,1,1,1),gcvar)
   istatus = nf90_put_var(ncid, ief_btrvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_btr')
-  gcvar = pack(var5d(2:jx-2,2:iy-2,2,1,1),lmask)
+  call mypack(var5d(:,:,2,1,1),gcvar)
   istatus = nf90_put_var(ncid, ief_crpvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_crp')
-  gcvar = pack(var5d(2:jx-2,2:iy-2,3,1,1),lmask)
+  call mypack(var5d(:,:,3,1,1),gcvar)
   istatus = nf90_put_var(ncid, ief_fdtvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_fdt')
-  gcvar = pack(var5d(2:jx-2,2:iy-2,4,1,1),lmask)
+  call mypack(var5d(:,:,4,1,1),gcvar)
   istatus = nf90_put_var(ncid, ief_fetvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_fet')
-  gcvar = pack(var5d(2:jx-2,2:iy-2,5,1,1),lmask)
+  call mypack(var5d(:,:,5,1,1),gcvar)
   istatus = nf90_put_var(ncid, ief_grsvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_grs')
-  gcvar = pack(var5d(2:jx-2,2:iy-2,6,1,1),lmask)
+  call mypack(var5d(:,:,6,1,1),gcvar)
   istatus = nf90_put_var(ncid, ief_shrvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_shr')
 
@@ -787,7 +786,7 @@ program mksurfdata
     icount(1) = ngcells
     istart(2) = il
     icount(2) = 1
-    gcvar = pack(var5d(2:jx-2,2:iy-2,il,1,1),lmask)
+    call mypack(var5d(:,:,il,1,1),gcvar)
     istatus = nf90_put_var(ncid, iorganicvar, gcvar,istart(1:2),icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write organic')
   end do
@@ -796,7 +795,7 @@ program mksurfdata
   where ( var5d(:,:,1,1,1) < 10.0 )
     var5d(:,:,1,1,1) = 10.0
   end where
-  gcvar = pack(var5d(2:jx-2,2:iy-2,1,1,1),lmask)
+  call mypack(var5d(:,:,1,1,1),gcvar)
   istatus = nf90_put_var(ncid, idepthvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write lake')
 
@@ -836,5 +835,5 @@ program mksurfdata
       end if
     end do
   end subroutine sortpatch
- 
+
 end program mksurfdata
