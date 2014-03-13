@@ -51,7 +51,6 @@ module mod_grid
     module procedure g2s_r8
   end interface g2s
 
-  integer(ik4) :: iyg , jxg
 
   public :: init_domain , mypack , setup_pack
 
@@ -59,16 +58,14 @@ module mod_grid
 
   subroutine init_domain
     implicit none
-    jxg = jx/nsg
-    iyg = iy/nsg
-    call getmem2d(xlat,1,jx,1,iy,'mod_read_domain:xlat')
-    call getmem2d(xlon,1,jx,1,iy,'mod_read_domain:xlon')
-    call getmem2d(xmask,1,jx,1,iy,'mod_read_domain:xmask')
-    call getmem2d(topo,1,jx,1,iy,'mod_read_domain:topo')
-    call getmem3d(xtrans_i,1,nnsg,1,jxg,1,iyg,'mod_read_domain:xtrans_i')
-    call getmem3d(xtrans_r4,1,nnsg,1,jxg,1,iyg,'mod_read_domain:xtrans_r4')
-    call getmem3d(xtrans_r8,1,nnsg,1,jxg,1,iyg,'mod_read_domain:xtrans_r8')
-    call getmem3d(sgmask,1,nnsg,1,jxg,1,iyg,'mod_read_domain:sgmask')
+    call getmem2d(xlat,1,jxsg,1,iysg,'mod_read_domain:xlat')
+    call getmem2d(xlon,1,jxsg,1,iysg,'mod_read_domain:xlon')
+    call getmem2d(xmask,1,jxsg,1,iysg,'mod_read_domain:xmask')
+    call getmem2d(topo,1,jxsg,1,iysg,'mod_read_domain:topo')
+    call getmem3d(xtrans_i,1,nnsg,1,jx,1,iy,'mod_read_domain:xtrans_i')
+    call getmem3d(xtrans_r4,1,nnsg,1,jx,1,iy,'mod_read_domain:xtrans_r4')
+    call getmem3d(xtrans_r8,1,nnsg,1,jx,1,iy,'mod_read_domain:xtrans_r8')
+    call getmem3d(sgmask,1,nnsg,1,jx,1,iy,'mod_read_domain:sgmask')
     call getmem1d(sigx,1,kzp1,'mod_read_domain:sigx')
   end subroutine init_domain
 
@@ -77,8 +74,8 @@ module mod_grid
     integer(ik4) , dimension(:,:) :: m2
     integer(ik4) , dimension(:,:,:) :: m3
     integer(ik4) :: n1 , n2 , j , i , ii , jj
-    do i = 1 , iyg
-      do j = 1 , jxg
+    do i = 1 , iy
+      do j = 1 , jx
         do n2 = 1 , nsg
           ii = (i-1) * nsg + n2
           do n1 = 1 , nsg
@@ -95,8 +92,8 @@ module mod_grid
     real(rk4) , dimension(:,:) :: m2
     real(rk4) , dimension(:,:,:) :: m3
     integer(ik4) :: n1 , n2 , j , i , ii , jj
-    do i = 1 , iyg
-      do j = 1 , jxg
+    do i = 1 , iy
+      do j = 1 , jx
         do n2 = 1 , nsg
           ii = (i-1) * nsg + n2
           do n1 = 1 , nsg
@@ -113,8 +110,8 @@ module mod_grid
     real(rk8) , dimension(:,:) :: m2
     real(rk8) , dimension(:,:,:) :: m3
     integer(ik4) :: n1 , n2 , j , i , ii , jj
-    do i = 1 , iyg
-      do j = 1 , jxg
+    do i = 1 , iy
+      do j = 1 , jx
         do n2 = 1 , nsg
           ii = (i-1) * nsg + n2
           do n1 = 1 , nsg
@@ -129,8 +126,8 @@ module mod_grid
   subroutine setup_pack
     implicit none
     integer(ik4) :: n1 , n2 , j , i , ii , jj
-    do i = 1 , iyg
-      do j = 1 , jxg
+    do i = 1 , iy
+      do j = 1 , jx
         do n2 = 1 , nsg
           ii = (i-1) * nsg + n2
           do n1 = 1 , nsg
@@ -149,8 +146,8 @@ module mod_grid
     integer(ik4) :: i , j , n , ip
     call g2s(matrix,xtrans_i)
     ip = 1
-    do i = 2 , iyg-2
-      do j = 2 , jxg-2
+    do i = 2 , iy-2
+      do j = 2 , jx-2
         do n = 1 , nnsg
           if ( sgmask(n,j,i) ) then
             vector(ip) = xtrans_r4(n,j,i)
@@ -168,8 +165,8 @@ module mod_grid
     integer(ik4) :: i , j , n , ip
     call g2s(matrix,xtrans_r4)
     ip = 1
-    do i = 2 , iyg-2
-      do j = 2 , jxg-2
+    do i = 2 , iy-2
+      do j = 2 , jx-2
         do n = 1 , nnsg
           if ( sgmask(n,j,i) ) then
             vector(ip) = xtrans_r4(n,j,i)
@@ -187,8 +184,8 @@ module mod_grid
     integer(ik4) :: i , j , n , ip
     call g2s(matrix,xtrans_r8)
     ip = 1
-    do i = 2 , iyg-2
-      do j = 2 , jxg-2
+    do i = 2 , iy-2
+      do j = 2 , jx-2
         do n = 1 , nnsg
           if ( sgmask(n,j,i) ) then
             vector(ip) = xtrans_r8(n,j,i)

@@ -125,7 +125,7 @@ program mksurfdata
   call openfile_withname(terfile,ncid)
   call read_domain(ncid,sigx,xlat,xlon,ht=topo,mask=xmask)
   call setup_pack()
-  ngcells = count(xmask(2:jx-2,2:iy-2) > 0.5)
+  ngcells = count(xmask(2:jxsg-2,2:iysg-2) > 0.5)
   call closefile(ncid)
 
   ! Open Output in NetCDF format
@@ -135,12 +135,12 @@ program mksurfdata
   call createfile_withname(outfile,ncid)
   call add_common_global_params(ncid,'mksurfdata',.false.)
   ndim = 1
-  call define_basic_dimensions(ncid,jx,iy,kzp1,ndim,idims)
+  call define_basic_dimensions(ncid,jxsg,iysg,kzp1,ndim,idims)
   call add_dimension(ncid,'time',nf90_unlimited,ndim,idims)
   call add_dimension(ncid,'lsmpft',npft,ndim,idims)
   call add_dimension(ncid,'nlevsoi',nsoil,ndim,idims)
   call add_dimension(ncid,'gridcell',ngcells,ndim,idims)
-  call define_horizontal_coord(ncid,jx,iy,xjx,yiy,idims,ihvar)
+  call define_horizontal_coord(ncid,jxsg,iysg,xjx,yiy,idims,ihvar)
   call define_vertical_coord(ncid,idims,izvar)
 
   nvar = 1
@@ -413,20 +413,20 @@ program mksurfdata
   istatus = nf90_put_var(ncid, iscvar, mxsoil_color)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write mxsoil_color')
 
-  call getmem2d(pctspec,1,jx,1,iy,'mksurfdata: pctspec')
-  call getmem2d(pctslake,1,jx,1,iy,'mksurfdata: pctslake')
+  call getmem2d(pctspec,1,jxsg,1,iysg,'mksurfdata: pctspec')
+  call getmem2d(pctslake,1,jxsg,1,iysg,'mksurfdata: pctslake')
   call getmem1d(gcvar,1,ngcells,'mksurfdata: gcvar')
   call getmem1d(iiy,1,ngcells,'mksurfdata: iiy')
   call getmem1d(ijx,1,ngcells,'mksurfdata: ijx')
   call getmem1d(landpoint,1,ngcells,'mksurfdata: landpoint')
-  call getmem5d(var5d,1,jx,1,iy,1,maxd3,1,maxd4,1,4,'mksurfdata: var5d')
+  call getmem5d(var5d,1,jxsg,1,iysg,1,maxd3,1,maxd4,1,4,'mksurfdata: var5d')
   pctspec(:,:) = 0.0
   pctslake(:,:) = 0.0
   ip = 1
-  do i = 2 , iy-2
-    do j = 2 , jx-2
+  do i = 2 , iysg-2
+    do j = 2 , jxsg-2
       if ( xmask(j,i) > 0.5 ) then
-        landpoint(ip) = (i-1)*jx+j
+        landpoint(ip) = (i-1)*jxsg+j
         ip = ip + 1
       end if
     end do
@@ -443,8 +443,8 @@ program mksurfdata
   istatus = nf90_put_var(ncid, itopovar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write topo')
   ip = 1
-  do i = 2 , iy-2
-    do j = 2 , jx-2
+  do i = 2 , iysg-2
+    do j = 2 , jxsg-2
       if ( xmask(j,i) > 0.5 ) then
         iiy(ip) = i
         ijx(ip) = j
@@ -459,8 +459,8 @@ program mksurfdata
 
   var5d(:,:,1,1,1) = 0.0
   ! Calculate slope and std
-  do i = 2 , iy-2
-    do j = 2 , jx-2
+  do i = 2 , iysg-2
+    do j = 2 , jxsg-2
       var5d(j,i,1,1,1) = &
           atan((sum(topo(j-1:j+1,i-1:i+1)-topo(j,i))/8.0)/real(ds*1000.0D0))
       mean = sum(topo(j-1:j+1,i-1:i+1))/9.0
@@ -490,8 +490,8 @@ program mksurfdata
     var5d(:,:,4,1,1) = vmisdat
   end where
 
-  do i = 2 , iy-2
-    do j = 2 , jx-2
+  do i = 2 , iysg-2
+    do j = 2 , jxsg-2
       if ( xmask(j,i) > 0.5 ) then
         pctspec(j,i) = var5d(j,i,1,1,1) + var5d(j,i,2,1,1) + &
                        var5d(j,i,3,1,1) + var5d(j,i,4,1,1)
@@ -551,8 +551,8 @@ program mksurfdata
     end where
   end do
   ! Here adjustment !
-  do i = 2 , iy-2
-    jloop: do j = 2 , jx-2
+  do i = 2 , iysg-2
+    jloop: do j = 2 , jxsg-2
       if ( xmask(j,i) > 0.5 ) then
         if ( pctspec(j,i) > 99.99999 ) then
           var5d(j,i,:,1,1) = vmisdat
