@@ -72,7 +72,8 @@ program mksurfdata
   integer(ik4) :: islopevar , istdvar , igdpvar , ipeatfvar , iabmvar
   integer(ik4) :: ief_btrvar , ief_crpvar , ief_fdtvar , ief_fetvar
   integer(ik4) :: ief_grsvar , ief_shrvar , iorganicvar , idepthvar
-  integer(ik4) :: ilndvar , iscvar
+  integer(ik4) :: ilndvar , iscvar , ilatvar , ilonvar , itopovar
+  integer(ik4) :: ijxvar , iiyvar
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
   real(rk4) , pointer , dimension(:) :: yiy
@@ -94,6 +95,7 @@ program mksurfdata
   real(rk4) , dimension(:,:) , pointer :: pctspec , pctslake
   real(rk4) , pointer , dimension(:,:,:,:,:) :: var5d
   real(rk4) , pointer , dimension(:) :: gcvar
+  integer(ik4) , pointer , dimension(:) :: iiy , ijx
   integer , pointer , dimension(:) :: landpoint
   logical , dimension(npft) :: pft_gt0
   logical , dimension(:,:) , pointer :: lmask
@@ -162,6 +164,31 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var gridcell')
   istatus = nf90_put_att(ncid, ilndvar, 'compress','xlat xlon')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add gridcell compress')
+
+  istatus = nf90_def_var(ncid, 'xclon', nf90_double, idims(7), ilonvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var xclon')
+  istatus = nf90_put_att(ncid, ilndvar, 'compress','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add xclon')
+
+  istatus = nf90_def_var(ncid, 'yclat', nf90_double, idims(7), ilatvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var yclat')
+  istatus = nf90_put_att(ncid, ilndvar, 'compress','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add yclat')
+
+  istatus = nf90_def_var(ncid, 'topo', nf90_double, idims(7), itopovar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var topo')
+  istatus = nf90_put_att(ncid, ilndvar, 'compress','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add topo')
+
+  istatus = nf90_def_var(ncid, 'jx2d', nf90_int, idims(7), ijxvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var jx2d')
+  istatus = nf90_put_att(ncid, ilndvar, 'compress','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add jx2d')
+
+  istatus = nf90_def_var(ncid, 'iy2d', nf90_int, idims(7), iiyvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var iy2d')
+  istatus = nf90_put_att(ncid, ilndvar, 'compress','xlat xlon')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add iy2d')
 
   istatus = nf90_def_var(ncid, 'SLOPE', nf90_float, idims(7), islopevar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var slope')
@@ -390,7 +417,9 @@ program mksurfdata
   call getmem2d(pctslake,1,jx,1,iy,'mksurfdata: pctslake')
   call getmem2d(lmask,2,jx-2,2,iy-2,'mksurfdata: lmask')
   call getmem1d(gcvar,1,ngcells,'mksurfdata: gcvar')
-  call getmem1d(landpoint,1,ngcells,'mksurfdata: gcvar')
+  call getmem1d(iiy,1,ngcells,'mksurfdata: iiy')
+  call getmem1d(ijx,1,ngcells,'mksurfdata: ijx')
+  call getmem1d(landpoint,1,ngcells,'mksurfdata: landpoint')
   call getmem5d(var5d,1,jx,1,iy,1,maxd3,1,maxd4,1,4,'mksurfdata: var5d')
   pctspec(:,:) = 0.0
   pctslake(:,:) = 0.0
@@ -406,7 +435,30 @@ program mksurfdata
   end do
   istatus = nf90_put_var(ncid, ilndvar, landpoint)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write gridcell')
- 
+  gcvar = pack(xlat(2:jx-2,2:iy-2),lmask)
+  istatus = nf90_put_var(ncid, ilatvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write yclat')
+  gcvar = pack(xlon(2:jx-2,2:iy-2),lmask)
+  istatus = nf90_put_var(ncid, ilonvar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write xclon')
+  gcvar = pack(topo(2:jx-2,2:iy-2),lmask)
+  istatus = nf90_put_var(ncid, itopovar, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write topo')
+  ip = 1
+  do i = 2 , iy-2
+    do j = 2 , jx-2
+      if ( xmask(j,i) > 0.5 ) then
+        iiy(ip) = i
+        ijx(ip) = j
+        ip = ip + 1
+      end if
+    end do
+  end do
+  istatus = nf90_put_var(ncid, iiyvar, iiy)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write iiy')
+  istatus = nf90_put_var(ncid, ijxvar, ijx)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write ijx')
+
   var5d(:,:,1,1,1) = 0.0
   ! Calculate slope and std
   do i = 2 , iy-2
