@@ -495,7 +495,7 @@ module mod_params
   ichsursrc = 1
   ichebdy = 1
   rdstemfac = d_one
-  ichbion = 1
+  ichbion = 0 
 !c------namelist clmparam ; (read in case clm surface model compiled in)
 #ifdef CLM
   imask = 1
