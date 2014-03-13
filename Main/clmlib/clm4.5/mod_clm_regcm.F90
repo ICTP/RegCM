@@ -12,7 +12,7 @@ module mod_clm_regcm
   use mod_clm_initialize
   use mod_clm_driver
   use mod_clm_varctl , only : use_c13
-  use mod_clm_atmlnd , only : clm_a2l , clm_l2a
+  use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
   use mod_clm_decomp , only : procinfo , get_proc_bounds
 
   private
@@ -30,6 +30,15 @@ module mod_clm_regcm
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
     integer(ik4) :: i , j , n
+
+    allocate(adomain%xlon(lndcomm%linear_npoint_sg(myid+1)))
+    allocate(adomain%xlat(lndcomm%linear_npoint_sg(myid+1)))
+    allocate(adomain%topo(lndcomm%linear_npoint_sg(myid+1)))
+
+    call c2l_ss(lndcomm,lm%xlat1,adomain%xlat)
+    call c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
+    call c2l_ss(lndcomm,lm%ht1,adomain%topo)
+
     call initialize1( )
     call initialize2( )
     ! Compute simple LAND emissivity for RegCM radiation
@@ -71,7 +80,7 @@ module mod_clm_regcm
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: begg , endg , i
+    integer(ik4) :: begg , endg , i , j , n
     real(rk8) :: hl , satvp
     logical :: doalb , rstwr , nlend
     character(len=64) :: rdate
@@ -194,6 +203,18 @@ module mod_clm_regcm
     call l2c_ss(lndcomm,clm_l2a%fv,lms%drag)
 
     call l2c_ss(lndcomm,clm_l2a%h2osno,lms%sncv)
+
+    !if ( ktau > 0 .and. mod(ktau+1,ksrf) == 0 ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          do n = 1 , nnsg
+            write(myid+ndebug+100,*) lms%sncv(n,j,i)
+          end do
+        end do
+      end do
+      flush(myid+ndebug+100)
+      stop
+    !end if
 
     call l2c_ss(lndcomm,clm_l2a%taux,lms%taux)
     call l2c_ss(lndcomm,clm_l2a%tauy,lms%tauy)

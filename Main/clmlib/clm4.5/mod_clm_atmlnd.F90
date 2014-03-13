@@ -18,6 +18,14 @@ module mod_clm_atmlnd
 
   save
 
+  type atm_domain
+    real(rk8) , pointer , dimension(:) :: xlat
+    real(rk8) , pointer , dimension(:) :: xlon
+    real(rk8) , pointer , dimension(:) :: topo
+  end type atm_domain
+
+  public :: atm_domain
+
   !----------------------------------------------------
   ! atmosphere -> land variables structure
   !----------------------------------------------------
@@ -151,6 +159,8 @@ module mod_clm_atmlnd
   type(atm2lnd_type) , public , target :: clm_a2l      ! a2l fields on clm grid
   type(lnd2atm_type) , public , target :: clm_l2a      ! l2a fields on clm grid
 
+  type(atm_domain) , public :: adomain
+
   public :: init_atm2lnd_type
   public :: init_lnd2atm_type
   public :: clm_map2gcell
@@ -164,6 +174,7 @@ module mod_clm_atmlnd
     integer(ik4) , intent(in) :: ibeg , iend
     type (atm2lnd_type) , intent(inout):: a2l
     real(rk8) :: ival   ! initial value
+
     allocate(a2l%forc_t(ibeg:iend))
     allocate(a2l%forc_u(ibeg:iend))
     allocate(a2l%forc_v(ibeg:iend))

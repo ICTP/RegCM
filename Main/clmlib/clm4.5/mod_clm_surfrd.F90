@@ -59,6 +59,7 @@ module mod_clm_surfrd
     use mod_clm_varcon , only : spval , re
     use mod_clm_domain , only : domain_type , domain_init , domain_clean
     use mod_clm_decomp , only : get_proc_bounds
+    use mod_clm_atmlnd , only : adomain
     implicit none
     type(domain_type) , intent(inout) :: ldomain   ! domain to init
     character(len=*) , intent(in)    :: filename  ! grid filename
@@ -68,9 +69,8 @@ module mod_clm_surfrd
     integer(ik4) :: ni , nj , ns     ! size of grid on file
     integer(ik4) :: inni , innj      ! size of grid on file
     integer(ik4) :: ier , ret        ! error status
-    real(rk8) , allocatable , dimension(:,:) :: rdata2d ! temporary
-    real(rk8) , allocatable , dimension(:) :: rdata1d ! temporary
     integer(ik4) :: n , i , j        ! indices
+    real(rk4) , allocatable , dimension(:,:) :: mask
     real(rk8) :: eps = 1.0D-12       ! lat/lon error tolerance
     character(len=32) :: subname = 'surfrd_get_grid'     ! subroutine name
 
@@ -88,9 +88,11 @@ module mod_clm_surfrd
     call clm_inqdim(ncid,'jx',inni)
     call clm_inqdim(ncid,'iy',innj)
 
-    ! RegCM INTERNAL grid is 2:jx-2,2:iy-2
-    allocate(rdata2d(inni,innj))
-    allocate(rdata1d(numg))
+    allocate(mask(inni,innj))
+    call clm_readvar(ncid,'mask',mask)
+
+    call clm_closefile(ncid)
+
     ni = inni - 3
     nj = innj - 3
     ns = ni*nj
@@ -98,47 +100,18 @@ module mod_clm_surfrd
     call get_proc_bounds(ibeg,iend)
     call domain_init(ldomain,ni=ni,nj=nj,nbeg=ibeg,nend=iend)
 
-    ! Read mask from input file
-    call clm_readvar(ncid,'mask',rdata2d)
-    call getmem2d(procinfo%gcmask,1,ni,1,nj,'surfrd:gcmask')
-    procinfo%gcmask = .false.
-    do j = 2 , innj-2
-      do i = 2 , inni-2
-        procinfo%gcmask(i-1,j-1) = (rdata2d(i,j) > 0)
-      end do
-    end do
-    if ( count(procinfo%gcmask) /= numg ) then
-      write(stderr,*) 'Unmatch from landmask in ATM and CLM'
-      write(stderr,*) 'ATM : ', count(procinfo%gcmask)
-      write(stderr,*) 'CLM : ', numg
-      call fatal(__FILE__,__LINE__,'clm now stopping')
-    end if
+    allocate(procinfo%gcmask(ni,nj))
+    procinfo%gcmask(:,:) = (mask(2:inni-2,2:innj-2) > 0.0)
+    deallocate(mask)
 
-    rdata1d = pack(rdata2d(2:inni-2,2:innj-2),procinfo%gcmask)
-    ldomain%frac = rdata1d(ibeg:iend)
+    ! We receive only GOOD land points !
 
-    ! Read in lon, lat from RegCM Subgrid domain file
-    call clm_readvar(ncid,'xlon',rdata2d)
-    rdata1d = pack(rdata2d(2:inni-2,2:innj-2),procinfo%gcmask)
-    ldomain%lonc = rdata1d(ibeg:iend)
-    call clm_readvar(ncid,'xlat',rdata2d)
-    rdata1d = pack(rdata2d(2:inni-2,2:innj-2),procinfo%gcmask)
-    ldomain%latc = rdata1d(ibeg:iend)
-    call clm_readvar(ncid,'topo',rdata2d)
-    rdata1d = pack(rdata2d(2:inni-2,2:innj-2),procinfo%gcmask)
-    ldomain%topo = rdata1d(ibeg:iend)
-
-    deallocate(rdata2d)
-    deallocate(rdata1d)
-    call clm_closefile(ncid)
-
-    where ( ldomain%frac > 0 ) ldomain%frac = 100.0D0
+    ldomain%frac = 100.0D0
+    ldomain%mask = 1
+    ldomain%lonc = adomain%xlon
+    ldomain%latc = adomain%xlat
+    ldomain%topo = adomain%topo
     ldomain%area = ds*ds
-    where ( ldomain%frac > 0 )
-      ldomain%mask = 1
-    else where
-      ldomain%mask = 0
-    end where
     ldomain%pftm = ldomain%mask
 
     ! Check lat limited to -90,90

@@ -6610,7 +6610,7 @@ module mod_mppparam
     logical , pointer , dimension(:) , intent(out) :: vector
     logical , pointer , dimension(:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , iv
-    iv = lbound(vector,1)
+    iv = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( cl%gmask(j,i) ) then
@@ -6627,7 +6627,7 @@ module mod_mppparam
     logical , pointer , dimension(:) , intent(out) :: vector
     logical , pointer , dimension(:,:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , n , iv
-    iv = lbound(vector,1)
+    iv = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
@@ -6646,7 +6646,7 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:) , intent(out) :: vector
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , iv
-    iv = lbound(vector,1)
+    iv = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( cl%gmask(j,i) ) then
@@ -6663,7 +6663,7 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:) , intent(out) :: vector
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , n , iv
-    iv = lbound(vector,1)
+    iv = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
@@ -6682,7 +6682,7 @@ module mod_mppparam
     real(ik8) , pointer , dimension(:) , intent(out) :: vector
     real(ik8) , pointer , dimension(:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , iv
-    iv = lbound(vector,1)
+    iv = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( cl%gmask(j,i) ) then
@@ -6699,7 +6699,7 @@ module mod_mppparam
     real(ik8) , pointer , dimension(:) , intent(out) :: vector
     real(ik8) , pointer , dimension(:,:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , n , iv
-    iv = lbound(vector,1)
+    iv = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
@@ -6720,7 +6720,7 @@ module mod_mppparam
     integer(ik4) , intent(in) :: klev
     integer(ik4) :: i , j , k , n , iv
     do k = 1 , klev
-      iv = lbound(vector,1)
+      iv = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
           do n = 1 , nnsg
@@ -6741,7 +6741,7 @@ module mod_mppparam
     real(ik8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
     integer(ik4) , intent(in) :: k
     integer(ik4) :: i , j , n , iv
-    iv = lbound(vector,1)
+    iv = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
@@ -6760,7 +6760,7 @@ module mod_mppparam
     logical , pointer , dimension(:) , intent(in) :: vector
     logical , pointer , dimension(:,:) , intent(inout) :: matrix
     integer(ik4) :: i , j , iv
-    iv = lbound(vector,1)
+    iv = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( cl%gmask(j,i) ) then
@@ -6777,7 +6777,7 @@ module mod_mppparam
     logical , pointer , dimension(:) , intent(in) :: vector
     logical , pointer , dimension(:,:,:) , intent(inout) :: matrix
     integer(ik4) :: i , j , n , iv
-    iv = lbound(vector,1)
+    iv = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
@@ -6796,7 +6796,7 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:) , intent(in) :: vector
     integer(ik4) , pointer , dimension(:,:) , intent(inout) :: matrix
     integer(ik4) :: i , j , iv
-    iv = lbound(vector,1)
+    iv = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( cl%gmask(j,i) ) then
@@ -6813,7 +6813,7 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:) , intent(in) :: vector
     integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
     integer(ik4) :: i , j , n , iv
-    iv = lbound(vector,1)
+    iv = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
@@ -6832,7 +6832,7 @@ module mod_mppparam
     real(ik8) , pointer , dimension(:) , intent(in) :: vector
     real(ik8) , pointer , dimension(:,:) , intent(inout) :: matrix
     integer(ik4) :: i , j , iv
-    iv = lbound(vector,1)
+    iv = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( cl%gmask(j,i) ) then
@@ -6849,7 +6849,7 @@ module mod_mppparam
     real(ik8) , pointer , dimension(:) , intent(in) :: vector
     real(ik8) , pointer , dimension(:,:,:) , intent(inout) :: matrix
     integer(ik4) :: i , j , n , iv
-    iv = lbound(vector,1)
+    iv = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
@@ -6870,7 +6870,7 @@ module mod_mppparam
     integer(ik4) , intent(in) :: klev
     integer(ik4) :: i , j , k , n , iv
     do k = 1 , klev
-      iv = lbound(vector,1)
+      iv = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
           do n = 1 , nnsg
@@ -6891,7 +6891,7 @@ module mod_mppparam
     real(ik8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
     integer(ik4) , intent(in) :: k
     integer(ik4) :: i , j , n , iv
-    iv = lbound(vector,1)
+    iv = 1
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
