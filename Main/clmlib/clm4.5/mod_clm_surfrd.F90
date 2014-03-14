@@ -156,13 +156,13 @@ module mod_clm_surfrd
     character(len=*) , intent(inout) :: lfsurdat ! surface dataset filename
     ! local domain associated with surface dataset
     type(domain_type) :: surfdata_domain
-    integer(ik4) :: n                        ! loop indices
+    integer(ik4) :: n , ierr                 ! loop indices
     integer(ik4) :: ni , nj , ns             ! domain sizes
     logical :: readvar                       ! true => variable is on dataset
     real(rk8) :: rmaxlon , rmaxlat           ! local min/max vars
     type(clm_filetype) :: ncid               ! netcdf id
     integer(ik4) :: begg , endg              ! beg,end gridcell indices
-    logical :: istype_domain              ! true => input file is of type domain
+    real(rk4) , allocatable , dimension(:) :: xclon , yclat
     character(len=32) :: subname = 'surfrd_get_data'    ! subroutine name
 
     if (myid == italk) then
@@ -176,6 +176,9 @@ module mod_clm_surfrd
     call get_proc_bounds(begg,endg)
     allocate(pctspec(begg:endg))
 
+    allocate(yclat(begg:endg))
+    allocate(xclon(begg:endg))
+
     vegxy(:,:) = noveg
     wtxy(:,:)  = 0.D0
     pctspec(:) = 0.D0
@@ -183,6 +186,26 @@ module mod_clm_surfrd
     ! Read surface data
 
     call clm_openfile(lfsurdat,ncid)
+
+    call clm_readvar(ncid,'xclon',xclon,gcomm_gridcell)
+    call clm_readvar(ncid,'yclat',yclat,gcomm_gridcell)
+
+    ierr = 0
+    do n = begg , endg
+      if ( xclon(n) /= ldomain%lonc(n) .or. &
+           yclat(n) /= ldomain%latc(n) ) then
+        write(stderr,*) 'ERROR coordinates at n ', &
+            n, xclon(n), yclat(n) , ldomain%lonc(n), ldomain%latc(n)
+        ierr = 1
+      end if
+    end do
+    if ( ierr /= 0 ) then
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    else
+      if ( myid == italk ) then
+        write(stdout,*) 'Checked LAT/LON compliance'
+      end if
+    end if
 
     ! Obtain special landunit info
 

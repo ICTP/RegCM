@@ -35,9 +35,9 @@ module mod_clm_regcm
     allocate(adomain%xlat(lndcomm%linear_npoint_sg(myid+1)))
     allocate(adomain%topo(lndcomm%linear_npoint_sg(myid+1)))
 
-    call c2l_ss(lndcomm,lm%xlat1,adomain%xlat)
-    call c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
-    call c2l_ss(lndcomm,lm%ht1,adomain%topo)
+    call glb_c2l_ss(lndcomm,lm%xlat1,adomain%xlat)
+    call glb_c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
+    call glb_c2l_ss(lndcomm,lm%ht1,adomain%topo)
 
     call initialize1( )
     call initialize2( )
@@ -96,28 +96,28 @@ module mod_clm_regcm
     call get_proc_bounds(begg,endg)
 
     ! Fill clm_a2l
-    call c2l_gs(lndcomm,lm%tatm,clm_a2l%forc_t)
-    call c2l_gs(lndcomm,lm%uatm,clm_a2l%forc_u)
-    call c2l_gs(lndcomm,lm%vatm,clm_a2l%forc_v)
-    call c2l_gs(lndcomm,lm%qvatm,clm_a2l%forc_q)
-    call c2l_gs(lndcomm,lm%hgt,clm_a2l%forc_hgt)
-    call c2l_gs(lndcomm,lm%patm,clm_a2l%forc_pbot)
-    call c2l_gs(lndcomm,lm%thatm,clm_a2l%forc_th)
+    call glb_c2l_gs(lndcomm,lm%tatm,clm_a2l%forc_t)
+    call glb_c2l_gs(lndcomm,lm%uatm,clm_a2l%forc_u)
+    call glb_c2l_gs(lndcomm,lm%vatm,clm_a2l%forc_v)
+    call glb_c2l_gs(lndcomm,lm%qvatm,clm_a2l%forc_q)
+    call glb_c2l_gs(lndcomm,lm%hgt,clm_a2l%forc_hgt)
+    call glb_c2l_gs(lndcomm,lm%patm,clm_a2l%forc_pbot)
+    call glb_c2l_gs(lndcomm,lm%thatm,clm_a2l%forc_th)
     ! forc_vp IS UNUSED
-    call c2l_gs(lndcomm,lm%rhox,clm_a2l%forc_rho)
-    call c2l_gs(lndcomm,lm%sfps,clm_a2l%forc_psrf)
-    call c2l_gs(lndcomm,lm%dwrlwf,clm_a2l%forc_lwrad)
-    call c2l_gs(lndcomm,lm%solar,clm_a2l%forc_solar)
-    call c2l_gs(lndcomm,rprec,clm_a2l%forc_rain)
-    call c2l_gs(lndcomm,rsnow,clm_a2l%forc_snow)
+    call glb_c2l_gs(lndcomm,lm%rhox,clm_a2l%forc_rho)
+    call glb_c2l_gs(lndcomm,lm%sfps,clm_a2l%forc_psrf)
+    call glb_c2l_gs(lndcomm,lm%dwrlwf,clm_a2l%forc_lwrad)
+    call glb_c2l_gs(lndcomm,lm%solar,clm_a2l%forc_solar)
+    call glb_c2l_gs(lndcomm,rprec,clm_a2l%forc_rain)
+    call glb_c2l_gs(lndcomm,rsnow,clm_a2l%forc_snow)
 
-    call c2l_gs(lndcomm,lm%swdir,clm_a2l%notused)
+    call glb_c2l_gs(lndcomm,lm%swdir,clm_a2l%notused)
     clm_a2l%forc_solad(:,1) = clm_a2l%notused
-    call c2l_gs(lndcomm,lm%lwdir,clm_a2l%notused)
+    call glb_c2l_gs(lndcomm,lm%lwdir,clm_a2l%notused)
     clm_a2l%forc_solad(:,2) = clm_a2l%notused
-    call c2l_gs(lndcomm,lm%swdif,clm_a2l%notused)
+    call glb_c2l_gs(lndcomm,lm%swdif,clm_a2l%notused)
     clm_a2l%forc_solai(:,1) = clm_a2l%notused
-    call c2l_gs(lndcomm,lm%lwdif,clm_a2l%notused)
+    call glb_c2l_gs(lndcomm,lm%lwdif,clm_a2l%notused)
     clm_a2l%forc_solai(:,2) = clm_a2l%notused
 
     ! Compute or alias
@@ -186,45 +186,32 @@ module mod_clm_regcm
     call clm_drv(doalb, calday, declin, declin, rstwr, nlend, rdate)
 
     ! Get back data from clm_l2a
-    call l2c_ss(lndcomm,clm_l2a%t_rad,lms%tgbb)
+    call glb_l2c_ss(lndcomm,clm_l2a%t_rad,lms%tgbb)
 
-    call l2c_ss(lndcomm,clm_l2a%t_ref2m,lms%t2m)
-    call l2c_ss(lndcomm,clm_l2a%q_ref2m,lms%q2m)
+    call glb_l2c_ss(lndcomm,clm_l2a%t_ref2m,lms%t2m)
+    call glb_l2c_ss(lndcomm,clm_l2a%q_ref2m,lms%q2m)
 
     ! CLM gives just wind speed, assume directions are same as input.
     clm_a2l%notused = atan(clm_a2l%forc_v/clm_a2l%forc_u)
     clm_l2a%notused = clm_l2a%u_ref10m*cos(clm_a2l%notused)
-    call l2c_ss(lndcomm,clm_l2a%notused,lms%u10m)
+    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%u10m)
     clm_l2a%notused = clm_l2a%u_ref10m*sin(clm_a2l%notused)
-    call l2c_ss(lndcomm,clm_l2a%notused,lms%v10m)
+    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%v10m)
 
-    call l2c_ss(lndcomm,clm_l2a%eflx_sh_tot,lms%sent)
-    call l2c_ss(lndcomm,clm_l2a%qflx_evap_tot,lms%evpr)
-    call l2c_ss(lndcomm,clm_l2a%fv,lms%drag)
+    call glb_l2c_ss(lndcomm,clm_l2a%eflx_sh_tot,lms%sent)
+    call glb_l2c_ss(lndcomm,clm_l2a%qflx_evap_tot,lms%evpr)
+    call glb_l2c_ss(lndcomm,clm_l2a%fv,lms%drag)
 
-    call l2c_ss(lndcomm,clm_l2a%h2osno,lms%sncv)
-
-    !if ( ktau > 0 .and. mod(ktau+1,ksrf) == 0 ) then
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          do n = 1 , nnsg
-            write(myid+ndebug+100,*) lms%sncv(n,j,i)
-          end do
-        end do
-      end do
-      flush(myid+ndebug+100)
-      stop
-    !end if
-
-    call l2c_ss(lndcomm,clm_l2a%taux,lms%taux)
-    call l2c_ss(lndcomm,clm_l2a%tauy,lms%tauy)
+    call glb_l2c_ss(lndcomm,clm_l2a%h2osno,lms%sncv)
+    call glb_l2c_ss(lndcomm,clm_l2a%taux,lms%taux)
+    call glb_l2c_ss(lndcomm,clm_l2a%tauy,lms%tauy)
 
     lms%tgrd = lms%tgbb
     lms%tgbrd = lms%tgbb
     lms%tlef = lms%t2m
 
     ! From the input
-    call l2c_ss(lndcomm,clm_a2l%forc_rain,lms%prcp)
+    call glb_l2c_ss(lndcomm,clm_a2l%forc_rain,lms%prcp)
 
     ! Will fix
     !clm_l2a%eflx_lwrad_out
@@ -249,13 +236,13 @@ module mod_clm_regcm
     type(lm_state) , intent(inout) :: lms
     ! Just get albedoes from clm_l2a
     clm_l2a%notused = clm_l2a%albd(:,1)
-    call l2c_ss(lndcomm,clm_l2a%notused,lms%swdiralb)
+    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdiralb)
     clm_l2a%notused = clm_l2a%albd(:,2)
-    call l2c_ss(lndcomm,clm_l2a%notused,lms%lwdiralb)
+    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdiralb)
     clm_l2a%notused = clm_l2a%albi(:,1)
-    call l2c_ss(lndcomm,clm_l2a%notused,lms%swdifalb)
+    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdifalb)
     clm_l2a%notused = clm_l2a%albi(:,2)
-    call l2c_ss(lndcomm,clm_l2a%notused,lms%lwdifalb)
+    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdifalb)
     ! This should be the vegetation albedo!
     lms%swalb = lms%swdiralb+lms%swdifalb
     lms%lwalb = lms%lwdiralb+lms%lwdifalb

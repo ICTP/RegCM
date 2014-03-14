@@ -139,7 +139,8 @@ module mod_mppparam
                      real4_2d_sub_distribute ,   &
                      real4_3d_sub_distribute ,   &
                      integer_2d_sub_distribute , &
-                     integer_3d_sub_distribute
+                     integer_3d_sub_distribute , &
+                     logical_2d_sub_distribute
   end interface subgrid_distribute
 
   interface grid_collect
@@ -234,26 +235,6 @@ module mod_mppparam
                      recv_array_real8
   end interface recv_array
 
-  interface l_l2g
-    module procedure linear_local_to_global_logical, &
-                     linear_local_to_global_integer, &
-                     linear_local_to_global_real4,   &
-                     linear_local_to_global_real8
-  end interface l_l2g
-
-  interface l_g2l
-    module procedure linear_global_to_local_logical, &
-                     linear_global_to_local_integer, &
-                     linear_global_to_local_real4,   &
-                     linear_global_to_local_real8
-  end interface l_g2l
-
-  interface c2l_gg
-    module procedure cartesian_to_linear_integer_grid_grid, &
-                     cartesian_to_linear_logical_grid_grid, &
-                     cartesian_to_linear_real8_grid_grid
-  end interface c2l_gg
-
   interface c2l_ss
     module procedure cartesian_to_linear_integer_subgrid_subgrid, &
                      cartesian_to_linear_logical_subgrid_subgrid, &
@@ -267,12 +248,6 @@ module mod_mppparam
                      cartesian_to_linear_real8_grid_subgrid
   end interface c2l_gs
 
-  interface l2c_gg
-    module procedure linear_to_cartesian_integer_grid_grid, &
-                     linear_to_cartesian_logical_grid_grid, &
-                     linear_to_cartesian_real8_grid_grid
-  end interface l2c_gg
-
   interface l2c_ss
     module procedure linear_to_cartesian_integer_subgrid_subgrid, &
                      linear_to_cartesian_logical_subgrid_subgrid, &
@@ -280,11 +255,25 @@ module mod_mppparam
                      linear_to_cartesian_real8_subgrid_subgrid_4d
   end interface l2c_ss
 
-  interface l2c_gs
-    module procedure linear_to_cartesian_integer_grid_subgrid, &
-                     linear_to_cartesian_logical_grid_subgrid, &
-                     linear_to_cartesian_real8_grid_subgrid
-  end interface l2c_gs
+  interface glb_c2l_ss
+    module procedure global_to_linear_integer_subgrid_subgrid, &
+                     global_to_linear_logical_subgrid_subgrid, &
+                     global_to_linear_real8_subgrid_subgrid,   &
+                     global_to_linear_real8_subgrid_subgrid_4d
+  end interface glb_c2l_ss
+
+  interface glb_c2l_gs
+    module procedure global_to_linear_integer_grid_subgrid, &
+                     global_to_linear_logical_grid_subgrid, &
+                     global_to_linear_real8_grid_subgrid
+  end interface glb_c2l_gs
+
+  interface glb_l2c_ss
+    module procedure linear_to_global_integer_subgrid_subgrid, &
+                     linear_to_global_logical_subgrid_subgrid, &
+                     linear_to_global_real8_subgrid_subgrid,   &
+                     linear_to_global_real8_subgrid_subgrid_4d
+  end interface glb_l2c_ss
 
   interface reorder_subgrid
     module procedure reorder_subgrid_2d ,   &
@@ -321,6 +310,28 @@ module mod_mppparam
                      myunpack_real8_subgrid_slice
   end interface myunpack
 
+  interface mypack_global
+    module procedure mypack_global_logical_grid,       &
+                     mypack_global_logical_subgrid,    &
+                     mypack_global_integer_grid,       &
+                     mypack_global_integer_subgrid,    &
+                     mypack_global_real8_grid,         &
+                     mypack_global_real8_subgrid,      &
+                     mypack_global_real8_subgrid_4d,   &
+                     mypack_global_real8_subgrid_slice
+  end interface mypack_global
+
+  interface myunpack_global
+    module procedure myunpack_global_logical_grid,       &
+                     myunpack_global_logical_subgrid,    &
+                     myunpack_global_integer_grid,       &
+                     myunpack_global_integer_subgrid,    &
+                     myunpack_global_real8_grid,         &
+                     myunpack_global_real8_subgrid,      &
+                     myunpack_global_real8_subgrid_4d,   &
+                     myunpack_global_real8_subgrid_slice
+  end interface myunpack_global
+
   type(model_area) , public :: ma
 !
   real(rk8) , pointer , dimension(:) :: r8vector1
@@ -334,11 +345,14 @@ module mod_mppparam
   integer(ik4) , dimension(4) :: window
   integer(ik4) :: mpierr
   real(rk8) , pointer , dimension(:,:,:) :: r8subgrid
-  real(rk8) , pointer , dimension(:,:) :: r8grid
   integer(ik4) , pointer , dimension(:,:,:) :: i4subgrid
-  integer(ik4) , pointer , dimension(:,:) :: i4grid
   logical , pointer , dimension(:,:,:) :: lsubgrid
-  logical , pointer , dimension(:,:) :: lgrid
+  real(rk8) , pointer , dimension(:,:,:) :: global_r8subgrid
+  integer(ik4) , pointer , dimension(:,:,:) :: global_i4subgrid
+  logical , pointer , dimension(:,:,:) :: global_lsubgrid
+  real(rk8) , pointer , dimension(:,:) :: global_r8grid
+  integer(ik4) , pointer , dimension(:,:) :: global_i4grid
+  logical , pointer , dimension(:,:) :: global_lgrid
 !
   integer(ik4) , parameter :: tag_bt = 1     ! FROM bottom TO top
   integer(ik4) , parameter :: tag_tb = 2     ! FROM top TO bottom
@@ -364,9 +378,8 @@ module mod_mppparam
   public :: trueforall
   public :: allsync
   public :: cl_setup , cl_dispose
-  public :: c2l_gg , l2c_gg , c2l_ss , l2c_ss
-  public :: c2l_gs , l2c_gs
-  public :: l_l2g , l_g2l
+  public :: c2l_gs , c2l_ss , l2c_ss
+  public :: glb_c2l_gs , glb_c2l_ss , glb_l2c_ss
 
   contains
 
@@ -1942,6 +1955,66 @@ module mod_mppparam
       end do
     end if
   end subroutine real4_3d_sub_distribute
+!
+  subroutine logical_2d_sub_distribute(mg,ml,j1,j2,i1,i2)
+    implicit none
+    logical , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
+    logical , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
+    integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
+    if ( myid == iocpu ) then
+      ! Copy in memory my piece.
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+          end do
+        end do
+      end do
+      ! Send to other nodes the piece they request.
+      do icpu = 1 , nproc-1
+        call recv_array(window,4,icpu,tag_w)
+        isize = window(2)-window(1)+1
+        jsize = window(4)-window(3)+1
+        lsize = isize*jsize*nnsg
+        if ( size(lvector1) < lsize ) then
+          call getmem1d(lvector1,1,lsize,'logical_2d_sub_distribute')
+        end if
+        ib = 1
+        do i = window(1) , window(2)
+          do j = window(3) , window(4)
+            do n = 1 , nnsg
+              lvector1(ib) = mg(n,j,i)
+              ib = ib + 1
+            end do
+          end do
+        end do
+        call send_array(lvector1,lsize,icpu,tag_base)
+      end do
+    else
+      isize = i2-i1+1
+      jsize = j2-j1+1
+      lsize = isize*jsize*nnsg
+      if ( size(lvector2) < lsize ) then
+        call getmem1d(lvector2,1,lsize,'logical_2d_sub_distribute')
+      end if
+      window(1) = global_dot_istart+i1-1
+      window(2) = window(1)+isize-1
+      window(3) = global_dot_jstart+j1-1
+      window(4) = window(3)+jsize-1
+      call send_array(window,4,iocpu,tag_w)
+      call recv_array(lvector2,lsize,iocpu,tag_base)
+      ib = 1
+      do i = i1 , i2
+        do j = j1 , j2
+          do n = 1 , nnsg
+            ml(n,j,i) = lvector2(ib)
+            ib = ib + 1
+          end do
+        end do
+      end do
+    end if
+  end subroutine logical_2d_sub_distribute
 !
   subroutine integer_2d_sub_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
@@ -6027,9 +6100,15 @@ module mod_mppparam
     call getmem3d(r8subgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:r8subgrid')
     call getmem3d(i4subgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:i4subgrid')
     call getmem3d(lsubgrid,1,nnsg,jci1,jci2,ici1,ici2,'mpp:lsubgrid')
-    call getmem2d(r8grid,jci1,jci2,ici1,ici2,'mpp:r8grid')
-    call getmem2d(i4grid,jci1,jci2,ici1,ici2,'mpp:i4grid')
-    call getmem2d(lgrid,jci1,jci2,ici1,ici2,'mpp:lgrid')
+    call getmem3d(global_r8subgrid,1,nnsg,jout1,jout2, &
+            iout1,iout2,'mpp:global_r8subgrid')
+    call getmem3d(global_i4subgrid,1,nnsg,jout1,jout2, &
+            iout1,iout2,'mpp:global_i4subgrid')
+    call getmem3d(global_lsubgrid,1,nnsg,jout1,jout2, &
+            iout1,iout2,'mpp:global_lsubgrid')
+    call getmem2d(global_r8grid,jout1,jout2,iout1,iout2,'mpp:global_r8grid')
+    call getmem2d(global_i4grid,jout1,jout2,iout1,iout2,'mpp:global_i4grid')
+    call getmem2d(global_lgrid,jout1,jout2,iout1,iout2,'mpp:global_lgrid')
   end subroutine clset
 
   subroutine cl_setup(cl,gmask,sgmask,lrev)
@@ -6054,6 +6133,9 @@ module mod_mppparam
       call getmem1d(cl%cartesian_displ_sg,1,nproc,'cl:cartesian_displ_sg')
       call getmem2d(cl%gmask,jci1,jci2,ici1,ici2,'cl:gmask')
       call getmem3d(cl%sgmask,1,nnsg,jci1,jci2,ici1,ici2,'cl:sgmask')
+      call getmem2d(cl%global_gmask,jout1,jout2,iout1,iout2,'cl:global_gmask')
+      call getmem3d(cl%global_sgmask,1,nnsg,jout1,jout2, &
+                                            iout1,iout2,'cl:global_sgmask')
     end if
     cl%gmask = gmask(jci1:jci2,ici1:ici2) > 0.0D0
     cl%sgmask = sgmask(1:nnsg,jci1:jci2,ici1:ici2) > 0.0D0
@@ -6063,69 +6145,12 @@ module mod_mppparam
         cl%sgmask = .not. cl%sgmask
       end if
     end if
+    call grid_collect(cl%gmask,cl%global_gmask,jci1,jci2,ici1,ici2)
+    call subgrid_collect(cl%sgmask,cl%global_sgmask,jci1,jci2,ici1,ici2)
     ncart_tot_g = count(cl%gmask)
     ncart_tot_sg = count(cl%sgmask)
     call clset(ncart_tot_g,ncart_tot_sg,cl)
   end subroutine cl_setup
-
-  subroutine cartesian_to_linear_logical_grid_grid(cl,matrix,vector)
-    implicit none
-    type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:,:) , intent(in) :: matrix
-    logical , pointer , dimension(:) , intent(out) :: vector
-    integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint_g(myid+1)
-    npt  = cl%linear_npoint_g(myid+1)
-    if ( nproc == 1 ) then
-      call mypack(cl,matrix,vector)
-      return
-    end if
-    if ( nval > 0 ) then
-      call mypack(cl,matrix,lvector1)
-    end if
-    call mpi_gatherv(lvector1,nval,mpi_logical,                           &
-                     lvector2,cl%cartesian_npoint_g,cl%cartesian_displ_g, &
-                     mpi_logical,iocpu,cartesian_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    call mpi_scatterv(lvector2,cl%linear_npoint_g,cl%linear_displ_g, &
-                      mpi_logical,vector,npt,mpi_logical,            &
-                      iocpu,cl%linear_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-  end subroutine cartesian_to_linear_logical_grid_grid
-
-  subroutine linear_to_cartesian_logical_grid_grid(cl,vector,matrix)
-    implicit none
-    type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(in) :: vector
-    logical , pointer , dimension(:,:) , intent(inout) :: matrix
-    integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint_g(myid+1)
-    npt  = cl%linear_npoint_g(myid+1)
-    if ( nproc == 1 ) then
-      call myunpack(cl,vector,matrix)
-      return
-    end if
-    call mpi_gatherv(vector,npt,mpi_logical,                        &
-                     lvector2,cl%linear_npoint_g,cl%linear_displ_g, &
-                     mpi_logical,iocpu,cl%linear_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    call mpi_scatterv(lvector2,cl%cartesian_npoint_g,   &
-                      cl%cartesian_displ_g,mpi_logical, &
-                      lvector1,nval,mpi_logical,        &
-                      iocpu,cartesian_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-    if ( nval > 0 ) then
-      call myunpack(cl,lvector1,matrix)
-    end if
-  end subroutine linear_to_cartesian_logical_grid_grid
 
   subroutine cartesian_to_linear_logical_subgrid_subgrid(cl,matrix,vector)
     implicit none
@@ -6186,65 +6211,6 @@ module mod_mppparam
     end if
   end subroutine linear_to_cartesian_logical_subgrid_subgrid
 
-  subroutine cartesian_to_linear_integer_grid_grid(cl,matrix,vector)
-    implicit none
-    type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:,:) , intent(in) :: matrix
-    integer(ik4) , pointer , dimension(:) , intent(out) :: vector
-    integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint_g(myid+1)
-    npt  = cl%linear_npoint_g(myid+1)
-    if ( nproc == 1 ) then
-      call mypack(cl,matrix,vector)
-      return
-    end if
-    if ( nval > 0 ) then
-      call mypack(cl,matrix,i4vector1)
-    end if
-    call mpi_gatherv(i4vector1,nval,mpi_integer4,                          &
-                     i4vector2,cl%cartesian_npoint_g,cl%cartesian_displ_g, &
-                     mpi_integer4,iocpu,cartesian_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    call mpi_scatterv(i4vector2,cl%linear_npoint_g,cl%linear_displ_g, &
-                      mpi_integer4,vector,npt,mpi_integer4,           &
-                      iocpu,cl%linear_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-  end subroutine cartesian_to_linear_integer_grid_grid
-
-  subroutine linear_to_cartesian_integer_grid_grid(cl,vector,matrix)
-    implicit none
-    type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(in) :: vector
-    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: matrix
-    integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint_g(myid+1)
-    npt  = cl%linear_npoint_g(myid+1)
-    if ( nproc == 1 ) then
-      call myunpack(cl,vector,matrix)
-      return
-    end if
-    call mpi_gatherv(vector,npt,mpi_integer4,                        &
-                     i4vector2,cl%linear_npoint_g,cl%linear_displ_g, &
-                     mpi_integer4,iocpu,cl%linear_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    call mpi_scatterv(i4vector2,cl%cartesian_npoint_g,   &
-                      cl%cartesian_displ_g,mpi_integer4, &
-                      i4vector1,nval,mpi_integer4,       &
-                      iocpu,cartesian_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-    if ( nval > 0 ) then
-      call myunpack(cl,i4vector1,matrix)
-    end if
-  end subroutine linear_to_cartesian_integer_grid_grid
-
   subroutine cartesian_to_linear_integer_subgrid_subgrid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
@@ -6304,35 +6270,6 @@ module mod_mppparam
     end if
   end subroutine linear_to_cartesian_integer_subgrid_subgrid
 
-  subroutine cartesian_to_linear_real8_grid_grid(cl,matrix,vector)
-    implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:) , intent(out) :: vector
-    integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint_g(myid+1)
-    npt  = cl%linear_npoint_g(myid+1)
-    if ( nproc == 1 ) then
-      call mypack(cl,matrix,vector)
-      return
-    end if
-    if ( nval > 0 ) then
-      call mypack(cl,matrix,r8vector1)
-    end if
-    call mpi_gatherv(r8vector1,nval,mpi_real8,                             &
-                     r8vector2,cl%cartesian_npoint_g,cl%cartesian_displ_g, &
-                     mpi_real8,iocpu,cartesian_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    call mpi_scatterv(r8vector2,cl%linear_npoint_g,cl%linear_displ_g, &
-                      mpi_real8,vector,npt,mpi_real8,                 &
-                      iocpu,cl%linear_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-  end subroutine cartesian_to_linear_real8_grid_grid
-
   subroutine cartesian_to_linear_real8_subgrid_subgrid_4d(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
@@ -6364,36 +6301,6 @@ module mod_mppparam
       end if
     end do
   end subroutine cartesian_to_linear_real8_subgrid_subgrid_4d
-
-  subroutine linear_to_cartesian_real8_grid_grid(cl,vector,matrix)
-    implicit none
-    type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vector
-    real(rk8) , pointer , dimension(:,:) , intent(inout) :: matrix
-    integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint_g(myid+1)
-    npt  = cl%linear_npoint_g(myid+1)
-    if ( nproc == 1 ) then
-      call myunpack(cl,vector,matrix)
-      return
-    end if
-    call mpi_gatherv(vector,npt,mpi_real8,                           &
-                     r8vector2,cl%linear_npoint_g,cl%linear_displ_g, &
-                     mpi_real8,iocpu,cl%linear_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-    call mpi_scatterv(r8vector2,cl%cartesian_npoint_g, &
-                      cl%cartesian_displ_g,mpi_real8,  &
-                      r8vector1,nval,mpi_real8,        &
-                      iocpu,cartesian_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-    if ( nval > 0 ) then
-      call myunpack(cl,r8vector1,matrix)
-    end if
-  end subroutine linear_to_cartesian_real8_grid_grid
 
   subroutine linear_to_cartesian_real8_subgrid_subgrid_4d(cl,vector,matrix)
     implicit none
@@ -6535,53 +6442,224 @@ module mod_mppparam
     call cartesian_to_linear_real8_subgrid_subgrid(cl,r8subgrid,vector)
   end subroutine cartesian_to_linear_real8_grid_subgrid
 
-  subroutine linear_to_cartesian_logical_grid_subgrid(cl,vector,matrix)
+  subroutine global_to_linear_logical_subgrid_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    logical , pointer , dimension(:,:,:) , intent(in) :: matrix
+    logical , pointer , dimension(:) , intent(out) :: vector
+    integer(ik4) :: npt
+
+    if ( nproc == 1 ) then
+      call mypack_global(cl,matrix,vector)
+      return
+    end if
+    call subgrid_collect(matrix,global_lsubgrid,jci1,jci2,ici1,ici2)
+    call mypack_global(cl,global_lsubgrid,lvector1)
+    npt  = cl%linear_npoint_sg(myid+1)
+    call mpi_scatterv(lvector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                      mpi_logical,vector,npt,mpi_logical,              &
+                      iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+  end subroutine global_to_linear_logical_subgrid_subgrid
+
+  subroutine linear_to_global_logical_subgrid_subgrid(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
     logical , pointer , dimension(:) , intent(in) :: vector
     logical , pointer , dimension(:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , n
-    call linear_to_cartesian_logical_grid_grid(cl,vector,lgrid)
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          if ( cl%sgmask(n,j,i) ) matrix(n,j,i) = lgrid(j,i)
-        end do
-      end do
-    end do
-  end subroutine linear_to_cartesian_logical_grid_subgrid
+    if ( nproc == 1 ) then
+      call myunpack_global(cl,vector,matrix)
+      return
+    end if
+    call mpi_gatherv(vector,cl%linear_npoint_sg(myid+1),mpi_logical,  &
+                     lvector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                     mpi_logical,iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    call myunpack_global(cl,lvector1,global_lsubgrid)
+    call subgrid_distribute(global_lsubgrid,matrix,jci1,jci2,ici1,ici2)
+  end subroutine linear_to_global_logical_subgrid_subgrid
 
-  subroutine linear_to_cartesian_integer_grid_subgrid(cl,vector,matrix)
+  subroutine global_to_linear_integer_subgrid_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: matrix
+    integer(ik4) , pointer , dimension(:) , intent(out) :: vector
+    integer(ik4) :: npt
+    if ( nproc == 1 ) then
+      call mypack_global(cl,matrix,vector)
+      return
+    end if
+    call subgrid_collect(matrix,global_i4subgrid,jci1,jci2,ici1,ici2)
+    call mypack_global(cl,global_i4subgrid,i4vector1)
+    npt  = cl%linear_npoint_sg(myid+1)
+    call mpi_scatterv(i4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                      mpi_integer4,vector,npt,mpi_integer4,             &
+                      iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+  end subroutine global_to_linear_integer_subgrid_subgrid
+
+  subroutine linear_to_global_integer_subgrid_subgrid(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
     integer(ik4) , pointer , dimension(:) , intent(in) :: vector
     integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
-    integer(ik4) :: i , j , n
-    call linear_to_cartesian_integer_grid_grid(cl,vector,i4grid)
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do n = 1 , nnsg
-          if ( cl%sgmask(n,j,i) ) matrix(n,j,i) = i4grid(j,i)
-        end do
-      end do
-    end do
-  end subroutine linear_to_cartesian_integer_grid_subgrid
+    if ( nproc == 1 ) then
+      call myunpack_global(cl,vector,matrix)
+      return
+    end if
+    call mpi_gatherv(vector,cl%linear_npoint_sg(myid+1),mpi_integer4,  &
+                     i4vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                     mpi_integer4,iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    call myunpack_global(cl,i4vector1,global_i4subgrid)
+    call subgrid_distribute(global_i4subgrid,matrix,jci1,jci2,ici1,ici2)
+  end subroutine linear_to_global_integer_subgrid_subgrid
 
-  subroutine linear_to_cartesian_real8_grid_subgrid(cl,vector,matrix)
+  subroutine global_to_linear_real8_subgrid_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(out) :: vector
+    integer(ik4) :: npt
+    if ( nproc == 1 ) then
+      call mypack_global(cl,matrix,vector)
+      return
+    end if
+    call subgrid_collect(matrix,global_r8subgrid,jci1,jci2,ici1,ici2)
+    call mypack_global(cl,global_r8subgrid,r8vector1)
+    npt  = cl%linear_npoint_sg(myid+1)
+    call mpi_scatterv(r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                      mpi_real8,vector,npt,mpi_real8,                   &
+                      iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+    end if
+  end subroutine global_to_linear_real8_subgrid_subgrid
+
+  subroutine linear_to_global_real8_subgrid_subgrid(cl,vector,matrix)
     implicit none
     type(masked_comm) , intent(in) :: cl
     real(rk8) , pointer , dimension(:) , intent(in) :: vector
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    if ( nproc == 1 ) then
+      call myunpack_global(cl,vector,matrix)
+      return
+    end if
+    call mpi_gatherv(vector,cl%linear_npoint_sg(myid+1),mpi_real8,  &
+                     r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                     mpi_real8,iocpu,cl%linear_communicator,mpierr)
+    if ( mpierr /= mpi_success ) then
+      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+    end if
+    call myunpack_global(cl,r8vector1,global_r8subgrid)
+    call subgrid_distribute(global_r8subgrid,matrix,jci1,jci2,ici1,ici2)
+  end subroutine linear_to_global_real8_subgrid_subgrid
+
+  subroutine global_to_linear_real8_subgrid_subgrid_4d(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:,:) , intent(out) :: vector
+    integer(ik4) :: npt , k , nlev
+    nlev = size(matrix,4)
+    if ( nproc == 1 ) then
+      call mypack_global(cl,matrix,vector,nlev)
+      return
+    end if
+    npt  = cl%linear_npoint_sg(myid+1)
+    do k = 1 , nlev
+      r8subgrid = matrix(:,jci1:jci2,ici1:ici2,k)
+      call subgrid_collect(r8subgrid,global_r8subgrid,jci1,jci2,ici1,ici2)
+      call mypack_global(cl,global_r8subgrid,r8vector1)
+      call mpi_scatterv(r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                        mpi_real8,vector(:,k),npt,mpi_real8,                   &
+                        iocpu,cl%linear_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
+      end if
+    end do
+  end subroutine global_to_linear_real8_subgrid_subgrid_4d
+
+  subroutine linear_to_global_real8_subgrid_subgrid_4d(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: vector
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    integer(ik4) :: npt , nlev , k
+    nlev = size(vector,2)
+    if ( nproc == 1 ) then
+      call myunpack(cl,vector,matrix,nlev)
+      return
+    end if
+    npt  = cl%linear_npoint_sg(myid+1)
+    do k = 1 , nlev
+      call mpi_gatherv(vector(:,k),npt,mpi_real8,                        &
+                       r8vector1,cl%linear_npoint_sg,cl%linear_displ_sg, &
+                       mpi_real8,iocpu,cl%linear_communicator,mpierr)
+      if ( mpierr /= mpi_success ) then
+        call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
+      end if
+      call myunpack_global(cl,r8vector1,global_r8subgrid)
+      call subgrid_distribute(global_r8subgrid,r8subgrid,jci1,jci2,ici1,ici2)
+      matrix(:,jci1:jci2,ici1:ici2,k) = r8subgrid
+    end do
+  end subroutine linear_to_global_real8_subgrid_subgrid_4d
+
+  subroutine global_to_linear_logical_grid_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    logical , pointer , dimension(:,:) , intent(in) :: matrix
+    logical , pointer , dimension(:) , intent(out) :: vector
     integer(ik4) :: i , j , n
-    call linear_to_cartesian_real8_grid_grid(cl,vector,r8grid)
     do i = ici1 , ici2
       do j = jci1 , jci2
         do n = 1 , nnsg
-          if ( cl%sgmask(n,j,i) ) matrix(n,j,i) = r8grid(j,i)
+          lsubgrid(n,j,i) = matrix(j,i)
         end do
       end do
     end do
-  end subroutine linear_to_cartesian_real8_grid_subgrid
+    call global_to_linear_logical_subgrid_subgrid(cl,lsubgrid,vector)
+  end subroutine global_to_linear_logical_grid_subgrid
+
+  subroutine global_to_linear_integer_grid_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    integer(ik4) , pointer , dimension(:,:) , intent(in) :: matrix
+    integer(ik4) , pointer , dimension(:) , intent(out) :: vector
+    integer(ik4) :: i , j , n
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          i4subgrid(n,j,i) = matrix(j,i)
+        end do
+      end do
+    end do
+    call global_to_linear_integer_subgrid_subgrid(cl,i4subgrid,vector)
+  end subroutine global_to_linear_integer_grid_subgrid
+
+  subroutine global_to_linear_real8_grid_subgrid(cl,matrix,vector)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: matrix
+    real(rk8) , pointer , dimension(:) , intent(out) :: vector
+    integer(ik4) :: i , j , n
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        do n = 1 , nnsg
+          r8subgrid(n,j,i) = matrix(j,i)
+        end do
+      end do
+    end do
+    call global_to_linear_real8_subgrid_subgrid(cl,r8subgrid,vector)
+  end subroutine global_to_linear_real8_grid_subgrid
 
   subroutine cl_dispose(cl)
     implicit none
@@ -6597,6 +6675,8 @@ module mod_mppparam
       call relmem1d(cl%cartesian_displ_sg)
       call relmem2d(cl%gmask)
       call relmem3d(cl%sgmask)
+      call relmem2d(cl%global_gmask)
+      call relmem3d(cl%global_sgmask)
       call mpi_comm_free(cl%linear_communicator,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_comm_free error.')
@@ -6904,156 +6984,304 @@ module mod_mppparam
     end do
   end subroutine myunpack_real8_subgrid_slice
 
-  subroutine linear_local_to_global_logical(cl,vectorl,vectorg)
+  subroutine mypack_global_logical_grid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(in) :: vectorl
-    logical , pointer , dimension(:) , intent(out) :: vectorg
-    integer(ik4) :: npt
-    npt  = cl%linear_npoint_g(myid+1)
-    if ( nproc == 1 ) then
-      vectorg(1:npt) = vectorl(1:npt)
-      return
-    end if
-    call mpi_gatherv(vectorl,npt,mpi_logical,                      &
-                     vectorg,cl%linear_npoint_g,cl%linear_displ_g, &
-                     mpi_logical,iocpu,cl%linear_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-  end subroutine linear_local_to_global_logical
+    logical , pointer , dimension(:) , intent(out) :: vector
+    logical , pointer , dimension(:,:) , intent(in) :: matrix
+    integer(ik4) :: i , j , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        if ( cl%global_gmask(j,i) ) then
+          vector(iv) = matrix(j,i)
+          iv = iv + 1
+        end if
+      end do
+    end do
+  end subroutine mypack_global_logical_grid
 
-  subroutine linear_local_to_global_integer(cl,vectorl,vectorg)
+  subroutine mypack_global_logical_subgrid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(in) :: vectorl
-    integer(ik4) , pointer , dimension(:) , intent(out) :: vectorg
-    integer(ik4) :: npt
-    npt  = cl%linear_npoint_g(myid+1)
-    if ( nproc == 1 ) then
-      vectorg(1:npt) = vectorl(1:npt)
-      return
-    end if
-    call mpi_gatherv(vectorl,npt,mpi_integer4,                     &
-                     vectorg,cl%linear_npoint_g,cl%linear_displ_g, &
-                     mpi_integer4,iocpu,cl%linear_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-  end subroutine linear_local_to_global_integer
+    logical , pointer , dimension(:) , intent(out) :: vector
+    logical , pointer , dimension(:,:,:) , intent(in) :: matrix
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n = 1 , nnsg
+          if ( cl%global_sgmask(n,j,i) ) then
+            vector(iv) = matrix(n,j,i)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine mypack_global_logical_subgrid
 
-  subroutine linear_local_to_global_real4(cl,vectorl,vectorg)
+  subroutine mypack_global_integer_grid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:) , intent(in) :: vectorl
-    real(rk4) , pointer , dimension(:) , intent(out) :: vectorg
-    integer(ik4) :: npt
-    npt  = cl%linear_npoint_g(myid+1)
-    if ( nproc == 1 ) then
-      vectorg(1:npt) = vectorl(1:npt)
-      return
-    end if
-    call mpi_gatherv(vectorl,npt,mpi_real4,                        &
-                     vectorg,cl%linear_npoint_g,cl%linear_displ_g, &
-                     mpi_real4,iocpu,cl%linear_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-  end subroutine linear_local_to_global_real4
+    integer(ik4) , pointer , dimension(:) , intent(out) :: vector
+    integer(ik4) , pointer , dimension(:,:) , intent(in) :: matrix
+    integer(ik4) :: i , j , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        if ( cl%global_gmask(j,i) ) then
+          vector(iv) = matrix(j,i)
+          iv = iv + 1
+        end if
+      end do
+    end do
+  end subroutine mypack_global_integer_grid
 
-  subroutine linear_local_to_global_real8(cl,vectorl,vectorg)
+  subroutine mypack_global_integer_subgrid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vectorl
-    real(rk8) , pointer , dimension(:) , intent(out) :: vectorg
-    integer(ik4) :: npt
-    npt  = cl%linear_npoint_g(myid+1)
-    if ( nproc == 1 ) then
-      vectorg(1:npt) = vectorl(1:npt)
-      return
-    end if
-    call mpi_gatherv(vectorl,npt,mpi_real8,                        &
-                     vectorg,cl%linear_npoint_g,cl%linear_displ_g, &
-                     mpi_real8,iocpu,cl%linear_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
-    end if
-  end subroutine linear_local_to_global_real8
+    integer(ik4) , pointer , dimension(:) , intent(out) :: vector
+    integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: matrix
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n = 1 , nnsg
+          if ( cl%global_sgmask(n,j,i) ) then
+            vector(iv) = matrix(n,j,i)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine mypack_global_integer_subgrid
 
-  subroutine linear_global_to_local_logical(cl,vectorg,vectorl)
+  subroutine mypack_global_real8_grid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(in) :: vectorg
-    logical , pointer , dimension(:) , intent(out) :: vectorl
-    integer(ik4) :: npt
-    npt  = cl%linear_npoint_g(myid+1)
-    if ( nproc == 1 ) then
-      vectorl(1:npt) = vectorg(1:npt)
-      return
-    end if
-    call mpi_scatterv(vectorg,cl%linear_npoint_g,cl%linear_displ_g, &
-                      mpi_logical,vectorl,npt,mpi_logical,          &
-                      iocpu,cl%linear_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-  end subroutine linear_global_to_local_logical
+    real(ik8) , pointer , dimension(:) , intent(out) :: vector
+    real(ik8) , pointer , dimension(:,:) , intent(in) :: matrix
+    integer(ik4) :: i , j , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        if ( cl%global_gmask(j,i) ) then
+          vector(iv) = matrix(j,i)
+          iv = iv + 1
+        end if
+      end do
+    end do
+  end subroutine mypack_global_real8_grid
 
-  subroutine linear_global_to_local_integer(cl,vectorg,vectorl)
+  subroutine mypack_global_real8_subgrid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(in) :: vectorg
-    integer(ik4) , pointer , dimension(:) , intent(out) :: vectorl
-    integer(ik4) :: npt
-    npt  = cl%linear_npoint_g(myid+1)
-    if ( nproc == 1 ) then
-      vectorl(1:npt) = vectorg(1:npt)
-      return
-    end if
-    call mpi_scatterv(vectorg,cl%linear_npoint_g,cl%linear_displ_g, &
-                      mpi_integer4,vectorl,npt,mpi_integer4,        &
-                      iocpu,cl%linear_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-  end subroutine linear_global_to_local_integer
+    real(ik8) , pointer , dimension(:) , intent(out) :: vector
+    real(ik8) , pointer , dimension(:,:,:) , intent(in) :: matrix
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n = 1 , nnsg
+          if ( cl%global_sgmask(n,j,i) ) then
+            vector(iv) = matrix(n,j,i)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine mypack_global_real8_subgrid
 
-  subroutine linear_global_to_local_real4(cl,vectorg,vectorl)
+  subroutine mypack_global_real8_subgrid_4d(cl,matrix,vector,klev)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(rk4) , pointer , dimension(:) , intent(in) :: vectorg
-    real(rk4) , pointer , dimension(:) , intent(out) :: vectorl
-    integer(ik4) :: npt
-    npt  = cl%linear_npoint_g(myid+1)
-    if ( nproc == 1 ) then
-      vectorl(1:npt) = vectorg(1:npt)
-      return
-    end if
-    call mpi_scatterv(vectorg,cl%linear_npoint_g,cl%linear_displ_g, &
-                      mpi_real4,vectorl,npt,mpi_real4,              &
-                      iocpu,cl%linear_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-  end subroutine linear_global_to_local_real4
+    real(ik8) , pointer , dimension(:,:) , intent(out) :: vector
+    real(ik8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) :: i , j , k , n , iv
+    do k = 1 , klev
+      iv = 1
+      do i = iout1 , iout2
+        do j = jout1 , jout2
+          do n = 1 , nnsg
+            if ( cl%global_sgmask(n,j,i) ) then
+              vector(iv,k) = matrix(n,j,i,k)
+              iv = iv + 1
+            end if
+          end do
+        end do
+      end do
+    end do
+  end subroutine mypack_global_real8_subgrid_4d
 
-  subroutine linear_global_to_local_real8(cl,vectorg,vectorl)
+  subroutine mypack_global_real8_subgrid_slice(cl,matrix,vector,k)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(rk8) , pointer , dimension(:) , intent(in) :: vectorg
-    real(rk8) , pointer , dimension(:) , intent(out) :: vectorl
-    integer(ik4) :: npt
-    npt  = cl%linear_npoint_g(myid+1)
-    if ( nproc == 1 ) then
-      vectorl(1:npt) = vectorg(1:npt)
-      return
-    end if
-    call mpi_scatterv(vectorg,cl%linear_npoint_g,cl%linear_displ_g, &
-                      mpi_real8,vectorl,npt,mpi_real8,              &
-                      iocpu,cl%linear_communicator,mpierr)
-    if ( mpierr /= mpi_success ) then
-      call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
-    end if
-  end subroutine linear_global_to_local_real8
+    real(ik8) , pointer , dimension(:) , intent(out) :: vector
+    real(ik8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
+    integer(ik4) , intent(in) :: k
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n = 1 , nnsg
+          if ( cl%global_sgmask(n,j,i) ) then
+            vector(iv) = matrix(n,j,i,k)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine mypack_global_real8_subgrid_slice
+
+  subroutine myunpack_global_logical_grid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    logical , pointer , dimension(:) , intent(in) :: vector
+    logical , pointer , dimension(:,:) , intent(inout) :: matrix
+    integer(ik4) :: i , j , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        if ( cl%global_gmask(j,i) ) then
+          matrix(j,i) = vector(iv)
+          iv = iv + 1
+        end if
+      end do
+    end do
+  end subroutine myunpack_global_logical_grid
+
+  subroutine myunpack_global_logical_subgrid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    logical , pointer , dimension(:) , intent(in) :: vector
+    logical , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n = 1 , nnsg
+          if ( cl%global_sgmask(n,j,i) ) then
+            matrix(n,j,i) = vector(iv)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine myunpack_global_logical_subgrid
+
+  subroutine myunpack_global_integer_grid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    integer(ik4) , pointer , dimension(:) , intent(in) :: vector
+    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: matrix
+    integer(ik4) :: i , j , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        if ( cl%global_gmask(j,i) ) then
+          matrix(j,i) = vector(iv)
+          iv = iv + 1
+        end if
+      end do
+    end do
+  end subroutine myunpack_global_integer_grid
+
+  subroutine myunpack_global_integer_subgrid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    integer(ik4) , pointer , dimension(:) , intent(in) :: vector
+    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n = 1 , nnsg
+          if ( cl%global_sgmask(n,j,i) ) then
+            matrix(n,j,i) = vector(iv)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine myunpack_global_integer_subgrid
+
+  subroutine myunpack_global_real8_grid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(ik8) , pointer , dimension(:) , intent(in) :: vector
+    real(ik8) , pointer , dimension(:,:) , intent(inout) :: matrix
+    integer(ik4) :: i , j , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        if ( cl%global_gmask(j,i) ) then
+          matrix(j,i) = vector(iv)
+          iv = iv + 1
+        end if
+      end do
+    end do
+  end subroutine myunpack_global_real8_grid
+
+  subroutine myunpack_global_real8_subgrid(cl,vector,matrix)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(ik8) , pointer , dimension(:) , intent(in) :: vector
+    real(ik8) , pointer , dimension(:,:,:) , intent(inout) :: matrix
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n = 1 , nnsg
+          if ( cl%global_sgmask(n,j,i) ) then
+            matrix(n,j,i) = vector(iv)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine myunpack_global_real8_subgrid
+
+  subroutine myunpack_global_real8_subgrid_4d(cl,vector,matrix,klev)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(ik8) , pointer , dimension(:,:) , intent(in) :: vector
+    real(ik8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    integer(ik4) , intent(in) :: klev
+    integer(ik4) :: i , j , k , n , iv
+    do k = 1 , klev
+      iv = 1
+      do i = iout1 , iout2
+        do j = jout1 , jout2
+          do n = 1 , nnsg
+            if ( cl%global_sgmask(n,j,i) ) then
+              matrix(n,j,i,k) = vector(iv,k)
+              iv = iv + 1
+            end if
+          end do
+        end do
+      end do
+    end do
+  end subroutine myunpack_global_real8_subgrid_4d
+
+  subroutine myunpack_global_real8_subgrid_slice(cl,vector,matrix,k)
+    implicit none
+    type(masked_comm) , intent(in) :: cl
+    real(ik8) , pointer , dimension(:) , intent(in) :: vector
+    real(ik8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
+    integer(ik4) , intent(in) :: k
+    integer(ik4) :: i , j , n , iv
+    iv = 1
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n = 1 , nnsg
+          if ( cl%global_sgmask(n,j,i) ) then
+            matrix(n,j,i,k) = vector(iv)
+            iv = iv + 1
+          end if
+        end do
+      end do
+    end do
+  end subroutine myunpack_global_real8_subgrid_slice
 
 end module mod_mppparam
