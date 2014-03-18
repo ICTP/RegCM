@@ -417,6 +417,7 @@ module mod_clm_surfacealbedo
 
     do g = lbg , ubg
       coszen_gcell(g) = orb_cosz(nextsw_cday,lat(g),lon(g),declinp1)
+      coszen_gcell(g) = min(max(0.0D0,coszen_gcell(g)),1.0D0)
     end do
 
     ! Save coszen and declination values to  clm3 data structures for

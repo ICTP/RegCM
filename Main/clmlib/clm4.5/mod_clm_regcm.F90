@@ -7,11 +7,13 @@ module mod_clm_regcm
   use mod_mppparam
   use mod_mpmessage
   use mod_constants
+  use mod_sunorbit
   use mod_regcm_types
   use mod_service
   use mod_clm_initialize
   use mod_clm_driver
-  use mod_clm_varctl , only : use_c13
+  use mod_clm_varctl , only : use_c13 , co2_ppmv
+  use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , tcrit
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
   use mod_clm_decomp , only : procinfo , get_proc_bounds
 
@@ -30,6 +32,8 @@ module mod_clm_regcm
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
     integer(ik4) :: i , j , n
+
+    call getmem2d(rprec,jci1,jci2,ici1,ici2,'initclm45:rprec')
 
     allocate(adomain%xlon(lndcomm%linear_npoint_sg(myid+1)))
     allocate(adomain%xlat(lndcomm%linear_npoint_sg(myid+1)))
@@ -55,7 +59,7 @@ module mod_clm_regcm
                 lms%emisv(n,j,i) = 0.97D0
               else
                 ! We should take this from CLM !
-                lms%emisv(n,j,i) = 0.90D0
+                lms%emisv(n,j,i) = 0.50D0
               end if
             end if
           end do
@@ -72,90 +76,35 @@ module mod_clm_regcm
         end do
       end do
     end if
-    call getmem2d(rprec,jci1,jci2,ici1,ici2,'initclm45:rprec')
-    call getmem2d(rsnow,jci1,jci2,ici1,ici2,'initclm45:rsnow')
+    if ( ktau == 0 ) then
+      lms%swdiralb = 0.16D0
+      lms%swdifalb = 0.16D0
+      lms%lwdiralb = 0.32D0
+      lms%lwdifalb = 0.32D0
+      lms%swalb = (lms%swdiralb + lms%swdifalb)
+      lms%lwalb = (lms%lwdiralb + lms%lwdifalb)
+      do n = 1 , nnsg
+        lms%tgbrd(n,:,:) = lm%tground2(:,:)
+        lms%tgbb(n,:,:) = lm%tground2(:,:)
+      end do
+    end if
   end subroutine initclm45
 
   subroutine runclm45(lm,lms)
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: begg , endg , i , j , n
-    real(rk8) :: hl , satvp
+    real(rk8) :: caldayp1 , declinp1 , eccfp1
     logical :: doalb , rstwr , nlend
+    type(rcm_time_interval) :: tdiff
+    type(rcm_time_and_date) :: nextt
     character(len=64) :: rdate
 
-    rprec = (lm%cprate+lm%ncprate) * rtsrf
-    rsnow = 0.0D0
-
-    where ( lm%tatm < 0.0D0 )
-      rsnow = rprec
-      rprec = 0.0D0
-    end where
-
-    call get_proc_bounds(begg,endg)
-
-    ! Fill clm_a2l
-    call glb_c2l_gs(lndcomm,lm%tatm,clm_a2l%forc_t)
-    call glb_c2l_gs(lndcomm,lm%uatm,clm_a2l%forc_u)
-    call glb_c2l_gs(lndcomm,lm%vatm,clm_a2l%forc_v)
-    call glb_c2l_gs(lndcomm,lm%qvatm,clm_a2l%forc_q)
-    call glb_c2l_gs(lndcomm,lm%hgt,clm_a2l%forc_hgt)
-    call glb_c2l_gs(lndcomm,lm%patm,clm_a2l%forc_pbot)
-    call glb_c2l_gs(lndcomm,lm%thatm,clm_a2l%forc_th)
-    ! forc_vp IS UNUSED
-    call glb_c2l_gs(lndcomm,lm%rhox,clm_a2l%forc_rho)
-    call glb_c2l_gs(lndcomm,lm%sfps,clm_a2l%forc_psrf)
-    call glb_c2l_gs(lndcomm,lm%dwrlwf,clm_a2l%forc_lwrad)
-    call glb_c2l_gs(lndcomm,lm%solar,clm_a2l%forc_solar)
-    call glb_c2l_gs(lndcomm,rprec,clm_a2l%forc_rain)
-    call glb_c2l_gs(lndcomm,rsnow,clm_a2l%forc_snow)
-
-    call glb_c2l_gs(lndcomm,lm%swdir,clm_a2l%notused)
-    clm_a2l%forc_solad(:,1) = clm_a2l%notused
-    call glb_c2l_gs(lndcomm,lm%lwdir,clm_a2l%notused)
-    clm_a2l%forc_solad(:,2) = clm_a2l%notused
-    call glb_c2l_gs(lndcomm,lm%swdif,clm_a2l%notused)
-    clm_a2l%forc_solai(:,1) = clm_a2l%notused
-    call glb_c2l_gs(lndcomm,lm%lwdif,clm_a2l%notused)
-    clm_a2l%forc_solai(:,2) = clm_a2l%notused
-
-    ! Compute or alias
-    clm_a2l%forc_pbot = clm_a2l%forc_pbot * d_1000 ! In Pa
-    clm_a2l%forc_wind = sqrt(clm_a2l%forc_u**2 + clm_a2l%forc_v**2)
-    clm_a2l%forc_q = clm_a2l%forc_q/(1.0D0+clm_a2l%forc_q)
-    clm_a2l%forc_hgt_u = clm_a2l%forc_hgt
-    clm_a2l%forc_hgt_t = clm_a2l%forc_hgt
-    clm_a2l%forc_hgt_q = clm_a2l%forc_hgt
-    clm_a2l%forc_psrf = (clm_a2l%forc_psrf+ptop)*d_1000
-    clm_a2l%rainf = clm_a2l%forc_rain+clm_a2l%forc_snow
-    do i = begg , endg
-      hl = lh0 - lh1*(clm_a2l%forc_t(i)-tzero)
-      satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/clm_a2l%forc_t(i)))
-      clm_a2l%forc_rh(i) = max(clm_a2l%forc_q(i) / &
-              (ep2*satvp/(clm_a2l%forc_pbot(i)*0.01D0-satvp)),d_zero)*100.0D0
-    end do
-
-    if ( ichem /= 1 ) then
-      clm_a2l%forc_pco2 = 0.039*clm_a2l%forc_psrf
-      clm_a2l%forc_ndep = 6.34D-5
-      if ( use_c13 ) then
-        clm_a2l%forc_pc13o2 = 0.0001*clm_a2l%forc_psrf
-      end if
-      clm_a2l%forc_po2 = 0.2095*clm_a2l%forc_psrf
-      clm_a2l%forc_aer = 0.0D0
-    else
-      ! Species partial pressures ! Fabien?
-      ! clm_a2l%forc_pco2   ! CO2 partial pressure (Pa)
-      ! clm_a2l%forc_ndep   ! nitrogen deposition rate (gN/m2/s)
-      ! clm_a2l%forc_pc13o2 ! C13O2 partial pressure (Pa)
-      ! clm_a2l%forc_po2    ! O2 partial pressure (Pa)
-      ! clm_a2l%forc_aer    ! aerosol deposition array
-    end if
+    call atmosphere_to_land(lm)
 
     if ( .true. ) then
       clm_a2l%forc_flood = 0.000D0
-      clm_a2l%volr = 0.0D0
+      clm_a2l%volr = 1.0D-4
     else
       ! Runoff in input ? Chym ?
       ! clm_a2l%forc_flood  ! flood (mm/s)
@@ -182,10 +131,139 @@ module mod_clm_regcm
       end if
     end if
 
-    ! First declin should be for NEXT time step. Stay quiet for now...
-    call clm_drv(doalb, calday, declin, declin, rstwr, nlend, rdate)
+    ! Compute NEXT calday
+    tdiff = dtsrf
+    nextt = idatex+tdiff
+    caldayp1 = yeardayfrac(nextt)
+    call orb_decl(caldayp1,eccen,mvelpp,lambm0,obliqr,declinp1,eccfp1)
 
+    call clm_drv(doalb, caldayp1, declinp1, declin, rstwr, nlend, rdate)
+
+    call land_to_atmosphere(lms)
+
+  end subroutine runclm45
+
+  subroutine albedoclm45(lm,lms)
+    implicit none
+    type(lm_exchange) , intent(inout) :: lm
+    type(lm_state) , intent(inout) :: lms
+    ! Just get albedoes from clm_l2a
+    clm_l2a%notused = clm_l2a%albd(:,1)
+    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdiralb)
+    clm_l2a%notused = clm_l2a%albd(:,2)
+    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdiralb)
+    clm_l2a%notused = clm_l2a%albi(:,1)
+    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdifalb)
+    clm_l2a%notused = clm_l2a%albi(:,2)
+    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdifalb)
+    lms%swdiralb = min(0.9999D0,lms%swdiralb)
+    lms%lwdiralb = min(0.9999D0,lms%lwdiralb)
+    lms%swdifalb = min(0.9999D0,lms%swdifalb)
+    lms%lwdifalb = min(0.9999D0,lms%lwdifalb)
+    ! This should be the vegetation albedo!
+    lms%swalb = lms%swdiralb+lms%swdifalb
+    lms%lwalb = lms%lwdiralb+lms%lwdifalb
+  end subroutine albedoclm45
+
+  subroutine atmosphere_to_land(lm)
+    implicit none
+    type(lm_exchange) , intent(inout) :: lm
+    integer(ik4) :: begg , endg , i
+    real(rk8) :: hl , satvp
+
+    rprec = (lm%cprate+lm%ncprate) * rtsrf
+
+    call get_proc_bounds(begg,endg)
+
+    ! Fill clm_a2l
+    call glb_c2l_gs(lndcomm,lm%tatm,clm_a2l%forc_t)
+    call glb_c2l_gs(lndcomm,lm%uatm,clm_a2l%forc_u)
+    call glb_c2l_gs(lndcomm,lm%vatm,clm_a2l%forc_v)
+    call glb_c2l_gs(lndcomm,lm%qvatm,clm_a2l%forc_q)
+    call glb_c2l_gs(lndcomm,lm%hgt,clm_a2l%forc_hgt)
+    call glb_c2l_gs(lndcomm,lm%patm,clm_a2l%forc_pbot)
+    call glb_c2l_gs(lndcomm,lm%thatm,clm_a2l%forc_th)
+    call glb_c2l_gs(lndcomm,lm%rhox,clm_a2l%forc_rho)
+    call glb_c2l_gs(lndcomm,lm%sfps,clm_a2l%forc_psrf)
+    call glb_c2l_gs(lndcomm,lm%dwrlwf,clm_a2l%forc_lwrad)
+    !call glb_c2l_gs(lndcomm,lm%solar,clm_a2l%forc_solar)
+    call glb_c2l_gs(lndcomm,rprec,clm_a2l%forc_rain)
+
+    call glb_c2l_gs(lndcomm,lm%swdir,clm_a2l%notused)
+    clm_a2l%forc_solad(:,1) = clm_a2l%notused
+    call glb_c2l_gs(lndcomm,lm%lwdir,clm_a2l%notused)
+    clm_a2l%forc_solad(:,2) = clm_a2l%notused
+    call glb_c2l_gs(lndcomm,lm%swdif,clm_a2l%notused)
+    clm_a2l%forc_solai(:,1) = clm_a2l%notused
+    call glb_c2l_gs(lndcomm,lm%lwdif,clm_a2l%notused)
+    clm_a2l%forc_solai(:,2) = clm_a2l%notused
+
+    clm_a2l%forc_solar = clm_a2l%forc_solad(:,1) + clm_a2l%forc_solad(:,2) + &
+                         clm_a2l%forc_solai(:,1) + clm_a2l%forc_solai(:,2)
+
+    ! Compute or alias
+    clm_a2l%forc_pbot = clm_a2l%forc_pbot * d_1000 ! In Pa
+    clm_a2l%forc_wind = sqrt(clm_a2l%forc_u**2 + clm_a2l%forc_v**2)
+    clm_a2l%forc_q = clm_a2l%forc_q/(1.0D0+clm_a2l%forc_q)
+    clm_a2l%forc_hgt_u = clm_a2l%forc_hgt
+    clm_a2l%forc_hgt_t = clm_a2l%forc_hgt
+    clm_a2l%forc_hgt_q = clm_a2l%forc_hgt
+    clm_a2l%forc_psrf = (clm_a2l%forc_psrf+ptop)*d_1000
+    clm_a2l%rainf = clm_a2l%forc_rain+clm_a2l%forc_snow
+    do i = begg , endg
+      hl = lh0 - lh1*(clm_a2l%forc_t(i)-tzero)
+      satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/clm_a2l%forc_t(i)))
+      clm_a2l%forc_rh(i) = max(clm_a2l%forc_q(i) / &
+              (ep2*satvp/(clm_a2l%forc_pbot(i)*0.01D0-satvp)),d_zero)
+      clm_a2l%forc_vp(i) = satvp * clm_a2l%forc_rh(i)
+      clm_a2l%forc_rh(i) = clm_a2l%forc_rh(i) * 100.0D0
+      ! Set upper limit of air temperature for snowfall at 275.65K.
+      ! This cut-off was selected based on Fig. 1, Plate 3-1, of Snow
+      ! Hydrology (1956).
+      if ( clm_a2l%forc_t(i) < tfrz + tcrit ) then
+        clm_a2l%forc_snow(i) = clm_a2l%forc_rain(i)
+        clm_a2l%forc_rain(i) = 0.0D0
+      else
+        clm_a2l%forc_snow(i) = 0.0D0
+      end if
+    end do
+
+    if ( ichem /= 1 ) then
+      clm_a2l%forc_pco2 = co2_ppmv*1.D-6*clm_a2l%forc_psrf
+      clm_a2l%forc_ndep = 6.34D-5 ! ?
+      if ( use_c13 ) then
+        clm_a2l%forc_pc13o2 = c13ratio*clm_a2l%forc_pco2
+      end if
+      clm_a2l%forc_po2 = o2_molar_const*clm_a2l%forc_psrf
+      do i = 1 , 14
+        clm_a2l%forc_aer(:,i) = clm_a2l%forc_ndep ! ????
+      end do
+    else
+      ! Species partial pressures ! Fabien?
+      ! clm_a2l%forc_pco2   ! CO2 partial pressure (Pa)
+      ! clm_a2l%forc_ndep   ! nitrogen deposition rate (gN/m2/s)
+      ! clm_a2l%forc_pc13o2 ! C13O2 partial pressure (Pa)
+      ! clm_a2l%forc_po2    ! O2 partial pressure (Pa)
+      ! clm_a2l%forc_aer    ! aerosol deposition array
+    end if
+
+    if ( .true. ) then
+      clm_a2l%forc_flood = 0.000D0
+      clm_a2l%volr = 1.0D-4
+    else
+      ! Runoff in input ? Chym ?
+      ! clm_a2l%forc_flood  ! flood (mm/s)
+      ! clm_a2l%volr        ! rof volr (m3)
+    end if
+  end subroutine atmosphere_to_land
+
+  subroutine land_to_atmosphere(lms)
+    implicit none
+    type(lm_state) , intent(inout) :: lms
     ! Get back data from clm_l2a
+    !write(0,*) minval(clm_l2a%t_rad) , maxval(clm_l2a%t_rad)
+    !write(0,*) minval(clm_l2a%eflx_sh_tot) , maxval(clm_l2a%eflx_sh_tot)
+    !write(0,*) minval(clm_l2a%qflx_evap_tot) , maxval(clm_l2a%qflx_evap_tot)
     call glb_l2c_ss(lndcomm,clm_l2a%t_rad,lms%tgbb)
 
     call glb_l2c_ss(lndcomm,clm_l2a%t_ref2m,lms%t2m)
@@ -228,24 +306,6 @@ module mod_clm_regcm
     !clm_l2a%flux_ch4
 #endif
 
-  end subroutine runclm45
-
-  subroutine albedoclm45(lm,lms)
-    implicit none
-    type(lm_exchange) , intent(inout) :: lm
-    type(lm_state) , intent(inout) :: lms
-    ! Just get albedoes from clm_l2a
-    clm_l2a%notused = clm_l2a%albd(:,1)
-    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdiralb)
-    clm_l2a%notused = clm_l2a%albd(:,2)
-    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdiralb)
-    clm_l2a%notused = clm_l2a%albi(:,1)
-    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdifalb)
-    clm_l2a%notused = clm_l2a%albi(:,2)
-    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdifalb)
-    ! This should be the vegetation albedo!
-    lms%swalb = lms%swdiralb+lms%swdifalb
-    lms%lwalb = lms%lwdiralb+lms%lwdifalb
-  end subroutine albedoclm45
+  end subroutine land_to_atmosphere
 
 end module mod_clm_regcm

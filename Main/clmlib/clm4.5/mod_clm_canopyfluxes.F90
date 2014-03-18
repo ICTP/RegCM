@@ -1049,6 +1049,7 @@ module mod_clm_canopyfluxes
        ! Evaporation flux from foliage
 
        erre = 0.D0
+
        if (efe(p)*efeb(p) < 0.D0) then
          efeold = efe(p)
          efe(p)  = 0.1D0*efeold

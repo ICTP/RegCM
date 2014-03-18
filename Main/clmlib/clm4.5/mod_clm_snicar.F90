@@ -291,9 +291,9 @@ module mod_clm_snicar
     ! Other local variables
     ! two-stream approximation type
     !  (1=Eddington, 2=Quadrature, 3=Hemispheric Mean) [nbr]
-    integer :: APRX_TYP
+    integer :: aprx_typ
     ! flag to use Delta approximation (Joseph, 1976) (1= use, 0= don't use)
-    integer :: DELTA
+    integer :: delta
     ! weights applied to spectral bands, specific to direct and diffuse cases
     ! (bnd) [frc]
     real(rk8):: flx_wgt(1:numrad_snw)
@@ -392,8 +392,6 @@ module mod_clm_snicar
     real(rk8):: lon_coord
     ! underlying surface type (debugging only)
     integer :: sfctype
-    real(rk8):: pi      ! 3.1415...
-    real(rk8):: arg1    ! temp check to avoid fpes
 
     ! intermediate variables for radiative transfer approximation:
     ! two-stream coefficient from Toon et al. (lyr) [unitless]
@@ -460,11 +458,8 @@ module mod_clm_snicar
     clandunit   => clm3%g%l%c%landunit  
     ltype       => clm3%g%l%itype      
 
-    ! Define constants
-    pi = rpi
-
     ! always use Delta approximation for snow
-    DELTA = 1
+    delta = 1
 
     ! Loop over all non-urban columns
     ! (when called from CSIM, there is only one column)
@@ -618,7 +613,7 @@ module mod_clm_snicar
             ! DEFAULT APPROXIMATIONS:
             !  VIS:       Delta-Eddington
             !  NIR (all): Delta-Hemispheric Mean
-            !  WARNING:   DO NOT USE DELTA-EDDINGTON FOR NIR DIFFUSE
+            !  WARNING:   DO NOT USE delta-EDDINGTON FOR NIR DIFFUSE
             !   - this sometimes results in negative albedo
             !  
             ! ERROR CONDITIONS:
@@ -640,33 +635,33 @@ module mod_clm_snicar
               
             if ( bnd_idx == 1 ) then
               if ( flg_dover == 2 ) then
-                APRX_TYP = 3
+                aprx_typ = 3
               else if (flg_dover == 3) then
-                APRX_TYP = 1
+                aprx_typ = 1
                 if ( coszen(c_idx) > 0.5D0 ) then
                   mu_not = mu_not - 0.02D0
                 else
                   mu_not = mu_not + 0.02D0
                 end if
               else if ( flg_dover == 4 ) then
-                APRX_TYP = 3
+                aprx_typ = 3
               else
-                APRX_TYP = 1
+                aprx_typ = 1
               end if
             else
               if ( flg_dover == 2 ) then
-                APRX_TYP = 1
+                aprx_typ = 1
               else if ( flg_dover == 3 ) then
-                APRX_TYP = 3
+                aprx_typ = 3
                 if ( coszen(c_idx) > 0.5D0 ) then
                   mu_not = mu_not - 0.02D0
                 else
                   mu_not = mu_not + 0.02D0
                 end if
               elseif ( flg_dover == 4 ) then
-                APRX_TYP = 1
+                aprx_typ = 1
               else
-                APRX_TYP = 3
+                aprx_typ = 3
               end if
             end if
 
@@ -675,7 +670,7 @@ module mod_clm_snicar
             ! adjusted in rare cases)
             if ( flg_slr_in == 1 ) then
               ! this corresponds to incident irradiance of 1.0
-              flx_slrd_lcl(bnd_idx) = 1.D0/(mu_not*pi)
+              flx_slrd_lcl(bnd_idx) = 1.D0/(mu_not*rpi)
               flx_slri_lcl(bnd_idx) = 0.D0
             else
               flx_slrd_lcl(bnd_idx) = 0.D0
@@ -787,8 +782,8 @@ module mod_clm_snicar
                    (g_sum+ (asm_prm_snw_lcl(i)*ss_alb_snw_lcl(i)*tau_snw(i)))
             end do
 
-            ! DELTA transformations, if requested
-            if ( DELTA == 1 ) then
+            ! delta transformations, if requested
+            if ( delta == 1 ) then
               do i = snl_top , snl_btm , 1
                 g_star(i) = g(i)/(1.0D0+g(i))
                 omega_star(i) = ((1.0D0-(g(i)**2))*omega(i)) / &
@@ -813,13 +808,13 @@ module mod_clm_snicar
             ! Direct radiation at bottom of snowpack:
             F_direct_btm = albsfc_lcl(bnd_idx)*mu_not * &
                 exp(-(tau_clm(snl_btm)+tau_star(snl_btm))/mu_not) * &
-                pi*flx_slrd_lcl(bnd_idx)
+                rpi*flx_slrd_lcl(bnd_idx)
 
             ! Intermediates
             ! Gamma values are approximation-specific.
 
             ! Eddington
-            if ( APRX_TYP == 1 ) then
+            if ( aprx_typ == 1 ) then
               do i = snl_top , snl_btm , 1
                 gamma1(i) = (7.0D0-(omega_star(i) * &
                         (4.0D0+(3.0D0*g_star(i)))))/4.0D0
@@ -830,7 +825,7 @@ module mod_clm_snicar
                 mu_one    = 0.5D0
               end do
             ! Quadrature
-            else if ( APRX_TYP == 2 ) then
+            else if ( aprx_typ == 2 ) then
               do i = snl_top , snl_btm , 1
                 gamma1(i) = (3.0D0**0.5D0)*(2.0D0-(omega_star(i) * &
                         (1.0D0+g_star(i))))/2.0D0
@@ -841,7 +836,7 @@ module mod_clm_snicar
                 mu_one = 1.0D0/(3.0D0**0.50D0)
               end do
             ! Hemispheric Mean
-            else if ( APRX_TYP == 3 ) then
+            else if ( aprx_typ == 3 ) then
               do i = snl_top , snl_btm , 1
                 gamma1(i) = 2.0D0 - (omega_star(i)*(1.0D0+g_star(i)))
                 gamma2(i) = omega_star(i)*(1.0D0-g_star(i))
@@ -864,27 +859,21 @@ module mod_clm_snicar
             ! Intermediates for tri-diagonal solution
             do i = snl_top , snl_btm , 1
               if ( flg_slr_in == 1 ) then
-                arg1 = (tau_clm(i)+tau_star(i))/mu_not
-                if ( arg1 > 25 ) then
-                  C_pls_btm(i) = 0.D0
-                  C_mns_btm(i) = 0.D0
-                else
-                  C_pls_btm(i) = (omega_star(i)*pi*flx_slrd_lcl(bnd_idx)* &
-                        exp(-(tau_clm(i)+tau_star(i))/mu_not)*     &
-                        (((gamma1(i)-(1.0D0/mu_not))*gamma3(i)) +  &
-                        (gamma4(i)*gamma2(i))))/((lambda(i)**2) -  &
-                        (1.0D0/(mu_not**2)))
-                  C_mns_btm(i) = (omega_star(i)*pi*flx_slrd_lcl(bnd_idx)* &
-                        exp(-(tau_clm(i)+tau_star(i))/mu_not)*    &
-                        (((gamma1(i)+(1.0D0/mu_not))*gamma4(i)) + &
-                        (gamma2(i)*gamma3(i))))/((lambda(i)**2) - &
-                        (1.0D0/(mu_not**2)))
-                end if
-                C_pls_top(i) = (omega_star(i)*pi*flx_slrd_lcl(bnd_idx)* &
+                C_pls_btm(i) = (omega_star(i)*rpi*flx_slrd_lcl(bnd_idx)* &
+                      exp(-(tau_clm(i)+tau_star(i))/mu_not)*     &
+                      (((gamma1(i)-(1.0D0/mu_not))*gamma3(i)) +  &
+                      (gamma4(i)*gamma2(i))))/((lambda(i)**2) -  &
+                      (1.0D0/(mu_not**2)))
+                C_mns_btm(i) = (omega_star(i)*rpi*flx_slrd_lcl(bnd_idx)* &
+                      exp(-(tau_clm(i)+tau_star(i))/mu_not)*    &
+                      (((gamma1(i)+(1.0D0/mu_not))*gamma4(i)) + &
+                      (gamma2(i)*gamma3(i))))/((lambda(i)**2) - &
+                      (1.0D0/(mu_not**2)))
+                C_pls_top(i) = (omega_star(i)*rpi*flx_slrd_lcl(bnd_idx)* &
                       exp(-tau_clm(i)/mu_not)*(((gamma1(i)-(1.0D0/mu_not))* &
                       gamma3(i))+(gamma4(i)*gamma2(i))))/((lambda(i)**2) - &
                       (1.0D0/(mu_not**2)))
-                C_mns_top(i) = (omega_star(i)*pi*flx_slrd_lcl(bnd_idx)* &
+                C_mns_top(i) = (omega_star(i)*rpi*flx_slrd_lcl(bnd_idx)* &
                       exp(-tau_clm(i)/mu_not)*(((gamma1(i)+(1.0D0/mu_not))* &
                       gamma4(i))+(gamma2(i)*gamma3(i))))/((lambda(i)**2) - &
                       (1.0D0/(mu_not**2)))
@@ -912,7 +901,7 @@ module mod_clm_snicar
                 E(i) = F_direct_btm-C_pls_btm(snl_btm) + &
                          (albsfc_lcl(bnd_idx)*C_mns_btm(snl_btm))
               else if( mod(i,2) == -1 ) then ! If odd and i>=3 (n=1 for i=3)
-                n = int(floor(dble(i)/2.0D0))
+                n = floor(i/2.0D0)
                 A(i) = (e2(n)*e3(n))-(e4(n)*e1(n))
                 B(i) = (e1(n)*e1(n+1))-(e3(n)*e3(n+1))
                 D(i) = (e3(n)*e4(n+1))-(e1(n)*e2(n+1))
@@ -945,31 +934,27 @@ module mod_clm_snicar
             ! Downward direct-beam and net flux (F_net) at the base
             ! of each layer:
             do i = snl_top , snl_btm , 1
-              arg1 = (tau_clm(i)+tau_star(i))/mu_not
-              if ( arg1 > 25 ) then
-                F_direct(i) = 0.0D0
-              else
-                F_direct(i) = mu_not*pi*flx_slrd_lcl(bnd_idx) * &
+              F_direct(i) = mu_not*rpi*flx_slrd_lcl(bnd_idx) * &
                         exp(-(tau_clm(i)+tau_star(i))/mu_not)
-              end if
               F_net(i) = (Y(2*i-1)*(e1(i)-e3(i))) + &
                       (Y(2*i)*(e2(i)-e4(i))) + &
                       C_pls_btm(i) - C_mns_btm(i) - F_direct(i)
             end do
 
             ! Upward flux at snowpack top:
-            F_sfc_pls = (Y(2*snl_lcl+1) * &
-                    (exp(-lambda(snl_top)*tau_star(snl_top))+ &
-                    xgamma(snl_top))) + (Y(2*snl_lcl+2)*(exp(-lambda(snl_top)* &
-                    tau_star(snl_top))-xgamma(snl_top))) + C_pls_top(snl_top)
+            F_sfc_pls = &
+               (Y(2*snl_lcl+1)*(exp(-lambda(snl_top)*tau_star(snl_top)) + &
+                  xgamma(snl_top))) + &
+               (Y(2*snl_lcl+2)*(exp(-lambda(snl_top)*tau_star(snl_top)) - &
+                  xgamma(snl_top))) + C_pls_top(snl_top)
 
             ! Net flux at bottom = absorbed radiation by underlying surface:
             F_btm_net = -F_net(snl_btm)
 
             ! Bulk column albedo and surface net flux
-            albedo = F_sfc_pls/((mu_not*pi*flx_slrd_lcl(bnd_idx)) + &
+            albedo = F_sfc_pls/((mu_not*rpi*flx_slrd_lcl(bnd_idx)) + &
                     flx_slri_lcl(bnd_idx))
-            F_sfc_net = F_sfc_pls - ((mu_not*pi*flx_slrd_lcl(bnd_idx)) + &
+            F_sfc_net = F_sfc_pls - ((mu_not*rpi*flx_slrd_lcl(bnd_idx)) + &
                     flx_slri_lcl(bnd_idx))
 
             trip = 0
@@ -1027,7 +1012,7 @@ module mod_clm_snicar
             if ( (albedo < 0.D0) .and. (trip == 0) ) then
               trip = 1
             end if
-                
+
             ! Set conditions for redoing RT calculation 
             if ( (trip == 1) .and. (flg_dover == 1) ) then
               flg_dover = 2
@@ -1068,7 +1053,7 @@ module mod_clm_snicar
           ! Energy conservation check:
           ! Incident direct+diffuse radiation equals
           ! (absorbed+bulk_transmitted+bulk_reflected)
-          energy_sum = (mu_not*pi*flx_slrd_lcl(bnd_idx)) + &
+          energy_sum = (mu_not*rpi*flx_slrd_lcl(bnd_idx)) + &
                   flx_slri_lcl(bnd_idx) - (F_abs_sum + F_btm_net + F_sfc_pls)
           if ( abs(energy_sum) > 0.00001D0 ) then
             write (stderr,"(a,e14.7,a,i6,a,i6)") &

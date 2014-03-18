@@ -10,6 +10,7 @@ module mod_clm_hydrology1
   use mod_realkinds
   use mod_mpmessage
   use mod_dynparam
+  use mod_runparams
   use mod_mppparam
   use mod_stdio
 
@@ -180,7 +181,6 @@ module mod_clm_hydrology1
     integer  :: l                            ! landunit index
     integer  :: g                            ! gridcell index
     integer  :: newnode                      ! flag when new snow node is set, (1=yes, 0=no)
-    real(rk8) :: dtime                        ! land model time step (sec)
     real(rk8) :: h2ocanmx                     ! maximum allowed water on canopy [mm]
     real(rk8) :: fpi                          ! coefficient of interception
     real(rk8) :: xrun                         ! excess water that exceeds the leaf capacity [mm/s]
@@ -289,10 +289,6 @@ module mod_clm_hydrology1
     n_irrig_steps_left => clm3%g%l%c%cps%n_irrig_steps_left
     qflx_irrig         => clm3%g%l%c%cwf%qflx_irrig
 
-    ! Compute time step
-
-    dtime = get_step_size()
-
     ! Start pft loop
 
     do f = 1, num_nolakep
@@ -340,13 +336,14 @@ module mod_clm_hydrology1
                 qflx_prec_intr(p) = (forc_snow(g) + forc_rain(g)) * fpi
                 
                 ! Water storage of intercepted precipitation and dew
-                h2ocan(p) = max(0.D0, h2ocan(p) + dtime*qflx_prec_intr(p))
+                h2ocan(p) = max(0.D0, h2ocan(p) + dtsrf*qflx_prec_intr(p))
+                if ( h2ocan(p) < 1.0D-10 ) h2ocan(p) = 0.0D0
                 
                 ! Initialize rate of canopy runoff and snow falling off canopy
                 qflx_candrip(p) = 0.D0
                 
                 ! Excess water that exceeds the leaf capacity
-                xrun = (h2ocan(p) - h2ocanmx)/dtime
+                xrun = (h2ocan(p) - h2ocanmx)/dtsrf
                 
                 ! Test on maximum dew on leaf
                 ! Note if xrun > 0 then h2ocan must be at least h2ocanmx
@@ -467,7 +464,7 @@ module mod_clm_hydrology1
 
        if (do_capsnow(c)) then
           dz_snowf = 0.D0
-          newsnow(c) = (1.D0 - frac_h2osfc(c)) * qflx_snow_grnd_col(c) * dtime
+          newsnow(c) = (1.D0 - frac_h2osfc(c)) * qflx_snow_grnd_col(c) * dtsrf
           frac_sno(c)=1.D0
           int_snow(c) = 5.D2
        else
@@ -480,13 +477,13 @@ module mod_clm_hydrology1
           end if
 
           ! newsnow is all snow that doesn't fall on h2osfc
-          newsnow(c) = (1.D0 - frac_h2osfc(c)) * qflx_snow_grnd_col(c) * dtime
+          newsnow(c) = (1.D0 - frac_h2osfc(c)) * qflx_snow_grnd_col(c) * dtsrf
 
           ! update int_snow
           int_snow(c) = max(int_snow(c),h2osno(c)) !h2osno could be larger due to frost
 
-          ! snowmelt from previous time step * dtime
-          snowmelt(c) = qflx_snow_melt(c) * dtime
+          ! snowmelt from previous time step * dtsrf
+          snowmelt(c) = qflx_snow_melt(c) * dtsrf
 
           ! set shape factor for accumulation of snow
           accum_factor=0.1
@@ -583,7 +580,7 @@ module mod_clm_hydrology1
           int_snow(c) = int_snow(c) + newsnow(c)
 
           ! update change in snow depth
-          dz_snowf = (snow_depth(c) - temp_snow_depth) / dtime
+          dz_snowf = (snow_depth(c) - temp_snow_depth) / dtsrf
 
         end if !end of do_capsnow construct
 
@@ -650,7 +647,7 @@ module mod_clm_hydrology1
 
        if (snl(c) < 0 .and. newnode == 0) then
           h2osoi_ice(c,snl(c)+1) = h2osoi_ice(c,snl(c)+1)+newsnow(c)
-          dz(c,snl(c)+1) = dz(c,snl(c)+1)+dz_snowf*dtime
+          dz(c,snl(c)+1) = dz(c,snl(c)+1)+dz_snowf*dtsrf
        end if
 
     end do

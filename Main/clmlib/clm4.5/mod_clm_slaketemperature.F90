@@ -497,7 +497,11 @@ module mod_clm_slaketemperature
         ! so no negative sign is needed to make this positive unlike
         ! in Hostetler. --ZS
         num = 40.D0 * n2 * (vkc*z_lake(c,j))**2.D0
-        den = max( (ws(c)**2.D0) * exp(-2.D0*ks(c)*z_lake(c,j)), 1.D-10 )
+        if ( ks(c) * z_lake(c,j) < 15.0D0 ) then
+          den = max( (ws(c)**2.D0) * exp(-2.D0*ks(c)*z_lake(c,j)), 1.D-10 )
+        else
+          den = 1.D-10
+        end if
         ri = ( -1.D0 + sqrt( max(1.D0+num/den, 0.D0) ) ) / 20.D0
 
         if (lakepuddling .and. j == 1) frzn(c) = .false.
@@ -506,8 +510,12 @@ module mod_clm_slaketemperature
               t_lake(c,1) > tfrz .and. snl(c) == 0 .and. &
               (.not. lakepuddling .or. (lake_icefrac(c,j) == 0.D0 .and. &
               .not. frzn(c))) ) then
-          ke = vkc*ws(c)*z_lake(c,j)/p0 * &
-                   exp(-ks(c)*z_lake(c,j)) / (1.D0+37.D0*ri*ri)
+          if ( ks(c) * z_lake(c,j) < 30.0D0 ) then
+            ke = vkc*ws(c)*z_lake(c,j)/p0 * &
+                     exp(-ks(c)*z_lake(c,j)) / (1.D0+37.D0*ri*ri)
+          else
+            ke = 0.0D0
+          end if
           kme(c,j) = km + ke
 
           if (.not. lake_no_ed) then
