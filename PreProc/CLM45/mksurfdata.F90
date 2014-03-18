@@ -107,7 +107,7 @@ program mksurfdata
     write(stderr,*) 'Usage : '
     write(stderr,*) '          ', trim(prgname), ' regcm.in'
     write(stderr,*) ' '
-    call die('mksurfdata','Check argument and namelist syntax',1)
+    call die(__FILE__,'Check argument and namelist syntax',__LINE__)
   end if
 
   call memory_init
@@ -497,7 +497,7 @@ program mksurfdata
                        var5d(j,i,3,1,1) + var5d(j,i,4,1,1)
         if ( pctspec(j,i) < 0.0 ) then
           write(stderr,*) 'Negative pctspec ',pctspec(j,i),' at j,i ', j , i
-          call die('mksurfdata','PCTSPEC error')
+          call die(__FILE__,'PCTSPEC error',__LINE__)
         end if
         if ( pctspec(j,i) > 100.0 ) then
           if ( var5d(j,i,3,1,1) > 90.0 ) then
@@ -513,7 +513,7 @@ program mksurfdata
                            var5d(j,i,3,1,1) + var5d(j,i,4,1,1)
             if ( pctspec(j,i) > 100.0 ) then
               write(stderr,*) 'Cannot normalize pctspec at j,i ', j , i
-              call die('mksurfdata','PCTSPEC normalization error')
+              call die(__FILE__,'PCTSPEC normalization error',__LINE__)
             else
               write(stdout,*) 'PCTSPEC now ',pctspec(j,i),' at j,i ', j , i
               write(stdout,*) 'GLACIER = ', var5d(j,i,1,1,1)
@@ -572,9 +572,25 @@ program mksurfdata
             end do
           end if
           if ( spft < 0.00001 ) then
-            var5d(j,i,1,1,1) = 100.0-pctspec(j,i)
-            var5d(j,i,2:npft,1,1) = 0.0
-            cycle jloop
+            ! Substitute with something around it
+            call bestaround(var5d(:,:,:,1,1),i,j)
+            spft = 0.0
+            if ( pctspec(j,i) > 0.00001 ) then
+              do np = 1 , npft
+                if ( var5d(j,i,np,1,1) > 0.0 ) then
+                  spft = spft + var5d(j,i,np,1,1) * 100.0/(100.0-pctspec(j,i))
+                end if
+              end do
+            else 
+              do np = 1 , npft
+                if ( var5d(j,i,np,1,1) > 0.0 ) then
+                  spft = spft + var5d(j,i,np,1,1)
+                end if
+              end do
+            end if
+            if ( spft < 0.00001 ) then
+              call die(__FILE__,'No points around !',__LINE__)
+            end if
           end if
           diff = spft - 100.0
           if ( abs(diff) > 1.0E-5 ) then
@@ -808,6 +824,51 @@ program mksurfdata
   write(stdout,*) 'Successfully completed CLM preprocessing.'
 
   contains
+
+  subroutine bestaround(pft,i,j)
+    implicit none
+    real(rk4) , dimension(:,:,:) , intent(inout) :: pft
+    integer , parameter :: maxil = 3
+    integer(ik4) , intent(in) :: i , j
+    real(rk4) , dimension (npft,(2*maxil+1)**2) :: vals
+    integer(ik4) :: ii , jj , js , is , ip , n , il
+    logical :: lf
+    il = 1
+    do
+      ip = 1
+      vals(:,:) = 0.0
+      do ii = i - il , i + il
+        do jj = j - il , j + il
+          is = ii
+          js = jj
+          if ( js < 1 ) js = 1-js
+          if ( js > jxsg ) js = 2*jxsg - js
+          if ( is < 1 ) is = 1-is
+          if ( is > iysg ) is = 2*iysg - is
+          lf = .false.
+          do n = 1 , npft
+            if ( pft(js,is,n) > 0.00001 ) then
+              vals(n,ip) = vals(n,ip) + pft(js,is,n)
+              lf = .true.
+            end if
+          end do
+          if (lf) ip = ip + 1
+        end do
+      end do
+      if ( ip > 1 ) then
+        do n = 1 , npft
+          pft(j,i,n) = sum(vals(n,1:ip-1))/real(ip-1)
+        end do
+        exit
+      else
+        il = il + 1
+        if ( il == maxil ) then
+          call die(__FILE__,'Not finding anything around !',__LINE__)
+          exit
+        end if
+      end if
+    end do
+  end subroutine bestaround
 
   recursive subroutine sortpatch(vals,svals,ird,lsub)
     implicit none
