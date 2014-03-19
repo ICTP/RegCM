@@ -12,7 +12,7 @@ module mod_clm_histflds
   use mod_clm_type
   use mod_clm_varcon , only : spval
   use mod_clm_varcon , only : dzsoi_decomp
-  use mod_clm_varpar , only : maxpatch_glcmec , ndecomp_cascade_transitions
+  use mod_clm_varpar , only : ndecomp_cascade_transitions
   use mod_clm_varpar , only : ndecomp_pools , nlevdecomp , nlevdecomp_full
   use mod_clm_atmlnd , only : clm_a2l
   use mod_clm_varctl , only : use_c13 , use_c14

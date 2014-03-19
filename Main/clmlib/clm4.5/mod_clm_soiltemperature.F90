@@ -1464,8 +1464,6 @@ contains
     real(rk8), pointer :: eflx_snomelt_r(:)!rural snow melt heat flux (W/m**2)
     real(rk8), pointer :: qflx_snofrz_lyr(:,:)  !snow freezing rate (positive definite) (col,lyr) [kg m-2 s-1]
     real(rk8), pointer :: qflx_snofrz_col(:)  !column-integrated snow freezing rate (positive definite) [kg m-2 s-1]
-    real(rk8), pointer :: qflx_glcice(:)   !flux of new glacier ice (mm H2O/s) [+ = ice grows]
-    real(rk8), pointer :: qflx_glcice_melt(:)  !ice melt (positive definite) (mm H2O/s)
 !
 ! local pointers to original implicit in arrays
 !
@@ -1533,8 +1531,6 @@ contains
     dz           => clm3%g%l%c%cps%dz
     qflx_snofrz_lyr => clm3%g%l%c%cwf%qflx_snofrz_lyr
     qflx_snofrz_col => clm3%g%l%c%cwf%qflx_snofrz_col
-    qflx_glcice  => clm3%g%l%c%cwf%qflx_glcice
-    qflx_glcice_melt  => clm3%g%l%c%cwf%qflx_glcice_melt
 
     ! Get step size
 

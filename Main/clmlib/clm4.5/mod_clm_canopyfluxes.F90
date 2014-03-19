@@ -372,6 +372,7 @@ module mod_clm_canopyfluxes
    real(rk8) :: fsno_dl               ! effective snow cover over plant litter
    real(rk8) :: dayl                  ! daylength (s)
    real(rk8) :: temp                  ! temporary, for daylength calculation
+   real(rk8) :: fpeav                 ! temporary, for avoid fpe
    real(rk8) :: dayl_factor(lbp:ubp)  ! scalar (0-1) for daylength effect on Vcmax
    real(rk8) :: rootfr_unf(lbp:ubp,1:nlevgrnd) ! Rootfraction defined for unfrozen layers only.
                                               ! If no unfrozen layers, put all in the top layer.
@@ -960,7 +961,7 @@ module mod_clm_canopyfluxes
        ! Moved the original subroutine in-line...
 
        wta    = 1.D0/rah(p,1)             ! air
-       wtl    = (elai(p)+esai(p))/rb(p)    ! leaf
+       wtl    = (elai(p)+esai(p))/rb(p)   ! leaf
        wtg(p) = 1.D0/rah(p,2)             ! ground
        wtshi  = 1.D0/(wta+wtl+wtg(p))
 
@@ -973,11 +974,11 @@ module mod_clm_canopyfluxes
 
        ! Fraction of potential evaporation from leaf
 
-       if (fdry(p) .gt. 0.D0) then
+       if (fdry(p) .gt. 0.0D0) then
          rppdry  = fdry(p)*rb(p)*(laisun(p)/(rb(p)+rssun(p)) + &
                                   laisha(p)/(rb(p)+rssha(p)))/elai(p)
        else
-         rppdry = 0.D0
+         rppdry = 0.0D0
        end if
 #if (defined LCH4)
        ! Calculate canopy conductance for methane / oxygen
@@ -1010,8 +1011,8 @@ module mod_clm_canopyfluxes
        ! Air has same conductance for both sensible and latent heat.
        ! Moved the original subroutine in-line...
 
-       wtaq    = frac_veg_nosno(p)/raw(p,1)                        ! air
-       wtlq    = frac_veg_nosno(p)*(elai(p)+esai(p))/rb(p) * rpp   ! leaf
+       wtaq = frac_veg_nosno(p)/raw(p,1)                        ! air
+       wtlq = frac_veg_nosno(p)*(elai(p)+esai(p))/rb(p) * rpp   ! leaf
 
        !Litter layer resistance. Added by K.Sakaguchi
        ! critical depth for 100% litter burial by snow (=litter thickness)
@@ -1050,6 +1051,8 @@ module mod_clm_canopyfluxes
 
        erre = 0.D0
 
+       if ( abs(efe(p))  < 1.D-20 ) efe(p)  = 0.0D0
+       if ( abs(efeb(p)) < 1.D-20 ) efeb(p) = 0.0D0
        if (efe(p)*efeb(p) < 0.D0) then
          efeold = efe(p)
          efe(p)  = 0.1D0*efeold
@@ -1097,9 +1100,13 @@ module mod_clm_canopyfluxes
        else
          qflx_tran_veg(p) = 0.D0
        end if
-       ecidif = max(0.D0, qflx_evap_veg(p)-qflx_tran_veg(p)-h2ocan(p)/dtsrf)
-       qflx_evap_veg(p) = &
-            min(qflx_evap_veg(p),qflx_tran_veg(p)+h2ocan(p)/dtsrf)
+       if ( h2ocan(p) > 1.0D-20 ) then
+         fpeav = h2ocan(p)/dtsrf
+       else
+         fpeav = 0.0D0
+       end if
+       ecidif = max(0.D0, qflx_evap_veg(p)-qflx_tran_veg(p)-fpeav)
+       qflx_evap_veg(p) = min(qflx_evap_veg(p),qflx_tran_veg(p)+fpeav)
 
        ! The energy loss due to above two limits is added to
        ! the sensible heat flux.

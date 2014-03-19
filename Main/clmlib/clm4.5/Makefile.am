@@ -174,7 +174,7 @@ mod_clm_initsoilparvic.o : mod_clm_initsoilparvic.F90 mod_clm_type.o mod_clm_var
 mod_clm_initsurfalb.o : mod_clm_initsurfalb.F90 mod_clm_cnecosystemdyn.o mod_clm_cnvegstructupdate.o mod_clm_decomp.o mod_clm_filter.o mod_clm_fracwet.o mod_clm_staticecosysdyn.o mod_clm_surfacealbedo.o mod_clm_type.o mod_clm_urban.o mod_clm_varcon.o mod_clm_varpar.o mod_constants.o mod_intkinds.o mod_realkinds.o
 mod_clm_megan.o : mod_clm_megan.F90 mod_dynparam.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
 mod_clm_meganfactors.o : mod_clm_meganfactors.F90 mod_clm_nchelper.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
-mod_clm_mkarbinit.o : mod_clm_mkarbinit.F90 mod_clm_decomp.o mod_clm_snicar.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mppparam.o mod_realkinds.o mod_stdio.o
+mod_clm_mkarbinit.o : mod_clm_mkarbinit.F90 mod_clm_decomp.o mod_clm_snicar.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mppparam.o mod_realkinds.o mod_stdio.o mod_clm_atmlnd.o
 mod_clm_nchelper.o : mod_clm_nchelper.F90 mod_clm_decomp.o mod_clm_varcon.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_message.o mod_mppparam.o mod_realkinds.o mod_regcm_types.o mod_stdio.o
 	$(MPIFC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 mod_clm_organicfile.o : mod_clm_organicfile.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_nchelper.o mod_clm_type.o mod_clm_varctl.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_stdio.o

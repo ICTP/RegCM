@@ -31,7 +31,7 @@ module mod_clm_regcm
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
-    integer(ik4) :: i , j , n
+    integer(ik4) :: i , j , n , begg , endg
 
     call getmem2d(rprec,jci1,jci2,ici1,ici2,'initclm45:rprec')
 
@@ -43,8 +43,18 @@ module mod_clm_regcm
     call glb_c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
     call glb_c2l_ss(lndcomm,lm%ht1,adomain%topo)
 
+    adomain%topo = adomain%topo*regrav
+
     call initialize1( )
+
+    call get_proc_bounds(begg,endg)
+    allocate(adomain%snow(begg:endg))
+    allocate(adomain%tgrd(begg:endg))
+    call glb_c2l_gs(lndcomm,lm%snowam,adomain%snow)
+    call glb_c2l_gs(lndcomm,lm%tground2,adomain%tgrd)
+
     call initialize2( )
+
     ! Compute simple LAND emissivity for RegCM radiation
     if ( iemiss == 1 ) then
       do n = 1 , nnsg
@@ -227,6 +237,7 @@ module mod_clm_regcm
         clm_a2l%forc_snow(i) = 0.0D0
       end if
     end do
+    clm_a2l%forc_pbot = clm_a2l%forc_psrf
 
     if ( ichem /= 1 ) then
       clm_a2l%forc_pco2 = co2_ppmv*1.D-6*clm_a2l%forc_psrf
@@ -261,9 +272,6 @@ module mod_clm_regcm
     implicit none
     type(lm_state) , intent(inout) :: lms
     ! Get back data from clm_l2a
-    !write(0,*) minval(clm_l2a%t_rad) , maxval(clm_l2a%t_rad)
-    !write(0,*) minval(clm_l2a%eflx_sh_tot) , maxval(clm_l2a%eflx_sh_tot)
-    !write(0,*) minval(clm_l2a%qflx_evap_tot) , maxval(clm_l2a%qflx_evap_tot)
     call glb_l2c_ss(lndcomm,clm_l2a%t_rad,lms%tgbb)
 
     call glb_l2c_ss(lndcomm,clm_l2a%t_ref2m,lms%t2m)

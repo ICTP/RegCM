@@ -20,7 +20,7 @@ module mod_clm_histfile
   use mod_clm_varcon , only : zsoi , zlak
   use mod_clm_varcon , only : secspday
   use mod_clm_varpar , only : nlevgrnd , nlevlak , nlevurb , numrad , &
-         maxpatch_glcmec , nlevdecomp_full
+         nlevdecomp_full
   use mod_clm_varctl , only : caseid , ctitle , fsurdat , finidat , fpftcon , &
          version , hostname , username , conventions , source , inst_suffix , &
          nsrest , nsrStartup
@@ -193,7 +193,7 @@ module mod_clm_histfile
     ! hbuf first dimension type from clmtype (nameg, etc)
     character(len=8) :: type1d_out
     ! hbuf second dimension type ["levgrnd","levlak", 
-    !                             "numrad","glc_nec","subname(n)"]
+    !                             "numrad","subname(n)"]
     character(len=8) :: type2d
     ! on-node 1d clm pointer start index
     integer(ik4) :: beg1d
@@ -1674,9 +1674,6 @@ module mod_clm_histfile
     end if
     call clm_adddim(lnfid, 'levlak', nlevlak)
     call clm_adddim(lnfid, 'numrad', numrad)
-    if ( maxpatch_glcmec > 0 ) then
-      call clm_adddim(lnfid, 'glc_nec', maxpatch_glcmec)
-    end if
 
     do n = 1 , num_subs
       call clm_adddim(lnfid, subs_name(n), subs_dim(n))
@@ -3255,7 +3252,7 @@ module mod_clm_histfile
                         ptr_gcell, ptr_lunit, ptr_col, ptr_pft, ptr_lnd, &
                         ptr_atm, p2c_scale_type, c2l_scale_type, &
                         l2g_scale_type, set_lake, set_nolake, set_urb, &
-                        set_nourb, set_noglcmec, set_spec, default)
+                        set_nourb, set_spec, default)
     implicit none
     character(len=*) , intent(in) :: fname       ! field name
     character(len=*) , intent(in) :: units       ! units of field
@@ -3274,7 +3271,6 @@ module mod_clm_histfile
     real(rk8) , optional , intent(in) :: set_urb     ! value to set urban to
     real(rk8) , optional , intent(in) :: set_nourb   ! value to set non-urban to
     ! value to set non-glacier_mec to
-    real(rk8) , optional , intent(in) :: set_noglcmec
     real(rk8) , optional , intent(in) :: set_spec     ! value to set special to
     ! scale type for subgrid averaging of pfts to column
     character(len=*) , optional , intent(in) :: p2c_scale_type
@@ -3379,12 +3375,6 @@ module mod_clm_histfile
           if ( clm3%g%l%ifspecial(l) ) ptr_col(c) = set_spec
         end do
       end if
-      if ( present(set_noglcmec) ) then
-        do c = begc , endc
-          l = clm3%g%l%c%landunit(c)
-          if ( .not. (clm3%g%l%glcmecpoi(l)) ) ptr_col(c) = set_noglcmec
-        end do
-      end if
     else if ( present(ptr_pft) ) then
       l_type1d = namep(1:8)
       l_type1d_out = namep(1:8)
@@ -3417,12 +3407,6 @@ module mod_clm_histfile
         do p = begp , endp
           l = clm3%g%l%c%p%landunit(p)
           if ( clm3%g%l%ifspecial(l) ) ptr_pft(p) = set_spec
-        end do
-      end if
-      if ( present(set_noglcmec) ) then
-        do p = begp , endp
-          l = clm3%g%l%c%p%landunit(p)
-          if ( .not. (clm3%g%l%glcmecpoi(l)) ) ptr_pft(p) = set_noglcmec
         end do
       end if
     else
@@ -3529,18 +3513,10 @@ module mod_clm_histfile
         num2d = numrad
       case ('levdcmp')
         num2d = nlevdecomp_full
-      case ('glc_nec')
-        if (maxpatch_glcmec > 0) then
-          num2d = maxpatch_glcmec
-        else
-          write(stderr,*) trim(subname),' ERROR: 2d type =', trim(type2d), &
-               ' only valid for maxpatch_glcmec > 0'
-          call fatal(__FILE__,__LINE__,'clm now stopping.')
-        end if
       case default
         write(stderr,*) trim(subname),' ERROR: unsupported 2d type ',type2d, &
           ' currently supported types for multi level fields are ', &
-          '[levgrnd,levlak,numrad,levdcmp,glc_nec]'
+          '[levgrnd,levlak,numrad,levdcmp]'
         call fatal(__FILE__,__LINE__,'clm now stopping.')
     end select
 

@@ -29,9 +29,7 @@ module mod_clm_subgrid
                              nurban_md, wturban_md,       &
                              nlake, wtlake,               &
                              nwetland, wtwetland,         &
-                             nglacier, wtglacier,         &
-                             nglacier_mec, wtglacier_mec, &
-                             glcmask)
+                             nglacier, wtglacier)
     implicit none
     ! wtxy cell index
     integer(ik4) , intent(in)  :: nw
@@ -75,15 +73,6 @@ module mod_clm_subgrid
     ! number of glacier pfts (columns) in glacier landunit
     integer(ik4) , optional , intent(out) :: nglacier
     real(rk8) , optional , intent(out) :: wtglacier
-    ! weight (relative to gridcell) of glacier landunitof glacier pfts
-    ! (columns) in glacier landunit
-    integer(ik4) , optional , intent(out) :: nglacier_mec
-    ! number of glacier_mec pfts (columns) in glacier_mec landunit
-    ! weight (relative to gridcell) of glacier_mec landunitof glacier pfts
-    ! (columns) in glacier_mec landunit
-    real(rk8) , optional , intent(out) :: wtglacier_mec
-    ! = 1 if glc requires surface mass balance in this gridcell
-    integer(ik4) , optional , intent(in)  :: glcmask
     integer(ik4) :: m                ! loop index
     integer(ik4) :: n                ! elevation class index
     integer(ik4) :: ipfts            ! number of pfts in gridcell

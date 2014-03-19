@@ -2384,10 +2384,6 @@ module mod_clm_type
     real(rk8) , pointer , dimension(:) :: forc_pbot
     ! surface air density, downscaled to column (kg/m^3)
     real(rk8) , pointer , dimension(:) :: forc_rho
-    ! ice fractional area
-    real(rk8) , pointer , dimension(:) :: glc_frac
-    ! surface elevation (m)
-    real(rk8) , pointer , dimension(:) :: glc_topo
   end type column_pstate_type
 
   !----------------------------------------------------
@@ -2927,16 +2923,6 @@ module mod_clm_type
     real(rk8) , pointer , dimension(:) :: qflx_snofrz_col
     !irrigation flux (mm H2O/s)
     real(rk8) , pointer , dimension(:) :: qflx_irrig
-    ! net flux of new glacial ice (growth - melt) (mm H2O/s), passed to GLC
-    real(rk8) , pointer , dimension(:) :: qflx_glcice
-    ! ice growth (positive definite) (mm H2O/s)
-    real(rk8) , pointer , dimension(:) :: qflx_glcice_frz
-    ! ice melt (positive definite) (mm H2O/s)
-    real(rk8) , pointer , dimension(:) :: qflx_glcice_melt
-    ! ice runoff passed from GLC to CLM (mm H2O /s)
-    real(rk8) , pointer , dimension(:) :: glc_rofi
-    ! liquid runoff passed from GLC to CLM (mm H2O /s)
-    real(rk8) , pointer , dimension(:) :: glc_rofl
   end type column_wflux_type
 
   !----------------------------------------------------
@@ -3862,8 +3848,6 @@ module mod_clm_type
     logical , pointer , dimension(:) :: lakpoi
     !true=>urban point
     logical , pointer , dimension(:) :: urbpoi
-    !true=>glacier_mec point
-    logical , pointer , dimension(:) :: glcmecpoi
     !urban density type
     integer(ik4) , pointer , dimension(:) :: udenstype
     !true=>do computations on this landunit (see reweightMod for details)

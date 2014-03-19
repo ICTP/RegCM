@@ -224,10 +224,6 @@ module mod_clm_hydrology2
     real(rk8), pointer :: mss_cnc_dst4(:,:)
     ! true => do snow capping
     logical , pointer :: do_capsnow(:)
-    ! flux of new glacier ice (mm H2O /s)
-    real(rk8), pointer :: qflx_glcice(:)
-    ! ice growth (positive definite) (mm H2O/s)
-    real(rk8), pointer :: qflx_glcice_frz(:)
 
     integer(ik4)  :: g,l,c,j,fc    ! indices
     ! partial volume of liquid water in layer
@@ -360,9 +356,7 @@ module mod_clm_hydrology2
     mss_cnc_dst4      => clm3%g%l%c%cps%mss_cnc_dst4
     do_capsnow        => clm3%g%l%c%cps%do_capsnow
     qflx_snwcp_ice    => clm3%g%l%c%cwf%pwf_a%qflx_snwcp_ice
-    qflx_glcice       => clm3%g%l%c%cwf%qflx_glcice
     smpmin            => clm3%g%l%c%cps%smpmin
-    qflx_glcice_frz   => clm3%g%l%c%cwf%qflx_glcice_frz
 
     ! Determine initial snow/no-snow filters (will be modified possibly by
     ! routines CombineSnowLayers and DivideSnowLayers below
@@ -566,13 +560,6 @@ module mod_clm_hydrology2
         qflx_qrgwl(c) = forc_rain(g) + forc_snow(g) + &
                 qflx_floodg(g) - qflx_evap_tot(c) - qflx_snwcp_ice(c) - &
                 (endwb(c)-begwb(c))/dtsrf
-        ! (Negative qflx_glcice => positive contribution to runoff)
-        ! Note: The meltwater contribution is computed in PhaseChanges
-        ! (part of Biogeophysics2).
-        ! This code will not work if Hydrology2 is called before
-        ! Biogeophysics2, or if qflx_snwcp_ice has alread been included
-        ! in qflx_glcice.
-        ! (The snwcp flux is added to qflx_glcice later in this subroutine.)
         fcov(c)       = spval
         fsat(c)       = spval
         qcharge(c)    = spval

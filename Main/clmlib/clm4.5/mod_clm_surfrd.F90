@@ -21,7 +21,6 @@ module mod_clm_surfrd
   use mod_clm_varpar , only : nlevsoifl , numpft , maxpatch_pft , numcft , &
          maxpatch , npatch_urban_tbd , npatch_urban_hd , npatch_urban_md , &
          numurbl , npatch_lake , npatch_wet , npatch_glacier , maxpatch_urb
-  use mod_clm_varctl , only : glc_topomax
   use mod_clm_varsur , only : wtxy , vegxy , pctspec
   use mod_clm_decomp , only : get_proc_bounds , procinfo , numg
   use mod_clm_decomp , only : gcomm_gridcell
@@ -241,7 +240,7 @@ module mod_clm_surfrd
   subroutine surfrd_wtxy_special(ncid,ldomain)
     use mod_clm_pftvarcon , only : noveg
     use mod_clm_urbaninput , only : urbinp
-    use mod_clm_varpar , only : maxpatch_glcmec , nlevurb
+    use mod_clm_varpar , only : nlevurb
     use mod_clm_varcon , only : udens_base , udens_tbd , udens_hd , udens_md 
     use mod_clm_domain , only : domain_type
     implicit none
@@ -267,14 +266,8 @@ module mod_clm_surfrd
     real(rk8) , pointer , dimension(:) :: pctwet
     ! percent of grid cell is urbanized
     real(rk8) , pointer , dimension(:,:) :: pcturb
-    ! percent of grid cell is glacier_mec (in each elev class)
-    real(rk8) , pointer , dimension(:,:) :: pctglc_mec
-    ! percent of grid cell is glacier (sum over classes)
-    real(rk8) , pointer , dimension(:) :: pctglc_mec_tot
     ! percent of grid cell is urban (sum over density classes)
     real(rk8) , pointer , dimension(:) :: pcturb_tot
-    ! surface elevation in each elev class
-    real(rk8) , pointer , dimension(:,:) :: topoglc_mec
     character(len=32) :: subname = 'surfrd_wtxy_special'  ! subroutine name
 
     call get_proc_bounds(begg,endg)

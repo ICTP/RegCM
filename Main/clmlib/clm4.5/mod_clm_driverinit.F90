@@ -49,12 +49,8 @@ module mod_clm_driverinit
     ! fraction of ice relative to the tot water
     real(rk8) , pointer :: frac_iceold(:,:)
     integer(ik4) :: g , l , c , p , f , j  ! indices
-    ! flux of new glacier ice (mm H2O/s) [+ = ice grows]
-    real(rk8) , pointer :: qflx_glcice(:)
     ! heat flux from beneath soil/ice column (W/m**2)
     real(rk8) , pointer :: eflx_bot(:)
-    ! sfc elevation for glacier_mec column (m)
-    real(rk8) , pointer :: glc_topo(:)
     ! atmospheric temperature (Kelvin)
     real(rk8) , pointer :: forc_t(:)
     ! atmospheric potential temperature (Kelvin)
@@ -83,9 +79,7 @@ module mod_clm_driverinit
     h2osoi_liq         => clm3%g%l%c%cws%h2osoi_liq
     frac_veg_nosno_alb => clm3%g%l%c%p%pps%frac_veg_nosno_alb
     frac_veg_nosno     => clm3%g%l%c%p%pps%frac_veg_nosno
-    qflx_glcice        => clm3%g%l%c%cwf%qflx_glcice
     eflx_bot           => clm3%g%l%c%cef%eflx_bot
-    glc_topo           => clm3%g%l%c%cps%glc_topo
     forc_t             => clm3%g%l%c%ces%forc_t
     forc_th            => clm3%g%l%c%ces%forc_th
     forc_q             => clm3%g%l%c%cws%forc_q

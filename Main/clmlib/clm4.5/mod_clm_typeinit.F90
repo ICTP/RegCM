@@ -362,7 +362,6 @@ module mod_clm_typeinit
     allocate(l%ifspecial(ibeg:iend))
     allocate(l%lakpoi(ibeg:iend))
     allocate(l%urbpoi(ibeg:iend))
-    allocate(l%glcmecpoi(ibeg:iend))
     allocate(l%udenstype(ibeg:iend))
     allocate(l%active(ibeg:iend))
 
@@ -383,7 +382,6 @@ module mod_clm_typeinit
     l%z_0_town(ibeg:iend) = nan
     l%z_d_town(ibeg:iend) = nan
 
-    l%glcmecpoi(ibeg:iend) = .false.
   end subroutine init_landunit_type
   !
   ! Initialize components of gridcell_type structure
@@ -2623,7 +2621,6 @@ module mod_clm_typeinit
     allocate(cps%n_irrig_steps_left(ibeg:iend))
     allocate(cps%forc_pbot(ibeg:iend))
     allocate(cps%forc_rho(ibeg:iend))
-    allocate(cps%glc_topo(ibeg:iend))
 
     allocate(cps%rf_decomp_cascade(ibeg:iend,1:nlevdecomp_full, &
                                    1:ndecomp_cascade_transitions))
@@ -2802,7 +2799,6 @@ module mod_clm_typeinit
     cps%n_irrig_steps_left(ibeg:iend) = 0
     cps%forc_pbot(ibeg:iend) = nan
     cps%forc_rho(ibeg:iend) = nan
-    cps%glc_topo(ibeg:iend) = nan
 
     cps%rf_decomp_cascade(ibeg:iend,1:nlevdecomp_full, &
             1:ndecomp_cascade_transitions) = nan
@@ -3196,11 +3192,6 @@ module mod_clm_typeinit
     allocate(cwf%qflx_snofrz_lyr(ibeg:iend,-nlevsno+1:0))
     allocate(cwf%qflx_snofrz_col(ibeg:iend))
     allocate(cwf%qflx_irrig(ibeg:iend))
-    allocate(cwf%qflx_glcice(ibeg:iend))
-    allocate(cwf%qflx_glcice_frz(ibeg:iend))
-    allocate(cwf%qflx_glcice_melt(ibeg:iend))
-    allocate(cwf%glc_rofi(ibeg:iend))
-    allocate(cwf%glc_rofl(ibeg:iend))
     allocate(cwf%qflx_floodc(ibeg:iend))
 
     cwf%qflx_infl(ibeg:iend) = nan
@@ -3238,11 +3229,6 @@ module mod_clm_typeinit
     cwf%qflx_snofrz_lyr(ibeg:iend,-nlevsno+1:0) = spval
     cwf%qflx_snofrz_col(ibeg:iend) = nan
     cwf%qflx_irrig(ibeg:iend)  = spval
-    cwf%qflx_glcice(ibeg:iend) = nan
-    cwf%qflx_glcice_frz(ibeg:iend) = nan
-    cwf%qflx_glcice_melt(ibeg:iend) = spval
-    cwf%glc_rofi(ibeg:iend)    = nan
-    cwf%glc_rofl(ibeg:iend)    = nan
     cwf%qflx_floodc(ibeg:iend) = spval
 
     allocate(cwf%qflx_h2osfc_to_ice(ibeg:iend))

@@ -14,8 +14,8 @@ module mod_clm_initialize
   use mod_regcm_types
   use mod_clm_nchelper
   use mod_clm_varctl , only : nsrest , nsrStartup , nsrContinue , &
-          fsurdat , fatmlndfrc , fglcmask , noland , finidat ,   &
-          fpftdyn , version
+          fsurdat , fatmlndfrc , noland , finidat ,   &
+          fpftdyn , version , atm_regcm
   use mod_clm_varsur , only : wtxy , vegxy
   use mod_clm_typeinit , only : initClmtype
   use mod_clm_varpar , only : maxpatch , clm_varpar_init
@@ -39,7 +39,7 @@ module mod_clm_initialize
   use mod_clm_cnecosystemdyn , only : CNEcosystemDynInit
 #endif
   use mod_clm_initslake , only : initSLake
-  use mod_clm_mkarbinit , only : mkarbinit
+  use mod_clm_mkarbinit , only : mkarbinit , mkregcminit
   use mod_clm_pftdyn , only : pftdyn_init , pftdyn_interp
 #if (defined CNDV)
   use mod_clm_pftdyn , only : pftwt_init
@@ -358,7 +358,16 @@ module mod_clm_initialize
       arbinit = .false.
       call initch4(arbinit)
 #endif
+    else if (nsrest == nsrStartup .and. atm_regcm ) then
+      ! Get initial data from regcm !
+      call mkregcminit(adomain)
+      call UrbanInitTimeVar( )
+      call initSLake(.false.)
+#if (defined LCH4)
+      call initch4(.false.)
+#endif
     else if (nsrest == nsrStartup .and. finidat == ' ') then
+      stop
       call mkarbinit()
       call UrbanInitTimeVar( )
 

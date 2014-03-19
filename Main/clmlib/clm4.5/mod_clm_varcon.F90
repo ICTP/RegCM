@@ -152,9 +152,6 @@ module mod_clm_varcon
 
   ! Max allowed snow thickness (mm H2O)
   real(rk8) , public , parameter :: h2osno_max = 1000.D0
-  ! Surface temperature lapse rate (deg m-1)
-  real(rk8) , public , parameter :: lapse_glcmec = 0.006D0
-  ! Pritchard et al. (GRL, 35, 2008) use 0.006  
   integer(ik4) :: i  ! loop index
 
 

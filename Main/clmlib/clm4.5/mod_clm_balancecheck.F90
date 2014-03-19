@@ -247,10 +247,6 @@ module mod_clm_balancecheck
     real(rk8) , pointer , dimension(:) :: qflx_liq_dynbal
     ! excess snowfall due to snow capping (mm H2O /s) [+]`
     real(rk8) , pointer , dimension(:) :: qflx_snwcp_ice
-    ! flux of new glacier ice (mm H2O /s) [+ if ice grows]
-    real(rk8) , pointer , dimension(:) :: qflx_glcice
-    ! ice growth (mm H2O/s) [+]
-    real(rk8) , pointer , dimension(:) :: qflx_glcice_frz
     ! excess snowfall due to snow cap inc land cover change flux (mm H20/s)
     real(rk8) , pointer , dimension(:) :: qflx_snwcp_iceg
     ! ice runoff due to dynamic land cover change (mm H2O /s)
@@ -365,8 +361,6 @@ module mod_clm_balancecheck
     qflx_runoff         => clm3%g%l%c%cwf%qflx_runoff
     qflx_snwcp_ice      => clm3%g%l%c%cwf%pwf_a%qflx_snwcp_ice
     qflx_evap_tot       => clm3%g%l%c%cwf%pwf_a%qflx_evap_tot
-    qflx_glcice         => clm3%g%l%c%cwf%qflx_glcice
-    qflx_glcice_frz     => clm3%g%l%c%cwf%qflx_glcice_frz
     errh2o              => clm3%g%l%c%cwbal%errh2o
     errsoi_col          => clm3%g%l%c%cebal%errsoi
     h2osno              => clm3%g%l%c%cws%h2osno

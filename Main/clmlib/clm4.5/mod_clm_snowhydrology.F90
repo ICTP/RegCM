@@ -683,8 +683,8 @@ module mod_clm_snowhydrology
 
                 ! 2nd term is delta fsno over fsno, allowing for
                 ! negative values for ddz3
-                wsum = sum(h2osoi_liq(c,snl(c)+1:0D0) + &
-                           h2osoi_ice(c,snl(c)+1:0D0))
+                wsum = sum(h2osoi_liq(c,snl(c)+1:0) + &
+                           h2osoi_ice(c,snl(c)+1:0))
                 fsno_melt = 1.0D0 - &
                         (acos(2.0D0*min(1.D0,wsum/int_snow(c)) - &
                         1.D0)/rpi)**(n_melt(c))

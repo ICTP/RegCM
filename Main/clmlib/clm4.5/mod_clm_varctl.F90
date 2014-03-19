@@ -17,6 +17,8 @@ module mod_clm_varctl
 
   save
 
+  logical , public , parameter :: atm_regcm = .true.
+
   integer(ik4) , parameter , private :: iundef = -9999999
   integer(ik4) , parameter , private :: rundef = -9999999.D0
   !
@@ -112,13 +114,6 @@ module mod_clm_varctl
   logical , public :: use_c13 = .false.
   ! true => use C-14 model
   logical , public :: use_c14 = .false.
-  !
-  ! upper limit of each class (m)  (set in surfrd)
-  real(rk8) , public , allocatable , dimension(:) :: glc_topomax
-  ! glc_grid used to determine fglcmask  
-  character(len=256) , public :: glc_grid = ' '
-  ! glacier mask file name (based on glc_grid)
-  character(len=256) , public :: fglcmask = ' '
   !
   ! instance control
   !

@@ -127,8 +127,6 @@ module mod_clm_varpar
 
   ! Max number of patches
   integer(ik4) , public :: maxpatch
-  ! Max number of elevation classes
-  integer(ik4) , public :: maxpatch_glcmec
   ! Max number of urban pfts (columns) in urban landunit
   integer(ik4) , public :: maxpatch_urb
   ! Number of urban pfts (columns) in urban landunit
@@ -167,7 +165,7 @@ module mod_clm_varpar
     maxpatch       = npatch_glacier
     mach_eps       = epsilon(1.0D0)
 
-    max_pft_per_gcell = numpft+1 + 3 + maxpatch_urb*numurbl + maxpatch_glcmec
+    max_pft_per_gcell = numpft+1 + 3 + maxpatch_urb*numurbl
 #if (defined CROP)
     max_pft_per_gcell = max_pft_per_gcell +  numcft  
 #endif
