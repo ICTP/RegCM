@@ -960,7 +960,11 @@ module mod_clm_mkarbinit
       h2ocan_col(c) = 0.D0
 
       ! snow water
-      h2osno(c) = adomain%snow(g)
+      if ( ltype(l) == istice ) then
+        h2osno(c) = h2osno_max
+      else
+        h2osno(c) = adomain%snow(g)
+      end if
 
       ! initialize int_snow, int_melt
       int_snow(c) = h2osno(c)
@@ -997,12 +1001,14 @@ module mod_clm_mkarbinit
         t_soisno(c,-nlevsno+1:0) = spval
         if ( snl(c) < 0 ) then    !snow layer temperatures
           do j = snl(c)+1 , 0
-            t_soisno(c,j) = 250.D0
+            ! t_soisno(c,j) = 250.D0
+            t_soisno(c,j) = adomain%tgrd(g) - 2.0D0
           end do
         end if
         if ( ltype(l)==istice ) then
           do j = 1 , nlevgrnd
-            t_soisno(c,j) = 250.D0
+            ! t_soisno(c,j) = 250.D0
+            t_soisno(c,j) = adomain%tgrd(g) - 2.0D0
           end do
         else if (ltype(l) == istwet) then
           do j = 1 , nlevgrnd

@@ -776,7 +776,7 @@ module mod_clm_snicar
               end do
 
               tau(i) = tau_sum + tau_snw(i)
-              omega(i) = (10D0/tau(i)) * &
+              omega(i) = (1.0D0/tau(i)) * &
                       (omega_sum+(ss_alb_snw_lcl(i)*tau_snw(i)))
               g(i) = (1.0D0/(tau(i)*omega(i))) * &
                    (g_sum+ (asm_prm_snw_lcl(i)*ss_alb_snw_lcl(i)*tau_snw(i)))
@@ -850,25 +850,37 @@ module mod_clm_snicar
             do i = snl_top , snl_btm , 1
               lambda(i) = sqrt(abs((gamma1(i)**2) - (gamma2(i)**2)))
               xgamma(i)  = gamma2(i)/(gamma1(i)+lambda(i))
-              e1(i) = 1.0D0+(xgamma(i)*exp(-lambda(i)*tau_star(i)))
-              e2(i) = 1.0D0-(xgamma(i)*exp(-lambda(i)*tau_star(i)))
-              e3(i) = xgamma(i) + exp(-lambda(i)*tau_star(i))
-              e4(i) = xgamma(i) - exp(-lambda(i)*tau_star(i))
+              if ( lambda(i)*tau_star(i) > 21.0D0 ) then
+                e1(i) = 1.0D0
+                e2(i) = 1.0D0
+                e3(i) = xgamma(i)
+                e4(i) = xgamma(i)
+              else
+                e1(i) = 1.0D0+(xgamma(i)*exp(-lambda(i)*tau_star(i)))
+                e2(i) = 1.0D0-(xgamma(i)*exp(-lambda(i)*tau_star(i)))
+                e3(i) = xgamma(i) + exp(-lambda(i)*tau_star(i))
+                e4(i) = xgamma(i) - exp(-lambda(i)*tau_star(i))
+              end if
             end do !enddo over snow layers
 
             ! Intermediates for tri-diagonal solution
             do i = snl_top , snl_btm , 1
               if ( flg_slr_in == 1 ) then
-                C_pls_btm(i) = (omega_star(i)*rpi*flx_slrd_lcl(bnd_idx)* &
-                      exp(-(tau_clm(i)+tau_star(i))/mu_not)*     &
-                      (((gamma1(i)-(1.0D0/mu_not))*gamma3(i)) +  &
-                      (gamma4(i)*gamma2(i))))/((lambda(i)**2) -  &
-                      (1.0D0/(mu_not**2)))
-                C_mns_btm(i) = (omega_star(i)*rpi*flx_slrd_lcl(bnd_idx)* &
-                      exp(-(tau_clm(i)+tau_star(i))/mu_not)*    &
-                      (((gamma1(i)+(1.0D0/mu_not))*gamma4(i)) + &
-                      (gamma2(i)*gamma3(i))))/((lambda(i)**2) - &
-                      (1.0D0/(mu_not**2)))
+                if ( (tau_clm(i)+tau_star(i))/mu_not > 21.0D0 ) then
+                  C_pls_btm(i) = 0.0D0
+                  C_mns_btm(i) = 0.0D0
+                else
+                  C_pls_btm(i) = (omega_star(i)*rpi*flx_slrd_lcl(bnd_idx)* &
+                        exp(-(tau_clm(i)+tau_star(i))/mu_not)*     &
+                        (((gamma1(i)-(1.0D0/mu_not))*gamma3(i)) +  &
+                        (gamma4(i)*gamma2(i))))/((lambda(i)**2) -  &
+                        (1.0D0/(mu_not**2)))
+                  C_mns_btm(i) = (omega_star(i)*rpi*flx_slrd_lcl(bnd_idx)* &
+                        exp(-(tau_clm(i)+tau_star(i))/mu_not)*    &
+                        (((gamma1(i)+(1.0D0/mu_not))*gamma4(i)) + &
+                        (gamma2(i)*gamma3(i))))/((lambda(i)**2) - &
+                        (1.0D0/(mu_not**2)))
+                end if
                 C_pls_top(i) = (omega_star(i)*rpi*flx_slrd_lcl(bnd_idx)* &
                       exp(-tau_clm(i)/mu_not)*(((gamma1(i)-(1.0D0/mu_not))* &
                       gamma3(i))+(gamma4(i)*gamma2(i))))/((lambda(i)**2) - &

@@ -163,6 +163,27 @@ module mod_clm_filter
     allocate(filter%pcropp(endp-begp+1))
     allocate(filter%soilnopcropp(endp-begp+1))
 
+    filter%lakep = -1
+    filter%nolakep = -1
+    filter%nolakeurbanp = -1
+    filter%lakec = -1
+    filter%nolakec = -1
+    filter%soilc = -1
+    filter%soilp = -1
+    filter%snowc = -1
+    filter%nosnowc = -1
+#if (defined CNDV)
+    filter%natvegp = -1
+#endif
+    filter%hydrologyc = -1
+    filter%urbanp = -1
+    filter%nourbanp = -1
+    filter%urbanc = -1
+    filter%nourbanc = -1
+    filter%urbanl = -1
+    filter%nourbanl = -1
+    filter%pcropp = -1
+    filter%soilnopcropp = -1
   end subroutine allocFilters
   !
   ! Set CLM filters.

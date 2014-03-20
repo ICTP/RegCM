@@ -631,12 +631,12 @@ module mod_clm_surfacealbedo
 #endif
 
     ! CLIMATE FEEDBACK CALCULATIONS, ALL AEROSOLS:
-    flg_slr = 1; ! direct-beam
+    flg_slr = 1 ! direct-beam
     call SNICAR_RT(flg_snw_ice, lbc, ubc, num_nourbanc, filter_nourbanc,    &
                    coszen_col, flg_slr, h2osno_liq, h2osno_ice, snw_rds_in, &
                    mss_cnc_aer_in_fdb, albsfc, albsnd, flx_absd_snw)
 
-    flg_slr = 2; ! diffuse
+    flg_slr = 2 ! diffuse
     call SNICAR_RT(flg_snw_ice, lbc, ubc, num_nourbanc, filter_nourbanc,    &
                    coszen_col, flg_slr, h2osno_liq, h2osno_ice, snw_rds_in, &
                    mss_cnc_aer_in_fdb, albsfc, albsni, flx_absi_snw)
