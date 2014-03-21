@@ -24,7 +24,7 @@ else
   outfile=`basename $rcmfile .nc`_day.nc
 fi
 
-times=(`ncks -v time -H -s "%f " $rcmfile`)
+times=(`ncks -C -v time -H -s "%f " $rcmfile`)
 nt=${#times[@]}
 freq=`echo "${times[1]}-${times[0]}" | bc | cut -d "." -f 1`
 tpd=$(( 24 / $freq ))
