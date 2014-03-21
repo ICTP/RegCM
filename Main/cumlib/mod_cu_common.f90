@@ -39,11 +39,11 @@ module mod_cu_common
   real(rk8) , dimension(10) :: cld_profile
   real(rk8) , dimension(10) :: fixed_cld_profile
   real(rk8) , dimension(10) :: rnum
-  real(rk8) , parameter :: maxcloud_dp =  45.0D0 ! In cb
+  real(rk8) , parameter :: maxcloud_dp =  60.0D0 ! In cb
   logical , parameter :: addnoise = .false.
 
   contains
-!
+ 
   subroutine init_mod_cumulus
     implicit none
     integer(ik4) , dimension(:) , allocatable:: iseed
@@ -52,19 +52,17 @@ module mod_cu_common
     if ( icumcloud == 2 ) then
       !
       ! Free hand draw of a generic ten layer cumulus cloud shape.
-      !  Taken with "hand digitizing" Fig 2. from Knupp and Cotton
-      !  Number is "shape fraction of the total cloud in figure"
       !
-      fixed_cld_profile(1)  = 0.195D0
-      fixed_cld_profile(2)  = 0.175D0
-      fixed_cld_profile(3)  = 0.155D0
-      fixed_cld_profile(4)  = 0.105D0
-      fixed_cld_profile(5)  = 0.085D0
-      fixed_cld_profile(6)  = 0.075D0
-      fixed_cld_profile(7)  = 0.065D0
-      fixed_cld_profile(8)  = 0.055D0
-      fixed_cld_profile(9)  = 0.045D0
-      fixed_cld_profile(10) = 0.045D0
+      fixed_cld_profile(1)  = 0.130D0
+      fixed_cld_profile(2)  = 0.125D0
+      fixed_cld_profile(3)  = 0.120D0
+      fixed_cld_profile(4)  = 0.080D0
+      fixed_cld_profile(5)  = 0.080D0
+      fixed_cld_profile(6)  = 0.080D0
+      fixed_cld_profile(7)  = 0.085D0
+      fixed_cld_profile(8)  = 0.085D0
+      fixed_cld_profile(9)  = 0.105D0
+      fixed_cld_profile(10) = 0.110D0
       if ( addnoise ) then
         call random_seed(size=nseed)
         call cpu_time(cputime)
