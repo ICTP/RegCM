@@ -130,7 +130,7 @@ module mod_clm_regcm
     rstwr = .false.
     nlend = .false.
     if ( ktau > 0 ) then
-      if ( idatex == idate2 ) then
+      if ( ktau+1 == mtau ) then
         nlend = .true.
         rstwr = .true.
         write(rdate,'(i10)') toint10(idatex)
@@ -260,7 +260,7 @@ module mod_clm_regcm
 
     if ( .true. ) then
       clm_a2l%forc_flood = 0.000D0
-      clm_a2l%volr = 1.0D-4
+      clm_a2l%volr = 0.000D0
     else
       ! Runoff in input ? Chym ?
       ! clm_a2l%forc_flood  ! flood (mm/s)

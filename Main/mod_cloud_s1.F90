@@ -347,7 +347,6 @@ end if
       call getmem4d(zqx0,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:zqx0')
     end if
     call getmem3d(zqsliq,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqsliq')
-    call getmem3d(relh,jci1,jci2,ici1,ici2,1,kz,'clouds1:relh')
   end subroutine allocate_mod_cloud_s1
 
   subroutine init_cloud_s1(atms,aten,heatrt,sfs,q_detr,pptnc)

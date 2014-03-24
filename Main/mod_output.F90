@@ -199,7 +199,7 @@ module mod_output
         end if
         if ( associated(atm_rh_out) ) then
            do k = 1 , kz
-            atm_rh_out(:,:,k) = relh(jci1:jci2,ici1:ici2,k)
+            atm_rh_out(:,:,k) = atms%rhb3d(jci1:jci2,ici1:ici2,k)*d_100
           end do
         end if
         if ( associated(atm_zf_out) ) then

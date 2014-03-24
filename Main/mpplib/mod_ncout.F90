@@ -169,10 +169,10 @@ module mod_ncout
   integer(ik4) , parameter :: atm_omega     = 4
   integer(ik4) , parameter :: atm_qv        = 5
   integer(ik4) , parameter :: atm_qc        = 6
-  integer(ik4) , parameter :: atm_qr        = 7
-  integer(ik4) , parameter :: atm_qi        = 8
-  integer(ik4) , parameter :: atm_qs        = 9
-  integer(ik4) , parameter :: atm_rh        = 10
+  integer(ik4) , parameter :: atm_rh        = 7
+  integer(ik4) , parameter :: atm_qr        = 8
+  integer(ik4) , parameter :: atm_qi        = 9
+  integer(ik4) , parameter :: atm_qs        = 10
   integer(ik4) , parameter :: atm_zf        = 11
   integer(ik4) , parameter :: atm_zh        = 12
   integer(ik4) , parameter :: atm_pf        = 13
@@ -527,6 +527,12 @@ module mod_ncout
             'mass_fraction_of_cloud_liquid_water_in_air',.true.)
           atm_qc_out => v3dvar_atm(atm_qc)%rval
         end if
+        if ( enable_atm3d_vars(atm_rh) ) then
+          call setup_var(v3dvar_atm,atm_rh,vsize,'rh','%', &
+            'Relative Humidity', &
+            'relative_humidity',.true.)
+          atm_rh_out => v3dvar_atm(atm_rh)%rval
+        end if
 
         if ( ipptls == 2 ) then
           if ( enable_atm3d_vars(atm_qr) ) then
@@ -547,12 +553,6 @@ module mod_ncout
               'mass_fraction_of_snow_in_air',.true.)
             atm_qs_out => v3dvar_atm(atm_qs)%rval
           end if
-            if ( enable_atm3d_vars(atm_rh) ) then
-              call setup_var(v3dvar_atm,atm_rh,vsize,'rh','%', &
-                'Relative Humidity', &
-                'relative_humidity',.true.)
-              atm_rh_out => v3dvar_atm(atm_rh)%rval
-            end if
           if ( enable_atm3d_vars(atm_zf) ) then
             call setup_var(v3dvar_atm,atm_zf,vsize,'zf','m', &
               'Height at full levels', &
@@ -579,7 +579,6 @@ module mod_ncout
           end if
         else
           enable_atm3d_vars(atm_qr:atm_qs) = .false.
-          enable_atm3d_vars(atm_rh) = .false.
           enable_atm3d_vars(atm_zf) = .false.
           enable_atm3d_vars(atm_zh) = .false.
           enable_atm3d_vars(atm_pf) = .false.
