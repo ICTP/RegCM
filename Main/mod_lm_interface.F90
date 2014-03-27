@@ -523,18 +523,23 @@ module mod_lm_interface
         expfie%sflx(j,i) = (sum(lms%evpr(:,j,i))-sum(lms%prcp(:,j,i)))*rdnnsg
         expfie%snow(j,i) = sum(lms%sncv(:,j,i))*rdnnsg
         expfie%dswr(j,i) = lm%swdif(j,i)+lm%swdir(j,i)
+        expfie%wspd(j,i) = dsqrt(expfie%wndu(j,i)**2+expfie%wndv(j,i)**2)
+        expfie%nflx(j,i) = lm%rswf(j,i) - expfie%lhfx(j,i) - &
+                           expfie%shfx(j,i) - lm%rlwf(j,i)
       end do
     end do
-    expfie%wspd = dsqrt(expfie%wndu**2+expfie%wndv**2)
-    expfie%nflx = lm%rswf - expfie%lhfx - expfie%shfx - lm%rlwf
     if ( mod(ktau+1,kday) == 0 ) then
-      where ( lm%ldmsk > 0 )
-        expfie%rnof = lm%dailyrnf(:,:,1)/runoffcount
-        expfie%snof = lm%dailyrnf(:,:,2)/runoffcount
-      else where
-        expfie%rnof = d_zero
-        expfie%snof = d_zero
-      end where
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( lm%ldmsk(j,i) > 0 )
+            expfie%rnof(j,i) = lm%dailyrnf(j,i,1)/runoffcount
+            expfie%snof(j,i) = lm%dailyrnf(j,i,2)/runoffcount
+          else
+           expfie%rnof(j,i) = d_zero
+           expfie%snof(j,i) = d_zero
+          end if
+        end do
+      end do
     end if
   end subroutine export_data_from_surface
 !
