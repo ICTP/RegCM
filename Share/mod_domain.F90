@@ -231,8 +231,8 @@ module mod_domain
     istatus = nf90_get_var(ncid, ivarid, ptsp)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read variable ptop')
     if ( dabs(dble(ptsp*d_r10)-dble(ptop)) > 0.001D+00 ) then
-      write(stderr,*) 'DOMAIN FILE : ', ptop
-      write(stderr,*) 'NAMELIST    : ', ptsp
+      write(stderr,*) 'DOMAIN FILE : ', ptsp
+      write(stderr,*) 'NAMELIST    : ', ptop
       call die('Mismatch: PTOP in DOMAIN file /= PTOP in namelist')
     end if
     istatus = nf90_get_att(ncid, nf90_global, 'projection', proj)
