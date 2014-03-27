@@ -531,7 +531,7 @@ module mod_lm_interface
     if ( mod(ktau+1,kday) == 0 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( lm%ldmsk(j,i) > 0 )
+          if ( lm%ldmsk(j,i) > 0 ) then
             expfie%rnof(j,i) = lm%dailyrnf(j,i,1)/runoffcount
             expfie%snof(j,i) = lm%dailyrnf(j,i,2)/runoffcount
           else
