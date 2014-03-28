@@ -90,6 +90,7 @@ module mod_outvars
   real(rk8) , dimension(:,:,:) , pointer :: srf_v10m_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: srf_t2m_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: srf_q2m_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: srf_rh2m_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: srf_smw_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: srf_runoff_out => null()
 

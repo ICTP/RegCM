@@ -240,7 +240,7 @@ module mod_ocn_lake
       flwx = -d_one*rlwf(i)
       prec = prcp(i)*dtlake
       hsen = -d_one*sent(i)
-      psurf = (sfps(i)+ptop)*d_1000
+      psurf = sfps(i)
       xl = lat(i)
 
       call lake( dtlake,tl,vl,zl,qs,fswx,flwx,hsen,xl, &

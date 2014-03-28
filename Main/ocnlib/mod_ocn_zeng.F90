@@ -99,7 +99,7 @@ module mod_ocn_zeng
       q995 = qv(i)/(d_one+qv(i))
       z995 = ht(i)
       zi = hpbl(i)
-      psurf = (sfps(i)+ptop)*d_10
+      psurf = sfps(i)*d_r100
       hu = z995
       zh = z995
       hq = z995

@@ -57,7 +57,7 @@ module mod_ncout
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nsrf2dvars = 18 + nbase
-  integer(ik4) , parameter :: nsrf3dvars = 6
+  integer(ik4) , parameter :: nsrf3dvars = 7
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
   integer(ik4) , parameter :: nsts2dvars = 6 + nbase
@@ -218,8 +218,9 @@ module mod_ncout
   integer(ik4) , parameter :: srf_v10m   = 2
   integer(ik4) , parameter :: srf_t2m    = 3
   integer(ik4) , parameter :: srf_q2m    = 4
-  integer(ik4) , parameter :: srf_smw    = 5
-  integer(ik4) , parameter :: srf_runoff = 6
+  integer(ik4) , parameter :: srf_rh2m   = 5
+  integer(ik4) , parameter :: srf_smw    = 6
+  integer(ik4) , parameter :: srf_runoff = 7
 
   integer(ik4) , parameter :: sts_xlon   = 1
   integer(ik4) , parameter :: sts_xlat   = 2
@@ -827,6 +828,7 @@ module mod_ncout
         v3dvar_srf(srf_v10m)%axis = 'xyw'
         v3dvar_srf(srf_t2m)%axis = 'xy2'
         v3dvar_srf(srf_q2m)%axis = 'xy2'
+        v3dvar_srf(srf_rh2m)%axis = 'xy2'
         if ( enable_srf3d_vars(srf_u10m) ) then
           call setup_var(v3dvar_srf,srf_u10m,vsize,'uas','m s-1', &
             'Anemometric zonal (westerly) wind component', &
@@ -848,6 +850,11 @@ module mod_ncout
           call setup_var(v3dvar_srf,srf_q2m,vsize,'qas','1', &
             'Near surface air specific humidity','specific_humidity',.true.)
           srf_q2m_out => v3dvar_srf(srf_q2m)%rval
+        end if
+        if ( enable_srf3d_vars(srf_rh2m) ) then
+          call setup_var(v3dvar_srf,srf_rh2m,vsize,'hurs','%', &
+            'Near surface relative humidity','relative_humidity',.true.)
+          srf_rh2m_out => v3dvar_srf(srf_rh2m)%rval
         end if
 
         vsize%k2 = 2

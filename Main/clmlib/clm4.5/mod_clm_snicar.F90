@@ -806,9 +806,14 @@ module mod_clm_snicar
             end do
 
             ! Direct radiation at bottom of snowpack:
-            F_direct_btm = albsfc_lcl(bnd_idx)*mu_not * &
-                exp(-(tau_clm(snl_btm)+tau_star(snl_btm))/mu_not) * &
-                rpi*flx_slrd_lcl(bnd_idx)
+            if ( (tau_clm(snl_btm)+tau_star(snl_btm))/mu_not > 25.0D0 ) then
+              F_direct_btm = 0.0D0
+            else
+              F_direct_btm = albsfc_lcl(bnd_idx)*mu_not * &
+                  exp(-(tau_clm(snl_btm)+tau_star(snl_btm))/mu_not) * &
+                  rpi*flx_slrd_lcl(bnd_idx)
+            end if
+
 
             ! Intermediates
             ! Gamma values are approximation-specific.
@@ -946,8 +951,12 @@ module mod_clm_snicar
             ! Downward direct-beam and net flux (F_net) at the base
             ! of each layer:
             do i = snl_top , snl_btm , 1
-              F_direct(i) = mu_not*rpi*flx_slrd_lcl(bnd_idx) * &
-                        exp(-(tau_clm(i)+tau_star(i))/mu_not)
+              if ( (tau_clm(i)+tau_star(i))/mu_not > 25.0D0 ) then
+                F_direct(i) = 0.0D0
+              else
+                F_direct(i) = mu_not*rpi*flx_slrd_lcl(bnd_idx) * &
+                          exp(-(tau_clm(i)+tau_star(i))/mu_not)
+              end if
               F_net(i) = (Y(2*i-1)*(e1(i)-e3(i))) + &
                       (Y(2*i)*(e2(i)-e4(i))) + &
                       C_pls_btm(i) - C_mns_btm(i) - F_direct(i)

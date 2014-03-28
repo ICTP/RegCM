@@ -53,7 +53,7 @@ module mod_ocn_bats
       tgbrd(i) = tgb(i)
 
       ! Compute delt and delq
-      psurf = (sfps(i)+ptop)*d_1000
+      psurf = sfps(i)
       qs = qv(i)/(d_one+qv(i))
       if ( tgrd(i) <= tzero ) then
         lfta = c3ies
@@ -120,7 +120,7 @@ module mod_ocn_bats
       ! Update surface temperature from the input SST
       tgrd(i) = tgb(i)
 
-      psurf = (sfps(i)+ptop)*d_1000
+      psurf = sfps(i)
       uv995 = dsqrt(usw(i)**2+vsw(i)**2)
 
       ! Update Snow Cover

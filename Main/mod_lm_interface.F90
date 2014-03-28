@@ -708,6 +708,8 @@ module mod_lm_interface
 #ifndef CLM
     integer(ik4) :: k
 #endif
+    integer(ik4) :: i , j , n
+    real(rk8) :: qas , tas , ps , mx2s , lh , satvp , qs
 
     ! Fill accumulators
 
@@ -842,6 +844,24 @@ module mod_lm_interface
           srf_t2m_out(:,:,1) = sum(lms%t2m,1)*rdnnsg
         if ( associated(srf_q2m_out) ) &
           srf_q2m_out(:,:,1) = sum(lms%q2m,1)*rdnnsg
+        if ( associated(srf_rh2m_out) ) then
+          srf_rh2m_out = d_zero
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              do n = 1 , nnsg
+                qas = lms%q2m(n,j,i)
+                tas = lms%t2m(n,j,i)
+                ps = lms%sfcp(n,j,i)/100.0
+                mx2s = d_one/(d_one-qas)
+                lh = lh0-lh1*(tas-tzero)
+                satvp = lsvp1*dexp(lsvp2*lh*(d_one/tzero-d_one/tas))
+                qs = ep2*satvp/(ps-satvp)
+                srf_rh2m_out(j,i,1) = srf_rh2m_out(j,i,1)+(qas/qs)*d_100
+              end do
+            end do
+          end do
+          srf_rh2m_out = srf_rh2m_out * rdnnsg
+        end if
         if ( associated(srf_u10m_out) ) &
           srf_u10m_out(:,:,1) = sum(lms%u10m,1)*rdnnsg
         if ( associated(srf_v10m_out) ) &

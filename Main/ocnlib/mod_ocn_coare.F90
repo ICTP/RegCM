@@ -81,7 +81,7 @@ module mod_ocn_coare
         !
         iflag = .false.
         if (sfice(i) > 0.0d0) iflag = .true.
-        ps = (sfps(i)+ptop)*d_10
+        ps = sfps(i)*d_r100
         ts = tgrd(i)-tzero
         uv995 = dsqrt(usw(i)**2+vsw(i)**2)
         t995 = sts(i)-tzero
