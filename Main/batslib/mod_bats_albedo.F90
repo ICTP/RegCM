@@ -26,6 +26,7 @@ module mod_bats_albedo
   use mod_service
   use mod_bats_param
   use mod_bats_internal
+  use mod_bats_leaftemp
   use mod_bats_drag
 
   implicit none
@@ -115,6 +116,7 @@ module mod_bats_albedo
     ! depends on average snow depth, vegetation, etc.
     !
     call depth
+    call fseas(tgbrd)
     !
     ! 1.2  set default vegetation and albedo
     !
@@ -154,13 +156,13 @@ module mod_bats_albedo
         albgsd = albgs
         albsd = albs
         albld = albl
-        ! Dec. 15   albzn=0.85D0+d_one/(d_one+d_10*czeta))
+        ! Zenit Angle correction
+        albzn = 0.85D0+d_one/(d_one+d_10*czeta)
         ! Dec. 12, 2008
-        albzn = d_one
-        ! Dec. 15, 2008
-        !
+        ! albzn = d_one
         ! leafless hardwood canopy: no or inverse zen dep
         if ( lveg(i) == 5 .and. sfac < 0.1D0 ) albzn = d_one
+        !
         ! multiply by zenith angle correction
         albs = albs*albzn
         albl = albl*albzn

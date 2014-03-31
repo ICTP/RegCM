@@ -266,14 +266,11 @@ module mod_rdldtr
     integer(ik4) :: mpindex
     integer(ik4) , dimension(32) :: cnt
     integer(ik4) :: i
-
+    cnt = 0
     do i = 1 , 32
-      cnt(i) = sum(int(x)/i, int(x) == i)
+      cnt(i) = count(int(x) == i)
     end do
-    mpindex = 0
-    do i = 1 , 32
-      if (cnt(i) > mpindex) mpindex = i
-    end do
+    mpindex = maxloc(cnt,1,cnt>0)
   end function mpindex
 !
   recursive subroutine qsort(a)

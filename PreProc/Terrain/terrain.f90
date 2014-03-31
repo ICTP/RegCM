@@ -337,7 +337,7 @@ program terrain
     write(stdout,*) 'Using resampling at ', ntypec_s, ' minutes.'
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                      pthsep//'GTOPO_DEM_30s.nc','z',   &
-                     30,ntypec_s,.true.,0)
+                     30,ntypec_s,.true.,2)
     write(stdout,*)'Static DEM data successfully read in'
     call interp(jxsg,iysg,xlat_s,xlon_s,htgrid_s, &
                 nlatin,nlonin,grdltmn,grdlnmn,values, &
@@ -346,7 +346,7 @@ program terrain
 !
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                      pthsep//'GLCC_BATS_30s.nc',       &
-                     'landcover',30,ntypec_s,.true.,0)
+                     'landcover',30,ntypec_s,.true.,3)
     write(stdout,*)'Static landcover BATS data successfully read in'
     call interp(jxsg,iysg,xlat_s,xlon_s,lndout_s,  &
                 nlatin,nlonin,grdltmn,grdlnmn,values, &
@@ -358,7 +358,7 @@ program terrain
     if ( ltexture ) then
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//'GLZB_SOIL_30s.nc',       &
-                       'soiltype',30,ntypec_s,.true.,0)
+                       'soiltype',30,ntypec_s,.true.,3)
       write(stdout,*)'Static texture data successfully read in'
       call interp(jxsg,iysg,xlat_s,xlon_s,texout_s,   &
                   nlatin,nlonin,grdltmn,grdlnmn,values, &
@@ -375,7 +375,7 @@ program terrain
     if ( lakedpth ) then
       call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                        pthsep//'ETOPO_BTM_30s.nc',       &
-                       'z',30,ntypec_s,.true.,0)
+                       'z',30,ntypec_s,.true.,2)
       write(stdout,*)'Static bathymetry data successfully read in'
       call interp(jxsg,iysg,xlat_s,xlon_s,dpth_s,    &
                   nlatin,nlonin,grdltmn,grdlnmn,values, &
@@ -506,7 +506,7 @@ program terrain
   write(stdout,*) 'Using resampling at ', ntypec, ' minutes.'
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                    pthsep//'GTOPO_DEM_30s.nc','z',   &
-                   30,ntypec,.true.,0)
+                   30,ntypec,.true.,2)
   write(stdout,*)'Static DEM data successfully read in'
   call interp(jx,iy,xlat,xlon,htgrid,           &
               nlatin,nlonin,grdltmn,grdlnmn,values, &
@@ -515,7 +515,7 @@ program terrain
 !
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                    pthsep//'GLCC_BATS_30s.nc',       &
-                   'landcover',30,ntypec,.true.,0)
+                   'landcover',30,ntypec,.true.,3)
   write(stdout,*)'Static landcover BATS data successfully read in'
   call interp(jx,iy,xlat,xlon,lndout,            &
               nlatin,nlonin,grdltmn,grdlnmn,values, &
@@ -527,7 +527,7 @@ program terrain
   if ( ltexture ) then
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                      pthsep//'GLZB_SOIL_30s.nc',       &
-                     'soiltype',30,ntypec,.true.,0)
+                     'soiltype',30,ntypec,.true.,3)
     write(stdout,*)'Static texture data successfully read in'
     call interp(jx,iy,xlat,xlon,texout,             &
                 nlatin,nlonin,grdltmn,grdlnmn,values, &
@@ -544,7 +544,7 @@ program terrain
   if ( lakedpth ) then
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
                      pthsep//'ETOPO_BTM_30s.nc',       &
-                     'z',30,ntypec,.true.,0)
+                     'z',30,ntypec,.true.,2)
     write(stdout,*)'Static bathymetry data successfully read in'
     call interp(jx,iy,xlat,xlon,dpth,              &
                 nlatin,nlonin,grdltmn,grdlnmn,values, &

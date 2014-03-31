@@ -124,7 +124,6 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:) :: scrat
   real(rk8) , pointer , dimension(:) :: scvk
   real(rk8) , pointer , dimension(:) :: sdrop
-  real(rk8) , pointer , dimension(:) :: seasb
   real(rk8) , pointer , dimension(:) :: sent
   real(rk8) , pointer , dimension(:) :: sfcp
   real(rk8) , pointer , dimension(:) :: sigf
@@ -302,7 +301,6 @@ module mod_bats_internal
     call getmem1d(scrat,1,nlandp,'bats_internal:scrat')
     call getmem1d(scvk,1,nlandp,'bats_internal:scvk')
     call getmem1d(sdrop,1,nlandp,'bats_internal:sdrop')
-    call getmem1d(seasb,1,nlandp,'bats_internal:seasb')
     call getmem1d(sent,1,nlandp,'bats_internal:sent')
     call getmem1d(sfcp,1,nlandp,'bats_internal:sfcp')
     call getmem1d(sigf,1,nlandp,'bats_internal:sigf')

@@ -34,6 +34,8 @@ module mod_bats_param
                              xmosuc , xmowil
   integer(ik4) , dimension(22) :: iexsol , kolsol
   real(rk8) , parameter :: aarea = 0.02D0
+  real(rk8) , parameter :: minsigf = 0.001D+00
+
   ! 0.005 ccm specific
   ! 0.01  high
   ! 0.04  Antartic

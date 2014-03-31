@@ -722,20 +722,25 @@ module mod_bats_leaftemp
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+    aseas = d_zero
     if ( lcrop_cutoff ) then
       do i = ilndbeg , ilndend
-        if ( lveg(i) == 1 ) then
-          aseas(i) = dmax1(d_zero,d_one-0.0016D0* &
-                     dmax1(298.0D0-temp(i),d_zero)**4)
-        else
-          aseas(i) = dmax1(d_zero,d_one-0.0016D0* &
-                     dmax1(298.0D0-temp(i),d_zero)**2)
+        if ( sigf(i) > minsigf ) then
+          if ( lveg(i) == 1 ) then
+            aseas(i) = dmax1(d_zero,d_one-0.0016D0* &
+                       dmax1(298.0D0-temp(i),d_zero)**4)
+          else
+            aseas(i) = dmax1(d_zero,d_one-0.0016D0* &
+                       dmax1(298.0D0-temp(i),d_zero)**2)
+          end if
         end if
       end do
     else
       do i = ilndbeg , ilndend
-        aseas(i) = dmax1(d_zero,d_one-0.0016D0* &
-                   dmax1(298.0D0-temp(i),d_zero)**2)
+        if ( sigf(i) > minsigf ) then
+          aseas(i) = dmax1(d_zero,d_one-0.0016D0* &
+                     dmax1(298.0D0-temp(i),d_zero)**2)
+        end if
       end do
     end if
 #ifdef DEBUG

@@ -34,7 +34,6 @@ module mod_bats_bndry
 
   public :: soilbc , bndry
 !
-  real(rk8) , parameter :: minsigf = 0.001D+00
   real(rk8) , parameter :: lowsice = 1.0D-22
   real(rk8) , parameter :: rainsnowtemp = 2.2D0
   real(rk8) , parameter :: xnu = twopi/secpd
@@ -290,19 +289,13 @@ module mod_bats_bndry
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-!
+
     call fseas(tgbrd)
 
     do i = ilndbeg , ilndend
       if ( sigf(i) > minsigf ) then
-        seasb(i) = aseas(i)
-      end if
-    end do
-   
-    do i = ilndbeg , ilndend
-      if ( sigf(i) > minsigf ) then
         xlai(i) = xla(lveg(i))
-        xlai(i) = xlai(i) + (xlai0(lveg(i))-xlai(i))*(d_one-seasb(i))
+        xlai(i) = xlai(i) + (xlai0(lveg(i))-xlai(i))*(d_one-aseas(i))
         rlai(i) = xlai(i) + sai(lveg(i))
         xlsai(i) = xlai(i) + sai(lveg(i))
         vegt(i) = sigf(i)*xlsai(i)
