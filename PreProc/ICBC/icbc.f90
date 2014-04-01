@@ -142,18 +142,18 @@ program icbc
   use mod_write
 
   implicit none
-!
+
   integer(ik4) :: nnn
   type(rcm_time_and_date) :: idate , iodate
   type(rcm_time_interval) :: tdiff , tbdy
   integer(ik4) :: nsteps
   integer(ik4) :: ierr
   character(len=256) :: namelistfile, prgname
-!
+
   call header('icbc')
-!
-!     Read input global namelist
-!
+  !
+  ! Read input global namelist
+  !
   call get_command_argument(0,value=prgname)
   call get_command_argument(1,value=namelistfile)
   call initparam(namelistfile, ierr)

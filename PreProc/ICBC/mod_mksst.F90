@@ -186,7 +186,7 @@ module mod_mksst
       end if
       ks1 = itime(irec+1)-idate
       ks2 = itime(irec+1)-itime(irec)
-      wt = real(tohours(ks1)/tohours(ks2))
+      wt = dble(tohours(ks1)/tohours(ks2))
       do i = 1 , iy
         do j = 1 , jx
           if ( (landuse(j,i) > 13.9 .and. landuse(j,i) < 15.1) ) then
@@ -225,19 +225,26 @@ module mod_mksst
     integer(ik4) :: i , j , nr , np
     nr = 1
     np = -1
-    nearn = 0.0
-    wtsum = 0.0
+    nearn = 0.0D0
+    wtsum = 0.0D0
     do while ( np < 0 )
       do i = ip - nr , ip + nr
         do j = jp - nr , jp + nr
+          if ( j == jp .and. i == ip ) cycle
           if ( i < 1 .or. i > iy ) cycle
           if ( j < 1 .or. j > jx ) cycle
           if ( sst(j,i) > -900.0 ) then
-            wt = 1.0/sqrt(real(i-ip)**2+real(j-jp)**2)
+            wt = 1.0D0/sqrt(dble(i-ip)**2+dble(j-jp)**2)
             distsig = sign(1.0D0,xlat(jp,ip)-xlat(j,i))
-            nearn = nearn + (max(icetemp,sst(j,i) - lrate* &
-             (max(0.0,topogm(jp,ip)-topogm(j,i))) - distsig * &
-             gcdist(xlat(jp,ip),xlon(jp,ip),xlat(j,i),xlon(jp,ip))/100000.0))*wt
+            if ( (xlat(jp,ip) - xlat(j,i)) > 2.0D0*epsilon(d_zero) ) then
+              nearn = nearn + (max(icetemp,sst(j,i) - lrate * &
+               (max(0.0D0,topogm(jp,ip)-topogm(j,i))) - distsig * &
+               gcdist(xlat(jp,ip),xlon(jp,ip), &
+                      xlat(j,i),xlon(jp,ip))/100000.0D0))*wt
+            else
+              nearn = nearn + max(icetemp,sst(j,i) - lrate * &
+               (max(0.0D0,topogm(jp,ip)-topogm(j,i))))*wt
+            end if
             wtsum = wtsum + wt
             np = np + 1
           end if
