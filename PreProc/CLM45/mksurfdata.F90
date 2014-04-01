@@ -828,7 +828,7 @@ program mksurfdata
   subroutine bestaround(pft,i,j)
     implicit none
     real(rk4) , dimension(:,:,:) , intent(inout) :: pft
-    integer , parameter :: maxil = 3
+    integer , parameter :: maxil = 5
     integer(ik4) , intent(in) :: i , j
     real(rk4) , dimension (npft,(2*maxil+1)**2) :: vals
     integer(ik4) :: ii , jj , js , is , ip , n , il
@@ -863,6 +863,8 @@ program mksurfdata
       else
         il = il + 1
         if ( il == maxil ) then
+          write(stderr,*) 'At point lat = ',xlat(j,i)
+          write(stderr,*) '         lon = ',xlon(j,i)
           call die(__FILE__,'Not finding anything around !',__LINE__)
           exit
         end if
