@@ -1193,8 +1193,8 @@ module mod_clm_slaketemperature
         eflx_soil_grnd(p) = eflx_soil_grnd(p) + errsoi(c)
         eflx_gnet(p) = eflx_gnet(p) + errsoi(c)
         if (abs(errsoi(c)) > 1.D-3) then
-          write(stderr,*)'errsoi incorporated into sensible heat in '&
-              &'SLakeTemperature: c, (W/m^2):', c, errsoi(c)
+          write(stderr,*)'errsoi incorporated into sensible heat in &
+              &SLakeTemperature: c, (W/m^2):', c, errsoi(c)
         end if
         errsoi(c) = 0.D0
       end if

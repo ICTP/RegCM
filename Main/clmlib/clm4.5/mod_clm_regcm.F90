@@ -32,6 +32,7 @@ module mod_clm_regcm
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
     integer(ik4) :: i , j , n , begg , endg
+    character(len=64) :: rdate
 
     call getmem2d(rprec,jci1,jci2,ici1,ici2,'initclm45:rprec')
 
@@ -53,7 +54,8 @@ module mod_clm_regcm
     call glb_c2l_gs(lndcomm,lm%snowam,adomain%snow)
     call glb_c2l_gs(lndcomm,lm%tground2,adomain%tgrd)
 
-    call initialize2( )
+    write(rdate,'(i10)') toint10(idatex)
+    call initialize2(rdate)
 
     ! Compute simple LAND emissivity for RegCM radiation
     if ( iemiss == 1 ) then
@@ -121,7 +123,11 @@ module mod_clm_regcm
       ! clm_a2l%volr        ! rof volr (m3)
     end if
 
-    ! Run CLM
+    ! Compute NEXT calday
+    tdiff = dtsrf
+    nextt = idatex+tdiff
+    caldayp1 = yeardayfrac(nextt)
+    call orb_decl(caldayp1,eccen,mvelpp,lambm0,obliqr,declinp1,eccfp1)
     if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
       doalb = .true.
     else
@@ -133,18 +139,15 @@ module mod_clm_regcm
       if ( ktau+1 == mtau ) then
         nlend = .true.
         rstwr = .true.
-        write(rdate,'(i10)') toint10(idatex)
+        write(rdate,'(i10)') toint10(nextt)
       end if
       if ( (lfdomonth(idatex) .and. lmidnight(idatex)) ) then
         rstwr = .true.
-        write(rdate,'(i10)') toint10(idatex)
+        write(rdate,'(i10)') toint10(nextt)
       end if
     end if
 
-    ! Compute NEXT calday
-    tdiff = dtsrf
-    nextt = idatex+tdiff
-    caldayp1 = yeardayfrac(nextt)
+    ! Run CLM
     call orb_decl(caldayp1,eccen,mvelpp,lambm0,obliqr,declinp1,eccfp1)
 
     call clm_drv(doalb, caldayp1, declinp1, declin, rstwr, nlend, rdate)

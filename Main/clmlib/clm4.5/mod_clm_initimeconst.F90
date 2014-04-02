@@ -423,8 +423,8 @@ module mod_clm_initimeconst
     ! --------------------------------------------------------------------
 
     if (myid == italk) then
-      write(stdout,*) 'Attempting to read soil color, sand '&
-              &'and clay boundary data .....'
+      write(stdout,*) 'Attempting to read soil color, sand &
+              &and clay boundary data .....'
     end if
 
     call clm_openfile(fsurdat,ncid)
@@ -433,8 +433,8 @@ module mod_clm_initimeconst
     if ( .not. more_vertlayers ) then
        if ( nlevsoifl /= nlevsoi ) then
          call fatal(__FILE__,__LINE__, &
-                 trim(subname)//' ERROR: Number of soil layers on '&
-                 &'file does NOT match the number being used' )
+                 trim(subname)//' ERROR: Number of soil layers on &
+                 &file does NOT match the number being used' )
        end if
     else
        ! read in layers, interpolate to high resolution grid later

@@ -455,11 +455,15 @@ module mod_clm_surfacealbedo
         albgri_oc(c,ib)  = 0.D0
         albgrd_dst(c,ib) = 0.D0
         albgri_dst(c,ib) = 0.D0
+        albsni(c,ib) = 0.0D0
+        albsnd(c,ib) = 0.0D0
         do i = -nlevsno+1 , 1 , 1
           flx_absdv(c,i) = 0.D0
           flx_absdn(c,i) = 0.D0
           flx_absiv(c,i) = 0.D0
           flx_absin(c,i) = 0.D0
+          flx_absd_snw(c,i,ib) = 0.D0
+          flx_absi_snw(c,i,ib) = 0.D0
         end do
       end do
       do fp = 1 , num_nourbanp

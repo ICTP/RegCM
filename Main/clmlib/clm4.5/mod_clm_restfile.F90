@@ -46,9 +46,6 @@ module mod_clm_restfile
   public :: restFile_getfile
   public :: restFile_filename   ! Sets restart filename
 
-  private :: restFile_read_pfile
-  ! Writes restart pointer file
-  private :: restFile_write_pfile
   ! Close restart file and write restart pointer file
   private :: restFile_closeRestart
   private :: restFile_dimset
@@ -136,10 +133,6 @@ module mod_clm_restfile
     call restFile_close( ncid )
     call restFile_closeRestart( rfile, nlend )
 
-    ! Write restart pointer file
-
-    if ( ptrfile ) call restFile_write_pfile( rfile )
-
     ! Write out diagnostic info
 
     if (myid == italk) then
@@ -197,54 +190,15 @@ module mod_clm_restfile
   !
   ! Determine and obtain netcdf restart file
   !
-  subroutine restFile_getfile( rfile, path )
+  subroutine restFile_getfile( rfile , rdate )
     implicit none
     character(len=*), intent(out) :: rfile  ! name of netcdf restart file
-    ! full pathname of netcdf restart file
-    character(len=*), intent(out) :: path
-    integer(ik4) :: status                      ! return status
-    integer(ik4) :: length                      ! temporary
-    character(len=256) :: ftest,ctest      ! temporaries
+    character(len=*) , intent(in) :: rdate ! input date for restart file name
 
     ! Continue run:
-    ! Restart file pathname is read restart pointer file
-
-    if ( nsrest == nsrContinue ) then
-       call restFile_read_pfile( path )
-    end if
-
+    rfile = trim(dirout)//trim(caseid)//".clm."//trim(inst_suffix)//&
+            ".r."//trim(rdate)//".nc"
   end subroutine restFile_getfile
-  !
-  ! Setup restart file and perform necessary consistency checks
-  !
-  subroutine restFile_read_pfile( pnamer )
-    implicit none
-    character(len=*), intent(out) :: pnamer ! full path of restart file
-    integer(ik4) :: i      ! indices
-    integer(ik4) :: nio    ! restart unit
-    integer(ik4) :: ier    ! substring check status
-    character(len=256) :: locfn ! Restart pointer file name
-    ! Obtain the restart file from the restart pointer file
-    ! For restart runs, the restart pointer file contains the full pathname
-    ! of the restart file.
-    if (myid == italk) then
-       write(stdout,*) 'Reading restart pointer file....'
-    endif
-    nio = file_getunit( )
-    locfn = trim(rpntdir) //'/'// trim(rpntfil)//trim(inst_suffix)
-    open(unit=nio,file=locfn,form='formatted', &
-         status='old',action='read',iostat=ier)
-    if ( ier /= 0 ) then
-      write(stderr,*) 'Cannot open pointer file ',trim(locfn)
-      call fatal(__FILE__,__LINE__,'clm now stopping')
-    end if
-    read (nio,'(a256)') pnamer
-    call file_freeunit(nio)
-    if (myid == italk) then
-      write(stdout,*) 'Reading restart data.....'
-      write(stdout,'(72a1)') ("-",i=1,60)
-    end if
-  end subroutine restFile_read_pfile
   !
   ! Close restart file and write restart pointer file if
   ! in write mode, otherwise just close restart file if in read mode
@@ -260,29 +214,6 @@ module mod_clm_restfile
       write(stdout,*)
     end if
   end subroutine restFile_closeRestart
-  !
-  ! Open restart pointer file. Write names of current netcdf restart file.
-  !
-  subroutine restFile_write_pfile( fnamer )
-    implicit none
-    character(len=*), intent(in) :: fnamer
-    integer(ik4) :: m , ier              ! index
-    integer(ik4) :: nio                  ! restart pointer file
-    character(len=256) :: filename  ! local file name
-    if (myid == italk) then
-      nio = file_getunit( )
-      filename= trim(rpntdir) //'/'// trim(rpntfil)//trim(inst_suffix)
-      open(unit=nio,file=filename,form='formatted', &
-           status='replace',action='write',iostat=ier)
-      if ( ier /= 0 ) then
-        write(stderr,*) 'Cannot open pointer file ',trim(filename)
-        call fatal(__FILE__,__LINE__,'clm now stopping')
-      end if
-      write(nio,'(a)') fnamer
-      call file_freeunit(nio)
-      write(stdout,*)'Successfully wrote local restart pointer file'
-    end if
-  end subroutine restFile_write_pfile
 
   subroutine restFile_open( flag, rfile, ncid )
     implicit none
@@ -312,7 +243,8 @@ module mod_clm_restfile
   character(len=256) function restFile_filename( rdate )
     implicit none
     character(len=*) , intent(in) :: rdate ! input date for restart file name
-    restFile_filename = "./"//trim(caseid)//".clm2"//trim(inst_suffix)//&
+    restFile_filename = trim(dirout)//trim(caseid)// &
+                        ".clm."//trim(inst_suffix)//&
                         ".r."//trim(rdate)//".nc"
     if (myid == italk) then
       write(stdout,*) &

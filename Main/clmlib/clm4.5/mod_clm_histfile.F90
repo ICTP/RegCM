@@ -2694,13 +2694,13 @@ module mod_clm_histfile
       call clm_addvar(clmvar_text,ncid,'locfnh', &
               cdims=(/'max_chars','ntapes   '/), &
               long_name='History filename',      &
-              comment='This variable NOT needed for startup'&
-                     &' simulations')
+              comment='This variable NOT needed for startup&
+                     & simulations')
       call clm_addvar(clmvar_text,ncid,'locfnhr', &
               cdims=(/'max_chars','ntapes   '/), &
               long_name='Restart history filename',      &
-              comment='This variable NOT needed for startup'&
-                     &' simulations')
+              comment='This variable NOT needed for startup&
+                     & simulations')
 
       ! max_nflds is the maximum number of fields on any tape
       ! max_flds is the maximum number possible number of fields 
@@ -2719,7 +2719,7 @@ module mod_clm_histfile
         ! Create the restart history filename and open it
         !
         write(hnum,'(i1.1)') t-1
-        locfnhr(t) = "./" // trim(caseid) //".clm2"// trim(inst_suffix) &
+        locfnhr(t) = trim(dirout)//trim(caseid)//".clm."//trim(inst_suffix) &
                         // ".rh" // hnum //"."// trim(rdate) //".nc"
 
         call htape_create( t, histrest=.true. )
@@ -2754,7 +2754,7 @@ module mod_clm_histfile
                 call clm_addvar(clmvar_double,ncid_hist(t),trim(name), &
                   cdims=(/dim1name/),long_name=trim(long_name), &
                   units=trim(units))
-                call clm_addvar(clmvar_double,ncid_hist(t),trim(name_acc), &
+                call clm_addvar(clmvar_integer,ncid_hist(t),trim(name_acc), &
                   cdims=(/dim1name/),long_name=trim(long_name_acc), &
                   units=trim(units_acc))
               else
@@ -2762,7 +2762,7 @@ module mod_clm_histfile
                 call clm_addvar(clmvar_double,ncid_hist(t),trim(name), &
                   cdims=(/dim1name,dim2name/),long_name=trim(long_name), &
                   units=trim(units))
-                call clm_addvar(clmvar_double,ncid_hist(t),trim(name_acc), &
+                call clm_addvar(clmvar_integer,ncid_hist(t),trim(name_acc), &
                   cdims=(/dim1name,dim2name/),long_name=trim(long_name_acc), &
                   units=trim(units_acc))
               end if
@@ -2771,7 +2771,7 @@ module mod_clm_histfile
                 call clm_addvar(clmvar_double,ncid_hist(t),trim(name), &
                   cdims=(/dim1name,dim2name/),long_name=trim(long_name), &
                   units=trim(units))
-                call clm_addvar(clmvar_double,ncid_hist(t),trim(name_acc), &
+                call clm_addvar(clmvar_integer,ncid_hist(t),trim(name_acc), &
                   cdims=(/dim1name,dim2name/),long_name=trim(long_name_acc), &
                   units=trim(units_acc))
               else
@@ -2779,7 +2779,7 @@ module mod_clm_histfile
                 call clm_addvar(clmvar_double,ncid_hist(t),trim(name), &
                   cdims=(/dim1name,dim2name,dim2name/), &
                   long_name=trim(long_name), units=trim(units))
-                call clm_addvar(clmvar_double,ncid_hist(t),trim(name_acc), &
+                call clm_addvar(clmvar_integer,ncid_hist(t),trim(name_acc), &
                   cdims=(/dim1name,dim2name,dim2name/), &
                   long_name=trim(long_name_acc), units=trim(units_acc))
               end if
@@ -2877,8 +2877,8 @@ module mod_clm_histfile
       !
       ! Add history filenames to master restart file
       do t = 1 , ntapes
-        call clm_writevar(ncid,'locfnh',locfnh)
-        call clm_writevar(ncid,'locfnhr',locfnhr)
+        call clm_writevar(ncid,'locfnh',locfnh(1:ntapes))
+        call clm_writevar(ncid,'locfnhr',locfnhr(1:ntapes))
       end do
        
       fincl(:,1) = hist_fincl1(:)
@@ -3167,7 +3167,7 @@ module mod_clm_histfile
             name       =  tape(t)%hlist(f)%field%name
             name_acc   =  trim(name) // "_acc"
             type1d_out =  tape(t)%hlist(f)%field%type1d_out
-            gcomm      =  tape(t)%hlist(f)%field%gcomm
+            gcomm      => tape(t)%hlist(f)%field%gcomm
             type2d     =  tape(t)%hlist(f)%field%type2d
             num2d      =  tape(t)%hlist(f)%field%num2d
             beg1d_out  =  tape(t)%hlist(f)%field%beg1d_out
@@ -3185,11 +3185,11 @@ module mod_clm_histfile
               hbuf1d(beg1d_out:end1d_out) = hbuf(beg1d_out:end1d_out,1)
               nacs1d(beg1d_out:end1d_out) = nacs(beg1d_out:end1d_out,1)
               call clm_writevar(ncid_hist(t),trim(name),hbuf1d,gcomm)
-              call clm_writevar(ncid_hist(t),trim(name),nacs1d,gcomm)
+              call clm_writevar(ncid_hist(t),trim(name_acc),nacs1d,gcomm)
               deallocate(hbuf1d)
               deallocate(nacs1d)
             else
-              call clm_writevar(ncid_hist(t),trim(name_acc),hbuf,gcomm)
+              call clm_writevar(ncid_hist(t),trim(name),hbuf,gcomm)
               call clm_writevar(ncid_hist(t),trim(name_acc),nacs,gcomm)
             end if
           end do
@@ -3207,7 +3207,7 @@ module mod_clm_histfile
             name       =  tape(t)%hlist(f)%field%name
             name_acc   =  trim(name) // "_acc"
             type1d_out =  tape(t)%hlist(f)%field%type1d_out
-            gcomm      =  tape(t)%hlist(f)%field%gcomm
+            gcomm      => tape(t)%hlist(f)%field%gcomm
             type2d     =  tape(t)%hlist(f)%field%type2d
             num2d      =  tape(t)%hlist(f)%field%num2d
             beg1d_out  =  tape(t)%hlist(f)%field%beg1d_out
@@ -3230,7 +3230,7 @@ module mod_clm_histfile
               deallocate(nacs1d)
             else
               call clm_readvar(ncid_hist(t),trim(name),hbuf,gcomm)
-              call clm_readvar(ncid_hist(t),trim(name),nacs,gcomm)
+              call clm_readvar(ncid_hist(t),trim(name_acc),nacs,gcomm)
             end if
           end do
         end if
@@ -3771,8 +3771,9 @@ module mod_clm_histfile
       write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day,sec
     end if
     write(hist_index,'(i1.1)') hist_file - 1
-    set_hist_filename = "./"//trim(caseid)//".clm2"//trim(inst_suffix)//&
-                        ".h"//hist_index//"."//trim(cdate)//".nc"
+    set_hist_filename = trim(dirout)//trim(caseid)//".clm."// &
+                        trim(inst_suffix)//".h"//hist_index// &
+                        "."//trim(cdate)//".nc"
   end function set_hist_filename
   !
   ! Set the current pointer index and increment the value of the index.

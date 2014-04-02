@@ -306,9 +306,9 @@ module mod_clm_ch4
         forc_pch4(g) = atmch4*forc_pbot(g)
       else
         if (forc_pch4(g) == 0.D0) then
-          write(stderr,*) 'not using ch4offline, but methane concentration '&
-                  &'not passed from the atmosphere '&
-                  &'to land model! CLM Model is stopping.'
+          write(stderr,*) 'not using ch4offline, but methane concentration &
+                  &not passed from the atmosphere &
+                  &to land model! CLM Model is stopping.'
           call fatal(__FILE__,__LINE__, &
             trim(subname)//' ERROR: Methane not being passed to atmosphere')
         end if
@@ -661,8 +661,8 @@ module mod_clm_ch4
                   dtsrf*(ch4_prod_tot(c) - ch4_oxid_tot(c) - &
                          ch4_surf_flux_tot(c)*1000.D0) ! kg C --> g C
           if ( abs(errch4) > 1.D-7 ) then ! g C / m^2 / timestep
-            write(stderr,*) 'CH4 Conservation Error in CH4Mod driver, '&
-                    &'nstep, c, errch4 (gC /m^2.timestep)', ktau,c,errch4
+            write(stderr,*) 'CH4 Conservation Error in CH4Mod driver, &
+                    &nstep, c, errch4 (gC /m^2.timestep)', ktau,c,errch4
             g = cgridcell(c)
             write(stderr,*) 'Latdeg,Londeg=',clm3%g%latdeg(g),clm3%g%londeg(g)
             call fatal(__FILE__,__LINE__, &
@@ -683,14 +683,14 @@ module mod_clm_ch4
                     dtsrf*(ch4_prod_tot(c) - ch4_oxid_tot(c) - &
                            ch4_surf_flux_tot(c)*1000.D0) ! kg C --> g C
             if ( abs(errch4) > 1.D-7 ) then ! g C / m^2 / timestep
-              write(stderr,*) 'CH4 Conservation Error in CH4Mod driver '&
-                      &'for lake column, nstep, c, errch4 (gC/m^2.timestep)', &
+              write(stderr,*) 'CH4 Conservation Error in CH4Mod driver &
+                      &for lake column, nstep, c, errch4 (gC/m^2.timestep)', &
                       ktau,c,errch4
               g = cgridcell(c)
               write(stderr,*)'Latdeg,Londeg=',clm3%g%latdeg(g),clm3%g%londeg(g)
               call fatal(__FILE__,__LINE__, &
-                  trim(subname)//' ERROR: Methane conservation error, '&
-                  &'allowlakeprod')
+                  trim(subname)//' ERROR: Methane conservation error, &
+                  &allowlakeprod')
             end if
           end if
         end do
@@ -946,8 +946,8 @@ module mod_clm_ch4
           end if
 #else
           call fatal(__FILE__,__LINE__, &
-                trim(subname)//' ERROR: No source for decomp rate '&
-                      &'in CH4Prod. CH4 model currently requires CN.' )
+                trim(subname)//' ERROR: No source for decomp rate &
+                      &in CH4Prod. CH4 model currently requires CN.' )
 #endif
 ! defined CN
           ! For sensitivity studies
@@ -2486,21 +2486,21 @@ module mod_clm_ch4
               deficit = - conc_ch4_rel(c,j)*epsilon_t(c,j,1)*dz(c,j)
               if (deficit > 1.D-3 * scale_factor_gasdiff) then
                 if (deficit > 1.D-2) then
-                  write(stderr,*)'Note: sink > source in ch4_tran, '&
-                          &'sources are changing quickly relative '&
-                          &'to diffusion timestep, and/or diffusion is rapid.'
+                  write(stderr,*)'Note: sink > source in ch4_tran, &
+                          &sources are changing quickly relative &
+                          &to diffusion timestep, and/or diffusion is rapid.'
                   g = cgridcell(c)
                   write(stderr,*) 'Latdeg,Londeg=', &
                           clm3%g%latdeg(g),clm3%g%londeg(g)
-                  write(stderr,*) 'This typically occurs when there is '&
-                          &'a larger than normal diffusive flux.'
-                  write(stderr,*) 'If this occurs frequently, consider '&
-                          &'reducing land model (or methane model) '    &
-                          &'timestep, or reducing the max. sink per '   &
-                          &'timestep in the methane model.'
+                  write(stderr,*) 'This typically occurs when there is &
+                          &a larger than normal diffusive flux.'
+                  write(stderr,*) 'If this occurs frequently, consider &
+                          &reducing land model (or methane model) &
+                          &timestep, or reducing the max. sink per &
+                          &timestep in the methane model.'
                 end if
-                write(stderr,*) 'Negative conc. in ch4tran. '&
-                        &'c,j,deficit (mol):',c,j,deficit
+                write(stderr,*) 'Negative conc. in ch4tran. &
+                        &c,j,deficit (mol):',c,j,deficit
               end if
               conc_ch4_rel(c,j) = 0.D0
               ! Subtract deficit
@@ -2619,14 +2619,14 @@ module mod_clm_ch4
       if ( abs(errch4(c)) < 1.D-8 ) then
         ch4_surf_diff(c) = ch4_surf_diff(c) - errch4(c)/dtsrf
       else ! errch4 > 1e-8 mol / m^2 / timestep
-        write(stderr,*)'CH4 Conservation Error in CH4Mod during '&
-                &'diffusion, nstep, c, errch4 (mol /m^2.timestep)', &
+        write(stderr,*)'CH4 Conservation Error in CH4Mod during &
+                &diffusion, nstep, c, errch4 (mol /m^2.timestep)', &
                 ktau,c,errch4(c)
         g = cgridcell(c)
         write(stderr,*)'Latdeg,Londeg=',clm3%g%latdeg(g),clm3%g%londeg(g)
         call fatal(__FILE__,__LINE__, &
-            trim(subname)//' ERROR: CH4 Conservation Error in '&
-                          &'CH4Mod during diffusion' )
+            trim(subname)//' ERROR: CH4 Conservation Error in &
+                          &CH4Mod during diffusion' )
       end if
     end do
   end subroutine ch4_tran

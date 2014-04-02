@@ -611,18 +611,18 @@ module mod_clm_control
     if (nsrest == nsrContinue) then
       write(stdout,*) 'restart warning:'
       write(stdout,*) '   Namelist not checked for agreement with initial run.'
-      write(stdout,*) '   Namelist should not differ except for '&
-                      &'ending time step and run type'
+      write(stdout,*) '   Namelist should not differ except for &
+                      &ending time step and run type'
     end if
     if ( pertlim /= 0.0D0 ) &
       write(stdout,*) '   perturbation limit   = ',pertlim
     write(stdout,*) '   maxpatch_pft         = ',maxpatch_pft
     write(stdout,*) '   allocate_all_vegpfts = ',allocate_all_vegpfts
 ! New fields
-    write(stdout,*) ' perchroot (plant water stress based on unfrozen '&
-                   &'layers only) = ',perchroot
-    write(stdout,*) ' perchroot (plant water stress based on '&
-                   &'time-integrated active layer only) = ',perchroot
+    write(stdout,*) ' perchroot (plant water stress based on unfrozen &
+                   &layers only) = ',perchroot
+    write(stdout,*) ' perchroot (plant water stress based on &
+                   &time-integrated active layer only) = ',perchroot
 #ifdef LCH4
     write(stdout,*) &
       ' anoxia (applied to soil decomposition)             = ',anoxia

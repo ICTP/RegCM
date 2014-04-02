@@ -118,8 +118,8 @@ module mod_clm_varctl
   ! instance control
   !
   integer(ik4) , public :: inst_index
-  character(len=16) , public :: inst_name
-  character(len=16) , public :: inst_suffix
+  character(len=16) , public :: inst_name = ''
+  character(len=16) , public :: inst_suffix = 'regcm'
   !
   ! Derived variables (run, history and restart file)
   !

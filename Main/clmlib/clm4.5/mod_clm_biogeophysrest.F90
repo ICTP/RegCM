@@ -851,10 +851,10 @@ module mod_clm_biogeophysrest
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albgrd') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
-        call clm_readvar(ncid,'albgrd',cptr%cps%albgrd,gcomm_pft)
+        call clm_readvar(ncid,'albgrd',cptr%cps%albgrd,gcomm_column)
       end if
     else if ( flag == 'write' ) then
-      call clm_writevar(ncid,'albgrd',cptr%cps%albgrd,gcomm_pft)
+      call clm_writevar(ncid,'albgrd',cptr%cps%albgrd,gcomm_column)
     end if
 
     ! column type physical state variable - albgri
@@ -866,10 +866,10 @@ module mod_clm_biogeophysrest
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'albgri') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
-        call clm_readvar(ncid,'albgri',cptr%cps%albgri,gcomm_pft)
+        call clm_readvar(ncid,'albgri',cptr%cps%albgri,gcomm_column)
       end if
     else if ( flag == 'write' ) then
-      call clm_writevar(ncid,'albgri',cptr%cps%albgri,gcomm_pft)
+      call clm_writevar(ncid,'albgri',cptr%cps%albgri,gcomm_column)
     end if
 
     ! column type physical state variable - albsod
@@ -1328,10 +1328,10 @@ module mod_clm_biogeophysrest
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'T_GRND_U') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'T_GRND_U',cptr%ces%t_grnd_u,gcomm_pft)
+        call clm_readvar(ncid,'T_GRND_U',cptr%ces%t_grnd_u,gcomm_column)
       end if
     else if ( flag == 'write' ) then
-      call clm_writevar(ncid,'T_GRND_U',cptr%ces%t_grnd_u,gcomm_pft)
+      call clm_writevar(ncid,'T_GRND_U',cptr%ces%t_grnd_u,gcomm_column)
     end if
 
    ! pft energy state variable - t_ref2m_min_u
@@ -1733,7 +1733,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'fsun', (/'pft'/), &
             long_name='sunlit fraction of canopy',units='')
     else if ( flag == 'read' ) then
-      if ( clm_check_var(ncid,'fsun') ) then
+      if ( .not. clm_check_var(ncid,'fsun') ) then
         if ( ktau == 0 ) then
           do p = begp , endp
             if ( is_nan( pptr%pps%fsun(p) ) )then
@@ -1756,7 +1756,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'vcmaxcintsun', (/'pft'/), &
             long_name='sunlit canopy scaling coefficient',units='')
     else if ( flag == 'read' ) then
-      if ( clm_check_var(ncid,'vcmaxcintsun') ) then
+      if ( .not. clm_check_var(ncid,'vcmaxcintsun') ) then
         write(stderr,*) "can't find vcmaxcintsun in restart (or init) file..."
         write(stderr,*) "Initialize vcmaxcintsun to 1"
         do p = begp , endp
@@ -1775,7 +1775,7 @@ module mod_clm_biogeophysrest
       call clm_addvar(clmvar_double,ncid,'vcmaxcintsha', (/'pft'/), &
             long_name='shaded canopy scaling coefficient',units='')
     else if ( flag == 'read' ) then
-      if ( clm_check_var(ncid,'vcmaxcintsha') ) then
+      if ( .not. clm_check_var(ncid,'vcmaxcintsha') ) then
         write(stderr,*) "can't find vcmaxcintsha in restart (or init) file..."
         write(stderr,*) "Initialize vcmaxcintsha to 1"
         do p = begp , endp
@@ -2270,10 +2270,10 @@ module mod_clm_biogeophysrest
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
           write(stderr,*) 'SNICAR: This is an initial run (not a restart)'
-          write(stderr,*) 'grain size/aerosol mass data are not defined in '&
-                         &'initial condition file'
-          write(stderr,*) 'Initialize snow effective radius to fresh snow '&
-                         &'value , and snow/aerosol masses to zero.'
+          write(stderr,*) 'grain size/aerosol mass data are not defined in &
+                         &initial condition file'
+          write(stderr,*) 'Initialize snow effective radius to fresh snow &
+                         &value , and snow/aerosol masses to zero.'
           do c = begc , endc
             if ( cptr%cps%snl(c) < 0 ) then
               cptr%cps%snw_rds(c,cptr%cps%snl(c)+1:0) = snw_rds_min

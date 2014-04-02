@@ -686,9 +686,9 @@ module mod_clm_nchelper
     ncid%fname = ' '
     ncid%idimlast = -1
     ncid%ivarlast = -1
-    if ( associated(ncid%i4buf) ) deallocate(ncid%i4buf)
-    if ( associated(ncid%r4buf) ) deallocate(ncid%r4buf)
-    if ( associated(ncid%r8buf) ) deallocate(ncid%r8buf)
+    call relmem2d(ncid%i4buf)
+    call relmem2d(ncid%r4buf)
+    call relmem2d(ncid%r8buf)
   end subroutine clm_closefile
 
   subroutine clm_checkncerr(filename,line,arg)
@@ -1232,12 +1232,14 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
-      istart(1) = nt
-      icount(1) = 1
-      incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:1),icount(1:1))
+        'Error search '//vname//' in file '//trim(ncid%fname))
+      istart(2) = nt
+      istart(1) = 1
+      icount(2) = 1
+      icount(1) = len(xval)
+      incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,len(xval),mpi_character,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then

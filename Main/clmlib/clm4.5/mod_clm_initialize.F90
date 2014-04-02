@@ -211,8 +211,9 @@ module mod_clm_initialize
   ! o Initializes river routing model.
   ! o Initializes accumulation variables.
   !
-  subroutine initialize2( )
+  subroutine initialize2(rdate)
     implicit none
+    character(len=*) , intent(in) :: rdate
     integer(ik4) :: nl , na , nag     ! indices
     integer(ik4) :: i , j , k         ! indices
     integer(ik4) :: yr                ! current year (0, ...)
@@ -224,7 +225,6 @@ module mod_clm_initialize
     integer(ik4) :: begl , endl       ! beg and ending landunit indices
     integer(ik4) :: begg , endg       ! beg and ending gridcell indices
     character(len=256) :: fnamer      ! name of netcdf restart file 
-    character(len=256) :: pnamer      ! full pathname of netcdf restart file
     type(clm_filetype) :: ncid         ! netcdf id
     real(rk8) :: calday               ! calendar day
     real(rk8) :: caldaym1             ! calendar day for nstep-1
@@ -279,7 +279,7 @@ module mod_clm_initialize
     ! ------------------------------------------------------------------------
 
     if ( do_restread() ) then
-      call restFile_getfile(rfile=fnamer,path=pnamer)
+      call restFile_getfile(fnamer, rdate)
     end if
 
     ! ------------------------------------------------------------------------
