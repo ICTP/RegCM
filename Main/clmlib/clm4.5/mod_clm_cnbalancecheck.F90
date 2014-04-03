@@ -81,14 +81,14 @@ subroutine BeginCBalance(lbc, ubc, num_soilc, filter_soilc)
    ! column loop
    do fc = 1,num_soilc
       c = filter_soilc(fc)
- 
+
       ! calculate beginning column-level carbon balance,
       ! for mass conservation check
- 
+
       col_begcb(c) = totcolc(c)
 
    end do ! end of columns loop
- 
+
 
 end subroutine BeginCBalance
 !-----------------------------------------------------------------------
@@ -141,14 +141,14 @@ subroutine BeginNBalance(lbc, ubc, num_soilc, filter_soilc)
    ! column loop
    do fc = 1,num_soilc
       c = filter_soilc(fc)
- 
+
       ! calculate beginning column-level nitrogen balance,
       ! for mass conservation check
- 
+
       col_begnb(c) = totcoln(c)
 
    end do ! end of columns loop
- 
+
 end subroutine BeginNBalance
 !-----------------------------------------------------------------------
 
@@ -214,51 +214,51 @@ subroutine CBalanceCheck(lbc, ubc, num_soilc, filter_soilc)
    col_hrv_xsmrpool_to_atm        => clm3%g%l%c%ccf%pcf_a%hrv_xsmrpool_to_atm
    dwt_closs                      => clm3%g%l%c%ccf%dwt_closs
    product_closs                  => clm3%g%l%c%ccf%product_closs
-   
+
    col_cinputs                    => clm3%g%l%c%ccf%col_cinputs
    col_coutputs                   => clm3%g%l%c%ccf%col_coutputs
    col_begcb                      => clm3%g%l%c%ccbal%begcb
    col_endcb                      => clm3%g%l%c%ccbal%endcb
    col_errcb                      => clm3%g%l%c%ccbal%errcb
    som_c_leached                  => clm3%g%l%c%ccf%som_c_leached
-   
-   
+
+
    ! set time steps
    dt = real( get_step_size(), rk8 )
-   
+
    err_found = .false.
    ! column loop
    do fc = 1,num_soilc
       c = filter_soilc(fc)
-      
+
       ! calculate the total column-level carbon storage, for mass conservation check
-      
+
       col_endcb(c) = totcolc(c)
-      
+
       ! calculate total column-level inputs
-      
+
       col_cinputs(c) = gpp(c)
-      
+
       ! calculate total column-level outputs
       ! er = ar + hr, col_fire_closs includes pft-level fire losses
-      
+
       col_coutputs(c) = er(c) + col_fire_closs(c) + dwt_closs(c) + product_closs(c) + col_hrv_xsmrpool_to_atm(c)
-      
+
       ! subtract leaching flux
       col_coutputs(c) = col_coutputs(c) - som_c_leached(c)
-      
+
       ! calculate the total column-level carbon balance error for this time step
       col_errcb(c) = (col_cinputs(c) - col_coutputs(c))*dt - &
            (col_endcb(c) - col_begcb(c))
-      
+
       ! check for significant errors
       if (abs(col_errcb(c)) > 1D-8) then
          err_found = .true.
          err_index = c
       end if
-      
+
    end do ! end of columns loop
-   
+
    if (err_found) then
       c = err_index
       write(stderr,*)'column cbalance error = ', col_errcb(c), c
@@ -266,10 +266,10 @@ subroutine CBalanceCheck(lbc, ubc, num_soilc, filter_soilc)
       write(stderr,*)'begcb       = ',col_begcb(c)
       write(stderr,*)'endcb       = ',col_endcb(c)
       write(stderr,*)'delta store = ',col_endcb(c)-col_begcb(c)
-      
+
       call fatal(__FILE__,__LINE__,'clm now stopping')
    end if
-   
+
 
 end subroutine CBalanceCheck
 !-----------------------------------------------------------------------
@@ -342,7 +342,7 @@ subroutine NBalanceCheck(lbc, ubc, num_soilc, filter_soilc)
 !EOP
 !-----------------------------------------------------------------------
     ! assign local pointers to column-level arrays
-   
+
    totcoln                        => clm3%g%l%c%cns%totcoln
    ndep_to_sminn                  => clm3%g%l%c%cnf%ndep_to_sminn
    nfix_to_sminn                  => clm3%g%l%c%cnf%nfix_to_sminn
@@ -361,57 +361,57 @@ subroutine NBalanceCheck(lbc, ubc, num_soilc, filter_soilc)
    dwt_nloss                      => clm3%g%l%c%cnf%dwt_nloss
    product_nloss                  => clm3%g%l%c%cnf%product_nloss
    som_n_leached                  => clm3%g%l%c%cnf%som_n_leached
-   
+
    col_ninputs                    => clm3%g%l%c%cnf%col_ninputs
    col_noutputs                   => clm3%g%l%c%cnf%col_noutputs
    col_begnb                      => clm3%g%l%c%cnbal%begnb
    col_endnb                      => clm3%g%l%c%cnbal%endnb
    col_errnb                      => clm3%g%l%c%cnbal%errnb
-   
+
    ! set time steps
    dt = real( get_step_size(), rk8 )
-   
+
    err_found = .false.
    ! column loop
    do fc = 1,num_soilc
       c=filter_soilc(fc)
-      
+
       ! calculate the total column-level nitrogen storage, for mass conservation check
-      
+
       col_endnb(c) = totcoln(c)
-      
+
       ! calculate total column-level inputs
-      
+
       col_ninputs(c) = ndep_to_sminn(c) + nfix_to_sminn(c) + supplement_to_sminn(c)
       if (crop_prog) col_ninputs(c) = col_ninputs(c) + &
                        fert_to_sminn(c) + soyfixn_to_sminn(c)
-      
+
       ! calculate total column-level outputs
-      
+
       col_noutputs(c) = denit(c) + col_fire_nloss(c) + dwt_nloss(c) + product_nloss(c)
-      
+
 #ifndef NITRIF_DENITRIF
       col_noutputs(c) = col_noutputs(c) + sminn_leached(c)
 #else
       col_noutputs(c) = col_noutputs(c) + f_n2o_nit(c)
-      
+
       col_noutputs(c) = col_noutputs(c) + smin_no3_leached(c) + smin_no3_runoff(c)
 #endif
-      
+
       col_noutputs(c) = col_noutputs(c) - som_n_leached(c)
-      
+
       ! calculate the total column-level nitrogen balance error for this time step
-      
+
       col_errnb(c) = (col_ninputs(c) - col_noutputs(c))*dt - &
            (col_endnb(c) - col_begnb(c))
-      
+
       if (abs(col_errnb(c)) > 1D-8) then
          err_found = .true.
          err_index = c
       end if
-      
+
    end do ! end of columns loop
-   
+
    if (err_found) then
       c = err_index
       write(stderr,*)'column nbalance error = ', col_errnb(c), c
@@ -422,12 +422,12 @@ subroutine NBalanceCheck(lbc, ubc, num_soilc, filter_soilc)
       write(stderr,*)'input mass  = ',col_ninputs(c)*dt
       write(stderr,*)'output mass = ',col_noutputs(c)*dt
       write(stderr,*)'net flux    = ',(col_ninputs(c)-col_noutputs(c))*dt
-      
+
       call fatal(__FILE__,__LINE__,'clm now stopping')
    end if
-   
+
  end subroutine NBalanceCheck
  !-----------------------------------------------------------------------
 #endif
- 
+
 end module mod_clm_cnbalancecheck

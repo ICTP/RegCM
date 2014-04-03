@@ -10,7 +10,7 @@ module mod_clm_activelayer
   use mod_clm_type , only : clm3
   use mod_clm_varpar , only : nlevgrnd
   use mod_clm_varcon , only : zsoi
-  
+
   implicit none
 
   private
@@ -18,7 +18,7 @@ module mod_clm_activelayer
   save
 
   public:: alt_calc
-  
+
   contains
 
   ! Define active layer thickness similarly to frost_table, except set as
@@ -53,7 +53,7 @@ module mod_clm_activelayer
     real(rk8) , pointer , dimension(:) :: lat
     ! gridcell index of column
     integer(ik4) , pointer , dimension(:) :: cgridcell
- 
+
     integer(ik4) :: c , j , fc , g  ! counters
     integer(ik4) :: alt_ind         ! index of base of activel layer
     integer(ik4) :: year            ! year (0, ...) for nstep+1

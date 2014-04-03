@@ -187,14 +187,14 @@ module mod_clm_cndv
     ! -----------------------------------------------------------------------
     ! Create global attributes.
     ! -----------------------------------------------------------------------
-    
+
     str = 'CF1.0'
     call clm_addatt(ncid, 'conventions', trim(str))
-    
+
     call getdatetime(curdate, curtime)
     str = 'created on ' // curdate // ' ' // curtime
     call clm_addatt(ncid, 'history', trim(str))
- 
+
 #ifdef IBM
     hostname='ibm platform '
     user= 'Unknown'
@@ -202,16 +202,16 @@ module mod_clm_cndv
     ihost = hostnm(hostname)
     call getlog(user)
 #endif
-       
+
     call clm_addatt(ncid, 'logname', trim(user))
     call clm_addatt(ncid, 'host', trim(hostname))
-       
+
     str = 'Community Land Model: CLM3'
     call clm_addatt(ncid, 'source',  trim(str))
-       
+
     str = '$Name$'
     call clm_addatt(ncid, 'version', trim(str))
-       
+
     str = '$Id$'
     call clm_addatt(ncid, 'revision_id',  trim(str))
 
@@ -232,16 +232,16 @@ module mod_clm_cndv
     ! -----------------------------------------------------------------------
     ! Define dimensions.
     ! -----------------------------------------------------------------------
-    
+
     call clm_adddim(ncid,'gridcell',ldomain%ns)
     call clm_adddim(ncid,'pft',maxpatch_pft)
     call clm_adddim(ncid,'time',clmvar_unlim)
     call clm_adddim(ncid,'string_length',80)
-    
+
     ! -----------------------------------------------------------------------
     ! Define variables
     ! -----------------------------------------------------------------------
-    
+
     call get_curr_time(idatex,mdcur, mscur)
     call ref_date(yr,mon,day,nbsec)
     hours   = nbsec / 3600
@@ -253,12 +253,12 @@ module mod_clm_cndv
 90  format(i2.2,':',i2.2,':',i2.2)
     str = 'days since ' // basedate // " " // basesec
     time = mdcur + mscur/secspday
-    
+
     call clm_addvar(clmvar_double,ncid,'time',(/'time'/),'time',trim(str))
-       
+
     ! Define surface grid (coordinate variables, latitude, longitude,
     ! surface type).
-    
+
     call clm_addvar(clmvar_double,ncid,'longxy',(/'gridcell'/), &
           long_name='longitude', units='degrees_east')
     call clm_addvar(clmvar_double,ncid,'latixy',(/'gridcell'/), &

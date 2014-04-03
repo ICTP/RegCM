@@ -219,7 +219,7 @@ contains
           write(stdout,*)'index: ', ci
           write(stdout,*)'n,kl,ku,m ',n,kl,ku,m
           write(stdout,*)'dgbsv info: ',ci,info
-          
+
           write(stdout,*) ''
           write(stdout,*) 'ab matrix'
           do j=1,n

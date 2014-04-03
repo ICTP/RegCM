@@ -207,13 +207,13 @@ subroutine CStateUpdate2(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
        ! column loop
        do fc = 1,num_soilc
           c = filter_soilc(fc)
-          
+
           ! column gap mortality fluxes
           decomp_cpools_vr(c,j,i_met_lit) = decomp_cpools_vr(c,j,i_met_lit) + gap_mortality_c_to_litr_met_c(c,j) * dt
           decomp_cpools_vr(c,j,i_cel_lit) = decomp_cpools_vr(c,j,i_cel_lit) + gap_mortality_c_to_litr_cel_c(c,j) * dt
           decomp_cpools_vr(c,j,i_lig_lit) = decomp_cpools_vr(c,j,i_lig_lit) + gap_mortality_c_to_litr_lig_c(c,j) * dt
           decomp_cpools_vr(c,j,i_cwd) = decomp_cpools_vr(c,j,i_cwd) + gap_mortality_c_to_cwdc(c,j) * dt
-          
+
        end do
     end do 
 
@@ -444,7 +444,7 @@ subroutine CStateUpdate2h(num_soilc, filter_soilc, num_soilp, filter_soilp, isot
           ! wood to product pools - states updated in CNWoodProducts()
        end do
     end do
-    
+
     ! pft loop
     do fp = 1,num_soilp
        p = filter_soilp(fp)
@@ -458,7 +458,7 @@ subroutine CStateUpdate2h(num_soilc, filter_soilc, num_soilp, filter_soilp, isot
        deadstemc(p)           = deadstemc(p)          - hrv_deadstemc_to_prod100c(p)        * dt
        livecrootc(p)          = livecrootc(p)         - hrv_livecrootc_to_litter(p)         * dt
        deadcrootc(p)          = deadcrootc(p)         - hrv_deadcrootc_to_litter(p)         * dt
-       
+
        ! xsmrpool
        xsmrpool(p)            = xsmrpool(p)           - hrv_xsmrpool_to_atm(p)              * dt
 

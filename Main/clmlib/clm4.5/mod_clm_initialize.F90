@@ -165,7 +165,7 @@ module mod_clm_initialize
 
     ! Read surface dataset and set up vegetation type [vegxy] and 
     ! weight [wtxy] arrays for [maxpatch] subgrid patches.
-    
+
     call surfrd_get_data(ldomain,fsurdat)
 
     ! Determine decomposition of subgrid scale landunits, columns, pfts
@@ -262,7 +262,7 @@ module mod_clm_initialize
     ! Initialize dust emissions model 
 
     call Dustini()
-    
+
     ! Initialize MEGAN emissions model 
 
     call VOCEmission_init( )
@@ -316,7 +316,7 @@ module mod_clm_initialize
     ! Set arbitrary initial conditions for time varying fields 
     ! used in coupled carbon-nitrogen code
     ! ------------------------------------------------------------------------
-    
+
 #if (defined CN)
     if (nsrest == nsrStartup) then
       call CNiniTimeVar()
@@ -422,7 +422,7 @@ module mod_clm_initialize
     ! --------------------------------------------------------------
 
     ! Initialize filters
-    
+
 
     call allocFilters()
     call reweightWrapup()
@@ -437,7 +437,7 @@ module mod_clm_initialize
     call UrbanClumpInit()
 
     ! Finalize urban model initialization
-    
+
     call UrbanInput(mode='finalize')
 
     !

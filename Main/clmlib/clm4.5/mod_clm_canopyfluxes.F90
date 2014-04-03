@@ -112,7 +112,7 @@ module mod_clm_canopyfluxes
    real(rk8), pointer :: forc_pco2(:)   ! partial pressure co2 (Pa)
    !!! C13
    real(rk8), pointer :: forc_pc13o2(:) ! partial pressure c13o2 (Pa)
-   
+
    real(rk8), pointer :: forc_po2(:)    ! partial pressure o2 (Pa)
    real(rk8), pointer :: forc_q(:)      ! atmospheric specific humidity (kg/kg)
    real(rk8), pointer :: forc_u(:)      ! atmospheric wind speed in east direction (m/s)
@@ -150,7 +150,7 @@ module mod_clm_canopyfluxes
    real(rk8), pointer :: decl(:)        ! declination angle (radians)
    real(rk8), pointer :: max_dayl(:)    !maximum daylength for this column (s)
    real(rk8), pointer :: londeg(:)      ! longitude (degrees) (for calculation of local time)
-   
+
 !
 ! local pointers to implicit inout arguments
 !
@@ -197,7 +197,7 @@ module mod_clm_canopyfluxes
    real(rk8), pointer :: c14_psnsun(:)      ! sunlit leaf photosynthesis (umol 14CO2 /m**2/ s)
    real(rk8), pointer :: c14_psnsha(:)      ! shaded leaf photosynthesis (umol 14CO2 /m**2/ s)
    real(rk8), pointer :: rc14_atm(:)        ! C14O2/C12O2 in atmosphere
-   
+
    real(rk8), pointer :: qflx_tran_veg(:)   ! vegetation transpiration (mm H2O/s) (+ = to atm)
    real(rk8), pointer :: dt_veg(:)          ! change in t_veg, last iteration (Kelvin)
    real(rk8), pointer :: qflx_evap_veg(:)   ! vegetation evaporation (mm H2O/s) (+ = to atm)
@@ -326,7 +326,7 @@ module mod_clm_canopyfluxes
    real(rk8) :: co2(lbp:ubp)          ! atmospheric co2 partial pressure (pa)
    !!! C13
    real(rk8) :: c13o2(lbp:ubp)        ! atmospheric c13o2 partial pressure (pa)
-   
+
    real(rk8) :: o2(lbp:ubp)           ! atmospheric o2 partial pressure (pa)
    real(rk8) :: svpts(lbp:ubp)        ! saturation vapor pressure at t_veg (pa)
    real(rk8) :: eah(lbp:ubp)          ! canopy air vapor pressure (pa)
@@ -542,7 +542,7 @@ module mod_clm_canopyfluxes
    n_irrig_steps_left   => clm3%g%l%c%cps%n_irrig_steps_left
    altmax_lastyear_indx => clm3%g%l%c%cps%altmax_lastyear_indx
    altmax_indx          => clm3%g%l%c%cps%altmax_indx
-      
+
    ! Assign local pointers to derived type members (ecophysiological)
 
    dleaf          => pftcon%dleaf
@@ -578,7 +578,7 @@ module mod_clm_canopyfluxes
      btran(p)  = btran0
      btran2(p)  = btran0
    end do
-   
+
    ! calculate daylength control for Vcmax
    do f = 1, fn
      p = filterp(f)
@@ -618,7 +618,7 @@ module mod_clm_canopyfluxes
          do f = 1, fn
            p = filterp(f)
            c = pcolumn(p)
-               
+
            if (t_soisno(c,j) >= tfrz) then
              rootfr_unf(p,j) = rootfr(p,j)
            else
@@ -638,7 +638,7 @@ module mod_clm_canopyfluxes
          rootsum(p) = rootsum(p) + rootfr_unf(p,j)
        end do
      end do
-      
+
      ! normalize rootfr to total unfrozen depth
      do j = 1,nlevgrnd
        do f = 1, fn
@@ -806,11 +806,11 @@ module mod_clm_canopyfluxes
 
      co2(p) = forc_pco2(g)
      o2(p)  = forc_po2(g)
-      
+
      if ( use_c13 ) then
        c13o2(p) = forc_pc13o2(g)
      end if
-      
+
      ! Initialize flux profile
 
      nmozsgn(p) = 0
@@ -853,7 +853,7 @@ module mod_clm_canopyfluxes
 
    ! Make copies so that array sections are not passed in function
    ! calls to friction velocity
-   
+
    do f = 1, fn
      p = filterp(f)
      displa_loc(p) = displa(p)
@@ -894,7 +894,7 @@ module mod_clm_canopyfluxes
        cf  = 0.01D0/(sqrt(uaf(p))*sqrt(dleaf(ivt(p))))
        rb(p)  = 1.D0/(cf*uaf(p))
        rb1(p) = rb(p)
-  
+
        ! Parameterization for variation of csoilc with canopy density from
        ! X. Zeng, University of Arizona
 
@@ -1087,7 +1087,7 @@ module mod_clm_canopyfluxes
        efpot = forc_rho(g)*wtl*(wtgaq*(qsatl(p)+qsatldT(p)*dt_veg(p)) &
             -wtgq0*qg(c)-wtaq0(p)*forc_q(g))
        qflx_evap_veg(p) = rpp*efpot
-         
+
        ! Calculation of evaporative potentials (efpot) and
        ! interception losses; flux in kg m**-2 s-1.  ecidif
        ! holds the excess energy if all intercepted water is evaporated
@@ -1257,16 +1257,16 @@ module mod_clm_canopyfluxes
      cgrnd(p)  = cgrnds(p) + cgrndl(p)*htvp(c)
 
      ! Update dew accumulation (kg/m2)
-      
+
      h2ocan(p) = max(0.D0,h2ocan(p)+(qflx_tran_veg(p)-qflx_evap_veg(p))*dtsrf)
-      
+
      ! total photosynthesis
 
      fpsn(p)    = psnsun(p)   *laisun(p) + psnsha(p)   *laisha(p)
      fpsn_wc(p) = psnsun_wc(p)*laisun(p) + psnsha_wc(p)*laisha(p)
      fpsn_wj(p) = psnsun_wj(p)*laisun(p) + psnsha_wj(p)*laisha(p)
      fpsn_wp(p) = psnsun_wp(p)*laisun(p) + psnsha_wp(p)*laisha(p)
-      
+
 #if (defined CN)
      if ( use_c13 ) then
        rc13_canair(p) = c13o2(p)/(co2(p)-c13o2(p))
@@ -1280,7 +1280,7 @@ module mod_clm_canopyfluxes
        ! c13_psnsun(p) = 0.01095627 * psnsun(p)
        ! c13_psnsha(p) = 0.01095627 * psnsha(p)
      endif
-      
+
      if ( use_c14 ) then
        c14_psnsun(p) = rc14_atm(p) * psnsun(p)
        c14_psnsha(p) = rc14_atm(p) * psnsha(p)
@@ -1587,7 +1587,7 @@ module mod_clm_canopyfluxes
    theta_cj=>clm3%g%l%c%p%ppsyns%theta_cj
    bbb     =>clm3%g%l%c%p%ppsyns%bbb
    mbb    => clm3%g%l%c%p%ppsyns%mbb
-   
+
    !==============================================================================!
    ! Photosynthesis and stomatal conductance parameters, from:
    ! Bonan et al (2011) JGR, 116, doi:10.1029/2010JG001593
@@ -1660,7 +1660,7 @@ module mod_clm_canopyfluxes
       if (ivt(p) == nbrdlf_dcd_tmp_shrub) btran(p) = min(1.D0, btran(p) * 3.33D0)
 #endif
       if (ivt(p) == nsoybean .or. ivt(p) == nsoybeanirrig) btran(p) = min(1.D0, btran(p) * 1.25D0)
-           
+
       ! C3 or C4 photosynthesis logical variable
 
       if (nint(c3psn(ivt(p))) == 1) then
@@ -2047,17 +2047,17 @@ module mod_clm_canopyfluxes
 ! !INTERFACE:
    subroutine ci_func(ci, fval, p, iv, g, gb_mol, je, cair, oair, lmr_z, par_z,&
       rh_can, gs_mol)
-   
+
    !
    !! DESCRIPTION:
    ! evaluate the function
    ! f(ci)=ci - (ca - (1.37rb+1.65rs))*patm*an
-   
+
    ! remark:  I am attempting to maintain the original code structure, also
    ! considering one may be interested to output relevant variables for the
    ! photosynthesis model, I have decided to add these relevant variables to
    ! the clmtype structure.
-   
+
    ! !REVISION HISTORY:
    ! Dec 14, 2012: Created by Jinyun Tang
    !
@@ -2099,16 +2099,16 @@ module mod_clm_canopyfluxes
    real(rk8),pointer :: forc_pbot(:)          ! atmospheric pressure (Pa)
    real(rk8),pointer :: bbb(:)                ! Ball-Berry minimum leaf conductance (umol H2O/m**2/s)
    real(rk8),pointer :: mbb(:)                ! Ball-Berry slope of conductance-photosynthesis relationship
-   
+
    real(rk8) :: ai                  ! intermediate co-limited photosynthesis (umol CO2/m**2/s)
    real(rk8) :: cs                ! CO2 partial pressure at leaf surface (Pa)
-   
+
    real(rk8) :: aquad, bquad, cquad  ! terms for quadratic equations
    real(rk8) :: r1, r2               ! roots of quadratic equation
    real(rk8) :: fnps                 ! fraction of light absorbed by non-photosynthetic pigments
    real(rk8) :: theta_psii           ! empirical curvature parameter for electron transport rate
    real(rk8) :: theta_ip             ! empirical curvature parameter for ap photosynthesis co-limitation
-   
+
    !grid level
    forc_pbot => clm_a2l%forc_pbot
 
@@ -2193,7 +2193,7 @@ module mod_clm_canopyfluxes
    ! Derive new estimate for ci
 
    fval =ci - cair + an(p,iv) * forc_pbot(g) * (1.4D0*gs_mol+1.6D0*gb_mol) / (gb_mol*gs_mol)
-   
+
    end subroutine ci_func
 
 !------------------------------------------------------------------------------
@@ -2257,17 +2257,17 @@ module mod_clm_canopyfluxes
 ! !INTERFACE:
    subroutine brent(x, x1,x2,f1, f2, tol, ip, iv, ig, gb_mol, je, cair, oair,&
       lmr_z, par_z, rh_can, gs_mol)
-      
+
    !
    !!DESCRIPTION:
    !Use Brent's method to find the root of a single variable function ci_func, which is known to exist between x1 and x2.
    !The found root will be updated until its accuracy is tol.
-   
+
    !!REVISION HISTORY:
    !Dec 14/2012: Jinyun Tang, modified from numerical recipes in F90 by press et al. 1188-1189
    !
    !!USES:
-   
+
    !
    !!ARGUMENTS:
    implicit none
@@ -2290,10 +2290,10 @@ module mod_clm_canopyfluxes
 
    integer, parameter :: ITMAX=20            !maximum number of iterations
    real(rk8), parameter :: EPS=1.D-2       !relative error tolerance
-   
+
    integer :: iter
    real(rk8)  :: a,b,c,d,e,fa,fb,fc,p,q,r,s,tol1,xm
-   
+
    a=x1
    b=x2
    fa=f1
@@ -2366,8 +2366,8 @@ module mod_clm_canopyfluxes
    x=b
    return
    end subroutine brent
-   
-   
+
+
 !-------------------------------------------------------------------------------
 !BOP
 !
@@ -2384,11 +2384,11 @@ module mod_clm_canopyfluxes
    !we want to find x, s.t. f(x) = 0.
    !the hybrid approach combines the strength of the newton secant approach (find the solution domain)
    !and the bisection approach implemented with the Brent's method to guarrantee convergence.
-   
+
    !
    !! REVISION HISTORY:
    !Dec 14/2012: created by Jinyun Tang
-   
+
    !
    !!USES:   
    !
@@ -2419,10 +2419,10 @@ module mod_clm_canopyfluxes
    integer,  parameter :: itmax = 40          !maximum number of iterations
    real(rk8) :: tol,minx,minf
 
-   
+
    call ci_func(x0, f0, p, iv, g, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol)
    if(f0 == 0.D0)return
-   
+
    minx=x0
    minf=f0
    x1 = x0 * 0.99D0
@@ -2436,7 +2436,7 @@ module mod_clm_canopyfluxes
       minx=x1
       minf=f1
    endif   
-   
+
    !first use the secant approach, then use the brent approach as a backup
    iter = 0
    do
@@ -2460,7 +2460,7 @@ module mod_clm_canopyfluxes
          x0 = x1
          exit
       endif
-      
+
       !if a root zone is found, use the brent method for a robust backup strategy
       if(f1 * f0 < 0.D0)then
          call brent(x, x0,x1,f0,f1, tol, p, iv, g, gb_mol, je, cair, oair, &
@@ -2477,7 +2477,7 @@ module mod_clm_canopyfluxes
          exit
       endif   
    enddo
-      
+
    end subroutine hybrid
 
 !-------------------------------------------------------------------------------
@@ -2494,11 +2494,11 @@ module mod_clm_canopyfluxes
    !
    ! !REVISION HISTORY
    ! Jinyun Tang separated it out from Photosynthesis, Feb. 07/2013
-   
+
    !!USES
    use mod_clm_varcon  , only : rgas, tfrz   
    implicit none
-   
+
    real(rk8), intent(in) :: tl  ! leaf temperature in photosynthesis temperature function (K)
    real(rk8), intent(in) :: ha  ! activation energy in photosynthesis temperature function (J/mol)
 
@@ -2506,11 +2506,11 @@ module mod_clm_canopyfluxes
 ! subroutine Photosynthesis in this module
 
 ! !LOCAL VARIABLES:   
-   
+
    real(rk8) :: ans
-   
+
    ans = exp( ha / (rgas*1.D-3*(tfrz+25.D0)) * (1.D0 - (tfrz+25.D0)/tl) )
-   
+
    return
    end function ft
 
@@ -2541,7 +2541,7 @@ module mod_clm_canopyfluxes
 
 ! !LOCAL VARIABLES:      
    real(rk8) :: ans
-   
+
    ans = cc / ( 1.D0 + exp( (-hd+se*tl) / (rgas*1.D-3*tl) ) )
    return
    end function fth
@@ -2560,24 +2560,24 @@ module mod_clm_canopyfluxes
    !
    ! !REVISION HISTORY:
    ! Jinyun Tang separated it out from Photosynthesis, Feb. 07/2013
-   
+
    !
    !!USES
    use mod_clm_varcon  , only : rgas, tfrz   
    implicit none
    real(rk8), intent(in) :: hd    ! deactivation energy in photosynthesis temperature function (J/mol)
    real(rk8), intent(in) :: se    ! entropy term in photosynthesis temperature function (J/mol/K)
-   
+
 
 ! !CALLED FROM:
 ! subroutine Photosynthesis in this module
 
 ! !LOCAL VARIABLES:   
    real(rk8) :: ans
-   
+
    ans = 1.D0 + exp( (-hd+se*(tfrz+25.D0)) / (rgas*1.D-3*(tfrz+25.D0)) )
    return
-   
+
    end function fth25
 
 
@@ -2588,11 +2588,11 @@ module mod_clm_canopyfluxes
 !
 ! !INTERFACE:
    subroutine Fractionation(lbp, ubp, fn, filterp, phase)
-                              
+
 ! !DESCRIPTION:
 ! C13 fractionation during photosynthesis is calculated here after the nitrogen
 ! limitation is taken into account in the CNAllocation module.
-     
+
 ! !USES:
    use mod_clm_varctl         , only: use_c13
    use mod_clm_type
@@ -2604,7 +2604,7 @@ module mod_clm_canopyfluxes
    integer, intent(in)          :: fn                   ! size of pft filter
    integer, intent(in)          :: filterp(fn)          ! pft filter
    character(len=*), intent(in) :: phase           ! 'sun' or 'sha'
-   
+
 ! !CALLED FROM:
 ! subroutine CanopyFluxes in this module
 

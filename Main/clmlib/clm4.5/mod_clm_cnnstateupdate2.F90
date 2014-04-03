@@ -172,7 +172,7 @@ subroutine NStateUpdate2(num_soilc, filter_soilc, num_soilp, filter_soilp)
       ! column loop
       do fc = 1,num_soilc
          c = filter_soilc(fc)
-         
+
          ! column-level nitrogen fluxes from gap-phase mortality
          decomp_npools_vr(c,j,i_met_lit) = decomp_npools_vr(c,j,i_met_lit) + gap_mortality_n_to_litr_met_n(c,j) * dt
          decomp_npools_vr(c,j,i_cel_lit) = decomp_npools_vr(c,j,i_cel_lit) + gap_mortality_n_to_litr_cel_n(c,j) * dt
@@ -362,13 +362,13 @@ subroutine NStateUpdate2h(num_soilc, filter_soilc, num_soilp, filter_soilp)
       ! column loop
       do fc = 1,num_soilc
          c = filter_soilc(fc)
-         
+
          ! column-level nitrogen fluxes from harvest mortality
          decomp_npools_vr(c,j,i_met_lit) = decomp_npools_vr(c,j,i_met_lit) + harvest_n_to_litr_met_n(c,j) * dt
          decomp_npools_vr(c,j,i_cel_lit) = decomp_npools_vr(c,j,i_cel_lit) + harvest_n_to_litr_cel_n(c,j) * dt
          decomp_npools_vr(c,j,i_lig_lit) = decomp_npools_vr(c,j,i_lig_lit) + harvest_n_to_litr_lig_n(c,j) * dt
          decomp_npools_vr(c,j,i_cwd) = decomp_npools_vr(c,j,i_cwd) + harvest_n_to_cwdn(c,j)  * dt
-         
+
       end do ! end of column loop
    end do
 

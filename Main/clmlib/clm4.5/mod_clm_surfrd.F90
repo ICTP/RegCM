@@ -708,5 +708,5 @@ module mod_clm_surfrd
       end if ! error check
     end do
   end subroutine surfrd_wtxy_veg_dgvm
-   
+
 end module mod_clm_surfrd

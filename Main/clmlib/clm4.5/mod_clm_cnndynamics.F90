@@ -108,7 +108,7 @@ module mod_clm_cnndynamics
       ! use annual-mean values for NPP-NFIX relation
       do fc = 1,num_soilc
          c = filter_soilc(fc)
-         
+
          ! the value 0.001666 is set to give 100 TgN/yr when global
          ! NPP = 60 PgC/yr.  (Cleveland et al., 1999)
          ! Convert from gN/m2/yr -> gN/m2/s
@@ -121,7 +121,7 @@ module mod_clm_cnndynamics
 
       end do
    endif
-   
+
 end subroutine CNNFixation
 
 !-----------------------------------------------------------------------
@@ -283,17 +283,17 @@ subroutine CNNLeaching(lbc, ubc, num_soilc, filter_soilc)
          if (h2osoi_liq(c,j) > 0.D0) then
             disn_conc = (sf * sminn_vr(c,j) * dz(c,j) )/(h2osoi_liq(c,j) )
          end if
-         
+
          ! calculate the N leaching flux as a function of the dissolved
          ! concentration and the sub-surface drainage flux
          sminn_leached_vr(c,j) = disn_conc * drain_tot(c) * h2osoi_liq(c,j) / ( tot_water(c) * dz(c,j) )
-         
+
 #endif
          ! limit the flux based on current sminn state
          ! only let at most the assumed soluble fraction
          ! of sminn be leached on any given timestep
          sminn_leached_vr(c,j) = min(sminn_leached_vr(c,j), (sf * sminn_vr(c,j))/dt)
-      
+
          ! limit the flux to a positive value
          sminn_leached_vr(c,j) = max(sminn_leached_vr(c,j), 0.D0)
 
@@ -305,7 +305,7 @@ subroutine CNNLeaching(lbc, ubc, num_soilc, filter_soilc)
       ! Loop through columns
       do fc = 1,num_soilc
          c = filter_soilc(fc)
-         
+
 #ifndef VERTSOILC
          ! calculate the dissolved mineral N concentration (gN/kg water)
          ! assumes that 10% of mineral nitrogen is soluble
@@ -313,7 +313,7 @@ subroutine CNNLeaching(lbc, ubc, num_soilc, filter_soilc)
          if (tot_water(c) > 0.D0) then
             disn_conc = (sf_no3 * smin_no3_vr(c,j) )/tot_water(c)
          end if
-         
+
          ! calculate the N leaching flux as a function of the dissolved
          ! concentration and the sub-surface drainage flux
          smin_no3_leached_vr(c,j) = disn_conc * drain_tot(c)
@@ -359,7 +359,7 @@ subroutine CNNLeaching(lbc, ubc, num_soilc, filter_soilc)
          ! only let at most the assumed soluble fraction
          ! of smin_no3 be leached on any given timestep
          smin_no3_leached_vr(c,j) = min(smin_no3_leached_vr(c,j), (sf_no3 * smin_no3_vr(c,j))/dt)
-      
+
          ! limit the flux to a positive value
          smin_no3_leached_vr(c,j) = max(smin_no3_leached_vr(c,j), 0.D0)
 
@@ -558,27 +558,27 @@ subroutine CNSoyfix (num_soilc, filter_soilc, num_soilp, filter_soilp)
             end if
 
             ! calculate the nitrogen fixed by the soybean
-   
+
             fxr = min(1.D0, fxw, fxn) * fxg 
             fxr = max(0.D0, fxr)
             soyfixn(p) =  fxr * soy_ndemand
             soyfixn(p) = min(soyfixn(p), soy_ndemand)
-   
+
          else ! if nitrogen demand met, no fixation
-   
+
             soyfixn(p) = 0.D0
 
          end if
-   
+
       else ! if not live soybean, no fixation
-   
+
          soyfixn(p) = 0.D0
-   
+
       end if
    end do
-   
+
    call p2c(num_soilc,filter_soilc,soyfixn,soyfixn_to_sminn)
-   
+
 end subroutine CNSoyfix
 
 #endif

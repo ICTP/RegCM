@@ -305,7 +305,7 @@ subroutine NStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp)
    ! set time steps
    dt = real( get_step_size(), rk8 )
    ! column-level fluxes
-   
+
    ! column loop
    do fc = 1,num_soilc
       c = filter_soilc(fc)
@@ -313,12 +313,12 @@ subroutine NStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp)
       seedn(c) = seedn(c) - dwt_seedn_to_leaf(c) * dt
       seedn(c) = seedn(c) - dwt_seedn_to_deadstem(c) * dt
    end do
-   
+
    do j = 1, nlevdecomp
       ! column loop
       do fc = 1,num_soilc
          c = filter_soilc(fc)
-         
+
 #ifndef NITRIF_DENITRIF
          ! N deposition and fixation
          sminn_vr(c,j) = sminn_vr(c,j) + ndep_to_sminn(c)*dt * ndep_prof(c,j)
@@ -338,7 +338,7 @@ subroutine NStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp)
 
       end do
    end do
-   
+
    ! repeating N dep and fixation for crops
    if ( crop_prog )then
       do j = 1, nlevdecomp
@@ -390,7 +390,7 @@ subroutine NStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp)
          end do
       end if
    end do
-   
+
 #ifndef NITRIF_DENITRIF         
    ! immobilization/mineralization in litter-to-SOM and SOM-to-SOM fluxes and denitrification fluxes
    do k = 1, ndecomp_cascade_transitions
@@ -410,7 +410,7 @@ subroutine NStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp)
                c = filter_soilc(fc)
                sminn_vr(c,j)  = sminn_vr(c,j) - sminn_to_denit_decomp_cascade_vr(c,j,k)* dt
                sminn_vr(c,j)  = sminn_vr(c,j) + decomp_cascade_sminn_flux_vr(c,j,k)* dt
-               
+
             end do
          end do
       endif
@@ -422,10 +422,10 @@ subroutine NStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp)
          c = filter_soilc(fc)
          ! "bulk denitrification"
          sminn_vr(c,j) = sminn_vr(c,j) - sminn_to_denit_excess_vr(c,j) * dt
-         
+
          ! total plant uptake from mineral N
          sminn_vr(c,j) = sminn_vr(c,j) - sminn_to_plant_vr(c,j)*dt
-         
+
          ! flux that prevents N limitation (when Carbon_only is set)
          sminn_vr(c,j) = sminn_vr(c,j) + supplement_to_sminn_vr(c,j)*dt
       end do
@@ -438,30 +438,30 @@ subroutine NStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp)
       ! column loop
       do fc = 1,num_soilc
          c = filter_soilc(fc)
-         
+
          ! mineralization fluxes (divert a fraction of this stream to nitrification flux, add the rest to NH4 pool)
          smin_nh4_vr(c,j) = smin_nh4_vr(c,j) + gross_nmin_vr(c,j)*dt
-         
+
          ! immobilization fluxes
          smin_nh4_vr(c,j) = smin_nh4_vr(c,j) - actual_immob_nh4_vr(c,j)*dt
          smin_no3_vr(c,j) = smin_no3_vr(c,j) - actual_immob_no3_vr(c,j)*dt
-         
+
          ! plant uptake fluxes
          smin_nh4_vr(c,j) = smin_nh4_vr(c,j) - smin_nh4_to_plant_vr(c,j)*dt
          smin_no3_vr(c,j) = smin_no3_vr(c,j) - smin_no3_to_plant_vr(c,j)*dt
-         
+
          ! Account for nitrification fluxes
          smin_nh4_vr(c,j) = smin_nh4_vr(c,j) - f_nit_vr(c,j) * dt
          smin_no3_vr(c,j) = smin_no3_vr(c,j) + f_nit_vr(c,j) * dt * (1.D0 - nitrif_n2o_loss_frac)
          ! Account for denitrification fluxes
          smin_no3_vr(c,j) = smin_no3_vr(c,j) - f_denit_vr(c,j) * dt
-         
+
          ! flux that prevents N limitation (when Carbon_only is set; put all into NH4)
          smin_nh4_vr(c,j) = smin_nh4_vr(c,j) + supplement_to_sminn_vr(c,j)*dt
-         
+
          ! update diagnostic total
          sminn_vr(c,j) = smin_nh4_vr(c,j) + smin_no3_vr(c,j)
-         
+
       end do ! end of column loop
    end do
 #endif

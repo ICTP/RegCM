@@ -426,7 +426,7 @@ subroutine CStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
     dt = real( get_step_size(), rk8 )
 
     ! column level fluxes
-    
+
     ! column loop
     do fc = 1,num_soilc
        c = filter_soilc(fc)
@@ -434,7 +434,7 @@ subroutine CStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
        seedc(c) = seedc(c) - dwt_seedc_to_leaf(c) * dt
        seedc(c) = seedc(c) - dwt_seedc_to_deadstem(c) * dt
     end do
-    
+
     ! plant to litter fluxes
     do j = 1,nlevdecomp
        ! column loop
@@ -447,7 +447,7 @@ subroutine CStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
           decomp_cpools_sourcesink(c,j,i_cwd) = ( dwt_livecrootc_to_cwdc(c,j) + dwt_deadcrootc_to_cwdc(c,j) ) *dt
        end do
     end do
-    
+
     ! litter and SOM HR fluxes
     do k = 1, ndecomp_cascade_transitions
        do j = 1,nlevdecomp
@@ -477,7 +477,7 @@ subroutine CStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
     ! pft loop
     do fp = 1,num_soilp
        p = filter_soilp(fp)
- 
+
        ! phenology: transfer growth fluxes
        leafc(p)           = leafc(p)       + leafc_xfer_to_leafc(p)*dt
        leafc_xfer(p)      = leafc_xfer(p)  - leafc_xfer_to_leafc(p)*dt
@@ -500,11 +500,11 @@ subroutine CStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
            grainc(p)          = grainc(p)         + grainc_xfer_to_grainc(p)*dt
            grainc_xfer(p)     = grainc_xfer(p)    - grainc_xfer_to_grainc(p)*dt
        end if
- 
+
        ! phenology: litterfall fluxes
        leafc(p) = leafc(p) - leafc_to_litter(p)*dt
        frootc(p) = frootc(p) - frootc_to_litter(p)*dt
- 
+
        ! livewood turnover fluxes
        if (woody(ivt(p)) == 1.D0) then
            livestemc(p)  = livestemc(p)  - livestemc_to_deadstemc(p)*dt
@@ -516,7 +516,7 @@ subroutine CStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
            livestemc(p)  = livestemc(p)  - livestemc_to_litter(p)*dt
            grainc(p)     = grainc(p)     - grainc_to_food(p)*dt
        end if
- 
+
        ! maintenance respiration fluxes from cpool
        cpool(p) = cpool(p) - cpool_to_xsmrpool(p)*dt
        cpool(p) = cpool(p) - leaf_curmr(p)*dt
@@ -546,7 +546,7 @@ subroutine CStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
               xsmrpool(p) = xsmrpool(p) - xsmrpool_to_atm(p)*dt
            end if
        end if
- 
+
        ! allocation fluxes
        cpool(p)           = cpool(p)          - cpool_to_leafc(p)*dt
        leafc(p)           = leafc(p)          + cpool_to_leafc(p)*dt
@@ -584,7 +584,7 @@ subroutine CStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
            cpool(p)               = cpool(p)              - cpool_to_grainc_storage(p)*dt
            grainc_storage(p)      = grainc_storage(p)     + cpool_to_grainc_storage(p)*dt
        end if
- 
+
        ! growth respiration fluxes for current growth
        cpool(p) = cpool(p) - cpool_leaf_gr(p)*dt
        cpool(p) = cpool(p) - cpool_froot_gr(p)*dt
@@ -598,7 +598,7 @@ subroutine CStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
            cpool(p) = cpool(p) - cpool_livestem_gr(p)*dt
            cpool(p) = cpool(p) - cpool_grain_gr(p)*dt
        end if
- 
+
        ! growth respiration for transfer growth
        gresp_xfer(p) = gresp_xfer(p) - transfer_leaf_gr(p)*dt
        gresp_xfer(p) = gresp_xfer(p) - transfer_froot_gr(p)*dt
@@ -612,7 +612,7 @@ subroutine CStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
            gresp_xfer(p) = gresp_xfer(p) - transfer_livestem_gr(p)*dt
            gresp_xfer(p) = gresp_xfer(p) - transfer_grain_gr(p)*dt
        end if
- 
+
        ! growth respiration at time of storage
        cpool(p) = cpool(p) - cpool_leaf_storage_gr(p)*dt
        cpool(p) = cpool(p) - cpool_froot_storage_gr(p)*dt
@@ -626,11 +626,11 @@ subroutine CStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
            cpool(p) = cpool(p) - cpool_livestem_storage_gr(p)*dt
            cpool(p) = cpool(p) - cpool_grain_storage_gr(p)*dt
        end if
- 
+
        ! growth respiration stored for release during transfer growth
        cpool(p)         = cpool(p)         - cpool_to_gresp_storage(p)*dt
        gresp_storage(p) = gresp_storage(p) + cpool_to_gresp_storage(p)*dt
- 
+
        ! move storage pools into transfer pools
        leafc_storage(p)   = leafc_storage(p)   - leafc_storage_to_xfer(p)*dt
        leafc_xfer(p)  = leafc_xfer(p)  + leafc_storage_to_xfer(p)*dt
@@ -655,7 +655,7 @@ subroutine CStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
            grainc_storage(p)     = grainc_storage(p)    - grainc_storage_to_xfer(p)*dt
            grainc_xfer(p)        = grainc_xfer(p)       + grainc_storage_to_xfer(p)*dt
        end if
- 
+
     end do ! end of pft loop
 
 end subroutine CStateUpdate1

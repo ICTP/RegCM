@@ -537,13 +537,13 @@ subroutine CNGapPftToColumn (num_soilc, filter_soilc)
       do pi = 1,maxpatch_pft
          do fc = 1,num_soilc
             c = filter_soilc(fc)
-            
+
             if (pi <=  npfts(c)) then
                p = pfti(c) + pi - 1
-               
+
                if (pactive(p)) then
-                  
-                  
+
+
                   ! leaf gap mortality carbon fluxes
                   gap_mortality_c_to_litr_met_c(c,j) = gap_mortality_c_to_litr_met_c(c,j) + &
                        m_leafc_to_litter(p) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
@@ -551,7 +551,7 @@ subroutine CNGapPftToColumn (num_soilc, filter_soilc)
                        m_leafc_to_litter(p) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
                   gap_mortality_c_to_litr_lig_c(c,j) = gap_mortality_c_to_litr_lig_c(c,j) + &
                        m_leafc_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
-                  
+
                   ! fine root gap mortality carbon fluxes
                   gap_mortality_c_to_litr_met_c(c,j) = gap_mortality_c_to_litr_met_c(c,j) + &
                        m_frootc_to_litter(p) * fr_flab(ivt(p)) * wtcol(p) * froot_prof(p,j)
@@ -559,13 +559,13 @@ subroutine CNGapPftToColumn (num_soilc, filter_soilc)
                        m_frootc_to_litter(p) * fr_fcel(ivt(p)) * wtcol(p) * froot_prof(p,j)
                   gap_mortality_c_to_litr_lig_c(c,j) = gap_mortality_c_to_litr_lig_c(c,j) + &
                        m_frootc_to_litter(p) * fr_flig(ivt(p)) * wtcol(p) * froot_prof(p,j)
-                  
+
                   ! wood gap mortality carbon fluxes
                   gap_mortality_c_to_cwdc(c,j)  = gap_mortality_c_to_cwdc(c,j)  + &
                        (m_livestemc_to_litter(p) + m_deadstemc_to_litter(p))  * wtcol(p) * stem_prof(p,j)
                   gap_mortality_c_to_cwdc(c,j) = gap_mortality_c_to_cwdc(c,j) + &
                        (m_livecrootc_to_litter(p) + m_deadcrootc_to_litter(p)) * wtcol(p) * croot_prof(p,j)
-                  
+
                   ! storage gap mortality carbon fluxes
                   gap_mortality_c_to_litr_met_c(c,j)      = gap_mortality_c_to_litr_met_c(c,j)      + &
                        (m_leafc_storage_to_litter(p) + m_gresp_storage_to_litter(p))      * wtcol(p) * leaf_prof(p,j)
@@ -575,7 +575,7 @@ subroutine CNGapPftToColumn (num_soilc, filter_soilc)
                        (m_livestemc_storage_to_litter(p) + m_deadstemc_storage_to_litter(p))  * wtcol(p) * stem_prof(p,j)
                   gap_mortality_c_to_litr_met_c(c,j) = gap_mortality_c_to_litr_met_c(c,j) + &
                        (m_livecrootc_storage_to_litter(p) + m_deadcrootc_storage_to_litter(p)) * wtcol(p) * croot_prof(p,j)
-                  
+
                   ! transfer gap mortality carbon fluxes
                   gap_mortality_c_to_litr_met_c(c,j)      = gap_mortality_c_to_litr_met_c(c,j)      + &
                        (m_leafc_xfer_to_litter(p) + m_gresp_xfer_to_litter(p))     * wtcol(p) * leaf_prof(p,j)
@@ -585,7 +585,7 @@ subroutine CNGapPftToColumn (num_soilc, filter_soilc)
                        (m_livestemc_xfer_to_litter(p) + m_deadstemc_xfer_to_litter(p))  * wtcol(p) * stem_prof(p,j)
                   gap_mortality_c_to_litr_met_c(c,j) = gap_mortality_c_to_litr_met_c(c,j) + &
                        (m_livecrootc_xfer_to_litter(p) + m_deadcrootc_xfer_to_litter(p)) * wtcol(p) * croot_prof(p,j)
-                  
+
                   ! leaf gap mortality nitrogen fluxes
                   gap_mortality_n_to_litr_met_n(c,j) = gap_mortality_n_to_litr_met_n(c,j) + &
                        m_leafn_to_litter(p) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
@@ -593,7 +593,7 @@ subroutine CNGapPftToColumn (num_soilc, filter_soilc)
                        m_leafn_to_litter(p) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
                   gap_mortality_n_to_litr_lig_n(c,j) = gap_mortality_n_to_litr_lig_n(c,j) + &
                        m_leafn_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
-                  
+
                   ! fine root litter nitrogen fluxes
                   gap_mortality_n_to_litr_met_n(c,j) = gap_mortality_n_to_litr_met_n(c,j) + &
                        m_frootn_to_litter(p) * fr_flab(ivt(p)) * wtcol(p) * froot_prof(p,j)
@@ -601,17 +601,17 @@ subroutine CNGapPftToColumn (num_soilc, filter_soilc)
                        m_frootn_to_litter(p) * fr_fcel(ivt(p)) * wtcol(p) * froot_prof(p,j)
                   gap_mortality_n_to_litr_lig_n(c,j) = gap_mortality_n_to_litr_lig_n(c,j) + &
                        m_frootn_to_litter(p) * fr_flig(ivt(p)) * wtcol(p) * froot_prof(p,j)
-                  
+
                   ! wood gap mortality nitrogen fluxes
                   gap_mortality_n_to_cwdn(c,j)  = gap_mortality_n_to_cwdn(c,j)  + &
                        (m_livestemn_to_litter(p) + m_deadstemn_to_litter(p))  * wtcol(p) * stem_prof(p,j)
                   gap_mortality_n_to_cwdn(c,j) = gap_mortality_n_to_cwdn(c,j) + &
                        (m_livecrootn_to_litter(p) + m_deadcrootn_to_litter(p)) * wtcol(p) * croot_prof(p,j)
-                  
+
                   ! retranslocated N pool gap mortality fluxes
                   gap_mortality_n_to_litr_met_n(c,j) = gap_mortality_n_to_litr_met_n(c,j) + &
                        m_retransn_to_litter(p) * wtcol(p) * leaf_prof(p,j)
-                  
+
                   ! storage gap mortality nitrogen fluxes
                   gap_mortality_n_to_litr_met_n(c,j)      = gap_mortality_n_to_litr_met_n(c,j)      + &
                        m_leafn_storage_to_litter(p)      * wtcol(p) * leaf_prof(p,j)
@@ -621,7 +621,7 @@ subroutine CNGapPftToColumn (num_soilc, filter_soilc)
                        (m_livestemn_storage_to_litter(p) + m_deadstemn_storage_to_litter(p))  * wtcol(p) * stem_prof(p,j)
                   gap_mortality_n_to_litr_met_n(c,j) = gap_mortality_n_to_litr_met_n(c,j) + &
                        (m_livecrootn_storage_to_litter(p) + m_deadcrootn_storage_to_litter(p)) * wtcol(p) * croot_prof(p,j)
-                  
+
                   ! transfer gap mortality nitrogen fluxes
                   gap_mortality_n_to_litr_met_n(c,j)      = gap_mortality_n_to_litr_met_n(c,j)      + &
                        m_leafn_xfer_to_litter(p)      * wtcol(p) * leaf_prof(p,j)
@@ -631,11 +631,11 @@ subroutine CNGapPftToColumn (num_soilc, filter_soilc)
                        (m_livestemn_xfer_to_litter(p) + m_deadstemn_xfer_to_litter(p))  * wtcol(p) * stem_prof(p,j)
                   gap_mortality_n_to_litr_met_n(c,j) = gap_mortality_n_to_litr_met_n(c,j) + &
                        (m_livecrootn_xfer_to_litter(p) + m_deadcrootn_xfer_to_litter(p)) * wtcol(p) * croot_prof(p,j)
-                  
-                  
+
+
                end if
             end if
-            
+
          end do
       end do
    end do

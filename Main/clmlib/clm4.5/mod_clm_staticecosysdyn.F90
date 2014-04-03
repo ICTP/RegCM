@@ -367,7 +367,7 @@ module mod_clm_staticecosysdyn
     ! ----------------------------------------------------------------------
 
     call clm_openfile(fveg,ncid)
-    
+
     do k = 1 , 2   !loop over months and read vegetated data
       call clm_readvar(ncid,'MONTHLY_LAI',mlai,gcomm_gridcell,months(k))
       call clm_readvar(ncid,'MONTHLY_SAI',msai,gcomm_gridcell,months(k))

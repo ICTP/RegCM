@@ -503,7 +503,7 @@ module mod_clm_cnallocation
       ! For the nitrogen downregulation code, this is assumed
       ! to be the potential gpp, and the actual gpp will be
       ! reduced due to N limitation. 
-      
+
       ! Convert psn from umol/m2/s -> gC/m2/s
 
       ! The input psn (psnsun and psnsha) are expressed per unit LAI
@@ -522,7 +522,7 @@ module mod_clm_cnallocation
          c14_psnsun_to_cpool(p) = c14_psnsun(p) * laisun(p) * 12.011D-6
          c14_psnshade_to_cpool(p) = c14_psnsha(p) * laisha(p) * 12.011D-6
       endif
-      
+
       gpp(p) = psnsun_to_cpool(p) + psnshade_to_cpool(p)
 
       ! get the time step total maintenance respiration
@@ -537,7 +537,7 @@ module mod_clm_cnallocation
 
       ! carbon flux available for allocation
       availc(p) = gpp(p) - mr
-      
+
       ! new code added for isotope calculations, 7/1/05, PET
       ! If mr > gpp, then some mr comes from gpp, the rest comes from
       ! cpool (xsmr)
@@ -557,7 +557,7 @@ module mod_clm_cnallocation
       livecroot_xsmr(p) = livecroot_mr(p) - livecroot_curmr(p)
       grain_curmr(p) = grain_mr(p) * curmr_ratio
       grain_xsmr(p) = grain_mr(p) - grain_curmr(p)
-      
+
       ! no allocation when available c is negative
       availc(p) = max(availc(p),0.0D0)
 
@@ -581,7 +581,7 @@ module mod_clm_cnallocation
 
       f1 = froot_leaf(ivt(p))
       f2 = croot_stem(ivt(p))
-     
+
       ! modified wood allocation to be 2.2 at npp=800 gC/m2/yr, 0.2 at npp=0,
       ! constrained so that it does not go lower than 0.2 (under negative annsum_npp)
       ! This variable allocation is only for trees. Shrubs have a constant
@@ -592,7 +592,7 @@ module mod_clm_cnallocation
       else
          f3 = stem_leaf(ivt(p))
       end if
-      
+
       f4 = flivewd(ivt(p))
       g1 = grperc(ivt(p))
       g2 = grpnow(ivt(p))
@@ -621,7 +621,7 @@ module mod_clm_cnallocation
 
                ! allocation rules for crops based on maturity and linear decrease
                ! of amount allocated to roots over course of the growing season
-   
+
                if (peaklai(p) == 1) then ! lai at maximum allowed
                   arepr(p) = 0.D0
                   aleaf(p) = 1.D-5
@@ -638,7 +638,7 @@ module mod_clm_cnallocation
                   aleaf(p) = max(1.D-5, (1.D0 - aroot(p)) * fleaf)
                   astem(p) = 1.D0 - arepr(p) - aleaf(p) - aroot(p)
                end if
-   
+
                ! AgroIBIS included here an immediate adjustment to aleaf & astem if the 
                ! predicted lai from the above allocation coefficients exceeded laimx.
                ! We have decided to live with lais slightly higher than laimx by
@@ -654,7 +654,7 @@ module mod_clm_cnallocation
                ! of days has elapsed since planting
 
             else if (hui(p) >= huigrain(p)) then
-   
+
                aroot(p) = max(0.D0, min(1.D0, arooti(ivt(p)) - &
                          (arooti(ivt(p)) - arootf(ivt(p))) * min(1.D0, hui(p)/gddmaturity(p))))
                if (astemi(p) > astemf(ivt(p))) then
@@ -795,7 +795,7 @@ module mod_clm_cnallocation
          sminn_tot(c) = sminn_tot(c) + sminn_vr(c,j) * dzsoi_decomp(j)
       end do
    end do
-   
+
    do j = 1, nlevdecomp
       do fc=1,num_soilc
          c = filter_soilc(fc)      
@@ -804,7 +804,7 @@ module mod_clm_cnallocation
          else
                nuptake_prof(c,j) = nfixation_prof(c,j)
          endif
-         
+
          sum_ndemand_vr(c,j) = col_plant_ndemand(c) * nuptake_prof(c,j) + potential_immob_vr(c,j)
       end do
    end do
@@ -814,7 +814,7 @@ module mod_clm_cnallocation
          c = filter_soilc(fc)      
          l = clandunit(c)
          if (sum_ndemand_vr(c,j)*dt < sminn_vr(c,j)) then
-            
+
             ! N availability is not limiting immobilization or plant
             ! uptake, and both can proceed at their potential rates
             nlimit(c,j) = 0
@@ -840,20 +840,20 @@ module mod_clm_cnallocation
             ! N availability can not satisfy the sum of immobilization and
             ! plant growth demands, so these two demands compete for available
             ! soil mineral N resource.
-            
+
             nlimit(c,j) = 1
             if (sum_ndemand_vr(c,j) > 0.0D0) then
                actual_immob_vr(c,j) = (sminn_vr(c,j)/dt)*(potential_immob_vr(c,j) / sum_ndemand_vr(c,j))
             else
                actual_immob_vr(c,j) = 0.0D0
             end if
-            
+
             if (potential_immob_vr(c,j) > 0.0D0) then
                fpi_vr(c,j) = actual_immob_vr(c,j) / potential_immob_vr(c,j)
             else
                fpi_vr(c,j) = 0.0D0
             end if
-            
+
             sminn_to_plant_vr(c,j) = (sminn_vr(c,j)/dt) - actual_immob_vr(c,j)
          end if
       end do
@@ -872,7 +872,7 @@ module mod_clm_cnallocation
       c = filter_soilc(fc)    
       residual_sminn(c) = 0.D0
    end do
-   
+
    ! sum up total N left over after initial plant and immobilization fluxes
    do fc=1,num_soilc
       c = filter_soilc(fc)    
@@ -948,7 +948,7 @@ module mod_clm_cnallocation
       else
          fpg(c) = 1.0D0
       end if
-      
+
       ! calculate the fraction of immobilization realized (for diagnostic purposes)
       if (potential_immob(c) > 0.0D0) then
          fpi(c) = actual_immob(c) / potential_immob(c)
@@ -1004,11 +1004,11 @@ module mod_clm_cnallocation
             fpi_nh4_vr(c,j) = 1.0D0
             actual_immob_nh4_vr(c,j) = potential_immob_vr(c,j)
             smin_nh4_to_plant_vr(c,j) = col_plant_ndemand(c) * nuptake_prof(c,j)
-            
+
             f_nit_vr(c,j) = pot_f_nit_vr(c,j)
-            
+
          else
-            
+
             ! NH4 availability can not satisfy the sum of immobilization, nitrification, and
             ! plant growth demands, so these three demands compete for available
             ! soil mineral NH4 resource.
@@ -1028,13 +1028,13 @@ module mod_clm_cnallocation
                smin_nh4_to_plant_vr(c,j) = 0.0D0
                f_nit_vr(c,j) = 0.0D0
             end if
-            
+
             if (potential_immob_vr(c,j) > 0.0D0) then
                fpi_nh4_vr(c,j) = actual_immob_nh4_vr(c,j) / potential_immob_vr(c,j)
             else
                fpi_nh4_vr(c,j) = 0.0D0
             end if
-            
+
          end if
 
          ! next compete for no3
@@ -1054,11 +1054,11 @@ module mod_clm_cnallocation
             actual_immob_no3_vr(c,j) = (potential_immob_vr(c,j)-actual_immob_nh4_vr(c,j))
             smin_no3_to_plant_vr(c,j) = &
               (col_plant_ndemand(c)*nuptake_prof(c,j)-smin_nh4_to_plant_vr(c,j))
-            
+
             f_denit_vr(c,j) = pot_f_denit_vr(c,j)
-            
+
          else 
-            
+
             ! NO3 availability can not satisfy the sum of immobilization, denitrification, and
             ! plant growth demands, so these three demands compete for available
             ! soil mineral NO3 resource.
@@ -1081,28 +1081,28 @@ module mod_clm_cnallocation
                smin_no3_to_plant_vr(c,j) = 0.0D0
                f_denit_vr(c,j) = 0.0D0
             end if
-            
+
             if (potential_immob_vr(c,j) > 0.0D0) then
                fpi_no3_vr(c,j) = actual_immob_no3_vr(c,j) / potential_immob_vr(c,j)
             else
                fpi_no3_vr(c,j) = 0.0D0
             end if
-            
+
          end if
-         
+
 
          ! n2o emissions: n2o from nitr is const fraction, n2o from denitr is calculated in nitrif_denitrif
          f_n2o_nit_vr(c,j) = f_nit_vr(c,j) * nitrif_n2o_loss_frac
          f_n2o_denit_vr(c,j) = f_denit_vr(c,j) / (1.D0 + n2_n2o_ratio_denit_vr(c,j))
-         
-         
+
+
          ! this code block controls the addition of N to sminn pool
          ! to eliminate any N limitation, when Carbon_Only is set.  This lets the
          ! model behave essentially as a carbon-only model, but with the
          ! benefit of keeping track of the N additions needed to
          ! eliminate N limitations, so there is still a diagnostic quantity
          ! that describes the degree of N limitation at steady-state.
-         
+
          if ( Carbon_only) then !.or. &
 !              (crop_supln .and. (itypelun(l) == istcrop) .and. &
 !               (ivt(pfti(c)) >= npcropmin)) ) then
@@ -1127,7 +1127,7 @@ module mod_clm_cnallocation
          actual_immob_vr(c,j) = actual_immob_no3_vr(c,j) + actual_immob_nh4_vr(c,j)
       end do
    end do
-   
+
    do fc=1,num_soilc
       c = filter_soilc(fc)
       ! sum up N fluxes to plant after initial competition
@@ -1157,7 +1157,7 @@ module mod_clm_cnallocation
             else
                residual_smin_nh4_vr(c,j)  = 0.D0
             endif
-            
+
             if ( residual_smin_nh4(c) .gt. 0.D0 .and. nlimit_nh4(c,j) .eq. 0 ) then
                smin_nh4_to_plant_vr(c,j) = smin_nh4_to_plant_vr(c,j) + residual_smin_nh4_vr(c,j) * &
                     min(( residual_plant_ndemand(c) *  dt ) / residual_smin_nh4(c), 1.D0) / dt
@@ -1165,7 +1165,7 @@ module mod_clm_cnallocation
          end if
       end do
    end do
-   
+
    ! re-sum up N fluxes to plant after second pass for nh4
    do fc=1,num_soilc
       c = filter_soilc(fc)
@@ -1178,7 +1178,7 @@ module mod_clm_cnallocation
          sminn_to_plant(c) = sminn_to_plant(c) + (sminn_to_plant_vr(c,j)) * dzsoi_decomp(j)
       end do
    end do
-   
+
    !
    ! and now do second pass for no3
    do fc=1,num_soilc
@@ -1186,7 +1186,7 @@ module mod_clm_cnallocation
       residual_plant_ndemand(c) = col_plant_ndemand(c) - sminn_to_plant(c)
       residual_smin_no3(c) = 0.D0
    end do
-   
+
    do j = 1, nlevdecomp
       do fc=1,num_soilc
          c = filter_soilc(fc)
@@ -1197,7 +1197,7 @@ module mod_clm_cnallocation
             else
                residual_smin_no3_vr(c,j)  = 0.D0
             endif
-            
+
             if ( residual_smin_no3(c) .gt. 0.D0 .and. nlimit_no3(c,j) .eq. 0) then
                smin_no3_to_plant_vr(c,j) = smin_no3_to_plant_vr(c,j) + residual_smin_no3_vr(c,j) * &
                     min(( residual_plant_ndemand(c) *  dt ) / residual_smin_no3(c), 1.D0) / dt
@@ -1205,7 +1205,7 @@ module mod_clm_cnallocation
          endif
       end do
    end do
-   
+
    ! re-sum up N fluxes to plant after second passes of both no3 and nh4
    do fc=1,num_soilc
       c = filter_soilc(fc)
@@ -1218,7 +1218,7 @@ module mod_clm_cnallocation
          sminn_to_plant(c) = sminn_to_plant(c) + (sminn_to_plant_vr(c,j)) * dzsoi_decomp(j)
       end do
    end do
-   
+
    ! sum up N fluxes to immobilization
    do fc=1,num_soilc
       c = filter_soilc(fc)
@@ -1243,7 +1243,7 @@ module mod_clm_cnallocation
       else
          fpg(c) = 1.D0
       end if
-      
+
       ! calculate the fraction of immobilization realized (for diagnostic purposes)
       if (potential_immob(c) > 0.0D0) then
          fpi(c) = actual_immob(c) / potential_immob(c)
@@ -1254,11 +1254,11 @@ module mod_clm_cnallocation
 #endif
 
 
-   
+
    ! start new pft loop to distribute the available N between the
    ! competing pfts on the basis of relative demand, and allocate C and N to
    ! new growth and storage
-   
+
    do fp=1,num_soilp
       p = filter_soilp(fp)
       c = pcolumn(p)
@@ -1266,7 +1266,7 @@ module mod_clm_cnallocation
       ! set some local allocation variables
       f1 = froot_leaf(ivt(p))
       f2 = croot_stem(ivt(p))
-      
+
       ! modified wood allocation to be 2.2 at npp=800 gC/m2/yr, 0.2 at npp=0,
       ! constrained so that it does not go lower than 0.2 (under negative annsum_npp)
       ! There was an error in this formula in previous version, where the coefficient
@@ -1279,7 +1279,7 @@ module mod_clm_cnallocation
       else
         f3 = stem_leaf(ivt(p))
       end if
-      
+
       f4 = flivewd(ivt(p))
       g1 = grperc(ivt(p))
       g2 = grpnow(ivt(p))

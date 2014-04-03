@@ -82,11 +82,11 @@ module mod_clm_urbaninput
     if (mode == 'initialize') then
 
       ! Read urban data
-       
+
       if (myid == italk) then
         write(stdout,*)' Reading in urban input data from surface data file ...'
       end if
-       
+
       call clm_openfile(fsurdat,ncid)
 
       if (myid == italk) then

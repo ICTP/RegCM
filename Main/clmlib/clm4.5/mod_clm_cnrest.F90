@@ -103,7 +103,7 @@ module mod_clm_cnrest
     !--------------------------------
     ! pft ecophysiological variables 
     !--------------------------------
-    
+
     ! dormant_flag
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'dormant_flag',(/'pft'/),
@@ -666,7 +666,7 @@ module mod_clm_cnrest
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
-       
+
        ! rc13_psnsun
        if (flag == 'define') then
           call ncd_defvar(ncid=ncid, varname='rc13_psnsun', xtype=ncd_double,  &
@@ -678,7 +678,7 @@ module mod_clm_cnrest
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
-       
+
        ! rc13_psnsha
        if (flag == 'define') then
           call ncd_defvar(ncid=ncid, varname='rc13_psnsha', xtype=ncd_double,  &
@@ -721,7 +721,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! leafc_storage
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='leafc_storage', xtype=ncd_double,  &
@@ -733,7 +733,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! leafc_xfer
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='leafc_xfer', xtype=ncd_double,  &
@@ -745,7 +745,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! frootc
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='frootc', xtype=ncd_double,  &
@@ -757,7 +757,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! frootc_storage
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='frootc_storage', xtype=ncd_double,  &
@@ -769,7 +769,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     !frootc_xfer 
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='frootc_xfer', xtype=ncd_double,  &
@@ -781,7 +781,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! livestemc
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='livestemc', xtype=ncd_double,  &
@@ -793,7 +793,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! livestemc_storage
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='livestemc_storage', xtype=ncd_double,  &
@@ -805,7 +805,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! livestemc_xfer
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='livestemc_xfer', xtype=ncd_double,  &
@@ -817,7 +817,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! deadstemc
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='deadstemc', xtype=ncd_double,  &
@@ -829,7 +829,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! deadstemc_storage
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='deadstemc_storage', xtype=ncd_double,  &
@@ -841,7 +841,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! deadstemc_xfer
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='deadstemc_xfer', xtype=ncd_double,  &
@@ -853,7 +853,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! livecrootc
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='livecrootc', xtype=ncd_double,  &
@@ -865,7 +865,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! livecrootc_storage
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='livecrootc_storage', xtype=ncd_double,  &
@@ -877,7 +877,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! livecrootc_xfer
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='livecrootc_xfer', xtype=ncd_double,  &
@@ -889,7 +889,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! deadcrootc
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='deadcrootc', xtype=ncd_double,  &
@@ -901,7 +901,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! deadcrootc_storage
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='deadcrootc_storage', xtype=ncd_double,  &
@@ -913,7 +913,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! deadcrootc_xfer
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='deadcrootc_xfer', xtype=ncd_double,  &
@@ -925,7 +925,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! gresp_storage
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='gresp_storage', xtype=ncd_double,  &
@@ -937,7 +937,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! gresp_xfer
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='gresp_xfer', xtype=ncd_double,  &
@@ -949,7 +949,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! cpool
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='cpool', xtype=ncd_double,  &
@@ -1016,7 +1016,7 @@ module mod_clm_cnrest
         !--------------------------------
         ! C13 pft carbon state variables 
         !--------------------------------
-        
+
         ! leafc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='leafc_13', xtype=ncd_double,  &
@@ -1039,7 +1039,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! leafc_storage
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='leafc_storage_13', xtype=ncd_double,  &
@@ -1062,7 +1062,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! leafc_xfer
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='leafc_xfer_13', xtype=ncd_double,  &
@@ -1085,7 +1085,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! frootc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='frootc_13', xtype=ncd_double,  &
@@ -1108,7 +1108,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! frootc_storage
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='frootc_storage_13', xtype=ncd_double,  &
@@ -1131,7 +1131,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         !frootc_xfer 
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='frootc_xfer_13', xtype=ncd_double,  &
@@ -1154,7 +1154,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! livestemc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='livestemc_13', xtype=ncd_double,  &
@@ -1177,7 +1177,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! livestemc_storage
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='livestemc_storage_13', xtype=ncd_double,  &
@@ -1200,7 +1200,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! livestemc_xfer
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='livestemc_xfer_13', xtype=ncd_double,  &
@@ -1223,7 +1223,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! deadstemc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='deadstemc_13', xtype=ncd_double,  &
@@ -1246,7 +1246,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! deadstemc_storage
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='deadstemc_storage_13', xtype=ncd_double,  &
@@ -1269,7 +1269,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! deadstemc_xfer
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='deadstemc_xfer_13', xtype=ncd_double,  &
@@ -1292,7 +1292,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! livecrootc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='livecrootc_13', xtype=ncd_double,  &
@@ -1315,7 +1315,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! livecrootc_storage
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='livecrootc_storage_13', xtype=ncd_double,  &
@@ -1338,7 +1338,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! livecrootc_xfer
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='livecrootc_xfer_13', xtype=ncd_double,  &
@@ -1361,7 +1361,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! deadcrootc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='deadcrootc_13', xtype=ncd_double,  &
@@ -1384,7 +1384,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! deadcrootc_storage
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='deadcrootc_storage_13', xtype=ncd_double,  &
@@ -1407,7 +1407,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! deadcrootc_xfer
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='deadcrootc_xfer_13', xtype=ncd_double,  &
@@ -1430,7 +1430,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! gresp_storage
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='gresp_storage_13', xtype=ncd_double,  &
@@ -1453,7 +1453,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! gresp_xfer
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='gresp_xfer_13', xtype=ncd_double,  &
@@ -1476,7 +1476,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! cpool
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='cpool_13', xtype=ncd_double,  &
@@ -1499,7 +1499,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! xsmrpool
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='xsmrpool_13', xtype=ncd_double,  &
@@ -1522,7 +1522,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! pft_ctrunc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='pft_ctrunc_13', xtype=ncd_double,  &
@@ -1545,7 +1545,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! totvegc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='totvegc_13', xtype=ncd_double,  &
@@ -1569,12 +1569,12 @@ module mod_clm_cnrest
            end if
         end if
      end if
-     
+
      if ( use_c14 ) then
         !--------------------------------
         ! C14 pft carbon state variables 
         !--------------------------------
-        
+
         ! leafc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='leafc_14', xtype=ncd_double,  &
@@ -1592,8 +1592,8 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
-        
+
+
         ! leafc_storage
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='leafc_storage_14', xtype=ncd_double,  &
@@ -1611,7 +1611,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! leafc_xfer
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='leafc_xfer_14', xtype=ncd_double,  &
@@ -1629,7 +1629,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! frootc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='frootc_14', xtype=ncd_double,  &
@@ -1647,7 +1647,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! frootc_storage
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='frootc_storage_14', xtype=ncd_double,  &
@@ -1665,7 +1665,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         !frootc_xfer 
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='frootc_xfer_14', xtype=ncd_double,  &
@@ -1683,7 +1683,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! livestemc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='livestemc_14', xtype=ncd_double,  &
@@ -1701,7 +1701,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! livestemc_storage
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='livestemc_storage_14', xtype=ncd_double,  &
@@ -1719,7 +1719,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! livestemc_xfer
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='livestemc_xfer_14', xtype=ncd_double,  &
@@ -1737,7 +1737,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! deadstemc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='deadstemc_14', xtype=ncd_double,  &
@@ -1755,7 +1755,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! deadstemc_storage
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='deadstemc_storage_14', xtype=ncd_double,  &
@@ -1773,7 +1773,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! deadstemc_xfer
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='deadstemc_xfer_14', xtype=ncd_double,  &
@@ -1791,7 +1791,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! livecrootc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='livecrootc_14', xtype=ncd_double,  &
@@ -1809,7 +1809,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! livecrootc_storage
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='livecrootc_storage_14', xtype=ncd_double,  &
@@ -1827,7 +1827,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! livecrootc_xfer
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='livecrootc_xfer_14', xtype=ncd_double,  &
@@ -1845,7 +1845,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! deadcrootc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='deadcrootc_14', xtype=ncd_double,  &
@@ -1863,7 +1863,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! deadcrootc_storage
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='deadcrootc_storage_14', xtype=ncd_double,  &
@@ -1881,7 +1881,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! deadcrootc_xfer
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='deadcrootc_xfer_14', xtype=ncd_double,  &
@@ -1899,7 +1899,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! gresp_storage
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='gresp_storage_14', xtype=ncd_double,  &
@@ -1917,7 +1917,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! gresp_xfer
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='gresp_xfer_14', xtype=ncd_double,  &
@@ -1935,7 +1935,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! cpool
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='cpool_14', xtype=ncd_double,  &
@@ -1953,7 +1953,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! xsmrpool
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='xsmrpool_14', xtype=ncd_double,  &
@@ -1971,7 +1971,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! pft_ctrunc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='pft_ctrunc_14', xtype=ncd_double,  &
@@ -1989,7 +1989,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! totvegc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='totvegc_14', xtype=ncd_double,  &
@@ -2007,7 +2007,7 @@ module mod_clm_cnrest
               if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
            end if
         end if
-        
+
         ! rc14_atm
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='rc14_atm', xtype=ncd_double,  &
@@ -2029,7 +2029,7 @@ module mod_clm_cnrest
     !--------------------------------
     ! pft nitrogen state variables
     !--------------------------------
-    
+
     ! leafn
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='leafn', xtype=ncd_double,  &
@@ -2041,7 +2041,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! leafn_storage
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='leafn_storage', xtype=ncd_double,  &
@@ -2053,7 +2053,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! leafn_xfer
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='leafn_xfer', xtype=ncd_double,  &
@@ -2065,7 +2065,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! frootn
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='frootn', xtype=ncd_double,  &
@@ -2077,7 +2077,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! frootn_storage
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='frootn_storage', xtype=ncd_double,  &
@@ -2089,7 +2089,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! frootn_xfer
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='frootn_xfer', xtype=ncd_double,  &
@@ -2101,7 +2101,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! livestemn
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='livestemn', xtype=ncd_double,  &
@@ -2113,7 +2113,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! livestemn_storage
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='livestemn_storage', xtype=ncd_double,  &
@@ -2125,7 +2125,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! livestemn_xfer
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='livestemn_xfer', xtype=ncd_double,  &
@@ -2137,7 +2137,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! deadstemn
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='deadstemn', xtype=ncd_double,  &
@@ -2149,7 +2149,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     !deadstemn_storage 
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='deadstemn_storage', xtype=ncd_double,  &
@@ -2161,7 +2161,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     !deadstemn_xfer 
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='deadstemn_xfer', xtype=ncd_double,  &
@@ -2173,7 +2173,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! livecrootn
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='livecrootn', xtype=ncd_double,  &
@@ -2185,7 +2185,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! livecrootn_storage
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='livecrootn_storage', xtype=ncd_double,  &
@@ -2197,7 +2197,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     !livecrootn_xfer 
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='livecrootn_xfer', xtype=ncd_double,  &
@@ -2209,7 +2209,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! deadcrootn
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='deadcrootn', xtype=ncd_double,  &
@@ -2221,7 +2221,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! deadcrootn_storage
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='deadcrootn_storage', xtype=ncd_double,  &
@@ -2233,7 +2233,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! deadcrootn_xfer
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='deadcrootn_xfer', xtype=ncd_double,  &
@@ -2245,7 +2245,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     !retransn 
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='retransn', xtype=ncd_double,  &
@@ -2257,7 +2257,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! npool
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='npool', xtype=ncd_double,  &
@@ -2269,7 +2269,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! pft_ntrunc
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='pft_ntrunc', xtype=ncd_double,  &
@@ -2281,11 +2281,11 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     !--------------------------------
     ! column physical state variables
     !--------------------------------
-    
+
     ! decl
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='decl', xtype=ncd_double,  &
@@ -2397,7 +2397,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-      
+
    !lfc
      if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='lfc', xtype=ncd_double,  &
@@ -2409,7 +2409,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if  
-   
+
     !wf
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='wf', xtype=ncd_double,  &
@@ -2422,7 +2422,7 @@ module mod_clm_cnrest
        end if  
     end if
 
-    
+
     !btran2
       if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='btran2', xtype=ncd_double,  &
@@ -2434,7 +2434,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-   
+
     !--------------------------------
     ! column carbon state variables
     !--------------------------------
@@ -2522,7 +2522,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-        
+
     ! totlitc
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='totlitc', xtype=ncd_double,  &
@@ -2534,7 +2534,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! totcolc
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='totcolc', xtype=ncd_double,  &
@@ -2546,7 +2546,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! prod10c
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='prod10c', xtype=ncd_double,  &
@@ -2558,7 +2558,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! prod100c
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='prod100c', xtype=ncd_double,  &
@@ -2570,7 +2570,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! totsomc
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='totsomc', xtype=ncd_double,  &
@@ -2588,7 +2588,7 @@ module mod_clm_cnrest
        !--------------------------------
        ! C13 column carbon state variables
        !--------------------------------
-       
+
        do k = 1, ndecomp_pools
           ptr2d => cptr%cc13s%decomp_cpools_vr(:,:,k)
           varname=trim(decomp_cascade_con%decomp_pool_name_restart(k))//'c_13'
@@ -2604,7 +2604,7 @@ module mod_clm_cnrest
              end do
           end if
        end do
-       
+
        ! seedc
        if (flag == 'define') then
           call ncd_defvar(ncid=ncid, varname='seedc_13', xtype=ncd_double,  &
@@ -2621,7 +2621,7 @@ module mod_clm_cnrest
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
-       
+
        ! col_ctrunc_13
        call cnrest_addfld_decomp(ncid=ncid, varname='col_ctrunc_13_vr', longname='', units='', flag=flag, data_rl=cptr%cc13s%col_ctrunc_vr, readvar=readvar)
 
@@ -2637,7 +2637,7 @@ module mod_clm_cnrest
        !       stopping')
        !    end if
        ! end if
-       
+
        ! totlitc
        if (flag == 'define') then
           call ncd_defvar(ncid=ncid, varname='totlitc_13', xtype=ncd_double,  &
@@ -2654,7 +2654,7 @@ module mod_clm_cnrest
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
-       
+
        ! totcolc
        if (flag == 'define') then
           call ncd_defvar(ncid=ncid, varname='totcolc_13', xtype=ncd_double,  &
@@ -2671,7 +2671,7 @@ module mod_clm_cnrest
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
-       
+
        ! prod10c
        if (flag == 'define') then
           call ncd_defvar(ncid=ncid, varname='prod10c_13', xtype=ncd_double,  &
@@ -2688,7 +2688,7 @@ module mod_clm_cnrest
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
-       
+
        ! prod100c
        if (flag == 'define') then
           call ncd_defvar(ncid=ncid, varname='prod100c_13', xtype=ncd_double,  &
@@ -2711,7 +2711,7 @@ module mod_clm_cnrest
        !--------------------------------
        ! C14 column carbon state variables
        !--------------------------------
-       
+
        do k = 1, ndecomp_pools
           ptr2d => cptr%cc14s%decomp_cpools_vr(:,:,k)
           varname=trim(decomp_cascade_con%decomp_pool_name_restart(k))//'c_14'
@@ -2727,7 +2727,7 @@ module mod_clm_cnrest
              end do
           end if
        end do
-       
+
        ! seedc
        if (flag == 'define') then
           call ncd_defvar(ncid=ncid, varname='seedc_14', xtype=ncd_double,  &
@@ -2745,7 +2745,7 @@ module mod_clm_cnrest
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
-       
+
        ! col_ctrunc_c14
        call cnrest_addfld_decomp(ncid=ncid, varname='col_ctrunc_14_vr', longname='', units='', flag=flag, data_rl=cptr%cc14s%col_ctrunc_vr, readvar=readvar)
 
@@ -2767,7 +2767,7 @@ module mod_clm_cnrest
        !       stopping')
        !    end if
        ! end if
-       
+
        ! totlitc
        if (flag == 'define') then
           call ncd_defvar(ncid=ncid, varname='totlitc_14', xtype=ncd_double,  &
@@ -2785,7 +2785,7 @@ module mod_clm_cnrest
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
-       
+
        ! totcolc
        if (flag == 'define') then
           call ncd_defvar(ncid=ncid, varname='totcolc_14', xtype=ncd_double,  &
@@ -2803,7 +2803,7 @@ module mod_clm_cnrest
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
-       
+
        ! prod10c
        if (flag == 'define') then
           call ncd_defvar(ncid=ncid, varname='prod10c_14', xtype=ncd_double,  &
@@ -2821,7 +2821,7 @@ module mod_clm_cnrest
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
        end if
-       
+
        ! prod100c
        if (flag == 'define') then
           call ncd_defvar(ncid=ncid, varname='prod100c_14', xtype=ncd_double,  &
@@ -2840,11 +2840,11 @@ module mod_clm_cnrest
           end if
        end if
     end if
-       
+
     !--------------------------------
     ! column nitrogen state variables
     !--------------------------------
-    
+
     ! sminn
     varname='sminn'
     call cnrest_addfld_decomp(ncid=ncid, varname=varname, longname='', units='', flag=flag, data_rl=cptr%cns%sminn_vr, readvar=readvar)
@@ -2852,7 +2852,7 @@ module mod_clm_cnrest
        call fatal(__FILE__,__LINE__, &
          'ERROR:: '//trim(varname)//' is required on an initialization dataset' )
     end if
-    
+
     ! decomposing N pools
     do k = 1, ndecomp_pools
        ptr2d => cptr%cns%decomp_npools_vr(:,:,k)
@@ -2863,8 +2863,8 @@ module mod_clm_cnrest
             'ERROR:: '//trim(varname)//' is required on an initialization dataset' )
        end if
     end do
-    
-    
+
+
     ! col_ntrunc
     call cnrest_addfld_decomp(ncid=ncid, varname='col_ntrunc', longname='', units='', flag=flag, data_rl=cptr%cns%col_ntrunc_vr, readvar=readvar)
 
@@ -2922,7 +2922,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! prod10n
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='prod10n', xtype=ncd_double,  &
@@ -2934,7 +2934,7 @@ module mod_clm_cnrest
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
        end if  
     end if
-    
+
     ! prod100n
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='prod100n', xtype=ncd_double,  &
@@ -3042,15 +3042,15 @@ module mod_clm_cnrest
           do c = begc, endc
              do j = 1, nlevdecomp
                 clm3%g%l%c%ccs%decomp_cpools_vr(c,j,k) = clm3%g%l%c%ccs%decomp_cpools_vr(c,j,k) * m
-                
+
                 if ( use_c13 ) then
                    clm3%g%l%c%cc13s%decomp_cpools_vr(c,j,k) = clm3%g%l%c%cc13s%decomp_cpools_vr(c,j,k) * m
                 end if
-                
+
                 if ( use_c14 ) then
                    clm3%g%l%c%cc14s%decomp_cpools_vr(c,j,k) = clm3%g%l%c%cc14s%decomp_cpools_vr(c,j,k) * m
                 end if
-                
+
                 clm3%g%l%c%cns%decomp_npools_vr(c,j,k) = clm3%g%l%c%cns%decomp_npools_vr(c,j,k) * m
              end do
           end do
@@ -3276,7 +3276,7 @@ module mod_clm_cnrest
     real(rk8), optional, pointer :: data_rl(:,:)
     logical, optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
     real(rk8), pointer :: ptr1d(:)
-    
+
 #ifdef VERTSOILC
        if (flag == 'define') then
           call ncd_defvar(ncid=ncid, varname=trim(varname)//'_vr', xtype=ncd_double,  &
@@ -3304,7 +3304,7 @@ module mod_clm_cnrest
        end if
 #endif
   end subroutine cnrest_addfld_decomp
-  
+
 #endif
 
 end module mod_clm_cnrest

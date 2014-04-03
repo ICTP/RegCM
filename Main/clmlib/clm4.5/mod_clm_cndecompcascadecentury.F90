@@ -224,7 +224,7 @@ subroutine init_decompcascade(begc, endc)
    is_metabolic(i_litr1) = .true.
    is_cellulose(i_litr1) = .false.
    is_lignin(i_litr1) = .false.
-   
+
    i_litr2 = i_cel_lit
    floating_cn_ratio_decomp_pools(i_litr2) = .true.
    decomp_pool_name_restart(i_litr2) = 'litr2'
@@ -519,7 +519,7 @@ subroutine decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
       call fatal(__FILE__,__LINE__, &
         'ERROR: cannot have both use_century_tfunc and normalize_q10_to_century_tfunc set as true' )
    endif
-   
+
    days_per_year = get_days_per_year()
 
    ! tau (yrs) at reference temperature
@@ -547,7 +547,7 @@ subroutine decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
    k_s2 = 1._r8 / (secspday * days_per_year * tau_s2)
    k_s3 = 1._r8 / (secspday * days_per_year * tau_s3)
    k_frag = 1._r8 / (secspday * days_per_year * tau_cwd)
-   
+
 
    ! calc ref rate
    catanf_30 = catanf(30._r8)
@@ -569,11 +569,11 @@ endif
 
    !--- time dependent coefficients-----!
    if ( nlevdecomp .eq. 1 ) then
-      
+
       ! calculate function to weight the temperature and water potential scalars
       ! for decomposition control.  
-      
-      
+
+
       ! the following normalizes values in fr so that they
       ! sum to 1.0 across top nlevdecomp levels on a column
       frw(lbc:ubc) = 0._r8
@@ -621,13 +621,13 @@ endif
             do fc = 1,num_soilc
                c = filter_soilc(fc)
                if (j==1) t_scalar(c,:) = 0._r8
-               
+
                t_scalar(c,1)=t_scalar(c,1) +max(catanf(t_soisno(c,j)-tfrz)/catanf_30*fr(c,j),0.01_r8)
             end do
          end do
 
       endif
-      
+
       ! calculate the rate constant scalar for soil water content.
       ! Uses the log relationship with water potential given in
       ! Andren, O., and K. Paustian, 1987. Barley straw decomposition in the field:
@@ -635,7 +635,7 @@ endif
       ! and supported by data in
       ! Orchard, V.A., and F.J. Cook, 1983. Relationship between soil respiration
       ! and soil moisture. Soil Biol. Biochem., 15(4):447-453.
-      
+
       minpsi = -10.0_r8;
 
       do j = 1,nlev_soildecomp_standard
@@ -702,7 +702,7 @@ endif
          ! as part of the modifications made to improve the seasonal cycle of 
          ! atmospheric CO2 concentration in global simulations. This does not impact
          ! the base rates at 25 C, which are calibrated from microcosm studies.
-         
+
          do j = 1, nlevdecomp
             do fc = 1,num_soilc
                c = filter_soilc(fc)
@@ -715,9 +715,9 @@ endif
                endif
             end do
          end do
-         
+
       else
-         
+
          do j = 1, nlevdecomp
             do fc = 1,num_soilc
                c = filter_soilc(fc)
@@ -734,7 +734,7 @@ endif
       ! and supported by data in
       ! Orchard, V.A., and F.J. Cook, 1983. Relationship between soil respiration
       ! and soil moisture. Soil Biol. Biochem., 15(4):447-453.
-      
+
       minpsi = -10.0_r8;
       do j = 1,nlevdecomp
          do fc = 1,num_soilc
@@ -791,7 +791,7 @@ endif
          end do
       end do
    endif
-   
+
 #if (defined VERTSOILC)
    ! add a term to reduce decomposition rate at depth
    ! for now used a fixed e-folding depth
@@ -802,7 +802,7 @@ endif
       end do
    end do
 #endif
-   
+
 #if (defined VERTSOILC)
    do j = 1,nlevdecomp
       do fc = 1,num_soilc

@@ -146,7 +146,7 @@ module mod_clm_vocemission
     real(rk8) :: gamma_a         ! activity factor for leaf age
     real(rk8) :: gamma_sm        ! activity factor for soil moisture
     real(rk8) :: gamma_c         ! activity factor for CO2 (only isoprene)
-    
+
     integer(ik4) :: class_num, n_meg_comps, imech, imeg, ii
     character(len=16) :: mech_name
 
@@ -246,7 +246,7 @@ module mod_clm_vocemission
     do imeg=1,shr_megan_megcomps_n
       meg_out(imeg)%flux_out(lbp:ubp) = 0.D0
     end do
-    
+
     gamma_out(lbp:ubp) = spval
     gammaP_out(lbp:ubp) = spval
     gammaT_out(lbp:ubp) = spval

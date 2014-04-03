@@ -188,7 +188,7 @@ module mod_clm_accumul
     else
       accum(nf)%type2d = ' '
     end if
-    
+
     ! Allocate and initialize accumulation field
 
     allocate(accum(nf)%val(beg1d:end1d,numlev))

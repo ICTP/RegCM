@@ -366,7 +366,7 @@ module mod_clm_cninitimevar
     nfixation_prof                    => clm3%g%l%c%cps%nfixation_prof
     ndep_prof                         => clm3%g%l%c%cps%ndep_prof
     qflx_irrig                     => clm3%g%l%c%cwf%qflx_irrig
-    
+
     ! dynamic landuse variables
     seedc                          => clm3%g%l%c%ccs%seedc
     prod10c                        => clm3%g%l%c%ccs%prod10c
@@ -381,7 +381,7 @@ module mod_clm_cninitimevar
     sminn_vr                          => clm3%g%l%c%cns%sminn_vr
     col_ctrunc_vr                     => clm3%g%l%c%ccs%col_ctrunc_vr
     col_ntrunc_vr                     => clm3%g%l%c%cns%col_ntrunc_vr
-    
+
     fpi_vr                                 => clm3%g%l%c%cps%fpi_vr
     alt                                    => clm3%g%l%c%cps%alt
     altmax                                 => clm3%g%l%c%cps%altmax
@@ -397,7 +397,7 @@ module mod_clm_cninitimevar
     smin_nh4                       => clm3%g%l%c%cns%smin_nh4
     smin_no3                       => clm3%g%l%c%cns%smin_no3
 #endif
-    
+
     totcolc                        => clm3%g%l%c%ccs%totcolc
     cwdc                           => clm3%g%l%c%ccs%cwdc
     totecosysc                     => clm3%g%l%c%ccs%totecosysc
@@ -405,7 +405,7 @@ module mod_clm_cninitimevar
     totsomc                        => clm3%g%l%c%ccs%totsomc
     totlitc_1m                     => clm3%g%l%c%ccs%totlitc_1m
     totsomc_1m                     => clm3%g%l%c%ccs%totsomc_1m
-    
+
     totcoln                        => clm3%g%l%c%cns%totcoln
     cwdn                           => clm3%g%l%c%cns%cwdn
     totecosysn                     => clm3%g%l%c%cns%totecosysn
@@ -609,7 +609,7 @@ module mod_clm_cninitimevar
     storvegn                       => clm3%g%l%c%p%pns%storvegn
     totpftn                        => clm3%g%l%c%p%pns%totpftn
     totvegn                        => clm3%g%l%c%p%pns%totvegn
-    
+
     ! assign local pointers for ecophysiological constants
     evergreen                      => pftcon%evergreen
     woody                          => pftcon%woody
@@ -651,7 +651,7 @@ module mod_clm_cninitimevar
          fbac1(c) = 0.D0
          farea_burned(c) = 0.D0
 
-         
+
          ! needed for CNNLeaching
          qflx_drain(c) = 0.D0
          qflx_surf(c) = 0.D0
@@ -815,7 +815,7 @@ module mod_clm_cninitimevar
    prod10n(c)    = 0.D0
    prod100n(c)   = 0.D0
    totprodn(c)   = 0.D0
-   
+
    ! also initialize dynamic landcover fluxes so that they have
    ! real values on first timestep, prior to calling pftdyn_cnbal
    clm3%g%l%c%ccf%dwt_seedc_to_leaf(c) = 0.D0
@@ -852,7 +852,7 @@ module mod_clm_cninitimevar
             end do
             clm3%g%l%c%cc13f%dwt_closs(c) = 0.D0
          endif         
-         
+
          if ( use_c14 ) then
             clm3%g%l%c%cc14f%dwt_seedc_to_leaf(c) = 0.D0
             clm3%g%l%c%cc14f%dwt_seedc_to_deadstem(c) = 0.D0
@@ -990,7 +990,7 @@ module mod_clm_cninitimevar
             c13pool(p)               = cpool(p)               * c13ratio
             c13xsmrpool(p)           = xsmrpool(p)            * c13ratio
             c13_pft_ctrunc(p)        = pft_ctrunc(p)          * c13ratio
-            
+
             ! calculate totvegc explicitly so that it is available for the isotope 
             ! code on the first time step.
             totvegc13(p)  = leafc13(p) + leafc13_storage(p) + leafc13_xfer(p) + frootc13(p) +  &
@@ -1000,7 +1000,7 @@ module mod_clm_cninitimevar
                  deadcrootc13_storage(p) + deadcrootc13_xfer(p) + c13_gresp_storage(p) +  &
                  c13_gresp_xfer(p) + c13pool(p)
          endif
-            
+
          if ( use_c14 ) then
             leafc14(p)               = leafc(p)               * c14ratio
             leafc14_storage(p)       = leafc_storage(p)       * c14ratio
@@ -1025,7 +1025,7 @@ module mod_clm_cninitimevar
             c14pool(p)               = cpool(p)               * c14ratio
             c14xsmrpool(p)           = xsmrpool(p)            * c14ratio
             c14_pft_ctrunc(p)        = pft_ctrunc(p)          * c14ratio
-            
+
             ! calculate totvegc explicitly so that it is available for the isotope 
             ! code on the first time step.
             totvegc14(p)  = leafc14(p) + leafc14_storage(p) + leafc14_xfer(p) + frootc14(p) +  &
@@ -1034,10 +1034,10 @@ module mod_clm_cninitimevar
                  livecrootc14(p) + livecrootc14_storage(p) + livecrootc14_xfer(p) + deadcrootc14(p) +  &
                  deadcrootc14_storage(p) + deadcrootc14_xfer(p) + c14_gresp_storage(p) +  &
                  c14_gresp_xfer(p) + c14pool(p)
-            
+
             rc14_atm(p) = c14ratio
          endif
-                                
+
          ! nitrogen state variables
          if (ivt(p) == noveg) then
             leafn(p) = 0.D0
@@ -1096,7 +1096,7 @@ module mod_clm_cninitimevar
             c13_psnsun(p) = 0.D0
             c13_psnsha(p) = 0.D0
          endif
-         
+
          if ( use_c14 ) then
             c14_psnsun(p) = 0.D0
             c14_psnsha(p) = 0.D0
@@ -1161,7 +1161,7 @@ module mod_clm_cninitimevar
             alphapsnsun(p) = 0.D0
             alphapsnsha(p) = 0.D0
          endif
-         
+
       end if   ! end of if-istsoil block
    end do   ! end of loop over pfts  
 #endif

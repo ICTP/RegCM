@@ -218,7 +218,7 @@ contains
     real(rk8), pointer :: mss_cnc_dst3(:,:)  ! mass concentration of dust species 3 (col,lyr) [kg/kg]
     real(rk8), pointer :: mss_cnc_dst4(:,:)  ! mass concentration of dust species 4 (col,lyr) [kg/kg]
 
-    
+
     ! New Diagnostics
     real(rk8), pointer :: snot_top(:)        ! snow temperature in top layer (col) [K]
     real(rk8), pointer :: dTdz_top(:)        ! temperature gradient in top layer (col) [K m-1]
@@ -826,7 +826,7 @@ contains
     ! Determine ending water balance and volumetric soil water
 
     do fc = 1, num_lakec
-       
+
        c = filter_lakec(fc)
        endwb(c) = h2osno(c)
     end do
@@ -904,7 +904,7 @@ contains
                 mss_bcphi(c,j) = mss_bcphi(c,j)*snowcap_scl_fct
                 mss_ocpho(c,j) = mss_ocpho(c,j)*snowcap_scl_fct
                 mss_ocphi(c,j) = mss_ocphi(c,j)*snowcap_scl_fct
-                
+
                 mss_dst1(c,j)  = mss_dst1(c,j)*snowcap_scl_fct
                 mss_dst2(c,j)  = mss_dst2(c,j)*snowcap_scl_fct
                 mss_dst3(c,j)  = mss_dst3(c,j)*snowcap_scl_fct
@@ -922,14 +922,14 @@ contains
              mss_oc_col(c)      = mss_oc_col(c)  + mss_octot(c,j)
              mss_cnc_ocphi(c,j) = mss_ocphi(c,j) / snowmass
              mss_cnc_ocpho(c,j) = mss_ocpho(c,j) / snowmass
-             
+
              mss_dsttot(c,j)    = mss_dst1(c,j)  + mss_dst2(c,j) + mss_dst3(c,j) + mss_dst4(c,j)
              mss_dst_col(c)     = mss_dst_col(c) + mss_dsttot(c,j)
              mss_cnc_dst1(c,j)  = mss_dst1(c,j)  / snowmass
              mss_cnc_dst2(c,j)  = mss_dst2(c,j)  / snowmass
              mss_cnc_dst3(c,j)  = mss_dst3(c,j)  / snowmass
              mss_cnc_dst4(c,j)  = mss_dst4(c,j)  / snowmass
-         
+
           else
              !set variables of empty snow layers to zero
              snw_rds(c,j)       = 0.D0
@@ -957,18 +957,18 @@ contains
              mss_cnc_dst4(c,j)  = 0.D0
           endif
        enddo
-       
+
        ! top-layer diagnostics
        h2osno_top(c)  = h2osoi_ice(c,snl(c)+1) + h2osoi_liq(c,snl(c)+1)
        mss_bc_top(c)  = mss_bctot(c,snl(c)+1)
        mss_oc_top(c)  = mss_octot(c,snl(c)+1)
        mss_dst_top(c) = mss_dsttot(c,snl(c)+1)
     enddo
-    
+
     ! Zero mass variables in columns without snow
     do fc = 1, num_shlakenosnowc
        c = filter_shlakenosnowc(fc)
-            
+
        h2osno_top(c)      = 0.D0
        snw_rds(c,:)       = 0.D0
 

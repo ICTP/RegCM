@@ -455,7 +455,7 @@ contains
        q_ref2m(p) = forc_q(c) + temp2(p)*dqh(p)*(1.D0/temp22m(p) - 1.D0/temp2(p))
 
        ! 2 m height relative humidity
-                                                                                
+
        call QSat(t_ref2m(p), forc_pbot(c), e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT)
 
        rh_ref2m(p) = min(100.D0, q_ref2m(p) / qsat_ref2m * 100.D0)

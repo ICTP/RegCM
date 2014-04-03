@@ -7,7 +7,7 @@ module mod_clm_cnverticalprofile
   use mod_realkinds
   use mod_stdio
   use mod_clm_varcon, only: dzsoi_decomp
-  
+
   implicit none
 
   private
@@ -15,7 +15,7 @@ module mod_clm_cnverticalprofile
   save
 
   public:: decomp_vertprofiles
-  
+
 #ifdef VERTSOILC
   logical , public :: exponential_rooting_profile = .true.
   logical , public :: pftspecific_rootingprofile = .true.
@@ -26,7 +26,7 @@ module mod_clm_cnverticalprofile
   ! (1/ e_folding depth) (1/m)
   real(rk8) , public :: surfprof_exp  = 10.0D0
 #endif
-  
+
   contains
 
   subroutine decomp_vertprofiles(lbp, ubp, lbc,ubc,num_soilc,filter_soilc,num_soilp,filter_soilp)
@@ -67,7 +67,7 @@ module mod_clm_cnverticalprofile
     integer, pointer :: altmax_lastyear_indx(:)  ! frost table depth (m)
     integer , pointer :: npfts(:)                ! number of pfts for each column
     integer , pointer :: pfti(:)                 ! beginning pft index for each column
-    
+
     ! pft level
     integer , pointer :: ivt(:)                  ! pft vegetation type
     real(rk8), pointer :: rootfr(:,:)             ! fraction of roots in each soil layer  (nlevgrnd)
@@ -87,7 +87,7 @@ module mod_clm_cnverticalprofile
     real(rk8) :: col_cinput_rootfr(lbc:ubc, 1:nlevdecomp_full)  ! col-native root fraction used for calculating inputs
     integer  :: c, j, fc, p, fp, pi
     integer  :: alt_ind
-    
+
     ! debugging temp variables
     real(rk8) :: froot_prof_sum
     real(rk8) :: croot_prof_sum
@@ -104,7 +104,7 @@ module mod_clm_cnverticalprofile
     altmax_lastyear_indx              => clm3%g%l%c%cps%altmax_lastyear_indx
     npfts                             => clm3%g%l%c%npfts
     pfti                              => clm3%g%l%c%pfti
-    
+
     ! assign local pointers at the pft level
     ivt                               => clm3%g%l%c%p%itype
     leaf_prof                         => clm3%g%l%c%p%pps%leaf_prof
@@ -123,7 +123,7 @@ module mod_clm_cnverticalprofile
     do j = 1, nlevdecomp
        surface_prof(j) = exp(-surfprof_exp * zsoi(j)) / dzsoi_decomp(j)
     end do
-    
+
     ! initialize profiles to zero
     leaf_prof(:,:) = 0.D0
     froot_prof(:,:) = 0.D0
@@ -134,7 +134,7 @@ module mod_clm_cnverticalprofile
 
     cinput_rootfr(:,:) = 0.D0
     col_cinput_rootfr(:,:) = 0.D0
-    
+
     if ( exponential_rooting_profile ) then
        if ( .not. pftspecific_rootingprofile ) then
           ! define rooting profile from exponential parameters
@@ -168,7 +168,7 @@ module mod_clm_cnverticalprofile
           end do
        end do
     endif
-    
+
     do fp = 1,num_soilp
        p = filter_soilp(fp)
        c = pcolumn(p)
@@ -196,7 +196,7 @@ module mod_clm_cnverticalprofile
           leaf_prof(p,1) = 1./dzsoi_decomp(1)
           stem_prof(p,1) = 1./dzsoi_decomp(1)
        endif
-       
+
     end do
 
     !! aggregate root profile to column
@@ -235,9 +235,9 @@ module mod_clm_cnverticalprofile
           ndep_prof(c,1) = 1./dzsoi_decomp(1)
        endif
     end do
-    
+
 #else
-    
+
     ! for one layer decomposition model, set profiles to unity
     leaf_prof(:,:) = 1.D0
     froot_prof(:,:) = 1.D0
@@ -245,9 +245,9 @@ module mod_clm_cnverticalprofile
     stem_prof(:,:) = 1.D0
     nfixation_prof(:,:) = 1.D0
     ndep_prof(:,:) = 1.D0
-    
+
 #endif
-    
+
 
     ! check to make sure integral of all profiles = 1.
     do fc = 1,num_soilc
@@ -299,8 +299,8 @@ module mod_clm_cnverticalprofile
 
 
   end subroutine decomp_vertprofiles
-  
-    
+
+
 #endif
-  
+
 end module mod_clm_cnverticalprofile

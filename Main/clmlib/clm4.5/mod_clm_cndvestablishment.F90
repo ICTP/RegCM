@@ -354,7 +354,7 @@ contains
           !now lm_ind is the max leaf mass for the year calculated in CNFire
           !except when a pft is newly established (nind==0); then lm_ind
           !is assigned a leafcmax above
- 
+
           lm_ind = leafcmax(p) * fpcgrid(p) / nind(p) ! nind>0 for sure
           if (fpcgrid(p) > 0.D0 .and. nind(p) > 0.D0) then
              stocking = nind(p)/fpcgrid(p) !#ind/m2 nat veg area -> #ind/m2 pft area

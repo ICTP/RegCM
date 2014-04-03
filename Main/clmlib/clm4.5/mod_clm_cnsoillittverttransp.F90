@@ -123,13 +123,13 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
 
 !EOP
 !-----------------------------------------------------------------------
-   
+
 
 
 
    ! Set statement functions
    aaa (pe) = max (0.D0, (1.D0 - 0.1D0 * abs(pe))**5)  ! A function from Patankar, Table 5.2, pg 95
-   
+
    is_cwd                                  => decomp_cascade_con%is_cwd
    spinup_factor                           => decomp_cascade_con%spinup_factor
    altmax                          => clm3%g%l%c%cps%altmax
@@ -137,9 +137,9 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
    som_adv_coef                    => clm3%g%l%c%cps%som_adv_coef
    som_diffus_coef                 => clm3%g%l%c%cps%som_diffus_coef
 
-   
+
    dtime = get_step_size()
-   
+
    ntype = 2
    if ( use_c13 ) then
       ntype = ntype+1
@@ -149,7 +149,7 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
    endif
    spinup_term = 1.D0
    epsilon = 1.e-30
-   
+
 #ifdef VERTSOILC
    !------ first get diffusivity / advection terms -------!
    ! use different mixing rates for bioturbation and cryoturbation, with fixed bioturbation and cryoturbation set to a maximum depth
@@ -182,7 +182,7 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
          end do
       endif
    end do
-   
+
    ! Set the distance between the node and the one ABOVE it   
    dz_node(1) = zsoi(1)
    do j = 2,nlevdecomp+1
@@ -190,10 +190,10 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
    enddo
 
 #endif
-   
+
    !------ loop over litter/som types
    do i_type = 1, ntype
-            
+
       select case (i_type)
       case (1)  ! C
          conc_ptr => clm3%g%l%c%ccs%decomp_cpools_vr
@@ -228,7 +228,7 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
       end select
 
 #ifdef VERTSOILC
-      
+
       do s = 1, ndecomp_pools
 
       if ( spinup_state .eq. 1 ) then
@@ -258,9 +258,9 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
                   !
                end do
             end do
-            
+
             ! Set Pe (Peclet #) and D/dz throughout column
-            
+
             do fc = 1, num_soilc ! dummy terms here
                c = filter_soilc (fc)
                conc_trcr(c,0) = 0.D0
@@ -271,11 +271,11 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
             do j = 1,nlevdecomp+1
                do fc = 1, num_soilc
                   c = filter_soilc (fc)
-                  
+
                   conc_trcr(c,j) = conc_ptr(c,j,s)
                   ! dz_tracer below is the difference between gridcell edges  (dzsoi_decomp)
                   ! dz_node_tracer is difference between cell centers 
-                  
+
                   ! Calculate the D and F terms in the Patankar algorithm
                   if (j == 1) then
                      d_m1_zm1(c,j) = 0.D0
@@ -329,17 +329,17 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
                enddo ! fc
             enddo ! j; nlevdecomp
 
-            
+
             ! Calculate the tridiagonal coefficients
             do j = 0,nlevdecomp +1
                do fc = 1, num_soilc
                   c = filter_soilc (fc)
                   ! g = cgridcell(c)
-                  
+
                   if (j > 0 .and. j < nlevdecomp+1) then
                      a_p_0 =  dzsoi_decomp(j) / dtime
                   endif
-                  
+
                   if (j == 0) then ! top layer (atmosphere)
                      a_tri(c,j) = 0.D0
                      b_tri(c,j) = 1.D0
@@ -363,12 +363,12 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
                   endif
                enddo ! fc; column
             enddo ! j; nlevdecomp
-            
+
             do fc = 1, num_soilc
                c = filter_soilc (fc)
                jtop(c) = 0
             enddo
-            
+
             ! subtract initial concentration and source terms for tendency calculation
             do fc = 1, num_soilc
                c = filter_soilc (fc)
@@ -380,8 +380,8 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
             ! Solve for the concentration profile for this time step
             call Tridiagonal(lbc, ubc, 0, nlevdecomp+1, jtop, num_soilc, filter_soilc, &
                  a_tri, b_tri, c_tri, r_tri, conc_trcr(lbc:ubc,0:nlevdecomp+1))
-            
-            
+
+
             ! add post-transport concentration to calculate tendency term
             do fc = 1, num_soilc
                c = filter_soilc (fc)
@@ -408,30 +408,30 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
             end do
          end do
       end do ! s (pool loop)
-      
+
 #else
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
       !! for single level case, no transport; just update the fluxes calculated in the StateUpdate1 subroutines
-      
+
       do l = 1, ndecomp_pools
          do j = 1,nlevdecomp
             do fc = 1, num_soilc
                c = filter_soilc (fc)
-               
+
                conc_ptr(c,j,l) = conc_ptr(c,j,l) + source(c,j,l)
-               
+
                trcr_tendency_ptr(c,j,l) = 0.D0
 
             end do
          end do
       end do
-      
+
 #endif
-      
+
    end do  ! i_type
-   
+
 end subroutine CNSoilLittVertTransp
- 
+
 #endif
 
 end module mod_clm_cnsoillittverttransp

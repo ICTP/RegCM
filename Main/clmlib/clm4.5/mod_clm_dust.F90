@@ -201,7 +201,7 @@ module mod_clm_dust
       ! the "bare ground" fraction of the current sub-gridscale cell decreases
       ! linearly from 1 to 0 as VAI(=tlai+tsai) increases from 0 to vai_mbl_thr
       ! if ice sheet, wetland, or lake, no dust allowed
-       
+
       if (ityplun(l) == istsoil .or. ityplun(l) == istcrop) then
         if (tlai_lu(l) < vai_mbl_thr) then
           lnd_frc_mbl(p) = 1.0D0 - (tlai_lu(l))/vai_mbl_thr
@@ -213,7 +213,7 @@ module mod_clm_dust
         lnd_frc_mbl(p) = 0.0D0   
       end if
     end do
-    
+
     do fp = 1,num_nolakep
       p = filter_nolakep(fp)
       if (lnd_frc_mbl(p)>1.0D0 .or. lnd_frc_mbl(p)<0.0D0) then
@@ -222,10 +222,10 @@ module mod_clm_dust
         call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
     end do
-    
+
     ! reset history output variables before next if-statement
     ! to avoid output = inf
-    
+
     do fp = 1,num_nolakep
       p = filter_nolakep(fp)
       flx_mss_vrt_dst_tot(p) = 0.0D0
@@ -236,30 +236,30 @@ module mod_clm_dust
         flx_mss_vrt_dst(p,n) = 0.0D0
       end do
     end do
-    
+
     do fp = 1,num_nolakep
       p = filter_nolakep(fp)
       c = pcolumn(p)
       l = plandunit(p)
       g = pgridcell(p)
-       
+
       ! only perform the following calculations if lnd_frc_mbl is non-zero 
-       
+
       if (lnd_frc_mbl(p) > 0.0D0) then
 
         ! the following comes from subr. frc_thr_rgh_fct_get
         ! purpose: compute factor by which surface roughness increases threshold
         !          friction velocity (currently a constant)
-          
+
         frc_thr_rgh_fct = 1.0D0
-          
+
         ! the following comes from subr. frc_thr_wet_fct_get
         ! purpose: compute factor by which soil moisture increases
         ! threshold friction velocity
         ! adjust threshold velocity for inhibition by moisture
         ! modified 4/5/2002 (slevis) to use gravimetric instead of volumetric
         ! water content
-          
+
         ![kg m-3] Bulk density of dry surface soil
         bd = (1.D0-watsat(c,1))*2.7D3
         ![kg kg-1] Gravimetric H2O cont
@@ -270,7 +270,7 @@ module mod_clm_dust
         else
           frc_thr_wet_fct = 1.0D0
         end if
-          
+
         ! slevis: adding liqfrac here, because related to effects
         ! from soil water
 
@@ -285,62 +285,62 @@ module mod_clm_dust
 
         wnd_frc_thr_slt = tmp1 / sqrt(forc_rho(g)) * &
                 frc_thr_wet_fct * frc_thr_rgh_fct
-          
+
         ! reset these variables which will be updated in the following if-block
 
         wnd_frc_slt = fv(p)
         flx_mss_hrz_slt_ttl = 0.0D0
         flx_mss_vrt_dst_ttl(p) = 0.0D0
-          
+
         ! the following line comes from subr. dst_mbl
         ! purpose: threshold saltation wind speed
-          
+
         wnd_rfr_thr_slt = u10(p) * wnd_frc_thr_slt / fv(p)
-          
+
         ! the following if-block comes from subr. wnd_frc_slt_get 
         ! purpose: compute the saltating friction velocity
         ! theory: saltation roughens the boundary layer, AKA "Owen's effect"
-          
+
         if (u10(p) >= wnd_rfr_thr_slt) then
           wnd_rfr_dlt = u10(p) - wnd_rfr_thr_slt
           wnd_frc_slt_dlt = 0.003D0 * wnd_rfr_dlt * wnd_rfr_dlt
           wnd_frc_slt = fv(p) + wnd_frc_slt_dlt
         end if
-          
+
         ! the following comes from subr. flx_mss_hrz_slt_ttl_Whi79_get
         ! purpose: compute vertically integrated streamwise
         ! mass flux of particles
-          
+
         if (wnd_frc_slt > wnd_frc_thr_slt) then
           wnd_frc_rat = wnd_frc_thr_slt / wnd_frc_slt
           flx_mss_hrz_slt_ttl = cst_slt * forc_rho(g) * (wnd_frc_slt**3.0D0) * &
                (1.0D0 - wnd_frc_rat) * (1.0D0 + wnd_frc_rat) * &
                (1.0D0 + wnd_frc_rat) / grav
-             
+
           ! the following loop originates from subr. dst_mbl
           ! purpose: apply land sfc and veg limitations and global tuning factor
           ! slevis: multiply flx_mss_hrz_slt_ttl by liqfrac to incude the effect
           ! of frozen soil
-             
+
           flx_mss_hrz_slt_ttl = flx_mss_hrz_slt_ttl * &
                   lnd_frc_mbl(p) * mbl_bsn_fct(c) * &
                   flx_mss_fdg_fct * liqfrac
         end if
-          
+
         ! the following comes from subr. flx_mss_vrt_dst_ttl_MaB95_get
         ! purpose: diagnose total vertical mass flux of dust from vertically
         !          integrated streamwise mass flux
-          
+
         dst_slt_flx_rat_ttl = 100.0D0 * &
                 exp( log(10.0D0) * (13.4D0 * mss_frc_cly_vld(c) - 6.0D0) )
         flx_mss_vrt_dst_ttl(p) = flx_mss_hrz_slt_ttl * dst_slt_flx_rat_ttl
-          
+
       end if   ! lnd_frc_mbl > 0.0
     end do
 
     ! the following comes from subr. flx_mss_vrt_dst_prt in C. Zender's code
     ! purpose: partition total vertical mass flux of dust into transport bins
-          
+
     do n = 1, ndst
       do m = 1, dst_src_nbr
         do fp = 1,num_nolakep
@@ -443,14 +443,14 @@ module mod_clm_dust
 
         ! Quasi-laminar layer resistance: call rss_lmn_get
         ! Size-independent thermokinetic properties
-          
+
         vsc_dyn_atm(p) = 1.72D-5 * ((forc_t(g)/273.0D0)**1.5D0) * 393.0D0 / &
                (forc_t(g)+120.0D0)      ![kg m-1 s-1] RoY94 p. 102
         mfp_atm = 2.0D0 * vsc_dyn_atm(p) / &   ![m] SeP97 p. 455
                (forc_pbot(g)*sqrt(8.0D0/(rpi*rair*forc_t(g))))
         ![m2 s-1] Kinematic viscosity of air
         vsc_knm_atm(p) = vsc_dyn_atm(p) / forc_rho(g)
-          
+
         do m = 1, ndst
           slp_crc(p,m) = 1.0D0 + 2.0D0 * mfp_atm * &
                   (1.257D0+0.4D0*exp(-1.1D0*dmt_vwr(m)/(2.0D0*mfp_atm))) / &
@@ -468,14 +468,14 @@ module mod_clm_dust
       do p = lbp,ubp
         if (pactive(p)) then
           g = pgridcell(p)
-             
+
           ![frc] SeP97 p.965
           stk_nbr = vlc_grv(p,m) * fv(p) * fv(p) / (grav * vsc_knm_atm(p))
           dff_aer = boltzk * forc_t(g) * slp_crc(p,m) / &    ![m2 s-1]
               (3.0D0*rpi * vsc_dyn_atm(p) * dmt_vwr(m))      !SeP97 p.474
           shm_nbr = vsc_knm_atm(p) / dff_aer                 ![frc] SeP97 p.972
              shm_nbr_xpn = shm_nbr_xpn_lnd                   ![frc]
-             
+
           ! fxm: Turning this on dramatically reduces
           ! deposition velocity in low wind regimes
           ! Schmidt number exponent is -2/3 over solid surfaces and
@@ -575,7 +575,7 @@ module mod_clm_dust
     real(rk8) :: sz_max(sz_nbr)       ! [m] Size Bin maxima
     real(rk8) :: sz_ctr(sz_nbr)       ! [m] Size Bin centers
     real(rk8) :: sz_dlt(sz_nbr)       ! [m] Size Bin widths
-    
+
     ! constants
     ! [m] Mass median diameter
     real(rk8) :: dmt_vma_src(dst_src_nbr) =    &
@@ -674,7 +674,7 @@ module mod_clm_dust
     ! Introducing particle diameter. Needed by atm model and by dry dep model.
     ! Taken from Charlie Zender's subroutines dst_psd_ini, dst_sz_rsl,
     ! grd_mk (dstpsd.F90) and subroutine lgn_evl (psdlgn.F90)
-    
+
     ! Charlie allows logarithmic or linear option for size distribution
     ! however, he hardwires the distribution to logarithmic in his code
     ! therefore, I take his logarithmic code only
@@ -683,7 +683,7 @@ module mod_clm_dust
     ! if ndst ever becomes different from 4, must add call grd_mk (dstpsd.F90)
     ! as done in subroutine dst_psd_ini
     ! note that here ndst = dst_nbr
-    
+
     ! Override automatic grid with preset grid if available
 
     if (ndst == 4) then

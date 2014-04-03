@@ -823,7 +823,7 @@ module mod_clm_slaketemperature
 
     call Tridiagonal(lbc, ubc, -nlevsno + 1, nlevlak + nlevgrnd, &
             jtop, num_lakec, filter_lakec, a, b, c1, r, tx)
- 
+
     ! Set t_soisno and t_lake
     do j = -nlevsno+1, nlevlak + nlevgrnd
       do fc = 1, num_lakec
@@ -1492,7 +1492,7 @@ module mod_clm_slaketemperature
     ! when the bottom lake layer started freezing in a 50m Arctic lake
     real(rk8), parameter :: smallnumber = 1.D-12
     logical  :: dophasechangeflag
-    
+
     ! Assign local pointers to derived subtypes components (column-level)
 
     qflx_snow_melt => clm3%g%l%c%cwf%qflx_snow_melt

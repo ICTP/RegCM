@@ -594,11 +594,11 @@ module mod_clm_hydrology2
     do j = 1, nlevgrnd
       do fc = 1, num_hydrologyc
         c = filter_hydrologyc(fc)
-          
+
         if (h2osoi_liq(c,j) > 0.D0) then
 
           vwc = h2osoi_liq(c,j)/(dz(c,j)*denh2o)
-             
+
           ! the following limit set to catch very small values of 
           ! fractional saturation that can crash the calculation of psi
 
@@ -607,7 +607,7 @@ module mod_clm_hydrology2
           fsattmp = max(vwc/watsat(c,j), 0.001D0)
           psi = sucsat(c,j) * (-9.8D-6) * (fsattmp)**(-bsw(c,j))  ! Mpa
           soilpsi(c,j) = min(max(psi,-15.0D0),0.D0)
-             
+
         else 
           soilpsi(c,j) = -15.0D0
         end if
@@ -669,7 +669,7 @@ module mod_clm_hydrology2
       end if
       wf(c) = tsw/stsw
     end do
-    
+
     do j = 1, nlevgrnd
       do fc = 1, num_hydrologyc
         c = filter_hydrologyc(fc)
@@ -681,7 +681,7 @@ module mod_clm_hydrology2
         end if
       end do
     end do
- 
+
     do fc = 1, num_hydrologyc
       c = filter_hydrologyc(fc)
       if (rz(c) /= 0.D0) then
@@ -727,7 +727,7 @@ module mod_clm_hydrology2
             mss_bcphi(c,j) = mss_bcphi(c,j)*snowcap_scl_fct
             mss_ocpho(c,j) = mss_ocpho(c,j)*snowcap_scl_fct
             mss_ocphi(c,j) = mss_ocphi(c,j)*snowcap_scl_fct
-                
+
             mss_dst1(c,j)  = mss_dst1(c,j)*snowcap_scl_fct
             mss_dst2(c,j)  = mss_dst2(c,j)*snowcap_scl_fct
             mss_dst3(c,j)  = mss_dst3(c,j)*snowcap_scl_fct
@@ -745,7 +745,7 @@ module mod_clm_hydrology2
           mss_oc_col(c)      = mss_oc_col(c)  + mss_octot(c,j)
           mss_cnc_ocphi(c,j) = mss_ocphi(c,j) / snowmass
           mss_cnc_ocpho(c,j) = mss_ocpho(c,j) / snowmass
-             
+
           mss_dsttot(c,j)    = mss_dst1(c,j)  + &
                   mss_dst2(c,j) + mss_dst3(c,j) + mss_dst4(c,j)
           mss_dst_col(c)     = mss_dst_col(c) + mss_dsttot(c,j)
@@ -753,7 +753,7 @@ module mod_clm_hydrology2
           mss_cnc_dst2(c,j)  = mss_dst2(c,j)  / snowmass
           mss_cnc_dst3(c,j)  = mss_dst3(c,j)  / snowmass
           mss_cnc_dst4(c,j)  = mss_dst4(c,j)  / snowmass
-         
+
         else
           !set variables of empty snow layers to zero
           snw_rds(c,j)       = 0.D0
@@ -781,14 +781,14 @@ module mod_clm_hydrology2
           mss_cnc_dst4(c,j)  = 0.D0
         end if
       end do
-       
+
       ! top-layer diagnostics
       h2osno_top(c)  = h2osoi_ice(c,snl(c)+1) + h2osoi_liq(c,snl(c)+1)
       mss_bc_top(c)  = mss_bctot(c,snl(c)+1)
       mss_oc_top(c)  = mss_octot(c,snl(c)+1)
       mss_dst_top(c) = mss_dsttot(c,snl(c)+1)
     end do
-    
+
     ! Zero mass variables in columns without snow
     do fc = 1, num_nosnowc
       c = filter_nosnowc(fc)

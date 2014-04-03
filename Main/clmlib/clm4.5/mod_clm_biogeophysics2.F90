@@ -155,7 +155,7 @@ contains
     real(rk8), pointer :: eflx_wasteheat_pft(:)  ! sensible heat flux from urban heating/cooling sources of waste heat (W/m**2)
     real(rk8), pointer :: eflx_heat_from_ac_pft(:) ! sensible heat flux put back into canyon due to removal by AC (W/m**2)
     real(rk8), pointer :: canyon_hwr(:)      ! ratio of building height to street width (-)
- 
+
 ! local pointers to implicit inout arguments
 !
     real(rk8), pointer :: eflx_sh_grnd(:)    ! sensible heat flux from ground (W/m**2) [+ to atm]
@@ -430,7 +430,7 @@ contains
                + (1-frac_veg_nosno(p))*emg(c)*forc_lwrad(g) &
             - emg(c)*sb*lw_grnd - emg(c)*sb*t_grnd0(c)**3*(4.D0*tinc(c)) &
                - (eflx_sh_grnd(p)+qflx_evap_soi(p)*htvp(c))
-          
+
           if (ltype(l) == istsoil .or. ltype(l) == istcrop) then
             eflx_soil_grnd_r(p) = eflx_soil_grnd(p)
           end if

@@ -296,7 +296,7 @@ module mod_clm_hydrology1
        g = pgridcell(p)
        l = plandunit(p)
        c = pcolumn(p)
-       
+
        ! Canopy interception and precipitation onto ground surface
        ! Add precipitation to leaf water
 
@@ -316,42 +316,42 @@ module mod_clm_hydrology1
 
                 fracsnow(p) = forc_snow(g)/(forc_snow(g) + forc_rain(g))
                 fracrain(p) = forc_rain(g)/(forc_snow(g) + forc_rain(g))
-                
+
                 ! The leaf water capacities for solid and liquid are different,
                 ! generally double for snow, but these are of somewhat less
                 ! significance for the water budget because of lower evap. rate at
                 ! lower temperature.  Hence, it is reasonable to assume that
                 ! vegetation storage of solid water is the same as liquid water.
                 h2ocanmx = dewmx(p) * (elai(p) + esai(p))
-                
+
                 ! Coefficient of interception
                 ! set fraction of potential interception to max 0.25
                 fpi = 0.25D0*(1.D0 - exp(-0.5D0*(elai(p) + esai(p))))
-                
+
                 ! Direct throughfall
                 qflx_through_snow(p) = forc_snow(g) * (1.D0-fpi)
                 qflx_through_rain(p) = forc_rain(g) * (1.D0-fpi)
-                
+
                 ! Intercepted precipitation [mm/s]
                 qflx_prec_intr(p) = (forc_snow(g) + forc_rain(g)) * fpi
-                
+
                 ! Water storage of intercepted precipitation and dew
                 h2ocan(p) = max(0.D0, h2ocan(p) + dtsrf*qflx_prec_intr(p))
                 if ( h2ocan(p) < 1.0D-10 ) h2ocan(p) = 0.0D0
-                
+
                 ! Initialize rate of canopy runoff and snow falling off canopy
                 qflx_candrip(p) = 0.D0
-                
+
                 ! Excess water that exceeds the leaf capacity
                 xrun = (h2ocan(p) - h2ocanmx)/dtsrf
-                
+
                 ! Test on maximum dew on leaf
                 ! Note if xrun > 0 then h2ocan must be at least h2ocanmx
                 if (xrun > 0.D0) then
                    qflx_candrip(p) = xrun
                    h2ocan(p) = h2ocanmx
                 end if
-                
+
              end if
           end if
 
@@ -489,7 +489,7 @@ module mod_clm_hydrology1
           accum_factor=0.1
 
           if (h2osno(c) > 0.0) then
-             
+
              !======================  FSCA PARAMETERIZATIONS  ======================
              ! fsca parameterization based on *changes* in swe
              ! first compute change from melt during previous time step
@@ -615,7 +615,7 @@ module mod_clm_hydrology1
           h2osoi_ice(c,0) = h2osno(c)               ! kg/m2
           h2osoi_liq(c,0) = 0.D0                   ! kg/m2
           frac_iceold(c,0) = 1.D0
-       
+
 
           ! intitialize SNICAR variables for fresh snow:
           snw_rds(c,0)    = snw_rds_min

@@ -30,7 +30,7 @@ module mod_clm_cndecomp
   save
 ! !PUBLIC MEMBER FUNCTIONS:
    public:: CNDecompAlloc
-   
+
 !
 ! !REVISION HISTORY:
 ! 8/15/03: Created by Peter Thornton
@@ -143,10 +143,10 @@ subroutine CNDecompAlloc (lbp, ubp, lbc, ubc, num_soilc, filter_soilc, &
    real(rk8), pointer :: phr_vr(:,:)              !potential HR (gC/m3/s)
 #endif
    real(rk8):: hrsum(lbc:ubc,1:nlevdecomp)        !sum of HR (gC/m2/s)
-   
+
    !EOP
    !-----------------------------------------------------------------------
-   
+
    decomp_cpools_vr              => clm3%g%l%c%ccs%decomp_cpools_vr
    decomp_cascade_hr_vr          => clm3%g%l%c%ccf%decomp_cascade_hr_vr
    decomp_cascade_ctransfer_vr   => clm3%g%l%c%ccf%decomp_cascade_ctransfer_vr
@@ -155,7 +155,7 @@ subroutine CNDecompAlloc (lbp, ubp, lbc, ubc, num_soilc, filter_soilc, &
    decomp_cascade_sminn_flux_vr  => clm3%g%l%c%cnf%decomp_cascade_sminn_flux_vr
    fpi_vr                => clm3%g%l%c%cps%fpi_vr
    potential_immob_vr    => clm3%g%l%c%cnf%potential_immob_vr
-   
+
    decomp_k                        => clm3%g%l%c%ccf%decomp_k
    rf_decomp_cascade               => clm3%g%l%c%cps%rf_decomp_cascade
    cascade_donor_pool              => decomp_cascade_con%cascade_donor_pool
@@ -165,7 +165,7 @@ subroutine CNDecompAlloc (lbp, ubp, lbc, ubc, num_soilc, filter_soilc, &
    initial_cn_ratio                => decomp_cascade_con%initial_cn_ratio
    altmax_indx                     => clm3%g%l%c%cps%altmax_indx
    altmax_lastyear_indx            => clm3%g%l%c%cps%altmax_lastyear_indx
-   
+
 #ifndef NITRIF_DENITRIF
    sminn_to_denit_decomp_cascade_vr   => clm3%g%l%c%cnf%sminn_to_denit_decomp_cascade_vr
    sminn_to_denit_excess_vr => clm3%g%l%c%cnf%sminn_to_denit_excess_vr
@@ -181,24 +181,24 @@ subroutine CNDecompAlloc (lbp, ubp, lbc, ubc, num_soilc, filter_soilc, &
    fphr               => clm3%g%l%c%cch4%fphr
    w_scalar           => clm3%g%l%c%ccf%w_scalar
 #endif
-   
+
    rootfr                => clm3%g%l%c%p%pps%rootfr
    clandunit             => clm3%g%l%c%landunit
    itypelun              => clm3%g%l%itype
-   
-   
-   
+
+
+
    call decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
-   
-   
+
+
    ! set initial values for potential C and N fluxes
    p_decomp_cpool_loss(:,:,:) = 0.D0
    pmnf_decomp_cascade(:,:,:) = 0.D0
-   
+
    ! column loop to calculate potential decomp rates and total immobilization
    ! demand.
-   
-   
+
+
 !!! calculate c:n ratios of applicable pools
    do l = 1, ndecomp_pools
       if ( floating_cn_ratio_decomp_pools(l) ) then
@@ -219,47 +219,47 @@ subroutine CNDecompAlloc (lbp, ubp, lbc, ubc, num_soilc, filter_soilc, &
          end do
       end if
    end do
-   
-   
+
+
    ! calculate the non-nitrogen-limited fluxes
    ! these fluxes include the  "/ dt" term to put them on a
    ! per second basis, since the rate constants have been
    ! calculated on a per timestep basis.
-   
+
    do k = 1, ndecomp_cascade_transitions
       do j = 1,nlevdecomp
          do fc = 1,num_soilc
             c = filter_soilc(fc)
-            
+
             if (decomp_cpools_vr(c,j,cascade_donor_pool(k)) > 0.D0 .and. decomp_k(c,j,cascade_donor_pool(k)) .gt. 0.D0 ) then
                p_decomp_cpool_loss(c,j,k) = decomp_cpools_vr(c,j,cascade_donor_pool(k)) * &
                  decomp_k(c,j,cascade_donor_pool(k))  * pathfrac_decomp_cascade(c,j,k)
-               
+
                if ( .not. floating_cn_ratio_decomp_pools(cascade_receiver_pool(k)) ) then  !! not transition of cwd to litter
-                  
+
                   if (cascade_receiver_pool(k) .ne. i_atm ) then  ! not 100% respiration
                      ratio = 0.D0
-                     
+
                      if (decomp_npools_vr(c,j,cascade_donor_pool(k)) > 0.D0) then
                         ratio = cn_decomp_pools(c,j,cascade_receiver_pool(k))/cn_decomp_pools(c,j,cascade_donor_pool(k))
                      endif
-                     
+
                      pmnf_decomp_cascade(c,j,k) = (p_decomp_cpool_loss(c,j,k) * (1.0D0 - rf_decomp_cascade(c,j,k) - ratio) &
                           / cn_decomp_pools(c,j,cascade_receiver_pool(k)) )
-                     
+
                   else   ! 100% respiration
                      pmnf_decomp_cascade(c,j,k) = - p_decomp_cpool_loss(c,j,k) / cn_decomp_pools(c,j,cascade_donor_pool(k))
                   endif
-                  
+
                else   ! CWD -> litter
                   pmnf_decomp_cascade(c,j,k) = 0.D0
                end if
             end if
          end do
-         
+
       end do
    end do
-   
+
    ! Sum up all the potential immobilization fluxes (positive pmnf flux)
    ! and all the mineralization fluxes (negative pmnf flux)
    do j = 1,nlevdecomp
@@ -280,14 +280,14 @@ subroutine CNDecompAlloc (lbp, ubp, lbc, ubc, num_soilc, filter_soilc, &
          end do
       end do
    end do
-   
+
    do j = 1,nlevdecomp
       do fc = 1,num_soilc
          c = filter_soilc(fc)
          potential_immob_vr(c,j) = immob(c,j)
       end do
    end do
-   
+
    ! Add up potential hr for methane calculations
    do j = 1,nlevdecomp
       do fc = 1,num_soilc
@@ -303,27 +303,27 @@ subroutine CNDecompAlloc (lbp, ubp, lbc, ubc, num_soilc, filter_soilc, &
          end do
       end do
    end do
-   
+
    call decomp_vertprofiles(lbp, ubp, lbc,ubc,num_soilc,filter_soilc,num_soilp,filter_soilp)
-   
+
 #ifdef NITRIF_DENITRIF
    ! calculate nitrification and denitrification rates
    call nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
 #endif
-   
-   
+
+
    ! now that potential N immobilization is known, call allocation
    ! to resolve the competition between plants and soil heterotrophs
    ! for available soil mineral N resource.
-   
+
    call CNAllocation(lbp, ubp, lbc,ubc,num_soilc,filter_soilc,num_soilp, &
         filter_soilp)
-   
+
    ! column loop to calculate actual immobilization and decomp rates, following
    ! resolution of plant/heterotroph  competition for mineral N
-   
+
    dnp = 0.01D0
-   
+
    ! calculate c:n ratios of applicable pools
    do l = 1, ndecomp_pools
       if ( floating_cn_ratio_decomp_pools(l) ) then
@@ -344,18 +344,18 @@ subroutine CNDecompAlloc (lbp, ubp, lbc, ubc, num_soilc, filter_soilc, &
          end do
       end if
    end do
-   
+
    ! upon return from CNAllocation, the fraction of potential immobilization
    ! has been set (cps%fpi_vr). now finish the decomp calculations.
    ! Only the immobilization steps are limited by fpi_vr (pmnf > 0)
    ! Also calculate denitrification losses as a simple proportion
    ! of mineralization flux.
-   
+
    do k = 1, ndecomp_cascade_transitions
       do j = 1,nlevdecomp
          do fc = 1,num_soilc
             c = filter_soilc(fc)
-            
+
             if (decomp_cpools_vr(c,j,cascade_donor_pool(k)) .gt. 0.D0) then
                if ( pmnf_decomp_cascade(c,j,k) .gt. 0.D0 ) then
                   p_decomp_cpool_loss(c,j,k) = p_decomp_cpool_loss(c,j,k) * fpi_vr(c,j)
@@ -386,11 +386,11 @@ subroutine CNDecompAlloc (lbp, ubp, lbc, ubc, num_soilc, filter_soilc, &
 #endif
                decomp_cascade_sminn_flux_vr(c,j,k) = 0.D0
             end if
-            
+
          end do
       end do
    end do
-   
+
 #ifdef LCH4
    ! Calculate total fraction of potential HR, for methane code
    do j = 1,nlevdecomp
@@ -407,7 +407,7 @@ subroutine CNDecompAlloc (lbp, ubp, lbc, ubc, num_soilc, filter_soilc, &
          end do
       end do
    end do
-   
+
    ! Nitrogen limitation / (low)-moisture limitation
    do j = 1,nlevdecomp
       do fc = 1,num_soilc
@@ -421,7 +421,7 @@ subroutine CNDecompAlloc (lbp, ubp, lbc, ubc, num_soilc, filter_soilc, &
       end do
    end do
 #endif
-   
+
    ! vertically integrate net and gross mineralization fluxes for diagnostic output
    do j = 1,nlevdecomp
       do fc = 1,num_soilc
@@ -430,10 +430,10 @@ subroutine CNDecompAlloc (lbp, ubp, lbc, ubc, num_soilc, filter_soilc, &
          gross_nmin(c) = gross_nmin(c) + gross_nmin_vr(c,j) * dzsoi_decomp(j)   
       end do
    end do
-   
+
  end subroutine CNDecompAlloc
- 
- 
+
+
 #endif
- 
+
 end module mod_clm_cndecomp

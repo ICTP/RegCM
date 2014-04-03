@@ -188,7 +188,7 @@ subroutine init_decompcascade(begc, endc)
    is_metabolic(i_litr1) = .true.
    is_cellulose(i_litr1) = .false.
    is_lignin(i_litr1) = .false.
-   
+
    i_litr2 = i_cel_lit
    floating_cn_ratio_decomp_pools(i_litr2) = .true.
    decomp_pool_name_restart(i_litr2) = 'litr2'
@@ -319,7 +319,7 @@ subroutine init_decompcascade(begc, endc)
    spinup_factor(i_soil4) = spinup_vector(4)
 
 
-   
+
    !----------------  list of transitions and their time-independent coefficients  ---------------!
    i_l1s1 = 1
    cascade_step_name(i_l1s1) = 'L1S1'
@@ -527,7 +527,7 @@ subroutine decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
    k_s3 = 1.0D0-exp(-k_s3*dtd)
    k_s4 = 1.0D0-exp(-k_s4*dtd)
    k_frag = 1.0D0-exp(-k_frag*dtd)
-   
+
    ! The following code implements the acceleration part of the AD spinup
    ! algorithm, by multiplying all of the SOM decomposition base rates by 10.0.
 
@@ -560,11 +560,11 @@ endif
 
    !--- time dependent coefficients-----!
    if ( nlevdecomp .eq. 1 ) then
-      
+
       ! calculate function to weight the temperature and water potential scalars
       ! for decomposition control.  
-      
-      
+
+
       ! the following normalizes values in fr so that they
       ! sum to 1.0 across top nlevdecomp levels on a column
       frw(lbc:ubc) = 0.D0
@@ -586,7 +586,7 @@ endif
             end if
          end do
       end do
-      
+
       ! calculate rate constant scalar for soil temperature
       ! assuming that the base rate constants are assigned for non-moisture
       ! limiting conditions at 25 C. 
@@ -608,7 +608,7 @@ endif
             endif
          end do
       end do
-      
+
       ! calculate the rate constant scalar for soil water content.
       ! Uses the log relationship with water potential given in
       ! Andren, O., and K. Paustian, 1987. Barley straw decomposition in the field:
@@ -616,7 +616,7 @@ endif
       ! and supported by data in
       ! Orchard, V.A., and F.J. Cook, 1983. Relationship between soil respiration
       ! and soil moisture. Soil Biol. Biochem., 15(4):447-453.
-      
+
       minpsi = -10.0D0;
 
       do j = 1,nlev_soildecomp_standard
@@ -642,7 +642,7 @@ endif
          end do
       end if
 #endif 
-      
+
 #ifdef LCH4
       ! Calculate ANOXIA
       if (anoxia) then
@@ -671,9 +671,9 @@ endif
 #endif
 
    deallocate(fr)
-   
+
    else
-      
+
       ! calculate rate constant scalar for soil temperature
       ! assuming that the base rate constants are assigned for non-moisture
       ! limiting conditions at 25 C. 
@@ -696,7 +696,7 @@ endif
          end do
       end do
 
-      
+
       ! calculate the rate constant scalar for soil water content.
       ! Uses the log relationship with water potential given in
       ! Andren, O., and K. Paustian, 1987. Barley straw decomposition in the field:
@@ -704,7 +704,7 @@ endif
       ! and supported by data in
       ! Orchard, V.A., and F.J. Cook, 1983. Relationship between soil respiration
       ! and soil moisture. Soil Biol. Biochem., 15(4):447-453.
-      
+
       minpsi = -10.0D0;
       do j = 1,nlevdecomp
          do fc = 1,num_soilc

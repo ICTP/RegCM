@@ -286,7 +286,7 @@ module mod_clm_mkarbinit
 
     do p = begp, endp
        h2ocan_pft(p) = 0.D0
-       
+
        ! added for canopy water mass balance under dynamic pft weights
        !clm3%g%l%c%p%pps%tlai(p) = 0.D0
        !clm3%g%l%c%p%pps%tsai(p) = 0.D0
@@ -648,7 +648,7 @@ module mod_clm_mkarbinit
       mss_cnc_dst2(c,:)=0.D0
       mss_cnc_dst3(c,:)=0.D0
       mss_cnc_dst4(c,:)=0.D0
-       
+
       if (snl(c) < 0) then
         snw_rds(c,snl(c)+1:0)        = snw_rds_min
         snw_rds(c,-nlevsno+1:snl(c)) = 0.D0
@@ -930,7 +930,7 @@ module mod_clm_mkarbinit
 
     do p = begp, endp
        h2ocan_pft(p) = 0.D0
-       
+
        ! added for canopy water mass balance under dynamic pft weights
        !clm3%g%l%c%p%pps%tlai(p) = 0.D0
        !clm3%g%l%c%p%pps%tsai(p) = 0.D0
@@ -1223,7 +1223,7 @@ module mod_clm_mkarbinit
       mss_cnc_dst2(c,:)=0.D0
       mss_cnc_dst3(c,:)=0.D0
       mss_cnc_dst4(c,:)=0.D0
-       
+
       if (snl(c) < 0) then
         snw_rds(c,snl(c)+1:0)        = snw_rds_min
         snw_rds(c,-nlevsno+1:snl(c)) = 0.D0
@@ -1342,7 +1342,7 @@ module mod_clm_mkarbinit
     ! interface depth (m) over snow only
     real(rk8) , pointer , dimension(:,:) :: zi
     integer(ik4) :: c , l , j  !indices
- 
+
     ! Assign local pointers to derived subtypes components (landunit-level)
 
     lakpoi => clm3%g%l%lakpoi

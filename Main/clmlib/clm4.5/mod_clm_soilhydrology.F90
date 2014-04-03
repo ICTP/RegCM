@@ -71,7 +71,7 @@ module mod_clm_soilhydrology
     use mod_clm_varcon      , only : denice, denh2o, wimp, pondmx_urban, &
                                  icol_roof, icol_sunwall, icol_shadewall, &
                                  icol_road_imperv, icol_road_perv, isturb
-                             
+
     use mod_clm_varpar      , only : nlevsoi, maxpatch_pft
     use mod_clm_time_manager, only : get_step_size
 #if (defined VICHYDRO)
@@ -194,7 +194,7 @@ module mod_clm_soilhydrology
 
          ! Porosity of soil, partial volume of ice and liquid, fraction of ice in each layer,
          ! fractional impermeability
-   
+
           vol_ice(c,j) = min(watsat(c,j), h2osoi_ice(c,j)/(dz(c,j)*denice))
           if (origflag == 1) then
              icefrac(c,j) = min(1.D0,h2osoi_ice(c,j)/(h2osoi_ice(c,j)+h2osoi_liq(c,j)))
@@ -534,7 +534,7 @@ module mod_clm_soilhydrology
           !2. remove evaporation (snow treated in SnowHydrology)
           qflx_in_soil(c) = qflx_in_soil(c) - (1.0D0 - fsno - frac_h2osfc(c))*qflx_evap(c)
           qflx_in_h2osfc(c) =  qflx_in_h2osfc(c)  - frac_h2osfc(c) * qflx_ev_h2osfc(c)
-       
+
           !3. determine maximum infiltration rate
 #if (defined VICHYDRO)
           top_moist(c)= 0.D0
@@ -563,11 +563,11 @@ module mod_clm_soilhydrology
           qinmax=(1.D0 - fsat(c)) * minval(10.D0**(-e_ice*(icefrac(c,1:3)))*hksat(c,1:3))
 #endif
           qflx_infl_excess(c) = max(0.D0,qflx_in_soil(c) -  (1.0D0 - frac_h2osfc(c))*qinmax)
-       
+
           !4. soil infiltration and h2osfc "run-on"
           qflx_infl(c) = qflx_in_soil(c) - qflx_infl_excess(c)
           qflx_in_h2osfc(c) =  qflx_in_h2osfc(c) + qflx_infl_excess(c)
-       
+
           !5. surface runoff from h2osfc
           if (h2osfcflag==1) then
              ! calculate runoff from h2osfc  -------------------------------------
@@ -583,18 +583,18 @@ module mod_clm_soilhydrology
                 frac_infclust=(frac_h2osfc(c)-pc)**mu
              endif
           endif
-          
+
           ! limit runoff to value of storage above S(pc)
           if(h2osfc(c) >= h2osfc_thresh(c) .and. h2osfcflag/=0) then
              ! spatially variable k_wet
              k_wet=1.0D0 * sin((rpi/180.) * topo_slope(c))
              qflx_h2osfc_surf(c) = k_wet * frac_infclust * (h2osfc(c) - h2osfc_thresh(c))
-             
+
              qflx_h2osfc_surf(c)=min(qflx_h2osfc_surf(c),(h2osfc(c) - h2osfc_thresh(c))/dtime)
           else
              qflx_h2osfc_surf(c)= 0.D0
           endif
-          
+
           ! cutoff lower limit
           if ( qflx_h2osfc_surf(c) < 1.0e-8) qflx_h2osfc_surf(c) = 0.D0 
 
@@ -606,7 +606,7 @@ module mod_clm_soilhydrology
              qflx_surf(c)= qflx_surf(c) + qflx_infl_excess(c) 
              qflx_infl_excess(c) = 0.D0
           endif
-       
+
           qflx_in_h2osfc(c) =  qflx_in_h2osfc(c) - qflx_h2osfc_surf(c) 
 
           !6. update h2osfc prior to calculating bottom drainage from h2osfc
@@ -651,7 +651,7 @@ module mod_clm_soilhydrology
           qflx_infl(c) = 0.D0
        end if
     end do
-    
+
   end subroutine Infiltration
 
 !-----------------------------------------------------------------------
@@ -987,13 +987,13 @@ module mod_clm_soilhydrology
     end do
 
     ! calculate the equilibrium water content based on the water table depth
-            
+
     do j=1,nlevsoi 
        do fc=1, num_hydrologyc
           c = filter_hydrologyc(fc)
           if ((zwtmm(c) .le. zimm(c,j-1))) then 
              vol_eq(c,j) = watsat(c,j)
-            
+
           ! use the weighted average from the saturated part (depth > wtd) and the equilibrium solution for the
           ! rest of the layer
 
@@ -1236,19 +1236,19 @@ module mod_clm_soilhydrology
        ! calculate qcharge for case jwt < nlevsoi
        if(jwt(c) < nlevsoi) then
           wh_zwt = 0.D0   !since wh_zwt = -sucsat - zq_zwt, where zq_zwt = -sucsat
-          
+
           ! Recharge rate qcharge to groundwater (positive to aquifer)
           s_node = max(h2osoi_vol(c,jwt(c)+1)/watsat(c,jwt(c)+1), 0.01D0)
           s1 = min(1.D0, s_node)
-          
+
           !scs: this is the expression for unsaturated hk
           ka = imped(c,jwt(c)+1)*hksat(c,jwt(c)+1) &
                *s1**(2.D0*bsw(c,jwt(c)+1)+3.D0)
-          
+
           ! Recharge rate qcharge to groundwater (positive to aquifer)
           smp1 = max(smpmin(c), smp(c,max(1,jwt(c))))
           wh      = smp1 - zq(c,max(1,jwt(c)))
-          
+
           !scs: original formulation
           if(jwt(c) == 0) then
              qcharge(c) = -ka * (wh_zwt-wh)  /((zwt(c)+1.e-3)*1000.D0)
@@ -1257,7 +1257,7 @@ module mod_clm_soilhydrology
              !scs: 1/2, assuming flux is at zwt interface, saturation deeper than zwt
              qcharge(c) = -ka * (wh_zwt-wh)/((zwt(c)-z(c,jwt(c)))*1000.D0*2.0)
           endif
-          
+
           ! To limit qcharge  (for the first several timesteps)
           qcharge(c) = max(-10.0D0/dtime,qcharge(c))
           qcharge(c) = min( 10.0D0/dtime,qcharge(c))
@@ -1550,7 +1550,7 @@ module mod_clm_soilhydrology
                 qcharge_layer=max(qcharge_layer,0.D0)
 
                 if(s_y > 0.D0) zwt(c) = zwt(c) - qcharge_layer/s_y/1000.D0
-                
+
                 qcharge_tot = qcharge_tot - qcharge_layer
                 if (qcharge_tot <= 0.) exit
              enddo
@@ -1671,12 +1671,12 @@ module mod_clm_soilhydrology
 ! locate perched water table from bottom up starting at frost table
 ! sat_lev is an arbitrary saturation level used to determine perched water table
           sat_lev=0.9
-          
+
           k_perch=1
           do k=k_frz,1,-1
              h2osoi_vol = h2osoi_liq(c,k)/(dz(c,k)*denh2o) &
                   + h2osoi_ice(c,k)/(dz(c,k)*denice)
-             
+
              if (h2osoi_vol/watsat(c,k) <= sat_lev) then 
                 k_perch=k
                 exit
@@ -1693,7 +1693,7 @@ module mod_clm_soilhydrology
                   + h2osoi_ice(c,k_perch)/(dz(c,k_perch)*denice))/watsat(c,k_perch)
              s2 = (h2osoi_liq(c,k_perch+1)/(dz(c,k_perch+1)*denh2o) &
                   + h2osoi_ice(c,k_perch+1)/(dz(c,k_perch+1)*denice))/watsat(c,k_perch+1)
-             
+
              m=(z(c,k_perch+1)-z(c,k_perch))/(s2-s1)
              b=z(c,k_perch+1)-m*s2
              zwt_perched(c)=max(0.D0,m*sat_lev+b)
@@ -1735,11 +1735,11 @@ module mod_clm_soilhydrology
              ! if rsub_top_tot is greater than available water (above frost table), 
              !     then decrease qflx_drain_perched by residual amount for water balance
              qflx_drain_perched(c) = qflx_drain_perched(c) + rsub_top_tot/dtime
-             
+
           else
              qflx_drain_perched(c) = 0.D0
           endif !k_frz > k_perch 
- 
+
 !-- Topographic runoff  ----------------------------------------------------------------------
        fff(c)         = 1.D0/ hkdepth(c)
        dzsum = 0.D0
@@ -1827,7 +1827,7 @@ module mod_clm_soilhydrology
                 s_y = watsat(c,j) &
                      * ( 1. - (1.+1.e3*zwt(c)/sucsat(c,j))**(-1./bsw(c,j)))
                 s_y=max(s_y,0.02D0)
-                
+
                 rsub_top_layer=max(rsub_top_tot,-(s_y*(zi(c,j) - zwt(c))*1.e3))
                 rsub_top_layer=min(rsub_top_layer,0.D0)
                 h2osoi_liq(c,j) = h2osoi_liq(c,j) + rsub_top_layer

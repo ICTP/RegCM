@@ -77,9 +77,9 @@ module mod_clm_urbaninit
 
         ! Adjust frontal area index for different building configuration
         frontal_ai = frontal_ai * sqrt(1/build_lw_ratio) * sqrt(plan_ai)
-         
+
         ! Calculate displacement height
-         
+
 #if (defined VANCOUVER)
         z_d_town(l) = 3.5D0
 #elif (defined MEXICOCITY)
@@ -188,7 +188,7 @@ module mod_clm_urbaninit
 
     ctype               => clm3%g%l%c%itype
     emg                 => clm3%g%l%c%cps%emg
-    
+
    ! Initialize time constant urban variables
 
     call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
@@ -423,5 +423,5 @@ module mod_clm_urbaninit
       end if
     end do
   end subroutine UrbanInitTimeVar
-  
+
 end module mod_clm_urbaninit

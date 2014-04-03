@@ -33,7 +33,7 @@ module mod_clm_cnc14decay
 ! !PUBLIC TYPES:
     logical, public :: use_c14_bombspike = .false.         ! do we use time-varying atmospheric C14?
     character(len=256), public :: atm_c14_filename = ' '   ! file name of C14 input data
-    
+
 ! !PRIVATE TYPES:
     real(rk8), allocatable, private :: atm_c14file_time(:)
     real(rk8), allocatable, private :: atm_delta_c14(:)
@@ -177,7 +177,7 @@ subroutine C14Decay(num_soilc, filter_soilc, num_soilp, filter_soilp)
        end do
     end do ! end of columns loop
 
- 
+
     ! pft loop
     do fp = 1,num_soilp
        p = filter_soilp(fp)
@@ -276,7 +276,7 @@ subroutine C14BombSpike(num_soilp, filter_soilp)
          p = filter_soilp(fp)   
          rc14_atm(p) = (delc14o2_atm * 1.D-3 + 1.D0) * c14ratio
       end do
-      
+
    else
       ! for constant 14c concentration
       ! pft loop
@@ -309,9 +309,9 @@ subroutine C14_init_BombSpike()
    type(clm_filetype)  :: ncid            ! netcdf id
    integer :: ntim            ! number of input data time samples
    integer :: t
-   
+
    if ( use_c14_bombspike ) then
-      
+
       if ( myid == italk ) then
          write(stdout, *) 'C14_init_BombSpike: preparing to open file:'
          write(stdout, *) trim(atm_c14_filename)
@@ -319,14 +319,14 @@ subroutine C14_init_BombSpike()
 
       call clm_openfile(atm_c14_filename,ncid)
       call clm_inqdim(ncid,'time',ntim)
-      
+
       !! allocate arrays based on size of netcdf timeseries
       allocate(atm_c14file_time(ntim))
       allocate(atm_delta_c14(ntim))
 
       call clm_readvar(ncid,'time',atm_c14file_time)
       call clm_readvar(ncid,'atm_delta_c14',atm_delta_c14)
-      
+
       call clm_closefile(ncid)
 
       ! check to make sure that time dimension is well behaved
@@ -337,7 +337,7 @@ subroutine C14_init_BombSpike()
          endif
       end do
    endif
-   
+
 end subroutine C14_init_BombSpike
 
 #endif

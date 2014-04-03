@@ -370,7 +370,7 @@ module mod_clm_ch4
       totcolch4_bef(c) = totcolch4(c)
       totcolch4(c) = 0.D0
     end do
-  
+
     ! Check to see if finundated changed since the last timestep.
     ! If it increased, then reduce conc_ch4_sat proportionally.
     !  If it decreased, then add flux to atm.
@@ -396,7 +396,7 @@ module mod_clm_ch4
         end if
       end do
     end do
-    
+
     !!!! Begin biochemistry
 
     ! First for soil
@@ -413,7 +413,7 @@ module mod_clm_ch4
         do fp = 1 , num_soilp
           p = filter_soilp(fp)
           c = pcolumn(p)
-    
+
           if (ivt(p) /= noveg) then
             rootfraction(p,j) = rootfr(p,j)
           else if (pwtc(p) < 0.99D0) then
@@ -439,7 +439,7 @@ module mod_clm_ch4
       do j = 1 , nlevsoi
         do fc = 1 , num_soilc
           c = filter_soilc(fc)
-    
+
           if (.not. cactive(c)) rootfr_col(c,j) = dz(c,j) / zi(c,nlevsoi)
         end do
       end do
@@ -675,7 +675,7 @@ module mod_clm_ch4
           c = filter_lakec(fc)
           ! mol CH4 --> g C
           totcolch4(c) = totcolch4(c) + conc_ch4_sat(c,j)*dz(c,j)*catomw
-    
+
           if ( j == nlevsoi .and. totcolch4_bef(c) /= spval ) then
             ! not first timestep
             ! Check balance
@@ -920,7 +920,7 @@ module mod_clm_ch4
       do fc = 1 , num_methc
         c = filter_methc (fc)
         g = cgridcell(c)
-          
+
         if (.not. lake) then
 #if (defined CN)
           ! Use soil heterotrophic respiration (based on Wania)
@@ -1165,9 +1165,9 @@ module mod_clm_ch4
     real(rk8) :: k_h_cc , k_h_inv ! see functions below for description
     real(rk8) :: k_m_eff          ! effective k_m
     real(rk8) :: vmax_eff         ! effective vmax
-   
+
     ! Assign local pointers to derived type arrays
-   
+
     ! Column level
     h2osoi_vol     => clm3%g%l%c%cws%h2osoi_vol
     watsat         => clm3%g%l%c%cps%watsat
@@ -1351,7 +1351,7 @@ module mod_clm_ch4
     real(rk8) , parameter :: smallnumber = 1.D-12
     ! minimum aerenchyma porosity (unitless)
     real(rk8) , parameter :: porosmin = 0.05D0
-     
+
     ! Assign local pointers to derived type arrays
     !gridcell level
     c_atm      => clm3%g%gch4%c_atm
@@ -2030,7 +2030,7 @@ module mod_clm_ch4
         end do
       end do
     end do
-          
+
 
     ! Set the source term for each species (no need to do j=0, since
     ! epsilon_t and source not used there)

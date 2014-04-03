@@ -195,7 +195,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
 
    real(rk8):: ccrit    ! critical carbon state value for truncation
    real(rk8):: ncrit    ! critical nitrogen state value for truncation
-    
+
 !EOP
 !-----------------------------------------------------------------------
     ! assign local pointers at the column level
@@ -258,7 +258,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
        c13_livestemc_xfer                 => clm3%g%l%c%p%pc13s%livestemc_xfer
        c13_pft_ctrunc                     => clm3%g%l%c%p%pc13s%pft_ctrunc
     endif
-       
+
     if ( use_c14 ) then
        c14_col_ctrunc_vr                  => clm3%g%l%c%cc14s%col_ctrunc_vr
        decomp_c14pools_vr                 => clm3%g%l%c%cc14s%decomp_cpools_vr
@@ -320,11 +320,11 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
    ccrit = 1.D-8
    ! set the critical nitrogen state value for truncation (gN/m2)
    ncrit = 1.D-8
-    
+
    ! pft loop
    do fp = 1,num_soilp
       p = filter_soilp(fp)
-      
+
       ! initialize the pft-level C and N truncation terms
       pc = 0.D0
 
@@ -336,11 +336,11 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
       endif
 
       pn = 0.D0
-      
+
       ! do tests on state variables for precision control
       ! for linked C-N state variables, perform precision test on
       ! the C component, but truncate C, C13, and N components
-      
+
       ! leaf C and N
       if (abs(leafc(p)) < ccrit) then
           pc = pc + leafc(p)
@@ -378,7 +378,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
           pn = pn + leafn_storage(p)
           leafn_storage(p) = 0.D0
       end if
-          
+
       ! leaf transfer C and N
       if (abs(leafc_xfer(p)) < ccrit) then
           pc = pc + leafc_xfer(p)
@@ -396,7 +396,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
           pn = pn + leafn_xfer(p)
           leafn_xfer(p) = 0.D0
       end if
-          
+
       ! froot C and N
       if (abs(frootc(p)) < ccrit) then
           pc = pc + frootc(p)
@@ -432,7 +432,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
           pn = pn + frootn_storage(p)
           frootn_storage(p) = 0.D0
       end if
-          
+
       ! froot transfer C and N
       if (abs(frootc_xfer(p)) < ccrit) then
           pc = pc + frootc_xfer(p)
@@ -450,7 +450,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
           pn = pn + frootn_xfer(p)
           frootn_xfer(p) = 0.D0
       end if
-          
+
       if ( crop_prog .and. ivt(p) >= nc3crop )then
          ! grain C and N
          if (abs(grainc(p)) < ccrit) then
@@ -459,7 +459,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
              pn = pn + grainn(p)
              grainn(p) = 0.D0
          end if
-   
+
          ! grain storage C and N
          if (abs(grainc_storage(p)) < ccrit) then
              pc = pc + grainc_storage(p)
@@ -467,7 +467,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
              pn = pn + grainn_storage(p)
              grainn_storage(p) = 0.D0
          end if
-             
+
          ! grain transfer C and N
          if (abs(grainc_xfer(p)) < ccrit) then
              pc = pc + grainc_xfer(p)
@@ -476,7 +476,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
              grainn_xfer(p) = 0.D0
          end if
       end if
-          
+
       ! livestem C and N
       if (abs(livestemc(p)) < ccrit) then
           pc = pc + livestemc(p)
@@ -510,7 +510,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
           pn = pn + livestemn_storage(p)
           livestemn_storage(p) = 0.D0
       end if
-          
+
       ! livestem transfer C and N
       if (abs(livestemc_xfer(p)) < ccrit) then
           pc = pc + livestemc_xfer(p)
@@ -526,7 +526,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
           pn = pn + livestemn_xfer(p)
           livestemn_xfer(p) = 0.D0
       end if
-          
+
       ! deadstem C and N
       if (abs(deadstemc(p)) < ccrit) then
           pc = pc + deadstemc(p)
@@ -558,7 +558,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
           pn = pn + deadstemn_storage(p)
           deadstemn_storage(p) = 0.D0
       end if
-          
+
       ! deadstem transfer C and N
       if (abs(deadstemc_xfer(p)) < ccrit) then
           pc = pc + deadstemc_xfer(p)
@@ -574,7 +574,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
           pn = pn + deadstemn_xfer(p)
           deadstemn_xfer(p) = 0.D0
       end if
-          
+
       ! livecroot C and N
       if (abs(livecrootc(p)) < ccrit) then
           pc = pc + livecrootc(p)
@@ -610,7 +610,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
           pn = pn + livecrootn_storage(p)
           livecrootn_storage(p) = 0.D0
       end if
-          
+
       ! livecroot transfer C and N
       if (abs(livecrootc_xfer(p)) < ccrit) then
           pc = pc + livecrootc_xfer(p)
@@ -626,7 +626,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
           pn = pn + livecrootn_xfer(p)
           livecrootn_xfer(p) = 0.D0
       end if
-          
+
       ! deadcroot C and N
       if (abs(deadcrootc(p)) < ccrit) then
           pc = pc + deadcrootc(p)
@@ -658,7 +658,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
           pn = pn + deadcrootn_storage(p)
           deadcrootn_storage(p) = 0.D0
       end if
-          
+
       ! deadcroot transfer C and N
       if (abs(deadcrootc_xfer(p)) < ccrit) then
           pc = pc + deadcrootc_xfer(p)
@@ -674,7 +674,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
           pn = pn + deadcrootn_xfer(p)
           deadcrootn_xfer(p) = 0.D0
       end if
-          
+
       ! gresp_storage (C only)
       if (abs(gresp_storage(p)) < ccrit) then
           pc = pc + gresp_storage(p)
@@ -702,7 +702,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
              c14_gresp_xfer(p) = 0.D0
           endif
       end if
-          
+
       ! cpool (C only)
       if (abs(cpool(p)) < ccrit) then
           pc = pc + cpool(p)
@@ -716,7 +716,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
              c14_cpool(p) = 0.D0
           endif
       end if
-          
+
       if ( crop_prog .and. ivt(p) >= nc3crop )then
          ! xsmrpool (C only)
          if (abs(xsmrpool(p)) < ccrit) then
@@ -724,19 +724,19 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
              xsmrpool(p) = 0.D0
          end if
       end if
-          
+
       ! retransn (N only)
       if (abs(retransn(p)) < ncrit) then
           pn = pn + retransn(p)
           retransn(p) = 0.D0
       end if
-          
+
       ! npool (N only)
       if (abs(npool(p)) < ncrit) then
           pn = pn + npool(p)
           npool(p) = 0.D0
       end if
-      
+
       pft_ctrunc(p) = pft_ctrunc(p) + pc
       if ( use_c13 ) then
          c13_pft_ctrunc(p) = c13_pft_ctrunc(p) + pc13
@@ -747,7 +747,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
       endif
 
       pft_ntrunc(p) = pft_ntrunc(p) + pn
-          
+
    end do ! end of pft loop
 
    ! column loop
@@ -764,11 +764,11 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
             cc14 = 0.D0
          endif
          cn = 0.D0
-         
+
          ! do tests on state variables for precision control
          ! for linked C-N state variables, perform precision test on
          ! the C component, but truncate both C and N components
-         
+
          ! all decomposing pools C and N
          do k = 1, ndecomp_pools
 
@@ -788,10 +788,10 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
             end if
 
          end do
-         
+
          ! not doing precision control on soil mineral N, since it will
          ! be getting the N truncation flux anyway.
-         
+
          col_ctrunc_vr(c,j) = col_ctrunc_vr(c,j) + cc
          if ( use_c13 ) then
             c13_col_ctrunc_vr(c,j) = c13_col_ctrunc_vr(c,j) + cc13
@@ -806,7 +806,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
 
 #ifdef NITRIF_DENITRIF
 ! remove small negative perturbations for stability purposes, if any should arise.
-      
+
       do fc = 1,num_soilc
          c = filter_soilc(fc)
          do j = 1,nlevdecomp
@@ -828,7 +828,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
       end do
 #endif
 
-   
+
 end subroutine CNPrecisionControl
 !-----------------------------------------------------------------------
 #endif

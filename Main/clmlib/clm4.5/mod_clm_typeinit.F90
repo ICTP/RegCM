@@ -127,7 +127,7 @@ module mod_clm_typeinit
 
     call init_pft_cstate_type(begp, endp, clm3%g%l%c%p%pcs)
     call init_pft_cstate_type(begc, endc, clm3%g%l%c%ccs%pcs_a)
-    
+
     if ( use_c13 ) then       
       call init_pft_cstate_type(begp, endp, clm3%g%l%c%p%pc13s)
       call init_pft_cstate_type(begc, endc, clm3%g%l%c%cc13s%pcs_a)
@@ -170,12 +170,12 @@ module mod_clm_typeinit
 
     call init_pft_cflux_type(begp, endp, clm3%g%l%c%p%pcf)
     call init_pft_cflux_type(begc, endc, clm3%g%l%c%ccf%pcf_a)
-    
+
     if ( use_c13 ) then       
       call init_pft_cflux_type(begp, endp, clm3%g%l%c%p%pc13f)
       call init_pft_cflux_type(begc, endc, clm3%g%l%c%cc13f%pcf_a)
     end if
-    
+
     if ( use_c14 ) then
       call init_pft_cflux_type(begp, endp, clm3%g%l%c%p%pc14f)
       call init_pft_cflux_type(begc, endc, clm3%g%l%c%cc14f%pcf_a)
@@ -224,7 +224,7 @@ module mod_clm_typeinit
     ! column carbon state variables at column level
 
     call init_column_cstate_type(begc, endc, clm3%g%l%c%ccs)
-    
+
     if ( use_c13 ) then       
       call init_column_cstate_type(begc, endc, clm3%g%l%c%cc13s)
     end if
@@ -254,11 +254,11 @@ module mod_clm_typeinit
     ! column carbon flux variables at column level
 
     call init_column_cflux_type(begc, endc, clm3%g%l%c%ccf)
-    
+
     if ( use_c13 ) then       
       call init_column_cflux_type(begc, endc, clm3%g%l%c%cc13f)
     end if
-    
+
     if ( use_c14 ) then       
       call init_column_cflux_type(begc, endc, clm3%g%l%c%cc14f)
     end if
@@ -774,7 +774,7 @@ module mod_clm_typeinit
 
     ! 4/14/05: PET
     ! Adding isotope code
-    
+
     if ( use_c13 ) then       
       allocate(pps%alphapsnsun(ibeg:iend))
       allocate(pps%alphapsnsha(ibeg:iend))
@@ -790,7 +790,7 @@ module mod_clm_typeinit
     pps%mlaidiff(ibeg:iend) = nan
     pps%rb1(ibeg:iend) = nan
     pps%annlai(:,:) = nan
-    
+
 #if (defined LCH4)
     ! CH4 code
     allocate(pps%grnd_ch4_cond(ibeg:iend))
@@ -902,7 +902,7 @@ module mod_clm_typeinit
     ! Adding isotope code    ! EBK Check this!
     !!!pps%cisun(ibeg:iend) = spval
     !!!pps%cisha(ibeg:iend) = spval
-    
+
     if ( use_c13 ) then       
       pps%alphapsnsun(ibeg:iend) = spval
       pps%alphapsnsha(ibeg:iend) = spval
@@ -981,7 +981,7 @@ module mod_clm_typeinit
       allocate(pepv%rc13_psnsun(ibeg:iend))
       allocate(pepv%rc13_psnsha(ibeg:iend))
     endif
-    
+
     if ( use_c14 ) then
       allocate(pepv%rc14_atm(ibeg:iend))
       ! allocate(pepv%rc14_canair(ibeg:iend))
@@ -1692,7 +1692,7 @@ module mod_clm_typeinit
     allocate(pcf%hrv_gresp_storage_to_litter(ibeg:iend))     
     allocate(pcf%hrv_gresp_xfer_to_litter(ibeg:iend))        
     allocate(pcf%hrv_xsmrpool_to_atm(ibeg:iend))    
-             
+
     ! fire related variables changed by F. Li and S. Levis           
     allocate(pcf%m_leafc_to_fire(ibeg:iend))
     allocate(pcf%m_leafc_storage_to_fire(ibeg:iend))
@@ -1911,7 +1911,7 @@ module mod_clm_typeinit
     pcf%hrv_gresp_storage_to_litter(ibeg:iend) = nan     
     pcf%hrv_gresp_xfer_to_litter(ibeg:iend) = nan        
     pcf%hrv_xsmrpool_to_atm(ibeg:iend) = nan            
-     
+
     ! fire variable changed by F. Li and S. Levis
     pcf%m_leafc_to_fire(ibeg:iend) = nan
     pcf%m_leafc_storage_to_fire(ibeg:iend) = nan
@@ -1933,7 +1933,7 @@ module mod_clm_typeinit
     pcf%m_deadcrootc_xfer_to_fire(ibeg:iend) = nan
     pcf%m_gresp_storage_to_fire(ibeg:iend) = nan
     pcf%m_gresp_xfer_to_fire(ibeg:iend) = nan
-    
+
     pcf%m_leafc_to_litter_fire(ibeg:iend) = nan
     pcf%m_leafc_storage_to_litter_fire(ibeg:iend) = nan
     pcf%m_leafc_xfer_to_litter_fire(ibeg:iend) = nan
@@ -2114,7 +2114,7 @@ module mod_clm_typeinit
     allocate(pnf%hrv_livecrootn_to_litter(ibeg:iend))        
     allocate(pnf%hrv_deadcrootn_to_litter(ibeg:iend))        
     allocate(pnf%hrv_retransn_to_litter(ibeg:iend))   
-           
+
     ! fire variables changed by F. Li and S. Levis            
     allocate(pnf%m_leafn_to_fire(ibeg:iend))
     allocate(pnf%m_leafn_storage_to_fire(ibeg:iend))
@@ -2247,7 +2247,7 @@ module mod_clm_typeinit
     pnf%hrv_livecrootn_to_litter(ibeg:iend) = nan        
     pnf%hrv_deadcrootn_to_litter(ibeg:iend) = nan        
     pnf%hrv_retransn_to_litter(ibeg:iend) = nan   
-        
+
     ! fire varibles changed by F. Li and S. Levis         
     pnf%m_leafn_to_fire(ibeg:iend) = nan
     pnf%m_leafn_storage_to_fire(ibeg:iend) = nan
@@ -2447,7 +2447,7 @@ module mod_clm_typeinit
 
     allocate(cps%snl(ibeg:iend))      !* cannot be averaged up
     allocate(cps%isoicol(ibeg:iend))  !* cannot be averaged up
-   
+
     ! F. Li and S. Levis
     allocate(cps%gdp_lf(ibeg:iend))  
     allocate(cps%peatf_lf(ibeg:iend))  
@@ -3695,7 +3695,7 @@ module mod_clm_typeinit
     allocate(cnf%decomp_npools_leached(ibeg:iend,1:ndecomp_pools))
     allocate(cnf%decomp_npools_transport_tendency(ibeg:iend, &
             1:nlevdecomp_full,1:ndecomp_pools))
-    
+
     cnf%ndep_to_sminn(ibeg:iend) = nan
     cnf%nfix_to_sminn(ibeg:iend) = nan
     cnf%fert_to_sminn(ibeg:iend) = nan
@@ -3725,7 +3725,7 @@ module mod_clm_typeinit
             1:ndecomp_cascade_transitions) = nan
     cnf%decomp_npools_sourcesink(ibeg:iend, &
             1:nlevdecomp_full,1:ndecomp_pools) = nan
-    
+
     cnf%phenology_n_to_litr_met_n(ibeg:iend, 1:nlevdecomp_full) = nan
     cnf%phenology_n_to_litr_cel_n(ibeg:iend, 1:nlevdecomp_full) = nan
     cnf%phenology_n_to_litr_lig_n(ibeg:iend, 1:nlevdecomp_full) = nan

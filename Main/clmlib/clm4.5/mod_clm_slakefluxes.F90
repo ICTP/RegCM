@@ -795,7 +795,7 @@ module mod_clm_slakefluxes
       ! This will be overwritten in SLakeHydrology
       qflx_snwcp_ice(p) = 0.D0
       qflx_snwcp_liq(p) = 0.D0
-       
+
     end do
   end subroutine SLakeFluxes
 

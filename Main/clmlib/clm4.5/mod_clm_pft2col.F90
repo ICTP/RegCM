@@ -88,7 +88,7 @@ module mod_clm_pft2col
     ptrp => clm3%g%l%c%p%pwf%qflx_snow_grnd
     ptrc => clm3%g%l%c%cwf%pwf_a%qflx_snow_grnd
     call p2c (num_nolakec, filter_nolakec, ptrp, ptrc)
-    
+
     ptrp => clm3%g%l%c%p%pwf%qflx_snwcp_liq
     ptrc => clm3%g%l%c%cwf%pwf_a%qflx_snwcp_liq
     call p2c (num_allc, filter_allc, ptrp, ptrc)

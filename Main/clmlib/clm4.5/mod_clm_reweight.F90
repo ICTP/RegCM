@@ -155,7 +155,7 @@ module mod_clm_reweight
     type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
     type(column_type) , pointer :: cptr   ! pointer to column derived subtype
     type(pft_type) , pointer :: pptr      ! pointer to pft derived subtype
-    
+
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
@@ -204,7 +204,7 @@ module mod_clm_reweight
     if ( error_found ) then
       call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
-      
+
   end subroutine setActive
   !
   ! Determine whether the given pft is active
@@ -214,10 +214,10 @@ module mod_clm_reweight
     integer(ik4) , intent(in) :: p   ! pft index
     integer(ik4) :: l  ! landunit index
     integer(ik4) :: g  ! grid cell index
-    
+
     l = clm3%g%l%c%p%landunit(p)
     g = clm3%g%l%c%p%gridcell(p)
-    
+
     is_active_p = .false.
 
     if (clm3%g%l%c%p%wtgcell(p) > 0) is_active_p = .true.
@@ -231,7 +231,7 @@ module mod_clm_reweight
     integer(ik4) , intent(in) :: c   ! column index
     integer(ik4) :: l  ! landunit index
     integer(ik4) :: g  ! grid cell index
-    
+
     l = clm3%g%l%c%landunit(c)
     g = clm3%g%l%c%gridcell(c)
 
@@ -247,11 +247,11 @@ module mod_clm_reweight
     implicit none
     integer(ik4) , intent(in) :: l   ! landunit index
     integer(ik4) :: g  ! grid cell index
-    
+
     g = clm3%g%l%gridcell(l)
 
     is_active_l = .false.
-    
+
     if ( clm3%g%l%wtgcell(l) > 0 ) is_active_l = .true.
 
   end function is_active_l
@@ -363,7 +363,7 @@ module mod_clm_reweight
         error_found = .true.
       end if
     end do
-    
+
     do g = begg , endg
       if ( .not. &
             weightsOkay(sumwtgcell(g),active_only,i_am_active=.true.) ) then

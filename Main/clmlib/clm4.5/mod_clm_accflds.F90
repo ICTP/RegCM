@@ -635,7 +635,7 @@ module mod_clm_accflds
     call update_accum_field  ('AGDD', rbufslp, ktau)
     call extract_accum_field ('AGDD', agdd, ktau)
 #endif
-    
+
     do p = begp , endp
       g = pgridcell(p)
       rbufslp(p) = forc_rain(g) + forc_snow(g)
@@ -651,7 +651,7 @@ module mod_clm_accflds
     end do
     call update_accum_field  ('PREC10', rbufslp, ktau)
     call extract_accum_field ('PREC10', prec10, ktau)
- 
+
     if ( crop_prog ) then
       ! Accumulate and extract TDM10
 
@@ -750,7 +750,7 @@ module mod_clm_accflds
       ! Accumulate and extract GDDTSOI
       ! In agroibis this variable is calculated
       ! to 0.05 m, so here we use the top two soil layers
-   
+
       do p = begp , endp
         if (croplive(p)) then ! relative to planting date
           itypveg = itype(p)
@@ -989,7 +989,7 @@ module mod_clm_accflds
       do p = begp , endp
         gdd0(p) = rbufslp(p)
       end do
-   
+
       call extract_accum_field ('GDD8', rbufslp, ktau)
       do p = begp , endp
         gdd8(p) = rbufslp(p)

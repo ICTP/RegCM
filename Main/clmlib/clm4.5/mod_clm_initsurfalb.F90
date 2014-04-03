@@ -113,7 +113,7 @@ contains
     real(rk8) :: fmelt  ! snowbd/100
 
     ! Assign local pointers to derived subtypes components (landunit-level)
-    
+
     lakpoi              => clm3%g%l%lakpoi
     itypelun            => clm3%g%l%itype
 
@@ -286,9 +286,9 @@ contains
         fwet(p) = 0.D0
       end if
     end do
-       
+
     call FracWet(filter%num_nolakep, filter%nolakep)
-       
+
     ! Compute Surface Albedo - all land points (including lake)
     ! other than urban. Needs as input fracion of soil covered by snow
     ! (Z.-L. Yang U. Texas)
@@ -297,7 +297,7 @@ contains
                        filter%num_nourbanc, filter%nourbanc, &
                        filter%num_nourbanp, filter%nourbanp, &
                        calday, declin)
-       
+
 
     ! Determine albedos for urban landunits
 

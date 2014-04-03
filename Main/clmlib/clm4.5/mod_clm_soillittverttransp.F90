@@ -109,7 +109,7 @@ module mod_clm_soillittverttransp
     ! Set statement functions
     ! A function from Patankar, Table 5.2, pg 95
     aaa (pe) = max (0.D0, (1.D0 - 0.1D0 * abs(pe))**5)
-   
+
     is_cwd             => decomp_cascade_con%is_cwd
     spinup_factor      => decomp_cascade_con%spinup_factor
     altmax             => clm3%g%l%c%cps%altmax
@@ -126,7 +126,7 @@ module mod_clm_soillittverttransp
     end if
     spinup_term = 1.D0
     epsilon = 1.e-30
-   
+
 #ifdef VERTSOILC
     !------ first get diffusivity / advection terms -------!
     ! use different mixing rates for bioturbation and cryoturbation, with
@@ -164,7 +164,7 @@ module mod_clm_soillittverttransp
         end do
       end if
     end do
-   
+
     ! Set the distance between the node and the one ABOVE it   
     dz_node(1) = zsoi(1)
     do j = 2,nlevdecomp+1
@@ -172,7 +172,7 @@ module mod_clm_soillittverttransp
     end do
 
 #endif
-   
+
     !------ loop over litter/som types
     do i_type = 1, ntype
       select case (i_type)
@@ -246,12 +246,12 @@ module mod_clm_soillittverttransp
           do j = 1,nlevdecomp+1
             do fc = 1, num_soilc
               c = filter_soilc (fc)
-                  
+
               conc_trcr(c,j) = conc_ptr(c,j,s)
               ! dz_tracer below is the difference between gridcell edges
               !  (dzsoi_decomp)
               ! dz_node_tracer is difference between cell centers 
-                  
+
               ! Calculate the D and F terms in the Patankar algorithm
               if (j == 1) then
                 d_m1_zm1(c,j) = 0.D0
@@ -316,11 +316,11 @@ module mod_clm_soillittverttransp
             do fc = 1, num_soilc
               c = filter_soilc (fc)
               ! g = cgridcell(c)
-                  
+
               if (j > 0 .and. j < nlevdecomp+1) then
                 a_p_0 =  dzsoi_decomp(j) / dtsrf
               end if
-                  
+
               if (j == 0) then ! top layer (atmosphere)
                 a_tri(c,j) = 0.D0
                 b_tri(c,j) = 1.D0
@@ -350,7 +350,7 @@ module mod_clm_soillittverttransp
               end if
             end do ! fc; column
           end do ! j; nlevdecomp
-            
+
           do fc = 1, num_soilc
             c = filter_soilc (fc)
             jtop(c) = 0
@@ -407,7 +407,7 @@ module mod_clm_soillittverttransp
 #endif
     end do  ! i_type
   end subroutine CNSoilLittVertTransp
- 
+
 #endif
 
 end module mod_clm_soillittverttransp

@@ -527,7 +527,7 @@ contains
        thv(c)  = forc_th(c)*(1.D0+0.61D0*forc_q(c))
 
     end do ! (end of columns loop)
-    
+
     ! Initialization
 
     do fp = 1,num_nolakep

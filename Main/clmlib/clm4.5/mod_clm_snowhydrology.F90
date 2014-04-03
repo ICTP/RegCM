@@ -183,7 +183,7 @@ module mod_clm_snowhydrology
     real(rk8) :: qin_dst4(lbc:ubc)    ! flux of dust species 4 into layer [kg]
     real(rk8) :: qout_dst4(lbc:ubc)   ! flux of dust species 4 out of layer [kg]
     real(rk8) :: mss_liqice           ! mass of liquid+ice in a layer
- 
+
     ! Assign local pointers to derived subtype components (column-level)
 
     frac_sno_eff     => clm3%g%l%c%cps%frac_sno_eff 
@@ -329,7 +329,7 @@ module mod_clm_snowhydrology
         c = filter_snowc(fc)
         if (j >= snl(c)+1) then
           h2osoi_liq(c,j) = h2osoi_liq(c,j) + qin(c)
-             
+
           mss_bcphi(c,j) = mss_bcphi(c,j) + qin_bc_phi(c)
           mss_bcpho(c,j) = mss_bcpho(c,j) + qin_bc_pho(c)
           mss_ocphi(c,j) = mss_ocphi(c,j) + qin_oc_phi(c)
@@ -366,7 +366,7 @@ module mod_clm_snowhydrology
           if (mss_liqice < 1D-30) then
             mss_liqice = 1D-30
           endif
-         
+
           ! BCPHI:
           ! 1. flux with meltwater:
           qout_bc_phi(c) = qout(c)*scvng_fct_mlt_bcphi* &
@@ -442,7 +442,7 @@ module mod_clm_snowhydrology
           endif
           mss_dst4(c,j) = mss_dst4(c,j) - qout_dst4(c)
           qin_dst4(c) = qout_dst4(c)
-             
+
         end if
       end do
     end do
@@ -464,7 +464,7 @@ module mod_clm_snowhydrology
         end if
       end do
     end do
- 
+
     do fc = 1, num_snowc
       c = filter_snowc(fc)
       ! Qout from snow bottom
@@ -491,7 +491,7 @@ module mod_clm_snowhydrology
     !  or from fluxes received from the atmosphere model
     do c = lbc,ubc
       g = cgridcell(c)
-       
+
       flx_bc_dep_dry(c)   = forc_aer(g,1) + forc_aer(g,2)
       flx_bc_dep_wet(c)   = forc_aer(g,3)
       flx_bc_dep_phi(c)   = forc_aer(g,1) + forc_aer(g,3)
@@ -515,7 +515,7 @@ module mod_clm_snowhydrology
       flx_dst_dep(c)      = forc_aer(g,7) + forc_aer(g,8) + forc_aer(g,9) + &
                          forc_aer(g,10) + forc_aer(g,11) + forc_aer(g,12) + &
                          forc_aer(g,13) + forc_aer(g,14)
-    
+
     end do
 
     ! aerosol deposition fluxes into top layer
@@ -532,7 +532,7 @@ module mod_clm_snowhydrology
                (flx_oc_dep_phi(c)*dtsrf)
       mss_ocpho(c,snl(c)+1) = mss_ocpho(c,snl(c)+1) + &
                (flx_oc_dep_pho(c)*dtsrf)
-       
+
       mss_dst1(c,snl(c)+1) = mss_dst1(c,snl(c)+1) + &
                (flx_dst_dep_dry1(c) + flx_dst_dep_wet1(c))*dtsrf
       mss_dst2(c,snl(c)+1) = mss_dst2(c,snl(c)+1) + &
@@ -865,7 +865,7 @@ module mod_clm_snowhydrology
             end if
 
             if (j /= 0) dz(c,j+1) = dz(c,j+1) + dz(c,j)
-                
+
             ! NOTE: Temperature, and similarly snw_rds, of the
             ! underlying snow layer are NOT adjusted in this case. 
             ! Because the layer being eliminated has a small mass, 
@@ -1252,7 +1252,7 @@ module mod_clm_snowhydrology
           swice(c,2) = swice(c,1)
           swliq(c,2) = swliq(c,1)
           tsno(c,2)  = tsno(c,1)
-             
+
           mbc_phi(c,1) = mbc_phi(c,1)/2.D0
           mbc_phi(c,2) = mbc_phi(c,1)
           mbc_pho(c,1) = mbc_pho(c,1)/2.D0
@@ -1363,7 +1363,7 @@ module mod_clm_snowhydrology
           propor = drr/dzsno(c,2)
           zwice = propor*swice(c,2)
           zwliq = propor*swliq(c,2)
-             
+
           zmbc_phi = propor*mbc_phi(c,2)
           zmbc_pho = propor*mbc_pho(c,2)
           zmoc_phi = propor*moc_phi(c,2)
@@ -1417,7 +1417,7 @@ module mod_clm_snowhydrology
             else
               tsno(c,3) = tsno(c,3) + dtdz*dzsno(c,3)/2.D0 
             endif
-                
+
             mbc_phi(c,3) = mbc_phi(c,3)/2.D0
             mbc_phi(c,4) = mbc_phi(c,3)
             mbc_pho(c,3) = mbc_pho(c,3)/2.D0
@@ -1446,7 +1446,7 @@ module mod_clm_snowhydrology
           propor = drr/dzsno(c,3)
           zwice = propor*swice(c,3)
           zwliq = propor*swliq(c,3)
-             
+
           zmbc_phi = propor*mbc_phi(c,3)
           zmbc_pho = propor*mbc_pho(c,3)
           zmoc_phi = propor*moc_phi(c,3)
@@ -1529,7 +1529,7 @@ module mod_clm_snowhydrology
           propor = drr/dzsno(c,4)
           zwice = propor*swice(c,4)
           zwliq = propor*swliq(c,4)
-             
+
           zmbc_phi = propor*mbc_phi(c,4)
           zmbc_pho = propor*mbc_pho(c,4)
           zmoc_phi = propor*moc_phi(c,4)
@@ -2014,7 +2014,7 @@ module mod_clm_snowhydrology
             else
               tsno(c,3) = tsno(c,3) + dtdz*dzsno(c,3)/2.D0 
             endif
-                
+
             mbc_phi(c,3) = mbc_phi(c,3)/2.D0
             mbc_phi(c,4) = mbc_phi(c,3)
             mbc_pho(c,3) = mbc_pho(c,3)/2.D0

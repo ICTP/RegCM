@@ -1,5 +1,5 @@
 module mod_clm_cninispecial
- 
+
   implicit none
 
   private
@@ -162,7 +162,7 @@ module mod_clm_cninispecial
         clm3%g%l%c%p%pc14f%psnsun(p) = 0.D0
         clm3%g%l%c%p%pc14f%psnsha(p) = 0.D0
      endif
-      
+
    end do
 
    do fc = 1,num_specialc
@@ -170,37 +170,37 @@ module mod_clm_cninispecial
       clm3%g%l%c%cwf%qflx_irrig(c) = 0.D0
       clm3%g%l%c%ccf%pcf_a%psnsun(c) = 0.D0
       clm3%g%l%c%ccf%pcf_a%psnsha(c) = 0.D0
-      
+
       if ( use_c13 ) then
          clm3%g%l%c%cc13f%pcf_a%psnsun(c) = 0.D0
          clm3%g%l%c%cc13f%pcf_a%psnsha(c) = 0.D0
       endif
-      
+
       if ( use_c14 ) then
          clm3%g%l%c%cc14f%pcf_a%psnsun(c) = 0.D0
          clm3%g%l%c%cc14f%pcf_a%psnsha(c) = 0.D0
       endif
-      
+
       ! adding dynpft code
       clm3%g%l%c%ccs%seedc(c) = 0.D0
       clm3%g%l%c%ccs%prod10c(c) = 0.D0    
       clm3%g%l%c%ccs%prod100c(c) = 0.D0    
       clm3%g%l%c%ccs%totprodc(c) = 0.D0    
-      
+
       if ( use_c13 ) then
          clm3%g%l%c%cc13s%seedc(c) = 0.D0
          clm3%g%l%c%cc13s%prod10c(c) = 0.D0    
          clm3%g%l%c%cc13s%prod100c(c) = 0.D0    
          clm3%g%l%c%cc13s%totprodc(c) = 0.D0    
       endif
-      
+
       if ( use_c14 ) then
          clm3%g%l%c%cc14s%seedc(c) = 0.D0
          clm3%g%l%c%cc14s%prod10c(c) = 0.D0    
          clm3%g%l%c%cc14s%prod100c(c) = 0.D0    
          clm3%g%l%c%cc14s%totprodc(c) = 0.D0    
       endif
-      
+
       clm3%g%l%c%cns%seedn(c) = 0.D0
       clm3%g%l%c%cns%prod10n(c) = 0.D0    
       clm3%g%l%c%cns%prod100n(c) = 0.D0    
@@ -239,7 +239,7 @@ module mod_clm_cninispecial
             clm3%g%l%c%cc13f%dwt_deadcrootc_to_cwdc(c,j) = 0.D0
          end do
          clm3%g%l%c%cc13f%dwt_closs(c) = 0.D0
-         
+
       endif
 
       if ( use_c14 ) then
@@ -259,7 +259,7 @@ module mod_clm_cninispecial
          end do
          clm3%g%l%c%cc14f%dwt_closs(c) = 0.D0
       endif
-      
+
       clm3%g%l%c%cnf%dwt_seedn_to_leaf(c) = 0.D0
       clm3%g%l%c%cnf%dwt_seedn_to_deadstem(c) = 0.D0
       clm3%g%l%c%cnf%dwt_conv_nflux(c) = 0.D0
@@ -275,13 +275,13 @@ module mod_clm_cninispecial
          clm3%g%l%c%cnf%dwt_deadcrootn_to_cwdn(c,j) = 0.D0
       end do
       clm3%g%l%c%cnf%dwt_nloss(c) = 0.D0
-      
+
    end do
-   
+
    ! deallocate special landunit filters
    deallocate(specialc)
    deallocate(specialp)
-   
+
 #endif
   end subroutine CNiniSpecial
 

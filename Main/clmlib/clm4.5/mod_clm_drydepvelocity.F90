@@ -461,7 +461,7 @@ CONTAINS
              rlux(ispec) = cts + rlu(index_season,wesveg)/(1.D-5*heff(ispec)+foxd(ispec)) 
 
           end do species_loop1
-          
+
           ! 
           ! no effect over water
           ! 

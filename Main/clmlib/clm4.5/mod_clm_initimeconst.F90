@@ -292,7 +292,7 @@ module mod_clm_initimeconst
 
     call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
     call get_proc_global(numg, numl, numc, nump)
- 
+
     ! added by F. Li and S. Levis
     allocate(gdp(begg:endg))
     allocate(peatf(begg:endg))
@@ -322,7 +322,7 @@ module mod_clm_initimeconst
 
     ! Assign local pointers to derived subtypes components (gridcell-level)
     lat             => clm3%g%lat
-     
+
     ! Assign local pointers to derived subtypes components (landunit-level)
 
     ltype               => clm3%g%l%itype
@@ -366,7 +366,7 @@ module mod_clm_initimeconst
     pH              => clm3%g%l%c%cps%pH
 #endif
     isoicol         => clm3%g%l%c%cps%isoicol
-  
+
     ! added by F. Li and S. Levis
     gdp_lf          => clm3%g%l%c%cps%gdp_lf
     peatf_lf        => clm3%g%l%c%cps%peatf_lf
@@ -601,7 +601,7 @@ module mod_clm_initimeconst
       write(stderr,*)'maximum color class = ',mxsoil_color,' is not supported'
       call fatal(__FILE__,__LINE__,'clm_now stopping')
     end if
-  
+
     do p = begp , endp
       g = pgridcell(p)
       if ( sand3d(g,1)+clay3d(g,1) == 0.0D0 )then
@@ -942,7 +942,7 @@ module mod_clm_initimeconst
       ! Set gridcell and landunit indices
       g = cgridcell(c)
       l = clandunit(c)
-      
+
       ! initialize maximum daylength, based on latitude and maximum declination
       ! maximum declination hardwired for present-day orbital parameters, 
       ! +/- 23.4667 degrees = +/- 0.409571 radians, use negative value
@@ -1410,13 +1410,13 @@ module mod_clm_initimeconst
       else
         rootfr(p,1:nlevsoi) = 0.D0
       end if
-      
+
       ! initialize rresis, for use in ecosystemdyn
       do lev = 1,nlevgrnd
         rresis(p,lev) = 0.D0
       end do
     end do ! end pft level initialization
-   
+
 #ifdef CN
     ! ----------------------------
     ! Initialize time-constant arrays of decomposition constants

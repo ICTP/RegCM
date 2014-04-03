@@ -109,7 +109,7 @@ module mod_clm_cnecosystemdyn
                         num_pcropp, filter_pcropp, doalb)
 
     call CNGResp(num_soilp, filter_soilp)
-       
+
     call CStateUpdate0(num_soilp, filter_soilp, 'bulk')
 
     if ( use_c13 ) then
@@ -129,7 +129,7 @@ module mod_clm_cnecosystemdyn
     if ( use_c14 ) then
       call CStateUpdate1(num_soilc,filter_soilc,num_soilp,filter_soilp,'c14')
     end if
-       
+
     call NStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp)
 
     call CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
@@ -155,7 +155,7 @@ module mod_clm_cnecosystemdyn
     end if
 
     call NStateUpdate2(num_soilc, filter_soilc, num_soilp, filter_soilp)
-       
+
     if (fpftdyn /= ' ') then
       call CNHarvest(num_soilc, filter_soilc, num_soilp, filter_soilp)
     end if 
@@ -179,9 +179,9 @@ module mod_clm_cnecosystemdyn
     end if
 
     call NStateUpdate2h(num_soilc, filter_soilc, num_soilp, filter_soilp)
-       
+
     call CNWoodProducts(num_soilc, filter_soilc)
-       
+
     call CNFireArea(num_soilc, filter_soilc,num_soilp, filter_soilp)
 
     call CNFireFluxes(num_soilc, filter_soilc, num_soilp, filter_soilp)
@@ -217,9 +217,9 @@ module mod_clm_cnecosystemdyn
     end if
 
 !   call CNAnnualUpdate(num_soilc, filter_soilc, num_soilp, filter_soilp)
-       
+
     call CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, 'bulk')
-       
+
     if ( use_c13 ) then
       call CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, 'c13')
     end if
@@ -227,7 +227,7 @@ module mod_clm_cnecosystemdyn
     if ( use_c14 ) then
       call CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, 'c14')
     end if
-       
+
     call NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
 
   end subroutine CNEcosystemDyn

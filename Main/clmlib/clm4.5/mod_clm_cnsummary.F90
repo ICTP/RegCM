@@ -82,7 +82,7 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
    real(rk8), pointer :: hr_vr(:,:)       ! total vertically-resolved het. resp. from decomposing C pools (gC/m3/s)
    real(rk8), pointer :: m_decomp_cpools_to_fire_vr(:,:,:)
    real(rk8), pointer :: m_decomp_cpools_to_fire(:,:)
-   
+
    real(rk8), pointer :: decomp_cpools(:,:)             ! (gC/m2)  decomposing (litter, cwd, soil) c pools
    real(rk8), pointer :: decomp_cpools_1m(:,:)          ! (gC/m2)  decomposing (litter, cwd, soil) c pools to 1 meter
    real(rk8), pointer :: decomp_cpools_vr(:,:,:)        ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) c pools
@@ -432,7 +432,7 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
     landuptake                     => ccisof%landuptake
     dwt_conv_cflux                 => ccisof%dwt_conv_cflux
     seedc                          => ccisos%seedc
-    
+
     ! wood product pointers
     prod10c_loss                   => ccisof%prod10c_loss
     prod100c_loss                  => ccisof%prod100c_loss
@@ -440,7 +440,7 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
     prod10c                        => ccisos%prod10c
     prod100c                       => ccisos%prod100c
     totprodc                       => ccisos%totprodc
-    
+
     totcolc                        => ccisos%totcolc
     totecosysc                     => ccisos%totecosysc
     totlitc                        => ccisos%totlitc
@@ -837,7 +837,7 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
          hrv_deadcrootc_xfer_to_litter(p)   + &
          hrv_gresp_storage_to_litter(p)     + &
          hrv_gresp_xfer_to_litter(p)
-                 
+
 #if (defined CNDV)
       ! update the annual litfall accumulator, for use in mortality code
       tempsum_litfall(p) = tempsum_litfall(p) + leafc_to_litter(p) + frootc_to_litter(p)
@@ -845,7 +845,7 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
 
       ! pft-level fire losses (VEGFIRE)
       vegfire(p) = 0.D0
-      
+
       ! pft-level wood harvest
       wood_harvestc(p) = &
          hrv_deadstemc_to_prod10c(p) + &
@@ -920,14 +920,14 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
 
       ! total pft-level carbon, including xsmrpool, ctrunc
       totpftc(p) = totvegc(p) + xsmrpool(p) + pft_ctrunc(p)
-      
+
       ! new summary variables for CLAMP
-      
+
       ! (FROOTC_ALLOC) - fine root C allocation
       frootc_alloc(p) = &
         frootc_xfer_to_frootc(p)    + &
         cpool_to_frootc(p)     
-              
+
       ! (FROOTC_LOSS) - fine root C loss changed by F. Li and S. Levis
       frootc_loss(p) = &
         m_frootc_to_litter(p)       + &
@@ -935,7 +935,7 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
         m_frootc_to_litter_fire(p)  + &
         hrv_frootc_to_litter(p)     + &
         frootc_to_litter(p)
-      
+
       ! (LEAFC_ALLOC) - leaf C allocation
       leafc_alloc(p) = &
         leafc_xfer_to_leafc(p)    + &
@@ -948,14 +948,14 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
         m_leafc_to_litter_fire(p) + &
         hrv_leafc_to_litter(p)    + &
         leafc_to_litter(p)
-      
+
       ! (WOODC) - wood C
       woodc(p) = &
         deadstemc(p)    + &
         livestemc(p)    + &
         deadcrootc(p)   + &
         livecrootc(p)
-      
+
       ! (WOODC_ALLOC) - wood C allocation
       woodc_alloc(p) = &
         livestemc_xfer_to_livestemc(p)  + &
@@ -966,7 +966,7 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
         cpool_to_deadstemc(p)   + &
         cpool_to_livecrootc(p)  + &
         cpool_to_deadcrootc(p)
-      
+
       ! (WOODC_LOSS) - wood C loss
       woodc_loss(p) = &
         m_livestemc_to_litter(p)    + &
@@ -1076,13 +1076,13 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
          end do
       end if
    end do
-   
+
    ! total heterotrophic respiration (HR)
    do fc = 1,num_soilc
       c = filter_soilc(fc)
       hr(c) = lithr(c) + somhr(c)
    end do
-   
+
    ! total heterotrophic respiration, vertically resolved (HR)
    do j = 1,nlevdecomp
       do fc = 1,num_soilc
@@ -1109,7 +1109,7 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
 
       ! litter fire losses (LITFIRE)
       litfire(c) = 0.D0
-      
+
       ! total wood product loss
       product_closs(c) = &
          prod10c_loss(c) + &
@@ -1143,7 +1143,7 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
       do l = 1, ndecomp_pools
             col_fire_closs(c) = col_fire_closs(c) + m_decomp_cpools_to_fire(c,l)
       end do
-         
+
       ! column-level carbon losses due to landcover change
       dwt_closs(c) = &
          dwt_conv_cflux(c)
@@ -1176,7 +1176,7 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
 
    ! for vertically-resolved soil biogeochemistry, calculate some diagnostics of carbon pools to a given depth
    if ( nlevdecomp .gt. 1) then
-      
+
       ! zero some pools
       do l = 1, ndecomp_pools
          do fc = 1,num_soilc
@@ -1204,7 +1204,7 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
             endif
          end do
       end do
-      
+
       ! total litter carbon in the top meter (TOTLITC_1m)
       do l = 1, ndecomp_pools
          if ( is_litter(l) ) then
@@ -1215,7 +1215,7 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
             end do
          endif
       end do
-      
+
       ! total soil organic matter carbon in the top meter (TOTSOMC_1m)
       do l = 1, ndecomp_pools
          if ( is_soil(l) ) then
@@ -1226,9 +1226,9 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
             end do
          end if
       end do
-      
+
    endif
-   
+
    ! total litter carbon (TOTLITC)
    do l = 1, ndecomp_pools
       if ( is_litter(l) ) then
@@ -1270,14 +1270,14 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
               col_ctrunc_vr(c,j) * dzsoi_decomp(j)
       end do
    end do
-      
+
    do fc = 1,num_soilc
       c = filter_soilc(fc)
       ! total wood product carbon
       totprodc(c) = &
            prod10c(c) + &
            prod100c(c)   
-      
+
       ! total ecosystem carbon, including veg but excluding cpool (TOTECOSYSC)
       totecosysc(c) = &
            cwdc(c) + &
@@ -1285,7 +1285,7 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
            totsomc(c) + &
            totprodc(c) + &
            col_totvegc(c)
-      
+
       ! total column carbon, including veg and cpool (TOTCOLC)
       ! adding col_ctrunc, seedc
       totcolc(c) = &
@@ -1296,9 +1296,9 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
          totprodc(c) + &
          seedc(c) + &
          col_ctrunc(c)
-      
+
       ! new summary variables for CLAMP
-      
+
       ! (CWDC_HR) - coarse woody debris heterotrophic respiration
       cwdc_hr(c) = 0.D0
    end do
@@ -1321,7 +1321,7 @@ subroutine CSummary(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
          end do
       end if
    end do
-   
+
    ! (LITTERC_LOSS) - litter C loss      
    do fc = 1,num_soilc
       c = filter_soilc(fc)
@@ -1480,7 +1480,7 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
    real(rk8), pointer :: m_livecrootn_storage_to_fire(:)      
    real(rk8), pointer :: m_livecrootn_xfer_to_fire(:)
    real(rk8), pointer :: m_retransn_to_fire(:)   
-    
+
    real(rk8), pointer :: hrv_deadstemn_to_prod10n(:)        
    real(rk8), pointer :: hrv_deadstemn_to_prod100n(:)       
    real(rk8), pointer :: ndeploy(:)
@@ -1629,7 +1629,7 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
     m_deadcrootn_storage_to_fire   => clm3%g%l%c%p%pnf%m_deadcrootn_storage_to_fire
     m_deadcrootn_xfer_to_fire      => clm3%g%l%c%p%pnf%m_deadcrootn_xfer_to_fire
     m_retransn_to_fire             => clm3%g%l%c%p%pnf%m_retransn_to_fire
-   
+
 
     hrv_deadstemn_to_prod10n         => clm3%g%l%c%p%pnf%hrv_deadstemn_to_prod10n        
     hrv_deadstemn_to_prod100n        => clm3%g%l%c%p%pnf%hrv_deadstemn_to_prod100n       
@@ -1803,7 +1803,7 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
          end do
       end do
    end do
-   
+
 #ifndef NITRIF_DENITRIF
    ! vertically integrate each denitrification flux
    do l = 1, ndecomp_cascade_transitions
@@ -1851,11 +1851,11 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
          pot_f_denit(c) = pot_f_denit(c) + pot_f_denit_vr(c,j) * dzsoi_decomp(j)
          f_n2o_nit(c) = f_n2o_nit(c) + f_n2o_nit_vr(c,j) * dzsoi_decomp(j)
          f_n2o_denit(c) = f_n2o_denit(c) + f_n2o_denit_vr(c,j) * dzsoi_decomp(j)
-         
+
          ! leaching/runoff flux
          smin_no3_leached(c) = smin_no3_leached(c) + smin_no3_leached_vr(c,j) * dzsoi_decomp(j)
          smin_no3_runoff(c) = smin_no3_runoff(c) + smin_no3_runoff_vr(c,j) * dzsoi_decomp(j)
-         
+
          ! mineral N pools (must set to zero first since they are state rather than flux variables)
          smin_no3(c) = smin_no3(c) + smin_no3_vr(c,j) * dzsoi_decomp(j)
          smin_nh4(c) = smin_nh4(c) + smin_nh4_vr(c,j) * dzsoi_decomp(j)
@@ -1879,7 +1879,7 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
          end do
       end do
    end do
-   
+
    ! total column-level fire N losses
    do fc = 1,num_soilc
       c = filter_soilc(fc)
@@ -1892,8 +1892,8 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
               m_decomp_npools_to_fire(c,k)
       end do
    end do
-   
-   
+
+
    ! vertically integrate each of the decomposing N pools
    do l = 1, ndecomp_pools
       do fc = 1,num_soilc
@@ -1938,8 +1938,8 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
             endif
          end do
       end do
-      
-      
+
+
       ! total litter nitrogen to 1 meter (TOTLITN_1m)
       do l = 1, ndecomp_pools
          if ( is_litter(l) ) then
@@ -1950,7 +1950,7 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
             end do
          end if
       end do
-      
+
       ! total soil organic matter nitrogen to 1 meter (TOTSOMN_1m)
       do l = 1, ndecomp_pools
          if ( is_soil(l) ) then
@@ -1961,9 +1961,9 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
             end do
          end if
       end do
-      
+
    endif
-   
+
    ! total litter nitrogen (TOTLITN)
    do l = 1, ndecomp_pools
       if ( is_litter(l) ) then
@@ -1974,7 +1974,7 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
          end do
       end if
    end do
-   
+
    ! total soil organic matter nitrogen (TOTSOMN)
    do l = 1, ndecomp_pools
       if ( is_soil(l) ) then
@@ -1985,7 +1985,7 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
          end do
       end if
    end do
-   
+
    ! total cwdn
    do l = 1, ndecomp_pools
       if ( is_cwd(l) ) then
@@ -1996,7 +1996,7 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
          end do
       end if
    end do
-   
+
    ! total sminn
    do j = 1, nlevdecomp
       do fc = 1,num_soilc
@@ -2026,11 +2026,11 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
 
    do fc = 1,num_soilc
       c = filter_soilc(fc)
-      
+
       ! column-level N losses due to landcover change
       dwt_nloss(c) = &
          dwt_conv_nflux(c)
-         
+
       ! total wood product N loss
       product_nloss(c) = &
          prod10n_loss(c) + &
@@ -2061,7 +2061,7 @@ subroutine NSummary(num_soilc, filter_soilc, num_soilp, filter_soilp)
      seedn(c) + &
      col_ntrunc(c)
    end do
-   
+
    ! add up all vertical transport tendency terms and calculate total som leaching loss as the sum of these
    do l = 1, ndecomp_pools
       do fc = 1,num_soilc

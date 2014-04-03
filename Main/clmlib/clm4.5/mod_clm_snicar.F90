@@ -121,7 +121,7 @@ module mod_clm_snicar
   ! (arrays declared here, but are set in iniTimeConst)
   ! (idx_Mie_snw_mx is number of snow radii with defined parameters
   ! (i.e. from 30um to 1500um))
-  
+
   ! direct-beam weighted ice optical properties
   real(rk8) :: ss_alb_snw_drc(idx_Mie_snw_mx,numrad_snw)
   real(rk8) :: asm_prm_snw_drc(idx_Mie_snw_mx,numrad_snw)
@@ -297,7 +297,7 @@ module mod_clm_snicar
     ! weights applied to spectral bands, specific to direct and diffuse cases
     ! (bnd) [frc]
     real(rk8):: flx_wgt(1:numrad_snw)
-   
+
     ! flag: =1 if there is snow, but zero snow layers,
     !     =0 if at least 1 snow layer [flg]   
     integer :: flg_nosnl
@@ -314,7 +314,7 @@ module mod_clm_snicar
     real(rk8):: albout_lcl(numrad_snw)
     ! absorbed flux per unit incident flux at top of snowpack (lyr,bnd) [frc]
     real(rk8):: flx_abs_lcl(-nlevsno+1:1,numrad_snw)
- 
+
     ! h2o mass (liquid+solid) in snow layer (lyr) [kg/m2]
     real(rk8):: L_snw(-nlevsno+1:0)
     ! snow optical depth (lyr) [unitless]
@@ -346,7 +346,7 @@ module mod_clm_snicar
     ! transformed (i.e. Delta-Eddington) asymmetry paramater of
     !  snow+aerosol layer (lyr) [frc]
     real(rk8):: g_star(-nlevsno+1:0)
-   
+
     ! gridcell, column, and landunit indices [idx]
     integer :: g_idx, c_idx, l_idx
     ! spectral band index (1 <= bnd_idx <= numrad_snw) [idx]
@@ -362,7 +362,7 @@ module mod_clm_snicar
     integer :: i        ! layer index [idx]
     integer :: j        ! aerosol number index [idx]
     integer :: n        ! tridiagonal matrix index [idx]
-   
+
     ! direct-beam radiation at bottom of layer interface (lyr) [W/m^2]
     real(rk8):: F_direct(-nlevsno+1:0)
     ! net radiative flux at bottom of layer interface (lyr) [W/m^2]
@@ -471,7 +471,7 @@ module mod_clm_snicar
         flx_abs_lcl(:,:)   = 0.D0
         flx_abs(c_idx,i,:) = 0.D0
       end do
-       
+
       ! set snow/ice mass to be used for RT:
       if (flg_snw_ice == 1) then
         h2osno_lcl = h2osno(c_idx)
@@ -504,7 +504,7 @@ module mod_clm_snicar
             h2osno_ice_lcl(:) =  h2osno_ice(c_idx,:)
             snw_rds_lcl(:)    =  snw_rds(c_idx,:)
           end if
-            
+
           snl_btm   = 0
           snl_top   = snl_lcl+1
 
@@ -632,7 +632,7 @@ module mod_clm_snicar
             !            (this happens about 1 in 10^6 cases)
             !  3rd error (flg_dover=4): switch approximation with new zenith
             !  Subsequent errors: repeatedly change zenith and approximations...
-              
+
             if ( bnd_idx == 1 ) then
               if ( flg_dover == 2 ) then
                 aprx_typ = 3
@@ -767,7 +767,7 @@ module mod_clm_snicar
               tau_sum   = 0.D0
               omega_sum = 0.D0
               g_sum     = 0.D0
-  
+
               do j = 1 , sno_nbr_aer
                 tau_sum    = tau_sum + tau_aer(i,j) 
                 omega_sum  = omega_sum + (tau_aer(i,j)*ss_alb_aer_lcl(j))
@@ -992,13 +992,13 @@ module mod_clm_snicar
                 F_abs(i) = F_net(i)-F_net(i-1)
               end if
               flx_abs_lcl(i,bnd_idx) = F_abs(i)
-                   
+
               ! ERROR check: negative absorption
               if ( flx_abs_lcl(i,bnd_idx) < -0.00001 ) then
                 trip = 1
               end if
             end do
-                
+
             flx_abs_lcl(1,bnd_idx) = F_btm_net
 
             if ( flg_nosnl == 1 ) then
@@ -1015,7 +1015,7 @@ module mod_clm_snicar
               flx_abs_lcl(0,bnd_idx) = F_abs(0)
               flx_abs_lcl(1,bnd_idx) = F_btm_net
             end if
-                
+
             !Underflow check (we've already tripped the error condition above)
             do i = snl_top , 1 , 1
               if ( flx_abs_lcl(i,bnd_idx) < 0.D0 ) then
@@ -1075,7 +1075,7 @@ module mod_clm_snicar
               flg_dover = 0
             end if
           end do !enddo while (flg_dover > 0)
-            
+
           ! Energy conservation check:
           ! Incident direct+diffuse radiation equals
           ! (absorbed+bulk_transmitted+bulk_reflected)
@@ -1234,7 +1234,7 @@ module mod_clm_snicar
     logical , pointer :: do_capsnow(:)  ! true => do snow capping
     ! fraction of ground covered by snow (0 to 1)
     real(rk8), pointer :: frac_sno(:)
- 
+
     integer :: snl_top         ! top snow layer index [idx]
     integer :: snl_btm         ! bottom snow layer index [idx]
     integer :: i               ! layer index [idx]
@@ -1297,7 +1297,7 @@ module mod_clm_snicar
     qflx_snofrz_lyr    => clm3%g%l%c%cwf%qflx_snofrz_lyr
     do_capsnow         => clm3%g%l%c%cps%do_capsnow
     frac_sno           => clm3%g%l%c%cps%frac_sno_eff 
-  
+
 
     ! loop over columns that have at least one snow layer
     do fc = 1 , num_snowc
@@ -1306,7 +1306,7 @@ module mod_clm_snicar
       snl_btm = 0
       snl_top = snl(c_idx) + 1
 
-      cdz(snl_top:snl_btm)=frac_sno(c_idx)*dz(c_idx,snl_top:snl_btm)
+      cdz(snl_top:snl_btm) = frac_sno(c_idx)*dz(c_idx,snl_top:snl_btm)
 
       ! loop over snow layers
       do i = snl_top , snl_btm , 1
@@ -1330,9 +1330,9 @@ module mod_clm_snicar
                   + t_soisno(c_idx,i)*dz(c_idx,i+1)) &
                   / (dz(c_idx,i)+dz(c_idx,i+1))
         end if
-          
+
         dTdz(c_idx,i) = abs((t_snotop - t_snobtm) / cdz(i))
-          
+
         ! snow density
         rhos = (h2osoi_liq(c_idx,i)+h2osoi_ice(c_idx,i)) / cdz(i)
 
@@ -1363,7 +1363,7 @@ module mod_clm_snicar
         if (rhos_idx > idx_rhos_max) then 
           rhos_idx = idx_rhos_max
         end if
-             
+
         ! best-fit parameters
         bst_tau   = snowage_tau(rhos_idx,Tgrd_idx,T_idx)
         bst_kappa = snowage_kappa(rhos_idx,Tgrd_idx,T_idx)     
@@ -1392,7 +1392,7 @@ module mod_clm_snicar
         dr_wet = 1.0D18*(dtsrf*(C2_liq_Brun89*(frc_liq**(3))) / &
                   (4.0D0*rpi*snw_rds(c_idx,i)**(2)))
         dr = dr + dr_wet
-    
+
         !
         !**********  3. SNOWAGE SCALING (TURNED OFF BY DEFAULT)  *************
         !
@@ -1602,9 +1602,9 @@ module mod_clm_snicar
    if (myid == italk) &
      write(stdout,*) 'Attempting to read snow aging parameters .....'
    call clm_openfile(fsnowaging,ncid)
-   
+
     ! snow aging parameters
-   
+
    call clm_readvar(ncid,'tau',snowage_tau)
    call clm_readvar(ncid,'kappa',snowage_kappa)
    call clm_readvar(ncid,'drdsdt0',snowage_drdt0)

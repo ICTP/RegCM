@@ -382,7 +382,7 @@ contains
                 else
                    ! For urban columns we use the net longwave radiation (eflx_lwrad_net) because of 
                    ! interactions between urban columns.
-                   
+
                    ! All wasteheat and traffic flux goes into canyon floor
                    if (ctype(c) == icol_road_perv .or. ctype(c) == icol_road_imperv) then
                       eflx_wasteheat_pft(p) = eflx_wasteheat(l)/(1.D0-wtlunit_roof(l))
@@ -456,7 +456,7 @@ contains
 
                    hs_top_snow(c) = hs_top_snow(c) + eflx_gnet_snow*pwtcol(p)
                    hs_top_soil(c) = hs_top_soil(c) + eflx_gnet_soil*pwtcol(p)
-             
+
                    do j = lyr_top,1,1
                       sabg_lyr_col(c,j) = sabg_lyr_col(c,j) + sabg_lyr(p,j) * pwtcol(p)
                    enddo
@@ -466,7 +466,7 @@ contains
                    hs_top_snow(c) = hs_top_snow(c) + eflx_gnet(p)*pwtcol(p)
                    hs_top_soil(c) = hs_top_soil(c) + eflx_gnet(p)*pwtcol(p)
                    sabg_lyr_col(c,lyr_top) = sabg_lyr_col(c,lyr_top) + sabg(p) * pwtcol(p)
-             
+
                 endif
              endif
 
@@ -513,7 +513,7 @@ contains
                    dzm     = (z(c,j)-z(c,j-1))
                 else if (j == nlevurb) then
                    fact(c,j) = dtime/cv(c,j)
-   
+
                    ! For urban sunwall, shadewall, and roof columns, there is a non-zero heat flux across
                    ! the bottom "soil" layer and the equations are derived assuming a prescribed internal
                    ! building temperature. (See Oleson urban notes of 6/18/03).
@@ -561,7 +561,7 @@ contains
                    at(c,j) =   - (1.D0-cnfac)*fact(c,j)* tk(c,j-1)/dzm
                    bt(c,j) = 1.D0+ (1.D0-cnfac)*fact(c,j)*(tk(c,j)/dzp + tk(c,j-1)/dzm)
                    ct(c,j) =   - (1.D0-cnfac)*fact(c,j)* tk(c,j)/dzp
-   
+
                    ! if this is a snow layer or the top soil layer,
                    ! add absorbed solar flux to factor 'rt'
                    if (j <= 1) then
@@ -569,9 +569,9 @@ contains
                    else
                       rt(c,j) = t_soisno(c,j) + cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) )
                    endif
-   
+
                 else if (j == nlevurb) then
-   
+
                    ! For urban sunwall, shadewall, and roof columns, there is a non-zero heat flux across
                    ! the bottom "soil" layer and the equations are derived assuming a prescribed internal
                    ! building temperature. (See Oleson urban notes of 6/18/03).
@@ -582,7 +582,7 @@ contains
                    ct(c,j) = 0.D0
                    rt(c,j) = t_soisno(c,j) + fact(c,j)*( fn(c,j) - cnfac*fn(c,j-1) )
                 end if
-   
+
              end if
           end if
        enddo
@@ -607,20 +607,20 @@ contains
                    ! this is the snow/soil interface layer
                    dzm     = (z(c,j)-z(c,j-1))
                    dzp     = (z(c,j+1)-z(c,j))
-                   
+
                    at(c,j) =   - frac_sno_eff(c) * (1.D0-cnfac) * fact(c,j) &
                         * tk(c,j-1)/dzm
-                   
+
                    bt(c,j) = 1.D0 + (1.D0-cnfac)*fact(c,j)*(tk(c,j)/dzp &
                         + frac_sno_eff(c) * tk(c,j-1)/dzm) &
                         - (1.D0 - frac_sno_eff(c))*fact(c,j)*dhsdT(c)
-                   
+
                    ct(c,j) = - (1.D0-cnfac)*fact(c,j)*tk(c,j)/dzp
-                   
+
                    rt(c,j) = t_soisno(c,j) + fact(c,j) &
                         *((1.D0-frac_sno_eff(c))*(hs_soil(c) - dhsdT(c)*t_soisno(c,j)) &
                         + cnfac*(fn(c,j) - frac_sno_eff(c) * fn(c,j-1)))
-                   
+
                    rt(c,j) = rt(c,j) +  frac_sno_eff(c)*fact(c,j)*sabg_lyr_col(c,j)
                 else if (j <= nlevgrnd-1) then
                    dzm     = (z(c,j)-z(c,j-1))
@@ -628,10 +628,10 @@ contains
                    at(c,j) =   - (1.D0-cnfac)*fact(c,j)* tk(c,j-1)/dzm
                    bt(c,j) = 1.D0+ (1.D0-cnfac)*fact(c,j)*(tk(c,j)/dzp + tk(c,j-1)/dzm)
                    ct(c,j) =   - (1.D0-cnfac)*fact(c,j)* tk(c,j)/dzp
-                   
+
                    rt(c,j) = t_soisno(c,j) + cnfac*fact(c,j)*( fn(c,j) - fn(c,j-1) )
                    if (j < 1) rt(c,j) = rt(c,j) + fact(c,j)*sabg_lyr_col(c,j)
-                   
+
                 else if (j == nlevgrnd) then
                    dzm     = (z(c,j)-z(c,j-1))
                    at(c,j) =   - (1.D0-cnfac)*fact(c,j)*tk(c,j-1)/dzm
@@ -739,7 +739,7 @@ contains
 
     call BandDiagonal(lbc, ubc, -nlevsno, nlevgrnd, jtop, jbot, num_nolakec, &
          filter_nolakec, nband, bmatrix, rvector, tvector)
- 
+
     ! return temperatures to original array
     do fc = 1,num_nolakec
        c = filter_nolakec(fc)
@@ -770,7 +770,7 @@ contains
                 if (j <= nlevurb-1) then
                    fn1(c,j) = tk(c,j)*(t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
                 else if (j == nlevurb) then
-   
+
                    ! For urban sunwall, shadewall, and roof columns, there is a non-zero heat flux across
                    ! the bottom "soil" layer and the equations are derived assuming a prescribed internal
                    ! building temperature. (See Oleson urban notes of 6/18/03).
@@ -1316,7 +1316,7 @@ contains
 
              ! remove ice from h2osfc
              h2osfc(c) = h2osfc(c) - xm(c)
-             
+
              xmf_h2osfc(c) = -frac_h2osfc(c)*hm(c)
 
              qflx_h2osfc_to_ice(c) = xm(c)/dtime
@@ -1655,7 +1655,7 @@ contains
 
                 ! Calculate the energy surplus and loss for melting and freezing
                 if (imelt(c,j) > 0) then
-              
+
                    ! added unique cases for this calculation,
                    ! to account for absorbed solar radiation in each layer
 
@@ -1686,10 +1686,10 @@ contains
                 endif
 
                 ! The rate of melting and freezing
-   
+
                 if (imelt(c,j) > 0 .and. abs(hm(c,j)) > 0.D0) then
                    xm(c,j) = hm(c,j)*dtime/hfus                           ! kg/m2
-   
+
                    ! If snow exists, but its thickness is less than the critical value
                    ! (1 cm). Note: more work is needed to determine how to tune the
                    ! snow depth for this case
@@ -1729,7 +1729,7 @@ contains
                       endif
                       heatr = hm(c,j) - hfus*(wice0(c,j)-h2osoi_ice(c,j))/dtime
                    endif
-   
+
                    h2osoi_liq(c,j) = max(0.D0,wmass0(c,j)-h2osoi_ice(c,j))
 
                    if (abs(heatr) > 0.D0) then
@@ -1744,7 +1744,7 @@ contains
                          endif
 
                       else if (j == 1) then
-   
+
                          t_soisno(c,j) = t_soisno(c,j) + fact(c,j)*heatr &
                               /(1.D0-(1.0D0 - frac_sno_eff(c) - frac_h2osfc(c))*fact(c,j)*dhsdT(c))
                       else

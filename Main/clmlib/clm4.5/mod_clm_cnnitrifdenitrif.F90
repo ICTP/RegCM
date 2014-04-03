@@ -114,7 +114,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
    real(rk8), pointer :: watfc(:,:)                 ! volumetric soil water at field capacity (nlevsoi)
    real(rk8), pointer :: bsw(:,:)                   ! Clapp and Hornberger "b" (nlevgrnd)  
    real(rk8), pointer :: n2_n2o_ratio_denit_vr(:,:) ! ratio of N2 to N2O production by denitrification [gN/gN]
-   
+
    !debug-- put these in clmtype for outing to hist files
    real(rk8), pointer :: diffus(:,:) !diffusivity (unitless fraction of total diffusivity)
    real(rk8), pointer :: ratio_k1(:,:)
@@ -145,7 +145,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
 
    real(rk8), pointer :: r_psi(:,:)
    real(rk8), pointer :: anaerobic_frac(:,:)
-   
+
    real(rk8), pointer :: soilpsi(:,:)              ! soil water potential in each soil layer (MPa)
    real(rk8), pointer :: o2_decomp_depth_unsat(:,:)! O2 consumption during decomposition in each soil layer (nlevsoi) (mol/m3/s)
    real(rk8), pointer :: conc_o2_unsat(:,:)        ! O2 conc in each soil layer (mol/m3) (nlevsoi)
@@ -156,7 +156,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
 
    real(rk8), pointer :: cellorg(:,:)              ! column 3D org (kg/m3 organic matter) (nlevgrnd)
    character(len=32) :: subname='nitrif_denitrif' ! subroutine name
-   
+
    !-- implicit in
 ! #ifdef LCH4
 !    pH                       => clm3%g%l%c%cps%pH
@@ -204,7 +204,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
    soil_co2_prod                 => clm3%g%l%c%cnf%soil_co2_prod
    fr_WFPS                       => clm3%g%l%c%cnf%fr_WFPS
    soil_bulkdensity              => clm3%g%l%c%cnf%soil_bulkdensity
-   
+
    cellorg   => clm3%g%l%c%cps%cellorg
 
    !-- implicit out
@@ -221,7 +221,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
    do j = 1, nlevdecomp
       do fc = 1,num_soilc
          c = filter_soilc(fc)
-                  
+
          !---------------- calculate soil anoxia state
          ! calculate gas diffusivity of soil at field capacity here
          ! use expression from methane code, but neglect OM for now
@@ -239,7 +239,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
          diffus (c,j) = (d_con_g(2,1) + d_con_g(2,2)*t_soisno(c,j)) * 1.D-4 * &
               (om_frac * f_a**(10.D0/3.D0) / watsat(c,j)**2 + &
               (1.D0-om_frac) * eps**2 * f_a**(3.D0 / bsw(c,j)) ) 
-         
+
          ! calculate anoxic fraction of soils
          ! use rijtema and kroess model after Riley et al., 2000
          ! caclulated r_psi as a function of psi
@@ -248,7 +248,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
          r_psi(c,j) = sqrt(r_min(c,j) * r_max)
          ratio_diffusivity_water_gas(c,j) = (d_con_g(2,1) + d_con_g(2,2)*t_soisno(c,j) ) * 1.D-4 / &
               ((d_con_w(2,1) + d_con_w(2,2)*t_soisno(c,j) + d_con_w(2,3)*t_soisno(c,j)**2) * 1.D-9)
-         
+
          if (o2_decomp_depth_unsat(c,j) .ne. spval .and. &
              conc_o2_unsat(c,j) .ne. spval .and. &
              o2_decomp_depth_unsat(c,j) .gt. 0.D0) then
@@ -271,7 +271,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
             endif
             anaerobic_frac(c,j) = (1.D0 - finundated(c))*anaerobic_frac(c,j) + finundated(c)*anaerobic_frac_sat
          end if
-             
+
 #else
          ! NITRIF_DENITRIF requires Methane model to be active, 
          ! otherwise diffusivity will be zeroed out here. EBK CDK 10/18/2011
@@ -281,20 +281,20 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
          ! trim(subname)//' ERROR: NITRIF_DENITRIF requires Methane model to be active' )
 #endif
 
-         
+
          !---------------- nitrification
          ! follows CENTURY nitrification scheme (Parton et al., (2001, 1996))
 
          ! assume nitrification temp function equal to the HR scalar
          k_nitr_t_vr(c,j) = min(t_scalar(c,j), 1.D0)
-         
+
          ! ph function from Parton et al., (2001, 1996)
          k_nitr_ph_vr(c,j) = 0.56 + atan(rpi * 0.45 * (-5.+ pH(c)))/rpi
-         
+
          ! moisture function-- assume the same moisture function as limits heterotrophic respiration
          ! Parton et al. base their nitrification- soil moisture rate constants based on heterotrophic rates-- can we do the same?
          k_nitr_h2o_vr(c,j) = w_scalar(c,j)
-         
+
          ! nitrification constant is a set scalar * temp, moisture, and ph scalars
          k_nitr_vr(c,j) = k_nitr_max * k_nitr_t_vr(c,j) * k_nitr_h2o_vr(c,j) * k_nitr_ph_vr(c,j)
 
@@ -318,9 +318,9 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
          soil_bulkdensity(c,j) = bd(c,j) + h2osoi_liq(c,j)/dz(c,j)         
 
          g_per_m3__to__ug_per_gsoil = 1.D3 / soil_bulkdensity(c,j)
-         
+
          g_per_m3_sec__to__ug_per_gsoil_day = g_per_m3__to__ug_per_gsoil * secspday
-         
+
          smin_no3_massdens_vr(c,j) = max(smin_no3_vr(c,j), 0.D0) * g_per_m3__to__ug_per_gsoil
 
          soil_co2_prod(c,j) = (soil_hr_vr(c,j) * (g_per_m3_sec__to__ug_per_gsoil_day))
@@ -332,7 +332,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
          !  
          fmax_denit_nitrate_vr(c,j) = (1.15D0 * smin_no3_massdens_vr(c,j)**0.57D0)  &
               / g_per_m3_sec__to__ug_per_gsoil_day
-         
+
          ! find limiting denitrification rate
          f_denit_base_vr(c,j) = max(min(fmax_denit_carbonsubstrate_vr(c,j), fmax_denit_nitrate_vr(c,j)),0.D0) 
 
@@ -340,14 +340,14 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
          if ( t_soisno(c,j) <= tfrz .and. no_frozen_nitrif_denitrif ) then
             f_denit_base_vr(c,j) = 0.D0
          endif
-         
+
          ! limit to anoxic fraction of soils
          pot_f_denit_vr(c,j) = f_denit_base_vr(c,j) * anaerobic_frac(c,j)
 
          ! now calculate the ratio of N2O to N2 from denitrifictaion, following Del Grosso et al., 2000
          ! diffusivity constant (figure 6b)
          ratio_k1(c,j) = max(1.7D0, 38.4D0 - 350.D0 * diffus(c,j))
-         
+
          ! ratio function (figure 7c)
          if ( soil_co2_prod(c,j) .gt. 0 ) then
             ratio_no3_co2(c,j) = smin_no3_massdens_vr(c,j) / soil_co2_prod(c,j)
@@ -369,7 +369,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
          n2_n2o_ratio_denit_vr(c,j) = max(0.16*ratio_k1(c,j), ratio_k1(c,j)*exp(-0.8 * ratio_no3_co2(c,j))) * fr_WFPS(c,j)
 
       end do
-            
+
    end do
 
 

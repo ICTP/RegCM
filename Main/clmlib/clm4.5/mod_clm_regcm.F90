@@ -160,19 +160,32 @@ module mod_clm_regcm
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
+    real(rk8) , dimension(1:nnsg,jci1:jci2,ici1:ici2) :: lastgood
     ! Just get albedoes from clm_l2a
     clm_l2a%notused = clm_l2a%albd(:,1)
+    lastgood = lms%swdiralb
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdiralb)
+    where ( lms%swdiralb > 0.9999D0 )
+      lms%swdiralb = lastgood
+    end where
     clm_l2a%notused = clm_l2a%albd(:,2)
+    lastgood = lms%lwdiralb
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdiralb)
+    where ( lms%lwdiralb > 0.9999D0 )
+      lms%lwdiralb = lastgood
+    end where
     clm_l2a%notused = clm_l2a%albi(:,1)
+    lastgood = lms%swdifalb
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%swdifalb)
+    where ( lms%swdifalb > 0.9999D0 )
+      lms%swdifalb = lastgood
+    end where
     clm_l2a%notused = clm_l2a%albi(:,2)
+    lastgood = lms%lwdifalb
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%lwdifalb)
-    lms%swdiralb = min(0.9999D0,lms%swdiralb)
-    lms%lwdiralb = min(0.9999D0,lms%lwdiralb)
-    lms%swdifalb = min(0.9999D0,lms%swdifalb)
-    lms%lwdifalb = min(0.9999D0,lms%lwdifalb)
+    where ( lms%lwdifalb > 0.9999D0 )
+      lms%lwdifalb = lastgood
+    end where
     ! This should be the vegetation albedo!
     lms%swalb = lms%swdiralb+lms%swdifalb
     lms%lwalb = lms%lwdiralb+lms%lwdifalb

@@ -88,7 +88,7 @@ module mod_clm_control
   use mod_clm_surfacealbedo , only : albice
   use mod_clm_hydrology1 , only : Hydrology1_readnl
   use mod_clm_soilhydrology , only : SoilHydrology_readnl
- 
+
   implicit none
 
   private
@@ -294,7 +294,7 @@ module mod_clm_control
     ! ----------------------------------------------------------------------
 
     call control_spmd()
-    
+
     ! Set input file path in RegCM world
 
     rpntdir = trim(dirout)

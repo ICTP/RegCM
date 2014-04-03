@@ -254,7 +254,7 @@ module mod_clm_surfaceradiation
      fsds_vis_i_ln => clm3%g%l%c%p%pef%fsds_vis_i_ln
      fsr_vis_d_ln  => clm3%g%l%c%p%pef%fsr_vis_d_ln
      fsr_nir_d_ln  => clm3%g%l%c%p%pef%fsr_nir_d_ln
-     
+
      ! Assign local pointers to derived type members (ecophysiological)
 
      frac_sno         => clm3%g%l%c%cps%frac_sno
@@ -293,7 +293,7 @@ module mod_clm_surfaceradiation
      fsds_sno_ni      => clm3%g%l%c%p%pef%fsds_sno_ni
 
      ! Determine seconds off current time step
-     
+
      dtime = int(dtsrf)
      call curr_date(idatex,year,month,day,secs)
 
@@ -349,10 +349,10 @@ module mod_clm_surfaceradiation
            else
               fsun(p) = 0.D0
            end if
-        
+
         end if
      end do
-        
+
      ! Loop over nband wavebands
      do ib = 1, nband
         do fp = 1,num_nourbanp
@@ -363,7 +363,7 @@ module mod_clm_surfaceradiation
               g = pgridcell(p)
 
               ! Absorbed by canopy
-              
+
               cad(p,ib) = forc_solad(g,ib)*fabd(p,ib)
               cai(p,ib) = forc_solai(g,ib)*fabi(p,ib)
               sabv(p) = sabv(p) + cad(p,ib) + cai(p,ib)
@@ -378,7 +378,7 @@ module mod_clm_surfaceradiation
               ! Absorbed PAR profile through canopy
               ! If sun/shade big leaf code, nrad=1 and fluxes from SurfaceAlbedo
               ! are canopy integrated so that layer values equal big leaf values.
-              
+
               if (ib == 1) then
                  do iv = 1, nrad(p)
                     parsun_z(p,iv) = forc_solad(g,ib)*fabd_sun_z(p,iv) + forc_solai(g,ib)*fabi_sun_z(p,iv)
@@ -392,7 +392,7 @@ module mod_clm_surfaceradiation
               tri(p,ib) = forc_solad(g,ib)*ftid(p,ib) + forc_solai(g,ib)*ftii(p,ib)
 
               ! Solar radiation absorbed by ground surface
-              
+
               ! calculate absorbed solar by soil/snow separately
               absrad  = trd(p,ib)*(1.D0-albsod(c,ib)) + tri(p,ib)*(1.D0-albsoi(c,ib))
               sabg_soil(p) = sabg_soil(p) + absrad
@@ -451,7 +451,7 @@ module mod_clm_surfaceradiation
               sabg_lyr(p,:) = 0.D0
               sabg_lyr(p,1) = sabg(p)
               sabg_snl_sum  = sabg_lyr(p,1)
-   
+
            ! CASE 2: Snow layers present: absorbed radiation is scaled according to 
            ! flux factors computed by SNICAR
            else
@@ -463,7 +463,7 @@ module mod_clm_surfaceradiation
                     sabg_snl_sum = sabg_snl_sum + sabg_lyr(p,i)
                  endif
               enddo
-   
+
               ! Error handling: The situation below can occur when solar radiation is 
               ! NOT computed every timestep.
               ! When the number of snow layers has changed in between computations of the 
@@ -521,7 +521,7 @@ module mod_clm_surfaceradiation
               write(stderr,*) "flx_absiv1= ", tri(p,1)*(1.-albgri(c,1))," flx_absiv2= ", sum(flx_absiv(c,:))*tri(p,1)
               write(stderr,*) "flx_absdn1= ", trd(p,2)*(1.-albgrd(c,2))," flx_absdn2= ", sum(flx_absdn(c,:))*trd(p,2)
               write(stderr,*) "flx_absin1= ", tri(p,2)*(1.-albgri(c,2))," flx_absin2= ", sum(flx_absin(c,:))*tri(p,2)
-   
+
               write(stderr,*) "albgrd_nir= ", albgrd(c,2)
               write(stderr,*) "coszen= ", coszen(c)
               call fatal(__FILE__,__LINE__,'clm now stopping')
@@ -536,20 +536,20 @@ module mod_clm_surfaceradiation
 
            ! BC aerosol forcing (pft-level):
            sfc_frc_bc(p) = sabg(p) - sabg_bc(p)
-   
+
            ! OC aerosol forcing (pft-level):
            if (DO_SNO_OC) then
               sfc_frc_oc(p) = sabg(p) - sabg_oc(p)
            else
               sfc_frc_oc(p) = 0.D0
            endif
-   
+
            ! dust aerosol forcing (pft-level):
            sfc_frc_dst(p) = sabg(p) - sabg_dst(p)
-   
+
            ! all-aerosol forcing (pft-level):
            sfc_frc_aer(p) = sabg(p) - sabg_pur(p)        
-           
+
            ! forcings averaged only over snow:
            if (frac_sno(c) > 0.D0) then
               sfc_frc_bc_sno(p)  = sfc_frc_bc(p)/frac_sno(c)
@@ -573,13 +573,13 @@ module mod_clm_surfaceradiation
         p = filter_nourbanp(fp)
         if (pactive(p)) then
            g = pgridcell(p)
-        
+
            ! NDVI and reflected solar radiation
-           
+
            rvis = albd(p,1)*forc_solad(g,1) + albi(p,1)*forc_solai(g,1)
            rnir = albd(p,2)*forc_solad(g,2) + albi(p,2)*forc_solai(g,2)
            fsr(p) = rvis + rnir
-           
+
            fsds_vis_d(p) = forc_solad(g,1)
            fsds_nir_d(p) = forc_solad(g,2)
            fsds_vis_i(p) = forc_solai(g,1)
@@ -588,7 +588,7 @@ module mod_clm_surfaceradiation
            fsr_nir_d(p)  = albd(p,2)*forc_solad(g,2)
            fsr_vis_i(p)  = albi(p,1)*forc_solai(g,1)
            fsr_nir_i(p)  = albi(p,2)*forc_solai(g,2)
-           
+
            local_secp1 = secs + nint((londeg(g)/degpsec)/dtime)*dtime
            local_secp1 = mod(local_secp1,isecspday)
            if (local_secp1 == isecspday/2) then

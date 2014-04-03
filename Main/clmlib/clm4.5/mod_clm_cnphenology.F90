@@ -118,7 +118,7 @@ subroutine CNPhenology (num_soilc, filter_soilc, num_soilp, filter_soilp, &
    ! to operate only on the relevant pfts
 
    call CNPhenologyClimate(num_soilp, filter_soilp, num_pcropp, filter_pcropp)
-   
+
    call CNEvergreenPhenology(num_soilp, filter_soilp)
 
    call CNSeasonDecidPhenology(num_soilp, filter_soilp)
@@ -1182,7 +1182,7 @@ subroutine CNStressDecidPhenology (num_soilp, filter_soilp)
 
                 if (onset_gddflag(p) == 1.D0 .and. onset_gdd(p) < crit_onset_gdd) onset_flag(p) = 0.D0
             end if
-            
+
             ! only allow onset if dayl > 6hrs
             if (onset_flag(p) == 1.D0 .and. dayl(p) <= secspqtrday) then
                 onset_flag(p) = 0.D0
@@ -1264,7 +1264,7 @@ subroutine CNStressDecidPhenology (num_soilp, filter_soilp)
                ! if freezing degree day sum is greater than critical value, initiate offset
                if (offset_fdd(p) > crit_offset_fdd .and. onset_flag(p) == 0.D0) offset_flag(p) = 1.D0
             end if
-            
+
             ! force offset if daylength is < 6 hrs
             if (dayl(p) <= secspqtrday) then
                offset_flag(p) = 1.D0
@@ -1710,7 +1710,7 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
          ! crop phenology (gdd thresholds) controlled by gdd needed for
          ! maturity (physiological) which is based on the average gdd
          ! accumulation and hybrids in United States from April 1 - Sept 30
-         
+
          ! Phase 1: Planting to leaf emergence (now in CNAllocation)
          ! Phase 2: Leaf emergence to beginning of grain fill (general LAI accumulation)
          ! Phase 3: Grain fill to physiological maturity and harvest (LAI decline)
@@ -2683,27 +2683,27 @@ subroutine CNLitterToColumn (num_soilc, filter_soilc)
 
     leaf_prof                      => clm3%g%l%c%p%pps%leaf_prof
     froot_prof                     => clm3%g%l%c%p%pps%froot_prof
-    
+
     do j = 1, nlevdecomp
        do pi = 1,max_pft_per_col
           do fc = 1,num_soilc
              c = filter_soilc(fc)
-             
+
              if ( pi <=  npfts(c) ) then
                 p = pfti(c) + pi - 1
                 if (pactive(p)) then
-                   
-                   
+
+
                    ! leaf litter carbon fluxes
                    phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) + leafc_to_litter(p) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
                    phenology_c_to_litr_cel_c(c,j) = phenology_c_to_litr_cel_c(c,j) + leafc_to_litter(p) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
                    phenology_c_to_litr_lig_c(c,j) = phenology_c_to_litr_lig_c(c,j) + leafc_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
-                   
+
                    ! leaf litter nitrogen fluxes
                    phenology_n_to_litr_met_n(c,j) = phenology_n_to_litr_met_n(c,j) + leafn_to_litter(p) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
                    phenology_n_to_litr_cel_n(c,j) = phenology_n_to_litr_cel_n(c,j) + leafn_to_litter(p) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
                    phenology_n_to_litr_lig_n(c,j) = phenology_n_to_litr_lig_n(c,j) + leafn_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
-                   
+
                    ! fine root litter carbon fluxes
                    phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) + &
                      frootc_to_litter(p) * fr_flab(ivt(p)) * wtcol(p) * froot_prof(p,j)
@@ -2711,7 +2711,7 @@ subroutine CNLitterToColumn (num_soilc, filter_soilc)
                      frootc_to_litter(p) * fr_fcel(ivt(p)) * wtcol(p) * froot_prof(p,j)
                    phenology_c_to_litr_lig_c(c,j) = phenology_c_to_litr_lig_c(c,j) + &
                      frootc_to_litter(p) * fr_flig(ivt(p)) * wtcol(p) * froot_prof(p,j)
-                   
+
                    ! fine root litter nitrogen fluxes
                    phenology_n_to_litr_met_n(c,j) = phenology_n_to_litr_met_n(c,j) + &
                      frootn_to_litter(p) * fr_flab(ivt(p)) * wtcol(p) * froot_prof(p,j)
@@ -2761,9 +2761,9 @@ subroutine CNLitterToColumn (num_soilc, filter_soilc)
 
                 end if
              end if
-             
+
           end do
-          
+
        end do
     end do
 

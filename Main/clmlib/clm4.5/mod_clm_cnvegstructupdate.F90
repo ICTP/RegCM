@@ -292,7 +292,7 @@ subroutine CNVegStructUpdate(num_soilp, filter_soilp)
           htop(p) = 0.D0
           hbot(p) = 0.D0
       end if
-      
+
       ! adjust lai and sai for burying by snow. 
 
       ! snow burial fraction for short vegetation (e.g. grasses) as in

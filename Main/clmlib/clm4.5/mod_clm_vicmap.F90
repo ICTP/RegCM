@@ -79,7 +79,7 @@ subroutine initCLMVICMap(c)
     real(rk8) :: temp                                ! temporary
 
  ! other local variables
-    
+
    integer :: i, j, fc
  ! note: in CLM h2osoil_liq unit is kg/m2, in VIC moist is mm
  ! h2osoi_ice is actually water equavlent ice content.
@@ -93,7 +93,7 @@ subroutine initCLMVICMap(c)
 !************************************************************************  
 
 !  set fraction of VIC layer in each CLM layer
- 
+
    lsum = 0.D0
    do i = 1, nlayer
       deltal(i) = depth(c,i)
@@ -126,7 +126,7 @@ subroutine initCLMVICMap(c)
      end do                           ! end CLM layer calculation
      lsum = lsum + deltal(i)
    end do                             ! end VIC layer calcultion 
-   
+
 end subroutine initCLMVICMap
 
 !-----------------------------------------------------------------------
@@ -240,7 +240,7 @@ subroutine linear_interp(x,y, x0, x1, y0, y1)
 
 
    y = y0 + (x - x0) * (y1 - y0) / (x1 - x0)
-  
+
 end subroutine linear_interp
 
 #endif

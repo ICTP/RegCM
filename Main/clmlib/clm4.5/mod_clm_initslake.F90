@@ -792,7 +792,7 @@ module mod_clm_initslake
         end do
       end if
     end do
-     
+
     if ( myid == italk ) then
       write (stdout,*) 'Successfully initialized time invariant '// &
                 'variables for lakes'

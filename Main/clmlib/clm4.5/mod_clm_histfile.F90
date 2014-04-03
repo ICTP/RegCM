@@ -958,7 +958,7 @@ module mod_clm_histfile
     tape(t)%hlist(n)%field%beg1d_out = beg1d_out
     tape(t)%hlist(n)%field%end1d_out = end1d_out
     tape(t)%hlist(n)%field%num1d_out = num1d_out
-    
+
     ! Alloccate and initialize history buffer and related info
 
     num2d = tape(t)%hlist(n)%field%num2d
@@ -2587,7 +2587,7 @@ module mod_clm_histfile
     end do
 
     ! Reset number of time samples to zero if file is full 
-    
+
     do t = 1 , ntapes
       if ( if_disphist(t) .and. tape(t)%ntimes==tape(t)%mfilt ) then
         tape(t)%ntimes = 0
@@ -2748,7 +2748,7 @@ module mod_clm_histfile
               dim1name = type1d_out
               dim2name = 'undefined'
             end if
-                   
+
             if ( dim2name == 'undefined' ) then
               if ( num2d == 1 ) then
                 call clm_addvar(clmvar_double,ncid_hist(t),trim(name), &
@@ -2797,7 +2797,7 @@ module mod_clm_histfile
         call clm_adddim(ncid_hist(t),'max_chars',max_chars)
         call clm_adddim(ncid_hist(t),'max_nflds',max_nflds)
         call clm_adddim(ncid_hist(t),'max_flds',max_flds)
-       
+
         call clm_addvar(clmvar_integer,ncid_hist(t),'nhtfrq', &
                   long_name="Frequency of history writes",    &
                   comment="Namelist item", &
@@ -2880,7 +2880,7 @@ module mod_clm_histfile
         call clm_writevar(ncid,'locfnh',locfnh(1:ntapes))
         call clm_writevar(ncid,'locfnhr',locfnhr(1:ntapes))
       end do
-       
+
       fincl(:,1) = hist_fincl1(:)
       fincl(:,2) = hist_fincl2(:)
       fincl(:,3) = hist_fincl3(:)
@@ -2980,10 +2980,10 @@ module mod_clm_histfile
 
       ! Determine necessary indices - the following is needed if model
       ! decomposition is different on restart
-       
+
       call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
       call get_proc_global(numg,numl,numc,nump)
-       
+
       if ( ktau > 0 ) then
         do t = 1 , ntapes
           call clm_openfile(locrest(t),ncid_hist(t))
@@ -3148,7 +3148,7 @@ module mod_clm_histfile
         hist_fexcl6(:) = fexcl(:,6)
 
       end if
-       
+
       if ( allocated(itemp2d) ) deallocate(itemp2d)
 
     end if
@@ -3158,7 +3158,7 @@ module mod_clm_histfile
     ! If the current history file(s) are not full, file(s) are opened
     ! so that subsequent time samples are added until the file is full.
     !======================================================================
-    
+
     if ( flag == 'write' ) then     
 
       do t = 1 , ntapes

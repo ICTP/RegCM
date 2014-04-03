@@ -250,7 +250,7 @@ module mod_clm_driver
     ! =======================================================================
 
     call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
-      
+
     call alt_calc(begc,endc,filter%num_soilc,filter%soilc)
 
 #if (defined CN)
@@ -285,7 +285,7 @@ module mod_clm_driver
       end do
     end if
 #endif
-      
+
     call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
     ! ======================================================================
@@ -349,7 +349,7 @@ module mod_clm_driver
     ! of foliage that is dry and transpiring. Initialize snow layer if the
     ! snow accumulation exceeds 10 mm.
     ! =======================================================================
-     
+
     ! initialize intracellular CO2 (Pa) parameters each timestep for use
     ! in VOCEmission
     clm3%g%l%c%p%pcf%cisun_z(begp:endp,:) = -999.D0
@@ -359,7 +359,7 @@ module mod_clm_driver
     do c = begc , endc
       clm3%g%l%c%cps%decl(c) = declin
     end do
-     
+
     call clm_driverInit(begc,endc,begp,endp, &
                         filter%num_nolakec,  &
                         filter%nolakec)

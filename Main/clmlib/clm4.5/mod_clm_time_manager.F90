@@ -109,7 +109,7 @@ end subroutine timemgr_init
 !=========================================================================================
 
 subroutine timemgr_restart( stop_ymd_synclock, stop_tod_synclock )
- 
+
   !---------------------------------------------------------------------------------
   !
   integer, optional, intent(in) :: stop_ymd_synclock
@@ -140,7 +140,7 @@ subroutine calc_nestep()
   ! Calculate ending timestep number
   ! Calculation of ending timestep number (nestep) assumes a constant stepsize.
   !
-  
+
   nestep = (mtau-ktau)/ntsrf
 
 end subroutine calc_nestep
@@ -166,9 +166,9 @@ subroutine advance_timestep()
 
   character(len=*), parameter :: sub = 'advance_timestep'
   integer :: rc
-  
+
   tm_first_restart_step = .false.
-  
+
 end subroutine advance_timestep
 
 !=========================================================================================
@@ -178,7 +178,7 @@ integer function get_step_size()
   ! Return the step size in seconds.
 
   get_step_size = idnint(dtsrf)
-  
+
 end function get_step_size
 
 !=========================================================================================
@@ -321,7 +321,7 @@ real(rk8) function get_calday(ymd, tod)
 end function get_calday
 
 !=========================================================================================
- 
+
 logical function is_end_curr_day()
 
 ! Return true if current timestep is last timestep in current day.

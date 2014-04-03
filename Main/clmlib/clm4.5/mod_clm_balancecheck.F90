@@ -429,7 +429,7 @@ module mod_clm_balancecheck
     do c = lbc , ubc
       g = cgridcell(c)
       l = clandunit(c)
-      
+
       ! add qflx_drain_perched and qflx_flood
       if ( cactive(c) ) then
         errh2o(c) = endwb(c) - begwb(c) - &
@@ -613,7 +613,7 @@ module mod_clm_balancecheck
         else
           errsol(p) = spval
         end if
-          
+
         ! Longwave radiation energy balance
         ! Do not do this check for an urban pft since it will not
         ! balance on a per-column level because of interactions between
@@ -624,7 +624,7 @@ module mod_clm_balancecheck
         else
           errlon(p) = spval
         end if
-          
+
         ! Surface energy balance
         ! Changed to using (eflx_lwrad_net) here instead of
         ! (forc_lwrad - eflx_lwrad_out) because
@@ -633,7 +633,7 @@ module mod_clm_balancecheck
         ! For surfaces other than urban, (eflx_lwrad_net) equals
         ! (forc_lwrad - eflx_lwrad_out),
         ! and a separate check is done above for these terms.
-          
+
         if ( ltype(l) /= isturb ) then
           c = pcolumn(p)
           errseb(p) = sabv(p) + sabg_chk(p) + forc_lwrad(g) - &

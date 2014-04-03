@@ -35,9 +35,9 @@ module mod_clm_organicfile
     ! Initialize data to zero - no organic matter dataset
 
     organic(:,:)   = 0.D0
-       
+
     ! Read data if file was specified in namelist
-       
+
     if (fsurdat /= ' ') then
       if (myid == italk) then
         write(stdout,*) 'Attempting to read organic matter data .....'

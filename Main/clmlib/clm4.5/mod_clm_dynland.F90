@@ -33,7 +33,7 @@ module mod_clm_dynland
     real(rk8) , intent(out) :: gcell_liq(begg:endg)
     real(rk8) , intent(out) :: gcell_ice(begg:endg)
     real(rk8) , intent(out) :: gcell_heat(begg:endg)
- 
+
     integer(ik4)  :: li , lf         ! loop initial/final indicies
     integer(ik4)  :: ci , cf         ! loop initial/final indicies
     integer(ik4)  :: pi , pf         ! loop initial/final indicies
@@ -50,7 +50,7 @@ module mod_clm_dynland
 
     ! true=>do computations on this pft (see reweightMod for details)
     logical ,pointer :: pactive(:)
-    
+
     integer(ik4) ,pointer :: ltype(:)   ! landunit type index
     integer(ik4) ,pointer :: ctype(:)   ! column   type index
     integer(ik4) ,pointer :: ptype(:)   ! pft      type index

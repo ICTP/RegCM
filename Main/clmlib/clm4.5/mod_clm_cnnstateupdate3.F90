@@ -90,7 +90,7 @@ subroutine NStateUpdate3(num_soilc, filter_soilc, num_soilp, filter_soilp)
    real(rk8), pointer :: m_deadcrootn_xfer_to_fire(:)   
    real(rk8), pointer :: m_retransn_to_fire(:)          
    real(rk8), pointer :: m_decomp_npools_to_fire_vr(:,:,:) 
- 
+
    real(rk8), pointer :: m_leafn_to_litter_fire(:)   
    real(rk8), pointer :: m_leafn_storage_to_litter_fire(:)                
    real(rk8), pointer :: m_leafn_xfer_to_litter_fire(:)  
@@ -164,7 +164,7 @@ subroutine NStateUpdate3(num_soilc, filter_soilc, num_soilp, filter_soilp)
     m_n_to_litr_met_fire                  => clm3%g%l%c%cnf%m_n_to_litr_met_fire
     m_n_to_litr_cel_fire                  => clm3%g%l%c%cnf%m_n_to_litr_cel_fire
     m_n_to_litr_lig_fire                  => clm3%g%l%c%cnf%m_n_to_litr_lig_fire
-   
+
     decomp_npools_vr                           => clm3%g%l%c%cns%decomp_npools_vr
     sminn_vr                          => clm3%g%l%c%cns%sminn_vr
 
@@ -246,18 +246,18 @@ subroutine NStateUpdate3(num_soilc, filter_soilc, num_soilp, filter_soilp)
          smin_no3_vr(c,j) = max(smin_no3_vr(c,j) - ( smin_no3_leached_vr(c,j) + smin_no3_runoff_vr(c,j) ) * dt, 0.D0)
          sminn_vr(c,j) = smin_no3_vr(c,j) + smin_nh4_vr(c,j)
 #endif         
-         
+
          ! column level nitrogen fluxes from fire
          ! pft-level wood to column-level CWD (uncombusted wood)
          decomp_npools_vr(c,j,i_cwd) = decomp_npools_vr(c,j,i_cwd) + fire_mortality_n_to_cwdn(c,j) * dt
-         
+
          ! pft-level wood to column-level litter (uncombusted wood)
          decomp_npools_vr(c,j,i_met_lit) = decomp_npools_vr(c,j,i_met_lit) + m_n_to_litr_met_fire(c,j)* dt
          decomp_npools_vr(c,j,i_cel_lit) = decomp_npools_vr(c,j,i_cel_lit) + m_n_to_litr_cel_fire(c,j)* dt
          decomp_npools_vr(c,j,i_lig_lit) = decomp_npools_vr(c,j,i_lig_lit) + m_n_to_litr_lig_fire(c,j)* dt
       end do ! end of column loop
    end do
-   
+
    ! litter and CWD losses to fire
    do l = 1, ndecomp_pools
       do j = 1, nlevdecomp
@@ -281,14 +281,14 @@ subroutine NStateUpdate3(num_soilc, filter_soilc, num_soilp, filter_soilp)
       deadstemn(p)  = deadstemn(p)  - m_deadstemn_to_fire(p)         * dt
       livecrootn(p) = livecrootn(p) - m_livecrootn_to_fire(p)        * dt
       deadcrootn(p) = deadcrootn(p) - m_deadcrootn_to_fire(p)        * dt
-      
+
       leafn(p)      = leafn(p)      - m_leafn_to_litter_fire(p)           * dt
       frootn(p)     = frootn(p)     - m_frootn_to_litter_fire(p)          * dt
       livestemn(p)  = livestemn(p)  - m_livestemn_to_litter_fire(p)       * dt
       deadstemn(p)  = deadstemn(p)  - m_deadstemn_to_litter_fire(p)       * dt
       livecrootn(p) = livecrootn(p) - m_livecrootn_to_litter_fire(p)      * dt
       deadcrootn(p) = deadcrootn(p) - m_deadcrootn_to_litter_fire(p)      * dt
-     
+
       ! storage pools
       leafn_storage(p)      = leafn_storage(p)      - m_leafn_storage_to_fire(p)      * dt
       frootn_storage(p)     = frootn_storage(p)     - m_frootn_storage_to_fire(p)     * dt
@@ -312,7 +312,7 @@ subroutine NStateUpdate3(num_soilc, filter_soilc, num_soilp, filter_soilp)
       deadstemn_xfer(p)  = deadstemn_xfer(p)  - m_deadstemn_xfer_to_fire(p)  * dt
       livecrootn_xfer(p) = livecrootn_xfer(p) - m_livecrootn_xfer_to_fire(p) * dt
       deadcrootn_xfer(p) = deadcrootn_xfer(p) - m_deadcrootn_xfer_to_fire(p) * dt
-  
+
       leafn_xfer(p)      = leafn_xfer(p)      - m_leafn_xfer_to_litter_fire(p)      * dt
       frootn_xfer(p)     = frootn_xfer(p)     - m_frootn_xfer_to_litter_fire(p)     * dt
       livestemn_xfer(p)  = livestemn_xfer(p)  - m_livestemn_xfer_to_litter_fire(p)  * dt

@@ -98,7 +98,7 @@ contains
     frac_sno_eff        => clm3%g%l%c%cps%frac_sno_eff
     snl                 => clm3%g%l%c%cps%snl
     h2osno              => clm3%g%l%c%cws%h2osno
- 
+
     ! arbitrary lower limit on h2osfc for safer numerics...
     min_h2osfc=1.D-8
 
@@ -121,7 +121,7 @@ contains
                         +sigma/sqrt(2.0*rpi)*exp(-d**2/(2.0*sigma**2)) &
                         -h2osfc(c)
                 dfdd = 0.5*(1.0D0+erf(d/(sigma*sqrt(2.0))))
-                
+
                 d = d - fd/dfdd
              enddo
              !--  update the submerged areal fraction using the new d value
@@ -146,7 +146,7 @@ contains
                    frac_sno(c) = 1.0D0 - frac_h2osfc(c)
                 endif
                 frac_sno_eff(c)=frac_sno(c)
-             
+
              endif
 
           endif ! end of no_update construct
@@ -156,7 +156,7 @@ contains
        endif
 
     end do
-       
+
   end subroutine FracH2oSfc
 
 end module mod_clm_h2osfc

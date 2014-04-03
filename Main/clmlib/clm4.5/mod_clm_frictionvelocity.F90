@@ -163,7 +163,7 @@ module mod_clm_frictionvelocity
         ustar(n) = vkc*um(n)/(log(obu(n)/z0m(n))+5.D0-5.D0*z0m(n)/obu(n) &
               +(5.D0*log(zeta(n))+zeta(n)-1.D0))
       end if
-      
+
       if (zeta(n) < 0.D0) then
         vds_tmp = 2.D-3*ustar(n) * ( 1.D0 + (300.D0/(-obu(n)))**0.666D0)
       else

@@ -259,7 +259,7 @@ subroutine CNZeroFluxes_dwt( begc, endc, begp, endp )
        end do
     endif
 #endif
-    
+
 end subroutine CNZeroFluxes_dwt
 !-----------------------------------------------------------------------
 
@@ -611,7 +611,7 @@ subroutine CNSetPcf(num, filter, val, pcf)
       pcf%hrv_gresp_storage_to_litter(i) = val     
       pcf%hrv_gresp_xfer_to_litter(i) = val        
       pcf%hrv_xsmrpool_to_atm(i) = val
-   
+
 ! fire-related variables changed by F. Li and S. Levis           
       pcf%m_leafc_to_fire(i) = val
       pcf%m_leafc_storage_to_fire(i) = val
@@ -860,8 +860,8 @@ subroutine CNSetPnf(num, filter, val, pnf)
       pnf%m_deadcrootn_storage_to_fire(i) = val
       pnf%m_deadcrootn_xfer_to_fire(i) = val
       pnf%m_retransn_to_fire(i) = val
-      
-      
+
+
       pnf%m_leafn_to_litter_fire(i) = val
       pnf%m_leafn_storage_to_litter_fire(i) = val
       pnf%m_leafn_xfer_to_litter_fire(i) = val
@@ -978,7 +978,7 @@ subroutine CNSetCps(num, filter, val, cps)
       cps%annsum_counter(i) = val
       cps%cannsum_npp(i) = val
       cps%cannavg_t2m(i) = val
-      
+
   ! fire related variables changed by F. Li and S. Levis
       cps%wf(i) = val
       cps%wf2(i) = val
@@ -996,7 +996,7 @@ subroutine CNSetCps(num, filter, val, cps)
          cps%fpi_vr(i,j) = val
       end do
    end do
-   
+
    do j = 1,nlevgrnd
       do fi = 1,num
          i = filter(fi)
@@ -1132,7 +1132,7 @@ subroutine CNSetCns(num, filter, val, cns)
       cns%totsomn_1m(i) = val
       cns%totlitn_1m(i) = val
    end do
-   
+
    ! column and levdecomp
    do j = 1,nlevdecomp_full
       do fi = 1,num
@@ -1145,7 +1145,7 @@ subroutine CNSetCns(num, filter, val, cns)
 #endif
       end do
    end do
-   
+
    ! column and decomp_pools
    do k = 1, ndecomp_pools
       do fi = 1,num
@@ -1154,7 +1154,7 @@ subroutine CNSetCns(num, filter, val, cns)
          cns%decomp_npools_1m(i,k) = val
       end do
    end do
-   
+
    ! column levdecomp, and decomp_pools
    do j = 1,nlevdecomp_full
       do k = 1, ndecomp_pools
@@ -1164,7 +1164,7 @@ subroutine CNSetCns(num, filter, val, cns)
          end do
       end do
    end do
-   
+
 end subroutine CNSetCns
 !-----------------------------------------------------------------------
 
@@ -1263,7 +1263,7 @@ subroutine CNSetCcf(num, filter, val, ccf)
          ccf%m_decomp_cpools_to_fire(i,k) = val
       end do
    end do
-   
+
    do fi = 1,num
       i = filter(fi)
       ccf%hrv_deadstemc_to_prod10c(i)         = val        
@@ -1366,7 +1366,7 @@ subroutine CNSetCnf(num, filter, val, cnf)
          cnf%smin_nh4_to_plant_vr(i,j) = val
          cnf%f_n2o_denit_vr(i,j)  = val
          cnf%f_n2o_nit_vr(i,j)  = val
-         
+
          cnf%smin_no3_massdens_vr(i,j) = val
          cnf%k_nitr_t_vr(i,j) = val
          cnf%k_nitr_ph_vr(i,j) = val
@@ -1376,14 +1376,14 @@ subroutine CNSetCnf(num, filter, val, cnf)
          cnf%fmax_denit_carbonsubstrate_vr(i,j) = val 
          cnf%fmax_denit_nitrate_vr(i,j) = val 
          cnf%f_denit_base_vr(i,j) = val
-         
+
          cnf%diffus(i,j) = val
          cnf%ratio_k1(i,j) = val
          cnf%ratio_no3_co2(i,j) = val
          cnf%soil_co2_prod(i,j) = val
          cnf%fr_WFPS(i,j) = val
          cnf%soil_bulkdensity(i,j) = val
-         
+
          cnf%r_psi(i,j) = val
          cnf%anaerobic_frac(i,j) = val
 #endif
@@ -1440,7 +1440,7 @@ subroutine CNSetCnf(num, filter, val, cnf)
          cnf%m_decomp_npools_to_fire(i,k) = val
       end do
    end do
-   
+
    do k = 1, ndecomp_pools
       do j = 1, nlevdecomp_full
          do fi = 1,num
@@ -1451,7 +1451,7 @@ subroutine CNSetCnf(num, filter, val, cnf)
          end do
       end do
    end do
-   
+
    do l = 1, ndecomp_cascade_transitions
          do fi = 1,num
             i = filter(fi)

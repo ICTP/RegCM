@@ -124,7 +124,7 @@ module mod_clm_initsoilparvic
     max_moist      => clm3%g%l%c%cps%max_moist
 
     !  map parameters between VIC layers and CLM layers
-    
+
     c_param(c) = 2.D0
     ! map the CLM layers to VIC layers 
     ! There might have better way to do this process

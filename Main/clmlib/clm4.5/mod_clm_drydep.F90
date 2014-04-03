@@ -136,7 +136,7 @@ module mod_clm_drydep
        /1.D36,2000.D0,2000.D0,2000.D0,2000.D0,2000.D0,1.D36,1.D36,2500.D0,2000.D0,4000.D0/
   data rclo(1,1:NLUse) &
        /1.D36,1000.D0,1000.D0,1000.D0,1000.D0,1000.D0,1.D36,1.D36,1000.D0,1000.D0,1000.D0/
-  
+
   data ri  (2,1:NLUse) &
        /1.D36,1.D36,1.D36,1.D36, 250.D0, 500.D0,1.D36,1.D36,1.D36,1.D36,1.D36/
   data rlu (2,1:NLUse) &
@@ -444,7 +444,7 @@ CONTAINS
     ! !REVISION HISTORY:
     !  2009-Feb-20 - E. Kluzek - Separate out as subroutine from previous input_init
     !========================================================================
-    
+
     implicit none
 
     character(len=*), intent(in)  :: NLFilename ! Namelist filename
@@ -468,7 +468,7 @@ CONTAINS
     ! Read namelist and figure out the drydep field list to pass
     ! First check if file exists and if not, n_drydep will be zero
     !-----------------------------------------------------------------------------
- 
+
     !--- Open and read namelist ---
     if ( len_trim(NLFilename) == 0  )then
        call fatal(__FILE__,__LINE__,subName//'ERROR: nlfilename not set' )
@@ -518,7 +518,7 @@ CONTAINS
                                 n_drydep
        end if
     end if
-    
+
     if ( trim(drydep_method)/=trim(DD_XATM) .and. &
          trim(drydep_method)/=trim(DD_XLND) .and. &
          trim(drydep_method)/=trim(DD_TABL) ) then
@@ -709,7 +709,7 @@ CONTAINS
     ! !REVISION HISTORY:
     !  2008-Nov-12 - F. Vitt - first version
     !========================================================================
-    
+
     implicit none
 
     real(rk8), intent(in)     :: sfc_temp         ! Input surface temperature
@@ -733,7 +733,7 @@ CONTAINS
     ! !REVISION HISTORY:
     !  2008-Nov-12 - F. Vitt - first version
     !========================================================================
-    
+
     implicit none
 
     integer, intent(in)      :: ncol                  ! Input size of surface-temp vector

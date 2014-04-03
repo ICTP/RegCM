@@ -223,7 +223,7 @@ subroutine CStateUpdate3(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
     m_deadcrootc_xfer_to_litter_fire    => pcisof%m_deadcrootc_xfer_to_litter_fire
     m_gresp_storage_to_litter_fire      => pcisof%m_gresp_storage_to_litter_fire
     m_gresp_xfer_to_litter_fire         => pcisof%m_gresp_xfer_to_litter_fire
-    
+
 
     deadcrootc                     => pcisos%deadcrootc
     deadcrootc_storage             => pcisos%deadcrootc_storage
@@ -256,14 +256,14 @@ subroutine CStateUpdate3(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
           c = filter_soilc(fc)
           ! pft-level wood to column-level CWD (uncombusted wood)
           decomp_cpools_vr(c,j,i_cwd) = decomp_cpools_vr(c,j,i_cwd) + fire_mortality_c_to_cwdc(c,j) * dt
-          
+
           ! pft-level wood to column-level litter (uncombusted wood)
           decomp_cpools_vr(c,j,i_met_lit) = decomp_cpools_vr(c,j,i_met_lit) + m_c_to_litr_met_fire(c,j)* dt
           decomp_cpools_vr(c,j,i_cel_lit) = decomp_cpools_vr(c,j,i_cel_lit) + m_c_to_litr_cel_fire(c,j)* dt
           decomp_cpools_vr(c,j,i_lig_lit) = decomp_cpools_vr(c,j,i_lig_lit) + m_c_to_litr_lig_fire(c,j)* dt
        end do
     end do
-    
+
     ! litter and CWD losses to fire
     do l = 1, ndecomp_pools
        do j = 1, nlevdecomp
@@ -273,7 +273,7 @@ subroutine CStateUpdate3(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
           end do
        end do
     end do
-    
+
     ! pft loop
     do fp = 1,num_soilp
        p = filter_soilp(fp)
