@@ -3964,23 +3964,23 @@ module mod_clm_type
   !----------------------------------------------------
   ! Declare single instance of clmtype
   !----------------------------------------------------
-  type(model_type) , public , target , save :: clm3
+  type(model_type) , public , target :: clm3
 
   !----------------------------------------------------
   ! Declare single instance of array of ecophysiological constant types
   !----------------------------------------------------
-  type(pft_epc_type) , public , target , save :: pftcon
+  type(pft_epc_type) , public , target :: pftcon
 
   !----------------------------------------------------
   ! Declare single instance of array of decomposition cascade constant types
   !----------------------------------------------------
-  type(decomp_cascade_type) , public , target , save :: decomp_cascade_con
+  type(decomp_cascade_type) , public , target :: decomp_cascade_con
 
 #if (defined CNDV)
   !----------------------------------------------------
   ! Declare single instance of array of dgvm ecophysiological constant types
   !----------------------------------------------------
-  type(pft_dgvepc_type) , public , target , save :: dgv_pftcon
+  type(pft_dgvepc_type) , public , target :: dgv_pftcon
 #endif
 
   ! name of lndgrid

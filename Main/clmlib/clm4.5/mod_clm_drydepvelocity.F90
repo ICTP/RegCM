@@ -62,7 +62,6 @@ Module mod_clm_drydepvelocity
                                    index_co=>co_ndx, index_ch4=>ch4_ndx, index_pan=>pan_ndx, &
                                    index_xpan=>xpan_ndx
   implicit none 
-  save 
 
   private
 

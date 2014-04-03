@@ -566,7 +566,6 @@ module mod_clm_pftdyn
 ! !USES:
     use mod_clm_varcon  , only : istsoil
     use mod_clm_varcon  , only : istcrop
-    use mod_clm_time_manager, only : get_step_size
 !
 ! !ARGUMENTS:
     implicit none
@@ -582,7 +581,6 @@ module mod_clm_pftdyn
 !EOP
     integer(ik4)  :: pi,p,c,l,g    ! indices
     integer(ik4)  :: ier           ! error code
-    real(rk8) :: dtime         ! land model time step (sec)
     real(rk8) :: dwt           ! change in pft weight (relative to column)
     real(rk8) :: init_h2ocan   ! initial canopy water mass
     real(rk8) :: new_h2ocan    ! canopy water mass after weight shift
@@ -605,10 +603,6 @@ module mod_clm_pftdyn
           write(stderr,*)subname,' allocation error for loss_h2ocan'
           call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
-
-    ! Get time step
-
-    dtime = get_step_size()
 
     ! set column-level canopy water mass balance correction flux
     ! term to 0 at the beginning of every weight-shifting timestep
@@ -665,7 +659,8 @@ module mod_clm_pftdyn
        do c = begc,endc
           if (pi <= cptr%npfts(c)) then
              p = cptr%pfti(c) + pi - 1
-             cptr%cwf%h2ocan_loss(c) = cptr%cwf%h2ocan_loss(c) + loss_h2ocan(p)/dtime
+             cptr%cwf%h2ocan_loss(c) = cptr%cwf%h2ocan_loss(c) + &
+                                        loss_h2ocan(p)/dtsrf
           end if
        end do
     end do
@@ -687,7 +682,6 @@ module mod_clm_pftdyn
     use mod_clm_varcon , only : istcrop
     use mod_clm_pftvarcon , only : pconv, pprod10, pprod100
     use mod_clm_varcon , only : c13ratio, c14ratio
-    use mod_clm_time_manager , only : get_step_size
     implicit none
     ! proc beginning and ending pft indices
     integer(ik4), intent(IN)  :: begp, endp
@@ -696,7 +690,6 @@ module mod_clm_pftdyn
     integer(ik4)  :: pi,p,c,l,g,j    ! indices
     integer(ik4)  :: ier           ! error code
     real(rk8) :: dwt           ! change in pft weight (relative to column)
-    real(rk8) :: dt            ! land model time step (sec)
     real(rk8) :: init_h2ocan   ! initial canopy water mass
     real(rk8) :: new_h2ocan    ! canopy water mass after weight shift
     real(rk8) , allocatable :: dwt_leafc_seed(:)       ! pft-level mass gain due to seeding of new area
@@ -936,9 +929,6 @@ module mod_clm_pftdyn
           call fatal(__FILE__,__LINE__,'clm now stopping')
        end if
     end if
-
-    ! Get time step
-    dt = real( get_step_size(), r8 )
 
     do p = begp,endp
        c = pcolumn(p)
@@ -2696,29 +2686,29 @@ module mod_clm_pftdyn
 
           ! C fluxes
           cptr%ccf%dwt_seedc_to_leaf(c) = &
-              cptr%ccf%dwt_seedc_to_leaf(c) + dwt_leafc_seed(p)/dt
+              cptr%ccf%dwt_seedc_to_leaf(c) + dwt_leafc_seed(p)/dtsrf
           cptr%ccf%dwt_seedc_to_deadstem(c) = &
-              cptr%ccf%dwt_seedc_to_deadstem(c) + dwt_deadstemc_seed(p)/dt
+              cptr%ccf%dwt_seedc_to_deadstem(c) + dwt_deadstemc_seed(p)/dtsrf
           if ( use_c13 ) then
             cptr%cc13f%dwt_seedc_to_leaf(c) = &
-                cptr%cc13f%dwt_seedc_to_leaf(c) + dwt_leafc13_seed(p)/dt
+                cptr%cc13f%dwt_seedc_to_leaf(c) + dwt_leafc13_seed(p)/dtsrf
             cptr%cc13f%dwt_seedc_to_deadstem(c) = &
                 cptr%cc13f%dwt_seedc_to_deadstem(c) + &
-                dwt_deadstemc13_seed(p)/dt
+                dwt_deadstemc13_seed(p)/dtsrf
           end if
           if ( use_c14 ) then  
             cptr%cc14f%dwt_seedc_to_leaf(c) = &
-                cptr%cc14f%dwt_seedc_to_leaf(c) + dwt_leafc14_seed(p)/dt
+                cptr%cc14f%dwt_seedc_to_leaf(c) + dwt_leafc14_seed(p)/dtsrf
             cptr%cc14f%dwt_seedc_to_deadstem(c) = &
                 cptr%cc14f%dwt_seedc_to_deadstem(c) + &
-                dwt_deadstemc14_seed(p)/dt
+                dwt_deadstemc14_seed(p)/dtsrf
           end if
           ! N fluxes
           cptr%cnf%dwt_seedn_to_leaf(c) = &
-                   cptr%cnf%dwt_seedn_to_leaf(c) + dwt_leafn_seed(p)/dt
+                   cptr%cnf%dwt_seedn_to_leaf(c) + dwt_leafn_seed(p)/dtsrf
           cptr%cnf%dwt_seedn_to_deadstem(c) = &
                    cptr%cnf%dwt_seedn_to_deadstem(c) + &
-                   dwt_deadstemn_seed(p)/dt
+                   dwt_deadstemn_seed(p)/dtsrf
         end if
       end do
     end do
@@ -2734,45 +2724,45 @@ module mod_clm_pftdyn
              cptr%ccf%dwt_frootc_to_litr_met_c(c,j) = &
                  cptr%ccf%dwt_frootc_to_litr_met_c(c,j) + &
                  (dwt_frootc_to_litter(p)* &
-                 pftcon%fr_flab(pptr%itype(p)))/dt * pptr%pps%froot_prof(p,j)
+                 pftcon%fr_flab(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
              cptr%ccf%dwt_frootc_to_litr_cel_c(c,j) = &
                  cptr%ccf%dwt_frootc_to_litr_cel_c(c,j) + &
                  (dwt_frootc_to_litter(p)* &
-                 pftcon%fr_fcel(pptr%itype(p)))/dt * pptr%pps%froot_prof(p,j)
+                 pftcon%fr_fcel(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
              cptr%ccf%dwt_frootc_to_litr_lig_c(c,j) = &
                  cptr%ccf%dwt_frootc_to_litr_lig_c(c,j) + &
                  (dwt_frootc_to_litter(p)* &
-                 pftcon%fr_flig(pptr%itype(p)))/dt * pptr%pps%froot_prof(p,j)
+                 pftcon%fr_flig(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
              ! fine root litter nitrogen fluxes
              cptr%cnf%dwt_frootn_to_litr_met_n(c,j) = &
                  cptr%cnf%dwt_frootn_to_litr_met_n(c,j) + &
                  (dwt_frootn_to_litter(p)* &
-                 pftcon%fr_flab(pptr%itype(p)))/dt * pptr%pps%froot_prof(p,j)
+                 pftcon%fr_flab(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
              cptr%cnf%dwt_frootn_to_litr_cel_n(c,j) = &
                  cptr%cnf%dwt_frootn_to_litr_cel_n(c,j) + &
                  (dwt_frootn_to_litter(p)* &
-                 pftcon%fr_fcel(pptr%itype(p)))/dt * pptr%pps%froot_prof(p,j)
+                 pftcon%fr_fcel(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
              cptr%cnf%dwt_frootn_to_litr_lig_n(c,j) = &
                  cptr%cnf%dwt_frootn_to_litr_lig_n(c,j) + &
                  (dwt_frootn_to_litter(p)* &
-                 pftcon%fr_flig(pptr%itype(p)))/dt * pptr%pps%froot_prof(p,j)
+                 pftcon%fr_flig(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
              ! livecroot fluxes to cwd
              cptr%ccf%dwt_livecrootc_to_cwdc(c,j) = &
                      cptr%ccf%dwt_livecrootc_to_cwdc(c,j) + &
-                     (dwt_livecrootc_to_litter(p))/dt * &
+                     (dwt_livecrootc_to_litter(p))/dtsrf * &
                      pptr%pps%croot_prof(p,j)
              cptr%cnf%dwt_livecrootn_to_cwdn(c,j) = &
                      cptr%cnf%dwt_livecrootn_to_cwdn(c,j) + &
-                     (dwt_livecrootn_to_litter(p))/dt * &
+                     (dwt_livecrootn_to_litter(p))/dtsrf * &
                      pptr%pps%croot_prof(p,j)
              ! deadcroot fluxes to cwd
              cptr%ccf%dwt_deadcrootc_to_cwdc(c,j) = &
                      cptr%ccf%dwt_deadcrootc_to_cwdc(c,j) + &
-                     (dwt_deadcrootc_to_litter(p))/dt * &
+                     (dwt_deadcrootc_to_litter(p))/dtsrf * &
                      pptr%pps%croot_prof(p,j)
              cptr%cnf%dwt_deadcrootn_to_cwdn(c,j) = &
                      cptr%cnf%dwt_deadcrootn_to_cwdn(c,j) + &
-                     (dwt_deadcrootn_to_litter(p))/dt * &
+                     (dwt_deadcrootn_to_litter(p))/dtsrf * &
                      pptr%pps%croot_prof(p,j)
 
              if ( use_c13 ) then
@@ -2780,23 +2770,23 @@ module mod_clm_pftdyn
                cptr%cc13f%dwt_frootc_to_litr_met_c(c,j) = &
                    cptr%cc13f%dwt_frootc_to_litr_met_c(c,j) + &
                    (dwt_frootc13_to_litter(p)* &
-                   pftcon%fr_flab(pptr%itype(p)))/dt * pptr%pps%froot_prof(p,j)
+                   pftcon%fr_flab(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
                cptr%cc13f%dwt_frootc_to_litr_cel_c(c,j) = &
                    cptr%cc13f%dwt_frootc_to_litr_cel_c(c,j) + &
                    (dwt_frootc13_to_litter(p)* &
-                   pftcon%fr_fcel(pptr%itype(p)))/dt * pptr%pps%froot_prof(p,j)
+                   pftcon%fr_fcel(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
               cptr%cc13f%dwt_frootc_to_litr_lig_c(c,j) = &
                   cptr%cc13f%dwt_frootc_to_litr_lig_c(c,j) + &
                   (dwt_frootc13_to_litter(p)* &
-                  pftcon%fr_flig(pptr%itype(p)))/dt * pptr%pps%froot_prof(p,j)
+                  pftcon%fr_flig(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
               ! livecroot fluxes to cwd
               cptr%cc13f%dwt_livecrootc_to_cwdc(c,j) = &
                   cptr%cc13f%dwt_livecrootc_to_cwdc(c,j) + &
-                  (dwt_livecrootc13_to_litter(p))/dt * pptr%pps%croot_prof(p,j)
+                  (dwt_livecrootc13_to_litter(p))/dtsrf * pptr%pps%croot_prof(p,j)
               ! deadcroot fluxes to cwd
               cptr%cc13f%dwt_deadcrootc_to_cwdc(c,j) = &
                   cptr%cc13f%dwt_deadcrootc_to_cwdc(c,j) + &
-                  (dwt_deadcrootc13_to_litter(p))/dt * pptr%pps%croot_prof(p,j)
+                  (dwt_deadcrootc13_to_litter(p))/dtsrf * pptr%pps%croot_prof(p,j)
 
             end if
 
@@ -2805,23 +2795,23 @@ module mod_clm_pftdyn
               cptr%cc14f%dwt_frootc_to_litr_met_c(c,j) = &
                   cptr%cc14f%dwt_frootc_to_litr_met_c(c,j) + &
                   (dwt_frootc14_to_litter(p)* &
-                  pftcon%fr_flab(pptr%itype(p)))/dt * pptr%pps%froot_prof(p,j)
+                  pftcon%fr_flab(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
               cptr%cc14f%dwt_frootc_to_litr_cel_c(c,j) = &
                   cptr%cc14f%dwt_frootc_to_litr_cel_c(c,j) + &
                   (dwt_frootc14_to_litter(p)* &
-                  pftcon%fr_fcel(pptr%itype(p)))/dt * pptr%pps%froot_prof(p,j)
+                  pftcon%fr_fcel(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
               cptr%cc14f%dwt_frootc_to_litr_lig_c(c,j) = &
                   cptr%cc14f%dwt_frootc_to_litr_lig_c(c,j) + &
                   (dwt_frootc14_to_litter(p)* &
-                  pftcon%fr_flig(pptr%itype(p)))/dt * pptr%pps%froot_prof(p,j)
+                  pftcon%fr_flig(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
               ! livecroot fluxes to cwd
               cptr%cc14f%dwt_livecrootc_to_cwdc(c,j) = &
                   cptr%cc14f%dwt_livecrootc_to_cwdc(c,j) + &
-                  (dwt_livecrootc14_to_litter(p))/dt * pptr%pps%croot_prof(p,j)
+                  (dwt_livecrootc14_to_litter(p))/dtsrf * pptr%pps%croot_prof(p,j)
                    ! deadcroot fluxes to cwd
               cptr%cc14f%dwt_deadcrootc_to_cwdc(c,j) = &
                   cptr%cc14f%dwt_deadcrootc_to_cwdc(c,j) + &
-                  (dwt_deadcrootc14_to_litter(p))/dt * pptr%pps%croot_prof(p,j)
+                  (dwt_deadcrootc14_to_litter(p))/dtsrf * pptr%pps%croot_prof(p,j)
             end if
           end if
         end do
@@ -2836,46 +2826,46 @@ module mod_clm_pftdyn
           ! column-level fluxes are accumulated as positive fluxes.
           ! column-level C flux updates
           cptr%ccf%dwt_conv_cflux(c) = &
-                  cptr%ccf%dwt_conv_cflux(c) - conv_cflux(p)/dt
+                  cptr%ccf%dwt_conv_cflux(c) - conv_cflux(p)/dtsrf
           cptr%ccf%dwt_prod10c_gain(c) = &
-                  cptr%ccf%dwt_prod10c_gain(c) - prod10_cflux(p)/dt
+                  cptr%ccf%dwt_prod10c_gain(c) - prod10_cflux(p)/dtsrf
           cptr%ccf%dwt_prod100c_gain(c) = &
-                  cptr%ccf%dwt_prod100c_gain(c) - prod100_cflux(p)/dt
+                  cptr%ccf%dwt_prod100c_gain(c) - prod100_cflux(p)/dtsrf
 
           ! These magic constants should be replaced with: 
           ! nbrdlf_evr_trp_tree and nbrdlf_dcd_trp_tree
           if(ivt(p)==4.or.ivt(p)==6)then
             cptr%ccf%lf_conv_cflux(c) = &
-                    cptr%ccf%lf_conv_cflux(c) - conv_cflux(p)/dt
+                    cptr%ccf%lf_conv_cflux(c) - conv_cflux(p)/dtsrf
           end if
 
           if ( use_c13 ) then
             ! C13 column-level flux updates
             cptr%cc13f%dwt_conv_cflux(c) = &
-                    cptr%cc13f%dwt_conv_cflux(c) - conv_c13flux(p)/dt
+                    cptr%cc13f%dwt_conv_cflux(c) - conv_c13flux(p)/dtsrf
             cptr%cc13f%dwt_prod10c_gain(c) = &
-                    cptr%cc13f%dwt_prod10c_gain(c) - prod10_c13flux(p)/dt
+                    cptr%cc13f%dwt_prod10c_gain(c) - prod10_c13flux(p)/dtsrf
             cptr%cc13f%dwt_prod100c_gain(c) = &
-                    cptr%cc13f%dwt_prod100c_gain(c) - prod100_c13flux(p)/dt
+                    cptr%cc13f%dwt_prod100c_gain(c) - prod100_c13flux(p)/dtsrf
           end if
 
           if ( use_c14 ) then
             ! C14 column-level flux updates
             cptr%cc14f%dwt_conv_cflux(c) = cptr%cc14f%dwt_conv_cflux(c) - &
-                    conv_c14flux(p)/dt
+                    conv_c14flux(p)/dtsrf
             cptr%cc14f%dwt_prod10c_gain(c) = cptr%cc14f%dwt_prod10c_gain(c) - &
-                    prod10_c14flux(p)/dt
+                    prod10_c14flux(p)/dtsrf
             cptr%cc14f%dwt_prod100c_gain(c) = &
-                    cptr%cc14f%dwt_prod100c_gain(c) - prod100_c14flux(p)/dt
+                    cptr%cc14f%dwt_prod100c_gain(c) - prod100_c14flux(p)/dtsrf
           end if
 
           ! column-level N flux updates
           cptr%cnf%dwt_conv_nflux(c) = cptr%cnf%dwt_conv_nflux(c) - &
-                  conv_nflux(p)/dt
+                  conv_nflux(p)/dtsrf
           cptr%cnf%dwt_prod10n_gain(c) = cptr%cnf%dwt_prod10n_gain(c) - &
-                  prod10_nflux(p)/dt
+                  prod10_nflux(p)/dtsrf
           cptr%cnf%dwt_prod100n_gain(c) = cptr%cnf%dwt_prod100n_gain(c) - &
-                  prod100_nflux(p)/dt
+                  prod100_nflux(p)/dtsrf
         end if
       end do
     end do
@@ -2959,7 +2949,6 @@ module mod_clm_pftdyn
   !
   subroutine pftwt_interp( begp, endp )
     use mod_clm_time_manager, only : get_curr_calday, get_days_per_year
-    use mod_clm_time_manager, only : get_step_size, get_nstep
     use mod_clm_varcon      , only : istsoil ! CNDV incompatible with dynLU
     use mod_clm_varctl      , only : finidat
     implicit none
@@ -2967,9 +2956,7 @@ module mod_clm_pftdyn
     integer(ik4)  :: c,g,l,p       ! indices
     real(rk8) :: cday               ! current calendar day (1.0 = 0Z on Jan 1)
     real(rk8) :: wt1                ! time interpolation weights
-    real(rk8) :: dtime              ! model time step
     real(rk8) :: days_per_year      ! days per year
-    integer(ik4)  :: nstep         ! time step number
     integer(ik4)  :: year          ! year (0, ...) at nstep + 1
     integer(ik4)  :: mon           ! month (1, ..., 12) at nstep + 1
     integer(ik4)  :: day           ! day of month (1, ..., 31) at nstep + 1
@@ -2988,14 +2975,12 @@ module mod_clm_pftdyn
     ! assumes maxpatch_pft = numpft + 1, each landunit has 1 column, 
     ! SCAM not defined and create_croplandunit = .false.
 
-    nstep         = get_nstep()
-    dtime         = get_step_size()
-    cday          = get_curr_calday(offset=-int(dtime))
+    cday          = get_curr_calday(offset=-int(dtsrf))
     days_per_year = get_days_per_year()
 
     wt1 = ((days_per_year + 1.D0) - cday)/days_per_year
 
-    call curr_date(idatex, year, mon, day, sec, offset=int(dtime))
+    call curr_date(idatex, year, mon, day, sec, offset=int(dtsrf))
 
     do p = begp , endp
       g = pptr%gridcell(p)
@@ -3009,7 +2994,7 @@ module mod_clm_pftdyn
         pptr%wtlunit(p) = pptr%wtcol(p)
         pptr%wtgcell(p) = pptr%wtcol(p) * lptr%wtgcell(l)
 
-        if (mon==1 .and. day==1 .and. sec==dtime .and. nstep>0) then
+        if (mon==1 .and. day==1 .and. sec==dtsrf .and. ktau>0) then
           pptr%pdgvs%fpcgridold(p) = pptr%pdgvs%fpcgrid(p)
         end if
       end if

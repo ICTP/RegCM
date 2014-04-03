@@ -1,4 +1,5 @@
 module mod_clm_slakehydrology
+  use mod_runparams , only : dtsrf
 
 !-----------------------------------------------------------------------
 !BOP
@@ -22,7 +23,7 @@ module mod_clm_slakehydrology
 !
 ! !PUBLIC TYPES:
   implicit none
-  save
+
   private
 
   save
@@ -79,7 +80,6 @@ contains
     use mod_clm_snowhydrology, only : SnowCompaction, CombineSnowLayers, &
                                  SnowWater, BuildSnowFilter
     use mod_clm_snowhydrology, only : DivideSnowLayers_Lake
-    use mod_clm_time_manager, only : get_step_size
     use mod_clm_snicar           , only : SnowAge_grain, snw_rds_min
 !
 ! !ARGUMENTS:
@@ -238,7 +238,6 @@ contains
     integer  :: filter_shlakesnowc(ubc-lbc+1)    ! column filter for snow points
     integer  :: num_shlakenosnowc                ! number of column non-snow points
     integer  :: filter_shlakenosnowc(ubc-lbc+1)  ! column filter for non-snow points
-    real(rk8) :: dtime                        ! land model time step (sec)
     integer  :: newnode                      ! flag when new snow node is set, (1=yes, 0=no)
     real(rk8) :: dz_snowf                     ! layer thickness rate change due to precipitation [mm/s]
     real(rk8) :: bifall                       ! bulk density of newly fallen dry snow [kg/m3]
@@ -388,10 +387,6 @@ contains
     eflx_grnd_lake => clm3%g%l%c%p%pef%eflx_grnd_lake
 
 
-    ! Determine step size
-
-    dtime = get_step_size()
-
     ! Add soil water to water balance.
     do j = 1, nlevgrnd
       do fc = 1, num_lakec
@@ -451,8 +446,8 @@ contains
              bifall=50.D0
           end if
           dz_snowf = qflx_snow_grnd_col(c)/bifall
-          snow_depth(c) = snow_depth(c) + dz_snowf*dtime
-          h2osno(c) = h2osno(c) + qflx_snow_grnd_col(c)*dtime  ! snow water equivalent (mm)
+          snow_depth(c) = snow_depth(c) + dz_snowf*dtsrf
+          h2osno(c) = h2osno(c) + qflx_snow_grnd_col(c)*dtsrf  ! snow water equivalent (mm)
        end if
 
        ! When the snow accumulation exceeds 40 mm, initialize snow layer
@@ -500,8 +495,8 @@ contains
        ! later.
 
        if (snl(c) < 0 .and. newnode == 0) then
-          h2osoi_ice(c,snl(c)+1) = h2osoi_ice(c,snl(c)+1)+dtime*qflx_snow_grnd_col(c)
-          dz(c,snl(c)+1) = dz(c,snl(c)+1)+dz_snowf*dtime
+          h2osoi_ice(c,snl(c)+1) = h2osoi_ice(c,snl(c)+1)+dtsrf*qflx_snow_grnd_col(c)
+          dz(c,snl(c)+1) = dz(c,snl(c)+1)+dz_snowf*dtsrf
        end if
 
     end do
@@ -528,7 +523,7 @@ contains
           ! use the ratio of liquid to (liquid+ice) in the top layer to determine split
           ! Since we're not limiting evap over lakes, but still can't remove more from top
           ! snow layer than there is there, create temp. limited evap_soi.
-             qflx_evap_soi_lim = min(qflx_evap_soi(p), (h2osoi_liq(c,j)+h2osoi_ice(c,j))/dtime)
+             qflx_evap_soi_lim = min(qflx_evap_soi(p), (h2osoi_liq(c,j)+h2osoi_ice(c,j))/dtsrf)
              if ((h2osoi_liq(c,j)+h2osoi_ice(c,j)) > 0.D0) then
                 qflx_evap_grnd(p) = max(qflx_evap_soi_lim*(h2osoi_liq(c,j)/(h2osoi_liq(c,j)+h2osoi_ice(c,j))), 0.D0)
              else
@@ -559,7 +554,7 @@ contains
           if (qflx_evap_soi(p) >= 0.D0) then
              ! Sublimation: do not allow for more sublimation than there is snow
              ! after melt.  Remaining surface evaporation used for infiltration.
-             qflx_sub_snow(p) = min(qflx_evap_soi(p), h2osno(c)/dtime)
+             qflx_sub_snow(p) = min(qflx_evap_soi(p), h2osno(c)/dtsrf)
              qflx_evap_grnd(p) = qflx_evap_soi(p) - qflx_sub_snow(p)
           else
              if (t_grnd(c) < tfrz-0.1D0) then
@@ -573,11 +568,11 @@ contains
 
           h2osno_temp = h2osno(c)
           if (do_capsnow(c)) then
-             h2osno(c) = h2osno(c) - qflx_sub_snow(p)*dtime
+             h2osno(c) = h2osno(c) - qflx_sub_snow(p)*dtsrf
              qflx_snwcp_ice(p) = qflx_snwcp_ice(p) + qflx_dew_snow(p) 
              qflx_snwcp_liq(p) = qflx_snwcp_liq(p) + qflx_dew_grnd(p)
           else
-             h2osno(c) = h2osno(c) + (-qflx_sub_snow(p)+qflx_dew_snow(p))*dtime
+             h2osno(c) = h2osno(c) + (-qflx_sub_snow(p)+qflx_dew_snow(p))*dtsrf
           end if
           if (h2osno_temp > 0.D0) then
              snow_depth(c) = snow_depth(c) * h2osno(c) / h2osno_temp
@@ -705,11 +700,11 @@ contains
           ! Remove layer
           ! Take extra heat of layer and release to sensible heat in order to maintain energy conservation.
           heatrem = cpliq*h2osoi_liq(c,j)*(t_soisno(c,j) - tfrz)
-          eflx_sh_tot(p) = eflx_sh_tot(p) + heatrem/dtime
-          eflx_sh_grnd(p) = eflx_sh_grnd(p) + heatrem/dtime  ! Added this line 7/22/11 for consistency.
-          eflx_soil_grnd(p) = eflx_soil_grnd(p) - heatrem/dtime
-          eflx_gnet(p) = eflx_gnet(p) - heatrem/dtime
-          eflx_grnd_lake(p) = eflx_grnd_lake(p) - heatrem/dtime
+          eflx_sh_tot(p) = eflx_sh_tot(p) + heatrem/dtsrf
+          eflx_sh_grnd(p) = eflx_sh_grnd(p) + heatrem/dtsrf  ! Added this line 7/22/11 for consistency.
+          eflx_soil_grnd(p) = eflx_soil_grnd(p) - heatrem/dtsrf
+          eflx_gnet(p) = eflx_gnet(p) - heatrem/dtsrf
+          eflx_grnd_lake(p) = eflx_grnd_lake(p) - heatrem/dtsrf
           qflx_sl_top_soil(c) = qflx_sl_top_soil(c) + h2osno(c)
           snl(c) = 0
           h2osno(c) = 0.D0
@@ -761,8 +756,8 @@ contains
 
           if (heatrem + denh2o*dz_lake(c,1)*hfus > 0.D0) then            
              ! Remove snow and subtract the latent heat from the top layer.
-             qflx_snomelt(c) = qflx_snomelt(c) + h2osno(c)/dtime
-             eflx_snomelt(c) = eflx_snomelt(c) + h2osno(c)*hfus/dtime
+             qflx_snomelt(c) = qflx_snomelt(c) + h2osno(c)/dtsrf
+             eflx_snomelt(c) = eflx_snomelt(c) + h2osno(c)*hfus/dtsrf
              ! update snow melt for this case
              qflx_snow_melt(c)     = qflx_snow_melt(c)  + qflx_snomelt(c)
 
@@ -864,7 +859,7 @@ contains
 
        ! Insure water balance using qflx_qrgwl
        qflx_qrgwl(c)     = forc_rain(g) + forc_snow(g) - qflx_evap_tot(p) - qflx_snwcp_ice(p) &
-                         - (endwb(c)-begwb(c))/dtime + qflx_floodg(g)
+                         - (endwb(c)-begwb(c))/dtsrf + qflx_floodg(g)
        qflx_floodc(c)    = qflx_floodg(g)
        qflx_runoff(c)    = qflx_drain(c) + qflx_surf(c) + qflx_qrgwl(c)
        qflx_top_soil(c)  = qflx_prec_grnd_rain(p) + qflx_snomelt(c)
@@ -898,8 +893,9 @@ contains
 
           if (j == snl(c)+1) then
              if (do_capsnow(c)) then
-                snowcap_scl_fct = snowmass / (snowmass+(qflx_snwcp_ice_col(c)*dtime))
-                                                        ! Make sure column variable here
+                snowcap_scl_fct = snowmass / &
+                (snowmass+(qflx_snwcp_ice_col(c)*dtsrf))
+                ! Make sure column variable here
                 mss_bcpho(c,j) = mss_bcpho(c,j)*snowcap_scl_fct
                 mss_bcphi(c,j) = mss_bcphi(c,j)*snowcap_scl_fct
                 mss_ocpho(c,j) = mss_ocpho(c,j)*snowcap_scl_fct

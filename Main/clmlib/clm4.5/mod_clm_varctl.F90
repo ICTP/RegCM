@@ -121,13 +121,6 @@ module mod_clm_varctl
   character(len=16) , public :: inst_name = ''
   character(len=16) , public :: inst_suffix = 'regcm'
   !
-  ! Derived variables (run, history and restart file)
-  !
-  ! directory name for local restart pointer file
-  character(len=256) , public :: rpntdir = '.'
-  ! file name for local restart pointer file
-  character(len=256) , public :: rpntfil = 'rpointer.lnd'
-  !
   ! Error growth perturbation limit
   !
   ! perturbation limit when doing error growth test
@@ -225,7 +218,7 @@ module mod_clm_varctl
            subname//' ERROR: co2_ppmv is out of a reasonable range' )
 
       if ( nsrest == nsrStartup ) nrevsn = ' '
-      if ( nsrest == nsrContinue ) nrevsn = 'set by restart pointer file file'
+      if ( nsrest == nsrContinue ) nrevsn = 'using a restart file'
       if ( nsrest /= nsrStartup .and. &
            nsrest /= nsrContinue ) &
         call fatal(__FILE__,__LINE__, &

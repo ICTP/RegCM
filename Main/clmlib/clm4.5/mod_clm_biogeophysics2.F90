@@ -11,6 +11,7 @@ module mod_clm_biogeophysics2
 !
 ! !USES:
   use mod_realkinds
+  use mod_runparams , only : dtsrf
 !
 ! !PUBLIC TYPES:
   implicit none
@@ -76,7 +77,6 @@ contains
 ! !USES:
     use mod_clm_type
     use mod_clm_atmlnd        , only : clm_a2l
-    use mod_clm_time_manager  , only : get_step_size
     use mod_clm_varcon        , only : hvap, cpair, grav, vkc, tfrz, sb, &
             icol_road_perv, isturb, icol_roof, icol_sunwall, icol_shadewall, &
             istsoil
@@ -196,7 +196,6 @@ contains
 !
     integer  :: p,c,g,j,pi,l         ! indices
     integer  :: fc,fp                ! lake filtered column and pft indices
-    real(rk8) :: dtime                ! land model time step (sec)
     real(rk8) :: egsmax(lbc:ubc)      ! max. evaporation which soil can provide at one time step
     real(rk8) :: egirat(lbc:ubc)      ! ratio of topsoil_evap_tot : egsmax
     real(rk8) :: tinc(lbc:ubc)        ! temperature difference of two time step
@@ -304,10 +303,6 @@ contains
     eflx_heat_from_ac_pft => clm3%g%l%c%p%pef%eflx_heat_from_ac_pft
     eflx_traffic_pft => clm3%g%l%c%p%pef%eflx_traffic_pft
 
-    ! Get step size
-
-    dtime = get_step_size()
-
     ! Determine soil temperatures including surface soil temperature
 
     call SoilTemperature(lbl, ubl, lbc, ubc, num_urbanl, filter_urbanl, &
@@ -332,7 +327,7 @@ contains
 
        ! Determine ratio of topsoil_evap_tot
 
-       egsmax(c) = (h2osoi_ice(c,j)+h2osoi_liq(c,j)) / dtime
+       egsmax(c) = (h2osoi_ice(c,j)+h2osoi_liq(c,j)) / dtsrf
 
        ! added to trap very small negative soil water,ice
 
@@ -513,7 +508,7 @@ contains
        c = pcolumn(p)
        errsoi_pft(p) = eflx_soil_grnd(p) - xmf(c) - xmf_h2osfc(c) &
             - frac_h2osfc(c)*(t_h2osfc(c)-t_h2osfc_bef(c)) &
-            *(c_h2osfc(c)/dtime)
+            *(c_h2osfc(c)/dtsrf)
 
        ! For urban sunwall, shadewall, and roof columns, the "soil" energy balance check
        ! must include the heat flux from the interior of the building.

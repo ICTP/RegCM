@@ -17,14 +17,14 @@ module mod_clm_control
   use mod_clm_varctl , only : clmvarctl_init , set_clmvarctl , &
           nsrStartup , nsrContinue
   use mod_clm_varpar , only : maxpatch_pft , more_vertlayers
-  use mod_clm_varctl , only : rpntfil, hostname , model_version=>version , &
+  use mod_clm_varctl , only : hostname , model_version=>version , &
           outnc_large_files , finidat , fsurdat , fatmlndfrc ,           &
           fpftdyn , fpftcon , nrevsn ,             &
           create_crop_landunit , allocate_all_vegpfts ,                  &
           co2_type , wrtdia , co2_ppmv , pertlim ,                       &
           username , fsnowaging , fsnowoptics , subgridflag ,            &
           use_c13 , use_c14 , irrigate , spinup_state ,                  &
-          override_bgc_restart_mismatch_dump , source, rpntdir
+          override_bgc_restart_mismatch_dump , source
   use mod_clm_varpar, only : numrad
   use mod_clm_varctl , only : NLFileName_in , ctitle , caseid , nsrest
   use mod_clm_varcon , only : secspday
@@ -297,7 +297,6 @@ module mod_clm_control
 
     ! Set input file path in RegCM world
 
-    rpntdir = trim(dirout)
     fpftcon = trim(inpglob)//pthsep//'CLM45'//pthsep// &
             'pftdata'//pthsep//fpftcon
     fsnowoptics = trim(inpglob)//pthsep//'CLM45'//pthsep// &
@@ -445,9 +444,6 @@ module mod_clm_control
     call bcast(hist_fincl5,max_namlen+2)
     call bcast(hist_fincl6,max_namlen+2)
 
-    ! restart file variables
-    call bcast(rpntfil,len(rpntfil))
-
     ! error growth perturbation limit
     call bcast(pertlim)
 
@@ -583,16 +579,11 @@ module mod_clm_control
       write(stdout,*) '   snow aging parameters file = ',trim(fsnowaging)
     end if
 
-    if (nsrest == nsrStartup .and. finidat == ' ') &
-      write(stdout,*) '   initial data created by model'
-    if (nsrest == nsrStartup .and. finidat /= ' ') &
-      write(stdout,*) '   initial data   = ',trim(finidat)
+    if (nsrest == nsrStartup ) &
+      write(stdout,*) '   initial data is from RegCM atm model'
     if (nsrest /= nsrStartup) &
       write(stdout,*) '   restart data   = ',trim(nrevsn)
     write(stdout,*) '   atmospheric forcing data is from RegCM atm model'
-    write(stdout,*) 'Restart parameters:'
-    write(stdout,*)'   restart pointer file directory     = ',trim(rpntdir)
-    write(stdout,*)'   restart pointer file name          = ',trim(rpntfil)
     if ( outnc_large_files ) then
        write(stdout,*)'Large file support for output files is ON'
     end if

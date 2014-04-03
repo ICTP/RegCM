@@ -9,6 +9,7 @@ module mod_clm_soiltemperature
 ! Calculates snow and soil temperatures including phase change
 !
   use mod_realkinds
+  use mod_runparams , only : dtsrf
 
 ! !PUBLIC TYPES:
   implicit none
@@ -65,7 +66,6 @@ contains
 ! !USES:
     use mod_clm_type
     use mod_clm_atmlnd    , only : clm_a2l
-    use mod_clm_time_manager  , only : get_step_size
     use mod_clm_varcon    , only : sb, capr, cnfac, hvap, isturb, &
                                icol_roof, icol_sunwall, icol_shadewall, &
                                icol_road_perv, icol_road_imperv, istwet, &
@@ -194,7 +194,6 @@ contains
     integer  :: fc                                 ! lake filtered column indices
     integer  :: fl                                 ! urban filtered landunit indices
     integer  :: jtop(lbc:ubc)                      ! top level at each column
-    real(rk8) :: dtime                              ! land model time step (sec)
     real(rk8) :: at (lbc:ubc,-nlevsno+1:nlevgrnd)   ! "a" vector for tridiagonal matrix
     real(rk8) :: bt (lbc:ubc,-nlevsno+1:nlevgrnd)   ! "b" vector for tridiagonal matrix
     real(rk8) :: ct (lbc:ubc,-nlevsno+1:nlevgrnd)   ! "c" vector for tridiagonal matrix
@@ -318,10 +317,6 @@ contains
     h2osno         => clm3%g%l%c%cws%h2osno
     h2osoi_liq     => clm3%g%l%c%cws%h2osoi_liq
     h2osoi_ice     => clm3%g%l%c%cws%h2osoi_ice
-
-    ! Get step size
-
-    dtime = get_step_size()
 
     ! Compute ground surface and soil temperatures
 
@@ -505,14 +500,14 @@ contains
               .or. ctype(c) == icol_roof) .and. j <= nlevurb) then
              if (j >= snl(c)+1) then
                 if (j == snl(c)+1) then
-                   fact(c,j) = dtime/cv(c,j)
+                   fact(c,j) = dtsrf/cv(c,j)
                    fn(c,j) = tk(c,j)*(t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
                 else if (j <= nlevurb-1) then
-                   fact(c,j) = dtime/cv(c,j)
+                   fact(c,j) = dtsrf/cv(c,j)
                    fn(c,j) = tk(c,j)*(t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
                    dzm     = (z(c,j)-z(c,j-1))
                 else if (j == nlevurb) then
-                   fact(c,j) = dtime/cv(c,j)
+                   fact(c,j) = dtsrf/cv(c,j)
 
                    ! For urban sunwall, shadewall, and roof columns, there is a non-zero heat flux across
                    ! the bottom "soil" layer and the equations are derived assuming a prescribed internal
@@ -524,14 +519,14 @@ contains
                    .and. ctype(c) /= icol_roof) then
              if (j >= snl(c)+1) then
                 if (j == snl(c)+1) then
-                   fact(c,j) = dtime/cv(c,j) * dz(c,j) / (0.5D0*(z(c,j)-zi(c,j-1)+capr*(z(c,j+1)-zi(c,j-1))))
+                   fact(c,j) = dtsrf/cv(c,j) * dz(c,j) / (0.5D0*(z(c,j)-zi(c,j-1)+capr*(z(c,j+1)-zi(c,j-1))))
                    fn(c,j) = tk(c,j)*(t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
                 else if (j <= nlevgrnd-1) then
-                   fact(c,j) = dtime/cv(c,j)
+                   fact(c,j) = dtsrf/cv(c,j)
                    fn(c,j) = tk(c,j)*(t_soisno(c,j+1)-t_soisno(c,j))/(z(c,j+1)-z(c,j))
                    dzm     = (z(c,j)-z(c,j-1))
                 else if (j == nlevgrnd) then
-                   fact(c,j) = dtime/cv(c,j)
+                   fact(c,j) = dtsrf/cv(c,j)
                    fn(c,j) = eflx_bot(c)
                 end if
              end if
@@ -696,12 +691,12 @@ contains
        ! surface water layer has two coefficients
        dzm=(0.5*dz_h2osfc(c)+z(c,1))
 
-       bmatrix(c,2,0)= -(1.D0-cnfac)*(dtime/c_h2osfc(c))*tk_h2osfc(c)/dzm !flux to top soil layer
-       bmatrix(c,3,0)= 1+(1.D0-cnfac)*(dtime/c_h2osfc(c)) &
-            *tk_h2osfc(c)/dzm -(dtime/c_h2osfc(c))*dhsdT(c) !interaction from atm
+       bmatrix(c,2,0)= -(1.D0-cnfac)*(dtsrf/c_h2osfc(c))*tk_h2osfc(c)/dzm !flux to top soil layer
+       bmatrix(c,3,0)= 1+(1.D0-cnfac)*(dtsrf/c_h2osfc(c)) &
+            *tk_h2osfc(c)/dzm -(dtsrf/c_h2osfc(c))*dhsdT(c) !interaction from atm
 
        fn_h2osfc(c)=tk_h2osfc(c)*(t_soisno(c,1)-t_h2osfc(c))/dzm
-       rvector(c,0)= t_h2osfc(c) +  (dtime/c_h2osfc(c)) &
+       rvector(c,0)= t_h2osfc(c) +  (dtsrf/c_h2osfc(c)) &
             *( hs_h2osfc(c) - dhsdT(c)*t_h2osfc(c) + cnfac*fn_h2osfc(c) )!rhs for h2osfc
 
        tvector(c,0)=t_h2osfc(c)
@@ -1179,7 +1174,6 @@ contains
 !
 ! !USES:
     use mod_clm_type
-    use mod_clm_time_manager, only : get_step_size
     use mod_clm_varcon  , only : tfrz, hfus, grav,denice,cnfac,cpice
     use mod_clm_varpar  , only : nlevsno, nlevgrnd
 !
@@ -1235,7 +1229,6 @@ contains
 !
     integer  :: j,c,g                              !do loop index
     integer  :: fc                                 !lake filtered column indices
-    real(rk8) :: dtime                              !land model time step (sec)
     real(rk8) :: heatr                              !energy residual or loss after melting or freezing
     real(rk8) :: temp1                              !temporary variables [kg/m2]
     real(rk8) :: hm(lbc:ubc)                        !energy residual [W/m2]
@@ -1269,10 +1262,6 @@ contains
     tssbef       => clm3%g%l%c%ces%tssbef
     dz           => clm3%g%l%c%cps%dz
 
-    ! Get step size
-
-    dtime = get_step_size()
-
     ! Initialization
 
     do fc = 1,num_nolakec
@@ -1291,10 +1280,10 @@ contains
           tinc = t_h2osfc(c)-tfrz
           t_h2osfc(c) = tfrz
           ! energy absorbed beyond freezing temperature
-          hm(c) = dhsdT(c)*tinc - tinc*c_h2osfc(c)/dtime
+          hm(c) = dhsdT(c)*tinc - tinc*c_h2osfc(c)/dtsrf
 
           ! mass of water converted from liquid to ice
-          xm(c) = hm(c)*dtime/hfus  
+          xm(c) = hm(c)*dtsrf/hfus  
           temp1 = h2osfc(c) - xm(c)    
 
           ! compute change in cv due to additional ice
@@ -1319,7 +1308,7 @@ contains
 
              xmf_h2osfc(c) = -frac_h2osfc(c)*hm(c)
 
-             qflx_h2osfc_to_ice(c) = xm(c)/dtime
+             qflx_h2osfc_to_ice(c) = xm(c)/dtsrf
 
              ! update snow depth
              if (frac_sno(c) > 0 .and. snl(c) < 0) then 
@@ -1334,7 +1323,7 @@ contains
              h2osno(c) = h2osno(c) + h2osfc(c)
              int_snow(c) = int_snow(c) + h2osfc(c)
 
-             qflx_h2osfc_to_ice(c) = h2osfc(c)/dtime
+             qflx_h2osfc_to_ice(c) = h2osfc(c)/dtsrf
 
              ! excess energy is used to cool ice layer
              if(snl(c) < 0) h2osoi_ice(c,0) = h2osoi_ice(c,0) + h2osfc(c)
@@ -1343,16 +1332,16 @@ contains
              c_h2osfc_ice=cpice*denice*(1.0e-3*h2osfc(c)) !h2osfc in [m]
 
              ! cool frozen h2osfc layer with extra heat
-             t_h2osfc_new = t_h2osfc(c) - temp1*hfus/(dtime*dhsdT(c) - c_h2osfc_ice)
+             t_h2osfc_new = t_h2osfc(c) - temp1*hfus/(dtsrf*dhsdT(c) - c_h2osfc_ice)
 
              ! next, determine equilibrium temperature of combined ice/snow layer
              xmf_h2osfc(c) = -frac_h2osfc(c)*hm(c)
              if (snl(c) == 0) then
                 t_soisno(c,0) = t_h2osfc_new
              else if (snl(c) == -1) then
-                c1=frac_sno(c)/fact(c,0) - dhsdT(c)*dtime
+                c1=frac_sno(c)/fact(c,0) - dhsdT(c)*dtsrf
                 if ( frac_h2osfc(c) /= 0.0D0 )then
-                   c2=frac_h2osfc(c)*(c_h2osfc_ice/dtime)
+                   c2=frac_h2osfc(c)*(c_h2osfc_ice/dtsrf)
                 else
                    c2=0.0D0
                 end if
@@ -1365,7 +1354,7 @@ contains
              else
                 c1=frac_sno(c)/fact(c,0)
                 if ( frac_h2osfc(c) /= 0.0D0 )then
-                   c2=frac_h2osfc(c)*(c_h2osfc_ice/dtime)
+                   c2=frac_h2osfc(c)*(c_h2osfc_ice/dtsrf)
                 else
                    c2=0.0D0
                 end if
@@ -1413,7 +1402,6 @@ contains
 !
 ! !USES:
     use mod_clm_type
-    use mod_clm_time_manager, only : get_step_size
     use mod_clm_varcon  , only : tfrz, hfus, grav, isturb, istsoil, &
                              istcrop, icol_roof, icol_sunwall, icol_shadewall, icol_road_perv
     use mod_clm_varpar  , only : nlevsno, nlevgrnd,nlevurb
@@ -1490,7 +1478,6 @@ contains
 !
     integer  :: j,c,g,l                            !do loop index
     integer  :: fc                                 !lake filtered column indices
-    real(rk8) :: dtime                              !land model time step (sec)
     real(rk8) :: heatr                              !energy residual or loss after melting or freezing
     real(rk8) :: temp1                              !temporary variables [kg/m2]
     real(rk8) :: hm(lbc:ubc,-nlevsno+1:nlevgrnd)    !energy residual [W/m2]
@@ -1531,10 +1518,6 @@ contains
     dz           => clm3%g%l%c%cps%dz
     qflx_snofrz_lyr => clm3%g%l%c%cwf%qflx_snofrz_lyr
     qflx_snofrz_col => clm3%g%l%c%cwf%qflx_snofrz_col
-
-    ! Get step size
-
-    dtime = get_step_size()
 
     ! Initialization
 
@@ -1688,7 +1671,7 @@ contains
                 ! The rate of melting and freezing
 
                 if (imelt(c,j) > 0 .and. abs(hm(c,j)) > 0.D0) then
-                   xm(c,j) = hm(c,j)*dtime/hfus                           ! kg/m2
+                   xm(c,j) = hm(c,j)*dtsrf/hfus                           ! kg/m2
 
                    ! If snow exists, but its thickness is less than the critical value
                    ! (1 cm). Note: more work is needed to determine how to tune the
@@ -1699,15 +1682,15 @@ contains
                          h2osno(c) = max(0.D0,temp1-xm(c,j))
                          propor = h2osno(c)/temp1
                          snow_depth(c) = propor * snow_depth(c)
-                         heatr = hm(c,j) - hfus*(temp1-h2osno(c))/dtime   ! W/m2
+                         heatr = hm(c,j) - hfus*(temp1-h2osno(c))/dtsrf   ! W/m2
                          if (heatr > 0.D0) then
-                            xm(c,j) = heatr*dtime/hfus                    ! kg/m2
+                            xm(c,j) = heatr*dtsrf/hfus                    ! kg/m2
                             hm(c,j) = heatr                               ! W/m2
                          else
                             xm(c,j) = 0.D0
                             hm(c,j) = 0.D0
                          endif
-                         qflx_snomelt(c) = max(0.D0,(temp1-h2osno(c)))/dtime   ! kg/(m2 s)
+                         qflx_snomelt(c) = max(0.D0,(temp1-h2osno(c)))/dtsrf   ! kg/(m2 s)
                          xmf(c) = hfus*qflx_snomelt(c)
                          qflx_snow_melt(c) = qflx_snomelt(c) 
                       endif
@@ -1716,7 +1699,7 @@ contains
                    heatr = 0.D0
                    if (xm(c,j) > 0.D0) then
                       h2osoi_ice(c,j) = max(0.D0, wice0(c,j)-xm(c,j))
-                      heatr = hm(c,j) - hfus*(wice0(c,j)-h2osoi_ice(c,j))/dtime
+                      heatr = hm(c,j) - hfus*(wice0(c,j)-h2osoi_ice(c,j))/dtsrf
                    else if (xm(c,j) < 0.D0) then
                       if (j <= 0) then
                          h2osoi_ice(c,j) = min(wmass0(c,j), wice0(c,j)-xm(c,j))  ! snow
@@ -1727,7 +1710,7 @@ contains
                             h2osoi_ice(c,j) = min(wmass0(c,j) - supercool(c,j),wice0(c,j)-xm(c,j))
                          endif
                       endif
-                      heatr = hm(c,j) - hfus*(wice0(c,j)-h2osoi_ice(c,j))/dtime
+                      heatr = hm(c,j) - hfus*(wice0(c,j)-h2osoi_ice(c,j))/dtsrf
                    endif
 
                    h2osoi_liq(c,j) = max(0.D0,wmass0(c,j)-h2osoi_ice(c,j))
@@ -1757,20 +1740,20 @@ contains
                    endif  ! end of heatr > 0 if-block
 
                    if (j >= 1) then 
-                      xmf(c) = xmf(c) + hfus*(wice0(c,j)-h2osoi_ice(c,j))/dtime
+                      xmf(c) = xmf(c) + hfus*(wice0(c,j)-h2osoi_ice(c,j))/dtsrf
                    else
-                      xmf(c) = xmf(c) + frac_sno_eff(c)*hfus*(wice0(c,j)-h2osoi_ice(c,j))/dtime
+                      xmf(c) = xmf(c) + frac_sno_eff(c)*hfus*(wice0(c,j)-h2osoi_ice(c,j))/dtsrf
                    endif
 
                    if (imelt(c,j) == 1 .AND. j < 1) then
-                      qflx_snomelt(c) = qflx_snomelt(c) + max(0.D0,(wice0(c,j)-h2osoi_ice(c,j)))/dtime
+                      qflx_snomelt(c) = qflx_snomelt(c) + max(0.D0,(wice0(c,j)-h2osoi_ice(c,j)))/dtsrf
 
 
                    endif
 
                    ! layer freezing mass flux (positive):
                    if (imelt(c,j) == 2 .AND. j < 1) then
-                      qflx_snofrz_lyr(c,j) = max(0.D0,(h2osoi_ice(c,j)-wice0(c,j)))/dtime
+                      qflx_snofrz_lyr(c,j) = max(0.D0,(h2osoi_ice(c,j)-wice0(c,j)))/dtsrf
                    endif
 
                 endif

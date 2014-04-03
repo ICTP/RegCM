@@ -18,7 +18,7 @@ module mod_clm_megan
   use mod_stdio
 
   implicit none
-  save
+
   private
 
   save

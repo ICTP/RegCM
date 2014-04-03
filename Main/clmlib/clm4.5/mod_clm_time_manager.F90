@@ -11,9 +11,9 @@ module mod_clm_time_manager
    use mod_clm_varpar , only : outfrq
 
    implicit none
+
    private
 
-  save
    save
 
    real(rk8), parameter :: uninit_r8  = -999999999.0
@@ -30,8 +30,6 @@ module mod_clm_time_manager
       timemgr_restart,          &! restart the time manager using info from timemgr_restart
       timemgr_datediff,         &! calculate difference between two time instants
       advance_timestep,         &! increment timestep number
-      get_step_size,            &! return step size in seconds
-      get_nstep,                &! return timestep number
       curr_date,            &! return date components at end of current timestep
       get_prev_date,            &! return date components at beginning of current timestep
       get_start_date,           &! return components of the start date
@@ -39,15 +37,12 @@ module mod_clm_time_manager
       get_prev_time,            &! return components of elapsed time since reference date at beg of current timestep
       get_curr_calday,          &! return calendar day at end of current timestep
       get_calday,               &! return calendar day from input date
-      is_first_step,            &! return true on first step of initial run
-      is_first_restart_step,    &! return true on first step of restart run
       is_end_curr_day,          &! return true on last timestep in current day
       is_end_curr_month,        &! return true on last timestep in current month
       is_last_step,             &! return true on last timestep
       is_restart,               &! return true if this is a restart run
       get_days_per_year,        &
-      getdatetime,              &
-      get_rad_step_size
+      getdatetime
 
 ! Public data for namelist input
 
@@ -63,7 +58,6 @@ module mod_clm_time_manager
 
 ! Namelist read in only in ccsm and offline modes
    integer, public ::&
-      nestep        = uninit_int,  &! final timestep (or day if negative) number
       nelapse       = uninit_int,  &! number of timesteps (or days if negative) to extend a run
       start_ymd     = uninit_int,  &! starting date for run in yearmmdd format
       start_tod     = 0,           &! starting time of day for run in seconds
@@ -76,10 +70,6 @@ module mod_clm_time_manager
 
    logical :: tm_first_restart_step = .false.  ! true for first step of a restart run
    integer :: cal_type = uninit_int            ! calendar type
-
-! Private module methods
-
-   private :: calc_nestep
 
 !=========================================================================================
 contains
@@ -126,39 +116,12 @@ subroutine timemgr_restart( stop_ymd_synclock, stop_tod_synclock )
   cordex_refdate = 1949120100
   call setcal(cordex_refdate,idatex)
 
-  call calc_nestep( )
-
-  ! Print configuration summary to log file (stdout).
-
 end subroutine timemgr_restart
 
-!=========================================================================================
-
-subroutine calc_nestep()
-  !---------------------------------------------------------------------------------
-  !
-  ! Calculate ending timestep number
-  ! Calculation of ending timestep number (nestep) assumes a constant stepsize.
-  !
-
-  nestep = (mtau-ktau)/ntsrf
-
-end subroutine calc_nestep
-
-!=========================================================================================
-
-subroutine init_calendar( )
-
-  !---------------------------------------------------------------------------------
-  ! Initialize calendar
-  !
-  ! Local variables
-  !
-  calendar = calstr(idatex%calendar)
-
-end subroutine init_calendar
-
-!=========================================================================================
+  subroutine init_calendar( )
+    implicit none
+    calendar = calstr(idatex%calendar)
+  end subroutine init_calendar
 
 subroutine advance_timestep()
 
@@ -170,26 +133,6 @@ subroutine advance_timestep()
   tm_first_restart_step = .false.
 
 end subroutine advance_timestep
-
-!=========================================================================================
-
-integer function get_step_size()
-
-  ! Return the step size in seconds.
-
-  get_step_size = idnint(dtsrf)
-
-end function get_step_size
-
-!=========================================================================================
-
-integer function get_nstep()
-
-  ! Return the timestep number.
-
-   get_nstep = (ktau/ntsrf)
-
-end function get_nstep
 
 !=========================================================================================
 
@@ -344,26 +287,6 @@ end function is_end_curr_month
 
 !=========================================================================================
 
-logical function is_first_step()
-
-! Return true on first step of initial run only.
-
-   is_first_step = ( ktau == 0 )
-
-end function is_first_step
-
-!=========================================================================================
-
-logical function is_first_restart_step()
-
-! Return true on first step of restart run only.
-
-  is_first_restart_step = doing_restart
-
-end function is_first_restart_step
-
-!=========================================================================================
-
 logical function is_last_step()
 
 ! Return true on last timestep.
@@ -406,15 +329,6 @@ end subroutine timemgr_datediff
     implicit none
     get_days_per_year = dayspy
   end function get_days_per_year
-
-  integer function get_rad_step_size()
-    implicit none
-    if (nstep_rad_prev == uninit_int ) then
-      get_rad_step_size=get_step_size()
-    else
-      get_rad_step_size=dtime_rad
-    end if
-  end function get_rad_step_size
 
   logical function is_restart( )
     ! Determine if restart run

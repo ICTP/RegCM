@@ -22,7 +22,7 @@ module mod_clm_restfile
           hostname , finidat , fsurdat , nsrest ,       &
           nrevsn , nsrStartup , nsrContinue , inst_suffix , &
           conventions , source
-  use mod_clm_varctl , only : rpntfil, rpntdir, inst_suffix
+  use mod_clm_varctl , only : inst_suffix
 #if (defined CN)
   use mod_clm_cnrest , only : CNRest
   use mod_clm_croprest , only : CropRest

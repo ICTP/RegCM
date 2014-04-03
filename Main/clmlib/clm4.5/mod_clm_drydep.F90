@@ -23,7 +23,6 @@ module mod_clm_drydep
   use mod_mpmessage
 
   implicit none 
-  save 
 
   private
 

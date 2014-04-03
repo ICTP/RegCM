@@ -76,7 +76,6 @@ module mod_clm_initialize
   public :: initialize1  ! Phase one initialization
   public :: initialize2  ! Phase two initialization
   private :: header      ! echo version numbers
-  private :: do_restread ! read a restart file
 
   contains
   !
@@ -275,14 +274,6 @@ module mod_clm_initialize
     call iniTimeConst()
 
     ! ------------------------------------------------------------------------
-    ! Obtain restart file if appropriate
-    ! ------------------------------------------------------------------------
-
-    if ( do_restread() ) then
-      call restFile_getfile(fnamer, rdate)
-    end if
-
-    ! ------------------------------------------------------------------------
     ! Initialize master history list. 
     ! ------------------------------------------------------------------------
 
@@ -318,7 +309,7 @@ module mod_clm_initialize
     ! ------------------------------------------------------------------------
 
 #if (defined CN)
-    if (nsrest == nsrStartup) then
+    if ( nsrest == nsrStartup ) then
       call CNiniTimeVar()
     end if
 #endif
@@ -346,7 +337,22 @@ module mod_clm_initialize
     ! No weight related information can be contained in the routines,  
     ! "mkarbinit, inicfile and restFile". 
 
-    if ( do_restread() ) then
+    ! Attn EK: The calls to initch4 and initSLake combine both setting of
+    ! state vars, and constant + flux & diagnostic vars.  This is set up so
+    ! that the submodels would be back-compatible with old restart files.
+    ! It is intended to work and allow bfb restarts as is, but may not be
+    ! consistent style.
+    ! See these two routines for structure.  Feel free to modify this but be
+    ! careful.
+    ! You may want to keep at least the initch4 as is to allow CH4 to be
+    ! run even if it wasn't spun up with CH4, as the CH4 sub-model comes to
+    ! eq. within a month plus one year for annual mean variables.
+    ! Of course if clm_varctl:anoxia is used or NITRIF_DENITRIF is defined,
+    ! then CN would no longer be in eq.
+    if ( nsrest == nsrContinue ) then
+
+      call restFile_getfile(fnamer, rdate)
+
       if ( myid == italk ) then
         write(stdout,*)'reading restart file ',fnamer
       end if
@@ -358,7 +364,7 @@ module mod_clm_initialize
       arbinit = .false.
       call initch4(arbinit)
 #endif
-    else if (nsrest == nsrStartup .and. atm_regcm ) then
+    else if ( nsrest == nsrStartup ) then
       ! Get initial data from regcm !
       call mkregcminit(adomain)
       call UrbanInitTimeVar( )
@@ -366,29 +372,8 @@ module mod_clm_initialize
 #if (defined LCH4)
       call initch4(.false.)
 #endif
-    else if (nsrest == nsrStartup .and. finidat == ' ') then
-      stop
-      call mkarbinit()
-      call UrbanInitTimeVar( )
-
-      arbinit = .true.
-      call initSLake(arbinit)
-#if (defined LCH4)
-      arbinit = .true.
-      call initch4(arbinit)
-#endif
-      ! Attn EK: The calls to initch4 and initSLake combine both setting of
-      ! state vars, and constant + flux & diagnostic vars.  This is set up so
-      ! that the submodels would be back-compatible with old restart files.
-      ! It is intended to work and allow bfb restarts as is, but may not be
-      ! consistent style.
-      ! See these two routines for structure.  Feel free to modify this but be
-      ! careful.
-      ! You may want to keep at least the initch4 as is to allow CH4 to be
-      ! run even if it wasn't spun up with CH4, as the CH4 sub-model comes to
-      ! eq. within a month plus one year for annual mean variables.
-      ! Of course if clm_varctl:anoxia is used or NITRIF_DENITRIF is defined,
-      ! then CN would no longer be in eq.
+    else
+      call fatal(__FILE__,__LINE__,'CLM modified to run with RegCM !')
     end if
 
     ! ------------------------------------------------------------------------
@@ -465,7 +450,7 @@ module mod_clm_initialize
       write(stdout,*)
     endif
 
-    if ( ktau == 0 .or. nsrest == nsrStartup ) then
+    if ( nsrest == nsrStartup ) then
       ! Initialize albedos (correct pft filters are needed)
       if (finidat == ' ' .or. do_initsurfalb) then
         calday = get_curr_calday()
@@ -491,12 +476,5 @@ module mod_clm_initialize
       write(stdout,*) 'CLM version: 4.5 - RegCM ', trim(version)
     end if
   end subroutine header
-  !
-  ! Determine if restart file will be read
-  !
-  logical function do_restread( )
-    implicit none
-    do_restread = ktau > 0
-  end function do_restread
 
 end module mod_clm_initialize

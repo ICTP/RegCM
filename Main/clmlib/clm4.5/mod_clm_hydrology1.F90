@@ -81,7 +81,6 @@ module mod_clm_hydrology1
     use mod_clm_varpar   , only : nlevsoi,nlevsno
     use mod_clm_h2osfc   , only : FracH2oSfc
     use mod_clm_fracwet  , only : FracWet
-    use mod_clm_time_manager , only : get_step_size
     use mod_clm_subgridave, only : p2c
     use mod_clm_snicar    , only : snw_rds_min
     implicit none
