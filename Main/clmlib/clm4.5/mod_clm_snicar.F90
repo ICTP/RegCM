@@ -1340,6 +1340,7 @@ module mod_clm_snicar
         rhos = max(50.D0,rhos)
 
         ! best-fit table indecies
+
         T_idx    = nint((t_soisno(c_idx,i)-223.0D0) / 5.0D0) + 1
         Tgrd_idx = nint(dTdz(c_idx,i) / 10.0D0) + 1
         rhos_idx = nint((rhos-50.0D0) / 50.0D0) + 1

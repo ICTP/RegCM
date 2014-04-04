@@ -30,6 +30,7 @@ module mod_lm_interface
   use mod_service
   use mod_bats_common
   use mod_ocn_common
+  use mod_slice
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
@@ -348,6 +349,7 @@ module mod_lm_interface
 #endif
     call initocn(lm,lms)
 #ifdef CLM
+    call mkslice
     call initclm(lm,lms)
     if ( ktau == 0 .and. imask == 2 ) then
       ! CLM may have changed the landuse again !

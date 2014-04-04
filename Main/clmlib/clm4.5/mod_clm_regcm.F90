@@ -114,15 +114,6 @@ module mod_clm_regcm
 
     call atmosphere_to_land(lm)
 
-    if ( .true. ) then
-      clm_a2l%forc_flood = 0.000D0
-      clm_a2l%volr = 1.0D-4
-    else
-      ! Runoff in input ? Chym ?
-      ! clm_a2l%forc_flood  ! flood (mm/s)
-      ! clm_a2l%volr        ! rof volr (m3)
-    end if
-
     ! Compute NEXT calday
     tdiff = dtsrf
     nextt = idatex+tdiff
@@ -212,7 +203,7 @@ module mod_clm_regcm
     call glb_c2l_gs(lndcomm,lm%rhox,clm_a2l%forc_rho)
     call glb_c2l_gs(lndcomm,lm%sfps,clm_a2l%forc_psrf)
     call glb_c2l_gs(lndcomm,lm%dwrlwf,clm_a2l%forc_lwrad)
-    !call glb_c2l_gs(lndcomm,lm%solar,clm_a2l%forc_solar)
+    call glb_c2l_gs(lndcomm,lm%solar,clm_a2l%forc_solar)
     call glb_c2l_gs(lndcomm,rprec,clm_a2l%forc_rain)
 
     call glb_c2l_gs(lndcomm,lm%swdir,clm_a2l%notused)
@@ -224,8 +215,8 @@ module mod_clm_regcm
     call glb_c2l_gs(lndcomm,lm%lwdif,clm_a2l%notused)
     clm_a2l%forc_solai(:,2) = clm_a2l%notused
 
-    clm_a2l%forc_solar = clm_a2l%forc_solad(:,1) + clm_a2l%forc_solad(:,2) + &
-                         clm_a2l%forc_solai(:,1) + clm_a2l%forc_solai(:,2)
+    !clm_a2l%forc_solar = clm_a2l%forc_solad(:,1) + clm_a2l%forc_solad(:,2) + &
+    !                     clm_a2l%forc_solai(:,1) + clm_a2l%forc_solai(:,2)
 
     ! Compute or alias
     clm_a2l%forc_pbot = clm_a2l%forc_pbot * d_1000 ! In Pa
@@ -253,7 +244,6 @@ module mod_clm_regcm
         clm_a2l%forc_snow(i) = 0.0D0
       end if
     end do
-    clm_a2l%forc_pbot = clm_a2l%forc_psrf
 
     if ( ichem /= 1 ) then
       clm_a2l%forc_pco2 = co2_ppmv*1.D-6*clm_a2l%forc_psrf

@@ -39,7 +39,6 @@ module mod_init
   use mod_sun
   use mod_ncio
   use mod_savefile
-  use mod_slice
   use mod_constants
   use mod_outvars
   use mod_service
@@ -469,9 +468,6 @@ module mod_init
   !
   ! Initialize the BATS variable (Used also by CLM)
   !
-#ifdef CLM
-  call mkslice
-#endif
   call initialize_surface_model
   !  
   ! Calculate topographical correction to diffusion coefficient

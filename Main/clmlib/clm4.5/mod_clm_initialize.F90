@@ -75,7 +75,6 @@ module mod_clm_initialize
 
   public :: initialize1  ! Phase one initialization
   public :: initialize2  ! Phase two initialization
-  private :: header      ! echo version numbers
 
   contains
   !
@@ -111,7 +110,9 @@ module mod_clm_initialize
     ! Initialize run control variables, timestep
     ! -------------------------------------------
 
-    call header()
+    if ( myid == italk ) then
+      write(stdout,*) 'CLM version: 4.5 - RegCM ', trim(version)
+    end if
 
     if ( myid == italk ) then
       write(stdout,*) 'Attempting to initialize the land model .....'
@@ -231,7 +232,6 @@ module mod_clm_initialize
     real(rk8) :: declinm1              ! solar declination angle in radians
     real(rk8) :: eccf                  ! earth orbit eccentricity factor
     character(len=32) :: subname = 'initialize2' ! subroutine name
-    logical           :: arbinit            ! Make arb init in initSLake
 
     ! ------------------------------------------------------------------------
     ! Initialize time constant variables 
@@ -337,6 +337,20 @@ module mod_clm_initialize
     ! No weight related information can be contained in the routines,  
     ! "mkarbinit, inicfile and restFile". 
 
+    if ( nsrest == nsrContinue ) then
+      call restFile_getfile(fnamer, rdate)
+      if ( myid == italk ) then
+        write(stdout,*)'reading restart file ',fnamer
+      end if
+      call restFile_read( fnamer )
+    else if ( nsrest == nsrStartup ) then
+      ! Get initial data from regcm !
+      call mkregcminit(adomain)
+      call UrbanInitTimeVar( )
+    else
+      call fatal(__FILE__,__LINE__,'CLM modified to run with RegCM !')
+    end if
+
     ! Attn EK: The calls to initch4 and initSLake combine both setting of
     ! state vars, and constant + flux & diagnostic vars.  This is set up so
     ! that the submodels would be back-compatible with old restart files.
@@ -349,32 +363,10 @@ module mod_clm_initialize
     ! eq. within a month plus one year for annual mean variables.
     ! Of course if clm_varctl:anoxia is used or NITRIF_DENITRIF is defined,
     ! then CN would no longer be in eq.
-    if ( nsrest == nsrContinue ) then
-
-      call restFile_getfile(fnamer, rdate)
-
-      if ( myid == italk ) then
-        write(stdout,*)'reading restart file ',fnamer
-      end if
-      call restFile_read( fnamer )
-
-      arbinit = .false.
-      call initSLake(arbinit)
+    call initSLake(.false.)
 #if (defined LCH4)
-      arbinit = .false.
-      call initch4(arbinit)
+    call initch4(.false.)
 #endif
-    else if ( nsrest == nsrStartup ) then
-      ! Get initial data from regcm !
-      call mkregcminit(adomain)
-      call UrbanInitTimeVar( )
-      call initSLake(.false.)
-#if (defined LCH4)
-      call initch4(.false.)
-#endif
-    else
-      call fatal(__FILE__,__LINE__,'CLM modified to run with RegCM !')
-    end if
 
     ! ------------------------------------------------------------------------
     ! Initialization of model parameterizations that are needed after
@@ -407,7 +399,6 @@ module mod_clm_initialize
     ! --------------------------------------------------------------
 
     ! Initialize filters
-
 
     call allocFilters()
     call reweightWrapup()
@@ -467,14 +458,5 @@ module mod_clm_initialize
       call clm_map2gcell(init=.true.)
     end if
   end subroutine initialize2
-  !
-  ! Echo and save model version number
-  !
-  subroutine header()
-    implicit none
-    if ( myid == italk ) then
-      write(stdout,*) 'CLM version: 4.5 - RegCM ', trim(version)
-    end if
-  end subroutine header
 
 end module mod_clm_initialize
