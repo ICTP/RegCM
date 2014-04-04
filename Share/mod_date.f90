@@ -265,7 +265,7 @@ module mod_date
     if ( ipm > 0 ) then
       x%days_from_reference = id + idayofyear(d) - 1
     else
-      icorrection = 0
+      icorrection = 1
       if ( d%year <= 1000 ) icorrection = 2
       x%days_from_reference = id - (yeardays(iy,d%calendar)-idayofyear(d)) - &
         icorrection
