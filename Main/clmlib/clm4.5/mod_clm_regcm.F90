@@ -13,6 +13,7 @@ module mod_clm_regcm
   use mod_clm_initialize
   use mod_clm_driver
   use mod_clm_varctl , only : use_c13 , co2_ppmv
+  use mod_clm_varpar , only : nlevsoi
   use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , tcrit
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
   use mod_clm_decomp , only : procinfo , get_proc_bounds
@@ -273,6 +274,10 @@ module mod_clm_regcm
   subroutine land_to_atmosphere(lms)
     implicit none
     type(lm_state) , intent(inout) :: lms
+    integer(ik4) :: k , g , begg , endg
+
+    call get_proc_bounds(begg,endg)
+
     ! Get back data from clm_l2a
     call glb_l2c_ss(lndcomm,clm_l2a%t_rad,lms%tgbb)
 
@@ -300,6 +305,20 @@ module mod_clm_regcm
     lms%tgrd = lms%tgbb
     lms%tgbrd = lms%tgbb
     lms%tlef = lms%t2m
+
+    clm_a2l%notused = 0.0D0
+    clm_l2a%notused = 0.0D0
+    do k = 1 , nlevsoi
+      do g = begg , endg
+        if ( clm_l2a%soidpth(g,k) < 0.10D0 ) then
+          clm_l2a%notused(g) = clm_l2a%notused(g) + clm_l2a%h2osoi_liq(g,k)
+        else
+          clm_a2l%notused(g) = clm_a2l%notused(g) + clm_l2a%h2osoi_liq(g,k)
+        end if
+      end do
+    end do
+    call glb_l2c_ss(lndcomm,clm_a2l%notused,lms%ssw)
+    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%rsw)
 
     ! From the input
     call glb_l2c_ss(lndcomm,clm_a2l%forc_rain,lms%prcp)

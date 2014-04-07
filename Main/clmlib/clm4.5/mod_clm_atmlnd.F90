@@ -139,8 +139,9 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:) :: fv
     !Surface ground emissivity
     real(rk8) , pointer , dimension(:) :: emg
-    ! volumetric soil water (0~watsat, m3/m3, nlevgrnd) (for dust model)
-    real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
+    ! soil water
+    real(rk8) , pointer , dimension(:,:) :: h2osoi_liq
+    real(rk8) , pointer , dimension(:,:) :: soidpth
     ! rof liq forcing
     real(rk8) , pointer , dimension(:) :: rofliq
     ! rof ice forcing
@@ -280,7 +281,8 @@ end subroutine init_atm2lnd_type
     allocate(l2a%ram1(ibeg:iend))
     allocate(l2a%fv(ibeg:iend))
     allocate(l2a%emg(ibeg:iend))
-    allocate(l2a%h2osoi_vol(ibeg:iend,1:nlevgrnd))
+    allocate(l2a%h2osoi_liq(ibeg:iend,1:nlevgrnd))
+    allocate(l2a%soidpth(ibeg:iend,1:nlevgrnd))
     allocate(l2a%rofliq(ibeg:iend))
     allocate(l2a%rofice(ibeg:iend))
     allocate(l2a%flxdst(ibeg:iend,1:ndst))
@@ -315,7 +317,8 @@ end subroutine init_atm2lnd_type
     l2a%nee(ibeg:iend) = ival
     l2a%ram1(ibeg:iend) = ival
     l2a%fv(ibeg:iend) = ival
-    l2a%h2osoi_vol(ibeg:iend,1:nlevgrnd) = ival
+    l2a%h2osoi_liq(ibeg:iend,1:nlevgrnd) = ival
+    l2a%soidpth(ibeg:iend,1:nlevgrnd) = ival
     l2a%rofliq(ibeg:iend) = ival
     l2a%rofice(ibeg:iend) = ival
     l2a%flxdst(ibeg:iend,1:ndst) = ival
@@ -387,7 +390,11 @@ end subroutine init_atm2lnd_type
         clm_l2a%h2osno(g) = clm_l2a%h2osno(g)/1000.D0
       end do
       call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd, &
-               cptr%cws%h2osoi_vol,clm_l2a%h2osoi_vol, &
+               cptr%cps%z,clm_l2a%soidpth,             &
+               c2l_scale_type='unity',                 &
+               l2g_scale_type='unity')
+      call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd, &
+               cptr%cws%h2osoi_liq(:,1:nlevgrnd),clm_l2a%h2osoi_liq, &
                c2l_scale_type='unity',                 &
                l2g_scale_type='unity')
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,numrad,  &
@@ -416,18 +423,23 @@ end subroutine init_atm2lnd_type
       do g = begg , endg
         clm_l2a%h2osno(g) = clm_l2a%h2osno(g)/1000.D0
       end do
-
+      call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd, &
+               cptr%cws%h2osoi_liq(:,1:nlevgrnd),clm_l2a%h2osoi_liq, &
+               c2l_scale_type='unity',                 &
+               l2g_scale_type='unity')
+      call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd, &
+               cptr%cps%z,clm_l2a%soidpth,             &
+               c2l_scale_type='unity',                 &
+               l2g_scale_type='unity')
       call c2g(begc,endc,begl,endl,begg,endg, &
                cptr%cps%emg,clm_l2a%emg,      &
                c2l_scale_type='unity',        &
                l2g_scale_type='unity')
-
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,numrad, &
                pptr%pps%albd,clm_l2a%albd,                     &
                p2c_scale_type='unity',                         &
                c2l_scale_type='urbanf',                        &
                l2g_scale_type='unity')
-
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,numrad, &
                pptr%pps%albi,clm_l2a%albi,                     &
                p2c_scale_type='unity',                         &
