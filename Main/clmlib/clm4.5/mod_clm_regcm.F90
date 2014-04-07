@@ -303,6 +303,7 @@ module mod_clm_regcm
 
     ! From the input
     call glb_l2c_ss(lndcomm,clm_a2l%forc_rain,lms%prcp)
+    call glb_l2c_ss(lndcomm,clm_a2l%forc_psrf,lms%sfcp)
 
     ! Will fix
     !clm_l2a%eflx_lwrad_out

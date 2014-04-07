@@ -139,7 +139,7 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:) :: fv
     !Surface ground emissivity
     real(rk8) , pointer , dimension(:) :: emg
-    !volumetric soil water (0~watsat, m3/m3, nlevgrnd) (for dust model)
+    ! volumetric soil water (0~watsat, m3/m3, nlevgrnd) (for dust model)
     real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
     ! rof liq forcing
     real(rk8) , pointer , dimension(:) :: rofliq
