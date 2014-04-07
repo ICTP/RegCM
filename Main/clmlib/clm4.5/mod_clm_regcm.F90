@@ -215,9 +215,6 @@ module mod_clm_regcm
     call glb_c2l_gs(lndcomm,lm%lwdif,clm_a2l%notused)
     clm_a2l%forc_solai(:,2) = clm_a2l%notused
 
-    !clm_a2l%forc_solar = clm_a2l%forc_solad(:,1) + clm_a2l%forc_solad(:,2) + &
-    !                     clm_a2l%forc_solai(:,1) + clm_a2l%forc_solai(:,2)
-
     ! Compute or alias
     clm_a2l%forc_pbot = clm_a2l%forc_pbot * d_1000 ! In Pa
     clm_a2l%forc_wind = sqrt(clm_a2l%forc_u**2 + clm_a2l%forc_v**2)
@@ -292,7 +289,8 @@ module mod_clm_regcm
 
     call glb_l2c_ss(lndcomm,clm_l2a%eflx_sh_tot,lms%sent)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_evap_tot,lms%evpr)
-    call glb_l2c_ss(lndcomm,clm_l2a%fv,lms%drag)
+    clm_l2a%notused = sqrt(clm_l2a%taux**2+clm_l2a%tauy**2)
+    call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%drag)
 
     call glb_l2c_ss(lndcomm,clm_l2a%h2osno,lms%sncv)
     call glb_l2c_ss(lndcomm,clm_l2a%taux,lms%taux)
