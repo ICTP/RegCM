@@ -42,13 +42,13 @@ module mod_realkinds
 
   contains
 
-  logical function is_nan(x)
+  logical elemental function is_nan(x)
     implicit none
     real(rk8) , intent(in) :: x
     is_nan = ( (x /= x) .or. ((x > 0.0D0) .eqv. (x <= 0.0D0)) )
   end function is_nan
 
-  logical function is_inf(x)
+  logical elemental function is_inf(x)
     implicit none
     real(rk8) , intent(in) :: x
     is_inf = ( x > huge(x) )
