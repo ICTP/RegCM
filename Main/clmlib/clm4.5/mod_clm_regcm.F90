@@ -70,8 +70,7 @@ module mod_clm_regcm
               else if ( lm%iveg1(n,j,i) == 12 ) then
                 lms%emisv(n,j,i) = 0.97D0
               else
-                ! We should take this from CLM !
-                lms%emisv(n,j,i) = 0.50D0
+                lms%emisv(n,j,i) = 0.9995D0
               end if
             end if
           end do
@@ -279,6 +278,8 @@ module mod_clm_regcm
 
     call glb_l2c_ss(lndcomm,clm_l2a%t_ref2m,lms%t2m)
     call glb_l2c_ss(lndcomm,clm_l2a%q_ref2m,lms%q2m)
+
+    call glb_l2c_ss(lndcomm,clm_l2a%emg,lms%emisv)
 
     ! CLM gives just wind speed, assume directions are same as input.
     clm_a2l%notused = atan(clm_a2l%forc_v/clm_a2l%forc_u)

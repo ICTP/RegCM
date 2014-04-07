@@ -135,6 +135,8 @@ module mod_clm_slakefluxes
     real(rk8), pointer :: ram1(:)
     ! aerodynamical resistance (s/m)
     real(rk8), pointer :: ram1_lake(:)
+    ! Ground emissivity
+    real(rk8), pointer :: emg(:)
     real(rk8), pointer :: ws(:)  ! surface friction velocity (m/s)
     ! coefficient passed to SLakeTemperature
     ! for calculation of decay of eddy diffusivity with depth
@@ -290,6 +292,7 @@ module mod_clm_slakefluxes
     t_grnd         => clm3%g%l%c%ces%t_grnd
     ws             => clm3%g%l%c%cps%ws
     ks             => clm3%g%l%c%cps%ks
+    emg            => clm3%g%l%c%cps%emg
     savedtke1      => clm3%g%l%c%cps%savedtke1
     ust_lake       => clm3%g%l%c%cps%ust_lake
     z0mg_col       => clm3%g%l%c%cps%z0mg
@@ -532,13 +535,14 @@ module mod_clm_slakefluxes
 
         ! Get derivative of fluxes with respect to ground temperature
 
-        stftg3(p) = emg_lake*sb*tgbef(c)*tgbef(c)*tgbef(c)
+        emg(c) = emg_lake
+        stftg3(p) = emg(c)*sb*tgbef(c)*tgbef(c)*tgbef(c)
 
         ! Changed surface temperature from t_lake(c,1) to tsur(c).
         ! Also adjusted so that if there are snow layers present,
         ! the top layer absorption from SNICAR is assigned to the
         ! surface skin.
-        ax = betaprime(c)*sabg(p) + emg_lake*forc_lwrad(g) + &
+        ax = betaprime(c)*sabg(p) + emg(c)*forc_lwrad(g) + &
                  3.D0*stftg3(p)*tgbef(c) + &
                  forc_rho(g)*cpair/rah(p)*thm(p) - &
                  htvp(c)*forc_rho(g)/raw(p)* &
@@ -714,12 +718,12 @@ module mod_clm_slakefluxes
 
       ! Net longwave from ground to atmosphere
 
-      ! eflx_lwrad_out(p) = (1.D0-emg_lake)*forc_lwrad(g) + &
+      ! eflx_lwrad_out(p) = (1.D0-emg(c))*forc_lwrad(g) + &
       !             stftg3(p)*(-3.D0*tgbef(c)+4.D0*t_grnd(c))
       ! What is tgbef doing in this equation? Can't it be exact now?
       !  --Zack Subin, 4/14/09
-      eflx_lwrad_out(p) = (1.D0-emg_lake)*forc_lwrad(g) + &
-              emg_lake*sb*t_grnd(c)**4.D0
+      eflx_lwrad_out(p) = (1.D0-emg(c))*forc_lwrad(g) + &
+              emg(c)*sb*t_grnd(c)**4.D0
 
       ! Ground heat flux
 

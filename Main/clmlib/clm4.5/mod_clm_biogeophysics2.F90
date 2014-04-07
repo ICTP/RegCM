@@ -551,8 +551,8 @@ contains
                +frac_h2osfc(c)*t_h2osfc_bef(c)**4)
 
           eflx_lwrad_out(p) = ulrad(p) &
-               + (1-frac_veg_nosno(p))*(1.-emg(c))*forc_lwrad(g) &
-               + (1-frac_veg_nosno(p))*emg(c)*sb*lw_grnd &
+               + (1.0D0-frac_veg_nosno(p))*(1.0D0-emg(c))*forc_lwrad(g) &
+               + (1.0D0-frac_veg_nosno(p))*emg(c)*sb*lw_grnd &
                + 4.D0*emg(c)*sb*t_grnd0(c)**3*tinc(c)
 
           eflx_lwrad_net(p) = eflx_lwrad_out(p) - forc_lwrad(g)

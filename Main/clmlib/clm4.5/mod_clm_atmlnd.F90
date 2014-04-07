@@ -137,6 +137,8 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:) :: ram1
     !friction velocity (m/s) (for dust model)
     real(rk8) , pointer , dimension(:) :: fv
+    !Surface ground emissivity
+    real(rk8) , pointer , dimension(:) :: emg
     !volumetric soil water (0~watsat, m3/m3, nlevgrnd) (for dust model)
     real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
     ! rof liq forcing
@@ -277,6 +279,7 @@ end subroutine init_atm2lnd_type
     allocate(l2a%nee(ibeg:iend))
     allocate(l2a%ram1(ibeg:iend))
     allocate(l2a%fv(ibeg:iend))
+    allocate(l2a%emg(ibeg:iend))
     allocate(l2a%h2osoi_vol(ibeg:iend,1:nlevgrnd))
     allocate(l2a%rofliq(ibeg:iend))
     allocate(l2a%rofice(ibeg:iend))
@@ -385,7 +388,7 @@ end subroutine init_atm2lnd_type
       end do
       call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd, &
                cptr%cws%h2osoi_vol,clm_l2a%h2osoi_vol, &
-               c2l_scale_type='urbanf',                &
+               c2l_scale_type='unity',                 &
                l2g_scale_type='unity')
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,numrad,  &
                pptr%pps%albd,clm_l2a%albd,                      &
@@ -413,6 +416,12 @@ end subroutine init_atm2lnd_type
       do g = begg , endg
         clm_l2a%h2osno(g) = clm_l2a%h2osno(g)/1000.D0
       end do
+
+      call c2g(begc,endc,begl,endl,begg,endg, &
+               cptr%cps%emg,clm_l2a%emg,      &
+               c2l_scale_type='unity',        &
+               l2g_scale_type='unity')
+
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,numrad, &
                pptr%pps%albd,clm_l2a%albd,                     &
                p2c_scale_type='unity',                         &

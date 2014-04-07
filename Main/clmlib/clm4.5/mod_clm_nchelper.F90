@@ -2137,14 +2137,21 @@ module mod_clm_nchelper
       end if
       call clm_checkncerr(__FILE__,__LINE__, &
          'Error read '//vname//' to file '//trim(ncid%fname))
+      do k = 1 , nv2
+        call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real8, &
+                          xval(:,lbound(xval,2)+(k-1)),    &
+                          sg%ic(myid+1),mpi_real8,         &
+                          iocpu,sg%icomm,mpierr)
+      end do
+      deallocate(rval)
+    else
+      do k = 1 , nv2
+        call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,   &
+                          xval(:,lbound(xval,2)+(k-1)), &
+                          sg%ic(myid+1),mpi_real8,      &
+                          iocpu,sg%icomm,mpierr)
+      end do
     end if
-    do k = 1 , nv2
-      call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real8, &
-                        xval(:,lbound(xval,2)+(k-1)),    &
-                        sg%ic(myid+1),mpi_real8,         &
-                        iocpu,sg%icomm,mpierr)
-    end do
-    if ( myid == iocpu ) deallocate(rval)
   end subroutine clm_readvar_real8_2d_par_sg
 
   subroutine clm_readvar_real8_3d_par_sg(ncid,vname,xval,sg)
@@ -2165,16 +2172,25 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' to file '//trim(ncid%fname))
-    end if
-    do l = 1 , nv3
-      do k = 1 , nv2
-        call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real8,   &
-                          xval(:,lbound(xval,2)+(k-1),  &
-                                 lbound(xval,3)+(l-1)), &
-                          sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
+      do l = 1 , nv3
+        do k = 1 , nv2
+          call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real8,   &
+                            xval(:,lbound(xval,2)+(k-1),  &
+                                   lbound(xval,3)+(l-1)), &
+                            sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
+        end do
       end do
-    end do
-    if ( myid == iocpu ) deallocate(rval)
+      deallocate(rval)
+    else
+      do l = 1 , nv3
+        do k = 1 , nv2
+          call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,   &
+                            xval(:,lbound(xval,2)+(k-1),  &
+                                   lbound(xval,3)+(l-1)), &
+                            sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
+        end do
+      end do
+    end if
   end subroutine clm_readvar_real8_3d_par_sg
 
   subroutine clm_readvar_real8_4d_par_sg(ncid,vname,xval,sg)
@@ -2196,19 +2212,31 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' to file '//trim(ncid%fname))
-    end if
-    do n = 1 , nv4
-      do l = 1 , nv3
-        do k = 1 , nv2
-          call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_real8,   &
-                            xval(:,lbound(xval,2)+(k-1),  &
-                                   lbound(xval,3)+(l-1),  &
-                                   lbound(xval,4)+(n-1)), &
-                            sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
+      do n = 1 , nv4
+        do l = 1 , nv3
+          do k = 1 , nv2
+            call mpi_scatterv(rval(:,k,l,n),sg%ic,sg%id,mpi_real8,   &
+                              xval(:,lbound(xval,2)+(k-1),  &
+                                     lbound(xval,3)+(l-1),  &
+                                     lbound(xval,4)+(n-1)), &
+                              sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
+          end do
         end do
       end do
-    end do
-    if ( myid == iocpu ) deallocate(rval)
+      deallocate(rval)
+    else
+      do n = 1 , nv4
+        do l = 1 , nv3
+          do k = 1 , nv2
+            call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,   &
+                              xval(:,lbound(xval,2)+(k-1),  &
+                                     lbound(xval,3)+(l-1),  &
+                                     lbound(xval,4)+(n-1)), &
+                              sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
+          end do
+        end do
+      end do
+    end if
   end subroutine clm_readvar_real8_4d_par_sg
 
   subroutine clm_readrec_logical_1d_par_sg(ncid,vname,xval,sg,nt)
@@ -2574,13 +2602,19 @@ module mod_clm_nchelper
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error read '//vname//' to file '//trim(ncid%fname))
+      do k = 1 , nv2
+        call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real8,   &
+                          xval(:,lbound(xval,2)+(k-1)), &
+                          sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
+      end do
+      deallocate(rval)
+    else
+      do k = 1 , nv2
+        call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,   &
+                          xval(:,lbound(xval,2)+(k-1)), &
+                          sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
+      end do
     end if
-    do k = 1 , nv2
-      call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real8,   &
-                        xval(:,lbound(xval,2)+(k-1)), &
-                        sg%ic(myid+1),mpi_real8,iocpu,sg%icomm,mpierr)
-    end do
-    if ( myid == iocpu ) deallocate(rval)
   end subroutine clm_readrec_real8_2d_par_sg
 
   subroutine clm_readrec_real8_3d_par_sg(ncid,vname,xval,sg,nt)

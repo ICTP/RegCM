@@ -1700,21 +1700,33 @@ module mod_mppparam
     end if
   end subroutine integer_4d_distribute
 !
-  subroutine real8_2d_sub_distribute(mg,ml,j1,j2,i1,i2)
+  subroutine real8_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+      if ( present(mask) ) then
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              if ( mask(n,j,i) ) &
+                ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+            end do
           end do
         end do
-      end do
+      else
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+            end do
+          end do
+        end do
+      end if
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call recv_array(window,4,icpu,tag_w)
@@ -1749,34 +1761,60 @@ module mod_mppparam
       call send_array(window,4,iocpu,tag_w)
       call recv_array(r8vector2,lsize,iocpu,tag_base)
       ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            ml(n,j,i) = r8vector2(ib)
-            ib = ib + 1
+      if ( present(mask) ) then
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              if ( mask(n,j,i) ) ml(n,j,i) = r8vector2(ib)
+              ib = ib + 1
+            end do
           end do
         end do
-      end do
+      else
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i) = r8vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end if
     end if
   end subroutine real8_2d_sub_distribute
 !
-  subroutine real8_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
+  subroutine real8_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
     real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i,k) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1,k)
+      if ( present(mask) ) then
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              do n = 1 , nnsg
+                if (mask(n,j,i) ) ml(n,j,i,k) = &
+                        mg(n,global_dot_jstart+j-1,global_dot_istart+i-1,k)
+              end do
             end do
           end do
         end do
-      end do
+      else
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              do n = 1 , nnsg
+                ml(n,j,i,k) = &
+                        mg(n,global_dot_jstart+j-1,global_dot_istart+i-1,k)
+              end do
+            end do
+          end do
+        end do
+      end if
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call recv_array(window,4,icpu,tag_w)
@@ -1815,16 +1853,29 @@ module mod_mppparam
       call send_array(window,4,iocpu,tag_w)
       call recv_array(r8vector2,lsize,iocpu,tag_base)
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i,k) = r8vector2(ib)
-              ib = ib + 1
+      if ( present(mask) ) then
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              do n = 1 , nnsg
+                if ( mask(n,j,i) ) ml(n,j,i,k) = r8vector2(ib)
+                ib = ib + 1
+              end do
             end do
           end do
         end do
-      end do
+      else
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              do n = 1 , nnsg
+                ml(n,j,i,k) = r8vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end if
     end if
   end subroutine real8_3d_sub_distribute
 !
@@ -1956,21 +2007,33 @@ module mod_mppparam
     end if
   end subroutine real4_3d_sub_distribute
 !
-  subroutine logical_2d_sub_distribute(mg,ml,j1,j2,i1,i2)
+  subroutine logical_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
     implicit none
     logical , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     logical , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+      if ( present(mask) ) then
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              if ( mask(n,j,i) ) &
+                ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+            end do
           end do
         end do
-      end do
+      else
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+            end do
+          end do
+        end do
+      end if
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call recv_array(window,4,icpu,tag_w)
@@ -2005,32 +2068,55 @@ module mod_mppparam
       call send_array(window,4,iocpu,tag_w)
       call recv_array(lvector2,lsize,iocpu,tag_base)
       ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            ml(n,j,i) = lvector2(ib)
-            ib = ib + 1
+      if ( present(mask) ) then
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              if ( mask(n,j,i) ) ml(n,j,i) = lvector2(ib)
+              ib = ib + 1
+            end do
           end do
         end do
-      end do
+      else
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i) = lvector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end if
     end if
   end subroutine logical_2d_sub_distribute
 !
-  subroutine integer_2d_sub_distribute(mg,ml,j1,j2,i1,i2)
+  subroutine integer_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
     implicit none
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
     integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+      if ( present(mask) ) then
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+            if ( mask(n,j,i) ) &
+              ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+            end do
           end do
         end do
-      end do
+      else
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1)
+            end do
+          end do
+        end do
+      end if
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call recv_array(window,4,icpu,tag_w)
@@ -2065,34 +2151,60 @@ module mod_mppparam
       call send_array(window,4,iocpu,tag_w)
       call recv_array(i4vector2,lsize,iocpu,tag_base)
       ib = 1
-      do i = i1 , i2
-        do j = j1 , j2
-          do n = 1 , nnsg
-            ml(n,j,i) = i4vector2(ib)
-            ib = ib + 1
+      if ( present(mask) ) then
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+            if ( mask(n,j,i) ) ml(n,j,i) = i4vector2(ib)
+              ib = ib + 1
+            end do
           end do
         end do
-      end do
+      else
+        do i = i1 , i2
+          do j = j1 , j2
+            do n = 1 , nnsg
+              ml(n,j,i) = i4vector2(ib)
+              ib = ib + 1
+            end do
+          end do
+        end do
+      end if
     end if
   end subroutine integer_2d_sub_distribute
 !
-  subroutine integer_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
+  subroutine integer_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
     implicit none
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model glob
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model loc
+    logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
     if ( myid == iocpu ) then
       ! Copy in memory my piece.
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i,k) = mg(n,global_dot_jstart+j-1,global_dot_istart+i-1,k)
+      if ( present(mask) ) then
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              do n = 1 , nnsg
+                if (mask(n,j,i) ) ml(n,j,i,k) = &
+                   mg(n,global_dot_jstart+j-1,global_dot_istart+i-1,k)
+              end do
             end do
           end do
         end do
-      end do
+      else
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              do n = 1 , nnsg
+                ml(n,j,i,k) = &
+                   mg(n,global_dot_jstart+j-1,global_dot_istart+i-1,k)
+              end do
+            end do
+          end do
+        end do
+      end if
       ! Send to other nodes the piece they request.
       do icpu = 1 , nproc-1
         call recv_array(window,4,icpu,tag_w)
@@ -2131,16 +2243,29 @@ module mod_mppparam
       call send_array(window,4,iocpu,tag_w)
       call recv_array(i4vector2,lsize,iocpu,tag_base)
       ib = 1
-      do k = k1 , k2
-        do i = i1 , i2
-          do j = j1 , j2
-            do n = 1 , nnsg
-              ml(n,j,i,k) = i4vector2(ib)
-              ib = ib + 1
+      if ( present(mask) ) then
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              do n = 1 , nnsg
+                if ( mask(n,j,i) ) ml(n,j,i,k) = i4vector2(ib)
+                ib = ib + 1
+              end do
             end do
           end do
         end do
-      end do
+      else
+        do k = k1 , k2
+          do i = i1 , i2
+            do j = j1 , j2
+              do n = 1 , nnsg
+                ml(n,j,i,k) = i4vector2(ib)
+                ib = ib + 1
+              end do
+            end do
+          end do
+        end do
+      end if
     end if
   end subroutine integer_3d_sub_distribute
 !
@@ -6480,7 +6605,8 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     call myunpack_global(cl,lvector1,global_lsubgrid)
-    call subgrid_distribute(global_lsubgrid,matrix,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(global_lsubgrid,matrix, &
+                            jci1,jci2,ici1,ici2,cl%sgmask)
   end subroutine linear_to_global_logical_subgrid_subgrid
 
   subroutine global_to_linear_integer_subgrid_subgrid(cl,matrix,vector)
@@ -6520,7 +6646,8 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     call myunpack_global(cl,i4vector1,global_i4subgrid)
-    call subgrid_distribute(global_i4subgrid,matrix,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(global_i4subgrid,matrix, &
+            jci1,jci2,ici1,ici2,cl%sgmask)
   end subroutine linear_to_global_integer_subgrid_subgrid
 
   subroutine global_to_linear_real8_subgrid_subgrid(cl,matrix,vector)
@@ -6560,7 +6687,8 @@ module mod_mppparam
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
     call myunpack_global(cl,r8vector1,global_r8subgrid)
-    call subgrid_distribute(global_r8subgrid,matrix,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(global_r8subgrid,matrix, &
+            jci1,jci2,ici1,ici2,cl%sgmask)
   end subroutine linear_to_global_real8_subgrid_subgrid
 
   subroutine global_to_linear_real8_subgrid_subgrid_4d(cl,matrix,vector)
@@ -6608,8 +6736,11 @@ module mod_mppparam
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
       call myunpack_global(cl,r8vector1,global_r8subgrid)
-      call subgrid_distribute(global_r8subgrid,r8subgrid,jci1,jci2,ici1,ici2)
-      matrix(:,jci1:jci2,ici1:ici2,k) = r8subgrid
+      call subgrid_distribute(global_r8subgrid,r8subgrid, &
+              jci1,jci2,ici1,ici2,cl%sgmask)
+      where ( cl%sgmask )
+        matrix(:,jci1:jci2,ici1:ici2,k) = r8subgrid
+      end where
     end do
   end subroutine linear_to_global_real8_subgrid_subgrid_4d
 
