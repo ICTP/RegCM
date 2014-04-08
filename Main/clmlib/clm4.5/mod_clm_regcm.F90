@@ -319,6 +319,8 @@ module mod_clm_regcm
     end do
     call glb_l2c_ss(lndcomm,clm_a2l%notused,lms%ssw)
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%rsw)
+    call glb_l2c_ss(lndcomm,clm_l2a%qflx_surf,lms%srnof)
+    call glb_l2c_ss(lndcomm,clm_l2a%qflx_tot,lms%trnof)
 
     ! From the input
     call glb_l2c_ss(lndcomm,clm_a2l%forc_rain,lms%prcp)

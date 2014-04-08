@@ -142,6 +142,10 @@ module mod_clm_atmlnd
     ! soil water
     real(rk8) , pointer , dimension(:,:) :: h2osoi_liq
     real(rk8) , pointer , dimension(:,:) :: soidpth
+    ! Surface runoff
+    real(rk8) , pointer , dimension(:) :: qflx_surf
+    ! Sub-surface runoff
+    real(rk8) , pointer , dimension(:) :: qflx_tot
     ! rof liq forcing
     real(rk8) , pointer , dimension(:) :: rofliq
     ! rof ice forcing
@@ -283,6 +287,8 @@ end subroutine init_atm2lnd_type
     allocate(l2a%emg(ibeg:iend))
     allocate(l2a%h2osoi_liq(ibeg:iend,1:nlevgrnd))
     allocate(l2a%soidpth(ibeg:iend,1:nlevgrnd))
+    allocate(l2a%qflx_surf(ibeg:iend))
+    allocate(l2a%qflx_tot(ibeg:iend))
     allocate(l2a%rofliq(ibeg:iend))
     allocate(l2a%rofice(ibeg:iend))
     allocate(l2a%flxdst(ibeg:iend,1:ndst))
@@ -319,6 +325,8 @@ end subroutine init_atm2lnd_type
     l2a%fv(ibeg:iend) = ival
     l2a%h2osoi_liq(ibeg:iend,1:nlevgrnd) = ival
     l2a%soidpth(ibeg:iend,1:nlevgrnd) = ival
+    l2a%qflx_surf(ibeg:iend) = ival
+    l2a%qflx_tot(ibeg:iend) = ival
     l2a%rofliq(ibeg:iend) = ival
     l2a%rofice(ibeg:iend) = ival
     l2a%flxdst(ibeg:iend,1:ndst) = ival
@@ -360,7 +368,6 @@ end subroutine init_atm2lnd_type
     type(landunit_type) , pointer :: lptr  ! pointer to landunit derived subtype
     type(column_type) , pointer :: cptr    ! pointer to column derived subtype
     type(pft_type) , pointer :: pptr       ! pointer to pft derived subtype
-    integer(ik4) :: n                      ! Loop index over nmap
     real(rk8) , parameter :: amC = 12.0D0  ! Atomic mass number for Carbon
     real(rk8) , parameter :: amO = 16.0D0  ! Atomic mass number for Oxygen
     ! Atomic mass number for CO2
@@ -434,6 +441,14 @@ end subroutine init_atm2lnd_type
       call c2g(begc,endc,begl,endl,begg,endg, &
                cptr%cps%emg,clm_l2a%emg,      &
                c2l_scale_type='unity',        &
+               l2g_scale_type='unity')
+      call c2g(begc,endc,begl,endl,begg,endg,        &
+               cptr%cwf%qflx_surf,clm_l2a%qflx_surf, &
+               c2l_scale_type='unity',               &
+               l2g_scale_type='unity')
+      call c2g(begc,endc,begl,endl,begg,endg,         &
+               cptr%cwf%qflx_runoff,clm_l2a%qflx_tot, &
+               c2l_scale_type='unity',                &
                l2g_scale_type='unity')
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,numrad, &
                pptr%pps%albd,clm_l2a%albd,                     &
