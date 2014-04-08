@@ -6161,7 +6161,9 @@ module mod_mppparam
     end do
     cl%linear_npoint_g(:) = 0
     ntotg = sum(cl%cartesian_npoint_g)
-    if ( ntotg < nproc ) then
+    if ( nproc == 1 ) then
+      cl%linear_npoint_g(1) = ntotg
+    else if ( ntotg < nproc ) then
       cl%linear_npoint_g(2) = ntotg
     else
       linp = ntotg / nproc

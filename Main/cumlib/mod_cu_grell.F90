@@ -46,7 +46,8 @@ module mod_cu_grell
               xq , xqc , xqes , xqrcd , xt , xtv , xz , z , zo
   real(rk8) , pointer , dimension(:,:) :: pret , psur , qcrit , ter11
   integer(ik4) , pointer , dimension(:,:) :: kdet
-  integer(ik4) , pointer , dimension(:,:) :: kmin , k22 , kb , kbcon , kds , ktop
+  integer(ik4) , pointer , dimension(:,:) :: kmin , k22 , kb , kbcon , &
+              kds , ktop
   real(rk8) , pointer , dimension(:,:) :: xac , xao , bu , buo , edt ,  &
               edto , edtx , hcd , hcdo , hkb , hkbo , pwcav ,       &
               pwcavo , pwcev , pwcevo , qcd , qcdo , qck , qcko ,   &
@@ -214,7 +215,7 @@ module mod_cu_grell
     qcrit(:,:) = d_zero
     ter11(:,:) = d_zero
     if ( ichem == 1 ) c2m%convpr(:,:,:) = d_zero 
-!
+
     kdet(:,:)  = 2
     k22(:,:)   = 1
     ktop(:,:)  = 1
@@ -222,7 +223,7 @@ module mod_cu_grell
     kb(:,:)    = 1
     kds(:,:)   = 1
     kmin(:,:)  = 1
-!
+
     dby(:,:,:) = d_zero
     dbyo(:,:,:) = d_zero
     dellah(:,:,:) = d_zero
@@ -259,7 +260,7 @@ module mod_cu_grell
     xz(:,:,:) = d_zero
     z(:,:,:) = d_zero
     zo(:,:,:) = d_zero
-!
+
     xac(:,:) = d_zero
     xao(:,:) = d_zero
     bu(:,:) = d_zero
@@ -325,9 +326,9 @@ module mod_cu_grell
       write(stderr,*) 'I mean increase ds!!!'
       call fatal(__FILE__,__LINE__,'GRELL INSTABILITY!')
     end if
-!
-!   call cumulus parameterization
-!
+    !
+    ! call cumulus parameterization
+    !
     call cup(c2m)
 !
 !   return cumulus parameterization

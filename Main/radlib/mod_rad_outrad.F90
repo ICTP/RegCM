@@ -117,7 +117,7 @@ module mod_rad_outrad
         r2m%fsw(j,i) = frsa(n)
         r2m%solis(j,i) = sol(n)
         r2m%flw(j,i) = frla(n)
-        r2m%flwd(j,i) = slwd(n)  ! BATS Output
+        r2m%flwd(j,i) = slwd(n)
         n = n + 1
       end do
     end do
