@@ -56,7 +56,7 @@ module mod_mksoitex
     integer(ik4) :: nlat , nlon , nlev , nmpu
     integer(ik4) :: idimid , ivarid1 , ivarid2 , ivarid3 , ivarmask , ncid
     integer(ik4) , dimension(2) :: istart , icount
-    integer(ik4) :: istatus , i , j , li , lo
+    integer(ik4) :: istatus , i , j , l , li , lo , number_of_mapunits
     real(rk4) , dimension(:,:,:) , allocatable :: rvar1 , rvar2
     real(rk4) , dimension(:,:) , allocatable :: temp1 , temp2
     real(rk4) , dimension(:,:) , allocatable :: rmask , mpu
@@ -122,6 +122,13 @@ module mod_mksoitex
     call checkncerr(istatus,__FILE__,__LINE__, &
       'Cannot read variable lon in file '//trim(inpfile))
 
+    istatus = nf90_inq_dimid(ncid,'number_of_mapunits',idimid)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+      'Cannot find dimension number_of_mapunits in file '//trim(inpfile))
+    istatus = nf90_inquire_dimension(ncid,idimid,len=number_of_mapunits)
+    call checkncerr(istatus,__FILE__,__LINE__, &
+      'Cannot read dimension number_of_mapunits in file '//trim(inpfile))
+
     ! Put longitudes in -180 - 180 range
     where ( glon >  180.0 )
       glon = glon - 360.0
@@ -181,9 +188,15 @@ module mod_mksoitex
 
     do j = 1 , domain%nj
       do i = 1 , sum(domain%ni)
-        if ( mpu(i,j) > 0 ) then
+        if ( mpu(i,j) > 0 .and. mpu(i,j) <= number_of_mapunits ) then
           rvar1(i,j,:) = temp1(int(mpu(i,j)),:)
           rvar2(i,j,:) = temp2(int(mpu(i,j)),:)
+          if ( any(rvar1(i,j,:) > 100.0) ) then
+            write(stderr,*) 'CLAY > 100.0'
+          end if
+          if ( any(rvar2(i,j,:) > 100.0) ) then
+            write(stderr,*) 'SAND > 100.0'
+          end if
         else
           rvar1(i,j,:) = vmisdat
           rvar2(i,j,:) = vmisdat
@@ -193,6 +206,20 @@ module mod_mksoitex
 
     call bilinear(rvar1,rmask,rlon,rlat,sand,xlon,xlat,vmin,vmisdat)
     call bilinear(rvar2,rmask,rlon,rlat,clay,xlon,xlat,vmin,vmisdat)
+
+    do l = 1  , size(clay,3)
+      do i = 1 , size(clay,2)
+        do j = 1 , size(clay,1)
+          if ( clay(j,i,l) + sand(j,i,l) /= 100.0 ) then
+            if ( clay(j,i,l) > sand(j,i,l) ) then
+              sand(j,i,l) = 100.0 - clay(j,i,l)
+            else
+              clay(j,i,l) = 100.0 - sand(j,i,l)
+            end if
+          end if
+        end do
+      end do
+    end do
 
     deallocate(glat,glon,rlat,rlon,rvar1,rvar2,temp1,temp2,rmask)
   end subroutine mksoitex

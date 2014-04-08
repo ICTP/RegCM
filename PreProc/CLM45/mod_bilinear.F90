@@ -64,7 +64,8 @@ module mod_bilinear
     integer(ik4) :: ni , nj , nloni , nlati
     integer(ik4) :: i , ip , ipp1 , j , jq , jqp1
     real(rk4) :: lon360 , p , q , temp1 , temp2 , xind , yind
-    logical :: gt1 , gt2
+    real(rk4) , dimension(size(loni)) :: xloni
+    logical :: gt1 , gt2 , timeline
 
     nj = size(mto,1)
     ni = size(mto,2)
@@ -80,6 +81,17 @@ module mod_bilinear
       call die(__FILE__,'Now stopping',__LINE__)
     end if
 
+    if ( loni(1) > loni(nloni) ) then
+      where ( loni < 0.0 )
+        xloni = loni+360.0
+      else where
+        xloni = loni
+      end where
+      timeline = .true.
+    else
+      xloni = loni
+      timeline = .false.
+    end if
     do i = 1 , ni
       do j = 1 , nj
         yind = (((lato(j,i)-lati(1))/(lati(nlati)-lati(1))) * &
@@ -88,10 +100,13 @@ module mod_bilinear
         jqp1 = min0(jq+1,nlati)
         q = yind - real(jq)
         lon360 = lono(j,i)
-        xind = (((lon360-loni(1))/(loni(nloni)-loni(1))) * &
+        if ( timeline ) then
+          if ( lon360 < 0.0 ) lon360 = lon360+360.0
+        end if
+        xind = (((lon360-xloni(1))/(xloni(nloni)-xloni(1))) * &
                 float(nloni-1)) + 1.0
         ip = int(xind)
-        ipp1 = min0(ip+1,nloni)
+        ipp1 = min(ip+1,nloni)
         p = xind - real(ip)
         gt1 = .false.
         gt2 = .false.

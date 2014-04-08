@@ -57,7 +57,7 @@ module mod_getwindow
     real(rk4) :: minlat
     real(rk4) :: maxlon
     real(rk4) :: minlon
-    integer :: gi , gj , xi , xj , l1 , l2 , i
+    integer :: gi , gj , xi , xj , l1 , l2 , i , j
 
     xi = size(xlon,1)
     xj = size(xlat,2)
@@ -82,10 +82,18 @@ module mod_getwindow
       domain%igstop(2) = 0
     else
       domain%ntiles = 2
-      domain%igstart(1) = int((maxlon - glon(1))/dlon) - 1
-      domain%igstop(1) = gj
+      minlon = 180.0
+      do j = 1 , xj
+        if ( xlon(1,j) > 0 ) minlon = min(minlon,xlon(1,j))
+      end do
+      maxlon = -180.0
+      do j = 1 , xj
+        if ( xlon(xi,j) < 0 ) maxlon = max(maxlon,xlon(xi,j))
+      end do
+      domain%igstart(1) = int((minlon-glon(1))/dlon) - 1
+      domain%igstop(1) = gi
       domain%igstart(2) = 1
-      domain%igstop(2) = int((glon(1)-minlon)/dlon) + 2
+      domain%igstop(2) = int((maxlon-glon(1))/dlon) + 2
     end if
     if ( has_north_pole(xlat,xi/2) ) then
       ! North pole inside

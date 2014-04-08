@@ -88,7 +88,7 @@ program mksurfdata
   real(rk4) :: spft , diff , mean
   real(rk8) :: operat
   integer(ik4) :: ierr
-  integer(ik4) :: i , j , ip , il , np , nm , it , ipnt
+  integer(ik4) :: i , j , n , ip , il , np , nm , it , ipnt
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile , outfile
   character(len=64) :: csdate
@@ -490,6 +490,11 @@ program mksurfdata
     var5d(:,:,4,1,1) = vmisdat
   end where
 
+  where ( var5d(:,:,1,1,1) > 100.0 ) var5d(:,:,1,1,1) = 100.0
+  where ( var5d(:,:,2,1,1) > 100.0 ) var5d(:,:,2,1,1) = 100.0
+  where ( var5d(:,:,3,1,1) > 100.0 ) var5d(:,:,3,1,1) = 100.0
+  where ( var5d(:,:,4,1,1) > 100.0 ) var5d(:,:,4,1,1) = 100.0
+
   do i = 2 , iysg-2
     do j = 2 , jxsg-2
       if ( xmask(j,i) > 0.5 ) then
@@ -500,12 +505,12 @@ program mksurfdata
           call die(__FILE__,'PCTSPEC error',__LINE__)
         end if
         if ( pctspec(j,i) > 100.0 ) then
-          if ( var5d(j,i,3,1,1) > 90.0 ) then
-            var5d(j,i,3,1,1) = 100.0
-            var5d(j,i,1,1,1) = 0.0
-            var5d(j,i,2,1,1) = 0.0
-            var5d(j,i,4,1,1) = 0.0
-          else
+          diff = pctspec(j,i) - 100.0
+          iloc = maxloc(var5d(j,i,:,1,1))
+          var5d(j,i,iloc(1),1,1) = var5d(j,i,iloc(1),1,1) - diff
+          pctspec(j,i) = var5d(j,i,1,1,1) + var5d(j,i,2,1,1) + &
+                         var5d(j,i,3,1,1) + var5d(j,i,4,1,1)
+          if ( pctspec(j,i) > 100.0 ) then
             diff = pctspec(j,i) - 100.0
             iloc = maxloc(var5d(j,i,:,1,1))
             var5d(j,i,iloc(1),1,1) = var5d(j,i,iloc(1),1,1) - diff
@@ -515,13 +520,10 @@ program mksurfdata
               write(stderr,*) 'Cannot normalize pctspec at j,i ', j , i
               call die(__FILE__,'PCTSPEC normalization error',__LINE__)
             else
-              write(stdout,*) 'PCTSPEC now ',pctspec(j,i),' at j,i ', j , i
-              write(stdout,*) 'GLACIER = ', var5d(j,i,1,1,1)
-              write(stdout,*) 'WETLAND =' , var5d(j,i,2,1,1)
-              write(stdout,*) 'LAKE    =' , var5d(j,i,3,1,1)
-              write(stdout,*) 'URBAN   =' , var5d(j,i,4,1,1)
-              write(stdout,*) 'Adjusted PCTSPEC diff ',diff
-          end if
+              write(stdout,*) 'PCTSPEC (2) now ',pctspec(j,i),' at j,i ', j , i
+            end if
+          else
+            write(stdout,*) 'PCTSPEC now ',pctspec(j,i),' at j,i ', j , i
           end if
         end if
       end if
@@ -625,9 +627,12 @@ program mksurfdata
             end if
             if ( abs(diff) > 1.0E-5 ) then
               pft_gt0 = (var5d(j,i,:,1,1) > diff/real(npft))
-              where (pft_gt0)
-                var5d(j,i,:,1,1) = var5d(j,i,:,1,1) - diff/real(count(pft_gt0))
-              end where
+              do n = 1 , npft
+                if ( pft_gt0(n) .and. count(pft_gt0) > 0 ) then
+                  var5d(j,i,n,1,1) = var5d(j,i,n,1,1) - &
+                     diff/real(count(pft_gt0))
+                end if
+              end do
             end if
           end if
         end if
@@ -698,6 +703,7 @@ program mksurfdata
     var5d(:,:,1,1,1) = vmisdat
   end where
   call mypack(var5d(:,:,1,1,1),gcvar)
+  if ( any(gcvar < 0.0) ) call fillvar(gcvar)
   istatus = nf90_put_var(ncid, isoilcolvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write soil color')
 
@@ -730,6 +736,7 @@ program mksurfdata
     var5d(:,:,1,1,1) = vmisdat
   end where
   call mypack(var5d(:,:,1,1,1),gcvar)
+  if ( any(gcvar < 0.0) ) call fillvar(gcvar)
   istatus = nf90_put_var(ncid, igdpvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write gdp')
 
@@ -741,6 +748,7 @@ program mksurfdata
     var5d(:,:,1,1,1) = vmisdat
   end where
   call mypack(var5d(:,:,1,1,1),gcvar)
+  if ( any(gcvar < 0.0) ) call fillvar(gcvar)
   istatus = nf90_put_var(ncid, ipeatfvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write peatf')
 
@@ -749,6 +757,7 @@ program mksurfdata
     var5d(:,:,1,1,1) = vmisdat
   end where
   call mypack(var5d(:,:,1,1,1),gcvar)
+  if ( any(gcvar < 0.0) ) call fillvar(gcvar)
   istatus = nf90_put_var(ncid, iabmvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write abm')
 
@@ -825,17 +834,48 @@ program mksurfdata
 
   contains
 
+  subroutine fillvar(xvar)
+    implicit none
+    real(rk4) , dimension(:) , intent(inout) :: xvar
+    integer(ik4) :: nvar , i , ip , left , right
+    real(rk4) :: leftval , rightval
+    nvar = size(xvar)
+    do i = 1 , nvar
+      if ( xvar(i) < 0.0 ) then
+        leftval = -1.0
+        rightval = -1.0
+        ip = 1
+        do
+          if ( leftval < 0.0 ) left = i - ip
+          if ( left < 1 ) left = np - left
+          if ( rightval < 0.0 ) right = i + ip
+          if ( right > nvar ) right = right - nvar
+          if ( xvar(left) > 0.0 ) leftval = xvar(left)
+          if ( xvar(right) > 0.0 ) rightval = xvar(right)
+          if ( leftval > 0.0 .and. rightval > 0.0 ) then
+            xvar(i) = (leftval+rightval)/2.0
+          end if
+          if ( ip == nvar / 2 ) then
+            call die(__FILE__,'Not finding anything around !',__LINE__)
+            exit
+          end if
+          if ( xvar(i) > 0.0 ) exit
+          ip = ip + 1
+        end do
+      end if
+    end do
+  end subroutine fillvar
+
   subroutine bestaround(pft,i,j)
     implicit none
     real(rk4) , dimension(:,:,:) , intent(inout) :: pft
-    integer , parameter :: maxil = 5
     integer(ik4) , intent(in) :: i , j
-    real(rk4) , dimension (npft,(2*maxil+1)**2) :: vals
-    integer(ik4) :: ii , jj , js , is , ip , n , il
-    logical :: lf
+    real(rk4) , dimension (npft,(2*minval(shape(pft(:,:,1)))/2+1)**2) :: vals
+    integer(ik4) :: ii , jj , js , is , ip , n , il , maxil
     il = 1
+    maxil = minval(shape(pft(:,:,1)))/2
     do
-      ip = 1
+      ip = 0
       vals(:,:) = 0.0
       do ii = i - il , i + il
         do jj = j - il , j + il
@@ -845,19 +885,17 @@ program mksurfdata
           if ( js > jxsg ) js = 2*jxsg - js
           if ( is < 1 ) is = 1-is
           if ( is > iysg ) is = 2*iysg - is
-          lf = .false.
           do n = 1 , npft
             if ( pft(js,is,n) > 0.00001 ) then
+              ip = ip + 1
               vals(n,ip) = vals(n,ip) + pft(js,is,n)
-              lf = .true.
             end if
           end do
-          if (lf) ip = ip + 1
         end do
       end do
-      if ( ip > 1 ) then
+      if ( ip > 0 ) then
         do n = 1 , npft
-          pft(j,i,n) = sum(vals(n,1:ip-1))/real(ip-1)
+          pft(j,i,n) = sum(vals(n,1:ip))/real(ip)
         end do
         exit
       else
