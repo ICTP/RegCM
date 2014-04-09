@@ -89,6 +89,7 @@ program mksurfdata
   real(rk8) :: operat , diff
   integer(ik4) :: ierr
   integer(ik4) :: i , j , n , ip , il , np , nm , it , ipnt
+  integer(ik4) :: jgstart , jgstop
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile , outfile
   character(len=64) :: csdate
@@ -128,7 +129,14 @@ program mksurfdata
   rxlon = real(xlon)
   rsigx = real(sigx)
   call setup_pack()
-  ngcells = count(xmask(2:jxsg-2,2:iysg-2) > 0.5D0)
+  if ( i_band == 1 ) then
+    jgstart = 1
+    jgstop = jxsg
+  else
+    jgstart = 2
+    jgstop = jxsg-2
+  end if
+  ngcells = count(xmask(jgstart:jgstop,2:iysg-2) > 0.5D0)
   call closefile(ncid)
 
   ! Open Output in NetCDF format
@@ -427,7 +435,7 @@ program mksurfdata
   pctslake(:,:) = 0.0D0
   ip = 1
   do i = 2 , iysg-2
-    do j = 2 , jxsg-2
+    do j = jgstart , jgstop
       if ( xmask(j,i) > 0.5D0 ) then
         landpoint(ip) = (i-1)*jxsg+j
         ip = ip + 1
@@ -447,7 +455,7 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write topo')
   ip = 1
   do i = 2 , iysg-2
-    do j = 2 , jxsg-2
+    do j = jgstart , jgstop
       if ( xmask(j,i) > 0.5D0 ) then
         iiy(ip) = i
         ijx(ip) = j
@@ -463,7 +471,7 @@ program mksurfdata
   var5d(:,:,1,1,1) = 0.0D0
   ! Calculate slope and std
   do i = 2 , iysg-2
-    do j = 2 , jxsg-2
+    do j = jgstart , jgstop
       var5d(j,i,1,1,1) = &
           atan((sum(topo(j-1:j+1,i-1:i+1)-topo(j,i))/8.0D0)/(ds*1000.0D0))
       mean = sum(topo(j-1:j+1,i-1:i+1))/9.0D0
@@ -499,7 +507,7 @@ program mksurfdata
   where ( var5d(:,:,4,1,1) > 100.0D0 ) var5d(:,:,4,1,1) = 100.0D0
 
   do i = 2 , iysg-2
-    do j = 2 , jxsg-2
+    do j = jgstart , jgstop
       if ( xmask(j,i) > 0.5D0 ) then
         pctspec(j,i) = var5d(j,i,1,1,1) + var5d(j,i,2,1,1) + &
                        var5d(j,i,3,1,1) + var5d(j,i,4,1,1)
@@ -553,7 +561,7 @@ program mksurfdata
   end do
   ! Here adjustment !
   do i = 2 , iysg-2
-    jloop: do j = 2 , jxsg-2
+    jloop: do j = jgstart , jgstop
       if ( xmask(j,i) > 0.5D0 ) then
         if ( pctspec(j,i) > 99.99999D0 ) then
           var5d(j,i,:,1,1) = vmisdat
