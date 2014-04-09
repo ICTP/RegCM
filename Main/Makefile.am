@@ -137,7 +137,7 @@ mod_diffusion.o: mod_diffusion.F90 mod_atm_interface.o mod_runparams.o mod_mpppa
 mod_header.o: mod_header.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_mppparam.o mod_date.o mod_stdio.o
 mod_init.o: mod_init.F90 mod_runparams.o mod_mppparam.o mod_lm_interface.o mod_atm_interface.o mod_che_interface.o mod_cu_interface.o mod_rad_interface.o mod_pbl_interface.o mod_slabocean.o rrtmg_sw_init.o rrtmg_lw_init.o mod_pbl_interface.o mod_precip.o mod_bdycod.o mod_mpmessage.o mod_sun.o mod_ncio.o mod_savefile.o mod_constants.o mod_outvars.o mod_lm_interface.o
 if DO_COMPILE_LIBCLM
-mod_lm_interface.o : mod_lm_interface.F90 mod_regcm_types.o mod_bats_common.o mod_ocn_common.o mod_clm.o mod_memutil.o mod_mtrxclm.o mod_runparams.o clm_varsur.o clm_varctl.o clm_time_manager.o restFileMod.o spmdMod.o perf_mod.o
+mod_lm_interface.o : mod_lm_interface.F90 mod_regcm_types.o mod_bats_common.o mod_ocn_common.o mod_clm.o mod_memutil.o mod_mtrxclm.o mod_runparams.o clm_varsur.o clm_varctl.o clm_time_manager.o restFileMod.o spmdMod.o perf_mod.o mod_slice.o
 else
 if  DO_COMPILE_LIBCLM45
 mod_lm_interface.o : mod_lm_interface.F90 mod_regcm_types.o mod_bats_common.o mod_ocn_common.o mod_memutil.o mod_runparams.o mod_clm_regcm.o mod_slice.o
