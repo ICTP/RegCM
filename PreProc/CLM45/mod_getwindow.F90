@@ -19,6 +19,7 @@
 module mod_getwindow
 
   use mod_realkinds
+  use mod_dynparam , only : i_band
   use mod_intkinds
   use mod_grid
 
@@ -71,9 +72,15 @@ module mod_getwindow
     dlat = abs(glat(2) - glat(1))
     dlon = abs(glon(2) - glon(1))
 
-    if ( xlon(1,xj)   < xlon(xi,xj)   .and. &
-         xlon(1,xj/2) < xlon(xi,xj/2) .and. &
-         xlon(1,1)    < xlon(xi,1) ) then
+    if ( i_band == 1 ) then
+      domain%ntiles = 1
+      domain%igstart(1) = 1
+      domain%igstop(1) = gi
+      domain%igstart(2) = 0
+      domain%igstop(2) = 0
+    else if ( xlon(1,xj)   <= xlon(xi,xj)   .and. &
+              xlon(1,xj/2) <= xlon(xi,xj/2) .and. &
+              xlon(1,1)    <= xlon(xi,1) ) then
       ! it is not crossing timeline
       domain%ntiles = 1
       domain%igstart(1) = int((minlon-glon(1))/dlon) - 1
