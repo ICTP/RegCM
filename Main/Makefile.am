@@ -57,6 +57,9 @@ endif
 if DO_COMPILE_LIBCLM
 rcaddsuffix = _clm
 endif
+if DO_COMPILE_LIBCLM45
+rcaddsuffix = _clm45
+endif
 
 program_transform_name = s&$$&$(rcsuffix)$(rcaddsuffix)&
 
