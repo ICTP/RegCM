@@ -342,6 +342,7 @@ program terrain
     call interp(jxsg,iysg,xlat_s,xlon_s,htgrid_s, &
                 nlatin,nlonin,grdltmn,grdlnmn,values, &
                 ntypec_s,1,lonwrap,lcrosstime)
+    call relmem2d(values)
     write(stdout,*)'Interpolated DEM on SUBGRID'
 !
     call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
@@ -353,6 +354,7 @@ program terrain
                 ntypec_s,4,lonwrap,lcrosstime,     &
                 ibnty=1,h2opct=h2opct)
     call filter1plakes(jxsg,iysg,lndout_s)
+    call relmem2d(values)
     write(stdout,*)'Interpolated landcover on SUBGRID'
 !
     if ( ltexture ) then
@@ -369,6 +371,7 @@ program terrain
                     nlatin,nlonin,grdltmn,grdlnmn,values,      &
                     ntypec_s,5,lonwrap,lcrosstime,ival=i)
       end do
+      call relmem2d(values)
       write(stdout,*)'Interpolated texture on SUBGRID'
     end if
 
@@ -380,6 +383,7 @@ program terrain
       call interp(jxsg,iysg,xlat_s,xlon_s,dpth_s,    &
                   nlatin,nlonin,grdltmn,grdlnmn,values, &
                   ntypec_s,1,lonwrap,lcrosstime)
+      call relmem2d(values)
       write(stdout,*)'Interpolated bathymetry on SUBGRID'
     end if
 
@@ -511,6 +515,7 @@ program terrain
   call interp(jx,iy,xlat,xlon,htgrid,           &
               nlatin,nlonin,grdltmn,grdlnmn,values, &
               ntypec,1,lonwrap,lcrosstime)
+  call relmem2d(values)
   write(stdout,*)'Interpolated DEM on model GRID'
 !
   call read_ncglob(trim(inpter)//pthsep//'SURFACE'// &
@@ -522,6 +527,7 @@ program terrain
               ntypec,4,lonwrap,lcrosstime,       &
               ibnty=1,h2opct=h2opct)
   call filter1plakes(jx,iy,lndout)
+  call relmem2d(values)
   write(stdout,*)'Interpolated landcover on model GRID'
 !
   if ( ltexture ) then
@@ -538,6 +544,7 @@ program terrain
                   nlatin,nlonin,grdltmn,grdlnmn,values, &
                   ntypec,5,lonwrap,lcrosstime,ival=i)
     end do
+    call relmem2d(values)
     write(stdout,*)'Interpolated texture on model GRID'
   end if
 
@@ -549,6 +556,7 @@ program terrain
     call interp(jx,iy,xlat,xlon,dpth,              &
                 nlatin,nlonin,grdltmn,grdlnmn,values, &
                 ntypec,1,lonwrap,lcrosstime)
+    call relmem2d(values)
     write(stdout,*)'Interpolated bathymetry on model GRID'
   end if
 

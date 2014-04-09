@@ -220,6 +220,8 @@ module mod_rdldtr
           end do
         end do
     end select
+    call relmem2d(readbuf)
+    call relmem1d(copybuf)
     write(stdout,'(a)') 'Done.'
 
   end subroutine read_ncglob
