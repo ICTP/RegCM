@@ -48,15 +48,15 @@ module mod_getwindow
   ! ALL LONGITUDES ARE in the range -180.0 <-> 180.0
   subroutine get_window(glat,glon,domain)
     implicit none
-    real(rk4) , dimension(:) , intent(in) :: glat
-    real(rk4) , dimension(:) , intent(in) :: glon
+    real(rk8) , dimension(:) , intent(in) :: glat
+    real(rk8) , dimension(:) , intent(in) :: glon
     type(global_domain) , intent(out) :: domain
 
-    real(rk4) :: dlat , dlon
-    real(rk4) :: maxlat
-    real(rk4) :: minlat
-    real(rk4) :: maxlon
-    real(rk4) :: minlon
+    real(rk8) :: dlat , dlon
+    real(rk8) :: maxlat
+    real(rk8) :: minlat
+    real(rk8) :: maxlon
+    real(rk8) :: minlon
     integer :: gi , gj , xi , xj , l1 , l2 , i , j
 
     xi = size(xlon,1)
@@ -82,13 +82,13 @@ module mod_getwindow
       domain%igstop(2) = 0
     else
       domain%ntiles = 2
-      minlon = 180.0
+      minlon = 180.0D0
       do j = 1 , xj
-        if ( xlon(1,j) > 0 ) minlon = min(minlon,xlon(1,j))
+        if ( xlon(1,j) > 0.0D0 ) minlon = min(minlon,xlon(1,j))
       end do
-      maxlon = -180.0
+      maxlon = -180.0D0
       do j = 1 , xj
-        if ( xlon(xi,j) < 0 ) maxlon = max(maxlon,xlon(xi,j))
+        if ( xlon(xi,j) < 0.0D0 ) maxlon = max(maxlon,xlon(xi,j))
       end do
       domain%igstart(1) = int((minlon-glon(1))/dlon) - 1
       domain%igstop(1) = gi
@@ -125,7 +125,7 @@ module mod_getwindow
     contains
 
       logical function has_north_pole(l,i)
-        real(rk4) , intent(in) , dimension(:,:) :: l
+        real(rk8) , intent(in) , dimension(:,:) :: l
         integer(ik4) , intent(in) :: i
         integer(ik4) :: j
         has_north_pole = .false.
@@ -138,7 +138,7 @@ module mod_getwindow
       end function has_north_pole
 
       logical function has_south_pole(l,i)
-        real(rk4) , intent(in) , dimension(:,:) :: l
+        real(rk8) , intent(in) , dimension(:,:) :: l
         integer(ik4) , intent(in) :: i
         integer(ik4) :: j
         has_south_pole = .false.

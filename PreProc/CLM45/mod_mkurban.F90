@@ -33,16 +33,16 @@ module mod_mkurban
 
   public :: mkurban
 
-  real :: vmin = 0.0
-  real :: vmisdat = -9999.0
+  real(rk8) :: vmin = 0.0D0
+  real(rk8) :: vmisdat = -9999.0D0
 
   contains
 
   subroutine mkurban(urbanfile,urban)
     implicit none
     character(len=*) , intent(in) :: urbanfile
-    real(rk4) , dimension(:,:) , intent(out) :: urban
-    urban = 0.0
+    real(rk8) , dimension(:,:) , intent(out) :: urban
+    urban = 0.0D0
   end subroutine mkurban
 
 end module mod_mkurban

@@ -30,13 +30,15 @@ module mod_grid
 
   private
 
-  real(rk4) , public :: clatx , clonx
+  real(rk8) , public :: clatx , clonx
 
-  real(rk4) , public , pointer , dimension(:,:) :: xlat , xlon , xmask , topo
-  real(rk4) , public , pointer , dimension(:) :: sigx
+  real(rk8) , public , pointer , dimension(:,:) :: xlat , xlon , xmask , topo
+  real(rk8) , public , pointer , dimension(:) :: sigx
+  real(rk4) , public , pointer , dimension(:,:) :: rxlat , rxlon
+  real(rk4) , public , pointer , dimension(:) :: rsigx
   logical , public , pointer , dimension(:,:,:) :: sgmask
   real(rk4) , public , pointer , dimension(:,:,:) :: xtrans_r4
-  integer(ik4) , public , pointer , dimension(:,:,:) :: xtrans_i
+  integer(ik4) , public , pointer , dimension(:,:,:) :: xtrans_i4
   real(rk8) , public , pointer , dimension(:,:,:) :: xtrans_r8
 
   interface mypack
@@ -60,13 +62,16 @@ module mod_grid
     implicit none
     call getmem2d(xlat,1,jxsg,1,iysg,'mod_read_domain:xlat')
     call getmem2d(xlon,1,jxsg,1,iysg,'mod_read_domain:xlon')
+    call getmem2d(rxlat,1,jxsg,1,iysg,'mod_read_domain:rxlat')
+    call getmem2d(rxlon,1,jxsg,1,iysg,'mod_read_domain:rxlon')
     call getmem2d(xmask,1,jxsg,1,iysg,'mod_read_domain:xmask')
     call getmem2d(topo,1,jxsg,1,iysg,'mod_read_domain:topo')
-    call getmem3d(xtrans_i,1,nnsg,1,jx,1,iy,'mod_read_domain:xtrans_i')
+    call getmem3d(xtrans_i4,1,nnsg,1,jx,1,iy,'mod_read_domain:xtrans_i4')
     call getmem3d(xtrans_r4,1,nnsg,1,jx,1,iy,'mod_read_domain:xtrans_r4')
     call getmem3d(xtrans_r8,1,nnsg,1,jx,1,iy,'mod_read_domain:xtrans_r8')
     call getmem3d(sgmask,1,nnsg,1,jx,1,iy,'mod_read_domain:sgmask')
     call getmem1d(sigx,1,kzp1,'mod_read_domain:sigx')
+    call getmem1d(rsigx,1,kzp1,'mod_read_domain:rsigx')
   end subroutine init_domain
 
   subroutine g2s_i(m2,m3)
@@ -132,7 +137,7 @@ module mod_grid
           ii = (i-1) * nsg + n2
           do n1 = 1 , nsg
             jj = (j-1) * nsg + n1
-            sgmask((n2-1)*nsg+n1,j,i) = (xmask(jj,ii) > 0.5)
+            sgmask((n2-1)*nsg+n1,j,i) = (xmask(jj,ii) > 0.5D0)
           end do
         end do
       end do
@@ -144,13 +149,13 @@ module mod_grid
     integer(ik4) , dimension(:,:) :: matrix
     integer(ik4) , dimension(:) :: vector
     integer(ik4) :: i , j , n , ip
-    call g2s(matrix,xtrans_i)
+    call g2s(matrix,xtrans_i4)
     ip = 1
     do i = 2 , iy-2
       do j = 2 , jx-2
         do n = 1 , nnsg
           if ( sgmask(n,j,i) ) then
-            vector(ip) = xtrans_r4(n,j,i)
+            vector(ip) = xtrans_i4(n,j,i)
             ip = ip + 1
           end if
         end do

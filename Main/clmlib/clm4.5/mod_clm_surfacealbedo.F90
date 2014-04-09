@@ -1520,10 +1520,18 @@ module mod_clm_surfacealbedo
             ! leaf to canopy scaling coefficients
             extkn = 0.30D0
             extkb = twostext(p)
-            vcmaxcintsun(p) = (1.D0 - exp(-(extkn+extkb)*elai(p))) / &
-                    (extkn + extkb)
-            vcmaxcintsha(p) = (1.D0 - exp(-extkn*elai(p))) / &
-                    extkn - vcmaxcintsun(p)
+            if ( (extkn+extkb)*elai(p) > 25.0D0 ) then
+              vcmaxcintsun(p) = 1.0D0 / ( extkn + extkb )
+            else
+              vcmaxcintsun(p) = (1.D0 - exp(-(extkn+extkb)*elai(p))) / &
+                                (extkn + extkb)
+            end if
+            if ( extkn*elai(p) > 25.0D0 ) then
+              vcmaxcintsha(p) = 1.0D0 / extkn - vcmaxcintsun(p)
+            else
+              vcmaxcintsha(p) = (1.D0 - exp(-extkn*elai(p))) / &
+                      extkn - vcmaxcintsun(p)
+            end if
             if ( elai(p) .gt. 0.D0 ) then
               vcmaxcintsun(p) = vcmaxcintsun(p) / (fsun_z(p,1)*elai(p))
               vcmaxcintsha(p) = vcmaxcintsha(p) / ((1.D0 - fsun_z(p,1))*elai(p))

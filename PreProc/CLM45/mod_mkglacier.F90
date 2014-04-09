@@ -40,21 +40,21 @@ module mod_mkglacier
   character(len=16) , parameter :: varname = 'PCT_GLACIER'
   character(len=16) , parameter :: maskname = 'LANDMASK'
 
-  real :: vmin = 0.0
-  real :: vmisdat = -9999.0
+  real(rk8) :: vmin = 0.0D0
+  real(rk8) :: vmisdat = -9999.0D0
 
   contains
 
   subroutine mkglacier(glcfile,glacier)
     implicit none
     character(len=*) , intent(in) :: glcfile
-    real(rk4) , dimension(:,:) , intent(out) :: glacier
+    real(rk8) , dimension(:,:) , intent(out) :: glacier
     integer(ik4) :: nlat , nlon
     integer(ik4) :: idimid , ivarid , ivarmask , ncid
     integer(ik4) , dimension(2) :: istart , icount
     integer(ik4) :: istatus , i , li , lo
-    real(rk4) , dimension(:,:) , allocatable :: rvar , rmask
-    real(rk4) , dimension(:) , allocatable :: glat , glon , rlat , rlon
+    real(rk8) , dimension(:,:) , allocatable :: rvar , rmask
+    real(rk8) , dimension(:) , allocatable :: glat , glon , rlat , rlon
     type(global_domain) :: domain
 
     character(len=256) :: inpfile
@@ -98,11 +98,11 @@ module mod_mkglacier
       'Cannot read variable lon in file '//trim(inpfile))
 
     ! Put longitudes in -180 - 180 range
-    where ( glon >  180.0 )
-      glon = glon - 360.0
+    where ( glon >  180.0D0 )
+      glon = glon - 360.0D0
     end where
-    where ( glon < -180.0 )
-      glon = glon + 360.0
+    where ( glon < -180.0D0 )
+      glon = glon + 360.0D0
     end where
 
     call get_window(glat,glon,domain)

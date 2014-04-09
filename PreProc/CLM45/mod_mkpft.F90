@@ -41,22 +41,22 @@ module mod_mkpft
   character(len=16) , parameter :: varname = 'PCT_PFT'
   character(len=16) , parameter :: maskname = 'LANDMASK'
 
-  real :: vmin = 0.0
-  real :: vmisdat = -9999.0
+  real(rk8) :: vmin = 0.0D0
+  real(rk8) :: vmisdat = -9999.0D0
 
   contains
 
   subroutine mkpft(pftfile,pft)
     implicit none
     character(len=*) , intent(in) :: pftfile
-    real(rk4) , dimension(:,:,:) , intent(out) :: pft
+    real(rk8) , dimension(:,:,:) , intent(out) :: pft
     integer(ik4) :: nlat , nlon , npft
     integer(ik4) :: idimid , ivarid , ivarmask , ncid
     integer(ik4) , dimension(3) :: istart , icount
     integer(ik4) :: istatus , i , li , lo
-    real(rk4) , dimension(:,:,:) , allocatable :: rvar
-    real(rk4) , dimension(:,:) , allocatable :: rmask
-    real(rk4) , dimension(:) , allocatable :: glat , glon , rlat , rlon
+    real(rk8) , dimension(:,:,:) , allocatable :: rvar
+    real(rk8) , dimension(:,:) , allocatable :: rmask
+    real(rk8) , dimension(:) , allocatable :: glat , glon , rlat , rlon
     type(global_domain) :: domain
 
     character(len=256) :: inpfile
@@ -111,11 +111,11 @@ module mod_mkpft
       'Cannot read variable lon in file '//trim(inpfile))
 
     ! Put longitudes in -180 - 180 range
-    where ( glon >  180.0 )
-      glon = glon - 360.0
+    where ( glon >  180.0D0 )
+      glon = glon - 360.0D0
     end where
-    where ( glon < -180.0 )
-      glon = glon + 360.0
+    where ( glon < -180.0D0 )
+      glon = glon + 360.0D0
     end where
 
     call get_window(glat,glon,domain)
