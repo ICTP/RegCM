@@ -133,7 +133,7 @@ module mod_clm_regcm
         rstwr = .true.
         write(rdate,'(i10)') toint10(nextt)
       end if
-      if ( (lfdomonth(idatex) .and. lmidnight(idatex)) ) then
+      if ( (lfdomonth(nextt) .and. lmidnight(nextt)) ) then
         rstwr = .true.
         write(rdate,'(i10)') toint10(nextt)
       end if
