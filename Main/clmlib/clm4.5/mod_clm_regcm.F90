@@ -109,15 +109,17 @@ module mod_clm_regcm
     type(lm_state) , intent(inout) :: lms
     real(rk8) :: caldayp1 , declinp1 , eccfp1
     logical :: doalb , rstwr , nlend
-    type(rcm_time_interval) :: tdiff
-    type(rcm_time_and_date) :: nextt
+    type(rcm_time_interval) :: tdiff , triff
+    type(rcm_time_and_date) :: nextt , nextr
     character(len=64) :: rdate
 
     call atmosphere_to_land(lm)
 
     ! Compute NEXT calday
     tdiff = dtsrf
+    triff = dtsec
     nextt = idatex+tdiff
+    nextr = idatex+triff
     caldayp1 = yeardayfrac(nextt)
     call orb_decl(caldayp1,eccen,mvelpp,lambm0,obliqr,declinp1,eccfp1)
     if ( ktau == 0 .or. mod(ktau+1,ntrad) == 0 ) then
@@ -133,9 +135,12 @@ module mod_clm_regcm
         rstwr = .true.
         write(rdate,'(i10)') toint10(nextt)
       end if
-      if ( (lfdomonth(nextt) .and. lmidnight(nextt)) ) then
+      if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
         rstwr = .true.
-        write(rdate,'(i10)') toint10(nextt)
+        write(rdate,'(i10)') toint10(nextr)
+        if ( myid == italk ) then
+          write (stdout,*) 'Write restart file for CLM at ', tochar(nextr)
+        end if
       end if
     end if
 
