@@ -128,7 +128,6 @@ program mksurfdata
   rxlat = real(xlat)
   rxlon = real(xlon)
   rsigx = real(sigx)
-  call setup_pack()
   if ( i_band == 1 ) then
     jgstart = 1
     jgstop = jxsg
@@ -136,6 +135,7 @@ program mksurfdata
     jgstart = 2
     jgstop = jxsg-2
   end if
+  call setup_pack(jgstart,jgstop)
   ngcells = count(xmask(jgstart:jgstop,2:iysg-2) > 0.5D0)
   call closefile(ncid)
 

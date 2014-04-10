@@ -53,7 +53,7 @@ module mod_grid
     module procedure g2s_r8
   end interface g2s
 
-
+  integer(ik4) :: jgstart , jgstop
   public :: init_domain , mypack , setup_pack
 
   contains
@@ -128,9 +128,12 @@ module mod_grid
     end do
   end subroutine g2s_r8
 
-  subroutine setup_pack
+  subroutine setup_pack(j1,j2)
     implicit none
+    integer(ik4) , intent(in) :: j1 , j2
     integer(ik4) :: n1 , n2 , j , i , ii , jj
+    jgstart = j1
+    jgstop = j2
     do i = 1 , iy
       do j = 1 , jx
         do n2 = 1 , nsg
@@ -152,7 +155,7 @@ module mod_grid
     call g2s(matrix,xtrans_i4)
     ip = 1
     do i = 2 , iy-2
-      do j = 2 , jx-2
+      do j = jgstart , jgstop
         do n = 1 , nnsg
           if ( sgmask(n,j,i) ) then
             vector(ip) = xtrans_i4(n,j,i)
@@ -171,7 +174,7 @@ module mod_grid
     call g2s(matrix,xtrans_r4)
     ip = 1
     do i = 2 , iy-2
-      do j = 2 , jx-2
+      do j = jgstart , jgstop
         do n = 1 , nnsg
           if ( sgmask(n,j,i) ) then
             vector(ip) = xtrans_r4(n,j,i)
@@ -190,7 +193,7 @@ module mod_grid
     call g2s(matrix,xtrans_r8)
     ip = 1
     do i = 2 , iy-2
-      do j = 2 , jx-2
+      do j = jgstart , jgstop
         do n = 1 , nnsg
           if ( sgmask(n,j,i) ) then
             vector(ip) = xtrans_r8(n,j,i)
