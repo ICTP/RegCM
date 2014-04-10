@@ -964,6 +964,15 @@ module mod_clm_mkarbinit
         h2osno(c) = h2osno_max
       else
         h2osno(c) = adomain%snow(g)
+        ! Start with some snow on mountains and on cold regions
+        if ( adomain%topo(g) > 1000.0D0 .and. &
+             adomain%tgrd(g) < 268.0D0 ) then
+          h2osno(c) = min(h2osno(c),10.0D0)
+        else
+          if ( adomain%tgrd(g) < 263.0D0 ) then
+            h2osno(c) = min(h2osno(c),1.0D0)
+          end if
+        end if
       end if
 
       ! initialize int_snow, int_melt
@@ -1018,7 +1027,7 @@ module mod_clm_mkarbinit
           if (ctype(c) == icol_road_perv .or. &
               ctype(c) == icol_road_imperv) then 
             do j = 1 , nlevgrnd
-              t_soisno(c,j) = adomain%tgrd(g) + 3.0D0
+              t_soisno(c,j) = adomain%tgrd(g) + 2.0D0
             end do
           ! Set sunwall, shadewall, roof to fairly high temperature to
           ! avoid initialization shock from large heating/air conditioning flux
@@ -1026,7 +1035,7 @@ module mod_clm_mkarbinit
                    ctype(c) == icol_shadewall .or. &
                    ctype(c) == icol_roof) then
             do j = 1 , nlevurb
-              t_soisno(c,j) = adomain%tgrd(g) + 5.0D0
+              t_soisno(c,j) = adomain%tgrd(g) + 2.0D0
             end do
           end if
         else
@@ -1160,7 +1169,7 @@ module mod_clm_mkarbinit
           h2osoi_vol(c,j) = min(h2osoi_vol(c,j),watsat(c,j))
           ! soil layers
           if ( t_soisno(c,j) <= tfrz ) then
-            h2osoi_ice(c,j)  = dz(c,j)*denice*h2osoi_vol(c,j)
+            h2osoi_ice(c,j) = dz(c,j)*denice*h2osoi_vol(c,j)
             h2osoi_liq(c,j) = 0.D0
           else
             h2osoi_ice(c,j) = 0.D0
