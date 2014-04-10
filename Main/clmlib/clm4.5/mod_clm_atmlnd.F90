@@ -149,6 +149,8 @@ module mod_clm_atmlnd
     real(rk8) , pointer , dimension(:) :: qflx_surf
     ! Sub-surface runoff
     real(rk8) , pointer , dimension(:) :: qflx_tot
+    ! Snow melt
+    real(rk8) , pointer , dimension(:) :: qflx_snomelt
     ! rof liq forcing
     real(rk8) , pointer , dimension(:) :: rofliq
     ! rof ice forcing
@@ -294,6 +296,7 @@ end subroutine init_atm2lnd_type
     allocate(l2a%rootfr(ibeg:iend,1:nlevgrnd))
     allocate(l2a%qflx_surf(ibeg:iend))
     allocate(l2a%qflx_tot(ibeg:iend))
+    allocate(l2a%qflx_snomelt(ibeg:iend))
     allocate(l2a%rofliq(ibeg:iend))
     allocate(l2a%rofice(ibeg:iend))
     allocate(l2a%flxdst(ibeg:iend,1:ndst))
@@ -334,6 +337,7 @@ end subroutine init_atm2lnd_type
     l2a%rootfr(ibeg:iend,1:nlevgrnd) = ival
     l2a%qflx_surf(ibeg:iend) = ival
     l2a%qflx_tot(ibeg:iend) = ival
+    l2a%qflx_snomelt(ibeg:iend) = ival
     l2a%rofliq(ibeg:iend) = ival
     l2a%rofice(ibeg:iend) = ival
     l2a%flxdst(ibeg:iend,1:ndst) = ival
@@ -461,6 +465,10 @@ end subroutine init_atm2lnd_type
       call c2g(begc,endc,begl,endl,begg,endg,         &
                cptr%cwf%qflx_runoff,clm_l2a%qflx_tot, &
                c2l_scale_type='unity',                &
+               l2g_scale_type='unity')
+      call c2g(begc,endc,begl,endl,begg,endg,              &
+               cptr%cwf%qflx_snomelt,clm_l2a%qflx_snomelt, &
+               c2l_scale_type='unity',                     &
                l2g_scale_type='unity')
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,numrad, &
                pptr%pps%albd,clm_l2a%albd,                     &
