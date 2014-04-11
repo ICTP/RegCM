@@ -15,6 +15,7 @@ module mod_clm_mkarbinit
   use mod_clm_varctl , only : pertlim
   use mod_clm_decomp , only : get_proc_bounds
   use mod_clm_snicar , only : snw_rds_min
+  use mod_bats_param
 
   implicit none
 
@@ -967,10 +968,10 @@ module mod_clm_mkarbinit
         ! Start with some snow on mountains and on cold regions
         if ( adomain%topo(g) > 1000.0D0 .and. &
              adomain%tgrd(g) < 268.0D0 ) then
-          h2osno(c) = min(h2osno(c),1000.0D0)
+          h2osno(c) = max(h2osno(c),1000.0D0)
         else
           if ( adomain%tgrd(g) < 263.0D0 ) then
-            h2osno(c) = min(h2osno(c),100.0D0)
+            h2osno(c) = max(h2osno(c),100.0D0)
           end if
         end if
       end if
@@ -1069,7 +1070,7 @@ module mod_clm_mkarbinit
         t_ref2m_r(p) = spval
       else
         t_ref2m_r(p) = t_grnd(c)
-      end if 
+      end if
       eflx_lwrad_out(p) = sb * (t_grnd(c))**4
     end do
 
@@ -1114,6 +1115,7 @@ module mod_clm_mkarbinit
     end do
 
     do c = begc , endc
+      g = cgridcell(c)
       l = clandunit(c)
       if ( .not. lakpoi(l) ) then  !not lake
 
@@ -1125,7 +1127,9 @@ module mod_clm_mkarbinit
               h2osoi_vol(c,j) = 0.0D0
             else
               ! h2osoi_vol(c,j) = 0.15D0
-              h2osoi_vol(c,j) = watsat(c,j)*0.10D0
+              ! h2osoi_vol(c,j) = watsat(c,j)*0.10D0
+              h2osoi_vol(c,j) = slmo(adomain%luse(g)) * &
+                            xmopor(iexsol(adomain%luse(g)))
             end if
           end do
         else if ( ltype(l) == isturb ) then 
@@ -1133,7 +1137,7 @@ module mod_clm_mkarbinit
             nlevs = nlevgrnd
             do j = 1 , nlevs
               if ( j <= nlevsoi ) then
-                h2osoi_vol(c,j) = watsat(c,j)*0.50D0
+                h2osoi_vol(c,j) = watsat(c,j)*0.30D0
                 !h2osoi_vol(c,j) = 0.3D0
               else
                 h2osoi_vol(c,j) = 0.0D0
