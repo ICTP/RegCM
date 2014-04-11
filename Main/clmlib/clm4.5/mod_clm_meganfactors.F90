@@ -89,13 +89,13 @@ module mod_clm_meganfactors
 
     integer(ik4) :: start(2), count(2)
 
-    integer(ik4) :: ierr, i, vid
+    integer(ik4) :: ierr, i, j , vid
     integer(ik4) :: n_comps, n_classes, n_pfts
     integer(ik4), allocatable :: class_nums(:)
 
-    real(rk8),allocatable :: factors(:)
-    real(rk8),allocatable :: comp_factors(:)
-    real(rk8),allocatable :: class_factors(:)
+    real(rk8) , allocatable :: factors(:)
+    real(rk8) , allocatable :: comp_factors(:.:)
+    real(rk8) , allocatable :: class_factors(:.:)
 
     allocate(comp_factors_table(150))
     allocate(hash_table_indices(tbl_hash_sz))
@@ -109,10 +109,10 @@ module mod_clm_meganfactors
     npfts = n_pfts
 
     allocate( factors(n_pfts) )
-    allocate( comp_factors(n_pfts) )
-    allocate( class_factors(n_pfts) )
+    allocate( comp_factors(n_comps,n_pfts) )
+    allocate( class_factors(n_classes,n_pfts) )
 
-    allocate( comp_names(n_comps) )
+    allocate( comp_names(,n_comps) )
     allocate( comp_molecwghts(n_comps) )
     allocate( class_nums(n_comps) )
 
@@ -122,10 +122,13 @@ module mod_clm_meganfactors
 
     ! set up hash table where data is stored
     call bld_hash_table_indices( comp_names )
+    call clm_readvar(ncid,'Class_EF',class_factors)
+    call clm_readvar(ncid,'Comp_EF',comp_factors)
+
     do i = 1 , n_comps
-      call clm_readvar(ncid,'Class_EF',comp_factors,nt=i)
-      call clm_readvar(ncid,'Comp_EF',class_factors,nt=i)
-      factors(:) = comp_factors(:)*class_factors(:)
+      do j = 1 , n_pfts
+        factors(j) = comp_factors(i,j)*class_factors(class_nums(i),j)
+      end do
       call enter_hash_data( trim(comp_names(i)), factors, &
                class_nums(i), comp_molecwghts(i) )
     enddo
