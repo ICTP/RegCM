@@ -530,4 +530,20 @@
  gas_tweak_factors = 1.0D0, 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0,
  !                   CO2    CH4     N2O     CFC11   CFC12
 /
+!
+! CLM 4.5 parameters
+!
+&clm_inparm
+ fpftcon = 'pft-physiology.c130503.nc',
+ fsnowoptics = 'snicar_optics_5bnd_c090915.nc',
+ fsnowaging = 'snicar_drdt_bst_fit_60_c070416.nc',
+ create_crop_landunit = .true.
+/
+&clm_soilhydrology_inparm
+ h2osfcflag = 1,
+ origflag = 0,
+/
+&clm_hydrology1_inparm
+ oldfflag = 0,
+/
 ! ####################################################################
