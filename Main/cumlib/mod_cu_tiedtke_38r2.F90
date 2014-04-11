@@ -24,8 +24,12 @@ module mod_cu_tiedtke_38r2
   real(rk8) , parameter :: rtaumel = 5.0D0*3.6D3*1.5D0
                                           ! Relaxation time for melting of
                                           ! snow
-  real(rk8) , parameter :: rhebc = 0.8D0  ! Critical relative humidity below
+  real(rk8) , parameter :: rhebc_lnd = 0.7D0 ! Critical relative humidity below
                                           ! cloud at which evaporation starts
+                                          ! for land
+  real(rk8) , parameter :: rhebc_ocn = 0.9D0 ! Critical relative humidity below
+                                          ! cloud at which evaporation starts
+                                          ! for ocean
   real(rk8) :: rmfcfl ! Massflux multiple of cfl stability criterium
   real(rk8) , parameter :: rmflic = 1.0D0 ! Use CFL mass flux limit (1) or
                                           ! absolut limit (0)
@@ -2976,9 +2980,9 @@ module mod_cu_tiedtke_38r2
       if ( .not.ldcum(jl) ) ktype(jl) = 0
       idbas(jl) = klev
       if ( ldland(jl) ) then
-        zrhebc(jl) = 0.7D0
+        zrhebc(jl) = rhebc_lnd
       else
-        zrhebc(jl) = 0.9D0
+        zrhebc(jl) = rhebc_ocn
       end if
     end do
     ! TO GET IDENTICAL RESULTS FOR DIFFERENT NPROMA FORCE KTOPM2 TO 2
