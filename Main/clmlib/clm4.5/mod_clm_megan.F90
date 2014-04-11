@@ -80,10 +80,10 @@ module mod_clm_megan
   type(shr_megan_megcomp_t),  pointer :: shr_megan_linkedlist
 
   ! number of unique megan compounds
-  integer :: shr_megan_megcomps_n  = 0
+  integer :: shr_megan_megcomps_n  = 150
   ! number of unique compounds in the CAM chemical mechanism than have
   ! MEGAN emissions
-  integer :: shr_megan_mechcomps_n = 0
+  integer :: shr_megan_mechcomps_n = 150
 
   ! switch to use mapped emission factors
   logical :: shr_megan_mapped_emisfctrs = .false.
@@ -141,7 +141,7 @@ module mod_clm_megan
     integer :: i                ! Loop index
     integer :: ierr             ! error code
     logical :: exists           ! if file exists or not
-    integer, parameter :: maxspc = 100
+    integer, parameter :: maxspc = 150
     character(len=2*512) :: megan_specifier(maxspc) = ' '
     logical           :: megan_mapped_emisfctrs = .false.
     character(len=256) :: megan_factors_file = ' '
@@ -175,6 +175,7 @@ module mod_clm_megan
       call bcast(megan_specifier(i),2*512)
     end do
 
+    write(*,*)'test01 ',megan_factors_file
     ! parse the namelist info and initialize the module data
     call shr_megan_init( megan_specifier, megan_fields )
 
@@ -221,7 +222,7 @@ module mod_clm_megan
           shr_megan_mechcomps(i)%megan_comps(j)%ptr => &
                   add_megan_comp( items%megan_comp_names(j) )
         end do
-        shr_megan_mechcomps_n = shr_megan_mechcomps_n+1
+        shr_megan_mechcomps_n = shr_megan_mechcomps_n 
 
         call destroy_parser_items( items )
 
