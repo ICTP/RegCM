@@ -967,10 +967,10 @@ module mod_clm_mkarbinit
         ! Start with some snow on mountains and on cold regions
         if ( adomain%topo(g) > 1000.0D0 .and. &
              adomain%tgrd(g) < 268.0D0 ) then
-          h2osno(c) = min(h2osno(c),100.0D0)
+          h2osno(c) = min(h2osno(c),1000.0D0)
         else
           if ( adomain%tgrd(g) < 263.0D0 ) then
-            h2osno(c) = min(h2osno(c),10.0D0)
+            h2osno(c) = min(h2osno(c),100.0D0)
           end if
         end if
       end if
@@ -1013,13 +1013,13 @@ module mod_clm_mkarbinit
             t_soisno(c,j) = adomain%tgrd(g) - 1.0d0 * dble(snl(c)-j)
           end do
         end if
-        if ( ltype(l)==istice ) then
+        if ( ltype(l) == istice ) then
           do j = 1 , nlevgrnd
             t_soisno(c,j) = 250.0D0
           end do
         else if (ltype(l) == istwet) then
           do j = 1 , nlevgrnd
-            t_soisno(c,j) = adomain%tgrd(g) + 1.0D0
+            t_soisno(c,j) = adomain%tgrd(g)
           end do
         else if (ltype(l) == isturb) then
           if (ctype(c) == icol_road_perv .or. &
@@ -1043,7 +1043,7 @@ module mod_clm_mkarbinit
         end if
         t_grnd(c) = adomain%tgrd(g)
       else  ! lake
-        t_lake(c,1:nlevlak) = adomain%tgrd(g) + 1.0
+        t_lake(c,1:nlevlak) = adomain%tgrd(g)
         t_grnd(c) = t_lake(c,1)
       end if
       tsoi17(c) = t_grnd(c)
@@ -1058,10 +1058,10 @@ module mod_clm_mkarbinit
         qflx_irrig(c) = 0.0D0
       end if
 
-      t_veg(p) = t_grnd(c) + 0.5D0
-      t_ref2m(p) = t_grnd(c) + 0.5D0
+      t_veg(p) = t_grnd(c)
+      t_ref2m(p) = t_grnd(c)
       if ( urbpoi(l) ) then
-        t_ref2m_u(p) = t_grnd(c) + 1.5D0
+        t_ref2m_u(p) = t_grnd(c)
       else
         t_ref2m_u(p) = spval
       end if

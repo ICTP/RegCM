@@ -94,8 +94,8 @@ module mod_clm_meganfactors
     integer(ik4), allocatable :: class_nums(:)
 
     real(rk8) , allocatable :: factors(:)
-    real(rk8) , allocatable :: comp_factors(:.:)
-    real(rk8) , allocatable :: class_factors(:.:)
+    real(rk8) , allocatable :: comp_factors(:,:)
+    real(rk8) , allocatable :: class_factors(:,:)
 
     allocate(comp_factors_table(150))
     allocate(hash_table_indices(tbl_hash_sz))
@@ -112,7 +112,7 @@ module mod_clm_meganfactors
     allocate( comp_factors(n_comps,n_pfts) )
     allocate( class_factors(n_classes,n_pfts) )
 
-    allocate( comp_names(,n_comps) )
+    allocate( comp_names(n_comps) )
     allocate( comp_molecwghts(n_comps) )
     allocate( class_nums(n_comps) )
 

@@ -41,10 +41,12 @@ module mod_clm_regcm
     allocate(adomain%xlon(lndcomm%linear_npoint_sg(myid+1)))
     allocate(adomain%xlat(lndcomm%linear_npoint_sg(myid+1)))
     allocate(adomain%topo(lndcomm%linear_npoint_sg(myid+1)))
+    allocate(adomain%luse(lndcomm%linear_npoint_sg(myid+1)))
 
     call glb_c2l_ss(lndcomm,lm%xlat1,adomain%xlat)
     call glb_c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
     call glb_c2l_ss(lndcomm,lm%ht1,adomain%topo)
+    call glb_c2l_ss(lndcomm,lm%iveg1,adomain%luse)
 
     adomain%topo = adomain%topo*regrav
 
