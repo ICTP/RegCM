@@ -15,6 +15,8 @@ module mod_clm_megan
   use mod_realkinds
   use mod_mpmessage
   use mod_dynparam
+  use mod_mppparam
+  use mod_dynparam
   use mod_stdio
 
   implicit none
@@ -129,11 +131,14 @@ module mod_clm_megan
   !  megan_factors_file = '$datapath/megan_emis_factors.nc'
   ! /
   !-------------------------------------------------------------------------
-  subroutine shr_megan_readnl( NLFileName, megan_fields )
+!  subroutine shr_megan_readnl( NLFileName, megan_fields )
+  subroutine shr_megan_readnl( NLFileName )
     implicit none
     character(len=*), intent(in)  :: NLFileName
-    character(len=*), intent(out) :: megan_fields
+!    character(len=*), intent(out) :: megan_fields
+    character(len=256) ::       megan_fields
     integer :: unitn            ! namelist unit number
+    integer :: i                ! Loop index
     integer :: ierr             ! error code
     logical :: exists           ! if file exists or not
     integer, parameter :: maxspc = 100
@@ -145,27 +150,34 @@ module mod_clm_megan
     namelist /megan_emis_nl/ megan_specifier , megan_factors_file ,  &
                              megan_mapped_emisfctrs
 
-    inquire( file=trim(NLFileName), exist=exists)
-    if ( exists ) then
-      unitn = file_getUnit()
-      open( unitn, file=trim(NLFilename), status='old' )
-      if ( debug_level > 0 ) write(stdout,F00) &
-           'Read in megan_emis_readnl namelist from: ', trim(NLFilename)
-      read(unitn, megan_emis_nl, iostat=ierr)
-      if (ierr > 0) then
-        write(stderr,*) 'megan_emis_nl namelist read error'
-        call fatal(__FILE__,__LINE__, &
-           'problem on read of megan_emis_nl namelist in shr_megan_readnl' )
+    if ( myid == iocpu ) then
+      inquire( file=trim(NLFileName), exist=exists)
+      if ( exists ) then
+        unitn = file_getUnit()
+        open( unitn, file=trim(NLFilename), status='old' )
+        if ( debug_level > 0 ) write(stdout,F00) &
+             'Read in megan_emis_readnl namelist from: ', trim(NLFilename)
+        read(unitn, megan_emis_nl, iostat=ierr)
+        if (ierr > 0) then
+          write(stderr,*) 'megan_emis_nl namelist read error'
+          call fatal(__FILE__,__LINE__, &
+             'problem on read of megan_emis_nl namelist in shr_megan_readnl' )
+        end if
+        shr_megan_factors_file = megan_factors_file
+        shr_megan_mapped_emisfctrs = megan_mapped_emisfctrs
       end if
-
-      shr_megan_factors_file = megan_factors_file
-      shr_megan_mapped_emisfctrs = megan_mapped_emisfctrs
-
-      ! parse the namelist info and initialize the module data
-      call shr_megan_init( megan_specifier, megan_fields )
-
       call file_freeUnit( unitn )
     end if
+
+    call bcast(megan_factors_file,256)
+    call bcast(megan_mapped_emisfctrs)
+    do i = 1 , maxspc
+      call bcast(megan_specifier(i),2*512)
+    end do
+
+    ! parse the namelist info and initialize the module data
+    call shr_megan_init( megan_specifier, megan_fields )
+
   end subroutine shr_megan_readnl
 
   !-------------------------------------------------------------------------

@@ -41,22 +41,25 @@ module mod_clm_regcm
     allocate(adomain%xlon(lndcomm%linear_npoint_sg(myid+1)))
     allocate(adomain%xlat(lndcomm%linear_npoint_sg(myid+1)))
     allocate(adomain%topo(lndcomm%linear_npoint_sg(myid+1)))
-    allocate(adomain%luse(lndcomm%linear_npoint_sg(myid+1)))
 
     call glb_c2l_ss(lndcomm,lm%xlat1,adomain%xlat)
     call glb_c2l_ss(lndcomm,lm%xlon1,adomain%xlon)
     call glb_c2l_ss(lndcomm,lm%ht1,adomain%topo)
-    call glb_c2l_ss(lndcomm,lm%iveg1,adomain%luse)
-
     adomain%topo = adomain%topo*regrav
 
     call initialize1( )
 
     call get_proc_bounds(begg,endg)
+    deallocate(adomain%topo)
     allocate(adomain%snow(begg:endg))
     allocate(adomain%tgrd(begg:endg))
+    allocate(adomain%luse(begg:endg))
+    allocate(adomain%topo(begg:endg))
     call glb_c2l_gs(lndcomm,lm%snowam,adomain%snow)
     call glb_c2l_gs(lndcomm,lm%tground2,adomain%tgrd)
+    call glb_c2l_ss(lndcomm,lm%ht1,adomain%topo)
+    adomain%topo = adomain%topo*regrav
+    call glb_c2l_ss(lndcomm,lm%iveg1,adomain%luse)
 
     write(rdate,'(i10)') toint10(idatex)
     call initialize2(rdate)
@@ -360,7 +363,6 @@ module mod_clm_regcm
     !clm_l2a%fsa
     !clm_l2a%nee
     !clm_l2a%ram1
-    !clm_l2a%h2osoi_vol
     !clm_l2a%rofliq
     !clm_l2a%rofice
     !clm_l2a%flxdst
