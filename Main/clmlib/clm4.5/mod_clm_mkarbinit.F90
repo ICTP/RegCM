@@ -967,10 +967,10 @@ module mod_clm_mkarbinit
         ! Start with some snow on mountains and on cold regions
         if ( adomain%topo(g) > 1000.0D0 .and. &
              adomain%tgrd(g) < 268.0D0 ) then
-          h2osno(c) = min(h2osno(c),10.0D0)
+          h2osno(c) = min(h2osno(c),100.0D0)
         else
           if ( adomain%tgrd(g) < 263.0D0 ) then
-            h2osno(c) = min(h2osno(c),1.0D0)
+            h2osno(c) = min(h2osno(c),10.0D0)
           end if
         end if
       end if
@@ -1010,14 +1010,12 @@ module mod_clm_mkarbinit
         t_soisno(c,-nlevsno+1:0) = spval
         if ( snl(c) < 0 ) then    !snow layer temperatures
           do j = snl(c)+1 , 0
-            ! t_soisno(c,j) = 250.D0
-            t_soisno(c,j) = adomain%tgrd(g) - 2.0D0
+            t_soisno(c,j) = adomain%tgrd(g) - 1.0d0 * dble(snl(c)-j)
           end do
         end if
         if ( ltype(l)==istice ) then
           do j = 1 , nlevgrnd
-            ! t_soisno(c,j) = 250.D0
-            t_soisno(c,j) = adomain%tgrd(g) - 2.0D0
+            t_soisno(c,j) = 250.0D0
           end do
         else if (ltype(l) == istwet) then
           do j = 1 , nlevgrnd
@@ -1035,7 +1033,7 @@ module mod_clm_mkarbinit
                    ctype(c) == icol_shadewall .or. &
                    ctype(c) == icol_roof) then
             do j = 1 , nlevurb
-              t_soisno(c,j) = adomain%tgrd(g) + 2.0D0
+              t_soisno(c,j) = adomain%tgrd(g) + 5.0D0
             end do
           end if
         else
@@ -1044,8 +1042,8 @@ module mod_clm_mkarbinit
           end do
         end if
         t_grnd(c) = adomain%tgrd(g)
-      else                     !lake
-        t_lake(c,1:nlevlak) = adomain%tgrd(g)
+      else  ! lake
+        t_lake(c,1:nlevlak) = adomain%tgrd(g) + 1.0
         t_grnd(c) = t_lake(c,1)
       end if
       tsoi17(c) = t_grnd(c)
@@ -1056,21 +1054,21 @@ module mod_clm_mkarbinit
       l = plandunit(p)
 
       ! Initialize Irrigation to zero
-      if (ltype(l)==istsoil) then
-        qflx_irrig(c)      = 0.0D0
+      if ( ltype(l) == istsoil ) then
+        qflx_irrig(c) = 0.0D0
       end if
 
-      t_veg(p) = t_grnd(c) + 3.0D0
-      t_ref2m(p) = t_grnd(c) + 2.0D0
-      if (urbpoi(l)) then
-        t_ref2m_u(p) = t_grnd(c) + 5.0D0
+      t_veg(p) = t_grnd(c) + 0.5D0
+      t_ref2m(p) = t_grnd(c) + 0.5D0
+      if ( urbpoi(l) ) then
+        t_ref2m_u(p) = t_grnd(c) + 1.5D0
       else
         t_ref2m_u(p) = spval
       end if
-      if (ifspecial(l)) then
+      if ( ifspecial(l) ) then
         t_ref2m_r(p) = spval
       else
-        t_ref2m_r(p) = t_grnd(c) + 3.0D0
+        t_ref2m_r(p) = t_grnd(c)
       end if 
       eflx_lwrad_out(p) = sb * (t_grnd(c))**4
     end do
@@ -1126,7 +1124,8 @@ module mod_clm_mkarbinit
             if ( j > nlevsoi ) then
               h2osoi_vol(c,j) = 0.0D0
             else
-              h2osoi_vol(c,j) = 0.15D0
+              ! h2osoi_vol(c,j) = 0.15D0
+              h2osoi_vol(c,j) = watsat(c,j)*0.10D0
             end if
           end do
         else if ( ltype(l) == isturb ) then 
@@ -1134,7 +1133,8 @@ module mod_clm_mkarbinit
             nlevs = nlevgrnd
             do j = 1 , nlevs
               if ( j <= nlevsoi ) then
-                h2osoi_vol(c,j) = 0.3D0
+                h2osoi_vol(c,j) = watsat(c,j)*0.50D0
+                !h2osoi_vol(c,j) = 0.3D0
               else
                 h2osoi_vol(c,j) = 0.0D0
               end if
@@ -1220,18 +1220,18 @@ module mod_clm_mkarbinit
       mss_octot(c,:) = 0.D0
       mss_ocpho(c,:) = 0.D0
       mss_ocphi(c,:) = 0.D0
-      mss_cnc_ocphi(c,:)=0.D0
-      mss_cnc_ocpho(c,:)=0.D0
+      mss_cnc_ocphi(c,:) = 0.D0
+      mss_cnc_ocpho(c,:) = 0.D0
 
       mss_dst1(c,:) = 0.D0
       mss_dst2(c,:) = 0.D0
       mss_dst3(c,:) = 0.D0
       mss_dst4(c,:) = 0.D0
       mss_dsttot(c,:) = 0.D0
-      mss_cnc_dst1(c,:)=0.D0
-      mss_cnc_dst2(c,:)=0.D0
-      mss_cnc_dst3(c,:)=0.D0
-      mss_cnc_dst4(c,:)=0.D0
+      mss_cnc_dst1(c,:) = 0.D0
+      mss_cnc_dst2(c,:) = 0.D0
+      mss_cnc_dst3(c,:) = 0.D0
+      mss_cnc_dst4(c,:) = 0.D0
 
       if (snl(c) < 0) then
         snw_rds(c,snl(c)+1:0)        = snw_rds_min

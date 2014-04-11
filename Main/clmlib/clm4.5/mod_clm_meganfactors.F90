@@ -121,8 +121,8 @@ module mod_clm_meganfactors
     call clm_readvar(ncid,'Class_Num',class_nums)
 
     ! set up hash table where data is stored
-    call  bld_hash_table_indices( comp_names )
-    do i=1,n_comps
+    call bld_hash_table_indices( comp_names )
+    do i = 1 , n_comps
       call clm_readvar(ncid,'Class_EF',comp_factors,nt=i)
       call clm_readvar(ncid,'Comp_EF',class_factors,nt=i)
       factors(:) = comp_factors(:)*class_factors(:)
