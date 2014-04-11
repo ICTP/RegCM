@@ -190,6 +190,7 @@ module mod_ocn_common
       call l2c_ss(ocncomm,tgb,lms%tgbb)
       call l2c_ss(ocncomm,tgrd,lms%tgrd)
       call l2c_ss(ocncomm,tgbrd,lms%tgbrd)
+      call l2c_ss(ocncomm,tgrd,lms%tlef)
       call l2c_ss(ocncomm,sent,lms%sent)
       call l2c_ss(ocncomm,evpr,lms%evpr)
       call l2c_ss(ocncomm,drag,lms%drag)

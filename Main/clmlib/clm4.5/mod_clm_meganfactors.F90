@@ -33,21 +33,27 @@ module mod_clm_meganfactors
   type emis_eff_t
      real(rk8), pointer :: eff(:) ! emissions efficiency factor
      real(rk8) :: wght            ! molecular weight
-     integer(ik4) :: class_num        ! MEGAN class number
+     integer(ik4) :: class_num    ! MEGAN class number
   endtype emis_eff_t
 
-  type(emis_eff_t), pointer :: comp_factors_table(:)  ! hash table of MEGAN factors (points to an array of pointers)
-  integer(ik4), pointer :: hash_table_indices(:)           ! pointer to hash table indices
-  integer(ik4), parameter :: tbl_hash_sz = 2**16           ! hash table size
+  ! hash table of MEGAN factors (points to an array of pointers)
+  type(emis_eff_t), pointer :: comp_factors_table(:)
+  ! pointer to hash table indices
+  integer(ik4), pointer :: hash_table_indices(:)
+  ! hash table size
+  integer(ik4), parameter :: tbl_hash_sz = 2**16
 
-  character(len=32), allocatable :: comp_names(:)     ! MEGAN compound names
-  real(rk8),          allocatable :: comp_molecwghts(:)! MEGAN compound molecular weights
+  ! MEGAN compound names
+  character(len=32), allocatable :: comp_names(:)
+  ! MEGAN compound molecular weights
+  real(rk8) , allocatable :: comp_molecwghts(:)
 
   contains
   !
   ! Method for getting MEGAN information for a named compound 
   !
   subroutine megan_factors_get( comp_name, factors, class_n, molecwght )
+    implicit none
     character(len=*),intent(in)  :: comp_name      ! MEGAN compound name
     ! vegitation type factors for the compound of intrest
     real(rk8) , intent(out) :: factors(npfts)
@@ -62,7 +68,7 @@ module mod_clm_meganfactors
     hashkey = gen_hashkey(comp_name)
     ndx = hash_table_indices(hashkey)
 
-    if (ndx<1) then 
+    if ( ndx < 1 ) then 
       errmes = 'megan_factors_get: '//trim(comp_name)// &
                ' compound not found in MEGAN table'
       write(stderr,*) trim(errmes)
@@ -72,12 +78,12 @@ module mod_clm_meganfactors
     factors(:) = comp_factors_table( ndx )%eff(:)
     class_n    = comp_factors_table( ndx )%class_num
     molecwght  = comp_factors_table( ndx )%wght
-
   end subroutine megan_factors_get
   !
   ! Initializes the MEGAN factors using data from input file 
   !
   subroutine megan_factors_init( filename )
+    implicit none
     character(len=*),intent(in) :: filename ! MEGAN factors input file
     type(clm_filetype) :: ncid  ! netcdf id
 
@@ -151,18 +157,20 @@ module mod_clm_meganfactors
   endsubroutine megan_factors_init
 
   subroutine bld_hash_table_indices( names )
+    implicit none
     character(len=*),intent(in) :: names(:)
     integer(ik4) :: n, i, hashkey
 
     hash_table_indices(:) = 0
     n = size(names)
-    do i=1,n
+    do i = 1 , n
       hashkey = gen_hashkey(names(i))
       hash_table_indices(hashkey) = i
-    enddo
+    end do
   endsubroutine bld_hash_table_indices
 
   subroutine enter_hash_data( name, data, class_n, molec_wght )
+    implicit none
     character(len=*), intent(in) :: name
     real(rk8), intent(in) :: data(:)
     integer(ik4),  intent(in) :: class_n

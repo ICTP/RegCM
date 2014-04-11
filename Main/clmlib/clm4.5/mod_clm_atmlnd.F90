@@ -144,6 +144,7 @@ module mod_clm_atmlnd
     ! soil water
     real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
     real(rk8) , pointer , dimension(:,:) :: soidpth
+    real(rk8) , pointer , dimension(:,:) :: dzsoi
     real(rk8) , pointer , dimension(:,:) :: rootfr
     ! Surface runoff
     real(rk8) , pointer , dimension(:) :: qflx_surf
@@ -293,6 +294,7 @@ end subroutine init_atm2lnd_type
     allocate(l2a%emg(ibeg:iend))
     allocate(l2a%h2osoi_vol(ibeg:iend,1:nlevgrnd))
     allocate(l2a%soidpth(ibeg:iend,1:nlevgrnd))
+    allocate(l2a%dzsoi(ibeg:iend,1:nlevgrnd))
     allocate(l2a%rootfr(ibeg:iend,1:nlevgrnd))
     allocate(l2a%qflx_surf(ibeg:iend))
     allocate(l2a%qflx_tot(ibeg:iend))
@@ -334,6 +336,7 @@ end subroutine init_atm2lnd_type
     l2a%fv(ibeg:iend) = ival
     l2a%h2osoi_vol(ibeg:iend,1:nlevgrnd) = ival
     l2a%soidpth(ibeg:iend,1:nlevgrnd) = ival
+    l2a%dzsoi(ibeg:iend,1:nlevgrnd) = ival
     l2a%rootfr(ibeg:iend,1:nlevgrnd) = ival
     l2a%qflx_surf(ibeg:iend) = ival
     l2a%qflx_tot(ibeg:iend) = ival
@@ -408,7 +411,11 @@ end subroutine init_atm2lnd_type
         clm_l2a%h2osno(g) = clm_l2a%h2osno(g)/1000.D0
       end do
       call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd, &
-               cptr%cps%dz,clm_l2a%soidpth,            &
+               cptr%cps%z,clm_l2a%soidpth,             &
+               c2l_scale_type='unity',                 &
+               l2g_scale_type='unity')
+      call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd, &
+               cptr%cps%dz,clm_l2a%dzsoi,              &
                c2l_scale_type='unity',                 &
                l2g_scale_type='unity')
       call p2g(begp,endp,begc,endc,begl,endl,begg,endg,nlevgrnd, &
@@ -452,6 +459,10 @@ end subroutine init_atm2lnd_type
                l2g_scale_type='unity')
       call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd, &
                cptr%cps%z,clm_l2a%soidpth,             &
+               c2l_scale_type='unity',                 &
+               l2g_scale_type='unity')
+      call c2g(begc,endc,begl,endl,begg,endg,nlevgrnd, &
+               cptr%cps%dz,clm_l2a%dzsoi,              &
                c2l_scale_type='unity',                 &
                l2g_scale_type='unity')
       call c2g(begc,endc,begl,endl,begg,endg, &

@@ -23,27 +23,39 @@ module mod_clm_megan
 
   save
 
-  public :: shr_megan_readnl           ! reads megan_emis_nl namelist
-  public :: shr_megan_mechcomps        ! points to an array of chemical compounds (in CAM-Chem mechanism) than have MEGAN emissions
-  public :: shr_megan_mechcomps_n      ! number of unique compounds in the CAM chemical mechanism  than have MEGAN emissions
-  public :: shr_megan_megcomps_n       ! number of unique MEGAN compounds
-  public :: shr_megan_megcomp_t        ! MEGAN compound data type
-  public :: shr_megan_mechcomp_t       ! data type for chemical compound in CAM mechanism than has MEGAN emissions
-  public :: shr_megan_linkedlist       ! points to linked list of shr_megan_comp_t objects
-  public :: shr_megan_mapped_emisfctrs ! switch to use mapped emission factors
+  public :: shr_megan_readnl      ! reads megan_emis_nl namelist
+  ! points to an array of chemical compounds (in CAM-Chem mechanism)
+  ! that have MEGAN emissions
+  public :: shr_megan_mechcomps
+  ! number of unique compounds in the CAM chemical mechanism
+  ! that have MEGAN emissions
+  public :: shr_megan_mechcomps_n
+  public :: shr_megan_megcomps_n   ! number of unique MEGAN compounds
+  public :: shr_megan_megcomp_t    ! MEGAN compound data type
+  ! data type for chemical compound in CAM mechanism than has MEGAN emissions
+  public :: shr_megan_mechcomp_t
+  ! points to linked list of shr_megan_comp_t objects
+  public :: shr_megan_linkedlist
+  ! switch to use mapped emission factors
+  public :: shr_megan_mapped_emisfctrs
   public :: shr_megan_comp_ptr
 
-  character(len=80), public :: shr_megan_fields_token = ''   ! First drydep fields token
+  ! First drydep fields token
+  character(len=80), public :: shr_megan_fields_token = ''
   character(len=256), public :: shr_megan_factors_file = ''
 
   ! MEGAN compound data structure (or user defined type)
   type shr_megan_megcomp_t
-     character(len=16)     :: name            ! MEGAN compound name (in MEGAN input table)
-     integer               :: index
-     real(rk8), pointer     :: emis_factors(:) ! function of plant-function-type (PFT)
-     integer               :: class_number    ! MEGAN class number
-     real(rk8)              :: molec_weight    ! molecular weight of the MEGAN compound (g/mole)
-     type(shr_megan_megcomp_t), pointer :: next_megcomp ! points to next member in the linked list
+    ! MEGAN compound name (in MEGAN input table)
+    character(len=16) :: name
+    integer :: index
+    ! function of plant-function-type (PFT)
+    real(rk8), pointer :: emis_factors(:)
+    integer :: class_number    ! MEGAN class number
+    ! molecular weight of the MEGAN compound (g/mole)
+    real(rk8) :: molec_weight
+    ! points to next member in the linked list
+    type(shr_megan_megcomp_t) , pointer :: next_megcomp
   endtype shr_megan_megcomp_t
 
   type shr_megan_comp_ptr
@@ -52,28 +64,36 @@ module mod_clm_megan
 
   ! chemical compound in CAM mechanism than has MEGAN emissions
   type shr_megan_mechcomp_t
-     character(len=16)             :: name           ! compound name
-     type(shr_megan_comp_ptr), pointer :: megan_comps(:) ! an array of pointers to megan emis compounds 
-     integer                       :: n_megan_comps  ! number of megan emis compounds than make up the emissions for this mechanis compound
+    character(len=16) :: name           ! compound name
+    ! an array of pointers to megan emis compounds 
+    type(shr_megan_comp_ptr), pointer :: megan_comps(:)
+    ! number of megan emis compounds than make up the emissions for
+    ! this mechanis compound
+    integer :: n_megan_comps
   end type shr_megan_mechcomp_t
 
-  type(shr_megan_mechcomp_t), pointer :: shr_megan_mechcomps(:) ! array of chemical compounds (in CAM mechanism) than have MEGAN emissions
-  type(shr_megan_megcomp_t),  pointer :: shr_megan_linkedlist   ! points to linked list top
+  ! array of chemical compounds (in CAM mechanism) than have MEGAN emissions
+  type(shr_megan_mechcomp_t), pointer :: shr_megan_mechcomps(:)
+  ! points to linked list top
+  type(shr_megan_megcomp_t),  pointer :: shr_megan_linkedlist
 
-  integer :: shr_megan_megcomps_n  = 0          ! number of unique megan compounds
-  integer :: shr_megan_mechcomps_n = 0          ! number of unique compounds in the CAM chemical mechanism  than have MEGAN emissions
+  ! number of unique megan compounds
+  integer :: shr_megan_megcomps_n  = 0
+  ! number of unique compounds in the CAM chemical mechanism than have
+  ! MEGAN emissions
+  integer :: shr_megan_mechcomps_n = 0
 
   ! switch to use mapped emission factors
   logical :: shr_megan_mapped_emisfctrs = .false.
 
   ! private data 
   type parser_items_t
-     character(len=16),pointer :: megan_comp_names(:)
-     character(len=16) :: mech_comp_name
-     integer :: n_megan_comps
+    character(len=16),pointer :: megan_comp_names(:)
+    character(len=16) :: mech_comp_name
+    integer :: n_megan_comps
   end type parser_items_t
 
-contains
+  contains
 
   !-------------------------------------------------------------------------
   ! 
@@ -110,64 +130,55 @@ contains
   ! /
   !-------------------------------------------------------------------------
   subroutine shr_megan_readnl( NLFileName, megan_fields )
-
+    implicit none
     character(len=*), intent(in)  :: NLFileName
     character(len=*), intent(out) :: megan_fields
-
     integer :: unitn            ! namelist unit number
     integer :: ierr             ! error code
     logical :: exists           ! if file exists or not
-
     integer, parameter :: maxspc = 100
-
     character(len=2*512) :: megan_specifier(maxspc) = ' '
     logical           :: megan_mapped_emisfctrs = .false.
     character(len=256) :: megan_factors_file = ' '
-
     character(*),parameter :: F00   = "('(seq_drydep_read) ',2a)" 
 
-    namelist /megan_emis_nl/ megan_specifier, megan_factors_file, megan_mapped_emisfctrs
+    namelist /megan_emis_nl/ megan_specifier , megan_factors_file ,  &
+                             megan_mapped_emisfctrs
 
     inquire( file=trim(NLFileName), exist=exists)
-
     if ( exists ) then
+      unitn = file_getUnit()
+      open( unitn, file=trim(NLFilename), status='old' )
+      if ( debug_level > 0 ) write(stdout,F00) &
+           'Read in megan_emis_readnl namelist from: ', trim(NLFilename)
+      read(unitn, megan_emis_nl, iostat=ierr)
+      if (ierr > 0) then
+        write(stderr,*) 'megan_emis_nl namelist read error'
+        call fatal(__FILE__,__LINE__, &
+           'problem on read of megan_emis_nl namelist in shr_megan_readnl' )
+      end if
 
-       unitn = file_getUnit()
-       open( unitn, file=trim(NLFilename), status='old' )
-       if ( debug_level > 0 ) write(stdout,F00) &
-            'Read in megan_emis_readnl namelist from: ', trim(NLFilename)
-       read(unitn, megan_emis_nl, iostat=ierr)
-       if (ierr > 0) then
-         write(stderr,*) 'megan_emis_nl namelist read error'
-         call fatal(__FILE__,__LINE__, &
-            'problem on read of megan_emis_nl namelist in shr_megan_readnl' )
-       endif
+      shr_megan_factors_file = megan_factors_file
+      shr_megan_mapped_emisfctrs = megan_mapped_emisfctrs
 
-       shr_megan_factors_file = megan_factors_file
-       shr_megan_mapped_emisfctrs = megan_mapped_emisfctrs
+      ! parse the namelist info and initialize the module data
+      call shr_megan_init( megan_specifier, megan_fields )
 
-       ! parse the namelist info and initialize the module data
-       call shr_megan_init( megan_specifier, megan_fields )
-
-       call file_freeUnit( unitn )
-
+      call file_freeUnit( unitn )
     end if
-
   end subroutine shr_megan_readnl
 
   !-------------------------------------------------------------------------
   ! module data initializer
   !-------------------------------------------------------------------------
   subroutine shr_megan_init( specifier, megan_fields )
-
+    implicit none
     character(len=*), intent(in) :: specifier(:)
     character(len=*), intent(out) :: megan_fields
-
     integer :: n_entries
     integer :: i, j, k
     integer :: spc_len
     type(parser_items_t), pointer :: items
-
     character(len=12) :: token   ! megan field name to add
 
     nullify(shr_megan_linkedlist)
@@ -175,46 +186,44 @@ contains
     n_entries = size(specifier)
     allocate(shr_megan_mechcomps(n_entries))
     shr_megan_mechcomps(:)%n_megan_comps = 0
-
-    megan_fields = ''
-
+    megan_fields = ' '
     do i = 1,n_entries
-       spc_len=len_trim(specifier(i))
-       if ( spc_len > 0 ) then
+      spc_len=len_trim(specifier(i))
+      if ( spc_len > 0 ) then
+        items => get_parser_items( specifier(i) )
 
-          items => get_parser_items( specifier(i) )
+        do k = 1 , shr_megan_mechcomps_n
+          if ( trim(shr_megan_mechcomps(k)%name) == &
+               trim(items%mech_comp_name) ) then
+            call fatal(__FILE__,__LINE__, &
+                'shr_megan_init : duplicate compound names : '// &
+                trim(items%mech_comp_name))
+          end if
+        end do
 
-          do k=1,shr_megan_mechcomps_n
-             if ( trim(shr_megan_mechcomps(k)%name) == trim(items%mech_comp_name) ) then
-                call fatal(__FILE__,__LINE__, &
-                'shr_megan_init : duplicate compound names : '//trim(items%mech_comp_name))
-             endif
-          enddo
+        shr_megan_mechcomps(i)%name = items%mech_comp_name
+        shr_megan_mechcomps(i)%n_megan_comps = items%n_megan_comps
+        allocate(shr_megan_mechcomps(i)%megan_comps(items%n_megan_comps))
 
-          shr_megan_mechcomps(i)%name = items%mech_comp_name
-          shr_megan_mechcomps(i)%n_megan_comps = items%n_megan_comps
-          allocate(shr_megan_mechcomps(i)%megan_comps(items%n_megan_comps))
+        do j = 1 , items%n_megan_comps
+          shr_megan_mechcomps(i)%megan_comps(j)%ptr => &
+                  add_megan_comp( items%megan_comp_names(j) )
+        end do
+        shr_megan_mechcomps_n = shr_megan_mechcomps_n+1
 
-          do j = 1,items%n_megan_comps
-             shr_megan_mechcomps(i)%megan_comps(j)%ptr => add_megan_comp( items%megan_comp_names(j) )
-          enddo
-          shr_megan_mechcomps_n = shr_megan_mechcomps_n+1
+        call destroy_parser_items( items )
 
-          call destroy_parser_items( items )
+        write(token,333) shr_megan_mechcomps_n
 
-          write(token,333) shr_megan_mechcomps_n
-
-          if ( shr_megan_mechcomps_n == 1 ) then
-             ! no not prepend ":" to the string for the first token
-             megan_fields = trim(token)
-             shr_megan_fields_token = token
-          else
-             megan_fields = trim(megan_fields)//':'//trim(token)                 
-          endif
-
-       endif
-
-    enddo
+        if ( shr_megan_mechcomps_n == 1 ) then
+          ! no not prepend ":" to the string for the first token
+          megan_fields = trim(token)
+          shr_megan_fields_token = token
+        else
+          megan_fields = trim(megan_fields)//':'//trim(token)                 
+        end if
+      end if
+    end do
 
     ! Need to explicitly add Fl_ based on naming convention
 333 format ('Fall_voc',i3.3)
@@ -223,15 +232,11 @@ contains
 
   !-------------------------------------------------------------------------
   ! private methods...
-
-  !-------------------------------------------------------------------------
   !-------------------------------------------------------------------------
   function get_parser_items( spec_entry ) result(items)
-
+    implicit none
     character(len=*), intent(in) :: spec_entry
-
     type(parser_items_t), pointer :: items ! items returned
-
     integer :: ndxs(512)
     integer :: nelem, j, i
     character(len=256) :: tmp_str
@@ -244,55 +249,48 @@ contains
     tmp_str = trim( spec_entry(j+1:) )
     j = scan( tmp_str, '+' )
 
-    do while(j>0)
-
-       nelem = nelem+1
-       ndxs(nelem) = ndxs(nelem-1) + j
-
-       tmp_str = tmp_str(j+1:)
-       j = scan( tmp_str, '+' )
-
-    enddo
+    do while( j > 0 )
+      nelem = nelem+1
+      ndxs(nelem) = ndxs(nelem-1) + j
+      tmp_str = tmp_str(j+1:)
+      j = scan( tmp_str, '+' )
+    end do
     ndxs(nelem+1) = len(spec_entry)+1
-
     allocate(items)
     allocate(items%megan_comp_names(nelem))
     items%mech_comp_name = trim(adjustl( spec_entry(:ndxs(1)-1)))
     items%n_megan_comps = nelem
-    do i = 1,nelem 
-       items%megan_comp_names(i) = trim(adjustl( spec_entry(ndxs(i)+1:ndxs(i+1)-1)))
-    enddo
+    do i = 1 , nelem 
+       items%megan_comp_names(i) = &
+               trim(adjustl( spec_entry(ndxs(i)+1:ndxs(i+1)-1)))
+    end do
+  end function get_parser_items
 
-  endfunction get_parser_items
-
-  !-------------------------------------------------------------------------
-  !-------------------------------------------------------------------------
   subroutine destroy_parser_items( items )
+    implicit none
     type(parser_items_t), pointer :: items
 
     deallocate( items%megan_comp_names )
     deallocate( items )
     nullify( items )
-  endsubroutine destroy_parser_items
+  end subroutine destroy_parser_items
 
-  !-------------------------------------------------------------------------
-  !-------------------------------------------------------------------------
   function add_megan_comp( name ) result(megan_comp)
-
+    implicit none
     character(len=16), intent(in) :: name
     type(shr_megan_megcomp_t), pointer :: megan_comp
 
     megan_comp => get_megan_comp_by_name(shr_megan_linkedlist, name)
     if(associated(megan_comp)) then
-       ! already in the list so return...
-       return
-    endif
+      ! already in the list so return...
+      return
+    end if
 
     ! create new megan compound and add it to the list
     allocate(megan_comp)
 
-    !    element%index = lookup_element( name )
-    !    element%emis_factors = get_factors( list_elem%index )
+    ! element%index = lookup_element( name )
+    ! element%emis_factors = get_factors( list_elem%index )
 
     megan_comp%index = shr_megan_megcomps_n+1
 
@@ -303,46 +301,38 @@ contains
 
   end function add_megan_comp
 
-  !-------------------------------------------------------------------------
-  !-------------------------------------------------------------------------
   recursive function get_megan_comp_by_name(list_comp, name) result(megan_comp)
-
+    implicit none
     type(shr_megan_megcomp_t), pointer  :: list_comp
     character(len=*), intent(in) :: name  ! variable name
     type(shr_megan_megcomp_t), pointer  :: megan_comp ! returned object
 
-    if(associated(list_comp)) then
-       if(list_comp%name .eq. name) then
-          megan_comp => list_comp
-       else
-          megan_comp => get_megan_comp_by_name(list_comp%next_megcomp, name)
-       end if
+    if ( associated(list_comp) ) then
+      if ( list_comp%name == name ) then
+        megan_comp => list_comp
+      else
+        megan_comp => get_megan_comp_by_name(list_comp%next_megcomp, name)
+      end if
     else
-       nullify(megan_comp)
+      nullify(megan_comp)
     end if
-
   end function get_megan_comp_by_name
 
-  !-------------------------------------------------------------------------
-  !-------------------------------------------------------------------------
   subroutine add_megan_comp_to_list( new_megan_comp )
-
+    implicit none
     type(shr_megan_megcomp_t), target, intent(in) :: new_megan_comp
-
     type(shr_megan_megcomp_t), pointer :: list_comp
 
-    if(associated(shr_megan_linkedlist)) then
-       list_comp => shr_megan_linkedlist
-       do while(associated(list_comp%next_megcomp))
-          list_comp => list_comp%next_megcomp
-       end do
-       list_comp%next_megcomp => new_megan_comp
+    if ( associated(shr_megan_linkedlist) ) then
+      list_comp => shr_megan_linkedlist
+      do while ( associated(list_comp%next_megcomp) )
+        list_comp => list_comp%next_megcomp
+      end do
+      list_comp%next_megcomp => new_megan_comp
     else
-       shr_megan_linkedlist => new_megan_comp
+      shr_megan_linkedlist => new_megan_comp
     end if
-
     shr_megan_megcomps_n = shr_megan_megcomps_n + 1
-
   end subroutine add_megan_comp_to_list
 
 end module mod_clm_megan

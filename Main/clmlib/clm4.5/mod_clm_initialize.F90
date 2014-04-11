@@ -175,7 +175,8 @@ module mod_clm_initialize
 #if (defined LCH4)
     ! Set CH4 Model Parameters from namelist.
     call ch4conrd()
-    ! Need to do before iniTimeConst so that it knows whether to look for several optional parameters on surfdata file.
+    ! Need to do before iniTimeConst so that it knows whether to look for
+    ! several optional parameters on surfdata file.
 #endif
 
     ! Allocate memory and initialize values of clmtype data structures

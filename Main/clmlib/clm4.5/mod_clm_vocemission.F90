@@ -419,8 +419,8 @@ module mod_clm_vocemission
   ! (heald, 04/27/11)
   !
   subroutine VOCEmission_init(  )
-    use mod_clm_megan,   only : shr_megan_factors_file
-    use mod_clm_meganfactors, only : megan_factors_init, megan_factors_get
+    use mod_clm_megan , only : shr_megan_factors_file
+    use mod_clm_meganfactors , only : megan_factors_init , megan_factors_get
     implicit none
     type(shr_megan_megcomp_t), pointer :: meg_cmp
     integer(ik4) :: nmech, nmeg

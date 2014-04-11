@@ -228,8 +228,8 @@ module mod_clm_staticecosysdyn
     timwt(2) = 1.D0-timwt(1)
     if ( InterpMonths1 /= months(1) ) then
       if (myid == italk) then
-        write(stderr,*) 'Attempting to read monthly vegetation data .....'
-        write(stderr,*) 'ktau = ',ktau,' month = ',kmo,' day = ',kda
+        write(stdout,*) 'Attempting to read monthly vegetation data .....'
+        write(stdout,*) 'ktau = ',ktau,' month = ',kmo,' day = ',kda
       end if
       call readMonthlyVegetation (fsurdat, months)
       InterpMonths1 = months(1)

@@ -13,7 +13,7 @@ module mod_clm_regcm
   use mod_clm_initialize
   use mod_clm_driver
   use mod_clm_varctl , only : use_c13 , co2_ppmv
-  use mod_clm_varpar , only : nlevsoi
+  use mod_clm_varpar , only : nlevgrnd
   use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , &
                               tcrit , denh2o
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
@@ -313,30 +313,33 @@ module mod_clm_regcm
     lms%tgbrd = lms%tgbb
 
     clm_l2a%notused = 0.0D0
-    do k = 1 , nlevsoi
+    do k = 1 , nlevgrnd
       do g = begg , endg
         if ( clm_l2a%soidpth(g,k) < 0.10D0 ) then
           clm_l2a%notused(g) = clm_l2a%notused(g) + &
-             clm_l2a%h2osoi_vol(g,k)*clm_l2a%soidpth(g,k)*denh2o
+             max(clm_l2a%h2osoi_vol(g,k),0.0D0) * &
+             max(clm_l2a%dzsoi(g,k),0.0D0)*denh2o
         end if
       end do
     end do
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%ssw)
     clm_l2a%notused = 0.0D0
-    do k = 1 , nlevsoi
+    do k = 1 , nlevgrnd
       do g = begg , endg
         if ( clm_l2a%rootfr(g,k) > 0.0D0 ) then
           clm_l2a%notused(g) = clm_l2a%notused(g) + &
-             clm_l2a%h2osoi_vol(g,k)*clm_l2a%soidpth(g,k)*denh2o
+             max(clm_l2a%h2osoi_vol(g,k),0.0D0) * &
+             max(clm_l2a%dzsoi(g,k),0.0D0)*denh2o
         end if
       end do
     end do
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%rsw)
     clm_l2a%notused = 0.0D0
-    do k = 1 , nlevsoi
+    do k = 1 , nlevgrnd
       do g = begg , endg
         clm_l2a%notused(g) = clm_l2a%notused(g) + &
-           clm_l2a%h2osoi_vol(g,k)*clm_l2a%soidpth(g,k)*denh2o
+           max(clm_l2a%h2osoi_vol(g,k),0.0D0) * &
+           max(clm_l2a%dzsoi(g,k),0.0D0)*denh2o
       end do
     end do
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%tsw)
