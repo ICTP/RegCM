@@ -131,7 +131,7 @@ module mod_init
               do n = 1, nnsg
                 if ( mdsub%ldmsk(n,j,i) == 0 ) then
                   mdsub%ldmsk(n,j,i) = 2
-                  lms%sfice(n,j,i) = d_10
+                  lms%sfice(n,j,i) = d_100 ! This is in mm (10 cm)
                 end if
               end do
             end if

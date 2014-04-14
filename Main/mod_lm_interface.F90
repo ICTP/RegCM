@@ -718,7 +718,7 @@ module mod_lm_interface
     if ( ktau > 0 ) then
       if ( ifatm ) then
         if ( associated(atm_tgb_out) ) &
-          atm_tgb_out = atm_tgb_out + sum(lms%tgbrd,1)*rdnnsg
+          atm_tgb_out = atm_tgb_out + sum(lms%tgrd,1)*rdnnsg
         if ( associated(atm_tsw_out) ) &
           atm_tsw_out = atm_tsw_out + sum(lms%tsw,1)*rdnnsg
       end if
@@ -828,7 +828,7 @@ module mod_lm_interface
         if ( associated(srf_uvdrag_out) ) &
           srf_uvdrag_out = sum(lms%drag,1)*rdnnsg
         if ( associated(srf_tg_out) ) &
-          srf_tg_out = lm%tground1
+          srf_tg_out = sum(lms%tgrd,1)*rdnnsg
         if ( associated(srf_tlef_out) ) then
           where ( lm%ldmsk > 0 )
             srf_tlef_out = sum(lms%tlef,1)*rdnnsg
@@ -898,7 +898,7 @@ module mod_lm_interface
 #ifndef CLM
       if ( iflak ) then
         if ( associated(lak_tg_out) ) &
-          lak_tg_out = lm%tground1
+          lak_tg_out = sum(lms%tgrd,1)*rdnnsg
         if ( associated(lak_aldirs_out) ) &
           lak_aldirs_out = lm%swdiralb
         if ( associated(lak_aldifs_out) ) &

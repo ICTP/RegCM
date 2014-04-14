@@ -536,7 +536,7 @@ module mod_bdycod
               do n = 1, nnsg
                 if ( mdsub%ldmsk(n,j,i) == 0 ) then
                   mdsub%ldmsk(n,j,i) = 2
-                  lms%sfice(n,j,i) = d_10
+                  lms%sfice(n,j,i) = d_100
                 end if
               end do
             else if ( ts1(j,i) > icetemp .and. mddom%ldmsk(j,i) == 2 ) then

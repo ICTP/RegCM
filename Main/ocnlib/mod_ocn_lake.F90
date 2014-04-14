@@ -247,8 +247,9 @@ module mod_ocn_lake
                  tgl,prec,idep(lp),eta(lp),hi(lp),sfice(i), &
                  sncv(i),evpr(i),tlak(lp,:) )
 
-      ! Feed back ground temperature
-      tgrd(i) = tgl
+      tgb(i)   = tgl
+      tgrd(i)  = tgl
+      tgbrd(i) = -d_two + tzero
 
       if ( tgrd(i) <= tzero ) then
         lfta = c3ies
@@ -265,7 +266,6 @@ module mod_ocn_lake
 
       if ( sfice(i) <= iceminh ) then
         mask(i) = 3
-        tgbrd(i) = tgrd(i)
         sfice(i) = d_zero
         sncv(i) = d_zero
         snag(i) = d_zero
@@ -287,7 +287,6 @@ module mod_ocn_lake
         sent(i) = -drag(i)*cpd*delt
       else
         mask(i) = 4 
-        tgbrd(i) = -d_two + tzero
 
         ! Reduce sensible heat flux for ice presence
         toth = sfice(i) + sncv(i)
@@ -386,7 +385,7 @@ module mod_ocn_lake
     real(rk8) , parameter :: z2 = d_two
     real(rk8) , parameter :: tcutoff = -0.001D0
     real(rk8) , parameter :: twatui = 1.78D0
-    logical , parameter :: lfreeze = .false.
+    logical , parameter :: lfreeze = .true.
     integer(ik4) , parameter :: kmin = 1
     integer(ik4) , parameter :: kmax = 200
 !
@@ -609,16 +608,12 @@ module mod_ocn_lake
 !
   subroutine lakeice(dtx,fsw,ld,tac,u2,ea,hs,hi,aveice,evl,prec,tprof)
     implicit none
-    real(rk8) :: ea , evl , hi , aveice , hs , fsw , &
-               ld , prec , tac , u2 , dtx
-    real(rk8) , dimension(ndpmax) :: tprof
-    intent (in) dtx , ea , ld , prec , tac , u2
-    intent (out) evl
-    intent (inout) hi , aveice , hs , fsw , tprof
+    real(rk8) , intent(in) :: ea , ld , prec , tac , u2 , dtx
+    real(rk8) , intent(out) :: evl
+    real(rk8) , intent(inout) :: hi , aveice , hs , fsw
+    real(rk8) , dimension(ndpmax) , intent(inout) :: tprof
     real(rk8) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
                  t2 , tf , theta , rho , xlexpc
-    real(rk8) :: xea , xeb , xec
-    integer(ik4) :: nits
     real(rk8) , parameter :: isurf = 0.6D0
     ! attenuation coeff for ice in visible band (m-1)
     real(rk8) , parameter :: lami1 = 1.5D0
@@ -641,7 +636,7 @@ module mod_ocn_lake
     ! drag coefficient for the turbulent momentum flux.
     real(rk8) , parameter :: cd = 0.001D0
     ! Maximum exponent
-    real(rk8) , parameter :: minexp = -25.0D0
+    real(rk8) , parameter :: minexp = 25.0D0
 
     if ( (tac <= d_zero) .and. (aveice > d_zero) ) &
       hs = hs + prec*d_r100  ! convert prec(mm) to depth(m)
@@ -659,128 +654,102 @@ module mod_ocn_lake
     psi = wlhv*rho*cd*u2*ep2/atm
     evl = d_100*psi*(eomb(t0)-ea)/(wlhv*rho)
     ! amount of radiation that penetrates through the ice (W/m2)
-    xea = -lams1*hs
-    xeb = -lami1*hi
-    xec = -lami2*hi
-    if ( xea > minexp ) then
-      xea = dexp(xea)
-    else
-      xea = d_zero
-    end if
-    if ( xeb > minexp ) then
-      xeb = dexp(xeb)
-    else
-      xeb = d_zero
-    end if
-    if ( xec > minexp ) then
-      xec = dexp(xec)
-    else
-      xec = d_zero
-    end if
-    qpen = fsw*0.7D0*((d_one-xea)/(ks*lams1) +            &
-                      (xea*(d_one-xeb)/(ki*lami1))) +     &
-           fsw*0.3D0*((d_one-dexp(-lams2))/(ks*lams2)+    &
-                      (-lams2*hs)*(d_one-xec)/(ki*lami2))
+    qpen = fsw * 0.7D0 * &
+       ((d_one-dexp(-lams1*hs))                   / (ks*lams1) + &
+        (dexp(-lams1*hs))*(d_one-dexp(-lami1*hi)) / (ki*lami1)) + &
+           fsw * 0.3D0 * &
+       ((d_one-dexp(-lams2))                      / (ks*lams2) + &
+        (-lams2*hs)*(d_one-dexp(-lami2*hi))       / (ki*lami2))
     ! radiation absorbed at the ice surface
     fsw = fsw - qpen
-    ! test qpen sensitivity
-    !qpen = qpen * 0.5
-    nits = 0
-    t1 = -50.0D0
+    t1 = -20.0D0
     f0 = f(t0)
     f1 = f(t1)
     do
-      nits = nits + 1
       t2 = t1 - (t1-t0)*f1/(f1-f0)
-      if ( dabs((t2-t1)/t1) >= 0.001D0 ) then
+      if ( (t2-t1)/t1 >= 0.001D0 ) then
         t0 = t1
         t1 = t2
         f0 = f1
         f1 = f(t1)
         cycle
       end if
-
-      t0 = t2
-      if ( t0 >= tf ) then
-
-        if ( hs > d_zero ) then
-          ds = dtx*                                            &
-               ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea)+     &
-                theta*(tf-tac)-fsw)-d_one/khat*(tf-t0+qpen)) / &
-               (rhosnow*li)
-          if ( ds > d_zero ) ds = d_zero
-          hs = hs + ds
-          if ( hs < d_zero ) then
-            hs = d_zero
-            tprof(1) = (aveice*t0+(isurf-aveice)*tprof(2))/isurf
-          end if
-        end if
-        if ( (dabs(hs) < dlowval) .and. (aveice > d_zero) ) then
-          di = dtx*                                        &
-              ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea) + &
-               theta*(tf-tac)-fsw)-d_one/khat*(tf-t0+qpen))/ &
-               (rhoice*li)
-          if ( di > d_zero ) di = d_zero
-          hi = hi + di
-        end if
-
-      else if ( t0 < tf ) then
-
-        q0 = -ld + 0.97D0*sigm*t4(t0) + psi*(eomb(t0)-ea) + &
-             theta*(t0-tac) - fsw
-        xlexpc = -(lams1*hs+lami1*hi)
-        ! Graziano : limit exponential
-        if (xlexpc > minexp ) then
-          qpen = fsw*0.7D0*(d_one-dexp(-(lams1*hs+lami1*hi))) + &
-                 fsw*0.3D0*(d_one-dexp(-(lams2*hs+lami2*hi)))
-        else
-          qpen = fsw
-        end if
-        di = dtx*(q0-qw-qpen)/(rhoice*li)
-
-        hi = hi + di
-      end if
-
-      if ( hi <= 0.01D0 ) then
-        hi = 0.01D0
-        aveice = d_zero
-        hs = d_zero
-        tprof(1) = (hi*t0+(isurf-hi)*tprof(2))/isurf
-      else
-        aveice = hi
-        tprof(1) = t0
-      end if
       exit
     end do
 
+    t0 = t2
+    if ( t0 >= tf ) then
+
+      if ( hs > d_zero ) then
+        ds = dtx*                                            &
+             ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea)+     &
+              theta*(tf-tac)-fsw)-d_one/khat*(tf-t0+qpen)) / &
+             (rhosnow*li)
+        if ( ds > d_zero ) ds = d_zero
+        hs = hs + ds
+        if ( hs < d_zero ) then
+          hs = d_zero
+          tprof(1) = (aveice*t0+(isurf-aveice)*tprof(2))/isurf
+        end if
+      end if
+      if ( (dabs(hs) < dlowval) .and. (aveice > d_zero) ) then
+        di = dtx*                                        &
+            ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea) + &
+             theta*(tf-tac)-fsw)-d_one/khat*(tf-t0+qpen))/ &
+             (rhoice*li)
+        if ( di > d_zero ) di = d_zero
+        hi = hi + di
+      end if
+
+    else if ( t0 < tf ) then
+
+      q0 = -ld + 0.97D0*sigm*t4(t0) + psi*(eomb(t0)-ea) + &
+           theta*(t0-tac) - fsw
+      xlexpc = -(lams1*hs+lami1*hi)
+      ! Graziano : limit exponential
+      if (xlexpc > minexp ) then
+        qpen = fsw
+      else
+        qpen = fsw*0.7D0*(d_one-dexp(-(lams1*hs+lami1*hi))) + &
+               fsw*0.3D0*(d_one-dexp(-(lams2*hs+lami2*hi)))
+      end if
+      di = dtx*(q0-qw-qpen)/(rhoice*li)
+
+      hi = hi + di
+    end if
+
+    if ( hi <= 0.01D0 ) then
+      hi = 0.01D0
+      aveice = d_zero
+      hs = d_zero
+      tprof(1) = (hi*t0+(isurf-hi)*tprof(2))/isurf
+    else
+      aveice = hi
+      tprof(1) = t0
+    end if
+
     contains
 
-    function t4(x)
+    real(rk8) function t4(x)
       implicit none
-      real(rk8) :: t4
       real(rk8) , intent(in) :: x
       t4 = (x+tzero)**4
     end function t4
+
     ! Computes air vapor pressure as a function of temp (in K)
-    function tr1(x)
+    real(rk8) function eomb(x)
       implicit none
+      real(rk8) , intent(in) :: x
       real(rk8) :: tr1
-      real(rk8) , intent(in) :: x
       tr1 = d_one - (tboil/(x+tzero))
-    end function tr1
-    function eomb(x)
-      implicit none
-      real(rk8) :: eomb
-      real(rk8) , intent(in) :: x
-      eomb = stdpmb*dexp(13.3185D0*tr1(x)-1.976D0*tr1(x)**2   &
-             -0.6445D0*tr1(x)**3- 0.1299D0*tr1(x)**4)
+      eomb = stdpmb*dexp(13.3185D0*tr1 - 1.976D0*tr1**2 - &
+                         0.6445D0*tr1**3 - 0.1299D0*tr1**4)
      end function eomb
-    function f(x)
+    real(rk8) function f(x)
       implicit none
-      real(rk8) :: f
       real(rk8) , intent(in) :: x
-      f = (-ld+0.97D0*sigm*t4(x)+psi*(eomb(x)-ea)+theta*(x-tac)-fsw)  &
-          - d_one/khat*(qpen+tf-x)
+      f = (-ld + 0.97D0*sigm*t4(x) + psi*(eomb(x)-ea) + &
+           theta*(x-tac)-fsw) - d_one/khat*(qpen+tf-x)
     end function f
 
   end subroutine lakeice

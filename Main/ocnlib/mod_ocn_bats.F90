@@ -118,7 +118,12 @@ module mod_ocn_bats
       if ( mask(i) /= 2 ) cycle
 
       ! Update surface temperature from the input SST
-      tgrd(i) = tgb(i)
+      ! If ice not removed, set temperature to -10.0 Celsius
+      if ( tgb(i) >= tzero ) then
+        tgrd(i) = tgb(i)
+      else
+        tgrd(i) = tzero - d_10
+      end if
 
       psurf = sfps(i)
       uv995 = dsqrt(usw(i)**2+vsw(i)**2)
