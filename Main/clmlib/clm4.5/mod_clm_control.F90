@@ -18,13 +18,13 @@ module mod_clm_control
           nsrStartup , nsrContinue
   use mod_clm_varpar , only : maxpatch_pft , more_vertlayers
   use mod_clm_varctl , only : hostname , model_version=>version , &
-          outnc_large_files , finidat , fsurdat , fatmlndfrc ,           &
-          fpftdyn , fpftcon , nrevsn ,             &
-          create_crop_landunit , allocate_all_vegpfts ,                  &
-          co2_type , wrtdia , co2_ppmv , pertlim ,                       &
-          username , fsnowaging , fsnowoptics , subgridflag ,            &
-          use_c13 , use_c14 , irrigate , spinup_state ,                  &
-          override_bgc_restart_mismatch_dump , source
+          outnc_large_files , finidat , fsurdat , fatmlndfrc ,    &
+          fpftdyn , fpftcon , nrevsn ,  create_crop_landunit ,    &
+          allocate_all_vegpfts , co2_type , wrtdia , co2_ppmv ,   &
+          pertlim , username , fsnowaging , fsnowoptics ,         &
+          subgridflag , use_c13 , use_c14 , irrigate ,            &
+          spinup_state , override_bgc_restart_mismatch_dump ,     &
+          source , enable_megan_emission
   use mod_clm_varpar, only : numrad
   use mod_clm_varctl , only : NLFileName_in , ctitle , caseid , nsrest
   use mod_clm_varcon , only : secspday
@@ -202,6 +202,8 @@ module mod_clm_control
 
     namelist /clm_inparm / use_c13, use_c14
 
+    namelist /clm_inparm / enable_megan_emission
+
 #if (defined CN)
     !!! C14
     namelist /clm_inparm/  &
@@ -367,6 +369,8 @@ module mod_clm_control
     ! isotopes
     call bcast(use_c13)
     call bcast(use_c14)
+
+    call bcast(enable_megan_emission)
 
 #if (defined CN) && (defined VERTSOILC)
     ! vertical soil mixing variables
@@ -551,6 +555,10 @@ module mod_clm_control
       '   no_frozen_nitrif_denitrif                             : ', &
       no_frozen_nitrif_denitrif
 #endif
+
+    write(stdout, *) &
+      '   enable_megan_emission                                 : ', &
+      enable_megan_emission
 
 #if (defined CN)
     write(stdout, *) &

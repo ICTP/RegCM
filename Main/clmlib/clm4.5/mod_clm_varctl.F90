@@ -115,6 +115,10 @@ module mod_clm_varctl
   ! true => use C-14 model
   logical , public :: use_c14 = .false.
   !
+  ! Megan emission flag
+  !
+  logical , public :: enable_megan_emission = .false.
+  !
   ! instance control
   !
   integer(ik4) , public :: inst_index

@@ -80,10 +80,10 @@ module mod_clm_megan
   type(shr_megan_megcomp_t),  pointer :: shr_megan_linkedlist
 
   ! number of unique megan compounds
-  integer :: shr_megan_megcomps_n  = 150
+  integer :: shr_megan_megcomps_n  = 0
   ! number of unique compounds in the CAM chemical mechanism than have
   ! MEGAN emissions
-  integer :: shr_megan_mechcomps_n = 150
+  integer :: shr_megan_mechcomps_n = 0
 
   ! switch to use mapped emission factors
   logical :: shr_megan_mapped_emisfctrs = .false.
@@ -148,7 +148,8 @@ module mod_clm_megan
     character(*),parameter :: F00   = "('(seq_drydep_read) ',2a)" 
 
     namelist /megan_emis_nl/ megan_specifier , megan_factors_file ,  &
-                             megan_mapped_emisfctrs
+                     megan_mapped_emisfctrs , shr_megan_megcomps_n , &
+                     shr_megan_mechcomps_n
 
     if ( myid == iocpu ) then
       inquire( file=trim(NLFileName), exist=exists)
@@ -169,6 +170,8 @@ module mod_clm_megan
       call file_freeUnit( unitn )
     end if
 
+    call bcast(shr_megan_megcomps_n)
+    call bcast(shr_megan_mechcomps_n)
     call bcast(megan_factors_file,256)
     call bcast(megan_mapped_emisfctrs)
     do i = 1 , maxspc

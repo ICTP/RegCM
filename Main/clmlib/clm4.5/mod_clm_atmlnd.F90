@@ -306,7 +306,7 @@ end subroutine init_atm2lnd_type
 #if (defined LCH4)
     allocate(l2a%flux_ch4(ibeg:iend))
 #endif
-    if (shr_megan_mechcomps_n>0) then
+    if ( shr_megan_mechcomps_n > 0 ) then
       allocate(l2a%flxvoc(ibeg:iend,1:shr_megan_mechcomps_n))
     end if
     if ( n_drydep > 0 .and. drydep_method == DD_XLND )then
@@ -345,7 +345,7 @@ end subroutine init_atm2lnd_type
     l2a%rofliq(ibeg:iend) = ival
     l2a%rofice(ibeg:iend) = ival
     l2a%flxdst(ibeg:iend,1:ndst) = ival
-    if (shr_megan_mechcomps_n>0) then
+    if ( shr_megan_mechcomps_n > 0 ) then
       l2a%flxvoc(ibeg:iend,1:shr_megan_mechcomps_n) = ival
     end if
 #if (defined LCH4)

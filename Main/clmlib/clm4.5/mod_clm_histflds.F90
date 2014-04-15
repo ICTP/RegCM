@@ -667,7 +667,7 @@ module mod_clm_histflds
          ptr_pft=clm3%g%l%c%p%pdf%vlc_trb_4, default='inactive')
 
     ! for MEGAN emissions diagnositics
-    if (shr_megan_megcomps_n>0) then
+    if ( shr_megan_megcomps_n > 0 ) then
 
        ! loop over megan compounds
        meg_cmp => shr_megan_linkedlist
