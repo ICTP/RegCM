@@ -118,11 +118,11 @@ module mod_ocn_bats
       if ( mask(i) /= 2 ) cycle
 
       ! Update surface temperature from the input SST
-      ! If ice not removed, set temperature to -10.0 Celsius
+      ! If ice not removed, set temperature to -25.0 Celsius
       if ( tgb(i) >= tzero ) then
         tgrd(i) = tgb(i)
       else
-        tgrd(i) = tzero - d_10
+        tgrd(i) = tzero - 25.0D0
         tgb(i) = tgrd(i)
       end if
 
