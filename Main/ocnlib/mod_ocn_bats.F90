@@ -24,6 +24,7 @@ module mod_ocn_bats
   use mod_dynparam
   use mod_service
   use mod_ocn_internal
+  use mod_constants
 
   implicit none
 
@@ -118,12 +119,8 @@ module mod_ocn_bats
       if ( mask(i) /= 2 ) cycle
 
       ! Update surface temperature from the input SST
-      ! If ice not removed, set temperature to -25.0 Celsius
-      if ( tgb(i) >= tzero ) then
+      if ( tgb(i) >= icetemp ) then
         tgrd(i) = tgb(i)
-      else
-        tgrd(i) = tzero - 25.0D0
-        tgb(i) = tgrd(i)
       end if
 
       psurf = sfps(i)
@@ -284,6 +281,7 @@ module mod_ocn_bats
           tg = tgrd(i) + bb
           if ( tg >= tzero ) tgrd(i) = tzero
           if ( tg < tzero ) tgrd(i) = tg
+          tgb(i) = tgrd(i)
         end if
       end if
       if ( dabs(sent(i)) < dlowval ) sent(i) = d_zero

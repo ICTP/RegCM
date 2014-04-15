@@ -759,10 +759,10 @@ module mod_bats_bndry
       bcoef(i) = xdtime*depdiu/(rscsd*skd)
       sks = d_zero
       if ( scrat(i) > 0.001D0 ) then
-        xlexp = -d_two*scrat(i)/depdiu
+        xlexp = d_two*scrat(i)/depdiu
         ! Graziano : Limit exponential argument
-        if ( xlexp > -25.0D0 ) then
-          wtd = dexp(xlexp)
+        if ( xlexp < 25.0D0 ) then
+          wtd = dexp(-xlexp)
         else
           wtd = d_zero
         end if
@@ -776,9 +776,9 @@ module mod_bats_bndry
       end if
       depann = dsqrt(d_two*ska/xnua)
       if ( scrat(i) > 0.02D0 ) then
-        xlexp = -d_two*scrat(i)/depann
-        if ( xlexp > -25.0D0 ) then
-          wtax = dexp(xlexp)
+        xlexp = d_two*scrat(i)/depann
+        if ( xlexp < 25.0D0 ) then
+          wtax = dexp(-xlexp)
         else
           wtax = d_zero
         end if
