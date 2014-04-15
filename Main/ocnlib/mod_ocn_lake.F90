@@ -21,7 +21,7 @@
 !     LAKE MODEL
 !
 module mod_ocn_lake
-!
+
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
@@ -44,8 +44,8 @@ module mod_ocn_lake
   real(rk8) , parameter :: surf = d_one
   ! vertical grid spacing in m
   real(rk8) , parameter :: dz = surf
-  ! minimum ice depth in mm: less that this is removed
-  real(rk8) , parameter :: iceminh = 1.0D0
+  ! minimum ice depth in m: less that this is removed ( 1 cm )
+  real(rk8) , parameter :: iceminh = 0.01D0
   ! reference hgt in mm for latent heat removal from ice
   real(rk8) , parameter :: href = d_two * iceminh
   ! steepness factor of latent heat removal
@@ -130,7 +130,7 @@ module mod_ocn_lake
     do lp = 1 , nlakep
       i = ilp(lp)
       idep(lp) = idint(dmax1(d_two,dmin1(dhlake(i),dble(ndpmax)))/dz)
-      hi(lp) = 0.01D0
+      hi(lp) = iceminh
       ! Azar Zarrin: Fixed unrealistic high ice tickness and
       ! high water temperatures during warm months.
       ! Graziano: Take a data driven approach.
@@ -194,11 +194,14 @@ module mod_ocn_lake
       end if
       ! Ice over lake from the start
       if ( mask(i) == 4 ) then
-        tlak(lp,1) = -2.0D0
+        tlak(lp,1) = -8.0D0
         tlak(lp,2) = -2.0D0
-        sfice(i) = 0.10D0
+        hi(lp) = 0.20D0 ! Set this to 20 cm of ice
+        sfice(i) = hi(lp)
+        sncv(i) = 10.0D0 ! Put 1 cm of snow on top.
       else
         sfice(i) = d_zero
+        sncv(i) = d_zero
       end if
     end do
 #ifdef DEBUG
@@ -245,7 +248,7 @@ module mod_ocn_lake
 
       call lake( dtlake,tl,vl,zl,qs,fswx,flwx,hsen,xl, &
                  tgl,prec,idep(lp),eta(lp),hi(lp),sfice(i), &
-                 sncv(i),evpr(i),tlak(lp,:) )
+                 sncv(i),evpr(i),tlak(lp,:),psurf )
 
       tgb(i)   = tgl
       tgrd(i)  = tgl
@@ -369,13 +372,13 @@ module mod_ocn_lake
 !-----------------------------------------------------------------------
 !
   subroutine lake(dtlake,tl,vl,zl,ql,fsw,flw,hsen,xl,tgl,  &
-                  prec,ndpt,eta,hi,aveice,hsnow,evl,tprof)
+                  prec,ndpt,eta,hi,aveice,hsnow,evl,tprof,ps)
     implicit none
     real(rk8) :: dtlake , evl , aveice , hsen , hsnow , flw , &
-               prec , ql , fsw , tl , tgl , vl , zl , eta , hi , xl
+               prec , ql , fsw , tl , tgl , vl , zl , eta , hi , xl , ps
     real(rk8) , dimension(ndpmax) :: tprof
     integer(ik4) :: ndpt
-    intent (in) hsen , ql , tl , vl , zl
+    intent (in) hsen , ql , tl , vl , zl , ps
     intent (in) ndpt , eta
     intent (out) tgl
     intent (inout) tprof , evl , aveice , hsnow
@@ -409,7 +412,7 @@ module mod_ocn_lake
       ! Convective mixer
       call lakemixer(kmin,kmax,ndpt,tprof)
 
-      hi     = 0.01D0
+      hi     = iceminh
       aveice = d_zero
 
     else
@@ -421,14 +424,14 @@ module mod_ocn_lake
       lu  = -emsw*sigm*tk**4
       ld  = flw - lu
       ev  = evl*secph          ! convert to mm/hr
-      ai  = aveice * d_r1000   ! convert to m
-      hs  = hsnow * d_r1000    ! convert to m
+      ai  = aveice
+      hs  = hsnow * d_r1000    ! convert to mm
 
-      call lakeice(dtlake,fsw,ld,tac,u2,ea,hs,hi,ai,ev,prec,tprof)
+      call lakeice(dtlake,fsw,ld,tac,u2,ea,hs,hi,ai,ev,prec,ps,tprof)
       if ( .not. lfreeze ) tprof(1) = twatui
 
       evl    = ev/secph       ! convert evl  from mm/hr to mm/sec
-      aveice = ai*d_1000      ! convert ice  from m to mm
+      aveice = ai
       hsnow  = hs*d_1000      ! convert snow form m to mm
       if (aveice < dlowval) then
         aveice = d_zero
@@ -606,9 +609,9 @@ module mod_ocn_lake
 !
 !-----------------------------------------------------------------------
 !
-  subroutine lakeice(dtx,fsw,ld,tac,u2,ea,hs,hi,aveice,evl,prec,tprof)
+  subroutine lakeice(dtx,fsw,ld,tac,u2,ea,hs,hi,aveice,evl,prec,ps,tprof)
     implicit none
-    real(rk8) , intent(in) :: ea , ld , prec , tac , u2 , dtx
+    real(rk8) , intent(in) :: ea , ld , prec , tac , u2 , dtx , ps
     real(rk8) , intent(out) :: evl
     real(rk8) , intent(inout) :: hi , aveice , hs , fsw
     real(rk8) , dimension(ndpmax) , intent(inout) :: tprof
@@ -626,40 +629,45 @@ module mod_ocn_lake
     ! thermal conductivity of ice (W/m/C)
     real(rk8) , parameter :: ki = 2.3D0
     ! thermal conductivity of snow (W/m/C)
-    real(rk8) , parameter :: ks = 0.31D0
-    ! standard atmospheric pressure (hPa) ????
-    real(rk8) , parameter :: atm = 950.0D0
-    ! heat flux from water to ice (w/m2) ???
+    ! 0.078 W m−1 K−1 for new snow 
+    ! 0.290 W m−1 K−1 for an ubiquitous wind slab
+    ! the average bulk value for the full snowpack is 0.14 W m−1 K−1
+    ! Sturm, Perovich and Holmgren
+    ! Journal of Geophysical Research: Oceans (1978–2012)
+    real(rk8) , parameter :: ks = 0.14D0
+    ! heat flux from water to ice (w m-2)
     real(rk8) , parameter :: qw = 1.389D0
     ! latent heat of fusion (J/kg)
     real(rk8) , parameter :: li = 334.0D03
     ! drag coefficient for the turbulent momentum flux.
     real(rk8) , parameter :: cd = 0.001D0
-    ! Maximum exponent
-    real(rk8) , parameter :: minexp = 25.0D0
 
-    if ( (tac <= d_zero) .and. (aveice > d_zero) ) &
+    if ( (tac <= d_zero) .and. (aveice > d_zero) ) then
+      ! National Weather Service indicates the average snowfall is in a
+      ! ratio of 10 inches of snow to 1 inch of equivalent rainfall
+      ! So this is convert to mm and to snowfall ( prec*10/1000 )
       hs = hs + prec*d_r100  ! convert prec(mm) to depth(m)
+    end if
     if ( hs < dlowval ) hs = d_zero
 
     ! temperature of ice/snow surface
     t0 = tprof(1)
-    ! freezing temp of water
-    tf = d_zero
+    ! temperature of the water under the snow
+    tf = -d_two
     ! approximate density of air (1 kg/m3)
     rho = rhoh2o*d_r1000
 
     khat = (ki*hs+ks*hi)/(ki*ks)
     theta = cpd*rho*cd*u2
-    psi = wlhv*rho*cd*u2*ep2/atm
+    psi = wlhv*rho*cd*u2*ep2/(ps*d_100)
     evl = d_100*psi*(eomb(t0)-ea)/(wlhv*rho)
     ! amount of radiation that penetrates through the ice (W/m2)
     qpen = fsw * 0.7D0 * &
        ((d_one-dexp(-lams1*hs))                   / (ks*lams1) + &
         (dexp(-lams1*hs))*(d_one-dexp(-lami1*hi)) / (ki*lami1)) + &
            fsw * 0.3D0 * &
-       ((d_one-dexp(-lams2))                      / (ks*lams2) + &
-        (-lams2*hs)*(d_one-dexp(-lami2*hi))       / (ki*lami2))
+       ((d_one-dexp(-lams2*hs))                   / (ks*lams2) + &
+        (dexp(-lams2*hs))*(d_one-dexp(-lami2*hi)) / (ki*lami2))
     ! radiation absorbed at the ice surface
     fsw = fsw - qpen
     t1 = -20.0D0
@@ -679,7 +687,6 @@ module mod_ocn_lake
 
     t0 = t2
     if ( t0 >= tf ) then
-
       if ( hs > d_zero ) then
         ds = dtx*                                            &
              ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea)+     &
@@ -689,7 +696,6 @@ module mod_ocn_lake
         hs = hs + ds
         if ( hs < d_zero ) then
           hs = d_zero
-          tprof(1) = (aveice*t0+(isurf-aveice)*tprof(2))/isurf
         end if
       end if
       if ( (dabs(hs) < dlowval) .and. (aveice > d_zero) ) then
@@ -700,26 +706,17 @@ module mod_ocn_lake
         if ( di > d_zero ) di = d_zero
         hi = hi + di
       end if
-
-    else if ( t0 < tf ) then
-
+    else
       q0 = -ld + 0.97D0*sigm*t4(t0) + psi*(eomb(t0)-ea) + &
            theta*(t0-tac) - fsw
-      xlexpc = -(lams1*hs+lami1*hi)
-      ! Graziano : limit exponential
-      if (xlexpc > minexp ) then
-        qpen = fsw
-      else
-        qpen = fsw*0.7D0*(d_one-dexp(-(lams1*hs+lami1*hi))) + &
-               fsw*0.3D0*(d_one-dexp(-(lams2*hs+lami2*hi)))
-      end if
+      qpen = fsw*0.7D0*(d_one-dexp(-(lams1*hs+lami1*hi))) + &
+             fsw*0.3D0*(d_one-dexp(-(lams2*hs+lami2*hi)))
       di = dtx*(q0-qw-qpen)/(rhoice*li)
-
       hi = hi + di
     end if
 
-    if ( hi <= 0.01D0 ) then
-      hi = 0.01D0
+    if ( hi <= iceminh ) then
+      hi = iceminh
       aveice = d_zero
       hs = d_zero
       tprof(1) = (hi*t0+(isurf-hi)*tprof(2))/isurf

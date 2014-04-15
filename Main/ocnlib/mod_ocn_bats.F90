@@ -104,7 +104,7 @@ module mod_ocn_bats
     real(rk8) :: ps , qs , delq , delt , rhosw , ribl
     real(rk8) :: bb , fact , fss , hrl , hs , hsl
     real(rk8) :: rhosw3 , rsd1 , smc4 , smt , tg , tgrnd , qice
-    real(rk8) :: ksnow , rsi , psurf , uv995
+    real(rk8) :: ksnow , rsi , psurf , uv995 , sficemm
     real(rk8) :: arg , arg2 , age1 , age2 , tage
     real(rk8) :: cdrmin , cdrx , clead , dela , dela0 , dels
     real(rk8) :: factuv , fevpg , fseng , qgrnd , ribn , sold , vspda
@@ -210,22 +210,23 @@ module mod_ocn_bats
       qgrd = ep2*eg/(psurf-0.378D0*eg)
       tgbrd(i) = -d_two + tzero
       ! cice = specific heat of sea-ice per unit volume
-      rsd1 = cice*sfice(i)*d_r1000
+      sficemm = sfice(i)*d_1000
+      rsd1 = cice*sficemm*d_r1000
       if ( sncv(i) > d_zero ) then
         ! include snow heat capacity
         rsd1 = rsd1 + csnw*sncv(i)*d_r1000
         ! subsurface heat flux through ice
         ! Following Maykut and Untersteiner (1971) and Semtner (1976)
-        rsi = 1.4D0*rhosw3*sfice(i)/sncv(i)
+        rsi = 1.4D0*rhosw3*sficemm/sncv(i)
         ksnow = 7.0D-4*rhosw3/sncv(i)
         fss = ksnow * (tgbrd(i)-tgrd(i)) / (d_one + rsi)
       else
         ! Slack, 1980
-        fss = 2.14D0*(tgbrd(i)-tgrd(i))/sfice(i)
+        fss = 2.14D0*(tgbrd(i)-tgrd(i))/sficemm
       end if
-      sfice(i) = sfice(i) + 1.087D0*(fss/wlhf)*dtocn
-      ! set sea ice parameter for melting
-      if ( sfice(i) <= 2.0D0 ) then
+      sfice(i) = (sficemm + 1.087D0*(fss/wlhf)*dtocn) * d_r1000
+      ! set sea ice parameter for melting if seaice less than 2 cm
+      if ( sfice(i) <= 0.02D0 ) then
         sfice(i) = d_zero
         sncv(i) = d_zero
         scvk(i) = d_zero
@@ -265,10 +266,10 @@ module mod_ocn_bats
         if ( sncv(i) < smc4 ) then
           smt = (sncv(i)/dtocn)
           ! rho(h2o)/rho(ice) = 1.087
-          sfice(i) = sfice(i) + dtocn*(smt-sm(i))*1.087D0
+          sfice(i) = sfice(i) + dtocn*(smt-sm(i))*1.087D0*d_r1000
           sm(i) = smt
-          ! set sea ice parameter for melting
-          if ( sfice(i) <= 2.0D0 ) then
+          ! set sea ice parameter for melting if less than 2 cm
+          if ( sfice(i) <= 0.02D0 ) then
             tgrd(i) = tzero
             sfice(i) = d_zero
             sncv(i) = d_zero

@@ -553,7 +553,7 @@ module mod_lm_interface
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: ldmskb , wetdry
     integer :: i , j , ii , jj , n
     logical :: flag = .false.
-    real(rk8) , parameter :: iceminh = d_10
+    real(rk8) , parameter :: iceminh = 0.01D0
     ! real(rk8) :: toth
     ! real(rk8) , parameter :: href = d_two * iceminh
     ! real(rk8) , parameter :: steepf = 1.0D0
@@ -650,7 +650,7 @@ module mod_lm_interface
           !------------------------------------------------------------------
           ! 
           if ( impfie%sit(j,i) < tol .and. lm%ldmsk(j,i) /= 1 ) then
-            if ( impfie%sit(j,i) > iceminh ) then
+            if ( impfie%sit(j,i) > iceminh*d_1000 ) then
               flag = .false.
               if ( lm%ldmsk(j,i) == 0 ) flag = .true.
               ! set land-sea mask
@@ -658,7 +658,7 @@ module mod_lm_interface
               do n = 1, nnsg
                 lm%ldmsk1(n,j,i) = 2
                 ! set sea ice thikness (in mm)
-                lms%sfice(n,j,i) = impfie%sit(j,i) 
+                lms%sfice(n,j,i) = impfie%sit(j,i) * d_r1000
               end do
               ! write debug info
               if ( flag ) then
@@ -842,7 +842,7 @@ module mod_lm_interface
         if ( associated(srf_aldifs_out) ) &
           srf_aldifs_out = lm%swdifalb
         if ( associated(srf_seaice_out) ) &
-          srf_seaice_out = sum(lms%sfice,1)*rdnnsg*d_r1000
+          srf_seaice_out = sum(lms%sfice,1)*rdnnsg
         if ( associated(srf_t2m_out) ) &
           srf_t2m_out(:,:,1) = sum(lms%t2m,1)*rdnnsg
         if ( associated(srf_q2m_out) ) &
