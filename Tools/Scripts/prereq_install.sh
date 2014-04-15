@@ -21,16 +21,17 @@
 # Destination directory
 #DEST=$PWD
 
-UNIDATA=http://www.unidata.ucar.edu/downloads/netcdf/ftp
-OPENMPI=http://www.open-mpi.org/software/ompi/v1.6/downloads
-HDFGROUP=http://www.hdfgroup.org/ftp/HDF5/current/src
-ZLIB=http://zlib.net
-
 netcdf_c_ver=4.3.1.1
 netcdf_f_ver=4.2
 hdf5_ver=1.8.12
 zlib_ver=1.2.8
-ompi_ver=
+ompi_ver=1.8
+ompi_major=`echo $ompi_ver | cut -d "." -f 1-2`
+
+UNIDATA=http://www.unidata.ucar.edu/downloads/netcdf/ftp
+OPENMPI=http://www.open-mpi.org/software/ompi/v${ompi_major}/downloads
+HDFGROUP=http://www.hdfgroup.org/ftp/HDF5/current/src
+ZLIB=http://zlib.net
 
 if [ -z "$DEST" ]
 then
