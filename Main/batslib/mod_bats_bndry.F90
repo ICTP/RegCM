@@ -735,7 +735,7 @@ module mod_bats_bndry
       ! 1.1  frozen ground values using 44 m2/yr for frozen ground
       !      thermal diffusion coefficient, based on the values of
       !      50 and 38 quoted by osterkamp; ice contribution to
-      !      specific heat only o.49 that of water
+      !      specific heat only 0.49 that of water
       swtrtd = watu(i)*porsl(i)
       if ( tgrd(i) < tzero ) then
         frozen = 0.85D0*dmin1(d_one,d_rfour*(tzero-tgrd(i)))

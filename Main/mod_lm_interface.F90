@@ -582,7 +582,8 @@ module mod_lm_interface
             lm%tground2(j,i) = impfie%sst(j,i)
             lm%tgbb(j,i)     = impfie%sst(j,i)
             lms%tgrd(:,j,i)  = impfie%sst(j,i)
-            lms%tgbrd(:,j,i)  = impfie%sst(j,i)
+            lms%tgbrd(:,j,i) = impfie%sst(j,i)
+            lms%tgbb(:,j,i)  = impfie%sst(j,i)
           end if
           !
           !----------------------------------------------------------
@@ -828,7 +829,7 @@ module mod_lm_interface
         if ( associated(srf_uvdrag_out) ) &
           srf_uvdrag_out = sum(lms%drag,1)*rdnnsg
         if ( associated(srf_tg_out) ) &
-          srf_tg_out = sum(lms%tgrd,1)*rdnnsg
+          srf_tg_out = sum(lms%tgbb,1)*rdnnsg
         if ( associated(srf_tlef_out) ) then
           where ( lm%ldmsk > 0 )
             srf_tlef_out = sum(lms%tlef,1)*rdnnsg
@@ -878,7 +879,7 @@ module mod_lm_interface
         if ( associated(sub_uvdrag_out) ) &
           call reorder_subgrid(lms%drag,sub_uvdrag_out)
         if ( associated(sub_tg_out) ) &
-          call reorder_subgrid(lms%tgrd,sub_tg_out)
+          call reorder_subgrid(lms%tgbb,sub_tg_out)
         if ( associated(sub_tlef_out) ) &
           call reorder_subgrid(lms%tlef,sub_tlef_out,mask=lm%ldmsk1)
         if ( associated(sub_u10m_out) ) &
@@ -898,7 +899,7 @@ module mod_lm_interface
 #ifndef CLM
       if ( iflak ) then
         if ( associated(lak_tg_out) ) &
-          lak_tg_out = sum(lms%tgrd,1)*rdnnsg
+          lak_tg_out = sum(lms%tgbb,1)*rdnnsg
         if ( associated(lak_aldirs_out) ) &
           lak_aldirs_out = lm%swdiralb
         if ( associated(lak_aldifs_out) ) &

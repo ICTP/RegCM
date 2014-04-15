@@ -123,6 +123,7 @@ module mod_ocn_bats
         tgrd(i) = tgb(i)
       else
         tgrd(i) = tzero - d_10
+        tgb(i) = tgrd(i)
       end if
 
       psurf = sfps(i)
