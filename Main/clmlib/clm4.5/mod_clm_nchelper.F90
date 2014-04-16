@@ -713,18 +713,18 @@ module mod_clm_nchelper
     end if
   end subroutine clm_checkncerr
 
-  integer(ik4) function hash(text) result(hashed) 
-    implicit none 
+  integer(ik4) function hash(text) result(hashed)
+    implicit none
     character(len=*) , intent(in) :: text
     integer(ik4) , parameter :: magic_numb = z'5d7a9f43'
-    integer(ik4) :: i, j 
+    integer(ik4) :: i, j
     hashed = 0
-    do i = 1, len_trim(text) 
-      j = mod(i-1, 4) * 8 
-      hashed = ieor( hashed, ishft( ichar( text(i:i) ), j ) ) 
-    end do 
-    hashed = abs( ieor( hashed, magic_numb ) ) 
-    return 
+    do i = 1, len_trim(text)
+      j = mod(i-1, 4) * 8
+      hashed = ieor( hashed, ishft( ichar( text(i:i) ), j ) )
+    end do
+    hashed = abs( ieor( hashed, magic_numb ) )
+    return
   end function hash
 
   subroutine add_dimhash(ncid,dname)
@@ -782,10 +782,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,len(xval),mpi_character,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -802,10 +802,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval)*len(xval), &
                    mpi_character,iocpu,procinfo%icomm,mpierr)
@@ -824,10 +824,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       xval = (rval > 0)
     end if
     call mpi_bcast(xval,1,mpi_logical,iocpu,procinfo%icomm,mpierr)
@@ -846,11 +846,11 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       allocate(rval(size(xval)))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       xval = (rval > 0)
       deallocate(rval)
     end if
@@ -870,11 +870,11 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       allocate(rval(size(xval,1),size(xval,2)))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       xval = (rval > 0)
       deallocate(rval)
     end if
@@ -894,11 +894,11 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       allocate(rval(size(xval,1),size(xval,2),size(xval,3)))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       xval = (rval > 0)
       deallocate(rval)
     end if
@@ -918,11 +918,11 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       allocate(rval(size(xval,1),size(xval,2),size(xval,3),size(xval,4)))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       xval = (rval > 0)
       deallocate(rval)
     end if
@@ -941,10 +941,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,1,mpi_integer4,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -961,10 +961,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -981,10 +981,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1001,10 +1001,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1021,10 +1021,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1041,10 +1041,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,1,mpi_real4,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1061,10 +1061,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1081,10 +1081,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1101,10 +1101,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1121,10 +1121,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1141,10 +1141,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,1,mpi_real8,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1161,10 +1161,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1181,10 +1181,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1201,10 +1201,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1221,10 +1221,10 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,xval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1268,12 +1268,12 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       istart(1) = nt
       icount(1) = 1
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       xval = (rval(1) > 0)
     end if
     call mpi_bcast(xval,1,mpi_logical,iocpu,procinfo%icomm,mpierr)
@@ -1293,7 +1293,7 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
     incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       nv1 = size(xval,1)
       allocate(rval(nv1))
       istart(2) = nt
@@ -1302,7 +1302,7 @@ module mod_clm_nchelper
       icount(1) = nv1
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       xval = (rval > 0)
       deallocate(rval)
     end if
@@ -1323,7 +1323,7 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       nv1 = size(xval,1)
       nv2 = size(xval,2)
       allocate(rval(nv1,nv2))
@@ -1335,7 +1335,7 @@ module mod_clm_nchelper
       icount(1) = nv1
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       xval = (rval > 0)
       deallocate(rval)
     end if
@@ -1356,7 +1356,7 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       nv1 = size(xval,1)
       nv2 = size(xval,2)
       nv3 = size(xval,3)
@@ -1371,7 +1371,7 @@ module mod_clm_nchelper
       icount(1) = nv1
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       xval = (rval > 0)
       deallocate(rval)
     end if
@@ -1392,12 +1392,12 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       istart(1) = nt
       icount(1) = 1
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       xval = rval(1)
     end if
     call mpi_bcast(xval,1,mpi_integer4,iocpu,procinfo%icomm,mpierr)
@@ -1416,7 +1416,7 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       nv1 = size(xval,1)
       istart(2) = nt
       istart(1) = 1
@@ -1424,7 +1424,7 @@ module mod_clm_nchelper
       icount(1) = nv1
       incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1442,7 +1442,7 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       nv1 = size(xval,1)
       nv2 = size(xval,2)
       istart(3) = nt
@@ -1453,7 +1453,7 @@ module mod_clm_nchelper
       icount(1) = nv1
       incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1471,7 +1471,7 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       nv1 = size(xval,1)
       nv2 = size(xval,2)
       nv3 = size(xval,3)
@@ -1485,7 +1485,7 @@ module mod_clm_nchelper
       icount(1) = nv1
       incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_integer4,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1504,12 +1504,12 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       istart(1) = nt
       icount(1) = 1
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       xval = rval(1)
     end if
     call mpi_bcast(xval,1,mpi_real4,iocpu,procinfo%icomm,mpierr)
@@ -1528,7 +1528,7 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       nv1 = size(xval,1)
       istart(2) = nt
       istart(1) = 1
@@ -1536,7 +1536,7 @@ module mod_clm_nchelper
       icount(1) = nv1
       incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1554,7 +1554,7 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       nv1 = size(xval,1)
       nv2 = size(xval,2)
       istart(3) = nt
@@ -1565,7 +1565,7 @@ module mod_clm_nchelper
       icount(1) = nv1
       incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1583,7 +1583,7 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       nv1 = size(xval,1)
       nv2 = size(xval,2)
       nv3 = size(xval,3)
@@ -1597,7 +1597,7 @@ module mod_clm_nchelper
       icount(1) = nv1
       incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_real4,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1616,12 +1616,12 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       istart(1) = nt
       icount(1) = 1
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       xval = rval(1)
     end if
     call mpi_bcast(xval,1,mpi_real8,iocpu,procinfo%icomm,mpierr)
@@ -1640,7 +1640,7 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       nv1 = size(xval,1)
       istart(2) = nt
       istart(1) = 1
@@ -1648,7 +1648,7 @@ module mod_clm_nchelper
       icount(1) = nv1
       incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1666,7 +1666,7 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       nv1 = size(xval,1)
       nv2 = size(xval,2)
       istart(3) = nt
@@ -1677,7 +1677,7 @@ module mod_clm_nchelper
       icount(1) = nv1
       incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1695,7 +1695,7 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       nv1 = size(xval,1)
       nv2 = size(xval,2)
       nv3 = size(xval,3)
@@ -1709,7 +1709,7 @@ module mod_clm_nchelper
       icount(1) = nv1
       incstat = nf90_get_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_bcast(xval,size(xval),mpi_real8,iocpu,procinfo%icomm,mpierr)
     if ( mpierr /= 0 ) then
@@ -1731,10 +1731,10 @@ module mod_clm_nchelper
       allocate(rval(sg%ns))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                       lval,sg%ic(myid+1),mpi_integer4, &
@@ -1759,10 +1759,10 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4, &
                           lval,sg%ic(myid+1),mpi_integer4,    &
@@ -1797,10 +1797,10 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2,nv3))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do l = 1 , nv3
         do k = 1 , nv2
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4, &
@@ -1840,11 +1840,11 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2,nv3,nv4))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       allocate(rval(sg%ns,size(xval,2),size(xval,3),size(xval,4)))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do n = 1 , nv4
         do l = 1 , nv3
           do k = 1 , nv2
@@ -1885,10 +1885,10 @@ module mod_clm_nchelper
       allocate(rval(sg%ns))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                       xval,sg%ic(myid+1),mpi_integer4, &
@@ -1909,10 +1909,10 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4, &
                           xval(:,lbound(xval,2)+(k-1)),       &
@@ -1942,10 +1942,10 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2,nv3))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do l = 1 , nv3
         do k = 1 , nv2
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4, &
@@ -1982,10 +1982,10 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2,nv3,nv4))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do n = 1 , nv4
         do l = 1 , nv3
           do k = 1 , nv2
@@ -2025,10 +2025,10 @@ module mod_clm_nchelper
       allocate(rval(sg%ns))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,   &
                       xval,sg%ic(myid+1),mpi_real4, &
@@ -2049,10 +2049,10 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real4, &
                           xval(:,lbound(xval,2)+(k-1)),    &
@@ -2084,10 +2084,10 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2,nv3))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do l = 1 , nv3
         do k = 1 , nv2
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real4, &
@@ -2124,10 +2124,10 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2,nv3,nv4))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do n = 1 , nv4
         do l = 1 , nv3
           do k = 1 , nv2
@@ -2167,10 +2167,10 @@ module mod_clm_nchelper
       allocate(rval(sg%ns))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,   &
                       xval,sg%ic(myid+1),mpi_real8, &
@@ -2209,7 +2209,7 @@ module mod_clm_nchelper
     if ( myid == iocpu ) then
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       if ( doswitch ) then
         incstat = nf90_get_var(ncid%ncid,ivarid,sval)
         rval = transpose(sval)
@@ -2218,7 +2218,7 @@ module mod_clm_nchelper
         incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       end if
       call clm_checkncerr(__FILE__,__LINE__, &
-         'Error read '//vname//' to file '//trim(ncid%fname))
+         'Error read '//vname//' from file '//trim(ncid%fname))
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real8, &
                           xval(:,lbound(xval,2)+(k-1)),    &
@@ -2250,10 +2250,10 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2,nv3))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do l = 1 , nv3
         do k = 1 , nv2
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real8,   &
@@ -2290,10 +2290,10 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2,nv3,nv4))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       incstat = nf90_get_var(ncid%ncid,ivarid,rval)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do n = 1 , nv4
         do l = 1 , nv3
           do k = 1 , nv2
@@ -2336,14 +2336,14 @@ module mod_clm_nchelper
       allocate(rval(sg%ns))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       istart(2) = nt
       istart(1) = 1
       icount(2) = 1
       icount(1) = sg%ns
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                       lval,sg%ic(myid+1),mpi_integer4, &
@@ -2369,7 +2369,7 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       istart(3) = nt
       istart(2) = 1
       istart(1) = 1
@@ -2378,7 +2378,7 @@ module mod_clm_nchelper
       icount(1) = sg%ns
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4, &
                           lval,sg%ic(myid+1),mpi_integer4,    &
@@ -2414,7 +2414,7 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2,nv3))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       istart(4) = nt
       istart(3) = 1
       istart(2) = 1
@@ -2425,7 +2425,7 @@ module mod_clm_nchelper
       icount(1) = sg%ns
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+'Error read '//vname//' from file '//trim(ncid%fname))
       do l = 1 , nv3
         do k = 1 , nv2
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4, &
@@ -2461,14 +2461,14 @@ module mod_clm_nchelper
       allocate(rval(sg%ns))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       istart(2) = nt
       istart(1) = 1
       icount(2) = 1
       icount(1) = sg%ns
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_integer4,   &
                       xval,sg%ic(myid+1),mpi_integer4, &
@@ -2490,7 +2490,7 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       istart(3) = nt
       istart(2) = 1
       istart(1) = 1
@@ -2499,7 +2499,7 @@ module mod_clm_nchelper
       icount(1) = sg%ns
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_integer4, &
                           xval(:,lbound(xval,2)+(k-1)),       &
@@ -2530,7 +2530,7 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2,nv3))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       istart(4) = nt
       istart(3) = 1
       istart(2) = 1
@@ -2541,7 +2541,7 @@ module mod_clm_nchelper
       icount(1) = sg%ns
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do l = 1 , nv3
         do k = 1 , nv2
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_integer4, &
@@ -2576,14 +2576,14 @@ module mod_clm_nchelper
       allocate(rval(sg%ns))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       istart(2) = nt
       istart(1) = 1
       icount(2) = 1
       icount(1) = sg%ns
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_real4,   &
                       xval,sg%ic(myid+1),mpi_real4, &
@@ -2605,7 +2605,7 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       istart(3) = nt
       istart(2) = 1
       istart(1) = 1
@@ -2614,7 +2614,7 @@ module mod_clm_nchelper
       icount(1) = sg%ns
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real4, &
                           xval(:,lbound(xval,2)+(k-1)),    &
@@ -2645,7 +2645,7 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2,nv3))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       istart(4) = nt
       istart(3) = 1
       istart(2) = 1
@@ -2656,7 +2656,7 @@ module mod_clm_nchelper
       icount(1) = sg%ns
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do l = 1 , nv3
         do k = 1 , nv2
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real4, &
@@ -2691,14 +2691,14 @@ module mod_clm_nchelper
       allocate(rval(sg%ns))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       istart(2) = nt
       istart(1) = 1
       icount(2) = 1
       icount(1) = sg%ns
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
     end if
     call mpi_scatterv(rval,sg%ic,sg%id,mpi_real8,   &
                       xval,sg%ic(myid+1),mpi_real8, &
@@ -2720,7 +2720,7 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       istart(3) = nt
       istart(2) = 1
       istart(1) = 1
@@ -2729,7 +2729,7 @@ module mod_clm_nchelper
       icount(1) = sg%ns
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do k = 1 , nv2
         call mpi_scatterv(rval(:,k),sg%ic,sg%id,mpi_real8, &
                           xval(:,lbound(xval,2)+(k-1)),    &
@@ -2760,7 +2760,7 @@ module mod_clm_nchelper
       allocate(rval(sg%ns,nv2,nv3))
       incstat = nf90_inq_varid(ncid%ncid,vname,ivarid)
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error search '//vname//' to file '//trim(ncid%fname))
+        'Error search '//vname//' in file '//trim(ncid%fname))
       istart(4) = nt
       istart(3) = 1
       istart(2) = 1
@@ -2771,7 +2771,7 @@ module mod_clm_nchelper
       icount(1) = sg%ns
       incstat = nf90_get_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
       call clm_checkncerr(__FILE__,__LINE__, &
-        'Error read '//vname//' to file '//trim(ncid%fname))
+        'Error read '//vname//' from file '//trim(ncid%fname))
       do l = 1 , nv3
         do k = 1 , nv2
           call mpi_scatterv(rval(:,k,l),sg%ic,sg%id,mpi_real8, &
@@ -3218,7 +3218,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_logical_0d
 
   subroutine clm_writerec_logical_1d(ncid,vname,xval,nt)
@@ -3248,7 +3248,7 @@ module mod_clm_nchelper
       deallocate(rval)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_logical_1d
 
   subroutine clm_writerec_logical_2d(ncid,vname,xval,nt)
@@ -3281,7 +3281,7 @@ module mod_clm_nchelper
       deallocate(rval)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_logical_2d
 
   subroutine clm_writerec_logical_3d(ncid,vname,xval,nt)
@@ -3317,7 +3317,7 @@ module mod_clm_nchelper
       deallocate(rval)
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_logical_3d
 
   subroutine clm_writerec_integer_0d(ncid,vname,xval,nt)
@@ -3339,7 +3339,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_integer_0d
 
   subroutine clm_writerec_integer_1d(ncid,vname,xval,nt)
@@ -3362,7 +3362,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_integer_1d
 
   subroutine clm_writerec_integer_2d(ncid,vname,xval,nt)
@@ -3388,7 +3388,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_integer_2d
 
   subroutine clm_writerec_integer_3d(ncid,vname,xval,nt)
@@ -3417,7 +3417,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_integer_3d
 
   subroutine clm_writerec_real4_0d(ncid,vname,xval,nt)
@@ -3439,7 +3439,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_0d
 
   subroutine clm_writerec_real4_1d(ncid,vname,xval,nt)
@@ -3462,7 +3462,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_1d
 
   subroutine clm_writerec_real4_2d(ncid,vname,xval,nt)
@@ -3488,7 +3488,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_2d
 
   subroutine clm_writerec_real4_3d(ncid,vname,xval,nt)
@@ -3517,7 +3517,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_3d
 
   subroutine clm_writerec_real8_0d(ncid,vname,xval,nt)
@@ -3539,7 +3539,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:1),icount(1:1))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_0d
 
   subroutine clm_writerec_real8_1d(ncid,vname,xval,nt)
@@ -3562,7 +3562,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:2),icount(1:2))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_1d
 
   subroutine clm_writerec_real8_2d(ncid,vname,xval,nt)
@@ -3588,7 +3588,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:3),icount(1:3))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_2d
 
   subroutine clm_writerec_real8_3d(ncid,vname,xval,nt)
@@ -3617,7 +3617,7 @@ module mod_clm_nchelper
       incstat = nf90_put_var(ncid%ncid,ivarid,xval,istart(1:4),icount(1:4))
     end if
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_3d
 
   subroutine copy_filetype(ncid2,ncid1)
@@ -4329,7 +4329,7 @@ module mod_clm_nchelper
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_logical_1d_par_sg
 
   subroutine clm_writerec_logical_2d_par_sg(ncid,vname,xval,sg,nt)
@@ -4372,7 +4372,7 @@ module mod_clm_nchelper
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_logical_2d_par_sg
 
   subroutine clm_writerec_logical_3d_par_sg(ncid,vname,xval,sg,nt)
@@ -4422,7 +4422,7 @@ module mod_clm_nchelper
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_logical_3d_par_sg
 
   subroutine clm_writerec_integer_1d_par_sg(ncid,vname,xval,sg,nt)
@@ -4452,7 +4452,7 @@ module mod_clm_nchelper
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_integer_1d_par_sg
 
   subroutine clm_writerec_integer_2d_par_sg(ncid,vname,xval,sg,nt)
@@ -4498,7 +4498,7 @@ module mod_clm_nchelper
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_integer_2d_par_sg
 
   subroutine clm_writerec_integer_3d_par_sg(ncid,vname,xval,sg,nt)
@@ -4553,7 +4553,7 @@ module mod_clm_nchelper
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_integer_3d_par_sg
 
   subroutine clm_writerec_real4_1d_par_sg(ncid,vname,xval,sg,nt)
@@ -4583,7 +4583,7 @@ module mod_clm_nchelper
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_1d_par_sg
 
   subroutine clm_writerec_real4_2d_par_sg(ncid,vname,xval,sg,nt)
@@ -4629,7 +4629,7 @@ module mod_clm_nchelper
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_2d_par_sg
 
   subroutine clm_writerec_real4_3d_par_sg(ncid,vname,xval,sg,nt)
@@ -4684,7 +4684,7 @@ module mod_clm_nchelper
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_3d_par_sg
 
   subroutine clm_writerec_real8_1d_par_sg(ncid,vname,xval,sg,nt)
@@ -4714,7 +4714,7 @@ module mod_clm_nchelper
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:2),icount(1:2))
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_1d_par_sg
 
   subroutine clm_writerec_real8_2d_par_sg(ncid,vname,xval,sg,nt)
@@ -4760,7 +4760,7 @@ module mod_clm_nchelper
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:3),icount(1:3))
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_2d_par_sg
 
   subroutine clm_writerec_real8_3d_par_sg(ncid,vname,xval,sg,nt)
@@ -4815,7 +4815,7 @@ module mod_clm_nchelper
     incstat = nf90_put_var(ncid%ncid,ivarid,rval,istart(1:4),icount(1:4))
     deallocate(rval)
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_3d_par_sg
 
   subroutine clm_writevar_logical_2d_par_gg(ncid,vname,xval,gg)
@@ -4857,7 +4857,7 @@ module mod_clm_nchelper
     icount(1) = njout
     incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf,istart(1:2),icount(1:2))
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_logical_2d_par_gg
 
   subroutine clm_writevar_logical_3d_par_gg(ncid,vname,xval,gg)
@@ -4903,7 +4903,7 @@ module mod_clm_nchelper
         incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
                                istart(1:3),icount(1:3))
         call clm_checkncerr(__FILE__,__LINE__, &
-          'Error read '//vname//' to file '//trim(ncid%fname))
+          'Error write '//vname//' to file '//trim(ncid%fname))
       end if
     end do
     if ( myid /= iocpu ) return
@@ -4959,7 +4959,7 @@ module mod_clm_nchelper
           incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
                                  istart(1:4),icount(1:4))
           call clm_checkncerr(__FILE__,__LINE__, &
-            'Error read '//vname//' to file '//trim(ncid%fname))
+            'Error write '//vname//' to file '//trim(ncid%fname))
         end if
       end do
     end do
@@ -5002,7 +5002,7 @@ module mod_clm_nchelper
     icount(1) = njout
     incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf,istart(1:2),icount(1:2))
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_integer_2d_par_gg
 
   subroutine clm_writevar_integer_3d_par_gg(ncid,vname,xval,gg)
@@ -5045,7 +5045,7 @@ module mod_clm_nchelper
         incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
                                istart(1:3),icount(1:3))
         call clm_checkncerr(__FILE__,__LINE__, &
-          'Error read '//vname//' to file '//trim(ncid%fname))
+          'Error write '//vname//' to file '//trim(ncid%fname))
       end if
     end do
     if ( myid /= iocpu ) return
@@ -5097,7 +5097,7 @@ module mod_clm_nchelper
           incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
                                  istart(1:4),icount(1:4))
           call clm_checkncerr(__FILE__,__LINE__, &
-            'Error read '//vname//' to file '//trim(ncid%fname))
+            'Error write '//vname//' to file '//trim(ncid%fname))
         end if
       end do
     end do
@@ -5140,7 +5140,7 @@ module mod_clm_nchelper
     icount(1) = njout
     incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf,istart(1:2),icount(1:2))
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_real4_2d_par_gg
 
   subroutine clm_writevar_real4_3d_par_gg(ncid,vname,xval,gg)
@@ -5182,7 +5182,7 @@ module mod_clm_nchelper
         incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf, &
                                istart(1:3),icount(1:3))
         call clm_checkncerr(__FILE__,__LINE__, &
-          'Error read '//vname//' to file '//trim(ncid%fname))
+          'Error write '//vname//' to file '//trim(ncid%fname))
       end if
     end do
     if ( myid /= iocpu ) return
@@ -5234,7 +5234,7 @@ module mod_clm_nchelper
           incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf, &
                                  istart(1:4),icount(1:4))
           call clm_checkncerr(__FILE__,__LINE__, &
-            'Error read '//vname//' to file '//trim(ncid%fname))
+            'Error write '//vname//' to file '//trim(ncid%fname))
         end if
       end do
     end do
@@ -5277,7 +5277,7 @@ module mod_clm_nchelper
     icount(1) = njout
     incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf,istart(1:2),icount(1:2))
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writevar_real8_2d_par_gg
 
   subroutine clm_writevar_real8_3d_par_gg(ncid,vname,xval,gg)
@@ -5319,7 +5319,7 @@ module mod_clm_nchelper
         incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf, &
                                istart(1:3),icount(1:3))
         call clm_checkncerr(__FILE__,__LINE__, &
-          'Error read '//vname//' to file '//trim(ncid%fname))
+          'Error write '//vname//' to file '//trim(ncid%fname))
       end if
     end do
     if ( myid /= iocpu ) return
@@ -5371,7 +5371,7 @@ module mod_clm_nchelper
           incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf, &
                                  istart(1:4),icount(1:4))
           call clm_checkncerr(__FILE__,__LINE__, &
-            'Error read '//vname//' to file '//trim(ncid%fname))
+            'Error write '//vname//' to file '//trim(ncid%fname))
         end if
       end do
     end do
@@ -5421,7 +5421,7 @@ module mod_clm_nchelper
     icount(1) = njout
     incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf,istart(1:3),icount(1:3))
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_logical_2d_par_gg
 
   subroutine clm_writerec_integer_2d_par_gg(ncid,vname,xval,gg,nt)
@@ -5462,7 +5462,7 @@ module mod_clm_nchelper
     icount(1) = njout
     incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf,istart(1:3),icount(1:3))
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_integer_2d_par_gg
 
   subroutine clm_writerec_logical_3d_par_gg(ncid,vname,xval,gg,nt)
@@ -5511,7 +5511,7 @@ module mod_clm_nchelper
         incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
                                istart(1:4),icount(1:4))
         call clm_checkncerr(__FILE__,__LINE__, &
-          'Error read '//vname//' to file '//trim(ncid%fname))
+          'Error write '//vname//' to file '//trim(ncid%fname))
       end if
     end do
     if ( myid /= iocpu ) return
@@ -5561,7 +5561,7 @@ module mod_clm_nchelper
         incstat = nf90_put_var(ncid%ncid,ivarid,ncid%i4buf, &
                                istart(1:4),icount(1:4))
         call clm_checkncerr(__FILE__,__LINE__, &
-          'Error read '//vname//' to file '//trim(ncid%fname))
+          'Error write '//vname//' to file '//trim(ncid%fname))
       end if
     end do
     if ( myid /= iocpu ) return
@@ -5606,7 +5606,7 @@ module mod_clm_nchelper
     icount(1) = njout
     incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf,istart(1:3),icount(1:3))
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real4_2d_par_gg
 
   subroutine clm_writerec_real4_3d_par_gg(ncid,vname,xval,gg,nt)
@@ -5652,7 +5652,7 @@ module mod_clm_nchelper
         incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r4buf, &
                                istart(1:4),icount(1:4))
         call clm_checkncerr(__FILE__,__LINE__, &
-          'Error read '//vname//' to file '//trim(ncid%fname))
+          'Error write '//vname//' to file '//trim(ncid%fname))
       end if
     end do
     if ( myid /= iocpu ) return
@@ -5697,7 +5697,7 @@ module mod_clm_nchelper
     icount(1) = njout
     incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf,istart(1:3),icount(1:3))
     call clm_checkncerr(__FILE__,__LINE__, &
-      'Error read '//vname//' to file '//trim(ncid%fname))
+      'Error write '//vname//' to file '//trim(ncid%fname))
   end subroutine clm_writerec_real8_2d_par_gg
 
   subroutine clm_writerec_real8_3d_par_gg(ncid,vname,xval,gg,nt)
@@ -5742,7 +5742,7 @@ module mod_clm_nchelper
         incstat = nf90_put_var(ncid%ncid,ivarid,ncid%r8buf, &
                                istart(1:4),icount(1:4))
         call clm_checkncerr(__FILE__,__LINE__, &
-          'Error read '//vname//' to file '//trim(ncid%fname))
+          'Error write '//vname//' to file '//trim(ncid%fname))
       end if
     end do
     if ( myid /= iocpu ) return

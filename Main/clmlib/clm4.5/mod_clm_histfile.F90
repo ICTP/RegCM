@@ -2026,11 +2026,11 @@ module mod_clm_histfile
       call clm_addvar(clmvar_double,ncid=nfid(t), &
                       varname='time',cdims=(/'time'/), &
                       long_name='time', units=str)
-      call clm_addatt(nfid(t),'calendar','time',cvar=trim(calendar_str(idatex)))
-      call clm_addatt(nfid(t),'bounds','time',cvar='time_bounds')
+      call clm_addatt(nfid(t),'calendar',trim(calendar_str(idatex)),cvar='time')
+      call clm_addatt(nfid(t),'bounds','time_bounds',cvar='time')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
                       varname='time_bounds',      &
-                      cdims=(/'time         ','hist_interval'/), &
+                      cdims=(/'hist_interval','time         '/), &
                       long_name='history time interval endpoints')
     else if (mode == 'write') then
       call curr_time(idatex,mdcur,mscur)
@@ -2046,10 +2046,10 @@ module mod_clm_histfile
 
     if ( mode == 'define' .and. tape(t)%ntimes == 1 ) then
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                    varname='lon',cdims=(/'grlnd'/), &
+                    varname='lon',cdims=(/grlnd/), &
                     long_name='coordinate longitude', units='degrees_east')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
-                    varname='lat',cdims=(/'grlnd'/), &
+                    varname='lat',cdims=(/grlnd/), &
                     long_name='coordinate latitude', units='degrees_north')
       call clm_addvar(clmvar_double,ncid=nfid(t), &
                     varname='area',cdims=(/grlnd/), &

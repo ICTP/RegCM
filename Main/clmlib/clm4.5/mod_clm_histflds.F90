@@ -118,7 +118,7 @@ module mod_clm_histflds
     call hist_addfld1d (fname='FSNO_EFF',  units='unitless',  &
          avgflag='A', long_name='effective fraction of ground covered by snow',&
          ptr_col=clm3%g%l%c%cps%frac_sno_eff, c2l_scale_type='urbanf')
-              !, default='inactive')
+         !, default='inactive')
 
     ! Temperatures
 
@@ -308,8 +308,8 @@ module mod_clm_histflds
          avgflag='A', long_name='10-m wind', &
          ptr_pft=clm3%g%l%c%p%pps%u10_clm)
     call hist_addfld1d (fname='VA', units='m/s', &
-         avgflag='A', long_name='atmospheric wind speed plus convective velocity', &
-         ptr_pft=clm3%g%l%c%p%pps%va, default='inactive')
+         avgflag='A', long_name='atmospheric wind speed plus convective &
+         &velocity', ptr_pft=clm3%g%l%c%p%pps%va, default='inactive')
 
     ! Surface radiation
 
@@ -322,8 +322,8 @@ module mod_clm_histflds
          ptr_pft=clm3%g%l%c%p%pef%sabg, c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='SABG_PEN', units='watt/m^2',  &
-         avgflag='A', long_name='Rural solar rad penetrating top soil or snow layer', &
-         ptr_pft=clm3%g%l%c%p%pef%sabg_pen, set_spec=spval)
+         avgflag='A', long_name='Rural solar rad penetrating top soil &
+         &or snow layer', ptr_pft=clm3%g%l%c%p%pef%sabg_pen, set_spec=spval)
 
     call hist_addfld1d (fname='FSDSVD', units='W/m^2',  &
          avgflag='A', long_name='direct vis incident solar radiation', &
@@ -358,28 +358,30 @@ module mod_clm_histflds
          ptr_pft=clm3%g%l%c%p%pef%fsr_nir_i, c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='FSDSVDLN', units='W/m^2',  &
-         avgflag='A', long_name='direct vis incident solar radiation at local noon', &
-         ptr_pft=clm3%g%l%c%p%pef%fsds_vis_d_ln)
+         avgflag='A', long_name='direct vis incident solar radiation at &
+         &local noon', ptr_pft=clm3%g%l%c%p%pef%fsds_vis_d_ln)
 
     call hist_addfld1d (fname='FSDSVILN', units='W/m^2',  &
-         avgflag='A', long_name='diffuse vis incident solar radiation at local noon', &
-         ptr_pft=clm3%g%l%c%p%pef%fsds_vis_i_ln)
+         avgflag='A', long_name='diffuse vis incident solar radiation at &
+         &local noon', ptr_pft=clm3%g%l%c%p%pef%fsds_vis_i_ln)
 
     call hist_addfld1d (fname='PARVEGLN', units='W/m^2',  &
          avgflag='A', long_name='absorbed par by vegetation at local noon', &
          ptr_pft=clm3%g%l%c%p%pef%parveg_ln)
 
     call hist_addfld1d (fname='FSDSNDLN', units='W/m^2',  &
-         avgflag='A', long_name='direct nir incident solar radiation at local noon', &
-         ptr_pft=clm3%g%l%c%p%pef%fsds_nir_d_ln)
+         avgflag='A', long_name='direct nir incident solar radiation at &
+         &local noon', ptr_pft=clm3%g%l%c%p%pef%fsds_nir_d_ln)
 
     call hist_addfld1d (fname='FSRVDLN', units='W/m^2',  &
-         avgflag='A', long_name='direct vis reflected solar radiation at local noon', &
-         ptr_pft=clm3%g%l%c%p%pef%fsr_vis_d_ln, c2l_scale_type='urbanf')
+         avgflag='A', long_name='direct vis reflected solar radiation at &
+         &local noon', ptr_pft=clm3%g%l%c%p%pef%fsr_vis_d_ln, &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='FSRNDLN', units='W/m^2',  &
-         avgflag='A', long_name='direct nir reflected solar radiation at local noon', &
-         ptr_pft=clm3%g%l%c%p%pef%fsr_nir_d_ln, c2l_scale_type='urbanf')
+         avgflag='A', long_name='direct nir reflected solar radiation at &
+         &local noon', ptr_pft=clm3%g%l%c%p%pef%fsr_nir_d_ln, &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='FSA', units='W/m^2',  &
          avgflag='A', long_name='absorbed solar radiation', &
@@ -387,7 +389,8 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='FSA_U', units='W/m^2',  &
          avgflag='A', long_name='Urban absorbed solar radiation', &
-         ptr_pft=clm3%g%l%c%p%pef%fsa_u, c2l_scale_type='urbanf', set_nourb=spval)
+         ptr_pft=clm3%g%l%c%p%pef%fsa_u, c2l_scale_type='urbanf', &
+         set_nourb=spval)
 
     call hist_addfld1d (fname='FSA_R', units='W/m^2',  &
          avgflag='A', long_name='Rural absorbed solar radiation', &
@@ -400,7 +403,8 @@ module mod_clm_histflds
     ! Rename of FSR for Urban intercomparision project
     call hist_addfld1d (fname='SWup', units='W/m^2',  &
          avgflag='A', long_name='upwelling shortwave radiation', &
-         ptr_pft=clm3%g%l%c%p%pef%fsr, c2l_scale_type='urbanf', default='inactive')
+         ptr_pft=clm3%g%l%c%p%pef%fsr, c2l_scale_type='urbanf', &
+         default='inactive')
 
     call hist_addfld1d (fname='FIRA', units='W/m^2',  &
          avgflag='A', long_name='net infrared (longwave) radiation', &
@@ -408,7 +412,8 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='FIRA_U', units='W/m^2',  &
          avgflag='A', long_name='Urban net infrared (longwave) radiation', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_lwrad_net_u, c2l_scale_type='urbanf', set_nourb=spval)
+         ptr_pft=clm3%g%l%c%p%pef%eflx_lwrad_net_u, c2l_scale_type='urbanf', &
+         set_nourb=spval)
 
     call hist_addfld1d (fname='FIRA_R', units='W/m^2',  &
          avgflag='A', long_name='Rural net infrared (longwave) radiation', &
@@ -421,37 +426,45 @@ module mod_clm_histflds
     ! Rename of FIRE for Urban intercomparision project
     call hist_addfld1d (fname='LWup', units='W/m^2',  &
          avgflag='A', long_name='upwelling longwave radiation', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_lwrad_out, c2l_scale_type='urbanf', default='inactive')
+         ptr_pft=clm3%g%l%c%p%pef%eflx_lwrad_out, c2l_scale_type='urbanf', &
+         default='inactive')
 
     call hist_addfld1d (fname='BUILDHEAT', units='W/m^2',  &
-         avgflag='A', long_name='heat flux from urban building interior to walls and roof', &
-         ptr_col=clm3%g%l%c%cef%eflx_building_heat, set_nourb=0.D0, c2l_scale_type='urbanf')
+         avgflag='A', long_name='heat flux from urban building interior to &
+         &walls and roof', ptr_col=clm3%g%l%c%cef%eflx_building_heat, &
+         set_nourb=0.D0, c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='URBAN_AC', units='W/m^2',  &
          avgflag='A', long_name='urban air conditioning flux', &
-         ptr_col=clm3%g%l%c%cef%eflx_urban_ac, set_nourb=0.D0, c2l_scale_type='urbanf')
+         ptr_col=clm3%g%l%c%cef%eflx_urban_ac, set_nourb=0.D0, &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='URBAN_HEAT', units='W/m^2',  &
          avgflag='A', long_name='urban heating flux', &
-         ptr_col=clm3%g%l%c%cef%eflx_urban_heat, set_nourb=0.D0, c2l_scale_type='urbanf')
+         ptr_col=clm3%g%l%c%cef%eflx_urban_heat, set_nourb=0.D0, &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='TRAFFICFLUX', units='W/m^2',  &
          avgflag='A', long_name='sensible heat flux from urban traffic', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_traffic_pft, set_nourb=0.D0, c2l_scale_type='urbanf', &
-         default='inactive')
+         ptr_pft=clm3%g%l%c%p%pef%eflx_traffic_pft, set_nourb=0.D0, &
+         c2l_scale_type='urbanf', default='inactive')
 
     call hist_addfld1d (fname='WASTEHEAT', units='W/m^2',  &
-         avgflag='A', long_name='sensible heat flux from heating/cooling sources of urban waste heat', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_wasteheat_pft, set_nourb=0.D0, c2l_scale_type='urbanf')
+         avgflag='A', long_name='sensible heat flux from heating/cooling &
+         &sources of urban waste heat', &
+         ptr_pft=clm3%g%l%c%p%pef%eflx_wasteheat_pft, set_nourb=0.D0, &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='HEAT_FROM_AC', units='W/m^2',  &
-         avgflag='A', long_name='sensible heat flux put into canyon due to heat removed from air conditioning', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_heat_from_ac_pft, set_nourb=0.D0, c2l_scale_type='urbanf')
+         avgflag='A', long_name='sensible heat flux put into canyon due to &
+         &heat removed from air conditioning', &
+         ptr_pft=clm3%g%l%c%p%pef%eflx_heat_from_ac_pft, set_nourb=0.D0, &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='Qanth', units='W/m^2',  &
          avgflag='A', long_name='anthropogenic heat flux', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_anthro, set_nourb=0.D0, c2l_scale_type='urbanf', &
-         default='inactive')
+         ptr_pft=clm3%g%l%c%p%pef%eflx_anthro, set_nourb=0.D0, &
+         c2l_scale_type='urbanf', default='inactive')
 
     call hist_addfld1d (fname='Rnet', units='W/m^2',  &
          avgflag='A', long_name='net radiation', &
@@ -472,19 +485,22 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='FCTR', units='W/m^2',  &
          avgflag='A', long_name='canopy transpiration', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_lh_vegt, set_lake=0.D0, c2l_scale_type='urbanf')
+         ptr_pft=clm3%g%l%c%p%pef%eflx_lh_vegt, set_lake=0.D0, &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='FCEV', units='W/m^2',  &
          avgflag='A', long_name='canopy evaporation', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_lh_vege, set_lake=0.D0, c2l_scale_type='urbanf')
+         ptr_pft=clm3%g%l%c%p%pef%eflx_lh_vege, set_lake=0.D0, &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='FGEV', units='W/m^2',  &
          avgflag='A', long_name='ground evaporation', &
          ptr_pft=clm3%g%l%c%p%pef%eflx_lh_grnd, c2l_scale_type='urbanf') 
 
     call hist_addfld1d (fname='FSH_NODYNLNDUSE', units='W/m^2',  &
-         avgflag='A', long_name='sensible heat not including correction for land use change', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_sh_tot, c2l_scale_type='urbanf')
+         avgflag='A', long_name='sensible heat not including correction for &
+         &land use change', ptr_pft=clm3%g%l%c%p%pef%eflx_sh_tot, &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='FSH', units='W/m^2',  &
          avgflag='A', long_name='sensible heat', &
@@ -492,7 +508,8 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='FSH_U', units='W/m^2',  &
          avgflag='A', long_name='Urban sensible heat', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_sh_tot_u, c2l_scale_type='urbanf', set_nourb=spval)
+         ptr_pft=clm3%g%l%c%p%pef%eflx_sh_tot_u, c2l_scale_type='urbanf', &
+         set_nourb=spval)
 
     call hist_addfld1d (fname='FSH_R', units='W/m^2',  &
          avgflag='A', long_name='Rural sensible heat', &
@@ -507,8 +524,8 @@ module mod_clm_histflds
          ptr_lnd=clm3%g%ges%gc_heat2, default='inactive')
 
     call hist_addfld1d (fname='EFLX_DYNBAL',  units='W/m^2',  &
-         avgflag='A', long_name='dynamic land cover change conversion energy flux', &
-         ptr_lnd=clm3%g%gef%eflx_dynbal)
+         avgflag='A', long_name='dynamic land cover change conversion &
+         &energy flux', ptr_lnd=clm3%g%gef%eflx_dynbal)
 
     call hist_addfld1d (fname='Qh', units='W/m^2',  &
          avgflag='A', long_name='sensible heat', &
@@ -526,7 +543,8 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='EFLX_LH_TOT_U', units='W/m^2',  &
          avgflag='A', long_name='Urban total evaporation', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_lh_tot_u, c2l_scale_type='urbanf', set_nourb=spval)
+         ptr_pft=clm3%g%l%c%p%pef%eflx_lh_tot_u, c2l_scale_type='urbanf', &
+         set_nourb=spval)
 
     call hist_addfld1d (fname='EFLX_LH_TOT_R', units='W/m^2',  &
          avgflag='A', long_name='Rural total evaporation', &
@@ -539,24 +557,26 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='FSH_V', units='W/m^2',  &
          avgflag='A', long_name='sensible heat from veg', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_sh_veg, set_lake=0.D0, c2l_scale_type='urbanf')
+         ptr_pft=clm3%g%l%c%p%pef%eflx_sh_veg, set_lake=0.D0, &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='FSH_G', units='W/m^2',  &
          avgflag='A', long_name='sensible heat from ground', &
          ptr_pft=clm3%g%l%c%p%pef%eflx_sh_grnd, c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='FGR', units='W/m^2',  &
-!         avgflag='A', long_name='heat flux into soil/snow including snow melt', &
-         avgflag='A', long_name='heat flux into soil/snow including snow melt and lake / snow light transmission', &
+         avgflag='A', long_name='heat flux into soil/snow including &
+         &snow melt and lake / snow light transmission', &
          ptr_pft=clm3%g%l%c%p%pef%eflx_soil_grnd, c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='FGR_U', units='W/m^2',  &
-         avgflag='A', long_name='Urban heat flux into soil/snow including snow melt', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_soil_grnd_u, c2l_scale_type='urbanf', set_nourb=spval)
+         avgflag='A', long_name='Urban heat flux into soil/snow &
+         &including snow melt', ptr_pft=clm3%g%l%c%p%pef%eflx_soil_grnd_u, &
+         c2l_scale_type='urbanf', set_nourb=spval)
 
     call hist_addfld1d (fname='FGR_R', units='W/m^2',  &
-!         avgflag='A', long_name='Rural heat flux into soil/snow including snow melt', &
-         avgflag='A', long_name='Rural heat flux into soil/snow including snow melt and snow light transmission', &
+         avgflag='A', long_name='Rural heat flux into soil/snow including &
+         &snow melt and snow light transmission', &
          ptr_pft=clm3%g%l%c%p%pef%eflx_soil_grnd_r, set_spec=spval)
 
     call hist_addfld1d (fname='FSM',  units='W/m^2',  &
@@ -565,7 +585,8 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='FSM_U',  units='W/m^2',  &
          avgflag='A', long_name='Urban snow melt heat flux', &
-         ptr_col=clm3%g%l%c%cef%eflx_snomelt_u, c2l_scale_type='urbanf', set_nourb=spval)
+         ptr_col=clm3%g%l%c%cef%eflx_snomelt_u, c2l_scale_type='urbanf', &
+         set_nourb=spval)
 
     call hist_addfld1d (fname='FSM_R',  units='W/m^2',  &
          avgflag='A', long_name='Rural snow melt heat flux', &
@@ -575,8 +596,9 @@ module mod_clm_histflds
          avgflag='A', long_name='heat flux between soil layers 1 and 2', &
          ptr_col=clm3%g%l%c%cef%eflx_fgr12, set_lake=spval)
 
-    call hist_addfld2d (fname='FGR_SOIL_R', units='watt/m^2', type2d='levgrnd', &
-         avgflag='A', long_name='Rural downward heat flux at interface below each soil layer', &
+    call hist_addfld2d (fname='FGR_SOIL_R', units='watt/m^2', &
+         type2d='levgrnd', avgflag='A', long_name='Rural downward heat &
+         &flux at interface below each soil layer', &
          ptr_col=clm3%g%l%c%cef%eflx_fgr, set_spec=spval, default='inactive')
 
     call hist_addfld1d (fname='TAUX', units='kg/m/s^2',  &
@@ -652,7 +674,8 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='DSTFLXT', units='kg/m2/s',  &
          avgflag='A', long_name='total surface dust emission', &
-         ptr_pft=clm3%g%l%c%p%pdf%flx_mss_vrt_dst_tot, set_lake=0.D0, set_urb=0.D0)
+         ptr_pft=clm3%g%l%c%p%pdf%flx_mss_vrt_dst_tot, set_lake=0.D0, &
+         set_urb=0.D0)
     call hist_addfld1d (fname='DPVLTRB1', units='m/s',  &
          avgflag='A', long_name='turbulent deposition velocity 1', &
          ptr_pft=clm3%g%l%c%p%pdf%vlc_trb_1, default='inactive')
@@ -674,9 +697,10 @@ module mod_clm_histflds
        do while(associated(meg_cmp))
           imeg = meg_cmp%index
 
-          call hist_addfld1d ( fname='MEG_'//trim(meg_cmp%name), units='kg/m2/sec',  &
-               avgflag='A', long_name='MEGAN flux', &
-               ptr_pft=clm3%g%l%c%p%pvf%meg(imeg)%flux_out, set_lake=0.D0, set_urb=0.D0 )
+          call hist_addfld1d ( fname='MEG_'//trim(meg_cmp%name), &
+               units='kg/m2/sec',  avgflag='A', long_name='MEGAN flux', &
+               ptr_pft=clm3%g%l%c%p%pvf%meg(imeg)%flux_out, set_lake=0.D0, &
+               set_urb=0.D0 )
 
           meg_cmp => meg_cmp%next_megcomp
        enddo
@@ -687,43 +711,53 @@ module mod_clm_histflds
 
        call hist_addfld1d (fname='GAMMA', units='non',  &
             avgflag='A', long_name='total gamma for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%gamma_out, set_lake=0.D0, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%gamma_out, set_lake=0.D0, &
+            default='inactive')
 
        call hist_addfld1d (fname='GAMMAL', units='non',  &
             avgflag='A', long_name='gamma L for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%gammaL_out, set_lake=0.D0, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%gammaL_out, set_lake=0.D0, &
+            default='inactive')
 
        call hist_addfld1d (fname='GAMMAT', units='non',  &
             avgflag='A', long_name='gamma T for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%gammaT_out, set_lake=0.D0, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%gammaT_out, set_lake=0.D0, &
+            default='inactive')
 
        call hist_addfld1d (fname='GAMMAP', units='non',  &
             avgflag='A', long_name='gamma P for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%gammaP_out, set_lake=0.D0, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%gammaP_out, set_lake=0.D0, &
+            default='inactive')
 
        call hist_addfld1d (fname='GAMMAA', units='non',  &
             avgflag='A', long_name='gamma A for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%gammaA_out, set_lake=0.D0, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%gammaA_out, set_lake=0.D0, &
+            default='inactive')
 
        call hist_addfld1d (fname='GAMMAS', units='non',  &
             avgflag='A', long_name='gamma S for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%gammaS_out, set_lake=0.D0, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%gammaS_out, set_lake=0.D0, &
+            default='inactive')
 
        call hist_addfld1d (fname='GAMMAC', units='non',  &
             avgflag='A', long_name='gamma C for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%gammaC_out, set_lake=0.D0, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%gammaC_out, set_lake=0.D0, &
+            default='inactive')
 
        call hist_addfld1d (fname='EOPT', units='non',  &
             avgflag='A', long_name='Eopt coefficient for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%Eopt_out, set_lake=0.D0, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%Eopt_out, set_lake=0.D0, &
+            default='inactive')
 
        call hist_addfld1d (fname='TOPT', units='non',  &
             avgflag='A', long_name='topt coefficient for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%topt_out, set_lake=0.D0, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%topt_out, set_lake=0.D0, &
+            default='inactive')
 
        call hist_addfld1d (fname='ALPHA', units='non',  &
             avgflag='A', long_name='alpha coefficient for VOC calc', &
-            ptr_pft=clm3%g%l%c%p%pvf%alpha_out, set_lake=0.D0, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%alpha_out, set_lake=0.D0, &
+            default='inactive')
 
        call hist_addfld1d (fname='CP', units='non',  &
             avgflag='A', long_name='cp coefficient for VOC calc', &
@@ -731,27 +765,33 @@ module mod_clm_histflds
 
        call hist_addfld1d (fname='PAR_sun', units='umol/m2/s', &
             avgflag='A', long_name='sunlit PAR', &
-            ptr_pft=clm3%g%l%c%p%pvf%paru_out, set_lake=0.D0, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%paru_out, set_lake=0.D0, &
+            default='inactive')
 
        call hist_addfld1d (fname='PAR24_sun', units='umol/m2/s', &
             avgflag='A', long_name='sunlit PAR (24 hrs)', &
-            ptr_pft=clm3%g%l%c%p%pvf%par24u_out, set_lake=0.D0, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%par24u_out, set_lake=0.D0, &
+            default='inactive')
 
        call hist_addfld1d (fname='PAR240_sun', units='umol/m2/s', &
             avgflag='A', long_name='sunlit PAR (240 hrs)', &
-            ptr_pft=clm3%g%l%c%p%pvf%par240u_out, set_lake=0.D0, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%par240u_out, set_lake=0.D0, &
+            default='inactive')
 
        call hist_addfld1d (fname='PAR_shade', units='umol/m2/s', &
             avgflag='A', long_name='shade PAR', &
-            ptr_pft=clm3%g%l%c%p%pvf%para_out, set_lake=0.D0, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%para_out, set_lake=0.D0, &
+            default='inactive')
 
        call hist_addfld1d (fname='PAR24_shade', units='umol/m2/s', &
             avgflag='A', long_name='shade PAR (24 hrs)', &
-            ptr_pft=clm3%g%l%c%p%pvf%par24a_out, set_lake=0.D0, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%par24a_out, set_lake=0.D0, &
+            default='inactive')
 
        call hist_addfld1d (fname='PAR240_shade', units='umol/m2/s', &
             avgflag='A', long_name='shade PAR (240 hrs)', &
-            ptr_pft=clm3%g%l%c%p%pvf%par240a_out, set_lake=0.D0, default='inactive')
+            ptr_pft=clm3%g%l%c%p%pvf%par240a_out, set_lake=0.D0, &
+            default='inactive')
 
     end if
 
@@ -796,18 +836,19 @@ module mod_clm_histflds
          avgflag='A', long_name='fractional area with water table at surface', &
          ptr_col=clm3%g%l%c%cws%fsat, l2g_scale_type='veg')
     call hist_addfld1d (fname='ZWT',  units='m',  &
-         avgflag='A', long_name='water table depth (vegetated landunits only)', &
-         ptr_col=clm3%g%l%c%cws%zwt, l2g_scale_type='veg')
+         avgflag='A', long_name='water table depth (vegetated landunits &
+         &only)', ptr_col=clm3%g%l%c%cws%zwt, l2g_scale_type='veg')
 
     call hist_addfld1d (fname='INT_SNOW',  units='mm',  &
          avgflag='A', long_name='accumulated swe (vegetated landunits only)', &
          ptr_col=clm3%g%l%c%cws%int_snow, l2g_scale_type='veg')
     call hist_addfld1d (fname='FROST_TABLE',  units='m',  &
-         avgflag='A', long_name='frost table depth (vegetated landunits only)', &
-         ptr_col=clm3%g%l%c%cws%frost_table, l2g_scale_type='veg')
+         avgflag='A', long_name='frost table depth (vegetated landunits &
+         &only)', ptr_col=clm3%g%l%c%cws%frost_table, l2g_scale_type='veg')
     call hist_addfld1d (fname='ZWT_PERCH',  units='m',  &
-         avgflag='A', long_name='perched water table depth (vegetated landunits only)', &
-         ptr_col=clm3%g%l%c%cws%zwt_perched, l2g_scale_type='veg')
+         avgflag='A', long_name='perched water table depth (vegetated &
+         &landunits only)', ptr_col=clm3%g%l%c%cws%zwt_perched, &
+         l2g_scale_type='veg')
     call hist_addfld1d (fname='QDRAI_PERCH',  units='mm/s',  &
          avgflag='A', long_name='perched wt drainage', &
          ptr_col=clm3%g%l%c%cwf%qflx_drain_perched, c2l_scale_type='urbanf')
@@ -816,12 +857,14 @@ module mod_clm_histflds
          ptr_col=clm3%g%l%c%cwf%qflx_rsub_sat, c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='WA',  units='mm',  &
-         avgflag='A', long_name='water in the unconfined aquifer (vegetated landunits only)', &
-         ptr_col=clm3%g%l%c%cws%wa, l2g_scale_type='veg')
+         avgflag='A', long_name='water in the unconfined aquifer &
+         &(vegetated landunits only)', ptr_col=clm3%g%l%c%cws%wa, &
+         l2g_scale_type='veg')
 
     call hist_addfld1d (fname='QCHARGE',  units='mm/s',  &
-         avgflag='A', long_name='aquifer recharge rate (vegetated landunits only)', &
-         ptr_col=clm3%g%l%c%cws%qcharge, l2g_scale_type='veg')
+         avgflag='A', long_name='aquifer recharge rate (vegetated &
+         &landunits only)', ptr_col=clm3%g%l%c%cws%qcharge, &
+         l2g_scale_type='veg')
 
 #ifdef LCH4
     if (hist_wrtch4diag) then
@@ -833,12 +876,14 @@ module mod_clm_histflds
     active = "inactive"
 #endif
     call hist_addfld2d (fname='SMP',  units='mm', type2d='levgrnd',  &
-         avgflag='A', long_name='soil matric potential (vegetated landunits only)', &
-         ptr_col=clm3%g%l%c%cws%smp_l, set_spec=spval, l2g_scale_type='veg', default=active)
+         avgflag='A', long_name='soil matric potential (vegetated &
+         landunits only)', ptr_col=clm3%g%l%c%cws%smp_l, set_spec=spval, &
+         l2g_scale_type='veg', default=active)
 
     call hist_addfld2d (fname='HK',  units='mm/s', type2d='levgrnd',  &
-         avgflag='A', long_name='hydraulic conductivity (vegetated landunits only)', &
-         ptr_col=clm3%g%l%c%cws%hk_l, set_spec=spval, l2g_scale_type='veg', default='inactive')
+         avgflag='A', long_name='hydraulic conductivity (vegetated &
+         &landunits only)', ptr_col=clm3%g%l%c%cws%hk_l, set_spec=spval, &
+         l2g_scale_type='veg', default='inactive')
 
     call hist_addfld1d (fname='H2OSNO',  units='mm',  &
          avgflag='A', long_name='snow depth (liquid water)', &
@@ -848,11 +893,12 @@ module mod_clm_histflds
          avgflag='A', long_name='imbalance in snow depth (liquid water)', &
          ptr_col=clm3%g%l%c%cws%errh2osno, c2l_scale_type='urbanf')
 
-    ! As defined here, snow_sources - snow_sinks will equal the change in h2osno at 
-    ! any given time step but only if there is at least one snow layer (for all landunits 
-    ! except lakes).  h2osno also includes snow that is part of the soil column (an 
-    ! initial snow layer is only created if h2osno > 10mm). Also note that monthly average
-    ! files of snow_sources and snow sinks must be weighted by number of days in the month to 
+    ! As defined here, snow_sources - snow_sinks will equal the change in
+    ! h2osno at any given time step but only if there is at least one snow
+    ! layer (for all landunits except lakes).  h2osno also includes snow that
+    ! is part of the soil column (an initial snow layer is only created if 
+    ! h2osno > 10mm). Also note that monthly average files of snow_sources
+    ! and snow sinks must be weighted by number of days in the month to 
     ! diagnose, for example, an annual value of the change in h2osno. 
 
     call hist_addfld1d (fname='SNOW_SOURCES',  units='mm/s',  &
@@ -868,11 +914,13 @@ module mod_clm_histflds
          ptr_pft=clm3%g%l%c%p%pws%h2ocan, set_lake=0.D0)
 
     call hist_addfld2d (fname='H2OSOI',  units='mm3/mm3', type2d='levgrnd', &
-         avgflag='A', long_name='volumetric soil water (vegetated landunits only)', &
+         avgflag='A', & 
+         long_name='volumetric soil water (vegetated landunits only)', &
          ptr_col=clm3%g%l%c%cws%h2osoi_vol, l2g_scale_type='veg')
 
     call hist_addfld2d (fname='SOILLIQ',  units='kg/m2', type2d='levgrnd', &
-         avgflag='A', long_name='soil liquid water (vegetated landunits only)', &
+         avgflag='A', &
+         long_name='soil liquid water (vegetated landunits only)', &
          ptr_col=clm3%g%l%c%cws%h2osoi_liq, l2g_scale_type='veg')
 
     call hist_addfld2d (fname='SOILICE',  units='kg/m2', type2d='levgrnd', &
@@ -880,9 +928,10 @@ module mod_clm_histflds
          ptr_col=clm3%g%l%c%cws%h2osoi_ice, l2g_scale_type='veg')
 
     call hist_addfld1d (fname='SOILWATER_10CM',  units='kg/m2', &
-         avgflag='A', long_name='soil liquid water + ice in top 10cm of soil (veg landunits only)', &
-         ptr_col=clm3%g%l%c%cws%h2osoi_liqice_10cm, set_urb=spval, l2g_scale_type='veg', &
-         set_lake=spval)
+         avgflag='A', long_name='soil liquid water + ice in top 10cm of soil &
+         &(veg landunits only)', &
+         ptr_col=clm3%g%l%c%cws%h2osoi_liqice_10cm, set_urb=spval, &
+         l2g_scale_type='veg',set_lake=spval)
 
     call hist_addfld1d (fname='SNOWLIQ',  units='kg/m2',  &
          avgflag='A', long_name='snow liquid water', &
@@ -894,7 +943,8 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='QTOPSOIL',  units='mm/s',  &
          avgflag='A', long_name='water input to surface', &
-         ptr_col=clm3%g%l%c%cwf%qflx_top_soil, c2l_scale_type='urbanf', default='inactive')
+         ptr_col=clm3%g%l%c%cwf%qflx_top_soil, &
+         c2l_scale_type='urbanf', default='inactive')
 
     call hist_addfld1d (fname='QINFL',  units='mm/s',  &
          avgflag='A', long_name='infiltration', &
@@ -905,16 +955,18 @@ module mod_clm_histflds
          ptr_col=clm3%g%l%c%cwf%qflx_surf, c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QRGWL',  units='mm/s',  &
-         avgflag='A', long_name='surface runoff at glaciers (liquid only), wetlands, lakes', &
+         avgflag='A', long_name='surface runoff at glaciers &
+         &(liquid only), wetlands, lakes', &
          ptr_col=clm3%g%l%c%cwf%qflx_qrgwl, c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QSNWCPLIQ', units='mm H2O/s', &
          avgflag='A', long_name='excess rainfall due to snow capping', &
-         ptr_pft=clm3%g%l%c%p%pwf%qflx_snwcp_liq, c2l_scale_type='urbanf', default='inactive')
+         ptr_pft=clm3%g%l%c%p%pwf%qflx_snwcp_liq, &
+         c2l_scale_type='urbanf', default='inactive')
 
     call hist_addfld1d (fname='QSNWCPICE_NODYNLNDUSE', units='mm H2O/s', &
-         avgflag='A', &
-         long_name='excess snowfall due to snow capping not including correction for land use change', &
+         avgflag='A', long_name='excess snowfall due to snow capping &
+         &not including correction for land use change', &
          ptr_pft=clm3%g%l%c%p%pwf%qflx_snwcp_ice, c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QSNWCPICE',  units='mm/s',  &
@@ -926,41 +978,43 @@ module mod_clm_histflds
          ptr_col=clm3%g%l%c%cwf%qflx_drain, c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QRUNOFF_NODYNLNDUSE',  units='mm/s',  &
-         avgflag='A', &
-         long_name='total liquid runoff (does not include QSNWCPICE) not including correction for land use change', &
+         avgflag='A', long_name='total liquid runoff (does not include &
+         &QSNWCPICE) not including correction for land use change', &
          ptr_col=clm3%g%l%c%cwf%qflx_runoff, c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QRUNOFF',  units='mm/s',  &
-         avgflag='A', long_name='total liquid runoff (does not include QSNWCPICE)', &
-         ptr_lnd=clm3%g%gwf%qflx_runoffg)
+         avgflag='A', long_name='total liquid runoff (does not include &
+         &QSNWCPICE)', ptr_lnd=clm3%g%gwf%qflx_runoffg)
 
     call hist_addfld1d (fname='GC_LIQ1',  units='mm',  &
          avgflag='A', long_name='initial gridcell total liq content', &
          ptr_lnd=clm3%g%gws%gc_liq1)
 
     call hist_addfld1d (fname='GC_LIQ2',  units='mm',  &  
-         avgflag='A', long_name='post landuse change gridcell total liq content', &              
-         ptr_lnd=clm3%g%gws%gc_liq2, default='inactive')     
+         avgflag='A', long_name='post landuse change gridcell total &
+         &liq content', ptr_lnd=clm3%g%gws%gc_liq2, default='inactive')     
 
     call hist_addfld1d (fname='QFLX_LIQ_DYNBAL',  units='mm/s',  &  
-         avgflag='A', long_name='liq dynamic land cover change conversion runoff flux', &              
-         ptr_lnd=clm3%g%gwf%qflx_liq_dynbal)     
+         avgflag='A', long_name='liq dynamic land cover change conversion &
+         &runoff flux', ptr_lnd=clm3%g%gwf%qflx_liq_dynbal)     
 
     call hist_addfld1d (fname='GC_ICE1',  units='mm',  &  
-         avgflag='A', long_name='initial gridcell total ice content', &              
+         avgflag='A', long_name='initial gridcell total ice content', &
          ptr_lnd=clm3%g%gws%gc_ice1)     
 
     call hist_addfld1d (fname='GC_ICE2',  units='mm',  &  
-         avgflag='A', long_name='post land cover change total ice content', &              
+         avgflag='A', long_name='post land cover change total ice content', &
          ptr_lnd=clm3%g%gws%gc_ice2, default='inactive')
 
     call hist_addfld1d (fname='QFLX_ICE_DYNBAL',  units='mm/s',  &
-         avgflag='A', long_name='ice dynamic land cover change conversion runoff flux', &                                   
+         avgflag='A', long_name='ice dynamic land cover change &
+         &conversion runoff flux', &
          ptr_lnd=clm3%g%gwf%qflx_ice_dynbal)
 
     call hist_addfld1d (fname='QRUNOFF_U', units='mm/s',  &
          avgflag='A', long_name='Urban total runoff', &
-         ptr_col=clm3%g%l%c%cwf%qflx_runoff_u, set_nourb=spval, c2l_scale_type='urbanf')
+         ptr_col=clm3%g%l%c%cwf%qflx_runoff_u, set_nourb=spval, &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QRUNOFF_R', units='mm/s',  &
          avgflag='A', long_name='Rural total runoff', &
@@ -984,17 +1038,19 @@ module mod_clm_histflds
          set_lake=spval, c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QSOIL', units='mm/s',  &
-         avgflag='A', long_name= &
-         'Ground evaporation (soil/snow evaporation + soil/snow sublimation - dew)', &
+         avgflag='A', long_name='Ground evaporation (soil/snow &
+         &evaporation + soil/snow sublimation - dew)', &
          ptr_pft=clm3%g%l%c%p%pwf%qflx_evap_soi, c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QVEGE', units='mm/s',  &
          avgflag='A', long_name='canopy evaporation', &
-         ptr_pft=clm3%g%l%c%p%pwf%qflx_evap_can, set_lake=0.D0, c2l_scale_type='urbanf')
+         ptr_pft=clm3%g%l%c%p%pwf%qflx_evap_can, set_lake=0.D0, &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QVEGT', units='mm/s',  &
          avgflag='A', long_name='canopy transpiration', &
-         ptr_pft=clm3%g%l%c%p%pwf%qflx_tran_veg, set_lake=0.D0, c2l_scale_type='urbanf')
+         ptr_pft=clm3%g%l%c%p%pwf%qflx_tran_veg, set_lake=0.D0, &
+         c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='QIRRIG', units='mm/s', &
          avgflag='A', long_name='water added through irrigation', &
@@ -1107,7 +1163,6 @@ module mod_clm_histflds
          avgflag='A', long_name='10-day running mean of 2-m temperature', &
          ptr_pft=clm3%g%l%c%p%pes%t10, default=active)
 
-
 #if (defined CNDV)
     call hist_addfld1d (fname='TDA', units='K',  &
          avgflag='A', long_name='daily average 2-m temperature', &
@@ -1129,15 +1184,16 @@ module mod_clm_histflds
          ptr_col=clm3%g%l%c%cps%pps_a%grnd_ch4_cond)
 
     call hist_addfld1d (fname='FINUNDATED', units='unitless', &
-         avgflag='A', long_name='fractional inundated area of vegetated columns', &
-         ptr_col=clm3%g%l%c%cws%finundated)
+         avgflag='A', long_name='fractional inundated area of &
+         &vegetated columns', ptr_col=clm3%g%l%c%cws%finundated)
 
     call hist_addfld1d (fname='CH4_SURF_DIFF_SAT', units='mol/m2/s',  &
-         avgflag='A', long_name='diffusive surface CH4 flux for inundated / lake area; (+ to atm)', &
-         ptr_col=clm3%g%l%c%cch4%ch4_surf_diff_sat)
+         avgflag='A', long_name='diffusive surface CH4 flux for inundated &
+         &/ lake area; (+ to atm)', ptr_col=clm3%g%l%c%cch4%ch4_surf_diff_sat)
 
     call hist_addfld1d (fname='CH4_SURF_DIFF_UNSAT', units='mol/m2/s',  &
-         avgflag='A', long_name='diffusive surface CH4 flux for non-inundated area; (+ to atm)', &
+         avgflag='A', long_name='diffusive surface CH4 flux for &
+         &non-inundated area; (+ to atm)', &
          ptr_col=clm3%g%l%c%cch4%ch4_surf_diff_unsat)
 
     call hist_addfld1d (fname='CH4_EBUL_TOTAL_SAT', units='mol/m2/s',  &
@@ -1149,45 +1205,51 @@ module mod_clm_histflds
          ptr_col=clm3%g%l%c%cch4%ch4_ebul_total_unsat, default='inactive')
 
     call hist_addfld1d (fname='CH4_SURF_EBUL_SAT', units='mol/m2/s',  &
-         avgflag='A', long_name='ebullition surface CH4 flux for inundated / lake area; (+ to atm)', &
-         ptr_col=clm3%g%l%c%cch4%ch4_surf_ebul_sat)
+         avgflag='A', long_name='ebullition surface CH4 flux for inundated &
+         &/ lake area; (+ to atm)', ptr_col=clm3%g%l%c%cch4%ch4_surf_ebul_sat)
 
     call hist_addfld1d (fname='CH4_SURF_EBUL_UNSAT', units='mol/m2/s',  &
-         avgflag='A', long_name='ebullition surface CH4 flux for non-inundated area; (+ to atm)', &
+         avgflag='A', long_name='ebullition surface CH4 flux for &
+         &non-inundated area; (+ to atm)', &
          ptr_col=clm3%g%l%c%cch4%ch4_surf_ebul_unsat)
 
     call hist_addfld1d (fname='CH4_SURF_AERE_SAT', units='mol/m2/s',  &
-         avgflag='A', long_name='aerenchyma surface CH4 flux for inundated area; (+ to atm)', &
+         avgflag='A', long_name='aerenchyma surface CH4 flux for &
+         &inundated area; (+ to atm)', &
          ptr_col=clm3%g%l%c%cch4%ch4_surf_aere_sat)
 
     call hist_addfld1d (fname='CH4_SURF_AERE_UNSAT', units='mol/m2/s',  &
-         avgflag='A', long_name='aerenchyma surface CH4 flux for non-inundated area; (+ to atm)', &
+         avgflag='A', long_name='aerenchyma surface CH4 flux for &
+         &non-inundated area; (+ to atm)', &
          ptr_col=clm3%g%l%c%cch4%ch4_surf_aere_unsat)
 
     call hist_addfld1d (fname='TOTCOLCH4', units='gC/m2',  &
-         avgflag='A', long_name='total belowground CH4, (0 for non-lake special landunits)', &
-         ptr_col=clm3%g%l%c%cch4%totcolch4)
+         avgflag='A', long_name='total belowground CH4, (0 for non-lake &
+         &special landunits)', ptr_col=clm3%g%l%c%cch4%totcolch4)
 
-    call hist_addfld2d (fname='CONC_CH4_SAT', units='mol/m3', type2d='levgrnd', &
-         avgflag='A', long_name='CH4 soil Concentration for inundated / lake area', &
-         ptr_col=clm3%g%l%c%cch4%conc_ch4_sat)
+    call hist_addfld2d (fname='CONC_CH4_SAT', units='mol/m3', &
+         type2d='levgrnd', avgflag='A', long_name='CH4 soil Concentration &
+         &for inundated / lake area', ptr_col=clm3%g%l%c%cch4%conc_ch4_sat)
 
-    call hist_addfld2d (fname='CONC_CH4_UNSAT', units='mol/m3', type2d='levgrnd', &
-         avgflag='A', long_name='CH4 soil Concentration for non-inundated area', &
-         ptr_col=clm3%g%l%c%cch4%conc_ch4_unsat)
+    call hist_addfld2d (fname='CONC_CH4_UNSAT', units='mol/m3', &
+         type2d='levgrnd', avgflag='A', long_name='CH4 soil Concentration &
+         &for non-inundated area', ptr_col=clm3%g%l%c%cch4%conc_ch4_unsat)
 
 ! Begin if hist_wrtch4diag block
     if (hist_wrtch4diag) then
-       call hist_addfld2d (fname='CH4_PROD_DEPTH_SAT', units='mol/m3/s', type2d='levgrnd', &
-            avgflag='A', long_name='CH4 soil production for inundated / lake area', &
+       call hist_addfld2d (fname='CH4_PROD_DEPTH_SAT', units='mol/m3/s', &
+            type2d='levgrnd', avgflag='A', long_name='CH4 soil production &
+            &for inundated / lake area', &
             ptr_col=clm3%g%l%c%cch4%ch4_prod_depth_sat)
 
-       call hist_addfld2d (fname='CH4_PROD_DEPTH_UNSAT', units='mol/m3/s', type2d='levgrnd', &
-            avgflag='A', long_name='CH4 soil production for non-inundated area', &
+       call hist_addfld2d (fname='CH4_PROD_DEPTH_UNSAT', units='mol/m3/s', &
+            type2d='levgrnd', avgflag='A', long_name='CH4 soil production &
+            &for non-inundated area', &
             ptr_col=clm3%g%l%c%cch4%ch4_prod_depth_unsat)
 
-       call hist_addfld2d (fname='CH4_OXID_DEPTH_SAT', units='mol/m3/s', type2d='levgrnd', &
-            avgflag='A', long_name='CH4 soil oxidation for inundated / lake area', &
+       call hist_addfld2d (fname='CH4_OXID_DEPTH_SAT', units='mol/m3/s', &
+            type2d='levgrnd', avgflag='A', long_name='CH4 soil oxidation &
+            &for inundated / lake area', &
             ptr_col=clm3%g%l%c%cch4%ch4_oxid_depth_sat)
 
        call hist_addfld2d (fname='CH4_OXID_DEPTH_UNSAT', units='mol/m3/s', type2d='levgrnd', &
