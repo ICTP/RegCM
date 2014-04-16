@@ -141,7 +141,7 @@ module mod_clm_driver
   ! First phase of the clm driver calling the clm physics. An outline of
   ! the calling tree is given in the description of this module.
   !
-  subroutine clm_drv(doalb,nextsw_cday,declinp1,declin,rstwr,nlend,rdate)
+  subroutine clm_drv(doalb,nextsw_cday,declinp1,declin,rstwr,nlend,nlomon,rdate)
     implicit none
     logical , intent(in) :: doalb     ! true if time for surface albedo calc
     real(rk8) , intent(in) :: nextsw_cday ! calendar day
@@ -149,6 +149,7 @@ module mod_clm_driver
     real(rk8) , intent(in) :: declin   ! declination angle for current time step
     logical , intent(in) :: rstwr     ! true => write restart file this step
     logical , intent(in) :: nlend     ! true => end of run on this step
+    logical , intent(in) :: nlomon    ! true => end of month on this step
     character(len=*) , intent(in) :: rdate ! restart file time stamp for name
     ! landunit index associated with each column
     integer(ik4) , pointer , dimension(:) :: clandunit
@@ -684,7 +685,7 @@ module mod_clm_driver
 
 #ifndef _NOIO
 
-    call hist_htapes_wrapup(rstwr,nlend)
+    call hist_htapes_wrapup(rstwr,nlend,nlomon)
 
     ! =======================================================================
     ! Write to CNDV history buffer if appropriate

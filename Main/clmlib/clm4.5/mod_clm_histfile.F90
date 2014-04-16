@@ -16,7 +16,6 @@ module mod_clm_histfile
   use mod_clm_varcon , only : spval , ispval
   use mod_clm_varcon , only : dzsoi_decomp
   use mod_clm_subgridave , only : p2g , c2g , l2g
-  use mod_clm_time_manager , only : get_prev_time
   use mod_clm_varcon , only : zsoi , zlak
   use mod_clm_varcon , only : secspday
   use mod_clm_varpar , only : nlevgrnd , nlevlak , nlevurb , numrad , &
@@ -25,7 +24,7 @@ module mod_clm_histfile
          version , hostname , username , conventions , source , inst_suffix , &
          nsrest , nsrStartup
   use mod_clm_domain , only : ldomain
-  use mod_clm_time_manager , only : get_prev_date , getdatetime
+  use mod_clm_time_manager , only : getdatetime
 
   implicit none
 
@@ -481,8 +480,7 @@ module mod_clm_histfile
     character(len=*) , parameter :: subname = 'hist_htapes_build'
 
     if ( myid == italk ) then
-      write(stdout,*)  trim(subname),' Initializing clm2 history files'
-      write(stdout,'(72a1)') ("-",i=1,60)
+      write(stdout,*)  'Initializing clm2 history files'
     end if
 
     ! Define field list information for all history files.
@@ -495,7 +493,7 @@ module mod_clm_histfile
     do t = 1 , ntapes
       tape(t)%dov2xy = hist_dov2xy(t)
       if ( myid == italk ) then
-        write(stdout,*) trim(subname),' hist tape = ',t,&
+        write(stdout,*) 'hist tape = ',t,&
               ' written with dov2xy= ',tape(t)%dov2xy
       end if
     end do
@@ -519,15 +517,13 @@ module mod_clm_histfile
     ! Set time of beginning of current averaging interval
     ! First etermine elapased time since reference date
 
-    call get_prev_time(day, sec)
+    call curr_time(idatex, day, sec)
     do t = 1 , ntapes
-      tape(t)%begtime = day + sec/secspday
+      tape(t)%begtime = day*24.0D0 + sec/secph
     end do
 
     if (myid == italk) then
-      write(stdout,*) trim(subname), &
-              ' Successfully initialized clm2 history files'
-      write(stdout,'(72a1)') ("-",i=1,60)
+      write(stdout,*) 'Successfully initialized clm2 history files'
     end if
   end subroutine hist_htapes_build
   !
@@ -805,7 +801,6 @@ module mod_clm_histfile
     if ( myid == italk ) then
       write(stdout,*) 'There will be a total of ',ntapes,' history tapes'
       do t = 1 , ntapes
-        write(stdout,*)
         if ( hist_nhtfrq(t) == 0 ) then
           write(stdout,*) 'History tape ',t,' write frequency is MONTHLY'
         else
@@ -820,7 +815,6 @@ module mod_clm_histfile
         write(stdout,*)'Number of time samples on history tape ',t, &
                 ' is ',hist_mfilt(t)
         write(stdout,*)'Output precision on history tape ',t,'=',hist_ndens(t)
-        write(stdout,*)
       end do
     end if
 
@@ -1609,8 +1603,7 @@ module mod_clm_histfile
 
     if ( .not. lhistrest ) then
       if (myid == italk) then
-        write(stdout,*) trim(subname), &
-                ' : Opening netcdf htape ', trim(locfnh(t))
+        write(stdout,*) 'Opening htape ', trim(locfnh(t))
       end if
       call clm_createfile(trim(locfnh(t)),lnfid)
       call clm_addatt(lnfid,'title','CLM History file information')
@@ -1658,8 +1651,8 @@ module mod_clm_histfile
     ! Time is an unlimited dimension. Character string is treated as
     ! an array of characters.
 
-    ! Global uncompressed dimensions (including non-land points)
-    call clm_adddim(lnfid, trim(grlnd), ldomain%ns)
+    ! Global uncompressed dimensions (not including non-land points)
+    call clm_adddim(lnfid, trim(grlnd), numg)
 
     ! Global compressed dimensions (not including non-land points)
     call clm_adddim(lnfid, trim(nameg), numg)
@@ -1685,14 +1678,12 @@ module mod_clm_histfile
       call clm_adddim(lnfid, 'time', clmvar_unlim)
       nfid(t) = lnfid
       if ( myid == italk ) then
-        write(stdout,*) trim(subname), &
-           ' : Successfully defined netcdf history file ',t
+        write(stdout,*) 'Successfully defined netcdf history file ',t
       end if
     else
       ncid_hist(t) = lnfid
       if ( myid == italk ) then
-        write(stdout,*) trim(subname), &
-           ' : Successfully defined netcdf restart history file ',t
+        write(stdout,*) 'Successfully defined netcdf restart history file ',t
       end if
     end if
   end subroutine htape_create
@@ -2034,11 +2025,12 @@ module mod_clm_histfile
                       long_name='history time interval endpoints')
     else if (mode == 'write') then
       call curr_time(idatex,mdcur,mscur)
-      time = mdcur*24.0D0 + mscur/secph
+      time = mdcur*24.0D0 + (mscur+dtsec)/secph
       call clm_writevar(nfid(t),'time',time,tape(t)%ntimes)
       timedata(1) = tape(t)%begtime
       timedata(2) = time
       call clm_writevar(nfid(t),'time_bounds',timedata,tape(t)%ntimes)
+      tape(t)%begtime = time
     end if
 
     ! Grid definition variables
@@ -2081,6 +2073,7 @@ module mod_clm_histfile
       call clm_writevar(nfid(t),'lon',ldomain%lonc,gcomm_gridcell)
       call clm_writevar(nfid(t),'lat',ldomain%latc,gcomm_gridcell)
       call clm_writevar(nfid(t),'area',ldomain%area,gcomm_gridcell)
+      call clm_writevar(nfid(t),'topo',ldomain%topo,gcomm_gridcell)
       call clm_writevar(nfid(t),'landfrac',ldomain%frac,gcomm_gridcell)
       call clm_writevar(nfid(t),'landmask',ldomain%mask,gcomm_gridcell)
       call clm_writevar(nfid(t),'pftmask',ldomain%pftm,gcomm_gridcell)
@@ -2116,6 +2109,7 @@ module mod_clm_histfile
     real(rk8) , pointer :: histo(:,:)    ! temporary
     real(rk8) , pointer :: hist1do(:)    ! temporary
     character(len=*) , parameter :: subname = 'hfields_write'
+    type(subgrid_type) , pointer :: gcomm
 
     ! Write/define 1d topological info
 
@@ -2145,6 +2139,7 @@ module mod_clm_histfile
       type2d     = tape(t)%hlist(f)%field%type2d
       num2d      = tape(t)%hlist(f)%field%num2d
       nt         = tape(t)%ntimes
+      gcomm      => tape(t)%hlist(f)%field%gcomm
 
       if ( mode == 'define' ) then
 
@@ -2213,9 +2208,9 @@ module mod_clm_histfile
         ! Write history output.  Always output land and ocean runoff on xy grid.
 
         if ( num2d == 1 ) then
-          call clm_writevar(nfid(t),varname,hist1do,procinfo,nt)
+          call clm_writevar(nfid(t),varname,hist1do,gcomm,nt)
         else
-          call clm_writevar(nfid(t),varname,histo,procinfo,nt)
+          call clm_writevar(nfid(t),varname,histo,gcomm,nt)
         end if
 
         ! Deallocate dynamic memory
@@ -2420,23 +2415,16 @@ module mod_clm_histfile
   ! Daily-averaged data for the last day in month mm are written on
   !   date = yyyy/mm+1/01 with mscur = 0.
   !
-  subroutine hist_htapes_wrapup( rstwr, nlend )
+  subroutine hist_htapes_wrapup( rstwr, nlend ,nlomon )
     implicit none
     logical , intent(in) :: rstwr    ! true => write restart file this step
     logical , intent(in) :: nlend    ! true => end of run on this step
+    logical , intent(in) :: nlomon   ! true => end of month on this step
     integer(ik4) :: t                ! tape index
     integer(ik4) :: f                ! field index
     integer(ik4) :: ier              ! error code
-    integer(ik4) :: day              ! current day (1 -> 31)
-    integer(ik4) :: mon              ! current month (1 -> 12)
-    integer(ik4) :: yr               ! current year (0 -> ...)
     integer(ik4) :: mdcur            ! current day
     integer(ik4) :: mscur            ! seconds of current day
-    integer(ik4) :: mcsec            ! current time of day [seconds]
-    integer(ik4) :: daym1            ! nstep-1 day (1 -> 31)
-    integer(ik4) :: monm1            ! nstep-1 month (1 -> 12)
-    integer(ik4) :: yrm1             ! nstep-1 year (0 -> ...)
-    integer(ik4) :: mcsecm1          ! nstep-1 time of day [seconds]
     integer(ik8) :: temp
     real(rk8):: time                 ! current time
     character(len=256) :: str        ! global attribute string
@@ -2447,29 +2435,23 @@ module mod_clm_histfile
 
     ! Set calendar for current time step
 
-    call curr_date(idatex, yr, mon, day, mcsec)
     call curr_time(idatex, mdcur, mscur)
-    time = mdcur + mscur/secspday
-
-    ! Set calendar for current for previous time step
-
-    call get_prev_date(yrm1, monm1, daym1, mcsecm1)
+    time = mdcur + (mscur-dtsec)/secspday
 
     ! Loop over active history tapes, create new history files if necessary
     ! and write data to history files if end of history interval.
     do t = 1 , ntapes
 
-      ! Skip nstep=0 if monthly average
-
-      if ( ktau == 0 .and. tape(t)%nhtfrq == 0 ) cycle
+      ! Skip nstep = 0 if monthly average
+      if ( ktau == 0 ) cycle
 
       ! Determine if end of history interval
       tape(t)%is_endhist = .false.
       if ( tape(t)%nhtfrq == 0 ) then   !monthly average
-        if ( mon /= monm1 ) tape(t)%is_endhist = .true.
+        if ( nlomon ) tape(t)%is_endhist = .true.
       else
-        temp = tape(t)%nhtfrq
-        if ( mod(ktau,temp) == 0 ) tape(t)%is_endhist = .true.
+        temp = (tape(t)%nhtfrq*3600.0)/dtsec
+        if ( mod(ktau+1,temp) == 0 ) tape(t)%is_endhist = .true.
       end if
 
       ! If end of history interval
@@ -2494,10 +2476,7 @@ module mod_clm_histfile
                                         hist_mfilt=tape(t)%mfilt, &
                                         hist_file=t)
           if ( myid == italk ) then
-            write(stdout,*) trim(subname), &
-              ' : Creating history file ', trim(locfnh(t)), &
-              ' at nstep = ',ktau
-            write(stdout,*)'calling htape_create for file t = ',t
+            write(stdout,*) 'Creating history file ',t, ' at nstep = ',ktau
           end if
           call htape_create (t)
 
@@ -2529,18 +2508,8 @@ module mod_clm_histfile
         end if
 
         if ( myid == italk ) then
-          write(stdout,*)
-          write(stdout,*) trim(subname), &
-            ' : Writing current time sample to local history file ', &
-            trim(locfnh(t)),' at nstep = ',ktau, &
-            ' for history time interval beginning at ', tape(t)%begtime, &
-            ' and ending at ',time
-          write(stdout,*)
+          write(stdout,*) 'CLM History variables written at ktau ', ktau+1
         end if
-
-        ! Update beginning time of next interval
-
-        tape(t)%begtime = time
 
         ! Write history time samples
 
@@ -2568,10 +2537,8 @@ module mod_clm_histfile
       if ( if_disphist(t) ) then
         if ( tape(t)%ntimes /= 0 ) then
           if ( myid == italk ) then
-            write(stdout,*)
             write(stdout,*)  trim(subname),' : Closing local history file ',&
                trim(locfnh(t)),' at nstep = ', ktau
-            write(stdout,*)
           end if
           call clm_closefile(nfid(t))
           if ( .not. if_stop .and. (tape(t)%ntimes/=tape(t)%mfilt) ) then
@@ -3764,7 +3731,7 @@ module mod_clm_histfile
     character(len=*) , parameter :: subname = 'set_hist_filename'
 
     if (hist_freq == 0 .and. hist_mfilt == 1) then   !monthly
-      call get_prev_date (yr, mon, day, sec)
+      call curr_date (idatex, yr, mon, day, sec)
       write(cdate,'(i4.4,"-",i2.2)') yr,mon
     else                        !other
       call curr_date (idatex, yr, mon, day, sec)

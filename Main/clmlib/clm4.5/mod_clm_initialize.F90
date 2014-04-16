@@ -435,11 +435,11 @@ module mod_clm_initialize
         write(stdout,*) 'begin continuation run at:'
       end if
       call curr_date(idatex, yr, mon, day, ncsec)
-      write(stdout,*) '   ktau= ',ktau, ' year= ',yr,' month= ',mon,&
-            ' day= ',day,' seconds= ',ncsec
-      write(stdout,*)
-      write(stdout,'(72a1)') ("*",i=1,60)
-      write(stdout,*)
+      write(stdout,*) '   ktau    = ',ktau
+      write(stdout,*) '   year    = ',yr
+      write(stdout,*) '   month   = ',mon
+      write(stdout,*) '   day     = ',day
+      write(stdout,*) '   seconds = ',ncsec
     endif
 
     if ( nsrest == nsrStartup ) then

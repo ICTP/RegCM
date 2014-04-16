@@ -137,8 +137,7 @@ module mod_clm_restfile
 
     if (myid == italk) then
       write(stdout,*) &
-              'Successfully wrote out restart data at nstep = ',ktau
-      write(stdout,'(72a1)') ("-",i=1,60)
+              'Successfully wrote out restart data at ktau = ',ktau+1
     end if
   end subroutine restFile_write
   !
@@ -210,8 +209,6 @@ module mod_clm_restfile
     integer(ik4) :: i                   !index
     if (myid == italk) then
       write(stdout,*) 'Successfully wrote local restart file ',trim(rfile)
-      write(stdout,'(72a1)') ("-",i=1,60)
-      write(stdout,*)
     end if
   end subroutine restFile_closeRestart
 
@@ -225,10 +222,8 @@ module mod_clm_restfile
       ! Create new netCDF file (in define mode) and set fill mode
       ! to "no fill" to optimize performance
       if (myid == italk) then
-        write(stdout,*)
-        write(stdout,*)'Writing restart dataset at ', trim(rfile), &
-                ' at ktau = ', ktau
-        write(stdout,*)
+        write(stdout,*)'Writing restart dataset in ', trim(rfile), &
+                ' at ktau = ', ktau+1
       end if
       call clm_createfile(trim(rfile),ncid)
     else if (flag == 'read') then

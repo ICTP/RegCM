@@ -113,7 +113,7 @@ module mod_clm_regcm
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
     real(rk8) :: caldayp1 , declinp1 , eccfp1
-    logical :: doalb , rstwr , nlend
+    logical :: doalb , rstwr , nlend , nlomon
     type(rcm_time_interval) :: tdiff , triff
     type(rcm_time_and_date) :: nextt , nextr
     character(len=64) :: rdate
@@ -142,6 +142,7 @@ module mod_clm_regcm
       end if
       if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
         rstwr = .true.
+        nlomon = .true.
         write(rdate,'(i10)') toint10(nextr)
         if ( myid == italk ) then
           write (stdout,*) 'Write restart file for CLM at ', tochar(nextr)
@@ -152,7 +153,7 @@ module mod_clm_regcm
     ! Run CLM
     call orb_decl(caldayp1,eccen,mvelpp,lambm0,obliqr,declinp1,eccfp1)
 
-    call clm_drv(doalb, caldayp1, declinp1, declin, rstwr, nlend, rdate)
+    call clm_drv(doalb,caldayp1,declinp1,declin,rstwr,nlend,nlomon,rdate)
 
     call land_to_atmosphere(lms)
 

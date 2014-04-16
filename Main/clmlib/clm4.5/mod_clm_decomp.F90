@@ -147,7 +147,7 @@ module mod_clm_decomp
       character(len=*) , intent(in) :: clmlevel ! type of clm 1d array
       select case (clmlevel)
         case(grlnd)
-          get_clmlevel_gsize = ldomain%ns
+          get_clmlevel_gsize = numg
         case(nameg)
           get_clmlevel_gsize = numg
         case(namel)
