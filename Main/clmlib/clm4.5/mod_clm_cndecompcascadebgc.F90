@@ -70,14 +70,14 @@ subroutine init_decompcascade(begc, endc)
    implicit none
 !
 ! !CALLED FROM:
-! 
+!
 !
 ! !REVISION HISTORY:
 !
    ! column level
    integer  :: begc, endc       ! per-proc beginning and ending column indices
 
-   !-- properties of each pathway along decomposition cascade 
+   !-- properties of each pathway along decomposition cascade
    character(len=8), pointer :: cascade_step_name(:)        ! name of transition
    real(rk8), pointer :: rf_decomp_cascade(:,:,:)            ! respired fraction in decomposition step (frac)
    integer,  pointer :: cascade_donor_pool(:)               ! which pool is C taken from for a given decomposition step
@@ -356,7 +356,7 @@ subroutine init_decompcascade(begc, endc)
    cascade_receiver_pool(i_s2s3) = i_soil3
    pathfrac_decomp_cascade(begc:endc,1:nlevdecomp,i_s2s3) = 1.0D0
 
-   i_s3s4 = 6 
+   i_s3s4 = 6
    cascade_step_name(i_s3s4) = 'S3S4'
    rf_decomp_cascade(begc:endc,1:nlevdecomp,i_s3s4) = rf_s3s4
    cascade_donor_pool(i_s3s4) = i_soil3
@@ -414,7 +414,7 @@ subroutine decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
    integer, intent(in) :: filter_soilc(:) ! filter for soil columns
 !
 ! !CALLED FROM:
-! 
+!
 !
 ! !REVISION HISTORY:
 !
@@ -435,7 +435,7 @@ subroutine decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
 #endif
    integer, pointer :: alt_indx(:)          ! current depth of thaw
 
-   real(rk8) :: dt                           ! decomp timestep (seconds)   
+   real(rk8) :: dt                           ! decomp timestep (seconds)
    real(rk8):: dtd                           ! decomp timestep (days)
 !
 ! !LOCAL VARIABLES:
@@ -478,7 +478,7 @@ subroutine decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
    integer :: c, fc, j, k, l
 
 #if (defined VERTSOILC)
-   real(rk8) :: depth_scalar(lbc:ubc,1:nlevdecomp) 
+   real(rk8) :: depth_scalar(lbc:ubc,1:nlevdecomp)
 #endif
 
    ! Assign local pointers to derived type arrays
@@ -562,7 +562,7 @@ endif
    if ( nlevdecomp .eq. 1 ) then
 
       ! calculate function to weight the temperature and water potential scalars
-      ! for decomposition control.  
+      ! for decomposition control.
 
 
       ! the following normalizes values in fr so that they
@@ -589,10 +589,10 @@ endif
 
       ! calculate rate constant scalar for soil temperature
       ! assuming that the base rate constants are assigned for non-moisture
-      ! limiting conditions at 25 C. 
+      ! limiting conditions at 25 C.
       ! Peter Thornton: 3/13/09
       ! Replaced the Lloyd and Taylor function with a Q10 formula, with Q10 = 1.5
-      ! as part of the modifications made to improve the seasonal cycle of 
+      ! as part of the modifications made to improve the seasonal cycle of
       ! atmospheric CO2 concentration in global simulations. This does not impact
       ! the base rates at 25 C, which are calibrated from microcosm studies.
       do j = 1,nlev_soildecomp_standard
@@ -641,7 +641,7 @@ endif
             end if
          end do
       end if
-#endif 
+#endif
 
 #ifdef LCH4
       ! Calculate ANOXIA
@@ -676,10 +676,10 @@ endif
 
       ! calculate rate constant scalar for soil temperature
       ! assuming that the base rate constants are assigned for non-moisture
-      ! limiting conditions at 25 C. 
+      ! limiting conditions at 25 C.
       ! Peter Thornton: 3/13/09
       ! Replaced the Lloyd and Taylor function with a Q10 formula, with Q10 = 1.5
-      ! as part of the modifications made to improve the seasonal cycle of 
+      ! as part of the modifications made to improve the seasonal cycle of
       ! atmospheric CO2 concentration in global simulations. This does not impact
       ! the base rates at 25 C, which are calibrated from microcosm studies.
 

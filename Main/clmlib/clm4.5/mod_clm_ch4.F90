@@ -95,7 +95,7 @@ module mod_clm_ch4
     real(rk8) , pointer :: rootfr(:,:)
     ! tracer conductance for boundary layer [m/s]
     real(rk8) , pointer :: grnd_ch4_cond(:)
-    ! weight (relative to column) 
+    ! weight (relative to column)
     real(rk8) , pointer :: pwtc(:)
     ! pft vegetation type
     integer(ik4) , pointer :: ivt(:)
@@ -206,7 +206,7 @@ module mod_clm_ch4
     real(rk8) :: totalsat
     real(rk8) :: totalunsat
     real(rk8) :: dfsat
-    real(rk8) :: rootfraction(lbp:ubp, 1:nlevgrnd) 
+    real(rk8) :: rootfraction(lbp:ubp, 1:nlevgrnd)
     real(rk8) :: totcolch4_bef(lbc:ubc) ! g C / m^2
     real(rk8) :: errch4                 ! g C / m^2
     real(rk8) :: zwt_actual
@@ -280,7 +280,7 @@ module mod_clm_ch4
     rootfr              => clm3%g%l%c%p%pps%rootfr
     grnd_ch4_cond       => clm3%g%l%c%p%pps%grnd_ch4_cond
     pwtc                => clm3%g%l%c%p%wtcol
-    ivt                 => clm3%g%l%c%p%itype 
+    ivt                 => clm3%g%l%c%p%itype
     pcolumn             => clm3%g%l%c%p%column
 
     dtime_ch4 = dtsrf
@@ -506,7 +506,7 @@ module mod_clm_ch4
       ! calculate CH4 ebullition losses in each soil layer
       call ch4_ebul (lbc, ubc, num_soilc, filter_soilc, jwt, sat, lake)
 
-      ! Solve CH4 reaction/diffusion equation 
+      ! Solve CH4 reaction/diffusion equation
       call ch4_tran (lbc, ubc, num_soilc, filter_soilc, jwt, &
               dtime_ch4, sat, lake)
       ! Competition for oxygen will occur here.
@@ -537,7 +537,7 @@ module mod_clm_ch4
       ! calculate CH4 ebullition losses in each lake layer
       call ch4_ebul (lbc, ubc, num_lakec, filter_lakec, jwt, sat, lake)
 
-      ! Solve CH4 reaction/diffusion equation 
+      ! Solve CH4 reaction/diffusion equation
       call ch4_tran (lbc, ubc, num_lakec, filter_lakec, jwt, &
               dtime_ch4, sat, lake)
       ! Competition for oxygen will occur here.
@@ -667,7 +667,7 @@ module mod_clm_ch4
             write(stderr,*) 'Latdeg,Londeg=',clm3%g%latdeg(g),clm3%g%londeg(g)
             call fatal(__FILE__,__LINE__, &
                      trim(subname)//' ERROR: Methane conservation error')
-          end if 
+          end if
         end if
       end do
       if ( allowlakeprod ) then
@@ -741,7 +741,7 @@ module mod_clm_ch4
 
     ! index into column level quantities
     integer(ik4) , pointer :: pcolumn(:)
-    ! weight (relative to column) 
+    ! weight (relative to column)
     real(rk8), pointer :: wtcol(:)
     ! pft vegetation type
     integer(ik4) , pointer :: ivt(:)
@@ -758,7 +758,7 @@ module mod_clm_ch4
 
     ! layer thickness (m)  (-nlevsno+1:nlevsoi)
     real(rk8), pointer :: dz(:,:)
-    ! layer depth (m) (-nlevsno+1:nlevsoi) 
+    ! layer depth (m) (-nlevsno+1:nlevsoi)
     real(rk8), pointer :: z(:,:)
     ! interface level below a "z" level (m)
     real(rk8), pointer :: zi(:,:)
@@ -783,7 +783,7 @@ module mod_clm_ch4
     ! content read in from soil properties
     real(rk8), pointer :: lake_soilc(:,:)
     real(rk8), pointer :: pH(:) ! soil water pH
-    ! (gC/m2/s) litter heterotrophic respiration 
+    ! (gC/m2/s) litter heterotrophic respiration
     real(rk8), pointer :: lithr(:)
     ! time-lagged fractional inundated area
     real(rk8), pointer :: finundated_lag(:)
@@ -818,7 +818,7 @@ module mod_clm_ch4
     real(rk8) , parameter :: q10lakebase = 298.D0
     real(rk8) :: partition_z
 
-    ! added by Lei Meng to account for pH influence of CH4 production 
+    ! added by Lei Meng to account for pH influence of CH4 production
     real(rk8) , parameter :: pHmax = 9D0
     real(rk8) , parameter :: pHmin = 2.2D0
     !optimal pH for methane production
@@ -1024,7 +1024,7 @@ module mod_clm_ch4
         if (.not. lake .and. usephfact .and. &
              pH(c).gt. pHmin .and.pH(c).lt. pHmax) then
           pH_fact_ch4 = 10.D0**(-0.2235D0*pH(c)*pH(c) + 2.7727D0*pH(c) - 8.6D0)
-          ! fitted function using data from Dunfield et al. 1993  
+          ! fitted function using data from Dunfield et al. 1993
           ! Strictly less than one, with optimum at 6.5
           ! From Lei Meng
           f_ch4_adj = f_ch4_adj * pH_fact_ch4
@@ -1276,7 +1276,7 @@ module mod_clm_ch4
     logical, intent(in) :: lake      ! function called with lake filter
 
     integer(ik4) , pointer :: ivt(:)   ! pft vegetation type
-    real(rk8), pointer :: wtcol(:)     ! weight (relative to column) 
+    real(rk8), pointer :: wtcol(:)     ! weight (relative to column)
     integer(ik4) , pointer :: cgridcell(:) ! gridcell of corresponding column
     integer(ik4) , pointer :: pcolumn(:)   ! index into column level quantities
     ! fraction of roots in each soil layer  (nlevsoi)
@@ -1334,9 +1334,9 @@ module mod_clm_ch4
     real(rk8) :: f_oxid
     ! gas diffusivity through aerenchyma (m^2/s)
     real(rk8) :: diffus_aere
-    real(rk8) :: m_tiller 
-    real(rk8) :: n_tiller 
-    real(rk8) :: poros_tiller 
+    real(rk8) :: m_tiller
+    real(rk8) :: n_tiller
+    real(rk8) :: poros_tiller
     ! root obliquity, e.g. csc of root angle relative to vertical
     ! (ratio of root total length to depth)
     real(rk8) :: rob
@@ -1599,9 +1599,9 @@ module mod_clm_ch4
     integer(ik4) :: fp        ! soil filter pft index
     real(rk8) :: vgc     ! volumetric CH4 content (m3 CH4/m3 pore air)
     real(rk8) :: vgc_min ! minimum aqueous CH4 content when ebullition ceases
-    real(rk8) :: k_h_inv ! 
-    real(rk8) :: k_h     ! 
-    real(rk8) :: k_h_cc  ! 
+    real(rk8) :: k_h_inv !
+    real(rk8) :: k_h     !
+    real(rk8) :: k_h_cc  !
     real(rk8) :: pressure! sum atmospheric and hydrostatic pressure
     real(rk8) :: bubble_f! CH4 content in gas bubbles (Kellner et al. 2006)
     real(rk8) :: ebul_timescale
@@ -1652,7 +1652,7 @@ module mod_clm_ch4
           k_h_inv = exp(-c_h_inv(1) * (1.D0 / &
                   t_soisno(c,j) - 1.D0 / kh_tbase) + log (kh_theta(1)))
           k_h = 1.D0 / k_h_inv ! (mol/L.atm)
-          ! (4.21) Wania [(mol/m3w) / (mol/m3g)] 
+          ! (4.21) Wania [(mol/m3w) / (mol/m3g)]
           k_h_cc = t_soisno(c,j) * k_h * rgasLatm
 
           if (.not. lake) then
@@ -1691,7 +1691,7 @@ module mod_clm_ch4
 
       end do ! fc
     end do ! j
-  end subroutine ch4_ebul 
+  end subroutine ch4_ebul
   !
   ! Solves the reaction & diffusion equation for the timestep.
   !  First "competition" between processes for CH4 & O2 demand is done.
@@ -1747,7 +1747,7 @@ module mod_clm_ch4
     real(rk8), pointer :: snow_depth(:)
     ! mass fraction of lake layer that is frozen
     real(rk8), pointer :: lake_icefrac(:,:)
-    ! Clapp and Hornberger "b" (nlevgrnd)  
+    ! Clapp and Hornberger "b" (nlevgrnd)
     real(rk8), pointer :: bsw(:,:)
     ! column 3D org (kg/m^3 organic matter) (nlevgrnd)
     real(rk8), pointer :: cellorg(:,:)
@@ -1853,7 +1853,7 @@ module mod_clm_ch4
     real(rk8) :: airfrac   ! air fraction in snow
     real(rk8) :: waterfrac ! water fraction in snow
     real(rk8) :: icefrac   ! ice fraction in snow
-    real(rk8) :: epsilon_t (lbc:ubc,1:nlevsoi,1:ngases) 
+    real(rk8) :: epsilon_t (lbc:ubc,1:nlevsoi,1:ngases)
     !epsilon_t from last time step !Currently deprecated
     real(rk8) :: epsilon_t_old (lbc:ubc,1:nlevsoi,1:ngases)
     real(rk8) :: source (lbc:ubc,1:nlevsoi,1:ngases) !source
@@ -2013,7 +2013,7 @@ module mod_clm_ch4
     do j = 0,nlevsoi
       do fc = 1, num_methc
         c = filter_methc (fc)
-        do s = 1 , 2         
+        do s = 1 , 2
           if (j == 0) then
             ! (4.12) Wania (L atm/mol)
             k_h_inv = exp(-c_h_inv(s) * (1.D0 / t_grnd(c) - &
@@ -2218,7 +2218,7 @@ module mod_clm_ch4
               end if
               pondz = dz(c,1) * (h2osoi_vol(c,1) - watsat(c,1))
               pondres = pondz / ponddiff
-            end if            
+            end if
 
             ! Now add new h2osfc form
             if (.not. lake .and. sat == 1 .and. &

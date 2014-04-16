@@ -30,7 +30,7 @@ module mod_clm_cncisoflux
 !
 ! !REVISION HISTORY:
 ! 4/21/2005: Created by Peter Thornton and Neil Suits
-! 8/15/2011: Modified by C. Koven from C13Flux to CisoFlux to allow treatment of both C13 and C14 
+! 8/15/2011: Modified by C. Koven from C13Flux to CisoFlux to allow treatment of both C13 and C14
 !
 !EOP
 !-----------------------------------------------------------------------
@@ -332,7 +332,7 @@ subroutine CIsoFlux1(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
 
   ! call routine to shift pft-level litterfall fluxes to column, for isotopes
    ! the non-isotope version of this routine is called in CNPhenologyMod.F90
-   ! For later clean-up, it would be possible to generalize this function to operate on a single 
+   ! For later clean-up, it would be possible to generalize this function to operate on a single
    ! pft-to-column flux.
 
    call CNCIsoLitterToColumn(num_soilc, filter_soilc, isotope)

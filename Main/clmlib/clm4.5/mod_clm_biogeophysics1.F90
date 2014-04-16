@@ -230,7 +230,7 @@ contains
     h2osfc        => clm3%g%l%c%cws%h2osfc
     t_h2osfc      => clm3%g%l%c%ces%t_h2osfc
     t_h2osfc_bef  => clm3%g%l%c%ces%t_h2osfc_bef
-    qg_snow       => clm3%g%l%c%cws%qg_snow 
+    qg_snow       => clm3%g%l%c%cws%qg_snow
     qg_soil       => clm3%g%l%c%cws%qg_soil
     qg_h2osfc     => clm3%g%l%c%cws%qg_h2osfc
     forc_hgt_t    => clm_a2l%forc_hgt_t
@@ -334,12 +334,12 @@ contains
           c = filter_nolakec(fc)
           if ((ctype(c) == icol_sunwall .or. ctype(c) == icol_shadewall &
                .or. ctype(c) == icol_roof) .and. j > nlevurb) then
-            tssbef(c,j) = spval 
+            tssbef(c,j) = spval
           else
             tssbef(c,j) = t_soisno(c,j)
           end if
           ! record t_h2osfc prior to updating
-          t_h2osfc_bef(c) = t_h2osfc(c)   
+          t_h2osfc_bef(c) = t_h2osfc(c)
        end do
     end do
 
@@ -484,7 +484,7 @@ contains
           qg_h2osfc(c) = qg(c)
        endif
 
-       ! Ground emissivity - only calculate for non-urban landunits 
+       ! Ground emissivity - only calculate for non-urban landunits
        ! Urban emissivities are currently read in from data file
 
        if (ityplun(l) /= isturb) then
@@ -539,13 +539,13 @@ contains
        l = plandunit(p)
        if (ityplun(l) == isturb) then
          eflx_sh_tot_u(p) = 0.D0
-       else if (ityplun(l) == istsoil .or. ityplun(l) == istcrop) then 
+       else if (ityplun(l) == istsoil .or. ityplun(l) == istcrop) then
          eflx_sh_tot_r(p) = 0.D0
        end if
        eflx_lh_tot(p) = 0.D0
        if (ityplun(l) == isturb) then
          eflx_lh_tot_u(p) = 0.D0
-       else if (ityplun(l) == istsoil .or. ityplun(l) == istcrop) then 
+       else if (ityplun(l) == istsoil .or. ityplun(l) == istcrop) then
          eflx_lh_tot_r(p) = 0.D0
        end if
        eflx_sh_veg(p) = 0.D0
@@ -574,7 +574,7 @@ contains
        z0qv(p)   = z0mv(p)
     end do
 
-    ! Make forcing height a pft-level quantity that is the atmospheric forcing 
+    ! Make forcing height a pft-level quantity that is the atmospheric forcing
     ! height plus each pft's z0m+displa
     do pi = 1,max_pft_per_gcell
        do g = lbg, ubg

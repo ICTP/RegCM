@@ -1,6 +1,6 @@
 module mod_clm_snicar
   !
-  ! Calculate albedo of snow containing impurities 
+  ! Calculate albedo of snow containing impurities
   ! and the evolution of snow effective radius
   !
   use mod_realkinds
@@ -50,7 +50,7 @@ module mod_clm_snicar
   real(rk8), public, parameter :: scvng_fct_mlt_dst4  = 0.01D0
 
   ! Aerosol species indices:
-  !  1= hydrophillic black carbon 
+  !  1= hydrophillic black carbon
   !  2= hydrophobic black carbon
   !  3= hydrophilic organic carbon
   !  4= hydrophobic organic carbon
@@ -187,20 +187,20 @@ module mod_clm_snicar
   contains
 
   !
-  ! Determine reflectance of, and vertically-resolved solar absorption in, 
+  ! Determine reflectance of, and vertically-resolved solar absorption in,
   ! snow with impurities.
   !
-  ! Original references on physical models of snow reflectance include: 
+  ! Original references on physical models of snow reflectance include:
   ! Wiscombe and Warren [1980] and Warren and Wiscombe [1980],
   ! Journal of Atmospheric Sciences, 37,
   !
   ! The multi-layer solution for multiple-scattering used here is from:
   ! Toon et al. [1989], Rapid calculation of radiative heating rates and
-  ! photodissociation rates in inhomogeneous multiple scattering atmospheres, 
+  ! photodissociation rates in inhomogeneous multiple scattering atmospheres,
   ! J. Geophys. Res., 94, D13, 16287-16301
   !
   ! The implementation of the SNICAR model in CLM/CSIM is described in:
-  ! Flanner, M., C. Zender, J. Randerson, and P. Rasch [2007], 
+  ! Flanner, M., C. Zender, J. Randerson, and P. Rasch [2007],
   ! Present-day climate forcing and response from black carbon in snow,
   ! J. Geophys. Res., 112, D11202, doi: 10.1029/2006JD008003
   !
@@ -240,7 +240,7 @@ module mod_clm_snicar
 
     ! negative number of snow layers (col) [nbr]
     integer,  pointer :: snl(:)
-    ! snow liquid water equivalent (col) [kg/m2]   
+    ! snow liquid water equivalent (col) [kg/m2]
     real(rk8), pointer :: h2osno(:)
     ! corresponding landunit of column (col) [idx] (debugging only)
     integer,  pointer :: clandunit(:)
@@ -281,7 +281,7 @@ module mod_clm_snicar
     real(rk8):: asm_prm_snw_lcl(-nlevsno+1:0)
     ! mass extinction coefficient of ice grains (lyr) [m2/kg]
     real(rk8):: ext_cff_mss_snw_lcl(-nlevsno+1:0)
-    ! single-scatter albedo of aerosol species (aer_nbr) [frc] 
+    ! single-scatter albedo of aerosol species (aer_nbr) [frc]
     real(rk8):: ss_alb_aer_lcl(sno_nbr_aer)
     ! asymmetry parameter of aerosol species (aer_nbr) [frc]
     real(rk8):: asm_prm_aer_lcl(sno_nbr_aer)
@@ -299,7 +299,7 @@ module mod_clm_snicar
     real(rk8):: flx_wgt(1:numrad_snw)
 
     ! flag: =1 if there is snow, but zero snow layers,
-    !     =0 if at least 1 snow layer [flg]   
+    !     =0 if at least 1 snow layer [flg]
     integer :: flg_nosnl
     ! flag: =1 to redo RT calculation if result is unrealistic
     integer :: trip
@@ -319,13 +319,13 @@ module mod_clm_snicar
     real(rk8):: L_snw(-nlevsno+1:0)
     ! snow optical depth (lyr) [unitless]
     real(rk8):: tau_snw(-nlevsno+1:0)
-    ! aerosol mass in snow layer (lyr,nbr_aer) [kg/m2] 
+    ! aerosol mass in snow layer (lyr,nbr_aer) [kg/m2]
     real(rk8):: L_aer(-nlevsno+1:0,sno_nbr_aer)
     ! aerosol optical depth (lyr,nbr_aer) [unitless]
     real(rk8):: tau_aer(-nlevsno+1:0,sno_nbr_aer)
     ! cumulative (snow+aerosol) optical depth [unitless]
     real(rk8):: tau_sum
-    ! column optical depth from layer bottom to snowpack top (lyr) [unitless] 
+    ! column optical depth from layer bottom to snowpack top (lyr) [unitless]
     real(rk8):: tau_clm(-nlevsno+1:0)
     ! temporary summation of single-scatter albedo of all aerosols [frc]
     real(rk8):: omega_sum
@@ -373,7 +373,7 @@ module mod_clm_snicar
     real(rk8):: F_abs_sum
     ! upward radiative flux at snowpack top [W/m^2]
     real(rk8):: F_sfc_pls
-    ! net flux at bottom of snowpack [W/m^2]                    
+    ! net flux at bottom of snowpack [W/m^2]
     real(rk8):: F_btm_net
     ! net flux at top of snowpack [W/m^2]
     real(rk8):: F_sfc_net
@@ -408,13 +408,13 @@ module mod_clm_snicar
     real(rk8):: xgamma(-nlevsno+1:0)
     ! two-stream coefficient from Toon et al. (lyr) [unitless]
     real(rk8):: mu_one
-    ! tri-diag intermediate variable from Toon et al. (lyr) 
+    ! tri-diag intermediate variable from Toon et al. (lyr)
     real(rk8):: e1(-nlevsno+1:0)
-    ! tri-diag intermediate variable from Toon et al. (lyr) 
+    ! tri-diag intermediate variable from Toon et al. (lyr)
     real(rk8):: e2(-nlevsno+1:0)
-    ! tri-diag intermediate variable from Toon et al. (lyr) 
+    ! tri-diag intermediate variable from Toon et al. (lyr)
     real(rk8):: e3(-nlevsno+1:0)
-    ! tri-diag intermediate variable from Toon et al. (lyr) 
+    ! tri-diag intermediate variable from Toon et al. (lyr)
     real(rk8):: e4(-nlevsno+1:0)
     ! intermediate variable: upward flux at bottom interface (lyr) [W/m2]
     real(rk8):: C_pls_btm(-nlevsno+1:0)
@@ -455,8 +455,8 @@ module mod_clm_snicar
     end if
 
     frac_sno    => clm3%g%l%c%cps%frac_sno_eff
-    clandunit   => clm3%g%l%c%landunit  
-    ltype       => clm3%g%l%itype      
+    clandunit   => clm3%g%l%c%landunit
+    ltype       => clm3%g%l%itype
 
     ! always use Delta approximation for snow
     delta = 1
@@ -479,11 +479,11 @@ module mod_clm_snicar
         h2osno_lcl = h2osno_ice(c_idx,0)
       end if
 
-      ! Qualifier for computing snow RT: 
-      !  1) sunlight from atmosphere model 
-      !  2) minimum amount of snow on ground. 
+      ! Qualifier for computing snow RT:
+      !  1) sunlight from atmosphere model
+      !  2) minimum amount of snow on ground.
       !     Otherwise, set snow albedo to zero
-      if ((coszen(c_idx) > 0.D0) .and. (h2osno_lcl > min_snw)) then     
+      if ((coszen(c_idx) > 0.D0) .and. (h2osno_lcl > min_snw)) then
 
         ! Set variables specific to CLM
         if (flg_snw_ice == 1) then
@@ -615,7 +615,7 @@ module mod_clm_snicar
             !  NIR (all): Delta-Hemispheric Mean
             !  WARNING:   DO NOT USE delta-EDDINGTON FOR NIR DIFFUSE
             !   - this sometimes results in negative albedo
-            !  
+            !
             ! ERROR CONDITIONS:
             ! Conditions which cause "trip", resulting in redo of RT
             ! approximation:
@@ -711,42 +711,42 @@ module mod_clm_snicar
             end if
 
             ! aerosol species 1 optical properties
-            ss_alb_aer_lcl(1)        = ss_alb_bc1(bnd_idx)      
+            ss_alb_aer_lcl(1)        = ss_alb_bc1(bnd_idx)
             asm_prm_aer_lcl(1)       = asm_prm_bc1(bnd_idx)
             ext_cff_mss_aer_lcl(1)   = ext_cff_mss_bc1(bnd_idx)
 
             ! aerosol species 2 optical properties
-            ss_alb_aer_lcl(2)        = ss_alb_bc2(bnd_idx)      
+            ss_alb_aer_lcl(2)        = ss_alb_bc2(bnd_idx)
             asm_prm_aer_lcl(2)       = asm_prm_bc2(bnd_idx)
             ext_cff_mss_aer_lcl(2)   = ext_cff_mss_bc2(bnd_idx)
 
             ! aerosol species 3 optical properties
-            ss_alb_aer_lcl(3)        = ss_alb_oc1(bnd_idx)      
+            ss_alb_aer_lcl(3)        = ss_alb_oc1(bnd_idx)
             asm_prm_aer_lcl(3)       = asm_prm_oc1(bnd_idx)
             ext_cff_mss_aer_lcl(3)   = ext_cff_mss_oc1(bnd_idx)
 
             ! aerosol species 4 optical properties
-            ss_alb_aer_lcl(4)        = ss_alb_oc2(bnd_idx)      
+            ss_alb_aer_lcl(4)        = ss_alb_oc2(bnd_idx)
             asm_prm_aer_lcl(4)       = asm_prm_oc2(bnd_idx)
             ext_cff_mss_aer_lcl(4)   = ext_cff_mss_oc2(bnd_idx)
 
             ! aerosol species 5 optical properties
-            ss_alb_aer_lcl(5)        = ss_alb_dst1(bnd_idx)      
+            ss_alb_aer_lcl(5)        = ss_alb_dst1(bnd_idx)
             asm_prm_aer_lcl(5)       = asm_prm_dst1(bnd_idx)
             ext_cff_mss_aer_lcl(5)   = ext_cff_mss_dst1(bnd_idx)
 
             ! aerosol species 6 optical properties
-            ss_alb_aer_lcl(6)        = ss_alb_dst2(bnd_idx)      
+            ss_alb_aer_lcl(6)        = ss_alb_dst2(bnd_idx)
             asm_prm_aer_lcl(6)       = asm_prm_dst2(bnd_idx)
             ext_cff_mss_aer_lcl(6)   = ext_cff_mss_dst2(bnd_idx)
 
             ! aerosol species 7 optical properties
-            ss_alb_aer_lcl(7)        = ss_alb_dst3(bnd_idx)      
+            ss_alb_aer_lcl(7)        = ss_alb_dst3(bnd_idx)
             asm_prm_aer_lcl(7)       = asm_prm_dst3(bnd_idx)
             ext_cff_mss_aer_lcl(7)   = ext_cff_mss_dst3(bnd_idx)
 
             ! aerosol species 8 optical properties
-            ss_alb_aer_lcl(8)        = ss_alb_dst4(bnd_idx)      
+            ss_alb_aer_lcl(8)        = ss_alb_dst4(bnd_idx)
             asm_prm_aer_lcl(8)       = asm_prm_dst4(bnd_idx)
             ext_cff_mss_aer_lcl(8)   = ext_cff_mss_dst4(bnd_idx)
 
@@ -769,7 +769,7 @@ module mod_clm_snicar
               g_sum     = 0.D0
 
               do j = 1 , sno_nbr_aer
-                tau_sum    = tau_sum + tau_aer(i,j) 
+                tau_sum    = tau_sum + tau_aer(i,j)
                 omega_sum  = omega_sum + (tau_aer(i,j)*ss_alb_aer_lcl(j))
                 g_sum = g_sum + &
                         (tau_aer(i,j)*ss_alb_aer_lcl(j)*asm_prm_aer_lcl(j))
@@ -910,7 +910,7 @@ module mod_clm_snicar
             ! Coefficients for tridiaganol matrix solution
             do i = 2*snl_lcl+1 , 0 , 1
               ! Boundary values for i=1 and i=2*snl_lcl,
-              ! specifics for i=odd and i=even    
+              ! specifics for i=odd and i=even
               if ( i == (2*snl_lcl+1) ) then
                 A(i) = 0.0D0
                 B(i) = e1(snl_top)
@@ -935,7 +935,7 @@ module mod_clm_snicar
                 B(i) = (e2(n)*e2(n+1))-(e4(n)*e4(n+1))
                 D(i) = (e1(n+1)*e4(n+1))-(e2(n+1)*e3(n+1))
                 E(i) = (e2(n+1)*(C_pls_top(n+1) - &
-                     C_pls_btm(n)))+(e4(n+1)*(C_mns_top(n+1)-C_mns_btm(n))) 
+                     C_pls_btm(n)))+(e4(n+1)*(C_mns_top(n+1)-C_mns_btm(n)))
               end if
             end do
 
@@ -1039,7 +1039,7 @@ module mod_clm_snicar
               trip = 1
             end if
 
-            ! Set conditions for redoing RT calculation 
+            ! Set conditions for redoing RT calculation
             if ( (trip == 1) .and. (flg_dover == 1) ) then
               flg_dover = 2
             else if ( (trip == 1) .and. (flg_dover == 2) ) then
@@ -1153,35 +1153,35 @@ module mod_clm_snicar
     end do    ! loop over all columns
   end subroutine SNICAR_RT
   !
-  ! Updates the snow effective grain size (radius). 
+  ! Updates the snow effective grain size (radius).
   ! Contributions to grain size evolution are from:
-  !   1. vapor redistribution (dry snow) 
+  !   1. vapor redistribution (dry snow)
   !   2. liquid water redistribution (wet snow)
   !   3. re-freezing of liquid water
-  ! 
+  !
   ! Vapor redistribution: Method is to retrieve 3 best-bit parameters that
   ! depend on snow temperature, temperature gradient, and density,
-  ! that are derived from the microphysical model described in: 
+  ! that are derived from the microphysical model described in:
   ! Flanner and Zender (2006), Linking snowpack microphysics and albedo
-  ! evolution, J. Geophys. Res., 111, D12208, doi:10.1029/2005JD006834. 
-  ! The parametric equation has the form: 
+  ! evolution, J. Geophys. Res., 111, D12208, doi:10.1029/2005JD006834.
+  ! The parametric equation has the form:
   ! dr/dt = drdt_0*(tau/(dr_fresh+tau))^(1/kappa), where:
   !   r is the effective radius,
   !   tau and kappa are best-fit parameters,
   !   drdt_0 is the initial rate of change of effective radius, and
-  !   dr_fresh is the difference between the current and fresh snow states 
+  !   dr_fresh is the difference between the current and fresh snow states
   !  (r_current - r_fresh).
   !
   ! Liquid water redistribution: Apply the grain growth function from:
-  !   Brun, E. (1989), Investigation of wet-snow metamorphism in respect of 
+  !   Brun, E. (1989), Investigation of wet-snow metamorphism in respect of
   !   liquid-water content, Annals of Glaciology, 13, 22-26.
-  !   There are two parameters that describe the grain growth rate as 
+  !   There are two parameters that describe the grain growth rate as
   !   a function of snow liquid water content (LWC). The "LWC=0" parameter
-  !   is zeroed here because we are accounting for dry snowing with a 
+  !   is zeroed here because we are accounting for dry snowing with a
   !   different representation
   !
   ! Re-freezing of liquid water: Assume that re-frozen liquid water
-  !   into an arbitrarily large effective grain size (snw_rds_refrz). 
+  !   into an arbitrarily large effective grain size (snw_rds_refrz).
   !   The phenomenon is observed (Grenfell), but so far unquantified,
   !   as far as I am aware.
   !
@@ -1243,7 +1243,7 @@ module mod_clm_snicar
     ! snow aging lookup table temperature index [idx]
     integer :: T_idx
     ! snow aging lookup table temperature gradient index [idx]
-    integer :: Tgrd_idx 
+    integer :: Tgrd_idx
     ! snow aging lookup table snow density index [idx]
     integer :: rhos_idx
     ! temperature at upper layer boundary [K]
@@ -1271,7 +1271,7 @@ module mod_clm_snicar
     real(rk8) :: frc_oldsnow
     ! fraction of layer mass that is re-frozen snow [frc]
     real(rk8) :: frc_refrz
-    ! fraction of layer mass that is liquid water[frc]    
+    ! fraction of layer mass that is liquid water[frc]
     real(rk8) :: frc_liq
     real(rk8) :: rhos  ! snow density [kg m-3]
     ! liquid + solid H2O in snow layer [kg m-2]
@@ -1296,7 +1296,7 @@ module mod_clm_snicar
     qflx_snwcp_ice     => clm3%g%l%c%cwf%pwf_a%qflx_snwcp_ice
     qflx_snofrz_lyr    => clm3%g%l%c%cwf%qflx_snofrz_lyr
     do_capsnow         => clm3%g%l%c%cps%do_capsnow
-    frac_sno           => clm3%g%l%c%cps%frac_sno_eff 
+    frac_sno           => clm3%g%l%c%cps%frac_sno_eff
 
 
     ! loop over columns that have at least one snow layer
@@ -1316,7 +1316,7 @@ module mod_clm_snicar
         h2osno_lyr = h2osoi_liq(c_idx,i) + h2osoi_ice(c_idx,i)
 
         ! temperature gradient
-        if ( i == snl_top ) then 
+        if ( i == snl_top ) then
           ! top layer
           t_snotop = t_soisno(c_idx,snl_top)
           t_snobtm = (t_soisno(c_idx,i+1)*dz(c_idx,i) &
@@ -1346,28 +1346,28 @@ module mod_clm_snicar
         rhos_idx = nint((rhos-50.0D0) / 50.0D0) + 1
 
         ! boundary check:
-        if (T_idx < idx_T_min) then 
+        if (T_idx < idx_T_min) then
           T_idx = idx_T_min
         end if
-        if (T_idx > idx_T_max) then 
+        if (T_idx > idx_T_max) then
           T_idx = idx_T_max
         end if
-        if (Tgrd_idx < idx_Tgrd_min) then 
+        if (Tgrd_idx < idx_Tgrd_min) then
           Tgrd_idx = idx_Tgrd_min
         end if
-        if (Tgrd_idx > idx_Tgrd_max) then 
+        if (Tgrd_idx > idx_Tgrd_max) then
           Tgrd_idx = idx_Tgrd_max
         end if
-        if (rhos_idx < idx_rhos_min) then 
+        if (rhos_idx < idx_rhos_min) then
           rhos_idx = idx_rhos_min
         end if
-        if (rhos_idx > idx_rhos_max) then 
+        if (rhos_idx > idx_rhos_max) then
           rhos_idx = idx_rhos_max
         end if
 
         ! best-fit parameters
         bst_tau   = snowage_tau(rhos_idx,Tgrd_idx,T_idx)
-        bst_kappa = snowage_kappa(rhos_idx,Tgrd_idx,T_idx)     
+        bst_kappa = snowage_kappa(rhos_idx,Tgrd_idx,T_idx)
         bst_drdt0 = snowage_drdt0(rhos_idx,Tgrd_idx,T_idx)
 
         ! change in snow effective radius, using best-fit parameters
@@ -1378,8 +1378,8 @@ module mod_clm_snicar
         !
         !**********  2. WET SNOW AGING  ***********
         !
-        ! We are assuming wet and dry evolution occur simultaneously, and 
-        ! the contributions from both can be summed. 
+        ! We are assuming wet and dry evolution occur simultaneously, and
+        ! the contributions from both can be summed.
         ! This is justified by setting the linear offset constant
         ! C1_liq_Brun89 to zero [Brun, 1989]
 

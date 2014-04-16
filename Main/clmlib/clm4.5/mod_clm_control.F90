@@ -38,7 +38,7 @@ module mod_clm_control
 #endif
 #endif
   ! Lakes
-  ! lake_use_old_fcrit_minz0 , lakepuddling , lake_puddle_thick 
+  ! lake_use_old_fcrit_minz0 , lakepuddling , lake_puddle_thick
   ! and lake_no_ed are currently hardwired.
   use mod_clm_slakecon , only : deepmixing_depthcrit , deepmixing_mixfact , &
           lake_melt_icealb
@@ -74,7 +74,7 @@ module mod_clm_control
   use mod_clm_cndecompcascadecentury , only: decomp_depth_efolding , froz_q10
 #endif
 
-#endif         
+#endif
 
 #if (defined CN) && (defined NITRIF_DENITRIF)
   use mod_clm_cnnitrifdenitrif , only: no_frozen_nitrif_denitrif
@@ -191,7 +191,7 @@ module mod_clm_control
          decomp_depth_efolding, froz_q10
 
     ! C and N input vertical profiles
-    namelist /clm_inparm/  & 
+    namelist /clm_inparm/  &
           exponential_rooting_profile, rootprof_exp, &
           surfprof_exp, pftspecific_rootingprofile
 #endif
@@ -225,7 +225,7 @@ module mod_clm_control
     if ( myid == iocpu ) then
 
       ! ----------------------------------------------------------------------
-      ! Read namelist from standard input. 
+      ! Read namelist from standard input.
       ! ----------------------------------------------------------------------
 
       if ( len_trim(namelistfile) == 0  )then
@@ -318,9 +318,9 @@ module mod_clm_control
     call fatal(__FILE__,__LINE__,'clm now stopping')
   end subroutine control_init
   !
-  ! Distribute namelist data all processors. All program i/o is 
-  ! funnelled through the master processor. Processor 0 either 
-  ! reads restart/history data from the disk and distributes 
+  ! Distribute namelist data all processors. All program i/o is
+  ! funnelled through the master processor. Processor 0 either
+  ! reads restart/history data from the disk and distributes
   ! it to all processors, or collects data from
   ! all processors and writes it to disk.
   !

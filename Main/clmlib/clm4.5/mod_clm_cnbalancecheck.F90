@@ -183,7 +183,7 @@ subroutine CBalanceCheck(lbc, ubc, num_soilc, filter_soilc)
 !
 ! local pointers to implicit in arrays
    real(rk8), pointer :: totcolc(:)            ! (gC/m2) total column carbon, incl veg and cpool
-   real(rk8), pointer :: gpp(:)            ! (gC/m2/s) gross primary production 
+   real(rk8), pointer :: gpp(:)            ! (gC/m2/s) gross primary production
    real(rk8), pointer :: er(:)            ! (gC/m2/s) total ecosystem respiration, autotrophic + heterotrophic
    real(rk8), pointer :: col_fire_closs(:) ! (gC/m2/s) total column-level fire C loss
    real(rk8), pointer :: col_hrv_xsmrpool_to_atm(:)  ! excess MR pool harvest mortality (gC/m2/s)
@@ -308,7 +308,7 @@ subroutine NBalanceCheck(lbc, ubc, num_soilc, filter_soilc)
 ! local pointers to implicit in arrays
    real(rk8), pointer :: totcoln(:)               ! (gN/m2) total column nitrogen, incl veg
    real(rk8), pointer :: ndep_to_sminn(:)         ! atmospheric N deposition to soil mineral N (gN/m2/s)
-   real(rk8), pointer :: nfix_to_sminn(:)         ! symbiotic/asymbiotic N fixation to soil mineral N (gN/m2/s) 
+   real(rk8), pointer :: nfix_to_sminn(:)         ! symbiotic/asymbiotic N fixation to soil mineral N (gN/m2/s)
    real(rk8), pointer :: fert_to_sminn(:)
    real(rk8), pointer :: soyfixn_to_sminn(:)
    real(rk8), pointer :: supplement_to_sminn(:)   ! supplemental N supply (gN/m2/s)

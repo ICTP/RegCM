@@ -7,7 +7,7 @@ module mod_clm_vicmap
 !
 ! !DESCRIPTION:
 ! Performs  the mapping from CLM layers to VIC layers
-! Specifically, 10 (or 23 when more_vertlayers == .true.) 
+! Specifically, 10 (or 23 when more_vertlayers == .true.)
 ! CLM hydrologically active soil layers are mapped to three VIC layers
 ! by assigning the first nlvic(1) layers to VIC layer 1
 !              the next nlvic(2) layers  to VIC alyer 2
@@ -28,7 +28,7 @@ module mod_clm_vicmap
 #if (defined VICHYDRO)
   public  :: initCLMVICMap   ! map layer/node fractions
   public  :: CLMVICMap          ! map from VIC to CLM layers
-  private :: linear_interp      ! function for linear interperation 
+  private :: linear_interp      ! function for linear interperation
 !
 ! !REVISION HISTORY:
 ! Created by Aihui Wang, 2008
@@ -50,12 +50,12 @@ subroutine initCLMVICMap(c)
 ! !DESCRIPTION:
 ! This subroutine calculates mapping between CLM and VIC layers
 ! added by AWang
-! modified by M.Huang for CLM4 
+! modified by M.Huang for CLM4
 !
 ! !USES:
    use mod_clm_type
    use mod_clm_varcon  , only : denh2o, denice, pondmx
-   use mod_clm_varpar  , only : nlevsoi, nlayer, nlayert, nlevgrnd 
+   use mod_clm_varpar  , only : nlevsoi, nlayer, nlayert, nlevgrnd
 
    ! !ARGUMENTS:
     implicit none
@@ -63,7 +63,7 @@ subroutine initCLMVICMap(c)
 
 ! !REVISION HISTORY:
 ! Created by Maoyi Huang
-! 11/13/2012, Maoyi Huang: rewrite the mapping modules in CLM4VIC 
+! 11/13/2012, Maoyi Huang: rewrite the mapping modules in CLM4VIC
 !
 !local pointers to original implicit in arrays
 
@@ -90,7 +90,7 @@ subroutine initCLMVICMap(c)
     z          => clm3%g%l%c%cps%z
     depth      => clm3%g%l%c%cps%depth
     vic_clm_fract => clm3%g%l%c%cps%vic_clm_fract
-!************************************************************************  
+!************************************************************************
 
 !  set fraction of VIC layer in each CLM layer
 
@@ -125,7 +125,7 @@ subroutine initCLMVICMap(c)
          sum_frac(i) = sum_frac(i) + vic_clm_fract(c,i,j)
      end do                           ! end CLM layer calculation
      lsum = lsum + deltal(i)
-   end do                             ! end VIC layer calcultion 
+   end do                             ! end VIC layer calcultion
 
 end subroutine initCLMVICMap
 
@@ -143,11 +143,11 @@ subroutine CLMVICMap(lbc, ubc, numf, filter)
 ! !USES:
    use mod_clm_type
    use mod_clm_varcon  , only : denh2o, denice, pondmx, watmin
-   use mod_clm_varpar  , only : nlevsoi, nlayer, nlayert, nlevgrnd 
+   use mod_clm_varpar  , only : nlevsoi, nlayer, nlayert, nlevgrnd
 
 ! !REVISION HISTORY:
 ! Created by Maoyi Huang
-! 11/13/2012, Maoyi Huang: rewrite the mapping modules in CLM4VIC 
+! 11/13/2012, Maoyi Huang: rewrite the mapping modules in CLM4VIC
 
    ! !ARGUMENTS:
     implicit none
@@ -170,7 +170,7 @@ subroutine CLMVICMap(lbc, ubc, numf, filter)
     real(rk8), pointer :: moist_vol(:,:)             !volumetric soil moisture for VIC soil layers
     real(rk8), pointer :: h2osoi_vol(:,:)            !volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]  (nlevgrnd)
     real(rk8), pointer :: porosity(:,:)              !soil porisity (1-bulk_density/soil_density)
-    real(rk8), pointer :: vic_clm_fract(:,:,:)       !fraction of VIC layers in each CLM layer 
+    real(rk8), pointer :: vic_clm_fract(:,:,:)       !fraction of VIC layers in each CLM layer
 !
 !local variables
     real(rk8) :: ice0(1:nlayer)            ! last step ice lens (mm)  (new)
@@ -230,7 +230,7 @@ subroutine linear_interp(x,y, x0, x1, y0, y1)
 ! !DESCRIPTION:
 ! This subroutine provides linear interpolation
 
-! !USES:  
+! !USES:
 
 ! !ARGUMENTS:
    implicit none

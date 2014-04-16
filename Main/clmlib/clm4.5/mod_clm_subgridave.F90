@@ -58,7 +58,7 @@ module mod_clm_subgridave
   end interface
 
   ! - I believe that scale_p2c, scale_c2l and scale_l2g should be included in
-  !   the sumwt accumulations (e.g., sumwt = sumwt + wtgcell * scale_p2c * 
+  !   the sumwt accumulations (e.g., sumwt = sumwt + wtgcell * scale_p2c *
   !   scale_c2l * scale_l2g), but that requires some more thought to (1) make
   !   sure that is correct, and (2) make sure it doesn't break the urban
   !   scaling. (See also my notes in create_scale_l2g_lookup.)
@@ -211,7 +211,7 @@ module mod_clm_subgridave
              'p2c_2d error: sumwt is greater than 1.0 at c= ',iind,' lev= ',j
         call fatal(__FILE__,__LINE__,'clm is now stopping')
       end if
-    end do 
+    end do
   end subroutine p2c_2d
   !
   ! perform pft to column averaging for single level pft arrays
@@ -337,12 +337,12 @@ module mod_clm_subgridave
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
       do c = lbc , ubc
-        l = clandunit(c) 
+        l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l) 
+            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l) 
+            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
             scale_c2l(c) = 3.0D0
@@ -355,7 +355,7 @@ module mod_clm_subgridave
       end do
     else if ( c2l_scale_type == 'urbans' ) then
       do c = lbc , ubc
-        l = clandunit(c) 
+        l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
             scale_c2l(c) = (3.0D0 * canyon_hwr(l))/(2.0D0*canyon_hwr(l)+1.0D0)
@@ -473,12 +473,12 @@ module mod_clm_subgridave
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
       do c = lbc , ubc
-        l = clandunit(c) 
+        l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l) 
+            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l) 
+            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
             scale_c2l(c) = 3.0D0
@@ -491,7 +491,7 @@ module mod_clm_subgridave
       end do
     else if ( c2l_scale_type == 'urbans' ) then
       do c = lbc , ubc
-        l = clandunit(c) 
+        l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
             scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
@@ -620,12 +620,12 @@ module mod_clm_subgridave
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
       do c = lbc , ubc
-        l = clandunit(c) 
+        l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l) 
+            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l) 
+            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
             scale_c2l(c) = 3.0D0
@@ -638,7 +638,7 @@ module mod_clm_subgridave
       end do
     else if ( c2l_scale_type == 'urbans' ) then
       do c = lbc , ubc
-        l = clandunit(c) 
+        l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
             scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
@@ -766,12 +766,12 @@ module mod_clm_subgridave
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
       do c = lbc , ubc
-        l = clandunit(c) 
+        l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l) 
+            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l) 
+            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
             scale_c2l(c) = 3.0D0
@@ -784,7 +784,7 @@ module mod_clm_subgridave
       end do
     else if ( c2l_scale_type == 'urbans' ) then
       do c = lbc , ubc
-        l = clandunit(c) 
+        l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
             scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
@@ -894,12 +894,12 @@ module mod_clm_subgridave
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
       do c = lbc , ubc
-        l = clandunit(c) 
+        l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l) 
+            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l) 
+            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
             scale_c2l(c) = 3.0D0
@@ -912,7 +912,7 @@ module mod_clm_subgridave
       end do
     else if ( c2l_scale_type == 'urbans' ) then
       do c = lbc , ubc
-        l = clandunit(c) 
+        l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
             scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
@@ -1009,12 +1009,12 @@ module mod_clm_subgridave
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
       do c = lbc , ubc
-        l = clandunit(c) 
+        l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l) 
+            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l) 
+            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
             scale_c2l(c) = 3.0D0
@@ -1027,7 +1027,7 @@ module mod_clm_subgridave
       end do
     else if ( c2l_scale_type == 'urbans' ) then
       do c = lbc , ubc
-        l = clandunit(c) 
+        l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
             scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
@@ -1133,12 +1133,12 @@ module mod_clm_subgridave
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
       do c = lbc , ubc
-        l = clandunit(c) 
+        l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l) 
+            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l) 
+            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
             scale_c2l(c) = 3.0D0
@@ -1151,7 +1151,7 @@ module mod_clm_subgridave
       end do
     else if ( c2l_scale_type == 'urbans' ) then
       do c = lbc , ubc
-        l = clandunit(c) 
+        l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
             scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
@@ -1259,12 +1259,12 @@ module mod_clm_subgridave
       end do
     else if ( c2l_scale_type == 'urbanf' ) then
       do c = lbc , ubc
-        l = clandunit(c) 
+        l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l) 
+            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
           else if ( ctype(c) == icol_shadewall ) then
-            scale_c2l(c) = 3.0D0 * canyon_hwr(l) 
+            scale_c2l(c) = 3.0D0 * canyon_hwr(l)
           else if ( ctype(c) == icol_road_perv .or. &
                     ctype(c) == icol_road_imperv ) then
             scale_c2l(c) = 3.0D0
@@ -1277,7 +1277,7 @@ module mod_clm_subgridave
       end do
     else if ( c2l_scale_type == 'urbans' ) then
       do c = lbc , ubc
-        l = clandunit(c) 
+        l = clandunit(c)
         if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_sunwall ) then
             scale_c2l(c) = (3.0D0 * canyon_hwr(l)) / (2.D0*canyon_hwr(l) + 1.D0)
@@ -1468,7 +1468,7 @@ module mod_clm_subgridave
      ! scale factor type for averaging
      character(len=*) , intent(in) :: l2g_scale_type
      integer(ik4) , intent(in) :: lbl , ubl ! column indices
-     real(rk8) , intent(out) , dimension(lbl:ubl) :: scale_l2g ! scale factor 
+     real(rk8) , intent(out) , dimension(lbl:ubl) :: scale_l2g ! scale factor
      ! scale factor for each landunit type
      real(rk8) , dimension(max_lunit) :: scale_lookup
      integer(ik4) :: l                       ! index
@@ -1482,7 +1482,7 @@ module mod_clm_subgridave
        scale_l2g(l) = scale_lookup(ltype(l))
      end do
   end subroutine build_scale_l2g
-  ! 
+  !
   ! Create a lookup array, scale_lookup(1..max_lunit), which gives the
   ! scale factor for each landunit type depending on l2g_scale_type
   !

@@ -127,8 +127,8 @@ contains
     integer , pointer :: pcolumn(:)         ! pft's column index
     integer , pointer :: plandunit(:)       ! pft's landunit index
     integer , pointer :: pgridcell(:)       ! pft's gridcell index
-    integer , pointer :: npfts(:)           ! column's number of pfts 
-    integer , pointer :: pfti(:)            ! column's beginning pft index 
+    integer , pointer :: npfts(:)           ! column's number of pfts
+    integer , pointer :: pfti(:)            ! column's beginning pft index
     integer , pointer :: snl(:)             ! number of snow layers
     logical , pointer :: do_capsnow(:)      ! true => do snow capping
     real(rk8), pointer :: forc_lwrad(:)      ! downward infrared (longwave) radiation (W/m**2)
@@ -162,9 +162,9 @@ contains
     real(rk8), pointer :: qflx_evap_soi(:)   ! soil evaporation (mm H2O/s) (+ = to atm)
     real(rk8), pointer :: qflx_snwcp_liq(:)  ! excess rainfall due to snow capping (mm H2O /s)
     real(rk8), pointer :: qflx_snwcp_ice(:)  ! excess snowfall due to snow capping (mm H2O /s)
-! 
+!
 ! local pointers to implicit out arguments
-! 
+!
     real(rk8), pointer :: dt_grnd(:)         ! change in t_grnd, last iteration (Kelvin)
     real(rk8), pointer :: eflx_soil_grnd(:)  ! soil heat flux (W/m**2) [+ = into soil]
     real(rk8), pointer :: eflx_soil_grnd_u(:)! urban soil heat flux (W/m**2) [+ = into soil]
@@ -227,8 +227,8 @@ contains
 
     ! Assign local pointers to derived subtypes components (column-level)
 
-    frac_sno_eff  => clm3%g%l%c%cps%frac_sno_eff 
-    frac_sno      => clm3%g%l%c%cps%frac_sno 
+    frac_sno_eff  => clm3%g%l%c%cps%frac_sno_eff
+    frac_sno      => clm3%g%l%c%cps%frac_sno
     h2osfc        => clm3%g%l%c%cws%h2osfc
     frac_h2osfc   => clm3%g%l%c%cps%frac_h2osfc
     t_h2osfc      => clm3%g%l%c%ces%t_h2osfc
@@ -431,7 +431,7 @@ contains
           end if
        else
           ! For all urban columns we use the net longwave radiation (eflx_lwrad_net) since
-          ! the term (emg*sb*tssbef(snl+1)**4) is not the upward longwave flux because of 
+          ! the term (emg*sb*tssbef(snl+1)**4) is not the upward longwave flux because of
           ! interactions between urban columns.
 
           eflx_lwrad_del(p) = 4.D0*emg(c)*sb*t_grnd0(c)**3*tinc(c)
@@ -467,7 +467,7 @@ contains
        qflx_dew_grnd(p) = 0.D0
 
        if (qflx_ev_snow(p) >= 0.D0) then
-          ! for evaporation partitioning between liquid evap and ice sublimation, 
+          ! for evaporation partitioning between liquid evap and ice sublimation,
     ! use the ratio of liquid to (liquid+ice) in the top layer to determine split
     if ((h2osoi_liq(c,j)+h2osoi_ice(c,j)) > 0.) then
              qflx_evap_grnd(p) = max(qflx_ev_snow(p)*(h2osoi_liq(c,j)/(h2osoi_liq(c,j)+h2osoi_ice(c,j))), 0.D0)
@@ -513,7 +513,7 @@ contains
        ! For urban sunwall, shadewall, and roof columns, the "soil" energy balance check
        ! must include the heat flux from the interior of the building.
        if (ctype(c)==icol_sunwall .or. ctype(c)==icol_shadewall .or. ctype(c)==icol_roof) then
-          errsoi_pft(p) = errsoi_pft(p) + eflx_building_heat(c) 
+          errsoi_pft(p) = errsoi_pft(p) + eflx_building_heat(c)
        end if
     end do
     do j = -nlevsno+1,nlevgrnd
@@ -534,8 +534,8 @@ contains
 
     ! Outgoing long-wave radiation from vegetation + ground
     ! For conservation we put the increase of ground longwave to outgoing
-    ! For urban pfts, ulrad=0 and (1-fracveg_nosno)=1, and eflx_lwrad_out and eflx_lwrad_net 
-    ! are calculated in UrbanRadiation. The increase of ground longwave is added directly 
+    ! For urban pfts, ulrad=0 and (1-fracveg_nosno)=1, and eflx_lwrad_out and eflx_lwrad_net
+    ! are calculated in UrbanRadiation. The increase of ground longwave is added directly
     ! to the outgoing longwave and the net longwave.
 
     do fp = 1,num_nolakep

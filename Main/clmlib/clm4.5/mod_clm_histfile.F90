@@ -150,7 +150,7 @@ module mod_clm_histfile
   private :: hfields_1dinfo
   ! Updates history buffer for specific field and tape
   private :: hist_update_hbuf_field_1d
-  ! Updates history buffer for specific field and tape 
+  ! Updates history buffer for specific field and tape
   private :: hist_update_hbuf_field_2d
   ! Find index of field in exclude list
   private :: list_index
@@ -192,7 +192,7 @@ module mod_clm_histfile
     character(len=8) :: type1d
     ! hbuf first dimension type from clmtype (nameg, etc)
     character(len=8) :: type1d_out
-    ! hbuf second dimension type ["levgrnd","levlak", 
+    ! hbuf second dimension type ["levgrnd","levlak",
     !                             "numrad","subname(n)"]
     character(len=8) :: type2d
     ! on-node 1d clm pointer start index
@@ -209,7 +209,7 @@ module mod_clm_histfile
     integer(ik4) :: num1d_out
     ! size of hbuf second dimension (e.g. number of vertical levels)
     integer(ik4) :: num2d
-    ! history pointer index 
+    ! history pointer index
     integer(ik4) :: hpindex
     ! scale factor when averaging pft to column
     character(len=8) :: p2c_scale_type
@@ -1184,7 +1184,7 @@ module mod_clm_histfile
           if ( end1d .eq. ubound(field,1) ) then
             k_offset = 0
           else
-            k_offset = 1 - beg1d 
+            k_offset = 1 - beg1d
           end if
           do k = beg1d , end1d
             valid = .true.
@@ -2127,7 +2127,7 @@ module mod_clm_histfile
       end if
     end if
 
-    ! Define time-dependent variables create variables and 
+    ! Define time-dependent variables create variables and
     ! attributes for field list
 
     do f = 1 , tape(t)%nflds
@@ -2586,7 +2586,7 @@ module mod_clm_histfile
       end if
     end do
 
-    ! Reset number of time samples to zero if file is full 
+    ! Reset number of time samples to zero if file is full
 
     do t = 1 , ntapes
       if ( if_disphist(t) .and. tape(t)%ntimes==tape(t)%mfilt ) then
@@ -2703,13 +2703,13 @@ module mod_clm_histfile
                      & simulations')
 
       ! max_nflds is the maximum number of fields on any tape
-      ! max_flds is the maximum number possible number of fields 
+      ! max_flds is the maximum number possible number of fields
 
       max_nflds = max_nFields()
 
       call get_proc_global(numg,numl,numc,nump)
 
-      ! Loop over tapes - write out namelist information to each 
+      ! Loop over tapes - write out namelist information to each
       ! restart-history tape only read/write accumulators and
       ! counters if needed
 
@@ -2864,7 +2864,7 @@ module mod_clm_histfile
 
         call clm_enddef(ncid_hist(t))
 
-      end do   ! end of ntapes loop   
+      end do   ! end of ntapes loop
 
       return
 
@@ -2951,7 +2951,7 @@ module mod_clm_histfile
         call clm_writevar(ncid_hist(t),'c2l_scale_type',tmpstr(:,5))
         call clm_writevar(ncid_hist(t),'l2g_scale_type',tmpstr(:,6))
         deallocate(tname,tlongname,tunits,tmpstr,tavgflag)
-      end do       
+      end do
       deallocate(itemp2d)
 
     !================================================
@@ -3159,7 +3159,7 @@ module mod_clm_histfile
     ! so that subsequent time samples are added until the file is full.
     !======================================================================
 
-    if ( flag == 'write' ) then     
+    if ( flag == 'write' ) then
 
       do t = 1 , ntapes
         if ( .not. tape(t)%is_endhist ) then
@@ -3195,9 +3195,9 @@ module mod_clm_histfile
           end do
         end if  ! end of is_endhist block
         call clm_closefile(ncid_hist(t))
-      end do   ! end of ntapes loop   
+      end do   ! end of ntapes loop
 
-    else if (flag == 'read') then 
+    else if (flag == 'read') then
 
       ! Read history restart information if history files are not full
 

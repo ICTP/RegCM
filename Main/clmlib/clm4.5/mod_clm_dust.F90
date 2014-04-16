@@ -2,7 +2,7 @@ module mod_clm_dust
   !
   ! Routines in this module calculate Dust mobilization and dry deposition
   ! for dust.
-  ! Simulates dust mobilization due to wind from the surface into the 
+  ! Simulates dust mobilization due to wind from the surface into the
   ! lowest atmospheric layer. On output flx_mss_vrt_dst(ndst) is the surface
   ! dust emission (kg/m**2/s) [ + = to atm].
   ! Calculates the turbulent component of dust dry deposition, (the turbulent
@@ -29,10 +29,10 @@ module mod_clm_dust
 
   save
   public :: Dustini        ! Initialize variables used in subroutine Dust
-  public :: DustEmission   ! Dust mobilization 
+  public :: DustEmission   ! Dust mobilization
   public :: DustDryDep     ! Turbulent dry deposition for dust
 
-  real(rk8) :: ovr_src_snk_mss(dst_src_nbr,ndst)  
+  real(rk8) :: ovr_src_snk_mss(dst_src_nbr,ndst)
   !Factor in saltation computation (named as in Charlie's code)
   real(rk8) :: tmp1
   real(rk8) :: dmt_vwr(ndst) ![m] Mass-weighted mean diameter resolved
@@ -43,7 +43,7 @@ module mod_clm_dust
   !
   ! Dust mobilization. This code simulates dust mobilization due to wind
   ! from the surface into the lowest atmospheric layer
-  ! On output flx_mss_vrt_dst(ndst) is the surface dust emission 
+  ! On output flx_mss_vrt_dst(ndst) is the surface dust emission
   ! (kg/m**2/s) [ + = to atm]
   ! Source: C. Zender's dust model
   !
@@ -80,9 +80,9 @@ module mod_clm_dust
     real(rk8), pointer :: h2osoi_ice(:,:)  ! frozen soil water (kg/m2)
     real(rk8), pointer :: watsat(:,:)      ! saturated volumetric soil water
 
-    ! surface dust emission (kg/m**2/s) 
+    ! surface dust emission (kg/m**2/s)
     real(rk8), pointer :: flx_mss_vrt_dst(:,:)
-    ! total dust flux into atmosphere 
+    ! total dust flux into atmosphere
     real(rk8), pointer :: flx_mss_vrt_dst_tot(:)
 
     integer(ik4)  :: fp,p,c,l,g,m,n  ! indices
@@ -209,8 +209,8 @@ module mod_clm_dust
           lnd_frc_mbl(p) = 0.0D0
         endif
         lnd_frc_mbl(p) = lnd_frc_mbl(p) * (1.0D0 - frac_sno(c))
-      else          
-        lnd_frc_mbl(p) = 0.0D0   
+      else
+        lnd_frc_mbl(p) = 0.0D0
       end if
     end do
 
@@ -243,7 +243,7 @@ module mod_clm_dust
       l = plandunit(p)
       g = pgridcell(p)
 
-      ! only perform the following calculations if lnd_frc_mbl is non-zero 
+      ! only perform the following calculations if lnd_frc_mbl is non-zero
 
       if (lnd_frc_mbl(p) > 0.0D0) then
 
@@ -297,7 +297,7 @@ module mod_clm_dust
 
         wnd_rfr_thr_slt = u10(p) * wnd_frc_thr_slt / fv(p)
 
-        ! the following if-block comes from subr. wnd_frc_slt_get 
+        ! the following if-block comes from subr. wnd_frc_slt_get
         ! purpose: compute the saltating friction velocity
         ! theory: saltation roughens the boundary layer, AKA "Owen's effect"
 
@@ -363,10 +363,10 @@ module mod_clm_dust
     end do
   end subroutine DustEmission
   !
-  ! Determine Turbulent dry deposition for dust. Calculate the turbulent 
-  ! component of dust dry deposition, (the turbulent deposition velocity 
-  ! through the lowest atmospheric layer. CAM will calculate the settling 
-  ! velocity through the whole atmospheric column. The two calculations 
+  ! Determine Turbulent dry deposition for dust. Calculate the turbulent
+  ! component of dust dry deposition, (the turbulent deposition velocity
+  ! through the lowest atmospheric layer. CAM will calculate the settling
+  ! velocity through the whole atmospheric column. The two calculations
   ! will determine the dust dry deposition flux to the surface.
   ! Note: Same process should occur over oceans. For the coupled CESM,
   ! we may find it more efficient to let CAM calculate the turbulent dep
@@ -409,7 +409,7 @@ module mod_clm_dust
     real(rk8) :: slp_crc(lbp:ubp,ndst) ! [frc] Slip correction factor
     real(rk8) :: vlc_grv(lbp:ubp,ndst) ! [m s-1] Settling velocity
     real(rk8) :: rss_lmn(lbp:ubp,ndst) ! [s m-1] Quasi-laminar layer resistance
-    real(rk8) :: tmp                   ! temporary 
+    real(rk8) :: tmp                   ! temporary
 
     real(rk8),parameter::shm_nbr_xpn_lnd=-2.D0/3.D0 ![frc] shm_nbr_xpn over land
 
@@ -483,7 +483,7 @@ module mod_clm_dust
           ! if (oro(i)==0.0) shm_nbr_xpn=shm_nbr_xpn_ocn else
           ! shm_nbr_xpn=shm_nbr_xpn_lnd
           ! [frc] Surface-dependent exponent for aerosol-diffusion
-          ! dependence on Schmidt # 
+          ! dependence on Schmidt #
 
           if ( 3.0D0/stk_nbr < 25 ) then
             tmp = shm_nbr**shm_nbr_xpn + 10.0D0**(-3.0D0/stk_nbr)
@@ -514,7 +514,7 @@ module mod_clm_dust
         vlc_trb_3(p) = vlc_trb(p,3)
         vlc_trb_4(p) = vlc_trb(p,4)
       end if
-    end do 
+    end do
 
   end subroutine DustDryDep
   !
@@ -555,7 +555,7 @@ module mod_clm_dust
     real(rk8) :: vlc_grv(ndst)  ! [m s-1] Settling velocity
     real(rk8) :: ryn_nbr_grv(ndst) ! [frc] Reynolds number at terminal velocity
     real(rk8) :: cff_drg_grv(ndst) ! [frc] Drag coefficient at terminal velocity
-    real(rk8) :: tmp      ! temporary 
+    real(rk8) :: tmp      ! temporary
     real(rk8) :: ln_gsd   ! [frc] ln(gsd)
     real(rk8) :: gsd_anl  ! [frc] Geometric standard deviation
     real(rk8) :: dmt_vma  ! [m] Mass median diameter analytic She84 p.75 Tabl.1
@@ -583,7 +583,7 @@ module mod_clm_dust
     ! [frc] Geometric std deviation
     real(rk8) :: gsd_anl_src(dst_src_nbr) =    &
          (/ 2.10D0     ,  1.90D0   , 1.60D0     /)        ! BSM96 p. 73 Table 2
-    ! [frc] Mass fraction 
+    ! [frc] Mass fraction
     real(rk8) :: mss_frc_src(dst_src_nbr) =    &
          (/ 0.036D0, 0.957D0, 0.007D0 /)                  ! BSM96 p. 73 Table 2
     ! [m] Particle diameter grid
@@ -597,7 +597,7 @@ module mod_clm_dust
     ! declare erf intrinsic function
     real(rk8) :: dum     ! dummy variable for erf test
     integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc, endc ! per-proc beginning and ending column indices 
+    integer(ik4) :: begc, endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl, endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg, endg ! per-proc gridcell ending gridcell indices
 
@@ -638,7 +638,7 @@ module mod_clm_dust
       end do
     end do
 
-    ! The following code from subroutine wnd_frc_thr_slt_get was placed 
+    ! The following code from subroutine wnd_frc_thr_slt_get was placed
     ! here because tmp1 needs to be defined just once
 
     ryn_nbr_frc_thr_prx_opt = 0.38D0 + 1331.0D0 * (100.0D0*dmt_slt_opt)**1.56D0
@@ -828,7 +828,7 @@ module mod_clm_dust
         ! [m s-1] Terminal veloc SeP97 p.467 (8.44)
 
         vlc_grv(m) = sqrt(4.0D0 * grav * dmt_vwr(m) * slp_crc(m) * dns_aer / &
-             (3.0D0*cff_drg_grv(m)*dns_mdp))   
+             (3.0D0*cff_drg_grv(m)*dns_mdp))
         eps_crr = abs((vlc_grv(m)-vlc_grv_old)/vlc_grv(m)) !Relative convergence
         if (itr_idx == 12) then
           ! Numerical pingpong may occur when Re = 0.1, 2.0, or 500.0

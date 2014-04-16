@@ -49,9 +49,9 @@ module mod_clm_driver
   ! -> SnowAge_grain       update snow effective grain size for snow radiative
   !                        transfer
   ! + CNEcosystemDyn       Carbon Nitrogen model ecosystem dynamics: [CN]
-  !                        vegetation phenology and soil carbon  
+  !                        vegetation phenology and soil carbon
   ! + EcosystemDyn         "static" ecosystem dynamics:              [! CN ]
-  !                        vegetation phenology and soil carbon  
+  !                        vegetation phenology and soil carbon
   ! -> BalanceCheck        check for errors in energy and water balances
   ! -> SurfaceAlbedo       albedos for next time step
   ! -> UrbanAlbedo         Urban landunit albedos for next time step
@@ -124,7 +124,7 @@ module mod_clm_driver
 #if (defined LCH4)
   use mod_clm_ch4 , only : ch4
 #endif
-  use mod_clm_urban , only : UrbanAlbedo, UrbanRadiation, UrbanFluxes 
+  use mod_clm_urban , only : UrbanAlbedo, UrbanRadiation, UrbanFluxes
   use mod_clm_snicar , only : SnowAge_grain
   use mod_clm_atmlnd , only : clm_map2gcell
 
@@ -227,7 +227,7 @@ module mod_clm_driver
       clm3%g%gws%gc_liq2(g)         = 0.D0
       clm3%g%gws%gc_liq1(g)         = 0.D0
       clm3%g%gwf%qflx_ice_dynbal(g) = 0.D0
-      clm3%g%gws%gc_ice2(g)         = 0.D0 
+      clm3%g%gws%gc_ice2(g)         = 0.D0
       clm3%g%gws%gc_ice1(g)         = 0.D0
       clm3%g%gef%eflx_dynbal(g)     = 0.D0
       clm3%g%ges%gc_heat2(g)        = 0.D0
@@ -530,9 +530,9 @@ module mod_clm_driver
     end do
 
     ! =======================================================================
-    ! Snow aging routine based on Flanner and Zender (2006), Linking snowpack 
+    ! Snow aging routine based on Flanner and Zender (2006), Linking snowpack
     ! microphysics and albedo evolution, JGR, and Brun (1989), Investigation
-    ! of wet-snow metamorphism in respect of liquid-water content, 
+    ! of wet-snow metamorphism in respect of liquid-water content,
     ! Ann. Glaciol.
     ! =======================================================================
     ! Note the snow filters here do not include lakes; SnowAge_grain is called

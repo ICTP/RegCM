@@ -301,7 +301,7 @@ module mod_clm_surfaceradiation
 
      do fp = 1,num_nourbanp
         p = filter_nourbanp(fp)
-        ! was redundant b/c filter already included wt>0; 
+        ! was redundant b/c filter already included wt>0;
         ! not redundant anymore with chg in filter definition
         if (pactive(p)) then
            sabg_soil(p)  = 0.D0
@@ -325,7 +325,7 @@ module mod_clm_surfaceradiation
               laisha_z(p,iv) = 0.D0
            end do
         end if
-     end do 
+     end do
 
      ! Loop over pfts to calculate laisun_z and laisha_z for each layer.
      ! Derive canopy laisun, laisha, and fsun from layer sums.
@@ -341,8 +341,8 @@ module mod_clm_surfaceradiation
            do iv = 1, nrad(p)
               laisun_z(p,iv) = tlai_z(p,iv) * fsun_z(p,iv)
               laisha_z(p,iv) = tlai_z(p,iv) * (1.D0 - fsun_z(p,iv))
-              laisun(p) = laisun(p) + laisun_z(p,iv) 
-              laisha(p) = laisha(p) + laisha_z(p,iv) 
+              laisun(p) = laisun(p) + laisun_z(p,iv)
+              laisha(p) = laisha(p) + laisha_z(p,iv)
            end do
            if (elai(p) > 0.D0) then
               fsun(p) = laisun(p) / elai(p)
@@ -409,7 +409,7 @@ module mod_clm_surfaceradiation
                  sabg_soil(p) = sabg(p)
               endif
               ! if no subgrid fluxes, make sure to set both components equal to weighted average
-              if (subgridflag == 0) then 
+              if (subgridflag == 0) then
                  sabg_snow(p) = sabg(p)
                  sabg_soil(p) = sabg(p)
               endif
@@ -434,7 +434,7 @@ module mod_clm_surfaceradiation
 
            end if
         end do ! end of pft loop
-     end do ! end nbands loop   
+     end do ! end nbands loop
 
      !   compute absorbed flux in each snow layer and top soil layer,
      !   based on flux factors computed in the radiative transfer portion of SNICAR.
@@ -452,7 +452,7 @@ module mod_clm_surfaceradiation
               sabg_lyr(p,1) = sabg(p)
               sabg_snl_sum  = sabg_lyr(p,1)
 
-           ! CASE 2: Snow layers present: absorbed radiation is scaled according to 
+           ! CASE 2: Snow layers present: absorbed radiation is scaled according to
            ! flux factors computed by SNICAR
            else
               do i = -nlevsno+1,1,1
@@ -464,12 +464,12 @@ module mod_clm_surfaceradiation
                  endif
               enddo
 
-              ! Error handling: The situation below can occur when solar radiation is 
+              ! Error handling: The situation below can occur when solar radiation is
               ! NOT computed every timestep.
-              ! When the number of snow layers has changed in between computations of the 
+              ! When the number of snow layers has changed in between computations of the
               ! absorbed solar energy in each layer, we must redistribute the absorbed energy
-              ! to avoid physically unrealistic conditions. The assumptions made below are 
-              ! somewhat arbitrary, but this situation does not arise very frequently. 
+              ! to avoid physically unrealistic conditions. The assumptions made below are
+              ! somewhat arbitrary, but this situation does not arise very frequently.
               ! This error handling is implemented to accomodate any value of the
               ! radiation frequency.
               ! change condition to match sabg_snow isntead of sabg
@@ -489,8 +489,8 @@ module mod_clm_surfaceradiation
               endif
 
               ! If shallow snow depth, all solar radiation absorbed in top or top two snow layers
-              ! to prevent unrealistic timestep soil warming 
-              if (subgridflag == 0) then 
+              ! to prevent unrealistic timestep soil warming
+              if (subgridflag == 0) then
                  if (snow_depth(c) < 0.10D0) then
                     if (snl(c) == 0) then
                        sabg_lyr(p,-4:0) = 0.D0
@@ -548,7 +548,7 @@ module mod_clm_surfaceradiation
            sfc_frc_dst(p) = sabg(p) - sabg_dst(p)
 
            ! all-aerosol forcing (pft-level):
-           sfc_frc_aer(p) = sabg(p) - sabg_pur(p)        
+           sfc_frc_aer(p) = sabg(p) - sabg_pur(p)
 
            ! forcings averaged only over snow:
            if (frac_sno(c) > 0.D0) then
@@ -632,7 +632,7 @@ module mod_clm_surfaceradiation
               fsr_sno_ni(p) = spval
            endif
         end if
-     end do 
+     end do
 
    end subroutine SurfaceRadiation
 

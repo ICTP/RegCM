@@ -23,7 +23,7 @@ module mod_clm_hydrology1
   public :: Hydrology1_readnl ! Read namelist
   public :: Hydrology1        ! Run
 
-  integer , public :: oldfflag = 0 ! use old fsno parameterization (N&Y07) 
+  integer , public :: oldfflag = 0 ! use old fsno parameterization (N&Y07)
 
   contains
   !
@@ -38,7 +38,7 @@ module mod_clm_hydrology1
     namelist / clm_hydrology1_inparm / oldfflag
 
     ! ----------------------------------------------------------------------
-    ! Read namelist from standard input. 
+    ! Read namelist from standard input.
     ! ----------------------------------------------------------------------
 
     if ( myid == iocpu ) then
@@ -217,8 +217,8 @@ module mod_clm_hydrology1
     ! Assign local pointers to derived type members (column-level)
 
     swe_old            => clm3%g%l%c%cws%swe_old
-    frac_sno_eff       => clm3%g%l%c%cps%frac_sno_eff  
-    frac_sno           => clm3%g%l%c%cps%frac_sno 
+    frac_sno_eff       => clm3%g%l%c%cps%frac_sno_eff
+    frac_sno           => clm3%g%l%c%cps%frac_sno
     frac_h2osfc        => clm3%g%l%c%cps%frac_h2osfc
     h2osfc             => clm3%g%l%c%cws%h2osfc
     qflx_snow_h2osfc   => clm3%g%l%c%cwf%qflx_snow_h2osfc
@@ -431,11 +431,11 @@ module mod_clm_hydrology1
     do f = 1, num_nolakec
        c = filter_nolakec(f)
        g = cgridcell(c)
-       if (ctype(c) /= icol_sunwall .and. ctype(c) /= icol_shadewall) then      
+       if (ctype(c) /= icol_sunwall .and. ctype(c) /= icol_shadewall) then
           qflx_floodc(c) = qflx_floodg(g)
        else
           qflx_floodc(c) = 0.D0
-       endif    
+       endif
     enddo
 
     ! Determine snow height and snow water
@@ -526,7 +526,7 @@ module mod_clm_hydrology1
              endif
 
              ! use original fsca formulation (n&y 07)
-             if (oldfflag == 1) then 
+             if (oldfflag == 1) then
                 ! snow cover fraction in Niu et al. 2007
                 if(snow_depth(c) .gt. 0.0D0)  then
                    frac_sno(c) = tanh(snow_depth(c)/(2.5D0*zlnd* &
@@ -539,7 +539,7 @@ module mod_clm_hydrology1
 
           else !h2osno == 0
              ! initialize frac_sno and snow_depth when no snow present initially
-             if (newsnow(c) > 0.D0) then 
+             if (newsnow(c) > 0.D0) then
                 z_avg = newsnow(c)/bifall
                 fmelt=newsnow(c)
                 frac_sno(c) = tanh(accum_factor*newsnow(c))
@@ -557,7 +557,7 @@ module mod_clm_hydrology1
                    snow_depth(c)=newsnow(c)/bifall
                 endif
                 ! use n&y07 formulation
-                if (oldfflag == 1) then 
+                if (oldfflag == 1) then
                    ! snow cover fraction in Niu et al. 2007
                    if(snow_depth(c) .gt. 0.0D0)  then
                       frac_sno(c) = tanh(snow_depth(c)/(2.5D0*zlnd* &
@@ -575,7 +575,7 @@ module mod_clm_hydrology1
           qflx_snow_h2osfc(c) = frac_h2osfc(c)*qflx_snow_grnd_col(c)
 
           ! update h2osno for new snow
-          h2osno(c) = h2osno(c) + newsnow(c) 
+          h2osno(c) = h2osno(c) + newsnow(c)
           int_snow(c) = int_snow(c) + newsnow(c)
 
           ! update change in snow depth
@@ -585,7 +585,7 @@ module mod_clm_hydrology1
 
         ! set frac_sno_eff variable
         if (ltype(l) == istsoil .or. ltype(l) == istcrop) then
-           if (subgridflag ==1) then 
+           if (subgridflag ==1) then
               frac_sno_eff(c) = frac_sno(c)
            else
               frac_sno_eff(c) = 1.D0

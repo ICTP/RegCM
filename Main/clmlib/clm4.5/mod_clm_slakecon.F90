@@ -66,7 +66,7 @@ module mod_clm_slakecon
 
   !! The following will be set in initSLake based on namelists.
   ! critical dimensionless fetch for Charnock parameter.
-  real(rk8) , public :: fcrit 
+  real(rk8) , public :: fcrit
   ! (m) Minimum allowed roughness length for unfrozen lakes.
   real(rk8) , public :: minz0lake
 

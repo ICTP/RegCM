@@ -137,8 +137,8 @@ module mod_clm_varpar
   integer(ik4) , public :: npatch_wet
   ! Number of glacier pfts (columns) in glacier landunit
   integer(ik4) , public :: npatch_glacier
-  integer(ik4) , public :: max_pft_per_gcell 
-  integer(ik4) , public :: max_pft_per_lu 
+  integer(ik4) , public :: max_pft_per_gcell
+  integer(ik4) , public :: max_pft_per_lu
   integer(ik4) , public :: max_pft_per_col
   integer(ik4) , public :: npatch_urban_tbd
   integer(ik4) , public :: npatch_urban_hd
@@ -167,7 +167,7 @@ module mod_clm_varpar
 
     max_pft_per_gcell = numpft+1 + 3 + maxpatch_urb*numurbl
 #if (defined CROP)
-    max_pft_per_gcell = max_pft_per_gcell +  numcft  
+    max_pft_per_gcell = max_pft_per_gcell +  numcft
 #endif
     max_pft_per_lu    = max(numpft+1, numcft, maxpatch_urb)
     max_pft_per_col   = max(numpft+1, numcft, maxpatch_urb)

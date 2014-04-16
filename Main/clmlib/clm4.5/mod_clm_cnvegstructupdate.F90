@@ -82,7 +82,7 @@ subroutine CNVegStructUpdate(num_soilp, filter_soilp)
    real(rk8), pointer :: forc_hgt_u_pft(:) ! observational height of wind at pft-level [m]
    real(rk8), pointer :: dwood(:)      ! density of wood (gC/m^3)
    real(rk8), pointer :: farea_burned(:)   !F. Li and S. Levis
-! 
+!
 ! local pointers to implicit in/out scalars
 !
    integer , pointer :: frac_veg_nosno_alb(:) ! frac of vegetation not covered by snow [-]
@@ -181,7 +181,7 @@ subroutine CNVegStructUpdate(num_soilp, filter_soilp)
           tsai_old = tsai(p) ! n-1 value
 
           ! update the leaf area index based on leafC and SLA
-          ! Eq 3 from Thornton and Zimmerman, 2007, J Clim, 20, 3902-3923. 
+          ! Eq 3 from Thornton and Zimmerman, 2007, J Clim, 20, 3902-3923.
           if (dsladlai(ivt(p)) > 0.D0) then
              tlai(p) = (slatop(ivt(p))*(exp(leafc(p)*dsladlai(ivt(p))) - 1.D0))/dsladlai(ivt(p))
           else
@@ -212,7 +212,7 @@ subroutine CNVegStructUpdate(num_soilp, filter_soilp)
 
              ! trees and shrubs
 
-             ! if shrubs have a squat taper 
+             ! if shrubs have a squat taper
              if (ivt(p) >= nbrdlf_evr_shrub .and. ivt(p) <= nbrdlf_dcd_brl_shrub) then
                 taper = 10.D0
              ! otherwise have a tall taper
@@ -293,7 +293,7 @@ subroutine CNVegStructUpdate(num_soilp, filter_soilp)
           hbot(p) = 0.D0
       end if
 
-      ! adjust lai and sai for burying by snow. 
+      ! adjust lai and sai for burying by snow.
 
       ! snow burial fraction for short vegetation (e.g. grasses) as in
       ! Wang and Zeng, 2007.

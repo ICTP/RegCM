@@ -2,10 +2,10 @@
 ! Handles MEGAN VOC emissions metadata for CLM produced chemical emissions
 ! MEGAN = Model of Emissions of Gases and Aerosols from Nature
 !
-! This reads the megan_emis_nl namelist in drv_flds_in and makes the relavent 
-! information available to CAM, CLM, and driver. The driver sets up CLM to CAM 
+! This reads the megan_emis_nl namelist in drv_flds_in and makes the relavent
+! information available to CAM, CLM, and driver. The driver sets up CLM to CAM
 ! communication for the  VOC flux fields. CLM needs to know what specific VOC
-! fluxes need to be passed to the coupler and how to assimble the fluxes.  
+! fluxes need to be passed to the coupler and how to assimble the fluxes.
 ! CAM needs to know what specific VOC fluxes to expect from CLM.
 !
 ! Francis Vitt -- 26 Oct 2011
@@ -67,7 +67,7 @@ module mod_clm_megan
   ! chemical compound in CAM mechanism than has MEGAN emissions
   type shr_megan_mechcomp_t
     character(len=16) :: name           ! compound name
-    ! an array of pointers to megan emis compounds 
+    ! an array of pointers to megan emis compounds
     type(shr_megan_comp_ptr), pointer :: megan_comps(:)
     ! number of megan emis compounds than make up the emissions for
     ! this mechanis compound
@@ -88,7 +88,7 @@ module mod_clm_megan
   ! switch to use mapped emission factors
   logical :: shr_megan_mapped_emisfctrs = .false.
 
-  ! private data 
+  ! private data
   type parser_items_t
     character(len=16),pointer :: megan_comp_names(:)
     character(len=16) :: mech_comp_name
@@ -98,24 +98,24 @@ module mod_clm_megan
   contains
 
   !-------------------------------------------------------------------------
-  ! 
+  !
   ! This reads the megan_emis_nl namelist group in drv_flds_in and parses the
   ! namelist information for the driver, CLM, and CAM.
   !
   ! Namelist variables:
   !   megan_specifier, megan_mapped_emisfctrs, megan_factors_file
   !
-  ! megan_specifier is a series of strings where each string contains one 
-  !  CAM chemistry constituent name (left of = sign) and one or more MEGAN 
-  !  compounds (seperated by + sign if more than one).  The specification of 
-  !  the MEGAN compounds to the right of the = signs tells the MEGAN VOC 
-  !  model within CLM how to construct the VOC fluxes using the factors in 
+  ! megan_specifier is a series of strings where each string contains one
+  !  CAM chemistry constituent name (left of = sign) and one or more MEGAN
+  !  compounds (seperated by + sign if more than one).  The specification of
+  !  the MEGAN compounds to the right of the = signs tells the MEGAN VOC
+  !  model within CLM how to construct the VOC fluxes using the factors in
   !  megan_factors_file and land surface state.
   !
   ! megan_factors_file read by CLM contains valid MEGAN compound names,
   !  MEGAN class groupings and scalar emission factors
-  ! 
-  ! megan_mapped_emisfctrs switch is used to tell the MEGAN model to use 
+  !
+  ! megan_mapped_emisfctrs switch is used to tell the MEGAN model to use
   !  mapped emission factors read in from the CLM surface data input file
   !  rather than the scalar factors from megan_factors_file
   !
@@ -145,7 +145,7 @@ module mod_clm_megan
     character(len=2*512) :: megan_specifier(maxspc) = ' '
     logical           :: megan_mapped_emisfctrs = .false.
     character(len=256) :: megan_factors_file = ' '
-    character(*),parameter :: F00   = "('(seq_drydep_read) ',2a)" 
+    character(*),parameter :: F00   = "('(seq_drydep_read) ',2a)"
 
     namelist /megan_emis_nl/ megan_specifier , megan_factors_file ,  &
                      megan_mapped_emisfctrs , shr_megan_megcomps_n , &
@@ -225,7 +225,7 @@ module mod_clm_megan
           shr_megan_mechcomps(i)%megan_comps(j)%ptr => &
                   add_megan_comp( items%megan_comp_names(j) )
         end do
-        shr_megan_mechcomps_n = shr_megan_mechcomps_n 
+        shr_megan_mechcomps_n = shr_megan_mechcomps_n
 
         call destroy_parser_items( items )
 
@@ -236,7 +236,7 @@ module mod_clm_megan
           megan_fields = trim(token)
           shr_megan_fields_token = token
         else
-          megan_fields = trim(megan_fields)//':'//trim(token)                 
+          megan_fields = trim(megan_fields)//':'//trim(token)
         end if
       end if
     end do
@@ -276,7 +276,7 @@ module mod_clm_megan
     allocate(items%megan_comp_names(nelem))
     items%mech_comp_name = trim(adjustl( spec_entry(:ndxs(1)-1)))
     items%n_megan_comps = nelem
-    do i = 1 , nelem 
+    do i = 1 , nelem
        items%megan_comp_names(i) = &
                trim(adjustl( spec_entry(ndxs(i)+1:ndxs(i+1)-1)))
     end do

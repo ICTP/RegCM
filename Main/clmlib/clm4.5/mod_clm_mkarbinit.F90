@@ -276,7 +276,7 @@ module mod_clm_mkarbinit
     t_ref2m_u      => clm3%g%l%c%p%pes%t_ref2m_u
     t_ref2m_r      => clm3%g%l%c%p%pes%t_ref2m_r
     plandunit      => clm3%g%l%c%p%landunit
-    eflx_lwrad_out => clm3%g%l%c%p%pef%eflx_lwrad_out  
+    eflx_lwrad_out => clm3%g%l%c%p%pef%eflx_lwrad_out
 
     ! Determine subgrid bounds on this processor
 
@@ -371,7 +371,7 @@ module mod_clm_mkarbinit
         else if (ltype(l) == isturb) then
 #if (defined VANCOUVER)
           if (ctype(c) == icol_road_perv .or. &
-              ctype(c) == icol_road_imperv) then 
+              ctype(c) == icol_road_imperv) then
             ! Set road top layer to initial air temperature and interpolate
             ! other layers down to 20C in bottom layer
             do j = 1 , nlevgrnd
@@ -391,11 +391,11 @@ module mod_clm_mkarbinit
           end if
 #elif (defined MEXICOCITY)
           if (ctype(c) == icol_road_perv .or. &
-              ctype(c) == icol_road_imperv) then 
+              ctype(c) == icol_road_imperv) then
             ! Set road top layer to initial air temperature and interpolate
             ! other layers down to 22C in bottom layer
             do j = 1 , nlevgrnd
-              t_soisno(c,j) = 289.46 - (j-1) * ((289.46-295.16)/(nlevgrnd-1)) 
+              t_soisno(c,j) = 289.46 - (j-1) * ((289.46-295.16)/(nlevgrnd-1))
             end do
           ! Set wall and roof layers to initial air temperature
           else if (ctype(c) == icol_sunwall .or. &
@@ -411,7 +411,7 @@ module mod_clm_mkarbinit
           end if
 #else
           if (ctype(c) == icol_road_perv .or. &
-              ctype(c) == icol_road_imperv) then 
+              ctype(c) == icol_road_imperv) then
             do j = 1 , nlevgrnd
               t_soisno(c,j) = 274.D0
             end do
@@ -461,7 +461,7 @@ module mod_clm_mkarbinit
         t_ref2m_r(p) = spval
       else
         t_ref2m_r(p) = 297.56
-      end if 
+      end if
 #elif (defined MEXICOCITY)
       t_veg(p) = 289.46
       t_ref2m(p) = 289.46
@@ -474,7 +474,7 @@ module mod_clm_mkarbinit
         t_ref2m_r(p) = spval
       else
         t_ref2m_r(p) = 289.46
-      end if 
+      end if
 #else
       t_veg(p) = 283.D0
       t_ref2m(p) = 283.D0
@@ -487,7 +487,7 @@ module mod_clm_mkarbinit
         t_ref2m_r(p) = spval
       else
         t_ref2m_r(p) = 283.D0
-      end if 
+      end if
 #endif
       eflx_lwrad_out(p) = sb * (t_grnd(c))**4
     end do
@@ -546,7 +546,7 @@ module mod_clm_mkarbinit
               h2osoi_vol(c,j) = 0.15D0
             end if
           end do
-        else if ( ltype(l) == isturb ) then 
+        else if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_road_perv ) then
             nlevs = nlevgrnd
             do j = 1 , nlevs
@@ -577,7 +577,7 @@ module mod_clm_mkarbinit
             end if
           end do
         else if ( ltype(l) == istice ) then
-          nlevs = nlevgrnd 
+          nlevs = nlevgrnd
           do j = 1 , nlevs
             h2osoi_vol(c,j) = 1.0D0
           end do
@@ -594,7 +594,7 @@ module mod_clm_mkarbinit
           end if
         end do
 
-#if (defined CN) 
+#if (defined CN)
         ! soil water potential (added 10/21/03, PET)
         ! required for CN code
         if ( ltype(l) == istsoil .or. ltype(l) == istcrop ) then
@@ -920,7 +920,7 @@ module mod_clm_mkarbinit
     t_ref2m_u      => clm3%g%l%c%p%pes%t_ref2m_u
     t_ref2m_r      => clm3%g%l%c%p%pes%t_ref2m_r
     plandunit      => clm3%g%l%c%p%landunit
-    eflx_lwrad_out => clm3%g%l%c%p%pef%eflx_lwrad_out  
+    eflx_lwrad_out => clm3%g%l%c%p%pef%eflx_lwrad_out
 
     ! Determine subgrid bounds on this processor
 
@@ -1029,7 +1029,7 @@ module mod_clm_mkarbinit
           end do
         else if (ltype(l) == isturb) then
           if (ctype(c) == icol_road_perv .or. &
-              ctype(c) == icol_road_imperv) then 
+              ctype(c) == icol_road_imperv) then
             do j = 1 , nlevgrnd
               t_soisno(c,j) = adomain%tgrd(g) + 2.0D0
             end do
@@ -1137,7 +1137,7 @@ module mod_clm_mkarbinit
                             xmopor(iexsol(adomain%luse(g)))
             end if
           end do
-        else if ( ltype(l) == isturb ) then 
+        else if ( ltype(l) == isturb ) then
           if ( ctype(c) == icol_road_perv ) then
             nlevs = nlevgrnd
             do j = 1 , nlevs
@@ -1169,7 +1169,7 @@ module mod_clm_mkarbinit
             end if
           end do
         else if ( ltype(l) == istice ) then
-          nlevs = nlevgrnd 
+          nlevs = nlevgrnd
           do j = 1 , nlevs
             h2osoi_vol(c,j) = 1.0D0
           end do
@@ -1186,7 +1186,7 @@ module mod_clm_mkarbinit
           end if
         end do
 
-#if (defined CN) 
+#if (defined CN)
         ! soil water potential (added 10/21/03, PET)
         ! required for CN code
         if ( ltype(l) == istsoil .or. ltype(l) == istcrop ) then

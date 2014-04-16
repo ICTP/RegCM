@@ -73,7 +73,7 @@ module mod_clm_cnndynamics
    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
    integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
    real(rk8), pointer :: cannsum_npp(:) ! nitrogen deposition rate (gN/m2/s)
-   real(rk8), pointer :: nfix_to_sminn(:)      ! symbiotic/asymbiotic N fixation to soil mineral N (gN/m2/s) 
+   real(rk8), pointer :: nfix_to_sminn(:)      ! symbiotic/asymbiotic N fixation to soil mineral N (gN/m2/s)
    real(rk8), pointer :: col_lag_npp(:)        ! (gC/m2/s) lagged net primary production
    integer(ik4)  :: c,fc                  ! indices
    real(rk8) :: t                     ! temporary
@@ -95,10 +95,10 @@ module mod_clm_cnndynamics
       ! use exponential relaxation with time constant nfix_timeconst for NPP - NFIX relation
       ! Loop through columns
       do fc = 1,num_soilc
-         c = filter_soilc(fc)         
+         c = filter_soilc(fc)
          if (col_lag_npp(c) .ne. spval) then
             ! need to put npp in units of gC/m^2/year here first
-            t = (1.8D0 * (1.D0 - exp(-0.003D0 * col_lag_npp(c)*(secspday * dayspyr))))/(secspday * dayspyr)  
+            t = (1.8D0 * (1.D0 - exp(-0.003D0 * col_lag_npp(c)*(secspday * dayspyr))))/(secspday * dayspyr)
             nfix_to_sminn(c) = max(0.D0,t)
          else
             nfix_to_sminn(c) = 0.D0
@@ -265,7 +265,7 @@ subroutine CNNLeaching(lbc, ubc, num_soilc, filter_soilc)
       do fc = 1,num_soilc
          c = filter_soilc(fc)
 
-#ifndef VERTSOILC         
+#ifndef VERTSOILC
          ! calculate the dissolved mineral N concentration (gN/kg water)
          ! assumes that 10% of mineral nitrogen is soluble
          disn_conc = 0.D0
@@ -544,7 +544,7 @@ subroutine CNSoyfix (num_soilc, filter_soilc, num_soilp, filter_soilp)
             ! slevis: to replace GDDfrac, assume...
             ! Beth's crit_offset_gdd_def is similar to my gddmaturity
             ! Beth's ac_gdd (base 5C) similar to my hui=gddplant (base 10
-            ! for soy) 
+            ! for soy)
             ! Ranges below are not firm. Are they lit. based or tuning based?
 
             GDDfrac = hui(p) / gddmaturity(p)
@@ -559,7 +559,7 @@ subroutine CNSoyfix (num_soilc, filter_soilc, num_soilp, filter_soilp)
 
             ! calculate the nitrogen fixed by the soybean
 
-            fxr = min(1.D0, fxw, fxn) * fxg 
+            fxr = min(1.D0, fxw, fxn) * fxg
             fxr = max(0.D0, fxr)
             soyfixn(p) =  fxr * soy_ndemand
             soyfixn(p) = min(soyfixn(p), soy_ndemand)

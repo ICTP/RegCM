@@ -11,7 +11,7 @@ module mod_clm_varsur
 
   save
   !
-  ! surface boundary data, these are all "gdc" local 
+  ! surface boundary data, these are all "gdc" local
   !
   ! percent of spec lunits wrt gcell
   real(rk8) , public , allocatable , dimension(:) :: pctspec

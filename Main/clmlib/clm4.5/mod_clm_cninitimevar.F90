@@ -196,12 +196,12 @@ module mod_clm_cninitimevar
 
    ! fire-related variables changed by F. Li and S. Levis
    real(rk8), pointer :: wf(:)                 ! soil moisture in top 0.05 m
-   real(rk8), pointer :: wf2(:) 
+   real(rk8), pointer :: wf2(:)
    real(rk8), pointer :: nfire(:)              ! fire counts/km2/timestep
    real(rk8), pointer :: baf_crop(:)          ! burned area fraction in crop
    real(rk8), pointer :: baf_peatf(:)         ! burned area fraction in peatland
-   real(rk8), pointer :: fbac(:)          
-   real(rk8), pointer :: fbac1(:)          
+   real(rk8), pointer :: fbac(:)
+   real(rk8), pointer :: fbac1(:)
    real(rk8), pointer :: farea_burned(:)       ! timestep fractional area burned (proportion)
 
    real(rk8), pointer :: totcolc(:)            ! (gC/m2) total column carbon, incl veg and cpool
@@ -377,7 +377,7 @@ module mod_clm_cninitimevar
     prod100n                       => clm3%g%l%c%cns%prod100n
     totprodn                       => clm3%g%l%c%cns%totprodn
     sminn                          => clm3%g%l%c%cns%sminn
-    col_ctrunc                        => clm3%g%l%c%ccs%col_ctrunc    
+    col_ctrunc                        => clm3%g%l%c%ccs%col_ctrunc
     sminn_vr                          => clm3%g%l%c%cns%sminn_vr
     col_ctrunc_vr                     => clm3%g%l%c%ccs%col_ctrunc_vr
     col_ntrunc_vr                     => clm3%g%l%c%cns%col_ntrunc_vr
@@ -625,8 +625,8 @@ module mod_clm_cninitimevar
    ! Added 5/4/04, PET: initialize forc_hgt_u (gridcell-level),
    ! since this is not initialized before first call to CNVegStructUpdate,
    ! and it is required to set the upper bound for canopy top height.
-   ! Changed 3/21/08, KO: still needed but don't have sufficient information 
-   ! to set this properly (e.g., pft-level displacement height and roughness 
+   ! Changed 3/21/08, KO: still needed but don't have sufficient information
+   ! to set this properly (e.g., pft-level displacement height and roughness
    ! length). So leave at 30m.
    do p = begp, endp
       forc_hgt_u_pft(p) = 30.D0
@@ -851,7 +851,7 @@ module mod_clm_cninitimevar
                clm3%g%l%c%cc13f%dwt_deadcrootc_to_cwdc(c,j) = 0.D0
             end do
             clm3%g%l%c%cc13f%dwt_closs(c) = 0.D0
-         endif         
+         endif
 
          if ( use_c14 ) then
             clm3%g%l%c%cc14f%dwt_seedc_to_leaf(c) = 0.D0
@@ -950,7 +950,7 @@ module mod_clm_cninitimevar
          dispvegc(p) = 0.D0
          storvegc(p) = 0.D0
          totpftc(p)  = 0.D0
-         ! calculate totvegc explicitly so that it is available for the isotope 
+         ! calculate totvegc explicitly so that it is available for the isotope
          ! code on the first time step.
          totvegc(p)  = leafc(p) + leafc_storage(p) + leafc_xfer(p) + frootc(p) +  &
             frootc_storage(p) + frootc_xfer(p) + livestemc(p) + livestemc_storage(p) +  &
@@ -991,7 +991,7 @@ module mod_clm_cninitimevar
             c13xsmrpool(p)           = xsmrpool(p)            * c13ratio
             c13_pft_ctrunc(p)        = pft_ctrunc(p)          * c13ratio
 
-            ! calculate totvegc explicitly so that it is available for the isotope 
+            ! calculate totvegc explicitly so that it is available for the isotope
             ! code on the first time step.
             totvegc13(p)  = leafc13(p) + leafc13_storage(p) + leafc13_xfer(p) + frootc13(p) +  &
                  frootc13_storage(p) + frootc13_xfer(p) + livestemc13(p) + livestemc13_storage(p) +  &
@@ -1026,7 +1026,7 @@ module mod_clm_cninitimevar
             c14xsmrpool(p)           = xsmrpool(p)            * c14ratio
             c14_pft_ctrunc(p)        = pft_ctrunc(p)          * c14ratio
 
-            ! calculate totvegc explicitly so that it is available for the isotope 
+            ! calculate totvegc explicitly so that it is available for the isotope
             ! code on the first time step.
             totvegc14(p)  = leafc14(p) + leafc14_storage(p) + leafc14_xfer(p) + frootc14(p) +  &
                  frootc14_storage(p) + frootc14_xfer(p) + livestemc14(p) + livestemc14_storage(p) +  &
@@ -1163,7 +1163,7 @@ module mod_clm_cninitimevar
          endif
 
       end if   ! end of if-istsoil block
-   end do   ! end of loop over pfts  
+   end do   ! end of loop over pfts
 #endif
 
 end subroutine CNiniTimeVar

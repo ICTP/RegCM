@@ -2,7 +2,7 @@ module mod_clm_cnrest
 
 #if (defined CN)
   !
-  ! Read/Write to/from CN info to CLM restart file. 
+  ! Read/Write to/from CN info to CLM restart file.
   !
   use mod_realkinds
   use mod_dynparam
@@ -52,9 +52,9 @@ module mod_clm_cnrest
 !   real(rk8) , pointer :: rc13_cannsum_npp(:)
     type(pft_cstate_type) , pointer :: pcisos
     type(pft_cstate_type) , pointer :: pcbulks
-    integer :: c , p , j , k , i , l ! indices 
+    integer :: c , p , j , k , i , l ! indices
     integer :: begp , endp   ! per-proc beginning and ending pft indices
-    integer :: begc , endc   ! per-proc beginning and ending column indices 
+    integer :: begc , endc   ! per-proc beginning and ending column indices
     integer :: begl , endl   ! per-proc beginning and ending landunit indices
     integer :: begg , endg   ! per-proc gridcell ending gridcell indices
     real(rk8):: m            ! multiplier for the exit_spinup code
@@ -101,7 +101,7 @@ module mod_clm_cnrest
     end if
 
     !--------------------------------
-    ! pft ecophysiological variables 
+    ! pft ecophysiological variables
     !--------------------------------
 
     ! dormant_flag
@@ -382,10 +382,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='annavg_t2m', data=pptr%pepv%annavg_t2m, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! tempavg_t2m
@@ -394,10 +394,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='tempavg_t2m', data=pptr%pepv%tempavg_t2m, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! gpp
@@ -406,10 +406,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='gpp_pepv', data=pptr%pepv%gpp, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! availc
@@ -418,10 +418,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='availc', data=pptr%pepv%availc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! xsmrpool_recover
@@ -430,10 +430,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='xsmrpool_recover', data=pptr%pepv%xsmrpool_recover, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     if ( use_c13 ) then
@@ -443,7 +443,7 @@ module mod_clm_cnrest
                dim1name='pft',long_name='',units='')
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname='xsmrpool_c13ratio', data=pptr%pepv%xsmrpool_c13ratio, &
-               dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+               dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
@@ -456,10 +456,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='alloc_pnow', data=pptr%pepv%alloc_pnow, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! c_allometry
@@ -468,10 +468,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='c_allometry', data=pptr%pepv%c_allometry, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! n_allometry
@@ -480,10 +480,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='n_allometry', data=pptr%pepv%n_allometry, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! plant_ndemand
@@ -492,10 +492,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='plant_ndemand', data=pptr%pepv%plant_ndemand, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! tempsum_potential_gpp
@@ -504,22 +504,22 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='tempsum_potential_gpp', data=pptr%pepv%tempsum_potential_gpp, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
-    !annsum_potential_gpp 
+    !annsum_potential_gpp
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='annsum_potential_gpp', xtype=ncd_double,  &
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='annsum_potential_gpp', data=pptr%pepv%annsum_potential_gpp, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! tempmax_retransn
@@ -528,10 +528,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='tempmax_retransn', data=pptr%pepv%tempmax_retransn, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! annmax_retransn
@@ -540,10 +540,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='annmax_retransn', data=pptr%pepv%annmax_retransn, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! avail_retransn
@@ -552,10 +552,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='avail_retransn', data=pptr%pepv%avail_retransn, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
         if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if 
+       end if
     end if
 
     ! plant_nalloc
@@ -564,10 +564,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='plant_nalloc', data=pptr%pepv%plant_nalloc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! plant_calloc
@@ -576,10 +576,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='plant_calloc', data=pptr%pepv%plant_calloc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! excess_cflux
@@ -588,10 +588,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='excess_cflux', data=pptr%pepv%excess_cflux, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! downreg
@@ -600,10 +600,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='downreg', data=pptr%pepv%downreg, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! prev_leafc_to_litter
@@ -612,10 +612,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='prev_leafc_to_litter', data=pptr%pepv%prev_leafc_to_litter, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! prev_frootc_to_litter
@@ -624,10 +624,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='prev_frootc_to_litter', data=pptr%pepv%prev_frootc_to_litter, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! tempsum_npp
@@ -636,10 +636,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='tempsum_npp', data=pptr%pepv%tempsum_npp, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! annsum_npp
@@ -648,10 +648,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='annsum_npp', data=pptr%pepv%annsum_npp, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     if ( use_c13 ) then
@@ -661,7 +661,7 @@ module mod_clm_cnrest
                dim1name='pft',long_name='',units='')
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname='rc13_canair', data=pptr%pepv%rc13_canair, &
-               dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+               dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
@@ -673,7 +673,7 @@ module mod_clm_cnrest
                dim1name='pft',long_name='',units='')
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname='rc13_psnsun', data=pptr%pepv%rc13_psnsun, &
-               dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+               dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
@@ -685,7 +685,7 @@ module mod_clm_cnrest
                dim1name='pft',long_name='',units='')
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname='rc13_psnsha', data=pptr%pepv%rc13_psnsha, &
-               dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+               dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
@@ -707,7 +707,7 @@ module mod_clm_cnrest
 #endif
 
     !--------------------------------
-    ! pft carbon state variables 
+    ! pft carbon state variables
     !--------------------------------
 
     ! leafc
@@ -716,10 +716,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='leafc', data=pptr%pcs%leafc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! leafc_storage
@@ -728,10 +728,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='leafc_storage', data=pptr%pcs%leafc_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! leafc_xfer
@@ -740,10 +740,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='leafc_xfer', data=pptr%pcs%leafc_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! frootc
@@ -752,10 +752,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='frootc', data=pptr%pcs%frootc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! frootc_storage
@@ -764,22 +764,22 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='frootc_storage', data=pptr%pcs%frootc_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
-    !frootc_xfer 
+    !frootc_xfer
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='frootc_xfer', xtype=ncd_double,  &
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='frootc_xfer', data=pptr%pcs%frootc_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! livestemc
@@ -788,10 +788,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='livestemc', data=pptr%pcs%livestemc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! livestemc_storage
@@ -800,10 +800,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='livestemc_storage', data=pptr%pcs%livestemc_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! livestemc_xfer
@@ -812,10 +812,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='livestemc_xfer', data=pptr%pcs%livestemc_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! deadstemc
@@ -824,10 +824,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='deadstemc', data=pptr%pcs%deadstemc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! deadstemc_storage
@@ -836,10 +836,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='deadstemc_storage', data=pptr%pcs%deadstemc_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! deadstemc_xfer
@@ -848,10 +848,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='deadstemc_xfer', data=pptr%pcs%deadstemc_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! livecrootc
@@ -860,10 +860,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='livecrootc', data=pptr%pcs%livecrootc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! livecrootc_storage
@@ -872,10 +872,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='livecrootc_storage', data=pptr%pcs%livecrootc_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! livecrootc_xfer
@@ -884,10 +884,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='livecrootc_xfer', data=pptr%pcs%livecrootc_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! deadcrootc
@@ -896,10 +896,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='deadcrootc', data=pptr%pcs%deadcrootc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! deadcrootc_storage
@@ -908,10 +908,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='deadcrootc_storage', data=pptr%pcs%deadcrootc_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! deadcrootc_xfer
@@ -920,10 +920,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='deadcrootc_xfer', data=pptr%pcs%deadcrootc_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! gresp_storage
@@ -932,10 +932,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='gresp_storage', data=pptr%pcs%gresp_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! gresp_xfer
@@ -944,10 +944,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='gresp_xfer', data=pptr%pcs%gresp_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! cpool
@@ -956,10 +956,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='cpool', data=pptr%pcs%cpool, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! xsmrpool
@@ -968,10 +968,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='xsmrpool', data=pptr%pcs%xsmrpool, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! pft_ctrunc
@@ -980,10 +980,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='pft_ctrunc', data=pptr%pcs%pft_ctrunc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! totvegc
@@ -992,10 +992,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='totvegc', data=pptr%pcs%totvegc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
 
@@ -1014,7 +1014,7 @@ module mod_clm_cnrest
 
      if ( use_c13 ) then
         !--------------------------------
-        ! C13 pft carbon state variables 
+        ! C13 pft carbon state variables
         !--------------------------------
 
         ! leafc
@@ -1046,7 +1046,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='leafc_storage_13', data=pptr%pc13s%leafc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%leafc_storage with atmospheric c13 value'
               do i = begp,endp
@@ -1069,7 +1069,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='leafc_xfer_13', data=pptr%pc13s%leafc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%leafc_xfer with atmospheric c13 value'
               do i = begp,endp
@@ -1092,7 +1092,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='frootc_13', data=pptr%pc13s%frootc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%frootc with atmospheric c13 value'
               do i = begp,endp
@@ -1115,7 +1115,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='frootc_storage_13', data=pptr%pc13s%frootc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%frootc_storage with atmospheric c13 value'
               do i = begp,endp
@@ -1132,13 +1132,13 @@ module mod_clm_cnrest
            end if
         end if
 
-        !frootc_xfer 
+        !frootc_xfer
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='frootc_xfer_13', xtype=ncd_double,  &
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='frootc_xfer_13', data=pptr%pc13s%frootc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%frootc_xfer with atmospheric c13 value'
               do i = begp,endp
@@ -1161,7 +1161,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='livestemc_13', data=pptr%pc13s%livestemc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%livestemc with atmospheric c13 value'
               do i = begp,endp
@@ -1184,7 +1184,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='livestemc_storage_13', data=pptr%pc13s%livestemc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%livestemc_storage with atmospheric c13 value'
               do i = begp,endp
@@ -1207,7 +1207,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='livestemc_xfer_13', data=pptr%pc13s%livestemc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%livestemc_xfer with atmospheric c13 value'
               do i = begp,endp
@@ -1230,7 +1230,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='deadstemc_13', data=pptr%pc13s%deadstemc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%deadstemc with atmospheric c13 value'
               do i = begp,endp
@@ -1238,7 +1238,7 @@ module mod_clm_cnrest
                     pcisos%deadstemc(i) = pcbulks%deadstemc(i) * c3_r2
                  else
                     pcisos%deadstemc(i) = pcbulks%deadstemc(i) * c4_r2
-                 end if 
+                 end if
 !                 if (pptr%pcs%deadstemc(i) .ne. spval .and. pptr%pcs%deadstemc(i) .ne. nan ) then
 !                    pptr%pc13s%deadstemc(i) = pptr%pcs%deadstemc(i) * c13ratio
 !                 end if
@@ -1253,7 +1253,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='deadstemc_storage_13', data=pptr%pc13s%deadstemc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%deadstemc_storage with atmospheric c13 value'
               do i = begp,endp
@@ -1276,7 +1276,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='deadstemc_xfer_13', data=pptr%pc13s%deadstemc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%deadstemc_xfer with atmospheric c13 value'
               do i = begp,endp
@@ -1299,7 +1299,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='livecrootc_13', data=pptr%pc13s%livecrootc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%livecrootc with atmospheric c13 value'
               do i = begp,endp
@@ -1322,7 +1322,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='livecrootc_storage_13', data=pptr%pc13s%livecrootc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%livecrootc_storage with atmospheric c13 value'
               do i = begp,endp
@@ -1345,7 +1345,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='livecrootc_xfer_13', data=pptr%pc13s%livecrootc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%livecrootc_xfer with atmospheric c13 value'
               do i = begp,endp
@@ -1368,7 +1368,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='deadcrootc_13', data=pptr%pc13s%deadcrootc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%deadcrootc with atmospheric c13 value'
               do i = begp,endp
@@ -1391,7 +1391,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='deadcrootc_storage_13', data=pptr%pc13s%deadcrootc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%deadcrootc_storage with atmospheric c13 value'
               do i = begp,endp
@@ -1414,7 +1414,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='deadcrootc_xfer_13', data=pptr%pc13s%deadcrootc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%deadcrootc_xfer with atmospheric c13 value'
               do i = begp,endp
@@ -1437,7 +1437,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='gresp_storage_13', data=pptr%pc13s%gresp_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%gresp_storage with atmospheric c13 value'
               do i = begp,endp
@@ -1460,7 +1460,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='gresp_xfer_13', data=pptr%pc13s%gresp_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%gresp_xfer with atmospheric c13 value'
               do i = begp,endp
@@ -1483,7 +1483,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='cpool_13', data=pptr%pc13s%cpool, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%cpool with atmospheric c13 value'
               do i = begp,endp
@@ -1506,7 +1506,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='xsmrpool_13', data=pptr%pc13s%xsmrpool, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%xsmrpool with atmospheric c13 value'
               do i = begp,endp
@@ -1529,7 +1529,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='pft_ctrunc_13', data=pptr%pc13s%pft_ctrunc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%pft_ctrunc with atmospheric c13 value'
               do i = begp,endp
@@ -1552,7 +1552,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='totvegc_13', data=pptr%pc13s%totvegc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc13s%totvegc with atmospheric c13 value'
               do i = begp,endp
@@ -1572,7 +1572,7 @@ module mod_clm_cnrest
 
      if ( use_c14 ) then
         !--------------------------------
-        ! C14 pft carbon state variables 
+        ! C14 pft carbon state variables
         !--------------------------------
 
         ! leafc
@@ -1581,7 +1581,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='leafc_14', data=pptr%pc14s%leafc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%leafc with atmospheric c14 value'
               do i = begp,endp
@@ -1600,7 +1600,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='leafc_storage_14', data=pptr%pc14s%leafc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%leafc_storage with atmospheric c14 value'
               do i = begp,endp
@@ -1618,7 +1618,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='leafc_xfer_14', data=pptr%pc14s%leafc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%leafc_xfer with atmospheric c14 value'
               do i = begp,endp
@@ -1636,7 +1636,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='frootc_14', data=pptr%pc14s%frootc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%frootc with atmospheric c14 value'
               do i = begp,endp
@@ -1654,7 +1654,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='frootc_storage_14', data=pptr%pc14s%frootc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%frootc_storage with atmospheric c14 value'
               do i = begp,endp
@@ -1666,13 +1666,13 @@ module mod_clm_cnrest
            end if
         end if
 
-        !frootc_xfer 
+        !frootc_xfer
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='frootc_xfer_14', xtype=ncd_double,  &
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='frootc_xfer_14', data=pptr%pc14s%frootc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%frootc_xfer with atmospheric c14 value'
               do i = begp,endp
@@ -1690,7 +1690,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='livestemc_14', data=pptr%pc14s%livestemc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%livestemc with atmospheric c14 value'
               do i = begp,endp
@@ -1708,7 +1708,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='livestemc_storage_14', data=pptr%pc14s%livestemc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%livestemc_storage with atmospheric c14 value'
               do i = begp,endp
@@ -1726,7 +1726,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='livestemc_xfer_14', data=pptr%pc14s%livestemc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%livestemc_xfer with atmospheric c14 value'
               do i = begp,endp
@@ -1744,7 +1744,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='deadstemc_14', data=pptr%pc14s%deadstemc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%deadstemc with atmospheric c14 value'
               do i = begp,endp
@@ -1762,7 +1762,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='deadstemc_storage_14', data=pptr%pc14s%deadstemc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%deadstemc_storage with atmospheric c14 value'
               do i = begp,endp
@@ -1780,7 +1780,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='deadstemc_xfer_14', data=pptr%pc14s%deadstemc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%deadstemc_xfer with atmospheric c14 value'
               do i = begp,endp
@@ -1798,7 +1798,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='livecrootc_14', data=pptr%pc14s%livecrootc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%livecrootc with atmospheric c14 value'
               do i = begp,endp
@@ -1816,7 +1816,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='livecrootc_storage_14', data=pptr%pc14s%livecrootc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%livecrootc_storage with atmospheric c14 value'
               do i = begp,endp
@@ -1834,7 +1834,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='livecrootc_xfer_14', data=pptr%pc14s%livecrootc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%livecrootc_xfer with atmospheric c14 value'
               do i = begp,endp
@@ -1852,7 +1852,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='deadcrootc_14', data=pptr%pc14s%deadcrootc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%deadcrootc with atmospheric c14 value'
               do i = begp,endp
@@ -1870,7 +1870,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='deadcrootc_storage_14', data=pptr%pc14s%deadcrootc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%deadcrootc_storage with atmospheric c14 value'
               do i = begp,endp
@@ -1888,7 +1888,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='deadcrootc_xfer_14', data=pptr%pc14s%deadcrootc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%deadcrootc_xfer with atmospheric c14 value'
               do i = begp,endp
@@ -1906,7 +1906,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='gresp_storage_14', data=pptr%pc14s%gresp_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%gresp_storage with atmospheric c14 value'
               do i = begp,endp
@@ -1924,7 +1924,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='gresp_xfer_14', data=pptr%pc14s%gresp_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%gresp_xfer with atmospheric c14 value'
               do i = begp,endp
@@ -1942,7 +1942,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='cpool_14', data=pptr%pc14s%cpool, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%cpool with atmospheric c14 value'
               do i = begp,endp
@@ -1960,7 +1960,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='xsmrpool_14', data=pptr%pc14s%xsmrpool, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%xsmrpool with atmospheric c14 value'
               do i = begp,endp
@@ -1978,7 +1978,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='pft_ctrunc_14', data=pptr%pc14s%pft_ctrunc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%pft_ctrunc with atmospheric c14 value'
               do i = begp,endp
@@ -1996,7 +1996,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='totvegc_14', data=pptr%pc14s%totvegc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing pptr%pc14s%totvegc with atmospheric c14 value'
               do i = begp,endp
@@ -2014,7 +2014,7 @@ module mod_clm_cnrest
                 dim1name='pft',long_name='',units='')
         else if (flag == 'read' .or. flag == 'write') then
            call ncd_io(varname='rc14_atm', data=pptr%pepv%rc14_atm, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
            if (flag=='read' .and. .not. readvar) then
               write(stdout,*) 'initializing cptr%cc14s%rc14_atm with atmospheric c14 value'
               do i = begp,endp
@@ -2036,10 +2036,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='leafn', data=pptr%pns%leafn, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! leafn_storage
@@ -2048,10 +2048,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='leafn_storage', data=pptr%pns%leafn_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! leafn_xfer
@@ -2060,10 +2060,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='leafn_xfer', data=pptr%pns%leafn_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! frootn
@@ -2072,10 +2072,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='frootn', data=pptr%pns%frootn, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! frootn_storage
@@ -2084,10 +2084,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='frootn_storage', data=pptr%pns%frootn_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! frootn_xfer
@@ -2096,10 +2096,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='frootn_xfer', data=pptr%pns%frootn_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! livestemn
@@ -2108,10 +2108,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='livestemn', data=pptr%pns%livestemn, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! livestemn_storage
@@ -2120,10 +2120,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='livestemn_storage', data=pptr%pns%livestemn_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! livestemn_xfer
@@ -2132,10 +2132,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='livestemn_xfer', data=pptr%pns%livestemn_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! deadstemn
@@ -2144,34 +2144,34 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='deadstemn', data=pptr%pns%deadstemn, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
-    !deadstemn_storage 
+    !deadstemn_storage
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='deadstemn_storage', xtype=ncd_double,  &
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='deadstemn_storage', data=pptr%pns%deadstemn_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
-    !deadstemn_xfer 
+    !deadstemn_xfer
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='deadstemn_xfer', xtype=ncd_double,  &
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='deadstemn_xfer', data=pptr%pns%deadstemn_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! livecrootn
@@ -2180,10 +2180,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='livecrootn', data=pptr%pns%livecrootn, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! livecrootn_storage
@@ -2192,22 +2192,22 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='livecrootn_storage', data=pptr%pns%livecrootn_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
-    !livecrootn_xfer 
+    !livecrootn_xfer
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='livecrootn_xfer', xtype=ncd_double,  &
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='livecrootn_xfer', data=pptr%pns%livecrootn_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! deadcrootn
@@ -2216,10 +2216,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='deadcrootn', data=pptr%pns%deadcrootn, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! deadcrootn_storage
@@ -2228,10 +2228,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='deadcrootn_storage', data=pptr%pns%deadcrootn_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! deadcrootn_xfer
@@ -2240,22 +2240,22 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='deadcrootn_xfer', data=pptr%pns%deadcrootn_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
-    !retransn 
+    !retransn
     if (flag == 'define') then
        call ncd_defvar(ncid=ncid, varname='retransn', xtype=ncd_double,  &
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='retransn', data=pptr%pns%retransn, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! npool
@@ -2264,10 +2264,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='npool', data=pptr%pns%npool, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! pft_ntrunc
@@ -2276,10 +2276,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='pft_ntrunc', data=pptr%pns%pft_ntrunc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     !--------------------------------
@@ -2292,10 +2292,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='decl', data=cptr%cps%decl, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! fpi
@@ -2331,10 +2331,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='fpg', data=cptr%cps%fpg, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! annsum_counter
@@ -2343,10 +2343,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='annsum_counter', data=cptr%cps%annsum_counter, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! cannsum_npp
@@ -2355,10 +2355,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='cannsum_npp', data=cptr%cps%cannsum_npp, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! col_lag_npp
@@ -2367,10 +2367,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='col_lag_npp', data=cptr%cps%col_lag_npp, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! cannavg_t2m
@@ -2379,10 +2379,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='cannavg_t2m', data=cptr%cps%cannavg_t2m, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
   ! for fire model changed by F. Li and S. Levis
@@ -2392,10 +2392,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='burndate', data=pptr%pps%burndate, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
    !lfc
@@ -2404,11 +2404,11 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='lfc', data=cptr%cps%lfc, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
-    end if  
+       end if
+    end if
 
     !wf
     if (flag == 'define') then
@@ -2416,10 +2416,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='wf', data=cptr%cps%wf, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
 
@@ -2429,10 +2429,10 @@ module mod_clm_cnrest
             dim1name='pft',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='btran2', data=pptr%pps%btran2, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     !--------------------------------
@@ -2469,10 +2469,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='altmax', data=cptr%cps%altmax, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! altmax_lastyear
@@ -2481,10 +2481,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='altmax_lastyear', data=cptr%cps%altmax_lastyear, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! altmax_indx
@@ -2493,10 +2493,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='altmax_indx', data=cptr%cps%altmax_indx, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! altmax_lastyear_indx
@@ -2505,10 +2505,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='altmax_lastyear_indx', data=cptr%cps%altmax_lastyear_indx, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! seedc
@@ -2517,10 +2517,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='seedc', data=cptr%ccs%seedc, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! totlitc
@@ -2529,10 +2529,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='totlitc', data=cptr%ccs%totlitc, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! totcolc
@@ -2541,10 +2541,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='totcolc', data=cptr%ccs%totcolc, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! prod10c
@@ -2553,10 +2553,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='prod10c', data=cptr%ccs%prod10c, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! prod100c
@@ -2565,10 +2565,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='prod100c', data=cptr%ccs%prod100c, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! totsomc
@@ -2577,10 +2577,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='totsomc', data=cptr%ccs%totsomc, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
 
@@ -2611,7 +2611,7 @@ module mod_clm_cnrest
                dim1name='column',long_name='',units='')
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname='seedc_13', data=cptr%cc13s%seedc, &
-               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              do i = begc,endc
                 if (cptr%ccs%seedc(i) .ne. spval .and. cptr%ccs%seedc(i) .ne. nan ) then
@@ -2631,7 +2631,7 @@ module mod_clm_cnrest
        !         dim1name='column',long_name='',units='')
        ! else if (flag == 'read' .or. flag == 'write') then
        !    call ncd_io(varname='col_ctrunc_13', data=cptr%cc13s%col_ctrunc, &
-       !         dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+       !         dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        !    if (flag=='read' .and. .not. readvar) then
        !       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now
        !       stopping')
@@ -2644,7 +2644,7 @@ module mod_clm_cnrest
                dim1name='column',long_name='',units='')
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname='totlitc_13', data=cptr%cc13s%totlitc, &
-               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              do i = begc,endc
                 if (cptr%ccs%totlitc(i) .ne. spval .and. cptr%ccs%totlitc(i) .ne. nan ) then
@@ -2661,7 +2661,7 @@ module mod_clm_cnrest
                dim1name='column',long_name='',units='')
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname='totcolc_13', data=cptr%cc13s%totcolc, &
-               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              do i = begc,endc
                 if (cptr%ccs%totcolc(i) .ne. spval .and. cptr%ccs%totcolc(i) .ne. nan ) then
@@ -2678,7 +2678,7 @@ module mod_clm_cnrest
                dim1name='column',long_name='',units='')
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname='prod10c_13', data=cptr%cc13s%prod10c, &
-               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              do i = begc,endc
                 if (cptr%ccs%prod10c(i) .ne. spval .and. cptr%ccs%prod10c(i) .ne. nan ) then
@@ -2695,7 +2695,7 @@ module mod_clm_cnrest
                dim1name='column',long_name='',units='')
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname='prod100c_13', data=cptr%cc13s%prod100c, &
-               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              do i = begc,endc
                 if (cptr%ccs%prod100c(i) .ne. spval .and. cptr%ccs%prod100c(i) .ne. nan ) then
@@ -2734,7 +2734,7 @@ module mod_clm_cnrest
                dim1name='column',long_name='',units='')
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname='seedc_14', data=cptr%cc14s%seedc, &
-               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              write(stdout,*) 'initializing cptr%cc14s%seedc with atmospheric c14 value'
              do i = begc,endc
@@ -2755,7 +2755,7 @@ module mod_clm_cnrest
        !         dim1name='column',long_name='',units='')
        ! else if (flag == 'read' .or. flag == 'write') then
        !    call ncd_io(varname='col_ctrunc_14', data=cptr%cc14s%col_ctrunc, &
-       !         dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+       !         dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        !    if (flag=='read' .and. .not. readvar) then
        !       write(stdout,*) 'initializing cptr%cc14s%col_ctrunc with atmospheric c14 value'
        !       do i = begc,endc
@@ -2774,7 +2774,7 @@ module mod_clm_cnrest
                dim1name='column',long_name='',units='')
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname='totlitc_14', data=cptr%cc14s%totlitc, &
-               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              write(stdout,*) 'initializing cptr%cc14s%totlitc with atmospheric c14 value'
              do i = begc,endc
@@ -2792,7 +2792,7 @@ module mod_clm_cnrest
                dim1name='column',long_name='',units='')
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname='totcolc_14', data=cptr%cc14s%totcolc, &
-               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              write(stdout,*) 'initializing cptr%cc14s%totcolc with atmospheric c14 value'
              do i = begc,endc
@@ -2810,7 +2810,7 @@ module mod_clm_cnrest
                dim1name='column',long_name='',units='')
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname='prod10c_14', data=cptr%cc14s%prod10c, &
-               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              write(stdout,*) 'initializing cptr%cc14s%prod10c with atmospheric c14 value'
              do i = begc,endc
@@ -2828,7 +2828,7 @@ module mod_clm_cnrest
                dim1name='column',long_name='',units='')
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname='prod100c_14', data=cptr%cc14s%prod100c, &
-               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+               dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              write(stdout,*) 'initializing cptr%cc14s%prod100c with atmospheric c14 value'
              do i = begc,endc
@@ -2905,10 +2905,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='totcoln', data=cptr%cns%totcoln, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! seedn
@@ -2917,10 +2917,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='seedn', data=cptr%cns%seedn, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! prod10n
@@ -2929,10 +2929,10 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='prod10n', data=cptr%cns%prod10n, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
     ! prod100n
@@ -2941,14 +2941,14 @@ module mod_clm_cnrest
             dim1name='column',long_name='',units='')
     else if (flag == 'read' .or. flag == 'write') then
        call ncd_io(varname='prod100n', data=cptr%cns%prod100n, &
-            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar) 
+            dim1name=namec, ncid=ncid, flag=flag, readvar=readvar)
        if (flag=='read' .and. .not. readvar) then
       if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if  
+       end if
     end if
 
-    ! decomp_cascade_state  
-    ! the purpose of this is to check to make sure the bgc used matches what the restart file was generated with.  
+    ! decomp_cascade_state
+    ! the purpose of this is to check to make sure the bgc used matches what the restart file was generated with.
     ! add info about the SOM decomposition cascade
 #ifdef CENTURY_DECOMP
     decomp_cascade_state = 1
@@ -2965,7 +2965,7 @@ module mod_clm_cnrest
             // ' 10s column: 0 = CLM-CN denitrification, 10 = Century denitrification',units='')
     else if (flag == 'read') then
        call ncd_io(varname='decomp_cascade_state', data=restart_file_decomp_cascade_state, &
-            ncid=ncid, flag=flag, readvar=readvar) 
+            ncid=ncid, flag=flag, readvar=readvar)
        if ( .not. readvar) then
       !!! assume, for sake of backwards compatibility, that if decomp_cascade_state is not in the restart file, then the current model state is the same as the prior model state
           restart_file_decomp_cascade_state = decomp_cascade_state
@@ -2973,10 +2973,10 @@ module mod_clm_cnrest
             write(stderr,*) ' CNRest: WARNING!  Restart file does not contain info on decomp_cascade_state used to generate the restart file.  '
             write(stderr,*) '   Assuming the same as current setting: ', decomp_cascade_state
           end if
-       end if  
+       end if
     else if (flag == 'write') then
        call ncd_io(varname='decomp_cascade_state', data=decomp_cascade_state, &
-            ncid=ncid, flag=flag, readvar=readvar) 
+            ncid=ncid, flag=flag, readvar=readvar)
     end if
     if ( flag == 'read' .and. decomp_cascade_state .ne. restart_file_decomp_cascade_state ) then
        if ( myid == italk ) then
@@ -2997,7 +2997,7 @@ module mod_clm_cnrest
             long_name='Spinup state of the model that wrote this restart file: 0 = normal model mode, 1 = AD spinup',units='')
     else if (flag == 'read') then
        call ncd_io(varname='spinup_state', data=restart_file_spinup_state, &
-            ncid=ncid, flag=flag, readvar=readvar) 
+            ncid=ncid, flag=flag, readvar=readvar)
        if ( .not. readvar) then
       !!! assume, for sake of backwards compatibility, that if spinup_state is not in the restart file, then the current model state is the same as the prior model state
           restart_file_spinup_state = spinup_state
@@ -3005,10 +3005,10 @@ module mod_clm_cnrest
             write(stderr,*) ' CNRest: WARNING!  Restart file does not contain info on spinup state used to generate the restart file. '
             write(stderr,*) '   Assuming the same as current setting: ', spinup_state
           end if
-       end if  
+       end if
     else if (flag == 'write') then
        call ncd_io(varname='spinup_state', data=spinup_state, &
-            ncid=ncid, flag=flag, readvar=readvar) 
+            ncid=ncid, flag=flag, readvar=readvar)
     end if
 
     ! now compare the model and restart file spinup states, and either take the model into spinup mode or out of it if they are not identical
@@ -3284,7 +3284,7 @@ module mod_clm_cnrest
                long_name=longname,units=units)
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname=trim(varname)//'_vr', data=data_rl, &
-               dim1name=namec,switchdim=.true., ncid=ncid, flag=flag, readvar=readvar) 
+               dim1name=namec,switchdim=.true., ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
@@ -3297,7 +3297,7 @@ module mod_clm_cnrest
                dim1name='column',long_name=longname,units=units)
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname=trim(varname), data=ptr1d, &
-               dim1name=namec,ncid=ncid, flag=flag, readvar=readvar) 
+               dim1name=namec,ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if

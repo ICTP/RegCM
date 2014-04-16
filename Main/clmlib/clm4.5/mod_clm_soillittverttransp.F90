@@ -19,7 +19,7 @@ module mod_clm_soillittverttransp
 
   save
 
-  public :: CNSoilLittVertTransp   
+  public :: CNSoilLittVertTransp
 
   ! [m^2/sec] = 1 cm^2 / yr
   real(rk8), public :: som_diffus = 1D-4 / (secspday * 365.D0)
@@ -34,7 +34,7 @@ module mod_clm_soillittverttransp
   contains
   !
   ! Calculate vertical mixing of soil and litter pools.
-  ! Also reconcile sources and sinks of these pools 
+  ! Also reconcile sources and sinks of these pools
   ! calculated in the CStateUpdate1 and NStateUpdate1 subroutines.
   ! Advection-diffusion code based on algorithm in Patankar (1980)
   ! Initial code by C. Koven and W. Riley
@@ -77,7 +77,7 @@ module mod_clm_soillittverttransp
     real(rk8) :: pe_m1(lbc:ubc,1:nlevdecomp+1) ! Peclet # for previous j
     real(rk8) :: dz_node(1:nlevdecomp+1)       ! difference between nodes
     real(rk8) :: epsilon_t (lbc:ubc,1:nlevdecomp+1,1:ndecomp_pools) !
-    real(rk8) :: conc_trcr(lbc:ubc,0:nlevdecomp+1)  
+    real(rk8) :: conc_trcr(lbc:ubc,0:nlevdecomp+1)
     ! pointer for concentration state variable being transported
     real(rk8), pointer :: conc_ptr(:,:,:)
     ! pointer for source term
@@ -140,7 +140,7 @@ module mod_clm_soillittverttransp
         !   active layer to zero at a fixed depth
         do j = 1,nlevdecomp+1
           if ( zisoi(j) .lt. max(altmax(c), altmax_lastyear(c)) ) then
-            som_diffus_coef(c,j) = cryoturb_diffusion_k 
+            som_diffus_coef(c,j) = cryoturb_diffusion_k
             som_adv_coef(c,j) = 0.D0
           else
             ! go linearly to zero between ALT and max_depth_cryoturb
@@ -153,7 +153,7 @@ module mod_clm_soillittverttransp
       else if (  max(altmax(c), altmax_lastyear(c)) .gt. 0.D0 ) then
         ! constant advection, constant diffusion
         do j = 1,nlevdecomp+1
-          som_adv_coef(c,j) = som_adv_flux 
+          som_adv_coef(c,j) = som_adv_flux
           som_diffus_coef(c,j) = som_diffus
         end do
       else
@@ -165,7 +165,7 @@ module mod_clm_soillittverttransp
       end if
     end do
 
-    ! Set the distance between the node and the one ABOVE it   
+    ! Set the distance between the node and the one ABOVE it
     dz_node(1) = zsoi(1)
     do j = 2,nlevdecomp+1
       dz_node(j)= zsoi(j) - zsoi(j-1)
@@ -250,7 +250,7 @@ module mod_clm_soillittverttransp
               conc_trcr(c,j) = conc_ptr(c,j,s)
               ! dz_tracer below is the difference between gridcell edges
               !  (dzsoi_decomp)
-              ! dz_node_tracer is difference between cell centers 
+              ! dz_node_tracer is difference between cell centers
 
               ! Calculate the D and F terms in the Patankar algorithm
               if (j == 1) then
@@ -333,7 +333,7 @@ module mod_clm_soillittverttransp
                         max(-f_p1(c,j), 0.D0))
                 b_tri(c,j) = -a_tri(c,j) - c_tri(c,j) + a_p_0
                 r_tri(c,j) = source(c,j,s) * dzsoi_decomp(j) /dtsrf + &
-                        (a_p_0 - adv_flux(c,j)) * conc_trcr(c,j) 
+                        (a_p_0 - adv_flux(c,j)) * conc_trcr(c,j)
               else if (j .lt. nlevdecomp+1) then
                 a_tri(c,j) = -(d_m1_zm1(c,j) * aaa(pe_m1(c,j)) + &
                         max( f_m1(c,j), 0.D0)) ! Eqn 5.47 Patankar
@@ -345,7 +345,7 @@ module mod_clm_soillittverttransp
               else ! j==nlevdecomp+1; 0 concentration gradient at bottom
                 a_tri(c,j) = -1.D0
                 b_tri(c,j) = 1.D0
-                c_tri(c,j) = 0.D0 
+                c_tri(c,j) = 0.D0
                 r_tri(c,j) = 0.D0
               end if
             end do ! fc; column
@@ -355,7 +355,7 @@ module mod_clm_soillittverttransp
             c = filter_soilc (fc)
             jtop(c) = 0
           end do
-          ! subtract initial concentration and source terms for 
+          ! subtract initial concentration and source terms for
           ! tendency calculation
           do fc = 1 , num_soilc
             c = filter_soilc (fc)
@@ -388,7 +388,7 @@ module mod_clm_soillittverttransp
         do j = 1 , nlevdecomp
           do fc = 1 , num_soilc
             c = filter_soilc (fc)
-            conc_ptr(c,j,s) = conc_trcr(c,j) 
+            conc_ptr(c,j,s) = conc_trcr(c,j)
           end do
         end do
       end do ! s (pool loop)

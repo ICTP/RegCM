@@ -70,7 +70,7 @@ module mod_clm_decompinit
     end if
 
     procinfo%gc = lndcomm%linear_npoint_sg
-    procinfo%gd = lndcomm%linear_displ_sg 
+    procinfo%gd = lndcomm%linear_displ_sg
 
     numg = sum(lndcomm%linear_npoint_sg)
 
@@ -108,7 +108,7 @@ module mod_clm_decompinit
   end subroutine decompInit_lnd
   !
   ! This subroutine initializes the land surface decomposition into a
-  ! data structure. 
+  ! data structure.
   !
   subroutine decompInit_glcp
     implicit none

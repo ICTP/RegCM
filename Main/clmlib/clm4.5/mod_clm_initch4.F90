@@ -14,7 +14,7 @@ module mod_clm_initch4
   !
   ! Contains time constant (and flux / diagnostic vars) and time-varying
   ! (state vars) initialization code for CH4 scheme.
-  ! 
+  !
   implicit none
 
   private
@@ -50,7 +50,7 @@ module mod_clm_initch4
   ! If arbinit == .true., or if methane & oxygen concentrations (or lake
   ! soil org matter) have not been initialized, then sets time varying values.
   ! Initializes the following time varying variables:
-  ! 
+  !
   ! conc_ch4_sat, conc_ch4_unsat, conc_o2_sat, conc_o2_unsat, lake_soilc,
   ! o2stress, finunduated
   !
@@ -168,7 +168,7 @@ module mod_clm_initch4
           ! Need to convert from kg/m^3 organic matter to g C / m^3
           ! (org matter is defined to be 58% C)
         end do
-      end if 
+      end if
 
       ! Set values for all columns equal to zero below nlevsoi
       do j = nlevsoi+1 , nlevgrnd

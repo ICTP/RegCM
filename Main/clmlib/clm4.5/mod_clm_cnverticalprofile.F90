@@ -98,7 +98,7 @@ module mod_clm_cnverticalprofile
     real(rk8) :: delta = 1.e-10
     character(len=32) :: subname = 'decomp_vertprofiles'
 
-    ! assign local pointers at the column level    
+    ! assign local pointers at the column level
     nfixation_prof                    => clm3%g%l%c%cps%nfixation_prof
     ndep_prof                         => clm3%g%l%c%cps%ndep_prof
     altmax_lastyear_indx              => clm3%g%l%c%cps%altmax_lastyear_indx

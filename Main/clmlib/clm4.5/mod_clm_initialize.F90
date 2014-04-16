@@ -24,7 +24,7 @@ module mod_clm_initialize
   use mod_clm_decompinit , only : decompInit_lnd , decompInit_glcp
   use mod_clm_decomp , only : get_proc_bounds
   use mod_clm_domain , only : domain_check , ldomain , domain_init
-  use mod_clm_surfrd , only : surfrd_get_grid , surfrd_get_data 
+  use mod_clm_surfrd , only : surfrd_get_grid , surfrd_get_data
   use mod_clm_control , only : control_init , control_print
   use mod_clm_urbaninput , only : UrbanInput
   use mod_clm_atmlnd
@@ -50,7 +50,7 @@ module mod_clm_initialize
   use mod_clm_histflds , only : hist_initFlds
   use mod_clm_histfile , only : hist_htapes_build , htapes_fieldlist
   use mod_clm_restfile , only : restFile_getfile, &
-                                 restFile_open, restFile_close, restFile_read 
+                                 restFile_open, restFile_close, restFile_read
   use mod_clm_accflds , only : initAccFlds , initAccClmtype
   use mod_clm_dust , only : Dustini
   use mod_clm_time_manager, only : advance_timestep, &
@@ -58,12 +58,12 @@ module mod_clm_initialize
   use mod_clm_time_manager, only : get_curr_calday
   use mod_clm_urban , only : UrbanClumpInit
   use mod_clm_urbaninit , only : UrbanInitTimeConst , UrbanInitTimeVar , &
-          UrbanInitAero 
+          UrbanInitAero
   use mod_clm_urbaninput , only : UrbanInput
 #if (defined LCH4)
 #endif
   use mod_clm_drydep , only : n_drydep, drydep_method, DD_XLND
-  use mod_clm_initsurfalb , only : initSurfAlb, do_initsurfalb 
+  use mod_clm_initsurfalb , only : initSurfAlb, do_initsurfalb
   use mod_clm_vocemission , only : VOCEmission_init
   use mod_clm_initimeconst , only : iniTimeConst
 
@@ -152,7 +152,7 @@ module mod_clm_initialize
     ! Allocate additional dynamic memory for glacier_mec topo and thickness
 
     call get_proc_bounds(begg, endg)
-    allocate (vegxy(begg:endg,maxpatch), wtxy(begg:endg,maxpatch), stat=ier)   
+    allocate (vegxy(begg:endg,maxpatch), wtxy(begg:endg,maxpatch), stat=ier)
     if (ier /= 0) then
        write(stderr,*)'initialize allocation error'
        call fatal(__FILE__,__LINE__,'clm now stopping')
@@ -163,7 +163,7 @@ module mod_clm_initialize
 
     call pftconrd()
 
-    ! Read surface dataset and set up vegetation type [vegxy] and 
+    ! Read surface dataset and set up vegetation type [vegxy] and
     ! weight [wtxy] arrays for [maxpatch] subgrid patches.
 
     call surfrd_get_data(ldomain,fsurdat)
@@ -225,7 +225,7 @@ module mod_clm_initialize
     integer(ik4) :: begc , endc       ! beg and ending column indices
     integer(ik4) :: begl , endl       ! beg and ending landunit indices
     integer(ik4) :: begg , endg       ! beg and ending gridcell indices
-    character(len=256) :: fnamer      ! name of netcdf restart file 
+    character(len=256) :: fnamer      ! name of netcdf restart file
     type(clm_filetype) :: ncid         ! netcdf id
     real(rk8) :: calday               ! calendar day
     real(rk8) :: caldaym1             ! calendar day for nstep-1
@@ -235,12 +235,12 @@ module mod_clm_initialize
     character(len=32) :: subname = 'initialize2' ! subroutine name
 
     ! ------------------------------------------------------------------------
-    ! Initialize time constant variables 
+    ! Initialize time constant variables
     ! ------------------------------------------------------------------------
 
     call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp )
 
-    ! Initialize Ecosystem Dynamics 
+    ! Initialize Ecosystem Dynamics
 
 #if (defined CNDV)
     call CNDVEcosystemDynini()
@@ -259,11 +259,11 @@ module mod_clm_initialize
     end if
 #endif
 
-    ! Initialize dust emissions model 
+    ! Initialize dust emissions model
 
     call Dustini()
 
-    ! Initialize MEGAN emissions model 
+    ! Initialize MEGAN emissions model
 
     call VOCEmission_init( )
 
@@ -275,7 +275,7 @@ module mod_clm_initialize
     call iniTimeConst()
 
     ! ------------------------------------------------------------------------
-    ! Initialize master history list. 
+    ! Initialize master history list.
     ! ------------------------------------------------------------------------
 
     call hist_initFlds()
@@ -305,7 +305,7 @@ module mod_clm_initialize
     call initAccFlds()
 
     ! ------------------------------------------------------------------------
-    ! Set arbitrary initial conditions for time varying fields 
+    ! Set arbitrary initial conditions for time varying fields
     ! used in coupled carbon-nitrogen code
     ! ------------------------------------------------------------------------
 
@@ -335,8 +335,8 @@ module mod_clm_initialize
     ! Read restart/initial info
     ! ------------------------------------------------------------------------
 
-    ! No weight related information can be contained in the routines,  
-    ! "mkarbinit, inicfile and restFile". 
+    ! No weight related information can be contained in the routines,
+    ! "mkarbinit, inicfile and restFile".
 
     if ( nsrest == nsrContinue ) then
       call restFile_getfile(fnamer, rdate)
@@ -378,7 +378,7 @@ module mod_clm_initialize
     ! Initialize history and accumator buffers
     ! ------------------------------------------------------------------------
 
-    ! Initialize active history fields. This is only done if not a restart run. 
+    ! Initialize active history fields. This is only done if not a restart run.
     ! If a restart run, then this information has already been obtained from
     ! the restart data read above.
     ! Note that routine hist_htapes_build needs time manager information, so
@@ -390,7 +390,7 @@ module mod_clm_initialize
 
     ! Initialize clmtype variables that are obtained from accumulated fields.
     ! This routine is called in an initial run at ktau=0
-    ! This routine is also always called for a restart run and must 
+    ! This routine is also always called for a restart run and must
     ! therefore be called after the restart file is read in
 
     call initAccClmtype()
@@ -404,7 +404,7 @@ module mod_clm_initialize
     call allocFilters()
     call reweightWrapup()
 
-    ! Calculate urban "town" roughness length and displacement 
+    ! Calculate urban "town" roughness length and displacement
     ! height for urban landunits
 
     call UrbanInitAero()

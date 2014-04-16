@@ -16,7 +16,7 @@ module mod_clm_vocemission
                            nc4_grass,           noveg
   use mod_clm_atmlnd , only : clm_a2l
   use mod_clm_type , only : clm3 , megan_out_type
-  use mod_clm_domain , only : ldomain 
+  use mod_clm_domain , only : ldomain
   use mod_clm_varcon , only : spval
   use mod_clm_megan , only : shr_megan_megcomps_n
   use mod_clm_megan , only : shr_megan_megcomp_t
@@ -42,7 +42,7 @@ module mod_clm_vocemission
   !
   ! Volatile organic compound emission
   ! This code simulates volatile organic compound emissions following
-  ! MEGAN (Model of Emissions of Gases and Aerosols from Nature) v2.1 
+  ! MEGAN (Model of Emissions of Gases and Aerosols from Nature) v2.1
   ! for 20 compound classes. The original description of this
   ! algorithm (for isoprene only) can be found in Guenther et al., 2006
   ! (we follow equations 2-9, 16-17, 20 for explicit canopy).
@@ -52,12 +52,12 @@ module mod_clm_vocemission
   ! factors (epsilon) [ug m-2 h-1] which are specified for each of the 16
   ! CLM PFTs (in input file) OR in the case of isoprene, from
   ! mapped EFs for each PFT which reflect species divergence of emissions,
-  ! particularly in North America. 
-  ! The emission activity factor (gamma) [unitless] for includes 
+  ! particularly in North America.
+  ! The emission activity factor (gamma) [unitless] for includes
   ! dependence on PPFT, temperature, LAI, leaf age and soil moisture.
   ! For isoprene only we also include the effect of CO2 inhibition as
-  ! described by Heald et al., 2009. 
-  ! The canopy environment constant was calculated offline for CLM+CAM at 
+  ! described by Heald et al., 2009.
+  ! The canopy environment constant was calculated offline for CLM+CAM at
   ! standard conditions.
   ! We assume that the escape efficiency (rho) here is unity following
   ! Guenther et al., 2006.
@@ -65,7 +65,7 @@ module mod_clm_vocemission
   ! in preparation: Guenther, Heald et al., 2012
   ! Subroutine written to operate at the patch level.
   !
-  ! Input: <filename> to be read in with EFs and some parameters.  
+  ! Input: <filename> to be read in with EFs and some parameters.
   !        Currently these are set in procedure init_EF_params
   ! Output: vocflx(shr_megan_mechcomps_n) !VOC flux [moles/m2/sec]
   !
@@ -110,7 +110,7 @@ module mod_clm_vocemission
     real(rk8), pointer :: vocflx(:,:)      ! VOC flux [moles/m2/sec]
     real(rk8), pointer :: vocflx_tot(:)    ! VOC flux [moles/m2/sec]
 
-    type(megan_out_type), pointer :: meg_out(:) ! fluxes for CLM history 
+    type(megan_out_type), pointer :: meg_out(:) ! fluxes for CLM history
 
     real(rk8), pointer :: gamma_out(:)
     real(rk8), pointer :: gammaT_out(:)
@@ -120,7 +120,7 @@ module mod_clm_vocemission
     real(rk8), pointer :: gammaS_out(:)
     real(rk8), pointer :: gammaC_out(:)
 
-    real(rk8), pointer :: Eopt_out(:)     
+    real(rk8), pointer :: Eopt_out(:)
     real(rk8), pointer :: topt_out(:)
     real(rk8), pointer :: alpha_out(:)
     real(rk8), pointer :: cp_out(:)
@@ -283,7 +283,7 @@ module mod_clm_vocemission
       epsilon=0.D0
 
       ! calculate VOC emissions for non-bare ground PFTs
-      if (ivt(p) > 0) then 
+      if (ivt(p) > 0) then
         gamma=0.D0
 
         ! Calculate PAR: multiply w/m2 by 4.6 to get umol/m2/s for par
@@ -344,7 +344,7 @@ module mod_clm_vocemission
           gamma_a = get_gamma_A(ivt(p), elai_p(p),elai(p),class_num)
 
           ! Activity factor for CO2 (only for isoprene)
-          if (trim(meg_cmp%name) == 'isoprene') then 
+          if (trim(meg_cmp%name) == 'isoprene') then
             gamma_c = get_gamma_C(cisun_z(p,1),cisha_z(p,1), &
                                   forc_pbot(g),fsun(p))
           else
@@ -364,8 +364,8 @@ module mod_clm_vocemission
             meg_out(imeg)%flux_out(p) = meg_out(imeg)%flux_out(p) + &
                      epsilon * gamma * megemis_units_factor*1.D-3 ! Kg/m2/sec
 
-            if (imeg==1) then 
-              ! 
+            if (imeg==1) then
+              !
               gamma_out(p)=gamma
               gammaP_out(p)=gamma_p
               gammaT_out(p)=gamma_t
@@ -397,7 +397,7 @@ module mod_clm_vocemission
           meg_cmp => meg_cmp%next_megcomp
         end do meg_cmp_loop
         ! sum up the megan compound fluxes for the fluxes of chem
-        ! mechanism compounds 
+        ! mechanism compounds
         do imech = 1,shr_megan_mechcomps_n
           n_meg_comps = shr_megan_mechcomps(imech)%n_megan_comps
           ! loop over number of megan compounds that make up the
@@ -409,7 +409,7 @@ module mod_clm_vocemission
           vocflx_tot(p) = vocflx_tot(p) + vocflx(p,imech) ! moles/m2/sec
         end do
       end if ! ivt(1:15 only)
-    end do ! fp 
+    end do ! fp
   end subroutine VOCEmission
   !
   ! Interface to set all input parameters for 20 VOC compound classes.
@@ -445,7 +445,7 @@ module mod_clm_vocemission
   ! Get mapped EF for isoprene
   ! Use gridded values for 6 PFTs specified by MEGAN following
   ! Guenther et al. (2006).  Map the numpft CLM PFTs to these 6.
-  ! Units: [ug m-2 h-1] 
+  ! Units: [ug m-2 h-1]
   !
   function get_map_EF(ivt_in,g_in)
     use mod_clm_type
@@ -484,7 +484,7 @@ module mod_clm_vocemission
   !               all light dependent species
   !-------------------------
   ! With distinction between sunlit and shaded leafs, weight scalings by
-  ! fsun and fshade 
+  ! fsun and fshade
   ! Scale total incident par by fraction of sunlit leaves (added on 1/2002)
   ! fvitt -- forc_solad240, forc_solai240 can be zero when CLM finidat is
   !          specified which will cause par240 to be zero and produce NaNs
@@ -497,7 +497,7 @@ module mod_clm_vocemission
   !
   function get_gamma_P(par_sun_in,par24_sun_in,par240_sun_in,par_sha_in, &
                   par24_sha_in,par240_sha_in,fsun_in,fsun240_in,         &
-                  forc_solad240_in,forc_solai240_in,LDF_in,cp,alpha) 
+                  forc_solad240_in,forc_solai240_in,LDF_in,cp,alpha)
     implicit none
     real(rk8) , intent(in) :: par_sun_in
     real(rk8) , intent(in) :: par24_sun_in
@@ -541,12 +541,12 @@ module mod_clm_vocemission
               (1.D0 + alpha*alpha*par_sha_in*par_sha_in)**(-0.5D0))
     else
       ! With fixed alpha and cp (from MEGAN User's Guide):
-      ! SUN: direct + diffuse  
+      ! SUN: direct + diffuse
       alpha = alpha_fix
       cp = cp_fix
       gamma_p_LDF = fsun_in * ( cp * alpha*par_sun_in * &
               (1.D0 + alpha*alpha*par_sun_in*par_sun_in)**(-0.5D0) )
-      ! SHADE: diffuse 
+      ! SHADE: diffuse
       gamma_p_LDF = gamma_p_LDF + (1.D0-fsun_in) * (cp*alpha*par_sha_in * &
               (1.D0 + alpha*alpha*par_sha_in*par_sha_in)**(-0.5D0))
     end if
@@ -571,7 +571,7 @@ module mod_clm_vocemission
     ! same as Cce but for non-accumulated vars
     real(rk8) , parameter :: cce1 = 0.24D0
 
-    if ( (fsun240_in > 0.0D0) .and. (fsun240_in < 1.D30) ) then 
+    if ( (fsun240_in > 0.0D0) .and. (fsun240_in < 1.D30) ) then
       get_gamma_L = cce * elai_in
     else
       get_gamma_L = cce1 * elai_in
@@ -581,7 +581,7 @@ module mod_clm_vocemission
   ! Activity factor for soil moisture (Guenther et al., 2006): all species
   !----------------------------------
   ! Calculate the mean scaling factor throughout the root depth.
-  ! wilting point potential is in units of matric potential (mm) 
+  ! wilting point potential is in units of matric potential (mm)
   ! (1 J/Kg = 0.001 MPa, approx = 0.1 m)
   ! convert to volumetric soil water using equation 7.118 of the
   ! CLM4 Technical Note
@@ -612,7 +612,7 @@ module mod_clm_vocemission
     real(rk8), parameter :: deltheta1=0.06D0 ! empirical coefficient
     real(rk8), parameter :: smpmax = 2.57D5  ! maximum soil matrix potential
 
-    if ((clayfrac_in > 0) .and. (sandfrac_in > 0)) then 
+    if ((clayfrac_in > 0) .and. (sandfrac_in > 0)) then
       get_gamma_SM = 0.D0
       nl=0.D0
       do j = 1,nlevsoi
@@ -621,7 +621,7 @@ module mod_clm_vocemission
           wilt = ((smpmax/sucsat_in(j))**(-1.D0/bsw_in(j))) * &
                   (watsat_in(j) - theta_ice)
           theta1 = wilt + deltheta1
-          if (h2osoi_vol_in(j) >= theta1) then 
+          if (h2osoi_vol_in(j) >= theta1) then
             get_gamma_SM = get_gamma_SM + 1.D0
           else if ( (h2osoi_vol_in(j) > wilt) .and. &
                     (h2osoi_vol_in(j) < theta1) ) then
@@ -636,7 +636,7 @@ module mod_clm_vocemission
       if (nl > 0.D0) then
         get_gamma_SM = get_gamma_SM/nl
       end if
-      if (get_gamma_SM > 1.0D0) then 
+      if (get_gamma_SM > 1.0D0) then
         write(stdout,*) 'healdSM > 1: gamma_SM, nl', get_gamma_SM, nl
         get_gamma_SM=1.0D0
       end if
@@ -645,7 +645,7 @@ module mod_clm_vocemission
     end if
   end function get_gamma_SM
   !
-  ! Activity factor for temperature 
+  ! Activity factor for temperature
   !--------------------------------
   ! Calculate both a light-dependent fraction as in Guenther et al., 2006
   ! for isoprene of a max saturation type form. Also caculate a
@@ -665,14 +665,14 @@ module mod_clm_vocemission
     real(rk8) , intent(in) :: betaT_in
     real(rk8) , intent(in) :: LDF_in
     real(rk8) , intent(in) :: Ceo_in
-    real(rk8) , intent(out) :: Eopt                    ! temporary 
-    real(rk8) , intent(out) :: topt                    ! temporary 
+    real(rk8) , intent(out) :: Eopt                    ! temporary
+    real(rk8) , intent(out) :: topt                    ! temporary
 
     ! local variables
     real(rk8) :: get_gamma_T
     real(rk8) :: gamma_t_LDF             ! activity factor for temperature
     real(rk8) :: gamma_t_LIF             ! activity factor for temperature
-    real(rk8) :: x                       ! temporary 
+    real(rk8) :: x                       ! temporary
 
     ! parameters
     real(rk8), parameter :: co1 = 313.D0  ! empirical coefficient
@@ -687,7 +687,7 @@ module mod_clm_vocemission
     real(rk8), parameter :: bet = 0.09D0     ! beta empirical coefficient [K-1]
 
     ! Light dependent fraction (Guenther et al., 2006)
-    if ( (t_veg240_in > 0.0D0) .and. (t_veg240_in < 1.D30) ) then 
+    if ( (t_veg240_in > 0.0D0) .and. (t_veg240_in < 1.D30) ) then
       ! topt and Eopt from eq 8 and 9:
       topt = co1 + (co2 * (t_veg240_in-tstd0))
       Eopt = Ceo_in * exp (co4 * (t_veg24_in-tstd0)) * &
@@ -701,17 +701,17 @@ module mod_clm_vocemission
                           (ct2_in - ct1_in * (1.D0 - exp(ct2_in * x))) )
     ! Light independent fraction (of exp(beta T) form)
     gamma_t_LIF = exp(betaT_in * (t_veg_in - tstd))
-    ! Calculate total activity factor for light as a function of 
+    ! Calculate total activity factor for light as a function of
     ! light-dependent fraction
-    get_gamma_T = (1-LDF_in)*gamma_T_LIF + LDF_in*gamma_T_LDF 
+    get_gamma_T = (1-LDF_in)*gamma_T_LIF + LDF_in*gamma_T_LDF
   end function get_gamma_T
   !
   ! Activity factor for leaf age (Guenther et al., 2006)
   !-----------------------------
   ! If not CNDV elai is constant therefore gamma_a=1.0
   ! gamma_a set to unity for evergreens (PFTs 1, 2, 4, 5)
-  ! Note that we assume here that the time step is shorter than the number of 
-  !days after budbreak required to induce isoprene emissions (ti=12 days) and 
+  ! Note that we assume here that the time step is shorter than the number of
+  !days after budbreak required to induce isoprene emissions (ti=12 days) and
   ! the number of days after budbreak to reach peak emission (tm=28 days)
   !
   function get_gamma_A(ivt_in, elai_p_in,elai_in,nclass_in)
@@ -728,7 +728,7 @@ module mod_clm_vocemission
     real(rk8) :: fnew , fgro , fmat , fold
     if ( (ivt_in == ndllf_dcd_brl_tree) .or. &
          (ivt_in >= nbrdlf_dcd_trp_tree) ) then  ! non-evergreen
-      if ( (elai_p_in > 0.0D0) .and. (elai_p_in < 1.D30) )then 
+      if ( (elai_p_in > 0.0D0) .and. (elai_p_in < 1.D30) )then
         ! have accumulated average lai over last timestep
         elai_prev = 2.D0*elai_p_in-elai_in
         if (elai_prev == elai_in) then
@@ -760,7 +760,7 @@ module mod_clm_vocemission
   ! Activity factor for instantaneous CO2 changes (Heald et al., 2009)
   !-------------------------
   ! With distinction between sunlit and shaded leafs, weight scalings by
-  ! fsun and fshade 
+  ! fsun and fshade
   !
   function get_gamma_C(cisun_in,cisha_in,forc_pbot_in,fsun_in)
     ! corresponds to CCSM_CO2_PPMV set in env_conf.xml
@@ -771,10 +771,10 @@ module mod_clm_vocemission
     real(rk8) , intent(in) :: forc_pbot_in
     real(rk8) , intent(in) :: fsun_in
     real(rk8) :: get_gamma_C
-    real(rk8) :: IEmin   ! empirical coeff for CO2 
-    real(rk8) :: IEmax   ! empirical coeff for CO2 
-    real(rk8) :: ECi50   ! empirical coeff for CO2 
-    real(rk8) :: Cislope ! empirical coeff for CO2 
+    real(rk8) :: IEmin   ! empirical coeff for CO2
+    real(rk8) :: IEmax   ! empirical coeff for CO2
+    real(rk8) :: ECi50   ! empirical coeff for CO2
+    real(rk8) :: Cislope ! empirical coeff for CO2
     real(rk8) :: fint    ! interpolation fraction for CO2
     ! temporary sunlight/shade weighted cisun & cisha (umolCO2/mol)
     real(rk8) :: ci

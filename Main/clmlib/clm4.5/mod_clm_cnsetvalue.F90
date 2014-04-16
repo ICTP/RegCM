@@ -11,7 +11,7 @@ module mod_clm_cnsetvalue
 ! contains code to set all CN variables to specified value
 ! Used for both initialization of special landunit values, and
 ! setting fluxes to 0.0 at the beginning of each time step
-! 3/23/09, Peter Thornton: Added new subroutine, CNZeroFluxes_dwt(), 
+! 3/23/09, Peter Thornton: Added new subroutine, CNZeroFluxes_dwt(),
 !     which initialize flux variables used in the pftdyn
 !     routines. This is called from clm_driver1
 !
@@ -589,30 +589,30 @@ subroutine CNSetPcf(num, filter, val, pcf)
       pcf%m_deadcrootc_to_litter(i) = val
       pcf%m_gresp_storage_to_litter(i) = val
       pcf%m_gresp_xfer_to_litter(i) = val
-      pcf%hrv_leafc_to_litter(i) = val             
-      pcf%hrv_leafc_storage_to_litter(i) = val     
-      pcf%hrv_leafc_xfer_to_litter(i) = val        
-      pcf%hrv_frootc_to_litter(i) = val            
-      pcf%hrv_frootc_storage_to_litter(i) = val    
-      pcf%hrv_frootc_xfer_to_litter(i) = val       
-      pcf%hrv_livestemc_to_litter(i) = val         
-      pcf%hrv_livestemc_storage_to_litter(i) = val 
-      pcf%hrv_livestemc_xfer_to_litter(i) = val    
-      pcf%hrv_deadstemc_to_prod10c(i) = val        
-      pcf%hrv_deadstemc_to_prod100c(i) = val       
-      pcf%hrv_deadstemc_storage_to_litter(i) = val 
-      pcf%hrv_deadstemc_xfer_to_litter(i) = val    
-      pcf%hrv_livecrootc_to_litter(i) = val        
+      pcf%hrv_leafc_to_litter(i) = val
+      pcf%hrv_leafc_storage_to_litter(i) = val
+      pcf%hrv_leafc_xfer_to_litter(i) = val
+      pcf%hrv_frootc_to_litter(i) = val
+      pcf%hrv_frootc_storage_to_litter(i) = val
+      pcf%hrv_frootc_xfer_to_litter(i) = val
+      pcf%hrv_livestemc_to_litter(i) = val
+      pcf%hrv_livestemc_storage_to_litter(i) = val
+      pcf%hrv_livestemc_xfer_to_litter(i) = val
+      pcf%hrv_deadstemc_to_prod10c(i) = val
+      pcf%hrv_deadstemc_to_prod100c(i) = val
+      pcf%hrv_deadstemc_storage_to_litter(i) = val
+      pcf%hrv_deadstemc_xfer_to_litter(i) = val
+      pcf%hrv_livecrootc_to_litter(i) = val
       pcf%hrv_livecrootc_storage_to_litter(i) = val
-      pcf%hrv_livecrootc_xfer_to_litter(i) = val   
-      pcf%hrv_deadcrootc_to_litter(i) = val        
+      pcf%hrv_livecrootc_xfer_to_litter(i) = val
+      pcf%hrv_deadcrootc_to_litter(i) = val
       pcf%hrv_deadcrootc_storage_to_litter(i) = val
-      pcf%hrv_deadcrootc_xfer_to_litter(i) = val   
-      pcf%hrv_gresp_storage_to_litter(i) = val     
-      pcf%hrv_gresp_xfer_to_litter(i) = val        
+      pcf%hrv_deadcrootc_xfer_to_litter(i) = val
+      pcf%hrv_gresp_storage_to_litter(i) = val
+      pcf%hrv_gresp_xfer_to_litter(i) = val
       pcf%hrv_xsmrpool_to_atm(i) = val
 
-! fire-related variables changed by F. Li and S. Levis           
+! fire-related variables changed by F. Li and S. Levis
       pcf%m_leafc_to_fire(i) = val
       pcf%m_leafc_storage_to_fire(i) = val
       pcf%m_leafc_xfer_to_fire(i) = val
@@ -819,28 +819,28 @@ subroutine CNSetPnf(num, filter, val, pnf)
       pnf%m_livecrootn_to_litter(i) = val
       pnf%m_deadcrootn_to_litter(i) = val
       pnf%m_retransn_to_litter(i) = val
-      pnf%hrv_leafn_to_litter(i) = val             
-      pnf%hrv_frootn_to_litter(i) = val            
-      pnf%hrv_leafn_storage_to_litter(i) = val     
-      pnf%hrv_frootn_storage_to_litter(i) = val    
-      pnf%hrv_livestemn_storage_to_litter(i) = val 
-      pnf%hrv_deadstemn_storage_to_litter(i) = val 
+      pnf%hrv_leafn_to_litter(i) = val
+      pnf%hrv_frootn_to_litter(i) = val
+      pnf%hrv_leafn_storage_to_litter(i) = val
+      pnf%hrv_frootn_storage_to_litter(i) = val
+      pnf%hrv_livestemn_storage_to_litter(i) = val
+      pnf%hrv_deadstemn_storage_to_litter(i) = val
       pnf%hrv_livecrootn_storage_to_litter(i) = val
       pnf%hrv_deadcrootn_storage_to_litter(i) = val
-      pnf%hrv_leafn_xfer_to_litter(i) = val        
-      pnf%hrv_frootn_xfer_to_litter(i) = val       
-      pnf%hrv_livestemn_xfer_to_litter(i) = val    
-      pnf%hrv_deadstemn_xfer_to_litter(i) = val    
-      pnf%hrv_livecrootn_xfer_to_litter(i) = val   
-      pnf%hrv_deadcrootn_xfer_to_litter(i) = val   
-      pnf%hrv_livestemn_to_litter(i) = val         
-      pnf%hrv_deadstemn_to_prod10n(i) = val        
-      pnf%hrv_deadstemn_to_prod100n(i) = val       
-      pnf%hrv_livecrootn_to_litter(i) = val        
-      pnf%hrv_deadcrootn_to_litter(i) = val        
-      pnf%hrv_retransn_to_litter(i) = val    
+      pnf%hrv_leafn_xfer_to_litter(i) = val
+      pnf%hrv_frootn_xfer_to_litter(i) = val
+      pnf%hrv_livestemn_xfer_to_litter(i) = val
+      pnf%hrv_deadstemn_xfer_to_litter(i) = val
+      pnf%hrv_livecrootn_xfer_to_litter(i) = val
+      pnf%hrv_deadcrootn_xfer_to_litter(i) = val
+      pnf%hrv_livestemn_to_litter(i) = val
+      pnf%hrv_deadstemn_to_prod10n(i) = val
+      pnf%hrv_deadstemn_to_prod100n(i) = val
+      pnf%hrv_livecrootn_to_litter(i) = val
+      pnf%hrv_deadcrootn_to_litter(i) = val
+      pnf%hrv_retransn_to_litter(i) = val
 
-! fire-related variables changed by F. Li and S. Levis                  
+! fire-related variables changed by F. Li and S. Levis
       pnf%m_leafn_to_fire(i) = val
       pnf%m_leafn_storage_to_fire(i) = val
       pnf%m_leafn_xfer_to_fire(i) = val
@@ -1214,13 +1214,13 @@ subroutine CNSetCcf(num, filter, val, ccf)
          ! fire
          ccf%fire_mortality_c_to_cwdc(i,j)                 = val
          ccf%m_c_to_litr_met_fire(i,j)             = val
-         ccf%m_c_to_litr_cel_fire(i,j)             = val  
+         ccf%m_c_to_litr_cel_fire(i,j)             = val
          ccf%m_c_to_litr_lig_fire(i,j)             = val
          ! harvest
-         ccf%harvest_c_to_litr_met_c(i,j)                  = val             
-         ccf%harvest_c_to_litr_cel_c(i,j)                  = val             
-         ccf%harvest_c_to_litr_lig_c(i,j)                  = val             
-         ccf%harvest_c_to_cwdc(i,j)                        = val          
+         ccf%harvest_c_to_litr_met_c(i,j)                  = val
+         ccf%harvest_c_to_litr_cel_c(i,j)                  = val
+         ccf%harvest_c_to_litr_lig_c(i,j)                  = val
+         ccf%harvest_c_to_cwdc(i,j)                        = val
          ! hr
          ccf%hr_vr(i,j) = val
       end do
@@ -1266,8 +1266,8 @@ subroutine CNSetCcf(num, filter, val, ccf)
 
    do fi = 1,num
       i = filter(fi)
-      ccf%hrv_deadstemc_to_prod10c(i)         = val        
-      ccf%hrv_deadstemc_to_prod100c(i)        = val  
+      ccf%hrv_deadstemc_to_prod10c(i)         = val
+      ccf%hrv_deadstemc_to_prod100c(i)        = val
       ccf%somc_fire(i)                        = val     ! F. Li and S.Levis
       ccf%prod10c_loss(i)                     = val
       ccf%prod100c_loss(i)                    = val
@@ -1342,13 +1342,13 @@ subroutine CNSetCnf(num, filter, val, cnf)
          ! fire
          cnf%fire_mortality_n_to_cwdn(i,j)                 = val
          cnf%m_n_to_litr_met_fire(i,j)             = val
-         cnf%m_n_to_litr_cel_fire(i,j)             = val  
+         cnf%m_n_to_litr_cel_fire(i,j)             = val
          cnf%m_n_to_litr_lig_fire(i,j)             = val
          ! harvest
-         cnf%harvest_n_to_litr_met_n(i,j)                  = val             
-         cnf%harvest_n_to_litr_cel_n(i,j)                  = val             
-         cnf%harvest_n_to_litr_lig_n(i,j)                  = val             
-         cnf%harvest_n_to_cwdn(i,j)                        = val  
+         cnf%harvest_n_to_litr_met_n(i,j)                  = val
+         cnf%harvest_n_to_litr_cel_n(i,j)                  = val
+         cnf%harvest_n_to_litr_lig_n(i,j)                  = val
+         cnf%harvest_n_to_cwdn(i,j)                        = val
 #ifndef NITRIF_DENITRIF
          cnf%sminn_to_denit_excess_vr(i,j) = val
          cnf%sminn_leached_vr(i,j) = val
@@ -1356,7 +1356,7 @@ subroutine CNSetCnf(num, filter, val, cnf)
          cnf%f_nit_vr(i,j) = val
          cnf%f_denit_vr(i,j) = val
          cnf%smin_no3_leached_vr(i,j) = val
-         cnf%smin_no3_runoff_vr(i,j) = val 
+         cnf%smin_no3_runoff_vr(i,j) = val
          cnf%n2_n2o_ratio_denit_vr(i,j) = val
          cnf%pot_f_nit_vr(i,j) = val
          cnf%pot_f_denit_vr(i,j) = val
@@ -1371,10 +1371,10 @@ subroutine CNSetCnf(num, filter, val, cnf)
          cnf%k_nitr_t_vr(i,j) = val
          cnf%k_nitr_ph_vr(i,j) = val
          cnf%k_nitr_h2o_vr(i,j) = val
-         cnf%k_nitr_vr(i,j) = val 
-         cnf%wfps_vr(i,j) = val 
-         cnf%fmax_denit_carbonsubstrate_vr(i,j) = val 
-         cnf%fmax_denit_nitrate_vr(i,j) = val 
+         cnf%k_nitr_vr(i,j) = val
+         cnf%wfps_vr(i,j) = val
+         cnf%fmax_denit_carbonsubstrate_vr(i,j) = val
+         cnf%fmax_denit_nitrate_vr(i,j) = val
          cnf%f_denit_base_vr(i,j) = val
 
          cnf%diffus(i,j) = val
@@ -1402,8 +1402,8 @@ subroutine CNSetCnf(num, filter, val, cnf)
       cnf%nfix_to_sminn(i) = val
       cnf%fert_to_sminn(i) = val
       cnf%soyfixn_to_sminn(i) = val
-      cnf%hrv_deadstemn_to_prod10n(i) = val        
-      cnf%hrv_deadstemn_to_prod100n(i) = val      
+      cnf%hrv_deadstemn_to_prod10n(i) = val
+      cnf%hrv_deadstemn_to_prod100n(i) = val
       cnf%prod10n_loss(i) = val
       cnf%prod100n_loss(i) = val
       cnf%product_nloss(i) = val

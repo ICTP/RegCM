@@ -36,7 +36,7 @@ contains
   subroutine FracH2oSfc(lbc, ubc, num_h2osfc, filter_h2osfc,frac_h2osfc,no_update)
 !
 ! !DESCRIPTION:
-! Determine fraction of land surfaces which are submerged  
+! Determine fraction of land surfaces which are submerged
 ! based on surface microtopography and surface water storage.
 !
 ! !USES:
@@ -48,7 +48,7 @@ contains
     implicit none
     integer , intent(in) :: lbc, ubc                  ! column bounds
     integer , intent(in) :: num_h2osfc                ! number of column points in column filter
-    integer , intent(in) :: filter_h2osfc(ubc-lbc+1)  ! column filter 
+    integer , intent(in) :: filter_h2osfc(ubc-lbc+1)  ! column filter
     real(rk8), intent(inout) :: frac_h2osfc(lbc:ubc)   ! fractional surface water (mm)
     integer , intent(in), optional :: no_update       ! flag to make calculation w/o updating variables
 !
@@ -56,7 +56,7 @@ contains
 ! subroutine Hydrology1 in module Hydrology1Mod
 !
 ! !REVISION HISTORY:
-! 09/24/07 Created by S. Swenson 
+! 09/24/07 Created by S. Swenson
 !
 ! !LOCAL VARIABLES:
 !
@@ -94,7 +94,7 @@ contains
     ltype               => clm3%g%l%itype
     clandunit           => clm3%g%l%c%landunit
 
-    frac_sno            => clm3%g%l%c%cps%frac_sno 
+    frac_sno            => clm3%g%l%c%cps%frac_sno
     frac_sno_eff        => clm3%g%l%c%cps%frac_sno_eff
     snl                 => clm3%g%l%c%cps%snl
     h2osno              => clm3%g%l%c%cws%h2osno
@@ -109,7 +109,7 @@ contains
        if (ltype(l) == istsoil .or. ltype(l) == istcrop) then
 
           !  Use newton-raphson method to iteratively determine frac_h20sfc
-          !  based on amount of surface water storage (h2osfc) and 
+          !  based on amount of surface water storage (h2osfc) and
           !  microtopography variability (micro_sigma)
           if (h2osfc(c) > min_h2osfc) then
              ! a cutoff is needed for numerical reasons...(nonconvergence after 5 iterations)
@@ -139,7 +139,7 @@ contains
              ! energy balance error when h2osno > 0 and snl = 0
              if (frac_sno(c) > (1.D0 - frac_h2osfc(c)) .and. h2osno(c) > 0) then
 
-                if (frac_h2osfc(c) > 0.01D0) then             
+                if (frac_h2osfc(c) > 0.01D0) then
                    frac_h2osfc(c) = max(1.0D0 - frac_sno(c),0.01D0)
                    frac_sno(c) = 1.0D0 - frac_h2osfc(c)
                 else

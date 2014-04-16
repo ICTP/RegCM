@@ -169,9 +169,9 @@ module mod_clm_pftdyn
     do g = begg , endg
       !   this was causing a fail, even though values are the same to
       ! within 1e-15 if (pctlak(g)+pctwet(g)+pcturb(g)+pctgla(g)
-      ! /= pctspec(g)) then 
+      ! /= pctspec(g)) then
       if (abs((pctlak(g)+pctwet(g)+ &
-               pcturb_tot(g)+pctgla(g))-pctspec(g)) > 1D-13) then 
+               pcturb_tot(g)+pctgla(g))-pctspec(g)) > 1D-13) then
         write(stderr,*) subname//'mismatch between input pctspec = ',&
            pctlak(g)+pctwet(g)+pcturb_tot(g)+pctgla(g),&
            ' and that obtained from surface dataset ', pctspec(g),' at g= ',g
@@ -185,7 +185,7 @@ module mod_clm_pftdyn
     ! forcing constant weights until the model year enters the dynamic
     ! pft dataset timeseries range.
     ! If current year is equal to or greater than the last dynamic pft
-    ! timeseries year, then use the last year for both nt1 and nt2, 
+    ! timeseries year, then use the last year for both nt1 and nt2,
     ! forcing constant weights for the remainder of the simulation.
     ! This mechanism permits the introduction of a dynamic pft period in
     ! the middle of a simulation, with constant weights before and after
@@ -207,13 +207,13 @@ module mod_clm_pftdyn
       do_harvest = .false.
     else
       found = .false.
-      do n = 1,ntimes-1 
+      do n = 1,ntimes-1
         if (year == yearspft(n)) then
           nt1 = n
           nt2 = nt1 + 1
           found = .true.
           do_harvest = .true.
-        end if   
+        end if
       end do
       if (.not. found) then
         write(stderr,*) &
@@ -247,7 +247,7 @@ module mod_clm_pftdyn
   ! Note that harvest data are stored as rates (not weights) and so time
   ! interpolation is not necessary - the harvest rate is held constant
   ! through the year.  This is consistent with the treatment of changing
-  ! PFT weights, where interpolation of the annual endpoint weights leads to 
+  ! PFT weights, where interpolation of the annual endpoint weights leads to
   ! a constant rate of change in PFT weight through the year, with abrupti
   ! changes in the rate at annual boundaries. This routine is still used to
   ! get the next harvest time slice, when needed.
@@ -354,11 +354,11 @@ module mod_clm_pftdyn
           wtpft2(g,m) = wtpft2(g,m)/100.D0
         end do
       end do
-    end if  ! end of need new data if-block 
+    end if  ! end of need new data if-block
 
     ! Interpolate pft weight to current time
 
-    cday          = get_curr_calday() 
+    cday          = get_curr_calday()
     days_per_year = get_days_per_year()
 
     wt1 = ((days_per_year + 1.D0) - cday)/days_per_year
@@ -372,15 +372,15 @@ module mod_clm_pftdyn
         wtcol_old(p)      = pptr%wtcol(p)
 !       --- recoded for roundoff performance, tcraig 3/07 from k.lindsay
 !       pptr%wtgcell(p)   = wtpft1(g,m)*wt1 + wtpft2(g,m)*wt2
-        wtpfttot1(c) = wtpfttot1(c)+pptr%wtgcell(p)    
+        wtpfttot1(c) = wtpfttot1(c)+pptr%wtgcell(p)
         pptr%wtgcell(p)   = wtpft2(g,m) + wt1*(wtpft1(g,m)-wtpft2(g,m))
         pptr%wtlunit(p)   = pptr%wtgcell(p) / lptr%wtgcell(l)
         pptr%wtcol(p)     = pptr%wtgcell(p) / lptr%wtgcell(l)
         wtpfttot2(c) = wtpfttot2(c)+pptr%wtgcell(p)
       end if
     end do
-    ! Renormalize pft weights so that sum of pft weights relative to grid cell 
-    ! remain constant even as land cover changes.  Doing this eliminates 
+    ! Renormalize pft weights so that sum of pft weights relative to grid cell
+    ! remain constant even as land cover changes.  Doing this eliminates
     ! soil balance error warnings.  (DML, 4/8/2009)
     do p = begp , endp
       c = pptr%column(p)
@@ -395,7 +395,7 @@ module mod_clm_pftdyn
         end if
       end if
     end do
-    deallocate(wtpfttot1,wtpfttot2) 
+    deallocate(wtpfttot1,wtpfttot2)
   end subroutine pftdyn_interp
   !
   ! Obtain dynamic landuse data (pctpft) and make sure that
@@ -414,10 +414,10 @@ module mod_clm_pftdyn
     logical  :: readvar
     character(len=32) :: subname='pftdyn_getdata' ! subroutine name
 
-    allocate(arrayl(begg:endg,pft0:maxpft))  
+    allocate(arrayl(begg:endg,pft0:maxpft))
     call clm_readvar(ncid,'PCT_PFT',arrayl,ntime)
     pctpft(begg:endg,pft0:maxpft) = arrayl(begg:endg,pft0:maxpft)
-    deallocate(arrayl)    
+    deallocate(arrayl)
     if (.not. readvar) call fatal(__FILE__,__LINE__, &
             trim(subname)//' ERROR: PCT_PFT NOT on pftdyn file' )
     err = 0
@@ -456,7 +456,7 @@ module mod_clm_pftdyn
   subroutine pftdyn_getharvest(ntime, begg, endg)
 !
 ! !DESCRIPTION:
-! Obtain harvest data 
+! Obtain harvest data
 !
 ! !USES:
 !
@@ -470,7 +470,7 @@ module mod_clm_pftdyn
 ! !LOCAL VARIABLES:
 !EOP
     real(rk8) , pointer :: arrayl(:)                   ! temporary array
-    logical :: readvar 
+    logical :: readvar
     character(len=32) :: subname='pftdyn_getharvest' ! subroutine name
 !-----------------------------------------------------------------------
 
@@ -622,7 +622,7 @@ module mod_clm_pftdyn
 
           if (dwt > 0.D0) then
 
-             ! if the pft gained weight, then the 
+             ! if the pft gained weight, then the
              ! initial canopy water state is redistributed over the
              ! new (larger) area, conserving mass.
 
@@ -631,7 +631,7 @@ module mod_clm_pftdyn
           else if (dwt < 0.D0) then
 
              ! if the pft lost weight on the timestep, then the canopy water
-             ! mass associated with the lost weight is directed to a 
+             ! mass associated with the lost weight is directed to a
              ! column-level flux term that gets added to the precip flux
              ! for every pft calculation in Hydrology1()
 
@@ -642,12 +642,12 @@ module mod_clm_pftdyn
                 new_h2ocan = 0.D0
                 loss_h2ocan(p) = init_h2ocan
              end if
-             if (pptr%wtcol(p) /= 0.D0) then  
+             if (pptr%wtcol(p) /= 0.D0) then
                 pptr%pws%h2ocan(p) = new_h2ocan/pptr%wtcol(p)
              else
                 pptr%pws%h2ocan(p) = 0.D0
                 loss_h2ocan(p) = init_h2ocan
-             end if 
+             end if
 
 
           end if
@@ -1214,7 +1214,7 @@ module mod_clm_pftdyn
                 if ( use_c13 ) then
                    ! 13c state is initialized assuming del13c = -28 permil for C3, and -13 permil for C4.
                    ! That translates to ratios of (13c/(12c+13c)) of 0.01080455 for C3, and 0.01096945 for C4
-                   ! based on the following formulae: 
+                   ! based on the following formulae:
                    ! r1 (13/12) = PDB + (del13c * PDB)/1000.0
                    ! r2 (13/(13+12)) = r1/(1+r1)
                    ! PDB = 0.0112372_R8  (ratio of 13C/12C in Pee Dee Belemnite, C isotope standard)
@@ -1246,9 +1246,9 @@ module mod_clm_pftdyn
                 end if
              end if
 
-             ! When PFT area expands (dwt > 0), the pft-level mass density 
+             ! When PFT area expands (dwt > 0), the pft-level mass density
              ! is modified to conserve the original pft mass distributed
-             ! over the new (larger) area, plus a term to account for the 
+             ! over the new (larger) area, plus a term to account for the
              ! introduction of new seed source for leaf and deadstem
              t1 = wtcol_old(p)/pptr%wtcol(p)
              t2 = dwt/pptr%wtcol(p)
@@ -1299,7 +1299,7 @@ module mod_clm_pftdyn
              pptr%pcs%totpftc(p)        = pptr%pcs%totpftc(p)      * t1
 
              if ( use_c13 ) then
-                ! pft-level carbon-13 state variables 
+                ! pft-level carbon-13 state variables
                 tot_leaf = pptr%pc13s%leafc(p) + pptr%pc13s%leafc_storage(p) + pptr%pc13s%leafc_xfer(p)
                 pleaf = 0.D0
                 pstor = 0.D0
@@ -1347,7 +1347,7 @@ module mod_clm_pftdyn
              end if
 
              if ( use_c14 ) then
-                ! pft-level carbon-14 state variables 
+                ! pft-level carbon-14 state variables
                 tot_leaf = pptr%pc14s%leafc(p) + pptr%pc14s%leafc_storage(p) + pptr%pc14s%leafc_xfer(p)
                 pleaf = 0.D0
                 pstor = 0.D0
@@ -1459,7 +1459,7 @@ module mod_clm_pftdyn
              ! variables are directed to litter, CWD, and wood product pools.
 
              ! N.B. : the conv_cflux, prod10_cflux, and prod100_cflux fluxes are accumulated
-             ! as negative values, but the fluxes for pft-to-litter are accumulated as 
+             ! as negative values, but the fluxes for pft-to-litter are accumulated as
              ! positive values
 
              ! set local weight variables for this pft
@@ -1470,7 +1470,7 @@ module mod_clm_pftdyn
              ! C state update
              !---------------
 
-             ! leafc 
+             ! leafc
              ptr => pptr%pcs%leafc(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1483,7 +1483,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! leafc_storage 
+             ! leafc_storage
              ptr => pptr%pcs%leafc_storage(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1496,7 +1496,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! leafc_xfer 
+             ! leafc_xfer
              ptr => pptr%pcs%leafc_xfer(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1509,7 +1509,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! frootc 
+             ! frootc
              ptr => pptr%pcs%frootc(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1522,7 +1522,7 @@ module mod_clm_pftdyn
                 dwt_frootc_to_litter(p) = dwt_frootc_to_litter(p) + init_state
              end if
 
-             ! frootc_storage 
+             ! frootc_storage
              ptr => pptr%pcs%frootc_storage(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1535,7 +1535,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! frootc_xfer 
+             ! frootc_xfer
              ptr => pptr%pcs%frootc_xfer(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1548,7 +1548,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! livestemc 
+             ! livestemc
              ptr => pptr%pcs%livestemc(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1561,7 +1561,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! livestemc_storage 
+             ! livestemc_storage
              ptr => pptr%pcs%livestemc_storage(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1574,7 +1574,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! livestemc_xfer 
+             ! livestemc_xfer
              ptr => pptr%pcs%livestemc_xfer(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1587,7 +1587,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! deadstemc 
+             ! deadstemc
              ptr => pptr%pcs%deadstemc(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1604,7 +1604,7 @@ module mod_clm_pftdyn
                 prod100_cflux(p) = prod100_cflux(p) - init_state*pprod100(pptr%itype(p))
              end if
 
-             ! deadstemc_storage 
+             ! deadstemc_storage
              ptr => pptr%pcs%deadstemc_storage(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1617,7 +1617,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! deadstemc_xfer 
+             ! deadstemc_xfer
              ptr => pptr%pcs%deadstemc_xfer(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1630,7 +1630,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! livecrootc 
+             ! livecrootc
              ptr => pptr%pcs%livecrootc(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1643,7 +1643,7 @@ module mod_clm_pftdyn
                 dwt_livecrootc_to_litter(p) = dwt_livecrootc_to_litter(p) + init_state
              end if
 
-             ! livecrootc_storage 
+             ! livecrootc_storage
              ptr => pptr%pcs%livecrootc_storage(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1656,7 +1656,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! livecrootc_xfer 
+             ! livecrootc_xfer
              ptr => pptr%pcs%livecrootc_xfer(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1669,7 +1669,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! deadcrootc 
+             ! deadcrootc
              ptr => pptr%pcs%deadcrootc(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1682,7 +1682,7 @@ module mod_clm_pftdyn
                 dwt_deadcrootc_to_litter(p) = dwt_deadcrootc_to_litter(p) + init_state
              end if
 
-             ! deadcrootc_storage 
+             ! deadcrootc_storage
              ptr => pptr%pcs%deadcrootc_storage(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1695,7 +1695,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! deadcrootc_xfer 
+             ! deadcrootc_xfer
              ptr => pptr%pcs%deadcrootc_xfer(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1708,7 +1708,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! gresp_storage 
+             ! gresp_storage
              ptr => pptr%pcs%gresp_storage(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1721,7 +1721,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! gresp_xfer 
+             ! gresp_xfer
              ptr => pptr%pcs%gresp_xfer(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1734,7 +1734,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! cpool 
+             ! cpool
              ptr => pptr%pcs%cpool(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1747,7 +1747,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! xsmrpool 
+             ! xsmrpool
              ptr => pptr%pcs%xsmrpool(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1760,7 +1760,7 @@ module mod_clm_pftdyn
                 conv_cflux(p) = conv_cflux(p) - init_state
              end if
 
-             ! pft_ctrunc 
+             ! pft_ctrunc
              ptr => pptr%pcs%pft_ctrunc(p)
              init_state = ptr*wt_old
              change_state = ptr*dwt
@@ -1784,7 +1784,7 @@ module mod_clm_pftdyn
                 dwt_ptr2 => prod10_c13flux(p)
                 dwt_ptr3 => prod100_c13flux(p)
 
-                ! leafc 
+                ! leafc
                 ptr => pptr%pc13s%leafc(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -1797,7 +1797,7 @@ module mod_clm_pftdyn
                    dwt_ptr1 = dwt_ptr1 - init_state
                 end if
 
-                ! leafc_storage 
+                ! leafc_storage
                 ptr => pptr%pc13s%leafc_storage(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -1810,7 +1810,7 @@ module mod_clm_pftdyn
                    dwt_ptr1 = dwt_ptr1 - init_state
                 end if
 
-                ! leafc_xfer 
+                ! leafc_xfer
                 ptr => pptr%pc13s%leafc_xfer(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -1823,7 +1823,7 @@ module mod_clm_pftdyn
                    dwt_ptr1 = dwt_ptr1 - init_state
                 end if
 
-                ! frootc 
+                ! frootc
                 ptr => pptr%pc13s%frootc(p)
                 dwt_ptr0 => dwt_frootc13_to_litter(p)
                 init_state = ptr*wt_old
@@ -1837,7 +1837,7 @@ module mod_clm_pftdyn
                    dwt_ptr0 = dwt_ptr0 + init_state
                 end if
 
-                ! frootc_storage 
+                ! frootc_storage
                 ptr => pptr%pc13s%frootc_storage(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -1850,7 +1850,7 @@ module mod_clm_pftdyn
                    dwt_ptr1 = dwt_ptr1 - init_state
                 end if
 
-                ! frootc_xfer 
+                ! frootc_xfer
                 ptr => pptr%pc13s%frootc_xfer(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -1863,7 +1863,7 @@ module mod_clm_pftdyn
                    dwt_ptr1 = dwt_ptr1 - init_state
                 end if
 
-                ! livestemc 
+                ! livestemc
                 ptr => pptr%pc13s%livestemc(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -1876,7 +1876,7 @@ module mod_clm_pftdyn
                    dwt_ptr1 = dwt_ptr1 - init_state
                 end if
 
-                ! livestemc_storage 
+                ! livestemc_storage
                 ptr => pptr%pc13s%livestemc_storage(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -1889,7 +1889,7 @@ module mod_clm_pftdyn
                    dwt_ptr1 = dwt_ptr1 - init_state
                 end if
 
-                ! livestemc_xfer 
+                ! livestemc_xfer
                 ptr => pptr%pc13s%livestemc_xfer(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -1902,7 +1902,7 @@ module mod_clm_pftdyn
                    dwt_ptr1 = dwt_ptr1 - init_state
                 end if
 
-                ! deadstemc 
+                ! deadstemc
                 ptr => pptr%pc13s%deadstemc(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -1919,7 +1919,7 @@ module mod_clm_pftdyn
                    dwt_ptr3 = dwt_ptr3 - init_state*pprod100(pptr%itype(p))
                 end if
 
-                ! deadstemc_storage 
+                ! deadstemc_storage
                 ptr => pptr%pc13s%deadstemc_storage(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -1932,7 +1932,7 @@ module mod_clm_pftdyn
                    dwt_ptr1 = dwt_ptr1 - init_state
                 end if
 
-                ! deadstemc_xfer 
+                ! deadstemc_xfer
                 ptr => pptr%pc13s%deadstemc_xfer(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -1945,7 +1945,7 @@ module mod_clm_pftdyn
                    dwt_ptr1 = dwt_ptr1 - init_state
                 end if
 
-                ! livecrootc 
+                ! livecrootc
                 ptr => pptr%pc13s%livecrootc(p)
                 dwt_ptr0 => dwt_livecrootc13_to_litter(p)
                 init_state = ptr*wt_old
@@ -1959,7 +1959,7 @@ module mod_clm_pftdyn
                    dwt_ptr0 = dwt_ptr0 + init_state
                 end if
 
-                ! livecrootc_storage 
+                ! livecrootc_storage
                 ptr => pptr%pc13s%livecrootc_storage(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -1972,7 +1972,7 @@ module mod_clm_pftdyn
                    dwt_ptr1 = dwt_ptr1 - init_state
                 end if
 
-                ! livecrootc_xfer 
+                ! livecrootc_xfer
                 ptr => pptr%pc13s%livecrootc_xfer(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -1985,7 +1985,7 @@ module mod_clm_pftdyn
                    dwt_ptr1 = dwt_ptr1 - init_state
                 end if
 
-                ! deadcrootc 
+                ! deadcrootc
                 ptr => pptr%pc13s%deadcrootc(p)
                 dwt_ptr0 => dwt_deadcrootc13_to_litter(p)
                 init_state = ptr*wt_old
@@ -1999,7 +1999,7 @@ module mod_clm_pftdyn
                    dwt_ptr0 = dwt_ptr0 + init_state
                 end if
 
-                ! deadcrootc_storage 
+                ! deadcrootc_storage
                 ptr => pptr%pc13s%deadcrootc_storage(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -2012,7 +2012,7 @@ module mod_clm_pftdyn
                    dwt_ptr1 = dwt_ptr1 - init_state
                 end if
 
-                ! deadcrootc_xfer 
+                ! deadcrootc_xfer
                 ptr => pptr%pc13s%deadcrootc_xfer(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -2025,7 +2025,7 @@ module mod_clm_pftdyn
                    dwt_ptr1 = dwt_ptr1 - init_state
                 end if
 
-                ! gresp_storage 
+                ! gresp_storage
                 ptr => pptr%pc13s%gresp_storage(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -2038,7 +2038,7 @@ module mod_clm_pftdyn
                    dwt_ptr1 = dwt_ptr1 - init_state
                 end if
 
-                ! gresp_xfer 
+                ! gresp_xfer
                 ptr => pptr%pc13s%gresp_xfer(p)
                 init_state = ptr*wt_old
                 change_state = ptr*dwt
@@ -2051,7 +2051,7 @@ module mod_clm_pftdyn
                    dwt_ptr1 = dwt_ptr1 - init_state
                 end if
 
-            ! cpool 
+            ! cpool
             ptr => pptr%pc13s%cpool(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2064,7 +2064,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! pft_ctrunc 
+            ! pft_ctrunc
             ptr => pptr%pc13s%pft_ctrunc(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2090,7 +2090,7 @@ module mod_clm_pftdyn
             dwt_ptr2 => prod10_c14flux(p)
             dwt_ptr3 => prod100_c14flux(p)
 
-            ! leafc 
+            ! leafc
             ptr => pptr%pc14s%leafc(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2103,7 +2103,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! leafc_storage 
+            ! leafc_storage
             ptr => pptr%pc14s%leafc_storage(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2116,7 +2116,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! leafc_xfer 
+            ! leafc_xfer
             ptr => pptr%pc14s%leafc_xfer(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2129,7 +2129,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! frootc 
+            ! frootc
             ptr => pptr%pc14s%frootc(p)
             dwt_ptr0 => dwt_frootc14_to_litter(p)
             init_state = ptr*wt_old
@@ -2143,7 +2143,7 @@ module mod_clm_pftdyn
               dwt_ptr0 = dwt_ptr0 + init_state
             end if
 
-            ! frootc_storage 
+            ! frootc_storage
             ptr => pptr%pc14s%frootc_storage(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2156,7 +2156,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! frootc_xfer 
+            ! frootc_xfer
             ptr => pptr%pc14s%frootc_xfer(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2169,7 +2169,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! livestemc 
+            ! livestemc
             ptr => pptr%pc14s%livestemc(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2182,7 +2182,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! livestemc_storage 
+            ! livestemc_storage
             ptr => pptr%pc14s%livestemc_storage(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2195,7 +2195,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! livestemc_xfer 
+            ! livestemc_xfer
             ptr => pptr%pc14s%livestemc_xfer(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2208,7 +2208,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! deadstemc 
+            ! deadstemc
             ptr => pptr%pc14s%deadstemc(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2225,7 +2225,7 @@ module mod_clm_pftdyn
               dwt_ptr3 = dwt_ptr3 - init_state*pprod100(pptr%itype(p))
             end if
 
-            ! deadstemc_storage 
+            ! deadstemc_storage
             ptr => pptr%pc14s%deadstemc_storage(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2238,7 +2238,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! deadstemc_xfer 
+            ! deadstemc_xfer
             ptr => pptr%pc14s%deadstemc_xfer(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2251,7 +2251,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! livecrootc 
+            ! livecrootc
             ptr => pptr%pc14s%livecrootc(p)
             dwt_ptr0 => dwt_livecrootc14_to_litter(p)
             init_state = ptr*wt_old
@@ -2265,7 +2265,7 @@ module mod_clm_pftdyn
               dwt_ptr0 = dwt_ptr0 + init_state
             end if
 
-            ! livecrootc_storage 
+            ! livecrootc_storage
             ptr => pptr%pc14s%livecrootc_storage(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2278,7 +2278,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! livecrootc_xfer 
+            ! livecrootc_xfer
             ptr => pptr%pc14s%livecrootc_xfer(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2291,7 +2291,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! deadcrootc 
+            ! deadcrootc
             ptr => pptr%pc14s%deadcrootc(p)
             dwt_ptr0 => dwt_deadcrootc14_to_litter(p)
             init_state = ptr*wt_old
@@ -2305,7 +2305,7 @@ module mod_clm_pftdyn
               dwt_ptr0 = dwt_ptr0 + init_state
             end if
 
-            ! deadcrootc_storage 
+            ! deadcrootc_storage
             ptr => pptr%pc14s%deadcrootc_storage(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2318,7 +2318,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! deadcrootc_xfer 
+            ! deadcrootc_xfer
             ptr => pptr%pc14s%deadcrootc_xfer(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2331,7 +2331,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! gresp_storage 
+            ! gresp_storage
             ptr => pptr%pc14s%gresp_storage(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2344,7 +2344,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! gresp_xfer 
+            ! gresp_xfer
             ptr => pptr%pc14s%gresp_xfer(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2357,7 +2357,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! cpool 
+            ! cpool
             ptr => pptr%pc14s%cpool(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2370,7 +2370,7 @@ module mod_clm_pftdyn
               dwt_ptr1 = dwt_ptr1 - init_state
             end if
 
-            ! pft_ctrunc 
+            ! pft_ctrunc
             ptr => pptr%pc14s%pft_ctrunc(p)
             init_state = ptr*wt_old
             change_state = ptr*dwt
@@ -2389,13 +2389,13 @@ module mod_clm_pftdyn
           !---------------
 
           ! set pointers to the conversion and product pool fluxes for
-          ! this pft dwt_ptr0 is reserved for local assignment to 
+          ! this pft dwt_ptr0 is reserved for local assignment to
           ! dwt_xxx_to_litter fluxes
           dwt_ptr1 => conv_nflux(p)
           dwt_ptr2 => prod10_nflux(p)
           dwt_ptr3 => prod100_nflux(p)
 
-          ! leafn 
+          ! leafn
           ptr => pptr%pns%leafn(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2408,7 +2408,7 @@ module mod_clm_pftdyn
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
-          ! leafn_storage  
+          ! leafn_storage
           ptr => pptr%pns%leafn_storage(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2421,7 +2421,7 @@ module mod_clm_pftdyn
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
-          ! leafn_xfer  
+          ! leafn_xfer
           ptr => pptr%pns%leafn_xfer(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2434,7 +2434,7 @@ module mod_clm_pftdyn
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
-          ! frootn 
+          ! frootn
           ptr => pptr%pns%frootn(p)
           dwt_ptr0 => dwt_frootn_to_litter(p)
           init_state = ptr*wt_old
@@ -2448,7 +2448,7 @@ module mod_clm_pftdyn
             dwt_ptr0 = dwt_ptr0 + init_state
           end if
 
-          ! frootn_storage 
+          ! frootn_storage
           ptr => pptr%pns%frootn_storage(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2461,7 +2461,7 @@ module mod_clm_pftdyn
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
-          ! frootn_xfer  
+          ! frootn_xfer
           ptr => pptr%pns%frootn_xfer(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2474,7 +2474,7 @@ module mod_clm_pftdyn
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
-          ! livestemn  
+          ! livestemn
           ptr => pptr%pns%livestemn(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2487,7 +2487,7 @@ module mod_clm_pftdyn
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
-          ! livestemn_storage 
+          ! livestemn_storage
           ptr => pptr%pns%livestemn_storage(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2500,7 +2500,7 @@ module mod_clm_pftdyn
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
-          ! livestemn_xfer 
+          ! livestemn_xfer
           ptr => pptr%pns%livestemn_xfer(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2513,7 +2513,7 @@ module mod_clm_pftdyn
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
-          ! deadstemn 
+          ! deadstemn
           ptr => pptr%pns%deadstemn(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2530,7 +2530,7 @@ module mod_clm_pftdyn
             dwt_ptr3 = dwt_ptr3 - init_state*pprod100(pptr%itype(p))
           end if
 
-          ! deadstemn_storage 
+          ! deadstemn_storage
           ptr => pptr%pns%deadstemn_storage(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2543,7 +2543,7 @@ module mod_clm_pftdyn
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
-          ! deadstemn_xfer 
+          ! deadstemn_xfer
           ptr => pptr%pns%deadstemn_xfer(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2556,7 +2556,7 @@ module mod_clm_pftdyn
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
-          ! livecrootn 
+          ! livecrootn
           ptr => pptr%pns%livecrootn(p)
           dwt_ptr0 => dwt_livecrootn_to_litter(p)
           init_state = ptr*wt_old
@@ -2570,7 +2570,7 @@ module mod_clm_pftdyn
             dwt_ptr0 = dwt_ptr0 + init_state
           end if
 
-          ! livecrootn_storage  
+          ! livecrootn_storage
           ptr => pptr%pns%livecrootn_storage(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2583,7 +2583,7 @@ module mod_clm_pftdyn
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
-          ! livecrootn_xfer  
+          ! livecrootn_xfer
           ptr => pptr%pns%livecrootn_xfer(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2596,7 +2596,7 @@ module mod_clm_pftdyn
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
-          ! deadcrootn 
+          ! deadcrootn
           ptr => pptr%pns%deadcrootn(p)
           dwt_ptr0 => dwt_deadcrootn_to_litter(p)
           init_state = ptr*wt_old
@@ -2610,7 +2610,7 @@ module mod_clm_pftdyn
             dwt_ptr0 = dwt_ptr0 + init_state
           end if
 
-          ! deadcrootn_storage  
+          ! deadcrootn_storage
           ptr => pptr%pns%deadcrootn_storage(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2623,7 +2623,7 @@ module mod_clm_pftdyn
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
-          ! deadcrootn_xfer  
+          ! deadcrootn_xfer
           ptr => pptr%pns%deadcrootn_xfer(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2636,7 +2636,7 @@ module mod_clm_pftdyn
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
-          ! retransn  
+          ! retransn
           ptr => pptr%pns%retransn(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2649,7 +2649,7 @@ module mod_clm_pftdyn
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
-          ! npool  
+          ! npool
           ptr => pptr%pns%npool(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2662,7 +2662,7 @@ module mod_clm_pftdyn
             dwt_ptr1 = dwt_ptr1 - init_state
           end if
 
-          ! pft_ntrunc  
+          ! pft_ntrunc
           ptr => pptr%pns%pft_ntrunc(p)
           init_state = ptr*wt_old
           change_state = ptr*dwt
@@ -2696,7 +2696,7 @@ module mod_clm_pftdyn
                 cptr%cc13f%dwt_seedc_to_deadstem(c) + &
                 dwt_deadstemc13_seed(p)/dtsrf
           end if
-          if ( use_c14 ) then  
+          if ( use_c14 ) then
             cptr%cc14f%dwt_seedc_to_leaf(c) = &
                 cptr%cc14f%dwt_seedc_to_leaf(c) + dwt_leafc14_seed(p)/dtsrf
             cptr%cc14f%dwt_seedc_to_deadstem(c) = &
@@ -2790,7 +2790,7 @@ module mod_clm_pftdyn
 
             end if
 
-            if ( use_c14 ) then                   
+            if ( use_c14 ) then
               ! C14 fine root litter fluxes
               cptr%cc14f%dwt_frootc_to_litr_met_c(c,j) = &
                   cptr%cc14f%dwt_frootc_to_litr_met_c(c,j) + &
@@ -2832,7 +2832,7 @@ module mod_clm_pftdyn
           cptr%ccf%dwt_prod100c_gain(c) = &
                   cptr%ccf%dwt_prod100c_gain(c) - prod100_cflux(p)/dtsrf
 
-          ! These magic constants should be replaced with: 
+          ! These magic constants should be replaced with:
           ! nbrdlf_evr_trp_tree and nbrdlf_dcd_trp_tree
           if(ivt(p)==4.or.ivt(p)==6)then
             cptr%ccf%lf_conv_cflux(c) = &
@@ -2972,7 +2972,7 @@ module mod_clm_pftdyn
 
     ! Interpolate pft weight to current time step
     ! Map interpolated pctpft to subgrid weights
-    ! assumes maxpatch_pft = numpft + 1, each landunit has 1 column, 
+    ! assumes maxpatch_pft = numpft + 1, each landunit has 1 column,
     ! SCAM not defined and create_croplandunit = .false.
 
     cday          = get_curr_calday(offset=-int(dtsrf))
@@ -3239,7 +3239,7 @@ module mod_clm_pftdyn
          m  = am/(days_per_year * secspday)
        else
          m = 0.D0
-       end if   
+       end if
 
        ! pft-level harvest carbon fluxes
        ! displayed pools
@@ -3525,11 +3525,11 @@ module mod_clm_pftdyn
                froot_prof(p,j)
              ! wood harvest mortality carbon fluxes
              harvest_c_to_cwdc(c,j)  = harvest_c_to_cwdc(c,j)  + &
-               hrv_livestemc_to_litter(p)  * wtcol(p) * stem_prof(p,j) 
+               hrv_livestemc_to_litter(p)  * wtcol(p) * stem_prof(p,j)
              harvest_c_to_cwdc(c,j) = harvest_c_to_cwdc(c,j) + &
                hrv_livecrootc_to_litter(p) * wtcol(p) * croot_prof(p,j)
              harvest_c_to_cwdc(c,j) = harvest_c_to_cwdc(c,j) + &
-               hrv_deadcrootc_to_litter(p) * wtcol(p) * croot_prof(p,j) 
+               hrv_deadcrootc_to_litter(p) * wtcol(p) * croot_prof(p,j)
              ! storage harvest mortality carbon fluxes
              harvest_c_to_litr_met_c(c,j) = harvest_c_to_litr_met_c(c,j) + &
                hrv_leafc_storage_to_litter(p)      * wtcol(p) * leaf_prof(p,j)

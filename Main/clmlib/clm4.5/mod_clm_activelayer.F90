@@ -86,7 +86,7 @@ module mod_clm_activelayer
       do fc = 1 , num_soilc
         c = filter_soilc(fc)
         g = cgridcell(c)
-        if ( lat(g) > d_zero ) then 
+        if ( lat(g) > d_zero ) then
           altmax_lastyear(c) = altmax(c)
           altmax_lastyear_indx(c) = altmax_indx(c)
           altmax(c) = d_zero
@@ -98,7 +98,7 @@ module mod_clm_activelayer
       do fc = 1,num_soilc
         c = filter_soilc(fc)
         g = cgridcell(c)
-        if ( lat(g) <= d_zero ) then 
+        if ( lat(g) <= d_zero ) then
           altmax_lastyear(c) = altmax(c)
           altmax_lastyear_indx(c) = altmax_indx(c)
           altmax(c) = d_zero

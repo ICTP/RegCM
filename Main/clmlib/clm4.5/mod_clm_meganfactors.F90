@@ -50,7 +50,7 @@ module mod_clm_meganfactors
 
   contains
   !
-  ! Method for getting MEGAN information for a named compound 
+  ! Method for getting MEGAN information for a named compound
   !
   subroutine megan_factors_get( comp_name, factors, class_n, molecwght )
     implicit none
@@ -68,7 +68,7 @@ module mod_clm_meganfactors
     hashkey = gen_hashkey(comp_name)
     ndx = hash_table_indices(hashkey)
 
-    if ( ndx < 1 ) then 
+    if ( ndx < 1 ) then
       errmes = 'megan_factors_get: '//trim(comp_name)// &
                ' compound not found in MEGAN table'
       write(stderr,*) trim(errmes)
@@ -80,7 +80,7 @@ module mod_clm_meganfactors
     molecwght  = comp_factors_table( ndx )%wght
   end subroutine megan_factors_get
   !
-  ! Initializes the MEGAN factors using data from input file 
+  ! Initializes the MEGAN factors using data from input file
   !
   subroutine megan_factors_init( filename )
     implicit none
@@ -219,11 +219,11 @@ module mod_clm_meganfactors
     else
       ! Special case string length = 19
       do i = 1, tbl_max_idx+1
-        hash = ieor(hash , ichar(string(i:i))   * tbl_gen_hash_key(i-1)) 
+        hash = ieor(hash , ichar(string(i:i))   * tbl_gen_hash_key(i-1))
       end do
       do i = tbl_max_idx+2, len(string)
         hash = ieor(hash , ichar(string(i:i))   * &
-                  tbl_gen_hash_key(i-tbl_max_idx-2)) 
+                  tbl_gen_hash_key(i-tbl_max_idx-2))
       end do
     end if
     gen_hashkey = iand(hash, tbl_hash_sz-1)

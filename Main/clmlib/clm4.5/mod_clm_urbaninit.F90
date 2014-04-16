@@ -1,5 +1,5 @@
 module mod_clm_urbaninit
-  ! 
+  !
   ! Initialize urban data
   !
   ! !USES:
@@ -62,10 +62,10 @@ module mod_clm_urbaninit
 
     call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
 
-    do l = begl , endl 
-      if ( ltype(l) == isturb ) then 
+    do l = begl , endl
+      if ( ltype(l) == isturb ) then
 
-        ! Calculate plan area index 
+        ! Calculate plan area index
         plan_ai = canyon_hwr(l)/(canyon_hwr(l) + 1.D0)
 
         ! Building shape shortside/longside ratio (e.g. 1 = square )
@@ -113,8 +113,8 @@ module mod_clm_urbaninit
     use mod_clm_decomp , only : get_proc_bounds
     use mod_clm_urbaninput , only : urbinp
     implicit none
-    integer , pointer :: gdc(:)    ! grid index for landunit 
-    integer , pointer :: coli(:)   ! beginning column index for landunit 
+    integer , pointer :: gdc(:)    ! grid index for landunit
+    integer , pointer :: coli(:)   ! beginning column index for landunit
     integer , pointer :: colf(:)   ! ending column index for landunit
     integer , pointer :: ctype(:)  ! column type
     integer , pointer :: ltype(:)  ! landunit type index
@@ -166,7 +166,7 @@ module mod_clm_urbaninit
     colf                => clm3%g%l%colf
     udenstype           => clm3%g%l%udenstype
     canyon_hwr          => clm3%g%l%canyon_hwr
-    wtroad_perv         => clm3%g%l%wtroad_perv 
+    wtroad_perv         => clm3%g%l%wtroad_perv
     ht_roof             => clm3%g%l%ht_roof
     wtlunit_roof        => clm3%g%l%wtlunit_roof
     wind_hgt_canyon     => clm3%g%l%wind_hgt_canyon
@@ -358,9 +358,9 @@ module mod_clm_urbaninit
 
     call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
 
-    do l = begl, endl 
+    do l = begl, endl
       g = lgridcell(l)
-      if (ltype(l) == isturb) then 
+      if (ltype(l) == isturb) then
 #if (defined VANCOUVER)
         taf(l) = 297.56D0
         qaf(l) = 0.0111D0
@@ -379,9 +379,9 @@ module mod_clm_urbaninit
       end if
     end do
 
-    do c = begc, endc 
+    do c = begc, endc
       l = clandunit(c)
-      if (ltype(l) == isturb) then 
+      if (ltype(l) == isturb) then
         eflx_building_heat(c) = 0.D0
         eflx_urban_ac(c) = 0.D0
         eflx_urban_heat(c) = 0.D0
@@ -404,9 +404,9 @@ module mod_clm_urbaninit
       end if
     end do
 
-    do p = begp, endp 
+    do p = begp, endp
       l = plandunit(p)
-      if (ltype(l) /= isturb) then 
+      if (ltype(l) /= isturb) then
         t_ref2m_u(p)     = spval
         t_ref2m_min_u(p) = spval
         t_ref2m_max_u(p) = spval
@@ -415,7 +415,7 @@ module mod_clm_urbaninit
         eflx_heat_from_ac_pft(p) = spval
         eflx_traffic_pft(p) = spval
         eflx_anthro(p)    = spval
-        fsa_u(p)            = spval 
+        fsa_u(p)            = spval
         eflx_lwrad_net_u(p) = spval
         eflx_lh_tot_u(p)    = spval
         eflx_sh_tot_u(p)    = spval

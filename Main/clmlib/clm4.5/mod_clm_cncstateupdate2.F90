@@ -215,7 +215,7 @@ subroutine CStateUpdate2(num_soilc, filter_soilc, num_soilp, filter_soilp, isoto
           decomp_cpools_vr(c,j,i_cwd) = decomp_cpools_vr(c,j,i_cwd) + gap_mortality_c_to_cwdc(c,j) * dt
 
        end do
-    end do 
+    end do
 
     ! pft loop
     do fp = 1,num_soilp

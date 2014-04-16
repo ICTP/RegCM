@@ -158,7 +158,7 @@ module mod_clm_cnecosystemdyn
 
     if (fpftdyn /= ' ') then
       call CNHarvest(num_soilc, filter_soilc, num_soilp, filter_soilp)
-    end if 
+    end if
 
     if ( use_c13 ) then
       call CIsoFlux2h(num_soilc, filter_soilc, num_soilp, filter_soilp, 'c13')
@@ -212,7 +212,7 @@ module mod_clm_cnecosystemdyn
 
     call CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
 
-    if (doalb) then   
+    if (doalb) then
       call CNVegStructUpdate(num_soilp, filter_soilp)
     end if
 

@@ -103,7 +103,7 @@ module mod_clm_initslake
     real(rk8) , pointer , dimension(:,:) :: t_soisno
     ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]
     real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
-    ! mass fraction of lake layer that is frozen 
+    ! mass fraction of lake layer that is frozen
     real(rk8) , pointer , dimension(:,:) :: lake_icefrac
     ! top level eddy conductivity (W/mK)
     real(rk8) , pointer , dimension(:) :: savedtke1
@@ -180,7 +180,7 @@ module mod_clm_initslake
     ! during restarts.
 
     ! Set snow/soil temperature, note:
-    ! t_soisno has valid values over non-lakes and S lakes. 
+    ! t_soisno has valid values over non-lakes and S lakes.
     ! t_lake   only has valid values over lake
     ! t_grnd has valid values over all land
     ! t_veg  has valid values over all land
@@ -301,7 +301,7 @@ module mod_clm_initslake
     real(rk8) , pointer , dimension(:) :: snow_depth
     ! true => landunit is a lake point
     logical , pointer , dimension(:) :: lakpoi
-    ! mass fraction of lake layer that is frozen 
+    ! mass fraction of lake layer that is frozen
     real(rk8) , pointer , dimension(:,:) :: lake_icefrac
     ! number of snow layers
     integer(ik4) , pointer , dimension(:) :: snl
@@ -428,7 +428,7 @@ module mod_clm_initslake
     real(rk8) , pointer , dimension(:,:) :: cellorg   ! column 3D org
     ! liquid water (kg/m2) (-nlevsno+1:nlevgrnd)
     real(rk8) , pointer , dimension(:,:) :: h2osoi_liq
-    ! ice lens (kg/m2) (-nlevsno+1:nlevgrnd)    
+    ! ice lens (kg/m2) (-nlevsno+1:nlevgrnd)
     real(rk8) , pointer , dimension(:,:) :: h2osoi_ice
     ! variable lake depth (m)
     real(rk8) , pointer , dimension(:) :: lakedepth
@@ -442,29 +442,29 @@ module mod_clm_initslake
     real(rk8) , pointer , dimension(:,:) :: dz_lake
     ! layer depth for lake (m)
     real(rk8) , pointer , dimension(:,:) :: z_lake
-    ! Clapp and Hornberger "b" (nlevgrnd)  
+    ! Clapp and Hornberger "b" (nlevgrnd)
     real(rk8) , pointer , dimension(:,:) :: bsw
-    ! volumetric soil water at saturation (porosity) (nlevgrnd) 
+    ! volumetric soil water at saturation (porosity) (nlevgrnd)
     real(rk8) , pointer , dimension(:,:) :: watsat
     ! btran parameter for btran=0
     real(rk8) , pointer , dimension(:,:) :: watdry
     ! btran parameter for btran = 1
     real(rk8) , pointer , dimension(:,:) :: watopt
-    ! hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd) 
+    ! hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd)
     real(rk8) , pointer , dimension(:,:) :: hksat
-    ! minimum soil suction (mm) (nlevgrnd) 
+    ! minimum soil suction (mm) (nlevgrnd)
     real(rk8) , pointer , dimension(:,:) :: sucsat
-    ! heat capacity, soil solids (J/m**3/Kelvin) (nlevgrnd) 
+    ! heat capacity, soil solids (J/m**3/Kelvin) (nlevgrnd)
     real(rk8) , pointer , dimension(:,:) :: csol
-    ! thermal conductivity, soil minerals  [W/m-K] (new) (nlevgrnd) 
+    ! thermal conductivity, soil minerals  [W/m-K] (new) (nlevgrnd)
     real(rk8) , pointer , dimension(:,:) :: tkmg
-    ! thermal conductivity, dry soil (W/m/Kelvin) (nlevgrnd) 
+    ! thermal conductivity, dry soil (W/m/Kelvin) (nlevgrnd)
     real(rk8) , pointer , dimension(:,:) :: tkdry
-    ! thermal conductivity, saturated soil [W/m-K] (new) (nlevgrnd) 
+    ! thermal conductivity, saturated soil [W/m-K] (new) (nlevgrnd)
     real(rk8) , pointer , dimension(:,:) :: tksatu
     ! volumetric soil water at field capacity (nlevgrnd)
     real(rk8) , pointer , dimension(:,:) :: watfc
-    !volumetric soil water [m3/m3]  (nlevgrnd)  
+    !volumetric soil water [m3/m3]  (nlevgrnd)
     real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
     integer(ik4) :: n , i , j , ib , lev,bottom      ! indices
     integer(ik4) :: g , l , c , p          ! indices
@@ -480,7 +480,7 @@ module mod_clm_initslake
     integer(ik4) :: numl   ! total number of landunits across all processors
     integer(ik4) :: numc   ! total number of columns across all processors
     integer(ik4) :: nump   ! total number of pfts across all processors
-    real(rk8) :: depthratio ! ratio of lake depth to standard deep lake depth 
+    real(rk8) :: depthratio ! ratio of lake depth to standard deep lake depth
     real(rk8) :: clay    ! temporary
     real(rk8) :: sand    ! temporary
     ! New CLM 4 variables
@@ -538,8 +538,8 @@ module mod_clm_initslake
     zi              => clm3%g%l%c%cps%zi
     bsw             => clm3%g%l%c%cps%bsw
     watsat          => clm3%g%l%c%cps%watsat
-    watdry          => clm3%g%l%c%cps%watdry  
-    watopt          => clm3%g%l%c%cps%watopt  
+    watdry          => clm3%g%l%c%cps%watdry
+    watopt          => clm3%g%l%c%cps%watopt
     hksat           => clm3%g%l%c%cps%hksat
     sucsat          => clm3%g%l%c%cps%sucsat
     tkmg            => clm3%g%l%c%cps%tkmg
@@ -600,7 +600,7 @@ module mod_clm_initslake
         write(stdout,*) 'CLM timestep appears to differ from 1800s. '// &
                 'Adjusting minimum snow layer thickness over lakes '// &
                 'to maintain stability. New minimum thickness is ', &
-                lsadz + snodzmin, '.' 
+                lsadz + snodzmin, '.'
       end if
     end if
 
@@ -750,7 +750,7 @@ module mod_clm_initslake
           z_lake(c,1:nlevlak) = zlak(1:nlevlak)
           dz_lake(c,1:nlevlak) = dzlak(1:nlevlak)
         else if ( lakedepth(c) > 1.D0 .and. lakedepth(c) < 5000.D0 ) then
-          depthratio = lakedepth(c) / (zlak(nlevlak) + 0.5D0*dzlak(nlevlak)) 
+          depthratio = lakedepth(c) / (zlak(nlevlak) + 0.5D0*dzlak(nlevlak))
           z_lake(c,1) = zlak(1)
           dz_lake(c,1) = dzlak(1)
           dz_lake(c,2:nlevlak-1) = dzlak(2:nlevlak-1)*depthratio

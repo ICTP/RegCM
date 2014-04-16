@@ -350,7 +350,7 @@ subroutine CNPhenologyClimate (num_soilp, filter_soilp, num_pcropp, filter_pcrop
          end if                                                 ! <-- END of YR 1
          gdd020(p)  = (yravgm1* gdd020(p)  + gdd0(p))  / yravg  ! gdd..20 must be long term avgs
          gdd820(p)  = (yravgm1* gdd820(p)  + gdd8(p))  / yravg  ! so ignore results for yrs 1 & 2
-         gdd1020(p) = (yravgm1* gdd1020(p) + gdd10(p)) / yravg 
+         gdd1020(p) = (yravgm1* gdd1020(p) + gdd10(p)) / yravg
       end if
    end do
 
@@ -1581,7 +1581,7 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
                   dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) + leafc_xfer(p)/dtsrf
                   dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) + leafn_xfer(p)/dtsrf
 
-                  ! latest possible date to plant winter cereal and after all other 
+                  ! latest possible date to plant winter cereal and after all other
                   ! crops were harvested for that year
 
                else if (jday       >=  maxplantjday(ivt(p),h) .and. &
@@ -2350,7 +2350,7 @@ subroutine CNOffsetLitterfall (num_soilp, filter_soilp)
              ! this assumes that offset_counter == dtsrf for crops
              ! if this were ever changed, we'd need to add code to the "else"
              if (ivt(p) >= npcropmin) then
-                grainc_to_food(p) = t1 * grainc(p)  + cpool_to_grainc(p) 
+                grainc_to_food(p) = t1 * grainc(p)  + cpool_to_grainc(p)
                 livestemc_to_litter(p) = t1 * livestemc(p)  + cpool_to_livestemc(p)
              end if
          else

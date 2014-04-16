@@ -2,14 +2,14 @@ module mod_clm_cnprecisioncontrol
 
 #ifdef CN
 
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 !BOP
 !
 ! !MODULE: CNPrecisionControlMod
-! 
+!
 ! !DESCRIPTION:
-! controls on very low values in critical state variables 
-! 
+! controls on very low values in critical state variables
+!
 ! !USES:
     use mod_realkinds
     use mod_stdio
@@ -26,7 +26,7 @@ module mod_clm_cnprecisioncontrol
 ! 4/23/2004: Created by Peter Thornton
 !
 !EOP
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 
 contains
 
@@ -38,7 +38,7 @@ contains
 ! !INTERFACE:
 subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
 !
-! !DESCRIPTION: 
+! !DESCRIPTION:
 ! On the radiation time step, force leaf and deadstem c and n to 0 if
 ! they get too small.
 !
@@ -156,7 +156,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
    real(rk8), pointer :: frootn(:)             ! (gN/m2) fine root N
    real(rk8), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
    real(rk8), pointer :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
-   real(rk8), pointer :: leafn(:)              ! (gN/m2) leaf N 
+   real(rk8), pointer :: leafn(:)              ! (gN/m2) leaf N
    real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
    real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
    real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
@@ -314,7 +314,7 @@ subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
 #ifdef NITRIF_DENITRIF
    smin_nh4_vr                  => clm3%g%l%c%cns%smin_nh4_vr
    smin_no3_vr                  => clm3%g%l%c%cns%smin_no3_vr
-#endif   
+#endif
 
    ! set the critical carbon state value for truncation (gC/m2)
    ccrit = 1.D-8

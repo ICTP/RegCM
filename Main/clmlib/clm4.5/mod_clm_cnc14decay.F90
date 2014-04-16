@@ -165,7 +165,7 @@ subroutine C14Decay(num_soilc, filter_soilc, num_soilp, filter_soilp)
     do l = 1, ndecomp_pools
        if ( spinup_state .eq. 1) then
           ! speed up radioactive decay by the same factor as decomposition so tat SOM ages prematurely in all respects
-          spinup_term = spinup_factor(l) 
+          spinup_term = spinup_factor(l)
        else
           spinup_term = 1.
        endif
@@ -235,7 +235,7 @@ subroutine C14BombSpike(num_soilp, filter_soilp)
    integer :: yr, mon, day, tod
    real(rk8) :: dateyear
    real(rk8), pointer :: rc14_atm(:)             !C14O2/C12O2 in atmosphere
-   real(rk8) :: delc14o2_atm 
+   real(rk8) :: delc14o2_atm
    integer :: fp, p, nt
    integer :: ind_below
    integer :: ntim_atm_ts
@@ -260,7 +260,7 @@ subroutine C14BombSpike(num_soilp, filter_soilp)
       end do
 
       ! interpolate between nearest two points in atm c14 timeseries
-      if (ind_below .eq. 0 ) then 
+      if (ind_below .eq. 0 ) then
          delc14o2_atm = atm_delta_c14(1)
       elseif (ind_below .eq. ntim_atm_ts ) then
          delc14o2_atm = atm_delta_c14(ntim_atm_ts)
@@ -273,7 +273,7 @@ subroutine C14BombSpike(num_soilp, filter_soilp)
 
       ! change delta units to ratio, put on pft loop
       do fp = 1,num_soilp
-         p = filter_soilp(fp)   
+         p = filter_soilp(fp)
          rc14_atm(p) = (delc14o2_atm * 1.D-3 + 1.D0) * c14ratio
       end do
 
@@ -281,7 +281,7 @@ subroutine C14BombSpike(num_soilp, filter_soilp)
       ! for constant 14c concentration
       ! pft loop
       do fp = 1,num_soilp
-         p = filter_soilp(fp)   
+         p = filter_soilp(fp)
          rc14_atm(p) = c14ratio
       end do
    endif
@@ -298,7 +298,7 @@ end subroutine C14BombSpike
 subroutine C14_init_BombSpike()
 !
 ! !DESCRIPTION:
-! read netcdf file containing a timeseries of atmospheric delta C14 values; save in module-level array 
+! read netcdf file containing a timeseries of atmospheric delta C14 values; save in module-level array
 !
 ! !USES:
 !

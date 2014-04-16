@@ -263,26 +263,26 @@ module mod_clm_accflds
     logical , pointer :: croplive(:)   ! Flag, true if planted, not harvested
     integer(ik4) , pointer :: pcolumn(:)    ! index into column level quantities
     ! heald (04/06): variables to be accumulated for VOC emissions
-    real(rk8), pointer :: t_veg(:)  ! pft vegetation temperature (Kelvin) 
+    real(rk8), pointer :: t_veg(:)  ! pft vegetation temperature (Kelvin)
     ! direct beam radiation (visible only)
     real(rk8), pointer :: forc_solad(:,:)
     ! diffuse radiation     (visible only)
     real(rk8), pointer :: forc_solai(:,:)
-    real(rk8), pointer :: fsun(:) ! sunlit fraction of canopy 
-    ! one-sided leaf area index with burying by snow 
+    real(rk8), pointer :: fsun(:) ! sunlit fraction of canopy
+    ! one-sided leaf area index with burying by snow
     real(rk8), pointer :: elai(:)
     ! heald (04/06): accumulated variables for VOC emissions
     ! 24hr average vegetation temperature (K)
     real(rk8), pointer :: t_veg24(:)
     ! 240hr average vegetation temperature (Kelvin)
     real(rk8), pointer :: t_veg240(:)
-    real(rk8), pointer :: fsd24(:)  ! 24hr average of direct beam radiation 
-    real(rk8), pointer :: fsd240(:) ! 240hr average of direct beam radiation 
-    real(rk8), pointer :: fsi24(:)  ! 24hr average of diffuse beam radiation 
-    real(rk8), pointer :: fsi240(:) ! 240hr average of diffuse beam radiation 
-    real(rk8), pointer :: fsun24(:) ! 24hr average of sunlit fraction of canopy 
+    real(rk8), pointer :: fsd24(:)  ! 24hr average of direct beam radiation
+    real(rk8), pointer :: fsd240(:) ! 240hr average of direct beam radiation
+    real(rk8), pointer :: fsi24(:)  ! 24hr average of diffuse beam radiation
+    real(rk8), pointer :: fsi240(:) ! 240hr average of diffuse beam radiation
+    real(rk8), pointer :: fsun24(:) ! 24hr average of sunlit fraction of canopy
     real(rk8), pointer :: fsun240(:)! 240hr average of sunlit fraction of canopy
-    real(rk8), pointer :: elai_p(:) ! leaf area index average over timestep 
+    real(rk8), pointer :: elai_p(:) ! leaf area index average over timestep
 
     ! daily minimum of average 2 m height surface air temperature (K)
     real(rk8), pointer :: t_ref2m_min(:)
@@ -843,14 +843,14 @@ module mod_clm_accflds
     real(rk8), pointer :: t_veg24(:) ! 24hr average vegetation temperature (K)
     ! 240hr average vegetation temperature (Kelvin)
     real(rk8), pointer :: t_veg240(:)
-    real(rk8), pointer :: fsd24(:)   ! 24hr average of direct beam radiation 
-    real(rk8), pointer :: fsd240(:)  ! 240hr average of direct beam radiation 
-    real(rk8), pointer :: fsi24(:)   ! 24hr average of diffuse beam radiation 
-    real(rk8), pointer :: fsi240(:)  ! 240hr average of diffuse beam radiation 
+    real(rk8), pointer :: fsd24(:)   ! 24hr average of direct beam radiation
+    real(rk8), pointer :: fsd240(:)  ! 240hr average of direct beam radiation
+    real(rk8), pointer :: fsi24(:)   ! 24hr average of diffuse beam radiation
+    real(rk8), pointer :: fsi240(:)  ! 240hr average of diffuse beam radiation
     real(rk8), pointer :: fsun24(:)  ! 24hr average of sunlit fraction of canopy
     ! 240hr average of sunlit fraction of canopy
     real(rk8), pointer :: fsun240(:)
-    real(rk8), pointer :: elai_p(:)  ! leaf area index average over timestep 
+    real(rk8), pointer :: elai_p(:)  ! leaf area index average over timestep
     integer(ik4) :: p          ! indices
     integer(ik4) :: ier        ! error status
     integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices

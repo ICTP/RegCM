@@ -22,7 +22,7 @@ module mod_clm_drydep
   use mod_stdio
   use mod_mpmessage
 
-  implicit none 
+  implicit none
 
   private
 
@@ -270,9 +270,9 @@ module mod_clm_drydep
              ,.1D0     &
              ,.1D0     &
              ,1.D-36 &
-             ,1.D-36 &  
-             ,1.D-36 &  
-             ,1.D-36 &  
+             ,1.D-36 &
+             ,1.D-36 &
+             ,1.D-36 &
              ,1.D-36 &
              ,.1D0     &
              ,.1D0     &
@@ -298,58 +298,58 @@ module mod_clm_drydep
 
   !--- Names of species that can work with ---
   character(len=20), public, parameter :: species_name_table(n_species_table) = &
-                         (/ 'OX      '                       & 
-                           ,'H2O2    '                       & 
-                           ,'OH      '                       & 
-                           ,'HO2     '                       & 
-                           ,'CO      '                       & 
-                           ,'CH4     '                       & 
-                           ,'CH3O2   '                       & 
-                           ,'CH3OOH  '                       & 
-                           ,'CH2O    '                       & 
-                           ,'CHOOH   '                       & 
-                           ,'NO      '                       & 
-                           ,'NO2     '                       & 
-                           ,'HNO3    '                       & 
-                           ,'CO2     '                       & 
-                           ,'NH3     '                       & 
-                           ,'N2O5    '                       & 
-                           ,'NO3     '                       & 
-                           ,'CH3OH   '                       & 
-                           ,'HO2NO2  '                       & 
-                           ,'O1D     '                       & 
-                           ,'C2H6    '                       & 
-                           ,'C2H5O2  '                       & 
-                           ,'PO2     '                       & 
-                           ,'MACRO2  '                       & 
-                           ,'ISOPO2  '                       & 
-                           ,'C4H10   '                       & 
-                           ,'CH3CHO  '                       & 
-                           ,'C2H5OOH '                       & 
-                           ,'C3H6    '                       & 
-                           ,'POOH    '                       & 
-                           ,'C2H4    '                       & 
-                           ,'PAN     '                       & 
-                           ,'CH3COOOH'                       & 
-                           ,'C10H16  '                       & 
-                           ,'CHOCHO  '                       & 
-                           ,'CH3COCHO'                       & 
-                           ,'GLYALD  '                       & 
-                           ,'CH3CO3  '                       & 
-                           ,'C3H8    '                       & 
-                           ,'C3H7O2  '                       & 
-                           ,'CH3COCH3'                       & 
-                           ,'C3H7OOH '                       & 
-                           ,'RO2     '                       & 
-                           ,'ROOH    '                       & 
-                           ,'Rn      '                       & 
+                         (/ 'OX      '                       &
+                           ,'H2O2    '                       &
+                           ,'OH      '                       &
+                           ,'HO2     '                       &
+                           ,'CO      '                       &
+                           ,'CH4     '                       &
+                           ,'CH3O2   '                       &
+                           ,'CH3OOH  '                       &
+                           ,'CH2O    '                       &
+                           ,'CHOOH   '                       &
+                           ,'NO      '                       &
+                           ,'NO2     '                       &
+                           ,'HNO3    '                       &
+                           ,'CO2     '                       &
+                           ,'NH3     '                       &
+                           ,'N2O5    '                       &
+                           ,'NO3     '                       &
+                           ,'CH3OH   '                       &
+                           ,'HO2NO2  '                       &
+                           ,'O1D     '                       &
+                           ,'C2H6    '                       &
+                           ,'C2H5O2  '                       &
+                           ,'PO2     '                       &
+                           ,'MACRO2  '                       &
+                           ,'ISOPO2  '                       &
+                           ,'C4H10   '                       &
+                           ,'CH3CHO  '                       &
+                           ,'C2H5OOH '                       &
+                           ,'C3H6    '                       &
+                           ,'POOH    '                       &
+                           ,'C2H4    '                       &
+                           ,'PAN     '                       &
+                           ,'CH3COOOH'                       &
+                           ,'C10H16  '                       &
+                           ,'CHOCHO  '                       &
+                           ,'CH3COCHO'                       &
+                           ,'GLYALD  '                       &
+                           ,'CH3CO3  '                       &
+                           ,'C3H8    '                       &
+                           ,'C3H7O2  '                       &
+                           ,'CH3COCH3'                       &
+                           ,'C3H7OOH '                       &
+                           ,'RO2     '                       &
+                           ,'ROOH    '                       &
+                           ,'Rn      '                       &
                            ,'ISOP    '                       &
                            ,'MVK     '                       &
                            ,'MACR    '                       &
                            ,'C2H5OH  '                       &
-                           ,'ONITR   '                       & 
-                           ,'ONIT    '                       & 
-                           ,'ISOPNO3 '                       & 
+                           ,'ONITR   '                       &
+                           ,'ONIT    '                       &
+                           ,'ISOPNO3 '                       &
                            ,'HYDRALD '                       &
                            ,'HCN     '                       &
                            ,'CH3CN   '                       &
@@ -382,7 +382,7 @@ module mod_clm_drydep
              ,7.47D+00, 5241.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
              ,7.47D+00, 5241.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
              ,7.47D+00, 5241.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,1.70D-03,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &  
+             ,1.70D-03,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
              ,1.14D+01, 6267.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
              ,3.36D+02, 5995.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
              ,1.70D-03,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
@@ -398,7 +398,7 @@ module mod_clm_drydep
              ,1.45D-03, 2700.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
              ,3.00D+06,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
              ,2.70D+01, 5300.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
-             ,3.36D+02, 5995.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &  
+             ,3.36D+02, 5995.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
              ,7.47D+00, 5241.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
              ,3.36D+02, 5995.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
              ,0.00D+00,    0.D0,0.D0     ,    0.D0,0.D0     ,    0.D0  &
@@ -437,9 +437,9 @@ CONTAINS
   subroutine seq_drydep_read(NLFilename, seq_drydep_fields)
 
     !========================================================================
-    ! reads drydep_inparm namelist and sets up CCSM driver list of fields for 
+    ! reads drydep_inparm namelist and sets up CCSM driver list of fields for
     ! land-atmosphere communications.
-    ! 
+    !
     ! !REVISION HISTORY:
     !  2009-Feb-20 - E. Kluzek - Separate out as subroutine from previous input_init
     !========================================================================
@@ -447,7 +447,7 @@ CONTAINS
     implicit none
 
     character(len=*), intent(in)  :: NLFilename ! Namelist filename
-    character(len=*), intent(out) :: seq_drydep_fields  
+    character(len=*), intent(out) :: seq_drydep_fields
 
     !----- local -----
     integer :: i                ! Indices
@@ -457,9 +457,9 @@ CONTAINS
     character(len=8) :: token   ! dry dep field name to add
 
     !----- formats -----
-    character(*),parameter :: subName = '(seq_drydep_read) ' 
-    character(*),parameter :: F00   = "('(seq_drydep_read) ',8a)" 
-    character(*),parameter :: FI1   = "('(seq_drydep_init) ',a,I2)" 
+    character(*),parameter :: subName = '(seq_drydep_read) '
+    character(*),parameter :: F00   = "('(seq_drydep_read) ',8a)"
+    character(*),parameter :: FI1   = "('(seq_drydep_init) ',a,I2)"
 
     namelist /drydep_inparm/ drydep_list, drydep_method
 
@@ -493,13 +493,13 @@ CONTAINS
     n_drydep = 0
 
     !--- Loop over species to fill list of fields to communicate for drydep ---
-    seq_drydep_fields = ' '  
+    seq_drydep_fields = ' '
     do i=1,maxspc
        if ( len_trim(drydep_list(i))==0 ) exit
        write(token,333) i
-       seq_drydep_fields = trim(seq_drydep_fields)//':'//trim(token)                 
+       seq_drydep_fields = trim(seq_drydep_fields)//':'//trim(token)
        if ( i == 1 ) then
-          seq_drydep_fields = trim(token)                 
+          seq_drydep_fields = trim(token)
           drydep_fields_token = trim(token)
        endif
        n_drydep = n_drydep+1
@@ -541,7 +541,7 @@ CONTAINS
 
     !========================================================================
     ! Initialization of dry deposition fields
-    ! reads drydep_inparm namelist and sets up CCSM driver list of fields for 
+    ! reads drydep_inparm namelist and sets up CCSM driver list of fields for
     ! land-atmosphere communications.
     ! !REVISION HISTORY:
     !  2008-Nov-12 - F. Vitt - first version
@@ -555,8 +555,8 @@ CONTAINS
     integer :: i, l                      ! Indices
     character(len=32) :: test_name       ! field test name
     !----- formats -----
-    character(*),parameter :: subName = '(seq_drydep_init) ' 
-    character(*),parameter :: F00   = "('(seq_drydep_init) ',8a)" 
+    character(*),parameter :: subName = '(seq_drydep_init) '
+    character(*),parameter :: F00   = "('(seq_drydep_init) ',8a)"
 
     !-----------------------------------------------------------------------------
     ! Allocate and fill foxd, drat and mapping as well as species indices
@@ -674,8 +674,8 @@ CONTAINS
        if ( trim(drydep_list(i)) == 'MPAN' ) mpan_ndx = i
        if ( trim(drydep_list(i)) == 'PAN' )  pan_ndx  = i
        if ( trim(drydep_list(i)) == 'SO2' )  so2_ndx  = i
-       if ( trim(drydep_list(i)) == 'OX' .or. trim(drydep_list(i)) == 'O3' ) o3_ndx  = i 
-       if ( trim(drydep_list(i)) == 'O3A' ) o3a_ndx  = i 
+       if ( trim(drydep_list(i)) == 'OX' .or. trim(drydep_list(i)) == 'O3' ) o3_ndx  = i
+       if ( trim(drydep_list(i)) == 'O3A' ) o3a_ndx  = i
        if ( trim(drydep_list(i)) == 'XPAN' ) xpan_ndx = i
 
        if( mapping(i) > 0) then
@@ -750,11 +750,11 @@ CONTAINS
     real(rk8) :: wrk(ncol)      ! Work array
 
     !----- formats -----
-    character(*),parameter :: subName = '(seq_drydep_set_hcoeff) ' 
-    character(*),parameter :: F00   = "('(seq_drydep_set_hcoeff) ',8a)" 
+    character(*),parameter :: subName = '(seq_drydep_set_hcoeff) '
+    character(*),parameter :: F00   = "('(seq_drydep_set_hcoeff) ',8a)"
 
     !-------------------------------------------------------------------------------
-    ! notes: 
+    ! notes:
     !-------------------------------------------------------------------------------
 
     wrk(:) = (t0 - sfc_temp(:))/(t0*sfc_temp(:))

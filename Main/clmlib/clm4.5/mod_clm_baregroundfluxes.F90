@@ -161,7 +161,7 @@ contains
     real(rk8), pointer :: fpsn_wj(:)       ! RuBP-limited photosynthesis (umol CO2 /m**2 /s)
     real(rk8), pointer :: fpsn_wp(:)       ! product-limited photosynthesis (umol CO2 /m**2 /s)
     real(rk8), pointer :: rootr(:,:)       ! effective fraction of roots in each soil layer
-    real(rk8), pointer :: rresis(:,:)      ! root resistance by layer (0-1)  (nlevgrnd)  
+    real(rk8), pointer :: rresis(:,:)      ! root resistance by layer (0-1)  (nlevgrnd)
 #if (defined LCH4)
     real(rk8), pointer :: grnd_ch4_cond(:)  ! tracer conductance for boundary layer [m/s]
 #endif
@@ -207,7 +207,7 @@ contains
     real(rk8) :: e_ref2m                ! 2 m height surface saturated vapor pressure [Pa]
     real(rk8) :: de2mdT                 ! derivative of 2 m height surface saturated vapor pressure on t_ref2m
     real(rk8) :: qsat_ref2m             ! 2 m height surface saturated specific humidity [kg/kg]
-    real(rk8) :: dqsat2mdT              ! derivative of 2 m height surface saturated specific humidity on t_ref2m 
+    real(rk8) :: dqsat2mdT              ! derivative of 2 m height surface saturated specific humidity on t_ref2m
     real(rk8) :: www                    ! surface soil wetness [-]
 !------------------------------------------------------------------------------
 
@@ -217,7 +217,7 @@ contains
     eflx_sh_snow   => clm3%g%l%c%p%pef%eflx_sh_snow
     eflx_sh_soil   => clm3%g%l%c%p%pef%eflx_sh_soil
     eflx_sh_h2osfc => clm3%g%l%c%p%pef%eflx_sh_h2osfc
-    qg_snow        => clm3%g%l%c%cws%qg_snow 
+    qg_snow        => clm3%g%l%c%cws%qg_snow
     qg_soil        => clm3%g%l%c%cws%qg_soil
     qg_h2osfc      => clm3%g%l%c%cws%qg_h2osfc
     qflx_ev_snow   => clm3%g%l%c%p%pwf%qflx_ev_snow

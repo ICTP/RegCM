@@ -1,6 +1,6 @@
 module mod_clm_initsurfalb
   !
-  ! Computes initial surface albedo calculation - 
+  ! Computes initial surface albedo calculation -
   ! Initialization of ecosystem dynamics is needed for this
   !
   use mod_intkinds
@@ -66,7 +66,7 @@ contains
     real(rk8) , pointer :: h2osoi_liq(:,:)
     ! snow water (mm H2O)
     real(rk8) , pointer :: h2osno(:)
-    ! fraction of vegetation not covered by snow (0 OR 1) [-] 
+    ! fraction of vegetation not covered by snow (0 OR 1) [-]
     integer(ik4) , pointer :: frac_veg_nosno_alb(:)
     ! daylength (seconds)
     real(rk8) , pointer :: dayl(:)
@@ -125,7 +125,7 @@ contains
     h2osoi_vol          => clm3%g%l%c%cws%h2osoi_vol
     snow_depth              => clm3%g%l%c%cps%snow_depth
     h2osno              => clm3%g%l%c%cws%h2osno
-    frac_sno            => clm3%g%l%c%cps%frac_sno 
+    frac_sno            => clm3%g%l%c%cps%frac_sno
     ctype               => clm3%g%l%c%itype
     clandunit           => clm3%g%l%c%landunit
     soilpsi             => clm3%g%l%c%cps%soilpsi
@@ -152,12 +152,12 @@ contains
     dayl      => clm3%g%l%c%p%pepv%dayl
     pcolumn   => clm3%g%l%c%p%column
     pgridcell => clm3%g%l%c%p%gridcell
-    latdeg    => clm3%g%latdeg 
+    latdeg    => clm3%g%latdeg
 
     ! ========================================================================
     ! Determine surface albedo - initialized by calls to ecosystem dynamics and
     ! albedo subroutines. Note: elai, esai, frac_veg_nosno_alb are computed in
-    ! Ecosysdyn and needed by routines FracWet and SurfaceAlbedo and 
+    ! Ecosysdyn and needed by routines FracWet and SurfaceAlbedo and
     ! frac_veg_nosno is needed by FracWet
     ! fwet is needed in routine TwoStream (called by SurfaceAlbedo)
     ! frac_sno is needed by SoilAlbedo (called by SurfaceAlbedo)
@@ -238,7 +238,7 @@ contains
     end if
 
     ! it is necessary to initialize the solar declination for the previous
-    ! timestep (caldaym1) so that the CNphenology routines know if this is 
+    ! timestep (caldaym1) so that the CNphenology routines know if this is
     ! before or after the summer solstice.
 
     ! declination for previous timestep
@@ -257,7 +257,7 @@ contains
         lat = latdeg(pgridcell(p)) * degrad
         temp = -(sin(lat)*sin(decl(c)))/(cos(lat) * cos(decl(c)))
         temp = min(1.D0,max(-1.D0,temp))
-        dayl(p) = 2.0D0 * 13750.9871D0 * acos(temp) 
+        dayl(p) = 2.0D0 * 13750.9871D0 * acos(temp)
       end if
     end do
 
@@ -277,7 +277,7 @@ contains
     ! this is the default call if CN not set
 
     call EcosystemDyn(begp,endp,filter%num_nolakep,filter%nolakep,doalb=.true.)
-#endif        
+#endif
 
     do p = begp , endp
       l = plandunit(p)

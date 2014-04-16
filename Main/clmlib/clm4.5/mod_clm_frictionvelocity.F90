@@ -189,7 +189,7 @@ module mod_clm_frictionvelocity
       !   1) this includes the convective velocity,
       !   2) this includes the 1 m/s minimum wind threshold
 
-      ! If forcing height is less than or equal to 10m, 
+      ! If forcing height is less than or equal to 10m,
       ! then set 10-m wind to um
       if (present(landunit_index)) then
         do pp = pfti(n),pftf(n)
@@ -408,14 +408,14 @@ module mod_clm_frictionvelocity
       end if
       if (present(landunit_index)) then
         tmp4 = log( max( 1.0_8, forc_hgt_u_pft(pfti(n)) / 10.D0) )
-      else 
+      else
         tmp4 = log( max( 1.0_8, forc_hgt_u_pft(n) / 10.D0) )
       end if
       if (present(landunit_index)) then
         do pp = pfti(n),pftf(n)
           u10(pp) = ur(n) - ustar(n)/vkc * (tmp4 - fm(n) + fm10)
           fv(pp)  = ustar(n)
-        end do 
+        end do
       else
         u10(n) = ur(n) - ustar(n)/vkc * (tmp4 - fm(n) + fm10)
         fv(n)  = ustar(n)
@@ -567,7 +567,7 @@ module mod_clm_frictionvelocity
         zldis(n) = forc_hgt_u_pft(pfti(n))-displa(n)
       else
         zldis(n) = forc_hgt_u_pft(n)-displa(n)
-      end if 
+      end if
       zeta(n) = zldis(n)/obu(n)
       if (min(zeta(n), 1.D0) < 0.D0) then
         tmp1 = (1.D0 - 16.D0*min(zeta(n),1.D0))**0.25D0
@@ -601,7 +601,7 @@ module mod_clm_frictionvelocity
         do pp = pfti(n),pftf(n)
           u10(pp) = ur(n) - ustar(n)/vkc * (tmp4 - fm(n) + fm10)
           fv(pp)  = ustar(n)
-        end do 
+        end do
       else
         u10(n) = ur(n) - ustar(n)/vkc * (tmp4 - fm(n) + fm10)
         fv(n)  = ustar(n)

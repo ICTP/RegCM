@@ -24,7 +24,7 @@ module mod_clm_initimeconst
   use mod_clm_varctl , only : fsnowoptics, fsnowaging
   use mod_clm_varsur , only : pctspec
   use mod_clm_pftvarcon
-  use mod_clm_organicfile , only : organicrd 
+  use mod_clm_organicfile , only : organicrd
 #if (defined VICHYDRO)
   use mod_clm_clmvicmap , only : initCLMVICMap
   use mod_clm_initsoilparvic , only : initSoilParVIC
@@ -90,27 +90,27 @@ module mod_clm_initimeconst
     real(rk8), pointer :: rootfr(:,:) ! fraction of roots in each soil layer
     ! fraction of roots in each soil layer for urban pervious road
     real(rk8), pointer :: rootfr_road_perv(:,:)
-    !root resistance by layer (0-1)  (nlevgrnd)	
+    !root resistance by layer (0-1)  (nlevgrnd)
     real(rk8), pointer :: rresis(:,:)
     real(rk8), pointer :: dewmx(:)   ! maximum allowed dew [mm]
-    real(rk8), pointer :: bsw(:,:)   ! Clapp and Hornberger "b" (nlevgrnd)  
-    ! volumetric soil water at saturation (porosity) (nlevgrnd) 
+    real(rk8), pointer :: bsw(:,:)   ! Clapp and Hornberger "b" (nlevgrnd)
+    ! volumetric soil water at saturation (porosity) (nlevgrnd)
     real(rk8), pointer :: watsat(:,:)
     ! volumetric soil water at field capacity (nlevsoi)
     real(rk8), pointer :: watfc(:,:)
     real(rk8), pointer :: watdry(:,:)  ! btran parameter for btran=0
     real(rk8), pointer :: watopt(:,:)  ! btran parameter for btran = 1
-    ! hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd) 
+    ! hydraulic conductivity at saturation (mm H2O /s) (nlevgrnd)
     real(rk8), pointer :: hksat(:,:)
-    ! minimum soil suction (mm) (nlevgrnd) 
+    ! minimum soil suction (mm) (nlevgrnd)
     real(rk8), pointer :: sucsat(:,:)
-    ! heat capacity, soil solids (J/m**3/Kelvin) (nlevgrnd) 
+    ! heat capacity, soil solids (J/m**3/Kelvin) (nlevgrnd)
     real(rk8), pointer :: csol(:,:)
-    ! thermal conductivity, soil minerals  [W/m-K] (new) (nlevgrnd) 
+    ! thermal conductivity, soil minerals  [W/m-K] (new) (nlevgrnd)
     real(rk8), pointer :: tkmg(:,:)
-    ! thermal conductivity, dry soil (W/m/Kelvin) (nlevgrnd) 
+    ! thermal conductivity, dry soil (W/m/Kelvin) (nlevgrnd)
     real(rk8), pointer :: tkdry(:,:)
-    ! thermal conductivity, saturated soil [W/m-K] (new) (nlevgrnd) 
+    ! thermal conductivity, saturated soil [W/m-K] (new) (nlevgrnd)
     real(rk8), pointer :: tksatu(:,:)
     ! maximum saturated fraction for a gridcell
     real(rk8), pointer :: wtfact(:)
@@ -168,7 +168,7 @@ module mod_clm_initimeconst
     real(rk8), pointer :: ksat(:,:)
     !soil moisture dissusion parameter
     real(rk8), pointer :: phi_s(:,:)
-    !layer depth of upper layer(m) 
+    !layer depth of upper layer(m)
     real(rk8), pointer :: depth(:,:)
     real(rk8), pointer :: porosity(:,:)  !soil porosity
     real(rk8), pointer :: max_moist(:,:) !maximum soil moisture (ice + liq)
@@ -206,7 +206,7 @@ module mod_clm_initimeconst
     integer(ik4)  :: nump    ! total number of pfts across all processors
 #if (defined VICHYDRO)
     integer(ik4)  :: ivic , ivicstrt , ivicend  ! indices
-    real(rk8) , pointer :: b2d(:)         ! read in - VIC b 
+    real(rk8) , pointer :: b2d(:)         ! read in - VIC b
     real(rk8) , pointer :: ds2d(:)        ! read in - VIC Ds
     real(rk8) , pointer :: dsmax2d(:)     ! read in - VIC Dsmax
     real(rk8) , pointer :: ws2d(:)        ! read in - VIC Ws
@@ -253,7 +253,7 @@ module mod_clm_initimeconst
     real(rk8) :: om_b
     ! depth (m) that organic matter takes on characteristics of sapric peat
     real(rk8) :: zsapric = 0.5D0
-    ! organic matter (kg/m3) where soil is assumed to act like peat 
+    ! organic matter (kg/m3) where soil is assumed to act like peat
     real(rk8) :: organic_max = 130.D0
     ! vol. heat capacity of granite/sandstone  J/(m3 K)(Shabbir, 2000)
     real(rk8) :: csol_bedrock = 2.0D6
@@ -274,7 +274,7 @@ module mod_clm_initimeconst
     real(rk8), allocatable :: dzurb_roof(:,:) ! roof (layer thickness)
     real(rk8), allocatable :: ziurb_wall(:,:) ! wall (layer interface)
     real(rk8), allocatable :: ziurb_roof(:,:) ! roof (layer interface)
-    logical :: readvar 
+    logical :: readvar
 
     integer(ik4) :: closelatidx,closelonidx
     real(rk8):: closelat,closelon
@@ -346,8 +346,8 @@ module mod_clm_initimeconst
     bsw             => clm3%g%l%c%cps%bsw
     watsat          => clm3%g%l%c%cps%watsat
     watfc           => clm3%g%l%c%cps%watfc
-    watdry          => clm3%g%l%c%cps%watdry  
-    watopt          => clm3%g%l%c%cps%watopt  
+    watdry          => clm3%g%l%c%cps%watdry
+    watopt          => clm3%g%l%c%cps%watopt
     rootfr_road_perv => clm3%g%l%c%cps%rootfr_road_perv
     hksat           => clm3%g%l%c%cps%hksat
     sucsat          => clm3%g%l%c%cps%sucsat
@@ -419,7 +419,7 @@ module mod_clm_initimeconst
     end if
 
     ! --------------------------------------------------------------------
-    ! Read soil color, sand and clay from surface dataset 
+    ! Read soil color, sand and clay from surface dataset
     ! --------------------------------------------------------------------
 
     if (myid == italk) then
@@ -442,7 +442,7 @@ module mod_clm_initimeconst
     allocate(sand3d(begg:endg,nlevsoifl), clay3d(begg:endg,nlevsoifl))
     allocate(organic3d(begg:endg,nlevsoifl))
 
-    ! Determine number of soil color classes 
+    ! Determine number of soil color classes
     ! if number of soil color classes is not on input dataset set it to 8
 
     if ( .not. clm_check_var(ncid,'mxsoil_color') ) then
@@ -561,7 +561,7 @@ module mod_clm_initimeconst
       write(stdout,*)
     end if
 
-    ! Determine saturated and dry soil albedos for n color classes and 
+    ! Determine saturated and dry soil albedos for n color classes and
     ! numrad wavebands (1=vis, 2=nir)
 
     allocate(albsat(mxsoil_color,numrad), &
@@ -695,7 +695,7 @@ module mod_clm_initimeconst
       dgv_pftcon%allom2(m) = allom2
       dgv_pftcon%allom3(m) = allom3
       ! modification for shrubs by X.D.Z
-      if (m > ntree .and. m <= nbrdlf_dcd_brl_shrub ) then 
+      if (m > ntree .and. m <= nbrdlf_dcd_brl_shrub ) then
         dgv_pftcon%allom1(m) = allom1s
         dgv_pftcon%allom2(m) = allom2s
       end if
@@ -703,8 +703,8 @@ module mod_clm_initimeconst
 #endif
 
     ! --------------------------------------------------------------------
-    ! Define layer structure for soil, lakes, urban walls and roof 
-    ! Vertical profile of snow is not initialized here 
+    ! Define layer structure for soil, lakes, urban walls and roof
+    ! Vertical profile of snow is not initialized here
     ! --------------------------------------------------------------------
 
     ! Soil layers and interfaces (assumed same for all non-lake patches)
@@ -714,7 +714,7 @@ module mod_clm_initimeconst
     if ( more_vertlayers )then
       ! replace standard exponential grid with a grid that starts out
       ! exponential, then has several evenly spaced layers, then finishes
-      ! off exponential. 
+      ! off exponential.
       ! this allows the upper soil to behave as standard, but then
       ! continues with higher resolution to a deeper depth, so that,
       ! for example, permafrost dynamics are not lost due to an inability
@@ -773,7 +773,7 @@ module mod_clm_initimeconst
 #else
     dzsoi_decomp(1) = 1.0D0
 #endif
-    if (myid == italk) write(stdout, *) 'dzsoi_decomp', dzsoi_decomp(:) 
+    if (myid == italk) write(stdout, *) 'dzsoi_decomp', dzsoi_decomp(:)
 
     ! get original soil depths to be used in interpolation of sand and clay
     allocate(zsoifl(1:nlevsoifl),zisoifl(0:nlevsoifl),dzsoifl(1:nlevsoifl))
@@ -893,14 +893,14 @@ module mod_clm_initimeconst
         !thickness b/n two interfaces
         dzurb_roof(l,1) = 0.5*(zurb_roof(l,1)+zurb_roof(l,2))
         do j = 2 , nlevurb-1
-          dzurb_roof(l,j)= 0.5*(zurb_roof(l,j+1)-zurb_roof(l,j-1)) 
+          dzurb_roof(l,j)= 0.5*(zurb_roof(l,j+1)-zurb_roof(l,j-1))
         end do
         dzurb_roof(l,nlevurb) = zurb_roof(l,nlevurb)-zurb_roof(l,nlevurb-1)
 
         !thickness b/n two interfaces
         dzurb_wall(l,1) = 0.5*(zurb_wall(l,1)+zurb_wall(l,2))
         do j = 2 , nlevurb-1
-          dzurb_wall(l,j)= 0.5*(zurb_wall(l,j+1)-zurb_wall(l,j-1)) 
+          dzurb_wall(l,j)= 0.5*(zurb_wall(l,j+1)-zurb_wall(l,j-1))
         end do
         dzurb_wall(l,nlevurb) = zurb_wall(l,nlevurb)-zurb_wall(l,nlevurb-1)
 
@@ -944,7 +944,7 @@ module mod_clm_initimeconst
       l = clandunit(c)
 
       ! initialize maximum daylength, based on latitude and maximum declination
-      ! maximum declination hardwired for present-day orbital parameters, 
+      ! maximum declination hardwired for present-day orbital parameters,
       ! +/- 23.4667 degrees = +/- 0.409571 radians, use negative value
       ! for S. Hem
       max_decl = 0.409571
@@ -1029,13 +1029,13 @@ module mod_clm_initimeconst
         h2osfc_thresh(c) = 0.5D0*d*(1.0D0 + &
                 erf(d/(micro_sigma(c)*sqrt(2.0D0)))) + &
                 micro_sigma(c)/sqrt(2.0D0*rpi) * &
-                exp(-d**2/(2.0D0*micro_sigma(c)**2))         
+                exp(-d**2/(2.0D0*micro_sigma(c)**2))
         h2osfc_thresh(c) = 1.D3 * h2osfc_thresh(c) !convert to mm from meters
       else
         h2osfc_thresh(c) = 0.D0
       end if
 
-      if ( h2osfcflag == 0 ) then 
+      if ( h2osfcflag == 0 ) then
         slopemax = 0.05D0
         micro_sigma(c) = slopemax
         ! set to zero for no h2osfc (w/frac_infclust =large)
@@ -1046,10 +1046,10 @@ module mod_clm_initimeconst
       isoicol(c) = soic2d(g)
 
       ! Soil hydraulic and thermal properties
-      ! Note that urban roof, sunwall and shadewall thermal properties used to 
-      ! derive thermal conductivity and heat capacity are set to special 
-      ! value because thermal conductivity and heat capacity for urban 
-      ! roof, sunwall and shadewall are prescribed in SoilThermProp.F90 in 
+      ! Note that urban roof, sunwall and shadewall thermal properties used to
+      ! derive thermal conductivity and heat capacity are set to special
+      ! value because thermal conductivity and heat capacity for urban
+      ! roof, sunwall and shadewall are prescribed in SoilThermProp.F90 in
       ! SoilTemperatureMod.F90
       ! Lakes will be set in initSLake. This could also be done here to
       ! facilitate changing soil properties everywhere, but there may
@@ -1070,9 +1070,9 @@ module mod_clm_initimeconst
           else
             csol(c,lev)= spval
           end if
-          watdry(c,lev) = spval 
-          watopt(c,lev) = spval 
-          bd(c,lev) = spval 
+          watdry(c,lev) = spval
+          watopt(c,lev) = spval
+          bd(c,lev) = spval
           if ( lev <= nlevsoi ) then
             cellsand(c,lev) = spval
             cellclay(c,lev) = spval
@@ -1106,9 +1106,9 @@ module mod_clm_initimeconst
           tksatu(c,lev) = spval
           tkdry(c,lev)  = spval
           csol(c,lev)   = spval
-          watdry(c,lev) = spval 
-          watopt(c,lev) = spval 
-          bd(c,lev) = spval 
+          watdry(c,lev) = spval
+          watopt(c,lev) = spval
+          bd(c,lev) = spval
           if ( lev <= nlevsoi ) then
             cellsand(c,lev) = spval
             cellclay(c,lev) = spval
@@ -1137,14 +1137,14 @@ module mod_clm_initimeconst
             if ( lev .eq. 1 ) then
               clay    = clay3d(g,1)
               sand    = sand3d(g,1)
-              om_frac = organic3d(g,1)/organic_max 
+              om_frac = organic3d(g,1)/organic_max
             else if ( lev .le. nlevsoi ) then
               do j = 1 , nlevsoifl-1
                 if (zisoi(lev) .ge. zisoifl(j) .AND. &
                     zisoi(lev) .lt. zisoifl(j+1)) then
                   clay    = clay3d(g,j+1)
                   sand    = sand3d(g,j+1)
-                  om_frac = organic3d(g,j+1)/organic_max    
+                  om_frac = organic3d(g,j+1)/organic_max
                 end if
               end do
             else
@@ -1197,12 +1197,12 @@ module mod_clm_initimeconst
             om_sucsat = min(10.3D0 - 0.2D0*(zsoi(lev)/zsapric), 10.1D0)
             om_hksat = max(0.28D0 - 0.2799D0*(zsoi(lev)/zsapric), 0.0001D0)
 
-            bd = (1.D0-watsat(c,lev))*2.7D3 
+            bd = (1.D0-watsat(c,lev))*2.7D3
             watsat(c,lev) = (1.D0 - om_frac)*watsat(c,lev) + om_watsat*om_frac
             tkm = (1.D0-om_frac)*(8.80D0*sand+2.92D0*clay) / &
                     (sand+clay)+om_tkm*om_frac ! W/(m K)
             bsw(c,lev) = (1.D0-om_frac)*(2.91D0 + 0.159D0*clay) + om_frac*om_b
-            sucsat(c,lev) = (1.D0-om_frac)*sucsat(c,lev) + om_sucsat*om_frac  
+            sucsat(c,lev) = (1.D0-om_frac)*sucsat(c,lev) + om_sucsat*om_frac
             xksat = 0.0070556 *( 10.**(-0.884+0.0153*sand) ) ! mm/s
             hksat_min(c,lev) = xksat
 
@@ -1230,16 +1230,16 @@ module mod_clm_initimeconst
             tksatu(c,lev) = tkmg(c,lev)*0.57D0**watsat(c,lev)
             tkdry(c,lev) = ((0.135D0*bd(c,lev) + 64.7D0) / &
                      (2.7D3 - 0.947D0*bd(c,lev)))*(1.D0-om_frac) + &
-                      om_tkd*om_frac  
+                      om_tkd*om_frac
             csol(c,lev) = ((1.D0-om_frac)*(2.128D0*sand+2.385D0*clay) / &
-                    (sand+clay) + om_csol*om_frac)*1.D6  ! J/(m3 K)  
+                    (sand+clay) + om_csol*om_frac)*1.D6  ! J/(m3 K)
             if (lev .gt. nlevsoi) then
               csol(c,lev) = csol_bedrock
             end if
             watdry(c,lev) = watsat(c,lev) * &
-                    (316230.D0/sucsat(c,lev)) ** (-1.D0/bsw(c,lev)) 
+                    (316230.D0/sucsat(c,lev)) ** (-1.D0/bsw(c,lev))
             watopt(c,lev) = watsat(c,lev) * &
-                    (158490.D0/sucsat(c,lev)) ** (-1.D0/bsw(c,lev)) 
+                    (158490.D0/sucsat(c,lev)) ** (-1.D0/bsw(c,lev))
             !! added by K.Sakaguchi for beta from Lee and Pielke, 1992
             ! water content at field capacity, defined as hk = 0.1 mm/day
             ! used eqn (7.70) in CLM3 technote with
@@ -1255,13 +1255,13 @@ module mod_clm_initimeconst
         ! and watopt as missing
         if (ctype(c) == icol_road_imperv) then
           do lev = 1,nlevgrnd
-            watdry(c,lev) = spval 
-            watopt(c,lev) = spval 
+            watdry(c,lev) = spval
+            watopt(c,lev) = spval
           end do
           ! pervious road layers -- same as above except also set
           ! rootfr_road_perv
           ! Currently, pervious road has same properties as soil
-        else if (ctype(c) == icol_road_perv) then 
+        else if (ctype(c) == icol_road_perv) then
           do lev = 1, nlevgrnd
             rootfr_road_perv(c,lev) = 0.D0
           end do
@@ -1298,7 +1298,7 @@ module mod_clm_initimeconst
           dz(c,1:nlevgrnd) = dzsoi(1:nlevgrnd)
 #if (defined VICHYDRO)
           depth(c,:) = 0.D0
-          ivicstrt = 1 
+          ivicstrt = 1
           do ivic = 1,nlayer
             ivicend = ivicstrt+nlvic(ivic)-1
             do j = ivicstrt,ivicend

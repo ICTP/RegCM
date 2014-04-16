@@ -79,7 +79,7 @@ subroutine timemgr_init( calendar_in, start_ymd_in, start_tod_in, ref_ymd_in, &
                          ref_tod_in, stop_ymd_in, stop_tod_in)
 
   !---------------------------------------------------------------------------------
-  ! 
+  !
   ! Arguments
   character(len=*), optional, intent(IN) :: calendar_in       ! Calendar type
   integer         , optional, intent(IN) :: start_ymd_in      ! Start date (YYYYMMDD)
@@ -232,7 +232,7 @@ real(rk8) function get_curr_calday(offset)
 
 ! Arguments
    integer, optional, intent(in) :: offset  ! Offset from current time in seconds.
-                                            ! Positive for future times, negative 
+                                            ! Positive for future times, negative
                                             ! for previous times.
    type (rcm_time_and_date) :: id
    type (rcm_time_interval) :: tdif

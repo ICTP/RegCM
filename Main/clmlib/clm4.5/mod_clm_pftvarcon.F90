@@ -19,7 +19,7 @@ module mod_clm_pftvarcon
   !
   character(len=40) , public , dimension(0:mxpft) :: pftname ! PFT description
 
-  !value for not vegetated 
+  !value for not vegetated
   integer(ik4) , public :: noveg
   !value for Needleleaf evergreen temperate tree
   integer(ik4) , public :: ndllf_evr_tmp_tree
@@ -186,7 +186,7 @@ module mod_clm_pftvarcon
   real(rk8) , public , dimension(0:mxpft) :: planttemp
   !mininum planting temperature used in CNPhenology (K)
   real(rk8) , public , dimension(0:mxpft) :: minplanttemp
-  !allocation parameter: new fine root C per new leaf C (gC/gC) 
+  !allocation parameter: new fine root C per new leaf C (gC/gC)
   real(rk8) , public , dimension(0:mxpft) :: froot_leaf
   !allocation parameter: new stem c per new leaf C (gC/gC)
   real(rk8) , public , dimension(0:mxpft) :: stem_leaf

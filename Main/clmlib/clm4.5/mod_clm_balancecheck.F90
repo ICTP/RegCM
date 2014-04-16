@@ -54,11 +54,11 @@ module mod_clm_balancecheck
     real(rk8) , pointer , dimension(:) :: h2osno       ! snow water (mm H2O)
     real(rk8) , pointer , dimension(:,:) :: h2osoi_ice ! ice lens (kg/m2)
     real(rk8) , pointer , dimension(:,:) :: h2osoi_liq ! liquid water (kg/m2)
-    ! canopy water (mm H2O) (pft-level) 
+    ! canopy water (mm H2O) (pft-level)
     real(rk8) , pointer , dimension(:) :: h2ocan_pft
     ! water in the unconfined aquifer (mm)
     real(rk8) , pointer , dimension(:) :: wa
-    integer(ik4) , pointer , dimension(:) :: ctype ! column type 
+    integer(ik4) , pointer , dimension(:) :: ctype ! column type
     real(rk8) , pointer , dimension(:) :: zwt ! water table depth (m)
     ! interface level below a "z" level (m)
     real(rk8) , pointer , dimension(:,:) :: zi
@@ -197,8 +197,8 @@ module mod_clm_balancecheck
     integer(ik4) , pointer , dimension(:) :: cgridcell
     ! column's landunit index
     integer(ik4) , pointer , dimension(:) :: clandunit
-    integer(ik4) , pointer , dimension(:) :: ltype  ! landunit type 
-    integer(ik4) , pointer , dimension(:) :: ctype  ! column type 
+    integer(ik4) , pointer , dimension(:) :: ltype  ! landunit type
+    integer(ik4) , pointer , dimension(:) :: ctype  ! column type
     real(rk8) , pointer , dimension(:) :: forc_rain ! rain rate [mm/s]
     real(rk8) , pointer , dimension(:) :: forc_snow ! snow rate [mm/s]
     ! downward infrared (longwave) radiation (W/m**2)
@@ -325,7 +325,7 @@ module mod_clm_balancecheck
     qflx_snow_h2osfc    => clm3%g%l%c%cwf%qflx_snow_h2osfc
     frac_sno_eff        => clm3%g%l%c%cps%frac_sno_eff
     qflx_h2osfc_to_ice  => clm3%g%l%c%cwf%qflx_h2osfc_to_ice
-    frac_sno            => clm3%g%l%c%cps%frac_sno 
+    frac_sno            => clm3%g%l%c%cps%frac_sno
     qflx_drain_perched  => clm3%g%l%c%cwf%qflx_drain_perched
     qflx_floodc         => clm3%g%l%c%cwf%qflx_floodc
     qflx_evap_soi       => clm3%g%l%c%cwf%pwf_a%qflx_evap_soi
@@ -511,10 +511,10 @@ module mod_clm_balancecheck
         snow_sinks(c)   = qflx_sub_snow(c) + qflx_evap_grnd(c) + &
                 qflx_snow_melt(c) + qflx_snwcp_ice(c) +          &
                 qflx_snwcp_liq(c) + qflx_sl_top_soil(c)
-        if ( ltype(l) == istdlak ) then 
+        if ( ltype(l) == istdlak ) then
           if ( do_capsnow(c) ) then
             snow_sources(c) = qflx_snow_grnd_col(c) + &
-                 frac_sno_eff(c) * (qflx_dew_snow(c) + qflx_dew_grnd(c) ) 
+                 frac_sno_eff(c) * (qflx_dew_snow(c) + qflx_dew_grnd(c) )
             snow_sinks(c) = frac_sno_eff(c) * (qflx_sub_snow(c) + &
                     qflx_evap_grnd(c) ) + (qflx_snwcp_ice(c) +    &
                     qflx_snwcp_liq(c) - qflx_prec_grnd(c)) +      &
@@ -522,7 +522,7 @@ module mod_clm_balancecheck
           else
             snow_sources(c) = qflx_snow_grnd_col(c) +          &
                     frac_sno_eff(c) * (qflx_rain_grnd_col(c) + &
-                    qflx_dew_snow(c) + qflx_dew_grnd(c) ) 
+                    qflx_dew_snow(c) + qflx_dew_grnd(c) )
             snow_sinks(c) = frac_sno_eff(c) * (qflx_sub_snow(c) + &
                     qflx_evap_grnd(c) ) + qflx_snow_melt(c) +     &
                     qflx_sl_top_soil(c)
@@ -629,7 +629,7 @@ module mod_clm_balancecheck
         ! Changed to using (eflx_lwrad_net) here instead of
         ! (forc_lwrad - eflx_lwrad_out) because
         ! there are longwave interactions between urban columns
-        ! (and therefore pfts). 
+        ! (and therefore pfts).
         ! For surfaces other than urban, (eflx_lwrad_net) equals
         ! (forc_lwrad - eflx_lwrad_out),
         ! and a separate check is done above for these terms.

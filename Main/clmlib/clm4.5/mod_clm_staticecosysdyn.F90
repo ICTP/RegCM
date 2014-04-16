@@ -2,7 +2,7 @@ module mod_clm_staticecosysdyn
 
   ! Static Ecosystem dynamics: phenology, vegetation.
   ! This is for the CLM Satelitte Phenology model (CLMSP). Allow some
-  ! subroutines to be used by the CLM Carbon Nitrogen model (CLMCN) 
+  ! subroutines to be used by the CLM Carbon Nitrogen model (CLMCN)
   ! so that DryDeposition code can get estimates of LAI differences
   ! between months.
 
@@ -126,7 +126,7 @@ module mod_clm_staticecosysdyn
 
       ! Assign local pointers to derived type scalar members (column-level)
 
-      frac_sno => clm3%g%l%c%cps%frac_sno 
+      frac_sno => clm3%g%l%c%cps%frac_sno
       snow_depth  => clm3%g%l%c%cps%snow_depth
 
       ! Assign local pointers to derived type scalar members (pftlevel)
@@ -171,7 +171,7 @@ module mod_clm_staticecosysdyn
         ! problems associated with very small lai and sai.
 
         ! snow burial fraction for short vegetation (e.g. grasses) as in
-        ! Wang and Zeng, 2007. 
+        ! Wang and Zeng, 2007.
 
         if ( ivt(p) > noveg .and. ivt(p) <= nbrdlf_dcd_brl_shrub ) then
           ol = min( max(snow_depth(c)-hbot(p), 0.D0), htop(p)-hbot(p))
@@ -243,7 +243,7 @@ module mod_clm_staticecosysdyn
   subroutine readAnnualVegetation ( )
     implicit none
     type(clm_filetype) :: ncid  ! netcdf id
-    ! 12 months of monthly lai from input data set 
+    ! 12 months of monthly lai from input data set
     real(rk8) , pointer , dimension(:,:) :: annlai
     ! lai read from input files
     real(rk8) , pointer , dimension(:,:) :: mlai
@@ -310,7 +310,7 @@ module mod_clm_staticecosysdyn
         else                       !! non-vegetated pft
           annlai(k,p) = 0.D0
         end if
-      end do   ! end of loop over pfts  
+      end do   ! end of loop over pfts
     end do ! months loop
     call clm_closefile(ncid)
     deallocate(mlai)

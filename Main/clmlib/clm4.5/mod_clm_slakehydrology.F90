@@ -8,14 +8,14 @@ module mod_clm_slakehydrology
 !
 ! !DESCRIPTION:
 ! Calculation of Lake Hydrology. Full hydrology, aerosol deposition, etc. of snow layers is
-! done. However, there is no infiltration, and the water budget is balanced with 
+! done. However, there is no infiltration, and the water budget is balanced with
 ! qflx_qrgwl. Lake water mass is kept constant. The soil is simply maintained at
 ! volumetric saturation if ice melting frees up pore space. Likewise, if the water
 ! portion alone at some point exceeds pore capacity, it is reduced. This is consistent
 ! with the possibility of initializing the soil layer with excess ice.
-! 
+!
 ! If snow layers are present over an unfrozen lake, and the top layer of the lake
-! is capable of absorbing the latent heat without going below freezing, 
+! is capable of absorbing the latent heat without going below freezing,
 ! the snow-water is runoff and the latent heat is subtracted from the lake.
 !
 ! Minimum snow layer thickness for lakes has been increased to avoid instabilities with 30 min timestep.
@@ -265,7 +265,7 @@ contains
 
     ! Assign local pointers to derived subtypes components (column-level)
 
-    frac_sno_eff  => clm3%g%l%c%cps%frac_sno_eff 
+    frac_sno_eff  => clm3%g%l%c%cps%frac_sno_eff
     cgridcell     => clm3%g%l%c%gridcell
     clandunit     => clm3%g%l%c%landunit
     snl           => clm3%g%l%c%cps%snl
@@ -519,7 +519,7 @@ contains
           ! on snow or ground
 
           if (qflx_evap_soi(p) >= 0.D0) then
-          ! for evaporation partitioning between liquid evap and ice sublimation, 
+          ! for evaporation partitioning between liquid evap and ice sublimation,
           ! use the ratio of liquid to (liquid+ice) in the top layer to determine split
           ! Since we're not limiting evap over lakes, but still can't remove more from top
           ! snow layer than there is there, create temp. limited evap_soi.
@@ -529,7 +529,7 @@ contains
              else
                 qflx_evap_grnd(p) = 0.D0
              end if
-             qflx_sub_snow(p) = qflx_evap_soi_lim - qflx_evap_grnd(p)     
+             qflx_sub_snow(p) = qflx_evap_soi_lim - qflx_evap_grnd(p)
           else
              ! if (t_grnd(c) < tfrz) then
              ! Causes rare blowup when thin snow layer should completely melt and has a high temp after thermal physics,
@@ -546,7 +546,7 @@ contains
           ! This was moved in from Hydrology2 to keep all pft-level
           ! calculations out of Hydrology2
           if (do_capsnow(c)) then
-              qflx_snwcp_ice(p) = qflx_snwcp_ice(p) + qflx_dew_snow(p) 
+              qflx_snwcp_ice(p) = qflx_snwcp_ice(p) + qflx_dew_snow(p)
               qflx_snwcp_liq(p) = qflx_snwcp_liq(p) + qflx_dew_grnd(p)
           end if
 
@@ -569,7 +569,7 @@ contains
           h2osno_temp = h2osno(c)
           if (do_capsnow(c)) then
              h2osno(c) = h2osno(c) - qflx_sub_snow(p)*dtsrf
-             qflx_snwcp_ice(p) = qflx_snwcp_ice(p) + qflx_dew_snow(p) 
+             qflx_snwcp_ice(p) = qflx_snwcp_ice(p) + qflx_dew_snow(p)
              qflx_snwcp_liq(p) = qflx_snwcp_liq(p) + qflx_dew_grnd(p)
           else
              h2osno(c) = h2osno(c) + (-qflx_sub_snow(p)+qflx_dew_snow(p))*dtsrf
@@ -623,9 +623,9 @@ contains
     do fc = 1, num_lakec
        c = filter_lakec(fc)
        if (h2osno(c) > 0.0D0) then
-          frac_sno_eff(c)     = 1.D0 
+          frac_sno_eff(c)     = 1.D0
        else
-          frac_sno_eff(c)     = 0.D0 
+          frac_sno_eff(c)     = 0.D0
        endif
     enddo
 
@@ -688,7 +688,7 @@ contains
 
     ! Check for single completely unfrozen snow layer over lake.  Modeling this ponding is unnecessary and
     ! can cause instability after the timestep when melt is completed, as the temperature after melt can be
-    ! excessive because the fluxes were calculated with a fixed ground temperature of freezing, but the 
+    ! excessive because the fluxes were calculated with a fixed ground temperature of freezing, but the
     ! phase change was unable to restore the temperature to freezing.
     do fp = 1, num_lakep
        p = filter_lakep(fp)
@@ -754,7 +754,7 @@ contains
           heatsum(c) = heatsum(c) + sumsnowice(c)*hfus
           heatrem = (t_lake(c,1) - tfrz)*cpliq*denh2o*dz_lake(c,1) - heatsum(c)
 
-          if (heatrem + denh2o*dz_lake(c,1)*hfus > 0.D0) then            
+          if (heatrem + denh2o*dz_lake(c,1)*hfus > 0.D0) then
              ! Remove snow and subtract the latent heat from the top layer.
              qflx_snomelt(c) = qflx_snomelt(c) + h2osno(c)/dtsrf
              eflx_snomelt(c) = eflx_snomelt(c) + h2osno(c)*hfus/dtsrf
@@ -871,7 +871,7 @@ contains
     !  Calculate column-integrated aerosol masses, and
     !  mass concentrations for radiative calculations and output
     !  (based on new snow level state, after SnowFilter is rebuilt.
-    !  NEEDS TO BE AFTER SnowFiler is rebuilt, otherwise there 
+    !  NEEDS TO BE AFTER SnowFiler is rebuilt, otherwise there
     !  can be zero snow layers but an active column in filter)
 
     do fc = 1, num_shlakesnowc
@@ -887,7 +887,7 @@ contains
           ! layer mass of snow:
           snowmass = h2osoi_ice(c,j)+h2osoi_liq(c,j)
 
-          ! Correct the top layer aerosol mass to account for snow capping. 
+          ! Correct the top layer aerosol mass to account for snow capping.
           ! This approach conserves the aerosol mass concentration
           ! (but not the aerosol amss) when snow-capping is invoked
 
@@ -904,7 +904,7 @@ contains
                 mss_dst1(c,j)  = mss_dst1(c,j)*snowcap_scl_fct
                 mss_dst2(c,j)  = mss_dst2(c,j)*snowcap_scl_fct
                 mss_dst3(c,j)  = mss_dst3(c,j)*snowcap_scl_fct
-                mss_dst4(c,j)  = mss_dst4(c,j)*snowcap_scl_fct 
+                mss_dst4(c,j)  = mss_dst4(c,j)*snowcap_scl_fct
              endif
           endif
 
@@ -969,7 +969,7 @@ contains
        snw_rds(c,:)       = 0.D0
 
        mss_bc_top(c)      = 0.D0
-       mss_bc_col(c)      = 0.D0    
+       mss_bc_col(c)      = 0.D0
        mss_bcpho(c,:)     = 0.D0
        mss_bcphi(c,:)     = 0.D0
        mss_bctot(c,:)     = 0.D0
@@ -977,7 +977,7 @@ contains
        mss_cnc_bcpho(c,:) = 0.D0
 
        mss_oc_top(c)      = 0.D0
-       mss_oc_col(c)      = 0.D0    
+       mss_oc_col(c)      = 0.D0
        mss_ocpho(c,:)     = 0.D0
        mss_ocphi(c,:)     = 0.D0
        mss_octot(c,:)     = 0.D0

@@ -1,13 +1,13 @@
 module mod_clm_croprest
 
 #if (defined CN)
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 !BOP
 !
 ! !MODULE: CropRestMod
-! 
-! !DESCRIPTION: 
-! Read/Write to/from Crop info to CLM restart file. 
+!
+! !DESCRIPTION:
+! Read/Write to/from Crop info to CLM restart file.
 !
 ! !USES:
   use mod_realkinds
@@ -37,7 +37,7 @@ module mod_clm_croprest
    integer :: restyear = unset         ! Restart year from the initial conditions file
 
 !EOP
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 
 contains
 
@@ -49,7 +49,7 @@ contains
 ! !INTERFACE:
   subroutine CropRest ( ncid, flag )
 !
-! !DESCRIPTION: 
+! !DESCRIPTION:
 ! Read/write Crop restart data
 !
 ! !USES:
@@ -73,9 +73,9 @@ contains
 !EOP
 !
 ! !LOCAL VARIABLES:
-    integer :: c,p,j                      ! indices 
+    integer :: c,p,j                      ! indices
     integer :: begp, endp                 ! per-proc beginning and ending pft indices
-    integer :: begc, endc                 ! per-proc beginning and ending column indices 
+    integer :: begc, endc                 ! per-proc beginning and ending column indices
     integer :: begl, endl                 ! per-proc beginning and ending landunit indices
     integer :: begg, endg                 ! per-proc gridcell ending gridcell indices
     real(rk8):: m                          ! multiplier for the exit_spinup code
@@ -116,7 +116,7 @@ contains
     call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
 
     !--------------------------------
-    ! pft physical state variables 
+    ! pft physical state variables
     !--------------------------------
 
     ! peaklai
@@ -208,7 +208,7 @@ contains
        call clm_writevar(ncid,'astemi',pptr%pps%astemi)
     end if
 
-    ! htmx 
+    ! htmx
     if (flag == 'define') then
        call clm_addvar(clmvar_double,ncid,'htmx',cdims=(/'pft'/), &
             long_name='max height attained by a crop during year',&
@@ -699,7 +699,7 @@ contains
 ! !INTERFACE:
   integer function CropRestYear ( )
 !
-! !DESCRIPTION: 
+! !DESCRIPTION:
 ! Return the restart year for prognostic crop
 !
 ! !USES:
@@ -727,7 +727,7 @@ contains
 ! !INTERFACE:
   subroutine CropRestIncYear ( nyrs )
 !
-! !DESCRIPTION: 
+! !DESCRIPTION:
 ! Increment the crop restart year
 !
 ! !USES:
@@ -755,7 +755,7 @@ contains
 ! !INTERFACE:
   subroutine checkDates( )
 !
-! !DESCRIPTION: 
+! !DESCRIPTION:
 ! Make sure the dates are compatible. The date given to startup the model
 ! and the date on the restart file must be the same although years can be
 ! different. The dates need to be checked when the restart file is being

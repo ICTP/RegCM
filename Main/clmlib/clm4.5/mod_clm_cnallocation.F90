@@ -27,7 +27,7 @@ module mod_clm_cnallocation
   character(len=*) , parameter , public :: suplnNon = 'NONE'
   ! Supplemental Nitrogen mode
   character(len=15) , public :: suplnitro = suplnNon
-  ! Carbon only mode 
+  ! Carbon only mode
   ! (Nitrogen is prescribed NOT prognostic)
   logical , public :: Carbon_only = .false.
 
@@ -69,7 +69,7 @@ module mod_clm_cnallocation
     ! set time steps
     dt = real( get_step_size(), rk8 )
 
-    ! set some space-and-time constant parameters 
+    ! set some space-and-time constant parameters
     bdnr         = 0.5D0 * (dt/secspday)
     dayscrecover = 30.0D0
 
@@ -201,7 +201,7 @@ module mod_clm_cnallocation
    real(rk8), pointer :: c_allometry(:)           ! C allocation index (DIM)
    real(rk8), pointer :: n_allometry(:)           ! N allocation index (DIM)
    real(rk8), pointer :: plant_ndemand(:)         ! N flux required to support initial GPP (gN/m2/s)
-   real(rk8), pointer :: tempsum_potential_gpp(:) ! temporary annual sum of potential GPP 
+   real(rk8), pointer :: tempsum_potential_gpp(:) ! temporary annual sum of potential GPP
    real(rk8), pointer :: tempmax_retransn(:)      ! temporary annual max of retranslocated N pool (gN/m2)
    real(rk8), pointer :: annsum_potential_gpp(:)  ! annual sum of potential GPP
    real(rk8), pointer :: avail_retransn(:)        ! N flux available from retranslocation pool (gN/m2/s)
@@ -502,7 +502,7 @@ module mod_clm_cnallocation
       ! gpp that is used to control stomatal conductance.
       ! For the nitrogen downregulation code, this is assumed
       ! to be the potential gpp, and the actual gpp will be
-      ! reduced due to N limitation. 
+      ! reduced due to N limitation.
 
       ! Convert psn from umol/m2/s -> gC/m2/s
 
@@ -639,7 +639,7 @@ module mod_clm_cnallocation
                   astem(p) = 1.D0 - arepr(p) - aleaf(p) - aroot(p)
                end if
 
-               ! AgroIBIS included here an immediate adjustment to aleaf & astem if the 
+               ! AgroIBIS included here an immediate adjustment to aleaf & astem if the
                ! predicted lai from the above allocation coefficients exceeded laimx.
                ! We have decided to live with lais slightly higher than laimx by
                ! enforcing the cap in the following tstep through the peaklai logic above.
@@ -675,17 +675,17 @@ module mod_clm_cnallocation
                !Only do one time then hold grain_flag till onset next season
 
                ! slevis: Will astem ever = astemf exactly?
-               ! Beth's response: ...looks like astem can equal astemf under the right circumstances. 
-               !It might be worth a rewrite to capture what I was trying to do, but the retranslocation for 
-               !corn and wheat begins at the beginning of the grain fill stage, but for soybean I was holding it 
-               !until after the leaf and stem decline were complete. Looking at how astem is calculated, once the 
-               !stem decline is near complete, astem should (usually) be set to astemf. The reason for holding off 
-               !on soybean is that the retranslocation scheme begins at the beginning of the grain phase, when the 
-               !leaf and stem are still growing, but declining. Since carbon is still getting allocated and now 
-               !there is more nitrogen available, the nitrogen can be diverted from grain. For corn and wheat 
-               !the impact was probably enough to boost productivity, but for soybean the nitrogen was better off 
-               !fulfilling the grain fill. It seems that if the peak lai is reached for soybean though that this 
-               !would be bypassed altogether, not the intended outcome. I checked several of my output files and 
+               ! Beth's response: ...looks like astem can equal astemf under the right circumstances.
+               !It might be worth a rewrite to capture what I was trying to do, but the retranslocation for
+               !corn and wheat begins at the beginning of the grain fill stage, but for soybean I was holding it
+               !until after the leaf and stem decline were complete. Looking at how astem is calculated, once the
+               !stem decline is near complete, astem should (usually) be set to astemf. The reason for holding off
+               !on soybean is that the retranslocation scheme begins at the beginning of the grain phase, when the
+               !leaf and stem are still growing, but declining. Since carbon is still getting allocated and now
+               !there is more nitrogen available, the nitrogen can be diverted from grain. For corn and wheat
+               !the impact was probably enough to boost productivity, but for soybean the nitrogen was better off
+               !fulfilling the grain fill. It seems that if the peak lai is reached for soybean though that this
+               !would be bypassed altogether, not the intended outcome. I checked several of my output files and
                !they all seemed to be going through the retranslocation loop for soybean - good news.
 
                if (ivt(p) /= nsoybean .or. astem(p) == astemf(ivt(p))) then
@@ -798,7 +798,7 @@ module mod_clm_cnallocation
 
    do j = 1, nlevdecomp
       do fc=1,num_soilc
-         c = filter_soilc(fc)      
+         c = filter_soilc(fc)
          if (sminn_tot(c) .gt. 0.) then
                nuptake_prof(c,j) = sminn_vr(c,j) / sminn_tot(c)
          else
@@ -811,7 +811,7 @@ module mod_clm_cnallocation
 
    do j = 1, nlevdecomp
       do fc=1,num_soilc
-         c = filter_soilc(fc)      
+         c = filter_soilc(fc)
          l = clandunit(c)
          if (sum_ndemand_vr(c,j)*dt < sminn_vr(c,j)) then
 
@@ -862,25 +862,25 @@ module mod_clm_cnallocation
    ! sum up N fluxes to plant
    do j = 1, nlevdecomp
       do fc=1,num_soilc
-         c = filter_soilc(fc)    
+         c = filter_soilc(fc)
          sminn_to_plant(c) = sminn_to_plant(c) + sminn_to_plant_vr(c,j) * dzsoi_decomp(j)
       end do
    end do
 
    ! give plants a second pass to see if there is any mineral N left over with which to satisfy residual N demand.
    do fc=1,num_soilc
-      c = filter_soilc(fc)    
+      c = filter_soilc(fc)
       residual_sminn(c) = 0.D0
    end do
 
    ! sum up total N left over after initial plant and immobilization fluxes
    do fc=1,num_soilc
-      c = filter_soilc(fc)    
+      c = filter_soilc(fc)
       residual_plant_ndemand(c) = col_plant_ndemand(c) - sminn_to_plant(c)
    end do
    do j = 1, nlevdecomp
       do fc=1,num_soilc
-         c = filter_soilc(fc)    
+         c = filter_soilc(fc)
          if (residual_plant_ndemand(c) .gt. 0.D0 ) then
             if (nlimit(c,j) .eq. 0) then
                residual_sminn_vr(c,j) = max(sminn_vr(c,j) - (actual_immob_vr(c,j) + sminn_to_plant_vr(c,j) ) * dt, 0.D0)
@@ -895,7 +895,7 @@ module mod_clm_cnallocation
    ! distribute residual N to plants
    do j = 1, nlevdecomp
       do fc=1,num_soilc
-         c = filter_soilc(fc)    
+         c = filter_soilc(fc)
          if ( residual_plant_ndemand(c) .gt. 0.D0 .and. residual_sminn(c) .gt. 0.D0 .and. nlimit(c,j) .eq. 0) then
                sminn_to_plant_vr(c,j) = sminn_to_plant_vr(c,j) + residual_sminn_vr(c,j) * &
                     min(( residual_plant_ndemand(c) *  dt ) / residual_sminn(c), 1.D0) / dt
@@ -905,12 +905,12 @@ module mod_clm_cnallocation
 
    ! re-sum up N fluxes to plant
    do fc=1,num_soilc
-      c = filter_soilc(fc)    
+      c = filter_soilc(fc)
       sminn_to_plant(c) = 0.D0
    end do
    do j = 1, nlevdecomp
       do fc=1,num_soilc
-         c = filter_soilc(fc)    
+         c = filter_soilc(fc)
          sminn_to_plant(c) = sminn_to_plant(c) + sminn_to_plant_vr(c,j) * dzsoi_decomp(j)
          sum_ndemand_vr(c,j) = potential_immob_vr(c,j) + sminn_to_plant_vr(c,j)
       end do
@@ -921,7 +921,7 @@ module mod_clm_cnallocation
    ! proportion lost in the decomposition pathways
    do j = 1, nlevdecomp
       do fc=1,num_soilc
-         c = filter_soilc(fc)    
+         c = filter_soilc(fc)
          if ((sminn_to_plant_vr(c,j) + actual_immob_vr(c,j))*dt < sminn_vr(c,j)) then
             sminn_to_denit_excess_vr(c,j) = max(bdnr*((sminn_vr(c,j)/dt) - sum_ndemand_vr(c,j)),0.D0)
          else
@@ -933,16 +933,16 @@ module mod_clm_cnallocation
    ! sum up N fluxes to immobilization
    do j = 1, nlevdecomp
       do fc=1,num_soilc
-         c = filter_soilc(fc)    
+         c = filter_soilc(fc)
          actual_immob(c) = actual_immob(c) + actual_immob_vr(c,j) * dzsoi_decomp(j)
          potential_immob(c) = potential_immob(c) + potential_immob_vr(c,j) * dzsoi_decomp(j)
       end do
    end do
 
    do fc=1,num_soilc
-      c = filter_soilc(fc)    
+      c = filter_soilc(fc)
       ! calculate the fraction of potential growth that can be
-      ! acheived with the N available to plants      
+      ! acheived with the N available to plants
       if (col_plant_ndemand(c) > 0.0D0) then
          fpg(c) = sminn_to_plant(c) / col_plant_ndemand(c)
       else
@@ -988,7 +988,7 @@ module mod_clm_cnallocation
    end do
 
    ! main column/vertical loop
-   do j = 1, nlevdecomp  
+   do j = 1, nlevdecomp
       do fc=1,num_soilc
          c = filter_soilc(fc)
          l = clandunit(c)
@@ -1057,7 +1057,7 @@ module mod_clm_cnallocation
 
             f_denit_vr(c,j) = pot_f_denit_vr(c,j)
 
-         else 
+         else
 
             ! NO3 availability can not satisfy the sum of immobilization, denitrification, and
             ! plant growth demands, so these three demands compete for available
@@ -1109,9 +1109,9 @@ module mod_clm_cnallocation
 
             if ( fpi_no3_vr(c,j) + fpi_nh4_vr(c,j) .lt. 1.D0 ) then
                fpi_nh4_vr(c,j) = 1.0D0 - fpi_no3_vr(c,j)
-               supplement_to_sminn_vr(c,j) = (potential_immob_vr(c,j) -  actual_immob_no3_vr(c,j)) - actual_immob_nh4_vr(c,j) 
+               supplement_to_sminn_vr(c,j) = (potential_immob_vr(c,j) -  actual_immob_no3_vr(c,j)) - actual_immob_nh4_vr(c,j)
                ! update to new values that satisfy demand
-               actual_immob_nh4_vr(c,j) = potential_immob_vr(c,j) -  actual_immob_no3_vr(c,j)   
+               actual_immob_nh4_vr(c,j) = potential_immob_vr(c,j) -  actual_immob_no3_vr(c,j)
             end if
             if ( smin_no3_to_plant_vr(c,j) + smin_nh4_to_plant_vr(c,j) .lt. col_plant_ndemand(c)*nuptake_prof(c,j) ) then
                supplement_to_sminn_vr(c,j) = supplement_to_sminn_vr(c,j) + &
@@ -1132,8 +1132,8 @@ module mod_clm_cnallocation
       c = filter_soilc(fc)
       ! sum up N fluxes to plant after initial competition
       sminn_to_plant(c) = 0.D0
-   end do   
-   do j = 1, nlevdecomp  
+   end do
+   do j = 1, nlevdecomp
       do fc=1,num_soilc
          c = filter_soilc(fc)
          sminn_to_plant(c) = sminn_to_plant(c) + sminn_to_plant_vr(c,j) * dzsoi_decomp(j)
@@ -1147,7 +1147,7 @@ module mod_clm_cnallocation
       residual_plant_ndemand(c) = col_plant_ndemand(c) - sminn_to_plant(c)
       residual_smin_nh4(c) = 0.D0
    end do
-   do j = 1, nlevdecomp  
+   do j = 1, nlevdecomp
       do fc=1,num_soilc
          c = filter_soilc(fc)
          if (residual_plant_ndemand(c) .gt. 0.D0 ) then
@@ -1225,7 +1225,7 @@ module mod_clm_cnallocation
       actual_immob(c) = 0.D0
       potential_immob(c) = 0.D0
    end do
-   do j = 1, nlevdecomp  
+   do j = 1, nlevdecomp
       do fc=1,num_soilc
          c = filter_soilc(fc)
          actual_immob(c) = actual_immob(c) + actual_immob_vr(c,j) * dzsoi_decomp(j)
@@ -1235,7 +1235,7 @@ module mod_clm_cnallocation
 
 
    do fc=1,num_soilc
-      c = filter_soilc(fc)   
+      c = filter_soilc(fc)
       ! calculate the fraction of potential growth that can be
       ! acheived with the N available to plants
       if (col_plant_ndemand(c) > 0.0D0) then

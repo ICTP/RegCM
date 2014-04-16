@@ -16,7 +16,7 @@ module mod_clm_cndecompcascadecentury
 ! !USES:
    use mod_realkinds
    use mod_mpmessage
-   use mod_clm_varpar   , only: nlevsoi, nlevgrnd, nlevdecomp, ndecomp_cascade_transitions, ndecomp_pools, nsompools 
+   use mod_clm_varpar   , only: nlevsoi, nlevgrnd, nlevdecomp, ndecomp_cascade_transitions, ndecomp_pools, nsompools
    use mod_clm_varpar   , only: i_met_lit, i_cel_lit, i_lig_lit, i_cwd
    use mod_clm_varctl   , only: spinup_state
    use mod_clm_varcon   , only: tfrz , zsoi , rpi
@@ -67,7 +67,7 @@ subroutine init_decompcascade(begc, endc)
 ! !DESCRIPTION:
 !
 !  initialize rate constants and decomposition pathways following the decomposition cascade of the CENTURY model.
-!  written by C. Koven 
+!  written by C. Koven
 !
 ! !USES:
    use mod_clm_type
@@ -77,14 +77,14 @@ subroutine init_decompcascade(begc, endc)
    implicit none
 !
 ! !CALLED FROM:
-! 
+!
 !
 ! !REVISION HISTORY:
 !
    ! column level
    integer  :: begc, endc       ! per-proc beginning and ending column indices
 
-   !-- properties of each pathway along decomposition cascade 
+   !-- properties of each pathway along decomposition cascade
    character(len=8), pointer :: cascade_step_name(:)       ! name of transition
    real(r8), pointer :: rf_decomp_cascade(:,:,:)           ! respired fraction in decomposition step (frac)
    integer,  pointer :: cascade_donor_pool(:)              ! which pool is C taken from for a given decomposition step
@@ -366,7 +366,7 @@ subroutine init_decompcascade(begc, endc)
    cascade_receiver_pool(i_s2s1) = i_soil1
    pathfrac_decomp_cascade(begc:endc,1:nlevdecomp,i_s2s1) = f_s2s1
 
-   i_s2s3 = 7 
+   i_s2s3 = 7
    cascade_step_name(i_s2s3) = 'S2S3'
    rf_decomp_cascade(begc:endc,1:nlevdecomp,i_s2s3) = rf_s2s3
    cascade_donor_pool(i_s2s3) = i_soil2
@@ -427,7 +427,7 @@ subroutine decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
    integer, intent(in) :: filter_soilc(:) ! filter for soil columns
 !
 ! !CALLED FROM:
-! 
+!
 !
 ! !REVISION HISTORY:
 !
@@ -493,7 +493,7 @@ subroutine decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
 
 
 #if (defined VERTSOILC)
-   real(r8) :: depth_scalar(lbc:ubc,1:nlevdecomp) 
+   real(r8) :: depth_scalar(lbc:ubc,1:nlevdecomp)
 #endif
 
    !----- CENTURY T response function
@@ -571,7 +571,7 @@ endif
    if ( nlevdecomp .eq. 1 ) then
 
       ! calculate function to weight the temperature and water potential scalars
-      ! for decomposition control.  
+      ! for decomposition control.
 
 
       ! the following normalizes values in fr so that they
@@ -599,14 +599,14 @@ endif
       if ( .not. use_century_tfunc ) then
          ! calculate rate constant scalar for soil temperature
          ! assuming that the base rate constants are assigned for non-moisture
-         ! limiting conditions at 25 C. 
+         ! limiting conditions at 25 C.
 
          do j = 1,nlev_soildecomp_standard
             do fc = 1,num_soilc
                c = filter_soilc(fc)
                if (j==1) t_scalar(c,:) = 0._r8
                !! use separate (possibly equal) t funcs above and below freezing point
-               !! t_scalar(c,1)=t_scalar(c,1) + (q10**((t_soisno(c,j)-(tfrz+25._r8))/10._r8))*fr(c,j) 
+               !! t_scalar(c,1)=t_scalar(c,1) + (q10**((t_soisno(c,j)-(tfrz+25._r8))/10._r8))*fr(c,j)
                if (t_soisno(c,j) .ge. tfrz) then
                   t_scalar(c,1)=t_scalar(c,1) + (q10**((t_soisno(c,j)-(tfrz+25._r8))/10._r8))*fr(c,j)
                else
@@ -660,7 +660,7 @@ endif
             end if
          end do
       end if
-#endif 
+#endif
 
 #ifdef LCH4
       ! Calculate ANOXIA
@@ -687,7 +687,7 @@ endif
       end if
 #else
       o_scalar(lbc:ubc,1:nlevdecomp) = 1._r8
-#endif 
+#endif
 
       deallocate(fr)
 
@@ -696,10 +696,10 @@ endif
       if ( .not. use_century_tfunc ) then
          ! calculate rate constant scalar for soil temperature
          ! assuming that the base rate constants are assigned for non-moisture
-         ! limiting conditions at 25 C. 
+         ! limiting conditions at 25 C.
          ! Peter Thornton: 3/13/09
          ! Replaced the Lloyd and Taylor function with a Q10 formula, with Q10 = 1.5
-         ! as part of the modifications made to improve the seasonal cycle of 
+         ! as part of the modifications made to improve the seasonal cycle of
          ! atmospheric CO2 concentration in global simulations. This does not impact
          ! the base rates at 25 C, which are calibrated from microcosm studies.
 

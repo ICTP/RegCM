@@ -97,7 +97,7 @@ module mod_clm_snowhydrology
 
     real(rk8), pointer :: h2osoi_ice(:,:)  !ice lens (kg/m2)
     real(rk8), pointer :: h2osoi_liq(:,:)  !liquid water (kg/m2)
-    integer , pointer :: cgridcell(:)      ! columns's gridcell (col) 
+    integer , pointer :: cgridcell(:)      ! columns's gridcell (col)
     ! hydrophillic BC mass in snow (col,lyr) [kg]
     real(rk8), pointer :: mss_bcphi(:,:)
     ! hydrophobic BC mass in snow (col,lyr) [kg]
@@ -156,7 +156,7 @@ module mod_clm_snowhydrology
     real(rk8), pointer :: forc_aer(:,:)
 
     integer  :: c, j, fc, l        !do loop/array indices
-    real(rk8) :: qin(lbc:ubc)      !water flow into the elmement (mm/s) 
+    real(rk8) :: qin(lbc:ubc)      !water flow into the elmement (mm/s)
     real(rk8) :: qout(lbc:ubc)     !water flow out of the elmement (mm/s)
     real(rk8) :: wgdif             !ice mass after minus sublimation
     !partial volume of liquid water in layer
@@ -186,8 +186,8 @@ module mod_clm_snowhydrology
 
     ! Assign local pointers to derived subtype components (column-level)
 
-    frac_sno_eff     => clm3%g%l%c%cps%frac_sno_eff 
-    frac_sno         => clm3%g%l%c%cps%frac_sno 
+    frac_sno_eff     => clm3%g%l%c%cps%frac_sno_eff
+    frac_sno         => clm3%g%l%c%cps%frac_sno
     clandunit        => clm3%g%l%c%landunit
     ltype            => clm3%g%l%itype
     int_snow         => clm3%g%l%c%cws%int_snow
@@ -487,7 +487,7 @@ module mod_clm_snowhydrology
     end do
 
     !  set aerosol deposition fluxes from forcing array
-    !  The forcing array is either set from an external file 
+    !  The forcing array is either set from an external file
     !  or from fluxes received from the atmosphere model
     do c = lbc,ubc
       g = cgridcell(c)
@@ -614,7 +614,7 @@ module mod_clm_snowhydrology
     ! Assign local pointers to derived subtypes (column-level)
 
     snow_depth      => clm3%g%l%c%cps%snow_depth
-    frac_sno    => clm3%g%l%c%cps%frac_sno_eff 
+    frac_sno    => clm3%g%l%c%cps%frac_sno_eff
     swe_old     => clm3%g%l%c%cws%swe_old
     int_snow    => clm3%g%l%c%cws%int_snow
     ltype       => clm3%g%l%itype
@@ -670,7 +670,7 @@ module mod_clm_snowhydrology
 
             ! Compaction due to overburden
 
-            ddz2 = -(burden(c)+wx/2.D0)*exp(-0.08D0*td - c2*bi)/eta0 
+            ddz2 = -(burden(c)+wx/2.D0)*exp(-0.08D0*td - c2*bi)/eta0
 
             ! Compaction occurring during melt
 
@@ -799,7 +799,7 @@ module mod_clm_snowhydrology
     ! Assign local pointers to derived subtypes (column-level)
 
     frac_sno       => clm3%g%l%c%cps%frac_sno
-    frac_sno_eff   => clm3%g%l%c%cps%frac_sno_eff 
+    frac_sno_eff   => clm3%g%l%c%cps%frac_sno_eff
     int_snow       => clm3%g%l%c%cws%int_snow
     clandunit  => clm3%g%l%c%landunit
     snl        => clm3%g%l%c%cps%snl
@@ -867,9 +867,9 @@ module mod_clm_snowhydrology
             if (j /= 0) dz(c,j+1) = dz(c,j+1) + dz(c,j)
 
             ! NOTE: Temperature, and similarly snw_rds, of the
-            ! underlying snow layer are NOT adjusted in this case. 
-            ! Because the layer being eliminated has a small mass, 
-            ! this should not make a large difference, but it 
+            ! underlying snow layer are NOT adjusted in this case.
+            ! Because the layer being eliminated has a small mass,
+            ! this should not make a large difference, but it
             ! would be more thorough to do so.
             if (j /= 0) then
               mss_bcphi(c,j+1) = mss_bcphi(c,j+1) + mss_bcphi(c,j)
@@ -905,7 +905,7 @@ module mod_clm_snowhydrology
             do i = j, snl(c)+2, -1
               ! If the layer closest to the surface is less than 0.1 mm
               ! and the ltype is not urban, soil or crop, the h2osoi_liq
-              ! and h2osoi_ice associated with this layer is sent 
+              ! and h2osoi_ice associated with this layer is sent
               ! to qflx_qrgwl later on in the code.
               !  To keep track of this for the snow balance
               ! error check, we add this to qflx_sl_top_soil here
@@ -991,7 +991,7 @@ module mod_clm_snowhydrology
             h2osoi_liq(c,0) = 0.0D0
             h2osoi_liq(c,1) = h2osoi_liq(c,1) + zwliq(c)
           end if
-          if (ltype(l) == istwet) then             
+          if (ltype(l) == istwet) then
             h2osoi_liq(c,0) = 0.0D0
           endif
           if ( ltype(l) == istice ) then
@@ -1121,7 +1121,7 @@ module mod_clm_snowhydrology
   !
   subroutine DivideSnowLayers(lbc, ubc, num_snowc, filter_snowc)
     use mod_clm_type
-    use mod_clm_varcon,  only : tfrz 
+    use mod_clm_varcon,  only : tfrz
     implicit none
     integer, intent(in)    :: lbc, ubc    ! column bounds
     ! number of column snow points in column filter
@@ -1192,7 +1192,7 @@ module mod_clm_snowhydrology
 
     ! Assign local pointers to derived subtype components (column-level)
 
-    frac_sno   => clm3%g%l%c%cps%frac_sno_eff 
+    frac_sno   => clm3%g%l%c%cps%frac_sno_eff
     snl        => clm3%g%l%c%cps%snl
     dz         => clm3%g%l%c%cps%dz
     zi         => clm3%g%l%c%cps%zi
@@ -1321,7 +1321,7 @@ module mod_clm_snowhydrology
           ! Subdivide a new layer
           if (msno <= 2 .and. dzsno(c,2) > 0.07D0) then
             msno = 3
-            dtdz = (tsno(c,1) - tsno(c,2))/((dzsno(c,1)+dzsno(c,2))/2.D0) 
+            dtdz = (tsno(c,1) - tsno(c,2))/((dzsno(c,1)+dzsno(c,2))/2.D0)
             dzsno(c,2) = dzsno(c,2)/2.D0
             swice(c,2) = swice(c,2)/2.D0
             swliq(c,2) = swliq(c,2)/2.D0
@@ -1329,10 +1329,10 @@ module mod_clm_snowhydrology
             swice(c,3) = swice(c,2)
             swliq(c,3) = swliq(c,2)
             tsno(c,3) = tsno(c,2) - dtdz*dzsno(c,2)/2.D0
-            if (tsno(c,3) >= tfrz) then 
+            if (tsno(c,3) >= tfrz) then
               tsno(c,3)  = tsno(c,2)
             else
-              tsno(c,2) = tsno(c,2) + dtdz*dzsno(c,2)/2.D0 
+              tsno(c,2) = tsno(c,2) + dtdz*dzsno(c,2)/2.D0
             endif
 
             mbc_phi(c,2) = mbc_phi(c,2)/2.D0
@@ -1404,7 +1404,7 @@ module mod_clm_snowhydrology
              ! Subdivided a new layer
           if (msno <= 3 .and. dzsno(c,3) > 0.18D0) then
             msno =  4
-            dtdz = (tsno(c,2) - tsno(c,3))/((dzsno(c,2)+dzsno(c,3))/2.D0) 
+            dtdz = (tsno(c,2) - tsno(c,3))/((dzsno(c,2)+dzsno(c,3))/2.D0)
             dzsno(c,3) = dzsno(c,3)/2.D0
             swice(c,3) = swice(c,3)/2.D0
             swliq(c,3) = swliq(c,3)/2.D0
@@ -1412,10 +1412,10 @@ module mod_clm_snowhydrology
             swice(c,4) = swice(c,3)
             swliq(c,4) = swliq(c,3)
             tsno(c,4) = tsno(c,3) - dtdz*dzsno(c,3)/2.D0
-            if (tsno(c,4) >= tfrz) then 
+            if (tsno(c,4) >= tfrz) then
               tsno(c,4)  = tsno(c,3)
             else
-              tsno(c,3) = tsno(c,3) + dtdz*dzsno(c,3)/2.D0 
+              tsno(c,3) = tsno(c,3) + dtdz*dzsno(c,3)/2.D0
             endif
 
             mbc_phi(c,3) = mbc_phi(c,3)/2.D0
@@ -1487,24 +1487,24 @@ module mod_clm_snowhydrology
           ! Subdivided a new layer
           if (msno <= 4 .and. dzsno(c,4) > 0.41D0) then
             msno = 5
-            dtdz = (tsno(c,3) - tsno(c,4))/((dzsno(c,3)+dzsno(c,4))/2.D0) 
+            dtdz = (tsno(c,3) - tsno(c,4))/((dzsno(c,3)+dzsno(c,4))/2.D0)
             dzsno(c,4) = dzsno(c,4)/2.D0
             swice(c,4) = swice(c,4)/2.D0
             swliq(c,4) = swliq(c,4)/2.D0
             dzsno(c,5) = dzsno(c,4)
             swice(c,5) = swice(c,4)
             swliq(c,5) = swliq(c,4)
-            tsno(c,5) = tsno(c,4) - dtdz*dzsno(c,4)/2.D0 
-            if (tsno(c,5) >= tfrz) then 
+            tsno(c,5) = tsno(c,4) - dtdz*dzsno(c,4)/2.D0
+            if (tsno(c,5) >= tfrz) then
               tsno(c,5)  = tsno(c,4)
             else
-              tsno(c,4) = tsno(c,4) + dtdz*dzsno(c,4)/2.D0 
+              tsno(c,4) = tsno(c,4) + dtdz*dzsno(c,4)/2.D0
             endif
 
             mbc_phi(c,4) = mbc_phi(c,4)/2.D0
             mbc_phi(c,5) = mbc_phi(c,4)
             mbc_pho(c,4) = mbc_pho(c,4)/2.D0
-            mbc_pho(c,5) = mbc_pho(c,4)              
+            mbc_pho(c,5) = mbc_pho(c,4)
             moc_phi(c,4) = moc_phi(c,4)/2.D0
             moc_phi(c,5) = moc_phi(c,4)
             moc_pho(c,4) = moc_pho(c,4)/2.D0
@@ -1918,7 +1918,7 @@ module mod_clm_snowhydrology
           ! Subdivide a new layer
           if (msno <= 2 .and. dzsno(c,2) > 0.07D0+2.D0*lsadz) then
             msno = 3
-            dtdz = (tsno(c,1) - tsno(c,2))/((dzsno(c,1)+dzsno(c,2))/2.D0) 
+            dtdz = (tsno(c,1) - tsno(c,2))/((dzsno(c,1)+dzsno(c,2))/2.D0)
             dzsno(c,2) = dzsno(c,2)/2.D0
             swice(c,2) = swice(c,2)/2.D0
             swliq(c,2) = swliq(c,2)/2.D0
@@ -1926,10 +1926,10 @@ module mod_clm_snowhydrology
             swice(c,3) = swice(c,2)
             swliq(c,3) = swliq(c,2)
             tsno(c,3) = tsno(c,2) - dtdz*dzsno(c,2)/2.D0
-            if (tsno(c,3) >= tfrz) then 
+            if (tsno(c,3) >= tfrz) then
               tsno(c,3)  = tsno(c,2)
             else
-              tsno(c,2) = tsno(c,2) + dtdz*dzsno(c,2)/2.D0 
+              tsno(c,2) = tsno(c,2) + dtdz*dzsno(c,2)/2.D0
             endif
 
             mbc_phi(c,2) = mbc_phi(c,2)/2.D0
@@ -2001,7 +2001,7 @@ module mod_clm_snowhydrology
           ! Subdivided a new layer
           if (msno <= 3 .and. dzsno(c,3) > 0.18D0+2.D0*lsadz) then
             msno =  4
-            dtdz = (tsno(c,2) - tsno(c,3))/((dzsno(c,2)+dzsno(c,3))/2.D0) 
+            dtdz = (tsno(c,2) - tsno(c,3))/((dzsno(c,2)+dzsno(c,3))/2.D0)
             dzsno(c,3) = dzsno(c,3)/2.D0
             swice(c,3) = swice(c,3)/2.D0
             swliq(c,3) = swliq(c,3)/2.D0
@@ -2009,10 +2009,10 @@ module mod_clm_snowhydrology
             swice(c,4) = swice(c,3)
             swliq(c,4) = swliq(c,3)
             tsno(c,4) = tsno(c,3) - dtdz*dzsno(c,3)/2.D0
-            if (tsno(c,4) >= tfrz) then 
+            if (tsno(c,4) >= tfrz) then
               tsno(c,4)  = tsno(c,3)
             else
-              tsno(c,3) = tsno(c,3) + dtdz*dzsno(c,3)/2.D0 
+              tsno(c,3) = tsno(c,3) + dtdz*dzsno(c,3)/2.D0
             endif
 
             mbc_phi(c,3) = mbc_phi(c,3)/2.D0
@@ -2084,24 +2084,24 @@ module mod_clm_snowhydrology
           ! Subdivided a new layer
           if (msno <= 4 .and. dzsno(c,4) > 0.41D0 + 2.D0*lsadz) then
             msno = 5
-            dtdz = (tsno(c,3) - tsno(c,4))/((dzsno(c,3)+dzsno(c,4))/2.D0) 
+            dtdz = (tsno(c,3) - tsno(c,4))/((dzsno(c,3)+dzsno(c,4))/2.D0)
             dzsno(c,4) = dzsno(c,4)/2.D0
             swice(c,4) = swice(c,4)/2.D0
             swliq(c,4) = swliq(c,4)/2.D0
             dzsno(c,5) = dzsno(c,4)
             swice(c,5) = swice(c,4)
             swliq(c,5) = swliq(c,4)
-            tsno(c,5) = tsno(c,4) - dtdz*dzsno(c,4)/2.D0 
-            if (tsno(c,5) >= tfrz) then 
+            tsno(c,5) = tsno(c,4) - dtdz*dzsno(c,4)/2.D0
+            if (tsno(c,5) >= tfrz) then
               tsno(c,5)  = tsno(c,4)
             else
-              tsno(c,4) = tsno(c,4) + dtdz*dzsno(c,4)/2.D0 
+              tsno(c,4) = tsno(c,4) + dtdz*dzsno(c,4)/2.D0
             endif
 
             mbc_phi(c,4) = mbc_phi(c,4)/2.D0
             mbc_phi(c,5) = mbc_phi(c,4)
             mbc_pho(c,4) = mbc_pho(c,4)/2.D0
-            mbc_pho(c,5) = mbc_pho(c,4)              
+            mbc_pho(c,5) = mbc_pho(c,4)
             moc_phi(c,4) = moc_phi(c,4)/2.D0
             moc_phi(c,5) = moc_phi(c,4)
             moc_pho(c,4) = moc_pho(c,4)/2.D0

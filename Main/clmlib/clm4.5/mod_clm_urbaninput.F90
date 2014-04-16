@@ -1,5 +1,5 @@
 module mod_clm_urbaninput
-  ! 
+  !
   ! Read in input urban data - fill in data structure urbinp
   !
   use mod_intkinds
@@ -108,20 +108,20 @@ module mod_clm_urbaninput
       if ( nlevurb == 0 ) return
 
       ! Allocate dynamic memory
-      allocate(urbinp%canyon_hwr(begg:endg,numurbl), &  
-               urbinp%wtlunit_roof(begg:endg,numurbl), &  
+      allocate(urbinp%canyon_hwr(begg:endg,numurbl), &
+               urbinp%wtlunit_roof(begg:endg,numurbl), &
                urbinp%wtroad_perv(begg:endg,numurbl), &
-               urbinp%em_roof(begg:endg,numurbl), &     
-               urbinp%em_improad(begg:endg,numurbl), &    
-               urbinp%em_perroad(begg:endg,numurbl), &    
-               urbinp%em_wall(begg:endg,numurbl), &    
-               urbinp%alb_roof_dir(begg:endg,numurbl,numrad), &    
-               urbinp%alb_roof_dif(begg:endg,numurbl,numrad), &    
-               urbinp%alb_improad_dir(begg:endg,numurbl,numrad), &    
-               urbinp%alb_perroad_dir(begg:endg,numurbl,numrad), &    
-               urbinp%alb_improad_dif(begg:endg,numurbl,numrad), &    
-               urbinp%alb_perroad_dif(begg:endg,numurbl,numrad), &    
-               urbinp%alb_wall_dir(begg:endg,numurbl,numrad), &    
+               urbinp%em_roof(begg:endg,numurbl), &
+               urbinp%em_improad(begg:endg,numurbl), &
+               urbinp%em_perroad(begg:endg,numurbl), &
+               urbinp%em_wall(begg:endg,numurbl), &
+               urbinp%alb_roof_dir(begg:endg,numurbl,numrad), &
+               urbinp%alb_roof_dif(begg:endg,numurbl,numrad), &
+               urbinp%alb_improad_dir(begg:endg,numurbl,numrad), &
+               urbinp%alb_perroad_dir(begg:endg,numurbl,numrad), &
+               urbinp%alb_improad_dif(begg:endg,numurbl,numrad), &
+               urbinp%alb_perroad_dif(begg:endg,numurbl,numrad), &
+               urbinp%alb_wall_dir(begg:endg,numurbl,numrad), &
                urbinp%alb_wall_dif(begg:endg,numurbl,numrad), &
                urbinp%ht_roof(begg:endg,numurbl), &
                urbinp%wind_hgt_canyon(begg:endg,numurbl), &
@@ -208,7 +208,7 @@ module mod_clm_urbaninput
 
       call clm_closefile(ncid)
       if (myid == italk) then
-        write(stdout,*)' Sucessfully read urban input data' 
+        write(stdout,*)' Sucessfully read urban input data'
         write(stdout,*)
       end if
 

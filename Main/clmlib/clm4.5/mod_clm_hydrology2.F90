@@ -125,7 +125,7 @@ module mod_clm_hydrology2
     real(rk8), pointer :: endwb(:)  ! water mass end of the time step
     ! soil water as frac. of whc for top 0.05 m  !F. Li and S. Levis
     real(rk8), pointer :: wf(:)
-    ! soil water as frac. of whc for top 0.17 m added by F. Li and S. Levis 
+    ! soil water as frac. of whc for top 0.17 m added by F. Li and S. Levis
     real(rk8), pointer :: wf2(:)
     real(rk8), pointer :: snowice(:)       ! average snow ice lens
     real(rk8), pointer :: snowliq(:)       ! average snow liquid water
@@ -234,7 +234,7 @@ module mod_clm_hydrology2
     real(rk8) :: hk(lbc:ubc,1:nlevgrnd)
     real(rk8) :: dhkdw(lbc:ubc,1:nlevgrnd)  ! d(hk)/d(vol_liq)
     ! temporary variables for soilpsi calculation
-#if (defined CN) 
+#if (defined CN)
     real(rk8) :: psi,vwc,fsattmp,psifrz
     real(rk8) :: watdry       ! temporary
     ! soil water wgted by depth to maximum depth of 0.5 m
@@ -267,7 +267,7 @@ module mod_clm_hydrology2
 
     snow_depth        => clm3%g%l%c%cps%snow_depth
     snowdp            => clm3%g%l%c%cps%snowdp
-    frac_sno_eff      => clm3%g%l%c%cps%frac_sno_eff 
+    frac_sno_eff      => clm3%g%l%c%cps%frac_sno_eff
     qflx_evap_soi     => clm3%g%l%c%cwf%pwf_a%qflx_evap_soi
     h2osfc            => clm3%g%l%c%cws%h2osfc
     frac_h2osfc       => clm3%g%l%c%cps%frac_h2osfc
@@ -324,7 +324,7 @@ module mod_clm_hydrology2
     t_grnd_r          => clm3%g%l%c%ces%t_grnd_r
     snot_top          => clm3%g%l%c%cps%snot_top
     dTdz_top          => clm3%g%l%c%cps%dTdz_top
-    snw_rds           => clm3%g%l%c%cps%snw_rds    
+    snw_rds           => clm3%g%l%c%cps%snw_rds
     snw_rds_top       => clm3%g%l%c%cps%snw_rds_top
     sno_liq_top       => clm3%g%l%c%cps%sno_liq_top
     frac_sno          => clm3%g%l%c%cps%frac_sno
@@ -472,7 +472,7 @@ module mod_clm_hydrology2
             fracl = 1.D0
             tsoi17(c) = tsoi17(c) + t_soisno(c,j)*dz(c,j)*fracl
           else
-            if (zi(c,j) > 0.17D0 .and. zi(c,j-1) .lt. 0.17D0) then 
+            if (zi(c,j) > 0.17D0 .and. zi(c,j-1) .lt. 0.17D0) then
               fracl = (0.17D0 - zi(c,j-1))/dz(c,j)
               tsoi17(c) = tsoi17(c) + t_soisno(c,j)*dz(c,j)*fracl
             end if
@@ -587,7 +587,7 @@ module mod_clm_hydrology2
       end if
     end do
 
-#if (defined CN) 
+#if (defined CN)
     ! Update soilpsi.
     ! ZMS: Note this could be merged with the following loop updating
     ! smp_l in the future.
@@ -599,7 +599,7 @@ module mod_clm_hydrology2
 
           vwc = h2osoi_liq(c,j)/(dz(c,j)*denh2o)
 
-          ! the following limit set to catch very small values of 
+          ! the following limit set to catch very small values of
           ! fractional saturation that can crash the calculation of psi
 
           ! use the same contants used in the supercool so that psi for
@@ -608,7 +608,7 @@ module mod_clm_hydrology2
           psi = sucsat(c,j) * (-9.8D-6) * (fsattmp)**(-bsw(c,j))  ! Mpa
           soilpsi(c,j) = min(max(psi,-15.0D0),0.D0)
 
-        else 
+        else
           soilpsi(c,j) = -15.0D0
         end if
       end do
@@ -699,7 +699,7 @@ module mod_clm_hydrology2
     !  Calculate column-integrated aerosol masses, and
     !  mass concentrations for radiative calculations and output
     !  (based on new snow level state, after SnowFilter is rebuilt.
-    !  NEEDS TO BE AFTER SnowFiler is rebuilt, otherwise there 
+    !  NEEDS TO BE AFTER SnowFiler is rebuilt, otherwise there
     !  can be zero snow layers but an active column in filter)
 
     do fc = 1, num_snowc
@@ -715,7 +715,7 @@ module mod_clm_hydrology2
         ! layer mass of snow:
         snowmass = h2osoi_ice(c,j)+h2osoi_liq(c,j)
 
-        ! Correct the top layer aerosol mass to account for snow capping. 
+        ! Correct the top layer aerosol mass to account for snow capping.
         ! This approach conserves the aerosol mass concentration
         ! (but not the aerosol amss) when snow-capping is invoked
 
@@ -731,7 +731,7 @@ module mod_clm_hydrology2
             mss_dst1(c,j)  = mss_dst1(c,j)*snowcap_scl_fct
             mss_dst2(c,j)  = mss_dst2(c,j)*snowcap_scl_fct
             mss_dst3(c,j)  = mss_dst3(c,j)*snowcap_scl_fct
-            mss_dst4(c,j)  = mss_dst4(c,j)*snowcap_scl_fct 
+            mss_dst4(c,j)  = mss_dst4(c,j)*snowcap_scl_fct
           end if
         end if
 
@@ -797,7 +797,7 @@ module mod_clm_hydrology2
       snw_rds(c,:)       = 0.D0
 
       mss_bc_top(c)      = 0.D0
-      mss_bc_col(c)      = 0.D0    
+      mss_bc_col(c)      = 0.D0
       mss_bcpho(c,:)     = 0.D0
       mss_bcphi(c,:)     = 0.D0
       mss_bctot(c,:)     = 0.D0
@@ -805,7 +805,7 @@ module mod_clm_hydrology2
       mss_cnc_bcpho(c,:) = 0.D0
 
       mss_oc_top(c)      = 0.D0
-      mss_oc_col(c)      = 0.D0    
+      mss_oc_col(c)      = 0.D0
       mss_ocpho(c,:)     = 0.D0
       mss_ocphi(c,:)     = 0.D0
       mss_octot(c,:)     = 0.D0

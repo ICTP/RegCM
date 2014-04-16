@@ -67,7 +67,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
    integer, intent(in) :: filter_soilc(:) ! filter for soil columns
 !
 ! !CALLED FROM:
-! 
+!
 !
 ! !REVISION HISTORY:
 !
@@ -99,20 +99,20 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
    real(rk8), pointer :: phr_vr(:,:)                ! potential hr (not N-limited)
    real(rk8), pointer :: w_scalar(:,:)              ! soil water scalar for decomp
    real(rk8), pointer :: t_scalar(:,:)              ! temperature scalar for decomp
-   real(rk8), pointer :: h2osoi_vol(:,:)            ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]  (nlevgrnd)  
-   real(rk8), pointer :: h2osoi_liq(:,:)            ! liquid water (kg/m2) (new) (-nlevsno+1:nlevgrnd)    
-   real(rk8), pointer :: watsat(:,:)                ! volumetric soil water at saturation (porosity) (nlevgrnd) 
-   real(rk8), pointer :: t_soisno(:,:)              ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd) 
+   real(rk8), pointer :: h2osoi_vol(:,:)            ! volumetric soil water (0<=h2osoi_vol<=watsat) [m3/m3]  (nlevgrnd)
+   real(rk8), pointer :: h2osoi_liq(:,:)            ! liquid water (kg/m2) (new) (-nlevsno+1:nlevgrnd)
+   real(rk8), pointer :: watsat(:,:)                ! volumetric soil water at saturation (porosity) (nlevgrnd)
+   real(rk8), pointer :: t_soisno(:,:)              ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
    real(rk8), pointer :: smin_nh4_vr(:,:)           ! (gN/m3) soil mineral NH4 pool
    real(rk8), pointer :: smin_no3_vr(:,:)           ! (gN/m3) soil mineral NO3 pool
    real(rk8), pointer :: bd(:,:)                    ! bulk density of dry soil material [kg/m3]
-   real(rk8), pointer :: dz(:,:)                    ! layer thickness (m)  (-nlevsno+1:nlevgrnd) 
+   real(rk8), pointer :: dz(:,:)                    ! layer thickness (m)  (-nlevsno+1:nlevgrnd)
    real(rk8), pointer :: tmean_monthly_max_vr(:,:)  ! maximumn monthly-mean soil temperature
    real(rk8), pointer :: tmean_monthly_vr(:,:)      ! monthly-mean soil temperature
    real(rk8), pointer :: pot_f_nit_vr(:,:)          ! (gN/m3/s) potential soil nitrification flux
    real(rk8), pointer :: pot_f_denit_vr(:,:)        ! (gN/m3/s) potential soil denitrification flux
    real(rk8), pointer :: watfc(:,:)                 ! volumetric soil water at field capacity (nlevsoi)
-   real(rk8), pointer :: bsw(:,:)                   ! Clapp and Hornberger "b" (nlevgrnd)  
+   real(rk8), pointer :: bsw(:,:)                   ! Clapp and Hornberger "b" (nlevgrnd)
    real(rk8), pointer :: n2_n2o_ratio_denit_vr(:,:) ! ratio of N2 to N2O production by denitrification [gN/gN]
 
    !debug-- put these in clmtype for outing to hist files
@@ -212,7 +212,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
    pot_f_denit_vr               => clm3%g%l%c%cnf%pot_f_denit_vr
    n2_n2o_ratio_denit_vr            => clm3%g%l%c%cnf%n2_n2o_ratio_denit_vr
 
-   k_nitr_max =  0.1D0 / secspday   ! [1/sec] 10%/day  Parton et al., 2001 
+   k_nitr_max =  0.1D0 / secspday   ! [1/sec] 10%/day  Parton et al., 2001
 
    pH(lbc:ubc) = 6.5  !!! set all soils with the same pH as placeholder here
    co2diff_con(1) =   0.1325D0
@@ -238,7 +238,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
          end if
          diffus (c,j) = (d_con_g(2,1) + d_con_g(2,2)*t_soisno(c,j)) * 1.D-4 * &
               (om_frac * f_a**(10.D0/3.D0) / watsat(c,j)**2 + &
-              (1.D0-om_frac) * eps**2 * f_a**(3.D0 / bsw(c,j)) ) 
+              (1.D0-om_frac) * eps**2 * f_a**(3.D0 / bsw(c,j)) )
 
          ! calculate anoxic fraction of soils
          ! use rijtema and kroess model after Riley et al., 2000
@@ -273,7 +273,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
          end if
 
 #else
-         ! NITRIF_DENITRIF requires Methane model to be active, 
+         ! NITRIF_DENITRIF requires Methane model to be active,
          ! otherwise diffusivity will be zeroed out here. EBK CDK 10/18/2011
          anaerobic_frac(c,j) = 0.D0
          diffus (c,j) = 0.D0
@@ -315,7 +315,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
          soil_hr_vr(c,j) = phr_vr(c,j)
 
          ! CENTURY papers give denitrification in units of per gram soil; need to convert from volumetric to mass-based units here
-         soil_bulkdensity(c,j) = bd(c,j) + h2osoi_liq(c,j)/dz(c,j)         
+         soil_bulkdensity(c,j) = bd(c,j) + h2osoi_liq(c,j)/dz(c,j)
 
          g_per_m3__to__ug_per_gsoil = 1.D3 / soil_bulkdensity(c,j)
 
@@ -325,16 +325,16 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
 
          soil_co2_prod(c,j) = (soil_hr_vr(c,j) * (g_per_m3_sec__to__ug_per_gsoil_day))
 
-         !! maximum potential denitrification rates based on heterotrophic respiration rates or nitrate concentrations, 
+         !! maximum potential denitrification rates based on heterotrophic respiration rates or nitrate concentrations,
          !! from (del Grosso et al., 2000)
          fmax_denit_carbonsubstrate_vr(c,j) = (0.1D0 * (soil_co2_prod(c,j)**1.3D0)) &
               / g_per_m3_sec__to__ug_per_gsoil_day
-         !  
+         !
          fmax_denit_nitrate_vr(c,j) = (1.15D0 * smin_no3_massdens_vr(c,j)**0.57D0)  &
               / g_per_m3_sec__to__ug_per_gsoil_day
 
          ! find limiting denitrification rate
-         f_denit_base_vr(c,j) = max(min(fmax_denit_carbonsubstrate_vr(c,j), fmax_denit_nitrate_vr(c,j)),0.D0) 
+         f_denit_base_vr(c,j) = max(min(fmax_denit_carbonsubstrate_vr(c,j), fmax_denit_nitrate_vr(c,j)),0.D0)
 
          ! limit to non-frozen soil layers
          if ( t_soisno(c,j) <= tfrz .and. no_frozen_nitrif_denitrif ) then
@@ -365,7 +365,7 @@ subroutine nitrif_denitrif(lbc, ubc, num_soilc, filter_soilc)
          end if
 #endif
 
-         ! final ratio expression 
+         ! final ratio expression
          n2_n2o_ratio_denit_vr(c,j) = max(0.16*ratio_k1(c,j), ratio_k1(c,j)*exp(-0.8 * ratio_no3_co2(c,j))) * fr_WFPS(c,j)
 
       end do

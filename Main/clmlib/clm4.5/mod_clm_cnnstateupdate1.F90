@@ -69,11 +69,11 @@ subroutine NStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp)
    integer , pointer :: ivt(:)         ! pft vegetation type
    real(rk8), pointer :: woody(:)       ! binary flag for woody lifeform (1=woody, 0=not woody)
    real(rk8), pointer :: ndep_to_sminn(:)
-   real(rk8), pointer :: nfix_to_sminn(:)        ! symbiotic/asymbiotic N fixation to soil mineral N (gN/m2/s) 
+   real(rk8), pointer :: nfix_to_sminn(:)        ! symbiotic/asymbiotic N fixation to soil mineral N (gN/m2/s)
    real(rk8), pointer :: fert_to_sminn(:)
    real(rk8), pointer :: soyfixn_to_sminn(:)
    real(rk8), pointer :: sminn_to_denit_excess_vr(:,:)
-   real(rk8), pointer :: sminn_to_denit_decomp_cascade_vr(:,:,:)   ! vertically-resolved denitrification along decomp cascade (gN/m3/s) 
+   real(rk8), pointer :: sminn_to_denit_decomp_cascade_vr(:,:,:)   ! vertically-resolved denitrification along decomp cascade (gN/m3/s)
    real(rk8), pointer :: sminn_to_plant_vr(:,:)
    real(rk8), pointer :: supplement_to_sminn_vr(:,:)
    real(rk8), pointer :: deadcrootn_storage_to_xfer(:)
@@ -124,11 +124,11 @@ subroutine NStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp)
    real(rk8), pointer :: smin_nh4_vr(:,:)              ! (gN/m3) soil NH4
    real(rk8), pointer :: f_nit_vr(:,:)                 ! (gN/m3/s) soil nitrification flux
    real(rk8), pointer :: f_denit_vr(:,:)               ! (gN/m3/s) soil denitrification flux
-   real(rk8), pointer :: actual_immob_no3_vr(:,:)      ! (gN/m3/s) 
-   real(rk8), pointer :: actual_immob_nh4_vr(:,:)      ! (gN/m3/s) 
-   real(rk8), pointer :: smin_no3_to_plant_vr(:,:)     ! (gN/m3/s) 
-   real(rk8), pointer :: smin_nh4_to_plant_vr(:,:)     ! (gN/m3/s) 
-   real(rk8), pointer :: gross_nmin_vr(:,:)            ! (gN/m3/s) 
+   real(rk8), pointer :: actual_immob_no3_vr(:,:)      ! (gN/m3/s)
+   real(rk8), pointer :: actual_immob_nh4_vr(:,:)      ! (gN/m3/s)
+   real(rk8), pointer :: smin_no3_to_plant_vr(:,:)     ! (gN/m3/s)
+   real(rk8), pointer :: smin_nh4_to_plant_vr(:,:)     ! (gN/m3/s)
+   real(rk8), pointer :: gross_nmin_vr(:,:)            ! (gN/m3/s)
 #endif
    real(rk8), pointer :: decomp_npools_vr(:,:,:)                ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) N pools
    real(rk8), pointer :: decomp_npools_sourcesink(:,:,:)        ! (gC/m3)  change in decomposing N pools over a timestep.  Used to update concentrations concurrently with vertical transport
@@ -391,7 +391,7 @@ subroutine NStateUpdate1(num_soilc, filter_soilc, num_soilp, filter_soilp)
       end if
    end do
 
-#ifndef NITRIF_DENITRIF         
+#ifndef NITRIF_DENITRIF
    ! immobilization/mineralization in litter-to-SOM and SOM-to-SOM fluxes and denitrification fluxes
    do k = 1, ndecomp_cascade_transitions
       if ( cascade_receiver_pool(k) .ne. 0 ) then  ! skip terminal transitions

@@ -22,7 +22,7 @@ module mod_clm_dynland
   public :: dynland_hwcontent
 
   contains
-  ! 
+  !
   ! Compute grid-level heat and water content
   !
   subroutine dynland_hwcontent(begg,endg,gcell_liq,gcell_ice,gcell_heat)
@@ -121,7 +121,7 @@ module mod_clm_dynland
 
       li = gptr%luni(g)
       lf = gptr%lunf(g)
-      do l = li , lf   ! loop over land units  
+      do l = li , lf   ! loop over land units
 
         ci = lptr%coli(l)
         cf = lptr%colf(l)
@@ -169,7 +169,7 @@ module mod_clm_dynland
                       cptr%cws%lake_icefrac(c,k))*cptr%cps%dz_lake(c,k)*denh2o
               ice = ice + &
                       cptr%cws%lake_icefrac(c,k)*cptr%cps%dz_lake(c,k)*denh2o
-              ! lake layers do not change thickness when freezing, 
+              ! lake layers do not change thickness when freezing,
               ! so denh2o should be used (thermal properties are
               ! appropriately adjusted; see SLakeTemperatureMod)
             end do
@@ -205,10 +205,10 @@ module mod_clm_dynland
               do k = 1,nlevurb
                 if (ctype(c)==icol_sunwall .or. ctype(c)==icol_shadewall) then
                   cv = cv_wall(l,k) * dz(c,k)
-                  heat = heat + cv*t_soisno(c,k) / 1.D6 
+                  heat = heat + cv*t_soisno(c,k) / 1.D6
                 else if (ctype(c) == icol_roof) then
                   cv = cv_roof(l,k) * dz(c,k)
-                  heat = heat + cv*t_soisno(c,k) / 1.D6 
+                  heat = heat + cv*t_soisno(c,k) / 1.D6
                 end if
               end do
             end if
@@ -221,7 +221,7 @@ module mod_clm_dynland
                 else
                   cv = (h2osoi_ice(c,k)*cpice + h2osoi_liq(c,k)*cpliq)
                 end if
-                heat = heat + cv*t_soisno(c,k) / 1.D6 
+                heat = heat + cv*t_soisno(c,k) / 1.D6
               end if
             end do
 
@@ -258,7 +258,7 @@ module mod_clm_dynland
           gcell_ice  (g) = gcell_ice  (g) + ice   * wtgcell
           gcell_heat (g) = gcell_heat (g) + heat  * wtgcell
 
-        end do ! column loop      
+        end do ! column loop
       end do ! landunit loop
     end do ! grid cell loop
   end subroutine dynland_hwcontent

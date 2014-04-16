@@ -2,8 +2,8 @@ module mod_clm_varcon
   !
   ! Module containing various model constants
   !
-  use mod_realkinds 
-  use mod_intkinds 
+  use mod_realkinds
+  use mod_intkinds
   use mod_constants , only : cpd , pdbratio , secpd , earthrad , tzero , &
     rgasmol , rhoice , rhoh2o , wlhf , wlhs , wlhv , spcpice , spcpfw ,  &
     egrav , rwat , vonkar , sigm , mathpi , rdry
@@ -35,7 +35,7 @@ module mod_clm_varcon
   real(rk8) , public , parameter :: e_ice = 6.0D0
   ! Threshold probability
   real(rk8) , public , parameter :: pc = 0.4D0
-  ! Connectivity exponent 
+  ! Connectivity exponent
   real(rk8) , public , parameter :: mu = 0.13889D0
   ! Gravity constant [m/s2]
   real(rk8) , public , parameter :: grav   = egrav
@@ -124,7 +124,7 @@ module mod_clm_varcon
   ! Ponding depth for urban roof and impervious road (mm)
   real(rk8) , public , parameter :: pondmx_urban = 1.0D0
 
-  ! Thermal conductivity of 'typical' saturated granitic rock 
+  ! Thermal conductivity of 'typical' saturated granitic rock
   ! (Clauser and Huenges, 1995)(W/m/K)
   real(rk8) , public , parameter :: thk_bedrock = 3.0D0
 

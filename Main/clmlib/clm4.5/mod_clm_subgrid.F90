@@ -35,9 +35,9 @@ module mod_clm_subgrid
     integer(ik4) , intent(in)  :: nw
     ! number of landunits
     integer(ik4) , optional , intent(out) :: nlunits
-    ! number of columns 
+    ! number of columns
     integer(ik4) , optional , intent(out) :: ncols
-    ! number of pfts 
+    ! number of pfts
     integer(ik4) , optional , intent(out) :: npfts
     ! number of vegetated pfts in naturally vegetated landunit
     integer(ik4) , optional , intent(out) :: nveg
@@ -106,7 +106,7 @@ module mod_clm_subgrid
       end do
     ! Assume that the vegetated landunit has one column
     else
-      do m = 1 , maxpatch_pft            
+      do m = 1 , maxpatch_pft
         if ( wtxy(nw,m) > 0.0D0 ) then
           npfts_per_lunit = npfts_per_lunit + 1
           wtlunit = wtlunit + wtxy(nw,m)
@@ -121,7 +121,7 @@ module mod_clm_subgrid
         npfts_per_lunit = numpft+1-numcft
       end if
       ilunits = ilunits + 1
-      icols = icols + 1  
+      icols = icols + 1
     end if
     ipfts = ipfts + npfts_per_lunit
     if ( present(nveg ) ) nveg  = npfts_per_lunit

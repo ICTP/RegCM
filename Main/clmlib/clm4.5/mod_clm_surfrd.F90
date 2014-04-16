@@ -241,7 +241,7 @@ module mod_clm_surfrd
     use mod_clm_pftvarcon , only : noveg
     use mod_clm_urbaninput , only : urbinp
     use mod_clm_varpar , only : nlevurb
-    use mod_clm_varcon , only : udens_base , udens_tbd , udens_hd , udens_md 
+    use mod_clm_varcon , only : udens_base , udens_tbd , udens_hd , udens_md
     use mod_clm_domain , only : domain_type
     implicit none
     type(clm_filetype) , intent(inout) :: ncid  ! netcdf id
@@ -304,7 +304,7 @@ module mod_clm_surfrd
         trim(subname)//' ERROR: PCT_GLACIER NOT on surfdata file' )
     end if
 
-    ! If PCT_URBAN is not multi-density then set pcturb and nlevurb to zero 
+    ! If PCT_URBAN is not multi-density then set pcturb and nlevurb to zero
     if (nlevurb == 0) then
       pcturb = 0.D0
       if ( myid == italk ) then
@@ -381,7 +381,7 @@ module mod_clm_surfrd
 
       ! Initialize urban tall building district weights
       n = udens_tbd - udens_base
-      do nurb = npatch_urban_tbd , npatch_urban_hd-1 
+      do nurb = npatch_urban_tbd , npatch_urban_hd-1
         vegxy(nl,nurb) = noveg
         wtxy(nl,nurb)  = pcturb(nl,n) / 100.D0
       end do
@@ -402,7 +402,7 @@ module mod_clm_surfrd
 
       ! Initialize urban high density weights
       n = udens_hd - udens_base
-      do nurb = npatch_urban_hd , npatch_urban_md-1 
+      do nurb = npatch_urban_hd , npatch_urban_md-1
         vegxy(nl,nurb) = noveg
         wtxy(nl,nurb)  = pcturb(nl,n) / 100.D0
       end do
@@ -423,7 +423,7 @@ module mod_clm_surfrd
 
       ! Initialize urban medium density weights
       n = udens_md - udens_base
-      do nurb = npatch_urban_md , npatch_lake-1 
+      do nurb = npatch_urban_md , npatch_lake-1
         vegxy(nl,nurb) = noveg
         wtxy(nl,nurb)  = pcturb(nl,n) / 100.D0
       end do
@@ -551,7 +551,7 @@ module mod_clm_surfrd
     integer(ik4) :: m , mp7 , mp8 , mp11 , n , nl ! indices
     integer(ik4) :: begg , endg               ! beg/end gcell index
     integer(ik4) :: dimid , varid             ! netCDF id's
-    integer(ik4) :: ier , tot_ier             ! error status  
+    integer(ik4) :: ier , tot_ier             ! error status
     logical :: readvar                        ! is variable on dataset
     real(rk8) :: sumpct                       ! sum of %pft over maxpatch_pft
     ! percent of vegetated gridcell area for PFTs
@@ -581,8 +581,8 @@ module mod_clm_surfrd
     ier = 0
     do nl = begg , endg
       if ( ldomain%pftm(nl) >= 0 ) then
-        ! Error check: make sure PFTs sum to 100% cover for vegetated landunit 
-        ! (convert pctpft from percent with respect to gridcel to percent with 
+        ! Error check: make sure PFTs sum to 100% cover for vegetated landunit
+        ! (convert pctpft from percent with respect to gridcel to percent with
         ! respect to vegetated landunit)
         ! THESE CHECKS NEEDS TO BE THE SAME AS IN pftdynMod.F90!
         if ( pctspec(nl) < 100.D0 * (1.D0 - eps_fact*epsilon(1.D0)) ) then

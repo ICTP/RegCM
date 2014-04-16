@@ -19,7 +19,7 @@ module mod_clm_canopyfluxes
 
   ! true => btran is based only on unfrozen soil levels
   logical,  public :: perchroot     = .false.
-  ! true  => btran is based on active layer (defined over two years); 
+  ! true  => btran is based on active layer (defined over two years);
   ! false => btran is based on currently unfrozen levels
   logical,  public :: perchroot_alt = .false.
 
@@ -83,7 +83,7 @@ module mod_clm_canopyfluxes
    real(rk8), pointer :: eflx_sh_h2osfc(:)! sensible heat flux from soil (W/m**2) [+ to atm]
    integer , pointer :: snl(:)           ! number of snow layers
    real(rk8), pointer :: t_h2osfc(:)    ! surface water temperature
-   real(rk8), pointer :: frac_h2osfc(:)   ! fraction of surface water 
+   real(rk8), pointer :: frac_h2osfc(:)   ! fraction of surface water
    real(rk8), pointer :: qg_snow(:)       ! specific humidity at snow surface [kg/kg]
    real(rk8), pointer :: qg_soil(:)       ! specific humidity at soil surface [kg/kg]
    real(rk8), pointer :: qg_h2osfc(:)     ! specific humidity at h2osfc surface [kg/kg]
@@ -211,7 +211,7 @@ module mod_clm_canopyfluxes
    real(rk8), pointer :: fpsn_wj(:)         ! RuBP-limited photosynthesis (umol CO2 /m**2 /s)
    real(rk8), pointer :: fpsn_wp(:)         ! product-limited photosynthesis (umol CO2 /m**2 /s)
    real(rk8), pointer :: rootr(:,:)         ! effective fraction of roots in each soil layer
-   real(rk8), pointer :: rresis(:,:)        ! root resistance by layer (0-1)  (nlevgrnd)  
+   real(rk8), pointer :: rresis(:,:)        ! root resistance by layer (0-1)  (nlevgrnd)
 !KO
    real(rk8), pointer :: rhaf(:)            ! fractional humidity of canopy air [dimensionless]
 !KO
@@ -235,18 +235,18 @@ module mod_clm_canopyfluxes
    integer , parameter :: itmin = 2        ! minimum number of iteration [-]
    real(rk8), parameter :: irrig_min_lai = 0.0D0           ! Minimum LAI for irrigation
    real(rk8), parameter :: irrig_btran_thresh = 0.999999D0 ! Irrigate when btran falls below 0.999999 rather than 1 to allow for round-off error
-   integer , parameter :: irrig_start_time = isecspday/4   ! Time of day to check whether we need irrigation, seconds (0 = midnight). 
-                                                           ! We start applying the irrigation in the time step FOLLOWING this time, 
+   integer , parameter :: irrig_start_time = isecspday/4   ! Time of day to check whether we need irrigation, seconds (0 = midnight).
+                                                           ! We start applying the irrigation in the time step FOLLOWING this time,
                                                            ! since we won't begin irrigating until the next call to Hydrology1
-   integer , parameter :: irrig_length = isecspday/6       ! Desired amount of time to irrigate per day (sec). Actual time may 
-                                                           ! differ if this is not a multiple of dtsrf. Irrigation won't work properly 
+   integer , parameter :: irrig_length = isecspday/6       ! Desired amount of time to irrigate per day (sec). Actual time may
+                                                           ! differ if this is not a multiple of dtsrf. Irrigation won't work properly
                                                            ! if dtsrf > secsperday
-   real(rk8), parameter :: irrig_factor = 0.7D0            ! Determines target soil moisture level for irrigation. If h2osoi_liq_so 
-                                                           ! is the soil moisture level at which stomata are fully open and 
-                                                           ! h2osoi_liq_sat is the soil moisture level at saturation (eff_porosity), 
-                                                           ! then the target soil moisture level is 
-                                                           !     (h2osoi_liq_so + irrig_factor*(h2osoi_liq_sat - h2osoi_liq_so)). 
-                                                           ! A value of 0 means that the target soil moisture level is h2osoi_liq_so. 
+   real(rk8), parameter :: irrig_factor = 0.7D0            ! Determines target soil moisture level for irrigation. If h2osoi_liq_so
+                                                           ! is the soil moisture level at which stomata are fully open and
+                                                           ! h2osoi_liq_sat is the soil moisture level at saturation (eff_porosity),
+                                                           ! then the target soil moisture level is
+                                                           !     (h2osoi_liq_so + irrig_factor*(h2osoi_liq_sat - h2osoi_liq_so)).
+                                                           ! A value of 0 means that the target soil moisture level is h2osoi_liq_so.
                                                            ! A value of 1 means that the target soil moisture level is h2osoi_liq_sat
 
    !added by K.Sakaguchi for litter resistance
@@ -405,7 +405,7 @@ module mod_clm_canopyfluxes
    snl            => clm3%g%l%c%cps%snl
    t_h2osfc       => clm3%g%l%c%ces%t_h2osfc
    frac_h2osfc    => clm3%g%l%c%cps%frac_h2osfc
-   qg_snow        => clm3%g%l%c%cws%qg_snow 
+   qg_snow        => clm3%g%l%c%cws%qg_snow
    qg_soil        => clm3%g%l%c%cws%qg_soil
    qg_h2osfc      => clm3%g%l%c%cws%qg_h2osfc
    qflx_ev_snow   => clm3%g%l%c%p%pwf%qflx_ev_snow
@@ -431,8 +431,8 @@ module mod_clm_canopyfluxes
 
    t_soisno       => clm3%g%l%c%ces%t_soisno
    watsat         => clm3%g%l%c%cps%watsat
-   watdry         => clm3%g%l%c%cps%watdry 
-   watopt         => clm3%g%l%c%cps%watopt 
+   watdry         => clm3%g%l%c%cps%watdry
+   watopt         => clm3%g%l%c%cps%watopt
    h2osoi_ice     => clm3%g%l%c%cws%h2osoi_ice
    h2osoi_vol     => clm3%g%l%c%cws%h2osoi_vol
    dz             => clm3%g%l%c%cps%dz
@@ -682,11 +682,11 @@ module mod_clm_canopyfluxes
          end if
          btran(p)    = btran(p) + rootr(p,j)
          smp_node_lf = max(smpsc(ivt(p)), &
-                 -sucsat(c,j)*(h2osoi_vol(c,j)/watsat(c,j))**(-bsw(c,j))) 
+                 -sucsat(c,j)*(h2osoi_vol(c,j)/watsat(c,j))**(-bsw(c,j)))
          btran2(p)   = btran2(p) + &
                  rootfr(p,j)*min((smp_node_lf - smpsc(ivt(p))) / &
                  (smpso(ivt(p)) - smpsc(ivt(p))), 1.D0)
-       endif 
+       endif
      end do
    end do
 
@@ -847,7 +847,7 @@ module mod_clm_canopyfluxes
 
    ! Set counter for leaf temperature iteration (itlef)
 
-   itlef = 0    
+   itlef = 0
    fnorig = fn
    fporig(1:fn) = filterp(1:fn)
 
@@ -1275,7 +1275,7 @@ module mod_clm_canopyfluxes
        c13_psnsun(p) = psnsun(p) * (rc13_psnsun(p)/(1.D0+rc13_psnsun(p)))
        c13_psnsha(p) = psnsha(p) * (rc13_psnsha(p)/(1.D0+rc13_psnsha(p)))
 
-       ! use fixed c13 ratio with del13C of -25 to test the 
+       ! use fixed c13 ratio with del13C of -25 to test the
        ! overall c13 structure
        ! c13_psnsun(p) = 0.01095627 * psnsun(p)
        ! c13_psnsha(p) = 0.01095627 * psnsha(p)
@@ -1285,7 +1285,7 @@ module mod_clm_canopyfluxes
        c14_psnsun(p) = rc14_atm(p) * psnsun(p)
        c14_psnsha(p) = rc14_atm(p) * psnsha(p)
      endif
-#endif     
+#endif
    end do
 
    ! Filter out pfts which have small energy balance errors; report others
@@ -1574,8 +1574,8 @@ module mod_clm_canopyfluxes
    aj     => clm3%g%l%c%p%ppsyns%aj
    ap     => clm3%g%l%c%p%ppsyns%ap
    ag     => clm3%g%l%c%p%ppsyns%ag
-   an     => clm3%g%l%c%p%ppsyns%an   
-   gb_mol => clm3%g%l%c%p%ppsyns%gb_mol   
+   an     => clm3%g%l%c%p%ppsyns%an
+   gb_mol => clm3%g%l%c%p%ppsyns%gb_mol
    gs_mol => clm3%g%l%c%p%ppsyns%gs_mol
    vcmax_z=> clm3%g%l%c%p%ppsyns%vcmax_z
    cp     => clm3%g%l%c%p%ppsyns%cp
@@ -1664,7 +1664,7 @@ module mod_clm_canopyfluxes
       ! C3 or C4 photosynthesis logical variable
 
       if (nint(c3psn(ivt(p))) == 1) then
-         c3flag(p) = .true. 
+         c3flag(p) = .true.
       else if (nint(c3psn(ivt(p))) == 0) then
          c3flag(p) = .false.
       end if
@@ -1908,7 +1908,7 @@ module mod_clm_canopyfluxes
             ceair = min( eair(p),  esat_tv(p) )
             rh_can = ceair / esat_tv(p)
 
-            ! Electron transport rate for C3 plants. Convert par from W/m2 to 
+            ! Electron transport rate for C3 plants. Convert par from W/m2 to
             ! umol photons/m**2/s using the factor 4.6
 
             qabs  = 0.5D0 * (1.D0 - fnps) * par_z(p,iv) * 4.6D0
@@ -2063,7 +2063,7 @@ module mod_clm_canopyfluxes
    !
    !!USES
    use mod_clm_type
-   use mod_clm_atmlnd  , only : clm_a2l   
+   use mod_clm_atmlnd  , only : clm_a2l
    !
    !!ARGUMENTS:
    implicit none
@@ -2118,7 +2118,7 @@ module mod_clm_canopyfluxes
    aj     => clm3%g%l%c%p%ppsyns%aj
    ap     => clm3%g%l%c%p%ppsyns%ap
    ag     => clm3%g%l%c%p%ppsyns%ag
-   an     => clm3%g%l%c%p%ppsyns%an   
+   an     => clm3%g%l%c%p%ppsyns%an
    vcmax_z=> clm3%g%l%c%p%ppsyns%vcmax_z
    cp     => clm3%g%l%c%p%ppsyns%cp
    kc     => clm3%g%l%c%p%ppsyns%kc
@@ -2142,7 +2142,7 @@ module mod_clm_canopyfluxes
       ! C3: RuBP-limited photosynthesis
       aj(p,iv) = je * max(ci-cp(p), 0.D0) / (4.D0*ci+8.D0*cp(p))
 
-      ! C3: Product-limited photosynthesis 
+      ! C3: Product-limited photosynthesis
       ap(p,iv) = 3.D0 * tpu_z(p,iv)
 
    else
@@ -2281,7 +2281,7 @@ module mod_clm_canopyfluxes
    real(rk8), intent(in) :: je                ! electron transport rate (umol electrons/m**2/s)
    real(rk8), intent(in) :: cair              ! Atmospheric CO2 partial pressure (Pa)
    real(rk8), intent(in) :: oair              ! Atmospheric O2 partial pressure (Pa)
-   real(rk8), intent(in) :: rh_can            ! inside canopy relative humidity 
+   real(rk8), intent(in) :: rh_can            ! inside canopy relative humidity
    integer,  intent(in) :: ip, iv, ig        ! pft, c3/c4, and column index
    real(rk8), intent(out) :: gs_mol           ! leaf stomatal conductance (umol H2O/m**2/s)
 
@@ -2301,7 +2301,7 @@ module mod_clm_canopyfluxes
    if((fa > 0.D0 .and. fb > 0.D0).or.(fa < 0.D0 .and. fb < 0.D0))then
       write(stderr,*) 'root must be bracketed for brent'
       call fatal(__FILE__,__LINE__,'clm now stopping')
-   endif 
+   endif
    c=b
    fc=fb
    iter = 0
@@ -2322,7 +2322,7 @@ module mod_clm_canopyfluxes
          fb=fc
          fc=fa
       endif
-      tol1=2.D0*EPS*abs(b)+0.5D0*tol  !Convergence check.   
+      tol1=2.D0*EPS*abs(b)+0.5D0*tol  !Convergence check.
       xm=0.5D0*(c-b)
       if(abs(xm) <= tol1 .or. fb == 0.)then
          x=b
@@ -2379,7 +2379,7 @@ module mod_clm_canopyfluxes
      rh_can, gs_mol,iter)
    !
    !! DESCRIPTION:
-   ! use a hybrid solver to find the root of equation  
+   ! use a hybrid solver to find the root of equation
    ! f(x) = x- h(x),
    !we want to find x, s.t. f(x) = 0.
    !the hybrid approach combines the strength of the newton secant approach (find the solution domain)
@@ -2390,7 +2390,7 @@ module mod_clm_canopyfluxes
    !Dec 14/2012: created by Jinyun Tang
 
    !
-   !!USES:   
+   !!USES:
    !
    !! ARGUMENTS:
    implicit none
@@ -2404,7 +2404,7 @@ module mod_clm_canopyfluxes
    real(rk8), intent(in) :: oair               ! Atmospheric O2 partial pressure (Pa)
    integer,  intent(in) :: p, iv, g           ! pft, c3/c4, and column index
    real(rk8), intent(out) :: gs_mol            ! leaf stomatal conductance (umol H2O/m**2/s)
-   integer,  intent(out) :: iter              !number of iterations used, for record only   
+   integer,  intent(out) :: iter              !number of iterations used, for record only
 
 ! !CALLED FROM:
 ! subroutine photosynthesis in this module
@@ -2435,7 +2435,7 @@ module mod_clm_canopyfluxes
    if(f1<minf)then
       minx=x1
       minf=f1
-   endif   
+   endif
 
    !first use the secant approach, then use the brent approach as a backup
    iter = 0
@@ -2450,12 +2450,12 @@ module mod_clm_canopyfluxes
       endif
       x0 = x1
       f0 = f1
-      x1 = x   
+      x1 = x
       call ci_func(x1,f1, p, iv, g, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol)
       if(f1<minf)then
          minx=x1
          minf=f1
-      endif         
+      endif
       if(abs(f1)<=eps1)then
          x0 = x1
          exit
@@ -2468,14 +2468,14 @@ module mod_clm_canopyfluxes
          x0=x
          exit
       endif
-      if(iter>itmax)then 
+      if(iter>itmax)then
          !in case of failing to converge within itmax iterations
          !stop at the minimum function
          !this happens because of some other issues besides the stomatal conductance calculation
          !and it happens usually in very dry places and more likely with c4 plants.
          call ci_func(minx,f1, p, iv, g, gb_mol, je, cair, oair, lmr_z, par_z, rh_can, gs_mol)
          exit
-      endif   
+      endif
    enddo
 
    end subroutine hybrid
@@ -2496,7 +2496,7 @@ module mod_clm_canopyfluxes
    ! Jinyun Tang separated it out from Photosynthesis, Feb. 07/2013
 
    !!USES
-   use mod_clm_varcon  , only : rgas, tfrz   
+   use mod_clm_varcon  , only : rgas, tfrz
    implicit none
 
    real(rk8), intent(in) :: tl  ! leaf temperature in photosynthesis temperature function (K)
@@ -2505,7 +2505,7 @@ module mod_clm_canopyfluxes
 ! !CALLED FROM:
 ! subroutine Photosynthesis in this module
 
-! !LOCAL VARIABLES:   
+! !LOCAL VARIABLES:
 
    real(rk8) :: ans
 
@@ -2515,7 +2515,7 @@ module mod_clm_canopyfluxes
    end function ft
 
 
-!-------------------------------------------------------------------------------   
+!-------------------------------------------------------------------------------
 !BOP
 !
 ! !IROUTINE: fth
@@ -2530,7 +2530,7 @@ module mod_clm_canopyfluxes
    ! !REVISION HISTORY
    ! Jinyun Tang separated it out from Photosynthesis, Feb. 07/2013
 
-   use mod_clm_varcon  , only : rgas, tfrz   
+   use mod_clm_varcon  , only : rgas, tfrz
    implicit none
    real(rk8), intent(in) :: tl  ! leaf temperature in photosynthesis temperature function (K)
    real(rk8), intent(in) :: hd  ! deactivation energy in photosynthesis temperature function (J/mol)
@@ -2539,7 +2539,7 @@ module mod_clm_canopyfluxes
 ! !CALLED FROM:
 ! subroutine Photosynthesis in this module
 
-! !LOCAL VARIABLES:      
+! !LOCAL VARIABLES:
    real(rk8) :: ans
 
    ans = cc / ( 1.D0 + exp( (-hd+se*tl) / (rgas*1.D-3*tl) ) )
@@ -2547,7 +2547,7 @@ module mod_clm_canopyfluxes
    end function fth
 
 
-!-------------------------------------------------------------------------------   
+!-------------------------------------------------------------------------------
 !BOP
 !
 ! !IROUTINE: fth25
@@ -2555,7 +2555,7 @@ module mod_clm_canopyfluxes
 ! !INTERFACE:
    function fth25(hd,se)result(ans)
    !
-   !!DESCRIPTION:   
+   !!DESCRIPTION:
    ! scaling factor for photosynthesis temperature inhibition
    !
    ! !REVISION HISTORY:
@@ -2563,7 +2563,7 @@ module mod_clm_canopyfluxes
 
    !
    !!USES
-   use mod_clm_varcon  , only : rgas, tfrz   
+   use mod_clm_varcon  , only : rgas, tfrz
    implicit none
    real(rk8), intent(in) :: hd    ! deactivation energy in photosynthesis temperature function (J/mol)
    real(rk8), intent(in) :: se    ! entropy term in photosynthesis temperature function (J/mol/K)
@@ -2572,7 +2572,7 @@ module mod_clm_canopyfluxes
 ! !CALLED FROM:
 ! subroutine Photosynthesis in this module
 
-! !LOCAL VARIABLES:   
+! !LOCAL VARIABLES:
    real(rk8) :: ans
 
    ans = 1.D0 + exp( (-hd+se*(tfrz+25.D0)) / (rgas*1.D-3*(tfrz+25.D0)) )
@@ -2596,7 +2596,7 @@ module mod_clm_canopyfluxes
 ! !USES:
    use mod_clm_varctl         , only: use_c13
    use mod_clm_type
-   use mod_clm_atmlnd         , only : clm_a2l  
+   use mod_clm_atmlnd         , only : clm_a2l
    implicit none
 
 ! !ARGUMENTS:
@@ -2617,7 +2617,7 @@ module mod_clm_canopyfluxes
    integer , pointer :: nrad(:)     ! number of canopy layers, above snow for radiative transfer
    real(rk8), pointer :: par_z(:,:)  ! par absorbed per unit lai for canopy layer (w/m**2)
    real(rk8), pointer :: forc_pco2(:)   ! partial pressure co2 (Pa)
-   real(rk8), pointer :: downreg(:)               ! fractional reduction in GPP due to N limitation (DIM)   
+   real(rk8), pointer :: downreg(:)               ! fractional reduction in GPP due to N limitation (DIM)
    real(rk8), pointer :: alphapsn(:)
    real(rk8), pointer :: forc_pbot(:)! atmospheric pressure (Pa)
    real(rk8), pointer :: an(:,:)           ! net leaf photosynthesis (umol CO2/m**2/s)
@@ -2625,7 +2625,7 @@ module mod_clm_canopyfluxes
    real(rk8), pointer :: gb_mol(:)         ! leaf boundary layer conductance (umol H2O/m**2/s)
 
 ! !OTHER LOCAL VARIABLES:
-!   
+!
    integer  :: f,p,g,iv              ! indices
    real(rk8) :: co2(lbp:ubp)          ! atmospheric co2 partial pressure (pa)
    real(rk8) :: ci
@@ -2634,20 +2634,20 @@ module mod_clm_canopyfluxes
    pgridcell      => clm3%g%l%c%p%gridcell
    nrad           => clm3%g%l%c%p%pps%nrad
    forc_pbot      => clm_a2l%forc_pbot
-   forc_pco2      => clm_a2l%forc_pco2      
+   forc_pco2      => clm_a2l%forc_pco2
    c3psn          => pftcon%c3psn
    ivt            => clm3%g%l%c%p%itype
    downreg        => clm3%g%l%c%p%pepv%downreg
-   an             => clm3%g%l%c%p%ppsyns%an   
-   gb_mol         => clm3%g%l%c%p%ppsyns%gb_mol   
+   an             => clm3%g%l%c%p%ppsyns%an
+   gb_mol         => clm3%g%l%c%p%ppsyns%gb_mol
    gs_mol         => clm3%g%l%c%p%ppsyns%gs_mol
 
    if (phase == 'sun') then
       par_z       => clm3%g%l%c%p%pef%parsun_z
-      alphapsn    => clm3%g%l%c%p%pps%alphapsnsun 
+      alphapsn    => clm3%g%l%c%p%pps%alphapsnsun
    else if (phase == 'sha') then
       par_z       => clm3%g%l%c%p%pef%parsha_z
-      alphapsn    => clm3%g%l%c%p%pps%alphapsnsha               
+      alphapsn    => clm3%g%l%c%p%pps%alphapsnsha
    end if
 
    do f = 1, fn
@@ -2665,7 +2665,7 @@ module mod_clm_canopyfluxes
               (22.6D0*(ci/co2(p))))) + ((1.D0 - c3psn(ivt(p))) * &
               4.4D0))/1000.D0)
          end if
-      end do        
+      end do
    end do
 
    end subroutine Fractionation

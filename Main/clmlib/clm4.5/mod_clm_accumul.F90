@@ -584,7 +584,7 @@ module mod_clm_accumul
         beg1d = accum(nf)%beg1d
         end1d = accum(nf)%end1d
         allocate(rbuf1d(beg1d:end1d))
-        rbuf1d(beg1d:end1d) = accum(nf)%val(beg1d:end1d,1) 
+        rbuf1d(beg1d:end1d) = accum(nf)%val(beg1d:end1d,1)
         call clm_writevar(ncid,varname,rbuf1d,accum(nf)%gcomm)
         deallocate(rbuf1d)
       end if

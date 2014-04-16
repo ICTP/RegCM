@@ -45,7 +45,7 @@ module mod_clm_biogeophysrest
     implicit none
     type(clm_filetype) , intent(inout) :: ncid ! netcdf id
     character(len=*) , intent(in)    :: flag ! 'read' or 'write'
-    real(rk8) :: maxwatsat                 !maximum porosity    
+    real(rk8) :: maxwatsat                 !maximum porosity
     real(rk8) :: excess                    !excess volumetric soil water
     real(rk8) :: totwat                    !total soil water (mm)
     real(rk8) :: maxdiff                   !maximum difference in PFT weights
@@ -97,7 +97,7 @@ module mod_clm_biogeophysrest
 
     if ( allocate_all_vegpfts ) then
 
-      ! pft weight wrt gridcell 
+      ! pft weight wrt gridcell
 
       if ( flag == 'define' ) then
         call clm_addvar(clmvar_double,ncid,'PFT_WTGCELL',(/'pft'/), &
@@ -463,7 +463,7 @@ module mod_clm_biogeophysrest
       else
         allocate(temp2d(begc:endc,-nlevsno+1:0))
         call clm_readvar(ncid,'ZSNO',temp2d,gcomm_column,switchdim=.true.)
-        cptr%cps%z(begc:endc,-nlevsno+1:0) = temp2d(begc:endc,-nlevsno+1:0) 
+        cptr%cps%z(begc:endc,-nlevsno+1:0) = temp2d(begc:endc,-nlevsno+1:0)
         deallocate(temp2d)
       end if
     else if ( flag == 'write') then
@@ -2302,7 +2302,7 @@ module mod_clm_biogeophysrest
               else
                 maxwatsat = cptr%cps%watsat(c,j)
               end if
-              if ( cptr%cws%h2osoi_vol(c,j) > maxwatsat ) then 
+              if ( cptr%cws%h2osoi_vol(c,j) > maxwatsat ) then
                 excess = (cptr%cws%h2osoi_vol(c,j) - maxwatsat) * &
                         cptr%cps%dz(c,j)*1000.0D0
                 totwat = cptr%cws%h2osoi_liq(c,j) + cptr%cws%h2osoi_ice(c,j)
@@ -2325,7 +2325,7 @@ module mod_clm_biogeophysrest
     ! Perturb initial conditions if not restart
     !
     if ( .not. ktau /= 0 .and. flag=='read' .and. pertlim /= 0.0D0 ) then
-      call perturbIC( lptr ) 
+      call perturbIC( lptr )
     end if
     !
     ! variables needed for SNICAR
@@ -2836,7 +2836,7 @@ module mod_clm_biogeophysrest
     real(rk8) , intent(in) :: wtcol(:)   ! column weights for each PFT
     real(rk8) , parameter :: rndVal = 1.D-13
     ! If differences between all weights for each PFT and each weight type is
-    ! less than or equal to double precision roundoff level 
+    ! less than or equal to double precision roundoff level
     ! weights are close
     if ( all(abs(pptr%wtgcell(:) - wtgcell) <= rndVal) .and. &
          all(abs(pptr%wtlunit(:) - wtlunit) <= rndVal) .and. &

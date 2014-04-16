@@ -55,34 +55,34 @@ module mod_clm_filter
 
     ! soil filter (columns)
     integer(ik4) , pointer , dimension(:) :: soilc
-    ! number of columns in soil filter 
+    ! number of columns in soil filter
     integer(ik4) :: num_soilc
     ! soil filter (pfts)
     integer(ik4) , pointer , dimension(:) :: soilp
-    ! number of pfts in soil filter 
+    ! number of pfts in soil filter
     integer(ik4) :: num_soilp
 
-    ! snow filter (columns) 
+    ! snow filter (columns)
     integer(ik4) , pointer , dimension(:) :: snowc
-    ! number of columns in snow filter 
+    ! number of columns in snow filter
     integer(ik4) :: num_snowc
-    ! non-snow filter (columns) 
+    ! non-snow filter (columns)
     integer(ik4) , pointer , dimension(:) :: nosnowc
-    ! number of columns in non-snow filter 
+    ! number of columns in non-snow filter
     integer(ik4) :: num_nosnowc
 
     ! hydrology filter (columns)
     integer(ik4) , pointer , dimension(:) :: hydrologyc
-    ! number of columns in hydrology filter 
+    ! number of columns in hydrology filter
     integer(ik4) :: num_hydrologyc
 
     ! urban filter (landunits)
     integer(ik4) , pointer , dimension(:) :: urbanl
-    ! number of landunits in urban filter 
+    ! number of landunits in urban filter
     integer(ik4) :: num_urbanl
     ! non-urban filter (landunits)
     integer(ik4) , pointer , dimension(:) :: nourbanl
-    ! number of landunits in non-urban filter 
+    ! number of landunits in non-urban filter
     integer(ik4) :: num_nourbanl
 
     ! urban filter (columns)
@@ -207,7 +207,7 @@ module mod_clm_filter
 
     call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
-    ! Create lake and non-lake filters at column-level 
+    ! Create lake and non-lake filters at column-level
 
     fl = 0
     fnl = 0
@@ -224,7 +224,7 @@ module mod_clm_filter
     filter%num_lakec = fl
     filter%num_nolakec = fnl
 
-    ! Create lake and non-lake filters at pft-level 
+    ! Create lake and non-lake filters at pft-level
     ! Filter will only be active if pft is active
 
     fl = 0
@@ -279,7 +279,7 @@ module mod_clm_filter
     end do
     filter%num_soilp = fs
 
-    ! Create column-level hydrology filter (soil and Urban pervious road cols) 
+    ! Create column-level hydrology filter (soil and Urban pervious road cols)
 
     f = 0
     do c = begc , endc
@@ -361,7 +361,7 @@ module mod_clm_filter
         filter%urbanp(f) = p
       else
         fn = fn + 1
-        filter%nourbanp(fn) = p 
+        filter%nourbanp(fn) = p
       end if
     end do
     filter%num_urbanp = f

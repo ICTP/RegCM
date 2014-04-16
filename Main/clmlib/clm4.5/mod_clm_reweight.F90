@@ -26,7 +26,7 @@ module mod_clm_reweight
   ! cell over which computations are performed, and 'inactive' refers to a pft,
   ! column or landunit where computations are NOT performed (grid cells are
   ! always active).
-  ! 
+  !
   ! (1) For all columns, landunits and grid cells, the sum of all subgrid
   !     weights of its children (or grandchildren, etc.) is equal to 1.
   !     For example:
@@ -34,7 +34,7 @@ module mod_clm_reweight
   !       - For all landunits, the sum of all col weights on the landunit == 1
   !       - For all grid cells, the sum of all pft weights on the grid cell == 1
   !       - etc.
-  ! 
+  !
   ! (2) For all ACTIVE columns, landunits and grid cells, the sum of all
   !     subgrid weights of its ACTIVE children (or grandchildren, etc.) is
   !     equal to 1. For example:
@@ -186,7 +186,7 @@ module mod_clm_reweight
         write(stderr,*) &
           trim(subname),' ERROR: active column found on inactive landunit', &
                         'at c = ', c, ', l = ', l
-        error_found = .true. 
+        error_found = .true.
       end if
     end do
 
@@ -197,7 +197,7 @@ module mod_clm_reweight
         write(stderr,*) &
           trim(subname),' ERROR: active pft found on inactive column', &
                         'at p = ', p, ', c = ', c
-        error_found = .true. 
+        error_found = .true.
       end if
     end do
 
@@ -262,7 +262,7 @@ module mod_clm_reweight
   ! active_only. If active_only is true, then we check the sum of weights of
   ! the ACTIVE children, grandchildren, etc. of a given point.
   ! If active_only is false, then we check the sum of weights of ALL children,
-  ! grandchildren, etc. of a given point. 
+  ! grandchildren, etc. of a given point.
   !
   ! Normally this routine will be called twice: once with active_only=false,
   ! and once with active_only=true.
@@ -306,7 +306,7 @@ module mod_clm_reweight
       c = pptr%column(p)
       l = pptr%landunit(p)
       g = pptr%gridcell(p)
-      if ( (active_only .and. pptr%active(p)) .or. .not. active_only ) then 
+      if ( (active_only .and. pptr%active(p)) .or. .not. active_only ) then
         sumwtcol(c) = sumwtcol(c) + pptr%wtcol(p)
         sumwtlunit(l) = sumwtlunit(l) + pptr%wtlunit(p)
         sumwtgcell(g) = sumwtgcell(g) + pptr%wtgcell(p)

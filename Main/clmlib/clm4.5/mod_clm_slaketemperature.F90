@@ -47,7 +47,7 @@ module mod_clm_slaketemperature
   ! viii) Enhanced background diffusion and option for increased mixing for
   !       deep lakes is added.
   !   See discussion in Subin et al. 2011
-  !   
+  !
   !   Lakes are allowed to have variable depth, set in initSLakeMod.
   !
   ! Use the Crank-Nicholson method to set up tridiagonal system of equations to
@@ -92,7 +92,7 @@ module mod_clm_slaketemperature
   ! 9.5!) (Optional) Do second energy check using temperature change
   !       and latent heat, considering changed heat capacity.
   !       Also do soil water balance check.
-  !  10!) Convective mixing 
+  !  10!) Convective mixing
   !  11!) Do final energy check to detect small numerical errors
   !       (especially from convection) and dump small imbalance into
   !       sensible heat, or pass large errors to BalanceCheckMod for abort.
@@ -203,7 +203,7 @@ module mod_clm_slaketemperature
     ! This will be calculated with the total lake thermal resistance
     ! and the aerodyn. resist. (calc in SLakeFluxes).
     ! In lakes, the column variable only is used.
-    real(rk8), pointer :: grnd_ch4_cond(:) 
+    real(rk8), pointer :: grnd_ch4_cond(:)
 #endif
     ! neutral value of turbulent prandtl number
     real(rk8), parameter :: p0 = 1.D0
@@ -277,7 +277,7 @@ module mod_clm_slaketemperature
     ! used in calc aver heat content for conv. mixed layers
     real(rk8) :: qav(lbc:ubc)
     ! top level for each column (no longer all 1)
-    integer(ik4) :: jtop(lbc:ubc) 
+    integer(ik4) :: jtop(lbc:ubc)
     ! heat capacity of soil/snow [J/(m2 K)]
     real(rk8) :: cv (lbc:ubc,-nlevsno+1:nlevgrnd)
     ! thermal conductivity of soil/snow [W/(m K)]
@@ -455,7 +455,7 @@ module mod_clm_slaketemperature
       ! Prepare for lake layer temperature calculations below
 
       ! fin(c) = betaprime * sabg(p) + forc_lwrad(g) - (eflx_lwrad_out(p) + &
-      !     eflx_sh_tot(p) + eflx_lh_tot(p)) 
+      !     eflx_sh_tot(p) + eflx_lh_tot(p))
       ! fin(c) now passed from SLakeFluxes as eflx_gnet
       fin(c) = eflx_gnet(p)
 
@@ -473,7 +473,7 @@ module mod_clm_slaketemperature
     do j = 1, nlevlak
       do fc = 1, num_lakec
          c = filter_lakec(fc)
-         rhow(c,j) = (1.D0 - lake_icefrac(c,j)) * & 
+         rhow(c,j) = (1.D0 - lake_icefrac(c,j)) * &
                       1000.D0*( 1.0D0 - 1.9549D-05* &
                       (abs(t_lake(c,j)-tdmax))**1.68D0 ) &
                     + lake_icefrac(c,j)*denice
@@ -657,7 +657,7 @@ module mod_clm_slaketemperature
       do fc = 1, num_lakec
         c = filter_lakec(fc)
         ocvts(c) = ocvts(c) + cv_lake(c,j)*(t_lake(c,j)-tfrz) &
-                   + cfus*dz_lake(c,j)*(1.D0-lake_icefrac(c,j)) 
+                   + cfus*dz_lake(c,j)*(1.D0-lake_icefrac(c,j))
         t_lake_bef(c,j) = t_lake(c,j)
       end do
     end do
@@ -766,7 +766,7 @@ module mod_clm_slaketemperature
             tkix(c,j) = tk(c,jprime)
           end if
         end if
-      end do 
+      end do
     end do
 
     ! Determine heat diffusion through the layer interface and factor used
@@ -924,7 +924,7 @@ module mod_clm_slaketemperature
                   (rhow(c,j) > rhow(c,j+1) .or. &
                (lake_icefrac(c,j) < 1.D0 .and. &
                lake_icefrac(c,j+1) > 0.D0) ) ) then
-            qav(c) = qav(c) + dz_lake(c,i)*(t_lake(c,i)-tfrz) * & 
+            qav(c) = qav(c) + dz_lake(c,i)*(t_lake(c,i)-tfrz) * &
                 ((1.D0 - lake_icefrac(c,i))*cwat + lake_icefrac(c,i)*cice_eff)
 !           tav(c) = tav(c) + t_lake(c,i)*dz_lake(c,i)
             iceav(c) = iceav(c) + lake_icefrac(c,i)*dz_lake(c,i)
@@ -990,7 +990,7 @@ module mod_clm_slaketemperature
             end if
             zsum(c) = zsum(c) + dz_lake(c,i)
 
-            rhow(c,i) = (1.D0 - lake_icefrac(c,i)) * & 
+            rhow(c,i) = (1.D0 - lake_icefrac(c,i)) * &
                         1000.D0*( 1.0D0 - 1.9549D-05* &
                         (abs(t_lake(c,i)-tdmax))**1.68D0 ) &
                           + lake_icefrac(c,i)*denice
@@ -1033,7 +1033,7 @@ module mod_clm_slaketemperature
               (rhow(c,j) > rhow(c,j+1) .or. &
               (lake_icefrac(c,j) < 1.D0 .and. &
               lake_icefrac(c,j+1) > 0.D0) ) ) then
-            qav(c) = qav(c) + dz_lake(c,i)*(t_lake(c,i)-tfrz) * & 
+            qav(c) = qav(c) + dz_lake(c,i)*(t_lake(c,i)-tfrz) * &
                       ((1.D0 - lake_icefrac(c,i))*cwat + &
                       lake_icefrac(c,i)*cice_eff)
 !           tav(c) = tav(c) + t_lake(c,i)*dz_lake(c,i)
@@ -1102,7 +1102,7 @@ module mod_clm_slaketemperature
             end if
             zsum(c) = zsum(c) + dz_lake(c,i)
 
-            rhow(c,i) = (1.D0 - lake_icefrac(c,i)) * & 
+            rhow(c,i) = (1.D0 - lake_icefrac(c,i)) * &
                         1000.D0*( 1.0D0 - 1.9549D-05* &
                         (abs(t_lake(c,i)-tdmax))**1.68D0 ) &
                         + lake_icefrac(c,i)*denice
@@ -1156,7 +1156,7 @@ module mod_clm_slaketemperature
         c = filter_lakec(fc)
 
         ncvts(c) = ncvts(c) + cv_lake(c,j)*(t_lake(c,j)-tfrz) &
-                 + cfus*dz_lake(c,j)*(1.D0-lake_icefrac(c,j)) 
+                 + cfus*dz_lake(c,j)*(1.D0-lake_icefrac(c,j))
         fin(c) = fin(c) + phi(c,j)
         ! New for CLM 4
         hc_soisno(c) = hc_soisno(c) + cv_lake(c,j)*t_lake(c,j)/1.e6
@@ -1169,7 +1169,7 @@ module mod_clm_slaketemperature
 
         if (j >= jtop(c)) then
           ncvts(c) = ncvts(c) + cv(c,j)*(t_soisno(c,j)-tfrz) &
-                   + hfus*h2osoi_liq(c,j) 
+                   + hfus*h2osoi_liq(c,j)
           if (j < 1) fin(c) = fin(c) + phix(c,j) !For SNICAR
           if (j == 1 .and. h2osno(c) > 0.D0 .and. j == jtop(c)) then
             ncvts(c) = ncvts(c) - h2osno(c)*hfus

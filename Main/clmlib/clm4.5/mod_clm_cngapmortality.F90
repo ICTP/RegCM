@@ -345,7 +345,7 @@ subroutine CNGapMortality (num_soilc, filter_soilc, num_soilp, filter_soilp)
      if (livestemc(p)+deadstemc(p)> 0.D0)then
          nind(p)=nind(p)*(1.D0-m)
      else
-         nind(p) = 0.D0 
+         nind(p) = 0.D0
      end if
     end if
 #endif

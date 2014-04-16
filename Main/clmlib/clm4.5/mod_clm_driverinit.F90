@@ -30,7 +30,7 @@ module mod_clm_driverinit
     integer(ik4) , intent(in) :: lbc , ubc  ! column-index bounds
     integer(ik4) , intent(in) :: lbp , ubp  ! pft-index bounds
     ! number of column non-lake points in column filter
-    integer(ik4) , intent(in) :: num_nolakec 
+    integer(ik4) , intent(in) :: num_nolakec
     ! column filter for non-lake points
     integer(ik4) , intent(in) :: filter_nolakec(ubc-lbc+1)
     ! true=>do computations on this pft (see reweightMod for details)

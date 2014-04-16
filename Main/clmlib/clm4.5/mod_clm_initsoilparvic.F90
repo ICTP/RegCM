@@ -1,13 +1,13 @@
 module mod_clm_initsoilparvic
   !
-  ! Performs mapping between VIC and CLM layers 
+  ! Performs mapping between VIC and CLM layers
   !
 #if (defined VICHYDRO)
   use mod_realkinds
   use mod_intkinds
   use mod_clm_type
   use mod_clm_varcon , only : denh2o , denice , pondmx
-  use mod_clm_varpar , only : nlevsoi , nlayer , nlayert , nlevgrnd 
+  use mod_clm_varpar , only : nlevsoi , nlayer , nlayert , nlevgrnd
 
   implicit none
 
@@ -46,9 +46,9 @@ module mod_clm_initsoilparvic
     real(rk8) :: om_tkd = 0.05D0
     ! Clapp Hornberger paramater for oragnic soil (Letts, 2000)
     real(rk8) :: om_b = 2.7D0
-    ! soil expt for VIC        
+    ! soil expt for VIC
     real(rk8) :: om_expt = 3.D0+2.D0*2.7D0
-    ! organic matter (kg/m3) where soil is assumed to act like peat 
+    ! organic matter (kg/m3) where soil is assumed to act like peat
     real(rk8) :: organic_max = 130.D0
     ! vol. heat capacity of granite/sandstone  J/(m3 K)(Shabbir, 2000)
     real(rk8) :: csol_bedrock = 2.0D6
@@ -92,7 +92,7 @@ module mod_clm_initsoilparvic
     real(rk8), pointer :: ksat(:,:)
     !soil moisture dissusion parameter
     real(rk8), pointer :: phi_s(:,:)
-    !layer depth of upper layer(m) 
+    !layer depth of upper layer(m)
     real(rk8), pointer :: depth(:,:)
     !soil porosity
     real(rk8), pointer :: porosity(:,:)
@@ -126,25 +126,25 @@ module mod_clm_initsoilparvic
     !  map parameters between VIC layers and CLM layers
 
     c_param(c) = 2.D0
-    ! map the CLM layers to VIC layers 
+    ! map the CLM layers to VIC layers
     ! There might have better way to do this process
 
-    do i = 1 , nlayer      
+    do i = 1 , nlayer
       sandvic(i) = 0.D0
-      clayvic(i) = 0.D0   
-      om_fracvic(i) = 0.D0  
-      temp_sum_frac = 0.D0     
+      clayvic(i) = 0.D0
+      om_fracvic(i) = 0.D0
+      temp_sum_frac = 0.D0
       do j = 1 , nlevsoi
         sandvic(i) = sandvic(i) + sandcol(c,j) * vic_clm_fract(c,i,j)
         clayvic(i) = clayvic(i) + claycol(c,j) * vic_clm_fract(c,i,j)
-        om_fracvic(i) = om_fracvic(i) + om_fraccol(c,j) * vic_clm_fract(c,i,j) 
+        om_fracvic(i) = om_fracvic(i) + om_fraccol(c,j) * vic_clm_fract(c,i,j)
         temp_sum_frac =temp_sum_frac + vic_clm_fract(c,i,j)
       end do
       !average soil properties, M.Huang, 08/11/2010
       sandvic(i) = sandvic(i)/temp_sum_frac
       clayvic(i) = clayvic(i)/temp_sum_frac
       om_fracvic(i) = om_fracvic(i)/temp_sum_frac
-      !make sure sand, clay and om fractions are between 0 and 100% 
+      !make sure sand, clay and om fractions are between 0 and 100%
       sandvic(i) = min(100.D0, sandvic(i))
       clayvic(i) = min(100.D0, clayvic(i))
       om_fracvic(i) = min(100.D0, om_fracvic(i))
@@ -155,10 +155,10 @@ module mod_clm_initsoilparvic
       porosity(c, i) = 0.489D0 - 0.00126D0*sandvic(i)
       expt(c, i) = 3.D0+ 2.D0*(2.91D0 + 0.159D0*clayvic(i))
       xksat = 0.0070556 *( 10.**(-0.884+0.0153*sandvic(i)) )
-      !consider organic matter, M.Huang 
-      expt(c, i) = (1.D0-om_fracvic(i))*expt(c, i) + om_fracvic(i)*om_expt 
+      !consider organic matter, M.Huang
+      expt(c, i) = (1.D0-om_fracvic(i))*expt(c, i) + om_fracvic(i)*om_expt
       porosity(c,i) = (1.D0 - om_fracvic(i))*porosity(c,i) + &
-              om_watsat*om_fracvic(i) 
+              om_watsat*om_fracvic(i)
       ! perc_frac is zero unless perf_frac greater than percolation threshold
       if (om_fracvic(i) > pc) then
         perc_norm = (1.D0 - pc)**(-pcbeta)
@@ -183,6 +183,6 @@ module mod_clm_initsoilparvic
                0.0063D0*(100.0D0-sandvic(i)-clayvic(i)))*log(10.0D0))*9.8D-5)
     end do
   end subroutine initSoilParVIC
-#endif 
+#endif
 
 end module mod_clm_initsoilparvic

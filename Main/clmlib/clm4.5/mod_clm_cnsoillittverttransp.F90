@@ -25,7 +25,7 @@ module mod_clm_cnsoillittverttransp
 
 !
 ! !PUBLIC MEMBER FUNCTIONS:
-  public :: CNSoilLittVertTransp   
+  public :: CNSoilLittVertTransp
 !
 ! !PUBLIC DATA MEMBERS:
    real(rk8), public :: som_diffus = 1D-4 / (secspday * 365.D0)  ! [m^2/sec] = 1 cm^2 / yr
@@ -56,7 +56,7 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
 !
 ! !DESCRIPTION:
 !
-! Calculate vertical mixing of soil and litter pools.  Also reconcile sources and sinks of these pools 
+! Calculate vertical mixing of soil and litter pools.  Also reconcile sources and sinks of these pools
 ! calculated in the CStateUpdate1 and NStateUpdate1 subroutines.
 ! Advection-diffusion code based on algorithm in Patankar (1980)
 ! Initial code by C. Koven and W. Riley
@@ -76,7 +76,7 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
 
 ! !LOCAL VARIABLES:
 !EOP
-   ! real(rk8) :: som_diffus_coef (lbc:ubc,1:nlevdecomp+1)     ! diffusivity (m2/s)  
+   ! real(rk8) :: som_diffus_coef (lbc:ubc,1:nlevdecomp+1)     ! diffusivity (m2/s)
    ! real(rk8) :: som_adv_coef(lbc:ubc,1:nlevdecomp+1)         ! advective flux (m/s)
    real(rk8), pointer :: som_adv_coef(:,:)                     ! SOM advective flux (m/s)
    real(rk8), pointer :: som_diffus_coef(:,:)                  ! SOM diffusivity due to bio/cryo-turbation (m2/s)
@@ -90,9 +90,9 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
    real(rk8) :: b_tri (lbc:ubc,0:nlevdecomp+1)                 ! "b" vector for tridiagonal matrix
    real(rk8) :: c_tri (lbc:ubc,0:nlevdecomp+1)                 ! "c" vector for tridiagonal matrix
    real(rk8) :: r_tri (lbc:ubc,0:nlevdecomp+1)                 ! "r" vector for tridiagonal solution
-   real(rk8) :: d_p1_zp1 (lbc:ubc,1:nlevdecomp+1)              ! diffusivity/delta_z for next j  
+   real(rk8) :: d_p1_zp1 (lbc:ubc,1:nlevdecomp+1)              ! diffusivity/delta_z for next j
                                                               ! (set to zero for no diffusion)
-   real(rk8) :: d_m1_zm1 (lbc:ubc,1:nlevdecomp+1)              ! diffusivity/delta_z for previous j 
+   real(rk8) :: d_m1_zm1 (lbc:ubc,1:nlevdecomp+1)              ! diffusivity/delta_z for previous j
                                                               ! (set to zero for no diffusion)
    real(rk8) :: f_p1     (lbc:ubc,1:nlevdecomp+1)              ! water flux for next j
    real(rk8) :: f_m1     (lbc:ubc,1:nlevdecomp+1)              ! water flux for previous j
@@ -100,13 +100,13 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
    real(rk8) :: pe_m1     (lbc:ubc,1:nlevdecomp+1)             ! Peclet # for previous j
    real(rk8) :: dz_node(1:nlevdecomp+1)                        ! difference between nodes
    real(rk8) :: epsilon_t (lbc:ubc,1:nlevdecomp+1,1:ndecomp_pools) !
-   real(rk8) :: conc_trcr(lbc:ubc,0:nlevdecomp+1)  
+   real(rk8) :: conc_trcr(lbc:ubc,0:nlevdecomp+1)
    real(rk8), pointer :: conc_ptr(:,:,:)                       ! pointer for concentration state variable being transported
    real(rk8), pointer :: source(:,:,:)                         ! pointer for source term
    logical, pointer  :: is_cwd(:)                             ! TRUE => pool is a cwd pool
    real(rk8) :: a_p_0
    real(rk8) :: deficit
-   real(rk8), pointer :: trcr_tendency_ptr(:,:,:)              ! pointer to store the vertical tendency 
+   real(rk8), pointer :: trcr_tendency_ptr(:,:,:)              ! pointer to store the vertical tendency
                                                               ! (gain/loss due to vertical transport)
    real(rk8), pointer :: altmax(:)                             ! maximum annual depth of thaw
    real(rk8), pointer :: altmax_lastyear(:)                    ! prior year maximum annual depth of thaw
@@ -160,7 +160,7 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
          ! use mixing profile modified slightly from Koven et al. (2009): constant through active layer, linear decrease from base of active layer to zero at a fixed depth
          do j = 1,nlevdecomp+1
             if ( zisoi(j) .lt. max(altmax(c), altmax_lastyear(c)) ) then
-               som_diffus_coef(c,j) = cryoturb_diffusion_k 
+               som_diffus_coef(c,j) = cryoturb_diffusion_k
                som_adv_coef(c,j) = 0.D0
             else
                som_diffus_coef(c,j) = max(cryoturb_diffusion_k * ( 1.D0 - ( zisoi(j) - max(altmax(c), altmax_lastyear(c)) ) / &
@@ -171,7 +171,7 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
       elseif (  max(altmax(c), altmax_lastyear(c)) .gt. 0.D0 ) then
          ! constant advection, constant diffusion
          do j = 1,nlevdecomp+1
-            som_adv_coef(c,j) = som_adv_flux 
+            som_adv_coef(c,j) = som_adv_flux
             som_diffus_coef(c,j) = som_diffus
          end do
       else
@@ -183,7 +183,7 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
       endif
    end do
 
-   ! Set the distance between the node and the one ABOVE it   
+   ! Set the distance between the node and the one ABOVE it
    dz_node(1) = zsoi(1)
    do j = 2,nlevdecomp+1
       dz_node(j)= zsoi(j) - zsoi(j-1)
@@ -274,7 +274,7 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
 
                   conc_trcr(c,j) = conc_ptr(c,j,s)
                   ! dz_tracer below is the difference between gridcell edges  (dzsoi_decomp)
-                  ! dz_node_tracer is difference between cell centers 
+                  ! dz_node_tracer is difference between cell centers
 
                   ! Calculate the D and F terms in the Patankar algorithm
                   if (j == 1) then
@@ -349,7 +349,7 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
                      a_tri(c,j) = -(d_m1_zm1(c,j) * aaa(pe_m1(c,j)) + max( f_m1(c,j), 0.D0)) ! Eqn 5.47 Patankar
                      c_tri(c,j) = -(d_p1_zp1(c,j) * aaa(pe_p1(c,j)) + max(-f_p1(c,j), 0.D0))
                      b_tri(c,j) = -a_tri(c,j) - c_tri(c,j) + a_p_0
-                     r_tri(c,j) = source(c,j,s) * dzsoi_decomp(j) /dtime + (a_p_0 - adv_flux(c,j)) * conc_trcr(c,j) 
+                     r_tri(c,j) = source(c,j,s) * dzsoi_decomp(j) /dtime + (a_p_0 - adv_flux(c,j)) * conc_trcr(c,j)
                   elseif (j .lt. nlevdecomp+1) then
                      a_tri(c,j) = -(d_m1_zm1(c,j) * aaa(pe_m1(c,j)) + max( f_m1(c,j), 0.D0)) ! Eqn 5.47 Patankar
                      c_tri(c,j) = -(d_p1_zp1(c,j) * aaa(pe_p1(c,j)) + max(-f_p1(c,j), 0.D0))
@@ -358,7 +358,7 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
                   else ! j==nlevdecomp+1; 0 concentration gradient at bottom
                      a_tri(c,j) = -1.D0
                      b_tri(c,j) = 1.D0
-                     c_tri(c,j) = 0.D0 
+                     c_tri(c,j) = 0.D0
                      r_tri(c,j) = 0.D0
                   endif
                enddo ! fc; column
@@ -404,7 +404,7 @@ subroutine CNSoilLittVertTransp(lbc, ubc, num_soilc, filter_soilc)
          do j = 1,nlevdecomp
             do fc = 1, num_soilc
                c = filter_soilc (fc)
-               conc_ptr(c,j,s) = conc_trcr(c,j) 
+               conc_ptr(c,j,s) = conc_trcr(c,j)
             end do
          end do
       end do ! s (pool loop)

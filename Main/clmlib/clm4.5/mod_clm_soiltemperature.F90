@@ -128,8 +128,8 @@ contains
     integer , pointer :: clandunit(:)       ! column's landunit
     integer , pointer :: ltype(:)           ! landunit type
     integer , pointer :: ctype(:)           ! column type
-    integer , pointer :: npfts(:)           ! column's number of pfts 
-    integer , pointer :: pfti(:)            ! column's beginning pft index 
+    integer , pointer :: npfts(:)           ! column's number of pfts
+    integer , pointer :: pfti(:)            ! column's beginning pft index
     real(rk8), pointer :: pwtcol(:)          ! weight of pft relative to column
     real(rk8), pointer :: forc_lwrad(:)      ! downward infrared (longwave) radiation (W/m**2)
     integer , pointer :: snl(:)             ! number of snow layers
@@ -165,7 +165,7 @@ contains
     real(rk8), pointer :: canyon_hwr(:)      ! urban canyon height to width ratio
     real(rk8), pointer :: wtlunit_roof(:)    ! weight of roof with respect to landunit
     real(rk8), pointer :: eflx_bot(:)        ! heat flux from beneath column (W/m**2) [+ = upward]
-! 
+!
 ! local pointers to  original implicit inout arguments
 !
     real(rk8), pointer :: t_grnd(:)          ! ground surface temperature [K]
@@ -254,8 +254,8 @@ contains
 
     ! Assign local pointers to derived subtypes components (column-level)
 
-    frac_sno_eff   => clm3%g%l%c%cps%frac_sno_eff 
-    frac_sno       => clm3%g%l%c%cps%frac_sno 
+    frac_sno_eff   => clm3%g%l%c%cps%frac_sno_eff
+    frac_sno       => clm3%g%l%c%cps%frac_sno
     frac_h2osfc    => clm3%g%l%c%cps%frac_h2osfc
     h2osfc         => clm3%g%l%c%cws%h2osfc
     t_h2osfc       => clm3%g%l%c%ces%t_h2osfc
@@ -328,7 +328,7 @@ contains
     call SoilThermProp(lbc, ubc, num_nolakec, filter_nolakec, tk, cv, tk_h2osfc)
 
     ! Net ground heat flux into the surface and its temperature derivative
-    ! Added a pfts loop here to get the average of hs and dhsdT over 
+    ! Added a pfts loop here to get the average of hs and dhsdT over
     ! all PFTs on the column. Precalculate the terms that do not depend on PFT.
 
     do fc = 1,num_nolakec
@@ -339,7 +339,7 @@ contains
        ! fractionate lwrad_emit; balanced in CanopyFluxes & Biogeophysics2
        lwrad_emit_snow(c)    =    emg(c) * sb * t_soisno(c,snl(c)+1)**4
        lwrad_emit_soil(c)    =    emg(c) * sb * t_soisno(c,1)**4
-       lwrad_emit_h2osfc(c)  =    emg(c) * sb * t_h2osfc(c)**4 
+       lwrad_emit_h2osfc(c)  =    emg(c) * sb * t_h2osfc(c)**4
     end do
 
     hs_snow(lbc:ubc)   = 0.D0
@@ -375,7 +375,7 @@ contains
                         + (1-frac_veg_nosno(p))*emg(c)*forc_lwrad(g) - lwrad_emit_h2osfc(c) &
                         - (eflx_sh_h2osfc(p)+qflx_ev_h2osfc(p)*htvp(c))
                 else
-                   ! For urban columns we use the net longwave radiation (eflx_lwrad_net) because of 
+                   ! For urban columns we use the net longwave radiation (eflx_lwrad_net) because of
                    ! interactions between urban columns.
 
                    ! All wasteheat and traffic flux goes into canyon floor
@@ -412,13 +412,13 @@ contains
        end do
     end do
 
-    !       Additional calculations with SNICAR: 
-    !       Set up tridiagonal matrix in a new manner. There is now 
-    !       absorbed solar radiation in each snow layer, instead of 
-    !       only the surface. Following the current implementation, 
-    !       absorbed solar flux should be: S + ((delS/delT)*dT), 
-    !       where S is absorbed radiation, and T is temperature. Now, 
-    !       assume delS/delT is zero, then it is OK to just add S 
+    !       Additional calculations with SNICAR:
+    !       Set up tridiagonal matrix in a new manner. There is now
+    !       absorbed solar radiation in each snow layer, instead of
+    !       only the surface. Following the current implementation,
+    !       absorbed solar flux should be: S + ((delS/delT)*dT),
+    !       where S is absorbed radiation, and T is temperature. Now,
+    !       assume delS/delT is zero, then it is OK to just add S
     !       to each layer
 
     ! Initialize:
@@ -474,8 +474,8 @@ contains
     do fl = 1,num_urbanl
        l = filter_urbanl(fl)
        if (ltype(l) == isturb) then
-          cool_on(l) = .false. 
-          heat_on(l) = .false. 
+          cool_on(l) = .false.
+          heat_on(l) = .false.
           if (t_building(l) > t_building_max(l)) then
             t_building(l) = t_building_max(l)
             cool_on(l) = .true.
@@ -647,7 +647,7 @@ contains
 
     enddo
 
-    ! set up compact matrix for band diagonal solver, requires additional 
+    ! set up compact matrix for band diagonal solver, requires additional
     !     sub/super diagonals (1 each), and one additional row for t_h2osfc
     jtop = -9999
     do fc = 1,num_nolakec
@@ -670,7 +670,7 @@ contains
     allocate(rvector(lbc:ubc,-nlevsno:nlevgrnd))
     rvector(:,:) = nan
 
-    ! the solution will be organized as (snow:h2osfc:soil) to minimize 
+    ! the solution will be organized as (snow:h2osfc:soil) to minimize
     !     bandwidth; this requires a 5-element band instead of 3
     do fc = 1,num_nolakec
        c = filter_nolakec(fc)
@@ -808,7 +808,7 @@ contains
     ! compute terms needed for phase change of h2osfc
     do fc = 1,num_nolakec
        c = filter_nolakec(fc)
-       dzp=(0.5*dz_h2osfc(c)+z(c,1))       
+       dzp=(0.5*dz_h2osfc(c)+z(c,1))
        fn1_h2osfc(c)=tk_h2osfc(c)*(t_soisno(c,1)-t_h2osfc(c))/dzp
     enddo
 
@@ -987,7 +987,7 @@ contains
     ! Assign local pointers to derived subtypes components (column-level)
 
     h2osfc     => clm3%g%l%c%cws%h2osfc
-    frac_sno   => clm3%g%l%c%cps%frac_sno_eff 
+    frac_sno   => clm3%g%l%c%cps%frac_sno_eff
     ctype      => clm3%g%l%c%itype
     clandunit  => clm3%g%l%c%landunit
     snl        => clm3%g%l%c%cps%snl
@@ -1021,7 +1021,7 @@ contains
           c = filter_nolakec(fc)
 
           ! Only examine levels from 1->nlevgrnd
-          if (j >= 1) then    
+          if (j >= 1) then
              l = clandunit(c)
              if ((ctype(c) == icol_sunwall .OR. ctype(c) == icol_shadewall) .and. j <= nlevurb) then
                 thk(c,j) = tk_wall(l,j)
@@ -1054,8 +1054,8 @@ contains
              else if ( ltype(l) == istice ) then
                 thk(c,j) = tkwat
                 if (t_soisno(c,j) < tfrz) thk(c,j) = tkice
-             else if (ltype(l) == istwet) then                         
-                if (j > nlevsoi) then 
+             else if (ltype(l) == istwet) then
+                if (j > nlevsoi) then
                    thk(c,j) = thk_bedrock
                 else
                    thk(c,j) = tkwat
@@ -1066,7 +1066,7 @@ contains
 
           ! Thermal conductivity of snow, which from Jordan (1991) pp. 18
           ! Only examine levels from snl(c)+1 -> 0 where snl(c) < 1
-          if (snl(c)+1 < 1 .AND. (j >= snl(c)+1) .AND. (j <= 0)) then  
+          if (snl(c)+1 < 1 .AND. (j >= snl(c)+1) .AND. (j <= 0)) then
              bw = (h2osoi_ice(c,j)+h2osoi_liq(c,j))/(frac_sno(c)*dz(c,j))
              thk(c,j) = tkair + (7.75D-5 *bw + 1.105D-6*bw*bw)*(tkice-tkair)
           end if
@@ -1132,7 +1132,7 @@ contains
                    ctype(c) /= icol_shadewall .AND. &
                    ctype(c) /= icol_roof) then
              cv(c,j) = csol(c,j)*(1-watsat(c,j))*dz(c,j) + (h2osoi_ice(c,j)*cpice + h2osoi_liq(c,j)*cpliq)
-          else if (ltype(l) == istwet) then 
+          else if (ltype(l) == istwet) then
              cv(c,j) = (h2osoi_ice(c,j)*cpice + h2osoi_liq(c,j)*cpliq)
              if (j > nlevsoi) cv(c,j) = csol(c,j)*dz(c,j)
           else if ( ltype(l) == istice ) then
@@ -1191,7 +1191,7 @@ contains
 ! subroutine SoilTemperature in this module
 !
 ! !REVISION HISTORY:
-! !15/10/08: S. Swenson modified PhaseChange for h2osfc 
+! !15/10/08: S. Swenson modified PhaseChange for h2osfc
 ! !LOCAL VARIABLES:
 !
 ! local pointers to original implicit in scalars
@@ -1237,7 +1237,7 @@ contains
     real(rk8) :: smp                                !frozen water potential (mm)
     real(rk8) :: rho_avg
     real(rk8) :: z_avg
-    real(rk8) :: dcv(lbc:ubc) 
+    real(rk8) :: dcv(lbc:ubc)
     real(rk8) :: t_h2osfc_new
     real(rk8) :: c1
     real(rk8) :: c2
@@ -1247,7 +1247,7 @@ contains
 
     ! Assign local pointers to derived subtypes components (column-level)
 
-    frac_sno     => clm3%g%l%c%cps%frac_sno_eff 
+    frac_sno     => clm3%g%l%c%cps%frac_sno_eff
     frac_h2osfc  => clm3%g%l%c%cps%frac_h2osfc
     t_h2osfc     => clm3%g%l%c%ces%t_h2osfc
     t_h2osfc_bef => clm3%g%l%c%ces%t_h2osfc_bef
@@ -1283,14 +1283,14 @@ contains
           hm(c) = dhsdT(c)*tinc - tinc*c_h2osfc(c)/dtsrf
 
           ! mass of water converted from liquid to ice
-          xm(c) = hm(c)*dtsrf/hfus  
-          temp1 = h2osfc(c) - xm(c)    
+          xm(c) = hm(c)*dtsrf/hfus
+          temp1 = h2osfc(c) - xm(c)
 
           ! compute change in cv due to additional ice
           dcv(c)=cpice*min(xm(c),h2osfc(c))
 
           z_avg=frac_sno(c)*snow_depth(c)
-          if (z_avg > 0.D0) then 
+          if (z_avg > 0.D0) then
              rho_avg=min(800.D0,h2osno(c)/z_avg)
           else
              rho_avg=200.D0
@@ -1311,7 +1311,7 @@ contains
              qflx_h2osfc_to_ice(c) = xm(c)/dtsrf
 
              ! update snow depth
-             if (frac_sno(c) > 0 .and. snl(c) < 0) then 
+             if (frac_sno(c) > 0 .and. snl(c) < 0) then
                 snow_depth(c)=h2osno(c)/(rho_avg*frac_sno(c))
              else
                 snow_depth(c)=h2osno(c)/denice
@@ -1348,7 +1348,7 @@ contains
                 ! account for the change in t_soisno(c,0) via xmf_h2osfc(c)
                 xmf_h2osfc(c) = xmf_h2osfc(c) + frac_sno(c)*t_soisno(c,0)/fact(c,0)
                 t_soisno(c,0) = (c1*t_soisno(c,0)+ c2*t_h2osfc_new) &
-                                   /(c1 + c2)             
+                                   /(c1 + c2)
                 xmf_h2osfc(c) = xmf_h2osfc(c) - frac_sno(c)*t_soisno(c,0)/fact(c,0)
 
              else
@@ -1360,7 +1360,7 @@ contains
                 end if
                 xmf_h2osfc(c) = xmf_h2osfc(c) + c1*t_soisno(c,0)
                 t_soisno(c,0) = (c1*t_soisno(c,0)+ c2*t_h2osfc_new) &
-                               /(c1 + c2)             
+                               /(c1 + c2)
                 xmf_h2osfc(c) = xmf_h2osfc(c) - c1*t_soisno(c,0)
              endif
 
@@ -1368,7 +1368,7 @@ contains
              h2osfc(c) = 0.D0
 
              ! update snow depth
-             if (frac_sno(c) > 0 .and. snl(c) < 0) then 
+             if (frac_sno(c) > 0 .and. snl(c) < 0) then
                 snow_depth(c)=h2osno(c)/(rho_avg*frac_sno(c))
              else
                 snow_depth(c)=h2osno(c)/denice
@@ -1394,7 +1394,7 @@ contains
 !     i.e., the layer temperature is great than the freezing point
 !     and the ice mass is not equal to zero (i.e. melting),
 !     or the layer temperature is less than the freezing point
-!     and the liquid water mass is greater than the allowable supercooled 
+!     and the liquid water mass is greater than the allowable supercooled
 !     liquid water calculated from freezing point depression (i.e. freezing).
 ! (2) Assess the rate of phase change from the energy excess (or deficit)
 !     after setting the layer temperature to freezing point.
@@ -1485,7 +1485,7 @@ contains
     real(rk8) :: wmass0(lbc:ubc,-nlevsno+1:nlevgrnd)!initial mass of ice and liquid (kg/m2)
     real(rk8) :: wice0 (lbc:ubc,-nlevsno+1:nlevgrnd)!initial mass of ice (kg/m2)
     real(rk8) :: wliq0 (lbc:ubc,-nlevsno+1:nlevgrnd)!initial mass of liquid (kg/m2)
-    real(rk8) :: supercool(lbc:ubc,nlevgrnd)        !supercooled water in soil (kg/m2) 
+    real(rk8) :: supercool(lbc:ubc,nlevgrnd)        !supercooled water in soil (kg/m2)
     real(rk8) :: propor                             !proportionality constant (-)
     real(rk8) :: tinc(lbc:ubc,-nlevsno+1:nlevgrnd)  !t(n+1)-t(n) (K)
     real(rk8) :: smp                                !frozen water potential (mm)
@@ -1494,8 +1494,8 @@ contains
     ! Assign local pointers to derived subtypes components (column-level)
 
     qflx_snow_melt => clm3%g%l%c%cwf%qflx_snow_melt
-    frac_sno_eff => clm3%g%l%c%cps%frac_sno_eff 
-    frac_sno     => clm3%g%l%c%cps%frac_sno 
+    frac_sno_eff => clm3%g%l%c%cps%frac_sno_eff
+    frac_sno     => clm3%g%l%c%cps%frac_sno
     frac_h2osfc  => clm3%g%l%c%cps%frac_h2osfc
     clandunit    => clm3%g%l%c%landunit
     ltype        => clm3%g%l%itype
@@ -1548,8 +1548,8 @@ contains
        end do   ! end of column-loop
     enddo   ! end of level-loop
 
-!--  snow layers  --------------------------------------------------- 
-    do j = -nlevsno+1,0             
+!--  snow layers  ---------------------------------------------------
+    do j = -nlevsno+1,0
        do fc = 1,num_nolakec
           c = filter_nolakec(fc)
           if (j >= snl(c)+1) then
@@ -1558,8 +1558,8 @@ contains
              ! If ice exists above melt point, melt some to liquid.
              if (h2osoi_ice(c,j) > 0.D0 .AND. t_soisno(c,j) > tfrz) then
                 imelt(c,j) = 1
-!                tinc(c,j) = t_soisno(c,j) - tfrz 
-                tinc(c,j) = tfrz - t_soisno(c,j) 
+!                tinc(c,j) = t_soisno(c,j) - tfrz
+                tinc(c,j) = tfrz - t_soisno(c,j)
                 t_soisno(c,j) = tfrz
              endif
 
@@ -1567,16 +1567,16 @@ contains
              ! If liquid exists below melt point, freeze some to ice.
              if (h2osoi_liq(c,j) > 0.D0 .AND. t_soisno(c,j) < tfrz) then
                 imelt(c,j) = 2
-!                tinc(c,j) = t_soisno(c,j) - tfrz 
-                tinc(c,j) = tfrz - t_soisno(c,j) 
+!                tinc(c,j) = t_soisno(c,j) - tfrz
+                tinc(c,j) = tfrz - t_soisno(c,j)
                 t_soisno(c,j) = tfrz
              endif
           endif   ! end of snow layer if-block
        end do   ! end of column-loop
     enddo   ! end of level-loop
 
-!-- soil layers   --------------------------------------------------- 
-    do j = 1,nlevgrnd             
+!-- soil layers   ---------------------------------------------------
+    do j = 1,nlevgrnd
        do fc = 1,num_nolakec
           c = filter_nolakec(fc)
           l = clandunit(c)
@@ -1589,8 +1589,8 @@ contains
 
           if (h2osoi_ice(c,j) > 0. .AND. t_soisno(c,j) > tfrz) then
              imelt(c,j) = 1
-!             tinc(c,j) = t_soisno(c,j) - tfrz 
-             tinc(c,j) = tfrz - t_soisno(c,j) 
+!             tinc(c,j) = t_soisno(c,j) - tfrz
+             tinc(c,j) = tfrz - t_soisno(c,j)
              t_soisno(c,j) = tfrz
           endif
 
@@ -1607,7 +1607,7 @@ contains
           if (h2osoi_liq(c,j) > supercool(c,j) .AND. t_soisno(c,j) < tfrz) then
              imelt(c,j) = 2
 !             tinc(c,j) = t_soisno(c,j) - tfrz
-             tinc(c,j) = tfrz - t_soisno(c,j) 
+             tinc(c,j) = tfrz - t_soisno(c,j)
              t_soisno(c,j) = tfrz
           endif
 
@@ -1643,7 +1643,7 @@ contains
                    ! to account for absorbed solar radiation in each layer
 
                    !==================================================================
-                   if (j == snl(c)+1) then ! top layer                   
+                   if (j == snl(c)+1) then ! top layer
                       hm(c,j) = dhsdT(c)*tinc(c,j) - tinc(c,j)/fact(c,j)
 
                       if ( j==1 .and. frac_h2osfc(c) /= 0.0D0 ) then
@@ -1652,7 +1652,7 @@ contains
                    else if (j == 1) then
                       hm(c,j) = (1.0D0 - frac_sno_eff(c) - frac_h2osfc(c)) &
                            *dhsdT(c)*tinc(c,j) - tinc(c,j)/fact(c,j)
-                   else ! non-interfacial snow/soil layers                   
+                   else ! non-interfacial snow/soil layers
                       hm(c,j) = - tinc(c,j)/fact(c,j)
                    endif
                 endif
@@ -1692,7 +1692,7 @@ contains
                          endif
                          qflx_snomelt(c) = max(0.D0,(temp1-h2osno(c)))/dtsrf   ! kg/(m2 s)
                          xmf(c) = hfus*qflx_snomelt(c)
-                         qflx_snow_melt(c) = qflx_snomelt(c) 
+                         qflx_snow_melt(c) = qflx_snomelt(c)
                       endif
                    endif
 
@@ -1739,7 +1739,7 @@ contains
                       end if
                    endif  ! end of heatr > 0 if-block
 
-                   if (j >= 1) then 
+                   if (j >= 1) then
                       xmf(c) = xmf(c) + hfus*(wice0(c,j)-h2osoi_ice(c,j))/dtsrf
                    else
                       xmf(c) = xmf(c) + frac_sno_eff(c)*hfus*(wice0(c,j)-h2osoi_ice(c,j))/dtsrf

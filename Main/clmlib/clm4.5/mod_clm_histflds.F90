@@ -67,7 +67,7 @@ module mod_clm_histflds
     ! add suffix if number of soil decomposition depths is greater than 1
     if ( nlevdecomp > 1 ) then
       vr_suffix = "_vr"
-    else 
+    else
       vr_suffix = ""
     end if
 
@@ -495,7 +495,7 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='FGEV', units='W/m^2',  &
          avgflag='A', long_name='ground evaporation', &
-         ptr_pft=clm3%g%l%c%p%pef%eflx_lh_grnd, c2l_scale_type='urbanf') 
+         ptr_pft=clm3%g%l%c%p%pef%eflx_lh_grnd, c2l_scale_type='urbanf')
 
     call hist_addfld1d (fname='FSH_NODYNLNDUSE', units='W/m^2',  &
          avgflag='A', long_name='sensible heat not including correction for &
@@ -896,10 +896,10 @@ module mod_clm_histflds
     ! As defined here, snow_sources - snow_sinks will equal the change in
     ! h2osno at any given time step but only if there is at least one snow
     ! layer (for all landunits except lakes).  h2osno also includes snow that
-    ! is part of the soil column (an initial snow layer is only created if 
+    ! is part of the soil column (an initial snow layer is only created if
     ! h2osno > 10mm). Also note that monthly average files of snow_sources
-    ! and snow sinks must be weighted by number of days in the month to 
-    ! diagnose, for example, an annual value of the change in h2osno. 
+    ! and snow sinks must be weighted by number of days in the month to
+    ! diagnose, for example, an annual value of the change in h2osno.
 
     call hist_addfld1d (fname='SNOW_SOURCES',  units='mm/s',  &
          avgflag='A', long_name='snow sources (liquid water)', &
@@ -914,7 +914,7 @@ module mod_clm_histflds
          ptr_pft=clm3%g%l%c%p%pws%h2ocan, set_lake=0.D0)
 
     call hist_addfld2d (fname='H2OSOI',  units='mm3/mm3', type2d='levgrnd', &
-         avgflag='A', & 
+         avgflag='A', &
          long_name='volumetric soil water (vegetated landunits only)', &
          ptr_col=clm3%g%l%c%cws%h2osoi_vol, l2g_scale_type='veg')
 
@@ -990,19 +990,19 @@ module mod_clm_histflds
          avgflag='A', long_name='initial gridcell total liq content', &
          ptr_lnd=clm3%g%gws%gc_liq1)
 
-    call hist_addfld1d (fname='GC_LIQ2',  units='mm',  &  
+    call hist_addfld1d (fname='GC_LIQ2',  units='mm',  &
          avgflag='A', long_name='post landuse change gridcell total &
-         &liq content', ptr_lnd=clm3%g%gws%gc_liq2, default='inactive')     
+         &liq content', ptr_lnd=clm3%g%gws%gc_liq2, default='inactive')
 
-    call hist_addfld1d (fname='QFLX_LIQ_DYNBAL',  units='mm/s',  &  
+    call hist_addfld1d (fname='QFLX_LIQ_DYNBAL',  units='mm/s',  &
          avgflag='A', long_name='liq dynamic land cover change conversion &
-         &runoff flux', ptr_lnd=clm3%g%gwf%qflx_liq_dynbal)     
+         &runoff flux', ptr_lnd=clm3%g%gwf%qflx_liq_dynbal)
 
-    call hist_addfld1d (fname='GC_ICE1',  units='mm',  &  
+    call hist_addfld1d (fname='GC_ICE1',  units='mm',  &
          avgflag='A', long_name='initial gridcell total ice content', &
-         ptr_lnd=clm3%g%gws%gc_ice1)     
+         ptr_lnd=clm3%g%gws%gc_ice1)
 
-    call hist_addfld1d (fname='GC_ICE2',  units='mm',  &  
+    call hist_addfld1d (fname='GC_ICE2',  units='mm',  &
          avgflag='A', long_name='post land cover change total ice content', &
          ptr_lnd=clm3%g%gws%gc_ice2, default='inactive')
 
@@ -1433,7 +1433,7 @@ module mod_clm_histflds
     end if
 
     !-------------------------------
-    ! C state variables - native to PFT 
+    ! C state variables - native to PFT
     !-------------------------------
     ! add history fields for all CLAMP CN variables
 
@@ -1557,7 +1557,7 @@ module mod_clm_histflds
 
     if ( use_c13 ) then
        !-------------------------------
-       ! C13 state variables - native to PFT 
+       ! C13 state variables - native to PFT
        !-------------------------------
 
        call hist_addfld1d (fname='C13_LEAFC', units='gC13/m^2', &
@@ -1671,7 +1671,7 @@ module mod_clm_histflds
 
     if ( use_c14 ) then
        !-------------------------------
-       ! C14 state variables - native to PFT 
+       ! C14 state variables - native to PFT
        !-------------------------------
 
        call hist_addfld1d (fname='C14_LEAFC', units='gC14/m^2', &
@@ -2024,7 +2024,7 @@ module mod_clm_histflds
             avgflag='A', long_name='C14 total soil organic matter carbon', &
             ptr_col=clm3%g%l%c%cc14s%totsomc)
 
-       if ( nlevdecomp_full .gt. 1 ) then       
+       if ( nlevdecomp_full .gt. 1 ) then
           call hist_addfld1d (fname='C14_TOTLITC_1m', units='gC14/m^2', &
                avgflag='A', long_name='C14 total litter carbon to 1 meter', &
                ptr_col=clm3%g%l%c%cc14s%totlitc_1m)
@@ -2585,7 +2585,7 @@ module mod_clm_histflds
 
     call hist_addfld1d (fname='M_GRESP_XFER_TO_LITTER_FIRE', units='gC/m^2/s', &
          avgflag='A', long_name='growth respiration transfer fire mortality to litter', &
-         ptr_pft=clm3%g%l%c%p%pcf%m_gresp_xfer_to_litter_fire, default='inactive')   
+         ptr_pft=clm3%g%l%c%p%pcf%m_gresp_xfer_to_litter_fire, default='inactive')
 
     call hist_addfld1d (fname='LEAFC_XFER_TO_LEAFC', units='gC/m^2/s', &
          avgflag='A', long_name='leaf C growth from storage', &
@@ -3772,7 +3772,7 @@ module mod_clm_histflds
     end if
 
     !-------------------------------
-    ! C flux variables - native to column 
+    ! C flux variables - native to column
     !-------------------------------
     ! add history fields for all CLAMP CN variables
 
@@ -3803,7 +3803,7 @@ module mod_clm_histflds
 ! F. Li and S. Levis
    call hist_addfld1d (fname='LF_CONV_CFLUX', units='gC/m^2/s', &
          avgflag='A', long_name='conversion carbon due to BET and BDT area decreasing', &
-         ptr_col=clm3%g%l%c%ccf%lf_conv_cflux)   
+         ptr_col=clm3%g%l%c%ccf%lf_conv_cflux)
 
    call hist_addfld1d (fname='SOMC_FIRE', units='gC/m^2/s', &
          avgflag='A', long_name='C loss due to peat burning', &
@@ -3873,8 +3873,8 @@ module mod_clm_histflds
                ptr_col=data1dptr)
        end if
 
-       ! output the vertically resolved fluxes 
-       if ( nlevdecomp_full .gt. 1 ) then  
+       ! output the vertically resolved fluxes
+       if ( nlevdecomp_full .gt. 1 ) then
           !-- HR fluxes (none from CWD)
           if ( .not. decomp_cascade_con%is_cwd(decomp_cascade_con%cascade_donor_pool(l)) ) then
              data2dptr => clm3%g%l%c%ccf%decomp_cascade_hr_vr(:,:,l)
@@ -4063,7 +4063,7 @@ module mod_clm_histflds
 
     if ( use_c13 ) then
        !-------------------------------
-       ! C13 flux variables - native to column 
+       ! C13 flux variables - native to column
        !-------------------------------
 
 
@@ -4225,7 +4225,7 @@ module mod_clm_histflds
 
     if ( use_c14 ) then
        !-------------------------------
-       ! C14 flux variables - native to column 
+       ! C14 flux variables - native to column
        !-------------------------------
 
 
@@ -4841,7 +4841,7 @@ module mod_clm_histflds
                ptr_col=data1dptr)
        end if
 
-       if ( nlevdecomp_full .gt. 1 ) then       
+       if ( nlevdecomp_full .gt. 1 ) then
           !-- denitrification fluxes (none from CWD)
           if ( .not. decomp_cascade_con%is_cwd(decomp_cascade_con%cascade_donor_pool(l)) ) then
              data2dptr => clm3%g%l%c%cnf%sminn_to_denit_decomp_cascade_vr(:,:,l)
@@ -4864,10 +4864,10 @@ module mod_clm_histflds
          avgflag='A', long_name='soil mineral N pool loss to leaching', &
          ptr_col=clm3%g%l%c%cnf%sminn_leached)
 
-    if ( nlevdecomp_full .gt. 1 ) then  
+    if ( nlevdecomp_full .gt. 1 ) then
        call hist_addfld_decomp (fname='SMINN_TO_DENIT_EXCESS'//trim(vr_suffix), units='gN/m^3/s',  type2d='levdcmp', &
             avgflag='A', long_name='denitrification from excess mineral N pool', &
-            ptr_col=clm3%g%l%c%cnf%sminn_to_denit_excess_vr, default='inactive')   
+            ptr_col=clm3%g%l%c%cnf%sminn_to_denit_excess_vr, default='inactive')
 
        call hist_addfld_decomp (fname='SMINN_LEACHED'//trim(vr_suffix), units='gN/m^3/s',  type2d='levdcmp', &
             avgflag='A', long_name='soil mineral N pool loss to leaching', &
@@ -4900,7 +4900,7 @@ module mod_clm_histflds
          avgflag='A', long_name='soil NO3 pool loss to runoff', &
          ptr_col=clm3%g%l%c%cnf%smin_no3_runoff)
 
-    if ( nlevdecomp_full .gt. 1 ) then 
+    if ( nlevdecomp_full .gt. 1 ) then
        call hist_addfld_decomp (fname='F_NIT'//trim(vr_suffix), units='gN/m^3/s', type2d='levdcmp', &
             avgflag='A', long_name='nitrification flux', &
             ptr_col=clm3%g%l%c%cnf%f_nit_vr)
@@ -5170,7 +5170,7 @@ module mod_clm_histflds
     end if
 
     !-------------------------------
-    ! PFT ecophysiological variables (pepv) 
+    ! PFT ecophysiological variables (pepv)
     !-------------------------------
 
     call hist_addfld1d (fname='DORMANT_FLAG', units='none', &
@@ -5525,7 +5525,7 @@ module mod_clm_histflds
          avgflag='A', long_name='soil water as frac. of whc for top 0.05 m', &
          ptr_col=clm3%g%l%c%cps%wf)
 
-   ! add by F. Li and S. Levis  
+   ! add by F. Li and S. Levis
      call hist_addfld1d (fname='LFC2', units='per timestep', &
          avgflag='A', &
          long_name='conversion area fraction of BET and BDT that '// &
@@ -5538,7 +5538,7 @@ module mod_clm_histflds
     end if
 
     call hist_addfld_decomp (fname='FPI'//trim(vr_suffix), &
-            units='proportion', type2d='levdcmp', & 
+            units='proportion', type2d='levdcmp', &
          avgflag='A', long_name='fraction of potential immobilization', &
          ptr_col=clm3%g%l%c%cps%fpi_vr)
 
@@ -5600,7 +5600,7 @@ module mod_clm_histflds
          ptr_col=clm3%g%l%c%cps%baf_peatf)
 
     !-------------------------------
-    ! Energy flux variables not already defined by default - native PFT 
+    ! Energy flux variables not already defined by default - native PFT
     !-------------------------------
 
     call hist_addfld1d (fname='DLRAD', units='W/m^2', &
