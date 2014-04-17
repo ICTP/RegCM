@@ -275,10 +275,14 @@ module mod_mppparam
                      linear_to_global_real8_subgrid_subgrid_4d
   end interface glb_l2c_ss
 
+  interface reorder_glb_subgrid
+     module procedure reorder_logical_global_subgrid_2d
+  end interface reorder_glb_subgrid
+
   interface reorder_subgrid
-    module procedure reorder_subgrid_2d ,   &
-                     reorder_subgrid_2d3d , &
-                     reorder_subgrid_3d ,   &
+    module procedure reorder_subgrid_2d ,        &
+                     reorder_subgrid_2d3d ,      &
+                     reorder_subgrid_3d ,        &
                      reorder_subgrid_2d_logical
   end interface reorder_subgrid
 
@@ -373,7 +377,7 @@ module mod_mppparam
   public :: bcast , sumall , maxall
   public :: gather_r , gather_i
   public :: allgather_r , allgather_i
-  public :: reorder_subgrid , reorder_add_subgrid
+  public :: reorder_subgrid , reorder_glb_subgrid , reorder_add_subgrid
   public :: input_reorder
   public :: trueforall
   public :: allsync
@@ -1119,10 +1123,14 @@ module mod_mppparam
         jcross2 = jx
         jout1 = 1
         jout2 = jx
+        joutsg1 = 1
+        joutsg2 = jx*nsg
       else
         jcross2 = jxm1
         jout1 = 2
         jout2 = jxm2
+        joutsg1 = nsg+1
+        joutsg2 = jxm2*nsg
       end if
       idot1 = 1
       idot2 = iy
@@ -1130,12 +1138,16 @@ module mod_mppparam
       icross2 = iym1
       iout1 = 2
       iout2 = iym2
+      ioutsg1 = nsg+1
+      ioutsg2 = iym2*nsg
       njcross = jcross2-jcross1+1
       nicross = icross2-icross1+1
       njdot = jdot2-jdot1+1
       nidot = idot2-idot1+1
       njout = jout2-jout1+1
       niout = iout2-iout1+1
+      njoutsg = joutsg2-joutsg1+1
+      nioutsg = ioutsg2-ioutsg1+1
     end if
   end subroutine broadcast_params
 !
@@ -5940,6 +5952,24 @@ module mod_mppparam
     end if
   end subroutine reorder_subgrid_2d
 
+  subroutine reorder_logical_global_subgrid_2d(var3,var2)
+    implicit none
+    logical , pointer , dimension(:,:,:) , intent(in) :: var3
+    logical , pointer , dimension(:,:) , intent(out) :: var2
+    integer(ik4) :: i , j , ii , jj , n1 , n2
+    do i = iout1 , iout2
+      do j = jout1 , jout2
+        do n2 = 1 , nsg
+          ii = (i-1) * nsg + n2
+          do n1 = 1 , nsg
+            jj = (j-1) * nsg + n1
+            var2(jj,ii) = var3((n2-1)*nsg+n1,j,i)
+          end do
+        end do
+      end do
+    end do
+  end subroutine reorder_logical_global_subgrid_2d
+
   subroutine reorder_subgrid_2d_logical(var3,var2)
     implicit none
     logical , pointer , dimension(:,:,:) , intent(in) :: var3
@@ -6263,6 +6293,8 @@ module mod_mppparam
       call getmem2d(cl%global_gmask,jout1,jout2,iout1,iout2,'cl:global_gmask')
       call getmem3d(cl%global_sgmask,1,nnsg,jout1,jout2, &
                                             iout1,iout2,'cl:global_sgmask')
+      call getmem2d(cl%global_out_sgmask,joutsg1,joutsg2, &
+                                         ioutsg1,ioutsg2,'cl:global_out_sgmask')
     end if
     cl%gmask = gmask(jci1:jci2,ici1:ici2) > 0.0D0
     cl%sgmask = sgmask(1:nnsg,jci1:jci2,ici1:ici2) > 0.0D0
@@ -6274,6 +6306,7 @@ module mod_mppparam
     end if
     call grid_collect(cl%gmask,cl%global_gmask,jci1,jci2,ici1,ici2)
     call subgrid_collect(cl%sgmask,cl%global_sgmask,jci1,jci2,ici1,ici2)
+    call reorder_glb_subgrid(cl%global_sgmask,cl%global_out_sgmask)
     ncart_tot_g = count(cl%gmask)
     ncart_tot_sg = count(cl%sgmask)
     call clset(ncart_tot_g,ncart_tot_sg,cl)

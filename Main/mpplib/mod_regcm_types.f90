@@ -31,6 +31,7 @@ module mod_regcm_types
     logical , pointer , dimension(:,:,:) :: sgmask
     logical , pointer , dimension(:,:) :: global_gmask
     logical , pointer , dimension(:,:,:) :: global_sgmask
+    logical , pointer , dimension(:,:) :: global_out_sgmask
     integer(ik4) , public , pointer , dimension(:) :: linear_npoint_g
     integer(ik4) , public , pointer , dimension(:) :: linear_displ_g
     integer(ik4) , public , pointer , dimension(:) :: cartesian_npoint_g

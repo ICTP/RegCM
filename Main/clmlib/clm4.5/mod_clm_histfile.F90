@@ -1659,6 +1659,8 @@ module mod_clm_histfile
     call clm_adddim(lnfid, trim(namel), numl)
     call clm_adddim(lnfid, trim(namec), numc)
     call clm_adddim(lnfid, trim(namep), nump)
+    call clm_adddim(lnfid,'jx',njoutsg)
+    call clm_adddim(lnfid,'iy',nioutsg)
 
     ! "level" dimensions
     call clm_adddim(lnfid, 'levgrnd', nlevgrnd)
@@ -1969,6 +1971,7 @@ module mod_clm_histfile
     character(len=max_namlen) :: caldesc  ! calendar description to put on file
     character(len=256) :: str             ! global attribute string
     real(rk8) , pointer :: histo(:,:)     ! temporary
+    integer(ik4) , pointer :: maask(:,:)  ! temporary
     type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
     type(column_type) , pointer :: cptr   ! pointer to column derived subtype
     integer(ik4) :: status
@@ -2058,6 +2061,9 @@ module mod_clm_histfile
       call clm_addvar(clmvar_double,ncid=nfid(t), &
                     varname='pftmask',cdims=(/grlnd/), &
                     long_name='pft real/fake mask', units='1')
+      call clm_addvar(clmvar_logical,ncid=nfid(t), &
+                    varname='regcm_mask',cdims=(/'jx','iy'/), &
+                    long_name='regcm land mask', units='1')
 
     else if ( mode == 'write' ) then
 
@@ -2077,6 +2083,7 @@ module mod_clm_histfile
       call clm_writevar(nfid(t),'landfrac',ldomain%frac,gcomm_gridcell)
       call clm_writevar(nfid(t),'landmask',ldomain%mask,gcomm_gridcell)
       call clm_writevar(nfid(t),'pftmask',ldomain%pftm,gcomm_gridcell)
+      call clm_writevar(nfid(t),'regcm_mask',lndcomm%global_out_sgmask)
 
     end if  ! (define/write mode
 
@@ -2102,8 +2109,8 @@ module mod_clm_histfile
     character(len=max_chars) :: units    ! units
     character(len=max_namlen):: varname  ! variable name
     character(len=32) :: avgstr          ! time averaging type
-    character(len=8) :: type1d_out       ! history output 1d type
-    character(len=8) :: type2d           ! history output 2d type
+    character(len=32) :: type1d_out      ! history output 1d type
+    character(len=32) :: type2d          ! history output 2d type
     character(len=32) :: dim1name        ! temporary
     character(len=32) :: dim2name        ! temporary
     real(rk8) , pointer :: histo(:,:)    ! temporary
