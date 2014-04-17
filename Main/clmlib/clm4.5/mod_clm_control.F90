@@ -51,7 +51,7 @@ module mod_clm_control
   use mod_clm_histfile , only : max_tapes, max_namlen, &
                  hist_empty_htapes, hist_dov2xy, &
                  hist_avgflag_pertape, hist_type1d_pertape, &
-                 hist_nhtfrq, hist_ndens, hist_mfilt, &
+                 hist_nhtfrq, hist_ndens, &
                  hist_fincl1, hist_fincl2, hist_fincl3, &
                  hist_fincl4, hist_fincl5, hist_fincl6, &
                  hist_fexcl1, hist_fexcl2, hist_fexcl3, &
@@ -136,7 +136,7 @@ module mod_clm_control
     namelist /clm_inparm/  &
          hist_empty_htapes, hist_dov2xy, &
          hist_avgflag_pertape, hist_type1d_pertape, &
-         hist_nhtfrq,  hist_ndens, hist_mfilt, &
+         hist_nhtfrq,  hist_ndens, &
          hist_fincl1,  hist_fincl2, hist_fincl3, &
          hist_fincl4,  hist_fincl5, hist_fincl6, &
          hist_fexcl1,  hist_fexcl2, hist_fexcl3, &
@@ -258,9 +258,7 @@ module mod_clm_control
       ! History and restart files
 
       do i = 1 , max_tapes
-        if (hist_nhtfrq(i) == 0) then
-          hist_mfilt(i) = 1
-        else if (hist_nhtfrq(i) < 0) then
+        if (hist_nhtfrq(i) < 0) then
           hist_nhtfrq(i) = nint(-hist_nhtfrq(i)*secspday/(24.D0*dtsrf))
         end if
       end do
@@ -428,7 +426,6 @@ module mod_clm_control
     call bcast(hist_empty_htapes)
     call bcast(hist_dov2xy)
     call bcast(hist_nhtfrq)
-    call bcast(hist_mfilt)
     call bcast(hist_ndens)
     call bcast(hist_avgflag_pertape,max_namlen)
     call bcast(hist_type1d_pertape,max_namlen)

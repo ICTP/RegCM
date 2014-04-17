@@ -51,8 +51,6 @@ module mod_clm_histfile
   logical , public :: hist_empty_htapes  = .false.
   ! namelist: output density of netcdf history files
   integer(ik4) , public :: hist_ndens(max_tapes) = 2
-  ! namelist: number of time samples per tape
-  integer(ik4) , public :: hist_mfilt(max_tapes) = 30
   ! namelist: true=> do grid averaging
   logical , public :: hist_dov2xy(max_tapes) = &
           (/.true.,(.true.,ni=2,max_tapes)/)
@@ -244,8 +242,6 @@ module mod_clm_histfile
     integer(ik4) :: nflds
     ! current number of time samples on tape
     integer(ik4) :: ntimes
-    ! maximum number of time samples per tape
-    integer(ik4) :: mfilt
     ! number of time samples per tape
     integer(ik4) :: nhtfrq
     ! netcdf output precision
@@ -261,7 +257,6 @@ module mod_clm_histfile
   end type history_tape
 
   integer(ik4) , dimension(max_tapes) :: tapes_ntimes
-  integer(ik4) , dimension(max_tapes) :: tapes_mfilt
 
   type clmpoint_rs  ! Pointer to real scalar data (1D)
     real(rk8) , pointer :: ptr(:)
@@ -506,7 +501,6 @@ module mod_clm_histfile
       tape(t)%ntimes = 0
       tape(t)%dov2xy = hist_dov2xy(t)
       tape(t)%nhtfrq = hist_nhtfrq(t)
-      tape(t)%mfilt = hist_mfilt(t)
       if ( hist_ndens(t) == 1 ) then
         tape(t)%ncprec = clmvar_double
       else
@@ -812,8 +806,6 @@ module mod_clm_histfile
           write(stdout,*)'All fields on history tape ',t, &
                   ' are not grid averaged'
         end if
-        write(stdout,*)'Number of time samples on history tape ',t, &
-                ' is ',hist_mfilt(t)
         write(stdout,*)'Output precision on history tape ',t,'=',hist_ndens(t)
       end do
     end if
@@ -1611,8 +1603,7 @@ module mod_clm_histfile
           "NOTE: None of the variables are weighted by land fraction!" )
     else
       if ( myid == italk ) then
-        write(stdout,*) trim(subname), &
-                ' : Opening netcdf rhtape ',trim(locfnhr(t))
+        write(stdout,*) 'Opening netcdf rhtape ',trim(locfnhr(t))
       end if
       call clm_createfile(trim(locfnhr(t)),lnfid)
       call clm_addatt(lnfid,'title', &
@@ -2479,9 +2470,7 @@ module mod_clm_histfile
         ! define dims, vars, etc.
 
         if ( tape(t)%ntimes == 1 ) then
-          locfnh(t) = set_hist_filename(hist_freq=tape(t)%nhtfrq, &
-                                        hist_mfilt=tape(t)%mfilt, &
-                                        hist_file=t)
+          locfnh(t) = set_hist_filename(tape(t)%nhtfrq,nlomon,t)
           if ( myid == italk ) then
             write(stdout,*) 'Creating history file ',t, ' at nstep = ',ktau
           end if
@@ -2532,8 +2521,7 @@ module mod_clm_histfile
     ! Determine if file needs to be closed
 
     tapes_ntimes = tape(:)%ntimes
-    tapes_mfilt = tape(:)%mfilt
-    call hist_do_disp(ntapes, tapes_ntimes , tapes_mfilt, &
+    call hist_do_disp(ntapes, tapes_ntimes , nlomon, &
                       if_stop, if_disphist, rstwr, nlend)
 
     ! Close open history file
@@ -2544,17 +2532,16 @@ module mod_clm_histfile
       if ( if_disphist(t) ) then
         if ( tape(t)%ntimes /= 0 ) then
           if ( myid == italk ) then
-            write(stdout,*)  trim(subname),' : Closing local history file ',&
+            write(stdout,*)  'Closing local history file ',&
                trim(locfnh(t)),' at nstep = ', ktau
           end if
           call clm_closefile(nfid(t))
-          if ( .not. if_stop .and. (tape(t)%ntimes/=tape(t)%mfilt) ) then
+          if ( .not. if_stop .and. nlomon ) then
             call clm_openfile(trim(locfnh(t)), nfid(t), clm_readwrite)
           end if
         else
           if ( myid == italk ) then
-            write(stdout,*) trim(subname), &
-              ' : history tape ',t,': no open file to close'
+            write(stdout,*) 'history tape ',t,': no open file to close'
           end if
         end if
       end if
@@ -2563,7 +2550,7 @@ module mod_clm_histfile
     ! Reset number of time samples to zero if file is full
 
     do t = 1 , ntapes
-      if ( if_disphist(t) .and. tape(t)%ntimes==tape(t)%mfilt ) then
+      if ( if_disphist(t) .and. nlomon ) then
         tape(t)%ntimes = 0
       end if
     end do
@@ -2777,9 +2764,6 @@ module mod_clm_histfile
                   comment="Namelist item", &
                   units="absolute value of negative is in hours, 0=monthly,"&
                        &" positive is time-steps")
-        call clm_addvar(clmvar_integer,ncid_hist(t),'mfilt', &
-                  long_name="Number of history time samples on a file", &
-                  comment="Namelist item")
         call clm_addvar(clmvar_integer,ncid_hist(t),'ncprec', &
                   long_name="Flag for data precision", &
                   flag_values=(/1,2/),valid_range=(/1,2/), &
@@ -2896,7 +2880,6 @@ module mod_clm_histfile
         call clm_writevar(ncid_hist(t),'nflds',tape(t)%nflds)
         call clm_writevar(ncid_hist(t),'ntimes',tape(t)%ntimes)
         call clm_writevar(ncid_hist(t),'nhtfrq',tape(t)%nhtfrq)
-        call clm_writevar(ncid_hist(t),'mfilt',tape(t)%mfilt)
         call clm_writevar(ncid_hist(t),'ncprec',tape(t)%ncprec)
         call clm_writevar(ncid_hist(t),'begtime',tape(t)%begtime)
         allocate(tmpstr(tape(t)%nflds,6 ),tname(tape(t)%nflds), &
@@ -2978,7 +2961,6 @@ module mod_clm_histfile
           end if
           call clm_readvar(ncid_hist(t),'ntimes',tape(t)%ntimes)
           call clm_readvar(ncid_hist(t),'nhtfrq',tape(t)%nhtfrq)
-          call clm_readvar(ncid_hist(t),'mfilt',tape(t)%mfilt)
           call clm_readvar(ncid_hist(t),'ncprec',tape(t)%ncprec)
           call clm_readvar(ncid_hist(t),'begtime',tape(t)%begtime)
           call clm_readvar(ncid_hist(t),'is_endhist',tape(t)%is_endhist)
@@ -3724,11 +3706,11 @@ module mod_clm_histfile
   !
   ! Determine history dataset filenames.
   !
-  character(len=256) function set_hist_filename(hist_freq,hist_mfilt,hist_file)
+  character(len=256) function set_hist_filename(hist_freq,nlomon,hist_file)
     implicit none
     integer(ik4) , intent(in) :: hist_freq  !history file frequency
-    integer(ik4) , intent(in) :: hist_mfilt !history file number of time-samples
     integer(ik4) , intent(in) :: hist_file  !history file index
+    logical , intent(in) :: nlomon
     character(len=256) :: cdate       !date char string
     character(len=  1) :: hist_index  !p,1 or 2 (currently)
     integer(ik4) :: day !day (1 -> 31)
@@ -3737,12 +3719,13 @@ module mod_clm_histfile
     integer(ik4) :: sec !seconds into current day
     character(len=*) , parameter :: subname = 'set_hist_filename'
 
-    if (hist_freq == 0 .and. hist_mfilt == 1) then   !monthly
+    if ( hist_freq == 0 .and. nlomon ) then
       call curr_date (idatex, yr, mon, day, sec)
       write(cdate,'(i4.4,"-",i2.2)') yr,mon
-    else                        !other
+    else
       call curr_date (idatex, yr, mon, day, sec)
-      write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day,sec
+      write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day, &
+              (sec+int(dtsec))
     end if
     write(hist_index,'(i1.1)') hist_file - 1
     set_hist_filename = trim(dirout)//trim(caseid)//".clm."// &
@@ -3796,15 +3779,15 @@ module mod_clm_histfile
   ! Remove history files unless this is end of run or
   ! history file is not full.
   !
-  subroutine hist_do_disp(ntapes,hist_ntimes,hist_mfilt,if_stop, &
+  subroutine hist_do_disp(ntapes,hist_ntimes,nlomon,if_stop, &
                   if_disphist,rstwr,nlend)
     implicit none
     !actual number of history tapes
     integer(ik4) , intent(in) :: ntapes
     !current numbers of time samples on history tape
     integer(ik4) , intent(in) :: hist_ntimes(ntapes)
-    !maximum number of time samples per tape
-    integer(ik4) , intent(in) :: hist_mfilt(ntapes)
+    ! Is end of month
+    logical , intent(in) :: nlomon
     !true => last time step of run
     logical , intent(out) :: if_stop
     !true => save and dispose history file
@@ -3831,7 +3814,7 @@ module mod_clm_histfile
       ! Dispose
       if_disphist(1:ntapes) = .false.
       do t = 1 , ntapes
-        if ( hist_ntimes(t) ==  hist_mfilt(t) ) then
+        if ( nlomon ) then
           if_disphist(t) = .true.
         end if
       end do
