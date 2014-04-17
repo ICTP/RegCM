@@ -3280,11 +3280,11 @@ module mod_clm_cnrest
 #ifdef VERTSOILC
        if (flag == 'define') then
           call ncd_defvar(ncid=ncid, varname=trim(varname)//'_vr', xtype=ncd_double,  &
-               dim1name='column',dim2name='levgrnd', switchdim=.true., &
+               dim1name='column',dim2name='levgrnd', &
                long_name=longname,units=units)
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname=trim(varname)//'_vr', data=data_rl, &
-               dim1name=namec,switchdim=.true., ncid=ncid, flag=flag, readvar=readvar)
+               dim1name=namec,ncid=ncid, flag=flag, readvar=readvar)
           if (flag=='read' .and. .not. readvar) then
              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
           end if

@@ -51,18 +51,18 @@ module mod_clm_slakerest
 
     if (flag == 'define') then
        call clm_addvar(clmvar_double,ncid,'LAKE_ICEFRAC', &
-            cdims=(/'column','levlak'/), switchdim=.true., &
+            cdims=(/'column','levlak'/), &
             long_name='lake layer ice fraction',units='kg/kg')
     else if (flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'LAKE_ICEFRAC') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'LAKE_ICEFRAC', &
-                cptr%cws%lake_icefrac,gcomm_column,switchdim=.true.)
+                cptr%cws%lake_icefrac,gcomm_column)
       end if
     else if (flag == 'write') then
       call clm_writevar(ncid,'LAKE_ICEFRAC', &
-              cptr%cws%lake_icefrac,gcomm_column,switchdim=.true.)
+              cptr%cws%lake_icefrac,gcomm_column)
     end if
 
     ! column physical state variable - savedtke1

@@ -181,9 +181,7 @@ module mod_clm_restfile
     ! Write out diagnostic info
 
     if (myid == italk) then
-      write(stdout,'(72a1)') ("-",i=1,60)
       write(stdout,*) 'Successfully read restart data for restart run'
-      write(stdout,*)
     end if
   end subroutine restFile_read
   !

@@ -340,9 +340,6 @@ module mod_clm_initialize
 
     if ( nsrest == nsrContinue ) then
       call restFile_getfile(fnamer, rdate)
-      if ( myid == italk ) then
-        write(stdout,*)'reading restart file ',fnamer
-      end if
       call restFile_read( fnamer )
     else if ( nsrest == nsrStartup ) then
       ! Get initial data from regcm !
