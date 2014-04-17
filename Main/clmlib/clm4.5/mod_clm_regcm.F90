@@ -134,6 +134,7 @@ module mod_clm_regcm
     end if
     rstwr = .false.
     nlend = .false.
+    nlomon = .false.
     if ( ktau > 0 ) then
       if ( ktau+1 == mtau ) then
         nlend = .true.
