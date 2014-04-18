@@ -482,14 +482,14 @@ module mod_clm_biogeophysrest
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'ZISNO') ) then
         call fatal(__FILE__,__LINE__,'clm_now_stopping')
       else
-        allocate(temp2d(begc:endc,-nlevsno+1:0))
+        allocate(temp2d(begc:endc,-nlevsno:-1))
         call clm_readvar(ncid,'ZISNO',temp2d,gcomm_column)
-        cptr%cps%zi(begc:endc,-nlevsno+1:0) = temp2d(begc:endc,-nlevsno+1:0)
+        cptr%cps%zi(begc:endc,-nlevsno:-1) = temp2d(begc:endc,-nlevsno:-1)
         deallocate(temp2d)
       end if
     else if ( flag == 'write' ) then
-      allocate(temp2d(begc:endc,-nlevsno+1:0))
-      temp2d(begc:endc,-nlevsno+1:0) = cptr%cps%zi(begc:endc,-nlevsno+1:0)
+      allocate(temp2d(begc:endc,-nlevsno:-1))
+      temp2d(begc:endc,-nlevsno:-1) = cptr%cps%zi(begc:endc,-nlevsno:-1)
       call clm_writevar(ncid,'ZISNO',temp2d,gcomm_column)
       deallocate(temp2d)
     end if

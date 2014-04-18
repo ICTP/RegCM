@@ -39,7 +39,7 @@ module mod_clm_initialize
   use mod_clm_cnecosystemdyn , only : CNEcosystemDynInit
 #endif
   use mod_clm_initslake , only : initSLake
-  use mod_clm_mkarbinit , only : mkarbinit , mkregcminit
+  use mod_clm_mkarbinit , only : mkregcminit
   use mod_clm_pftdyn , only : pftdyn_init , pftdyn_interp
 #if (defined CNDV)
   use mod_clm_pftdyn , only : pftwt_init
@@ -336,7 +336,7 @@ module mod_clm_initialize
     ! ------------------------------------------------------------------------
 
     ! No weight related information can be contained in the routines,
-    ! "mkarbinit, inicfile and restFile".
+    ! "mkregcminit, inicfile and restFile".
 
     if ( nsrest == nsrContinue ) then
       call restFile_getfile(fnamer, rdate)

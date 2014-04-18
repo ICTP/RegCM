@@ -968,11 +968,16 @@ module mod_clm_snicar
             end do
 
             ! Upward flux at snowpack top:
-            F_sfc_pls = &
-               (Y(2*snl_lcl+1)*(exp(-lambda(snl_top)*tau_star(snl_top)) + &
-                  xgamma(snl_top))) + &
-               (Y(2*snl_lcl+2)*(exp(-lambda(snl_top)*tau_star(snl_top)) - &
-                  xgamma(snl_top))) + C_pls_top(snl_top)
+            if ( lambda(snl_top)*tau_star(snl_top) > 25 ) then
+              F_sfc_pls = Y(2*snl_lcl+1)*xgamma(snl_top) - &
+                 Y(2*snl_lcl+2)*xgamma(snl_top) + C_pls_top(snl_top)
+            else
+              F_sfc_pls = &
+                 (Y(2*snl_lcl+1)*(exp(-lambda(snl_top)*tau_star(snl_top)) + &
+                    xgamma(snl_top))) + &
+                 (Y(2*snl_lcl+2)*(exp(-lambda(snl_top)*tau_star(snl_top)) - &
+                    xgamma(snl_top))) + C_pls_top(snl_top)
+            end if
 
             ! Net flux at bottom = absorbed radiation by underlying surface:
             F_btm_net = -F_net(snl_btm)
@@ -1297,7 +1302,6 @@ module mod_clm_snicar
     qflx_snofrz_lyr    => clm3%g%l%c%cwf%qflx_snofrz_lyr
     do_capsnow         => clm3%g%l%c%cps%do_capsnow
     frac_sno           => clm3%g%l%c%cps%frac_sno_eff
-
 
     ! loop over columns that have at least one snow layer
     do fc = 1 , num_snowc

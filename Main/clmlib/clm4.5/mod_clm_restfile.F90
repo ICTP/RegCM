@@ -15,7 +15,7 @@ module mod_clm_restfile
   use mod_clm_biogeophysrest , only : BiogeophysRest
   use mod_clm_accumul , only : accumulRest
   use mod_clm_slakerest , only : SLakeRest
-  use mod_clm_decomp ,  only : get_proc_bounds , get_proc_global
+  use mod_clm_decomp ,  only : get_proc_global
   use mod_clm_varpar , only : nlevsno , nlevlak , nlevgrnd , nlevurb
   use mod_clm_varpar , only : numrad , nlevcan
   use mod_clm_varctl , only : caseid , ctitle , version , username ,    &
@@ -147,7 +147,7 @@ module mod_clm_restfile
     implicit none
     character(len=*), intent(in) :: rfile  ! output netcdf restart file
     type(clm_filetype) :: ncid ! netcdf id
-    integer(ik4) :: i          ! index
+    integer(ik4) :: i
 
     ! Open file
 
