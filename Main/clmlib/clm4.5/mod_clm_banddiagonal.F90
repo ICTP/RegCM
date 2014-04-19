@@ -1,85 +1,55 @@
 module mod_clm_banddiagonal
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !MODULE: BandDiagonalMod
-!
-! !DESCRIPTION:
-! Band Diagonal matrix solution
-!
-! !USES:
+  !
+  ! Band Diagonal matrix solution
+  !
+  use mod_intkinds
   use mod_realkinds
+  use mod_mpmessage
   use mod_stdio
   use lapack_dgbsv
-! !PUBLIC TYPES:
+
   implicit none
 
   private
 
   save
-!
-! !PUBLIC MEMBER FUNCTIONS:
+
   public :: BandDiagonal
-!
-! !REVISION HISTORY:
-! Created by Mariana Vertenstein
-!
-!EOP
-!-----------------------------------------------------------------------
 
-contains
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: BandDiagonal
-!
-! !INTERFACE:
-  subroutine BandDiagonal(lbc, ubc, lbj, ubj, jtop, jbot, numf, filter, nband, &
-                          b, r, u)
-!
-! !DESCRIPTION:
-! Tridiagonal matrix solution
-!
-! !USES:
-!scs
-!
-! !ARGUMENTS:
+  contains
+  !
+  ! Tridiagonal matrix solution
+  !
+  subroutine BandDiagonal(lbc, ubc, lbj, ubj, jtop, jbot, numf, &
+                          filter, nband, b, r, u)
     implicit none
-    integer , intent(in)    :: lbc, ubc                ! lbinning and ubing column indices
-    integer , intent(in)    :: lbj, ubj                ! lbinning and ubing level indices
-    integer , intent(in)    :: jtop(lbc:ubc)           ! top level for each column
-!scs:  add jbot
-    integer , intent(in)    :: jbot(lbc:ubc)           ! bottom level for each column
-!scs
-    integer , intent(in)    :: numf                    ! filter dimension
-    integer , intent(in)    :: nband                   ! band width
-    integer , intent(in)    :: filter(ubc-lbc+1)       ! filter
-    real(rk8), intent(in)    :: b(lbc:ubc,nband,lbj:ubj)! compact band matrix
-    real(rk8), intent(in)    :: r(lbc:ubc, lbj:ubj)     ! "r" rhs of linear system
-    real(rk8), intent(inout) :: u(lbc:ubc, lbj:ubj)     ! solution
-!
-! !CALLED FROM:
-! subroutine SoilTemperature in module SoilTemperatureMod
-!
-! !REVISION HISTORY:
-! 26 September 2008: S. Swenson; modified TridiagonalMod.F90
-!
-!EOP
-!
-! !OTHER LOCAL VARIABLES:
-!
-    integer  :: j,ci,fc,info,m,n                   !indices
-    integer  :: kl,ku                      !number of sub/super diagonals
-    integer, allocatable :: ipiv(:)        !temporary
-    real(rk8),allocatable :: ab(:,:),temp(:,:)       !compact storage array
+    ! lbinning and ubing column indices
+    integer(ik4) , intent(in)    :: lbc, ubc
+    ! lbinning and ubing level indices
+    integer(ik4) , intent(in)    :: lbj, ubj
+    ! top level for each column
+    integer(ik4) , intent(in)    :: jtop(lbc:ubc)
+    !scs:  add jbot
+    ! bottom level for each column
+    integer(ik4) , intent(in)    :: jbot(lbc:ubc)
+    !scs
+    integer(ik4) , intent(in)    :: numf   ! filter dimension
+    integer(ik4) , intent(in)    :: nband  ! band width
+    integer(ik4) , intent(in)    :: filter(ubc-lbc+1)       ! filter
+    ! compact band matrix
+    real(rk8), intent(in)    :: b(lbc:ubc,nband,lbj:ubj)
+    ! "r" rhs of linear system
+    real(rk8), intent(in)    :: r(lbc:ubc, lbj:ubj)
+    ! solution
+    real(rk8), intent(inout) :: u(lbc:ubc, lbj:ubj)
+
+    integer(ik4)  :: j,ci,fc,info,m,n          !indices
+    integer(ik4)  :: kl,ku                     !number of sub/super diagonals
+    integer(ik4), allocatable :: ipiv(:)       !temporary
+    real(rk8),allocatable :: ab(:,:),temp(:,:) !compact storage array
     real(rk8),allocatable :: result(:)
 
-!-----------------------------------------------------------------------
-
-
-!!$     SUBROUTINE SGBSV( N, KL, KU, NRHS, AB, LDAB, IPIV, B, LDB, INFO )
+!!$     SUBROUTINE DGBSV( N, KL, KU, NRHS, AB, LDAB, IPIV, B, LDB, INFO )
 !!$*
 !!$*  -- LAPACK driver routine (version 3.1) --
 !!$*     Univ. of Tennessee, Univ. of California Berkeley and NAG Ltd..
@@ -96,7 +66,7 @@ contains
 !!$*  Purpose
 !!$*  =======
 !!$*
-!!$*  SGBSV computes the solution to a real system of linear equations
+!!$*  DGBSV computes the solution to a real system of linear equations
 !!$*  A * X = B, where A is a band matrix of order N with KL subdiagonals
 !!$*  and KU superdiagonals, and X and B are N-by-NRHS matrices.
 !!$*
@@ -176,66 +146,63 @@ contains
 !!$*  elements of U because of fill-in resulting from the row interchanges.
 
 
-!Set up input matrix AB
-!An m-by-n band matrix with kl subdiagonals and ku superdiagonals
-!may be stored compactly in a two-dimensional array with
-!kl+ku+1 rows and n columns
-!AB(KL+KU+1+i-j,j) = A(i,j)
+    !Set up input matrix AB
+    !An m-by-n band matrix with kl subdiagonals and ku superdiagonals
+    !may be stored compactly in a two-dimensional array with
+    !kl+ku+1 rows and n columns
+    !AB(KL+KU+1+i-j,j) = A(i,j)
 
-    do fc = 1,numf
-       ci = filter(fc)
+    do fc = 1 , numf
+      ci = filter(fc)
 
-       kl=(nband-1)/2
-       ku=kl
-! m is the number of rows required for storage space by dgbsv
-       m=2*kl+ku+1
-! n is the number of levels (snow/soil)
-!scs: replace ubj with jbot
-       n=jbot(ci)-jtop(ci)+1
+      kl = (nband-1)/2
+      ku = kl
+      ! m is the number of rows required for storage space by dgbsv
+      m = 2*kl+ku+1
+      ! n is the number of levels (snow/soil)
+      !scs: replace ubj with jbot
+      n = jbot(ci)-jtop(ci)+1
 
-       allocate(ab(m,n))
-       ab=0.0
+      allocate(ab(m,n))
+      ab = 0.0D0
 
-       ab(kl+ku-1,3:n)=b(ci,1,jtop(ci):jbot(ci)-2)   ! 2nd superdiagonal
-       ab(kl+ku+0,2:n)=b(ci,2,jtop(ci):jbot(ci)-1)   ! 1st superdiagonal
-       ab(kl+ku+1,1:n)=b(ci,3,jtop(ci):jbot(ci))     ! diagonal
-       ab(kl+ku+2,1:n-1)=b(ci,4,jtop(ci)+1:jbot(ci)) ! 1st subdiagonal
-       ab(kl+ku+3,1:n-2)=b(ci,5,jtop(ci)+2:jbot(ci)) ! 2nd subdiagonal
+      ab(kl+ku-1,3:n) = b(ci,1,jtop(ci):jbot(ci)-2)   ! 2nd superdiagonal
+      ab(kl+ku+0,2:n) = b(ci,2,jtop(ci):jbot(ci)-1)   ! 1st superdiagonal
+      ab(kl+ku+1,1:n) = b(ci,3,jtop(ci):jbot(ci))     ! diagonal
+      ab(kl+ku+2,1:n-1) = b(ci,4,jtop(ci)+1:jbot(ci)) ! 1st subdiagonal
+      ab(kl+ku+3,1:n-2) = b(ci,5,jtop(ci)+2:jbot(ci)) ! 2nd subdiagonal
 
-       allocate(temp(m,n))
-       temp=ab
+      allocate(temp(m,n))
+      temp = ab
 
-       allocate(ipiv(n))
-       allocate(result(n))
+      allocate(ipiv(n))
+      allocate(result(n))
 
-! on input result is rhs, on output result is solution vector
-       result(:)=r(ci,jtop(ci):jbot(ci))
+      ! on input result is rhs, on output result is solution vector
+      result(:) = r(ci,jtop(ci):jbot(ci))
 
-!       DGBSV( N, KL, KU, NRHS, AB, LDAB, IPIV, B, LDB, INFO )
-       call dgbsv( n, kl, ku, 1, ab, m, ipiv, result, n, info )
-       u(ci,jtop(ci):jbot(ci))=result(:)
+      ! DGBSV( N, KL, KU, NRHS, AB, LDAB, IPIV, B, LDB, INFO )
+      call dgbsv( n, kl, ku, 1, ab, m, ipiv, result, n, info )
+      u(ci,jtop(ci):jbot(ci))=result(:)
 
-       if(info /= 0) then
-          write(stdout,*)'index: ', ci
-          write(stdout,*)'n,kl,ku,m ',n,kl,ku,m
-          write(stdout,*)'dgbsv info: ',ci,info
-
-          write(stdout,*) ''
-          write(stdout,*) 'ab matrix'
-          do j=1,n
-             !             write(stdout,'(i2,7f18.7)') j,temp(:,j)
-             write(stdout,'(i2,5f18.7)') j,temp(3:7,j)
-          enddo
-          write(stdout,*) ''
-          stop
-       endif
-       deallocate(temp)
-
-       deallocate(ab)
-       deallocate(ipiv)
-       deallocate(result)
+      if ( info /= 0 ) then
+        write(stdout,*)'index: ', ci
+        write(stdout,*)'n,kl,ku,m ',n,kl,ku,m
+        write(stdout,*)'dgbsv info: ',ci,info
+        write(stdout,*) ''
+        write(stdout,*) 'ab matrix'
+        do j = 1 , n
+          ! write(stdout,'(i2,7f18.7)') j,temp(:,j)
+          write(stdout,'(i2,5f18.7)') j,temp(3:7,j)
+        end do
+        write(stdout,*) ''
+        call fatal(__FILE__,__LINE__,'Linear algebra error')
+      end if
+      deallocate(temp)
+      deallocate(ab)
+      deallocate(ipiv)
+      deallocate(result)
     end do
-
   end subroutine BandDiagonal
 
 end module mod_clm_banddiagonal

@@ -969,15 +969,8 @@ module mod_clm_mkarbinit
 
       if ( h2osno(c) < 0.1D0 ) then
         ! Start with some snow on mountains and on cold regions
-        if ( adomain%topo(g) > 1000.0D0 .and. &
-             adomain%tgrd(g) < 263.0D0 ) then
-          h2osno(c) = h2osno_max * d_1000
-          if ( adomain%topo(g) > 2000.0 ) h2osno(c) = h2osno(c) * 2.0D0
-          if ( adomain%topo(g) > 4000.0 ) h2osno(c) = h2osno(c) * 4.0D0
-        else
-          if ( adomain%tgrd(g) < 268.0D0 ) then
-            h2osno(c) = h2osno_max * d_100
-          end if
+        if ( adomain%tgrd(g) < 263.0D0 ) then
+          h2osno(c) = adomain%topo(g)/10.0
         end if
       end if
 
