@@ -288,8 +288,10 @@ module mod_clm_regcm
     implicit none
     type(lm_state) , intent(inout) :: lms
     integer(ik4) :: k , g , begg , endg
+    real(rk8), pointer,dimension(:,:)    :: vocemis2d
 
     call get_proc_bounds(begg,endg)
+    allocate(vocemis2d(begg:endg,1))
 
     ! Get back data from clm_l2a
     call glb_l2c_ss(lndcomm,clm_l2a%t_rad,lms%tgbb)
@@ -360,7 +362,11 @@ module mod_clm_regcm
     ! From the input
     call glb_l2c_ss(lndcomm,clm_a2l%forc_rain,lms%prcp)
     call glb_l2c_ss(lndcomm,clm_a2l%forc_psrf,lms%sfcp)
-
+!From land to chemistry
+!only for Isoprene 
+    vocemis2d(:,1) = clm_l2a%flxvoc(:,1)
+    call glb_l2c_ss(lndcomm,vocemis2d,lms%vocemiss)
+!--------------------------------------------------
     ! Will fix
     !clm_l2a%eflx_lwrad_out
     !clm_l2a%fsa

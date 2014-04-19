@@ -88,7 +88,7 @@ module mod_clm_control
   use mod_clm_surfacealbedo , only : albice
   use mod_clm_hydrology1 , only : Hydrology1_readnl
   use mod_clm_soilhydrology , only : SoilHydrology_readnl
-
+  use mod_clm_megan, only : shr_megan_readnl , shr_megan_mechcomps_n
   implicit none
 
   private
@@ -289,6 +289,7 @@ module mod_clm_control
     call Hydrology1_readnl(    namelistfile )
     call SoilHydrology_readnl( namelistfile )
 
+    if ( shr_megan_mechcomps_n > 0 ) call shr_megan_readnl(namelistfile)
     ! ----------------------------------------------------------------------
     ! Broadcast all control information if appropriate
     ! ----------------------------------------------------------------------
