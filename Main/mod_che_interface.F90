@@ -36,15 +36,20 @@ module mod_che_interface
   use mod_che_bionit
 !
   public
+#ifdef CLM45
+  public :: voc_em
+  real(rk8), pointer, dimension(:,:) :: voc_em
+#endif
+
 !
   contains 
 !
-#if (defined CLM)
+#if (defined CLM45)
   subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,          &
                        rembc,remrat,coszrs,svegfrac2d,sxlai2d,        &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdelt,     &
                        sdelq,ssw2da,convpr,icutop,icubot,taucldsp, &
-                       voc_em,voc_em1,voc_em2,dep_vels)
+                       lms)
 #else
   subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,      &
                        rembc,remrat,coszrs,svegfrac2d,sxlai2d,    &
@@ -72,8 +77,8 @@ module mod_che_interface
     type(bound_area) , intent(in) :: ba_cr
     real(rk8) , pointer , dimension(:,:) :: coszrs
 
-#if (defined CLM)
-    real(rk8), pointer :: voc_em(:,:), voc_em1(:,:), voc_em2(:,:), dep_vels(:,:,:)
+#if (defined CLM45)
+    type(lm_state),intent(in) :: lms
 #endif
 
     call assignpnt(icutop,kcumtop)
@@ -132,13 +137,9 @@ module mod_che_interface
     cba%nw = ba_cr%nw
     cba%nsp = ba_cr%nsp
 
-#if (defined CLM)
-#if (defined VOC)
+#if (defined CLM45)
+    call getmem2d(voc_em,jci1,jci2,ici1,ici2,'clm:voc_em')
     call assignpnt(voc_em,cvoc_em)
-    call assignpnt(voc_em1,cvoc_em1)
-    call assignpnt(voc_em2,cvoc_em2)
-#endif
-    call assignpnt(dep_vels,cdep_vels)
 #endif
 
   end subroutine init_chem

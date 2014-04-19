@@ -30,6 +30,9 @@ module mod_params
   use mod_che_interface
   use mod_rad_interface
   use mod_pbl_interface
+#ifdef CLM45
+  use mod_clm_regcm
+#endif
   use mod_precip
   use mod_cloud_s1
   use mod_split
@@ -1485,11 +1488,11 @@ module mod_params
   call init_cumulus
 
   if ( ichem == 1 ) then
-#ifdef CLM
+#ifdef CLM45
     call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat,    &
                    coszrs,svegfrac2d,sxlai2d,sfracv2d,sfracb2d,sfracs2d, &
                    solis,sdelt,sdelq,ssw2da,convpr,icumtop,              &
-                   icumbot,taucldsp,voc_em,voc_em1,voc_em2,dep_vels)
+                   icumbot,taucldsp,lms)
 #else
     call init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,rembc,remrat,    &
                    coszrs,svegfrac2d,sxlai2d,sfracv2d,sfracb2d,sfracs2d, &

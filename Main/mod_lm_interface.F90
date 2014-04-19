@@ -31,6 +31,7 @@ module mod_lm_interface
   use mod_bats_common
   use mod_ocn_common
   use mod_slice
+  use mod_che_common
 #ifdef CLM
   use mod_clm
   use mod_mtrxclm
@@ -136,6 +137,7 @@ module mod_lm_interface
     call getmem3d(lms%sncv,1,nnsg,jci1,jci2,ici1,ici2,'bats:sncv')
     call getmem3d(lms%scvk,1,nnsg,jci1,jci2,ici1,ici2,'bats:scvk')
     call getmem3d(lms%emisv,1,nnsg,jci1,jci2,ici1,ici2,'bats:emisv')
+    call getmem4d(lms%vocemiss,1,nnsg,jci1,jci2,ici1,ici2,1,1,'bats:vocemiss')
 
 #ifdef CLM
     call getmem2d(r2ctb,1,jxp,1,iyp,'clm:r2ctb')
@@ -398,6 +400,17 @@ module mod_lm_interface
 #else
 #ifdef CLM45
     call runclm45(lm,lms)
+
+!coupling of biogenic VOC from CLM45 to chemistry
+    if(ichem == 1) then
+    do i = ici1 , ici2
+       do j = jci1 , jci2
+          cvoc_em(j,i) = lms%vocemiss(1,j,i,1)
+       end do
+    end do
+    end if
+!-----------------------------------------------
+
 #else
     call vecbats(lm,lms)
 #endif

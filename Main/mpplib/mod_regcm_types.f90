@@ -264,6 +264,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: tdeltas
     real(rk8) , pointer , dimension(:,:,:) :: tskin
     real(rk8) , pointer , dimension(:,:,:) :: sst
+    real(rk8) , pointer , dimension(:,:,:,:) :: vocemiss
   end type lm_state
 
   type lm_exchange
