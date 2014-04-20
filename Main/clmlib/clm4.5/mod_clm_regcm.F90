@@ -12,7 +12,7 @@ module mod_clm_regcm
   use mod_service
   use mod_clm_initialize
   use mod_clm_driver
-  use mod_clm_varctl , only : use_c13 , co2_ppmv
+  use mod_clm_varctl , only : use_c13 , co2_ppmv , enable_megan_emission
   use mod_clm_varpar , only : nlevgrnd
   use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , &
                               tcrit , denh2o
@@ -288,10 +288,9 @@ module mod_clm_regcm
     implicit none
     type(lm_state) , intent(inout) :: lms
     integer(ik4) :: k , g , begg , endg
-    real(rk8), pointer,dimension(:,:)    :: vocemis2d
+    real(rk8) , pointer , dimension(:,:) :: vocemis2d
 
     call get_proc_bounds(begg,endg)
-    allocate(vocemis2d(begg:endg,1))
 
     ! Get back data from clm_l2a
     call glb_l2c_ss(lndcomm,clm_l2a%t_rad,lms%tgbb)
@@ -362,11 +361,18 @@ module mod_clm_regcm
     ! From the input
     call glb_l2c_ss(lndcomm,clm_a2l%forc_rain,lms%prcp)
     call glb_l2c_ss(lndcomm,clm_a2l%forc_psrf,lms%sfcp)
-!From land to chemistry
-!only for Isoprene 
-    vocemis2d(:,1) = clm_l2a%flxvoc(:,1)
-    call glb_l2c_ss(lndcomm,vocemis2d,lms%vocemiss)
-!--------------------------------------------------
+
+    !--------------------------------------------------
+    ! From land to chemistry
+    ! only for Isoprene 
+    if ( ichem == 1 .and. enable_megan_emission ) then
+      allocate(vocemis2d(begg:endg,1))
+      vocemis2d(:,1) = clm_l2a%flxvoc(:,1)
+      call glb_l2c_ss(lndcomm,vocemis2d,lms%vocemiss)
+      deallocate(vocemis2d)
+    end if
+    !--------------------------------------------------
+
     ! Will fix
     !clm_l2a%eflx_lwrad_out
     !clm_l2a%fsa

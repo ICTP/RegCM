@@ -289,7 +289,7 @@ module mod_clm_control
     call Hydrology1_readnl(    namelistfile )
     call SoilHydrology_readnl( namelistfile )
 
-    if ( shr_megan_mechcomps_n > 0 ) call shr_megan_readnl(namelistfile)
+    if ( enable_megan_emission ) call shr_megan_readnl(namelistfile)
     ! ----------------------------------------------------------------------
     ! Broadcast all control information if appropriate
     ! ----------------------------------------------------------------------

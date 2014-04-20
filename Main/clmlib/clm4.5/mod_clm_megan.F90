@@ -80,10 +80,10 @@ module mod_clm_megan
   type(shr_megan_megcomp_t),  pointer :: shr_megan_linkedlist
 
   ! number of unique megan compounds
-  integer :: shr_megan_megcomps_n  = 150
+  integer :: shr_megan_megcomps_n  = 0
   ! number of unique compounds in the CAM chemical mechanism than have
   ! MEGAN emissions
-  integer :: shr_megan_mechcomps_n = 150
+  integer :: shr_megan_mechcomps_n = 0
 
   ! switch to use mapped emission factors
   logical :: shr_megan_mapped_emisfctrs = .false.
