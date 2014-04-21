@@ -99,6 +99,9 @@ module mod_che_common
   integer(ik4) , pointer , dimension(:) :: bvoc_trmask
   real(rk8) , pointer , dimension(:,:) :: cvoc_em
 #endif
+#ifdef CLM
+  real(rk8) , pointer , dimension(:,:,:) :: cdep_vels
+#endif
 
   contains
 
