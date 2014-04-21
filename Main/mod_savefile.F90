@@ -150,6 +150,13 @@ module mod_savefile
   real(rk8) , public , pointer , dimension(:,:) :: lndcat_io
 #endif
 
+#ifdef CLM45
+  real(rk8) , public , pointer , dimension(:,:,:) :: swdiralb_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: swdifalb_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: lwdiralb_io
+  real(rk8) , public , pointer , dimension(:,:,:) :: lwdifalb_io
+#endif
+
   contains
 
   subroutine allocate_mod_savefile
@@ -281,6 +288,16 @@ module mod_savefile
         call getmem4d(tlak_io,1,nnsg,jcross1,jcross2, &
                               icross1,icross2,1,ndpmax,'tlak_io')
       end if
+#endif
+#ifdef CLM45
+      call getmem3d(swdiralb_io,1,nnsg,jcross1,jcross2, &
+                                       icross1,icross2,'swdiralb')
+      call getmem3d(swdifalb_io,1,nnsg,jcross1,jcross2, &
+                                       icross1,icross2,'swdifalb')
+      call getmem3d(lwdiralb_io,1,nnsg,jcross1,jcross2, &
+                                       icross1,icross2,'lwdiralb')
+      call getmem3d(lwdifalb_io,1,nnsg,jcross1,jcross2, &
+                                       icross1,icross2,'lwdifalb')
 #endif
     endif
   end subroutine allocate_mod_savefile
@@ -526,6 +543,16 @@ module mod_savefile
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'lndcat'),lndcat_io)
         call check_ok(__FILE__,__LINE__,'Cannot read lndcat')
       end if
+#endif
+#ifdef CLM45
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'swdiralb'),swdiralb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read swdiralb')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'swdifalb'),swdifalb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read swdifalb')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'lwdiralb'),lwdiralb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read lwdiralb')
+      ncstatus = nf90_get_var(ncid,get_varid(ncid,'lwdifalb'),lwdifalb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot read lwdifalb')
 #endif
       ncstatus = nf90_close(ncid)
       call check_ok(__FILE__,__LINE__,'Cannot close savefile '//trim(ffin))
@@ -867,6 +894,23 @@ module mod_savefile
         call check_ok(__FILE__,__LINE__,'Cannot create var lndcat')
       end if
 #endif
+#ifdef CLM45
+      wrkdim(1) = dimids(idnnsg)
+      wrkdim(2) = dimids(idjcross)
+      wrkdim(3) = dimids(idicross)
+      ncstatus = nf90_def_var(ncid,'swdiralb',nf90_double,wrkdim(1:3), &
+                              varids(87))
+      call check_ok(__FILE__,__LINE__,'Cannot create var swdiralb')
+      ncstatus = nf90_def_var(ncid,'swdifalb',nf90_double,wrkdim(1:3), &
+                              varids(88))
+      call check_ok(__FILE__,__LINE__,'Cannot create var swdifalb')
+      ncstatus = nf90_def_var(ncid,'lwdiralb',nf90_double,wrkdim(1:3), &
+                              varids(89))
+      call check_ok(__FILE__,__LINE__,'Cannot create var lwdiralb')
+      ncstatus = nf90_def_var(ncid,'lwdifalb',nf90_double,wrkdim(1:3), &
+                              varids(90))
+      call check_ok(__FILE__,__LINE__,'Cannot create var lwdifalb')
+#endif
 
       ncstatus = nf90_put_att(ncid,nf90_global,'ktau',ktau)
       call check_ok(__FILE__,__LINE__,'Cannot save ktau')
@@ -1083,6 +1127,16 @@ module mod_savefile
         ncstatus = nf90_put_var(ncid,varids(86),lndcat_io)
         call check_ok(__FILE__,__LINE__,'Cannot write lndcat')
       end if
+#endif
+#ifdef CLM45
+      ncstatus = nf90_put_var(ncid,varids(87),swdiralb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot write swdiralb')
+      ncstatus = nf90_put_var(ncid,varids(88),swdifalb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot write swdifalb')
+      ncstatus = nf90_put_var(ncid,varids(89),lwdiralb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot write swdiralb')
+      ncstatus = nf90_put_var(ncid,varids(90),lwdifalb_io)
+      call check_ok(__FILE__,__LINE__,'Cannot write swdifalb')
 #endif
       ncstatus = nf90_close(ncid)
       call check_ok(__FILE__,__LINE__,'Cannot close savefile '//trim(ffout))

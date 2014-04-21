@@ -350,6 +350,12 @@ module mod_init
       end do
     end if
 #endif
+#ifdef CLM45
+    call subgrid_distribute(swdiralb_io,lms%swdiralb,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(swdifalb_io,lms%swdifalb,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(lwdiralb_io,lms%lwdiralb,jci1,jci2,ici1,ici2)
+    call subgrid_distribute(lwdifalb_io,lms%lwdifalb,jci1,jci2,ici1,ici2)
+#endif
 !
     if ( idcsst == 1 ) then
       call subgrid_distribute(sst_io,lms%sst,jci1,jci2,ici1,ici2)

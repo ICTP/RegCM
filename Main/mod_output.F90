@@ -669,6 +669,12 @@ module mod_output
           call grid_collect(qflux_restore_sst,qflux_restore_sst_io, &
             jci1,jci2,ici1,ici2,1,12)
         end if
+#ifdef CLM45
+        call subgrid_collect(lms%swdiralb,swdiralb_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%swdifalb,swdifalb_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%lwdiralb,lwdiralb_io,jci1,jci2,ici1,ici2)
+        call subgrid_collect(lms%lwdifalb,lwdifalb_io,jci1,jci2,ici1,ici2)
+#endif
         call write_savefile(idatex,ldotmp)
       end if
     end if
