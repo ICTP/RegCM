@@ -67,15 +67,15 @@ program clm2rcm
   real(rk4) , dimension(3) :: varmax , varmin
   real(rk8) :: xhr
   real(rk4) :: offset , xscale , xlatmin , xlatmax , xlonmin , xlonmax
-  real(rk4) :: pxerr , adjust , totpft , totadj
+  real(rk4) :: pxerr , pmax
   real(rk4) , pointer , dimension(:) :: glat , glon , zlat ,      &
                                        zlev , zlon
   real(rk4) , pointer , dimension(:,:) :: mpu
   real(rk4) , pointer , dimension(:,:,:) :: regxyz
   real(rk4) , pointer , dimension(:,:,:,:) :: regyxzt , zoom
   real(rk4) , pointer , dimension(:,:) :: landmask , sandclay
-  integer(ik4) :: ipathdiv , ierr , npatch
-  integer(ik4) :: i , iz , it , j , k , l , ipnt
+  integer(ik4) :: ipathdiv , ierr 
+  integer(ik4) :: i , iz , it , j , k , l , kmax , ipnt
   integer(ik4) :: jotyp , idin , idout , ifield , ifld , imap
   integer(ik4) :: idimid , ivarid
   character(len=256) :: namelistfile , prgname
@@ -83,9 +83,6 @@ program clm2rcm
   character(len=256) :: outfil_nc
   character(len=64) :: csdate , cldim
   integer(ik4) , dimension(8) :: ilevs
-  real(rk4) , dimension(:) , allocatable :: vals_swap
-  real(rk4) , dimension(:,:) , allocatable :: pctspec
-  integer , dimension(:) , allocatable :: iord
 
   data ilevs /-1,-1,-1,-1,-1,-1,-1,-1/
   data xmiss /-9999.0/
@@ -173,8 +170,6 @@ program clm2rcm
 
   ! determine which files to create (emission factor map or not)
   call comp(ifield,bvoc)
-  allocate(pctspec(jx,iy))
-  pctspec = 0.0
  
   ! Loop over the fields defined in clm.param
   do ifld = 1 , ifield
@@ -375,107 +370,41 @@ program clm2rcm
     imondate = irefdate
     do l = 1 , ntim(ifld)
       if ( ifld == ipft ) then
-        allocate(iord(nlev(ifld)))
-        allocate(vals_swap(nlev(ifld)))
-        xmask = 0.0
-        where ( sum(regyxzt(:,:,:,l),3) >= 1.0 )
-          xmask = 1.0
-        end where        
         do i = 1 , iy
           do j = 1 , jx
-            if ( xmask(j,i) > 0.0 ) then
+            if ( regyxzt(j,i,1,l)>-99. ) then
               do k = 1 , nlev(ifld)
-                regyxzt(j,i,k,l) = amax1(aint(regyxzt(j,i,k,l)),0.0)
+                regyxzt(j,i,k,l) = aint(regyxzt(j,i,k,l))
               end do
-              call sortpatch(regyxzt(j,i,:,l),vals_swap,iord)
-              npatch = min(MAXPATCH_PFT,nlev(ifld))
-              pxerr = 0.0
-              if ( pctspec(j,i) > 0.00001D0 ) then
-                do k = 1 , npatch
-                  pxerr = pxerr + vals_swap(k) * 100.0D0/(100.0D0-pctspec(j,i))
-                end do
-              else
-                do k = 1 , npatch
-                  pxerr = pxerr + vals_swap(k)
-                end do
-              end if
-              pxerr = pxerr - 100.0
-              if ( abs(pxerr) > 0.0 ) then
-                totpft = sum(vals_swap(1:npatch))
-                totadj = 0.0
-                do k = 1 , npatch
-                  adjust = aint((vals_swap(k)/totpft)*pxerr)
-                  if ( abs(adjust) > 0.0 ) then
-                    totadj = totadj + adjust
-                    regyxzt(j,i,iord(k),l) = vals_swap(k) + adjust
-                    if (regyxzt(j,i,iord(k),l) < 0.0) then
-                      totadj = totadj - regyxzt(j,i,iord(k),l)
-                      regyxzt(j,i,iord(k),l) = 0.0
-                    end if
-                  end if
-                end do
-                pxerr = aint(pxerr - totadj)
-                if ( pxerr > 0.0 ) then
-                  regyxzt(j,i,iord(1),l) = regyxzt(j,i,iord(1),l) + pxerr
-                else
-                  regyxzt(j,i,iord(1),l) = 100.0 - pctspec(j,i)
-                  regyxzt(j,i,iord(2:),l) = 0.0
+              pxerr = 100.
+              kmax = -1
+              pmax = -99.
+              do k = 1 , nlev(ifld)
+                pxerr = pxerr - regyxzt(j,i,k,l)
+                if ( regyxzt(j,i,k,l)>pmax ) then
+                  pmax = regyxzt(j,i,k,l)
+                  kmax = k
                 end if
-                if ( aint(sum(regyxzt(j,i,:,l)+pctspec(j,i))) /= 100 ) then
-                  regyxzt(j,i,iord(1),l) = 100-pctspec(j,i)
-                  regyxzt(j,i,iord(2:),l) = 0.0
-                end if
-                regyxzt(j,i,iord(npatch:),l) = 0.0
-              end if
-            else
-              if ( pctspec(j,i) > 0.0 ) then
-                regyxzt(j,i,1,l) = 100.0 * 100.0D0/(100.0D0-pctspec(j,i))
-                regyxzt(j,i,2:,l) = 0.0
-              else
-                regyxzt(j,i,:,:) = 0.0
-              end if
+              end do
+              regyxzt(j,i,kmax,l) = regyxzt(j,i,kmax,l) + pxerr
             end if
           end do
         end do
-        deallocate(iord)
-        deallocate(vals_swap)
       end if
-      where ( regyxzt < vmin(ifld) )
-        regyxzt = 0.0
-      end where
-      if ( ifld==icol ) then
-        do k = 1 , nlev(ifld)
+      do k = 1 , nlev(ifld)
+        do j = 1 , jx
           do i = 1 , iy
-            do j = 1 , jx
-              regxyz(j,i,k) = aint(regyxzt(j,i,k,l))
-            end do
-          end do
-        end do
-      else
-        do k = 1 , nlev(ifld)
-          do i = 1 , iy
-            do j = 1 , jx
+            if ( ifld==icol ) then
+              regyxzt(j,i,k,l) = anint(regyxzt(j,i,k,l))
+            end if
+            if ( regyxzt(j,i,k,l)>vmin(ifld) ) then
               regxyz(j,i,k) = regyxzt(j,i,k,l)
-            end do
-          end do
-        end do
-      end if
-      if ( ifld == iurb .or. ifld == ilak .or. &
-           ifld == iwtl .or. ifld == iglc ) then
-        regxyz = amax1(aint(regxyz),0.0)
-        where ( regxyz < 5.0 )
-          regxyz = 0.0
-        end where
-        pctspec = pctspec + regxyz(:,:,nlev(ifld))
-        do i = 1 , iy
-          do j = 1 , jx
-            if (pctspec(j,i) > 100.0 ) then
-              print *, 'Error in interpolation: urb+lak+wet+glc > 100.0'
-              stop
+            else
+              regxyz(j,i,k) = 0.0
             end if
           end do
         end do
-      end if
+      end do
       tdif = imondate-irefdate
       xhr = tohours(tdif)
       call writecdf(idout,vnam(ifld),regxyz,jx,iy,nlev(ifld),iadim, &
@@ -575,39 +504,8 @@ program clm2rcm
   call checkncerr(istatus,__FILE__,__LINE__,  &
     'Error close file '//trim(checkfile))
 
-  deallocate(pctspec)
-
   call memory_destroy
 
   write(stdout,*) 'Successfully completed CLM preprocessing.'
 
-  contains
-
-  recursive subroutine sortpatch(vals,svals,ird,lsub)
-    implicit none
-    real(rk4) , dimension(:) , intent(in) :: vals
-    real(rk4) , dimension(:) , intent(inout) :: svals
-    integer(ik4) , dimension(:) , intent(inout) :: ird
-    logical , optional :: lsub
-    integer(ik4) :: i , iswap
-    real(rk4) :: rswap
-    if ( .not. present(lsub) ) then
-      do i = 1 , size(vals)
-        ird(i) = i
-        svals(i) = vals(i)
-      end do
-    end if
-    do i = 1 , size(vals)-1
-      if ( svals(i) < svals(i+1) ) then
-        rswap = svals(i+1)
-        iswap = ird(i+1)
-        svals(i+1) = svals(i)
-        ird(i+1) = ird(i)
-        svals(i) = rswap
-        ird(i) = iswap
-        call sortpatch(vals,svals,ird,.true.)
-      end if
-    end do
-  end subroutine sortpatch
- 
 end program clm2rcm
