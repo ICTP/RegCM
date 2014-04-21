@@ -40,11 +40,11 @@ program clm2rcm
   use netcdf
 
   implicit none
-!
+
   real(rk4) , parameter :: vmisdat=-9999.0
   integer(ik4) , parameter :: ndim = 3
   logical , parameter :: bvoc = .false.
-!
+
   integer(ik4) :: istatus , ncid , incin , idum
   integer(ik4) , dimension(4) :: idims
   integer(ik4) , dimension(4) :: ivdims
@@ -73,10 +73,6 @@ program clm2rcm
   real(rk4) , pointer , dimension(:,:) :: mpu
   real(rk4) , pointer , dimension(:,:,:) :: regxyz
   real(rk4) , pointer , dimension(:,:,:,:) :: regyxzt , zoom
-#ifdef SAGE_TEST
-  real(rk4) , pointer , dimension(:,:,:) :: save_regyz
-  logical :: hassmask = .false.
-#endif
   real(rk4) , pointer , dimension(:,:) :: landmask , sandclay
   integer(ik4) :: ipathdiv , ierr , npatch
   integer(ik4) :: i , iz , it , j , k , l , ipnt
@@ -90,20 +86,12 @@ program clm2rcm
   real(rk4) , dimension(:) , allocatable :: vals_swap
   real(rk4) , dimension(:,:) , allocatable :: pctspec
   integer , dimension(:) , allocatable :: iord
-#ifdef SAGE_TEST
-  integer(ik4) , parameter :: iforest = 5
-  integer(ik4) , parameter :: igrass  = 14
-  real(rk4) , dimension(:) , allocatable :: vals_swap1
-  real(rk4) :: new_forest , old_forest , old_grass
-  integer , dimension(:) , allocatable :: iord1
-  integer(ik4) :: inowf , iprevf
-#endif
-!
+
   data ilevs /-1,-1,-1,-1,-1,-1,-1,-1/
   data xmiss /-9999.0/
-!
-!     Read input global namelist
-!
+  !
+  ! Read input global namelist
+  !
   call get_command_argument(0,value=prgname)
   call get_command_argument(1,value=namelistfile)
   call initparam(namelistfile, ierr)
@@ -114,7 +102,7 @@ program clm2rcm
     write(stderr,*) ' '
     call die('clm2rcm','Check argument and namelist syntax',1)
   end if
-!
+
   call memory_init
 
   if ( nsg/=1 ) then
@@ -124,9 +112,9 @@ program clm2rcm
   end if
 
   call init_domain
-!
-!     ** Get latitudes, longitudes and mask from DOMAIN file
-!
+  !
+  ! Get latitudes, longitudes and mask from DOMAIN file
+  !
   terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
   call openfile_withname(terfile,incin)
   call read_domain(incin,sigx,xlat,xlon)
@@ -135,7 +123,7 @@ program clm2rcm
   xscale = 1.
   offset = 0.
 
-!     ** Open Output checkfile in NetCDF format
+  ! Open Output checkfile in NetCDF format
 
   checkfile = trim(dirglob)//pthsep//trim(domname)//'_CLM3.nc'
 
@@ -160,7 +148,7 @@ program clm2rcm
   call checkncerr(istatus,__FILE__,__LINE__,'Error add time units')
   istatus = nf90_put_att(ncid, ivar, 'calendar', calendar)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add time calendar')
-!
+
   istatus = nf90_enddef(ncid)
   call checkncerr(istatus,__FILE__,__LINE__, &
                   'Error End Definitions NetCDF output')
@@ -183,17 +171,16 @@ program clm2rcm
     imondate = monmiddle(imondate)
   end do
 
-!     ** determine which files to create (emission factor map or not)
+  ! determine which files to create (emission factor map or not)
   call comp(ifield,bvoc)
   allocate(pctspec(jx,iy))
   pctspec = 0.0
  
-!     ** Loop over the fields defined in clm.param
+  ! Loop over the fields defined in clm.param
   do ifld = 1 , ifield
- 
-!       ** Open input and output files
-!       **   Some files have more than one required variable. 
-!       Therefore, **   the output file should only be opened once.
+    ! Open input and output files
+    ! Some files have more than one required variable. 
+    ! Therefore, the output file should only be opened once.
     inpfile = trim(inpglob)//infil(ifld)
     if(ifld==iiso) inpfile = "./mksrf_iso.nc"
     if(ifld==iapin) inpfile = "./mksrf_pina.nc"
@@ -253,8 +240,7 @@ program clm2rcm
          ifld==icol .or. ifld==ioro .or. ifld==iiso .or.   &
          ifld==ifma .or. ifld==imbo .or. ifld==ibpin .or.  &
          ifld==iapin .or. ifld==ilimo) then
-!         ************************ CHANGED LINE ABOVE to include iiso
-!         ************************
+      ! CHANGED LINE ABOVE to include iiso
       ipathdiv = scan(inpfile, pthsep, .true.)
       if ( ipathdiv/=0 ) then
         outfil_nc = trim(dirglob)//pthsep//trim(domname)//  &
@@ -268,12 +254,12 @@ program clm2rcm
 
     end if
  
-!   ** Setup RegCM3 grid variables
+    ! Setup RegCM3 grid variables
     call param(jx,iy,nlev(ifld),xlat,xlon,varmin,varmax,        &
                xlat1d,xlon1d,xlonmin,xlonmax,xlatmin,xlatmax,   &
                iadim,ndim)
  
-!   ** Setup CLM3 grid variables, including subgrid region
+    ! Setup CLM3 grid variables, including subgrid region
  
     call clm3grid1(nlon(ifld),nlat(ifld),nlev(ifld),ntim(ifld),     &
                    glon1(ifld),glon2(ifld),glat1(ifld),glat2(ifld), &
@@ -285,13 +271,6 @@ program clm2rcm
       icount(4) = 1
     end if
  
-#ifdef SAGE_TEST
-    if ( ifld == ipft ) then
-      call getmem3d(save_regyz,1,jx,1,iy,1,nlev(ifld),'clm2rcm:save_regyz')
-      allocate(iord1(nlev(ifld)))
-      allocate(vals_swap1(nlev(ifld)))
-    end if
-#endif
     call getmem4d(zoom,1,icount(1),1,icount(2),1,icount(3),1,icount(4), &
                   'clm2rcm:zoom')
     call getmem1d(zlon,1,icount(1),'clm2rcm:zlon')
@@ -304,17 +283,18 @@ program clm2rcm
       call readcdfr4(idin,vnam_lm,cdum,cdum,istart(1),              &
                      icount(1),istart(2),icount(2),1,1,1,1,landmask)
     end if
-!
+
     call clm3grid2(nlon(ifld),nlat(ifld),glon,glat,istart,icount,zlon,zlat,zlev)
-!
+
     write(stdout,*) 'Reading variables from input file'
-!
-!       ** Read in the variables.
-!       In some cases, special reads need to be performed:
-!       - Sand/clay fractions need a mapping variable
-!       - Lakes, wetlands, soil color, and orography need a
-!       180 degree longitiude shift.
-!       - Soil color and Orography do not have landmasks (must be made)
+    !
+    !  Read in the variables.
+    !
+    !  In some cases, special reads need to be performed:
+    !    - Sand/clay fractions need a mapping variable
+    !    - Lakes, wetlands, soil color, and orography need a
+    !  180 degree longitiude shift.
+    !    - Soil color and Orography do not have landmasks (must be made)
     if ( ifld==isnd .or. ifld==icly ) then
       call getmem2d(sandclay,1,ntim(ifld),1,nlev(ifld),'clm2rcm:sandclay')
       call getmem2d(mpu,1,icount(1),1,icount(2),'clm2rcm:mpu')
@@ -377,12 +357,12 @@ program clm2rcm
     write(stdout,*) 'WRITE: ', trim(vnam(ifld)), ', ', &
                trim(lnam(ifld)), ', ', trim(units(ifld))
  
-!       ** Set the non-land values to missing for interpolation purposes
+    ! Set the non-land values to missing for interpolation purposes
 
     if ( ifld/=ioro ) call maskme(landmask,zoom,vmisdat,icount(1),  &
                                   icount(2),icount(3),icount(4))
  
-!       ** Interpolate data to RegCM3 grid
+    ! Interpolate data to RegCM3 grid
 
     call getmem4d(regyxzt,1,jx,1,iy,1,nlev(ifld),1,ntim(ifld),'clm2rcm:regyxzt')
     call getmem3d(regxyz,1,jx,1,iy,1,nlev(ifld),'clm2rcm:regxyz')
@@ -390,30 +370,13 @@ program clm2rcm
     call bilinx4d(zoom,landmask,zlon,zlat,icount(1),icount(2),regyxzt,xlon,  &
                   xlat,jx,iy,icount(3),icount(4),vmin(ifld),vmisdat)
  
-!   ** Write the interpolated data to NetCDF for CLM and checkfile
+    ! Write the interpolated data to NetCDF for CLM and checkfile
 
     imondate = irefdate
-#ifdef SAGE_TEST
-    if ( ifld == ipft ) then
-      inquire(file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
-             exist=hassmask)
-      if ( hassmask ) then
-        write(stdout,*) 'SAGE : Reading initial state from SAGEMASK'
-        open(163,file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
-             form='unformatted',status='old')
-        read(163) save_regyz
-      end if
-    end if
-#endif
     do l = 1 , ntim(ifld)
       if ( ifld == ipft ) then
         allocate(iord(nlev(ifld)))
         allocate(vals_swap(nlev(ifld)))
-#ifdef SAGE_TEST
-        if ( hassmask ) then
-          write(stdout,*) 'SAGE : Correcting FOREST PFT...'
-        end if
-#endif
         xmask = 0.0
         where ( sum(regyxzt(:,:,:,l),3) >= 1.0 )
           xmask = 1.0
@@ -425,11 +388,18 @@ program clm2rcm
                 regyxzt(j,i,k,l) = amax1(aint(regyxzt(j,i,k,l)),0.0)
               end do
               call sortpatch(regyxzt(j,i,:,l),vals_swap,iord)
-              pxerr = 100.-pctspec(j,i)
               npatch = min(MAXPATCH_PFT,nlev(ifld))
-              do k = 1 , npatch
-                pxerr = pxerr - vals_swap(k)
-              end do
+              pxerr = 0.0
+              if ( pctspec(j,i) > 0.00001D0 ) then
+                do k = 1 , npatch
+                  pxerr = pxerr + vals_swap(k) * 100.0D0/(100.0D0-pctspec(j,i))
+                end do
+              else
+                do k = 1 , npatch
+                  pxerr = pxerr + vals_swap(k)
+                end do
+              end if
+              pxerr = pxerr - 100.0
               if ( abs(pxerr) > 0.0 ) then
                 totpft = sum(vals_swap(1:npatch))
                 totadj = 0.0
@@ -457,43 +427,9 @@ program clm2rcm
                 end if
                 regyxzt(j,i,iord(npatch:),l) = 0.0
               end if
-#ifdef SAGE_TEST
-              if ( hassmask ) then
-                old_forest = save_regyz(j,i,iforest)
-                new_forest = regyxzt(j,i,iforest,l)
-                old_grass = save_regyz(j,i,igrass)
-                ! First , restore the previous state
-                regyxzt(j,i,:,l) = save_regyz(j,i,:)
-                ! If something has changed (for now only forest decrease)
-                if ( aint(new_forest) < aint(old_forest) ) then
-                  ! Find new order
-                  write(stdout,*) 'SAGE: Forest change ', &
-                           new_forest-old_forest,'% at ',i,j
-                  regyxzt(j,i,iforest,l) = new_forest
-                  regyxzt(j,i,igrass,l) = old_grass + (old_forest-new_forest)
-                  call sortpatch(save_regyz(j,i,:),vals_swap1,iord1)
-                  call sortpatch(regyxzt(j,i,:,l),vals_swap,iord)
-                  iprevf = -1
-                  inowf = -1
-                  npatch = min(MAXPATCH_PFT,nlev(ifld))
-                  do k = 1 , npatch
-                    if ( iord(k)  == iforest ) inowf = k
-                    if ( iord1(k) == iforest ) iprevf = k
-                  end do
-                  ! If forest has gone out of MAXPATCH, swap the two
-                  ! from the original dataset.
-                  if ( iprevf > 0 .and. inowf < 0 ) then
-                    write(stdout,*) 'SAGE: Swapping grass and forest at',i,j
-                    regyxzt(j,i,iforest,l) = old_grass
-                    regyxzt(j,i,igrass,l) = old_forest
-                  else
-                  end if
-                end if
-              end if
-#endif
             else
               if ( pctspec(j,i) > 0.0 ) then
-                regyxzt(j,i,1,l) = 100.0 - pctspec(j,i)
+                regyxzt(j,i,1,l) = 100.0 * 100.0D0/(100.0D0-pctspec(j,i))
                 regyxzt(j,i,2:,l) = 0.0
               else
                 regyxzt(j,i,:,:) = 0.0
@@ -503,17 +439,6 @@ program clm2rcm
         end do
         deallocate(iord)
         deallocate(vals_swap)
-#ifdef SAGE_TEST
-        deallocate(iord1)
-        deallocate(vals_swap1)
-        if ( .not. hassmask ) then
-          write(stdout,*) 'SAGE : Writing initial state to SAGEMASK'
-          save_regyz(:,:,:) = regyxzt(:,:,:,1)
-          open(163,file=trim(dirglob)//pthsep//trim(domname)//'_CLM_SAGEMASK', &
-               form='unformatted',status='new')
-          write(163) save_regyz
-        end if
-#endif
       end if
       where ( regyxzt < vmin(ifld) )
         regyxzt = 0.0
@@ -641,7 +566,7 @@ program clm2rcm
 
   end do  ! End nfld loop
 
-!     ** Close files
+  ! Close files
 
   call clscdf(idin,ierr)
   call clscdf(idout,ierr)
