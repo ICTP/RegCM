@@ -590,7 +590,7 @@ program sigma2p
   deallocate(ps)
   deallocate(xvar)
   deallocate(pvar)
-  if ( has_t .and. has_q ) then
+  if ( make_rh ) then
     deallocate(qvar)
   end if
   if ( has_t ) then
