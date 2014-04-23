@@ -499,7 +499,12 @@ module mod_lm_interface
   subroutine surface_albedo
     implicit none
 #ifdef CLM
-    call albedoclm(lm,lms)
+    logical :: do_call_albedo_bats_for_clm = .false.
+    if ( do_call_albedo_bats_for_clm ) then
+      call albedobats(lm,lms)
+    else
+      call albedoclm(lm,lms)
+    end if
 #else
 #ifdef CLM45
     call albedoclm45(lm,lms)
