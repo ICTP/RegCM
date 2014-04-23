@@ -636,6 +636,7 @@ module mod_mtrxclm
               lms%t2m(n,j,i)    = c2r2mt(jg,ig)
               lms%u10m(n,j,i)   = lm%uatm(j,i)/dlog(lm%hgt(j,i)*d_r10)
               lms%v10m(n,j,i)   = lm%vatm(j,i)/dlog(lm%hgt(j,i)*d_r10)
+              lms%sfcp(n,j,i)   = lm%sfps(j,i)
               lms%tlef(n,j,i)   = c2rtlef(jg,ig)
               lms%tsw(n,j,i)    = c2rsmtot(jg,ig)
               lms%rsw(n,j,i)    = c2rsm1m(jg,ig)

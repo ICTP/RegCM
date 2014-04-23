@@ -137,9 +137,12 @@ module mod_clm_regcm
     nlomon = .false.
     if ( ktau > 0 ) then
       if ( ktau+1 == mtau ) then
-        nlend = .true.
         rstwr = .true.
-        write(rdate,'(i10)') toint10(nextt)
+        nlend = .true.
+        write(rdate,'(i10)') toint10(nextr)
+        if ( myid == italk ) then
+          write (stdout,*) 'Write restart file for CLM at ', tochar(nextr)
+        end if
       end if
       if ( (lfdomonth(nextr) .and. lmidnight(nextr)) ) then
         rstwr = .true.
