@@ -39,7 +39,7 @@ On this directory, you are required to make the following directories:
 
 \begin{Verbatim}
 $> cd $REGCM_GLOBEDAT
-$> mkdir SURFACE CLM SST EIN15
+$> mkdir SURFACE CLM CLM45 SST EIN15
 \end{Verbatim}
 
 This does not fill all possible global data sources paths, but will be enough
@@ -96,6 +96,24 @@ $> curl -o rdirc.05.061026 ${ICTP_DATASITE}/CLM/rdirc.05.061026
 \end{Verbatim}
 
 This is the input file for the \verb=clm2rcm= program (see at \ref{clm}).
+
+\section{CLM 4.5 Dataset}
+\label{clm45data}
+
+If you are planning to enable the \verb=CLM 4.5= option in the model, you will
+need a series of files with global land surface characteristics datasets.
+
+\begin{Verbatim}
+$> cd $REGCM_GLOBEDAT
+$> cd CLM45
+$> mkdir megan pftdata snicardata surface
+$> for dir in megan pftdata snicardata surface; do cd $dir; \
+    wget ${ICTP_DATASITE}/CLM45/$dir/ -O - | \
+    wget -A ".nc" -l1 --no-parent --base=${ICTP_DATASITE}/CLM45/$dir/ \
+      -nd -Fri -; done
+\end{Verbatim}
+
+This is the input file for the \verb=mksurfdata= program (see at \ref{clm45}).
 
 \section{Sea Surface Temperature}
 

@@ -35,7 +35,7 @@ memory space to store the model internal variables.
  dsmin  = 0.01, ! Minimum sigma spacing (only used if kz is not 14, 18, or 23)
  dsmax  = 0.05, ! Maximum sigma spacing (only used if kz is not 14, 18, or 23)
  nsg    = 1,    ! For subgridding, number of points to decompose. If nsg=1,
-                ! no subgridding is performed. CLM does NOT work as of now with
+                ! no subgridding is performed. CLM3.5 does NOT work with
                 ! subgridding enabled.
  /
 \end{Verbatim}
@@ -64,7 +64,7 @@ derived from the recursive relation:
 
 where $a(i) = b*a(i-1)$. We at ICTP normally use 18 levels.
 \item Specifying an nsg number greater than one triggers the subgrid BATS model
-on. There is no plan to extend this feature to CLM model. This affects only
+on. There is no plan to extend this feature to CLM3.5 model. This affects only
 surface variable calculations. All dynamical variables are calculated still
 on the coarser grid. Rain in the current implementation is also calculated on
 the coarser grid.
@@ -335,6 +335,7 @@ follow the conditions:
 }
 
 \subsection{globdatparam stanza}
+\label{globparam}
 
 This stanza is used by the \verb=sst= and \verb=icbc= ICBC programs. You can
 tell them how to build initial and bondary conditions.
@@ -1194,7 +1195,7 @@ At configure stage (see \ref{modconf}), the option is to be enabled with the
 right command line argument to the configure script
 
 \begin{Verbatim}
-  --enable-clm            Supply this option if you plan on using CLM option.
+  --enable-clm   Supply this option if you plan on using CLM option.
 \end{Verbatim}
 
 This will enable a preprocessing flag, and build a different model executable.
@@ -1264,6 +1265,88 @@ $> mpirun -np 2 ./bin/regcmMPI_clm regcm.in
 
 Note that the \verb=CLM= land model is much heavier than the BATS1e model, and
 computing time increases.
+
+\section{The CLM 4.5 options}
+\label{clm45}
+
+We will now discuss from the user point of view how to use the model
+setup which need to be activated at configure stage.
+
+The \verb=CLM 4.5= option if activated allows the user to run a simulation using
+the CLM version 4.5 surface model instead of the default BATS1e model.
+We will not here go in deep in the difference between the two models, read
+the Reference Manual for this.
+The executable of the model is different in the case of the \verb=CLM 4.5=,
+and is named \verb=regcmMPI_clm45=.
+Note that in the \verb=CLM 4.5= case only the MPI enabled compilation is
+supported (no serial).
+
+\subsubsection{Enable}
+
+At configure stage (see \ref{modconf}), the option is to be enabled with the
+right command line argument to the configure script
+
+\begin{Verbatim}
+  --enable-clm45  Supply this option if you plan on using CLM45 option.
+\end{Verbatim}
+
+This will enable a preprocessing flag, and build a different model executable.
+Note that no modifications are needed for any other part of the model, but
+this triggers the building of another pre-processing program, \verb=mksurfdata=.
+
+\subsubsection{Prepare and run}
+\label{clm45run}
+
+The \verb=CLM45= configuration requires a separate entries in the namelist input
+file.
+
+{\footnotesize
+\begin{Verbatim}
+ &clm_inparm
+ fpftcon = 'pft-physiology.c130503.nc',
+ fsnowoptics = 'snicar_optics_5bnd_c090915.nc',
+ fsnowaging = 'snicar_drdt_bst_fit_60_c070416.nc',
+ create_crop_landunit = .true.
+ hist_nhtfrq = 0,
+ /
+ &clm_soilhydrology_inparm
+ h2osfcflag = 1,
+ origflag = 0,
+ /
+ &clm_hydrology1_inparm
+ oldfflag = 0,
+ /
+\end{Verbatim}
+}
+
+Things you need to know here:
+
+\begin{enumerate}
+\item The namelist \ref{globparam} is used also by the \verb=mksurfdata=
+program. See at \ref{clm45data} how to obtain needed datasets.
+\item The \verb=hist_nhtfrq= is relative to the output produced by the
+\verb=CLM 4.5= model itself, and does not control the RegCM model output.
+\item To know the \verb=CLM 4.5= output file content, refer to CLM 4.5
+documentation.
+\end{enumerate}
+
+In the case of \verb=CLM 4.5= run, the user needs to run, after the
+\verb=terrain= program, the \verb=mksurfdata= program.
+
+\begin{Verbatim}
+$> cd $REGCM_RUN
+$> ./bin/terrain regcm.in
+$> ./bin/mksurfdata regcm.in
+$> cp $REGCM_GLOBEDAT/CLM/pft-physiology.c070207 input/
+\end{Verbatim}
+
+All the other pre-processing steps are just equal to the one detailed in
+chapter \ref{tutorial}. To run the \verb=CLM 4.5= option in the RegCM model,
+just substitute the executable name:
+
+\begin{Verbatim}
+$> mpirun -np 2 ./bin/regcmMPI_clm45 regcm.in
+\end{Verbatim}
 
 \section{Sensitivity experiments hint}
 

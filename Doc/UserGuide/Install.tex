@@ -28,7 +28,7 @@ needed:
      for parallel runs using multiple core single machines or cluster of
      machines (default).  Source code for the implementation code was tested
      with can be obtained at: \\
-     {\bf http://www.open-mpi.org/software/ompi/v1.6}
+     {\bf http://www.open-mpi.org}
   \end{enumerate}
 \item netCDF (\cite{Rew_90}) Format I/O library compiled with the above
   Fortran compiler.  Source code can be found from \\
@@ -43,7 +43,7 @@ enable netCDF V4 features. Source code can be obtained at: \\
 {\bf http://www.hdfgroup.org/ftp/HDF5/current/src} \\
 Note that some of the input datasets available from ICTP from 2012 DO require
 this option, as we distribute data in the netCDF V4 format.
-Note that current netCDF version 4.3.0/4.2 is dependent on HDF5 1.8.11.
+Note that current netCDF version 4.3.1.1/4.2 is dependent on HDF5 1.8.12.
 \item NCO netCDF Operators for manging netCDF file. Most Linux distribution
 have this already packed, and you should refer to your System Administrator or
 OS Software Installation manual to obtain it. Source code is at: \\
@@ -84,8 +84,6 @@ Currently tested and supported configurations (OS/Compiler) are:
 \item Linux with Portland\texttrademark pgf95 compiler version $\ge 11.0$
 \item Mac OsX\texttrademark with gfortran compiler $\ge 4.6$ from MacPorts
 \item IBM AIX\texttrademark with xlf2003 compiler
-\item Oracle Solaris\texttrademark with Oracle Solaris Studio\texttrademark
-compiler $\ge 12.0$
 \end{enumerate}
 
 The 4.4 version of the RegCM model relies on the standard GNU autotools to
@@ -134,7 +132,7 @@ The useful arguments to successfully build the model are:
 \begin{enumerate}
 \item Enable debug
 \begin{Verbatim}
-  --enable-debug          Enable debugging flags and per processor log file
+  --enable-debug     Enable debugging flags and per processor log file
 \end{Verbatim}
 If enabled, the model will be compiled using debug flags for the compiler,
 which will allow the use of a debugger such as gdb. More diagnostics will
@@ -144,8 +142,8 @@ turned on.
 
 \item Serial code using stub MPI library
 \begin{Verbatim}
-  --enable-mpiserial      Use the included MPI replacement library for single
-                          processor
+  --enable-mpiserial Use the included MPI replacement library for single
+                     processor
 \end{Verbatim}
 The model is coded to use an MPI2 library to run in parallel mode using
 multiple cores/processors or run on a cluster. To enable instead a serial
@@ -156,10 +154,17 @@ systems, to take advantage of the multicore capabilities of any modern
 processor.
 \item CLM option
 \begin{Verbatim}
-  --enable-clm            Supply this option if you plan on using CLM option.
+  --enable-clm       Supply this option if you plan on using CLM option.
 \end{Verbatim}
 This option switches off the default Land model of RegCM (derived from BATS1e),
 and enables the use of the Community Land Model V3.5 inside RegCM. The default
+is to use the RegCM BATS Land Model.
+\item CLM 4.5 option
+\begin{Verbatim}
+  --enable-clm45     Supply this option if you plan on using CLM45 option.
+\end{Verbatim}
+This option switches off the default Land model of RegCM (derived from BATS1e),
+and enables the use of the Community Land Model V4.5 inside RegCM. The default
 is to use the RegCM BATS Land Model.
 \end{enumerate}
 
