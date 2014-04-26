@@ -341,7 +341,7 @@ module mod_bats_common
         !
         lncl(i) = mfcv(lveg(i)) - seasf(lveg(i))*aseas(i)
         zlgveg(i) = dlog(zh(i)/rough(lveg(i)))
-        zlgdis(i) = dlog(zh(i)-displa(lveg(i))/rough(lveg(i)))
+        zlgdis(i) = dlog((zh(i)-displa(lveg(i)))/rough(lveg(i)))
         if ( solvt > d_zero ) then
           fracd(i) = swf0(i)/solvt
         else
