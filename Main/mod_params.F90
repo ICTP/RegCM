@@ -113,7 +113,9 @@ module mod_params
     rhmax , rh0oce , rh0land , cevaplnd , cevapoce , caccrlnd , caccroce , &
     tc0 , cllwcv , clfrcvmax , cftotmax , conf
 
-  namelist /microparam/ budget_compute , nssopt , kautoconv , ksemi
+  namelist /microparam/ stats , budget_compute , nssopt , kautoconv ,  &
+    ksemi , vqxr , vqxi , vqxs , zauto_rate_khair , zauto_rate_kessl , &
+    zauto_rate_klepi , rkconv , rlmin , rcovpmin , rpecons
 
   namelist /grellparam/ shrmin , shrmax , edtmin , edtmax ,         &
     edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
@@ -368,6 +370,7 @@ module mod_params
   conf = d_one         !   Condensation threshold
 
   ! namelist microparam
+  stats = .false.
   budget_compute = .true. ! Verify enthalpy and moisture conservation
   nssopt = 1 ! Supersaturation Computation
              ! 0 => No scheme
@@ -382,7 +385,17 @@ module mod_params
   ksemi = d_one ! 0 => fully explicit
                 ! 1 => fully implict
                 ! 0<ksemi<1 => semi-implicit
-
+  vqxr = 4.0D0
+  vqxi = 0.15D0
+  vqxs = 1.0D0
+  zauto_rate_khair = 0.355D0
+  zauto_rate_kessl = 1.D-3
+  zauto_rate_klepi = 0.5D-3
+  rkconv = 1.666D-4 ! d_one/6000.0D0
+  rlmin = 1.D-8
+  rcovpmin = 0.1D0 
+  rpecons = 5.547D-5
+!
 !------namelist grellparam:
   shrmin = 0.25D0       ! Minimum Shear effect on precip eff.
   shrmax = 0.50D0       ! Maximum Shear effect on precip eff.
@@ -865,11 +878,11 @@ module mod_params
   if ( ipptls == 2 ) then
     nqx = 5
     iqfrst = iqc
-    iqlst = iqs
+    iqlst  = iqs
   else
     nqx = 2
     iqfrst = iqc
-    iqlst = iqc
+    iqlst  = iqc
   end if
 
   ! Check if really do output
@@ -973,9 +986,21 @@ module mod_params
     call bcast(cftotmax)
     call bcast(conf)
     if ( ipptls == 2 ) then
+      call bcast(stats)
       call bcast(budget_compute)
       call bcast(nssopt)
       call bcast(kautoconv)
+      call bcast(ksemi)
+      call bcast(vqxr)
+      call bcast(vqxi)
+      call bcast(vqxs)
+      call bcast(zauto_rate_khair)
+      call bcast(zauto_rate_kessl)
+      call bcast(zauto_rate_klepi)
+      call bcast(rcovpmin)
+      call bcast(rlmin)
+      call bcast(rpecons)
+      call bcast(rkconv)
     end if
   end if
 
