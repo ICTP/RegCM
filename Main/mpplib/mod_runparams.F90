@@ -323,6 +323,7 @@ module mod_runparams
   ! New microphys parameters
   !
   ! Total water and enthalpy budget on/off
+  logical :: stats
   logical :: budget_compute
   ! Super saturation option
   integer :: nssopt
@@ -330,7 +331,20 @@ module mod_runparams
   integer :: kautoconv
   ! Implict option
   real(rk8) :: ksemi
-
+  ! Fall speed values
+  real(rk8) :: vqxr 
+  real(rk8) :: vqxi 
+  real(rk8) :: vqxs 
+  ! autoconversion values
+  real(rk8) :: zauto_rate_khair
+  real(rk8) :: zauto_rate_kessl
+  real(rk8) :: zauto_rate_klepi
+  real(rk8) :: rkconv
+  ! limit values
+  real(rk8) :: rlmin
+  real(rk8) :: rcovpmin
+  ! evaporation values
+  real(rk8) :: rpecons
   !
   ! Debug limit values for tendencies
   !
