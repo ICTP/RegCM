@@ -254,9 +254,9 @@ module mod_constants
   ! to that of dry air (28.966 g/mole)
   real(rk8) , parameter :: ep2 = 0.62197D+00
   ! Constants used in computing saturation vapor pressure.
-  real(rk8) , parameter :: svp1 = 0.6112D+00
-  real(rk8) , parameter :: svp2 = 17.67D+00
-  real(rk8) , parameter :: svp3 = 29.65D+00
+  real(rk8) , parameter :: svp1 = 0.61078D+00
+  real(rk8) , parameter :: svp2 = 17.269D+00
+  real(rk8) , parameter :: svp3 = 35.86D+00
   real(rk8) , parameter :: svp4 = 0.611D+00
   real(rk8) , parameter :: svp5 = 22.514D+00
   real(rk8) , parameter :: svp6 = 6.15D+03
