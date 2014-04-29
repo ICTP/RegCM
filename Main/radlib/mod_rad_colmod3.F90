@@ -768,7 +768,7 @@ module mod_rad_colmod3
     !   - Starting from ncld levels from the surface
     !
     totcl(:) = d_zero
-    kmaxcld = 3
+    kmaxcld = 1
     kmincld = kz-ncld
     do k = kmaxcld , kmincld
       n = 1
