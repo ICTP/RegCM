@@ -39,6 +39,7 @@ module mod_atm_interface
   type(atmstate) , public :: atm1 , atm2
   type(atmstate) , public :: atmx , atmc , aten , holtten , uwten
   type(tendiag) , public :: tdiag
+  type(qendiag) , public :: qdiag
   type(surfstate) , public :: sfs
   type(slice) , public :: atms
   type(diffx) , public :: adf
@@ -520,7 +521,21 @@ module mod_atm_interface
       call getmem3d(dia%rad,jce1,jce2,ice1,ice2,1,kz,'tendiag:rad') 
       call getmem3d(dia%lsc,jce1,jce2,ice1,ice2,1,kz,'tendiag:lsc') 
     end subroutine allocate_tendiag
-!
+
+    subroutine allocate_qendiag(dia)
+      implicit none
+      type(qendiag) , intent(out) :: dia
+      call getmem3d(dia%adh,jce1,jce2,ice1,ice2,1,kz,'tendiag:adh')
+      call getmem3d(dia%adv,jce1,jce2,ice1,ice2,1,kz,'tendiag:adv')
+      call getmem3d(dia%tbl,jce1,jce2,ice1,ice2,1,kz,'tendiag:tbl')
+      call getmem3d(dia%con,jce1,jce2,ice1,ice2,1,kz,'tendiag:con')
+      call getmem3d(dia%bdy,jce1,jce2,ice1,ice2,1,kz,'tendiag:bdy')
+      call getmem3d(dia%adi,jce1,jce2,ice1,ice2,1,kz,'tendiag:adi')
+      call getmem3d(dia%dif,jce1,jce2,ice1,ice2,1,kz,'tendiag:dif')
+      call getmem3d(dia%rad,jce1,jce2,ice1,ice2,1,kz,'tendiag:rad') 
+      call getmem3d(dia%lsc,jce1,jce2,ice1,ice2,1,kz,'tendiag:lsc') 
+    end subroutine allocate_qendiag
+
     subroutine allocate_domain(dom)
       implicit none
       type(domain) , intent(out) :: dom
@@ -662,6 +677,7 @@ module mod_atm_interface
       !    complete for diag on water quantitiies idiag = 2, 3 etc
       if ( idiag > 0 ) then
         call allocate_tendiag(tdiag)
+        call allocate_qendiag(qdiag)
       end if
 
       call getmem2d(ts0,jce1,jce2,ice1,ice2,'storage:ts0')
