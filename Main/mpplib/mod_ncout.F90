@@ -53,7 +53,7 @@ module mod_ncout
   integer(ik4) , parameter :: nbase = 5
 
   integer(ik4) , parameter :: natm2dvars = 4 + nbase
-  integer(ik4) , parameter :: natm3dvars = 26
+  integer(ik4) , parameter :: natm3dvars = 53
   integer(ik4) , parameter :: natmvars = natm2dvars+natm3dvars
 
   integer(ik4) , parameter :: nsrf2dvars = 18 + nbase
@@ -163,32 +163,59 @@ module mod_ncout
   integer(ik4) , parameter :: atm_tgb   = 8
   integer(ik4) , parameter :: atm_tsw   = 9
 
-  integer(ik4) , parameter :: atm_u         = 1
-  integer(ik4) , parameter :: atm_v         = 2
-  integer(ik4) , parameter :: atm_t         = 3
-  integer(ik4) , parameter :: atm_omega     = 4
-  integer(ik4) , parameter :: atm_qv        = 5
-  integer(ik4) , parameter :: atm_qc        = 6
-  integer(ik4) , parameter :: atm_rh        = 7
-  integer(ik4) , parameter :: atm_qr        = 8
-  integer(ik4) , parameter :: atm_qi        = 9
-  integer(ik4) , parameter :: atm_qs        = 10
-  integer(ik4) , parameter :: atm_zf        = 11
-  integer(ik4) , parameter :: atm_zh        = 12
-  integer(ik4) , parameter :: atm_pf        = 13
-  integer(ik4) , parameter :: atm_ph        = 14
-  integer(ik4) , parameter :: atm_tke       = 15
-  integer(ik4) , parameter :: atm_kth       = 16
-  integer(ik4) , parameter :: atm_kzm       = 17
-  integer(ik4) , parameter :: atm_tten_adh  = 18
-  integer(ik4) , parameter :: atm_tten_adv  = 19
-  integer(ik4) , parameter :: atm_tten_tbl  = 20
-  integer(ik4) , parameter :: atm_tten_dif  = 21
-  integer(ik4) , parameter :: atm_tten_bdy  = 22
-  integer(ik4) , parameter :: atm_tten_con  = 23
-  integer(ik4) , parameter :: atm_tten_adi  = 24
-  integer(ik4) , parameter :: atm_tten_rad  = 25
-  integer(ik4) , parameter :: atm_tten_lsc  = 26
+  integer(ik4) , parameter :: atm_u            = 1
+  integer(ik4) , parameter :: atm_v            = 2
+  integer(ik4) , parameter :: atm_t            = 3
+  integer(ik4) , parameter :: atm_omega        = 4
+  integer(ik4) , parameter :: atm_qv           = 5
+  integer(ik4) , parameter :: atm_qc           = 6
+  integer(ik4) , parameter :: atm_rh           = 7
+  integer(ik4) , parameter :: atm_qr           = 8
+  integer(ik4) , parameter :: atm_qi           = 9
+  integer(ik4) , parameter :: atm_qs           = 10
+  integer(ik4) , parameter :: atm_zf           = 11
+  integer(ik4) , parameter :: atm_zh           = 12
+  integer(ik4) , parameter :: atm_pf           = 13
+  integer(ik4) , parameter :: atm_ph           = 14
+  integer(ik4) , parameter :: atm_q_detr       = 15
+  integer(ik4) , parameter :: atm_tke          = 16
+  integer(ik4) , parameter :: atm_kth          = 17
+  integer(ik4) , parameter :: atm_kzm          = 18
+  integer(ik4) , parameter :: atm_tten_adh     = 19
+  integer(ik4) , parameter :: atm_tten_adv     = 20
+  integer(ik4) , parameter :: atm_tten_tbl     = 21
+  integer(ik4) , parameter :: atm_tten_dif     = 22
+  integer(ik4) , parameter :: atm_tten_bdy     = 23
+  integer(ik4) , parameter :: atm_tten_con     = 24
+  integer(ik4) , parameter :: atm_tten_adi     = 25
+  integer(ik4) , parameter :: atm_tten_rad     = 26
+  integer(ik4) , parameter :: atm_tten_lsc     = 27
+  integer(ik4) , parameter :: atm_qten_adh     = 28
+  integer(ik4) , parameter :: atm_qten_adv     = 29
+  integer(ik4) , parameter :: atm_qten_tbl     = 30
+  integer(ik4) , parameter :: atm_qten_dif     = 31
+  integer(ik4) , parameter :: atm_qten_bdy     = 32
+  integer(ik4) , parameter :: atm_qten_con     = 33
+  integer(ik4) , parameter :: atm_qten_adi     = 34
+  integer(ik4) , parameter :: atm_qten_rad     = 35
+  integer(ik4) , parameter :: atm_qten_lsc     = 36
+  integer(ik4) , parameter :: atm_stats_supw   = 37
+  integer(ik4) , parameter :: atm_stats_supc   = 38
+  integer(ik4) , parameter :: atm_stats_detw   = 39
+  integer(ik4) , parameter :: atm_stats_detc   = 40
+  integer(ik4) , parameter :: atm_stats_erow   = 41
+  integer(ik4) , parameter :: atm_stats_eroc   = 42
+  integer(ik4) , parameter :: atm_stats_evw    = 43
+  integer(ik4) , parameter :: atm_stats_evc    = 44
+  integer(ik4) , parameter :: atm_stats_con1w  = 45
+  integer(ik4) , parameter :: atm_stats_con1c  = 46
+  integer(ik4) , parameter :: atm_stats_con2w  = 47
+  integer(ik4) , parameter :: atm_stats_con2c  = 48
+  integer(ik4) , parameter :: atm_stats_dep    = 49
+  integer(ik4) , parameter :: atm_stats_melt   = 50
+  integer(ik4) , parameter :: atm_stats_frz    = 51
+  integer(ik4) , parameter :: atm_stats_rainev = 52
+  integer(ik4) , parameter :: atm_stats_snowev = 53
 
   integer(ik4) , parameter :: srf_xlon   = 1
   integer(ik4) , parameter :: srf_xlat   = 2
@@ -534,8 +561,12 @@ module mod_ncout
             'relative_humidity',.true.)
           atm_rh_out => v3dvar_atm(atm_rh)%rval
         end if
-
         if ( ipptls == 2 ) then
+          if ( enable_atm3d_vars(atm_q_detr) ) then
+            call setup_var(v3dvar_atm,atm_q_detr,vsize,'qdetr','kg/m^2', &
+              'Detrainment', 'detrainment',.true.)
+            atm_q_detr_out => v3dvar_atm(atm_q_detr)%rval
+          end if
           if ( enable_atm3d_vars(atm_qr) ) then
             call setup_var(v3dvar_atm,atm_qr,vsize,'clr','kg kg-1', &
               'Mass fraction of rain', &
@@ -578,12 +609,121 @@ module mod_ncout
               'pressure_half_levels',.true.)
             atm_ph_out => v3dvar_atm(atm_ph)%rval
           end if
+         if (stats) then
+           ! stats variables
+           if ( enable_atm3d_vars(atm_stats_supw) ) then
+             call setup_var(v3dvar_atm,atm_stats_supw,vsize,'st_supw','', &
+             '',&
+             '',.true.)
+             atm_stats_supw_out => v3dvar_atm(atm_stats_supw)%rval
+           end if
+           if ( enable_atm3d_vars(atm_stats_supc) ) then
+             call setup_var(v3dvar_atm,atm_stats_supc,vsize,'st_supc','', &
+             '',&
+             '',.true.)
+             atm_stats_supc_out => v3dvar_atm(atm_stats_supc)%rval
+           end if
+           if ( enable_atm3d_vars(atm_stats_detw) ) then
+             call setup_var(v3dvar_atm,atm_stats_detw,vsize,'st_detw','', &
+             '',&
+             '',.true.)
+             atm_stats_detw_out => v3dvar_atm(atm_stats_detw)%rval
+           end if
+           if ( enable_atm3d_vars(atm_stats_detc) ) then
+             call setup_var(v3dvar_atm,atm_stats_detc,vsize,'st_detc','', &
+             '',&
+             '',.true.)
+             atm_stats_detc_out => v3dvar_atm(atm_stats_detc)%rval
+           end if
+           if ( enable_atm3d_vars(atm_stats_erow) ) then
+             call setup_var(v3dvar_atm,atm_stats_erow,vsize,'st_erow','', &
+             '',&
+             '',.true.)
+             atm_stats_erow_out => v3dvar_atm(atm_stats_erow)%rval
+           end if
+           if ( enable_atm3d_vars(atm_stats_eroc) ) then
+             call setup_var(v3dvar_atm,atm_stats_eroc,vsize,'st_eroc','', &
+             '',&
+             '',.true.)
+             atm_stats_eroc_out => v3dvar_atm(atm_stats_eroc)%rval
+           end if
+           if ( enable_atm3d_vars(atm_stats_evw) )  then
+             call setup_var(v3dvar_atm,atm_stats_evw,vsize,'st_evw','', &
+             '',&
+             '',.true.)
+             atm_stats_evw_out => v3dvar_atm(atm_stats_evw)%rval
+           end if
+           if ( enable_atm3d_vars(atm_stats_evc) ) then
+             call setup_var(v3dvar_atm,atm_stats_evc,vsize,'st_evc','', &
+             '',&
+             '',.true.)
+             atm_stats_evc_out => v3dvar_atm(atm_stats_evc)%rval
+           end if
+           if ( enable_atm3d_vars(atm_stats_con1w) ) then
+             call setup_var(v3dvar_atm,atm_stats_con1w,vsize,'st_con1w','', &
+             '',&
+             '',.true.)
+             atm_stats_con1w_out => v3dvar_atm(atm_stats_con1w)%rval
+           end if
+           if ( enable_atm3d_vars(atm_stats_con1c) ) then
+             call setup_var(v3dvar_atm,atm_stats_con1c,vsize,'st_con1c','', &
+             '',&
+             '',.true.)
+             atm_stats_con1c_out => v3dvar_atm(atm_stats_con1c)%rval
+           end if
+           if ( enable_atm3d_vars(atm_stats_con2w) ) then
+             call setup_var(v3dvar_atm,atm_stats_con2w,vsize,'st_con2w','', &
+             '',&
+             '',.true.)
+            atm_stats_con2w_out => v3dvar_atm(atm_stats_con2w)%rval
+           end if
+           if ( enable_atm3d_vars(atm_stats_con2c) ) then
+             call setup_var(v3dvar_atm,atm_stats_con2c,vsize,'st_con2c','', &
+             '',&
+             '',.true.)
+            atm_stats_con2c_out => v3dvar_atm(atm_stats_con2c)%rval
+           end if
+           if ( enable_atm3d_vars(atm_stats_dep) ) then
+             call setup_var(v3dvar_atm,atm_stats_dep,vsize,'st_dep','', &
+             '',&
+             '',.true.)
+             atm_stats_dep_out => v3dvar_atm(atm_stats_dep)%rval
+           end if
+           if ( enable_atm3d_vars(atm_stats_melt) ) then
+             call setup_var(v3dvar_atm,atm_stats_melt,vsize,'st_mlt','', &
+             '',&
+             '',.true.)
+             atm_stats_melt_out=> v3dvar_atm(atm_stats_melt)%rval
+           end if
+           if ( enable_atm3d_vars(atm_stats_frz) ) then
+             call setup_var(v3dvar_atm,atm_stats_frz,vsize,'st_frz','', &
+             '',&
+             '',.true.)
+             atm_stats_frz_out=> v3dvar_atm(atm_stats_frz)%rval
+           end if
+           if ( enable_atm3d_vars(atm_stats_rainev) ) then
+             call setup_var(v3dvar_atm,atm_stats_rainev,vsize,'st_ev_rn','', &
+             '',&
+             '',.true.)
+             atm_stats_rainev_out=> v3dvar_atm(atm_stats_rainev)%rval
+           end if
+           if ( enable_atm3d_vars(atm_stats_snowev) ) then
+             call setup_var(v3dvar_atm,atm_stats_snowev,vsize,'st_ev_sn','', &
+             '',&
+             '',.true.)
+             atm_stats_snowev_out=> v3dvar_atm(atm_stats_snowev)%rval
+           end if
+         else!stats 
+           enable_atm3d_vars(atm_stats_supw:atm_stats_snowev) = .false.
+         end if
         else
+          enable_atm3d_vars(atm_q_detr) = .false.
           enable_atm3d_vars(atm_qr:atm_qs) = .false.
           enable_atm3d_vars(atm_zf) = .false.
           enable_atm3d_vars(atm_zh) = .false.
           enable_atm3d_vars(atm_pf) = .false.
           enable_atm3d_vars(atm_ph) = .false.
+          enable_atm3d_vars(atm_stats_supw:atm_stats_snowev) = .false.
         end if
 
         if ( ibltyp == 2 .or. ibltyp == 99 ) then
@@ -664,8 +804,63 @@ module mod_ncout
              .true.)
             atm_tten_lsc_out => v3dvar_atm(atm_tten_lsc)%rval
           end if
+          if ( enable_atm3d_vars(atm_qten_adh) ) then
+            call setup_var(v3dvar_atm,atm_qten_adh,vsize,'qtenadh','s-1', &
+             'mixing_ratio_tendency_due_to_horizontal_advection', &
+             'Mixing ratio tendency due to horizontal advection',.true.)
+            atm_qten_adh_out => v3dvar_atm(atm_qten_adh)%rval
+          end if
+          if ( enable_atm3d_vars(atm_qten_adv) ) then
+            call setup_var(v3dvar_atm,atm_qten_adv,vsize,'qtenadv','s-1', &
+             'mixing_ratio_tendency_due_to_vertical_advection', &
+             'Mixing ratio tendency due to vertical advection',.true.)
+            atm_qten_adv_out => v3dvar_atm(atm_qten_adv)%rval
+          end if
+          if ( enable_atm3d_vars(atm_qten_tbl) ) then
+            call setup_var(v3dvar_atm,atm_qten_tbl,vsize,'qtentbl','s-1', &
+             'mixing_ratio_tendency_due_to_surface_boundary_layer', &
+             'Mixing ratio tendency due to surface boundary layer',.true.)
+            atm_qten_tbl_out => v3dvar_atm(atm_qten_tbl)%rval
+          end if
+          if ( enable_atm3d_vars(atm_qten_dif) ) then
+            call setup_var(v3dvar_atm,atm_qten_dif,vsize,'qtendif','s-1', &
+             'mixing_ratio_tendency_due_to_diffusion', &
+             'Mixing ratio tendency due to diffusion',.true.)
+            atm_qten_dif_out => v3dvar_atm(atm_qten_dif)%rval
+          end if
+          if ( enable_atm3d_vars(atm_qten_bdy) ) then
+            call setup_var(v3dvar_atm,atm_qten_bdy,vsize,'qtenbdy','s-1', &
+             'mixing_ratio_tendency_due_to_boundary_conditions', &
+             'Mixing ratio tendency due to boundary conditions',.true.)
+            atm_qten_bdy_out => v3dvar_atm(atm_qten_bdy)%rval
+          end if
+          if ( enable_atm3d_vars(atm_qten_con) ) then
+            call setup_var(v3dvar_atm,atm_qten_con,vsize,'qtencon','s-1', &
+             'mixing_ratio_tendency_due_to_convection', &
+             'Mixing ratio tendency due to convection',.true.)
+            atm_qten_con_out => v3dvar_atm(atm_qten_con)%rval
+          end if
+          if ( enable_atm3d_vars(atm_qten_adi) ) then
+            call setup_var(v3dvar_atm,atm_qten_adi,vsize,'qtenadi','s-1', &
+             'mixing_ratio_tendency_due_to_adiabatic', &
+             'Mixing ratio tendency due to adiabatic',.true.)
+            atm_qten_adi_out => v3dvar_atm(atm_qten_adi)%rval
+          end if
+          if ( enable_atm3d_vars(atm_qten_rad) ) then
+            call setup_var(v3dvar_atm,atm_qten_rad,vsize,'qtenrad','s-1', &
+             'mixing_ratio_tendency_due_to_radiation_heating', &
+             'Mixing ratio tendency due to radiation heating',.true.)
+            atm_qten_rad_out => v3dvar_atm(atm_qten_rad)%rval
+          end if
+          if ( enable_atm3d_vars(atm_qten_lsc) ) then
+            call setup_var(v3dvar_atm,atm_qten_lsc,vsize,'qtenlsc','s-1', &
+             'mixing_ratio_tendency_due_to_large_scale_latent_heat_exchange', &
+             'Mixing ratio tendency due to large scale latent heat exchange', &
+             .true.)
+            atm_qten_lsc_out => v3dvar_atm(atm_qten_lsc)%rval
+          end if
         else
-          enable_atm3d_vars(atm_tten_adh:atm_tten_lsc) = .false.
+          enable_atm3d_vars(atm_tten_adh:atm_qten_lsc) = .false.
         end if
 
         enable_atm_vars(1:natm2dvars) = enable_atm2d_vars
@@ -2077,6 +2272,8 @@ module mod_ncout
             ncattribute_real8('subex_cloud_liqwat_max_for_convection',cllwcv))
         else if ( ipptls == 2 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_logical('micro_statistics',stats))
+          call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_logical('micro_budget_verification',budget_compute))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('micro_super_saturation_option',nssopt))
@@ -2084,6 +2281,26 @@ module mod_ncout
             ncattribute_integer('micro_autoconversion_option',kautoconv))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('micro_semi_implicit_option',ksemi))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('fall_speed_rain',vqxr))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('fall_speed_ice',vqxi))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('fall_speed_snow',vqxs))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('autoconv_khair',zauto_rate_khair))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('autoconv_kessl',zauto_rate_kessl))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('autoconv_klepi',zauto_rate_klepi))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('autoconv_timescale_sund',rkconv))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('rlmin',rlmin))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('min_cloud_coverage',rcovpmin))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('evap_rate',rpecons))
         end if
         if ( any(icup == 2) ) then
           call outstream_addatt(outstream(i)%ncout(j), &

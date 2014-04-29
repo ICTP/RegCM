@@ -117,7 +117,19 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: rad
     real(rk8) , pointer , dimension(:,:,:) :: lsc
   end type tendiag
-  
+
+  type qendiag
+    real(rk8) , pointer , dimension(:,:,:) :: adh
+    real(rk8) , pointer , dimension(:,:,:) :: adv
+    real(rk8) , pointer , dimension(:,:,:) :: tbl
+    real(rk8) , pointer , dimension(:,:,:) :: dif
+    real(rk8) , pointer , dimension(:,:,:) :: bdy
+    real(rk8) , pointer , dimension(:,:,:) :: con
+    real(rk8) , pointer , dimension(:,:,:) :: adi
+    real(rk8) , pointer , dimension(:,:,:) :: rad
+    real(rk8) , pointer , dimension(:,:,:) :: lsc
+  end type qendiag
+
   type surfstate
     real(rk8) , pointer , dimension(:,:) :: psa
     real(rk8) , pointer , dimension(:,:) :: psb
