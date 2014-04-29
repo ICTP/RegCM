@@ -313,7 +313,7 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_l2a%eflx_sh_tot,lms%sent)
     call glb_l2c_ss(lndcomm,clm_l2a%qflx_evap_tot,lms%evpr)
     clm_l2a%notused = sqrt(clm_l2a%taux**2+clm_l2a%tauy**2) / &
-                      sqrt(clm_a2l%forc_u**4+clm_a2l%forc_v**2)
+                      sqrt(clm_a2l%forc_u**2+clm_a2l%forc_v**2)
     call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%drag)
 
     call glb_l2c_ss(lndcomm,clm_l2a%h2osno,lms%sncv)
