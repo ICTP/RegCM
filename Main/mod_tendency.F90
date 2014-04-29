@@ -47,10 +47,12 @@ module mod_tendency
   public :: allocate_mod_tend , tend
 
   real(rk8) , pointer , dimension(:,:,:) :: divl
-  real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi , ten0
+  real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi , &
+               ten0 , qen0
   real(rk8) , pointer , dimension(:,:,:) :: ps4
   real(rk8) , pointer , dimension(:,:,:) :: ps_4 
   real(rk8) , pointer , dimension(:,:) :: psc , pten
+
 
 #ifdef DEBUG
   real(rk8) , pointer , dimension(:,:,:) :: wten
@@ -75,6 +77,7 @@ module mod_tendency
     call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
     if ( idiag > 0 ) then 
       call getmem3d(ten0,jce1,jce2,ice1,ice2,1,kz,'tendency:ten0')
+      call getmem3d(qen0,jce1,jce2,ice1,ice2,1,kz,'tendency:qen0')
     end if
 #ifdef DEBUG
     call getmem3d(wten,jde1,jde2,ide1,ide2,1,kz,'tendency:wten')
@@ -504,7 +507,10 @@ module mod_tendency
       chiten(:,:,:,:)  = d_zero
       if ( ichdiag == 1 ) chiten0(:,:,:,:) = d_zero
     end if 
-    if ( idiag > 0 ) ten0(:,:,:) = d_zero
+    if ( idiag > 0 ) then
+      ten0(:,:,:) = d_zero
+      qen0(:,:,:) = d_zero
+    end if
     !
     ! Initialize diffusion terms
     !
@@ -585,6 +591,10 @@ module mod_tendency
     else
       call hadv(aten%qx,atmx%qx,kz,iqv)
     end if
+    if ( idiag > 0 ) then
+      qdiag%adh = qdiag%adh + (aten%qx(:,:,:,iqv) - qen0) * afdout
+      qen0 = aten%qx(:,:,:,iqv)
+    end if
     if ( all(icup /= 1) ) then
       if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
         call vadv(aten%qx,atm1%qx,kz,1,iqv)
@@ -595,6 +605,10 @@ module mod_tendency
           call vadv(aten%qx,atm1%qx,kz,1,iqv)
         end if
       end if
+    end if
+    if ( idiag > 0 ) then
+      qdiag%adv = qdiag%adv + (aten%qx(:,:,:,iqv) - qen0) * afdout
+      qen0 = aten%qx(:,:,:,iqv)
     end if
     !
     ! Zero out radiative clouds
@@ -627,6 +641,8 @@ module mod_tendency
     if ( idiag > 0 ) then
       tdiag%con = tdiag%con + (aten%t - ten0) * afdout
       ten0 = aten%t
+      qdiag%con = qdiag%con + (aten%qx(:,:,:,iqv) - qen0) * afdout
+      qen0 = aten%qx(:,:,:,iqv)
     end if
 #ifdef DEBUG
     call check_temperature_tendency('CONV')
@@ -670,13 +686,26 @@ module mod_tendency
       ! compute the diffusion terms:
       ! the diffusion term for qx is stored in diffqx.
       !
+      if ( idiag > 0 ) then
+        qen0(jci1:jci2,ici1:ici2,:) = adf%diffqx(jci1:jci2,ici1:ici2,:,iqv)
+      end if
       call diffu_x(adf%diffqx,atms%qxb3d,sfs%psb,xkc,kz)
+      if ( idiag > 0 ) then
+        ! save the h diff diag here
+        qdiag%dif(jci1:jci2,ici1:ici2,:) = qdiag%dif(jci1:jci2,ici1:ici2,:) + &
+                     (adf%diffqx(jci1:jci2,ici1:ici2,:,iqv) - &
+                      qen0(jci1:jci2,ici1:ici2,:)) * afdout
+        ! reset qen0 to aten%t 
+        qen0 = aten%qx(:,:,:,iqv)
+      end if
     end if
 
     if ( idiag > 0 ) then
       ! save tten from pcp (evaporation)
       tdiag%lsc = tdiag%lsc + (aten%t - ten0) * afdout
       ten0 = aten%t
+      qdiag%lsc = qdiag%lsc + (aten%qx(:,:,:,iqv) - qen0) * afdout
+      qen0 = aten%qx(:,:,:,iqv)
     end if
 #ifdef DEBUG
     call check_temperature_tendency('PREC')
@@ -776,6 +805,10 @@ module mod_tendency
       tdiag%tbl(jci1:jci2,ici1:ici2,:) = tdiag%tbl(jci1:jci2,ici1:ici2,:) + &
                      (adf%difft - ten0(jci1:jci2,ici1:ici2,:)) * afdout    
       ten0 = aten%t 
+      qdiag%tbl(jci1:jci2,ici1:ici2,:) = qdiag%tbl(jci1:jci2,ici1:ici2,:) + &
+                (adf%diffqx(jci1:jci2,ici1:ici2,:,iqv) - &
+            qen0(jci1:jci2,ici1:ici2,:)) * afdout    
+      qen0 = aten%qx(:,:,:,iqv)
     end if
 #ifdef DEBUG
     call check_temperature_tendency('PBLL')
@@ -834,7 +867,10 @@ module mod_tendency
     end do
     ! Rq: the temp tendency diagnostics have been already
     !     saved for tbl and hor. diff but :  
-    if ( idiag > 0 ) ten0 = aten%t ! important since aten%t have been updated 
+    if ( idiag > 0 ) then
+      ten0 = aten%t ! important since aten%t have been updated 
+      qen0 = aten%qx(:,:,:,iqv) ! important since aten%qx have been updated
+    end if
     !
     ! compute the condensation and precipitation terms for explicit
     ! moisture scheme:
@@ -857,6 +893,8 @@ module mod_tendency
         ! calculated in pcp
         tdiag%lsc = tdiag%lsc + (aten%t - ten0) * afdout
         ten0 = aten%t
+        qdiag%lsc = qdiag%lsc + (aten%qx(:,:,:,iqv) - qen0) * afdout
+        qen0 = aten%qx(:,:,:,iqv)
       end if
     end if
     !
@@ -877,6 +915,8 @@ module mod_tendency
     if ( idiag > 0 ) then    
       tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
       ten0 = aten%t
+      qdiag%bdy = qdiag%bdy + (aten%qx(:,:,:,iqv) - qen0) * afdout
+      qen0 = aten%qx(:,:,:,iqv)
     end if
 #ifdef DEBUG
     call check_temperature_tendency('BDYC')
