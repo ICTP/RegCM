@@ -176,12 +176,12 @@
  ifchem  = .true.,            ! Output CHE ?
  ifopt   = .false.,           ! Output OPT ?
  chemfrq =     6.,            ! Frequency in hours to write to CHE
- enable_atm_vars = 30*.true., ! Mask to eventually disable variables ATM
- enable_srf_vars = 28*.true., ! Mask to eventually disable variables SRF
+ enable_atm_vars = 62*.true., ! Mask to eventually disable variables ATM
+ enable_srf_vars = 30*.true., ! Mask to eventually disable variables SRF
  enable_rad_vars = 23*.true., ! Mask to eventually disable variables RAD
- enable_sub_vars = 18*.true., ! Mask to eventually disable variables SUB
- enable_sts_vars = 15*.true., ! Mask to eventually disable variables STS
- enable_lak_vars = 19*.true., ! Mask to eventually disable variables LAK
+ enable_sub_vars = 17*.true., ! Mask to eventually disable variables SUB
+ enable_sts_vars = 16*.true., ! Mask to eventually disable variables STS
+ enable_lak_vars = 18*.true., ! Mask to eventually disable variables LAK
  enable_opt_vars = 13*.true., ! Mask to eventually disable variables OPT
  enable_che_vars = 24*.true., ! Mask to eventually disable variables CHE
  dirout  = './output',        ! Path where all output will be placed
@@ -284,26 +284,37 @@
  cllwcv    =     0.3E-3, ! Cloud liquid water content for convective precip.
  clfrcvmax =       1.00, ! Max cloud fractional cover for convective precip.
  cftotmax  =       0.75, ! Max total cover cloud fraction for radiation
+ conf      =      1.0D0, ! Condensation threshold
  /
 !
 ! New Microphysics Option (ipptls = 2)
 !
  &microparam
-  budget_compute = .false., ! Verify enthalpy and moisture conservation
-  nssopt = 1,               ! Supersaturation Computation
-                            ! 0 => No scheme
-                            ! 1 => Tompkins
-                            ! 2 => Lohmann and Karcher
-                            ! 3 => Gierens
-  kautoconv = 4,            !  Choose the autoconversion paramaterization
-                            ! => 1 Klein & Pincus (2000)
-                            ! => 2 Khairoutdinov and Kogan (2000)
-                            ! => 3 Kessler (1969)
-                            ! => 4 Sundqvist
-  ksemi = 1.0D0,            ! Implicit/Explicit control
-                            ! ksemi == 0 => scheme is fully explicit
-                            ! ksemi == 1 => scheme is fully implicit
-                            ! 0<ksemi<1  => scheme is semi-implicit
+  budget_compute = .false.,  ! Verify enthalpy and moisture conservation
+  nssopt = 1,                ! Supersaturation Computation
+                             ! 0 => No scheme
+                             ! 1 => Tompkins
+                             ! 2 => Lohmann and Karcher
+                             ! 3 => Gierens
+  kautoconv = 4,             !  Choose the autoconversion paramaterization
+                             ! => 1 Klein & Pincus (2000)
+                             ! => 2 Khairoutdinov and Kogan (2000)
+                             ! => 3 Kessler (1969)
+                             ! => 4 Sundqvist
+  ksemi = 1.0D0,             ! Implicit/Explicit control
+                             ! ksemi == 0 => scheme is fully explicit
+                             ! ksemi == 1 => scheme is fully implicit
+                             ! 0<ksemi<1  => scheme is semi-implicit
+  vqxr = 4.0D0,              ! ????????????????????????????????????
+  vqxi = 0.15D0,             ! ????????????????????????????????????
+  vqxs = 1.0D0,              ! ????????????????????????????????????
+  zauto_rate_khair = 0.355D0,! ????????????????????????????????????
+  zauto_rate_kessl = 1.D-3,  ! ????????????????????????????????????
+  zauto_rate_klepi = 0.5D-3, ! ????????????????????????????????????
+  rkconv = 1.666D-4,         ! d_one/6000.0D0
+  rlmin = 1.D-8,             ! ????????????????????????????????????
+  rcovpmin = 0.1D0,          ! ????????????????????????????????????
+  rpecons = 5.547D-5,        ! ????????????????????????????????????
  /
 !
 ! Grell Cumulus scheme control
@@ -488,6 +499,8 @@
                  !     thermodynamic and dynamic fields.
  iindirect = 0,  ! Enable sulfate indirect effect in radiation scheme
  rdstemfac = 1.0,! Aerosol correction factor (Laurent et al, 2008)
+ ichjphcld = 1,  ! Impact of cloud aod on photolysis coef
+ ichbion = 0,    ! ???????????????????????????????????///
  /
 !
 ! CLM parameters
