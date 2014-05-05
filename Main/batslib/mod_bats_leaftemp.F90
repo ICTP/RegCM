@@ -713,6 +713,10 @@ module mod_bats_leaftemp
   end subroutine deriv
 ! 
   subroutine fseas(temp)
+    ! The seasonal function is a number between 0 and 1
+    ! If the temperature is greater than 298.0, it is 1
+    ! If the temperature is less than 298.0, it is less than 1
+    ! If the temperature is less than 273.0, it is zero
     implicit none
     real(rk8) , pointer , dimension(:) :: temp
     integer(ik4) :: i

@@ -64,36 +64,16 @@ module mod_clm_regcm
     write(rdate,'(i10)') toint10(idatex)
     call initialize2(rdate)
 
-    ! Compute simple LAND emissivity for RegCM radiation
-    if ( iemiss == 1 ) then
-      do n = 1 , nnsg
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( lm%ldmsk1(n,j,i) == 1 ) then
-              if ( lm%iveg1(n,j,i) == 8 ) then
-                lms%emisv(n,j,i) = 0.76D0
-              else if ( lm%iveg1(n,j,i) == 11 ) then
-                lms%emisv(n,j,i) = 0.85D0
-              else if ( lm%iveg1(n,j,i) == 12 ) then
-                lms%emisv(n,j,i) = 0.97D0
-              else
-                lms%emisv(n,j,i) = 0.9995D0
-              end if
-            end if
-          end do
+    ! Start with constant emissivity for first time step.
+    do n = 1 , nnsg
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          if ( lm%ldmsk1(n,j,i) == 1 ) then
+            lms%emisv(n,j,i) = 0.9995D0
+          end if
         end do
       end do
-    else
-      do n = 1 , nnsg
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            if ( lm%ldmsk1(n,j,i) == 1 ) then
-              lms%emisv(n,j,i) = 0.9995D0
-            end if
-          end do
-        end do
-      end do
-    end if
+    end do
     if ( ktau == 0 ) then
       lms%swdiralb = 0.16D0
       lms%swdifalb = 0.16D0

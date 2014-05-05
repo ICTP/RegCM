@@ -198,7 +198,7 @@ module mod_ocn_lake
         tlak(lp,2) = -2.0D0
         hi(lp) = 0.20D0 ! Set this to 20 cm of ice
         sfice(i) = hi(lp)
-        sncv(i) = 10.0D0 ! Put 1 cm of snow on top.
+        sncv(i) = 1.0D0 ! Put 1 cm of snow on top.
       else
         sfice(i) = d_zero
         sncv(i) = d_zero
@@ -425,14 +425,17 @@ module mod_ocn_lake
       ld  = flw - lu
       ev  = evl*secph          ! convert to mm/hr
       ai  = aveice
-      hs  = hsnow * d_r1000    ! convert to mm
+      ! RegCM snow is mm h2o eq. Show depth is this * 10.0.
+      ! Then we have from mm to m, i.e. multiply by 10E-3.
+      ! Effect is multiply by 10E-2
+      hs  = hsnow * d_r100    ! convert to m.
 
       call lakeice(dtlake,fsw,ld,tac,u2,ea,hs,hi,ai,ev,prec,ps,tprof)
       if ( .not. lfreeze ) tprof(1) = twatui
 
       evl    = ev/secph       ! convert evl  from mm/hr to mm/sec
       aveice = ai
-      hsnow  = hs*d_1000      ! convert snow form m to mm
+      hsnow  = hs*d_100      ! convert back. See Above.
       if (aveice < dlowval) then
         aveice = d_zero
         hsnow = d_zero
@@ -688,20 +691,20 @@ module mod_ocn_lake
     t0 = t2
     if ( t0 >= tf ) then
       if ( hs > d_zero ) then
-        ds = dtx*                                            &
-             ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea)+     &
-              theta*(tf-tac)-fsw)-d_one/khat*(tf-t0+qpen)) / &
-             (rhosnow*li)
+        ds = dtx *                                                  &
+             ( (-ld + 0.97D0*sigm*t4(tf) + psi * (eomb(tf)-ea) +    &
+                theta*(tf-tac)-fsw) - d_one/khat * (tf-t0+qpen) ) / &
+              (rhosnow*li)
         if ( ds > d_zero ) ds = d_zero
-        hs = hs + ds
+        hs = hs + ds * 10.0D0
         if ( hs < d_zero ) then
           hs = d_zero
         end if
       end if
       if ( (dabs(hs) < dlowval) .and. (aveice > d_zero) ) then
-        di = dtx*                                        &
-            ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea) + &
-             theta*(tf-tac)-fsw)-d_one/khat*(tf-t0+qpen))/ &
+        di = dtx *                                                  &
+            ( (-ld + 0.97D0*sigm*t4(tf) + psi * (eomb(tf)-ea)     + &
+              theta*(tf-tac)-fsw) - d_one/khat * (tf-t0+qpen) ) /   &
              (rhoice*li)
         if ( di > d_zero ) di = d_zero
         hi = hi + di

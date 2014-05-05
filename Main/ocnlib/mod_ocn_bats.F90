@@ -259,15 +259,16 @@ module mod_ocn_bats
         hs = rswf(i) - rlwf(i) - fseng - wlhs*fevpg
         bb = dtocn*(hs+fss)/rsd1
         ! snow melt
-        if ( tgrd(i) >= tzero ) sm(i) = (hs+fss)/wlhf
+        if ( tgrd(i) >= tzero ) sm(i) = sm(i) + (hs+fss)/wlhf
         if ( sm(i) <= d_zero ) sm(i) = d_zero
         smc4 = sm(i)*dtocn
+        sncv(i) = sncv(i) - sm(i) * dtocn
         ! all snow removed, melt ice
         if ( sncv(i) < smc4 ) then
           smt = (sncv(i)/dtocn)
           ! rho(h2o)/rho(ice) = 1.087
           sfice(i) = sfice(i) + dtocn*(smt-sm(i))*1.087D0*d_r1000
-          sm(i) = smt
+          sm(i) = sm(i)+smt
           ! set sea ice parameter for melting if less than 2 cm
           if ( sfice(i) <= 0.02D0 ) then
             tgrd(i) = tzero
