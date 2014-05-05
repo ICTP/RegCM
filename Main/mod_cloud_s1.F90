@@ -2111,7 +2111,7 @@ if ( fscheme ) then
         psnowx = zpfplsn(j,i,kz+1)*dt
         if ( prainx > dlowval ) then
           rainnc(j,i) =  rainnc(j,i) + prainx   !mm
-          lsmrnc(j,i) =  lsmrnc(j,i) + zpfplsl(j,i,kz+1)!*rtsrf
+          lsmrnc(j,i) =  lsmrnc(j,i) + zpfplsl(j,i,kz+1)+zpfplsn(j,i,kz+1)
         end if
         if ( psnowx > dlowval ) then
           snownc(j,i) = snownc(j,i) + psnowx
