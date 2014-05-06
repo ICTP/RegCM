@@ -239,9 +239,33 @@ module mod_bats_param
 !
 ! Seasonal variations
 !
-  data seasemi /0.030D0, 0.002D0, 0.0D0,   0.004D0, 0.004D0, 0.002D0, &
-                0.0D0,   0.0D0,   0.01D0,  0.0D0,   0.0D0,   0.0D0,   &
-                0.0D0,   0.0D0,   0.0D0,   0.004D0, 0.004D0, 0.01D0,  &
-                0.01D0,  0.005D0, 0.0D0,   0.0D0/
+  data seasemi /0.005D0, 0.002D0, 0.000D0, 0.004D0, 0.004D0, 0.000D0, &
+                0.002D0, 0.000D0, 0.000D0, 0.002D0, 0.000D0, 0.000D0, &
+                0.000D0, 0.000D0, 0.000D0, 0.000D0, 0.004D0, 0.002D0, &
+                0.004D0, 0.000D0, 0.000D0, 0.001D0/
+  !
+  !      1 = Crop/mixed farming
+  !      2 = Short grass
+  !      3 = Evergreen needleleaf tree
+  !      4 = Deciduous needleleaf tree
+  !      5 = Deciduous broadleaf tree
+  !      6 = Evergreen broadleaf tree
+  !      7 = Tall grass
+  !      8 = Desert
+  !      9 = Tundra
+  !     10 = Irrigated Crop
+  !     11 = Semi-desert
+  !     12 = Ice cap/glacier
+  !     13 = Bog or marsh
+  !     14 = Internal Water
+  !     15 = Ocean
+  !     16 = Evergreen shrub
+  !     17 = Deciduous shrub
+  !     18 = Mixed Woodland
+  !     19 = Forest/Field mosaic
+  !     20 = Water and Land mixture
+  !     21 = Urban
+  !     22 = Sub-Urban
+  !
 
 end module mod_bats_param
