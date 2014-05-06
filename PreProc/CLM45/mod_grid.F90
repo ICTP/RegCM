@@ -37,9 +37,9 @@ module mod_grid
   real(rk4) , public , pointer , dimension(:,:) :: rxlat , rxlon
   real(rk4) , public , pointer , dimension(:) :: rsigx
   logical , public , pointer , dimension(:,:,:) :: sgmask
-  real(rk4) , public , pointer , dimension(:,:,:) :: xtrans_r4
-  integer(ik4) , public , pointer , dimension(:,:,:) :: xtrans_i4
-  real(rk8) , public , pointer , dimension(:,:,:) :: xtrans_r8
+  real(rk4) , pointer , dimension(:,:,:) :: xtrans_r4
+  integer(ik4) , pointer , dimension(:,:,:) :: xtrans_i4
+  real(rk8) , pointer , dimension(:,:,:) :: xtrans_r8
 
   interface mypack
     module procedure pack_integer
@@ -53,7 +53,7 @@ module mod_grid
     module procedure g2s_r8
   end interface g2s
 
-  integer(ik4) :: jgstart , jgstop
+  integer(ik4) :: js , je , is , ie
   public :: init_domain , mypack , setup_pack
 
   contains
@@ -128,14 +128,17 @@ module mod_grid
     end do
   end subroutine g2s_r8
 
-  subroutine setup_pack(j1,j2)
+  subroutine setup_pack(j1,j2,i1,i2)
     implicit none
-    integer(ik4) , intent(in) :: j1 , j2
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: n1 , n2 , j , i , ii , jj
-    jgstart = j1
-    jgstop = j2
-    do i = 1 , iy
-      do j = 1 , jx
+    js = j1
+    je = j2
+    is = i1
+    ie = i2
+    sgmask = .false.
+    do i = is , ie
+      do j = js , je
         do n2 = 1 , nsg
           ii = (i-1) * nsg + n2
           do n1 = 1 , nsg
@@ -154,8 +157,8 @@ module mod_grid
     integer(ik4) :: i , j , n , ip
     call g2s(matrix,xtrans_i4)
     ip = 1
-    do i = 2 , iy-2
-      do j = jgstart , jgstop
+    do i = is , ie
+      do j = js , je
         do n = 1 , nnsg
           if ( sgmask(n,j,i) ) then
             vector(ip) = xtrans_i4(n,j,i)
@@ -173,8 +176,8 @@ module mod_grid
     integer(ik4) :: i , j , n , ip
     call g2s(matrix,xtrans_r4)
     ip = 1
-    do i = 2 , iy-2
-      do j = jgstart , jgstop
+    do i = is , ie
+      do j = js , je
         do n = 1 , nnsg
           if ( sgmask(n,j,i) ) then
             vector(ip) = xtrans_r4(n,j,i)
@@ -192,8 +195,8 @@ module mod_grid
     integer(ik4) :: i , j , n , ip
     call g2s(matrix,xtrans_r8)
     ip = 1
-    do i = 2 , iy-2
-      do j = jgstart , jgstop
+    do i = is , ie
+      do j = js , je
         do n = 1 , nnsg
           if ( sgmask(n,j,i) ) then
             vector(ip) = xtrans_r8(n,j,i)

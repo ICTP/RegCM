@@ -80,7 +80,8 @@ module mod_domain
   end subroutine read_domain_type
 
   subroutine read_domain_array(ncid,sigma,xlat,xlon,dlat,dlon,ht,mask, &
-                               lndcat,msfx,msfd,coriol,snowam,hlake)
+                               lndcat,msfx,msfd,coriol,snowam,hlake,   &
+                               lsubgrid)
     implicit none
     integer(ik4) , intent(in) :: ncid
     real(rk8) , pointer , dimension(:) , intent(out) :: sigma
@@ -96,9 +97,14 @@ module mod_domain
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: coriol
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: snowam
     real(rk8) , pointer , dimension(:,:) , intent(out) , optional :: hlake
+    logical , intent(in) , optional :: lsubgrid
     logical :: has_snow = .true.
     logical :: has_dhlake = .true.
-    call check_domain(ncid)
+    if ( present(lsubgrid) ) then
+      call check_domain(ncid,lsubgrid=lsubgrid)
+    else
+      call check_domain(ncid)
+    end if
     call read_var1d_static(ncid,'sigma',sigma)
     if ( present(xlat) ) call read_var2d_static(ncid,'xlat',xlat)
     if ( present(xlon) ) call read_var2d_static(ncid,'xlon',xlon)
@@ -166,27 +172,30 @@ module mod_domain
     call getmem2d(mddom_io%hlake,1,jx,1,iy,'domain:hlake')
   end subroutine allocate_domain
 
-  subroutine check_domain(ncid,lmod,linternal)
+  subroutine check_domain(ncid,lmod,linternal,lsubgrid)
     implicit none
     integer(ik4) , intent(in) :: ncid
-    logical , optional :: lmod , linternal
+    logical , optional :: lmod , linternal , lsubgrid
     integer(ik4) :: istatus
     integer(ik4) :: idimid , ivarid
     integer(ik4) :: iyy , jxx , kzz , kcheck , jcheck , icheck
     character(len=6) :: proj
-    logical :: lh , lb
+    logical :: lh , lb , ls
     real(rk8) :: dsx , iclat , iclon , ptsp
 
     lh = .false.
     lb = .false.
+    ls = .false.
     if ( present(lmod) ) lh = lmod
     if ( present(linternal) ) lb = linternal
+    if ( present(lsubgrid) ) ls = lsubgrid
     istatus = nf90_inq_dimid(ncid, 'jx', idimid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error search dimension JX')
     istatus = nf90_inquire_dimension(ncid, idimid, len=jxx)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension JX')
     jcheck = jx
-    if ( lb ) jcheck = jcheck - 3
+    if ( lb .and. i_band /= 1 ) jcheck = jcheck - 3
+    if ( ls ) jcheck = jcheck * nsg
     if ( jcheck /= jxx ) then
       write(stderr,*) 'DOMAIN FILE : ', jxx
       write(stderr,*) 'NAMELIST    : ', jx
@@ -202,6 +211,7 @@ module mod_domain
     call checkncerr(istatus,__FILE__,__LINE__,'Error read dimension IY')
     icheck = iy
     if ( lb ) icheck = icheck - 3
+    if ( ls ) icheck = icheck * nsg
     if ( icheck /= iyy ) then
       write(stderr,*) 'DOMAIN FILE : ', iyy
       write(stderr,*) 'NAMELIST    : ', iy
@@ -246,6 +256,7 @@ module mod_domain
     istatus = nf90_get_att(ncid, nf90_global,'grid_size_in_meters', dsx)
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read attribute grid_size_in_meters')
+    if ( ls ) dsx = dsx * dble(nsg)
     if (dabs(dble(dsx*d_r1000)-dble(ds)) > 0.001D+00 ) then 
       write(stderr,*) 'DOMAIN FILE : ', dsx/1000.0
       write(stderr,*) 'NAMELIST    : ', ds

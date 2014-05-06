@@ -89,7 +89,7 @@ program mksurfdata
   real(rk8) :: operat , diff
   integer(ik4) :: ierr
   integer(ik4) :: i , j , n , ip , il , np , nm , it , ipnt
-  integer(ik4) :: jgstart , jgstop
+  integer(ik4) :: jgstart , jgstop , igstart , igstop
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile , outfile
   character(len=64) :: csdate
@@ -99,6 +99,7 @@ program mksurfdata
   integer(ik4) , pointer , dimension(:) :: iiy , ijx
   integer , pointer , dimension(:) :: landpoint
   logical , dimension(npft) :: pft_gt0
+  logical :: subgrid
 
   call get_command_argument(0,value=prgname)
   call get_command_argument(1,value=namelistfile)
@@ -120,23 +121,30 @@ program mksurfdata
   if ( nsg > 1 ) then
     write (terfile,'(a,i0.3,a)') &
          trim(dirter)//pthsep//trim(domname)//'_DOMAIN',nsg,'.nc'
+    subgrid = .true.
   else
     terfile = trim(dirter)//pthsep//trim(domname)//'_DOMAIN000.nc'
+    subgrid = .false.
   end if
   call openfile_withname(terfile,ncid)
-  call read_domain(ncid,sigx,xlat,xlon,ht=topo,mask=xmask)
+  call read_domain(ncid,sigx,xlat,xlon,ht=topo,mask=xmask,lsubgrid=subgrid)
   rxlat = real(xlat)
   rxlon = real(xlon)
   rsigx = real(sigx)
   if ( i_band == 1 ) then
     jgstart = 1
     jgstop = jxsg
+    igstart = nsg+1
+    igstop = iysg-2*nsg
+    call setup_pack(1,jx,2,iy-2)
   else
-    jgstart = 2
-    jgstop = jxsg-2
+    jgstart = nsg+1
+    jgstop = jxsg-2*nsg
+    igstart = nsg+1
+    igstop = iysg-2*nsg
+    call setup_pack(2,jx-2,2,iy-2)
   end if
-  call setup_pack(jgstart,jgstop)
-  ngcells = count(xmask(jgstart:jgstop,2:iysg-2) > 0.5D0)
+  ngcells = count(xmask(jgstart:jgstop,igstart:igstop) > 0.5D0)
   call closefile(ncid)
 
   ! Open Output in NetCDF format
@@ -434,7 +442,7 @@ program mksurfdata
   pctspec(:,:) = 0.0D0
   pctslake(:,:) = 0.0D0
   ip = 1
-  do i = 2 , iysg-2
+  do i = igstart , igstop
     do j = jgstart , jgstop
       if ( xmask(j,i) > 0.5D0 ) then
         landpoint(ip) = (i-1)*jxsg+j
@@ -454,7 +462,7 @@ program mksurfdata
   istatus = nf90_put_var(ncid, itopovar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write topo')
   ip = 1
-  do i = 2 , iysg-2
+  do i = igstart , igstop
     do j = jgstart , jgstop
       if ( xmask(j,i) > 0.5D0 ) then
         iiy(ip) = i
@@ -470,7 +478,7 @@ program mksurfdata
 
   var5d(:,:,1,1,1) = 0.0D0
   ! Calculate slope and std
-  do i = 2 , iysg-2
+  do i = igstart , igstop
     do j = jgstart , jgstop
       var5d(j,i,1,1,1) = &
           atan((sum(topo(j-1:j+1,i-1:i+1)-topo(j,i))/8.0D0)/(ds*1000.0D0))
@@ -506,7 +514,7 @@ program mksurfdata
   where ( var5d(:,:,3,1,1) > 100.0D0 ) var5d(:,:,3,1,1) = 100.0D0
   where ( var5d(:,:,4,1,1) > 100.0D0 ) var5d(:,:,4,1,1) = 100.0D0
 
-  do i = 2 , iysg-2
+  do i = igstart , igstop
     do j = jgstart , jgstop
       if ( xmask(j,i) > 0.5D0 ) then
         pctspec(j,i) = var5d(j,i,1,1,1) + var5d(j,i,2,1,1) + &
@@ -560,7 +568,7 @@ program mksurfdata
     end where
   end do
   ! Here adjustment !
-  do i = 2 , iysg-2
+  do i = igstart , igstop
     jloop: do j = jgstart , jgstop
       if ( xmask(j,i) > 0.5D0 ) then
         if ( pctspec(j,i) > 99.99999D0 ) then
