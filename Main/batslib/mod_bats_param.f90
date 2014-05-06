@@ -21,7 +21,32 @@ module mod_bats_param
 !
   use mod_intkinds
   use mod_realkinds
-
+  !
+  ! Landuse Categories
+  !
+  !      1 = Crop/mixed farming
+  !      2 = Short grass
+  !      3 = Evergreen needleleaf tree
+  !      4 = Deciduous needleleaf tree
+  !      5 = Deciduous broadleaf tree
+  !      6 = Evergreen broadleaf tree
+  !      7 = Tall grass
+  !      8 = Desert
+  !      9 = Tundra
+  !     10 = Irrigated Crop
+  !     11 = Semi-desert
+  !     12 = Ice cap/glacier
+  !     13 = Bog or marsh
+  !     14 = Internal Water
+  !     15 = Ocean
+  !     16 = Evergreen shrub
+  !     17 = Deciduous shrub
+  !     18 = Mixed Woodland
+  !     19 = Forest/Field mosaic
+  !     20 = Water and Land mixture
+  !     21 = Urban
+  !     22 = Sub-Urban
+  !
   public
 !
   real(rk8) , dimension(8) :: solour
@@ -29,19 +54,16 @@ module mod_bats_param
                              deptv , depuv , displa , fc , freza ,  &
                              frezu , rough , rsmin , sai , seasf ,  &
                              sqrtdi , mfcv , xla , xlai0 , rootf ,  &
-                             slmo
+                             slmo , lndemiss , seasemi
   real(rk8) , dimension(12) :: bee , skrat , xmofc , xmohyd , xmopor ,&
                              xmosuc , xmowil
   integer(ik4) , dimension(22) :: iexsol , kolsol
-  real(rk8) , parameter :: aarea = 0.02D0
-  real(rk8) , parameter :: minsigf = 0.001D+00
-
   ! 0.005 ccm specific
   ! 0.01  high
   ! 0.04  Antartic
   ! 0.02  Artic best
-!
-!------------------ DATA SECTION ----------------------------------------
+  real(rk8) , parameter :: aarea = 0.02D0
+  real(rk8) , parameter :: minsigf = 0.001D+00
 !
 ! soil albedo for different coloured
 !
@@ -208,4 +230,18 @@ module mod_bats_param
              0.80D0 , 0.90D0 , 0.90D0 , 0.30D0 , 0.80D0 , 9*0.50D0,&
              0.90D0 , 0.50D0/
 !
+! Emissivity coefficients 
+!
+  data lndemiss/0.983D0, 0.983D0, 0.983D0, 0.987D0, 0.981D0, 0.981D0, &
+                0.983D0, 0.965D0, 0.987D0, 0.985D0, 0.970D0, 0.993D0, &
+                0.992D0, 0.992D0, 0.992D0, 0.983D0, 0.972D0, 0.983D0, &
+                0.981D0, 0.991D0, 0.970D0, 0.972D0/
+!
+! Seasonal variations
+!
+  data seasemi /0.030D0, 0.002D0, 0.0D0,   0.004D0, 0.004D0, 0.002D0, &
+                0.0D0,   0.0D0,   0.01D0,  0.0D0,   0.0D0,   0.0D0,   &
+                0.0D0,   0.0D0,   0.0D0,   0.004D0, 0.004D0, 0.01D0,  &
+                0.01D0,  0.005D0, 0.0D0,   0.0D0/
+
 end module mod_bats_param

@@ -99,51 +99,10 @@ module mod_bats_common
       call fseas(tgrd)
       if ( iemiss == 1 ) then
         do i = ilndbeg , ilndend
-          select case ( lveg(i) )
-            case (1) ! Crop/mixed farming
-              emiss(i) = 0.995D0 - 0.03D0 * aseas(i)
-            case (2) ! Short grass
-              emiss(i) = 0.985D0
-            case (3) ! Evergreen needleleaf tree
-              emiss(i) = 0.979D0
-            case (4) ! Deciduous needleleaf tree
-              emiss(i) = 0.990D0 - 0.003D0 * aseas(i)
-            case (5) ! Deciduous broadleaf tree
-              emiss(i) = 0.985D0 - 0.01D0 * aseas(i)
-            case (6) ! Evergreen broadleaf tree
-              emiss(i) = 0.985D0
-            case (7) ! Tall grass
-              emiss(i) = 0.985D0
-            case (8) ! Desert
-              emiss(i) = 0.900D0
-            case (9) ! Tundra
-              emiss(i) = 0.985D0
-            case (10) ! Irrigated Crop
-              emiss(i) = 0.995D0 - 0.02D0 * aseas(i)
-            case (11) ! Semi-desert
-              emiss(i) = 0.930D0
-            case (12) ! Ice cap/glacier
-              emiss(i) = 0.985D0
-            case (13) ! Bog or marsh
-              emiss(i) = 0.975D0
-            case (16) ! Evergreen shrub
-              emiss(i) = 0.980D0
-            case (17) ! Deciduous shrub
-              emiss(i) = 0.982D0 - 0.002D0 * aseas(i)
-            case (18) ! Mixed Woodland
-              emiss(i) = 0.985D0 - 0.01D0 * aseas(i)
-            case (19) ! Forest/Field mosaic
-              emiss(i) = 0.5D0*0.985D0+0.5D0*(0.995D0 - 0.03D0 * aseas(i))
-            case (20) ! Water and Land mixture
-              emiss(i) = 0.985D0
-            case (21) ! Urban
-              emiss(i) = 0.960D0
-            case (22) ! Sub-Urban
-              emiss(i) = 0.970D0
-          end select
+          emiss(i) = lndemiss(lveg(i)) - seasemi(lveg(i)) * aseas(i)
         end do
       else
-        emiss(:) = 0.9995D0
+        emiss(:) = 0.9870D0
       end if
     else
       call c2l_gs(lndcomm,lm%ht,ht)
@@ -409,22 +368,8 @@ module mod_bats_common
       call fseas(tgbrd)
       if ( iemiss == 1 ) then
         do i = ilndbeg , ilndend
-          select case ( lveg(i) )
-            case (1) ! Crop/mixed farming
-              emiss(i) = 0.995D0 - 0.03D0 * aseas(i)
-            case (4) ! Deciduous needleleaf tree
-              emiss(i) = 0.990D0 - 0.003D0 * aseas(i)
-            case (5) ! Deciduous broadleaf tree
-              emiss(i) = 0.985D0 - 0.01D0 * aseas(i)
-            case (10) ! Irrigated Crop
-              emiss(i) = 0.995D0 - 0.02D0 * aseas(i)
-            case (17) ! Deciduous shrub
-              emiss(i) = 0.982D0 - 0.002D0 * aseas(i)
-            case (18) ! Mixed Woodland
-              emiss(i) = 0.985D0 - 0.01D0 * aseas(i)
-            case (19) ! Forest/Field mosaic
-              emiss(i) = 0.5D0*0.985D0+0.5D0*(0.995D0 - 0.03D0 * aseas(i))
-          end select
+          emiss(i) = (lndemiss(lveg(i))-seasemi(lveg(i))*aseas(i)) * &
+                  (d_one-fracs) + 0.992*fracs
         end do
       end if
       call l2c_ss(lndcomm,tlef,lms%tlef)
