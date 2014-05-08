@@ -2526,6 +2526,10 @@ module mod_ncout
         end if
 
         if ( itweak == 1 ) then
+          if ( itweak_sst == 1 ) then
+            call outstream_addatt(outstream(i)%ncout(j), &
+              ncattribute_real8('tweak_sst',sst_tweak))
+          end if
           if ( itweak_temperature == 1 ) then
             call outstream_addatt(outstream(i)%ncout(j), &
               ncattribute_real8('tweak_temperature',temperature_tweak))

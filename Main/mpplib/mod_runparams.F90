@@ -221,9 +221,11 @@ module mod_runparams
   ! Tweak Global data
 
   integer(ik4) :: itweak
+  integer(ik4) :: itweak_sst
   integer(ik4) :: itweak_temperature
   integer(ik4) :: itweak_solar_irradiance
   integer(ik4) :: itweak_greenhouse_gases
+  real(rk8) :: sst_tweak
   real(rk8) :: temperature_tweak
   real(rk8) :: solar_tweak
   real(rk8) , dimension(5) :: gas_tweak_factors

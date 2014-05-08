@@ -656,12 +656,14 @@ module mod_ncio
       end if
     end if
     if ( itweak == 1 ) then
-      if ( itweak_temperature == 1 ) then
+      if ( itweak_sst == 1 ) then
         do i = ice1 , ice2
           do j = jce1 , jce2
-            ts(j,i) = ts(j,i) + temperature_tweak
+            ts(j,i) = ts(j,i) + sst_tweak
           end do
         end do
+      end if
+      if ( itweak_temperature == 1 ) then
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2

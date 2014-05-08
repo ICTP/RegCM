@@ -490,9 +490,11 @@ module mod_params
 !c-----namelist tweakparam ;
 
   itweak = 0
+  itweak_sst = 0
   itweak_temperature = 0
   itweak_solar_irradiance = 0
   itweak_greenhouse_gases = 0
+  sst_tweak = 0.0D0
   temperature_tweak = 0.0D0
   solar_tweak = 0.0D0
   gas_tweak_factors(:) = 1.0D0
@@ -806,7 +808,8 @@ module mod_params
         write(stdout,*) 'Read tweakparam OK'
 #endif
       end if
-      if ( itweak_temperature == 0 .and.      &
+      if ( itweak_sst == 0 .and.              &
+           itweak_temperature == 0 .and.      &
            itweak_solar_irradiance == 0 .and. &
            itweak_greenhouse_gases == 0 ) then
         write(stdout,*) 'Tweak parameters not enabled.'
@@ -1114,9 +1117,11 @@ module mod_params
   end if
 
   if ( itweak == 1 ) then
+    call bcast(itweak_sst)
     call bcast(itweak_temperature)
     call bcast(itweak_solar_irradiance)
     call bcast(itweak_greenhouse_gases)
+    call bcast(sst_tweak)
     call bcast(temperature_tweak)
     call bcast(solar_tweak)
     call bcast(gas_tweak_factors)

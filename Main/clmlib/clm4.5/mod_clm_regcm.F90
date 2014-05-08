@@ -15,7 +15,7 @@ module mod_clm_regcm
   use mod_clm_varctl , only : use_c13 , co2_ppmv , enable_megan_emission
   use mod_clm_varpar , only : nlevgrnd
   use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , &
-                              tcrit , denh2o
+                              tcrit , denh2o , sb
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a , adomain
   use mod_clm_decomp , only : procinfo , get_proc_bounds
 
@@ -282,6 +282,8 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_l2a%q_ref2m,lms%q2m)
 
     call glb_l2c_ss(lndcomm,clm_l2a%emg,lms%emisv)
+    !clm_l2a%notused = clm_l2a%eflx_lwrad_out/(sb*clm_l2a%t_rad**4)
+    !call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%emisv)
 
     ! CLM gives just wind speed, assume directions are same as input.
     clm_a2l%notused = atan(clm_a2l%forc_v/clm_a2l%forc_u)
