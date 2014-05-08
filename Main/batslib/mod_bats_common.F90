@@ -102,7 +102,7 @@ module mod_bats_common
           emiss(i) = lndemiss(lveg(i)) - seasemi(lveg(i)) * aseas(i)
         end do
       else
-        emiss(:) = 0.9870D0
+        emiss(:) = 1.0D0
       end if
     else
       call c2l_gs(lndcomm,lm%ht,ht)
