@@ -656,31 +656,7 @@ program terrain
   end if
   write(stdout,*) 'Fudging data (if requested) succeeded'
 
-  if ( nsg>1 ) then
-    do i = 1 , iy
-      do j = 1 , jx
-        i0 = (i-1)*nsg
-        j0 = (j-1)*nsg
-        hsum = d_zero
-        do m = 1 , nsg
-          do n = 1 , nsg
-            if ( htgrid(j,i)<0.1 .and. &
-                (lndout(j,i)>14.5 .and. lndout(j,i)<15.5) ) then
-              htgrid_s(j0+n,i0+m) = 0.0
-              lndout_s(j0+n,i0+m) = 15.0
-            end if
-            hsum = hsum + htgrid_s(j0+n,i0+m)
-          end do
-        end do
-        have = hsum/dble(nnsg)
-        do m = 1 , nsg
-          do n = 1 , nsg
-            htgrid_s(j0+n,i0+m) = htgrid(j,i) + (htgrid_s(j0+n,i0+m) - have)
-          end do
-        end do
-      end do
-    end do
-
+  if ( nsg > 1 ) then
     if ( .not. h2ohgt ) then
       where ( lndout_s > 14.5 .and. lndout_s < 15.5 )
         htgrid_s = 0.0
