@@ -94,12 +94,17 @@ module mod_che_common
   real(rk8) , pointer , dimension(:,:) :: psbb0 , psbb1
   real(rk8) , pointer , dimension(:,:) :: czen
   real(rk8) , pointer , dimension(:,:,:,:) :: ctaucld
-#if (defined CLM45)
+#if defined CLM45 || (defined CLM && defined VOC)
   ! Tracer mask that uses MEGAN indices
   integer(ik4) , pointer , dimension(:) :: bvoc_trmask
   real(rk8) , pointer , dimension(:,:) :: cvoc_em
 #endif
-#ifdef CLM
+#if (defined CLM && defined VOC)
+  ! Tracer mask that uses MEGAN indices
+  real(rk8) , pointer , dimension(:,:) :: cvoc_em1
+  real(rk8) , pointer , dimension(:,:) :: cvoc_em2
+#endif
+#if defined CLM
   real(rk8) , pointer , dimension(:,:,:) :: cdep_vels
 #endif
 
@@ -202,7 +207,7 @@ module mod_che_common
         call getmem4d(cemisdiag,jce1,jce2, &
                       ice1,ice2,1,kz,1,ntr,'che_common:cemisdiag')
       end if
-#ifdef CLM45
+#if defined CLM45 || (defined CLM && defined VOC)
       call getmem1d(bvoc_trmask,1,1,'mod_che_common:bvoc_trmask')
 #endif
     end if

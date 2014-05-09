@@ -119,7 +119,7 @@ module mod_che_start
     !    *** used as a surface emission from MEGAN and not
     !    *** from inventory (see surftnd.F for use)
 
-#ifdef CLM45
+#if defined CLM45 || (defined VOC && defined CLM)
     if ( igaschem == 1 ) then
       bvoc_trmask(:) = 0
     end if
@@ -262,7 +262,7 @@ module mod_che_start
       if ( chtrname(itr) == 'POLLEN') ipollen   = itr
 
 ! special case of biogenic options 
-#ifdef CLM45
+#if defined CLM45 || (defined VOC && defined CLM)
       !abt *** Added below to determine which MEGAN biogenic emission species
       !    *** will be passed to the gas phase mechanism
       !    *** commented out lines correspond to species not advected but

@@ -45,17 +45,25 @@ module mod_che_interface
   contains 
 !
 #if (defined CLM45)
-  subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,          &
-                       rembc,remrat,coszrs,svegfrac2d,sxlai2d,        &
+  subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,       &
+                       rembc,remrat,coszrs,svegfrac2d,sxlai2d,     &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdelt,     &
                        sdelq,ssw2da,convpr,icutop,icubot,taucldsp, &
                        lms)
 #else
-  subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,      &
-                       rembc,remrat,coszrs,svegfrac2d,sxlai2d,    &
+#if defined CLM
+  subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,       &
+                       rembc,remrat,coszrs,svegfrac2d,sxlai2d,     &
+                       sfracv2d,sfracb2d,sfracs2d,solis,sdelt,     &
+                       sdelq,ssw2da,convpr,icutop,icubot,taucldsp, &
+                       voc_em,voc_em1,voc_em2,dep_vels)
+#else
+  subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,   &
+                       rembc,remrat,coszrs,svegfrac2d,sxlai2d, &
                        sfracv2d,sfracb2d,sfracs2d,solis,sdelt, &
                        sdelq,ssw2da,convpr,icutop,icubot,      &
                        taucldsp)
+#endif
 #endif
 
     ! this routine define the pointer interface between the chem module and
@@ -76,9 +84,12 @@ module mod_che_interface
     type(v2dbound) , intent(in) :: xpsb
     type(bound_area) , intent(in) :: ba_cr
     real(rk8) , pointer , dimension(:,:) :: coszrs
-
 #if (defined CLM45)
     type(lm_state),intent(in) :: lms
+#endif
+#if defined CLM
+    real(rk8), pointer :: voc_em(:,:), voc_em1(:,:), voc_em2(:,:)
+    real(rk8), pointer :: dep_vels(:,:,:)
 #endif
 
     call assignpnt(icutop,kcumtop)
@@ -140,6 +151,14 @@ module mod_che_interface
 #if (defined CLM45)
     call getmem2d(voc_em,jci1,jci2,ici1,ici2,'clm:voc_em')
     call assignpnt(voc_em,cvoc_em)
+#endif
+#if defined CLM
+#if defined VOC
+    call assignpnt(voc_em,cvoc_em)
+    call assignpnt(voc_em1,cvoc_em1)
+    call assignpnt(voc_em2,cvoc_em2)
+#endif
+    call assignpnt(dep_vels,cdep_vels)
 #endif
 
   end subroutine init_chem

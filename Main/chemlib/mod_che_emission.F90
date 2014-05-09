@@ -129,6 +129,24 @@ module mod_che_emission
         end do
       end if
 #else
+#if (defined VOC && defined CLM)
+      !overwrite chemsrc for biogenic in case of CLM/BVOC option  
+      ! test if CLM BVOC is activated and overwrite chemsrc.
+      ! Below included in order to include CLM-MEGAN biogenic
+      ! emission
+      ! NOTE:  ibvoc=1 means used MEGAN emissions.
+      ! ibvoc is forced to
+      ! zero when using BATS
+      jglob = global_dot_jstart+j-1
+      if ( bvoc_trmask(iisop) /= 0 ) then
+        do i = ici1, ici2
+          chemsrc(j,i,iisop) = cvoc_em(j,i)
+          iglob = global_dot_istart+i-1
+          if ( ktau == 0 ) cvoc_em(jglob,iglob) = d_zero
+          chemsrc(j,i,iisop) = cvoc_em(jglob,iglob)
+        end do
+      end if
+#else
       ! Modify chemsrc for species that need a dirunal cycle
       do i = ici1 , ici2
         dayhr=-tan(declin)*tan(cxlat(j,i)*degrad)
@@ -148,6 +166,7 @@ module mod_che_emission
                             sin(mathpi*fact)*egrav/(dsigma(kz)*1.0D3)
         end if
       end do
+#endif
 #endif
     end if
 
