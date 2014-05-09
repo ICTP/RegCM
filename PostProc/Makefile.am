@@ -21,11 +21,12 @@ vpath %.o $(REGCM_ROOT)/Share:.
 
 include $(REGCM_ROOT)/makeinc
 
-bin_PROGRAMS = sigma2p sigma2z GrADSNcPlot GrADSNcPrepare
+bin_PROGRAMS = sigma2p sigma2z GrADSNcPlot GrADSNcPrepare clm45_1dto2d
 sigma2p_SOURCES = sigma2p.F90
 sigma2z_SOURCES = sigma2z.F90
 GrADSNcPlot_SOURCES = GrADSNcPlot.F90
 GrADSNcPrepare_SOURCES = GrADSNcPrepare.F90
+clm45_1dto2d_SOURCES = clm45_1dto2d.F90
 
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<

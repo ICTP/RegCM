@@ -151,8 +151,8 @@ module mod_params
     sst_restore_timescale , mixed_layer_depth
 
   namelist /tweakparam/ itweak_temperature , itweak_solar_irradiance , &
-          itweak_greenhouse_gases , temperature_tweak , solar_tweak ,  &
-          gas_tweak_factors
+          itweak_sst , itweak_greenhouse_gases , temperature_tweak ,   &
+          sst_tweak , solar_tweak , gas_tweak_factors
 !
 #ifdef DEBUG
   call time_begin(subroutine_name,idindx)

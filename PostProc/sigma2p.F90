@@ -97,7 +97,8 @@ program sigma2p
   ncpfile = trim(ncsfile(iid1+1:iid2-1))//'_pressure.nc'
 
   istatus = nf90_open(ncsfile, nf90_nowrite, ncid)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error Opening Input file '//trim(ncsfile))
+  call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error Opening Input file '//trim(ncsfile))
 
   jxdimid = -1
   iydimid = -1
@@ -114,16 +115,19 @@ program sigma2p
 #else
   istatus = nf90_create(ncpfile, nf90_clobber, ncout)
 #endif
-  call checkncerr(istatus,__FILE__,__LINE__,'Error Opening Output file '//trim(ncpfile))
+  call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error Opening Output file '//trim(ncpfile))
 
   istatus = nf90_inquire(ncid,ndims,nvars,natts,udimid)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error Reading Netcdf file '//trim(ncsfile))
+  call checkncerr(istatus,__FILE__,__LINE__, &
+          'Error Reading Netcdf file '//trim(ncsfile))
 
   do i = 1 , natts
     istatus = nf90_inq_attname(ncid, nf90_global, i, attname)
     call checkncerr(istatus,__FILE__,__LINE__,'Error read global attribute')
     istatus = nf90_copy_att(ncid, nf90_global, attname, ncout, nf90_global)
-    call checkncerr(istatus,__FILE__,__LINE__,'Error copy attribute '//trim(attname))
+    call checkncerr(istatus,__FILE__,__LINE__, &
+            'Error copy attribute '//trim(attname))
   end do
 
   allocate(dimlen(ndims), stat=istatus)
