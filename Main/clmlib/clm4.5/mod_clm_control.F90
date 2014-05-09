@@ -289,13 +289,13 @@ module mod_clm_control
     call Hydrology1_readnl(    namelistfile )
     call SoilHydrology_readnl( namelistfile )
 
-    if ( enable_megan_emission ) call shr_megan_readnl(namelistfile)
     ! ----------------------------------------------------------------------
     ! Broadcast all control information if appropriate
     ! ----------------------------------------------------------------------
 
     call control_spmd()
 
+    if ( enable_megan_emission ) call shr_megan_readnl(namelistfile)
     ! Set input file path in RegCM world
 
     fpftcon = trim(inpglob)//pthsep//'CLM45'//pthsep// &
@@ -369,6 +369,7 @@ module mod_clm_control
     call bcast(use_c13)
     call bcast(use_c14)
 
+    ! Megan emission
     call bcast(enable_megan_emission)
 
 #if (defined CN) && (defined VERTSOILC)
@@ -448,6 +449,8 @@ module mod_clm_control
 
     ! error growth perturbation limit
     call bcast(pertlim)
+
+    call bcast(enable_megan_emission)
 
   end subroutine control_spmd
   !

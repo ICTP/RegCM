@@ -164,8 +164,6 @@ module mod_clm_megan
           call fatal(__FILE__,__LINE__, &
              'problem on read of megan_emis_nl namelist in shr_megan_readnl' )
         end if
-        shr_megan_factors_file = megan_factors_file
-        shr_megan_mapped_emisfctrs = megan_mapped_emisfctrs
       end if
       call file_freeUnit( unitn )
     end if
@@ -177,6 +175,9 @@ module mod_clm_megan
     do i = 1 , maxspc
       call bcast(megan_specifier(i),2*512)
     end do
+
+    shr_megan_factors_file = megan_factors_file
+    shr_megan_mapped_emisfctrs = megan_mapped_emisfctrs
 
     write(*,*)'test01 ',megan_factors_file
     ! parse the namelist info and initialize the module data
