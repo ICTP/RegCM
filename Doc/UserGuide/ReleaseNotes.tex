@@ -71,10 +71,14 @@ points:
    of the previously used hardcoded solar constant.
   \item Climatological and future 2.6, 4.5 and 8.5 scenario data for ozone
    concentration.
+  \item The CLM 4.5 surface scheme basic physics option is coupled to the
+    RegCM model.
+  \item The Ocean coupling is now hadled with a module which allows the RegCM
+    code to be used as an external library into the RegESM package.
   \item Experimental new empirical cumulus cloud representation option.
   \item In the model output each file tipology can be disabled, and in each file
    each output 2D/3D variable can be disable. The default is to write all the
-   defined variables, but the user may play with the i\verb=enable_xxx_vars=
+   defined variables, but the user may play with the \verb=enable_xxx_vars=
    flags to eventually disable variables.
    Some variables cannot be disabled: xlat , xlon , mask , topo , ps.
    Those are needed for model geolocation.
@@ -109,6 +113,8 @@ Bug Fixing:
   \item The GrADSNc programs now is able to guess when the data are monthly
     averages calculated with cdo and use 1mo as timestep in the ctl file
   \item All model output is now using the write intrinsic instead of print.
+  \item A long standing bug in the computation of drag coefficient have
+    been fixed.
 \end{itemize}
 
 Next release V 5.X :

@@ -4,10 +4,31 @@
 % See the file COPYING for copying conditions.
 %
 \documentclass[10pt,twoside,a4paper]{report}
+\usepackage{amsmath} %%Added by TA OBrien for UW equation sets
+\usepackage{boxedminipage}
+\usepackage{pdflscape}
+\usepackage{amssymb}
+\usepackage{url}
+\usepackage{acronym}
+\usepackage{epsfig}
+\usepackage{rotating}
+\usepackage{pslatex}
 \usepackage{natbib}
 \usepackage{graphicx}
-\usepackage{fancyvrb}
+\usepackage{graphics}
 \usepackage{wrapfig}
+\usepackage{fancyvrb}
+
+\linespread{1.05}
+\topmargin=-10pt
+\textwidth=16cm
+\textheight=23.35cm
+\oddsidemargin=0.0cm
+\evensidemargin=0.0cm
+
+%% pretolerance stops words from breaking
+\pretolerance=10000
+
 
 \citestyle{apalike}
 
@@ -15,11 +36,9 @@
 
 \begin{titlepage}
 
-\begin{wrapfigure}{l}{4cm}
+\begin{wrapfigure}{l}{6cm}
 \vspace{-35pt}
-\begin{center}
 \includegraphics{ICTP_logo}
-\end{center}
 \end{wrapfigure}
 
 \noindent {\bf The Abdus Salam }\\
@@ -29,6 +48,7 @@
 
 \vspace{3cm}
 
+\begin{boxedminipage}{\textwidth}
 \begin{center}
 \noindent{{\Large
   {\bf Regional Climatic Model RegCM User's Guide} \\
@@ -40,8 +60,10 @@
 \noindent{\small{
 \bf Filippo Giorgi, Nellie Elguindi, \\
     Stefano Cozzini and Graziano Giuliani
-}} \\
+}}
+\vspace{0.5cm}
 \end{center}
+\end{boxedminipage}
 
 \end{titlepage}
 

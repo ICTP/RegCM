@@ -120,52 +120,33 @@ I am assuming a skilled professional will take care of that.
 
 \section{Environment setup}
 
-To efficiently use the compilers, I will setup now some environment variables.
-On my system (see the above processor informations) I will use:
+We will now use the \verb=prereq_install= shell script provided in the
+\verb=Tools/Scripts= directory. Given the above environment, we can edit
+the file and decomment the lines relative to the selected compiler.
 
 \begin{Verbatim}
-$> # Where all the software will be installed ?
-$> # I am chosing here a place under my home directory.
-$> export INTELROOT=/home/regcm/intelsoft
-$> # the C compiler. I am assuming here to have the whole Intel
-$> # Composer XE suite, so I will use the intel C compiler.
-$> export CC=icc
-$> # the C++ compiler, the intel one.
-$> export CXX=icpc
-$> # the Fortran 2003 compiler.
-$> export FC=ifort
-$> # the Foirtran 77 compiler. For intel, is just the fortran one.
-$> export F77=ifort
-$> # C Compiler flags
-$> export CFLAGS="-O3 -xHost -axSSE4.2 -fPIC"
-$> # FORTRAN Compiler flags
-$> export FCFLAGS="-O3 -xHost -axSSE4.2 -fPIC"
-$> # F77 Compiler flags
-$> export FFLAGS="-O3 -xHost -axSSE4.2 -fPIC"
-$> # CXX Compiler flags
-$> export CXXFLAGS="-O3 -xHost -axSSE4.2 -fPIC"
-$> # Linker flags
-$> export LDFLAGS="-Wl,-rpath=$INTELROOT/lib \
-> -Wl,-rpath=/opt/intel/lib/intel64 -i-dynamic"
-$> # Preset PATH to use the installed software during build
-$> export PATH=$INTELROOT/bin:$PATH
-$> export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$INTELROOT/lib
-$> export MANPATH=$INTELROOT/share/man:$MANPATH
+# Working CC Compiler
+#CC=gcc
+CC=icc
+#CC=pgcc
+# Working C++ Compiler
+#CXX=g++
+CXX=icpc
+#CXX=pgCC
+# Working Fortran Compiler
+#FC=gfortran
+FC=ifort
+#FC=pgf90
+# Destination directory
+DEST=/home/regcm/intelsoft
 \end{Verbatim}
 
-This step will allow me not to specify those variables at every following step.
-Depending on the above compiler selected, those flags my differ for you, but the
-concept is that I am selecting a performance target build for the machine I am
-on. I am now ready to compile software.
+I am now ready to compile software.
 
 \section{Pre requisite library installation}
 
-To build a complete optimized stack, a sample script have been added
-in \verb=Tools/Script/prereq_install.sh=
-This help script will build netCDF V4 and MPICH libraries to be used to
+The help script will build netCDF V4 and MPI libraries to be used to
 compile the RegCM model.
-Following the above settings, the script must be edited in the first lines
-setting the \verb=DEST= variable to \verb=$INTELROOT=.
 
 Then we can just execute the script:
 
@@ -212,3 +193,7 @@ At run time an environment variable must be added to set correct paths:
 \begin{Verbatim}
 $> export PATH=/home/regcm/intelsoft/bin:$PATH
 \end{Verbatim}
+
+The above is needed to be repeated for any shell which is used to run
+RegCM programs, and can be appended for convenience on the user shell
+startup scripts.
