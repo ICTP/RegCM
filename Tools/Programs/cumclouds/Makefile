@@ -1,6 +1,7 @@
 
 FC = gfortran
-FCFLAGS = -O2 -g -Wall -pedantic
+FCFLAGS = -O2 -g -Wall -pedantic `nf-config --fflags`
+LIBS = `nf-config --flibs`
 
 all:: plot
 
@@ -10,7 +11,7 @@ plot: cumclouds
 	gnuplot plotclf.gp
 
 cumclouds: cumclouds.f90
-	$(FC) $(FCFLAGS) -o $@ $<
+	$(FC) $(FCFLAGS) -o $@ $< $(LIBS)
 
 clean:
-	rm -f cumclouds profile_*.txt gnuplot_*.dat dat.dat
+	rm -f cumclouds profile_*.txt gnuplot_*.dat dat.dat *.nc *.ps
