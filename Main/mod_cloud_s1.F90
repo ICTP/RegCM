@@ -1269,7 +1269,7 @@ if ( fscheme ) then
             !--------------------------------------------------------------
             if ( zt(j,i,k) < tzero .and. zqxfg(j,i,iqql) > rlmin ) then
               zvpice = foeeice(zt(j,i,k)) !saturation vapor pressure wrt ice
-              zvpliq = zvpice*zfokoop     !saturation vapor pressure wrt liq
+              zvpliq = foeeliq(zt(j,i,k)) !saturation vapor pressure wrt liq
               zicenuclei(j,i) = d_1000 * &
                 exp(12.96D0*((zvpliq-zvpice)/zvpice)-0.639D0) !Meyers et al 1992
               !------------------------------------------------
