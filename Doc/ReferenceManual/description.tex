@@ -798,6 +798,42 @@ term $Qcth$ and the rate of sub-cloud evaporation $Cevap$ parameters have
 proven effective in ameliorating this problem: greater values of $Qth$ and
 $Cevap$ lead to decreased precipitation amounts.
 
+\subsection{The new cloud microphysics scheme}
+
+The new scheme is built upon the European Centre for Medium Weather Forecast's Integrated Forecast System (IFS) (\citet{tiedtke:93}, \citet{tompkins:07}), \citet{nogherotto:14}. \\
+In the new scheme some important achievement have been added:
+\begin{itemize}
+\item Liquid and ice water content are independent, allowing the existence of supercooled liquid water and mixed-phase cloud.
+\item Rain and snow now precipitate with a fixed, finite, terminal fall speed and can be then advected by the three dimensional wind.
+\item The new scheme solves implicitly 5 prognostic equations for water vapor, cloud liquid water, rain, ice and snow. It is also easily suitable for a larger number of variables. Water vapor $q_v$, cloud liquid water $q_l$, rain $q_r$, ice $q_i$ and snow $q_s$ are all expressed in terms of the grid-mean mixing ratio.
+\item A check for the conservation of enthalpy and of total moisture is en- sured at the end of each timestep.
+\end{itemize}
+The governing equation for each variable is:
+\begin{equation}
+\frac{\partial q_x}{\partial t}= S_x +\frac{1}{\rho}\frac{\partial}{\partial z}(\rho V_x q_x)
+\end{equation}
+The local variation of the mixing ratio $q_x$ of the variable $x$ is given by the sum of $S_x$, that contains the net sources and sinks of $q_x$ through 
+\begin{figure} [htpb!]% Inline image example
+\begin{center}
+\includegraphics[width=0.6\textwidth]{scheme_var2.jpg}
+\end{center}
+\caption{\small Schematics of the new scheme, showing the 5 prognostic variables and  how they are related to each other through microphysical processes}
+\label{fig:newscheme}
+\end{figure}
+\noindent microphysical properties (i.e. condensation, evaporation, auto-conversion, melting...), and the sedimentation term, that is a function of the fall speed $V_x$ that has a fixed value for each cloud variable. 
+To solve the equations the upstream approach is used.  The sources and sinks contributors are divided in two groups according to the duration of the process they describe: processes that are considered to be fast relative to the timestep of the model are treated implicitly while slow processes are treated explicitly. The processes taken into account (shown in Fig.~\ref{fig:newscheme})) are the microphysical pathways between the 5 considered variables: condensation, autoconversion, evaporation, collection for the warm clouds, and autoconversion, freezing, melting, deposition, evaporation for the cold clouds.\\
+For each microphysical pathway the change of phase is associated with a release or an absorption of latent heat, that has a significant impact on the temperature budget.
+The impact is calculated using the conservation of liquid water temperature $T_L$ defined as:
+\begin{equation}
+T_L=T-\frac{L_v}{C_p}(q_l+q_r)-\frac{L_s}{C_p}(q_i+q_s).
+\end{equation}
+Being that $\frac{dT_L}{dt}=0$, the rate of change of the temperature is  given by the following equation:
+\begin{equation}
+\frac{\partial T}{\partial t}=\sum_{x=1}^m\frac{L(x)}{C_p}\Big(\frac{dq_x}{dt}-D_{q_x}-\frac{1}{\rho}\frac{\partial}{\partial z}(\rho V_x q_x)\Big)
+\end{equation}
+where $L(x)$ is the latent heat (of fusion or evaporation depending on the processes considered), $D_{q_x}$ is the convective detrainment and the third term in the brackets is the sedimentation term.\\
+At the end of each timestep a routine checks the conservation of the total water and of the moist static energy $h=C_P T+gz+ Lq_x$.
+
 \subsection{Ocean flux Parameterization}
 
 \ac{BATS} uses standard Monin-Obukhov similarity relations to compute the

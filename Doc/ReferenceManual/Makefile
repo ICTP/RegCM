@@ -8,12 +8,11 @@ TEXFILES = abstract.tex acronyms.tex description.tex \
 BIBFILES = references.bib 
 
 ReferenceMan.pdf: ReferenceMan.tex $(TEXFILES) $(BIBFILES) $(FIGURES)
-	latex ReferenceMan
+	pdflatex ReferenceMan
 	bibtex ReferenceMan
-	latex ReferenceMan
-	latex ReferenceMan
-	latex ReferenceMan
-	dvipdf ReferenceMan
+	pdflatex ReferenceMan
+	pdflatex ReferenceMan
+	pdflatex ReferenceMan
 
 clean:
 	rm -f *.aux *.dvi *.pdf *.log *.toc *.lof *.lot *.bbl *.blg
