@@ -80,8 +80,9 @@
  &physicsparam
  iboudy  =          5,
  ibltyp  =          1,
- icup    =          4,
-   igcc    =          1,
+ icup_lnd =         4,
+ icup_ocn =         4,
+   igcc   =         1,
  ipptls  =          1,
  iocnflx =          2,
  ipgf    =          0,
@@ -92,7 +93,7 @@
  idcsst = 0,
  iseaice = 0,
  idesseas = 0,
- iconvlwp = 1,
+ iconvlwp = 0,
  /
  &subexparam
  qck1land =   .250E-03,
