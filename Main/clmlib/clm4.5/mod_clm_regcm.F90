@@ -69,7 +69,7 @@ module mod_clm_regcm
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( lm%ldmsk1(n,j,i) == 1 ) then
-            lms%emisv(n,j,i) = 0.9995D0
+            lms%emisv(n,j,i) = d_one
           end if
         end do
       end do
@@ -281,7 +281,9 @@ module mod_clm_regcm
     call glb_l2c_ss(lndcomm,clm_l2a%t_ref2m,lms%t2m)
     call glb_l2c_ss(lndcomm,clm_l2a%q_ref2m,lms%q2m)
 
-    call glb_l2c_ss(lndcomm,clm_l2a%emg,lms%emisv)
+    if ( iemiss == 1 ) then
+      call glb_l2c_ss(lndcomm,clm_l2a%emg,lms%emisv)
+    end if
     !clm_l2a%notused = clm_l2a%eflx_lwrad_out/(sb*clm_l2a%t_rad**4)
     !call glb_l2c_ss(lndcomm,clm_l2a%notused,lms%emisv)
 
