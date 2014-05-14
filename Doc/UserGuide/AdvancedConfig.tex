@@ -947,31 +947,30 @@ This stanza controls the chemistry and aerosol options in the RegCM model.
                            !   CBMZ   : Activate gas phase and sulfate
                            !   DCCB   : Activate CBMZ +DUST +CARB
                            !   POLLEN : Activate POLLEN transport scheme
- ichsolver = 1,  ! Activate the chemical solver
- ichsursrc = 1,  ! Enable the emissions
+ ichsolver = 1,  ! Activate the gas phase chemical solver CBMZ
+ ichsursrc = 1,  ! Enable the emissions fluxes.
  ichdrdepo = 1,  ! 1 = enable tracer surface dry deposition. For dust,
                  !     it is calculated by a size settling and dry
                  !     deposition scheme. For other aerosol,a dry
                  !     deposition velocity is simply prescribed further.
- ichebdy = 1,    ! Enable boundary conditions read
- ichcumtra = 1,  ! 1 = enable tracer convective transport and mixing.
- ichremlsc = 1,  ! 1 = wet removal of chemical species (washout and rainout
-                 !     by total rain) is enabled
- ichremcvc = 1,  ! 1 = wet removal of chemical species (washout and rainout
-                 !     by convective rain) is enabled
+ ichebdy = 1,    ! Enable reading of chemical boundary conditions, otherwise put 0 in boundary conditions.
+ ichcumtra = 1,  ! 1 = enable tracer convective transport.
+ ichremlsc = 1,  ! 1 = enable tracer rainout     
+ ichremcvc = 1,  ! 1 = enable tracer washout 
  ichdustemd = 1, ! Choice for parametrisation of dust emission size distribution
                  ! 1 = use the standard scheme (Alfaro et al., Zakey et al.)
-                 ! 2 = use the the revised soil granulometry + Kok et al., 2011
- ichdiag = 0,    ! 1 = enable writing of additional diagnostics in the output
+                 ! 2 = use a revised soil granulometry ref + 
+                 !     Kok et al emission size distribution : Menut et al.,2012; + Kok et al., 2011
+ ichdiag = 0,    ! 1 = enable writing of additional tracer tendency diagnostics in the output
  idirect   = 1,  ! CHoice to enable or not aerosol feedbacks on radiation and
-                 ! dynamics (aerosol direct and semi direct effcts):
+                 ! dynamics (aerosol direct and semi direct effects): possible choice 1 or 2:
                  ! 1 = no coupling to dynamic and thermodynamic. However
                  !     the clear sky surface and top of atmosphere 
                  !     aerosol radiative forcings are diagnosed.
                  ! 2 = allows aerosol feedbacks on radiative,
                  !     thermodynamic and dynamic fields.
- iindirect = 0,  ! Enable sulfate indirect effect in radiation scheme
- rdstemfac = 1.0,! Aerosol correction factor (Laurent et al, 2008)
+ iindirect = 0,  ! Enable sulfate first indirect effect in radiation scheme based on Qian et al., 2001 
+ rdstemfac = 1.0,! Dust emission adjustment factor ( soil erodibility) : linearly reduce or increase the dust flux
  /
 \end{Verbatim}
 }
@@ -987,6 +986,7 @@ are:
     transport and removal.
   \item \verb=SSLT= : Activate 2 sea salt bins scheme, with on line emission,
     transport and removal.
+  \item \verb=DUSS= : Activate Dust and seasalt scheme, 6 tracers.
   \item \verb=CARB= : Activate 4 species organic and black carbon in both
     hydrophobic and hydrophilic aerosol scheme, with on line emission,
     transport and removal.
@@ -995,10 +995,11 @@ are:
     transport and removal.
   \item \verb=SUCA= : Activate both SULF and CARB.
   \item \verb=AERO= : Activate all DUST, SSLT, CARB and SULF
-  \item \verb=CBMZ= : Activate CBMZ gas phase option : 35 tracer are
+  \item \verb=CBMZ= : Activate CBMZ gas phase only option : 37 tracer are
     considered here.
-  \item \verb=DCCB= : Activate CBMZ +DUST +CARB options: 45 tracers are
-    considered here.
+  \item \verb=DCCB= : Activate CBMZ +DUST +CARB 
+         + sulfate-nitrate-ammonium aerosol calculated with the ISORROPIA 
+         gas-aerosol thermodynamical scheme: 50 tracers are considered here.
 \end{enumerate}
 
 The more tracer are used, the heavier computationally are the simulations and
@@ -1031,9 +1032,9 @@ The data needed for this second task come from different sources, both
 measurements data or GCM model with a chemistry parametrization active.
 
 \begin{enumerate}
-  \item Emission dataset. The pre processor can manage CMIP5 RCP anthropogenic
+  \item Emission dataset. The pre processor can manage CMIP5 RCP and IASA  anthropogenic
     emissions for present day and future emission. For this, the global RCP
-    emission dataset have first been processed by ICTP (F.Solmon and A. Pozzer)
+    emission dataset have first been processed by ICTP
     to match the species considered in the chemical solver CBMZ, and to
     aggregate different sector of emissions that are present in the RCP fields
     (e.g. CO emission from biomass burning + fossil fuel + ship + $\ldots$).
@@ -1042,22 +1043,20 @@ measurements data or GCM model with a chemistry parametrization active.
     \begin{center}
     \verb=http://clima-dods.ictp.it/data/d8/cordex/RCP_EMGLOB_PROCESSED=
     \end{center}
-    Note : not the whole RCP have been yet processed and put on the website,
-    but this will be done progressively. At this time you can use only
-    1990-2010 Historical emissions.
+    
   \item Chemical boundary conditions for important tracersare available through
     ICTP. We use monthly boundary condition coming from global simulations
     (CAM + EC-EARTH) for aerosols, following different RCP scenarios
     (HIST + future).
-    For the gas phase, we however still rely on a climatology representative
+    For gas phase species, we now have 6 hourly chemical boundary 
+    conditions issued from the MOZART CTM. 
+    Alternatively, we can use  a climatology representative
     of monthly average concentrations over the period 2000-2007 coming from
-    the MOZART CTM. In the future, we hope to have also GCM forcing interface
-    for relevant gas phase species. The oxidant fields, used in the simple
+    the MOZART CTM. 
+    The oxidant fields, used in the simple
     sulfate scheme, is also a climatology coming from MOZART CTM.
     The data are available on ICTP site in the folloving directories:
     \begin{Verbatim}
-    http://clima-dods.ictp.it/data/d8/cordex/AERGLOB
-    http://clima-dods.ictp.it/data/d8/cordex/OXIGLOB
     \end{Verbatim}
 \end{enumerate}
 
@@ -1103,10 +1102,7 @@ The steps to prepare the chemistry boundary conditions data are the following:
         $> ./bin/chem_icbc test_001.in
         \end{Verbatim}
     That will result in 6 hourly chemical boundary conditions in your input
-    directory (\verb=*_CHBC*.nc= and/or \verb=*_AEBC*.nc=). We are generating
-    6 hourly outputs from monthly global fields because we are anticipating
-    working soon with 6 hourly global outputs. There is indeed a bit of a
-    waste of space right now.
+    directory (\verb=*_CHBC*.nc= and/or \verb=*_AEBC*.nc=).
 \end{enumerate}
 
 \subsubsection{Run time parameters}
@@ -1121,8 +1117,10 @@ of the model chemistry and aerosol schemes.
     suppressed and only boundary conditions are generating tracer in the domain.
   \item \verb=ichdrdepo= : if set different from $1$, the dry deposition and
     sedimentation of tracers is disabled for chemistry species.
-  \item \verb=ichremlsc= : if set different from $1$, wet removal of chemical
-    species (washout and rainout by total rain) is disabled.
+  \item \verb=ichremlsc= : if set different from $1$,  rainout of chemical
+    species is disabled.
+  \item \verb=ichremcvc= : if set different from $1$,  washout of chemical
+    species is disabled.
   \item \verb=ichcumtra= : if set different form $1$, the convective transport
     of tracers is disabled.
   \item= \verb=ichdiag= : if set to $1$, the writing of additional diagnostics
@@ -1131,7 +1129,7 @@ of the model chemistry and aerosol schemes.
     etc.) of the tracer equation are outputted at the frequency \verb=ichfreq=.
     This is usefull for budget and sensitivity studies, as well as debugging.
     This potentially can generate HUGE files.
-  \item \verb=idirect= : Enable or disable aerosol feedbacks on radiation.
+  \item \verb=idirect= : Enable aerosol feedbacks on radiation.
     \begin{itemize}
       \item if equal to $1$, only aerosol radiative forcing is calculated and
         outputted but there is NO aerosol radiative feedback on climate.
@@ -1148,7 +1146,7 @@ of the model chemistry and aerosol schemes.
       \item if set to $2$, the revised soil granulometry + Kok et al., 2011
         emission size distribution is used.
     \end{itemize}
-  \item \verb=rdstemfac= : Scaling factor for \verb=DUST= emission flux
+  \item \verb=rdstemfac= : Scaling factor (erodibility) for tuning  \verb=DUST= emission flux
 \end{enumerate}
 
 \subsubsection{Sparse notes}
