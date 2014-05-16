@@ -54,13 +54,18 @@ program mksurfdata
   implicit none
 
   integer , parameter :: npft = 17
-  integer , parameter :: nmon = 12
+  integer , parameter :: nlurb = 15
   integer , parameter :: nsoil = 10
+
+  integer , parameter :: nmon = 12
+  integer , parameter :: nrad = 2
+  integer , parameter :: nsol = 2
 
   integer :: ngcells
 
-  integer , parameter :: maxd3 = max(npft,nsoil)
-  integer , parameter :: maxd4 = nmon
+  integer , parameter :: maxd3 = max(max(npft,nsoil),nlurb)
+  integer , parameter :: nturb = 6 + (nrad*nsol*4 + 14)/maxd3
+  integer , parameter :: maxd4 = max(nmon,nturb)
 
   real(rk8) , parameter :: vmisdat = -9999.0D0
 
@@ -438,7 +443,8 @@ program mksurfdata
   call getmem1d(iiy,1,ngcells,'mksurfdata: iiy')
   call getmem1d(ijx,1,ngcells,'mksurfdata: ijx')
   call getmem1d(landpoint,1,ngcells,'mksurfdata: landpoint')
-  call getmem5d(var5d,1,jxsg,1,iysg,1,maxd3,1,maxd4,1,4,'mksurfdata: var5d')
+  call getmem5d(var5d,1,jxsg,1,iysg,1,maxd3,1,maxd4, &
+                  1,max(4,npu4d+2),'mksurfdata: var5d')
   pctspec(:,:) = 0.0D0
   pctslake(:,:) = 0.0D0
   ip = 1
@@ -500,7 +506,7 @@ program mksurfdata
 
   call mkglacier('mksrf_glacier.nc',var5d(:,:,1,1,1))
   call mkwetland('mksrf_lanwat.nc',var5d(:,:,2,1,1),var5d(:,:,3,1,1))
-  call mkurban('mksrf_urban.nc',var5d(:,:,4,1,1))
+  call mkurban_base('mksrf_urban.nc',var5d(:,:,4,1,1))
   var5d(:,:,1:4,1,1) = max(var5d(:,:,1:4,1,1),0.0D0)
   where ( xmask < 0.5D0 )
     var5d(:,:,1,1,1) = vmisdat
@@ -840,6 +846,10 @@ program mksurfdata
   call mypack(var5d(:,:,1,1,1),gcvar)
   istatus = nf90_put_var(ncid, idepthvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write lake')
+
+  call mkurban_param('mksrf_urban.nc',var5d(:,:,1:npu2d,1,1), &
+                     var5d(:,:,1:nlurb,1:npu3d,2), &
+                     var5d(:,:,1:nsol,1:nrad,3:npu4d+2))
 
   istatus = nf90_close(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,  &
