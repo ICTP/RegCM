@@ -24,7 +24,7 @@ module mod_clm_control
           pertlim , username , fsnowaging , fsnowoptics ,         &
           subgridflag , use_c13 , use_c14 , irrigate ,            &
           spinup_state , override_bgc_restart_mismatch_dump ,     &
-          source , enable_megan_emission
+          source , enable_megan_emission , enable_urban_areas
   use mod_clm_varpar, only : numrad
   use mod_clm_varctl , only : NLFileName_in , ctitle , caseid , nsrest
   use mod_clm_varcon , only : secspday
@@ -202,7 +202,7 @@ module mod_clm_control
 
     namelist /clm_inparm / use_c13, use_c14
 
-    namelist /clm_inparm / enable_megan_emission
+    namelist /clm_regcm / enable_megan_emission , enable_urban_areas
 
 #if (defined CN)
     !!! C14
@@ -235,6 +235,11 @@ module mod_clm_control
       write(stdout,*) 'Read in clm_inparm namelist from: ', trim(namelistfile)
       open(unitn,file=namelistfile,status='old',action='read',iostat=ierr)
       if (ierr == 0) then
+        read(unitn, nml=clm_regcm, iostat=ierr)
+        if (ierr /= 0) then
+          write(stderr,*) 'Using CLM-REGCM defaults.'
+        end if
+        rewind(unitn)
         read(unitn, nml=clm_inparm, iostat=ierr ,err=100)
         if (ierr /= 0) then
           call fatal(__FILE__,__LINE__, &
@@ -371,6 +376,8 @@ module mod_clm_control
 
     ! Megan emission
     call bcast(enable_megan_emission)
+    ! Urban areas
+    call bcast(enable_urban_areas)
 
 #if (defined CN) && (defined VERTSOILC)
     ! vertical soil mixing variables
@@ -449,8 +456,6 @@ module mod_clm_control
 
     ! error growth perturbation limit
     call bcast(pertlim)
-
-    call bcast(enable_megan_emission)
 
   end subroutine control_spmd
   !
@@ -560,6 +565,10 @@ module mod_clm_control
     write(stdout, *) &
       '   enable_megan_emission                                 : ', &
       enable_megan_emission
+
+    write(stdout, *) &
+      '   enable_urban_areas                                    : ', &
+      enable_urban_areas
 
 #if (defined CN)
     write(stdout, *) &

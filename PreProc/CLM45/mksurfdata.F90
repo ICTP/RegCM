@@ -54,23 +54,20 @@ program mksurfdata
   implicit none
 
   integer , parameter :: npft = 17
-  integer , parameter :: nlurb = 15
+  integer , parameter :: nlurb = 5
   integer , parameter :: nsoil = 10
 
   integer , parameter :: nmon = 12
   integer , parameter :: nrad = 2
   integer , parameter :: nsol = 2
+  integer , parameter :: numurbl = 3
 
   integer :: ngcells
-
-  integer , parameter :: maxd3 = max(max(npft,nsoil),nlurb)
-  integer , parameter :: nturb = 6 + (nrad*nsol*4 + 14)/maxd3
-  integer , parameter :: maxd4 = max(nmon,nturb)
 
   real(rk8) , parameter :: vmisdat = -9999.0D0
 
   integer(ik4) :: istatus , ncid , ndim , nvar
-  integer(ik4) , dimension(7) :: idims , ivdims
+  integer(ik4) , dimension(10) :: idims , ivdims
   integer(ik4) :: ivartime , iglcvar , iwetvar , ilakevar , iurbanvar
   integer(ik4) :: ipftvar , ilaivar , isaivar , ivgtopvar , ivgbotvar
   integer(ik4) :: ifmaxvar , isoilcolvar , isandvar , iclayvar
@@ -78,6 +75,9 @@ program mksurfdata
   integer(ik4) :: ief_btrvar , ief_crpvar , ief_fdtvar , ief_fetvar
   integer(ik4) :: ief_grsvar , ief_shrvar , iorganicvar , idepthvar
   integer(ik4) :: ilndvar , iscvar , ilatvar , ilonvar , itopovar
+  integer(ik4) , dimension(npu2d) :: iurb2d
+  integer(ik4) , dimension(npu3d) :: iurb3d
+  integer(ik4) , dimension(npu4d*2) :: iurb4d
   integer(ik4) :: ijxvar , iiyvar
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
@@ -93,18 +93,24 @@ program mksurfdata
   real(rk8) :: spft , mean
   real(rk8) :: operat , diff
   integer(ik4) :: ierr
-  integer(ik4) :: i , j , n , ip , il , np , nm , it , ipnt
+  integer(ik4) :: i , j , n , ip , il , ir , iu , np , nm , it , ipnt , iurbmax
   integer(ik4) :: jgstart , jgstop , igstart , igstop
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile , outfile
   character(len=64) :: csdate
   real(rk8) , dimension(:,:) , pointer :: pctspec , pctslake
+  real(rk8) , pointer , dimension(:,:) :: var2d
+  real(rk8) , pointer , dimension(:,:,:) :: var3d
+  real(rk8) , pointer , dimension(:,:,:,:) :: var4d
   real(rk8) , pointer , dimension(:,:,:,:,:) :: var5d
+  real(rk8) , pointer , dimension(:,:,:,:,:,:) :: var6d
   real(rk8) , pointer , dimension(:) :: gcvar
   integer(ik4) , pointer , dimension(:) :: iiy , ijx
   integer , pointer , dimension(:) :: landpoint
   logical , dimension(npft) :: pft_gt0
-  logical :: subgrid
+  logical :: subgrid , enable_urban_areas , enable_megan_emission
+
+  namelist /clm_regcm/ enable_urban_areas , enable_megan_emission
 
   call get_command_argument(0,value=prgname)
   call get_command_argument(1,value=namelistfile)
@@ -116,6 +122,18 @@ program mksurfdata
     write(stderr,*) ' '
     call die(__FILE__,'Check argument and namelist syntax',__LINE__)
   end if
+
+  enable_urban_areas = .true.
+  open(ipunit, file=namelistfile, status='old', action='read', iostat=ierr)
+  if ( ierr /= 0 ) then
+    write (stderr,*) 'Error opening input namelist file ',trim(namelistfile)
+    call die(__FILE__,'Check argument and namelist syntax',__LINE__)
+  end if
+  read(ipunit, nml=clm_regcm, iostat=ierr)
+  if ( ierr /= 0 ) then
+    write(stderr,*) 'By default urban category ENABLED !'
+  end if
+  close(ipunit)
 
   call memory_init
 
@@ -164,6 +182,9 @@ program mksurfdata
   call add_dimension(ncid,'lsmpft',npft,ndim,idims)
   call add_dimension(ncid,'nlevsoi',nsoil,ndim,idims)
   call add_dimension(ncid,'gridcell',ngcells,ndim,idims)
+  call add_dimension(ncid,'numurbl',numurbl,ndim,idims)
+  call add_dimension(ncid,'nlevurb',nlurb,ndim,idims)
+  call add_dimension(ncid,'numrad',nrad,ndim,idims)
   call define_horizontal_coord(ncid,jxsg,iysg,xjx,yiy,idims,ihvar)
   call define_vertical_coord(ncid,idims,izvar)
 
@@ -248,7 +269,9 @@ program mksurfdata
   istatus = nf90_put_att(ncid, ilakevar, 'units','%')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add lake units')
 
-  istatus = nf90_def_var(ncid, 'PCT_URBAN', nf90_double, idims(7), iurbanvar)
+  ivdims(1) = idims(7)
+  ivdims(2) = idims(8)
+  istatus = nf90_def_var(ncid, 'PCT_URBAN', nf90_double, ivdims(1:2), iurbanvar)
   call checkncerr(istatus,__FILE__,__LINE__,  'Error add var urban')
   istatus = nf90_put_att(ncid, iurbanvar, 'long_name','percent urban')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add urban long_name')
@@ -411,6 +434,57 @@ program mksurfdata
   istatus = nf90_put_att(ncid, idepthvar, 'units','m')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add lake units')
 
+  ivdims(1) = idims(7)
+  ivdims(2) = idims(8)
+  do i = 1 , npu2d
+    istatus = nf90_def_var(ncid, parm2d(i), nf90_double, ivdims(1:2), iurb2d(i))
+    call checkncerr(istatus,__FILE__,__LINE__, 'Error add var')
+    istatus = nf90_put_att(ncid, iurb2d(i), 'long_name', lngn2d(i))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add long_name')
+    istatus = nf90_put_att(ncid, iurb2d(i), 'units', unit2d(i) )
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add units')
+    istatus = nf90_put_att(ncid, iurb2d(i), '_FillValue',vmisdat)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add _FillValue')
+  end do
+
+  ivdims(1) = idims(7)
+  ivdims(2) = idims(8)
+  ivdims(3) = idims(9)
+  do i = 1 , npu3d
+    istatus = nf90_def_var(ncid, parm3d(i), nf90_double, ivdims(1:3), iurb3d(i))
+    call checkncerr(istatus,__FILE__,__LINE__, 'Error add var')
+    istatus = nf90_put_att(ncid, iurb3d(i), 'long_name', lngn3d(i))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add long_name')
+    istatus = nf90_put_att(ncid, iurb3d(i), 'units', unit3d(i) )
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add units')
+    istatus = nf90_put_att(ncid, iurb3d(i), '_FillValue',vmisdat)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add _FillValue')
+  end do
+
+  ivdims(1) = idims(7)
+  ivdims(2) = idims(8)
+  ivdims(3) = idims(10)
+  do i = 1 , npu4d
+    istatus = nf90_def_var(ncid, trim(parm4d(i))//'_DIR', &
+      nf90_double, ivdims(1:3), iurb4d(2*i-1))
+    call checkncerr(istatus,__FILE__,__LINE__, 'Error add var')
+    istatus = nf90_put_att(ncid, iurb4d(2*i-1), 'long_name', lngn4d(i))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add long_name')
+    istatus = nf90_put_att(ncid, iurb4d(2*i-1), 'units', unit4d(i) )
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add units')
+    istatus = nf90_put_att(ncid, iurb4d(2*i-1), '_FillValue',vmisdat)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add _FillValue')
+    istatus = nf90_def_var(ncid, trim(parm4d(i))//'_DIF', &
+      nf90_double, ivdims(1:3), iurb4d(2*i))
+    call checkncerr(istatus,__FILE__,__LINE__, 'Error add var')
+    istatus = nf90_put_att(ncid, iurb4d(2*i), 'long_name', lngn4d(i))
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add long_name')
+    istatus = nf90_put_att(ncid, iurb4d(2*i), 'units', unit4d(i) )
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add units')
+    istatus = nf90_put_att(ncid, iurb4d(2*i), '_FillValue',vmisdat)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error add _FillValue')
+  end do
+
   istatus = nf90_enddef(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,'Error exit define mode')
 
@@ -443,8 +517,6 @@ program mksurfdata
   call getmem1d(iiy,1,ngcells,'mksurfdata: iiy')
   call getmem1d(ijx,1,ngcells,'mksurfdata: ijx')
   call getmem1d(landpoint,1,ngcells,'mksurfdata: landpoint')
-  call getmem5d(var5d,1,jxsg,1,iysg,1,maxd3,1,maxd4, &
-                  1,max(4,npu4d+2),'mksurfdata: var5d')
   pctspec(:,:) = 0.0D0
   pctslake(:,:) = 0.0D0
   ip = 1
@@ -482,65 +554,69 @@ program mksurfdata
   istatus = nf90_put_var(ncid, ijxvar, ijx)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ijx')
 
-  var5d(:,:,1,1,1) = 0.0D0
+  allocate(var3d(jxsg,iysg,2))
+  var3d(:,:,1) = 0.0D0
   ! Calculate slope and std
   do i = igstart , igstop
     do j = jgstart , jgstop
-      var5d(j,i,1,1,1) = &
+      var3d(j,i,1) = &
           atan((sum(topo(j-1:j+1,i-1:i+1)-topo(j,i))/8.0D0)/(ds*1000.0D0))
       mean = sum(topo(j-1:j+1,i-1:i+1))/9.0D0
-      var5d(j,i,2,1,1) = sqrt(sum((topo(j-1:j+1,i-1:i+1)-mean)**2)/8.0D0)
+      var3d(j,i,2) = sqrt(sum((topo(j-1:j+1,i-1:i+1)-mean)**2)/8.0D0)
     end do
   end do
   where ( xmask < 0.5D0 )
-    var5d(:,:,1,1,1) = vmisdat
-    var5d(:,:,2,1,1) = vmisdat
+    var3d(:,:,1) = vmisdat
+    var3d(:,:,2) = vmisdat
   end where
-  call mypack(var5d(:,:,1,1,1),gcvar)
+  call mypack(var3d(:,:,1),gcvar)
   gcvar = gcvar*real(raddeg)
   istatus = nf90_put_var(ncid, islopevar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write slope')
-  call mypack(var5d(:,:,2,1,1),gcvar)
+  call mypack(var3d(:,:,2),gcvar)
   istatus = nf90_put_var(ncid, istdvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write stddev')
+  deallocate(var3d)
 
-  call mkglacier('mksrf_glacier.nc',var5d(:,:,1,1,1))
-  call mkwetland('mksrf_lanwat.nc',var5d(:,:,2,1,1),var5d(:,:,3,1,1))
-  call mkurban_base('mksrf_urban.nc',var5d(:,:,4,1,1))
-  var5d(:,:,1:4,1,1) = max(var5d(:,:,1:4,1,1),0.0D0)
-  where ( xmask < 0.5D0 )
-    var5d(:,:,1,1,1) = vmisdat
-    var5d(:,:,2,1,1) = vmisdat
-    var5d(:,:,3,1,1) = vmisdat
-    var5d(:,:,4,1,1) = vmisdat
-  end where
+  iurbmax = numurbl+3
+  allocate(var3d(jxsg,iysg,iurbmax))
+  call mkglacier('mksrf_glacier.nc',var3d(:,:,1))
+  call mkwetland('mksrf_lanwat.nc',var3d(:,:,2),var3d(:,:,3))
+  call mkurban_base('mksrf_urban.nc',var3d(:,:,4:iurbmax))
+  if ( .not. enable_urban_areas ) then
+    write (stderr,*) 'Disable URBAN Areas in CLM4.5 Model !'
+    var3d(:,:,4:iurbmax) = 0.0D0
+  end if
+  var3d = max(var3d,0.0D0)
+  do i = 1 , iurbmax
+    where ( xmask < 0.5D0 )
+      var3d(:,:,i) = vmisdat
+    end where
+  end do
 
-  where ( var5d(:,:,1,1,1) > 100.0D0 ) var5d(:,:,1,1,1) = 100.0D0
-  where ( var5d(:,:,2,1,1) > 100.0D0 ) var5d(:,:,2,1,1) = 100.0D0
-  where ( var5d(:,:,3,1,1) > 100.0D0 ) var5d(:,:,3,1,1) = 100.0D0
-  where ( var5d(:,:,4,1,1) > 100.0D0 ) var5d(:,:,4,1,1) = 100.0D0
+  where ( var3d(:,:,1) > 100.0D0 ) var3d(:,:,1) = 100.0D0
+  where ( var3d(:,:,2) > 100.0D0 ) var3d(:,:,2) = 100.0D0
+  where ( var3d(:,:,3) > 100.0D0 ) var3d(:,:,3) = 100.0D0
+  where ( var3d(:,:,4:iurbmax) > 100.0D0 ) var3d(:,:,4:iurbmax) = 100.0D0
 
   do i = igstart , igstop
     do j = jgstart , jgstop
       if ( xmask(j,i) > 0.5D0 ) then
-        pctspec(j,i) = var5d(j,i,1,1,1) + var5d(j,i,2,1,1) + &
-                       var5d(j,i,3,1,1) + var5d(j,i,4,1,1)
+        pctspec(j,i) = sum(var3d(j,i,:))
         if ( pctspec(j,i) < 0.0D0 ) then
           write(stderr,*) 'Negative pctspec ',pctspec(j,i),' at j,i ', j , i
           call die(__FILE__,'PCTSPEC error',__LINE__)
         end if
         if ( pctspec(j,i) > 99.9D0 ) then
           diff = 100.0D0 - pctspec(j,i)
-          iloc = maxloc(var5d(j,i,:,1,1))
-          var5d(j,i,iloc(1),1,1) = var5d(j,i,iloc(1),1,1) + diff
-          pctspec(j,i) = var5d(j,i,1,1,1) + var5d(j,i,2,1,1) + &
-                         var5d(j,i,3,1,1) + var5d(j,i,4,1,1)
+          iloc = maxloc(var3d(j,i,:))
+          var3d(j,i,iloc(1)) = var3d(j,i,iloc(1)) + diff
+          pctspec(j,i) = sum(var3d(j,i,:))
           if ( pctspec(j,i) /= 100.0D0 ) then
             diff = 100.0D0 - pctspec(j,i)
-            iloc = maxloc(var5d(j,i,:,1,1))
-            var5d(j,i,iloc(1),1,1) = var5d(j,i,iloc(1),1,1) + diff
-            pctspec(j,i) = var5d(j,i,1,1,1) + var5d(j,i,2,1,1) + &
-                           var5d(j,i,3,1,1) + var5d(j,i,4,1,1)
+            iloc = maxloc(var3d(j,i,:))
+            var3d(j,i,iloc(1)) = var3d(j,i,iloc(1)) + diff
+            pctspec(j,i) = sum(var3d(j,i,:))
             if ( pctspec(j,i) /= 100.0D0 ) then
               write(stderr,*) 'Cannot normalize pctspec at j,i ', j , i
               call die(__FILE__,'PCTSPEC normalization error',__LINE__)
@@ -550,27 +626,35 @@ program mksurfdata
       end if
     end do
   end do
-  call mypack(var5d(:,:,1,1,1),gcvar)
+  call mypack(var3d(:,:,1),gcvar)
   istatus = nf90_put_var(ncid, iglcvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write glacier')
-  call mypack(var5d(:,:,2,1,1),gcvar)
+  call mypack(var3d(:,:,2),gcvar)
   istatus = nf90_put_var(ncid, iwetvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write wetland')
-  call mypack(var5d(:,:,3,1,1),gcvar)
+  call mypack(var3d(:,:,3),gcvar)
   istatus = nf90_put_var(ncid, ilakevar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write lake')
-  call mypack(var5d(:,:,4,1,1),gcvar)
-  istatus = nf90_put_var(ncid, iurbanvar, gcvar)
-  call checkncerr(istatus,__FILE__,__LINE__, 'Error write urban')
-  where ( var5d(:,:,3,1,1) > 0.0D0 )
-    pctslake = var5d(:,:,3,1,1)
+  do i = 1 , numurbl
+    istart(1) = 1
+    icount(1) = ngcells
+    istart(2) = i
+    icount(2) = 1
+    call mypack(var3d(:,:,3+i),gcvar)
+    istatus = nf90_put_var(ncid, iurbanvar, gcvar, istart(1:2), icount(1:2))
+    call checkncerr(istatus,__FILE__,__LINE__, 'Error write urban')
+  end do
+  where ( var3d(:,:,3) > 0.0D0 )
+    pctslake = var3d(:,:,3)
   end where
+  deallocate(var3d)
 
-  call mkpft('mksrf_pft.nc',var5d(:,:,1:npft,1,1))
-  var5d(:,:,1:npft,1,1) = max(var5d(:,:,1:npft,1,1),0.0D0)
+  allocate(var3d(jxsg,iysg,npft))
+  call mkpft('mksrf_pft.nc',var3d(:,:,:))
+  var3d(:,:,:) = max(var3d(:,:,:),0.0D0)
   do np = 1 , npft
     where ( xmask < 0.5D0 )
-      var5d(:,:,np,1,1) = vmisdat
+      var3d(:,:,np) = vmisdat
     end where
   end do
   ! Here adjustment !
@@ -578,37 +662,36 @@ program mksurfdata
     jloop: do j = jgstart , jgstop
       if ( xmask(j,i) > 0.5D0 ) then
         if ( pctspec(j,i) > 99.99999D0 ) then
-          var5d(j,i,:,1,1) = vmisdat
+          var3d(j,i,:) = vmisdat
         else
           spft = 0.0D0
           if ( pctspec(j,i) > 0.00001D0 ) then
             do np = 1 , npft
-              if ( var5d(j,i,np,1,1) > 0.0D0 ) then
-                spft = spft + var5d(j,i,np,1,1) * 100.0D0/(100.0D0-pctspec(j,i))
+              if ( var3d(j,i,np) > 0.0D0 ) then
+                spft = spft + var3d(j,i,np)*100.0D0/(100.0D0-pctspec(j,i))
               end if
             end do
           else 
             do np = 1 , npft
-              if ( var5d(j,i,np,1,1) > 0.0D0 ) then
-                spft = spft + var5d(j,i,np,1,1)
+              if ( var3d(j,i,np) > 0.0D0 ) then
+                spft = spft + var3d(j,i,np)
               end if
             end do
           end if
           if ( spft < 0.00001D0 ) then
             ! Substitute with something around it
-            call bestaround(var5d(:,:,:,1,1),i,j)
+            call bestaround_pft(var3d,i,j)
             spft = 0.0D0
             if ( pctspec(j,i) > 0.00001D0 ) then
               do np = 1 , npft
-                if ( var5d(j,i,np,1,1) > 0.0D0 ) then
-                  spft = spft + var5d(j,i,np,1,1) * &
-                          100.0D0/(100.0D0-pctspec(j,i))
+                if ( var3d(j,i,np) > 0.0D0 ) then
+                  spft = spft + var3d(j,i,np) * 100.0D0/(100.0D0-pctspec(j,i))
                 end if
               end do
             else 
               do np = 1 , npft
-                if ( var5d(j,i,np,1,1) > 0.0D0 ) then
-                  spft = spft + var5d(j,i,np,1,1)
+                if ( var3d(j,i,np) > 0.0D0 ) then
+                  spft = spft + var3d(j,i,np)
                 end if
               end do
             end if
@@ -622,11 +705,11 @@ program mksurfdata
             if ( abs(diff) > 0.0001D0 ) then
               ! Not worth doing if too small a diff...
               do np = 1 , npft
-                if ( var5d(j,i,np,1,1) > 0.0D0 ) then
-                  operat = diff*(var5d(j,i,np,1,1)/spft)
-                  var5d(j,i,np,1,1) = var5d(j,i,np,1,1) - operat
-                  if ( var5d(j,i,np,1,1) < 0.0D0 ) then
-                    var5d(j,i,np,1,1) = 0.0D0
+                if ( var3d(j,i,np) > 0.0D0 ) then
+                  operat = diff*(var3d(j,i,np)/spft)
+                  var3d(j,i,np) = var3d(j,i,np) - operat
+                  if ( var3d(j,i,np) < 0.0D0 ) then
+                    var3d(j,i,np) = 0.0D0
                   end if
                 end if
               end do
@@ -634,26 +717,24 @@ program mksurfdata
               spft = 0.0D0
               if ( pctspec(j,i) > 0.00001D0 ) then
                 do np = 1 , npft
-                  if ( var5d(j,i,np,1,1) > 0.0D0 ) then
-                    spft = spft + var5d(j,i,np,1,1) * &
-                            100.0D0/(100.0D0-pctspec(j,i))
+                  if ( var3d(j,i,np) > 0.0D0 ) then
+                    spft = spft + var3d(j,i,np) * 100.0D0/(100.0D0-pctspec(j,i))
                   end if
                 end do
               else
                 do np = 1 , npft
-                  if ( var5d(j,i,np,1,1) > 0.0D0 ) then
-                    spft = spft + var5d(j,i,np,1,1)
+                  if ( var3d(j,i,np) > 0.0D0 ) then
+                    spft = spft + var3d(j,i,np)
                   end if
                 end do
               end if
               diff = spft - 100.0D0
             end if
             if ( abs(diff) > 1.0D-5 ) then
-              pft_gt0 = (var5d(j,i,:,1,1) > diff/dble(npft))
+              pft_gt0 = (var3d(j,i,:) > diff/dble(npft))
               do n = 1 , npft
                 if ( pft_gt0(n) .and. count(pft_gt0) > 0 ) then
-                  var5d(j,i,n,1,1) = (var5d(j,i,n,1,1) - &
-                     diff/dble(count(pft_gt0)))
+                  var3d(j,i,n) = (var3d(j,i,n) - diff/dble(count(pft_gt0)))
                 end if
               end do
             end if
@@ -667,17 +748,17 @@ program mksurfdata
     icount(1) = ngcells
     istart(2) = ip
     icount(2) = 1
-    call mypack(var5d(:,:,ip,1,1),gcvar)
+    call mypack(var3d(:,:,ip),gcvar)
     istatus = nf90_put_var(ncid, ipftvar, gcvar, istart(1:2), icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write pft')
   end do
+  deallocate(var3d)
 
-  call mklaisai('mksrf_lai.nc',var5d(:,:,1:npft,1:nmon,1), &
-                               var5d(:,:,1:npft,1:nmon,2), &
-                               var5d(:,:,1:npft,1:nmon,3), &
-                               var5d(:,:,1:npft,1:nmon,4))
-  where (var5d(:,:,1:npft,1:nmon,1:4) < 0.0D0 )
-    var5d(:,:,1:npft,1:nmon,1:4) = 0.0D0
+  allocate(var5d(jxsg,iysg,npft,nmon,4))
+  call mklaisai('mksrf_lai.nc',var5d(:,:,:,:,1), var5d(:,:,:,:,2), &
+                               var5d(:,:,:,:,3), var5d(:,:,:,:,4))
+  where (var5d(:,:,:,:,:) < 0.0D0 )
+    var5d(:,:,:,:,:) = 0.0D0
   end where
   do nm = 1 , nmon
     do np = 1 , npft
@@ -711,34 +792,40 @@ program mksurfdata
       call checkncerr(istatus,__FILE__,__LINE__, 'Error write monthly_bot')
     end do
   end do
+  deallocate(var5d)
 
-  call mkfmax('mksrf_fmax.nc',var5d(:,:,1,1,1))
+  allocate(var2d(jxsg,iysg))
+  call mkfmax('mksrf_fmax.nc',var2d)
   where ( xmask < 0.5D0 )
-    var5d(:,:,1,1,1) = vmisdat
+    var2d = vmisdat
   end where
-  call mypack(var5d(:,:,1,1,1),gcvar)
+  call mypack(var2d,gcvar)
   where ( gcvar < 0.0D0 ) gcvar = 0.05D0
   istatus = nf90_put_var(ncid, ifmaxvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write fmax')
+  deallocate(var2d)
 
-  call mksoilcol('mksrf_soicol.nc',var5d(:,:,1,1,1))
+  allocate(var2d(jxsg,iysg))
+  call mksoilcol('mksrf_soicol.nc',var2d)
   where ( xmask < 0.5D0 )
-    var5d(:,:,1,1,1) = vmisdat
+    var2d = vmisdat
   end where
-  call mypack(var5d(:,:,1,1,1),gcvar)
+  call mypack(var2d,gcvar)
   if ( any(gcvar < 0.0D0) ) call fillvar(gcvar)
   istatus = nf90_put_var(ncid, isoilcolvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write soil color')
+  deallocate(var2d)
 
-  call mksoitex('mksrf_soitex.nc',var5d(:,:,1:nsoil,1,1),var5d(:,:,1:nsoil,2,1))
-  where ( var5d(:,:,:,1,1) < 0.0D0 )
-    var5d(:,:,:,1,1) = 50.0D0
-    var5d(:,:,:,2,1) = 50.0D0
+  allocate(var4d(jxsg,iysg,nsoil,2))
+  call mksoitex('mksrf_soitex.nc',var4d(:,:,:,1),var4d(:,:,:,2))
+  where ( var4d(:,:,:,1) < 0.0D0 )
+    var4d(:,:,:,1) = 50.0D0
+    var4d(:,:,:,2) = 50.0D0
   end where
   do il = 1 , nsoil
     where ( xmask < 0.5D0 )
-      var5d(:,:,il,1,1) = vmisdat
-      var5d(:,:,il,2,1) = vmisdat
+      var4d(:,:,il,1) = vmisdat
+      var4d(:,:,il,2) = vmisdat
     end where
   end do
   do il = 1 , nsoil
@@ -746,87 +833,97 @@ program mksurfdata
     icount(1) = ngcells
     istart(2) = il
     icount(2) = 1
-    call mypack(var5d(:,:,il,1,1),gcvar)
+    call mypack(var4d(:,:,il,1),gcvar)
     istatus = nf90_put_var(ncid, isandvar, gcvar,istart(1:2),icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write sand pct')
-    call mypack(var5d(:,:,il,2,1),gcvar)
+    call mypack(var4d(:,:,il,2),gcvar)
     istatus = nf90_put_var(ncid, iclayvar, gcvar,istart(1:2),icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write clay pct')
   end do
+  deallocate(var4d)
 
-  call mkgdp('mksrf_gdp.nc',var5d(:,:,1,1,1))
+  allocate(var2d(jxsg,iysg))
+  call mkgdp('mksrf_gdp.nc',var2d)
   where ( xmask < 0.5D0 )
-    var5d(:,:,1,1,1) = vmisdat
+    var2d = vmisdat
   end where
-  call mypack(var5d(:,:,1,1,1),gcvar)
+  call mypack(var2d,gcvar)
   if ( any(gcvar < 0.0D0) ) call fillvar(gcvar)
   istatus = nf90_put_var(ncid, igdpvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write gdp')
+  deallocate(var2d)
 
-  call mkpeatf('mksrf_peatf.nc',var5d(:,:,1,1,1))
-  where ( var5d(:,:,1,1,1) < 0.0D0 )
-   var5d(:,:,1,1,1) = 0.0D0
+  allocate(var2d(jxsg,iysg))
+  call mkpeatf('mksrf_peatf.nc',var2d)
+  where ( var2d < 0.0D0 )
+   var2d = 0.0D0
   end where
   where ( xmask < 0.5D0 )
-    var5d(:,:,1,1,1) = vmisdat
+    var2d = vmisdat
   end where
-  call mypack(var5d(:,:,1,1,1),gcvar)
+  call mypack(var2d,gcvar)
   if ( any(gcvar < 0.0D0) ) call fillvar(gcvar)
   istatus = nf90_put_var(ncid, ipeatfvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write peatf')
+  deallocate(var2d)
 
-  call mkabm('mksrf_abm.nc',var5d(:,:,1,1,1))
+  allocate(var2d(jxsg,iysg))
+  call mkabm('mksrf_abm.nc',var2d)
   where ( xmask < 0.5D0 )
-    var5d(:,:,1,1,1) = vmisdat
+    var2d = vmisdat
   end where
-  call mypack(var5d(:,:,1,1,1),gcvar)
+  call mypack(var2d,gcvar)
   if ( any(gcvar < 0.0D0) ) call fillvar(gcvar)
   istatus = nf90_put_var(ncid, iabmvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write abm')
+  deallocate(var2d)
 
-  call mkvocef('mksrf_vocef.nc',var5d(:,:,1:6,1,1))
-  where ( var5d(:,:,1,1,1) < 0.0D0 )
-    var5d(:,:,1,1,1) = 0.0D0
-    var5d(:,:,2,1,1) = 0.0D0
-    var5d(:,:,3,1,1) = 0.0D0
-    var5d(:,:,4,1,1) = 0.0D0
-    var5d(:,:,5,1,1) = 0.0D0
-    var5d(:,:,6,1,1) = 0.0D0
+  allocate(var3d(jxsg,iysg,6))
+  call mkvocef('mksrf_vocef.nc',var3d)
+  where ( var3d(:,:,1) < 0.0D0 )
+    var3d(:,:,1) = 0.0D0
+    var3d(:,:,2) = 0.0D0
+    var3d(:,:,3) = 0.0D0
+    var3d(:,:,4) = 0.0D0
+    var3d(:,:,5) = 0.0D0
+    var3d(:,:,6) = 0.0D0
   end where
   where ( xmask < 0.5D0 )
-    var5d(:,:,1,1,1) = vmisdat
-    var5d(:,:,2,1,1) = vmisdat
-    var5d(:,:,3,1,1) = vmisdat
-    var5d(:,:,4,1,1) = vmisdat
-    var5d(:,:,5,1,1) = vmisdat
-    var5d(:,:,6,1,1) = vmisdat
+    var3d(:,:,1) = vmisdat
+    var3d(:,:,2) = vmisdat
+    var3d(:,:,3) = vmisdat
+    var3d(:,:,4) = vmisdat
+    var3d(:,:,5) = vmisdat
+    var3d(:,:,6) = vmisdat
   end where
-  call mypack(var5d(:,:,1,1,1),gcvar)
+  call mypack(var3d(:,:,1),gcvar)
   istatus = nf90_put_var(ncid, ief_btrvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_btr')
-  call mypack(var5d(:,:,2,1,1),gcvar)
+  call mypack(var3d(:,:,2),gcvar)
   istatus = nf90_put_var(ncid, ief_crpvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_crp')
-  call mypack(var5d(:,:,3,1,1),gcvar)
+  call mypack(var3d(:,:,3),gcvar)
   istatus = nf90_put_var(ncid, ief_fdtvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_fdt')
-  call mypack(var5d(:,:,4,1,1),gcvar)
+  call mypack(var3d(:,:,4),gcvar)
   istatus = nf90_put_var(ncid, ief_fetvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_fet')
-  call mypack(var5d(:,:,5,1,1),gcvar)
+  call mypack(var3d(:,:,5),gcvar)
   istatus = nf90_put_var(ncid, ief_grsvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_grs')
-  call mypack(var5d(:,:,6,1,1),gcvar)
+  call mypack(var3d(:,:,6),gcvar)
   istatus = nf90_put_var(ncid, ief_shrvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write ef_shr')
+  deallocate(var3d)
 
-  call mkorganic('mksrf_organic.nc',var5d(:,:,1:nsoil,1,1))
-  where ( var5d(:,:,1:nsoil,1,1) < 0.0D0 )
-    var5d(:,:,1:nsoil,1,1) = 1.0D0
+  allocate(var3d(jxsg,iysg,nsoil))
+  call mkorganic('mksrf_organic.nc',var3d)
+  where ( var3d < 0.0D0 )
+    var3d = 1.0D0
   end where
   do il = 1 , nsoil
     where ( xmask < 0.5D0 )
-      var5d(:,:,il,1,1) = vmisdat
+      var3d(:,:,il) = vmisdat
     end where
   end do
   do il = 1 , nsoil
@@ -834,22 +931,77 @@ program mksurfdata
     icount(1) = ngcells
     istart(2) = il
     icount(2) = 1
-    call mypack(var5d(:,:,il,1,1),gcvar)
+    call mypack(var3d(:,:,il),gcvar)
     istatus = nf90_put_var(ncid, iorganicvar, gcvar,istart(1:2),icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write organic')
   end do
+  deallocate(var3d)
 
-  call mklake('mksrf_lake.nc',var5d(:,:,1,1,1))
-  where ( var5d(:,:,1,1,1) < 10.0D0 )
-    var5d(:,:,1,1,1) = 10.0D0
+  allocate(var2d(jxsg,iysg))
+  call mklake('mksrf_lake.nc',var2d)
+  where ( var2d < 10.0D0 )
+    var2d = 10.0D0
   end where
-  call mypack(var5d(:,:,1,1,1),gcvar)
+  call mypack(var2d,gcvar)
   istatus = nf90_put_var(ncid, idepthvar, gcvar)
   call checkncerr(istatus,__FILE__,__LINE__, 'Error write lake')
+  deallocate(var2d)
 
-  call mkurban_param('mksrf_urban.nc',var5d(:,:,1:npu2d,1,1), &
-                     var5d(:,:,1:nlurb,1:npu3d,2), &
-                     var5d(:,:,1:nsol,1:nrad,3:npu4d+2))
+  allocate(var4d(jxsg,iysg,numurbl,npu2d))
+  allocate(var5d(jxsg,iysg,nlurb,numurbl,npu3d))
+  allocate(var6d(jxsg,iysg,nsol,nrad,numurbl,npu4d))
+  var4d = vmisdat
+  var5d = vmisdat
+  var6d = vmisdat
+  call mkurban_param('mksrf_urban.nc',var4d,var5d,var6d)
+  istart(1) = 1
+  icount(1) = ngcells
+  do iu = 1 , numurbl
+    istart(2) = iu
+    icount(2) = 1
+    do i = 1 , npu2d
+      call mypack(var4d(:,:,iu,ip2d(parm2d(i))),gcvar)
+      istatus = nf90_put_var(ncid, iurb2d(i), gcvar, istart(1:2), icount(1:2))
+      call checkncerr(istatus,__FILE__,__LINE__, 'Error write '//parm2d(i))
+    end do
+  end do
+  do iu = 1 , numurbl
+    istart(2) = iu
+    icount(2) = 1
+    do il = 1 , nlurb
+      istart(3) = il
+      icount(3) = 1
+      do i = 1 , npu3d
+        call mypack(var5d(:,:,il,iu,ip3d(parm3d(i))),gcvar)
+        where ( gcvar < 0.0D0 ) gcvar = vmisdat
+        istatus = nf90_put_var(ncid, iurb3d(i), gcvar, istart(1:3), icount(1:3))
+        call checkncerr(istatus,__FILE__,__LINE__, 'Error write '//parm3d(i))
+      end do
+    end do
+  end do
+  do iu = 1 , numurbl
+    istart(2) = iu
+    icount(2) = 1
+    do ir = 1 , nrad
+      istart(3) = ir
+      icount(3) = 1
+      do i = 1 , npu4d
+        call mypack(var6d(:,:,1,ir,iu,ip4d(parm4d(i))),gcvar)
+        where ( gcvar < 0.0D0 ) gcvar = vmisdat
+        istatus = nf90_put_var(ncid, iurb4d(2*i-1), &
+                gcvar, istart(1:3), icount(1:3))
+        call checkncerr(istatus,__FILE__,__LINE__, 'Error write '//parm4d(i))
+        call mypack(var6d(:,:,2,ir,iu,ip4d(parm4d(i))),gcvar)
+        where ( gcvar < 0.0D0 ) gcvar = vmisdat
+        istatus = nf90_put_var(ncid, iurb4d(2*i), &
+                gcvar, istart(1:3), icount(1:3))
+        call checkncerr(istatus,__FILE__,__LINE__, 'Error write '//parm4d(i))
+      end do
+    end do
+  end do
+  deallocate(var4d)
+  deallocate(var5d)
+  deallocate(var6d)
 
   istatus = nf90_close(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,  &
@@ -893,7 +1045,7 @@ program mksurfdata
     end do
   end subroutine fillvar
 
-  subroutine bestaround(pft,i,j)
+  subroutine bestaround_pft(pft,i,j)
     implicit none
     real(rk8) , dimension(:,:,:) , intent(inout) :: pft
     integer(ik4) , intent(in) :: i , j
@@ -935,7 +1087,7 @@ program mksurfdata
         end if
       end if
     end do
-  end subroutine bestaround
+  end subroutine bestaround_pft
 
   recursive subroutine sortpatch(vals,svals,ird,lsub)
     implicit none

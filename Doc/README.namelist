@@ -535,7 +535,7 @@
 !
 ! Tweaking parameters
 !
-&tweakparam
+ &tweakparam
  itweak_sst = 0,              ! Enable adding sst_tweak to input TS
  itweak_temperature = 0,      ! Enable adding temperature_tweak to input T
  itweak_solar_irradiance = 0, ! Add solar_tweak to solar constant
@@ -545,21 +545,21 @@
  solar_tweak = 0.0D0,         ! In W m-2 (1367.0 is default solar)
  gas_tweak_factors = 1.0D0, 1.0D0 , 1.0D0 , 1.0D0 , 1.0D0,
  !                   CO2    CH4     N2O     CFC11   CFC12
-/
+ /
 !
 ! CLM 4.5 parameters
 !
-&clm_inparm
+ &clm_inparm
  fpftcon = 'pft-physiology.c130503.nc',
  fsnowoptics = 'snicar_optics_5bnd_c090915.nc',
  fsnowaging = 'snicar_drdt_bst_fit_60_c070416.nc',
- create_crop_landunit = .true.
-/
-&clm_soilhydrology_inparm
+ create_crop_landunit = .true.,
+ /
+ &clm_soilhydrology_inparm
  h2osfcflag = 1,
  origflag = 0,
-/
-&clm_hydrology1_inparm
+ /
+ &clm_hydrology1_inparm
  oldfflag = 0,
-/
+ /
 ! ####################################################################

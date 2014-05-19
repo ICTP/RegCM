@@ -28,6 +28,7 @@ module mod_bilinear
     module procedure bilinear2d
     module procedure bilinear2d_3d_in
     module procedure bilinear2d_4d_in
+    module procedure bilinear2d_5d_in
   end interface bilinear
 
   contains
@@ -194,5 +195,32 @@ module mod_bilinear
       end do
     end do
   end subroutine bilinear2d_4d_in
+
+  subroutine bilinear2d_5d_in(mti,lmsk,loni,lati,mto,lono,lato,xming,vmisdat)
+    implicit none
+    real(rk8) , intent(in) , dimension(:,:,:,:,:) :: mti
+    real(rk8) , intent(in) , dimension(:,:) :: lmsk
+    real(rk8) , intent(in) , dimension(:) :: lati , loni
+    real(rk8) , intent(out) , dimension(:,:,:,:,:) :: mto
+    real(rk8) , intent(in) , dimension(:,:) :: lato , lono
+    real(rk8) , intent(in) :: vmisdat , xming
+    integer(ik4) :: k , l , m , nk , nl , nm
+    nk = size(mti,3)
+    nl = size(mti,4)
+    nm = size(mti,5)
+    if ( size(mto,3) /= nk .or. size(mto,4) /= nl .or. &
+         size(mto,5) /= nm ) then
+      write(stderr,*) 'Dimension error in bilinear2d_5d_in'
+      call die(__FILE__,'Now stopping',__LINE__)
+    end if
+    do m = 1 , nm
+      do l = 1 , nl
+        do k = 1 , nk
+          call bilinear2d(mti(:,:,k,l,m),lmsk,loni,lati,mto(:,:,k,l,m), &
+                          lono,lato,xming,vmisdat)
+        end do
+      end do
+    end do
+  end subroutine bilinear2d_5d_in
 
 end module mod_bilinear

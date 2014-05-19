@@ -211,7 +211,7 @@ mod_clm_type.o : mod_clm_type.F90 mod_clm_domain.o mod_intkinds.o mod_realkinds.
 mod_clm_typeinit.o : mod_clm_typeinit.F90 mod_clm_decomp.o mod_clm_drydep.o mod_clm_megan.o mod_clm_surfrd.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o
 mod_clm_urban.o : mod_clm_urban.F90 mod_clm_atmlnd.o mod_clm_filter.o mod_clm_frictionvelocity.o mod_clm_qsat.o mod_clm_type.o mod_clm_urbaninput.o mod_clm_varcon.o mod_clm_varpar.o mod_date.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_runparams.o mod_stdio.o
 mod_clm_urbaninit.o : mod_clm_urbaninit.F90 mod_clm_decomp.o mod_clm_type.o mod_clm_urbaninput.o mod_clm_urban.o mod_clm_varcon.o mod_realkinds.o
-mod_clm_urbaninput.o : mod_clm_urbaninput.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_nchelper.o mod_clm_type.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o
+mod_clm_urbaninput.o : mod_clm_urbaninput.F90 mod_clm_decomp.o mod_clm_domain.o mod_clm_nchelper.o mod_clm_type.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_clm_varctl.o
 mod_clm_varcon.o : mod_clm_varcon.F90 mod_clm_varpar.o mod_constants.o mod_intkinds.o mod_realkinds.o
 mod_clm_varctl.o : mod_clm_varctl.F90 mod_clm_varpar.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_runparams.o mod_stdio.o
 mod_clm_varpar.o : mod_clm_varpar.F90 mod_intkinds.o mod_realkinds.o

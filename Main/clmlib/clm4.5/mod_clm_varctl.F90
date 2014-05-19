@@ -119,6 +119,10 @@ module mod_clm_varctl
   !
   logical , public :: enable_megan_emission = .false.
   !
+  ! Enable urban areas
+  !
+  logical , public :: enable_urban_areas = .true.
+  !
   ! instance control
   !
   integer(ik4) , public :: inst_index

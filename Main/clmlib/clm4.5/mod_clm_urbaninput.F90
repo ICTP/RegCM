@@ -6,6 +6,8 @@ module mod_clm_urbaninput
   use mod_realkinds
   use mod_mpmessage
   use mod_clm_nchelper
+  use mod_clm_decomp , only : get_proc_bounds , gcomm_gridcell
+  use mod_clm_varctl , only : enable_urban_areas
   use mod_dynparam
   use mod_mppparam
 
@@ -59,7 +61,6 @@ module mod_clm_urbaninput
     use mod_clm_varpar , only : numrad , nlevurb , numurbl
     use mod_clm_varctl , only : fsurdat
     use mod_clm_type , only : grlnd
-    use mod_clm_decomp , only : get_proc_bounds
     use mod_clm_domain , only : ldomain
     implicit none
     character(len=*) , intent(in) :: mode
@@ -99,10 +100,17 @@ module mod_clm_urbaninput
 
       ! If file doesn't have numurbl, then it is old-format urban;
       ! in this case, set nlevurb to zero
+      if ( .not. enable_urban_areas ) then
+        nlevurb = 0
+        if ( myid == italk ) then
+          write(stdout,*) 'Disabled urban area.'
+        end if
+      end if
       if (.not. has_numurbl) then
         nlevurb = 0
-        if ( myid == italk ) &
-          write(stdout,*)'PCT_URBAN is not multi-density, nlevurb set to 0'
+        if ( myid == italk ) then
+          write(stdout,*) 'PCT_URBAN is not multi-density, nlevurb set to 0'
+        end if
       end if
 
       if ( nlevurb == 0 ) return
@@ -141,16 +149,6 @@ module mod_clm_urbaninput
         write(stderr,*)'initUrbanInput: allocation error '
         call fatal(__FILE__,__LINE__,'clm now stopping')
       endif
-      call clm_check_dims(ncid,ni,nj)
-      ns = ni*nj
-      if (ldomain%ns /= ns .or. ldomain%ni /= ni .or. ldomain%nj /= nj) then
-        write(stderr,*)trim(subname), &
-                  'ldomain and input file do not match dims '
-        write(stderr,*)trim(subname), 'ldomain%ni,ni,= ',ldomain%ni,ni
-        write(stderr,*)trim(subname), 'ldomain%nj,nj,= ',ldomain%nj,nj
-        write(stderr,*)trim(subname), 'ldomain%ns,ns,= ',ldomain%ns,ns
-        call fatal(__FILE__,__LINE__,'clm now stopping')
-      end if
       call clm_inqdim(ncid,'nlevurb',nlevurb_i)
       if (nlevurb_i /= nlevurb) then
         write(stderr,*)trim(subname)// ': parameter nlevurb= ',nlevurb, &
@@ -170,41 +168,52 @@ module mod_clm_urbaninput
         call fatal(__FILE__,__LINE__,'clm now stopping')
       endif
 
-      call clm_readvar(ncid,'CANYON_HWR',urbinp%canyon_hwr)
-      call clm_readvar(ncid,'WTLUNIT_ROOF',urbinp%wtlunit_roof)
-      call clm_readvar(ncid,'WTROAD_PERV',urbinp%wtroad_perv)
-      call clm_readvar(ncid,'EM_ROOF',urbinp%em_roof)
-      call clm_readvar(ncid,'EM_IMPROAD',urbinp%em_improad)
-      call clm_readvar(ncid,'EM_PERROAD',urbinp%em_perroad)
-      call clm_readvar(ncid,'EM_WALL',urbinp%em_wall)
-      call clm_readvar(ncid,'HT_ROOF',urbinp%ht_roof)
-      call clm_readvar(ncid,'WIND_HGT_CANYON',urbinp%wind_hgt_canyon)
-      call clm_readvar(ncid,'THICK_WALL',urbinp%thick_wall)
-      call clm_readvar(ncid,'THICK_ROOF',urbinp%thick_roof)
-      call clm_readvar(ncid,'NLEV_IMPROAD',urbinp%nlev_improad)
-      call clm_readvar(ncid,'T_BUILDING_MIN',urbinp%t_building_min)
-      call clm_readvar(ncid,'T_BUILDING_MAX',urbinp%t_building_max)
+      call clm_readvar(ncid,'CANYON_HWR',urbinp%canyon_hwr,gcomm_gridcell)
+      call clm_readvar(ncid,'WTLUNIT_ROOF',urbinp%wtlunit_roof,gcomm_gridcell)
+      call clm_readvar(ncid,'WTROAD_PERV',urbinp%wtroad_perv,gcomm_gridcell)
+      call clm_readvar(ncid,'EM_ROOF',urbinp%em_roof,gcomm_gridcell)
+      call clm_readvar(ncid,'EM_IMPROAD',urbinp%em_improad,gcomm_gridcell)
+      call clm_readvar(ncid,'EM_PERROAD',urbinp%em_perroad,gcomm_gridcell)
+      call clm_readvar(ncid,'EM_WALL',urbinp%em_wall,gcomm_gridcell)
+      call clm_readvar(ncid,'HT_ROOF',urbinp%ht_roof,gcomm_gridcell)
+      call clm_readvar(ncid,'WIND_HGT_CANYON', &
+        urbinp%wind_hgt_canyon,gcomm_gridcell)
+      call clm_readvar(ncid,'THICK_WALL',urbinp%thick_wall,gcomm_gridcell)
+      call clm_readvar(ncid,'THICK_ROOF',urbinp%thick_roof,gcomm_gridcell)
+      call clm_readvar(ncid,'NLEV_IMPROAD',urbinp%nlev_improad,gcomm_gridcell)
+      call clm_readvar(ncid,'T_BUILDING_MIN', &
+        urbinp%t_building_min,gcomm_gridcell)
+      call clm_readvar(ncid,'T_BUILDING_MAX', &
+        urbinp%t_building_max,gcomm_gridcell)
 
       if ( has_nsolar ) then
         call fatal(__FILE__,__LINE__, &
             trim(subname)//' ERROR: Cannot handle nsolar here' )
         ! not implemented
       else
-        call clm_readvar(ncid,'ALB_IMPROAD_DIR',urbinp%alb_improad_dir)
-        call clm_readvar(ncid,'ALB_IMPROAD_DIF',urbinp%alb_improad_dif)
-        call clm_readvar(ncid,'ALB_PERROAD_DIR',urbinp%alb_perroad_dir)
-        call clm_readvar(ncid,'ALB_PERROAD_DIF',urbinp%alb_perroad_dif)
-        call clm_readvar(ncid,'ALB_ROOF_DIR',urbinp%alb_roof_dir)
-        call clm_readvar(ncid,'ALB_ROOF_DIF',urbinp%alb_roof_dif)
-        call clm_readvar(ncid,'ALB_WALL_DIR',urbinp%alb_wall_dir)
-        call clm_readvar(ncid,'ALB_WALL_DIF',urbinp%alb_wall_dif)
+        call clm_readvar(ncid,'ALB_IMPROAD_DIR', &
+          urbinp%alb_improad_dir,gcomm_gridcell)
+        call clm_readvar(ncid,'ALB_IMPROAD_DIF', &
+          urbinp%alb_improad_dif,gcomm_gridcell)
+        call clm_readvar(ncid,'ALB_PERROAD_DIR', &
+          urbinp%alb_perroad_dir,gcomm_gridcell)
+        call clm_readvar(ncid,'ALB_PERROAD_DIF', &
+          urbinp%alb_perroad_dif,gcomm_gridcell)
+        call clm_readvar(ncid,'ALB_ROOF_DIR', &
+          urbinp%alb_roof_dir,gcomm_gridcell)
+        call clm_readvar(ncid,'ALB_ROOF_DIF', &
+          urbinp%alb_roof_dif,gcomm_gridcell)
+        call clm_readvar(ncid,'ALB_WALL_DIR', &
+          urbinp%alb_wall_dir,gcomm_gridcell)
+        call clm_readvar(ncid,'ALB_WALL_DIF', &
+          urbinp%alb_wall_dif,gcomm_gridcell)
       end if
-      call clm_readvar(ncid,'TK_IMPROAD',urbinp%tk_improad)
-      call clm_readvar(ncid,'TK_ROOF',urbinp%tk_roof)
-      call clm_readvar(ncid,'TK_WALL',urbinp%tk_wall)
-      call clm_readvar(ncid,'CV_IMPROAD',urbinp%cv_improad)
-      call clm_readvar(ncid,'CV_ROOF',urbinp%cv_roof)
-      call clm_readvar(ncid,'CV_WALL',urbinp%cv_wall)
+      call clm_readvar(ncid,'TK_IMPROAD',urbinp%tk_improad,gcomm_gridcell)
+      call clm_readvar(ncid,'TK_ROOF',urbinp%tk_roof,gcomm_gridcell)
+      call clm_readvar(ncid,'TK_WALL',urbinp%tk_wall,gcomm_gridcell)
+      call clm_readvar(ncid,'CV_IMPROAD',urbinp%cv_improad,gcomm_gridcell)
+      call clm_readvar(ncid,'CV_ROOF',urbinp%cv_roof,gcomm_gridcell)
+      call clm_readvar(ncid,'CV_WALL',urbinp%cv_wall,gcomm_gridcell)
 
       call clm_closefile(ncid)
       if (myid == italk) then

@@ -61,7 +61,7 @@ module mod_clm_urban
     real(rk8), pointer :: alb_wall_dif(:,:)        ! diffuse wall albedo
   end type urban_t
 
-  type (urban_t) , private , pointer :: urban  ! array of urban for this processor
+  type (urban_t) , private :: urban  ! urban for this processor
 
   integer(ik4) ,  private, parameter :: noonsec   = isecspday / 2 ! seconds at local noon
 !-----------------------------------------------------------------------
