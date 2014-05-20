@@ -497,7 +497,7 @@ module mod_dynparam
     dirter  = '../../Input'
     dirglob = '../../Input'
 
-    h2ohgt = .false.
+    h2ohgt = .true.
     h2opct = 50.0D0
     ismthlev = 3
     rewind(ipunit)
