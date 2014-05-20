@@ -985,6 +985,11 @@ program mksurfdata
     do ir = 1 , nrad
       istart(3) = ir
       icount(3) = 1
+      ! Here we assume (NO other information in input file), that DIRECT
+      ! albedo is solar 1, and DIF is solar 2. Hope this is correct. As
+      ! of now they are equal in the input file, so no fear. MAY change,
+      ! so this comment is here as a reminder. In case, just switch the
+      ! iurb4d indexes in the two nf90_put_var calls.
       do i = 1 , npu4d
         call mypack(var6d(:,:,1,ir,iu,ip4d(parm4d(i))),gcvar)
         where ( gcvar < 0.0D0 ) gcvar = vmisdat
