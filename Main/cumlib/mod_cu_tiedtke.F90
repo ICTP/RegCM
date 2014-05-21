@@ -265,7 +265,7 @@ module mod_cu_tiedtke
           j = jmap(ii)
           total_precip_points = total_precip_points + 1
           ! total precip cumulative 
-          c2m%rainc(j,i) = c2m%rainc(j,i) + paprc(ii)
+          c2m%rainc(j,i) = c2m%rainc(j,i) + paprc(ii) + paprs(ii)
           ! rainfall for bats
           c2m%pcratec(j,i)= c2m%pcratec(j,i) + (prsfc(ii)+pssfc(ii))
         end if

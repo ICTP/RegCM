@@ -927,7 +927,7 @@ module mod_clm_biogeophysrest
           cptr%cps%albgrd_bc(c,:) = cptr%cps%albgrd(c,:)
         end do
       else
-        call clm_readvar(ncid,'albgrd_bc',cptr%cps%albgrd_bc,gcomm_colum)
+        call clm_readvar(ncid,'albgrd_bc',cptr%cps%albgrd_bc,gcomm_column)
       end if
     else if ( flag == 'write' ) then
       call clm_writevar(ncid,'albgrd_bc',cptr%cps%albgrd_bc,gcomm_column)

@@ -67,6 +67,8 @@ module mod_clm_varpar
   ! Maximum number of PFT's for any mode; might we set some of these
   ! automatically from reading pft-physiology?
   integer(ik4) , public , parameter :: mxpft = 24
+  ! ADD_MORE_CROP_PFT
+  !integer(ik4) , public , parameter :: numveg = 20
   integer(ik4) , public , parameter :: numveg = 16
   ! Number of veg types (without specific crop)
 #if (defined VICHYDRO)
@@ -84,6 +86,8 @@ module mod_clm_varpar
   ! Actual # of pfts (without bare)
   integer(ik4) , public , parameter :: numpft = numveg
   ! Actual # of crops
+  ! ADD_MORE_CROP_PFT
+  !integer(ik4) , public , parameter :: numcft = 6
   integer(ik4) , public , parameter :: numcft = 2
 #endif
   ! Max number of plant functional types in naturally vegetated landunit

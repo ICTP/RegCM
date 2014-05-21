@@ -18,7 +18,7 @@ module mod_clm_surfrd
   use mod_dynparam , only : myid , ds
   use mod_mppparam
   use mod_clm_nchelper
-  use mod_clm_varpar , only : nlevsoifl , numpft , maxpatch_pft , numcft , &
+  use mod_clm_varpar , only : nlevsoifl , numpft , maxpatch_pft , &
          maxpatch , npatch_urban_tbd , npatch_urban_hd , npatch_urban_md , &
          numurbl , npatch_lake , npatch_wet , npatch_glacier , maxpatch_urb
   use mod_clm_varsur , only : wtxy , vegxy , pctspec
@@ -564,6 +564,7 @@ module mod_clm_surfrd
     allocate(pctpft(begg:endg,0:numpft))
 
     if ( .not. clm_check_dimlen(ncid, 'lsmpft', numpft+1) ) then
+      write (stderr,*) 'LSMPFT in file not ', numpft+1 
       call fatal(__FILE__,__LINE__, trim(subname)//' lsmpft /= numpft+1' )
     end if
 

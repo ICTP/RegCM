@@ -1263,7 +1263,7 @@ module mod_nchelper
     integer(ik4) , intent(in) :: nd
     integer(ik4) , intent(inout) , dimension(:) :: idims
     integer(ik4) , intent(inout) :: ipnt
-    integer(ik4) :: incstat , nval
+    integer(ik4) :: incstat
     incstat = nd
     if ( nd == -1 ) incstat = nf90_unlimited
     incstat = nf90_def_dim(ncid, dnam, incstat, idims(ipnt))

@@ -5,11 +5,10 @@ module mod_clm_urbaninput
   use mod_intkinds
   use mod_realkinds
   use mod_mpmessage
-  use mod_clm_nchelper
-  use mod_clm_decomp , only : get_proc_bounds , gcomm_gridcell
-  use mod_clm_varctl , only : enable_urban_areas
   use mod_dynparam
   use mod_mppparam
+  use mod_clm_nchelper
+  use mod_clm_decomp , only : get_proc_bounds , gcomm_gridcell
 
   implicit none
 
@@ -100,7 +99,7 @@ module mod_clm_urbaninput
 
       ! If file doesn't have numurbl, then it is old-format urban;
       ! in this case, set nlevurb to zero
-      if ( .not. enable_urban_areas ) then
+      if ( .not. enable_urban_landunit ) then
         nlevurb = 0
         if ( myid == italk ) then
           write(stdout,*) 'Disabled urban area.'

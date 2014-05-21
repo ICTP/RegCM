@@ -12,7 +12,7 @@ module mod_clm_regcm
   use mod_service
   use mod_clm_initialize
   use mod_clm_driver
-  use mod_clm_varctl , only : use_c13 , co2_ppmv , enable_megan_emission
+  use mod_clm_varctl , only : use_c13 , co2_ppmv
   use mod_clm_varpar , only : nlevgrnd
   use mod_clm_varcon , only : o2_molar_const , c13ratio , tfrz , &
                               tcrit , denh2o , sb
@@ -346,7 +346,7 @@ module mod_clm_regcm
     lms%snwm = lms%snwm * dtsrf
 
     ! From the input
-    call glb_l2c_ss(lndcomm,clm_a2l%forc_rain,lms%prcp)
+    call glb_l2c_ss(lndcomm,clm_a2l%rainf,lms%prcp)
     call glb_l2c_ss(lndcomm,clm_a2l%forc_psrf,lms%sfcp)
 
     !--------------------------------------------------

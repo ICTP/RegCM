@@ -76,8 +76,8 @@ module mod_clm_varctl
   !
   ! Landunit logic
   !
-  ! true => separate crop landunit is not created by default
-  logical , public :: create_crop_landunit = .false.
+  ! true => separate crop landunit is created by default
+  logical , public :: create_crop_landunit = .true.
   ! true => allocate memory for all possible vegetated pfts on
   ! vegetated landunit if at least one pft has nonzero weight
   logical , public :: allocate_all_vegpfts = .false.
@@ -114,14 +114,6 @@ module mod_clm_varctl
   logical , public :: use_c13 = .false.
   ! true => use C-14 model
   logical , public :: use_c14 = .false.
-  !
-  ! Megan emission flag
-  !
-  logical , public :: enable_megan_emission = .false.
-  !
-  ! Enable urban areas
-  !
-  logical , public :: enable_urban_areas = .true.
   !
   ! instance control
   !

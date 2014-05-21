@@ -24,6 +24,12 @@ end subroutine myabort
 
 program mksurfdata
  
+#ifndef CLM45
+  use mod_stdio
+  write(stdout,*) 'RegCM built without CLM45 support.'
+  write(stdout,*) 'Please recompile it using --enable-clm45 flag'
+#else
+
   use mod_intkinds
   use mod_constants , only : raddeg
   use mod_realkinds
@@ -53,7 +59,7 @@ program mksurfdata
 
   implicit none
 
-  integer , parameter :: npft = 17
+  integer :: npft
   integer , parameter :: nlurb = 5
   integer , parameter :: nsoil = 10
 
@@ -97,7 +103,7 @@ program mksurfdata
   integer(ik4) :: jgstart , jgstop , igstart , igstop
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile , outfile
-  character(len=64) :: csdate
+  character(len=64) :: csdate , pftfile , laifile
   real(rk8) , dimension(:,:) , pointer :: pctspec , pctslake
   real(rk8) , pointer , dimension(:,:) :: var2d
   real(rk8) , pointer , dimension(:,:,:) :: var3d
@@ -107,10 +113,8 @@ program mksurfdata
   real(rk8) , pointer , dimension(:) :: gcvar
   integer(ik4) , pointer , dimension(:) :: iiy , ijx
   integer , pointer , dimension(:) :: landpoint
-  logical , dimension(npft) :: pft_gt0
-  logical :: subgrid , enable_urban_areas , enable_megan_emission
-
-  namelist /clm_regcm/ enable_urban_areas , enable_megan_emission
+  logical , pointer , dimension(:) :: pft_gt0
+  logical :: subgrid
 
   call get_command_argument(0,value=prgname)
   call get_command_argument(1,value=namelistfile)
@@ -123,19 +127,21 @@ program mksurfdata
     call die(__FILE__,'Check argument and namelist syntax',__LINE__)
   end if
 
-  enable_urban_areas = .true.
-  open(ipunit, file=namelistfile, status='old', action='read', iostat=ierr)
-  if ( ierr /= 0 ) then
-    write (stderr,*) 'Error opening input namelist file ',trim(namelistfile)
-    call die(__FILE__,'Check argument and namelist syntax',__LINE__)
-  end if
-  read(ipunit, nml=clm_regcm, iostat=ierr)
-  if ( ierr /= 0 ) then
-    write(stderr,*) 'By default urban category ENABLED !'
-  end if
-  close(ipunit)
-
   call memory_init
+
+  if ( .not. enable_more_crop_pft ) then
+    npft = 17
+    pftfile = 'mksrf_pft.nc'
+    laifile = 'mksrf_lai.nc'
+  else
+    write(stdout,*) 'This will fail if you do not modify the model code!'
+    write(stdout,*) 'Edit Main/clmlib/clm4.5/mod_clm_varpar.F90'
+    write(stdout,*) 'and search for ADD_MORE_CROP_PFT comment!'
+    npft = 21
+    pftfile = 'mksrf_pft_crop.nc'
+    laifile = 'mksrf_lai_crop.nc'
+  end if
+  call getmem1d(pft_gt0,1,npft,'pft_gt0')
 
   call init_domain
   !
@@ -583,7 +589,7 @@ program mksurfdata
   call mkglacier('mksrf_glacier.nc',var3d(:,:,1))
   call mkwetland('mksrf_lanwat.nc',var3d(:,:,2),var3d(:,:,3))
   call mkurban_base('mksrf_urban.nc',var3d(:,:,4:iurbmax))
-  if ( .not. enable_urban_areas ) then
+  if ( .not. enable_urban_landunit ) then
     write (stderr,*) 'Disable URBAN Areas in CLM4.5 Model !'
     var3d(:,:,4:iurbmax) = 0.0D0
   end if
@@ -650,7 +656,7 @@ program mksurfdata
   deallocate(var3d)
 
   allocate(var3d(jxsg,iysg,npft))
-  call mkpft('mksrf_pft.nc',var3d(:,:,:))
+  call mkpft(pftfile,var3d(:,:,:))
   var3d(:,:,:) = max(var3d(:,:,:),0.0D0)
   do np = 1 , npft
     where ( xmask < 0.5D0 )
@@ -755,8 +761,8 @@ program mksurfdata
   deallocate(var3d)
 
   allocate(var5d(jxsg,iysg,npft,nmon,4))
-  call mklaisai('mksrf_lai.nc',var5d(:,:,:,:,1), var5d(:,:,:,:,2), &
-                               var5d(:,:,:,:,3), var5d(:,:,:,:,4))
+  call mklaisai(laifile,var5d(:,:,:,:,1), var5d(:,:,:,:,2), &
+                        var5d(:,:,:,:,3), var5d(:,:,:,:,4))
   where (var5d(:,:,:,:,:) < 0.0D0 )
     var5d(:,:,:,:,:) = 0.0D0
   end where
@@ -1121,4 +1127,5 @@ program mksurfdata
     end do
   end subroutine sortpatch
 
+#endif
 end program mksurfdata

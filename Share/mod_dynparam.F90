@@ -121,8 +121,8 @@ module mod_dynparam
 
 ! Set amount of printout (still unused, sorry)
 
-  integer(ik4) :: debug_level
-  integer(ik4) :: dbgfrq
+  integer(ik4) :: debug_level = 0
+  integer(ik4) :: dbgfrq = 3600
 
 !###################### I/O control flag ###############################
 
@@ -130,13 +130,13 @@ module mod_dynparam
 ! nspgx-1,nspgd-1 represent the number of cross/dot point slices
 ! on the boundary sponge or relaxation boundary conditions.
 !
-  integer(ik4) :: nspgx
-  integer(ik4) :: nspgd
+  integer(ik4) :: nspgx = 12
+  integer(ik4) :: nspgd = 12
 
 ! Nudge control coefficients
-  real(rk8) :: high_nudge
-  real(rk8) :: medium_nudge
-  real(rk8) :: low_nudge
+  real(rk8) :: high_nudge = 1.0D0
+  real(rk8) :: medium_nudge = 2.0D0
+  real(rk8) :: low_nudge = 3.0D0
 
 ! Number od split exp modes
 
@@ -194,12 +194,10 @@ module mod_dynparam
   integer(ik4) :: iym3sg
   integer(ik4) :: jxm3sg
   integer(ik4) :: nnsg
-  integer(ik4) :: nspgv
-  integer(ik4) :: nspgp
-!
+
   integer(ik4) :: njcross , njdot , njout , njoutsg
   integer(ik4) :: nicross , nidot , niout , nioutsg
-!
+
   integer(ik4) :: jcross1 , icross1
   integer(ik4) :: jcross2 , icross2
   integer(ik4) :: jdot1 , idot1
@@ -208,7 +206,7 @@ module mod_dynparam
   integer(ik4) :: jout2 , iout2
   integer(ik4) :: joutsg1 , ioutsg1
   integer(ik4) :: joutsg2 , ioutsg2
-!
+
   ! D stands for DOT
   integer(ik4) :: ide1 , ide2 ! External i (included bdy) (latitude)
   integer(ik4) :: jde1 , jde2 ! External j (included bdy) (longitude)
@@ -366,6 +364,12 @@ module mod_dynparam
   real(rk8) :: perturb_frac_u
   real(rk8) :: perturb_frac_v
 
+#ifdef CLM45
+  logical :: enable_megan_emission = .false.
+  logical :: enable_urban_landunit = .true.
+  logical :: enable_more_crop_pft = .false.
+#endif
+
   contains
 
   subroutine initparam(filename, ierr)
@@ -390,6 +394,10 @@ module mod_dynparam
       lperturb_ps , perturb_frac_ps , lperturb_t , perturb_frac_t , &
       lperturb_q , perturb_frac_q , lperturb_u , perturb_frac_u ,   &
       lperturb_v , perturb_frac_v
+#ifdef CLM45
+    namelist /clm_regcm/ enable_megan_emission , enable_urban_landunit, &
+      enable_more_crop_pft
+#endif
 
     open(ipunit, file=filename, status='old', &
                  action='read', iostat=iresult)
@@ -509,26 +517,29 @@ module mod_dynparam
     end if
 
     ! Set convenient defaults for debug I/O parameters
-    dbgfrq = 3600
     rewind(ipunit)
     read(ipunit, nml=debugparam, iostat=iresult)
     if ( iresult /= 0 ) then
-      write (stdout,*) 'No debug information requested.'
+      ! We have defaults
+      continue
     end if
 
-    high_nudge = 3.0D0
-    medium_nudge = 2.0D0
-    low_nudge = 1.0D0
+    ! We assume 12 points is "OK" for a resolution of 50 km.
+    ! Let us assume a "default" for the selected ds, not getting less
+    ! than the OK number of points. If the domain is REALLY small,
+    ! use 1/4 of the overall points, or AT LEAST 3 points...
+    nspgx = max(min(max(int(dble(nspgx*50)/ds),nspgx),min(jx,iy)/4),3)
+    nspgd = max(min(max(int(dble(nspgd*50)/ds),nspgd),min(jx,iy)/4),3)
+    ! Anyway the user specify this...
     rewind(ipunit)
     read(ipunit, nml=boundaryparam, iostat=iresult)
     if ( iresult /= 0 ) then
-      write (stderr,*) 'Error reading boundaryparam stanza in ',trim(filename)
-      ierr = 5
-      return
+      ! We have defaults
+      continue
     end if
-
-    nspgv = (nspgd+nspgx)*8 + 8
-    nspgp = nspgx*4
+    ! Just double check ;)
+    nspgx = max(nspgx,3)
+    nspgd = max(nspgd,3)
 
     ! Removed modesparam. It must not be changed, so avoid cluttering.
     nsplit = 2
@@ -588,6 +599,15 @@ module mod_dynparam
         return
       end if
     end if
+
+#ifdef CLM45
+    rewind(ipunit)
+    read(ipunit, nml=clm_regcm, iostat=iresult)
+    if ( iresult /= 0 ) then
+      ! No error here. we have defualts. ;)
+      continue
+    end if
+#endif
 
     close(ipunit)
     ierr = 0
