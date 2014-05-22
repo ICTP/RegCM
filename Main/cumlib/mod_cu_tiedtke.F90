@@ -267,7 +267,7 @@ module mod_cu_tiedtke
           ! total precip cumulative 
           c2m%rainc(j,i) = c2m%rainc(j,i) + paprc(ii) + paprs(ii)
           ! rainfall for bats
-          c2m%pcratec(j,i)= c2m%pcratec(j,i) + (prsfc(ii)+pssfc(ii))
+          c2m%pcratec(j,i)= c2m%pcratec(j,i) + prsfc(ii) + pssfc(ii)
         end if
       end if
     end do

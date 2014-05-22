@@ -683,10 +683,6 @@ module mod_params
         write(stdout,*) 'Read tiedtkeparam OK'
 #endif
       end if
-      if ( ipptls < 1 .and. ipptls > 2 ) then
-        write(stderr,*) 'ICUP == 5 needs ipptls = 1 or ipptls = 2'
-        call fatal(__FILE__,__LINE__,'UNSUPPORTED LARGE SCALE FOR CUMULUS')
-      end if
       ctrigger = max(d_zero,min(ctrigger,d_one))
     end if
     if ( any(icup < 0) .or. any(icup > 5) ) then

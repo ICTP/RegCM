@@ -81,6 +81,7 @@ module mod_cloud_s1
 
   real(rk8) , public , pointer , dimension(:,:,:) :: papf
   real(rk8) , pointer , dimension(:,:,:):: zsumh0 , zsumq0
+  real(rk8) , pointer , dimension(:,:,:) :: zpres
   real(rk8) , pointer , dimension(:,:,:) :: zsumh1 , zsumq1
   real(rk8) , pointer , dimension(:,:,:) :: zerrorq , zerrorh
   real(rk8) , pointer , dimension(:,:,:):: ztentkeep
@@ -355,6 +356,7 @@ module mod_cloud_s1
       call getmem4d(zqx0,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:zqx0')
     end if
     call getmem3d(zqsliq,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqsliq')
+    call getmem3d(zpres,jci1,jci2,ici1,ici2,1,kz,'clouds1:zpres')
   end subroutine allocate_mod_cloud_s1
 
   subroutine init_cloud_s1(atms,aten,heatrt,sfs,q_detr,pptnc)
@@ -483,7 +485,7 @@ if ( fscheme ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
           zliq(j,i,k) = phases(zt(j,i,k))         ! zliq = zfoealfa in IFS
-          pres(j,i,k) = pres(j,i,k)*d_1000        !   (Pa)
+          zpres(j,i,k) = pres(j,i,k)*d_1000       !   (Pa)
           zqdetr(j,i,k) = qdetr(j,i,k)
         end do
       end do
@@ -611,7 +613,7 @@ if ( fscheme ) then
           ! mixed phase saturation
           !--------------------------------------------
           zphases = phases(zt(j,i,k))
-          zfoeewmt(j,i,k) = min(foeewm(zt(j,i,k))/pres(j,i,k),d_half)
+          zfoeewmt(j,i,k) = min(foeewm(zt(j,i,k))/zpres(j,i,k),d_half)
           zqsmix(j,i,k) = zfoeewmt(j,i,k)
           ! vtmpc1 = rwat/rgas - d_one
           zqsmix(j,i,k) = zqsmix(j,i,k)/(d_one-vtmpc1*zqsmix(j,i,k))
@@ -621,12 +623,12 @@ if ( fscheme ) then
           !--------------------------------------------
           zdelta = delta(zt(j,i,k))
           zfoeew(j,i,k) = min((zdelta*foeeliq(zt(j,i,k)) + &
-               (d_one-zdelta)*foeeice(zt(j,i,k)))/pres(j,i,k),d_half)
+               (d_one-zdelta)*foeeice(zt(j,i,k)))/zpres(j,i,k),d_half)
           zfoeew(j,i,k) = min(d_half,zfoeew(j,i,k))
           !qsi saturation mixing ratio with respect to ice
           !zqsice(j,i,k) = zfoeew(j,i,k)/(d_one-vtmpc1*zfoeew(j,i,k))
           !ice water saturation
-          zfoeeicet(j,i,k) = min(foeeice(zt(j,i,k))/pres(j,i,k),d_half)
+          zfoeeicet(j,i,k) = min(foeeice(zt(j,i,k))/zpres(j,i,k),d_half)
           zqsice(j,i,k) = zfoeeicet(j,i,k)
           zqsice(j,i,k) = zqsice(j,i,k)/(d_one-vtmpc1*zqsice(j,i,k))
           !----------------------------------
@@ -635,7 +637,7 @@ if ( fscheme ) then
           !foeeliq is the saturation vapor pressure es(T)
           !the saturation mixing ratio is ws = es(T)/p *0.622
           !ws=ws/(1-(1/eps - 1)*ws)
-          zfoeeliqt(j,i,k) = min(foeeliq(zt(j,i,k))/pres(j,i,k),d_half)
+          zfoeeliqt(j,i,k) = min(foeeliq(zt(j,i,k))/zpres(j,i,k),d_half)
           zqsliq(j,i,k) = zfoeeliqt(j,i,k)
           zqsliq(j,i,k) = zqsliq(j,i,k)/(d_one-vtmpc1*zqsliq(j,i,k))
         end do
@@ -1005,7 +1007,7 @@ if ( fscheme ) then
         !----------------------------------------------------------------------
         do i = ici1 , ici2
           do j = jci1 , jci2
-            zdtdp   = rovcp*zt(j,i,k)/pres(j,i,k)
+            zdtdp   = rovcp*zt(j,i,k)/zpres(j,i,k)
             zdpmxdt = zdp(j,i)*zqtmst
             zwtot   = omega(j,i,k)*d_1000    ![1cb = 1000 Pa]
             zwtot   = min(zdpmxdt,max(-zdpmxdt,zwtot))
@@ -1029,7 +1031,7 @@ if ( fscheme ) then
         !reduced because of the condensation. so that zdqs is negative?
         do i = ici1 , ici2
           do j = jci1 , jci2
-            zqp = d_one/pres(j,i,k)
+            zqp = d_one/zpres(j,i,k)
             zqsat = foeewm(ztcond(j,i,k))*zqp   !saturation mixing ratio ws
             zqsat = min(d_half,zqsat)       !ws<0.5        WHY?
             zcor  = d_one/(d_one-vtmpc1*zqsat)
@@ -1142,7 +1144,7 @@ if ( fscheme ) then
               !                       HUMIDITY THRESHOLD FOR ONSET OF STRATIFORM
               !                       CONDENSATION (TIEDTKE, 1993, EQUATION 24)
               zrhc = ramid !=0.8
-              zsigk = pres(j,i,k)/papf(j,i,k+1)
+              zsigk = zpres(j,i,k)/papf(j,i,k+1)
               ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
               if ( zsigk > 0.8D0 ) then
                 zrhc = ramid+(d_one-ramid)*((zsigk-0.8D0)/0.2D0)**2
@@ -1277,7 +1279,7 @@ if ( fscheme ) then
               !   8.87 = 700**1/3 = density of ice to the third
               !------------------------------------------------
               zadd  = wlhs*(wlhs/(rwat*zt(j,i,k))-d_one)/(2.4D-2*zt(j,i,k))
-              zbdd  = rwat*zt(j,i,k)*pres(j,i,k)/(2.21D0*zvpice)
+              zbdd  = rwat*zt(j,i,k)*zpres(j,i,k)/(2.21D0*zvpice)
               zcvds = 7.8D0*(zicenuclei(j,i)/rhob3d(j,i,k))** &
                        0.666D0*(zvpliq-zvpice)/(8.87D0*(zadd+zbdd)*zvpice)
               !-----------------------------------------------------
@@ -1517,7 +1519,7 @@ if ( fscheme ) then
               ! approximated as in the scheme described by
               ! Wilson and Ballard(1999): Tw=Td-(qs-q)(A+B(p-c)-D(Td-E))
               ztdiff = zt(j,i,k)-tzero ! - zsubsat * &
-              !    (ztw1+ztw2*(pres(j,i,k)-ztw3)-ztw4*(zt(j,i,k)-ztw5))
+              !    (ztw1+ztw2*(zpres(j,i,k)-ztw3)-ztw4*(zt(j,i,k)-ztw5))
               ! Ensure ZCONS1 is positive so that ZMELTMAX=0 if ZTDMTW0<0
               zcons1 = d_one ! abs(dt*(d_one+d_half*ztdiff)/rtaumel)
               zmeltmax(j,i) = max(ztdiff*zcons1*zrldcp,d_zero)
@@ -1642,7 +1644,7 @@ if ( fscheme ) then
               ! actual microphysics formula in zbeta
               !--------------------------------------
               ! sensitivity test showed multiply rain evap rate by 0.5
-              zbeta1 = sqrt(pres(j,i,k)/&
+              zbeta1 = sqrt(zpres(j,i,k)/&
                        papf(j,i,kz+1))/5.09D-3*zpreclr/&
                        max(zcovpclr(j,i),zepsec)
 
@@ -1701,7 +1703,7 @@ if ( fscheme ) then
               !--------------------------------------
               ! actual microphysics formula in zbeta
               !--------------------------------------
-               zbeta1 = sqrt(pres(j,i,k)/&
+               zbeta1 = sqrt(zpres(j,i,k)/&
                         papf(j,i,kz+1))/5.09D-3*zpreclr/&
                         max(zcovpclr(j,i),zepsec)
 

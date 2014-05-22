@@ -452,9 +452,15 @@ module mod_clm_dust
         vsc_knm_atm(p) = vsc_dyn_atm(p) / forc_rho(g)
 
         do m = 1, ndst
-          slp_crc(p,m) = 1.0D0 + 2.0D0 * mfp_atm * &
-                  (1.257D0+0.4D0*exp(-1.1D0*dmt_vwr(m)/(2.0D0*mfp_atm))) / &
-                  dmt_vwr(m)   ![frc] Slip correction factor SeP97 p. 464
+          ![frc] Slip correction factor SeP97 p. 464
+          if ( (1.1D0*dmt_vwr(m)/(2.0D0*mfp_atm)) > 25.0 ) then 
+            slp_crc(p,m) = 1.0D0 + 2.0D0 * mfp_atm * &
+                    1.257D0 / dmt_vwr(m)
+          else
+            slp_crc(p,m) = 1.0D0 + 2.0D0 * mfp_atm * &
+                    (1.257D0+0.4D0*exp(-1.1D0*dmt_vwr(m)/(2.0D0*mfp_atm))) / &
+                    dmt_vwr(m)
+          end if
           ![m s-1] Stokes' settling velocity SeP97 p. 466
           vlc_grv(p,m) = (1.0D0/18.0D0) * dmt_vwr(m) * dmt_vwr(m) * dns_aer * &
                   grav * slp_crc(p,m) / vsc_dyn_atm(p)

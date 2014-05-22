@@ -400,17 +400,14 @@ module mod_lm_interface
 #else
 #ifdef CLM45
     call runclm45(lm,lms)
-
-!coupling of biogenic VOC from CLM45 to chemistry
-    if(ichem == 1) then
-    do i = ici1 , ici2
-       do j = jci1 , jci2
+    !coupling of biogenic VOC from CLM45 to chemistry
+    if ( ichem == 1 ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
           cvoc_em(j,i) = lms%vocemiss(1,j,i,1)
-       end do
-    end do
+        end do
+      end do
     end if
-!-----------------------------------------------
-
 #else
     call vecbats(lm,lms)
 #endif

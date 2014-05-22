@@ -219,7 +219,6 @@ module mod_clm_regcm
     clm_a2l%forc_hgt_t = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_q = clm_a2l%forc_hgt
     clm_a2l%forc_psrf = (clm_a2l%forc_psrf+ptop)*d_1000
-    clm_a2l%rainf = clm_a2l%forc_rain+clm_a2l%forc_snow
     do i = begg , endg
       hl = lh0 - lh1*(clm_a2l%forc_t(i)-tzero)
       satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/clm_a2l%forc_t(i)))
@@ -237,6 +236,7 @@ module mod_clm_regcm
         clm_a2l%forc_snow(i) = 0.0D0
       end if
     end do
+    clm_a2l%rainf = clm_a2l%forc_rain+clm_a2l%forc_snow
 
     if ( ichem /= 1 ) then
       clm_a2l%forc_pco2 = co2_ppmv*1.D-6*clm_a2l%forc_psrf
