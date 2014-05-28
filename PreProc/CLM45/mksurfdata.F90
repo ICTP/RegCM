@@ -613,7 +613,11 @@ program mksurfdata
           write(stderr,*) 'Negative pctspec ',pctspec(j,i),' at j,i ', j , i
           call die(__FILE__,'PCTSPEC error',__LINE__)
         end if
-        if ( pctspec(j,i) > 99.9D0 ) then
+        if ( pctspec(j,i) > 200.0D0 - 1.D-4 ) then
+          var3d(j,i,:) = var3d(j,i,:) / (pctspec(j,i)/100.0D0)
+          pctspec(j,i) = sum(var3d(j,i,:))
+        end if
+        if ( pctspec(j,i) > 100.0D0 - 1.D-4 ) then
           diff = 100.0D0 - pctspec(j,i)
           iloc = maxloc(var3d(j,i,:))
           var3d(j,i,iloc(1)) = var3d(j,i,iloc(1)) + diff
@@ -624,7 +628,8 @@ program mksurfdata
             var3d(j,i,iloc(1)) = var3d(j,i,iloc(1)) + diff
             pctspec(j,i) = sum(var3d(j,i,:))
             if ( pctspec(j,i) /= 100.0D0 ) then
-              write(stderr,*) 'Cannot normalize pctspec at j,i ', j , i
+              write(stderr,*) 'Cannot normalize pctspec at j,i ', &
+                      j , i , pctspec(j,i)
               call die(__FILE__,'PCTSPEC normalization error',__LINE__)
             end if
           end if
