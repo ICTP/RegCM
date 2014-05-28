@@ -102,7 +102,7 @@ regcm_SOURCES = mod_regcm_interface.F90 mod_atm_interface.F90 mod_che_interface.
   mod_precip.F90 mod_sun.F90 mod_savefile.F90 mod_slice.F90 mod_init.F90 \
   mod_vmodes.F90 mod_split.F90 mod_output.F90 mod_cloud_s1.F90 \
   mod_tendency.F90 mod_params.F90 mod_tstep.f90 mod_slabocean.F90 \
-  mod_sldepparam.f90 mod_sladvection.F90 abort.f90 regcm.f90
+  mod_sldepparam.f90 mod_sladvection.F90 mod_oasis.F90 abort.f90 regcm.f90 
 
 FCLD = $(MPIFC)
 
@@ -173,6 +173,7 @@ abort.o: abort.f90
 #
 # CPL model 
 #
+mod_oasis.o : mod_oasis.F90 mod_atm_interface.o mod_realkinds.o
 if DO_COMPILE_CPL
 mod_update.o: mod_update.F90 mod_runparams.o mod_dynparam.o mod_mppparam.o mod_constants.o mod_lm_interface.o mod_atm_interface.o
 endif
