@@ -140,6 +140,7 @@ module mod_constants
   real(rk8) , parameter :: rovcp = rgas*rcpd
   real(rk8) , parameter :: rovg  = rgas/egrav
   real(rk8) , parameter :: govr  = egrav/rgas
+  real(rk8) , parameter :: gdry  = -egrav/cpd
   real(rk8) , parameter :: vtmpc1 = rwat/rgas - d_one
   real(rk8) , parameter :: vtmpc2 = cpv*rcpd - d_one
   real(rk8) , parameter :: rhoh2o = 1000.0D+00
@@ -247,12 +248,11 @@ module mod_constants
   ! Turbulent wind for stable conditions (m/sec)
   real(rk8) , parameter :: wtur = 0.1D+00
 
-  ! Constant used in computing virture temperature.
-  real(rk8) , parameter :: ep1 = 0.608D+00
+  ! Constant used in computing virtual temperature.
+  real(rk8) , parameter :: ep1 = amd/amw - d_one
   ! Constant used in computing saturation mixing ratio.
-  ! Ratio of mean molecular weight of water (18.016 g/mole)
-  ! to that of dry air (28.966 g/mole)
-  real(rk8) , parameter :: ep2 = 0.62197D+00
+  ! Ratio of mean molecular weight of water to that of dry air
+  real(rk8) , parameter :: ep2 = amw/amd
   ! Constants used in computing saturation vapor pressure.
   real(rk8) , parameter :: svp1 = 0.61078D+00
   real(rk8) , parameter :: svp2 = 17.269D+00
@@ -291,15 +291,17 @@ module mod_constants
   ! Aerosol densities
   ! now defined in chemistry modules since they are not constant
 
-  ! Constants used in Betts Miller
-  real(rk8) , parameter :: aliq = 613.3D+00
-  real(rk8) , parameter :: bliq = 17.502D+00
-  real(rk8) , parameter :: cliq = 4780.8D+00
-  real(rk8) , parameter :: dliq = 32.19D+00
+  ! Constants used in Betts Miller and Kain-Fritsch
+  real(rk8) , parameter :: aliq = 611.2D0
+  real(rk8) , parameter :: bliq = 17.67D0
+  real(rk8) , parameter :: cliq = 4826.56D0
+  real(rk8) , parameter :: dliq = 29.65D0
   real(rk8) , parameter :: aice = 613.2D+00
   real(rk8) , parameter :: bice = 22.452D+00
   real(rk8) , parameter :: cice1 = 6133.0D+00
   real(rk8) , parameter :: dice = 0.61D+00
+  real(rk8) , parameter :: xlv0 = 3.15D6
+  real(rk8) , parameter :: xlv1 = 2370.0D0
   real(rk8) , parameter :: xls0 = 2.905D+06
   real(rk8) , parameter :: xls1 = 259.532D+00
 
