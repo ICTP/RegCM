@@ -259,16 +259,16 @@ fi
 AM_CONDITIONAL(OSNAME_AIX, [ test x"$osname" = xAIX ] )
 AM_CONDITIONAL(OSNAME_LINUX, [ test x"$osname" = xLinux ] )
 
-AM_CONDITIONAL(COMPILER_IBM, [ test x"$FC" = xxlf2003 | \
-                               test x"$FC" = xmpixlf2003 | \
-                               test x"$FC" = xxlf2008 | \
-                               test x"$FC" = xmpixlf2008 ] )
+AM_CONDITIONAL(COMPILER_IBM, [ test x"$FC" = xxlf2003 -o \
+                                    x"$FC" = xxlf2008 -o \
+                                    x"$FC" = xbgxlf2003 -o \
+                                    x"$FC" = xbgxlf2008 ] )
 AM_CONDITIONAL(COMPILER_GNU, [ test x"$FC" = xgfortran ] )
 AM_CONDITIONAL(COMPILER_G95, [ test x"$FC" = xg95 ] )
 AM_CONDITIONAL(COMPILER_SUN, [ test x"$FC" = xsunf95 ] )
 AM_CONDITIONAL(COMPILER_PGI, [ test x"$FC" = xpgf95  ] )
-AM_CONDITIONAL(COMPILER_INTEL, [ test x"$FC" = xifort | \
-                                 test x"$FC" = ximpif90 ])
+AM_CONDITIONAL(COMPILER_INTEL, [ test x"$FC" = xifort -o \
+                                      x"$FC" = ximpif90 ])
 AM_CONDITIONAL(REGCM_PARALLEL, [ test x"$PARALLEL" = "x1"])
 
 # Force Big endian I/O for known compilers
@@ -309,9 +309,9 @@ if test -z "$COMPILER_PGI_TRUE"; then
   AC_SUBST(FCFLAGS)
 fi
 if test -z "$COMPILER_IBM_TRUE"; then
-  AM_CPPFLAGS="-WF,-DIBM $AM_CPPFLAGS"
+  FCFLAGS="-WF,-DIBM"
   CPRDEF="XLF"
-  AC_SUBST(AM_CPPFLAGS)
+  AC_SUBST(FCFLAGS)
 fi
 if test -x "$COMPILER_SUN_TRUE"; then
   CPRDEF="WORKSHOP"
@@ -344,8 +344,8 @@ if eval "test x$DEBUG = x1"; then
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_IBM_TRUE"; then
-    FCFLAGS="-O0 -qsuppress=1501-245 -bnoquiet -qcheck -qffltrap=nanq,overflow \
-             -qmaxmem=-1 -qzerosize $FCFLAGS"
+    FCFLAGS="-O0 -qsuppress=1501-245 -qcheck -qffltrap=nanq,overflow \
+             -qxlf2003=polymorphic -qmaxmem=-1 -qzerosize $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_PGI_TRUE"; then
@@ -372,7 +372,7 @@ else
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_IBM_TRUE"; then
-    FCFLAGS="-qsuppress=1501-245 -bnoquiet -O3 -qstrict \
+    FCFLAGS="-qsuppress=1501-245 -O3 -qstrict -qxlf2003=polymorphic \
              -qmaxmem=-1 -qzerosize $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi

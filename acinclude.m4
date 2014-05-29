@@ -197,7 +197,7 @@ AC_LANG_CASE([C], [
 [Fortran 77], [
 	AC_REQUIRE([AC_PROG_F77])
 	AC_ARG_VAR(MPIF77,[MPI Fortran 77 compiler command])
-	AC_CHECK_PROGS(MPIF77, mpif77 hf77 mpxlf mpf77 mpif90 mpf90 mpxlf90 mpxlf95 mpxlf_r cmpifc cmpif90c, $F77)
+	AC_CHECK_PROGS(MPIF77, mpif77 hf77 mpxlf mpf77 mpif90 mpf90 mpixlf90 mpixlf95 mpixlf_r cmpifc cmpif90c, $F77)
 	acx_mpi_save_F77="$F77"
 	F77="$MPIF77"
 	AC_SUBST(MPIF77)
@@ -205,7 +205,7 @@ AC_LANG_CASE([C], [
 [Fortran], [
 	AC_REQUIRE([AC_PROG_FC])
 	AC_ARG_VAR(MPIFC,[MPI Fortran compiler command])
-	AC_CHECK_PROGS(MPIFC, mpif90 hf90 mpxfl2003 mpxlf2008 mpxlf90 mpxlf95 mpf90 cmpifc cmpif90c, $FC)
+	AC_CHECK_PROGS(MPIFC, mpixfl2003 mpixlf2008 mpf90 cmpifc cmpif90c hf90 mpif90, $FC)
 	acx_mpi_save_FC="$FC"
 	FC="$MPIFC"
 	AC_SUBST(MPIFC)
