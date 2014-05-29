@@ -310,7 +310,7 @@ module mod_che_start
       if ( myid == italk ) then
        write(*,*) 'tracer index coreesponding to bdy species '
        do n = 1,size(ichbdy2trac)          
-          write(*,*) ,ichbdy2trac(n) 
+          write(*,*) ichbdy2trac(n) 
        end do
        end if
     

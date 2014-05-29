@@ -474,7 +474,7 @@ module mod_output
             srf_runoff_out(:,:,1) = srf_runoff_out(:,:,1)*rnsrf_for_srffrq
             srf_runoff_out(:,:,2) = srf_runoff_out(:,:,2)*rnsrf_for_srffrq - &
               srf_runoff_out(:,:,1)
-          else where
+          elsewhere
             srf_runoff_out(:,:,1) = dmissval
             srf_runoff_out(:,:,2) = dmissval
           end where
@@ -554,7 +554,7 @@ module mod_output
         if ( associated(lak_scv_out) ) then
           where ( mddom%ldmsk > 0 )
             lak_scv_out = lak_scv_out*rnsrf_for_lakfrq
-          else where
+          elsewhere
             lak_scv_out = dmissval
           end where
         end if
@@ -632,7 +632,7 @@ module mod_output
             sts_runoff_out(:,:,1) = sts_runoff_out(:,:,1)*rnsrf_for_day
             sts_runoff_out(:,:,2) = sts_runoff_out(:,:,2)*rnsrf_for_day - &
                                     sts_runoff_out(:,:,1)
-          else where
+          elsewhere
             sts_runoff_out(:,:,1) = dmissval
             sts_runoff_out(:,:,2) = dmissval
           end where

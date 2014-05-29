@@ -24,7 +24,7 @@ libcbmz_a_SOURCES = mod_cbmz_Precision.f90 mod_cbmz_Parameters.f90 mod_cbmz_Glob
                    mod_cbmz_Function.f90 mod_cbmz_JacobianSP.f90 mod_cbmz_Jacobian.f90  \
                    mod_cbmz_jval1.f90 mod_che_hvread.f90 mod_cbmz_Rates.f90 mod_cbmz_Util.f90 mod_cbmz_Monitor.f90  \
                    mod_cbmz_LinearAlgebra.f90 mod_cbmz_Main.f90  \
-                   mod_cbmz_Integrator.f90 mod_cbmz_Model.f90
+                   mod_cbmz_Integrator.F90 mod_cbmz_Model.f90
 
 
 
@@ -70,7 +70,7 @@ mod_cbmz_Stoichiom.o: mod_cbmz_Stoichiom.f90   mod_cbmz_StoichiomSP.o
 mod_cbmz_Util.o: mod_cbmz_Util.f90   mod_cbmz_Monitor.o
 mod_cbmz_Main.o: mod_cbmz_Main.f90   mod_cbmz_Global.o mod_cbmz_Parameters.o  mod_cbmz_Model.o mod_cbmz_Integrator.o
 mod_cbmz_Model.o: mod_cbmz_Model.f90   mod_cbmz_Integrator.o
-mod_cbmz_Integrator.o: mod_cbmz_Integrator.f90  
+mod_cbmz_Integrator.o: mod_cbmz_Integrator.F90  
 
 mod_cbmz_jval1.o : mod_cbmz_jval1.f90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_mppparam.o mod_stdio.o
 mod_che_hvread.o: mod_che_hvread.f90 mod_cbmz_jval1.o 
