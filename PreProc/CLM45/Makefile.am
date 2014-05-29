@@ -3,13 +3,6 @@ include $(REGCM_ROOT)/makeinc
 
 vpath %.o $(REGCM_ROOT)/Share:.
 
-if OSNAME_AIX
-  cpre = $(null)-WF,-D$(null)
-  FPPFLAGS := $(patsubst -D%,$(cpre)%,$(CPPFLAGS))
-else
-  FPPFLAGS = $(CPPFLAGS)
-endif
-
 bin_PROGRAMS = mksurfdata
 mksurfdata_SOURCES = mksurfdata.F90 mod_mkabm.F90 mod_mklaisai.F90 \
   mod_mksoitex.F90 mod_bilinear.F90 mod_mkfmax.F90 mod_mkpeatf.F90 \
@@ -18,7 +11,7 @@ mksurfdata_SOURCES = mksurfdata.F90 mod_mkabm.F90 mod_mklaisai.F90 \
   mod_mkvocef.F90 mod_mkorganic.F90 mod_mklake.F90
 
 %.o: %.F90
-	$(FC) $(FPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 clean-local:
 	rm -f *.mod *__genmod.*

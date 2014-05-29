@@ -205,7 +205,7 @@ AC_LANG_CASE([C], [
 [Fortran], [
 	AC_REQUIRE([AC_PROG_FC])
 	AC_ARG_VAR(MPIFC,[MPI Fortran compiler command])
-	AC_CHECK_PROGS(MPIFC, mpif90 hf90 mpxfl2003 mpxlf90 mpxlf95 mpf90 cmpifc cmpif90c, $FC)
+	AC_CHECK_PROGS(MPIFC, mpif90 hf90 mpxfl2003 mpxlf2008 mpxlf90 mpxlf95 mpf90 cmpifc cmpif90c, $FC)
 	acx_mpi_save_FC="$FC"
 	FC="$MPIFC"
 	AC_SUBST(MPIFC)

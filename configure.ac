@@ -30,7 +30,6 @@ AM_INIT_AUTOMAKE([foreign])
 AC_PROG_RANLIB
 AC_PROG_CC
 AC_PROG_FC
-AC_PROG_F77
 
 AC_LANG([Fortran])
 
@@ -95,11 +94,11 @@ AC_ARG_ENABLE(megan,
 
 if eval "test x"$USECLM" = x1"; then
   AC_MSG_WARN([Compiling CLM enabled code])
-  AM_CPPFLAGS="-DCLM $AM_CPPFLAGS"
+  AM_CPPFLAGS="$(DEFINE)CLM $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
   if eval "test x"$USEMEGAN" = x1"; then
     AC_MSG_WARN([Compiling CLM with MEGAN enabled code])
-    AM_CPPFLAGS="-DVOC $AM_CPPFLAGS"
+    AM_CPPFLAGS="$(DEFINE)VOC $AM_CPPFLAGS"
     AC_SUBST(AM_CPPFLAGS)
   fi
 fi
@@ -114,7 +113,7 @@ AM_CONDITIONAL(DO_COMPILE_LIBCLM45, [test x"$USECLM45" = x1])
 
 if eval "test x"$USECLM45" = x1"; then
   AC_MSG_WARN([Compiling CLM45 enabled code])
-  AM_CPPFLAGS="-DCLM45 $AM_CPPFLAGS"
+  AM_CPPFLAGS="$(DEFINE)CLM45 $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -127,7 +126,7 @@ AC_ARG_ENABLE(cpl,
 AM_CONDITIONAL(DO_COMPILE_CPL, [test x"$USECPL" = x1])
 
 if eval "test x"$USECPL" = x1"; then
-  AM_CPPFLAGS="-DCPL $AM_CPPFLAGS"
+  AM_CPPFLAGS="$(DEFINE)CPL $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -137,7 +136,7 @@ AC_ARG_ENABLE(nc4-gzip,
   [NETCDF4_COMPRESS="1"],[NETCDF4_COMPRESS="0"]
 )
 if eval "test x$NETCDF4_COMPRESS = x1"; then
-  AM_CPPFLAGS="-DNETCDF4_COMPRESS $AM_CPPFLAGS"
+  AM_CPPFLAGS="$(DEFINE)NETCDF4_COMPRESS $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -147,7 +146,7 @@ AC_ARG_ENABLE(nc4-parallel,
   [NETCDF4_HDF5="1"],[NETCDF4_HDF5="0"]
 )
 if eval "test x$NETCDF4_HDF5 = x1"; then
-  AM_CPPFLAGS="-DNETCDF4_HDF5 $AM_CPPFLAGS"
+  AM_CPPFLAGS="$(DEFINE)NETCDF4_HDF5 $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -158,7 +157,7 @@ AC_ARG_ENABLE(debug,
   [DEBUG="1"]
 )
 if eval "test x$DEBUG = x1"; then
-  AM_CPPFLAGS="-DDEBUG $AM_CPPFLAGS"
+  AM_CPPFLAGS="$(DEFINE)DEBUG $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -257,21 +256,20 @@ if test -z "$SYSDEF"; then
    SYSDEF="UNKNOWNOS"
 fi
 
-AM_CONDITIONAL(OSNAME_AIX, [test x"$osname" = xAIX])
-AM_CONDITIONAL(OSNAME_LINUX, [test x"$osname" = xLinux])
+AM_CONDITIONAL(OSNAME_AIX, [ test x"$osname" = xAIX ] )
+AM_CONDITIONAL(OSNAME_LINUX, [ test x"$osname" = xLinux ] )
 
-AM_CONDITIONAL(COMPILER_IBM, [test x"$FC" = xxlf2003])
-AM_CONDITIONAL(COMPILER_GNU, [test x"$FC" = xgfortran])
-AM_CONDITIONAL(COMPILER_G95, [test x"$FC" = xg95])
-AM_CONDITIONAL(COMPILER_SUN, [test x"$FC" = xsunf95])
-AM_CONDITIONAL(COMPILER_PGI, [test x"$FC" = xpgf90 -o x"$FC" = xpgf95])
-
-AM_CONDITIONAL(COMPILER_INTEL, [test x`$FC --version | head -1 | \
-                                cut -d " " -f 1` = "xifort"])
-
-AM_CONDITIONAL(REGCM_PARALLEL, [test x"$PARALLEL" = "x1"])
-
-echo COMPILER_INTEL_TRUE
+AM_CONDITIONAL(COMPILER_IBM, [ test x"$FC" = xxlf2003 | \
+                               test x"$FC" = xmpixlf2003 | \
+                               test x"$FC" = xxlf2008 | \
+                               test x"$FC" = xmpixlf2008 ] )
+AM_CONDITIONAL(COMPILER_GNU, [ test x"$FC" = xgfortran ] )
+AM_CONDITIONAL(COMPILER_G95, [ test x"$FC" = xg95 ] )
+AM_CONDITIONAL(COMPILER_SUN, [ test x"$FC" = xsunf95 ] )
+AM_CONDITIONAL(COMPILER_PGI, [ test x"$FC" = xpgf95  ] )
+AM_CONDITIONAL(COMPILER_INTEL, [ test x"$FC" = xifort | \
+                                 test x"$FC" = ximpif90 ])
+AM_CONDITIONAL(REGCM_PARALLEL, [ test x"$PARALLEL" = "x1"])
 
 # Force Big endian I/O for known compilers
 if test -z "$COMPILER_GNU_TRUE"; then
@@ -312,12 +310,14 @@ if test -z "$COMPILER_PGI_TRUE"; then
 fi
 if test -z "$COMPILER_IBM_TRUE"; then
   AM_CPPFLAGS="-WF,-DIBM $AM_CPPFLAGS"
-  AC_SUBST(AM_CPPFLAGS)
   CPRDEF="XLF"
+  AC_SUBST(AM_CPPFLAGS)
 fi
 if test -x "$COMPILER_SUN_TRUE"; then
   CPRDEF="WORKSHOP"
 fi
+
+AC_SUBST(CPRDEF)
 
 # Set debug/production flags
 if eval "test x$DEBUG = x1"; then
@@ -332,8 +332,8 @@ if eval "test x$DEBUG = x1"; then
             -Wline-truncation -Wintrinsics-std -Wno-tabs -Wunderflow \
             -Wunused-parameter -Wno-align-commons $FCFLAGS \
             -fno-range-check -Wimplicit-interface -Wimplicit-procedure \
-	    -Wintrinsics-std -Wintrinsic-shadow \
-	    -fcheck=array-temps,bounds,do,mem,recursion"
+            -Wintrinsics-std -Wintrinsic-shadow \
+            -fcheck=array-temps,bounds,do,mem,recursion"
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_INTEL_TRUE"; then
@@ -407,15 +407,15 @@ else
   LIBS="$LIBS -lmpiser"
   AC_SUBST(MPIFC)
   AC_SUBST(FORT_SIZE)
-  AM_CPPFLAGS="-DMPI_SERIAL $AM_CPPFLAGS"
+  AM_CPPFLAGS="$(DEFINE)MPI_SERIAL $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
-MPEUCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF -D$name_mangling"
-MPEUFCFLAGS="-DSYS$SYSDEF -DCPR$CPRDEF"
+MPEUCFLAGS="$(DEFINE)SYS$SYSDEF $(DEFINE)CPR$CPRDEF $(DEFINE)$name_mangling"
+MPEUFCFLAGS="$(DEFINE)SYS$SYSDEF $(DEFINE)CPR$CPRDEF"
 if test -n "$SRKDEF"; then
-  MPEUCFLAGS="$MPEUCFLAGS -D$SRKDEF"
-  MPEUFCFLAGS="$MPEUFCFLAGS -D$SRKDEF"
+  MPEUCFLAGS="$MPEUCFLAGS $(DEFINE)$SRKDEF"
+  MPEUFCFLAGS="$MPEUFCFLAGS $(DEFINE)$SRKDEF"
 fi
 AC_SUBST(MPEUCFLAGS)
 AC_SUBST(MPEUFCFLAGS)

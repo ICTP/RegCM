@@ -17,12 +17,10 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-SVNDEF := '-DSVN_REV="$(shell svnversion -n .)"'
-
-ifeq ($(CPRDEF),XLF)
-null :=
-cpre := $(null)-WF,-D$(null)
-SVNDEF := $(patsubst -D%,$(cpre)%,$(SVNDEF))
-CPPFLAGS := $(patsubst -D%,$(cpre)%,$(CPPFLAGS))
-MPEUFCFLAGS := $(patsubst -D%,$(cpre)%,$(MPEUFCFLAGS))
+ifeq ($(findstring xlf, $(FC)),xlf)
+  DEFINE = -WF,-D
+else
+  DEFINE = -D
 endif
+
+SVNDEF := $(DEFINE)'SVN_REV="$(shell svnversion -n .)"'

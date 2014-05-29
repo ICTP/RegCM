@@ -3,24 +3,17 @@ include $(REGCM_ROOT)/makeinc
 
 vpath %.o $(REGCM_ROOT)/Share:.
 
-CPPFLAGS += -DMAXPATCH_PFT=4
-
-if OSNAME_AIX
-  cpre = $(null)-WF,-D$(null)
-  FPPFLAGS := $(patsubst -D%,$(cpre)%,$(CPPFLAGS))
-else
-  FPPFLAGS = $(CPPFLAGS)
-endif
+CPPFLAGS += $(DEFINE)MAXPATCH_PFT=4
 
 bin_PROGRAMS = clm2rcm
 clm2rcm_SOURCES = mod_param_clm.F90 mod_grid.F90 mod_nclib.f90  \
                   mod_clm3grid.f90 clm2rcm.F90
 
 %.o: %.f90
-	$(FC) $(FPPFLAGS) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
 %.o: %.F90
-	$(FC) $(FPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 clean-local:
 	rm -f *.mod *__genmod.*

@@ -17,10 +17,10 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+include $(REGCM_ROOT)/makeinc
+
 vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib: \
 	  $(REGCM_ROOT)/Main/batslib:.
-
-include $(REGCM_ROOT)/makeinc
 
 noinst_LIBRARIES = libclm45.a
 libclm45_a_SOURCES = mod_clm_nchelper.F90 mod_clm_domain.F90 mod_clm_type.F90 \
@@ -81,15 +81,15 @@ else
 FCFLAGS += -I$(MPP_INCLUDE) -I$(NET_INCLUDE) -I$(BATS_INCLUDE)
 endif
 
-#CPPFLAGS += -DSNICAR_FRC
-#CPPFLAGS += -DCN
-#CPPFLAGS += -DLCH4
-#CPPFLAGS += -DCROP
-#CPPFLAGS += -DVERTSOILC
-#CPPFLAGS += -DCNDV
-#CPPFLAGS += -DVICHYDRO
-#CPPFLAGS += -DNITRIF_DENITRIF
-#CPPFLAGS += -DLCH4
+#CPPFLAGS += $(DEFINE)SNICAR_FRC
+#CPPFLAGS += $(DEFINE)CN
+#CPPFLAGS += $(DEFINE)LCH4
+#CPPFLAGS += $(DEFINE)CROP
+#CPPFLAGS += $(DEFINE)VERTSOILC
+#CPPFLAGS += $(DEFINE)CNDV
+#CPPFLAGS += $(DEFINE)VICHYDRO
+#CPPFLAGS += $(DEFINE)NITRIF_DENITRIF
+#CPPFLAGS += $(DEFINE)LCH4
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
