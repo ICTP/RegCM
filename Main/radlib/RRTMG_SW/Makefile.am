@@ -17,6 +17,8 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+include $(REGCM_ROOT)/makeinc
+
 noinst_LIBRARIES = librrtmgsw.a
 librrtmgsw_a_SOURCES = \
 parkind.f90    rrlw_kg06.f90  rrlw_kg16.f90   rrsw_kg17.f90  rrsw_kg27.f90  \

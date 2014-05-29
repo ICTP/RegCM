@@ -17,6 +17,8 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+include $(REGCM_ROOT)/makeinc
+
 vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:GAS_CBMZ_NEW/:.
 
 SUBDIRS = GAS_CBMZ_NEW

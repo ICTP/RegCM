@@ -3658,7 +3658,7 @@ module mod_clm_nchelper
     if ( myid /= iocpu ) return
     where (lval)
       rval = 1
-    else where
+    elsewhere
       rval = 0
     end where
     deallocate(lval)
@@ -3691,7 +3691,7 @@ module mod_clm_nchelper
       end if
       where (lval)
         rval(:,k) = 1
-      else where
+      elsewhere
         rval(:,k) = 0
       end where
     end do
@@ -3730,7 +3730,7 @@ module mod_clm_nchelper
         end if
         where (lval)
           rval(:,k,n) = 1
-        else where
+        elsewhere
           rval(:,k,n) = 0
         end where
       end do
@@ -3773,7 +3773,7 @@ module mod_clm_nchelper
           end if
           where (lval)
             rval(:,k,n,l) = 1
-          else where
+          elsewhere
             rval(:,k,n,l) = 0
           end where
         end do
@@ -4318,7 +4318,7 @@ module mod_clm_nchelper
     if ( myid /= iocpu ) return
     where ( lval )
       rval = 1
-    else where
+    elsewhere
       rval = 0
     end where
     deallocate(lval)
@@ -4357,7 +4357,7 @@ module mod_clm_nchelper
       end if
       where ( lval )
         rval(:,k) = 1
-      else where
+      elsewhere
         rval(:,k) = 0
       end where
     end do
@@ -4404,7 +4404,7 @@ module mod_clm_nchelper
         end if
         where ( lval )
           rval(:,k,n) = 1
-        else where
+        elsewhere
           rval(:,k,n) = 0
         end where
       end do

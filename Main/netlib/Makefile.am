@@ -1,4 +1,6 @@
 
+include $(REGCM_ROOT)/makeinc
+
 noinst_LIBRARIES = libnetlib.a
 libnetlib_a_SOURCES = linpack.f90 eispack.f90 lapack_dgbsv.f90
 

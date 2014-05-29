@@ -1,4 +1,6 @@
 
+include $(REGCM_ROOT)/makeinc
+
 vpath %.o $(REGCM_ROOT)/Share:.
 
 noinst_LIBRARIES = libmpp.a

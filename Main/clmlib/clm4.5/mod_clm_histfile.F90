@@ -1756,13 +1756,13 @@ module mod_clm_histfile
         if ( tape(t)%dov2xy ) then
           call clm_addvar(clmvar_double,ncid=nfid(t), &
                    varname=trim(varnames(ifld)),      &
-                   cdims=(/grlnd,'levgrnd'/),         &
+                   cdims=(/grlnd(1:8),'levgrnd '/),   &
                    long_name=long_name, units=units,  &
                    missing_value=1, fill_value=1)
         else
           call clm_addvar(clmvar_double,ncid=nfid(t), &
                   varname=trim(varnames(ifld)),       &
-                  cdims=(/namec,'levgrnd'/),          &
+                  cdims=(/namec(1:8),'levgrnd '/),    &
                   long_name=long_name, units=units,   &
                   missing_value=1, fill_value=1)
         end if
@@ -1863,13 +1863,13 @@ module mod_clm_histfile
         if ( tape(t)%dov2xy ) then
           call clm_addvar(clmvar_double,ncid=nfid(t), &
                    varname=trim(varnamesl(ifld)),     &
-                   cdims=(/grlnd,'levlak'/),          &
+                   cdims=(/grlnd(1:8),'levlak  '/),   &
                    long_name=long_name, units=units,  &
                    missing_value=1, fill_value=1)
         else
           call clm_addvar(clmvar_double,ncid=nfid(t), &
                    varname=trim(varnamesl(ifld)),     &
-                   cdims=(/namec,'levlak'/),          &
+                   cdims=(/namec(1:8),'levlak  '/),   &
                    long_name=long_name, units=units,  &
                    missing_value=1, fill_value=1)
         end if
@@ -2158,31 +2158,34 @@ module mod_clm_histfile
 
         if ( type1d_out == grlnd ) then
           dim1name = trim(grlnd)
-          dim2name = 'undefined'
+          dim2name = 'undefine'
         else
           dim1name = type1d_out
-          dim2name = 'undefined'
+          dim2name = 'undefine'
         end if
 
         if ( dim2name == 'undefined' ) then
           if ( num2d == 1 ) then
-            call clm_addvar(tape(t)%ncprec,nfid(t),varname, &
-              cdims=(/dim1name,'time'/), long_name=long_name, &
+            call clm_addvar(tape(t)%ncprec,nfid(t),varname,            &
+              cdims=(/dim1name(1:8),'time    '/), long_name=long_name, &
               units=units, cell_method=avgstr, missing_value=1, fill_value=1)
           else
             call clm_addvar(tape(t)%ncprec,nfid(t),varname, &
-              cdims=(/dim1name,type2d,'time'/), long_name=long_name, &
-              units=units, cell_method=avgstr, missing_value=1, fill_value=1)
+              cdims=(/dim1name(1:8),type2d(1:8),'time    '/), &
+              long_name=long_name, units=units, cell_method=avgstr, &
+              missing_value=1, fill_value=1)
           end if
         else
           if ( num2d == 1 ) then
             call clm_addvar(tape(t)%ncprec,nfid(t),varname, &
-              cdims=(/dim1name,dim2name,'time'/), long_name=long_name, &
-              units=units, cell_method=avgstr, missing_value=1, fill_value=1)
+              cdims=(/dim1name(1:8),dim2name(1:8),'time    '/), &
+              long_name=long_name, units=units, cell_method=avgstr, &
+              missing_value=1, fill_value=1)
           else
             call clm_addvar(tape(t)%ncprec,nfid(t),varname, &
-              cdims=(/dim1name,dim2name,type2d,'time'/), long_name=long_name, &
-              units=units, cell_method=avgstr, missing_value=1, fill_value=1)
+              cdims=(/dim1name(1:8),dim2name(1:8),type2d(1:8),'time    '/), &
+              long_name=long_name, units=units, cell_method=avgstr, &
+              missing_value=1, fill_value=1)
           end if
         end if
 

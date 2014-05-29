@@ -74,7 +74,7 @@ module mod_clm_accumul
     integer(ik4) :: numlev !number of vertical levels in field
     real(rk8):: initval    !initial value of accumulated field
     real(rk8), pointer :: val(:,:)  !accumulated field
-    integer(ik4) :: period  !field accumulation period (in model time steps)
+    integer(ik8) :: period  !field accumulation period (in model time steps)
     type(subgrid_type) , pointer :: gcomm
   end type accum_field
 
@@ -551,7 +551,7 @@ module mod_clm_accumul
     implicit none
     type(clm_filetype), intent(inout) :: ncid   !netcdf unit
     character(len=*) , intent(in) :: flag   !'define','read', or 'write'
-    integer(ik4) :: nf        ! indices
+    integer(ik4) :: nf , iper       ! indices
     integer(ik4) :: beg1d , end1d       ! buffer bounds
     real(rk8), pointer :: rbuf1d(:) ! temporary 1d buffer
     character(len=128) :: varname  ! temporary
@@ -597,10 +597,12 @@ module mod_clm_accumul
         if ( ktau /= 0 .and. .not. clm_check_var(ncid,varname) ) then
           call fatal(__FILE__,__LINE__,'clm now stopping')
         else
-          call clm_readvar(ncid,varname,accum(nf)%period)
+          call clm_readvar(ncid,varname,iper)
+          accum(nf)%period = iper
         end if
       else if ( flag == 'write' ) then
-        call clm_writevar(ncid,varname,accum(nf)%period)
+        iper = accum(nf)%period
+        call clm_writevar(ncid,varname,iper)
       end if
     end do
   end subroutine accumulRest

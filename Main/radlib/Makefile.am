@@ -17,6 +17,8 @@
 #
 #::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
+include $(REGCM_ROOT)/makeinc
+
 vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:RRTMG_SW/:.
 
 SUBDIRS = RRTMG_SW
