@@ -627,7 +627,7 @@ program mksurfdata
             iloc = maxloc(var3d(j,i,:))
             var3d(j,i,iloc(1)) = var3d(j,i,iloc(1)) + diff
             pctspec(j,i) = sum(var3d(j,i,:))
-            if ( pctspec(j,i) /= 100.0D0 ) then
+            if ( dabs(pctspec(j,i) - 100.0D0) > 1.D-12 ) then
               write(stderr,*) 'Cannot normalize pctspec at j,i ', &
                       j , i , pctspec(j,i)
               call die(__FILE__,'PCTSPEC normalization error',__LINE__)
