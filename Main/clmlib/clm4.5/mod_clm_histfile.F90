@@ -1707,6 +1707,7 @@ module mod_clm_histfile
     type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
     type(column_type) , pointer :: cptr   ! pointer to column derived subtype
     integer(ik4) , parameter :: nflds = 6 ! Number of 3D time-constant fields
+    character(len=16) :: tmpchar
     character(len=*) , parameter :: subname = 'htape_timeconst3D'
     character(len=*) , parameter :: varnames(nflds) = (/ &
                                                         'ZSOI  ', &
@@ -1728,6 +1729,7 @@ module mod_clm_histfile
     ! Only write out when this subroutine is called
     ! Normally only called once for primary tapes
     !
+    tmpchar = 'levgrnd'
     if ( mode == 'define' ) then
       do ifld = 1 , nflds
         ! Field indices MUST match varnames array order above!
@@ -1756,13 +1758,13 @@ module mod_clm_histfile
         if ( tape(t)%dov2xy ) then
           call clm_addvar(clmvar_double,ncid=nfid(t), &
                    varname=trim(varnames(ifld)),      &
-                   cdims=(/grlnd(1:8),'levgrnd '/),   &
+                   cdims=(/grlnd,tmpchar/),   &
                    long_name=long_name, units=units,  &
                    missing_value=1, fill_value=1)
         else
           call clm_addvar(clmvar_double,ncid=nfid(t), &
                   varname=trim(varnames(ifld)),       &
-                  cdims=(/namec(1:8),'levgrnd '/),    &
+                  cdims=(/namec,tmpchar/),    &
                   long_name=long_name, units=units,   &
                   missing_value=1, fill_value=1)
         end if
@@ -1847,6 +1849,7 @@ module mod_clm_histfile
 
     end if  ! (define/write mode
 
+    tmpchar = 'levlak'
     if ( mode == 'define' ) then
       do ifld = 1 , nfldsl
         ! Field indices MUST match varnamesl array order above!
@@ -1863,13 +1866,13 @@ module mod_clm_histfile
         if ( tape(t)%dov2xy ) then
           call clm_addvar(clmvar_double,ncid=nfid(t), &
                    varname=trim(varnamesl(ifld)),     &
-                   cdims=(/grlnd(1:8),'levlak  '/),   &
+                   cdims=(/grlnd,tmpchar/),   &
                    long_name=long_name, units=units,  &
                    missing_value=1, fill_value=1)
         else
           call clm_addvar(clmvar_double,ncid=nfid(t), &
                    varname=trim(varnamesl(ifld)),     &
-                   cdims=(/namec(1:8),'levlak  '/),   &
+                   cdims=(/namec,tmpchar/),   &
                    long_name=long_name, units=units,  &
                    missing_value=1, fill_value=1)
         end if
@@ -2099,11 +2102,12 @@ module mod_clm_histfile
     character(len=max_chars) :: long_name! long name
     character(len=max_chars) :: units    ! units
     character(len=max_namlen):: varname  ! variable name
-    character(len=32) :: avgstr          ! time averaging type
-    character(len=32) :: type1d_out      ! history output 1d type
-    character(len=32) :: type2d          ! history output 2d type
-    character(len=32) :: dim1name        ! temporary
-    character(len=32) :: dim2name        ! temporary
+    character(len=16) :: avgstr          ! time averaging type
+    character(len=16) :: type1d_out      ! history output 1d type
+    character(len=16) :: type2d          ! history output 2d type
+    character(len=16) :: dim1name        ! temporary
+    character(len=16) :: dim2name        ! temporary
+    character(len=16) :: tmpchar         ! temporary
     real(rk8) , pointer :: histo(:,:)    ! temporary
     real(rk8) , pointer :: hist1do(:)    ! temporary
     character(len=*) , parameter :: subname = 'hfields_write'
@@ -2158,32 +2162,33 @@ module mod_clm_histfile
 
         if ( type1d_out == grlnd ) then
           dim1name = trim(grlnd)
-          dim2name = 'undefine'
+          dim2name = 'undefined'
         else
           dim1name = type1d_out
-          dim2name = 'undefine'
+          dim2name = 'undefined'
         end if
 
+        tmpchar = 'time'
         if ( dim2name == 'undefined' ) then
           if ( num2d == 1 ) then
-            call clm_addvar(tape(t)%ncprec,nfid(t),varname,            &
-              cdims=(/dim1name(1:8),'time    '/), long_name=long_name, &
+            call clm_addvar(tape(t)%ncprec,nfid(t),varname,    &
+              cdims=(/dim1name,tmpchar/), long_name=long_name, &
               units=units, cell_method=avgstr, missing_value=1, fill_value=1)
           else
             call clm_addvar(tape(t)%ncprec,nfid(t),varname, &
-              cdims=(/dim1name(1:8),type2d(1:8),'time    '/), &
+              cdims=(/dim1name,type2d,tmpchar/),            &
               long_name=long_name, units=units, cell_method=avgstr, &
               missing_value=1, fill_value=1)
           end if
         else
           if ( num2d == 1 ) then
             call clm_addvar(tape(t)%ncprec,nfid(t),varname, &
-              cdims=(/dim1name(1:8),dim2name(1:8),'time    '/), &
+              cdims=(/dim1name,dim2name,tmpchar/), &
               long_name=long_name, units=units, cell_method=avgstr, &
               missing_value=1, fill_value=1)
           else
             call clm_addvar(tape(t)%ncprec,nfid(t),varname, &
-              cdims=(/dim1name(1:8),dim2name(1:8),type2d(1:8),'time    '/), &
+              cdims=(/dim1name,dim2name,type2d,tmpchar/), &
               long_name=long_name, units=units, cell_method=avgstr, &
               missing_value=1, fill_value=1)
           end if
