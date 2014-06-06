@@ -58,3 +58,4 @@ mod_cu_kuo.o : mod_cu_kuo.F90 mod_cu_common.o mod_dynparam.o mod_intkinds.o mod_
 mod_cu_tables.o : mod_cu_tables.f90 mod_constants.o mod_intkinds.o mod_realkinds.o
 mod_cu_tiedtke_38r2.o : mod_cu_tiedtke_38r2.F90 mod_constants.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o
 mod_cu_tiedtke.o : mod_cu_tiedtke.F90 mod_constants.o mod_cu_common.o mod_cu_tables.o mod_cu_tiedtke_38r2.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o
+mod_cu_kf.o : mod_cu_kf.F90 mod_constants.o mod_cu_common.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o mod_stdio.o

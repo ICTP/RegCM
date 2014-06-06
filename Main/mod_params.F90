@@ -305,6 +305,7 @@ module mod_params
   lsync = .true.
   do_parallel_netcdf_in = .false.
   do_parallel_netcdf_out = .false.
+
   idiag = 0
 !
 !----------------------------------------------------------------------
@@ -685,7 +686,10 @@ module mod_params
       end if
       ctrigger = max(d_zero,min(ctrigger,d_one))
     end if
-    if ( any(icup < 0) .or. any(icup > 5) ) then
+    if ( any(icup == 6 ) ) then
+      call fatal(__FILE__,__LINE__,'(Still) UNSUPPORTED CUMULUS SCHEME')
+    end if
+    if ( any(icup < 0) .or. any(icup > 6) ) then
       call fatal(__FILE__,__LINE__,'UNSUPPORTED CUMULUS SCHEME')
     end if
     if ( ibltyp < 0 .or. (ibltyp > 2 .and. ibltyp /= 99) ) then
@@ -1848,6 +1852,11 @@ module mod_params
       write(stdout,*) ' Cumulus friction is enabled       : ',lmfdudv
     end if
     cevapu = cevaplnd
+  end if
+  if ( any(icup == 6)  ) then
+    if ( myid == italk ) then
+      write(stdout,*) 'Kain Fritsch scheme used.'
+    end if
   end if
 
   if ( ipptls == 2 ) then

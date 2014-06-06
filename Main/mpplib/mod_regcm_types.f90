@@ -388,6 +388,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: uas     ! atms%ubx3d
     real(rk8) , pointer , dimension(:,:,:) :: vas     ! atms%vbx3d
     real(rk8) , pointer , dimension(:,:,:) :: qsas    ! atms%qsb3d
+    real(rk8) , pointer , dimension(:,:,:) :: rhoas   ! atms%rhob3d
     real(rk8) , pointer , dimension(:,:,:) :: zfs     ! atms%zq
     real(rk8) , pointer , dimension(:,:,:) :: qdot    ! qdot
     real(rk8) , pointer , dimension(:,:,:,:) :: qxas  ! atms%qxb3d

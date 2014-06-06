@@ -171,7 +171,7 @@ module mod_ocn_lake
         if ( idep(lp) > 2 ) then
           tlak(lp,3:idep(lp)) = 4.0D0
         end if
-      else if ( lat(i) < 30.0 ) then
+      else if ( lat(i) < 30.0 .and. lat(i) > 15.0 ) then
         if ( xmonth > 4 .and. xmonth < 9 ) then
           tlak(lp,1) = 3.0
           tlak(lp,2) = 3.5
@@ -186,10 +186,22 @@ module mod_ocn_lake
         ! This needs tuning for tropical lakes.
         ! Lake Malawi bottom temperature can be as high as 22.75 Celsius
         ! with surface as hot as 25.5 degrees.
-        tlak(lp,1) = 20.0
-        tlak(lp,2) = 19.0
+        tlak(lp,1) = 22.0
+        tlak(lp,2) = 21.5
         if ( idep(lp) > 2 ) then
-          tlak(lp,3:idep(lp)) = 18.0D0
+          if ( idep(lp) < 21 ) then
+            tlak(lp,3:idep(lp)) = 21.5
+          else
+            tlak(lp,3:20) = 21.5
+            if ( idep(lp) < 40 ) then
+              tlak(lp,21:idep(lp)) = 20.0
+            else
+              tlak(lp,21:40) = 20.0
+              if ( idep(lp) > 40 ) then
+                tlak(lp,41:idep(lp)) = 18.0D0
+              end if
+            end if
+          end if
         end if
       end if
       ! Ice over lake from the start
@@ -218,6 +230,7 @@ module mod_ocn_lake
     real(rk8) :: fact , factuv , qgrd , qgrnd , qice , rhosw , rhosw3
     real(rk8) :: rib , ribd , ribl , ribn , scrat , tage , tgrnd
     real(rk8) :: sold , vspda , u1 , psurf
+    real(rk8) , dimension(ndpmax) :: tp
 
     integer(ik4) :: lp , i
 #ifdef DEBUG
@@ -245,11 +258,13 @@ module mod_ocn_lake
       hsen = -d_one*sent(i)
       psurf = sfps(i)
       xl = lat(i)
+      tp = tlak(lp,:)
 
       call lake( dtlake,tl,vl,zl,qs,fswx,flwx,hsen,xl, &
                  tgl,prec,idep(lp),eta(lp),hi(lp),sfice(i), &
-                 sncv(i),evpr(i),tlak(lp,:),psurf )
+                 sncv(i),evpr(i),tp,psurf )
 
+      tlak(lp,:) = tp
       tgb(i)   = tgl
       tgrd(i)  = tgl
       tgbrd(i) = -d_two + tzero
@@ -480,7 +495,11 @@ module mod_ocn_lake
 !  Appl. Math. Modelling, 1985, Vol. 9 December, pp. 441-446
 !
     ! Decay constant of shear velocity - Ekman profile parameter
-    ks = 6.6D0*dsqrt(dsin(xl*degrad))*u2**(-1.84D0)
+    if ( xl > 25.0D0 ) then
+      ks = 6.6D0*dsqrt(dsin(xl*degrad))*u2**(-1.84D0)
+    else
+      ks = 0.001
+    end if
 
     ! Ekman layer depth where eddy diffusion happens
     zmax = dble(ceiling(surf+40.0D0/(vonkar*ks)))
@@ -619,7 +638,7 @@ module mod_ocn_lake
     real(rk8) , intent(inout) :: hi , aveice , hs , fsw
     real(rk8) , dimension(ndpmax) , intent(inout) :: tprof
     real(rk8) :: di , ds , f0 , f1 , khat , psi , q0 , qpen , t0 , t1 , &
-                 t2 , tf , theta , rho , xlexpc
+                 t2 , tf , theta , rho
     real(rk8) , parameter :: isurf = 0.6D0
     ! attenuation coeff for ice in visible band (m-1)
     real(rk8) , parameter :: lami1 = 1.5D0

@@ -41,6 +41,7 @@ module mod_cu_interface
       shrmax2d , shrmin2d , edtmax2d , edtmin2d ,  edtmaxo2d , edtmaxx2d , &
       edtmino2d , edtminx2d , htmax2d , htmin2d , pbcmax2d , dtauc2d ,     &
       pbcmax2d , kbmax2d
+  use mod_cu_kf
 
   implicit none
 
@@ -119,6 +120,9 @@ module mod_cu_interface
       call init_convect_tables
       call allocate_mod_cu_tiedtke
     end if
+    if ( any(icup == 6) ) then
+      call allocate_mod_cu_kf
+    end if
   end subroutine allocate_cumulus
 
   subroutine init_cumulus
@@ -137,6 +141,7 @@ module mod_cu_interface
     call assignpnt(atms%vbx3d,m2c%vas)
     call assignpnt(atms%qsb3d,m2c%qsas)
     call assignpnt(atms%qxb3d,m2c%qxas)
+    call assignpnt(atms%rhob3d,m2c%rhoas)
     call assignpnt(atms%chib3d,m2c%chias)
     call assignpnt(qdot,m2c%qdot)
     call assignpnt(sfs%qfx,m2c%qfx)
@@ -172,6 +177,8 @@ module mod_cu_interface
           call cupemandrv(m2c,c2m)
         case (5)
           call tiedtkedrv(m2c,c2m)
+        case (6)
+          call kfdrv(m2c,c2m)
       end select
     else
       select case ( icup_lnd )
@@ -181,6 +188,8 @@ module mod_cu_interface
           call cupemandrv(m2c,c2m)
         case (5)
           call tiedtkedrv(m2c,c2m)
+        case (6)
+          call kfdrv(m2c,c2m)
       end select
       select case ( icup_ocn )
         case (2)
@@ -189,6 +198,8 @@ module mod_cu_interface
           call cupemandrv(m2c,c2m)
         case (5)
           call tiedtkedrv(m2c,c2m)
+        case (6)
+          call kfdrv(m2c,c2m)
       end select
     end if
     call model_cumulus_cloud(m2c,c2m)

@@ -287,12 +287,13 @@ if test -z "$COMPILER_GNU_TRUE"; then
 #      exit 1
 #    fi
 #  fi
-  FCFLAGS="-fconvert=big-endian -fno-range-check"
+  FCFLAGS="-fconvert=big-endian -fno-range-check -finline-functions"
   CPRDEF="GNU"
   AC_SUBST(FCFLAGS)
 fi
 if test -z "$COMPILER_INTEL_TRUE"; then
-  FCFLAGS="-convert big_endian -assume byterecl -heap-arrays"
+	FCFLAGS="-convert big_endian -assume byterecl \
+                 -heap-arrays -finline-functions"
   CPRDEF="INTEL"
   AC_SUBST(FCFLAGS)
   LIBS=`echo $LIBS | sed -e 's/-Wl,--as-needed//g'`
