@@ -321,14 +321,15 @@ module mod_clm_soilhydrology
 
     do fc = 1, num_urbanc
       c = filter_urbanc(fc)
-      if ( ctype(c) == icol_roof .or. ctype(c) == icol_road_imperv ) then
+      if ( ctype(c) == icol_roof .or. &
+           ctype(c) == icol_road_imperv ) then
         ! If there are snow layers then all qflx_top_soil goes to surface runoff
         if (snl(c) < 0) then
           qflx_surf(c) = max(0.D0,qflx_top_soil(c))
         else
           xs(c) = max(0.D0, &
-            h2osoi_liq(c,1)/dtsrf + qflx_top_soil(c) - qflx_evap_grnd(c) - &
-            pondmx_urban/dtsrf)
+            h2osoi_liq(c,1)/dtsrf + qflx_top_soil(c) - &
+                                    qflx_evap_grnd(c) - pondmx_urban/dtsrf)
           if (xs(c) > 0.0D0 ) then
             h2osoi_liq(c,1) = pondmx_urban
           else
@@ -337,11 +338,12 @@ module mod_clm_soilhydrology
           end if
           qflx_surf(c) = xs(c)
         end if
-      else if ( ctype(c) == icol_sunwall .or. ctype(c) == icol_shadewall ) then
+      else if ( ctype(c) == icol_sunwall .or. &
+                ctype(c) == icol_shadewall ) then
         qflx_surf(c) = 0.D0
       end if
       ! send flood water flux to runoff for all urban columns
-      qflx_surf(c) = qflx_surf(c)  + qflx_floodc(c)
+      qflx_surf(c) = qflx_surf(c) + qflx_floodc(c)
     end do
 
     ! remove stormflow and snow on h2osfc from qflx_top_soil

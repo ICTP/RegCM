@@ -519,8 +519,9 @@ module mod_clm_hydrology2
       if (ityplun(l)==istsoil .or. ityplun(l)==istcrop) then
         t_grnd_r(c) = t_soisno(c,snl(c)+1)
       end if
-      if (ctype(c) == icol_roof .or. ctype(c) == icol_sunwall &
-          .or. ctype(c) == icol_shadewall .or. &
+      if (ctype(c) == icol_roof .or.      &
+          ctype(c) == icol_sunwall .or.   &
+          ctype(c) == icol_shadewall .or. &
           ctype(c) == icol_road_imperv) then
         endwb(c) = h2ocan(c) + h2osno(c)
       else
@@ -532,8 +533,10 @@ module mod_clm_hydrology2
     do j = 1, nlevgrnd
       do fc = 1, num_nolakec
         c = filter_nolakec(fc)
-        if ((ctype(c) == icol_sunwall .or. ctype(c) == icol_shadewall &
-               .or. ctype(c) == icol_roof) .and. j > nlevurb) then
+        if ( ( ctype(c) == icol_sunwall .or.   &
+               ctype(c) == icol_shadewall .or. &
+               ctype(c) == icol_roof) .and. j > nlevurb) then
+          continue
         else
           endwb(c) = endwb(c) + h2osoi_ice(c,j) + h2osoi_liq(c,j)
           h2osoi_vol(c,j) = h2osoi_liq(c,j)/(dz(c,j)*denh2o) + &
@@ -545,7 +548,7 @@ module mod_clm_hydrology2
     ! Determine wetland and land ice hydrology (must be placed here
     ! since need snow updated from CombineSnowLayers)
 
-    do fc = 1,num_nolakec
+    do fc = 1 , num_nolakec
       c = filter_nolakec(fc)
       l = clandunit(c)
       g = cgridcell(c)

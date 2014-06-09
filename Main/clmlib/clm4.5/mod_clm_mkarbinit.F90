@@ -960,17 +960,20 @@ module mod_clm_mkarbinit
       ! canopy water (column level)
       h2ocan_col(c) = 0.D0
 
-      h2osno(c) = adomain%snow(g)
-
-      ! snow water
       if ( ltype(l) == istice ) then
         h2osno(c) = h2osno_max
+      else if ( ltype(l) /= isturb ) then
+        h2osno(c) = adomain%snow(g)
+      else
+        h2osno(c) = 0.0D0
       end if
 
       if ( h2osno(c) < 0.1D0 ) then
-        ! Start with some snow on mountains and on cold regions
-        if ( adomain%tgrd(g) < 263.0D0 ) then
-          h2osno(c) = adomain%topo(g)/10.0
+        if ( ltype(l) /= isturb ) then
+          ! Start with some snow on mountains and on cold regions
+          if ( adomain%tgrd(g) < 263.0D0 ) then
+            h2osno(c) = adomain%topo(g)/10.0
+          end if
         end if
       end if
 

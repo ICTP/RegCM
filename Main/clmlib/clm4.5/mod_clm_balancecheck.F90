@@ -107,8 +107,10 @@ module mod_clm_balancecheck
 
     do f = 1 , num_nolakec
       c = filter_nolakec(f)
-      if ( ctype(c) == icol_roof .or. ctype(c) == icol_sunwall .or. &
-           ctype(c) == icol_shadewall .or. ctype(c) == icol_road_imperv ) then
+      if ( ctype(c) == icol_roof .or.      &
+           ctype(c) == icol_sunwall .or.   &
+           ctype(c) == icol_shadewall .or. &
+           ctype(c) == icol_road_imperv ) then
         begwb(c) = h2ocan_col(c) + h2osno(c)
       else
         begwb(c) = h2ocan_col(c) + h2osno(c) + h2osfc(c) + wa(c)
@@ -117,8 +119,10 @@ module mod_clm_balancecheck
     do j = 1 , nlevgrnd
       do f = 1 , num_nolakec
         c = filter_nolakec(f)
-        if ( (ctype(c) == icol_sunwall .or. ctype(c) == icol_shadewall .or. &
+        if ( (ctype(c) == icol_sunwall .or.   &
+              ctype(c) == icol_shadewall .or. &
               ctype(c) == icol_roof) .and. j > nlevurb ) then
+          continue
         else
           begwb(c) = begwb(c) + h2osoi_ice(c,j) + h2osoi_liq(c,j)
         end if
@@ -415,7 +419,8 @@ module mod_clm_balancecheck
 
     do c = lbc , ubc
       g = cgridcell(c)
-      if ( ctype(c) == icol_sunwall .or. ctype(c) == icol_shadewall ) then
+      if ( ctype(c) == icol_sunwall .or. &
+           ctype(c) == icol_shadewall ) then
         forc_rain_col(c) = 0.0D0
         forc_snow_col(c) = 0.0D0
       else
@@ -452,14 +457,16 @@ module mod_clm_balancecheck
     end do
 
     if ( found ) then
-      write(stderr,*)'WARNING:  water balance error ',&
-         ' ktau = ',ktau,' indexc= ',indexc,' errh2o= ',errh2o(indexc)
-      if ( (ctype(indexc) .eq. icol_roof .or. &
+      write(stderr,*) 'WARNING:  ktau         : ', ktau
+      write(stderr,*) 'WARNING:  indexc       : ', indexc
+      write(stderr,*) 'WARNING:  ctype(indexc): ', ctype(indexc)
+      write(stderr,*) 'WARNING:  water balance error ', errh2o(indexc)
+      if ( (ctype(indexc) .eq. icol_roof .or.        &
             ctype(indexc) .eq. icol_road_imperv .or. &
             ctype(indexc) .eq. icol_road_perv) .and. &
-            abs(errh2o(indexc)) > 1.e-1 .and. (ktau > ntsrf*2) ) then
+            abs(errh2o(indexc)) > 0.10D0 .and. (ktau > ntsrf*2) ) then
         write(stderr,*) &
-              'clm urban model is stopping - error is greater than 1.e-1'
+              'clm urban model is stopping - error is greater than .10'
         write(stderr,*) &
               'ktau = ',ktau,' indexc= ',indexc,' errh2o= ',errh2o(indexc)
         write(stderr,*)'ctype(indexc): ',ctype(indexc)
@@ -474,7 +481,7 @@ module mod_clm_balancecheck
         write(stderr,*)'qflx_drain   = ',qflx_drain(indexc)
         write(stderr,*)'qflx_snwcp_ice   = ',qflx_snwcp_ice(indexc)
         call fatal(__FILE__,__LINE__,'clm model is stopping')
-      else if ( abs(errh2o(indexc)) > .10D0 .and. (ktau > ntsrf*2) ) then
+      else if ( abs(errh2o(indexc)) > 0.10D0 .and. (ktau > ntsrf*2) ) then
         write(stderr,*)'clm model is stopping - error is greater than .10'
         write(stderr,*) &
              'ktau = ',ktau,' indexc= ',indexc,' errh2o= ',errh2o(indexc)
