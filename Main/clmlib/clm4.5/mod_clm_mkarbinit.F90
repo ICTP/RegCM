@@ -960,19 +960,21 @@ module mod_clm_mkarbinit
       ! canopy water (column level)
       h2ocan_col(c) = 0.D0
 
-      if ( ltype(l) == istice ) then
-        h2osno(c) = h2osno_max
-      else if ( ltype(l) /= isturb ) then
-        h2osno(c) = adomain%snow(g)
-      else
-        h2osno(c) = 0.0D0
-      end if
+      if ( .not. lakpoi(l) ) then  !not lake
+        if ( ltype(l) == istice ) then
+          h2osno(c) = h2osno_max
+        else if ( ltype(l) /= isturb ) then
+          h2osno(c) = adomain%snow(g)
+        else
+          h2osno(c) = 0.0D0
+        end if
 
-      if ( h2osno(c) < 0.1D0 ) then
-        if ( ltype(l) /= isturb ) then
-          ! Start with some snow on mountains and on cold regions
-          if ( adomain%tgrd(g) < 263.0D0 ) then
-            h2osno(c) = adomain%topo(g)/10.0
+        if ( h2osno(c) < 0.1D0 ) then
+          if ( ltype(l) /= isturb ) then
+            ! Start with some snow on mountains and on cold regions
+            if ( adomain%tgrd(g) < 263.0D0 ) then
+              h2osno(c) = adomain%topo(g)/10.0
+            end if
           end if
         end if
       end if
@@ -980,7 +982,7 @@ module mod_clm_mkarbinit
       ! initialize int_snow, int_melt
       int_snow(c) = h2osno(c)
       ! snow depth
-      snow_depth(c)  = h2osno(c) / bdsno
+      snow_depth(c) = h2osno(c) / bdsno
       ! Initialize Irrigation to zero
       if ( ltype(l) == istsoil ) then
         n_irrig_steps_left(c) = 0
