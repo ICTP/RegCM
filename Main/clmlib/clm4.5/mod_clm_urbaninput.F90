@@ -84,13 +84,13 @@ module mod_clm_urbaninput
       ! Read urban data
 
       if (myid == italk) then
-        write(stdout,*)' Reading in urban input data from surface data file ...'
+        write(stdout,*) ' Reading in urban input data from surface data file ...'
       end if
 
       call clm_openfile(fsurdat,ncid)
 
       if (myid == italk) then
-        write(stdout,*) subname,trim(fsurdat)
+        write(stdout,*) ' ',trim(subname),' : ',trim(fsurdat)
       end if
 
       ! Check whether this file has new-format urban data

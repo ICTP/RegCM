@@ -588,12 +588,12 @@ module mod_clm_control
     if (fsnowoptics == ' ') then
       write(stdout,*) '   snow optical properties file NOT set'
     else
-      write(stdout,*) '   snow optical properties file = ',trim(fsnowoptics)
+      write(stdout,*) '   SNICAR optical = ',trim(fsnowoptics)
     end if
     if (fsnowaging == ' ') then
       write(stdout,*) '   snow aging parameters file NOT set'
     else
-      write(stdout,*) '   snow aging parameters file = ',trim(fsnowaging)
+      write(stdout,*) '   SNICAR aging = ',trim(fsnowaging)
     end if
 
     if (nsrest == nsrStartup ) &
@@ -611,7 +611,8 @@ module mod_clm_control
     write(stdout,*) '   flag for random perturbation test is not set'
 #endif
     write(stdout,*) '   CO2 volume mixing ratio   (umol/mol)   = ', co2_ppmv
-    write(stdout,*) '   land-ice albedos      (unitless 0-1)   = ', albice
+    write(stdout,*) '   land albedos  (unitless 0-1)   = ', albice(0)
+    write(stdout,*) '   ice albedos   (unitless 0-1)   = ', albice(1)
     write(stdout,*) &
          '   urban air conditioning/heating and wasteheat   = ', urban_hac
     write(stdout,*) '   urban traffic flux   = ', urban_traffic
@@ -640,14 +641,10 @@ module mod_clm_control
 ! Lakes
     write(stdout,*)
     write(stdout,*) 'Lake Model Namelists:'
-    write(stdout,*) &
-      'Increased mixing relative to Hostetler wind-driven eddy expression ',&
-      'will be used for deep lakes exceeding depth ', deepmixing_depthcrit,&
-      ' by a factor of ', deepmixing_mixfact, '.'
-    write(stdout,*) &
-      'Albedo over melting lakes will approach values (visible, NIR):', &
-      lake_melt_icealb, &
-      'as compared with 0.60, 0.40 for cold frozen lakes with no snow.'
+    write(stdout,*) 'Hostetler eddy increase low    : ', deepmixing_depthcrit
+    write(stdout,*) 'Hostetler eddy increase factor : ', deepmixing_mixfact
+    write(stdout,*) 'Albedo melting lakes (visible) :', lake_melt_icealb(0)
+    write(stdout,*) 'Albedo melting lakes (NIR)     :', lake_melt_icealb(1)
   end subroutine control_print
 
 end module mod_clm_control

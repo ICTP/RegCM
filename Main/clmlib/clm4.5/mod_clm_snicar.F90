@@ -1482,11 +1482,13 @@ module mod_clm_snicar
     character(len= 32) :: subname = 'SnowOptics_init' ! subroutine name
     !
     ! Open optics file:
-    if (myid == italk) &
+    if (myid == italk) then
       write(stdout,*) 'Attempting to read snow optical properties .....'
+    end if
     call clm_openfile(fsnowoptics,ncid)
-    if (myid == italk) &
-      write(stdout,*) subname,trim(fsnowoptics)
+    if (myid == italk) then
+      write(stdout,*) ' ',trim(subname),' : ',trim(fsnowoptics)
+    end if
 
     ! direct-beam snow Mie parameters:
     call clm_readvar(ncid,'ss_alb_ice_drc',ss_alb_snw_drc)

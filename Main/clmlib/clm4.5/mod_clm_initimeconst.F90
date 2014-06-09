@@ -468,8 +468,8 @@ module mod_clm_initimeconst
     ! Read lakedepth
     if ( .not. clm_check_var(ncid,'LAKEDEPTH') ) then
       if ( myid == italk ) then
-        write(stderr,*) 'WARNING:: LAKEDEPTH not found on surface data set.'
-        write(stderr,*) 'All lake columns will have lake depth', &
+        write(stdout,*) 'WARNING:: LAKEDEPTH not found on surface data set.'
+        write(stdout,*) 'All lake columns will have lake depth', &
                         ' set equal to default value.'
       end if
       lakedepth_in(:) = 10.0D0
@@ -480,8 +480,8 @@ module mod_clm_initimeconst
     ! Read lake eta
     if ( .not. clm_check_var(ncid,'ETALAKE') ) then
       if ( myid == italk ) then
-        write(stderr,*) 'WARNING:: ETALAKE not found on surface data set.'
-        write(stderr,*) 'All lake columns will have eta', &
+        write(stdout,*) 'WARNING:: ETALAKE not found on surface data set.'
+        write(stdout,*) 'All lake columns will have eta', &
                         ' set equal to default value'
       end if
       etal_in(:) = -1.0D0
@@ -492,8 +492,8 @@ module mod_clm_initimeconst
     ! lake fetch
     if ( .not. clm_check_var(ncid,'LAKEFETCH') ) then
       if ( myid == italk ) then
-        write(stderr,*) 'WARNING:: LAKEFETCH not found on surface data set.'
-        write(stderr,*) 'All lake columns will have fetch', &
+        write(stdout,*) 'WARNING:: LAKEFETCH not found on surface data set.'
+        write(stdout,*) 'All lake columns will have fetch', &
                         ' set equal to default value'
       end if
       lakefetch_in(:) = -1.0D0

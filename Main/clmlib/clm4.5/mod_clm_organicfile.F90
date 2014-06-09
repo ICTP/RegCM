@@ -41,7 +41,7 @@ module mod_clm_organicfile
     if (fsurdat /= ' ') then
       if (myid == italk) then
         write(stdout,*) 'Attempting to read organic matter data .....'
-        write(stdout,*) subname,trim(fsurdat)
+        write(stdout,*) ' ',trim(subname),' : ',trim(fsurdat)
       end if
 
       call clm_openfile (fsurdat,ncid)

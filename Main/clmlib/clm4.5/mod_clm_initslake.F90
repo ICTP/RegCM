@@ -129,8 +129,9 @@ module mod_clm_initslake
 
     if ( myid == italk ) then
       write (stdout,*) 'Setting initial data to non-spun up values for '// &
-              'lake points, if no inicFile or no valid values for '// &
-              'icefrac and soil layers, for CLM4-LISSS Lake Model.'
+              'lake points'
+      write (stdout,*) ' if no file or no valid values for '// &
+              'icefrac and soil layers in CLM4-LISSS.'
     end if
 
     ! Assign local pointers to derived subtypes components (landunit-level)
@@ -597,10 +598,10 @@ module mod_clm_initslake
       lsadz = (lsadz + snodzmin) * (dtsrf/dtime_lsadz)**0.5D0  - snodzmin
       lsadz = max(lsadz, 0.D0)
       if ( myid == italk ) then
-        write(stdout,*) 'CLM timestep appears to differ from 1800s. '// &
-                'Adjusting minimum snow layer thickness over lakes '// &
-                'to maintain stability. New minimum thickness is ', &
-                lsadz + snodzmin, '.'
+        write(stdout,*) 'CLM timestep appears to differ from 1800s. '
+        write(stdout,*) 'Adjusting minimum snow layer thickness over lakes '// &
+                'to maintain stability.'
+        write(stdout,*) 'New minimum thickness is ', lsadz + snodzmin, '.'
       end if
     end if
 
