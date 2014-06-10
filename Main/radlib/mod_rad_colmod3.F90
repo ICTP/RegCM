@@ -387,7 +387,7 @@ module mod_rad_colmod3
     !
     call radctl(1,npr,dlat,xptrop,ts,pmidm1,pintm1,pmlnm1,pilnm1,       &
                 tm1,qm1,rh1,cld,effcld,clwp,aermmr,fsns,qrs,qrl,flwds,  &
-                rel,rei,fice,sols,soll,solsd,solld,emiss,fsnt,fsntc,   &
+                rel,rei,fice,sols,soll,solsd,solld,emiss,fsnt,fsntc,    &
                 fsnsc,flnt,flns,flntc,flnsc,solin,alb,albc,fsds,fsnirt, &
                 fsnrtc,fsnirtsq,totcf,eccf,o3vmr,czen,czengt0,adirsw,   &
                 adifsw,adirlw,adiflw,asw,alw,abv,sol,aeradfo,aeradfos,  &

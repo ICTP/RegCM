@@ -17,7 +17,7 @@ module mod_clm_typeinit
   use mod_clm_surfrd , only : crop_prog
   use mod_clm_megan , only : shr_megan_megcomps_n
   use mod_clm_drydep , only : n_drydep , drydep_method , DD_XLND
-  use mod_clm_varpar , only : ngases
+  use mod_clm_varpar
 
   implicit none
 

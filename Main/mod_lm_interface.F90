@@ -530,6 +530,7 @@ module mod_lm_interface
         expfie%swrd(j,i) = lm%rswf(j,i)
         expfie%lwrd(j,i) = lm%rlwf(j,i)
         expfie%dlwr(j,i) = lm%dwrlwf(j,i)
+        expfie%dswr(j,i) = lm%swdif(j,i)+lm%swdir(j,i)
         expfie%lhfx(j,i) = sum(lms%evpr(:,j,i))*rdnnsg*wlhv
         expfie%shfx(j,i) = sum(lms%sent(:,j,i))*rdnnsg
         expfie%prec(j,i) = sum(lms%prcp(:,j,i))*rdnnsg
@@ -539,7 +540,6 @@ module mod_lm_interface
         expfie%tauy(j,i) = sum(lms%tauy(:,j,i))*rdnnsg
         expfie%sflx(j,i) = (sum(lms%evpr(:,j,i))-sum(lms%prcp(:,j,i)))*rdnnsg
         expfie%snow(j,i) = sum(lms%sncv(:,j,i))*rdnnsg
-        expfie%dswr(j,i) = lm%swdif(j,i)+lm%swdir(j,i)
         expfie%wspd(j,i) = dsqrt(expfie%wndu(j,i)**2+expfie%wndv(j,i)**2)
         expfie%nflx(j,i) = lm%rswf(j,i) - expfie%lhfx(j,i) - &
                            expfie%shfx(j,i) - lm%rlwf(j,i)

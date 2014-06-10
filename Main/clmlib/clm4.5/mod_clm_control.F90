@@ -611,8 +611,8 @@ module mod_clm_control
     write(stdout,*) '   flag for random perturbation test is not set'
 #endif
     write(stdout,*) '   CO2 volume mixing ratio   (umol/mol)   = ', co2_ppmv
-    write(stdout,*) '   land albedos  (unitless 0-1)   = ', albice(0)
-    write(stdout,*) '   ice albedos   (unitless 0-1)   = ', albice(1)
+    write(stdout,*) '   land albedos  (unitless 0-1)   = ', albice(1)
+    write(stdout,*) '   ice albedos   (unitless 0-1)   = ', albice(2)
     write(stdout,*) &
          '   urban air conditioning/heating and wasteheat   = ', urban_hac
     write(stdout,*) '   urban traffic flux   = ', urban_traffic
@@ -643,8 +643,8 @@ module mod_clm_control
     write(stdout,*) 'Lake Model Namelists:'
     write(stdout,*) 'Hostetler eddy increase low    : ', deepmixing_depthcrit
     write(stdout,*) 'Hostetler eddy increase factor : ', deepmixing_mixfact
-    write(stdout,*) 'Albedo melting lakes (visible) :', lake_melt_icealb(0)
-    write(stdout,*) 'Albedo melting lakes (NIR)     :', lake_melt_icealb(1)
+    write(stdout,*) 'Albedo melting lakes (visible) :', lake_melt_icealb(1)
+    write(stdout,*) 'Albedo melting lakes (NIR)     :', lake_melt_icealb(2)
   end subroutine control_print
 
 end module mod_clm_control

@@ -86,7 +86,7 @@ module mod_clm_driver
   use mod_clm_pftdyn , only : pftdyn_cnbal
 #endif
   use mod_clm_dynland , only : dynland_hwcontent
-  use mod_clm_varcon , only : zlnd, isturb
+  use mod_clm_varcon , only : isturb
   use mod_clm_histfile , only : hist_update_hbuf, hist_htapes_wrapup
   use mod_clm_restfile , only : restFile_write, restFile_filename
   use mod_clm_accflds , only : updateAccFlds

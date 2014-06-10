@@ -372,7 +372,7 @@ module mod_params
 
   ! namelist microparam
   stats = .false.
-  budget_compute = .true. ! Verify enthalpy and moisture conservation
+  budget_compute = .false. ! Verify enthalpy and moisture conservation
   nssopt = 1 ! Supersaturation Computation
              ! 0 => No scheme
              ! 1 => Tompkins

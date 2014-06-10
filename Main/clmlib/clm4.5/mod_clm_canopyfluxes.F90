@@ -15,8 +15,8 @@ module mod_clm_canopyfluxes
   use mod_clm_time_manager , only : get_prev_date
   use mod_clm_varpar , only : nlevgrnd, nlevsno, nlevcan
   use mod_clm_varcon , only : sb, cpair, hvap, vkc, grav, denice, &
-                    denh2o, tfrz, csoilc, tlsai_crit, alpha_aero, &
-                    isecspday, degpsec , tfrz, c14ratio, rgas
+                    denh2o, tfrz, tlsai_crit, alpha_aero, &
+                    isecspday, degpsec , tfrz, c14ratio
   use mod_clm_qsat , only : QSat
   use mod_clm_frictionvelocity , only : FrictionVelocity , MoninObukIni
   use mod_clm_pftvarcon , only : nbrdlf_dcd_tmp_shrub , irrigated
