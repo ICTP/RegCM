@@ -265,8 +265,8 @@ module mod_cu_kuo
               prainx = (d_one-c301)*sca*dtsec*d_1000*regrav
               if ( prainx > dlowval ) then
                 c2m%rainc(j,i) = c2m%rainc(j,i) + prainx
-                ! instantaneous precipitation rate for use in bats (mm/s)
-                c2m%pcratec(j,i) = c2m%pcratec(j,i) + prainx/dtsec
+                ! instantaneous precipitation rate for use in surface (mm/s)
+                c2m%pcratec(j,i) = c2m%pcratec(j,i) + prainx / dtsec
               end if
               if ( ichem == 1 ) then
                 ! build for chemistry 3d table of constant precipitation rate

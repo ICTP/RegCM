@@ -708,8 +708,8 @@ module mod_cu_bm
       prainx = d_half*((m2c%psb(j,i)*d_1000*preck*cprlg)*d_100)
       if ( prainx > dlowval ) then
         c2m%rainc(j,i) = c2m%rainc(j,i) + prainx
-        ! precipitation rate for bats (mm/s)
-        c2m%pcratec(j,i) = c2m%pcratec(j,i) + (prainx/dtsec)
+        ! precipitation rate for surface (mm/s)
+        c2m%pcratec(j,i) = c2m%pcratec(j,i) + prainx / dtsec
       end if
       do l = ltpk , lb
         tmod(j,i,l) = dift(l)*fefi/dtsec

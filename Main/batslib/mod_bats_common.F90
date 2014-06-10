@@ -368,6 +368,7 @@ module mod_bats_common
       call fseas(tgbrd)
       if ( iemiss == 1 ) then
         do i = ilndbeg , ilndend
+          fracs = lncl(i)*wt(i) + (d_one-lncl(i))*scvk(i)
           emiss(i) = (lndemiss(lveg(i))-seasemi(lveg(i))*aseas(i)) * &
                   (d_one-fracs) + 0.992*fracs
         end do

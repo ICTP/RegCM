@@ -249,6 +249,7 @@ module mod_ocn_lake
     do lp = 1 , nlakep
       i = ilp(lp)
       tl = sts(i)
+      sold = sncv(i)
       vl = dsqrt(usw(i)**2+vsw(i)**2)
       zl = ht(i)
       qs = qv(i)/(d_one+qv(i))

@@ -354,7 +354,7 @@ module mod_cu_grell
         prainx = pret(j,i)*dtsec
         if ( prainx > dlowval ) then
           c2m%rainc(j,i) = c2m%rainc(j,i) + prainx
-!         precipitation rate for bats (mm/s)
+          ! precipitation rate for surface (kg m-2 s-1)
           c2m%pcratec(j,i) = c2m%pcratec(j,i) + pret(j,i)
           total_precip_points = total_precip_points + 1
         end if

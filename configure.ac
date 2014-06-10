@@ -329,7 +329,7 @@ if eval "test x$DEBUG = x1"; then
   if test -z "$COMPILER_GNU_TRUE"; then
     FCFLAGS="-O0 -g -ffpe-trap=zero,invalid,overflow,underflow -fbacktrace \
             -fdump-core -Wall -pedantic -Wconversion -Wsurprising -Waliasing \
-            -Wampersand -Warray-bounds -Wcharacter-truncation \
+            -Wampersand -Warray-bounds -Wcharacter-truncation -Wuninitialized \
             -Wline-truncation -Wintrinsics-std -Wno-tabs -Wunderflow \
             -Wunused-parameter -Wno-align-commons $FCFLAGS \
             -fno-range-check -Wimplicit-interface -Wimplicit-procedure \
