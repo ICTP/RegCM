@@ -404,12 +404,14 @@ module mod_cu_tiedtke
       ztvp1(jl,jk) = ztp1(jl,jk)*(d_one+vtmpc1*zqp1(jl,jk)-zxp1(jl,jk))
       zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
       zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
-      it = int(ztp1(jl,jk)*d_1000)
-      if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
-      it = max(min(it,jptlucu2),jptlucu1)
-      zqsat(jl,jk) = tlucua(it)/papp1(jl,jk)
-      zqsat(jl,jk) = min(d_half,zqsat(jl,jk))
-      zqsat(jl,jk) = zqsat(jl,jk)/(d_one-vtmpc1*zqsat(jl,jk))
+      if ( iconv /= 4 ) then
+        it = int(ztp1(jl,jk)*d_1000)
+        if ( it < jptlucu1 .or. it > jptlucu2 ) lookupoverflow = .true.
+        it = max(min(it,jptlucu2),jptlucu1)
+        zqsat(jl,jk) = tlucua(it)/papp1(jl,jk)
+        zqsat(jl,jk) = min(d_half,zqsat(jl,jk))
+        zqsat(jl,jk) = zqsat(jl,jk)/(d_one-vtmpc1*zqsat(jl,jk))
+      end if
     end do
  
     if ( lookupoverflow ) then

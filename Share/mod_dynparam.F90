@@ -407,8 +407,8 @@ module mod_dynparam
       return
     end if
 !
-    dsmax = d_zero
-    dsmin = d_zero
+    dsmax = 0.05D0
+    dsmin = 0.0025D0
     njxcpus = -1
     niycpus = -1
 

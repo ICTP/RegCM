@@ -573,16 +573,14 @@ module mod_clm_balancecheck
       end if
     end do
     if ( found ) then
-      write(stderr,*)'WARNING:  snow balance error ', &
-         ' ktau = ',ktau,' indexc= ',indexc,        &
-         ' ltype: ', ltype(clandunit(indexc)),        &
-         ' errh2osno= ',errh2osno(indexc)
+      write(stderr,*) 'WARNING:  snow balance error '
+      write(stderr,*) ' ktau      = ',ktau
+      write(stderr,*) ' indexc    = ',indexc
+      write(stderr,*) ' ctype     = ',ctype(indexc)
+      write(stderr,*) ' ltype     = ',ltype(clandunit(indexc))
+      write(stderr,*) ' errh2osno = ',errh2osno(indexc)
       if ( abs(errh2osno(indexc)) > 0.1D0 .and. (ktau > ntsrf*2) ) then
         write(stderr,*)'clm model is stopping - error is greater than .10'
-        write(stderr,*)'ktau = ',ktau,' indexc= ',indexc, &
-                ' errh2osno= ',errh2osno(indexc)
-        write(stderr,*)'ltype: ', ltype(clandunit(indexc))
-        write(stderr,*)'ctype(indexc): ',ctype(indexc)
         write(stderr,*)'snl: ',snl(indexc)
         write(stderr,*)'h2osno: ',h2osno(indexc)
         write(stderr,*)'h2osno_old: ',h2osno_old(indexc)
