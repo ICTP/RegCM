@@ -347,7 +347,8 @@ module mod_ncstream
       type(internal_obuffer) , pointer :: buffer
       type(basic_variables) , pointer :: stvar
       integer(ik4) :: maxnum_int , maxnum_real , i
-      real(rk8) :: xds
+      character(len=16) , dimension(8) :: tempstr
+      real(rk8) :: xds , x0
       type(ncattribute_string) :: attc
       type(ncattribute_real8) :: attr
       type(ncattribute_real8_array) :: attra
@@ -386,13 +387,32 @@ module mod_ncstream
         end if
       end if
       if ( stream%l_hasgrid ) then
-        stvar%map_var%vname = 'rcm_map'
+        x0 = ds*1000.0D0/2.0
+        stvar%map_var%vname = 'crs'
         stvar%map_var%vunit = ''
         stvar%map_var%long_name = ''
         stvar%map_var%standard_name = ''
         call outstream_addvar(ncout,stvar%map_var)
         select case (iproj)
           case('LAMCON')
+            attc%aname = 'proj4_params'
+            write(tempstr(1),'(f7.2)') truelatl
+            write(tempstr(2),'(f7.2)') truelath
+            write(tempstr(3),'(f7.2)') clat
+            write(tempstr(4),'(f7.2)') clon
+            write(tempstr(5),'(f7.0)') -x0
+            write(tempstr(6),'(f7.0)') -x0
+            write(tempstr(7),'(f9.0)') earthrad
+            write(tempstr(8),'(f9.0)') earthrad
+            attc%theval = '+proj=lcc +lat_1='//trim(adjustl(tempstr(1)))// &
+              ' +lat_2='//trim(adjustl(tempstr(2)))// &
+              ' +lat_0='//trim(adjustl(tempstr(3)))// &
+              ' +lon_0='//trim(adjustl(tempstr(4)))// &
+              ' +x_0='//trim(adjustl(tempstr(5)))// &
+              ' +y_0='//trim(adjustl(tempstr(6)))// &
+              ' +ellps=sphere +a='//trim(adjustl(tempstr(7)))// &
+              ' +b='//trim(adjustl(tempstr(8)))//' +units=m +no_defs'
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
             attc%aname = 'grid_mapping_name'
             attc%theval = 'lambert_conformal_conic'
             call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
@@ -409,6 +429,20 @@ module mod_ncstream
             attr%theval = clat
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
           case('POLSTR')
+            attc%aname = 'proj4_params'
+            write(tempstr(1),'(f7.2)') clat
+            write(tempstr(2),'(f7.2)') clon
+            write(tempstr(3),'(f7.0)') -x0
+            write(tempstr(4),'(f7.0)') -x0
+            write(tempstr(5),'(f9.0)') earthrad
+            write(tempstr(6),'(f9.0)') earthrad
+            attc%theval = '+proj=stere +lat_0='//trim(adjustl(tempstr(1)))// &
+              ' +lon_0='//trim(adjustl(tempstr(2)))// &
+              ' +x_0='//trim(adjustl(tempstr(3)))// &
+              ' +y_0='//trim(adjustl(tempstr(4)))// &
+              ' +ellps=sphere +a='//trim(adjustl(tempstr(5)))// &
+              ' +b='//trim(adjustl(tempstr(6)))//' +units=m +no_defs'
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
             attc%aname = 'grid_mapping_name'
             attc%theval = 'stereographic'
             call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
@@ -418,7 +452,24 @@ module mod_ncstream
             attr%aname = 'longitude_of_projection_origin'
             attr%theval = clon
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'scale_factor_at_projection_origin'
+            attr%theval = 1.0
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
           case('NORMER')
+            attc%aname = 'proj4_params'
+            write(tempstr(1),'(f7.2)') clat
+            write(tempstr(2),'(f7.2)') clon
+            write(tempstr(3),'(f7.0)') -x0
+            write(tempstr(4),'(f7.0)') -x0
+            write(tempstr(5),'(f9.0)') earthrad
+            write(tempstr(6),'(f9.0)') earthrad
+            attc%theval = '+proj=merc +lat_ts='//trim(adjustl(tempstr(1)))// &
+              ' +lon_0='//trim(adjustl(tempstr(2)))// &
+              ' +x_0='//trim(adjustl(tempstr(3)))// &
+              ' +y_0='//trim(adjustl(tempstr(4)))// &
+              ' +ellps=sphere +a='//trim(adjustl(tempstr(5)))// &
+              ' +b='//trim(adjustl(tempstr(6)))//' +units=m +no_defs'
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
             attc%aname = 'grid_mapping_name'
             attc%theval = 'mercator'
             call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
@@ -432,6 +483,20 @@ module mod_ncstream
             attr%theval = clon
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
           case('ROTMER')
+            attc%aname = 'proj4_params'
+            write(tempstr(1),'(f7.2)') plat
+            write(tempstr(2),'(f7.2)') plon
+            write(tempstr(3),'(f7.0)') -x0
+            write(tempstr(4),'(f7.0)') -x0
+            write(tempstr(5),'(f9.0)') earthrad
+            write(tempstr(6),'(f9.0)') earthrad
+            attc%theval = '+proj=omerc +lat_0='//trim(adjustl(tempstr(1)))// &
+              ' +alpha=90.0 +lonc='//trim(adjustl(tempstr(2)))// &
+              ' +x_0='//trim(adjustl(tempstr(3)))// &
+              ' +y_0='//trim(adjustl(tempstr(4)))// &
+              ' +ellps=sphere +a='//trim(adjustl(tempstr(5)))// &
+              ' +b='//trim(adjustl(tempstr(6)))//' +units=m +no_defs'
+            call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
             attc%aname = 'grid_mapping_name'
             attc%theval = 'rotated_mercator'
             call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
@@ -441,7 +506,16 @@ module mod_ncstream
             attr%aname = 'longitude_of_projection_origin'
             attr%theval = plon
             call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+            attr%aname = 'scale_factor_at_projection_origin'
+            attr%theval = 1.0
+            call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
         end select
+        call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+        attr%aname = 'false_easting'
+        attr%theval = x0
+        call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
+        attr%aname = 'false_northing'
+        attr%theval = x0
         attc%aname = '_CoordinateTransformType'
         attc%theval = 'Projection'
         call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
@@ -848,7 +922,7 @@ module mod_ncstream
           end if
         end if
         call add_attribute(stream, &
-          ncattribute_string('grid_mapping','rcm_map'),var%id,var%vname)
+          ncattribute_string('grid_mapping','crs'),var%id,var%vname)
         stream%l_hasgrid = .true.
       end if
       if ( var%laddmethod .and. var%vname(1:4) /= 'time' ) then
