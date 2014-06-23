@@ -387,7 +387,7 @@ module mod_ncstream
         end if
       end if
       if ( stream%l_hasgrid ) then
-        x0 = ds*1000.0D0/2.0
+        x0 = -ds*1000.0D0/2.0 ! Cross grid
         stvar%map_var%vname = 'crs'
         stvar%map_var%vunit = ''
         stvar%map_var%long_name = ''
@@ -400,8 +400,8 @@ module mod_ncstream
             write(tempstr(2),'(f7.2)') truelath
             write(tempstr(3),'(f7.2)') clat
             write(tempstr(4),'(f7.2)') clon
-            write(tempstr(5),'(f7.0)') -x0
-            write(tempstr(6),'(f7.0)') -x0
+            write(tempstr(5),'(f7.0)') x0
+            write(tempstr(6),'(f7.0)') x0
             write(tempstr(7),'(f9.0)') earthrad
             write(tempstr(8),'(f9.0)') earthrad
             attc%theval = '+proj=lcc +lat_1='//trim(adjustl(tempstr(1)))// &
@@ -432,8 +432,8 @@ module mod_ncstream
             attc%aname = 'proj4_params'
             write(tempstr(1),'(f7.2)') clat
             write(tempstr(2),'(f7.2)') clon
-            write(tempstr(3),'(f7.0)') -x0
-            write(tempstr(4),'(f7.0)') -x0
+            write(tempstr(3),'(f7.0)') x0
+            write(tempstr(4),'(f7.0)') x0
             write(tempstr(5),'(f9.0)') earthrad
             write(tempstr(6),'(f9.0)') earthrad
             attc%theval = '+proj=stere +lat_0='//trim(adjustl(tempstr(1)))// &
@@ -459,8 +459,8 @@ module mod_ncstream
             attc%aname = 'proj4_params'
             write(tempstr(1),'(f7.2)') clat
             write(tempstr(2),'(f7.2)') clon
-            write(tempstr(3),'(f7.0)') -x0
-            write(tempstr(4),'(f7.0)') -x0
+            write(tempstr(3),'(f7.0)') x0
+            write(tempstr(4),'(f7.0)') x0
             write(tempstr(5),'(f9.0)') earthrad
             write(tempstr(6),'(f9.0)') earthrad
             attc%theval = '+proj=merc +lat_ts='//trim(adjustl(tempstr(1)))// &
@@ -486,8 +486,8 @@ module mod_ncstream
             attc%aname = 'proj4_params'
             write(tempstr(1),'(f7.2)') plat
             write(tempstr(2),'(f7.2)') plon
-            write(tempstr(3),'(f7.0)') -x0
-            write(tempstr(4),'(f7.0)') -x0
+            write(tempstr(3),'(f7.0)') x0
+            write(tempstr(4),'(f7.0)') x0
             write(tempstr(5),'(f9.0)') earthrad
             write(tempstr(6),'(f9.0)') earthrad
             attc%theval = '+proj=omerc +lat_0='//trim(adjustl(tempstr(1)))// &
