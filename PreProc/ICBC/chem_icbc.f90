@@ -49,7 +49,7 @@ program chem_icbc
   character(len=8)   :: chemsimtype
   integer(ik4) :: ichremlsc , ichremcvc , ichdrdepo , ichcumtra , &
         ichsolver , idirect , ichdustemd , ichdiag , ichsursrc ,  &
-        iindirect , ichebdy
+        iindirect , ichebdy , ichjphcld , ichbion
   real(rk8) :: rdstemfac
   logical :: dochem , dooxcl , doaero
   data dochem /.false./
@@ -58,7 +58,7 @@ program chem_icbc
 !
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
      ichcumtra , ichsolver , idirect , ichdustemd , ichdiag , iindirect ,&
-     ichsursrc , ichebdy , rdstemfac
+     ichsursrc , ichebdy , rdstemfac , ichjphcld , ichbion
 
   call header('chem_icbc')
 !
@@ -94,7 +94,7 @@ program chem_icbc
   select case (chemsimtype)
     case ( 'CBMZ' )
       dochem = .true.
-    case ( 'DUST', 'SSLT' )
+    case ( 'DUST', 'SSLT', 'DUSS' )
       doaero = .true.
     case ( 'CARB' , 'SULF' , 'SUCA' , 'AERO' )
       doaero = .true.

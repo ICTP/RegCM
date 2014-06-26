@@ -56,6 +56,7 @@ module mod_wrtoxd
   character(len=8) , target , dimension(4) :: aedust
   character(len=8) , target , dimension(8) :: aedccb
   character(len=8) , target , dimension(4) :: aesslt
+  character(len=8) , target , dimension(8) :: aeduss
   character(len=8) , target , dimension(5) :: aecarb
   character(len=8) , target , dimension(2) :: aesulf
   character(len=8) , target , dimension(7) :: aesuca
@@ -90,6 +91,8 @@ module mod_wrtoxd
 
   data aedust / 'DST01', 'DST02', 'DST03', 'DST04' /
   data aesslt / 'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
+  data aeduss / 'DST01', 'DST02', 'DST03', 'DST04', &
+                'SSLT01' , 'SSLT02', 'SSLT03', 'SSLT04' /
   data aecarb / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' /
   data aesulf / 'SO2' , 'SO4' /
   data aesuca / 'CB1' , 'CB2' , 'OC1' , 'SOA' , 'OC2' , 'SO2' , 'SO4' /
@@ -136,6 +139,11 @@ module mod_wrtoxd
       case ( 'SSLT' )
         naesp = 4
         aespec => aesslt
+        doaero = .true.
+        sum_sslt_bins = .true.
+      case ( 'DUSS' )
+        naesp = 8
+        aespec => aeduss
         doaero = .true.
         sum_sslt_bins = .true.
       case ( 'CARB' )
