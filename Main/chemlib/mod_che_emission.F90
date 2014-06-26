@@ -58,7 +58,9 @@ module mod_che_emission
     !
     ! read the aerosol emission files
     !
-    if ( chemsimtype(1:4) == 'DUST' .or. chemsimtype(1:4) == 'SSLT') return
+    if ( chemsimtype(1:4) == 'DUST' .or. &
+         chemsimtype(1:4) == 'SSLT' .or. &
+         chemsimtype(1:4) == 'DUSS' ) return
     if ( ifreq == ifrqmon ) then
       if ( curry == lyear .and. currm == lmonth ) then
         if ( myid == italk ) then
