@@ -42,6 +42,8 @@ module mod_nest
 
   public :: get_nest , headernest
 
+  character(len=256) , public :: coarsedir , coarsedom
+
   integer(ik4) , parameter :: np = 15
 
   integer(ik4) :: nrec
@@ -102,7 +104,16 @@ module mod_nest
       call checkncerr(istatus,__FILE__,__LINE__, 'Error close')
       imf = monfirst(idate)
       write (fillin,'(a,i10)') 'ATM.', toint10(imf)
-      inpfile=trim(inpglob)//pthsep//'RegCM'//pthsep//fillin//'.nc'
+      if ( coarsedir(1:5) == '     ' ) then
+        inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep
+      else
+        inpfile = trim(coarsedir)//pthsep
+      end if
+      if ( coarsedom(1:5) == '     ' ) then
+        inpfile = trim(inpfile)//fillin//'.nc'
+      else
+        inpfile = trim(inpfile)//trim(coarsedom)//'_'//fillin//'.nc'
+      end if
       istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
       call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(inpfile))
       istatus = nf90_inq_dimid(ncinp, 'time', idimid)
@@ -287,7 +298,18 @@ module mod_nest
    
     imf = monfirst(globidate1)
     write (fillin,'(a,i10)') 'ATM.', toint10(imf)
-    inpfile=trim(inpglob)//pthsep//'RegCM'//pthsep//fillin//'.nc'
+
+    if ( coarsedir(1:5) == '     ' ) then
+      inpfile = trim(inpglob)//pthsep//'RegCM'//pthsep
+    else
+      inpfile = trim(coarsedir)//pthsep
+    end if
+    if ( coarsedom(1:5) == '     ' ) then
+      inpfile = trim(inpfile)//fillin//'.nc'
+    else
+      inpfile = trim(inpfile)//trim(coarsedom)//'_'//fillin//'.nc'
+    end if
+
     istatus = nf90_open(inpfile, nf90_nowrite, ncinp)
     call checkncerr(istatus,__FILE__,__LINE__, 'Error opening '//trim(inpfile))
 

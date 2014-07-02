@@ -120,6 +120,13 @@
                    ! on how to download them.
  /
 !
+! Nesting control
+!
+ &fnestparam
+ coarse_outdir = 'globdata/RegCM', ! Coarse domain output dir if FNEST
+ coarse_domname = 'EUROPE',        ! Coarse domain domname
+ /
+!
 ! Perturbation control for ensembles
 !
  &perturbparam

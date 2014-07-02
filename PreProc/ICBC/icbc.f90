@@ -159,7 +159,9 @@ program icbc
   call initparam(namelistfile, ierr)
   if ( dattyp == 'FVGCM' .or. dattyp == 'EH5RF' .or. &
        dattyp == 'EH5A2' .or. dattyp == 'EH5B1' .or. dattyp == 'EHA1B') then
-    call init_globwindow(lat0,lon0,lat1,lon1)
+    call init_globwindow(namelistfile,lat0,lon0,lat1,lon1)
+  else if ( dattyp == 'FNEST' ) then
+    call init_fnestparam(namelistfile,coarsedir,coarsedom)
   end if
 
   if ( ierr /= 0 ) then

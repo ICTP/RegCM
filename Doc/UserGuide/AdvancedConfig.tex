@@ -13,16 +13,16 @@ In this section we will show you the commented namelist input file you will
 find under \verb=$REGCM_ROOT/Doc= with the name \verb=README.namelist= .
 All model programs seen so far, with the exception of the GrADS helper program,
 use as input this namelist file, which is unique to a particular simulation.
-The model input namelist file is divided in stanzas, each one devoted to
-configuring the model capabilities.
-A stanza in the namelist is identified with a starting \verb=&= character
-followed by stanza name, and ends on a single line with the \verb=\=
+The model input namelist file is composed by a number of different namelists,
+each one devoted to configuring the model capabilities.
+A namelist in the namelist file is identified with a starting \verb=&= character
+followed by namelist name, and ends on a single line with the \verb=\=
 character.
 
-\subsection{dimparam stanza}
+\subsection{dimparam namelist}
 \label{dimparam}
 
-This stanza contains the base X,Y,Z domain dimension information, used
+This namelist contains the base X,Y,Z domain dimension information, used
 by the model dynamic memory allocator to request the Operating System the
 memory space to store the model internal variables.
 
@@ -70,10 +70,10 @@ on the coarser grid. Rain in the current implementation is also calculated on
 the coarser grid.
 \end{enumerate}
 
-\subsection{geoparam stanza}
+\subsection{geoparam namelist}
 \label{geoparam}
 
-This stanza is used by the \verb=terrain= program to geolocate the model grid
+This namelist is used by the \verb=terrain= program to geolocate the model grid
 on the earth surface. The RegCM model uses a limited number of projection
 engines. The value here are used by the other model programs to assert
 consistency with the geolocation information written by the \verb=terrain=
@@ -169,9 +169,9 @@ limit is disabled on your platform before attempting a run.
 
 \end{enumerate}
 
-\subsection{terrainparam stanza}
+\subsection{terrainparam namelist}
 \label{terparam}
-This stanza is used by the \verb=terrain= program to know how you want
+This namelist is used by the \verb=terrain= program to know how you want
 to generate the \verb=DOMAIN= file. You can control its work using a number of
 parameters to obtain what you consider the best representation of the
 physical reality. Do not underestimate what you can do at this early stage,
@@ -243,9 +243,9 @@ For \verb=terrain= program you may want to try the following URL: \\
 http://clima-dods.ictp.it/thredds/dodsC
 \end{enumerate}
 
-\subsection{debugparam stanza}
+\subsection{debugparam namelist}
 
-This stanza is used by all RegCM programs to enable/disable some debug printout.
+This namelist is used by all RegCM programs to enable/disable some debug printout.
 In the current release this flag is honored only by the model itself. If you
 are not a developer you may find this flags useless.
 
@@ -262,7 +262,7 @@ Just note that with current implementation, the output file syncing is left
 to the netCDF library. If You want to examine step by step the output while
 the model is running, set the \verb=debug_level= at value 3.
 
-\subsection{boundaryparam stanza}
+\subsection{boundaryparam namelist}
 
 Being a limited area model, in order to be run RegCM4 requires the provision
 of meteorological initial and time dependent lateral boundary conditions,
@@ -334,10 +334,10 @@ follow the conditions:
 \end{Verbatim}
 }
 
-\subsection{globdatparam stanza}
+\subsection{globdatparam namelist}
 \label{globparam}
 
-This stanza is used by the \verb=sst= and \verb=icbc= ICBC programs. You can
+This namelist is used by the \verb=sst= and \verb=icbc= ICBC programs. You can
 tell them how to build initial and bondary conditions.
 
 {\footnotesize
@@ -389,16 +389,45 @@ Some input data are not freely distibutable by ICTP, and you need a special
 agreement with the owner to use them.
 Hopefully the situation is changing, and data exchange is becoming more and more
 the basis for good science in the climatic field.
-\item For notes on path, you can see the above in terrainparam stanza
+\item For notes on path, you can see the above in terrainparam namelist
 description at \ref{pathnote}.
 \end{enumerate}
 
-\subsection{perturbparam stanza}
+\subsection{fnestparam namelist}
 
-This stanza lets you control to which input field and of what fractional
+This namelist is read if the \verb=FNEST= is selected as \verb=dattyp= in
+\verb=globdatparam= namelist (see above in \ref{globparam}), and permits
+the user to specify the output directory of the coarse resolution run
+already completed and the name of the coarse domain, i.e. the \verb=domname=
+namelist parameter used in the \verb=terrainparam= coarse namelist
+(see above in \ref{terparam}).
+
+The nested domain must be contained inside the coarse domain, and possibly
+the nested domain should not overlap the boundary region of the coarse run.
+Those checks are left to the user.
+
+If nothing is specified or namelist not present default is to search for
+a directory \verb=RegCM= inside \verb=inpglob= directory for files without
+a \verb=domname=, i.e. like \verb=ATM.YYYYMMDDHH.nc=.
+
+{\footnotesize
+\begin{Verbatim}
+!
+! Nesting control
+!
+ &fnestparam
+ coarse_outdir = 'globdata/RegCM', ! Coarse domain output dir if FNEST
+ coarse_domname = 'EUROPE',        ! Coarse domain domname
+ /
+\end{Verbatim}
+}
+
+\subsection{perturbparam namelist}
+
+This namelist lets you control to which input field and of what fractional
 level a perturbation is added at ICBC stage on the input fields.
 It is read by the ICBC program if the \verb=ensemble_run= parameter in the
-\verb=globdatparam= stanza is set to \verb=true=.
+\verb=globdatparam= namelist is set to \verb=true=.
 
 {\footnotesize
 \begin{Verbatim}
@@ -431,9 +460,9 @@ Things you need to know here:
 The algorithm detail of the applied noise can be found in \cite{tao_ense}.
 \end{enumerate}
 
-\subsection{restartparam stanza}
+\subsection{restartparam namelist}
 
-This stanza lets you control the time period the model is currently simulating
+This namelist lets you control the time period the model is currently simulating
 in this particular run. You may want to split longer runs for which you have
 prepared the ICBC's into shorter runs, to schedule HPC resource usage in a more
 collaborative way with other researcher sharing it: the regcm model allows
@@ -469,9 +498,9 @@ data file the basic unit of output, each time you cross a month a new output
 file will be created for you.
 \end{enumerate}
 
-\subsection{timeparam stanza}
+\subsection{timeparam namelist}
 
-This stanza contains model internal timesteps, used by the model as basic
+This namelist contains model internal timesteps, used by the model as basic
 integration timestep and triggers for calling internal parametric schemes.
 
 {\footnotesize
@@ -492,7 +521,7 @@ Things you need to know here:
 and you need to manually find the correct value which permits not to break
 the Courant–Friedrichs–Lewy condition considering \cite{CFL}. A good rule
 of thumb is to have a \verb=dt= not greater than three times the \verb=ds=
-value in $km$ specified in the \verb=geoparam= stanza at \ref{geoparam}.
+value in $km$ specified in the \verb=geoparam= namelist at \ref{geoparam}.
 A greater value may lower computing time, but in case of strong advection
 may lead to non accurate computation or even the violation of CFL condition
 and the divergence of the solution.
@@ -507,9 +536,9 @@ may help find the correct timestep just for a particular period, using a
 different timestep at different times.
 \end{enumerate}
 
-\subsection{outparam stanza}
+\subsection{outparam namelist}
 
-This stanza controls the model output engine, allowing you to enable/disable
+This namelist controls the model output engine, allowing you to enable/disable
 any of the output file writeout, or to modify the frequency the fields are
 written in the files.
 
@@ -577,10 +606,10 @@ output file itself. Note that geolocation and pressure variables cannot be
 disabled.
 \end{enumerate}
 
-\subsection{physicsparam stanza}
+\subsection{physicsparam namelist}
 \label{physicsparam}
 
-This stanza controls the model physics. You have a number of option here,
+This namelist controls the model physics. You have a number of option here,
 and the best way to select the right set is to carefully read the the
 Reference Manual \cite{refman_11}. We are for the purposes of this User Guide
 not going in detail in here, except in saying that probably you will need
@@ -654,9 +683,9 @@ sensitivity experiments to select the best scheme for your application.
 \end{Verbatim}
 }
 
-\subsection{subexparam stanza}
+\subsection{subexparam namelist}
 
-This stanza controls the SUBEX moisture scheme. Please consider carefully
+This namelist controls the SUBEX moisture scheme. Please consider carefully
 reporting in your work the tuning you perform on this parameters.
 The parameters below are the ones currently used at ICTP.
 
@@ -691,9 +720,9 @@ We found that RegCM4 is especially sensitive to:
 lead to reduce precipitation
 \end{enumerate}
 
-\subsection{microparam stanza}
+\subsection{microparam namelist}
 
-This stanza controls the new microphysics scheme.
+This namelist controls the new microphysics scheme.
 
 {\footnotesize
 \begin{Verbatim}
@@ -728,7 +757,7 @@ This stanza controls the new microphysics scheme.
 \end{Verbatim}
 }
 
-\subsection{grellparam, emanparam and tiedtkeparam stanzas}
+\subsection{grellparam, emanparam and tiedtkeparam namelist}
 
 You are allowed here to tune the convection scheme selected above in
 \ref{physicsparam} with the \verb=icup_lnd= or \verb=icup_ocn= number if
@@ -812,7 +841,7 @@ Things you need to know here:
 
 \begin{enumerate}
 \item In case of the mixed schemes $96, 97, 98, 99$, both the selected schemes
-configuration stanzas are read in.
+configuration namelist are read in.
 Note in this case for the schemes only the relevant (Ocean or Land) control
 values are used.
 \item Minimum and maximum values of the fraction of reevaporated water in the
@@ -822,7 +851,7 @@ efficiency: increasing their value generally decrease convective precipitation.
 and report in any work modification of this parameters.
 \end{enumerate}
 
-\subsection{holtslagparam stanza}
+\subsection{holtslagparam namelist}
 
 You are allowed here to tune the Holtslag PBL scheme selected above in
 \ref{physicsparam} with the \verb=ibltyp= number if selected number is
@@ -838,7 +867,7 @@ $1, 99$.
 \end{Verbatim}
 }
 
-\subsection{uwparam stanza}
+\subsection{uwparam namelist}
 
 You are allowed here to tune the UW PBL scheme selected above in
 \ref{physicsparam} with the \verb=ibltyp= number if selected number is
@@ -859,7 +888,7 @@ $2, 99$.
 \end{Verbatim}
 }
 
-\subsection{slabocparam stanza}
+\subsection{slabocparam namelist}
 
 Here you define parameter and stage fot the Ocean q-flux adjusted mixed layer
 model.
@@ -878,9 +907,9 @@ model.
 \end{Verbatim}
 }
 
-\subsection{tweakparam stanza}
+\subsection{tweakparam namelist}
 
-This stanza controls the tweaking of the model to obtain custom scenarioes,
+This namelist controls the tweaking of the model to obtain custom scenarioes,
 Is enabled if itweak is $1$ in \ref{physicsparam}.
 
 {\footnotesize
@@ -899,7 +928,7 @@ Is enabled if itweak is $1$ in \ref{physicsparam}.
 }
 
 
-\subsection{rrtmparam stanza}
+\subsection{rrtmparam namelist}
 
 You are allowed here to tune the RRTM radiative scheme selected above in
 \ref{physicsparam} with the \verb=irrtm= number if selected number is $1$. 
@@ -938,9 +967,9 @@ You are allowed here to tune the RRTM radiative scheme selected above in
 \end{Verbatim}
 }
 
-\subsection{chemparam stanza}
+\subsection{chemparam namelist}
 
-This stanza controls the chemistry and aerosol options in the RegCM model.
+This namelist controls the chemistry and aerosol options in the RegCM model.
 
 {\footnotesize
 \begin{Verbatim}
@@ -1032,7 +1061,7 @@ input datasets for an aerosol/chemistry simulation.
   \item In the case of a \verb=DUST=, \verb=AERO= or \verb=DCCB= simulation,
     we need the model to prepare soil type dataset to be used for dust emission
     calculation at the \verb=terrain= program stage. The \verb=ltexture=
-    parameter in the \verb=terrainparam= stanza (see above in \ref{terparam})
+    parameter in the \verb=terrainparam= namelist (see above in \ref{terparam})
     should be set to \verb=.true.=.
   \item After having prepared the static and boundary condition data with the
     \verb=icbc= program for the atmosphere, we need also to define chemical
@@ -1102,7 +1131,7 @@ The steps to prepare the chemistry boundary conditions data are the following:
     the date of your simulation, as long as you are in the RCP temporal windows
     (for now, Historical from 1990-2010) .
     Which scenario to use is controlled by the \verb=scenario= variable in the
-    \verb=physicsparam= parameter stanza as above in \ref{physicsparam}
+    \verb=physicsparam= parameter namelist as above in \ref{physicsparam}
   \item In function of the value of the \verb=chemsimtype= parameter, the
     relevant boundary conditions will be produced on the RegCM domain by
     running :
@@ -1115,7 +1144,7 @@ The steps to prepare the chemistry boundary conditions data are the following:
 \end{enumerate}
 
 \subsubsection{Run time parameters}
-The other \verb=chemparam= stanza parameters, let you control run time behaviour
+The other \verb=chemparam= namelist parameters, let you control run time behaviour
 of the model chemistry and aerosol schemes.
 
 \begin{enumerate}
@@ -1214,7 +1243,7 @@ this triggers the building of another pre-processing program, \verb=clm2rcm=.
 \subsubsection{Prepare and run}
 \label{clmrun}
 
-The \verb=CLM= configuration requires a separate stanza in the namelist input
+The \verb=CLM= configuration requires a separate namelist in the namelist input
 file.
 
 {\footnotesize
@@ -1237,9 +1266,9 @@ file.
 Things you need to know here:
 
 \begin{enumerate}
-\item The \verb=inpter= path defined in \verb=terrainparam= stanza described in
-\ref{terparam} is used also by the \verb=clm2rcm= program. See at \ref{clmdata}
-how to obtain needed datasets.
+\item The \verb=inpter= path defined in \verb=terrainparam= namelist
+described in \ref{terparam} is used also by the \verb=clm2rcm= program.
+See at \ref{clmdata} how to obtain needed datasets.
 \item The file \verb=pft-physiology.c070207= should be manually copied in the
 \verb=dirclm= directory before running the model.
 \item The clmfrq is relative to the output produced by the \verb=CLM= model

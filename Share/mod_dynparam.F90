@@ -415,7 +415,7 @@ module mod_dynparam
     rewind(ipunit)
     read(ipunit, nml=dimparam, iostat=iresult)
     if ( iresult /= 0 ) then
-      write (stderr,*) 'Error reading dimparam stanza in ',trim(filename)
+      write (stderr,*) 'Error reading dimparam namelist in ',trim(filename)
       ierr = 2
       return
     end if
@@ -429,7 +429,7 @@ module mod_dynparam
     rewind(ipunit)
     read(ipunit, nml=geoparam, iostat=iresult)
     if ( iresult /= 0 ) then
-      write (stderr,*) 'Error reading geoparam stanza in ',trim(filename)
+      write (stderr,*) 'Error reading geoparam namelist in ',trim(filename)
       ierr = 3
       return
     end if
@@ -511,7 +511,7 @@ module mod_dynparam
     rewind(ipunit)
     read(ipunit, nml=terrainparam, iostat=iresult)
     if ( iresult /= 0 ) then
-      write (stderr,*) 'Error reading terrainparam stanza in ',trim(filename)
+      write (stderr,*) 'Error reading terrainparam namelist in ',trim(filename)
       ierr = 4
       return
     end if
@@ -551,7 +551,7 @@ module mod_dynparam
     rewind(ipunit)
     read(ipunit, nml=globdatparam, iostat=iresult)
     if ( iresult /= 0 ) then
-      write (stderr,*) 'Error reading globdatparam stanza in ',trim(filename)
+      write (stderr,*) 'Error reading globdatparam namelist in ',trim(filename)
       ierr = 6
       return
     end if
@@ -594,7 +594,8 @@ module mod_dynparam
       rewind(ipunit)
       read(ipunit, nml=perturbparam, iostat=iresult)
       if ( iresult /= 0 ) then
-        write (stderr,*) 'Error reading perturbparam stanza in ',trim(filename)
+        write (stderr,*) 'Error reading perturbparam namelist in ' , &
+          trim(filename)
         ierr = 6
         return
       end if
@@ -614,8 +615,32 @@ module mod_dynparam
     return
   end subroutine initparam
 
-  subroutine init_globwindow(lat0,lon0,lat1,lon1)
+  subroutine init_fnestparam(filename,coarsedir,coarsedom)
     implicit none
+    character(len=*) , intent(in) :: filename
+    character(len=*) , intent(out) :: coarsedir , coarsedom
+    integer(ik4) :: iresult
+    namelist /fnestparam/ coarsedir , coarsedom
+
+    coarsedir = '        '
+    coarsedom = '        '
+
+    open(ipunit, file=filename, status='old', &
+                 action='read', iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error opening input namelist file ',trim(filename)
+      return
+    end if
+    read(ipunit, nml=fnestparam, iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stdout,*) 'fnestparam not present: Using defaults'
+    end if
+    close(ipunit)
+  end subroutine init_fnestparam
+
+  subroutine init_globwindow(filename,lat0,lon0,lat1,lon1)
+    implicit none
+    character(len=*) , intent(in) :: filename
     real(rk8) , intent(out) :: lat0 , lat1 , lon0 , lon1
     integer(ik4) :: iresult
     namelist /globwindow/ lat0 , lat1 , lon0 , lon1
@@ -625,11 +650,17 @@ module mod_dynparam
     lat1 = 0.0D0
     lon1 = 0.0D0
 
-    rewind(ipunit)
+    open(ipunit, file=filename, status='old', &
+                 action='read', iostat=iresult)
+    if ( iresult /= 0 ) then
+      write (stderr,*) 'Error opening input namelist file ',trim(filename)
+      return
+    end if
     read(ipunit, nml=globwindow, iostat=iresult)
     if ( iresult /= 0 ) then
-      write (stdout,*) 'Globwindow Stanza not present: Assuming Global dataset'
+      write (stdout,*) 'Globwindow namelist not present: Assuming Global'
     end if
+    close(ipunit)
   end subroutine init_globwindow
 
 end module mod_dynparam
