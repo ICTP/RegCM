@@ -12,7 +12,6 @@ module mod_clm_canopyfluxes
   use mod_clm_varctl , only: use_c13 , use_c14
   use mod_clm_type
   use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_time_manager , only : get_prev_date
   use mod_clm_varpar , only : nlevgrnd, nlevsno, nlevcan
   use mod_clm_varcon , only : sb, cpair, hvap, vkc, grav, denice, &
                     denh2o, tfrz, tlsai_crit, alpha_aero, &
@@ -514,10 +513,8 @@ module mod_clm_canopyfluxes
    real(rk8) :: delq_snow
    real(rk8) :: delq_soil
    real(rk8) :: delq_h2osfc
-   integer(ik4)  :: yr        ! year at start of time step
-   integer(ik4)  :: mon       ! month at start of time step
-   integer(ik4)  :: day       ! day at start of time step
-   integer(ik4)  :: time      ! time at start of time step (seconds after 0Z)
+   ! time UTC at start of time step (seconds after solar midnight)
+   integer(ik4)  :: time
    ! local time at start of time step (seconds after solar midnight)
    integer(ik4)  :: local_time
    ! number of time steps per day in which we irrigate
@@ -851,7 +848,7 @@ module mod_clm_canopyfluxes
    ! n_irrig_steps_left(p) > 0 is ok even if irrig_rate(p) ends up = 0
    ! in this case, we'll irrigate by 0 for the given number of time steps
    ! get time as of beginning of time step
-   call get_prev_date(yr, mon, day, time)
+   time = idatex%second_of_day
    do f = 1, fn
      p = filterp(f)
      c = pcolumn(p)

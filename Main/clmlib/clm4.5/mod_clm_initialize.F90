@@ -53,8 +53,6 @@ module mod_clm_initialize
                                  restFile_open, restFile_close, restFile_read
   use mod_clm_accflds , only : initAccFlds , initAccClmtype
   use mod_clm_dust , only : Dustini
-  use mod_clm_time_manager, only : advance_timestep, &
-             timemgr_init, timemgr_restart
   use mod_clm_time_manager, only : get_curr_calday
   use mod_clm_urban , only : UrbanClumpInit
   use mod_clm_urbaninit , only : UrbanInitTimeConst , UrbanInitTimeVar , &

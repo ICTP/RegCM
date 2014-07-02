@@ -28,7 +28,8 @@ module mod_clm_initimeconst
 #if (defined VICHYDRO)
   use mod_clm_clmvicmap , only : initCLMVICMap
   use mod_clm_initsoilparvic , only : initSoilParVIC
-  use mod_clm_varpar , only : nlvic , nlayer , nlayert
+  use mod_clm_varpar , only : nlayer , nlayert
+  use mod_clm_varcon , only : nlvic
 #endif
   use mod_clm_snicar , only : SnowAge_init, SnowOptics_init
 #if (defined LCH4)

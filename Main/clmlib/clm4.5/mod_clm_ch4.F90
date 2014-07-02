@@ -10,11 +10,12 @@ module mod_clm_ch4
   use mod_intkinds
   use mod_realkinds
   use mod_stdio
+  use mod_dynparams , only : dayspy
+  use mod_constants , only : secpd
   use mod_mpmessage
   use mod_clm_type
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a
   use mod_clm_subgridave , only : p2c, c2g
-  use mod_clm_time_manager , only: get_days_per_year
   use mod_clm_varpar , only : nlevsoi , ngases , nlevsno
   use mod_clm_varpar , only : nlevgrnd , nlevdecomp
   use mod_clm_varcon , only : denh2o , denice , tfrz , grav , spval , rgas
@@ -2754,7 +2755,7 @@ module mod_clm_ch4
 
     ! set time steps
     dt = dtsrf
-    secsperyear = real( get_days_per_year() * secspday, r8)
+    secsperyear = dayspy * secpd
 
     newrun = .false.
 

@@ -255,7 +255,7 @@ module mod_clm_pftdyn
   ! year runs past the end of the dynpft time series.
   !
   subroutine pftdyn_interp()
-    use mod_clm_time_manager, only : get_curr_calday, get_days_per_year
+    use mod_clm_time_manager, only : get_curr_calday
     use mod_clm_varcon , only : istsoil
     use mod_clm_varcon , only : istcrop
     use mod_clm_varpar , only : numpft
@@ -270,7 +270,6 @@ module mod_clm_pftdyn
     integer(ik4)  :: day       ! day of month (1, ..., 31) for nstep+1
     integer(ik4)  :: sec       ! seconds into current date for nstep+1
     real(rk8) :: cday           ! current calendar day (1.0 = 0Z on Jan 1)
-    real(rk8) :: days_per_year  ! days per year
     integer(ik4)  :: ier       ! error status
     integer(ik4)  :: lbc , ubc
     real(rk8) :: wt1    ! time interpolation weights
@@ -359,9 +358,8 @@ module mod_clm_pftdyn
     ! Interpolate pft weight to current time
 
     cday          = get_curr_calday()
-    days_per_year = get_days_per_year()
 
-    wt1 = ((days_per_year + 1.D0) - cday)/days_per_year
+    wt1 = ((dayspy + 1.D0) - cday)/dayspy
 
     do p = begp , endp
       c = pptr%column(p)
@@ -2948,7 +2946,7 @@ module mod_clm_pftdyn
   ! Time interpolate cndv pft weights from annual to time step
   !
   subroutine pftwt_interp( begp, endp )
-    use mod_clm_time_manager, only : get_curr_calday, get_days_per_year
+    use mod_clm_time_manager, only : get_curr_calday
     use mod_clm_varcon      , only : istsoil ! CNDV incompatible with dynLU
     use mod_clm_varctl      , only : finidat
     implicit none
@@ -2956,7 +2954,6 @@ module mod_clm_pftdyn
     integer(ik4)  :: c,g,l,p       ! indices
     real(rk8) :: cday               ! current calendar day (1.0 = 0Z on Jan 1)
     real(rk8) :: wt1                ! time interpolation weights
-    real(rk8) :: days_per_year      ! days per year
     integer(ik4)  :: year          ! year (0, ...) at nstep + 1
     integer(ik4)  :: mon           ! month (1, ..., 12) at nstep + 1
     integer(ik4)  :: day           ! day of month (1, ..., 31) at nstep + 1
@@ -2976,9 +2973,8 @@ module mod_clm_pftdyn
     ! SCAM not defined and create_croplandunit = .false.
 
     cday          = get_curr_calday(offset=-int(dtsrf))
-    days_per_year = get_days_per_year()
 
-    wt1 = ((days_per_year + 1.D0) - cday)/days_per_year
+    wt1 = ((dayspy + 1.D0) - cday)/dayspy
 
     call curr_date(idatex, year, mon, day, sec, offset=int(dtsrf))
 
@@ -3010,7 +3006,6 @@ module mod_clm_pftdyn
    use mod_clm_type
    use mod_clm_pftvarcon , only : noveg, nbrdlf_evr_shrub, pprodharv10
    use mod_clm_varcon , only : secspday
-   use mod_clm_time_manager , only : get_days_per_year
    implicit none
    integer(ik4) , intent(in) :: num_soilc ! number of soil columns in filter
    integer(ik4) , intent(in) :: filter_soilc(:) ! column filter for soil points
@@ -3116,7 +3111,6 @@ module mod_clm_pftdyn
    integer(ik4) :: fp   ! pft filter index
    real(rk8):: am        ! rate for fractional harvest mortality (1/yr)
    real(rk8):: m         ! rate for fractional harvest mortality (1/s)
-   real(rk8):: days_per_year ! days per year
 
    ! assign local pointers to pft-level arrays
    pgridcell                      => clm3%g%l%c%p%gridcell
@@ -3224,8 +3218,6 @@ module mod_clm_pftdyn
    hrv_deadcrootn_xfer_to_litter => &
            clm3%g%l%c%p%pnf%hrv_deadcrootn_xfer_to_litter
 
-   days_per_year = get_days_per_year()
-
    ! pft loop
    do fp = 1,num_soilp
      p = filter_soilp(fp)
@@ -3236,7 +3228,7 @@ module mod_clm_pftdyn
      if (ivt(p) > noveg .and. ivt(p) < nbrdlf_evr_shrub) then
        if (do_harvest) then
          am = harvest(g)
-         m  = am/(days_per_year * secspday)
+         m  = am/(dayspy * secspday)
        else
          m = 0.D0
        end if

@@ -160,7 +160,6 @@ subroutine CNPhenologyInit( begp, endp )
 ! initialized, and after pftcon file is read in.
 !
 ! !USES:
-   use mod_clm_time_manager, only: get_step_size
    use mod_clm_surfrd       , only: crop_prog
    use mod_clm_varcon      , only: secspday
 !
@@ -247,7 +246,6 @@ subroutine CNPhenologyClimate (num_soilp, filter_soilp, num_pcropp, filter_pcrop
 ! For coupled carbon-nitrogen code (CN).
 !
 ! !USES:
-   use mod_clm_time_manager, only: get_days_per_year
    use mod_clm_croprest    , only: CropRestYear, CropRestIncYear
 !
 ! !ARGUMENTS:
@@ -286,7 +284,6 @@ subroutine CNPhenologyClimate (num_soilp, filter_soilp, num_pcropp, filter_pcrop
    integer :: p                    ! indices
    integer :: fp                   ! lake filter pft index
    integer, save :: nyrs = -999    ! number of years prognostic crop has run
-   real(rk8):: dayspyr              ! days per year (days)
    integer kyr                     ! current year
    integer kmo                     !         month of year  (1, ..., 12)
    integer kda                     !         day of month   (1, ..., 31)
@@ -311,11 +308,9 @@ subroutine CNPhenologyClimate (num_soilp, filter_soilp, num_pcropp, filter_pcrop
 
    ! set time steps
 
-   dayspyr = get_days_per_year()
-
    do fp = 1,num_soilp
       p = filter_soilp(fp)
-      tempavg_t2m(p) = tempavg_t2m(p) + t_ref2m(p) * (fracday/dayspyr)
+      tempavg_t2m(p) = tempavg_t2m(p) + t_ref2m(p) * (fracday/dayspy)
    end do
 
    !
@@ -370,7 +365,6 @@ subroutine CNEvergreenPhenology (num_soilp, filter_soilp)
 !
 ! !USES:
    use mod_clm_varcon      , only: secspday
-   use mod_clm_time_manager, only: get_days_per_year
 !
 ! !ARGUMENTS:
    integer, intent(in) :: num_soilp       ! number of soil pfts in filter
@@ -399,7 +393,6 @@ subroutine CNEvergreenPhenology (num_soilp, filter_soilp)
 ! local pointers to implicit out scalars
 !
 ! !OTHER LOCAL VARIABLES:
-   real(rk8):: dayspyr                ! Days per year
    integer :: p                      ! indices
    integer :: fp                     ! lake filter pft index
 !EOP
@@ -412,12 +405,11 @@ subroutine CNEvergreenPhenology (num_soilp, filter_soilp)
    bglfr     => clm3%g%l%c%p%pepv%bglfr
    bgtr      => clm3%g%l%c%p%pepv%bgtr
    lgsf      => clm3%g%l%c%p%pepv%lgsf
-   dayspyr   = get_days_per_year()
 
    do fp = 1,num_soilp
       p = filter_soilp(fp)
       if (evergreen(ivt(p)) == 1.D0) then
-          bglfr(p) = 1.D0/(leaf_long(ivt(p))*dayspyr*secspday)
+          bglfr(p) = 1.D0/(leaf_long(ivt(p))*dayspy*secspday)
           bgtr(p)  = 0.D0
           lgsf(p)  = 0.D0
       end if
@@ -848,7 +840,6 @@ subroutine CNStressDecidPhenology (num_soilp, filter_soilp)
 ! per year.
 !
 ! !USES:
-   use mod_clm_time_manager, only: get_days_per_year
    use mod_clm_varcon      , only: secspday , tfrz , rpi
 !
 ! !ARGUMENTS:
@@ -957,7 +948,6 @@ subroutine CNStressDecidPhenology (num_soilp, filter_soilp)
    real(rk8),parameter :: secspqtrday = secspday / 4  ! seconds per quarter day
    integer :: c,p             ! indices
    integer :: fp              ! lake filter pft index
-   real(rk8):: dayspyr         ! days per year
    real(rk8):: crit_onset_gdd  ! degree days for onset trigger
    real(rk8):: soilt           ! temperature of top soil layer
    real(rk8):: psi             ! water stress of top soil layer
@@ -1049,7 +1039,6 @@ subroutine CNStressDecidPhenology (num_soilp, filter_soilp)
     deadcrootn_storage_to_xfer     => clm3%g%l%c%p%pnf%deadcrootn_storage_to_xfer
 
    ! set time steps
-   dayspyr = get_days_per_year()
 
    do fp = 1,num_soilp
       p = filter_soilp(fp)
@@ -1291,7 +1280,7 @@ subroutine CNStressDecidPhenology (num_soilp, filter_soilp)
          ! calculate long growing season factor (lgsf)
          ! only begin to calculate a lgsf greater than 0.0 once the number
          ! of days active exceeds days/year.
-         lgsf(p) = max(min((days_active(p)-dayspyr)/dayspyr, 1.D0),0.D0)
+         lgsf(p) = max(min((days_active(p)-dayspy)/dayspy, 1.D0),0.D0)
 
          ! set background litterfall rate, when not in the phenological offset period
          if (offset_flag(p) == 1.D0) then
@@ -1300,7 +1289,7 @@ subroutine CNStressDecidPhenology (num_soilp, filter_soilp)
             ! calculate the background litterfall rate (bglfr)
             ! in units 1/s, based on leaf longevity (yrs) and correction for long growing season
 
-            bglfr(p) = (1.D0/(leaf_long(ivt(p))*dayspyr*secspday))*lgsf(p)
+            bglfr(p) = (1.D0/(leaf_long(ivt(p))*dayspy*secspday))*lgsf(p)
          end if
 
          ! set background transfer rate when active but not in the phenological onset period
@@ -1311,7 +1300,7 @@ subroutine CNStressDecidPhenology (num_soilp, filter_soilp)
             ! in complete turnover of the storage pools in one year at steady state,
             ! once lgsf has reached 1.0 (after 730 days active).
 
-            bgtr(p) = (1.D0/(dayspyr*secspday))*lgsf(p)
+            bgtr(p) = (1.D0/(dayspy*secspday))*lgsf(p)
 
             ! set carbon fluxes for shifting storage pools to transfer pools
 
@@ -1356,7 +1345,7 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
 ! handle CN fluxes during the phenological onset & offset periods.
 
 ! !USES:
-  use mod_clm_time_manager, only : get_curr_calday, get_days_per_year
+  use mod_clm_time_manager, only : get_curr_calday
   use mod_clm_pftvarcon       , only : ncorn, nscereal, nwcereal, nsoybean, gddmin, hybgdd, &
                                nwcerealirrig, nsoybeanirrig, ncornirrig, nscerealirrig, &
                                lfemerg, grnfill, mxmat, minplanttemp, planttemp
@@ -1387,7 +1376,6 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
       integer g         ! gridcell indices
       integer h         ! hemisphere indices
       integer idpp      ! number of days past planting
-      real(rk8) dayspyr  ! days per year
       real(rk8) crmcorn  ! comparitive relative maturity for corn
       real(rk8) ndays_on ! number of days to fertilize
 
@@ -1477,7 +1465,6 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
 ! ---------------------------------------
 
       ! get time info
-      dayspyr = get_days_per_year()
       jday    = get_curr_calday()
       call curr_date(idatex,kyr,kmo,kda,mcsec)
 
@@ -1757,7 +1744,7 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
             if (jday >= idop(p)) then
                idpp = jday - idop(p)
             else
-               idpp = int(dayspyr) + jday - idop(p)
+               idpp = int(dayspy) + jday - idop(p)
             end if
 
             ! onset_counter initialized to zero when .not. croplive
@@ -1809,7 +1796,7 @@ subroutine CropPhenology(num_pcropp, filter_pcropp)
             ! Use CN's simple formula at least as a place holder (slevis)
 
             else if (hui(p) >= huigrain(p)) then
-               bglfr(p) = 1.D0/(leaf_long(ivt(p))*dayspyr*secspday)
+               bglfr(p) = 1.D0/(leaf_long(ivt(p))*dayspy*secspday)
             end if
 
             ! continue fertilizer application while in phase 2;

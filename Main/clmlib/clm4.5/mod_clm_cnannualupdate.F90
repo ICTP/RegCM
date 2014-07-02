@@ -1,31 +1,21 @@
 module mod_clm_cnannualupdate
 #ifdef CN
+  !
+  ! Module for updating annual summation variables
+  !
+  use mod_realkinds
+  use mod_runparams , only : dtsrf
+  use mod_dynparam , only : dayspy
 
-!-----------------------------------------------------------------------
-!BOP
-!
-! !MODULE: CNAnnualUpdateMod
-!
-! !DESCRIPTION:
-! Module for updating annual summation variables
-!
-! !USES:
-    use mod_realkinds
-    implicit none
-    save
-    private
+  implicit none
 
   save
-! !PUBLIC MEMBER FUNCTIONS:
-    public:: CNAnnualUpdate
-!
-! !REVISION HISTORY:
-! 4/23/2004: Created by Peter Thornton
-!
-!EOP
-!-----------------------------------------------------------------------
 
-contains
+  private
+
+  public:: CNAnnualUpdate
+
+  contains
 
 !-----------------------------------------------------------------------
 !BOP
@@ -41,7 +31,6 @@ subroutine CNAnnualUpdate(lbc, ubc, lbp, ubp, num_soilc, filter_soilc, &
 !
 ! !USES:
    use mod_clm_type
-   use mod_clm_time_manager, only: get_step_size, get_days_per_year
    use mod_clm_varcon      , only: secspday
    use mod_clm_pft2col     , only: p2c
 !
@@ -113,7 +102,7 @@ subroutine CNAnnualUpdate(lbc, ubc, lbp, ubp, num_soilc, filter_soilc, &
    pcolumn               => clm3%g%l%c%p%column
 
    ! set time steps
-   dt = real( get_step_size(), rk8 )
+   dt = dtsrf
 
    ! column loop
    do fc = 1,num_soilc
@@ -123,7 +112,7 @@ subroutine CNAnnualUpdate(lbc, ubc, lbp, ubp, num_soilc, filter_soilc, &
 
    if (num_soilc .gt. 0) then
 
-   if (annsum_counter(filter_soilc(1)) >= get_days_per_year() * secspday) then
+   if (annsum_counter(filter_soilc(1)) >= dayspy * secspday) then
       ! pft loop
       do fp = 1,num_soilp
          p = filter_soilp(fp)
@@ -160,7 +149,7 @@ subroutine CNAnnualUpdate(lbc, ubc, lbp, ubp, num_soilc, filter_soilc, &
    ! column loop
    do fc = 1,num_soilc
       c = filter_soilc(fc)
-      if (annsum_counter(c) >= get_days_per_year() * secspday) annsum_counter(c) = 0.D0
+      if (annsum_counter(c) >= dayspy * secspday) annsum_counter(c) = 0.D0
    end do
 
 end subroutine CNAnnualUpdate

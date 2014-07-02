@@ -472,8 +472,12 @@ module mod_precip
           else
             botm = exp( 0.49D0*log((d_one-rh3(j,i,k))*qs3(j,i,k)) )
             rm = exp(0.25D0*log(rh3(j,i,k)))
-            excld = min(0.99D0, max(0.01D0 , &
-                    rm*(d_one-exp(-100.D0*qcld/botm))))  
+            if ( 100.D0*(qcld/botm) > 25.0D0 ) then
+              excld = min(0.99D0, max(0.01D0 , rm))
+            else
+              excld = min(0.99D0, max(0.01D0 , &
+                      rm*(d_one-exp(-100.D0*(qcld/botm)))))  
+            end if
             ! xu and randall
           end if
           !------ for low cloud

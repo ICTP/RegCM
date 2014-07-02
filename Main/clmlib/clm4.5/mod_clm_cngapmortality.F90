@@ -13,11 +13,11 @@ module mod_clm_cngapmortality
 !
 ! !USES:
   use mod_realkinds
+  use mod_dynparam , only : dayspy
   implicit none
   save
   private
 
-  save
 ! !PUBLIC MEMBER FUNCTIONS:
   public :: CNGapMortality
 !
@@ -42,7 +42,6 @@ subroutine CNGapMortality (num_soilc, filter_soilc, num_soilp, filter_soilp)
 !
 ! !USES:
    use mod_clm_type
-   use mod_clm_time_manager, only: get_days_per_year
    use mod_clm_varcon      , only: secspday
    use mod_clm_pftvarcon       , only: npcropmin
 !
@@ -284,7 +283,7 @@ subroutine CNGapMortality (num_soilc, filter_soilc, num_soilp, filter_soilp)
       end if
 #endif
 
-      m  = am/(get_days_per_year() * secspday)
+      m  = am/(dayspy * secspday)
 
       ! pft-level gap mortality carbon fluxes
       ! displayed pools

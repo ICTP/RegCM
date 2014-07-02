@@ -355,6 +355,7 @@ module mod_clm_accflds
     integer(ik4) :: begl, endl !  per-proc beginning and ending landunit indices
     integer(ik4) :: begg, endg !  per-proc gridcell ending gridcell indices
     real(rk8), pointer :: rbufslp(:)      ! temporary single level - pft level
+    integer(ik8) :: kkincr
 
     ! Determine necessary indices
 
@@ -440,6 +441,8 @@ module mod_clm_accflds
 
     if ( ktau == 0 ) return
 
+    kkincr = ktau / ntsrf
+
     ! NOTE: currently only single level pft fields are used below
     ! Variables are declared above that should make it easy to incorporate
     ! multi-level or single-level fields of any subgrid type
@@ -459,8 +462,8 @@ module mod_clm_accflds
     ! accumulation interval. First, initialize the necessary values for
     ! an initial run at the first time step the accumulator is called
 
-    call update_accum_field  ('TREFAV', t_ref2m, ktau)
-    call extract_accum_field ('TREFAV', rbufslp, ktau)
+    call update_accum_field  ('TREFAV', t_ref2m, kkincr)
+    call extract_accum_field ('TREFAV', rbufslp, kkincr)
     end_cd = is_end_curr_day()
     do p = begp , endp
       if (rbufslp(p) /= spval) then
@@ -485,8 +488,8 @@ module mod_clm_accflds
     ! accumulation interval. First, initialize the necessary values for
     ! an initial run at the first time step the accumulator is called
 
-    call update_accum_field  ('TREFAV_U', t_ref2m_u, ktau)
-    call extract_accum_field ('TREFAV_U', rbufslp, ktau)
+    call update_accum_field  ('TREFAV_U', t_ref2m_u, kkincr)
+    call extract_accum_field ('TREFAV_U', rbufslp, kkincr)
     do p = begp , endp
       l = plandunit(p)
       if (rbufslp(p) /= spval) then
@@ -513,8 +516,8 @@ module mod_clm_accflds
     ! accumulation interval. First, initialize the necessary values for
     ! an initial run at the first time step the accumulator is called
 
-    call update_accum_field  ('TREFAV_R', t_ref2m_r, ktau)
-    call extract_accum_field ('TREFAV_R', rbufslp, ktau)
+    call update_accum_field  ('TREFAV_R', t_ref2m_r, kkincr)
+    call extract_accum_field ('TREFAV_R', rbufslp, kkincr)
     do p = begp , endp
       l = plandunit(p)
       if (rbufslp(p) /= spval) then
@@ -538,52 +541,52 @@ module mod_clm_accflds
     do p = begp , endp
       rbufslp(p) = t_veg(p)
     end do
-    call update_accum_field  ('T_VEG24', rbufslp, ktau)
-    call extract_accum_field ('T_VEG24', t_veg24, ktau)
-    call update_accum_field  ('T_VEG240', rbufslp, ktau)
-    call extract_accum_field ('T_VEG240', t_veg240, ktau)
+    call update_accum_field  ('T_VEG24', rbufslp, kkincr)
+    call extract_accum_field ('T_VEG24', t_veg24, kkincr)
+    call update_accum_field  ('T_VEG240', rbufslp, kkincr)
+    call extract_accum_field ('T_VEG240', t_veg240, kkincr)
 
     ! Accumulate and extract forc_solad24 & forc_solad240 (heald 04/06)
     do p = begp , endp
       g = pgridcell(p)
       rbufslp(p) = forc_solad(g,1)
     end do
-    call update_accum_field  ('FSD240', rbufslp, ktau)
-    call extract_accum_field ('FSD240', fsd240, ktau)
-    call update_accum_field  ('FSD24', rbufslp, ktau)
-    call extract_accum_field ('FSD24', fsd24, ktau)
+    call update_accum_field  ('FSD240', rbufslp, kkincr)
+    call extract_accum_field ('FSD240', fsd240, kkincr)
+    call update_accum_field  ('FSD24', rbufslp, kkincr)
+    call extract_accum_field ('FSD24', fsd24, kkincr)
 
     ! Accumulate and extract forc_solai24 & forc_solai240 (heald 04/06)
     do p = begp , endp
       g = pgridcell(p)
       rbufslp(p) = forc_solai(g,1)
     end do
-    call update_accum_field  ('FSI24', rbufslp, ktau)
-    call extract_accum_field ('FSI24', fsi24, ktau)
-    call update_accum_field  ('FSI240', rbufslp, ktau)
-    call extract_accum_field ('FSI240', fsi240, ktau)
+    call update_accum_field  ('FSI24', rbufslp, kkincr)
+    call extract_accum_field ('FSI24', fsi24, kkincr)
+    call update_accum_field  ('FSI240', rbufslp, kkincr)
+    call extract_accum_field ('FSI240', fsi240, kkincr)
 
     ! Accumulate and extract fsun24 & fsun240 (heald 04/06)
     do p = begp , endp
       rbufslp(p) = fsun(p)
     end do
-    call update_accum_field  ('FSUN24', rbufslp, ktau)
-    call extract_accum_field ('FSUN24', fsun24, ktau)
-    call update_accum_field  ('FSUN240', rbufslp, ktau)
-    call extract_accum_field ('FSUN240', fsun240, ktau)
+    call update_accum_field  ('FSUN24', rbufslp, kkincr)
+    call extract_accum_field ('FSUN24', fsun24, kkincr)
+    call update_accum_field  ('FSUN240', rbufslp, kkincr)
+    call extract_accum_field ('FSUN240', fsun240, kkincr)
 
     ! Accumulate and extract elai_p (heald 04/06)
     do p = begp , endp
       rbufslp(p) = elai(p)
     end do
-    call update_accum_field  ('LAIP', rbufslp, ktau)
-    call extract_accum_field ('LAIP', elai_p, ktau)
+    call update_accum_field  ('LAIP', rbufslp, kkincr)
+    call extract_accum_field ('LAIP', elai_p, kkincr)
 
     ! Accumulate and extract T10
     !(acumulates TSA as 10-day running mean)
 
-    call update_accum_field  ('T10', t_ref2m, ktau)
-    call extract_accum_field ('T10', t10, ktau)
+    call update_accum_field  ('T10', t_ref2m, kkincr)
+    call extract_accum_field ('T10', t10, kkincr)
 
 #if (defined CNDV)
     ! Accumulate and extract TDA
@@ -594,8 +597,8 @@ module mod_clm_accflds
       g = pgridcell(p)
       rbufslp(p) = forc_t(g)
     end do
-    call update_accum_field  ('TDA', rbufslp, ktau)
-    call extract_accum_field ('TDA', rbufslp, ktau)
+    call update_accum_field  ('TDA', rbufslp, kkincr)
+    call extract_accum_field ('TDA', rbufslp, kkincr)
     do p = begp , endp
       t_mo(p) = rbufslp(p)
       t_mo_min(p) = min(t_mo_min(p), rbufslp(p))
@@ -608,8 +611,8 @@ module mod_clm_accflds
       g = pgridcell(p)
       rbufslp(p) = forc_rain(g) + forc_snow(g)
     end do
-    call update_accum_field  ('PREC365', rbufslp, ktau)
-    call extract_accum_field ('PREC365', prec365, ktau)
+    call update_accum_field  ('PREC365', rbufslp, kkincr)
+    call extract_accum_field ('PREC365', prec365, kkincr)
 
     ! Accumulate growing degree days based on 10-day running mean temperature.
     ! The trigger to reset the accumulated values to zero is -99999.
@@ -623,8 +626,8 @@ module mod_clm_accflds
       if (month == 1 .and. day == 1 .and. &
               secs==int(dtsrf)) rbufslp(p) = -99999.D0
     end do
-    call update_accum_field  ('AGDDTW', rbufslp, ktau)
-    call extract_accum_field ('AGDDTW', agddtw, ktau)
+    call update_accum_field  ('AGDDTW', rbufslp, kkincr)
+    call extract_accum_field ('AGDDTW', agddtw, kkincr)
 
     ! Accumulate and extract AGDD
 
@@ -632,16 +635,16 @@ module mod_clm_accflds
       rbufslp(p) = max(0.0D0, (t_ref2m(p) - (tfrz + 5.0D0)) &
             * dtsrf/secspday)
     end do
-    call update_accum_field  ('AGDD', rbufslp, ktau)
-    call extract_accum_field ('AGDD', agdd, ktau)
+    call update_accum_field  ('AGDD', rbufslp, kkincr)
+    call extract_accum_field ('AGDD', agdd, kkincr)
 #endif
 
     do p = begp , endp
       g = pgridcell(p)
       rbufslp(p) = forc_rain(g) + forc_snow(g)
     end do
-    call update_accum_field  ('PREC60', rbufslp, ktau)
-    call extract_accum_field ('PREC60', prec60, ktau)
+    call update_accum_field  ('PREC60', rbufslp, kkincr)
+    call extract_accum_field ('PREC60', prec60, kkincr)
 
     ! Accumulate and extract PREC10
     ! (accumulates total precipitation as 10-day running mean)
@@ -649,8 +652,8 @@ module mod_clm_accflds
       g = pgridcell(p)
       rbufslp(p) = forc_rain(g) + forc_snow(g)
     end do
-    call update_accum_field  ('PREC10', rbufslp, ktau)
-    call extract_accum_field ('PREC10', prec10, ktau)
+    call update_accum_field  ('PREC10', rbufslp, kkincr)
+    call extract_accum_field ('PREC10', prec10, kkincr)
 
     if ( crop_prog ) then
       ! Accumulate and extract TDM10
@@ -659,8 +662,8 @@ module mod_clm_accflds
         rbufslp(p) = min(t_ref2m_min(p),t_ref2m_min_inst(p)) !slevis: ok choice?
         if (rbufslp(p) > 1.D30) rbufslp(p) = tfrz !and were 'min'&
       end do                                       !'min_inst' not initialized?
-      call update_accum_field  ('TDM10', rbufslp, ktau)
-      call extract_accum_field ('TDM10', a10tmin, ktau)
+      call update_accum_field  ('TDM10', rbufslp, kkincr)
+      call extract_accum_field ('TDM10', a10tmin, kkincr)
 
       ! Accumulate and extract TDM5
 
@@ -668,8 +671,8 @@ module mod_clm_accflds
         rbufslp(p) = min(t_ref2m_min(p),t_ref2m_min_inst(p)) !slevis: ok choice?
         if (rbufslp(p) > 1.D30) rbufslp(p) = tfrz !and were 'min'&
       end do    !'min_inst' not initialized?
-      call update_accum_field  ('TDM5', rbufslp, ktau)
-      call extract_accum_field ('TDM5', a5tmin, ktau)
+      call update_accum_field  ('TDM5', rbufslp, kkincr)
+      call extract_accum_field ('TDM5', a5tmin, kkincr)
 
       ! Accumulate and extract GDD0
 
@@ -688,8 +691,8 @@ module mod_clm_accflds
           rbufslp(p) = 0.D0
         end if
       end do
-      call update_accum_field  ('GDD0', rbufslp, ktau)
-      call extract_accum_field ('GDD0', gdd0, ktau)
+      call update_accum_field  ('GDD0', rbufslp, kkincr)
+      call extract_accum_field ('GDD0', gdd0, kkincr)
 
       ! Accumulate and extract GDD8
 
@@ -707,8 +710,8 @@ module mod_clm_accflds
           rbufslp(p) = 0.D0
         end if
       end do
-      call update_accum_field  ('GDD8', rbufslp, ktau)
-      call extract_accum_field ('GDD8', gdd8, ktau)
+      call update_accum_field  ('GDD8', rbufslp, kkincr)
+      call extract_accum_field ('GDD8', gdd8, kkincr)
 
       ! Accumulate and extract GDD10
 
@@ -726,8 +729,8 @@ module mod_clm_accflds
           rbufslp(p) = 0.D0
         end if
       end do
-      call update_accum_field  ('GDD10', rbufslp, ktau)
-      call extract_accum_field ('GDD10', gdd10, ktau)
+      call update_accum_field  ('GDD10', rbufslp, kkincr)
+      call extract_accum_field ('GDD10', gdd10, kkincr)
 
       ! Accumulate and extract GDDPLANT
 
@@ -744,8 +747,8 @@ module mod_clm_accflds
           rbufslp(p) = -99999.D0
         end if
       end do
-      call update_accum_field  ('GDDPLANT', rbufslp, ktau)
-      call extract_accum_field ('GDDPLANT', gddplant, ktau)
+      call update_accum_field  ('GDDPLANT', rbufslp, kkincr)
+      call extract_accum_field ('GDDPLANT', gddplant, kkincr)
 
       ! Accumulate and extract GDDTSOI
       ! In agroibis this variable is calculated
@@ -765,8 +768,8 @@ module mod_clm_accflds
           rbufslp(p) = -99999.D0
         end if
       end do
-      call update_accum_field  ('GDDTSOI', rbufslp, ktau)
-      call extract_accum_field ('GDDTSOI', gddtsoi, ktau)
+      call update_accum_field  ('GDDTSOI', rbufslp, kkincr)
+      call extract_accum_field ('GDDTSOI', gddtsoi, kkincr)
 
     end if
 
@@ -859,6 +862,7 @@ module mod_clm_accflds
     integer(ik4) :: begg, endg   ! per-proc gridcell ending gridcell indices
     real(rk8), pointer :: rbufslp(:)  ! temporary
     character(len=32) :: subname = 'initAccClmtype'  ! subroutine name
+    integer(ik8) :: kkincr
 
     ! Assign local pointers to derived subtypes components (pft-level)
 
@@ -907,6 +911,8 @@ module mod_clm_accflds
 
     ! Determine time step
 
+    kkincr = ktau / ntsrf
+
     ! Initialize 2m ref temperature max and min values
 
     if ( nsrest == nsrStartup ) then
@@ -938,124 +944,124 @@ module mod_clm_accflds
 
     ! Initialize clmtype variables that are to be time accumulated
 
-    call extract_accum_field ('T_VEG24', rbufslp, ktau)
+    call extract_accum_field ('T_VEG24', rbufslp, kkincr)
     do p = begp , endp
       t_veg24(p) = rbufslp(p)
     end do
 
-    call extract_accum_field ('T_VEG240', rbufslp, ktau)
+    call extract_accum_field ('T_VEG240', rbufslp, kkincr)
     do p = begp , endp
       t_veg240(p) = rbufslp(p)
     end do
 
-    call extract_accum_field ('FSD24', rbufslp, ktau)
+    call extract_accum_field ('FSD24', rbufslp, kkincr)
     do p = begp , endp
       fsd24(p) = rbufslp(p)
     end do
 
-    call extract_accum_field ('FSD240', rbufslp, ktau)
+    call extract_accum_field ('FSD240', rbufslp, kkincr)
     do p = begp , endp
       fsd240(p) = rbufslp(p)
     end do
 
-    call extract_accum_field ('FSI24', rbufslp, ktau)
+    call extract_accum_field ('FSI24', rbufslp, kkincr)
     do p = begp , endp
       fsi24(p) = rbufslp(p)
     end do
 
-    call extract_accum_field ('FSI240', rbufslp, ktau)
+    call extract_accum_field ('FSI240', rbufslp, kkincr)
     do p = begp , endp
       fsi240(p) = rbufslp(p)
     end do
 
-    call extract_accum_field ('FSUN24', rbufslp, ktau)
+    call extract_accum_field ('FSUN24', rbufslp, kkincr)
     do p = begp , endp
       fsun24(p) = rbufslp(p)
     end do
 
-    call extract_accum_field ('FSUN240', rbufslp, ktau)
+    call extract_accum_field ('FSUN240', rbufslp, kkincr)
     do p = begp , endp
       fsun240(p) = rbufslp(p)
     end do
 
-    call extract_accum_field ('LAIP', rbufslp, ktau)
+    call extract_accum_field ('LAIP', rbufslp, kkincr)
     do p = begp , endp
       elai_p(p) = rbufslp(p)
     end do
 
     if ( crop_prog )then
 
-      call extract_accum_field ('GDD0', rbufslp, ktau)
+      call extract_accum_field ('GDD0', rbufslp, kkincr)
       do p = begp , endp
         gdd0(p) = rbufslp(p)
       end do
 
-      call extract_accum_field ('GDD8', rbufslp, ktau)
+      call extract_accum_field ('GDD8', rbufslp, kkincr)
       do p = begp , endp
         gdd8(p) = rbufslp(p)
       end do
 
-      call extract_accum_field ('GDD10', rbufslp, ktau)
+      call extract_accum_field ('GDD10', rbufslp, kkincr)
       do p = begp , endp
         gdd10(p) = rbufslp(p)
       end do
 
-      call extract_accum_field ('GDDPLANT', rbufslp, ktau)
+      call extract_accum_field ('GDDPLANT', rbufslp, kkincr)
       do p = begp , endp
         gddplant(p) = rbufslp(p)
       end do
 
-      call extract_accum_field ('GDDTSOI', rbufslp, ktau)
+      call extract_accum_field ('GDDTSOI', rbufslp, kkincr)
       do p = begp , endp
         gddtsoi(p) = rbufslp(p)
       end do
 
-      call extract_accum_field ('TDM10', rbufslp, ktau)
+      call extract_accum_field ('TDM10', rbufslp, kkincr)
       do p = begp , endp
         a10tmin(p) = rbufslp(p)
       end do
 
-      call extract_accum_field ('TDM5', rbufslp, ktau)
+      call extract_accum_field ('TDM5', rbufslp, kkincr)
       do p = begp , endp
         a5tmin(p) = rbufslp(p)
       end do
 
     end if
 
-    call extract_accum_field ('T10', rbufslp, ktau)
+    call extract_accum_field ('T10', rbufslp, kkincr)
     do p = begp , endp
       t10(p) = rbufslp(p)
     end do
 
 #if (defined CNDV)
 
-    call extract_accum_field ('TDA', rbufslp, ktau)
+    call extract_accum_field ('TDA', rbufslp, kkincr)
     do p = begp , endp
       t_mo(p) = rbufslp(p)
     end do
 
-    call extract_accum_field ('PREC365', rbufslp, ktau)
+    call extract_accum_field ('PREC365', rbufslp, kkincr)
     do p = begp , endp
       prec365(p) = rbufslp(p)
     end do
 
-    call extract_accum_field ('AGDDTW', rbufslp, ktau)
+    call extract_accum_field ('AGDDTW', rbufslp, kkincr)
     do p = begp , endp
       agddtw(p) = rbufslp(p)
     end do
 
-    call extract_accum_field ('AGDD', rbufslp, ktau)
+    call extract_accum_field ('AGDD', rbufslp, kkincr)
     do p = begp , endp
       agdd(p) = rbufslp(p)
     end do
 
 #endif
-    call extract_accum_field ('PREC60', rbufslp, ktau)
+    call extract_accum_field ('PREC60', rbufslp, kkincr)
     do p = begp , endp
       prec60(p) = rbufslp(p)
     end do
 
-    call extract_accum_field ('PREC10', rbufslp, ktau)
+    call extract_accum_field ('PREC10', rbufslp, kkincr)
     do p = begp , endp
       prec10(p) = rbufslp(p)
     end do

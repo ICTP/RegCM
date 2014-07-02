@@ -15,6 +15,8 @@ module mod_clm_cndecompcascadecentury
 !
 ! !USES:
    use mod_realkinds
+   use mod_runparams , only : dtsrf
+   use mod_dynparam , only : dayspy
    use mod_mpmessage
    use mod_clm_varpar   , only: nlevsoi, nlevgrnd, nlevdecomp, ndecomp_cascade_transitions, ndecomp_pools, nsompools
    use mod_clm_varpar   , only: i_met_lit, i_cel_lit, i_lig_lit, i_cwd
@@ -71,7 +73,6 @@ subroutine init_decompcascade(begc, endc)
 !
 ! !USES:
    use mod_clm_type
-   use mod_clm_time_manager    , only : get_step_size
 
 ! !ARGUMENTS:
    implicit none
@@ -417,7 +418,6 @@ subroutine decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
 ! !USES:
    use mod_clm_type
    use mod_clm_varcon, only: secspday
-   use mod_clm_time_manager, only : get_days_per_year
 
    !
 ! !ARGUMENTS:
@@ -489,7 +489,6 @@ subroutine decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
    real(r8) :: t1        ! temperature argument
 
    real(r8) :: normalization_factor ! factor by which to offset the decomposition rates frm century to a q10 formulation
-   real(r8):: days_per_year         ! days per year
 
 
 #if (defined VERTSOILC)
@@ -520,8 +519,6 @@ subroutine decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
         'ERROR: cannot have both use_century_tfunc and normalize_q10_to_century_tfunc set as true' )
    endif
 
-   days_per_year = get_days_per_year()
-
    ! tau (yrs) at reference temperature
    ! the aboveground parameters from century
    ! tau_l1 = 1./14.8
@@ -541,12 +538,12 @@ subroutine decomp_rate_constants(lbc, ubc, num_soilc, filter_soilc)
    tau_cwd  = 1./0.3
 
    ! translate to per-second time constant
-   k_l1 = 1._r8 / (secspday * days_per_year * tau_l1)
-   k_l2_l3 = 1._r8 / (secspday * days_per_year * tau_l2_l3)
-   k_s1 = 1._r8 / (secspday * days_per_year * tau_s1)
-   k_s2 = 1._r8 / (secspday * days_per_year * tau_s2)
-   k_s3 = 1._r8 / (secspday * days_per_year * tau_s3)
-   k_frag = 1._r8 / (secspday * days_per_year * tau_cwd)
+   k_l1 = 1._r8 / (secspday * dayspy * tau_l1)
+   k_l2_l3 = 1._r8 / (secspday * dayspy * tau_l2_l3)
+   k_s1 = 1._r8 / (secspday * dayspy * tau_s1)
+   k_s2 = 1._r8 / (secspday * dayspy * tau_s2)
+   k_s3 = 1._r8 / (secspday * dayspy * tau_s3)
+   k_frag = 1._r8 / (secspday * dayspy * tau_cwd)
 
 
    ! calc ref rate

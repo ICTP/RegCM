@@ -11,9 +11,11 @@ module clm_time_manager
 ! Just use RegCM date library here.
 
    use mod_date
+   use mod_intkinds , only : ik8
    use mod_mpmessage
    use mod_runparams , only : idate0 , idate1 , idate2 , idatex , &
                   ktau , mtau , dtsec , dtsrf , ntsrf , doing_restart
+   use mod_constants , only : secpd
    use clm_varsur   , only : r2coutfrq
 
    implicit none
@@ -418,7 +420,7 @@ logical function is_end_curr_day()
 
 ! Return true if current timestep is last timestep in current day.
 
-   is_end_curr_day = (idatex%second_of_day == 0)
+   is_end_curr_day = (idatex%second_of_day == int(secpd-dtsec, ik8))
 
 end function is_end_curr_day
 
@@ -428,10 +430,11 @@ logical function is_end_curr_month()
 
 ! Return true if current timestep is last timestep in current month.
 
-   integer :: iy , im , id , ih
-   call split_idate(idatex,iy,im,id,ih)
-   is_end_curr_month = ( id == 1 .and. idatex%second_of_day == 0 )
-
+   type (rcm_time_and_date) :: id
+   id = monlast(idatex)
+   is_end_curr_month = ( &
+      id%days_from_reference == idatex%days_from_reference .and. &
+      is_end_curr_day() )
 end function is_end_curr_month
 
 !=========================================================================================

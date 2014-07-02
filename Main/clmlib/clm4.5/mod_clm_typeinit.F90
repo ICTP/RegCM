@@ -49,7 +49,6 @@ module mod_clm_typeinit
     integer(ik4) :: numl        ! total number of landunits across all proc
     integer(ik4) :: numc        ! total number of columns across all proc
     integer(ik4) :: nump        ! total number of pfts across all proc
-    character(len=32) , parameter :: subname = "initClmtype"
 
     ! Determine necessary indices
 
@@ -133,7 +132,7 @@ module mod_clm_typeinit
       call init_pft_cstate_type(begc, endc, clm3%g%l%c%cc13s%pcs_a)
 #ifdef CROP
       call fatal(__FILE__,__LINE__, &
-       trim(subname)//" ERROR:: CROP and C13 can NOT be on at the same time")
+       "initClmtype ERROR:: CROP and C13 can NOT be on at the same time")
 #endif
     end if
 
@@ -142,7 +141,7 @@ module mod_clm_typeinit
       call init_pft_cstate_type(begc, endc, clm3%g%l%c%cc14s%pcs_a)
 #ifdef CROP
       call fatal(__FILE__,__LINE__,&
-       trim(subname)//" ERROR:: CROP and C14 can NOT be on at the same time")
+       "initClmtype ERROR:: CROP and C14 can NOT be on at the same time")
 #endif
     end if
 
@@ -2430,7 +2429,6 @@ module mod_clm_typeinit
     implicit none
     integer(ik4) , intent(in) :: ibeg , iend
     type (pft_depvd_type) , intent(inout) :: pdd
-    integer(ik4) :: i
 
     if ( n_drydep > 0 .and. drydep_method == DD_XLND ) then
       allocate(pdd%drydepvel(ibeg:iend,n_drydep))
