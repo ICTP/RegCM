@@ -618,7 +618,7 @@ module mod_dynparam
   subroutine init_fnestparam(filename,coarsedir,coarsedom)
     implicit none
     character(len=*) , intent(in) :: filename
-    character(len=*) , intent(out) :: coarsedir , coarsedom
+    character(len=256) , intent(out) :: coarsedir , coarsedom
     integer(ik4) :: iresult
     namelist /fnestparam/ coarsedir , coarsedom
 
