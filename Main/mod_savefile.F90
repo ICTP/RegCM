@@ -581,8 +581,13 @@ module mod_savefile
         write (fbname, '(a,i10)') 'SAV.', toint10(idate)
       end if
       ffout = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
-      ncstatus = nf90_create(ffout,nf90_clobber,ncid)
+
+      ! Use 64-bit offset format file, instead of a netCDF classic format file.
+      ! Sometimes SAV files can be really big... 
+      ncstatus = nf90_create(ffout, &
+              ior(nf90_64bit_offset,nf90_clobber),ncid)
       call check_ok(__FILE__,__LINE__,'Cannot create savefile '//trim(ffout))
+
       ncstatus = nf90_def_dim(ncid,'jcross',jcross2-jcross1+1,dimids(idjcross))
       call check_ok(__FILE__,__LINE__,'Cannot create dimension jcross')
       ncstatus = nf90_def_dim(ncid,'icross',icross2-icross1+1,dimids(idicross))
