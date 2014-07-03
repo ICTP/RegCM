@@ -439,7 +439,7 @@ module mod_clm_accflds
     ! Don't do any accumulation if nstep is zero
     ! (only applies to coupled or cam mode)
 
-    if ( ktau == 0 ) return
+    if ( ktau < ntsrf ) return
 
     kkincr = ktau / ntsrf
 

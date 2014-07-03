@@ -387,14 +387,12 @@ module mod_clm_driver
 
     ! Surface Radiation for urban columns
 
-    call UrbanRadiation(begl,endl,begc,endc,begp,endp, &
-                        filter%num_nourbanl,           &
-                        filter%nourbanl,               &
-                        filter%num_urbanl,             &
-                        filter%urbanl,                 &
-                        filter%num_urbanc,             &
-                        filter%urbanc,                 &
-                        filter%num_urbanp,             &
+    call UrbanRadiation(begl,endl,begp,endp, &
+                        filter%num_nourbanl, &
+                        filter%nourbanl,     &
+                        filter%num_urbanl,   &
+                        filter%urbanl,       &
+                        filter%num_urbanp,   &
                         filter%urbanp)
 
     ! =======================================================================
@@ -426,8 +424,6 @@ module mod_clm_driver
                      filter%nourbanl,               &
                      filter%num_urbanl,             &
                      filter%urbanl,                 &
-                     filter%num_urbanc,             &
-                     filter%urbanc,                 &
                      filter%num_urbanp,             &
                      filter%urbanp)
 
