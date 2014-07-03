@@ -437,8 +437,7 @@ module mod_clm_driver
     ! canopy, and leaf water change by evapotranspiration
     ! =======================================================================
 
-    call CanopyFluxes(begg,endg,begc,endc,begp,endp, &
-                      filter%num_nolakep,            &
+    call CanopyFluxes(begc,endc,begp,endp,filter%num_nolakep,  &
                       filter%nolakep)
 
     ! =======================================================================

@@ -132,7 +132,7 @@ module mod_clm_domain
         write(stdout,*) 'domain_clean WARN: clean domain unecessary '
       end if
     end if
-    domain%clmlevel   = unset
+    domain%clmlevel   = unset(1:8)
     domain%ns         = bigint
     domain%ni         = bigint
     domain%nj         = bigint

@@ -716,7 +716,8 @@ module mod_clm_nchelper
   integer(ik4) function hash(text) result(hashed)
     implicit none
     character(len=*) , intent(in) :: text
-    integer(ik4) , parameter :: magic_numb = z'5d7a9f43'
+    !integer(ik4) , parameter :: magic_numb = z'5d7a9f43'
+    integer(ik4) , parameter :: magic_numb = 1568317251
     integer(ik4) :: i, j
     hashed = 0
     do i = 1, len_trim(text)
@@ -4145,7 +4146,7 @@ module mod_clm_nchelper
     real(rk8) , dimension(:,:) , intent(in) :: xval
     type(subgrid_type) , intent(in) :: sg
     logical , optional , intent(in) :: switchdim
-    integer(ik4) :: ivarid , mpierr , nk , np , k
+    integer(ik4) :: ivarid , mpierr , nk , k
     real(rk8) , dimension(:,:) , allocatable :: rval
     real(rk8) , dimension(:,:) , allocatable :: sval
     logical :: doswitch

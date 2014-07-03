@@ -126,7 +126,6 @@ module mod_clm_filter
     integer(ik4) :: begc , endc  ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl  ! per-proc beginning and ending ldunit indices
     integer(ik4) :: begg , endg  ! per-proc beginning and ending gdcell indices
-    integer(ik4) :: ier          ! error status
 
     ! Determine variables for this processor
 

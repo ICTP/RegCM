@@ -96,7 +96,7 @@ module mod_clm_varcon
   ! Seconds per day
   real(rk8) , public , parameter ::  secspday = secpd
   ! Integer seconds per day
-  integer(ik4) , public , parameter :: isecspday = secspday
+  integer(ik4) , public , parameter :: isecspday = 86400
   ! Special value for real data
   real(rk8) , public , parameter ::  spval = 1.D36
   real(rk4) , public , parameter ::  rspval = 1.E36

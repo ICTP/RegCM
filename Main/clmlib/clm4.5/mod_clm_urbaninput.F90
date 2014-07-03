@@ -63,14 +63,12 @@ module mod_clm_urbaninput
     use mod_clm_domain , only : ldomain
     implicit none
     character(len=*) , intent(in) :: mode
-    type(clm_filetype) :: ncid                          ! netcdf id
-    integer(ik4) :: begg , endg                         ! start/stop gridcells
-    integer(ik4) :: nw , n , k , i , j , ni , nj , ns   ! indices
+    type(clm_filetype) :: ncid    ! netcdf id
+    integer(ik4) :: begg , endg   ! start/stop gridcells
     integer(ik4) :: nlevurb_i ! input grid: number of urban vertical levels
     integer(ik4) :: numrad_i  ! input grid: number of solar bands (VIS/NIR)
     integer(ik4) :: numurbl_i ! input grid: number of urban landunits
-    integer(ik4) :: ier , ret ! error status
-    logical :: readvar     ! true => variable is on dataset
+    integer(ik4) :: ier       ! error status
     logical :: has_numurbl ! true => numurbl dimension is on dataset
     logical :: has_nsolar  ! true => nsolar dimension is on dataset
     character(len=32) :: subname = 'UrbanInput' ! subroutine name

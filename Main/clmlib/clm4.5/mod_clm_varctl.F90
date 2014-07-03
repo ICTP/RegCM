@@ -20,7 +20,6 @@ module mod_clm_varctl
   logical , public , parameter :: atm_regcm = .true.
 
   integer(ik4) , parameter , private :: iundef = -9999999
-  integer(ik4) , parameter , private :: rundef = -9999999.D0
   !
   ! Run control variables
   !

@@ -47,8 +47,6 @@ module mod_clm_cnverticalprofile
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     ! column level
-    ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
-    real(rk8), pointer :: t_soisno(:,:)
     ! (1/m) profile for N fixation additions
     real(rk8), pointer :: nfixation_prof(:,:)
     ! (1/m) profile for N fixation additions
@@ -72,14 +70,16 @@ module mod_clm_cnverticalprofile
 
     ! local variables
     real(rk8) :: surface_prof(1:nlevdecomp)
-    real(rk8) :: surface_prof_tot
-    real(rk8) :: rootfr_tot
     ! pft-native root fraction used for calculating inputs
     real(rk8) :: cinput_rootfr(lbp:ubp, 1:nlevdecomp_full)
+#ifdef VERTSOILC
+    real(rk8) :: surface_prof_tot
+    real(rk8) :: rootfr_tot
     ! col-native root fraction used for calculating inputs
     real(rk8) :: col_cinput_rootfr(lbc:ubc, 1:nlevdecomp_full)
-    integer(ik4)  :: c, j, fc, p, fp, pi
-    integer(ik4)  :: alt_ind
+    integer(ik4) :: pi
+#endif
+    integer(ik4)  :: c, j, fc, p, fp
 
     ! debugging temp variables
     real(rk8) :: froot_prof_sum

@@ -81,11 +81,10 @@ module mod_clm_soilhydrology
   !
   ! Calculate surface runoff
   !
-  subroutine SurfaceRunoff (lbc, ubc, lbp, ubp, num_hydrologyc, &
+  subroutine SurfaceRunoff (lbc, ubc, num_hydrologyc, &
                   filter_hydrologyc, num_urbanc, filter_urbanc, icefrac)
     implicit none
     integer(ik4) , intent(in)  :: lbc, ubc   ! column bounds
-    integer(ik4) , intent(in)  :: lbp, ubp   ! pft bounds
     ! number of column soil points in column filter
     integer(ik4) , intent(in)  :: num_hydrologyc
     ! column filter for soil points
@@ -162,17 +161,13 @@ module mod_clm_soilhydrology
     !column average soil moisture in top VIC layers (mm)
     real(rk8), pointer :: i_0(:)
 #endif
-    integer(ik4)  :: c,j,fc,g,l,i    !indices
+    integer(ik4)  :: c,j,fc    !indices
     ! excess soil water above urban ponding limit
     real(rk8) :: xs(lbc:ubc)
     !partial volume of ice lens in layer
     real(rk8) :: vol_ice(lbc:ubc,1:nlevsoi)
     !decay factor (m-1)
     real(rk8) :: fff(lbc:ubc)
-    real(rk8) :: s1         !variable to calculate qinmax
-    real(rk8) :: su         !variable to calculate qinmax
-    real(rk8) :: v          !variable to calculate qinmax
-    real(rk8) :: qinmax     !maximum infiltration capacity (mm/s)
 #if (defined VICHYDRO)
     !fraction of the saturated area
     real(rk8) :: A(lbc:ubc)
@@ -408,7 +403,6 @@ module mod_clm_soilhydrology
     real(rk8), pointer :: eff_porosity(:,:)
     real(rk8), pointer :: h2osno(:)         ! snow water (mm H2O)
     real(rk8), pointer :: snow_depth(:)     ! snow height (m)
-    real(rk8), pointer :: var_track2(:)     ! generic tracking variable
     real(rk8), pointer :: topo_slope(:)     ! topographic slope
     ! evaporation flux from snow (W/m**2) [+ to atm]
     real(rk8), pointer :: qflx_ev_snow(:)
@@ -440,12 +434,10 @@ module mod_clm_soilhydrology
 #endif
     real(rk8), pointer :: qflx_infl(:)  !infiltration (mm H2O /s)
 
-    integer(ik4) :: c,j,l, fc  ! indices
-    real(rk8) :: s1,su,v       ! variable to calculate qinmax
-    real(rk8) :: qinmax        ! maximum infiltration capacity (mm/s)
+    integer(ik4) :: c,j,fc  ! indices
+    real(rk8) :: qinmax     ! maximum infiltration capacity (mm/s)
     ! partial volume of ice lens in layer
     real(rk8) :: vol_ice(lbc:ubc,1:nlevsoi)
-    real(rk8) :: alpha_evap(lbc:ubc)        ! fraction of total evap from h2osfc
     real(rk8) :: qflx_evap(lbc:ubc)         ! local evaporation array
     real(rk8) :: qflx_h2osfc_drain(lbc:ubc) ! bottom drainage from h2osfc
     real(rk8) :: qflx_in_h2osfc(lbc:ubc)    ! surface input to h2osfc
@@ -455,18 +447,7 @@ module mod_clm_soilhydrology
     real(rk8) :: frac_infclust  ! fraction of submerged area that is connected
     real(rk8) :: fsno     ! copy of frac_sno
     real(rk8) :: k_wet    ! linear reservoir coefficient for h2osfc
-    real(rk8) :: fac      ! soil wetness of surface layer
-    real(rk8) :: psit     ! negative potential of soil
-    real(rk8) :: hr       ! relative humidity
-    real(rk8) :: wx       ! partial volume of ice and water of surface layer
-    real(rk8) :: z_avg
-    real(rk8) :: rho_avg
-    real(rk8) :: fmelt
-    real(rk8) :: f_sno
-    real(rk8) :: imped
-    real(rk8) :: d
     real(rk8) :: icefrac(lbc:ubc,1:nlevsoi) !
-    real(rk8) :: h2osoi_vol                 !
 #if (defined VICHYDRO)
     ! temporary, variable soil moisture holding capacity
     ! in top VIC layers for runoff calculation
@@ -766,7 +747,6 @@ module mod_clm_soilhydrology
   ! r_j = a_j [d wat_j-1] + b_j [d wat_j] + c_j [d wat_j+1]
   !
   subroutine SoilWater(lbc, ubc, num_hydrologyc, filter_hydrologyc, &
-                       num_urbanc, filter_urbanc, &
                        dwat, hk, dhkdw)
     implicit none
     integer(ik4) , intent(in)  :: lbc, ubc      ! column bounds
@@ -774,10 +754,6 @@ module mod_clm_soilhydrology
     integer(ik4) , intent(in)  :: num_hydrologyc
     ! column filter for soil points
     integer(ik4) , intent(in)  :: filter_hydrologyc(ubc-lbc+1)
-    ! number of column urban points in column filter
-    integer(ik4) , intent(in)  :: num_urbanc
-    ! column filter for urban points
-    integer(ik4) , intent(in)  :: filter_urbanc(ubc-lbc+1)
     ! change of soil water [m3/m3]
     real(rk8), intent(out) :: dwat(lbc:ubc,1:nlevsoi)
     ! hydraulic conductivity [mm h2o/s]
@@ -876,10 +852,8 @@ module mod_clm_soilhydrology
     real(rk8) :: imped(lbc:ubc,1:nlevsoi)
     real(rk8) :: vol_ice(lbc:ubc,1:nlevsoi)
     real(rk8) :: icefrac(lbc:ubc,1:nlevsoi)
-    real(rk8) :: z_mid
     real(rk8) :: vwc_zwt(lbc:ubc)
     real(rk8) :: vwc_liq(lbc:ubc,1:nlevsoi+1) ! liquid volumetric water content
-    real(rk8) :: smp_grad(lbc:ubc,1:nlevsoi+1)
 
     ! Assign local pointers to derived type members (column-level)
 
@@ -1324,15 +1298,13 @@ module mod_clm_soilhydrology
   ! Calculate subsurface drainage
   !
   subroutine Drainage(lbc, ubc, num_hydrologyc, filter_hydrologyc, &
-                      num_urbanc, filter_urbanc, vol_liq, &
-                      icefrac)
+                      num_urbanc, filter_urbanc, icefrac)
     implicit none
     integer(ik4) , intent(in) :: lbc, ubc                     ! column bounds
     integer(ik4) , intent(in) :: num_hydrologyc               ! number of column soil points in column filter
     integer(ik4) , intent(in) :: num_urbanc                   ! number of column urban points in column filter
     integer(ik4) , intent(in) :: filter_urbanc(ubc-lbc+1)     ! column filter for urban points
     integer(ik4) , intent(in) :: filter_hydrologyc(ubc-lbc+1) ! column filter for soil points
-    real(rk8), intent(in) :: vol_liq(lbc:ubc,1:nlevsoi)   ! partial volume of liquid water in layer
     real(rk8), intent(in) :: icefrac(lbc:ubc,1:nlevsoi)   ! fraction of ice in layer
 
     real(rk8), pointer :: h2osfc(:)         ! surface water (mm)
@@ -1406,31 +1378,17 @@ module mod_clm_soilhydrology
     real(rk8) :: fff(lbc:ubc)
     ! excess soil water above saturation at layer i (mm)
     real(rk8) :: xsi(lbc:ubc)
-    ! available pore space at layer i (mm)
-    real(rk8) :: xsia(lbc:ubc)
     ! excess soil water above saturation at layer 1 (mm)
     real(rk8) :: xs1(lbc:ubc)
-    ! matric potential of layer right above water table (mm)
-    real(rk8) :: smpfz(1:nlevsoi)
     ! summation of hk*dzmm for layers below water table (mm**2/s)
     real(rk8) :: wtsub
     real(rk8) :: rous      ! aquifer yield (-)
-    real(rk8) :: wh        ! smpfz(jwt)-z(jwt) (mm)
-    real(rk8) :: wh_zwt    ! water head at the water table depth (mm)
-    ! summation of pore space of layers below water table (mm)
-    real(rk8) :: ws
-    ! soil wetness (-)
-    real(rk8) :: s_node
     ! summation of dzmm of layers below water table (mm)
     real(rk8) :: dzsum
     ! summation of icefrac*dzmm of layers below water table (-)
     real(rk8) :: icefracsum
     ! fractional impermeability of soil layers (-)
     real(rk8) :: fracice_rsub(lbc:ubc)
-    ! hydraulic conductivity of the aquifer (mm/s)
-    real(rk8) :: ka
-    ! fff*(zwt-z(jwt)) (-)
-    real(rk8) :: dza
     ! available soil liquid water in a layer
     real(rk8) :: available_h2osoi_liq
     real(rk8) :: rsub_top_max
@@ -1440,8 +1398,6 @@ module mod_clm_soilhydrology
     real(rk8) :: rsub_top_layer
     real(rk8) :: qcharge_tot
     real(rk8) :: qcharge_layer
-    real(rk8) :: theta_unsat
-    real(rk8) :: f_unsat
     real(rk8) :: s_y
     integer(ik4)  :: k,k_frz,k_perch
     real(rk8) :: sat_lev

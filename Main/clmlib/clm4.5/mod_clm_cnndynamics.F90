@@ -361,7 +361,6 @@ module mod_clm_cnndynamics
     real(rk8), pointer :: fert(:)  ! nitrogen fertilizer rate (gN/m2/s)
 
     real(rk8), pointer :: fert_to_sminn(:)
-    integer(ik4) :: c,fc                 ! indices
 
     ! Assign local pointers to derived type arrays (in)
     fert          => clm3%g%l%c%p%pnf%fert

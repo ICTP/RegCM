@@ -2,8 +2,8 @@ module mod_clm_surfacealbedo
   !
   ! Performs surface albedo calculations
   !
-  use mod_realkinds
   use mod_intkinds
+  use mod_realkinds
   use mod_mpmessage
   use mod_stdio
   use mod_sunorbit
@@ -241,7 +241,6 @@ module mod_clm_surfacealbedo
     real(rk8) :: extkn   ! nitrogen allocation coefficient
     integer(ik4) :: fp , fc , g , c , p , iv  ! indices
     integer(ik4) :: ib   ! band index
-    integer(ik4) :: ic   ! 0=unit incoming direct; 1=unit incoming diffuse
     real(rk8) , dimension(lbp:ubp) :: wl ! fraction of LAI+SAI that is LAI
     real(rk8) , dimension(lbp:ubp) :: ws ! fraction of LAI+SAI that is SAI
     real(rk8) :: dinc       ! lai+sai increment for canopy layer
@@ -281,29 +280,31 @@ module mod_clm_surfacealbedo
     integer(ik4) :: flg_slr
     ! flag for SNICAR (=1 when called from CLM, =2 when called from sea-ice)
     integer(ik4) :: flg_snw_ice
+    integer(ik4) :: i ! index for layers [idx]
+    ! flux absorption factor for just snow (direct) [frc]
+    real(rk8) , dimension(lbc:ubc,-nlevsno+1:1,numrad) :: flx_absd_snw
+    ! flux absorption factor for just snow (diffuse) [frc]
+    real(rk8) , dimension(lbc:ubc,-nlevsno+1:1,numrad) :: flx_absi_snw
+#ifdef SNICAR_FRC
     ! direct pure snow albedo (radiative forcing)
     real(rk8) , dimension(lbc:ubc,numrad) :: albsnd_pur
-    ! diffuse pure snow albedo (radiative forcing)
-    real(rk8) , dimension(lbc:ubc,numrad) :: albsni_pur
     ! direct snow albedo without BC (radiative forcing)
     real(rk8) , dimension(lbc:ubc,numrad) :: albsnd_bc
     ! diffuse snow albedo without BC (radiative forcing)
     real(rk8) , dimension(lbc:ubc,numrad) :: albsni_bc
     ! direct snow albedo without OC (radiative forcing)
     real(rk8) , dimension(lbc:ubc,numrad) :: albsnd_oc
+    ! diffuse pure snow albedo (radiative forcing)
+    real(rk8) , dimension(lbc:ubc,numrad) :: albsni_pur
     ! diffuse snow albedo without OC (radiative forcing)
     real(rk8) , dimension(lbc:ubc,numrad) :: albsni_oc
     ! direct snow albedo without dust (radiative forcing)
     real(rk8) , dimension(lbc:ubc,numrad) :: albsnd_dst
     ! diffuse snow albedo without dust (radiative forcing)
     real(rk8) , dimension(lbc:ubc,numrad) :: albsni_dst
-    integer(ik4) :: i ! index for layers [idx]
-    ! flux absorption factor for just snow (direct) [frc]
-    real(rk8) , dimension(lbc:ubc,-nlevsno+1:1,numrad) :: flx_absd_snw
-    ! flux absorption factor for just snow (diffuse) [frc]
-    real(rk8) , dimension(lbc:ubc,-nlevsno+1:1,numrad) :: flx_absi_snw
     ! dummy array for forcing calls
     real(rk8) , dimension(lbc:ubc,-nlevsno+1:1,numrad) :: foo_snw
+#endif
     ! albedo of surface underneath snow (col,bnd)
     real(rk8) , dimension(lbc:ubc,numrad) :: albsfc
     ! liquid snow content (col,lyr) [kg m-2]
@@ -509,8 +510,7 @@ module mod_clm_surfacealbedo
     ! Note that ground albedo routine will only compute nonzero snow albedos
     ! where coszen > 0
 
-    call SoilAlbedo(lbc, ubc, num_nourbanc, filter_nourbanc, &
-                    coszen_col, albsnd, albsni)
+    call SoilAlbedo(lbc, ubc, num_nourbanc, filter_nourbanc, coszen_col)
 
     ! set variables to pass to SNICAR.
 
@@ -941,8 +941,7 @@ module mod_clm_surfacealbedo
     ! Calculate surface albedos and fluxes
     ! Only perform on vegetated pfts where coszen > 0
 
-    call TwoStream (lbc, ubc, lbp, ubp, filter_vegsol, &
-            num_vegsol, coszen_pft, rho, tau)
+    call TwoStream (lbp, ubp, filter_vegsol, num_vegsol, coszen_pft, rho, tau)
 
     ! Determine values for non-vegetated pfts where coszen > 0
 
@@ -976,8 +975,7 @@ module mod_clm_surfacealbedo
   !
   ! Determine ground surface albedo, accounting for snow
   !
-  subroutine SoilAlbedo (lbc, ubc, num_nourbanc, filter_nourbanc, &
-                  coszen, albsnd, albsni)
+  subroutine SoilAlbedo (lbc, ubc, num_nourbanc, filter_nourbanc, coszen)
     use mod_clm_type
     use mod_clm_varpar , only : numrad
     use mod_clm_varcon , only : albsat , albdry , tfrz , istice
@@ -992,13 +990,7 @@ module mod_clm_surfacealbedo
     integer(ik4) , dimension(ubc-lbc+1) , intent(in) :: filter_nourbanc
     ! cos solar zenith angle next time step (column-level)
     real(rk8) , dimension(lbc:ubc) , intent(in) :: coszen
-    ! snow albedo (direct)
-    real(rk8) , dimension(lbc:ubc,numrad) , intent(in) :: albsnd
-    ! snow albedo (diffuse)
-    real(rk8) , dimension(lbc:ubc,numrad) , intent(in) :: albsni
-    !
-    ! local pointers to original implicit in arguments
-    !
+    
     ! landunit of corresponding column
     integer(ik4) , pointer , dimension(:) :: clandunit
     ! landunit type
@@ -1013,9 +1005,7 @@ module mod_clm_surfacealbedo
     real(rk8) , pointer , dimension(:,:) :: lake_icefrac
     ! number of snow layers
     integer(ik4) , pointer , dimension(:) :: snl
-    !
-    ! local pointers to original implicit out arguments
-    !
+
     ! ground albedo (direct)
     real(rk8) , pointer , dimension(:,:) :: albgrd
     ! ground albedo (diffuse)
@@ -1147,13 +1137,12 @@ module mod_clm_surfacealbedo
   ! Bonan et al (2011) JGR, 116, doi:10.1029/2010JG001593 and extended to
   ! a multi-layer canopy to calculate APAR profile
   !
-  subroutine TwoStream (lbc, ubc, lbp, ubp, filter_vegsol, &
+  subroutine TwoStream (lbp, ubp, filter_vegsol, &
                   num_vegsol, coszen, rho, tau)
     use mod_clm_type
     use mod_clm_varpar , only : numrad , nlevcan
     use mod_clm_varcon , only : omegas , tfrz , betads , betais
     implicit none
-    integer(ik4) , intent(in)  :: lbc , ubc ! column bounds
     integer(ik4) , intent(in)  :: lbp , ubp ! pft bounds
     ! filter for vegetated pfts with coszen>0
     integer(ik4) , dimension(ubp-lbp+1) , intent(in)  :: filter_vegsol

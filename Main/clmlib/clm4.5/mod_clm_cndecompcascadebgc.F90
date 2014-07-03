@@ -288,9 +288,9 @@ module mod_clm_cndecompcascadebgc
 
     i_atm = 0  !! for terminal pools (i.e. 100% respiration)
     floating_cn_ratio_decomp_pools(i_atm) = .false.
-    decomp_pool_name_restart(i_atm) = 'atmosphere'
-    decomp_pool_name_history(i_atm) = 'atmosphere'
-    decomp_pool_name_long(i_atm) = 'atmosphere'
+    decomp_pool_name_restart(i_atm) = 'atmosph'
+    decomp_pool_name_history(i_atm) = 'atmosph'
+    decomp_pool_name_long(i_atm) = 'atmosph'
     decomp_pool_name_short(i_atm) = ''
     is_litter(i_atm) = .true.
     is_soil(i_atm) = .false.
@@ -423,7 +423,6 @@ module mod_clm_cndecompcascadebgc
     real(rk8):: minpsi, maxpsi    ! limits for soil water scalar for decomp
     real(rk8):: psi               ! temporary soilpsi for water scalar
     ! real(rk8):: w_scalar(lbc:ubc,1:nlevdecomp) !soil water scalar for decomp
-    real(rk8):: rate_scalar  ! combined rate scalar for decomp
     real(rk8):: k_l1         ! decomposition rate constant litter 1
     real(rk8):: k_l2         ! decomposition rate constant litter 2
     real(rk8):: k_l3         ! decomposition rate constant litter 3
@@ -432,18 +431,11 @@ module mod_clm_cndecompcascadebgc
     real(rk8):: k_s3         ! decomposition rate constant SOM 3
     real(rk8):: k_s4         ! decomposition rate constant SOM 3
     real(rk8):: k_frag       ! fragmentation rate constant CWD
-    real(rk8):: ck_l1        ! corrected decomposition rate constant litter 1
-    real(rk8):: ck_l2        ! corrected decomposition rate constant litter 2
-    real(rk8):: ck_l3        ! corrected decomposition rate constant litter 3
-    real(rk8):: ck_s1        ! corrected decomposition rate constant SOM 1
-    real(rk8):: ck_s2        ! corrected decomposition rate constant SOM 2
-    real(rk8):: ck_s3        ! corrected decomposition rate constant SOM 3
-    real(rk8):: ck_s4        ! corrected decomposition rate constant SOM 3
-    real(rk8):: ck_frag      ! corrected fragmentation rate constant CWD
-    real(rk8):: cwd_fcel     ! cellulose fraction of coarse woody debris
-    real(rk8):: cwd_flig     ! lignin fraction of coarse woody debris
-    real(rk8):: cwdc_loss    ! fragmentation rate for CWD carbon (gC/m2/s)
-    real(rk8):: cwdn_loss    ! fragmentation rate for CWD nitrogen (gN/m2/s)
+    ! real(rk8):: ck_frag      ! corrected fragmentation rate constant CWD
+    ! real(rk8):: cwd_fcel     ! cellulose fraction of coarse woody debris
+    ! real(rk8):: cwd_flig     ! lignin fraction of coarse woody debris
+    ! real(rk8):: cwdc_loss    ! fragmentation rate for CWD carbon (gC/m2/s)
+    ! real(rk8):: cwdn_loss    ! fragmentation rate for CWD nitrogen (gN/m2/s)
 
     integer(ik4) :: i_litr1
     integer(ik4) :: i_litr2
@@ -452,7 +444,7 @@ module mod_clm_cndecompcascadebgc
     integer(ik4) :: i_soil2
     integer(ik4) :: i_soil3
     integer(ik4) :: i_soil4
-    integer(ik4) :: c, fc, j, k, l
+    integer(ik4) :: c, fc, j
 
 #if (defined VERTSOILC)
     real(rk8) :: depth_scalar(lbc:ubc,1:nlevdecomp)

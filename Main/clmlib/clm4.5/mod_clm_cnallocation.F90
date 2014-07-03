@@ -336,10 +336,10 @@ module mod_clm_cnallocation
     real(rk8), pointer :: frootn_to_retransn(:)
     real(rk8), pointer :: livestemn_to_retransn(:)
 
-    integer(ik4) :: c,p,l,pi  !indices
-    integer(ik4) :: fp        !lake filter pft index
-    integer(ik4) :: fc        !lake filter column index
-    real(rk8):: mr                 !maintenance respiration (gC/m2/s)
+    integer(ik4) :: c,p,l  !indices
+    integer(ik4) :: fp     !lake filter pft index
+    integer(ik4) :: fc     !lake filter column index
+    real(rk8):: mr         !maintenance respiration (gC/m2/s)
     real(rk8):: f1,f2,f3,f4,g1,g2  !allocation parameters
     real(rk8):: cnl,cnfr,cnlw,cndw !C:N ratios for leaf, fine root, and wood
     real(rk8):: fcur               !fraction of current psn displayed as growth

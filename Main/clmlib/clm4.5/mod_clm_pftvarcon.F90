@@ -285,11 +285,9 @@ module mod_clm_pftvarcon
   !
   subroutine pftconrd
     implicit none
-    integer(ik4) :: i , n            ! loop indices
-    integer(ik4) :: ier              ! error code
-    type(clm_filetype) :: ncid       ! file handler
-    integer(ik4) :: npft             ! number of pfts on pft-physiology file
-    logical :: readv                 ! read variable in or not
+    integer(ik4) :: i           ! loop indices
+    type(clm_filetype) :: ncid  ! file handler
+    integer(ik4) :: npft        ! number of pfts on pft-physiology file
     character(len=32) :: subname = 'pftconrd'  ! subroutine name
     !
     ! Expected PFT names: The names expected on the fpftcon file and the

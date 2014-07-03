@@ -363,7 +363,6 @@ module mod_clm_histfile
     integer(ik4) :: begc , endc  ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl  ! per-proc beginning and ending ldunit indices
     integer(ik4) :: begg , endg  ! per-proc gridcell ending gridcell indices
-    integer(ik4) :: numa         ! total number of atm cells across all proc
     integer(ik4) :: numg         ! total number of gridcells across all proc
     integer(ik4) :: numl         ! total number of landunits across all proc
     integer(ik4) :: numc         ! total number of columns across all proc
@@ -468,11 +467,8 @@ module mod_clm_histfile
   !
   subroutine hist_htapes_build ()
     implicit none
-    integer(ik4) :: i            ! index
-    integer(ik4) :: ier          ! error code
-    integer(ik4) :: t , f        ! tape, field indices
-    integer(ik4) :: day , sec    ! day and seconds from base date
-    character(len=*) , parameter :: subname = 'hist_htapes_build'
+    integer(ik4) :: t
+    integer(ik4) :: day , sec  ! day and seconds from base date
 
     if ( myid == italk ) then
       write(stdout,*)  'Initializing clm2 history files'
@@ -614,8 +610,6 @@ module mod_clm_histfile
     character(len=max_namlen) :: name
     character(len=max_namlen) :: mastername ! name from masterlist field
     character(len=1) :: avgflag    ! averaging flag
-    character(len=1) :: prec_acc   ! history buffer precision flag
-    character(len=1) :: prec_wrt   ! history buffer write precision flag
     type (history_entry) :: tmp    ! temporary used for swapping
     character(len=*) , parameter :: subname = 'htapes_fieldlist'
 
@@ -830,7 +824,6 @@ module mod_clm_histfile
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
-    integer(ik4) :: numa        ! total number of atm cells across all proc
     integer(ik4) :: numg        ! total number of gridcells across all proc
     integer(ik4) :: numl        ! total number of landunits across all proc
     integer(ik4) :: numc        ! total number of columns across all proc
@@ -980,7 +973,6 @@ module mod_clm_histfile
     integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
     ! size of second dimension (e.g. number of vertical levels)
     integer(ik4) :: num2d
-    character(len=*) , parameter :: subname = 'hist_update_hbuf'
 
     call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
@@ -1043,7 +1035,6 @@ module mod_clm_histfile
     logical , pointer :: active(:)
     ! gricell level field (used if mapping to gridcell is done)
     real(rk8) :: field_gcell(begg:endg)
-    integer(ik4) :: j
     character(len=*) , parameter :: subname = 'hist_update_hbuf_field_1d'
     ! offset for mapping sliced subarray pointers when outputting variables
     ! in PFT/col vector form
@@ -1500,7 +1491,6 @@ module mod_clm_histfile
     character(len=1) :: avgflag         ! averaging flag
     real(rk8) , pointer :: hbuf(:,:)    ! history buffer
     integer(ik4) , pointer :: nacs(:,:) ! accumulation counter
-    character(len=*) , parameter :: subname = 'hfields_normalize'
 
     ! Normalize by number of accumulations for time averaged case
 
@@ -1535,8 +1525,7 @@ module mod_clm_histfile
     implicit none
     integer(ik4) , intent(in) :: t    ! tape index
     integer(ik4) :: f                 ! field index
-    character(len=*) , parameter :: subname = 'hfields_zero'
-    do f = 1,tape(t)%nflds
+    do f = 1 , tape(t)%nflds
       tape(t)%hlist(f)%hbuf(:,:) = 0.D0
       tape(t)%hlist(f)%nacs(:,:) = 0
     end do
@@ -1550,34 +1539,20 @@ module mod_clm_histfile
     integer(ik4) , intent(in) :: t    ! tape index
     ! if creating the history restart file
     logical , intent(in) , optional :: histrest
-    integer(ik4) :: f                   ! field index
-    integer(ik4) :: p , c , l , n       ! indices
-    integer(ik4) :: ier                 ! error code
+    integer(ik4) :: n       ! indices
     ! size of second dimension (e.g. number of vertical levels)
-    integer(ik4) :: num2d
-    integer(ik4) :: dimid      ! dimension id temporary
-    integer(ik4) :: dim1id(1)  ! netCDF dimension id
-    integer(ik4) :: dim2id(2)  ! netCDF dimension id
-    integer(ik4) :: ndims      ! dimension counter
-    integer(ik4) :: omode      ! returned mode from netCDF call
     integer(ik4) :: ncprec     ! output netCDF write precision
-    integer(ik4) :: ret        ! netCDF error status
     integer(ik4) :: nump       ! total number of pfts across all processors
     integer(ik4) :: numc       ! total number of columns across all processors
     integer(ik4) :: numl       ! total number of landunits across all processors
     integer(ik4) :: numg       ! total number of gridcells across all processors
-    integer(ik4) :: numa       ! total number of atm cells across all processors
     logical :: lhistrest       ! local history restart flag
     type(clm_filetype) :: lnfid    ! local file id
     character(len=  8) :: curdate  ! current date
     character(len=  8) :: curtime  ! current time
-    character(len=256) :: name     ! name of attribute
-    character(len=256) :: units    ! units of attribute
     character(len=256) :: str      ! global attribute string
-    character(len=  1) :: avgflag  ! time averaging flag
-    character(len=*) , parameter :: subname = 'htape_create'
 
-    if ( present(histrest) )then
+    if ( present(histrest) ) then
       lhistrest = histrest
     else
       lhistrest = .false.
@@ -1698,7 +1673,6 @@ module mod_clm_histfile
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
     character(len=max_chars) :: long_name ! variable long name
-    character(len=max_namlen) :: varname  ! variable name
     character(len=max_namlen) :: units    ! variable units
     ! scale type for subgrid averaging of landunits to grid cells
     character(len=8) :: l2g_scale_type
@@ -1938,40 +1912,22 @@ module mod_clm_histfile
     implicit none
     integer(ik4) , intent(in) :: t          ! tape index
     character(len=*) , intent(in) :: mode   ! 'define' or 'write'
-    integer(ik4) :: vid , n , i , j , m     ! indices
-    integer(ik4) :: mcsec                   ! seconds of current date
     integer(ik4) :: mdcur                   ! current day
     integer(ik4) :: mscur                   ! seconds of current day
-    integer(ik4) :: mcdate                  ! current date
     integer(ik4) :: yr , mon , day , nbsec  ! year,month,day,seconds
     integer(ik4) :: hours , minutes , secs  ! hours,minutes,seconds of hh:mm:ss
     character(len= 10) :: basedate          ! base date (yyyymmdd)
     character(len=  8) :: basesec           ! base seconds
-    character(len=  8) :: cdate             ! system date
-    character(len=  8) :: ctime             ! system time
     real(rk8) :: time                       ! current time
     real(rk8) :: timedata(2)                ! time interval boundaries
-    integer(ik4) :: dim1id(1)               ! netCDF dimension id
-    integer(ik4) :: dim2id(2)               ! netCDF dimension id
-    integer(ik4) :: varid                   ! netCDF variable id
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
-    character(len=max_chars) :: long_name ! variable long name
-    character(len=max_namlen) :: varname  ! variable name
-    character(len=max_namlen) :: units    ! variable units
-    character(len=max_namlen) :: cal      ! calendar from the time-manager
-    character(len=max_namlen) :: caldesc  ! calendar description to put on file
     character(len=256) :: str             ! global attribute string
-    real(rk8) , pointer :: histo(:,:)     ! temporary
-    integer(ik4) , pointer :: maask(:,:)  ! temporary
     type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
     type(column_type) , pointer :: cptr   ! pointer to column derived subtype
-    integer(ik4) :: status
     real(rk8) :: zsoi_1d(1)
-
-    character(len=*) , parameter :: subname = 'htape_timeconst'
 
     ! Time constant grid variables only on first time-sample of file
 
@@ -2090,8 +2046,6 @@ module mod_clm_histfile
     integer(ik4) , intent(in) :: t        ! tape index
     character(len=*) , intent(in) :: mode ! 'define' or 'write'
     integer(ik4) :: f         ! field index
-    integer(ik4) :: k         ! 1d index
-    integer(ik4) :: c , l , p ! indices
     integer(ik4) :: beg1d_out ! on-node 1d hbuf pointer start index
     integer(ik4) :: end1d_out ! on-node 1d hbuf pointer end index
     integer(ik4) :: num1d_out ! size of hbuf first dimension (overall all nodes)
@@ -2234,9 +2188,7 @@ module mod_clm_histfile
     implicit none
     integer(ik4) , intent(in) :: t         ! tape index
     character(len=*) , intent(in) :: mode  ! 'define' or 'write'
-    integer(ik4) :: f                ! field index
-    integer(ik4) :: k                ! 1d index
-    integer(ik4) :: g , c , l , p    ! indices
+    integer(ik4) :: c , l , p   ! indices
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
@@ -2254,7 +2206,6 @@ module mod_clm_histfile
     type(landunit_type), pointer :: lptr ! pointer to landunit derived subtype
     type(column_type)  , pointer :: cptr ! pointer to column derived subtype
     type(pft_type)     , pointer :: pptr ! pointer to pft derived subtype
-    character(len=*) , parameter :: subname = 'hfields_1dinfo'
 
     if ( mode == 'define' ) then
 
@@ -2427,17 +2378,13 @@ module mod_clm_histfile
     logical , intent(in) :: nlend    ! true => end of run on this step
     logical , intent(in) :: nlomon   ! true => end of month on this step
     integer(ik4) :: t                ! tape index
-    integer(ik4) :: f                ! field index
-    integer(ik4) :: ier              ! error code
     integer(ik4) :: mdcur            ! current day
     integer(ik4) :: mscur            ! seconds of current day
     integer(ik8) :: temp
     real(rk8):: time                 ! current time
-    character(len=256) :: str        ! global attribute string
     logical :: if_stop               ! true => last time step of run
     ! true => write out 3D time-constant data
     logical , save :: do_3Dtconst = .true.
-    character(len=*),parameter :: subname = 'hist_htapes_wrapup'
 
     ! Set calendar for current time step
 
@@ -2456,7 +2403,7 @@ module mod_clm_histfile
       if ( tape(t)%nhtfrq == 0 ) then   !monthly average
         if ( nlomon ) tape(t)%is_endhist = .true.
       else
-        temp = (tape(t)%nhtfrq*3600.0)/dtsec
+        temp = int((tape(t)%nhtfrq*3600.0)/dtsec, ik8)
         if ( mod(ktau+1,temp) == 0 ) tape(t)%is_endhist = .true.
       end if
 
@@ -2529,8 +2476,7 @@ module mod_clm_histfile
     ! Determine if file needs to be closed
 
     tapes_ntimes = tape(:)%ntimes
-    call hist_do_disp(ntapes, tapes_ntimes , nlomon, &
-                      if_stop, if_disphist, rstwr, nlend)
+    call hist_do_disp(ntapes, nlomon, if_stop, if_disphist, rstwr, nlend)
 
     ! Close open history file
     ! Auxilary files may have been closed and saved off without being full,
@@ -2585,7 +2531,6 @@ module mod_clm_histfile
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
-    integer(ik4) :: numa      ! total number of atm cells across all processors
     integer(ik4) :: numg      ! total number of gridcells across all processors
     integer(ik4) :: numl      ! total number of landunits across all processors
     integer(ik4) :: numc      ! total number of columns across all processors
@@ -2596,7 +2541,6 @@ module mod_clm_histfile
     character(len=max_chars) :: long_name_acc   ! long name for accumulator
     character(len=max_chars) :: units           ! units of variable
     character(len=max_chars) :: units_acc       ! accumulator units
-    character(len=max_chars) :: fname           ! full name of history file
     ! local history restart file names
     character(len=max_chars) :: locrest(max_tapes)
 
@@ -2613,17 +2557,13 @@ module mod_clm_histfile
     character(len=32) :: dim1name       ! temporary
     character(len=32) :: dim2name       ! temporary
     character(len=32) :: dim3name       ! temporary
-    character(len=32) :: dim4name       ! temporary
     integer(ik4) :: status ! error status
-    integer(ik4) :: dimid  ! dimension ID
-    integer(ik4) :: k      ! 1d index
     ! number of history tapes on the restart file
     integer(ik4) :: ntapes_onfile
     ! number of history fields on the restart file
     integer(ik4) :: nflds_onfile
     integer(ik4) :: t  ! tape index
     integer(ik4) :: f  ! field index
-    integer(ik4) :: varid  ! variable id
     integer(ik4) , allocatable :: itemp2d(:,:)     ! 2D temporary
     real(rk8) , pointer :: hbuf(:,:)               ! history buffer
     real(rk8) , pointer :: hbuf1d(:)               ! 1d history buffer
@@ -3214,7 +3154,7 @@ module mod_clm_histfile
   !
   subroutine hist_addfld1d (fname, units, avgflag, long_name, type1d_out, &
                         ptr_gcell, ptr_lunit, ptr_col, ptr_pft, ptr_lnd, &
-                        ptr_atm, p2c_scale_type, c2l_scale_type, &
+                        p2c_scale_type, c2l_scale_type, &
                         l2g_scale_type, set_lake, set_nolake, set_urb, &
                         set_nourb, set_spec, default)
     implicit none
@@ -3229,7 +3169,6 @@ module mod_clm_histfile
     real(rk8) , optional , pointer :: ptr_col(:)     ! pointer to column array
     real(rk8) , optional , pointer :: ptr_pft(:)     ! pointer to pft array
     real(rk8) , optional , pointer :: ptr_lnd(:)     ! pointer to lnd array
-    real(rk8) , optional , pointer :: ptr_atm(:)     ! pointer to atm array
     real(rk8) , optional , intent(in) :: set_lake    ! value to set lakes to
     real(rk8) , optional , intent(in) :: set_nolake  ! value to set non-lakes to
     real(rk8) , optional , intent(in) :: set_urb     ! value to set urban to
@@ -3244,7 +3183,7 @@ module mod_clm_histfile
     character(len=*) , optional , intent(in) :: l2g_scale_type
     ! if set to 'inactive, field will not appear on primary tape
     character(len=*) , optional , intent(in) :: default
-    integer(ik4) :: p , c , l , g  ! indices
+    integer(ik4) :: p , c , l   ! indices
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
@@ -3376,7 +3315,7 @@ module mod_clm_histfile
     else
       write(stderr,*) trim(subname), &
           ' ERROR: must specify a valid pointer index, choices are ', &
-          '[ptr_atm, ptr_lnd, ptr_gcell, ptr_lunit, ptr_col, ptr_pft] '
+          '[ptr_lnd, ptr_gcell, ptr_lunit, ptr_col, ptr_pft] '
       call fatal(__FILE__,__LINE__,'clm now stopping.')
     end if
 
@@ -3416,7 +3355,7 @@ module mod_clm_histfile
   ! initial run to initialize the actual history tapes.
   !
   subroutine hist_addfld2d(fname,type2d,units,avgflag,long_name,type1d_out, &
-                        ptr_gcell,ptr_lunit,ptr_col,ptr_pft,ptr_lnd,ptr_atm, &
+                        ptr_gcell,ptr_lunit,ptr_col,ptr_pft,ptr_lnd, &
                         p2c_scale_type,c2l_scale_type,l2g_scale_type, &
                         set_lake,set_nolake,set_urb,set_nourb,set_spec,default)
     implicit none
@@ -3429,7 +3368,6 @@ module mod_clm_histfile
     character(len=*) , intent(in) :: long_name
     ! output type (from clmtype)
     character(len=*) , optional , intent(in) :: type1d_out
-    real(rk8) , optional , pointer :: ptr_atm(:,:)   ! pointer to atm array
     real(rk8) , optional , pointer :: ptr_lnd(:,:)   ! pointer to lnd array
     real(rk8) , optional , pointer :: ptr_gcell(:,:) ! pointer to gridcell array
     real(rk8) , optional , pointer :: ptr_lunit(:,:) ! pointer to landunit array
@@ -3448,7 +3386,7 @@ module mod_clm_histfile
     character(len=*) , optional , intent(in) :: l2g_scale_type
     ! if set to 'inactive, field will not appear on primary tape
     character(len=*) , optional , intent(in) :: default
-    integer(ik4) :: p , c , l , g ! indices
+    integer(ik4) :: p , c , l ! indices
     ! size of second dimension (e.g. number of vertical levels)
     integer(ik4) :: num2d
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
@@ -3600,7 +3538,7 @@ module mod_clm_histfile
     else
       write(stderr,*) trim(subname), &
          ' ERROR: must specify a valid pointer index,', &
-         ' choices are ptr_atm, ptr_lnd, ptr_gcell, ptr_lunit, ptr_col, ptr_pft'
+         ' choices are ptr_lnd, ptr_gcell, ptr_lunit, ptr_col, ptr_pft'
       call fatal(__FILE__,__LINE__,'clm now stopping.')
     end if
 
@@ -3699,7 +3637,6 @@ module mod_clm_histfile
     ! input name with ":" stripped off.
     character(len=max_namlen) :: listname
     integer(ik4) :: f  ! field index
-    character(len=*) , parameter :: subname = 'list_index'
     ! Only list items
     iindex = 0
     do f = 1 , max_flds
@@ -3725,7 +3662,6 @@ module mod_clm_histfile
     integer(ik4) :: mon !month (1 -> 12)
     integer(ik4) :: yr  !year (0 -> ...)
     integer(ik4) :: sec !seconds into current day
-    character(len=*) , parameter :: subname = 'set_hist_filename'
 
     if ( hist_freq == 0 .and. nlomon ) then
       call curr_date (idatex, yr, mon, day, sec)
@@ -3787,13 +3723,10 @@ module mod_clm_histfile
   ! Remove history files unless this is end of run or
   ! history file is not full.
   !
-  subroutine hist_do_disp(ntapes,hist_ntimes,nlomon,if_stop, &
-                  if_disphist,rstwr,nlend)
+  subroutine hist_do_disp(ntapes,nlomon,if_stop,if_disphist,rstwr,nlend)
     implicit none
     !actual number of history tapes
     integer(ik4) , intent(in) :: ntapes
-    !current numbers of time samples on history tape
-    integer(ik4) , intent(in) :: hist_ntimes(ntapes)
     ! Is end of month
     logical , intent(in) :: nlomon
     !true => last time step of run

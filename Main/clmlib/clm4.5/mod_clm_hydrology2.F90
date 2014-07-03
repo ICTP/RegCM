@@ -375,14 +375,14 @@ module mod_clm_hydrology2
 #endif
 
     ! moved vol_liq from SurfaceRunoff to Infiltration
-    call SurfaceRunoff(lbc, ubc, lbp, ubp, num_hydrologyc, filter_hydrologyc, &
+    call SurfaceRunoff(lbc, ubc, num_hydrologyc, filter_hydrologyc, &
                        num_urbanc, filter_urbanc, icefrac )
 
-    call Infiltration(lbc, ubc,  num_hydrologyc, filter_hydrologyc, &
+    call Infiltration(lbc, ubc, num_hydrologyc, filter_hydrologyc, &
                       num_urbanc, filter_urbanc, vol_liq)
 
     call SoilWater(lbc, ubc, num_hydrologyc, filter_hydrologyc, &
-                   num_urbanc, filter_urbanc, dwat, hk, dhkdw)
+                   dwat, hk, dhkdw)
 
 #if (defined VICHYDRO)
     ! mapping soilmoist from CLM to VIC layers for runoff calculations
@@ -390,7 +390,7 @@ module mod_clm_hydrology2
 #endif
 
     call Drainage(lbc, ubc, num_hydrologyc, filter_hydrologyc, &
-                  num_urbanc, filter_urbanc, vol_liq, icefrac)
+                  num_urbanc, filter_urbanc, icefrac)
 
     ! Natural compaction and metamorphosis.
 

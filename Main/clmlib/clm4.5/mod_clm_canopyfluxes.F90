@@ -71,11 +71,10 @@ module mod_clm_canopyfluxes
   !     of water flux from the leaf between the iteration step (n+1) and (n)
   !     less than 0.1 W/m2; or the iterative steps over 40.
   !
-  subroutine CanopyFluxes(lbg, ubg, lbc, ubc, lbp, ubp, &
+  subroutine CanopyFluxes(lbc, ubc, lbp, ubp, &
                           num_nolakep, filter_nolakep)
     use mod_clm_varcon , only : csoilc
     implicit none
-    integer(ik4), intent(in) :: lbg, ubg ! gridcell bounds
     integer(ik4), intent(in) :: lbc, ubc ! column bounds
     integer(ik4), intent(in) :: lbp, ubp ! pft bounds
     ! number of column non-lake points in pft filter

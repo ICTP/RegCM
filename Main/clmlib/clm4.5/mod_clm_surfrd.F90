@@ -62,15 +62,12 @@ module mod_clm_surfrd
     implicit none
     type(domain_type) , intent(inout) :: ldomain   ! domain to init
     character(len=*) , intent(in)    :: filename  ! grid filename
-    type(clm_filetype) :: ncid       ! netcdf id
-    integer(ik4) :: ibeg             ! local beg index
-    integer(ik4) :: iend             ! local end index
-    integer(ik4) :: ni , nj , ns     ! size of grid on file
-    integer(ik4) :: inni , innj      ! size of grid on file
-    integer(ik4) :: ier , ret        ! error status
-    integer(ik4) :: n , i , j        ! indices
+    type(clm_filetype) :: ncid     ! netcdf id
+    integer(ik4) :: ibeg           ! local beg index
+    integer(ik4) :: iend           ! local end index
+    integer(ik4) :: ni , nj , ns   ! size of grid on file
+    integer(ik4) :: inni , innj    ! size of grid on file
     real(rk4) , allocatable , dimension(:,:) :: mask
-    real(rk8) :: eps = 1.0D-12       ! lat/lon error tolerance
     character(len=32) :: subname = 'surfrd_get_grid'     ! subroutine name
 
     if (myid == italk) then
@@ -154,11 +151,7 @@ module mod_clm_surfrd
     type(domain_type) , intent(inout) :: ldomain
     character(len=*) , intent(inout) :: lfsurdat ! surface dataset filename
     ! local domain associated with surface dataset
-    type(domain_type) :: surfdata_domain
     integer(ik4) :: n , ierr                 ! loop indices
-    integer(ik4) :: ni , nj , ns             ! domain sizes
-    logical :: readvar                       ! true => variable is on dataset
-    real(rk8) :: rmaxlon , rmaxlat           ! local min/max vars
     type(clm_filetype) :: ncid               ! netcdf id
     integer(ik4) :: begg , endg              ! beg,end gridcell indices
     real(rk4) , allocatable , dimension(:) :: xclon , yclat
@@ -246,18 +239,12 @@ module mod_clm_surfrd
     implicit none
     type(clm_filetype) , intent(inout) :: ncid  ! netcdf id
     type(domain_type) , intent(inout) :: ldomain
-    integer(ik4)  :: n , nl , nurb , g          ! indices
-    integer(ik4)  :: begg , endg                ! gcell beg/end
-    integer(ik4)  :: dimid , varid              ! netCDF id's
-    real(rk8) , dimension(nlevsoifl) :: nlevsoidata
-    logical :: found                      ! temporary for error check
-    integer(ik4) :: nindx                 ! temporary for error check
-    integer(ik4) :: ier                   ! error status
-    integer(ik4) :: nlev                  ! level
-    integer(ik4) :: dindx                 ! temporary for error check
-    integer(ik4) :: npatch
-    logical :: readvar
-    real(rk8) :: closelat , closelon
+    integer(ik4)  :: n , nl , nurb   ! indices
+    integer(ik4)  :: begg , endg     ! gcell beg/end
+    logical :: found                 ! temporary for error check
+    integer(ik4) :: nindx            ! temporary for error check
+    integer(ik4) :: nlev             ! level
+    integer(ik4) :: dindx            ! temporary for error check
     ! percent of grid cell is glacier
     real(rk8) , pointer , dimension(:) :: pctgla
     ! percent of grid cell is lake
@@ -548,15 +535,12 @@ module mod_clm_surfrd
     implicit none
     type(clm_filetype) , intent(inout) :: ncid   ! netcdf id
     type(domain_type) , intent(inout) :: ldomain
-    integer(ik4) :: m , mp7 , mp8 , mp11 , n , nl ! indices
-    integer(ik4) :: begg , endg               ! beg/end gcell index
-    integer(ik4) :: dimid , varid             ! netCDF id's
-    integer(ik4) :: ier , tot_ier             ! error status
-    logical :: readvar                        ! is variable on dataset
-    real(rk8) :: sumpct                       ! sum of %pft over maxpatch_pft
+    integer(ik4) :: m , nl         ! indices
+    integer(ik4) :: begg , endg    ! beg/end gcell index
+    integer(ik4) :: ier , tot_ier  ! error status
+    real(rk8) :: sumpct            ! sum of %pft over maxpatch_pft
     ! percent of vegetated gridcell area for PFTs
     real(rk8) , allocatable , dimension(:,:) :: pctpft
-    real(rk8) , dimension(0:numpft) :: numpftp1data
     logical  :: crop = .false.  ! if crop data on this section of file
     character(len=32) :: subname = 'surfrd_wtxy_veg_all'  ! subroutine name
 

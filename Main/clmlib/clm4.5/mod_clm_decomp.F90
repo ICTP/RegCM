@@ -104,9 +104,8 @@ module mod_clm_decomp
     !
     ! Count up gridcells, landunits, columns, and pfts on process.
     !
-    subroutine get_proc_total(pid, ncells, nlunits, ncols, npfts)
+    subroutine get_proc_total(ncells, nlunits, ncols, npfts)
       implicit none
-      integer(ik4) , intent(in)  :: pid     ! proc id
       ! total number of gridcells on the processor
       integer(ik4) , intent(out) :: ncells
       ! total number of landunits on the processor
