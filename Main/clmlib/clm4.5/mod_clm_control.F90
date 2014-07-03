@@ -106,8 +106,7 @@ module mod_clm_control
   !
   subroutine control_init( )
     implicit none
-    character(len=32)  :: starttype ! infodata start type
-    integer(ik4) :: i , j , n            ! loop indices
+    integer(ik4) :: i     ! loop indices
     integer(ik4) :: ierr                 ! error code
     integer(ik4) :: ihost
     integer(ik4) :: unitn                ! unit for namelist file
@@ -458,7 +457,6 @@ module mod_clm_control
   !
   subroutine control_print ()
     implicit none
-    integer(ik4) :: i  !loop index
     character(len=32) :: subname = 'control_print'  ! subroutine name
 
     if ( myid /= italk ) return

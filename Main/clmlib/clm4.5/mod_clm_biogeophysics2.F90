@@ -217,7 +217,6 @@ module mod_clm_biogeophysics2
     ! total latent heat of phase change of ground water
     real(rk8) :: xmf(lbc:ubc)
     real(rk8) :: sumwt(lbc:ubc)       ! temporary
-    real(rk8) :: evaprat(lbp:ubp)     ! ratio of qflx_evap_soi/topsoil_evap_tot
     real(rk8) :: save_qflx_evap_soi   ! temporary storage for qflx_evap_soi
     ! column-level total evaporation from top soil layer
     real(rk8) :: topsoil_evap_tot(lbc:ubc)
@@ -228,11 +227,7 @@ module mod_clm_biogeophysics2
     real(rk8) :: c_h2osfc(lbc:ubc)   !heat capacity of surface water
     !latent heat of phase change of surface water
     real(rk8) :: xmf_h2osfc(lbc:ubc)
-    real(rk8) :: eflx_temp(lbc:ubc)
-    real(rk8) :: xmf_temp(lbc:ubc)
-    real(rk8) :: dq_temp(lbc:ubc)
     real(rk8) :: lw_grnd
-    real(rk8) :: fsno_eff
 
     ! Assign local pointers to derived subtypes components (gridcell-level)
 

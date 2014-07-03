@@ -237,8 +237,6 @@ module mod_clm_biogeophysics1
     real(rk8) :: vol_ice       ! partial volume of ice lens in layer
     real(rk8) :: vol_liq       ! partial volume of liquid water in layer
     integer(ik4)  :: pi            !index
-    ! effective surface water fraction (i.e. seen by atm)
-    real(rk8) :: fh2o_eff(lbc:ubc)
 
     ! Assign local pointers to derived type members (gridcell-level)
 

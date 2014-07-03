@@ -252,7 +252,7 @@ module mod_clm_driver
 
     call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
-    call alt_calc(begc,endc,filter%num_soilc,filter%soilc)
+    call alt_calc(filter%num_soilc,filter%soilc)
 
 #if (defined CN)
     call decomp_vertprofiles(begp,endp,begc,endc, &

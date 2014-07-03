@@ -1215,21 +1215,18 @@ module mod_clm_soiltemperature
 
     real(rk8), pointer :: t_soisno(:,:)    !soil temperature (Kelvin)
 
-    integer(ik4)  :: j,c,g    !do loop index
-    integer(ik4)  :: fc       !lake filtered column indices
-    real(rk8) :: heatr   !energy residual or loss after melting or freezing
+    integer(ik4)  :: c   !do loop index
+    integer(ik4)  :: fc  !lake filtered column indices
     real(rk8) :: temp1   !temporary variables [kg/m2]
     real(rk8) :: hm(lbc:ubc) !energy residual [W/m2]
     real(rk8) :: xm(lbc:ubc) !melting or freezing within a time step [kg/m2]
     real(rk8) :: tinc        !t(n+1)-t(n) (K)
-    real(rk8) :: smp         !frozen water potential (mm)
     real(rk8) :: rho_avg
     real(rk8) :: z_avg
     real(rk8) :: dcv(lbc:ubc)
     real(rk8) :: t_h2osfc_new
     real(rk8) :: c1
     real(rk8) :: c2
-    real(rk8) :: h_excess
     real(rk8) :: c_h2osfc_ice
 
     ! Assign local pointers to derived subtypes components (column-level)
@@ -1417,9 +1414,9 @@ module mod_clm_soiltemperature
     integer(ik4), pointer :: imelt(:,:)        !flag for melting (=1), freezing (=2), Not=0 (new)
 !   real(rk8), pointer :: eflx_snomelt_u(:)!urban snow melt heat flux (W/m**2)
 
-    integer(ik4)  :: j,c,g,l                            !do loop index
-    integer(ik4)  :: fc                                 !lake filtered column indices
-    real(rk8) :: heatr                              !energy residual or loss after melting or freezing
+    integer(ik4)  :: j,c,l     !do loop index
+    integer(ik4)  :: fc        !lake filtered column indices
+    real(rk8) :: heatr         !energy residual or loss after melting or freezing
     real(rk8) :: temp1                              !temporary variables [kg/m2]
     real(rk8) :: hm(lbc:ubc,-nlevsno+1:nlevgrnd)    !energy residual [W/m2]
     real(rk8) :: xm(lbc:ubc,-nlevsno+1:nlevgrnd)    !melting or freezing within a time step [kg/m2]

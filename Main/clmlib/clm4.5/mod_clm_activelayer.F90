@@ -25,9 +25,8 @@ module mod_clm_activelayer
   ! deepest thawed layer and define on nlevgrnd
   ! also update annual maxima, and keep track of prior year for
   ! rooting memory
-  subroutine alt_calc(lbc,ubc,num_soilc,filter_soilc)
+  subroutine alt_calc(num_soilc,filter_soilc)
     implicit none
-    integer(ik4) , intent(in) :: lbc , ubc  ! column bounds
     integer(ik4) , intent(in) :: num_soilc  ! number of soil columns in filter
     ! filter for soil columns
     integer(ik4) , intent(in) , dimension(:) :: filter_soilc
@@ -55,12 +54,6 @@ module mod_clm_activelayer
     integer(ik4) , pointer , dimension(:) :: cgridcell
 
     integer(ik4) :: c , j , fc , g  ! counters
-    integer(ik4) :: alt_ind         ! index of base of activel layer
-    integer(ik4) :: year            ! year (0, ...) for nstep+1
-    integer(ik4) :: mon             ! month (1, ..., 12) for nstep+1
-    integer(ik4) :: day             ! day of month (1, ..., 31) for nstep+1
-    integer(ik4) :: sec             ! seconds into current date for nstep+1
-    integer(ik4) :: dtime           ! time step length in seconds
     integer(ik4) :: k_frz           ! index of first nonfrozen soil layer
     real(rk8) :: t1 , t2 , z1 , z2  ! temporary variables
     ! used to break loop when first unfrozen layer reached

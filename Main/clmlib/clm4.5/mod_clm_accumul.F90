@@ -418,7 +418,7 @@ module mod_clm_accumul
 
       !running mean - reset accumulation period until greater than nstep
 
-      accper = min (nstep,accum(nf)%period)
+      accper = int(min (nstep,accum(nf)%period), ik4)
       accum(nf)%val(ibeg:iend,1) = &
            ((accper-1)*accum(nf)%val(ibeg:iend,1) + field(ibeg:iend)) / accper
 
@@ -523,7 +523,7 @@ module mod_clm_accumul
 
       !running mean - reset accumulation period until greater than nstep
 
-      accper = min (nstep,accum(nf)%period)
+      accper = int(min (nstep,accum(nf)%period) , ik4)
       accum(nf)%val(ibeg:iend,1:numlev) = &
             ((accper-1)*accum(nf)%val(ibeg:iend,1:numlev) + &
               field(ibeg:iend,1:numlev)) / accper
@@ -601,7 +601,7 @@ module mod_clm_accumul
           accum(nf)%period = iper
         end if
       else if ( flag == 'write' ) then
-        iper = accum(nf)%period
+        iper = int(accum(nf)%period, ik4)
         call clm_writevar(ncid,varname,iper)
       end if
     end do
