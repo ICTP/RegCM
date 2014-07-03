@@ -13,16 +13,17 @@ module mod_clm_cnfire
   use mod_intkinds
   use mod_realkinds
   use mod_mppparam
+  use mod_mpmessage
+  use mod_runparams , only : dtsrf , idatex , ktau , dtsec
   use mod_dynparam
   use mod_stdio
   use mod_date
   use mod_clm_type
   use mod_clm_decomp
-  use mod_clm_pft2col, only : p2c
+  use mod_clm_subgridave , only : p2c
   use mod_clm_varpar , only : nlevdecomp , ndecomp_pools
   use mod_clm_varpar , only : maxpatch_pft , max_pft_per_col
   use mod_clm_varcon , only : dzsoi_decomp , rpi , tfrz , secspday
-  use mod_clm_control, only : NLFilename
   use mod_clm_domain , only : ldomain
   use mod_clm_atmlnd , only : clm_a2l
   use mod_clm_varctl , only : fpftdyn , inst_name
@@ -65,9 +66,9 @@ module mod_clm_cnfire
   real(rk8) , parameter :: borealat = 40.D0   ! Latitude for boreal peat fires
 
   ! Human population density input data stream
-  type(shr_strdata_type) :: sdat_hdm
+  ! type(shr_strdata_type) :: sdat_hdm
   ! Lightning input data stream
-  type(shr_strdata_type) :: sdat_lnfm
+  ! type(shr_strdata_type) :: sdat_lnfm
 
   contains
   !
@@ -548,7 +549,7 @@ module mod_clm_cnfire
           if ( date_is(idatex,1,1) .and. time_is(idatex,0) ) then
             lfc(c) = 0.D0
           end if
-          if ( date_is(idatex,1,1) .and. time_is(idatex,dt) ) then
+          if ( date_is(idatex,1,1) .and. time_is(idatex,int(dt,ik4)) ) then
             lfc(c) = dtrotr_col(c)*dayspy*secspday/dt
           end if
         else
@@ -1038,7 +1039,7 @@ module mod_clm_cnfire
     real(rk8) , pointer :: stem_prof(:,:)
     ! (1/m) profile of leaves
     real(rk8) , pointer :: leaf_prof(:,:)
-    integer(ik4) :: g , c , p , j , l , k , pi
+    integer(ik4) :: g , c , p , j , l , pi
     integer(ik4) :: fp , fc           ! filter indices
     real(rk8) :: f                    ! rate for fire effects (1/s)
     real(rk8) :: dt                   ! time step variable (s)
@@ -1579,10 +1580,10 @@ module mod_clm_cnfire
   ! Initialize data stream information for population density.
   !
   subroutine hdm_init( begg, endg )
-    call fatal(__FILE__,__LINE__,'hdm_init not implemented !'
-#ifdef GETERROR
     implicit none
     integer(ik4) , intent(in) :: begg , endg ! gridcell index bounds
+    call fatal(__FILE__,__LINE__,'hdm_init not implemented !')
+#ifdef GETERROR
     ! first year in pop. dens. stream to use
     integer(ik4) :: stream_year_first_popdens
     ! last year in pop. dens. stream to use
@@ -1695,9 +1696,9 @@ module mod_clm_cnfire
   ! Interpolate data stream information for population density.
   !
   subroutine hdm_interp( )
-    call fatal(__FILE__,__LINE__,'hdm_interp not implemented !'
-#ifdef GETERROR
     implicit none
+    call fatal(__FILE__,__LINE__,'hdm_interp not implemented !')
+#ifdef GETERROR
     integer(ik4) :: g, ig, begg, endg
     integer(ik4) :: year    ! year (0, ...) for nstep+1
     integer(ik4) :: mon     ! month (1, ..., 12) for nstep+1
@@ -1722,15 +1723,15 @@ module mod_clm_cnfire
   ! Initialize data stream information for Lightning.
   !
   subroutine lnfm_init( begg, endg )
-    call fatal(__FILE__,__LINE__,'lnfm_init not implemented !'
+    implicit none
+    integer(ik4) , intent(in) :: begg , endg   ! gridcell index bounds
+    call fatal(__FILE__,__LINE__,'lnfm_init not implemented !')
 #ifdef GETERROR
     use clm_varctl       , only : inst_name
     use ncdio_pio        , only : pio_subsystem
     use shr_pio_mod      , only : shr_pio_getiotype
     use ndepStreamMod    , only : clm_domain_mct
     use histFileMod      , only : hist_addfld1d
-    implicit none
-    integer(ik4) , intent(in) :: begg , endg   ! gridcell index bounds
     ! first year in Lightning stream to use
     integer(ik4) :: stream_year_first_lightng
     ! last year in Lightning stream to use
@@ -1839,9 +1840,9 @@ module mod_clm_cnfire
   ! Interpolate data stream information for Lightning.
   !
   subroutine lnfm_interp( )
-    call fatal(__FILE__,__LINE__,'lnfm_interp not implemented !'
-#ifdef GETERROR
     implicit none
+    call fatal(__FILE__,__LINE__,'lnfm_interp not implemented !')
+#ifdef GETERROR
     integer(ik4) :: g , ig , begg , endg
     integer(ik4) :: year    ! year (0, ...) for nstep+1
     integer(ik4) :: mon     ! month (1, ..., 12) for nstep+1
