@@ -248,14 +248,8 @@ module mod_clm_staticecosysdyn
     ! lai read from input files
     real(rk8) , pointer , dimension(:,:) :: mlai
     integer(ik4) :: ier ! error code
-    character(len=256) :: locfn           ! local file name
-    integer(ik4) :: g , k , l , m , n , p , ivt ! indices
+    integer(ik4) :: g , k , l , p , ivt ! indices
     integer(ik4) :: ni , nj , ns   ! indices
-    integer(ik4) :: dimid , varid  ! input netCDF id's
-    integer(ik4) :: ntim           ! number of input data time samples
-    integer(ik4) :: nlon_i         ! number of input data longitudes
-    integer(ik4) :: nlat_i         ! number of input data latitudes
-    integer(ik4) :: npft_i         ! number of input data pft types
     integer(ik4) :: begp , endp    ! beg and end local p index
     integer(ik4) :: begg , endg    ! beg and end local g index
     character(len=32) :: subname = 'readAnnualVegetation'
@@ -324,14 +318,8 @@ module mod_clm_staticecosysdyn
     character(len=*) , intent(in) :: fveg
     ! months to be interpolated (1 to 12)
     integer(ik4) , dimension(2) , intent(in) :: months
-    character(len=256) :: locfn           ! local file name
     type(clm_filetype) :: ncid            ! netcdf id
-    integer(ik4) :: g , n , k , l , m , p , ivt , ni , nj , ns   ! indices
-    integer(ik4) :: dimid , varid  ! input netCDF id's
-    integer(ik4) :: ntim           ! number of input data time samples
-    integer(ik4) :: nlon_i         ! number of input data longitudes
-    integer(ik4) :: nlat_i         ! number of input data latitudes
-    integer(ik4) :: npft_i         ! number of input data pft types
+    integer(ik4) :: g , k , l , p , ivt ! indices
     integer(ik4) :: begp , endp    ! beg and end local p index
     integer(ik4) :: begg , endg    ! beg and end local g index
     integer(ik4) :: ier                        ! error code

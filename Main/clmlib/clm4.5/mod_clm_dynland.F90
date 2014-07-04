@@ -75,7 +75,6 @@ module mod_clm_dynland
     ! heat capacity, soil solids (J/m**3/Kelvin)
     real(rk8), pointer :: csol(:,:)
     real(rk8), pointer :: dz(:,:)  ! layer depth (m)
-    real(rk8), pointer :: wa(:,:)  ! h2o in underground aquifer
 
     type(gridcell_type) , pointer :: gptr  ! pointer to gridcell derived subtype
     type(landunit_type) , pointer :: lptr  ! pointer to landunit derived subtype

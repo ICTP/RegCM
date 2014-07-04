@@ -317,7 +317,7 @@ module mod_clm_driver
     call CNZeroFluxes_dwt(begc,endc,begp,endp)
     call pftwt_interp(begp,endp)
     call reweightWrapup
-    call pftdyn_wbal(begg,endg,begc,endc,begp,endp)
+    call pftdyn_wbal(begc,endc,begp,endp)
     call pftdyn_cnbal(begc,endc,begp,endp)
 #else
 

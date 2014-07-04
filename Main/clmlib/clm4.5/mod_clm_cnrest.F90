@@ -14,7 +14,7 @@ module mod_clm_cnrest
   use mod_clm_atmlnd, only : clm_a2l
   use mod_clm_varpar, only : numrad , ndecomp_pools , nlevdecomp
   use mod_clm_decomp , only : get_proc_bounds
-  use mod_clm_varcon , only : nlevgrnd
+  use mod_clm_varpar , only : nlevgrnd
   use mod_clm_varctl , only : override_bgc_restart_mismatch_dump
   use mod_clm_varctl , only : use_c13 , use_c14 , spinup_state
   use mod_clm_varcon , only : c13ratio , c14ratio , spval
@@ -106,7 +106,7 @@ module mod_clm_cnrest
 
     ! dormant_flag
     if ( flag == 'define' ) then
-      call clm_addvar(clmvar_double,ncid,'dormant_flag',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'dormant_flag',(/'pft'/), &
             long_name='dormancy flag',units='unitless' )
     else if ( flag == 'read' ) then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'dormant_flag') ) then
@@ -120,7 +120,7 @@ module mod_clm_cnrest
 
     ! days_active
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'days_active',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'days_active',(/'pft'/), &
             long_name='number of days since last dormancy',units='days' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'days_active') ) then
@@ -134,7 +134,7 @@ module mod_clm_cnrest
 
     ! onset_flag
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'onset_flag',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'onset_flag',(/'pft'/), &
             long_name='flag if critical growing degree-day sum is exceeded', &
               units='unitless' )
     else if (flag == 'read') then
@@ -149,7 +149,7 @@ module mod_clm_cnrest
 
     ! onset_counter
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'onset_counter',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'onset_counter',(/'pft'/), &
             long_name='onset days counter',units='sec' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_counter') ) then
@@ -163,7 +163,7 @@ module mod_clm_cnrest
 
     ! onset_gddflag
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'onset_gddflag',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'onset_gddflag',(/'pft'/), &
             long_name='onset flag for growing degree day sum',units='' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_gddflag') ) then
@@ -177,7 +177,7 @@ module mod_clm_cnrest
 
     ! onset_fdd
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'onset_fdd',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'onset_fdd',(/'pft'/), &
             long_name='onset freezing degree days counter',units='days' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_fdd') ) then
@@ -191,7 +191,7 @@ module mod_clm_cnrest
 
     ! onset_gdd
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'onset_gdd',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'onset_gdd',(/'pft'/), &
             long_name='onset growing degree days',units='days' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_gdd') ) then
@@ -205,7 +205,7 @@ module mod_clm_cnrest
 
     ! onset_swi
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'onset_swi',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'onset_swi',(/'pft'/), &
             long_name='onset soil water index',units='days' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'onset_swi') ) then
@@ -219,7 +219,7 @@ module mod_clm_cnrest
 
     ! offset_flag
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'offset_flag',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'offset_flag',(/'pft'/), &
             long_name='offset flag',units='unitless' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'offset_flag') ) then
@@ -233,7 +233,7 @@ module mod_clm_cnrest
 
     ! offset_counter
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'offset_counter',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'offset_counter',(/'pft'/), &
             long_name='offset days counter',units='sec' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'offset_counter') ) then
@@ -249,7 +249,7 @@ module mod_clm_cnrest
 
     ! offset_fdd
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'offset_fdd',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'offset_fdd',(/'pft'/), &
             long_name='offset freezing degree days counter',units='days' )
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'offset_fdd') ) then
@@ -263,7 +263,7 @@ module mod_clm_cnrest
 
     ! offset_swi
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'offset_swi',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'offset_swi',(/'pft'/), &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'offset_swi') ) then
@@ -278,7 +278,7 @@ module mod_clm_cnrest
 #if (defined CROP)
     ! fert_counter
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'fert_counter',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'fert_counter',(/'pft'/), &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fert_counter') ) then
@@ -292,7 +292,7 @@ module mod_clm_cnrest
 
    ! fert
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'fert',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'fert',(/'pft'/), &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'fert') ) then
@@ -307,7 +307,7 @@ module mod_clm_cnrest
 
     ! lgsf
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'lgsf',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'lgsf',(/'pft'/), &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'lgsf') ) then
@@ -321,7 +321,7 @@ module mod_clm_cnrest
 
     ! bglfr
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'bglfr',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'bglfr',(/'pft'/), &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'bglfr') ) then
@@ -335,7 +335,7 @@ module mod_clm_cnrest
 
     ! bgtr
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'bgtr',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'bgtr',(/'pft'/), &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'bgtr') ) then
@@ -349,7 +349,7 @@ module mod_clm_cnrest
 
     ! dayl
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'dayl',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'dayl',(/'pft'/), &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'dayl') ) then
@@ -363,7 +363,7 @@ module mod_clm_cnrest
 
     ! prev_dayl
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'prev_dayl',(/'pft'/),
+      call clm_addvar(clmvar_double,ncid,'prev_dayl',(/'pft'/), &
             long_name='',units='')
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,'prev_dayl') ) then
@@ -3264,8 +3264,8 @@ module mod_clm_cnrest
   !
   subroutine cnrest_addfld_decomp(ncid,varname,longname,units,flag,data_rl, &
                                   fill_value,readvar)
-    use mod_clm_varcon, only : nlevgrnd
-    use mod_clm_type, only: namec
+    use mod_clm_varpar , only : nlevgrnd
+    use mod_clm_type , only : namec
     implicit none
     type(clm_filetype)  :: ncid   ! netcdf id
     character(len=*), intent(in) :: varname
@@ -3274,14 +3274,16 @@ module mod_clm_cnrest
     character(len=*), intent(in) :: flag   !'read' or 'write'
     real(rk8), optional :: fill_value
     real(rk8), optional, pointer :: data_rl(:,:)
-    logical, optional, intent(out):: readvar   ! true => variable is on initial dataset (read only)
+    ! true => variable is on initial dataset (read only)
+    logical, optional, intent(out):: readvar
     real(rk8), pointer :: ptr1d(:)
 
 #ifdef VERTSOILC
-       if (flag == 'define') then
-          call ncd_defvar(ncid=ncid, varname=trim(varname)//'_vr', xtype=ncd_double,  &
-               dim1name='column',dim2name='levgrnd', &
-               long_name=longname,units=units)
+    if (flag == 'define') then
+      call ncd_defvar(ncid=ncid, varname=trim(varname)//'_vr', &
+              xtype=ncd_double,  &
+         dim1name='column',dim2name='levgrnd', &
+         long_name=longname,units=units)
        else if (flag == 'read' .or. flag == 'write') then
           call ncd_io(varname=trim(varname)//'_vr', data=data_rl, &
                dim1name=namec,ncid=ncid, flag=flag, readvar=readvar)

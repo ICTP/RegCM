@@ -52,7 +52,7 @@ module mod_clm_biogeophysrest
     real(rk8) , pointer :: wtgcell(:)      ! Grid cell weights for PFT
     real(rk8) , pointer :: wtlunit(:)      ! Land-unit weights for PFT
     real(rk8) , pointer :: wtcol(:)        ! Column weights for PFT
-    integer(ik4) :: p , c , l , g , j , iv ! indices
+    integer(ik4) :: p , c , l , j , iv ! indices
     real(rk8) , pointer :: zi(:,:)    ! interface level below a "z" level (m)
     integer(ik4) :: nlevs       ! number of layers
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
@@ -60,7 +60,6 @@ module mod_clm_biogeophysrest
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
     integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
     logical :: readvar      ! determine if variable is on initial file
-    character(len=128) :: varname         ! temporary
     integer(ik4) , pointer :: clandunit(:) ! landunit of corresponding column
     integer(ik4) , pointer :: ltype(:)     ! landunit type
     integer(ik4) , pointer :: ctype(:)     ! column type

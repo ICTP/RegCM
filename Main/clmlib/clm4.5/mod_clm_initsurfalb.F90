@@ -15,6 +15,8 @@ module mod_clm_initsurfalb
   use mod_clm_fracwet , only : FracWet
   use mod_clm_surfacealbedo , only : SurfaceAlbedo
 #if (defined CN)
+  use mod_stdio
+  use mod_mpmessage
   use mod_clm_cnecosystemdyn , only : CNEcosystemDyn
   use mod_clm_cnvegstructupdate , only : CNVegStructUpdate
 #else
