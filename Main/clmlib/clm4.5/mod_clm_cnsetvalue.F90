@@ -1,92 +1,48 @@
 module mod_clm_cnsetvalue
-
 #if (defined CN)
+  !
+  ! contains code to set all CN variables to specified value
+  ! Used for both initialization of special landunit values, and
+  ! setting fluxes to 0.0 at the beginning of each time step
+  ! 3/23/09, Peter Thornton: Added new subroutine, CNZeroFluxes_dwt(),
+  !     which initialize flux variables used in the pftdyn
+  !     routines. This is called from clm_driver1
+  !
+  use mod_intkinds
+  use mod_realkinds
+  use mod_clm_varpar , only : nlevgrnd, nlevdecomp_full, &
+          ndecomp_pools, ndecomp_cascade_transitions, nlevdecomp
+  use mod_clm_varctl , only : use_c13, use_c14
+  use mod_clm_type
 
-!-----------------------------------------------------------------------
-!BOP
-!
-! !MODULE: CNSetValueMod
-!
-! !DESCRIPTION:
-! contains code to set all CN variables to specified value
-! Used for both initialization of special landunit values, and
-! setting fluxes to 0.0 at the beginning of each time step
-! 3/23/09, Peter Thornton: Added new subroutine, CNZeroFluxes_dwt(),
-!     which initialize flux variables used in the pftdyn
-!     routines. This is called from clm_driver1
-!
-! !USES:
-    use mod_realkinds
-    use mod_clm_varpar  , only: nlevgrnd, nlevdecomp_full, ndecomp_pools, ndecomp_cascade_transitions, nlevdecomp
-    use mod_clm_varctl  , only: use_c13, use_c14
-    use mod_clm_type
-    implicit none
-    save
-    private
+  implicit none
 
   save
-! !PUBLIC MEMBER FUNCTIONS:
-    public :: CNZeroFluxes
-    public :: CNZeroFluxes_dwt
-    public :: CNSetPps
-    public :: CNSetPepv
-    public :: CNSetPcs
-    public :: CNSetPns
-    public :: CNSetPcf
-    public :: CNSetPnf
-    public :: CNSetCps
-    public :: CNSetCcs
-    public :: CNSetCns
-    public :: CNSetCcf
-    public :: CNSetCnf
-! !PRIVATE MEMBER FUNCTIONS:
-!
-! !REVISION HISTORY:
-! 9/04/03: Created by Peter Thornton
-! F. Li and S. Levis (11/06/12)
-!EOP
-!-----------------------------------------------------------------------
 
-contains
+  private
 
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNZeroFluxes
-!
-! !INTERFACE:
-subroutine CNZeroFluxes(num_filterc, filterc, num_filterp, filterp)
-!
-! !DESCRIPTION:
-!
-! !USES:
-!
-! !ARGUMENTS:
+  public :: CNZeroFluxes
+  public :: CNZeroFluxes_dwt
+  public :: CNSetPps
+  public :: CNSetPepv
+  public :: CNSetPcs
+  public :: CNSetPns
+  public :: CNSetPcf
+  public :: CNSetPnf
+  public :: CNSetCps
+  public :: CNSetCcs
+  public :: CNSetCns
+  public :: CNSetCcf
+  public :: CNSetCnf
+
+  contains
+
+  subroutine CNZeroFluxes(num_filterc, filterc, num_filterp, filterp)
     implicit none
-    integer, intent(in) :: num_filterc ! number of good values in filterc
-    integer, intent(in) :: filterc(:)  ! column filter
-    integer, intent(in) :: num_filterp ! number of good values in filterp
-    integer, intent(in) :: filterp(:)  ! pft filter
-!
-! !CALLED FROM:
-! subroutine CNEcosystemDyn in module CNEcosystemDynMod.F90
-!
-! !REVISION HISTORY:
-! 9/04/03: Created by Peter Thornton
-!
-! !LOCAL VARIABLES:
-! local pointers to implicit in scalars
-!
-!
-! local pointers to implicit in/out scalars
-!
-!
-! local pointers to implicit out scalars
-!
-!
-! !OTHER LOCAL VARIABLES:
-!EOP
-!-----------------------------------------------------------------------
+    integer(ik4), intent(in) :: num_filterc ! number of good values in filterc
+    integer(ik4), intent(in) :: filterc(:)  ! column filter
+    integer(ik4), intent(in) :: num_filterp ! number of good values in filterp
+    integer(ik4), intent(in) :: filterp(:)  ! pft filter
 
     ! zero the column-level C and N fluxes
     call CNSetCcf(num_filterc, filterc, 0.D0, clm3%g%l%c%ccf)
@@ -109,226 +65,148 @@ subroutine CNZeroFluxes(num_filterc, filterc, num_filterp, filterp)
     if ( use_c14 ) call CNSetPcf(num_filterp, filterp, 0.D0, clm3%g%l%c%p%pc14f)
 
     call CNSetPnf(num_filterp, filterp, 0.D0, clm3%g%l%c%p%pnf)
+  end subroutine CNZeroFluxes
 
-end subroutine CNZeroFluxes
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNZeroFluxes_dwt
-!
-! !INTERFACE:
-subroutine CNZeroFluxes_dwt( begc, endc, begp, endp )
-!
-! !DESCRIPTION:
-!
-! !USES:
-!
-! !ARGUMENTS:
+  subroutine CNZeroFluxes_dwt( begc, endc, begp, endp )
     implicit none
-    integer, intent(IN)  :: begc, endc    ! proc beginning and ending column indices
-    integer, intent(IN)  :: begp, endp    ! proc beginning and ending pft indices
-!
-! !CALLED FROM:
-! subroutine clm_driver1
-!
-! !REVISION HISTORY:
-! 3/23/09: Created by Peter Thornton
-!
-! !LOCAL VARIABLES:
-! local pointers to implicit in scalars
-!
-!
-! local pointers to implicit in/out scalars
-!
-!
-! local pointers to implicit out scalars
-!
-!
-! !OTHER LOCAL VARIABLES:
-    integer  :: c, p, j          ! indices
-    type(column_type),   pointer :: cptr         ! pointer to column derived subtype
-!EOP
-!-----------------------------------------------------------------------
+    integer(ik4), intent(IN)  :: begc, endc  ! proc beginning and ending column
+    integer(ik4), intent(IN)  :: begp, endp  ! proc beginning and ending pft
+
+    integer(ik4)  :: c, p, j   ! indices
+    type(column_type),   pointer :: cptr ! pointer to column derived subtype
 
     cptr => clm3%g%l%c
     ! set column-level conversion and product pool fluxes
     ! to 0 at the beginning of every timestep
 
-    do c = begc,endc
-       ! C fluxes
-       cptr%ccf%dwt_seedc_to_leaf(c) = 0.D0
-       cptr%ccf%dwt_seedc_to_deadstem(c) = 0.D0
-       cptr%ccf%dwt_conv_cflux(c) = 0.D0
-       cptr%ccf%lf_conv_cflux(c) = 0.D0
-       cptr%ccf%dwt_prod10c_gain(c) = 0.D0
-       cptr%ccf%dwt_prod100c_gain(c) = 0.D0
+    do c = begc , endc
+      ! C fluxes
+      cptr%ccf%dwt_seedc_to_leaf(c) = 0.D0
+      cptr%ccf%dwt_seedc_to_deadstem(c) = 0.D0
+      cptr%ccf%dwt_conv_cflux(c) = 0.D0
+      cptr%ccf%lf_conv_cflux(c) = 0.D0
+      cptr%ccf%dwt_prod10c_gain(c) = 0.D0
+      cptr%ccf%dwt_prod100c_gain(c) = 0.D0
 
-       ! N fluxes
-       cptr%cnf%dwt_seedn_to_leaf(c) = 0.D0
-       cptr%cnf%dwt_seedn_to_deadstem(c) = 0.D0
-       cptr%cnf%dwt_conv_nflux(c) = 0.D0
-       cptr%cnf%dwt_prod10n_gain(c) = 0.D0
-       cptr%cnf%dwt_prod100n_gain(c) = 0.D0
+      ! N fluxes
+      cptr%cnf%dwt_seedn_to_leaf(c) = 0.D0
+      cptr%cnf%dwt_seedn_to_deadstem(c) = 0.D0
+      cptr%cnf%dwt_conv_nflux(c) = 0.D0
+      cptr%cnf%dwt_prod10n_gain(c) = 0.D0
+      cptr%cnf%dwt_prod100n_gain(c) = 0.D0
     end do
     if ( use_c13 ) then
-       do c = begc,endc
-          cptr%cc13f%dwt_seedc_to_leaf(c) = 0.D0
-          cptr%cc13f%dwt_seedc_to_deadstem(c) = 0.D0
-          cptr%cc13f%dwt_conv_cflux(c) = 0.D0
-          cptr%cc13f%dwt_prod10c_gain(c) = 0.D0
-          cptr%cc13f%dwt_prod100c_gain(c) = 0.D0
-       end do
-    endif
+      do c = begc , endc
+        cptr%cc13f%dwt_seedc_to_leaf(c) = 0.D0
+        cptr%cc13f%dwt_seedc_to_deadstem(c) = 0.D0
+        cptr%cc13f%dwt_conv_cflux(c) = 0.D0
+        cptr%cc13f%dwt_prod10c_gain(c) = 0.D0
+        cptr%cc13f%dwt_prod100c_gain(c) = 0.D0
+      end do
+    end if
 
     if ( use_c14 ) then
-       do c = begc,endc
-          cptr%cc14f%dwt_seedc_to_leaf(c) = 0.D0
-          cptr%cc14f%dwt_seedc_to_deadstem(c) = 0.D0
-          cptr%cc14f%dwt_conv_cflux(c) = 0.D0
-          cptr%cc14f%dwt_prod10c_gain(c) = 0.D0
-          cptr%cc14f%dwt_prod100c_gain(c) = 0.D0
-       end do
-    endif
+      do c = begc , endc
+        cptr%cc14f%dwt_seedc_to_leaf(c) = 0.D0
+        cptr%cc14f%dwt_seedc_to_deadstem(c) = 0.D0
+        cptr%cc14f%dwt_conv_cflux(c) = 0.D0
+        cptr%cc14f%dwt_prod10c_gain(c) = 0.D0
+        cptr%cc14f%dwt_prod100c_gain(c) = 0.D0
+      end do
+    end if
 
-    do j = 1, nlevdecomp_full
-       do c = begc,endc
-          ! C fluxes
-          cptr%ccf%dwt_frootc_to_litr_met_c(c,j) = 0.D0
-          cptr%ccf%dwt_frootc_to_litr_cel_c(c,j) = 0.D0
-          cptr%ccf%dwt_frootc_to_litr_lig_c(c,j) = 0.D0
-          cptr%ccf%dwt_livecrootc_to_cwdc(c,j) = 0.D0
-          cptr%ccf%dwt_deadcrootc_to_cwdc(c,j) = 0.D0
+    do j = 1 , nlevdecomp_full
+      do c = begc , endc
+        ! C fluxes
+        cptr%ccf%dwt_frootc_to_litr_met_c(c,j) = 0.D0
+        cptr%ccf%dwt_frootc_to_litr_cel_c(c,j) = 0.D0
+        cptr%ccf%dwt_frootc_to_litr_lig_c(c,j) = 0.D0
+        cptr%ccf%dwt_livecrootc_to_cwdc(c,j) = 0.D0
+        cptr%ccf%dwt_deadcrootc_to_cwdc(c,j) = 0.D0
 
-          ! N fluxes
-          cptr%cnf%dwt_frootn_to_litr_met_n(c,j) = 0.D0
-          cptr%cnf%dwt_frootn_to_litr_cel_n(c,j) = 0.D0
-          cptr%cnf%dwt_frootn_to_litr_lig_n(c,j) = 0.D0
-          cptr%cnf%dwt_livecrootn_to_cwdn(c,j) = 0.D0
-          cptr%cnf%dwt_deadcrootn_to_cwdn(c,j) = 0.D0
-       end do
+        ! N fluxes
+        cptr%cnf%dwt_frootn_to_litr_met_n(c,j) = 0.D0
+        cptr%cnf%dwt_frootn_to_litr_cel_n(c,j) = 0.D0
+        cptr%cnf%dwt_frootn_to_litr_lig_n(c,j) = 0.D0
+        cptr%cnf%dwt_livecrootn_to_cwdn(c,j) = 0.D0
+        cptr%cnf%dwt_deadcrootn_to_cwdn(c,j) = 0.D0
+      end do
     end do
     if ( use_c13 ) then
-       do j = 1, nlevdecomp_full
-          do c = begc,endc
-             cptr%cc13f%dwt_frootc_to_litr_met_c(c,j) = 0.D0
-             cptr%cc13f%dwt_frootc_to_litr_cel_c(c,j) = 0.D0
-             cptr%cc13f%dwt_frootc_to_litr_lig_c(c,j) = 0.D0
-             cptr%cc13f%dwt_livecrootc_to_cwdc(c,j) = 0.D0
-             cptr%cc13f%dwt_deadcrootc_to_cwdc(c,j) = 0.D0
-          end do
-       end do
-    endif
+      do j = 1 , nlevdecomp_full
+        do c = begc , endc
+          cptr%cc13f%dwt_frootc_to_litr_met_c(c,j) = 0.D0
+          cptr%cc13f%dwt_frootc_to_litr_cel_c(c,j) = 0.D0
+          cptr%cc13f%dwt_frootc_to_litr_lig_c(c,j) = 0.D0
+          cptr%cc13f%dwt_livecrootc_to_cwdc(c,j) = 0.D0
+          cptr%cc13f%dwt_deadcrootc_to_cwdc(c,j) = 0.D0
+        end do
+      end do
+    end if
     if ( use_c14 ) then
-       do j = 1, nlevdecomp_full
-          do c = begc,endc
-             cptr%cc14f%dwt_frootc_to_litr_met_c(c,j) = 0.D0
-             cptr%cc14f%dwt_frootc_to_litr_cel_c(c,j) = 0.D0
-             cptr%cc14f%dwt_frootc_to_litr_lig_c(c,j) = 0.D0
-             cptr%cc14f%dwt_livecrootc_to_cwdc(c,j) = 0.D0
-             cptr%cc14f%dwt_deadcrootc_to_cwdc(c,j) = 0.D0
-          end do
-       end do
-    endif
-
+      do j = 1 , nlevdecomp_full
+        do c = begc , endc
+          cptr%cc14f%dwt_frootc_to_litr_met_c(c,j) = 0.D0
+          cptr%cc14f%dwt_frootc_to_litr_cel_c(c,j) = 0.D0
+          cptr%cc14f%dwt_frootc_to_litr_lig_c(c,j) = 0.D0
+          cptr%cc14f%dwt_livecrootc_to_cwdc(c,j) = 0.D0
+          cptr%cc14f%dwt_deadcrootc_to_cwdc(c,j) = 0.D0
+        end do
+      end do
+    end if
 
 #if (defined CN)
-    do p = begp,endp
-       cptr%p%pcs%dispvegc(p)   = 0.D0
-       cptr%p%pcs%storvegc(p)   = 0.D0
-       cptr%p%pcs%totpftc(p)    = 0.D0
+    do p = begp , endp
+      cptr%p%pcs%dispvegc(p)   = 0.D0
+      cptr%p%pcs%storvegc(p)   = 0.D0
+      cptr%p%pcs%totpftc(p)    = 0.D0
 
-       cptr%p%pns%dispvegn(p)   = 0.D0
-       cptr%p%pns%storvegn(p)   = 0.D0
-       cptr%p%pns%totvegn(p)    = 0.D0
-       cptr%p%pns%totpftn(p)    = 0.D0
+      cptr%p%pns%dispvegn(p)   = 0.D0
+      cptr%p%pns%storvegn(p)   = 0.D0
+      cptr%p%pns%totvegn(p)    = 0.D0
+      cptr%p%pns%totpftn(p)    = 0.D0
     end do
     if ( use_c14 ) then
-       do p = begp,endp
-          cptr%p%pc14s%dispvegc(p) = 0.D0
-          cptr%p%pc14s%storvegc(p) = 0.D0
-          cptr%p%pc14s%totpftc(p)  = 0.D0
-       end do
-    endif
+      do p = begp , endp
+        cptr%p%pc14s%dispvegc(p) = 0.D0
+        cptr%p%pc14s%storvegc(p) = 0.D0
+        cptr%p%pc14s%totpftc(p)  = 0.D0
+      end do
+    end if
     if ( use_c13 ) then
-       do p = begp,endp
-          cptr%p%pc13s%dispvegc(p) = 0.D0
-          cptr%p%pc13s%storvegc(p) = 0.D0
-          cptr%p%pc13s%totpftc(p)  = 0.D0
-       end do
-    endif
+      do p = begp , endp
+        cptr%p%pc13s%dispvegc(p) = 0.D0
+        cptr%p%pc13s%storvegc(p) = 0.D0
+        cptr%p%pc13s%totpftc(p)  = 0.D0
+      end do
+    end if
 #endif
-
-end subroutine CNZeroFluxes_dwt
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNSetPps
-!
-! !INTERFACE:
-subroutine CNSetPps(num, filter, val, pps)
-!
-! !DESCRIPTION:
-! Set pft physical state variables
-! !USES:
-    use mod_clm_varpar  , only : numrad
-!
-! !ARGUMENTS:
+  end subroutine CNZeroFluxes_dwt
+  !
+  ! Set pft physical state variables
+  !
+  subroutine CNSetPps(num, filter, val, pps)
+    use mod_clm_varpar , only : numrad
     implicit none
-    integer , intent(in) :: num
-    integer , intent(in) :: filter(:)
+    integer(ik4) , intent(in) :: num
+    integer(ik4) , intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (pft_pstate_type), intent(inout) :: pps
-!
-! !REVISION HISTORY:
-! Created by Peter Thornton
-!
-! !LOCAL VARIABLES:
-! local pointers to implicit in/out arrays
-!
-! !OTHER LOCAL VARIABLES:
-   integer :: fi,i,j     ! loop index
-!EOP
-!------------------------------------------------------------------------
 
-! currently NOT used
-
-end subroutine CNSetPps
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNSetPepv
-!
-! !INTERFACE:
-subroutine CNSetPepv (num, filter, val, pepv)
-!
-! !DESCRIPTION:
-! Set pft ecophysiological variables
-!
-! !ARGUMENTS:
+    ! currently NOT used
+  end subroutine CNSetPps
+  !
+  ! Set pft ecophysiological variables
+  !
+  subroutine CNSetPepv (num, filter, val, pepv)
     implicit none
-    integer , intent(in) :: num
-    integer , intent(in) :: filter(:)
+    integer(ik4) , intent(in) :: num
+    integer(ik4) , intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (pft_epv_type), intent(inout) :: pepv
-!
-! !REVISION HISTORY:
-! Created by Peter Thornton
-!
-! !LOCAL VARIABLES:
-! local pointers to implicit in/out arrays
-!
-! !OTHER LOCAL VARIABLES:
-   integer :: fi,i     ! loop index
-!EOP
-!------------------------------------------------------------------------
+    integer(ik4) :: fi,i     ! loop index
 
-   do fi = 1,num
+    do fi = 1 , num
       i = filter(fi)
       pepv%dormant_flag(i) = val
       pepv%days_active(i) = val
@@ -371,56 +249,34 @@ subroutine CNSetPepv (num, filter, val, pepv)
       pepv%prev_frootc_to_litter(i) = val
       pepv%tempsum_npp(i) = val
       pepv%annsum_npp(i) = val
-   end do
+    end do
 #if (defined CNDV)
-   do fi = 1,num
+    do fi = 1 , num
       i = filter(fi)
       pepv%tempsum_litfall(i) = val
       pepv%annsum_litfall(i) = val
-   end do
+    end do
 #endif
-   if ( use_c13 ) then
-      do fi = 1,num
-         i = filter(fi)
-         pepv%xsmrpool_c13ratio(i) = val
+    if ( use_c13 ) then
+      do fi = 1 , num
+        i = filter(fi)
+        pepv%xsmrpool_c13ratio(i) = val
       end do
-   endif
-
-end subroutine CNSetPepv
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNSetPcs
-!
-! !INTERFACE:
-subroutine CNSetPcs (num, filter, val, pcs)
-!
-! !DESCRIPTION:
-! Set pft carbon state variables
-!
-! !USES:
+    end if
+  end subroutine CNSetPepv
+  !
+  ! Set pft carbon state variables
+  !
+  subroutine CNSetPcs (num, filter, val, pcs)
     use mod_clm_surfrd , only : crop_prog
-! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: num
-    integer , intent(in) :: filter(:)
+    integer(ik4) , intent(in) :: num
+    integer(ik4) , intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (pft_cstate_type), intent(inout) :: pcs
-!
-! !REVISION HISTORY:
-! Created by Peter Thornton
-!
-! !LOCAL VARIABLES:
-! local pointers to implicit in/out arrays
-!
-! !OTHER LOCAL VARIABLES:
-   integer :: fi,i     ! loop index
-!EOP
-!------------------------------------------------------------------------
+    integer(ik4) :: fi,i     ! loop index
 
-   do fi = 1,num
+    do fi = 1 , num
       i = filter(fi)
       pcs%leafc(i) = val
       pcs%leafc_storage(i) = val
@@ -450,53 +306,29 @@ subroutine CNSetPcs (num, filter, val, pcs)
       pcs%totvegc(i) = val
       pcs%totpftc(i) = val
       pcs%woodc(i) = val
-
-   end do
-   if ( crop_prog ) then
-      do fi = 1,num
-         i = filter(fi)
-         pcs%grainc(i)         = val
-         pcs%grainc_storage(i) = val
-         pcs%grainc_xfer(i)    = val
+    end do
+    if ( crop_prog ) then
+      do fi = 1 , num
+        i = filter(fi)
+        pcs%grainc(i)         = val
+        pcs%grainc_storage(i) = val
+        pcs%grainc_xfer(i)    = val
       end do
-   endif
-
-
-end subroutine CNSetPcs
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNSetPns
-!
-! !INTERFACE:
-subroutine CNSetPns(num, filter, val, pns)
-!
-! !DESCRIPTION:
-! Set pft nitrogen state variables
-!
-! !USES:
+    end if
+  end subroutine CNSetPcs
+  !
+  ! Set pft nitrogen state variables
+  !
+  subroutine CNSetPns(num, filter, val, pns)
     use mod_clm_surfrd , only : crop_prog
-! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: num
-    integer , intent(in) :: filter(:)
+    integer(ik4) , intent(in) :: num
+    integer(ik4) , intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (pft_nstate_type), intent(inout) :: pns
-!
-! !REVISION HISTORY:
-! Created by Peter Thornton
-!
-! !LOCAL VARIABLES:
-! local pointers to implicit in/out arrays
-!
-! !OTHER LOCAL VARIABLES:
-   integer :: fi,i     ! loop index
-!EOP
-!------------------------------------------------------------------------
+    integer(ik4) :: fi,i     ! loop index
 
-   do fi = 1,num
+    do fi = 1 , num
       i = filter(fi)
       pns%leafn(i) = val
       pns%leafn_storage(i) = val
@@ -523,51 +355,29 @@ subroutine CNSetPns(num, filter, val, pns)
       pns%storvegn(i) = val
       pns%totvegn(i) = val
       pns%totpftn(i) = val
-   end do
-   if ( crop_prog )then
-      do fi = 1,num
-         i = filter(fi)
-         pns%grainn(i)         = val
-         pns%grainn_storage(i) = val
-         pns%grainn_xfer(i)    = val
+    end do
+    if ( crop_prog )then
+      do fi = 1 , num
+        i = filter(fi)
+        pns%grainn(i)         = val
+        pns%grainn_storage(i) = val
+        pns%grainn_xfer(i)    = val
       end do
-   end if
-
-end subroutine CNSetPns
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNSetPcf
-!
-! !INTERFACE:
-subroutine CNSetPcf(num, filter, val, pcf)
-!
-! !DESCRIPTION:
-! Set pft carbon flux variables
-!
-! !USES:
+    end if
+  end subroutine CNSetPns
+  !
+  ! Set pft carbon flux variables
+  !
+  subroutine CNSetPcf(num, filter, val, pcf)
     use mod_clm_surfrd , only : crop_prog
-! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: num
-    integer , intent(in) :: filter(:)
+    integer(ik4) , intent(in) :: num
+    integer(ik4) , intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (pft_cflux_type), intent(inout) :: pcf
-!
-! !REVISION HISTORY:
-! Created by Peter Thornton
-!
-! !LOCAL VARIABLES:
-! local pointers to implicit in/out arrays
-!
-! !OTHER LOCAL VARIABLES:
-   integer :: fi,i     ! loop index
-!EOP
-!------------------------------------------------------------------------
+    integer(ik4) :: fi,i     ! loop index
 
-   do fi = 1,num
+    do fi = 1 , num
       i = filter(fi)
       pcf%m_leafc_to_litter(i) = val
       pcf%m_frootc_to_litter(i) = val
@@ -612,7 +422,7 @@ subroutine CNSetPcf(num, filter, val, pcf)
       pcf%hrv_gresp_xfer_to_litter(i) = val
       pcf%hrv_xsmrpool_to_atm(i) = val
 
-! fire-related variables changed by F. Li and S. Levis
+      ! fire-related variables changed by F. Li and S. Levis
       pcf%m_leafc_to_fire(i) = val
       pcf%m_leafc_storage_to_fire(i) = val
       pcf%m_leafc_xfer_to_fire(i) = val
@@ -656,7 +466,6 @@ subroutine CNSetPcf(num, filter, val, pcf)
       pcf%m_deadcrootc_xfer_to_litter_fire(i) = val
       pcf%m_gresp_storage_to_litter_fire(i) = val
       pcf%m_gresp_xfer_to_litter_fire(i) = val
-
 
       pcf%leafc_xfer_to_leafc(i) = val
       pcf%frootc_xfer_to_frootc(i) = val
@@ -747,59 +556,37 @@ subroutine CNSetPcf(num, filter, val, pcf)
       pcf%leafc_loss(i) = val
       pcf%woodc_alloc(i) = val
       pcf%woodc_loss(i) = val
-   end do
-   if ( crop_prog )then
-      do fi = 1,num
-         i = filter(fi)
-         pcf%xsmrpool_to_atm(i)         = val
-         pcf%livestemc_to_litter(i)     = val
-         pcf%grainc_to_food(i)          = val
-         pcf%grainc_xfer_to_grainc(i)   = val
-         pcf%cpool_to_grainc(i)         = val
-         pcf%cpool_to_grainc_storage(i) = val
-         pcf%cpool_grain_gr(i)          = val
-         pcf%cpool_grain_storage_gr(i)  = val
-         pcf%transfer_grain_gr(i)       = val
-         pcf%grainc_storage_to_xfer(i)  = val
+    end do
+    if ( crop_prog )then
+      do fi = 1 , num
+        i = filter(fi)
+        pcf%xsmrpool_to_atm(i)         = val
+        pcf%livestemc_to_litter(i)     = val
+        pcf%grainc_to_food(i)          = val
+        pcf%grainc_xfer_to_grainc(i)   = val
+        pcf%cpool_to_grainc(i)         = val
+        pcf%cpool_to_grainc_storage(i) = val
+        pcf%cpool_grain_gr(i)          = val
+        pcf%cpool_grain_storage_gr(i)  = val
+        pcf%transfer_grain_gr(i)       = val
+        pcf%grainc_storage_to_xfer(i)  = val
       end do
-   end if
-
-end subroutine CNSetPcf
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNSetPnf
-!
-! !INTERFACE:
-subroutine CNSetPnf(num, filter, val, pnf)
-!
-! !DESCRIPTION:
-! Set pft nitrogen flux variables
-!
-! !USES:
+    end if
+  end subroutine CNSetPcf
+  !
+  ! Set pft nitrogen flux variables
+  !
+  subroutine CNSetPnf(num, filter, val, pnf)
     use mod_clm_surfrd , only : crop_prog
-! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: num
-    integer , intent(in) :: filter(:)
+    integer(ik4) , intent(in) :: num
+    integer(ik4) , intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (pft_nflux_type), intent(inout) :: pnf
-!
-! !REVISION HISTORY:
-! Created by Peter Thornton
-!
-! !LOCAL VARIABLES:
-! local pointers to implicit in/out arrays
-!
-! !OTHER LOCAL VARIABLES:
-   integer :: fi,i     ! loop index
-!EOP
-!------------------------------------------------------------------------
+    integer(ik4) :: fi,i     ! loop index
 
-   do fi = 1,num
-      i=filter(fi)
+    do fi = 1 , num
+      i = filter(fi)
       pnf%m_leafn_to_litter(i) = val
       pnf%m_frootn_to_litter(i) = val
       pnf%m_leafn_storage_to_litter(i) = val
@@ -840,7 +627,7 @@ subroutine CNSetPnf(num, filter, val, pnf)
       pnf%hrv_deadcrootn_to_litter(i) = val
       pnf%hrv_retransn_to_litter(i) = val
 
-! fire-related variables changed by F. Li and S. Levis
+      ! fire-related variables changed by F. Li and S. Levis
       pnf%m_leafn_to_fire(i) = val
       pnf%m_leafn_storage_to_fire(i) = val
       pnf%m_leafn_xfer_to_fire(i) = val
@@ -860,7 +647,6 @@ subroutine CNSetPnf(num, filter, val, pnf)
       pnf%m_deadcrootn_storage_to_fire(i) = val
       pnf%m_deadcrootn_xfer_to_fire(i) = val
       pnf%m_retransn_to_fire(i) = val
-
 
       pnf%m_leafn_to_litter_fire(i) = val
       pnf%m_leafn_storage_to_litter_fire(i) = val
@@ -922,54 +708,33 @@ subroutine CNSetPnf(num, filter, val, pnf)
       pnf%pft_noutputs(i) = val
       pnf%wood_harvestn(i) = val
       pnf%pft_fire_nloss(i) = val
-   end do
-   if ( crop_prog )then
-      do fi = 1,num
-         i=filter(fi)
-         pnf%livestemn_to_litter(i)     = val
-         pnf%grainn_to_food(i)          = val
-         pnf%grainn_xfer_to_grainn(i)   = val
-         pnf%npool_to_grainn(i)         = val
-         pnf%npool_to_grainn_storage(i) = val
-         pnf%grainn_storage_to_xfer(i)  = val
-         pnf%soyfixn(i)                 = val
-         pnf%frootn_to_retransn(i)      = val
+    end do
+    if ( crop_prog )then
+      do fi = 1 , num
+        i = filter(fi)
+        pnf%livestemn_to_litter(i)     = val
+        pnf%grainn_to_food(i)          = val
+        pnf%grainn_xfer_to_grainn(i)   = val
+        pnf%npool_to_grainn(i)         = val
+        pnf%npool_to_grainn_storage(i) = val
+        pnf%grainn_storage_to_xfer(i)  = val
+        pnf%soyfixn(i)                 = val
+        pnf%frootn_to_retransn(i)      = val
       end do
-   end if
-
-end subroutine CNSetPnf
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNSetCps
-!
-! !INTERFACE:
-subroutine CNSetCps(num, filter, val, cps)
-!
-! !DESCRIPTION:
-! Set column physical state variables
-!
-! !ARGUMENTS:
+    end if
+  end subroutine CNSetPnf
+  !
+  ! Set column physical state variables
+  !
+  subroutine CNSetCps(num, filter, val, cps)
     implicit none
-    integer , intent(in) :: num
-    integer , intent(in) :: filter(:)
+    integer(ik4) , intent(in) :: num
+    integer(ik4) , intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (column_pstate_type), intent(inout) :: cps
-!
-! !REVISION HISTORY:
-! Created by Peter Thornton
-!
-! !LOCAL VARIABLES:
-! local pointers to implicit in/out arrays
-!
-! !OTHER LOCAL VARIABLES:
-   integer :: fi,i,j     ! loop index
-!EOP
-!------------------------------------------------------------------------
+    integer(ik4) :: fi,i,j     ! loop index
 
-   do fi = 1,num
+    do fi = 1 , num
       i = filter(fi)
       cps%decl(i) = val
       cps%coszen(i) = val
@@ -979,7 +744,7 @@ subroutine CNSetCps(num, filter, val, cps)
       cps%cannsum_npp(i) = val
       cps%cannavg_t2m(i) = val
 
-  ! fire related variables changed by F. Li and S. Levis
+      ! fire related variables changed by F. Li and S. Levis
       cps%wf(i) = val
       cps%wf2(i) = val
       cps%nfire(i) = val
@@ -988,58 +753,35 @@ subroutine CNSetCps(num, filter, val, cps)
       cps%fbac(i) = val
       cps%fbac1(i) = val
       cps%farea_burned(i) = val
-   end do
+    end do
 
-   do j = 1,nlevdecomp_full
-      do fi = 1,num
-         i = filter(fi)
-         cps%fpi_vr(i,j) = val
+    do j = 1 , nlevdecomp_full
+      do fi = 1 , num
+        i = filter(fi)
+        cps%fpi_vr(i,j) = val
       end do
-   end do
+    end do
 
-   do j = 1,nlevgrnd
-      do fi = 1,num
-         i = filter(fi)
-         cps%soilpsi(i,j) = val
+    do j = 1 , nlevgrnd
+      do fi = 1 , num
+        i = filter(fi)
+        cps%soilpsi(i,j) = val
       end do
-   end do
-
-
-
-end subroutine CNSetCps
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNSetCcs
-!
-! !INTERFACE:
-subroutine CNSetCcs(num, filter, val, ccs)
-!
-! !DESCRIPTION:
-! Set column carbon state variables
-!
-! !ARGUMENTS:
+    end do
+  end subroutine CNSetCps
+  !
+  ! Set column carbon state variables
+  !
+  subroutine CNSetCcs(num, filter, val, ccs)
     implicit none
-    integer , intent(in) :: num
-    integer , intent(in) :: filter(:)
+    integer(ik4) , intent(in) :: num
+    integer(ik4) , intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (column_cstate_type), intent(inout) :: ccs
-!
-! !REVISION HISTORY:
-! Created by Peter Thornton
-!
-! !LOCAL VARIABLES:
-! local pointers to implicit in/out arrays
-!
-! !OTHER LOCAL VARIABLES:
-   integer :: fi,i,j,k     ! loop index
-!EOP
-!------------------------------------------------------------------------
+    integer(ik4) :: fi,i,j,k     ! loop index
 
-   ! column only
-   do fi = 1,num
+    ! column only
+    do fi = 1 , num
       i = filter(fi)
       ccs%cwdc(i)  = val
       ccs%col_ctrunc(i) = val
@@ -1054,69 +796,48 @@ subroutine CNSetCcs(num, filter, val, ccs)
       ccs%fuelc_crop(i) = val
       ccs%totlitc_1m(i) = val
       ccs%totsomc_1m(i) = val
-   end do
+    end do
 
-   ! column and levdecomp
-   do j = 1,nlevdecomp_full
-      do fi = 1,num
-         i = filter(fi)
-         ccs%col_ctrunc_vr(i,j) = val
+    ! column and levdecomp
+    do j = 1 , nlevdecomp_full
+      do fi = 1 , num
+        i = filter(fi)
+        ccs%col_ctrunc_vr(i,j) = val
       end do
-   end do
+    end do
 
-   ! column and decomp_pools
-   do k = 1, ndecomp_pools
-      do fi = 1,num
-         i = filter(fi)
-         ccs%decomp_cpools(i,k) = val
-         ccs%decomp_cpools_1m(i,k) = val
+    ! column and decomp_pools
+    do k = 1 , ndecomp_pools
+      do fi = 1 , num
+        i = filter(fi)
+        ccs%decomp_cpools(i,k) = val
+        ccs%decomp_cpools_1m(i,k) = val
       end do
-   end do
+    end do
 
-   ! column, levdecomp, and decomp_pools
-   do j = 1,nlevdecomp_full
-      do k = 1, ndecomp_pools
-         do fi = 1,num
-            i = filter(fi)
-            ccs%decomp_cpools_vr(i,j,k) = val
-         end do
+    ! column, levdecomp, and decomp_pools
+    do j = 1 , nlevdecomp_full
+      do k = 1 , ndecomp_pools
+        do fi = 1 , num
+          i = filter(fi)
+          ccs%decomp_cpools_vr(i,j,k) = val
+        end do
       end do
-   end do
-
-end subroutine CNSetCcs
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNSetCns
-!
-! !INTERFACE:
-subroutine CNSetCns(num, filter, val, cns)
-!
-! !DESCRIPTION:
-! Set column nitrogen state variables
-!
-! !ARGUMENTS:
+    end do
+  end subroutine CNSetCcs
+  !
+  ! Set column nitrogen state variables
+  !
+  subroutine CNSetCns(num, filter, val, cns)
     implicit none
-    integer , intent(in) :: num
-    integer , intent(in) :: filter(:)
+    integer(ik4) , intent(in) :: num
+    integer(ik4) , intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (column_nstate_type), intent(inout) :: cns
-!
-! !REVISION HISTORY:
-! Created by Peter Thornton
-!
-! !LOCAL VARIABLES:
-! local pointers to implicit in/out arrays
-!
-! !OTHER LOCAL VARIABLES:
-   integer :: fi,i,j,k     ! loop index
-!EOP
-!------------------------------------------------------------------------
+    integer(ik4) :: fi,i,j,k     ! loop index
 
-   ! column only
-   do fi = 1,num
+    ! column only
+    do fi = 1 , num
       i = filter(fi)
       cns%sminn(i) = val
       cns%col_ntrunc(i) = val
@@ -1131,140 +852,118 @@ subroutine CNSetCns(num, filter, val, cns)
       cns%totcoln(i) = val
       cns%totsomn_1m(i) = val
       cns%totlitn_1m(i) = val
-   end do
+    end do
 
-   ! column and levdecomp
-   do j = 1,nlevdecomp_full
-      do fi = 1,num
-         i = filter(fi)
-         cns%sminn_vr(i,j) = val
-         cns%col_ntrunc_vr(i,j) = val
+    ! column and levdecomp
+    do j = 1 , nlevdecomp_full
+      do fi = 1 , num
+        i = filter(fi)
+        cns%sminn_vr(i,j) = val
+        cns%col_ntrunc_vr(i,j) = val
 #ifdef NITRIF_DENITRIF
-         cns%smin_no3_vr(i,j) = val
-         cns%smin_nh4_vr(i,j) = val
+        cns%smin_no3_vr(i,j) = val
+        cns%smin_nh4_vr(i,j) = val
 #endif
       end do
-   end do
+    end do
 
-   ! column and decomp_pools
-   do k = 1, ndecomp_pools
-      do fi = 1,num
-         i = filter(fi)
-         cns%decomp_npools(i,k) = val
-         cns%decomp_npools_1m(i,k) = val
+    ! column and decomp_pools
+    do k = 1 , ndecomp_pools
+      do fi = 1 , num
+        i = filter(fi)
+        cns%decomp_npools(i,k) = val
+        cns%decomp_npools_1m(i,k) = val
       end do
-   end do
+    end do
 
-   ! column levdecomp, and decomp_pools
-   do j = 1,nlevdecomp_full
-      do k = 1, ndecomp_pools
-         do fi = 1,num
-            i = filter(fi)
-            cns%decomp_npools_vr(i,j,k) = val
-         end do
+    ! column levdecomp, and decomp_pools
+    do j = 1 , nlevdecomp_full
+      do k = 1 , ndecomp_pools
+        do fi = 1 , num
+          i = filter(fi)
+          cns%decomp_npools_vr(i,j,k) = val
+        end do
       end do
-   end do
-
-end subroutine CNSetCns
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNSetCcf
-!
-! !INTERFACE:
-subroutine CNSetCcf(num, filter, val, ccf)
-!
-! !DESCRIPTION:
-! Set column carbon flux variables
-!
-! !USES:
+    end do
+  end subroutine CNSetCns
+  !
+  ! Set column carbon flux variables
+  !
+  subroutine CNSetCcf(num, filter, val, ccf)
     use mod_clm_surfrd , only : crop_prog
-! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: num
-    integer , intent(in) :: filter(:)
+    integer(ik4) , intent(in) :: num
+    integer(ik4) , intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (column_cflux_type), intent(inout) :: ccf
-!
-! !REVISION HISTORY:
-! Created by Peter Thornton
-!
-! !LOCAL VARIABLES:
-! local pointers to implicit in/out arrays
-!
-! !OTHER LOCAL VARIABLES:
-   integer :: fi,i,j,k,l     ! loop index
-!EOP
-!------------------------------------------------------------------------
+    integer(ik4) :: fi,i,j,k,l     ! loop index
 
-   do j = 1, nlevdecomp_full
-      do fi = 1,num
-         i = filter(fi)
-         ! phenology: litterfall and crop fluxes associated wit
-         ccf%phenology_c_to_litr_met_c(i,j)                = val
-         ccf%phenology_c_to_litr_cel_c(i,j)                = val
-         ccf%phenology_c_to_litr_lig_c(i,j)                = val
-         ! gap mortality
-         ccf%gap_mortality_c_to_litr_met_c(i,j)                = val
-         ccf%gap_mortality_c_to_litr_cel_c(i,j)                = val
-         ccf%gap_mortality_c_to_litr_lig_c(i,j)                = val
-         ccf%gap_mortality_c_to_cwdc(i,j)                      = val
-         ! fire
-         ccf%fire_mortality_c_to_cwdc(i,j)                 = val
-         ccf%m_c_to_litr_met_fire(i,j)             = val
-         ccf%m_c_to_litr_cel_fire(i,j)             = val
-         ccf%m_c_to_litr_lig_fire(i,j)             = val
-         ! harvest
-         ccf%harvest_c_to_litr_met_c(i,j)                  = val
-         ccf%harvest_c_to_litr_cel_c(i,j)                  = val
-         ccf%harvest_c_to_litr_lig_c(i,j)                  = val
-         ccf%harvest_c_to_cwdc(i,j)                        = val
-         ! hr
-         ccf%hr_vr(i,j) = val
+    do j = 1 , nlevdecomp_full
+      do fi = 1 , num
+        i = filter(fi)
+        ! phenology: litterfall and crop fluxes associated wit
+        ccf%phenology_c_to_litr_met_c(i,j)                = val
+        ccf%phenology_c_to_litr_cel_c(i,j)                = val
+        ccf%phenology_c_to_litr_lig_c(i,j)                = val
+        ! gap mortality
+        ccf%gap_mortality_c_to_litr_met_c(i,j)                = val
+        ccf%gap_mortality_c_to_litr_cel_c(i,j)                = val
+        ccf%gap_mortality_c_to_litr_lig_c(i,j)                = val
+        ccf%gap_mortality_c_to_cwdc(i,j)                      = val
+        ! fire
+        ccf%fire_mortality_c_to_cwdc(i,j)                 = val
+        ccf%m_c_to_litr_met_fire(i,j)             = val
+        ccf%m_c_to_litr_cel_fire(i,j)             = val
+        ccf%m_c_to_litr_lig_fire(i,j)             = val
+        ! harvest
+        ccf%harvest_c_to_litr_met_c(i,j)                  = val
+        ccf%harvest_c_to_litr_cel_c(i,j)                  = val
+        ccf%harvest_c_to_litr_lig_c(i,j)                  = val
+        ccf%harvest_c_to_cwdc(i,j)                        = val
+        ! hr
+        ccf%hr_vr(i,j) = val
       end do
-   end do
+    end do
 
-   do k = 1, ndecomp_pools
-      do j = 1, nlevdecomp_full
-         do fi = 1,num
-            i = filter(fi)
-            ccf%m_decomp_cpools_to_fire_vr(i,j,k) = val
-            ccf%decomp_cpools_sourcesink(i,j,k) = val
-            ccf%decomp_cpools_transport_tendency(i,j,k) = val
-         end do
+    do k = 1 , ndecomp_pools
+      do j = 1 , nlevdecomp_full
+        do fi = 1 , num
+          i = filter(fi)
+          ccf%m_decomp_cpools_to_fire_vr(i,j,k) = val
+          ccf%decomp_cpools_sourcesink(i,j,k) = val
+          ccf%decomp_cpools_transport_tendency(i,j,k) = val
+        end do
       end do
-   end do
+    end do
 
-   do l = 1, ndecomp_cascade_transitions
-         do fi = 1,num
-            i = filter(fi)
-            ccf%decomp_cascade_hr(i,l) = val
-            ccf%decomp_cascade_ctransfer(i,l) = val
-         end do
-   end do
-
-   do l = 1, ndecomp_cascade_transitions
-      do j = 1, nlevdecomp_full
-         do fi = 1,num
-            i = filter(fi)
-            ccf%decomp_cascade_hr_vr(i,j,l) = val
-            ccf%decomp_cascade_ctransfer_vr(i,j,l) = val
-            ccf%decomp_k(i,j,l) = val
-         end do
+    do l = 1 , ndecomp_cascade_transitions
+      do fi = 1 , num
+        i = filter(fi)
+        ccf%decomp_cascade_hr(i,l) = val
+        ccf%decomp_cascade_ctransfer(i,l) = val
       end do
-   end do
+    end do
 
-   do k = 1, ndecomp_pools
-      do fi = 1,num
-         i = filter(fi)
-         ccf%decomp_cpools_leached(i,k) = val
-         ccf%m_decomp_cpools_to_fire(i,k) = val
+    do l = 1 , ndecomp_cascade_transitions
+      do j = 1 , nlevdecomp_full
+        do fi = 1 , num
+          i = filter(fi)
+          ccf%decomp_cascade_hr_vr(i,j,l) = val
+          ccf%decomp_cascade_ctransfer_vr(i,j,l) = val
+          ccf%decomp_k(i,j,l) = val
+        end do
       end do
-   end do
+    end do
 
-   do fi = 1,num
+    do k = 1 , ndecomp_pools
+      do fi = 1 , num
+        i = filter(fi)
+        ccf%decomp_cpools_leached(i,k) = val
+        ccf%m_decomp_cpools_to_fire(i,k) = val
+      end do
+    end do
+
+    do fi = 1 , num
       i = filter(fi)
       ccf%hrv_deadstemc_to_prod10c(i)         = val
       ccf%hrv_deadstemc_to_prod100c(i)        = val
@@ -1290,113 +989,90 @@ subroutine CNSetCcf(num, filter, val, ccf)
       ccf%cwdc_loss(i)                        = val
       ccf%litterc_loss(i)                     = val
       ccf%som_c_leached(i) = val
-  end do
-
-end subroutine CNSetCcf
-!-----------------------------------------------------------------------
-
-!-----------------------------------------------------------------------
-!BOP
-!
-! !IROUTINE: CNSetCnf
-!
-! !INTERFACE:
-subroutine CNSetCnf(num, filter, val, cnf)
-!
-! !DESCRIPTION:
-! Set column nitrogen flux variables
-!
-! !USES:
+    end do
+  end subroutine CNSetCcf
+  !
+  ! Set column nitrogen flux variables
+  !
+  subroutine CNSetCnf(num, filter, val, cnf)
     use mod_clm_surfrd , only : crop_prog
-! !ARGUMENTS:
     implicit none
-    integer , intent(in) :: num
-    integer , intent(in) :: filter(:)
+    integer(ik4) , intent(in) :: num
+    integer(ik4) , intent(in) :: filter(:)
     real(rk8), intent(in) :: val
     type (column_nflux_type), intent(inout) :: cnf
-!
-! !REVISION HISTORY:
-! Created by Peter Thornton
-!
-! !LOCAL VARIABLES:
-! local pointers to implicit in/out arrays
-!
-! !OTHER LOCAL VARIABLES:
-   integer :: fi,i,j,k,l     ! loop index
-!EOP
-!------------------------------------------------------------------------
+    integer(ik4) :: fi,i,j,k,l     ! loop index
 
-
-   do j = 1, nlevdecomp_full
-      do fi = 1,num
-         i = filter(fi)
-         ! phenology: litterfall and crop fluxes associated wit
-         cnf%phenology_n_to_litr_met_n(i,j)                = val
-         cnf%phenology_n_to_litr_cel_n(i,j)                = val
-         cnf%phenology_n_to_litr_lig_n(i,j)                = val
-         ! gap mortality
-         cnf%gap_mortality_n_to_litr_met_n(i,j)                = val
-         cnf%gap_mortality_n_to_litr_cel_n(i,j)                = val
-         cnf%gap_mortality_n_to_litr_lig_n(i,j)                = val
-         cnf%gap_mortality_n_to_cwdn(i,j)                      = val
-         ! fire
-         cnf%fire_mortality_n_to_cwdn(i,j)                 = val
-         cnf%m_n_to_litr_met_fire(i,j)             = val
-         cnf%m_n_to_litr_cel_fire(i,j)             = val
-         cnf%m_n_to_litr_lig_fire(i,j)             = val
-         ! harvest
-         cnf%harvest_n_to_litr_met_n(i,j)                  = val
-         cnf%harvest_n_to_litr_cel_n(i,j)                  = val
-         cnf%harvest_n_to_litr_lig_n(i,j)                  = val
-         cnf%harvest_n_to_cwdn(i,j)                        = val
+    do j = 1 , nlevdecomp_full
+      do fi = 1 , num
+        i = filter(fi)
+        ! phenology: litterfall and crop fluxes associated wit
+        cnf%phenology_n_to_litr_met_n(i,j)                = val
+        cnf%phenology_n_to_litr_cel_n(i,j)                = val
+        cnf%phenology_n_to_litr_lig_n(i,j)                = val
+        ! gap mortality
+        cnf%gap_mortality_n_to_litr_met_n(i,j)                = val
+        cnf%gap_mortality_n_to_litr_cel_n(i,j)                = val
+        cnf%gap_mortality_n_to_litr_lig_n(i,j)                = val
+        cnf%gap_mortality_n_to_cwdn(i,j)                      = val
+        ! fire
+        cnf%fire_mortality_n_to_cwdn(i,j)                 = val
+        cnf%m_n_to_litr_met_fire(i,j)             = val
+        cnf%m_n_to_litr_cel_fire(i,j)             = val
+        cnf%m_n_to_litr_lig_fire(i,j)             = val
+        ! harvest
+        cnf%harvest_n_to_litr_met_n(i,j)                  = val
+        cnf%harvest_n_to_litr_cel_n(i,j)                  = val
+        cnf%harvest_n_to_litr_lig_n(i,j)                  = val
+        cnf%harvest_n_to_cwdn(i,j)                        = val
 #ifndef NITRIF_DENITRIF
-         cnf%sminn_to_denit_excess_vr(i,j) = val
-         cnf%sminn_leached_vr(i,j) = val
+        cnf%sminn_to_denit_excess_vr(i,j) = val
+        cnf%sminn_leached_vr(i,j) = val
 #else
-         cnf%f_nit_vr(i,j) = val
-         cnf%f_denit_vr(i,j) = val
-         cnf%smin_no3_leached_vr(i,j) = val
-         cnf%smin_no3_runoff_vr(i,j) = val
-         cnf%n2_n2o_ratio_denit_vr(i,j) = val
-         cnf%pot_f_nit_vr(i,j) = val
-         cnf%pot_f_denit_vr(i,j) = val
-         cnf%actual_immob_no3_vr(i,j) = val
-         cnf%actual_immob_nh4_vr(i,j) = val
-         cnf%smin_no3_to_plant_vr(i,j) = val
-         cnf%smin_nh4_to_plant_vr(i,j) = val
-         cnf%f_n2o_denit_vr(i,j)  = val
-         cnf%f_n2o_nit_vr(i,j)  = val
+        cnf%f_nit_vr(i,j) = val
+        cnf%f_denit_vr(i,j) = val
+        cnf%smin_no3_leached_vr(i,j) = val
+        cnf%smin_no3_runoff_vr(i,j) = val
+        cnf%n2_n2o_ratio_denit_vr(i,j) = val
+        cnf%pot_f_nit_vr(i,j) = val
+        cnf%pot_f_denit_vr(i,j) = val
+        cnf%actual_immob_no3_vr(i,j) = val
+        cnf%actual_immob_nh4_vr(i,j) = val
+        cnf%smin_no3_to_plant_vr(i,j) = val
+        cnf%smin_nh4_to_plant_vr(i,j) = val
+        cnf%f_n2o_denit_vr(i,j)  = val
+        cnf%f_n2o_nit_vr(i,j)  = val
 
-         cnf%smin_no3_massdens_vr(i,j) = val
-         cnf%k_nitr_t_vr(i,j) = val
-         cnf%k_nitr_ph_vr(i,j) = val
-         cnf%k_nitr_h2o_vr(i,j) = val
-         cnf%k_nitr_vr(i,j) = val
-         cnf%wfps_vr(i,j) = val
-         cnf%fmax_denit_carbonsubstrate_vr(i,j) = val
-         cnf%fmax_denit_nitrate_vr(i,j) = val
-         cnf%f_denit_base_vr(i,j) = val
+        cnf%smin_no3_massdens_vr(i,j) = val
+        cnf%k_nitr_t_vr(i,j) = val
+        cnf%k_nitr_ph_vr(i,j) = val
+        cnf%k_nitr_h2o_vr(i,j) = val
+        cnf%k_nitr_vr(i,j) = val
+        cnf%wfps_vr(i,j) = val
+        cnf%fmax_denit_carbonsubstrate_vr(i,j) = val
+        cnf%fmax_denit_nitrate_vr(i,j) = val
+        cnf%f_denit_base_vr(i,j) = val
 
-         cnf%diffus(i,j) = val
-         cnf%ratio_k1(i,j) = val
-         cnf%ratio_no3_co2(i,j) = val
-         cnf%soil_co2_prod(i,j) = val
-         cnf%fr_WFPS(i,j) = val
-         cnf%soil_bulkdensity(i,j) = val
+        cnf%diffus(i,j) = val
+        cnf%ratio_k1(i,j) = val
+        cnf%ratio_no3_co2(i,j) = val
+        cnf%soil_co2_prod(i,j) = val
+        cnf%fr_WFPS(i,j) = val
+        cnf%soil_bulkdensity(i,j) = val
 
-         cnf%r_psi(i,j) = val
-         cnf%anaerobic_frac(i,j) = val
+        cnf%r_psi(i,j) = val
+        cnf%anaerobic_frac(i,j) = val
 #endif
-         cnf%potential_immob_vr(i,j) = val
-         cnf%actual_immob_vr(i,j) = val
-         cnf%sminn_to_plant_vr(i,j) = val
-         cnf%supplement_to_sminn_vr(i,j) = val
-         cnf%gross_nmin_vr(i,j) = val
-         cnf%net_nmin_vr(i,j) = val
+        cnf%potential_immob_vr(i,j) = val
+        cnf%actual_immob_vr(i,j) = val
+        cnf%sminn_to_plant_vr(i,j) = val
+        cnf%supplement_to_sminn_vr(i,j) = val
+        cnf%gross_nmin_vr(i,j) = val
+        cnf%net_nmin_vr(i,j) = val
       end do
-   end do
+    end do
 
-   do fi = 1,num
+    do fi = 1 , num
       i = filter(fi)
       cnf%ndep_to_sminn(i) = val
       cnf%nfix_to_sminn(i) = val
@@ -1431,54 +1107,51 @@ subroutine CNSetCnf(num, filter, val, cnf)
       cnf%col_noutputs(i) = val
       cnf%col_fire_nloss(i) = val
       cnf%som_n_leached(i) = val
-   end do
+    end do
 
-   do k = 1, ndecomp_pools
-      do fi = 1,num
-         i = filter(fi)
-         cnf%decomp_npools_leached(i,k) = val
-         cnf%m_decomp_npools_to_fire(i,k) = val
+    do k = 1 , ndecomp_pools
+      do fi = 1 , num
+        i = filter(fi)
+        cnf%decomp_npools_leached(i,k) = val
+        cnf%m_decomp_npools_to_fire(i,k) = val
       end do
-   end do
+    end do
 
-   do k = 1, ndecomp_pools
-      do j = 1, nlevdecomp_full
-         do fi = 1,num
-            i = filter(fi)
-            cnf%m_decomp_npools_to_fire_vr(i,j,k) = val
-            cnf%decomp_npools_sourcesink(i,j,k) = val
-            cnf%decomp_npools_transport_tendency(i,j,k) = val
-         end do
+    do k = 1 , ndecomp_pools
+      do j = 1 , nlevdecomp_full
+        do fi = 1 , num
+          i = filter(fi)
+          cnf%m_decomp_npools_to_fire_vr(i,j,k) = val
+          cnf%decomp_npools_sourcesink(i,j,k) = val
+          cnf%decomp_npools_transport_tendency(i,j,k) = val
+        end do
       end do
-   end do
+    end do
 
-   do l = 1, ndecomp_cascade_transitions
-         do fi = 1,num
-            i = filter(fi)
-            cnf%decomp_cascade_ntransfer(i,l) = val
-            cnf%decomp_cascade_sminn_flux(i,l) = val
+    do l = 1 , ndecomp_cascade_transitions
+      do fi = 1 , num
+        i = filter(fi)
+        cnf%decomp_cascade_ntransfer(i,l) = val
+        cnf%decomp_cascade_sminn_flux(i,l) = val
 #ifndef NITRIF_DENITRIF
-            cnf%sminn_to_denit_decomp_cascade(i,l) = val
+        cnf%sminn_to_denit_decomp_cascade(i,l) = val
 #endif
-         end do
-   end do
-
-   do l = 1, ndecomp_cascade_transitions
-      do j = 1, nlevdecomp_full
-         do fi = 1,num
-            i = filter(fi)
-            cnf%decomp_cascade_ntransfer_vr(i,j,l) = val
-            cnf%decomp_cascade_sminn_flux_vr(i,j,l) = val
-#ifndef NITRIF_DENITRIF
-            cnf%sminn_to_denit_decomp_cascade_vr(i,j,l) = val
-#endif
-         end do
       end do
-   end do
+    end do
 
-
-end subroutine CNSetCnf
-!-----------------------------------------------------------------------
+    do l = 1 , ndecomp_cascade_transitions
+      do j = 1 , nlevdecomp_full
+        do fi = 1 , num
+          i = filter(fi)
+          cnf%decomp_cascade_ntransfer_vr(i,j,l) = val
+          cnf%decomp_cascade_sminn_flux_vr(i,j,l) = val
+#ifndef NITRIF_DENITRIF
+          cnf%sminn_to_denit_decomp_cascade_vr(i,j,l) = val
+#endif
+        end do
+      end do
+    end do
+  end subroutine CNSetCnf
 
 #endif
 
