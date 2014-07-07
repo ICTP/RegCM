@@ -627,6 +627,8 @@ module mod_output
           sts_pcpavg_out = sts_pcpavg_out*rnsrf_for_day
         if ( associated(sts_t2avg_out) ) &
           sts_t2avg_out = sts_t2avg_out*rnsrf_for_day
+        if ( associated(sts_psavg_out) ) &
+          sts_psavg_out = sts_psavg_out*rnsrf_for_day
         if ( associated(sts_runoff_out) ) then
           where ( mddom%ldmsk > 0 )
             sts_runoff_out(:,:,1) = sts_runoff_out(:,:,1)*rnsrf_for_day
@@ -644,6 +646,7 @@ module mod_output
 
         if ( associated(sts_pcpavg_out) ) sts_pcpavg_out = d_zero
         if ( associated(sts_t2avg_out) )  sts_t2avg_out  = d_zero
+        if ( associated(sts_psavg_out) )  sts_psavg_out  = d_zero
         if ( associated(sts_tgmax_out) )  sts_tgmax_out  = -1.D30
         if ( associated(sts_tgmin_out) )  sts_tgmin_out  =  1.D30
         if ( associated(sts_t2max_out) )  sts_t2max_out  = -1.D30

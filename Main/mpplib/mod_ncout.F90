@@ -60,7 +60,7 @@ module mod_ncout
   integer(ik4) , parameter :: nsrf3dvars = 7
   integer(ik4) , parameter :: nsrfvars = nsrf2dvars+nsrf3dvars
 
-  integer(ik4) , parameter :: nsts2dvars = 6 + nbase
+  integer(ik4) , parameter :: nsts2dvars = 7 + nbase
   integer(ik4) , parameter :: nsts3dvars = 5
   integer(ik4) , parameter :: nstsvars = nsts2dvars+nsts3dvars
 
@@ -260,6 +260,7 @@ module mod_ncout
   integer(ik4) , parameter :: sts_pcpavg = 9
   integer(ik4) , parameter :: sts_sund   = 10
   integer(ik4) , parameter :: sts_psmin  = 11
+  integer(ik4) , parameter :: sts_psavg  = 12
 
   integer(ik4) , parameter :: sts_t2max  = 1
   integer(ik4) , parameter :: sts_t2min  = 2
@@ -1146,6 +1147,11 @@ module mod_ncout
           call setup_var(v2dvar_sts,sts_psmin,vsize,'psmin','hPa', &
             'Minimum of surface pressure','air_pressure',.true.,'time: minimum')
           sts_psmin_out => v2dvar_sts(sts_psmin)%rval
+        end if
+        if ( enable_sts2d_vars(sts_psavg) ) then
+          call setup_var(v2dvar_sts,sts_psavg,vsize,'psavg','hPa', &
+            'Mean surface pressure','air_pressure',.true.,'time: mean')
+          sts_psavg_out => v2dvar_sts(sts_psavg)%rval
         end if
 
         vsize%k2 = 1

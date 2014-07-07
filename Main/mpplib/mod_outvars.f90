@@ -127,6 +127,7 @@ module mod_outvars
   real(rk8) , dimension(:,:) , pointer :: sts_pcpmax_out => null()
   real(rk8) , dimension(:,:) , pointer :: sts_pcpavg_out => null()
   real(rk8) , dimension(:,:) , pointer :: sts_sund_out => null()
+  real(rk8) , dimension(:,:) , pointer :: sts_psavg_out => null()
   real(rk8) , dimension(:,:) , pointer :: sts_psmin_out => null()
 
   real(rk8) , dimension(:,:,:) , pointer :: sts_t2max_out => null()

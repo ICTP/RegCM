@@ -806,6 +806,9 @@ module mod_lm_interface
         if ( associated(sts_psmin_out) ) &
           sts_psmin_out = min(sts_psmin_out, &
             (lm%sfps(jci1:jci2,ici1:ici2)+ptop)*d_10)
+        if ( associated(sts_psavg_out) ) &
+          sts_psavg_out = sts_psavg_out + &
+            (lm%sfps(jci1:jci2,ici1:ici2)+ptop)*d_10
         if ( associated(sts_sund_out) ) then
           where( lm%rswf > 120.0D0 )
             sts_sund_out = sts_sund_out + dtbat
