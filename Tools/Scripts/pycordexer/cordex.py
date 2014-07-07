@@ -9,8 +9,9 @@ import sys
 import time
 import os
 
-ICTP_Model = 'ICTP-RegCM4'
-ICTP_Model_Version = '3p1'
+ICTP_Model_id = 'RegCM4-3'
+ICTP_Model = 'ICTP-'+ICTP_Model_id
+ICTP_Model_Version = '4.3-rc15'
 
 def wspeed(u,v):
   spd = np.zeros(np.shape(u))
@@ -50,7 +51,7 @@ def wrapper(func,args,it):
 def wrapper2(func,args):
   return func(*args)
 
-def copyvar(nc,name,ovar,bnds=True):
+def copyvar(nc,name,ovar,bnds=True,stsf=False):
   ssdim = list(ovar.dimensions)
   if 'ntimes' in ssdim:
     ssdim[ssdim.index('ntimes')] = 'time_bounds'
@@ -65,7 +66,16 @@ def copyvar(nc,name,ovar,bnds=True):
       else:
         pass
     else:
-      xvar.setncattr(attr,getattr(ovar,attr))
+      if name.find('time') >= 0 and getattr(ovar,attr) == 'gregorian':
+	xvar.setncattr(attr,'proleptic_gregorian')
+      elif name.find('time') >= 0 and attr == 'units':
+	if stsf:
+          attval = 'days since 1949-12-01 00:00:00'
+	else:
+          attval = getattr(ovar,attr).replace(' UTC','')
+	xvar.setncattr(attr,attval)
+      else:
+        xvar.setncattr(attr,getattr(ovar,attr))
   return xvar
 
 def unitcorrect(old,new):
@@ -162,7 +172,7 @@ lookup = { 'tas' : { 'name' : ['t2m','t2avg'],
                      'timecorr' : { 'STS' : -12.0, },
                    },
            'sfcWindmax' :  { 'name' : ['w10max'],
-                     'units' : 'K',
+                     'units' : 'm s-1',
                      'long_name' : 'Daily-Maximum Near-Surface Wind Speed',
                      'needbound' : True,
                      'timecorr' : { 'STS' : -12.0, },
@@ -189,7 +199,7 @@ lookup = { 'tas' : { 'name' : ['t2m','t2avg'],
                    },
            'ua850' :  { 'name' : ['ua','u'],
                      'units' : 'm s-1',
-                     'long_name' : 'Zonal (Eastward) Wind at 850 hPa',
+                     'long_name' : 'Zonal (Eastward) Wind',
                      'needbound' : False,
                      'timecorr' : { 'ATM' : 0.0, },
                      'vertint' : 850.0,
@@ -197,11 +207,27 @@ lookup = { 'tas' : { 'name' : ['t2m','t2avg'],
                    },
            'va850' :  { 'name' : ['va','v'],
                      'units' : 'm s-1',
-                     'long_name' : 'Meridional (Northward) Wind at 850 hPa',
+                     'long_name' : 'Meridional (Northward) Wind',
                      'needbound' : False,
                      'timecorr' : { 'ATM' : 0.0, },
                      'vertint' : 850.0,
                      'vertmod' : 'linear',
+                   },
+           'ta850' :  { 'name' : ['ta','t'],
+                     'units' : 'K',
+                     'long_name' : 'Temperature',
+                     'needbound' : False,
+                     'timecorr' : { 'ATM' : 0.0, },
+                     'vertint' : 850.0,
+                     'vertmod' : 'log',
+                   },
+           'hus850' :  { 'name' : ['qas','qv'],
+                     'units' : '1',
+                     'long_name' : 'Specific Humidity',
+                     'needbound' : False,
+                     'timecorr' : { 'ATM' : 0.0, },
+                     'vertint' : 850.0,
+                     'vertmod' : 'log',
                    },
            'hurs' :  { 'name' : ['hurs'],
                      'units' : '%',
@@ -223,25 +249,33 @@ lookup = { 'tas' : { 'name' : ['t2m','t2avg'],
                      'tocall' : { 'method' : mod_hgt.mslp,
                                   'dimension' : 2, } ,
                    },
+           'ua500' :  { 'name' : ['ua','u'],
+                     'units' : 'm s-1',
+                     'long_name' : 'Zonal (Eastward) Wind',
+                     'needbound' : False,
+                     'timecorr' : { 'ATM' : 0.0, },
+                     'vertint' : 500.0,
+                     'vertmod' : 'linear',
+                   },
+           'va500' :  { 'name' : ['va','v'],
+                     'units' : 'm s-1',
+                     'long_name' : 'Meridional (Northward) Wind',
+                     'needbound' : False,
+                     'timecorr' : { 'ATM' : 0.0, },
+                     'vertint' : 500.0,
+                     'vertmod' : 'linear',
+                   },
            'ta500' :  { 'name' : ['ta','t'],
                      'units' : 'K',
-                     'long_name' : 'Temperature at 500 hPa',
+                     'long_name' : 'Temperature',
                      'needbound' : False,
                      'timecorr' : { 'ATM' : 0.0, },
                      'vertint' : 500.0,
                      'vertmod' : 'log',
                    },
-           'hus850' :  { 'name' : ['qas','qv'],
-                     'units' : '1',
-                     'long_name' : 'Specific Humidity at 850 hPa',
-                     'needbound' : False,
-                     'timecorr' : { 'ATM' : 0.0, },
-                     'vertint' : 850.0,
-                     'vertmod' : 'log',
-                   },
            'zg500' :  { 'name' : ['hgt'],
                      'units' : 'm',
-                     'long_name' : 'Geopotential Elevation at 500 hPa',
+                     'long_name' : 'Geopotential Elevation',
                      'standard_name' : 'height',
                      'needbound' : False,
                      'timecorr' : { 'ATM' : 0.0, },
@@ -252,9 +286,46 @@ lookup = { 'tas' : { 'name' : ['t2m','t2avg'],
                      'vertint' : 500.0,
                      'vertmod' : 'compute',
                    },
+           'ua200' :  { 'name' : ['ua','u'],
+                     'units' : 'm s-1',
+                     'long_name' : 'Zonal (Eastward) Wind',
+                     'needbound' : False,
+                     'timecorr' : { 'ATM' : 0.0, },
+                     'vertint' : 200.0,
+                     'vertmod' : 'linear',
+                   },
+           'va200' :  { 'name' : ['va','v'],
+                     'units' : 'm s-1',
+                     'long_name' : 'Meridional (Northward) Wind',
+                     'needbound' : False,
+                     'timecorr' : { 'ATM' : 0.0, },
+                     'vertint' : 200.0,
+                     'vertmod' : 'linear',
+                   },
+           'ta200' :  { 'name' : ['ta','t'],
+                     'units' : 'K',
+                     'long_name' : 'Temperature',
+                     'needbound' : False,
+                     'timecorr' : { 'ATM' : 0.0, },
+                     'vertint' : 200.0,
+                     'vertmod' : 'log',
+                   },
+           'zg200' :  { 'name' : ['hgt'],
+                     'units' : 'm',
+                     'long_name' : 'Geopotential Elevation',
+                     'standard_name' : 'height',
+                     'needbound' : False,
+                     'timecorr' : { 'ATM' : 0.0, },
+                     'formula' : [['t','ta'],['ps',],['topo',],
+                                  ['sigma',],['ptop',]],
+                     'tocall' : { 'method' : mod_hgt.height,
+                                  'dimension' : 3, } ,
+                     'vertint' : 200.0,
+                     'vertmod' : 'compute',
+                   },
            'rh850' :  { 'name' : ['rh'],
                      'units' : '%',
-                     'long_name' : 'Relative Humidity at 850 hPa',
+                     'long_name' : 'Relative Humidity',
                      'standard_name' : 'relative_humidity',
                      'needbound' : False,
                      'timecorr' : { 'ATM' : 0.0, },
@@ -341,9 +412,11 @@ xlon = ncf.variables['xlon']
 iy = ncf.variables['iy']
 jx = ncf.variables['jx']
 
+stsf = False
 ftype = 'SRF'
 if ncf.variables.has_key('tsmax') or ncf.variables.has_key('t2max'):
   ftype = 'STS'
+  stsf = True
 if ncf.variables.has_key('ua') or ncf.variables.has_key('u'):
   ftype = 'ATM'
 if ncf.variables.has_key('qrs') or ncf.variables.has_key('firtp'):
@@ -405,18 +478,20 @@ newattr = {
   'note' : 'The domain is larger than '+domain,
   'comment' : 'RegCM CORDEX '+olddom+' run',
   'experiment' : domain,
-  'driving_experiment' : (global_model + '_' +
-                          experiment.replace('.','') + '_' + ensemble),
+  'experiment_id' : experiment.replace('.',''),
+  'driving_experiment' : (global_model + ', ' +
+                          experiment.replace('.','') + ', ' + ensemble),
   'frequency' : frequency,
   'driving_model_id' : global_model,
   'driving_model_ensemble_member' : ensemble,
   'driving_experiment_name' : experiment.replace('.',''),
   'institution' : 'International Centre for Theoretical Physics',
-  'model_id' : 'RegCM4',
+  'model_id' : ICTP_Model,
   'creation_date' : time.asctime(time.localtime(time.time()-4000000)),
   'CORDEX_domain' : domain,
-  'RCM' : '4.3-rc15',
+  'rcm_version_id' : '4.3-rc15',
   'ICTP_version_note' : notes,
+  'contact' : mail,
   'product' : 'output',
 }
 
@@ -457,6 +532,7 @@ for attr in ncf.ncattrs():
 # Define needed dimensions
 
 newvardims = []
+reducedims = None
 for dim in var.dimensions:
   if ( ncf.dimensions[dim].isunlimited() ):
     nco.createDimension(dim)
@@ -464,13 +540,17 @@ for dim in var.dimensions:
   else:
     if dim == 'sigma' or dim == 'plev' or dim == 'kz':
       nco.createDimension(lookupdim[dim], 1)
-      newvardims.append(lookupdim[dim])
+      reducedims = 'plev'
+      #newvardims.append(lookupdim[dim])
     elif dim == 'time_bnds' or dim == 'ntimes':
       pass
     else:
       try:
         nco.createDimension(lookupdim[dim], len(ncf.dimensions[dim]))
-        newvardims.append(lookupdim[dim])
+	if ( lookupdim[dim] != 'height' ):
+          newvardims.append(lookupdim[dim])
+	else:
+          reducedims = 'height'
       except:
         nco.createDimension(dim,len(ncf.dimensions[dim]))
         newvardims.append(dim)
@@ -496,7 +576,7 @@ newiy.setncattr('axis','Y')
 if rcm_map is not None:
   newrcm_map = copyvar(nco,'rcm_map',rcm_map)
 
-newtime = copyvar(nco,'time',times,needbound)
+newtime = copyvar(nco,'time',times,needbound,stsf)
 
 if timebnds is not None and needbound:
   newtimebnds = copyvar(nco,'time_bnds',timebnds)
@@ -505,7 +585,8 @@ else:
     newtimebnds = nco.createVariable('time_bnds','f8',('time','time_bnds'))
 
 newvar = nco.createVariable(variable,'f',tuple(newvardims),
-                            shuffle=True,fletcher32='true',zlib=True,complevel=9)
+                            shuffle=True,fletcher32='true',
+			    zlib=True,complevel=9)
 oldunits = ''
 for attr in var.ncattrs():
   if attr in lookup[variable].keys():
@@ -513,7 +594,10 @@ for attr in var.ncattrs():
     if attr == 'units':
       oldunits = getattr(var,attr)
   else:
-    newvar.setncattr(attr,getattr(var,attr))
+    if attr == 'coordinates' and reducedims is not None:
+      newvar.setncattr(attr,getattr(var,attr)+" "+reducedims)
+    else:
+      newvar.setncattr(attr,getattr(var,attr))
 
 # Search for dimension variables to be added
 
@@ -556,28 +640,37 @@ for avar , avname in zip(avars,addvar):
     else:
       avar[Ellipsis] = np.array( lookupvar[avname]['default_value'], )
 
-
-newtime[:] = correct_time[:]
+if stsf:
+  newtime[:] = correct_time[:]/24.0
+else:
+  newtime[:] = correct_time[:]
 if timebnds is not None and needbound:
-  newtimebnds[:] = timebnds[:]
+  if stsf:
+    newtimebnds[:] = timebnds[:]/24.0
+  else:
+    newtimebnds[:] = timebnds[:]
 else:
   if needbound:
-    newtimebnds[:,0] = times[:] - ff/2
-    newtimebnds[:,1] = times[:] + ff/2
+    if stsf:
+      newtimebnds[:,0] = (times[:] - ff/2)/24.0
+      newtimebnds[:,1] = (times[:] + ff/2)/24.0
+    else:
+      newtimebnds[:,0] = times[:] - ff/2
+      newtimebnds[:,1] = times[:] + ff/2
 
 xfac = unitcorrect(oldunits,lookup[variable]['units'])
 
 for it in range(0,np.size(correct_time)):
   if lookup[variable].has_key('vertint'):
     if 'plev' in var.dimensions:
-      newvar[it,0,Ellipsis] = var[it,mask[0],Ellipsis] * xfac
+      newvar[it,Ellipsis] = var[it,mask[0],Ellipsis] * xfac
     else:
       if lookup[variable]['vertmod'] == 'linear':
-        newvar[it,0,Ellipsis] = mod_vertint.intlin(var[it,:,:,:],
+        newvar[it,Ellipsis] = mod_vertint.intlin(var[it,:,:,:],
                                  ps[it,:,:],sigma,ptop,
                                  lookup[variable]['vertint']) * xfac
       elif lookup[variable]['vertmod'] == 'log':
-        newvar[it,0,Ellipsis] = mod_vertint.intlog(var[it,:,:,:],
+        newvar[it,Ellipsis] = mod_vertint.intlog(var[it,:,:,:],
                                  ps[it,:,:],sigma,ptop,
                                  lookup[variable]['vertint']) * xfac
       elif lookup[variable]['vertmod'] == 'compute':
@@ -587,7 +680,7 @@ for it in range(0,np.size(correct_time)):
         if lookup[variable]['tocall']['dimension'] == 2:
           newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
         else:
-          newvar[it,0,Ellipsis] = wrapper(func,compvars,it) * xfac
+          newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
       else:
         raise RuntimeError('Unknow vertical interpolation method!')
   elif lookup[variable].has_key('formula') and use_formula:
@@ -600,7 +693,7 @@ for it in range(0,np.size(correct_time)):
       else:
         newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
     else:
-      newvar[it,0,Ellipsis] = wrapper(func,compvars,it) * xfac
+      newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
   else:
     newvar[it,Ellipsis] = var[it,Ellipsis] * xfac
 

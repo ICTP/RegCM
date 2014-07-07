@@ -93,13 +93,17 @@ compressed in disk.
       else:
         nco.createVariable(var,nctype,ncf.variables[var].dimensions)
     if var == 'time':
+      hasbnds = False
       for attr in ncf.variables[var].ncattrs():
         if attr == 'units':
           nco.variables[var].setncattr('units',tunit)
         elif attr == 'bounds':
           nco.variables[var].setncattr('bounds','time_bnds')
+	  hasbnds = True
         else:
           nco.variables[var].setncattr(attr,getattr(ncf.variables[var],attr))
+      if not hasbnds:
+        nco.variables[var].setncattr('bounds','time_bnds')
     elif var == 'time_bnds':
       pass
     else:
