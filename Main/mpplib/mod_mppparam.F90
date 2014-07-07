@@ -22,6 +22,7 @@ module mod_mppparam
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_runparams , only : namelistfile , prgname
   use mod_mpmessage
   use mod_memutil
   use mod_date
@@ -1052,6 +1053,9 @@ module mod_mppparam
 
   subroutine broadcast_params
     implicit none
+
+    call bcast(namelistfile,256)
+    call bcast(prgname,256)
 
     call bcast(iy)
     call bcast(jx)
