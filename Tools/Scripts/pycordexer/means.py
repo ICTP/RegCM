@@ -114,7 +114,7 @@ compressed in disk.
           nco.variables[var].setncattr('cell_methods',attvalue)
         else:
           nco.variables[var].setncattr('cell_methods',
-                                 'time: mean over'+window)
+                                 'time: mean over '+window)
       for attr in ncf.variables[var].ncattrs():
         if attr != 'cell_methods':
           nco.variables[var].setncattr(attr,getattr(ncf.variables[var],attr))
