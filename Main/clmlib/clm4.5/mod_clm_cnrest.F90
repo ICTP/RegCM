@@ -376,333 +376,431 @@ module mod_clm_cnrest
     end if
 
     ! annavg_t2m
-
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='annavg_t2m', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='annavg_t2m', data=pptr%pepv%annavg_t2m, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'annavg_t2m',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'annavg_t2m') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'annavg_t2m',pptr%pepv%annavg_t2m,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'annavg_t2m',pptr%pepv%annavg_t2m,gcomm_pft)
     end if
 
     ! tempavg_t2m
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='tempavg_t2m', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='tempavg_t2m', data=pptr%pepv%tempavg_t2m, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'tempavg_t2m',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'tempavg_t2m') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'tempavg_t2m',pptr%pepv%tempavg_t2m,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'tempavg_t2m',pptr%pepv%tempavg_t2m,gcomm_pft)
     end if
 
     ! gpp
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='gpp_pepv', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='gpp_pepv', data=pptr%pepv%gpp, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'gpp_pepv',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'gpp_pepv') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'gpp_pepv',pptr%pepv%gpp,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'gpp_pepv',pptr%pepv%gpp,gcomm_pft)
     end if
 
     ! availc
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='availc', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='availc', data=pptr%pepv%availc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'availc',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'availc') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'availc',pptr%pepv%availc,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'availc',pptr%pepv%availc,gcomm_pft)
     end if
 
     ! xsmrpool_recover
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='xsmrpool_recover', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='xsmrpool_recover', data=pptr%pepv%xsmrpool_recover, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'xsmrpool_recover',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'xsmrpool_recover') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'xsmrpool_recover',pptr%pepv%xsmrpool_recover, &
+                gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'xsmrpool_recover',pptr%pepv%xsmrpool_recover, &
+              gcomm_pft)
     end if
 
     if ( use_c13 ) then
-       ! xsmrpool_c13ratio
-       if (flag == 'define') then
-          call ncd_defvar(ncid=ncid, varname='xsmrpool_c13ratio', xtype=ncd_double,  &
-               dim1name='pft',long_name='',units='')
-       else if (flag == 'read' .or. flag == 'write') then
-          call ncd_io(varname='xsmrpool_c13ratio', data=pptr%pepv%xsmrpool_c13ratio, &
-               dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-          if (flag=='read' .and. .not. readvar) then
-             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-          end if
-       end if
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'xsmrpool_c13ratio',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( ktau /= 0 .and. &
+             .not. clm_check_var(ncid,'xsmrpool_c13ratio') ) then
+          call fatal(__FILE__,__LINE__,'clm now stopping')
+        else
+          call clm_readvar(ncid,'xsmrpool_c13ratio', &
+                  pptr%pepv%xsmrpool_c13ratio, gcomm_pft)
+        end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'xsmrpool_c13ratio', &
+                pptr%pepv%xsmrpool_c13ratio, gcomm_pft)
+      end if
     end if
 
     ! alloc_pnow
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='alloc_pnow', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='alloc_pnow', data=pptr%pepv%alloc_pnow, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'alloc_pnow',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'alloc_pnow') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'alloc_pnow',pptr%pepv%alloc_pnow,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'alloc_pnow',pptr%pepv%alloc_pnow,gcomm_pft)
     end if
 
     ! c_allometry
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='c_allometry', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='c_allometry', data=pptr%pepv%c_allometry, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'c_allometry',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'c_allometry') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'c_allometry',pptr%pepv%c_allometry,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'c_allometry',pptr%pepv%c_allometry,gcomm_pft)
     end if
 
     ! n_allometry
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='n_allometry', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='n_allometry', data=pptr%pepv%n_allometry, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'n_allometry',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'n_allometry') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'n_allometry',pptr%pepv%n_allometry,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'n_allometry',pptr%pepv%n_allometry,gcomm_pft)
     end if
 
     ! plant_ndemand
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='plant_ndemand', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='plant_ndemand', data=pptr%pepv%plant_ndemand, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'plant_ndemand',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'plant_ndemand') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'plant_ndemand',pptr%pepv%plant_ndemand, &
+                gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'plant_ndemand',pptr%pepv%plant_ndemand, &
+              gcomm_pft)
     end if
 
     ! tempsum_potential_gpp
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='tempsum_potential_gpp', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='tempsum_potential_gpp', data=pptr%pepv%tempsum_potential_gpp, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'tempsum_potential_gpp',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. &
+           .not. clm_check_var(ncid,'tempsum_potential_gpp') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'tempsum_potential_gpp', &
+                pptr%pepv%tempsum_potential_gpp,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'tempsum_potential_gpp', &
+              pptr%pepv%tempsum_potential_gpp,gcomm_pft)
     end if
 
     !annsum_potential_gpp
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='annsum_potential_gpp', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='annsum_potential_gpp', data=pptr%pepv%annsum_potential_gpp, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'annsum_potential_gpp',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. &
+           .not. clm_check_var(ncid,'annsum_potential_gpp') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'annsum_potential_gpp', &
+                pptr%pepv%annsum_potential_gpp,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'annsum_potential_gpp', &
+              pptr%pepv%annsum_potential_gpp,gcomm_pft)
     end if
 
     ! tempmax_retransn
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='tempmax_retransn', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='tempmax_retransn', data=pptr%pepv%tempmax_retransn, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'tempmax_retransn',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. &
+           .not. clm_check_var(ncid,'tempmax_retransn') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'tempmax_retransn', &
+                pptr%pepv%tempmax_retransn,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'tempmax_retransn', &
+              pptr%pepv%tempmax_retransn,gcomm_pft)
     end if
 
     ! annmax_retransn
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='annmax_retransn', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='annmax_retransn', data=pptr%pepv%annmax_retransn, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'annmax_retransn',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. &
+           .not. clm_check_var(ncid,'annmax_retransn') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'annmax_retransn', &
+                pptr%pepv%annmax_retransn,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'annmax_retransn', &
+              pptr%pepv%annmax_retransn,gcomm_pft)
     end if
 
     ! avail_retransn
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='avail_retransn', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='avail_retransn', data=pptr%pepv%avail_retransn, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-        if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'avail_retransn',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. &
+           .not. clm_check_var(ncid,'avail_retransn') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'avail_retransn', &
+                pptr%pepv%avail_retransn,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'avail_retransn', &
+              pptr%pepv%avail_retransn,gcomm_pft)
     end if
 
     ! plant_nalloc
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='plant_nalloc', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='plant_nalloc', data=pptr%pepv%plant_nalloc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'plant_nalloc',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and.  .not. clm_check_var(ncid,'plant_nalloc') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'plant_nalloc', &
+                pptr%pepv%plant_nalloc,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'plant_nalloc', &
+              pptr%pepv%plant_nalloc,gcomm_pft)
     end if
 
     ! plant_calloc
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='plant_calloc', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='plant_calloc', data=pptr%pepv%plant_calloc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'plant_calloc',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and.  .not. clm_check_var(ncid,'plant_calloc') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'plant_calloc', &
+                pptr%pepv%plant_calloc,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'plant_calloc', &
+              pptr%pepv%plant_calloc,gcomm_pft)
     end if
 
     ! excess_cflux
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='excess_cflux', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='excess_cflux', data=pptr%pepv%excess_cflux, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'excess_cflux',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and.  .not. clm_check_var(ncid,'excess_cflux') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'excess_cflux', &
+                pptr%pepv%excess_cflux,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'excess_cflux', &
+              pptr%pepv%excess_cflux,gcomm_pft)
     end if
 
     ! downreg
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='downreg', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='downreg', data=pptr%pepv%downreg, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'downreg',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+            if ( ktau /= 0 .and.  .not. clm_check_var(ncid,'downreg') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'downreg',pptr%pepv%downreg,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'downreg',pptr%pepv%downreg,gcomm_pft)
     end if
 
     ! prev_leafc_to_litter
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='prev_leafc_to_litter', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='prev_leafc_to_litter', data=pptr%pepv%prev_leafc_to_litter, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'prev_leafc_to_litter',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. &
+           .not. clm_check_var(ncid,'prev_leafc_to_litter') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'prev_leafc_to_litter', &
+                pptr%pepv%prev_leafc_to_litter,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'prev_leafc_to_litter', &
+              pptr%pepv%prev_leafc_to_litter,gcomm_pft)
     end if
 
     ! prev_frootc_to_litter
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='prev_frootc_to_litter', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='prev_frootc_to_litter', data=pptr%pepv%prev_frootc_to_litter, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'prev_frootc_to_litter',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. &
+           .not. clm_check_var(ncid,'prev_frootc_to_litter') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'prev_frootc_to_litter', &
+                pptr%pepv%prev_frootc_to_litter,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'prev_frootc_to_litter', &
+              pptr%pepv%prev_frootc_to_litter,gcomm_pft)
     end if
 
     ! tempsum_npp
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='tempsum_npp', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='tempsum_npp', data=pptr%pepv%tempsum_npp, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'tempsum_npp',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'tempsum_npp') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'tempsum_npp', &
+                pptr%pepv%tempsum_npp,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'tempsum_npp', &
+              pptr%pepv%tempsum_npp,gcomm_pft)
     end if
 
     ! annsum_npp
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='annsum_npp', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='annsum_npp', data=pptr%pepv%annsum_npp, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'annsum_npp',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'annsum_npp') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'annsum_npp', &
+                pptr%pepv%annsum_npp,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'annsum_npp', &
+              pptr%pepv%annsum_npp,gcomm_pft)
     end if
 
     if ( use_c13 ) then
-       ! rc13_canair
-       if (flag == 'define') then
-          call ncd_defvar(ncid=ncid, varname='rc13_canair', xtype=ncd_double,  &
-               dim1name='pft',long_name='',units='')
-       else if (flag == 'read' .or. flag == 'write') then
-          call ncd_io(varname='rc13_canair', data=pptr%pepv%rc13_canair, &
-               dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-          if (flag=='read' .and. .not. readvar) then
-             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-          end if
-       end if
+      ! rc13_canair
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'rc13_canair',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( ktau /= 0 .and. .not. clm_check_var(ncid,'rc13_canair') ) then
+          call fatal(__FILE__,__LINE__,'clm now stopping')
+        else
+          call clm_readvar(ncid,'rc13_canair', &
+                  pptr%pepv%rc13_canair,gcomm_pft)
+        end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'rc13_canair', &
+                pptr%pepv%rc13_canair,gcomm_pft)
+      end if
 
-       ! rc13_psnsun
-       if (flag == 'define') then
-          call ncd_defvar(ncid=ncid, varname='rc13_psnsun', xtype=ncd_double,  &
-               dim1name='pft',long_name='',units='')
-       else if (flag == 'read' .or. flag == 'write') then
-          call ncd_io(varname='rc13_psnsun', data=pptr%pepv%rc13_psnsun, &
-               dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-          if (flag=='read' .and. .not. readvar) then
-             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-          end if
-       end if
+      ! rc13_psnsun
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'rc13_psnsun',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( ktau /= 0 .and. .not. clm_check_var(ncid,'rc13_psnsun') ) then
+          call fatal(__FILE__,__LINE__,'clm now stopping')
+        else
+          call clm_readvar(ncid,'rc13_psnsun', &
+                  pptr%pepv%rc13_psnsun,gcomm_pft)
+        end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'rc13_psnsun', &
+                pptr%pepv%rc13_psnsun,gcomm_pft)
+      end if
 
-       ! rc13_psnsha
-       if (flag == 'define') then
-          call ncd_defvar(ncid=ncid, varname='rc13_psnsha', xtype=ncd_double,  &
-               dim1name='pft',long_name='',units='')
-       else if (flag == 'read' .or. flag == 'write') then
-          call ncd_io(varname='rc13_psnsha', data=pptr%pepv%rc13_psnsha, &
-               dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-          if (flag=='read' .and. .not. readvar) then
-             if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-          end if
-       end if
+      ! rc13_psnsha
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'rc13_psnsha',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( ktau /= 0 .and. .not. clm_check_var(ncid,'rc13_psnsha') ) then
+          call fatal(__FILE__,__LINE__,'clm now stopping')
+        else
+          call clm_readvar(ncid,'rc13_psnsha', &
+                  pptr%pepv%rc13_psnsha,gcomm_pft)
+        end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'rc13_psnsha', &
+                pptr%pepv%rc13_psnsha,gcomm_pft)
+      end if
     end if
 
 #if (defined CROP)
     ! grain_flag
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='grain_flag', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='grain_flag', data=pptr%pepv%grain_flag, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-          if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'grain_flag',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'grain_flag') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'grain_flag', &
+                pptr%pepv%grain_flag,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'grain_flag', &
+              pptr%pepv%grain_flag,gcomm_pft)
     end if
 #endif
 
@@ -712,1141 +810,1454 @@ module mod_clm_cnrest
 
     ! leafc
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='leafc', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='leafc', data=pptr%pcs%leafc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'leafc',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'leafc') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'leafc',pptr%pcs%leafc,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'leafc',pptr%pcs%leafc,gcomm_pft)
     end if
 
     ! leafc_storage
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='leafc_storage', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='leafc_storage', data=pptr%pcs%leafc_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'leafc_storage',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'leafc_storage') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'leafc_storage', &
+                pptr%pcs%leafc_storage,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'leafc_storage', &
+              pptr%pcs%leafc_storage,gcomm_pft)
     end if
 
     ! leafc_xfer
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='leafc_xfer', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='leafc_xfer', data=pptr%pcs%leafc_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'leafc_xfer',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'leafc_xfer') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'leafc_xfer',pptr%pcs%leafc_xfer,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'leafc_xfer',pptr%pcs%leafc_xfer,gcomm_pft)
     end if
 
     ! frootc
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='frootc', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='frootc', data=pptr%pcs%frootc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'frootc',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'frootc') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'frootc',pptr%pcs%frootc,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'frootc',pptr%pcs%frootc,gcomm_pft)
     end if
 
     ! frootc_storage
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='frootc_storage', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='frootc_storage', data=pptr%pcs%frootc_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'frootc_storage',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'frootc_storage') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'frootc_storage', &
+                pptr%pcs%frootc_storage,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'frootc_storage', &
+              pptr%pcs%frootc_storage,gcomm_pft)
     end if
 
     !frootc_xfer
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='frootc_xfer', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='frootc_xfer', data=pptr%pcs%frootc_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'frootc_xfer',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'frootc_xfer') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'frootc_xfer',pptr%pcs%frootc_xfer,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'frootc_xfer',pptr%pcs%frootc_xfer,gcomm_pft)
     end if
 
     ! livestemc
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='livestemc', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='livestemc', data=pptr%pcs%livestemc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'livestemc',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'livestemc') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'livestemc',pptr%pcs%livestemc,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'livestemc',pptr%pcs%livestemc,gcomm_pft)
     end if
 
     ! livestemc_storage
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='livestemc_storage', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='livestemc_storage', data=pptr%pcs%livestemc_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'livestemc_storage',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'livestemc_storage') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'livestemc_storage', &
+                pptr%pcs%livestemc_storage,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'livestemc_storage', &
+              pptr%pcs%livestemc_storage,gcomm_pft)
     end if
 
     ! livestemc_xfer
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='livestemc_xfer', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='livestemc_xfer', data=pptr%pcs%livestemc_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'livestemc_xfer',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'livestemc_xfer') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'livestemc_xfer', &
+                pptr%pcs%livestemc_xfer,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'livestemc_xfer', &
+              pptr%pcs%livestemc_xfer,gcomm_pft)
     end if
 
     ! deadstemc
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='deadstemc', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='deadstemc', data=pptr%pcs%deadstemc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'deadstemc',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'deadstemc') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'deadstemc',pptr%pcs%deadstemc,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'deadstemc',pptr%pcs%deadstemc,gcomm_pft)
     end if
 
     ! deadstemc_storage
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='deadstemc_storage', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='deadstemc_storage', data=pptr%pcs%deadstemc_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'deadstemc_storage',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'deadstemc_storage') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'deadstemc_storage', &
+                pptr%pcs%deadstemc_storage,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'deadstemc_storage', &
+              pptr%pcs%deadstemc_storage,gcomm_pft)
     end if
 
     ! deadstemc_xfer
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='deadstemc_xfer', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='deadstemc_xfer', data=pptr%pcs%deadstemc_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'deadstemc_xfer',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'deadstemc_xfer') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'deadstemc_xfer', &
+                pptr%pcs%deadstemc_xfer,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'deadstemc_xfer', &
+              pptr%pcs%deadstemc_xfer,gcomm_pft)
     end if
 
     ! livecrootc
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='livecrootc', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='livecrootc', data=pptr%pcs%livecrootc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'livecrootc',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'livecrootc') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'livecrootc',pptr%pcs%livecrootc,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'livecrootc',pptr%pcs%livecrootc,gcomm_pft)
     end if
 
     ! livecrootc_storage
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='livecrootc_storage', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='livecrootc_storage', data=pptr%pcs%livecrootc_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'livecrootc_storage',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. &
+           .not. clm_check_var(ncid,'livecrootc_storage') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'livecrootc_storage', &
+                pptr%pcs%livecrootc_storage,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'livecrootc_storage', &
+              pptr%pcs%livecrootc_storage,gcomm_pft)
     end if
 
     ! livecrootc_xfer
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='livecrootc_xfer', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='livecrootc_xfer', data=pptr%pcs%livecrootc_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'livecrootc_xfer',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'livecrootc_xfer') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'livecrootc_xfer', &
+                pptr%pcs%livecrootc_xfer,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'livecrootc_xfer', &
+              pptr%pcs%livecrootc_xfer,gcomm_pft)
     end if
 
     ! deadcrootc
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='deadcrootc', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='deadcrootc', data=pptr%pcs%deadcrootc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'deadcrootc',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'deadcrootc') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'deadcrootc',pptr%pcs%deadcrootc,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'deadcrootc',pptr%pcs%deadcrootc,gcomm_pft)
     end if
 
     ! deadcrootc_storage
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='deadcrootc_storage', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='deadcrootc_storage', data=pptr%pcs%deadcrootc_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'deadcrootc_storage',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. &
+           .not. clm_check_var(ncid,'deadcrootc_storage') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'deadcrootc_storage', &
+                pptr%pcs%deadcrootc_storage,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'deadcrootc_storage', &
+              pptr%pcs%deadcrootc_storage,gcomm_pft)
     end if
 
     ! deadcrootc_xfer
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='deadcrootc_xfer', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='deadcrootc_xfer', data=pptr%pcs%deadcrootc_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'deadcrootc_xfer',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'deadcrootc_xfer') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'deadcrootc_xfer', &
+                pptr%pcs%deadcrootc_xfer,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'deadcrootc_xfer', &
+              pptr%pcs%deadcrootc_xfer,gcomm_pft)
     end if
 
     ! gresp_storage
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='gresp_storage', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='gresp_storage', data=pptr%pcs%gresp_storage, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'gresp_storage',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'gresp_storage') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'gresp_storage', &
+                pptr%pcs%gresp_storage,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'gresp_storage', &
+              pptr%pcs%gresp_storage,gcomm_pft)
     end if
 
     ! gresp_xfer
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='gresp_xfer', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='gresp_xfer', data=pptr%pcs%gresp_xfer, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'gresp_xfer',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'gresp_xfer') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'gresp_xfer',pptr%pcs%gresp_xfer,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'gresp_xfer',pptr%pcs%gresp_xfer,gcomm_pft)
     end if
 
     ! cpool
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='cpool', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='cpool', data=pptr%pcs%cpool, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'cpool',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'cpool') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'cpool',pptr%pcs%cpool,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'cpool',pptr%pcs%cpool,gcomm_pft)
     end if
 
     ! xsmrpool
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='xsmrpool', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='xsmrpool', data=pptr%pcs%xsmrpool, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'xsmrpool',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'xsmrpool') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'xsmrpool',pptr%pcs%xsmrpool,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'xsmrpool',pptr%pcs%xsmrpool,gcomm_pft)
     end if
 
     ! pft_ctrunc
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='pft_ctrunc', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='pft_ctrunc', data=pptr%pcs%pft_ctrunc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'pft_ctrunc',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'pft_ctrunc') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'pft_ctrunc',pptr%pcs%pft_ctrunc,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'pft_ctrunc',pptr%pcs%pft_ctrunc,gcomm_pft)
     end if
 
     ! totvegc
     if (flag == 'define') then
-       call ncd_defvar(ncid=ncid, varname='totvegc', xtype=ncd_double,  &
-            dim1name='pft',long_name='',units='')
-    else if (flag == 'read' .or. flag == 'write') then
-       call ncd_io(varname='totvegc', data=pptr%pcs%totvegc, &
-            dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-       if (flag=='read' .and. .not. readvar) then
-      if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-       end if
+      call clm_addvar(clmvar_double,ncid,'totvegc',(/'pft'/), &
+            long_name='',units='')
+    else if (flag == 'read') then
+      if ( ktau /= 0 .and. .not. clm_check_var(ncid,'totvegc') ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
+      else
+        call clm_readvar(ncid,'totvegc',pptr%pcs%totvegc,gcomm_pft)
+      end if
+    else if (flag == 'write') then
+      call clm_writevar(ncid,'totvegc',pptr%pcs%totvegc,gcomm_pft)
     end if
 
+    if ( use_c13 ) then
+      !--------------------------------
+      ! C13 pft carbon state variables
+      !--------------------------------
 
-    ! ! leaf_prof
-    ! call cnrest_addfld_decomp(ncid=ncid, varname='leaf_prof', longname='', units='', flag=flag, data_rl=pptr%pps%leaf_prof, readvar=readvar)
-
-    ! ! froot_prof
-    ! call cnrest_addfld_decomp(ncid=ncid, varname='froot_prof', longname='', units='', flag=flag, data_rl=pptr%pps%froot_prof, readvar=readvar)
-
-    ! ! croot_prof
-    ! call cnrest_addfld_decomp(ncid=ncid, varname='croot_prof', longname='', units='', flag=flag, data_rl=pptr%pps%croot_prof, readvar=readvar)
-
-    ! ! stem_prof
-    ! call cnrest_addfld_decomp(ncid=ncid, varname='stem_prof', longname='', units='', flag=flag, data_rl=pptr%pps%stem_prof, readvar=readvar)
-
-
-     if ( use_c13 ) then
-        !--------------------------------
-        ! C13 pft carbon state variables
-        !--------------------------------
-
-        ! leafc
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='leafc_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='leafc_13', data=pptr%pc13s%leafc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%leafc with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%leafc(i) = pcbulks%leafc(i) * c3_r2
-                 else
-                    pcisos%leafc(i) = pcbulks%leafc(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%leafc(i) .ne. spval .and. pptr%pcs%leafc(i) .ne. nan ) then
-!                    pptr%pc13s%leafc(i) = pptr%pcs%leafc(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! leafc
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'leafc_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'leafc_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) 'initializing C13 leafc with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%leafc(i) = pcbulks%leafc(i) * c3_r2
+              else
+                pcisos%leafc(i) = pcbulks%leafc(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'leafc_13',pptr%pc13s%leafc,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'leafc_13',pptr%pc13s%leafc,gcomm_pft)
+      end if
 
-        ! leafc_storage
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='leafc_storage_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='leafc_storage_13', data=pptr%pc13s%leafc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%leafc_storage with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%leafc_storage(i) = pcbulks%leafc_storage(i) * c3_r2
-                 else
-                    pcisos%leafc_storage(i) = pcbulks%leafc_storage(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%leafc_storage(i) .ne. spval .and. pptr%pcs%leafc_storage(i) .ne. nan ) then
-!                    pptr%pc13s%leafc_storage(i) = pptr%pcs%leafc_storage(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! leafc_storage
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'leafc_storage_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'leafc_storage_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+              'initializing C13 leafc_storage_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%leafc_storage(i) = pcbulks%leafc_storage(i) * c3_r2
+              else
+                pcisos%leafc_storage(i) = pcbulks%leafc_storage(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'leafc_storage_13', &
+                  pptr%pc13s%leafc_storage,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'leafc_storage_13', &
+                pptr%pc13s%leafc_storage,gcomm_pft)
+      end if
 
-        ! leafc_xfer
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='leafc_xfer_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='leafc_xfer_13', data=pptr%pc13s%leafc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%leafc_xfer with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%leafc_xfer(i) = pcbulks%leafc_xfer(i) * c3_r2
-                 else
-                    pcisos%leafc_xfer(i) = pcbulks%leafc_xfer(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%leafc_xfer(i) .ne. spval .and. pptr%pcs%leafc_xfer(i) .ne. nan ) then
-!                    pptr%pc13s%leafc_xfer(i) = pptr%pcs%leafc_xfer(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! leafc_xfer
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'leafc_xfer_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'leafc_xfer_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+              'initializing C13 leafc_xfer_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%leafc_xfer(i) = pcbulks%leafc_xfer(i) * c3_r2
+              else
+                pcisos%leafc_xfer(i) = pcbulks%leafc_xfer(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'leafc_xfer_13', &
+                  pptr%pc13s%leafc_xfer,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'leafc_xfer_13', &
+                pptr%pc13s%leafc_xfer,gcomm_pft)
+      end if
 
-        ! frootc
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='frootc_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='frootc_13', data=pptr%pc13s%frootc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%frootc with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%frootc(i) = pcbulks%frootc(i) * c3_r2
-                 else
-                    pcisos%frootc(i) = pcbulks%frootc(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%frootc(i) .ne. spval .and. pptr%pcs%frootc(i) .ne. nan ) then
-!                    pptr%pc13s%frootc(i) = pptr%pcs%frootc(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! frootc
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'frootc_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'frootc_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+              'initializing C13 frootc_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%frootc(i) = pcbulks%frootc(i) * c3_r2
+              else
+                pcisos%frootc(i) = pcbulks%frootc(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'frootc_13',pptr%pc13s%frootc,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'frootc_13',pptr%pc13s%frootc,gcomm_pft)
+      end if
 
-        ! frootc_storage
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='frootc_storage_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='frootc_storage_13', data=pptr%pc13s%frootc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%frootc_storage with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%frootc_storage(i) = pcbulks%frootc_storage(i) * c3_r2
-                 else
-                    pcisos%frootc_storage(i) = pcbulks%frootc_storage(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%frootc_storage(i) .ne. spval .and. pptr%pcs%frootc_storage(i) .ne. nan ) then
-!                    pptr%pc13s%frootc_storage(i) = pptr%pcs%frootc_storage(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! frootc_storage
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'frootc_storage_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'frootc_storage_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+              'initializing C13 frootc_storage_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%frootc_storage(i) = pcbulks%frootc_storage(i) * c3_r2
+              else
+                pcisos%frootc_storage(i) = pcbulks%frootc_storage(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'frootc_storage_13', &
+                  pptr%pc13s%frootc_storage,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'frootc_storage_13', &
+                pptr%pc13s%frootc_storage,gcomm_pft)
+      end if
 
-        !frootc_xfer
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='frootc_xfer_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='frootc_xfer_13', data=pptr%pc13s%frootc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%frootc_xfer with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%frootc_xfer(i) = pcbulks%frootc_xfer(i) * c3_r2
-                 else
-                    pcisos%frootc_xfer(i) = pcbulks%frootc_xfer(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%frootc_xfer(i) .ne. spval .and. pptr%pcs%frootc_xfer(i) .ne. nan ) then
-!                    pptr%pc13s%frootc_xfer(i) = pptr%pcs%frootc_xfer(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      !frootc_xfer
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'frootc_xfer_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'frootc_xfer_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+              'initializing C13 frootc_xfer_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%frootc_xfer(i) = pcbulks%frootc_xfer(i) * c3_r2
+              else
+                pcisos%frootc_xfer(i) = pcbulks%frootc_xfer(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'frootc_xfer_13', &
+                  pptr%pc13s%frootc_xfer,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'frootc_xfer_13', &
+                pptr%pc13s%frootc_xfer,gcomm_pft)
+      end if
 
-        ! livestemc
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='livestemc_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='livestemc_13', data=pptr%pc13s%livestemc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%livestemc with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%livestemc(i) = pcbulks%livestemc(i) * c3_r2
-                 else
-                    pcisos%livestemc(i) = pcbulks%livestemc(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%livestemc(i) .ne. spval .and. pptr%pcs%livestemc(i) .ne. nan ) then
-!                    pptr%pc13s%livestemc(i) = pptr%pcs%livestemc(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! livestemc
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'livestemc_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'livestemc_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+              'initializing C13 livestemc_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%livestemc(i) = pcbulks%livestemc(i) * c3_r2
+              else
+                pcisos%livestemc(i) = pcbulks%livestemc(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'livestemc_13', &
+                  pptr%pc13s%livestemc,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'livestemc_13', &
+                pptr%pc13s%livestemc,gcomm_pft)
+      end if
 
-        ! livestemc_storage
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='livestemc_storage_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='livestemc_storage_13', data=pptr%pc13s%livestemc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%livestemc_storage with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%livestemc_storage(i) = pcbulks%livestemc_storage(i) * c3_r2
-                 else
-                    pcisos%livestemc_storage(i) = pcbulks%livestemc_storage(i) * c4_r2
-                 end if
-!                if (pptr%pcs%livestemc_storage(i) .ne. spval .and. pptr%pcs%livestemc_storage(i) .ne. nan ) then
-!                    pptr%pc13s%livestemc_storage(i) = pptr%pcs%livestemc_storage(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! livestemc_storage
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'livestemc_storage_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'livestemc_storage_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+              'initializing C13 livestemc_storage_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%livestemc_storage(i) = &
+                        pcbulks%livestemc_storage(i) * c3_r2
+              else
+                pcisos%livestemc_storage(i) = &
+                        pcbulks%livestemc_storage(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'livestemc_storage_13', &
+                  pptr%pc13s%livestemc_storage,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'livestemc_storage_13', &
+                pptr%pc13s%livestemc_storage,gcomm_pft)
+      end if
 
-        ! livestemc_xfer
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='livestemc_xfer_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='livestemc_xfer_13', data=pptr%pc13s%livestemc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%livestemc_xfer with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%livestemc_xfer(i) = pcbulks%livestemc_xfer(i) * c3_r2
-                 else
-                    pcisos%livestemc_xfer(i) = pcbulks%livestemc_xfer(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%livestemc_xfer(i) .ne. spval .and. pptr%pcs%livestemc_xfer(i) .ne. nan ) then
-!                    pptr%pc13s%livestemc_xfer(i) = pptr%pcs%livestemc_xfer(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! livestemc_xfer
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'livestemc_xfer_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'livestemc_xfer_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+              'initializing C13 livestemc_xfer_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%livestemc_xfer(i) = pcbulks%livestemc_xfer(i) * c3_r2
+              else
+                pcisos%livestemc_xfer(i) = pcbulks%livestemc_xfer(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'livestemc_xfer_13', &
+                  pptr%pc13s%livestemc_xfer,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'livestemc_xfer_13', &
+                pptr%pc13s%livestemc_xfer,gcomm_pft)
+      end if
 
-        ! deadstemc
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='deadstemc_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='deadstemc_13', data=pptr%pc13s%deadstemc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%deadstemc with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%deadstemc(i) = pcbulks%deadstemc(i) * c3_r2
-                 else
-                    pcisos%deadstemc(i) = pcbulks%deadstemc(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%deadstemc(i) .ne. spval .and. pptr%pcs%deadstemc(i) .ne. nan ) then
-!                    pptr%pc13s%deadstemc(i) = pptr%pcs%deadstemc(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! deadstemc
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'deadstemc_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'deadstemc_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+              'initializing C13 deadstemc_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%deadstemc(i) = pcbulks%deadstemc(i) * c3_r2
+              else
+                pcisos%deadstemc(i) = pcbulks%deadstemc(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'deadstemc_13', &
+                  pptr%pc13s%deadstemc,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'deadstemc_13', &
+                pptr%pc13s%deadstemc,gcomm_pft)
+      end if
 
-        ! deadstemc_storage
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='deadstemc_storage_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='deadstemc_storage_13', data=pptr%pc13s%deadstemc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%deadstemc_storage with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%deadstemc_storage(i) = pcbulks%deadstemc_storage(i) * c3_r2
-                 else
-                    pcisos%deadstemc_storage(i) = pcbulks%deadstemc_storage(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%deadstemc_storage(i) .ne. spval .and. pptr%pcs%deadstemc_storage(i) .ne. nan ) then
-!                    pptr%pc13s%deadstemc_storage(i) = pptr%pcs%deadstemc_storage(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! deadstemc_storage
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'deadstemc_storage_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'deadstemc_storage_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+              'initializing C13 deadstemc_storage_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%deadstemc_storage(i) = &
+                        pcbulks%deadstemc_storage(i) * c3_r2
+              else
+                pcisos%deadstemc_storage(i) = &
+                        pcbulks%deadstemc_storage(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'deadstemc_storage_13', &
+                  pptr%pc13s%deadstemc_storage,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'deadstemc_storage_13', &
+                pptr%pc13s%deadstemc_storage,gcomm_pft)
+      end if
 
-        ! deadstemc_xfer
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='deadstemc_xfer_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='deadstemc_xfer_13', data=pptr%pc13s%deadstemc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%deadstemc_xfer with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%deadstemc_xfer(i) = pcbulks%deadstemc_xfer(i) * c3_r2
-                 else
-                    pcisos%deadstemc_xfer(i) = pcbulks%deadstemc_xfer(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%deadstemc_xfer(i) .ne. spval .and. pptr%pcs%deadstemc_xfer(i) .ne. nan ) then
-!                    pptr%pc13s%deadstemc_xfer(i) = pptr%pcs%deadstemc_xfer(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! deadstemc_xfer
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'deadstemc_xfer_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'deadstemc_xfer_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+              'initializing C13 deadstemc_xfer_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%deadstemc_xfer(i) = pcbulks%deadstemc_xfer(i) * c3_r2
+              else
+                pcisos%deadstemc_xfer(i) = pcbulks%deadstemc_xfer(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'deadstemc_xfer_13', &
+                  pptr%pc13s%deadstemc_xfer,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'deadstemc_xfer_13', &
+                pptr%pc13s%deadstemc_xfer,gcomm_pft)
+      end if
 
-        ! livecrootc
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='livecrootc_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='livecrootc_13', data=pptr%pc13s%livecrootc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%livecrootc with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%livecrootc(i) = pcbulks%livecrootc(i) * c3_r2
-                 else
-                    pcisos%livecrootc(i) = pcbulks%livecrootc(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%livecrootc(i) .ne. spval .and. pptr%pcs%livecrootc(i) .ne. nan ) then
-!                    pptr%pc13s%livecrootc(i) = pptr%pcs%livecrootc(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! livecrootc
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'livecrootc_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'livecrootc_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+              'initializing C13 livecrootc_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%livecrootc(i) = pcbulks%livecrootc(i) * c3_r2
+              else
+                pcisos%livecrootc(i) = pcbulks%livecrootc(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'livecrootc_13', &
+                  pptr%pc13s%livecrootc,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'livecrootc_13', &
+                pptr%pc13s%livecrootc,gcomm_pft)
+      end if
 
-        ! livecrootc_storage
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='livecrootc_storage_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='livecrootc_storage_13', data=pptr%pc13s%livecrootc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%livecrootc_storage with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%livecrootc_storage(i) = pcbulks%livecrootc_storage(i) * c3_r2
-                 else
-                    pcisos%livecrootc_storage(i) = pcbulks%livecrootc_storage(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%livecrootc_storage(i) .ne. spval .and. pptr%pcs%livecrootc_storage(i) .ne. nan ) then
-!                    pptr%pc13s%livecrootc_storage(i) = pptr%pcs%livecrootc_storage(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! livecrootc_storage
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'livecrootc_storage_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'livecrootc_storage_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C13 livecrootc_storage_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%livecrootc_storage(i) = &
+                        pcbulks%livecrootc_storage(i) * c3_r2
+              else
+                pcisos%livecrootc_storage(i) = &
+                        pcbulks%livecrootc_storage(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'livecrootc_storage_13', &
+                  pptr%pc13s%livecrootc_storage,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'livecrootc_storage_13', &
+                pptr%pc13s%livecrootc_storage,gcomm_pft)
+      end if
 
-        ! livecrootc_xfer
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='livecrootc_xfer_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='livecrootc_xfer_13', data=pptr%pc13s%livecrootc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%livecrootc_xfer with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%livecrootc_xfer(i) = pcbulks%livecrootc_xfer(i) * c3_r2
-                 else
-                    pcisos%livecrootc_xfer(i) = pcbulks%livecrootc_xfer(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%livecrootc_xfer(i) .ne. spval .and. pptr%pcs%livecrootc_xfer(i) .ne. nan ) then
-!                    pptr%pc13s%livecrootc_xfer(i) = pptr%pcs%livecrootc_xfer(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! livecrootc_xfer
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'livecrootc_xfer_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'livecrootc_xfer_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C13 livecrootc_xfer_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%livecrootc_xfer(i) = pcbulks%livecrootc_xfer(i) * c3_r2
+              else
+                pcisos%livecrootc_xfer(i) = pcbulks%livecrootc_xfer(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'livecrootc_xfer_13', &
+                  pptr%pc13s%livecrootc_xfer,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'livecrootc_xfer_13', &
+                pptr%pc13s%livecrootc_xfer,gcomm_pft)
+      end if
 
-        ! deadcrootc
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='deadcrootc_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='deadcrootc_13', data=pptr%pc13s%deadcrootc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%deadcrootc with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%deadcrootc(i) = pcbulks%deadcrootc(i) * c3_r2
-                 else
-                    pcisos%deadcrootc(i) = pcbulks%deadcrootc(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%deadcrootc(i) .ne. spval .and. pptr%pcs%deadcrootc(i) .ne. nan ) then
-!                    pptr%pc13s%deadcrootc(i) = pptr%pcs%deadcrootc(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! deadcrootc
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'deadcrootc_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'deadcrootc_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C13 deadcrootc_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%deadcrootc(i) = pcbulks%deadcrootc(i) * c3_r2
+              else
+                pcisos%deadcrootc(i) = pcbulks%deadcrootc(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'deadcrootc_13', &
+                  pptr%pc13s%deadcrootc,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'deadcrootc_13', &
+                pptr%pc13s%deadcrootc,gcomm_pft)
+      end if
 
-        ! deadcrootc_storage
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='deadcrootc_storage_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='deadcrootc_storage_13', data=pptr%pc13s%deadcrootc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%deadcrootc_storage with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%deadcrootc_storage(i) = pcbulks%deadcrootc_storage(i) * c3_r2
-                 else
-                    pcisos%deadcrootc_storage(i) = pcbulks%deadcrootc_storage(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%deadcrootc_storage(i) .ne. spval .and. pptr%pcs%deadcrootc_storage(i) .ne. nan ) then
-!                    pptr%pc13s%deadcrootc_storage(i) = pptr%pcs%deadcrootc_storage(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! deadcrootc_storage
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'deadcrootc_storage_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'deadcrootc_storage_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C13 deadcrootc_storage_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%deadcrootc_storage(i) = &
+                        pcbulks%deadcrootc_storage(i) * c3_r2
+              else
+                pcisos%deadcrootc_storage(i) = &
+                        pcbulks%deadcrootc_storage(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'deadcrootc_storage_13', &
+                  pptr%pc13s%deadcrootc_storage,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'deadcrootc_storage_13', &
+                pptr%pc13s%deadcrootc_storage,gcomm_pft)
+      end if
 
-        ! deadcrootc_xfer
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='deadcrootc_xfer_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='deadcrootc_xfer_13', data=pptr%pc13s%deadcrootc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%deadcrootc_xfer with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%deadcrootc_xfer(i) = pcbulks%deadcrootc_xfer(i) * c3_r2
-                 else
-                    pcisos%deadcrootc_xfer(i) = pcbulks%deadcrootc_xfer(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%deadcrootc_xfer(i) .ne. spval .and. pptr%pcs%deadcrootc_xfer(i) .ne. nan ) then
-!                    pptr%pc13s%deadcrootc_xfer(i) = pptr%pcs%deadcrootc_xfer(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! deadcrootc_xfer
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'deadcrootc_xfer_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'deadcrootc_xfer_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C13 deadcrootc_xfer_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%deadcrootc_xfer(i) = pcbulks%deadcrootc_xfer(i) * c3_r2
+              else
+                pcisos%deadcrootc_xfer(i) = pcbulks%deadcrootc_xfer(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'deadcrootc_xfer_13', &
+                  pptr%pc13s%deadcrootc_xfer,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'deadcrootc_xfer_13', &
+                pptr%pc13s%deadcrootc_xfer,gcomm_pft)
+      end if
 
-        ! gresp_storage
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='gresp_storage_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='gresp_storage_13', data=pptr%pc13s%gresp_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%gresp_storage with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%gresp_storage(i) = pcbulks%gresp_storage(i) * c3_r2
-                 else
-                    pcisos%gresp_storage(i) = pcbulks%gresp_storage(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%gresp_storage(i) .ne. spval .and. pptr%pcs%gresp_storage(i) .ne. nan ) then
-!                    pptr%pc13s%gresp_storage(i) = pptr%pcs%gresp_storage(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! gresp_storage
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'gresp_storage_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'gresp_storage_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C13 gresp_storage_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%gresp_storage(i) = pcbulks%gresp_storage(i) * c3_r2
+              else
+                pcisos%gresp_storage(i) = pcbulks%gresp_storage(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'gresp_storage_13', &
+                  pptr%pc13s%gresp_storage,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'gresp_storage_13', &
+                pptr%pc13s%gresp_storage,gcomm_pft)
+      end if
 
-        ! gresp_xfer
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='gresp_xfer_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='gresp_xfer_13', data=pptr%pc13s%gresp_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%gresp_xfer with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%gresp_xfer(i) = pcbulks%gresp_xfer(i) * c3_r2
-                 else
-                    pcisos%gresp_xfer(i) = pcbulks%gresp_xfer(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%gresp_xfer(i) .ne. spval .and. pptr%pcs%gresp_xfer(i) .ne. nan ) then
-!                    pptr%pc13s%gresp_xfer(i) = pptr%pcs%gresp_xfer(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! gresp_xfer
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'gresp_xfer_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'gresp_xfer_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C13 gresp_xfer_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%gresp_xfer(i) = pcbulks%gresp_xfer(i) * c3_r2
+              else
+                pcisos%gresp_xfer(i) = pcbulks%gresp_xfer(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'gresp_xfer_13', &
+                  pptr%pc13s%gresp_xfer,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'gresp_xfer_13', &
+                pptr%pc13s%gresp_xfer,gcomm_pft)
+      end if
 
-        ! cpool
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='cpool_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='cpool_13', data=pptr%pc13s%cpool, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%cpool with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%cpool(i) = pcbulks%cpool(i) * c3_r2
-                 else
-                    pcisos%cpool(i) = pcbulks%cpool(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%cpool(i) .ne. spval .and. pptr%pcs%cpool(i) .ne. nan ) then
-!                    pptr%pc13s%cpool(i) = pptr%pcs%cpool(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! cpool
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'cpool_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'cpool_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C13 cpool_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%cpool(i) = pcbulks%cpool(i) * c3_r2
+              else
+                pcisos%cpool(i) = pcbulks%cpool(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'cpool_13',pptr%pc13s%cpool,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'cpool_13',pptr%pc13s%cpool,gcomm_pft)
+      end if
 
-        ! xsmrpool
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='xsmrpool_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='xsmrpool_13', data=pptr%pc13s%xsmrpool, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%xsmrpool with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%xsmrpool(i) = pcbulks%xsmrpool(i) * c3_r2
-                 else
-                    pcisos%xsmrpool(i) = pcbulks%xsmrpool(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%xsmrpool(i) .ne. spval .and. pptr%pcs%xsmrpool(i) .ne. nan ) then
-!                    pptr%pc13s%xsmrpool(i) = pptr%pcs%xsmrpool(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! xsmrpool
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'xsmrpool_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'xsmrpool_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C13 xsmrpool_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%xsmrpool(i) = pcbulks%xsmrpool(i) * c3_r2
+              else
+                pcisos%xsmrpool(i) = pcbulks%xsmrpool(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'xsmrpool_13',pptr%pc13s%xsmrpool,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'xsmrpool_13',pptr%pc13s%xsmrpool,gcomm_pft)
+      end if
 
-        ! pft_ctrunc
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='pft_ctrunc_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='pft_ctrunc_13', data=pptr%pc13s%pft_ctrunc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%pft_ctrunc with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%pft_ctrunc(i) = pcbulks%pft_ctrunc(i) * c3_r2
-                 else
-                    pcisos%pft_ctrunc(i) = pcbulks%pft_ctrunc(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%pft_ctrunc(i) .ne. spval .and. pptr%pcs%pft_ctrunc(i) .ne. nan ) then
-!                    pptr%pc13s%pft_ctrunc(i) = pptr%pcs%pft_ctrunc(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! pft_ctrunc
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'pft_ctrunc_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'pft_ctrunc_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C13 pft_ctrunc_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%pft_ctrunc(i) = pcbulks%pft_ctrunc(i) * c3_r2
+              else
+                pcisos%pft_ctrunc(i) = pcbulks%pft_ctrunc(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'pft_ctrunc_13',pptr%pc13s%pft_ctrunc,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'pft_ctrunc_13',pptr%pc13s%pft_ctrunc,gcomm_pft)
+      end if
 
-        ! totvegc
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='totvegc_13', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='totvegc_13', data=pptr%pc13s%totvegc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc13s%totvegc with atmospheric c13 value'
-              do i = begp,endp
-                 if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
-                    pcisos%totvegc(i) = pcbulks%totvegc(i) * c3_r2
-                 else
-                    pcisos%totvegc(i) = pcbulks%totvegc(i) * c4_r2
-                 end if
-!                 if (pptr%pcs%totvegc(i) .ne. spval .and. pptr%pcs%totvegc(i) .ne. nan ) then
-!                    pptr%pc13s%totvegc(i) = pptr%pcs%totvegc(i) * c13ratio
-!                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! totvegc
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'totvegc_13',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'totvegc_13') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C13 totvegc_13 with atmospheric c13 value'
+            do i = begp , endp
+              if (pftcon%c3psn(clm3%g%l%c%p%itype(i)) == 1.D0) then
+                pcisos%totvegc(i) = pcbulks%totvegc(i) * c3_r2
+              else
+                pcisos%totvegc(i) = pcbulks%totvegc(i) * c4_r2
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'totvegc_13',pptr%pc13s%totvegc,gcomm_pft)
         end if
-     end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'totvegc_13',pptr%pc13s%totvegc,gcomm_pft)
+      end if
+    end if
 
-     if ( use_c14 ) then
-        !--------------------------------
-        ! C14 pft carbon state variables
-        !--------------------------------
+    if ( use_c14 ) then
+      !--------------------------------
+      ! C14 pft carbon state variables
+      !--------------------------------
 
-        ! leafc
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='leafc_14', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='leafc_14', data=pptr%pc14s%leafc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc14s%leafc with atmospheric c14 value'
-              do i = begp,endp
-                 if (pptr%pcs%leafc(i) .ne. spval .and. pptr%pcs%leafc(i) .ne. nan ) then
-                    pptr%pc14s%leafc(i) = pptr%pcs%leafc(i) * c14ratio
-                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! leafc
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'leafc_14',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'leafc_14') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C14 leafc_14 with atmospheric c14 value'
+            do i = begp , endp
+              if (pptr%pcs%leafc(i) .ne. spval .and. &
+                  pptr%pcs%leafc(i) .ne. nan ) then
+                pptr%pc14s%leafc(i) = pptr%pcs%leafc(i) * c14ratio
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'leafc_14',pptr%pc14s%leafc,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'leafc_14',pptr%pc14s%leafc,gcomm_pft)
+      end if
 
-
-        ! leafc_storage
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='leafc_storage_14', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='leafc_storage_14', data=pptr%pc14s%leafc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc14s%leafc_storage with atmospheric c14 value'
-              do i = begp,endp
-                 if (pptr%pcs%leafc_storage(i) .ne. spval .and. pptr%pcs%leafc_storage(i) .ne. nan ) then
-                    pptr%pc14s%leafc_storage(i) = pptr%pcs%leafc_storage(i) * c14ratio
-                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! leafc_storage
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'leafc_storage_14',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'leafc_storage_14') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C14 leafc_storage_14 with atmospheric c14 value'
+            do i = begp , endp
+              if (pptr%pcs%leafc_storage(i) .ne. spval .and. &
+                  pptr%pcs%leafc_storage(i) .ne. nan ) then
+                pptr%pc14s%leafc_storage(i) = &
+                        pptr%pcs%leafc_storage(i) * c14ratio
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'leafc_storage_14', &
+                  pptr%pc14s%leafc_storage,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'leafc_storage_14', &
+                pptr%pc14s%leafc_storage,gcomm_pft)
+      end if
 
-        ! leafc_xfer
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='leafc_xfer_14', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='leafc_xfer_14', data=pptr%pc14s%leafc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc14s%leafc_xfer with atmospheric c14 value'
-              do i = begp,endp
-                 if (pptr%pcs%leafc_xfer(i) .ne. spval .and. pptr%pcs%leafc_xfer(i) .ne. nan ) then
-                    pptr%pc14s%leafc_xfer(i) = pptr%pcs%leafc_xfer(i) * c14ratio
-                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! leafc_xfer
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'leafc_xfer_14',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'leafc_xfer_14') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C14 leafc_xfer_14 with atmospheric c14 value'
+            do i = begp , endp
+              if (pptr%pcs%leafc_xfer(i) .ne. spval .and. &
+                  pptr%pcs%leafc_xfer(i) .ne. nan ) then
+                pptr%pc14s%leafc_xfer(i) = pptr%pcs%leafc_xfer(i) * c14ratio
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'leafc_xfer_14', &
+                  pptr%pc14s%leafc_xfer,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'leafc_xfer_14', &
+                pptr%pc14s%leafc_xfer,gcomm_pft)
+      end if
 
-        ! frootc
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='frootc_14', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='frootc_14', data=pptr%pc14s%frootc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc14s%frootc with atmospheric c14 value'
-              do i = begp,endp
-                 if (pptr%pcs%frootc(i) .ne. spval .and. pptr%pcs%frootc(i) .ne. nan ) then
-                    pptr%pc14s%frootc(i) = pptr%pcs%frootc(i) * c14ratio
-                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! frootc
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'frootc_14',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'frootc_14') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C14 frootc_14 with atmospheric c14 value'
+            do i = begp , endp
+              if (pptr%pcs%frootc(i) .ne. spval .and. &
+                  pptr%pcs%frootc(i) .ne. nan ) then
+                pptr%pc14s%frootc(i) = pptr%pcs%frootc(i) * c14ratio
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'frootc_14', &
+                  pptr%pc14s%frootc,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'frootc_14', &
+                pptr%pc14s%frootc,gcomm_pft)
+      end if
 
-        ! frootc_storage
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='frootc_storage_14', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='frootc_storage_14', data=pptr%pc14s%frootc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc14s%frootc_storage with atmospheric c14 value'
-              do i = begp,endp
-                 if (pptr%pcs%frootc_storage(i) .ne. spval .and. pptr%pcs%frootc_storage(i) .ne. nan ) then
-                    pptr%pc14s%frootc_storage(i) = pptr%pcs%frootc_storage(i) * c14ratio
-                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! frootc_storage
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'frootc_storage_14',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'frootc_storage_14') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C14 frootc_storage_14 with atmospheric c14 value'
+            do i = begp , endp
+              if (pptr%pcs%frootc_storage(i) .ne. spval .and. &
+                  pptr%pcs%frootc_storage(i) .ne. nan ) then
+                pptr%pc14s%frootc_storage(i) = &
+                        pptr%pcs%frootc_storage(i) * c14ratio
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'frootc_storage_14', &
+                  pptr%pc14s%frootc_storage,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'frootc_storage_14', &
+                pptr%pc14s%frootc_storage,gcomm_pft)
+      end if
 
-        !frootc_xfer
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='frootc_xfer_14', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='frootc_xfer_14', data=pptr%pc14s%frootc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc14s%frootc_xfer with atmospheric c14 value'
-              do i = begp,endp
-                 if (pptr%pcs%frootc_xfer(i) .ne. spval .and. pptr%pcs%frootc_xfer(i) .ne. nan ) then
-                    pptr%pc14s%frootc_xfer(i) = pptr%pcs%frootc_xfer(i) * c14ratio
-                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      !frootc_xfer
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'frootc_xfer_14',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'frootc_xfer_14') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C14 frootc_xfer_14 with atmospheric c14 value'
+            do i = begp , endp
+              if (pptr%pcs%frootc_xfer(i) .ne. spval .and. &
+                  pptr%pcs%frootc_xfer(i) .ne. nan ) then
+                pptr%pc14s%frootc_xfer(i) = pptr%pcs%frootc_xfer(i) * c14ratio
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'frootc_xfer_14', &
+                  pptr%pc14s%frootc_xfer,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'frootc_xfer_14', &
+                pptr%pc14s%frootc_xfer,gcomm_pft)
+      end if
 
-        ! livestemc
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='livestemc_14', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='livestemc_14', data=pptr%pc14s%livestemc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc14s%livestemc with atmospheric c14 value'
-              do i = begp,endp
-                 if (pptr%pcs%livestemc(i) .ne. spval .and. pptr%pcs%livestemc(i) .ne. nan ) then
-                    pptr%pc14s%livestemc(i) = pptr%pcs%livestemc(i) * c14ratio
-                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! livestemc
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'livestemc_14',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'livestemc_14') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C14 livestemc_14 with atmospheric c14 value'
+            do i = begp , endp
+              if (pptr%pcs%livestemc(i) .ne. spval .and. &
+                  pptr%pcs%livestemc(i) .ne. nan ) then
+                pptr%pc14s%livestemc(i) = pptr%pcs%livestemc(i) * c14ratio
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'livestemc_14', &
+                  pptr%pc14s%livestemc,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'livestemc_14', &
+                pptr%pc14s%livestemc,gcomm_pft)
+      end if
 
-        ! livestemc_storage
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='livestemc_storage_14', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='livestemc_storage_14', data=pptr%pc14s%livestemc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc14s%livestemc_storage with atmospheric c14 value'
-              do i = begp,endp
-                 if (pptr%pcs%livestemc_storage(i) .ne. spval .and. pptr%pcs%livestemc_storage(i) .ne. nan ) then
-                    pptr%pc14s%livestemc_storage(i) = pptr%pcs%livestemc_storage(i) * c14ratio
-                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! livestemc_storage
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'livestemc_storage_14',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'livestemc_storage_14') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C14 livestemc_storage_14 with atmospheric c14 value'
+            do i = begp , endp
+              if (pptr%pcs%livestemc_storage(i) .ne. spval .and. &
+                  pptr%pcs%livestemc_storage(i) .ne. nan ) then
+                pptr%pc14s%livestemc_storage(i) = &
+                        pptr%pcs%livestemc_storage(i) * c14ratio
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'livestemc_storage_14', &
+                  pptr%pc14s%livestemc_storage,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'livestemc_storage_14', &
+                pptr%pc14s%livestemc_storage,gcomm_pft)
+      end if
 
-        ! livestemc_xfer
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='livestemc_xfer_14', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='livestemc_xfer_14', data=pptr%pc14s%livestemc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc14s%livestemc_xfer with atmospheric c14 value'
-              do i = begp,endp
-                 if (pptr%pcs%livestemc_xfer(i) .ne. spval .and. pptr%pcs%livestemc_xfer(i) .ne. nan ) then
-                    pptr%pc14s%livestemc_xfer(i) = pptr%pcs%livestemc_xfer(i) * c14ratio
-                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! livestemc_xfer
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'livestemc_xfer_14',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'livestemc_xfer_14') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C14 livestemc_xfer_14 with atmospheric c14 value'
+            do i = begp , endp
+              if (pptr%pcs%livestemc_xfer(i) .ne. spval .and. &
+                  pptr%pcs%livestemc_xfer(i) .ne. nan ) then
+                pptr%pc14s%livestemc_xfer(i) = &
+                        pptr%pcs%livestemc_xfer(i) * c14ratio
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'livestemc_xfer_14', &
+                  pptr%pc14s%livestemc_xfer,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'livestemc_xfer_14', &
+                pptr%pc14s%livestemc_xfer,gcomm_pft)
+      end if
 
-        ! deadstemc
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='deadstemc_14', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='deadstemc_14', data=pptr%pc14s%deadstemc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc14s%deadstemc with atmospheric c14 value'
-              do i = begp,endp
-                 if (pptr%pcs%deadstemc(i) .ne. spval .and. pptr%pcs%deadstemc(i) .ne. nan ) then
-                    pptr%pc14s%deadstemc(i) = pptr%pcs%deadstemc(i) * c14ratio
-                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! deadstemc
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'deadstemc_14',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'deadstemc_14') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C14 deadstemc_14 with atmospheric c14 value'
+            do i = begp , endp
+              if (pptr%pcs%deadstemc(i) .ne. spval .and. &
+                  pptr%pcs%deadstemc(i) .ne. nan ) then
+                pptr%pc14s%deadstemc(i) = pptr%pcs%deadstemc(i) * c14ratio
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'deadstemc_14', &
+                  pptr%pc14s%deadstemc,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'deadstemc_14', &
+                pptr%pc14s%deadstemc,gcomm_pft)
+      end if
 
-        ! deadstemc_storage
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='deadstemc_storage_14', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='deadstemc_storage_14', data=pptr%pc14s%deadstemc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc14s%deadstemc_storage with atmospheric c14 value'
-              do i = begp,endp
-                 if (pptr%pcs%deadstemc_storage(i) .ne. spval .and. pptr%pcs%deadstemc_storage(i) .ne. nan ) then
-                    pptr%pc14s%deadstemc_storage(i) = pptr%pcs%deadstemc_storage(i) * c14ratio
-                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! deadstemc_storage
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'deadstemc_storage_14',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'deadstemc_storage_14') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C14 deadstemc_storage_14 with atmospheric c14 value'
+            do i = begp , endp
+              if (pptr%pcs%deadstemc_storage(i) .ne. spval .and. &
+                  pptr%pcs%deadstemc_storage(i) .ne. nan ) then
+                pptr%pc14s%deadstemc_storage(i) = &
+                        pptr%pcs%deadstemc_storage(i) * c14ratio
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'deadstemc_storage_14', &
+                  pptr%pc14s%deadstemc_storage,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'deadstemc_storage_14', &
+                pptr%pc14s%deadstemc_storage,gcomm_pft)
+      end if
 
-        ! deadstemc_xfer
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='deadstemc_xfer_14', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='deadstemc_xfer_14', data=pptr%pc14s%deadstemc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc14s%deadstemc_xfer with atmospheric c14 value'
-              do i = begp,endp
-                 if (pptr%pcs%deadstemc_xfer(i) .ne. spval .and. pptr%pcs%deadstemc_xfer(i) .ne. nan ) then
-                    pptr%pc14s%deadstemc_xfer(i) = pptr%pcs%deadstemc_xfer(i) * c14ratio
-                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! deadstemc_xfer
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'deadstemc_xfer_14',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'deadstemc_xfer_14') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C14 deadstemc_xfer_14 with atmospheric c14 value'
+            do i = begp , endp
+              if (pptr%pcs%deadstemc_xfer(i) .ne. spval .and. &
+                  pptr%pcs%deadstemc_xfer(i) .ne. nan ) then
+                pptr%pc14s%deadstemc_xfer(i) = &
+                        pptr%pcs%deadstemc_xfer(i) * c14ratio
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'deadstemc_xfer_14', &
+                  pptr%pc14s%deadstemc_xfer,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'deadstemc_xfer_14', &
+                pptr%pc14s%deadstemc_xfer,gcomm_pft)
+      end if
 
-        ! livecrootc
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='livecrootc_14', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='livecrootc_14', data=pptr%pc14s%livecrootc, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc14s%livecrootc with atmospheric c14 value'
-              do i = begp,endp
-                 if (pptr%pcs%livecrootc(i) .ne. spval .and. pptr%pcs%livecrootc(i) .ne. nan ) then
-                    pptr%pc14s%livecrootc(i) = pptr%pcs%livecrootc(i) * c14ratio
-                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! livecrootc
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'livecrootc_14',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'livecrootc_14') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C14 livecrootc_14 with atmospheric c14 value'
+            do i = begp , endp
+              if (pptr%pcs%livecrootc(i) .ne. spval .and. &
+                  pptr%pcs%livecrootc(i) .ne. nan ) then
+                pptr%pc14s%livecrootc(i) = pptr%pcs%livecrootc(i) * c14ratio
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'livecrootc_14', &
+                  pptr%pc14s%livecrootc,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'livecrootc_14', &
+                pptr%pc14s%livecrootc,gcomm_pft)
+      end if
 
-        ! livecrootc_storage
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='livecrootc_storage_14', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='livecrootc_storage_14', data=pptr%pc14s%livecrootc_storage, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc14s%livecrootc_storage with atmospheric c14 value'
-              do i = begp,endp
-                 if (pptr%pcs%livecrootc_storage(i) .ne. spval .and. pptr%pcs%livecrootc_storage(i) .ne. nan ) then
-                    pptr%pc14s%livecrootc_storage(i) = pptr%pcs%livecrootc_storage(i) * c14ratio
-                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! livecrootc_storage
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'livecrootc_storage_14',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'livecrootc_storage_14') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C14 livecrootc_storage_14 with atmospheric c14 value'
+            do i = begp , endp
+              if (pptr%pcs%livecrootc_storage(i) .ne. spval .and. &
+                  pptr%pcs%livecrootc_storage(i) .ne. nan ) then
+                pptr%pc14s%livecrootc_storage(i) = &
+                        pptr%pcs%livecrootc_storage(i) * c14ratio
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'livecrootc_storage_14', &
+                  pptr%pc14s%livecrootc_storage,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'livecrootc_storage_14', &
+                pptr%pc14s%livecrootc_storage,gcomm_pft)
+      end if
 
-        ! livecrootc_xfer
-        if (flag == 'define') then
-           call ncd_defvar(ncid=ncid, varname='livecrootc_xfer_14', xtype=ncd_double,  &
-                dim1name='pft',long_name='',units='')
-        else if (flag == 'read' .or. flag == 'write') then
-           call ncd_io(varname='livecrootc_xfer_14', data=pptr%pc14s%livecrootc_xfer, &
-                dim1name=namep, ncid=ncid, flag=flag, readvar=readvar)
-           if (flag=='read' .and. .not. readvar) then
-              write(stdout,*) 'initializing pptr%pc14s%livecrootc_xfer with atmospheric c14 value'
-              do i = begp,endp
-                 if (pptr%pcs%livecrootc_xfer(i) .ne. spval .and. pptr%pcs%livecrootc_xfer(i) .ne. nan ) then
-                    pptr%pc14s%livecrootc_xfer(i) = pptr%pcs%livecrootc_xfer(i) * c14ratio
-                 end if
-              end do
-              if (ktau /= 0) call fatal(__FILE__,__LINE__,'clm now stopping')
-           end if
+      ! livecrootc_xfer
+      if (flag == 'define') then
+        call clm_addvar(clmvar_double,ncid,'livecrootc_xfer_14',(/'pft'/), &
+              long_name='',units='')
+      else if (flag == 'read') then
+        if ( .not. clm_check_var(ncid,'livecrootc_xfer_14') ) then
+          if ( ktau == 0 ) then
+            write(stdout,*) &
+             'initializing C14 livecrootc_xfer_14 with atmospheric c14 value'
+            do i = begp , endp
+              if (pptr%pcs%livecrootc_xfer(i) .ne. spval .and. &
+                  pptr%pcs%livecrootc_xfer(i) .ne. nan ) then
+                pptr%pc14s%livecrootc_xfer(i) = &
+                        pptr%pcs%livecrootc_xfer(i) * c14ratio
+              end if
+            end do
+          else
+            call fatal(__FILE__,__LINE__,'clm now stopping')
+          end if
+        else
+          call clm_readvar(ncid,'livecrootc_xfer_14', &
+                  pptr%pc14s%livecrootc_xfer,gcomm_pft)
         end if
+      else if (flag == 'write') then
+        call clm_writevar(ncid,'livecrootc_xfer_14', &
+                pptr%pc14s%livecrootc_xfer,gcomm_pft)
+      end if
 
-        ! deadcrootc
+      ! deadcrootc
         if (flag == 'define') then
            call ncd_defvar(ncid=ncid, varname='deadcrootc_14', xtype=ncd_double,  &
                 dim1name='pft',long_name='',units='')
