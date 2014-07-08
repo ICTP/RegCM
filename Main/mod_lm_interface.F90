@@ -53,7 +53,7 @@ module mod_lm_interface
   private
 
   ! Coupling variables
-  real(rk8) , public :: runoffcount = 0.0D0
+  real(rk8) :: runoffcount = 0.0D0
   public :: lms
 
   public :: dtbat
@@ -557,6 +557,7 @@ module mod_lm_interface
           end if
         end do
       end do
+      runoffcount = d_zero
     end if
   end subroutine export_data_from_surface
 !
