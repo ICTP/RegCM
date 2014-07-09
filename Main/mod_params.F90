@@ -262,9 +262,9 @@ module mod_params
 !------namelist restart param:
 !
   ifrest = .false.     ! Restart?:  t=true; f=false
-  idate0 = 1993063000  ! Start date of the initial simulation
-  idate1 = 1993063000  ! Start date of this simulation
-  idate2 = 1993080100  ! End Date this simulation
+  idate0 = 1900010100  ! Start date of the initial simulation
+  idate1 = 1900010100  ! Start date of this simulation
+  idate2 = 1900010100  ! End Date this simulation
   ! note: beginning/end forecast time set in restart.mm4
  
 !------namelist timeparam:
@@ -312,7 +312,7 @@ module mod_params
 !-----namelist physicsparam:
 !
   ibltyp = 1
-  iboudy = 1
+  iboudy = 5
   isladvec = 0
   icup_lnd = 1
   icup_ocn = 1
@@ -320,16 +320,16 @@ module mod_params
   igcc = 1
   ipgf = 1
   iemiss = 0
-  iocnflx = 1
+  iocnflx = 2
   iocncpl = 0
   iocnrough = 1
   lakemod = 0
   ichem = 0
-  scenario = 'A1B'
+  scenario = 'RF'
   idcsst = 0
   iseaice = 0
   idesseas = 0
-  iconvlwp = 0
+  iconvlwp = 2
   irrtm = 0
   islab_ocean = 0
   iclimao3 = 0
@@ -548,12 +548,12 @@ module mod_params
 #endif
     end if
 
-    write(stdout,*) 'Reading model namelist stanzas'
+    write(stdout,*) 'Reading model namelist file'
 
     rewind(ipunit)
     read (ipunit, nml=restartparam, iostat=iretval, err=100)
     if ( iretval /= 0 ) then
-      write(stderr,*) 'Error reading restartparam namelist stanza'
+      write(stderr,*) 'Error reading restartparam namelist'
       call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
 #ifdef DEBUG
     else
@@ -577,7 +577,7 @@ module mod_params
     rewind(ipunit)
     read (ipunit, nml=timeparam, iostat=iretval, err=101)
     if ( iretval /= 0 ) then
-      write(stderr,*) 'Error reading timeparam namelist stanza'
+      write(stderr,*) 'Error reading timeparam namelist'
       call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
 #ifdef DEBUG
     else
@@ -588,7 +588,7 @@ module mod_params
     rewind(ipunit)
     read (ipunit, nml=outparam, iostat=iretval, err=102)
     if ( iretval /= 0 ) then
-      write(stderr,*) 'Error reading outparam namelist stanza'
+      write(stderr,*) 'Error reading outparam namelist'
       call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
 #ifdef DEBUG
     else
@@ -601,7 +601,7 @@ module mod_params
     rewind(ipunit)
     read (ipunit, nml=physicsparam, iostat=iretval, err=103)
     if ( iretval /= 0 ) then
-      write(stderr,*) 'Error reading physicsparam namelist stanza'
+      write(stderr,*) 'Error reading physicsparam namelist'
       call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
 #ifdef DEBUG
     else
@@ -760,7 +760,7 @@ module mod_params
       rewind(ipunit)
       read (ipunit, chemparam, iostat=iretval, err=113)
       if ( iretval /= 0 ) then
-        write(stderr,*) 'Error reading chemparam namelist stanza'
+        write(stderr,*) 'Error reading chemparam namelist'
         call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
 #ifdef DEBUG
       else

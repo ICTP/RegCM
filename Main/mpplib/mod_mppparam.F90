@@ -49,6 +49,7 @@ module mod_mppparam
   public :: set_nproc , broadcast_params
 
   integer(ik4) :: cartesian_communicator
+  integer(ik4) :: ccid , ccio
 
   integer(ik4) , public :: ncout_mpi_info = mpi_info_null
 
@@ -853,14 +854,18 @@ module mod_mppparam
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_cart_create error.')
       end if
-      call mpi_comm_rank(cartesian_communicator,myid,mpierr)
+      call mpi_comm_rank(cartesian_communicator,ccid,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_comm_rank error.')
       end if
-      call mpi_cart_coords(cartesian_communicator,myid,2,ma%location,mpierr)
+      call mpi_cart_coords(cartesian_communicator,ccid,2,ma%location,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_cart_coords error.')
       end if
+
+      if ( myid == iocpu ) ccio = ccid
+
+      call bcast(ccio)
 
       ! Set coordinates in the grid for the other processors
       isearch(1) = ma%location(1)
@@ -5333,7 +5338,7 @@ module mod_mppparam
     b(jx,1) = b(jx-1,2)
     b(1,iy) = b(2,iy-1)
     b(jx,iy) = b(jx-1,iy-1)
-    call mpi_bcast(b,iy*jx,mpi_real8,iocpu,cartesian_communicator,mpierr)
+    call mpi_bcast(b,iy*jx,mpi_real8,ccio,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
@@ -6322,7 +6327,7 @@ module mod_mppparam
     logical , pointer , dimension(:,:,:) , intent(in) :: matrix
     logical , pointer , dimension(:) , intent(out) :: vector
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint_sg(myid+1)
+    nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     if ( nproc == 1 ) then
       call mypack(cl,matrix,vector)
@@ -6333,7 +6338,7 @@ module mod_mppparam
     end if
     call mpi_gatherv(lvector1,nval,mpi_logical,                             &
                      lvector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
-                     mpi_logical,iocpu,cartesian_communicator,mpierr)
+                     mpi_logical,ccio,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
@@ -6351,7 +6356,7 @@ module mod_mppparam
     logical , pointer , dimension(:) , intent(in) :: vector
     logical , pointer , dimension(:,:,:) , intent(inout) :: matrix
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint_sg(myid+1)
+    nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     if ( nproc == 1 ) then
       call myunpack(cl,vector,matrix)
@@ -6366,7 +6371,7 @@ module mod_mppparam
     call mpi_scatterv(lvector2,cl%cartesian_npoint_sg,   &
                       cl%cartesian_displ_sg,mpi_logical, &
                       lvector1,nval,mpi_logical,         &
-                      iocpu,cartesian_communicator,mpierr)
+                      ccio,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
@@ -6381,7 +6386,7 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: matrix
     integer(ik4) , pointer , dimension(:) , intent(out) :: vector
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint_sg(myid+1)
+    nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     if ( nproc == 1 ) then
       call mypack(cl,matrix,vector)
@@ -6392,7 +6397,7 @@ module mod_mppparam
     end if
     call mpi_gatherv(i4vector1,nval,mpi_integer4,                            &
                      i4vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
-                     mpi_integer4,iocpu,cartesian_communicator,mpierr)
+                     mpi_integer4,ccio,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
@@ -6410,7 +6415,7 @@ module mod_mppparam
     integer(ik4) , pointer , dimension(:) , intent(in) :: vector
     integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: matrix
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint_sg(myid+1)
+    nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     if ( nproc == 1 ) then
       call myunpack(cl,vector,matrix)
@@ -6425,7 +6430,7 @@ module mod_mppparam
     call mpi_scatterv(i4vector2,cl%cartesian_npoint_sg,   &
                       cl%cartesian_displ_sg,mpi_integer4, &
                       i4vector1,nval,mpi_integer4,        &
-                      iocpu,cartesian_communicator,mpierr)
+                      ccio,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
@@ -6440,7 +6445,7 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
     real(rk8) , pointer , dimension(:,:) , intent(out) :: vector
     integer(ik4) :: nval , npt , nlev , k
-    nval = cl%cartesian_npoint_sg(myid+1)
+    nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     nlev = size(matrix,4)
     if ( nproc == 1 ) then
@@ -6453,7 +6458,7 @@ module mod_mppparam
       end if
       call mpi_gatherv(r8vector1,nval,mpi_real8,                               &
                        r8vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
-                       mpi_real8,iocpu,cartesian_communicator,mpierr)
+                       mpi_real8,ccio,cartesian_communicator,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
       end if
@@ -6472,7 +6477,7 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:) , intent(in) :: vector
     real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: matrix
     integer(ik4) :: nval , npt , nlev , k
-    nval = cl%cartesian_npoint_sg(myid+1)
+    nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     nlev = size(vector,2)
     if ( nproc == 1 ) then
@@ -6489,7 +6494,7 @@ module mod_mppparam
       call mpi_scatterv(r8vector2,cl%cartesian_npoint_sg, &
                         cl%cartesian_displ_sg,mpi_real8,  &
                         r8vector1,nval,mpi_real8,         &
-                        iocpu,cartesian_communicator,mpierr)
+                        ccio,cartesian_communicator,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
       end if
@@ -6505,7 +6510,7 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: matrix
     real(rk8) , pointer , dimension(:) , intent(out) :: vector
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint_sg(myid+1)
+    nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     if ( nproc == 1 ) then
       call mypack(cl,matrix,vector)
@@ -6516,7 +6521,7 @@ module mod_mppparam
     end if
     call mpi_gatherv(r8vector1,nval,mpi_real8,                               &
                      r8vector2,cl%cartesian_npoint_sg,cl%cartesian_displ_sg, &
-                     mpi_real8,iocpu,cartesian_communicator,mpierr)
+                     mpi_real8,ccio,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_gatherv error.')
     end if
@@ -6534,7 +6539,7 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:) , intent(in) :: vector
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: matrix
     integer(ik4) :: nval , npt
-    nval = cl%cartesian_npoint_sg(myid+1)
+    nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
     if ( nproc == 1 ) then
       call myunpack(cl,vector,matrix)
@@ -6549,7 +6554,7 @@ module mod_mppparam
     call mpi_scatterv(r8vector2,cl%cartesian_npoint_sg, &
                       cl%cartesian_displ_sg,mpi_real8,  &
                       r8vector1,nval,mpi_real8,         &
-                      iocpu,cartesian_communicator,mpierr)
+                      ccio,cartesian_communicator,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_scatterv error.')
     end if
