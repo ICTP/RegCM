@@ -558,6 +558,7 @@ module mod_lm_interface
         end do
       end do
       runoffcount = d_zero
+      lm%dailyrnf(:,:,:) = d_zero
     end if
   end subroutine export_data_from_surface
 !
