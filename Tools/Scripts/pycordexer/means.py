@@ -27,7 +27,10 @@ compressed in disk.
   if len(times) < 1:
     print('No timesteps in file !')
     sys.exit(0)
-  dates = num2date(times[:]-0.01, units=times.units, calendar=times.calendar)
+  if times.units.find('hours') >= 0:
+    dates = num2date(times[:]-0.01, units=times.units, calendar=times.calendar)
+  else:
+    dates = num2date(times[:], units=times.units, calendar=times.calendar)
   d1 = datetime(dates[0].year,dates[0].month,dates[0].day)
   d2 = datetime(dates[-1].year,dates[-1].month,dates[-1].day)
   f1 = (repr(dates[0].year).zfill(4)+repr(dates[0].month).zfill(2)+
