@@ -130,20 +130,21 @@ compressed in disk.
     tbnds[:,0] = dic+0.0
     tbnds[:,1] = dic+1.0
   else:
-    # Assume monthly data up to now!
-    rc = cdftime.date2num(num2date(np.median(times[:]),
-                           units=times.units, calendar=times.calendar))
-    ic = np.arange(0,len(times),dtype=np.int)
-    dic = np.array([0,])
-    nco.variables['time'][0] = rc
+    ic = np.zeros(len(times),dtype='i4')
+    for it in range(0,len(times)):
+      ic[it] = int(dates[it].year*100+dates[it].month)
+    dic = np.unique(ic)
+    for it in range(0,len(dic)):
+      indx = (ic == dic[it]) 
+      nco.variables['time'][it] = np.median(times[indx])
     if times.units.find('hours') > 0:
       diff = 12.0
     else:
       diff = 0.5
-    x1 = num2date(times[0]-diff, units=times.units, calendar=times.calendar)
-    x2 = num2date(times[-1]+diff, units=times.units, calendar=times.calendar)
-    tbnds[0,0] = round(cdftime.date2num(x1))
-    tbnds[0,1] = round(cdftime.date2num(x2))
+    for it in range(0,len(dic)):
+      indx = (ic == dic[it]) 
+      tbnds[it,0] = np.min(times[indx])-diff
+      tbnds[it,1] = np.max(times[indx])+diff
 
   for var in ncf.variables:
     if 'time' not in ncf.variables[var].dimensions:
