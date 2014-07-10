@@ -785,7 +785,12 @@ module mod_mppparam
         ma%has_bdybottomright = .true.
       end if
       ma%has_bdy = .true.
+
+      ccid = myid
+      ccio = iocpu
+
     else
+
       if ( ma%bandflag ) dim_period(1) = .true.
       if ( njxcpus > 0 .or. niycpus > 0 ) then
         ! Force just the number of CPUs in J direction
@@ -5374,7 +5379,7 @@ module mod_mppparam
     b(jx,1) = b(jx-1,2)
     b(1,iy) = b(2,iy-1)
     b(jx,iy) = b(jx-1,iy-1)
-    call mpi_bcast(b,iy*jx,mpi_real8,ccio,cartesian_communicator,mpierr)
+    call mpi_bcast(b,iy*jx,mpi_real8,iocpu,mycomm,mpierr)
     if ( mpierr /= mpi_success ) then
       call fatal(__FILE__,__LINE__,'mpi_bcast error.')
     end if
