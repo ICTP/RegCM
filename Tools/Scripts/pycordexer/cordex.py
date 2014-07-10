@@ -96,7 +96,7 @@ if len(sys.argv) < 9:
   print('Missing argments:')
   print('Usage:')
   print(sys.argv[0]+' datafile variable mail domain global_model'+
-                    ' experiment ensemble notes')
+                    ' experiment ensemble notes [corrflag]')
   print('')
   sys.exit(-1)
 
@@ -108,6 +108,10 @@ global_model = sys.argv[5]
 experiment = sys.argv[6]
 ensemble = sys.argv[7]
 notes = sys.argv[8]
+try:
+  corrflag = sys.argv[9]
+except:
+  corrflag = 1
 
 lookup = { 'tas' : { 'name' : ['t2m','t2avg'],
                      'long_name' : 'Near-Surface Air Temperature',
@@ -456,7 +460,8 @@ if var is None:
     sys.exit(-1)
 
 correct_time = times[:]
-correct_time = correct_time + lookup[variable]['timecorr'][ftype]
+if corrflag == 1:
+  correct_time = correct_time + lookup[variable]['timecorr'][ftype]
 dates = num2date(correct_time, units=times.units, calendar=times.calendar)
 
 ff = correct_time[1]-correct_time[0]
