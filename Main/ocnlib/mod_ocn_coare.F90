@@ -358,7 +358,7 @@ module mod_ocn_coare
       end do
     end subroutine coare3_drv 
 
-    real(rk8) function qice(ts, ps)
+    pure real(rk8) function qice(ts, ps)
       implicit none
       real(rk8) , intent (in) :: ts, ps
       real(rk8) :: es
@@ -366,7 +366,7 @@ module mod_ocn_coare
       qice = es*622.0d0/(ps-0.378d0*es)
     end function qice
 
-    real(rk8) function qwat(ts, ps)
+    pure real(rk8) function qwat(ts, ps)
       implicit none
       real(rk8) , intent (in) :: ts, ps
       real(rk8) :: es
@@ -374,7 +374,7 @@ module mod_ocn_coare
       qwat = es*622.0d0/(ps-0.378d0*es)
     end function qwat
 
-    real(rk8) function qsee(ts, ps)
+    pure real(rk8) function qsee(ts, ps)
       implicit none
       real(rk8) , intent (in) :: ts, ps
       real(rk8) :: es
@@ -382,7 +382,7 @@ module mod_ocn_coare
       qsee = es*621.97d0/(ps-0.378d0*es)
     end function qsee
 
-    real(rk8) function psiuo(zet)
+    pure real(rk8) function psiuo(zet)
       implicit none
       real(rk8) , intent (in) :: zet 
       real(rk8) :: x, psik, f, psic, c
@@ -403,7 +403,7 @@ module mod_ocn_coare
       end if
     end function psiuo
 
-    real(rk8) function psit(zet)
+    pure real(rk8) function psit(zet)
       implicit none
       real(rk8) , intent (in) :: zet
       real(rk8) :: x, psik, f, psic, c

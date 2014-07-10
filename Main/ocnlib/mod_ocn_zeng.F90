@@ -332,7 +332,7 @@ module mod_ocn_zeng
     !
     ! stability function for rb < 0
     !
-    real(rk8) function psi(k,zeta)
+    pure real(rk8) function psi(k,zeta)
       implicit none
       integer(ik4) , intent(in) :: k
       real(rk8) , intent(in) :: zeta
@@ -350,7 +350,7 @@ module mod_ocn_zeng
     ! Tetens' formula for saturation vp Buck(1981) JAM 20, 1527-1532
     ! p in mb, t in C, and qsat in mb
     !
-    real(rk8) function qsat(t,p)
+    pure real(rk8) function qsat(t,p)
       implicit none
       real(rk8) , intent (in) :: p , t
       qsat = (1.0007D0+3.46D-6*p)*6.1121D0*dexp(17.502D0*t/(240.97D0+t))
