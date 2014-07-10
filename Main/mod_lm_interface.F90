@@ -667,15 +667,15 @@ module mod_lm_interface
           !------------------------------------------------------------------
           ! 
           if ( impfie%sit(j,i) < tol .and. lm%ldmsk(j,i) /= 1 ) then
-            if ( impfie%sit(j,i) > iceminh*d_1000 ) then
+            if ( impfie%sit(j,i) > iceminh ) then
               flag = .false.
               if ( lm%ldmsk(j,i) == 0 ) flag = .true.
               ! set land-sea mask
               lm%ldmsk(j,i) = 2
               do n = 1, nnsg
                 lm%ldmsk1(n,j,i) = 2
-                ! set sea ice thikness (in mm)
-                lms%sfice(n,j,i) = impfie%sit(j,i) * d_r1000
+                ! set sea ice thikness (in m)
+                lms%sfice(n,j,i) = impfie%sit(j,i)
               end do
               ! write debug info
               if ( flag ) then
