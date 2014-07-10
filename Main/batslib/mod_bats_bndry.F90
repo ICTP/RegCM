@@ -860,21 +860,18 @@ module mod_bats_bndry
 #endif
   contains
 
-    function fsk(x)
+    pure real(rk8) function fsk(x)
       implicit none
-      real(rk8) :: fsk
       real(rk8) , intent(in) :: x
       fsk = (2.9D-7*x+4.0D-9)/(((d_one-0.6D0*x)*x+0.09D0)*(0.23D0+x))
     end function fsk
-    function fsc(x)
+    pure real(rk8) function fsc(x)
       implicit none
-      real(rk8) :: fsc
       real(rk8) , intent(in) :: x
       fsc = (0.23D0+x)*4.186D6
     end function fsc
-    function fct1(x)
+    pure real(rk8) function fct1(x)
       implicit none
-      real(rk8) :: fct1
       real(rk8) , intent(in) :: x
       fct1 = wlhf*d_rfour*1.414D0/x
     end function fct1

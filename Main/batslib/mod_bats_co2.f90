@@ -102,11 +102,9 @@ module mod_bats_co2
 !     betatl = rai/lai  (must be set reasonably)
 !====================================================================
 !
-  function carbon(vf,t,rm,tg,xlai,xlsai)
+  pure real(rk8) function carbon(vf,t,rm,tg,xlai,xlsai)
     implicit none
-    real(rk8) :: rm , t , tg , vf , xlai , xlsai
-    real(rk8) :: carbon
-    intent (in) rm , tg , vf , xlai , xlsai
+    real(rk8) , intent(in) :: rm , t , tg , vf , xlai , xlsai
     real(rk8) :: ab , ac , al , alphtl , b , bc , betatl , cco2 ,   &
                cco2i , ccold , gt , p , pm , pml , rt , w , &
                wd , wp , xk , xkb , xl
@@ -171,20 +169,20 @@ module mod_bats_co2
 
     contains
 
-      real(rk8) function g(t,tmx,sl)
+      pure real(rk8) function g(t,tmx,sl)
         implicit none
         real(rk8) , intent(in) :: t , tmx , sl
         g = dexp(sl*(d_one/tmx-d_one/t)) / &
             (d_one+(dexp(sl*(d_one/tmx-d_one/t)*6.0D0)))*5.0D-3*t
       end function g
       ! temperature dependence of dark respiration
-      real(rk8) function r(t)
+      pure real(rk8) function r(t)
         implicit none
         real(rk8) , intent(in) :: t
         r = dexp(30.0D0-9.0D3/t)
       end function r
       ! light dependence of photosynthesis
-      real(rk8) function e(xl,a,pml)
+      pure real(rk8) function e(xl,a,pml)
         implicit none
         real(rk8) , intent(in) :: xl , a , pml
         e = a*xl/sqrt(d_one+(a*xl/pml)**2)
