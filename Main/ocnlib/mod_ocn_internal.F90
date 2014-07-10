@@ -95,6 +95,7 @@ module mod_ocn_internal
 
   integer(ik4) , pointer , dimension(:) :: mask
   integer(ik4) , pointer , dimension(:) :: xmask
+  integer(ik4) , pointer , dimension(:) :: icpl
 
   contains
 
@@ -131,6 +132,7 @@ module mod_ocn_internal
     call getmem1d(usw,1,nocnp,'ocn_internal:usw')
     call getmem1d(vsw,1,nocnp,'ocn_internal:vsw')
     call getmem1d(mask,1,nocnp,'ocn_internal:mask')
+    call getmem1d(icpl,1,nocnp,'ocn_internal:icpl')
     call getmem1d(czenith,1,nocnp,'ocn_internal:czenith')
     call getmem1d(cprate,1,nocnp,'ocn_internal:cprate')
     call getmem1d(ncprate,1,nocnp,'ocn_internal:ncprate')
@@ -138,6 +140,7 @@ module mod_ocn_internal
     if ( lakemod == 1 ) llake = .true.
     if ( idcsst == 1 ) ldcsst = .true.
     if ( iseaice == 1 ) lseaice = .true.
+    icpl(:) = 0
     dtocn = dtsrf
     if ( ldcsst ) then
       call getmem1d(deltas,1,nocnp,'ocn_internal:deltas')

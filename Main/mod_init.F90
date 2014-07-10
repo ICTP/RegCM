@@ -122,6 +122,9 @@ module mod_init
     if ( iseaice == 1 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
+          if ( iocncpl == 1 ) then
+            if ( cplmsk(j,i) /= 0 ) cycle
+          end if
           if ( isocean(mddom%lndcat(j,i)) ) then
             if ( ts0(j,i) <= icetemp ) then
               sfs%tga(j,i) = icetemp
@@ -147,6 +150,9 @@ module mod_init
     if ( lakemod == 1 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
+          if ( iocncpl == 1 ) then
+            if ( cplmsk(j,i) /= 0 ) cycle
+          end if
           if ( islake(mddom%lndcat(j,i)) ) then
             if ( ts0(j,i) <= icetemp ) then
               sfs%tga(j,i) = icetemp
@@ -417,6 +423,9 @@ module mod_init
           ! Sea ice correction
           if ( iseaice == 1 ) then
             if ( lakemod == 1 .and. islake(mddom%lndcat(j,i)) ) cycle
+            if ( iocncpl == 1 ) then
+              if ( cplmsk(j,i) /= 0 ) cycle
+            end if
             if ( ts1(j,i) <= icetemp .and. mddom%ldmsk(j,i) == 0 ) then
               sfs%tga(j,i) = icetemp
               sfs%tgb(j,i) = icetemp

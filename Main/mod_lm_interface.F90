@@ -267,10 +267,11 @@ module mod_lm_interface
     call allocate_mod_ocn_internal(ocncomm)
 
     ntcpl  = idnint(cpldt/dtsec)
-    if ( idcsst   == 1 ) ldcsst    = .true.
-    if ( lakemod  == 1 ) llake     = .true.
-    if ( idesseas == 1 ) ldesseas  = .true.
-    if ( iseaice  == 1 ) lseaice   = .true.
+    if ( idcsst   == 1 ) ldcsst   = .true.
+    if ( lakemod  == 1 ) llake    = .true.
+    if ( idesseas == 1 ) ldesseas = .true.
+    if ( iseaice  == 1 ) lseaice  = .true.
+    if ( iocncpl  == 1 ) lcoup    = .true.
     call assignpnt(mddom%xlat,lm%xlat)
     call assignpnt(mddom%xlon,lm%xlon)
     call assignpnt(mddom%lndcat,lm%lndcat)
@@ -284,6 +285,7 @@ module mod_lm_interface
     call assignpnt(mdsub%ldmsk,lm%ldmsk1)
     call assignpnt(mdsub%ht,lm%ht1)
     call assignpnt(mdsub%iveg,lm%iveg1)
+    call assignpnt(cplmsk,lm%icplmsk)
     call assignpnt(mdsub%dhlake,lm%dhlake1)
     call assignpnt(atms%ubx3d,lm%uatm,kz)
     call assignpnt(atms%vbx3d,lm%vatm,kz)
@@ -570,7 +572,6 @@ module mod_lm_interface
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: ldmskb , wetdry
     integer :: i , j , ii , jj , n
     logical :: flag = .false.
-    real(rk8) , parameter :: iceminh = 0.01D0
     ! real(rk8) :: toth
     ! real(rk8) , parameter :: href = d_two * iceminh
     ! real(rk8) , parameter :: steepf = 1.0D0

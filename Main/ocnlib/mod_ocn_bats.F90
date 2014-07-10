@@ -224,18 +224,22 @@ module mod_ocn_bats
         ! Slack, 1980
         fss = 2.14D0*(tgbrd(i)-tgrd(i))/sficemm
       end if
-      sfice(i) = (sficemm + 1.087D0*(fss/wlhf)*dtocn) * d_r1000
+      if ( icpl(i) == 0 ) then
+        sfice(i) = (sficemm + 1.087D0*(fss/wlhf)*dtocn) * d_r1000
+      end if
       ! set sea ice parameter for melting if seaice less than 2 cm
-      if ( sfice(i) <= 0.02D0 ) then
-        sfice(i) = d_zero
+      if ( sfice(i) <= iceminh ) then
         sncv(i) = d_zero
         scvk(i) = d_zero
         snag(i) = d_zero
-        tgrd(i) = tzero
         delq = qs - qgrd
         evpr(i) = -drag(i)*delq
         sent(i) = -drag(i)*cpd*delt
-        mask(i) = 1
+        if ( icpl(i) == 0 ) then
+          tgrd(i) = tzero
+          sfice(i) = d_zero
+          mask(i) = 1
+        end if
       else
         ! assume lead ocean temp is -1.8c
         ! flux of heat and moisture through leads
@@ -267,16 +271,20 @@ module mod_ocn_bats
         if ( sncv(i) < smc4 ) then
           smt = (sncv(i)/dtocn)
           ! rho(h2o)/rho(ice) = 1.087
-          sfice(i) = sfice(i) + dtocn*(smt-sm(i))*1.087D0*d_r1000
+          if ( icpl(i) == 0 ) then
+            sfice(i) = sfice(i) + dtocn*(smt-sm(i))*1.087D0*d_r1000
+          end if
           sm(i) = sm(i)+smt
           ! set sea ice parameter for melting if less than 2 cm
-          if ( sfice(i) <= 0.02D0 ) then
-            tgrd(i) = tzero
-            sfice(i) = d_zero
+          if ( sfice(i) <= iceminh ) then
             sncv(i) = d_zero
             scvk(i) = d_zero
             snag(i) = d_zero
-            mask(i) = 1
+            if ( icpl(i) == 0 ) then
+              tgrd(i) = tzero
+              sfice(i) = d_zero
+              mask(i) = 1
+            end if
           end if
         else
           ! snow or ice with no snow melting

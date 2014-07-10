@@ -334,5 +334,6 @@ module mod_constants
 
   ! Seaice temperature from ICBC trigger value
   real(rk8) , parameter :: icetemp = 271.38D0
+  real(rk8) , parameter :: iceminh = 0.01D0
 
 end module mod_constants

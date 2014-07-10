@@ -44,8 +44,6 @@ module mod_ocn_lake
   real(rk8) , parameter :: surf = d_one
   ! vertical grid spacing in m
   real(rk8) , parameter :: dz = surf
-  ! minimum ice depth in m: less that this is removed ( 1 cm )
-  real(rk8) , parameter :: iceminh = 0.01D0
   ! reference hgt in mm for latent heat removal from ice
   real(rk8) , parameter :: href = d_two * iceminh
   ! steepness factor of latent heat removal
@@ -750,14 +748,14 @@ module mod_ocn_lake
 
     contains
 
-    real(rk8) function t4(x)
+    pure real(rk8) function t4(x)
       implicit none
       real(rk8) , intent(in) :: x
       t4 = (x+tzero)**4
     end function t4
 
     ! Computes air vapor pressure as a function of temp (in K)
-    real(rk8) function eomb(x)
+    pure real(rk8) function eomb(x)
       implicit none
       real(rk8) , intent(in) :: x
       real(rk8) :: tr1
@@ -765,7 +763,7 @@ module mod_ocn_lake
       eomb = stdpmb*dexp(13.3185D0*tr1 - 1.976D0*tr1**2 - &
                          0.6445D0*tr1**3 - 0.1299D0*tr1**4)
      end function eomb
-    real(rk8) function f(x)
+    pure real(rk8) function f(x)
       implicit none
       real(rk8) , intent(in) :: x
       f = (-ld + 0.97D0*sigm*t4(x) + psi*(eomb(x)-ea) + &

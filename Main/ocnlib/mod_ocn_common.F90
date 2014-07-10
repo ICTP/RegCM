@@ -33,10 +33,14 @@ module mod_ocn_common
   use mod_runparams , only : ktau , iemiss , rtsrf
   use mod_mppparam
 
+  implicit none
+
   private
 
+  logical :: lcoup
+
   public :: initocn , vecocn , albedoocn
-  public :: llake , ldcsst , lseaice
+  public :: llake , ldcsst , lseaice , lcoup
   public :: allocate_mod_ocn_internal
 
   contains
@@ -55,7 +59,7 @@ module mod_ocn_common
         call coare3_drv
     end select
     if ( llake ) call lakedrv
-    if ( lseaice ) call seaice
+    call seaice
     call ocn_interf(lm,lms,2)
     call ocn_albedo
   end subroutine vecocn
@@ -65,6 +69,9 @@ module mod_ocn_common
     type(lm_exchange) , intent(inout) :: lm
     type(lm_state) , intent(inout) :: lms
     ! Set up Masks for lake and sea ice
+    if ( lcoup ) then
+      call c2l_gs(ocncomm,lm%icplmsk,icpl)
+    end if
     if ( llake .or. lseaice ) then
       call c2l_ss(ocncomm,lm%ldmsk1,xmask)
       where ( xmask == 2 )
