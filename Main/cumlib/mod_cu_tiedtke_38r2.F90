@@ -5193,143 +5193,143 @@ module mod_cu_tiedtke_38r2
 !
 !-----------------------------------------------------------------------------
 !
-  real(rk8) function minj(x,y)
+  pure real(rk8) function minj(x,y)
     implicit none
     real(rk8) , intent(in) :: x , y
     minj = y - d_half*(dabs(x-y)-(x-y))
   end function minj
-  real(rk8) function maxj(x,y)
+  pure real(rk8) function maxj(x,y)
     implicit none
     real(rk8) , intent(in) :: x , y
     maxj = y + d_half*(dabs(x-y)+(x-y))
   end function maxj
-  real(rk8) function foedelta(ptare)
+  pure real(rk8) function foedelta(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foedelta = max(d_zero,sign(d_one,ptare-tzero))
   end function foedelta
-  real(rk8) function foeew(ptare)
+  pure real(rk8) function foeew(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foeew = c2es*exp((c3les*foedelta(ptare) + &
             c3ies*(d_one-foedelta(ptare)))*(ptare-tzero) / &
             (ptare-(c4les*foedelta(ptare)+c4ies*(d_one-foedelta(ptare)))))
   end function foeew
-  real(rk8) function foede(ptare)
+  pure real(rk8) function foede(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foede = (foedelta(ptare)*c5alvcp+(d_one-foedelta(ptare))*c5alscp) / &
        (ptare-(c4les*foedelta(ptare)+c4ies*(d_one-foedelta(ptare))))**2
   end function foede
-  real(rk8) function foedesu(ptare)
+  pure real(rk8) function foedesu(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foedesu = (foedelta(ptare)*c5les+(d_one-foedelta(ptare))*c5ies) / &
          (ptare-(c4les*foedelta(ptare)+c4ies*(d_one-foedelta(ptare))))**2
   end function foedesu
-  real(rk8) function foelh(ptare)
+  pure real(rk8) function foelh(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foelh = foedelta(ptare)*wlhv + (d_one-foedelta(ptare))*wlhs
   end function foelh
-  real(rk8) function foeldcp(ptare)
+  pure real(rk8) function foeldcp(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foeldcp = foedelta(ptare)*wlhvocp + (d_one-foedelta(ptare))*wlhsocp
   end function foeldcp
-  real(rk8) function foealfa(ptare)
+  pure real(rk8) function foealfa(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foealfa = min(d_one,((max(rtice,min(rtwat,ptare))-rtice) * &
                   rtwat_rtice_r)**2)
   end function foealfa
-  real(rk8) function foeewm(ptare)
+  pure real(rk8) function foeewm(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foeewm = c2es*(foealfa(ptare)*exp(c3les*(ptare-tzero)/(ptare-c4les))+ &
           (d_one-foealfa(ptare))*exp(c3ies*(ptare-tzero)/(ptare-c4ies)))
   end function foeewm
-  real(rk8) function foedem(ptare)
+  pure real(rk8) function foedem(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foedem = foealfa(ptare)*c5alvcp*(d_one/(ptare-c4les)**2) + &
             (d_one-foealfa(ptare))*c5alscp*(d_one/(ptare-c4ies)**2)
   end function foedem
-  real(rk8) function foeldcpm(ptare)
+  pure real(rk8) function foeldcpm(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foeldcpm = foealfa(ptare)*wlhvocp+(d_one-foealfa(ptare))*wlhsocp
   end function foeldcpm
-  real(rk8) function foelhm(ptare)
+  pure real(rk8) function foelhm(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foelhm = foealfa(ptare)*wlhv+(d_one-foealfa(ptare))*wlhs
   end function foelhm
-  real(rk8) function foetb(ptare)
+  pure real(rk8) function foetb(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foetb = foealfa(ptare)*c3les*(tzero-c4les)*(d_one/(ptare-c4les)**2)+ &
       (d_one-foealfa(ptare))*c3ies*(tzero-c4ies)*(d_one/(ptare-c4ies)**2)
   end function foetb
-  real(rk8) function foealfcu(ptare)
+  pure real(rk8) function foealfcu(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foealfcu = min(d_one, &
            ((max(rtice,min(rtwat,ptare))-rtice)*rtwat_rtice_r)**2)
   end function foealfcu
-  real(rk8) function foeewmcu(ptare)
+  pure real(rk8) function foeewmcu(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foeewmcu = c2es*(foealfcu(ptare)*exp(c3les*(ptare-tzero)/(ptare-c4les)) + &
              (d_one-foealfcu(ptare))*exp(c3ies*(ptare-tzero)/(ptare-c4ies)))
   end function foeewmcu
-  real(rk8) function foedemcu(ptare)
+  pure real(rk8) function foedemcu(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foedemcu = foealfcu(ptare)*c5alvcp*(d_one/(ptare-c4les)**2) + &
            (d_one-foealfcu(ptare))*c5alscp*(d_one/(ptare-c4ies)**2)
   end function foedemcu
-  real(rk8) function foeldcpmcu(ptare)
+  pure real(rk8) function foeldcpmcu(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foeldcpmcu = foealfcu(ptare)*wlhvocp+(d_one-foealfcu(ptare))*wlhsocp
   end function foeldcpmcu
-  real(rk8) function foelhmcu(ptare)
+  pure real(rk8) function foelhmcu(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foelhmcu = foealfcu(ptare)*wlhv+(d_one-foealfcu(ptare))*wlhs
   end function foelhmcu
-  real(rk8) function foeewmo(ptare)
+  pure real(rk8) function foeewmo(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foeewmo = c2es*exp(c3les*(ptare-tzero)/(ptare-c4les))
   end function foeewmo
-  real(rk8) function foeeliq(ptare)
+  pure real(rk8) function foeeliq(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foeeliq = c2es*exp(c3les*(ptare-tzero)/(ptare-c4les))
   end function foeeliq
-  real(rk8) function foeeice(ptare)
+  pure real(rk8) function foeeice(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foeeice = c2es*exp(c3ies*(ptare-tzero)/(ptare-c4ies))
   end function foeeice
-  real(rk8) function foeles_v(ptare)
+  pure real(rk8) function foeles_v(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foeles_v = c3les*(ptare-tzero)/(ptare-c4les)
   end function foeles_v
-  real(rk8) function foeies_v(ptare)
+  pure real(rk8) function foeies_v(ptare)
     implicit none
     real(rk8) , intent(in) :: ptare
     foeies_v = c3ies*(ptare-tzero)/(ptare-c4ies)
   end function foeies_v
-  real(rk8) function foeewm_v(ptare,exp1,exp2)
+  pure real(rk8) function foeewm_v(ptare,exp1,exp2)
     implicit none
     real(rk8) , intent(in) :: ptare , exp1 , exp2
     foeewm_v = c2es*(foealfa(ptare)*exp1+(d_one-foealfa(ptare))*exp2)
   end function foeewm_v
-  real(rk8) function foeewmcu_v(ptare,exp1,exp2)
+  pure real(rk8) function foeewmcu_v(ptare,exp1,exp2)
     implicit none
     real(rk8) , intent(in) :: ptare , exp1 , exp2
     foeewmcu_v = c2es*(foealfcu(ptare)*exp1+(d_one-foealfcu(ptare))*exp2)
