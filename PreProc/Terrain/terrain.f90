@@ -391,7 +391,6 @@ program terrain
 
     do ism = 1 , ismthlev
       call smth121(htgrid_s,jxsg,iysg)
-      call smth121(htgrid_s,jxsg,iysg)
     end do
 
     if ( ibndry ) then
@@ -565,7 +564,6 @@ program terrain
  
 !     ******           grell smoothing to eliminate 2 delx wave (6/90):
   do ism = 1 , ismthlev
-    call smth121(htgrid,jx,iy)
     call smth121(htgrid,jx,iy)
   end do
 
