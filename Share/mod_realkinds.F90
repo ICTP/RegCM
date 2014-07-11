@@ -26,10 +26,6 @@ module mod_realkinds
   integer , parameter :: rk8 = selected_real_kind(P=13,R=300)
   integer , parameter :: rk4 = selected_real_kind(P= 6,R=37)
 
-  ! Back compatibility
-  integer , parameter :: dp = rk8
-  integer , parameter :: sp = rk4
-
 #ifdef __PGI
   ! quiet nan for portland group compilers
   real(rk8), parameter :: inf = O'0777600000000000000000'

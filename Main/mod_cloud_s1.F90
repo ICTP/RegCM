@@ -615,8 +615,8 @@ if ( fscheme ) then
           zphases = phases(zt(j,i,k))
           zfoeewmt(j,i,k) = min(foeewm(zt(j,i,k))/zpres(j,i,k),d_half)
           zqsmix(j,i,k) = zfoeewmt(j,i,k)
-          ! vtmpc1 = rwat/rgas - d_one
-          zqsmix(j,i,k) = zqsmix(j,i,k)/(d_one-vtmpc1*zqsmix(j,i,k))
+          ! retv = rwat/rgas - d_one
+          zqsmix(j,i,k) = zqsmix(j,i,k)/(d_one-retv*zqsmix(j,i,k))
           !--------------------------------------------
           ! ice saturation T<273K
           ! liquid water saturation for T>273K
@@ -626,11 +626,11 @@ if ( fscheme ) then
                (d_one-zdelta)*foeeice(zt(j,i,k)))/zpres(j,i,k),d_half)
           zfoeew(j,i,k) = min(d_half,zfoeew(j,i,k))
           !qsi saturation mixing ratio with respect to ice
-          !zqsice(j,i,k) = zfoeew(j,i,k)/(d_one-vtmpc1*zfoeew(j,i,k))
+          !zqsice(j,i,k) = zfoeew(j,i,k)/(d_one-retv*zfoeew(j,i,k))
           !ice water saturation
           zfoeeicet(j,i,k) = min(foeeice(zt(j,i,k))/zpres(j,i,k),d_half)
           zqsice(j,i,k) = zfoeeicet(j,i,k)
-          zqsice(j,i,k) = zqsice(j,i,k)/(d_one-vtmpc1*zqsice(j,i,k))
+          zqsice(j,i,k) = zqsice(j,i,k)/(d_one-retv*zqsice(j,i,k))
           !----------------------------------
           ! liquid water saturation
           !----------------------------------
@@ -639,7 +639,7 @@ if ( fscheme ) then
           !ws=ws/(1-(1/eps - 1)*ws)
           zfoeeliqt(j,i,k) = min(foeeliq(zt(j,i,k))/zpres(j,i,k),d_half)
           zqsliq(j,i,k) = zfoeeliqt(j,i,k)
-          zqsliq(j,i,k) = zqsliq(j,i,k)/(d_one-vtmpc1*zqsliq(j,i,k))
+          zqsliq(j,i,k) = zqsliq(j,i,k)/(d_one-retv*zqsliq(j,i,k))
         end do
       end do
     end do
@@ -719,18 +719,18 @@ if ( fscheme ) then
           !------------------------------------
           ! liquid
           zfacw          = r5les/((zt(j,i,k)-r4les)**2)
-          zcor           = d_one/(d_one-vtmpc1*zfoeeliqt(j,i,k))
+          zcor           = d_one/(d_one-retv*zfoeeliqt(j,i,k))
           zdqsliqdt(j,i) = zfacw*zcor*zqsliq(j,i,k)
           zcorqsliq(j,i) = d_one+wlhvocp*zdqsliqdt(j,i)
           ! ice
           zfaci          = r5ies/((zt(j,i,k)-r4ies)**2)
-          zcor           = d_one/(d_one-vtmpc1*zfoeew(j,i,k))
+          zcor           = d_one/(d_one-retv*zfoeew(j,i,k))
           zdqsicedt(j,i) = zfaci*zcor*zqsice(j,i,k)
           zcorqsice(j,i) = d_one+wlhsocp*zdqsicedt(j,i)
           ! diagnostic mixed
           zalfaw         = zliq(j,i,k)
           zfac           = zalfaw*zfacw+(d_one-zalfaw)*zfaci
-          zcor           = d_one/(d_one-vtmpc1*zfoeewmt(j,i,k))
+          zcor           = d_one/(d_one-retv*zfoeewmt(j,i,k))
           zdqsmixdt(j,i) = zfac*zcor*zqsmix(j,i,k)
           zcorqsmix(j,i) = d_one/(d_one+foeldcpm(zt(j,i,k))*zdqsmixdt(j,i))
           !--------------------------------
@@ -1034,7 +1034,7 @@ if ( fscheme ) then
             zqp = d_one/zpres(j,i,k)
             zqsat = foeewm(ztcond(j,i,k))*zqp   !saturation mixing ratio ws
             zqsat = min(d_half,zqsat)       !ws<0.5        WHY?
-            zcor  = d_one/(d_one-vtmpc1*zqsat)
+            zcor  = d_one/(d_one-retv*zqsat)
             zqsat = zqsat*zcor
             zcond = (zqsmix(j,i,k)-zqsat) / &
                     (d_one+zqsat*foedem(ztcond(j,i,k)))
@@ -1042,7 +1042,7 @@ if ( fscheme ) then
             zqsmix(j,i,k) = zqsmix(j,i,k)-zcond
             zqsat = foeewm(ztcond(j,i,k))*zqp
             zqsat = min(d_half,zqsat)
-            zcor = d_one/(d_one-vtmpc1*zqsat)
+            zcor = d_one/(d_one-retv*zqsat)
             zqsat = zqsat*zcor
             zcond1 = (zqsmix(j,i,k)-zqsat)  / &
                      (d_one+zqsat*foedem(ztcond(j,i,k)))
@@ -1099,7 +1099,7 @@ if ( fscheme ) then
              ! old limiter
               !  (significantly improves upper tropospheric humidity rms)
               if (fccfg(j,i,k) > 0.99D0) then
-                zcor = d_one/(d_one-vtmpc1*zqsmix(j,i,k))
+                zcor = d_one/(d_one-retv*zqsmix(j,i,k))
                 zcdmax = (zqxx(j,i,k,iqqv)-zqsmix(j,i,k)) / &
                          (d_one+zcor*zqsmix(j,i,k)*foedem(zt(j,i,k)))
               else

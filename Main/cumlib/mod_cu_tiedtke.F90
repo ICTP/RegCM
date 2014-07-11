@@ -401,7 +401,7 @@ module mod_cu_tiedtke
       zxlp1 = pxlm1(jl,jk) + pxlte(jl,jk)*dt
       zxip1 = pxim1(jl,jk) + pxite(jl,jk)*dt
       zxp1(jl,jk) = max(d_zero,zxlp1+zxip1)
-      ztvp1(jl,jk) = ztp1(jl,jk)*(d_one+vtmpc1*zqp1(jl,jk)-zxp1(jl,jk))
+      ztvp1(jl,jk) = ztp1(jl,jk)*(d_one+retv*zqp1(jl,jk)-zxp1(jl,jk))
       zup1(jl,jk) = pum1(jl,jk) + pvom(jl,jk)*dt
       zvp1(jl,jk) = pvm1(jl,jk) + pvol(jl,jk)*dt
       if ( iconv /= 4 ) then
@@ -410,7 +410,7 @@ module mod_cu_tiedtke
         it = max(min(it,jptlucu2),jptlucu1)
         zqsat(jl,jk) = tlucua(it)/papp1(jl,jk)
         zqsat(jl,jk) = min(d_half,zqsat(jl,jk))
-        zqsat(jl,jk) = zqsat(jl,jk)/(d_one-vtmpc1*zqsat(jl,jk))
+        zqsat(jl,jk) = zqsat(jl,jk)/(d_one-retv*zqsat(jl,jk))
       end if
     end do
  
@@ -787,16 +787,16 @@ module mod_cu_tiedtke
       zes = tlucua(it)/paphp1(jl,jk)
       zes = min(d_half,zes)
       lo = zes < 0.40D0
-      zcor = d_one/(d_one-vtmpc1*zes)
+      zcor = d_one/(d_one-retv*zes)
       zqsat = zes*zcor
       it1 = it + 1
       it1 = max(min(it1,jptlucu2),jptlucu1)
       zqst1 = tlucua(it1)/paphp1(jl,jk)
       zqst1 = min(d_half,zqst1)
-      zqst1 = zqst1/(d_one-vtmpc1*zqst1)
+      zqst1 = zqst1/(d_one-retv*zqst1)
       zdqsdt = (zqst1-zqsat)*d_1000
       zgam = merge(zalvdcp*zdqsdt,zqsat*zcor*tlucub(it),lo)
-      zzz = zcpcu(jl,jk)*ztenh(jl,jk)*vtmpc1
+      zzz = zcpcu(jl,jk)*ztenh(jl,jk)*retv
       zhhat = zhsat - (zzz+zgam*zzz)/(d_one+zgam*zzz*zqalv) * &
               max(zqsenh(jl,jk)-zqenh(jl,jk),d_zero)
       zhhatt(jl,jk) = zhhat
@@ -837,7 +837,7 @@ module mod_cu_tiedtke
       if ( llo1 .and. jk < kcbot(jl) .and. jk >= ictop0(jl) ) then
         zalvs = merge(wlhv,wlhs,ztenh(jl,jk) > tzero)
         ikb = kcbot(jl)
-        zro = paphp1(jl,jk)/(rgas*ztenh(jl,jk)*(d_one+vtmpc1*zqenh(jl,jk)))
+        zro = paphp1(jl,jk)/(rgas*ztenh(jl,jk)*(d_one+retv*zqenh(jl,jk)))
         zdz = (paphp1(jl,jk)-paphp1(jl,jk-1))/(egrav*zro)
         zdhdz = (zcpen(jl,jk-1)*pten(jl,jk-1)-zcpen(jl,jk)          &
                 *pten(jl,jk)+zalvs*(pqen(jl,jk-1)-pqen(jl,jk))      &
@@ -928,16 +928,16 @@ module mod_cu_tiedtke
       llo1 = ldcum(jl) .and. ktype(jl) == 1
       if ( llo1 .and. jk <= kcbot(jl) .and. jk > kctop(jl) ) then
         ikb = kcbot(jl)
-        zro = paphp1(jl,jk)/(rgas*ztenh(jl,jk)*(d_one+vtmpc1*zqenh(jl,jk)))
+        zro = paphp1(jl,jk)/(rgas*ztenh(jl,jk)*(d_one+retv*zqenh(jl,jk)))
         zdz = (paphp1(jl,jk)-paphp1(jl,jk-1))/(egrav*zro)
         zheat(jl) = zheat(jl)                                       &
                     + ((pten(jl,jk-1)-pten(jl,jk)                   &
                     +egrav*zdz/zcpcu(jl,jk))/ztenh(jl,jk)           &
-                    +vtmpc1*(pqen(jl,jk-1)-pqen(jl,jk)))            &
+                    +retv*(pqen(jl,jk-1)-pqen(jl,jk)))            &
                     *(egrav*(pmfu(jl,jk)+pmfd(jl,jk)))/zro
         zcape(jl) = zcape(jl)                                        &
                     + (egrav*(ptu(jl,jk)-ztenh(jl,jk))/ztenh(jl,jk)  &
-                    +egrav*vtmpc1*(pqu(jl,jk)-zqenh(jl,jk))          &
+                    +egrav*retv*(pqu(jl,jk)-zqenh(jl,jk))          &
                     -egrav*plu(jl,jk))*zdz
       end if
     end do
@@ -1285,16 +1285,16 @@ module mod_cu_tiedtke
       zes = tlucua(it)/paphp1(jl,jk)
       zes = min(d_half,zes)
       lo = zes < 0.40D0
-      zcor = d_one/(d_one-vtmpc1*zes)
+      zcor = d_one/(d_one-retv*zes)
       zqsat = zes*zcor
       it1 = it + 1
       it1 = max(min(it1,jptlucu2),jptlucu1)
       zqst1 = tlucua(it1)/paphp1(jl,jk)
       zqst1 = min(d_half,zqst1)
-      zqst1 = zqst1/(d_one-vtmpc1*zqst1)
+      zqst1 = zqst1/(d_one-retv*zqst1)
       zdqsdt = (zqst1-zqsat)*d_1000
       zgam = merge(zalvdcp*zdqsdt,zqsat*zcor*tlucub(it),lo)
-      zzz = zcpcu(jl,jk)*ztenh(jl,jk)*vtmpc1
+      zzz = zcpcu(jl,jk)*ztenh(jl,jk)*retv
       zhhat = zhsat - (zzz+zgam*zzz)/(d_one+zgam*zzz*zqalv)         &
               *max(zqsenh(jl,jk)-zqenh(jl,jk),d_zero)
       if ( jk < ictop0(jl) .and. zhcbase(jl) > zhhat ) ictop0(jl) = jk
@@ -1382,16 +1382,16 @@ module mod_cu_tiedtke
       llo1 = ldcum(jl) .and. ktype(jl) == 1
       if ( llo1 .and. jk <= kcbot(jl) .and. jk > kctop(jl) ) then
         ikb = kcbot(jl)
-        zro = paphp1(jl,jk)/(rgas*ztenh(jl,jk)*(d_one+vtmpc1*zqenh(jl,jk)))
+        zro = paphp1(jl,jk)/(rgas*ztenh(jl,jk)*(d_one+retv*zqenh(jl,jk)))
         zdz = (paphp1(jl,jk)-paphp1(jl,jk-1))/(egrav*zro)
         zheat(jl) = zheat(jl)                                       &
                     + ((pten(jl,jk-1)-pten(jl,jk)                   &
                     +egrav*zdz/zcpcu(jl,jk))/ztenh(jl,jk)           &
-                    +vtmpc1*(pqen(jl,jk-1)-pqen(jl,jk)))            &
+                    +retv*(pqen(jl,jk-1)-pqen(jl,jk)))            &
                     *(egrav*(pmfu(jl,jk)+pmfd(jl,jk)))/zro
         zcape(jl) = zcape(jl)                                       &
                     + (egrav*(ptu(jl,jk)-ztenh(jl,jk))/ztenh(jl,jk) &
-                    +egrav*vtmpc1*(pqu(jl,jk)-zqenh(jl,jk))         &
+                    +egrav*retv*(pqu(jl,jk)-zqenh(jl,jk))         &
                     -egrav*plu(jl,jk))*zdz
       end if
     end do
@@ -1727,16 +1727,16 @@ module mod_cu_tiedtke
       zes = tlucua(it)/paphp1(jl,jk)
       zes = min(d_half,zes)
       lo = zes < 0.40D0
-      zcor = d_one/(d_one-vtmpc1*zes)
+      zcor = d_one/(d_one-retv*zes)
       zqsat = zes*zcor
       it1 = it + 1
       it1 = max(min(it1,jptlucu2),jptlucu1)
       zqst1 = tlucua(it1)/paphp1(jl,jk)
       zqst1 = min(d_half,zqst1)
-      zqst1 = zqst1/(d_one-vtmpc1*zqst1)
+      zqst1 = zqst1/(d_one-retv*zqst1)
       zdqsdt = (zqst1-zqsat)*d_1000
       zgam = merge(zalvdcp*zdqsdt,zqsat*zcor*tlucub(it),lo)
-      zzz = zcpcu(jl,jk)*ztenh(jl,jk)*vtmpc1
+      zzz = zcpcu(jl,jk)*ztenh(jl,jk)*retv
       zhhat = zhsat - (zzz+zgam*zzz)/(d_one+zgam*zzz*zqalv)         &
               *max(zqsenh(jl,jk)-zqenh(jl,jk),d_zero)
       if ( jk < ictop0(jl) .and. zhcbase(jl) > zhhat ) ictop0(jl) = jk
@@ -1975,7 +1975,7 @@ module mod_cu_tiedtke
 !
   do jk = 1 , klev
     do jl = 1 , kproma
-!      pcpen(jl,jk) = cpd*(d_one+vtmpc2*max(pqen(jl,jk),0.00D0))
+!      pcpen(jl,jk) = cpd*(d_one+hcrm1*max(pqen(jl,jk),0.00D0))
       pcpen(jl,jk) = cpd
     end do
   end do
@@ -2016,7 +2016,7 @@ module mod_cu_tiedtke
       pqenh(jl,jk) = min(pqen(jl,jk-1),pqsen(jl,jk-1))              &
                      + (pqsenh(jl,jk)-pqsen(jl,jk-1))
       pqenh(jl,jk) = max(pqenh(jl,jk),d_zero)
-!      pcpcu(jl,jk) = cpd*(d_one+vtmpc2*pqenh(jl,jk))
+!      pcpcu(jl,jk) = cpd*(d_one+hcrm1*pqenh(jl,jk))
       pcpcu(jl,jk) = cpd
     end do
   end do
@@ -2287,12 +2287,12 @@ module mod_cu_tiedtke
     if ( ktype(jl) == 1 ) then
       ikb = kcbot(jl)
       zbuoy(jl) = egrav*(ptu(jl,ikb)-ptenh(jl,ikb))/ptenh(jl,ikb)     &
-                  + egrav*vtmpc1*(pqu(jl,ikb)-pqenh(jl,ikb))
+                  + egrav*retv*(pqu(jl,ikb)-pqenh(jl,ikb))
       if ( zbuoy(jl) > d_zero ) then
         zdz = (pgeo(jl,ikb-1)-pgeo(jl,ikb))*regrav
         zdrodz = -log(pten(jl,ikb-1)/pten(jl,ikb))                  &
                  /zdz - egrav/(rgas*ptenh(jl,ikb)                   &
-                 *(d_one+vtmpc1*pqenh(jl,ikb)))
+                 *(d_one+retv*pqenh(jl,ikb)))
 !           nb zoentr is here a fractional value
         zoentr(jl,ikb-1) = zbuoy(jl)*d_half/(d_one+zbuoy(jl)*zdz)   &
                            + zdrodz
@@ -2425,8 +2425,8 @@ module mod_cu_tiedtke
 !           find moist static energy that give nonbuoyant air
         zalvs = merge(wlhv,wlhs,ptenh(jl,jk+1) > tzero)
         zga = zalvs*pqsenh(jl,jk+1)/(rwat*(ptenh(jl,jk+1)**2))
-        zdt = (plu(jl,jk+1)-vtmpc1*(pqsenh(jl,jk+1)-pqenh(jl,jk+1)))&
-              /(d_one/ptenh(jl,jk+1)+vtmpc1*zga)
+        zdt = (plu(jl,jk+1)-retv*(pqsenh(jl,jk+1)-pqenh(jl,jk+1)))&
+              /(d_one/ptenh(jl,jk+1)+retv*zga)
         zscod = pcpcu(jl,jk+1)*ptenh(jl,jk+1) + pgeoh(jl,jk+1)      &
                 + pcpcu(jl,jk+1)*zdt
         zscod = max(zscod,d_zero)
@@ -2475,8 +2475,8 @@ module mod_cu_tiedtke
         if ( pqu(jl,jk) < zqold(jl) ) then
           klab(jl,jk) = 2
           plu(jl,jk) = plu(jl,jk) + zqold(jl) - pqu(jl,jk)
-          zbuo = ptu(jl,jk)*(d_one+vtmpc1*pqu(jl,jk)-plu(jl,jk))    &
-                 - ptenh(jl,jk)*(d_one+vtmpc1*pqenh(jl,jk))
+          zbuo = ptu(jl,jk)*(d_one+retv*pqu(jl,jk)-plu(jl,jk))    &
+                 - ptenh(jl,jk)*(d_one+retv*pqenh(jl,jk))
           if ( klab(jl,jk+1) == 1 ) zbuo = zbuo + d_half
           if ( zbuo > d_zero .and. pmfu(jl,jk) >= 0.010D0*pmfub(jl) .and.&
                jk >= kctop0(jl) ) then
@@ -2541,13 +2541,13 @@ module mod_cu_tiedtke
     do jl = 1 , kproma
       if ( loflag(jl) .and. ktype(jl) == 1 ) then
         zbuoyz = egrav*(ptu(jl,jk)-ptenh(jl,jk))/ptenh(jl,jk)         &
-                 + egrav*vtmpc1*(pqu(jl,jk)-pqenh(jl,jk))             &
+                 + egrav*retv*(pqu(jl,jk)-pqenh(jl,jk))             &
                  - egrav*plu(jl,jk)
         zbuoyz = max(zbuoyz,0.00D0)
         zdz = (pgeo(jl,jk-1)-pgeo(jl,jk))*regrav
         zdrodz = -log(pten(jl,jk-1)/pten(jl,jk))                    &
                  /zdz - egrav/(rgas*ptenh(jl,jk)                    &
-                 *(d_one+vtmpc1*pqenh(jl,jk)))
+                 *(d_one+retv*pqenh(jl,jk)))
         zbuoy(jl) = zbuoy(jl) + zbuoyz*zdz
         zoentr(jl,jk-1) = zbuoyz*d_half/(d_one+zbuoy(jl)) + zdrodz
         zoentr(jl,jk-1) = min(zoentr(jl,jk-1),centrmax)
@@ -2897,8 +2897,8 @@ module mod_cu_tiedtke
       if ( loflag(jl) .and. pqu(jl,jk) < zqold(jl) ) then
         klab(jl,jk) = 2
         plu(jl,jk) = plu(jl,jk) + zqold(jl) - pqu(jl,jk)
-        zbuo = ptu(jl,jk)*(d_one+vtmpc1*pqu(jl,jk)-plu(jl,jk))      &
-               - ptenh(jl,jk)*(d_one+vtmpc1*pqenh(jl,jk))
+        zbuo = ptu(jl,jk)*(d_one+retv*pqu(jl,jk)-plu(jl,jk))      &
+               - ptenh(jl,jk)*(d_one+retv*pqenh(jl,jk))
         if ( klab(jl,jk+1) == 1 ) zbuo = zbuo + d_half
         if ( zbuo > d_zero .and. pmfu(jl,jk) >= 0.10D0*pmfub(jl) ) then
           kctop(jl) = jk
@@ -3089,8 +3089,8 @@ module mod_cu_tiedtke
           pqu(jl,jk) = pqu(jl,jk+1)
           ptu(jl,jk) = (pcpcu(jl,jk+1)*ptu(jl,jk+1)+pgeoh(jl,jk+1)  &
                        -pgeoh(jl,jk))/pcpcu(jl,jk)
-          zbuo = ptu(jl,jk)*(d_one+vtmpc1*pqu(jl,jk)) - ptenh(jl,jk)&
-                 *(d_one+vtmpc1*pqenh(jl,jk)) + d_half
+          zbuo = ptu(jl,jk)*(d_one+retv*pqu(jl,jk)) - ptenh(jl,jk)&
+                 *(d_one+retv*pqenh(jl,jk)) + d_half
           if ( zbuo > d_zero ) klab(jl,jk) = 1
           zqold(jl) = pqu(jl,jk)
         end if
@@ -3104,8 +3104,8 @@ module mod_cu_tiedtke
         if ( loflag(jl) .and. pqu(jl,jk) < zqold(jl) ) then
           klab(jl,jk) = 2
           plu(jl,jk) = plu(jl,jk) + zqold(jl) - pqu(jl,jk)
-          zbuo = ptu(jl,jk)*(d_one+vtmpc1*pqu(jl,jk)-plu(jl,jk))    &
-                 - ptenh(jl,jk)*(d_one+vtmpc1*pqenh(jl,jk)) + d_half
+          zbuo = ptu(jl,jk)*(d_one+retv*pqu(jl,jk)-plu(jl,jk))    &
+                 - ptenh(jl,jk)*(d_one+retv*pqenh(jl,jk)) + d_half
           if ( zbuo > d_zero ) then
             kcbot(jl) = jk
             ldcum(jl) = .true.
@@ -3387,8 +3387,8 @@ module mod_cu_tiedtke
       do jl = 1 , kproma
         if ( llo2(jl) ) then
           zcond(jl) = zcond(jl) - pqd(jl,jk)
-          zbuo = ptd(jl,jk)*(d_one+vtmpc1*pqd(jl,jk)) - &
-                 ptenh(jl,jk)*(d_one+vtmpc1*pqenh(jl,jk))
+          zbuo = ptd(jl,jk)*(d_one+retv*pqd(jl,jk)) - &
+                 ptenh(jl,jk)*(d_one+retv*pqenh(jl,jk))
           llo1 = zbuo < d_zero .and.                                   &
                  (prfl(jl)-pmfd(jl,jk)*zcond(jl) > d_zero)
           pmfd(jl,jk) = merge(pmfd(jl,jk),d_zero,llo1)
@@ -3551,8 +3551,8 @@ module mod_cu_tiedtke
           if ( llo2(jl) ) then
             zttest = d_half*(ptu(jl,jk)+ztenwb(jl,jk))
             zqtest = d_half*(pqu(jl,jk)+zqenwb(jl,jk))
-            zbuo = zttest*(d_one+vtmpc1*zqtest) - ptenh(jl,jk)      &
-                   *(d_one+vtmpc1*pqenh(jl,jk))
+            zbuo = zttest*(d_one+retv*zqtest) - ptenh(jl,jk)      &
+                   *(d_one+retv*pqenh(jl,jk))
             zcond(jl) = pqenh(jl,jk) - zqenwb(jl,jk)
             zmftop = -cmfdeps*pmfub(jl)
             if ( zbuo < d_zero .and. prfl(jl) > 10.0D0*zmftop*zcond(jl) ) then
@@ -3946,7 +3946,7 @@ module mod_cu_tiedtke
 
     ppbase(jl) = paphp1(jl,kcbot(jl))
     if ( .not. ldcum(jl) ) cycle
-    zrrho = (rgas*ptenh(jl,kk+1)*(d_one+vtmpc1*pqenh(jl,kk+1)))/paphp1(jl,kk+1)
+    zrrho = (rgas*ptenh(jl,kk+1)*(d_one+retv*pqenh(jl,kk+1)))/paphp1(jl,kk+1)
     zdprho = (paphp1(jl,kk+1)-paphp1(jl,kk))*regrav
     zpmid = d_half*(ppbase(jl)+paphp1(jl,kctop0(jl)))
     zentr = pentr(jl)*pmfu(jl,kk+1)*zdprho*zrrho
@@ -3998,7 +3998,7 @@ module mod_cu_tiedtke
 
     if ( .not. ldcum(jl) ) cycle
 
-    zrrho = (rgas*ptenh(jl,kk+1)*(d_one+vtmpc1*pqenh(jl,kk+1)))/paphp1(jl,kk+1)
+    zrrho = (rgas*ptenh(jl,kk+1)*(d_one+retv*pqenh(jl,kk+1)))/paphp1(jl,kk+1)
     zdprho = (paphp1(jl,kk+1)-paphp1(jl,kk))*regrav
     zpmid = d_half*(ppbase(jl)+paphp1(jl,kctop0(jl)))
   
@@ -4118,7 +4118,7 @@ module mod_cu_tiedtke
 !
   do jl = 1 , kproma
     ppbase(jl) = paphp1(jl,kcbot(jl))
-    zrrho = (rgas*ptenh(jl,kk+1)*(d_one+vtmpc1*pqenh(jl,kk+1)))/paphp1(jl,kk+1)
+    zrrho = (rgas*ptenh(jl,kk+1)*(d_one+retv*pqenh(jl,kk+1)))/paphp1(jl,kk+1)
     zdprho = (paphp1(jl,kk+1)-paphp1(jl,kk))*regrav
     zpmid = d_half*(ppbase(jl)+paphp1(jl,kctop0(jl)))
     zentr = pentr(jl)*pmfu(jl,kk+1)*zdprho*zrrho
@@ -4302,7 +4302,7 @@ module mod_cu_tiedtke
         if ( pten(jl,jk) > tzero ) then
           prfl(jl) = prfl(jl) + pdmfup(jl,jk) + pdmfdp(jl,jk)
           if ( psfl(jl) > d_zero .and. pten(jl,jk) > ztmelp2 ) then
-            zfac = zcons1*(d_one+vtmpc2*pqen(jl,jk))                &
+            zfac = zcons1*(d_one+hcrm1*pqen(jl,jk))  &
                    *(paphp1(jl,jk+1)-paphp1(jl,jk))
             zsnmlt = min(psfl(jl),zfac*(pten(jl,jk)-ztmelp2))
             pdpmel(jl,jk) = zsnmlt
@@ -4422,13 +4422,13 @@ module mod_cu_tiedtke
         zes = tlucua(it)/pp(jl)
         zes = min(d_half,zes)
         lo = zes < 0.4D0
-        zcor = d_one/(d_one-vtmpc1*zes)
+        zcor = d_one/(d_one-retv*zes)
         zqsat = zes*zcor
         it1 = it+1
         it1 = max(min(it1,jptlucu2),jptlucu1)
         zqst1 = tlucua(it1)/pp(jl)
         zqst1 = min(d_half,zqst1)
-        zqst1 = zqst1/(d_one-vtmpc1*zqst1)
+        zqst1 = zqst1/(d_one-retv*zqst1)
         zdqsdt = (zqst1-zqsat)*d_1000
         zlcdqsdt = merge(zdqsdt*tlucuc(it),zqsat*zcor*tlucub(it),lo)
         zcond(jl) = (pq(jl,kk)-zqsat)/(d_one+zlcdqsdt)
@@ -4456,13 +4456,13 @@ module mod_cu_tiedtke
           zes = tlucua(it)/pp(jl)
           zes = min(d_half,zes)
           lo = zes < 0.4D0
-          zcor = d_one/(d_one-vtmpc1*zes)
+          zcor = d_one/(d_one-retv*zes)
           zqsat = zes*zcor
           it1 = it+1
           it1 = max(min(it1,jptlucu2),jptlucu1)
           zqst1 = tlucua(it1)/pp(jl)
           zqst1 = min(d_half,zqst1)
-          zqst1 = zqst1/(d_one-vtmpc1*zqst1)
+          zqst1 = zqst1/(d_one-retv*zqst1)
           zdqsdt = (zqst1-zqsat)*d_1000
           zlcdqsdt = merge(zdqsdt*tlucuc(it),zqsat*zcor*tlucub(it),lo)
           zcond1 = (pq(jl,kk)-zqsat)/(d_one+zlcdqsdt)
@@ -4491,13 +4491,13 @@ module mod_cu_tiedtke
         zes = tlucua(it)/pp(jl)
         zes = min(d_half,zes)
         lo = zes < 0.4D0
-        zcor = d_one/(d_one-vtmpc1*zes)
+        zcor = d_one/(d_one-retv*zes)
         zqsat = zes*zcor
         it1 = it+1
         it1 = max(min(it1,jptlucu2),jptlucu1)
         zqst1 = tlucua(it1)/pp(jl)
         zqst1 = min(d_half,zqst1)
-        zqst1 = zqst1/(d_one-vtmpc1*zqst1)
+        zqst1 = zqst1/(d_one-retv*zqst1)
         zdqsdt = (zqst1-zqsat)*d_1000
         zlcdqsdt = merge(zdqsdt*tlucuc(it),zqsat*zcor*tlucub(it),lo)
         zcond(jl) = (pq(jl,kk)-zqsat)/(d_one+zlcdqsdt)
@@ -4524,13 +4524,13 @@ module mod_cu_tiedtke
         zes = tlucua(it)/pp(jl)
         zes = min(d_half,zes)
         lo = zes < 0.4D0
-        zcor = d_one/(d_one-vtmpc1*zes)
+        zcor = d_one/(d_one-retv*zes)
         zqsat = zes*zcor
         it1 = it+1
         it1 = max(min(it1,jptlucu2),jptlucu1)
         zqst1 = tlucua(it1)/pp(jl)
         zqst1 = min(d_half,zqst1)
-        zqst1 = zqst1/(d_one-vtmpc1*zqst1)
+        zqst1 = zqst1/(d_one-retv*zqst1)
         zdqsdt = (zqst1-zqsat)*d_1000
         zlcdqsdt = merge(zdqsdt*tlucuc(it),zqsat*zcor*tlucub(it),lo)
         zcond1 = (pq(jl,kk)-zqsat)/(d_one+zlcdqsdt)
@@ -4557,13 +4557,13 @@ module mod_cu_tiedtke
       zes = tlucua(it)/pp(jl)
       zes = min(d_half,zes)
       lo = zes < 0.4D0
-      zcor = d_one/(d_one-vtmpc1*zes)
+      zcor = d_one/(d_one-retv*zes)
       zqsat = zes*zcor
       it1 = it+1
       it1 = max(min(it1,jptlucu2),jptlucu1)
       zqst1 = tlucua(it1)/pp(jl)
       zqst1 = min(d_half,zqst1)
-      zqst1 = zqst1/(d_one-vtmpc1*zqst1)
+      zqst1 = zqst1/(d_one-retv*zqst1)
       zdqsdt = (zqst1-zqsat)*d_1000
       zlcdqsdt = merge(zdqsdt*tlucuc(it),zqsat*zcor*tlucub(it),lo)
       zcond(jl) = (pq(jl,kk)-zqsat)/(d_one+zlcdqsdt)
@@ -4587,13 +4587,13 @@ module mod_cu_tiedtke
       zes = tlucua(it)/pp(jl)
       zes = min(d_half,zes)
       lo = zes < 0.4D0
-      zcor = d_one/(d_one-vtmpc1*zes)
+      zcor = d_one/(d_one-retv*zes)
       zqsat = zes*zcor
       it1 = it+1
       it1 = max(min(it1,jptlucu2),jptlucu1)
       zqst1 = tlucua(it1)/pp(jl)
       zqst1 = min(d_half,zqst1)
-      zqst1 = zqst1/(d_one-vtmpc1*zqst1)
+      zqst1 = zqst1/(d_one-retv*zqst1)
       zdqsdt = (zqst1-zqsat)*d_1000
       zlcdqsdt = merge(zdqsdt*tlucuc(it),zqsat*zcor*tlucub(it),lo)
       zcond1 = (pq(jl,kk)-zqsat)/(d_one+zlcdqsdt)
@@ -4618,13 +4618,13 @@ module mod_cu_tiedtke
       zes = tlucua(it)/pp(jl)
       zes = min(d_half,zes)
       lo = zes < 0.4D0
-      zcor = d_one/(d_one-vtmpc1*zes)
+      zcor = d_one/(d_one-retv*zes)
       zqsat = zes*zcor
       it1 = it+1
       it1 = max(min(it1,jptlucu2),jptlucu1)
       zqst1 = tlucua(it1)/pp(jl)
       zqst1 = min(d_half,zqst1)
-      zqst1 = zqst1/(d_one-vtmpc1*zqst1)
+      zqst1 = zqst1/(d_one-retv*zqst1)
       zdqsdt = (zqst1-zqsat)*d_1000
       zlcdqsdt = merge(zdqsdt*tlucuc(it),zqsat*zcor*tlucub(it),lo)
       zcond(jl) = (pq(jl,kk)-zqsat)/(d_one+zlcdqsdt)
@@ -4643,13 +4643,13 @@ module mod_cu_tiedtke
       zes = tlucua(it)/pp(jl)
       zes = min(d_half,zes)
       lo = zes < 0.4D0
-      zcor = d_one/(d_one-vtmpc1*zes)
+      zcor = d_one/(d_one-retv*zes)
       zqsat = zes*zcor
       it1 = it+1
       it1 = max(min(it1,jptlucu2),jptlucu1)
       zqst1 = tlucua(it1)/pp(jl)
       zqst1 = min(d_half,zqst1)
-      zqst1 = zqst1/(d_one-vtmpc1*zqst1)
+      zqst1 = zqst1/(d_one-retv*zqst1)
       zdqsdt = (zqst1-zqsat)*d_1000
       zlcdqsdt = merge(zdqsdt*tlucuc(it),zqsat*zcor*tlucub(it),lo)
       zcond1 = (pq(jl,kk)-zqsat)/(d_one+zlcdqsdt)

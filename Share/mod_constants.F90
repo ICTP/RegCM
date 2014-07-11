@@ -141,8 +141,8 @@ module mod_constants
   real(rk8) , parameter :: rovg  = rgas/egrav
   real(rk8) , parameter :: govr  = egrav/rgas
   real(rk8) , parameter :: gdry  = -egrav/cpd
-  real(rk8) , parameter :: vtmpc1 = rwat/rgas - d_one
-  real(rk8) , parameter :: vtmpc2 = cpv*rcpd - d_one
+  real(rk8) , parameter :: hcratio = cpv*rcpd
+  real(rk8) , parameter :: hcrm1 = hcratio - d_one
   real(rk8) , parameter :: rhoh2o = 1000.0D+00
   real(rk8) , parameter :: rhosea = 1026.0D+00
   real(rk8) , parameter :: rhosnow = 330.0D+00

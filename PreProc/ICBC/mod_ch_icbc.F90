@@ -206,7 +206,7 @@ chv4(:,:,:,cb_CH3OH) = chv4_1(:,:,:,mz_CH3OH)*w_ch3oh/amd
     type(rcm_time_and_date) , intent(in) :: idate
     integer :: i , is , j , k , l , k0,it
     character(len=256) :: chfilename
-    real(sp) :: wt1 , wt2
+    real(rk4) :: wt1 , wt2
     integer :: ncid , istatus , ivarid
     integer , dimension(4) :: icount , istart
     integer :: year , month , day , hour

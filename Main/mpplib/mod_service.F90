@@ -230,8 +230,8 @@ module mod_service
       integer(ik4) , allocatable :: array_entries(:)
       logical :: l_times_on_pe = .false.
       logical :: l_nsubs = .true.
-      real(dp) :: total_comm_time = 0.0D0
-      real(dp) :: avg_value = 0.0D0
+      real(rk8) :: total_comm_time = 0.0D0
+      real(rk8) :: avg_value = 0.0D0
       character(len=128) :: cname
       character(len=dbgslen) :: sub='time_print'
 
