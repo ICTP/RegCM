@@ -675,7 +675,7 @@ module mod_lm_interface
               lm%ldmsk(j,i) = 2
               do n = 1, nnsg
                 lm%ldmsk1(n,j,i) = 2
-                ! set sea ice thikness (in m)
+                ! set sea ice thikness (in meter)
                 lms%sfice(n,j,i) = impfie%sit(j,i)
               end do
               ! write debug info
@@ -685,8 +685,9 @@ module mod_lm_interface
               end if
             else
               if ( ldmskb(j,i) == 0 .and. lm%ldmsk(j,i) == 2 ) then
-                ! reduce to one tenth surface ice: it should melt away
                 do n = 1, nnsg
+                  ! reduce to one tenth surface ice: it should melt away
+                  lms%sfice(n,j,i) = lms%sfice(n,j,i)*d_r10
                   ! check that sea ice is melted or not
                   if ( lms%sfice(n,j,i) <= iceminh ) then
                     if ( ldmskb(j,i) /= lm%ldmsk(j,i) ) flag = .true.
@@ -694,7 +695,7 @@ module mod_lm_interface
                     lm%ldmsk(j,i) = ldmskb(j,i)
                     lm%ldmsk1(n,j,i) = ldmskb(j,i)
                     ! set land-use type to its original value
-                    ! set sea ice thikness (in mm)
+                    ! set sea ice thikness (in meter)
                     lms%sfice(n,j,i) = d_zero 
                   else
                     flag = .false.
