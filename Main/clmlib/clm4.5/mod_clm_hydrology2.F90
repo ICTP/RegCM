@@ -30,7 +30,7 @@ module mod_clm_hydrology2
   !    -> CombineSnowLayers: combine snow layers that are thinner than minimum
   !    -> DivideSnowLayers:  subdivide snow layers that are thicker than maximum
   !
-  subroutine Hydrology2(lbc, ubc, lbp, ubp, &
+  subroutine Hydrology2(lbc, ubc, &
                         num_nolakec, filter_nolakec, &
                         num_hydrologyc, filter_hydrologyc, &
                         num_urbanc, filter_urbanc, &
@@ -52,7 +52,6 @@ module mod_clm_hydrology2
 #endif
     implicit none
     integer(ik4), intent(in) :: lbc, ubc    ! column bounds
-    integer(ik4), intent(in) :: lbp, ubp    ! pft bounds
     ! number of column non-lake points in column filter
     integer(ik4), intent(in) :: num_nolakec
     ! column filter for non-lake points
@@ -235,7 +234,7 @@ module mod_clm_hydrology2
     real(rk8) :: dhkdw(lbc:ubc,1:nlevgrnd)  ! d(hk)/d(vol_liq)
     ! temporary variables for soilpsi calculation
 #if (defined CN)
-    real(rk8) :: psi,vwc,fsattmp,psifrz
+    real(rk8) :: psi,vwc,fsattmp
     real(rk8) :: watdry       ! temporary
     ! soil water wgted by depth to maximum depth of 0.5 m
     real(rk8) :: rwat(lbc:ubc)

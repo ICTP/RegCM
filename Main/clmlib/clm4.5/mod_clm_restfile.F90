@@ -56,15 +56,13 @@ module mod_clm_restfile
   !
   ! Read/write CLM restart file.
   !
-  subroutine restFile_write(rfile,nlend,noptr,rdate)
+  subroutine restFile_write(rfile,noptr,rdate)
     implicit none
     character(len=*) , intent(in) :: rfile  ! output netcdf restart file
-    logical , intent(in) :: nlend          ! if at the end of the simulation
     character(len=*) , intent(in) :: rdate ! restart file time stamp for name
     ! if should NOT write to the restart pointer file
     logical , intent(in) , optional :: noptr
     type(clm_filetype) :: ncid ! netcdf id
-    integer(ik4) :: i       ! index
     logical :: ptrfile ! write out the restart pointer file
 
     if ( present(noptr) ) then
@@ -131,7 +129,7 @@ module mod_clm_restfile
     ! --------------------------------------------
 
     call restFile_close( ncid )
-    call restFile_closeRestart( rfile, nlend )
+    call restFile_closeRestart( rfile )
 
     ! Write out diagnostic info
 
@@ -147,7 +145,6 @@ module mod_clm_restfile
     implicit none
     character(len=*), intent(in) :: rfile  ! output netcdf restart file
     type(clm_filetype) :: ncid ! netcdf id
-    integer(ik4) :: i
 
     ! Open file
 
@@ -200,11 +197,9 @@ module mod_clm_restfile
   ! Close restart file and write restart pointer file if
   ! in write mode, otherwise just close restart file if in read mode
   !
-  subroutine restFile_closeRestart( rfile, nlend )
+  subroutine restFile_closeRestart( rfile )
     implicit none
     character(len=*) , intent(in) :: rfile  ! local output filename
-    logical,           intent(in) :: nlend
-    integer(ik4) :: i                   !index
     if (myid == italk) then
       write(stdout,*) 'Successfully wrote local restart file ',trim(rfile)
     end if
@@ -215,7 +210,6 @@ module mod_clm_restfile
     character(len=*),  intent(in) :: flag ! flag to specify read or write
     character(len=*),  intent(in) :: rfile ! filename
     type(clm_filetype), intent(out):: ncid ! netcdf id
-    integer(ik4) :: omode                              ! netCDF dummy variable
     if (flag == 'write') then
       ! Create new netCDF file (in define mode) and set fill mode
       ! to "no fill" to optimize performance
@@ -251,22 +245,13 @@ module mod_clm_restfile
   subroutine restFile_dimset( ncid )
     implicit none
     type(clm_filetype), intent(inout) :: ncid
-    integer(ik4) :: yr                  ! current year (0 -> ...)
-    integer(ik4) :: mon                 ! current month (1 -> 12)
-    integer(ik4) :: day                 ! current day (1 -> 31)
-    integer(ik4) :: mcsec               ! seconds of current date
-    integer(ik4) :: mcdate              ! current date
-    integer(ik4) :: dimid               ! netCDF dimension id
-    integer(ik4) :: numg                ! total number of gridcells across all processors
-    integer(ik4) :: numl                ! total number of landunits across all processors
-    integer(ik4) :: numc                ! total number of columns across all processors
-    integer(ik4) :: nump                ! total number of pfts across all processors
-    integer(ik4) :: ier                 ! error status
-    integer(ik4) :: strlen_dimid        ! string dimension id
+    integer(ik4) :: numg   ! total number of gridcells across all processors
+    integer(ik4) :: numl   ! total number of landunits across all processors
+    integer(ik4) :: numc   ! total number of columns across all processors
+    integer(ik4) :: nump   ! total number of pfts across all processors
     character(len=  8) :: curdate  ! current date
     character(len=  8) :: curtime  ! current time
     character(len=256) :: str
-    character(len= 32) :: subname='restFile_dimset' ! subroutine name
 
     call get_proc_global(numg, numl, numc, nump)
 

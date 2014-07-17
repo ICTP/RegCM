@@ -26,13 +26,6 @@ module mod_clm_slakerest
     implicit none
     type(clm_filetype) , intent(inout) :: ncid ! netcdf id
     character(len=*) , intent(in) :: flag      ! 'read' or 'write'
-    integer(ik4) :: c , l , g , j      ! indices
-    integer(ik4) :: begp, endp ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
-    integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices
-    integer(ik4) :: begg , endg   ! per-proc gridcell ending gridcell indices
-    logical :: readvar      ! determine if variable is on initial file
-    character(len=128) :: varname         ! temporary
     type(gridcell_type) , pointer :: gptr ! pointer to gridcell derived subtype
     type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
     type(column_type) , pointer :: cptr   ! pointer to column derived subtype

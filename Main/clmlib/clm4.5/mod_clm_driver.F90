@@ -71,6 +71,7 @@ module mod_clm_driver
   use mod_intkinds
   use mod_realkinds
   use mod_date
+  use mod_mppparam , only : italk
   use mod_runparams
   use mod_clm_type
   use mod_clm_varctl , only : wrtdia, fpftdyn
@@ -491,7 +492,7 @@ module mod_clm_driver
     ! Vertical (column) soil and surface hydrology
     ! =======================================================================
 
-    call Hydrology2(begc,endc,begp,endp,   &
+    call Hydrology2(begc,endc,             &
                     filter%num_nolakec,    &
                     filter%nolakec,        &
                     filter%num_hydrologyc, &
@@ -703,7 +704,7 @@ module mod_clm_driver
 
     if ( rstwr ) then
       filer = restFile_filename(rdate=rdate)
-      call restFile_write( filer, nlend, rdate=rdate )
+      call restFile_write( filer, rdate=rdate )
     end if
 #endif
 

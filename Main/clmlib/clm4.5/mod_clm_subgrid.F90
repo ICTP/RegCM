@@ -74,7 +74,6 @@ module mod_clm_subgrid
     integer(ik4) , optional , intent(out) :: nglacier
     real(rk8) , optional , intent(out) :: wtglacier
     integer(ik4) :: m                ! loop index
-    integer(ik4) :: n                ! elevation class index
     integer(ik4) :: ipfts            ! number of pfts in gridcell
     integer(ik4) :: icols            ! number of columns in gridcell
     integer(ik4) :: ilunits          ! number of landunits in gridcell
