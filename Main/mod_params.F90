@@ -608,6 +608,10 @@ module mod_params
       write(stdout,*) 'Read physicsparam OK'
 #endif
     end if
+
+    ! Hack. permanently disable seasonal albedo.
+    idesseas = 0
+
     icup(1) = icup_lnd
     icup(2) = icup_ocn
     if ( any(icup == 1) ) then
