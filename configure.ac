@@ -345,7 +345,7 @@ if eval "test x$DEBUG = x1"; then
     AC_SUBST(FCFLAGS)
   fi
   if test -z "$COMPILER_IBM_TRUE"; then
-    FCFLAGS="-O0 -qsuppress=1501-245 -qcheck -qffltrap=nanq,overflow \
+    FCFLAGS="-O0 -qsuppress=1501-245 -qcheck -qflttrap=nanq,overflow \
              -qxlf2003=polymorphic -qmaxmem=-1 -qzerosize $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
