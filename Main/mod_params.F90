@@ -442,7 +442,7 @@ module mod_params
   epmax_lnd = 0.999D0 ! Maximum precipitation efficiency over ocean
 !
 !------namelist tiedtkeparam:
-  iconv    = 1  ! Selects the actual scheme
+  iconv    = 4  ! Selects the actual scheme
   entrpen  = 1.0D-4
   entrscv  = 3.0D-4
   entrmid  = 1.0D-4
@@ -450,14 +450,14 @@ module mod_params
   cmfcmax  = 1.0D0
   cmfcmin  = 1.0D-10
   cmfdeps  = 0.3D0
-  rhcdd    = 1.0D0
-  cmtcape  = 20.0D0
+  rhcdd    = 0.9D0
+  cmtcape  = 453600.0D0
   zdlev    = 1.5D4
+  ctrigger = -1.1D0
 ! THOSE ARE FUNCTION OF GRID AND VERTICAL RESOLUTION
   cmfctop  = 0.35D0
   cprcon   = 1.0D-4
   cmcptop   = 300.0D0
-  ctrigger = 1.0D0
   centrmax = 2.0D-4
 ! Control switch flags
   lmfpen   = .true.
@@ -684,7 +684,6 @@ module mod_params
         write(stdout,*) 'Read tiedtkeparam OK'
 #endif
       end if
-      ctrigger = max(d_zero,min(ctrigger,d_one))
     end if
     if ( any(icup == 6 ) ) then
       call fatal(__FILE__,__LINE__,'(Still) UNSUPPORTED CUMULUS SCHEME')

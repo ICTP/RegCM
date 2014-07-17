@@ -252,11 +252,11 @@ module mod_cu_kuo
               end do
               do k = 1 , kz
                 ttconv = wlhvocp*(d_one-c301)*twght(k,kbase,ktop)*sca
-                rsheat(j,i,k) = rsheat(j,i,k) + ttconv*dt*d_half
+                rsheat(j,i,k) = rsheat(j,i,k) + ttconv*dtsec
                 apcnt = (d_one-c301)*sca/4.3D-3
                 eddyf = apcnt*vqflx(k,kbase,ktop)
                 c2m%qxten(j,i,k,iqv) = eddyf
-                rswat(j,i,k) = rswat(j,i,k) + c301*qwght(k)*sca*dt*d_half
+                rswat(j,i,k) = rswat(j,i,k) + c301*qwght(k)*sca*dtsec
               end do
               kbaseb = min0(kbase,kzm2)
               c2m%kcumtop(j,i) = ktop
@@ -311,8 +311,8 @@ module mod_cu_kuo
           rswt = rswat(j,i,k)/tauht
           c2m%tten(j,i,k) = c2m%tten(j,i,k) + rsht
           c2m%qxten(j,i,k,iqv) = c2m%qxten(j,i,k,iqv) + rswt
-          rsheat(j,i,k) = rsheat(j,i,k)*(d_one-dt/(d_two*tauht))
-          rswat(j,i,k) = rswat(j,i,k)*(d_one-dt/(d_two*tauht))
+          rsheat(j,i,k) = rsheat(j,i,k)*(d_one-dtsec/tauht)
+          rswat(j,i,k) = rswat(j,i,k)*(d_one-dtsec/tauht)
         end do
       end do
     end do

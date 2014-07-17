@@ -269,7 +269,8 @@ module mod_lm_interface
     ntcpl  = idnint(cpldt/dtsec)
     if ( idcsst   == 1 ) ldcsst   = .true.
     if ( lakemod  == 1 ) llake    = .true.
-    if ( idesseas == 1 ) ldesseas = .true.
+    ! Always leave desert seasonal albedo disabled
+    !if ( idesseas == 1 ) ldesseas = .true.
     if ( iseaice  == 1 ) lseaice  = .true.
     if ( iocncpl  == 1 ) lcoup    = .true.
     call assignpnt(mddom%xlat,lm%xlat)

@@ -25,7 +25,7 @@ module mod_cu_grell
   use mod_memutil
   use mod_cu_common
   use mod_mpmessage
-  use mod_runparams , only : iqv , dtsec , dt
+  use mod_runparams , only : iqv , dtsec
   use mod_regcm_types
  
   implicit none
@@ -304,8 +304,8 @@ module mod_cu_grell
           t(j,i,k) = m2c%tas(j,i,kk)
           q(j,i,k) = m2c%qxas(j,i,kk,iqv)
           if ( q(j,i,k) < 1.0D-08 ) q(j,i,k) = 1.0D-08
-          tn(j,i,k) = t(j,i,k) + (c2m%tten(j,i,kk))/m2c%psb(j,i)*dt
-          qo(j,i,k) = q(j,i,k) + (c2m%qxten(j,i,kk,iqv))/m2c%psb(j,i)*dt
+          tn(j,i,k) = t(j,i,k) + (c2m%tten(j,i,kk))/m2c%psb(j,i)*dtsec
+          qo(j,i,k) = q(j,i,k) + (c2m%qxten(j,i,kk,iqv))/m2c%psb(j,i)*dtsec
           vsp(j,i,k) = dsqrt(us**2+vs**2)
           if ( qo(j,i,k) < 1.0D-08 ) qo(j,i,k) = 1.0D-08
           po(j,i,k) = p(j,i,k)
