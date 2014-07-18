@@ -35,6 +35,8 @@ module mod_mppparam
 
   private
 
+  logical , parameter :: lreorder = .false.
+
   type(masked_comm) , public :: lndcomm
   type(masked_comm) , public :: ocncomm
 
@@ -854,7 +856,7 @@ module mod_mppparam
         end if
       end if
 
-      call mpi_cart_create(mycomm,2,cpus_per_dim,dim_period,.true., &
+      call mpi_cart_create(mycomm,2,cpus_per_dim,dim_period,lreorder, &
                            cartesian_communicator,mpierr)
       if ( mpierr /= mpi_success ) then
         call fatal(__FILE__,__LINE__,'mpi_cart_create error.')

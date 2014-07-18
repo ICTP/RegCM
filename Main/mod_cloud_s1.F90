@@ -1144,7 +1144,7 @@ if ( fscheme ) then
               !                       HUMIDITY THRESHOLD FOR ONSET OF STRATIFORM
               !                       CONDENSATION (TIEDTKE, 1993, EQUATION 24)
               zrhc = ramid !=0.8
-              zsigk = zpres(j,i,k)/papf(j,i,k+1)
+              zsigk = zpres(j,i,k)/papf(j,i,kz+1)
               ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
               if ( zsigk > 0.8D0 ) then
                 zrhc = ramid+(d_one-ramid)*((zsigk-0.8D0)/0.2D0)**2
