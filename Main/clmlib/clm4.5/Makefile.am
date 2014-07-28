@@ -35,8 +35,8 @@ libclm45_a_SOURCES = mod_clm_nchelper.F90 mod_clm_domain.F90 mod_clm_type.F90 \
   mod_clm_clmvicmap.F90 mod_clm_pftvarcon.F90 mod_clm_pft2col.F90 \
   mod_clm_urbaninput.F90 mod_clm_surfrd.F90 mod_clm_cnallocation.F90 \
   mod_clm_tridiagonal.F90 mod_clm_cnbalancecheck.F90 mod_clm_cnc14decay.F90 \
-  mod_clm_cncisoflux.F90 mod_clm_cncstateupdate1.F90 \
-  mod_clm_cncstateupdate2.F90 mod_clm_cncstateupdate3.F90 \
+  mod_clm_cnfire.F90 mod_clm_cncisoflux.F90 mod_clm_cncstateupdate1.F90 \
+  mod_clm_cnrest.F90 mod_clm_cncstateupdate2.F90 mod_clm_cncstateupdate3.F90 \
   mod_clm_cnannualupdate.F90 mod_clm_cndvecosystemdynini.F90 \
   mod_clm_cndvestablishment.F90 mod_clm_cndvlight.F90 \
   mod_clm_cnvegstructupdate.F90 mod_clm_cndecompcascadebgc.F90 \

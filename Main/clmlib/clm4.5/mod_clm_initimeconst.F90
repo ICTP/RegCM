@@ -25,6 +25,9 @@ module mod_clm_initimeconst
   use mod_clm_varsur , only : pctspec
   use mod_clm_pftvarcon
   use mod_clm_organicfile , only : organicrd
+#ifdef CN
+  use mod_clm_cninispecial , only : CNiniSpecial
+#endif
 #if (defined VICHYDRO)
   use mod_clm_clmvicmap , only : initCLMVICMap
   use mod_clm_initsoilparvic , only : initSoilParVIC

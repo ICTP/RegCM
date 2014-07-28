@@ -9,7 +9,7 @@ module mod_clm_cnecosystemdyn
   use mod_clm_varctl , only: fpftdyn, use_c13, use_c14
   use mod_clm_cnallocation , only : CNAllocationInit
   use mod_clm_cnphenology , only : CNPhenologyInit
-  use mod_clm_cnfire , only : CNFireInit
+  use mod_clm_cnfire , only : CNFireInit , CNFireArea, CNFireFluxes
   use mod_clm_cnc14decay , only : C14_init_BombSpike
   use mod_clm_surfrd , only : crop_prog
   use mod_clm_cnsetvalue , only : CNZeroFluxes
@@ -24,7 +24,6 @@ module mod_clm_cnecosystemdyn
   use mod_clm_cngapmortality , only : CNGapMortality
   use mod_clm_cncstateupdate2 , only : CStateUpdate2, CStateUpdate2h
   use mod_clm_cnnstateupdate2 , only : NStateUpdate2, NStateUpdate2h
-  use mod_clm_cnfire , only : CNFireArea, CNFireFluxes
   use mod_clm_cncstateupdate3 , only : CStateUpdate3
   use mod_clm_cnnstateupdate3 , only : NStateUpdate3
   use mod_clm_cnprecisioncontrol , only : CNPrecisionControl

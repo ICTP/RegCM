@@ -37,6 +37,7 @@ module mod_clm_initialize
 #endif
 #ifdef CN
   use mod_clm_cnecosystemdyn , only : CNEcosystemDynInit
+  use mod_clm_cninitimevar , only : CNiniTimeVar
 #endif
   use mod_clm_initslake , only : initSLake
   use mod_clm_mkarbinit , only : mkregcminit
