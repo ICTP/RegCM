@@ -521,6 +521,7 @@ module mod_ncstream
         call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
         attr%aname = 'false_northing'
         attr%theval = x0
+        call add_attribute(stream,attr,stvar%map_var%id,stvar%map_var%vname)
         attc%aname = '_CoordinateTransformType'
         attc%theval = 'Projection'
         call add_attribute(stream,attc,stvar%map_var%id,stvar%map_var%vname)
