@@ -275,7 +275,7 @@ module mod_clm_pftvarcon
   real(rk8) , public , parameter :: allom2 =  40.0D0   !...allometric
   real(rk8) , public , parameter :: allom3 =   0.5D0   !...equations
   real(rk8) , public , parameter :: allom1s = 250.0D0  !modified for shrubs by
-  real(rk8) , parameter :: allom2s =   8.0D0  !X.D.Z
+  real(rk8) , public , parameter :: allom2s =   8.0D0  !X.D.Z
 
   public :: pftconrd ! Read and initialize vegetation (PFT) constants
 

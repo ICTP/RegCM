@@ -10,10 +10,12 @@ module mod_clm_cndv
   use mod_realkinds
   use mod_dynparam
   use mod_runparams
+  use mod_mpmessage
   use mod_date
   use mod_mppparam
   use mod_clm_type
   use mod_clm_nchelper
+  use mod_clm_time_manager , only : getdatetime
   use mod_clm_varctl , only : caseid , inst_suffix
   use mod_clm_varctl , only : ctitle, finidat, fsurdat, fpftcon
   use mod_clm_cnvegstructupdate , only : CNVegStructUpdate
@@ -136,7 +138,7 @@ module mod_clm_cndv
     integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
     integer(ik4) :: ihost , iktau
     integer(ik4) :: ier                     ! error status
-    integer(ik4) :: mdcur, mscur, mcdate    ! outputs from get_curr_time
+    integer(ik4) :: mdcur, mscur, mcdate    ! outputs from curr_time
     integer(ik4) :: yr,mon,day,mcsec        ! outputs from curr_date
     integer(ik4) :: hours,minutes,secs      ! hours,minutes,seconds of hh:mm:ss
     integer(ik4) :: nbsec                   ! seconds components of a date
@@ -148,7 +150,7 @@ module mod_clm_cndv
     character(len=  8) :: basesec      ! base seconds
     real(rk8), pointer :: rbuf2dg(:,:)  ! temporary
     character(len=32) :: subname='histCNDV'
-    integer(ik4)(ik4) :: hostnm
+    integer(ik4) :: hostnm
     character (len=32) :: hostname='?'
     character (len=32) :: user='?'
 
@@ -242,7 +244,7 @@ module mod_clm_cndv
     ! Define variables
     ! -----------------------------------------------------------------------
 
-    call get_curr_time(idatex,mdcur, mscur)
+    call curr_time(idatex,mdcur, mscur)
     call ref_date(yr,mon,day,nbsec)
     hours   = nbsec / 3600
     minutes = (nbsec - hours*3600) / 60
@@ -263,20 +265,20 @@ module mod_clm_cndv
           long_name='longitude', units='degrees_east')
     call clm_addvar(clmvar_double,ncid,'latixy',(/'gridcell'/), &
           long_name='latitude', units='degrees_north')
-    call clm_addvar(clmvar_integer(ik4),ncid,'landmask',(/'gridcell'/), &
+    call clm_addvar(clmvar_integer,ncid,'landmask',(/'gridcell'/), &
           long_name='land/ocean mask (0.=ocean and 1.=land)')
 
     ! Define time information
 
-    call clm_addvar(clmvar_integer(ik4),ncid,'mcdate',(/'time'/), &
+    call clm_addvar(clmvar_integer,ncid,'mcdate',(/'time'/), &
          long_name='current date (YYYYMMDD)')
-    call clm_addvar(clmvar_integer(ik4),ncid,'mcsec',(/'time'/), &
+    call clm_addvar(clmvar_integer,ncid,'mcsec',(/'time'/), &
          long_name='current seconds of current date', units='s')
-    call clm_addvar(clmvar_integer(ik4),ncid,'mdcur',(/'time'/), &
+    call clm_addvar(clmvar_integer,ncid,'mdcur',(/'time'/), &
          long_name='current day (from base day)')
-    call clm_addvar(clmvar_integer(ik4),ncid,'mscur',(/'time'/), &
+    call clm_addvar(clmvar_integer,ncid,'mscur',(/'time'/), &
          long_name='current seconds of current day', units='s')
-    call clm_addvar(clmvar_integer(ik4),ncid,'nstep',(/'time'/), &
+    call clm_addvar(clmvar_integer,ncid,'nstep',(/'time'/), &
          long_name='time step', units='s')
 
     ! Define time dependent variables
@@ -310,7 +312,7 @@ module mod_clm_cndv
     call curr_date(idatex,yr,mon,day,mcsec)
     mcdate = yr*10000 + mon*100 + day
 
-    iktau = ktau
+    iktau = int(ktau,ik4)
     call clm_writevar(ncid,'mcdate',mcdate,nt=1)
     call clm_writevar(ncid,'mcsec',mcsec,nt=1)
     call clm_writevar(ncid,'mdcur',mdcur,nt=1)

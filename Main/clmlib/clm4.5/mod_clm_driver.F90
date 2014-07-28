@@ -164,10 +164,6 @@ module mod_clm_driver
     integer(ik4)  :: begp, endp ! beginning and ending pft indices
     type(column_type) , pointer :: cptr   ! pointer to column derived subtype
 #if (defined CNDV)
-    integer(ik4)  :: yrp1     ! year (0, ...)
-    integer(ik4)  :: monp1    ! month (1, ..., 12)
-    integer(ik4)  :: dayp1    ! day of month (1, ..., 31)
-    integer(ik4)  :: secp1    ! seconds into current date
     integer(ik4)  :: yr       ! year (0, ...)
     integer(ik4)  :: mon      ! month (1, ..., 12)
     integer(ik4)  :: day      ! day of month (1, ..., 31)
@@ -175,6 +171,8 @@ module mod_clm_driver
     integer(ik4)  :: ncdate   ! current date
     integer(ik4)  :: nbdate   ! base date (reference date)
     integer(ik4)  :: kyr      ! thousand years, equals 2 at end of first year
+    type(rcm_time_and_date) :: nextdate
+    type(rcm_time_interval) :: tdif
 #endif
     character(len=256) :: filer  ! restart file name
     integer(ik4) :: ier          ! error code
@@ -653,14 +651,11 @@ module mod_clm_driver
 #if (defined CNDV)
     tdif = dtsrf
     nextdate = idatex + tdif
-    call split_idate(nextdate,yrp1,monp1,dayp1,hourp1,monp1,secp1)
-    call curr_date(yrp1, monp1, dayp1, secp1, offset=int(dtssrf))
-    if ( daymon_is(nextdate,1,1) .and. &
-         time_of_day_is(nextdate,s,dtsrf) .and. &
+    if ( date_is(nextdate,1,1) .and. time_is(nextdate,0,dtsrf) .and. &
          ktau > 0 )  then
-      call split_date(idatex,yr,mon,day)
+      call split_idate(idatex,yr,mon,day)
       ncdate = yr*10000 + mon*100 + day
-      call split_date(idate0,yr,mon,day)
+      call split_idate(idate0,yr,mon,day)
       nbdate = yr*10000 + mon*100 + day
       kyr = ncdate/10000 - nbdate/10000 + 1
 
@@ -688,8 +683,7 @@ module mod_clm_driver
     ! =======================================================================
 
 #if (defined CNDV)
-    if ( daymon_is(nextdate,1,1) .and. &
-         time_of_day_is(nextdate,s,dtsrf) .and. &
+    if ( date_is(nextdate,1,1) .and. time_is(nextdate,0,dtsrf) .and. &
          ktau > 0 )  then
       call histCNDV()
       if (myid == italk) then

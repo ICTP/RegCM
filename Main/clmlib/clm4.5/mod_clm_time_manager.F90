@@ -13,8 +13,6 @@ module mod_clm_time_manager
 
    save
 
-   ! return date components at end of current timestep
-   public :: curr_date
    ! return components of the start date
    public :: get_start_date
    ! return year/month/day (as integer(ik4) in YYYYMMDD format) of driver start
@@ -50,9 +48,10 @@ module mod_clm_time_manager
 
   integer(ik4) function get_driver_start_ymd( tod )
     implicit none
-    ! Return date of start of simulation from driver (i.e. NOT from restart file)
-    ! Note: get_start_date gets you the date from the beginning of the simulation
-    !       on the restart file.
+    ! Return date of start of simulation from driver
+    ! (i.e. NOT from restart file)
+    ! Note: get_start_date gets you the date from the beginning of
+    ! the simulation on the restart file.
     integer(ik4), intent(out) , optional::&
       tod     ! time of day (seconds past 0Z)
     integer(ik4) :: ih , yr , mon , day

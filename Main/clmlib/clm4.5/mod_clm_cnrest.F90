@@ -66,7 +66,7 @@ module mod_clm_cnrest
     type(pft_type)     , pointer :: pptr  ! pointer to pft derived subtype
 #if (defined CNDV)
     integer(ik4) , pointer :: iptemp(:) ! pointer to memory to be allocated
-    integer(ik4) :: l ! indices
+    integer(ik4) :: l , p , ier! indices
 #endif
     !temporary arrays for slicing larger arrays
     real(rk8) , pointer :: ptr2d(:,:)
