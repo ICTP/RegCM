@@ -220,7 +220,7 @@ program sigma2p
     else if (varname == 'ptop') then
       istatus = nf90_get_var(ncid,i,ptop)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read variable ptop')
-    else if (varname == 'rcm_map') then
+    else if (varname == 'crs') then
       ircm_map = i
     else if (varname == 'ps') then
       ipsvarid = i
@@ -316,7 +316,7 @@ program sigma2p
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding missval')
     istatus = nf90_put_att(ncout, ihgvar, 'coordinates', 'xlat xlon')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding coordinates')
-    istatus = nf90_put_att(ncout, ihgvar, 'grid_mapping', 'rcm_map')
+    istatus = nf90_put_att(ncout, ihgvar, 'grid_mapping', 'crs')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding grid_mapping')
     istatus = nf90_def_var(ncout, 'mslp', nf90_float, psdimids, imslpvar)
     call checkncerr(istatus,__FILE__,__LINE__,'Error define variable mslp')
@@ -334,7 +334,7 @@ program sigma2p
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding units')
     istatus = nf90_put_att(ncout, imslpvar, 'coordinates', 'xlat xlon')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding coordinates')
-    istatus = nf90_put_att(ncout, imslpvar, 'grid_mapping', 'rcm_map')
+    istatus = nf90_put_att(ncout, imslpvar, 'grid_mapping', 'crs')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding grid_mapping')
   end if
   if ( has_t .and. has_q .and. .not. has_rh ) then
@@ -355,7 +355,7 @@ program sigma2p
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding units')
     istatus = nf90_put_att(ncout, irhvar, 'coordinates', 'xlat xlon')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding coordinates')
-    istatus = nf90_put_att(ncout, irhvar, 'grid_mapping', 'rcm_map')
+    istatus = nf90_put_att(ncout, irhvar, 'grid_mapping', 'crs')
     call checkncerr(istatus,__FILE__,__LINE__,'Error adding grid_mapping')
   end if
 
