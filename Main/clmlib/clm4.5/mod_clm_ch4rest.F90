@@ -310,7 +310,7 @@ module mod_clm_ch4rest
     if ( flag == 'define' ) then
       call clm_addvar(clmvar_double,ncid,'tempavg_somhr', &
               cdims=(/'column '/), &
-              long_name='Temp. Average SOMHR',units='gC/m^2/s'
+              long_name='Temp. Average SOMHR',units='gC/m^2/s')
     else if ( flag == 'read' ) then
       if ( .not. clm_check_var(ncid,'tempavg_somhr') ) then
         if ( ktau > 0 ) then

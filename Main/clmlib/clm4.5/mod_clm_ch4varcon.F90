@@ -107,7 +107,7 @@ module mod_clm_ch4varcon
 
   ! Michaelis-Menten oxidation rate constant for O2 concentration
   ! (Segers 1998, Lidstrom and Somers 1984)
-  real(rk8) :: k_m_o2 = 20.D-6 * 1000.D0 ! [mol/m3-w]
+  real(rk8) , public :: k_m_o2 = 20.D-6 * 1000.D0 ! [mol/m3-w]
 
   ! Ratio of root porosity in non-grass to grass, used for aerenchyma transport
   ! Some values in Colmer 2003

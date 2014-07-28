@@ -1273,7 +1273,7 @@ module mod_clm_cnallocation
         if (residual_plant_ndemand(c) > 0.D0 ) then
           if ( nlimit_no3(c,j) == 0 ) then
             residual_smin_no3_vr(c,j) = max(smin_no3_vr(c,j) - &
-                    (actual_immob_vr(c,j) + smin_no3_to_plant_vr(c,j) ) * i&
+                    (actual_immob_vr(c,j) + smin_no3_to_plant_vr(c,j) ) * &
                     dt, 0.D0)
             residual_smin_no3(c) = residual_smin_no3(c) + &
                     residual_smin_no3_vr(c,j) * dzsoi_decomp(j)

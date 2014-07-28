@@ -10,8 +10,9 @@ module mod_clm_ch4
   use mod_intkinds
   use mod_realkinds
   use mod_stdio
-  use mod_dynparams , only : dayspy
+  use mod_dynparam , only : dayspy
   use mod_constants , only : secpd
+  use mod_runparams , only : dtsrf , ktau
   use mod_mpmessage
   use mod_clm_type
   use mod_clm_atmlnd , only : clm_a2l , clm_l2a
@@ -20,7 +21,7 @@ module mod_clm_ch4
   use mod_clm_varpar , only : nlevgrnd , nlevdecomp
   use mod_clm_varcon , only : denh2o , denice , tfrz , grav , spval , rgas
   use mod_clm_varcon , only : catomw , s_con , d_con_w , d_con_g
-  use mod_clm_varcon , only : c_h_inv , kh_theta , kh_tbase
+  use mod_clm_varcon , only : c_h_inv , kh_theta , kh_tbase , rpi
   use mod_clm_varcon , only : secspday
   use mod_clm_varctl , only : anoxia
   use mod_clm_ch4varcon

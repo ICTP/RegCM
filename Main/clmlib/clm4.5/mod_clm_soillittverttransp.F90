@@ -7,6 +7,7 @@ module mod_clm_soillittverttransp
   use mod_realkinds
   use mod_mpmessage
   use mod_stdio
+  use mod_runparams , only : dtsrf
   use mod_clm_type
   use mod_clm_varctl , only : use_c13 , use_c14 , spinup_state
   use mod_clm_varpar , only : nlevdecomp , ndecomp_pools , nlevdecomp_full
@@ -53,8 +54,6 @@ module mod_clm_soillittverttransp
     real(rk8) :: diffus (lbc:ubc,1:nlevdecomp+1)
     ! advective flux (m/s)  (includes spinup correction, if any)
     real(rk8) :: adv_flux(lbc:ubc,1:nlevdecomp+1)
-    real(rk8) :: aaa    ! "A" function in Patankar
-    real(rk8) :: pe     ! Pe for "A" function in Patankar
     ! Weights for calculating harmonic mean of diffusivity
     real(rk8) :: w_m1, w_p1
     ! Harmonic mean of diffusivity
@@ -105,10 +104,6 @@ module mod_clm_soillittverttransp
     ! transport as well
     real(rk8) :: spinup_term
     real(rk8) :: epsilon  ! small number
-
-    ! Set statement functions
-    ! A function from Patankar, Table 5.2, pg 95
-    aaa (pe) = max (0.D0, (1.D0 - 0.1D0 * abs(pe))**5)
 
     is_cwd             => decomp_cascade_con%is_cwd
     spinup_factor      => decomp_cascade_con%spinup_factor
@@ -406,6 +401,16 @@ module mod_clm_soillittverttransp
       end do
 #endif
     end do  ! i_type
+
+    contains
+
+      ! A function from Patankar, Table 5.2, pg 95
+      pure real(rk8) function aaa(pe)
+        implicit none
+        real(rk8) , intent(in) :: pe
+        aaa = max (0.D0, (1.D0 - 0.1D0 * abs(pe))**5)
+      end function aaa
+
   end subroutine CNSoilLittVertTransp
 
 #endif

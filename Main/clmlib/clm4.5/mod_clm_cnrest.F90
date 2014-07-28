@@ -3982,7 +3982,7 @@ module mod_clm_cnrest
 #ifdef VERTSOILC
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,name_vr,         &
-              (/'column','levgrnd'/), long_name=longname, &
+              (/'column ','levgrnd'/), long_name=longname, &
               units=units,fill_value=1)
     else if (flag == 'read') then
       if ( ktau /= 0 .and. .not. clm_check_var(ncid,name_vr) ) then
