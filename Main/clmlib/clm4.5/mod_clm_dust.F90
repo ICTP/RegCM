@@ -47,9 +47,9 @@ module mod_clm_dust
   ! (kg/m**2/s) [ + = to atm]
   ! Source: C. Zender's dust model
   !
-  subroutine DustEmission(lbp,ubp,lbc,ubc,lbl,ubl,num_nolakep,filter_nolakep)
+  subroutine DustEmission(lbp,ubp,lbl,ubl,num_nolakep,filter_nolakep)
     implicit none
-    integer(ik4), intent(in) :: lbp,ubp,lbc,ubc,ubl,lbl ! pft bounds
+    integer(ik4), intent(in) :: lbp,ubp,ubl,lbl ! pft bounds
     ! number of column non-lake points in pft filter
     integer(ik4), intent(in) :: num_nolakep
     ! pft filter for non-lake points

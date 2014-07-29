@@ -324,7 +324,7 @@ module mod_clm_cninitimevar
    real(rk8), pointer :: grain_flag(:)
 !
 ! !LOCAL VARIABLES:
-   integer :: g,l,c,p,j,k      ! indices
+   integer :: l,c,p,j,k      ! indices
    integer :: begp, endp   ! per-proc beginning and ending pft indices
    integer :: begc, endc   ! per-proc beginning and ending column indices
    integer :: begl, endl   ! per-proc beginning and ending landunit indices

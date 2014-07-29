@@ -44,7 +44,7 @@ module mod_clm_cnsoillittverttransp
     use mod_clm_varcon , only : zsoi, dzsoi_decomp, zisoi
     use mod_clm_tridiagonal , only : Tridiagonal
     implicit none
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: num_soilc   ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: lbc, ubc        ! column-index bounds
 
@@ -98,7 +98,8 @@ module mod_clm_cnsoillittverttransp
     integer(ik4) :: jtop(lbc:ubc)       ! top level at each column
     integer(ik4) :: s
 #endif
-    ! pointer to store the vertical tendency (gain/loss due to vertical transport)
+    ! pointer to store the vertical tendency
+    ! (gain/loss due to vertical transport)
     real(rk8), pointer :: trcr_tendency_ptr(:,:,:)
     ! maximum annual depth of thaw
     real(rk8), pointer :: altmax(:)

@@ -46,11 +46,11 @@ module mod_clm_urbaninit
     ! frontal area index of buildings (-)
     real(rk8) :: frontal_ai
     real(rk8) :: build_lw_ratio  ! building short/long side ratio (-)
-    integer  :: l,g              ! indices
-    integer  :: begp, endp       ! beginning and ending pft indices
-    integer  :: begc, endc       ! beginning and ending column indices
-    integer  :: begl, endl       ! beginning and ending landunit indices
-    integer  :: begg, endg       ! beginning and ending gridcell indices
+    integer  :: l           ! indices
+    integer  :: begp, endp  ! beginning and ending pft indices
+    integer  :: begc, endc  ! beginning and ending column indices
+    integer  :: begl, endl  ! beginning and ending landunit indices
+    integer  :: begg, endg  ! beginning and ending gridcell indices
 
     ! Assign local pointers to derived type members (landunit level)
 
@@ -113,7 +113,6 @@ module mod_clm_urbaninit
     use mod_clm_decomp , only : get_proc_bounds
     use mod_clm_urbaninput , only : urbinp
     implicit none
-    integer , pointer :: gdc(:)    ! grid index for landunit
     integer , pointer :: coli(:)   ! beginning column index for landunit
     integer , pointer :: colf(:)   ! ending column index for landunit
     integer , pointer :: ctype(:)  ! column type
@@ -150,13 +149,12 @@ module mod_clm_urbaninit
     real(rk8), pointer :: thick_roof(:)   ! thickness of urban roof (m)
     integer,  pointer :: nlev_improad(:)  ! number of impervious road layers (-)
     integer,  pointer :: udenstype(:)     ! urban density type
-    integer  :: nc,fl,ib,l,c,p,g          ! indices
-    integer  :: ier                       ! error status
-    integer  :: begp, endp           ! beginning and ending pft indices
-    integer  :: begc, endc           ! beginning and ending column indices
-    integer  :: begl, endl           ! beginning and ending landunit indices
-    integer  :: begg, endg           ! beginning and ending gridcell indices
-    integer  :: dindx                ! urban density type index
+    integer  :: l,c,g        ! indices
+    integer  :: begp, endp   ! beginning and ending pft indices
+    integer  :: begc, endc   ! beginning and ending column indices
+    integer  :: begl, endl   ! beginning and ending landunit indices
+    integer  :: begg, endg   ! beginning and ending gridcell indices
+    integer  :: dindx        ! urban density type index
 
     ! Assign local pointers to derived type members (landunit-level)
 

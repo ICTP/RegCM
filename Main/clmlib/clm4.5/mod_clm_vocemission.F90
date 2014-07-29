@@ -148,7 +148,6 @@ module mod_clm_vocemission
     real(rk8) :: gamma_c         ! activity factor for CO2 (only isoprene)
 
     integer(ik4) :: class_num, n_meg_comps, imech, imeg, ii
-    character(len=16) :: mech_name
 
     real(rk8) :: vocflx_meg(shr_megan_megcomps_n)
     type(shr_megan_megcomp_t), pointer :: meg_cmp
@@ -332,8 +331,7 @@ module mod_clm_vocemission
 
           ! Activity factor for PPFD
           gamma_p = get_gamma_P(par_sun, par24_sun, par240_sun, &
-                  par_sha, par24_sha, par240_sha, &
-                  fsun(p), fsun240(p), forc_solad240(p), &
+                  par_sha, par240_sha, fsun(p), fsun240(p), forc_solad240(p), &
                   forc_solai240(p), LDF(class_num), cp, alpha)
           ! Activity factor for T
           gamma_t = get_gamma_T(t_veg240(p), t_veg24(p),t_veg(p), &
@@ -423,7 +421,6 @@ module mod_clm_vocemission
     use mod_clm_meganfactors , only : megan_factors_init , megan_factors_get
     implicit none
     type(shr_megan_megcomp_t), pointer :: meg_cmp
-    integer(ik4) :: nmech, nmeg
     integer(ik4)  :: class_num
     real(rk8) :: factors(numpft)
     real(rk8) :: molec_wght
@@ -495,15 +492,14 @@ module mod_clm_vocemission
   ! Avoid this problem by only doing calculations with fsun240 when fsun240 is
   ! between 0 and 1
   !
-  function get_gamma_P(par_sun_in,par24_sun_in,par240_sun_in,par_sha_in, &
-                  par24_sha_in,par240_sha_in,fsun_in,fsun240_in,         &
+  real(rk8) function get_gamma_P(par_sun_in,par24_sun_in,par240_sun_in, &
+                  par_sha_in,par240_sha_in,fsun_in,fsun240_in, &
                   forc_solad240_in,forc_solai240_in,LDF_in,cp,alpha)
     implicit none
     real(rk8) , intent(in) :: par_sun_in
     real(rk8) , intent(in) :: par24_sun_in
     real(rk8) , intent(in) :: par240_sun_in
     real(rk8) , intent(in) :: par_sha_in
-    real(rk8) , intent(in) :: par24_sha_in
     real(rk8) , intent(in) :: par240_sha_in
     real(rk8) , intent(in) :: fsun_in
     real(rk8) , intent(in) :: fsun240_in
@@ -513,7 +509,6 @@ module mod_clm_vocemission
     real(rk8) , intent(out) :: cp                      ! temporary
     real(rk8) , intent(out) :: alpha                   ! temporary
     real(rk8) :: gamma_p_LDF             ! activity factor for PPFD
-    real(rk8) :: get_gamma_P             ! return value
 
     real(rk8), parameter :: ca1 = 0.004D0  ! empirical coefficent for alpha
     real(rk8), parameter :: ca2 = 0.0005D0 ! empirical coefficent for alpha
@@ -684,7 +679,6 @@ module mod_clm_vocemission
     ! empirical coefficient (0.0083 in User's Guide)
     real(rk8), parameter :: ct3 = 0.00831D0
     real(rk8), parameter :: tstd = 303.15D0  ! std temperature [K]
-    real(rk8), parameter :: bet = 0.09D0     ! beta empirical coefficient [K-1]
 
     ! Light dependent fraction (Guenther et al., 2006)
     if ( (t_veg240_in > 0.0D0) .and. (t_veg240_in < 1.D30) ) then

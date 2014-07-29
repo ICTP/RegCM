@@ -134,7 +134,6 @@ module mod_clm_slaketemperature
     real(rk8), pointer :: dz_lake(:,:) ! layer thickness for lake (m)
     real(rk8), pointer :: z(:,:)       ! layer depth for snow & soil (m)
     ! Note: this is defined for -nlevsno, unlike the other z and dz variables
-    real(rk8), pointer :: zi(:,:)      ! interface level below a "z" level (m)
     real(rk8), pointer :: z_lake(:,:)  ! layer depth for lake (m)
     real(rk8), pointer :: ws(:)        ! surface friction velocity (m/s)
     ! for calculation of decay of eddy diffusivity with depth
@@ -208,7 +207,7 @@ module mod_clm_slaketemperature
     ! neutral value of turbulent prandtl number
     real(rk8), parameter :: p0 = 1.D0
     ! do loop or array index
-    integer(ik4)  :: i,j,fc,fp,g,c,p
+    integer(ik4)  :: i,j,fc,fp,c,p
     ! fraction of solar rad absorbed at surface: equal to NIR fraction
     ! of surface absorbed shortwave
     real(rk8) :: beta(lbc:ubc)
@@ -316,21 +315,21 @@ module mod_clm_slaketemperature
     real(rk8) :: esum2(lbc:ubc)  ! ""
     ! temp for putting ice at the top during convection (m)
     real(rk8) :: zsum(lbc:ubc)
-    real(rk8) :: wsum(lbc:ubc)   ! temp for checking water (kg/m^2)
-    real(rk8) :: wsum_end(lbc:ubc) ! temp for checking water (kg/m^2)
     real(rk8) :: sabg_col(lbc:ubc) ! absorbed ground solar for column (W/m^2)
     ! absorbed ground solar in layer for column (W/m^2)
     real(rk8) :: sabg_lyr_col(lbc:ubc,-nlevsno+1:1)
     real(rk8) :: sabg_nir ! NIR that is absorbed (W/m^2)
     ! Lowest level where convection occurs
+#ifdef LCH4
     integer(ik4)  :: jconvect(lbc:ubc)
     ! Hightest level where bottom-originating convection occurs
     integer(ik4)  :: jconvectbot(lbc:ubc)
+    ! [s/m] (Needed for calc. of grnd_ch4_cond)
+    real(rk8) :: lakeresist(lbc:ubc)
+#endif
     ! Convection originating in bottom layer of lake triggers
     ! special convection loop
     logical  :: bottomconvect(lbc:ubc)
-    ! [s/m] (Needed for calc. of grnd_ch4_cond)
-    real(rk8) :: lakeresist(lbc:ubc)
     ! (m^2/s) extra diffusivity based on Fang & Stefan 1996, citing Ellis, 1991
     ! They think that mixing energy will generally get into lake to make
     ! diffusivity exceed molecular; the energy is damped out according to
@@ -1278,13 +1277,13 @@ module mod_clm_slaketemperature
     ! ice lens (kg/m2)
     real(rk8), pointer :: h2osoi_ice(:,:)
 
-    integer(ik4)  :: l,c,j ! indices
-    integer(ik4)  :: fc    ! lake filtered column indices
-    real(rk8) :: bw        ! partial density of water (ice + liquid)
-    real(rk8) :: dksat     ! thermal conductivity for saturated soil (j/(k s m))
-    real(rk8) :: dke       ! kersten number
-    real(rk8) :: fl        ! fraction of liquid or unfrozen water to total water
-    real(rk8) :: satw      ! relative total water content of soil.
+    integer(ik4)  :: c,j ! indices
+    integer(ik4)  :: fc  ! lake filtered column indices
+    real(rk8) :: bw      ! partial density of water (ice + liquid)
+    real(rk8) :: dksat   ! thermal conductivity for saturated soil (j/(k s m))
+    real(rk8) :: dke     ! kersten number
+    real(rk8) :: fl      ! fraction of liquid or unfrozen water to total water
+    real(rk8) :: satw    ! relative total water content of soil.
     ! thermal conductivity of layer
     real(rk8) :: thk(lbc:ubc,-nlevsno+1:nlevgrnd)
     ! (virtual excess ice volume per nominal soil volume)
@@ -1481,11 +1480,11 @@ module mod_clm_slaketemperature
     ! Only needed for snow layers
     integer(ik4), pointer :: imelt(:,:)
 
-    integer(ik4)  :: j,c,g   ! do loop index
-    integer(ik4)  :: fc      ! lake filtered column indices
-    real(rk8) :: heatavail   ! available energy for melting or freezing (J/m^2)
-    real(rk8) :: heatrem     ! energy residual or loss after melting or freezing
-    real(rk8) :: melt        ! actual melting (+) or freezing (-) [kg/m2]
+    integer(ik4)  :: j,c   ! do loop index
+    integer(ik4)  :: fc    ! lake filtered column indices
+    real(rk8) :: heatavail ! available energy for melting or freezing (J/m^2)
+    real(rk8) :: heatrem   ! energy residual or loss after melting or freezing
+    real(rk8) :: melt      ! actual melting (+) or freezing (-) [kg/m2]
     ! to prevent tiny residuals from rounding error
     !real(rk8), parameter :: smallnumber = 1.D-7
     ! The above actually was enough to cause a 0.1 W/m^2 energy imbalance

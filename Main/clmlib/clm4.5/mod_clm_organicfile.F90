@@ -26,10 +26,7 @@ module mod_clm_organicfile
   subroutine organicrd(organic)
     implicit none
     real(rk8), pointer :: organic(:,:)  ! organic matter density (kg/m3)
-    character(len=256) :: locfn                 ! local file name
     type(clm_filetype) :: ncid                  ! netcdf id
-    integer(ik4)       :: ni,nj,ns              ! dimension sizes
-    logical            :: readvar               ! true => variable is on dataset
     character(len=32)  :: subname = 'organicrd' ! subroutine name
 
     ! Initialize data to zero - no organic matter dataset

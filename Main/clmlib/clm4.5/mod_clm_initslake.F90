@@ -75,8 +75,6 @@ module mod_clm_initslake
   subroutine makearbinit( arbinit )
     implicit none
     logical , intent(in) :: arbinit ! Whether mkarbinit has been called.
-    ! column index associated with each pft
-    integer(ik4) , pointer , dimension(:) :: pcolumn
     ! landunit index associated with each column
     integer(ik4) , pointer , dimension(:) :: clandunit
     ! landunit type
@@ -118,11 +116,11 @@ module mod_clm_initslake
     real(rk8) , pointer , dimension(:) :: snw_rds_top
     ! liquid water fraction (mass) in top snow layer (col) [frc]
     real(rk8) , pointer , dimension(:) :: sno_liq_top
-    integer(ik4) :: j , l , c , p  ! indices
-    integer(ik4) :: begp , endp   ! per-proc beginning and ending pft indices
-    integer(ik4) :: begc , endc   ! per-proc beginning and ending column indices
-    integer(ik4) :: begl , endl   ! per-proc beginning and ending ldunit indices
-    integer(ik4) :: begg , endg   ! per-proc gridcell ending gridcell indices
+    integer(ik4) :: j , l , c   ! indices
+    integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
+    integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
+    integer(ik4) :: begl , endl ! per-proc beginning and ending ldunit indices
+    integer(ik4) :: begg , endg ! per-proc gridcell ending gridcell indices
     logical :: localarbinit
 
     localarbinit = arbinit
@@ -467,12 +465,14 @@ module mod_clm_initslake
     real(rk8) , pointer , dimension(:,:) :: watfc
     !volumetric soil water [m3/m3]  (nlevgrnd)
     real(rk8) , pointer , dimension(:,:) :: h2osoi_vol
-    integer(ik4) :: n , i , j , ib , lev,bottom      ! indices
-    integer(ik4) :: g , l , c , p          ! indices
+    integer(ik4) :: lev
+#ifdef EXTRALAKELAYERS
+    integer(ik4) :: i
+#endif
+    integer(ik4) :: g , l , c  ! indices
     real(rk8) :: bd    ! bulk density of dry soil material [kg/m^3]
     real(rk8) :: tkm   ! mineral conductivity
     real(rk8) :: xksat ! maximum hydraulic conductivity of soil [mm/s]
-    real(rk8) :: scalez = 0.025D0   ! Soil layer thickness discretization (m)
     integer(ik4) :: begp , endp ! per-proc beginning and ending pft indices
     integer(ik4) :: begc , endc ! per-proc beginning and ending column indices
     integer(ik4) :: begl , endl ! per-proc beginning and ending landunit indices

@@ -509,7 +509,7 @@ module mod_clm_control
     end if
 
     write(stdout,*) &
-      '   override_bgc_restart_mismatch_dump                     : ', &
+      '   override_bgc_restart_mismatch_dump                    : ', &
       override_bgc_restart_mismatch_dump
 #endif
 
@@ -569,18 +569,16 @@ module mod_clm_control
 
 #if (defined CN)
     write(stdout, *) &
-      '  use_c13                                                : ', &
+      '   use_c13                                               : ', &
       use_c13
     write(stdout, *) &
-      '  use_c14                                                : ', &
+      '   use_c14                                               : ', &
       use_c14
     !!! C14
     write(stdout, *) &
-      '  use_c14_bombspike                                      : ', &
+      '   use_c14_bombspike                                     : ', &
       use_c14_bombspike
-    write(stdout, *) &
-      '  atm_c14_filename                                       : ', &
-      atm_c14_filename
+    write(stdout, *) '   atm_c14_filename = ', trim(atm_c14_filename)
 #endif
 
     if (fsnowoptics == ' ') then
@@ -625,10 +623,10 @@ module mod_clm_control
       write(stdout,*) '   perturbation limit   = ',pertlim
     write(stdout,*) '   maxpatch_pft         = ',maxpatch_pft
     write(stdout,*) '   allocate_all_vegpfts = ',allocate_all_vegpfts
-! New fields
-    write(stdout,*) ' perchroot (plant water stress based on unfrozen &
+    ! New fields
+    write(stdout,*) '   perchroot (PWS based on unfrozen &
                    &layers only) = ',perchroot
-    write(stdout,*) ' perchroot (plant water stress based on &
+    write(stdout,*) '   perchroot (PWS based on &
                    &time-integrated active layer only) = ',perchroot
 #ifdef LCH4
     write(stdout,*) &

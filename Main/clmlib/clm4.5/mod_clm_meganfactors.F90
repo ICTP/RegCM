@@ -87,9 +87,7 @@ module mod_clm_meganfactors
     character(len=*),intent(in) :: filename ! MEGAN factors input file
     type(clm_filetype) :: ncid  ! netcdf id
 
-    integer(ik4) :: start(2), count(2)
-
-    integer(ik4) :: ierr, i, j , vid
+    integer(ik4) :: i, j
     integer(ik4) :: n_comps, n_classes, n_pfts
     integer(ik4), allocatable :: class_nums(:)
 
@@ -205,7 +203,7 @@ module mod_clm_meganfactors
     integer(ik4) :: hash
     integer(ik4) :: i
     integer(ik4), parameter :: tbl_max_idx = 15  ! 2**N - 1
-    integer(ik4), parameter :: gen_hash_key_offset = z'000053db'
+    integer(ik4), parameter :: gen_hash_key_offset = int(z'000053db',ik4)
     integer(ik4), dimension(0:tbl_max_idx) :: tbl_gen_hash_key = &
             (/61,59,53,47,43,41,37,31,29,23,17,13,11,7,3,1/)
 

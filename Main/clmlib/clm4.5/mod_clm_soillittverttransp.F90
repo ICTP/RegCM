@@ -50,14 +50,27 @@ module mod_clm_soillittverttransp
     real(rk8), pointer :: som_adv_coef(:,:)
     ! SOM diffusivity due to bio/cryo-turbation (m2/s)
     real(rk8), pointer :: som_diffus_coef(:,:)
+    ! pointer for concentration state variable being transported
+    real(rk8), pointer :: conc_ptr(:,:,:)
+    ! pointer for source term
+    real(rk8), pointer :: source(:,:,:)
+    ! TRUE => pool is a cwd pool
+    logical, pointer  :: is_cwd(:)
+#ifdef VERTSOILC
+    ! difference between nodes
+    real(rk8) :: dz_node(1:nlevdecomp+1)
     ! diffusivity (m2/s)  (includes spinup correction, if any)
     real(rk8) :: diffus (lbc:ubc,1:nlevdecomp+1)
-    ! advective flux (m/s)  (includes spinup correction, if any)
-    real(rk8) :: adv_flux(lbc:ubc,1:nlevdecomp+1)
     ! Weights for calculating harmonic mean of diffusivity
     real(rk8) :: w_m1, w_p1
     ! Harmonic mean of diffusivity
     real(rk8) :: d_m1, d_p1
+    ! diffusivity/delta_z for next j (set to zero for no diffusion)
+    real(rk8) :: d_p1_zp1(lbc:ubc,1:nlevdecomp+1)
+    ! diffusivity/delta_z for previous j (set to zero for no diffusion)
+    real(rk8) :: d_m1_zm1 (lbc:ubc,1:nlevdecomp+1)
+    ! advective flux (m/s)  (includes spinup correction, if any)
+    real(rk8) :: adv_flux(lbc:ubc,1:nlevdecomp+1)
     ! "a" vector for tridiagonal matrix
     real(rk8) :: a_tri(lbc:ubc,0:nlevdecomp+1)
     ! "b" vector for tridiagonal matrix
@@ -66,25 +79,16 @@ module mod_clm_soillittverttransp
     real(rk8) :: c_tri(lbc:ubc,0:nlevdecomp+1)
     ! "r" vector for tridiagonal solution
     real(rk8) :: r_tri(lbc:ubc,0:nlevdecomp+1)
-    ! diffusivity/delta_z for next j (set to zero for no diffusion)
-    real(rk8) :: d_p1_zp1(lbc:ubc,1:nlevdecomp+1)
-    ! diffusivity/delta_z for previous j (set to zero for no diffusion)
-    real(rk8) :: d_m1_zm1 (lbc:ubc,1:nlevdecomp+1)
+    real(rk8) :: a_p_0
+    real(rk8) :: deficit
+    real(rk8) :: conc_trcr(lbc:ubc,0:nlevdecomp+1)
     real(rk8) :: f_p1(lbc:ubc,1:nlevdecomp+1)  ! water flux for next j
     real(rk8) :: f_m1(lbc:ubc,1:nlevdecomp+1)  ! water flux for previous j
     real(rk8) :: pe_p1(lbc:ubc,1:nlevdecomp+1) ! Peclet # for next j
     real(rk8) :: pe_m1(lbc:ubc,1:nlevdecomp+1) ! Peclet # for previous j
-    real(rk8) :: dz_node(1:nlevdecomp+1)       ! difference between nodes
-    real(rk8) :: epsilon_t (lbc:ubc,1:nlevdecomp+1,1:ndecomp_pools) !
-    real(rk8) :: conc_trcr(lbc:ubc,0:nlevdecomp+1)
-    ! pointer for concentration state variable being transported
-    real(rk8), pointer :: conc_ptr(:,:,:)
-    ! pointer for source term
-    real(rk8), pointer :: source(:,:,:)
-    ! TRUE => pool is a cwd pool
-    logical, pointer  :: is_cwd(:)
-    real(rk8) :: a_p_0
-    real(rk8) :: deficit
+    integer(ik4) :: jtop(lbc:ubc)     ! top level at each column
+    integer(ik4) :: s ! indices
+#endif
     ! pointer to store the vertical tendency
     ! (gain/loss due to vertical transport)
     real(rk8), pointer :: trcr_tendency_ptr(:,:,:)
@@ -94,9 +98,7 @@ module mod_clm_soillittverttransp
     real(rk8), pointer :: altmax_lastyear(:)
 
     integer(ik4) :: ntype
-    integer(ik4) :: i_type , s , fc , c , j , l ! indices
-    integer(ik4) :: jtop(lbc:ubc)     ! top level at each column
-    integer(ik4) :: zerolev_diffus
+    integer(ik4) :: i_type , fc , c , j , l ! indices
     ! spinup accelerated decomposition factor, used to accelerate
     ! transport as well
     real(rk8), pointer :: spinup_factor(:)

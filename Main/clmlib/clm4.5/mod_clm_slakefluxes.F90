@@ -20,8 +20,7 @@ module mod_clm_slakefluxes
   !
   ! WARNING: This subroutine assumes lake columns have one and only one pft.
   !
-  subroutine SLakeFluxes(lbc, ubc, lbp, ubp, num_lakec, filter_lakec, &
-                         num_lakep, filter_lakep)
+  subroutine SLakeFluxes(lbc, ubc, lbp, ubp, num_lakep, filter_lakep)
     use mod_realkinds
     use mod_clm_type
     use mod_clm_atmlnd , only : clm_a2l
@@ -36,10 +35,6 @@ module mod_clm_slakefluxes
     implicit none
     integer, intent(in) :: lbc, ubc     ! column-index bounds
     integer, intent(in) :: lbp, ubp     ! pft-index bounds
-    ! number of column non-lake points in column filter
-    integer, intent(in) :: num_lakec
-    ! column filter for non-lake points
-    integer, intent(in) :: filter_lakec(ubc-lbc+1)
     ! number of column non-lake points in pft filter
     integer, intent(in) :: num_lakep
     ! pft filter for non-lake points
@@ -163,7 +158,7 @@ module mod_clm_slakefluxes
     real(rk8), parameter :: beta1 = 1.D0
     ! convective boundary height [m]
     real(rk8), parameter :: zii = 1000.D0
-    integer  :: i,fc,fp,g,c,p      ! do loop or array index
+    integer  :: fp,g,c,p           ! do loop or array index
     integer  :: fncopy             ! number of values in pft filter copy
     integer  :: fnold              ! previous number of pft filter values
     integer  :: fpcopy(num_lakep)  ! pft filter copy for iteration loop

@@ -156,8 +156,7 @@ module mod_clm_driver
     integer(ik4) , pointer , dimension(:) :: clandunit
     ! landunit type
     integer(ik4) , pointer , dimension(:) :: itypelun
-    real(rk8) :: t1, t2, t3               ! temporary for mass balance checks
-    integer(ik4)  :: fc, c, fp, p, l, g   ! indices
+    integer(ik4)  :: c, l, g   ! indices
     integer(ik4)  :: begg, endg ! beginning and ending gridcell indices
     integer(ik4)  :: begl, endl ! beginning and ending landunit indices
     integer(ik4)  :: begc, endc ! beginning and ending column indices
@@ -175,7 +174,6 @@ module mod_clm_driver
     type(rcm_time_interval) :: tdif
 #endif
     character(len=256) :: filer  ! restart file name
-    integer(ik4) :: ier          ! error code
 
     ! Assign local pointers to derived subtypes components (landunit-level)
 
@@ -440,8 +438,6 @@ module mod_clm_driver
     ! =======================================================================
 
     call SLakeFluxes(begc,endc,begp,endp, &
-                     filter%num_lakec,    &
-                     filter%lakec,        &
                      filter%num_lakep,    &
                      filter%lakep)
     call SLakeTemperature(begc,endc,begp,endp, &
@@ -455,8 +451,8 @@ module mod_clm_driver
     ! =======================================================================
 
     ! Dust mobilization (C. Zender's modified codes)
-    call DustEmission(begp,endp,begc,endc,begl,endl, &
-                      filter%num_nolakep,            &
+    call DustEmission(begp,endp,begl,endl, &
+                      filter%num_nolakep,  &
                       filter%nolakep)
 
     ! Dust dry deposition (C. Zender's modified codes)

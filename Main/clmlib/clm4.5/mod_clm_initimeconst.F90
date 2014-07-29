@@ -187,7 +187,8 @@ module mod_clm_initimeconst
     real(rk8), pointer :: lakefetch(:)  ! lake fetch from surface data (m)
 
     type(clm_filetype)  :: ncid   ! netcdf id
-    integer(ik4)  :: n , j , ib , lev , bottom ! indices
+    integer(ik4)  :: j , ib , lev ! indices
+    ! integer(ik4)  :: bottom
     integer(ik4)  :: g , l , c , p             ! indices
     integer(ik4)  :: m                         ! vegetation type index
     real(rk8) :: tkm     ! mineral conductivity
@@ -198,7 +199,7 @@ module mod_clm_initimeconst
     real(rk8), pointer :: zisoifl(:)  ! original soil interface depth
     real(rk8), pointer :: dzsoifl(:)  ! original soil thickness
     real(rk8) :: clay,sand        ! temporaries
-    real(rk8) :: slope,intercept  ! temporary, for rooting distribution
+    ! real(rk8) :: slope,intercept  ! temporary, for rooting distribution
     real(rk8) :: temp, max_decl   ! temporary, for calculation of max_dayl
     integer(ik4)  :: begp, endp  ! per-proc beginning and ending pft indices
     integer(ik4)  :: begc, endc  ! per-proc beginning and ending column indices
@@ -219,8 +220,6 @@ module mod_clm_initimeconst
     real(rk8) , pointer :: temp_ef(:)     ! read in - temporary EFs
     real(rk8) , pointer :: efisop2d(:,:)  ! read in - isoprene emission factors
 
-    real(rk8) , pointer :: arrayl(:)      ! generic global array
-    integer(ik4) ,pointer :: irrayg(:)    ! generic global array
     integer(ik4) ,pointer :: soic2d(:)    ! read in - soil color
 
     ! added by F. Li and S. Levis
@@ -267,9 +266,7 @@ module mod_clm_initimeconst
     real(rk8) :: perc_norm   ! normalize to 1 when 100% organic soil
     real(rk8) :: uncon_hksat ! series conductivity of mineral/organic soil
     real(rk8) :: uncon_frac  ! fraction of "unconnected" soil
-    integer(ik4)  :: ret
     integer(ik4)  :: ier                           ! error status
-    character(len=256) :: locfn                    ! local filename
     character(len= 32) :: subname = 'iniTimeConst' ! subroutine name
     integer(ik4) :: mxsoil_color       ! maximum number of soil color classes
     real(rk8), allocatable :: zurb_wall(:,:)  ! wall (layer node depth)
@@ -278,11 +275,7 @@ module mod_clm_initimeconst
     real(rk8), allocatable :: dzurb_roof(:,:) ! roof (layer thickness)
     real(rk8), allocatable :: ziurb_wall(:,:) ! wall (layer interface)
     real(rk8), allocatable :: ziurb_roof(:,:) ! roof (layer interface)
-    logical :: readvar
 
-    integer(ik4) :: closelatidx,closelonidx
-    real(rk8):: closelat,closelon
-    integer(ik4) :: iostat
     integer(ik4) :: nzero_slope  ! Number of points to zero out slope
 
     real(rk8) , pointer :: std(:)     ! read in - topo_std

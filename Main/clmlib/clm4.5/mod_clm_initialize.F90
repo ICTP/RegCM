@@ -95,15 +95,7 @@ module mod_clm_initialize
   subroutine initialize1
     implicit none
     integer(ik4)  :: ier              ! error status
-    integer(ik4)  :: i , j , n , k    ! loop indices
-    integer(ik4)  :: nl               ! gdc and glo lnd indices
-    integer(ik4)  :: ns , ni , nj     ! global grid sizes
-    integer(ik4)  :: begp , endp      ! beg and ending pft indices
-    integer(ik4)  :: begc , endc      ! beg and ending column indices
-    integer(ik4)  :: begl , endl      ! beg and ending landunit indices
     integer(ik4)  :: begg , endg      ! beg and ending gridcell indices
-    integer(ik4) , pointer  :: amask(:)  ! global land mask
-    character(len=32) :: subname = 'initialize1' ! subroutine name
 
     ! -------------------------------------------
     ! Initialize run control variables, timestep
@@ -214,24 +206,20 @@ module mod_clm_initialize
   subroutine initialize2(rdate)
     implicit none
     character(len=*) , intent(in) :: rdate
-    integer(ik4) :: nl , na , nag     ! indices
-    integer(ik4) :: i , j , k         ! indices
-    integer(ik4) :: yr                ! current year (0, ...)
-    integer(ik4) :: mon               ! current month (1 -> 12)
-    integer(ik4) :: day               ! current day (1 -> 31)
-    integer(ik4) :: ncsec             ! current time of day [seconds]
-    integer(ik4) :: begp , endp       ! beg and ending pft indices
-    integer(ik4) :: begc , endc       ! beg and ending column indices
-    integer(ik4) :: begl , endl       ! beg and ending landunit indices
-    integer(ik4) :: begg , endg       ! beg and ending gridcell indices
-    character(len=256) :: fnamer      ! name of netcdf restart file
-    type(clm_filetype) :: ncid         ! netcdf id
-    real(rk8) :: calday               ! calendar day
-    real(rk8) :: caldaym1             ! calendar day for nstep-1
-    real(rk8) :: declin               ! solar declination angle in radians
-    real(rk8) :: declinm1              ! solar declination angle in radians
-    real(rk8) :: eccf                  ! earth orbit eccentricity factor
-    character(len=32) :: subname = 'initialize2' ! subroutine name
+    integer(ik4) :: yr      ! current year (0, ...)
+    integer(ik4) :: mon     ! current month (1 -> 12)
+    integer(ik4) :: day     ! current day (1 -> 31)
+    integer(ik4) :: ncsec   ! current time of day [seconds]
+    integer(ik4) :: begp , endp   ! beg and ending pft indices
+    integer(ik4) :: begc , endc   ! beg and ending column indices
+    integer(ik4) :: begl , endl   ! beg and ending landunit indices
+    integer(ik4) :: begg , endg   ! beg and ending gridcell indices
+    character(len=256) :: fnamer  ! name of netcdf restart file
+    real(rk8) :: calday           ! calendar day
+    real(rk8) :: caldaym1         ! calendar day for nstep-1
+    real(rk8) :: declin           ! solar declination angle in radians
+    real(rk8) :: declinm1         ! solar declination angle in radians
+    real(rk8) :: eccf             ! earth orbit eccentricity factor
 
     ! ------------------------------------------------------------------------
     ! Initialize time constant variables

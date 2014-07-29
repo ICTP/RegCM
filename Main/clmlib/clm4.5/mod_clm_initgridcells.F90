@@ -36,19 +36,8 @@ module mod_clm_initgridcells
     use mod_clm_surfrd , only : crop_prog
 
     implicit none
-    integer(ik4) :: li , ci , pi , m , na , gdc , gsn  ! indices
-    integer(ik4) :: nveg  ! number of pfts in naturally vegetated landunit
+    integer(ik4) :: li , ci , pi , gdc ! indices
     integer(ik4) :: ltype ! landunit type
-    real(rk8):: wtveg     ! weight (gridcell) of naturally veg landunit
-    integer(ik4) :: ncrop ! number of crop pfts in crop landunit
-    real(rk8):: wtcrop    ! weight (gridcell) of crop landunit
-    integer(ik4) :: nlake ! number of pfts (columns) in lake landunit
-    real(rk8):: wtlake    ! weight (gridcell) of lake landunit
-    integer(ik4) :: nwetland   ! number of pfts (columns) in wetland landunit
-    real(rk8):: wtwetland      ! weight (gridcell) of wetland landunit
-    integer(ik4) :: nglacier   ! number of pfts (columns) in glacier landunit
-    real(rk8):: wtglacier      ! weight (gridcell) of glacier landunit
-    integer(ik4) :: ier     ! error status
     integer(ik4) :: numg    ! total number of gridcells across all processors
     integer(ik4) :: numl    ! total number of landunits across all processors
     integer(ik4) :: numc    ! total number of columns across all processors
@@ -211,9 +200,9 @@ module mod_clm_initgridcells
     implicit none
     ! beg/end glcp
     integer(ik4) :: begg , endg , begl , endl , begc , endc , begp , endp
-    integer(ik4) :: g , l , c , p  ! loop counters
+    integer(ik4) :: l , c , p  ! loop counters
     ! tracks g,l,c,p indexes in arrays
-    integer(ik4) :: curg , curl , curc , curp
+    integer(ik4) :: curg , curl , curc
     ! pointer to gridcell derived subtype
     type(gridcell_type) , pointer :: gptr
     ! pointer to landunit derived subtype
@@ -640,9 +629,7 @@ module mod_clm_initgridcells
     integer(ik4) , intent(inout) :: pi ! pft index
     logical , intent(in) :: setdata    ! set info or just compute
     integer(ik4) :: m     ! m index in wtxy(nw,m)
-    integer(ik4) :: c     ! column loop index
     integer(ik4) :: ctype ! column type
-    integer(ik4) :: ier   ! error status
     integer(ik4) :: npfts ! number of pfts in landunit
     integer(ik4) :: ncols ! number of columns in landu
     real(rk8) :: wtlunit2gcell  ! landunit weight in gridcell
@@ -847,7 +834,6 @@ module mod_clm_initgridcells
     integer(ik4) , intent(inout) :: ci        ! column index
     integer(ik4) , intent(inout) :: pi        ! pft index
     logical , intent(in) :: setdata           ! set info or just compute
-    integer(ik4) :: c          ! column loop index
     integer(ik4) :: m          ! m index in wtxy(nw,m)
     integer(ik4) :: n          ! urban density type index
     integer(ik4) :: ctype      ! column type
@@ -859,7 +845,6 @@ module mod_clm_initgridcells
     real(rk8) :: wtlunit_roof  ! weight of roof with respect to landunit
     ! weight of pervious road column with respect to total road
     real(rk8) :: wtroad_perv
-    integer(ik4)  :: ier  ! error status
     type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
     type(column_type) , pointer :: cptr   ! pointer to column derived subtype
     type(pft_type) , pointer :: pptr      ! pointer to pft derived subtype
