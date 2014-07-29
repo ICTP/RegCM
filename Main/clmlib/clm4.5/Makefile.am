@@ -81,14 +81,21 @@ else
 FCFLAGS += -I$(MPP_INCLUDE) -I$(NET_INCLUDE) -I$(BATS_INCLUDE)
 endif
 
-#CPPFLAGS += $(DEFINE)SNICAR_FRC
+#CPPFLAGS += $(DEFINE)CENTURY_DECOMP
 #CPPFLAGS += $(DEFINE)CN
-#CPPFLAGS += $(DEFINE)CROP
-#CPPFLAGS += $(DEFINE)VERTSOILC
 #CPPFLAGS += $(DEFINE)CNDV
-#CPPFLAGS += $(DEFINE)VICHYDRO
-#CPPFLAGS += $(DEFINE)NITRIF_DENITRIF
+#CPPFLAGS += $(DEFINE)CROP
+#CPPFLAGS += $(DEFINE)DEBUG
 #CPPFLAGS += $(DEFINE)LCH4
+#CPPFLAGS += $(DEFINE)NITRIF_DENITRIF
+#CPPFLAGS += $(DEFINE)EXTRALAKELAYERS
+#CPPFLAGS += $(DEFINE)MEXICOCITY
+#CPPFLAGS += $(DEFINE)PERGRO
+#CPPFLAGS += $(DEFINE)SNICAR_FRC
+#CPPFLAGS += $(DEFINE)VERTSOILC
+#CPPFLAGS += $(DEFINE)VANCOUVER
+#CPPFLAGS += $(DEFINE)VICHYDRO
+
 %.o: %.f90
 	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
@@ -127,7 +134,7 @@ mod_clm_cncstateupdate1.o : mod_clm_cncstateupdate1.F90 mod_clm_pftvarcon.o mod_
 mod_clm_cncstateupdate2.o : mod_clm_cncstateupdate2.F90 mod_clm_type.o mod_clm_varpar.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_runparams.o
 mod_clm_cncstateupdate3.o : mod_clm_cncstateupdate3.F90 mod_clm_type.o mod_clm_varpar.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_runparams.o
 mod_clm_cndecompcascadebgc.o : mod_clm_cndecompcascadebgc.F90 mod_clm_ch4varcon.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_intkinds.o mod_realkinds.o mod_runparams.o
-mod_clm_cndecompcascadecentury.o : mod_clm_cndecompcascadecentury.F90 mod_clm_ch4varcon.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_mpmessage.o mod_realkinds.o mod_runparams.o
+mod_clm_cndecompcascadecentury.o : mod_clm_cndecompcascadecentury.F90 mod_clm_ch4varcon.o mod_clm_type.o mod_clm_varcon.o mod_clm_varctl.o mod_clm_varpar.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_realkinds.o mod_runparams.o
 mod_clm_cndecomp.o : mod_clm_cndecomp.F90 mod_clm_cnallocation.o mod_clm_cndecompcascadebgc.o mod_clm_cndecompcascadecentury.o mod_clm_cnnitrifdenitrif.o mod_clm_cnverticalprofile.o mod_clm_subgridave.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_intkinds.o mod_realkinds.o
 mod_clm_cndvecosystemdynini.o : mod_clm_cndvecosystemdynini.F90 mod_clm_decomp.o mod_clm_type.o mod_constants.o mod_intkinds.o mod_realkinds.o
 mod_clm_cndvestablishment.o : mod_clm_cndvestablishment.F90 mod_clm_pftvarcon.o mod_clm_type.o mod_clm_varcon.o mod_clm_varpar.o mod_mpmessage.o mod_realkinds.o mod_stdio.o
