@@ -115,7 +115,7 @@ module mod_params
 
   namelist /microparam/ stats , budget_compute , nssopt , kautoconv ,  &
     ksemi , vqxr , vqxi , vqxs , zauto_rate_khair , zauto_rate_kessl , &
-    zauto_rate_klepi , rkconv , rlmin , rcovpmin , rpecons
+    zauto_rate_klepi , rkconv , rcovpmin , rpecons
 
   namelist /grellparam/ shrmin , shrmax , edtmin , edtmax ,         &
     edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
@@ -393,7 +393,6 @@ module mod_params
   zauto_rate_kessl = 1.D-3
   zauto_rate_klepi = 0.5D-3
   rkconv = 1.666D-4 ! d_one/6000.0D0
-  rlmin = 1.D-8
   rcovpmin = 0.1D0 
   rpecons = 5.547D-5
 !
@@ -443,12 +442,14 @@ module mod_params
 !
 !------namelist tiedtkeparam:
   iconv    = 4  ! Selects the actual scheme
+  entrdd   = 3.0D-4
+  cmfcmax  = 1.0D0
+  cmfcmin  = 1.0D-10
+
   entrpen  = 1.0D-4
   entrscv  = 3.0D-4
   entrmid  = 1.0D-4
-  entrdd   = 2.0D-4
-  cmfcmax  = 1.0D0
-  cmfcmin  = 1.0D-10
+
   cmfdeps  = 0.3D0
   rhcdd    = 0.9D0
   cmtcape  = 453600.0D0
@@ -460,11 +461,39 @@ module mod_params
   cmcptop   = 300.0D0
   centrmax = 2.0D-4
 ! Control switch flags
-  lmfpen   = .true.
-  lmfscv   = .true.
-  lmfmid   = .true.
-  lmfdd    = .true.
-  lmfdudv  = .true.
+  lmfmid = .true.     ! True if midlevel convection is on
+  lmfdd = .true.      ! True if cumulus downdraft is on
+  lepcld = .true.     ! True if prognostic cloud scheme is on
+  lmfdudv = .true.    ! True if cumulus friction is on
+  lmfscv = .true.     ! True if shallow convection is on
+  lmfpen = .true.     ! True if penetrative convection is on
+  lmfuvdis = .true.   ! use kinetic energy dissipation (addit T-tendency)
+  lmftrac = .true.    ! Convective chemical tracer transport
+  lmfsmooth = .false. ! Smoothing of mass fluxes top/bottom for tracers
+  lmfwstar = .false.  ! Grant w* closure for shallow conv.
+
+  n_vmass = 0      ! Using or not vector mass
+  rlpal1 = 0.15D0  ! Smoothing coefficient
+  rlpal2 = 20.0D0  ! Smoothing coefficient
+  rcucov = 0.05D0  ! Convective cloud cover for rain evporation
+  rcpecons = 5.44D-4/egrav ! Coefficient for rain evaporation below cloud
+  rtaumel = 5.0D0*3.6D3*1.5D0 ! Relaxation time for melting of snow
+  rhebc_lnd = 0.7D0 ! Critical relative humidity below
+                    ! cloud at which evaporation starts for land
+  rhebc_ocn = 0.9D0 ! Critical relative humidity below
+                    ! cloud at which evaporation starts for ocean
+  rmflic = 1.0D0 ! Use CFL mass flux limit (1) or absolut limit (0)
+  rmflia = 0.0D0 ! Value of absolut mass flux limit
+  rmfsoluv = 1.0D0 ! Mass flux solver for momentum
+  rmfsoltq = 1.0D0 ! Mass flux solver for T and q
+  rmfsolct = 1.0D0 ! Mass flux solver for chem tracers
+  ruvper = 0.3D0 ! Updraught velocity perturbation for implicit (m/s)
+  rprcon = 1.4D-3 ! coefficients for determining conversion from cloud water
+  detrpen = 0.75D-4 ! Detrainment rate for penetrative convection
+  entrorg = 1.75D-3 ! Entrainment for positively buoyant convection 1/(m)
+  entshalp = 2.0D0  ! shallow entrainment factor for entrorg
+  rdepths = 2.0D4   ! Maximum allowed cloud thickness for shallow cloud (Pa)
+  rvdifts = 1.5D0   ! Factor for time step weighting in *vdf....*
 !
 !c------namelist uwparam ;
   iuwvadv = 0
@@ -1004,7 +1033,6 @@ module mod_params
       call bcast(zauto_rate_kessl)
       call bcast(zauto_rate_klepi)
       call bcast(rcovpmin)
-      call bcast(rlmin)
       call bcast(rpecons)
       call bcast(rkconv)
     end if
@@ -1073,26 +1101,51 @@ module mod_params
  
   if ( any(icup == 5) ) then
     call bcast(iconv)
+    call bcast(entrdd)
+    call bcast(cmfcmax)
+    call bcast(cmfcmin)
     call bcast(entrpen)
     call bcast(entrscv)
     call bcast(entrmid)
-    call bcast(entrdd)
-    call bcast(cmfctop)
-    call bcast(cmfcmax)
-    call bcast(cmfcmin)
     call bcast(cmfdeps)
     call bcast(rhcdd)
     call bcast(cmtcape)
     call bcast(zdlev)
+    call bcast(ctrigger)
+    call bcast(cmfctop)
     call bcast(cprcon)
     call bcast(cmcptop)
-    call bcast(ctrigger)
     call bcast(centrmax)
-    call bcast(lmfpen)
-    call bcast(lmfscv)
     call bcast(lmfmid)
     call bcast(lmfdd)
+    call bcast(lepcld)
     call bcast(lmfdudv)
+    call bcast(lmfscv)
+    call bcast(lmfpen)
+    call bcast(lmfuvdis)
+    call bcast(lmftrac)
+    call bcast(lmfsmooth)
+    call bcast(lmfwstar)
+    call bcast(n_vmass)
+    call bcast(rlpal1)
+    call bcast(rlpal2)
+    call bcast(rcucov)
+    call bcast(rcpecons)
+    call bcast(rtaumel)
+    call bcast(rhebc_lnd)
+    call bcast(rhebc_ocn)
+    call bcast(rmflic)
+    call bcast(rmflia)
+    call bcast(rmfsoluv)
+    call bcast(rmfsoltq)
+    call bcast(rmfsolct)
+    call bcast(ruvper)
+    call bcast(rprcon)
+    call bcast(detrpen)
+    call bcast(entrorg)
+    call bcast(entshalp)
+    call bcast(rdepths)
+    call bcast(rvdifts)
   end if
 
   if ( ibltyp == 1 .or. ibltyp == 99 ) then

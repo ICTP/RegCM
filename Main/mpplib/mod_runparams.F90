@@ -193,23 +193,6 @@ module mod_runparams
  
   ! Tiedtke cumulus scheme parameters
 
-  real(rk8) :: entrpen      ! entrainment rate for penetrative convection
-  real(rk8) :: entrscv      ! entrainment rate for shallow convection
-  real(rk8) :: entrmid      ! entrainment rate for midlevel convection
-  real(rk8) :: entrdd       ! entrainment rate for cumulus downdrafts
-  real(rk8) :: cmfctop      ! relat. cloud massflux at level above nonbuoyanc
-  real(rk8) :: cmtcape      ! CAPE adjustment timescale parameter
-  real(rk8) :: zdlev        ! Restrict rainfall up to this elevation
-  real(rk8) :: cmfcmax      ! maximum massflux value allowed for
-  real(rk8) :: cmfcmin      ! minimum massflux value (for safety)
-  real(rk8) :: cmfdeps      ! fractional massflux for downdrafts at lfs
-  real(rk8) :: rhcdd        ! relative saturation in downdrafts
-  real(rk8) :: cprcon       ! coefficients for determining conversion
-                            ! from cloud water to rain
-  real(rk8) :: centrmax     ! Max entrainment
-  real(rk8) :: ctrigger     ! coefficients for triggering convection
-  real(rk8) :: cmcptop      ! Top pressure for midlevel convection
-
   integer(ik4) :: iconv
 
   logical :: lmfpen    !  true if penetrative convection is switched on
@@ -217,6 +200,56 @@ module mod_runparams
   logical :: lmfmid    !  true if midlevel convection is switched on
   logical :: lmfdd     !  true if cumulus downdraft is switched on
   logical :: lmfdudv   !  true if cumulus friction is switched on
+
+  real(rk8) :: entrdd   ! entrainment rate for cumulus downdrafts
+  real(rk8) :: cmfcmax  ! maximum massflux value allowed for
+  real(rk8) :: cmfcmin  ! minimum massflux value (for safety)
+  real(rk8) :: cmfdeps  ! fractional massflux for downdrafts at lfs
+
+  ! ICONV 1, 2, 3
+  real(rk8) :: entrpen  ! entrainment rate for penetrative convection
+  real(rk8) :: entrscv  ! entrainment rate for shallow convection
+  real(rk8) :: entrmid  ! entrainment rate for midlevel convection
+  real(rk8) :: cmfctop  ! relat. cloud massflux at level above nonbuoyanc
+  real(rk8) :: cmtcape  ! CAPE adjustment timescale parameter
+  real(rk8) :: zdlev    ! Restrict rainfall up to this elevation
+  real(rk8) :: rhcdd    ! relative saturation in downdrafts
+  real(rk8) :: cprcon   ! coefficients for determining conversion
+                        ! from cloud water to rain
+  real(rk8) :: centrmax ! Max entrainment
+  real(rk8) :: ctrigger ! coefficients for triggering convection
+  real(rk8) :: cmcptop  ! Top pressure for midlevel convection
+
+  ! ICONV 4 paramters
+  integer(ik4) :: n_vmass ! Using or not vector mass
+  real(rk8) :: rlpal1     ! Smoothing coefficient
+  real(rk8) :: rlpal2     ! Smoothing coefficient
+  real(rk8) :: rcucov     ! Convective cloud cover for rain evporation
+  real(rk8) :: rcpecons   ! Coefficient for rain evaporation below cloud
+  real(rk8) :: rtaumel    ! Relaxation time for melting of snow
+  real(rk8) :: rhebc_lnd  ! Critical relative humidity below
+                          ! cloud at which evaporation starts for land
+  real(rk8) :: rhebc_ocn  ! Critical relative humidity below
+                          ! cloud at which evaporation starts for ocean
+  real(rk8) :: rmflic     ! Use CFL mass flux limit (1) or absolut limit (0)
+  real(rk8) :: rmflia     ! Value of absolut mass flux limit
+  real(rk8) :: rmfsoluv   ! Mass flux solver for momentum
+  real(rk8) :: rmfsoltq   ! Mass flux solver for T and q
+  real(rk8) :: rmfsolct   ! Mass flux solver for chem tracers
+  real(rk8) :: ruvper     ! Updraught velocity perturbation for implicit (m/s)
+  real(rk8) :: rprcon     ! coeff for determining conversion from cloud water
+  real(rk8) :: detrpen    ! Detrainment rate for penetrative convection
+  real(rk8) :: entrorg    ! Entrainment for positively buoyant convection 1/(m)
+  real(rk8) :: entshalp   ! shallow entrainment factor for entrorg
+  real(rk8) :: rdepths    ! Maximum allowed cloud thickness for shallow
+                          ! cloud depth (Pa)
+  real(rk8) :: rvdifts    ! Factor for time step weighting in *vdf....*
+
+  logical :: lepcld     ! True if prognostic cloud scheme is on
+  logical :: lmfuvdis   ! use kinetic energy dissipation (addit T-tendency)
+  logical :: lmftrac    ! Convective chemical tracer transport
+  logical :: lmfsmooth  ! Smoothing of mass fluxes top/bottom for tracers
+  logical :: lmfwstar   ! Grant w* closure for shallow conv.
 
   ! Tweak Global data
 
@@ -343,7 +376,6 @@ module mod_runparams
   real(rk8) :: zauto_rate_klepi
   real(rk8) :: rkconv
   ! limit values
-  real(rk8) :: rlmin
   real(rk8) :: rcovpmin
   ! evaporation values
   real(rk8) :: rpecons

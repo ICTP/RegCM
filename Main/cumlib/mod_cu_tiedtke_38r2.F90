@@ -5,6 +5,7 @@ module mod_cu_tiedtke_38r2
   use mod_constants
   use mod_dynparam
   use mod_mpmessage
+  use mod_runparams
 
   implicit none
  
@@ -12,70 +13,12 @@ module mod_cu_tiedtke_38r2
 
   public :: sucumf , custrat , cumastrn , cuancape2
 
-  integer(ik4) , parameter :: n_vmass = 0   ! Using or not vector mass
-  real(rk8) , parameter :: rlpal1 = 0.15D0  ! Smoothing coefficient
-  real(rk8) , parameter :: rlpal2 = 20.0D0  ! Smoothing coefficient
-  real(rk8) , parameter :: rcucov = 0.05D0  ! Convective cloud cover for rain
-                                            ! evporation
-  real(rk8) , parameter :: rcpecons = 5.44D-4/egrav
-                                          ! Coefficient for rain evaporation
-                                          ! below cloud
-  real(rk8) :: rtau
-  real(rk8) , parameter :: rtaumel = 5.0D0*3.6D3*1.5D0
-                                          ! Relaxation time for melting of
-                                          ! snow
-  real(rk8) , parameter :: rhebc_lnd = 0.7D0 ! Critical relative humidity below
-                                          ! cloud at which evaporation starts
-                                          ! for land
-  real(rk8) , parameter :: rhebc_ocn = 0.9D0 ! Critical relative humidity below
-                                          ! cloud at which evaporation starts
-                                          ! for ocean
-  real(rk8) :: rmfcfl ! Massflux multiple of cfl stability criterium
-  real(rk8) , parameter :: rmflic = 1.0D0 ! Use CFL mass flux limit (1) or
-                                          ! absolut limit (0)
-  real(rk8) , parameter :: rmflia = 0.0D0 ! Value of absolut mass flux limit
-  real(rk8) , parameter :: rmfsoluv = 1.0D0 ! Mass flux solver for momentum
-  real(rk8) , parameter :: rmfsoltq = 1.0D0 ! Mass flux solver for T and q
-  real(rk8) , parameter :: rmfsolct = 1.0D0 ! Mass flux solver for chem tracers
-  real(rk8) , parameter :: ruvper = 0.3D0 ! Updraught velocity perturbation for
-                                          ! implicit (m/s)
-  real(rk8) , parameter :: rprcon = 1.4D-3 ! coefficients for determining
-                                           ! conversion from cloud water
-  real(rk8) , parameter :: detrpen = 0.75D-4 ! Detrainment rate for penetrative
-                                             ! convection
-  real(rk8) , parameter :: entrorg = 1.75D-3 ! Entrainment for positively
-                                             ! buoyant convection 1/(m)
-  real(rk8) , parameter :: entshalp = 2.0D0  ! shallow entrainment factor for
-                                             ! entrorg
-  real(rk8) , parameter :: entrdd = 3.0D-4   ! Average entrainment rate
-                                             ! for downdrafts
-  real(rk8) , parameter :: rmfcmax = 1.0D0   ! Maximum massflux value allowed
-                                             ! for updrafts etc
-  real(rk8) , parameter :: rmfcmin = 1.0D-10 ! Minimum massflux value (safety)
-  real(rk8) , parameter :: rmfdeps = 0.30D0  ! Fractional massflux for
-                                             ! downdrafts at lfs
-  real(rk8) , parameter :: rdepths = 2.0D4   ! Maximum allowed cloud thickness
-                                             ! for shallow cloud depth (Pa)
-  real(rk8) , parameter :: rvdifts = 1.5D0   ! Factor for time step weighting in
-                                             ! *vdf....*
   real(rk8) , parameter :: zqmax = 0.5D0
-  real(rk8) , parameter :: rlmin = 1.0D-8
   real(rk8) , parameter :: rkap = 0.4D0
   real(rk8) , parameter :: ratm = 100000.0D0
 
-  logical , public :: lmfmid = .true.   ! True if midlevel convection is on
-  logical , public :: lmfdd = .true.    ! True if cumulus downdraft is on
-  logical , public :: lepcld = .true.   ! True if prognostic cloud scheme is on
-  logical , public :: lmfdudv = .true.  ! True if cumulus friction is on
-  logical , public :: lmfscv = .true.   ! True if shallow convection is on
-  logical , public :: lmfpen = .true.   ! True if penetrative convection is on
-  logical , public :: lmfuvdis = .true. ! use kinetic energy dissipation
-                                        ! (addit T-tendency)
-  logical , public :: lmftrac = .true.  ! Convective chemical tracer transport
-  logical , public :: lmfsmooth = .false. ! Smoothing of mass fluxes 
-                                          ! top/bottom for tracers
-  logical , public :: lmfwstar = .false. ! Grant w* closure for shallow conv.
-
+  real(rk8) :: rtau
+  real(rk8) :: rmfcfl ! Massflux multiple of cfl stability criterium
   integer(ik4) :: njkt1 , njkt2 , njkt3 , njkt4 , njkt5 , njkt6
 
   contains
@@ -870,7 +813,7 @@ module mod_cu_tiedtke_38r2
           pmfu(jl,jk) = pmfu(jl,jk+1) + zdmfen(jl) - zdmfde(jl)
           zqeen = pqenh(jl,jk+1)*zdmfen(jl)
           zseen = (cpd*ptenh(jl,jk+1)+pgeoh(jl,jk+1))*zdmfen(jl)
-          if ( plitot(jl,jk)>rlmin ) then
+          if ( plitot(jl,jk)>minqx ) then
             zleen = plitot(jl,jk)*zdmfen(jl)
           else
             zleen = d_zero
@@ -881,15 +824,15 @@ module mod_cu_tiedtke_38r2
           zmfusk = pmfus(jl,jk+1) + zseen - zscde
           zmfuqk = pmfuq(jl,jk+1) + zqeen - zqude
           zmfulk = pmful(jl,jk+1) + zleen - plude(jl,jk)
-          plu(jl,jk) = zmfulk*(d_one/max(rmfcmin,pmfu(jl,jk)))
-          pqu(jl,jk) = zmfuqk*(d_one/max(rmfcmin,pmfu(jl,jk)))
+          plu(jl,jk) = zmfulk*(d_one/max(cmfcmin,pmfu(jl,jk)))
+          pqu(jl,jk) = zmfuqk*(d_one/max(cmfcmin,pmfu(jl,jk)))
           ptu(jl,jk) = (zmfusk * &
-            (d_one/max(rmfcmin,pmfu(jl,jk)))-pgeoh(jl,jk))/cpd
+            (d_one/max(cmfcmin,pmfu(jl,jk)))-pgeoh(jl,jk))/cpd
           ptu(jl,jk) = max(100.0D0,ptu(jl,jk))
           ptu(jl,jk) = min(400.0D0,ptu(jl,jk))
           zqold(jl) = pqu(jl,jk)
           zlrain(jl,jk) = zlrain(jl,jk+1)*(pmfu(jl,jk+1)-zdmfde(jl)) * &
-                          (d_one/max(rmfcmin,pmfu(jl,jk)))
+                          (d_one/max(cmfcmin,pmfu(jl,jk)))
           zluold(jl) = plu(jl,jk)
         end do
         ! reset to environmental values if below departure level
@@ -956,10 +899,10 @@ module mod_cu_tiedtke_38r2
               ! troposphere
               if ( zdmfen(jl) > d_zero ) then
                 zdken = min(d_one,(d_one+z_cwdrag)*zdmfen(jl) / &
-                        max(rmfcmin,pmfu(jl,jk+1)))
+                        max(cmfcmin,pmfu(jl,jk+1)))
               else
                 zdken = min(d_one,(d_one+z_cwdrag)*zdmfde(jl) / &
-                        max(rmfcmin,pmfu(jl,jk+1)))
+                        max(cmfcmin,pmfu(jl,jk+1)))
               end if
               pkineu(jl,jk) = (pkineu(jl,jk+1)*(d_one-zdken)+zdkbuo) / &
                 (d_one+zdken)
@@ -1155,13 +1098,12 @@ module mod_cu_tiedtke_38r2
     real(rk8) , dimension(kfdia-kidia+1) :: ztmp4
     real(rk8) , dimension(kfdia-kidia+1) :: ztmp5
     real(rk8) , dimension(kfdia-kidia+1) :: ztmp6
-    real(rk8) :: zcond , zcond1 , zcor , zqmax , zqsat , zqp
+    real(rk8) :: zcond , zcond1 , zcor , zqsat , zqp
     real(rk8) :: zl , zi , zf
     !----------------------------------------------------------------------
     ! 1.           DEFINE CONSTANTS
     ! ----------------
     if ( n_vmass > 0 ) jlen = kfdia - kidia + 1
-    zqmax = d_half
     !   2.           CALCULATE CONDENSATION AND ADJUST T AND Q ACCORDINGLY
     !   -----------------------------------------------------
     if ( kcall == 1 ) then
@@ -1742,16 +1684,11 @@ module mod_cu_tiedtke_38r2
     real(rk8) , dimension(klon,klev) , intent(out) :: pqsat
     integer(ik4) , intent(in) :: kflag
     integer(ik4) :: jk , jl , jlen
-    real(rk8) :: zcor , zew , zqmax , zqs
+    real(rk8) :: zcor , zew , zqs
     real(rk8) , dimension(kidia:kfdia) :: z_exparg1
     real(rk8) , dimension(kidia:kfdia) :: z_exparg2
     real(rk8) , dimension(kidia:kfdia) :: z_expout1
     real(rk8) , dimension(kidia:kfdia) :: z_expout2
-    !----------------------------------------------------------------------
-    !*    1.           DEFINE CONSTANTS
-    ! ----------------
-    zqmax = d_half
-    ! *
     !----------------------------------------------------------------------
     ! *    2.           CALCULATE SATURATION SPECIFIC HUMIDITY
     ! --------------------------------------
@@ -1893,8 +1830,8 @@ module mod_cu_tiedtke_38r2
           ptu(jl,kk+1) = (cpd*pten(jl,kk)+pgeo(jl,kk)-pgeoh(jl,kk+1))/cpd
           pqu(jl,kk+1) = pqen(jl,kk)
           plu(jl,kk+1) = d_zero
-          zzzmb = max(rmfcmin,-pvervel(jl,kk)/egrav)
-          zzzmb = min(zzzmb,rmfcmax)
+          zzzmb = max(cmfcmin,-pvervel(jl,kk)/egrav)
+          zzzmb = min(zzzmb,cmfcmax)
           pmfub(jl) = zzzmb
           pmfu(jl,kk+1) = pmfub(jl)
           pmfus(jl,kk+1) = pmfub(jl)*(cpd*ptu(jl,kk+1)+pgeoh(jl,kk+1))
@@ -2089,7 +2026,7 @@ module mod_cu_tiedtke_38r2
             zbuo = zttest*(d_one+retv*zqtest) - &
                    ptenh(jl,jk)*(d_one+retv*pqenh(jl,jk))
             zcond(jl) = pqenh(jl,jk) - zqenwb(jl,jk)
-            zmftop = -rmfdeps*pmfub(jl)
+            zmftop = -cmfdeps*pmfub(jl)
             if ( zbuo < d_zero .and. prfl(jl) > 10.0D0*zmftop*zcond(jl) ) then
               kdtop(jl) = jk
               lddraf(jl) = .true.
@@ -2271,9 +2208,9 @@ module mod_cu_tiedtke_38r2
           zqdde = pqd(jl,jk-1)*zdmfde(jl)
           zmfdsk = pmfds(jl,jk-1) + zseen - zsdde
           zmfdqk = pmfdq(jl,jk-1) + zqeen - zqdde
-          pqd(jl,jk) = zmfdqk*(d_one/min(-rmfcmin,pmfd(jl,jk)))
+          pqd(jl,jk) = zmfdqk*(d_one/min(-cmfcmin,pmfd(jl,jk)))
           ptd(jl,jk) = (zmfdsk*(d_one / &
-            min(-rmfcmin,pmfd(jl,jk)))-pgeoh(jl,jk))/cpd
+            min(-cmfcmin,pmfd(jl,jk)))-pgeoh(jl,jk))/cpd
           ptd(jl,jk) = min(400.0D0,ptd(jl,jk))
           ptd(jl,jk) = max(100.0D0,ptd(jl,jk))
           zcond(jl) = pqd(jl,jk)
@@ -2313,10 +2250,10 @@ module mod_cu_tiedtke_38r2
           zdkbuo = zdz*zbuoyv*zfacbuo
           if ( zdmfen(jl) < d_zero ) then
             zdken = min(d_one,(d_one+z_cwdrag)*zdmfen(jl) / &
-                    min(-rmfcmin,pmfd(jl,jk-1)))
+                    min(-cmfcmin,pmfd(jl,jk-1)))
           else
             zdken = min(d_one,(d_one+z_cwdrag)*zdmfde(jl) / &
-                    min(-rmfcmin,pmfd(jl,jk-1)))
+                    min(-cmfcmin,pmfd(jl,jk-1)))
           end if
           pkined(jl,jk) = max(d_zero, &
             (pkined(jl,jk-1)*(d_one-zdken)+zdkbuo)/(d_one+zdken))
@@ -3580,7 +3517,7 @@ module mod_cu_tiedtke_38r2
                 lldsc(jl) = .true.
                 ibotsc(jl) = jkb
                 icbot(jl) = jkb
-                zlu(jl,jk+1) = rlmin
+                zlu(jl,jk+1) = minqx
               else if ( zpdifftop <= zpdiffbot .and. &
                         zwu2h(jl,jk) > d_zero ) then
                 ilab(jl,jk) = 2
@@ -3881,7 +3818,7 @@ module mod_cu_tiedtke_38r2
         do jl = kidia , kfdia
           if ( llcumask(jl,jk) ) then
             zerate = pmfu(jl,jk) - pmfu(jl,ik) + pudrate(jl,jk)
-            zmfa = d_one/max(rmfcmin,pmfu(jl,jk))
+            zmfa = d_one/max(cmfcmin,pmfu(jl,jk))
             if ( jk >= kctop(jl) ) then
               zcu(jl,jk,jn) = (pmfu(jl,ik)*zcu(jl,ik,jn) + &
                 zerate*pcen(jl,jk,jn)-pudrate(jl,jk)*zcu(jl,ik,jn))*zmfa
@@ -3903,7 +3840,7 @@ module mod_cu_tiedtke_38r2
             zcd(jl,jk,jn) = 0.1D0*zcu(jl,jk,jn) + 0.9D0*pcen(jl,ik,jn)
           else if ( lddraf(jl).and.jk>kdtop(jl) ) then
             zerate = -pmfd(jl,jk) + pmfd(jl,ik) + pddrate(jl,jk)
-            zmfa = d_one/min(-rmfcmin,pmfd(jl,jk))
+            zmfa = d_one/min(-cmfcmin,pmfd(jl,jk))
             zcd(jl,jk,jn) = (pmfd(jl,ik)*zcd(jl,ik,jn) - &
               zerate*pcen(jl,ik,jn)+pddrate(jl,jk)*zcd(jl,ik,jn))*zmfa
             ! if you have a source term dc/dt=dcdt write
@@ -3919,7 +3856,7 @@ module mod_cu_tiedtke_38r2
           zposi = -zdp(jl,jk) *(pmfu(jl,jk)*zcu(jl,jk,jn) + &
             pmfd(jl,jk)*zcd(jl,jk,jn)-(pmfu(jl,jk)+pmfd(jl,jk))*pcen(jl,ik,jn))
           if ( pcen(jl,jk,jn)+zposi*ptsphy < d_zero ) then
-            zmfa = d_one/min(-rmfcmin,pmfd(jl,jk))
+            zmfa = d_one/min(-cmfcmin,pmfd(jl,jk))
             zcd(jl,jk,jn) = ((pmfu(jl,jk)+pmfd(jl,jk))*pcen(jl,ik,jn) - &
               pmfu(jl,jk)*zcu(jl,jk,jn)+pcen(jl,jk,jn) / &
               (ptsphy*zdp(jl,jk)))*zmfa
@@ -4603,7 +4540,7 @@ module mod_cu_tiedtke_38r2
     !*    6.2          FINAL CLOSURE=SCALING
     ! ---------------------
     do jl = kidia , kfdia
-      if ( ldcum(jl) ) zmfs(jl) = zmfub1(jl)/max(rmfcmin,zmfub(jl))
+      if ( ldcum(jl) ) zmfs(jl) = zmfub1(jl)/max(cmfcmin,zmfub(jl))
     end do
     do jk = 2 , klev
       do jl = kidia , kfdia
@@ -4853,7 +4790,7 @@ module mod_cu_tiedtke_38r2
               zerate = pmfu(jl,jk) - pmfu(jl,ik) + &
                 (d_one+zfac)*pmfude_rate(jl,jk)
               zderate = (d_one+zfac)*pmfude_rate(jl,jk)
-              zmfa = d_one/max(rmfcmin,pmfu(jl,jk))
+              zmfa = d_one/max(cmfcmin,pmfu(jl,jk))
               zuu(jl,jk) = (zuu(jl,ik)*pmfu(jl,ik) + &
                 zerate*puen(jl,jk)-zderate*zuu(jl,ik))*zmfa
               zvu(jl,jk) = (zvu(jl,ik)*pmfu(jl,ik) + &
@@ -4871,7 +4808,7 @@ module mod_cu_tiedtke_38r2
               zvd(jl,jk) = d_half*(zvu(jl,jk)+pven(jl,ik))
             else if ( jk > idtop(jl) ) then
               zerate = -pmfd(jl,jk) + pmfd(jl,ik) + pmfdde_rate(jl,jk)
-              zmfa = d_one/min(-rmfcmin,pmfd(jl,jk))
+              zmfa = d_one/min(-cmfcmin,pmfd(jl,jk))
               zud(jl,jk) = (zud(jl,ik)*pmfd(jl,ik) - &
                 zerate*puen(jl,ik)+pmfdde_rate(jl,jk)*zud(jl,ik))*zmfa
               zvd(jl,jk) = (zvd(jl,ik)*pmfd(jl,ik) - &
@@ -4927,7 +4864,7 @@ module mod_cu_tiedtke_38r2
               zdz = ((paph(jl,klev+1)-paph(jl,jk)) / &
                 (paph(jl,klev+1)-paph(jl,ikb)))
               if ( ktype(jl) == 3 ) zdz = zdz*zdz
-              zmfa = d_one/max(rmfcmin,zmfuus(jl,jk))
+              zmfa = d_one/max(cmfcmin,zmfuus(jl,jk))
               zuu(jl,jk) = puen(jl,ik) + zmfuub(jl)*zdz*zmfa
               zvu(jl,jk) = pven(jl,ik) + zmfuvb(jl)*zdz*zmfa
               zmfdus(jl,jk) = zmfdus(jl,ikb)*zdz

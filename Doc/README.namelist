@@ -379,12 +379,22 @@
 !
  &tiedtkeparam
  iconv = 4,           ! Actual used scheme.
+ lmfmid = .true.,     ! true if midlevel convection is switched on
+ lmfdd = .true.,      ! true if cumulus downdraft is switched on
+ lepcld = .true.,     ! true if prognostic cloud scheme is on (iconv=4)
+ lmfdudv = .true.,    ! true if cumulus friction is switched on
+ lmfscv = .true.,     ! true if shallow convection is switched on
+ lmfpen = .true.,     ! true if penetrative convection is switched on
+ lmfuvdis = .true.,   ! true if use kinetic energy dissipation
+ lmftrac = .true.,    ! true if chemical tracer transport is on
+ lmfsmooth = .false., ! true if smoothing of mass fluxes top/bottom for tracers
+ lmfwstar = .false.,  ! true if Grant w* closure for shallow convection
+ cmfcmax = 1.0D0,     ! Maximum massflux value
+ cmfcmin = 1.0D-10,   ! Minimum massflux value (for safety)
+ entrdd  = 3.0D-4,    ! Entrainment rate for cumulus downdrafts
  entrpen = 1.0D-4,    ! Entrainment rate for penetrative convection
  entrscv = 3.0D-4,    ! Entrainment rate for shallow convection
  entrmid = 1.0D-4,    ! Entrainment rate for midlevel convection
- entrdd  = 2.0D-4,    ! Entrainment rate for cumulus downdrafts
- cmfcmax = 1.0D0,     ! Maximum massflux value
- cmfcmin = 1.0D-10,   ! Minimum massflux value (for safety)
  cmfdeps = 0.3D0,     ! Fractional massflux for downdrafts at lfs
  rhcdd = 0.9D0,       ! Relative saturation in downdrafts
  cmtcape = 453600.D0, ! CAPE adjustment timescale parameter
@@ -394,11 +404,26 @@
  ctrigger = -1.1D0,   ! Trigger parameter for the convection 0.0 <-> 1.0
  centrmax = 2.0D-4,   ! Max entrainment
  cmfctop = 0.35D0,    ! Relat. cloud massflux at level above nonbuoyancy
- lmfpen = .true.,     ! true if penetrative convection is switched on
- lmfscv = .true.,     ! true if shallow convection is switched on
- lmfmid = .true.,     ! true if midlevel convection is switched on
- lmfdd = .true.,      ! true if cumulus downdraft is switched on
- lmfdudv = .true.,    ! true if cumulus friction is switched on
+ n_vmass = 0,         ! Using or not vector mass
+ rlpal1 = 0.15D0,     ! Smoothing coefficient
+ rlpal2 = 20.0D0,     ! Smoothing coefficient
+ rcucov = 0.05D0,     ! Convective cloud cover for rain evporation
+ rcpecons = 5.55D-5,  ! Coefficient for rain evaporation below cloud
+ rtaumel = 27.0D3,    ! Relaxation time for melting of snow
+ rhebc_lnd = 0.7D0,   ! Critical relative humidity below cloud for evaporation
+ rhebc_ocn = 0.9D0,   ! Critical relative humidity below cloud for evaporation
+ rmflic = 1.0D0,      ! Use CFL mass flux limit (1) or absolut limit (0)
+ rmflia = 0.0D0,      ! Value of absolut mass flux limit
+ rmfsoluv = 1.0D0,    ! Mass flux solver for momentum
+ rmfsoltq = 1.0D0,    ! Mass flux solver for T and q
+ rmfsolct = 1.0D0,    ! Mass flux solver for chem tracers
+ ruvper = 0.3D0,      ! Updraught velocity perturbation for implicit (m/s)
+ rprcon = 1.4D-3,     ! coefficients for determining conversion from cloud water
+ detrpen = 0.75D-4,   ! Detrainment rate for penetrative convection
+ entrorg = 1.75D-3,   ! Entrainment for positively buoyant convection 1/(m)
+ entshalp = 2.0D0,    ! shallow entrainment factor for entrorg
+ rdepths = 2.0D4,     ! Maximum allowed cloud thickness for shallow cloud (Pa)
+ rvdifts = 1.5D0,     ! Factor for time step weighting in *vdf....*
  /
 !
 ! Holtslag PBL scheme control

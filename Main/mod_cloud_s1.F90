@@ -39,7 +39,7 @@ module mod_cloud_s1
   use mod_runparams , only : stats , budget_compute , nssopt , kautoconv !, ksemi
   use mod_runparams , only : vqxr , vqxi , vqxs
   use mod_runparams , only : zauto_rate_khair , zauto_rate_kessl , zauto_rate_klepi
-  use mod_runparams , only : rkconv , rlmin , rcovpmin , rpecons
+  use mod_runparams , only : rkconv , rcovpmin , rpecons
   use mod_runparams , only : ktau
   use mod_precip    , only : fcc
   use mod_runparams , only : rtsrf
@@ -584,7 +584,7 @@ if ( fscheme ) then
               (ztmpl+ztmpi)*(papf(j,i,k+1)-papf(j,i,k))*regrav    !(kg/m^2)
             ! Detrained water treated here
             zqe = zqdetr(j,i,k)*dt*egrav/(papf(j,i,k+1)-papf(j,i,k)) ! 1 ?
-            if (zqe > rlmin) then
+            if (zqe > minqx) then
               ! [zqdetr] = kg/(m^2*s)
               zsumq0(j,i,k) = zsumq0(j,i,k)+zqdetr(j,i,k)*dt
               zalfaw = phases(zt(j,i,k))
@@ -651,7 +651,7 @@ if ( fscheme ) then
           ! Calculate liq/ice fractions (no longer a diagnostic relationship)
           !-------------------------------------------------------------------
           zli(j,i,k) = zqxx(j,i,k,iqql)+zqxx(j,i,k,iqqi)
-          if ( zli(j,i,k) > rlmin ) then
+          if ( zli(j,i,k) > minqx ) then
             zliqfrac(j,i,k) = zqxx(j,i,k,iqql)/zli(j,i,k)
             zicefrac(j,i,k) = d_one-zliqfrac(j,i,k)
           else
@@ -752,12 +752,12 @@ if ( fscheme ) then
       !------------------------------------------------
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( zqxx(j,i,k,iqql) < rlmin ) then
+          if ( zqxx(j,i,k,iqql) < minqx ) then
             zsolqa(j,i,iqqv,iqql) =  zqxx(j,i,k,iqql)
             zsolqa(j,i,iqql,iqqv) = -zqxx(j,i,k,iqql)
             zqxfg(j,i,iqql) = zqxfg(j,i,iqql) - zqxx(j,i,k,iqql)
           end if
-          if ( zqxx(j,i,k,iqqi) < rlmin ) then
+          if ( zqxx(j,i,k,iqqi) < minqx ) then
             zsolqa(j,i,iqqv,iqqi) =  zqxx(j,i,k,iqqi)
             zsolqa(j,i,iqqi,iqqv) = -zqxx(j,i,k,iqqi)
             zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi) - zqxx(j,i,k,iqqi)
@@ -909,7 +909,7 @@ if ( fscheme ) then
           do i = ici1 , ici2
             do j = jci1 , jci2
               zqdetr(j,i,k) = qdetr(j,i,k)*zdtgdp(j,i)  !kg/kg
-              if ( zqdetr(j,i,k) > rlmin ) then
+              if ( zqdetr(j,i,k) > minqx ) then
                 !zice=1 if T<250, zice=0 if T>273
                 zalfaw              = zliq(j,i,k)
                 zice                = d_one-zalfaw  
@@ -1094,7 +1094,7 @@ if ( fscheme ) then
         ! (1) increase of cloud water in existing clouds
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( fccfg(j,i,k) > zepsec.and.zdqs(j,i) <= -rlmin) then
+            if ( fccfg(j,i,k) > zepsec.and.zdqs(j,i) <= -minqx) then
               zlcond1(j,i)=max(-zdqs(j,i),d_zero) !new limiter
              ! old limiter
               !  (significantly improves upper tropospheric humidity rms)
@@ -1108,7 +1108,7 @@ if ( fscheme ) then
               zlcond1(j,i) = max(min(zlcond1(j,i),zcdmax),d_zero)
               ! end old limiter
               zlcond1(j,i) = fccfg(j,i,k)*zlcond1(j,i)
-              if ( zlcond1(j,i) < rlmin ) zlcond1(j,i) = d_zero
+              if ( zlcond1(j,i) < minqx ) zlcond1(j,i) = d_zero
               !----------------------------------------------------------------
               ! All increase goes into liquid unless so cold cloud
               ! homogeneously freezes
@@ -1136,7 +1136,7 @@ if ( fscheme ) then
         ! (2) generation of new clouds (dc/dt>0)
         do i = ici1 , ici2
           do j = jci1 , jci2
-            if ( zdqs(j,i) <= -rlmin .and. fccfg(j,i,k) < d_one-zepsec ) then
+            if ( zdqs(j,i) <= -minqx .and. fccfg(j,i,k) < d_one-zepsec ) then
               !---------------------------
               ! critical relative humidity
               !---------------------------
@@ -1196,7 +1196,7 @@ if ( fscheme ) then
                   zlcond2(j,i) = min(zlcond2(j,i),zlcondlim)
                 end if
                 zlcond2(j,i) = max(zlcond2(j,i),d_zero)
-                if ( zlcond2(j,i) < rlmin .or. &
+                if ( zlcond2(j,i) < minqx .or. &
                     (d_one-fccfg(j,i,k)) < zepsec ) then
                   zlcond2(j,i) = d_zero
                   zacond       = d_zero
@@ -1269,7 +1269,7 @@ if ( fscheme ) then
             ! Thus in mixed phase clouds, the deposition process acts as a
             ! sink of cloud liquid and a source of ice cloud.
             !--------------------------------------------------------------
-            if ( zt(j,i,k) < tzero .and. zqxfg(j,i,iqql) > rlmin ) then
+            if ( zt(j,i,k) < tzero .and. zqxfg(j,i,iqql) > minqx ) then
               zvpice = foeeice(zt(j,i,k)) !saturation vapor pressure wrt ice
               zvpliq = foeeliq(zt(j,i,k)) !saturation vapor pressure wrt liq
               zicenuclei(j,i) = d_1000 * &
@@ -1633,7 +1633,7 @@ if ( fscheme ) then
             zqe = max(d_zero,min(zqe,zqsliq(j,i,k)))
             llo1 = zcovpclr(j,i)>zepsec .and. &
             !      zqpretot(jl)>zepsec .and. &
-                   zqxfg(j,i,iqqr)>rlmin .and. &
+                   zqxfg(j,i,iqqr)>minqx .and. &
                    zqe<zzrh*zqsliq(j,i,k)
             if ( llo1 ) then
               ! note: units of zpreclr and zqpretot differ
@@ -1693,7 +1693,7 @@ if ( fscheme ) then
             !---------------------------------------------
             zqe = max(d_zero,min(zqe,zqsice(j,i,k)))
             llo1 = zcovpclr(j,i) > zepsec .and. &
-                   zqxfg(j,i,iqqs)>rlmin .and. &
+                   zqxfg(j,i,iqqs)>minqx .and. &
                    zqe < zzrh*zqsice(j,i,k)
             if ( llo1 ) then
               ! note: units of zpreclr and zqpretot differ
