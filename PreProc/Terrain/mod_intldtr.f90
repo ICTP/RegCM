@@ -416,10 +416,29 @@ module mod_intldtr
               omt(jj,ii) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
               cycle
             else
-              if ( .not. lwrap .and. ( jj == 1 .or.  jj == jx) ) then
-                omt(jj,ii) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
-                cycle
+              if ( lwrap ) then
+                if ( jj == 1 ) then
+                  dd = gcdist(xlat(jx,ii-1),xlon(jx,ii-1), &
+                              xlat(jj+1,ii+1),xlon(jj+1,ii+1))
+                  dd1 = gcdist(milat+rinc*(yy-1),milon+rinc*(xx-1), &
+                               milat+rinc*(yy+1),milon+rinc*(xx+1))
+                else if ( jj == jx ) then
+                  dd = gcdist(xlat(jj-1,ii-1),xlon(jj-1,ii-1), &
+                              xlat(1,ii+1),xlon(1,ii+1))
+                  dd1 = gcdist(milat+rinc*(yy-1),milon+rinc*(xx-1), &
+                               milat+rinc*(yy+1),milon+rinc*(xx+1))
+                else
+                  dd = gcdist(xlat(jj-1,ii-1),xlon(jj-1,ii-1), &
+                              xlat(jj+1,ii+1),xlon(jj+1,ii+1))
+                  dd1 = gcdist(milat+rinc*(yy-1),milon+rinc*(xx-1), &
+                               milat+rinc*(yy+1),milon+rinc*(xx+1))
+                end if
+                nbox = min(max(nint(dd/dd1),2),8)
               else
+                if ( jj == 1 .or.  jj == jx ) then
+                  omt(jj,ii) = nearpoint(xx,yy,injx,iniy,imt,lwrap)
+                  cycle
+                end if
                 dd = gcdist(xlat(jj-1,ii-1),xlon(jj-1,ii-1), &
                             xlat(jj+1,ii+1),xlon(jj+1,ii+1))
                 dd1 = gcdist(milat+rinc*(yy-1),milon+rinc*(xx-1), &

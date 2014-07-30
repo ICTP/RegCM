@@ -80,9 +80,9 @@ program terrain
 !
   character(len=256) :: char_lnd , char_tex , char_lak
   character(len=256) :: namelistfile , prgname , outname
-  integer(ik4) :: i , j , k , ierr , i0 , j0 , m , n , ism
+  integer(ik4) :: i , j , k , ierr , ism
   logical :: ibndry
-  real(rk8) :: clong , hsum , have , dsinm
+  real(rk8) :: clong , dsinm
   integer(ik4) :: ntypec , ntypec_s
 !
   data ibndry /.true./
