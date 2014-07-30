@@ -127,10 +127,15 @@ module mod_params
     entp , sigd , sigs , omtrain , omtsnow , coeffr , coeffs , cu , &
     betae , dtmax , alphae , damp , epmax_ocn , epmax_lnd
  
-  namelist /tiedtkeparam/ iconv , entrpen , entrscv , entrmid ,  &
-    entrdd , cmfcmax , cmfcmin , cmfdeps , cmfctop , rhcdd ,     &
-    cmtcape , zdlev , cprcon , cmcptop , ctrigger , centrmax ,   &
-    lmfpen , lmfscv , lmfmid , lmfdd , lmfdudv
+  namelist /tiedtkeparam/ &
+      iconv , entrdd , cmfcmax , cmfcmin , entrpen , entrscv ,    &
+      entrmid , cmfdeps , rhcdd , cmtcape , zdlev , ctrigger ,    &
+      cmfctop , cprcon , cmcptop , centrmax , lmfmid , lmfdd ,    &
+      lepcld , lmfdudv , lmfscv , lmfpen , lmfuvdis , lmftrac ,   &
+      lmfsmooth , lmfwstar , n_vmass , rlpal1 , rlpal2 , rcucov , &
+      rcpecons , rtaumel , rhebc_lnd , rhebc_ocn , rmflic ,       &
+      rmflia , rmfsoluv , rmfsoltq , rmfsolct , ruvper , rprcon , &
+      detrpen , entrorg , entshalp , rdepths , rvdifts
 
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
          ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,      &
@@ -1883,7 +1888,7 @@ module mod_params
     end if
   end if
   if ( any(icup == 5)  ) then
-    if ( myid == italk ) then
+    if ( myid == italk .and. iconv /= 4 ) then
       write(stdout,*) 'Tiedtke (1986) Convection Scheme ECHAM 5.4 used.'
       write(stdout,'(a,i2)')    '  Used Scheme                       : ',iconv
       write(stdout,'(a,f11.6)') '  Entrainment rate penetrative conv.: ',entrpen
@@ -1895,7 +1900,8 @@ module mod_params
       write(stdout,'(a,f11.6)') '  Minimum allowed massflux          : ',cmfcmin
       write(stdout,'(a,f11.6)') '  Downdraft massflux fraction at LFS: ',cmfdeps
       write(stdout,'(a,f11.6)') '  Relative downdraft saturation     : ',rhcdd
-      write(stdout,'(a,f11.6)') '  CAPE adjustment timescale         : ',cmtcape
+      write(stdout,'(a,f11.6,a)') '  CAPE adjustment timescale         : ',&
+              cmtcape*10.0D-3, ' * 1000'
       write(stdout,'(a,f11.2)') '  Restrict rainfall level           : ',zdlev
       write(stdout,'(a,f11.6)') '  CLW to rain conversion factor     : ',cprcon
       write(stdout,'(a,f11.6)') '  Midlevel Convection top pressure  : ',cmcptop
@@ -1906,6 +1912,9 @@ module mod_params
       write(stdout,*) ' Midlevel convection enabled       : ',lmfmid
       write(stdout,*) ' Cumulus downdraft is enabled      : ',lmfdd
       write(stdout,*) ' Cumulus friction is enabled       : ',lmfdudv
+    end if
+    if ( myid == italk .and. iconv == 4 ) then
+      write(stdout,*) 'Tiedtke (1986) Convection Scheme ECMWF 38R2 used.'
     end if
     cevapu = cevaplnd
   end if
