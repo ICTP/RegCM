@@ -14,19 +14,20 @@ module mod_clm_cnfire
   use mod_realkinds
   use mod_mppparam
   use mod_mpmessage
-  use mod_runparams , only : dtsrf , idatex , ktau , dtsec
+  use mod_runparams , only : dtsrf , idatex , idate1 , ktau , dtsec
   use mod_dynparam
   use mod_stdio
   use mod_date
   use mod_clm_type
   use mod_clm_decomp
+  use mod_clm_nchelper
   use mod_clm_subgridave , only : p2c
   use mod_clm_varpar , only : nlevdecomp , ndecomp_pools
   use mod_clm_varpar , only : maxpatch_pft , max_pft_per_col
   use mod_clm_varcon , only : dzsoi_decomp , rpi , tfrz , secspday
   use mod_clm_domain , only : ldomain
   use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_varctl , only : fpftdyn , inst_name
+  use mod_clm_varctl , only : fpftdyn , fsurdat , inst_name
   use mod_clm_surfrd , only : crop_prog
   use mod_clm_pftvarcon , only : fsr_pft , fd_pft , noveg
   use mod_clm_pftvarcon , only : nc4_grass , nc3crop , ndllf_evr_tmp_tree
@@ -62,13 +63,17 @@ module mod_clm_cnfire
 
   real(rk8) , pointer , dimension(:) :: forc_lnfm  ! Lightning frequency
   real(rk8) , pointer , dimension(:) :: forc_hdm   ! Human population density
+  real(rk8) , pointer , dimension(:) :: hdm_p1 , hdm_p2
+  real(rk8) , pointer , dimension(:) :: lnfm_p1 , lnfm_p2
   real(rk8) , parameter :: secsphr = 3600.D0  ! Seconds in an hour
   real(rk8) , parameter :: borealat = 40.D0   ! Latitude for boreal peat fires
 
   ! Human population density input data stream
-  ! type(shr_strdata_type) :: sdat_hdm
+  type(clm_filetype) :: sdat_hdm
+  integer(ik4) :: ipoprec
   ! Lightning input data stream
-  ! type(shr_strdata_type) :: sdat_lnfm
+  type(clm_filetype) :: sdat_lnfm
+  integer(ik4) :: ilnfmrec
 
   contains
   !
@@ -78,9 +83,8 @@ module mod_clm_cnfire
     implicit none
     integer(ik4) , intent(in) :: begg , endg   ! gridcell index bounds
     call hdm_init(   begg, endg )
-    call hdm_interp( )
     call lnfm_init(  begg, endg )
-    call lnfm_interp()
+    call CNFireInterp( )
   end subroutine CNFireInit
   !
   ! Interpolate CN Fire datasets
@@ -1582,114 +1586,23 @@ module mod_clm_cnfire
   subroutine hdm_init( begg, endg )
     implicit none
     integer(ik4) , intent(in) :: begg , endg ! gridcell index bounds
-    call fatal(__FILE__,__LINE__,'hdm_init not implemented !')
-#ifdef GETERROR
-    ! first year in pop. dens. stream to use
-    integer(ik4) :: stream_year_first_popdens
-    ! last year in pop. dens. stream to use
-    integer(ik4) :: stream_year_last_popdens
-    ! align stream_year_first_hdm with
-    integer(ik4) :: model_year_align_popdens
-    integer(ik4) :: nu_nml         ! unit for namelist file
-    integer(ik4) :: nml_error      ! namelist i/o error flag
-    type(mct_ggrid) :: dom_clm ! domain information
-    ! population density streams filename
-    character(len=256) :: stream_fldFileName_popdens
-    ! mapping alogrithm for population density
-    character(len=256) :: popdensmapalgo = 'bilinear'
-    character(*) , parameter :: subName = "('hdmdyn_init')"
-    character(*) , parameter :: F00 = "('(hdmdyn_init) ',4a)"
-    namelist /popd_streams/          &
-         stream_year_first_popdens,  &
-         stream_year_last_popdens,   &
-         model_year_align_popdens,   &
-         popdensmapalgo,             &
-         stream_fldFileName_popdens
+    integer(ik4) :: yr , mon , day , ih
 
-    ! Allocate pop dens forcing data
     allocate( forc_hdm(begg:endg) )
+    allocate( hdm_p1(begg:endg) )
+    allocate( hdm_p2(begg:endg) )
 
-    ! Default values for namelist
-    ! first year in stream to use
-    stream_year_first_popdens = 1
-    ! last  year in stream to use
-    stream_year_last_popdens = 1
-    ! align stream_year_first_popdens with this model year
-    model_year_align_popdens = 1
-    stream_fldFileName_popdens = ' '
+    call split_idate(idatex,yr,mon,day,ih)
+    ipoprec = yr - 1850
 
-   ! Read popd_streams namelist
-   if (myid == iocpu) then
-     nu_nml = file_getunit()
-     open( nu_nml, file=trim(NLFilename), status='old', iostat=nml_error )
-     call find_nlgroup_name(nu_nml, 'popd_streams', status=nml_error)
-     if (nml_error == 0) then
-       read(nu_nml, nml=popd_streams,iostat=nml_error)
-       if (nml_error /= 0) then
-         call fatal(__FILE__,__LINE__, &
-              subname // ':: ERROR reading popd_streams namelist')
-       end if
-     end if
-     call file_freeunit( nu_nml )
-   end if
+    call clm_openfile(fsurdat,sdat_hdm)
+    call clm_readvar(sdat_hdm,'HDM',hdm_p1,gcomm_gridcell,ipoprec)
+    call clm_readvar(sdat_hdm,'HDM',hdm_p2,gcomm_gridcell,ipoprec+1)
 
-   call bcast(stream_year_first_popdens)
-   call bcast(stream_year_last_popdens)
-   call bcast(model_year_align_popdens)
-   call bcast(stream_fldFileName_popdens)
-
-   if (myid == italk) then
-     write(stdout,*) ' '
-     write(stdout,*) 'popdens_streams settings:'
-     write(stdout,*) &
-       '  stream_year_first_popdens  = ',stream_year_first_popdens
-     write(stdout,*) &
-       '  stream_year_last_popdens   = ',stream_year_last_popdens
-     write(stdout,*) &
-       '  model_year_align_popdens   = ',model_year_align_popdens
-     write(stdout,*) &
-       '  stream_fldFileName_popdens = ',stream_fldFileName_popdens
-     write(stdout,*) ' '
-   end if
-
-   call clm_domain_mct(dom_clm)
-
-   call shr_strdata_create(sdat_hdm,name="clmhdm",     &
-        pio_subsystem=pio_subsystem,                   &
-        pio_iotype=shr_pio_getiotype(inst_name),       &
-        mpicom=mpicom, compid=comp_id,                 &
-        gsmap=gsmap_lnd_gdc2glo, ggrid=dom_clm,        &
-        nxg=ldomain%ni, nyg=ldomain%nj,                &
-        yearFirst=stream_year_first_popdens,           &
-        yearLast=stream_year_last_popdens,             &
-        yearAlign=model_year_align_popdens,            &
-        offset=0,                                      &
-        domFilePath='',                                &
-        domFileName=trim(stream_fldFileName_popdens),  &
-        domTvarName='time',                            &
-        domXvarName='lon' ,                            &
-        domYvarName='lat' ,                            &
-        domAreaName='area',                            &
-        domMaskName='mask',                            &
-        filePath='',                                   &
-        filename=(/trim(stream_fldFileName_popdens)/), &
-        fldListFile='hdm',                             &
-        fldListModel='hdm',                            &
-        fillalgo='none',                               &
-        mapalgo=popdensmapalgo,                        &
-        calendar=idatex%calendar,                      &
-        tintalgo='nearest',                            &
-        taxmode='extend'                           )
-
-   if (myid == italk) then
-     call shr_strdata_print(sdat_hdm,'population density data')
-   end if
-
-   ! Add history fields
-   call hist_addfld1d (fname='HDM', units='counts/km^2',      &
-         avgflag='A', long_name='human population density',   &
-         ptr_lnd=forc_hdm, default='inactive')
-#endif
+    ! Add history fields
+    call hist_addfld1d (fname='HDM', units='counts/km^2',      &
+          avgflag='A', long_name='human population density',   &
+          ptr_lnd=forc_hdm, default='inactive')
 
   end subroutine hdm_init
   !
@@ -1697,27 +1610,19 @@ module mod_clm_cnfire
   !
   subroutine hdm_interp( )
     implicit none
-    call fatal(__FILE__,__LINE__,'hdm_interp not implemented !')
-#ifdef GETERROR
-    integer(ik4) :: g, ig, begg, endg
-    integer(ik4) :: year    ! year (0, ...) for nstep+1
-    integer(ik4) :: mon     ! month (1, ..., 12) for nstep+1
-    integer(ik4) :: day     ! day of month (1, ..., 31) for nstep+1
-    integer(ik4) :: sec     ! seconds into current date for nstep+1
-    integer(ik4) :: mcdate  ! Current model date (yyyymmdd)
+    integer(ik4) :: yr , mon , day , ih , ip
+    real(rk8) :: w1 , w2
 
-    call split_idate(idatex,year,mon,day,sec)
-    mcdate = year*10000 + mon*100 + day
-
-    call shr_strdata_advance(sdat_hdm, mcdate, sec, mpicom, 'hdmdyn')
-
-    call get_proc_bounds(begg, endg)
-    ig = 0
-    do g = begg,endg
-      ig = ig+1
-      forc_hdm(g) = sdat_hdm%avs(1)%rAttr(1,ig)
-    end do
-#endif
+    call split_idate(idatex,yr,mon,day,ih)
+    ip = yr - 1850
+    if ( ip /= ipoprec ) then
+      ipoprec = ipoprec+1
+      call clm_readvar(sdat_hdm,'HDM',hdm_p1,gcomm_gridcell,ipoprec)
+      call clm_readvar(sdat_hdm,'HDM',hdm_p2,gcomm_gridcell,ipoprec+1)
+    end if
+    w1 = d_one - (yeardayfrac(idatex)/dayspy)
+    w2 = d_one - w1
+    forc_hdm(:) = hdm_p1(:)*w1 + hdm_p2(:)*w2
   end subroutine hdm_interp
   !
   ! Initialize data stream information for Lightning.
@@ -1725,140 +1630,55 @@ module mod_clm_cnfire
   subroutine lnfm_init( begg, endg )
     implicit none
     integer(ik4) , intent(in) :: begg , endg   ! gridcell index bounds
-    call fatal(__FILE__,__LINE__,'lnfm_init not implemented !')
-#ifdef GETERROR
-    use clm_varctl       , only : inst_name
-    use ncdio_pio        , only : pio_subsystem
-    use shr_pio_mod      , only : shr_pio_getiotype
-    use ndepStreamMod    , only : clm_domain_mct
-    use histFileMod      , only : hist_addfld1d
-    ! first year in Lightning stream to use
-    integer(ik4) :: stream_year_first_lightng
-    ! last year in Lightning stream to use
-    integer(ik4) :: stream_year_last_lightng
-    ! align stream_year_first_lnfm with
-    integer(ik4) :: model_year_align_lightng
-    integer(ik4) :: nu_nml     ! unit for namelist file
-    integer(ik4) :: nml_error  ! namelist i/o error flag
-    type(mct_ggrid) :: dom_clm ! domain information
-    ! lightning stream filename to read
-    character(len=256) :: stream_fldFileName_lightng
-    ! Mapping alogrithm
-    character(len=256) :: lightngmapalgo = 'bilinear'
-    character(*) , parameter :: subName = "('lnfmdyn_init')"
-    character(*) , parameter :: F00 = "('(lnfmdyn_init) ',4a)"
+    integer(ik4) :: yr , mon , day , ih
 
-    namelist /light_streams/        &
-        stream_year_first_lightng,  &
-        stream_year_last_lightng,   &
-        model_year_align_lightng,   &
-        lightngmapalgo,             &
-        stream_fldFileName_lightng
-
-    ! Allocate lightning forcing data
     allocate( forc_lnfm(begg:endg) )
+    allocate( lnfm_p1(begg:endg) )
+    allocate( lnfm_p2(begg:endg) )
 
-    ! Default values for namelist
-    stream_year_first_lightng  = 1  ! first year in stream to use
-    stream_year_last_lightng   = 1  ! last  year in stream to use
-    ! align stream_year_first_lnfm with this model year
-    model_year_align_lightng   = 1
-    stream_fldFileName_lightng = ' '
+    call split_idate(idatex,yr,mon,day,ih)
+    ilnfmrec = int(yeardayfrac(idate1)/dayspy*365.0D0*8.0D0+1.0D0)+ih/3
 
-    ! Read light_streams namelist
-    if ( myid == iocpu ) then
-      nu_nml = file_getunit()
-      open( nu_nml, file=trim(NLFilename), status='old', iostat=nml_error )
-      if ( nml_error == 0 ) then
-        read(nu_nml, nml=light_streams,iostat=nml_error)
-        if ( nml_error /= 0 ) then
-          call fatal(__FILE__,__LINE__, &
-              subname // ':: ERROR reading light_streams namelist')
-        end if
-      end if
-      call file_freeunit( nu_nml )
-    end if
+    if ( myid == iocpu ) write(*,*) 'LNFM : ', ilnfmrec
 
-    call bcast(stream_year_first_lightng)
-    call bcast(stream_year_last_lightng)
-    call bcast(model_year_align_lightng)
-    call bcast(stream_fldFileName_lightng)
-
-    if ( myid == italk ) then
-      write(stdout,*) ' '
-      write(stdout,*) 'light_stream settings:'
-      write(stdout,*) &
-        '  stream_year_first_lightng  = ',stream_year_first_lightng
-      write(stdout,*) &
-        '  stream_year_last_lightng   = ',stream_year_last_lightng
-      write(stdout,*) &
-        '  model_year_align_lightng   = ',model_year_align_lightng
-      write(stdout,*) &
-        '  stream_fldFileName_lightng = ',stream_fldFileName_lightng
-      write(stdout,*) ' '
-    end if
-
-    call clm_domain_mct (dom_clm)
-
-    call shr_strdata_create(sdat_lnfm,name="clmlnfm",  &
-        pio_subsystem=pio_subsystem,                  &
-        pio_iotype=shr_pio_getiotype(inst_name),      &
-        mpicom=mpicom, compid=comp_id,                &
-        gsmap=gsmap_lnd_gdc2glo, ggrid=dom_clm,       &
-        nxg=ldomain%ni, nyg=ldomain%nj,               &
-        yearFirst=stream_year_first_lightng,          &
-        yearLast=stream_year_last_lightng,            &
-        yearAlign=model_year_align_lightng,           &
-        offset=0,                                     &
-        domFilePath='',                               &
-        domFileName=trim(stream_fldFileName_lightng), &
-        domTvarName='time',                           &
-        domXvarName='lon' ,                           &
-        domYvarName='lat' ,                           &
-        domAreaName='area',                           &
-        domMaskName='mask',                           &
-        filePath='',                                  &
-        filename=(/trim(stream_fldFileName_lightng)/),&
-        fldListFile='lnfm',                           &
-        fldListModel='lnfm',                          &
-        fillalgo='none',                              &
-        mapalgo=lightngmapalgo,                       &
-        calendar=idatex%calendar,                     &
-        taxmode='cycle'                            )
-
-    if ( myid == italk ) then
-      call shr_strdata_print(sdat_lnfm,'Lightning data')
+    call clm_openfile(fsurdat,sdat_lnfm)
+    call clm_readvar(sdat_hdm,'LNFM',lnfm_p1,gcomm_gridcell,ilnfmrec)
+    if ( ilnfmrec+1 > 365*8 ) then
+      call clm_readvar(sdat_hdm,'LNFM',lnfm_p2,gcomm_gridcell,1)
+    else
+      call clm_readvar(sdat_hdm,'LNFM',lnfm_p2,gcomm_gridcell,ilnfmrec+1)
     end if
 
     ! Add history fields
     call hist_addfld1d (fname='LNFM', units='counts/km^2/hr',  &
          avgflag='A', long_name='Lightning frequency',        &
          ptr_lnd=forc_lnfm, default='inactive')
-#endif
+
   end subroutine lnfm_init
   !
   ! Interpolate data stream information for Lightning.
   !
   subroutine lnfm_interp( )
     implicit none
-    call fatal(__FILE__,__LINE__,'lnfm_interp not implemented !')
-#ifdef GETERROR
-    integer(ik4) :: g , ig , begg , endg
-    integer(ik4) :: year    ! year (0, ...) for nstep+1
-    integer(ik4) :: mon     ! month (1, ..., 12) for nstep+1
-    integer(ik4) :: day     ! day of month (1, ..., 31) for nstep+1
-    integer(ik4) :: sec     ! seconds into current date for nstep+1
-    integer(ik4) :: mcdate  ! Current model date (yyyymmdd)
-    call curr_date(year, mon, day, sec)
-    mcdate = year*10000 + mon*100 + day
-    call shr_strdata_advance(sdat_lnfm, mcdate, sec, mpicom, 'lnfmdyn')
-    call get_proc_bounds(begg, endg)
-    ig = 0
-    do g = begg,endg
-      ig = ig+1
-      forc_lnfm(g) = sdat_lnfm%avs(1)%rAttr(1,ig)
-    end do
-#endif
+    integer(ik4) :: ip
+    real(rk8) :: w1 , w2
+    integer(ik4) :: yr , mon , day , ih
+
+    call split_idate(idatex,yr,mon,day,ih)
+    ip = int(yeardayfrac(idatex)/dayspy*365.0D0*8.0D0+1.0D0)+ih/3
+    if ( ip /= ilnfmrec ) then
+      ilnfmrec = ilnfmrec+1
+      if ( ilnfmrec > 365*8 ) ilnfmrec = 1
+      call clm_readvar(sdat_hdm,'LNFM',lnfm_p1,gcomm_gridcell,ilnfmrec)
+      if ( ilnfmrec+1 > 365*8 ) then
+        call clm_readvar(sdat_hdm,'LNFM',lnfm_p2,gcomm_gridcell,1)
+      else
+        call clm_readvar(sdat_hdm,'LNFM',lnfm_p2,gcomm_gridcell,ilnfmrec+1)
+      end if
+    end if
+    w1 = d_one - (yeardayfrac(idatex)-dble(ip/8))
+    w2 = d_one - w1
+    forc_lnfm(:) = lnfm_p1(:)*w1 + lnfm_p2(:)*w2
   end subroutine lnfm_interp
 #endif
 
