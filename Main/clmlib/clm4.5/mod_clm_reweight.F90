@@ -185,7 +185,7 @@ module mod_clm_reweight
       if ( cptr%active(c) .and. .not. lptr%active(l) ) then
         write(stderr,*) &
           trim(subname),' ERROR: active column found on inactive landunit', &
-                        'at c = ', c, ', l = ', l
+                        ' at c = ', c, ', l = ', l
         error_found = .true.
       end if
     end do
@@ -196,7 +196,7 @@ module mod_clm_reweight
       if ( pptr%active(p) .and. .not. cptr%active(c) ) then
         write(stderr,*) &
           trim(subname),' ERROR: active pft found on inactive column', &
-                        'at p = ', p, ', c = ', c
+                        ' at p = ', p, ', c = ', c
         error_found = .true.
       end if
     end do

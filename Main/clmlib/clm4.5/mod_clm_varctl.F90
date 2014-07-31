@@ -125,9 +125,6 @@ module mod_clm_varctl
   ! perturbation limit when doing error growth test
   real(rk8) , public :: pertlim = 0.0D0
   !
-  ! To retrieve namelist
-  character(len=256) , public :: NLFilename_in ! Namelist filename
-  !
   logical , private :: clmvarctl_isset = .false.
 
   contains

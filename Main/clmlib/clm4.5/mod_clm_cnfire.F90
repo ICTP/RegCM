@@ -1639,8 +1639,6 @@ module mod_clm_cnfire
     call split_idate(idatex,yr,mon,day,ih)
     ilnfmrec = int(yeardayfrac(idate1)/dayspy*365.0D0*8.0D0+1.0D0)+ih/3
 
-    if ( myid == iocpu ) write(*,*) 'LNFM : ', ilnfmrec
-
     call clm_openfile(fsurdat,sdat_lnfm)
     call clm_readvar(sdat_hdm,'LNFM',lnfm_p1,gcomm_gridcell,ilnfmrec)
     if ( ilnfmrec+1 > 365*8 ) then

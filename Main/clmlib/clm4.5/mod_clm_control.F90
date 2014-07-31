@@ -26,7 +26,7 @@ module mod_clm_control
           spinup_state , override_bgc_restart_mismatch_dump ,     &
           source
   use mod_clm_varpar, only : numrad
-  use mod_clm_varctl , only : NLFileName_in , ctitle , caseid , nsrest
+  use mod_clm_varctl , only : ctitle , caseid , nsrest
   use mod_clm_varcon , only : secspday
   use mod_clm_canopyfluxes , only : perchroot , perchroot_alt
 #if (defined LCH4) && (defined CN)

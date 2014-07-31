@@ -6,7 +6,7 @@ module mod_clm_balancecheck
   use mod_realkinds
   use mod_stdio
   use mod_mpmessage
-  use mod_runparams , only : ktau , dtsrf , ntsrf
+  use mod_runparams , only : ktau , dtsrf
   use mod_clm_type , only : clm3
   use mod_clm_atmlnd , only : clm_a2l
   use mod_clm_varpar , only : nlevgrnd , nlevsoi , nlevurb
@@ -464,7 +464,7 @@ module mod_clm_balancecheck
       if ( (ctype(indexc) .eq. icol_roof .or.        &
             ctype(indexc) .eq. icol_road_imperv .or. &
             ctype(indexc) .eq. icol_road_perv) .and. &
-            abs(errh2o(indexc)) > 0.10D0 .and. (ktau > ntsrf*2) ) then
+            abs(errh2o(indexc)) > 0.10D0 .and. (ktau > 2) ) then
         write(stderr,*) &
               'clm urban model is stopping - error is greater than .10'
         write(stderr,*) &
@@ -481,7 +481,7 @@ module mod_clm_balancecheck
         write(stderr,*)'qflx_drain   = ',qflx_drain(indexc)
         write(stderr,*)'qflx_snwcp_ice   = ',qflx_snwcp_ice(indexc)
         call fatal(__FILE__,__LINE__,'clm model is stopping')
-      else if ( abs(errh2o(indexc)) > 0.10D0 .and. (ktau > ntsrf*2) ) then
+      else if ( abs(errh2o(indexc)) > 0.10D0 .and. (ktau > 2) ) then
         write(stderr,*)'clm model is stopping - error is greater than .10'
         write(stderr,*) &
              'ktau = ',ktau,' indexc= ',indexc,' errh2o= ',errh2o(indexc)
@@ -579,7 +579,7 @@ module mod_clm_balancecheck
       write(stderr,*) ' ctype     = ',ctype(indexc)
       write(stderr,*) ' ltype     = ',ltype(clandunit(indexc))
       write(stderr,*) ' errh2osno = ',errh2osno(indexc)
-      if ( abs(errh2osno(indexc)) > 0.1D0 .and. (ktau > ntsrf*2) ) then
+      if ( abs(errh2osno(indexc)) > 0.1D0 .and. (ktau > 2) ) then
         write(stderr,*)'clm model is stopping - error is greater than .10'
         write(stderr,*)'snl: ',snl(indexc)
         write(stderr,*)'h2osno: ',h2osno(indexc)
@@ -668,7 +668,7 @@ module mod_clm_balancecheck
         end if
       end if
     end do
-    if ( found  .and. (ktau > ntsrf*2) ) then
+    if ( found  .and. (ktau > 2) ) then
       write(stderr,100) &
          'BalanceCheck: solar radiation balance error', ktau, indexp, &
          errsol(indexp)
@@ -696,7 +696,7 @@ module mod_clm_balancecheck
         end if
       end if
     end do
-    if ( found  .and. (ktau > ntsrf*2) ) then
+    if ( found  .and. (ktau > 2) ) then
       write(stderr,100) &
           'BalanceCheck: longwave enery balance error',ktau,indexp, &
           errlon(indexp)
@@ -714,7 +714,7 @@ module mod_clm_balancecheck
         end if
       end if
     end do
-    if ( found  .and. (ktau > ntsrf*2) ) then
+    if ( found  .and. (ktau > 2) ) then
       write(stderr,100) &
          'BalanceCheck: surface flux energy balance error',ktau,indexp, &
          errseb(indexp)
@@ -741,7 +741,7 @@ module mod_clm_balancecheck
       end if
     end do
     if ( found ) then
-      if (abs(errsoi_col(indexc)) > .10D0 .and. (ktau > ntsrf*2) ) then
+      if (abs(errsoi_col(indexc)) > .10D0 .and. (ktau > 2) ) then
         write(stderr,100) &
           'BalanceCheck: soil balance error',ktau,indexc,errsoi_col(indexc)
         write(stderr,*)'ktau = ',ktau,' indexc= ',indexc, &

@@ -39,7 +39,7 @@ module mod_clm_nchelper
   save
 
   integer(ik4) , parameter :: clm_maxdims = 64
-  integer(ik4) , parameter :: clm_maxvars = 512
+  integer(ik4) , parameter :: clm_maxvars = 1024
 
   type clm_filetype
     integer(ik4) :: ncid = -1

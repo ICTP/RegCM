@@ -10,7 +10,7 @@ module mod_clm_ch4varcon
   use mod_mpmessage
   use mod_dynparam
   use mod_mppparam
-  use mod_clm_varctl , only : NLFileName_in
+  use mod_runparams , only : namelistfile
 
   implicit none
 
@@ -265,8 +265,8 @@ module mod_clm_ch4varcon
     if (myid == iocpu) then
       write(stdout,*) 'Attempting to read CH4 parameters .....'
       unitn = file_getunit( )
-      write(stdout,*) 'Read in ch4par_in namelist from: ', trim(NLFilename_in)
-      open( unitn, file=trim(NLFilename_in), status='old' )
+      write(stdout,*) 'Read in ch4par_in namelist from: ', trim(namelistfile)
+      open( unitn, file=trim(namelistfile), status='old' )
       read(unitn, ch4par_in, iostat=ierr)
       if (ierr /= 0) then
         call fatal(__FILE__,__LINE__, &

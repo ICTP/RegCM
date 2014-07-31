@@ -3904,13 +3904,16 @@ module mod_clm_cnrest
           pptr%pdgvs%present(p) = .false.
           if (iptemp(p) == 1) pptr%pdgvs%present(p) = .true.
         end do
+        deallocate(iptemp)
       end if
     else if (flag == 'write') then
+      allocate (iptemp(begp:endp), stat=ier)
       do p = begp , endp
         iptemp(p) = 0
         if (pptr%pdgvs%present(p)) iptemp(p) = 1
       end do
       call clm_writevar(ncid,'present',iptemp,gcomm_pft)
+      deallocate(iptemp)
     end if
 
     ! leafcmax
