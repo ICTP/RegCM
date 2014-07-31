@@ -16,7 +16,8 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-module mod_mkpft
+module mod_mkharvest
+#ifdef CN
   use mod_realkinds
   use mod_intkinds
   use mod_dynparam
@@ -31,29 +32,33 @@ module mod_mkpft
 
   private
 
-  public :: mkpft
+  public :: mkharvest
+
+  integer , parameter :: nvarc = 6
 
   character(len=16) , parameter :: latdim = 'lat'
   character(len=16) , parameter :: londim = 'lon'
-  character(len=16) , parameter :: pftdim = 'pft'
   character(len=16) , parameter :: latvar = 'LAT'
   character(len=16) , parameter :: lonvar = 'LON'
-  character(len=16) , parameter :: varname = 'PCT_PFT'
+  character(len=16) , parameter , dimension(nvarc):: varname = &
+          (/ 'HARVEST_VH1' , 'HARVEST_VH2' , 'HARVEST_SH1' , &
+             'HARVEST_SH2' , 'HARVEST_SH3' , 'GRAZING    '/)
   character(len=16) , parameter :: maskname = 'LANDMASK'
 
-  real(rk8) :: vmin = 0.0D0
+  real(rk8) :: vmin = -1.0D0
   real(rk8) :: vmisdat = -9999.0D0
 
   contains
 
-  subroutine mkpft(pftfile,pft)
+  subroutine mkharvest(harvestfile,harvest)
     implicit none
-    character(len=*) , intent(in) :: pftfile
-    real(rk8) , dimension(:,:,:) , intent(out) :: pft
-    integer(ik4) :: nlat , nlon , npft
-    integer(ik4) :: idimid , ivarid , ivarmask , ncid
-    integer(ik4) , dimension(3) :: istart , icount
-    integer(ik4) :: istatus , i , li , lo
+    character(len=*) , intent(in) :: harvestfile
+    real(rk8) , dimension(:,:,:) , intent(out) :: harvest
+    integer(ik4) :: nlat , nlon
+    integer(ik4) :: idimid , ivarmask , illvar , ncid
+    integer(ik4) , dimension(6) :: ivarid
+    integer(ik4) , dimension(2) :: istart , icount
+    integer(ik4) :: istatus , i , j , li , lo
     real(rk8) , dimension(:,:,:) , allocatable :: rvar
     real(rk8) , dimension(:,:) , allocatable :: rmask
     real(rk8) , dimension(:) , allocatable :: glat , glon , rlat , rlon
@@ -62,20 +67,13 @@ module mod_mkpft
     character(len=256) :: inpfile
 
     inpfile = trim(inpglob)//pthsep//'CLM45'// &
-                             pthsep//'surface'//pthsep//pftfile
+                             pthsep//'surface'//pthsep//harvestfile
     istatus = nf90_open(inpfile,nf90_nowrite,ncid)
     call checkncerr(istatus,__FILE__,__LINE__, &
           'Cannot open file '//trim(inpfile))
 
-    istatus = nf90_inq_dimid(ncid,pftdim,idimid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find dimension pft in file '//trim(inpfile))
-    istatus = nf90_inquire_dimension(ncid,idimid,len=npft)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot read dimension pft in file '//trim(inpfile))
-
-    if ( npft > size(pft,3) ) then
-      call die(__FILE__,'Size too small for pft in mkpft',__LINE__)
+    if ( size(harvest,3) < nvarc ) then
+      call die(__FILE__,'Size too small for harvest in mkharvest',__LINE__)
     end if
 
     istatus = nf90_inq_dimid(ncid,latdim,idimid)
@@ -87,10 +85,10 @@ module mod_mkpft
 
     allocate(glat(nlat))
 
-    istatus = nf90_inq_varid(ncid,latvar,ivarid)
+    istatus = nf90_inq_varid(ncid,latvar,illvar)
     call checkncerr(istatus,__FILE__,__LINE__, &
       'Cannot find variable lat/LAT in file '//trim(inpfile))
-    istatus = nf90_get_var(ncid,ivarid,glat)
+    istatus = nf90_get_var(ncid,illvar,glat)
     call checkncerr(istatus,__FILE__,__LINE__, &
       'Cannot read variable lat in file '//trim(inpfile))
 
@@ -103,10 +101,10 @@ module mod_mkpft
 
     allocate(glon(nlon))
 
-    istatus = nf90_inq_varid(ncid,lonvar,ivarid)
+    istatus = nf90_inq_varid(ncid,lonvar,illvar)
     call checkncerr(istatus,__FILE__,__LINE__, &
       'Cannot find variable lon in file '//trim(inpfile))
-    istatus = nf90_get_var(ncid,ivarid,glon)
+    istatus = nf90_get_var(ncid,illvar,glon)
     call checkncerr(istatus,__FILE__,__LINE__, &
       'Cannot read variable lon in file '//trim(inpfile))
 
@@ -120,14 +118,16 @@ module mod_mkpft
 
     call get_window(glat,glon,domain)
 
-    allocate(rvar(sum(domain%ni),domain%nj,npft))
+    allocate(rvar(sum(domain%ni),domain%nj,nvarc))
     allocate(rmask(sum(domain%ni),domain%nj))
     allocate(rlon(sum(domain%ni)))
     allocate(rlat(domain%nj))
 
-    istatus = nf90_inq_varid(ncid,varname,ivarid)
-    call checkncerr(istatus,__FILE__,__LINE__, &
-      'Cannot find variable pft in file '//trim(inpfile))
+    do j = 1 , nvarc
+      istatus = nf90_inq_varid(ncid,varname(j),ivarid(j))
+      call checkncerr(istatus,__FILE__,__LINE__, &
+        'Cannot find variable '//trim(varname(j))//' in file '//trim(inpfile))
+    end do
     istatus = nf90_inq_varid(ncid,maskname,ivarmask)
     call checkncerr(istatus,__FILE__,__LINE__, &
       'Cannot find variable landmask in file '//trim(inpfile))
@@ -138,25 +138,25 @@ module mod_mkpft
       icount(1) = domain%ni(i)
       istart(2) = domain%jgstart
       icount(2) = domain%nj
-      istart(3) = 1
-      icount(3) = npft
       lo = li+domain%ni(i)-1
-      istatus = nf90_get_var(ncid,ivarid,rvar(li:lo,:,:),istart,icount)
+      do j = 1 , nvarc
+        istatus = nf90_get_var(ncid,ivarid(j),rvar(li:lo,:,j),istart,icount)
+        call checkncerr(istatus,__FILE__,__LINE__, &
+          'Cannot read variable '//trim(varname(j))//&
+          ' from file '//trim(inpfile))
+      end do
+      istatus = nf90_get_var(ncid,ivarmask,rmask(li:lo,:),istart,icount)
       call checkncerr(istatus,__FILE__,__LINE__, &
-        'Cannot read variable pft from file '//trim(inpfile))
-      istatus = nf90_get_var(ncid,ivarmask, &
-              rmask(li:lo,:),istart(1:2),icount(1:2))
-      call checkncerr(istatus,__FILE__,__LINE__, &
-        'Cannot read variable pft from file '//trim(inpfile))
+        'Cannot read variable mask from file '//trim(inpfile))
       rlon(li:lo) = glon(domain%igstart(i):domain%igstop(i))
       li = li + domain%ni(i)
     end do
     rlat = glat(domain%jgstart:domain%jgstop)
 
-    pft = 0.0D0
-    call bilinear(rvar,rmask,rlon,rlat,pft(:,:,1:npft),xlon,xlat,vmin,vmisdat)
+    call bilinear(rvar,rmask,rlon,rlat,harvest,xlon,xlat,vmin,vmisdat)
 
     deallocate(glat,glon,rlat,rlon,rvar,rmask)
-  end subroutine mkpft
+  end subroutine mkharvest
+#endif
 
-end module mod_mkpft
+end module mod_mkharvest

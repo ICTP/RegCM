@@ -59,6 +59,7 @@ program mksurfdata
 #ifdef CN
   use mod_mklightning
   use mod_mkpopd
+  use mod_mkharvest
 #endif
 
   implicit none
@@ -95,6 +96,7 @@ program mksurfdata
   integer(ik4) , dimension(npu4d*2) :: iurb4d
 #ifdef CN
   integer(ik4) :: ilightning , ipopden
+  integer(ik4) :: iharvvh1 , iharvvh2 , iharvsh1 , iharvsh2 , iharvsh3 , igraz
 #endif
   integer(ik4) :: ijxvar , iiyvar
   type(rcm_time_and_date) :: irefdate , imondate
@@ -142,9 +144,15 @@ program mksurfdata
   call memory_init
 
   if ( .not. enable_more_crop_pft ) then
+#ifdef CROP
+    npft = 25
+    pftfile = 'mksrf_24pft.nc'
+    laifile = 'mksrf_24lai.nc'
+#else
     npft = 17
     pftfile = 'mksrf_pft.nc'
     laifile = 'mksrf_lai.nc'
+#endif
   else
     write(stdout,*) 'This will fail if you do not modify the model code!'
     write(stdout,*) 'Edit Main/clmlib/clm4.5/mod_clm_varpar.F90'
@@ -310,6 +318,38 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft units')
   istatus = nf90_put_att(ncid, ipftvar, '_FillValue',vmisdat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft Fill Value')
+#ifdef CN
+  istatus = nf90_def_var(ncid, 'HARVEST_VH1', nf90_double, idims(7), iharvvh1)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var HARVEST_VH1')
+  istatus = nf90_put_att(ncid, iharvvh1, 'long_name', &
+          'harvest from primary forest')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add HARVEST_VH1 long_name')
+  istatus = nf90_def_var(ncid, 'HARVEST_VH2', nf90_double, idims(7), iharvvh2)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var HARVEST_VH2')
+  istatus = nf90_put_att(ncid, iharvvh2, 'long_name', &
+          'harvest from primary non-forest')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add HARVEST_VH2 long_name')
+  istatus = nf90_def_var(ncid, 'HARVEST_SH1', nf90_double, idims(7), iharvsh1)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var HARVEST_SH1')
+  istatus = nf90_put_att(ncid, iharvsh1, 'long_name', &
+          'harvest from secondary mature-forest')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add HARVEST_SH1 long_name')
+  istatus = nf90_def_var(ncid, 'HARVEST_SH2', nf90_double, idims(7), iharvsh2)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var HARVEST_SH2')
+  istatus = nf90_put_att(ncid, iharvsh2, 'long_name', &
+          'harvest from secondary young-forest')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add HARVEST_SH2 long_name')
+  istatus = nf90_def_var(ncid, 'HARVEST_SH3', nf90_double, idims(7), iharvsh3)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var HARVEST_SH3')
+  istatus = nf90_put_att(ncid, iharvsh3, 'long_name', &
+          'harvest from secondary non-forest')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add HARVEST_SH3 long_name')
+  istatus = nf90_def_var(ncid, 'GRAZING', nf90_double, idims(7), igraz)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var GRAZING')
+  istatus = nf90_put_att(ncid, igraz, 'long_name', &
+          'grazing of herbacous pfts')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add GRAZING long_name')
+#endif
 
   ivdims(1) = idims(7)
   ivdims(2) = idims(5)
@@ -1085,6 +1125,32 @@ program mksurfdata
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write hdm')
   end do
   deallocate(var2d)
+
+  allocate(var3d(jxsg,iysg,6))
+  call mkharvest('mksrf_24pft.nc',var3d)
+  do i = 1 , 6
+    where ( xmask < 0.5D0 )
+      var3d(:,:,i) = vmisdat
+    end where
+  end do
+  call mypack(var3d(:,:,1),gcvar)
+  istatus = nf90_put_var(ncid, iharvvh1, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write HARVEST_VH1')
+  call mypack(var3d(:,:,2),gcvar)
+  istatus = nf90_put_var(ncid, iharvvh2, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write HARVEST_VH2')
+  call mypack(var3d(:,:,3),gcvar)
+  istatus = nf90_put_var(ncid, iharvsh1, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write HARVEST_SH1')
+  call mypack(var3d(:,:,4),gcvar)
+  istatus = nf90_put_var(ncid, iharvsh2, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write HARVEST_SH2')
+  call mypack(var3d(:,:,5),gcvar)
+  istatus = nf90_put_var(ncid, iharvsh3, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write HARVEST_SH3')
+  call mypack(var3d(:,:,6),gcvar)
+  istatus = nf90_put_var(ncid, igraz, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write GRAZING')
 #endif
 
   istatus = nf90_close(ncid)

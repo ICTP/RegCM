@@ -194,10 +194,14 @@ module mod_mklaisai
     end do
     rlat = glat(domain%jgstart:domain%jgstop)
 
-    call bilinear(rvar1,rmask,rlon,rlat,monthly_lai,xlon,xlat,vmin,vmisdat)
-    call bilinear(rvar2,rmask,rlon,rlat,monthly_sai,xlon,xlat,vmin,vmisdat)
-    call bilinear(rvar3,rmask,rlon,rlat,monthly_bot,xlon,xlat,vmin,vmisdat)
-    call bilinear(rvar4,rmask,rlon,rlat,monthly_top,xlon,xlat,vmin,vmisdat)
+    call bilinear(rvar1,rmask,rlon,rlat,monthly_lai(:,:,1:npft,:),&
+            xlon,xlat,vmin,vmisdat)
+    call bilinear(rvar2,rmask,rlon,rlat,monthly_sai(:,:,1:npft,:),&
+            xlon,xlat,vmin,vmisdat)
+    call bilinear(rvar3,rmask,rlon,rlat,monthly_bot(:,:,1:npft,:),&
+            xlon,xlat,vmin,vmisdat)
+    call bilinear(rvar4,rmask,rlon,rlat,monthly_top(:,:,1:npft,:),&
+            xlon,xlat,vmin,vmisdat)
 
     deallocate(glat,glon,rlat,rlon,rvar1,rvar2,rvar3,rvar4,rmask)
   end subroutine mklaisai
