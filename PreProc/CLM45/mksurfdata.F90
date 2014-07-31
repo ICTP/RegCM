@@ -56,6 +56,10 @@ program mksurfdata
   use mod_mkorganic
   use mod_mklake
   use netcdf
+#ifdef CN
+  use mod_mklightning
+  use mod_mkpopd
+#endif
 
   implicit none
 
@@ -68,12 +72,17 @@ program mksurfdata
   integer , parameter :: nsol = 2
   integer , parameter :: numurbl = 3
 
+#ifdef CN
+  integer , parameter :: noleap_yday_3h = 365*8
+  integer , parameter :: nyears = 2100-1850+1
+#endif
+
   integer :: ngcells
 
   real(rk8) , parameter :: vmisdat = -9999.0D0
 
   integer(ik4) :: istatus , ncid , ndim , nvar
-  integer(ik4) , dimension(10) :: idims , ivdims
+  integer(ik4) , dimension(12) :: idims , ivdims
   integer(ik4) :: ivartime , iglcvar , iwetvar , ilakevar , iurbanvar
   integer(ik4) :: ipftvar , ilaivar , isaivar , ivgtopvar , ivgbotvar
   integer(ik4) :: ifmaxvar , isoilcolvar , isandvar , iclayvar
@@ -84,6 +93,9 @@ program mksurfdata
   integer(ik4) , dimension(npu2d) :: iurb2d
   integer(ik4) , dimension(npu3d) :: iurb3d
   integer(ik4) , dimension(npu4d*2) :: iurb4d
+#ifdef CN
+  integer(ik4) :: ilightning , ipopden
+#endif
   integer(ik4) :: ijxvar , iiyvar
   type(rcm_time_and_date) :: irefdate , imondate
   type(rcm_time_interval) :: tdif
@@ -184,13 +196,17 @@ program mksurfdata
   call add_common_global_params(ncid,'mksurfdata',.false.)
   ndim = 1
   call define_basic_dimensions(ncid,jxsg,iysg,kzp1,ndim,idims)
-  call add_dimension(ncid,'time',nf90_unlimited,ndim,idims)
+  call add_dimension(ncid,'nmon',nmon,ndim,idims)
   call add_dimension(ncid,'lsmpft',npft,ndim,idims)
   call add_dimension(ncid,'nlevsoi',nsoil,ndim,idims)
   call add_dimension(ncid,'gridcell',ngcells,ndim,idims)
   call add_dimension(ncid,'numurbl',numurbl,ndim,idims)
   call add_dimension(ncid,'nlevurb',nlurb,ndim,idims)
   call add_dimension(ncid,'numrad',nrad,ndim,idims)
+#ifdef CN
+  call add_dimension(ncid,'noleap_3h',noleap_yday_3h,ndim,idims)
+  call add_dimension(ncid,'year',nyears,ndim,idims)
+#endif
   call define_horizontal_coord(ncid,jxsg,iysg,xjx,yiy,idims,ihvar)
   call define_vertical_coord(ncid,idims,izvar)
 
@@ -490,6 +506,29 @@ program mksurfdata
     istatus = nf90_put_att(ncid, iurb4d(2*i), '_FillValue',vmisdat)
     call checkncerr(istatus,__FILE__,__LINE__,'Error add _FillValue')
   end do
+
+#ifdef CN
+  ivdims(1) = idims(7)
+  ivdims(2) = idims(11)
+  istatus = nf90_def_var(ncid, 'LNFM',nf90_double,ivdims(1:2),ilightning)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var lnfm')
+  istatus = nf90_put_att(ncid, ilightning, 'long_name', &
+          'Lightning frequency')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add lnfm long_name')
+  istatus = nf90_put_att(ncid, ilightning, 'units','counts/km^2/hr')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add lnfm units')
+  istatus = nf90_put_att(ncid, ilightning, '_FillValue',vmisdat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add _FillValue')
+  ivdims(1) = idims(7)
+  ivdims(2) = idims(12)
+  istatus = nf90_def_var(ncid, 'HDM',nf90_double,ivdims(1:2),ipopden)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var hdm')
+  istatus = nf90_put_att(ncid, ipopden, 'long_name', &
+          'human population density')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add hdm long_name')
+  istatus = nf90_put_att(ncid, ipopden, 'units','counts/km^2')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add hdm units')
+#endif
 
   istatus = nf90_enddef(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,'Error exit define mode')
@@ -1018,6 +1057,35 @@ program mksurfdata
   deallocate(var4d)
   deallocate(var5d)
   deallocate(var6d)
+
+#ifdef CN
+  allocate(var2d(jxsg,iysg))
+  istart(1) = 1
+  icount(1) = ngcells
+  do it = 1 , noleap_yday_3h
+    call mklightning('mksrf_lightning.nc',var2d,it)
+    where ( xmask < 0.5D0 )
+      var2d = vmisdat
+    end where
+    call mypack(var2d,gcvar)
+    istart(2) = it
+    icount(2) = 1
+    istatus = nf90_put_var(ncid, ilightning, gcvar, istart(1:2), icount(1:2))
+    call checkncerr(istatus,__FILE__,__LINE__, 'Error write lnfm')
+  end do
+  do it = 1 , nyears
+    call mkpopd('mksrf_popd.nc',var2d,it)
+    where ( xmask < 0.5D0 )
+      var2d = vmisdat
+    end where
+    call mypack(var2d,gcvar)
+    istart(2) = it
+    icount(2) = 1
+    istatus = nf90_put_var(ncid, ipopden, gcvar, istart(1:2), icount(1:2))
+    call checkncerr(istatus,__FILE__,__LINE__, 'Error write hdm')
+  end do
+  deallocate(var2d)
+#endif
 
   istatus = nf90_close(ncid)
   call checkncerr(istatus,__FILE__,__LINE__,  &
