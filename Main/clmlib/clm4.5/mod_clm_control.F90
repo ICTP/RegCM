@@ -19,7 +19,7 @@ module mod_clm_control
   use mod_clm_varpar , only : maxpatch_pft , more_vertlayers
   use mod_clm_varctl , only : hostname , model_version=>version , &
           outnc_large_files , finidat , fsurdat , fatmlndfrc ,    &
-          fpftdyn , fpftcon , nrevsn ,  create_crop_landunit ,    &
+          fpftcon , nrevsn ,  create_crop_landunit ,    &
           allocate_all_vegpfts , co2_type , wrtdia , co2_ppmv ,   &
           pertlim , username , fsnowaging , fsnowoptics ,         &
           subgridflag , use_c13 , use_c14 , irrigate ,            &
@@ -128,7 +128,7 @@ module mod_clm_control
     ! Input datasets
 
     namelist /clm_inparm/  &
-         fpftcon , fpftdyn , fsnowoptics , fsnowaging
+         fpftcon , fsnowoptics , fsnowaging
 
     ! History, restart options
 
@@ -338,7 +338,6 @@ module mod_clm_control
     call bcast(fsurdat,len(fsurdat))
     call bcast(fatmlndfrc,len(fatmlndfrc))
     call bcast(fpftcon,len(fpftcon))
-    call bcast(fpftdyn,len(fpftdyn))
     call bcast(fsnowoptics,len(fsnowoptics))
     call bcast(fsnowaging,len(fsnowaging))
 

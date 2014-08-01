@@ -173,7 +173,7 @@ module mod_clm_cnbalancecheck
       col_errcb(c) = (col_cinputs(c) - col_coutputs(c))*dt - &
            (col_endcb(c) - col_begcb(c))
       ! check for significant errors
-      if ( abs(col_errcb(c)) > 1D-8 ) then
+      if ( abs(col_errcb(c)) > 1D-3 ) then
         err_found = .true.
         err_index = c
       end if

@@ -44,8 +44,8 @@ module mod_clm_nchelper
   type clm_filetype
     integer(ik4) :: ncid = -1
     character(len=256) :: fname
-    integer(ik4) :: idimlast = 1
-    integer(ik4) :: ivarlast = 1
+    integer(ik4) :: idimlast = 0
+    integer(ik4) :: ivarlast = 0
     integer(ik4) , dimension(clm_maxdims) :: dimids
     integer(ik4) , dimension(clm_maxdims) :: dimhash
     character(len=32) , dimension(clm_maxdims) :: dimname
@@ -285,6 +285,8 @@ module mod_clm_nchelper
     call getmem2d(ncid%r8buf,jout1,jout2,iout1,iout2,'clm_createfile')
     ncid%dimhash = huge(1)
     ncid%varhash = huge(1)
+    ncid%idimlast = 0
+    ncid%ivarlast = 0
   end subroutine clm_createfile
 
   subroutine clm_openfile(fname,ncid,mode)
@@ -292,18 +294,49 @@ module mod_clm_nchelper
     character(len=*) , intent(in) :: fname
     type(clm_filetype) , intent(out) :: ncid
     integer(ik4) , intent(in) , optional :: mode
+    integer(ik4) :: nDimensions , nVariable
+    integer(ik4) :: id , iv
+    character(len=64) :: varname , dimname
     if ( myid /= iocpu ) return
     if ( present(mode) ) then
       if ( mode == clm_readwrite ) then
         incstat = nf90_open(fname, nf90_write, ncid%ncid)
+        call clm_checkncerr(__FILE__,__LINE__, &
+                    'Error open NetCDF '//trim(fname)//' in read/write')
+        ! Fill variable list...
+        incstat = nf90_inquire(ncid%ncid, nDimensions, nVariable)
+        call clm_checkncerr(__FILE__,__LINE__, &
+                    'Error inquire NetCDF '//trim(fname))
+        ncid%idimlast = 0
+        do id = 1 , nDimensions
+          incstat = nf90_inquire_dimension(ncid%ncid, id, dimname)
+          call clm_checkncerr(__FILE__,__LINE__, &
+                      'Error inquire NetCDF '//trim(fname))
+          ncid%idimlast = ncid%idimlast + 1
+          call add_dimhash(ncid,dimname)
+        end do
+        ncid%ivarlast = 0
+        do iv = 1 , nVariable
+          incstat = nf90_inquire_variable(ncid%ncid, iv, varname)
+          call clm_checkncerr(__FILE__,__LINE__, &
+                      'Error inquire NetCDF '//trim(fname))
+          ncid%ivarlast = ncid%ivarlast + 1
+          ncid%varids(ncid%ivarlast) = iv
+          call add_varhash(ncid,varname)
+        end do
+        call getmem2d(ncid%i4buf,jout1,jout2,iout1,iout2,'clm_openfile')
+        call getmem2d(ncid%r4buf,jout1,jout2,iout1,iout2,'clm_openfile')
+        call getmem2d(ncid%r8buf,jout1,jout2,iout1,iout2,'clm_openfile')
       else
         incstat = nf90_open(fname, nf90_nowrite, ncid%ncid)
+        call clm_checkncerr(__FILE__,__LINE__, &
+                    'Error open NetCDF '//trim(fname)//' in read')
       end if
     else
       incstat = nf90_open(fname, nf90_nowrite, ncid%ncid)
+      call clm_checkncerr(__FILE__,__LINE__, &
+                  'Error open NetCDF '//trim(fname)//' in read')
     end if
-    call clm_checkncerr(__FILE__,__LINE__, &
-                    'Error open NetCDF input '//trim(fname))
     ncid%fname = fname
   end subroutine clm_openfile
 
@@ -493,11 +526,11 @@ module mod_clm_nchelper
     nval = nd
     if ( nd == clmvar_unlim ) nval = nf90_unlimited
     if ( searchdim(ncid,dnam) > 0 ) return ! Already here
+    ncid%idimlast = ncid%idimlast + 1
     call add_dimhash(ncid,dnam)
     incstat = nf90_def_dim(ncid%ncid, dnam, nval, ncid%dimids(ncid%idimlast))
     call clm_checkncerr(__FILE__,__LINE__, &
       'Error adding dimension '//dnam//' to file '//trim(ncid%fname))
-    ncid%idimlast = ncid%idimlast + 1
   end subroutine clm_adddim
 
   subroutine clm_addvar(ctype,ncid,varname,cdims,long_name,units, &
@@ -526,7 +559,6 @@ module mod_clm_nchelper
       if ( switchdim ) doswitch = .true.
     end if
     if ( myid /= iocpu ) return
-    call add_varhash(ncid,varname)
     if ( present(cdims) ) then
       nd = size(cdims)
       do i = 1 , nd
@@ -650,9 +682,9 @@ module mod_clm_nchelper
       call clm_checkncerr(__FILE__,__LINE__, &
         'Error flag_meanings to '//varname//' to file '//trim(ncid%fname))
     end if
-
-    ncid%varids(ncid%ivarlast) = varid
     ncid%ivarlast = ncid%ivarlast + 1
+    ncid%varids(ncid%ivarlast) = varid
+    call add_varhash(ncid,varname)
   end subroutine clm_addvar
 
   logical function clm_check_dim(ncid,dname)

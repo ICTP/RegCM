@@ -3663,13 +3663,11 @@ module mod_clm_histfile
     integer(ik4) :: yr  !year (0 -> ...)
     integer(ik4) :: sec !seconds into current day
 
+    call curr_date (idatex, yr, mon, day, sec)
     if ( hist_freq == 0 .and. nlomon ) then
-      call curr_date (idatex, yr, mon, day, sec)
-      write(cdate,'(i4.4,"-",i2.2)') yr,mon
+      write(cdate,'(i4.4,i2.2)') yr,mon
     else
-      call curr_date (idatex, yr, mon, day, sec)
-      write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day, &
-              (sec+int(dtsec))
+      write(cdate,'(i4.4,i2.2,i2.2,"_",i5.5)') yr,mon,day,(sec+int(dtsec))
     end if
     write(hist_index,'(i1.1)') hist_file - 1
     set_hist_filename = trim(dirout)//trim(caseid)//".clm."// &

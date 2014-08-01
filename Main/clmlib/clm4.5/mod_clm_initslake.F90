@@ -128,8 +128,6 @@ module mod_clm_initslake
     if ( myid == italk ) then
       write (stdout,*) 'Setting initial data to non-spun up values for '// &
               'lake points'
-      write (stdout,*) ' if no file or no valid values for '// &
-              'icefrac and soil layers in CLM4-LISSS.'
     end if
 
     ! Assign local pointers to derived subtypes components (landunit-level)

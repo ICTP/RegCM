@@ -38,16 +38,15 @@ module mod_clm_pftdyn
   public :: CNHarvest
   public :: CNHarvestPftToColumn
 #endif
-  integer(ik4) , pointer , dimension(:) :: yearspft
   real(rk8) , pointer , dimension(:,:) :: wtpft1
   real(rk8) , pointer , dimension(:,:) :: wtpft2
   real(rk8) , pointer , dimension(:) :: harvest
   real(rk8) , pointer , dimension(:) :: wtcol_old
-  integer(ik4) :: nt1
-  integer(ik4) :: nt2
-  integer(ik4) :: ntimes
+  integer(ik4) :: nt
   logical :: do_harvest
   type(clm_filetype) :: ncid   ! netcdf id
+  character(len=256) :: fpftdyn
+  character(len=4) :: cy4
 
   ! default multiplication factor for epsilon for error checks
   real(rk8) , private, parameter :: eps_fact = 2.D0
@@ -58,29 +57,18 @@ module mod_clm_pftdyn
   ! that bound the initial model date)
   !
   subroutine pftdyn_init()
-    use mod_clm_varctl , only : fpftdyn
     use mod_clm_varpar , only : numpft , maxpatch_pft , numurbl
     implicit none
-    integer(ik4) :: m , n , g , nl ! indices
+    integer(ik4) :: m , g ! indices
     integer(ik4) :: year  ! year (0, ...) for nstep+1
     integer(ik4) :: mon   ! month (1, ..., 12) for nstep+1
     integer(ik4) :: day   ! day of month (1, ..., 31) for nstep+1
     integer(ik4) :: sec   ! seconds into current date for nstep+1
     integer(ik4) :: ier   ! error status
-    logical  :: found     ! true => input dataset bounding dates found
     integer(ik4) :: begg , endg   ! beg/end indices for land gridcells
     integer(ik4) :: begl , endl   ! beg/end indices for land landunits
     integer(ik4) :: begc , endc   ! beg/end indices for land columns
     integer(ik4) :: begp , endp   ! beg/end indices for land pfts
-    real(rk8) , pointer , dimension(:) :: pctgla  ! percent of gcell is glacier
-    real(rk8) , pointer , dimension(:) :: pctlak  ! percent of gcell is lake
-    real(rk8) , pointer , dimension(:) :: pctwet  ! percent of gcell is wetland
-    ! percent of gcell is urbanized
-    real(rk8) , pointer , dimension(:,:) :: pcturb
-    ! percent of grid cell is urban (sum over density classes)
-    real(rk8) , pointer , dimension(:) :: pcturb_tot
-    ! pointer to gridcell derived subtype
-    type(gridcell_type) , pointer :: gptr
     character(len= 32) :: subname='pftdyn_init' ! subroutine name
 
     call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
@@ -92,13 +80,6 @@ module mod_clm_pftdyn
         subname//' maxpatch_pft does NOT equal numpft+1 -- '// &
         'this is invalid for dynamic PFT case' )
     end if
-
-    allocate(pctgla(begg:endg),pctlak(begg:endg))
-    allocate(pctwet(begg:endg),pcturb(begg:endg,numurbl),pcturb_tot(begg:endg))
-
-    ! Set pointers into derived type
-
-    gptr => clm3%g
 
     ! pctspec must be saved between time samples
     ! position to first time sample - assume that first time sample must
@@ -130,12 +111,14 @@ module mod_clm_pftdyn
       write(stdout,*) 'Attempting to read pft dynamic landuse data .....'
     end if
 
-    ! Obtain file
+    call curr_date(idatex, year, mon, day, sec)
+    nt = year
+    write(cy4,'(i0.4)') year
+
+    ! Obtain Year 1 file
+    fpftdyn = trim(dirglob)//pthsep//trim(domname)//&
+            '_CLM45_surface_'//cy4//'.nc'
     call clm_openfile(fpftdyn,ncid)
-
-    ! Obtain pft years from dynamic landuse file
-
-    call clm_inqdim(ncid,'time',ntimes)
 
     ! Consistency check
 
@@ -143,92 +126,33 @@ module mod_clm_pftdyn
       call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
 
-    allocate (yearspft(ntimes), stat=ier)
-    if (ier /= 0) then
-      write(stderr,*) subname//' allocation error for yearspft'
-      call fatal(__FILE__,__LINE__,'clm now stopping')
-    end if
-
-    call clm_readvar(ncid,'YEAR',yearspft)
-    call clm_readvar(ncid,'PCT_WETLAND',pctwet)
-    call clm_readvar(ncid,'PCT_LAKE',pctlak)
-    call clm_readvar(ncid,'PCT_GLACIER',pctgla)
-    call clm_readvar(ncid,'PCT_URBAN',pcturb)
-
-    pcturb_tot(:) = 0.D0
-    do n = 1 , numurbl
-      do nl = begg , endg
-        pcturb_tot(nl) = pcturb_tot(nl) + pcturb(nl,n)
-      end do
-    end do
-
-    ! Consistency check
-    do g = begg , endg
-      !   this was causing a fail, even though values are the same to
-      ! within 1e-15 if (pctlak(g)+pctwet(g)+pcturb(g)+pctgla(g)
-      ! /= pctspec(g)) then
-      if (abs((pctlak(g)+pctwet(g)+ &
-               pcturb_tot(g)+pctgla(g))-pctspec(g)) > 1D-13) then
-        write(stderr,*) subname//'mismatch between input pctspec = ',&
-           pctlak(g)+pctwet(g)+pcturb_tot(g)+pctgla(g),&
-           ' and that obtained from surface dataset ', pctspec(g),' at g= ',g
-        call fatal(__FILE__,__LINE__,'clm now stopping')
-      end if
-    end do
-
-    ! Determine if current date spans the years
-    ! If current year is less than first dynamic PFT timeseries year,
-    ! then use the first year from dynamic pft file for both nt1 and nt2,
-    ! forcing constant weights until the model year enters the dynamic
-    ! pft dataset timeseries range.
-    ! If current year is equal to or greater than the last dynamic pft
-    ! timeseries year, then use the last year for both nt1 and nt2,
-    ! forcing constant weights for the remainder of the simulation.
-    ! This mechanism permits the introduction of a dynamic pft period in
-    ! the middle of a simulation, with constant weights before and after
-    ! the dynamic period.
-    ! PET: harvest - since harvest is specified as a rate for each year, this
-    ! approach will not work. Instead, need to seta flag that indicates
-    ! harvest is zero for the period before the beginning and after the end
-    ! of the dynpft timeseries.
-
-    call curr_date(idatex, year, mon, day, sec)
-
-    if (year < yearspft(1)) then
-      nt1 = 1
-      nt2 = 1
-      do_harvest = .false.
-    else if (year >= yearspft(ntimes)) then
-      nt1 = ntimes
-      nt2 = ntimes
-      do_harvest = .false.
-    else
-      found = .false.
-      do n = 1,ntimes-1
-        if (year == yearspft(n)) then
-          nt1 = n
-          nt2 = nt1 + 1
-          found = .true.
-          do_harvest = .true.
-        end if
-      end do
-      if (.not. found) then
-        write(stderr,*) &
-                subname//' error: model year not found in pftdyn timeseries'
-        write(stderr,*)'model year = ',year
-        call fatal(__FILE__,__LINE__,'clm now stopping')
-      end if
-    end if
-
-    ! Get pctpft time samples bracketing the current time
-
-    call pftdyn_getdata(nt1, wtpft1, begg,endg,0,numpft)
-    call pftdyn_getdata(nt2, wtpft2, begg,endg,0,numpft)
+    do_harvest = .true.
 
 #ifdef CN
     ! Get harvest rate at the nt1 time
-    call pftdyn_getharvest(nt1,begg,endg)
+    call pftdyn_getharvest(begg,endg)
 #endif
+
+    ! Get pctpft time samples bracketing the current time
+    call clm_readvar(ncid,'PCT_PFT',wtpft1(:,0:numpft),gcomm_gridcell)
+    call clm_closefile(ncid)
+
+    ! Obtain Year 2 file
+    year = year + 1
+    write(cy4,'(i0.4)') year
+    fpftdyn = trim(dirglob)//pthsep//trim(domname)//&
+            '_CLM45_surface_'//cy4//'.nc'
+    call clm_openfile(fpftdyn,ncid)
+
+    ! Consistency check
+
+    if ( .not. clm_check_dimlen(ncid,'lsmpft',numpft+1) ) then
+      call fatal(__FILE__,__LINE__,'clm now stopping')
+    end if
+
+    ! Get pctpft time samples bracketing the current time
+    call clm_readvar(ncid,'PCT_PFT',wtpft2(:,0:numpft),gcomm_gridcell)
+    call clm_closefile(ncid)
 
     ! convert weights from percent to proportion
     do m = 0 , numpft
@@ -237,7 +161,6 @@ module mod_clm_pftdyn
         wtpft2(g,m) = wtpft2(g,m)/100.D0
       end do
     end do
-    deallocate(pctgla,pctlak,pctwet,pcturb,pcturb_tot)
   end subroutine pftdyn_init
   !
   ! Time interpolate dynamic landuse data to get pft weights for model time
@@ -277,7 +200,6 @@ module mod_clm_pftdyn
     type(gridcell_type) , pointer :: gptr ! pointer to gridcell derived subtype
     type(landunit_type) , pointer :: lptr ! pointer to landunit derived subtype
     type(pft_type) , pointer :: pptr      ! pointer to pft derived subtype
-    character(len=32) :: subname='pftdyn_interp' ! subroutine name
 
     call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
@@ -308,25 +230,39 @@ module mod_clm_pftdyn
     ! the case of the first entry into the dynpft timeseries range from
     ! an earlier period of constant weights.
 
-    if (year > yearspft(nt1) .or. &
-        (nt1 == 1 .and. nt2 == 1 .and. year == yearspft(1))) then
+    if ( year /= nt ) then
+      if (myid == italk) then
+        write(stdout,*) 'Read pft dynamic landuse data for year ',year 
+     end if
+      write(cy4,'(i0.4)') nt
 
-      if (year >= yearspft(ntimes)) then
-        nt1 = ntimes
-        nt2 = ntimes
-      else
-        nt1        = nt2
-        nt2        = nt2 + 1
-        do_harvest = .true.
+      ! Obtain Year 1 file
+      fpftdyn = trim(dirglob)//pthsep//trim(domname)//&
+              '_CLM45_surface_'//cy4//'.nc'
+      call clm_openfile(fpftdyn,ncid)
+
+      ! Consistency check
+
+      if ( .not. clm_check_dimlen(ncid,'lsmpft',numpft+1) ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
 
-      if (year > yearspft(ntimes)) then
-        do_harvest = .false.
-      end if
+#ifdef CN
+      ! Get harvest rate at the nt1 time
+      call pftdyn_getharvest(begg,endg)
+#endif
+      call clm_closefile(ncid)
 
-      if (nt2 > ntimes .and. myid == italk) then
-        write(stderr,*) &
-                subname,' error - current year is past input data boundary'
+      nt = year
+      write(cy4,'(i0.4)') year
+      fpftdyn = trim(dirglob)//pthsep//trim(domname)//&
+              '_CLM45_surface_'//cy4//'.nc'
+      call clm_openfile(fpftdyn,ncid)
+
+      ! Consistency check
+
+      if ( .not. clm_check_dimlen(ncid,'lsmpft',numpft+1) ) then
+        call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
 
       do m = 0 , numpft
@@ -334,12 +270,9 @@ module mod_clm_pftdyn
           wtpft1(g,m) = wtpft2(g,m)
         end do
       end do
-
-      call pftdyn_getdata(nt2, wtpft2, begg,endg,0,numpft)
-
-#ifdef CN
-      call pftdyn_getharvest(nt1,begg,endg)
-#endif
+      ! Get pctpft time samples bracketing the current time
+      call clm_readvar(ncid,'PCT_PFT',wtpft2(:,0:numpft),gcomm_gridcell)
+      call clm_closefile(ncid)
 
       do m = 0 , numpft
         do g = begg , endg
@@ -350,7 +283,7 @@ module mod_clm_pftdyn
 
     ! Interpolate pft weight to current time
 
-    cday          = get_curr_calday()
+    cday = get_curr_calday()
 
     wt1 = ((dayspy + 1.D0) - cday)/dayspy
 
@@ -378,7 +311,7 @@ module mod_clm_pftdyn
       g = pptr%gridcell(p)
       l = pptr%landunit(p)
       if ( lptr%itype(l) == istsoil .or. lptr%itype(l) == istcrop ) then
-        if ( wtpfttot2(c) /= 0 .and. &
+        if ( abs(wtpfttot2(c)) > wtpfttol .and. &
              abs(wtpfttot1(c)-wtpfttot2(c)) > wtpfttol) then
           pptr%wtgcell(p)   = (wtpfttot1(c)/wtpfttot2(c))*pptr%wtgcell(p)
           pptr%wtlunit(p)   = pptr%wtgcell(p) / lptr%wtgcell(l)
@@ -388,67 +321,13 @@ module mod_clm_pftdyn
     end do
     deallocate(wtpfttot1,wtpfttot2)
   end subroutine pftdyn_interp
-  !
-  ! Obtain dynamic landuse data (pctpft) and make sure that
-  ! percentage of PFTs sum to 100% cover for vegetated landunit
-  !
-  subroutine pftdyn_getdata(ntime, pctpft, begg, endg, pft0, maxpft)
-    use mod_clm_varpar  , only : numpft
-    implicit none
-    integer(ik4) , intent(in)  :: ntime
-    integer(ik4) , intent(in)  :: begg,endg,pft0,maxpft
-    real(rk8) , intent(out) :: pctpft(begg:endg,pft0:maxpft)
-    integer(ik4)  :: m, n
-    integer(ik4)  :: err, ierr
-    real(rk8) :: sumpct , sumerr        ! temporary
-    real(rk8) , pointer :: arrayl(:,:)  ! temporary array
-    character(len=32) :: subname='pftdyn_getdata' ! subroutine name
-
-    allocate(arrayl(begg:endg,pft0:maxpft))
-    call clm_readvar(ncid,'PCT_PFT',arrayl,ntime)
-    pctpft(begg:endg,pft0:maxpft) = arrayl(begg:endg,pft0:maxpft)
-    deallocate(arrayl)
-    err = 0
-    do n = begg,endg
-      ! THESE CHECKS NEEDS TO BE THE SAME AS IN surfrdMod.F90!
-      if (pctspec(n) < 100.D0 * (1.D0 - eps_fact*epsilon(1.D0))) then
-        ! pctspec not within eps_fact*epsilon of 100
-        sumpct = 0.D0
-        do m = 0 , numpft
-          sumpct = sumpct + pctpft(n,m) * 100.D0/(100.D0-pctspec(n))
-        end do
-        if (abs(sumpct - 100.D0) > 1.0D-4) then
-          err = 1
-          ierr = n
-          sumerr = sumpct
-        end if
-        if (sumpct < -0.000001D0) then
-          err = 2
-          ierr = n
-          sumerr = sumpct
-        end if
-      end if
-    end do
-    if (err == 1) then
-      write(stderr,*) subname, &
-              ' error: sum(pct) over numpft+1 is not = 100.', &
-              sumerr,ierr,pctspec(ierr),pctpft(ierr,:)
-      call fatal(__FILE__,__LINE__,'clm now stopping')
-    else if (err == 2) then
-      write(stderr,*)subname, &
-              ' error: sum(pct) over numpft+1 is < 0.', &
-              sumerr,ierr,pctspec(ierr),pctpft(ierr,:)
-      call fatal(__FILE__,__LINE__,'clm now stopping')
-    end if
-  end subroutine pftdyn_getdata
 
 #ifdef CN
   !
   ! Obtain harvest data
   !
-  subroutine pftdyn_getharvest(ntime, begg, endg)
+  subroutine pftdyn_getharvest(begg, endg)
     implicit none
-    integer(ik4) , intent(in)  :: ntime
     integer(ik4) , intent(in)  :: begg     ! beg indices for land gridcells
     integer(ik4) , intent(in)  :: endg     ! end indices for land gridcells
 
@@ -456,19 +335,19 @@ module mod_clm_pftdyn
 
     allocate(arrayl(begg:endg))
 
-    call clm_readvar(ncid,'HARVEST_VH1',arrayl, gcomm_gridcell, ntime)
+    call clm_readvar(ncid,'HARVEST_VH1',arrayl, gcomm_gridcell)
     harvest(begg:endg) = arrayl(begg:endg)
 
-    call clm_readvar(ncid,'HARVEST_VH2',arrayl, gcomm_gridcell, ntime)
+    call clm_readvar(ncid,'HARVEST_VH2',arrayl, gcomm_gridcell)
     harvest(begg:endg) = harvest(begg:endg) + arrayl(begg:endg)
 
-    call clm_readvar(ncid,'HARVEST_SH1',arrayl, gcomm_gridcell, ntime)
+    call clm_readvar(ncid,'HARVEST_SH1',arrayl, gcomm_gridcell)
     harvest(begg:endg) = harvest(begg:endg) + arrayl(begg:endg)
 
-    call clm_readvar(ncid,'HARVEST_SH2',arrayl, gcomm_gridcell, ntime)
+    call clm_readvar(ncid,'HARVEST_SH2',arrayl, gcomm_gridcell)
     harvest(begg:endg) = harvest(begg:endg) + arrayl(begg:endg)
 
-    call clm_readvar(ncid,'HARVEST_SH3',arrayl, gcomm_gridcell, ntime)
+    call clm_readvar(ncid,'HARVEST_SH3',arrayl, gcomm_gridcell)
     harvest(begg:endg) = harvest(begg:endg) + arrayl(begg:endg)
 
     deallocate(arrayl)
@@ -509,8 +388,8 @@ module mod_clm_pftdyn
     implicit none
     integer(ik4), intent(in)  :: begc ! beg indices for land columns
     integer(ik4), intent(in)  :: endc ! end indices for land columns
-    integer(ik4), intent(in)  :: begp ! beg indices for land plant function types
-    integer(ik4), intent(in)  :: endp ! end indices for land plant function types
+    integer(ik4), intent(in)  :: begp ! beg indices for land plant func types
+    integer(ik4), intent(in)  :: endp ! end indices for land plant func types
 
     integer(ik4)  :: pi,p,c,l ! indices
     integer(ik4)  :: ier      ! error code
@@ -1590,7 +1469,8 @@ module mod_clm_pftdyn
           else
             ptr = 0.D0
             conv_cflux(p) = conv_cflux(p) - init_state*pconv(pptr%itype(p))
-            prod10_cflux(p) = prod10_cflux(p) - init_state*pprod10(pptr%itype(p))
+            prod10_cflux(p) = prod10_cflux(p) - &
+                    init_state*pprod10(pptr%itype(p))
             prod100_cflux(p) = prod100_cflux(p) - &
                     init_state*pprod100(pptr%itype(p))
           end if
@@ -2766,23 +2646,28 @@ module mod_clm_pftdyn
                cptr%cc13f%dwt_frootc_to_litr_met_c(c,j) = &
                    cptr%cc13f%dwt_frootc_to_litr_met_c(c,j) + &
                    (dwt_frootc13_to_litter(p)* &
-                   pftcon%fr_flab(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
+                   pftcon%fr_flab(pptr%itype(p)))/dtsrf * &
+                   pptr%pps%froot_prof(p,j)
                cptr%cc13f%dwt_frootc_to_litr_cel_c(c,j) = &
                    cptr%cc13f%dwt_frootc_to_litr_cel_c(c,j) + &
                    (dwt_frootc13_to_litter(p)* &
-                   pftcon%fr_fcel(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
+                   pftcon%fr_fcel(pptr%itype(p)))/dtsrf * &
+                   pptr%pps%froot_prof(p,j)
               cptr%cc13f%dwt_frootc_to_litr_lig_c(c,j) = &
                   cptr%cc13f%dwt_frootc_to_litr_lig_c(c,j) + &
                   (dwt_frootc13_to_litter(p)* &
-                  pftcon%fr_flig(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
+                  pftcon%fr_flig(pptr%itype(p)))/dtsrf * &
+                  pptr%pps%froot_prof(p,j)
               ! livecroot fluxes to cwd
               cptr%cc13f%dwt_livecrootc_to_cwdc(c,j) = &
                   cptr%cc13f%dwt_livecrootc_to_cwdc(c,j) + &
-                  (dwt_livecrootc13_to_litter(p))/dtsrf * pptr%pps%croot_prof(p,j)
+                  (dwt_livecrootc13_to_litter(p))/dtsrf * &
+                  pptr%pps%croot_prof(p,j)
               ! deadcroot fluxes to cwd
               cptr%cc13f%dwt_deadcrootc_to_cwdc(c,j) = &
                   cptr%cc13f%dwt_deadcrootc_to_cwdc(c,j) + &
-                  (dwt_deadcrootc13_to_litter(p))/dtsrf * pptr%pps%croot_prof(p,j)
+                  (dwt_deadcrootc13_to_litter(p))/dtsrf * &
+                  pptr%pps%croot_prof(p,j)
 
             end if
 
@@ -2791,23 +2676,28 @@ module mod_clm_pftdyn
               cptr%cc14f%dwt_frootc_to_litr_met_c(c,j) = &
                   cptr%cc14f%dwt_frootc_to_litr_met_c(c,j) + &
                   (dwt_frootc14_to_litter(p)* &
-                  pftcon%fr_flab(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
+                  pftcon%fr_flab(pptr%itype(p)))/dtsrf * &
+                  pptr%pps%froot_prof(p,j)
               cptr%cc14f%dwt_frootc_to_litr_cel_c(c,j) = &
                   cptr%cc14f%dwt_frootc_to_litr_cel_c(c,j) + &
                   (dwt_frootc14_to_litter(p)* &
-                  pftcon%fr_fcel(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
+                  pftcon%fr_fcel(pptr%itype(p)))/dtsrf * &
+                  pptr%pps%froot_prof(p,j)
               cptr%cc14f%dwt_frootc_to_litr_lig_c(c,j) = &
                   cptr%cc14f%dwt_frootc_to_litr_lig_c(c,j) + &
                   (dwt_frootc14_to_litter(p)* &
-                  pftcon%fr_flig(pptr%itype(p)))/dtsrf * pptr%pps%froot_prof(p,j)
+                  pftcon%fr_flig(pptr%itype(p)))/dtsrf * &
+                  pptr%pps%froot_prof(p,j)
               ! livecroot fluxes to cwd
               cptr%cc14f%dwt_livecrootc_to_cwdc(c,j) = &
                   cptr%cc14f%dwt_livecrootc_to_cwdc(c,j) + &
-                  (dwt_livecrootc14_to_litter(p))/dtsrf * pptr%pps%croot_prof(p,j)
+                  (dwt_livecrootc14_to_litter(p))/dtsrf * &
+                  pptr%pps%croot_prof(p,j)
                    ! deadcroot fluxes to cwd
               cptr%cc14f%dwt_deadcrootc_to_cwdc(c,j) = &
                   cptr%cc14f%dwt_deadcrootc_to_cwdc(c,j) + &
-                  (dwt_deadcrootc14_to_litter(p))/dtsrf * pptr%pps%croot_prof(p,j)
+                  (dwt_deadcrootc14_to_litter(p))/dtsrf * &
+                  pptr%pps%croot_prof(p,j)
             end if
           end if
         end do

@@ -15,7 +15,7 @@ module mod_clm_initialize
   use mod_clm_nchelper
   use mod_clm_varctl , only : nsrest , nsrStartup , nsrContinue , &
           fsurdat , fatmlndfrc , noland , finidat ,   &
-          fpftdyn , version , atm_regcm
+          version , atm_regcm
   use mod_clm_varsur , only : wtxy , vegxy
   use mod_clm_typeinit , only : initClmtype
   use mod_clm_varpar , only : maxpatch , clm_varpar_init
@@ -312,10 +312,10 @@ module mod_clm_initialize
 #if (defined CNDV)
     call pftwt_init()
 #else
-    if (fpftdyn /= ' ') then
-      call pftdyn_init()
-      call pftdyn_interp( )
-    end if
+#ifdef DYNPFT
+    call pftdyn_init()
+    call pftdyn_interp( )
+#endif
 #endif
 
     ! ------------------------------------------------------------------------

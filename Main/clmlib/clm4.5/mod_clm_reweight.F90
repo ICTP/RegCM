@@ -317,7 +317,7 @@ module mod_clm_reweight
       if ( .not. weightsOkay(sumwtcol(c),active_only,cptr%active(c)) ) then
         write(stderr,*) trim(subname), &
                 ' ERROR: at c = ',c,'total PFT weight is ',sumwtcol(c), &
-                'active_only = ', active_only
+                ' active_only = ', active_only
         error_found = .true.
       end if
     end do
@@ -326,7 +326,7 @@ module mod_clm_reweight
       if ( .not. weightsOkay(sumwtlunit(l),active_only,lptr%active(l)) ) then
         write(stderr,*) trim(subname), &
                 ' ERROR: at l = ',l,'total PFT weight is ',sumwtlunit(l), &
-                'active_only = ', active_only
+                ' active_only = ', active_only
         error_found = .true.
       end if
     end do
@@ -336,7 +336,7 @@ module mod_clm_reweight
            weightsOkay(sumwtgcell(g),active_only,i_am_active=.true.) ) then
         write(stderr,*) trim(subname), &
                 ' ERROR: at g = ',g,'total PFT weight is ',sumwtgcell(g), &
-                'active_only = ', active_only
+                ' active_only = ', active_only
         error_found = .true.
       end if
     end do
@@ -359,7 +359,7 @@ module mod_clm_reweight
       if ( .not. weightsOkay(sumwtlunit(l),active_only,lptr%active(l)) ) then
         write(stderr,*) trim(subname), &
                 ' ERROR: at l = ',l,'total col weight is ',sumwtlunit(l), &
-                'active_only = ', active_only
+                ' active_only = ', active_only
         error_found = .true.
       end if
     end do
@@ -369,7 +369,7 @@ module mod_clm_reweight
             weightsOkay(sumwtgcell(g),active_only,i_am_active=.true.) ) then
         write(stderr,*) trim(subname), &
                 ' ERROR: at g = ',g,'total col weight is ',sumwtgcell(g), &
-                'active_only = ', active_only
+                ' active_only = ', active_only
         error_found = .true.
       end if
     end do
@@ -389,7 +389,7 @@ module mod_clm_reweight
             weightsOkay(sumwtgcell(g),active_only,i_am_active=.true.) ) then
         write(stderr,*) trim(subname), &
                 ' ERROR: at g = ',g,'total lunit weight is ',sumwtgcell(g), &
-                'active_only = ', active_only
+                ' active_only = ', active_only
         error_found = .true.
       end if
     end do
@@ -425,7 +425,7 @@ module mod_clm_reweight
     logical , intent(in) :: i_am_active
     logical :: weights_equal_1
     ! tolerance for checking whether weights sum to 1
-    real(rk8) , parameter :: tolerance = 1.D-5
+    real(rk8) , parameter :: tolerance = 1.D-4
 
     weights_equal_1 = (abs(sumwts - 1.D0) <= tolerance)
 

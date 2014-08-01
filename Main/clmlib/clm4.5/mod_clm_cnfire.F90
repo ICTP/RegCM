@@ -27,7 +27,7 @@ module mod_clm_cnfire
   use mod_clm_varcon , only : dzsoi_decomp , rpi , tfrz , secspday
   use mod_clm_domain , only : ldomain
   use mod_clm_atmlnd , only : clm_a2l
-  use mod_clm_varctl , only : fpftdyn , fsurdat , inst_name
+  use mod_clm_varctl , only : fsurdat , inst_name
   use mod_clm_surfrd , only : crop_prog
   use mod_clm_pftvarcon , only : fsr_pft , fd_pft , noveg
   use mod_clm_pftvarcon , only : nc4_grass , nc3crop , ndllf_evr_tmp_tree
@@ -450,11 +450,11 @@ module mod_clm_cnfire
       lpop_col(c)  = 0.D0
       btran_col(c) = 0.D0
       wtlf(c)      = 0.D0
-      if ( fpftdyn /= ' ' ) then    !true when landuse data is used
-        trotr1_col(c)=0.D0
-        trotr2_col(c)=0.D0
-        dtrotr_col(c)=0.D0
-      end if
+#ifdef DYNPFT
+      trotr1_col(c)=0.D0
+      trotr2_col(c)=0.D0
+      dtrotr_col(c)=0.D0
+#endif
     end do
     do pi = 1 , max_pft_per_col
       do fc = 1 , num_soilc
@@ -469,20 +469,20 @@ module mod_clm_cnfire
               btran_col(c) = btran_col(c)+btran2(p)*wtcol(p)
               wtlf(c)      = wtlf(c)+wtcol(p)
             end if
-            if ( fpftdyn /= ' ' ) then    !true when landuse data is used
-              if ( ivt(p) == nbrdlf_evr_trp_tree .and. wtcol(p) .gt. 0.D0 ) then
-                trotr1_col(c)=trotr1_col(c)+wtcol(p)*cwtgcell(c)
-              end if
-              if ( ivt(p) == nbrdlf_dcd_trp_tree .and. wtcol(p) .gt. 0.D0 ) then
-                trotr2_col(c)=trotr2_col(c)+wtcol(p)*cwtgcell(c)
-              end if
-              if ( ivt(p) == nbrdlf_evr_trp_tree .or. &
-                   ivt(p) == nbrdlf_dcd_trp_tree ) then
-                if ( lfpftd(p).gt.0.D0 ) then
-                  dtrotr_col(c)=dtrotr_col(c)+lfpftd(p)*cwtgcell(c)
-                end if
+#ifdef DYNPFT
+            if ( ivt(p) == nbrdlf_evr_trp_tree .and. wtcol(p) .gt. 0.D0 ) then
+              trotr1_col(c)=trotr1_col(c)+wtcol(p)*cwtgcell(c)
+            end if
+            if ( ivt(p) == nbrdlf_dcd_trp_tree .and. wtcol(p) .gt. 0.D0 ) then
+              trotr2_col(c)=trotr2_col(c)+wtcol(p)*cwtgcell(c)
+            end if
+            if ( ivt(p) == nbrdlf_evr_trp_tree .or. &
+                 ivt(p) == nbrdlf_dcd_trp_tree ) then
+              if ( lfpftd(p).gt.0.D0 ) then
+                dtrotr_col(c)=dtrotr_col(c)+lfpftd(p)*cwtgcell(c)
               end if
             end if
+#endif
             rootc_col(c) = rootc_col(c) + (frootc(p) + frootc_storage(p) + &
                            frootc_xfer(p) + deadcrootc(p) +                &
                            deadcrootc_storage(p) + deadcrootc_xfer(p) +    &
@@ -546,21 +546,21 @@ module mod_clm_cnfire
       end do
     end do
 
-    if ( fpftdyn /= ' ' ) then    !true when landuse data is used
-      do fc = 1 , num_soilc
-        c = filter_soilc(fc)
-        if ( dtrotr_col(c) .gt. 0.D0 ) then
-          if ( date_is(idatex,1,1) .and. time_is(idatex,0) ) then
-            lfc(c) = 0.D0
-          end if
-          if ( date_is(idatex,1,1) .and. time_is(idatex,int(dt,ik4)) ) then
-            lfc(c) = dtrotr_col(c)*dayspy*secspday/dt
-          end if
-        else
-          lfc(c)=0.D0
+#ifdef DYNPFT
+    do fc = 1 , num_soilc
+      c = filter_soilc(fc)
+      if ( dtrotr_col(c) .gt. 0.D0 ) then
+        if ( date_is(idatex,1,1) .and. time_is(idatex,0) ) then
+          lfc(c) = 0.D0
         end if
-      end do
-    end if
+        if ( date_is(idatex,1,1) .and. time_is(idatex,int(dt,ik4)) ) then
+          lfc(c) = dtrotr_col(c)*dayspy*secspday/dt
+        end if
+      else
+        lfc(c)=0.D0
+      end if
+    end do
+#endif
     !
     ! calculate burned area fraction in cropland
     !
@@ -684,39 +684,40 @@ module mod_clm_cnfire
         ! if landuse change data is used, calculate deforestation fires and
         ! add it in the total of burned area fraction
         !
-        if ( fpftdyn /= ' ' ) then    !true when landuse change data is used
-          if ( trotr1_col(c)+trotr2_col(c) > 0.6D0 ) then
-            if ( (date_is(idatex,1,1) .and. time_is(idatex,0)) .or. &
-                   dtrotr_col(c) <=0.D0 ) then
-              fbac1(c)        = 0.D0
-              farea_burned(c) = baf_crop(c)+baf_peatf(c)
-            else
-              cri = (4.0D0*trotr1_col(c)+1.8D0*trotr2_col(c)) / &
-                      (trotr1_col(c)+trotr2_col(c))
-              cli = (max(0.D0,min(1.D0,(cri-prec60_col(c) * &
-                      secspday)/cri))**0.5)* &
-                    (max(0.D0,min(1.D0,(cri-prec10_col(c) * &
-                      secspday)/cri))**0.5)* &
-                     max(0.0005D0,min(1.D0,19.D0*dtrotr_col(c) * &
-                      dayspy*secspday/dt-0.001D0))* &
-                     max(0.D0,min(1.D0,(0.25D0-(forc_rain(g) + &
-                     forc_snow(g))*secsphr)/0.25D0))
-              ! NOTE: THIS SHOULD TAKE INTO ACCOUNT THE TIME-STEP AND
-              ! CURRENTLY DOES NOT!
-              !  As such results are only valid for a time-step of a half-hour.
-              farea_burned(c) = cli/cli_scale +baf_crop(c)+baf_peatf(c)
-              ! burned area out of conversion region due to land use fire
-              fbac1(c) = max(0.D0,cli/cli_scale - 2.0D0*lfc(c))
-            end if
-            ! total burned area out of conversion
-            fbac(c) = fbac1(c)+baf_crop(c)+baf_peatf(c)
+#ifdef DYNPFT
+        if ( trotr1_col(c)+trotr2_col(c) > 0.6D0 ) then
+          if ( (date_is(idatex,1,1) .and. time_is(idatex,0)) .or. &
+                dtrotr_col(c) <=0.D0 ) then
+            fbac1(c)        = 0.D0
+            farea_burned(c) = baf_crop(c)+baf_peatf(c)
           else
-            fbac(c) = farea_burned(c)
+            cri = (4.0D0*trotr1_col(c)+1.8D0*trotr2_col(c)) / &
+                  (trotr1_col(c)+trotr2_col(c))
+            cli = (max(0.D0,min(1.D0,(cri-prec60_col(c) * &
+                    secspday)/cri))**0.5)* &
+                  (max(0.D0,min(1.D0,(cri-prec10_col(c) * &
+                    secspday)/cri))**0.5)* &
+                   max(0.0005D0,min(1.D0,19.D0*dtrotr_col(c) * &
+                    dayspy*secspday/dt-0.001D0))* &
+                   max(0.D0,min(1.D0,(0.25D0-(forc_rain(g) + &
+                   forc_snow(g))*secsphr)/0.25D0))
+            ! NOTE: THIS SHOULD TAKE INTO ACCOUNT THE TIME-STEP AND
+            ! CURRENTLY DOES NOT!
+            !  As such results are only valid for a time-step of a half-hour.
+            farea_burned(c) = cli/cli_scale +baf_crop(c)+baf_peatf(c)
+            ! burned area out of conversion region due to land use fire
+            fbac1(c) = max(0.D0,cli/cli_scale - 2.0D0*lfc(c))
           end if
+          ! total burned area out of conversion
+          fbac(c) = fbac1(c)+baf_crop(c)+baf_peatf(c)
+        else
+          fbac(c) = farea_burned(c)
         end if
-      else
-        farea_burned(c) = min(1.D0,baf_crop(c)+baf_peatf(c))
       end if
+#else
+      farea_burned(c) = min(1.D0,baf_crop(c)+baf_peatf(c))
+#endif
+
 #if (defined NOFIRE)
       ! zero out the fire area if NOFIRE flag is on
       farea_burned(c) = 0.D0
@@ -1271,11 +1272,11 @@ module mod_clm_cnfire
       ! and convert to a rate per second
       ! For non-crop (bare-soil and natural vegetation)
       if ( ivt(p) .lt. nc3crop ) then
-        if ( fpftdyn /= ' ' ) then    !true when landuse data is used
-          f = (fbac(c)-baf_crop(c))/ dt
-        else
-          f = (farea_burned(c))/ dt
-        end if
+#ifdef DYNPFT
+        f = (fbac(c)-baf_crop(c))/ dt
+#else
+        f = (farea_burned(c))/ dt
+#endif
       else
         f = baf_crop(c) / dt
       end if
@@ -1543,22 +1544,22 @@ module mod_clm_cnfire
     !
     ! carbon loss due to deforestation fires
     !
-    if ( fpftdyn /= ' ' ) then    !true when landuse data is used
-      do fc = 1 , num_soilc
-        c = filter_soilc(fc)
-        lfc2(c)=0.D0
-        if ( date_is(idatex,1,1) .and. time_is(idatex,0) ) then
-          if ( trotr1_col(c)+trotr2_col(c) > 0.6D0 .and. &
-              dtrotr_col(c) > 0.D0 .and. &
-              lfc(c) > 0.D0 .and. fbac1(c) == 0.D0 ) then
-            lfc2(c) = max(0.D0,min(lfc(c),(farea_burned(c)-baf_crop(c) - &
-                      baf_peatf(c))/2.0))/(dtrotr_col(c)*dayspy*secspday/dt)
-            lfc(c)  = lfc(c)-max(0.D0,min(lfc(c),&
-                    (farea_burned(c)-baf_crop(c) - baf_peatf(c))/2.0D0))
-          end if
+#ifdef DYNPFT
+    do fc = 1 , num_soilc
+      c = filter_soilc(fc)
+      lfc2(c)=0.D0
+      if ( date_is(idatex,1,1) .and. time_is(idatex,0) ) then
+        if ( trotr1_col(c)+trotr2_col(c) > 0.6D0 .and. &
+             dtrotr_col(c) > 0.D0 .and. &
+             lfc(c) > 0.D0 .and. fbac1(c) == 0.D0 ) then
+          lfc2(c) = max(0.D0,min(lfc(c),(farea_burned(c)-baf_crop(c) - &
+                    baf_peatf(c))/2.0))/(dtrotr_col(c)*dayspy*secspday/dt)
+          lfc(c)  = lfc(c)-max(0.D0,min(lfc(c),&
+                  (farea_burned(c)-baf_crop(c) - baf_peatf(c))/2.0D0))
         end if
-      end do
-    end if
+      end if
+    end do
+#endif
     !
     ! Carbon loss due to peat fires
     !

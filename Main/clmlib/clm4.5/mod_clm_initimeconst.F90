@@ -1341,7 +1341,7 @@ module mod_clm_initimeconst
     end do
 
     if ( nzero_slope > 0 )then
-      write(stdout,'(A,I6,A)') "Set", nzero_slope, &
+      write(stdout,'(A,I6,A)') " Set", nzero_slope, &
                              " 100% special land-units points to zero slope"
     end if
 
@@ -1419,7 +1419,7 @@ module mod_clm_initimeconst
     ! Initialize time-constant arrays of decomposition constants
     ! -----------------------------
     if (myid == italk) then
-      write(stdout,*) ' initializing decomposition pools and transitions ...'
+      write(stdout,*) 'Initializing decomposition pools and transitions ...'
     end if
     call init_decompcascade(begc, endc)
 

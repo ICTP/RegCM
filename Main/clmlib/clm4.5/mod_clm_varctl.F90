@@ -58,8 +58,6 @@ module mod_clm_varctl
   character(len=256) , public :: fsurdat    = ' '
   ! lnd frac file on atm grid
   character(len=256) , public :: fatmlndfrc = ' '
-  ! dynamic landuse dataset
-  character(len=256) , public :: fpftdyn    = ' '
   ! ASCII data file with PFT physiological constants
   character(len=256) , public :: fpftcon    = ' '
   ! Restart file name
@@ -191,21 +189,24 @@ module mod_clm_varctl
       end if
 
       ! Consistency settings for dynamic land use, etc.
-      if (fpftdyn /= ' ' .and. create_crop_landunit) &
+#ifdef DYNPFT
+      if ( create_crop_landunit ) then
         call fatal(__FILE__,__LINE__, &
            subname//' ERROR:: dynamic landuse is currently not '// &
            'supported with create_crop_landunit option' )
+      end if
+#endif
       if (create_crop_landunit .and. .not.allocate_all_vegpfts) &
         call fatal(__FILE__,__LINE__, &
            subname//' ERROR:: maxpft<numpft+1 is currently not supported '//&
            'with create_crop_landunit option' )
-      if (fpftdyn /= ' ') then
 #if (defined CNDV)
-        call fatal(__FILE__,__LINE__, &
-            subname//' ERROR:: dynamic landuse is currently not '//&
-            'supported with CNDV option' )
+#ifdef DYNPFT
+      call fatal(__FILE__,__LINE__, &
+          subname//' ERROR:: dynamic landuse is currently not '//&
+          'supported with CNDV option' )
 #endif
-      end if
+#endif
 
       ! Model physics
 

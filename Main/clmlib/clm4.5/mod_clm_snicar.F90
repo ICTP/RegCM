@@ -1487,7 +1487,7 @@ module mod_clm_snicar
     end if
     call clm_openfile(fsnowoptics,ncid)
     if (myid == italk) then
-      write(stdout,*) ' ',trim(subname),' : ',trim(fsnowoptics)
+      write(stdout,*) trim(subname),' : ',trim(fsnowoptics)
     end if
 
     ! direct-beam snow Mie parameters:

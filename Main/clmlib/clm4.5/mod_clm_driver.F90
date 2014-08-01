@@ -74,7 +74,7 @@ module mod_clm_driver
   use mod_mppparam , only : italk
   use mod_runparams
   use mod_clm_type
-  use mod_clm_varctl , only : wrtdia, fpftdyn
+  use mod_clm_varctl , only : wrtdia
   use mod_clm_decomp , only : get_proc_bounds
   use mod_clm_filter , only : filter
   use mod_clm_reweight , only : reweightWrapup
@@ -260,28 +260,28 @@ module mod_clm_driver
 #endif
 
 #if (!defined CNDV)
-    if ( fpftdyn /= ' ' ) then
-      call pftdyn_interp  ! change the pft weights
-      call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
+#ifdef DYNPFT
+    call pftdyn_interp  ! change the pft weights
+    call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
 
-      ! do stuff that needs to be done after changing weights
-      ! This call should be made as soon as possible after pftdyn_interp
-      call reweightWrapup
+    ! do stuff that needs to be done after changing weights
+    ! This call should be made as soon as possible after pftdyn_interp
+    call reweightWrapup
 
-      !--- get new heat,water content: (new-old)/dt = flux into lnd model ---
-      call dynland_hwcontent(begg,endg,                     &
-                             clm3%g%gws%gc_liq2(begg:endg), &
-                             clm3%g%gws%gc_ice2(begg:endg), &
-                             clm3%g%ges%gc_heat2(begg:endg))
-      do g = begg , endg
-        clm3%g%gwf%qflx_liq_dynbal(g) = &
-                (clm3%g%gws%gc_liq2 (g) - clm3%g%gws%gc_liq1 (g))/dtsrf
-        clm3%g%gwf%qflx_ice_dynbal(g) = &
-                (clm3%g%gws%gc_ice2 (g) - clm3%g%gws%gc_ice1 (g))/dtsrf
-        clm3%g%gef%eflx_dynbal    (g) = &
-                (clm3%g%ges%gc_heat2(g) - clm3%g%ges%gc_heat1(g))/dtsrf
-      end do
-    end if
+    !--- get new heat,water content: (new-old)/dt = flux into lnd model ---
+    call dynland_hwcontent(begg,endg,                     &
+                           clm3%g%gws%gc_liq2(begg:endg), &
+                           clm3%g%gws%gc_ice2(begg:endg), &
+                           clm3%g%ges%gc_heat2(begg:endg))
+    do g = begg , endg
+      clm3%g%gwf%qflx_liq_dynbal(g) = &
+              (clm3%g%gws%gc_liq2 (g) - clm3%g%gws%gc_liq1 (g))/dtsrf
+      clm3%g%gwf%qflx_ice_dynbal(g) = &
+              (clm3%g%gws%gc_ice2 (g) - clm3%g%gws%gc_ice1 (g))/dtsrf
+      clm3%g%gef%eflx_dynbal    (g) = &
+              (clm3%g%ges%gc_heat2(g) - clm3%g%ges%gc_heat1(g))/dtsrf
+    end do
+#endif
 #endif
 
     call get_proc_bounds(begg,endg,begl,endl,begc,endc,begp,endp)
@@ -310,7 +310,7 @@ module mod_clm_driver
     call pftdyn_wbal_init(begc,endc)
 
 #if (defined CNDV)
-    ! NOTE: Currently CNDV and fpftdyn /= ' ' are incompatible
+    ! NOTE: Currently CNDV and DYNPFT are incompatible
     call CNZeroFluxes_dwt(begc,endc,begp,endp)
     call pftwt_interp(begp,endp)
     call reweightWrapup
@@ -320,9 +320,9 @@ module mod_clm_driver
 
 #if (defined CN)
     call CNZeroFluxes_dwt(begc,endc,begp,endp)
-    if ( fpftdyn /= ' ' ) then
-      call pftdyn_cnbal(begc,endc,begp,endp)
-    end if
+#ifdef DYNPFT
+    call pftdyn_cnbal(begc,endc,begp,endp)
+#endif
 #endif
 #endif
 

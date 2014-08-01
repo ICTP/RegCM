@@ -527,7 +527,7 @@ module mod_clm_surfrd
   ! Determine wtxy and veg arrays for non-dynamic landuse mode
   !
   subroutine surfrd_wtxy_veg_all(ncid,ldomain)
-    use mod_clm_varctl , only : create_crop_landunit , fpftdyn , irrigate
+    use mod_clm_varctl , only : create_crop_landunit , irrigate
     use mod_clm_pftvarcon , only : nc3crop , nc3irrig , npcropmin ,  &
           ncorn , ncornirrig , nsoybean , nsoybeanirrig , nscereal , &
           nscerealirrig , nwcereal , nwcerealirrig
@@ -617,11 +617,13 @@ module mod_clm_surfrd
               trim(subname)//' ERROR: prognostic crop '// &
               'PFTs require create_crop_landunit=.true.' )
     end if
-    if ( crop_prog .and. fpftdyn /= ' ' ) then
+#ifdef DYNPFT
+    if ( crop_prog ) then
       call fatal(__FILE__,__LINE__, &
               trim(subname)//' ERROR: prognostic crop '// &
               'is incompatible with transient landuse' )
     end if
+#endif
     if ( .not. crop_prog .and. irrigate ) then
       call fatal(__FILE__,__LINE__,trim(subname)// &
            ' ERROR surfrdMod: irrigate = .true. requires CROP model active.' )

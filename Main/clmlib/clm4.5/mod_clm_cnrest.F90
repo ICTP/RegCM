@@ -3640,8 +3640,7 @@ module mod_clm_cnrest
                 restart_file_decomp_cascade_state)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'decomp_cascade_state', &
-              restart_file_decomp_cascade_state)
+      call clm_writevar(ncid,'decomp_cascade_state', decomp_cascade_state)
     end if
 
     if ( flag == 'read' .and. &

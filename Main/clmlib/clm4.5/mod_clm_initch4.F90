@@ -96,9 +96,8 @@ module mod_clm_initch4
     integer(ik4) :: begg , endg  ! per-proc gridcell ending gridcell indices
 
     if ( myid == italk ) then
-      write (stdout,*) 'Setting initial data to non-spun up values for '// &
-          'CH4 Mod, if no inicFile or no valid values for concentrations,'//&
-          'for CH4 Model.'
+      write (stdout,*) &
+              'Setting initial data to non-spun up values for CH4 Mod'
     end if
 
     ! Assign local pointers to derived subtypes components (landunit-level)

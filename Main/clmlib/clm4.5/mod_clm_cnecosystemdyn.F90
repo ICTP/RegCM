@@ -6,7 +6,7 @@ module mod_clm_cnecosystemdyn
   use mod_intkinds
   use mod_realkinds
   use mod_clm_type
-  use mod_clm_varctl , only: fpftdyn, use_c13, use_c14
+  use mod_clm_varctl , only: use_c13, use_c14
   use mod_clm_cnallocation , only : CNAllocationInit
   use mod_clm_cnphenology , only : CNPhenologyInit
   use mod_clm_cnfire , only : CNFireInit , CNFireArea, CNFireFluxes
@@ -155,9 +155,9 @@ module mod_clm_cnecosystemdyn
 
     call NStateUpdate2(num_soilc, filter_soilc, num_soilp, filter_soilp)
 
-    if (fpftdyn /= ' ') then
-      call CNHarvest(num_soilc, filter_soilc, num_soilp, filter_soilp)
-    end if
+#ifdef DYNPFT
+    call CNHarvest(num_soilc, filter_soilc, num_soilp, filter_soilp)
+#endif
 
     if ( use_c13 ) then
       call CIsoFlux2h(num_soilc, filter_soilc, num_soilp, filter_soilp, 'c13')
