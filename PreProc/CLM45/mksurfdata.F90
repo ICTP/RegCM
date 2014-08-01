@@ -106,6 +106,7 @@ program mksurfdata
   integer(ik4) :: ilightning , ipopden
 #ifdef DYNPFT
   integer(ik4) :: iharvvh1 , iharvvh2 , iharvsh1 , iharvsh2 , iharvsh3 , igraz
+  character(len=256) :: dynfile
 #endif
 #endif
   integer(ik4) :: ijxvar , iiyvar
@@ -113,7 +114,7 @@ program mksurfdata
   type(rcm_time_interval) :: tdif
   real(rk4) , pointer , dimension(:) :: yiy
   real(rk4) , pointer , dimension(:) :: xjx
-  real(rk4) :: hptop
+  real(rk4) :: hptop , smallnum
   real(rk8) , dimension(1) :: xdate
   integer(ik4) , dimension(3) :: istart , icount
   integer(ik4) , dimension(2) :: ihvar
@@ -127,9 +128,6 @@ program mksurfdata
   integer(ik4) :: jgstart , jgstop , igstart , igstop
   character(len=256) :: namelistfile , prgname
   character(len=256) :: terfile , outfile
-#ifdef CN
-  character(len=256) :: dynfile
-#endif
   character(len=64) :: csdate , pftfile , laifile
   real(rk8) , dimension(:,:) , pointer :: pctspec , pctslake
   real(rk8) , pointer , dimension(:,:) :: var2d
@@ -142,6 +140,8 @@ program mksurfdata
   integer(ik4) , pointer , dimension(:) :: landpoint
   logical , pointer , dimension(:) :: pft_gt0
   logical :: subgrid
+
+  smallnum = dble(epsilon(1.0))/4.0D0
 
   call get_command_argument(0,value=prgname)
   call get_command_argument(1,value=namelistfile)
@@ -697,6 +697,7 @@ program mksurfdata
   where ( var3d(:,:,2) > 100.0D0 ) var3d(:,:,2) = 100.0D0
   where ( var3d(:,:,3) > 100.0D0 ) var3d(:,:,3) = 100.0D0
   where ( var3d(:,:,4:iurbmax) > 100.0D0 ) var3d(:,:,4:iurbmax) = 100.0D0
+  var3d(:,:,:) = dint(var3d(:,:,:))
 
   do i = igstart , igstop
     do j = jgstart , jgstop
@@ -706,11 +707,11 @@ program mksurfdata
           write(stderr,*) 'Negative pctspec ',pctspec(j,i),' at j,i ', j , i
           call die(__FILE__,'PCTSPEC error',__LINE__)
         end if
-        if ( pctspec(j,i) > 200.0D0 - 1.D-4 ) then
+        if ( pctspec(j,i) > (200.0D0 - smallnum) ) then
           var3d(j,i,:) = var3d(j,i,:) / (pctspec(j,i)/100.0D0)
           pctspec(j,i) = sum(var3d(j,i,:))
         end if
-        if ( pctspec(j,i) > 100.0D0 - 1.D-4 ) then
+        if ( pctspec(j,i) > (100.0D0 - smallnum) ) then
           diff = 100.0D0 - pctspec(j,i)
           iloc = maxloc(var3d(j,i,:))
           var3d(j,i,iloc(1)) = var3d(j,i,iloc(1)) + diff
@@ -720,12 +721,16 @@ program mksurfdata
             iloc = maxloc(var3d(j,i,:))
             var3d(j,i,iloc(1)) = var3d(j,i,iloc(1)) + diff
             pctspec(j,i) = sum(var3d(j,i,:))
-            if ( dabs(pctspec(j,i) - 100.0D0) > 1.D-12 ) then
+            if ( pctspec(j,i) /= 100.0D0 ) then
               write(stderr,*) 'Cannot normalize pctspec at j,i ', &
                       j , i , pctspec(j,i)
               call die(__FILE__,'PCTSPEC normalization error',__LINE__)
             end if
           end if
+        end if
+        if ( pctspec(j,i) < smallnum ) then
+          pctspec(j,i) = 0.0D0
+          var3d(j,i,:) = 0.0D0
         end if
       end if
     end do
@@ -755,92 +760,96 @@ program mksurfdata
 
   allocate(var3d(jxsg,iysg,npft))
   call mkpft(pftfile,var3d(:,:,:))
-  var3d(:,:,:) = max(var3d(:,:,:),0.0D0)
+  var3d(:,:,:) = dint(max(var3d(:,:,:),0.0D0))
   do np = 1 , npft
     where ( xmask < 0.5D0 )
       var3d(:,:,np) = vmisdat
     end where
   end do
+
   ! Here adjustment !
   do i = igstart , igstop
     do j = jgstart , jgstop
       if ( xmask(j,i) > 0.5D0 ) then
-        if ( pctspec(j,i) > 99.99999D0 ) then
-          var3d(j,i,:) = vmisdat
+        if ( pctspec(j,i) > (100.0D0 - smallnum) ) then
+          var3d(j,i,:) = 0.0D0
         else
           spft = 0.0D0
-          if ( pctspec(j,i) > 0.00001D0 ) then
-            do np = 1 , npft
-              if ( var3d(j,i,np) > 0.0D0 ) then
-                spft = spft + var3d(j,i,np)*100.0D0/(100.0D0-pctspec(j,i))
-              end if
-            end do
-          else 
-            do np = 1 , npft
-              if ( var3d(j,i,np) > 0.0D0 ) then
-                spft = spft + var3d(j,i,np)
-              end if
-            end do
-          end if
-          if ( spft < 0.00001D0 ) then
+          do np = 1 , npft
+            if ( var3d(j,i,np) > 0.0D0 ) then
+              spft = spft + (var3d(j,i,np)*100.0D0)/(100.0D0-pctspec(j,i))
+            end if
+          end do
+          if ( spft < smallnum ) then
             ! Substitute with something around it
             call bestaround_pft(var3d,i,j)
             spft = 0.0D0
-            if ( pctspec(j,i) > 0.00001D0 ) then
-              do np = 1 , npft
-                if ( var3d(j,i,np) > 0.0D0 ) then
-                  spft = spft + var3d(j,i,np) * 100.0D0/(100.0D0-pctspec(j,i))
-                end if
-              end do
-            else 
-              do np = 1 , npft
-                if ( var3d(j,i,np) > 0.0D0 ) then
-                  spft = spft + var3d(j,i,np)
-                end if
-              end do
-            end if
-            if ( spft < 0.00001D0 ) then
+            do np = 1 , npft
+              if ( var3d(j,i,np) > 0.0D0 ) then
+                spft = spft + (var3d(j,i,np) * 100.0D0)/(100.0D0-pctspec(j,i))
+              end if
+            end do
+            if ( spft < smallnum ) then
               call die(__FILE__,'No points around !',__LINE__)
             end if
           end if
           diff = spft - 100.0D0
-          if ( abs(diff) > 1.0D-5 ) then
+          if ( abs(diff) > smallnum ) then
             ! Normalize it !
-            if ( abs(diff) > 0.0001D0 ) then
-              ! Not worth doing if too small a diff...
-              do np = 1 , npft
-                if ( var3d(j,i,np) > 0.0D0 ) then
-                  operat = diff*(var3d(j,i,np)/spft)
-                  var3d(j,i,np) = var3d(j,i,np) - operat
-                  if ( var3d(j,i,np) < 0.0D0 ) then
-                    var3d(j,i,np) = 0.0D0
-                  end if
+            do np = 1 , npft
+              if ( var3d(j,i,np) > 0.0D0 ) then
+                operat = diff*(var3d(j,i,np)/spft)
+                var3d(j,i,np) = var3d(j,i,np) - operat
+                if ( var3d(j,i,np) < 0.0D0 ) then
+                  var3d(j,i,np) = 0.0D0
                 end if
-              end do
-              ! Re-compute diff
-              spft = 0.0D0
-              if ( pctspec(j,i) > 0.00001D0 ) then
-                do np = 1 , npft
-                  if ( var3d(j,i,np) > 0.0D0 ) then
-                    spft = spft + var3d(j,i,np) * 100.0D0/(100.0D0-pctspec(j,i))
-                  end if
-                end do
-              else
-                do np = 1 , npft
-                  if ( var3d(j,i,np) > 0.0D0 ) then
-                    spft = spft + var3d(j,i,np)
-                  end if
-                end do
               end if
-              diff = spft - 100.0D0
-            end if
-            if ( abs(diff) > 1.0D-5 ) then
+            end do
+            ! Re-compute diff
+            spft = 0.0D0
+            do np = 1 , npft
+              if ( var3d(j,i,np) > 0.0D0 ) then
+                spft = spft + (var3d(j,i,np) * 100.0D0)/(100.0D0-pctspec(j,i))
+              end if
+            end do
+            diff = spft - 100.0D0
+            if ( abs(diff) > smallnum ) then
               pft_gt0 = (var3d(j,i,:) > diff/dble(npft))
               do n = 1 , npft
                 if ( pft_gt0(n) .and. count(pft_gt0) > 0 ) then
                   var3d(j,i,n) = (var3d(j,i,n) - diff/dble(count(pft_gt0)))
                 end if
               end do
+              spft = 0.0D0
+              do np = 1 , npft
+                if ( var3d(j,i,np) > 0.0D0 ) then
+                  spft = spft + (var3d(j,i,np) * 100.0D0)/(100.0D0-pctspec(j,i))
+                end if
+              end do
+              diff = spft - 100.0D0
+              if ( abs(diff) > smallnum ) then
+                do np = 1 , npft
+                  if ( var3d(j,i,np) > 0.0D0 ) then
+                    operat = diff*(var3d(j,i,np)/spft)
+                    var3d(j,i,np) = var3d(j,i,np) - operat
+                    if ( var3d(j,i,np) < 0.0D0 ) then
+                      var3d(j,i,np) = 0.0D0
+                    end if
+                  end if
+                end do
+                spft = 0.0D0
+                do np = 1 , npft
+                  if ( var3d(j,i,np) > 0.0D0 ) then
+                    spft = spft + &
+                            (var3d(j,i,np) * 100.0D0)/(100.0D0-pctspec(j,i))
+                  end if
+                end do
+                diff = spft - 100.0D0
+                if ( abs(diff) > smallnum ) then
+                  write (0,*) abs(diff)
+                  call die(__FILE__,'Cannot normalize...',__LINE__)
+                end if
+              end if
             end if
           end if
         end if
@@ -1257,93 +1266,97 @@ program mksurfdata
 
     allocate(var3d(jxsg,iysg,npft))
     call mkdynpft(var3d(:,:,:),it)
-    var3d(:,:,:) = max(var3d(:,:,:),0.0D0)
+    var3d(:,:,:) = dint(max(var3d(:,:,:),0.0D0))
     do np = 1 , npft
       where ( xmask < 0.5D0 )
         var3d(:,:,np) = vmisdat
       end where
     end do
+
     ! Here adjustment !
     do i = igstart , igstop
       do j = jgstart , jgstop
         if ( xmask(j,i) > 0.5D0 ) then
-          if ( pctspec(j,i) > 99.99999D0 ) then
-            var3d(j,i,:) = vmisdat
+          if ( pctspec(j,i) > (100.0D0 - smallnum) ) then
+            var3d(j,i,:) = 0.0D0
           else
             spft = 0.0D0
-            if ( pctspec(j,i) > 0.00001D0 ) then
-              do np = 1 , npft
-                if ( var3d(j,i,np) > 0.0D0 ) then
-                  spft = spft + var3d(j,i,np)*100.0D0/(100.0D0-pctspec(j,i))
-                end if
-              end do
-            else 
-              do np = 1 , npft
-                if ( var3d(j,i,np) > 0.0D0 ) then
-                  spft = spft + var3d(j,i,np)
-                end if
-              end do
-            end if
-            if ( spft < 0.00001D0 ) then
+            do np = 1 , npft
+              if ( var3d(j,i,np) > 0.0D0 ) then
+                spft = spft + (var3d(j,i,np)*100.0D0)/(100.0D0-pctspec(j,i))
+              end if
+            end do
+            if ( spft < smallnum ) then
               ! Substitute with something around it
               call bestaround_pft(var3d,i,j)
               spft = 0.0D0
-              if ( pctspec(j,i) > 0.00001D0 ) then
-                do np = 1 , npft
-                  if ( var3d(j,i,np) > 0.0D0 ) then
-                    spft = spft + var3d(j,i,np) * 100.0D0/(100.0D0-pctspec(j,i))
-                  end if
-                end do
-              else 
-                do np = 1 , npft
-                  if ( var3d(j,i,np) > 0.0D0 ) then
-                    spft = spft + var3d(j,i,np)
-                  end if
-                end do
-              end if
-              if ( spft < 0.00001D0 ) then
+              do np = 1 , npft
+                if ( var3d(j,i,np) > 0.0D0 ) then
+                  spft = spft + (var3d(j,i,np) * 100.0D0)/(100.0D0-pctspec(j,i))
+                end if
+              end do
+              if ( spft < smallnum ) then
                 call die(__FILE__,'No points around !',__LINE__)
               end if
             end if
             diff = spft - 100.0D0
-            if ( abs(diff) > 1.0D-5 ) then
+            if ( abs(diff) > smallnum ) then
               ! Normalize it !
-              if ( abs(diff) > 0.0001D0 ) then
-                ! Not worth doing if too small a diff...
-                do np = 1 , npft
-                  if ( var3d(j,i,np) > 0.0D0 ) then
-                    operat = diff*(var3d(j,i,np)/spft)
-                    var3d(j,i,np) = var3d(j,i,np) - operat
-                    if ( var3d(j,i,np) < 0.0D0 ) then
-                      var3d(j,i,np) = 0.0D0
-                    end if
+              do np = 1 , npft
+                if ( var3d(j,i,np) > 0.0D0 ) then
+                  operat = diff*(var3d(j,i,np)/spft)
+                  var3d(j,i,np) = var3d(j,i,np) - operat
+                  if ( var3d(j,i,np) < 0.0D0 ) then
+                    var3d(j,i,np) = 0.0D0
                   end if
-                end do
-                ! Re-compute diff
-                spft = 0.0D0
-                if ( pctspec(j,i) > 0.00001D0 ) then
-                  do np = 1 , npft
-                    if ( var3d(j,i,np) > 0.0D0 ) then
-                      spft = spft + &
-                              var3d(j,i,np) * 100.0D0/(100.0D0-pctspec(j,i))
-                    end if
-                  end do
-                else
-                  do np = 1 , npft
-                    if ( var3d(j,i,np) > 0.0D0 ) then
-                      spft = spft + var3d(j,i,np)
-                    end if
-                  end do
                 end if
-                diff = spft - 100.0D0
-              end if
-              if ( abs(diff) > 1.0D-5 ) then
+              end do
+              ! Re-compute diff
+              spft = 0.0D0
+              do np = 1 , npft
+                if ( var3d(j,i,np) > 0.0D0 ) then
+                  spft = spft + (var3d(j,i,np) * 100.0D0)/(100.0D0-pctspec(j,i))
+                end if
+              end do
+              diff = spft - 100.0D0
+              if ( abs(diff) > smallnum ) then
                 pft_gt0 = (var3d(j,i,:) > diff/dble(npft))
                 do n = 1 , npft
                   if ( pft_gt0(n) .and. count(pft_gt0) > 0 ) then
                     var3d(j,i,n) = (var3d(j,i,n) - diff/dble(count(pft_gt0)))
                   end if
                 end do
+                spft = 0.0D0
+                do np = 1 , npft
+                  if ( var3d(j,i,np) > 0.0D0 ) then
+                    spft = spft + &
+                            (var3d(j,i,np) * 100.0D0)/(100.0D0-pctspec(j,i))
+                  end if
+                end do
+                diff = spft - 100.0D0
+                if ( abs(diff) > smallnum ) then
+                  do np = 1 , npft
+                    if ( var3d(j,i,np) > 0.0D0 ) then
+                      operat = diff*(var3d(j,i,np)/spft)
+                      var3d(j,i,np) = var3d(j,i,np) - operat
+                      if ( var3d(j,i,np) < 0.0D0 ) then
+                        var3d(j,i,np) = 0.0D0
+                      end if
+                    end if
+                  end do
+                  spft = 0.0D0
+                  do np = 1 , npft
+                    if ( var3d(j,i,np) > 0.0D0 ) then
+                      spft = spft + &
+                              (var3d(j,i,np) * 100.0D0)/(100.0D0-pctspec(j,i))
+                    end if
+                  end do
+                  diff = spft - 100.0D0
+                  if ( abs(diff) > smallnum ) then
+                    write (0,*) abs(diff)
+                    call die(__FILE__,'Cannot normalize...',__LINE__)
+                  end if
+                end if
               end if
             end if
           end if
@@ -1452,7 +1465,7 @@ program mksurfdata
           if ( is < 1 ) is = 1-is
           if ( is > iysg ) is = 2*iysg - is
           do n = 1 , npft
-            if ( pft(js,is,n) > 0.00001D0 ) then
+            if ( pft(js,is,n) > smallnum ) then
               ip = ip + 1
               vals(n,ip) = vals(n,ip) + pft(js,is,n)
             end if
