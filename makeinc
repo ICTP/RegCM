@@ -41,3 +41,8 @@ SVNDEF := $(DEFINE)'SVN_REV="$(shell svnversion -n .)"'
 #CPPFLAGS += $(DEFINE)VERTSOILC
 #CPPFLAGS += $(DEFINE)VANCOUVER
 #CPPFLAGS += $(DEFINE)VICHYDRO
+#
+
+space :=
+space +=
+flagsuffix := $(subst $(space),_,$(subst $(DEFINE),,$(filter -D% , $(CPPFLAGS))))

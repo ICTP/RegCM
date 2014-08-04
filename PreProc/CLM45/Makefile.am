@@ -1,9 +1,12 @@
 
 include $(REGCM_ROOT)/makeinc
 
+program_transform_name = s&$$&$(flagsuffix)&
+
 vpath %.o $(REGCM_ROOT)/Share:.
 
 bin_PROGRAMS = mksurfdata
+
 mksurfdata_SOURCES = mksurfdata.F90 mod_mkabm.F90 mod_mklaisai.F90 \
   mod_mksoitex.F90 mod_bilinear.F90 mod_mkfmax.F90 mod_mkpeatf.F90 \
   mod_mkurban.F90 mod_getwindow.F90 mod_mkgdp.F90 mod_mkpft.F90 \

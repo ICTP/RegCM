@@ -1248,7 +1248,7 @@ the CLM surface model instead of the default BATS1e model. We will not here go
 in deep in the difference between the two models, read the Reference Manual
 for this.
 The executable of the model is different in the case of the \verb=CLM=, and is
-named \verb=regcmMPI_clm=.
+named \verb=regcmMPICLM=.
 Note that in the CLM case only the MPI enabled compilation is supported (no
 serial), and no subgridding is possible (\verb=nsg= is always $1$).
 
@@ -1323,7 +1323,7 @@ chapter \ref{tutorial}. To run the \verb=CLM= option in the RegCM model, just
 substitute the executable name:
 
 \begin{Verbatim}
-$> mpirun -np 2 ./bin/regcmMPI_clm regcm.in
+$> mpirun -np 2 ./bin/regcmMPICLM regcm.in
 \end{Verbatim}
 
 Note that the \verb=CLM= land model is much heavier than the BATS1e model, and
@@ -1340,7 +1340,7 @@ the CLM version 4.5 surface model instead of the default BATS1e model.
 We will not here go in deep in the difference between the two models, read
 the Reference Manual for this.
 The executable of the model is different in the case of the \verb=CLM 4.5=,
-and is named \verb=regcmMPI_clm45=.
+and is named \verb=regcmMPICLM45=.
 Note that in the \verb=CLM 4.5= case only the MPI enabled compilation is
 supported (no serial).
 
@@ -1407,7 +1407,7 @@ chapter \ref{tutorial}. To run the \verb=CLM 4.5= option in the RegCM model,
 just substitute the executable name:
 
 \begin{Verbatim}
-$> mpirun -np 2 ./bin/regcmMPI_clm45 regcm.in
+$> mpirun -np 2 ./bin/regcmMPICLM45 regcm.in
 \end{Verbatim}
 
 \section{Sensitivity experiments hint}
