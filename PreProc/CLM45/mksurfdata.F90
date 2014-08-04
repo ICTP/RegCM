@@ -64,6 +64,9 @@ program mksurfdata
   use mod_mkdynpft
 #endif
 #endif
+#ifdef VICHYDRO
+  use mod_mkvic
+#endif
 
   implicit none
 
@@ -108,6 +111,9 @@ program mksurfdata
   integer(ik4) :: iharvvh1 , iharvvh2 , iharvsh1 , iharvsh2 , iharvsh3 , igraz
   character(len=256) :: dynfile
 #endif
+#endif
+#ifdef VICHYDRO
+  integer(ik4) :: ibinfl , ids , idsmax ,iws
 #endif
   integer(ik4) :: ijxvar , iiyvar
   type(rcm_time_and_date) :: irefdate , imondate
@@ -582,6 +588,37 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add hdm long_name')
   istatus = nf90_put_att(ncid, ipopden, 'units','counts/km^2')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add hdm units')
+#endif
+
+#ifdef VICHYDRO
+  istatus = nf90_def_var(ncid, 'binfl',nf90_double,idims(7),ibinfl)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var binfl')
+  istatus = nf90_put_att(ncid, ibinfl, 'long_name', &
+          'VIC b parameter for the Variable Infiltration Capacity Curve')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add binfl long_name')
+  istatus = nf90_put_att(ncid, ibinfl, 'units','unitless')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add binfl units')
+  istatus = nf90_def_var(ncid, 'Ds',nf90_double,idims(7),ids)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var ds')
+  istatus = nf90_put_att(ncid, ids, 'long_name', &
+          'VIC Ds parameter for the ARNO curve')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ds long_name')
+  istatus = nf90_put_att(ncid, ids, 'units','unitless')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ds units')
+  istatus = nf90_def_var(ncid, 'Dsmax',nf90_double,idims(7),idsmax)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var dsmax')
+  istatus = nf90_put_att(ncid, idsmax, 'long_name', &
+          'VIC Dsmax parameter for the ARNO curve')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add dsmax long_name')
+  istatus = nf90_put_att(ncid, idsmax, 'units','unitless')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add dsmax units')
+  istatus = nf90_def_var(ncid, 'Ws',nf90_double,idims(7),iws)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var ws')
+  istatus = nf90_put_att(ncid, iws, 'long_name', &
+          'VIC Ws parameter for the ARNO curve')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ws long_name')
+  istatus = nf90_put_att(ncid, iws, 'units','unitless')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add ws units')
 #endif
 
   istatus = nf90_enddef(ncid)
@@ -1148,6 +1185,41 @@ program mksurfdata
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write hdm')
   end do
   deallocate(var2d)
+#endif
+
+#ifdef VICHYDRO
+  allocate(var3d(jxsg,iysg,4))
+  call mkvic('mksrf_vic.nc',var3d)
+  do i = 1 , 4
+    where ( xmask < 0.5D0 )
+      var3d(:,:,i) = vmisdat
+    end where
+  end do
+  call mypack(var3d(:,:,1),gcvar)
+  where ( gcvar < 0.0 )
+    gcvar = 0.1D0
+  end where
+  istatus = nf90_put_var(ncid, ibinfl, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write binfl')
+  call mypack(var3d(:,:,2),gcvar)
+  where ( gcvar < 0.0 )
+    gcvar = 0.1D0
+  end where
+  istatus = nf90_put_var(ncid, ids, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write ds')
+  call mypack(var3d(:,:,3),gcvar)
+  where ( gcvar < 0.0 )
+    gcvar = 10.0D0
+  end where
+  istatus = nf90_put_var(ncid, idsmax, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write dsmax')
+  call mypack(var3d(:,:,4),gcvar)
+  where ( gcvar < 0.0 )
+    gcvar = 0.75D0
+  end where
+  istatus = nf90_put_var(ncid, iws, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write ws')
+  deallocate(var3d)
 #endif
 
   istatus = nf90_close(ncid)
