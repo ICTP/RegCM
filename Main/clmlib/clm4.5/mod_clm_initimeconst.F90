@@ -29,7 +29,7 @@ module mod_clm_initimeconst
   use mod_clm_cninispecial , only : CNiniSpecial
 #endif
 #if (defined VICHYDRO)
-  use mod_clm_clmvicmap , only : initCLMVICMap
+  use mod_clm_vicmap , only : initCLMVICMap
   use mod_clm_initsoilparvic , only : initSoilParVIC
   use mod_clm_varpar , only : nlayer , nlayert
   use mod_clm_varcon , only : nlvic

@@ -2,6 +2,7 @@ module mod_clm_snowhydrology
   !
   ! Calculate snow hydrology.
   !
+  use mod_intkinds
   use mod_realkinds
   use mod_stdio
   use mod_mpmessage
@@ -9,6 +10,7 @@ module mod_clm_snowhydrology
   use mod_clm_varpar  , only: nlevsno
 
   implicit none
+
   private
 
   save
@@ -52,19 +54,19 @@ module mod_clm_snowhydrology
                                 scvng_fct_mlt_dst1,  scvng_fct_mlt_dst2,  &
                                 scvng_fct_mlt_dst3,  scvng_fct_mlt_dst4
     implicit none
-    integer, intent(in) :: lbc, ubc ! column bounds
+    integer(ik4), intent(in) :: lbc, ubc ! column bounds
     ! number of snow points in column filter
-    integer, intent(in) :: num_snowc
+    integer(ik4), intent(in) :: num_snowc
     ! column filter for snow points
-    integer, intent(in) :: filter_snowc(ubc-lbc+1)
+    integer(ik4), intent(in) :: filter_snowc(ubc-lbc+1)
     ! number of non-snow points in column filter
-    integer, intent(in) :: num_nosnowc
+    integer(ik4), intent(in) :: num_nosnowc
     ! column filter for non-snow points
-    integer, intent(in) :: filter_nosnowc(ubc-lbc+1)
+    integer(ik4), intent(in) :: filter_nosnowc(ubc-lbc+1)
 
     real(rk8), pointer :: qflx_snow_melt(:)  ! net snow melt
-    integer, pointer :: clandunit(:)         ! columns's landunit
-    integer, pointer :: ltype(:)             ! landunit type
+    integer(ik4), pointer :: clandunit(:)         ! columns's landunit
+    integer(ik4), pointer :: ltype(:)             ! landunit type
     ! eff. fraction of ground covered by snow (0 to 1)
     real(rk8), pointer :: frac_sno_eff(:)
     ! fraction of ground covered by snow (0 to 1)
@@ -77,7 +79,7 @@ module mod_clm_snowhydrology
     real(rk8), pointer :: qflx_ev_soil(:)
     ! evaporation flux from soil (W/m**2) [+ to atm]
     real(rk8), pointer :: qflx_evap_soi(:)
-    integer , pointer :: snl(:)            !number of snow layers
+    integer(ik4) , pointer :: snl(:)            !number of snow layers
     logical , pointer :: do_capsnow(:)     !true => do snow capping
     real(rk8), pointer :: qflx_snomelt(:)  !snow melt (mm H2O /s)
     !rain on ground after interception (mm H2O/s) [+]
@@ -97,7 +99,7 @@ module mod_clm_snowhydrology
 
     real(rk8), pointer :: h2osoi_ice(:,:)  !ice lens (kg/m2)
     real(rk8), pointer :: h2osoi_liq(:,:)  !liquid water (kg/m2)
-    integer , pointer :: cgridcell(:)      ! columns's gridcell (col)
+    integer(ik4) , pointer :: cgridcell(:)      ! columns's gridcell (col)
     ! hydrophillic BC mass in snow (col,lyr) [kg]
     real(rk8), pointer :: mss_bcphi(:,:)
     ! hydrophobic BC mass in snow (col,lyr) [kg]
@@ -155,7 +157,7 @@ module mod_clm_snowhydrology
     ! aerosol deposition from atmosphere model (grd,aer) [kg m-1 s-1]
     real(rk8), pointer :: forc_aer(:,:)
 
-    integer  :: c, j, fc, l        !do loop/array indices
+    integer(ik4)  :: c, j, fc, l        !do loop/array indices
     real(rk8) :: qin(lbc:ubc)      !water flow into the elmement (mm/s)
     real(rk8) :: qout(lbc:ubc)     !water flow out of the elmement (mm/s)
     real(rk8) :: wgdif             !ice mass after minus sublimation
@@ -165,7 +167,7 @@ module mod_clm_snowhydrology
     real(rk8) :: vol_ice(lbc:ubc,-nlevsno+1:0)
     !effective porosity = porosity - vol_ice
     real(rk8) :: eff_porosity(lbc:ubc,-nlevsno+1:0)
-    integer  :: g         ! gridcell loop index
+    integer(ik4)  :: g         ! gridcell loop index
     real(rk8) :: qin_bc_phi(lbc:ubc)  ! flux of hydrophilic BC into layer [kg]
     real(rk8) :: qout_bc_phi(lbc:ubc) ! flux of hydrophilic BC out of layer [kg]
     real(rk8) :: qin_bc_pho(lbc:ubc)  ! flux of hydrophobic BC into layer [kg]
@@ -559,20 +561,20 @@ module mod_clm_snowhydrology
     use mod_clm_varcon      , only : rpi, isturb, istdlak, istsoil, istcrop
     use mod_clm_varctl      , only : subgridflag
     implicit none
-    integer, intent(in) :: lbc, ubc  ! column bounds
+    integer(ik4), intent(in) :: lbc, ubc  ! column bounds
     ! number of column snow points in column filter
-    integer, intent(in) :: num_snowc
+    integer(ik4), intent(in) :: num_snowc
     ! column filter for snow points
-    integer, intent(in) :: filter_snowc(ubc-lbc+1)
+    integer(ik4), intent(in) :: filter_snowc(ubc-lbc+1)
 
     real(rk8), pointer :: frac_sno(:)    !snow covered fraction
     real(rk8), pointer :: swe_old(:,:)   !initial swe values
     real(rk8), pointer :: int_snow(:)    !integrated snowfall [mm]
     real(rk8), pointer :: n_melt(:)      !SCA shape parameter
-    integer,  pointer :: snl(:)          !number of snow layers
+    integer(ik4),  pointer :: snl(:)          !number of snow layers
 
     !flag for melting (=1), freezing (=2), Not=0
-    integer,  pointer :: imelt(:,:)
+    integer(ik4),  pointer :: imelt(:,:)
     !fraction of ice relative to the tot water
     real(rk8), pointer :: frac_iceold(:,:)
     real(rk8), pointer :: t_soisno(:,:)   !soil temperature (Kelvin)
@@ -581,7 +583,7 @@ module mod_clm_snowhydrology
 
     real(rk8), pointer :: dz(:,:)           !layer depth (m)
 
-    integer :: j, l, c, fc                 ! indices
+    integer(ik4) :: j, l, c, fc                 ! indices
     real(rk8), parameter :: c2 = 23.D-3    ! [m3/kg]
     real(rk8), parameter :: c3 = 2.777D-6  ! [1/s]
     real(rk8), parameter :: c4 = 0.04D0    ! [1/K]
@@ -607,8 +609,8 @@ module mod_clm_snowhydrology
     real(rk8) :: bi     ! partial density of ice [kg/m3]
     real(rk8) :: wsum   ! snowpack total water mass (ice+liquid) [kg/m2]
     real(rk8) :: fsno_melt
-    integer, pointer :: clandunit(:)       !landunit index for each column
-    integer, pointer :: ltype(:)           !landunit type
+    integer(ik4), pointer :: clandunit(:)       !landunit index for each column
+    integer(ik4), pointer :: ltype(:)           !landunit type
     real(rk8), pointer :: snow_depth(:)    ! snow height (m)
 
     ! Assign local pointers to derived subtypes (column-level)
@@ -733,21 +735,21 @@ module mod_clm_snowhydrology
     use mod_clm_varcon, only : istsoil, isturb,istwet,istice
     use mod_clm_varcon, only : istcrop
     implicit none
-    integer, intent(in)    :: lbc, ubc  ! column bounds
+    integer(ik4), intent(in)    :: lbc, ubc  ! column bounds
     ! number of column snow points in column filter
-    integer, intent(inout) :: num_snowc
+    integer(ik4), intent(inout) :: num_snowc
     ! column filter for snow points
-    integer, intent(inout) :: filter_snowc(ubc-lbc+1)
+    integer(ik4), intent(inout) :: filter_snowc(ubc-lbc+1)
 
     !fraction of ground covered by snow (0 to 1)
     real(rk8), pointer :: frac_sno(:)
     !fraction of ground covered by snow (0 to 1)
     real(rk8), pointer :: frac_sno_eff(:)
     real(rk8), pointer :: int_snow(:)   !integrated snowfall [mm]
-    integer, pointer :: clandunit(:)    !landunit index for each column
-    integer, pointer :: ltype(:)        !landunit type
+    integer(ik4), pointer :: clandunit(:)    !landunit index for each column
+    integer(ik4), pointer :: ltype(:)        !landunit type
 
-    integer , pointer :: snl(:)         !number of snow layers
+    integer(ik4) , pointer :: snl(:)         !number of snow layers
     real(rk8), pointer :: h2osno(:)     !snow water (mm H2O)
     real(rk8), pointer :: snow_depth(:) !snow height (m)
     real(rk8), pointer :: dz(:,:)       !layer depth (m)
@@ -779,12 +781,12 @@ module mod_clm_snowhydrology
     ! sent to qflx_qrgwl (mm H2O/s)
     real(rk8), pointer :: qflx_sl_top_soil(:)
 
-    integer :: c, fc                 ! column indices
-    integer :: i,k                   ! loop indices
-    integer :: j,l                   ! node indices
-    integer :: msn_old(lbc:ubc)      ! number of top snow layer
-    integer :: mssi(lbc:ubc)         ! node index
-    integer :: neibor                ! adjacent node selected for combination
+    integer(ik4) :: c, fc             ! column indices
+    integer(ik4) :: i,k               ! loop indices
+    integer(ik4) :: j,l               ! node indices
+    integer(ik4) :: msn_old(lbc:ubc)  ! number of top snow layer
+    integer(ik4) :: mssi(lbc:ubc)     ! node index
+    integer(ik4) :: neibor            ! adjacent node selected for combination
     real(rk8):: zwice(lbc:ubc)        ! total ice mass in snow
     real(rk8):: zwliq (lbc:ubc)       ! total liquid water in snow
     real(rk8):: dzmin(5)              ! minimum of top snow layer
@@ -1123,15 +1125,15 @@ module mod_clm_snowhydrology
     use mod_clm_type
     use mod_clm_varcon,  only : tfrz
     implicit none
-    integer, intent(in)    :: lbc, ubc    ! column bounds
+    integer(ik4), intent(in)    :: lbc, ubc    ! column bounds
     ! number of column snow points in column filter
-    integer, intent(inout) :: num_snowc
+    integer(ik4), intent(inout) :: num_snowc
     ! column filter for snow points
-    integer, intent(inout) :: filter_snowc(ubc-lbc+1)
+    integer(ik4), intent(inout) :: filter_snowc(ubc-lbc+1)
 
     !fraction of ground covered by snow (0 to 1)
     real(rk8), pointer :: frac_sno(:)
-    integer , pointer :: snl(:)        !number of snow layers
+    integer(ik4) , pointer :: snl(:)        !number of snow layers
     real(rk8), pointer :: dz(:,:)      !layer depth (m)
     real(rk8), pointer :: zi(:,:)      !interface level below a "z" level (m)
     real(rk8), pointer :: t_soisno(:,:)   !soil temperature (Kelvin)
@@ -1158,9 +1160,9 @@ module mod_clm_snowhydrology
     ! effective snow grain radius (col,lyr) [microns, m^-6]
     real(rk8), pointer :: snw_rds(:,:)
 
-    integer  :: j, c, fc      ! indices
+    integer(ik4)  :: j, c, fc ! indices
     real(rk8) :: drr          ! thickness of the combined [m]
-    integer  :: msno          ! number of snow layer 1 (top) to msno (bottom)
+    integer(ik4)  :: msno     ! number of snow layer 1 (top) to msno (bottom)
     real(rk8) :: dzsno(lbc:ubc,nlevsno) ! Snow layer thickness [m]
     real(rk8) :: swice(lbc:ubc,nlevsno) ! Partial volume of ice [m3/m3]
     real(rk8) :: swliq(lbc:ubc,nlevsno) ! Partial volume of liquid water [m3/m3]
@@ -1657,21 +1659,21 @@ module mod_clm_snowhydrology
                              num_nosnowc, filter_nosnowc)
     use mod_clm_type
     implicit none
-    integer, intent(in)  :: lbc, ubc ! column bounds
+    integer(ik4), intent(in)  :: lbc, ubc ! column bounds
     ! number of column non-lake points in column filter
-    integer, intent(in)  :: num_nolakec
+    integer(ik4), intent(in)  :: num_nolakec
     ! column filter for non-lake points
-    integer, intent(in)  :: filter_nolakec(ubc-lbc+1)
+    integer(ik4), intent(in)  :: filter_nolakec(ubc-lbc+1)
     ! number of column snow points in column filter
-    integer, intent(out) :: num_snowc
+    integer(ik4), intent(out) :: num_snowc
     ! column filter for snow points
-    integer, intent(out) :: filter_snowc(ubc-lbc+1)
+    integer(ik4), intent(out) :: filter_snowc(ubc-lbc+1)
     ! number of column non-snow points in column filter
-    integer, intent(out) :: num_nosnowc
+    integer(ik4), intent(out) :: num_nosnowc
     ! column filter for non-snow points
-    integer, intent(out) :: filter_nosnowc(ubc-lbc+1)
-    integer , pointer :: snl(:)      ! number of snow layers
-    integer  :: fc, c
+    integer(ik4), intent(out) :: filter_nosnowc(ubc-lbc+1)
+    integer(ik4) , pointer :: snl(:)      ! number of snow layers
+    integer(ik4)  :: fc, c
 
     ! Assign local pointers to derived subtype components (column-level)
 
@@ -1701,13 +1703,13 @@ module mod_clm_snowhydrology
     use mod_clm_varcon,  only : tfrz
     use mod_clm_slakecon  ,  only : lsadz
     implicit none
-    integer, intent(in)    :: lbc, ubc   ! column bounds
+    integer(ik4), intent(in)    :: lbc, ubc   ! column bounds
     ! number of column snow points in column filter
-    integer, intent(inout) :: num_snowc
+    integer(ik4), intent(inout) :: num_snowc
     ! column filter for snow points
-    integer, intent(inout) :: filter_snowc(ubc-lbc+1)
+    integer(ik4), intent(inout) :: filter_snowc(ubc-lbc+1)
 
-    integer , pointer :: snl(:)     !number of snow layers
+    integer(ik4) , pointer :: snl(:)     !number of snow layers
     real(rk8), pointer :: dz(:,:)   !layer depth (m)
     real(rk8), pointer :: zi(:,:)   !interface level below a "z" level (m)
     real(rk8), pointer :: t_soisno(:,:)     !soil temperature (Kelvin)
@@ -1734,9 +1736,9 @@ module mod_clm_snowhydrology
     ! effective snow grain radius (col,lyr) [microns, m^-6]
     real(rk8), pointer :: snw_rds(:,:)
 
-    integer  :: j, c, fc   ! indices
+    integer(ik4)  :: j, c, fc   ! indices
     real(rk8) :: drr       ! thickness of the combined [m]
-    integer  :: msno       ! number of snow layer 1 (top) to msno (bottom)
+    integer(ik4)  :: msno       ! number of snow layer 1 (top) to msno (bottom)
     real(rk8) :: dzsno(lbc:ubc,nlevsno) ! Snow layer thickness [m]
     real(rk8) :: swice(lbc:ubc,nlevsno) ! Partial volume of ice [m3/m3]
     real(rk8) :: swliq(lbc:ubc,nlevsno) ! Partial volume of liquid water [m3/m3]

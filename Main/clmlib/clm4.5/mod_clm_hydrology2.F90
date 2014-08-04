@@ -48,7 +48,7 @@ module mod_clm_hydrology2
     use mod_clm_soilhydrology , only : Infiltration, SoilWater, Drainage, &
             SurfaceRunoff
 #if (defined VICHYDRO)
-    use mod_clm_vicmap    , only : CLMVICMap
+    use mod_clm_vicmap , only : CLMVICMap
 #endif
     implicit none
     integer(ik4), intent(in) :: lbc, ubc    ! column bounds

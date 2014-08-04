@@ -3,6 +3,7 @@ module mod_clm_snicar
   ! Calculate albedo of snow containing impurities
   ! and the evolution of snow effective radius
   !
+  use mod_intkinds
   use mod_realkinds
   use mod_mpmessage
   use mod_mppparam
@@ -26,7 +27,7 @@ module mod_clm_snicar
   ! minimum allowed snow effective radius (also "fresh snow" value) [microns]
   real(rk8), public, parameter :: snw_rds_min = 54.526D0
   ! number of aerosol species in snowpack (indices described above) [nbr]
-  integer,  public, parameter :: sno_nbr_aer =   8
+  integer(ik4),  public, parameter :: sno_nbr_aer =   8
   ! parameter to include organic carbon (OC) in snowpack radiative calculations
   logical,  public, parameter :: DO_SNO_OC =    .false.
   ! parameter to include aerosols in snowpack radiative calculations
@@ -59,31 +60,31 @@ module mod_clm_snicar
   !  7= dust species 3
   !  8= dust species 4
   ! number of spectral bands used in snow model [nbr]
-  integer,  parameter :: numrad_snw  =   5
+  integer(ik4),  parameter :: numrad_snw  =   5
   ! first band index in near-IR spectrum [idx]
-  integer,  parameter :: nir_bnd_bgn =   2
+  integer(ik4),  parameter :: nir_bnd_bgn =   2
   ! ending near-IR band index [idx]
-  integer,  parameter :: nir_bnd_end =   5
+  integer(ik4),  parameter :: nir_bnd_end =   5
 
   ! number of effective radius indices used in Mie lookup table [idx]
-  integer,  parameter :: idx_Mie_snw_mx = 1471
+  integer(ik4),  parameter :: idx_Mie_snw_mx = 1471
   ! maxiumum temperature index used in aging lookup table [idx]
-  integer,  parameter :: idx_T_max      = 11
+  integer(ik4),  parameter :: idx_T_max      = 11
   ! minimum temperature index used in aging lookup table [idx]
-  integer,  parameter :: idx_T_min      = 1
+  integer(ik4),  parameter :: idx_T_min      = 1
   ! maxiumum temperature gradient index used in aging lookup table [idx]
-  integer,  parameter :: idx_Tgrd_max   = 31
+  integer(ik4),  parameter :: idx_Tgrd_max   = 31
   ! minimum temperature gradient index used in aging lookup table [idx]
-  integer,  parameter :: idx_Tgrd_min   = 1
+  integer(ik4),  parameter :: idx_Tgrd_min   = 1
   ! maxiumum snow density index used in aging lookup table [idx]
-  integer,  parameter :: idx_rhos_max   = 8
+  integer(ik4),  parameter :: idx_rhos_max   = 8
   ! minimum snow density index used in aging lookup table [idx]
-  integer,  parameter :: idx_rhos_min   = 1
+  integer(ik4),  parameter :: idx_rhos_min   = 1
 
   ! maximum effective radius defined in Mie lookup table [microns]
-  integer,  parameter :: snw_rds_max_tbl = 1500
+  integer(ik4),  parameter :: snw_rds_max_tbl = 1500
   ! minimium effective radius defined in Mie lookup table [microns]
-  integer,  parameter :: snw_rds_min_tbl = 30
+  integer(ik4),  parameter :: snw_rds_min_tbl = 30
   ! maximum allowed snow effective radius [microns]
   real(rk8), parameter :: snw_rds_max     = 1500.D0
   ! effective radius of re-frozen snow [microns]
@@ -211,22 +212,22 @@ module mod_clm_snicar
     use mod_clm_varpar , only : nlevsno, numrad
     implicit none
     ! flag: =1 when called from CLM, =2 when called from CSIM
-    integer , intent(in) :: flg_snw_ice
-    integer , intent(in) :: lbc, ubc       ! column index bounds [unitless]
+    integer(ik4) , intent(in) :: flg_snw_ice
+    integer(ik4) , intent(in) :: lbc, ubc       ! column index bounds [unitless]
     ! number of columns in non-urban filter
-    integer , intent(in) :: num_nourbanc
+    integer(ik4) , intent(in) :: num_nourbanc
     ! column filter for non-urban points
-    integer , intent(in) :: filter_nourbanc(ubc-lbc+1)
+    integer(ik4) , intent(in) :: filter_nourbanc(ubc-lbc+1)
     ! cosine of solar zenith angle for next time step (col) [unitless]
     real(rk8), intent(in) :: coszen(lbc:ubc)
     ! flag: =1 for direct-beam incident flux, =2 for diffuse incident flux
-    integer , intent(in) :: flg_slr_in
+    integer(ik4) , intent(in) :: flg_slr_in
     ! liquid water content (col,lyr) [kg/m2]
     real(rk8), intent(in) :: h2osno_liq(lbc:ubc,-nlevsno+1:0)
     ! ice content (col,lyr) [kg/m2]
     real(rk8), intent(in) :: h2osno_ice(lbc:ubc,-nlevsno+1:0)
     ! snow effective radius (col,lyr) [microns, m^-6]
-    integer,  intent(in) :: snw_rds(lbc:ubc,-nlevsno+1:0)
+    integer(ik4),  intent(in) :: snw_rds(lbc:ubc,-nlevsno+1:0)
     ! mass concentration of all aerosol species (col,lyr,aer) [kg/kg]
     real(rk8), intent(in) :: mss_cnc_aer_in(lbc:ubc,-nlevsno+1:0,sno_nbr_aer)
     ! albedo of surface underlying snow (col,bnd) [frc]
@@ -239,15 +240,15 @@ module mod_clm_snicar
     real(rk8), intent(out) :: flx_abs(lbc:ubc,-nlevsno+1:1,numrad)
 
     ! negative number of snow layers (col) [nbr]
-    integer,  pointer :: snl(:)
+    integer(ik4),  pointer :: snl(:)
     ! snow liquid water equivalent (col) [kg/m2]
     real(rk8), pointer :: h2osno(:)
     ! corresponding landunit of column (col) [idx] (debugging only)
-    integer,  pointer :: clandunit(:)
+    integer(ik4),  pointer :: clandunit(:)
     ! columns's gridcell index (col) [idx] (debugging only)
-    integer,  pointer :: cgridcell(:)
+    integer(ik4),  pointer :: cgridcell(:)
     ! landunit type (lnd) (debugging only)
-    integer,  pointer :: ltype(:)
+    integer(ik4),  pointer :: ltype(:)
     ! longitude (degrees) (debugging only)
     real(rk8), pointer :: londeg(:)
     ! latitude (degrees) (debugging only)
@@ -260,9 +261,9 @@ module mod_clm_snicar
 
     ! Local variables representing single-column values of arrays:
     ! negative number of snow layers [nbr]
-    integer :: snl_lcl
+    integer(ik4) :: snl_lcl
     ! snow effective radius [m^-6]
-    integer :: snw_rds_lcl(-nlevsno+1:0)
+    integer(ik4) :: snw_rds_lcl(-nlevsno+1:0)
     ! direct beam incident irradiance [W/m2] (set to 1)
     real(rk8):: flx_slrd_lcl(1:numrad_snw)
     ! diffuse incident irradiance [W/m2] (set to 1)
@@ -291,20 +292,20 @@ module mod_clm_snicar
     ! Other local variables
     ! two-stream approximation type
     !  (1=Eddington, 2=Quadrature, 3=Hemispheric Mean) [nbr]
-    integer :: aprx_typ
+    integer(ik4) :: aprx_typ
     ! flag to use Delta approximation (Joseph, 1976) (1= use, 0= don't use)
-    integer :: delta
+    integer(ik4) :: delta
     ! weights applied to spectral bands, specific to direct and diffuse cases
     ! (bnd) [frc]
     real(rk8):: flx_wgt(1:numrad_snw)
 
     ! flag: =1 if there is snow, but zero snow layers,
     !     =0 if at least 1 snow layer [flg]
-    integer :: flg_nosnl
+    integer(ik4) :: flg_nosnl
     ! flag: =1 to redo RT calculation if result is unrealistic
-    integer :: trip
+    integer(ik4) :: trip
     ! defines conditions for RT redo (explained below)
-    integer :: flg_dover
+    integer(ik4) :: flg_dover
 
     ! temporary snow albedo [frc]
     real(rk8):: albedo
@@ -348,20 +349,20 @@ module mod_clm_snicar
     real(rk8):: g_star(-nlevsno+1:0)
 
     ! gridcell, column, and landunit indices [idx]
-    integer :: g_idx, c_idx, l_idx
+    integer(ik4) :: g_idx, c_idx, l_idx
     ! spectral band index (1 <= bnd_idx <= numrad_snw) [idx]
-    integer :: bnd_idx
+    integer(ik4) :: bnd_idx
     ! snow effective radius index for retrieving Mie parameters from
     ! lookup table [idx]
-    integer :: rds_idx
+    integer(ik4) :: rds_idx
     ! index of bottom snow layer (0) [idx]
-    integer :: snl_btm
+    integer(ik4) :: snl_btm
     ! index of top snow layer (-4 to 0) [idx]
-    integer :: snl_top
-    integer :: fc       ! column filter index
-    integer :: i        ! layer index [idx]
-    integer :: j        ! aerosol number index [idx]
-    integer :: n        ! tridiagonal matrix index [idx]
+    integer(ik4) :: snl_top
+    integer(ik4) :: fc       ! column filter index
+    integer(ik4) :: i        ! layer index [idx]
+    integer(ik4) :: j        ! aerosol number index [idx]
+    integer(ik4) :: n        ! tridiagonal matrix index [idx]
 
     ! direct-beam radiation at bottom of layer interface (lyr) [W/m^2]
     real(rk8):: F_direct(-nlevsno+1:0)
@@ -385,13 +386,13 @@ module mod_clm_snicar
     real(rk8):: mu_not
 
     ! counter for number of times through error loop [nbr]
-    integer :: err_idx
+    integer(ik4) :: err_idx
     ! gridcell latitude (debugging only)
     real(rk8):: lat_coord
     ! gridcell longitude (debugging only)
     real(rk8):: lon_coord
     ! underlying surface type (debugging only)
-    integer :: sfctype
+    integer(ik4) :: sfctype
 
     ! intermediate variables for radiative transfer approximation:
     ! two-stream coefficient from Toon et al. (lyr) [unitless]
@@ -1196,20 +1197,20 @@ module mod_clm_snicar
     use mod_clm_varpar       , only : nlevsno
     use mod_clm_varcon       , only : spval
     implicit none
-    integer, intent(in) :: lbc, ubc  ! column bounds
+    integer(ik4), intent(in) :: lbc, ubc  ! column bounds
     ! number of column snow points in column filter
-    integer, intent(in) :: num_snowc
+    integer(ik4), intent(in) :: num_snowc
     ! column filter for snow points
-    integer, intent(in) :: filter_snowc(ubc-lbc+1)
+    integer(ik4), intent(in) :: filter_snowc(ubc-lbc+1)
     ! number of column non-snow points in column filter
-    integer, intent(in) :: num_nosnowc
+    integer(ik4), intent(in) :: num_nosnowc
     ! column filter for non-snow points
-    integer, intent(in) :: filter_nosnowc(ubc-lbc+1)
+    integer(ik4), intent(in) :: filter_nosnowc(ubc-lbc+1)
 
     ! soil and snow temperature (col,lyr) [K]
     real(rk8), pointer :: t_soisno(:,:)
     ! negative number of snow layers (col) [nbr]
-    integer,  pointer :: snl(:)
+    integer(ik4),  pointer :: snl(:)
     ! ground temperature (col) [K]
     real(rk8), pointer :: t_grnd(:)
     ! layer thickness (col,lyr) [m]
@@ -1240,17 +1241,17 @@ module mod_clm_snicar
     ! fraction of ground covered by snow (0 to 1)
     real(rk8), pointer :: frac_sno(:)
 
-    integer :: snl_top         ! top snow layer index [idx]
-    integer :: snl_btm         ! bottom snow layer index [idx]
-    integer :: i               ! layer index [idx]
-    integer :: c_idx           ! column index [idx]
-    integer :: fc              ! snow column filter index [idx]
+    integer(ik4) :: snl_top         ! top snow layer index [idx]
+    integer(ik4) :: snl_btm         ! bottom snow layer index [idx]
+    integer(ik4) :: i               ! layer index [idx]
+    integer(ik4) :: c_idx           ! column index [idx]
+    integer(ik4) :: fc              ! snow column filter index [idx]
     ! snow aging lookup table temperature index [idx]
-    integer :: T_idx
+    integer(ik4) :: T_idx
     ! snow aging lookup table temperature gradient index [idx]
-    integer :: Tgrd_idx
+    integer(ik4) :: Tgrd_idx
     ! snow aging lookup table snow density index [idx]
-    integer :: rhos_idx
+    integer(ik4) :: rhos_idx
     ! temperature at upper layer boundary [K]
     real(rk8) :: t_snotop
     ! temperature at lower layer boundary [K]

@@ -2,7 +2,7 @@ module mod_clm_urbaninit
   !
   ! Initialize urban data
   !
-  ! !USES:
+  use mod_intkinds
   use mod_realkinds
   use mod_clm_urban , only : urban_traffic , urban_hac , urban_hac_off
 
@@ -30,7 +30,7 @@ module mod_clm_urbaninit
     real(rk8) , pointer :: ht_roof(:)
     ! ratio of building height to street width (-)
     real(rk8) , pointer :: canyon_hwr(:)
-    integer , pointer :: ltype(:)      ! landunit type
+    integer(ik4) , pointer :: ltype(:)      ! landunit type
     ! urban landunit momentum roughness length (m)
     real(rk8) , pointer :: z_0_town(:)
     ! urban landunit displacement height (m)
@@ -46,11 +46,11 @@ module mod_clm_urbaninit
     ! frontal area index of buildings (-)
     real(rk8) :: frontal_ai
     real(rk8) :: build_lw_ratio  ! building short/long side ratio (-)
-    integer  :: l           ! indices
-    integer  :: begp, endp  ! beginning and ending pft indices
-    integer  :: begc, endc  ! beginning and ending column indices
-    integer  :: begl, endl  ! beginning and ending landunit indices
-    integer  :: begg, endg  ! beginning and ending gridcell indices
+    integer(ik4)  :: l           ! indices
+    integer(ik4)  :: begp, endp  ! beginning and ending pft indices
+    integer(ik4)  :: begc, endc  ! beginning and ending column indices
+    integer(ik4)  :: begl, endl  ! beginning and ending landunit indices
+    integer(ik4)  :: begg, endg  ! beginning and ending gridcell indices
 
     ! Assign local pointers to derived type members (landunit level)
 
@@ -113,11 +113,11 @@ module mod_clm_urbaninit
     use mod_clm_decomp , only : get_proc_bounds
     use mod_clm_urbaninput , only : urbinp
     implicit none
-    integer , pointer :: coli(:)   ! beginning column index for landunit
-    integer , pointer :: colf(:)   ! ending column index for landunit
-    integer , pointer :: ctype(:)  ! column type
-    integer , pointer :: ltype(:)  ! landunit type index
-    integer , pointer :: lgridcell(:)  ! gridcell of corresponding landunit
+    integer(ik4) , pointer :: coli(:)   ! beginning column index for landunit
+    integer(ik4) , pointer :: colf(:)   ! ending column index for landunit
+    integer(ik4) , pointer :: ctype(:)  ! column type
+    integer(ik4) , pointer :: ltype(:)  ! landunit type index
+    integer(ik4) , pointer :: lgridcell(:)  ! gridcell of corresponding landunit
     real(rk8), pointer :: canyon_hwr(:) ! urban canyon height to width ratio
     real(rk8), pointer :: emg(:)        ! ground emissivity
     ! weight of pervious column to total road
@@ -147,14 +147,15 @@ module mod_clm_urbaninit
     real(rk8), pointer :: cv_improad(:,:)
     real(rk8), pointer :: thick_wall(:)   ! thickness of urban wall (m)
     real(rk8), pointer :: thick_roof(:)   ! thickness of urban roof (m)
-    integer,  pointer :: nlev_improad(:)  ! number of impervious road layers (-)
-    integer,  pointer :: udenstype(:)     ! urban density type
-    integer  :: l,c,g        ! indices
-    integer  :: begp, endp   ! beginning and ending pft indices
-    integer  :: begc, endc   ! beginning and ending column indices
-    integer  :: begl, endl   ! beginning and ending landunit indices
-    integer  :: begg, endg   ! beginning and ending gridcell indices
-    integer  :: dindx        ! urban density type index
+    ! number of impervious road layers (-)
+    integer(ik4),  pointer :: nlev_improad(:)
+    integer(ik4),  pointer :: udenstype(:)     ! urban density type
+    integer(ik4)  :: l,c,g        ! indices
+    integer(ik4)  :: begp, endp   ! beginning and ending pft indices
+    integer(ik4)  :: begc, endc   ! beginning and ending column indices
+    integer(ik4)  :: begl, endl   ! beginning and ending landunit indices
+    integer(ik4)  :: begg, endg   ! beginning and ending gridcell indices
+    integer(ik4)  :: dindx        ! urban density type index
 
     ! Assign local pointers to derived type members (landunit-level)
 
@@ -253,11 +254,11 @@ module mod_clm_urbaninit
     use mod_clm_varcon , only : isturb, spval, icol_road_perv
     use mod_clm_decomp , only : get_proc_bounds
     implicit none
-    integer , pointer :: ltype(:)      ! landunit type
-    integer , pointer :: lgridcell(:)  ! gridcell of corresponding landunit
-    integer , pointer :: clandunit(:)  ! landunit index of corresponding column
-    integer , pointer :: plandunit(:)  ! landunit index of corresponding pft
-    integer , pointer :: ctype(:)      ! column type
+    integer(ik4) , pointer :: ltype(:)      ! landunit type
+    integer(ik4) , pointer :: lgridcell(:)  ! gridcell of corresponding landunit
+    integer(ik4) , pointer :: clandunit(:)  ! landunit index of column
+    integer(ik4) , pointer :: plandunit(:)  ! landunit index of pft
+    integer(ik4) , pointer :: ctype(:)      ! column type
     real(rk8), pointer :: taf(:)  ! urban canopy air temperature (K)
     real(rk8), pointer :: qaf(:)  ! urban canopy air specific humidity (kg/kg)
     ! heat flux from urban building interior to walls, roof (W/m**2)
@@ -307,11 +308,11 @@ module mod_clm_urbaninit
     real(rk8), pointer :: eflx_soil_grnd_u(:)
     ! Urban snow melt heat flux (W/m**2)
     real(rk8), pointer :: eflx_snomelt_u(:)
-    integer :: l,g,c,p       ! indices
-    integer :: begp, endp    ! beginning and ending pft indices
-    integer :: begc, endc    ! beginning and ending column indices
-    integer :: begl, endl    ! beginning and ending landunit indices
-    integer :: begg, endg    ! beginning and ending gridcell indices
+    integer(ik4) :: l,g,c,p       ! indices
+    integer(ik4) :: begp, endp    ! beginning and ending pft indices
+    integer(ik4) :: begc, endc    ! beginning and ending column indices
+    integer(ik4) :: begl, endl    ! beginning and ending landunit indices
+    integer(ik4) :: begg, endg    ! beginning and ending gridcell indices
 
     ! Assign local pointers to derived type members (landunit level)
 

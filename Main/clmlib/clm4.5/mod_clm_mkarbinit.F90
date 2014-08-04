@@ -15,7 +15,7 @@ module mod_clm_mkarbinit
   use mod_clm_varctl , only : pertlim
   use mod_clm_decomp , only : get_proc_bounds
   use mod_clm_snicar , only : snw_rds_min
-  use mod_bats_param
+  use mod_bats_param , only : xmopor , iexsol , slmo
 
   implicit none
 

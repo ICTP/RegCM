@@ -4,19 +4,20 @@ module mod_clm_cnnitrifdenitrif
   !
   ! Calculate nitrification and denitrification rates
   !
-   use mod_realkinds
-   use mod_date
-   use mod_clm_varcon , only: secspday , tfrz
+  use mod_intkinds
+  use mod_realkinds
+  use mod_date
+  use mod_clm_varcon , only: secspday , tfrz
 
-   implicit none
+  implicit none
 
-   save
+  save
 
-   private
+  private
 
-   public:: nitrif_denitrif
-   ! stop nitrification and denitrification in frozen soils
-   logical , public :: no_frozen_nitrif_denitrif = .false.
+  public:: nitrif_denitrif
+  ! stop nitrification and denitrification in frozen soils
+  logical , public :: no_frozen_nitrif_denitrif = .false.
 
   contains
   !
@@ -37,11 +38,11 @@ module mod_clm_cnnitrifdenitrif
 #endif
     use mod_clm_varcon, only : spval
     implicit none
-    integer, intent(in) :: lbc, ubc        ! column bounds
-    integer, intent(in) :: num_soilc       ! number of soil columns in filter
-    integer, intent(in) :: filter_soilc(:) ! filter for soil columns
+    integer(ik4), intent(in) :: lbc, ubc   ! column bounds
+    integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
+    integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
 
-    integer :: c, fc, reflev, j
+    integer(ik4) :: c, fc, reflev, j
 
     ! column level
     ! total soil respiration rate (g C / m3 / s)

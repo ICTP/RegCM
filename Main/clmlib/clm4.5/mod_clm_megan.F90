@@ -12,6 +12,7 @@
 !================================================================================
 module mod_clm_megan
 
+  use mod_intkinds
   use mod_realkinds
   use mod_mpmessage
   use mod_dynparam
@@ -50,10 +51,10 @@ module mod_clm_megan
   type shr_megan_megcomp_t
     ! MEGAN compound name (in MEGAN input table)
     character(len=16) :: name
-    integer :: index
+    integer(ik4) :: index
     ! function of plant-function-type (PFT)
     real(rk8), pointer :: emis_factors(:)
-    integer :: class_number    ! MEGAN class number
+    integer(ik4) :: class_number    ! MEGAN class number
     ! molecular weight of the MEGAN compound (g/mole)
     real(rk8) :: molec_weight
     ! points to next member in the linked list
@@ -71,7 +72,7 @@ module mod_clm_megan
     type(shr_megan_comp_ptr), pointer :: megan_comps(:)
     ! number of megan emis compounds than make up the emissions for
     ! this mechanis compound
-    integer :: n_megan_comps
+    integer(ik4) :: n_megan_comps
   end type shr_megan_mechcomp_t
 
   ! array of chemical compounds (in CAM mechanism) than have MEGAN emissions
@@ -80,10 +81,10 @@ module mod_clm_megan
   type(shr_megan_megcomp_t),  pointer :: shr_megan_linkedlist
 
   ! number of unique megan compounds
-  integer :: shr_megan_megcomps_n  = 0
+  integer(ik4) :: shr_megan_megcomps_n  = 0
   ! number of unique compounds in the CAM chemical mechanism than have
   ! MEGAN emissions
-  integer :: shr_megan_mechcomps_n = 0
+  integer(ik4) :: shr_megan_mechcomps_n = 0
 
   ! switch to use mapped emission factors
   logical :: shr_megan_mapped_emisfctrs = .false.
@@ -92,7 +93,7 @@ module mod_clm_megan
   type parser_items_t
     character(len=16),pointer :: megan_comp_names(:)
     character(len=16) :: mech_comp_name
-    integer :: n_megan_comps
+    integer(ik4) :: n_megan_comps
   end type parser_items_t
 
   contains
@@ -122,7 +123,8 @@ module mod_clm_megan
   ! Example:
   ! &megan_emis_nl
   !  megan_specifier = 'ISOP = isoprene',
-  !     'C10H16 = myrcene + sabinene + limonene + carene_3 + ocimene_t_b + pinene_b + ...',
+  !     'C10H16 = myrcene + sabinene + limonene + carene_3 + 
+  !               ocimene_t_b + pinene_b + ...',
   !     'CH3OH = methanol',
   !     'C2H5OH = ethanol',
   !     'CH2O = formaldehyde',
@@ -137,11 +139,11 @@ module mod_clm_megan
     character(len=*), intent(in)  :: NLFileName
 !    character(len=*), intent(out) :: megan_fields
     character(len=256) ::       megan_fields
-    integer :: unitn            ! namelist unit number
-    integer :: i                ! Loop index
-    integer :: ierr             ! error code
+    integer(ik4) :: unitn            ! namelist unit number
+    integer(ik4) :: i                ! Loop index
+    integer(ik4) :: ierr             ! error code
     logical :: exists           ! if file exists or not
-    integer, parameter :: maxspc = 150
+    integer(ik4), parameter :: maxspc = 150
     character(len=2*512) :: megan_specifier(maxspc) = ' '
     logical           :: megan_mapped_emisfctrs = .false.
     character(len=256) :: megan_factors_file = ' '
@@ -192,9 +194,9 @@ module mod_clm_megan
     implicit none
     character(len=*), intent(in) :: specifier(:)
     character(len=*), intent(out) :: megan_fields
-    integer :: n_entries
-    integer :: i, j, k
-    integer :: spc_len
+    integer(ik4) :: n_entries
+    integer(ik4) :: i, j, k
+    integer(ik4) :: spc_len
     type(parser_items_t), pointer :: items
     character(len=12) :: token   ! megan field name to add
 
@@ -254,8 +256,8 @@ module mod_clm_megan
     implicit none
     character(len=*), intent(in) :: spec_entry
     type(parser_items_t), pointer :: items ! items returned
-    integer :: ndxs(512)
-    integer :: nelem, j, i
+    integer(ik4) :: ndxs(512)
+    integer(ik4) :: nelem, j, i
     character(len=256) :: tmp_str
 
     j = scan( spec_entry, '=' )

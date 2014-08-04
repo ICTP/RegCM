@@ -2,6 +2,9 @@ module mod_clm_slakefluxes
   !
   ! Calculates surface fluxes for lakes.
   !
+  use mod_intkinds
+  use mod_realkinds
+
   implicit none
 
   private
@@ -21,7 +24,6 @@ module mod_clm_slakefluxes
   ! WARNING: This subroutine assumes lake columns have one and only one pft.
   !
   subroutine SLakeFluxes(lbc, ubc, lbp, ubp, num_lakep, filter_lakep)
-    use mod_realkinds
     use mod_clm_type
     use mod_clm_atmlnd , only : clm_a2l
     use mod_clm_varpar , only : nlevlak
@@ -33,18 +35,18 @@ module mod_clm_slakefluxes
     use mod_clm_frictionvelocity , only : FrictionVelocity, MoninObukIni
     use mod_clm_slakecon , only : lake_use_old_fcrit_minz0
     implicit none
-    integer, intent(in) :: lbc, ubc     ! column-index bounds
-    integer, intent(in) :: lbp, ubp     ! pft-index bounds
+    integer(ik4), intent(in) :: lbc, ubc     ! column-index bounds
+    integer(ik4), intent(in) :: lbp, ubp     ! pft-index bounds
     ! number of column non-lake points in pft filter
-    integer, intent(in) :: num_lakep
+    integer(ik4), intent(in) :: num_lakep
     ! pft filter for non-lake points
-    integer, intent(in) :: filter_lakep(ubp-lbp+1)
+    integer(ik4), intent(in) :: filter_lakep(ubp-lbp+1)
 
     ! sum of soil/snow using current fsno, for balance check
     real(rk8), pointer :: sabg_chk(:)
-    integer , pointer :: pcolumn(:)    ! pft's column index
-    integer , pointer :: pgridcell(:)  ! pft's gridcell index
-    integer , pointer :: cgridcell(:)  ! column's gridcell index
+    integer(ik4) , pointer :: pcolumn(:)    ! pft's column index
+    integer(ik4) , pointer :: pgridcell(:)  ! pft's gridcell index
+    integer(ik4) , pointer :: cgridcell(:)  ! column's gridcell index
     real(rk8), pointer :: forc_t(:)    ! atmospheric temperature (Kelvin)
     ! atmospheric pressure (Pa)
     real(rk8), pointer :: forc_pbot(:)
@@ -75,7 +77,7 @@ module mod_clm_slakefluxes
     real(rk8), pointer :: dz_lake(:,:)  ! layer thickness for lake (m)
     real(rk8), pointer :: t_soisno(:,:) ! soil (or snow) temperature (Kelvin)
     real(rk8), pointer :: t_lake(:,:)   ! lake temperature (Kelvin)
-    integer , pointer :: snl(:)         ! number of snow layers
+    integer(ik4) , pointer :: snl(:)    ! number of snow layers
     real(rk8), pointer :: h2osoi_liq(:,:) ! liquid water (kg/m2)
     real(rk8), pointer :: h2osoi_ice(:,:) ! ice lens (kg/m2)
     ! top level eddy conductivity from previous timestep (W/mK)
@@ -153,18 +155,18 @@ module mod_clm_slakefluxes
     real(rk8), pointer :: lake_raw(:)
 #endif
     ! maximum number of iterations for surface temperature
-    integer , parameter  :: niters = 4
+    integer(ik4) , parameter  :: niters = 4
     ! coefficient of convective velocity (in computing W_*) [-]
     real(rk8), parameter :: beta1 = 1.D0
     ! convective boundary height [m]
     real(rk8), parameter :: zii = 1000.D0
-    integer  :: fp,g,c,p           ! do loop or array index
-    integer  :: fncopy             ! number of values in pft filter copy
-    integer  :: fnold              ! previous number of pft filter values
-    integer  :: fpcopy(num_lakep)  ! pft filter copy for iteration loop
-    integer  :: iter               ! iteration index
-    integer  :: nmozsgn(lbp:ubp)   ! number of times moz changes sign
-    integer  :: jtop(lbc:ubc)      ! top level for each column (no longer all 1)
+    integer(ik4)  :: fp,g,c,p           ! do loop or array index
+    integer(ik4)  :: fncopy             ! number of values in pft filter copy
+    integer(ik4)  :: fnold              ! previous number of pft filter values
+    integer(ik4)  :: fpcopy(num_lakep)  ! pft filter copy for iteration loop
+    integer(ik4)  :: iter               ! iteration index
+    integer(ik4)  :: nmozsgn(lbp:ubp)   ! number of times moz changes sign
+    integer(ik4)  :: jtop(lbc:ubc) ! top level for each column (no longer all 1)
     ! used in iteration loop for calculating t_grnd (numerator of NR solution)
     real(rk8) :: ax
     ! used in iteration loop for calculating t_grnd (denomin. of NR solution)

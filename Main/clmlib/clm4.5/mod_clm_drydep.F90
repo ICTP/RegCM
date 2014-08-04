@@ -1,21 +1,10 @@
 module mod_clm_drydep
-
-  !========================================================================
+  !
   ! Module for handling dry depostion of tracers.
   ! This module is shared by land and atmosphere models for the computations of
   ! dry deposition of tracers
   !
-  ! !REVISION HISTORY:
-  !     2008-Nov-12 - F. Vitt - creation.
-  !     2009-Feb-19 - E. Kluzek - merge shr_drydep_tables module in.
-  !     2009-Feb-20 - E. Kluzek - use shr_ coding standards, and check for namelist file.
-  !     2009-Feb-20 - E. Kluzek - Put D0 on all constants, remove namelist read out.
-  !     2009-Mar-23 - F. Vitt - Some corrections/cleanup and addition of drydep_method.
-  !     2009-Mar-27 - E. Kluzek - Get description and units from J.F. Lamarque.
-  !========================================================================
-
-  ! !USES:
-
+  use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_constants
@@ -28,44 +17,54 @@ module mod_clm_drydep
 
   save
 
-  ! !PUBLIC MEMBER FUNCTIONS
-
   public :: seq_drydep_read         ! Read namelist
   public :: seq_drydep_init         ! Initialization of drydep data
   public :: seq_drydep_setHCoeff    ! Calculate Henry's law coefficients
 
-  ! !PRIVATE ARRAY SIZES
-
-  integer, private, parameter :: maxspc = 100              ! Maximum number of species
-  integer, public,  parameter :: n_species_table = 55      ! Number of species to work with
-  integer, private, parameter :: NSeas = 5                 ! Number of seasons
-  integer, private, parameter :: NLUse = 11                ! Number of land-use types
-
-  ! !PUBLIC DATA MEMBERS:
+  ! Maximum number of species
+  integer(ik4), private, parameter :: maxspc = 100
+  ! Number of species to work with
+  integer(ik4), public,  parameter :: n_species_table = 55
+  integer(ik4), private, parameter :: NSeas = 5  ! Number of seasons
+  integer(ik4), private, parameter :: NLUse = 11 ! Number of land-use types
 
   ! method specification
-  character(16),public,parameter :: DD_XATM = 'xactive_atm'! dry-dep atmosphere
-  character(16),public,parameter :: DD_XLND = 'xactive_lnd'! dry-dep land
-  character(16),public,parameter :: DD_TABL = 'table'      ! dry-dep table (atm and lnd)
-  character(16),public :: drydep_method = DD_XLND          ! Which option choosen
+  ! dry-dep atmosphere
+  character(16) , public , parameter :: DD_XATM = 'xactive_atm'
+  ! dry-dep land
+  character(16) , public , parameter :: DD_XLND = 'xactive_lnd'
+  ! dry-dep table (atm and lnd)
+  character(16) , public , parameter :: DD_TABL = 'table'
 
-  real(rk8), public, parameter :: ph     = 1.D-5         ! measure of the acidity (dimensionless)
+  ! Which option choosen
+  character(16) , public :: drydep_method = DD_XLND
 
-  logical, public  :: lnd_drydep                           ! If dry-dep fields passed
-  integer, public  :: n_drydep = 0                         ! Number in drypdep list
-  character(len=32), public, dimension(maxspc) :: drydep_list = ''   ! List of dry-dep species
+  ! measure of the acidity (dimensionless)
+  real(rk8), public, parameter :: ph     = 1.D-5
 
-  character(len=80), public :: drydep_fields_token = ''   ! First drydep fields token
+  logical, public  :: lnd_drydep  ! If dry-dep fields passed
+  integer(ik4), public  :: n_drydep = 0 ! Number in drypdep list
 
-  real(rk8), public, allocatable, dimension(:) :: foxd      ! reactivity factor for oxidation (dimensioness)
-  real(rk8), public, allocatable, dimension(:) :: drat      ! ratio of molecular diffusivity (D_H2O/D_species; dimensionless)
-  integer,  public, allocatable, dimension(:) :: mapping   ! mapping to species table
+  ! List of dry-dep species
+  character(len=32), public, dimension(maxspc) :: drydep_list = ''
+
+  ! First drydep fields token
+  character(len=80), public :: drydep_fields_token = ''
+
+  ! reactivity factor for oxidation (dimensioness)
+  real(rk8), public, allocatable, dimension(:) :: foxd
+  ! ratio of molecular diffusivity (D_H2O/D_species; dimensionless)
+  real(rk8), public, allocatable, dimension(:) :: drat
+  ! mapping to species table
+  integer(ik4),  public, allocatable, dimension(:) :: mapping
   ! --- Indices for each species ---
-  integer,  public :: h2_ndx, ch4_ndx, co_ndx, pan_ndx, mpan_ndx, so2_ndx, o3_ndx, o3a_ndx, xpan_ndx
+  integer(ik4),  public :: h2_ndx, ch4_ndx, co_ndx, pan_ndx, &
+          mpan_ndx, so2_ndx, o3_ndx, o3a_ndx, xpan_ndx
 
   !---------------------------------------------------------------------------
   ! Table 1 from Wesely, Atmos. Environment, 1989, p1293
-  ! Table 2 from Sheih, microfiche PB86-218104 and Walcek, Atmos.  Environment, 1986, p949
+  ! Table 2 from Sheih, microfiche PB86-218104 and 
+  !              Walcek, Atmos.  Environment, 1986, p949
   ! Table 3-5 compiled by P. Hess
   !
   ! index #1 : season
@@ -92,8 +91,9 @@ module mod_clm_drydep
   !---------------------------------------------------------------------------
 
   !---------------------------------------------------------------------------
-  ! table to parameterize the impact of soil moisture on the deposition of H2 and
-  ! CO on soils (from Sanderson et al., J. Atmos. Chem., 46, 15-28, 2003).
+  ! table to parameterize the impact of soil moisture on the deposition
+  ! of H2 and CO on soils
+  ! (from Sanderson et al., J. Atmos. Chem., 46, 15-28, 2003).
   !---------------------------------------------------------------------------
 
   !--- deposition of h2 and CO on soils ---
@@ -119,82 +119,115 @@ module mod_clm_drydep
   !--- rcls: Lower canopy resistance for SO2        (s.m-1)
   !--- rclo: Lower canopy resistance for O3         (s.m-1)
   !
-  real(rk8), public, dimension(NSeas,NLUse) :: ri, rlu, rac, rgss, rgso, rcls, rclo
+  real(rk8), public, dimension(NSeas,NLUse) :: ri, rlu, rac, &
+          rgss, rgso, rcls, rclo
 
   data ri  (1,1:NLUse) &
-       /1.D36,  60.D0, 120.D0,  70.D0, 130.D0, 100.D0,1.D36,1.D36,  80.D0, 100.D0, 150.D0/
+       /1.D36,  60.D0, 120.D0,  70.D0, 130.D0, 100.D0,1.D36,1.D36,  &
+        80.D0, 100.D0, 150.D0/
   data rlu (1,1:NLUse) &
-       /1.D36,2000.D0,2000.D0,2000.D0,2000.D0,2000.D0,1.D36,1.D36,2500.D0,2000.D0,4000.D0/
+       /1.D36,2000.D0,2000.D0,2000.D0,2000.D0,2000.D0,1.D36,1.D36,&
+        2500.D0,2000.D0,4000.D0/
   data rac (1,1:NLUse) &
-       / 100.D0, 200.D0, 100.D0,2000.D0,2000.D0,2000.D0,   0.D0,   0.D0, 300.D0, 150.D0, 200.D0/
+       / 100.D0, 200.D0, 100.D0,2000.D0,2000.D0,2000.D0,   0.D0,   &
+         0.D0, 300.D0, 150.D0, 200.D0/
   data rgss(1,1:NLUse) &
-       / 400.D0, 150.D0, 350.D0, 500.D0, 500.D0, 100.D0,   0.D0,1000.D0,  0.D0, 220.D0, 400.D0/
+       / 400.D0, 150.D0, 350.D0, 500.D0, 500.D0, 100.D0,   0.D0, &
+         1000.D0,  0.D0, 220.D0, 400.D0/
   data rgso(1,1:NLUse) &
-       / 300.D0, 150.D0, 200.D0, 200.D0, 200.D0, 300.D0,2000.D0, 400.D0,1000.D0, 180.D0, 200.D0/
+       / 300.D0, 150.D0, 200.D0, 200.D0, 200.D0, 300.D0,2000.D0, &
+         400.D0,1000.D0, 180.D0, 200.D0/
   data rcls(1,1:NLUse) &
-       /1.D36,2000.D0,2000.D0,2000.D0,2000.D0,2000.D0,1.D36,1.D36,2500.D0,2000.D0,4000.D0/
+       /1.D36,2000.D0,2000.D0,2000.D0,2000.D0,2000.D0,1.D36,1.D36, &
+        2500.D0,2000.D0,4000.D0/
   data rclo(1,1:NLUse) &
-       /1.D36,1000.D0,1000.D0,1000.D0,1000.D0,1000.D0,1.D36,1.D36,1000.D0,1000.D0,1000.D0/
+       /1.D36,1000.D0,1000.D0,1000.D0,1000.D0,1000.D0,1.D36,1.D36,&
+        1000.D0,1000.D0,1000.D0/
 
   data ri  (2,1:NLUse) &
        /1.D36,1.D36,1.D36,1.D36, 250.D0, 500.D0,1.D36,1.D36,1.D36,1.D36,1.D36/
   data rlu (2,1:NLUse) &
-       /1.D36,9000.D0,9000.D0,9000.D0,4000.D0,8000.D0,1.D36,1.D36,9000.D0,9000.D0,9000.D0/
+       /1.D36,9000.D0,9000.D0,9000.D0,4000.D0,8000.D0,1.D36,1.D36,&
+       9000.D0,9000.D0,9000.D0/
   data rac (2,1:NLUse) &
-       / 100.D0, 150.D0, 100.D0,1500.D0,2000.D0,1700.D0,   0.D0,   0.D0, 200.D0, 120.D0, 140.D0/
+       / 100.D0, 150.D0, 100.D0,1500.D0,2000.D0,1700.D0,   0.D0,  &
+         0.D0, 200.D0, 120.D0, 140.D0/
   data rgss(2,1:NLUse) &
-       / 400.D0, 200.D0, 350.D0, 500.D0, 500.D0, 100.D0,   0.D0,1000.D0,   0.D0, 300.D0, 400.D0/
+       / 400.D0, 200.D0, 350.D0, 500.D0, 500.D0, 100.D0,   0.D0, &
+        1000.D0,   0.D0, 300.D0, 400.D0/
   data rgso(2,1:NLUse) &
-       / 300.D0, 150.D0, 200.D0, 200.D0, 200.D0, 300.D0,2000.D0, 400.D0, 800.D0, 180.D0, 200.D0/
+       / 300.D0, 150.D0, 200.D0, 200.D0, 200.D0, 300.D0,2000.D0, &
+         400.D0, 800.D0, 180.D0, 200.D0/
   data rcls(2,1:NLUse) &
-       /1.D36,9000.D0,9000.D0,9000.D0,2000.D0,4000.D0,1.D36,1.D36,9000.D0,9000.D0,9000.D0/
+       /1.D36,9000.D0,9000.D0,9000.D0,2000.D0,4000.D0,1.D36,1.D36, &
+        9000.D0,9000.D0,9000.D0/
   data rclo(2,1:NLUse) &
-       /1.D36, 400.D0, 400.D0, 400.D0,1000.D0, 600.D0,1.D36,1.D36, 400.D0, 400.D0, 400.D0/
+       /1.D36, 400.D0, 400.D0, 400.D0,1000.D0, 600.D0,1.D36,1.D36, &
+       400.D0, 400.D0, 400.D0/
 
   data ri  (3,1:NLUse) &
        /1.D36,1.D36,1.D36,1.D36, 250.D0, 500.D0,1.D36,1.D36,1.D36,1.D36,1.D36/
   data rlu (3,1:NLUse) &
-       /1.D36,1.D36,9000.D0,9000.D0,4000.D0,8000.D0,1.D36,1.D36,9000.D0,9000.D0,9000.D0/
+       /1.D36,1.D36,9000.D0,9000.D0,4000.D0,8000.D0,1.D36,1.D36, &
+       9000.D0,9000.D0,9000.D0/
   data rac (3,1:NLUse) &
-       / 100.D0,  10.D0, 100.D0,1000.D0,2000.D0,1500.D0,   0.D0,   0.D0, 100.D0, 50.D0, 120.D0/
+       / 100.D0,  10.D0, 100.D0,1000.D0,2000.D0,1500.D0,   0.D0, &
+         0.D0, 100.D0, 50.D0, 120.D0/
   data rgss(3,1:NLUse) &
-       / 400.D0, 150.D0, 350.D0, 500.D0, 500.D0, 200.D0,   0.D0,1000.D0,   0.D0, 200.D0, 400.D0/
+       / 400.D0, 150.D0, 350.D0, 500.D0, 500.D0, 200.D0,   0.D0, &
+        1000.D0,   0.D0, 200.D0, 400.D0/
   data rgso(3,1:NLUse) &
-       / 300.D0, 150.D0, 200.D0, 200.D0, 200.D0, 300.D0,2000.D0, 400.D0,1000.D0, 180.D0, 200.D0/
+       / 300.D0, 150.D0, 200.D0, 200.D0, 200.D0, 300.D0,2000.D0, &
+         400.D0,1000.D0, 180.D0, 200.D0/
   data rcls(3,1:NLUse) &
-       /1.D36,1.D36,9000.D0,9000.D0,3000.D0,6000.D0,1.D36,1.D36,9000.D0,9000.D0,9000.D0/
+       /1.D36,1.D36,9000.D0,9000.D0,3000.D0,6000.D0,1.D36,1.D36, &
+        9000.D0,9000.D0,9000.D0/
   data rclo(3,1:NLUse) &
-       /1.D36,1000.D0, 400.D0, 400.D0,1000.D0, 600.D0,1.D36,1.D36, 800.D0, 600.D0, 600.D0/
+       /1.D36,1000.D0, 400.D0, 400.D0,1000.D0, 600.D0,1.D36,1.D36, &
+        800.D0, 600.D0, 600.D0/
 
   data ri  (4,1:NLUse) &
        /1.D36,1.D36,1.D36,1.D36, 400.D0, 800.D0,1.D36,1.D36,1.D36,1.D36,1.D36/
   data rlu (4,1:NLUse) &
-       /1.D36,1.D36,1.D36,1.D36,6000.D0,9000.D0,1.D36,1.D36,9000.D0,9000.D0,9000.D0/
+       /1.D36,1.D36,1.D36,1.D36,6000.D0,9000.D0,1.D36,1.D36, &
+        9000.D0,9000.D0,9000.D0/
   data rac (4,1:NLUse) &
-       / 100.D0,  10.D0,  10.D0,1000.D0,2000.D0,1500.D0,   0.D0,   0.D0,  50.D0,  10.D0,  50.D0/
+       / 100.D0,  10.D0,  10.D0,1000.D0,2000.D0,1500.D0,   0.D0, &
+          0.D0,  50.D0,  10.D0,  50.D0/
   data rgss(4,1:NLUse) &
-       / 100.D0, 100.D0, 100.D0, 100.D0, 100.D0, 100.D0,   0.D0,1000.D0, 100.D0, 100.D0,  50.D0/
+       / 100.D0, 100.D0, 100.D0, 100.D0, 100.D0, 100.D0,   0.D0, &
+        1000.D0, 100.D0, 100.D0,  50.D0/
   data rgso(4,1:NLUse) &
-       / 600.D0,3500.D0,3500.D0,3500.D0,3500.D0,3500.D0,2000.D0, 400.D0,3500.D0,3500.D0,3500.D0/
+       / 600.D0,3500.D0,3500.D0,3500.D0,3500.D0,3500.D0,2000.D0, &
+         400.D0,3500.D0,3500.D0,3500.D0/
   data rcls(4,1:NLUse) &
-       /1.D36,1.D36,1.D36,9000.D0, 200.D0, 400.D0,1.D36,1.D36,9000.D0,1.D36,9000.D0/
+       /1.D36,1.D36,1.D36,9000.D0, 200.D0, 400.D0,1.D36,1.D36, &
+        9000.D0,1.D36,9000.D0/
   data rclo(4,1:NLUse) &
-       /1.D36,1000.D0,1000.D0, 400.D0,1500.D0, 600.D0,1.D36,1.D36, 800.D0,1000.D0, 800.D0/
+       /1.D36,1000.D0,1000.D0, 400.D0,1500.D0, 600.D0,1.D36,1.D36, &
+        800.D0,1000.D0, 800.D0/
 
   data ri  (5,1:NLUse) &
-       /1.D36, 120.D0, 240.D0, 140.D0, 250.D0, 190.D0,1.D36,1.D36, 160.D0, 200.D0, 300.D0/
+       /1.D36, 120.D0, 240.D0, 140.D0, 250.D0, 190.D0,1.D36,1.D36, &
+       160.D0, 200.D0, 300.D0/
   data rlu (5,1:NLUse) &
-       /1.D36,4000.D0,4000.D0,4000.D0,2000.D0,3000.D0,1.D36,1.D36,4000.D0,4000.D0,8000.D0/
+       /1.D36,4000.D0,4000.D0,4000.D0,2000.D0,3000.D0,1.D36,1.D36, &
+        4000.D0,4000.D0,8000.D0/
   data rac (5,1:NLUse) &
-       / 100.D0,  50.D0,  80.D0,1200.D0,2000.D0,1500.D0,   0.D0,   0.D0, 200.D0, 60.D0, 120.D0/
+       / 100.D0,  50.D0,  80.D0,1200.D0,2000.D0,1500.D0,   0.D0,  &
+         0.D0, 200.D0, 60.D0, 120.D0/
   data rgss(5,1:NLUse) &
-       / 500.D0, 150.D0, 350.D0, 500.D0, 500.D0, 200.D0,   0.D0,1000.D0,   0.D0, 250.D0, 400.D0/
+       / 500.D0, 150.D0, 350.D0, 500.D0, 500.D0, 200.D0,   0.D0, &
+        1000.D0,   0.D0, 250.D0, 400.D0/
   data rgso(5,1:NLUse) &
-       / 300.D0, 150.D0, 200.D0, 200.D0, 200.D0, 300.D0,2000.D0, 400.D0,1000.D0, 180.D0, 200.D0/
+       / 300.D0, 150.D0, 200.D0, 200.D0, 200.D0, 300.D0,2000.D0, &
+         400.D0,1000.D0, 180.D0, 200.D0/
   data rcls(5,1:NLUse) &
-       /1.D36,4000.D0,4000.D0,4000.D0,2000.D0,3000.D0,1.D36,1.D36,4000.D0,4000.D0,8000.D0/
+       /1.D36,4000.D0,4000.D0,4000.D0,2000.D0,3000.D0,1.D36,1.D36, &
+         4000.D0,4000.D0,8000.D0/
   data rclo(5,1:NLUse) &
-       /1.D36,1000.D0, 500.D0, 500.D0,1500.D0, 700.D0,1.D36,1.D36, 600.D0, 800.D0, 800.D0/
+       /1.D36,1000.D0, 500.D0, 500.D0,1500.D0, 700.D0,1.D36,1.D36, &
+         600.D0, 800.D0, 800.D0/
 
   !---------------------------------------------------------------------------
   !         ... roughness length
@@ -202,15 +235,20 @@ module mod_clm_drydep
   real(rk8), public, dimension(NSeas,NLUse) :: z0
 
   data z0  (1,1:NLUse) &
-       /1.000D0,0.250D0,0.050D0,1.000D0,1.000D0,1.000D0,0.0006D0,0.002D0,0.150D0,0.100D0,0.100D0/
+       /1.000D0,0.250D0,0.050D0,1.000D0,1.000D0,1.000D0, &
+        0.0006D0,0.002D0,0.150D0,0.100D0,0.100D0/
   data z0  (2,1:NLUse) &
-       /1.000D0,0.100D0,0.050D0,1.000D0,1.000D0,1.000D0,0.0006D0,0.002D0,0.100D0,0.080D0,0.080D0/
+       /1.000D0,0.100D0,0.050D0,1.000D0,1.000D0,1.000D0, &
+        0.0006D0,0.002D0,0.100D0,0.080D0,0.080D0/
   data z0  (3,1:NLUse) &
-       /1.000D0,0.005D0,0.050D0,1.000D0,1.000D0,1.000D0,0.0006D0,0.002D0,0.100D0,0.020D0,0.060D0/
+       /1.000D0,0.005D0,0.050D0,1.000D0,1.000D0,1.000D0, &
+        0.0006D0,0.002D0,0.100D0,0.020D0,0.060D0/
   data z0  (4,1:NLUse) &
-       /1.000D0,0.001D0,0.001D0,1.000D0,1.000D0,1.000D0,0.0006D0,0.002D0,0.001D0,0.001D0,0.040D0/
+       /1.000D0,0.001D0,0.001D0,1.000D0,1.000D0,1.000D0, &
+        0.0006D0,0.002D0,0.001D0,0.001D0,0.040D0/
   data z0  (5,1:NLUse) &
-       /1.000D0,0.030D0,0.020D0,1.000D0,1.000D0,1.000D0,0.0006D0,0.002D0,0.010D0,0.030D0,0.060D0/
+       /1.000D0,0.030D0,0.020D0,1.000D0,1.000D0,1.000D0, &
+        0.0006D0,0.002D0,0.010D0,0.030D0,0.060D0/
 
   !real(rk8), private, dimension(11,5), parameter :: z0xxx = reshape ( &
   ! (/   1.000,0.250,0.050,1.000,1.000,1.000,0.0006,0.002,0.150,0.100,0.100 ,  &
@@ -281,23 +319,22 @@ module mod_clm_drydep
              ,1.D-36 & ! HCN
              ,1.D-36 & ! CH3CN
             /)
-!EOP
-
-! PRIVATE DATA:
 
   Interface seq_drydep_setHCoeff                      ! overload subroutine
      Module Procedure set_hcoeff_scalar
      Module Procedure set_hcoeff_vector
   End Interface
 
-  real(rk8), private, parameter :: small_value = 1.D-36          !--- smallest value to use ---
+  !--- smallest value to use ---
+  real(rk8), private, parameter :: small_value = 1.D-36
 
   !---------------------------------------------------------------------------
   ! private chemical data
   !---------------------------------------------------------------------------
 
   !--- Names of species that can work with ---
-  character(len=20), public, parameter :: species_name_table(n_species_table) = &
+  character(len=20) , public , &
+          parameter :: species_name_table(n_species_table) = &
                          (/ 'OX      '                       &
                            ,'H2O2    '                       &
                            ,'OH      '                       &
@@ -416,392 +453,368 @@ module mod_clm_drydep
 
   real(rk8), private, parameter :: wh2o = amw
   real(rk8), private, parameter :: mol_wgts(n_species_table) = &
-       (/ 47.9981995D0, 34.0135994D0, 17.0067997D0, 33.0061989D0, 28.0104008D0, &
-          16.0405998D0, 47.0320015D0, 48.0393982D0, 30.0251999D0, 46.0246010D0, &
-          30.0061398D0, 46.0055389D0, 63.0123405D0, 44.0098000D0, 17.0289402D0, &
-          108.010483D0, 62.0049400D0, 32.0400009D0, 79.0117416D0, 15.9994001D0, &
-          30.0664005D0, 61.0578003D0, 91.0830002D0, 119.093399D0, 117.119797D0, &
-          58.1180000D0, 44.0509987D0, 62.0652008D0, 42.0774002D0, 92.0904007D0, &
-          28.0515995D0, 121.047943D0, 76.0497971D0, 136.228394D0, 58.0355988D0, &
-          72.0614014D0, 60.0503998D0, 75.0423965D0, 44.0922012D0, 75.0836029D0, &
-          58.0768013D0, 76.0910034D0, 31.9988003D0, 33.0061989D0, 222.000000D0, &
-          68.1141968D0, 70.0877991D0, 70.0877991D0, 46.0657997D0, 147.125946D0, &
-          119.074341D0, 162.117935D0, 100.112999D0, 27.0256D0   , 41.0524D0  /)
+     (/ 47.9981995D0, 34.0135994D0, 17.0067997D0, 33.0061989D0, 28.0104008D0, &
+        16.0405998D0, 47.0320015D0, 48.0393982D0, 30.0251999D0, 46.0246010D0, &
+        30.0061398D0, 46.0055389D0, 63.0123405D0, 44.0098000D0, 17.0289402D0, &
+        108.010483D0, 62.0049400D0, 32.0400009D0, 79.0117416D0, 15.9994001D0, &
+        30.0664005D0, 61.0578003D0, 91.0830002D0, 119.093399D0, 117.119797D0, &
+        58.1180000D0, 44.0509987D0, 62.0652008D0, 42.0774002D0, 92.0904007D0, &
+        28.0515995D0, 121.047943D0, 76.0497971D0, 136.228394D0, 58.0355988D0, &
+        72.0614014D0, 60.0503998D0, 75.0423965D0, 44.0922012D0, 75.0836029D0, &
+        58.0768013D0, 76.0910034D0, 31.9988003D0, 33.0061989D0, 222.000000D0, &
+        68.1141968D0, 70.0877991D0, 70.0877991D0, 46.0657997D0, 147.125946D0, &
+        119.074341D0, 162.117935D0, 100.112999D0, 27.0256D0   , 41.0524D0  /)
 
-!===============================================================================
-CONTAINS
-!===============================================================================
-
-!====================================================================================
-
+  contains
+  !
+  ! reads drydep_inparm namelist and sets up CCSM driver list of fields for
+  ! land-atmosphere communications.
+  !
   subroutine seq_drydep_read(NLFilename, seq_drydep_fields)
-
-    !========================================================================
-    ! reads drydep_inparm namelist and sets up CCSM driver list of fields for
-    ! land-atmosphere communications.
-    !
-    ! !REVISION HISTORY:
-    !  2009-Feb-20 - E. Kluzek - Separate out as subroutine from previous input_init
-    !========================================================================
-
     implicit none
 
     character(len=*), intent(in)  :: NLFilename ! Namelist filename
     character(len=*), intent(out) :: seq_drydep_fields
 
-    !----- local -----
-    integer :: i                ! Indices
-    integer :: unitn            ! namelist unit number
-    integer :: ierr             ! error code
+    integer(ik4) :: i                ! Indices
+    integer(ik4) :: unitn            ! namelist unit number
+    integer(ik4) :: ierr             ! error code
     logical :: exists           ! if file exists or not
     character(len=8) :: token   ! dry dep field name to add
 
-    !----- formats -----
     character(*),parameter :: subName = '(seq_drydep_read) '
     character(*),parameter :: F00   = "('(seq_drydep_read) ',8a)"
     character(*),parameter :: FI1   = "('(seq_drydep_init) ',a,I2)"
 
     namelist /drydep_inparm/ drydep_list, drydep_method
 
-    !-----------------------------------------------------------------------------
+    !-------------------------------------------------------------------------
     ! Read namelist and figure out the drydep field list to pass
     ! First check if file exists and if not, n_drydep will be zero
-    !-----------------------------------------------------------------------------
+    !-------------------------------------------------------------------------
 
     !--- Open and read namelist ---
     if ( len_trim(NLFilename) == 0  )then
-       call fatal(__FILE__,__LINE__,subName//'ERROR: nlfilename not set' )
+      call fatal(__FILE__,__LINE__,subName//'ERROR: nlfilename not set' )
     end if
     inquire( file=trim(NLFileName), exist=exists)
     if ( exists ) then
-       unitn = file_getUnit()
-       open( unitn, file=trim(NLFilename), status='old' )
-       if ( debug_level > 0 ) write(stdout,F00) &
-            'Read in drydep_inparm namelist from: ', trim(NLFilename)
-       ierr = 1
-       do while ( ierr /= 0 )
-          read(unitn, drydep_inparm, iostat=ierr)
-          if (ierr < 0) then
-             call fatal(__FILE__,__LINE__, &
+      unitn = file_getUnit()
+      open( unitn, file=trim(NLFilename), status='old' )
+      if ( debug_level > 0 ) write(stdout,F00) &
+        'Read in drydep_inparm namelist from: ', trim(NLFilename)
+      ierr = 1
+      do while ( ierr /= 0 )
+        read(unitn, drydep_inparm, iostat=ierr)
+        if (ierr < 0) then
+          call fatal(__FILE__,__LINE__, &
                subName//'ERROR: encountered end-of-file on namelist read' )
-          endif
-       end do
-       close( unitn )
-       call file_freeUnit( unitn )
+        end if
+      end do
+      close( unitn )
+      call file_freeUnit( unitn )
     end if
 
     n_drydep = 0
 
     !--- Loop over species to fill list of fields to communicate for drydep ---
     seq_drydep_fields = ' '
-    do i=1,maxspc
-       if ( len_trim(drydep_list(i))==0 ) exit
-       write(token,333) i
-       seq_drydep_fields = trim(seq_drydep_fields)//':'//trim(token)
-       if ( i == 1 ) then
-          seq_drydep_fields = trim(token)
-          drydep_fields_token = trim(token)
-       endif
-       n_drydep = n_drydep+1
-    enddo
+    do i = 1 , maxspc
+      if ( len_trim(drydep_list(i))==0 ) exit
+      write(token,333) i
+      seq_drydep_fields = trim(seq_drydep_fields)//':'//trim(token)
+      if ( i == 1 ) then
+        seq_drydep_fields = trim(token)
+        drydep_fields_token = trim(token)
+      end if
+      n_drydep = n_drydep+1
+    end do
 
-    !--- Make sure method is valid and determine if land is passing drydep fields ---
+    !--- Make sure method is valid and determine if land is
+    !--- passing drydep fields ---
     lnd_drydep = n_drydep>0 .and. drydep_method == DD_XLND
 
     if ( debug_level > 0 ) then
-       write(stdout,*) 'seq_drydep_read: drydep_method: ', trim(drydep_method)
-       if ( n_drydep == 0 )then
-          write(stdout,F00) 'No dry deposition fields will be transfered'
-       else
-          write(stdout,FI1) 'Number of dry deposition fields transfered is ', &
+      write(stdout,*) 'seq_drydep_read: drydep_method: ', trim(drydep_method)
+      if ( n_drydep == 0 )then
+        write(stdout,F00) 'No dry deposition fields will be transfered'
+      else
+        write(stdout,FI1) 'Number of dry deposition fields transfered is ', &
                                 n_drydep
-       end if
+      end if
     end if
 
     if ( trim(drydep_method)/=trim(DD_XATM) .and. &
          trim(drydep_method)/=trim(DD_XLND) .and. &
          trim(drydep_method)/=trim(DD_TABL) ) then
-       if ( debug_level > 0 ) then
-          write(stdout,*) 'seq_drydep_read: drydep_method : ', trim(drydep_method)
-          write(stdout,*) 'seq_drydep_read: drydep_method must be set to : ', &
+      if ( debug_level > 0 ) then
+        write(stdout,*) 'seq_drydep_read: drydep_method : ', trim(drydep_method)
+        write(stdout,*) 'seq_drydep_read: drydep_method must be set to : ', &
                DD_XATM,', ', DD_XLND,', or ', DD_TABL
-       end if
-       call fatal(__FILE__,__LINE__, &
+      end if
+      call fatal(__FILE__,__LINE__, &
        'seq_drydep_read: incorrect dry deposition method specification')
-    endif
+    end if
 
     ! Need to explicitly add Sl_ based on naming convention
 333 format ('Sl_dd',i3.3)
 
   end subroutine seq_drydep_read
-
-!====================================================================================
-
+  !
+  ! Initialization of dry deposition fields
+  ! reads drydep_inparm namelist and sets up CCSM driver list of fields for
+  ! land-atmosphere communications.
+  !
   subroutine seq_drydep_init( )
-
-    !========================================================================
-    ! Initialization of dry deposition fields
-    ! reads drydep_inparm namelist and sets up CCSM driver list of fields for
-    ! land-atmosphere communications.
-    ! !REVISION HISTORY:
-    !  2008-Nov-12 - F. Vitt - first version
-    !  2009-Feb-20 - E. Kluzek - Check for existance of file if not return, set n_drydep=0
-    !  2009-Feb-20 - E. Kluzek - Move namelist read to separate subroutine
-    !========================================================================
-
     implicit none
 
-    !----- local -----
-    integer :: i, l                      ! Indices
+    integer(ik4) :: i, l                      ! Indices
     character(len=32) :: test_name       ! field test name
-    !----- formats -----
+
     character(*),parameter :: subName = '(seq_drydep_init) '
     character(*),parameter :: F00   = "('(seq_drydep_init) ',8a)"
 
-    !-----------------------------------------------------------------------------
+    !-------------------------------------------------------------------------
     ! Allocate and fill foxd, drat and mapping as well as species indices
-    !-----------------------------------------------------------------------------
+    !-------------------------------------------------------------------------
 
     if ( n_drydep > 0 ) then
 
-       allocate( foxd(n_drydep) )
-       allocate( drat(n_drydep) )
-       allocate( mapping(n_drydep) )
+      allocate( foxd(n_drydep) )
+      allocate( drat(n_drydep) )
+      allocate( mapping(n_drydep) )
 
-       ! This initializes these variables to infinity.
-       foxd = inf
-       drat = inf
+      ! This initializes these variables to infinity.
+      foxd = inf
+      drat = inf
 
-       mapping(:) = 0
+      mapping(:) = 0
 
     end if
 
-    h2_ndx=-1; ch4_ndx=-1; co_ndx=-1; mpan_ndx = -1; pan_ndx = -1; so2_ndx=-1; o3_ndx=-1; xpan_ndx=-1
+    h2_ndx   = -1
+    ch4_ndx  = -1
+    co_ndx   = -1
+    mpan_ndx = -1
+    pan_ndx  = -1
+    so2_ndx  = -1
+    o3_ndx   = -1
+    xpan_ndx = -1
 
     !--- Loop over drydep species that need to be worked with ---
-    do i=1,n_drydep
-       if ( len_trim(drydep_list(i))==0 ) exit
+    do i = 1 , n_drydep
+      if ( len_trim(drydep_list(i))==0 ) exit
 
-       test_name = drydep_list(i)
+      test_name = drydep_list(i)
 
-       if( trim(test_name) == 'O3' ) then
-          test_name = 'OX'
-       end if
+      if ( trim(test_name) == 'O3' ) then
+        test_name = 'OX'
+      end if
 
-       !--- Figure out if species maps to a species in the species table ---
-       do l = 1,n_species_table
-          if(  trim( test_name ) == trim( species_name_table(l) ) ) then
-             mapping(i)  = l
-             exit
-          end if
-       end do
+      !--- Figure out if species maps to a species in the species table ---
+      do l = 1 , n_species_table
+        if ( trim( test_name ) == trim( species_name_table(l) ) ) then
+          mapping(i)  = l
+          exit
+        end if
+      end do
 
-       !--- If it doesn't map to a species in the species table find species close enough ---
-       if( mapping(i) < 1 ) then
-          select case( trim(test_name) )
+      !--- If it doesn't map to a species in the species table
+      !--- find species close enough ---
+      if ( mapping(i) < 1 ) then
+        select case( trim(test_name) )
           case( 'H2' )
-             test_name = 'CO'
+            test_name = 'CO'
           case( 'HYAC', 'CH3COOH', 'EOOH' )
-             test_name = 'CH2O'
+            test_name = 'CH2O'
           case( 'O3S', 'O3INERT', 'MPAN' )
-             test_name = 'OX'
+            test_name = 'OX'
           case( 'ISOPOOH', 'MACROOH', 'Pb', 'XOOH', 'H2SO4' )
-             test_name = 'HNO3'
-          case( 'ALKOOH', 'MEKOOH', 'TOLOOH', 'BENOOH', 'XYLOOH', 'TERPOOH','SOGM','SOGI','SOGT','SOGB','SOGX' )
-                test_name = 'CH3OOH'
-          case( 'SOA', 'SO2', 'SO4', 'CB1', 'CB2', 'OC1', 'OC2', 'NH3', 'NH4', 'SA1', 'SA2', 'SA3', 'SA4','HCN','CH3CN','HCOOH' )
-             test_name = 'OX'  ! this is just a place holder. values are explicitly set below
+            test_name = 'HNO3'
+          case( 'ALKOOH', 'MEKOOH', 'TOLOOH', 'BENOOH', &
+                'XYLOOH', 'TERPOOH','SOGM','SOGI','SOGT','SOGB','SOGX' )
+            test_name = 'CH3OOH'
+          case( 'SOA', 'SO2', 'SO4', 'CB1', 'CB2', 'OC1', &
+                'OC2', 'NH3', 'NH4', 'SA1', 'SA2', 'SA3', &
+                'SA4','HCN','CH3CN','HCOOH' )
+            ! this is just a place holder. values are explicitly set below
+            test_name = 'OX'
           case( 'SOAM', 'SOAI', 'SOAT', 'SOAB', 'SOAX' )
-             test_name = 'OX'  ! this is just a place holder. values are explicitly set below
+            ! this is just a place holder. values are explicitly set below
+            test_name = 'OX'
           case( 'O3A', 'XMPAN' )
-             test_name = 'OX'
+            test_name = 'OX'
           case( 'XPAN' )
-             test_name = 'PAN'
+            test_name = 'PAN'
           case( 'XNO' )
-             test_name = 'NO'
+            test_name = 'NO'
           case( 'XNO2' )
-             test_name = 'NO2'
+            test_name = 'NO2'
           case( 'XHNO3' )
-             test_name = 'HNO3'
+            test_name = 'HNO3'
           case( 'XONIT' )
-             test_name = 'ONIT'
+            test_name = 'ONIT'
           case( 'XONITR' )
-             test_name = 'ONITR'
+            test_name = 'ONITR'
           case( 'XHO2NO2')
-             test_name = 'HO2NO2'
+            test_name = 'HO2NO2'
           case( 'XNH4NO3' )
-             test_name = 'HNO3'
-
+            test_name = 'HNO3'
           case( 'COhc','COme')
-                test_name = 'CO'  ! this is just a place holder. values are set in drydep_fromlnd
-          case( 'CO01','CO02','CO03','CO04','CO05','CO06','CO07','CO08','CO09','CO10' )
-                test_name = 'CO'  ! this is just a place holder. values are set in drydep_fromlnd
-          case( 'CO11','CO12','CO13','CO14','CO15','CO16','CO17','CO18','CO19','CO20' )
-                test_name = 'CO'  ! this is just a place holder. values are set in drydep_fromlnd
-          case( 'CO21','CO22','CO23','CO24','CO25','CO26','CO27','CO28','CO29','CO30' )
-                test_name = 'CO'  ! this is just a place holder. values are set in drydep_fromlnd
-          case( 'CO31','CO32','CO33','CO34','CO35','CO36','CO37','CO38','CO39','CO40' )
-                test_name = 'CO'  ! this is just a place holder. values are set in drydep_fromlnd
-          case( 'CO41','CO42','CO43','CO44','CO45','CO46','CO47','CO48','CO49','CO50' )
-                test_name = 'CO'  ! this is just a place holder. values are set in drydep_fromlnd
-
+            ! this is just a place holder. values are set in drydep_fromlnd
+            test_name = 'CO'
+          case( 'CO01','CO02','CO03','CO04','CO05','CO06', &
+                'CO07','CO08','CO09','CO10' )
+            ! this is just a place holder. values are set in drydep_fromlnd
+            test_name = 'CO'
+          case( 'CO11','CO12','CO13','CO14','CO15','CO16', &
+                'CO17','CO18','CO19','CO20' )
+            ! this is just a place holder. values are set in drydep_fromlnd
+            test_name = 'CO'
+          case( 'CO21','CO22','CO23','CO24','CO25','CO26', &
+                'CO27','CO28','CO29','CO30' )
+            ! this is just a place holder. values are set in drydep_fromlnd
+            test_name = 'CO'
+          case( 'CO31','CO32','CO33','CO34','CO35','CO36', &
+                'CO37','CO38','CO39','CO40' )
+            ! this is just a place holder. values are set in drydep_fromlnd
+            test_name = 'CO'
+          case( 'CO41','CO42','CO43','CO44','CO45','CO46', &
+                'CO47','CO48','CO49','CO50' )
+            ! this is just a place holder. values are set in drydep_fromlnd
+            test_name = 'CO'
           case( 'NH4NO3' )
-             test_name = 'HNO3'
+            test_name = 'HNO3'
           case default
-             test_name = 'blank'
-          end select
+            test_name = 'blank'
+        end select
 
-          !--- If found a match check the species table again ---
-          if( trim(test_name) /= 'blank' ) then
-             do l = 1,n_species_table
-                if( trim( test_name ) == trim( species_name_table(l) ) ) then
-                   mapping(i)  = l
-                   exit
-                end if
-             end do
-          else
-             if ( debug_level > 0 ) write(stdout,F00) trim(drydep_list(i)), &
-                                 ' not in tables; will have dep vel = 0'
-             call fatal(__FILE__,__LINE__, &
-              subName//': '//trim(drydep_list(i))//' is not in tables' )
-          end if
-       end if
+        !--- If found a match check the species table again ---
+        if ( trim(test_name) /= 'blank' ) then
+          do l = 1 , n_species_table
+            if ( trim( test_name ) == trim( species_name_table(l) ) ) then
+              mapping(i)  = l
+              exit
+            end if
+          end do
+        else
+          if ( debug_level > 0 ) write(stdout,F00) trim(drydep_list(i)), &
+                      ' not in tables; will have dep vel = 0'
+          call fatal(__FILE__,__LINE__, &
+                subName//': '//trim(drydep_list(i))//' is not in tables' )
+        end if
+      end if
 
-       !--- Figure out the specific species indices ---
-       if ( trim(drydep_list(i)) == 'H2' )   h2_ndx   = i
-       if ( trim(drydep_list(i)) == 'CO' )   co_ndx   = i
-       if ( trim(drydep_list(i)) == 'CH4' )  ch4_ndx  = i
-       if ( trim(drydep_list(i)) == 'MPAN' ) mpan_ndx = i
-       if ( trim(drydep_list(i)) == 'PAN' )  pan_ndx  = i
-       if ( trim(drydep_list(i)) == 'SO2' )  so2_ndx  = i
-       if ( trim(drydep_list(i)) == 'OX' .or. trim(drydep_list(i)) == 'O3' ) o3_ndx  = i
-       if ( trim(drydep_list(i)) == 'O3A' ) o3a_ndx  = i
-       if ( trim(drydep_list(i)) == 'XPAN' ) xpan_ndx = i
+      !--- Figure out the specific species indices ---
+      if ( trim(drydep_list(i)) == 'H2' )   h2_ndx   = i
+      if ( trim(drydep_list(i)) == 'CO' )   co_ndx   = i
+      if ( trim(drydep_list(i)) == 'CH4' )  ch4_ndx  = i
+      if ( trim(drydep_list(i)) == 'MPAN' ) mpan_ndx = i
+      if ( trim(drydep_list(i)) == 'PAN' )  pan_ndx  = i
+      if ( trim(drydep_list(i)) == 'SO2' )  so2_ndx  = i
+      if ( trim(drydep_list(i)) == 'OX' .or. &
+           trim(drydep_list(i)) == 'O3' ) o3_ndx  = i
+      if ( trim(drydep_list(i)) == 'O3A' ) o3a_ndx  = i
+      if ( trim(drydep_list(i)) == 'XPAN' ) xpan_ndx = i
 
-       if( mapping(i) > 0) then
-         l = mapping(i)
-         foxd(i) = dfoxd(l)
-         drat(i) = sqrt(mol_wgts(l)/wh2o)
-       endif
-
-    enddo
+      if ( mapping(i) > 0 ) then
+        l = mapping(i)
+        foxd(i) = dfoxd(l)
+        drat(i) = sqrt(mol_wgts(l)/wh2o)
+      end if
+    end do
 
     where( rgss < 1.D0 )
-       rgss = 1.D0
+      rgss = 1.D0
     endwhere
 
     where( rac < small_value)
-       rac = small_value
+      rac = small_value
     endwhere
-
   end subroutine seq_drydep_init
-
-!====================================================================================
-
+  !
+  ! Interface to seq_drydep_setHCoeff when input is scalar
+  ! wrapper routine used when surface temperature is a scalar (single column)
+  ! rather than an array (multiple columns).
+  !
   subroutine set_hcoeff_scalar( sfc_temp, heff )
-
-    !========================================================================
-    ! Interface to seq_drydep_setHCoeff when input is scalar
-    ! wrapper routine used when surface temperature is a scalar (single column) rather
-    ! than an array (multiple columns).
-    !
-    ! !REVISION HISTORY:
-    !  2008-Nov-12 - F. Vitt - first version
-    !========================================================================
-
     implicit none
+    real(rk8), intent(in) :: sfc_temp        ! Input surface temperature
+    real(rk8), intent(out) :: heff(n_drydep) ! Output Henry's law coefficients
 
-    real(rk8), intent(in)     :: sfc_temp         ! Input surface temperature
-    real(rk8), intent(out)    :: heff(n_drydep)   ! Output Henry's law coefficients
-
-    !----- local -----
     real(rk8) :: sfc_temp_tmp(1)    ! surface temp
 
     sfc_temp_tmp(:) = sfc_temp
     call set_hcoeff_vector( 1, sfc_temp_tmp, heff(:n_drydep) )
 
   end subroutine set_hcoeff_scalar
-
-!====================================================================================
-
+  !
+  ! Interface to seq_drydep_setHCoeff when input is vector
+  ! sets dry depositions coefficients -- used by both land and atmosphere models
+  !
   subroutine set_hcoeff_vector( ncol, sfc_temp, heff )
-
-    !========================================================================
-    ! Interface to seq_drydep_setHCoeff when input is vector
-    ! sets dry depositions coefficients -- used by both land and atmosphere models
-    ! !REVISION HISTORY:
-    !  2008-Nov-12 - F. Vitt - first version
-    !========================================================================
-
     implicit none
+    integer(ik4), intent(in) :: ncol ! Input size of surface-temp vector
+    real(rk8), intent(in) :: sfc_temp(ncol)        ! Surface temperature
+    real(rk8), intent(out) :: heff(ncol,n_drydep)  ! Henry's law coefficients
 
-    integer, intent(in)      :: ncol                  ! Input size of surface-temp vector
-    real(rk8), intent(in)     :: sfc_temp(ncol)        ! Surface temperature
-    real(rk8), intent(out)    :: heff(ncol,n_drydep)   ! Henry's law coefficients
-
-    !----- local -----
     real(rk8), parameter :: t0     = 298.D0    ! Standard Temperature
     real(rk8), parameter :: ph_inv = 1.D0/ph   ! Inverse of PH
-    integer  :: m, l, id       ! indices
-    real(rk8) :: e298           ! Henry's law coefficient @ standard temperature (298K)
-    real(rk8) :: dhr            ! temperature dependence of Henry's law coefficient
-    real(rk8) :: dk1s(ncol)     ! DK Work array 1
-    real(rk8) :: dk2s(ncol)     ! DK Work array 2
-    real(rk8) :: wrk(ncol)      ! Work array
+    integer(ik4)  :: m, l, id   ! indices
+    real(rk8) :: e298  ! Henry's law coefficient @ standard temperature (298K)
+    real(rk8) :: dhr   ! temperature dependence of Henry's law coefficient
+    real(rk8) :: dk1s(ncol)  ! DK Work array 1
+    real(rk8) :: dk2s(ncol)  ! DK Work array 2
+    real(rk8) :: wrk(ncol)   ! Work array
 
-    !----- formats -----
     character(*),parameter :: subName = '(seq_drydep_set_hcoeff) '
     character(*),parameter :: F00   = "('(seq_drydep_set_hcoeff) ',8a)"
 
-    !-------------------------------------------------------------------------------
-    ! notes:
-    !-------------------------------------------------------------------------------
-
     wrk(:) = (t0 - sfc_temp(:))/(t0*sfc_temp(:))
-    do m = 1,n_drydep
-       l    = mapping(m)
-       id   = 6*(l - 1)
-       e298 = dheff(id+1)
-       dhr  = dheff(id+2)
-       heff(:,m) = e298*exp( dhr*wrk(:) )
-       !--- Calculate coefficients based on the drydep tables ---
-       if( dheff(id+3) /= 0.D0 .and. dheff(id+5) == 0.D0 ) then
+    do m = 1 , n_drydep
+      l    = mapping(m)
+      id   = 6*(l - 1)
+      e298 = dheff(id+1)
+      dhr  = dheff(id+2)
+      heff(:,m) = e298*exp( dhr*wrk(:) )
+      !--- Calculate coefficients based on the drydep tables ---
+      if ( dheff(id+3) /= 0.D0 .and. dheff(id+5) == 0.D0 ) then
+        e298 = dheff(id+3)
+        dhr  = dheff(id+4)
+        dk1s(:) = e298*exp( dhr*wrk(:) )
+        where( heff(:,m) /= 0.D0 )
+          heff(:,m) = heff(:,m)*(1.D0 + dk1s(:)*ph_inv)
+        elsewhere
+          heff(:,m) = dk1s(:)*ph_inv
+        end where
+      end if
+      !--- For coefficients that are non-zero AND CO2 or NH3 handle
+      !--- things this way ---
+      if ( dheff(id+5) /= 0.D0 ) then
+        if ( trim( drydep_list(m) ) == 'CO2' .or. &
+             trim( drydep_list(m) ) == 'NH3' ) then
           e298 = dheff(id+3)
           dhr  = dheff(id+4)
           dk1s(:) = e298*exp( dhr*wrk(:) )
-          where( heff(:,m) /= 0.D0 )
-             heff(:,m) = heff(:,m)*(1.D0 + dk1s(:)*ph_inv)
-          elsewhere
-             heff(:,m) = dk1s(:)*ph_inv
-          endwhere
-       end if
-       !--- For coefficients that are non-zero AND CO2 or NH3 handle things this way ---
-       if( dheff(id+5) /= 0.D0 ) then
-          if( trim( drydep_list(m) ) == 'CO2' .or. trim( drydep_list(m) ) == 'NH3' ) then
-             e298 = dheff(id+3)
-             dhr  = dheff(id+4)
-             dk1s(:) = e298*exp( dhr*wrk(:) )
-             e298 = dheff(id+5)
-             dhr  = dheff(id+6)
-             dk2s(:) = e298*exp( dhr*wrk(:) )
-             !--- For Carbon dioxide ---
-             if( trim(drydep_list(m)) == 'CO2' ) then
-                heff(:,m) = heff(:,m)*(1.D0 + dk1s(:)*ph_inv)*(1.D0 + dk2s(:)*ph_inv)
-             !--- For NH3 ---
-             else if( trim( drydep_list(m) ) == 'NH3' ) then
-                heff(:,m) = heff(:,m)*(1.D0 + dk1s(:)*ph/dk2s(:))
-             !--- This can't happen ---
-             else
-                write(stdout,F00) 'Bad species ',drydep_list(m)
-                call fatal(__FILE__,__LINE__, &
+          e298 = dheff(id+5)
+          dhr  = dheff(id+6)
+          dk2s(:) = e298*exp( dhr*wrk(:) )
+          !--- For Carbon dioxide ---
+          if ( trim(drydep_list(m)) == 'CO2' ) then
+            heff(:,m) = heff(:,m)*(1.D0 + dk1s(:)*ph_inv) * &
+                    (1.D0 + dk2s(:)*ph_inv)
+            !--- For NH3 ---
+          else if ( trim( drydep_list(m) ) == 'NH3' ) then
+            heff(:,m) = heff(:,m)*(1.D0 + dk1s(:)*ph/dk2s(:))
+            !--- This can't happen ---
+          else
+            write(stdout,F00) 'Bad species ',drydep_list(m)
+            call fatal(__FILE__,__LINE__, &
                  subName//'ERROR: in assigning coefficients' )
-             end if
           end if
-       end if
+        end if
+      end if
     end do
-
   end subroutine set_hcoeff_vector
-
-!===============================================================================
 
 end module mod_clm_drydep
