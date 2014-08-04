@@ -63,6 +63,9 @@ program mksurfdata
   use mod_mkharvest
   use mod_mkdynpft
 #endif
+#ifdef LCH4
+  use mod_mklch4
+#endif
 #endif
 #ifdef VICHYDRO
   use mod_mkvic
@@ -110,6 +113,9 @@ program mksurfdata
 #ifdef DYNPFT
   integer(ik4) :: iharvvh1 , iharvvh2 , iharvsh1 , iharvsh2 , iharvsh3 , igraz
   character(len=256) :: dynfile
+#endif
+#ifdef LCH4
+  integer(ik4) :: if0 , ip3 , izwt0
 #endif
 #endif
 #ifdef VICHYDRO
@@ -588,6 +594,14 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add hdm long_name')
   istatus = nf90_put_att(ncid, ipopden, 'units','counts/km^2')
   call checkncerr(istatus,__FILE__,__LINE__,'Error add hdm units')
+#ifdef LCH4
+  istatus = nf90_def_var(ncid, 'F0',nf90_double,idims(7),if0)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var F0')
+  istatus = nf90_def_var(ncid, 'P3',nf90_double,idims(7),ip3)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var P3')
+  istatus = nf90_def_var(ncid, 'ZWT0',nf90_double,idims(7),izwt0)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var ZWT0')
+#endif
 #endif
 
 #ifdef VICHYDRO
@@ -1185,6 +1199,34 @@ program mksurfdata
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write hdm')
   end do
   deallocate(var2d)
+#ifdef LCH4
+  allocate(var3d(jxsg,iysg,3))
+  call mklch4('mksrf_ch4inversion.nc',var3d)
+  do i = 1 , 3
+    where ( xmask < 0.5D0 )
+      var3d(:,:,i) = vmisdat
+    end where
+  end do
+  call mypack(var3d(:,:,1),gcvar)
+  where ( gcvar < 0.0 )
+    gcvar = 0.01D0
+  end where
+  istatus = nf90_put_var(ncid, if0, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write F0')
+  call mypack(var3d(:,:,2),gcvar)
+  where ( gcvar < 0.0 )
+    gcvar = 10.0D0
+  end where
+  istatus = nf90_put_var(ncid, ip3, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write P3')
+  call mypack(var3d(:,:,3),gcvar)
+  where ( gcvar < 0.0 )
+    gcvar = 0.01D0
+  end where
+  istatus = nf90_put_var(ncid, izwt0, gcvar)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write ZWt0')
+  deallocate(var3d)
+#endif
 #endif
 
 #ifdef VICHYDRO
