@@ -713,10 +713,10 @@ module mod_clm_cnfire
         else
           fbac(c) = farea_burned(c)
         end if
-      end if
 #else
-      farea_burned(c) = min(1.D0,baf_crop(c)+baf_peatf(c))
+        farea_burned(c) = min(1.D0,baf_crop(c)+baf_peatf(c))
 #endif
+      end if
 
 #if (defined NOFIRE)
       ! zero out the fire area if NOFIRE flag is on
