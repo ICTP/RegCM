@@ -50,6 +50,8 @@ then
   exit 1
 fi
 
+WGET="$WGET --no-check-certificate"
+
 echo "This script installs the netCDF/mpi librares in the"
 echo
 echo -e "\t $DEST"
@@ -90,7 +92,7 @@ then
   exit 1
 fi
 echo "Downloading OPENMPI Library..."
-wget -c $OPENMPI/openmpi-${ompi_ver}.tar.bz2 -o $DEST/logs/download_M.log
+$WGET -c $OPENMPI/openmpi-${ompi_ver}.tar.bz2 -o $DEST/logs/download_M.log
 if [ $? -ne 0 ]
 then
   echo "Error downloading OPENMPI from OPENMPI website"
