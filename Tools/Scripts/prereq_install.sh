@@ -7,23 +7,26 @@
 # CHEK HERE BELOW THE COMPILERS
 #
 # Working CC Compiler
-#CC=gcc
-#CC=icc
-#CC=pgcc
+#CC="gcc -fPIC"
+#CC="icc -fPIC"
+#CC="pgcc -fpic"
+#CC="xlc_r -qpic"
 # Working C++ Compiler
-#CXX=g++
-#CXX=icpc
-#CXX=pgCC
+#CXX="g++ -fPIC"
+#CXX="icpc -fPIC"
+#CXX="pgCC -fpic"
+#CC="xlc++_r -qpic"
 # Working Fortran Compiler
-#FC=gfortran
-#FC=ifort
-#FC=pgf90
+#FC="gfortran -fPIC"
+#FC="ifort -fPIC"
+#FC="pgf90 -fpic"
+#FC="xlf2003_r -qpic"
 # Destination directory
 #DEST=$PWD
 
 netcdf_c_ver=4.3.2
 netcdf_f_ver=4.2
-hdf5_ver=1.8.12
+hdf5_ver=1.8.13
 zlib_ver=1.2.8
 ompi_ver=1.8.1
 ompi_major=`echo $ompi_ver | cut -d "." -f 1-2`
@@ -94,35 +97,19 @@ then
   exit 1
 fi
 
-echo "Compiling MPI library."
-tar jxvf openmpi-${ompi_ver}.tar.bz2 > /dev/null
-if [ $? -ne 0 ]
-then
-  echo "Error uncompressing openmpi library"
-  exit 1
-fi
-cd openmpi-${ompi_ver}
-./configure CC="$CC" FC="$FC" F77="$FC" CXX="$CXX" \
-	--prefix=$DEST > $DEST/logs/configure.log 2>&1
-make > $DEST/logs/compile.log 2>&1 && \
-  make install > $DEST/logs/install.log 2>&1
-if [ $? -ne 0 ]
-then
-  echo "Error compiling openmpi library"
-  exit 1
-fi
-cd $DEST
-rm -fr openmpi-${ompi_ver}
-echo "Compiled MPI library."
+rm -f logs/*.log
+
 echo "Compiling zlib Library."
-tar zxvf zlib-${zlib_ver}.tar.gz > /dev/null
+tar zxvf zlib-${zlib_ver}.tar.gz >> $DEST/logs/extract.log
 if [ $? -ne 0 ]
 then
   echo "Error uncompressing zlib library"
   exit 1
 fi
 cd zlib-${zlib_ver}
-CC="$CC" FC="$FC" ./configure --prefix=$DEST --static >> \
+echo CC="$CC" FC="$FC" ./configure --prefix=$DEST --shared >> \
+	$DEST/logs/configure.log
+CC="$CC" FC="$FC" ./configure --prefix=$DEST --shared >> \
              $DEST/logs/configure.log 2>&1
 make >> $DEST/logs/compile.log 2>&1 && \
   make install >> $DEST/logs/install.log 2>&1
@@ -134,14 +121,39 @@ fi
 cd $DEST
 rm -fr zlib-${zlib_ver}
 echo "Compiled zlib library."
+echo "Compiling MPI library."
+tar jxvf openmpi-${ompi_ver}.tar.bz2 >> $DEST/logs/extract.log
+if [ $? -ne 0 ]
+then
+  echo "Error uncompressing openmpi library"
+  exit 1
+fi
+cd openmpi-${ompi_ver}
+echo ./configure CC="$CC" FC="$FC" F77="$FC" CXX="$CXX" \
+      --prefix=$DEST --disable-cxx >> $DEST/logs/configure.log
+./configure CC="$CC" FC="$FC" F77="$FC" CXX="$CXX" \
+	--prefix=$DEST >> $DEST/logs/configure.log 2>&1
+make > $DEST/logs/compile.log 2>&1 && \
+  make install >> $DEST/logs/install.log 2>&1
+if [ $? -ne 0 ]
+then
+  echo "Error compiling openmpi library"
+  exit 1
+fi
+cd $DEST
+rm -fr openmpi-${ompi_ver}
+echo "Compiled MPI library."
 echo "Compiling HDF5 library."
-tar zxvf hdf5-${hdf5_ver}.tar.gz > $DEST/logs/extract.log
+tar zxvf hdf5-${hdf5_ver}.tar.gz >> $DEST/logs/extract.log
 cd hdf5-${hdf5_ver}
+echo ./configure CC="$CC" CXX="$CXX" FC="$FC" \
+        --prefix=$DEST --with-zlib=$DEST \
+        --disable-cxx --disable-fortran >> $DEST/logs/configure.log
 ./configure CC="$CC" CXX="$CXX" FC="$FC" \
-	--prefix=$DEST --with-zlib=$DEST --disable-shared \
+	--prefix=$DEST --with-zlib=$DEST \
         --disable-cxx --disable-fortran >> $DEST/logs/configure.log 2>&1
 make > $DEST/logs/compile.log 2>&1 && \
-  make install > $DEST/logs/install.log 2>&1
+  make install >> $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
   echo "Error compiling HDF5 library"
@@ -151,7 +163,7 @@ cd $DEST
 rm -fr hdf5-${hdf5_ver}
 echo "Compiled HDF5 library."
 echo "Compiling netCDF Library."
-tar zxvf netcdf-${netcdf_c_ver}.tar.gz > $DEST/logs/extract.log
+tar zxvf netcdf-${netcdf_c_ver}.tar.gz >> $DEST/logs/extract.log
 cd netcdf-${netcdf_c_ver}
 H5LIBS="-lhdf5_hl -lhdf5 -lz"
 if [ "X$FC" == "Xgfortran" ]
@@ -160,9 +172,9 @@ then
 fi
 ./configure CC="$CC" FC="$FC" --prefix=$DEST --enable-netcdf-4 \
   CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib LIBS="$H5LIBS" \
-  --disable-shared --disable-dap >> $DEST/logs/configure.log 2>&1
+  --disable-dap >> $DEST/logs/configure.log 2>&1
 make > $DEST/logs/compile.log 2>&1 && \
-  make install > $DEST/logs/install.log 2>&1
+  make install >> $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
   echo "Error compiling netCDF C library"
@@ -175,7 +187,7 @@ tar zxvf netcdf-fortran-${netcdf_f_ver}.tar.gz >> $DEST/logs/extract.log
 cd netcdf-fortran-${netcdf_f_ver}
 ./configure PATH=$DEST/bin:$PATH CC="$CC" FC="$FC" \
      CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib --prefix=$DEST \
-     --disable-shared >> $DEST/logs/configure.log 2>&1
+     >> $DEST/logs/configure.log 2>&1
 make >> $DEST/logs/compile.log 2>&1 && \
   make install >> $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
@@ -188,14 +200,31 @@ rm -fr netcdf-fortran-${netcdf_f_ver}
 echo "Compiled netCDF Fortran library."
 
 # Done
-echo "Done!"
+echo
+echo                 "Done!"
+echo
 echo "To link RegCM with this librares use:"
 echo
-echo  ./configure CC=$CC FC=$FC PATH=$DEST/bin:$PATH '\'
-echo         CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib '\'
-echo         LIBS=\"-lnetcdff -lnetcdf $H5LIBS\"
+echo  "./configure PATH=$DEST/bin:\$PATH \\"
+echo  "            CC=\"$CC\" \\"
+echo  "            FC=\"$FC\" \\"
+echo  "            MPIFC=\"$DEST/bin/mpif90 \\"
+echo  "            CPPFLAGS=-I$DEST/include \\"
+echo  "            LDFLAGS=-L$DEST/lib \\"
+echo  "            LIBS=\"-lnetcdff -lnetcdf $H5LIBS\""
+echo
+echo "To run the model use these PATH and LD_LIBRARY_FLAG variable:"
+echo
+echo "export LD_LIBRARY_FLAG=$DEST/lib:\$LD_LIBRARY_FLAG"
+echo "export PATH=$DEST/bin:\$PATH"
+echo
+echo or
+echo
+echo "setenv LD_LIBRARY_FLAG $DEST/lib:\$LD_LIBRARY_FLAG"
+echo "setenv PATH $DEST/bin:\$PATH"
+echo "rehash"
 echo
 
 echo "Cleanup..."
-mkdir src && mv *gz src || exit 1
+mkdir -p src && mv *gz *.bz2 src || exit 1
 exit 0
