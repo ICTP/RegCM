@@ -579,6 +579,7 @@ newjx.setncattr('axis','X')
 newiy = copyvar(nco,'iy',iy)
 newiy.setncattr('axis','Y')
 
+newrcm_map = None
 if rcm_map is not None:
   newrcm_map = copyvar(nco,'rcm_map',rcm_map)
 
