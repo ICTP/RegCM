@@ -51,15 +51,29 @@ def wrapper(func,args,it):
 def wrapper2(func,args):
   return func(*args)
 
-def copyvar(nc,name,ovar,bnds=True,stsf=False):
+def copyvar(nc,name,ovar,nnvar=None,bnds=True,stsf=False,ds=0.0):
   ssdim = list(ovar.dimensions)
+  try:
+    ssdim[ssdim.index('iy')] = 'y'
+  except:
+    pass
+  try:
+    ssdim[ssdim.index('jx')] = 'x'
+  except:
+    pass
+  if nnvar == None:
+    nvar = name
+  else:
+    nvar = nnvar
   if 'ntimes' in ssdim:
     ssdim[ssdim.index('ntimes')] = 'time_bounds'
-  if name == 'rcm_map':
-    xvar = nc.createVariable(name,ovar.datatype,tuple(ssdim))
+  if name == 'rcm_map' or name == 'crs':
+    xvar = nc.createVariable(nvar,ovar.datatype,tuple(ssdim))
   else:
-    xvar = nc.createVariable(name,'f8',tuple(ssdim))
+    xvar = nc.createVariable(nvar,'f8',tuple(ssdim))
+  attrlist = [ ]
   for attr in ovar.ncattrs():
+    attrlist.append(attr)
     if attr == 'bounds':
       if bnds:
         xvar.setncattr(attr,getattr(ovar,attr))
@@ -76,6 +90,21 @@ def copyvar(nc,name,ovar,bnds=True,stsf=False):
 	xvar.setncattr(attr,attval)
       else:
         xvar.setncattr(attr,getattr(ovar,attr))
+  if nnvar == 'crs':
+    if 'semi_major_axis' not in attrlist:
+      xvar.setncattr('semi_major_axis',6371229.0)
+    if 'inverse_flattening' not in attrlist:
+      xvar.setncattr('inverse_flattening',0.0)
+    if '_CoordinateTransformType' not in attrlist:
+      xvar.setncattr('_CoordinateTransformType','Projection')
+    if '_CoordinateAxisTypes' not in attrlist:
+      xvar.setncattr('_CoordinateAxisTypes','GeoX GeoY')
+    if 'false_easting' not in attrlist:
+      xvar.setncattr('false_easting',-ds/2.0)
+    if 'false_northing' not in attrlist:
+      xvar.setncattr('false_northing',-ds/2.0)
+    if 'scale_factor_at_projection_origin' not in attrlist:
+      xvar.setncattr('scale_factor_at_projection_origin',1.0)
   return xvar
 
 def unitcorrect(old,new):
@@ -348,6 +377,8 @@ if variable not in lookup.keys():
   sys.exit(0)
 
 lookupdim = {
+          'jx' : 'x',
+          'iy' : 'y',
           'm2' : 'height',
           'm10' : 'height',
           'sigma' : 'plev',
@@ -429,8 +460,14 @@ if ncf.variables.has_key('qrs') or ncf.variables.has_key('firtp'):
 
 try:
   rcm_map = ncf.variables['rcm_map']
+  orcmap = 'rcm_map'
 except:
-  rcm_map = None
+  try:
+    rcm_map = ncf.variables['crs']
+    orcmap = 'crs'
+  except:
+    rcm_map = None
+    orcmap = None
 try:
   timebnds = ncf.variables['time_bnds']
 except:
@@ -572,18 +609,19 @@ else:
 
 # Define Variables
 
-newxlat = copyvar(nco,'xlat',xlat)
-newxlon = copyvar(nco,'xlon',xlon)
-newjx = copyvar(nco,'jx',jx)
+newxlat = copyvar(nco,'xlat',xlat,nnvar='lat')
+newxlon = copyvar(nco,'xlon',xlon,nnvar='lon')
+newjx = copyvar(nco,'jx',jx,nnvar='x')
 newjx.setncattr('axis','X')
-newiy = copyvar(nco,'iy',iy)
+newiy = copyvar(nco,'iy',iy,nnvar='y')
 newiy.setncattr('axis','Y')
 
 newrcm_map = None
 if rcm_map is not None:
-  newrcm_map = copyvar(nco,'rcm_map',rcm_map)
+  newrcm_map = copyvar(nco,orcmap,rcm_map,nnvar='crs', 
+		       ds=getattr(ncf,'grid_size_in_meters'))
 
-newtime = copyvar(nco,'time',times,needbound,stsf)
+newtime = copyvar(nco,'time',times,bnds=needbound,stsf=stsf)
 
 if timebnds is not None and needbound:
   newtimebnds = copyvar(nco,'time_bnds',timebnds)
@@ -601,8 +639,16 @@ for attr in var.ncattrs():
     if attr == 'units':
       oldunits = getattr(var,attr)
   else:
-    if attr == 'coordinates' and reducedims is not None:
-      newvar.setncattr(attr,getattr(var,attr)+" "+reducedims)
+    if attr == 'coordinates':
+      newattr = getattr(var,attr)
+      newattr = newattr.replace('xlat','lat')
+      newattr = newattr.replace('xlon','lon')
+      if reducedims is not None:
+        newvar.setncattr(attr,reducedims+" "+newattr)
+      else:
+        newvar.setncattr(attr,newattr)
+    elif attr == 'grid_mapping':
+      newvar.setncattr(attr,'crs')
     else:
       newvar.setncattr(attr,getattr(var,attr))
 
