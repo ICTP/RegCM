@@ -242,11 +242,17 @@ program ncplot
   call checkalloc(istatus,__FILE__,__LINE__,'tmplon')
 
   istatus = nf90_inq_varid(ncid, "xlat", ivarid)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error find variable xlat')
+  if ( istatus /= nf90_noerr ) then
+    istatus = nf90_inq_varid(ncid, "lat", ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find variable xlat')
+  end if
   istatus = nf90_get_var(ncid, ivarid, xlat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error read variable xlat')
   istatus = nf90_inq_varid(ncid, "xlon", ivarid)
-  call checkncerr(istatus,__FILE__,__LINE__,'Error find variable xlon')
+  if ( istatus /= nf90_noerr ) then
+    istatus = nf90_inq_varid(ncid, "lon", ivarid)
+    call checkncerr(istatus,__FILE__,__LINE__,'Error find variable xlon')
+  end if
   istatus = nf90_get_var(ncid, ivarid, xlon)
   call checkncerr(istatus,__FILE__,__LINE__,'Error read variable xlon')
 
