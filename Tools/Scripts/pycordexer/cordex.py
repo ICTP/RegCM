@@ -9,9 +9,9 @@ import sys
 import time
 import os
 
-ICTP_Model_id = 'RegCM4-3'
+ICTP_Model_id = 'RegCM4'
 ICTP_Model = 'ICTP-'+ICTP_Model_id
-ICTP_Model_Version = '4.4'
+ICTP_Model_Version = 'v4'
 
 def wspeed(u,v):
   spd = np.zeros(np.shape(u))

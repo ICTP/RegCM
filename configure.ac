@@ -260,9 +260,13 @@ AM_CONDITIONAL(OSNAME_AIX, [ test x"$osname" = xAIX ] )
 AM_CONDITIONAL(OSNAME_LINUX, [ test x"$osname" = xLinux ] )
 
 AM_CONDITIONAL(COMPILER_IBM, [ test x"$FC" = xxlf2003 -o \
+			            x"$FC" = xxlf2003_r -o \
                                     x"$FC" = xxlf2008 -o \
+                                    x"$FC" = xxlf2008_r -o \
                                     x"$FC" = xbgxlf2003 -o \
-                                    x"$FC" = xbgxlf2008 ] )
+                                    x"$FC" = xbgxlf2003_r -o \
+                                    x"$FC" = xbgxlf2008 -o \
+                                    x"$FC" = xbgxlf2008_r ] )
 AM_CONDITIONAL(COMPILER_GNU, [ test x"$FC" = xgfortran ] )
 AM_CONDITIONAL(COMPILER_G95, [ test x"$FC" = xg95 ] )
 AM_CONDITIONAL(COMPILER_SUN, [ test x"$FC" = xsunf95 ] )

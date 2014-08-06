@@ -43,6 +43,12 @@ then
   exit 1
 fi
 
+MAKE=`which gmake 2> /dev/null`
+if [ -z "$MAKE" ]
+  echo "Assuming make program is GNU make program"
+  MAKE=make
+fi
+
 WGET=`which wget 2> /dev/null`
 if [ -z "$WGET" ]
 then
@@ -113,8 +119,8 @@ echo CC="$CC" FC="$FC" ./configure --prefix=$DEST --shared >> \
 	$DEST/logs/configure.log
 CC="$CC" FC="$FC" ./configure --prefix=$DEST --shared >> \
              $DEST/logs/configure.log 2>&1
-make >> $DEST/logs/compile.log 2>&1 && \
-  make install >> $DEST/logs/install.log 2>&1
+$MAKE >> $DEST/logs/compile.log 2>&1 && \
+  $MAKE install >> $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
   echo "Error compiling zlib library"
@@ -135,8 +141,8 @@ echo ./configure CC="$CC" FC="$FC" F77="$FC" CXX="$CXX" \
       --prefix=$DEST --disable-cxx >> $DEST/logs/configure.log
 ./configure CC="$CC" FC="$FC" F77="$FC" CXX="$CXX" \
 	--prefix=$DEST >> $DEST/logs/configure.log 2>&1
-make > $DEST/logs/compile.log 2>&1 && \
-  make install >> $DEST/logs/install.log 2>&1
+$MAKE > $DEST/logs/compile.log 2>&1 && \
+  $MAKE install >> $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
   echo "Error compiling openmpi library"
@@ -154,8 +160,8 @@ echo ./configure CC="$CC" CXX="$CXX" FC="$FC" \
 ./configure CC="$CC" CXX="$CXX" FC="$FC" \
 	--prefix=$DEST --with-zlib=$DEST \
         --disable-cxx --disable-fortran >> $DEST/logs/configure.log 2>&1
-make > $DEST/logs/compile.log 2>&1 && \
-  make install >> $DEST/logs/install.log 2>&1
+$MAKE > $DEST/logs/compile.log 2>&1 && \
+  $MAKE install >> $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
   echo "Error compiling HDF5 library"
@@ -175,8 +181,8 @@ fi
 ./configure CC="$CC" FC="$FC" --prefix=$DEST --enable-netcdf-4 \
   CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib LIBS="$H5LIBS" \
   --disable-dap >> $DEST/logs/configure.log 2>&1
-make > $DEST/logs/compile.log 2>&1 && \
-  make install >> $DEST/logs/install.log 2>&1
+$MAKE > $DEST/logs/compile.log 2>&1 && \
+  $MAKE install >> $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
   echo "Error compiling netCDF C library"
@@ -190,8 +196,8 @@ cd netcdf-fortran-${netcdf_f_ver}
 ./configure PATH=$DEST/bin:$PATH CC="$CC" FC="$FC" \
      CPPFLAGS=-I$DEST/include LDFLAGS=-L$DEST/lib --prefix=$DEST \
      >> $DEST/logs/configure.log 2>&1
-make >> $DEST/logs/compile.log 2>&1 && \
-  make install >> $DEST/logs/install.log 2>&1
+$MAKE >> $DEST/logs/compile.log 2>&1 && \
+  $MAKE install >> $DEST/logs/install.log 2>&1
 if [ $? -ne 0 ]
 then
   echo "Error compiling netCDF Fortran library"
