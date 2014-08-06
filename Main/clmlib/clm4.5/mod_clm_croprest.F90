@@ -34,7 +34,7 @@ module mod_clm_croprest
     use mod_clm_type
     use mod_clm_atmlnd , only : clm_a2l
     use mod_clm_varpar , only : numrad
-    use mod_clm_decomp , only : get_proc_bounds
+    use mod_clm_decomp , only : get_proc_bounds , gcomm_pft
     use mod_clm_time_manager , only : is_restart
 
     implicit none
@@ -91,10 +91,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'peaklai') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'peaklai',pptr%pps%peaklai)
+        call clm_readvar(ncid,'peaklai',pptr%pps%peaklai,gcomm_pft)
       end if
     else if (flag == 'write') then
-       call clm_writevar(ncid,'peaklai',pptr%pps%peaklai)
+       call clm_writevar(ncid,'peaklai',pptr%pps%peaklai,gcomm_pft)
     end if
 
     ! idop
@@ -106,10 +106,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'idop') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'idop',pptr%pps%idop)
+        call clm_readvar(ncid,'idop',pptr%pps%idop,gcomm_pft)
       end if
     else if ( flag == 'write') then
-      call clm_writevar(ncid,'idop',pptr%pps%idop)
+      call clm_writevar(ncid,'idop',pptr%pps%idop,gcomm_pft)
     end if
 
     ! aleaf
@@ -120,10 +120,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'aleaf') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'aleaf',pptr%pps%aleaf)
+        call clm_readvar(ncid,'aleaf',pptr%pps%aleaf,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'aleaf',pptr%pps%aleaf)
+      call clm_writevar(ncid,'aleaf',pptr%pps%aleaf,gcomm_pft)
     end if
 
     ! aleafi
@@ -135,10 +135,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'aleafi') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'aleafi',pptr%pps%aleafi)
+        call clm_readvar(ncid,'aleafi',pptr%pps%aleafi,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'aleafi',pptr%pps%aleafi)
+      call clm_writevar(ncid,'aleafi',pptr%pps%aleafi,gcomm_pft)
     end if
 
     ! astem
@@ -149,10 +149,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'astem') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'astem',pptr%pps%astem)
+        call clm_readvar(ncid,'astem',pptr%pps%astem,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'astem',pptr%pps%astem)
+      call clm_writevar(ncid,'astem',pptr%pps%astem,gcomm_pft)
     end if
 
     ! astemi
@@ -164,10 +164,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'astemi') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'astemi',pptr%pps%astemi)
+        call clm_readvar(ncid,'astemi',pptr%pps%astemi,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'astemi',pptr%pps%astemi)
+      call clm_writevar(ncid,'astemi',pptr%pps%astemi,gcomm_pft)
     end if
 
     ! htmx
@@ -179,10 +179,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'htmx') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'htmx',pptr%pps%htmx)
+        call clm_readvar(ncid,'htmx',pptr%pps%htmx,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'htmx',pptr%pps%htmx)
+      call clm_writevar(ncid,'htmx',pptr%pps%htmx,gcomm_pft)
     end if
 
     ! hdidx
@@ -193,10 +193,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'hdidx') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'hdidx',pptr%pps%hdidx)
+        call clm_readvar(ncid,'hdidx',pptr%pps%hdidx,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'hdidx',pptr%pps%hdidx)
+      call clm_writevar(ncid,'hdidx',pptr%pps%hdidx,gcomm_pft)
     end if
 
     ! vf
@@ -207,10 +207,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'vf') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'vf',pptr%pps%vf)
+        call clm_readvar(ncid,'vf',pptr%pps%vf,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'vf',pptr%pps%vf)
+      call clm_writevar(ncid,'vf',pptr%pps%vf,gcomm_pft)
     end if
 
     ! cumvd
@@ -221,10 +221,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'cumvd') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'cumvd',pptr%pps%cumvd)
+        call clm_readvar(ncid,'cumvd',pptr%pps%cumvd,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'cumvd',pptr%pps%cumvd)
+      call clm_writevar(ncid,'cumvd',pptr%pps%cumvd,gcomm_pft)
     end if
 
     ! croplive
@@ -235,10 +235,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'croplive') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'croplive',pptr%pps%croplive)
+        call clm_readvar(ncid,'croplive',pptr%pps%croplive,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'croplive',pptr%pps%croplive)
+      call clm_writevar(ncid,'croplive',pptr%pps%croplive,gcomm_pft)
     end if
 
     ! cropplant
@@ -249,10 +249,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'cropplant') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'cropplant',pptr%pps%cropplant)
+        call clm_readvar(ncid,'cropplant',pptr%pps%cropplant,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'cropplant',pptr%pps%cropplant)
+      call clm_writevar(ncid,'cropplant',pptr%pps%cropplant,gcomm_pft)
     end if
 
     ! harvdate
@@ -263,10 +263,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'harvdate') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'harvdate',pptr%pps%harvdate)
+        call clm_readvar(ncid,'harvdate',pptr%pps%harvdate,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'harvdate',pptr%pps%harvdate)
+      call clm_writevar(ncid,'harvdate',pptr%pps%harvdate,gcomm_pft)
     end if
 
     ! gdd1020
@@ -278,10 +278,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'gdd1020') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'gdd1020',pptr%pps%gdd1020)
+        call clm_readvar(ncid,'gdd1020',pptr%pps%gdd1020,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'gdd1020',pptr%pps%gdd1020)
+      call clm_writevar(ncid,'gdd1020',pptr%pps%gdd1020,gcomm_pft)
     end if
 
     ! gdd820
@@ -293,10 +293,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'gdd820') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'gdd820',pptr%pps%gdd820)
+        call clm_readvar(ncid,'gdd820',pptr%pps%gdd820,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'gdd820',pptr%pps%gdd820)
+      call clm_writevar(ncid,'gdd820',pptr%pps%gdd820,gcomm_pft)
     end if
 
     ! gdd020
@@ -308,10 +308,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'gdd020') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'gdd020',pptr%pps%gdd020)
+        call clm_readvar(ncid,'gdd020',pptr%pps%gdd020,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'gdd020',pptr%pps%gdd020)
+      call clm_writevar(ncid,'gdd020',pptr%pps%gdd020,gcomm_pft)
     end if
 
     ! gddmaturity
@@ -322,10 +322,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'gddmaturity') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'gddmaturity',pptr%pps%gddmaturity)
+        call clm_readvar(ncid,'gddmaturity',pptr%pps%gddmaturity,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'gddmaturity',pptr%pps%gddmaturity)
+      call clm_writevar(ncid,'gddmaturity',pptr%pps%gddmaturity,gcomm_pft)
     end if
 
     ! huileaf
@@ -337,10 +337,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'huileaf') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'huileaf',pptr%pps%huileaf)
+        call clm_readvar(ncid,'huileaf',pptr%pps%huileaf,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'huileaf',pptr%pps%huileaf)
+      call clm_writevar(ncid,'huileaf',pptr%pps%huileaf,gcomm_pft)
     end if
 
     ! huigrain
@@ -352,10 +352,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'huigrain') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'huigrain',pptr%pps%huigrain)
+        call clm_readvar(ncid,'huigrain',pptr%pps%huigrain,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'huigrain',pptr%pps%huigrain)
+      call clm_writevar(ncid,'huigrain',pptr%pps%huigrain,gcomm_pft)
     end if
 
     ! grainc
@@ -366,10 +366,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'grainc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'grainc',pptr%pcs%grainc)
+        call clm_readvar(ncid,'grainc',pptr%pcs%grainc,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'grainc',pptr%pcs%grainc)
+      call clm_writevar(ncid,'grainc',pptr%pcs%grainc,gcomm_pft)
     end if
 
     ! grainc_storage
@@ -380,10 +380,12 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'grainc_storage') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'grainc_storage',pptr%pcs%grainc_storage)
+        call clm_readvar(ncid,'grainc_storage', &
+                pptr%pcs%grainc_storage,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'grainc_storage',pptr%pcs%grainc_storage)
+      call clm_writevar(ncid,'grainc_storage', &
+              pptr%pcs%grainc_storage,gcomm_pft)
     end if
 
     ! grainc_xfer
@@ -394,10 +396,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'grainc_xfer') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'grainc_xfer',pptr%pcs%grainc_xfer)
+        call clm_readvar(ncid,'grainc_xfer',pptr%pcs%grainc_xfer,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'grainc_xfer',pptr%pcs%grainc_xfer)
+      call clm_writevar(ncid,'grainc_xfer',pptr%pcs%grainc_xfer,gcomm_pft)
     end if
 
     ! grainn
@@ -408,10 +410,10 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'grainn') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'grainn',pptr%pns%grainn)
+        call clm_readvar(ncid,'grainn',pptr%pns%grainn,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'grainn',pptr%pns%grainn)
+      call clm_writevar(ncid,'grainn',pptr%pns%grainn,gcomm_pft)
     end if
 
     ! grainn_storage
@@ -422,10 +424,12 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'grainn_storage') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'grainn_storage',pptr%pns%grainn_storage)
+        call clm_readvar(ncid,'grainn_storage', &
+                pptr%pns%grainn_storage,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'grainn_storage',pptr%pns%grainn_storage)
+      call clm_writevar(ncid,'grainn_storage', &
+              pptr%pns%grainn_storage,gcomm_pft)
     end if
 
     ! grainn_xfer
@@ -436,42 +440,45 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'grainn_xfer') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'grainn_xfer',pptr%pns%grainn_xfer)
+        call clm_readvar(ncid,'grainn_xfer',pptr%pns%grainn_xfer,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'grainn_xfer',pptr%pns%grainn_xfer)
+      call clm_writevar(ncid,'grainn_xfer',pptr%pns%grainn_xfer,gcomm_pft)
     end if
 
     ! grainc_xfer_to_grainc
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'grainc_xfer_to_grainc', &
-         cdims=(/'pft'/),long_name='grain C growth from storage',units='gC/m2/s')
+         cdims=(/'pft'/),long_name='grain C growth from storage', &
+         units='gC/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. &
            clm_check_var(ncid,'grainc_xfer_to_grainc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'grainc_xfer_to_grainc', &
-                pptr%pcf%grainc_xfer_to_grainc)
+                pptr%pcf%grainc_xfer_to_grainc,gcomm_pft)
       end if
     else if (flag == 'write') then
       call clm_writevar(ncid,'grainc_xfer_to_grainc', &
-               pptr%pcf%grainc_xfer_to_grainc)
+               pptr%pcf%grainc_xfer_to_grainc,gcomm_pft)
     end if
 
     ! livestemc_to_litter
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'livestemc_to_litter',cdims=(/'pft'/), &
-            long_name='live stem C litterfall',units='gC/m2/s')
+      call clm_addvar(clmvar_double,ncid,'livestemc_to_litter', &
+            cdims=(/'pft'/), long_name='live stem C litterfall',units='gC/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. &
            clm_check_var(ncid,'livestemc_to_litter') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'livestemc_to_litter',pptr%pcf%livestemc_to_litter)
+        call clm_readvar(ncid,'livestemc_to_litter', &
+                pptr%pcf%livestemc_to_litter,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'livestemc_to_litter',pptr%pcf%livestemc_to_litter)
+      call clm_writevar(ncid,'livestemc_to_litter', &
+              pptr%pcf%livestemc_to_litter,gcomm_pft)
     end if
 
     ! grainc_to_food
@@ -482,42 +489,47 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'grainc_to_food') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'grainc_to_food',pptr%pcf%grainc_to_food)
+        call clm_readvar(ncid,'grainc_to_food', &
+                pptr%pcf%grainc_to_food,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'grainc_to_food',pptr%pcf%grainc_to_food)
+      call clm_writevar(ncid,'grainc_to_food', &
+              pptr%pcf%grainc_to_food,gcomm_pft)
     end if
 
     ! grainn_xfer_to_grainn
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'grainn_xfer_to_grainn', &
-         cdims=(/'pft'/),long_name='grain N growth from storage',units='gN/m2/s')
+         cdims=(/'pft'/),long_name='grain N growth from storage', &
+         units='gN/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. &
            clm_check_var(ncid,'grainn_xfer_to_grainn') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'grainn_xfer_to_grainn', &
-                pptr%pnf%grainn_xfer_to_grainn)
+                pptr%pnf%grainn_xfer_to_grainn,gcomm_pft)
       end if
     else if (flag == 'write') then
       call clm_writevar(ncid,'grainn_xfer_to_grainn', &
-               pptr%pnf%grainn_xfer_to_grainn)
+               pptr%pnf%grainn_xfer_to_grainn,gcomm_pft)
     end if
 
     ! livestemn_to_litter
     if (flag == 'define') then
-      call clm_addvar(clmvar_double,ncid,'livestemn_to_litter',cdims=(/'pft'/), &
-            long_name='livestem N to litter',units='gN/m2/s')
+      call clm_addvar(clmvar_double,ncid,'livestemn_to_litter', &
+            cdims=(/'pft'/), long_name='livestem N to litter',units='gN/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. &
            clm_check_var(ncid,'livestemn_to_litter') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'livestemn_to_litter',pptr%pnf%livestemn_to_litter)
+        call clm_readvar(ncid,'livestemn_to_litter', &
+                pptr%pnf%livestemn_to_litter,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'livestemn_to_litter',pptr%pnf%livestemn_to_litter)
+      call clm_writevar(ncid,'livestemn_to_litter', &
+              pptr%pnf%livestemn_to_litter,gcomm_pft)
     end if
 
     ! grainn_to_food
@@ -528,10 +540,12 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'grainn_to_food') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'grainn_to_food',pptr%pnf%grainn_to_food)
+        call clm_readvar(ncid,'grainn_to_food', &
+                pptr%pnf%grainn_to_food,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'grainn_to_food',pptr%pnf%grainn_to_food)
+      call clm_writevar(ncid,'grainn_to_food', &
+              pptr%pnf%grainn_to_food,gcomm_pft)
     end if
 
     ! cpool_to_grainc
@@ -542,27 +556,30 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'cpool_to_grainc') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'cpool_to_grainc',pptr%pcf%cpool_to_grainc)
+        call clm_readvar(ncid,'cpool_to_grainc', &
+                pptr%pcf%cpool_to_grainc,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'cpool_to_grainc',pptr%pcf%cpool_to_grainc)
+      call clm_writevar(ncid,'cpool_to_grainc', &
+              pptr%pcf%cpool_to_grainc,gcomm_pft)
     end if
 
     ! cpool_to_grainc_storage
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'cpool_to_grainc_storage', &
-        cdims=(/'pft'/),long_name='allocation to grain C storage',units='gC/m2/s')
+        cdims=(/'pft'/),long_name='allocation to grain C storage',  &
+        units='gC/m2/s')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. &
            clm_check_var(ncid,'cpool_to_grainc_storage') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'cpool_to_grainc_storage', &
-                pptr%pcf%cpool_to_grainc_storage)
+                pptr%pcf%cpool_to_grainc_storage,gcomm_pft)
       end if
     else if (flag == 'write') then
       call clm_writevar(ncid,'cpool_to_grainc_storage', &
-               pptr%pcf%cpool_to_grainc_storage)
+               pptr%pcf%cpool_to_grainc_storage,gcomm_pft)
     end if
 
     ! npool_to_grainn
@@ -573,10 +590,12 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'npool_to_grainn') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'npool_to_grainn',pptr%pnf%npool_to_grainn)
+        call clm_readvar(ncid,'npool_to_grainn', &
+                pptr%pnf%npool_to_grainn,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'npool_to_grainn',pptr%pnf%npool_to_grainn)
+      call clm_writevar(ncid,'npool_to_grainn', &
+              pptr%pnf%npool_to_grainn,gcomm_pft)
     end if
 
     ! npool_to_grainn_storage
@@ -590,11 +609,11 @@ module mod_clm_croprest
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'npool_to_grainn_storage', &
-                pptr%pnf%npool_to_grainn_storage)
+                pptr%pnf%npool_to_grainn_storage,gcomm_pft)
       end if
     else if (flag == 'write') then
       call clm_writevar(ncid,'npool_to_grainn_storage', &
-               pptr%pnf%npool_to_grainn_storage)
+               pptr%pnf%npool_to_grainn_storage,gcomm_pft)
     end if
 
     ! cpool_grain_gr
@@ -605,10 +624,12 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'cpool_grain_gr') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'cpool_grain_gr',pptr%pcf%cpool_grain_gr)
+        call clm_readvar(ncid,'cpool_grain_gr', &
+                pptr%pcf%cpool_grain_gr,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'cpool_grain_gr',pptr%pcf%cpool_grain_gr)
+      call clm_writevar(ncid,'cpool_grain_gr', &
+              pptr%pcf%cpool_grain_gr,gcomm_pft)
     end if
 
     ! cpool_grain_storage_gr
@@ -622,11 +643,11 @@ module mod_clm_croprest
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'cpool_grain_storage_gr', &
-                pptr%pcf%cpool_grain_storage_gr)
+                pptr%pcf%cpool_grain_storage_gr,gcomm_pft)
       end if
     else if (flag == 'write') then
       call clm_writevar(ncid,'cpool_grain_storage_gr', &
-               pptr%pcf%cpool_grain_storage_gr)
+               pptr%pcf%cpool_grain_storage_gr,gcomm_pft)
     end if
 
     ! transfer_grain_gr
@@ -637,10 +658,12 @@ module mod_clm_croprest
       if ( is_restart() .and. .not. clm_check_var(ncid,'transfer_grain_gr') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
-        call clm_readvar(ncid,'transfer_grain_gr',pptr%pcf%transfer_grain_gr)
+        call clm_readvar(ncid,'transfer_grain_gr', &
+                pptr%pcf%transfer_grain_gr,gcomm_pft)
       end if
     else if (flag == 'write') then
-      call clm_writevar(ncid,'transfer_grain_gr',pptr%pcf%transfer_grain_gr)
+      call clm_writevar(ncid,'transfer_grain_gr', &
+              pptr%pcf%transfer_grain_gr,gcomm_pft)
     end if
 
     ! grainc_storage_to_xfer
@@ -654,11 +677,11 @@ module mod_clm_croprest
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'grainc_storage_to_xfer', &
-                pptr%pcf%grainc_storage_to_xfer)
+                pptr%pcf%grainc_storage_to_xfer,gcomm_pft)
       end if
     else if (flag == 'write') then
       call clm_writevar(ncid,'grainc_storage_to_xfer', &
-               pptr%pcf%grainc_storage_to_xfer)
+               pptr%pcf%grainc_storage_to_xfer,gcomm_pft)
     end if
 
     ! grainn_storage_to_xfer
@@ -672,11 +695,11 @@ module mod_clm_croprest
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'grainn_storage_to_xfer', &
-                pptr%pnf%grainn_storage_to_xfer)
+                pptr%pnf%grainn_storage_to_xfer,gcomm_pft)
       end if
     else if (flag == 'write') then
       call clm_writevar(ncid,'grainn_storage_to_xfer', &
-               pptr%pnf%grainn_storage_to_xfer)
+               pptr%pnf%grainn_storage_to_xfer,gcomm_pft)
     end if
 
   end subroutine CropRest
