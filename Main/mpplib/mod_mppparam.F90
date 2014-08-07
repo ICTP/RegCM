@@ -817,11 +817,6 @@ module mod_mppparam
           cpus_per_dim(1) = nproc
           cpus_per_dim(2) = 1
         else if ( nproc >= 4 ) then
-          if ( mod(nproc,2) /= 0 ) then
-            write(stderr,*) 'Work does not evenly divide.'
-            write(stderr,*) 'Required number of CPUS must be even.'
-            call fatal(__FILE__,__LINE__,'CPU/WORK mismatch')
-          end if
           cpus_per_dim(1) = (nint(sqrt(dble(nproc)))/2)*2
           if ( iy > int(1.5*dble(jx)) ) then
             cpus_per_dim(1) = cpus_per_dim(1) - 1
@@ -963,22 +958,15 @@ module mod_mppparam
       ! Topmost and rightmost processors are doing what's left
       !
       if ( ma%location(2)+1 == cpus_per_dim(2) ) then
-        if ( mod(iy,iyp) /= 0 ) then
-          global_dot_iend = global_dot_istart+iyp-1
-          if ( global_dot_iend < iy ) then
-            iyp = iy-global_dot_istart+1
-          else
-            iyp = mod(iy,iyp)
-          end if
+        global_dot_iend = global_dot_istart+iyp-1
+        if ( global_dot_iend < iy ) then
+          iyp = iy-global_dot_istart+1
         end if
       end if
       if ( ma%location(1)+1 == cpus_per_dim(1) ) then
-        if ( mod(jx,jxp) /= 0 ) then
-          if ( global_dot_jend < jx ) then
-            jxp = jx-global_dot_jstart+1
-          else
-            jxp = mod(jx,jxp)
-          end if
+        global_dot_jend = global_dot_jstart+jxp-1
+        if ( global_dot_jend < jx ) then
+          jxp = jx-global_dot_jstart+1
         end if
       end if
       global_dot_jend = global_dot_jstart+jxp-1
