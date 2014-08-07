@@ -15,7 +15,7 @@
 #CXX="g++ -fPIC"
 #CXX="icpc -fPIC"
 #CXX="pgCC -fpic"
-#CC="xlc++_r -qpic"
+#CXX="xlc++_r -qpic"
 # Working Fortran Compiler
 #FC="gfortran -fPIC"
 #FC="ifort -fPIC"
@@ -45,6 +45,7 @@ fi
 
 MAKE=`which gmake 2> /dev/null`
 if [ -z "$MAKE" ]
+then
   echo "Assuming make program is GNU make program"
   MAKE=make
 fi
