@@ -1,8 +1,6 @@
 
 include $(REGCM_ROOT)/makeinc
 
-program_transform_name = s&$$&$(flagsuffix)&
-
 vpath %.o $(REGCM_ROOT)/Share:.
 
 bin_PROGRAMS = mksurfdata

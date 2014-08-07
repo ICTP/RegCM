@@ -46,3 +46,5 @@ SVNDEF := $(DEFINE)'SVN_REV="$(shell svnversion -n .)"'
 space :=
 space +=
 flagsuffix := $(subst $(space),_,$(subst $(DEFINE),,$(filter $(DEFINE)% , $(CPPFLAGS))))
+
+program_transform_name := s&$$&$(rcsuffix)$(flagsuffix)&

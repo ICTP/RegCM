@@ -24,6 +24,12 @@ SUBDIRS = mpplib netlib batslib ocnlib chemlib clmlib cumlib radlib pbllib
 
 include $(REGCM_ROOT)/makeinc
 
+if REGCM_PARALLEL
+rcsuffix = MPI
+else
+rcsuffix = Serial
+endif
+
 MPPLIBPTH = ./mpplib
 CLMLIBPTH = ./clmlib
 BATLIBPTH = ./batslib
@@ -47,14 +53,6 @@ RADLIB = $(RADLIBPTH)/librad.a
 PBLLIB = $(PBLLIBPTH)/libpbl.a
 CBMZLIB = $(CBMZLIBPTH)/libcbmz.a
 RRTMSWLIB = $(RRTMSWLIBPTH)/librrtmgsw.a
-
-if REGCM_PARALLEL
-rcsuffix = MPI
-else
-rcsuffix = Serial
-endif
-
-program_transform_name = s&$$&$(rcsuffix)$(flagsuffix)&
 
 LMPPLIB = -L$(MPPLIBPTH) -lmpp
 LBATLIB = -L$(BATLIBPTH) -lbats
