@@ -82,14 +82,25 @@ module mod_constants
   real(rk8) , parameter :: boltzk = 1.3806504D-23
   ! Avogadro Constant
   real(rk8) , parameter :: navgdr = 6.02214129D23
+  ! CRC Handbook of Chemistry and Physics, 1997
   ! Effective molecular weight of dry air (g/mol)
-  real(rk8) , parameter :: amd = 28.9644D+00
+  ! 78.084       % N2
+  ! 20.9476      % O2
+  !  0.00934     % Ar
+  !  0.000314    % CO2
+  !  0.00001818  % Ne
+  !  0.000002    % CH4
+  !  0.00000524  % He
+  !  0.00000114  % Kr
+  !  0.0000005   % H2
+  !  0.000000087 % Xe
+  real(rk8) , parameter :: amd   = 28.96454D+00
   ! Effective molecular weight of water (g/mol)
-  real(rk8) , parameter :: amw = 18.0153D+00
+  real(rk8) , parameter :: amw   = 18.01528D+00
   ! Effective molecular weight of ozone (g/mol)
-  real(rk8) , parameter :: amo = 47.9942D+00
+  real(rk8) , parameter :: amo   = 47.99820D+00
   ! Effective molecular weight of carbon dioxide (g/mol)
-  real(rk8) , parameter :: amco2 = 44.01D+00
+  real(rk8) , parameter :: amco2 = 44.00950D+00
   ! Ratio of 13C/12C in Pee Dee Belemnite (C isotope standard)
   real(rk8) , parameter :: pdbratio = 0.0112372D+00
 
