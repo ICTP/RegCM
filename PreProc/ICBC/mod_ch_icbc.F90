@@ -66,12 +66,10 @@ module mod_ch_icbc
   subroutine header_ch_icbc(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    type (rcm_time_and_date) :: imonmidd
     integer(ik4) :: ivarid , idimid
     integer(ik4) :: nyear , month , nday , nhour
     character(len=256) :: chfilename
     integer(ik4) :: ncid , istatus
-    integer(ik4) :: im1 , im2
 
     call split_idate(idate,nyear,month,nday,nhour)
 
@@ -142,22 +140,14 @@ module mod_ch_icbc
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     character(len=256)     :: chfilename
-    type(rcm_time_and_date)  :: idate0
     integer(ik4) :: year1 , month1 , day1 , hour1
     integer(ik4) :: nyear , month , nday , nhour
-    logical :: doread
-    type (rcm_time_interval) :: tdif
-    real(rk8) :: xfac1 , xfac2 , odist
-    integer(ik4) :: im1 , im2, n
-    character(len=265):: filename
 
     call split_idate(globidate1,year1,month1,day1,hour1)
     call split_idate(idate,nyear,month,nday,nhour)
     call find_data(idate,globidate1,chfilename)
     write(*,*)chfilename
     call readmz4(idate,globidate1,chfilename)
-
-  
 
 !Lumping of Mozart species to CBMZ species
 
@@ -195,8 +185,6 @@ chv4(:,:,:,cb_ALD2)  = (chv4_1(:,:,:,mz_CH3CHO)+chv4_1(:,:,:,mz_GLYALD))*w_ald2/
 chv4(:,:,:,cb_HCHO)  = chv4_1(:,:,:,mz_CH2O)*w_hcho/amd
 chv4(:,:,:,cb_CH3OH) = chv4_1(:,:,:,mz_CH3OH)*w_ch3oh/amd
 
-
-
     call write_ch_icbc(idate)
 
   end subroutine get_ch_icbc
@@ -204,13 +192,8 @@ chv4(:,:,:,cb_CH3OH) = chv4_1(:,:,:,mz_CH3OH)*w_ch3oh/amd
   subroutine readps(idate)
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
-    integer :: i , is , j , k , l , k0,it
     character(len=256) :: chfilename
-    real(rk4) :: wt1 , wt2
     integer :: ncid , istatus , ivarid
-    integer , dimension(4) :: icount , istart
-    integer :: year , month , day , hour
-    integer :: year1 , month1 , day1 , hour1
 
     write(chfilename,'(a,i0.2,a)') &
        trim(inpglob)//pthsep//'OXIGLOB'//pthsep// &
@@ -229,28 +212,27 @@ chv4(:,:,:,cb_CH3OH) = chv4_1(:,:,:,mz_CH3OH)*w_ch3oh/amd
 
 
   subroutine find_data(idate,idate0,chfilename)
-  implicit none
-  integer, parameter                   ::nfile=127
-  type(rcm_time_and_date) , intent(in) :: idate
-  type(rcm_time_and_date) , intent(in) :: idate0
-  real(rk8) , dimension(nfile,124),save :: timearray
+    implicit none
+    integer, parameter                   ::nfile=127
+    type(rcm_time_and_date) , intent(in) :: idate
+    type(rcm_time_and_date) , intent(in) :: idate0
+    real(rk8) , dimension(nfile,124),save :: timearray
  
-  character(len=256),intent(out) :: chfilename
-  character(len=44),dimension(nfile),save:: filename
-  integer(ik4) :: i , is , j , k , l , k0,recc,it
-  integer(ik4) :: timid,timlen,dayid
-  character(len=32) :: chfilemm,chfilemmm1,chfilemmp1
-  character(len=64) :: cunit , ccal
-  character(len=23) :: datename,datenamem1,datenamep1
-  character(len=4)  :: yyyy
-  character(len=2)  :: mm
-  character(len=7)  :: yyyy_mm,yyyy_mmm1,yyyy_mmp1
-  integer(ik4) :: year , month , day , hour
-  integer(ik4) :: year1 , month1 , day1 , hour1
-  integer(ik4) :: nyear , nmonth , nday , nhour
-  integer :: ncid , istatus , ivarid
-  type (rcm_time_interval) :: tdif
-  logical                  :: there
+    character(len=256),intent(out) :: chfilename
+    character(len=44),dimension(nfile),save:: filename
+    integer(ik4) :: i , recc , it
+    integer(ik4) :: timid , timlen
+    character(len=32) :: chfilemm,chfilemmm1,chfilemmp1
+    character(len=64) :: cunit , ccal
+    character(len=32) :: datename,datenamem1,datenamep1
+    character(len=4)  :: yyyy
+    character(len=2)  :: mm
+    character(len=7)  :: yyyy_mm,yyyy_mmm1,yyyy_mmp1
+    integer(ik4) :: year , month , day , hour
+    integer(ik4) :: year1 , month1 , day1 , hour1
+    integer(ik4) :: nyear , nmonth , nday , nhour
+    integer :: ncid , istatus
+    type (rcm_time_interval) :: tdif
 
     call split_idate(idate,year,month,day,hour)
     datename   = tochar(idate)
@@ -326,22 +308,15 @@ chv4(:,:,:,cb_CH3OH) = chv4_1(:,:,:,mz_CH3OH)*w_ch3oh/amd
     type(rcm_time_and_date) , intent(in) :: idate,idate0
     character(len=256),intent(in) :: chfilename
     integer(ik4) :: i , is , j , k , l , k0,recc
-    integer(ik4) :: timid,timlen,dayid
-    character(len=44),dimension(120) :: filename
-    character(len=23) :: datename
-    character(len=6) :: datename2
+    integer(ik4) :: timid , timlen
     character(len=64) :: cunit , ccal
     real(rk8) :: wt1 , wt2
     integer(ik4) :: ncid , istatus , ivarid
     integer(ik4) , dimension(4) :: icount , istart
     integer(ik4) :: year , month , day , hour
     integer(ik4) :: year1 , month1 , day1 , hour1
-    integer(ik4) :: lastmonth , lastyear
     integer(ik4) :: it
-    type(rcm_time_and_date) :: xdate
     type(rcm_time_interval) :: tdif
-   
-    
 
     istatus = nf90_open(chfilename,nf90_nowrite,ncid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error open file chemical')
