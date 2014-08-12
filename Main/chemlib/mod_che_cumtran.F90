@@ -25,13 +25,15 @@ module mod_che_cumtran
   use mod_realkinds
   use mod_dynparam
   use mod_che_common
-!
+
+  implicit none
+
   private
-!
+
   public :: cumtran
-!
+
   contains
-!
+
   subroutine cumtran
     implicit none
     real(rk8) :: chiabar , chibbar , deltas , cumfrc

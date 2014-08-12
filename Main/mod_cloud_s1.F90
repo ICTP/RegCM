@@ -45,12 +45,14 @@ module mod_cloud_s1
   use mod_runparams , only : rtsrf
   use mod_atm_interface , only : mddom
 
+  implicit none
+
   private
 
   real(rk8) :: zfall                                 ! constant fall speed
   real(rk8) :: zqtmst                                ! 1/dt
   real(rk8) , pointer , dimension(:,:)   :: psf , rainnc, lsmrnc, snownc
-  real(rk8) , pointer , dimension(:,:,:) :: pres     ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: zpres    ! from atms
   real(rk8) , pointer , dimension(:,:,:) :: zt       ! from atms
   real(rk8) , pointer , dimension(:,:,:) :: rhob3d   ! from atms
   real(rk8) , pointer , dimension(:,:,:) :: omega    ! from atms
@@ -81,7 +83,6 @@ module mod_cloud_s1
 
   real(rk8) , public , pointer , dimension(:,:,:) :: papf
   real(rk8) , pointer , dimension(:,:,:):: zsumh0 , zsumq0
-  real(rk8) , pointer , dimension(:,:,:) :: zpres
   real(rk8) , pointer , dimension(:,:,:) :: zsumh1 , zsumq1
   real(rk8) , pointer , dimension(:,:,:) :: zerrorq , zerrorh
   real(rk8) , pointer , dimension(:,:,:):: ztentkeep
@@ -356,7 +357,6 @@ module mod_cloud_s1
       call getmem4d(zqx0,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:zqx0')
     end if
     call getmem3d(zqsliq,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqsliq')
-    call getmem3d(zpres,jci1,jci2,ici1,ici2,1,kz,'clouds1:zpres')
   end subroutine allocate_mod_cloud_s1
 
   subroutine init_cloud_s1(atms,aten,heatrt,sfs,q_detr,pptnc)
@@ -367,7 +367,7 @@ module mod_cloud_s1
     real(rk8) , pointer , intent(in), dimension(:,:,:) :: heatrt, q_detr
     real(rk8) , pointer , dimension(:,:) :: pptnc
     real(rk8) , pointer , dimension(:,:,:) :: cldfra , cldlwc
-    call assignpnt(atms%pb3d,pres)
+    call assignpnt(atms%pb3d,zpres)
     call assignpnt(atms%tb3d,zt)
     call assignpnt(atms%za,zeta)
     call assignpnt(atms%qxb3d,zqxx)
@@ -484,8 +484,7 @@ if ( fscheme ) then
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          zliq(j,i,k) = phases(zt(j,i,k))         ! zliq = zfoealfa in IFS
-          zpres(j,i,k) = pres(j,i,k)*d_1000       !   (Pa)
+          zliq(j,i,k) = phases(zt(j,i,k))    ! zliq = zfoealfa in IFS
           zqdetr(j,i,k) = qdetr(j,i,k)
         end do
       end do

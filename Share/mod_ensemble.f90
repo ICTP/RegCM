@@ -23,6 +23,8 @@ module mod_ensemble
   use mod_realkinds
   use mod_memutil
   use mod_constants
+
+  implicit none
 !
 !------------------------------------------------------------------------------
 !

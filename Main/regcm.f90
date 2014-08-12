@@ -25,12 +25,15 @@ program regcm
 !
 !**********************************************************************
 !
+  use mod_intkinds
+  use mod_realkinds
+  use mod_dynparam
   use mod_regcm_interface
   use mod_runparams
-!
+
   implicit none
   include 'mpif.h'
-!
+
   real(rk8) :: timestr, timeend
   type(rcm_time_interval) :: tdif
   integer(ik4) :: ierr

@@ -24,7 +24,7 @@ module mod_cu_em
   use mod_intkinds
   use mod_realkinds
   use mod_memutil
-  use mod_runparams
+  use mod_runparams , only : dtsec
   use mod_cu_common
   use mod_service
   use mod_regcm_types
@@ -95,7 +95,7 @@ module mod_cu_em
           qscup(k) = m2c%qsas(j,i,kk)/(d_one+m2c%qsas(j,i,kk))  ! [kg/kg]
           ucup(k) = m2c%uas(j,i,kk)                         ! [m/s]
           vcup(k) = m2c%vas(j,i,kk)                         ! [m/s]
-          pcup(k) = m2c%pas(j,i,kk)*d_10                    ! [hPa]
+          pcup(k) = m2c%pas(j,i,kk)*d_r100                  ! [hPa]
         end do
         if (ichem == 1 ) then 
           do k=1, kz       

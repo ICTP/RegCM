@@ -41,6 +41,8 @@ module mod_che_bdyco
   use mod_che_emission
   use mod_mppparam  
 
+  implicit none
+
   private
 
   public :: allocate_mod_che_bdyco , chem_bdyin , chem_bdyval

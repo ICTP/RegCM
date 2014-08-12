@@ -35,6 +35,8 @@ module mod_che_emission
   use mod_che_indices
   use netcdf
   !
+  implicit none
+
   private
   !
   public :: chem_emission , emis_tend 

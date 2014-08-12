@@ -7,11 +7,14 @@ module mod_che_bionit
   use mod_constants
   use mod_che_common
   use mod_che_dust
+  use mod_che_ncio
   use mod_dynparam
 
- public :: allocate_mod_che_bionit, ini_bionit
+  implicit none
 
- real(rk8) , pointer, dimension(:,:) :: nmanure , nfert , soilph 
+  public :: allocate_mod_che_bionit, ini_bionit
+
+  real(rk8) , pointer, dimension(:,:) :: nmanure , nfert , soilph 
 
   !coefficients and weights derived from neural net analysis
   real(rk8), parameter :: xwgt0 =  0.561651794427011

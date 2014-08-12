@@ -28,6 +28,8 @@ module mod_service
   use mod_dynparam , only : mycomm , myid , nproc , debug_level
   use mpi
 
+  implicit none
+
   private
 
   integer(ik4) , parameter , public :: dbgslen = 64

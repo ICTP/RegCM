@@ -21,6 +21,8 @@ module mod_che_indices
 
   use mod_intkinds
 
+  implicit none
+
   public
 
   !ah   gas_phase chemistry indecies for potential transported species 

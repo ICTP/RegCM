@@ -29,6 +29,8 @@ module mod_rad_scenarios
   use mod_mpmessage
   use mod_runparams
 
+  implicit none
+
   private
 
   public :: set_scenario , cgas

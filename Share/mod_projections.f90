@@ -23,6 +23,8 @@ module mod_projections
   use mod_realkinds
   use mod_constants
 
+  implicit none
+
   real(rk8) :: conefac
   real(rk8) , private :: stdlon
   real(rk8) , private :: truelat1 , truelat2 , tl1r , tl2r , ctl1r

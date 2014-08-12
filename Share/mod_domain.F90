@@ -27,6 +27,8 @@ module mod_domain
   use mod_stdio
   use mod_message
 
+  implicit none
+
   private
 
   type domain_io

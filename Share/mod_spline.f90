@@ -23,6 +23,8 @@ module mod_spline
   use mod_realkinds
   use mod_constants
 
+  implicit none
+
   private
 
   public :: splini , spline , splint

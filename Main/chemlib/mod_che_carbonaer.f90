@@ -27,6 +27,8 @@ module mod_che_carbonaer
   use mod_che_species
   use mod_che_indices
 
+  implicit none
+
   private
 
   ! Parameter usefull for wet and dry deposition of carbon aerosol 

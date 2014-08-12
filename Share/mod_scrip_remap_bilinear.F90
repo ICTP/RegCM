@@ -61,6 +61,8 @@ module mod_scrip_remap_bilinear
   use mod_scrip_grids
   use mod_scrip_remap_vars
 
+  implicit none
+
   private
 
   ! max iteration count for i,j iteration

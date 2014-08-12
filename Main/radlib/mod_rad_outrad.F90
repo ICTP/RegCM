@@ -28,6 +28,8 @@ module mod_rad_outrad
   use mod_outvars
   use mod_regcm_types
 
+  implicit none
+
   private
 
   public :: allocate_mod_rad_outrad , radout

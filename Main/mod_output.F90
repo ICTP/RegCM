@@ -19,6 +19,9 @@
  
 module mod_output
 
+  use mod_intkinds
+  use mod_realkinds
+  use mod_dynparam
   use mod_runparams
   use mod_header
   use mod_mpmessage
@@ -38,6 +41,8 @@ module mod_output
   use mod_savefile
   use mod_slabocean
   use mod_cloud_s1
+
+  implicit none
 
   private
 
@@ -214,7 +219,7 @@ module mod_output
         end if
         if ( associated(atm_pf_out) ) then
           do k = 1 , kz
-            atm_pf_out(:,:,k) = atms%pb3d(jci1:jci2,ici1:ici2,k)
+            atm_pf_out(:,:,k) = atms%pb3d(jci1:jci2,ici1:ici2,k)*d_r100
           end do
         end if
         if ( associated(atm_ph_out) ) then

@@ -28,7 +28,9 @@ module mod_ncio
   use mod_memutil
   use mod_nchelper
   use mod_domain
-!
+
+  implicit none
+
   private
 
   public :: read_domain_info , read_subdomain_info
@@ -669,13 +671,11 @@ module mod_ncio
             do j = jce1 , jce2
               told = t(j,i,k)
               pold = 10.0D0*(sigma(k)*ps(j,i)+ptop)
-              hl = lh0 - lh1 * (told-tzero)
-              satvp = lsvp1*dexp(lsvp2*hl*(rtzero-d_one/told))
+              satvp = pfesat(told)*d_r100 ! in mb
               rhold = max((qv(j,i,k)/(ep2*satvp/(pold-satvp))),d_zero)
               tnew = t(j,i,k) + temperature_tweak
               pnew = pold*(tnew/told)
-              hl = lh0 - lh1 * (tnew-tzero)
-              satvp = lsvp1*dexp(lsvp2*hl*(rtzero-d_one/tnew))
+              satvp = pfesat(tnew)*d_r100 ! in mb
               qv(j,i,k) = max(rhold*ep2*satvp/(pnew-satvp),d_zero)
               t(j,i,k) = tnew
             end do

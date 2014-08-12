@@ -26,6 +26,8 @@ module mod_header
   use mod_date
   use mod_stdio
 
+  implicit none
+
   private
 
   public :: whoami , header , checktime , finaltime

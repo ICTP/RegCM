@@ -6,7 +6,8 @@ module mod_clm_cnndynamics
   !
   use mod_intkinds
   use mod_realkinds
-  use mod_runparams , only : dtsrf , dayspy
+  use mod_dynparam , only : dayspy
+  use mod_runparams , only : dtsrf
   use mod_clm_varcon , only : dzsoi_decomp, zisoi
   implicit none
 

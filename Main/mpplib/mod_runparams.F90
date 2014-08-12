@@ -27,7 +27,9 @@ module mod_runparams
 
   implicit none
 
-  character(len=256) :: namelistfile , prgname
+  private
+
+  character(len=256) , public :: namelistfile , prgname
 
   integer(ik4) , public :: nqx , iqfrst , iqlst
   integer(ik4) , public , parameter :: iqv = 1
@@ -36,10 +38,10 @@ module mod_runparams
   integer(ik4) , public , parameter :: iqi = 4
   integer(ik4) , public , parameter :: iqs = 5
 
-  type(rcm_time_and_date) , save :: idate0 , idate1 , idate2
+  type(rcm_time_and_date) , save , public :: idate0 , idate1 , idate2
 
-  type(rcm_time_and_date) , save :: idatex
-  integer(ik4) :: xyear , xmonth , xday , xhour
+  type(rcm_time_and_date) , save , public :: idatex
+  integer(ik4) , public :: xyear , xmonth , xday , xhour
 
   ! Orbital paramters
   real(rk8) , public :: eccen
@@ -48,347 +50,349 @@ module mod_runparams
   real(rk8) , public :: mvelpp
   real(rk8) , public :: eccf
 
-  type(rcm_time_and_date) , save :: bdydate1 , bdydate2
-  type(rcm_time_and_date) , save :: somdate1 , somdate2
+  type(rcm_time_and_date) , save , public :: bdydate1 , bdydate2
+  type(rcm_time_and_date) , save , public :: somdate1 , somdate2
 
-  type(rcm_time_interval) , save :: intmdl
-  type(rcm_time_interval) , save :: intbdy
-  type(rcm_time_interval) , save :: intsom
+  type(rcm_time_interval) , save , public :: intmdl
+  type(rcm_time_interval) , save , public :: intbdy
+  type(rcm_time_interval) , save , public :: intsom
 
-  real(rk8) :: declin , deltmx
-  real(rk8) :: xbctime , xslabtime
-  real(rk8) :: calday , twodt
+  real(rk8) , public :: declin , deltmx
+  real(rk8) , public :: xbctime , xslabtime
+  real(rk8) , public :: calday , twodt
 
-  real(rk8) :: solcon , scon
+  real(rk8) , public :: solcon , scon
 
   ! Step counter. Is zero at idate0, always increasing, never reset.
-  integer(ik8) :: ktau
+  integer(ik8) , public :: ktau
   ! Final number of step for THIS run
-  integer(ik8) :: mtau
+  integer(ik8) , public :: mtau
   ! How many steps for an hour (updates date fields Y m d H)
-  integer(ik8) :: khour
+  integer(ik8) , public :: khour
   ! How many steps for a day (updates date fields Y m d)
-  integer(ik8) :: kday
+  integer(ik8) , public :: kday
   ! Output k values for I/O operations.
-  integer(ik8) :: katm , krad , kche , ksav , kdbg , kbdy , &
+  integer(ik8) , public :: katm , krad , kche , ksav , kdbg , kbdy , &
                   ksrf , ksub , klak , krep
   ! Seconds counter in between boundary conditions read
-  integer(ik8) :: nbdytime
+  integer(ik8) , public :: nbdytime
   ! Step counters to activate surface and radiation schemes
-  integer(ik8) :: ntsrf , ntrad , ntabem , ntcpl
-  real(rk8) :: rtsrf , rtrad , rnsrf_for_srffrq , rnsrf_for_day , &
+  integer(ik8) , public :: ntsrf , ntrad , ntabem , ntcpl
+  real(rk8) , public :: rtsrf , rtrad , rnsrf_for_srffrq , rnsrf_for_day , &
                rnsrf_for_lakfrq , rnsrf_for_subfrq , rnrad_for_chem , &
                rnrad_for_radfrq
-  real(rk8) :: afdout , cfdout
+  real(rk8) , public :: afdout , cfdout
   ! Step of surface scheme in one atmosphere I/O interval
-  real(rk8) :: rsrf_in_atm
+  real(rk8) , public :: rsrf_in_atm
   ! One over seconds in one surface I/O interval
-  real(rk8) :: rsrffrq_sec
+  real(rk8) , public :: rsrffrq_sec
   ! Model timestep in seconds (real and integer)
-  integer(ik8) :: ntsec
-  real(rk8) :: dtsec
+  integer(ik8) , public :: ntsec
+  real(rk8) , public :: dtsec
   ! Internal count for how many SRF outputs per day
-  integer(ik8) :: ksts , kstsoff
+  integer(ik8) , public :: ksts , kstsoff
   !
   ! Cumulus scheme index
-  integer(ik4) :: icup_lnd
-  integer(ik4) :: icup_ocn
-  integer(ik4) , dimension(2) :: icup
+  integer(ik4) , public :: icup_lnd
+  integer(ik4) , public :: icup_ocn
+  integer(ik4) , dimension(2) , public :: icup
   ! Closure index for Grell
-  integer(ik4) :: igcc
+  integer(ik4) , public :: igcc
   ! Cumulus cloud model
-  integer(ik4) :: icumcloud
+  integer(ik4) , public :: icumcloud
   ! Boundary layer index
-  integer(ik4) :: ibltyp
+  integer(ik4) , public :: ibltyp
   ! Lake model activation index
-  integer(ik4) :: lakemod
+  integer(ik4) , public :: lakemod
   ! Diurnal cycle SST index
-  integer(ik4) :: idcsst
+  integer(ik4) , public :: idcsst
   ! Sea Ice scheme index
-  integer(ik4) :: iseaice
+  integer(ik4) , public :: iseaice
   ! Seasonal albedo for desert index
-  integer(ik4) :: idesseas
+  integer(ik4) , public :: idesseas
   ! Ocean model switch indexes
-  integer(ik4) :: iocnrough , iocnflx , iocncpl
+  integer(ik4) , public :: iocnrough , iocnflx , iocncpl
   ! Radiation switch controls
-  integer(ik4) :: idirect , iindirect , iemiss , isolconst
+  integer(ik4) , public :: idirect , iindirect , iemiss , isolconst
   ! Semi-Langrangian advection for tracers
-  integer(ik4) :: isladvec
+  integer(ik4) , public :: isladvec
   ! Convective LWP scheme
-  integer(ik4) :: iconvlwp
-!
-  character(len=8) :: scenario
-!
-  real(rk8) :: dt , dt2 , dtsq , dtcb , dtbdys , rdt
-  real(rk8) :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
-  real(rk8) :: c200 , rdxsq , dtsrf , dtabem , dtrad , cpldt
-  real(rk8) :: xkhmax , xkhz
+  integer(ik4) , public :: iconvlwp
 
-  integer(ik4) :: iboudy , ichem , ipgf , ipptls
+  character(len=8) , public :: scenario
+
+  real(rk8) , public :: dt , dt2 , dtsq , dtcb , dtbdys , rdt
+  real(rk8) , public :: dx , dx2 , dx4 , dx8 , dx16 , dxsq
+  real(rk8) , public :: c200 , rdxsq , dtsrf , dtabem , dtrad , cpldt
+  real(rk8) , public :: xkhmax , xkhz
+
+  integer(ik4) , public :: iboudy , ichem , ipgf , ipptls
   ! usefull flags for chemistry
-  integer(ik4) :: iaerosol , igaschem , ioxclim , iisoropia
-  character(len=6) , pointer , dimension(:) :: chtrname
+  integer(ik4) , public :: iaerosol , igaschem , ioxclim , iisoropia
+  character(len=6) , pointer , dimension(:) , public :: chtrname
 !
-  logical :: do_parallel_netcdf_in , do_parallel_netcdf_out
-  logical :: ifrest , rfstrt , doing_restart , lsync
+  logical , public :: do_parallel_netcdf_in , do_parallel_netcdf_out
+  logical , public :: ifrest , rfstrt , doing_restart , lsync
 
-  integer(ik4) :: kchi , kclo , kcmd , cpldbglevel
+  integer(ik4) , public :: kchi , kclo , kcmd , cpldbglevel
 !
-  real(rk8) :: akht1 , akht2
+  real(rk8) , public :: akht1 , akht2
 
-  real(rk8) , pointer , dimension(:) :: dtau
-  real(rk8) , pointer , dimension(:) :: hsigma , dsigma , qcon
-  real(rk8) , pointer , dimension(:) :: sigma
-  real(rk8) , pointer , dimension(:,:) :: twt
-  real(rk8) , pointer , dimension(:) :: anudg
+  real(rk8) , pointer , dimension(:) , public :: dtau
+  real(rk8) , pointer , dimension(:) , public :: hsigma , dsigma , qcon
+  real(rk8) , pointer , dimension(:) , public :: sigma
+  real(rk8) , pointer , dimension(:,:) , public :: twt
+  real(rk8) , pointer , dimension(:) , public :: anudg
 
-  real(rk8) :: clfrcv ! Cloud fractional cover for convective precip
+  real(rk8) , public :: clfrcv ! Cloud fractional cover for convective precip
 
   ! Grell cumulus scheme parameters
 
-  real(rk8) :: mincld
-  real(rk8) :: skbmax
-  real(rk8) :: shrmax_ocn
-  real(rk8) :: shrmin_ocn
-  real(rk8) :: edtmax_ocn
-  real(rk8) :: edtmin_ocn
-  real(rk8) :: edtmaxo_ocn
-  real(rk8) :: edtmino_ocn
-  real(rk8) :: edtmaxx_ocn
-  real(rk8) :: edtminx_ocn
-  real(rk8) :: shrmax
-  real(rk8) :: shrmin
-  real(rk8) :: edtmax
-  real(rk8) :: edtmin
-  real(rk8) :: edtmaxo
-  real(rk8) :: edtmino
-  real(rk8) :: edtmaxx
-  real(rk8) :: edtminx
-  real(rk8) :: dtauc
-  real(rk8) :: pbcmax
-  real(rk8) :: htmax
-  real(rk8) :: htmin
+  real(rk8) , public :: mincld
+  real(rk8) , public :: skbmax
+  real(rk8) , public :: shrmax_ocn
+  real(rk8) , public :: shrmin_ocn
+  real(rk8) , public :: edtmax_ocn
+  real(rk8) , public :: edtmin_ocn
+  real(rk8) , public :: edtmaxo_ocn
+  real(rk8) , public :: edtmino_ocn
+  real(rk8) , public :: edtmaxx_ocn
+  real(rk8) , public :: edtminx_ocn
+  real(rk8) , public :: shrmax
+  real(rk8) , public :: shrmin
+  real(rk8) , public :: edtmax
+  real(rk8) , public :: edtmin
+  real(rk8) , public :: edtmaxo
+  real(rk8) , public :: edtmino
+  real(rk8) , public :: edtmaxx
+  real(rk8) , public :: edtminx
+  real(rk8) , public :: dtauc
+  real(rk8) , public :: pbcmax
+  real(rk8) , public :: htmax
+  real(rk8) , public :: htmin
 
   ! Emanuel MIT cumulus scheme parameters
 
-  real(rk8) :: alphae
-  real(rk8) :: betae
-  real(rk8) :: coeffr
-  real(rk8) :: coeffs
-  real(rk8) :: cu
-  real(rk8) :: damp
-  real(rk8) :: dtmax
-  real(rk8) :: elcrit_ocn
-  real(rk8) :: elcrit_lnd
-  real(rk8) :: entp
-  real(rk8) :: minsig
-  real(rk8) :: omtrain
-  real(rk8) :: omtsnow
-  real(rk8) :: sigd
-  real(rk8) :: sigs
-  real(rk8) :: tlcrit
-  real(rk8) :: epmax_ocn
-  real(rk8) :: epmax_lnd
-  integer(ik4) :: minorig
+  real(rk8) , public :: alphae
+  real(rk8) , public :: betae
+  real(rk8) , public :: coeffr
+  real(rk8) , public :: coeffs
+  real(rk8) , public :: cu
+  real(rk8) , public :: damp
+  real(rk8) , public :: dtmax
+  real(rk8) , public :: elcrit_ocn
+  real(rk8) , public :: elcrit_lnd
+  real(rk8) , public :: entp
+  real(rk8) , public :: minsig
+  real(rk8) , public :: omtrain
+  real(rk8) , public :: omtsnow
+  real(rk8) , public :: sigd
+  real(rk8) , public :: sigs
+  real(rk8) , public :: tlcrit
+  real(rk8) , public :: epmax_ocn
+  real(rk8) , public :: epmax_lnd
+  integer(ik4) , public :: minorig
  
   ! Tiedtke cumulus scheme parameters
 
-  integer(ik4) :: iconv
+  integer(ik4) , public :: iconv
 
-  logical :: lmfpen    !  true if penetrative convection is switched on
-  logical :: lmfscv    !  true if shallow convection is switched on
-  logical :: lmfmid    !  true if midlevel convection is switched on
-  logical :: lmfdd     !  true if cumulus downdraft is switched on
-  logical :: lmfdudv   !  true if cumulus friction is switched on
+  logical , public :: lmfpen    !  true if penetrative convection is switched on
+  logical , public :: lmfscv    !  true if shallow convection is switched on
+  logical , public :: lmfmid    !  true if midlevel convection is switched on
+  logical , public :: lmfdd     !  true if cumulus downdraft is switched on
+  logical , public :: lmfdudv   !  true if cumulus friction is switched on
 
-  real(rk8) :: entrdd   ! entrainment rate for cumulus downdrafts
-  real(rk8) :: cmfcmax  ! maximum massflux value allowed for
-  real(rk8) :: cmfcmin  ! minimum massflux value (for safety)
-  real(rk8) :: cmfdeps  ! fractional massflux for downdrafts at lfs
+  real(rk8) , public :: entrdd   ! entrainment rate for cumulus downdrafts
+  real(rk8) , public :: cmfcmax  ! maximum massflux value allowed for
+  real(rk8) , public :: cmfcmin  ! minimum massflux value (for safety)
+  real(rk8) , public :: cmfdeps  ! fractional massflux for downdrafts at lfs
 
   ! ICONV 1, 2, 3
-  real(rk8) :: entrpen  ! entrainment rate for penetrative convection
-  real(rk8) :: entrscv  ! entrainment rate for shallow convection
-  real(rk8) :: entrmid  ! entrainment rate for midlevel convection
-  real(rk8) :: cmfctop  ! relat. cloud massflux at level above nonbuoyanc
-  real(rk8) :: cmtcape  ! CAPE adjustment timescale parameter
-  real(rk8) :: zdlev    ! Restrict rainfall up to this elevation
-  real(rk8) :: rhcdd    ! relative saturation in downdrafts
-  real(rk8) :: cprcon   ! coefficients for determining conversion
+  real(rk8) , public :: entrpen  ! entrainment rate for penetrative convection
+  real(rk8) , public :: entrscv  ! entrainment rate for shallow convection
+  real(rk8) , public :: entrmid  ! entrainment rate for midlevel convection
+  real(rk8) , public :: cmfctop  ! relat. cloud massflux at level above nonbuoyanc
+  real(rk8) , public :: cmtcape  ! CAPE adjustment timescale parameter
+  real(rk8) , public :: zdlev    ! Restrict rainfall up to this elevation
+  real(rk8) , public :: rhcdd    ! relative saturation in downdrafts
+  real(rk8) , public :: cprcon   ! coefficients for determining conversion
                         ! from cloud water to rain
-  real(rk8) :: centrmax ! Max entrainment
-  real(rk8) :: ctrigger ! coefficients for triggering convection
-  real(rk8) :: cmcptop  ! Top pressure for midlevel convection
+  real(rk8) , public :: centrmax ! Max entrainment
+  real(rk8) , public :: ctrigger ! coefficients for triggering convection
+  real(rk8) , public :: cmcptop  ! Top pressure for midlevel convection
 
   ! ICONV 4 paramters
-  integer(ik4) :: n_vmass ! Using or not vector mass
-  real(rk8) :: rlpal1     ! Smoothing coefficient
-  real(rk8) :: rlpal2     ! Smoothing coefficient
-  real(rk8) :: rcucov     ! Convective cloud cover for rain evporation
-  real(rk8) :: rcpecons   ! Coefficient for rain evaporation below cloud
-  real(rk8) :: rtaumel    ! Relaxation time for melting of snow
-  real(rk8) :: rhebc_lnd  ! Critical relative humidity below
+  integer(ik4) , public :: n_vmass ! Using or not vector mass
+  real(rk8) , public :: rlpal1     ! Smoothing coefficient
+  real(rk8) , public :: rlpal2     ! Smoothing coefficient
+  real(rk8) , public :: rcucov     ! Convective cloud cover for rain evporation
+  real(rk8) , public :: rcpecons   ! Coefficient for rain evaporation below cloud
+  real(rk8) , public :: rtaumel    ! Relaxation time for melting of snow
+  real(rk8) , public :: rhebc_lnd  ! Critical relative humidity below
                           ! cloud at which evaporation starts for land
-  real(rk8) :: rhebc_ocn  ! Critical relative humidity below
+  real(rk8) , public :: rhebc_ocn  ! Critical relative humidity below
                           ! cloud at which evaporation starts for ocean
-  real(rk8) :: rmflic     ! Use CFL mass flux limit (1) or absolut limit (0)
-  real(rk8) :: rmflia     ! Value of absolut mass flux limit
-  real(rk8) :: rmfsoluv   ! Mass flux solver for momentum
-  real(rk8) :: rmfsoltq   ! Mass flux solver for T and q
-  real(rk8) :: rmfsolct   ! Mass flux solver for chem tracers
-  real(rk8) :: ruvper     ! Updraught velocity perturbation for implicit (m/s)
-  real(rk8) :: rprcon     ! coeff for determining conversion from cloud water
-  real(rk8) :: detrpen    ! Detrainment rate for penetrative convection
-  real(rk8) :: entrorg    ! Entrainment for positively buoyant convection 1/(m)
-  real(rk8) :: entshalp   ! shallow entrainment factor for entrorg
-  real(rk8) :: rdepths    ! Maximum allowed cloud thickness for shallow
+  real(rk8) , public :: rmflic     ! Use CFL mass flux limit (1) or absolut limit (0)
+  real(rk8) , public :: rmflia     ! Value of absolut mass flux limit
+  real(rk8) , public :: rmfsoluv   ! Mass flux solver for momentum
+  real(rk8) , public :: rmfsoltq   ! Mass flux solver for T and q
+  real(rk8) , public :: rmfsolct   ! Mass flux solver for chem tracers
+  real(rk8) , public :: ruvper     ! Updraught velocity perturbation for implicit (m/s)
+  real(rk8) , public :: rprcon     ! coeff for determining conversion from cloud water
+  real(rk8) , public :: detrpen    ! Detrainment rate for penetrative convection
+  real(rk8) , public :: entrorg    ! Entrainment for positively buoyant convection 1/(m)
+  real(rk8) , public :: entshalp   ! shallow entrainment factor for entrorg
+  real(rk8) , public :: rdepths    ! Maximum allowed cloud thickness for shallow
                           ! cloud depth (Pa)
-  real(rk8) :: rvdifts    ! Factor for time step weighting in *vdf....*
+  real(rk8) , public :: rvdifts    ! Factor for time step weighting in *vdf....*
 
-  logical :: lepcld     ! True if prognostic cloud scheme is on
-  logical :: lmfuvdis   ! use kinetic energy dissipation (addit T-tendency)
-  logical :: lmftrac    ! Convective chemical tracer transport
-  logical :: lmfsmooth  ! Smoothing of mass fluxes top/bottom for tracers
-  logical :: lmfwstar   ! Grant w* closure for shallow conv.
+  logical , public :: lepcld     ! True if prognostic cloud scheme is on
+  logical , public :: lmfuvdis   ! use kinetic energy dissipation (addit T-tendency)
+  logical , public :: lmftrac    ! Convective chemical tracer transport
+  logical , public :: lmfsmooth  ! Smoothing of mass fluxes top/bottom for tracers
+  logical , public :: lmfwstar   ! Grant w* closure for shallow conv.
 
   ! Tweak Global data
 
-  integer(ik4) :: itweak
-  integer(ik4) :: itweak_sst
-  integer(ik4) :: itweak_temperature
-  integer(ik4) :: itweak_solar_irradiance
-  integer(ik4) :: itweak_greenhouse_gases
-  real(rk8) :: sst_tweak
-  real(rk8) :: temperature_tweak
-  real(rk8) :: solar_tweak
-  real(rk8) , dimension(5) :: gas_tweak_factors
+  integer(ik4) , public :: itweak
+  integer(ik4) , public :: itweak_sst
+  integer(ik4) , public :: itweak_temperature
+  integer(ik4) , public :: itweak_solar_irradiance
+  integer(ik4) , public :: itweak_greenhouse_gases
+  real(rk8) , public :: sst_tweak
+  real(rk8) , public :: temperature_tweak
+  real(rk8) , public :: solar_tweak
+  real(rk8) , dimension(5) , public :: gas_tweak_factors
 
   ! RRTM scheme parameters
 
-  integer(ik4) :: irrtm
-  integer(ik4) :: irrtm_cldov
-  integer(ik4) :: irrtm_sw_opcliq
-  integer(ik4) :: irrtm_sw_opcice
-  integer(ik4) :: inflgsw
-  integer(ik4) :: iceflgsw
-  integer(ik4) :: liqflgsw
-  integer(ik4) :: icld
-  integer(ik4) :: idrv
-  integer(ik4) :: irng
-  integer(ik4) :: inflglw
-  integer(ik4) :: iceflglw
-  integer(ik4) :: liqflglw
+  integer(ik4) , public :: irrtm
+  integer(ik4) , public :: irrtm_cldov
+  integer(ik4) , public :: irrtm_sw_opcliq
+  integer(ik4) , public :: irrtm_sw_opcice
+  integer(ik4) , public :: inflgsw
+  integer(ik4) , public :: iceflgsw
+  integer(ik4) , public :: liqflgsw
+  integer(ik4) , public :: icld
+  integer(ik4) , public :: idrv
+  integer(ik4) , public :: irng
+  integer(ik4) , public :: inflglw
+  integer(ik4) , public :: iceflglw
+  integer(ik4) , public :: liqflglw
 
   ! Radiation schemes common parametrs
 
-  integer(ik4) :: iclimao3
+  integer(ik4) , public :: iclimao3
 
   ! UW PBL parameters
 
-  integer(ik4) :: iuwvadv
-  real(rk8) :: rstbl
-  real(rk8) :: atwo
+  integer(ik4) , public :: iuwvadv
+  real(rk8) , public :: rstbl
+  real(rk8) , public :: atwo
 
   ! Holtslag PBL parameters
 
-  real(rk8) :: ricr_ocn
-  real(rk8) :: ricr_lnd
-  real(rk8) :: zhnew_fac
-  integer(ik4) :: ifaholtth10
-  integer(ik4) :: ifaholtmax
-  integer(ik4) :: ifaholtmin
+  real(rk8) , public :: ricr_ocn
+  real(rk8) , public :: ricr_lnd
+  real(rk8) , public :: zhnew_fac
+  integer(ik4) , public :: ifaholtth10
+  integer(ik4) , public :: ifaholtmax
+  integer(ik4) , public :: ifaholtmin
 
   ! Chemistry nameliste option
 
-  character(len=8) :: chemsimtype 
-  integer(ik4) :: ichcumtra
-  integer(ik4) :: ichdrdepo
-  integer(ik4) :: ichremcvc
-  integer(ik4) :: ichremlsc
-  integer(ik4) :: ichsursrc
-  integer(ik4) :: ichsolver
-  integer(ik4) :: ichdustemd
-  integer(ik4) :: ichdiag
-  integer(ik4) :: ichebdy
-  integer(ik4) :: ichjphcld
-  integer(ik4) :: ichbion
-  real(rk8) :: rdstemfac
+  character(len=8) , public :: chemsimtype 
+  integer(ik4) , public :: ichcumtra
+  integer(ik4) , public :: ichdrdepo
+  integer(ik4) , public :: ichremcvc
+  integer(ik4) , public :: ichremlsc
+  integer(ik4) , public :: ichsursrc
+  integer(ik4) , public :: ichsolver
+  integer(ik4) , public :: ichdustemd
+  integer(ik4) , public :: ichdiag
+  integer(ik4) , public :: ichebdy
+  integer(ik4) , public :: ichjphcld
+  integer(ik4) , public :: ichbion
+  real(rk8) , public :: rdstemfac
 
   ! Large scale SUBEX parameters
 
-  integer(ik4) :: ncld ! # of bottom model levels with no clouds
-  real(rk8) :: qck1land
-  real(rk8) :: qck1oce
-  real(rk8) :: gulland
-  real(rk8) :: guloce
-  real(rk8) :: rhmax
-  real(rk8) :: rh0land
-  real(rk8) :: rh0oce
-  real(rk8) :: caccrlnd
-  real(rk8) :: cevaplnd
-  real(rk8) :: caccroce
-  real(rk8) :: cevapoce
-  real(rk8) :: tc0
-  real(rk8) :: cllwcv   ! Cloud liquid water content for convective precip.
-  real(rk8) :: clfrcvmax
-  real(rk8) :: cftotmax ! Maximum total cloud fraction for radiation
-  real(rk8) :: conf     ! Condensation threshold.
+  integer(ik4) , public :: ncld ! # of bottom model levels with no clouds
+  real(rk8) , public :: qck1land
+  real(rk8) , public :: qck1oce
+  real(rk8) , public :: gulland
+  real(rk8) , public :: guloce
+  real(rk8) , public :: rhmax
+  real(rk8) , public :: rh0land
+  real(rk8) , public :: rh0oce
+  real(rk8) , public :: caccrlnd
+  real(rk8) , public :: cevaplnd
+  real(rk8) , public :: caccroce
+  real(rk8) , public :: cevapoce
+  real(rk8) , public :: tc0
+  real(rk8) , public :: cllwcv   ! Cloud liquid water content for convective precip.
+  real(rk8) , public :: clfrcvmax
+  real(rk8) , public :: cftotmax ! Maximum total cloud fraction for radiation
+  real(rk8) , public :: conf     ! Condensation threshold.
 
   !
   ! SLAB ocean parameters
   !
-  integer(ik4) :: islab_ocean
-  logical :: ifslaboc = .false.
-  logical :: do_qflux_adj
-  logical :: do_restore_sst
+  integer(ik4) , public :: islab_ocean
+  logical , public :: ifslaboc = .false.
+  logical , public :: do_qflux_adj
+  logical , public :: do_restore_sst
   ! TK mod; restoring time scale for SST in days
-  real(rk8) :: sst_restore_timescale 
-  real(rk8) :: mixed_layer_depth 
-  integer(ik4) , dimension(mpy) :: stepcount
+  real(rk8) , public :: sst_restore_timescale 
+  real(rk8) , public :: mixed_layer_depth 
+  integer(ik4) , dimension(mpy) , public :: stepcount
 
 #ifdef CLM
   ! CLM options
-  integer(ik4) :: imask
-  integer(ik4) :: ilawrence_albedo
-  real(rk8) :: clmfrq
-  character(len=256) :: dirclm
+  integer(ik4) , public :: imask
+  integer(ik4) , public :: ilawrence_albedo
+  real(rk8) , public :: clmfrq
+  character(len=256) , public :: dirclm
 #endif
 
   !
   ! New microphys parameters
   !
   ! Total water and enthalpy budget on/off
-  logical :: stats
-  logical :: budget_compute
+  logical , public :: stats
+  logical , public :: budget_compute
   ! Super saturation option
-  integer :: nssopt
+  integer , public :: nssopt
   ! Choose the autoconversion paramaterization
-  integer :: kautoconv
+  integer , public :: kautoconv
   ! Implict option
-  real(rk8) :: ksemi
+  real(rk8) , public :: ksemi
   ! Fall speed values
-  real(rk8) :: vqxr 
-  real(rk8) :: vqxi 
-  real(rk8) :: vqxs 
+  real(rk8) , public :: vqxr 
+  real(rk8) , public :: vqxi 
+  real(rk8) , public :: vqxs 
   ! autoconversion values
-  real(rk8) :: zauto_rate_khair
-  real(rk8) :: zauto_rate_kessl
-  real(rk8) :: zauto_rate_klepi
-  real(rk8) :: rkconv
+  real(rk8) , public :: zauto_rate_khair
+  real(rk8) , public :: zauto_rate_kessl
+  real(rk8) , public :: zauto_rate_klepi
+  real(rk8) , public :: rkconv
   ! limit values
-  real(rk8) :: rcovpmin
+  real(rk8) , public :: rcovpmin
   ! evaporation values
-  real(rk8) :: rpecons
+  real(rk8) , public :: rpecons
   !
   ! Debug limit values for tendencies
   !
-  real(rk8) :: temp_tend_maxval
-  real(rk8) :: wind_tend_maxval
+  real(rk8) , public :: temp_tend_maxval
+  real(rk8) , public :: wind_tend_maxval
 
   ! option for writing tendency diagnostic
-  integer(ik4) :: idiag
+  integer(ik4) , public :: idiag
 
   data doing_restart /.false./
+
+  public :: allocate_mod_runparams , iswater , isocean , islake
 
   contains
 

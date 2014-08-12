@@ -24,6 +24,8 @@ module physics_msis
   use mod_constants
   use mod_spline
 
+  implicit none
+
   private
 
   character(4) , public , dimension(2) :: chname , istime

@@ -21,6 +21,9 @@ module mod_init
 !
 ! RegCM Init module
 !
+  use mod_intkinds
+  use mod_realkinds
+  use mod_dynparam
   use mod_runparams
   use mod_mppparam
   use mod_lm_interface
@@ -42,11 +45,13 @@ module mod_init
   use mod_constants
   use mod_outvars
   use mod_service
-!
+
+  implicit none
+
   private
-!
+
   public :: init
-!
+
   real(rk8) , parameter :: tlp = 50.0D0
   real(rk8) , parameter :: ts00 = 288.0D0
 !

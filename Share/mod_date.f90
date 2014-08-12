@@ -24,6 +24,8 @@ module mod_date
   use mod_stdio
   use mod_message
 
+  implicit none
+
   private
 
   integer(kind=ik8) , parameter :: i8spw = 604800_8

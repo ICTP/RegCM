@@ -27,9 +27,11 @@ module mod_rad_aerosol
   use mod_memutil
   use mod_mpmessage
   use mod_rad_common
-!
+
+  implicit none
+
   private
-!
+
   public :: tauxar3d , tauasc3d , gtota3d , ftota3d
   public :: tauxar , tauasc , gtota , ftota
   public :: aertrlw

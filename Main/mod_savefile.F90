@@ -19,12 +19,18 @@
 
 module mod_savefile
 
+  use mod_intkinds
+  use mod_realkinds
+  use mod_dynparam
   use mod_runparams
   use mod_mpmessage
   use mod_mppparam
   use mod_memutil
   use mod_lm_interface
+  use mod_che_interface
   use mod_che_mppio
+
+  implicit none
 
   private
 

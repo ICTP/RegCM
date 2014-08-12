@@ -83,6 +83,7 @@ module mod_pbl_interface
   subroutine init_pblscheme
     use mod_atm_interface
     use mod_che_interface
+    use mod_che_common
     implicit none
 
     ! INPUT to PBL

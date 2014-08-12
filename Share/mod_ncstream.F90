@@ -29,6 +29,8 @@ module mod_ncstream
   use mod_ncstream_types
   use netcdf
 
+  implicit none
+
   private
 
   integer(ik4) :: ncstat

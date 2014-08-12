@@ -108,6 +108,8 @@
 !
 module eispack
 
+  implicit none
+
 contains
 
 function pythag ( a, b )

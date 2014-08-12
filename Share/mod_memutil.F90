@@ -26,6 +26,8 @@ module mod_memutil
   use mod_constants
   use mod_date , only : rcm_time_and_date
 
+  implicit none
+
   private
 
   public :: memory_init , memory_destroy

@@ -53,7 +53,6 @@ module mod_mklch4
     implicit none
     character(len=*) , intent(in) :: lch4file
     real(rk8) , dimension(:,:,:) , intent(out) :: lch4
-    integer(ik4) :: iyear
     integer(ik4) :: nlat , nlon
     integer(ik4) :: idimid , ivarmask , illvar , ncid
     integer(ik4) , dimension(6) :: ivarid

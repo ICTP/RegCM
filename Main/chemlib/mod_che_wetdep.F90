@@ -29,6 +29,10 @@ module mod_che_wetdep
   use mod_che_indices
   use mod_che_drydep
 
+  implicit none
+
+  private
+
   public :: sethet , wetdepa
 
   contains

@@ -165,7 +165,7 @@ module mod_bats_leaftemp
           ! 2.3  recalculate saturation vapor pressure
           !
           eg1 = eg(i)
-          eg(i) = c1es*dexp(lfta(i)*(tlef(i)-tzero)/(tlef(i)-lftb(i)))
+          eg(i) = pfesat(tlef(i))
           qsatl(i) = qsatl(i)*eg(i)/eg1
         end if
       end do
@@ -505,18 +505,18 @@ module mod_bats_leaftemp
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-!
     do i = ilndbeg , ilndend
-      if ( t(i) <= tzero ) then
-        lfta(i) = c3ies
-        lftb(i) = c4ies
-      else
-        lfta(i) = c3les
-        lftb(i) = c4les
-      end if
-      eg(i) = c1es*dexp(lfta(i)*(t(i)-tzero)/(t(i)-lftb(i)))
-      qsat(i) = ep2*eg(i)/(p(i)-0.378D0*eg(i))
+      eg(i) = pfesat(t(i))
+      qsat(i) = pfqsat(t(i),p(i),eg(i))
+      qsat(i) = qsat(i)/(d_one+qsat(i))
     end do
+    where ( t <= tzero )
+      lfta = c3ies
+      lftb = c4ies
+    else where
+      lfta = c3les
+      lftb = c4les
+    endwhere
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif

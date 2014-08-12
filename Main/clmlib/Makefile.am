@@ -79,7 +79,7 @@ SurfaceRadiationMod.F90 TridiagonalMod.F90 abortutils.F90 \
 accumulMod.F90 areaMod.F90 clm_csmMod.F90 clm_mct_mod.F90 \
 clm_varcon.F90 clm_varorb.F90 do_close_dispose.F90 \
 domainMod.F90 eshr_estate_mod.F90 eshr_inputinfo_mod.F90 \
-eshr_rc_mod.F90 eshr_timemgr_mod.F90 f_wrappers.c fileutils.F90 \
+eshr_rc_mod.F90 eshr_timemgr_mod.F90 fileutils.F90 \
 filterMod.F90 get_zeits.c getdatetime.F90 gptl.c gptl_papi.c gptlutil.c \
 clm_varvoc.o inicFileMod.F90 initGridCellsMod.F90 initSurfAlbMod.F90 \
 iobinary.F90 lnd_comp_mct.F90 m_Accumulator.F90 m_AccumulatorComms.F90 \
@@ -143,6 +143,7 @@ endif
 if COMPILER_GNU
 FCFLAGS += -fno-range-check
 FPPFLAGS += $(DEFINE)G95
+DEFFLAGS += -DFORTRANUNDERSCORE -DLINUX
 endif
 
 if COMPILER_SUN
@@ -354,7 +355,7 @@ m_zeit.o:  m_zeit.F90 m_SortingTools.o m_ioutil.o m_die.o m_stdio.o m_mpif90.o
 mct_mod.o:  mct_mod.F90 m_AttrVect.o m_SparseMatrixPlus.o m_String.o m_SparseMatrixComms.o m_List.o shr_sys_mod.o m_AttrVectComms.o m_GlobalToLocal.o m_Router.o m_GeneralGrid.o m_SparseMatrixToMaps.o m_die.o m_Transfer.o shr_kind_mod.o m_stdio.o m_SparseMatrix.o m_Rearranger.o m_GlobalSegMap.o m_inpak90.o shr_const_mod.o m_MatAttrVectMul.o m_GeneralGridComms.o shr_mpi_mod.o m_MCTWorld.o m_Permuter.o m_MergeSorts.o 
 mkarbinitMod.o:  mkarbinitMod.F90 clm_varsur.o spmdMod.o clm_varcon.o clmtype.o clm_varpar.o shr_kind_mod.o shr_const_mod.o decompMod.o pftvarcon.o misc.h preproc.h
 mod_clm.o:  mod_clm.F90 mod_runparams.o mod_dynparam.o
-mod_mtrxclm.o:  mod_mtrxclm.F90 clm_varsur.o shr_orb_mod.o clmtype.o program_offMod.o clm_varpar.o atmdrvMod.o mod_clm.o perf_mod.o clm_comp.o initializeMod.o clm_time_manager.o mod_mppparam.o mod_runparams.o mod_regcm_types.o
+mod_mtrxclm.o : mod_mtrxclm.F90 atmdrvMod.o clm_comp.o clm_drydep.o clm_time_manager.o clmtype.o clm_varpar.o clm_varsur.o initializeMod.o mod_clm.o mod_date.o mod_dynparam.o mod_intkinds.o mod_mpmessage.o mod_mppparam.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o mod_sunorbit.o perf_mod.o program_offMod.o shr_orb_mod.o
 nanMod.o:  nanMod.F90 shr_kind_mod.o 
 ncdio.o:  ncdio.F90 clm_mct_mod.o spmdMod.o clm_varcon.o clm_varpar.o shr_sys_mod.o clm_varctl.o RunoffMod.o abortutils.o shr_kind_mod.o spmdGathScatMod.o decompMod.o nanMod.o misc.h preproc.h
 ndepFileMod.o:  ndepFileMod.F90 spmdMod.o clm_varcon.o clmtype.o clm_varpar.o clm_varctl.o abortutils.o fileutils.o shr_kind_mod.o decompMod.o clm_time_manager.o clm_atmlnd.o ncdio.o misc.h preproc.h

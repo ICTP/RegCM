@@ -22,7 +22,11 @@ module mod_bdycod
 ! Subroutines for input of boundary values and tendencies
 ! Relaxation and Sponge Boundary Conditions routines
 !
+  use mod_intkinds
+  use mod_realkinds
   use mod_dynparam
+  use mod_runparams
+  use mod_regcm_types
   use mod_mppparam
   use mod_memutil
   use mod_atm_interface
@@ -33,11 +37,13 @@ module mod_bdycod
   use mod_ncio
   use mod_service
   use mod_slabocean
-!
+
+  implicit none
+
   private
-!
+
   public :: allocate_mod_bdycon , init_bdy , bdyin , bdyval
-!
+
   !
   ! West U External  = WUE
   ! West U Internal  = WUI

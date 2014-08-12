@@ -32,6 +32,8 @@ module mod_sladvection
   use mod_mppparam
   use mod_service
 
+  implicit none
+
   private
 
   public :: trajcalc_x , trajcalc_d

@@ -30,6 +30,8 @@ module mod_che_common
   use mod_che_species
   use mod_che_indices
 
+  implicit none
+
   public
 
   integer(ik4) , parameter :: nbin = 4

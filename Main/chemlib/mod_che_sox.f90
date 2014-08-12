@@ -28,6 +28,8 @@ module mod_che_sox
   use mod_che_species
   use mod_che_indices
 
+  implicit none
+
   private
 
   public :: chemsox

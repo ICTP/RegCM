@@ -19,6 +19,10 @@
  
 module mod_tendency
 
+  use mod_intkinds
+  use mod_realkinds
+  use mod_dynparam
+  use mod_constants
   use mod_runparams
   use mod_mppparam
   use mod_mpmessage
@@ -41,6 +45,8 @@ module mod_tendency
   use mod_cloud_s1
   use mod_sladvection
   use mod_slabocean
+
+  implicit none
 
   private
 
@@ -631,7 +637,7 @@ module mod_tendency
             do j = jci1 , jci2
               aten%qx(j,i,k,iqc) = aten%qx(j,i,k,iqc) + &
                 q_detr(j,i,k)*sfs%psb(j,i)*egrav / &
-                ((atms%pf3d(j,i,k+1)-atms%pf3d(j,i,k))*d_1000) ! [kg/kg]
+                ((atms%pf3d(j,i,k+1)-atms%pf3d(j,i,k))) ! [kg/kg]
             end do
           end do
         end do
@@ -1565,7 +1571,7 @@ module mod_tendency
               write(stderr,*) 'Vertical PTU profile: '
               do kk = 1 , kz
                 write(stderr,'(i2,3f12.7)') kk, &
-                        atms%pb3d(j,i,kk), atms%tb3d(j,i,kk), &
+                        atms%pb3d(j,i,kk)*d_r100, atms%tb3d(j,i,kk), &
                         sqrt(atms%ubx3d(j,i,kk)**2+ &
                              atms%vbx3d(j,i,kk)**2)
               end do
@@ -1603,7 +1609,7 @@ module mod_tendency
               write(stderr,*) 'Vertical PTU profile: '
               do kk = 1 , kz
                 write(stderr,'(i2,3f12.7)') kk, &
-                        atms%pb3d(j,i,kk), atms%tb3d(j,i,kk), &
+                        atms%pb3d(j,i,kk)*d_r100, atms%tb3d(j,i,kk), &
                         sqrt(atms%ubx3d(j,i,kk)**2+ &
                              atms%vbx3d(j,i,kk)**2)
               end do

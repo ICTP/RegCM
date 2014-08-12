@@ -24,6 +24,8 @@ module mod_rad_atmosphere
   use mod_constants
   use mod_dynparam
 
+  implicit none
+
   private
 
   integer(ik4) , public , parameter :: itropical = 1

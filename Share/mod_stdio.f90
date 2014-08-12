@@ -22,6 +22,8 @@ module mod_stdio
   use mod_intkinds
   use iso_fortran_env
 
+  implicit none
+
   private
 
   integer(ik4) , public , parameter :: stdin = input_unit

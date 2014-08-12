@@ -36,6 +36,8 @@ module mod_bats_common
   use mod_bats_albedo
   use mod_regcm_types
 
+  implicit none
+
   private
 
   public :: dtbat
@@ -278,7 +280,7 @@ module mod_bats_common
     type(lm_state) , intent(inout) :: lms
     integer(ik4) , intent (in) :: ivers
     real(rk8) :: facb , facs , fact , factuv , facv , fracb ,  &
-                 fracs , fracv , hl , rh0 , satvp , solvt , xqs0
+                 fracs , fracv , rh0 , solvt , xqs0 , xqsdif
     integer(ik4) :: i , j , n
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'interf'
@@ -315,26 +317,23 @@ module mod_bats_common
 
       do i = ilndbeg , ilndend
         p0(i) = (p0(i)+ptop)*d_1000
-        qs0(i) = qs0(i)/(d_one+qs0(i))
-        hl = lh0 - lh1*(ts0(i)-tzero)
-        satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/ts0(i)))
-        rh0 = dmax1(qs0(i)/(ep2*satvp/(p0(i)*0.01D0-satvp)),d_zero)
+        xqs0 = pfqsat(ts0(i),p0(i))
+        rh0 = max(qs0(i)/xqs0,d_zero)
         solvt = swd0(i) + swf0(i)
-        qs(i) = qs0(i)
         sts(i) = ts0(i)-lrate*regrav*dzh(i)
         sfcp(i) = p0(i)*(sts(i)/ts0(i))
-        hl = lh0 - lh1*(sts(i)-tzero)
-        satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/sts(i)))
-        qs(i) = dmax1(rh0*ep2*satvp/(sfcp(i)*0.01D0-satvp),d_zero)
+        xqs0 = pfqsat(sts(i),sfcp(i))
+        qs(i) = max(rh0*xqs0,d_zero)
+        qs(i) = qs(i)/(d_one+qs(i))
         rhs(i) = sfcp(i)/(rgas*sts(i))
-        ! Average over the priod
+        ! Average over the period
         prcp(i) = (ncpr0(i) + cpr0(i))*rtsrf
         !
         ! quantities stored on 2d surface array for bats use only
         !
         lncl(i) = mfcv(lveg(i)) - seasf(lveg(i))*aseas(i)
-        zlgveg(i) = dlog(zh(i)/rough(lveg(i)))
-        zlgdis(i) = dlog((zh(i)-displa(lveg(i)))/rough(lveg(i)))
+        zlgveg(i) = log(zh(i)/rough(lveg(i)))
+        zlgdis(i) = log((zh(i)-displa(lveg(i)))/rough(lveg(i)))
         if ( solvt > d_zero ) then
           fracd(i) = swf0(i)/solvt
         else
@@ -347,16 +346,16 @@ module mod_bats_common
         call l2c_ss(lndcomm,qs,xqs)
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rh0 = d_zero
+            xqsdif = d_zero
             xqs0 = lm%qvatm(j,i)/(d_one+lm%qvatm(j,i))
             do n = 1 , nnsg
               if ( lm%ldmsk1(n,j,i) == 1 ) then
-                rh0 = rh0 + (xqs(n,j,i)-xqs0)
+                xqsdif = xqsdif + (xqs(n,j,i)-xqs0)
               end if
             end do
-            rh0 = rh0/rdnnsg
+            xqsdif = xqsdif/rdnnsg
             do n = 1 , nnsg
-              xqs(n,j,i) = dmax1(xqs(n,j,i)-rh0,d_zero)
+              xqs(n,j,i) = max(xqs(n,j,i)-xqsdif,d_zero)
             end do
           end do
         end do

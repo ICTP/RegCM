@@ -4,6 +4,7 @@ module mod_clm_surfaceradiation
   !
   use mod_intkinds
   use mod_realkinds
+  use mod_date
   use mod_stdio
   use mod_mpmessage
   use mod_runparams

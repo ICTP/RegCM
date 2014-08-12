@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_atm_interface
-!
+
   use mod_dynparam
   use mod_stdio
   use mod_constants , only : d_rfour
@@ -28,6 +28,8 @@ module mod_atm_interface
   use mod_service
   use mod_memutil
   use mod_regcm_types
+
+  implicit none
 
   private
 
@@ -621,6 +623,7 @@ module mod_atm_interface
       call getmem3d(ax%za,jce1,jce2,ice1,ice2,1,kz,'slice:za')
       call getmem3d(ax%dzq,jce1,jce2,ice1,ice2,1,kz,'slice:dzq')
       call getmem2d(ax%rhox2d,jce1,jce2,ice1,ice2,'slice:rhox2d')
+      call getmem2d(ax%ps2d,jce1,jce2,ice1,ice2,'slice:ps2d')
       if ( ichem == 1 ) then
         call getmem4d(ax%chib3d,jce1-ma%jbl2,jce2+ma%jbr2, &
                                 ice1-ma%ibb2,ice2+ma%ibt2, &

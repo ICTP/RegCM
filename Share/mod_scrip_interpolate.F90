@@ -26,6 +26,8 @@ module mod_scrip_interpolate
   use mod_scrip_remap_vars
   use mod_scrip_remap_bicubic
 
+  implicit none
+
   private
 
   interface interpolate

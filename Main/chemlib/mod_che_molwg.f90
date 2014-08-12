@@ -23,6 +23,8 @@ module mod_che_molwg
   use mod_realkinds
   use mod_che_indices
 
+  implicit none
+
   public
 
   real(rk8) , parameter :: w_no2 = 46.0D0

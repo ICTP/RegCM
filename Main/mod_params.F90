@@ -46,6 +46,8 @@ module mod_params
   use mod_slabocean
   use mod_sldepparam
 
+  implicit none
+
   private
 
   public :: param
@@ -104,7 +106,7 @@ module mod_params
     icup_ocn , igcc , ipgf , iemiss , lakemod , ipptls , iocnflx ,   &
     iocncpl , iocnrough , ichem , scenario , idcsst , iseaice ,      &
     idesseas , iconvlwp , irrtm , iclimao3 , isolconst , icumcloud , &
-    islab_ocean , itweak
+    islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval
 
   namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
     iceflglw , liqflglw , icld , irng , idrv
@@ -319,8 +321,8 @@ module mod_params
   ibltyp = 1
   iboudy = 5
   isladvec = 0
-  icup_lnd = 1
-  icup_ocn = 1
+  icup_lnd = 5
+  icup_ocn = 5
   ipptls = 1
   igcc = 1
   ipgf = 1
@@ -340,8 +342,7 @@ module mod_params
   iclimao3 = 0
   isolconst = 1
   icumcloud = 2
-  temp_tend_maxval = 0.1*(dt/secpm)
-! temp_tend_maxval = 0.5*(dt/secpm)
+  temp_tend_maxval = 0.5*(dt/secpm)
   wind_tend_maxval = 0.5*(dt/secpm)
 !----------------------------------------------------------------------
 !-----rrtm radiation namelist param:
@@ -423,7 +424,7 @@ module mod_params
   htmin = -250.0D0       ! Min convective heating
   htmax = 500.0D0        ! Max convective heating
   skbmax = 0.4D0        ! Max cloud base height in sigma
-  dtauc = 30.0D0         ! Fritsch & Chappell (1980) 
+  dtauc = 60.0D0         ! Fritsch & Chappell (1980) 
 ! 
 !------namelist emanparam:
   minsig = 0.95D0     ! Lowest sigma level from which convection can originate
@@ -724,7 +725,8 @@ module mod_params
       end if
     end if
     if ( any(icup == 6 ) ) then
-      call fatal(__FILE__,__LINE__,'(Still) UNSUPPORTED CUMULUS SCHEME')
+      ! call fatal(__FILE__,__LINE__,'(Still) UNSUPPORTED CUMULUS SCHEME')
+      continue
     end if
     if ( any(icup < 0) .or. any(icup > 6) ) then
       call fatal(__FILE__,__LINE__,'UNSUPPORTED CUMULUS SCHEME')

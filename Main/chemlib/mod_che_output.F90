@@ -27,6 +27,8 @@ module mod_che_output
   use mod_che_common
   use mod_outvars
 
+  implicit none
+
   private
 
   public :: fill_chem_outvars

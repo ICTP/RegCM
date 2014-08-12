@@ -300,7 +300,7 @@ module mod_cu_grell
           jp1 = j + 1
           us = m2c%uas(j,i,kk)
           vs = m2c%vas(j,i,kk)
-          p(j,i,k) = m2c%pas(j,i,kk)*d_10
+          p(j,i,k) = m2c%pas(j,i,kk)*d_r100
           t(j,i,k) = m2c%tas(j,i,kk)
           q(j,i,k) = m2c%qxas(j,i,kk,iqv)
           if ( q(j,i,k) < 1.0D-08 ) q(j,i,k) = 1.0D-08
@@ -384,7 +384,7 @@ module mod_cu_grell
     call time_begin(subroutine_name,idindx)
 #endif
 
-    mbdt = dt*5.0D-03
+    mbdt = dtsec*5.0D-03
     f  = -d_one
     xk = -d_one
 !
@@ -1069,7 +1069,7 @@ module mod_cu_grell
       do j = jci1 , jci2
         if ( xac(j,i) >= d_zero ) then
           if ( igcc == 1 ) then
-            f = (xao(j,i)-xac(j,i))/dt ! Arakawa-Schubert closure
+            f = (xao(j,i)-xac(j,i))/dtsec ! Arakawa-Schubert closure
           else if ( igcc == 2 ) then
             f = xac(j,i)/dtauc2d(j,i)  ! Fritsch-Chappell closure
           end if

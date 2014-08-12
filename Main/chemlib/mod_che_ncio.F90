@@ -16,9 +16,9 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-!
+
 module mod_che_ncio
-!
+
   use mod_intkinds
   use mod_realkinds
   use mod_nchelper
@@ -29,9 +29,11 @@ module mod_che_ncio
   use mod_runparams
   use mod_domain
   use netcdf
-!
+
+  implicit none
+
   private
-!
+
   public :: read_texture , read_emission , recc
   public :: init_mod_che_ncio
   public :: open_chbc , close_chbc , chbc_search , read_chbc,read_bionem

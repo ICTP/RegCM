@@ -26,8 +26,9 @@ module mod_update
   use mod_realkinds, only : rk8
   use mod_regcm_types , only : exp_data , imp_data
   use mod_memutil
-!
+
   implicit none
+
   private
 
   public :: exp_data

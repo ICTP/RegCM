@@ -25,10 +25,15 @@ module mod_precip
   !
   ! -- Pal et al. 2000 JGR-Atmos
   !
+  use mod_intkinds
+  use mod_realkinds
+  use mod_dynparam
   use mod_runparams
   use mod_memutil
   use mod_mpmessage
   use mod_regcm_types
+
+  implicit none
 
   private
   !
@@ -117,7 +122,7 @@ module mod_precip
   !
   subroutine pcp
     implicit none
-    real(rk8) :: dpovg , es , afc , ppa , pptacc , pptkm1 , pptmax ,   &
+    real(rk8) :: dpovg , afc , ppa , pptacc , pptkm1 , pptmax , &
                 pptnew , qcincld , qcleft , qcw , qs , rdevap , &
                 rh , rhcs , rho , tcel , thog , tk , prainx
     integer(ik4) :: i , j , k , kk
@@ -145,7 +150,7 @@ module mod_precip
           !      due to convection.
           tk = t3(j,i,1)                                     ![k][avg]
           tcel = tk - tzero                                  ![C][avg]
-          ppa = p3(j,i,1)*d_1000                             ![Pa][avg]
+          ppa = p3(j,i,1)                                    ![Pa][avg]
           rho = ppa/(rgas*tk)                                ![kg/m3][avg]
           qcw = qx3(j,i,1,iqc)                               ![kg/kg][avg]
           ! 1ab. Calculate the in cloud mixing ratio [kg/kg]
@@ -204,16 +209,11 @@ module mod_precip
           !     due to convection.
           tk = t3(j,i,k)                                     ![k][avg]
           tcel = tk - tzero                                  ![C][avg]
-          ppa = p3(j,i,k)*d_1000                             ![Pa][avg]
+          ppa = p3(j,i,k)                                    ![Pa][avg]
           rho = ppa/(rgas*tk)                                ![kg/m3][avg]
           qcw = qx3(j,i,k,iqc)                               ![kg/kg][avg]
           afc = fcc(j,i,k)                                   ![frac][avg]
-          if ( tcel > d_zero ) then
-            es = svp1*d_1000*dexp(svp2*tcel/(tk-svp3))       ![Pa][avg]
-          else
-            es = svp4*d_1000*dexp(svp5-svp6/tk)              ![Pa][avg]
-          end if
-          qs = ep2*es/(ppa-es)                               ![kg/kg][avg]
+          qs = pfqsat(tk,ppa)                                ![Pa][avg]
           rh = dmin1(dmax1(qx3(j,i,k,iqv)/qs,d_zero),rhmax)  ![frac][avg]
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
@@ -425,7 +425,7 @@ module mod_precip
           ! An Improved Parameterization for Simulating Arctic Cloud Amount
           ! in the CCSM3 Climate Model, J. Climate 
           !----------------------------------------------------------------
-          if ( p3(j,i,k) >= 75.0D0 ) then
+          if ( p3(j,i,k) >= 75000.0D0 ) then
             ! Clouds below 750hPa
             if ( qx3(j,i,k,iqv) <= 0.003D0 ) then
               fcc(j,i,k) = fcc(j,i,k) * &
@@ -483,7 +483,7 @@ module mod_precip
           !------ for low cloud
           ! a) clouds below 750hPa, extremely cold conditions,
           !     when no cld microphy
-          if ( ipptls == 1 .and. p3(j,i,k)>=75.0D0 .and. &
+          if ( ipptls == 1 .and. p3(j,i,k) >= 75000.0D0 .and. &
                   qx3(j,i,k,iqv) <= 0.003D0 ) then
             excld = fcc(j,i,k)   ! reduced rh-cld
           end if
@@ -517,7 +517,7 @@ module mod_precip
           ! Based on: Vavrus, S. and Waliser D., 2008, 
           !----------------------------------------------------------------
           ! Clouds below 750hPa
-          if ( p3(j,i,k) >= 75.0D0 .and. qx3(j,i,k,iqv) <= 0.003D0 ) then
+          if ( p3(j,i,k) >= 75000.0D0 .and. qx3(j,i,k,iqv) <= 0.003D0 ) then
             excld = excld * dmax1(0.15D0,dmin1(d_one,qx3(j,i,k,iqv)/0.003D0))
           end if
           !------------------- end hanzhenyu 
@@ -587,7 +587,7 @@ module mod_precip
     !
     real(rk8) :: qccs , qvcs , tmp1 , tmp2 , tmp3
     real(rk8) :: dqv , exces , fccc , pres , qvc_cld , qvs , &
-               r1 , rh0adj , rhc , satvp
+               r1 , rh0adj , rhc
     integer(ik4) :: i , j , k
 
     !---------------------------------------------------------------------
@@ -612,13 +612,8 @@ module mod_precip
           !     2.  Compute the cloud condensation/evaporation term.
           !-----------------------------------------------------------
           ! 2a. Calculate the saturation mixing ratio and relative humidity
-          pres = (hsigma(k)*psc(j,i)+ptop)*d_1000
-          if ( tmp3 > tzero ) then
-            satvp = svp1*d_1000*dexp(svp2*(tmp3-tzero)/(tmp3-svp3))
-          else
-            satvp = svp4*d_1000*dexp(svp5-svp6/tmp3)
-          end if
-          qvs = dmax1((ep2*satvp)/(pres-satvp),minqx)
+          pres = (psc(j,i)*hsigma(k)+ptop)*1000.0D0
+          qvs = pfqsat(tmp3,pres)
           rhc = dmax1(qvcs/qvs,dlowval)
 
           r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3*tmp3))

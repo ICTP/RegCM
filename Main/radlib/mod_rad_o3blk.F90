@@ -34,6 +34,8 @@ module mod_rad_o3blk
   use mod_stdio
   use netcdf
 
+  implicit none
+
   private
 
   public :: allocate_mod_rad_o3blk , o3data , read_o3data

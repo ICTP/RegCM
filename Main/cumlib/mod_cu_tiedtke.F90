@@ -28,7 +28,7 @@ module mod_cu_tiedtke
   use mod_cu_common
   use mod_cu_tables
   use mod_service
-  use mod_runparams , only : iqc , iqv , iqi
+  use mod_runparams , only : iqc , iqv , iqi , dtsec
   use mod_cu_tiedtke_38r2 , only : sucumf , cumastrn
   use mod_regcm_types
 
@@ -511,7 +511,7 @@ module mod_cu_tiedtke
     end do
     pmflxr = d_zero
     pmflxs = d_zero
-    call cumastrn(1,kproma,kbdim,klev,ldland,dt,ztp1,zqp1,       &
+    call cumastrn(1,kproma,kbdim,klev,ldland,dtsec,ztp1,zqp1,    &
                   zup1,zvp1,zxp1,pverv,pqhfl,pahfs,papp1,paphp1, &
                   pgeo,pgeoh,ptte,pqte,pvom,pvol,pxtec,pxite,    &
                   locum,ktype,kcbot,kctop,kbotsc,ldsc,ztu,zqu,   &

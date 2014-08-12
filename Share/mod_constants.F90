@@ -130,7 +130,7 @@ module mod_constants
 
   ! Specific heats per m**3  (joules/m**3/k)
   real(rk8) , parameter :: ch2o = 4.18695D+06
-  real(rk8) , parameter :: cice = 0.45D+00*ch2o
+  real(rk8) , parameter :: shice = 0.45D+00*ch2o
   real(rk8) , parameter :: cwi = d_one/0.45D+00
   real(rk8) , parameter :: csnw = 0.49D+00*ch2o
   real(rk8) , parameter :: cws = d_one/0.49D+00
@@ -238,13 +238,6 @@ module mod_constants
   ! Angular velocity of rotation of Earth
   real(rk8) , parameter :: eomeg = 7.2921159D-05
   real(rk8) , parameter :: eomeg2 = d_two*eomeg
-  !
-  ! Solar Constant in W/m**2
-  ! See now function solar_irradiance
-  !
-  !real(rk8) , parameter :: solcon = 1367.0D+00
-  ! Solar Constant in erg/cm**2/sec
-  !real(rk8) , parameter :: scon = solcon*d_1000
 
   ! Soil roughness length
   real(rk8) , parameter :: zlnd = 0.01D+00
@@ -264,19 +257,6 @@ module mod_constants
   ! Constant used in computing saturation mixing ratio.
   ! Ratio of mean molecular weight of water to that of dry air
   real(rk8) , parameter :: ep2 = amw/amd
-  ! Constants used in computing saturation vapor pressure.
-  real(rk8) , parameter :: svp1 = 0.61078D+00
-  real(rk8) , parameter :: svp2 = 17.269D+00
-  real(rk8) , parameter :: svp3 = 35.86D+00
-  real(rk8) , parameter :: svp4 = 0.611D+00
-  real(rk8) , parameter :: svp5 = 22.514D+00
-  real(rk8) , parameter :: svp6 = 6.15D+03
-  ! Constants used in computing evaporation latent heat.
-  real(rk8) , parameter :: lh0 = 597.3D+00
-  real(rk8) , parameter :: lh1 = 0.566D+00
-  ! Constants from latent heat and temperature to saturation vapor p.
-  real(rk8) , parameter :: lsvp1 = 6.11D+00
-  real(rk8) , parameter :: lsvp2 = 9.045D+00
 
   ! Terminal velocity constants
   real(rk8) , parameter :: avt = 841.99667D+00
@@ -302,15 +282,15 @@ module mod_constants
   ! Aerosol densities
   ! now defined in chemistry modules since they are not constant
 
-  ! Constants used in Betts Miller and Kain-Fritsch
-  real(rk8) , parameter :: aliq = 611.2D0
-  real(rk8) , parameter :: bliq = 17.67D0
-  real(rk8) , parameter :: cliq = 4826.56D0
-  real(rk8) , parameter :: dliq = 29.65D0
-  real(rk8) , parameter :: aice = 613.2D+00
-  real(rk8) , parameter :: bice = 22.452D+00
-  real(rk8) , parameter :: cice1 = 6133.0D+00
-  real(rk8) , parameter :: dice = 0.61D+00
+  ! Constants used in Kain-Fritsch
+  real(rk8) , parameter :: aliq = 613.3D0
+  real(rk8) , parameter :: bliq = 17.502D0
+  real(rk8) , parameter :: cliq = 4780.8D0
+  real(rk8) , parameter :: dliq = 32.19D0
+  real(rk8) , parameter :: aice = 613.20D0
+  real(rk8) , parameter :: bice = 22.452D0
+  real(rk8) , parameter :: cice = 6133.0D0
+  real(rk8) , parameter :: dice = 0.61D0
   real(rk8) , parameter :: xlv0 = 3.15D6
   real(rk8) , parameter :: xlv1 = 2370.0D0
   real(rk8) , parameter :: xls0 = 2.905D+06
@@ -346,5 +326,170 @@ module mod_constants
   ! Seaice temperature from ICBC trigger value
   real(rk8) , parameter :: icetemp = 271.38D0
   real(rk8) , parameter :: iceminh = 0.01D0
+
+  contains
+
+  ! Computes saturation pressurre
+  ! Reference:  Polynomial approximations from:
+  !             Piotr J. Flatau, et al.,1992:  Polynomial fits to saturation
+  !             vapor pressure.  Journal of Applied Meteorology, 31, 1507-1513.
+  !
+  pure real(rk8) function pfesat(t) result(es)
+    implicit none
+    real(rk8) , intent(in) :: t     ! Temperature (K)
+
+    real(rk8) :: td , t_limit
+    !
+    ! For water vapor (temperature range 0C-100C)
+    !
+    real(rk8) , parameter :: a0 =  6.11213476D0
+    real(rk8) , parameter :: a1 =  0.444007856D0
+    real(rk8) , parameter :: a2 =  0.143064234D-01
+    real(rk8) , parameter :: a3 =  0.264461437D-03
+    real(rk8) , parameter :: a4 =  0.305903558D-05
+    real(rk8) , parameter :: a5 =  0.196237241D-07
+    real(rk8) , parameter :: a6 =  0.892344772D-10
+    real(rk8) , parameter :: a7 = -0.373208410D-12
+    real(rk8) , parameter :: a8 =  0.209339997D-15
+    !
+    ! For ice (temperature range -75C-0C)
+    !
+    real(rk8) , parameter :: c0 =  6.11123516D0
+    real(rk8) , parameter :: c1 =  0.503109514D0
+    real(rk8) , parameter :: c2 =  0.188369801D-01
+    real(rk8) , parameter :: c3 =  0.420547422D-03
+    real(rk8) , parameter :: c4 =  0.614396778D-05
+    real(rk8) , parameter :: c5 =  0.602780717D-07
+    real(rk8) , parameter :: c6 =  0.387940929D-09
+    real(rk8) , parameter :: c7 =  0.149436277D-11
+    real(rk8) , parameter :: c8 =  0.262655803D-14
+
+    t_limit = t - tzero
+    if ( t_limit > 100.0D0 ) t_limit = 100.0D0
+    if ( t_limit < -75.0D0 ) t_limit = -75.0D0
+    td = t_limit
+    if ( td >= 0.0D0 ) then
+      es = a0 + td*(a1 + td*(a2 + td*(a3 + td*(a4 &
+         + td*(a5 + td*(a6 + td*(a7 + td*a8)))))))
+    else
+      es = c0 + td*(c1 + td*(c2 + td*(c3 + td*(c4 &
+         + td*(c5 + td*(c6 + td*(c7 + td*c8)))))))
+    end if
+    es   = es * d_100 ! pa
+  end function pfesat
+  !
+  ! Computes derivative in temperature of saturation pressure
+  !
+  pure real(rk8) function pfesdt(t) result(esdt)
+    implicit none
+    real(rk8), intent(in)  :: t     ! Temperature (K)
+
+    real(rk8) :: td , t_limit
+    !
+    ! For derivative:water vapor
+    !
+    real(rk8), parameter :: b0 =  0.444017302D0
+    real(rk8), parameter :: b1 =  0.286064092D-01
+    real(rk8), parameter :: b2 =  0.794683137D-03
+    real(rk8), parameter :: b3 =  0.121211669D-04
+    real(rk8), parameter :: b4 =  0.103354611D-06
+    real(rk8), parameter :: b5 =  0.404125005D-09
+    real(rk8), parameter :: b6 = -0.788037859D-12
+    real(rk8), parameter :: b7 = -0.114596802D-13
+    real(rk8), parameter :: b8 =  0.381294516D-16
+    !
+    ! For derivative:ice
+    !
+    real(rk8), parameter :: d0 =  0.503277922D0
+    real(rk8), parameter :: d1 =  0.377289173D-01
+    real(rk8), parameter :: d2 =  0.126801703D-02
+    real(rk8), parameter :: d3 =  0.249468427D-04
+    real(rk8), parameter :: d4 =  0.313703411D-06
+    real(rk8), parameter :: d5 =  0.257180651D-08
+    real(rk8), parameter :: d6 =  0.133268878D-10
+    real(rk8), parameter :: d7 =  0.394116744D-13
+    real(rk8), parameter :: d8 =  0.498070196D-16
+
+    t_limit = t - tzero
+    if ( t_limit > 100.0D0 ) t_limit = 100.0D0
+    if ( t_limit < -75.0D0 ) t_limit = -75.0D0
+    td = t_limit
+    if ( td >= 0.0D0 ) then
+      esdt = b0 + td*(b1 + td*(b2 + td*(b3 + td*(b4 &
+           + td*(b5 + td*(b6 + td*(b7 + td*b8)))))))
+    else
+      esdt = d0 + td*(d1 + td*(d2 + td*(d3 + td*(d4 &
+           + td*(d5 + td*(d6 + td*(d7 + td*d8)))))))
+    end if
+    esdt = esdt * 100.D0 ! pa/K
+  end function pfesdt
+
+  pure real(rk8) function pfqsat(t,p,e) result(qs)
+    implicit none
+    real(rk8) , intent(in) :: t             ! Temperature (K)
+    real(rk8) , intent(in) :: p             ! Pressure (Pa)
+    real(rk8) , intent(in) , optional :: e  ! Saturated vapor pressure (Pa)
+    real(rk8) :: es , vp , vp1 , vp2
+    if ( present(e) ) then
+      es = e
+    else
+      es = pfesat(t)
+    end if
+    ! Bolton 1980
+    vp  = 1.0D0 / (p - 0.378D0*es)
+    vp1 = ep2 * vp
+    vp2 = vp1 * vp
+    qs = max(es * vp1, minqx)  ! kg/kg
+  end function pfqsat
+
+  pure real(rk8) function pfqsdt(t,p,e,dedt) result(qsdt)
+    implicit none
+    real(rk8) , intent(in) :: t             ! Temperature (K)
+    real(rk8) , intent(in) :: p             ! Pressure (Pa)
+    real(rk8) , intent(in) , optional :: e  ! Saturated vapor pressure (Pa)
+    real(rk8) , intent(in) , optional :: dedt ! derivative of e in dt (Pa/K)
+    real(rk8) :: es , esdt , vp , vp1 , vp2
+    if ( present(e) ) then
+      es = e
+    else
+      es = pfesat(t)
+    end if
+    if ( present(dedt) ) then
+      esdt = dedt
+    else
+      esdt = pfesdt(t)
+    end if
+    vp  = 1.0D0 / (p - 0.378D0*es)
+    vp1 = ep2 * vp
+    vp2 = vp1 * vp
+    qsdt = esdt * vp2 * p ! 1 / K
+  end function pfqsdt
+
+  pure real(rk8) function sig2p(ps,sigma,ptop) result(p)
+    implicit none
+    real(rk8) , intent(in) :: ps , sigma , ptop
+    !!!!!!!!!! Assume input is in cbar !!!!!!!!!!
+    p = (sigma * ( ps - ptop ) + ptop) * d_1000 ! Pressure in Pa
+    !!!!!!!!!! Assume input is in cbar !!!!!!!!!!
+  end function sig2p
+
+  pure real(rk8) function msig2p(ps,sigma,ptop) result(p)
+    implicit none
+    real(rk8) , intent(in) :: ps , sigma , ptop
+    !!!!!!!!!!!!! Assume input is in cbar !!!!!!!!!!!!!
+    p = (sigma * ps + ptop) * d_1000 ! Pressure in Pa !
+    !!!!!!!!! In the model, ps is ps-ptop !!!!!!!!!!!!!
+    !!!!!!!!!!!!! Assume input is in cbar !!!!!!!!!!!!!
+  end function msig2p
+
+  pure real(rk8) function wlh(t)
+    implicit none
+    real(rk8) , intent(in) :: t
+    if ( t > tzero ) then
+      wlh = 2500.8D0 - 2.36D0*t + 0.0016D0*t*t - 0.00006D0*t*t*t
+    else
+      wlh = 2834.1D0 - 0.29D0*t - 0.004D0*t*t
+    end if
+  end function wlh
 
 end module mod_constants

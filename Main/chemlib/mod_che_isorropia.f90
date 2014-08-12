@@ -34,6 +34,10 @@ module mod_che_isorropia
   use mod_intkinds
   use mod_realkinds
 
+  implicit none
+
+  private
+
   public :: aerodriver
  
   contains

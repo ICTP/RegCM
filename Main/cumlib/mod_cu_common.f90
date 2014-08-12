@@ -23,6 +23,8 @@ module mod_cu_common
 !
   use mod_intkinds
   use mod_realkinds
+  use mod_constants
+  use mod_dynparam
   use mod_runparams
   use mod_regcm_types
 
@@ -39,7 +41,7 @@ module mod_cu_common
   real(rk8) , dimension(10) :: cld_profile
   real(rk8) , dimension(10) :: fixed_cld_profile
   real(rk8) , dimension(10) :: rnum
-  real(rk8) , parameter :: maxcloud_dp =  60.0D0 ! In cb
+  real(rk8) , parameter :: maxcloud_dp =  60000.0D0 ! In Pa
   logical , parameter :: addnoise = .false.
 
   contains

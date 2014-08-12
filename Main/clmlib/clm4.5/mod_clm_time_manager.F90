@@ -5,7 +5,8 @@ module mod_clm_time_manager
    use mod_realkinds
    use mod_mpmessage
    use mod_constants , only : secpd
-   use mod_runparams , only : idate0 , idatex , dtsec , dtsrf , dayspy
+   use mod_dynparam , only : dayspy
+   use mod_runparams , only : idate0 , idatex , dtsec , dtsrf
 
    implicit none
 

@@ -7,6 +7,7 @@ module mod_clm_cnphenology
   use mod_intkinds
   use mod_stdio
   use mod_date
+  use mod_dynparam , only : dayspy
   use mod_runparams
   use mod_clm_type
   use mod_clm_varcon , only : tfrz

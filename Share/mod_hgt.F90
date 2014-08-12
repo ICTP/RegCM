@@ -24,6 +24,8 @@ module mod_hgt
   use mod_constants
   use mod_message
 
+  implicit none
+
   private
 
   integer(ik4) , parameter :: maxnlev = 100

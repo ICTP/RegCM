@@ -18,7 +18,9 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_intkinds
-!
+
+  implicit none
+
   public
 
   ! Kind helpers

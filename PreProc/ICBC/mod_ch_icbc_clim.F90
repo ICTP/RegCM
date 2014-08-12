@@ -158,7 +158,7 @@ module mod_ch_icbc_clim
     type (rcm_time_and_date) :: imonmidd
     type (rcm_time_interval) :: tdif
     real(rk8) :: xfac1 , xfac2 , odist
-    integer(ik4) :: im1 , im2, n
+    integer(ik4) :: im1 , im2
 
     call split_idate(idate,nyear,month,nday,nhour)
     imonmidd = monmiddle(idate)

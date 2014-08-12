@@ -22,8 +22,10 @@ module mod_che_param
   use mod_intkinds
   use mod_realkinds
 
+  implicit none
+
   public
-!
+
   integer(ik4) :: ichaer
 
   !FAB : temporaire car defini dans les modules de deposts

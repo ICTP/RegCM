@@ -21,6 +21,10 @@ module mod_regcm_types
 !
   use mod_realkinds
   use mod_intkinds
+
+  implicit none
+
+  public
 !
 ! Storage for all the 3d prognostic variables in two
 ! timesteps and all the 2d variables and constants
@@ -161,6 +165,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: za
     real(rk8) , pointer , dimension(:,:,:) :: dzq
     real(rk8) , pointer , dimension(:,:) :: rhox2d
+    real(rk8) , pointer , dimension(:,:) :: ps2d
     real(rk8) , pointer , dimension(:,:,:) :: tkeb3d
     real(rk8) , pointer , dimension(:,:,:,:) :: chib3d
   end type slice
@@ -391,6 +396,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: qsas    ! atms%qsb3d
     real(rk8) , pointer , dimension(:,:,:) :: rhoas   ! atms%rhob3d
     real(rk8) , pointer , dimension(:,:,:) :: zfs     ! atms%zq
+    real(rk8) , pointer , dimension(:,:,:) :: dzq     ! atms%dzq
     real(rk8) , pointer , dimension(:,:,:) :: qdot    ! qdot
     real(rk8) , pointer , dimension(:,:,:,:) :: qxas  ! atms%qxb3d
     real(rk8) , pointer , dimension(:,:,:,:) :: chias ! atms%chib3d

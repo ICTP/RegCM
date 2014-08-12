@@ -30,11 +30,13 @@ module mod_split
   use mod_atm_interface
   use mod_memutil
   use mod_service
-!
+
+  implicit none
+
   private
-!
+
   public :: allocate_mod_split , spinit , splitf
-!
+
   real(rk8) , pointer , dimension(:) :: aam
   real(rk8) , pointer , dimension(:) :: an
   real(rk8) , pointer , dimension(:,:) :: am

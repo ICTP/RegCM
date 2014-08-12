@@ -18,10 +18,10 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 !
 module mod_rad_colmod3
-!
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
+  use mod_memutil
   use mod_service
   use mod_runparams
   use mod_rad_radiation
@@ -30,7 +30,9 @@ module mod_rad_colmod3
   use mod_rrtmg_driver
   use mod_rad_aerosol
   use mod_regcm_types
-!
+
+  implicit none
+
   private
 !
   public :: allocate_mod_rad_colmod3 , colmod3

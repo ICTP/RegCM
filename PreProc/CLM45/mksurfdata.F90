@@ -126,7 +126,8 @@ program mksurfdata
   type(rcm_time_interval) :: tdif
   real(rk4) , pointer , dimension(:) :: yiy
   real(rk4) , pointer , dimension(:) :: xjx
-  real(rk4) :: hptop , smallnum
+  real(rk4) :: hptop
+  real(rk8) :: smallnum
   real(rk8) , dimension(1) :: xdate
   integer(ik4) , dimension(3) :: istart , icount
   integer(ik4) , dimension(2) :: ihvar

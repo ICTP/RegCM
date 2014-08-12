@@ -33,8 +33,10 @@ module mod_che_drydep
   use mod_che_mppio
   use mod_che_indices
 
+  implicit none
+
   private
-!
+
   public :: drydep_aero , drydep_gas , aerodyresis
   public :: a1 , a2 , a3 , c1 , c2 , c3 , c4 , aa1 , aa2 , aa3
 !

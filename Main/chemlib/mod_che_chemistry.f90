@@ -31,6 +31,9 @@ module mod_che_chemistry
   use mod_cbmz_Parameters
   use mod_cbmz_main1
   use mod_che_molwg
+
+  implicit none
+
   private
 
   real(rk8) , parameter :: dtchsolv = 900.0D0

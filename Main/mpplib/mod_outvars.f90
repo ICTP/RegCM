@@ -21,6 +21,8 @@ module mod_outvars
 
   use mod_realkinds
 
+  implicit none
+
   public
 
   real(rk8) , dimension(:,:) , pointer :: xlon_out => null()

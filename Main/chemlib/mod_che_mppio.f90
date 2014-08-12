@@ -29,19 +29,23 @@ module mod_che_mppio
   use mod_che_param
   use mod_che_common
   use mod_che_species
-!
-  public
 
-  real(rk8) , pointer , dimension(:,:,:,:) :: remlsc_io , remcvc_io
-  real(rk8) , pointer , dimension(:,:,:) :: remdrd_io
-  real(rk8) , pointer , dimension(:,:) :: ssw2da_io , sdelt_io ,   &
+  implicit none
+
+  private
+
+  real(rk8) , pointer , public , dimension(:,:,:,:) :: remlsc_io , remcvc_io
+  real(rk8) , pointer , public , dimension(:,:,:) :: remdrd_io
+  real(rk8) , pointer , public , dimension(:,:) :: ssw2da_io , sdelt_io ,   &
                                          sdelq_io , sfracv2d_io , &
                                          sfracb2d_io , sfracs2d_io , &
                                          svegfrac2d_io
-  real(rk8) , pointer , dimension(:,:,:,:) :: chia_io , chib_io
-  real(rk8) , pointer , dimension(:,:,:,:) :: chemall_io
-  real(rk8) , pointer , dimension(:,:,:,:) :: taucldsp_io
-!
+  real(rk8) , pointer , public , dimension(:,:,:,:) :: chia_io , chib_io
+  real(rk8) , pointer , public , dimension(:,:,:,:) :: chemall_io
+  real(rk8) , pointer , public , dimension(:,:,:,:) :: taucldsp_io
+
+  public :: allocate_mod_che_mppio
+
   contains 
     !
     ! This routines allocate all the arrays contained in the module

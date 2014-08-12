@@ -21,11 +21,12 @@ module mod_cu_kf
   use mod_realkinds
   use mod_intkinds
   use mod_constants
+  use mod_memutil
   use mod_stdio
   use mod_regcm_types
   use mod_mpmessage
   use mod_cu_common
-  use mod_runparams , only : dx , dxsq , ipptls
+  use mod_runparams , only : dx , dxsq , ipptls , dtsec
   use mod_runparams , only : iqv , iqr , iqi , iqs , iqc
   use mod_service
 
@@ -75,7 +76,7 @@ module mod_cu_kf
   integer(ik4) :: nipoi
 
   integer(ik4) , dimension(:) , pointer :: imap , jmap
-  real(rk8) , dimension(:,:) , pointer :: u0 , v0 , t0 , qv0 , p0
+  real(rk8) , dimension(:,:) , pointer :: u0 , v0 , z0 , t0 , qv0 , p0
   real(rk8) , dimension(:,:) , pointer :: rho , dzq , w0avg
   real(rk8) , dimension(:) , pointer :: raincv , pratec
   integer(ik4) , dimension(:) , pointer :: ktop , kbot
@@ -114,6 +115,7 @@ module mod_cu_kf
     call getmem2d(u0,1,nipoi,1,kz,'mod_cu_kf:u0')
     call getmem2d(v0,1,nipoi,1,kz,'mod_cu_kf:v0')
     call getmem2d(t0,1,nipoi,1,kz,'mod_cu_kf:t0')
+    call getmem2d(z0,1,nipoi,1,kz,'mod_cu_kf:t0')
     call getmem2d(qv0,1,nipoi,1,kz,'mod_cu_kf:qv0')
     call getmem2d(p0,1,nipoi,1,kz,'mod_cu_kf:p0')
     call getmem2d(rho,1,nipoi,1,kz,'mod_cu_kf:rho')
@@ -143,6 +145,7 @@ module mod_cu_kf
 #endif
 
     if ( nipoi == 0 ) return
+
     do k = 1 , kz
       kk = kz - k + 1
       do np = 1 , nipoi
@@ -151,28 +154,26 @@ module mod_cu_kf
         u0(np,k) = m2c%uas(j,i,kk)
         v0(np,k) = m2c%vas(j,i,kk)
         t0(np,k) = m2c%tas(j,i,kk)
+        z0(np,k) = m2c%zas(j,i,kk)
         qv0(np,k) = m2c%qxas(j,i,kk,iqv)
-        p0(np,k) = m2c%pas(j,i,kk)*d_1000
+        p0(np,k) = m2c%pas(j,i,kk)
         rho(np,k) = m2c%rhoas(j,i,kk)
-        dzq(np,k) = m2c%zas(j,i,kk)
-        w0avg(np,k) = -egrav*rho(np,k)*m2c%qdot(j,i,kk)
+        dzq(np,k) = m2c%dzq(j,i,kk)
+        w0avg(np,k) = - d_half * (m2c%qdot(j,i,kk+1)-m2c%qdot(j,i,kk)) / &
+                      (egrav*rho(np,k))
       end do
     end do
 
-    do k = 2 , kz
-      kk = kz - k + 1
-      do np = 1 , nipoi
-        i = imap(np)
-        j = jmap(np)
-        dzq(np,k) = dzq(np,k) - m2c%zas(j,i,kk+1)
-      end do
-    end do
-
-    if ( myid == 1 ) then
-      do k = 1 , kz
-        print *, k , t0(1,k) , p0(1,k) , w0avg(1,k)
-      end do
-    end if
+     !do k = 1 , kz
+     !  do np = 1 , nipoi
+     !    if ( np == 1 .and. myid == 1 ) then
+     !      write(stdout,'(i2,7f8.0)') k, sqrt(u0(np,k)**2+v0(np,k)**2) , &
+     !              t0(np,k) , 10000.*qv0(np,k) , &
+     !              p0(np,k), 100*rho(np,k) , dzq(np,k) , &
+     !              100000000*w0avg(np,k)
+     !    end if
+     !  end do
+     !end do
 
     dtdt = d_zero
     dqdt = d_zero
@@ -196,27 +197,26 @@ module mod_cu_kf
       do np = 1 , nipoi
         i = imap(np)
         j = jmap(np)
-!       c2m%tten(j,i,kk) = c2m%tten(j,i,kk) + dtdt(np,k)*m2c%psb(j,i)
-!       c2m%qxten(j,i,kk,iqv) = c2m%qxten(j,i,kk,iqv) + dqdt(np,k)*m2c%psb(j,i)
-!       c2m%qxten(j,i,kk,iqc) = c2m%qxten(j,i,kk,iqc) + dqcdt(np,k)*m2c%psb(j,i)
+        c2m%tten(j,i,kk) = c2m%tten(j,i,kk) + dtdt(np,k)*m2c%psb(j,i)
+        c2m%qxten(j,i,kk,iqv) = c2m%qxten(j,i,kk,iqv) + &
+                dqdt(np,k)*m2c%psb(j,i)
+        c2m%qxten(j,i,kk,iqc) = c2m%qxten(j,i,kk,iqc) + &
+                dqcdt(np,k)*m2c%psb(j,i)
       end do
     end do
 
-    if ( myid == 1 ) then
-      do k = 1 , kz
-        print *, k , dtdt(1,k) , dqdt(1,k) , dqcdt(1,k)
-      end do
-    end if
-
     if ( ipptls == 2 ) then
-      kk = kz - k + 1
       do k = 1 , kz
+        kk = kz - k + 1
         do np = 1 , nipoi
           i = imap(np)
           j = jmap(np)
-!         c2m%qxten(j,i,kk,iqr) = c2m%qxten(j,i,kk,iqr)+dqrdt(np,k)*m2c%psb(j,i)
-!         c2m%qxten(j,i,kk,iqi) = c2m%qxten(j,i,kk,iqi)+dqidt(np,k)*m2c%psb(j,i)
-!         c2m%qxten(j,i,kk,iqs) = c2m%qxten(j,i,kk,iqs)+dqsdt(np,k)*m2c%psb(j,i)
+          c2m%qxten(j,i,kk,iqr) = c2m%qxten(j,i,kk,iqr) + &
+                  dqrdt(np,k)*m2c%psb(j,i)
+          c2m%qxten(j,i,kk,iqi) = c2m%qxten(j,i,kk,iqi) + &
+                  dqidt(np,k)*m2c%psb(j,i)
+          c2m%qxten(j,i,kk,iqs) = c2m%qxten(j,i,kk,iqs) + &
+                  dqsdt(np,k)*m2c%psb(j,i)
         end do
       end do
     end if
@@ -230,7 +230,6 @@ module mod_cu_kf
         c2m%rainc(j,i) = c2m%rainc(j,i) + raincv(np)
         c2m%pcratec(j,i)= c2m%pcratec(j,i) + pratec(np)
         total_precip_points = total_precip_points + 1
-        print *, 'PRECIP !', c2m%pcratec(j,i)
       end if
     end do
 
@@ -245,7 +244,7 @@ module mod_cu_kf
     logical , intent(in) :: warm_rain
     logical , intent(in) :: qi_flag , qs_flag
 
-    real(rk8) , dimension(kts:kte) :: q0 , z0 , tv0 , tu , tvu , qu , &
+    real(rk8) , dimension(kts:kte) :: q0 , tv0 , tu , tvu , qu ,      &
             tz , tvd , qd , qes , thtes , tg , tvg , qg , wu , wd ,   &
             ems , emsd , umf , uer , udr , dmf , der , ddr ,          &
             umf2 , uer2 , udr2 , dmf2 , der2 , ddr2 , dza , thta0 ,   &
@@ -305,7 +304,7 @@ module mod_cu_kf
     !
     pointloop: &
     do np = its , ite
-      p300 = p0(np,1) - 30000.0D0
+      p300 = p0(np,1) - 300.0D2
       !
       ! pressure perturbation term is only defined at mid-point of
       ! vertical layers. Since total pressure is needed at the top and
@@ -327,7 +326,7 @@ module mod_cu_kf
         es = aliq * exp( (bliq*t0(np,k) - cliq) / (t0(np,k)-dliq) )
         qes(k) = ep2 * es / (p0(np,k)-es)
         q0(k) = min(qes(k),qv0(np,k))
-        q0(k) = max(0.000001D0,q0(k))
+        q0(k) = max(minqx,q0(k))
         ql0(k) = d_zero
         qi0(k) = d_zero
         qr0(k) = d_zero
@@ -344,17 +343,17 @@ module mod_cu_kf
         if (t0(np,k) >= tzero)   ml = k
       end do
 
-      z0(1) = d_half * dzq(np,1)
       do k = 2 , kl
-        z0(k) = z0(k-1) + d_half * (dzq(np,k)+dzq(np,k-1))
-        dza(k-1) = z0(k) - z0(k-1)
+        dza(k-1) = z0(np,k) - z0(np,k-1)
       end do
       dza(kl) = d_zero
       kmix = 1
       kfmainloop: &
       do
         low = kmix
-        if ( low > llfc ) cycle pointloop
+        if ( low > llfc ) then
+          cycle pointloop
+        end if
 
         lc = low
         mxlayr = 0
@@ -371,7 +370,9 @@ module mod_cu_kf
           nlayrs = nlayrs + 1
           if ( dpthmx > 6.0D3 ) exit
         end do
-        if ( dpthmx < 6.0D3 ) cycle pointloop
+        if ( dpthmx < 6.0D3 ) then
+          cycle pointloop
+        end if
         kpbl = lc + nlayrs - 1
         kmix = lc + 1
         thmix = d_zero
@@ -389,7 +390,7 @@ module mod_cu_kf
           rocpq = c6 * (d_one - c7*q0(nk))
           thmix = thmix + dp(nk)*t0(np,nk) * (p00/p0(np,nk))**rocpq
           qmix = qmix + dp(nk)*q0(nk)
-          zmix = zmix + dp(nk)*z0(nk)
+          zmix = zmix + dp(nk)*z0(np,nk)
           pmix = pmix + dp(nk)*p0(np,nk)
         end do
         thmix = thmix/dpthmx
@@ -412,12 +413,15 @@ module mod_cu_kf
         cporq = d_one / rocpq
 
         plcl = p00 * (tlcl/thmix)**cporq
-        if ( plcl < p0(np,kl) ) cycle pointloop
-
+        find_klcl: &
         do nk = lc , kl
           klcl = nk
-          if ( plcl >= p0(np,nk) ) exit
-        end do
+          if ( plcl >= p0(np,nk) ) exit find_klcl
+        end do find_klcl
+        !if ( klcl == kl ) then
+        !  print *, 'Exit at klcl == kl',klcl,kl,plcl,p0(np,klcl)
+        !  cycle pointloop
+        !end if
         k = klcl - 1
         dlp = log(plcl/p0(np,k)) / log(p0(np,klcl)/p0(np,k))
         !
@@ -427,7 +431,7 @@ module mod_cu_kf
         qenv = q0(k) + (q0(klcl)-q0(k))*dlp
         tven = tenv * (d_one + b61*qenv)
         tvbar = d_half * (tv0(k)+tven)
-        zlcl = z0(k) + (z0(klcl)-z0(k))*dlp
+        zlcl = z0(np,k) + (z0(np,klcl)-z0(np,k))*dlp
         !
         ! check to see if cloud is buoyant using fritsch-chappell trigger
         ! function described in kain and fritsch (1992). W0avg is an
@@ -441,15 +445,17 @@ module mod_cu_kf
         !
         wklcl = 0.02D0 * zlcl/2.5D3
         wkl = (w0avg(np,k) + (w0avg(np,klcl) - w0avg(np,k))*dlp) * &
-                dx / 25.0D3 - wklcl
+                (dx/25.D3) - wklcl
         wabs = abs(wkl) + 1.D-10
         wsigne = wkl/wabs
         dtlcl = 4.64D0 * wsigne * wabs**0.33D0
-        gdt = egrav * dtlcl * (zlcl-z0(lc)) / (tv0(lc)+tven)
+        gdt = egrav * dtlcl * (zlcl-z0(np,lc)) / (tv0(lc)+tven)
         wlcl = d_one + d_half * wsigne * sqrt(abs(gdt)+1.D-10)
         if ( tlcl+dtlcl <= tenv ) cycle kfmainloop
-        print *, 'Reach 4.'
-        if ( kpbl >= llfc ) cycle pointloop
+        if ( kpbl >= llfc ) then
+          print *, 'Exit at kpbl >= llfc'
+          cycle pointloop
+        end if
         !
         ! convective triggering criteria has been satisfied. Compute
         ! equivalent potential temperature
@@ -459,9 +465,9 @@ module mod_cu_kf
                      exp((c1/tlcl - c2)*qmix*(d_one + c8*qmix))
         es = aliq * exp((tenv*bliq - cliq) / (tenv-dliq))
         tvavg = d_half * (tv0(klcl)+tenv*(d_one + b61*qenv))
-        plcl = p0(np,klcl) * exp(egrav / (rdry*tvavg) * (z0(klcl)-zlcl))
+        plcl = p0(np,klcl) * exp(egrav / (rdry*tvavg) * (z0(np,klcl)-zlcl))
         qese = ep2 * es / (plcl-es)
-        gdt = egrav * dtlcl * (zlcl-z0(lc)) / (tv0(lc)+tven)
+        gdt = egrav * dtlcl * (zlcl-z0(np,lc)) / (tv0(lc)+tven)
         wlcl = d_one + d_half * wsigne * sqrt(abs(gdt) + 1.D-10)
         thtes(k) = tenv*(p00/plcl)**(c6*(d_one - c7*qese)) * &
                    exp((c1/tenv - c2) * qese * (d_one + c8*qese))
@@ -580,9 +586,9 @@ module mod_cu_kf
           !
           if ( nk == k ) then
             be = (tvlcl+tvu(nk1)) / (tven+tv0(nk1)) - d_one
-            boterm = d_two * (z0(nk1)-zlcl) * egrav * be/1.5D0
+            boterm = d_two * (z0(np,nk1)-zlcl) * egrav * be/1.5D0
             enterm = d_zero
-            dzz = z0(nk1) - zlcl
+            dzz = z0(np,nk1) - zlcl
           else
             be = (tvu(nk)+tvu(nk1)) / (tv0(nk)+tv0(nk1)) - d_one
             boterm = d_two * dza(nk) *egrav * be/1.5D0
@@ -596,7 +602,7 @@ module mod_cu_kf
           ! if vert velocity is less than zero, exit the updraft loop and,
           ! if cloud is tall enough, finalize updraft calculations
           !
-          if ( wtw <= d_zero ) exit
+          if ( wtw <= d_zero ) exit updraft_loop
           wabs = sqrt(abs(wtw))
           wu(nk1) = wtw / wabs
           !
@@ -699,6 +705,10 @@ module mod_cu_kf
             ! net entrainment and detrainment rates are given by the average
             ! fractional values in the layer
             !
+            if ( nk == k ) then
+              ee1 = d_one
+              ud1 = d_zero
+            end if
             uer(nk1) = d_half*rei*(ee1+ee2)
             udr(nk1) = d_half*rei*(ud1+ud2)
           end if
@@ -754,7 +764,7 @@ module mod_cu_kf
         ! velocity first becomes negative
         !
         ltop = nk
-        cldhgt = z0(ltop) - zlcl
+        cldhgt = z0(np,ltop) - zlcl
         !
         ! if cloud top hgt is less than specified minimum height, go back and
         ! the next highest 60mb layer to see if a bigger cloud can be obtained
@@ -824,7 +834,7 @@ module mod_cu_kf
               umf(nk) = vmflcl
               uer(nk) = d_zero
             end if
-            tu(nk) = tmix + (z0(nk)-zmix)*gdry
+            tu(nk) = tmix + (z0(np,nk)-zmix)*gdry
             qu(nk) = qmix
             wu(nk) = wlcl
           else
@@ -915,7 +925,7 @@ module mod_cu_kf
         lvf = min(lvf,let)
         usr = umf(lvf+1) * (qu(lvf+1) + qliq(lvf+1) + qice(lvf+1))
         usr = min(usr,trppt)
-        if (usr < 1.D-8 ) usr=trppt
+        if (usr < 1.D-8 ) usr = trppt
         !
         ! compute convective time scale(timec). the mean wind at the lcl
         ! and midtroposphere is used.
@@ -944,14 +954,14 @@ module mod_cu_kf
         end if
         vws = (u0(np,ltop)-u0(np,klcl)) * (u0(np,ltop)-u0(np,klcl)) + &
               (v0(np,ltop)-v0(np,klcl)) * (v0(np,ltop)-v0(np,klcl))
-        vws = 1.0D3 * shsign * sqrt(vws) / (z0(ltop)-z0(lcl))
+        vws = 1.0D3 * shsign * sqrt(vws) / (z0(np,ltop)-z0(np,lcl))
         pef = 1.591D0 + vws*(-0.639D0 + vws * (9.53D-2 - vws*4.96D-3))
         pef = max(pef,0.2D0)
         pef = min(pef,0.9D0)
         !
         ! precipitation efficiency is a function of the height of cloud base.
         !
-        cbh = (zlcl-z0(1)) * 3.281D-3
+        cbh = (zlcl-z0(np,1)) * 3.281D-3
         if ( cbh < 3.0D0 ) then
           rcbh = 0.02D0
         else
@@ -1243,9 +1253,9 @@ module mod_cu_kf
         ! is available in that layer initially
         !
         aincmx = 1000.0D0
-        aincm1 = aincmx
+        aincm1 = ems(lc)
         lmax = max(klcl,lfs)
-        do nk=lc,lmax
+        do nk = lc , lmax
           if ( (uer(nk)-der(nk)) > d_zero ) then
             aincm1 = ems(nk) / ((uer(nk)-der(nk)) * timec)
           end if
@@ -1457,10 +1467,11 @@ module mod_cu_kf
               plcl = p00 * (tlcl/thmix)**cporq
             end if
             tvlcl = tlcl*(d_one + b61*qmix)
+            internal_find_plcl: &
             do nk = lc , kl
               klcl = nk
-              if ( plcl >= p0(np,nk) ) exit
-            end do
+              if ( plcl >= p0(np,nk) ) exit internal_find_plcl
+            end do internal_find_plcl
             k = klcl - 1
             dlp = log(plcl/p0(np,k)) / log(p0(np,klcl)/p0(np,k))
             !
@@ -1470,9 +1481,9 @@ module mod_cu_kf
             qenv = qg(k) + (qg(klcl)-qg(k))*dlp
             tven = tenv * (d_one + b61*qenv)
             tvbar = d_half * (tvg(k)+tven)
-            zlcl = z0(k) + (z0(klcl)-z0(k))*dlp
+            zlcl = z0(np,k) + (z0(np,klcl)-z0(np,k))*dlp
             tvavg = d_half * (tven + tg(klcl)*(d_one + b61*qg(klcl)))
-            plcl = p0(np,klcl) * exp(egrav / (rdry * tvavg) * (z0(klcl)-zlcl))
+            plcl = p0(np,klcl) * exp(egrav / (rdry * tvavg)*(z0(np,klcl)-zlcl))
             theteu(k) = tmix * (p00/pmix)**(c6*(d_one - c7*qmix)) * &
                         exp((c1/tlcl - c2)*qmix*(d_one + c8*qmix))
             es = aliq * exp((tenv*bliq - cliq) / (tenv-dliq))
@@ -1491,7 +1502,7 @@ module mod_cu_kf
               thtesg(nk1) = tg(nk1)*(p00/p0(np,nk1))**(c6*(d_one - c7*qese)) * &
                             exp((c1/tg(nk1) - c2)*qese*(d_one + c8*qese))
               if ( nk == k ) then
-                dzz = z0(klcl) - zlcl
+                dzz = z0(np,klcl) - zlcl
               else
                 dzz = dza(nk)
               end if
@@ -1508,6 +1519,7 @@ module mod_cu_kf
             dabe = max(abe-abeg,0.1D0*abe)
             fabe = abeg / (abe+1.D-8)
             if ( fabe > d_one ) then
+              print *, 'Exit at fabe > d_one'
               cycle pointloop ! No convection
             end if
             doainc = .true.
@@ -1534,7 +1546,7 @@ module mod_cu_kf
               ! if more than 10% of the original cape remains, increase the
               ! convective mass flux by the factor ainc:
               !
-              if ( fabe < dlowval ) then
+              if ( dabs(fabe) < dlowval ) then
                 ainc = ainc*d_half
               else
                 ainc = ainc * stab * abe / (dabe+1.D-8)
@@ -1544,7 +1556,10 @@ module mod_cu_kf
           ainc = min(aincmx,ainc)
           ! if ainc becomes very small, effects of convection
           ! will be minimal so just ignore it
-          if ( ainc < 0.05D0 ) cycle pointloop
+          if ( ainc < 0.05D0 ) then
+              print *, 'Exit at ainc < 0.05D0'
+            cycle pointloop
+          end if
           tder = tder2 * ainc
           pptflx = pptfl2 * ainc
           do nk = 1 , ltop
@@ -1684,7 +1699,7 @@ module mod_cu_kf
             rhg = qg(k)/qgs
             write (6,1090) k, &
                            p0(np,k)/100.0D0,       &
-                           z0(k),                  &
+                           z0(np,k),               &
                            t0(np,k)-tzero,         &
                            tg(k)-tzero,            &
                            dtt,                    &
@@ -1733,7 +1748,7 @@ module mod_cu_kf
         ! if the advective time period (tadvec) is less than specified minimum
         ! timec, allow feedback to occur only during tadvec
         !
-        if ( tadvec < timec ) nic = nint(tadvec/dt)
+        if ( tadvec < timec ) nic = nint(tadvec/dtsec)
         do k = 1 , kx
           !
           ! if hydrometeors are not allowed, they must be evaporated or
@@ -1794,7 +1809,6 @@ module mod_cu_kf
 
         ! raincv is in the unit of mm
 
-        print *, 'Reach.'
         pratec(np) = pptflx*(d_one-fbfrc)/dxsq
         raincv(np) = dtsec*pratec(np)
         rnc = raincv(np)*nic

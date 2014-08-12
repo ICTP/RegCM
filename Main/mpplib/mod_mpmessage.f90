@@ -24,8 +24,10 @@ module mod_mpmessage
   use mod_stdio
   use mod_message
 
+  implicit none
+
   private
-!
+
   public :: setup_mesg , die , aline , say , note , cry , fatal , checkalloc
   public :: vprntv , vprntm
 

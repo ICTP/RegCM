@@ -34,6 +34,8 @@ module mod_rad_radiation
   use mod_rad_scenarios
   use mod_rad_aerosol
 
+  implicit none
+
   private
 
   public :: allocate_mod_rad_radiation , radini , radctl

@@ -23,8 +23,10 @@ module mod_message
   use mod_intkinds
   use mod_realkinds
 
+  implicit none
+
   private
-!
+
   character(len=512) :: aline
   character(len=8) :: cline
 

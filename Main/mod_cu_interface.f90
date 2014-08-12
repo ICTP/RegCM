@@ -21,8 +21,9 @@
 ! Link atmospheric model and cumulus schemes
 !
 module mod_cu_interface
-  use mod_realkinds
   use mod_intkinds
+  use mod_realkinds
+  use mod_dynparam
   use mod_runparams
   use mod_memutil
   use mod_regcm_types
@@ -117,7 +118,7 @@ module mod_cu_interface
       call allocate_mod_cu_em
     end if
     if ( any(icup == 5) ) then
-      call init_convect_tables
+      if ( iconv /= 4 ) call init_convect_tables
       call allocate_mod_cu_tiedtke
     end if
     if ( any(icup == 6) ) then
@@ -135,6 +136,7 @@ module mod_cu_interface
     call assignpnt(sfs%psb,m2c%psb)
     call assignpnt(atms%za,m2c%zas)
     call assignpnt(atms%zq,m2c%zfs)
+    call assignpnt(atms%dzq,m2c%dzq)
     call assignpnt(atms%pb3d,m2c%pas)
     call assignpnt(atms%tb3d,m2c%tas)
     call assignpnt(atms%ubx3d,m2c%uas)

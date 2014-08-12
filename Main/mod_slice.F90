@@ -18,28 +18,32 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_slice
-!
-! Fill 3D spaces for calculations
-!
+  !
+  ! Fill 3D spaces for calculations
+  !
+  use mod_intkinds
+  use mod_realkinds
+  use mod_dynparam
   use mod_constants
   use mod_runparams
   use mod_atm_interface
   use mod_che_interface
   use mod_pbl_interface
   use mod_rad_interface
-!
+
+  implicit none
+
   private
-!
+
   public :: mkslice
-!
+
   contains 
-!
+
   subroutine mkslice
     implicit none
-!
-    real(rk8) :: cell , pres , satvp
+    real(rk8) :: cell
     integer(ik4) :: i , j , k , n
-!
+
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -90,19 +94,26 @@ module mod_slice
       end do
     end do
 
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        atms%ps2d(j,i) = (sfs%psb(j,i)+ptop)*d_1000
+        atms%rhox2d(j,i) = atms%ps2d(j,i)/(rgas*atms%tb3d(j,i,kz))
+      end do
+    end do
+
     do k = 1 , kz+1
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atms%pf3d(j,i,k) = sigma(k)*sfs%psb(j,i)+ptop
+          atms%pf3d(j,i,k) = (sigma(k)*sfs%psb(j,i) + ptop)*d_1000
         end do
       end do
     end do
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atms%pb3d(j,i,k) = hsigma(k)*sfs%psb(j,i)+ptop
+          atms%pb3d(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
           atms%thx3d(j,i,k) = atms%tb3d(j,i,k) * &
-                  ((sfs%psb(j,i)+ptop)/atms%pb3d(j,i,k))**rovcp
+                  (atms%ps2d(j,i)/atms%pb3d(j,i,k))**rovcp
                    
         end do
       end do
@@ -116,7 +127,7 @@ module mod_slice
       do j = jci1 , jci2
         kloop: &
         do k = kz , 1 , -1
-          if ( atms%pb3d(j,i,k)*d_10 < ptrop(j,i)*d_r100 ) then
+          if ( atms%pb3d(j,i,k) < ptrop(j,i) ) then
             ktrop(j,i) = kz-k-1
             cycle jloop
           end if
@@ -140,7 +151,7 @@ module mod_slice
         end do
       end do
     end do
-!
+
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -150,29 +161,13 @@ module mod_slice
       end do
     end do
    
-!-----Calculate the relative humidity and air density
-
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        pres = (sfs%psb(j,i)+ptop)*d_1000
-        atms%rhox2d(j,i) = pres/(rgas*atms%tb3d(j,i,kz))
-      end do
-    end do
-
     atms%rhb3d(:,:,:) = d_zero
 
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          pres = atms%pb3d(j,i,k)*d_1000
-          atms%rhob3d(j,i,k) = pres/(rgas*atms%tb3d(j,i,k)) !air density
-          if ( atms%tb3d(j,i,k) > tzero ) then
-            satvp = svp1*d_1000*dexp(svp2*(atms%tb3d(j,i,k)-tzero) / &
-                                          (atms%tb3d(j,i,k)-svp3))
-          else
-            satvp = svp4*d_1000*dexp(svp5-svp6/atms%tb3d(j,i,k))
-          end if
-          atms%qsb3d(j,i,k) = (ep2*satvp)/(pres-satvp)
+          atms%rhob3d(j,i,k) = atms%pb3d(j,i,k)/(rgas*atms%tb3d(j,i,k))
+          atms%qsb3d(j,i,k) = pfqsat(atms%tb3d(j,i,k),atms%pb3d(j,i,k))
           if ( atms%qsb3d(j,i,k) > d_zero ) then
             atms%rhb3d(j,i,k) = atms%qxb3d(j,i,k,iqv)/atms%qsb3d(j,i,k)
           end if

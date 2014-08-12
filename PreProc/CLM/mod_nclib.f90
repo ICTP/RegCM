@@ -378,7 +378,7 @@ module mod_nclib
       if ( arr(i,j,k)<vmisdat ) then 
         dat(ij) = shfill  ! the lowest integer value, should match min
       else 
-        dat(ij) = nint((arr(i,j,k)-offset)*rfac)
+        dat(ij) = int(nint((arr(i,j,k)-offset)*rfac),ik2)
       end if
     end do
   end do

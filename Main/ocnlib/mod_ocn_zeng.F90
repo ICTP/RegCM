@@ -106,8 +106,7 @@ module mod_ocn_zeng
       th = (t995+tzero)*(d_1000/psurf)**rovcp
       ! potential T
       dth = t995 + 0.0098D0*zh - tsurf
-      qs = qsat(tsurf,psurf)*0.98D0
-      qs = ep2*qs/(psurf-0.378D0*qs)
+      qs = pfqsat(tgrd(i),sfps(i))*0.98D0
       ! in kg/kg
       dqh = q995 - qs
       thv = th*(d_one+0.61D0*q995)
@@ -346,15 +345,6 @@ module mod_ocn_zeng
         psi = d_two*dlog((d_one+chik*chik)*d_half)
       end if
     end function psi
-    !
-    ! Tetens' formula for saturation vp Buck(1981) JAM 20, 1527-1532
-    ! p in mb, t in C, and qsat in mb
-    !
-    pure real(rk8) function qsat(t,p)
-      implicit none
-      real(rk8) , intent (in) :: p , t
-      qsat = (1.0007D0+3.46D-6*p)*6.1121D0*dexp(17.502D0*t/(240.97D0+t))
-    end function qsat
     !
     ! our formulation for zo,zot,zoq
     !

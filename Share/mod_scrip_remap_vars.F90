@@ -58,6 +58,8 @@ module mod_scrip_remap_vars
   use mod_constants
   use mod_scrip_grids
 
+  implicit none
+
   private
 
   integer(ik4) , public , parameter ::  &

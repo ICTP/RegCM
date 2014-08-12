@@ -24,8 +24,10 @@ module mod_rad_tracer
   use mod_constants
   use mod_dynparam
 
+  implicit none
+
   private
-!
+
   public :: trcmix , trcpth , trcab , trcabn , trcems , trcplk
   public :: cfc110 , cfc120 , ch40 , co2mmr , n2o0
 !

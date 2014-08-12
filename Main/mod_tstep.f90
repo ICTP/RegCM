@@ -21,12 +21,17 @@ module mod_tstep
 !
 ! Calculate smaller timesteps for model startup
 !
+  use mod_intkinds
+  use mod_realkinds
+  use mod_constants
   use mod_runparams
-!
+
+  implicit none
+
   private
-!
+
   public :: tstep
-!
+
   contains
 !
 ! This subroutine makes a refined start to the model, i.e. the

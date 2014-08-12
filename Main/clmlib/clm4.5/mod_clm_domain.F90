@@ -4,6 +4,8 @@ module mod_clm_domain
   !
   use mod_intkinds
   use mod_realkinds
+  use mod_dynparam
+  use mod_stdio
   use mod_mppparam
   use mod_runparams
   use mod_mpmessage

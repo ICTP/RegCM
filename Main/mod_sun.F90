@@ -31,11 +31,11 @@ module mod_sun
    use mod_mppparam
    use mod_service
    use mod_sunorbit
-!
+
    implicit none
 
    private
-!
+
    real(rk8) , dimension(3,1610:2008) :: tsi
    real(rk8) , parameter :: tsifac = 0.9965D0
    integer(ik4) :: ii , jj

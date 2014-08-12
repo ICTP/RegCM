@@ -18,13 +18,15 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_vertint
-!
+
   use mod_intkinds
   use mod_realkinds
   use mod_stdio
   use mod_constants
   use mod_message
-!
+
+  implicit none
+
   private
 
   real(rk8) , parameter :: rgas2 = rgas/d_two
@@ -32,7 +34,7 @@ module mod_vertint
   real(rk8) , parameter :: rglrog = rgas*lrate*regrav
   real(rk8) , parameter :: b1 = -egrav/lrate
   real(rk8) , parameter :: psccm = 100.0D0
-!
+
   interface intlin_o
     module procedure intlin_o_double
     module procedure intlin_o_single

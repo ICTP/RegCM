@@ -60,6 +60,8 @@ module mod_scrip_grids
   use mod_stdio
   use mod_message
 
+  implicit none
+
   private
 
   logical :: init_sizes = .false.

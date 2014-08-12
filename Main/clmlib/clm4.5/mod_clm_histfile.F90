@@ -2163,20 +2163,12 @@ module mod_clm_histfile
             call fatal(__FILE__,__LINE__,'clm now stopping.')
           end if
           hist1do(beg1d_out:end1d_out) = histo(beg1d_out:end1d_out,1)
-        end if
-
-        ! Write history output.  Always output land and ocean runoff on xy grid.
-
-        if ( num2d == 1 ) then
           call clm_writevar(nfid(t),varname,hist1do,gcomm,nt)
-        else
-          call clm_writevar(nfid(t),varname,histo,gcomm,nt)
-        end if
-
-        ! Deallocate dynamic memory
-
-        if ( num2d == 1 ) then
           deallocate(hist1do)
+        else
+          ! Write history output.
+          ! Always output land and ocean runoff on xy grid.
+          call clm_writevar(nfid(t),varname,histo,gcomm,nt)
         end if
       end if
     end do

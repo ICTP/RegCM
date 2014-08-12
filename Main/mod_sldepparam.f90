@@ -26,6 +26,8 @@ module mod_sldepparam
   use mod_dynparam
   use mod_memutil
 
+  implicit none
+
   public
 
   ! GTD the departe point location (for the interpolation) for dot points

@@ -59,6 +59,8 @@ module mod_scrip_remap_distwgt
   use mod_scrip_grids
   use mod_scrip_remap_vars
 
+  implicit none
+
   private
 
   ! num nearest neighbors to interpolate from

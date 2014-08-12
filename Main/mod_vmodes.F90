@@ -19,6 +19,9 @@
  
 module mod_vmodes
 
+  use mod_intkinds
+  use mod_realkinds
+  use mod_dynparam
   use mod_runparams
   use mod_memutil
   use mod_mpmessage
@@ -26,6 +29,8 @@ module mod_vmodes
   use mod_service
   use linpack
   use eispack
+
+  implicit none
 
   private
 

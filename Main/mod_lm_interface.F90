@@ -269,8 +269,7 @@ module mod_lm_interface
     ntcpl  = idnint(cpldt/dtsec)
     if ( idcsst   == 1 ) ldcsst   = .true.
     if ( lakemod  == 1 ) llake    = .true.
-    ! Always leave desert seasonal albedo disabled
-    !if ( idesseas == 1 ) ldesseas = .true.
+    if ( idesseas == 1 ) ldesseas = .true.
     if ( iseaice  == 1 ) lseaice  = .true.
     if ( iocncpl  == 1 ) lcoup    = .true.
     call assignpnt(mddom%xlat,lm%xlat)
@@ -732,7 +731,7 @@ module mod_lm_interface
     integer(ik4) :: k
 #endif
     integer(ik4) :: i , j , n
-    real(rk8) :: qas , tas , ps , mx2s , lh , satvp , qs
+    real(rk8) :: qas , tas , ps , qs
 
     ! Fill accumulators
 
@@ -877,11 +876,8 @@ module mod_lm_interface
               do n = 1 , nnsg
                 qas = lms%q2m(n,j,i)
                 tas = lms%t2m(n,j,i)
-                ps = lms%sfcp(n,j,i)/100.0
-                mx2s = d_one/(d_one-qas)
-                lh = lh0-lh1*(tas-tzero)
-                satvp = lsvp1*dexp(lsvp2*lh*(d_one/tzero-d_one/tas))
-                qs = ep2*satvp/(ps-satvp)
+                ps = lms%sfcp(n,j,i)
+                qs = pfqsat(tas,ps)
                 srf_rh2m_out(j,i,1) = srf_rh2m_out(j,i,1)+(qas/qs)*d_100
               end do
             end do

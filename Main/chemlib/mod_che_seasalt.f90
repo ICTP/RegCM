@@ -25,6 +25,8 @@ module mod_che_seasalt
   use mod_constants
   use mod_che_common
 
+  implicit none
+
   private
 
   ! sea-salt density

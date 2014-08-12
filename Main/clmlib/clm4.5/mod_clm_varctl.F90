@@ -2,7 +2,9 @@ module mod_clm_varctl
   !
   ! Module containing run control variables
   !
+  use mod_intkinds
   use mod_realkinds
+  use mod_dynparam
   use mod_mpmessage
   use mod_stdio
   use mod_clm_varpar , only : maxpatch_pft , numpft

@@ -19,6 +19,9 @@
 !
 module mod_ncout
 !
+  use mod_intkinds
+  use mod_realkinds
+  use mod_memutil
   use mod_dynparam
   use mod_runparams
   use mod_mppparam
@@ -26,14 +29,15 @@ module mod_ncout
   use mod_ncstream
   use mod_outvars
   use mod_service
-
   use netcdf
-!
+
+  implicit none
+
   public :: init_output_streams
   public :: dispose_output_streams
   public :: write_record_output_stream
   public :: writevar_output_stream
-!
+
   type varspan
     integer(ik4) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
   end type varspan

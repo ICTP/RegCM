@@ -33,7 +33,9 @@ module mod_che_dust
   use mod_che_mppio
 
   implicit none
-! 
+ 
+  private
+
   real(rk8) , dimension(nbin,2) ::  dustbsiz
   ! Fix the actual dust aerosol bin size: diameter in microm
   data  dustbsiz / 0.01D0,  1.00D0,  2.50D0,  5.00D0,  1.00D0, &
@@ -91,12 +93,17 @@ module mod_che_dust
   ! soil variable, srel 2 d corresponds to the soil aggregate size distribution
   ! in each texture type.
 
-  real(rk8) , pointer, dimension(:,:,:) :: clay2row2 , sand2row2 , silt2row2
-  real(rk8) , pointer,  dimension(:,:) :: clayrow2 , sandrow2
-  real(rk8) , pointer,  dimension(:,:,:,:) :: srel2d
+  real(rk8) , pointer , dimension(:,:,:) :: clay2row2 , sand2row2 , silt2row2
+  real(rk8) , pointer , dimension(:,:) :: clayrow2 , sandrow2
+  real(rk8) , pointer , dimension(:,:,:,:) :: srel2d
   real(rk8) , pointer , dimension(:,:,:) :: dustsotex
   ! Name of variable changed ! SC. 06.10.2010
   real(rk8) , dimension(nsoil) :: dp_array
+
+  public :: sandrow2
+  public :: dustbed , dustbsiz
+  public :: rhodust
+  public :: soldust
   !
   ! Initialise sub bin aerosol distribution 
   !
@@ -108,8 +115,10 @@ module mod_che_dust
 !
   integer(ik4) :: ilg
 
+  public :: allocate_mod_che_dust , inidust , sfflux
+
   contains 
-!
+
     subroutine allocate_mod_che_dust
       implicit none
       if ( ichem == 1 ) then

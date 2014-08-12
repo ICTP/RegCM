@@ -35,15 +35,45 @@ module mod_che_interface
   use mod_che_start
   use mod_che_bionit
 !
-  public
-#ifdef CLM45
-  public :: voc_em
-  real(rk8), pointer, dimension(:,:) :: voc_em
-#endif
+  implicit none
 
-!
+  private
+
+#ifdef CLM45
+  real(rk8) , pointer , public , dimension(:,:) :: voc_em
+#endif
+  public :: start_chem
+  public :: init_chem
+  public :: cumtran
+  public :: tractend2
+  public :: nudge_chi
+  public :: chem_config
+  public :: setup_che_bdycon
+  public :: close_chbc
+
+  public :: allocate_mod_che_common
+  public :: allocate_mod_che_mppio
+  public :: allocate_mod_che_dust
+  public :: allocate_mod_che_bdyco
+  public :: allocate_mod_che_bionit
+
+  public :: totsp
+  public :: chi , chib3d , chic
+  public :: chia , chia_io
+  public :: chib , chib_io
+  public :: chiten , chiten0
+  public :: convcldfra , cadvhdiag , cadvvdiag , cbdydiag , cconvdiag
+  public :: cdifhdiag , ctbldiag
+  public :: chem_bdyin , chem_bdyval
+  public :: chemall , chemall_io
+  public :: remcvc , remcvc_io
+  public :: remdrd , remdrd_io
+  public :: remlsc , remlsc_io
+  public :: sdelq_io , sdelt_io , sfracb2d_io , sfracs2d_io , ssw2da_io
+  public :: sfracv2d_io , svegfrac2d_io , taucldsp_io
+
   contains 
-!
+
 #if (defined CLM45)
   subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,       &
                        rembc,remrat,coszrs,svegfrac2d,sxlai2d,     &

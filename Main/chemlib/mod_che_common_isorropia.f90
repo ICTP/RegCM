@@ -34,6 +34,8 @@ module mod_che_common_isorropia
   use mod_realkinds
   use mod_intkinds
 
+  implicit none
+
   !=======================================================================
   ! *** ISORROPIA CODE II
   ! *** INCLUDE FILE 'ISRPIA.INC'

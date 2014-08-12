@@ -47,8 +47,10 @@ module mod_bats_param
   !     21 = Urban
   !     22 = Sub-Urban
   !
+  implicit none
+
   public
-!
+
   real(rk8) , dimension(8) :: solour
   real(rk8) , dimension(22) :: albvgl , albvgs , crough , deprv ,     &
                              deptv , depuv , displa , fc , freza ,  &

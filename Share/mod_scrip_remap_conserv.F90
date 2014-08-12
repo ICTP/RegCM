@@ -69,6 +69,8 @@ module mod_scrip_remap_conserv
   use mod_scrip_grids
   use mod_scrip_remap_vars
 
+  implicit none
+
   private
 
   ! num cells in restricted search arrays

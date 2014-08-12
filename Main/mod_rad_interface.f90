@@ -19,7 +19,10 @@
 
 module mod_rad_interface
 !
+  use mod_intkinds
   use mod_realkinds
+  use mod_dynparam
+  use mod_memutil
   use mod_runparams
   use mod_regcm_types
   use mod_rad_common

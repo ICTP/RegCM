@@ -29,7 +29,7 @@ module mod_cu_kuo
   use mod_mppparam
   use mod_cu_common
   use mod_service
-  use mod_runparams , only : iqv
+  use mod_runparams , only : iqv , dtsec
   use mod_regcm_types
 
   implicit none
@@ -78,8 +78,8 @@ module mod_cu_kuo
     type(mod_2_cum) , intent(in) :: m2c
     type(cum_2_mod) , intent(inout) :: c2m
     real(rk8) :: apcnt , arh , c301 , dalr , deqt , dlnp , dplr , dsc ,   &
-            e1 , eddyf , emax , eqt , eqtm , es , plcl , pmax , prainx ,  &
-            psg , pux , q , qmax , qs , rh , rsht , rswt , sca , siglcl , &
+            eddyf , emax , eqt , eqtm , plcl , pmax , prainx ,            &
+            psg , q , qmax , qs , rh , rsht , rswt , sca , siglcl ,       &
             suma , sumb , t1 , tdmax , tlcl , tmax , tmean , ttconv ,     &
             ttp , ttsum , xsav , zlcl
     integer(ik4) :: i , j , k , kbase , kbaseb , kk , ktop
@@ -129,9 +129,9 @@ module mod_cu_kuo
           do k = k700 , kz
             ttp = m2c%tas(j,i,k) + pert
             q = m2c%qxas(j,i,k,iqv) + perq
-            psg = m2c%pas(j,i,k)
-            t1 = ttp*(d_100/psg)**rovcp
-            eqt = t1*dexp(wlhvocp*q/ttp)
+            psg = m2c%pas(j,i,k)*d_r100 ! in mb
+            t1 = ttp*(d_1000/psg)**rovcp
+            eqt = t1*exp(wlhvocp*q/ttp)
             if ( eqt > eqtm ) then
               eqtm = eqt
               tmax = ttp
@@ -143,14 +143,14 @@ module mod_cu_kuo
           ! 2) compute lcl, get the sigma and p of lcl
           !
           emax = qmax*pmax/(ep2+qmax)
-          tdmax = 5418.12D0/(19.84659D0-dlog(emax/0.611D0))
+          tdmax = 5418.12D0/(19.84659D0-log(emax/0.611D0))
           dalr = egrav*rcpd
           dplr = (egrav*tdmax*tdmax)/(ep2*wlhv*tmax)
           zlcl = (tmax-tdmax)/(dalr-dplr)
           tlcl = tmax - dalr*zlcl
           tmean = (tmax+tlcl)*d_half
           dlnp = (egrav*zlcl)/(rgas*tmean)
-          plcl = pmax*dexp(-dlnp)
+          plcl = pmax*exp(-dlnp)
           siglcl = (plcl-ptop)/m2c%psb(j,i)
           !
           ! 3) compute seqt (saturation equivalent potential temperature)
@@ -165,12 +165,11 @@ module mod_cu_kuo
           ! kbase is the layer where lcl is located.
           !
           do k = 1 , kbase
+            qs = pfqsat(m2c%tas(j,i,k),m2c%pas(j,i,k))
             ttp = m2c%tas(j,i,k)
-            psg = m2c%pas(j,i,k)
-            es = 0.611D0*dexp(19.84659D0-5418.12D0/ttp)
-            qs = ep2*es/(psg-es)
-            t1 = ttp*(d_100/psg)**rovcp
-            seqt(k) = t1*dexp(wlhvocp*qs/ttp)
+            psg = m2c%pas(j,i,k)*d_r100
+            t1 = ttp*(d_1000/psg)**rovcp
+            seqt(k) = t1*exp(wlh(t1)*rcpd*qs/ttp)
           end do
           !
           ! 4) when seqt = eqt + dt, cloud top is reached.
@@ -209,7 +208,7 @@ module mod_cu_kuo
               ! kbase/ktop, then flag it, and set kbase/ktop to standard
               !
               if ( (kbase < 5) .or. (ktop > kbase-3) ) then
-                print 99001 , i , j , kbase , ktop
+                write(stderr,99001) i , j , kbase , ktop
                 if ( kbase < 5 ) kbase = 5
                 if ( ktop > kbase-3 ) ktop = kbase - 3
               end if
@@ -228,11 +227,9 @@ module mod_cu_kuo
                 qwght(k) = d_zero
               end do
               do k = ktop , kz
-                pux = m2c%pas(j,i,k)
-                e1 = 0.611D0*dexp(19.84659D0-5418.12D0/m2c%tas(j,i,k))
-                qs = ep2*e1/(pux-e1)
+                qs = pfqsat(m2c%tas(j,i,k),m2c%pas(j,i,k))
                 rh = m2c%qxas(j,i,k,iqv)/qs
-                rh = dmin1(rh,d_one)
+                rh = max(min(rh,d_one),d_zero)
                 xsav = (d_one-rh)*qs
                 qwght(k) = xsav
                 sumb = sumb + qs*dsigma(k)
@@ -305,8 +302,8 @@ module mod_cu_kuo
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          rsheat(j,i,k) = dmax1(rsheat(j,i,k),d_zero)
-          rswat(j,i,k) = dmax1(rswat(j,i,k),d_zero)
+          rsheat(j,i,k) = max(rsheat(j,i,k),d_zero)
+          rswat(j,i,k) = max(rswat(j,i,k),d_zero)
           rsht = rsheat(j,i,k)/tauht
           rswt = rswat(j,i,k)/tauht
           c2m%tten(j,i,k) = c2m%tten(j,i,k) + rsht

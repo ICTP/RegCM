@@ -18,7 +18,9 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_realkinds
-!
+
+  implicit none
+
   public
 
   ! Kind helpers

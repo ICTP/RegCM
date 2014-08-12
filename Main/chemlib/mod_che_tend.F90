@@ -42,7 +42,10 @@
   use mod_che_isorropia
   use mod_che_pollen 
   use mod_che_bionit
- private
+
+  implicit none
+
+  private
 
   public :: tractend2
 
@@ -61,7 +64,7 @@
       integer(ik8) , intent(in) :: ktau
 !
       real(rk8) :: facb , facs , fact , facv , pres10 , qsat10 , &
-                  satvp , shu10 , u10 , v10
+                  shu10 , u10 , v10
       real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: rho , ttb,  wl , prec , &
                                                       convprec
       real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: hgt
@@ -158,7 +161,7 @@
           else
             ivegcov(i,j) = cveg2d(j,i)
           end if 
-          psurf(i,j) = cpsb(j,i) * 1.0D3 + ptop
+          psurf(i,j) = (cpsb(j,i) + ptop) * d_1000
           ! 
           ! method based on bats diagnostic in routine interf.
           !
@@ -190,13 +193,8 @@
           ! back to mixing ratio
           shu10 = shu10/(1-shu10)
           ! saturation mixing ratio at 10m
-          if ( temp10(i,j) > tzero ) then
-            satvp = svp1*1.0D3*dexp(svp2*(temp10(i,j)-tzero)/(temp10(i,j)-svp3))
-          else
-            satvp = svp4*1.0D3*dexp(svp5-svp6/temp10(i,j))
-          end if
           pres10 = psurf(i,j) - 98.0D0
-          qsat10 = ep2*satvp/(pres10-satvp)
+          qsat10 = pfqsat(temp10(i,j),pres10)
           ! relative humidity at 10m
           rh10(i,j) = d_zero
           if ( qsat10 > d_zero ) rh10(i,j) = shu10/qsat10

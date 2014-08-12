@@ -4,6 +4,7 @@ module mod_clm_regcm
   use mod_realkinds
   use mod_dynparam
   use mod_runparams
+  use mod_memutil
   use mod_mppparam
   use mod_mpmessage
   use mod_constants
@@ -182,7 +183,7 @@ module mod_clm_regcm
     implicit none
     type(lm_exchange) , intent(inout) :: lm
     integer(ik4) :: begg , endg , i
-    real(rk8) :: hl , satvp
+    real(rk8) :: hl , satq , satp
 
     rprec = (lm%cprate+lm%ncprate) * rtsrf
 
@@ -212,7 +213,6 @@ module mod_clm_regcm
     clm_a2l%forc_solai(:,2) = clm_a2l%notused
 
     ! Compute or alias
-    clm_a2l%forc_pbot = clm_a2l%forc_pbot * d_1000 ! In Pa
     clm_a2l%forc_wind = sqrt(clm_a2l%forc_u**2 + clm_a2l%forc_v**2)
     clm_a2l%forc_q = clm_a2l%forc_q/(1.0D0+clm_a2l%forc_q)
     clm_a2l%forc_hgt_u = clm_a2l%forc_hgt
@@ -220,11 +220,10 @@ module mod_clm_regcm
     clm_a2l%forc_hgt_q = clm_a2l%forc_hgt
     clm_a2l%forc_psrf = (clm_a2l%forc_psrf+ptop)*d_1000
     do i = begg , endg
-      hl = lh0 - lh1*(clm_a2l%forc_t(i)-tzero)
-      satvp = lsvp1*dexp(lsvp2*hl*(d_one/tzero-d_one/clm_a2l%forc_t(i)))
-      clm_a2l%forc_rh(i) = max(clm_a2l%forc_q(i) / &
-              (ep2*satvp/(clm_a2l%forc_pbot(i)*0.01D0-satvp)),d_zero)
-      clm_a2l%forc_vp(i) = satvp * clm_a2l%forc_rh(i)
+      satp = pfesat(clm_a2l%forc_t(i))
+      satq = pfqsat(clm_a2l%forc_t(i),clm_a2l%forc_pbot(i),satp)
+      clm_a2l%forc_rh(i) = max(clm_a2l%forc_q(i) / satq, d_zero)
+      clm_a2l%forc_vp(i) = satp * clm_a2l%forc_rh(i)
       clm_a2l%forc_rh(i) = clm_a2l%forc_rh(i) * 100.0D0
       ! Set upper limit of air temperature for snowfall at 275.65K.
       ! This cut-off was selected based on Fig. 1, Plate 3-1, of Snow

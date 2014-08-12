@@ -21,10 +21,16 @@ module mod_diffusion
 !
 ! Diffusion calculations
 !
+  use mod_intkinds
+  use mod_realkinds
+  use mod_dynparam
   use mod_atm_interface
   use mod_runparams
   use mod_mppparam
   use mod_service 
+
+  implicit none
+
   private
 
   interface diffu_x

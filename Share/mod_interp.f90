@@ -27,6 +27,8 @@ module mod_interp
   use mod_memutil
   use mod_constants
 
+  implicit none
+
   private
 
   public :: bilinx , bilinx2 , cressmcr , cressmdt , distwgtcr , distwgtdt

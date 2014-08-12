@@ -22,6 +22,8 @@ module mod_rad_common
   use mod_intkinds
   use mod_realkinds
 
+  implicit none
+
   public
 
   ! absnxt  - Nearest layer absorptivities

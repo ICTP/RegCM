@@ -76,6 +76,8 @@
 !
 module linpack
 
+  implicit none
+
 contains
 
 subroutine i_swap ( i, j )

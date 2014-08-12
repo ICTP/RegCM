@@ -57,6 +57,8 @@ module mod_scrip_remap
   use mod_intkinds
   use mod_constants
 
+  implicit none
+
   private
 
   public :: remap

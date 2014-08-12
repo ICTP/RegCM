@@ -29,16 +29,16 @@ module mod_ocn_coare
   implicit none
 
   private
-  
-  public :: coare3_drv 
+
+  public :: coare3_drv
 
   contains
     !
     !-----------------------------------------------------------------------
-    ! This routine computes the bulk parameterization of surface 
+    ! This routine computes the bulk parameterization of surface
     ! atmospheric variables, wind stress and surface net heat fluxes
     !
-    ! Adapted from COARE version 3.0 code for snow and ice which is 
+    ! Adapted from COARE version 3.0 code for snow and ice which is
     ! written originally by C. Fairall (04/2005)
     !-----------------------------------------------------------------------
     !
@@ -74,9 +74,9 @@ module mod_ocn_coare
         tgrd(i) = tgb(i)
         tgbrd(i) = tgb(i)
 
-        !     
+        !
         !-----------------------------------------
-        ! Input bulk parameterization fields 
+        ! Input bulk parameterization fields
         !-----------------------------------------
         !
         iflag = .false.
@@ -93,14 +93,14 @@ module mod_ocn_coare
         zt = z995
         zq = z995
 
-        ! height (m) of atmospheric boundary layer 
-        zi = hpbl(i) 
-        !     
+        ! height (m) of atmospheric boundary layer
+        zi = hpbl(i)
+        !
         !---------------------------------------
-        ! Air constants 
+        ! Air constants
         !---------------------------------------
         !
-        ! specific heat of moist air 
+        ! specific heat of moist air
         cpv = cpa*(1.0d0+0.84d0*q995)
 
         ! latent heat of vaporization (J/kg) at sea surface
@@ -120,24 +120,24 @@ module mod_ocn_coare
         else
           Al = 2.4253d-05
         end if
-        !     
+        !
         !-----------------------------------------------------
-        ! Compute net longwave and shortwave radiation (W/m2) 
+        ! Compute net longwave and shortwave radiation (W/m2)
         !-----------------------------------------------------
         !
         Rns = rswf(i)
         Rnl = emsw*(sigm*(ts+tzero)**4-dwrlwf(i))
-        !     
+        !
         !--------------------------------
-        ! Begin bulk loop - first guess 
+        ! Begin bulk loop - first guess
         !--------------------------------
         !
         ! saturation specific humidity from Buck's (1981)
         if (iflag) then
-          if ( ts <= 0.0d0 ) then         
+          if ( ts <= 0.0d0 ) then
             qs = qice(ts,ps)*1.d-3
           else
-            qs = qwat(ts,ps)*1.d-3 
+            qs = qwat(ts,ps)*1.d-3
           end if
         else
           qs = qsee(ts,ps)*1.d-3
@@ -157,11 +157,11 @@ module mod_ocn_coare
         if (iflag) then
           dter = d_zero
         else
-          dter = 0.3d0 
+          dter = 0.3d0
         end if
-        !     
+        !
         !-----------------------
-        ! Neutral coefficients 
+        ! Neutral coefficients
         !-----------------------
         !
         zogs=1e-4
@@ -170,7 +170,7 @@ module mod_ocn_coare
         end if
 
         u10 = ut*dlog(10.0d0/zogs)/dlog(zu/zogs)
-        cdhg = vonkar/dlog(10.0d0/zogs)          
+        cdhg = vonkar/dlog(10.0d0/zogs)
         usr = cdhg*u10
 
         ! initial guess for the friction velocity
@@ -180,7 +180,7 @@ module mod_ocn_coare
           zo10 = 0.011d0*usr*usr/egrav+0.11d0*visa/usr
         end if
 
-        ! initial guess for drag coefficents 
+        ! initial guess for drag coefficents
         cd10 = (vonkar/dlog(10.0d0/zo10))**2
         if ( iflag ) then
           ch10 = 0.0015d0
@@ -192,12 +192,12 @@ module mod_ocn_coare
         cd = (vonkar/dlog(zu/zo10))**2
         !
         !----------------------------
-        ! Compute Richardson number           
+        ! Compute Richardson number
         !----------------------------
         !
         ct = vonkar/dlog(zt/zot10)
         cc = vonkar*ct/cd
-        ribcu = -zu/zi/0.004d0/beta**3 
+        ribcu = -zu/zi/0.004d0/beta**3
         ribu = -egrav*zu/ta*((dt-dter)+0.61d0*ta*dq)/ut**2
 
         niter = 3
@@ -210,7 +210,7 @@ module mod_ocn_coare
         if (zetu > 50.0) niter = 1
         !
         !---------------------------------------------------
-        ! First guesses for Monon-Obukhov similarity scales           
+        ! First guesses for Monon-Obukhov similarity scales
         !---------------------------------------------------
         !
         usr = ut*vonkar/(dlog(zu/zo10)-psiuo(zu/l10))
@@ -219,7 +219,7 @@ module mod_ocn_coare
         tkt = 0.001d0 ! cool skin thickness
         !
         !------------------------------------------
-        ! Main loop - limited with three iteration           
+        ! Main loop - limited with three iteration
         !------------------------------------------
         !
         do k = 1, niter
@@ -228,11 +228,11 @@ module mod_ocn_coare
             zo = zogs
           else
             zo = 0.011d0*usr*usr/egrav+0.11d0*visa/usr
-          end if 
+          end if
 
           rr = zo*usr/visa
 
-          ! for snow/ice, Andreas, 1987 
+          ! for snow/ice, Andreas, 1987
           rt = d_one
           rq = d_one
           if ( iflag ) then
@@ -248,28 +248,28 @@ module mod_ocn_coare
             end if
             ! for ocean, Lui et al., 1979
           else
-            if ( rr <= 0.11d0 ) then              
+            if ( rr <= 0.11d0 ) then
               rt = 0.177d0
               rq = 0.292d0
-            else if ( rr <= 0.8d0 ) then 
+            else if ( rr <= 0.8d0 ) then
               rt = 1.376d0*rr**0.929d0
               rq = 1.808d0*rr**0.826d0
-            else if ( rr <= 3.0d0 ) then 
+            else if ( rr <= 3.0d0 ) then
               rt = 1.026d0*rr**(-0.599d0)
               rq = 1.393d0*rr**(-0.528d0)
-            else if ( rr <= 10.0d0 ) then 
+            else if ( rr <= 10.0d0 ) then
               rt = 1.625d0*rr**(-1.018d0)
               rq = 1.956d0*rr**(-0.870d0)
-            else if ( rr <= 30.0d0 ) then 
+            else if ( rr <= 30.0d0 ) then
               rt = 4.661d0*rr**(-1.475d0)
               rq = 4.994d0*rr**(-1.297d0)
-            else if (rr <= 100.0d0) then 
+            else if (rr <= 100.0d0) then
               rt = 34.904d0*rr**(-2.067d0)
               rq = 30.709d0*rr**(-1.845d0)
-            else if ( rr <= 300.0d0 ) then 
+            else if ( rr <= 300.0d0 ) then
               rt = 1667.19d0*rr**(-2.907d0)
               rq = 1448.68d0*rr**(-2.682d0)
-            else if ( rr <= 1000.0d0 ) then 
+            else if ( rr <= 1000.0d0 ) then
               rt = 5.88d5*rr**(-3.935d0)
               rq = 2.98d5*rr**(-3.616d0)
             end if
@@ -284,8 +284,8 @@ module mod_ocn_coare
           usr = ut*vonkar/(dlog(zu/zo)-psiuo(zu/L))
           tsr = -(dt-dter)*vonkar*fdg/(dlog(zt/zot)-psit(zt/L))
           qsr = -(dq-wetc*dter)*vonkar*fdg/(dlog(zq/zoq)-psit(zq/L))
-          
-          ! compute gustiness in wind speed     
+
+          ! compute gustiness in wind speed
           Bf = -egrav/ta*usr*(tsr+0.61d0*ta*qsr)
           if ( Bf > 0.0d0 ) then
             ug = beta*(Bf*zi)**0.333d0
@@ -319,7 +319,7 @@ module mod_ocn_coare
           if ( iflag ) then
             dter = d_zero
           end if
-         
+
           dqer = wetc*dter
         end do
         !
@@ -332,31 +332,31 @@ module mod_ocn_coare
         end if
         !
         !-------------------------------------
-        ! Compute atmosphere/ocean/ice fluxes 
+        ! Compute atmosphere/ocean/ice fluxes
         !-------------------------------------
         !
         ! heat fluxes
-        sent(i) = hsb 
+        sent(i) = hsb
         evpr(i) = hlb/Le
 
         ! drag coefficents
         facttq = dlog(z995*d_half)/dlog(z995/zo)
-        drag(i) = usr**2*rhox(i)/uv995      
+        drag(i) = usr**2*rhox(i)/uv995
 
-        ! wind stress components 
+        ! wind stress components
         tau = rhoa*usr*usr*du/ut
         taux(i) = tau*(usw(i)/uv995)
         tauy(i) = tau*(vsw(i)/uv995)
 
         ! wind components
         u10m(i) = usw(i)*uv10/uv995
-        v10m(i) = vsw(i)*uv10/uv995 
+        v10m(i) = vsw(i)*uv10/uv995
 
         ! surface atmospheric variables
         t2m(i) = t995+tzero-dt*facttq
         q2m(i) = q995-dq*facttq
       end do
-    end subroutine coare3_drv 
+    end subroutine coare3_drv
 
     pure real(rk8) function qice(ts, ps)
       implicit none
@@ -370,7 +370,7 @@ module mod_ocn_coare
       implicit none
       real(rk8) , intent (in) :: ts, ps
       real(rk8) :: es
-      es = 6.112d0*dexp(17.502d0*ts/(ts+241.0d0))*(1.0007d0+3.46d-6*ps) 
+      es = 6.112d0*dexp(17.502d0*ts/(ts+241.0d0))*(1.0007d0+3.46d-6*ps)
       qwat = es*622.0d0/(ps-0.378d0*es)
     end function qwat
 
@@ -384,7 +384,7 @@ module mod_ocn_coare
 
     pure real(rk8) function psiuo(zet)
       implicit none
-      real(rk8) , intent (in) :: zet 
+      real(rk8) , intent (in) :: zet
       real(rk8) :: x, psik, f, psic, c
       if (zet < 0.0d0) then
         x = (1.0d0-15.0d0*zet)**0.25d0
@@ -393,8 +393,8 @@ module mod_ocn_coare
         x = (1.0d0-10.15d0*zet)**0.3333d0
         psic = 1.5d0*dlog((1.0d0+x+x*x)/3.0d0)-dsqrt(3.0d0)*        &
                datan((1.0d0+2.0d0*x)/dsqrt(3.0d0))+4.0d0*           &
-               datan(1.0d0)/dsqrt(3.0d0) 
-        f = zet*zet/(1.0d0+zet*zet) 
+               datan(1.0d0)/dsqrt(3.0d0)
+        f = zet*zet/(1.0d0+zet*zet)
         psiuo = (1.0d0-f)*psik+f*psic
       else
         c = dmin1(50.0d0,0.35d0*zet)

@@ -27,6 +27,8 @@ module mod_nchelper
   use mod_dynparam
   use mod_message
 
+  implicit none
+
   private
 
   public :: cdumlogical

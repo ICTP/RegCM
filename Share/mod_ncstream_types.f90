@@ -24,6 +24,8 @@ module mod_ncstream_types
   use mod_constants
   use mod_date
 
+  implicit none
+
   public
 
   integer(ik4) , parameter :: ncmaxdims = 16

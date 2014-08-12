@@ -209,9 +209,9 @@ module mod_ocn_bats
       eg = c1es*dexp(lfta*(tgrd(i)-tzero)/(tgrd(i)-lftb))
       qgrd = ep2*eg/(psurf-0.378D0*eg)
       tgbrd(i) = -d_two + tzero
-      ! cice = specific heat of sea-ice per unit volume
+      ! shice = specific heat of sea-ice per unit volume
       sficemm = sfice(i)*d_1000
-      rsd1 = cice*sficemm*d_r1000
+      rsd1 = shice*sficemm*d_r1000
       if ( sncv(i) > d_zero ) then
         ! include snow heat capacity
         rsd1 = rsd1 + csnw*sncv(i)*d_r1000

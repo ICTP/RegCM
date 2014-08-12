@@ -42,6 +42,8 @@ module mod_rrtmg_driver
   use mod_runparams
   use mod_regcm_types
 
+  implicit none
+
   private
 !
   public :: allocate_mod_rad_rrtmg , rrtmg_driver

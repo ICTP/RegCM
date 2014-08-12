@@ -25,6 +25,8 @@ module mod_dynparam
   use mod_constants
   use mod_date
 
+  implicit none
+
   public
 !
 ! PARAMETER definitions

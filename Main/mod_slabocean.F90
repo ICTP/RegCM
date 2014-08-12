@@ -18,8 +18,9 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
  
 module mod_slabocean
-!
-!
+  use mod_intkinds
+  use mod_realkinds
+  use mod_dynparam
   use mod_runparams
   use mod_memutil
   use mod_regcm_types
@@ -27,12 +28,14 @@ module mod_slabocean
   use mod_mppparam
   use mod_constants
   use mod_outvars
-!
+
+  implicit none
+
   private
-!
+
   real(rk8) :: mixed_layer_salin = d_100/d_three
   real(rk8) :: mlcp , dtocean
-!
+
   ! the actual prognotic sst pointing on tg2
   real(rk8) , pointer , dimension(:,:) :: sstemp
   real(ik8) , pointer , dimension(:,:) :: ohfx , oqfx , ofsw , oflw
