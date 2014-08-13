@@ -85,7 +85,7 @@ module mod_ocn_coare
         ts = tgrd(i)-tzero
         uv995 = dsqrt(usw(i)**2+vsw(i)**2)
         t995 = sts(i)-tzero
-        q995 = qv(i)/(d_one+qv(i))
+        q995 = qv(i)
         z995 = ht(i)
         ta = t995+tzero
         ! height of the atmospheric data

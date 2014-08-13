@@ -55,7 +55,7 @@ module mod_ocn_bats
 
       ! Compute delt and delq
       psurf = sfps(i)
-      qs = qv(i)/(d_one+qv(i))
+      qs = qv(i)
       if ( tgrd(i) <= tzero ) then
         lfta = c3ies
         lftb = c4ies
@@ -64,8 +64,7 @@ module mod_ocn_bats
         lftb = c4les
       end if
       rhs = psurf/(rgas*sts(i))
-      eg = c1es*dexp(lfta*(tgrd(i)-tzero)/(tgrd(i)-lftb))
-      qgrd = ep2*eg/(psurf-0.378D0*eg)
+      qgrd = pfqsat(tgrd(i),sfps(i))
       delt = sts(i) - tgrd(i)
       delq = (qs - qgrd)
       ! Comnpute drag coefficient over ocean
