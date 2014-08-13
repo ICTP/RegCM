@@ -159,7 +159,7 @@ module mod_ocn_lake
       ! surface water a little warmer to ease spinup nudging in the
       ! correct direction the profile.
       if ( abs(lat(i)) > 25.0 ) then
-        tlak(lp,1) = min(max(tgrd(i)-tzero,4.0D0),20.0D0)
+        tlak(lp,1) = min(max(tgrd(i)-tzero+d_one,4.0D0),20.0D0)
         tlak(lp,2) = min(max(tlak(lp,1)-d_half,4.0D0),20.0D0)
         if ( idep(lp) >= 3 ) then
           do k = 3 , idep(lp)
@@ -170,7 +170,7 @@ module mod_ocn_lake
         ! This needs tuning for tropical lakes.
         ! Lake Malawi bottom temperature can be as high as 22.75 Celsius
         ! with surface as hot as 25.5 degrees.
-        tlak(lp,1) = min(max(tgrd(i)-tzero,18.0D0),25.0D0)
+        tlak(lp,1) = min(max(tgrd(i)-tzero+d_one,18.0D0),25.0D0)
         tlak(lp,2) = min(max(tlak(lp,1)-d_half,18.0D0),25.0D0)
         if ( idep(lp) >= 3 ) then
           do k = 3 , idep(lp)
