@@ -94,7 +94,7 @@ module mod_ocn_lake
 
   subroutine initlake
     implicit none
-    integer(ik4) :: i , lp
+    integer(ik4) :: i , k , lp
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'initlake'
     integer(ik4) , save :: idindx = 0
@@ -158,54 +158,30 @@ module mod_ocn_lake
       ! Put winter surface water a bit colder and summer or tropical
       ! surface water a little warmer to ease spinup nudging in the
       ! correct direction the profile.
-      if ( lat(i) > 30.0 ) then
-        if ( xmonth < 4 .or. xmonth > 9 ) then
-          tlak(lp,1) = 3.0
-          tlak(lp,2) = 3.5
-        else
-          tlak(lp,1) = 6.0
-          tlak(lp,2) = 5.0
-        end if
-        if ( idep(lp) > 2 ) then
-          tlak(lp,3:idep(lp)) = 4.0D0
-        end if
-      else if ( lat(i) < 30.0 .and. lat(i) > 15.0 ) then
-        if ( xmonth > 4 .and. xmonth < 9 ) then
-          tlak(lp,1) = 3.0
-          tlak(lp,2) = 3.5
-        else
-          tlak(lp,1) = 6.0
-          tlak(lp,2) = 5.0
-        end if
-        if ( idep(lp) > 2 ) then
-          tlak(lp,3:idep(lp)) = 4.0D0
+      if ( abs(lat(i)) > 25.0 ) then
+        tlak(lp,1) = min(max(tgrd(i)-tzero,4.0D0),20.0D0)
+        tlak(lp,2) = min(max(tlak(lp,1)-d_half,4.0D0),20.0D0)
+        if ( idep(lp) > 3 ) then
+          do k = 3 , idep(lp)
+            tlak(lp,k) = min(max(tlak(lp,k-1)-d_half,4.0D0),20.0D0)
+          end do
         end if
       else
         ! This needs tuning for tropical lakes.
         ! Lake Malawi bottom temperature can be as high as 22.75 Celsius
         ! with surface as hot as 25.5 degrees.
-        tlak(lp,1) = 22.0
-        tlak(lp,2) = 21.5
-        if ( idep(lp) > 2 ) then
-          if ( idep(lp) < 21 ) then
-            tlak(lp,3:idep(lp)) = 21.5
-          else
-            tlak(lp,3:20) = 21.5
-            if ( idep(lp) < 40 ) then
-              tlak(lp,21:idep(lp)) = 20.0
-            else
-              tlak(lp,21:40) = 20.0
-              if ( idep(lp) > 40 ) then
-                tlak(lp,41:idep(lp)) = 18.0D0
-              end if
-            end if
-          end if
+        tlak(lp,1) = min(max(tgrd(i)-tzero,18.0D0),25.0D0)
+        tlak(lp,2) = min(max(tlak(lp,1)-d_half,18.0D0),25.0D0)
+        if ( idep(lp) > 3 ) then
+          do k = 3 , idep(lp)
+            tlak(lp,k) = min(max(tlak(lp,k-1)-d_half,18.0D0),25.0D0)
+          end do
         end if
       end if
       ! Ice over lake from the start
       if ( mask(i) == 4 ) then
-        tlak(lp,1) = -8.0D0
-        tlak(lp,2) = -2.0D0
+        tlak(lp,1) = -2.0D0
+        tlak(lp,2) = -1.5D0
         hi(lp) = 0.20D0 ! Set this to 20 cm of ice
         sfice(i) = hi(lp)
         sncv(i) = 1.0D0 ! Put 1 cm of snow on top.
@@ -222,7 +198,7 @@ module mod_ocn_lake
   subroutine lakedrv
     implicit none
     real(rk8) :: flwx , fswx , hsen , prec , qs , tgl , tl , vl , zl
-    real(rk8) :: xl , toth , lfta , lftb , rhs
+    real(rk8) :: xl , toth , rhs
     real(rk8) :: age , age1 , age2 , arg , arg2 , cdr , cdrmin , cdrn
     real(rk8) :: cdrx , clead , dela , dela0 , delq , dels , delt
     real(rk8) :: fact , factuv , qgrd , qgrnd , qice , rhosw , rhosw3
@@ -266,17 +242,9 @@ module mod_ocn_lake
       tlak(lp,:) = tp
       tgb(i)   = tgl
       tgrd(i)  = tgl
-      tgbrd(i) = -d_two + tzero
-
-      if ( tgrd(i) <= tzero ) then
-        lfta = c3ies
-        lftb = c4ies
-      else
-        lfta = c3les
-        lftb = c4les
-      end if
+      tgbrd(i) = tgl
       rhs = psurf/(rgas*sts(i))
-      qgrd = pfqsat(psurf,tl)
+      qgrd = pfqsat(psurf,tgl)
       delt = sts(i) - tgrd(i)
       delq = (qs - qgrd)
 
@@ -303,7 +271,7 @@ module mod_ocn_lake
         sent(i) = -drag(i)*cpd*delt
       else
         mask(i) = 4 
-
+        tgbrd(i) = tzero - d_two
         ! Reduce sensible heat flux for ice presence
         toth = sfice(i) + sncv(i)
         if ( toth > href ) then
