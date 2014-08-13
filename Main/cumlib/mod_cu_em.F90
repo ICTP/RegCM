@@ -476,7 +476,7 @@ module mod_cu_em
             qnew = (alv*q(j)-(tnew-t(j))*(cpd*(d_one-q(j))+cl*q(j)))/alvnew
 !rcm        precip = precip+24.*3600.*1.0e5*(ph(j)-ph(j+1))*  ! mm/d
             precip = precip + 1.0D5*(ph(j)-ph(j+1)) * &
-                     (q(j)-qnew)*regrav*rdt*dr_1000  ! mm/s
+                     (q(j)-qnew)*regrav*rdt*d_r1000  ! mm/s
             t(j) = tnew
             q(j) = qnew
             qs(j) = qnew
