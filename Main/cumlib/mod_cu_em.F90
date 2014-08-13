@@ -24,21 +24,21 @@ module mod_cu_em
   use mod_intkinds
   use mod_realkinds
   use mod_memutil
-  use mod_runparams , only : dtsec
+  use mod_runparams , only : rdt , dt , dtsec
   use mod_cu_common
   use mod_service
   use mod_regcm_types
-!
+
   implicit none
 
   private
-!
+
   public :: allocate_mod_cu_em , cupemandrv
-!
+
   real(rk8) , parameter :: cl = 2500.0D0
   real(rk8) , parameter :: cpvmcl = cl - cpv
   real(rk8) , parameter :: mincbmf = 1.0D-30
-!
+
   real(rk8) , public , pointer , dimension(:,:) :: cbmf2d
   real(rk8) , public , pointer , dimension(:,:) :: elcrit2d
   real(rk8) , public , pointer , dimension(:,:) :: epmax2d
@@ -62,7 +62,7 @@ module mod_cu_em
     type(mod_2_cum) , intent(in) :: m2c
     type(cum_2_mod) , intent(inout) :: c2m
     integer(ik4) :: ntra
-    real(rk8) :: cbmf , pret , qprime , tprime , wd , prainx , elcrit , epmax
+    real(rk8) :: cbmf , pret , qprime , tprime , wd , elcrit , epmax
     real(rk8) , dimension(kz) :: fq , ft , fu , fv , pcup , qcup ,      &
                                 qscup , tcup , ucup , vcup
     real(rk8) , dimension(kz,ntr) :: ftra , tra
@@ -163,9 +163,8 @@ module mod_cu_em
           end if
    
           ! Precipitation
-          prainx = pret*dtsec
-          if ( prainx > dlowval ) then
-            c2m%rainc(j,i)  = c2m%rainc(j,i)  + prainx  ! mm
+          if ( pret > dlowval ) then
+            c2m%rainc(j,i)  = c2m%rainc(j,i)  + pret * dtsec  ! mm
             c2m%pcratec(j,i) = c2m%pcratec(j,i) + pret
             total_precip_points = total_precip_points + 1
           end if
@@ -477,7 +476,7 @@ module mod_cu_em
             qnew = (alv*q(j)-(tnew-t(j))*(cpd*(d_one-q(j))+cl*q(j)))/alvnew
 !rcm        precip = precip+24.*3600.*1.0e5*(ph(j)-ph(j+1))*  ! mm/d
             precip = precip + 1.0D5*(ph(j)-ph(j+1)) * &
-                     (q(j)-qnew)*regrav/(dtsec*d_1000)  ! mm/s
+                     (q(j)-qnew)*regrav*rdt*dr_1000  ! mm/s
             t(j) = tnew
             q(j) = qnew
             qs(j) = qnew
@@ -713,7 +712,7 @@ module mod_cu_em
 !
     cbmfold = cbmf
     delt0 = 300.0D0
-    damps = damp*dtsec/delt0
+    damps = damp*dt/delt0
     cbmf = (d_one-damps)*cbmf + 0.1D0*alphae*dtma
     cbmf = dmax1(cbmf,d_zero)
 !

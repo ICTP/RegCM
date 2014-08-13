@@ -25,7 +25,7 @@ module mod_cu_bm
   use mod_memutil
   use mod_service
   use mod_cu_common
-  use mod_runparams , only : iqv , dtsec
+  use mod_runparams , only : iqv , dt , dtsec
   use mod_regcm_types
 
 !*****************************************************************
@@ -218,7 +218,7 @@ module mod_cu_bm
                dpmix , dqref , drheat , dsp , dsp0k , dspbk , dsptk , &
                dst , dstq , dtdeta , dthem , ee , efi , fefi ,        &
                fptk , hcorr , otsum , pdiff , pdiffk , pflag , pk0 ,  &
-               pkb , pkl , pkt , potsum , pppk , prainx , preck ,     &
+               pkb , pkl , pkt , potsum , pppk , pratec , preck ,     &
                psfck , psum , pthrs , ptpk , qkl , qnew , qotsum ,    &
                qrfkl , qrftp , qs , qsum , rdp0t , rdpsum , rhh ,     &
                rhl , rotsum , rtbar , smix , stabdl , sumde , sumdp , &
@@ -238,7 +238,7 @@ module mod_cu_bm
 !
     lqm = 0
     lshu = 0
-    prainx = d_zero
+    pratec = d_zero
     !
     ! c2m%kcumtop = top level of cumulus clouds
     ! c2m%kcumbot = bottom level of cumulus clouds
@@ -248,8 +248,8 @@ module mod_cu_bm
     if ( ichem == 1 ) c2m%convpr(:,:,:) = d_zero
     total_precip_points = 0
     iconss = 0
-    tauk = dtsec/trel
-    cthrs = (0.006350D0/secpd)*dtsec/cprlg
+    tauk = dt/trel
+    cthrs = (0.006350D0/secpd)*dt/cprlg
 
     !
     ! xsm is surface mask: =1 water; =0 land
@@ -295,10 +295,10 @@ module mod_cu_bm
     do i = ici1 , ici2
       do j = jci1 , jci2
         do k = 1 , kz
-          t(j,i,k) = m2c%tas(j,i,k) + (c2m%tten(j,i,k))/m2c%psb(j,i)*dtsec
+          t(j,i,k) = m2c%tas(j,i,k) + (c2m%tten(j,i,k))/m2c%psb(j,i)*dt
           if ( t(j,i,k) > tzero .and. ml(j,i) == kzp1 ) ml(j,i) = k
           q(j,i,k) = m2c%qxas(j,i,k,iqv) + &
-                  (c2m%qxten(j,i,k,iqv))/m2c%psb(j,i)*dtsec
+                  (c2m%qxten(j,i,k,iqv))/m2c%psb(j,i)*dt
           pppk = m2c%pas(j,i,k)
           ape(j,i,k) = (pppk/h10e5)**dm2859
         end do
@@ -708,15 +708,15 @@ module mod_cu_bm
       !
       ! update precipitation, temperature & moisture
       !
-      prainx = d_half*((m2c%psb(j,i)*d_1000*preck*cprlg)*d_100)
-      if ( prainx > dlowval ) then
-        c2m%rainc(j,i) = c2m%rainc(j,i) + prainx
+      pratec = d_half*((m2c%psb(j,i)*d_1000*preck*cprlg)*d_100)/dt
+      if ( pratec > dlowval ) then
+        c2m%rainc(j,i) = c2m%rainc(j,i) + pratec * dtsec
         ! precipitation rate for surface (mm/s)
-        c2m%pcratec(j,i) = c2m%pcratec(j,i) + prainx / dtsec
+        c2m%pcratec(j,i) = c2m%pcratec(j,i) + pratec
       end if
       do l = ltpk , lb
-        tmod(j,i,l) = dift(l)*fefi/dtsec
-        qqmod(j,i,l) = difq(l)*fefi/dtsec
+        tmod(j,i,l) = dift(l)*fefi/dt
+        qqmod(j,i,l) = difq(l)*fefi/dt
       end do
     end do
     !
@@ -1020,7 +1020,7 @@ module mod_cu_bm
           c2m%kcumbot(j,i) = kbaseb
           if ( ichem == 1 ) then
             do k = ltpk , kz
-              c2m%convpr(j,i,k) = prainx/dtsec
+              c2m%convpr(j,i,k) = pratec
             end do
           end if
         end if

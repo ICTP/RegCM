@@ -29,7 +29,7 @@ module mod_cu_kuo
   use mod_mppparam
   use mod_cu_common
   use mod_service
-  use mod_runparams , only : iqv , dtsec
+  use mod_runparams , only : iqv , dt , dtsec
   use mod_regcm_types
 
   implicit none
@@ -78,7 +78,7 @@ module mod_cu_kuo
     type(mod_2_cum) , intent(in) :: m2c
     type(cum_2_mod) , intent(inout) :: c2m
     real(rk8) :: apcnt , arh , c301 , dalr , deqt , dlnp , dplr , dsc ,   &
-            eddyf , emax , eqt , eqtm , plcl , pmax , prainx ,            &
+            eddyf , emax , eqt , eqtm , plcl , pmax , pratec ,            &
             psg , q , qmax , qs , rh , rsht , rswt , sca , siglcl ,       &
             suma , sumb , t1 , tdmax , tlcl , tmax , tmean , ttconv ,     &
             ttp , ttsum , xsav , zlcl
@@ -249,27 +249,27 @@ module mod_cu_kuo
               end do
               do k = 1 , kz
                 ttconv = wlhvocp*(d_one-c301)*twght(k,kbase,ktop)*sca
-                rsheat(j,i,k) = rsheat(j,i,k) + ttconv*dtsec
+                rsheat(j,i,k) = rsheat(j,i,k) + ttconv*dt
                 apcnt = (d_one-c301)*sca/4.3D-3
                 eddyf = apcnt*vqflx(k,kbase,ktop)
                 c2m%qxten(j,i,k,iqv) = eddyf
-                rswat(j,i,k) = rswat(j,i,k) + c301*qwght(k)*sca*dtsec
+                rswat(j,i,k) = rswat(j,i,k) + c301*qwght(k)*sca*dt
               end do
               kbaseb = min0(kbase,kzm2)
               c2m%kcumtop(j,i) = ktop
               c2m%kcumbot(j,i) = kbaseb
               ! the unit for rainfall is mm.
-              prainx = (d_one-c301)*sca*dtsec*d_1000*regrav
-              if ( prainx > dlowval ) then
-                c2m%rainc(j,i) = c2m%rainc(j,i) + prainx
+              pratec = (d_one-c301)*sca*d_1000*regrav
+              if ( pratec > dlowval ) then
+                c2m%rainc(j,i) = c2m%rainc(j,i) + pratec*dtsec
                 ! instantaneous precipitation rate for use in surface (mm/s)
-                c2m%pcratec(j,i) = c2m%pcratec(j,i) + prainx / dtsec
+                c2m%pcratec(j,i) = c2m%pcratec(j,i) + pratec
               end if
               if ( ichem == 1 ) then
                 ! build for chemistry 3d table of constant precipitation rate
                 ! from the surface to the top of the convection
                 do k = 1 , ktop-1
-                  c2m%convpr(j,i,kz-k+1) = prainx/dtsec
+                  c2m%convpr(j,i,kz-k+1) = pratec
                 end do
               end if
               cycle
@@ -308,8 +308,8 @@ module mod_cu_kuo
           rswt = rswat(j,i,k)/tauht
           c2m%tten(j,i,k) = c2m%tten(j,i,k) + rsht
           c2m%qxten(j,i,k,iqv) = c2m%qxten(j,i,k,iqv) + rswt
-          rsheat(j,i,k) = rsheat(j,i,k)*(d_one-dtsec/tauht)
-          rswat(j,i,k) = rswat(j,i,k)*(d_one-dtsec/tauht)
+          rsheat(j,i,k) = rsheat(j,i,k)*(d_one-dt/tauht)
+          rswat(j,i,k) = rswat(j,i,k)*(d_one-dt/tauht)
         end do
       end do
     end do
@@ -366,7 +366,7 @@ module mod_cu_kuo
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          rsheat(j,i,k) = rsheat(j,i,k)+akht1*dtsec/dxsq * &
+          rsheat(j,i,k) = rsheat(j,i,k)+akht1*dt/dxsq * &
                    (wrkkuo1(j,i-1,k)+wrkkuo1(j,i+1,k) + &
                     wrkkuo1(j-1,i,k)+wrkkuo1(j+1,i,k)-d_four*wrkkuo1(j,i,k))
         end do
@@ -375,7 +375,7 @@ module mod_cu_kuo
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          rswat(j,i,k) = rswat(j,i,k)+akht1*dtsec/dxsq * &
+          rswat(j,i,k) = rswat(j,i,k)+akht1*dt/dxsq * &
                 (wrkkuo2(j,i-1,k)+wrkkuo2(j,i+1,k) + &
                  wrkkuo2(j-1,i,k)+wrkkuo2(j+1,i,k)-d_four*wrkkuo2(j,i,k))
         end do

@@ -431,8 +431,6 @@ module mod_cu_tiedtke_38r2
       end do
     end do
     do jk = klev , 3 , -1
-!DIR$ IVDEP
-!OCL NOVREC
       do jl = kidia , kfdia
         if ( pvervel(jl,jk)<zwmax(jl) ) then
           zwmax(jl) = pvervel(jl,jk)
@@ -703,8 +701,6 @@ module mod_cu_tiedtke_38r2
         pmfude_rate(jl,jk) = d_zero
       end do
     end do
-!DIR$ IVDEP
-!OCL NOVREC
     do jl = kidia , kfdia
       if ( ktype(jl) == 3 ) ldcum(jl) = .false.
     end do
@@ -852,8 +848,6 @@ module mod_cu_tiedtke_38r2
         if ( jlm > 0 ) then
           call cuadjtq(kidia,kfdia,klon,klev,ik,zph,ptu,pqu,llflag,icall)
         end if
-!DIR$   IVDEP
-!OCL    NOVREC
         do jll = 1 , jlm
           jl = jlx(jll)
           if ( pqu(jl,jk) /= zqold(jl) ) then
@@ -1107,8 +1101,6 @@ module mod_cu_tiedtke_38r2
     !   2.           CALCULATE CONDENSATION AND ADJUST T AND Q ACCORDINGLY
     !   -----------------------------------------------------
     if ( kcall == 1 ) then
-!DIR$ IVDEP
-!OCL  NOVREC
       do jl = kidia , kfdia
         if ( ldflag(jl) ) then
           zqp = d_one/psp(jl)
@@ -1143,8 +1135,6 @@ module mod_cu_tiedtke_38r2
         end if
       end do
     else if ( kcall == 2 ) then
-!DIR$ IVDEP
-!OCL  NOVREC
       do jl = kidia , kfdia
         if ( ldflag(jl) ) then
           zqp = d_one/psp(jl)
@@ -1167,8 +1157,6 @@ module mod_cu_tiedtke_38r2
         end if
       end do
     else if ( kcall == 0 ) then
-!DIR$ IVDEP
-!OCL  NOVREC
       do jl = kidia , kfdia
         zqp = d_one/psp(jl)
         zqsat = foeewm(pt(jl,kk))*zqp
@@ -1187,8 +1175,6 @@ module mod_cu_tiedtke_38r2
         pq(jl,kk) = pq(jl,kk) - zcond1
       end do
     else if ( kcall == 4 ) then
-!DIR$ IVDEP
-!OCL  NOVREC
       do jl = kidia , kfdia
         if ( ldflag(jl) ) then
           zqp = d_one/psp(jl)
@@ -1209,8 +1195,6 @@ module mod_cu_tiedtke_38r2
         end if
       end do
     else if ( kcall == 5 ) then ! Same as 4 but with LDFLAG all true
-!DIR$ IVDEP
-!OCL  NOVREC
       if ( n_vmass <= 0 ) then ! Not using Vector MASS
         do jl = kidia , kfdia
           zqp = d_one/psp(jl)
@@ -1279,8 +1263,6 @@ module mod_cu_tiedtke_38r2
         end do
       end if
     else if ( kcall == 3 ) then
-!DIR$ IVDEP
-!OCL NOVREC
       if ( n_vmass <= 0 ) then ! Not using Vector MASS
         do jl = kidia , kfdia
           zqp = d_one/psp(jl)
@@ -1468,8 +1450,6 @@ module mod_cu_tiedtke_38r2
     ! linear fluxes below cloud
     if ( abs(rmfsoluv) < dlowval ) then
       do jk = ktopm2 , klev
-      !DIR$ IVDEP
-      !OCL NOVREC
         do jl = kidia , kfdia
           if ( ldcum(jl) .and. jk > kcbot(jl) ) then
             ikb = kcbot(jl)
@@ -1820,8 +1800,6 @@ module mod_cu_tiedtke_38r2
     !----------------------------------------------------------------------
     !*    1.           CALCULATE ENTRAINMENT AND DETRAINMENT RATES
     ! -------------------------------------------
-!DIR$ IVDEP
-!OCL NOVREC
     do jl = kidia , kfdia
       if ( .not.ldcum(jl) .and. klab(jl,kk+1) == 0 ) then
         if ( lmfmid .and. pgeo(jl,kk) >  5000.0D0 .and. &
@@ -2017,8 +1995,6 @@ module mod_cu_tiedtke_38r2
         !     AND CHECK FOR NEGATIVE BUOYANCY.
         !     THEN SET VALUES FOR DOWNDRAFT AT LFS.
         !     ----------------------------------------
-!DIR$ IVDEP
-!OCL  NOVREC
         do jl = kidia , kfdia
           if ( llo2(jl) ) then
             zttest = d_half*(ptu(jl,jk)+ztenwb(jl,jk))
@@ -2417,8 +2393,6 @@ module mod_cu_tiedtke_38r2
           if ( zqc(jl,jk) /= zqold(jl) ) ilab(jl,jk) = 2
         end if
       end do
-!DIR$ IVDEP
-!OCL NOVREC
       do jl = kidia , kfdia
         if ( llbl(jl) ) then
           zbuo = ztc(jl,jk)*(d_one+retv*zqc(jl,jk)) - &
@@ -2667,8 +2641,6 @@ module mod_cu_tiedtke_38r2
       !*  2.0          RECOMPUTE CONVECTIVE FLUXES IF IMPLICIT
       do jk = ktopm2 , klev
         ik = jk - 1
-!DIR$ IVDEP
-!OCL NOVREC
         do jl = kidia , kfdia
           if ( ldcum(jl) .and. jk >= kctop(jl)-1 ) then
             ! compute interpolating coefficients ZGS and ZGQ
@@ -2925,8 +2897,6 @@ module mod_cu_tiedtke_38r2
     ! TO GET IDENTICAL RESULTS FOR DIFFERENT NPROMA FORCE KTOPM2 TO 2
     ktopm2 = 2
     do jk = ktopm2 , klev
-!DIR$ IVDEP
-!OCL NOVREC
       ikb = min(jk+1,klev)
       do jl = kidia , kfdia
         pmflxr(jl,jk) = d_zero
@@ -2972,8 +2942,6 @@ module mod_cu_tiedtke_38r2
     !*    1.5          SCALE FLUXES BELOW CLOUD BASE
     ! LINEAR DCREASE
     ! -----------------------------
-!DIR$ IVDEP
-!OCL NOVREC
     do jl = kidia , kfdia
       if ( ldcum(jl) ) then
         ikb = kcbot(jl)
@@ -2987,8 +2955,6 @@ module mod_cu_tiedtke_38r2
       end if
     end do
     do jk = ktopm2 , klev
-!DIR$ IVDEP
-!OCL NOVREC
       do jl = kidia , kfdia
         if ( ldcum(jl) .and. jk > kcbot(jl)+1 ) then
           ikb = kcbot(jl) + 1
@@ -3443,8 +3409,6 @@ module mod_cu_tiedtke_38r2
         ik = jk
         icall = 1
         call cuadjtq(kidia,kfdia,klon,klev,ik,zph,ztu,zqu,llgo_on,icall)
-!DIR$ IVDEP
-!OCL NOVREC
         do jl = kidia , kfdia
           if ( llgo_on(jl) ) then
             ! add condensation to water
@@ -4286,8 +4250,6 @@ module mod_cu_tiedtke_38r2
     !*                 (MAX.POSSIBLE CLOUD HEIGHT
     !*                 FOR NON-ENTRAINING PLUME, FOLLOWING A.-S.,1974)
     ! -------------------------------------------------
-!DIR$ IVDEP
-!OCL NOVREC
     !*                 SPECIFY INITIAL CLOUD TYPE
     !*
     do jl = kidia , kfdia
@@ -4315,8 +4277,6 @@ module mod_cu_tiedtke_38r2
     !*                 a balance of moist static energy in the
     !*                 sub-cloud layer (ignores present of downdraughts)
     ! ------------------------------------------
-!DIR$ IVDEP
-!OCL NOVREC
     if ( lmfwstar ) then
       do jl = kidia , kfdia
         if ( ldcum(jl) ) then
@@ -4385,8 +4345,6 @@ module mod_cu_tiedtke_38r2
     !*         (C) CHECK CLOUD DEPTH AND CHANGE ENTRAINMENT RATE ACCORDINGLY
     ! CALCULATE PRECIPITATION RATE (FOR DOWNDRAFT CALCULATION)
     ! -----------------------------------------------------
-!DIR$ IVDEP
-!OCL NOVREC
     do jl = kidia , kfdia
       if ( ldcum(jl) ) then
         ikb = kcbot(jl)
@@ -4482,8 +4440,6 @@ module mod_cu_tiedtke_38r2
       end if
     end do
     ! SHALLOW CONVECTION AND MID_LEVEL
-!DIR$ IVDEP
-!OCL NOVREC
     do jl = kidia , kfdia
       if ( ldcum(jl) .and. (ktype(jl) == 2 .or. ktype(jl) == 3) ) then
         ikb = kcbot(jl)

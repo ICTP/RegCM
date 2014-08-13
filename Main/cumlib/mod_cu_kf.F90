@@ -26,7 +26,7 @@ module mod_cu_kf
   use mod_regcm_types
   use mod_mpmessage
   use mod_cu_common
-  use mod_runparams , only : dx , dxsq , ipptls , dtsec
+  use mod_runparams , only : dx , dxsq , ipptls , dt , dtsec
   use mod_runparams , only : iqv , iqr , iqi , iqs , iqc
   use mod_service
 
@@ -942,8 +942,8 @@ module mod_cu_kf
         tadvec = timec
         timec = max(1800.0D0,timec)
         timec = min(3600.0D0,timec)
-        nic = nint(timec/dtsec)
-        timec = dble(nic)*dtsec
+        nic = nint(timec/dt)
+        timec = dble(nic)*dt
         !
         ! compute wind shear and precipitation efficiency.
         !
@@ -1748,7 +1748,7 @@ module mod_cu_kf
         ! if the advective time period (tadvec) is less than specified minimum
         ! timec, allow feedback to occur only during tadvec
         !
-        if ( tadvec < timec ) nic = nint(tadvec/dtsec)
+        if ( tadvec < timec ) nic = nint(tadvec/dt)
         do k = 1 , kx
           !
           ! if hydrometeors are not allowed, they must be evaporated or
@@ -1810,7 +1810,7 @@ module mod_cu_kf
         ! raincv is in the unit of mm
 
         pratec(np) = pptflx*(d_one-fbfrc)/dxsq
-        raincv(np) = dtsec*pratec(np)
+        raincv(np) = pratec(np)*dtsec
         rnc = raincv(np)*nic
         exit kfmainloop
       end do kfmainloop

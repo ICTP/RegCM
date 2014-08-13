@@ -25,7 +25,7 @@ module mod_cu_grell
   use mod_memutil
   use mod_cu_common
   use mod_mpmessage
-  use mod_runparams , only : iqv , dtsec
+  use mod_runparams , only : iqv , dt , dtsec
   use mod_regcm_types
  
   implicit none
@@ -44,7 +44,7 @@ module mod_cu_grell
               pwcd , pwcdo , pwco , qc , qco , qes , qeso , qrcd ,  &
               qrcdo , tv , tvo , xdby , xhe , xhes , xpwc , xpwcd , &
               xq , xqc , xqes , xqrcd , xt , xtv , xz , z , zo
-  real(rk8) , pointer , dimension(:,:) :: pret , psur , qcrit , ter11
+  real(rk8) , pointer , dimension(:,:) :: pratec , psur , qcrit , ter11
   integer(ik4) , pointer , dimension(:,:) :: kdet
   integer(ik4) , pointer , dimension(:,:) :: kmin , k22 , kb , kbcon , &
               kds , ktop
@@ -96,7 +96,7 @@ module mod_cu_grell
     call getmem3d(tn,jci1,jci2,ici1,ici2,1,kz,'cu_grell:tn')
     call getmem3d(vsp,jci1,jci2,ici1,ici2,1,kz,'cu_grell:vsp')
 !
-    call getmem2d(pret,jci1,jci2,ici1,ici2,'cu_grell:pret')
+    call getmem2d(pratec,jci1,jci2,ici1,ici2,'cu_grell:pratec')
     call getmem2d(psur,jci1,jci2,ici1,ici2,'cu_grell:psur')
     call getmem2d(qcrit,jci1,jci2,ici1,ici2,'cu_grell:qcrit')
     call getmem2d(ter11,jci1,jci2,ici1,ici2,'cu_grell:ter11')
@@ -210,7 +210,7 @@ module mod_cu_grell
     tn(:,:,:)   = d_zero
     vsp(:,:,:)  = d_zero
 !
-    pret(:,:)  = d_zero
+    pratec(:,:)  = d_zero
     psur(:,:)  = d_zero
     qcrit(:,:) = d_zero
     ter11(:,:) = d_zero
@@ -304,8 +304,8 @@ module mod_cu_grell
           t(j,i,k) = m2c%tas(j,i,kk)
           q(j,i,k) = m2c%qxas(j,i,kk,iqv)
           if ( q(j,i,k) < 1.0D-08 ) q(j,i,k) = 1.0D-08
-          tn(j,i,k) = t(j,i,k) + (c2m%tten(j,i,kk))/m2c%psb(j,i)*dtsec
-          qo(j,i,k) = q(j,i,k) + (c2m%qxten(j,i,kk,iqv))/m2c%psb(j,i)*dtsec
+          tn(j,i,k) = t(j,i,k) + (c2m%tten(j,i,kk))/m2c%psb(j,i)*dt
+          qo(j,i,k) = q(j,i,k) + (c2m%qxten(j,i,kk,iqv))/m2c%psb(j,i)*dt
           vsp(j,i,k) = dsqrt(us**2+vs**2)
           if ( qo(j,i,k) < 1.0D-08 ) qo(j,i,k) = 1.0D-08
           po(j,i,k) = p(j,i,k)
@@ -336,7 +336,7 @@ module mod_cu_grell
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
-          if ( pret(j,i) > d_zero ) then
+          if ( pratec(j,i) > d_zero ) then
             kk = kz - k + 1
             c2m%tten(j,i,kk) = m2c%psb(j,i)*outt(j,i,k) + c2m%tten(j,i,kk)
             c2m%qxten(j,i,kk,iqv) = m2c%psb(j,i)*outq(j,i,k) + &
@@ -351,11 +351,11 @@ module mod_cu_grell
     total_precip_points = 0
     do i = ici1 , ici2
       do j = jci1 , jci2
-        prainx = pret(j,i)*dtsec
+        prainx = pratec(j,i)*dtsec
         if ( prainx > dlowval ) then
           c2m%rainc(j,i) = c2m%rainc(j,i) + prainx
           ! precipitation rate for surface (kg m-2 s-1)
-          c2m%pcratec(j,i) = c2m%pcratec(j,i) + pret(j,i)
+          c2m%pcratec(j,i) = c2m%pcratec(j,i) + pratec(j,i)
           total_precip_points = total_precip_points + 1
         end if
       end do
@@ -384,7 +384,7 @@ module mod_cu_grell
     call time_begin(subroutine_name,idindx)
 #endif
 
-    mbdt = dtsec*5.0D-03
+    mbdt = dt*5.0D-03
     f  = -d_one
     xk = -d_one
 !
@@ -1069,7 +1069,7 @@ module mod_cu_grell
       do j = jci1 , jci2
         if ( xac(j,i) >= d_zero ) then
           if ( igcc == 1 ) then
-            f = (xao(j,i)-xac(j,i))/dtsec ! Arakawa-Schubert closure
+            f = (xao(j,i)-xac(j,i))/dt ! Arakawa-Schubert closure
           else if ( igcc == 2 ) then
             f = xac(j,i)/dtauc2d(j,i)  ! Fritsch-Chappell closure
           end if
@@ -1096,7 +1096,7 @@ module mod_cu_grell
               else
                 outt(j,i,k) = outt(j,i,k) + dellat(j,i,k)*xmb(j,i)
                 outq(j,i,k) = outq(j,i,k) + dellaq(j,i,k)*xmb(j,i)
-                pret(j,i) = pret(j,i) + &
+                pratec(j,i) = pratec(j,i) + &
                   (pwc(j,i,k)+edt(j,i)*pwcd(j,i,k))*xmb(j,i)
               end if
             end if
@@ -1110,7 +1110,7 @@ module mod_cu_grell
       do i = ici1 , ici2
         do j = jci1 , jci2
           do k = 1 , ktop(j,i)-1
-            c2m%convpr(j,i,kz-k+1) = pret(j,i)
+            c2m%convpr(j,i,kz-k+1) = pratec(j,i)
           end do
         end do
       end do
