@@ -243,7 +243,7 @@ module mod_ocn_lake
       tgrd(i)  = tgl
       tgbrd(i) = tgl
       rhs = sfps(i)/(rgas*sts(i))
-      qgrd = pfqsat(sfps(i),tgrd(i))
+      qgrd = pfqsat(tgrd(i),sfps(i))
       delt = sts(i) - tgrd(i)
       delq = (qs - qgrd)
 

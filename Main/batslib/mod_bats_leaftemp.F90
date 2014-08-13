@@ -270,8 +270,8 @@ module mod_bats_leaftemp
                    wtlq0(i))*qgrd(i)-wtaq0(i)*qs(i) -    &
                    wtlq0(i)*qsatl(i))+qbare)
         !  5.3  deriv of soil energy flux with respect to soil temp
-        qsatdg = qgrd(i)*rgr(i)*lfta(i)*(tzero-lftb(i)) * &
-                 (d_one/(tgrd(i)-lftb(i)))**2
+        qsatdg = pfqsdt(tgrd(i),sfcp(i))
+        qsatdg = (qsatdg/(d_one+qsatdg))*rgr(i)
         cgrnds(i) = rhs(i)*cpd*(wtg(i)*(wta0(i)+wtl0(i))+wtg2(i))
         cgrndl(i) = rhs(i)*qsatdg*((wta(i)+wtlq(i)) * &
                     wtg(i)*wtsqi(i)+wtg2(i))
@@ -510,13 +510,6 @@ module mod_bats_leaftemp
       qsat(i) = pfqsat(t(i),p(i),eg(i))
       qsat(i) = qsat(i)/(d_one+qsat(i))
     end do
-    where ( t <= tzero )
-      lfta = c3ies
-      lftb = c4ies
-    else where
-      lfta = c3les
-      lftb = c4les
-    endwhere
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
@@ -687,7 +680,7 @@ module mod_bats_leaftemp
 !
   subroutine deriv
     implicit none
-    real(rk8) :: dne , hfl , xkb , qsatld
+    real(rk8) :: hfl , xkb , qsatld
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'deriv'
@@ -697,8 +690,8 @@ module mod_bats_leaftemp
 !
     do i = ilndbeg , ilndend
       if ( sigf(i) > 0.001D0 ) then
-        dne = d_one/(tlef(i)-lftb(i))
-        qsatld = qsatl(i)*lfta(i)*(tzero-lftb(i))*dne**2
+        qsatld = pfqsdt(tlef(i),sfcp(i))
+        qsatld = qsatld/(d_one+qsatld)
         xkb = cdrd(i)/cdr(i)
         hfl = df(i)*(wtga(i)*tlef(i) - wtg0(i)*tgrd(i) - wta0(i)*sts(i))
         dcd(i) = cn1(i)*rppq(i)*wtgaq(i) * qsatld + (d_one-wtgaq(i)) *   &

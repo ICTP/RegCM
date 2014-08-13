@@ -89,8 +89,6 @@ module mod_bats_internal
   real(rk8) , pointer , dimension(:) :: htvp
   real(rk8) , pointer , dimension(:) :: lat
   real(rk8) , pointer , dimension(:) :: ldew
-  real(rk8) , pointer , dimension(:) :: lfta
-  real(rk8) , pointer , dimension(:) :: lftb
   real(rk8) , pointer , dimension(:) :: lftra
   real(rk8) , pointer , dimension(:) :: lftrs
   real(rk8) , pointer , dimension(:) :: lncl
@@ -266,8 +264,6 @@ module mod_bats_internal
     call getmem1d(htvp,1,nlandp,'bats_internal:htvp')
     call getmem1d(lat,1,nlandp,'bats_internal:lat')
     call getmem1d(ldew,1,nlandp,'bats_internal:ldew')
-    call getmem1d(lfta,1,nlandp,'bats_internal:lfta')
-    call getmem1d(lftb,1,nlandp,'bats_internal:lftb')
     call getmem1d(lftra,1,nlandp,'bats_internal:lftra')
     call getmem1d(lftrs,1,nlandp,'bats_internal:lftrs')
     call getmem1d(lncl,1,nlandp,'bats_internal:lncl')
