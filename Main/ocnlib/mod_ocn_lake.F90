@@ -222,7 +222,7 @@ module mod_ocn_lake
   subroutine lakedrv
     implicit none
     real(rk8) :: flwx , fswx , hsen , prec , qs , tgl , tl , vl , zl
-    real(rk8) :: xl , toth , lfta , lftb , rhs , eg
+    real(rk8) :: xl , toth , lfta , lftb , rhs
     real(rk8) :: age , age1 , age2 , arg , arg2 , cdr , cdrmin , cdrn
     real(rk8) :: cdrx , clead , dela , dela0 , delq , dels , delt
     real(rk8) :: fact , factuv , qgrd , qgrnd , qice , rhosw , rhosw3
@@ -250,7 +250,7 @@ module mod_ocn_lake
       sold = sncv(i)
       vl = dsqrt(usw(i)**2+vsw(i)**2)
       zl = ht(i)
-      qs = qv(i)/(d_one+qv(i))
+      qs = qv(i)
       fswx = rswf(i)
       flwx = -d_one*rlwf(i)
       prec = prcp(i)*dtlake
@@ -276,8 +276,7 @@ module mod_ocn_lake
         lftb = c4les
       end if
       rhs = psurf/(rgas*sts(i))
-      eg = c1es*dexp(lfta*(tgrd(i)-tzero)/(tgrd(i)-lftb))
-      qgrd = ep2*eg/(psurf-0.378D0*eg)
+      qgrd = pfqsat(psurf,tl)
       delt = sts(i) - tgrd(i)
       delq = (qs - qgrd)
 
@@ -680,8 +679,8 @@ module mod_ocn_lake
 
     khat = (ki*hs+ks*hi)/(ki*ks)
     theta = cpd*rho*cd*u2
-    psi = wlhv*rho*cd*u2*ep2/(ps*d_100)
-    evl = d_100*psi*(eomb(t0)-ea)/(wlhv*rho)
+    psi = wlhv*rho*cd*u2*ep2/ps
+    evl = psi*(eomb(t0)-ea)/(wlhv*rho)
     ! amount of radiation that penetrates through the ice (W/m2)
     qpen = fsw * 0.7D0 * &
        ((d_one-dexp(-lams1*hs))                   / (ks*lams1) + &
