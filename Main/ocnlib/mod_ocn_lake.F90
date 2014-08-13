@@ -161,7 +161,7 @@ module mod_ocn_lake
       if ( abs(lat(i)) > 25.0 ) then
         tlak(lp,1) = min(max(tgrd(i)-tzero,4.0D0),20.0D0)
         tlak(lp,2) = min(max(tlak(lp,1)-d_half,4.0D0),20.0D0)
-        if ( idep(lp) > 3 ) then
+        if ( idep(lp) >= 3 ) then
           do k = 3 , idep(lp)
             tlak(lp,k) = min(max(tlak(lp,k-1)-d_half,4.0D0),20.0D0)
           end do
@@ -172,7 +172,7 @@ module mod_ocn_lake
         ! with surface as hot as 25.5 degrees.
         tlak(lp,1) = min(max(tgrd(i)-tzero,18.0D0),25.0D0)
         tlak(lp,2) = min(max(tlak(lp,1)-d_half,18.0D0),25.0D0)
-        if ( idep(lp) > 3 ) then
+        if ( idep(lp) >= 3 ) then
           do k = 3 , idep(lp)
             tlak(lp,k) = min(max(tlak(lp,k-1)-d_half,18.0D0),25.0D0)
           end do
@@ -203,7 +203,7 @@ module mod_ocn_lake
     real(rk8) :: cdrx , clead , dela , dela0 , delq , dels , delt
     real(rk8) :: fact , factuv , qgrd , qgrnd , qice , rhosw , rhosw3
     real(rk8) :: rib , ribd , ribl , ribn , scrat , tage , tgrnd
-    real(rk8) :: sold , vspda , u1 , psurf
+    real(rk8) :: sold , vspda , u1
     real(rk8) , dimension(ndpmax) :: tp
 
     integer(ik4) :: lp , i
@@ -231,20 +231,19 @@ module mod_ocn_lake
       flwx = -d_one*rlwf(i)
       prec = prcp(i)*dtlake
       hsen = -d_one*sent(i)
-      psurf = sfps(i)
       xl = lat(i)
       tp = tlak(lp,:)
 
       call lake( dtlake,tl,vl,zl,qs,fswx,flwx,hsen,xl, &
                  tgl,prec,idep(lp),eta(lp),hi(lp),sfice(i), &
-                 sncv(i),evpr(i),tp,psurf )
+                 sncv(i),evpr(i),tp,sfps(i) )
 
       tlak(lp,:) = tp
       tgb(i)   = tgl
       tgrd(i)  = tgl
       tgbrd(i) = tgl
-      rhs = psurf/(rgas*sts(i))
-      qgrd = pfqsat(psurf,tgl)
+      rhs = sfps(i)/(rgas*sts(i))
+      qgrd = pfqsat(sfps(i),tgrd(i))
       delt = sts(i) - tgrd(i)
       delq = (qs - qgrd)
 
@@ -324,9 +323,9 @@ module mod_ocn_lake
           clead = cdrn/(d_one+11.5D0*rib)
         end if
         cdrx = (d_one-aarea)*cdr + aarea*clead
-        rhs = psurf/(rgas*sts(i))
+        rhs = sfps(i)/(rgas*sts(i))
         drag(i) = cdrx*vspda*rhs
-        qice = 3.3D-3 * stdp/psurf
+        qice = 3.3D-3 * stdp/sfps(i)
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx
         tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*(tzero-1.8D0))/cdrx
         fact = -drag(i)
