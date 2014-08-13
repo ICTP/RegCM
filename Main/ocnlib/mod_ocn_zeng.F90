@@ -96,24 +96,23 @@ module mod_ocn_zeng
       uv995 = dsqrt(usw(i)**2+vsw(i)**2)
       tsurf = tgrd(i) - tzero
       t995 = sts(i) - tzero
-      q995 = qv(i)/(d_one+qv(i))
+      q995 = qv(i)
       z995 = ht(i)
       zi = hpbl(i)
       psurf = sfps(i)*d_r100
       hu = z995
       zh = z995
       hq = z995
-      th = (t995+tzero)*(d_1000/psurf)**rovcp
+      th = sts(i)*(d_1000/psurf)**rovcp
       ! potential T
       dth = t995 + 0.0098D0*zh - tsurf
       qs = pfqsat(tgrd(i),sfps(i))*0.98D0
-      qs = qs/(d_one+qs)
       ! in kg/kg
       dqh = q995 - qs
       thv = th*(d_one+0.61D0*q995)
       ! virtual potential T
       dthv = dth*(d_one+0.61D0*q995) + 0.61D0*th*dqh
-      xdens = psurf*d_100/(rgas*(tsurf+tzero)*(d_one+0.61D0*qs))
+      xdens = sfps(i)/(rgas*tgrd(i)*(d_one+0.61D0*qs))
       ! density
       xlv = (2.501D0-0.00237D0*tsurf)*1.0D+6
       ! J/kg
