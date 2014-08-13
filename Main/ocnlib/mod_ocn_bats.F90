@@ -36,7 +36,7 @@ module mod_ocn_bats
 
   subroutine ocnbats
     implicit none
-    real(rk8) :: ribd , cdrn , rib , rhs , lfta , lftb , eg , qgrd
+    real(rk8) :: ribd , cdrn , rib , rhs , lfta , lftb , qgrd
     real(rk8) :: qs , delq , delt , fact , factuv
     real(rk8) :: cdrmin , cdrx , ribn , vspda , psurf
     integer(ik4) :: i
@@ -99,7 +99,7 @@ module mod_ocn_bats
   subroutine seaice
     implicit none
     real(rk8) :: age , scrat , u1 , ribd
-    real(rk8) :: cdrn , rib , cdr , rhs , lfta , lftb , eg , qgrd
+    real(rk8) :: cdrn , rib , cdr , rhs , lfta , lftb , qgrd
     real(rk8) :: ps , qs , delq , delt , rhosw , ribl
     real(rk8) :: bb , fact , fss , hrl , hs , hsl
     real(rk8) :: rhosw3 , rsd1 , smc4 , smt , tg , tgrnd , qice
@@ -197,7 +197,7 @@ module mod_ocn_bats
       ! Update now the other variables
       ! The ground temperature and heat fluxes for lake are computed
       ! in the lake model
-      qs = qv(i)/(d_one+qv(i))
+      qs = qv(i)
       if ( tgrd(i) <= tzero ) then
         lfta = c3ies
         lftb = c4ies
@@ -205,8 +205,7 @@ module mod_ocn_bats
         lfta = c3les
         lftb = c4les
       end if
-      eg = c1es*dexp(lfta*(tgrd(i)-tzero)/(tgrd(i)-lftb))
-      qgrd = ep2*eg/(psurf-0.378D0*eg)
+      qgrd = pfqsat(tgrd(i),sfps(i))
       tgbrd(i) = -d_two + tzero
       ! shice = specific heat of sea-ice per unit volume
       sficemm = sfice(i)*d_1000
