@@ -107,6 +107,7 @@ module mod_ocn_zeng
       ! potential T
       dth = t995 + 0.0098D0*zh - tsurf
       qs = pfqsat(tgrd(i),sfps(i))*0.98D0
+      qs = qs/(d_one+qs)
       ! in kg/kg
       dqh = q995 - qs
       thv = th*(d_one+0.61D0*q995)
