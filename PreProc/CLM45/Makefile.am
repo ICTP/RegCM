@@ -3,6 +3,7 @@ include $(REGCM_ROOT)/makeinc
 
 vpath %.o $(REGCM_ROOT)/Share:.
 
+if DO_COMPILE_LIBCLM45
 bin_PROGRAMS = mksurfdata
 
 mksurfdata_SOURCES = mksurfdata.F90 mod_mkabm.F90 mod_mklaisai.F90 \
@@ -15,6 +16,8 @@ mksurfdata_SOURCES = mksurfdata.F90 mod_mkabm.F90 mod_mklaisai.F90 \
 
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+
+endif
 
 clean-local:
 	rm -f *.mod *__genmod.*

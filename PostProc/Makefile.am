@@ -21,7 +21,12 @@ vpath %.o $(REGCM_ROOT)/Share:.
 
 include $(REGCM_ROOT)/makeinc
 
+if DO_COMPILE_LIBCLM45
 bin_PROGRAMS = sigma2p sigma2z GrADSNcPlot GrADSNcPrepare clm45_1dto2d
+else
+bin_PROGRAMS = sigma2p sigma2z GrADSNcPlot GrADSNcPrepare
+endif
+
 sigma2p_SOURCES = sigma2p.F90
 sigma2z_SOURCES = sigma2z.F90
 GrADSNcPlot_SOURCES = GrADSNcPlot.F90

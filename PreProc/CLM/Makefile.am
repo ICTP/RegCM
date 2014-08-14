@@ -5,6 +5,7 @@ vpath %.o $(REGCM_ROOT)/Share:.
 
 FPPFLAGS = $(CPPFLAGS) $(DEFINE)MAXPATCH_PFT=4
 
+if DO_COMPILE_LIBCLM
 bin_PROGRAMS = clm2rcm
 clm2rcm_SOURCES = mod_param_clm.F90 mod_grid.F90 mod_nclib.f90  \
                   mod_clm3grid.f90 clm2rcm.F90
@@ -14,6 +15,7 @@ clm2rcm_SOURCES = mod_param_clm.F90 mod_grid.F90 mod_nclib.f90  \
 
 %.o: %.F90
 	$(FC) $(FPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+endif
 
 clean-local:
 	rm -f *.mod *__genmod.*
