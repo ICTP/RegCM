@@ -134,6 +134,7 @@ module mod_cu_em
           do k = 1 , kz
             kk = kzp1 - k
             c2m%tten(j,i,kk) = ft(k)*m2c%psb(j,i) + c2m%tten(j,i,kk)
+            ! Move specific humidity tendency to mixing ratio tendency
             c2m%qxten(j,i,kk,iqv) = fq(k)/(d_one-fq(k))* &
                               m2c%psb(j,i)+c2m%qxten(j,i,kk,iqv)
             ! There is a bit of an inconsistency here...  The wind

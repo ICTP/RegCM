@@ -213,7 +213,7 @@ module mod_precip
           rho = ppa/(rgas*tk)                                ![kg/m3][avg]
           qcw = qx3(j,i,k,iqc)                               ![kg/kg][avg]
           afc = fcc(j,i,k)                                   ![frac][avg]
-          qs = pfqsat(tk,ppa)                                ![Pa][avg]
+          qs = pfqsat(tk,ppa)                                ![kg/kg][avg]
           rh = dmin1(dmax1(qx3(j,i,k,iqv)/qs,d_zero),rhmax)  ![frac][avg]
           ! 1bb. Convert accumlated precipitation to kg/kg/s.
           !      Used for raindrop evaporation and accretion.
