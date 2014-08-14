@@ -188,10 +188,10 @@
           ! 10 m air temperature
           temp10(i,j) = ctb3d(j,i,kz) - csdeltk2d(j,i)*fact
           ! specific  humidity at 10m
-          shu10 = cqxb3d(j,i,kz,iqv)/ &
-            (d_one+cqxb3d(j,i,kz,iqv))-csdelqk2d(j,i)*fact
+          shu10 = cqxb3d(j,i,kz,iqv)/(d_one+cqxb3d(j,i,kz,iqv)) - &
+                  csdelqk2d(j,i)*fact
           ! back to mixing ratio
-          shu10 = shu10/(1-shu10)
+          shu10 = shu10/(d_one-shu10)
           ! saturation mixing ratio at 10m
           pres10 = psurf(i,j) - 98.0D0
           qsat10 = pfqsat(temp10(i,j),pres10)
