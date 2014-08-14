@@ -214,7 +214,6 @@ module mod_clm_regcm
 
     ! Compute or alias
     clm_a2l%forc_wind = sqrt(clm_a2l%forc_u**2 + clm_a2l%forc_v**2)
-    clm_a2l%forc_q = clm_a2l%forc_q/(1.0D0+clm_a2l%forc_q)
     clm_a2l%forc_hgt_u = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_t = clm_a2l%forc_hgt
     clm_a2l%forc_hgt_q = clm_a2l%forc_hgt
@@ -235,6 +234,8 @@ module mod_clm_regcm
         clm_a2l%forc_snow(i) = 0.0D0
       end if
     end do
+    ! Specific humidity
+    clm_a2l%forc_q = clm_a2l%forc_q/(1.0D0+clm_a2l%forc_q)
     clm_a2l%rainf = clm_a2l%forc_rain+clm_a2l%forc_snow
 
     if ( ichem /= 1 ) then
