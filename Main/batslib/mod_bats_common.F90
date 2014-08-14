@@ -324,6 +324,7 @@ module mod_bats_common
         sfcp(i) = p0(i)*(sts(i)/ts0(i))
         xqs0 = pfqsat(sts(i),sfcp(i))
         qs(i) = max(rh0*xqs0,d_zero)
+        ! Move to specific humidity
         qs(i) = qs(i)/(d_one+qs(i))
         rhs(i) = sfcp(i)/(rgas*sts(i))
         ! Average over the period
@@ -347,12 +348,14 @@ module mod_bats_common
         do i = ici1 , ici2
           do j = jci1 , jci2
             xqsdif = d_zero
+            ! Coarse scale specific humidity
             xqs0 = lm%qvatm(j,i)/(d_one+lm%qvatm(j,i))
             do n = 1 , nnsg
               if ( lm%ldmsk1(n,j,i) == 1 ) then
                 xqsdif = xqsdif + (xqs(n,j,i)-xqs0)
               end if
             end do
+            ! Mean difference from subgrid values and coarse grid
             xqsdif = xqsdif/rdnnsg
             do n = 1 , nnsg
               xqs(n,j,i) = max(xqs(n,j,i)-xqsdif,d_zero)

@@ -91,6 +91,7 @@ module mod_cu_em
         do k = 1 , kz
           kk = kzp1 - k
           tcup(k) = m2c%tas(j,i,kk)                         ! [k]
+          ! Model wants specific humidities
           qcup(k) = m2c%qxas(j,i,kk,iqv)/(d_one+m2c%qxas(j,i,kk,iqv)) ! [kg/kg]
           qscup(k) = m2c%qsas(j,i,kk)/(d_one+m2c%qsas(j,i,kk))  ! [kg/kg]
           ucup(k) = m2c%uas(j,i,kk)                         ! [m/s]
