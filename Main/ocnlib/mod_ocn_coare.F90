@@ -355,6 +355,8 @@ module mod_ocn_coare
         ! surface atmospheric variables
         t2m(i) = t995+tzero-dt*facttq
         q2m(i) = q995-dq*facttq
+        ! we need specific humidity
+        q2m(i) = q2m(i)/(d_one/q2m(i))
       end do
     end subroutine coare3_drv
 

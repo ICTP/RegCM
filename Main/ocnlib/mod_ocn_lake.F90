@@ -245,6 +245,9 @@ module mod_ocn_lake
       rhs = sfps(i)/(rgas*sts(i))
       qgrd = pfqsat(tgrd(i),sfps(i))
       delt = sts(i) - tgrd(i)
+      ! Move to specific humidities
+      qs = qs/(d_one+qs)
+      qgrd = qgrd/(d_one+qgrd)
       delq = (qs - qgrd)
 
       if ( sfice(i) <= iceminh ) then

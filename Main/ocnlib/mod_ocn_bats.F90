@@ -59,7 +59,8 @@ module mod_ocn_bats
       rhs = psurf/(rgas*sts(i))
       qgrd = pfqsat(tgrd(i),sfps(i))
       delt = sts(i) - tgrd(i)
-      delq = (qs - qgrd)
+      ! Specific humidities
+      delq = (qs/(d_one+qs) - qgrd/(d_one+qgrd))
       ! Comnpute drag coefficient over ocean
       ribd = usw(i)**2 + vsw(i)**2 + wtur**2
       vspda = dsqrt(ribd)
@@ -192,6 +193,9 @@ module mod_ocn_bats
       ! in the lake model
       qs = qv(i)
       qgrd = pfqsat(tgrd(i),sfps(i))
+      ! Move to specific humidity
+      qs = qs/(d_one+qs)
+      qgrd = qgrd/(d_one+qgrd)
       tgbrd(i) = -d_two + tzero
       ! shice = specific heat of sea-ice per unit volume
       sficemm = sfice(i)*d_1000
