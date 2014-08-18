@@ -198,7 +198,7 @@ module mod_ocn_lake
   subroutine lakedrv
     implicit none
     real(rk8) :: flwx , fswx , hsen , prec , qs , tgl , tl , vl , zl
-    real(rk8) :: xl , toth , rhs
+    real(rk8) :: xl , toth
     real(rk8) :: age , age1 , age2 , arg , arg2 , cdr , cdrmin , cdrn
     real(rk8) :: cdrx , clead , dela , dela0 , delq , dels , delt
     real(rk8) :: fact , factuv , qgrd , qgrnd , qice , rhosw , rhosw3
@@ -242,7 +242,6 @@ module mod_ocn_lake
       tgb(i)   = tgl
       tgrd(i)  = tgl
       tgbrd(i) = tgl
-      rhs = sfps(i)/(rgas*sts(i))
       qgrd = pfqsat(tgrd(i),sfps(i))
       delt = sts(i) - tgrd(i)
       ! Move to specific humidities
@@ -268,7 +267,7 @@ module mod_ocn_lake
         end if
         cdrmin = dmax1(0.25D0*cdrn,6.0D-4)
         if ( cdrx < cdrmin ) cdrx = cdrmin
-        drag(i) = cdrx*vspda*rhs
+        drag(i) = cdrx*vspda*rhox(i)
         evpr(i) = -drag(i)*delq
         sent(i) = -drag(i)*cpd*delt
       else
@@ -326,8 +325,7 @@ module mod_ocn_lake
           clead = cdrn/(d_one+11.5D0*rib)
         end if
         cdrx = (d_one-aarea)*cdr + aarea*clead
-        rhs = sfps(i)/(rgas*sts(i))
-        drag(i) = cdrx*vspda*rhs
+        drag(i) = cdrx*vspda*rhox(i)
         qice = 3.3D-3 * stdp/sfps(i)
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx
         tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*(tzero-1.8D0))/cdrx

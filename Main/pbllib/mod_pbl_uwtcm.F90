@@ -86,7 +86,7 @@ module mod_pbl_uwtcm
   real(rk8) , public , parameter :: tkemin = 1.0D-8
 
   real(rk8) , public , parameter :: nuk = 5.0D0 ! multiplier for kethl
-  integer(ik4) , public :: ktmin = 3
+  integer(ik4) :: ktmin
 
   ! Model constants
   ! fraction of turb layer to be considered in bbls
@@ -638,7 +638,8 @@ module mod_pbl_uwtcm
         ! This assumption will tend to cause an over-estimation of the surface
         ! virtual heat flux over land, which should cause an overestimation
         ! of boundary layer height over land.
-        q0s = ep2/(presfl(kzp1)/esatw(presfl(kzp1),tgbx) - d_one)
+        !q0s = ep2/(presfl(kzp1)/esatw(presfl(kzp1),tgbx) - d_one)
+        q0s = ep2/(presfl(kzp1)/(pfesat(tgbx)*d_r1000) - d_one)
         ! Calculate the virtual temperature right above the surface
         thv0 = thgb*(d_one+ep1*q0s)
         ! Calculate the change in virtual potential temperature from
@@ -677,6 +678,7 @@ module mod_pbl_uwtcm
         richnum = nsquar/dmax1(svs,1.0D-8)
 
         ! Calculate the boundary layer height
+        ktmin = m2p%ktrop(j,i)
         call pblhgt(kzp1,iconv)
         ! call pblhgt_tao(kzp1,iconv)
 
@@ -1051,20 +1053,24 @@ module mod_pbl_uwtcm
         ! buoyancy is jump in thetav across flux level/dza
         ! first, layer below, go up and see if anything condenses.
         templ = thlxin(k)*exnerfl(k)
-        rvls = esatw(presfl(k),templ)*epop(k)
+        !rvls = esatw(presfl(k),templ)*epop(k)
+        rvls = pfesat(templ)*d_r1000*epop(k)
         temps = templ + (qwxin(k)-rvls)/(cpowlhv +    &
                          ep2*wlhv*rvls/(rgas*templ**2))
-        rvls = esatw(presfl(k),temps)*epop(k)
+        !rvls = esatw(presfl(k),temps)*epop(k)
+        rvls = pfesat(temps)*d_r1000*epop(k)
         rcldb(k) = dmax1(qwxin(k)-rvls,d_zero)
         tempv = (templ + wlhvocp*rcldb(k)) *    &
                 (d_one + ep1*(qwxin(k)-rcldb(k)) - rcldb(k))
         tvbl = tempv*rexnerfl(k) 
         ! now do layer above; go down to see how much evaporates
         templ = thlxin(k-1)*exnerfl(k)
-        rvls = esatw(presfl(k),templ)*epop(k)
+        !rvls = esatw(presfl(k),templ)*epop(k)
+        rvls = pfesat(templ)*d_r1000*epop(k)
         temps = templ+(qwxin(k-1)-rvls) / &
                        (cpowlhv+ep2*wlhv*rvls/(rgas*templ**2))
-        rvls = esatw(presfl(k),temps)*epop(k)
+        !rvls = esatw(presfl(k),temps)*epop(k)
+        rvls = pfesat(temps)*d_r1000*epop(k)
         rcld = dmax1(qwxin(k-1)-rvls,d_zero)
         tempv = (templ + wlhvocp*rcld) *    &
                 (d_one + ep1*(qwxin(k-1)-rcld) - rcld)

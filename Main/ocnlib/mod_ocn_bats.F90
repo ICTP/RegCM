@@ -36,9 +36,9 @@ module mod_ocn_bats
 
   subroutine ocnbats
     implicit none
-    real(rk8) :: ribd , cdrn , rib , rhs , qgrd
+    real(rk8) :: ribd , cdrn , rib , qgrd
     real(rk8) :: qs , delq , delt , fact , factuv
-    real(rk8) :: cdrmin , cdrx , ribn , vspda , psurf
+    real(rk8) :: cdrmin , cdrx , ribn
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'ocnbats'
@@ -54,18 +54,15 @@ module mod_ocn_bats
       tgbrd(i) = tgb(i)
 
       ! Compute delt and delq
-      psurf = sfps(i)
       qs = qv(i)
-      rhs = psurf/(rgas*sts(i))
       qgrd = pfqsat(tgrd(i),sfps(i))
       delt = sts(i) - tgrd(i)
       ! Specific humidities
       delq = (qs/(d_one+qs) - qgrd/(d_one+qgrd))
       ! Comnpute drag coefficient over ocean
       ribd = usw(i)**2 + vsw(i)**2 + wtur**2
-      vspda = dsqrt(ribd)
       cdrn = (vonkar/dlog(ht(i)/zoce))**2
-      ribn = ht(i)*egrav*(delt/sts(i))
+      ribn = ht(i)*egrav*(d_one - tgrd(i)/sts(i))
       rib = ribn/ribd
       if ( rib < d_zero ) then
         cdrx = cdrn*(d_one+24.5D0*dsqrt(-cdrn*rib))
@@ -74,7 +71,7 @@ module mod_ocn_bats
       end if
       cdrmin = dmax1(0.25D0*cdrn,6.0D-4)
       if ( cdrx < cdrmin ) cdrx = cdrmin
-      drag(i) = cdrx*vspda*rhs
+      drag(i) = cdrx*dsqrt(ribd)*rhox(i)
 
       ! Update output variables
       evpr(i) = -drag(i)*delq
@@ -93,11 +90,11 @@ module mod_ocn_bats
   subroutine seaice
     implicit none
     real(rk8) :: age , scrat , u1 , ribd
-    real(rk8) :: cdrn , rib , cdr , rhs , qgrd
+    real(rk8) :: cdrn , rib , cdr , qgrd
     real(rk8) :: ps , qs , delq , delt , rhosw , ribl
     real(rk8) :: bb , fact , fss , hrl , hs , hsl
     real(rk8) :: rhosw3 , rsd1 , smc4 , smt , tg , tgrnd , qice
-    real(rk8) :: ksnow , rsi , psurf , uv995 , sficemm
+    real(rk8) :: ksnow , rsi , uv995 , sficemm
     real(rk8) :: arg , arg2 , age1 , age2 , tage
     real(rk8) :: cdrmin , cdrx , clead , dela , dela0 , dels
     real(rk8) :: factuv , fevpg , fseng , qgrnd , ribn , sold , vspda
@@ -116,7 +113,6 @@ module mod_ocn_bats
         tgrd(i) = tgb(i)
       end if
 
-      psurf = sfps(i)
       uv995 = dsqrt(usw(i)**2+vsw(i)**2)
 
       ! Update Snow Cover
@@ -185,8 +181,7 @@ module mod_ocn_bats
         clead = cdrn/(d_one+11.5D0*rib)
       end if
       cdrx = (d_one-aarea)*cdr + aarea*clead
-      rhs = psurf/(rgas*sts(i))
-      drag(i) = cdrx*vspda*rhs
+      drag(i) = cdrx*vspda*rhox(i)
 
       ! Update now the other variables
       ! The ground temperature and heat fluxes for lake are computed
@@ -232,7 +227,7 @@ module mod_ocn_bats
         ! assume lead ocean temp is -1.8c
         ! flux of heat and moisture through leads
         ! sat. mixing ratio at t=-1.8c is 3.3e-3
-        qice = 3.3D-3 * stdp/psurf
+        qice = 3.3D-3 * stdp/sfps(i)
         !
         qgrnd = ((d_one-aarea)*cdr*qgrd + aarea*clead*qice)/cdrx
         tgrnd = ((d_one-aarea)*cdr*tgrd(i) + aarea*clead*(tzero-1.8D0))/cdrx
@@ -242,8 +237,8 @@ module mod_ocn_bats
         ! output fluxes, averaged over leads and ice
         evpr(i) = fact*delq
         sent(i) = fact*cpd*delt
-        hrl = rhs*vspda*clead * (qice-qs)
-        hsl = rhs*vspda*clead * (tzero-1.8D0-sts(i))*cpd
+        hrl = rhox(i)*vspda*clead * (qice-qs)
+        hsl = rhox(i)*vspda*clead * (tzero-1.8D0-sts(i))*cpd
         ! get fluxes over ice for sublimation (subrout snow)
         ! and melt (below) calculation
         fseng = (sent(i)-aarea*hsl)/(d_one-aarea)

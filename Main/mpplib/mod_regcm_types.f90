@@ -444,6 +444,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: chifxuw   ! chifxuw
     real(rk8) , pointer , dimension(:,:,:) :: drydepv   ! drydepv
     real(rk8) , pointer , dimension(:,:) :: rhox2d      ! rhox2d 
+    integer(ik4) , pointer , dimension(:,:) :: ktrop    ! ktrop 
   end type mod_2_pbl
 
   type pbl_2_mod

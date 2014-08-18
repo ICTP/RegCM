@@ -1050,7 +1050,7 @@ module mod_cu_bm
         !
         ! iteratively extract temperature from equivalent potential temperature.
         !
-        rl = rlocpd(tgs)
+        rl = elocp
         rp = thetae/pi
         qs = pfqsat(tgs,press)
         fo = tgs*exp(rl*qs/tgs) - rp
@@ -1059,7 +1059,7 @@ module mod_cu_bm
         iloop = 0
         do
           qs = pfqsat(t1,press)
-          rl = rlocpd(t1)
+          rl = elocp
           f1 = t1*exp(rl*qs/t1) - rp
           if ( abs(f1) < 0.1D0 ) then
             tpfc = t1
@@ -1080,12 +1080,6 @@ module mod_cu_bm
           end if
         end do
       end function tpfc
-
-      pure real(rk8) function rlocpd(t)
-        implicit none
-        real(rk8) , intent(in) :: t
-        rlocpd = wlh(t) * rcpd
-      end function rlocpd
 
   end subroutine bmpara
   !

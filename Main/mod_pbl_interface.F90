@@ -109,6 +109,7 @@ module mod_pbl_interface
     call assignpnt(heatrt,m2p%heatrt)
     call assignpnt(drydepv,m2p%drydepv)
     call assignpnt(chifxuw,m2p%chifxuw)
+    call assignpnt(ktrop,m2p%ktrop)
 
     ! OUTPUT FROM PBL
     call assignpnt(aten%u,p2m%uten)

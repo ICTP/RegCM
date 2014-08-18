@@ -336,7 +336,7 @@ module mod_params
   idcsst = 0
   iseaice = 0
   idesseas = 0
-  iconvlwp = 2
+  iconvlwp = 1
   irrtm = 0
   islab_ocean = 0
   iclimao3 = 0
