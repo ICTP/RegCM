@@ -242,7 +242,7 @@ module mod_constants
   ! Soil roughness length
   real(rk8) , parameter :: zlnd = 0.01D+00
   ! Ocean roughness length
-  real(rk8) , parameter :: zoce = 0.00020D+00
+  real(rk8) , parameter :: zoce = 0.00023D+00
   ! Snow roughness length
   real(rk8) , parameter :: zsno = 0.00040D+00
   ! Von Karman constant
@@ -482,14 +482,18 @@ module mod_constants
     !!!!!!!!!!!!! Assume input is in cbar !!!!!!!!!!!!!
   end function msig2p
 
-  pure real(rk8) function wlh(t)
+  ! Latent heat for condensation/sublimation of water in J/kg
+  real(rk8) function wlh(t)
     implicit none
     real(rk8) , intent(in) :: t
-    if ( t > tzero ) then
-      wlh = 2500.8D0 - 2.36D0*t + 0.0016D0*t*t - 0.00006D0*t*t*t
+    real(rk8) :: tc
+    tc = t - tzero
+    if ( tc > d_zero ) then
+      wlh = 2500.79D0 - 2.36418D0*tc + 1.58927D-3*tc*tc - 6.14342D-5*tc*tc*tc
     else
-      wlh = 2834.1D0 - 0.29D0*t - 0.004D0*t*t
+      wlh = 2834.1D0 - 0.29D0*tc - 0.004D0*tc*tc
     end if
+    wlh = wlh*1.0D3
   end function wlh
 
 end module mod_constants
