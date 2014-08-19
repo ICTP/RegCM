@@ -177,7 +177,7 @@ module mod_cu_grell
     call getmem2d(xqcd,jci1,jci2,ici1,ici2,'cu_grell:xqcd')
     call getmem2d(xqck,jci1,jci2,ici1,ici2,'cu_grell:xqck')
     call getmem2d(xqkb,jci1,jci2,ici1,ici2,'cu_grell:xqkb')
-!
+
     alsixt = dlog(610.71D0)
     be(1) = ep2*wlhvocp*3.50D0
     be(2) = ep2*2.834D6*rcpd*3.50D0
@@ -197,9 +197,9 @@ module mod_cu_grell
     call time_begin(subroutine_name,idindx)
 #endif
     pkdcut = 75.0D0
-!
-!   prepare input, erase output
-!
+    !
+    ! prepare input, erase output
+    !
     outq(:,:,:) = d_zero
     outt(:,:,:) = d_zero
     p(:,:,:)    = d_zero
@@ -209,7 +209,7 @@ module mod_cu_grell
     t(:,:,:)    = d_zero
     tn(:,:,:)   = d_zero
     vsp(:,:,:)  = d_zero
-!
+
     pratec(:,:)  = d_zero
     psur(:,:)  = d_zero
     qcrit(:,:) = d_zero
@@ -330,9 +330,9 @@ module mod_cu_grell
     ! call cumulus parameterization
     !
     call cup(c2m)
-!
-!   return cumulus parameterization
-!
+    !
+    ! return cumulus parameterization
+    !
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -364,9 +364,9 @@ module mod_cu_grell
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine cuparan
-!
-!   GRELL CUMULUS SCHEME
-!
+  !
+  ! GRELL CUMULUS SCHEME
+  !
   subroutine cup(c2m)
     implicit none
     type(cum_2_mod) , intent(inout) :: c2m
@@ -377,7 +377,7 @@ module mod_cu_grell
                agammo0 , mbdt , outtes , pbcdif , qrch , qrcho , &
                tvbar , tvbaro , xk
     integer(ik4) :: i , j , k , iph , ipho , kbcono , kk , lpt
-!
+    logical :: foundtop
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'cup'
     integer(ik4) , save :: idindx = 0
@@ -387,9 +387,9 @@ module mod_cu_grell
     mbdt = dt*5.0D-03
     f  = -d_one
     xk = -d_one
-!
-!   environmental conditions, first heights
-!
+    !
+    ! environmental conditions, first heights
+    !
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -438,9 +438,9 @@ module mod_cu_grell
         end do
       end do
     end do
-!
-!   moist static energy
-!
+    !
+    ! moist static energy
+    !
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -458,9 +458,9 @@ module mod_cu_grell
         end do
       end do
     end do
-!
-!   determine level with highest moist static energy content.
-!
+    !
+    ! determine level with highest moist static energy content.
+    !
     call maximi2(he,1,kbmax2d,k22)
 
     do i = ici1 , ici2
@@ -479,83 +479,86 @@ module mod_cu_grell
         end if
       end do
     end do
-!
-!   decide for convective cloud base
-!
+    !
+    ! decide for convective cloud base
+    !
+    latloop: &
     do i = ici1 , ici2
+      lonloop: &
       do j = jci1 , jci2
         if ( xac(j,i) >= d_zero ) then
           do k = 1 , kdet(j,i)
             kk = kdet(j,i) - k + 1
-!           dkk(j,i,kk) = 0.75D0*dkk(j,i,kk+1)
+            ! dkk(j,i,kk) = 0.75D0 * dkk(j,i,kk+1)
             dkk(j,i,k) = d_one - dble(kk)/dble(kdet(j,i))
           end do
-
-120       continue
-
-          kb(j,i) = k22(j,i)
-          kbcon(j,i) = kb(j,i)
-
-140       continue
-
-          dh = d_half*(hes(j,i,kbcon(j,i))+hes(j,i,kbcon(j,i)+1))
-          if ( hkb(j,i) < dh ) then
-            kbcon(j,i) = kbcon(j,i) + 1
-            if ( kbcon(j,i) > kbmax2d(j,i) ) then
-              xac(j,i) = -d_one
-              cycle
-            end if
-            go to 140
-          else
-!
-!    after large-scale forcing is applied, possible lid should be removed!!!
-!
-            kbcono = kb(j,i)
-!ictp
-150         continue
-            if ( kbcono > kbmax2d(j,i) ) then
-              xac(j,i) = -d_one
-              cycle
-            end if
-!ictp_
-            dh = d_half*(heso(j,i,kbcono)+heso(j,i,kbcono+1))
-            if ( hkbo(j,i) < dh ) then
-              kbcono = kbcono + 1
-              go to 150
-            else
-              pbcdif = -p(j,i,kbcono) + p(j,i,kb(j,i))
-!             below was commented out
-!             as uncommenting the following lines for experiment 2/5/95
-              if ( pbcdif > pbcmax2d(j,i) ) then
-!               this is where typo was (pbdcdif)
-                k22(j,i) = k22(j,i) + 1
-                if ( k22(j,i) >= kbmax2d(j,i) ) then
+          cloudbase: do
+            kb(j,i) = k22(j,i)
+            kbcon(j,i) = kb(j,i)
+            gotonext: do
+              dh = d_half*(hes(j,i,kbcon(j,i))+hes(j,i,kbcon(j,i)+1))
+              if ( hkb(j,i) < dh ) then
+                kbcon(j,i) = kbcon(j,i) + 1
+                if ( kbcon(j,i) > kbmax2d(j,i) ) then
                   xac(j,i) = -d_one
-                  cycle
+                  cycle lonloop
                 end if
-                hkb(j,i) = he(j,i,k22(j,i))
-                qkb(j,i) = q(j,i,k22(j,i))
-                hkbo(j,i) = heo(j,i,k22(j,i))
-                qkbo(j,i) = qo(j,i,k22(j,i))
-                qck(j,i) = qkb(j,i)
-                qcko(j,i) = qkbo(j,i)
-                go to 120
+                cycle gotonext
+              else
+                !
+                ! after large-scale forcing is applied, possible lid should
+                ! be removed!!!
+                !
+                kbcono = kb(j,i)
+                removelid: do
+                  if ( kbcono > kbmax2d(j,i) ) then
+                    xac(j,i) = -d_one
+                    cycle lonloop
+                  end if
+                  dh = d_half*(heso(j,i,kbcono)+heso(j,i,kbcono+1))
+                  if ( hkbo(j,i) < dh ) then
+                    kbcono = kbcono + 1
+                    cycle removelid
+                  else
+                    pbcdif = -p(j,i,kbcono) + p(j,i,kb(j,i))
+                    ! below was commented out
+                    ! as uncommenting the following lines for experiment 2/5/95
+                    if ( pbcdif > pbcmax2d(j,i) ) then
+                      ! this is where typo was (pbdcdif)
+                      k22(j,i) = k22(j,i) + 1
+                      if ( k22(j,i) >= kbmax2d(j,i) ) then
+                        xac(j,i) = -d_one
+                        cycle lonloop
+                      end if
+                      hkb(j,i) = he(j,i,k22(j,i))
+                      qkb(j,i) = q(j,i,k22(j,i))
+                      hkbo(j,i) = heo(j,i,k22(j,i))
+                      qkbo(j,i) = qo(j,i,k22(j,i))
+                      qck(j,i) = qkb(j,i)
+                      qcko(j,i) = qkbo(j,i)
+                      cycle cloudbase
+                    end if
+                  end if
+                  exit removelid
+                end do removelid
               end if
-            end if
-          end if
+              exit gotonext
+            end do gotonext
+            exit cloudbase
+          end do cloudbase
         end if
-      end do
-    end do
-!
-!   downdraft originating level
-!
+      end do lonloop
+    end do latloop
+    !
+    ! downdraft originating level
+    !
     call minimi(he,kb,kz,kmin)
     call maximi1(vsp,1,kz,kds)
-!
-!   static control
-!
-!   determine cloud top
-!
+    !
+    ! static control
+    !
+    ! determine cloud top
+    !
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( xac(j,i) >= 0 ) then
@@ -583,27 +586,30 @@ module mod_cu_grell
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( xac(j,i) > xacact ) then
+          foundtop = .false.
+          findtop: &
           do k = 2 , kz - kbcon(j,i) - 1
             kk = kz - k + 1
             if ( dby(j,i,kk) >= d_zero ) then
               ktop(j,i) = kk + 1
-              go to 320
+              foundtop = .true.
+              exit findtop
             end if
-          end do
-          xac(j,i) = -d_one
-          go to 400
-320       continue
-          if ( ktop(j,i) > kz ) ktop(j,i) = kz
-          if ( p(j,i,kbcon(j,i))-p(j,i,ktop(j,i)) < mincld2d(j,i) ) then
+          end do findtop
+          if ( foundtop ) then
+            if ( ktop(j,i) > kz ) ktop(j,i) = kz
+            if ( p(j,i,kbcon(j,i))-p(j,i,ktop(j,i)) < mincld2d(j,i) ) then
+              xac(j,i) = -d_one
+            end if
+          else
             xac(j,i) = -d_one
           end if
         end if
-400     continue
       end do
     end do
-!
-!   moisture and cloud work functions
-!
+    !
+    ! moisture and cloud work functions
+    !
     do k = 2 , kz - 1
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -645,7 +651,7 @@ module mod_cu_grell
         end do
       end do
     end do
-!
+
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( xac(j,i) > xacact ) then
@@ -656,7 +662,6 @@ module mod_cu_grell
           qc(j,i,k) = qes(j,i,k)
           pwc(j,i,k) = (qrch-qes(j,i,k))
           pwcav(j,i) = pwcav(j,i) + pwc(j,i,k)
-!
           dz = d_half*(zo(j,i,k)-zo(j,i,k-1))
           agamma = (wlhvocp)*(wlhv/(rwat*(tn(j,i,k)**2)))*qeso(j,i,k)
           qrcho = qeso(j,i,k) + (d_one/wlhv)*(agamma/(d_one+agamma))*dbyo(j,i,k)
@@ -666,11 +671,11 @@ module mod_cu_grell
         end if
       end do
     end do
-!
-!   downdraft calculations
-!
-!   determine downdraft strength in terms of windshear
-!
+    !
+    ! downdraft calculations
+    !
+    ! determine downdraft strength in terms of windshear
+    !
     do kk = 1 , kz/2
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -722,7 +727,6 @@ module mod_cu_grell
               pwcd(j,i,kk) = dkk(j,i,kk)*(qcd(j,i)-qrcd(j,i,kk))
               qcd(j,i) = qrcd(j,i,kk)
               pwcev(j,i) = pwcev(j,i) + pwcd(j,i,kk)
-!
               dz = d_half*(zo(j,i,kk+2)-zo(j,i,kk))
               buo(j,i) = buo(j,i) + &
                 dz*(hcdo(j,i)-(heso(j,i,kk)+heso(j,i,kk+1))*d_half)
@@ -739,7 +743,7 @@ module mod_cu_grell
         end do
       end do
     end do
-!
+
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( xac(j,i) > xacact ) then
@@ -756,9 +760,9 @@ module mod_cu_grell
         end if
       end do
     end do
-!
-!   what would the change be?
-!
+    !
+    ! what would the change be?
+    !
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( xac(j,i) > xacact ) then
@@ -777,7 +781,7 @@ module mod_cu_grell
         end if
       end do
     end do
-!
+
     do k = 1 , kz - 1
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -789,16 +793,16 @@ module mod_cu_grell
               dv1q = d_half*(q(j,i,k)+q(j,i,k+1))
               dv2q = q(j,i,k)
               dv3q = d_half*(q(j,i,k)+q(j,i,k-1))
-!
-!             specifiy detrainment of downdraft, has to be consistent
-!             with zd calculations in soundd.
-!
+              !
+              ! specifiy detrainment of downdraft, has to be consistent
+              ! with zd calculations in soundd.
+              !
               detdo = (d_one-dkk(j,i,k))*(hcd(j,i)-dv2)
               detdoq = (d_one-dkk(j,i,k))*(qrcd(j,i,k)-dv2q)
               dz = d_half*(z(j,i,k+1)-z(j,i,k-1))
-!
-!              changed due to subsidence and entrainment
-!
+              !
+              ! changed due to subsidence and entrainment
+              !
               aup = d_one
               if ( k <= k22(j,i) ) aup = d_zero
               adw = d_one
@@ -821,9 +825,9 @@ module mod_cu_grell
         end do
       end do
     end do
-!
-!   cloud top
-!
+    !
+    ! cloud top
+    !
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( xac(j,i) > xacact ) then
@@ -845,9 +849,9 @@ module mod_cu_grell
         end if
       end do
     end do
-!
-!   environmental conditions, first heights
-!
+    !
+    ! environmental conditions, first heights
+    !
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -863,7 +867,7 @@ module mod_cu_grell
         end do
       end do
     end do
-!   bug fix
+    ! bug fix
     do k = 1 , kz - 1
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -873,7 +877,7 @@ module mod_cu_grell
         end do
       end do
     end do
-!
+
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( xac(j,i) > xacact ) then
@@ -893,9 +897,9 @@ module mod_cu_grell
         end do
       end do
     end do
-!
-!   moist static energy
-!
+    !
+    ! moist static energy
+    !
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -906,9 +910,9 @@ module mod_cu_grell
         end do
       end do
     end do
-!
-!   static control
-!
+    !
+    ! static control
+    !
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( xac(j,i) > xacact ) then
@@ -917,9 +921,9 @@ module mod_cu_grell
         end if
       end do
     end do
-!
-!   moisture and cloud work functions
-!
+    !
+    ! moisture and cloud work functions
+    !
     do k = 1 , kz - 1
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -963,11 +967,11 @@ module mod_cu_grell
         end if
       end do
     end do
-!
-!   downdraft calculations
-!
-!   downdraft moisture properties
-!
+    !
+    ! downdraft calculations
+    !
+    ! downdraft moisture properties
+    !
     do k = 1 , kz - 1
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -1009,18 +1013,18 @@ module mod_cu_grell
         end if
       end do
     end do
-!
-!   downdraft cloudwork functions
-!
+    !
+    ! downdraft cloudwork functions
+    !
     do k = 1 , kz - 1
       do i = ici1 , ici2
         do j = jci1 , jci2
           if ( xac(j,i) >= d_zero ) then
             if ( k < kmin(j,i) ) then
               kk = kmin(j,i) - k
-!
-!             original
-!
+              !
+              ! original
+              !
               agamma1 = (wlhvocp)*(wlhv/(rwat*(t(j,i,kk)**2)))*qes(j,i,kk)
               agamma2 = (wlhvocp) * &
                 (wlhv/(rwat*(t(j,i,kk+1)**2)))*qes(j,i,kk+1)
@@ -1031,9 +1035,9 @@ module mod_cu_grell
               dz = (z(j,i,kk)-z(j,i,kk+1))*dkk(j,i,kk)
               xac(j,i) = xac(j,i) + &
                  edt(j,i)*dz*(egrav/(cpd*xdt))*((dhh-dh)/(d_one+dg))
-!
-!             modified by larger scale
-!
+              !
+              ! modified by larger scale
+              !
               agamma1 = (wlhvocp)*(wlhv/(rwat*(tn(j,i,kk)**2)))*qeso(j,i,kk)
               agamma2 = (wlhvocp) * &
                 (wlhv/(rwat*(tn(j,i,kk+1)**2)))*qeso(j,i,kk+1)
@@ -1044,9 +1048,9 @@ module mod_cu_grell
               dz = (zo(j,i,kk)-zo(j,i,kk+1))*dkk(j,i,kk)
               xao(j,i) = xao(j,i) + &
                 edto(j,i)*dz*(egrav/(cpd*xdt))*((dhh-dh)/(d_one+dg))
-!
-!             modified by cloud
-!
+              !
+              ! modified by cloud
+              !
               agamma1 = (wlhvocp)*(wlhv/(rwat*(xt(j,i,kk)**2)))*xqes(j,i,kk)
               agamma2 = (wlhvocp) * &
                 (wlhv/(rwat*(xt(j,i,kk+1)**2)))*xqes(j,i,kk+1)
@@ -1062,9 +1066,9 @@ module mod_cu_grell
         end do
       end do
     end do
-!
-!   large scale forcing
-!
+    !
+    ! large scale forcing
+    !
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( xac(j,i) >= d_zero ) then
@@ -1081,9 +1085,9 @@ module mod_cu_grell
         mflx(j,i,2) = xmb(j,i)*edt(j,i)
       end do
     end do
-!
-!   feedback
-!
+    !
+    ! feedback
+    !
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -1115,10 +1119,9 @@ module mod_cu_grell
         end do
       end do
     end if
-
-!
-!   calculate cloud fraction and water content
-!
+    !
+    ! calculate cloud fraction and water content
+    !
     c2m%kcumtop(:,:) = 0
     c2m%kcumbot(:,:) = 0
     do i = ici1 , ici2
@@ -1136,19 +1139,17 @@ module mod_cu_grell
         end if
       end do
     end do
-!
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
     contains
-!
+
      subroutine minimi(array,ks,ke,kt)
        implicit none
        integer(ik4) , intent (in) :: ke
        real(rk8) , intent(in) , pointer , dimension(:,:,:) :: array
        integer(ik4) , intent(in) , pointer , dimension(:,:) :: ks
        integer(ik4) , intent(out) , pointer , dimension(:,:) :: kt
-!
        integer(ik4) :: i , j , k
        real(rk8) :: x
 #ifdef DEBUG
@@ -1172,13 +1173,12 @@ module mod_cu_grell
        call time_end(subroutine_name,idindx) 
 #endif
      end subroutine minimi
-!
+
      subroutine maximi1(array,ks,ke,imax)
       implicit none
       integer(ik4) , intent (in) :: ks , ke
       real(rk8) , intent(in) , pointer , dimension(:,:,:) :: array
       integer(ik4) , intent(out) , pointer , dimension(:,:) :: imax
-!
       integer(ik4) :: i , j , k
       real(rk8) :: x , xar
 #ifdef DEBUG
@@ -1210,7 +1210,6 @@ module mod_cu_grell
       real(rk8) , intent(in) , pointer , dimension(:,:,:) :: array
       integer(ik4) , intent(in) , pointer , dimension(:,:) :: ke
       integer(ik4) , intent(out) , pointer , dimension(:,:) :: imax
-!
       integer(ik4) :: i , j , k
       real(rk8) :: x , xar
 #ifdef DEBUG

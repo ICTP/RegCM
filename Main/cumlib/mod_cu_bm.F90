@@ -84,7 +84,7 @@ module mod_cu_bm
   public :: tbase , cldefi
 
   contains
-!
+
   subroutine allocate_mod_cu_bm
     implicit none
     integer(ik4) :: intall

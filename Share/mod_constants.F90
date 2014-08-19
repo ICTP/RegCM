@@ -483,7 +483,7 @@ module mod_constants
   end function msig2p
 
   ! Latent heat for condensation/sublimation of water in J/kg
-  real(rk8) function wlh(t)
+  pure real(rk8) function wlh(t)
     implicit none
     real(rk8) , intent(in) :: t
     real(rk8) :: tc
