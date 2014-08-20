@@ -321,7 +321,7 @@ module mod_clm_cnbalancecheck
       col_errnb(c) = (col_ninputs(c) - col_noutputs(c))*dt - &
             (col_endnb(c) - col_begnb(c))
 
-      if ( abs(col_errnb(c)) > 1D-8 ) then
+      if ( abs(col_errnb(c)) > 1D-4 ) then
         err_found = .true.
         err_index = c
       end if
