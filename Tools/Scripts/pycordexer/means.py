@@ -163,4 +163,12 @@ compressed in disk.
 
 if ( __name__ == '__main__' ):
   import sys
-  compute_mean(sys.argv[1], sys.argv[2])
+  if len(sys.argv) < 2:
+    print('Need file name')
+    sys.exit(-1)
+  infile = sys.argv[1]
+  if ( len(sys.argv) < 3 ):
+    timewin = 'mon'
+  else:
+    timewin = sys.argv[2]
+  compute_mean(infile, timewin)

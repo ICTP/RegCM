@@ -121,22 +121,33 @@ def unitcorrect(old,new):
       return 1.0/1000.0
   return 1.0
 
-if len(sys.argv) < 9:
+if len(sys.argv) < 3:
   print('Missing argments:')
   print('Usage:')
-  print(sys.argv[0]+' datafile variable mail domain global_model'+
-                    ' experiment ensemble notes [corrflag]')
+  print(os.path.basename(sys.argv[0]) + 
+          ' datafile variable [mail domain global_model' +
+          ' experiment ensemble notes [corrflag]]')
   print('')
   sys.exit(-1)
 
 datafile = sys.argv[1]
 variable = sys.argv[2]
-mail = sys.argv[3]
-domain = sys.argv[4]
-global_model = sys.argv[5]
-experiment = sys.argv[6]
-ensemble = sys.argv[7]
-notes = sys.argv[8]
+
+if ( len(sys.argv) > 3 ):
+  mail = sys.argv[3]
+  domain = sys.argv[4]
+  global_model = sys.argv[5]
+  experiment = sys.argv[6]
+  ensemble = sys.argv[7]
+  notes = sys.argv[8]
+else:
+  mail = 'esp@ictp.it'
+  domain = 'NONE'
+  global_model = 'NONE'
+  experiment = 'none'
+  ensemble = 'NN'
+  notes = 'none'
+
 try:
   corrflag = sys.argv[9]
 except:
