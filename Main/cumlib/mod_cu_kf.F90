@@ -161,6 +161,7 @@ module mod_cu_kf
     pratec(:) = d_zero
     ktop(:) = 0
     kbot(:) = 0
+    total_precip_points = 0
 
     if ( ipptls == 2 ) then
       call kfpara(1,kz,1,nipoi,.true.,.true.,.false.)
