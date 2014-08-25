@@ -123,6 +123,7 @@ module mod_cu_interface
     end if
     if ( any(icup == 6) ) then
       call allocate_mod_cu_kf
+      call kf_lutab
     end if
   end subroutine allocate_cumulus
 

@@ -724,10 +724,6 @@ module mod_params
 #endif
       end if
     end if
-    if ( any(icup == 6 ) ) then
-      ! call fatal(__FILE__,__LINE__,'(Still) UNSUPPORTED CUMULUS SCHEME')
-      continue
-    end if
     if ( any(icup < 0) .or. any(icup > 6) ) then
       call fatal(__FILE__,__LINE__,'UNSUPPORTED CUMULUS SCHEME')
     end if
