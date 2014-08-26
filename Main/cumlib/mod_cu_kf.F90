@@ -47,9 +47,9 @@ module mod_cu_kf
   !  CAM3-CAM5 methodology, along with captured liquid and ice condensates.
   !    JAH & KA (U.S. EPA) -- May 2013
   !
-  integer(ik4) , parameter :: kfnt = 250
-  integer(ik4) , parameter :: kfnp = 220
-  integer(ik4) , parameter :: kfna = 200
+  integer(ik4) , parameter :: kfnt = 500
+  integer(ik4) , parameter :: kfnp = 440
+  integer(ik4) , parameter :: kfna = 300
   real(rk8) , dimension(kfnt,kfnp) , private , save :: ttab , qstab
   real(rk8) , dimension(kfnp) , private , save :: the0k
   real(rk8) , dimension(kfna) , private , save :: alu
@@ -71,6 +71,8 @@ module mod_cu_kf
   ! IPPTLS == 2
   real(rk8) , dimension(:,:) , pointer :: dqidt , dqrdt , dqsdt
 
+  real(rk8) , parameter :: astrt = 1.0D-3
+  real(rk8) , parameter :: aincb = 0.050D0
   contains
 
   subroutine allocate_mod_cu_kf
@@ -269,7 +271,7 @@ module mod_cu_kf
             frc2 , dr , udfrc , tuc , qgs , rh0 , rhg , qinit , qfnl ,    &
             err2 , relerr , rnc , fabeold , aincold , uefrc , ddfrc ,     &
             tdc , defrc , rhbar , dmffrc , dpmin , dilbe
-    real(rk8) :: astrt , tp , avalue , aintrp , tkemax , qfrz , qss , &
+    real(rk8) :: tp , avalue , aintrp , tkemax , qfrz , qss , &
             pptmlt , dtmelt , rhh , evac , binc
     integer(ik4) :: indlu , nu , nuchm , nnn , klfs
     real(rk8) :: chmin , pm15 , chmax , dtrh , rad , dppp
@@ -455,8 +457,7 @@ module mod_cu_kf
         ! Find the temperature of the mixture at its lcl.
         ! Calculate dewpoint using lookup table.
         !
-        astrt = 1.0D-3
-        ainc = 0.075D0
+        ainc = aincb
         a1 = emix/aliq
         tp = (a1-astrt)/ainc
         indlu = int(tp) + 1
@@ -1129,7 +1130,7 @@ module mod_cu_kf
       !
       peff = d_half*(pef+pefcbh)
       peff2 = peff   ! jsk mods
-      if (iprnt) then
+      if ( iprnt ) then
         write(stdout,1035) pef,pefcbh,lc,let,wkl,vwS
       end if
       !
@@ -1309,9 +1310,6 @@ module mod_cu_kf
         cpr = trppt
         pptflx = trppt-tder
         peff = pptflx/trppt
-        if ( iprnt ) then
-          write(stdout,*) 'PRECIP EFFICIENCY = ' , PEFF
-        end if
         !
         ! Adjust updraft mass flux, mass detrainment rate, and liquid water an
         ! detrainment rates to be consistent with the transfer of the estimate
@@ -1509,7 +1507,6 @@ module mod_cu_kf
         topomg = (udr(ltop)-uer(ltop))*dp(ltop)*emsd(ltop)
         if ( abs(topomg-omg(ltop)) > 1.0D-3 ) then
           istop = 1
-          iprnt = .true.
           exit iter
         end if
         !
@@ -1557,8 +1554,7 @@ module mod_cu_kf
         else
           qmix = max(qmix,d_zero)
           emix = qmix*pmix/(ep2+qmix)
-          astrt = 1.0D-3
-          binc = 0.075D0
+          binc = aincb
           a1 = emix/aliq
           tp = (a1-astrt)/binc
           indlu = int(tp)+1
@@ -1861,17 +1857,14 @@ module mod_cu_kf
           write(stdout,'(8f11.3)') p0(np,k)/100.0D0,t0(np,k)-273.16D0, &
                   q0(k)*1000.0D0,u0(np,k),v0(np,k),w0avg(np,k),dp(k),tke(k)
         end do
-        if ( istop == 1 ) then
-          call fatal(__FILE__,__LINE__,'KAIN-FRITSCH, istop=1, diags')
-        end if
+      end if
+      if ( istop == 1 ) then
+        call fatal(__FILE__,__LINE__,'KAIN-FRITSCH, istop=1, diags')
       end if
       cndtnf = (d_one-eqfrc(lfs))*(qliq(lfs)+qice(lfs))*dmf(lfs)
       pratec(np) = pptflx*(d_one-fbfrc)/dxsq
       raincv(np) = dtsec*pratec(np)     !  ppt fb mods
       rnc = raincv(np)*nic
-      if ( ishall == 0 .and. iprnt ) then
-        write(stdout,'(a,f8.4,a)') ' CONVECTIVE RAINFALL = ', RNC, ' mm'
-      end if
       !
       ! Evaluate moisture budget
       !
@@ -1888,25 +1881,26 @@ module mod_cu_kf
       err2 = (qfnl-qinit)*100.0D0/qinit
       if ( iprnt ) write(stdout,1110) qinit,qfnl,err2
       if ( abs(err2) > 0.05D0 .and. istop == 0 ) then
-        iprnt = .true.
         istop = 1
-        write(stdout,'(i6)') kl
-        do nk = 1 , kL
-          k = kl - nk + 1
-          write(stdout,'(8f12.3)') p0(np,k)/100.0d0,t0(np,k)-273.16D0, &
-                  q0(k)*1000.0D0,u0(np,k),v0(np,k),w0avg(np,k), &
-                  dp(k)/100.0D0,tke(k)
-        end do
+        if ( iprnt ) then
+          write(stdout,'(i6)') kl
+          do nk = 1 , kL
+            k = kl - nk + 1
+            write(stdout,'(8f12.3)') p0(np,k)/100.0D0,t0(np,k)-273.16D0, &
+                    q0(k)*1000.0D0,u0(np,k),v0(np,k),w0avg(np,k), &
+                    dp(k)/100.0D0,tke(k)
+          end do
+        end if
       end if
       if ( pptflx > d_zero ) then
         relerr = err2*qinit/(pptflx*timec)
       else
         relerr = d_zero
       end if
-      if ( iprnt ) then
+      if ( iprnt .and. relerr > dlowval ) then
         write(stdout,'(a,f9.3,a)') &
-                ' MOISTURE ERROR AS FUNCTION OF TOTAL PPT = ', RELERR, '%'
-        write(stdout,*) 'TDER, CPR, TRPPT = ', TDER, CPR*AINC, TRPPT*AINC
+                ' MOISTURE ERROR AS FUNCTION OF TOTAL PPT = ', relerr, '%'
+        write(stdout,*) 'TDER, CPR, TRPPT = ', tder, cpr*ainc, trppt*ainc
       end if
       !
       ! Feedback to resolvable scale tendencies.
@@ -1967,8 +1961,9 @@ module mod_cu_kf
             dqidt(np,k) = dqidt(np,k) + (qsg(k)-qs0(k))/timec
           end if
         else
-          write(stderr,*) 'KAIN-FRITSCH, THIS COMBINATION OF IMOIST,&
-                  & IEXICE, IICE NOT ALLOWED'
+          call fatal(__FILE__,__LINE__, &
+              'KAIN-FRITSCH, THIS COMBINATION OF IMOIST,&
+             & IEXICE, IICE NOT ALLOWED')
         end if
         dtdt(np,k) = (tg(k)-t0(np,k))/timec
         dqdt(np,k) = (qg(k)-q0(k))/timec
@@ -2006,7 +2001,7 @@ module mod_cu_kf
     !
     tp = (p-plutop) * rdpr
     qq = tp - dint(tp)
-    iptb = int(tp) + 1
+    iptb = max(1,min(kfnp,int(tp) + 1))
     !
     !*********************************
     ! base and scaling factor for the
@@ -2016,13 +2011,7 @@ module mod_cu_kf
     bth = (the0k(iptb+1) - the0k(iptb))*qq+the0k(iptb)
     tth = (thes-bth) * rdthk
     pp = tth - aint(tth)
-    ithtb=int(tth)+1
-    if ( iptb  >= 220 .or. &
-         iptb  <= 1   .or. &
-         ithtb >= 250 .or. &
-         ithtb <= 1 ) then
-      write(0,*) '**** OUT OF BOUNDS *********'
-    end if
+    ithtb = max(1,min(kfnt,int(tth) + 1))
 
     t00 = ttab(ithtb  ,iptb  )
     t10 = ttab(ithtb+1,iptb  )
@@ -2302,7 +2291,7 @@ module mod_cu_kf
     implicit none
     real(rk8) , intent(in) :: p1 , t1 , q1
     real(rk8) , intent(inout) :: tht1
-    real(rk8) :: ee , tlog , astrt , ainc , a1 , tp , avalue , aintrp
+    real(rk8) :: ee , tlog , a1 , tp , avalue , aintrp
     real(rk8) :: tdpt , tsat , tht
     integer(ik4) :: indlu
 
@@ -2320,13 +2309,11 @@ module mod_cu_kf
     !
     ! ...calculate LOG term using lookup table...
     !
-    astrt = 1.0D-3
-    ainc = 0.075D0
     a1 = ee/aliq
-    tp = (a1-astrt)/ainc
+    tp = (a1-astrt)/aincb
     indlu = int(tp) + 1
-    avalue = (indlu-1)*ainc + astrt
-    aintrp = (a1-avalue)/ainc
+    avalue = (indlu-1)*aincb + astrt
+    aintrp = (a1-avalue)/aincb
     tlog = aintrp*alu(indlu+1) + (1-aintrp)*alu(indlu)
 
     tdpt = (cliq-dliq*tlog)/(bliq-tlog)
@@ -2343,26 +2330,26 @@ module mod_cu_kf
     implicit none
     integer(ik4) :: kp , it , itcnt , i
     real(rk8) :: pbot , dpr , temp , p , es , qs , pi , thes , tgues , &
-            thgues , f0 , t1 , t0 , f1 , dt , astrt , ainc ,  a1 , thtgs
+            thgues , f0 , t1 , t0 , f1 , dt , a1 , thtgs
 
     ! equivalent potential temperature increment
-    real(rk8) , parameter :: dth = d_one
+    real(rk8) , parameter :: dth = d_half
     ! minimum starting temp
     real(rk8) , parameter :: tmin = 150.0D0
     ! tolerance for accuracy of temperature
     real(rk8) , parameter :: toler = 0.001D0
 
     ! top pressure (pascals)
-    plutop = 5000.0
+    plutop = ptop*1000.0D0 - 100.0D0
     ! bottom pressure (pascals)
-    pbot = 110000.0
-
+    pbot = stdp + 1000.0D0
+    ! pressure increment
+    dpr = (pbot-plutop) / dble(kfnp-1)
+    !
     ! compute parameters
     !
     ! 1._over_(sat. equiv. theta increment)
     rdthk = d_one / dth
-    ! pressure increment
-    dpr = (pbot-plutop) / dble(kfnp-1)
     ! 1._over_(pressure increment)
     rdpr = d_one / dpr
     !
@@ -2426,11 +2413,9 @@ module mod_cu_kf
     !
     ! set up intial values for lookup tables
     !
-    astrt = 1.0D-3
-    ainc = 0.075D0
-    a1 = astrt-ainc
+    a1 = astrt-aincb
     do i = 1 , kfna
-      a1 = a1 + ainc
+      a1 = a1 + aincb
       alu(i) = log(a1)
     end do
   end subroutine kf_lutab
