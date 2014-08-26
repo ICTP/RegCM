@@ -136,9 +136,9 @@ module mod_dynparam
   integer(ik4) :: nspgd = 12
 
 ! Nudge control coefficients
-  real(rk8) :: high_nudge = 1.0D0
+  real(rk8) :: high_nudge   = 3.0D0
   real(rk8) :: medium_nudge = 2.0D0
-  real(rk8) :: low_nudge = 3.0D0
+  real(rk8) :: low_nudge    = 1.0D0
 
 ! Number od split exp modes
 
