@@ -36,6 +36,10 @@ module mod_cu_tiedtke
 
   private
 
+  logical , parameter :: lmfmid  = .true. ! midlevel convection is switched on
+  logical , parameter :: lmfdd   = .true. ! cumulus downdraft is switched on
+  logical , parameter :: lmfdudv = .true. ! cumulus friction is switched on
+
   public :: allocate_mod_cu_tiedtke , tiedtkedrv , q_detr
 
   ! evaporation coefficient for kuo0
@@ -56,6 +60,25 @@ module mod_cu_tiedtke
   integer(ik4) , pointer , dimension(:) :: imap , jmap
 
   integer(ik4) :: nskmax
+
+  ! CAPE adjustment timescale
+  real(rk8) , parameter :: cmtcape = 453600.D0
+  ! Max massflux value
+  real(rk8) , parameter :: cmfcmax = 1.0D0
+  ! Min massflux value (for safety)
+  real(rk8) , parameter :: cmfcmin = 1.0D-10
+  ! Rainfall max elevation
+  real(rk8) , parameter :: zdlev   = 1.5D4
+  ! Midlevel convection top pressure
+  real(rk8) , parameter :: cmcptop = 300.0D0
+  ! Relat. cloud massflux at level above nonbuoyancy
+  real(rk8) , parameter :: cmfctop = 0.35D0
+
+  ! Fractional massflux for downdrafts at lfs
+  real(rk8) , parameter :: cmfdeps = 0.3D0
+
+  ! Trigger parameter for the convection 0.0 <-> 1.0
+  real(rk8) , parameter :: ctrigger = -1.1D0
 
   contains
 !
@@ -1312,8 +1335,8 @@ module mod_cu_tiedtke
 !!    (CLOUD DEPTH FROM NON-ENTRAINIG PLUME)
 !!
 !     DO jl=1,kproma
-!     ktype(jl)=MERGE(1,2,paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl)).gt.2.D4)
-!     zentr(jl)=MERGE(entrpen,entrscv,ktype(jl) == 1)
+!     ktype(jl)=merge(1,2,paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl)).gt.2.D4)
+!     zentr(jl)=merge(entrpen,entrscv,ktype(jl) == 1)
 !     ENDDO
 !!
 !*    (B) DO ASCENT IN 'CUASCT' IN ABSENCE OF DOWNDRAFTS
@@ -1754,8 +1777,8 @@ module mod_cu_tiedtke
 !!    (CLOUD DEPTH FROM NON-ENTRAINIG PLUME)
 !!
 !     DO jl=1,kproma
-!     ktype(jl)=MERGE(1,2,paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl)).gt.2.D4)
-!     zentr(jl)=MERGE(entrpen,entrscv,ktype(jl) == 1)
+!     ktype(jl)=merge(1,2,paphp1(jl,kcbot(jl))-paphp1(jl,ictop0(jl)).gt.2.D4)
+!     zentr(jl)=merge(entrpen,entrscv,ktype(jl) == 1)
 !     ENDDO
 !!
 !*    (B) DO ASCENT IN 'CUASCT' IN ABSENCE OF DOWNDRAFTS
@@ -2299,7 +2322,7 @@ module mod_cu_tiedtke
 !           nb zoentr is here a fractional value
         zoentr(jl,ikb-1) = zbuoy(jl)*d_half/(d_one+zbuoy(jl)*zdz)   &
                            + zdrodz
-        zoentr(jl,ikb-1) = min(zoentr(jl,ikb-1),centrmax)
+        zoentr(jl,ikb-1) = min(zoentr(jl,ikb-1),entrmax)
         zoentr(jl,ikb-1) = max(zoentr(jl,ikb-1),d_zero)
       end if
     end if
@@ -2553,7 +2576,7 @@ module mod_cu_tiedtke
                  *(d_one+retv*pqenh(jl,jk)))
         zbuoy(jl) = zbuoy(jl) + zbuoyz*zdz
         zoentr(jl,jk-1) = zbuoyz*d_half/(d_one+zbuoy(jl)) + zdrodz
-        zoentr(jl,jk-1) = min(zoentr(jl,jk-1),centrmax)
+        zoentr(jl,jk-1) = min(zoentr(jl,jk-1),entrmax)
         zoentr(jl,jk-1) = max(zoentr(jl,jk-1),d_zero)
 !
       end if
@@ -3952,7 +3975,7 @@ module mod_cu_tiedtke
     if ( llo2 .and. pqenh(jl,kk+1) > 1.D-5 ) then
       pmfu(jl,kk+1) = max(pmfu(jl,kk+1),cmfcmin)
       zentest = max(pqte(jl,kk),d_zero)/pqenh(jl,kk+1)
-      zentest = min(centrmax,zentest/(pmfu(jl,kk+1)*zrrho))
+      zentest = min(entrmax,zentest/(pmfu(jl,kk+1)*zrrho))
       pdmfen(jl) = zentr + zentest*pmfu(jl,kk+1)*zrrho*zdprho
     end if
 
@@ -3975,7 +3998,7 @@ module mod_cu_tiedtke
         zarg = mathpi*(zzmzk/ztmzk)*d_half
         zorgde = tan(zarg)*mathpi*d_half/ztmzk
         zdprho = (paphp1(jl,kk+1)-paphp1(jl,kk))*(regrav*zrrho)
-        podetr(jl,kk) = min(zorgde,centrmax)*pmfu(jl,kk+1)*zdprho
+        podetr(jl,kk) = min(zorgde,entrmax)*pmfu(jl,kk+1)*zdprho
       end if
     end if
   end do
@@ -4065,7 +4088,7 @@ module mod_cu_tiedtke
     if ( llo2 .and. pqenh(jl,kk+1) > 1.D-5 ) then
       pmfu(jl,kk+1) = max(pmfu(jl,kk+1),cmfcmin)
       zentest = max(pqte(jl,kk),d_zero)/pqenh(jl,kk+1)
-      zentest = min(centrmax,zentest/(pmfu(jl,kk+1)*zrrho))
+      zentest = min(entrmax,zentest/(pmfu(jl,kk+1)*zrrho))
       pdmfen(jl) = zentr + zentest*pmfu(jl,kk+1)*zrrho*zdprho
     end if
   end do

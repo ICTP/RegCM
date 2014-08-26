@@ -141,7 +141,7 @@ module mod_constants
   real(rk8) , parameter :: spcpice = 2.11727D+03 ! fresh ice
 
   ! Latent heats (Joules/kg)
-  real(rk8) , parameter :: wlhf = 0.3337D+06
+  real(rk8) , parameter :: wlhf = 0.33355D+06
   real(rk8) , parameter :: wlhv = 2.50080D+06
   real(rk8) , parameter :: wlhs = wlhv + wlhf
 

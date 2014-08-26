@@ -129,15 +129,12 @@ module mod_params
     entp , sigd , sigs , omtrain , omtsnow , coeffr , coeffs , cu , &
     betae , dtmax , alphae , damp , epmax_ocn , epmax_lnd
  
-  namelist /tiedtkeparam/ &
-      iconv , entrdd , cmfcmax , cmfcmin , entrpen , entrscv ,    &
-      entrmid , cmfdeps , rhcdd , cmtcape , zdlev , ctrigger ,    &
-      cmfctop , cprcon , cmcptop , centrmax , lmfmid , lmfdd ,    &
-      lepcld , lmfdudv , lmfscv , lmfpen , lmfuvdis , lmftrac ,   &
-      lmfsmooth , lmfwstar , n_vmass , rlpal1 , rlpal2 , rcucov , &
-      rcpecons , rtaumel , rhebc_lnd , rhebc_ocn , rmflic ,       &
-      rmflia , rmfsoluv , rmfsoltq , rmfsolct , ruvper , rprcon , &
-      detrpen , entrorg , entshalp , rdepths , rvdifts
+  namelist /tiedtkeparam/ iconv , entrmax , entrdd , entrpen ,   &
+    entrscv , entrmid , cprcon , detrpen , entshalp , rcuc_lnd , &
+    rcuc_ocn , rcpec_lnd , rcpec_ocn , rhebc_lnd , rhebc_ocn ,   &
+    rprc_ocn , rprc_lnd
+
+  namelist /kfparam/ kf_entrate
 
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
          ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,      &
@@ -447,60 +444,30 @@ module mod_params
   epmax_lnd = 0.999D0 ! Maximum precipitation efficiency over ocean
 !
 !------namelist tiedtkeparam:
-  iconv    = 4  ! Selects the actual scheme
-  entrdd   = 3.0D-4
-  cmfcmax  = 1.0D0
-  cmfcmin  = 1.0D-10
+  iconv    = 4        ! Selects the actual scheme
+  entrmax  = 1.75D-3  ! Max entrainment iconv=[1,2,3]
+  entrdd   = 3.0D-4   ! Entrainment rate for cumulus downdrafts
+  entrpen  = 1.75D-3  ! Entrainment rate for penetrative convection
+  entrscv  = 3.0D-4   ! Entrainment rate for shallow convection iconv=[1,2,3]
+  entrmid  = 1.0D-4   ! Entrainment rate for midlevel convection iconv=[1,2,3]
+  cprcon   = 1.0D-4   ! Coefficient for determining conversion iconv=[1,2,3]
+  detrpen = 0.75D-4   ! Detrainment rate for penetrative convection
+  entshalp = 2.0D0    ! shallow entrainment factor for entrpen
+  rcuc_lnd = 0.05D0   ! Convective cloud cover for rain evporation
+  rcuc_ocn = 0.05D0   ! Convective cloud cover for rain evporation
+  rcpec_ocn = 5.55D-5 ! Coefficient for rain evaporation below cloud
+  rcpec_lnd = 5.55D-5 ! Coefficient for rain evaporation below cloud
+  rhebc_lnd = 0.7D0   ! Critical relative humidity below
+                      ! cloud at which evaporation starts for land
+  rhebc_ocn = 0.9D0   ! Critical relative humidity below
+                      ! cloud at which evaporation starts for ocean
+  rprc_lnd = 1.4D-3   ! coefficient for determining conversion from cloud water
+  rprc_ocn = 1.4D-3   ! coefficient for determining conversion from cloud water
+ 
+!c------namelist kfparam ;
 
-  entrpen  = 1.0D-4
-  entrscv  = 3.0D-4
-  entrmid  = 1.0D-4
+  kf_entrate = 0.3D0 ! Kain Fritsch entrainment rate
 
-  cmfdeps  = 0.3D0
-  rhcdd    = 0.9D0
-  cmtcape  = 453600.0D0
-  zdlev    = 1.5D4
-  ctrigger = -1.1D0
-! THOSE ARE FUNCTION OF GRID AND VERTICAL RESOLUTION
-  cmfctop  = 0.35D0
-  cprcon   = 1.0D-4
-  cmcptop   = 300.0D0
-  centrmax = 2.0D-4
-! Control switch flags
-  lmfmid = .true.     ! True if midlevel convection is on
-  lmfdd = .true.      ! True if cumulus downdraft is on
-  lepcld = .true.     ! True if prognostic cloud scheme is on
-  lmfdudv = .true.    ! True if cumulus friction is on
-  lmfscv = .true.     ! True if shallow convection is on
-  lmfpen = .true.     ! True if penetrative convection is on
-  lmfuvdis = .true.   ! use kinetic energy dissipation (addit T-tendency)
-  lmftrac = .true.    ! Convective chemical tracer transport
-  lmfsmooth = .false. ! Smoothing of mass fluxes top/bottom for tracers
-  lmfwstar = .false.  ! Grant w* closure for shallow conv.
-
-  n_vmass = 0      ! Using or not vector mass
-  rlpal1 = 0.15D0  ! Smoothing coefficient
-  rlpal2 = 20.0D0  ! Smoothing coefficient
-  rcucov = 0.05D0  ! Convective cloud cover for rain evporation
-  rcpecons = 5.44D-4/egrav ! Coefficient for rain evaporation below cloud
-  rtaumel = 5.0D0*3.6D3*1.5D0 ! Relaxation time for melting of snow
-  rhebc_lnd = 0.7D0 ! Critical relative humidity below
-                    ! cloud at which evaporation starts for land
-  rhebc_ocn = 0.9D0 ! Critical relative humidity below
-                    ! cloud at which evaporation starts for ocean
-  rmflic = 1.0D0 ! Use CFL mass flux limit (1) or absolut limit (0)
-  rmflia = 0.0D0 ! Value of absolut mass flux limit
-  rmfsoluv = 1.0D0 ! Mass flux solver for momentum
-  rmfsoltq = 1.0D0 ! Mass flux solver for T and q
-  rmfsolct = 1.0D0 ! Mass flux solver for chem tracers
-  ruvper = 0.3D0 ! Updraught velocity perturbation for implicit (m/s)
-  rprcon = 1.4D-3 ! coefficients for determining conversion from cloud water
-  detrpen = 0.75D-4 ! Detrainment rate for penetrative convection
-  entrorg = 1.75D-3 ! Entrainment for positively buoyant convection 1/(m)
-  entshalp = 2.0D0  ! shallow entrainment factor for entrorg
-  rdepths = 2.0D4   ! Maximum allowed cloud thickness for shallow cloud (Pa)
-  rvdifts = 1.5D0   ! Factor for time step weighting in *vdf....*
-!
 !c------namelist uwparam ;
   iuwvadv = 0
   ilenparam = 0
@@ -724,6 +691,17 @@ module mod_params
 #endif
       end if
     end if
+    if ( any(icup == 6) ) then
+      rewind(ipunit)
+      read (ipunit, nml=kfparam, iostat=iretval, err=109)
+      if ( iretval /= 0 ) then
+        write(stdout,*) 'Using default Kain Fritsch parameter.'
+#ifdef DEBUG
+      else
+        write(stdout,*) 'Read kfparam OK'
+#endif
+      end if
+    end if
     if ( any(icup < 0) .or. any(icup > 6) ) then
       call fatal(__FILE__,__LINE__,'UNSUPPORTED CUMULUS SCHEME')
     end if
@@ -732,7 +710,7 @@ module mod_params
     end if
     if ( ibltyp == 1 .or. ibltyp == 99 ) then
       rewind(ipunit)
-      read (ipunit, nml=holtslagparam, iostat=iretval, err=109)
+      read (ipunit, nml=holtslagparam, iostat=iretval, err=110)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default Holtslag parameter.'
 #ifdef DEBUG
@@ -743,7 +721,7 @@ module mod_params
     end if
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       rewind(ipunit)
-      read (ipunit, nml=uwparam, iostat=iretval, err=110)
+      read (ipunit, nml=uwparam, iostat=iretval, err=111)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default UW PBL parameter.'
 #ifdef DEBUG
@@ -754,7 +732,7 @@ module mod_params
     end if
     if ( irrtm == 1 ) then
       rewind(ipunit)
-      read (ipunit, nml=rrtmparam, iostat=iretval, err=111)
+      read (ipunit, nml=rrtmparam, iostat=iretval, err=112)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default RRTM parameter.'
 #ifdef DEBUG
@@ -766,7 +744,7 @@ module mod_params
 
     if ( islab_ocean == 1 ) then
       rewind(ipunit)
-      read (ipunit, nml=slabocparam, iostat=iretval, err=112)
+      read (ipunit, nml=slabocparam, iostat=iretval, err=113)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default SLAB Ocean parameter.'
 #ifdef DEBUG
@@ -793,7 +771,7 @@ module mod_params
 
     if ( ichem == 1 ) then
       rewind(ipunit)
-      read (ipunit, chemparam, iostat=iretval, err=113)
+      read (ipunit, chemparam, iostat=iretval, err=114)
       if ( iretval /= 0 ) then
         write(stderr,*) 'Error reading chemparam namelist'
         call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
@@ -810,7 +788,7 @@ module mod_params
     end if
 #ifdef CLM
     rewind(ipunit)
-    read (ipunit , clmparam, iostat=iretval, err=114)
+    read (ipunit , clmparam, iostat=iretval, err=115)
     if ( iretval /= 0 ) then
       write(stdout,*) 'Using default CLM parameter.'
 #ifdef DEBUG
@@ -821,7 +799,7 @@ module mod_params
 #endif
     if ( iocncpl == 1 ) then
       rewind(ipunit)
-      read (ipunit , cplparam, iostat=iretval, err=115)
+      read (ipunit , cplparam, iostat=iretval, err=116)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default Coupling parameter.'
 #ifdef DEBUG
@@ -833,7 +811,7 @@ module mod_params
 
     if ( itweak == 1 ) then
       rewind(ipunit)
-      read (ipunit , tweakparam, iostat=iretval, err=116)
+      read (ipunit , tweakparam, iostat=iretval, err=117)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Tweak parameters absent.'
         write(stdout,*) 'Disable tweaking.'
@@ -1104,51 +1082,26 @@ module mod_params
  
   if ( any(icup == 5) ) then
     call bcast(iconv)
+    call bcast(entrmax)
     call bcast(entrdd)
-    call bcast(cmfcmax)
-    call bcast(cmfcmin)
     call bcast(entrpen)
     call bcast(entrscv)
     call bcast(entrmid)
-    call bcast(cmfdeps)
-    call bcast(rhcdd)
-    call bcast(cmtcape)
-    call bcast(zdlev)
-    call bcast(ctrigger)
-    call bcast(cmfctop)
     call bcast(cprcon)
-    call bcast(cmcptop)
-    call bcast(centrmax)
-    call bcast(lmfmid)
-    call bcast(lmfdd)
-    call bcast(lepcld)
-    call bcast(lmfdudv)
-    call bcast(lmfscv)
-    call bcast(lmfpen)
-    call bcast(lmfuvdis)
-    call bcast(lmftrac)
-    call bcast(lmfsmooth)
-    call bcast(lmfwstar)
-    call bcast(n_vmass)
-    call bcast(rlpal1)
-    call bcast(rlpal2)
-    call bcast(rcucov)
-    call bcast(rcpecons)
-    call bcast(rtaumel)
+    call bcast(detrpen)
+    call bcast(entshalp)
+    call bcast(rcuc_lnd)
+    call bcast(rcuc_ocn)
+    call bcast(rcpec_lnd)
+    call bcast(rcpec_ocn)
     call bcast(rhebc_lnd)
     call bcast(rhebc_ocn)
-    call bcast(rmflic)
-    call bcast(rmflia)
-    call bcast(rmfsoluv)
-    call bcast(rmfsoltq)
-    call bcast(rmfsolct)
-    call bcast(ruvper)
-    call bcast(rprcon)
-    call bcast(detrpen)
-    call bcast(entrorg)
-    call bcast(entshalp)
-    call bcast(rdepths)
-    call bcast(rvdifts)
+    call bcast(rprc_lnd)
+    call bcast(rprc_ocn)
+  end if
+
+  if ( any(icup == 6) ) then
+    call bcast(kf_entrate)
   end if
 
   if ( ibltyp == 1 .or. ibltyp == 99 ) then
@@ -1893,23 +1846,8 @@ module mod_params
       write(stdout,'(a,f11.6)') '  Entrainment rate shallow conv.    : ',entrscv
       write(stdout,'(a,f11.6)') '  Entrainment rate midlev conv.     : ',entrmid
       write(stdout,'(a,f11.6)') '  Entrainment rate cumulus downdraft: ',entrdd
-      write(stdout,'(a,f11.6)') '  Relative cloud massflux avove NBL : ',cmfctop
-      write(stdout,'(a,f11.6)') '  Maximum allowed massflux          : ',cmfcmax
-      write(stdout,'(a,f11.6)') '  Minimum allowed massflux          : ',cmfcmin
-      write(stdout,'(a,f11.6)') '  Downdraft massflux fraction at LFS: ',cmfdeps
-      write(stdout,'(a,f11.6)') '  Relative downdraft saturation     : ',rhcdd
-      write(stdout,'(a,f11.6,a)') '  CAPE adjustment timescale         : ',&
-              cmtcape*10.0D-3, ' * 1000'
-      write(stdout,'(a,f11.2)') '  Restrict rainfall level           : ',zdlev
       write(stdout,'(a,f11.6)') '  CLW to rain conversion factor     : ',cprcon
-      write(stdout,'(a,f11.6)') '  Midlevel Convection top pressure  : ',cmcptop
-      write(stdout,'(a,f11.6)') '  Max entrainment                   : ', &
-        centrmax
-      write(stdout,*) ' Penetrative convection enabled    : ',lmfpen
-      write(stdout,*) ' Shallow convection enabled        : ',lmfscv
-      write(stdout,*) ' Midlevel convection enabled       : ',lmfmid
-      write(stdout,*) ' Cumulus downdraft is enabled      : ',lmfdd
-      write(stdout,*) ' Cumulus friction is enabled       : ',lmfdudv
+      write(stdout,'(a,f11.6)') '  Max entrainment                   : ',entrmax
     end if
     if ( myid == italk .and. iconv == 4 ) then
       write(stdout,*) 'Tiedtke (1986) Convection Scheme ECMWF 38R2 used.'
@@ -1919,6 +1857,7 @@ module mod_params
   if ( any(icup == 6)  ) then
     if ( myid == italk ) then
       write(stdout,*) 'Kain Fritsch scheme used.'
+      write(stdout,'(a,f11.6)') '  Entrainment rate : ', kf_entrate
     end if
   end if
 
@@ -2113,16 +2052,17 @@ module mod_params
 106 call fatal(__FILE__,__LINE__, 'Error reading GRELLPARAM')
 107 call fatal(__FILE__,__LINE__, 'Error reading EMANPARAM')
 108 call fatal(__FILE__,__LINE__, 'Error reading TIEDTKEPARAM')
-109 call fatal(__FILE__,__LINE__, 'Error reading HOLTSLAGPARAM')
-110 call fatal(__FILE__,__LINE__, 'Error reading UWPARAM')
-111 call fatal(__FILE__,__LINE__, 'Error reading RRTMPARAM')
-112 call fatal(__FILE__,__LINE__, 'Error reading SLABOCPARAM')
-113 call fatal(__FILE__,__LINE__, 'Error reading CHEMPARAM')
+109 call fatal(__FILE__,__LINE__, 'Error reading KFPARAM')
+110 call fatal(__FILE__,__LINE__, 'Error reading HOLTSLAGPARAM')
+111 call fatal(__FILE__,__LINE__, 'Error reading UWPARAM')
+112 call fatal(__FILE__,__LINE__, 'Error reading RRTMPARAM')
+113 call fatal(__FILE__,__LINE__, 'Error reading SLABOCPARAM')
+114 call fatal(__FILE__,__LINE__, 'Error reading CHEMPARAM')
 #ifdef CLM
-114 call fatal(__FILE__,__LINE__, 'Error reading CLMPARAM')
+115 call fatal(__FILE__,__LINE__, 'Error reading CLMPARAM')
 #endif
-115 call fatal(__FILE__,__LINE__, 'Error reading CPLPARAM')
-116 call fatal(__FILE__,__LINE__, 'Error reading TWEAKPARAM')
+116 call fatal(__FILE__,__LINE__, 'Error reading CPLPARAM')
+117 call fatal(__FILE__,__LINE__, 'Error reading TWEAKPARAM')
 
   end subroutine param
 !

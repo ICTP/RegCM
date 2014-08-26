@@ -2404,101 +2404,44 @@ module mod_ncout
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_integer('tiedtke_actual_scheme',iconv))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_logical('tiedtke_enable_deep_convection',lmfpen))
+            ncattribute_real8('tiedtke_entrainment_rate_downdraft',entrdd))
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_logical('tiedtke_enable_shallow_convection',lmfscv))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_logical('tiedtke_enable_midlevel_convection',lmfmid))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_logical('tiedtke_enable_cumulus_downsraft',lmfdd))
-          call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_logical('tiedtke_enable_cumulus_friction',lmfdudv))
+            ncattribute_real8('tiedtke_entrainment_rate_deep',entrpen))
           if ( iconv == 4 ) then
             call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_logical('tiedtke_enable_prognostic_cloud',lepcld))
+              ncattribute_real8('tiedtke_detrainment_rate_deep',detrpen))
             call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_logical('tiedtke_enable_ke_dissipation',lmfuvdis))
+              ncattribute_real8('tiedtke_shallow_entrainment',entshalp))
             call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_logical('tiedtke_enable_chem_tracer',lmftrac))
+              ncattribute_real8('tiedtke_cloud_cover_evap_over_land',rcuc_lnd))
             call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_logical('tiedtke_enable_massflux_smooth',lmfsmooth))
+              ncattribute_real8('tiedtke_cloud_cover_evap_over_ocean',rcuc_ocn))
             call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_logical('tiedtke_enable_wstar_closure',lmfwstar))
+              ncattribute_real8('tiedtke_coeff_evap_over_land',rcpec_lnd))
             call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_integer('tiedtke_use_vector_mass',n_vmass))
-            if ( lmfsmooth ) then
-              call outstream_addatt(outstream(i)%ncout(j), &
-                ncattribute_real8('tiedtke_smoothing_coefficient_1',rlpal1))
-              call outstream_addatt(outstream(i)%ncout(j), &
-                ncattribute_real8('tiedtke_smoothing_coefficient_2',rlpal2))
-            end if
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_cloud_cover_evaporation',rcucov))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_coeff_evaporation_below',rcpecons))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_snow_melting_relaxation',rtaumel))
+              ncattribute_real8('tiedtke_coeff_evap_over_ocean',rcpec_ocn))
             call outstream_addatt(outstream(i)%ncout(j), &
               ncattribute_real8('tiedtke_critical_rh_over_land',rhebc_lnd))
             call outstream_addatt(outstream(i)%ncout(j), &
               ncattribute_real8('tiedtke_critical_rh_over_ocean',rhebc_ocn))
             call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_absolute_massflux_limit',rmflia))
+              ncattribute_real8('tiedtke_cloud_water_conv_over_land',rprc_lnd))
             call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_use_CFL_massflux',rmflic))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_massflux_momentum',rmfsoluv))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_massflux_TQ',rmfsoltq))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_massflux_CHEM',rmfsolct))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_updraught_implicit_velocity',ruvper))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_cloud_water_conversion',rprcon))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_detrainment_rate_penetrative',detrpen))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_entrainment_positive_buoyant',entrorg))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_shallow_entrainment',entshalp))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_maximum_shallow_thickness',rdepths))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_vdf_weight_dt_factor',rvdifts))
+              ncattribute_real8('tiedtke_cloud_water_conv_over_ocean',rprc_ocn))
           else
             call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_entrainment_rate_deep',entrpen))
+              ncattribute_real8('tiedtke_max_entrainment',entrmax))
             call outstream_addatt(outstream(i)%ncout(j), &
               ncattribute_real8('tiedtke_entrainment_rate_shallow',entrscv))
             call outstream_addatt(outstream(i)%ncout(j), &
               ncattribute_real8('tiedtke_entrainment_rate_midlevel',entrmid))
             call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_max_massflux',cmfcmax))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_min_massflux',cmfcmin))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_downdraft_fractional_LFS_massflux',&
-              cmfdeps))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_relative_saturation_downdraft',rhcdd))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_cape_adjustment_timescale',cmtcape))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_max_rainfall_elevation',zdlev))
-            call outstream_addatt(outstream(i)%ncout(j), &
               ncattribute_real8('tiedtke_conversion_coefficient',cprcon))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_midlevel_conv_top_pressure',cmcptop))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_trigger_coefficient',ctrigger))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_max_entrainment',centrmax))
-            call outstream_addatt(outstream(i)%ncout(j), &
-              ncattribute_real8('tiedtke_fractional_massflux_above_NB',cmfctop))
           end if
+        end if
+        if ( any(icup == 6) ) then
           call outstream_addatt(outstream(i)%ncout(j), &
-            ncattribute_real8('tiedtke_entrainment_rate_downdraft',entrdd))
+            ncattribute_real8('kf_entrainment_rate',kf_entrate))
         end if
         if ( ibltyp == 1 .or. ibltyp == 99 ) then
           call outstream_addatt(outstream(i)%ncout(j), &

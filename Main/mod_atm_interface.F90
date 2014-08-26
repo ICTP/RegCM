@@ -465,7 +465,7 @@ module mod_atm_interface
                             ice1-ma%ibb1,ice2+ma%ibt1,'v2dbound:bt')
       end if
     end subroutine allocate_v2dbound
-!
+
     subroutine allocate_atmstate(atm,ibltyp,exchange_points)
       implicit none
       integer(ik4) , intent(in) :: ibltyp
@@ -688,7 +688,7 @@ module mod_atm_interface
 
       call getmem3d(dstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:dstor')
       call getmem3d(hstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:hstor')
-!
+
       call getmem2d(hgfact,jde1,jde2,ide1,ide2,'storage:hgfact')
       call getmem2d(psdot,jde1,jde2,ide1,ide2,'storage:psdot')
       call getmem3d(omega,jci1,jci2,ici1,ici2,1,kz,'storage:omega')

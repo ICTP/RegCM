@@ -27,7 +27,7 @@ module mod_cu_kf
   use mod_mpmessage
   use mod_cu_common
   use mod_runparams , only : dx , dxsq , ipptls , dt , dtsec
-  use mod_runparams , only : iqv , iqr , iqi , iqs , iqc
+  use mod_runparams , only : iqv , iqr , iqi , iqs , iqc , kf_entrate
   use mod_service
 
   implicit none
@@ -35,13 +35,13 @@ module mod_cu_kf
   private
 
   public :: allocate_mod_cu_kf , kfdrv , kf_lutab
-
-  integer(ik4) , parameter :: trigger = 3
   !
   !  V3.3: A new trigger function is added based Ma and Tan (2009):
   !   Ma, L.-M. and Z.-M. Tan, 2009: Improving the behavior of
   !   the cumulus parameterization for tropical cyclone prediction:
   !   Convection trigger. Atmospheric Research, 92, 190 - 211.
+  !
+  integer(ik4) , parameter :: kf_trigger = 3
   !
   !  WRF v3.5 with diagnosed deep and shallow KF cloud fraction using
   !  CAM3-CAM5 methodology, along with captured liquid and ice condensates.
@@ -49,9 +49,10 @@ module mod_cu_kf
   !
   integer(ik4) , parameter :: kfnt = 250
   integer(ik4) , parameter :: kfnp = 220
+  integer(ik4) , parameter :: kfna = 200
   real(rk8) , dimension(kfnt,kfnp) , private , save :: ttab , qstab
   real(rk8) , dimension(kfnp) , private , save :: the0k
-  real(rk8) , dimension(200) , private , save :: alu
+  real(rk8) , dimension(kfna) , private , save :: alu
   real(rk8) , private , save :: rdpr , rdthk , plutop
 
   integer(ik4) :: nipoi
@@ -65,6 +66,7 @@ module mod_cu_kf
   integer(ik4) , dimension(:) , pointer :: ktop , kbot
 
   real(rk8) , dimension(:,:) , pointer :: dqdt , dtdt , dqcdt
+  real(rk8) , dimension(:,:) , pointer :: tpart_h , tpart_v
 
   ! IPPTLS == 2
   real(rk8) , dimension(:,:) , pointer :: dqidt , dqrdt , dqsdt
@@ -118,6 +120,10 @@ module mod_cu_kf
     call getmem1d(pratec,1,nipoi,'mod_cu_kf:pratec')
     call getmem1d(ktop,1,nipoi,'mod_cu_kf:ktop')
     call getmem1d(kbot,1,nipoi,'mod_cu_kf:kbot')
+    if ( kf_trigger == 2 ) then
+      call getmem2d(tpart_v,1,nipoi,1,kz,'mod_cu_kf:tpart_v')
+      call getmem2d(tpart_h,1,nipoi,1,kz,'mod_cu_kf:tpart_h')
+    end if
   end subroutine allocate_mod_cu_kf
 
   subroutine kfdrv(m2c,c2m)
@@ -162,6 +168,10 @@ module mod_cu_kf
     ktop(:) = 0
     kbot(:) = 0
     total_precip_points = 0
+
+    if ( kf_trigger == 2 ) then
+      call fatal(__FILE__,__LINE__,'Not implemented kf_trigger == 2')
+    end if
 
     if ( ipptls == 2 ) then
       call kfpara(1,kz,1,nipoi,.true.,.true.,.false.)
@@ -278,10 +288,8 @@ module mod_cu_kf
 
     real(rk8) , parameter :: p00 = stdp
     real(rk8) , parameter :: t00 = tzero
-    real(rk8) , parameter :: rlf = 3.339D5
-    real(rk8) , parameter :: ttfrz = 268.16D0
-    real(rk8) , parameter :: tbfrz = 248.16D0
-    real(rk8) , parameter :: rate = 0.03D0
+    real(rk8) , parameter :: ttfrz = tzero - 5.0D0
+    real(rk8) , parameter :: tbfrz = tzero - 25.0D0
 
     modelpoints: &
     do np = its , ite
@@ -487,20 +495,24 @@ module mod_cu_kf
         ! adjust vertical velocity to equivalent value for 25 km grid
         ! length, assuming linear dependence of w on grid length.
         !
-        if ( zlcl < 2.D3 ) then  ! Kain (2004) Eq. 2
+        if ( zlcl < 2.0D3 ) then  ! Kain (2004) Eq. 2
           wklcl = 0.02D0*zlcl/2.0D3
         else
           wklcl = 0.02D0         ! units of m/s
         end if
-        wkl = (w0avg(np,k)+(w0avg(np,klcl)-w0avg(np,k))*dlp)*dx/25.D3-wklcl
+        wkl = (w0avg(np,k)+(w0avg(np,klcl)-w0avg(np,k))*dlp)*dx/25.0D3-wklcl
         if ( wkl < 0.0001D0 ) then
           dtlcl = d_zero
         else
           dtlcl = 4.64D0*wkl**0.33D0  ! Kain (2004) Eq. 1
         end if
 
+        if ( kf_trigger == 2 ) then
+          dtlcl = max(tpart_h(np,klcl) + tpart_v(np,klcl), d_zero)
+        end if
+
         dtrh = d_zero
-        if ( trigger == 3 ) then
+        if ( kf_trigger == 3 ) then
           ! for ETA model, give parcel an extra temperature perturbation based
           ! the threshold RH for condensation (U00).
           ! as described in Narita and Ohmori (2007, 12th Mesoscale Conf.
@@ -520,9 +532,9 @@ module mod_cu_kf
               dtrh = d_zero
             end if
           end if
-        end if   ! trigger 3
+        end if   ! kf_trigger 3
 
-        trigger2: &
+        kf_trigger2: &
         if ( tlcl+dtlcl+dtrh < tenv ) then
           !
           ! Parcel not buoyant, CYCLE back to start of trigger and
@@ -540,7 +552,7 @@ module mod_cu_kf
           ! Modify calculation of initial parcel vertical velocity. jsk 11/26/97
           !
           dttot = dtlcl + dtrh
-          if ( dttot > 1.D-4 ) then
+          if ( dttot > 1.0D-4 ) then
             gdt = d_two*egrav*dttot*500.0D0/tven ! Kain (2004) Eq. 3  (sort of)
             wlcl = d_one + d_half*sqrt(gdt)
             wlcl = min(wlcl,3.0D0)
@@ -672,12 +684,12 @@ module mod_cu_kf
             enterm = d_two*rei*wtw/upold
 
             call condload(qliq(nk1),qice(nk1),wtw,dzz,boterm,enterm, &
-                          rate,qnewlq,qnewic,qlqout(nk1),qicout(nk1))
+                          qnewlq,qnewic,qlqout(nk1),qicout(nk1))
             !
             ! If vert velocity is less than zero, exit the updraft loop and,
             ! if cloud is tall enough, finalize updraft calculations.
             !
-            if ( wtw < 1.D-3 ) then
+            if ( wtw < 1.0D-3 ) then
               exit
             else
               wu(nk1) = sqrt(wtw)
@@ -698,8 +710,8 @@ module mod_cu_kf
             end if
             if ( dilbe > d_zero ) abe = abe + dilbe*egrav
             !
-            ! If cloud parcels are virtually colder than the environment, minimal
-            ! entrainment (0.5*rei) is imposed.
+            ! If cloud parcels are virtually colder than the environment,
+            ! minimal entrainment (0.5*rei) is imposed.
             !
             if ( tvqu(nk1) <= tv0(nk1) ) then    ! Entrain/Detrain IF BLOCK
               ee2 = d_half   ! Kain (2004)  Eq. 4
@@ -736,7 +748,7 @@ module mod_cu_kf
                         tmpliq,tmpice,qnewlq,qnewic)
                 tu10 = ttmp*(d_one + 0.608D0*qtmp-tmpliq-tmpice)
                 tvdiff = abs(tu10-tvqu(nk1))
-                if ( tvdiff < 1.D-3 ) then
+                if ( tvdiff < 1.0D-3 ) then
                   ee2 = d_one
                   ud2 = d_zero
                   eqfrc(nk1) = d_one
@@ -833,11 +845,11 @@ module mod_cu_kf
           ! Kain (2004)  Eq. 7
           !
           if ( tlcl > 293.0D0 ) then
-            chmin = 4.D3
+            chmin = 4.0D3
           else if ( tlcl <= 293.0D0 .and. tlcl >= 273.0D0 ) then
-            chmin = 2.D3 + 100.0D0 * (tlcl - 273.0D0)
+            chmin = 2.0D3 + 100.0D0 * (tlcl - 273.0D0)
           else if ( tlcl < 273.0D0 ) then
-            chmin = 2.D3
+            chmin = 2.0D3
           end if
           do nk = k,ltop
             qc_kf(np,nk) = qliq(nk)
@@ -910,7 +922,7 @@ module mod_cu_kf
               end do
             end if
           end if
-        end if trigger2
+        end if kf_trigger2
       end do usl
 
       if ( ishall == 1 ) then
@@ -943,10 +955,10 @@ module mod_cu_kf
         do nk = let+1 , ltop
           !
           ! Entrainment is allowed at every level except for LTOP, so disallow
-          ! entrainment at LTOP and adjust entrainment rates between LET and LTOP
-          ! so the the dilution factor due to entrainment is not changed but
-          ! the actual entrainment rate will change due due forced total
-          ! detrainment in this layer.
+          ! entrainment at LTOP and adjust entrainment rates between
+          ! LET and LTOP so the the dilution factor due to entrainment is
+          ! not changed but the actual entrainment rate will change due to
+          ! forced total detrainment in this layer.
           !
           if ( nk == ltop ) then
             udr(nk) = umf(nk-1)
@@ -1058,7 +1070,8 @@ module mod_cu_kf
         ems(nk) = dp(nk)*dxsq*regrav
         emsd(nk) = d_one/ems(nk)
         !
-        ! Initialize some variables to be used later in the vert advection scheme
+        ! Initialize some variables to be used later
+        ! in the vert advection scheme
         !
         exn(nk) = (p00/p0(np,nk))**(0.2854D0*(d_one-0.28D0*qdt(nk)))
         thtau(nk) = tu(nk)*exn(nk)
@@ -1093,7 +1106,7 @@ module mod_cu_kf
       end if
       vws = (u0(np,ltop)-u0(np,klcl))*(u0(np,ltop)-u0(np,klcl)) + &
             (v0(np,ltop)-v0(np,klcl))*(v0(np,ltop)-v0(np,klcl))
-      vws = 1.D3*shsign*sqrt(vws)/(z0(np,ltop)-z0(np,lcl))
+      vws = 1.0D3*shsign*sqrt(vws)/(z0(np,ltop)-z0(np,lcl))
       pef = 1.591D0 + vws*(-0.639D0 + vws*(9.53D-2 - vws*4.96D-3))
       pef = max(pef,0.2D0)
       pef = min(pef,0.9D0)
@@ -1134,7 +1147,7 @@ module mod_cu_kf
         klfs = let-1
         do nk = kstart+1 , kl
           dppp = p0(np,kstart) - p0(np,nk)
-          if ( dppp > 150.D2 ) then
+          if ( dppp > 150.0D2 ) then
             klfs = nK
             exit
           end if
@@ -1146,7 +1159,7 @@ module mod_cu_kf
         ! level of equil temp, let, is just above cloud base) do not allow a
         ! downdraft.
         !
-        if ( (p0(np,kstart)-p0(np,lfs)) > 50.D2 ) then
+        if ( (p0(np,kstart)-p0(np,lfs)) > 50.0D2 ) then
           theted(lfs) = thetee(lfs)
           qd(lfs) = q0(lfs)
           !
@@ -1190,7 +1203,7 @@ module mod_cu_kf
             ! i.e., as if dmffrc=1.
             ! Otherwise, for small dmffrc, dtmelt gets too large!
             ! 12/14/98 jsk...
-            dtmelt = rlf*pptmlt/(cpd*umf(klcl))
+            dtmelt = wlhf*pptmlt/(cpd*umf(klcl))
           else
             dtmelt = d_zero
           end if
@@ -1200,7 +1213,7 @@ module mod_cu_kf
           es = aliq*exp((bliq*tz(kstart)-cliq)/(tz(kstart)-dliq))
           qss = ep2*es/(p0(np,kstart)-es)
           theted(kstart) = tz(kstart) * &
-               (1.D5/p0(np,kstart))**(0.2854D0*(d_one-0.28D0*qss))*    &
+               (1.0D5/p0(np,kstart))**(0.2854D0*(d_one-0.28D0*qss))*    &
                 exp((3374.6525D0/tz(kstart)-2.5403D0)*qss*(d_one+0.81D0*qss))
           ldt = min(lfs-1,kstart-1)
           do nd = ldt , 1 , -1
@@ -1244,7 +1257,7 @@ module mod_cu_kf
               exit
             end if
           end do
-          if ( (p0(np,ldb)-p0(np,lfs)) > 50.D2 ) then
+          if ( (p0(np,ldb)-p0(np,lfs)) > 50.0D2 ) then
             ! minimum Downdraft depth!
             do nd = ldt , ldb , -1
               nd1 = nd+1
@@ -1341,7 +1354,7 @@ module mod_cu_kf
       aincmx = 1000.0D0
       lmax = max(klcl,lfs)
       do nk = lc , lmax
-        if ( (uer(nk)-der(nk)) > 1.D-3 ) then
+        if ( (uer(nk)-der(nk)) > 1.0D-3 ) then
           aincm1 = ems(nk)/((uer(nk)-der(nk))*timec)
           aincmx = min(aincmx,aincm1)
         end if
@@ -1480,7 +1493,7 @@ module mod_cu_kf
             end if
             tma = qg(nk1)*ems(nk1)
             tmb = qg(nk-1)*ems(nk-1)
-            tmm = (qg(nk)-1.D-9)*ems(nk  )
+            tmm = (qg(nk)-1.0D-9)*ems(nk  )
             bcoeff = -tmm/((tma*tma)/tmb+tmb)
             acoeff = bcoeff*tma/tmb
             tmb = tmb*(d_one-bcoeff)
@@ -1488,13 +1501,13 @@ module mod_cu_kf
             if ( nk == ltop ) then
               qvdiff = (qg(nk1)-tma*emsd(nk1))*100.0D0/qg(nk1)
             end if
-            qg(nk) = 1.D-9
+            qg(nk) = 1.0D-9
             qg(nk1) = tma*emsd(nk1)
             qg(nk-1) = tmb*emsd(nk-1)
           end if
         end do
         topomg = (udr(ltop)-uer(ltop))*dp(ltop)*emsd(ltop)
-        if ( abs(topomg-omg(ltop)) > 1.D-3 ) then
+        if ( abs(topomg-omg(ltop)) > 1.0D-3 ) then
           istop = 1
           iprnt = .true.
           exit iter
@@ -1544,7 +1557,7 @@ module mod_cu_kf
         else
           qmix = max(qmix,d_zero)
           emix = qmix*pmix/(ep2+qmix)
-          astrt = 1.D-3
+          astrt = 1.0D-3
           binc = 0.075D0
           a1 = emix/aliq
           tp = (a1-astrt)/binc
@@ -1574,7 +1587,7 @@ module mod_cu_kf
         qenv = qg(k) + (qg(klcl)-qg(k))*dlp
         tven = tenv*(d_one+0.608D0*qenv)
         plcl = p0(np,k) + (p0(np,klcl)-p0(np,k))*dlp
-        theteu(k) = tmix*(1.D5/pmix)**(0.2854D0*(d_one-0.28D0*qmix))* &
+        theteu(k) = tmix*(1.0D5/pmix)**(0.2854D0*(d_one-0.28D0*qmix))* &
                exp((3374.6525D0/tlcl-2.5403D0)*qmix*(d_one+0.81D0*qmix))
         !
         ! Compute adjusted abe(abeg).
@@ -1644,7 +1657,7 @@ module mod_cu_kf
           if ( fabe == d_zero ) then
             ainc = ainc*d_half
           else
-            if ( dabe < 1.D-4 ) then
+            if ( dabe < 1.0D-4 ) then
               noitr = 1
               ainc = aincold
               cycle iter
@@ -1810,9 +1823,9 @@ module mod_cu_kf
           ddfrc = ddr(k)*timec*emsd(k)
           defrc = -der(k)*timec*emsd(k)
           write(stdout,1075) p0(np,k)/100.0D0,dp(k)/100.0D0,dtt,dr,omg(k), &
-                  domgdp(k)*1.D4, umf(k)/1.D6,uefrc,udfrc,dmf(k)/1.D6,  &
-                  defrc,ddfrc,ems(k)/1.D11,w0avg(np,k)*1.D2, &
-                  detlq(k)*timec*emsd(K)*1.D3,detic(k)*timec*emsd(k)*1.D3
+                  domgdp(k)*1.0D4, umf(k)/1.0D6,uefrc,udfrc,dmf(k)/1.0D6,  &
+                  defrc,ddfrc,ems(k)/1.0D11,w0avg(np,k)*1.0D2,             &
+                  detlq(k)*timec*emsd(K)*1.0D3,detic(k)*timec*emsd(k)*1.0D3
    1075   format(F8.2,3(F8.2),2(F8.3),F8.2,2F8.3,F8.2,6F8.3)
         end do
         write(stdout,1085) 'K','P','Z','T0','TG','DT','TU','TD','Q0','QG', &
@@ -1919,7 +1932,7 @@ module mod_cu_kf
         !
         if ( .not. f_qi .and. warm_rain ) then
           cpm = cpd*(d_one+0.887D0*qg(k))
-          tg(k) = tg(k) - (qig(k)+qsg(k))*rlf/cpm
+          tg(k) = tg(k) - (qig(k)+qsg(k))*wlhf/cpm
           dqcdt(np,k) = (qlg(k)+qig(k)-ql0(k)-qi0(k))/timec
           dqidt(np,k) = d_zero
           dqrdt(np,k) = (qrg(k)+qsg(k)-qr0(k)-qs0(k))/timec
@@ -1932,9 +1945,9 @@ module mod_cu_kf
           !
           cpm = cpd*(d_one+0.887D0*qg(k))
           if ( k <= ml ) then
-            tg(k) = tg(k) - (qig(k)+qsg(k))*rlf/cpm
+            tg(k) = tg(k) - (qig(k)+qsg(k))*wlhf/cpm
           else if ( k > ml ) then
-            tg(k) = tg(k) + (qlg(k)+qrg(k))*rlf/cpm
+            tg(k) = tg(k) + (qlg(k)+qrg(k))*wlhf/cpm
           end if
           dqcdt(np,k) = (qlg(k)+qig(k)-ql0(k)-qi0(k))/timec
           dqidt(np,k) = d_zero
@@ -2056,13 +2069,13 @@ module mod_cu_kf
       ! will not affect conservative properties
       !
       if ( qtot >= dq ) then
-        qliq = qliq - dq*qliq/(qtot+1.D-10)
-        qice = qice - dq*qice/(qtot+1.D-10)
+        qliq = qliq - dq*qliq/(qtot+1.0D-10)
+        qice = qice - dq*qice/(qtot+1.0D-10)
         qu = qs
       else
         rll = xlv0-xlv1*temp
         cpp = 1004.5D0*(d_one+0.89D0*qu)
-        if ( qtot < 1.D-10 ) then
+        if ( qtot < 1.0D-10 ) then
           ! If no liquid water or ice is available, temperature is given by:
           temp = temp + rll*(dq/(d_one+dq))/cpp
         else
@@ -2121,7 +2134,7 @@ module mod_cu_kf
     dqevap = qs - qu
     qice = qice - dqevap
     qu = qu + dqevap
-    pii = (1.D5/p)**(0.2854D0*(d_one-0.28D0*qu))
+    pii = (1.0D5/p)**(0.2854D0*(d_one-0.28D0*qu))
     thteu = tu*pii*exp((3374.6525D0/tu-2.5403D0)*qu*(d_one+0.81D0*qu))
   end subroutine dtfrznew
   !
@@ -2131,10 +2144,10 @@ module mod_cu_kf
   ! continuous process, and to eliminate a dependency on vertical
   ! resolution this is expressed as q=q*exp(-rate*dz).
   !
-  subroutine condload(qliq,qice,wtw,dz,boterm,enterm,rate,qnewlq, &
+  subroutine condload(qliq,qice,wtw,dz,boterm,enterm,qnewlq, &
                       qnewic,qlqout,qicout)
     implicit none
-    real(rk8) , intent(in) :: dz , boterm , enterm , rate
+    real(rk8) , intent(in) :: dz , boterm , enterm
     real(rk8) , intent(inout) :: qlqout , qicout , wtw
     real(rk8) , intent(inout) :: qliq , qice , qnewlq , qnewic
     real(rk8) :: qtot , qnew , qest , g1 , wavg , conv , ratio3
@@ -2151,17 +2164,17 @@ module mod_cu_kf
     g1 = wtw + boterm - enterm - d_two*egrav*dz*qest/1.5D0
     if ( g1 < d_zero ) g1 = d_zero
     wavg = d_half * (sqrt(wtw) + sqrt(g1))
-    conv = rate * dz/wavg ! KF90  Eq. 9
+    conv = kf_entrate * dz/wavg ! KF90  Eq. 9
     !
     ! ratio3 is the fraction of liquid water in fresh condensate, ratio4 is
     ! the fraction of liquid water in the total amount of condensate involv
     ! in the precipitation process - note that only 60% of the fresh conden
     ! sate is is allowed to participate in the conversion process...
     !
-    ratio3 = qnewlq / (qnew+1.D-8)
+    ratio3 = qnewlq / (qnew+1.0D-8)
     qtot = qtot + 0.6D0*qnew
     oldq = qtot
-    ratio4 = (0.6D0*qnewlq + qliq) / (qtot+1.D-8)
+    ratio4 = (0.6D0*qnewlq + qliq) / (qtot+1.0D-8)
     if ( conv > 25.0D0 ) then
       qtot = d_zero
     else
@@ -2180,7 +2193,7 @@ module mod_cu_kf
     !
     pptdrg = d_half * (oldq+qtot-0.2D0*qnew)
     wtw = wtw + boterm - enterm - d_two*egrav*dz*pptdrg/1.5D0
-    if ( abs(wtw) < 1.D-4) wtw = 1.D-4
+    if ( abs(wtw) < 1.0D-4) wtw = 1.0D-4
     !
     ! Determine the new liquid water and ice concentrations including losses
     ! due to precipitation and gains from condensation...
@@ -2307,7 +2320,7 @@ module mod_cu_kf
     !
     ! ...calculate LOG term using lookup table...
     !
-    astrt = 1.D-3
+    astrt = 1.0D-3
     ainc = 0.075D0
     a1 = ee/aliq
     tp = (a1-astrt)/ainc
@@ -2361,7 +2374,7 @@ module mod_cu_kf
       p = p + dpr
       es = aliq*exp((bliq*temp-cliq)/(temp-dliq))
       qs = ep2*es/(p-es)
-      pi = (1.D5/p)**(0.2854D0*(d_one-0.28D0*qs))
+      pi = (1.0D5/p)**(0.2854D0*(d_one-0.28D0*qs))
       the0k(kp) = temp * pi * &
               exp((3374.6525D0/temp-2.5403D0)*qs*(d_one+0.81D0*qs))
     end do
@@ -2384,7 +2397,7 @@ module mod_cu_kf
         end if
         es = aliq*exp((bliq*tgues-cliq)/(tgues-dliq))
         qs = ep2*es/(p-es)
-        pi = (1.D5/p)**(0.2854D0*(d_one-0.28D0*qs))
+        pi = (1.0D5/p)**(0.2854D0*(d_one-0.28D0*qs))
         thgues = tgues * pi * &
                 exp((3374.6525D0/tgues-2.5403D0)*qs*(d_one+0.81D0*qs))
         f0 = thgues - thes
@@ -2393,7 +2406,7 @@ module mod_cu_kf
         do itcnt = 1 , 11
           es = aliq * exp((bliq*t1-cliq)/(t1-dliq))
           qs = ep2*es/(p-es)
-          pi = (1.D5/p)**(0.2854D0*(d_one-0.28D0*qs))
+          pi = (1.0D5/p)**(0.2854D0*(d_one-0.28D0*qs))
           thtgs = t1*pi*exp((3374.6525D0/t1-2.5403D0)*qs*(d_one+0.81D0*qs))
           f1 = thtgs - thes
           if ( abs(f1) < toler ) then
@@ -2413,10 +2426,10 @@ module mod_cu_kf
     !
     ! set up intial values for lookup tables
     !
-    astrt = 1.D-3
+    astrt = 1.0D-3
     ainc = 0.075D0
     a1 = astrt-ainc
-    do i = 1 , 200
+    do i = 1 , kfna
       a1 = a1 + ainc
       alu(i) = log(a1)
     end do

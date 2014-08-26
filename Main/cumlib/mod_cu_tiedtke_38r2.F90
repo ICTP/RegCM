@@ -21,6 +21,52 @@ module mod_cu_tiedtke_38r2
   real(rk8) :: rmfcfl ! Massflux multiple of cfl stability criterium
   integer(ik4) :: njkt1 , njkt2 , njkt3 , njkt4 , njkt5 , njkt6
 
+  logical , parameter :: lmfpen    = .true.  ! penetrative conv is switched on
+  logical , parameter :: lmfmid    = .true.  ! midlevel conv is switched on
+  logical , parameter :: lmfdd     = .true.  ! cumulus downdraft is switched on
+  logical , parameter :: lepcld    = .true.  ! prognostic cloud scheme is on
+  logical , parameter :: lmfdudv   = .true.  ! cumulus friction is switched on
+  logical , parameter :: lmfscv    = .true.  ! shallow convection is switched on
+  logical , parameter :: lmfuvdis  = .true.  ! use kinetic energy dissipation
+  logical , parameter :: lmftrac   = .true.  ! chemical tracer transport is on
+  logical , parameter :: lmfsmooth = .false. ! smoot of mass fluxes for tracers
+  logical , parameter :: lmfwstar  = .false. ! Grant w* closure for shallow conv
+
+  real(rk8) , parameter :: rlpal1 = 0.15D0  ! Smoothing coefficient
+  real(rk8) , parameter :: rlpal2 = 20.0D0  ! Smoothing coefficient
+
+  integer(ik4) , parameter :: n_vmass = 0 ! Using or not vector mass
+
+  ! Use CFL mass flux limit (1) or absolut limit (0)
+  real(rk8) , parameter :: rmflic = 1.0D0
+  ! Mass flux solver for momentum (1) or no (0)
+  real(rk8) , parameter :: rmfsoluv = 1.0D0
+  ! Mass flux solver for T and q (1) or no (0)
+  real(rk8) , parameter :: rmfsoltq = 1.0D0
+  ! Mass flux solver for tracer (1) or no (0)
+  real(rk8) , parameter :: rmfsolct = 1.0D0
+
+  ! Value of absolut mass flux limit
+  real(rk8) , parameter :: rmflia = 0.0D0
+
+  real(rk8) , parameter :: cmfcmax = 1.0D0   ! Max massflux value
+  real(rk8) , parameter :: cmfcmin = 1.0D-10 ! Min massflux value (for safety)
+
+  ! Relaxation time for melting of snow
+  real(rk8) , parameter :: rtaumel = 5.0D0*3600.0D0 ! five hours
+
+  ! Factor for time step weighting in *vdf....*
+  real(rk8) , parameter :: rvdifts = 1.5D0
+
+  ! Updraught velocity perturbation for implicit (m/s)
+  real(rk8) , parameter :: ruvper = 0.3D0
+
+  ! Maximum allowed cloud thickness for shallow cloud (Pa)
+  real(rk8) , parameter :: rdepths = 2.0D4
+
+  ! Fractional massflux for downdrafts at lfs
+  real(rk8) , parameter :: cmfdeps = 0.3D0
+
   contains
 !
 !     THIS ROUTINE DEFINES DISPOSABLE PARAMETERS FOR MASSFLUX SCHEME
@@ -648,7 +694,6 @@ module mod_cu_tiedtke_38r2
     zcons2 = rmfcfl/(egrav*ptsphy)
     ztglace = tzero - 13.0D0
     zfacbuo = d_half/(d_one+d_half)
-    zprcdgw = rprcon/egrav
     z_cldmax = 5.D-3
     z_cwifrac = d_half
     z_cprc2 = d_half
@@ -781,7 +826,7 @@ module mod_cu_tiedtke_38r2
           jl = jlx(jll)
           zdmfde(jl) = min(zdmfde(jl),0.75D0*pmfu(jl,jk+1))
           if ( jk == kcbot(jl) ) then
-            zoentr(jl) = -entrorg*(min(d_one,pqen(jl,jk)/pqsen(jl,jk)) - &
+            zoentr(jl) = -entrpen*(min(d_one,pqen(jl,jk)/pqsen(jl,jk)) - &
                          d_one)*(pgeoh(jl,jk)-pgeoh(jl,jk+1))*regrav
             zoentr(jl) = min(0.4D0,zoentr(jl))*pmfu(jl,jk+1)
           end if
@@ -910,7 +955,7 @@ module mod_cu_tiedtke_38r2
               end if
               if ( zbuo(jl,jk) >- 0.2D0 .and. klab(jl,jk+1) == 2 ) then
                 ikb = kcbot(jl)
-                zoentr(jl) = entrorg*(0.3D0-(min(d_one,pqen(jl,jk-1) /    &
+                zoentr(jl) = entrpen*(0.3D0-(min(d_one,pqen(jl,jk-1) /    &
                   pqsen(jl,jk-1))-d_one))*(pgeoh(jl,jk-1)-pgeoh(jl,jk)) * &
                   regrav*min(d_one,pqsen(jl,jk)/pqsen(jl,ikb))**3
                 zoentr(jl) = min(0.4D0,zoentr(jl))*pmfu(jl,jk)
@@ -950,8 +995,10 @@ module mod_cu_tiedtke_38r2
           if ( llo1(jl) ) then
             if ( ldland(jl) ) then
               zdnoprc = 5.D-4
+              zprcdgw = rprc_lnd/egrav
             else
               zdnoprc = 3.D-4
+              zprcdgw = rprc_ocn/egrav
             end if
             if ( plu(jl,jk) > zdnoprc ) then
               zwu = min(15.0D0,sqrt(d_two*max(0.1D0,pkineu(jl,jk+1))))
@@ -2877,7 +2924,7 @@ module mod_cu_tiedtke_38r2
     logical :: llddraf
     real(rk8) :: zalfaw , zcons1 , zcons1a , zcons2 , zdenom , zdrfl , &
                  zdrfl1 , zfac , zpdr , zpds , zrfl , zrfln , zrmin ,  &
-                 zrnew , zsnmlt , ztmst , zzp
+                 zrnew , zsnmlt , ztmst , zzp , rcpecons , rcucov
     ztmst = ptsphy
     zcons1a = cpd/(wlhf*egrav*rtaumel)
     zcons2 = rmfcfl/(egrav*ztmst)
@@ -3024,6 +3071,8 @@ module mod_cu_tiedtke_38r2
         if ( ldcum(jl) .and. jk >= kcbot(jl) ) then
           zrfl = pmflxr(jl,jk) + pmflxs(jl,jk)
           if ( zrfl > 1.D-20 ) then
+            rcpecons = merge(rcpec_lnd,rcpec_ocn,ldland(jl))
+            rcucov = merge(rcuc_lnd,rcuc_ocn,ldland(jl))
             zdrfl1 = rcpecons * &
               max(d_zero,pqsen(jl,jk)-pqen(jl,jk))*rcucov * &
               (sqrt(paph(jl,jk)/paph(jl,klev+1)) / &
@@ -3395,7 +3444,7 @@ module mod_cu_tiedtke_38r2
               zdz(jl) = (pgeoh(jl,jk)-pgeoh(jl,jk+1))*regrav
               zqf = (pqenh(jl,jk+1)+pqenh(jl,jk))*d_half
               zsf = (zsenh(jl,jk+1)+zsenh(jl,jk))*d_half
-              zmix(jl) = 0.4D0*entrorg*zdz(jl) * &
+              zmix(jl) = 0.4D0*entrpen*zdz(jl) * &
                          min(d_one,(pqsen(jl,jk)/pqsen(jl,klev))**3)
               zqu(jl,jk) = zqu(jl,jk+1)*(d_one-zmix(jl)) + zqf*zmix(jl)
               zsuh(jl,jk) = zsuh(jl,jk+1)*(d_one-zmix(jl)) + zsf*zmix(jl)

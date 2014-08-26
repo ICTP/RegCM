@@ -197,61 +197,33 @@ module mod_runparams
 
   integer(ik4) , public :: iconv
 
-  logical , public :: lmfpen    !  true if penetrative convection is switched on
-  logical , public :: lmfscv    !  true if shallow convection is switched on
-  logical , public :: lmfmid    !  true if midlevel convection is switched on
-  logical , public :: lmfdd     !  true if cumulus downdraft is switched on
-  logical , public :: lmfdudv   !  true if cumulus friction is switched on
-
-  real(rk8) , public :: entrdd   ! entrainment rate for cumulus downdrafts
-  real(rk8) , public :: cmfcmax  ! maximum massflux value allowed for
-  real(rk8) , public :: cmfcmin  ! minimum massflux value (for safety)
-  real(rk8) , public :: cmfdeps  ! fractional massflux for downdrafts at lfs
+  real(rk8) , public :: entrdd  ! entrainment rate for cumulus downdrafts
 
   ! ICONV 1, 2, 3
-  real(rk8) , public :: entrpen  ! entrainment rate for penetrative convection
-  real(rk8) , public :: entrscv  ! entrainment rate for shallow convection
-  real(rk8) , public :: entrmid  ! entrainment rate for midlevel convection
-  real(rk8) , public :: cmfctop  ! relat. cloud massflux at level above nonbuoyanc
-  real(rk8) , public :: cmtcape  ! CAPE adjustment timescale parameter
-  real(rk8) , public :: zdlev    ! Restrict rainfall up to this elevation
-  real(rk8) , public :: rhcdd    ! relative saturation in downdrafts
-  real(rk8) , public :: cprcon   ! coefficients for determining conversion
-                        ! from cloud water to rain
-  real(rk8) , public :: centrmax ! Max entrainment
-  real(rk8) , public :: ctrigger ! coefficients for triggering convection
-  real(rk8) , public :: cmcptop  ! Top pressure for midlevel convection
+  real(rk8) , public :: entrpen ! entrainment rate for penetrative convection
+  real(rk8) , public :: entrscv ! entrainment rate for shallow convection
+  real(rk8) , public :: entrmid ! entrainment rate for midlevel convection
+  real(rk8) , public :: cprcon  ! coefficients for determining conversion
+                                ! from cloud water to rain
+  real(rk8) , public :: entrmax ! Max entrainment
 
   ! ICONV 4 paramters
-  integer(ik4) , public :: n_vmass ! Using or not vector mass
-  real(rk8) , public :: rlpal1     ! Smoothing coefficient
-  real(rk8) , public :: rlpal2     ! Smoothing coefficient
-  real(rk8) , public :: rcucov     ! Convective cloud cover for rain evporation
-  real(rk8) , public :: rcpecons   ! Coefficient for rain evaporation below cloud
-  real(rk8) , public :: rtaumel    ! Relaxation time for melting of snow
-  real(rk8) , public :: rhebc_lnd  ! Critical relative humidity below
-                          ! cloud at which evaporation starts for land
-  real(rk8) , public :: rhebc_ocn  ! Critical relative humidity below
-                          ! cloud at which evaporation starts for ocean
-  real(rk8) , public :: rmflic     ! Use CFL mass flux limit (1) or absolut limit (0)
-  real(rk8) , public :: rmflia     ! Value of absolut mass flux limit
-  real(rk8) , public :: rmfsoluv   ! Mass flux solver for momentum
-  real(rk8) , public :: rmfsoltq   ! Mass flux solver for T and q
-  real(rk8) , public :: rmfsolct   ! Mass flux solver for chem tracers
-  real(rk8) , public :: ruvper     ! Updraught velocity perturbation for implicit (m/s)
-  real(rk8) , public :: rprcon     ! coeff for determining conversion from cloud water
-  real(rk8) , public :: detrpen    ! Detrainment rate for penetrative convection
-  real(rk8) , public :: entrorg    ! Entrainment for positively buoyant convection 1/(m)
-  real(rk8) , public :: entshalp   ! shallow entrainment factor for entrorg
-  real(rk8) , public :: rdepths    ! Maximum allowed cloud thickness for shallow
-                          ! cloud depth (Pa)
-  real(rk8) , public :: rvdifts    ! Factor for time step weighting in *vdf....*
+  real(rk8) , public :: rcuc_lnd  ! Convective cloud cover for rain evporation
+  real(rk8) , public :: rcuc_ocn  ! Convective cloud cover for rain evporation
+  real(rk8) , public :: rcpec_lnd ! Coefficient for rain evaporation below cloud
+  real(rk8) , public :: rcpec_ocn ! Coefficient for rain evaporation below cloud
+  real(rk8) , public :: rhebc_lnd ! Critical relative humidity below
+                                  ! cloud at which evaporation starts for land
+  real(rk8) , public :: rhebc_ocn ! Critical relative humidity below
+                                  ! cloud at which evaporation starts for ocean
+  real(rk8) , public :: rprc_lnd  ! coeff for conversion from cloud water
+  real(rk8) , public :: rprc_ocn  ! coeff for conversion from cloud water
+  real(rk8) , public :: detrpen   ! Detrainment rate for penetrative convection
+  real(rk8) , public :: entshalp  ! shallow entrainment factor for entrorg
 
-  logical , public :: lepcld     ! True if prognostic cloud scheme is on
-  logical , public :: lmfuvdis   ! use kinetic energy dissipation (addit T-tendency)
-  logical , public :: lmftrac    ! Convective chemical tracer transport
-  logical , public :: lmfsmooth  ! Smoothing of mass fluxes top/bottom for tracers
-  logical , public :: lmfwstar   ! Grant w* closure for shallow conv.
+  ! Kain-Fritsch parameter
+
+  real(rk8) , public :: kf_entrate
 
   ! Tweak Global data
 
