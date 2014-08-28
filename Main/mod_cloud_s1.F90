@@ -36,9 +36,10 @@ module mod_cloud_s1
   use mod_runparams , only : sigma
   use mod_runparams , only : dt
   use mod_runparams , only : ipptls
-  use mod_runparams , only : stats , budget_compute , nssopt , kautoconv !, ksemi
+  use mod_runparams , only : stats , budget_compute , nssopt , kautoconv
   use mod_runparams , only : vqxr , vqxi , vqxs
-  use mod_runparams , only : zauto_rate_khair , zauto_rate_kessl , zauto_rate_klepi
+  use mod_runparams , only : zauto_rate_khair , zauto_rate_kessl , &
+                             zauto_rate_klepi
   use mod_runparams , only : rkconv , rcovpmin , rpecons
   use mod_runparams , only : ktau
   use mod_precip    , only : fcc
@@ -49,21 +50,21 @@ module mod_cloud_s1
 
   private
 
-  real(rk8) :: zfall                                 ! constant fall speed
-  real(rk8) :: zqtmst                                ! 1/dt
-  real(rk8) , pointer , dimension(:,:)   :: psf , rainnc, lsmrnc, snownc
-  real(rk8) , pointer , dimension(:,:,:) :: zpres    ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: zt       ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: rhob3d   ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: omega    ! from atms
-  real(rk8) , pointer , dimension(:,:,:) :: radheatrt   ! radiation heat rate
-  real(rk8) , pointer , dimension(:,:,:) :: ztten    ! tendency of temperature
-  real(rk8) , public , pointer , dimension(:,:,:) :: zeta     ! from atms
-  real(rk8) , public , pointer , dimension(:,:,:) :: qdetr    ! conv. detrained water
-  real(rk8) , pointer , dimension(:,:,:,:) :: zqxten ! tendency of zqx
-  real(rk8) , pointer , dimension(:,:,:,:) :: zqxx   ! from atms
-
   public :: allocate_mod_cloud_s1 , init_cloud_s1 , microphys
+
+  real(rk8) :: zfall                                   ! constant fall speed
+  real(rk8) :: zqtmst                                  ! 1/dt
+  real(rk8) , pointer , dimension(:,:)   :: psf , rainnc, lsmrnc, snownc
+  real(rk8) , pointer , dimension(:,:,:) :: zpres      ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: zt         ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: rhob3d     ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: omega      ! from atms
+  real(rk8) , pointer , dimension(:,:,:,:) :: zqxx     ! from atms
+  real(rk8) , pointer , dimension(:,:,:) :: radheatrt  ! radiation heat rate
+  real(rk8) , pointer , dimension(:,:,:) :: ztten      ! tendency of temperature
+  real(rk8) , public , pointer , dimension(:,:,:) :: zeta  ! from atms
+  real(rk8) , public , pointer , dimension(:,:,:) :: qdetr ! conv. detr. water
+  real(rk8) , pointer , dimension(:,:,:,:) :: zqxten   ! tendency of zqx
 
   ! Total water and enthalpy budget diagnostics variables
   ! marker for water phase of each species
@@ -82,6 +83,7 @@ module mod_cloud_s1
                ztmpi , ztnew , zqe , zrain , zpreclr , zarg , zsig
 
   real(rk8) , public , pointer , dimension(:,:,:) :: papf
+  real(rk8) , public , pointer , dimension(:,:,:) :: rain_ls
   real(rk8) , pointer , dimension(:,:,:):: zsumh0 , zsumq0
   real(rk8) , pointer , dimension(:,:,:) :: zsumh1 , zsumq1
   real(rk8) , pointer , dimension(:,:,:) :: zerrorq , zerrorh
@@ -234,129 +236,131 @@ module mod_cloud_s1
   subroutine allocate_mod_cloud_s1
     implicit none
     if ( ipptls == 2 ) then
-      call getmem1d(zvqx,1,nqx,'clouds1:zvqx')
-      call getmem1d(imelt,1,nqx,'clouds1:imelt')
-      call getmem1d(llfall,1,nqx,'clouds1:llfall')
-      call getmem1d(kphase,1,nqx,'clouds1:kphase')
-      call getmem2d(zlcond1,jci1,jci2,ici1,ici2,'clouds1:zlcond1')
-      call getmem2d(zlcond2,jci1,jci2,ici1,ici2,'clouds1:zlcond2')
-      call getmem2d(zldefr,jci1,jci2,ici1,ici2,'clouds1:zldefr')
-      call getmem2d(zqold,jci1,jci2,ici1,ici2,'clouds1:zqold')
-      call getmem2d(ztold,jci1,jci2,ici1,ici2,'clouds1:ztold')
-      call getmem2d(zdqs,jci1,jci2,ici1,ici2,'clouds1:zdqs')
-      call getmem2d(koop,jci1,jci2,ici1,ici2,'clouds1:koop')
-      call getmem2d(zicetot,jci1,jci2,ici1,ici2,'clouds1:zicetot')
-      call getmem2d(zmeltmax,jci1,jci2,ici1,ici2,'clouds1:zmeltmax')
-      call getmem2d(zdp,jci1,jci2,ici1,ici2,'clouds1:zdp')
-      call getmem2d(zgdp,jci1,jci2,ici1,ici2,'clouds1:zgdp')
-      call getmem2d(zdtgdp,jci1,jci2,ici1,ici2,'clouds1:zdtgdp')
-      call getmem2d(zrdtgdp,jci1,jci2,ici1,ici2,'clouds1:zrdtgdp')
-      call getmem2d(zfrzmax,jci1,jci2,ici1,ici2,'clouds1:zfrzmax')
-      call getmem2d(prcflxw,jci1,jci2,ici1,ici2,'clouds1:prcflxw')
-      call getmem2d(prcflxc,jci1,jci2,ici1,ici2,'clouds1:prcflxc')
-      call getmem2d(zcovptot,jci1,jci2,ici1,ici2,'clouds1:zcovptot')
-      call getmem2d(zcovpclr,jci1,jci2,ici1,ici2,'clouds1:zcovpclr')
-      call getmem2d(zqpretot,jci1,jci2,ici1,ici2,'clouds1:zqpretot')
-      call getmem2d(zrainaut,jci1,jci2,ici1,ici2,'clouds1:zrainaut')
-      call getmem2d(zsnowaut,jci1,jci2,ici1,ici2,'clouds1:zsnowaut')
-      call getmem2d(zcldtopdist,jci1,jci2,ici1,ici2,'clouds1:zcldtopdist')
-      call getmem2d(zicenuclei,jci1,jci2,ici1,ici2,'clouds1:zicenuclei')
-      call getmem2d(zlicld,jci1,jci2,ici1,ici2,'clouds1:zlicld')
-      call getmem2d(zdqsmixdt,jci1,jci2,ici1,ici2,'clouds1:zdqsmixdt')
-      call getmem2d(zcorqsmix,jci1,jci2,ici1,ici2,'clouds1:zcorqsmix')
-      call getmem2d(zevaplimmix,jci1,jci2,ici1,ici2,'clouds1:zevaplimmix')
-      call getmem2d(zliqcld,jci1,jci2,ici1,ici2,'clouds1:zliqcld')
-      call getmem2d(zicecld,jci1,jci2,ici1,ici2,'clouds1:zicecld')
-      call getmem2d(zsupsat,jci1,jci2,ici1,ici2,'clouds1:zsupsat')
-      call getmem2d(zsubsat,jci1,jci2,ici1,ici2,'clouds1:zsubsat')
-      call getmem2d(zmin,jci1,jci2,ici1,ici2,'clouds1:zmin')
-      call getmem2d(zdqsicedt,jci1,jci2,ici1,ici2,'clouds1:zdqsicedt')
-      call getmem2d(zcorqsice,jci1,jci2,ici1,ici2,'clouds1:zcorqsice')
-      call getmem2d(zdqsliqdt,jci1,jci2,ici1,ici2,'clouds1:zdqsliqdt')
-      call getmem2d(zcorqsliq,jci1,jci2,ici1,ici2,'clouds1:zcorqsliq')
-      call getmem2d(ztrpaus,jci1,jci2,ici1,ici2,'clouds1:ztrpaus')
-      call getmem2d(zpapfd,jci1,jci2,ici1,ici2,'clouds1:zpapfd')
-      call getmem2d(zldifdt,jci1,jci2,ici1,ici2,'clouds1:zldifdt')
-      call getmem3d(ztcond,jci1,jci2,ici1,ici2,1,kz,'clouds1:ztcond')
-      call getmem3d(zliqfrac,jci1,jci2,ici1,ici2,1,kz,'clouds1:zliqfrac')
-      call getmem3d(zicefrac,jci1,jci2,ici1,ici2,1,kz,'clouds1:zicefrac')
-      call getmem3d(zfoeewmt,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeewmt')
-      call getmem3d(zqsmix,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqsmix')
-      call getmem3d(zli,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:zli')
-      call getmem3d(iorder,jci1,jci2,ici1,ici2,1,nqx,'clouds1:iorder')
-      call getmem3d(zttendc,jci1,jci2,ici1,ici2,1,kz,'clouds1:zttendc')
-      call getmem3d(zconvsrce,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zconvsrce')
-      call getmem3d(zconvsink,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zconvsink')
-      call getmem3d(zfoeew,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeew')
-      call getmem3d(zfoeeliq,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeeliq')
-      call getmem3d(zqsice,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqsice')
-      if (stats) then
-        call getmem3d(statssupw,jci1,jci2,ici1,ici2,1,kz,'clouds1:statssupw')
-        call getmem3d(statssupc,jci1,jci2,ici1,ici2,1,kz,'clouds1:statssupc')
-        call getmem3d(statsdetrw,jci1,jci2,ici1,ici2,1,kz,'clouds1:statsdetrw')
-        call getmem3d(statsdetrc,jci1,jci2,ici1,ici2,1,kz,'clouds1:statsdetrc')
-        call getmem3d(statserosw,jci1,jci2,ici1,ici2,1,kz,'clouds1:statserosw')
-        call getmem3d(statserosc,jci1,jci2,ici1,ici2,1,kz,'clouds1:statserosc')
-        call getmem3d(statsevapw,jci1,jci2,ici1,ici2,1,kz,'clouds1:statsevapw')
-        call getmem3d(statsevapc,jci1,jci2,ici1,ici2,1,kz,'clouds1:statsevapc')
-        call getmem3d(statscond1w,jci1,jci2,ici1,ici2,1,kz,'clouds1:statscond1w')
-        call getmem3d(statscond1c,jci1,jci2,ici1,ici2,1,kz,'clouds1:statscond1c')
-        call getmem3d(statscond2w,jci1,jci2,ici1,ici2,1,kz,'clouds1:statscond2w')
-        call getmem3d(statscond2c,jci1,jci2,ici1,ici2,1,kz,'clouds1:statscond2c')
-        call getmem3d(statsdepos,jci1,jci2,ici1,ici2,1,kz,'clouds1:statsdepos')
-        call getmem3d(statsmelt,jci1,jci2,ici1,ici2,1,kz,'clouds1:statsmelt')
-        call getmem3d(statsfrz,jci1,jci2,ici1,ici2,1,kz,'clouds1:statsfrz')
-        call getmem3d(statsrainev,jci1,jci2,ici1,ici2,1,kz,'clouds1:statsrainev')
-        call getmem3d(statssnowev,jci1,jci2,ici1,ici2,1,kz,'clouds1:statssnowev')
+      call getmem1d(zvqx,1,nqx,'cmicro:zvqx')
+      call getmem1d(imelt,1,nqx,'cmicro:imelt')
+      call getmem1d(llfall,1,nqx,'cmicro:llfall')
+      call getmem1d(kphase,1,nqx,'cmicro:kphase')
+      call getmem2d(zlcond1,jci1,jci2,ici1,ici2,'cmicro:zlcond1')
+      call getmem2d(zlcond2,jci1,jci2,ici1,ici2,'cmicro:zlcond2')
+      call getmem2d(zldefr,jci1,jci2,ici1,ici2,'cmicro:zldefr')
+      call getmem2d(zqold,jci1,jci2,ici1,ici2,'cmicro:zqold')
+      call getmem2d(ztold,jci1,jci2,ici1,ici2,'cmicro:ztold')
+      call getmem2d(zdqs,jci1,jci2,ici1,ici2,'cmicro:zdqs')
+      call getmem2d(koop,jci1,jci2,ici1,ici2,'cmicro:koop')
+      call getmem2d(zicetot,jci1,jci2,ici1,ici2,'cmicro:zicetot')
+      call getmem2d(zmeltmax,jci1,jci2,ici1,ici2,'cmicro:zmeltmax')
+      call getmem2d(zdp,jci1,jci2,ici1,ici2,'cmicro:zdp')
+      call getmem2d(zgdp,jci1,jci2,ici1,ici2,'cmicro:zgdp')
+      call getmem2d(zdtgdp,jci1,jci2,ici1,ici2,'cmicro:zdtgdp')
+      call getmem2d(zrdtgdp,jci1,jci2,ici1,ici2,'cmicro:zrdtgdp')
+      call getmem2d(zfrzmax,jci1,jci2,ici1,ici2,'cmicro:zfrzmax')
+      call getmem2d(prcflxw,jci1,jci2,ici1,ici2,'cmicro:prcflxw')
+      call getmem2d(prcflxc,jci1,jci2,ici1,ici2,'cmicro:prcflxc')
+      call getmem2d(zcovptot,jci1,jci2,ici1,ici2,'cmicro:zcovptot')
+      call getmem2d(zcovpclr,jci1,jci2,ici1,ici2,'cmicro:zcovpclr')
+      call getmem2d(zqpretot,jci1,jci2,ici1,ici2,'cmicro:zqpretot')
+      call getmem2d(zrainaut,jci1,jci2,ici1,ici2,'cmicro:zrainaut')
+      call getmem2d(zsnowaut,jci1,jci2,ici1,ici2,'cmicro:zsnowaut')
+      call getmem2d(zcldtopdist,jci1,jci2,ici1,ici2,'cmicro:zcldtopdist')
+      call getmem2d(zicenuclei,jci1,jci2,ici1,ici2,'cmicro:zicenuclei')
+      call getmem2d(zlicld,jci1,jci2,ici1,ici2,'cmicro:zlicld')
+      call getmem2d(zdqsmixdt,jci1,jci2,ici1,ici2,'cmicro:zdqsmixdt')
+      call getmem2d(zcorqsmix,jci1,jci2,ici1,ici2,'cmicro:zcorqsmix')
+      call getmem2d(zevaplimmix,jci1,jci2,ici1,ici2,'cmicro:zevaplimmix')
+      call getmem2d(zliqcld,jci1,jci2,ici1,ici2,'cmicro:zliqcld')
+      call getmem2d(zicecld,jci1,jci2,ici1,ici2,'cmicro:zicecld')
+      call getmem2d(zsupsat,jci1,jci2,ici1,ici2,'cmicro:zsupsat')
+      call getmem2d(zsubsat,jci1,jci2,ici1,ici2,'cmicro:zsubsat')
+      call getmem2d(zmin,jci1,jci2,ici1,ici2,'cmicro:zmin')
+      call getmem2d(zdqsicedt,jci1,jci2,ici1,ici2,'cmicro:zdqsicedt')
+      call getmem2d(zcorqsice,jci1,jci2,ici1,ici2,'cmicro:zcorqsice')
+      call getmem2d(zdqsliqdt,jci1,jci2,ici1,ici2,'cmicro:zdqsliqdt')
+      call getmem2d(zcorqsliq,jci1,jci2,ici1,ici2,'cmicro:zcorqsliq')
+      call getmem2d(ztrpaus,jci1,jci2,ici1,ici2,'cmicro:ztrpaus')
+      call getmem2d(zpapfd,jci1,jci2,ici1,ici2,'cmicro:zpapfd')
+      call getmem2d(zldifdt,jci1,jci2,ici1,ici2,'cmicro:zldifdt')
+      call getmem3d(ztcond,jci1,jci2,ici1,ici2,1,kz,'cmicro:ztcond')
+      call getmem3d(zliqfrac,jci1,jci2,ici1,ici2,1,kz,'cmicro:zliqfrac')
+      call getmem3d(zicefrac,jci1,jci2,ici1,ici2,1,kz,'cmicro:zicefrac')
+      call getmem3d(zfoeewmt,jci1,jci2,ici1,ici2,1,kz,'cmicro:zfoeewmt')
+      call getmem3d(zqsmix,jci1,jci2,ici1,ici2,1,kz,'cmicro:zqsmix')
+      call getmem3d(zli,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:zli')
+      call getmem3d(iorder,jci1,jci2,ici1,ici2,1,nqx,'cmicro:iorder')
+      call getmem3d(zttendc,jci1,jci2,ici1,ici2,1,kz,'cmicro:zttendc')
+      call getmem3d(zconvsrce,jci1,jci2,ici1,ici2,1,nqx,'cmicro:zconvsrce')
+      call getmem3d(zconvsink,jci1,jci2,ici1,ici2,1,nqx,'cmicro:zconvsink')
+      call getmem3d(zfoeew,jci1,jci2,ici1,ici2,1,kz,'cmicro:zfoeew')
+      call getmem3d(zfoeeliq,jci1,jci2,ici1,ici2,1,kz,'cmicro:zfoeeliq')
+      call getmem3d(zqsice,jci1,jci2,ici1,ici2,1,kz,'cmicro:zqsice')
+      if ( stats ) then
+        call getmem3d(statssupw,jci1,jci2,ici1,ici2,1,kz,'cmicro:statssupw')
+        call getmem3d(statssupc,jci1,jci2,ici1,ici2,1,kz,'cmicro:statssupc')
+        call getmem3d(statsdetrw,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsdetrw')
+        call getmem3d(statsdetrc,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsdetrc')
+        call getmem3d(statserosw,jci1,jci2,ici1,ici2,1,kz,'cmicro:statserosw')
+        call getmem3d(statserosc,jci1,jci2,ici1,ici2,1,kz,'cmicro:statserosc')
+        call getmem3d(statsevapw,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsevapw')
+        call getmem3d(statsevapc,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsevapc')
+        call getmem3d(statscond1w,jci1,jci2,ici1,ici2,1,kz,'cmicro:statscond1w')
+        call getmem3d(statscond1c,jci1,jci2,ici1,ici2,1,kz,'cmicro:statscond1c')
+        call getmem3d(statscond2w,jci1,jci2,ici1,ici2,1,kz,'cmicro:statscond2w')
+        call getmem3d(statscond2c,jci1,jci2,ici1,ici2,1,kz,'cmicro:statscond2c')
+        call getmem3d(statsdepos,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsdepos')
+        call getmem3d(statsmelt,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsmelt')
+        call getmem3d(statsfrz,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsfrz')
+        call getmem3d(statsrainev,jci1,jci2,ici1,ici2,1,kz,'cmicro:statsrainev')
+        call getmem3d(statssnowev,jci1,jci2,ici1,ici2,1,kz,'cmicro:statssnowev')
       end if
 
 #ifdef USE_LAPACK
-      call getmem1d(ipivot,1,nqx,'clouds1:ipivot')
+      call getmem1d(ipivot,1,nqx,'cmicro:ipivot')
 #else
-      call getmem3d(jindex2,1,nqx,jci1,jci2,ici1,ici2,'clouds1:jindex2')
-      call getmem1d(vv,1,nqx,'clouds1:vv')
-      call getmem1d(swap,1,nqx,'clouds1:swap')
+      call getmem3d(jindex2,1,nqx,jci1,jci2,ici1,ici2,'cmicro:jindex2')
+      call getmem1d(vv,1,nqx,'cmicro:vv')
+      call getmem1d(swap,1,nqx,'cmicro:swap')
 #endif
-      call getmem3d(zfallsink,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zfallsink')
-      call getmem3d(zfallsrce,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zfallsrce')
-      call getmem3d(zfluxq,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zfluxq')
-      call getmem3d(zratio,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zratio')
-      call getmem3d(zsinksum,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zsinksum')
-      call getmem3d(dqsatdt,jci1,jci2,ici1,ici2,1,kz,'clouds1:dqsatdt')
-      call getmem3d(zpfplsl,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:zpfplsl')
-      call getmem3d(zpfplsn,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:zpfplsn')
-      call getmem3d(pfsqlf,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:pfsqlf')
-      call getmem3d(pfsqif,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:pfsqif')
+      call getmem3d(zfallsink,jci1,jci2,ici1,ici2,1,nqx,'cmicro:zfallsink')
+      call getmem3d(zfallsrce,jci1,jci2,ici1,ici2,1,nqx,'cmicro:zfallsrce')
+      call getmem3d(zfluxq,jci1,jci2,ici1,ici2,1,nqx,'cmicro:zfluxq')
+      call getmem3d(zratio,jci1,jci2,ici1,ici2,1,nqx,'cmicro:zratio')
+      call getmem3d(zsinksum,jci1,jci2,ici1,ici2,1,nqx,'cmicro:zsinksum')
+      call getmem3d(dqsatdt,jci1,jci2,ici1,ici2,1,kz,'cmicro:dqsatdt')
+      call getmem3d(zpfplsl,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:zpfplsl')
+      call getmem3d(zpfplsn,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:zpfplsn')
+      call getmem3d(pfsqlf,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:pfsqlf')
+      call getmem3d(pfsqif,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:pfsqif')
       if ( budget_compute ) then
-        call getmem3d(zsumq0,jci1,jci2,ici1,ici2,1,kz,'clouds1:zsumq0')
-        call getmem3d(zsumh0,jci1,jci2,ici1,ici2,1,kz,'clouds1:zsumh0')
-        call getmem3d(zsumq1,jci1,jci2,ici1,ici2,1,kz,'clouds1:zsumq1')
-        call getmem3d(zsumh1,jci1,jci2,ici1,ici2,1,kz,'clouds1:zsumh1')
-        call getmem3d(zerrorq,jci1,jci2,ici1,ici2,1,kz,'clouds1:zerrorq')
-        call getmem3d(zerrorh,jci1,jci2,ici1,ici2,1,kz,'clouds1:zerrorh')
+        call getmem3d(zsumq0,jci1,jci2,ici1,ici2,1,kz,'cmicro:zsumq0')
+        call getmem3d(zsumh0,jci1,jci2,ici1,ici2,1,kz,'cmicro:zsumh0')
+        call getmem3d(zsumq1,jci1,jci2,ici1,ici2,1,kz,'cmicro:zsumq1')
+        call getmem3d(zsumh1,jci1,jci2,ici1,ici2,1,kz,'cmicro:zsumh1')
+        call getmem3d(zerrorq,jci1,jci2,ici1,ici2,1,kz,'cmicro:zerrorq')
+        call getmem3d(zerrorh,jci1,jci2,ici1,ici2,1,kz,'cmicro:zerrorh')
         call getmem4d(ztenkeep,jci1,jci2,ici1,ici2, &
-                      1,kz,1,nqx,'clouds1:ztenkeep')
-        call getmem3d(ztentkeep,jci1,jci2,ici1,ici2,1,kz,'clouds1:ztentkeep')
+                      1,kz,1,nqx,'cmicro:ztenkeep')
+        call getmem3d(ztentkeep,jci1,jci2,ici1,ici2,1,kz,'cmicro:ztentkeep')
       end if
-      call getmem3d(papf,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:papf')
-      call getmem3d(zliq,jci1,jci2,ici1,ici2,1,kz+1,'clouds1:zliq')
-      call getmem3d(zqxfg,jci1,jci2,ici1,ici2,1,nqx,'clouds1:zqxfg')
-      call getmem3d(fccfg,jci1,jci2,ici1,ici2,1,kz,'clouds1:fccfg')
-      call getmem3d(llindex1,jci1,jci2,ici1,ici2,1,nqx,'clouds1:llindex1')
-      call getmem3d(zqdetr,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqdetr')
-      call getmem3d(zqdetr2,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqdetr2') !zqdetr after evaporation
-      call getmem3d(zfoeeliqt,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeeliqt')
-      call getmem3d(zfoeeicet,jci1,jci2,ici1,ici2,1,kz,'clouds1:zfoeeicet')
-      call getmem4d(zqxtendc,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:zqxtendc')
-      call getmem3d(zqxn,1,nqx,jci1,jci2,ici1,ici2,'clouds1:zqxn')
-      call getmem4d(zqlhs,1,nqx,1,nqx,jci1,jci2,ici1,ici2,'clouds1:zqlhs')
-      call getmem4d(zsolqa,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:zsolqa')
-      call getmem4d(zsolqb,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:zsolqb')
-      call getmem4d(llindex3,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'clouds1:llindex3')
-      call getmem4d(zpfplsx,jci1,jci2,ici1,ici2,1,kz+1,1,nqx,'clouds1:zpfplsx')
-      call getmem4d(zqx0,jci1,jci2,ici1,ici2,1,kz,1,nqx,'clouds1:zqx0')
+      call getmem3d(papf,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:papf')
+      call getmem3d(rain_ls,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:rain_ls')
+      call getmem3d(zliq,jci1,jci2,ici1,ici2,1,kz+1,'cmicro:zliq')
+      call getmem3d(zqxfg,jci1,jci2,ici1,ici2,1,nqx,'cmicro:zqxfg')
+      call getmem3d(fccfg,jci1,jci2,ici1,ici2,1,kz,'cmicro:fccfg')
+      call getmem3d(llindex1,jci1,jci2,ici1,ici2,1,nqx,'cmicro:llindex1')
+      call getmem3d(zqdetr,jci1,jci2,ici1,ici2,1,kz,'cmicro:zqdetr')
+      !zqdetr after evaporation
+      call getmem3d(zqdetr2,jci1,jci2,ici1,ici2,1,kz,'cmicro:zqdetr2')
+      call getmem3d(zfoeeliqt,jci1,jci2,ici1,ici2,1,kz,'cmicro:zfoeeliqt')
+      call getmem3d(zfoeeicet,jci1,jci2,ici1,ici2,1,kz,'cmicro:zfoeeicet')
+      call getmem4d(zqxtendc,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cmicro:zqxtendc')
+      call getmem3d(zqxn,1,nqx,jci1,jci2,ici1,ici2,'cmicro:zqxn')
+      call getmem4d(zqlhs,1,nqx,1,nqx,jci1,jci2,ici1,ici2,'cmicro:zqlhs')
+      call getmem4d(zsolqa,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'cmicro:zsolqa')
+      call getmem4d(zsolqb,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'cmicro:zsolqb')
+      call getmem4d(llindex3,jci1,jci2,ici1,ici2,1,nqx,1,nqx,'cmicro:llindex3')
+      call getmem4d(zpfplsx,jci1,jci2,ici1,ici2,1,kz+1,1,nqx,'cmicro:zpfplsx')
+      call getmem4d(zqx0,jci1,jci2,ici1,ici2,1,kz,1,nqx,'cmicro:zqx0')
     end if
-    call getmem3d(zqsliq,jci1,jci2,ici1,ici2,1,kz,'clouds1:zqsliq')
+    call getmem3d(zqsliq,jci1,jci2,ici1,ici2,1,kz,'cmicro:zqsliq')
   end subroutine allocate_mod_cloud_s1
 
   subroutine init_cloud_s1(atms,aten,heatrt,sfs,q_detr,pptnc)
@@ -364,7 +368,7 @@ module mod_cloud_s1
     type(slice) , intent(in) :: atms 
     type(atmstate) , intent(in) :: aten
     type(surfstate) , intent(in) :: sfs
-    real(rk8) , pointer , intent(in), dimension(:,:,:) :: heatrt, q_detr
+    real(rk8) , pointer , intent(in), dimension(:,:,:) :: heatrt , q_detr
     real(rk8) , pointer , dimension(:,:) :: pptnc
     real(rk8) , pointer , dimension(:,:,:) :: cldfra , cldlwc
     call assignpnt(atms%pb3d,zpres)
@@ -439,7 +443,8 @@ module mod_cloud_s1
     call time_begin(subroutine_name,idindx)
 #endif
 
-if ( fscheme ) then
+    if ( .not. fscheme ) return
+
     zfokoop = d_zero
 
     ! Define species tags
@@ -813,9 +818,12 @@ if ( fscheme ) then
           ! Moreover the RH is clipped to the limit of
           ! qv_max = qs * (fcc + (1-fcc) *RH_homo )
           !--------------------------------------------------------------------
-          zsupsat(j,i) = max((zqxx(j,i,k,iqqv)-zfac*zqsmix(j,i,k)) / &!zqsmix?
-                              zcorqsliq(j,i),d_zero)         !zcorqslsliq? shouldn't it be zcorqsmix?
-          zsubsat(j,i) = min((zqxx(j,i,k,iqqv)-zfac*zqsmix(j,i,k))/  & !e<esi, because for e>esi ice still present
+          ! zqsmix?
+          ! zcorqslsliq? shouldn't it be zcorqsmix?
+          zsupsat(j,i) = max((zqxx(j,i,k,iqqv)-zfac*zqsmix(j,i,k)) / &
+                              zcorqsliq(j,i),d_zero)
+          !e<esi, because for e>esi ice still present
+          zsubsat(j,i) = min((zqxx(j,i,k,iqqv)-zfac*zqsmix(j,i,k))/  &
                               zcorqsliq(j,i),d_zero)
 
           if ( zsupsat(j,i) > zepsec ) then
@@ -836,7 +844,8 @@ if ( fscheme ) then
                 statssupc(j,i,k) = zsupsat(j,i) 
               end if
             end if
-          else if (zsubsat(j,i) < d_zero .and. fcc(j,i,k)==d_zero .and. zli(j,i,k)>zepsec) then
+          else if ( zsubsat(j,i) < d_zero .and. &
+                    fcc(j,i,k) == d_zero .and. zli(j,i,k) > zepsec ) then
             ! turn subsaturation into vapor, where there is no cloud
             excess = zli(j,i,k)+zsubsat(j,i)
             if (excess < d_zero) then 
@@ -893,71 +902,75 @@ if ( fscheme ) then
       ! and the parametrization can have different variables switched on
       ! and off.
       ! each of these is a parametrization for a microphysical process.
-      if ( lmicro ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          fccfg(j,i,k) = fcc(j,i,k)
+        end do
+      end do
+      !------------------------------------------------------------------
+      !                 DETRAINMENT FROM CONVECTION
+      !------------------------------------------------------------------
+      if ( k < kz .and. k >= 1 ) then
         do i = ici1 , ici2
           do j = jci1 , jci2
-            fccfg(j,i,k) = fcc(j,i,k)
+            zqdetr(j,i,k) = qdetr(j,i,k)*zdtgdp(j,i)  !kg/kg
+            if ( zqdetr(j,i,k) > minqx ) then
+              !zice=1 if T<250, zice=0 if T>273
+              zalfaw              = zliq(j,i,k)
+              zice                = d_one-zalfaw  
+              zconvsrce(j,i,iqql) = zalfaw*zqdetr(j,i,k)
+              zconvsrce(j,i,iqqi) = zice*zqdetr(j,i,k)
+              zsolqa(j,i,iqql,iqql) = zsolqa(j,i,iqql,iqql) + &
+                                      zconvsrce(j,i,iqql)
+              zsolqa(j,i,iqqi,iqqi) = zsolqa(j,i,iqqi,iqqi) + &
+                                      zconvsrce(j,i,iqqi)
+              zqxfg(j,i,iqql) = zqxfg(j,i,iqql)+zconvsrce(j,i,iqql)
+              zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi)+zconvsrce(j,i,iqqi)
+
+              ! adjustment of the cloud fraction, that increases when qdetr
+              ! adds liquid to the scheme
+              ! zqe = (zqxx(j,i,k,iqqv)-fcc(j,i,k)*zqsmix(j,i,k)) / &
+              !        zqsice(j,i,k)) / max(zepsec,d_one-fcc(j,i,k))
+              ! zqe = max(d_zero,min(zqe,zqsmix(j,i,k))) !zqsice(j,i,k)))
+              ! define the new cloud
+              ! fccfg(j,i,k) = (relh(j,i,k)**0.25D0)* &
+              !                (d_one-dexp((-100.0D0*(zqxfg(j,i,iqql) + &
+              !                 zqxfg(j,i,iqqi))/qx3(j,i,k,iqi)
+              !                sqrt((d_one-relh(j,i,k))*zqsice(j,i,k)))))
+              ! fccfg(j,i,k) = dmin1(dmax1(fccfg(j,i,k),0.01D0),0.99D0)
+              ! zevap = min(zqdetr(j,i,k),(fccfg(j,i,k) - &
+              !                            fcc(j,i,k))*(zqsice(j,i,k)-zqe))
+              ! zevap = max(zevap,d_zero)
+              ! zqdetr2(j,i,k) = zqdetr2(j,i,k) - zevap
+              ! if (zqdetr2(j,i,k) > d_zero) then
+              !    fccfg(j,i,k) = fccfg(j,i,k)
+              ! else 
+              !    fccfg(j,i,k) = fcc(j,i,k) 
+              ! end if
+              ! zsolqa(j,i,iqqv,iqql) = zsolqa(j,i,iqqv,iqql) + zevap
+              ! zsolqa(j,i,iqql,iqqv) = zsolqa(j,i,iqql,iqqv) - zevap
+              ! zqxfg(j,i,iqql) = zqxfg(j,i,iqql) - zevap
+            else
+              zqdetr(j,i,k) = d_zero
+            end if
+            if (stats) then
+              statsdetrw(j,i,k) = zconvsrce(j,i,iqql)        
+              statsdetrc(j,i,k) = zconvsrce(j,i,iqqi)
+            end if
           end do
         end do
-        !------------------------------------------------------------------
-        ! Turn on/off microphysics
-        !------------------------------------------------------------------
-        !                 DETRAINMENT FROM CONVECTION
-        !------------------------------------------------------------------
-        if ( k < kz .and. k >= 1 ) then
-          do i = ici1 , ici2
-            do j = jci1 , jci2
-              zqdetr(j,i,k) = qdetr(j,i,k)*zdtgdp(j,i)  !kg/kg
-              if ( zqdetr(j,i,k) > minqx ) then
-                !zice=1 if T<250, zice=0 if T>273
-                zalfaw              = zliq(j,i,k)
-                zice                = d_one-zalfaw  
-                zconvsrce(j,i,iqql) = zalfaw*zqdetr(j,i,k)
-                zconvsrce(j,i,iqqi) = zice*zqdetr(j,i,k)
-                zsolqa(j,i,iqql,iqql) = zsolqa(j,i,iqql,iqql) + &
-                                        zconvsrce(j,i,iqql)
-                zsolqa(j,i,iqqi,iqqi) = zsolqa(j,i,iqqi,iqqi) + &
-                                        zconvsrce(j,i,iqqi)
-                zqxfg(j,i,iqql) = zqxfg(j,i,iqql)+zconvsrce(j,i,iqql)
-                zqxfg(j,i,iqqi) = zqxfg(j,i,iqqi)+zconvsrce(j,i,iqqi)
+      end if
 
-        ! adjustment of the cloud fraction, that increases when qdetr adds liquid
-        ! to the scheme
-        ! zqe = (zqxx(j,i,k,iqqv)-fcc(j,i,k)*zqsmix(j,i,k)) / &!zqsice(j,i,k)) / &
-        !       max(zepsec,d_one-fcc(j,i,k))
-        ! zqe = max(d_zero,min(zqe,zqsmix(j,i,k))) !zqsice(j,i,k)))
-        ! define the new cloud
-        ! fccfg(j,i,k) = (relh(j,i,k)**0.25D0)* &
-        !                (d_one-dexp((-100.0D0*(zqxfg(j,i,iqql)+zqxfg(j,i,iqqi))/ & ! qx3(j,i,k,iqi)
-        !                sqrt((d_one-relh(j,i,k))*zqsice(j,i,k)))))
-        ! fccfg(j,i,k) = dmin1(dmax1(fccfg(j,i,k),0.01D0),0.99D0)
-        ! zevap = min(zqdetr(j,i,k),(fccfg(j,i,k)-fcc(j,i,k))*(zqsice(j,i,k)-zqe))
-        ! zevap = max(zevap,d_zero)
-        ! zqdetr2(j,i,k) = zqdetr2(j,i,k) - zevap
-        ! if (zqdetr2(j,i,k) > d_zero) then
-        ! fccfg(j,i,k) = fccfg(j,i,k)
-        ! else 
-        ! fccfg(j,i,k) = fcc(j,i,k) 
-        ! end if
-        ! zsolqa(j,i,iqqv,iqql) = zsolqa(j,i,iqqv,iqql) + zevap
-        ! zsolqa(j,i,iqql,iqqv) = zsolqa(j,i,iqql,iqqv) - zevap
-        ! zqxfg(j,i,iqql) = zqxfg(j,i,iqql) - zevap
-              else
-                zqdetr(j,i,k) = d_zero
-              end if
-              if (stats) then
-                statsdetrw(j,i,k) = zconvsrce(j,i,iqql)        
-                statsdetrc(j,i,k) = zconvsrce(j,i,iqqi)
-              end if
-            end do
-          end do
-        end if
+      !------------------------------------------------------------------
+      ! Turn on/off microphysics
+      !------------------------------------------------------------------
 
+      if ( lmicro ) then
         !---------------------------------------
         ! EROSION OF CLOUDS BY TURBULENT MIXING
         !--------------------------------------
-        ! rcldiff  : Diffusion coefficient for evaporation by turbulent mixing (IBID., EQU. 30)
-        ! rcldiff = 3.0D-06
+        ! rcldiff  : Diffusion coefficient for evaporation by turbulent
+        ! mixing (IBID., EQU. 30) rcldiff = 3.0D-06
         do i = ici1 , ici2
           do j = jci1 , jci2
             zldifdt(j,i) = rcldiff*dt
@@ -972,10 +985,14 @@ if ( fscheme ) then
               zleros = fccfg(j,i,k)*ze
               zleros = min(zleros,zevaplimmix(j,i))
               zleros = min(zleros,zli(j,i,k))
-              zsolqa(j,i,iqql,iqqv) = zsolqa(j,i,iqql,iqqv) - zliqfrac(j,i,k)*zleros 
-              zsolqa(j,i,iqqv,iqql) = zsolqa(j,i,iqqv,iqql) + zliqfrac(j,i,k)*zleros 
-              zsolqa(j,i,iqqi,iqqv) = zsolqa(j,i,iqqi,iqqv) - zicefrac(j,i,k)*zleros
-              zsolqa(j,i,iqqv,iqqi) = zsolqa(j,i,iqqv,iqqi) + zicefrac(j,i,k)*zleros
+              zsolqa(j,i,iqql,iqqv) = zsolqa(j,i,iqql,iqqv) - &
+                      zliqfrac(j,i,k)*zleros 
+              zsolqa(j,i,iqqv,iqql) = zsolqa(j,i,iqqv,iqql) + &
+                      zliqfrac(j,i,k)*zleros 
+              zsolqa(j,i,iqqi,iqqv) = zsolqa(j,i,iqqi,iqqv) - &
+                      zicefrac(j,i,k)*zleros
+              zsolqa(j,i,iqqv,iqqi) = zsolqa(j,i,iqqv,iqqi) + &
+                      zicefrac(j,i,k)*zleros
               if (stats) then
                 statserosw(j,i,k) = zliqfrac(j,i,k)*zleros 
                 statserosc(j,i,k) = zicefrac(j,i,k)*zleros
@@ -1016,8 +1033,8 @@ if ( fscheme ) then
             ! zldefr = 0
             ! note: zldefr should be set to the difference between the mixed
             ! phase functions in the convection and cloud scheme, but this is
-            ! not calculated in the IFS, so is zero and the functions must be the same.
-            ! we should check what happens in RegCM
+            ! not calculated in the IFS, so is zero and the functions must be
+            ! the same. We should check what happens in RegCM
 
             zdtforc       = zdtdp*zwtot*dt + zdtdiab
             zqold(j,i)    = zqsmix(j,i,k)
@@ -1095,14 +1112,15 @@ if ( fscheme ) then
           do j = jci1 , jci2
             if ( fccfg(j,i,k) > zepsec.and.zdqs(j,i) <= -minqx) then
               zlcond1(j,i)=max(-zdqs(j,i),d_zero) !new limiter
-             ! old limiter
+              ! old limiter
               !  (significantly improves upper tropospheric humidity rms)
               if (fccfg(j,i,k) > 0.99D0) then
                 zcor = d_one/(d_one-retv*zqsmix(j,i,k))
                 zcdmax = (zqxx(j,i,k,iqqv)-zqsmix(j,i,k)) / &
                          (d_one+zcor*zqsmix(j,i,k)*foedem(zt(j,i,k)))
               else
-                zcdmax = (zqxx(j,i,k,iqqv)-fccfg(j,i,k)*zqsmix(j,i,k))/fccfg(j,i,k)
+                zcdmax = (zqxx(j,i,k,iqqv)-fccfg(j,i,k)*zqsmix(j,i,k)) / &
+                        fccfg(j,i,k)
               end if
               zlcond1(j,i) = max(min(zlcond1(j,i),zcdmax),d_zero)
               ! end old limiter
@@ -1139,9 +1157,9 @@ if ( fscheme ) then
               !---------------------------
               ! critical relative humidity
               !---------------------------
-              !     *RAMID*   REAL    BASE VALUE FOR CALCULATION OF RELATIVE
-              !                       HUMIDITY THRESHOLD FOR ONSET OF STRATIFORM
-              !                       CONDENSATION (TIEDTKE, 1993, EQUATION 24)
+              ! *RAMID*   REAL    BASE VALUE FOR CALCULATION OF RELATIVE
+              !                   HUMIDITY THRESHOLD FOR ONSET OF STRATIFORM
+              !                   CONDENSATION (TIEDTKE, 1993, EQUATION 24)
               zrhc = ramid !=0.8
               zsigk = zpres(j,i,k)/papf(j,i,kz+1)
               ! increase RHcrit to 1.0 towards the surface (sigma>0.8)
@@ -1153,12 +1171,14 @@ if ( fscheme ) then
               !---------------------------
               if ( nssopt == 0 ) then
                 ! no scheme, called when zfac is defined
-                zqe = (zqxx(j,i,k,iqqv)-fccfg(j,i,k)*zqsmix(j,i,k)) / & !zqsice(j,i,k)) / &
+                !zqsice(j,i,k)) / &
+                zqe = (zqxx(j,i,k,iqqv)-fccfg(j,i,k)*zqsmix(j,i,k)) / &
                         max(zepsec,d_one-fccfg(j,i,k))
                 zqe = max(d_zero,zqe)
               else if ( nssopt ==1 ) then
                 ! tompkins
-                zqe = (zqxx(j,i,k,iqqv)-fccfg(j,i,k)*zqsmix(j,i,k)) / & !zqsice(j,i,k)) / &
+                !zqsice(j,i,k)) / &
+                zqe = (zqxx(j,i,k,iqqv)-fccfg(j,i,k)*zqsmix(j,i,k)) / &
                        max(zepsec,d_one-fccfg(j,i,k))
                 zqe = max(d_zero,zqe)
               else if ( nssopt == 2 ) then
@@ -1173,25 +1193,32 @@ if ( fscheme ) then
                 zfac = d_one
               else
                 ! ice supersaturation
+                zfokoop = fokoop(zt(j,i,k),foeeliq(zt(j,i,k)), &
+                        foeeice(zt(j,i,k)))
                 zfac = zfokoop
               end if
-              if (zqe >= zrhc*zqsmix(j,i,k)*zfac .and. &   !zqsice(j,i,k)*zfac .and. &
-                  zqe < zqsmix(j,i,k)*zfac) then !zqsice(j,i,k)*zfac) then
+                  ! zqsice(j,i,k)*zfac .and. &
+                  ! zqsice(j,i,k)*zfac) then
+              if (zqe >= zrhc*zqsmix(j,i,k)*zfac .and. &
+                  zqe < zqsmix(j,i,k)*zfac) then
                 ! note: not **2 on 1-a term if zqe is used.
                 ! added correction term zfac to numerator 15/03/2010
+                !zqsice(j,i,k)-zqe),zepsec)
                 zacond = -(d_one-fccfg(j,i,k))*zfac*zdqs(j,i) / &
-                          max(d_two*(zfac*zqsmix(j,i,k)-zqe),zepsec) !zqsice(j,i,k)-zqe),zepsec)
-                zacond = min(zacond,d_one-fccfg(j,i,k))  !put the limiter back
+                          max(d_two*(zfac*zqsmix(j,i,k)-zqe),zepsec)
+                zacond = min(zacond,d_one-fccfg(j,i,k)) ! put the limiter back
                 ! linear term:
                 ! added correction term zfac 15/03/2010
                 zlcond2(j,i) = -zfac*zdqs(j,i)*d_half*zacond !mine linear
                 ! new limiter formulation
-                zzdl = d_two*(zfac*zqsmix(j,i,k)-zqe) / & !zqsice(j,i,k)-zqe) / &
+                ! zqsice(j,i,k)-zqe) / &
+                zzdl = d_two*(zfac*zqsmix(j,i,k)-zqe) / &
                        max(zepsec,d_one-fccfg(j,i,k))
                 ! added correction term zfac 15/03/2010
                 if (zfac*zdqs(j,i)<-zzdl) then
+                  ! zqsice(j,i,k)+zqxx(j,i,k,iqqv)
                   zlcondlim = (fccfg(j,i,k)-d_one)*zfac*zdqs(j,i)- &
-                               zfac*zqsmix(j,i,k)+zqxx(j,i,k,iqqv) !zqsice(j,i,k)+zqxx(j,i,k,iqqv)
+                               zfac*zqsmix(j,i,k)+zqxx(j,i,k,iqqv)
                   zlcond2(j,i) = min(zlcond2(j,i),zlcondlim)
                 end if
                 zlcond2(j,i) = max(zlcond2(j,i),d_zero)
@@ -1212,7 +1239,6 @@ if ( fscheme ) then
                   zsolqa(j,i,iqqv,iqql) = zsolqa(j,i,iqqv,iqql)-zlcond2(j,i)
                   zqxfg(j,i,iqql) = zqxfg(j,i,iqql)+zlcond2(j,i)
                   ! store cloud liquid diagnostic if required
-              
                   if ( stats ) then
                     statscond2w(j,i,k) = zlcond2(j,i)
                   end if
@@ -1307,7 +1333,8 @@ if ( fscheme ) then
               ! we thus rely on the supersaturation check to clean up any
               ! remaining supersaturation
               !---------------------------------------------------------------
-              zdepos = min(zdepos,zqxfg(j,i,iqql)) ! limit to liquid water amount
+              ! limit to liquid water amount
+              zdepos = min(zdepos,zqxfg(j,i,iqql))
               !---------------------------------------------------------------
               ! at top of cloud, reduce deposition rate near cloud top to
               ! account for small scale turbulent processes, limited ice
@@ -1411,7 +1438,7 @@ if ( fscheme ) then
               select case (kautoconv)
                 case (1) ! Klein & Pincus (2000)
                   zsolqb(j,i,iqqr,iqql) = zsolqb(j,i,iqqr,iqql) + &
-                            dt*zauto_rate_klepi * (zqxx(j,i,k,iqql)**(3.3D0))
+                            dt*zauto_rate_klepi * (zqxx(j,i,k,iqql)**(2.3D0))
                   zsolqa(j,i,iqqr,iqql) = d_zero
                 case (2)  ! Khairoutdinov and Kogan (2000)
                   zsolqb(j,i,iqqr,iqql) = zsolqb(j,i,iqqr,iqql) + &
@@ -1503,7 +1530,8 @@ if ( fscheme ) then
             zmeltmax(j,i) = d_zero
             if ( zicetot(j,i) > zepsec .and. zt(j,i,k) > tzero ) then
               ! Calculate subsaturation
-              zsubsat(j,i) = max(zqsmix(j,i,k)-zqxx(j,i,k,iqqv),d_zero) !zqsice(j,i,k)-zqxx(j,i,k,iqqv),d_zero)
+              ! zqsice(j,i,k)-zqxx(j,i,k,iqqv),d_zero)
+              zsubsat(j,i) = max(zqsmix(j,i,k)-zqxx(j,i,k,iqqv),d_zero)
               ! Calculate difference between dry-bulb (zt)  and the temperature
               ! at which the wet-bulb=0degC
               ! Melting only occurs if the wet-bulb temperature >0
@@ -1726,7 +1754,8 @@ if ( fscheme ) then
                 ! reduce the total precip coverage proportional to evaporation
                 !-------------------------------------------------------------
                 zcovptot(j,i) = zcovptot(j,i)-max(d_zero, &
-                               (zcovptot(j,i)-fccfg(j,i,k))*zdpevap/zqpretot(j,i))
+                               (zcovptot(j,i)-fccfg(j,i,k)) * &
+                                zdpevap/zqpretot(j,i))
               else
                 zevap = zqxfg(j,i,iqqs)
               end if
@@ -1886,8 +1915,9 @@ if ( fscheme ) then
               ! Positive, since summed over 2nd index
               zexplicit = zexplicit + zsolqa(j,i,n,jn)
               if (jn /= n) then
-                zexplicit =  zexplicit - (1-ksemi)*zqxx(j,i,k,n)*zsolqb(j,i,jn,n) + &
-                                         (1-ksemi)*zqxx(j,i,k,jn)*zsolqb(j,i,n,jn)
+                zexplicit =  zexplicit - &
+                        (1-ksemi)*zqxx(j,i,k,n)*zsolqb(j,i,jn,n) + &
+                        (1-ksemi)*zqxx(j,i,k,jn)*zsolqb(j,i,n,jn)
               end if
               zexplicit = zexplicit - (1-ksemi)*zqxx(j,i,k,n)*zfallsink(j,i,n)
             end do
@@ -1964,11 +1994,13 @@ if ( fscheme ) then
           do j = jci1 , jci2
             if ( kphase(n) == 1 ) then
               zttendc(j,i,k) = zttendc(j,i,k) + &
-                               wlhvocp*(zqxn(n,j,i)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
+                               wlhvocp*(zqxn(n,j,i)-zqxx(j,i,k,n) - &
+                               zfluxq(j,i,n))*zqtmst
             end if
             if ( kphase(n) == 2 ) then
               zttendc(j,i,k) = zttendc(j,i,k) + &
-                               wlhsocp*(zqxn(n,j,i)-zqxx(j,i,k,n)-zfluxq(j,i,n))*zqtmst
+                               wlhsocp*(zqxn(n,j,i)-zqxx(j,i,k,n) - &
+                               zfluxq(j,i,n))*zqtmst
             end if
           end do
         end do
@@ -2079,6 +2111,7 @@ if ( fscheme ) then
     prcflxc(:,:) = d_zero
     zpfplsl(:,:,:) = d_zero
     zpfplsn(:,:,:) = d_zero
+    rain_ls(:,:,:) = d_zero
 
     !--------------------------------------------------------------------
     ! Copy general precip arrays back into PFP arrays for GRIB archiving
@@ -2092,6 +2125,7 @@ if ( fscheme ) then
           do n = 1 , nqx
             if ( kphase(n) == 1 ) then
               zpfplsl(j,i,k) = zpfplsl(j,i,k) + zpfplsx(j,i,k,n)
+              rain_ls(j,i,k) = zpfplsl(j,i,k)
             end if
             if ( kphase(n) == 2 ) then
               zpfplsn(j,i,k) = zpfplsn(j,i,k)+ zpfplsx(j,i,k,n)
@@ -2120,11 +2154,6 @@ if ( fscheme ) then
         end if
       end do
      end do
-
-else!fscheme
-
-end if
-
 
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
