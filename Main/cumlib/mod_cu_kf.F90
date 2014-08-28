@@ -33,7 +33,17 @@ module mod_cu_kf
   implicit none
 
   private
-
+  !
+  !  RegCM KF code
+  !
+  ! The code below is adapted from kfeta code from WRF 3.6.1 codebase.
+  ! It is missing the kf_trigger == 2 option, and we use by default the
+  ! kf_trigger == 3 option.
+  !
+  ! Trieste , August 2014
+  !
+  !             Graziano Giuliani
+  !
   public :: allocate_mod_cu_kf , kfdrv , kf_lutab
   !
   !  V3.3: A new trigger function is added based Ma and Tan (2009):
@@ -494,7 +504,7 @@ module mod_cu_kf
         ainc = aincb
         a1 = emix/aliq
         tp = (a1-astrt)/ainc
-        indlu = int(tp) + 1
+        indlu = max(1, min(kfna-1,int(tp)+1))
         avalue = (indlu-1)*ainc + astrt
         aintrp = (a1-avalue)/ainc
         tlog = aintrp*alu(indlu+1) + (1-aintrp)*alu(indlu)
@@ -678,7 +688,7 @@ module mod_cu_kf
             call tpmix2(p0(np,nk1),theteu(nk1),tu(nk1),qu(nk1),qliq(nk1), &
                         qice(nk1),qnewlq,qnewic)
             !
-            ! Check to see IF updraft temp is above the temperature at which
+            ! Check to see if updraft temp is above the temperature at which
             ! glaciation is assumed to initiate; if it is, calculate the
             ! fraction of remaining liquid water to freeze. ttfrz is the
             ! temp at which freezing begins, tbfrz the temp below which all
@@ -750,7 +760,7 @@ module mod_cu_kf
             ! If cloud parcels are virtually colder than the environment,
             ! minimal entrainment (0.5*rei) is imposed.
             !
-            if ( tvqu(nk1) <= tv0(nk1) ) then    ! Entrain/Detrain IF BLOCK
+            if ( tvqu(nk1) <= tv0(nk1) ) then    ! Entrain/Detrain if block
               ee2 = d_half   ! Kain (2004)  Eq. 4
               ud2 = d_one
               eqfrc(nk1) = d_zero
@@ -1515,7 +1525,7 @@ module mod_cu_kf
           qg(nk) = qpa(nk)
         end do
         !
-        ! Check to see IF mixing ratio dips below zero anywhere;  if so, borrow
+        ! Check to see if mixing ratio dips below zero anywhere;  if so, borrow
         ! moisture from adjacent layers to bring it back up above zero
         !
         do nk = 1 , ltop
@@ -1595,7 +1605,7 @@ module mod_cu_kf
           binc = aincb
           a1 = emix/aliq
           tp = (a1-astrt)/binc
-          indlu = int(tp)+1
+          indlu = max(1, min(kfna-1,int(tp)+1))
           avalue = (indlu-1)*binc+astrt
           aintrp = (a1-avalue)/binc
           tlog = aintrp*alu(indlu+1)+(1-aintrp)*alu(indlu)
@@ -2041,7 +2051,7 @@ module mod_cu_kf
       !
       tp = (p-plutop) * rdpr
       qq = tp - dint(tp)
-      iptb = max(1,min(kfnp,int(tp) + 1))
+      iptb = max(1, min(kfnp-1,int(tp)+1))
       !
       !*********************************
       ! base and scaling factor for the
@@ -2051,7 +2061,7 @@ module mod_cu_kf
       bth = (the0k(iptb+1) - the0k(iptb))*qq+the0k(iptb)
       tth = (thes-bth) * rdthk
       pp = tth - aint(tth)
-      ithtb = max(1,min(kfnt,int(tth) + 1))
+      ithtb = max(1, min(kfnt-1,int(tth)+1))
 
       t00 = ttab(ithtb  ,iptb  )
       t10 = ttab(ithtb+1,iptb  )
@@ -2296,7 +2306,7 @@ module mod_cu_kf
       !
       tp = (p-plutop) * rdpr
       qq = tp - aint(tp)
-      iptb = max(1,min(kfnp,int(tp) + 1))
+      iptb = max(1, min(kfnp-1,int(tp)+1))
       !
       !**********************************
       ! base and scaling factor for the
@@ -2307,7 +2317,7 @@ module mod_cu_kf
       bth = (the0k(iptb+1)-the0k(iptb)) * qq + the0k(iptb)
       tth = (thes-bth) * rdthk
       pp = tth - aint(tth)
-      ithtb = int(tth)+1
+      ithtb = max(1, min(kfnt-1,int(tth)+1))
 
       t00 = ttab(ithtb  ,iptb  )
       t10 = ttab(ithtb+1,iptb  )
@@ -2345,7 +2355,7 @@ module mod_cu_kf
       !
       a1 = ee/aliq
       tp = (a1-astrt)/aincb
-      indlu = int(tp) + 1
+      indlu = max(1, min(kfna-1,int(tp)+1))
       avalue = (indlu-1)*aincb + astrt
       aintrp = (a1-avalue)/aincb
       tlog = aintrp*alu(indlu+1) + (1-aintrp)*alu(indlu)
