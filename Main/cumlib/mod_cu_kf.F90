@@ -61,9 +61,9 @@ module mod_cu_kf
   real(rk8) , dimension(:,:) , pointer :: u0 , v0 , z0 , t0 , qv0 , p0
   real(rk8) , dimension(:,:) , pointer :: rho , dzq , w0avg
   real(rk8) , dimension(:) , pointer :: raincv , pratec
-  real(rk8) , dimension(:,:) , pointer :: cldfra_dp_kf , cldfra_sh_kf
   real(rk8) , dimension(:,:) , pointer :: qc_kf , qi_kf
   integer(ik4) , dimension(:) , pointer :: ktop , kbot
+  real(rk8) , dimension(:,:) , pointer :: cldfra_dp_kf , cldfra_sh_kf
 
   real(rk8) , dimension(:,:) , pointer :: dqdt , dtdt , dqcdt
   real(rk8) , dimension(:,:) , pointer :: tpart_h , tpart_v
@@ -71,8 +71,18 @@ module mod_cu_kf
   ! IPPTLS == 2
   real(rk8) , dimension(:,:) , pointer :: dqidt , dqrdt , dqsdt
 
+  real(rk8) , parameter :: t00 = tzero
+  real(rk8) , parameter :: p00 = 1.0D5
+
   real(rk8) , parameter :: astrt = 1.0D-3
   real(rk8) , parameter :: aincb = 0.050D0
+
+  real(rk8) , parameter :: c1 = 3374.6525D0
+  real(rk8) , parameter :: c2 = 2.5403D0
+  real(rk8) , parameter :: c3 = 0.608D0
+  real(rk8) , parameter :: c4 = 0.810D0
+  real(rk8) , parameter :: dpmin = 5.0D3
+
   contains
 
   subroutine allocate_mod_cu_kf
@@ -133,6 +143,7 @@ module mod_cu_kf
     type(mod_2_cum) , intent(in) :: m2c
     type(cum_2_mod) , intent(inout) :: c2m
     integer :: i , j ,  k , kk , np
+    real(rk8) :: w0
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'kfdrv'
     integer(ik4) , save :: idindx = 0
@@ -154,8 +165,9 @@ module mod_cu_kf
         p0(np,k) = m2c%pas(j,i,kk)
         rho(np,k) = m2c%rhoas(j,i,kk)
         dzq(np,k) = m2c%dzq(j,i,kk)
-        w0avg(np,k) = - d_half * (m2c%qdot(j,i,kk+1)-m2c%qdot(j,i,kk)) / &
-                      (egrav*rho(np,k))
+        w0 = d_half * m2c%psb(j,i) * d_1000 * &
+                (m2c%qdot(j,i,kk)+m2c%qdot(j,i,kk+1))/(egrav*rho(np,k))
+        w0avg(np,k) = (w0avg(np,k)*3.0D0+w0)*d_rfour
       end do
     end do
 
@@ -206,6 +218,7 @@ module mod_cu_kf
                   dqidt(np,k)*m2c%psb(j,i)
           c2m%qxten(j,i,kk,iqs) = c2m%qxten(j,i,kk,iqs) + &
                   dqsdt(np,k)*m2c%psb(j,i)
+          c2m%cldfrc(j,i,k) = cldfra_sh_kf(np,k) + cldfra_dp_kf(np,k)
         end do
       end do
     end if
@@ -270,7 +283,7 @@ module mod_cu_kf
             acoeff , qvdiff , topomg , cpm , dq , abeg , dabe , dfda ,    &
             frc2 , dr , udfrc , tuc , qgs , rh0 , rhg , qinit , qfnl ,    &
             err2 , relerr , rnc , fabeold , aincold , uefrc , ddfrc ,     &
-            tdc , defrc , rhbar , dmffrc , dpmin , dilbe
+            tdc , defrc , rhbar , dmffrc , dilbe
     real(rk8) :: tp , avalue , aintrp , tkemax , qfrz , qss , &
             pptmlt , dtmelt , rhh , evac , binc
     integer(ik4) :: indlu , nu , nuchm , nnn , klfs
@@ -288,8 +301,6 @@ module mod_cu_kf
     logical :: iprnt
     real(rk8) :: u00 , qslcl , rhlcl , dqssdt    !jfb
 
-    real(rk8) , parameter :: p00 = stdp
-    real(rk8) , parameter :: t00 = tzero
     real(rk8) , parameter :: ttfrz = tzero - 5.0D0
     real(rk8) , parameter :: tbfrz = tzero - 25.0D0
 
@@ -308,7 +319,6 @@ module mod_cu_kf
       ! mods to allow shallow convection...
       nchm = 0
       ishall = 0
-      dpmin = 5.0D3
       p300 = p0(np,1) - 30000.0D0
       !
       ! Pressure perturbation term is only defined at mid-point of
@@ -334,7 +344,7 @@ module mod_cu_kf
         qs0(k) = d_zero
         rh(k) = q0(k) / qes(k)
         dilfrc(k) = d_one
-        tv0(k) = t0(np,k) * (d_one+0.608D0*q0(k))
+        tv0(k) = t0(np,k) * (d_one + c3*q0(k))
         ! dp is the pressure interval between full sigma levels
         dp(k) = rho(np,k)*egrav*dzq(np,k)
         ! If Turbulent Kinetic Energy (TKE) is available from turbulent
@@ -410,19 +420,20 @@ module mod_cu_kf
           write(stderr,*) 'WOULD GO OFF BOTTOM: KF_ETA_PARA NK',NK
           call fatal(__FILE__,__LINE__,'KF FATAL ERROR')
         else
+          calcdpth: &
           do
             nk = nk + 1
             if ( nk > kte ) then
-              WRITE(0,*) 'WOULD GO OFF TOP: KF_ETA_PARA DPTHMX,DPMIN', &
-                      DPTHMX,DPMIN
-              exit
+              write(stderr,*) 'WOULD GO OFF TOP: KF_ETA_PARA DPTHMX,DPMIN', &
+                      dpthmx , dpmin
+              call fatal(__FILE__,__LINE__,'KF FATAL ERROR')
             end if
             dpthmx = dpthmx+dp(nk)
             nlayrs = nlayrs+1
             if ( dpthmx > dpmin ) then
-              exit
+              exit calcdpth
             end if
-          end do
+          end do calcdpth
         end if
         if ( dpthmx < dpmin ) then
           cycle modelpoints
@@ -465,15 +476,16 @@ module mod_cu_kf
         aintrp = (a1-avalue)/ainc
         tlog = aintrp*alu(indlu+1) + (1-aintrp)*alu(indlu)
         tdpt = (cliq-dliq*tlog) / (bliq-tlog)
-        tlcl = tdpt - &
-                (0.212D0 + 1.571D-3*(tdpt-t00) - 4.36D-4*(tmix-t00))*(tmix-tdpt)
+        tlcl = tdpt - (0.212D0 + 1.571D-3*(tdpt-t00) - &
+                       4.36D-4*(tmix-t00))*(tmix-tdpt)
         tlcl = min(tlcl,tmix)
-        tvlcl = tlcl*(d_one+0.608D0*qmix)
+        tvlcl = tlcl*(d_one + c3*qmix)
         zlcl = zmix + (tlcl-tmix)/gdry
+        findklcl1: &
         do nk = lc, kl
           klcl = nk
-          if ( zlcl <= z0(np,nk) ) exit
-        end do
+          if ( zlcl <= z0(np,nk) ) exit findklcl1
+        end do findklcl1
         if ( zlcl > z0(np,kl) ) cycle modelpoints
 
         k = klcl-1
@@ -484,7 +496,7 @@ module mod_cu_kf
         !
         tenv = t0(np,k) + (t0(np,klcl)-t0(np,k))*dlp
         qenv = q0(k) + (q0(klcl)-q0(k))*dlp
-        tven = tenv*(d_one+0.608D0*qenv)
+        tven = tenv*(d_one + c3*qenv)
         !
         ! Check to see if cloud is buoyant using fritsch-chappell trigger
         ! function described in kain and fritsch (1992). w0 is an
@@ -497,11 +509,12 @@ module mod_cu_kf
         ! length, assuming linear dependence of w on grid length.
         !
         if ( zlcl < 2.0D3 ) then  ! Kain (2004) Eq. 2
-          wklcl = 0.02D0*zlcl/2.0D3
+          wklcl = 0.02D0 * zlcl/2.0D3
         else
-          wklcl = 0.02D0         ! units of m/s
+          wklcl = 0.02D0          ! units of m/s
         end if
-        wkl = (w0avg(np,k)+(w0avg(np,klcl)-w0avg(np,k))*dlp)*dx/25.0D3-wklcl
+        wkl = (w0avg(np,k) + &
+                (w0avg(np,klcl) - w0avg(np,k))*dlp)*dx/25.0D3 - wklcl
         if ( wkl < 0.0001D0 ) then
           dtlcl = d_zero
         else
@@ -514,15 +527,15 @@ module mod_cu_kf
 
         dtrh = d_zero
         if ( kf_trigger == 3 ) then
+          !
           ! for ETA model, give parcel an extra temperature perturbation based
           ! the threshold RH for condensation (U00).
-          ! as described in Narita and Ohmori (2007, 12th Mesoscale Conf.
-          !
+          ! as described in Narita and Ohmori (2007, 12th Mesoscale Conf.)
           ! for now, just assume U00 = 0.75.
           ! !!!!!! for MM5, SET DTRH = 0. !!!!!!!!
           u00 = 0.75D0
           if ( u00 < d_one ) then
-            qslcl = qes(k)+(qes(klcl)-qes(k))*dlp
+            qslcl = qes(k) + (qes(klcl)-qes(k))*dlp
             rhlcl = qenv/qslcl
             dqssdt = qmix*(cliq-bliq*dliq)/((tlcl-dliq)*(tlcl-dliq))
             if ( rhlcl >= 0.75D0 .and. rhlcl <= 0.95D0 ) then
@@ -548,7 +561,7 @@ module mod_cu_kf
           ! equivalent potential temperature
           ! (theteu) and vertical velocity of the rising parcel at the lcl.
           !
-          call envirtht(pmix,tmix,qmix,theteu(k))
+          theteu(k) = envirtht(pmix,tmix,qmix)
           !
           ! Modify calculation of initial parcel vertical velocity. jsk 11/26/97
           !
@@ -562,18 +575,18 @@ module mod_cu_kf
           end if
           plcl = p0(np,k) + (p0(np,klcl)-p0(np,k))*dlp
           wtw = wlcl*wlcl
-          tvlcl = tlcl*(d_one+0.608D0*qmix)
+          tvlcl = tlcl*(d_one + c3*qmix)
           rholcl = plcl/(rdry*tvlcl)
           lcl = klcl
           let = lcl
           ! make RAD a function of background vertical velocity.
           ! (Kain (2004) Eq. 6)
           if ( wkl < d_zero ) then
-            rad = 1000.0D0
+            rad = d_1000
           else if ( wkl > 0.1D0 ) then
             rad = 2000.0D0
           else
-            rad = 1000.0D0 + 1000.0D0*wkl/0.1D0
+            rad = d_1000 + d_1000*wkl/0.1D0
           end if
           !
           ! Compute updraft properties
@@ -669,7 +682,7 @@ module mod_cu_kf
               call dtfrznew(tu(nk1),p0(np,nk1),theteu(nk1), &
                       qu(nk1),qfrz,qice(nk1))
             end if
-            tvu(nk1) = tu(nk1)*(d_one+0.608D0*qu(nk1))
+            tvu(nk1) = tu(nk1)*(d_one + c3*qu(nk1))
             !
             ! Calculate updraft vertical velocity and precipitation fallout.
             !
@@ -691,19 +704,19 @@ module mod_cu_kf
             ! if cloud is tall enough, finalize updraft calculations.
             !
             if ( wtw < 1.0D-3 ) then
-              exit
+              exit updraft
             else
               wu(nk1) = sqrt(wtw)
             end if
             !
             ! Calculate value of theta-e in environment to entrain into updraft
             !
-            call envirtht(p0(np,nk1),t0(np,nk1),q0(nk1),thetee(nk1))
+            thetee(nk1) = envirtht(p0(np,nk1),t0(np,nk1),q0(nk1))
             !
             ! rei is the rate of environmental inflow.
             !
             rei = vmflcl*dp(nk1)*0.03D0/rad ! KF (1990) Eq. 1; Kain (2004) Eq. 5
-            tvqu(nk1) = tu(nk1)*(d_one+0.608D0*qu(nk1)-qliq(nk1)-qice(nk1))
+            tvqu(nk1) = tu(nk1)*(d_one + c3*qu(nk1)-qliq(nk1)-qice(nk1))
             if ( nk == k ) then
               dilbe = ((tvlcl+tvqu(nk1))/(tven+tv0(nk1)) - d_one)*dzz
             else
@@ -733,7 +746,7 @@ module mod_cu_kf
               tmpice = f2*qice(nk1)
               call tpmix2(p0(np,nk1),thttmp,ttmp,qtmp, &
                       tmpliq,tmpice,qnewlq,qnewic)
-              TU95=TTMP*(1.+0.608*QTMP-TMPLIQ-TMPICE)
+              tu95 = ttmp*(d_one + c3*qtmp-tmpliq-tmpice)
               if ( tu95 > tv0(nk1) ) then
                 ee2 = d_one
                 ud2 = d_zero
@@ -747,7 +760,7 @@ module mod_cu_kf
                 tmpice = f2*qice(nk1)
                 call tpmix2(p0(np,nk1),thttmp,ttmp,qtmp, &
                         tmpliq,tmpice,qnewlq,qnewic)
-                tu10 = ttmp*(d_one + 0.608D0*qtmp-tmpliq-tmpice)
+                tu10 = ttmp*(d_one + c3*qtmp-tmpliq-tmpice)
                 tvdiff = abs(tu10-tvqu(nk1))
                 if ( tvdiff < 1.0D-3 ) then
                   ee2 = d_one
@@ -797,7 +810,7 @@ module mod_cu_kf
                 abe = abe - dilbe*egrav
               end if
               let=nk
-              exit
+              exit updraft
             else
               ee1 = ee2
               ud1 = ud2
@@ -848,7 +861,7 @@ module mod_cu_kf
           if ( tlcl > 293.0D0 ) then
             chmin = 4.0D3
           else if ( tlcl <= 293.0D0 .and. tlcl >= 273.0D0 ) then
-            chmin = 2.0D3 + 100.0D0 * (tlcl - 273.0D0)
+            chmin = 2.0D3 + d_100 * (tlcl - 273.0D0)
           else if ( tlcl < 273.0D0 ) then
             chmin = 2.0D3
           end if
@@ -1024,7 +1037,7 @@ module mod_cu_kf
         detlq(nk) = d_zero
         detic(nk) = d_zero
         ratio2(nk) = d_zero
-        call envirtht(p0(np,nk),t0(np,nk),q0(nk),thetee(nk))
+        thetee(nk) = envirtht(p0(np,nk),t0(np,nk),q0(nk))
         eqfrc(nk) = d_one
       end do
       ltop1 = ltop+1
@@ -1146,13 +1159,14 @@ module mod_cu_kf
         !
         kstart = kpbl+1
         klfs = let-1
+        findklfs: &
         do nk = kstart+1 , kl
           dppp = p0(np,kstart) - p0(np,nk)
           if ( dppp > 150.0D2 ) then
             klfs = nK
-            exit
+            exit findklfs
           end if
-        end do
+        end do findklfs
         klfs = min(klfs,let-1)
         lfs = klfs
         !
@@ -1171,7 +1185,7 @@ module mod_cu_kf
           !
           ! Take a first guess at the initial downdraft mass flux
           !
-          tvd(lfs) = tz(lfs)*(d_one+0.608D0*qss)
+          tvd(lfs) = tz(lfs)*(d_one + c3*qss)
           rdd = p0(np,lfs)/(rdry*tvd(lfs))
           a1 = (d_one-peff)*au0
           dmf(lfs) = -a1*rdd
@@ -1214,9 +1228,10 @@ module mod_cu_kf
           es = aliq*exp((bliq*tz(kstart)-cliq)/(tz(kstart)-dliq))
           qss = ep2*es/(p0(np,kstart)-es)
           theted(kstart) = tz(kstart) * &
-               (1.0D5/p0(np,kstart))**(0.2854D0*(d_one-0.28D0*qss))*    &
-                exp((3374.6525D0/tz(kstart)-2.5403D0)*qss*(d_one+0.81D0*qss))
+               (p00/p0(np,kstart))**(0.2854D0*(d_one-0.28D0*qss))*    &
+                exp((c1/tz(kstart)-c2)*qss*(d_one+c4*qss))
           ldt = min(lfs-1,kstart-1)
+          findldb: &
           do nd = ldt , 1 , -1
             dpdd = dpdd + dp(nd)
             theted(nd) = theted(kstart)
@@ -1229,7 +1244,7 @@ module mod_cu_kf
             !
             ! Specify RH decrease of 20%/km in downdraft...
             !
-            rhh = d_one-0.2D0/1000.0D0*(z0(np,kstart)-z0(np,nd))
+            rhh = d_one-0.2D0/d_1000*(z0(np,kstart)-z0(np,nd))
             !
             ! Adjust downdraft TEMP, Q to specified RH:
             !
@@ -1252,12 +1267,12 @@ module mod_cu_kf
               qss = qsrh
               qsd(nd) = qss
             end if
-            tvd(nd) = tz(nd)*(d_one+0.608D0*qsd(nd))
+            tvd(nd) = tz(nd)*(d_one + c3*qsd(nd))
             if ( tvd(nd) > tv0(nd) .or. nd == 1 ) then
               ldb = nd
-              exit
+              exit findldb
             end if
-          end do
+          end do findldb
           if ( (p0(np,ldb)-p0(np,lfs)) > 50.0D2 ) then
             ! minimum Downdraft depth!
             do nd = ldt , ldb , -1
@@ -1294,7 +1309,7 @@ module mod_cu_kf
           tz(ndk) = d_zero
           qd(ndk) = d_zero
         end do
-        aincm2 = 100.0D0
+        aincm2 = d_100
       else
         ddinc = -dmffrc*umf(klcl)/dmf(kstart)
         updinc = d_one
@@ -1349,7 +1364,7 @@ module mod_cu_kf
       ! into convective drafts from a given layer is no more than is available
       ! in that layer initially
       !
-      aincmx = 1000.0D0
+      aincmx = d_1000
       lmax = max(klcl,lfs)
       do nk = lc , lmax
         if ( (uer(nk)-der(nk)) > 1.0D-3 ) then
@@ -1497,7 +1512,7 @@ module mod_cu_kf
             tmb = tmb*(d_one-bcoeff)
             tma = tma*(d_one-acoeff)
             if ( nk == ltop ) then
-              qvdiff = (qg(nk1)-tma*emsd(nk1))*100.0D0/qg(nk1)
+              qvdiff = (qg(nk1)-tma*emsd(nk1))*d_100/qg(nk1)
             end if
             qg(nk) = 1.0D-9
             qg(nk1) = tma*emsd(nk1)
@@ -1515,7 +1530,7 @@ module mod_cu_kf
         do nk = 1 , ltop
           exn(nk) = (p00/p0(np,nk))**(0.2854D0*(d_one-0.28D0*qg(nk)))
           tg(nk) = thtag(nk)/exn(nk)
-          tvg(nk) = tg(nk)*(d_one+0.608D0*qg(nk))
+          tvg(nk) = tg(nk)*(d_one + c3*qg(nk))
         end do
         if ( ishall == 1 ) then
           exit iter
@@ -1566,14 +1581,15 @@ module mod_cu_kf
                          4.36D-4*(tmix-t00))*(tmix-tdpt)
           tlcl = min(tlcl,tmix)
         end if
-        tvlcl = tlcl*(d_one+0.608D0*qmix)
+        tvlcl = tlcl*(d_one + c3*qmix)
         zlcl = zmix + (tlcl-tmix)/gdry
-        do nk = lc , kL
+        findklcl2: &
+        do nk = lc , kl
           klcl = nk
           if ( zlcl <= z0(np,nk) ) then
-            exit
+            exit findklcl2
           end if
-        end do
+        end do findklcl2
         k = klcl - 1
         dlp = (zlcl-z0(np,k))/(z0(np,klcl)-z0(np,k))
         !
@@ -1581,10 +1597,10 @@ module mod_cu_kf
         !
         tenv = tg(k) + (tg(klcl)-tg(k))*dlp
         qenv = qg(k) + (qg(klcl)-qg(k))*dlp
-        tven = tenv*(d_one+0.608D0*qenv)
+        tven = tenv*(d_one + c3*qenv)
         plcl = p0(np,k) + (p0(np,klcl)-p0(np,k))*dlp
-        theteu(k) = tmix*(1.0D5/pmix)**(0.2854D0*(d_one-0.28D0*qmix))* &
-               exp((3374.6525D0/tlcl-2.5403D0)*qmix*(d_one+0.81D0*qmix))
+        theteu(k) = tmix*(p00/pmix)**(0.2854D0*(d_one-0.28D0*qmix))* &
+               exp((c1/tlcl-c2)*qmix*(d_one+c4*qmix))
         !
         ! Compute adjusted abe(abeg).
         !
@@ -1593,7 +1609,7 @@ module mod_cu_kf
           nk1 = nk + 1
           theteu(nk1) = theteu(nk)
           call tpmix2dd(p0(np,nk1),theteu(nk1),tgu(nk1),qgu(nk1))
-          tvqu(nk1) = tgu(nk1)*(d_one+0.608D0*qgu(nk1)-qliq(nk1)-qice(nk1))
+          tvqu(nk1) = tgu(nk1)*(d_one + c3*qgu(nk1)-qliq(nk1)-qice(nk1))
           if ( nk == k ) then
             dzz = z0(np,klcl) - zlcl
             dilbe = ((tvlcl+tvqu(nk1))/(tven+tvg(nk1))-d_one)*dzz
@@ -1605,7 +1621,7 @@ module mod_cu_kf
           !
           ! Dilute by entrainment by the rate as original updraft
           !
-          call envirtht(p0(np,nk1),tg(nk1),qg(nk1),thteeg(nk1))
+          thteeg(nk1) = envirtht(p0(np,nk1),tg(nk1),qg(nk1))
           theteu(nk1) = theteu(nk1)*ddilfrc(nk1) + &
                         thteeg(nk1)*(d_one-ddilfrc(nk1))
         end do
@@ -1637,14 +1653,14 @@ module mod_cu_kf
         aincold = ainc
         fabeold = fabe
         if ( ainc/aincmx > 0.999D0 .and. fabe > 1.05D0-stab ) then
-          exit
+          exit iter
         end if
         if ( (fabe <= 1.05D0-stab .and. fabe >= 0.95D0-stab) .or. &
               ncount == 10 ) then
           exit iter
         else
           if ( ncount > 10 ) then
-            exit
+            exit iter
           end if
           !
           ! If more than 10% of the original cape remains, increase the
@@ -1787,18 +1803,18 @@ module mod_cu_kf
       !
       if ( iprnt ) then
         write(stdout,*)
-        write(stdout,*) 'P(LC), DTP, WKL, WKLCL =',p0(np,lc)/100.0D0, &
+        write(stdout,*) 'P(LC), DTP, WKL, WKLCL =',p0(np,lc)/d_100, &
             tlcl+dtlcl+dtrh-tenv,wkl,wklcL
         write(stdout,*) 'TLCL, DTLCL, DTRH, TENV =',tlcl,dtlcl,    &
             dtrh,tenv
         write(stdout,1025) klcl,zlcl,dtlcl,ltop,p0(np,ltop),iflag,    &
             tmix-t00,pmix,qmix,abe
-1025  format(5X,' KLCL=',I2,' ZLCL=',F7.1,'M',                          &
+1025  format(5X,' KLCL=',I2,' ZLCL=',F7.1,'M',                            &
           ' DTLCL=',F5.2,' LTOP=',I2,' P0(LTOP)=',-2PF5.1,'MB FRZ LV=',   &
           I2,' TMIX=',0PF4.1,1X,'PMIX=',-2PF6.1,' QMIX=',3PF5.1,          &
           ' CAPE=',0PF7.1)
-        write(stdout,1030) p0(np,let)/100.0D0,p0(np,ltop)/100.0D0,       &
-            vmflcl,plcl/100.0D0,wlcl,cldhgt(lc)
+        write(stdout,1030) p0(np,let)/d_100,p0(np,ltop)/d_100, &
+            vmflcl,plcl/d_100,wlcl,cldhgt(lc)
 1030  format(' ',' P0(LET) = ',F6.1,' P0(LTOP) = ',F6.1,' VMFLCL =',    &
         E12.3,' PLCL =',F6.1,' WLCL =',F6.3,' CLDHGT =',F8.1)
         write(stdout,1035) pef,pefcbh,lc,let,wkl,vws
@@ -1818,7 +1834,7 @@ module mod_cu_kf
           uefrc = uer(k)*timec*emsd(k)
           ddfrc = ddr(k)*timec*emsd(k)
           defrc = -der(k)*timec*emsd(k)
-          write(stdout,1075) p0(np,k)/100.0D0,dp(k)/100.0D0,dtt,dr,omg(k), &
+          write(stdout,1075) p0(np,k)/d_100,dp(k)/d_100,dtt,dr,omg(k),     &
                   domgdp(k)*1.0D4, umf(k)/1.0D6,uefrc,udfrc,dmf(k)/1.0D6,  &
                   defrc,ddfrc,ems(k)/1.0D11,w0avg(np,k)*1.0D2,             &
                   detlq(k)*timec*emsd(K)*1.0D3,detic(k)*timec*emsd(k)*1.0D3
@@ -1841,11 +1857,11 @@ module mod_cu_kf
           qgs = es*ep2/(p0(np,k)-es)
           rh0 = q0(k)/qes(k)
           rhg = qg(k)/qgs
-          write(stdout,1090) k,p0(np,k)/100.0D0,z0(np,k),t0(np,k)-t00,  &
-                  tg(k)-t00,dtt,tuc,tdc,q0(k)*1000.0D0,qg(k)*1000.0D0,  &
-                  (qg(k)-q0(k))*1000.0D0,qu(k)*1000.0D0,QD(K)*1000.0D0, &
-                  qlg(k)*1000.0D0,qig(k)*1000.0D0,qrg(k)*1000.0D0,      &
-                  qsg(k)*1000.0D0,rh0,rhg
+          write(stdout,1090) k,p0(np,k)/d_100,z0(np,k),t0(np,k)-t00, &
+                  tg(k)-t00,dtt,tuc,tdc,q0(k)*d_1000,qg(k)*d_1000,   &
+                  (qg(k)-q0(k))*d_1000,qu(k)*d_1000,QD(K)*d_1000,    &
+                  qlg(k)*d_1000,qig(k)*d_1000,qrg(k)*d_1000,         &
+                  qsg(k)*d_1000,rh0,rhg
    1090   format(I3,F7.2,F7.0,10F7.2,4F7.3,2F8.3)
         end do
         !
@@ -1854,8 +1870,8 @@ module mod_cu_kf
         !
         do nk = 1 , kL
           k = kl - nk + 1
-          write(stdout,'(8f11.3)') p0(np,k)/100.0D0,t0(np,k)-273.16D0, &
-                  q0(k)*1000.0D0,u0(np,k),v0(np,k),w0avg(np,k),dp(k),tke(k)
+          write(stdout,'(8f11.3)') p0(np,k)/d_100,t0(np,k)-t00, &
+                  q0(k)*d_1000,u0(np,k),v0(np,k),w0avg(np,k),dp(k),tke(k)
         end do
       end if
       if ( istop == 1 ) then
@@ -1878,7 +1894,7 @@ module mod_cu_kf
         qfnl = qfnl + (qlg(nk)+qig(nk)+qrg(nk)+qsg(nk))*ems(nk)
       end do
       qfnl = qfnl + pptflx*timec*(d_one-fbfrc)  !  ppt fb mods
-      err2 = (qfnl-qinit)*100.0D0/qinit
+      err2 = (qfnl-qinit)*d_100/qinit
       if ( iprnt ) write(stdout,1110) qinit,qfnl,err2
       if ( abs(err2) > 0.05D0 .and. istop == 0 ) then
         istop = 1
@@ -1886,9 +1902,9 @@ module mod_cu_kf
           write(stdout,'(i6)') kl
           do nk = 1 , kL
             k = kl - nk + 1
-            write(stdout,'(8f12.3)') p0(np,k)/100.0D0,t0(np,k)-273.16D0, &
-                    q0(k)*1000.0D0,u0(np,k),v0(np,k),w0avg(np,k), &
-                    dp(k)/100.0D0,tke(k)
+            write(stdout,'(8f12.3)') p0(np,k)/d_100,t0(np,k)-t00, &
+                    q0(k)*d_1000,u0(np,k),v0(np,k),w0avg(np,k),   &
+                    dp(k)/d_100,tke(k)
           end do
         end if
       end if
@@ -1925,7 +1941,7 @@ module mod_cu_kf
         ! If ice phase is not allowed, melt all frozen hydrometeors.
         !
         if ( .not. f_qi .and. warm_rain ) then
-          cpm = cpd*(d_one+0.887D0*qg(k))
+          cpm = cpd*(d_one + 0.887D0*qg(k))
           tg(k) = tg(k) - (qig(k)+qsg(k))*wlhf/cpm
           dqcdt(np,k) = (qlg(k)+qig(k)-ql0(k)-qi0(k))/timec
           dqidt(np,k) = d_zero
@@ -1937,7 +1953,7 @@ module mod_cu_kf
           ! hydrometeors below the melting level, freeze liquid water above
           ! the melting level
           !
-          cpm = cpd*(d_one+0.887D0*qg(k))
+          cpm = cpd*(d_one + 0.887D0*qg(k))
           if ( k <= ml ) then
             tg(k) = tg(k) - (qig(k)+qsg(k))*wlhf/cpm
           else if ( k > ml ) then
@@ -1982,345 +1998,341 @@ module mod_cu_kf
 1085 format(A3,16A7,2A8)
 1110 format(' ','INITIAL WATER =',E12.5,' FINAL WATER =',E12.5,   &
             ' TOTAL WATER CHANGE =',F8.2,'%')
-  end subroutine kfpara
 
-  subroutine tpmix2(p,thes,tu,qu,qliq,qice,qnewlq,qnewic)
-    implicit none
-    real(rk8) , intent(in) :: p , thes
-    real(rk8) , intent(out) :: qnewlq , qnewic
-    real(rk8) , intent(inout) :: tu , qu , qliq , qice
-    real(rk8) :: tp , qq , bth , tth , pp
-    real(rk8) :: t00 , t10 , t01 , t11
-    real(rk8) :: q00 , q10 , q01 , q11
-    real(rk8) :: temp , qs , qnew , dq , qtot , rll , cpp
-    integer(ik4) :: iptb , ithtb
-    !
-    !*************************************
-    ! scaling pressure and tt table index
-    !*************************************
-    !
-    tp = (p-plutop) * rdpr
-    qq = tp - dint(tp)
-    iptb = max(1,min(kfnp,int(tp) + 1))
-    !
-    !*********************************
-    ! base and scaling factor for the
-    ! scaling the and tt table index
-    !*********************************
-    !
-    bth = (the0k(iptb+1) - the0k(iptb))*qq+the0k(iptb)
-    tth = (thes-bth) * rdthk
-    pp = tth - aint(tth)
-    ithtb = max(1,min(kfnt,int(tth) + 1))
+    contains
 
-    t00 = ttab(ithtb  ,iptb  )
-    t10 = ttab(ithtb+1,iptb  )
-    t01 = ttab(ithtb  ,iptb+1)
-    t11 = ttab(ithtb+1,iptb+1)
+    subroutine tpmix2(p,thes,tu,qu,qliq,qice,qnewlq,qnewic)
+      implicit none
+      real(rk8) , intent(in) :: p , thes
+      real(rk8) , intent(out) :: qnewlq , qnewic
+      real(rk8) , intent(inout) :: tu , qu , qliq , qice
+      real(rk8) :: tp , qq , bth , tth , pp
+      real(rk8) :: t00 , t10 , t01 , t11
+      real(rk8) :: q00 , q10 , q01 , q11
+      real(rk8) :: temp , qs , qnew , dq , qtot , rll , cpp
+      integer(ik4) :: iptb , ithtb
+      !
+      !*************************************
+      ! scaling pressure and tt table index
+      !*************************************
+      !
+      tp = (p-plutop) * rdpr
+      qq = tp - dint(tp)
+      iptb = max(1,min(kfnp,int(tp) + 1))
+      !
+      !*********************************
+      ! base and scaling factor for the
+      ! scaling the and tt table index
+      !*********************************
+      !
+      bth = (the0k(iptb+1) - the0k(iptb))*qq+the0k(iptb)
+      tth = (thes-bth) * rdthk
+      pp = tth - aint(tth)
+      ithtb = max(1,min(kfnt,int(tth) + 1))
 
-    q00 = qstab(ithtb  ,iptb  )
-    q10 = qstab(ithtb+1,iptb  )
-    q01 = qstab(ithtb  ,iptb+1)
-    q11 = qstab(ithtb+1,iptb+1)
-    !
-    !********************
-    ! parcel temperature
-    !********************
-    !
-    temp = (t00 + (t10-t00)*pp + (t01-t00)*qq + (t00-t10-t01+t11)*pp*qq)
-    qs = (q00 + (q10-q00)*pp + (q01-q00)*qq + (q00-q10-q01+q11)*pp*qq)
-    dq = qs-qu
-    if ( dq <= d_zero ) then
-      qnew = qu-qs
-      qu = qs
-    else
+      t00 = ttab(ithtb  ,iptb  )
+      t10 = ttab(ithtb+1,iptb  )
+      t01 = ttab(ithtb  ,iptb+1)
+      t11 = ttab(ithtb+1,iptb+1)
+
+      q00 = qstab(ithtb  ,iptb  )
+      q10 = qstab(ithtb+1,iptb  )
+      q01 = qstab(ithtb  ,iptb+1)
+      q11 = qstab(ithtb+1,iptb+1)
       !
-      ! If the parcel is subsaturated, temperature and mixing ratio must be
-      ! adjusted.  If liquid water is present, it is allowed to evaporate
+      !********************
+      ! parcel temperature
+      !********************
       !
-      qnew = d_zero
-      qtot = qliq + qice
-      !
-      ! if there is enough liquid or ice to saturate the parcel, temp stays
-      ! at its wet bulb value, vapor mixing ratio is at saturated level, and
-      ! the mixing ratios of liquid and ice are adjusted to make up the
-      ! original saturation deficit
-      ! Otherwise, any available liq or ice vaporizes and appropriate
-      ! adjustments to parcel temp; vapor, liquid, and ice mixing ratios
-      ! are made.
-      !
-      ! Subsaturated values only occur in calculations involving various
-      ! mixtures of updraft and environmental air for estimation of
-      ! entrainment and detrainment.
-      ! For these purposes, assume that reasonable estimates can be given
-      ! using liquid water saturation calculations only - i.e., ignore the
-      ! effect of the ice phase in this process only
-      ! will not affect conservative properties
-      !
-      if ( qtot >= dq ) then
-        qliq = qliq - dq*qliq/(qtot+1.0D-10)
-        qice = qice - dq*qice/(qtot+1.0D-10)
+      temp = (t00 + (t10-t00)*pp + (t01-t00)*qq + (t00-t10-t01+t11)*pp*qq)
+      qs = (q00 + (q10-q00)*pp + (q01-q00)*qq + (q00-q10-q01+q11)*pp*qq)
+      dq = qs-qu
+      if ( dq <= d_zero ) then
+        qnew = qu-qs
         qu = qs
       else
-        rll = xlv0-xlv1*temp
-        cpp = 1004.5D0*(d_one+0.89D0*qu)
-        if ( qtot < 1.0D-10 ) then
-          ! If no liquid water or ice is available, temperature is given by:
-          temp = temp + rll*(dq/(d_one+dq))/cpp
+        !
+        ! If the parcel is subsaturated, temperature and mixing ratio must be
+        ! adjusted.  If liquid water is present, it is allowed to evaporate
+        !
+        qnew = d_zero
+        qtot = qliq + qice
+        !
+        ! if there is enough liquid or ice to saturate the parcel, temp stays
+        ! at its wet bulb value, vapor mixing ratio is at saturated level, and
+        ! the mixing ratios of liquid and ice are adjusted to make up the
+        ! original saturation deficit
+        ! Otherwise, any available liq or ice vaporizes and appropriate
+        ! adjustments to parcel temp; vapor, liquid, and ice mixing ratios
+        ! are made.
+        !
+        ! Subsaturated values only occur in calculations involving various
+        ! mixtures of updraft and environmental air for estimation of
+        ! entrainment and detrainment.
+        ! For these purposes, assume that reasonable estimates can be given
+        ! using liquid water saturation calculations only - i.e., ignore the
+        ! effect of the ice phase in this process only
+        ! will not affect conservative properties
+        !
+        if ( qtot >= dq ) then
+          qliq = qliq - dq*qliq/(qtot+1.0D-10)
+          qice = qice - dq*qice/(qtot+1.0D-10)
+          qu = qs
         else
-          !
-          ! If some liq water/ice is available, but not enough to achieve
-          ! saturation, the temperature is given by:
-          !
-          temp = temp + rll*((dq-qtot)/(d_one+dq-qtot))/cpp
-          qu = qu+qtot
-          qtot = d_zero
-          qliq = d_zero
-          qice = d_zero
+          rll = xlv0-xlv1*temp
+          cpp = 1004.5D0*(d_one+0.89D0*qu)
+          if ( qtot < 1.0D-10 ) then
+            ! If no liquid water or ice is available, temperature is given by:
+            temp = temp + rll*(dq/(d_one+dq))/cpp
+          else
+            !
+            ! If some liq water/ice is available, but not enough to achieve
+            ! saturation, the temperature is given by:
+            !
+            temp = temp + rll*((dq-qtot)/(d_one+dq-qtot))/cpp
+            qu = qu + qtot
+            qtot = d_zero
+            qliq = d_zero
+            qice = d_zero
+          end if
         end if
       end if
-    end if
-    tu = temp
-    qnewlq = qnew
-    qnewic = d_zero
-  end subroutine tpmix2
+      tu = temp
+      qnewlq = qnew
+      qnewic = d_zero
+    end subroutine tpmix2
 
-  subroutine dtfrznew(tu,p,thteu,qu,qfrz,qice)
-    implicit none
-    real(rk8) , intent(in) :: p , qfrz
-    real(rk8) , intent(inout) :: tu , thteu , qu , qice
-    real(rk8) :: rlc , rls , rlf , cpp , a , dtfrz , es , qs , dqevap , pii
-    !
-    ! Allow the freezing of liquid water in the updraft to proceed as an
-    ! approximately linear function of temperature in the temperature range
-    ! ttfrz to tbfrz
-    ! For colder temperatures, freeze all liquid water
-    ! Thermodynamic properties are still calculated with respect to liquid
-    ! water to allow the use of lookup table to extract tmp from thetae
-    !
-    rlc = 2.5D6 - 2369.276D0*(tu-273.16D0)
-    rls = 2833922.0D0 - 259.532D0*(tu-273.16D0)
-    rlf = rls - rlc
-    cpp = 1004.5D0*(d_one + 0.89D0*qu)
-    !
-    ! a = d(es)/dt is that calculated from Buck (1981) emperical formulas
-    ! for saturation vapor pressure
-    !
-    a = (cliq-bliq*dliq)/((tu-dliq)*(tu-dliq))
-    dtfrz = rlf*qfrz/(cpp+rls*qu*a)
-    tu = tu + dtfrz
+    subroutine dtfrznew(tu,p,thteu,qu,qfrz,qice)
+      implicit none
+      real(rk8) , intent(in) :: p , qfrz
+      real(rk8) , intent(inout) :: tu , thteu , qu , qice
+      real(rk8) :: rlc , rls , rlf , cpp , a , dtfrz , es , qs , dqevap , pii
+      !
+      ! Allow the freezing of liquid water in the updraft to proceed as an
+      ! approximately linear function of temperature in the temperature range
+      ! ttfrz to tbfrz
+      ! For colder temperatures, freeze all liquid water
+      ! Thermodynamic properties are still calculated with respect to liquid
+      ! water to allow the use of lookup table to extract tmp from thetae
+      !
+      rlc = 2.5D6 - 2369.276D0*(tu-t00)
+      rls = 2833922.0D0 - 259.532D0*(tu-t00)
+      rlf = rls - rlc
+      cpp = 1004.5D0*(d_one + 0.89D0*qu)
+      !
+      ! a = d(es)/dt is that calculated from Buck (1981) emperical formulas
+      ! for saturation vapor pressure
+      !
+      a = (cliq-bliq*dliq)/((tu-dliq)*(tu-dliq))
+      dtfrz = rlf*qfrz/(cpp+rls*qu*a)
+      tu = tu + dtfrz
 
-    es = aliq*exp((bliq*tu-cliq)/(tu-dliq))
-    qs = es*ep2/(p-es)
+      es = aliq*exp((bliq*tu-cliq)/(tu-dliq))
+      qs = es*ep2/(p-es)
+      !
+      ! Freezing warms the air and it becomes unsaturated
+      ! Assume that some of the liquid water that is available for freezing
+      ! evaporates to maintain saturation
+      ! Since this water has already been transferred to the ice category,
+      ! subtract it from ice concentration, THEN set updraft mixing ratio
+      ! at the new temperature to the saturation value
+      !
+      dqevap = qs - qu
+      qice = qice - dqevap
+      qu = qu + dqevap
+      pii = (p00/p)**(0.2854D0*(d_one-0.28D0*qu))
+      thteu = tu*pii*exp((c1/tu-c2)*qu*(d_one+c4*qu))
+    end subroutine dtfrznew
     !
-    ! Freezing warms the air and it becomes unsaturated
-    ! Assume that some of the liquid water that is available for freezing
-    ! evaporates to maintain saturation
-    ! Since this water has already been transferred to the ice category,
-    ! subtract it from ice concentration, THEN set updraft mixing ratio
-    ! at the new temperature to the saturation value
+    ! 9/18/88...this precipitation fallout scheme is based on the scheme us
+    ! by Ogura and Cho (1973).  Liquid water fallout from a parcel is cal-
+    ! culated using the equation dq=-rate*q*dt, but to simulate a quasi-
+    ! continuous process, and to eliminate a dependency on vertical
+    ! resolution this is expressed as q=q*exp(-rate*dz).
     !
-    dqevap = qs - qu
-    qice = qice - dqevap
-    qu = qu + dqevap
-    pii = (1.0D5/p)**(0.2854D0*(d_one-0.28D0*qu))
-    thteu = tu*pii*exp((3374.6525D0/tu-2.5403D0)*qu*(d_one+0.81D0*qu))
-  end subroutine dtfrznew
-  !
-  ! 9/18/88...this precipitation fallout scheme is based on the scheme us
-  ! by Ogura and Cho (1973).  Liquid water fallout from a parcel is cal-
-  ! culated using the equation dq=-rate*q*dt, but to simulate a quasi-
-  ! continuous process, and to eliminate a dependency on vertical
-  ! resolution this is expressed as q=q*exp(-rate*dz).
-  !
-  subroutine condload(qliq,qice,wtw,dz,boterm,enterm,qnewlq, &
-                      qnewic,qlqout,qicout)
-    implicit none
-    real(rk8) , intent(in) :: dz , boterm , enterm
-    real(rk8) , intent(inout) :: qlqout , qicout , wtw
-    real(rk8) , intent(inout) :: qliq , qice , qnewlq , qnewic
-    real(rk8) :: qtot , qnew , qest , g1 , wavg , conv , ratio3
-    real(rk8) :: oldq , ratio4 , dq , pptdrg
+    subroutine condload(qliq,qice,wtw,dz,boterm,enterm,qnewlq, &
+                        qnewic,qlqout,qicout)
+      implicit none
+      real(rk8) , intent(in) :: dz , boterm , enterm
+      real(rk8) , intent(inout) :: qlqout , qicout , wtw
+      real(rk8) , intent(inout) :: qliq , qice , qnewlq , qnewic
+      real(rk8) :: qtot , qnew , qest , g1 , wavg , conv , ratio3
+      real(rk8) :: oldq , ratio4 , dq , pptdrg
 
-    qtot = qliq + qice
-    qnew = qnewlq + qnewic
+      qtot = qliq + qice
+      qnew = qnewlq + qnewic
+      !
+      ! Estimate the vertical velocity so that an average vertical velocity
+      ! be calculated to estimate the time required for ascent between model
+      ! levels...
+      !
+      qest = d_half*(qtot+qnew)
+      g1 = wtw + boterm - enterm - d_two*egrav*dz*qest/1.5D0
+      if ( g1 < d_zero ) g1 = d_zero
+      wavg = d_half * (sqrt(wtw) + sqrt(g1))
+      conv = kf_entrate * dz/wavg ! KF90  Eq. 9
+      !
+      ! ratio3 is the fraction of liquid water in fresh condensate, ratio4 is
+      ! the fraction of liquid water in the total amount of condensate involv
+      ! in the precipitation process - note that only 60% of the fresh conden
+      ! sate is is allowed to participate in the conversion process...
+      !
+      ratio3 = qnewlq / (qnew+1.0D-8)
+      qtot = qtot + 0.6D0*qnew
+      oldq = qtot
+      ratio4 = (0.6D0*qnewlq + qliq) / (qtot+1.0D-8)
+      if ( conv > 25.0D0 ) then
+        qtot = d_zero
+      else
+        qtot = qtot * exp(-conv) ! KF90  Eq. 9
+      end if
+      !
+      ! Determine the amount of precipitation that falls out of the updraft
+      ! parcel at this level...
+      !
+      dq = oldq - qtot
+      qlqout = ratio4 * dq
+      qicout = (d_one-ratio4) * dq
+      !
+      ! Estimate the mean load of condensate on the updraft in the layer, cal
+      ! late vertical velocity
+      !
+      pptdrg = d_half * (oldq+qtot-0.2D0*qnew)
+      wtw = wtw + boterm - enterm - d_two*egrav*dz*pptdrg/1.5D0
+      if ( abs(wtw) < 1.0D-4) wtw = 1.0D-4
+      !
+      ! Determine the new liquid water and ice concentrations including losses
+      ! due to precipitation and gains from condensation...
+      !
+      qliq = ratio4*qtot + ratio3*0.4D0*qnew
+      qice = (d_one-ratio4)*qtot + (d_one-ratio3)*0.4D0*qnew
+      qnewlq = d_zero
+      qnewic = d_zero
+    end subroutine condload
     !
-    ! Estimate the vertical velocity so that an average vertical velocity
-    ! be calculated to estimate the time required for ascent between model
-    ! levels...
+    ! GAUSSIAN TYPE MIXING PROFILE
     !
-    qest = d_half*(qtot+qnew)
-    g1 = wtw + boterm - enterm - d_two*egrav*dz*qest/1.5D0
-    if ( g1 < d_zero ) g1 = d_zero
-    wavg = d_half * (sqrt(wtw) + sqrt(g1))
-    conv = kf_entrate * dz/wavg ! KF90  Eq. 9
+    ! THIS SUBROUTINE INTEGRATES THE AREA UNDER THE CURVE IN THE GAUSSIAN
+    ! DISTRIBUTION...THE NUMERICAL APPROXIMATION TO THE INTEGRAL IS TAKEN FROM
+    ! "HANDBOOK OF MATHEMATICAL FUNCTIONS WITH FORMULAS, GRAPHS AND
+    !  MATHEMATICS TABLES"
+    ! ED. BY ABRAMOWITZ AND STEGUN, NATL BUREAU OF STANDARDS APPLIED
+    ! MATHEMATICS SERIES.  JUNE, 1964., MAY, 1968.
+    !                        JACK KAIN
+    !                          7/6/89
+    ! Solves for KF90 Eq. 2
     !
-    ! ratio3 is the fraction of liquid water in fresh condensate, ratio4 is
-    ! the fraction of liquid water in the total amount of condensate involv
-    ! in the precipitation process - note that only 60% of the fresh conden
-    ! sate is is allowed to participate in the conversion process...
-    !
-    ratio3 = qnewlq / (qnew+1.0D-8)
-    qtot = qtot + 0.6D0*qnew
-    oldq = qtot
-    ratio4 = (0.6D0*qnewlq + qliq) / (qtot+1.0D-8)
-    if ( conv > 25.0D0 ) then
-      qtot = d_zero
-    else
-      qtot = qtot * exp(-conv) ! KF90  Eq. 9
-    end if
-    !
-    ! Determine the amount of precipitation that falls out of the updraft
-    ! parcel at this level...
-    !
-    dq = oldq - qtot
-    qlqout = ratio4 * dq
-    qicout = (d_one-ratio4) * dq
-    !
-    ! Estimate the mean load of condensate on the updraft in the layer, cal
-    ! late vertical velocity
-    !
-    pptdrg = d_half * (oldq+qtot-0.2D0*qnew)
-    wtw = wtw + boterm - enterm - d_two*egrav*dz*pptdrg/1.5D0
-    if ( abs(wtw) < 1.0D-4) wtw = 1.0D-4
-    !
-    ! Determine the new liquid water and ice concentrations including losses
-    ! due to precipitation and gains from condensation...
-    !
-    qliq = ratio4*qtot + ratio3*0.4D0*qnew
-    qice = (d_one-ratio4)*qtot + (d_one-ratio3)*0.4D0*qnew
-    qnewlq = d_zero
-    qnewic = d_zero
-  end subroutine condload
-  !
-  ! GAUSSIAN TYPE MIXING PROFILE
-  !
-  ! THIS SUBROUTINE INTEGRATES THE AREA UNDER THE CURVE IN THE GAUSSIAN
-  ! DISTRIBUTION...THE NUMERICAL APPROXIMATION TO THE INTEGRAL IS TAKEN FROM
-  ! "HANDBOOK OF MATHEMATICAL FUNCTIONS WITH FORMULAS, GRAPHS AND
-  !  MATHEMATICS TABLES"
-  ! ED. BY ABRAMOWITZ AND STEGUN, NATL BUREAU OF STANDARDS APPLIED
-  ! MATHEMATICS SERIES.  JUNE, 1964., MAY, 1968.
-  !                        JACK KAIN
-  !                          7/6/89
-  ! Solves for KF90 Eq. 2
-  !
-  subroutine prof5(eq,ee,ud)
-    implicit none
-    real(rk8) , intent(in) :: eq
-    real(rk8) , intent(inout) :: ee , ud
-    real(rk8) :: x , y , ey , e45 , t1 , t2 , c1 , c2
+    subroutine prof5(eq,ee,ud)
+      implicit none
+      real(rk8) , intent(in) :: eq
+      real(rk8) , intent(inout) :: ee , ud
+      real(rk8) :: x , y , ey , e45 , t1 , t2 , c1 , c2
 
-    real(rk8) , parameter :: sqrt2p = 2.506628D0
-    real(rk8) , parameter :: a1 = 0.4361836D0
-    real(rk8) , parameter :: a2 = -0.1201676D0
-    real(rk8) , parameter :: a3 = 0.9372980D0
-    real(rk8) , parameter :: p = 0.33267D0
-    real(rk8) , parameter :: sigma = 0.166666667D0
-    real(rk8) , parameter :: fe = 0.202765151D0
-    x = (eq-d_half)/sigma
-    y = 6.0D0*eq - 3.0D0
-    ey = exp(y*y/(-d_two))
-    e45 = exp(-4.5D0)
-    t2 = d_one / (d_one + p*abs(y))
-    t1 = 0.500498D0
-    c1 = a1*t1 + a2*t1*t1 + a3*t1*t1*t1
-    c2 = a1*t2 + a2*t2*t2 + a3*t2*t2*t2
-    if ( y >= d_zero ) then
-      ee = sigma * (d_half*(sqrt2p-e45*c1-ey*c2) + &
-              sigma*(e45-ey))-e45*eq*eq*d_half
-      ud = sigma * (d_half*(ey*c2-e45*c1) + &
-              sigma*(e45-ey)) - e45*(d_half+eq*eq*d_half - eq)
-    else
-      ee = sigma * (d_half*(ey*c2-e45*c1) + sigma*(e45-ey)) - e45*eq*eq*d_half
-      ud = sigma * (d_half*(sqrt2p-e45*c1-ey*c2) + &
-              sigma*(e45-ey)) - e45*(d_half+eq*eq*d_half - eq)
-    end if
-    ee = ee/fe
-    ud = ud/fe
-  end subroutine prof5
+      real(rk8) , parameter :: sqrt2p = 2.506628D0
+      real(rk8) , parameter :: a1 = 0.4361836D0
+      real(rk8) , parameter :: a2 = -0.1201676D0
+      real(rk8) , parameter :: a3 = 0.9372980D0
+      real(rk8) , parameter :: p = 0.33267D0
+      real(rk8) , parameter :: sigma = 0.166666667D0
+      real(rk8) , parameter :: fe = 0.202765151D0
+      x = (eq-d_half)/sigma
+      y = 6.0D0*eq - 3.0D0
+      ey = exp(y*y/(-d_two))
+      e45 = exp(-4.5D0)
+      t2 = d_one / (d_one + p*abs(y))
+      t1 = 0.500498D0
+      c1 = a1*t1 + a2*t1*t1 + a3*t1*t1*t1
+      c2 = a1*t2 + a2*t2*t2 + a3*t2*t2*t2
+      if ( y >= d_zero ) then
+        ee = sigma * (d_half*(sqrt2p-e45*c1-ey*c2) + &
+                sigma*(e45-ey))-e45*eq*eq*d_half
+        ud = sigma * (d_half*(ey*c2-e45*c1) + &
+                sigma*(e45-ey)) - e45*(d_half+eq*eq*d_half - eq)
+      else
+        ee = sigma * (d_half*(ey*c2-e45*c1) + sigma*(e45-ey)) - e45*eq*eq*d_half
+        ud = sigma * (d_half*(sqrt2p-e45*c1-ey*c2) + &
+                sigma*(e45-ey)) - e45*(d_half+eq*eq*d_half - eq)
+      end if
+      ee = ee/fe
+      ud = ud/fe
+    end subroutine prof5
 
-  subroutine tpmix2dd(p,thes,ts,qs)
-    implicit none
-    real(rk8) , intent(in) :: p , thes
-    real(rk8) , intent(inout) :: ts , qs
-    real(rk8) :: tp , qq , bth , tth , pp 
-    real(rk8) :: t00 , t10 , t01 , t11
-    real(rk8) :: q00 , q10 , q01 , q11
-    integer(ik4) :: iptb , ithtb
-    !***************************************************************
-    !
-    !*************************************
-    ! scaling pressure and tt table index
-    !*************************************
-    !
-    tp = (p-plutop) * rdpr
-    qq = tp - aint(tp)
-    iptb = int(tp) + 1
-    !
-    !**********************************
-    ! base and scaling factor for the
-    !**********************************
-    !
-    ! scaling the and tt table index
-    !
-    bth = (the0k(iptb+1)-the0k(iptb)) * qq + the0k(iptb)
-    tth = (thes-bth) * rdthk
-    pp = tth - aint(tth)
-    ithtb = int(tth)+1
+    subroutine tpmix2dd(p,thes,ts,qs)
+      implicit none
+      real(rk8) , intent(in) :: p , thes
+      real(rk8) , intent(inout) :: ts , qs
+      real(rk8) :: tp , qq , bth , tth , pp 
+      real(rk8) :: t00 , t10 , t01 , t11
+      real(rk8) :: q00 , q10 , q01 , q11
+      integer(ik4) :: iptb , ithtb
+      !***************************************************************
+      !
+      !*************************************
+      ! scaling pressure and tt table index
+      !*************************************
+      !
+      tp = (p-plutop) * rdpr
+      qq = tp - aint(tp)
+      iptb = max(1,min(kfnp,int(tp) + 1))
+      !
+      !**********************************
+      ! base and scaling factor for the
+      !**********************************
+      !
+      ! scaling the and tt table index
+      !
+      bth = (the0k(iptb+1)-the0k(iptb)) * qq + the0k(iptb)
+      tth = (thes-bth) * rdthk
+      pp = tth - aint(tth)
+      ithtb = int(tth)+1
 
-    t00 = ttab(ithtb  ,iptb  )
-    t10 = ttab(ithtb+1,iptb  )
-    t01 = ttab(ithtb  ,iptb+1)
-    t11 = ttab(ithtb+1,iptb+1)
+      t00 = ttab(ithtb  ,iptb  )
+      t10 = ttab(ithtb+1,iptb  )
+      t01 = ttab(ithtb  ,iptb+1)
+      t11 = ttab(ithtb+1,iptb+1)
 
-    q00 = qstab(ithtb  ,iptb  )
-    q10 = qstab(ithtb+1,iptb  )
-    q01 = qstab(ithtb  ,iptb+1)
-    q11 = qstab(ithtb+1,iptb+1)
-    !
-    !************************************************
-    ! parcel temperature and saturation mixing ratio
-    !************************************************
-    !
-    ts = (t00 + (t10-t00)*pp + (t01-t00)*qq + (t00-t10-t01+t11)*pp*qq)
-    qs = (q00 + (q10-q00)*pp + (q01-q00)*qq + (q00-q10-q01+q11)*pp*qq)
-  end subroutine tpmix2dd
+      q00 = qstab(ithtb  ,iptb  )
+      q10 = qstab(ithtb+1,iptb  )
+      q01 = qstab(ithtb  ,iptb+1)
+      q11 = qstab(ithtb+1,iptb+1)
+      !
+      !************************************************
+      ! parcel temperature and saturation mixing ratio
+      !************************************************
+      !
+      ts = (t00 + (t10-t00)*pp + (t01-t00)*qq + (t00-t10-t01+t11)*pp*qq)
+      qs = (q00 + (q10-q00)*pp + (q01-q00)*qq + (q00-q10-q01+q11)*pp*qq)
+    end subroutine tpmix2dd
 
-  subroutine envirtht(p1,t1,q1,tht1)
-    implicit none
-    real(rk8) , intent(in) :: p1 , t1 , q1
-    real(rk8) , intent(inout) :: tht1
-    real(rk8) :: ee , tlog , a1 , tp , avalue , aintrp
-    real(rk8) :: tdpt , tsat , tht
-    integer(ik4) :: indlu
+    pure real(rk8) function envirtht(p1,t1,q1) result(tht1)
+      implicit none
+      real(rk8) , intent(in) :: p1 , t1 , q1
+      real(rk8) :: ee , tlog , a1 , tp , avalue , aintrp
+      real(rk8) :: tdpt , tsat , tht
+      integer(ik4) :: indlu
+      !
+      !  Calculate environmental equivalent potential temperature
+      !
+      ! NOTE: Calculations for mixed/ice phase no longer used. jsk 8/00
+      !        For example, KF90 Eq. 10 no longer used
+      !
+      ee = q1*p1 / (ep2+q1)
+      !
+      ! Calculate log term using lookup table.
+      !
+      a1 = ee/aliq
+      tp = (a1-astrt)/aincb
+      indlu = int(tp) + 1
+      avalue = (indlu-1)*aincb + astrt
+      aintrp = (a1-avalue)/aincb
+      tlog = aintrp*alu(indlu+1) + (1-aintrp)*alu(indlu)
+      tdpt = (cliq-dliq*tlog)/(bliq-tlog)
+      tsat = tdpt - (0.212D0+1.571D-3*(tdpt-t00)-4.36D-4*(t1-t00))*(t1-tdpt)
+      tht = t1*(p00/p1)**(0.2854D0*(d_one-0.28D0*q1))
+      tht1 = tht*exp((c1/tsat-c2)*q1*(d_one+c4*q1))
+    end function envirtht
 
-    real(rk8) , parameter :: t00 = tzero
-    real(rk8) , parameter :: p00 = stdp
-    real(rk8) , parameter :: c1 = 3374.6525D0
-    real(rk8) , parameter :: c2 = 2.5403D0
-    !
-    !  CALCULATE ENVIRONMENTAL EQUIVALENT POTENTIAL TEMPERATURE...
-    !
-    ! NOTE: Calculations for mixed/ice phase no longer used...jsk 8/00
-    !        For example, KF90 Eq. 10 no longer used
-    !
-    ee = q1*p1 / (ep2+q1)
-    !
-    ! ...calculate LOG term using lookup table...
-    !
-    a1 = ee/aliq
-    tp = (a1-astrt)/aincb
-    indlu = int(tp) + 1
-    avalue = (indlu-1)*aincb + astrt
-    aintrp = (a1-avalue)/aincb
-    tlog = aintrp*alu(indlu+1) + (1-aintrp)*alu(indlu)
-
-    tdpt = (cliq-dliq*tlog)/(bliq-tlog)
-    tsat = tdpt - (0.212D0+1.571D-3*(tdpt-t00)-4.36D-4*(t1-t00))*(t1-tdpt)
-    tht = t1*(p00/p1)**(0.2854D0*(d_one-0.28D0*q1))
-    tht1 = tht*exp((c1/tsat-c2)*q1*(d_one+0.81D0*q1))
-  end subroutine envirtht
+  end subroutine kfpara
   !
   ! This subroutine is a lookup table.
   ! Given a series of series of saturation equivalent potential
@@ -2329,20 +2341,20 @@ module mod_cu_kf
   subroutine kf_lutab
     implicit none
     integer(ik4) :: kp , it , itcnt , i
-    real(rk8) :: pbot , dpr , temp , p , es , qs , pi , thes , tgues , &
+    real(rk8) :: dpr , temp , p , es , qs , pi , thes , tgues , &
             thgues , f0 , t1 , t0 , f1 , dt , a1 , thtgs
 
-    ! equivalent potential temperature increment
-    real(rk8) , parameter :: dth = d_half
     ! minimum starting temp
     real(rk8) , parameter :: tmin = 150.0D0
+    ! maximum bottom pressure (pascals)
+    real(rk8) , parameter :: pbot = 1.1D5
+    ! equivalent potential temperature increment
+    real(rk8) , parameter :: dth = d_half
     ! tolerance for accuracy of temperature
     real(rk8) , parameter :: toler = 0.001D0
 
     ! top pressure (pascals)
-    plutop = ptop*1000.0D0 - 100.0D0
-    ! bottom pressure (pascals)
-    pbot = stdp + 1000.0D0
+    plutop = ptop*d_1000 - d_100
     ! pressure increment
     dpr = (pbot-plutop) / dble(kfnp-1)
     !
@@ -2361,9 +2373,8 @@ module mod_cu_kf
       p = p + dpr
       es = aliq*exp((bliq*temp-cliq)/(temp-dliq))
       qs = ep2*es/(p-es)
-      pi = (1.0D5/p)**(0.2854D0*(d_one-0.28D0*qs))
-      the0k(kp) = temp * pi * &
-              exp((3374.6525D0/temp-2.5403D0)*qs*(d_one+0.81D0*qs))
+      pi = (p00/p)**(0.2854D0*(d_one-0.28D0*qs))
+      the0k(kp) = temp * pi * exp((c1/temp-c2)*qs*(d_one+c4*qs))
     end do
     !
     ! compute temperatures for each sat. equiv. potential temp.
@@ -2384,26 +2395,26 @@ module mod_cu_kf
         end if
         es = aliq*exp((bliq*tgues-cliq)/(tgues-dliq))
         qs = ep2*es/(p-es)
-        pi = (1.0D5/p)**(0.2854D0*(d_one-0.28D0*qs))
-        thgues = tgues * pi * &
-                exp((3374.6525D0/tgues-2.5403D0)*qs*(d_one+0.81D0*qs))
+        pi = (p00/p)**(0.2854D0*(d_one-0.28D0*qs))
+        thgues = tgues * pi * exp((c1/tgues-c2)*qs*(d_one+c4*qs))
         f0 = thgues - thes
         t1 = tgues - d_half*f0
         t0 = tgues
+        iter1: &
         do itcnt = 1 , 11
           es = aliq * exp((bliq*t1-cliq)/(t1-dliq))
           qs = ep2*es/(p-es)
-          pi = (1.0D5/p)**(0.2854D0*(d_one-0.28D0*qs))
-          thtgs = t1*pi*exp((3374.6525D0/t1-2.5403D0)*qs*(d_one+0.81D0*qs))
+          pi = (p00/p)**(0.2854D0*(d_one-0.28D0*qs))
+          thtgs = t1 * pi * exp((c1/t1-c2)*qs*(d_one+c4*qs))
           f1 = thtgs - thes
           if ( abs(f1) < toler ) then
-            exit
+            exit iter1
           end if
           dt = f1 * (t1-t0)/(f1-f0)
           t0 = t1
           f0 = f1
           t1 = t1 - dt
-        end do
+        end do iter1
         ttab(it,kp) = t1
         qstab(it,kp) = qs
       end do
@@ -2413,7 +2424,7 @@ module mod_cu_kf
     !
     ! set up intial values for lookup tables
     !
-    a1 = astrt-aincb
+    a1 = astrt - aincb
     do i = 1 , kfna
       a1 = a1 + aincb
       alu(i) = log(a1)

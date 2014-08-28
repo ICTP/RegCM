@@ -31,7 +31,7 @@ module mod_cu_common
   implicit none
 
   public
-!
+
   real(rk8) :: cevapu ! Raindrop evap rate coef [[(kg m-2 s-1)-1/2]/s]
 
   integer(ik4) , pointer , dimension(:,:) :: cuscheme ! which scheme to use
@@ -104,43 +104,88 @@ module mod_cu_common
       end do
     end do
     scalef = (d_one-clfrcv)
-    if ( icumcloud == 1 ) then
-      iloop1: &
-      do i = ici1 , ici2
-        jloop1: &
-        do j = jci1 , jci2
-          ! The regcm model is top to bottom
-          ktop = c2m%kcumtop(j,i)
-          kbot = c2m%kcumbot(j,i)
-          kclth = kbot - ktop + 1
-          if ( kclth < 2 ) cycle jloop1
-          akclth = d_one/dble(kclth)
-          do k = ktop , kbot
-            c2m%cldfrc(j,i,k) = d_one - scalef**akclth
-          end do
-        end do jloop1
-      end do iloop1
-    else if ( icumcloud == 2 ) then
-      if ( addnoise ) then
-        ! Put 25% noise level. Update cld_profile each time.
-        call random_number(rnum)
-        cld_profile = (0.75D0+(rnum/2.0D0))*fixed_cld_profile
+    if ( any(icup == 6) ) then
+      if ( icumcloud == 1 ) then
+        ic6iloop1: &
+        do i = ici1 , ici2
+          ic6jloop1: &
+          do j = jci1 , jci2
+            if ( cuscheme(j,i) == 6 ) cycle ic6jloop1
+            ! The regcm model is top to bottom
+            ktop = c2m%kcumtop(j,i)
+            kbot = c2m%kcumbot(j,i)
+            kclth = kbot - ktop + 1
+            if ( kclth < 2 ) cycle ic6jloop1
+            akclth = d_one/dble(kclth)
+            do k = ktop , kbot
+              c2m%cldfrc(j,i,k) = d_one - scalef**akclth
+            end do
+          end do ic6jloop1
+        end do ic6iloop1
+      else if ( icumcloud == 2 ) then
+        if ( addnoise ) then
+          ! Put 25% noise level. Update cld_profile each time.
+          call random_number(rnum)
+          cld_profile = (0.75D0+(rnum/2.0D0))*fixed_cld_profile
+        end if
+        ic6iloop3: &
+        do i = ici1 , ici2
+          ic6jloop3: &
+          do j = jci1 , jci2
+            if ( cuscheme(j,i) == 6 ) cycle ic6jloop3
+            ktop = c2m%kcumtop(j,i)
+            kbot = c2m%kcumbot(j,i)
+            kclth = kbot - ktop
+            if ( kclth < 1 ) cycle ic6jloop3
+            scalep = min((m2c%pas(j,i,kbot)-m2c%pas(j,i,ktop)) / &
+                    maxcloud_dp,d_one)
+            do k = ktop , kbot
+              ikh = max(1,min(10,int((dble(k-ktop+1)/dble(kclth))*d_10)))
+              c2m%cldfrc(j,i,k) = cld_profile(ikh)*clfrcv*scalep
+            end do
+          end do ic6jloop3
+        end do ic6iloop3
       end if
-      iloop3: &
-      do i = ici1 , ici2
-        jloop3: &
-        do j = jci1 , jci2
-          ktop = c2m%kcumtop(j,i)
-          kbot = c2m%kcumbot(j,i)
-          kclth = kbot - ktop
-          if ( kclth < 1 ) cycle jloop3
-          scalep = min((m2c%pas(j,i,kbot)-m2c%pas(j,i,ktop))/maxcloud_dp,d_one)
-          do k = ktop , kbot
-            ikh = max(1,min(10,int((dble(k-ktop+1)/dble(kclth))*d_10)))
-            c2m%cldfrc(j,i,k) = cld_profile(ikh)*clfrcv*scalep
-          end do
-        end do jloop3
-      end do iloop3
+    else
+      if ( icumcloud == 1 ) then
+        iloop1: &
+        do i = ici1 , ici2
+          jloop1: &
+          do j = jci1 , jci2
+            ! The regcm model is top to bottom
+            ktop = c2m%kcumtop(j,i)
+            kbot = c2m%kcumbot(j,i)
+            kclth = kbot - ktop + 1
+            if ( kclth < 2 ) cycle jloop1
+            akclth = d_one/dble(kclth)
+            do k = ktop , kbot
+              c2m%cldfrc(j,i,k) = d_one - scalef**akclth
+            end do
+          end do jloop1
+        end do iloop1
+      else if ( icumcloud == 2 ) then
+        if ( addnoise ) then
+          ! Put 25% noise level. Update cld_profile each time.
+          call random_number(rnum)
+          cld_profile = (0.75D0+(rnum/2.0D0))*fixed_cld_profile
+        end if
+        iloop3: &
+        do i = ici1 , ici2
+          jloop3: &
+          do j = jci1 , jci2
+            ktop = c2m%kcumtop(j,i)
+            kbot = c2m%kcumbot(j,i)
+            kclth = kbot - ktop
+            if ( kclth < 1 ) cycle jloop3
+            scalep = min((m2c%pas(j,i,kbot)-m2c%pas(j,i,ktop)) / &
+                    maxcloud_dp,d_one)
+            do k = ktop , kbot
+              ikh = max(1,min(10,int((dble(k-ktop+1)/dble(kclth))*d_10)))
+              c2m%cldfrc(j,i,k) = cld_profile(ikh)*clfrcv*scalep
+            end do
+          end do jloop3
+        end do iloop3
+      end if
     end if
     where ( c2m%cldfrc < 1.0D-4 )
       c2m%cldlwc = 0.001D0
