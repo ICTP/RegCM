@@ -74,8 +74,9 @@ module mod_pbl_uwtcm
   use mod_mppparam
   use mod_pbl_common
   use mod_pbl_thetal
-  use mod_runparams , only : iqv , iqc , iuwvadv , atwo , rstbl , &
-    dt , rdt , ichem , sigma , hsigma , dsigma , ibltyp
+  use mod_runparams , only : iqv , iqc , iqr , iqi , iqs , iuwvadv ,  &
+          atwo , rstbl , dt , rdt , ichem , sigma , hsigma , dsigma , &
+          ibltyp , ipptls
   use mod_regcm_types
   use mod_service
 
@@ -535,19 +536,24 @@ module mod_pbl_uwtcm
           zax(k) = d_half*(zqx(k)+zqx(k+1))
           tke(k) = m2p%tkests(j,i,k)
           tx(k)  = m2p%tatm(j,i,k)
-          qx(k)  = m2p%qxatm(j,i,k,iqv)
-          qcx(k) = m2p%qxatm(j,i,k,iqc)
+          if ( ipptls == 2 ) then
+            qx(k)  = m2p%qxatm(j,i,k,iqv) + p2m%qxten(j,i,k,iqv) / psbx
+            qcx(k) = m2p%qxatm(j,i,k,iqc) + p2m%qxten(j,i,k,iqc) / psbx
+          else
+            qx(k)  = m2p%qxatm(j,i,k,iqv)
+            qcx(k) = m2p%qxatm(j,i,k,iqc)
+          end if
           ux(k)  = m2p%uxatm(j,i,k)
           vx(k)  = m2p%vxatm(j,i,k)
           if ( ichem == 1 ) chix(:,k) = m2p%chib(j,i,k,:)
-
-          ! if ( tx(k) > tzero ) then
-!         if ( tx(k) > tzero ) then
-!           isice(k) = 0
-!         else
-!           isice(k) = 1
-!         end if
           isice(k) = 0
+          if ( ipptls == 2 ) then
+            if ( tx(k) > tzero ) then
+              isice(k) = 0
+            else
+              isice(k) = 1
+            end if
+          end if
         end do kinitloop
 
         ! Set all the save variables (used for determining the tendencies)

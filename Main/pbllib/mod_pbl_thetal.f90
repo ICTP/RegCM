@@ -22,6 +22,7 @@ module mod_pbl_thetal
   use mod_intkinds
   use mod_realkinds
   use mod_constants
+  use mod_runparams , only : ipptls
 
   implicit none
 
@@ -79,7 +80,7 @@ module mod_pbl_thetal
                                 imethod,isice,outqc,outqv)
     implicit none
     real(rk8) , intent(in) :: thetal , qt , p , tprev , qtprev , &
-                             qcprev , thlprev
+                              qcprev , thlprev
     integer(ik4) , intent(in) :: imethod , isice
     integer(ik4) , intent(inout) :: imax
     real(rk8) , intent(out) :: outqc , outqv
@@ -322,6 +323,9 @@ bigloop : &
           ! calculate the saturation mixing ratio (wrt ice)
           ! rvls = ep2/(myp/esati(myp,temps)-d_one)
           rvls = ep2/(myp/(pfesat(temps)*d_r1000)-d_one)
+          itqtsupp = 0
+          itqt = max(min(int(d_two*(dble(itmax)+log(myqt))),itmax),itmin) + &
+                 itqtsupp
           do iteration = 1, itqt ! condenseice
             ! update the dummy temperature
             temps = temps +                                 &
@@ -331,7 +335,11 @@ bigloop : &
             ! rvls = ep2/(myp/esati(myp,temps)-d_one)
             rvls = ep2/(myp/(pfesat(temps)*d_r1000)-d_one)
           end do ! condenseice
-          outqc = dmax1(myqt-rvls,d_zero)
+          if ( ipptls == 2 ) then
+            outqc = d_zero
+          else
+            outqc = dmax1(myqt-rvls,d_zero)
+          end if
           outqv = myqt - outqc
           solve_for_t = (templ+outqc*wlhsocp)
         end if
