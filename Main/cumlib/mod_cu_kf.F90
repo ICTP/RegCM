@@ -64,6 +64,7 @@ module mod_cu_kf
   real(rk8) , dimension(:,:) , pointer :: qc_kf , qi_kf
   integer(ik4) , dimension(:) , pointer :: ktop , kbot
   real(rk8) , dimension(:,:) , pointer :: cldfra_dp_kf , cldfra_sh_kf
+  real(rk8) , dimension(:,:) , pointer :: pptliq , pptice
 
   real(rk8) , dimension(:,:) , pointer :: dqdt , dtdt , dqcdt
   real(rk8) , dimension(:,:) , pointer :: tpart_h , tpart_v
@@ -125,6 +126,8 @@ module mod_cu_kf
     call getmem2d(dqsdt,1,nipoi,1,kz,'mod_cu_kf:dqsdt')
     call getmem2d(dtdt,1,nipoi,1,kz,'mod_cu_kf:dtdt')
     call getmem2d(cldfra_dp_kf,1,nipoi,1,kz,'mod_cu_kf:cldfra_dp_kf')
+    call getmem2d(pptliq,1,nipoi,1,kz,'mod_cu_kf:pptliq')
+    call getmem2d(pptice,1,nipoi,1,kz,'mod_cu_kf:pptice')
     call getmem2d(cldfra_sh_kf,1,nipoi,1,kz,'mod_cu_kf:cldfra_sh_kf')
     call getmem2d(qc_kf,1,nipoi,1,kz,'mod_cu_kf:qc_kf')
     call getmem2d(qi_kf,1,nipoi,1,kz,'mod_cu_kf:qi_kf')
@@ -179,6 +182,8 @@ module mod_cu_kf
     dqsdt(:,:) = d_zero
     raincv(:) = d_zero
     pratec(:) = d_zero
+    pptliq(:,:) = d_zero
+    pptice(:,:) = d_zero
     ktop(:) = 0
     kbot(:) = 0
     total_precip_points = 0
@@ -223,6 +228,24 @@ module mod_cu_kf
       end do
     end if
 
+    ! Build for chemistry 3d table of constant precipitation rate
+    ! from the surface to the top of the convection
+    c2m%convpr(:,:,:) = d_zero
+
+    if ( ichem == 1 ) then
+      do k = 1 , kz
+        kk = kz - k + 1
+        do np = 1 , nipoi
+          i = imap(np)
+          j = jmap(np)
+          c2m%convpr(j,i,kk) = pptliq(np,k) + pptice(np,k)
+        end do
+      end do
+    end if
+ 
+    c2m%kcumtop(:,:) = d_zero
+    c2m%kcumbot(:,:) = d_zero
+
     do np = 1 , nipoi
       i = imap(np)
       j = jmap(np)
@@ -254,7 +277,7 @@ module mod_cu_kf
             umf , uer , udr , dmf , der , ddr , umf2 , uer2 , udr2 , &
             dmf2 , der2 , ddr2 , dza , thta0 , thetee , thtau ,      &
             theteu , thtad , theted , qliq , qice , qlqout ,         &
-            qicout , pptliq , pptice , detlq , detic , detlq2 ,      &
+            qicout , detlq , detic , detlq2 ,      &
             detic2 , ratio2
     real(rk8) , dimension(kts:kte) :: domgdp , exn , tvqu , dp , rh ,  &
             eqfrc , wspd , qdt , fxm , thtag , thpa , thfxout ,      &
@@ -619,8 +642,8 @@ module mod_cu_kf
           qicout(k) = d_zero
           detlq(k) = d_zero
           detic(k) = d_zero
-          pptliq(k) = d_zero
-          pptice(k) = d_zero
+          pptliq(np,k) = d_zero
+          pptice(np,k) = d_zero
           iflag = 0
           !
           ! ttemp is used during calculation of the linear glaciation
@@ -835,9 +858,9 @@ module mod_cu_kf
               ! trppt is the total rate of production of precip up to the
               ! current model level.
               !
-              pptliq(nk1) = qlqout(nk1)*umf(nk)
-              pptice(nk1) = qicout(nk1)*umf(nk)
-              trppt = trppt + pptliq(nk1) + pptice(nk1)
+              pptliq(np,nk1) = qlqout(nk1)*umf(nk)
+              pptice(np,nk1) = qicout(nk1)*umf(nk)
+              trppt = trppt + pptliq(np,nk1) + pptice(np,nk1)
               if ( nk1 <= kpbl ) uer(nk1) = uer(nk1) + vmflcl*dp(nk1)/dpthmx
             end if
           end do updraft
@@ -894,8 +917,8 @@ module mod_cu_kf
               uer(nk) = d_zero
               detlq(nk) = d_zero
               detic(nk) = d_zero
-              pptliq(nk) = d_zero
-              pptice(nk) = d_zero
+              pptliq(np,nk) = d_zero
+              pptice(np,nk) = d_zero
               cldfra_dp_kf(np,nk) = d_zero
               cldfra_sh_kf(np,nk) = d_zero
               qc_kf(np,nk) = d_zero
@@ -927,8 +950,8 @@ module mod_cu_kf
                 uer(nk) = d_zero
                 detlq(nk) = d_zero
                 detic(nk) = d_zero
-                pptliq(nk) = d_zero
-                pptice(nk) = d_zero
+                pptliq(np,nk) = d_zero
+                pptice(np,nk) = d_zero
                 cldfra_dp_kf(np,nk) = d_zero
                 cldfra_sh_kf(np,nk) = d_zero
                 qc_kf(np,nk) = d_zero
@@ -987,10 +1010,10 @@ module mod_cu_kf
             detic(nk) = udr(nk)*qice(nk)*dilfrc(nk)
           end if
           if ( nk >= let+2 ) then
-            trppt = trppt - pptliq(nk) - pptice(nk)
-            pptliq(nk) = umf(nk-1)*qlqout(nk)
-            pptice(nk) = umf(nk-1)*qicout(nk)
-            trppt = trppt + pptliq(nk) + pptice(nk)
+            trppt = trppt - pptliq(np,nk) - pptice(np,nk)
+            pptliq(np,nk) = umf(nk-1)*qlqout(nk)
+            pptice(np,nk) = umf(nk-1)*qicout(nk)
+            trppt = trppt + pptliq(np,nk) + pptice(np,nk)
           end if
         end do
       end if
@@ -1032,8 +1055,8 @@ module mod_cu_kf
         qice(nk) = d_zero
         qlqout(nk) = d_zero
         qicout(nk) = d_zero
-        pptliq(nk) = d_zero
-        pptice(nk) = d_zero
+        pptliq(np,nk) = d_zero
+        pptice(np,nk) = d_zero
         detlq(nk) = d_zero
         detic(nk) = d_zero
         ratio2(nk) = d_zero
@@ -1056,8 +1079,8 @@ module mod_cu_kf
         qicout(nk) = d_zero
         detlq(nk) = d_zero
         detic(nk) = d_zero
-        pptliq(nk) = d_zero
-        pptice(nk) = d_zero
+        pptliq(np,nk) = d_zero
+        pptice(np,nk) = d_zero
         if ( nk > ltop1 ) then
           tu(nk) = d_zero
           qu(nk) = d_zero
@@ -1211,7 +1234,7 @@ module mod_cu_kf
           !
           pptmlt = 0.
           do nk = klcl , ltop
-            pptmlt = pptmlt + pptice(nk)
+            pptmlt = pptmlt + pptice(np,nk)
           end do
           if ( lc < ml ) then
             ! For now, calculate melting effect as if dmf = -umf at klcl,
@@ -1734,8 +1757,8 @@ module mod_cu_kf
         qipa(nk) = qi0(nk)
         qrpa(nk) = qr0(nk)
         qspa(nk) = qs0(nk)
-        rainfb(nk) = pptliq(nk)*ainc*fbfrc*frc2   !  ppt fb mods
-        snowfb(nk) = pptice(nk)*ainc*fbfrc*frc2   !  ppt fb mods
+        rainfb(nk) = pptliq(np,nk)*ainc*fbfrc*frc2   !  ppt fb mods
+        snowfb(nk) = pptice(np,nk)*ainc*fbfrc*frc2   !  ppt fb mods
       end do
       do ntc = 1 , nstep
         !
