@@ -8,8 +8,9 @@ import numpy as np
 import sys
 import time
 import os
+import uuid
 
-ICTP_Model_id = 'RegCM4'
+ICTP_Model_id = 'RegCM4-3'
 ICTP_Model = 'ICTP-'+ICTP_Model_id
 ICTP_Model_Version = 'v4'
 
@@ -51,7 +52,8 @@ def wrapper(func,args,it):
 def wrapper2(func,args):
   return func(*args)
 
-def copyvar(nc,name,ovar,nnvar=None,bnds=True,stsf=False,ds=0.0):
+def copyvar(nc,name,ovar,nnvar=None,bnds=True,stsf=False,ds=0.0,
+            cproj='',clat=0.0,clon=0.0,cpar=( )):
   ssdim = list(ovar.dimensions)
   try:
     ssdim[ssdim.index('iy')] = 'y'
@@ -81,30 +83,50 @@ def copyvar(nc,name,ovar,nnvar=None,bnds=True,stsf=False,ds=0.0):
         pass
     else:
       if name.find('time') >= 0 and getattr(ovar,attr) == 'gregorian':
-	xvar.setncattr(attr,'proleptic_gregorian')
-      elif name.find('time') >= 0 and attr == 'units':
-	if stsf:
+        xvar.setncattr(attr,'proleptic_gregorian')
+      elif ( (name.find('time') >= 0 or name.find('time_bnds') >= 0) and
+            attr == 'units'):
+        if stsf:
           attval = 'days since 1949-12-01 00:00:00'
-	else:
+        else:
           attval = getattr(ovar,attr).replace(' UTC','')
-	xvar.setncattr(attr,attval)
+        xvar.setncattr(attr,attval)
       else:
-        xvar.setncattr(attr,getattr(ovar,attr))
+        if attr == 'units':
+          if getattr(ovar,attr) == 'km':
+            xvar.setncattr(attr,'m')
+          else:
+            xvar.setncattr(attr,getattr(ovar,attr))
+        else:
+          xvar.setncattr(attr,getattr(ovar,attr))
   if nnvar == 'crs':
     if 'semi_major_axis' not in attrlist:
+      if cproj == 'LAMCON':
+        xvar.setncattr('grid_mapping_name','lambert_conformal_conic')
+        xvar.setncattr('standard_parallel',cpar)
+        xvar.setncattr('longitude_of_central_meridian',clon)
+        xvar.setncattr('latitude_of_projection_origin',clat)
+      elif cproj == 'POLSTR':
+        xvar.setncattr('grid_mapping_name','stereographic')
+        xvar.setncattr('latitude_of_projection_origin',clat)
+        xvar.setncattr('longitude_of_projection_origin',clon)
+        xvar.setncattr('scale_factor_at_projection_origin',1.0)
+      elif cproj == 'NORMER':
+        xvar.setncattr('grid_mapping_name','mercator')
+        xvar.setncattr('standard_parallel',clat)
+        xvar.setncattr('latitude_of_projection_origin',clat)
+        xvar.setncattr('longitude_of_projection_origin',clon)
+      elif cproj == 'ROTMER':
+        xvar.setncattr('grid_mapping_name','rotated_mercator')
+        xvar.setncattr('latitude_of_projection_origin',clat)
+        xvar.setncattr('longitude_of_projection_origin',clon)
+        xvar.setncattr('scale_factor_at_projection_origin',1.0)
       xvar.setncattr('semi_major_axis',6371229.0)
-    if 'inverse_flattening' not in attrlist:
       xvar.setncattr('inverse_flattening',0.0)
-    if '_CoordinateTransformType' not in attrlist:
       xvar.setncattr('_CoordinateTransformType','Projection')
-    if '_CoordinateAxisTypes' not in attrlist:
       xvar.setncattr('_CoordinateAxisTypes','GeoX GeoY')
-    if 'false_easting' not in attrlist:
       xvar.setncattr('false_easting',-ds/2.0)
-    if 'false_northing' not in attrlist:
       xvar.setncattr('false_northing',-ds/2.0)
-    if 'scale_factor_at_projection_origin' not in attrlist:
-      xvar.setncattr('scale_factor_at_projection_origin',1.0)
   return xvar
 
 def unitcorrect(old,new):
@@ -547,6 +569,7 @@ newattr = {
   'ICTP_version_note' : notes,
   'contact' : mail,
   'product' : 'output',
+  'tracking_id' : uuid.uuid1( ),
 }
 
 if frequency == 'month':
@@ -601,9 +624,9 @@ for dim in var.dimensions:
     else:
       try:
         nco.createDimension(lookupdim[dim], len(ncf.dimensions[dim]))
-	if ( lookupdim[dim] != 'height' ):
+        if ( lookupdim[dim] != 'height' ):
           newvardims.append(lookupdim[dim])
-	else:
+        else:
           reducedims = 'height'
       except:
         nco.createDimension(dim,len(ncf.dimensions[dim]))
@@ -629,20 +652,31 @@ newiy.setncattr('axis','Y')
 
 newrcm_map = None
 if rcm_map is not None:
-  newrcm_map = copyvar(nco,orcmap,rcm_map,nnvar='crs', 
-		       ds=getattr(ncf,'grid_size_in_meters'))
+  try:
+    newrcm_map = copyvar(nco,orcmap,rcm_map,nnvar='crs', 
+                       ds=getattr(ncf,'grid_size_in_meters'),
+                       cproj=getattr(ncf,'projection'),
+                       clat=getattr(ncf,'latitude_of_projection_origin'),
+                       clon=getattr(ncf,'longitude_of_projection_origin'),
+                       cpar=getattr(ncf,'standard_parallel'))
+  except Exception:
+    newrcm_map = copyvar(nco,orcmap,rcm_map,nnvar='crs', 
+                       ds=getattr(ncf,'grid_size_in_meters'),
+                       cproj=getattr(ncf,'projection'),
+                       clat=getattr(ncf,'latitude_of_projection_origin'),
+                       clon=getattr(ncf,'longitude_of_projection_origin'))
 
 newtime = copyvar(nco,'time',times,bnds=needbound,stsf=stsf)
 
 if timebnds is not None and needbound:
-  newtimebnds = copyvar(nco,'time_bnds',timebnds)
+  newtimebnds = copyvar(nco,'time_bnds',timebnds,stsf=stsf)
 else:
   if needbound:
     newtimebnds = nco.createVariable('time_bnds','f8',('time','time_bnds'))
 
 newvar = nco.createVariable(variable,'f',tuple(newvardims),
                             shuffle=True,fletcher32='true',
-			    zlib=True,complevel=9)
+                            zlib=True,complevel=9)
 oldunits = ''
 for attr in var.ncattrs():
   if attr in lookup[variable].keys():
@@ -689,20 +723,29 @@ for avar in addvar:
 
 newxlat[Ellipsis] = xlat[Ellipsis]
 newxlon[Ellipsis] = xlon[Ellipsis]
-newiy[Ellipsis] = iy[Ellipsis]
-newjx[Ellipsis] = jx[Ellipsis]
+if getattr(ncf.variables['iy'],'units') == 'km':
+  newiy[Ellipsis] = iy[Ellipsis]*1000.0
+  newjx[Ellipsis] = jx[Ellipsis]*1000.0
+else:
+  newiy[Ellipsis] = iy[Ellipsis]
+  newjx[Ellipsis] = jx[Ellipsis]
 
 if newrcm_map is not None:
   newrcm_map[Ellipsis] = rcm_map[Ellipsis]
 
 for avar , avname in zip(avars,addvar):
-  try:
-    avar[Ellipsis] = ncf.variables[avname][Ellipsis]
-  except:
-    if lookupvar[avname]['default_value'] == 'plev':
-      avar[Ellipsis] = np.array( lookup[variable]['vertint'], )*100.0
-    else:
-      avar[Ellipsis] = np.array( lookupvar[avname]['default_value'], )
+  if avname == 'm2':
+    avar[Ellipsis] = 2.0
+  elif avname == 'm10':
+    avar[Ellipsis] = 10.0
+  else:
+    try:
+      avar[Ellipsis] = ncf.variables[avname][Ellipsis]
+    except:
+      if lookupvar[avname]['default_value'] == 'plev':
+        avar[Ellipsis] = np.array( lookup[variable]['vertint'], )*100.0
+      else:
+        avar[Ellipsis] = np.array( lookupvar[avname]['default_value'], )
 
 if stsf:
   newtime[:] = correct_time[:]/24.0
