@@ -49,6 +49,7 @@ module mod_precip
   real(rk8) :: qcth
 
   real(rk8) , parameter :: uch = d_1000*regrav*secph
+  real(rk8) , parameter :: alphaice = d_four
 
   real(rk8) , public , pointer , dimension(:,:,:) :: fcc , remrat , rembc , totc
   real(rk8) , public , pointer , dimension(:,:) :: qck1 , cgul , rh0 , &
@@ -458,101 +459,101 @@ module mod_precip
           if ( ipptls == 1 ) then
             totc(j,i,k) = qx3(j,i,k,iqc)
           else if ( ipptls == 2 ) then
-            totc(j,i,k) = qx3(j,i,k,iqc) + qx3(j,i,k,iqi)
+            totc(j,i,k) = qx3(j,i,k,iqc) + alphaice*qx3(j,i,k,iqi)
           end if
-        !-------- add hanzhenyu 20140520
-        if ( iconvlwp == 2 ) then
-          ! To calculate cloud fraction using the semi-empirical formula
-          ! of Xu and Randall (1996, JAS)
-          qcld = totc(j,i,k)
-          if ( qcld < 1.0D-12 ) then    ! no cloud cover
-            excld = d_zero
-          else if ( rh3(j,i,k) >= d_one ) then  ! full cloud cover
-            excld = d_one
-          else
-            botm = exp( 0.49D0*log((d_one-rh3(j,i,k))*qs3(j,i,k)) )
-            rm = exp(0.25D0*log(rh3(j,i,k)))
-            if ( 100.D0*(qcld/botm) > 25.0D0 ) then
-              excld = min(0.99D0, max(0.01D0 , rm))
+          !-------- add hanzhenyu 20140520
+          if ( iconvlwp == 2 ) then
+            ! To calculate cloud fraction using the semi-empirical formula
+            ! of Xu and Randall (1996, JAS)
+            qcld = totc(j,i,k)
+            if ( qcld < 1.0D-12 ) then    ! no cloud cover
+              excld = d_zero
+            else if ( rh3(j,i,k) >= d_one ) then  ! full cloud cover
+              excld = d_one
             else
-              excld = min(0.99D0, max(0.01D0 , &
-                      rm*(d_one-exp(-100.D0*(qcld/botm)))))  
-            end if
-            ! xu and randall
-          end if
-          !------ for low cloud
-          ! a) clouds below 750hPa, extremely cold conditions,
-          !     when no cld microphy
-          if ( ipptls == 1 .and. p3(j,i,k) >= 75000.0D0 .and. &
-                  qx3(j,i,k,iqv) <= 0.003D0 ) then
-            excld = fcc(j,i,k)   ! reduced rh-cld
-          end if
-          !--------
-          ! Cloud Water Volume    
-          ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc /  m3
-          if ( qcld > minqx ) then
-            exlwc = qcld*rho3(j,i,k)*d_1000
-          else
-            exlwc = 0.001D0
-          end if
-          !------------
-        else if ( iconvlwp == 1 .or. iconvlwp == 0 ) then
-          !------------
-          ! Adjusted relative humidity threshold
-          if ( t3(j,i,k) >= tc0 ) then
-            rh0adj = rh0(j,i)
-          else ! high cloud (less subgrid variability)
-            rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15D0*(tc0-t3(j,i,k)))
-          end if
-          if ( rh3(j,i,k) >= rhmax ) then        ! full cloud cover
-            excld = d_one
-          else if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
-            excld = d_zero
-          else                                   ! partial cloud cover
-            excld = d_one-dsqrt(d_one-(rh3(j,i,k)-rh0adj) / &
-                          (rhmax-rh0adj))
-            excld = dmin1(dmax1(excld,0.01D0),0.99D0)
-          end if !  rh0 threshold
-          !----------------------------------------------------------------
-          ! Based on: Vavrus, S. and Waliser D., 2008, 
-          !----------------------------------------------------------------
-          ! Clouds below 750hPa
-          if ( p3(j,i,k) >= 75000.0D0 .and. qx3(j,i,k,iqv) <= 0.003D0 ) then
-            excld = excld * dmax1(0.15D0,dmin1(d_one,qx3(j,i,k,iqv)/0.003D0))
-          end if
-          !------------------- end hanzhenyu 
-          !--------
-          if ( totc(j,i,k) > minqx ) then
-            if ( iconvlwp == 1 ) then
-              ! Apply the parameterisation based on temperature to the
-              ! the large scale clouds.
-              tcel = t3(j,i,k)-tzero
-              if ( tcel < -50D0 ) then
-                exlwc = 0.001D0
+              botm = exp( 0.49D0*log((d_one-rh3(j,i,k))*qs3(j,i,k)) )
+              rm = exp(0.25D0*log(rh3(j,i,k)))
+              if ( 100.D0*(qcld/botm) > 25.0D0 ) then
+                excld = min(0.99D0, max(0.01D0 , rm))
               else
-                exlwc = 0.127D+00 + 6.78D-03 * tcel + &
-                        1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
-                if ( exlwc > 0.300D0) exlwc = 0.300D0
-                if ( exlwc < 0.001D0) exlwc = 0.001D0
+                excld = min(0.99D0, max(0.01D0 , &
+                        rm*(d_one-exp(-100.D0*(qcld/botm)))))  
+              end if
+              ! xu and randall
+            end if
+            !------ for low cloud
+            ! a) clouds below 750hPa, extremely cold conditions,
+            !     when no cld microphy
+            if ( ipptls == 1 .and. p3(j,i,k) >= 75000.0D0 .and. &
+                    qx3(j,i,k,iqv) <= 0.003D0 ) then
+              excld = fcc(j,i,k)   ! reduced rh-cld
+            end if
+            !--------
+            ! Cloud Water Volume    
+            ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc /  m3
+            if ( qcld > minqx ) then
+              exlwc = qcld*rho3(j,i,k)*d_1000
+            else
+              exlwc = 0.001D0
+            end if
+            !------------
+          else if ( iconvlwp == 1 .or. iconvlwp == 0 ) then
+            !------------
+            ! Adjusted relative humidity threshold
+            if ( t3(j,i,k) >= tc0 ) then
+              rh0adj = rh0(j,i)
+            else ! high cloud (less subgrid variability)
+              rh0adj = rhmax-(rhmax-rh0(j,i))/(d_one+0.15D0*(tc0-t3(j,i,k)))
+            end if
+            if ( rh3(j,i,k) >= rhmax ) then        ! full cloud cover
+              excld = d_one
+            else if ( rh3(j,i,k) <= rh0adj ) then  ! no cloud cover
+              excld = d_zero
+            else                                   ! partial cloud cover
+              excld = d_one-dsqrt(d_one-(rh3(j,i,k)-rh0adj) / &
+                            (rhmax-rh0adj))
+              excld = dmin1(dmax1(excld,0.01D0),0.99D0)
+            end if !  rh0 threshold
+            !----------------------------------------------------------------
+            ! Based on: Vavrus, S. and Waliser D., 2008, 
+            !----------------------------------------------------------------
+            ! Clouds below 750hPa
+            if ( p3(j,i,k) >= 75000.0D0 .and. qx3(j,i,k,iqv) <= 0.003D0 ) then
+              excld = excld * dmax1(0.15D0,dmin1(d_one,qx3(j,i,k,iqv)/0.003D0))
+            end if
+            !------------------- end hanzhenyu 
+            !--------
+            if ( totc(j,i,k) > minqx ) then
+              if ( iconvlwp == 1 ) then
+                ! Apply the parameterisation based on temperature to the
+                ! the large scale clouds.
+                tcel = t3(j,i,k)-tzero
+                if ( tcel < -50D0 ) then
+                  exlwc = 0.001D0
+                else
+                  exlwc = 0.127D+00 + 6.78D-03 * tcel + &
+                          1.29D-04 * tcel**2 + 8.36D-07 * tcel**3
+                  if ( exlwc > 0.300D0) exlwc = 0.300D0
+                  if ( exlwc < 0.001D0) exlwc = 0.001D0
+                end if
+              else
+                ! Cloud Water Volume
+                ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
+                exlwc = totc(j,i,k)*rho3(j,i,k)*d_1000
               end if
             else
-              ! Cloud Water Volume
-              ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc / m3
-              exlwc = totc(j,i,k)*rho3(j,i,k)*d_1000
+              exlwc = 0.001D0
             end if
-          else
-            exlwc = 0.001D0
+          end if   ! end if of iconvlwp , hanzy
+          radlqwc(j,i,k) = (radcldf(j,i,k)*radlqwc(j,i,k) + excld*exlwc) / &
+               dmax1(radcldf(j,i,k)+excld,0.01D0)
+          radcldf(j,i,k) = dmin1(dmax1(radcldf(j,i,k),excld),cftotmax)
+          if ( iconvlwp == 2 .and. ipptls == 2 ) then
+            fcc(j,i,k) = excld
           end if
-        end if   ! end if of iconvlwp , hanzy
-        radlqwc(j,i,k) = (radcldf(j,i,k)*radlqwc(j,i,k) + excld*exlwc) / &
-             dmax1(radcldf(j,i,k)+excld,0.01D0)
-        radcldf(j,i,k) = dmin1(dmax1(radcldf(j,i,k),excld),cftotmax)
-        if( iconvlwp==2 .and. ipptls == 2)then
-          fcc(j,i,k) = excld
-        end if
-!hanzy  radlqwc(j,i,k) = (radcldf(j,i,k)*radlqwc(j,i,k) + &
-!hanzy  fcc(j,i,k)*exlwc) / max(radcldf(j,i,k)+fcc(j,i,k),0.01D0)
-!hanzy  radcldf(j,i,k) = min(max(fcc(j,i,k),radcldf(j,i,k)),cftotmax)
+!hanzy    radlqwc(j,i,k) = (radcldf(j,i,k)*radlqwc(j,i,k) + &
+!hanzy    fcc(j,i,k)*exlwc) / max(radcldf(j,i,k)+fcc(j,i,k),0.01D0)
+!hanzy    radcldf(j,i,k) = min(max(fcc(j,i,k),radcldf(j,i,k)),cftotmax)
         end do
       end do
     end do
