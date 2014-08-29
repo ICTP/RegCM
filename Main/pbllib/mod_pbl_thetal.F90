@@ -22,6 +22,8 @@ module mod_pbl_thetal
   use mod_intkinds
   use mod_realkinds
   use mod_constants
+  use mod_mpmessage
+  use mod_stdio
   use mod_runparams , only : ipptls
 
   implicit none
