@@ -281,9 +281,9 @@ module mod_pbl_thetal
       !******* condense any water, if possible ***************
       !*******************************************************
 
-bigloop : &
+      itqtsupp = 0
+      bigloop : &
       do
-        itqtsupp = 0
         if ( isice == 0 ) then
 
           mylovcp = wlhvocp
@@ -358,8 +358,9 @@ bigloop : &
             itqtsupp = itqtsupp + 3
             ! if the solution really is not converging, issue a warning
             if ( itqtsupp > 99 ) then
-              write(*,*) '(mod_thetal) warning: non-convergence of ', &
+              write(stderr,*) '(mod_thetal) warning: non-convergence of ', &
                          'temperature solution'
+              call fatal(__FILE__,__LINE__,'model stops for UW PBL error')
             end if
             cycle bigloop
           end if
