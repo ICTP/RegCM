@@ -86,6 +86,14 @@ module mod_slice
     end do
  
     do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          atms%wpx3d(j,i,k) = omega(j,i,k) * d_1000 ! Pa/s
+        end do
+      end do
+    end do
+
+    do k = 1 , kz
       do i = ide1 , ide2
         do j = jde1 , jde2
           atms%ubd3d(j,i,k) = atm2%u(j,i,k)/psdot(j,i)

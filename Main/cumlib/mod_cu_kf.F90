@@ -178,8 +178,8 @@ module mod_cu_kf
         p0(np,k) = m2c%pas(j,i,kk)
         rho(np,k) = m2c%rhoas(j,i,kk)
         dzq(np,k) = m2c%dzq(j,i,kk)
-        w0 = d_half * m2c%psb(j,i) * d_1000 * &
-                (m2c%qdot(j,i,kk)+m2c%qdot(j,i,kk+1))/(egrav*rho(np,k))
+        w0 = m2c%wpas(j,i,kk) / (egrav*rho(np,k)) ! m/s
+        ! Average over four timesteps.
         w0avg(np,k) = (w0avg(np,k)*3.0D0+w0)*d_rfour
       end do
     end do
@@ -240,9 +240,8 @@ module mod_cu_kf
 
     ! Build for chemistry 3d table of constant precipitation rate
     ! from the surface to the top of the convection
-    c2m%convpr(:,:,:) = d_zero
-
     if ( ichem == 1 ) then
+      c2m%convpr(:,:,:) = d_zero
       do k = 1 , kz
         kk = kz - k + 1
         do np = 1 , nipoi
@@ -253,8 +252,8 @@ module mod_cu_kf
       end do
     end if
  
-    c2m%kcumtop(:,:) = d_zero
-    c2m%kcumbot(:,:) = d_zero
+    c2m%kcumtop(:,:) = 0
+    c2m%kcumbot(:,:) = 0
 
     do np = 1 , nipoi
       i = imap(np)

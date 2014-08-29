@@ -208,6 +208,7 @@ module mod_cu_tiedtke
         ptm1(ii,k)  = m2c%tas(j,i,k)  ! temperature
         pum1(ii,k)  = m2c%uas(j,i,k)  ! u (guessing!)
         pvm1(ii,k)  = m2c%vas(j,i,k)  ! v     "
+        pverv(ii,k) = m2c%wpas(j,i,k)
         pqm1(ii,k)  = m2c%qxas(j,i,k,iqv) ! humidity
         pxlm1(ii,k) = m2c%qxas(j,i,k,iqc) ! cloud liquid water
         ptte(ii,k)  = c2m%tten(j,i,k)/pxf
@@ -215,7 +216,6 @@ module mod_cu_tiedtke
         pvol(ii,k)  = c2m%vten(j,i,k)/pxf
         pqte(ii,k)  = c2m%qxten(j,i,k,iqv)/pxf
         pxlte(ii,k) = c2m%qxten(j,i,k,iqc)/pxf
-        pverv(ii,k)  = d_half*(m2c%qdot(j,i,k) + m2c%qdot(j,i,k+1))
         if (ipptls == 2) then
           pxim1(ii,k) = m2c%qxas(j,i,k,iqi)      ! cloud ice water
           pxite(ii,k) = c2m%qxten(j,i,k,iqi)/pxf ! ice tend

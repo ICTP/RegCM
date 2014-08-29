@@ -156,6 +156,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: rhob3d
     real(rk8) , pointer , dimension(:,:,:) :: ubx3d
     real(rk8) , pointer , dimension(:,:,:) :: vbx3d
+    real(rk8) , pointer , dimension(:,:,:) :: wpx3d
     real(rk8) , pointer , dimension(:,:,:) :: ubd3d
     real(rk8) , pointer , dimension(:,:,:) :: vbd3d
     real(rk8) , pointer , dimension(:,:,:) :: rhb3d
@@ -393,6 +394,7 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: tas     ! atms%pb3d
     real(rk8) , pointer , dimension(:,:,:) :: uas     ! atms%ubx3d
     real(rk8) , pointer , dimension(:,:,:) :: vas     ! atms%vbx3d
+    real(rk8) , pointer , dimension(:,:,:) :: wpas    ! atms%wpx3d
     real(rk8) , pointer , dimension(:,:,:) :: qsas    ! atms%qsb3d
     real(rk8) , pointer , dimension(:,:,:) :: rhoas   ! atms%rhob3d
     real(rk8) , pointer , dimension(:,:,:) :: zfs     ! atms%zq
