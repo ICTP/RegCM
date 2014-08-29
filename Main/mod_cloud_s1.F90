@@ -373,6 +373,7 @@ module mod_cloud_s1
     real(rk8) , pointer , dimension(:,:,:) :: cldfra , cldlwc
     call assignpnt(atms%pb3d,zpres)
     call assignpnt(atms%tb3d,zt)
+    call assignpnt(atms%wpx3d,omega)
     call assignpnt(atms%za,zeta)
     call assignpnt(atms%qxb3d,zqxx)
     call assignpnt(atms%rhob3d,rhob3d)
@@ -387,9 +388,8 @@ module mod_cloud_s1
     call assignpnt(atms%rhb3d,relh)
   end subroutine init_cloud_s1
 
-  subroutine microphys(omega)
+  subroutine microphys
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(in) :: omega
     integer(ik4) :: i , j , k , n , m , kk
     integer(ik4) :: iqqi , iqql , iqqr , iqqs , iqqv , jn , jo 
     logical :: llo1
@@ -1025,7 +1025,7 @@ module mod_cloud_s1
           do j = jci1 , jci2
             zdtdp   = rovcp*zt(j,i,k)/zpres(j,i,k)
             zdpmxdt = zdp(j,i)*zqtmst
-            zwtot   = omega(j,i,k)*d_1000    ![1cb = 1000 Pa]
+            zwtot   = omega(j,i,k)
             zwtot   = min(zdpmxdt,max(-zdpmxdt,zwtot))
             zzzdt   = radheatrt(j,i,k)
             zdtdiab = min(zdpmxdt*zdtdp,max(-zdpmxdt*zdtdp,zzzdt))*dt + &

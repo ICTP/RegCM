@@ -604,10 +604,10 @@ module mod_ncstream
       write(stdout,*) 'Enabled netCDF output stream ',trim(stream%filename)
       if ( allocated(buffer%intbuff) ) &
         write(stdout,*) 'Total buffer integer size :', &
-          size(buffer%intbuff)
+          size(buffer%intbuff)*4
       if ( allocated(buffer%realbuff) ) &
         write(stdout,*) 'Total buffer float size   :', &
-          size(buffer%realbuff)
+          size(buffer%realbuff)*4
 #endif
       ! Put "basic" information in the file
       if ( stream%l_subgrid ) then

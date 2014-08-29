@@ -422,7 +422,6 @@ module mod_dynparam
       return
     end if
     if ( nsg < 1 ) then
-      write(stderr,*) 'Resetting nsg to 1'
       nsg = 1
     end if
 

@@ -261,7 +261,7 @@ module mod_rad_o3blk
       ! We need pressure
       call grid_collect(ps,aps,jci1,jci2,ici1,ici2)
       if ( myid == iocpu ) then
-        write (stderr,*) 'Reading Ozone Data...'
+        write (stdout,*) 'Reading Ozone Data...'
         call readvar3d_pack(ncid,iy1,im1,'ozone',xozone1)
         call readvar3d_pack(ncid,iy2,im2,'ozone',xozone2)
         call bilinx2(yozone,xozone1,alon,alat,lon,lat,72,37,njcross,nicross,24)

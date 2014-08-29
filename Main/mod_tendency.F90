@@ -336,21 +336,6 @@ module mod_tendency
     !
     call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
     call psc2psd(sfs%psb,psdot)
-    call mkslice
-    !
-    call exchange(atms%ubd3d,2,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atms%vbd3d,2,jde1,jde2,ide1,ide2,1,kz)
-    call exchange(atms%tb3d,2,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(atms%ubx3d,2,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(atms%vbx3d,2,jce1,jce2,ice1,ice2,1,kz)
-    call exchange(atms%qxb3d,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
-      call exchange(atms%tkeb3d,2,jce1,jce2,ice1,ice2,1,kzp1)
-    end if
-
-    if ( ichem == 1 ) then
-      call exchange(atms%chib3d,2,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-    end if
     !
     ! compute the pressure tendency
     !
@@ -400,6 +385,22 @@ module mod_tendency
         end do
       end do
     end do
+    !
+    call mkslice
+    !
+    call exchange(atms%ubd3d,2,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atms%vbd3d,2,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atms%tb3d,2,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atms%ubx3d,2,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atms%vbx3d,2,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atms%qxb3d,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
+    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      call exchange(atms%tkeb3d,2,jce1,jce2,ice1,ice2,1,kzp1)
+    end if
+
+    if ( ichem == 1 ) then
+      call exchange(atms%chib3d,2,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+    end if
     if ( iboudy == 4 ) then
       call sponge(ba_cr,xpsb,pten)
     else if ( iboudy == 1 .or. iboudy == 5 ) then
@@ -683,7 +684,7 @@ module mod_tendency
       end if
       if ( ipptls == 2 ) then
         call cldfrac
-        call microphys(omega)
+        call microphys
       else
         call pcp
         call cldfrac

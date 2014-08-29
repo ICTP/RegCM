@@ -97,7 +97,7 @@ module mod_pbl_thetal
 
     ! set some interal module variables
     mythetal = thetal
-    myqt = qt
+    myqt = max(qt,minqx)
     myp = p
     myexner = (myp/d_100)**rovcp
 
@@ -283,6 +283,7 @@ module mod_pbl_thetal
 
 bigloop : &
       do
+        itqtsupp = 0
         if ( isice == 0 ) then
 
           mylovcp = wlhvocp
@@ -300,7 +301,6 @@ bigloop : &
           ! water content.  for too few iterations, really high liquid water
           ! contents (and correspondingly high temperatures) result.
 
-          itqtsupp = 0
           itqt = max(min(int(d_two*(dble(itmax)+log(myqt))),itmax),itmin) + &
                  itqtsupp
           do iteration = 1, itqt ! condenseliquid
@@ -323,7 +323,6 @@ bigloop : &
           ! calculate the saturation mixing ratio (wrt ice)
           ! rvls = ep2/(myp/esati(myp,temps)-d_one)
           rvls = ep2/(myp/(pfesat(temps)*d_r1000)-d_one)
-          itqtsupp = 0
           itqt = max(min(int(d_two*(dble(itmax)+log(myqt))),itmax),itmin) + &
                  itqtsupp
           do iteration = 1, itqt ! condenseice

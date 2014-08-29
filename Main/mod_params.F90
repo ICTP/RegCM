@@ -649,9 +649,6 @@ module mod_params
           write(stdout,*) 'Read microparam OK'
 #endif
         end if
-        write(stderr,*) 'IPPTLS == 2 IS STILL EXPERIMENTAL !!!!'
-        write(stderr,*) 'DO NOT USE IT ON A PRODUCTION RUN !!!!'
-        ! call fatal(__FILE__,__LINE__,'EXPERIMENTAL FEATURE')
         if ( budget_compute ) then
           write(stdout,*) 'Will check the total enthalpy and moisture'
         end if
