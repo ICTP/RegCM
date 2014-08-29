@@ -22,7 +22,7 @@ include $(REGCM_ROOT)/makeinc
 vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:.
 
 noinst_LIBRARIES = libpbl.a
-libpbl_a_SOURCES = mod_pbl_common.f90 mod_pbl_thetal.f90 mod_pbl_uwtcm.F90 \
+libpbl_a_SOURCES = mod_pbl_common.f90 mod_pbl_thetal.F90 mod_pbl_uwtcm.F90 \
                    mod_pbl_holtbl.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
