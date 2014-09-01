@@ -183,7 +183,7 @@
  ifchem  = .true.,            ! Output CHE ?
  ifopt   = .false.,           ! Output OPT ?
  chemfrq =     6.,            ! Frequency in hours to write to CHE
- enable_atm_vars = 62*.true., ! Mask to eventually disable variables ATM
+ enable_atm_vars = 64*.true., ! Mask to eventually disable variables ATM
  enable_srf_vars = 30*.true., ! Mask to eventually disable variables SRF
  enable_rad_vars = 23*.true., ! Mask to eventually disable variables RAD
  enable_sub_vars = 17*.true., ! Mask to eventually disable variables SUB
