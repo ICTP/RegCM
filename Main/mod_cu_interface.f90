@@ -29,7 +29,7 @@ module mod_cu_interface
   use mod_regcm_types
 
   use mod_cu_common , only : cuscheme , total_precip_points , cevapu ,     &
-      model_cumulus_cloud , init_mod_cumulus , q_detr
+      model_cumulus_cloud , init_mod_cumulus , q_detr , rain_cc
   use mod_cu_tiedtke , only : allocate_mod_cu_tiedtke , tiedtkedrv
   use mod_cu_tables , only : init_convect_tables
   use mod_cu_bm , only : allocate_mod_cu_bm , bmpara , lutbl , cldefi ,    &
@@ -62,6 +62,7 @@ module mod_cu_interface
   public :: rswat
   public :: tbase
   public :: q_detr
+  public :: rain_cc
   public :: twght
   public :: vqflx
   public :: shrmax2d
@@ -94,6 +95,7 @@ module mod_cu_interface
     implicit none
     integer(ik4) :: i , j
     call getmem3d(q_detr,jci1,jci2,ici1,ici2,1,kz,'cumulus:q_detr')
+    call getmem3d(rain_cc,jci1,jci2,ici1,ici2,1,kz+1,'cumulus:rain_cc')
     call getmem2d(cuscheme,jci1,jci2,ici1,ici2,'cumulus:cuscheme')
     do i = ici1 , ici2
       do j = jci1 , jci2

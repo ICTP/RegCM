@@ -40,7 +40,7 @@ module mod_cu_tiedtke
   logical , parameter :: lmfdd   = .true. ! cumulus downdraft is switched on
   logical , parameter :: lmfdudv = .true. ! cumulus friction is switched on
 
-  public :: allocate_mod_cu_tiedtke , tiedtkedrv , q_detr
+  public :: allocate_mod_cu_tiedtke , tiedtkedrv
 
   ! evaporation coefficient for kuo0
   real(rk8) , pointer , dimension(:) :: cevapcu
@@ -48,8 +48,9 @@ module mod_cu_tiedtke
   integer(ik4) , pointer , dimension(:) :: ktype
   logical , pointer , dimension(:) :: ldland
   real(rk8) , pointer , dimension(:,:,:) :: pxtm1 , pxtte 
-  real(rk8) , pointer , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 , &
-        pxlm1 , pxim1 , pxite , papp1 , paphp1 , pxtec , pqtec , zlude
+  real(rk8) , pointer , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 ,    &
+        pxlm1 , pxim1 , pxite , papp1 , paphp1 , pxtec , pqtec , zlude , &
+        pmflxr
   real(rk8) , pointer , dimension(:) :: prsfc , pssfc , paprc , &
         paprs , ptopmax , xphfx , xpqfx
   real(rk8) , pointer , dimension(:,:) :: ptte , pvom , pvol , pqte , &
@@ -132,6 +133,7 @@ module mod_cu_tiedtke
     call getmem2d(zlude,1,nipoi,1,kz,'mod_cu_tiedtke:zlude')
     call getmem2d(pxtec,1,nipoi,1,kz,'mod_cu_tiedtke:pxtec')
     call getmem2d(pqtec,1,nipoi,1,kz,'mod_cu_tiedtke:pqtec')
+    call getmem2d(pmflxr,1,nipoi,1,kz+1,'mod_cu_tiedtke:pmflxr')
     call getmem1d(kctop,1,nipoi,'mod_cu_tiedtke:kctop')
     call getmem1d(kcbot,1,nipoi,'mod_cu_tiedtke:kcbot')
     call getmem2d(paphp1,1,nipoi,1,kzp1,'mod_cu_tiedtke:paphp1')
@@ -279,8 +281,8 @@ module mod_cu_tiedtke
     call cucall(nipoi,nipoi,kz,kzp1,kzm1,ilab,ntr,pxtm1,pxtte,ptm1,   &
                 pqm1,pum1,pvm1,pxlm1,pxim1,ptte,pqte,pvom,pvol,pxlte, &
                 pxite,pverv,pxtec,pqtec,xphfx,xpqfx,papp1,paphp1,xpg, &
-                xpgh,prsfc,pssfc,paprc,paprs,zlude,ktype,ldland,      &
-                kctop,kcbot,ptopmax)
+                xpgh,prsfc,pssfc,paprc,paprs,pmflxr,zlude,ktype,      &
+                ldland,kctop,kcbot,ptopmax)
     !
     ! postprocess some fields including precipitation fluxes
     !
@@ -314,6 +316,7 @@ module mod_cu_tiedtke
             c2m%qxten(j,i,k,iqi) = pxite(ii,k) * m2c%psb(j,i)
           end if
           q_detr(j,i,k) = zlude(ii,k)
+          rain_cc(j,i,k) = pmflxr(ii,k)
           if ( ichem == 1 ) then
             c2m%chiten(j,i,k,:) = pxtte(ii,k,:) * m2c%psb(j,i)
             ! build for chemistry 3d table of constant precipitation rate
@@ -346,8 +349,8 @@ module mod_cu_tiedtke
                     pxtm1,pxtte,ptm1,pqm1,pum1,pvm1,pxlm1,pxim1, &
                     ptte,pqte,pvom,pvol,pxlte,pxite,pverv,pxtec, &
                     pqtec,pshfla,pqhfla,papp1,paphp1,pgeo,pgeoh, &
-                    prsfc,pssfc,paprc,paprs,zlude,ktype,ldland,  &
-                    kctop,kcbot,ptopmax)
+                    prsfc,pssfc,paprc,paprs,pmflxr,zlude,ktype,  &
+                    ldland,kctop,kcbot,ptopmax)
 !
 !
 !     *CUCALL* - MASTER ROUTINE - PROVIDES INTERFACE FOR:
@@ -379,6 +382,7 @@ module mod_cu_tiedtke
   integer(ik4) , dimension(kbdim) :: ktype
   logical , dimension(kbdim) :: ldland
   real(rk8) , dimension(kbdim,klevp1) :: paphp1 , pgeoh
+  real(rk8) , dimension(kbdim,klevp1) , intent(out) :: pmflxr
   real(rk8) , dimension(kbdim,klev) :: papp1 , pgeo , pqm1 , pqte ,   &
          pqtec , ptm1 , ptte , pum1 , pverv , pvm1 , pvol , pvom ,  &
          pxim1 , pxite , pxlm1 , pxlte , pxtec , zlude
@@ -402,7 +406,7 @@ module mod_cu_tiedtke
   integer(ik4) , dimension(kbdim) :: kbotsc
   logical , dimension(kbdim) :: ldsc
   real(rk8) , dimension(kbdim,klev,ktrac) :: zxtp1 , zxtu
-  real(rk8) , dimension(kbdim,klev+1) :: pmflxr , pmflxs
+  real(rk8) , dimension(kbdim,klev+1) :: pmflxs
   real(rk8) , dimension(kbdim,klev) :: pmfude_rate , pmfdde_rate
   real(rk8) , dimension(kbdim) :: pcape
   real(rk8) , dimension(kbdim,klev+1) :: pqhfl , pahfs

@@ -219,12 +219,22 @@ module mod_output
         end if
         if ( associated(atm_pf_out) ) then
           do k = 1 , kz
-            atm_pf_out(:,:,k) = atms%pb3d(jci1:jci2,ici1:ici2,k)*d_r100
+            atm_pf_out(:,:,k) = atms%pb3d(jci1:jci2,ici1:ici2,k)
           end do
         end if
         if ( associated(atm_ph_out) ) then
           do k = 1 , kz
             atm_ph_out(:,:,k) = papf(jci1:jci2,ici1:ici2,k)
+          end do
+        end if
+        if ( associated(atm_rainls_out) ) then
+          do k = 1 , kz
+            atm_rainls_out(:,:,k) = rain_ls(jci1:jci2,ici1:ici2,k)
+          end do
+        end if
+        if ( associated(atm_raincc_out) ) then
+          do k = 1 , kz
+            atm_raincc_out(:,:,k) = rain_cc(jci1:jci2,ici1:ici2,k)
           end do
         end if
         if ( associated(atm_q_detr_out) ) then

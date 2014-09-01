@@ -53,6 +53,8 @@ module mod_outvars
   real(rk8) , dimension(:,:,:) , pointer :: atm_pf_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_ph_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_q_detr_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: atm_rainls_out => null()
+  real(rk8) , dimension(:,:,:) , pointer :: atm_raincc_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_tke_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_kth_out => null()
   real(rk8) , dimension(:,:,:) , pointer :: atm_kzm_out => null()

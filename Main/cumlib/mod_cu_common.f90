@@ -36,6 +36,7 @@ module mod_cu_common
 
   integer(ik4) , pointer , dimension(:,:) :: cuscheme ! which scheme to use
   real(rk8) , pointer , dimension(:,:,:) :: q_detr
+  real(rk8) , pointer , dimension(:,:,:) :: rain_cc
   integer(ik4) :: total_precip_points
 
   real(rk8) , dimension(10) :: cld_profile
