@@ -99,6 +99,7 @@ program mksurfdata
   integer(ik4) :: istatus , ncid , ndim , nvar
   integer(ik4) , dimension(12) :: idims , ivdims
   integer(ik4) :: ivartime , iglcvar , iwetvar , ilakevar , iurbanvar
+  integer(ik4) :: ipft2dvar , iglc2dvar , iwet2dvar , ilake2dvar , iurban2dvar
   integer(ik4) :: ipftvar , ilaivar , isaivar , ivgtopvar , ivgbotvar
   integer(ik4) :: ifmaxvar , isoilcolvar , isandvar , iclayvar
   integer(ik4) :: islopevar , istdvar , igdpvar , ipeatfvar , iabmvar
@@ -377,6 +378,57 @@ program mksurfdata
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft units')
   istatus = nf90_put_att(ncid, ipftvar, '_FillValue',vmisdat)
   call checkncerr(istatus,__FILE__,__LINE__,'Error add pft Fill Value')
+
+  ivdims(1) = idims(1)
+  ivdims(2) = idims(2)
+  ivdims(3) = idims(5)
+  istatus = nf90_def_var(ncid, 'pft_2d', nf90_double, ivdims(1:3), ipft2dvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var pft')
+  istatus = nf90_put_att(ncid, ipft2dvar, 'long_name','percent pft')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add pft long_name')
+  istatus = nf90_put_att(ncid, ipft2dvar, 'units','%')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add pft units')
+  istatus = nf90_put_att(ncid, ipft2dvar, '_FillValue',vmisdat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add pft Fill Value')
+
+  istatus = nf90_def_var(ncid, 'glc_2d', nf90_double, ivdims(1:2), iglc2dvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var glacier')
+  istatus = nf90_put_att(ncid, iglc2dvar, 'long_name','percent glacier')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add glacier long_name')
+  istatus = nf90_put_att(ncid, iglc2dvar, 'units','%')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add glacier units')
+  istatus = nf90_put_att(ncid, iglc2dvar, '_FillValue',vmisdat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add glacier Fill Value')
+
+  istatus = nf90_def_var(ncid, 'wet_2d', nf90_double, ivdims(1:2), iwet2dvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var wetland')
+  istatus = nf90_put_att(ncid, iwet2dvar, 'long_name','percent wetland')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add wetland long_name')
+  istatus = nf90_put_att(ncid, iwet2dvar, 'units','%')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add wetland units')
+  istatus = nf90_put_att(ncid, iwet2dvar, '_FillValue',vmisdat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add wetland Fill Value')
+
+  istatus = nf90_def_var(ncid, 'lak_2d', nf90_double, ivdims(1:2), ilake2dvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var lake')
+  istatus = nf90_put_att(ncid, ilake2dvar, 'long_name','percent lake')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add lake long_name')
+  istatus = nf90_put_att(ncid, ilake2dvar, 'units','%')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add lake units')
+  istatus = nf90_put_att(ncid, ilake2dvar, '_FillValue',vmisdat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add lake Fill Value')
+
+  ivdims(1) = idims(1)
+  ivdims(2) = idims(2)
+  ivdims(3) = idims(8)
+  istatus = nf90_def_var(ncid, 'urb_2d', nf90_double, ivdims(1:3), iurban2dvar)
+  call checkncerr(istatus,__FILE__,__LINE__,  'Error add var urban')
+  istatus = nf90_put_att(ncid, iurban2dvar, 'long_name','percent urban')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add urban long_name')
+  istatus = nf90_put_att(ncid, iurban2dvar, 'units','%')
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add urban units')
+  istatus = nf90_put_att(ncid, iurban2dvar, '_FillValue',vmisdat)
+  call checkncerr(istatus,__FILE__,__LINE__,'Error add urban Fill Value')
 
   ivdims(1) = idims(7)
   ivdims(2) = idims(5)
@@ -808,6 +860,14 @@ program mksurfdata
   where ( var3d(:,:,3) > 0.0D0 )
     pctslake = var3d(:,:,3)
   end where
+  istatus = nf90_put_var(ncid, iglc2dvar, var3d(:,:,1))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write glc2d')
+  istatus = nf90_put_var(ncid, iwet2dvar, var3d(:,:,2))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write wet2d')
+  istatus = nf90_put_var(ncid, ilake2dvar, var3d(:,:,3))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write lak2d')
+  istatus = nf90_put_var(ncid, iurban2dvar, var3d(:,:,4:))
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write urb2d')
   deallocate(var3d)
 
   allocate(var3d(jxsg,iysg,npft))
@@ -917,6 +977,8 @@ program mksurfdata
     istatus = nf90_put_var(ncid, ipftvar, gcvar, istart(1:2), icount(1:2))
     call checkncerr(istatus,__FILE__,__LINE__, 'Error write pft')
   end do
+  istatus = nf90_put_var(ncid, ipft2dvar, var3d)
+  call checkncerr(istatus,__FILE__,__LINE__, 'Error write pft2d')
   deallocate(var3d)
 
   allocate(var5d(jxsg,iysg,npft,nmon,4))
