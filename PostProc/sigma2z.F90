@@ -373,7 +373,7 @@ program sigma2z
   call checkncerr(istatus,__FILE__,__LINE__, &
           'Error preparing for write on output')
 
-! Write time independent variables
+  ! Write time independent variables
 
   do i = 1 , nvars
     if (i == itvarid) cycle
@@ -410,7 +410,7 @@ program sigma2z
     end if
   end do
 
-! Write time dependent variables
+  ! Write time dependent variables
 
   do it = 1 , nt
     istart(1) = it
@@ -446,7 +446,7 @@ program sigma2z
 
       if (lkvarflag(i)) then
 
-!       Do interpolation
+        ! Do interpolation
 
         iv = nvdims(i)
         if ( iv == 4 ) then
@@ -516,7 +516,7 @@ program sigma2z
 
       else
 
-!       No interpolation
+        ! No interpolation
 
         iv = nvdims(i)
         istart(iv) = it
