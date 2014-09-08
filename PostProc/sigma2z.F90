@@ -31,6 +31,7 @@ program sigma2z
   use mod_nchelper
   use mod_hgt
   use mod_humid
+  use mod_stdio
   use netcdf
 
   implicit none
@@ -362,6 +363,17 @@ program sigma2z
       sigma(k) = 0.5*real(sigfix(k)+sigfix(k+1))
     end do
     deallocate(sigfix)
+  else
+    if ( any(sigma > 1.0) ) then
+      ! cdo screws things...
+      write(stdout,*) 'Trying to rebuild sigma levels...'
+      allocate(sigfix(kz+1))
+      call getsigma(sigfix)
+      do k = 1 , kz
+        sigma(k) = 0.5*real(sigfix(k)+sigfix(k+1))
+      end do
+      deallocate(sigfix)
+    end if
   end if
 
   istatus = nf90_inq_varid(ncid, "time", ivarid)
@@ -590,5 +602,79 @@ program sigma2z
   istatus = nf90_close(ncout)
   call checkncerr(istatus,__FILE__,__LINE__, &
           'Error close output file '//trim(ncpfile))
+
+  contains
+
+    subroutine getsigma(sig)
+      implicit none
+      real(rk8) , dimension(kz+1) , intent(out) :: sig
+      if ( kz==14 ) then                      ! RegCM2
+        sig(1) = 0.0D0
+        sig(2) = 0.04D0
+        sig(3) = 0.10D0
+        sig(4) = 0.17D0
+        sig(5) = 0.25D0
+        sig(6) = 0.35D0
+        sig(7) = 0.46D0
+        sig(8) = 0.56D0
+        sig(9) = 0.67D0
+        sig(10) = 0.77D0
+        sig(11) = 0.86D0
+        sig(12) = 0.93D0
+        sig(13) = 0.97D0
+        sig(14) = 0.99D0
+        sig(15) = 1.0D0
+      else if ( kz==18 ) then                 ! RegCM3, default
+        sig(1) = 0.0D0
+        sig(2) = 0.05D0
+        sig(3) = 0.10D0
+        sig(4) = 0.16D0
+        sig(5) = 0.23D0
+        sig(6) = 0.31D0
+        sig(7) = 0.39D0
+        sig(8) = 0.47D0
+        sig(9) = 0.55D0
+        sig(10) = 0.63D0
+        sig(11) = 0.71D0
+        sig(12) = 0.78D0
+        sig(13) = 0.84D0
+        sig(14) = 0.89D0
+        sig(15) = 0.93D0
+        sig(16) = 0.96D0
+        sig(17) = 0.98D0
+        sig(18) = 0.99D0
+        sig(19) = 1.0D0
+      else if ( kz==23 ) then                 ! MM5V3
+        sig(1) = 0.0D0
+        sig(2) = 0.05D0
+        sig(3) = 0.1D0
+        sig(4) = 0.15D0
+        sig(5) = 0.2D0
+        sig(6) = 0.25D0
+        sig(7) = 0.3D0
+        sig(8) = 0.35D0
+        sig(9) = 0.4D0
+        sig(10) = 0.45D0
+        sig(11) = 0.5D0
+        sig(12) = 0.55D0
+        sig(13) = 0.6D0
+        sig(14) = 0.65D0
+        sig(15) = 0.7D0
+        sig(16) = 0.75D0
+        sig(17) = 0.8D0
+        sig(18) = 0.85D0
+        sig(19) = 0.89D0
+        sig(20) = 0.93D0
+        sig(21) = 0.96D0
+        sig(22) = 0.98D0
+        sig(23) = 0.99D0
+        sig(24) = 1.0D0
+      else
+        write(stderr,*) 'CDO has screwed up sigma levels.'
+        write(stderr,*) 'Not an hardcoded number of levels, so no help here.'
+        write(stderr,*) 'Add sigma variable to the file from an ATM file.'
+        stop
+      end if
+    end subroutine getsigma
 
 end program sigma2z
