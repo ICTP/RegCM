@@ -1313,39 +1313,51 @@ module mod_clm_soilhydrology
     real(rk8), pointer :: topo_slope(:)     ! topographic slope
     real(rk8), pointer :: frost_table(:)    ! frost table depth (m)
     real(rk8), pointer :: zwt_perched(:)    ! perched water table depth (m)
-    real(rk8), pointer :: qflx_drain_perched(:)     ! perched wt sub-surface runoff (mm H2O /s)
-    integer(ik4) , pointer :: ltype(:)          ! landunit type
-    integer(ik4) , pointer :: clandunit(:)      ! column's landunit
-    integer(ik4) , pointer :: ctype(:)          ! column type index
-    integer(ik4) , pointer :: snl(:)            ! number of snow layers
-    real(rk8), pointer :: qflx_snwcp_liq(:) ! excess rainfall due to snow capping (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_snwcp_ice(:) ! excess snowfall due to snow capping (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_dew_grnd(:)  ! ground surface dew formation (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_dew_snow(:)  ! surface dew added to snow pack (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_sub_snow(:)  ! sublimation rate from snow pack (mm H2O /s) [+]
+    ! perched wt sub-surface runoff (mm H2O /s)
+    real(rk8), pointer :: qflx_drain_perched(:)
+    integer(ik4) , pointer :: ltype(:)      ! landunit type
+    integer(ik4) , pointer :: clandunit(:)  ! column's landunit
+    integer(ik4) , pointer :: ctype(:)      ! column type index
+    integer(ik4) , pointer :: snl(:)        ! number of snow layers
+    ! excess rainfall due to snow capping (mm H2O /s) [+]
+    real(rk8), pointer :: qflx_snwcp_liq(:)
+    ! excess snowfall due to snow capping (mm H2O /s) [+]
+    real(rk8), pointer :: qflx_snwcp_ice(:)
+    ! ground surface dew formation (mm H2O /s) [+]
+    real(rk8), pointer :: qflx_dew_grnd(:)
+    ! surface dew added to snow pack (mm H2O /s) [+]
+    real(rk8), pointer :: qflx_dew_snow(:)
+    ! sublimation rate from snow pack (mm H2O /s) [+]
+    real(rk8), pointer :: qflx_sub_snow(:)
     real(rk8), pointer :: dz(:,:)           ! layer depth (m)
     real(rk8), pointer :: bsw(:,:)          ! Clapp and Hornberger "b"
-    real(rk8), pointer :: eff_porosity(:,:) ! effective porosity = porosity - vol_ice
+    ! effective porosity = porosity - vol_ice
+    real(rk8), pointer :: eff_porosity(:,:)
     real(rk8), pointer :: t_soisno(:,:)     ! soil temperature (Kelvin)
-    real(rk8), pointer :: hksat(:,:)        ! hydraulic conductivity at saturation (mm H2O /s)
+    ! hydraulic conductivity at saturation (mm H2O /s)
+    real(rk8), pointer :: hksat(:,:)
     real(rk8), pointer :: sucsat(:,:)       ! minimum soil suction (mm)
     real(rk8), pointer :: z(:,:)            ! layer depth (m)
-    real(rk8), pointer :: zi(:,:)           ! interface level below a "z" level (m)
-    real(rk8), pointer :: watsat(:,:)       ! volumetric soil water at saturation (porosity)
-    real(rk8), pointer :: hkdepth(:)        ! decay factor (m)
-    real(rk8), pointer :: zwt(:)            ! water table depth (m)
-    real(rk8), pointer :: wa(:)             ! water in the unconfined aquifer (mm)
-    real(rk8), pointer :: qcharge(:)        ! aquifer recharge rate (mm/s)
+    ! interface level below a "z" level (m)
+    real(rk8), pointer :: zi(:,:)
+    ! volumetric soil water at saturation (porosity)
+    real(rk8), pointer :: watsat(:,:)
+    real(rk8), pointer :: hkdepth(:)    ! decay factor (m)
+    real(rk8), pointer :: zwt(:)        ! water table depth (m)
+    real(rk8), pointer :: wa(:)         ! water in the unconfined aquifer (mm)
+    real(rk8), pointer :: qcharge(:)    ! aquifer recharge rate (mm/s)
 #if (defined VICHYDRO)
-    real(rk8), pointer :: moist(:,:)        !soil layer moisture (mm)
-    real(rk8), pointer :: ice(:,:)          !soil layer moisture (mm)
-    real(rk8), pointer :: Ds(:)             !fracton of Dsmax where non-linear baseflow begins
-    real(rk8), pointer :: Dsmax(:)          !max. velocity of baseflow (mm/day)
-    real(rk8), pointer :: Wsvic(:)          !fraction of maximum soil moisutre where non-liear base flow occurs
-    real(rk8), pointer :: c_param(:)        !baseflow exponent (Qb)
-    real(rk8), pointer :: max_moist(:,:)    !maximum soil moisture (ice + liq)
-    real(rk8), pointer :: depth(:,:)        !VIC soil depth
-    real(rk8), pointer :: hk_l(:,:)         !hydraulic conductivity (mm/s)
+    real(rk8), pointer :: moist(:,:)    !soil layer moisture (mm)
+    real(rk8), pointer :: ice(:,:)      !soil layer moisture (mm)
+    !fracton of Dsmax where non-linear baseflow begins
+    real(rk8), pointer :: Ds(:)
+    real(rk8), pointer :: Dsmax(:)      !max. velocity of baseflow (mm/day)
+    !fraction of maximum soil moisutre where non-liear base flow occurs
+    real(rk8), pointer :: Wsvic(:)
+    real(rk8), pointer :: c_param(:)     !baseflow exponent (Qb)
+    real(rk8), pointer :: max_moist(:,:) !maximum soil moisture (ice + liq)
+    real(rk8), pointer :: depth(:,:)     !VIC soil depth
+    real(rk8), pointer :: hk_l(:,:)      !hydraulic conductivity (mm/s)
     character(len=32) :: subname = 'Drainage'  ! subroutine name
 #endif
 

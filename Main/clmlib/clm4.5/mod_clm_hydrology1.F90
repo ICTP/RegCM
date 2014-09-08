@@ -110,7 +110,7 @@ module mod_clm_hydrology1
     real(rk8), pointer :: int_snow(:)
     ! gridcell flux of flood water from RTM
     real(rk8), pointer :: qflx_floodg(:)
-    real(rk8), pointer :: qflx_floodc(:)    ! column flux of flood water from RTM
+    real(rk8), pointer :: qflx_floodc(:) ! column flux of flood water from RTM
     real(rk8), pointer :: qflx_snow_melt(:) ! snow melt from previous time step
     real(rk8), pointer :: n_melt(:)         ! SCA shape parameter
     integer(ik4) , pointer :: cgridcell(:)  ! columns's gridcell
@@ -146,9 +146,7 @@ module mod_clm_hydrology1
     real(rk8), pointer :: qflx_irrig(:)     ! irrigation amount (mm/s)
     ! number of time steps for which we still need to irrigate today
     integer(ik4), pointer  :: n_irrig_steps_left(:)
-!
-! local pointers to original implicit out arrays
-!
+
     ! interception of precipitation [mm/s]
     real(rk8), pointer :: qflx_prec_intr(:)
     ! water onto ground including canopy runoff [kg/(m2 s)]
@@ -213,15 +211,15 @@ module mod_clm_hydrology1
     ! total top-layer mass of dust in snow (col,lyr) [kg]
     real(rk8), pointer :: mss_dst_top(:)
 
-    integer(ik4)  :: f       ! filter index
-    integer(ik4)  :: p       ! pft index
-    integer(ik4)  :: c       ! column index
-    integer(ik4)  :: l       ! landunit index
-    integer(ik4)  :: g       ! gridcell index
+    integer(ik4)  :: f     ! filter index
+    integer(ik4)  :: p     ! pft index
+    integer(ik4)  :: c     ! column index
+    integer(ik4)  :: l     ! landunit index
+    integer(ik4)  :: g     ! gridcell index
     integer(ik4)  :: newnode ! flag when new snow node is set, (1=yes, 0=no)
-    real(rk8) :: h2ocanmx    ! maximum allowed water on canopy [mm]
-    real(rk8) :: fpi         ! coefficient of interception
-    real(rk8) :: xrun        ! excess water that exceeds the leaf capacity [mm/s]
+    real(rk8) :: h2ocanmx  ! maximum allowed water on canopy [mm]
+    real(rk8) :: fpi       ! coefficient of interception
+    real(rk8) :: xrun      ! excess water that exceeds the leaf capacity [mm/s]
     ! layer thickness rate change due to precipitation [mm/s]
     real(rk8) :: dz_snowf
     ! bulk density of newly fallen dry snow [kg/m3]
@@ -440,7 +438,8 @@ module mod_clm_hydrology1
         qflx_irrig(c) = 0.D0
       end if
 
-      ! Add irrigation water directly onto ground (bypassing canopy interception)
+      ! Add irrigation water directly onto ground (bypassing canopy
+      ! interception)
       ! Note that it's still possible that (some of) this irrigation water
       ! will runoff (as runoff is computed later)
       qflx_prec_grnd_rain(p) = qflx_prec_grnd_rain(p) + qflx_irrig(c)

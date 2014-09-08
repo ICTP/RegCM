@@ -89,26 +89,26 @@ module mod_clm_cngresp
     integer(ik4) :: fp     ! lake filter pft index
 
     ! Assign local pointers to derived type arrays (in)
-    ivt                           => clm3%g%l%c%p%itype
-    cpool_to_leafc                => clm3%g%l%c%p%pcf%cpool_to_leafc
-    cpool_to_leafc_storage        => clm3%g%l%c%p%pcf%cpool_to_leafc_storage
-    cpool_to_frootc               => clm3%g%l%c%p%pcf%cpool_to_frootc
-    cpool_to_frootc_storage       => clm3%g%l%c%p%pcf%cpool_to_frootc_storage
-    cpool_to_livestemc            => clm3%g%l%c%p%pcf%cpool_to_livestemc
-    cpool_to_livestemc_storage    => clm3%g%l%c%p%pcf%cpool_to_livestemc_storage
-    cpool_to_deadstemc            => clm3%g%l%c%p%pcf%cpool_to_deadstemc
-    cpool_to_deadstemc_storage    => clm3%g%l%c%p%pcf%cpool_to_deadstemc_storage
-    cpool_to_livecrootc           => clm3%g%l%c%p%pcf%cpool_to_livecrootc
-    cpool_to_livecrootc_storage   => clm3%g%l%c%p%pcf%cpool_to_livecrootc_storage
-    cpool_to_deadcrootc           => clm3%g%l%c%p%pcf%cpool_to_deadcrootc
-    cpool_to_deadcrootc_storage   => clm3%g%l%c%p%pcf%cpool_to_deadcrootc_storage
-    cpool_to_grainc               => clm3%g%l%c%p%pcf%cpool_to_grainc
-    cpool_to_grainc_storage       => clm3%g%l%c%p%pcf%cpool_to_grainc_storage
-    grainc_xfer_to_grainc         => clm3%g%l%c%p%pcf%grainc_xfer_to_grainc
-    leafc_xfer_to_leafc           => clm3%g%l%c%p%pcf%leafc_xfer_to_leafc
-    frootc_xfer_to_frootc         => clm3%g%l%c%p%pcf%frootc_xfer_to_frootc
-    livestemc_xfer_to_livestemc   => clm3%g%l%c%p%pcf%livestemc_xfer_to_livestemc
-    deadstemc_xfer_to_deadstemc   => clm3%g%l%c%p%pcf%deadstemc_xfer_to_deadstemc
+    ivt                         => clm3%g%l%c%p%itype
+    cpool_to_leafc              => clm3%g%l%c%p%pcf%cpool_to_leafc
+    cpool_to_leafc_storage      => clm3%g%l%c%p%pcf%cpool_to_leafc_storage
+    cpool_to_frootc             => clm3%g%l%c%p%pcf%cpool_to_frootc
+    cpool_to_frootc_storage     => clm3%g%l%c%p%pcf%cpool_to_frootc_storage
+    cpool_to_livestemc          => clm3%g%l%c%p%pcf%cpool_to_livestemc
+    cpool_to_livestemc_storage  => clm3%g%l%c%p%pcf%cpool_to_livestemc_storage
+    cpool_to_deadstemc          => clm3%g%l%c%p%pcf%cpool_to_deadstemc
+    cpool_to_deadstemc_storage  => clm3%g%l%c%p%pcf%cpool_to_deadstemc_storage
+    cpool_to_livecrootc         => clm3%g%l%c%p%pcf%cpool_to_livecrootc
+    cpool_to_livecrootc_storage => clm3%g%l%c%p%pcf%cpool_to_livecrootc_storage
+    cpool_to_deadcrootc         => clm3%g%l%c%p%pcf%cpool_to_deadcrootc
+    cpool_to_deadcrootc_storage => clm3%g%l%c%p%pcf%cpool_to_deadcrootc_storage
+    cpool_to_grainc             => clm3%g%l%c%p%pcf%cpool_to_grainc
+    cpool_to_grainc_storage     => clm3%g%l%c%p%pcf%cpool_to_grainc_storage
+    grainc_xfer_to_grainc       => clm3%g%l%c%p%pcf%grainc_xfer_to_grainc
+    leafc_xfer_to_leafc         => clm3%g%l%c%p%pcf%leafc_xfer_to_leafc
+    frootc_xfer_to_frootc       => clm3%g%l%c%p%pcf%frootc_xfer_to_frootc
+    livestemc_xfer_to_livestemc => clm3%g%l%c%p%pcf%livestemc_xfer_to_livestemc
+    deadstemc_xfer_to_deadstemc => clm3%g%l%c%p%pcf%deadstemc_xfer_to_deadstemc
     livecrootc_xfer_to_livecrootc => &
             clm3%g%l%c%p%pcf%livecrootc_xfer_to_livecrootc
     deadcrootc_xfer_to_deadcrootc => &
@@ -144,16 +144,16 @@ module mod_clm_cngresp
       p = filter_soilp(fp)
 
       if ( ivt(p) >= npcropmin ) then ! skip 2 generic crops
-        cpool_livestem_gr(p)          = cpool_to_livestemc(p) * grperc(ivt(p))
-        cpool_livestem_storage_gr(p)  = cpool_to_livestemc_storage(p) * &
-                                        grperc(ivt(p)) * grpnow(ivt(p))
-        transfer_livestem_gr(p)       = livestemc_xfer_to_livestemc(p) * &
-                                        grperc(ivt(p)) * (1.D0 - grpnow(ivt(p)))
-        cpool_grain_gr(p)             = cpool_to_grainc(p) * grperc(ivt(p))
-        cpool_grain_storage_gr(p)     = cpool_to_grainc_storage(p) * &
-                                        grperc(ivt(p)) * grpnow(ivt(p))
-        transfer_grain_gr(p)          = grainc_xfer_to_grainc(p) * &
-                                        grperc(ivt(p)) * (1.D0 - grpnow(ivt(p)))
+        cpool_livestem_gr(p)         = cpool_to_livestemc(p) * grperc(ivt(p))
+        cpool_livestem_storage_gr(p) = cpool_to_livestemc_storage(p) * &
+                                       grperc(ivt(p)) * grpnow(ivt(p))
+        transfer_livestem_gr(p)      = livestemc_xfer_to_livestemc(p) * &
+                                       grperc(ivt(p)) * (1.D0 - grpnow(ivt(p)))
+        cpool_grain_gr(p)            = cpool_to_grainc(p) * grperc(ivt(p))
+        cpool_grain_storage_gr(p)    = cpool_to_grainc_storage(p) * &
+                                       grperc(ivt(p)) * grpnow(ivt(p))
+        transfer_grain_gr(p)         = grainc_xfer_to_grainc(p) * &
+                                       grperc(ivt(p)) * (1.D0 - grpnow(ivt(p)))
       end if
 
       ! leaf and fine root growth respiration
@@ -163,8 +163,8 @@ module mod_clm_cngresp
       transfer_leaf_gr(p)       = leafc_xfer_to_leafc(p) * grperc(ivt(p)) * &
                                   (1.D0 - grpnow(ivt(p)))
       cpool_froot_gr(p)         = cpool_to_frootc(p) * grperc(ivt(p))
-      cpool_froot_storage_gr(p) = cpool_to_frootc_storage(p) * grperc(ivt(p)) * &
-                                  grpnow(ivt(p))
+      cpool_froot_storage_gr(p) = cpool_to_frootc_storage(p) * &
+                                  grperc(ivt(p)) * grpnow(ivt(p))
       transfer_froot_gr(p)      = frootc_xfer_to_frootc(p) * grperc(ivt(p)) * &
                                   (1.D0 - grpnow(ivt(p)))
 

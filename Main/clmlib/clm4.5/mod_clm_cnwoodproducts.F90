@@ -30,7 +30,7 @@ module mod_clm_cnwoodproducts
     use mod_clm_type
     use mod_clm_varctl , only : use_c13, use_c14
     implicit none
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
 
     integer(ik4) :: fc  ! lake filter indices

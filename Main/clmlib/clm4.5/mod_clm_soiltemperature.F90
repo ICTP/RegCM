@@ -949,50 +949,65 @@ module mod_clm_soiltemperature
   ! flux from the interface to the node j+1.
   !
   subroutine SoilThermProp (lbc, ubc,  num_nolakec, filter_nolakec, &
-       tk, cv,tk_h2osfc)
+                            tk, cv,tk_h2osfc)
     implicit none
-    integer(ik4) , intent(in)  :: lbc, ubc                       ! column bounds
-    integer(ik4) , intent(in)  :: num_nolakec                    ! number of column non-lake points in column filter
-    integer(ik4) , intent(in)  :: filter_nolakec(ubc-lbc+1)      ! column filter for non-lake points
-    real(rk8), intent(out) :: cv(lbc:ubc,-nlevsno+1:nlevgrnd)! heat capacity [J/(m2 K)]
-    real(rk8), intent(out) :: tk(lbc:ubc,-nlevsno+1:nlevgrnd)! thermal conductivity [W/(m K)]
-    real(rk8), intent(out) :: tk_h2osfc(lbc:ubc)             ! thermal conductivity of h2osfc [W/(m K)]
+    integer(ik4) , intent(in)  :: lbc, ubc  ! column bounds
+    ! number of column non-lake points in column filter
+    integer(ik4) , intent(in)  :: num_nolakec
+    ! column filter for non-lake points
+    integer(ik4) , intent(in)  :: filter_nolakec(ubc-lbc+1)
+    ! heat capacity [J/(m2 K)]
+    real(rk8), intent(out) :: cv(lbc:ubc,-nlevsno+1:nlevgrnd)
+    ! thermal conductivity [W/(m K)]
+    real(rk8), intent(out) :: tk(lbc:ubc,-nlevsno+1:nlevgrnd)
+    ! thermal conductivity of h2osfc [W/(m K)]
+    real(rk8), intent(out) :: tk_h2osfc(lbc:ubc)
 
-    real(rk8), pointer :: h2osfc(:)        ! surface (mm H2O)
-    real(rk8), pointer :: frac_sno(:)      ! fractional snow covered area
-    integer(ik4) , pointer :: ctype(:)         ! column type
-    integer(ik4) , pointer :: clandunit(:)     ! column's landunit
-    integer(ik4) , pointer :: ltype(:)         ! landunit type
-    integer(ik4) , pointer :: snl(:)           ! number of snow layers
+    real(rk8), pointer :: h2osfc(:)    ! surface (mm H2O)
+    real(rk8), pointer :: frac_sno(:)  ! fractional snow covered area
+    integer(ik4) , pointer :: ctype(:)     ! column type
+    integer(ik4) , pointer :: clandunit(:) ! column's landunit
+    integer(ik4) , pointer :: ltype(:)     ! landunit type
+    integer(ik4) , pointer :: snl(:)       ! number of snow layers
     real(rk8), pointer :: h2osno(:)        ! snow water (mm H2O)
 
-    real(rk8), pointer :: watsat(:,:)      ! volumetric soil water at saturation (porosity)
-    real(rk8), pointer :: tksatu(:,:)      ! thermal conductivity, saturated soil [W/m-K]
-    real(rk8), pointer :: tkmg(:,:)        ! thermal conductivity, soil minerals  [W/m-K]
-    real(rk8), pointer :: tkdry(:,:)       ! thermal conductivity, dry soil (W/m/Kelvin)
-    real(rk8), pointer :: csol(:,:)        ! heat capacity, soil solids (J/m**3/Kelvin)
-    real(rk8), pointer :: dz(:,:)          ! layer depth (m)
-    real(rk8), pointer :: zi(:,:)          ! interface level below a "z" level (m)
-    real(rk8), pointer :: z(:,:)           ! layer thickness (m)
+    ! volumetric soil water at saturation (porosity)
+    real(rk8), pointer :: watsat(:,:)
+    ! thermal conductivity, saturated soil [W/m-K]
+    real(rk8), pointer :: tksatu(:,:)
+    ! thermal conductivity, soil minerals  [W/m-K]
+    real(rk8), pointer :: tkmg(:,:)
+    ! thermal conductivity, dry soil (W/m/Kelvin)
+    real(rk8), pointer :: tkdry(:,:)
+    ! heat capacity, soil solids (J/m**3/Kelvin)
+    real(rk8), pointer :: csol(:,:)
+    real(rk8), pointer :: dz(:,:)    ! layer depth (m)
+    real(rk8), pointer :: zi(:,:)    ! interface level below a "z" level (m)
+    real(rk8), pointer :: z(:,:)     ! layer thickness (m)
     real(rk8), pointer :: t_soisno(:,:)    ! soil temperature (Kelvin)
     real(rk8), pointer :: h2osoi_liq(:,:)  ! liquid water (kg/m2)
     real(rk8), pointer :: h2osoi_ice(:,:)  ! ice lens (kg/m2)
     real(rk8), pointer :: tk_wall(:,:)     ! thermal conductivity of urban wall
     real(rk8), pointer :: tk_roof(:,:)     ! thermal conductivity of urban roof
-    real(rk8), pointer :: tk_improad(:,:)  ! thermal conductivity of urban impervious road
+    ! thermal conductivity of urban impervious road
+    real(rk8), pointer :: tk_improad(:,:)
     real(rk8), pointer :: cv_wall(:,:)     ! thermal conductivity of urban wall
     real(rk8), pointer :: cv_roof(:,:)     ! thermal conductivity of urban roof
-    real(rk8), pointer :: cv_improad(:,:)  ! thermal conductivity of urban impervious road
-    integer(ik4),  pointer :: nlev_improad(:)  ! number of impervious road layers
+    ! thermal conductivity of urban impervious road
+    real(rk8), pointer :: cv_improad(:,:)
+    ! number of impervious road layers
+    integer(ik4),  pointer :: nlev_improad(:)
 
-    integer(ik4)  :: l,c,j                     ! indices
-    integer(ik4)  :: fc                        ! lake filtered column indices
-    real(rk8) :: bw                        ! partial density of water (ice + liquid)
-    real(rk8) :: dksat                     ! thermal conductivity for saturated soil (j/(k s m))
-    real(rk8) :: dke                       ! kersten number
-    real(rk8) :: fl                        ! volume fraction of liquid or unfrozen water to total water
-    real(rk8) :: satw                      ! relative total water content of soil.
-    real(rk8) :: thk(lbc:ubc,-nlevsno+1:nlevgrnd) ! thermal conductivity of layer
+    integer(ik4)  :: l,c,j  ! indices
+    integer(ik4)  :: fc     ! lake filtered column indices
+    real(rk8) :: bw       ! partial density of water (ice + liquid)
+    real(rk8) :: dksat    ! thermal conductivity for saturated soil (j/(k s m))
+    real(rk8) :: dke      ! kersten number
+    ! volume fraction of liquid or unfrozen water to total water
+    real(rk8) :: fl
+    real(rk8) :: satw     ! relative total water content of soil.
+    ! thermal conductivity of layer
+    real(rk8) :: thk(lbc:ubc,-nlevsno+1:nlevgrnd)
     real(rk8) :: zh2osfc
 
     ! Assign local pointers to derived subtypes components (landunit-level)
@@ -1189,31 +1204,38 @@ module mod_clm_soiltemperature
   subroutine PhaseChangeH2osfc (lbc, ubc, num_nolakec, filter_nolakec, fact, &
                                 dhsdT,c_h2osfc,xmf_h2osfc)
     implicit none
-    integer(ik4) , intent(in) :: lbc, ubc                             ! column bounds
-    integer(ik4) , intent(in) :: num_nolakec                          ! number of column non-lake points in column filter
-    integer(ik4) , intent(in) :: filter_nolakec(ubc-lbc+1)            ! column filter for non-lake points
-    real(rk8), intent(inout) :: fact  (lbc:ubc, -nlevsno+1:nlevgrnd) ! temporary
-    real(rk8), intent(in) :: dhsdT (lbc:ubc)                      ! temperature derivative of "hs"
-    real(rk8), intent(in) :: c_h2osfc(lbc:ubc)                    ! heat capacity of surface water
-    real(rk8), intent(out) :: xmf_h2osfc(lbc:ubc)                 ! latent heat of phase change of surface water
+    integer(ik4) , intent(in) :: lbc, ubc  ! column bounds
+    ! number of column non-lake points in column filter
+    integer(ik4) , intent(in) :: num_nolakec
+    ! column filter for non-lake points
+    integer(ik4) , intent(in) :: filter_nolakec(ubc-lbc+1)
+    real(rk8), intent(inout) :: fact(lbc:ubc, -nlevsno+1:nlevgrnd) ! temporary
+    ! temperature derivative of "hs"
+    real(rk8), intent(in) :: dhsdT(lbc:ubc)
+    ! heat capacity of surface water
+    real(rk8), intent(in) :: c_h2osfc(lbc:ubc)
+    ! latent heat of phase change of surface water
+    real(rk8), intent(out) :: xmf_h2osfc(lbc:ubc)
 
     real(rk8), pointer :: qflx_h2osfc_to_ice(:) ! conversion of h2osfc to ice
-    real(rk8), pointer :: frac_sno(:)      ! fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_h2osfc(:)   ! fraction of ground covered by surface water (0 to 1)
+    ! fraction of ground covered by snow (0 to 1)
+    real(rk8), pointer :: frac_sno(:)
+    ! fraction of ground covered by surface water (0 to 1)
+    real(rk8), pointer :: frac_h2osfc(:)
     real(rk8), pointer :: t_h2osfc(:)     ! surface water temperature
-    real(rk8), pointer :: t_h2osfc_bef(:)  ! saved surface water temperature
-    real(rk8), pointer :: h2osfc(:)        ! surface water (mm)
-    real(rk8), pointer :: int_snow(:)      ! integrated snowfall [mm]
-    integer(ik4) , pointer :: snl(:)           ! number of snow layers
-    real(rk8), pointer :: h2osno(:)        ! snow water (mm H2O)
+    real(rk8), pointer :: t_h2osfc_bef(:) ! saved surface water temperature
+    real(rk8), pointer :: h2osfc(:)       ! surface water (mm)
+    real(rk8), pointer :: int_snow(:)     ! integrated snowfall [mm]
+    integer(ik4) , pointer :: snl(:)      ! number of snow layers
+    real(rk8), pointer :: h2osno(:)       ! snow water (mm H2O)
 
-    real(rk8), pointer :: snow_depth(:)        !snow height (m)
+    real(rk8), pointer :: snow_depth(:)   !snow height (m)
 
-    real(rk8), pointer :: h2osoi_ice(:,:)  !ice lens (kg/m2) (new)
-    real(rk8), pointer :: tssbef(:,:)      !temperature at previous time step [K]
-    real(rk8), pointer :: dz(:,:)          !layer thickness (m)
+    real(rk8), pointer :: h2osoi_ice(:,:) !ice lens (kg/m2) (new)
+    real(rk8), pointer :: tssbef(:,:)  !temperature at previous time step [K]
+    real(rk8), pointer :: dz(:,:)      !layer thickness (m)
 
-    real(rk8), pointer :: t_soisno(:,:)    !soil temperature (Kelvin)
+    real(rk8), pointer :: t_soisno(:,:)   !soil temperature (Kelvin)
 
     integer(ik4)  :: c   !do loop index
     integer(ik4)  :: fc  !lake filtered column indices
@@ -1373,60 +1395,74 @@ module mod_clm_soiltemperature
   ! (3) Re-adjust the ice and liquid mass, and the layer temperature
   !
   subroutine Phasechange_beta (lbc, ubc, num_nolakec, filter_nolakec, fact, &
-                          dhsdT, xmf)
+                               dhsdT, xmf)
     implicit none
-    integer(ik4) , intent(in) :: lbc, ubc                             ! column bounds
-    integer(ik4) , intent(in) :: num_nolakec                          ! number of column non-lake points in column filter
-    integer(ik4) , intent(in) :: filter_nolakec(ubc-lbc+1)            ! column filter for non-lake points
+    integer(ik4) , intent(in) :: lbc, ubc  ! column bounds
+    ! number of column non-lake points in column filter
+    integer(ik4) , intent(in) :: num_nolakec
+    ! column filter for non-lake points
+    integer(ik4) , intent(in) :: filter_nolakec(ubc-lbc+1)
     real(rk8), intent(in) :: fact  (lbc:ubc, -nlevsno+1:nlevgrnd) ! temporary
-    real(rk8), intent(in) :: dhsdT (lbc:ubc)                      ! temperature derivative of "hs"
-    real(rk8), intent(out):: xmf   (lbc:ubc)                      ! total latent heat of phase change
+    real(rk8), intent(in) :: dhsdT (lbc:ubc) ! temperature derivative of "hs"
+    real(rk8), intent(out):: xmf   (lbc:ubc) ! total latent heat of phase change
 
-    real(rk8), pointer :: qflx_snow_melt(:)! net snow melt
-    real(rk8), pointer :: frac_sno_eff(:)  ! eff. fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_sno(:)      ! fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: frac_h2osfc(:)   ! fraction of ground covered by surface water (0 to 1)
-    integer(ik4) , pointer :: ctype(:)         !column type
-    integer(ik4) , pointer :: ltype(:)         ! landunit type
-    integer(ik4) , pointer :: clandunit(:)     ! column's landunit
-    integer(ik4) , pointer :: snl(:)           ! number of snow layers
+    real(rk8), pointer :: qflx_snow_melt(:) ! net snow melt
+    ! eff. fraction of ground covered by snow (0 to 1)
+    real(rk8), pointer :: frac_sno_eff(:)
+    ! fraction of ground covered by snow (0 to 1)
+    real(rk8), pointer :: frac_sno(:)
+    ! fraction of ground covered by surface water (0 to 1)
+    real(rk8), pointer :: frac_h2osfc(:)
+    integer(ik4) , pointer :: ctype(:)     !column type
+    integer(ik4) , pointer :: ltype(:)     ! landunit type
+    integer(ik4) , pointer :: clandunit(:) ! column's landunit
+    integer(ik4) , pointer :: snl(:)       ! number of snow layers
     real(rk8), pointer :: h2osno(:)        ! snow water (mm H2O)
 
-    real(rk8), pointer :: snow_depth(:)        ! snow height (m)
+    real(rk8), pointer :: snow_depth(:)    ! snow height (m)
 
-    real(rk8), pointer :: qflx_snomelt(:)  ! snow melt (mm H2O /s)
-    real(rk8), pointer :: eflx_snomelt(:)  !snow melt heat flux (W/m**2)
-    real(rk8), pointer :: eflx_snomelt_u(:)!urban snow melt heat flux (W/m**2)
-    real(rk8), pointer :: eflx_snomelt_r(:)!rural snow melt heat flux (W/m**2)
-    real(rk8), pointer :: qflx_snofrz_lyr(:,:)  !snow freezing rate (positive definite) (col,lyr) [kg m-2 s-1]
-    real(rk8), pointer :: qflx_snofrz_col(:)  !column-integrated snow freezing rate (positive definite) [kg m-2 s-1]
+    real(rk8), pointer :: qflx_snomelt(:)   ! snow melt (mm H2O /s)
+    real(rk8), pointer :: eflx_snomelt(:)   !snow melt heat flux (W/m**2)
+    real(rk8), pointer :: eflx_snomelt_u(:) !urban snow melt heat flux (W/m**2)
+    real(rk8), pointer :: eflx_snomelt_r(:) !rural snow melt heat flux (W/m**2)
+    !snow freezing rate (positive definite) (col,lyr) [kg m-2 s-1]
+    real(rk8), pointer :: qflx_snofrz_lyr(:,:)
+    !column-integrated snow freezing rate (positive definite) [kg m-2 s-1]
+    real(rk8), pointer :: qflx_snofrz_col(:)
 
     real(rk8), pointer :: h2osoi_liq(:,:)  !liquid water (kg/m2) (new)
     real(rk8), pointer :: h2osoi_ice(:,:)  !ice lens (kg/m2) (new)
-    real(rk8), pointer :: tssbef(:,:)      !temperature at previous time step [K]
-    real(rk8), pointer :: sucsat(:,:)      !minimum soil suction (mm)
-    real(rk8), pointer :: watsat(:,:)      !volumetric soil water at saturation (porosity)
-    real(rk8), pointer :: bsw(:,:)         !Clapp and Hornberger "b"
-    real(rk8), pointer :: dz(:,:)          !layer thickness (m)
+    real(rk8), pointer :: tssbef(:,:)   !temperature at previous time step [K]
+    real(rk8), pointer :: sucsat(:,:)   !minimum soil suction (mm)
+    !volumetric soil water at saturation (porosity)
+    real(rk8), pointer :: watsat(:,:)
+    real(rk8), pointer :: bsw(:,:)      !Clapp and Hornberger "b"
+    real(rk8), pointer :: dz(:,:)       !layer thickness (m)
 
-    real(rk8), pointer :: t_soisno(:,:)    !soil temperature (Kelvin)
+    real(rk8), pointer :: t_soisno(:,:) !soil temperature (Kelvin)
 
-    integer(ik4), pointer :: imelt(:,:)        !flag for melting (=1), freezing (=2), Not=0 (new)
+    !flag for melting (=1), freezing (=2), Not=0 (new)
+    integer(ik4), pointer :: imelt(:,:)
 !   real(rk8), pointer :: eflx_snomelt_u(:)!urban snow melt heat flux (W/m**2)
 
-    integer(ik4)  :: j,c,l     !do loop index
-    integer(ik4)  :: fc        !lake filtered column indices
-    real(rk8) :: heatr         !energy residual or loss after melting or freezing
-    real(rk8) :: temp1                              !temporary variables [kg/m2]
-    real(rk8) :: hm(lbc:ubc,-nlevsno+1:nlevgrnd)    !energy residual [W/m2]
-    real(rk8) :: xm(lbc:ubc,-nlevsno+1:nlevgrnd)    !melting or freezing within a time step [kg/m2]
-    real(rk8) :: wmass0(lbc:ubc,-nlevsno+1:nlevgrnd)!initial mass of ice and liquid (kg/m2)
-    real(rk8) :: wice0 (lbc:ubc,-nlevsno+1:nlevgrnd)!initial mass of ice (kg/m2)
-    real(rk8) :: wliq0 (lbc:ubc,-nlevsno+1:nlevgrnd)!initial mass of liquid (kg/m2)
-    real(rk8) :: supercool(lbc:ubc,nlevgrnd)        !supercooled water in soil (kg/m2)
-    real(rk8) :: propor                             !proportionality constant (-)
+    integer(ik4)  :: j,c,l !do loop index
+    integer(ik4)  :: fc    !lake filtered column indices
+    real(rk8) :: heatr     !energy residual or loss after melting or freezing
+    real(rk8) :: temp1     !temporary variables [kg/m2]
+    real(rk8) :: hm(lbc:ubc,-nlevsno+1:nlevgrnd) !energy residual [W/m2]
+    !melting or freezing within a time step [kg/m2]
+    real(rk8) :: xm(lbc:ubc,-nlevsno+1:nlevgrnd)
+    !initial mass of ice and liquid (kg/m2)
+    real(rk8) :: wmass0(lbc:ubc,-nlevsno+1:nlevgrnd)
+    !initial mass of ice (kg/m2)
+    real(rk8) :: wice0 (lbc:ubc,-nlevsno+1:nlevgrnd)
+    !initial mass of liquid (kg/m2)
+    real(rk8) :: wliq0 (lbc:ubc,-nlevsno+1:nlevgrnd)
+    !supercooled water in soil (kg/m2)
+    real(rk8) :: supercool(lbc:ubc,nlevgrnd)
+    real(rk8) :: propor  !proportionality constant (-)
     real(rk8) :: tinc(lbc:ubc,-nlevsno+1:nlevgrnd)  !t(n+1)-t(n) (K)
-    real(rk8) :: smp                                !frozen water potential (mm)
+    real(rk8) :: smp      !frozen water potential (mm)
 
     ! Assign local pointers to derived subtypes components (column-level)
 

@@ -80,45 +80,56 @@ module mod_clm_slakehydrology
     integer(ik4), intent(in) :: filter_lakep(ubp-lbp+1)
 
     real(rk8), pointer :: frac_sno_eff(:)  ! needed for snicar code
-    real(rk8), pointer :: qflx_floodg(:)   ! gridcell flux of flood water from RTM
-    real(rk8), pointer :: qflx_floodc(:)   ! column flux of flood water from RTM
-    real(rk8), pointer :: frost_table(:)   ! frost table depth (m)
-    real(rk8), pointer :: zwt_perched(:)   ! perched water table depth (m)
-    real(rk8), pointer :: qflx_drain_perched(:)! perched wt sub-surface runoff (mm H2O /s)
-    real(rk8), pointer :: qflx_h2osfc_surf(:)  ! surface water runoff (mm H2O /s)
+    real(rk8), pointer :: qflx_floodg(:) ! gridcell flux of flood water from RTM
+    real(rk8), pointer :: qflx_floodc(:) ! column flux of flood water from RTM
+    real(rk8), pointer :: frost_table(:) ! frost table depth (m)
+    real(rk8), pointer :: zwt_perched(:) ! perched water table depth (m)
+    ! perched wt sub-surface runoff (mm H2O /s)
+    real(rk8), pointer :: qflx_drain_perched(:)
+    real(rk8), pointer :: qflx_h2osfc_surf(:) ! surface water runoff (mm H2O /s)
     real(rk8), pointer :: qflx_snow_melt(:)! net snow melt
     real(rk8), pointer :: qflx_rsub_sat(:) !soil saturation excess [mm h2o/s]
-    integer(ik4) , pointer :: pcolumn(:)       ! pft's column index
-    integer(ik4) , pointer :: pgridcell(:)     ! pft's gridcell index
-    integer(ik4) , pointer :: cgridcell(:)     ! column's gridcell
-    integer(ik4) , pointer :: clandunit(:)     ! column's landunit
-    real(rk8), pointer :: watsat(:,:)      ! volumetric soil water at saturation (porosity)
-    real(rk8), pointer :: z(:,:)           ! layer depth  (m)
-    real(rk8), pointer :: dz_lake(:,:)     ! layer thickness for lake (m)
-    real(rk8), pointer :: forc_rain(:)     ! rain rate [mm/s]
-    real(rk8), pointer :: forc_snow(:)     ! snow rate [mm/s]
-    real(rk8), pointer :: begwb(:)         ! water mass begining of the time step
-    real(rk8), pointer :: qflx_evap_tot(:) ! qflx_evap_soi + qflx_evap_can + qflx_tran_veg
-    real(rk8), pointer :: forc_t(:)        ! atmospheric temperature (Kelvin)
-    logical , pointer :: do_capsnow(:)    ! true => do snow capping
-    real(rk8), pointer :: t_grnd(:)        ! ground temperature (Kelvin)
-    real(rk8), pointer :: qflx_evap_soi(:) ! soil evaporation (mm H2O/s) (+ = to atm)
+    integer(ik4) , pointer :: pcolumn(:)   ! pft's column index
+    integer(ik4) , pointer :: pgridcell(:) ! pft's gridcell index
+    integer(ik4) , pointer :: cgridcell(:) ! column's gridcell
+    integer(ik4) , pointer :: clandunit(:) ! column's landunit
+    ! volumetric soil water at saturation (porosity)
+    real(rk8), pointer :: watsat(:,:)
+    real(rk8), pointer :: z(:,:)       ! layer depth  (m)
+    real(rk8), pointer :: dz_lake(:,:) ! layer thickness for lake (m)
+    real(rk8), pointer :: forc_rain(:) ! rain rate [mm/s]
+    real(rk8), pointer :: forc_snow(:) ! snow rate [mm/s]
+    real(rk8), pointer :: begwb(:)     ! water mass begining of the time step
+    ! qflx_evap_soi + qflx_evap_can + qflx_tran_veg
+    real(rk8), pointer :: qflx_evap_tot(:)
+    real(rk8), pointer :: forc_t(:)    ! atmospheric temperature (Kelvin)
+    logical , pointer :: do_capsnow(:) ! true => do snow capping
+    real(rk8), pointer :: t_grnd(:)    ! ground temperature (Kelvin)
+    ! soil evaporation (mm H2O/s) (+ = to atm)
+    real(rk8), pointer :: qflx_evap_soi(:)
 
-    real(rk8), pointer :: dz(:,:)          ! layer thickness depth (m)
-    real(rk8), pointer :: zi(:,:)          ! interface depth (m)
-    integer(ik4) , pointer :: snl(:)           ! number of snow layers
-    real(rk8), pointer :: h2osno(:)        ! snow water (mm H2O)
-    real(rk8), pointer :: snow_depth(:)        ! snow height (m)
-    real(rk8), pointer :: lake_icefrac(:,:)! mass fraction of lake layer that is frozen
+    real(rk8), pointer :: dz(:,:)     ! layer thickness depth (m)
+    real(rk8), pointer :: zi(:,:)     ! interface depth (m)
+    integer(ik4) , pointer :: snl(:)  ! number of snow layers
+    real(rk8), pointer :: h2osno(:)   ! snow water (mm H2O)
+    real(rk8), pointer :: snow_depth(:) ! snow height (m)
+    ! mass fraction of lake layer that is frozen
+    real(rk8), pointer :: lake_icefrac(:,:)
     real(rk8), pointer :: t_lake(:,:)      ! lake temperature (Kelvin)
     real(rk8), pointer :: qflx_snomelt(:)  ! snow melt (mm H2O /s)
     real(rk8), pointer :: eflx_snomelt(:)  ! snow melt heat flux (W/m**2)
-    real(rk8), pointer :: eflx_sh_tot(:)   ! total sensible heat flux (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_grnd(:)  ! sensible heat flux from ground (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_soil_grnd(:)! heat flux into snow / lake (W/m**2) [+ = into soil]
-                                          ! Here this includes the whole lake radiation absorbed.
-    real(rk8), pointer :: eflx_gnet(:)     ! net heat flux into ground (W/m**2)
-    real(rk8), pointer :: eflx_grnd_lake(:)! net heat flux into lake / snow surface, excluding light transmission (W/m**2)
+    ! total sensible heat flux (W/m**2) [+ to atm]
+    real(rk8), pointer :: eflx_sh_tot(:)
+    ! sensible heat flux from ground (W/m**2) [+ to atm]
+    real(rk8), pointer :: eflx_sh_grnd(:)
+    ! heat flux into snow / lake (W/m**2) [+ = into soil]
+    real(rk8), pointer :: eflx_soil_grnd(:)
+    ! Here this includes the whole lake radiation absorbed.
+    ! net heat flux into ground (W/m**2)
+    real(rk8), pointer :: eflx_gnet(:)
+    ! net heat flux into lake / snow surface, excluding light
+    ! transmission (W/m**2)
+    real(rk8), pointer :: eflx_grnd_lake(:)
 
     real(rk8), pointer :: endwb(:)         ! water mass end of the time step
     real(rk8), pointer :: snowice(:)       ! average snow ice lens
@@ -130,93 +141,169 @@ module mod_clm_slakehydrology
     real(rk8), pointer :: qflx_drain(:)    ! sub-surface runoff (mm H2O /s)
     real(rk8), pointer :: qflx_surf(:)     ! surface runoff (mm H2O /s)
     real(rk8), pointer :: qflx_infl(:)     ! infiltration (mm H2O /s)
-    real(rk8), pointer :: qflx_qrgwl(:)    ! qflx_surf at glaciers, wetlands, lakes
-    real(rk8), pointer :: qflx_runoff(:)   ! total runoff (qflx_drain+qflx_surf+qflx_qrgwl) (mm H2O /s)
+    ! qflx_surf at glaciers, wetlands, lakes
+    real(rk8), pointer :: qflx_qrgwl(:)
+    ! total runoff (qflx_drain+qflx_surf+qflx_qrgwl) (mm H2O /s)
+    real(rk8), pointer :: qflx_runoff(:)
     real(rk8), pointer :: qcharge(:)       ! aquifer recharge rate (mm/s)
-    real(rk8), pointer :: qflx_top_soil(:)      ! net water input into soil from top (mm/s)
-    real(rk8), pointer :: qflx_sl_top_soil(:)   ! liquid water + ice from layer above soil to top soil layer or sent to qflx_qrgwl (mm H2O/s)
-    real(rk8), pointer :: qflx_prec_grnd(:)     ! water onto ground including canopy runoff [kg/(m2 s)]
-    real(rk8), pointer :: qflx_prec_grnd_col(:) ! water onto ground including canopy runoff [kg/(m2 s)]
-    real(rk8), pointer :: qflx_snow_grnd_pft(:) ! snow on ground after interception (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_snow_grnd_col(:) ! snow on ground after interception (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_rain_grnd(:)     ! rain on ground after interception (mm H2O/s) [+]
-    real(rk8), pointer :: frac_iceold(:,:)      ! fraction of ice relative to the tot water
-    real(rk8), pointer :: qflx_evap_tot_col(:)  ! pft quantity averaged to the column (assuming one pft)
-    real(rk8) ,pointer :: soilalpha(:)       ! factor that reduces ground saturated specific humidity (-)
-    real(rk8), pointer :: zwt(:)             ! water table depth
-    real(rk8), pointer :: fcov(:)            ! fractional area with water table at surface
-    real(rk8), pointer :: fsat(:)            ! fractional area with water table at surface
-    real(rk8), pointer :: rootr_column(:,:)  ! effective fraction of roots in each soil layer
-    real(rk8), pointer :: qflx_evap_grnd(:)  ! ground surface evaporation rate (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_evap_grnd_col(:) ! ground surface evaporation rate (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_sub_snow(:)   ! sublimation rate from snow pack (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_sub_snow_col(:) ! sublimation rate from snow pack (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_dew_snow(:)   ! surface dew added to snow pack (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_dew_snow_col(:) ! surface dew added to snow pack (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_dew_grnd(:)   ! ground surface dew formation (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_dew_grnd_col(:)    ! ground surface dew formation (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_rain_grnd_col(:)   ! rain on ground after interception (mm H2O/s) [+]
-    real(rk8), pointer :: qflx_snwcp_ice_col(:)   ! excess snowfall due to snow capping (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_snwcp_ice(:)       ! excess snowfall due to snow capping (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_snwcp_liq_col(:)   ! excess rainfall due to snow capping (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_snwcp_liq(:)       ! excess rainfall due to snow capping (mm H2O /s) [+]
-    real(rk8), pointer :: qflx_irrig(:)           ! irrigation flux (mm H2O /s)
+    ! net water input into soil from top (mm/s)
+    real(rk8), pointer :: qflx_top_soil(:)
+    ! liquid water + ice from layer above soil to top soil layer or
+    ! sent to qflx_qrgwl (mm H2O/s)
+    real(rk8), pointer :: qflx_sl_top_soil(:)
+    ! water onto ground including canopy runoff [kg/(m2 s)]
+    real(rk8), pointer :: qflx_prec_grnd(:)
+    ! water onto ground including canopy runoff [kg/(m2 s)]
+    real(rk8), pointer :: qflx_prec_grnd_col(:)
+    ! snow on ground after interception (mm H2O/s) [+]
+    real(rk8), pointer :: qflx_snow_grnd_pft(:)
+    ! snow on ground after interception (mm H2O/s) [+]
+    real(rk8), pointer :: qflx_snow_grnd_col(:)
+    ! rain on ground after interception (mm H2O/s) [+]
+    real(rk8), pointer :: qflx_rain_grnd(:)
+    ! fraction of ice relative to the tot water
+    real(rk8), pointer :: frac_iceold(:,:)
+    ! pft quantity averaged to the column (assuming one pft)
+    real(rk8), pointer :: qflx_evap_tot_col(:)
+    ! factor that reduces ground saturated specific humidity (-)
+    real(rk8) ,pointer :: soilalpha(:)
+    real(rk8), pointer :: zwt(:)    ! water table depth
+    ! fractional area with water table at surface
+    real(rk8), pointer :: fcov(:)
+    ! fractional area with water table at surface
+    real(rk8), pointer :: fsat(:)
+    ! effective fraction of roots in each soil layer
+    real(rk8), pointer :: rootr_column(:,:)
+    ! ground surface evaporation rate (mm H2O/s) [+]
+    real(rk8), pointer :: qflx_evap_grnd(:)
+    ! ground surface evaporation rate (mm H2O/s) [+]
+    real(rk8), pointer :: qflx_evap_grnd_col(:)
+    ! sublimation rate from snow pack (mm H2O /s) [+]
+    real(rk8), pointer :: qflx_sub_snow(:)
+    ! sublimation rate from snow pack (mm H2O /s) [+]
+    real(rk8), pointer :: qflx_sub_snow_col(:)
+    ! surface dew added to snow pack (mm H2O /s) [+]
+    real(rk8), pointer :: qflx_dew_snow(:)
+    ! surface dew added to snow pack (mm H2O /s) [+]
+    real(rk8), pointer :: qflx_dew_snow_col(:)
+    ! ground surface dew formation (mm H2O /s) [+]
+    real(rk8), pointer :: qflx_dew_grnd(:)
+    ! ground surface dew formation (mm H2O /s) [+]
+    real(rk8), pointer :: qflx_dew_grnd_col(:)
+    ! rain on ground after interception (mm H2O/s) [+]
+    real(rk8), pointer :: qflx_rain_grnd_col(:)
+    ! excess snowfall due to snow capping (mm H2O /s) [+]
+    real(rk8), pointer :: qflx_snwcp_ice_col(:)
+    ! excess snowfall due to snow capping (mm H2O /s) [+]
+    real(rk8), pointer :: qflx_snwcp_ice(:)
+    ! excess rainfall due to snow capping (mm H2O /s) [+]
+    real(rk8), pointer :: qflx_snwcp_liq_col(:)
+    ! excess rainfall due to snow capping (mm H2O /s) [+]
+    real(rk8), pointer :: qflx_snwcp_liq(:)
+    ! irrigation flux (mm H2O /s)
+    real(rk8), pointer :: qflx_irrig(:)
     !New SNICAR variables from Hydrology1
-    real(rk8), pointer :: snw_rds(:,:)          ! effective snow grain radius (col,lyr) [microns, m^-6]
-    real(rk8), pointer :: mss_bcpho(:,:)        ! mass of hydrophobic BC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bcphi(:,:)        ! mass of hydrophilic BC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bctot(:,:)        ! total mass of BC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bc_col(:)         ! total column mass of BC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_bc_top(:)         ! total top-layer mass of BC (col,lyr) [kg]
-    real(rk8), pointer :: mss_ocpho(:,:)        ! mass of hydrophobic OC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_ocphi(:,:)        ! mass of hydrophilic OC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_octot(:,:)        ! total mass of OC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_oc_col(:)         ! total column mass of OC in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_oc_top(:)         ! total top-layer mass of OC (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst1(:,:)         ! mass of dust species 1 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst2(:,:)         ! mass of dust species 2 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst3(:,:)         ! mass of dust species 3 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst4(:,:)         ! mass of dust species 4 in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dsttot(:,:)       ! total mass of dust in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst_col(:)        ! total column mass of dust in snow (col,lyr) [kg]
-    real(rk8), pointer :: mss_dst_top(:)        ! total top-layer mass of dust in snow (col,lyr) [kg]
+    ! effective snow grain radius (col,lyr) [microns, m^-6]
+    real(rk8), pointer :: snw_rds(:,:)
+    ! mass of hydrophobic BC in snow (col,lyr) [kg]
+    real(rk8), pointer :: mss_bcpho(:,:)
+    ! mass of hydrophilic BC in snow (col,lyr) [kg]
+    real(rk8), pointer :: mss_bcphi(:,:)
+    ! total mass of BC in snow (col,lyr) [kg]
+    real(rk8), pointer :: mss_bctot(:,:)
+    ! total column mass of BC in snow (col,lyr) [kg]
+    real(rk8), pointer :: mss_bc_col(:)
+    ! total top-layer mass of BC (col,lyr) [kg]
+    real(rk8), pointer :: mss_bc_top(:)
+    ! mass of hydrophobic OC in snow (col,lyr) [kg]
+    real(rk8), pointer :: mss_ocpho(:,:)
+    ! mass of hydrophilic OC in snow (col,lyr) [kg]
+    real(rk8), pointer :: mss_ocphi(:,:)
+    ! total mass of OC in snow (col,lyr) [kg]
+    real(rk8), pointer :: mss_octot(:,:)
+    ! total column mass of OC in snow (col,lyr) [kg]
+    real(rk8), pointer :: mss_oc_col(:)
+    ! total top-layer mass of OC (col,lyr) [kg]
+    real(rk8), pointer :: mss_oc_top(:)
+    ! mass of dust species 1 in snow (col,lyr) [kg]
+    real(rk8), pointer :: mss_dst1(:,:)
+    ! mass of dust species 2 in snow (col,lyr) [kg]
+    real(rk8), pointer :: mss_dst2(:,:)
+    ! mass of dust species 3 in snow (col,lyr) [kg]
+    real(rk8), pointer :: mss_dst3(:,:)
+    ! mass of dust species 4 in snow (col,lyr) [kg]
+    real(rk8), pointer :: mss_dst4(:,:)
+    ! total mass of dust in snow (col,lyr) [kg]
+    real(rk8), pointer :: mss_dsttot(:,:)
+    ! total column mass of dust in snow (col,lyr) [kg]
+    real(rk8), pointer :: mss_dst_col(:)
+    ! total top-layer mass of dust in snow (col,lyr) [kg]
+    real(rk8), pointer :: mss_dst_top(:)
     !Additional SNICAR variables from Hydrology2
-    real(rk8), pointer :: mss_cnc_bcphi(:,:) ! mass concentration of BC species 1 (col,lyr) [kg/kg]
-    real(rk8), pointer :: mss_cnc_bcpho(:,:) ! mass concentration of BC species 2 (col,lyr) [kg/kg]
-    real(rk8), pointer :: mss_cnc_ocphi(:,:) ! mass concentration of OC species 1 (col,lyr) [kg/kg]
-    real(rk8), pointer :: mss_cnc_ocpho(:,:) ! mass concentration of OC species 2 (col,lyr) [kg/kg]
-    real(rk8), pointer :: mss_cnc_dst1(:,:)  ! mass concentration of dust species 1 (col,lyr) [kg/kg]
-    real(rk8), pointer :: mss_cnc_dst2(:,:)  ! mass concentration of dust species 2 (col,lyr) [kg/kg]
-    real(rk8), pointer :: mss_cnc_dst3(:,:)  ! mass concentration of dust species 3 (col,lyr) [kg/kg]
-    real(rk8), pointer :: mss_cnc_dst4(:,:)  ! mass concentration of dust species 4 (col,lyr) [kg/kg]
+    ! mass concentration of BC species 1 (col,lyr) [kg/kg]
+    real(rk8), pointer :: mss_cnc_bcphi(:,:)
+    ! mass concentration of BC species 2 (col,lyr) [kg/kg]
+    real(rk8), pointer :: mss_cnc_bcpho(:,:)
+    ! mass concentration of OC species 1 (col,lyr) [kg/kg]
+    real(rk8), pointer :: mss_cnc_ocphi(:,:)
+    ! mass concentration of OC species 2 (col,lyr) [kg/kg]
+    real(rk8), pointer :: mss_cnc_ocpho(:,:)
+    ! mass concentration of dust species 1 (col,lyr) [kg/kg]
+    real(rk8), pointer :: mss_cnc_dst1(:,:)
+    ! mass concentration of dust species 2 (col,lyr) [kg/kg]
+    real(rk8), pointer :: mss_cnc_dst2(:,:)
+    ! mass concentration of dust species 3 (col,lyr) [kg/kg]
+    real(rk8), pointer :: mss_cnc_dst3(:,:)
+    ! mass concentration of dust species 4 (col,lyr) [kg/kg]
+    real(rk8), pointer :: mss_cnc_dst4(:,:)
 
     ! New Diagnostics
-    real(rk8), pointer :: snot_top(:)        ! snow temperature in top layer (col) [K]
-    real(rk8), pointer :: dTdz_top(:)        ! temperature gradient in top layer (col) [K m-1]
-    real(rk8), pointer :: snw_rds_top(:)     ! effective snow grain size, top layer(col) [microns]
-    real(rk8), pointer :: sno_liq_top(:)     ! liquid water fraction in top snow layer (col) [frc]
-    real(rk8), pointer :: h2osno_top(:)      ! mass of snow in top layer (col) [kg]
+    ! snow temperature in top layer (col) [K]
+    real(rk8), pointer :: snot_top(:)
+    ! temperature gradient in top layer (col) [K m-1]
+    real(rk8), pointer :: dTdz_top(:)
+    ! effective snow grain size, top layer(col) [microns]
+    real(rk8), pointer :: snw_rds_top(:)
+    ! liquid water fraction in top snow layer (col) [frc]
+    real(rk8), pointer :: sno_liq_top(:)
+    ! mass of snow in top layer (col) [kg]
+    real(rk8), pointer :: h2osno_top(:)
 
     integer(ik4)  :: p,fp,g,c,j,fc,jtop   ! indices
     integer(ik4)  :: num_shlakesnowc      ! number of column snow points
-    integer(ik4)  :: filter_shlakesnowc(ubc-lbc+1)    ! column filter for snow points
-    integer(ik4)  :: num_shlakenosnowc                ! number of column non-snow points
-    integer(ik4)  :: filter_shlakenosnowc(ubc-lbc+1)  ! column filter for non-snow points
-    integer(ik4)  :: newnode                      ! flag when new snow node is set, (1=yes, 0=no)
-    real(rk8) :: dz_snowf                     ! layer thickness rate change due to precipitation [mm/s]
-    real(rk8) :: bifall                       ! bulk density of newly fallen dry snow [kg/m3]
-    real(rk8) :: qflx_prec_grnd_snow(lbp:ubp) ! snow precipitation incident on ground [mm/s]
-    real(rk8) :: qflx_prec_grnd_rain(lbp:ubp) ! rain precipitation incident on ground [mm/s]
-    real(rk8) :: qflx_evap_soi_lim            ! temporary evap_soi limited by top snow layer content [mm/s]
-    real(rk8) :: h2osno_temp                  ! temporary h2osno [kg/m^2]
-    real(rk8) :: sumsnowice(lbc:ubc)          ! sum of snow ice if snow layers found above unfrozen lake [kg/m&2]
-    logical  :: unfrozen(lbc:ubc)            ! true if top lake layer is unfrozen with snow layers above
-    real(rk8) :: heatrem                      ! used in case above [J/m^2]
-    real(rk8) :: heatsum(lbc:ubc)             ! used in case above [J/m^2]
-    real(rk8) :: snowmass                     ! liquid+ice snow mass in a layer [kg/m2]
-    real(rk8) :: snowcap_scl_fct              ! temporary factor used to correct for snow capping
-    real(rk8), parameter :: snow_bd = 250.D0 ! assumed snow bulk density (for lakes w/out resolved snow layers) [kg/m^3]
-                                             ! Should only be used for frost below.
+    ! column filter for snow points
+    integer(ik4)  :: filter_shlakesnowc(ubc-lbc+1)
+    ! number of column non-snow points
+    integer(ik4)  :: num_shlakenosnowc
+    ! column filter for non-snow points
+    integer(ik4)  :: filter_shlakenosnowc(ubc-lbc+1)
+    ! flag when new snow node is set, (1=yes, 0=no)
+    integer(ik4)  :: newnode
+    ! layer thickness rate change due to precipitation [mm/s]
+    real(rk8) :: dz_snowf
+    ! bulk density of newly fallen dry snow [kg/m3]
+    real(rk8) :: bifall
+    ! snow precipitation incident on ground [mm/s]
+    real(rk8) :: qflx_prec_grnd_snow(lbp:ubp)
+    ! rain precipitation incident on ground [mm/s]
+    real(rk8) :: qflx_prec_grnd_rain(lbp:ubp)
+    ! temporary evap_soi limited by top snow layer content [mm/s]
+    real(rk8) :: qflx_evap_soi_lim
+    ! temporary h2osno [kg/m^2]
+    real(rk8) :: h2osno_temp
+    ! sum of snow ice if snow layers found above unfrozen lake [kg/m&2]
+    real(rk8) :: sumsnowice(lbc:ubc)
+    ! true if top lake layer is unfrozen with snow layers above
+    logical  :: unfrozen(lbc:ubc)
+    real(rk8) :: heatrem           ! used in case above [J/m^2]
+    real(rk8) :: heatsum(lbc:ubc)  ! used in case above [J/m^2]
+    real(rk8) :: snowmass          ! liquid+ice snow mass in a layer [kg/m2]
+    ! temporary factor used to correct for snow capping
+    real(rk8) :: snowcap_scl_fct
+    ! assumed snow bulk density (for lakes w/out resolved snow layers) [kg/m^3]
+    ! Should only be used for frost below.
+    real(rk8), parameter :: snow_bd = 250.D0
+
     ! Assign local pointers to derived subtypes components (gridcell-level)
 
     forc_rain => clm_a2l%forc_rain

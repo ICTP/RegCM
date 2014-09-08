@@ -324,10 +324,10 @@ module mod_clm_urban
     fsun               => clm3%g%l%c%p%pps%fsun
 
 
-    ! ----------------------------------------------------------------------------
+    ! --------------------------------------------------------------------
     ! Solar declination and cosine solar zenith angle and zenith angle for
     ! next time step
-    ! ----------------------------------------------------------------------------
+    ! --------------------------------------------------------------------
 
     do fl = 1 , num_urbanl
       l = filter_urbanl(fl)
@@ -560,15 +560,17 @@ module mod_clm_urban
   !
   ! Determine urban snow albedos
   !
-  subroutine UrbanSnowAlbedo (lbl, ubl, num_urbanl, filter_urbanl, coszen, ind, &
-                              albsn_roof, albsn_improad, albsn_perroad)
+  subroutine UrbanSnowAlbedo (lbl,ubl,num_urbanl,filter_urbanl,coszen,ind, &
+                              albsn_roof,albsn_improad,albsn_perroad)
     use mod_clm_type
     use mod_clm_varcon , only : icol_roof, icol_road_perv, icol_road_imperv
     implicit none
     integer(ik4) ,  intent(in) :: lbl, ubl   ! landunit-index bounds
     integer(ik4) , intent(in) :: num_urbanl  ! number of urban landunits
-    integer(ik4) , intent(in) :: filter_urbanl(ubl-lbl+1) ! urban landunit filter
-    integer(ik4) , intent(in) :: ind         ! 0=direct beam, 1=diffuse radiation
+    ! urban landunit filter
+    integer(ik4) , intent(in) :: filter_urbanl(ubl-lbl+1)
+    ! 0=direct beam, 1=diffuse radiation
+    integer(ik4) , intent(in) :: ind
     real(rk8), intent(in) :: coszen(num_urbanl)   ! cosine solar zenith angle
     ! roof snow albedo by waveband (assume 2 wavebands)
     real(rk8), intent(out):: albsn_roof(num_urbanl,2)
@@ -656,13 +658,15 @@ module mod_clm_urban
     integer(ik4) , intent(in) :: num_nourbanl ! number of non-urban landunits
     integer(ik4) , intent(in) :: num_urbanl   ! number of urban landunits
     integer(ik4) , intent(in) :: num_urbanp   ! number of urban pfts
-    integer(ik4) , intent(in) :: filter_nourbanl(ubl-lbl+1) ! non-urban lnd filter
-    integer(ik4) , intent(in) :: filter_urbanl(ubl-lbl+1)   ! urban lnd filter
-    integer(ik4) , intent(in) :: filter_urbanp(ubp-lbp+1)   ! urban pft filter
+    ! non-urban lnd filter
+    integer(ik4) , intent(in) :: filter_nourbanl(ubl-lbl+1)
+    integer(ik4) , intent(in) :: filter_urbanl(ubl-lbl+1) ! urban lnd filter
+    integer(ik4) , intent(in) :: filter_urbanp(ubp-lbp+1) ! urban pft filter
 
     ! ratio of building height to street width
     real(rk8), pointer :: canyon_hwr(:)
-    real(rk8), pointer :: wtroad_perv(:) ! weight of pervious road wrt total road
+    ! weight of pervious road wrt total road
+    real(rk8), pointer :: wtroad_perv(:)
     real(rk8), pointer :: em_roof(:)     ! roof emissivity
     real(rk8), pointer :: em_improad(:)  ! impervious road emissivity
     real(rk8), pointer :: em_perroad(:)  ! pervious road emissivity
@@ -672,11 +676,11 @@ module mod_clm_urban
     integer(ik4) , pointer :: pcolumn(:)    ! column of corresponding pft
     integer(ik4) , pointer :: lgridcell(:)  ! gridcell of corresponding landunit
     integer(ik4) , pointer :: ctype(:)      ! column type
-    integer(ik4) , pointer :: coli(:)       ! beginning column index for landunit
-    integer(ik4) , pointer :: colf(:)       ! ending column index for landunit
-    integer(ik4) , pointer :: pfti(:)       ! beginning pfti index for landunit
-    integer(ik4) , pointer :: pftf(:)       ! ending pftf index for landunit
-    real(rk8), pointer :: londeg(:)         ! longitude (degrees)
+    integer(ik4) , pointer :: coli(:)   ! beginning column index for landunit
+    integer(ik4) , pointer :: colf(:)   ! ending column index for landunit
+    integer(ik4) , pointer :: pfti(:)   ! beginning pfti index for landunit
+    integer(ik4) , pointer :: pftf(:)   ! ending pftf index for landunit
+    real(rk8), pointer :: londeg(:)     ! longitude (degrees)
     ! downward infrared (longwave) radiation (W/m**2)
     real(rk8), pointer :: forc_lwrad(:)
     ! direct beam radiation  (vis=forc_sols , nir=forc_soll ) (W/m**2)
@@ -701,9 +705,9 @@ module mod_clm_urban
     real(rk8), pointer :: sabs_roof_dir(:,:)
     ! diffuse solar absorbed by roof per unit ground area per unit incident flux
     real(rk8), pointer :: sabs_roof_dif(:,:)
-    ! direct  solar absorbed by sunwall per unit wall area per unit incident flux
+    ! direct  solar absorbed by sunwall per unit wall area per unit incident flx
     real(rk8), pointer :: sabs_sunwall_dir(:,:)
-    ! diffuse solar absorbed by sunwall per unit wall area per unit incident flux
+    ! diffuse solar absorbed by sunwall per unit wall area per unit incident flx
     real(rk8), pointer :: sabs_sunwall_dif(:,:)
     ! direct  solar absorbed by shadewall per unit wall area per unit inc flux
     real(rk8), pointer :: sabs_shadewall_dir(:,:)
@@ -941,10 +945,12 @@ module mod_clm_urban
           em_roof_s(fl) = em_roof(fl)*(1.D0-frac_sno(c)) + snoem*frac_sno(c)
         else if (ctype(c) == icol_road_imperv) then
           t_improad(fl)   = t_grnd(c)
-          em_improad_s(fl) = em_improad(fl)*(1.D0-frac_sno(c)) + snoem*frac_sno(c)
+          em_improad_s(fl) = em_improad(fl) * &
+                  (1.D0-frac_sno(c)) + snoem*frac_sno(c)
         else if (ctype(c) == icol_road_perv  ) then
           t_perroad(fl)   = t_grnd(c)
-          em_perroad_s(fl) = em_perroad(fl)*(1.D0-frac_sno(c)) + snoem*frac_sno(c)
+          em_perroad_s(fl) = em_perroad(fl) * &
+                  (1.D0-frac_sno(c)) + snoem*frac_sno(c)
         else if (ctype(c) == icol_sunwall    ) then
           t_sunwall(fl)   = t_grnd(c)
         else if (ctype(c) == icol_shadewall  ) then
@@ -1115,7 +1121,8 @@ module mod_clm_urban
     implicit none
     integer(ik4) ,  intent(in) :: lbl, ubl   ! landunit-index bounds
     integer(ik4) , intent(in)  :: num_urbanl ! number of urban landunits
-    integer(ik4) , intent(in)  :: filter_urbanl(ubl-lbl+1) ! urban landunit filter
+    ! urban landunit filter
+    integer(ik4) , intent(in)  :: filter_urbanl(ubl-lbl+1)
     ! ratio of building height to street width
     real(rk8), intent(in)  :: canyon_hwr(num_urbanl)
 
@@ -1247,7 +1254,7 @@ module mod_clm_urban
     real(rk8) :: sumr ! sum of sroad for each orientation (0 <= theta <= pi/2)
     real(rk8) :: sumw ! sum of swall for each orientation (0 <= theta <= pi/2)
     real(rk8) :: num  ! number of orientations
-    real(rk8) :: theta  ! canyon orientation relative to sun (0 <= theta <= pi/2)
+    real(rk8) :: theta ! canyon orientation relative to sun (0 <= theta <= pi/2)
     ! critical solar zenith angle for which sun begins to illuminate road
     real(rk8) :: zen0
 
@@ -1329,12 +1336,14 @@ module mod_clm_urban
           if ( coszen(l) > 0.D0 ) then
             if ( abs(err2(l)) > 0.0006D0 ) then
               write (stderr,*) &
-                   'urban road incident direct beam solar radiation error',err2(l)
+                   'urban road incident direct beam solar radiation error', &
+                   err2(l)
               call fatal(__FILE__,__LINE__,'clm now stopping')
             end if
             if ( abs(err3(l)) > 0.0006D0 ) then
               write (stderr,*) &
-                  'urban wall incident direct beam solar radiation error',err3(l)
+                  'urban wall incident direct beam solar radiation error', &
+                  err3(l)
               call fatal(__FILE__,__LINE__,'clm now stopping')
             end if
           end if
@@ -1355,7 +1364,8 @@ module mod_clm_urban
     implicit none
     integer(ik4) ,  intent(in)  :: lbl, ubl   ! landunit-index bounds
     integer(ik4) , intent(in)  :: num_urbanl  ! number of urban landunits
-    integer(ik4) , intent(in)  :: filter_urbanl(ubl-lbl+1) ! urban landunit filter
+    ! urban landunit filter
+    integer(ik4) , intent(in)  :: filter_urbanl(ubl-lbl+1)
     ! ratio of building height to street width
     real(rk8), intent(in)  :: canyon_hwr(num_urbanl)
     ! diffuse solar radiation incident on horizontal surface
@@ -1413,8 +1423,8 @@ module mod_clm_urban
   subroutine net_solar (lbl, ubl, num_urbanl, filter_urbanl, coszen, &
                   canyon_hwr, wtroad_perv, sdir, sdif, alb_improad_dir, &
                   alb_perroad_dir, alb_wall_dir, alb_roof_dir, &
-                  alb_improad_dif, alb_perroad_dif, alb_wall_dif, alb_roof_dif, &
-                  sdir_road, sdir_sunwall, sdir_shadewall,  &
+                  alb_improad_dif, alb_perroad_dif, alb_wall_dif, &
+                  alb_roof_dif, sdir_road, sdir_sunwall, sdir_shadewall,  &
                   sdif_road, sdif_sunwall, sdif_shadewall,  &
                   sref_improad_dir, sref_perroad_dir, sref_sunwall_dir, &
                   sref_shadewall_dir, sref_roof_dir, &
@@ -1424,7 +1434,8 @@ module mod_clm_urban
     implicit none
     integer(ik4) ,  intent(in)  :: lbl, ubl   ! landunit-index bounds
     integer(ik4) , intent(in)  :: num_urbanl  ! number of urban landunits
-    integer(ik4) , intent(in)  :: filter_urbanl(ubl-lbl+1) ! urban landunit filter
+    ! urban landunit filter
+    integer(ik4) , intent(in)  :: filter_urbanl(ubl-lbl+1)
     real(rk8), intent(in)  :: coszen(num_urbanl)  ! cosine solar zenith angle
     ! ratio of building height to street width
     real(rk8), intent(in)  :: canyon_hwr(num_urbanl)
@@ -1444,111 +1455,231 @@ module mod_clm_urban
     real(rk8), intent(in)  :: alb_roof_dir(num_urbanl, numrad)
     ! diffuse impervious road albedo
     real(rk8), intent(in)  :: alb_improad_dif(num_urbanl, numrad)
-    real(rk8), intent(in)  :: alb_perroad_dif(num_urbanl, numrad)    ! diffuse pervious road albedo
-    real(rk8), intent(in)  :: alb_wall_dif(num_urbanl, numrad)       ! diffuse wall albedo
-    real(rk8), intent(in)  :: alb_roof_dif(num_urbanl, numrad)       ! diffuse roof albedo
-    real(rk8), intent(in)  :: sdir_road(num_urbanl, numrad)          ! direct beam solar radiation incident on road per unit incident flux
-    real(rk8), intent(in)  :: sdir_sunwall(num_urbanl, numrad)       ! direct beam solar radiation (per unit wall area) incident on sunlit wall per unit incident flux
-    real(rk8), intent(in)  :: sdir_shadewall(num_urbanl, numrad)     ! direct beam solar radiation (per unit wall area) incident on shaded wall per unit incident flux
-    real(rk8), intent(in)  :: sdif_road(num_urbanl, numrad)          ! diffuse solar radiation incident on road per unit incident flux
-    real(rk8), intent(in)  :: sdif_sunwall(num_urbanl, numrad)       ! diffuse solar radiation (per unit wall area) incident on sunlit wall per unit incident flux
-    real(rk8), intent(in)  :: sdif_shadewall(num_urbanl, numrad)     ! diffuse solar radiation (per unit wall area) incident on shaded wall per unit incident flux
-    real(rk8), intent(inout) :: sref_improad_dir(num_urbanl, numrad)   ! direct  solar rad reflected by impervious road (per unit ground area) per unit incident flux
-    real(rk8), intent(inout) :: sref_perroad_dir(num_urbanl, numrad)   ! direct  solar rad reflected by pervious road (per unit ground area) per unit incident flux
-    real(rk8), intent(inout) :: sref_improad_dif(num_urbanl, numrad)   ! diffuse solar rad reflected by impervious road (per unit ground area) per unit incident flux
-    real(rk8), intent(inout) :: sref_perroad_dif(num_urbanl, numrad)   ! diffuse solar rad reflected by pervious road (per unit ground area) per unit incident flux
-    real(rk8), intent(inout) :: sref_sunwall_dir(num_urbanl, numrad)   ! direct solar  rad reflected by sunwall (per unit wall area) per unit incident flux
-    real(rk8), intent(inout) :: sref_sunwall_dif(num_urbanl, numrad)   ! diffuse solar rad reflected by sunwall (per unit wall area) per unit incident flux
-    real(rk8), intent(inout) :: sref_shadewall_dir(num_urbanl, numrad) ! direct solar  rad reflected by shadewall (per unit wall area) per unit incident flux
-    real(rk8), intent(inout) :: sref_shadewall_dif(num_urbanl, numrad) ! diffuse solar rad reflected by shadewall (per unit wall area) per unit incident flux
-    real(rk8), intent(inout) :: sref_roof_dir(num_urbanl, numrad)      ! direct  solar rad reflected by roof (per unit ground area) per unit incident flux
-    real(rk8), intent(inout) :: sref_roof_dif(num_urbanl, numrad)      ! diffuse solar rad reflected by roof (per unit ground area)  per unit incident flux
-!
-! local pointers to original implicit in arguments (clmtype)
-!
-    real(rk8), pointer :: vf_sr(:)     ! view factor of sky for road
-    real(rk8), pointer :: vf_wr(:)     ! view factor of one wall for road
-    real(rk8), pointer :: vf_sw(:)     ! view factor of sky for one wall
-    real(rk8), pointer :: vf_rw(:)     ! view factor of road for one wall
-    real(rk8), pointer :: vf_ww(:)     ! view factor of opposing wall for one wall
-    real(rk8), pointer :: sabs_roof_dir(:,:)      ! direct  solar absorbed  by roof per unit ground area per unit incident flux
-    real(rk8), pointer :: sabs_roof_dif(:,:)      ! diffuse solar absorbed  by roof per unit ground area per unit incident flux
-    real(rk8), pointer :: sabs_sunwall_dir(:,:)   ! direct  solar absorbed  by sunwall per unit wall area per unit incident flux
-    real(rk8), pointer :: sabs_sunwall_dif(:,:)   ! diffuse solar absorbed  by sunwall per unit wall area per unit incident flux
-    real(rk8), pointer :: sabs_shadewall_dir(:,:) ! direct  solar absorbed  by shadewall per unit wall area per unit incident flux
-    real(rk8), pointer :: sabs_shadewall_dif(:,:) ! diffuse solar absorbed  by shadewall per unit wall area per unit incident flux
-    real(rk8), pointer :: sabs_improad_dir(:,:)   ! direct  solar absorbed  by impervious road per unit ground area per unit incident flux
-    real(rk8), pointer :: sabs_improad_dif(:,:)   ! diffuse solar absorbed  by impervious road per unit ground area per unit incident flux
-    real(rk8), pointer :: sabs_perroad_dir(:,:)   ! direct  solar absorbed  by pervious road per unit ground area per unit incident flux
-    real(rk8), pointer :: sabs_perroad_dif(:,:)   ! diffuse solar absorbed  by pervious road per unit ground area per unit incident flux
+    ! diffuse pervious road albedo
+    real(rk8), intent(in)  :: alb_perroad_dif(num_urbanl, numrad)
+    ! diffuse wall albedo
+    real(rk8), intent(in)  :: alb_wall_dif(num_urbanl, numrad)
+    ! diffuse roof albedo
+    real(rk8), intent(in)  :: alb_roof_dif(num_urbanl, numrad)
+    ! direct beam solar radiation incident on road per unit incident flux
+    real(rk8), intent(in)  :: sdir_road(num_urbanl, numrad)
+    ! direct beam solar radiation (per unit wall area) incident on sunlit
+    ! wall per unit incident flux
+    real(rk8), intent(in)  :: sdir_sunwall(num_urbanl, numrad)
+    ! direct beam solar radiation (per unit wall area) incident on shaded
+    ! wall per unit incident flux
+    real(rk8), intent(in)  :: sdir_shadewall(num_urbanl, numrad)
+    real(rk8), intent(in)  :: sdif_road(num_urbanl, numrad)
+    ! diffuse solar radiation incident on road per unit incident flux
+    ! diffuse solar radiation (per unit wall area) incident on sunlit
+    ! wall per unit incident flux
+    real(rk8), intent(in)  :: sdif_sunwall(num_urbanl, numrad)
+    ! diffuse solar radiation (per unit wall area) incident on shaded
+    ! wall per unit incident flux
+    real(rk8), intent(in)  :: sdif_shadewall(num_urbanl, numrad)
+    ! direct  solar rad reflected by impervious road (per unit ground area)
+    ! per unit incident flux
+    real(rk8), intent(inout) :: sref_improad_dir(num_urbanl, numrad)
+    ! direct  solar rad reflected by pervious road (per unit ground area)
+    ! per unit incident flux
+    real(rk8), intent(inout) :: sref_perroad_dir(num_urbanl, numrad)
+    ! diffuse solar rad reflected by impervious road (per unit ground area)
+    ! per unit incident flux
+    real(rk8), intent(inout) :: sref_improad_dif(num_urbanl, numrad)
+    ! diffuse solar rad reflected by pervious road (per unit ground area)
+    ! per unit incident flux
+    real(rk8), intent(inout) :: sref_perroad_dif(num_urbanl, numrad)
+    ! direct solar  rad reflected by sunwall (per unit wall area)
+    ! per unit incident flux
+    real(rk8), intent(inout) :: sref_sunwall_dir(num_urbanl, numrad)
+    ! diffuse solar rad reflected by sunwall (per unit wall area)
+    ! per unit incident flux
+    real(rk8), intent(inout) :: sref_sunwall_dif(num_urbanl, numrad)
+    ! direct solar  rad reflected by shadewall (per unit wall area)
+    ! per unit incident flux
+    real(rk8), intent(inout) :: sref_shadewall_dir(num_urbanl, numrad)
+    ! diffuse solar rad reflected by shadewall (per unit wall area)
+    ! per unit incident flux
+    real(rk8), intent(inout) :: sref_shadewall_dif(num_urbanl, numrad)
+    ! direct  solar rad reflected by roof (per unit ground area)
+    ! per unit incident flux
+    real(rk8), intent(inout) :: sref_roof_dir(num_urbanl, numrad)
+    ! diffuse solar rad reflected by roof (per unit ground area)
+    ! per unit incident flux
+    real(rk8), intent(inout) :: sref_roof_dif(num_urbanl, numrad)
 
-    real(rk8) :: wtroad_imperv(num_urbanl)           ! weight of impervious road wrt total road
-    real(rk8) :: sabs_canyon_dir(num_urbanl)         ! direct solar rad absorbed by canyon per unit incident flux
-    real(rk8) :: sabs_canyon_dif(num_urbanl)         ! diffuse solar rad absorbed by canyon per unit incident flux
-    real(rk8) :: sref_canyon_dir(num_urbanl)         ! direct solar reflected by canyon per unit incident flux
-    real(rk8) :: sref_canyon_dif(num_urbanl)         ! diffuse solar reflected by canyon per unit incident flux
+    real(rk8), pointer :: vf_sr(:) ! view factor of sky for road
+    real(rk8), pointer :: vf_wr(:) ! view factor of one wall for road
+    real(rk8), pointer :: vf_sw(:) ! view factor of sky for one wall
+    real(rk8), pointer :: vf_rw(:) ! view factor of road for one wall
+    real(rk8), pointer :: vf_ww(:) ! view factor of opposing wall for one wall
+    ! direct  solar absorbed by roof per unit ground area per unit incid flux
+    real(rk8), pointer :: sabs_roof_dir(:,:)
+    ! diffuse solar absorbed by roof per unit ground area per unit incid flux
+    real(rk8), pointer :: sabs_roof_dif(:,:)
+    ! direct  solar absorbed by sunwall per unit wall area per unit inci flux
+    real(rk8), pointer :: sabs_sunwall_dir(:,:)
+    ! diffuse solar absorbed by sunwall per unit wall area per unit inc flux
+    real(rk8), pointer :: sabs_sunwall_dif(:,:)
+    ! direct  solar absorbed by shadewall per unit wall area per unit inc flux
+    real(rk8), pointer :: sabs_shadewall_dir(:,:)
+    ! diffuse solar absorbed by shadewall per unit wall area per unit inc flux
+    real(rk8), pointer :: sabs_shadewall_dif(:,:)
+    ! direct solar absorbed by impervious road per unit ground
+    ! area per unit incident flux
+    real(rk8), pointer :: sabs_improad_dir(:,:)
+    ! diffuse solar absorbed by impervious road per unit ground area
+    ! per unit incident flux
+    real(rk8), pointer :: sabs_improad_dif(:,:)
+    ! direct solar absorbed by pervious road per unit ground area
+    ! per unit incident flux
+    real(rk8), pointer :: sabs_perroad_dir(:,:)
+    ! diffuse solar absorbed by pervious road per unit ground area
+    ! per unit incident flux
+    real(rk8), pointer :: sabs_perroad_dif(:,:)
 
-    real(rk8) :: improad_a_dir(num_urbanl)           ! absorbed direct solar for impervious road after "n" reflections per unit incident flux
-    real(rk8) :: improad_a_dif(num_urbanl)           ! absorbed diffuse solar for impervious road after "n" reflections per unit incident flux
-    real(rk8) :: improad_r_dir(num_urbanl)           ! reflected direct solar for impervious road after "n" reflections per unit incident flux
-    real(rk8) :: improad_r_dif(num_urbanl)           ! reflected diffuse solar for impervious road after "n" reflections per unit incident flux
-    real(rk8) :: improad_r_sky_dir(num_urbanl)       ! improad_r_dir to sky per unit incident flux
-    real(rk8) :: improad_r_sunwall_dir(num_urbanl)   ! improad_r_dir to sunlit wall per unit incident flux
-    real(rk8) :: improad_r_shadewall_dir(num_urbanl) ! improad_r_dir to shaded wall per unit incident flux
-    real(rk8) :: improad_r_sky_dif(num_urbanl)       ! improad_r_dif to sky per unit incident flux
-    real(rk8) :: improad_r_sunwall_dif(num_urbanl)   ! improad_r_dif to sunlit wall per unit incident flux
-    real(rk8) :: improad_r_shadewall_dif(num_urbanl) ! improad_r_dif to shaded wall per unit incident flux
+    ! weight of impervious road wrt total road
+    real(rk8) :: wtroad_imperv(num_urbanl)
+    ! direct solar rad absorbed by canyon per unit incident flux
+    real(rk8) :: sabs_canyon_dir(num_urbanl)
+    ! diffuse solar rad absorbed by canyon per unit incident flux
+    real(rk8) :: sabs_canyon_dif(num_urbanl)
+    ! direct solar reflected by canyon per unit incident flux
+    real(rk8) :: sref_canyon_dir(num_urbanl)
+    ! diffuse solar reflected by canyon per unit incident flux
+    real(rk8) :: sref_canyon_dif(num_urbanl)
 
-    real(rk8) :: perroad_a_dir(num_urbanl)           ! absorbed direct solar for pervious road after "n" reflections per unit incident flux
-    real(rk8) :: perroad_a_dif(num_urbanl)           ! absorbed diffuse solar for pervious road after "n" reflections per unit incident flux
-    real(rk8) :: perroad_r_dir(num_urbanl)           ! reflected direct solar for pervious road after "n" reflections per unit incident flux
-    real(rk8) :: perroad_r_dif(num_urbanl)           ! reflected diffuse solar for pervious road after "n" reflections per unit incident flux
-    real(rk8) :: perroad_r_sky_dir(num_urbanl)       ! perroad_r_dir to sky per unit incident flux
-    real(rk8) :: perroad_r_sunwall_dir(num_urbanl)   ! perroad_r_dir to sunlit wall per unit incident flux
-    real(rk8) :: perroad_r_shadewall_dir(num_urbanl) ! perroad_r_dir to shaded wall per unit incident flux
-    real(rk8) :: perroad_r_sky_dif(num_urbanl)       ! perroad_r_dif to sky per unit incident flux
-    real(rk8) :: perroad_r_sunwall_dif(num_urbanl)   ! perroad_r_dif to sunlit wall per unit incident flux
-    real(rk8) :: perroad_r_shadewall_dif(num_urbanl) ! perroad_r_dif to shaded wall per unit incident flux
+    ! absorbed direct solar for impervious road after "n"
+    ! reflections per unit incident flux
+    real(rk8) :: improad_a_dir(num_urbanl)
+    ! absorbed diffuse solar for impervious road after "n"
+    ! reflections per unit incident flux
+    real(rk8) :: improad_a_dif(num_urbanl)
+    ! reflected direct solar for impervious road after "n"
+    ! reflections per unit incident flux
+    real(rk8) :: improad_r_dir(num_urbanl)
+    ! reflected diffuse solar for impervious road after "n"
+    ! reflections per unit incident flux
+    real(rk8) :: improad_r_dif(num_urbanl)
+    ! improad_r_dir to sky per unit incident flux
+    real(rk8) :: improad_r_sky_dir(num_urbanl)
+    ! improad_r_dir to sunlit wall per unit incident flux
+    real(rk8) :: improad_r_sunwall_dir(num_urbanl)
+    ! improad_r_dir to shaded wall per unit incident flux
+    real(rk8) :: improad_r_shadewall_dir(num_urbanl)
+    ! improad_r_dif to sky per unit incident flux
+    real(rk8) :: improad_r_sky_dif(num_urbanl)
+    ! improad_r_dif to sunlit wall per unit incident flux
+    real(rk8) :: improad_r_sunwall_dif(num_urbanl)
+    ! improad_r_dif to shaded wall per unit incident flux
+    real(rk8) :: improad_r_shadewall_dif(num_urbanl)
 
-    real(rk8) :: road_a_dir(num_urbanl)              ! absorbed direct solar for total road after "n" reflections per unit incident flux
-    real(rk8) :: road_a_dif(num_urbanl)              ! absorbed diffuse solar for total road after "n" reflections per unit incident flux
-    real(rk8) :: road_r_dir(num_urbanl)              ! reflected direct solar for total road after "n" reflections per unit incident flux
-    real(rk8) :: road_r_dif(num_urbanl)              ! reflected diffuse solar for total road after "n" reflections per unit incident flux
-    real(rk8) :: road_r_sky_dir(num_urbanl)          ! road_r_dir to sky per unit incident flux
-    real(rk8) :: road_r_sunwall_dir(num_urbanl)      ! road_r_dir to sunlit wall per unit incident flux
-    real(rk8) :: road_r_shadewall_dir(num_urbanl)    ! road_r_dir to shaded wall per unit incident flux
-    real(rk8) :: road_r_sky_dif(num_urbanl)          ! road_r_dif to sky per unit incident flux
-    real(rk8) :: road_r_sunwall_dif(num_urbanl)      ! road_r_dif to sunlit wall per unit incident flux
-    real(rk8) :: road_r_shadewall_dif(num_urbanl)    ! road_r_dif to shaded wall per unit incident flux
+    ! absorbed direct solar for pervious road after "n"
+    ! reflections per unit incident flux
+    real(rk8) :: perroad_a_dir(num_urbanl)
+    ! absorbed diffuse solar for pervious road after "n"
+    ! reflections per unit incident flux
+    real(rk8) :: perroad_a_dif(num_urbanl)
+    ! reflected direct solar for pervious road after "n"
+    ! reflections per unit incident flux
+    real(rk8) :: perroad_r_dir(num_urbanl)
+    ! reflected diffuse solar for pervious road after "n"
+    ! reflections per unit incident flux
+    real(rk8) :: perroad_r_dif(num_urbanl)
+    ! perroad_r_dir to sky per unit incident flux
+    real(rk8) :: perroad_r_sky_dir(num_urbanl)
+    ! perroad_r_dir to sunlit wall per unit incident flux
+    real(rk8) :: perroad_r_sunwall_dir(num_urbanl)
+    ! perroad_r_dir to shaded wall per unit incident flux
+    real(rk8) :: perroad_r_shadewall_dir(num_urbanl)
+    ! perroad_r_dif to sky per unit incident flux
+    real(rk8) :: perroad_r_sky_dif(num_urbanl)
+    ! perroad_r_dif to sunlit wall per unit incident flux
+    real(rk8) :: perroad_r_sunwall_dif(num_urbanl)
+    ! perroad_r_dif to shaded wall per unit incident flux
+    real(rk8) :: perroad_r_shadewall_dif(num_urbanl)
 
-    real(rk8) :: sunwall_a_dir(num_urbanl)           ! absorbed direct solar for sunlit wall (per unit wall area) after "n" reflections per unit incident flux
-    real(rk8) :: sunwall_a_dif(num_urbanl)           ! absorbed diffuse solar for sunlit wall (per unit wall area) after "n" reflections per unit incident flux
-    real(rk8) :: sunwall_r_dir(num_urbanl)           ! reflected direct solar for sunlit wall (per unit wall area) after "n" reflections per unit incident flux
-    real(rk8) :: sunwall_r_dif(num_urbanl)           ! reflected diffuse solar for sunlit wall (per unit wall area) after "n" reflections per unit incident flux
-    real(rk8) :: sunwall_r_sky_dir(num_urbanl)       ! sunwall_r_dir to sky per unit incident flux
-    real(rk8) :: sunwall_r_road_dir(num_urbanl)      ! sunwall_r_dir to road per unit incident flux
-    real(rk8) :: sunwall_r_shadewall_dir(num_urbanl) ! sunwall_r_dir to opposing (shaded) wall per unit incident flux
-    real(rk8) :: sunwall_r_sky_dif(num_urbanl)       ! sunwall_r_dif to sky per unit incident flux
-    real(rk8) :: sunwall_r_road_dif(num_urbanl)      ! sunwall_r_dif to road per unit incident flux
-    real(rk8) :: sunwall_r_shadewall_dif(num_urbanl) ! sunwall_r_dif to opposing (shaded) wall per unit incident flux
+    ! absorbed direct solar for total road after "n"
+    ! reflections per unit incident flux
+    real(rk8) :: road_a_dir(num_urbanl)
+    ! absorbed diffuse solar for total road after "n"
+    ! reflections per unit incident flux
+    real(rk8) :: road_a_dif(num_urbanl)
+    ! reflected direct solar for total road after "n"
+    ! reflections per unit incident flux
+    real(rk8) :: road_r_dir(num_urbanl)
+    ! reflected diffuse solar for total road after "n"
+    ! reflections per unit incident flux
+    real(rk8) :: road_r_dif(num_urbanl)
+    ! road_r_dir to sky per unit incident flux
+    real(rk8) :: road_r_sky_dir(num_urbanl)
+    ! road_r_dir to sunlit wall per unit incident flux
+    real(rk8) :: road_r_sunwall_dir(num_urbanl)
+    ! road_r_dir to shaded wall per unit incident flux
+    real(rk8) :: road_r_shadewall_dir(num_urbanl)
+    ! road_r_dif to sky per unit incident flux
+    real(rk8) :: road_r_sky_dif(num_urbanl)
+    ! road_r_dif to sunlit wall per unit incident flux
+    real(rk8) :: road_r_sunwall_dif(num_urbanl)
+    ! road_r_dif to shaded wall per unit incident flux
+    real(rk8) :: road_r_shadewall_dif(num_urbanl)
 
-    real(rk8) :: shadewall_a_dir(num_urbanl)         ! absorbed direct solar for shaded wall (per unit wall area) after "n" reflections per unit incident flux
-    real(rk8) :: shadewall_a_dif(num_urbanl)         ! absorbed diffuse solar for shaded wall (per unit wall area) after "n" reflections per unit incident flux
-    real(rk8) :: shadewall_r_dir(num_urbanl)         ! reflected direct solar for shaded wall (per unit wall area) after "n" reflections per unit incident flux
-    real(rk8) :: shadewall_r_dif(num_urbanl)         ! reflected diffuse solar for shaded wall (per unit wall area) after "n" reflections per unit incident flux
-    real(rk8) :: shadewall_r_sky_dir(num_urbanl)     ! shadewall_r_dir to sky per unit incident flux
-    real(rk8) :: shadewall_r_road_dir(num_urbanl)    ! shadewall_r_dir to road per unit incident flux
-    real(rk8) :: shadewall_r_sunwall_dir(num_urbanl) ! shadewall_r_dir to opposing (sunlit) wall per unit incident flux
-    real(rk8) :: shadewall_r_sky_dif(num_urbanl)     ! shadewall_r_dif to sky per unit incident flux
-    real(rk8) :: shadewall_r_road_dif(num_urbanl)    ! shadewall_r_dif to road per unit incident flux
-    real(rk8) :: shadewall_r_sunwall_dif(num_urbanl) ! shadewall_r_dif to opposing (sunlit) wall per unit incident flux
+    ! absorbed direct solar for sunlit wall (per unit wall area)
+    ! after "n" reflections per unit incident flux
+    real(rk8) :: sunwall_a_dir(num_urbanl)
+    ! absorbed diffuse solar for sunlit wall (per unit wall area)
+    ! after "n" reflections per unit incident flux
+    real(rk8) :: sunwall_a_dif(num_urbanl)
+    ! reflected direct solar for sunlit wall (per unit wall area)
+    ! after "n" reflections per unit incident flux
+    real(rk8) :: sunwall_r_dir(num_urbanl)
+    ! reflected diffuse solar for sunlit wall (per unit wall area)
+    ! after "n" reflections per unit incident flux
+    real(rk8) :: sunwall_r_dif(num_urbanl)
+    ! sunwall_r_dir to sky per unit incident flux
+    real(rk8) :: sunwall_r_sky_dir(num_urbanl)
+    ! sunwall_r_dir to road per unit incident flux
+    real(rk8) :: sunwall_r_road_dir(num_urbanl)
+    ! sunwall_r_dir to opposing (shaded) wall per unit incident flux
+    real(rk8) :: sunwall_r_shadewall_dir(num_urbanl)
+    ! sunwall_r_dif to sky per unit incident flux
+    real(rk8) :: sunwall_r_sky_dif(num_urbanl)
+    ! sunwall_r_dif to road per unit incident flux
+    real(rk8) :: sunwall_r_road_dif(num_urbanl)
+    ! sunwall_r_dif to opposing (shaded) wall per unit incident flux
+    real(rk8) :: sunwall_r_shadewall_dif(num_urbanl)
 
-    real(rk8) :: canyon_alb_dir(num_urbanl)          ! direct canyon albedo
-    real(rk8) :: canyon_alb_dif(num_urbanl)          ! diffuse canyon albedo
+    ! absorbed direct solar for shaded wall (per unit wall area)
+    ! after "n" reflections per unit incident flux
+    real(rk8) :: shadewall_a_dir(num_urbanl)
+    ! absorbed diffuse solar for shaded wall (per unit wall area)
+    ! after "n" reflections per unit incident flux
+    real(rk8) :: shadewall_a_dif(num_urbanl)
+    ! reflected direct solar for shaded wall (per unit wall area)
+    ! after "n" reflections per unit incident flux
+    real(rk8) :: shadewall_r_dir(num_urbanl)
+    ! reflected diffuse solar for shaded wall (per unit wall area)
+    ! after "n" reflections per unit incident flux
+    real(rk8) :: shadewall_r_dif(num_urbanl)
+    ! shadewall_r_dir to sky per unit incident flux
+    real(rk8) :: shadewall_r_sky_dir(num_urbanl)
+    ! shadewall_r_dir to road per unit incident flux
+    real(rk8) :: shadewall_r_road_dir(num_urbanl)
+    ! shadewall_r_dir to opposing (sunlit) wall per unit incident flux
+    real(rk8) :: shadewall_r_sunwall_dir(num_urbanl)
+    ! shadewall_r_dif to sky per unit incident flux
+    real(rk8) :: shadewall_r_sky_dif(num_urbanl)
+    ! shadewall_r_dif to road per unit incident flux
+    real(rk8) :: shadewall_r_road_dif(num_urbanl)
+    ! shadewall_r_dif to opposing (sunlit) wall per unit incident flux
+    real(rk8) :: shadewall_r_sunwall_dif(num_urbanl)
 
-    real(rk8) :: stot(num_urbanl)                    ! sum of radiative terms
-    real(rk8) :: stot_dir(num_urbanl)                ! sum of direct radiative terms
-    real(rk8) :: stot_dif(num_urbanl)                ! sum of diffuse radiative terms
+    real(rk8) :: canyon_alb_dir(num_urbanl) ! direct canyon albedo
+    real(rk8) :: canyon_alb_dif(num_urbanl) ! diffuse canyon albedo
+
+    real(rk8) :: stot(num_urbanl)           ! sum of radiative terms
+    real(rk8) :: stot_dir(num_urbanl)       ! sum of direct radiative terms
+    real(rk8) :: stot_dif(num_urbanl)       ! sum of diffuse radiative terms
 
     integer(ik4)  :: l,fl,ib            ! indices
     integer(ik4)  :: iter_dir,iter_dif  ! iteration counter
@@ -1602,8 +1733,10 @@ module mod_clm_urban
             improad_r_sky_dir(fl) = improad_r_dir(fl) * vf_sr(l)
             improad_r_sunwall_dir(fl) = improad_r_dir(fl) * vf_wr(l)
             improad_r_shadewall_dir(fl) = improad_r_dir(fl) * vf_wr(l)
-            road_a_dir(fl) = road_a_dir(fl) + improad_a_dir(fl)*wtroad_imperv(fl)
-            road_r_dir(fl) = road_r_dir(fl) + improad_r_dir(fl)*wtroad_imperv(fl)
+            road_a_dir(fl) = road_a_dir(fl) + &
+                    improad_a_dir(fl)*wtroad_imperv(fl)
+            road_r_dir(fl) = road_r_dir(fl) + &
+                    improad_r_dir(fl)*wtroad_imperv(fl)
           end if
 
           if ( wtroad_perv(fl) > 0.0D0 ) then
@@ -1626,7 +1759,8 @@ module mod_clm_urban
           sunwall_r_road_dir(fl) = sunwall_r_dir(fl) * vf_rw(l)
           sunwall_r_shadewall_dir(fl) = sunwall_r_dir(fl) * vf_ww(l)
 
-          shadewall_a_dir(fl) = (1.D0-alb_wall_dir(fl,ib)) * sdir_shadewall(fl,ib)
+          shadewall_a_dir(fl) = (1.D0-alb_wall_dir(fl,ib)) * &
+                  sdir_shadewall(fl,ib)
           shadewall_r_dir(fl) = alb_wall_dir(fl,ib)  * sdir_shadewall(fl,ib)
           shadewall_r_sky_dir(fl) = shadewall_r_dir(fl) * vf_sw(l)
           shadewall_r_road_dir(fl) = shadewall_r_dir(fl) * vf_rw(l)
@@ -1642,8 +1776,10 @@ module mod_clm_urban
             improad_r_sky_dif(fl) = improad_r_dif(fl) * vf_sr(l)
             improad_r_sunwall_dif(fl) = improad_r_dif(fl) * vf_wr(l)
             improad_r_shadewall_dif(fl) = improad_r_dif(fl) * vf_wr(l)
-            road_a_dif(fl) = road_a_dif(fl) + improad_a_dif(fl)*wtroad_imperv(fl)
-            road_r_dif(fl) = road_r_dif(fl) + improad_r_dif(fl)*wtroad_imperv(fl)
+            road_a_dif(fl) = road_a_dif(fl) + &
+                    improad_a_dif(fl)*wtroad_imperv(fl)
+            road_r_dif(fl) = road_r_dif(fl) + &
+                    improad_r_dif(fl)*wtroad_imperv(fl)
           end if
 
           if ( wtroad_perv(fl) > 0.0D0 ) then
@@ -1666,7 +1802,8 @@ module mod_clm_urban
           sunwall_r_road_dif(fl) = sunwall_r_dif(fl) * vf_rw(l)
           sunwall_r_shadewall_dif(fl) = sunwall_r_dif(fl) * vf_ww(l)
 
-          shadewall_a_dif(fl) = (1.D0-alb_wall_dif(fl,ib)) * sdif_shadewall(fl,ib)
+          shadewall_a_dif(fl) = (1.D0-alb_wall_dif(fl,ib)) * &
+                  sdif_shadewall(fl,ib)
           shadewall_r_dif(fl) = alb_wall_dif(fl,ib)  * sdif_shadewall(fl,ib)
           shadewall_r_sky_dif(fl) = shadewall_r_dif(fl) * vf_sw(l)
           shadewall_r_road_dif(fl) = shadewall_r_dif(fl) * vf_rw(l)
@@ -1759,8 +1896,10 @@ module mod_clm_urban
             if ( wtroad_perv(fl) > 0.0D0 ) then
               perroad_a_dir(fl) = (1.D0-alb_perroad_dir(fl,ib)) * stot(fl)
               perroad_r_dir(fl) = alb_perroad_dir(fl,ib)  * stot(fl)
-              road_a_dir(fl) = road_a_dir(fl) + perroad_a_dir(fl)*wtroad_perv(fl)
-              road_r_dir(fl) = road_r_dir(fl) + perroad_r_dir(fl)*wtroad_perv(fl)
+              road_a_dir(fl) = road_a_dir(fl) + &
+                      perroad_a_dir(fl)*wtroad_perv(fl)
+              road_r_dir(fl) = road_r_dir(fl) + &
+                      perroad_r_dir(fl)*wtroad_perv(fl)
             end if
 
             stot(fl) = road_r_sunwall_dir(fl)/canyon_hwr(fl) + &
@@ -1776,10 +1915,12 @@ module mod_clm_urban
             ! step (2)
 
             if ( wtroad_imperv(fl) > 0.0D0 ) then
-              sabs_improad_dir(l,ib) = sabs_improad_dir(l,ib) + improad_a_dir(fl)
+              sabs_improad_dir(l,ib) = sabs_improad_dir(l,ib) + &
+                      improad_a_dir(fl)
             end if
             if ( wtroad_perv(fl)   > 0.0D0 ) then
-              sabs_perroad_dir(l,ib) = sabs_perroad_dir(l,ib) + perroad_a_dir(fl)
+              sabs_perroad_dir(l,ib) = sabs_perroad_dir(l,ib) + &
+                      perroad_a_dir(fl)
             end if
             sabs_sunwall_dir(l,ib) = sabs_sunwall_dir(l,ib) + sunwall_a_dir(fl)
             sabs_shadewall_dir(l,ib) = sabs_shadewall_dir(l,ib) + &
@@ -1857,8 +1998,10 @@ module mod_clm_urban
             if ( wtroad_perv(fl)   > 0.0D0 ) then
               perroad_a_dif(fl) = (1.D0-alb_perroad_dif(fl,ib)) * stot(fl)
               perroad_r_dif(fl) = alb_perroad_dif(fl,ib)  * stot(fl)
-              road_a_dif(fl) = road_a_dif(fl) + perroad_a_dif(fl)*wtroad_perv(fl)
-              road_r_dif(fl) = road_r_dif(fl) + perroad_r_dif(fl)*wtroad_perv(fl)
+              road_a_dif(fl) = road_a_dif(fl) + &
+                      perroad_a_dif(fl)*wtroad_perv(fl)
+              road_r_dif(fl) = road_r_dif(fl) + &
+                      perroad_r_dif(fl)*wtroad_perv(fl)
             end if
 
             stot(fl) = road_r_sunwall_dif(fl)/canyon_hwr(fl) + &
@@ -2047,111 +2190,191 @@ module mod_clm_urban
     use mod_clm_varcon , only : sb
     use mod_clm_type
     implicit none
-    integer(ik4) , intent(in)  :: num_urbanl                 ! number of urban landunits
-    integer(ik4) ,  intent(in)  :: lbl, ubl                   ! landunit-index bounds
-    integer(ik4) , intent(in)  :: filter_urbanl(ubl-lbl+1)   ! urban landunit filter
-    real(rk8), intent(in)  :: canyon_hwr(num_urbanl)     ! ratio of building height to street width
-    real(rk8), intent(in)  :: wtroad_perv(num_urbanl)     ! weight of pervious road wrt total road
+    integer(ik4) , intent(in)  :: num_urbanl  ! number of urban landunits
+    integer(ik4) ,  intent(in)  :: lbl, ubl   ! landunit-index bounds
+    ! urban landunit filter
+    integer(ik4) , intent(in)  :: filter_urbanl(ubl-lbl+1)
+    ! ratio of building height to street width
+    real(rk8), intent(in)  :: canyon_hwr(num_urbanl)
+    ! weight of pervious road wrt total road
+    real(rk8), intent(in)  :: wtroad_perv(num_urbanl)
 
-    real(rk8), intent(in)  :: lwdown(num_urbanl)          ! atmospheric longwave radiation (W/m**2)
-    real(rk8), intent(in)  :: em_roof(num_urbanl)         ! roof emissivity
-    real(rk8), intent(in)  :: em_improad(num_urbanl)      ! impervious road emissivity
-    real(rk8), intent(in)  :: em_perroad(num_urbanl)      ! pervious road emissivity
-    real(rk8), intent(in)  :: em_wall(num_urbanl)         ! wall emissivity
+    ! atmospheric longwave radiation (W/m**2)
+    real(rk8), intent(in)  :: lwdown(num_urbanl)
+    ! roof emissivity
+    real(rk8), intent(in)  :: em_roof(num_urbanl)
+    ! impervious road emissivity
+    real(rk8), intent(in)  :: em_improad(num_urbanl)
+    ! pervious road emissivity
+    real(rk8), intent(in)  :: em_perroad(num_urbanl)
+    ! wall emissivity
+    real(rk8), intent(in)  :: em_wall(num_urbanl)
 
-    real(rk8), intent(in)  :: t_roof(num_urbanl)          ! roof temperature (K)
-    real(rk8), intent(in)  :: t_improad(num_urbanl)       ! impervious road temperature (K)
-    real(rk8), intent(in)  :: t_perroad(num_urbanl)       ! ervious road temperature (K)
-    real(rk8), intent(in)  :: t_sunwall(num_urbanl)       ! sunlit wall temperature (K)
-    real(rk8), intent(in)  :: t_shadewall(num_urbanl)     ! shaded wall temperature (K)
+    ! roof temperature (K)
+    real(rk8), intent(in)  :: t_roof(num_urbanl)
+    ! impervious road temperature (K)
+    real(rk8), intent(in)  :: t_improad(num_urbanl)
+    ! ervious road temperature (K)
+    real(rk8), intent(in)  :: t_perroad(num_urbanl)
+    ! sunlit wall temperature (K)
+    real(rk8), intent(in)  :: t_sunwall(num_urbanl)
+    ! shaded wall temperature (K)
+    real(rk8), intent(in)  :: t_shadewall(num_urbanl)
 
-    real(rk8), intent(out) :: lwnet_roof(num_urbanl)      ! net (outgoing-incoming) longwave radiation, roof (W/m**2)
-    real(rk8), intent(out) :: lwnet_improad(num_urbanl)   ! net (outgoing-incoming) longwave radiation, impervious road (W/m**2)
-    real(rk8), intent(out) :: lwnet_perroad(num_urbanl)   ! net (outgoing-incoming) longwave radiation, pervious road (W/m**2)
-    real(rk8), intent(out) :: lwnet_sunwall(num_urbanl)   ! net (outgoing-incoming) longwave radiation (per unit wall area), sunlit wall (W/m**2)
-    real(rk8), intent(out) :: lwnet_shadewall(num_urbanl) ! net (outgoing-incoming) longwave radiation (per unit wall area), shaded wall (W/m**2)
-    real(rk8), intent(out) :: lwnet_canyon(num_urbanl)    ! net (outgoing-incoming) longwave radiation for canyon, per unit ground area (W/m**2)
+    ! net (outgoing-incoming) longwave radiation, roof (W/m**2)
+    real(rk8), intent(out) :: lwnet_roof(num_urbanl)
+    ! net (outgoing-incoming) longwave radiation, impervious road (W/m**2)
+    real(rk8), intent(out) :: lwnet_improad(num_urbanl)
+    ! net (outgoing-incoming) longwave radiation, pervious road (W/m**2)
+    real(rk8), intent(out) :: lwnet_perroad(num_urbanl)
+    ! net (outgoing-incoming) longwave radiation (per unit wall area),
+    ! sunlit wall (W/m**2)
+    real(rk8), intent(out) :: lwnet_sunwall(num_urbanl)
+    ! net (outgoing-incoming) longwave radiation (per unit wall area),
+    ! shaded wall (W/m**2)
+    real(rk8), intent(out) :: lwnet_shadewall(num_urbanl)
+    ! net (outgoing-incoming) longwave radiation for canyon,
+    ! per unit ground area (W/m**2)
+    real(rk8), intent(out) :: lwnet_canyon(num_urbanl)
 
-    real(rk8), intent(out) :: lwup_roof(num_urbanl)       ! upward longwave radiation, roof (W/m**2)
-    real(rk8), intent(out) :: lwup_improad(num_urbanl)    ! upward longwave radiation, impervious road (W/m**2)
-    real(rk8), intent(out) :: lwup_perroad(num_urbanl)    ! upward longwave radiation, pervious road (W/m**2)
-    real(rk8), intent(out) :: lwup_sunwall(num_urbanl)    ! upward longwave radiation (per unit wall area), sunlit wall (W/m**2)
-    real(rk8), intent(out) :: lwup_shadewall(num_urbanl)  ! upward longwave radiation (per unit wall area), shaded wall (W/m**2)
-    real(rk8), intent(out) :: lwup_canyon(num_urbanl)     ! upward longwave radiation for canyon, per unit ground area (W/m**2)
+    ! upward longwave radiation, roof (W/m**2)
+    real(rk8), intent(out) :: lwup_roof(num_urbanl)
+    ! upward longwave radiation, impervious road (W/m**2)
+    real(rk8), intent(out) :: lwup_improad(num_urbanl)
+    ! upward longwave radiation, pervious road (W/m**2)
+    real(rk8), intent(out) :: lwup_perroad(num_urbanl)
+    ! upward longwave radiation (per unit wall area), sunlit wall (W/m**2)
+    real(rk8), intent(out) :: lwup_sunwall(num_urbanl)
+    ! upward longwave radiation (per unit wall area), shaded wall (W/m**2)
+    real(rk8), intent(out) :: lwup_shadewall(num_urbanl)
+    ! upward longwave radiation for canyon, per unit ground area (W/m**2)
+    real(rk8), intent(out) :: lwup_canyon(num_urbanl)
 
-    real(rk8), pointer :: vf_sr(:)     ! view factor of sky for road
-    real(rk8), pointer :: vf_wr(:)     ! view factor of one wall for road
-    real(rk8), pointer :: vf_sw(:)     ! view factor of sky for one wall
-    real(rk8), pointer :: vf_rw(:)     ! view factor of road for one wall
-    real(rk8), pointer :: vf_ww(:)     ! view factor of opposing wall for one wall
+    real(rk8), pointer :: vf_sr(:) ! view factor of sky for road
+    real(rk8), pointer :: vf_wr(:) ! view factor of one wall for road
+    real(rk8), pointer :: vf_sw(:) ! view factor of sky for one wall
+    real(rk8), pointer :: vf_rw(:) ! view factor of road for one wall
+    real(rk8), pointer :: vf_ww(:) ! view factor of opposing wall for one wall
 
-    real(rk8) :: lwdown_road(num_urbanl)         ! atmospheric longwave radiation for total road (W/m**2)
-    real(rk8) :: lwdown_sunwall(num_urbanl)      ! atmospheric longwave radiation (per unit wall area) for sunlit wall (W/m**2)
-    real(rk8) :: lwdown_shadewall(num_urbanl)    ! atmospheric longwave radiation (per unit wall area) for shaded wall (W/m**2)
-    real(rk8) :: lwtot(num_urbanl)               ! incoming longwave radiation (W/m**2)
+    ! atmospheric longwave radiation for total road (W/m**2)
+    real(rk8) :: lwdown_road(num_urbanl)
+    ! atmospheric longwave radiation (per unit wall area)
+    ! for sunlit wall (W/m**2)
+    real(rk8) :: lwdown_sunwall(num_urbanl)
+    ! atmospheric longwave radiation (per unit wall area)
+    ! for shaded wall (W/m**2)
+    real(rk8) :: lwdown_shadewall(num_urbanl)
+    ! incoming longwave radiation (W/m**2)
+    real(rk8) :: lwtot(num_urbanl)
 
-    real(rk8) :: improad_a(num_urbanl)           ! absorbed longwave for improad (W/m**2)
-    real(rk8) :: improad_r(num_urbanl)           ! reflected longwave for improad (W/m**2)
-    real(rk8) :: improad_r_sky(num_urbanl)       ! improad_r to sky (W/m**2)
-    real(rk8) :: improad_r_sunwall(num_urbanl)   ! improad_r to sunlit wall (W/m**2)
-    real(rk8) :: improad_r_shadewall(num_urbanl) ! improad_r to shaded wall (W/m**2)
-    real(rk8) :: improad_e(num_urbanl)           ! emitted longwave for improad (W/m**2)
-    real(rk8) :: improad_e_sky(num_urbanl)       ! improad_e to sky (W/m**2)
-    real(rk8) :: improad_e_sunwall(num_urbanl)   ! improad_e to sunlit wall (W/m**2)
-    real(rk8) :: improad_e_shadewall(num_urbanl) ! improad_e to shaded wall (W/m**2)
+    ! absorbed longwave for improad (W/m**2)
+    real(rk8) :: improad_a(num_urbanl)
+    ! reflected longwave for improad (W/m**2)
+    real(rk8) :: improad_r(num_urbanl)
+    ! improad_r to sky (W/m**2)
+    real(rk8) :: improad_r_sky(num_urbanl)
+    ! improad_r to sunlit wall (W/m**2)
+    real(rk8) :: improad_r_sunwall(num_urbanl)
+    ! improad_r to shaded wall (W/m**2)
+    real(rk8) :: improad_r_shadewall(num_urbanl)
+    ! emitted longwave for improad (W/m**2)
+    real(rk8) :: improad_e(num_urbanl)
+    ! improad_e to sky (W/m**2)
+    real(rk8) :: improad_e_sky(num_urbanl)
+    ! improad_e to sunlit wall (W/m**2)
+    real(rk8) :: improad_e_sunwall(num_urbanl)
+    ! improad_e to shaded wall (W/m**2)
+    real(rk8) :: improad_e_shadewall(num_urbanl)
 
-    real(rk8) :: perroad_a(num_urbanl)           ! absorbed longwave for perroad (W/m**2)
-    real(rk8) :: perroad_r(num_urbanl)           ! reflected longwave for perroad (W/m**2)
-    real(rk8) :: perroad_r_sky(num_urbanl)       ! perroad_r to sky (W/m**2)
-    real(rk8) :: perroad_r_sunwall(num_urbanl)   ! perroad_r to sunlit wall (W/m**2)
-    real(rk8) :: perroad_r_shadewall(num_urbanl) ! perroad_r to shaded wall (W/m**2)
-    real(rk8) :: perroad_e(num_urbanl)           ! emitted longwave for perroad (W/m**2)
-    real(rk8) :: perroad_e_sky(num_urbanl)       ! perroad_e to sky (W/m**2)
-    real(rk8) :: perroad_e_sunwall(num_urbanl)   ! perroad_e to sunlit wall (W/m**2)
-    real(rk8) :: perroad_e_shadewall(num_urbanl) ! perroad_e to shaded wall (W/m**2)
+    ! absorbed longwave for perroad (W/m**2)
+    real(rk8) :: perroad_a(num_urbanl)
+    ! reflected longwave for perroad (W/m**2)
+    real(rk8) :: perroad_r(num_urbanl)
+    ! perroad_r to sky (W/m**2)
+    real(rk8) :: perroad_r_sky(num_urbanl)
+    ! perroad_r to sunlit wall (W/m**2)
+    real(rk8) :: perroad_r_sunwall(num_urbanl)
+    ! perroad_r to shaded wall (W/m**2)
+    real(rk8) :: perroad_r_shadewall(num_urbanl)
+    ! emitted longwave for perroad (W/m**2)
+    real(rk8) :: perroad_e(num_urbanl)
+    ! perroad_e to sky (W/m**2)
+    real(rk8) :: perroad_e_sky(num_urbanl)
+    ! perroad_e to sunlit wall (W/m**2)
+    real(rk8) :: perroad_e_sunwall(num_urbanl)
+    ! perroad_e to shaded wall (W/m**2)
+    real(rk8) :: perroad_e_shadewall(num_urbanl)
 
-    real(rk8) :: road_a(num_urbanl)              ! absorbed longwave for total road (W/m**2)
-    real(rk8) :: road_r(num_urbanl)              ! reflected longwave for total road (W/m**2)
-    real(rk8) :: road_r_sky(num_urbanl)          ! total road_r to sky (W/m**2)
-    real(rk8) :: road_r_sunwall(num_urbanl)      ! total road_r to sunlit wall (W/m**2)
-    real(rk8) :: road_r_shadewall(num_urbanl)    ! total road_r to shaded wall (W/m**2)
-    real(rk8) :: road_e(num_urbanl)              ! emitted longwave for total road (W/m**2)
-    real(rk8) :: road_e_sky(num_urbanl)          ! total road_e to sky (W/m**2)
-    real(rk8) :: road_e_sunwall(num_urbanl)      ! total road_e to sunlit wall (W/m**2)
-    real(rk8) :: road_e_shadewall(num_urbanl)    ! total road_e to shaded wall (W/m**2)
+    ! absorbed longwave for total road (W/m**2)
+    real(rk8) :: road_a(num_urbanl)
+    ! reflected longwave for total road (W/m**2)
+    real(rk8) :: road_r(num_urbanl)
+    ! total road_r to sky (W/m**2)
+    real(rk8) :: road_r_sky(num_urbanl)
+    ! total road_r to sunlit wall (W/m**2)
+    real(rk8) :: road_r_sunwall(num_urbanl)
+    ! total road_r to shaded wall (W/m**2)
+    real(rk8) :: road_r_shadewall(num_urbanl)
+    ! emitted longwave for total road (W/m**2)
+    real(rk8) :: road_e(num_urbanl)
+    ! total road_e to sky (W/m**2)
+    real(rk8) :: road_e_sky(num_urbanl)
+    ! total road_e to sunlit wall (W/m**2)
+    real(rk8) :: road_e_sunwall(num_urbanl)
+    ! total road_e to shaded wall (W/m**2)
+    real(rk8) :: road_e_shadewall(num_urbanl)
 
-    real(rk8) :: sunwall_a(num_urbanl)           ! absorbed longwave (per unit wall area) for sunlit wall (W/m**2)
-    real(rk8) :: sunwall_r(num_urbanl)           ! reflected longwave (per unit wall area) for sunlit wall (W/m**2)
-    real(rk8) :: sunwall_r_sky(num_urbanl)       ! sunwall_r to sky (W/m**2)
-    real(rk8) :: sunwall_r_road(num_urbanl)      ! sunwall_r to road (W/m**2)
-    real(rk8) :: sunwall_r_shadewall(num_urbanl) ! sunwall_r to opposing (shaded) wall (W/m**2)
-    real(rk8) :: sunwall_e(num_urbanl)           ! emitted longwave (per unit wall area) for sunlit wall (W/m**2)
-    real(rk8) :: sunwall_e_sky(num_urbanl)       ! sunwall_e to sky (W/m**2)
-    real(rk8) :: sunwall_e_road(num_urbanl)      ! sunwall_e to road (W/m**2)
-    real(rk8) :: sunwall_e_shadewall(num_urbanl) ! sunwall_e to opposing (shaded) wall (W/m**2)
+    ! absorbed longwave (per unit wall area) for sunlit wall (W/m**2)
+    real(rk8) :: sunwall_a(num_urbanl)
+    ! reflected longwave (per unit wall area) for sunlit wall (W/m**2)
+    real(rk8) :: sunwall_r(num_urbanl)
+    ! sunwall_r to sky (W/m**2)
+    real(rk8) :: sunwall_r_sky(num_urbanl)
+    ! sunwall_r to road (W/m**2)
+    real(rk8) :: sunwall_r_road(num_urbanl)
+    ! sunwall_r to opposing (shaded) wall (W/m**2)
+    real(rk8) :: sunwall_r_shadewall(num_urbanl)
+    ! emitted longwave (per unit wall area) for sunlit wall (W/m**2)
+    real(rk8) :: sunwall_e(num_urbanl)
+    ! sunwall_e to sky (W/m**2)
+    real(rk8) :: sunwall_e_sky(num_urbanl)
+    ! sunwall_e to road (W/m**2)
+    real(rk8) :: sunwall_e_road(num_urbanl)
+    ! sunwall_e to opposing (shaded) wall (W/m**2)
+    real(rk8) :: sunwall_e_shadewall(num_urbanl)
 
-    real(rk8) :: shadewall_a(num_urbanl)         ! absorbed longwave (per unit wall area) for shaded wall (W/m**2)
-    real(rk8) :: shadewall_r(num_urbanl)         ! reflected longwave (per unit wall area) for shaded wall (W/m**2)
-    real(rk8) :: shadewall_r_sky(num_urbanl)     ! shadewall_r to sky (W/m**2)
-    real(rk8) :: shadewall_r_road(num_urbanl)    ! shadewall_r to road (W/m**2)
-    real(rk8) :: shadewall_r_sunwall(num_urbanl) ! shadewall_r to opposing (sunlit) wall (W/m**2)
-    real(rk8) :: shadewall_e(num_urbanl)         ! emitted longwave (per unit wall area) for shaded wall (W/m**2)
-    real(rk8) :: shadewall_e_sky(num_urbanl)     ! shadewall_e to sky (W/m**2)
-    real(rk8) :: shadewall_e_road(num_urbanl)    ! shadewall_e to road (W/m**2)
-    real(rk8) :: shadewall_e_sunwall(num_urbanl) ! shadewall_e to opposing (sunlit) wall (W/m**2)
-    integer(ik4)  :: l,fl,iter                       ! indices
-    integer(ik4) , parameter  :: n = 50               ! number of interations
-    real(rk8) :: crit                            ! convergence criterion (W/m**2)
-    real(rk8) :: err                             ! energy conservation error (W/m**2)
-    real(rk8) :: wtroad_imperv(num_urbanl)       ! weight of impervious road wrt total road
+    ! absorbed longwave (per unit wall area) for shaded wall (W/m**2)
+    real(rk8) :: shadewall_a(num_urbanl)
+    ! reflected longwave (per unit wall area) for shaded wall (W/m**2)
+    real(rk8) :: shadewall_r(num_urbanl)
+    ! shadewall_r to sky (W/m**2)
+    real(rk8) :: shadewall_r_sky(num_urbanl)
+    ! shadewall_r to road (W/m**2)
+    real(rk8) :: shadewall_r_road(num_urbanl)
+    ! shadewall_r to opposing (sunlit) wall (W/m**2)
+    real(rk8) :: shadewall_r_sunwall(num_urbanl)
+    ! emitted longwave (per unit wall area) for shaded wall (W/m**2)
+    real(rk8) :: shadewall_e(num_urbanl)
+    ! shadewall_e to sky (W/m**2)
+    real(rk8) :: shadewall_e_sky(num_urbanl)
+    ! shadewall_e to road (W/m**2)
+    real(rk8) :: shadewall_e_road(num_urbanl)
+    ! shadewall_e to opposing (sunlit) wall (W/m**2)
+    real(rk8) :: shadewall_e_sunwall(num_urbanl)
+    integer(ik4)  :: l,fl,iter    ! indices
+    integer(ik4) , parameter :: n = 50  ! number of interations
+    real(rk8) :: crit                   ! convergence criterion (W/m**2)
+    real(rk8) :: err                    ! energy conservation error (W/m**2)
+    ! weight of impervious road wrt total road
+    real(rk8) :: wtroad_imperv(num_urbanl)
 
     ! Assign landunit level pointer
 
-    vf_sr              => clm3%g%l%lps%vf_sr
-    vf_wr              => clm3%g%l%lps%vf_wr
-    vf_sw              => clm3%g%l%lps%vf_sw
-    vf_rw              => clm3%g%l%lps%vf_rw
-    vf_ww              => clm3%g%l%lps%vf_ww
+    vf_sr => clm3%g%l%lps%vf_sr
+    vf_wr => clm3%g%l%lps%vf_wr
+    vf_sw => clm3%g%l%lps%vf_sw
+    vf_rw => clm3%g%l%lps%vf_rw
+    vf_ww => clm3%g%l%lps%vf_ww
 
     ! Calculate impervious road
 
@@ -2161,7 +2384,8 @@ module mod_clm_urban
 
     do fl = 1,num_urbanl
       l = filter_urbanl(fl)
-      ! atmospheric longwave radiation incident on walls and road in urban canyon.
+      ! atmospheric longwave radiation incident on walls and road in
+      ! urban canyon.
       ! check for conservation (need to convert wall fluxes to ground area).
       ! lwdown (from atmosphere) = lwdown_road + &
       !          (lwdown_sunwall + lwdown_shadewall)*canyon_hwr
@@ -2318,8 +2542,9 @@ module mod_clm_urban
         sunwall_a(fl) =     em_wall(fl)  * lwtot(fl)
         sunwall_r(fl) = (1.D0-em_wall(fl)) * lwtot(fl)
 
-        lwtot(fl) = (road_r_shadewall(fl) + road_e_shadewall(fl))/canyon_hwr(fl) &
-                  + (sunwall_r_shadewall(fl) + sunwall_e_shadewall(fl))
+        lwtot(fl) = (road_r_shadewall(fl) + &
+                road_e_shadewall(fl))/canyon_hwr(fl) + &
+                (sunwall_r_shadewall(fl) + sunwall_e_shadewall(fl))
         shadewall_a(fl) =     em_wall(fl)  * lwtot(fl)
         shadewall_r(fl) = (1.D0-em_wall(fl)) * lwtot(fl)
 
@@ -2393,7 +2618,8 @@ module mod_clm_urban
 
       lwnet_canyon(fl) = 0.0D0
       if ( wtroad_imperv(fl) > 0.0D0 ) then
-        lwnet_canyon(fl) = lwnet_canyon(fl) + lwnet_improad(fl)*wtroad_imperv(fl)
+        lwnet_canyon(fl) = lwnet_canyon(fl) + &
+                lwnet_improad(fl)*wtroad_imperv(fl)
       end if
       if ( wtroad_perv(fl)   > 0.0D0 ) then
         lwnet_canyon(fl) = lwnet_canyon(fl) + lwnet_perroad(fl)*wtroad_perv(fl)
@@ -2438,8 +2664,8 @@ module mod_clm_urban
   !
   subroutine UrbanClumpInit()
     use mod_clm_type
-    use mod_clm_varcon , only : spval, icol_roof, icol_sunwall, icol_shadewall, &
-                 icol_road_perv, icol_road_imperv, udens_base
+    use mod_clm_varcon , only : spval, icol_roof, icol_sunwall, &
+            icol_shadewall, icol_road_perv, icol_road_imperv, udens_base
     use mod_clm_filter , only : filter
     use mod_clm_urbaninput , only : urbinp
     implicit none
@@ -2477,7 +2703,7 @@ module mod_clm_urban
       do c = coli(l) , colf(l)
         if ( ctype(c) /= icol_roof .and.  &
              ctype(c) /= icol_sunwall .and. ctype(c) /= icol_shadewall .and. &
-             ctype(c) /= icol_road_perv .and.  ctype(c) /= icol_road_imperv) then
+             ctype(c) /= icol_road_perv .and. ctype(c) /= icol_road_imperv) then
           write(stderr,*)'error in urban column types for landunit = ',l
                 write(stderr,*)'ctype= ',ctype(c)
                 call fatal(__FILE__,__LINE__,'clm now stopping')
@@ -2558,191 +2784,311 @@ module mod_clm_urban
     use mod_clm_varpar , only : maxpatch_urb, nlevurb, nlevgrnd
     use mod_clm_atmlnd , only : clm_a2l
     implicit none
-    integer(ik4) , intent(in)  :: lbp, ubp                   ! pft-index bounds
-    integer(ik4) , intent(in)  :: lbl, ubl                   ! landunit-index bounds
-    integer(ik4) , intent(in)  :: lbc, ubc                   ! column-index bounds
-    integer(ik4) , intent(in) :: num_nourbanl               ! number of non-urban landunits
-    integer(ik4) , intent(in) :: filter_nourbanl(ubl-lbl+1) ! non-urban landunit filter
-    integer(ik4) , intent(in) :: num_urbanl                 ! number of urban landunits
-    integer(ik4) , intent(in) :: filter_urbanl(ubl-lbl+1)   ! urban landunit filter
-    integer(ik4) , intent(in) :: num_urbanp                 ! number of urban pfts
-    integer(ik4) , intent(in) :: filter_urbanp(ubp-lbp+1)   ! urban pft filter
+    integer(ik4) , intent(in)  :: lbp, ubp    ! pft-index bounds
+    integer(ik4) , intent(in)  :: lbl, ubl    ! landunit-index bounds
+    integer(ik4) , intent(in)  :: lbc, ubc    ! column-index bounds
+    integer(ik4) , intent(in) :: num_nourbanl ! number of non-urban landunits
+    ! non-urban landunit filter
+    integer(ik4) , intent(in) :: filter_nourbanl(ubl-lbl+1)
+    ! number of urban landunits
+    integer(ik4) , intent(in) :: num_urbanl
+    ! urban landunit filter
+    integer(ik4) , intent(in) :: filter_urbanl(ubl-lbl+1)
+    ! number of urban pfts
+    integer(ik4) , intent(in) :: num_urbanp
+    ! urban pft filter
+    integer(ik4) , intent(in) :: filter_urbanp(ubp-lbp+1)
 
-    real(rk8), pointer :: ht_roof(:)         ! height of urban roof (m)
-    real(rk8), pointer :: wtlunit_roof(:)    ! weight of roof with respect to landunit
-    real(rk8), pointer :: canyon_hwr(:)      ! ratio of building height to street width
-    real(rk8), pointer :: wtroad_perv(:)     ! weight of pervious road wrt total road
-    real(rk8), pointer :: wind_hgt_canyon(:) ! height above road at which wind in canyon is to be computed (m)
-!
-! local pointers to original implicit in arguments (clmtype)
-!
-    real(rk8), pointer :: forc_u(:)     ! atmospheric wind speed in east direction (m/s)
-    real(rk8), pointer :: forc_v(:)     ! atmospheric wind speed in north direction (m/s)
-    real(rk8), pointer :: forc_rho(:)   ! density (kg/m**3)
-    real(rk8), pointer :: forc_hgt_u_pft(:) ! observational height of wind at pft-level (m)
-    real(rk8), pointer :: forc_hgt_t_pft(:) ! observational height of temperature at pft-level (m)
-    real(rk8), pointer :: forc_q(:)     ! atmospheric specific humidity (kg/kg)
-    real(rk8), pointer :: forc_t(:)     ! atmospheric temperature (K)
-    real(rk8), pointer :: forc_th(:)    ! atmospheric potential temperature (K)
-    real(rk8), pointer :: forc_pbot(:)  ! atmospheric pressure (Pa)
+    ! height of urban roof (m)
+    real(rk8), pointer :: ht_roof(:)
+    ! weight of roof with respect to landunit
+    real(rk8), pointer :: wtlunit_roof(:)
+    ! ratio of building height to street width
+    real(rk8), pointer :: canyon_hwr(:)
+    ! weight of pervious road wrt total road
+    real(rk8), pointer :: wtroad_perv(:)
+    ! height above road at which wind in canyon is to be computed (m)
+    real(rk8), pointer :: wind_hgt_canyon(:)
 
-    real(rk8), pointer :: z_0_town(:)   ! momentum roughness length of urban landunit (m)
-    real(rk8), pointer :: z_d_town(:)   ! displacement height of urban landunit (m)
+    ! atmospheric wind speed in east direction (m/s)
+    real(rk8), pointer :: forc_u(:)
+    ! atmospheric wind speed in north direction (m/s)
+    real(rk8), pointer :: forc_v(:)
+    ! density (kg/m**3)
+    real(rk8), pointer :: forc_rho(:)
+    ! observational height of wind at pft-level (m)
+    real(rk8), pointer :: forc_hgt_u_pft(:)
+    ! observational height of temperature at pft-level (m)
+    real(rk8), pointer :: forc_hgt_t_pft(:)
+    real(rk8), pointer :: forc_q(:)    ! atmospheric specific humidity (kg/kg)
+    real(rk8), pointer :: forc_t(:)    ! atmospheric temperature (K)
+    real(rk8), pointer :: forc_th(:)   ! atmospheric potential temperature (K)
+    real(rk8), pointer :: forc_pbot(:) ! atmospheric pressure (Pa)
+
+    ! momentum roughness length of urban landunit (m)
+    real(rk8), pointer :: z_0_town(:)
+    ! displacement height of urban landunit (m)
+    real(rk8), pointer :: z_d_town(:)
 
     integer(ik4) , pointer :: pgridcell(:)  ! gridcell of corresponding pft
     integer(ik4) , pointer :: pcolumn(:)    ! column of corresponding pft
     integer(ik4) , pointer :: lgridcell(:)  ! gridcell of corresponding landunit
     integer(ik4) , pointer :: plandunit(:)  ! pft's landunit index
     integer(ik4) , pointer :: ctype(:)      ! column type
-    integer(ik4) , pointer :: coli(:)       ! beginning column index for landunit
-    integer(ik4) , pointer :: colf(:)       ! ending column index for landunit
-    integer(ik4) , pointer :: pfti(:)       ! beginning pft index for landunit
-    integer(ik4) , pointer :: pftf(:)       ! ending pft index for landunit
+    ! beginning column index for landunit
+    integer(ik4) , pointer :: coli(:)
+    integer(ik4) , pointer :: colf(:)   ! ending column index for landunit
+    integer(ik4) , pointer :: pfti(:)   ! beginning pft index for landunit
+    integer(ik4) , pointer :: pftf(:)   ! ending pft index for landunit
 
-    real(rk8), pointer :: taf(:)        ! urban canopy air temperature (K)
-    real(rk8), pointer :: qaf(:)        ! urban canopy air specific humidity (kg/kg)
-    integer(ik4) , pointer :: npfts(:)      ! landunit's number of pfts (columns)
-    real(rk8), pointer :: t_grnd(:)     ! ground surface temperature (K)
-    real(rk8), pointer :: qg(:)         ! specific humidity at ground surface (kg/kg)
-    real(rk8), pointer :: htvp(:)       ! latent heat of evaporation (/sublimation) (J/kg)
-    real(rk8), pointer :: dqgdT(:)      ! temperature derivative of "qg"
-    real(rk8), pointer :: eflx_traffic(:)        ! traffic sensible heat flux (W/m**2)
-    real(rk8), pointer :: eflx_traffic_factor(:) ! multiplicative urban traffic factor for sensible heat flux
-    real(rk8), pointer :: eflx_wasteheat(:)      ! sensible heat flux from urban heating/cooling sources of waste heat (W/m**2)
-    real(rk8), pointer :: eflx_heat_from_ac(:)   ! sensible heat flux put back into canyon due to removal by AC (W/m**2)
-    real(rk8), pointer :: t_soisno(:,:)          ! soil temperature (K)
-    real(rk8), pointer :: eflx_urban_ac(:)     ! urban air conditioning flux (W/m**2)
-    real(rk8), pointer :: eflx_urban_heat(:)   ! urban heating flux (W/m**2)
-    real(rk8), pointer :: londeg(:)            ! longitude (degrees)
-    real(rk8), pointer :: h2osoi_ice(:,:)      ! ice lens (kg/m2)
-    real(rk8), pointer :: h2osoi_liq(:,:)      ! liquid water (kg/m2)
-    real(rk8), pointer :: frac_sno(:)          ! fraction of ground covered by snow (0 to 1)
-    real(rk8), pointer :: snow_depth(:)            ! snow height (m)
-    real(rk8), pointer :: h2osno(:)            ! snow water (mm H2O)
-    integer(ik4) , pointer :: snl(:)               ! number of snow layers
-    real(rk8), pointer :: rootr_road_perv(:,:) ! effective fraction of roots in each soil layer for urban pervious road
-    real(rk8), pointer :: soilalpha_u(:)       ! Urban factor that reduces ground saturated specific humidity (-)
+    real(rk8), pointer :: taf(:)  ! urban canopy air temperature (K)
+    real(rk8), pointer :: qaf(:)  ! urban canopy air specific humidity (kg/kg)
+    integer(ik4) , pointer :: npfts(:) ! landunit's number of pfts (columns)
+    real(rk8), pointer :: t_grnd(:)    ! ground surface temperature (K)
+    real(rk8), pointer :: qg(:)   ! specific humidity at ground surface (kg/kg)
+    ! latent heat of evaporation (/sublimation) (J/kg)
+    real(rk8), pointer :: htvp(:)
+    ! temperature derivative of "qg"
+    real(rk8), pointer :: dqgdT(:)
+    ! traffic sensible heat flux (W/m**2)
+    real(rk8), pointer :: eflx_traffic(:)
+    ! multiplicative urban traffic factor for sensible heat flux
+    real(rk8), pointer :: eflx_traffic_factor(:)
+    ! sensible heat flux from urban heating/cooling sources
+    ! of waste heat (W/m**2)
+    real(rk8), pointer :: eflx_wasteheat(:)
+    ! sensible heat flux put back into canyon due to removal by AC (W/m**2)
+    real(rk8), pointer :: eflx_heat_from_ac(:)
+    real(rk8), pointer :: t_soisno(:,:)     ! soil temperature (K)
+    ! urban air conditioning flux (W/m**2)
+    real(rk8), pointer :: eflx_urban_ac(:)
+    real(rk8), pointer :: eflx_urban_heat(:) ! urban heating flux (W/m**2)
+    real(rk8), pointer :: londeg(:)          ! longitude (degrees)
+    real(rk8), pointer :: h2osoi_ice(:,:)    ! ice lens (kg/m2)
+    real(rk8), pointer :: h2osoi_liq(:,:)    ! liquid water (kg/m2)
+    ! fraction of ground covered by snow (0 to 1)
+    real(rk8), pointer :: frac_sno(:)
+    real(rk8), pointer :: snow_depth(:)   ! snow height (m)
+    real(rk8), pointer :: h2osno(:)       ! snow water (mm H2O)
+    integer(ik4) , pointer :: snl(:)      ! number of snow layers
+    ! effective fraction of roots in each soil layer for urban pervious road
+    real(rk8), pointer :: rootr_road_perv(:,:)
+    ! Urban factor that reduces ground saturated specific humidity (-)
+    real(rk8), pointer :: soilalpha_u(:)
 
-    real(rk8), pointer :: dlrad(:)         ! downward longwave radiation below the canopy (W/m**2)
-    real(rk8), pointer :: ulrad(:)         ! upward longwave radiation above the canopy (W/m**2)
-    real(rk8), pointer :: cgrnds(:)        ! deriv, of soil sensible heat flux wrt soil temp (W/m**2/K)
-    real(rk8), pointer :: cgrndl(:)        ! deriv of soil latent heat flux wrt soil temp (W/m**2/K)
-    real(rk8), pointer :: cgrnd(:)         ! deriv. of soil energy flux wrt to soil temp (W/m**2/K)
-    real(rk8), pointer :: taux(:)          ! wind (shear) stress: e-w (kg/m/s**2)
-    real(rk8), pointer :: tauy(:)          ! wind (shear) stress: n-s (kg/m/s**2)
-    real(rk8), pointer :: eflx_sh_grnd(:)  ! sensible heat flux from ground (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_tot(:)   ! total sensible heat flux (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_tot_u(:) ! urban total sensible heat flux (W/m**2) [+ to atm]
-    real(rk8), pointer :: qflx_evap_soi(:) ! soil evaporation (mm H2O/s) (+ = to atm)
-    real(rk8), pointer :: qflx_tran_veg(:) ! vegetation transpiration (mm H2O/s) (+ = to atm)
-    real(rk8), pointer :: qflx_evap_veg(:) ! vegetation evaporation (mm H2O/s) (+ = to atm)
-    real(rk8), pointer :: qflx_evap_tot(:) ! qflx_evap_soi + qflx_evap_can + qflx_tran_veg
-    real(rk8), pointer :: t_ref2m(:)       ! 2 m height surface air temperature (K)
-    real(rk8), pointer :: q_ref2m(:)       ! 2 m height surface specific humidity (kg/kg)
-    real(rk8), pointer :: t_ref2m_u(:)     ! Urban 2 m height surface air temperature (K)
-    real(rk8), pointer :: t_veg(:)         ! vegetation temperature (K)
-    real(rk8), pointer :: ram1(:)          ! aerodynamical resistance (s/m)
-    real(rk8), pointer :: rootr(:,:)       ! effective fraction of roots in each soil layer
-    real(rk8), pointer :: psnsun(:)        ! sunlit leaf photosynthesis (umol CO2 /m**2/ s)
-    real(rk8), pointer :: psnsha(:)        ! shaded leaf photosynthesis (umol CO2 /m**2/ s)
-    real(rk8), pointer :: t_building(:)    ! internal building temperature (K)
-    real(rk8), pointer :: rh_ref2m(:)      ! 2 m height surface relative humidity (%)
-    real(rk8), pointer :: rh_ref2m_u(:)    ! Urban 2 m height surface relative humidity (%)
-    real(rk8), pointer :: eflx_sh_snow(:)          ! sensible heat flux from snow (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_soil(:)          ! sensible heat flux from soil (W/m**2) [+ to atm]
-    real(rk8), pointer :: eflx_sh_h2osfc(:)        ! sensible heat flux from soil (W/m**2) [+ to atm]
+    ! downward longwave radiation below the canopy (W/m**2)
+    real(rk8), pointer :: dlrad(:)
+    ! upward longwave radiation above the canopy (W/m**2)
+    real(rk8), pointer :: ulrad(:)
+    ! deriv, of soil sensible heat flux wrt soil temp (W/m**2/K)
+    real(rk8), pointer :: cgrnds(:)
+    ! deriv of soil latent heat flux wrt soil temp (W/m**2/K)
+    real(rk8), pointer :: cgrndl(:)
+    ! deriv. of soil energy flux wrt to soil temp (W/m**2/K)
+    real(rk8), pointer :: cgrnd(:)
+    ! wind (shear) stress: e-w (kg/m/s**2)
+    real(rk8), pointer :: taux(:)
+    ! wind (shear) stress: n-s (kg/m/s**2)
+    real(rk8), pointer :: tauy(:)
+    ! sensible heat flux from ground (W/m**2) [+ to atm]
+    real(rk8), pointer :: eflx_sh_grnd(:)
+    ! total sensible heat flux (W/m**2) [+ to atm]
+    real(rk8), pointer :: eflx_sh_tot(:)
+    ! urban total sensible heat flux (W/m**2) [+ to atm]
+    real(rk8), pointer :: eflx_sh_tot_u(:)
+    ! soil evaporation (mm H2O/s) (+ = to atm)
+    real(rk8), pointer :: qflx_evap_soi(:)
+    ! vegetation transpiration (mm H2O/s) (+ = to atm)
+    real(rk8), pointer :: qflx_tran_veg(:)
+    ! vegetation evaporation (mm H2O/s) (+ = to atm)
+    real(rk8), pointer :: qflx_evap_veg(:)
+    ! qflx_evap_soi + qflx_evap_can + qflx_tran_veg
+    real(rk8), pointer :: qflx_evap_tot(:)
+    ! 2 m height surface air temperature (K)
+    real(rk8), pointer :: t_ref2m(:)
+    ! 2 m height surface specific humidity (kg/kg)
+    real(rk8), pointer :: q_ref2m(:)
+    ! Urban 2 m height surface air temperature (K)
+    real(rk8), pointer :: t_ref2m_u(:)
+    real(rk8), pointer :: t_veg(:) ! vegetation temperature (K)
+    real(rk8), pointer :: ram1(:)  ! aerodynamical resistance (s/m)
+    ! effective fraction of roots in each soil layer
+    real(rk8), pointer :: rootr(:,:)
+    ! sunlit leaf photosynthesis (umol CO2 /m**2/ s)
+    real(rk8), pointer :: psnsun(:)
+    ! shaded leaf photosynthesis (umol CO2 /m**2/ s)
+    real(rk8), pointer :: psnsha(:)
+    ! internal building temperature (K)
+    real(rk8), pointer :: t_building(:)
+    ! 2 m height surface relative humidity (%)
+    real(rk8), pointer :: rh_ref2m(:)
+    ! Urban 2 m height surface relative humidity (%)
+    real(rk8), pointer :: rh_ref2m_u(:)
+    ! sensible heat flux from snow (W/m**2) [+ to atm]
+    real(rk8), pointer :: eflx_sh_snow(:)
+    ! sensible heat flux from soil (W/m**2) [+ to atm]
+    real(rk8), pointer :: eflx_sh_soil(:)
+    ! sensible heat flux from soil (W/m**2) [+ to atm]
+    real(rk8), pointer :: eflx_sh_h2osfc(:)
 
     character(len=*), parameter :: sub="UrbanFluxes"
     integer(ik4)  :: fl,f,p,c,l,g,j,pi     ! indices
 
-    real(rk8) :: canyontop_wind(num_urbanl) ! wind at canyon top (m/s)
-    real(rk8) :: canyon_u_wind(num_urbanl)  ! u-component of wind speed inside canyon (m/s)
-    real(rk8) :: canyon_wind(num_urbanl)    ! net wind speed inside canyon (m/s)
-    real(rk8) :: canyon_resistance(num_urbanl) ! resistance to heat and moisture transfer from canyon road/walls to canyon air (s/m)
+    ! wind at canyon top (m/s)
+    real(rk8) :: canyontop_wind(num_urbanl)
+    ! u-component of wind speed inside canyon (m/s)
+    real(rk8) :: canyon_u_wind(num_urbanl)
+    ! net wind speed inside canyon (m/s)
+    real(rk8) :: canyon_wind(num_urbanl)
+    ! resistance to heat and moisture transfer from canyon road/walls
+    ! to canyon air (s/m)
+    real(rk8) :: canyon_resistance(num_urbanl)
 
-    real(rk8) :: ur(lbl:ubl)        ! wind speed at reference height (m/s)
-    real(rk8) :: ustar(lbl:ubl)     ! friction velocity (m/s)
-    real(rk8) :: ramu(lbl:ubl)      ! aerodynamic resistance (s/m)
-    real(rk8) :: rahu(lbl:ubl)      ! thermal resistance (s/m)
-    real(rk8) :: rawu(lbl:ubl)      ! moisture resistance (s/m)
-    real(rk8) :: temp1(lbl:ubl)     ! relation for potential temperature profile
-    real(rk8) :: temp12m(lbl:ubl)   ! relation for potential temperature profile applied at 2-m
-    real(rk8) :: temp2(lbl:ubl)     ! relation for specific humidity profile
-    real(rk8) :: temp22m(lbl:ubl)   ! relation for specific humidity profile applied at 2-m
-    real(rk8) :: thm_g(lbl:ubl)     ! intermediate variable (forc_t+0.0098*forc_hgt_t)
-    real(rk8) :: thv_g(lbl:ubl)     ! virtual potential temperature (K)
-    real(rk8) :: dth(lbl:ubl)       ! diff of virtual temp. between ref. height and surface
-    real(rk8) :: dqh(lbl:ubl)       ! diff of humidity between ref. height and surface
-    real(rk8) :: zldis(lbl:ubl)     ! reference height "minus" zero displacement height (m)
-    real(rk8) :: um(lbl:ubl)        ! wind speed including the stablity effect (m/s)
+    real(rk8) :: ur(lbl:ubl)    ! wind speed at reference height (m/s)
+    real(rk8) :: ustar(lbl:ubl) ! friction velocity (m/s)
+    real(rk8) :: ramu(lbl:ubl)  ! aerodynamic resistance (s/m)
+    real(rk8) :: rahu(lbl:ubl)  ! thermal resistance (s/m)
+    real(rk8) :: rawu(lbl:ubl)  ! moisture resistance (s/m)
+    real(rk8) :: temp1(lbl:ubl) ! relation for potential temperature profile
+    ! relation for potential temperature profile applied at 2-m
+    real(rk8) :: temp12m(lbl:ubl)
+    real(rk8) :: temp2(lbl:ubl) ! relation for specific humidity profile
+    ! relation for specific humidity profile applied at 2-m
+    real(rk8) :: temp22m(lbl:ubl)
+    ! intermediate variable (forc_t+0.0098*forc_hgt_t)
+    real(rk8) :: thm_g(lbl:ubl)
+    real(rk8) :: thv_g(lbl:ubl) ! virtual potential temperature (K)
+    ! diff of virtual temp. between ref. height and surface
+    real(rk8) :: dth(lbl:ubl)
+    ! diff of humidity between ref. height and surface
+    real(rk8) :: dqh(lbl:ubl)
+    ! reference height "minus" zero displacement height (m)
+    real(rk8) :: zldis(lbl:ubl)
+    ! wind speed including the stablity effect (m/s)
+    real(rk8) :: um(lbl:ubl)
     real(rk8) :: obu(lbl:ubl)       ! Monin-Obukhov length (m)
     real(rk8) :: taf_numer(lbl:ubl) ! numerator of taf equation (K m/s)
     real(rk8) :: taf_denom(lbl:ubl) ! denominator of taf equation (m/s)
     real(rk8) :: qaf_numer(lbl:ubl) ! numerator of qaf equation (kg m/kg s)
     real(rk8) :: qaf_denom(lbl:ubl) ! denominator of qaf equation (m/s)
-    real(rk8) :: wtas(lbl:ubl)      ! sensible heat conductance for urban air to atmospheric air (m/s)
-    real(rk8) :: wtaq(lbl:ubl)      ! latent heat conductance for urban air to atmospheric air (m/s)
-    real(rk8) :: wts_sum(lbl:ubl)   ! sum of wtas, wtus_roof, wtus_road_perv, wtus_road_imperv, wtus_sunwall, wtus_shadewall
-    real(rk8) :: wtq_sum(lbl:ubl)   ! sum of wtaq, wtuq_roof, wtuq_road_perv, wtuq_road_imperv, wtuq_sunwall, wtuq_shadewall
-    real(rk8) :: beta(lbl:ubl)      ! coefficient of convective velocity
-    real(rk8) :: zii(lbl:ubl)       ! convective boundary layer height (m)
+    ! sensible heat conductance for urban air to atmospheric air (m/s)
+    real(rk8) :: wtas(lbl:ubl)
+    ! latent heat conductance for urban air to atmospheric air (m/s)
+    real(rk8) :: wtaq(lbl:ubl)
+    ! sum of wtas, wtus_roof, wtus_road_perv, wtus_road_imperv,
+    ! wtus_sunwall, wtus_shadewall
+    real(rk8) :: wts_sum(lbl:ubl)
+    ! sum of wtaq, wtuq_roof, wtuq_road_perv, wtuq_road_imperv,
+    ! wtuq_sunwall, wtuq_shadewall
+    real(rk8) :: wtq_sum(lbl:ubl)
+    real(rk8) :: beta(lbl:ubl)  ! coefficient of convective velocity
+    real(rk8) :: zii(lbl:ubl)   ! convective boundary layer height (m)
 
-    real(rk8) :: fm(lbl:ubl)        ! needed for BGC only to diagnose 10m wind speed
+    real(rk8) :: fm(lbl:ubl) ! needed for BGC only to diagnose 10m wind speed
 
-    real(rk8) :: wtus(lbc:ubc)      ! sensible heat conductance for urban columns (m/s)
-    real(rk8) :: wtuq(lbc:ubc)      ! latent heat conductance for urban columns (m/s)
+    ! sensible heat conductance for urban columns (m/s)
+    real(rk8) :: wtus(lbc:ubc)
+    ! latent heat conductance for urban columns (m/s)
+    real(rk8) :: wtuq(lbc:ubc)
 
-    integer(ik4)  :: iter               ! iteration index
-    real(rk8) :: dthv               ! diff of vir. poten. temp. between ref. height and surface
-    real(rk8) :: tstar              ! temperature scaling parameter
-    real(rk8) :: qstar              ! moisture scaling parameter
-    real(rk8) :: thvstar            ! virtual potential temperature scaling parameter
-    real(rk8) :: wtus_roof(lbl:ubl)        ! sensible heat conductance for roof (not scaled) (m/s)
-    real(rk8) :: wtuq_roof(lbl:ubl)        ! latent heat conductance for roof (not scaled) (m/s)
-    real(rk8) :: wtus_road_perv(lbl:ubl)   ! sensible heat conductance for pervious road (not scaled) (m/s)
-    real(rk8) :: wtuq_road_perv(lbl:ubl)   ! latent heat conductance for pervious road (not scaled) (m/s)
-    real(rk8) :: wtus_road_imperv(lbl:ubl) ! sensible heat conductance for impervious road (not scaled) (m/s)
-    real(rk8) :: wtuq_road_imperv(lbl:ubl) ! latent heat conductance for impervious road (not scaled) (m/s)
-    real(rk8) :: wtus_sunwall(lbl:ubl)     ! sensible heat conductance for sunwall (not scaled) (m/s)
-    real(rk8) :: wtuq_sunwall(lbl:ubl)     ! latent heat conductance for sunwall (not scaled) (m/s)
-    real(rk8) :: wtus_shadewall(lbl:ubl)   ! sensible heat conductance for shadewall (not scaled) (m/s)
-    real(rk8) :: wtuq_shadewall(lbl:ubl)   ! latent heat conductance for shadewall (not scaled) (m/s)
-    real(rk8) :: t_sunwall_innerl(lbl:ubl)   ! temperature of inner layer of sunwall (K)
-    real(rk8) :: t_shadewall_innerl(lbl:ubl) ! temperature of inner layer of shadewall (K)
-    real(rk8) :: t_roof_innerl(lbl:ubl)      ! temperature of inner layer of roof (K)
-    real(rk8) :: lngth_roof                  ! length of roof (m)
-    real(rk8) :: wc                     ! convective velocity (m/s)
-    real(rk8) :: zeta                   ! dimensionless height used in Monin-Obukhov theory
-    real(rk8) :: eflx_sh_grnd_scale(lbp:ubp)  ! scaled sensible heat flux from ground (W/m**2) [+ to atm]
-    real(rk8) :: qflx_evap_soi_scale(lbp:ubp) ! scaled soil evaporation (mm H2O/s) (+ = to atm)
-    real(rk8) :: eflx_wasteheat_roof(lbl:ubl) ! sensible heat flux from urban heating/cooling sources of waste heat for roof (W/m**2)
-    real(rk8) :: eflx_wasteheat_sunwall(lbl:ubl) ! sensible heat flux from urban heating/cooling sources of waste heat for sunwall (W/m**2)
-    real(rk8) :: eflx_wasteheat_shadewall(lbl:ubl) ! sensible heat flux from urban heating/cooling sources of waste heat for shadewall (W/m**2)
-    real(rk8) :: eflx_heat_from_ac_roof(lbl:ubl) ! sensible heat flux put back into canyon due to heat removal by AC for roof (W/m**2)
-    real(rk8) :: eflx_heat_from_ac_sunwall(lbl:ubl) ! sensible heat flux put back into canyon due to heat removal by AC for sunwall (W/m**2)
-    real(rk8) :: eflx_heat_from_ac_shadewall(lbl:ubl) ! sensible heat flux put back into canyon due to heat removal by AC for shadewall (W/m**2)
-    real(rk8) :: eflx(lbl:ubl)                     ! total sensible heat flux for error check (W/m**2)
-    real(rk8) :: qflx(lbl:ubl)                     ! total water vapor flux for error check (kg/m**2/s)
-    real(rk8) :: eflx_scale(lbl:ubl)               ! sum of scaled sensible heat fluxes for urban columns for error check (W/m**2)
-    real(rk8) :: qflx_scale(lbl:ubl)               ! sum of scaled water vapor fluxes for urban columns for error check (kg/m**2/s)
-    real(rk8) :: eflx_err(lbl:ubl)                 ! sensible heat flux error (W/m**2)
-    real(rk8) :: qflx_err(lbl:ubl)                 ! water vapor flux error (kg/m**2/s)
-    real(rk8) :: fwet_roof                         ! fraction of roof surface that is wet (-)
-    real(rk8) :: fwet_road_imperv                  ! fraction of impervious road surface that is wet (-)
+    integer(ik4)  :: iter  ! iteration index
+    ! diff of vir. poten. temp. between ref. height and surface
+    real(rk8) :: dthv
+    real(rk8) :: tstar    ! temperature scaling parameter
+    real(rk8) :: qstar    ! moisture scaling parameter
+    real(rk8) :: thvstar  ! virtual potential temperature scaling parameter
+    ! sensible heat conductance for roof (not scaled) (m/s)
+    real(rk8) :: wtus_roof(lbl:ubl)
+    ! latent heat conductance for roof (not scaled) (m/s)
+    real(rk8) :: wtuq_roof(lbl:ubl)
+    ! sensible heat conductance for pervious road (not scaled) (m/s)
+    real(rk8) :: wtus_road_perv(lbl:ubl)
+    ! latent heat conductance for pervious road (not scaled) (m/s)
+    real(rk8) :: wtuq_road_perv(lbl:ubl)
+    ! sensible heat conductance for impervious road (not scaled) (m/s)
+    real(rk8) :: wtus_road_imperv(lbl:ubl)
+    ! latent heat conductance for impervious road (not scaled) (m/s)
+    real(rk8) :: wtuq_road_imperv(lbl:ubl)
+    ! sensible heat conductance for sunwall (not scaled) (m/s)
+    real(rk8) :: wtus_sunwall(lbl:ubl)
+    ! latent heat conductance for sunwall (not scaled) (m/s)
+    real(rk8) :: wtuq_sunwall(lbl:ubl)
+    ! sensible heat conductance for shadewall (not scaled) (m/s)
+    real(rk8) :: wtus_shadewall(lbl:ubl)
+    ! latent heat conductance for shadewall (not scaled) (m/s)
+    real(rk8) :: wtuq_shadewall(lbl:ubl)
+    ! temperature of inner layer of sunwall (K)
+    real(rk8) :: t_sunwall_innerl(lbl:ubl)
+    ! temperature of inner layer of shadewall (K)
+    real(rk8) :: t_shadewall_innerl(lbl:ubl)
+    ! temperature of inner layer of roof (K)
+    real(rk8) :: t_roof_innerl(lbl:ubl)
+    real(rk8) :: lngth_roof   ! length of roof (m)
+    real(rk8) :: wc     ! convective velocity (m/s)
+    real(rk8) :: zeta   ! dimensionless height used in Monin-Obukhov theory
+    ! scaled sensible heat flux from ground (W/m**2) [+ to atm]
+    real(rk8) :: eflx_sh_grnd_scale(lbp:ubp)
+    ! scaled soil evaporation (mm H2O/s) (+ = to atm)
+    real(rk8) :: qflx_evap_soi_scale(lbp:ubp)
+    ! sensible heat flux from urban heating/cooling sources of
+    ! waste heat for roof (W/m**2)
+    real(rk8) :: eflx_wasteheat_roof(lbl:ubl)
+    ! sensible heat flux from urban heating/cooling sources of
+    ! waste heat for sunwall (W/m**2)
+    real(rk8) :: eflx_wasteheat_sunwall(lbl:ubl)
+    ! sensible heat flux from urban heating/cooling sources of
+    ! waste heat for shadewall (W/m**2)
+    real(rk8) :: eflx_wasteheat_shadewall(lbl:ubl)
+    ! sensible heat flux put back into canyon due to heat removal
+    ! by AC for roof (W/m**2)
+    real(rk8) :: eflx_heat_from_ac_roof(lbl:ubl)
+    ! sensible heat flux put back into canyon due to heat removal
+    ! by AC for sunwall (W/m**2)
+    real(rk8) :: eflx_heat_from_ac_sunwall(lbl:ubl)
+    ! sensible heat flux put back into canyon due to heat removal
+    ! by AC for shadewall (W/m**2)
+    real(rk8) :: eflx_heat_from_ac_shadewall(lbl:ubl)
+    ! total sensible heat flux for error check (W/m**2)
+    real(rk8) :: eflx(lbl:ubl)
+    ! total water vapor flux for error check (kg/m**2/s)
+    real(rk8) :: qflx(lbl:ubl)
+    ! sum of scaled sensible heat fluxes for urban columns
+    ! for error check (W/m**2)
+    real(rk8) :: eflx_scale(lbl:ubl)
+    ! sum of scaled water vapor fluxes for urban columns
+    ! for error check (kg/m**2/s)
+    real(rk8) :: qflx_scale(lbl:ubl)
+    ! sensible heat flux error (W/m**2)
+    real(rk8) :: eflx_err(lbl:ubl)
+    ! water vapor flux error (kg/m**2/s)
+    real(rk8) :: qflx_err(lbl:ubl)
+    ! fraction of roof surface that is wet (-)
+    real(rk8) :: fwet_roof
+    ! fraction of impervious road surface that is wet (-)
+    real(rk8) :: fwet_road_imperv
 
-    integer(ik4) , parameter  :: niters = 3  ! maximum number of iterations for surface temperature
-    integer(ik4)  :: local_secp1(lbl:ubl)   ! seconds into current date in local time (sec)
-    real(rk8) :: dtime                  ! land model time step (sec)
-    integer(ik4)  :: year,month,day,secs    ! calendar info for current time step
-    logical  :: found                  ! flag in search loop
-    integer(ik4)  :: indexl                 ! index of first found in search loop
+    ! maximum number of iterations for surface temperature
+    integer(ik4) , parameter  :: niters = 3
+    ! seconds into current date in local time (sec)
+    integer(ik4)  :: local_secp1(lbl:ubl)
+    real(rk8) :: dtime  ! land model time step (sec)
+    ! calendar info for current time step
+    integer(ik4)  :: year,month,day,secs
+    logical  :: found   ! flag in search loop
+    ! index of first found in search loop
+    integer(ik4)  :: indexl
     real(rk8) :: z_d_town_loc(lbl:ubl)  ! temporary copy
     real(rk8) :: z_0_town_loc(lbl:ubl)  ! temporary copy
-    real(rk8), parameter :: lapse_rate = 0.0098D0     ! Dry adiabatic lapse rate (K/m)
-    real(rk8) :: e_ref2m                ! 2 m height surface saturated vapor pressure [Pa]
-    real(rk8) :: de2mdT                 ! derivative of 2 m height surface saturated vapor pressure on t_ref2m
-    real(rk8) :: qsat_ref2m             ! 2 m height surface saturated specific humidity [kg/kg]
-    real(rk8) :: dqsat2mdT              ! derivative of 2 m height surface saturated specific humidity on t_ref2m
+    ! Dry adiabatic lapse rate (K/m)
+    real(rk8), parameter :: lapse_rate = 0.0098D0
+    ! 2 m height surface saturated vapor pressure [Pa]
+    real(rk8) :: e_ref2m
+    ! derivative of 2 m height surface saturated vapor pressure on t_ref2m
+    real(rk8) :: de2mdT
+    ! 2 m height surface saturated specific humidity [kg/kg]
+    real(rk8) :: qsat_ref2m
+    ! derivative of 2 m height surface saturated specific humidity on t_ref2m
+    real(rk8) :: dqsat2mdT
 
     ! Assign pointers into module urban
 
@@ -3204,8 +3550,8 @@ module mod_clm_urban
         ! Total waste heat and heat from AC is sum of heat for walls and roofs
         ! accounting for different surface areas
         eflx_wasteheat(l) = wtlunit_roof(fl)*eflx_wasteheat_roof(l) + &
-            (1.D0-wtlunit_roof(fl))*(canyon_hwr(fl)*(eflx_wasteheat_sunwall(l) + &
-            eflx_wasteheat_shadewall(l)))
+            (1.D0-wtlunit_roof(fl))*(canyon_hwr(fl)* &
+            (eflx_wasteheat_sunwall(l) + eflx_wasteheat_shadewall(l)))
 
         ! Limit wasteheat to ensure that we don't get any unrealistically strong
         ! positive feedbacks due to AC in a warmer climate
@@ -3279,18 +3625,18 @@ module mod_clm_urban
 
       if (ctype(c) == icol_roof) then
         cgrnds(p) = forc_rho(g) * cpair * (wtas(l) + wtus_road_perv(l) +  &
-                    wtus_road_imperv(l) + wtus_sunwall(l) + wtus_shadewall(l)) * &
-                    (wtus_roof(l)/wts_sum(l))
+                    wtus_road_imperv(l) + wtus_sunwall(l) + &
+                    wtus_shadewall(l)) * (wtus_roof(l)/wts_sum(l))
         cgrndl(p) = forc_rho(g) * (wtaq(l) + wtuq_road_perv(l) +  &
-                    wtuq_road_imperv(l) + wtuq_sunwall(l) + wtuq_shadewall(l)) * &
-                    (wtuq_roof(l)/wtq_sum(l))*dqgdT(c)
+                    wtuq_road_imperv(l) + wtuq_sunwall(l) + &
+                    wtuq_shadewall(l)) * (wtuq_roof(l)/wtq_sum(l))*dqgdT(c)
       else if (ctype(c) == icol_road_perv) then
         cgrnds(p) = forc_rho(g) * cpair * (wtas(l) + wtus_roof(l) +  &
-                    wtus_road_imperv(l) + wtus_sunwall(l) + wtus_shadewall(l)) * &
-                    (wtus_road_perv(l)/wts_sum(l))
+                    wtus_road_imperv(l) + wtus_sunwall(l) + &
+                    wtus_shadewall(l)) * (wtus_road_perv(l)/wts_sum(l))
         cgrndl(p) = forc_rho(g) * (wtaq(l) + wtuq_roof(l) +  &
-                    wtuq_road_imperv(l) + wtuq_sunwall(l) + wtuq_shadewall(l)) * &
-                    (wtuq_road_perv(l)/wtq_sum(l))*dqgdT(c)
+                    wtuq_road_imperv(l) + wtuq_sunwall(l) + &
+                    wtuq_shadewall(l)) * (wtuq_road_perv(l)/wtq_sum(l))*dqgdT(c)
       else if (ctype(c) == icol_road_imperv) then
         cgrnds(p) = forc_rho(g) * cpair * (wtas(l) + wtus_roof(l) +  &
                     wtus_road_perv(l) + wtus_sunwall(l) + wtus_shadewall(l)) * &
@@ -3305,8 +3651,8 @@ module mod_clm_urban
         cgrndl(p) = 0.D0
       else if (ctype(c) == icol_shadewall) then
         cgrnds(p) = forc_rho(g) * cpair * (wtas(l) + wtus_roof(l) +  &
-                    wtus_road_perv(l) + wtus_road_imperv(l) + wtus_sunwall(l)) * &
-                    (wtus_shadewall(l)/wts_sum(l))
+                    wtus_road_perv(l) + wtus_road_imperv(l) + &
+                    wtus_sunwall(l)) * (wtus_shadewall(l)/wts_sum(l))
         cgrndl(p) = 0.D0
       end if
       cgrnd(p)  = cgrnds(p) + cgrndl(p)*htvp(c)
@@ -3462,8 +3808,9 @@ module mod_clm_urban
 
       lngth_roof = (ht_roof(fl)/canyon_hwr(fl)) * &
               wtlunit_roof(fl)/(1.D0-wtlunit_roof(fl))
-      t_building(l) = (ht_roof(fl)*(t_shadewall_innerl(l) + t_sunwall_innerl(l)) &
-                    +lngth_roof*t_roof_innerl(l))/(2.D0*ht_roof(fl)+lngth_roof)
+      t_building(l) = (ht_roof(fl)*(t_shadewall_innerl(l) + &
+              t_sunwall_innerl(l)) + &
+              lngth_roof*t_roof_innerl(l))/(2.D0*ht_roof(fl)+lngth_roof)
     end do
 
     ! No roots for urban except for pervious road
@@ -3495,7 +3842,7 @@ module mod_clm_urban
 
       ! 2 m height relative humidity
 
-      call QSat(t_ref2m(p), forc_pbot(g), e_ref2m, de2mdT, qsat_ref2m, dqsat2mdT)
+      call QSat(t_ref2m(p),forc_pbot(g),e_ref2m,de2mdT,qsat_ref2m,dqsat2mdT)
       rh_ref2m(p) = min(100.D0, q_ref2m(p) / qsat_ref2m * 100.D0)
       rh_ref2m_u(p) = rh_ref2m(p)
 

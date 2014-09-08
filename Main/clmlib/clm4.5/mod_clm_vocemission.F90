@@ -79,36 +79,47 @@ module mod_clm_vocemission
     integer(ik4) , pointer :: ivt(:)       ! pft vegetation type for current
     integer(ik4) , pointer :: clandunit(:) ! gridcell of corresponding column
     integer(ik4) , pointer :: ltype(:)     ! landunit type
-    real(rk8), pointer :: t_veg(:)         ! pft vegetation temperature (Kelvin)
-    real(rk8), pointer :: fsun(:)          ! sunlit fraction of canopy
-    real(rk8), pointer :: elai(:)          ! one-sided leaf area index with burying by snow
+    real(rk8), pointer :: t_veg(:)   ! pft vegetation temperature (Kelvin)
+    real(rk8), pointer :: fsun(:)    ! sunlit fraction of canopy
+    ! one-sided leaf area index with burying by snow
+    real(rk8), pointer :: elai(:)
     real(rk8), pointer :: clayfrac(:)      ! fraction of soil that is clay
     real(rk8), pointer :: sandfrac(:)      ! fraction of soil that is sand
-    real(rk8), pointer :: forc_solad(:,:)  ! direct beam radiation (visible only)
-    real(rk8), pointer :: forc_solai(:,:)  ! diffuse radiation     (visible only)
-    real(rk8), pointer :: elai_p(:)        ! one-sided leaf area index from previous timestep
-    real(rk8), pointer :: t_veg24(:)       ! avg pft vegetation temperature for last 24 hrs
-    real(rk8), pointer :: t_veg240(:)      ! avg pft vegetation temperature for last 240 hrs
-    real(rk8), pointer :: fsun24(:)        ! sunlit fraction of canopy last 24 hrs
-    real(rk8), pointer :: fsun240(:)       ! sunlit fraction of canopy last 240 hrs
-    real(rk8), pointer :: forc_solad24(:)  ! direct beam radiation last 24hrs  (visible only)
-    real(rk8), pointer :: forc_solai24(:)  ! diffuse radiation  last 24hrs     (visible only)
-    real(rk8), pointer :: forc_solad240(:) ! direct beam radiation last 240hrs (visible only)
-    real(rk8), pointer :: forc_solai240(:) ! diffuse radiation  last 240hrs    (visible only)
-    real(rk8), pointer :: h2osoi_vol(:,:)  ! volumetric soil water (m3/m3)
-    real(rk8), pointer :: h2osoi_ice(:,:)  ! ice soil content (kg/m3)
-    real(rk8), pointer :: dz(:,:)          ! depth of layer (m)
-    real(rk8), pointer :: bsw(:,:)         ! Clapp and Hornberger "b" (nlevgrnd)
-    real(rk8), pointer :: watsat(:,:)      ! volumetric soil water at saturation (porosity) (nlevgrnd)
-    real(rk8), pointer :: sucsat(:,:)      ! minimum soil suction (mm) (nlevgrnd)
-    real(rk8), pointer :: cisun_z(:,:)     ! sunlit intracellular CO2 (Pa)
-    real(rk8), pointer :: cisha_z(:,:)     ! shaded intracellular CO2 (Pa)
-    real(rk8), pointer :: forc_pbot(:)     ! atmospheric pressure (Pa)
-!
-! local pointers to original implicit out arrays
-!
-    real(rk8), pointer :: vocflx(:,:)      ! VOC flux [moles/m2/sec]
-    real(rk8), pointer :: vocflx_tot(:)    ! VOC flux [moles/m2/sec]
+    ! direct beam radiation (visible only)
+    real(rk8), pointer :: forc_solad(:,:)
+    ! diffuse radiation     (visible only)
+    real(rk8), pointer :: forc_solai(:,:)
+    ! one-sided leaf area index from previous timestep
+    real(rk8), pointer :: elai_p(:)
+    ! avg pft vegetation temperature for last 24 hrs
+    real(rk8), pointer :: t_veg24(:)
+    ! avg pft vegetation temperature for last 240 hrs
+    real(rk8), pointer :: t_veg240(:)
+    ! sunlit fraction of canopy last 24 hrs
+    real(rk8), pointer :: fsun24(:)
+    ! sunlit fraction of canopy last 240 hrs
+    real(rk8), pointer :: fsun240(:)
+    ! direct beam radiation last 24hrs  (visible only)
+    real(rk8), pointer :: forc_solad24(:)
+    ! diffuse radiation  last 24hrs     (visible only)
+    real(rk8), pointer :: forc_solai24(:)
+    ! direct beam radiation last 240hrs (visible only)
+    real(rk8), pointer :: forc_solad240(:)
+    ! diffuse radiation  last 240hrs    (visible only)
+    real(rk8), pointer :: forc_solai240(:)
+    real(rk8), pointer :: h2osoi_vol(:,:) ! volumetric soil water (m3/m3)
+    real(rk8), pointer :: h2osoi_ice(:,:) ! ice soil content (kg/m3)
+    real(rk8), pointer :: dz(:,:)         ! depth of layer (m)
+    real(rk8), pointer :: bsw(:,:)        ! Clapp and Hornberger "b" (nlevgrnd)
+    ! volumetric soil water at saturation (porosity) (nlevgrnd)
+    real(rk8), pointer :: watsat(:,:)
+    real(rk8), pointer :: sucsat(:,:)  ! minimum soil suction (mm) (nlevgrnd)
+    real(rk8), pointer :: cisun_z(:,:) ! sunlit intracellular CO2 (Pa)
+    real(rk8), pointer :: cisha_z(:,:) ! shaded intracellular CO2 (Pa)
+    real(rk8), pointer :: forc_pbot(:) ! atmospheric pressure (Pa)
+
+    real(rk8), pointer :: vocflx(:,:)   ! VOC flux [moles/m2/sec]
+    real(rk8), pointer :: vocflx_tot(:) ! VOC flux [moles/m2/sec]
 
     type(megan_out_type), pointer :: meg_out(:) ! fluxes for CLM history
 
@@ -131,7 +142,7 @@ module mod_clm_vocemission
     real(rk8), pointer :: par24a_out(:)
     real(rk8), pointer :: par240a_out(:)
     integer(ik4)  :: fp,p,g,c    ! indices
-    real(rk8) :: epsilon         ! emission factor [ug m-2 h-1]
+    real(rk8) :: xepsilon        ! emission factor [ug m-2 h-1]
     real(rk8) :: par_sun         ! temporary
     real(rk8) :: par24_sun       ! temporary
     real(rk8) :: par240_sun      ! temporary
@@ -139,13 +150,13 @@ module mod_clm_vocemission
     real(rk8) :: par24_sha       ! temporary
     real(rk8) :: par240_sha      ! temporary
     ! activity factor (accounting for light, T, age, LAI conditions)
-    real(rk8) :: gamma
-    real(rk8) :: gamma_p         ! activity factor for PPFD
-    real(rk8) :: gamma_l         ! activity factor for PPFD & LAI
-    real(rk8) :: gamma_t         ! activity factor for temperature
-    real(rk8) :: gamma_a         ! activity factor for leaf age
-    real(rk8) :: gamma_sm        ! activity factor for soil moisture
-    real(rk8) :: gamma_c         ! activity factor for CO2 (only isoprene)
+    real(rk8) :: gamma_x
+    real(rk8) :: gamma_p   ! activity factor for PPFD
+    real(rk8) :: gamma_l   ! activity factor for PPFD & LAI
+    real(rk8) :: gamma_t   ! activity factor for temperature
+    real(rk8) :: gamma_a   ! activity factor for leaf age
+    real(rk8) :: gamma_sm  ! activity factor for soil moisture
+    real(rk8) :: gamma_c   ! activity factor for CO2 (only isoprene)
 
     integer(ik4) :: class_num, n_meg_comps, imech, imeg, ii
 
@@ -162,13 +173,20 @@ module mod_clm_vocemission
     character(len=32), parameter :: subname = "VOCEmission"
 !
 !    ! root depth (m) (defined based on Zeng et al., 2001, cf Guenther 2006)
-!    root_depth(noveg)                                     = 0.D0   ! bare-soil
-!    root_depth(ndllf_evr_tmp_tree:ndllf_evr_brl_tree)     = 1.8D0  ! evergreen tree
-!    root_depth(ndllf_dcd_brl_tree)                        = 2.0D0  ! needleleaf deciduous boreal tree
-!    root_depth(nbrdlf_evr_trp_tree:nbrdlf_evr_tmp_tree)   = 3.0D0  ! broadleaf evergreen tree
-!    root_depth(nbrdlf_dcd_trp_tree:nbrdlf_dcd_brl_tree)   = 2.0D0  ! broadleaf deciduous tree
-!    root_depth(nbrdlf_evr_shrub:nbrdlf_dcd_brl_shrub)     = 2.5D0  ! shrub
-!    root_depth(nc3_arctic_grass:numpft)                   = 1.5D0  ! grass/crop
+!    ! bare-soil
+!    root_depth(noveg) = 0.D0
+!    ! evergreen tree
+!    root_depth(ndllf_evr_tmp_tree:ndllf_evr_brl_tree) = 1.8D0
+!    ! needleleaf deciduous boreal tree
+!    root_depth(ndllf_dcd_brl_tree) = 2.0D0
+!    ! broadleaf evergreen tree
+!    root_depth(nbrdlf_evr_trp_tree:nbrdlf_evr_tmp_tree) = 3.0D0
+!    ! broadleaf deciduous tree
+!    root_depth(nbrdlf_dcd_trp_tree:nbrdlf_dcd_brl_tree) = 2.0D0
+!    ! shrub
+!    root_depth(nbrdlf_evr_shrub:nbrdlf_dcd_brl_shrub) = 2.5D0
+!    ! grass/crop
+!    root_depth(nc3_arctic_grass:numpft) = 1.5D0
 !
     if ( shr_megan_mechcomps_n < 1) return
 
@@ -279,11 +297,11 @@ module mod_clm_vocemission
       c = pcolumn(p)
 
       ! initialize EF
-      epsilon=0.D0
+      xepsilon = 0.D0
 
       ! calculate VOC emissions for non-bare ground PFTs
       if (ivt(p) > 0) then
-        gamma=0.D0
+        gamma_x = 0.D0
 
         ! Calculate PAR: multiply w/m2 by 4.6 to get umol/m2/s for par
         !    (added 8/14/02)
@@ -322,9 +340,9 @@ module mod_clm_vocemission
           ! if specified, set EF for isoprene with mapped values
           if ( trim(meg_cmp%name) == 'isoprene' .and. &
                   shr_megan_mapped_emisfctrs) then
-            epsilon = get_map_EF(ivt(p),g)
+            xepsilon = get_map_EF(ivt(p),g)
           else
-            epsilon = meg_cmp%emis_factors(ivt(p))
+            xepsilon = meg_cmp%emis_factors(ivt(p))
           end if
 
           class_num = meg_cmp%class_number
@@ -350,46 +368,45 @@ module mod_clm_vocemission
           end if
 
           ! Calculate total scaling factor
-          gamma = gamma_l * gamma_sm * gamma_a * gamma_p * gamma_T * gamma_c
+          gamma_x = gamma_l * gamma_sm * gamma_a * gamma_p * gamma_T * gamma_c
 
-          if ( (gamma >=0.0D0) .and. (gamma< 100.D0) ) then
+          if ( ( gamma_x >= 0.0D0 ) .and. ( gamma_x < 100.D0 ) ) then
 
-            vocflx_meg(imeg) = epsilon * gamma * &
+            vocflx_meg(imeg) = xepsilon * gamma_x * &
                     megemis_units_factor / meg_cmp%molec_weight ! moles/m2/sec
 
             ! assign to arrays for history file output
             ! (not weighted by landfrac)
             meg_out(imeg)%flux_out(p) = meg_out(imeg)%flux_out(p) + &
-                     epsilon * gamma * megemis_units_factor*1.D-3 ! Kg/m2/sec
+                     xepsilon * gamma_x * megemis_units_factor*1.D-3 ! Kg/m2/sec
 
             if (imeg==1) then
-              !
-              gamma_out(p)=gamma
-              gammaP_out(p)=gamma_p
-              gammaT_out(p)=gamma_t
-              gammaA_out(p)=gamma_a
-              gammaS_out(p)=gamma_sm
-              gammaL_out(p)=gamma_l
-              gammaC_out(p)=gamma_c
+              gamma_out(p) = gamma_x
+              gammaP_out(p) = gamma_p
+              gammaT_out(p) = gamma_t
+              gammaA_out(p) = gamma_a
+              gammaS_out(p) = gamma_sm
+              gammaL_out(p) = gamma_l
+              gammaC_out(p) = gamma_c
 
-              paru_out(p)=par_sun
-              par24u_out(p)=par24_sun
-              par240u_out(p)=par240_sun
+              paru_out(p) = par_sun
+              par24u_out(p) = par24_sun
+              par240u_out(p) = par240_sun
 
-              para_out(p)=par_sha
-              par24a_out(p)=par24_sha
-              par240a_out(p)=par240_sha
+              para_out(p) = par_sha
+              par24a_out(p) = par24_sha
+              par240a_out(p) = par240_sha
 
-              alpha_out(p)=alpha
-              cp_out(p)=cp
+              alpha_out(p) = alpha
+              cp_out(p) = cp
 
-              topt_out(p)=topt
-              Eopt_out(p)=Eopt
+              topt_out(p) = topt
+              Eopt_out(p) = Eopt
             end if
           end if
-          if (debug .and. gamma > 0.0D0) then
+          if (debug .and. gamma_x > 0.0D0) then
             write(stdout,*) 'MEGAN: n, megan name, epsilon, gamma, vocflx: ', &
-                imeg, meg_cmp%name, epsilon, gamma, vocflx_meg(imeg), &
+                imeg, meg_cmp%name, xepsilon, gamma_x, vocflx_meg(imeg), &
                 gamma_p,gamma_t,gamma_a,gamma_sm,gamma_l
           end if
           meg_cmp => meg_cmp%next_megcomp

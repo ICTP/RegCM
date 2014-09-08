@@ -62,20 +62,22 @@ module mod_clm_cnc14decay
     real(rk8), pointer :: deadstemc_xfer(:)    ! (gC/m2) dead stem C transfer
     real(rk8), pointer :: frootc(:)            ! (gC/m2) fine root C
     real(rk8), pointer :: frootc_storage(:) ! (gC/m2) fine root C storage
-    real(rk8), pointer :: frootc_xfer(:)    ! (gC/m2) fine root C transfer
-    real(rk8), pointer :: gresp_storage(:)  ! (gC/m2) growth respiration storage
-    real(rk8), pointer :: gresp_xfer(:)     ! (gC/m2) growth respiration transfer
-    real(rk8), pointer :: leafc(:)          ! (gC/m2) leaf C
-    real(rk8), pointer :: leafc_storage(:)  ! (gC/m2) leaf C storage
-    real(rk8), pointer :: leafc_xfer(:)     ! (gC/m2) leaf C transfer
-    real(rk8), pointer :: livecrootc(:)     ! (gC/m2) live coarse root C
+    real(rk8), pointer :: frootc_xfer(:)   ! (gC/m2) fine root C transfer
+    real(rk8), pointer :: gresp_storage(:) ! (gC/m2) growth respiration storage
+    real(rk8), pointer :: gresp_xfer(:)    ! (gC/m2) growth respiration transfer
+    real(rk8), pointer :: leafc(:)         ! (gC/m2) leaf C
+    real(rk8), pointer :: leafc_storage(:) ! (gC/m2) leaf C storage
+    real(rk8), pointer :: leafc_xfer(:)    ! (gC/m2) leaf C transfer
+    real(rk8), pointer :: livecrootc(:)    ! (gC/m2) live coarse root C
     ! (gC/m2) live coarse root C storage
     real(rk8), pointer :: livecrootc_storage(:)
-    real(rk8), pointer :: livecrootc_xfer(:) ! (gC/m2) live coarse root C transfer
+    ! (gC/m2) live coarse root C transfer
+    real(rk8), pointer :: livecrootc_xfer(:)
     real(rk8), pointer :: livestemc(:)       ! (gC/m2) live stem C
     real(rk8), pointer :: livestemc_storage(:) ! (gC/m2) live stem C storage
     real(rk8), pointer :: livestemc_xfer(:)    ! (gC/m2) live stem C transfer
-    real(rk8), pointer :: pft_ctrunc(:)  ! (gC/m2) pft-level sink for C truncation
+    ! (gC/m2) pft-level sink for C truncation
+    real(rk8), pointer :: pft_ctrunc(:)
     real(rk8), pointer :: seedc(:)
 
     integer(ik4) :: fp,j,l,p,fc,c
@@ -88,37 +90,37 @@ module mod_clm_cnc14decay
     real(rk8) :: spinup_term
 
     ! assign local pointers at the column level
-    decomp_cpools_vr                   => clm3%g%l%c%cc14s%decomp_cpools_vr
+    decomp_cpools_vr => clm3%g%l%c%cc14s%decomp_cpools_vr
 
     ! ! assign local pointers at the column level
     ! new pointers for dynamic landcover
-    seedc                          => clm3%g%l%c%cc14s%seedc
+    seedc => clm3%g%l%c%cc14s%seedc
 
     ! assign local pointers at the pft level
-    cpool                          => clm3%g%l%c%p%pc14s%cpool
-    xsmrpool                       => clm3%g%l%c%p%pc14s%xsmrpool
-    deadcrootc                     => clm3%g%l%c%p%pc14s%deadcrootc
-    deadcrootc_storage             => clm3%g%l%c%p%pc14s%deadcrootc_storage
-    deadcrootc_xfer                => clm3%g%l%c%p%pc14s%deadcrootc_xfer
-    deadstemc                      => clm3%g%l%c%p%pc14s%deadstemc
-    deadstemc_storage              => clm3%g%l%c%p%pc14s%deadstemc_storage
-    deadstemc_xfer                 => clm3%g%l%c%p%pc14s%deadstemc_xfer
-    frootc                         => clm3%g%l%c%p%pc14s%frootc
-    frootc_storage                 => clm3%g%l%c%p%pc14s%frootc_storage
-    frootc_xfer                    => clm3%g%l%c%p%pc14s%frootc_xfer
-    gresp_storage                  => clm3%g%l%c%p%pc14s%gresp_storage
-    gresp_xfer                     => clm3%g%l%c%p%pc14s%gresp_xfer
-    leafc                          => clm3%g%l%c%p%pc14s%leafc
-    leafc_storage                  => clm3%g%l%c%p%pc14s%leafc_storage
-    leafc_xfer                     => clm3%g%l%c%p%pc14s%leafc_xfer
-    livecrootc                     => clm3%g%l%c%p%pc14s%livecrootc
-    livecrootc_storage             => clm3%g%l%c%p%pc14s%livecrootc_storage
-    livecrootc_xfer                => clm3%g%l%c%p%pc14s%livecrootc_xfer
-    livestemc                      => clm3%g%l%c%p%pc14s%livestemc
-    livestemc_storage              => clm3%g%l%c%p%pc14s%livestemc_storage
-    livestemc_xfer                 => clm3%g%l%c%p%pc14s%livestemc_xfer
-    pft_ctrunc                     => clm3%g%l%c%p%pc14s%pft_ctrunc
-    spinup_factor                  => decomp_cascade_con%spinup_factor
+    cpool              => clm3%g%l%c%p%pc14s%cpool
+    xsmrpool           => clm3%g%l%c%p%pc14s%xsmrpool
+    deadcrootc         => clm3%g%l%c%p%pc14s%deadcrootc
+    deadcrootc_storage => clm3%g%l%c%p%pc14s%deadcrootc_storage
+    deadcrootc_xfer    => clm3%g%l%c%p%pc14s%deadcrootc_xfer
+    deadstemc          => clm3%g%l%c%p%pc14s%deadstemc
+    deadstemc_storage  => clm3%g%l%c%p%pc14s%deadstemc_storage
+    deadstemc_xfer     => clm3%g%l%c%p%pc14s%deadstemc_xfer
+    frootc             => clm3%g%l%c%p%pc14s%frootc
+    frootc_storage     => clm3%g%l%c%p%pc14s%frootc_storage
+    frootc_xfer        => clm3%g%l%c%p%pc14s%frootc_xfer
+    gresp_storage      => clm3%g%l%c%p%pc14s%gresp_storage
+    gresp_xfer         => clm3%g%l%c%p%pc14s%gresp_xfer
+    leafc              => clm3%g%l%c%p%pc14s%leafc
+    leafc_storage      => clm3%g%l%c%p%pc14s%leafc_storage
+    leafc_xfer         => clm3%g%l%c%p%pc14s%leafc_xfer
+    livecrootc         => clm3%g%l%c%p%pc14s%livecrootc
+    livecrootc_storage => clm3%g%l%c%p%pc14s%livecrootc_storage
+    livecrootc_xfer    => clm3%g%l%c%p%pc14s%livecrootc_xfer
+    livestemc          => clm3%g%l%c%p%pc14s%livestemc
+    livestemc_storage  => clm3%g%l%c%p%pc14s%livestemc_storage
+    livestemc_xfer     => clm3%g%l%c%p%pc14s%livestemc_xfer
+    pft_ctrunc         => clm3%g%l%c%p%pc14s%pft_ctrunc
+    spinup_factor      => decomp_cascade_con%spinup_factor
 
     ! set time steps
     dt = dtsrf

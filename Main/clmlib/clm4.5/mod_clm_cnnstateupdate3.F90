@@ -27,7 +27,7 @@ module mod_clm_cnnstateupdate3
     use mod_clm_type
     use mod_clm_varpar , only : i_cwd, i_met_lit, i_cel_lit, i_lig_lit
     implicit none
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
@@ -94,8 +94,8 @@ module mod_clm_cnnstateupdate3
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) N pools
     real(rk8), pointer :: decomp_npools_vr(:,:,:)
     real(rk8), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead coarse root N strg
-    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead coarse root N trfr
+    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead corse root N strg
+    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead corse root N trfr
     real(rk8), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
     real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
     real(rk8), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
@@ -106,8 +106,8 @@ module mod_clm_cnnstateupdate3
     real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
     real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
     real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live coarse root N strg
-    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live coarse root N trfr
+    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live corse root N strg
+    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live corse root N trfr
     real(rk8), pointer :: livestemn(:)          ! (gN/m2) live stem N
     real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
     real(rk8), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
@@ -119,44 +119,46 @@ module mod_clm_cnnstateupdate3
     real(rk8):: dt  ! radiation time step (seconds)
 
     ! assign local pointers at the column level
-    fire_mortality_n_to_cwdn   => clm3%g%l%c%cnf%fire_mortality_n_to_cwdn
+    fire_mortality_n_to_cwdn => clm3%g%l%c%cnf%fire_mortality_n_to_cwdn
 #ifndef NITRIF_DENITRIF
-    sminn_leached_vr           => clm3%g%l%c%cnf%sminn_leached_vr
+    sminn_leached_vr    => clm3%g%l%c%cnf%sminn_leached_vr
 #else
-    smin_no3_leached_vr        => clm3%g%l%c%cnf%smin_no3_leached_vr
-    smin_no3_runoff_vr         => clm3%g%l%c%cnf%smin_no3_runoff_vr
-    smin_no3_vr                => clm3%g%l%c%cns%smin_no3_vr
-    smin_nh4_vr                => clm3%g%l%c%cns%smin_nh4_vr
+    smin_no3_leached_vr => clm3%g%l%c%cnf%smin_no3_leached_vr
+    smin_no3_runoff_vr  => clm3%g%l%c%cnf%smin_no3_runoff_vr
+    smin_no3_vr         => clm3%g%l%c%cns%smin_no3_vr
+    smin_nh4_vr         => clm3%g%l%c%cns%smin_nh4_vr
 #endif
     m_decomp_npools_to_fire_vr => clm3%g%l%c%cnf%m_decomp_npools_to_fire_vr
     m_n_to_litr_met_fire       => clm3%g%l%c%cnf%m_n_to_litr_met_fire
     m_n_to_litr_cel_fire       => clm3%g%l%c%cnf%m_n_to_litr_cel_fire
     m_n_to_litr_lig_fire       => clm3%g%l%c%cnf%m_n_to_litr_lig_fire
 
-    decomp_npools_vr           => clm3%g%l%c%cns%decomp_npools_vr
-    sminn_vr                   => clm3%g%l%c%cns%sminn_vr
+    decomp_npools_vr => clm3%g%l%c%cns%decomp_npools_vr
+    sminn_vr         => clm3%g%l%c%cns%sminn_vr
 
     ! assign local pointers at the pft level
-    m_leafn_to_fire               => clm3%g%l%c%p%pnf%m_leafn_to_fire
-    m_leafn_storage_to_fire       => clm3%g%l%c%p%pnf%m_leafn_storage_to_fire
-    m_leafn_xfer_to_fire          => clm3%g%l%c%p%pnf%m_leafn_xfer_to_fire
-    m_livestemn_to_fire           => clm3%g%l%c%p%pnf%m_livestemn_to_fire
-    m_livestemn_storage_to_fire   => clm3%g%l%c%p%pnf%m_livestemn_storage_to_fire
+    m_leafn_to_fire             => clm3%g%l%c%p%pnf%m_leafn_to_fire
+    m_leafn_storage_to_fire     => clm3%g%l%c%p%pnf%m_leafn_storage_to_fire
+    m_leafn_xfer_to_fire        => clm3%g%l%c%p%pnf%m_leafn_xfer_to_fire
+    m_livestemn_to_fire         => clm3%g%l%c%p%pnf%m_livestemn_to_fire
+    m_livestemn_storage_to_fire => clm3%g%l%c%p%pnf%m_livestemn_storage_to_fire
     m_livestemn_xfer_to_fire      => clm3%g%l%c%p%pnf%m_livestemn_xfer_to_fire
     m_deadstemn_to_fire           => clm3%g%l%c%p%pnf%m_deadstemn_to_fire
     m_deadstemn_storage_to_fire   => clm3%g%l%c%p%pnf%m_deadstemn_storage_to_fire
-    m_deadstemn_xfer_to_fire      => clm3%g%l%c%p%pnf%m_deadstemn_xfer_to_fire
-    m_frootn_to_fire              => clm3%g%l%c%p%pnf%m_frootn_to_fire
-    m_frootn_storage_to_fire      => clm3%g%l%c%p%pnf%m_frootn_storage_to_fire
-    m_frootn_xfer_to_fire         => clm3%g%l%c%p%pnf%m_frootn_xfer_to_fire
-    m_livecrootn_to_fire          => clm3%g%l%c%p%pnf%m_livecrootn_to_fire
-    m_livecrootn_storage_to_fire  => clm3%g%l%c%p%pnf%m_livecrootn_storage_to_fire
-    m_livecrootn_xfer_to_fire     => clm3%g%l%c%p%pnf%m_livecrootn_xfer_to_fire
-    m_deadcrootn_to_fire          => clm3%g%l%c%p%pnf%m_deadcrootn_to_fire
-    m_deadcrootn_storage_to_fire  => clm3%g%l%c%p%pnf%m_deadcrootn_storage_to_fire
-    m_deadcrootn_xfer_to_fire     => clm3%g%l%c%p%pnf%m_deadcrootn_xfer_to_fire
-    m_retransn_to_fire            => clm3%g%l%c%p%pnf%m_retransn_to_fire
-    m_leafn_to_litter_fire        => clm3%g%l%c%p%pnf%m_leafn_to_litter_fire
+    m_deadstemn_xfer_to_fire     => clm3%g%l%c%p%pnf%m_deadstemn_xfer_to_fire
+    m_frootn_to_fire             => clm3%g%l%c%p%pnf%m_frootn_to_fire
+    m_frootn_storage_to_fire     => clm3%g%l%c%p%pnf%m_frootn_storage_to_fire
+    m_frootn_xfer_to_fire        => clm3%g%l%c%p%pnf%m_frootn_xfer_to_fire
+    m_livecrootn_to_fire         => clm3%g%l%c%p%pnf%m_livecrootn_to_fire
+    m_livecrootn_storage_to_fire => &
+            clm3%g%l%c%p%pnf%m_livecrootn_storage_to_fire
+    m_livecrootn_xfer_to_fire    => clm3%g%l%c%p%pnf%m_livecrootn_xfer_to_fire
+    m_deadcrootn_to_fire         => clm3%g%l%c%p%pnf%m_deadcrootn_to_fire
+    m_deadcrootn_storage_to_fire => &
+            clm3%g%l%c%p%pnf%m_deadcrootn_storage_to_fire
+    m_deadcrootn_xfer_to_fire => clm3%g%l%c%p%pnf%m_deadcrootn_xfer_to_fire
+    m_retransn_to_fire        => clm3%g%l%c%p%pnf%m_retransn_to_fire
+    m_leafn_to_litter_fire    => clm3%g%l%c%p%pnf%m_leafn_to_litter_fire
     m_leafn_storage_to_litter_fire => &
             clm3%g%l%c%p%pnf%m_leafn_storage_to_litter_fire
     m_leafn_xfer_to_litter_fire    => &
@@ -312,12 +314,14 @@ module mod_clm_cnnstateupdate3
 
 
       ! transfer pools
-      leafn_xfer(p)      = leafn_xfer(p)      - m_leafn_xfer_to_fire(p)      * dt
-      frootn_xfer(p)     = frootn_xfer(p)     - m_frootn_xfer_to_fire(p)     * dt
-      livestemn_xfer(p)  = livestemn_xfer(p)  - m_livestemn_xfer_to_fire(p)  * dt
-      deadstemn_xfer(p)  = deadstemn_xfer(p)  - m_deadstemn_xfer_to_fire(p)  * dt
-      livecrootn_xfer(p) = livecrootn_xfer(p) - m_livecrootn_xfer_to_fire(p) * dt
-      deadcrootn_xfer(p) = deadcrootn_xfer(p) - m_deadcrootn_xfer_to_fire(p) * dt
+      leafn_xfer(p)      = leafn_xfer(p) - m_leafn_xfer_to_fire(p) * dt
+      frootn_xfer(p)     = frootn_xfer(p) - m_frootn_xfer_to_fire(p) * dt
+      livestemn_xfer(p)  = livestemn_xfer(p) - m_livestemn_xfer_to_fire(p) * dt
+      deadstemn_xfer(p)  = deadstemn_xfer(p) - m_deadstemn_xfer_to_fire(p) * dt
+      livecrootn_xfer(p) = livecrootn_xfer(p) - &
+              m_livecrootn_xfer_to_fire(p) * dt
+      deadcrootn_xfer(p) = deadcrootn_xfer(p) - &
+              m_deadcrootn_xfer_to_fire(p) * dt
 
       leafn_xfer(p)      = leafn_xfer(p)      - &
               m_leafn_xfer_to_litter_fire(p)      * dt
@@ -333,7 +337,7 @@ module mod_clm_cnnstateupdate3
               m_deadcrootn_xfer_to_litter_fire(p) * dt
 
       ! retranslocated N pool
-      retransn(p) = retransn(p) - m_retransn_to_fire(p)        * dt
+      retransn(p) = retransn(p) - m_retransn_to_fire(p) * dt
       retransn(p) = retransn(p) - m_retransn_to_litter_fire(p) * dt
 
     end do

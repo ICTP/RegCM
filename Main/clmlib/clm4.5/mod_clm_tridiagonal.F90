@@ -46,7 +46,7 @@ module mod_clm_tridiagonal
 
     ! Assign local pointers to derived subtypes components (column-level)
 
-    ctype          => clm3%g%l%c%itype
+    ctype => clm3%g%l%c%itype
 
     ! Solve the matrix
 

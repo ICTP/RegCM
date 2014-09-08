@@ -33,7 +33,7 @@ module mod_clm_cnsummary
     use mod_clm_cnndynamics , only : nfix_timeconst
     use mod_clm_varcon , only : secspday, spval
     implicit none
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
@@ -47,8 +47,8 @@ module mod_clm_cnsummary
     ! (gC/m2/s) total heterotrophic respiration
     real(rk8), pointer :: hr(:)
     real(rk8), pointer :: litfire(:)  ! (gC/m2/s) litter fire losses
-    real(rk8), pointer :: lithr(:)    ! (gC/m2/s) litter heterotrophic respiration
-    real(rk8), pointer :: cwdc(:)     ! (gC/m2) coarse woody debris C
+    real(rk8), pointer :: lithr(:) ! (gC/m2/s) litter heterotrophic respiration
+    real(rk8), pointer :: cwdc(:)  ! (gC/m2) coarse woody debris C
     ! (gC/m2) column-level sink for C truncation
     real(rk8), pointer :: col_ctrunc(:)
     real(rk8), pointer :: decomp_cascade_hr_vr(:,:,:)
@@ -119,7 +119,7 @@ module mod_clm_cnsummary
     real(rk8), pointer :: totecosysc(:)
     real(rk8), pointer :: totlitc(:)    ! (gC/m2) total litter carbon
     real(rk8), pointer :: totlitc_1m(:) ! (gC/m2) total litter carbon to 1 meter
-    real(rk8), pointer :: totsomc(:)    ! (gC/m2) total soil organic matter carbon
+    real(rk8), pointer :: totsomc(:)  ! (gC/m2) total soil organic matter carbon
     ! (gC/m2) total soil organic matter carbon to 1 meter
     real(rk8), pointer :: totsomc_1m(:)
     real(rk8), pointer :: agnpp(:) ! (gC/m2/s) aboveground NPP
@@ -324,8 +324,8 @@ module mod_clm_cnsummary
     ! (gC/m2) pft-level sink for C truncation
     real(rk8), pointer :: pft_ctrunc(:)
     real(rk8), pointer :: deadcrootc(:)         ! (gC/m2) dead coarse root C
-    real(rk8), pointer :: deadcrootc_storage(:) ! (gC/m2) dead coarse root C strg
-    real(rk8), pointer :: deadcrootc_xfer(:)    ! (gC/m2) dead coarse root C trnf
+    real(rk8), pointer :: deadcrootc_storage(:) ! (gC/m2) dead cors root C strg
+    real(rk8), pointer :: deadcrootc_xfer(:)    ! (gC/m2) dead cors root C trnf
     real(rk8), pointer :: deadstemc(:)          ! (gC/m2) dead stem C
     real(rk8), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
     real(rk8), pointer :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
@@ -334,14 +334,14 @@ module mod_clm_cnsummary
     real(rk8), pointer :: frootc(:)             ! (gC/m2) fine root C
     real(rk8), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
     real(rk8), pointer :: frootc_xfer(:)        ! (gC/m2) fine root C transfer
-    real(rk8), pointer :: gresp_storage(:)      ! (gC/m2) growth respiration strg
-    real(rk8), pointer :: gresp_xfer(:)         ! (gC/m2) growth respiration trnf
+    real(rk8), pointer :: gresp_storage(:)      ! (gC/m2) growth resp strg
+    real(rk8), pointer :: gresp_xfer(:)         ! (gC/m2) growth resp trnf
     real(rk8), pointer :: leafc(:)              ! (gC/m2) leaf C
     real(rk8), pointer :: leafc_storage(:)      ! (gC/m2) leaf C storage
     real(rk8), pointer :: leafc_xfer(:)         ! (gC/m2) leaf C transfer
     real(rk8), pointer :: livecrootc(:)         ! (gC/m2) live coarse root C
-    real(rk8), pointer :: livecrootc_storage(:) ! (gC/m2) live coarse root C strg
-    real(rk8), pointer :: livecrootc_xfer(:)    ! (gC/m2) live coarse root C trnf
+    real(rk8), pointer :: livecrootc_storage(:) ! (gC/m2) live cors root C strg
+    real(rk8), pointer :: livecrootc_xfer(:)    ! (gC/m2) live cors root C trnf
     real(rk8), pointer :: livestemc(:)          ! (gC/m2) live stem C
     real(rk8), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
     real(rk8), pointer :: livestemc_xfer(:)     ! (gC/m2) live stem C transfer
@@ -358,8 +358,8 @@ module mod_clm_cnsummary
     real(rk8), pointer :: tempsum_litfall(:)
 #endif
     ! for landcover change
-    real(rk8), pointer :: landuseflux(:)     ! (gC/m2/s) dwt_closs+product_closs
-    real(rk8), pointer :: landuptake(:)      ! (gC/m2/s) nee-landuseflux
+    real(rk8), pointer :: landuseflux(:) ! (gC/m2/s) dwt_closs+product_closs
+    real(rk8), pointer :: landuptake(:)  ! (gC/m2/s) nee-landuseflux
     ! (gC/m2/s) total carbon loss from land cover conversion
     real(rk8), pointer :: dwt_closs(:)
     ! (gC/m2/s) conversion C flux (immediate loss to atm)
@@ -583,28 +583,28 @@ module mod_clm_cnsummary
     m_livestemc_to_litter_fire       => pcisof%m_livestemc_to_litter_fire
     m_livestemc_storage_to_litter_fire => &
             pcisof%m_livestemc_storage_to_litter_fire
-    m_livestemc_xfer_to_litter_fire     => pcisof%m_livestemc_xfer_to_litter_fire
-    m_livestemc_to_deadstemc_fire       => pcisof%m_livestemc_to_deadstemc_fire
-    m_deadstemc_to_litter_fire          => pcisof%m_deadstemc_to_litter_fire
+    m_livestemc_xfer_to_litter_fire => pcisof%m_livestemc_xfer_to_litter_fire
+    m_livestemc_to_deadstemc_fire   => pcisof%m_livestemc_to_deadstemc_fire
+    m_deadstemc_to_litter_fire      => pcisof%m_deadstemc_to_litter_fire
     m_deadstemc_storage_to_litter_fire  => &
             pcisof%m_deadstemc_storage_to_litter_fire
-    m_deadstemc_xfer_to_litter_fire     => pcisof%m_deadstemc_xfer_to_litter_fire
-    m_frootc_to_litter_fire             => pcisof%m_frootc_to_litter_fire
-    m_frootc_storage_to_litter_fire     => pcisof%m_frootc_storage_to_litter_fire
-    m_frootc_xfer_to_litter_fire        => pcisof%m_frootc_xfer_to_litter_fire
-    m_livecrootc_to_litter_fire         => pcisof%m_livecrootc_to_litter_fire
+    m_deadstemc_xfer_to_litter_fire => pcisof%m_deadstemc_xfer_to_litter_fire
+    m_frootc_to_litter_fire         => pcisof%m_frootc_to_litter_fire
+    m_frootc_storage_to_litter_fire => pcisof%m_frootc_storage_to_litter_fire
+    m_frootc_xfer_to_litter_fire    => pcisof%m_frootc_xfer_to_litter_fire
+    m_livecrootc_to_litter_fire     => pcisof%m_livecrootc_to_litter_fire
     m_livecrootc_storage_to_litter_fire => &
             pcisof%m_livecrootc_storage_to_litter_fire
     m_livecrootc_xfer_to_litter_fire    => &
             pcisof%m_livecrootc_xfer_to_litter_fire
-    m_livecrootc_to_deadcrootc_fire     => pcisof%m_livecrootc_to_deadcrootc_fire
+    m_livecrootc_to_deadcrootc_fire => pcisof%m_livecrootc_to_deadcrootc_fire
     m_deadcrootc_to_litter_fire         => pcisof%m_deadcrootc_to_litter_fire
     m_deadcrootc_storage_to_litter_fire => &
             pcisof%m_deadcrootc_storage_to_litter_fire
     m_deadcrootc_xfer_to_litter_fire    => &
             pcisof%m_deadcrootc_xfer_to_litter_fire
-    m_gresp_storage_to_litter_fire      => pcisof%m_gresp_storage_to_litter_fire
-    m_gresp_xfer_to_litter_fire         => pcisof%m_gresp_xfer_to_litter_fire
+    m_gresp_storage_to_litter_fire  => pcisof%m_gresp_storage_to_litter_fire
+    m_gresp_xfer_to_litter_fire     => pcisof%m_gresp_xfer_to_litter_fire
 
     m_deadcrootc_storage_to_litter => pcisof%m_deadcrootc_storage_to_litter
     m_deadcrootc_to_litter         => pcisof%m_deadcrootc_to_litter
@@ -1029,17 +1029,17 @@ module mod_clm_cnsummary
     end do  ! end of pfts loop
 
     ! use p2c routine to get selected column-average pft-level fluxes and states
-    call p2c(num_soilc, filter_soilc,gpp,col_gpp)
-    call p2c(num_soilc, filter_soilc,ar,col_ar)
-    call p2c(num_soilc, filter_soilc,rr,col_rr)
-    call p2c(num_soilc, filter_soilc,npp,col_npp)
-    call p2c(num_soilc, filter_soilc,vegfire,col_vegfire)
-    call p2c(num_soilc, filter_soilc,wood_harvestc,col_wood_harvestc)
-    call p2c(num_soilc, filter_soilc,totvegc,col_totvegc)
-    call p2c(num_soilc, filter_soilc,totpftc,col_totpftc)
-    call p2c(num_soilc, filter_soilc,pft_fire_closs,col_pft_fire_closs)
-    call p2c(num_soilc, filter_soilc,litfall,col_litfall)
-    call p2c(num_soilc, filter_soilc,hrv_xsmrpool_to_atm,col_hrv_xsmrpool_to_atm)
+    call p2c(num_soilc,filter_soilc,gpp,col_gpp)
+    call p2c(num_soilc,filter_soilc,ar,col_ar)
+    call p2c(num_soilc,filter_soilc,rr,col_rr)
+    call p2c(num_soilc,filter_soilc,npp,col_npp)
+    call p2c(num_soilc,filter_soilc,vegfire,col_vegfire)
+    call p2c(num_soilc,filter_soilc,wood_harvestc,col_wood_harvestc)
+    call p2c(num_soilc,filter_soilc,totvegc,col_totvegc)
+    call p2c(num_soilc,filter_soilc,totpftc,col_totpftc)
+    call p2c(num_soilc,filter_soilc,pft_fire_closs,col_pft_fire_closs)
+    call p2c(num_soilc,filter_soilc,litfall,col_litfall)
+    call p2c(num_soilc,filter_soilc,hrv_xsmrpool_to_atm,col_hrv_xsmrpool_to_atm)
 
     if ( isotope .eq. 'bulk') then
       if (nfix_timeconst .gt. 0.D0 .and. nfix_timeconst .lt. 500.D0 ) then
@@ -1408,7 +1408,7 @@ module mod_clm_cnsummary
     use mod_clm_varpar , only : nlevdecomp, ndecomp_cascade_transitions, &
             ndecomp_pools
     implicit none
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
@@ -1518,8 +1518,8 @@ module mod_clm_cnsummary
     real(rk8), pointer :: retransn_to_npool(:)
     real(rk8), pointer :: sminn_to_npool(:)
     real(rk8), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead coarse root N strg
-    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead coarse root N trnf
+    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead coas root N strg
+    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead cors root N trnf
     real(rk8), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
     real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
     real(rk8), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
@@ -1532,8 +1532,8 @@ module mod_clm_cnsummary
     real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
     real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
     real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live coarse root N strg
-    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live coarse root N trnf
+    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live cors root N strg
+    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live cors root N trnf
     real(rk8), pointer :: grainn(:)             ! (gN/m2) grain N
     real(rk8), pointer :: grainn_storage(:)     ! (gN/m2) grain N storage
     real(rk8), pointer :: grainn_xfer(:)        ! (gN/m2) grain N transfer
@@ -1543,7 +1543,7 @@ module mod_clm_cnsummary
     real(rk8), pointer :: retransn(:)           ! (gN/m2) plant pool of
                                                 ! retranslocated N
     real(rk8), pointer :: npool(:)      ! (gN/m2) temporary plant N pool
-    real(rk8), pointer :: pft_ntrunc(:) ! (gN/m2) pft-level sink for N truncation
+    real(rk8), pointer :: pft_ntrunc(:) ! (gN/m2) pft-lev sink for N truncation
     real(rk8), pointer :: storvegn(:)   ! (gN/m2) stored vegetation nitrogen
     real(rk8), pointer :: totpftn(:)    ! (gN/m2) total pft-level nitrogen
     real(rk8), pointer :: totvegn(:)    ! (gN/m2) total vegetation nitrogen
@@ -1571,7 +1571,8 @@ module mod_clm_cnsummary
 
     real(rk8), pointer :: decomp_cascade_ntransfer_vr(:,:,:)
     real(rk8), pointer :: decomp_cascade_ntransfer(:,:)
-    ! vert-res mineral N flux for transition along decomposition cascade (gN/m3/s)
+    ! vert-res mineral N flux for transition along decomposition
+    ! cascade (gN/m3/s)
     real(rk8), pointer :: decomp_cascade_sminn_flux_vr(:,:,:)
     ! vert-int (diagnostic) mineral N flux for transition along
     ! decomposition cascade (gN/m2/s)
@@ -1589,148 +1590,147 @@ module mod_clm_cnsummary
     real(rk8) :: maxdepth     ! depth to integrate soil variables
 
     ! assign local pointers
-    ivt                            => clm3%g%l%c%p%itype
-    col_fire_nloss                 => clm3%g%l%c%cnf%col_fire_nloss
-    denit                          => clm3%g%l%c%cnf%denit
-    col_pft_fire_nloss             => clm3%g%l%c%cnf%pnf_a%pft_fire_nloss
-    cwdn                           => clm3%g%l%c%cns%cwdn
-    col_ntrunc                     => clm3%g%l%c%cns%col_ntrunc
-    sminn                          => clm3%g%l%c%cns%sminn
-    m_decomp_npools_to_fire_vr     => clm3%g%l%c%cnf%m_decomp_npools_to_fire_vr
-    m_decomp_npools_to_fire        => clm3%g%l%c%cnf%m_decomp_npools_to_fire
-    is_litter                      => decomp_cascade_con%is_litter
-    is_soil                        => decomp_cascade_con%is_soil
-    is_cwd                         => decomp_cascade_con%is_cwd
+    ivt                        => clm3%g%l%c%p%itype
+    col_fire_nloss             => clm3%g%l%c%cnf%col_fire_nloss
+    denit                      => clm3%g%l%c%cnf%denit
+    col_pft_fire_nloss         => clm3%g%l%c%cnf%pnf_a%pft_fire_nloss
+    cwdn                       => clm3%g%l%c%cns%cwdn
+    col_ntrunc                 => clm3%g%l%c%cns%col_ntrunc
+    sminn                      => clm3%g%l%c%cns%sminn
+    m_decomp_npools_to_fire_vr => clm3%g%l%c%cnf%m_decomp_npools_to_fire_vr
+    m_decomp_npools_to_fire    => clm3%g%l%c%cnf%m_decomp_npools_to_fire
+    is_litter                  => decomp_cascade_con%is_litter
+    is_soil                    => decomp_cascade_con%is_soil
+    is_cwd                     => decomp_cascade_con%is_cwd
 #ifndef NITRIF_DENITRIF
-    sminn_to_denit_excess_vr         => clm3%g%l%c%cnf%sminn_to_denit_excess_vr
-    sminn_to_denit_excess            => clm3%g%l%c%cnf%sminn_to_denit_excess
+    sminn_to_denit_excess_vr   => clm3%g%l%c%cnf%sminn_to_denit_excess_vr
+    sminn_to_denit_excess      => clm3%g%l%c%cnf%sminn_to_denit_excess
     sminn_to_denit_decomp_cascade_vr &
             => clm3%g%l%c%cnf%sminn_to_denit_decomp_cascade_vr
     sminn_to_denit_decomp_cascade    => &
             clm3%g%l%c%cnf%sminn_to_denit_decomp_cascade
-    sminn_leached_vr                 => clm3%g%l%c%cnf%sminn_leached_vr
-    sminn_leached                    => clm3%g%l%c%cnf%sminn_leached
+    sminn_leached_vr       => clm3%g%l%c%cnf%sminn_leached_vr
+    sminn_leached          => clm3%g%l%c%cnf%sminn_leached
 #else
-    smin_no3                          => clm3%g%l%c%cns%smin_no3
-    smin_nh4                          => clm3%g%l%c%cns%smin_nh4
-    smin_no3_vr                       => clm3%g%l%c%cns%smin_no3_vr
-    smin_nh4_vr                       => clm3%g%l%c%cns%smin_nh4_vr
-    f_nit_vr                          => clm3%g%l%c%cnf%f_nit_vr
-    f_nit                             => clm3%g%l%c%cnf%f_nit
-    f_denit_vr                        => clm3%g%l%c%cnf%f_denit_vr
-    f_denit                           => clm3%g%l%c%cnf%f_denit
-    pot_f_nit_vr                      => clm3%g%l%c%cnf%pot_f_nit_vr
-    pot_f_nit                         => clm3%g%l%c%cnf%pot_f_nit
-    pot_f_denit_vr                    => clm3%g%l%c%cnf%pot_f_denit_vr
-    pot_f_denit                       => clm3%g%l%c%cnf%pot_f_denit
-    f_n2o_denit_vr                    => clm3%g%l%c%cnf%f_n2o_denit_vr
-    f_n2o_nit_vr                      => clm3%g%l%c%cnf%f_n2o_nit_vr
-    f_n2o_denit                       => clm3%g%l%c%cnf%f_n2o_denit
-    f_n2o_nit                         => clm3%g%l%c%cnf%f_n2o_nit
-    smin_no3_leached_vr               => clm3%g%l%c%cnf%smin_no3_leached_vr
-    smin_no3_leached                  => clm3%g%l%c%cnf%smin_no3_leached
-    smin_no3_runoff_vr                => clm3%g%l%c%cnf%smin_no3_runoff_vr
-    smin_no3_runoff                   => clm3%g%l%c%cnf%smin_no3_runoff
+    smin_no3               => clm3%g%l%c%cns%smin_no3
+    smin_nh4               => clm3%g%l%c%cns%smin_nh4
+    smin_no3_vr            => clm3%g%l%c%cns%smin_no3_vr
+    smin_nh4_vr            => clm3%g%l%c%cns%smin_nh4_vr
+    f_nit_vr               => clm3%g%l%c%cnf%f_nit_vr
+    f_nit                  => clm3%g%l%c%cnf%f_nit
+    f_denit_vr             => clm3%g%l%c%cnf%f_denit_vr
+    f_denit                => clm3%g%l%c%cnf%f_denit
+    pot_f_nit_vr           => clm3%g%l%c%cnf%pot_f_nit_vr
+    pot_f_nit              => clm3%g%l%c%cnf%pot_f_nit
+    pot_f_denit_vr         => clm3%g%l%c%cnf%pot_f_denit_vr
+    pot_f_denit            => clm3%g%l%c%cnf%pot_f_denit
+    f_n2o_denit_vr         => clm3%g%l%c%cnf%f_n2o_denit_vr
+    f_n2o_nit_vr           => clm3%g%l%c%cnf%f_n2o_nit_vr
+    f_n2o_denit            => clm3%g%l%c%cnf%f_n2o_denit
+    f_n2o_nit              => clm3%g%l%c%cnf%f_n2o_nit
+    smin_no3_leached_vr    => clm3%g%l%c%cnf%smin_no3_leached_vr
+    smin_no3_leached       => clm3%g%l%c%cnf%smin_no3_leached
+    smin_no3_runoff_vr     => clm3%g%l%c%cnf%smin_no3_runoff_vr
+    smin_no3_runoff        => clm3%g%l%c%cnf%smin_no3_runoff
 #endif
-    decomp_npools                     => clm3%g%l%c%cns%decomp_npools
-    decomp_npools_vr                  => clm3%g%l%c%cns%decomp_npools_vr
-    decomp_npools_1m                  => clm3%g%l%c%cns%decomp_npools_1m
-    altmax_indx                       => clm3%g%l%c%cps%altmax_indx
-    altmax_lastyear_indx              => clm3%g%l%c%cps%altmax_lastyear_indx
-    sminn_vr                          => clm3%g%l%c%cns%sminn_vr
-    col_ntrunc_vr                     => clm3%g%l%c%cns%col_ntrunc_vr
-    supplement_to_sminn               => clm3%g%l%c%cnf%supplement_to_sminn
-    supplement_to_sminn_vr            => clm3%g%l%c%cnf%supplement_to_sminn_vr
-    col_totpftn                    => clm3%g%l%c%cns%pns_a%totpftn
-    col_totvegn                    => clm3%g%l%c%cns%pns_a%totvegn
-    totcoln                        => clm3%g%l%c%cns%totcoln
-    totecosysn                     => clm3%g%l%c%cns%totecosysn
-    totlitn                        => clm3%g%l%c%cns%totlitn
-    totlitn_1m                     => clm3%g%l%c%cns%totlitn_1m
-    totsomn                        => clm3%g%l%c%cns%totsomn
-    m_leafn_to_fire                => clm3%g%l%c%p%pnf%m_leafn_to_fire
-    m_leafn_storage_to_fire        => clm3%g%l%c%p%pnf%m_leafn_storage_to_fire
-    m_leafn_xfer_to_fire           => clm3%g%l%c%p%pnf%m_leafn_xfer_to_fire
-    m_livestemn_to_fire            => clm3%g%l%c%p%pnf%m_livestemn_to_fire
-    m_livestemn_storage_to_fire    => clm3%g%l%c%p%pnf%m_livestemn_storage_to_fire
-    m_livestemn_xfer_to_fire       => clm3%g%l%c%p%pnf%m_livestemn_xfer_to_fire
-    m_deadstemn_to_fire            => clm3%g%l%c%p%pnf%m_deadstemn_to_fire
-    totsomn_1m                     => clm3%g%l%c%cns%totsomn_1m
-    m_deadcrootn_storage_to_fire   => &
+    decomp_npools            => clm3%g%l%c%cns%decomp_npools
+    decomp_npools_vr         => clm3%g%l%c%cns%decomp_npools_vr
+    decomp_npools_1m         => clm3%g%l%c%cns%decomp_npools_1m
+    altmax_indx              => clm3%g%l%c%cps%altmax_indx
+    altmax_lastyear_indx     => clm3%g%l%c%cps%altmax_lastyear_indx
+    sminn_vr                 => clm3%g%l%c%cns%sminn_vr
+    col_ntrunc_vr            => clm3%g%l%c%cns%col_ntrunc_vr
+    supplement_to_sminn      => clm3%g%l%c%cnf%supplement_to_sminn
+    supplement_to_sminn_vr   => clm3%g%l%c%cnf%supplement_to_sminn_vr
+    col_totpftn              => clm3%g%l%c%cns%pns_a%totpftn
+    col_totvegn              => clm3%g%l%c%cns%pns_a%totvegn
+    totcoln                  => clm3%g%l%c%cns%totcoln
+    totecosysn               => clm3%g%l%c%cns%totecosysn
+    totlitn                  => clm3%g%l%c%cns%totlitn
+    totlitn_1m               => clm3%g%l%c%cns%totlitn_1m
+    totsomn                  => clm3%g%l%c%cns%totsomn
+    m_leafn_to_fire          => clm3%g%l%c%p%pnf%m_leafn_to_fire
+    m_leafn_storage_to_fire  => clm3%g%l%c%p%pnf%m_leafn_storage_to_fire
+    m_leafn_xfer_to_fire     => clm3%g%l%c%p%pnf%m_leafn_xfer_to_fire
+    m_livestemn_to_fire      => clm3%g%l%c%p%pnf%m_livestemn_to_fire
+    m_livestemn_storage_to_fire => clm3%g%l%c%p%pnf%m_livestemn_storage_to_fire
+    m_livestemn_xfer_to_fire    => clm3%g%l%c%p%pnf%m_livestemn_xfer_to_fire
+    m_deadstemn_to_fire      => clm3%g%l%c%p%pnf%m_deadstemn_to_fire
+    totsomn_1m               => clm3%g%l%c%cns%totsomn_1m
+    m_deadcrootn_storage_to_fire => &
             clm3%g%l%c%p%pnf%m_deadcrootn_storage_to_fire
-    m_deadcrootn_to_fire           => clm3%g%l%c%p%pnf%m_deadcrootn_to_fire
-    m_deadcrootn_xfer_to_fire      => clm3%g%l%c%p%pnf%m_deadcrootn_xfer_to_fire
-    m_deadstemn_storage_to_fire    => &
+    m_deadcrootn_to_fire         => clm3%g%l%c%p%pnf%m_deadcrootn_to_fire
+    m_deadcrootn_xfer_to_fire    => clm3%g%l%c%p%pnf%m_deadcrootn_xfer_to_fire
+    m_deadstemn_storage_to_fire  => &
             clm3%g%l%c%p%pnf%m_deadstemn_storage_to_fire
-    m_deadstemn_xfer_to_fire       => clm3%g%l%c%p%pnf%m_deadstemn_xfer_to_fire
-    m_frootn_to_fire               => clm3%g%l%c%p%pnf%m_frootn_to_fire
-    m_frootn_storage_to_fire       => clm3%g%l%c%p%pnf%m_frootn_storage_to_fire
-    m_frootn_xfer_to_fire          => clm3%g%l%c%p%pnf%m_frootn_xfer_to_fire
-    m_livecrootn_to_fire           => clm3%g%l%c%p%pnf%m_livecrootn_to_fire
-    m_livecrootn_storage_to_fire   => &
+    m_deadstemn_xfer_to_fire     => clm3%g%l%c%p%pnf%m_deadstemn_xfer_to_fire
+    m_frootn_to_fire             => clm3%g%l%c%p%pnf%m_frootn_to_fire
+    m_frootn_storage_to_fire     => clm3%g%l%c%p%pnf%m_frootn_storage_to_fire
+    m_frootn_xfer_to_fire        => clm3%g%l%c%p%pnf%m_frootn_xfer_to_fire
+    m_livecrootn_to_fire         => clm3%g%l%c%p%pnf%m_livecrootn_to_fire
+    m_livecrootn_storage_to_fire => &
             clm3%g%l%c%p%pnf%m_livecrootn_storage_to_fire
-    m_livecrootn_xfer_to_fire      => clm3%g%l%c%p%pnf%m_livecrootn_xfer_to_fire
-    m_deadcrootn_to_fire           => clm3%g%l%c%p%pnf%m_deadcrootn_to_fire
-    m_deadcrootn_storage_to_fire   => &
+    m_livecrootn_xfer_to_fire    => clm3%g%l%c%p%pnf%m_livecrootn_xfer_to_fire
+    m_deadcrootn_to_fire         => clm3%g%l%c%p%pnf%m_deadcrootn_to_fire
+    m_deadcrootn_storage_to_fire => &
             clm3%g%l%c%p%pnf%m_deadcrootn_storage_to_fire
-    m_deadcrootn_xfer_to_fire      => clm3%g%l%c%p%pnf%m_deadcrootn_xfer_to_fire
-    m_retransn_to_fire             => clm3%g%l%c%p%pnf%m_retransn_to_fire
+    m_deadcrootn_xfer_to_fire    => clm3%g%l%c%p%pnf%m_deadcrootn_xfer_to_fire
+    m_retransn_to_fire           => clm3%g%l%c%p%pnf%m_retransn_to_fire
 
-
-    hrv_deadstemn_to_prod10n       => clm3%g%l%c%p%pnf%hrv_deadstemn_to_prod10n
-    hrv_deadstemn_to_prod100n      => clm3%g%l%c%p%pnf%hrv_deadstemn_to_prod100n
-    ndeploy                        => clm3%g%l%c%p%pnf%ndeploy
-    pft_fire_nloss                 => clm3%g%l%c%p%pnf%pft_fire_nloss
-    retransn_to_npool              => clm3%g%l%c%p%pnf%retransn_to_npool
-    sminn_to_npool                 => clm3%g%l%c%p%pnf%sminn_to_npool
-    deadcrootn                     => clm3%g%l%c%p%pns%deadcrootn
-    deadcrootn_storage             => clm3%g%l%c%p%pns%deadcrootn_storage
-    deadcrootn_xfer                => clm3%g%l%c%p%pns%deadcrootn_xfer
-    deadstemn                      => clm3%g%l%c%p%pns%deadstemn
-    deadstemn_storage              => clm3%g%l%c%p%pns%deadstemn_storage
-    deadstemn_xfer                 => clm3%g%l%c%p%pns%deadstemn_xfer
-    dispvegn                       => clm3%g%l%c%p%pns%dispvegn
-    frootn                         => clm3%g%l%c%p%pns%frootn
-    frootn_storage                 => clm3%g%l%c%p%pns%frootn_storage
-    frootn_xfer                    => clm3%g%l%c%p%pns%frootn_xfer
-    leafn                          => clm3%g%l%c%p%pns%leafn
-    leafn_storage                  => clm3%g%l%c%p%pns%leafn_storage
-    leafn_xfer                     => clm3%g%l%c%p%pns%leafn_xfer
-    livecrootn                     => clm3%g%l%c%p%pns%livecrootn
-    livecrootn_storage             => clm3%g%l%c%p%pns%livecrootn_storage
-    livecrootn_xfer                => clm3%g%l%c%p%pns%livecrootn_xfer
-    grainn                         => clm3%g%l%c%p%pns%grainn
-    grainn_storage                 => clm3%g%l%c%p%pns%grainn_storage
-    grainn_xfer                    => clm3%g%l%c%p%pns%grainn_xfer
-    livestemn                      => clm3%g%l%c%p%pns%livestemn
-    livestemn_storage              => clm3%g%l%c%p%pns%livestemn_storage
-    livestemn_xfer                 => clm3%g%l%c%p%pns%livestemn_xfer
-    retransn                       => clm3%g%l%c%p%pns%retransn
-    npool                          => clm3%g%l%c%p%pns%npool
-    pft_ntrunc                     => clm3%g%l%c%p%pns%pft_ntrunc
-    storvegn                       => clm3%g%l%c%p%pns%storvegn
-    totpftn                        => clm3%g%l%c%p%pns%totpftn
-    totvegn                        => clm3%g%l%c%p%pns%totvegn
+    hrv_deadstemn_to_prod10n     => clm3%g%l%c%p%pnf%hrv_deadstemn_to_prod10n
+    hrv_deadstemn_to_prod100n    => clm3%g%l%c%p%pnf%hrv_deadstemn_to_prod100n
+    ndeploy                      => clm3%g%l%c%p%pnf%ndeploy
+    pft_fire_nloss               => clm3%g%l%c%p%pnf%pft_fire_nloss
+    retransn_to_npool            => clm3%g%l%c%p%pnf%retransn_to_npool
+    sminn_to_npool               => clm3%g%l%c%p%pnf%sminn_to_npool
+    deadcrootn                   => clm3%g%l%c%p%pns%deadcrootn
+    deadcrootn_storage           => clm3%g%l%c%p%pns%deadcrootn_storage
+    deadcrootn_xfer              => clm3%g%l%c%p%pns%deadcrootn_xfer
+    deadstemn                    => clm3%g%l%c%p%pns%deadstemn
+    deadstemn_storage            => clm3%g%l%c%p%pns%deadstemn_storage
+    deadstemn_xfer               => clm3%g%l%c%p%pns%deadstemn_xfer
+    dispvegn                     => clm3%g%l%c%p%pns%dispvegn
+    frootn                       => clm3%g%l%c%p%pns%frootn
+    frootn_storage               => clm3%g%l%c%p%pns%frootn_storage
+    frootn_xfer                  => clm3%g%l%c%p%pns%frootn_xfer
+    leafn                        => clm3%g%l%c%p%pns%leafn
+    leafn_storage                => clm3%g%l%c%p%pns%leafn_storage
+    leafn_xfer                   => clm3%g%l%c%p%pns%leafn_xfer
+    livecrootn                   => clm3%g%l%c%p%pns%livecrootn
+    livecrootn_storage           => clm3%g%l%c%p%pns%livecrootn_storage
+    livecrootn_xfer              => clm3%g%l%c%p%pns%livecrootn_xfer
+    grainn                       => clm3%g%l%c%p%pns%grainn
+    grainn_storage               => clm3%g%l%c%p%pns%grainn_storage
+    grainn_xfer                  => clm3%g%l%c%p%pns%grainn_xfer
+    livestemn                    => clm3%g%l%c%p%pns%livestemn
+    livestemn_storage            => clm3%g%l%c%p%pns%livestemn_storage
+    livestemn_xfer               => clm3%g%l%c%p%pns%livestemn_xfer
+    retransn                     => clm3%g%l%c%p%pns%retransn
+    npool                        => clm3%g%l%c%p%pns%npool
+    pft_ntrunc                   => clm3%g%l%c%p%pns%pft_ntrunc
+    storvegn                     => clm3%g%l%c%p%pns%storvegn
+    totpftn                      => clm3%g%l%c%p%pns%totpftn
+    totvegn                      => clm3%g%l%c%p%pns%totvegn
     ! dynamic landcover pointers
-    wood_harvestn                  => clm3%g%l%c%p%pnf%wood_harvestn
-    col_wood_harvestn              => clm3%g%l%c%cnf%pnf_a%wood_harvestn
-    dwt_nloss                      => clm3%g%l%c%cnf%dwt_nloss
-    dwt_conv_nflux                 => clm3%g%l%c%cnf%dwt_conv_nflux
-    prod10n_loss                   => clm3%g%l%c%cnf%prod10n_loss
-    prod100n_loss                  => clm3%g%l%c%cnf%prod100n_loss
-    product_nloss                  => clm3%g%l%c%cnf%product_nloss
-    seedn                          => clm3%g%l%c%cns%seedn
-    prod10n                        => clm3%g%l%c%cns%prod10n
-    prod100n                       => clm3%g%l%c%cns%prod100n
-    totprodn                       => clm3%g%l%c%cns%totprodn
-    som_n_leached                  => clm3%g%l%c%cnf%som_n_leached
-    decomp_npools_leached          => clm3%g%l%c%cnf%decomp_npools_leached
+    wood_harvestn                => clm3%g%l%c%p%pnf%wood_harvestn
+    col_wood_harvestn            => clm3%g%l%c%cnf%pnf_a%wood_harvestn
+    dwt_nloss                    => clm3%g%l%c%cnf%dwt_nloss
+    dwt_conv_nflux               => clm3%g%l%c%cnf%dwt_conv_nflux
+    prod10n_loss                 => clm3%g%l%c%cnf%prod10n_loss
+    prod100n_loss                => clm3%g%l%c%cnf%prod100n_loss
+    product_nloss                => clm3%g%l%c%cnf%product_nloss
+    seedn                        => clm3%g%l%c%cns%seedn
+    prod10n                      => clm3%g%l%c%cns%prod10n
+    prod100n                     => clm3%g%l%c%cns%prod100n
+    totprodn                     => clm3%g%l%c%cns%totprodn
+    som_n_leached                => clm3%g%l%c%cnf%som_n_leached
+    decomp_npools_leached        => clm3%g%l%c%cnf%decomp_npools_leached
     decomp_npools_transport_tendency => &
             clm3%g%l%c%cnf%decomp_npools_transport_tendency
-    decomp_cascade_ntransfer_vr    => clm3%g%l%c%cnf%decomp_cascade_ntransfer_vr
-    decomp_cascade_ntransfer       => clm3%g%l%c%cnf%decomp_cascade_ntransfer
-    decomp_cascade_sminn_flux_vr   => clm3%g%l%c%cnf%decomp_cascade_sminn_flux_vr
-    decomp_cascade_sminn_flux      => clm3%g%l%c%cnf%decomp_cascade_sminn_flux
+    decomp_cascade_ntransfer_vr  => clm3%g%l%c%cnf%decomp_cascade_ntransfer_vr
+    decomp_cascade_ntransfer     => clm3%g%l%c%cnf%decomp_cascade_ntransfer
+    decomp_cascade_sminn_flux_vr => clm3%g%l%c%cnf%decomp_cascade_sminn_flux_vr
+    decomp_cascade_sminn_flux    => clm3%g%l%c%cnf%decomp_cascade_sminn_flux
 
     ! pft loop
     do fp = 1 , num_soilp

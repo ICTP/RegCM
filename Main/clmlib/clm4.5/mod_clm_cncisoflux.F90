@@ -28,12 +28,12 @@ module mod_clm_cncisoflux
   ! On the radiation time step, set the carbon isotopic flux
   ! variables (except for gap-phase mortality and fire fluxes)
   !
-  subroutine CIsoFlux1(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
+  subroutine CIsoFlux1(num_soilc,filter_soilc,num_soilp,filter_soilp,isotope)
     use mod_clm_type
     implicit none
-    integer(ik4), intent(in) :: num_soilc         ! number of soil columns filter
-    integer(ik4), intent(in) :: filter_soilc(:)   ! filter for soil columns
-    integer(ik4), intent(in) :: num_soilp         ! number of soil pfts in filter
+    integer(ik4), intent(in) :: num_soilc     ! number of soil columns filter
+    integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
+    integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:)   ! filter for soil pfts
     character(len=*), intent(in) :: isotope  ! 'c13' or 'c14'
     type(pft_type), pointer :: p
@@ -74,7 +74,8 @@ module mod_clm_cncisoflux
                      pcisos%leafc_xfer, p%pcs%leafc_xfer, &
                      num_soilp, filter_soilp, 1.D0, 0, isotope)
 
-    call CIsoFluxCalc(pcisof%frootc_xfer_to_frootc, p%pcf%frootc_xfer_to_frootc, &
+    call CIsoFluxCalc(pcisof%frootc_xfer_to_frootc, &
+                      p%pcf%frootc_xfer_to_frootc, &
                       pcisos%frootc_xfer, p%pcs%frootc_xfer, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
@@ -230,7 +231,8 @@ module mod_clm_cncisoflux
                       pcisos%cpool, p%pcs%cpool, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
-    call CIsoFluxCalc(pcisof%cpool_leaf_storage_gr, p%pcf%cpool_leaf_storage_gr, &
+    call CIsoFluxCalc(pcisof%cpool_leaf_storage_gr, &
+                      p%pcf%cpool_leaf_storage_gr, &
                       pcisos%cpool, p%pcs%cpool, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
@@ -280,15 +282,18 @@ module mod_clm_cncisoflux
                       pcisos%gresp_xfer, p%pcs%gresp_xfer, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
-    call CIsoFluxCalc(pcisof%transfer_livecroot_gr, p%pcf%transfer_livecroot_gr, &
+    call CIsoFluxCalc(pcisof%transfer_livecroot_gr, &
+                      p%pcf%transfer_livecroot_gr, &
                       pcisos%gresp_xfer, p%pcs%gresp_xfer, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
-    call CIsoFluxCalc(pcisof%transfer_deadcroot_gr, p%pcf%transfer_deadcroot_gr, &
+    call CIsoFluxCalc(pcisof%transfer_deadcroot_gr, &
+                      p%pcf%transfer_deadcroot_gr, &
                       pcisos%gresp_xfer, p%pcs%gresp_xfer, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
-    call CIsoFluxCalc(pcisof%leafc_storage_to_xfer, p%pcf%leafc_storage_to_xfer, &
+    call CIsoFluxCalc(pcisof%leafc_storage_to_xfer, &
+                      p%pcf%leafc_storage_to_xfer, &
                       pcisos%leafc_storage, p%pcs%leafc_storage, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
@@ -317,7 +322,8 @@ module mod_clm_cncisoflux
                       pcisos%deadcrootc_storage, p%pcs%deadcrootc_storage, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
-    call CIsoFluxCalc(pcisof%gresp_storage_to_xfer, p%pcf%gresp_storage_to_xfer, &
+    call CIsoFluxCalc(pcisof%gresp_storage_to_xfer, &
+                      p%pcf%gresp_storage_to_xfer, &
                       pcisos%gresp_storage, p%pcs%gresp_storage, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
@@ -365,13 +371,13 @@ module mod_clm_cncisoflux
   !
   ! On the radiation time step, set the carbon isotopic fluxes for gap mortality
   !
-  subroutine CIsoFlux2(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
+  subroutine CIsoFlux2(num_soilc,filter_soilc,num_soilp,filter_soilp,isotope)
     use mod_clm_type
     implicit none
-    integer(ik4), intent(in) :: num_soilc         ! number of soil columns filter
-    integer(ik4), intent(in) :: filter_soilc(:)   ! filter for soil columns
-    integer(ik4), intent(in) :: num_soilp         ! number of soil pfts in filter
-    integer(ik4), intent(in) :: filter_soilp(:)   ! filter for soil pfts
+    integer(ik4), intent(in) :: num_soilc     ! number of soil columns filter
+    integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
+    integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
+    integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     character(len=*), intent(in) :: isotope  ! 'c13' or 'c14'
 
     type(pft_type), pointer :: p
@@ -422,7 +428,8 @@ module mod_clm_cncisoflux
                       pcisos%frootc_xfer, p%pcs%frootc_xfer, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
-    call CIsoFluxCalc(pcisof%m_livestemc_to_litter, p%pcf%m_livestemc_to_litter, &
+    call CIsoFluxCalc(pcisof%m_livestemc_to_litter, &
+                      p%pcf%m_livestemc_to_litter, &
                       pcisos%livestemc, p%pcs%livestemc, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
@@ -436,7 +443,8 @@ module mod_clm_cncisoflux
                       pcisos%livestemc_xfer, p%pcs%livestemc_xfer, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
-    call CIsoFluxCalc(pcisof%m_deadstemc_to_litter, p%pcf%m_deadstemc_to_litter, &
+    call CIsoFluxCalc(pcisof%m_deadstemc_to_litter, &
+                      p%pcf%m_deadstemc_to_litter, &
                       pcisos%deadstemc, p%pcs%deadstemc, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
@@ -490,14 +498,15 @@ module mod_clm_cncisoflux
                       pcisos%gresp_xfer, p%pcs%gresp_xfer, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
-    ! call routine to shift pft-level gap mortality fluxes to column, for isotopes
-    ! the non-isotope version of this routine is in CNGapMortalityMod.F90.
+    ! call routine to shift pft-level gap mortality fluxes to column,
+    ! for isotopes the non-isotope version of this routine is in
+    ! CNGapMortalityMod.F90.
     call CNCIsoGapPftToColumn(num_soilc, filter_soilc, isotope)
   end subroutine CIsoFlux2
   !
   ! set the carbon isotopic fluxes for harvest mortality
   !
-  subroutine CIsoFlux2h(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
+  subroutine CIsoFlux2h(num_soilc,filter_soilc,num_soilp,filter_soilp,isotope)
     use mod_clm_type
     implicit none
     integer(ik4), intent(in) :: num_soilc        ! number of soil columns filter
@@ -633,23 +642,25 @@ module mod_clm_cncisoflux
                       pcisos%totvegc, p%pcs%totvegc, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
-    ! call routine to shift pft-level gap mortality fluxes to column, for isotopes
-    ! the non-isotope version of this routine is in CNGapMortalityMod.F90.
+    ! call routine to shift pft-level gap mortality fluxes to column,
+    ! for isotopes the non-isotope version of this routine is in
+    ! CNGapMortalityMod.F90.
 
     call CNCIsoHarvestPftToColumn(num_soilc, filter_soilc, isotope)
 
   end subroutine CIsoFlux2h
   !
-  ! On the radiation time step, set the carbon isotopic fluxes for fire mortality
+  ! On the radiation time step, set the carbon isotopic fluxes
+  ! for fire mortality
   !
-  subroutine CIsoFlux3(num_soilc, filter_soilc, num_soilp, filter_soilp, isotope)
+  subroutine CIsoFlux3(num_soilc,filter_soilc,num_soilp,filter_soilp,isotope)
     use mod_clm_type
     use mod_clm_varpar , only : max_pft_per_col
     implicit none
-    integer(ik4), intent(in) :: num_soilc         ! number of soil columns filter
-    integer(ik4), intent(in) :: filter_soilc(:)   ! filter for soil columns
-    integer(ik4), intent(in) :: num_soilp         ! number of soil pfts in filter
-    integer(ik4), intent(in) :: filter_soilp(:)   ! filter for soil pfts
+    integer(ik4), intent(in) :: num_soilc    ! number of soil columns filter
+    integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
+    integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
+    integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     character(len=*), intent(in) :: isotope  ! 'c13' or 'c14'
 
     type(pft_type), pointer :: p
@@ -689,12 +700,12 @@ module mod_clm_cncisoflux
         call fatal(__FILE__,__LINE__, &
           'CNCIsoFluxMod: iso must be either c13 or c14')
     end select
-    croot_prof                     => clm3%g%l%c%p%pps%croot_prof
-    stem_prof                      => clm3%g%l%c%p%pps%stem_prof
-    npfts                          => clm3%g%l%c%npfts
-    pfti                           => clm3%g%l%c%pfti
-    wtcol                          => clm3%g%l%c%p%wtcol
-    pactive                        => clm3%g%l%c%p%active
+    croot_prof => clm3%g%l%c%p%pps%croot_prof
+    stem_prof  => clm3%g%l%c%p%pps%stem_prof
+    npfts      => clm3%g%l%c%npfts
+    pfti       => clm3%g%l%c%pfti
+    wtcol      => clm3%g%l%c%p%wtcol
+    pactive    => clm3%g%l%c%p%active
 
     ! pft-level fire mortality fluxes
 
@@ -720,7 +731,8 @@ module mod_clm_cncisoflux
                       pcisos%frootc_storage, p%pcs%frootc_storage, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
-    call CIsoFluxCalc(pcisof%m_frootc_xfer_to_fire, p%pcf%m_frootc_xfer_to_fire, &
+    call CIsoFluxCalc(pcisof%m_frootc_xfer_to_fire, &
+                      p%pcf%m_frootc_xfer_to_fire, &
                       pcisos%frootc_xfer, p%pcs%frootc_xfer, &
                       num_soilp, filter_soilp, 1.D0, 0, isotope)
 
@@ -857,14 +869,14 @@ module mod_clm_cncisoflux
     logical , pointer :: pactive(:)
     real(rk8), pointer :: leafc_to_litter(:)
     real(rk8), pointer :: frootc_to_litter(:)
-    real(rk8), pointer :: lf_flab(:)      ! leaf litter labile fraction
-    real(rk8), pointer :: lf_fcel(:)      ! leaf litter cellulose fraction
-    real(rk8), pointer :: lf_flig(:)      ! leaf litter lignin fraction
-    real(rk8), pointer :: fr_flab(:)      ! fine root litter labile fraction
-    real(rk8), pointer :: fr_fcel(:)      ! fine root litter cellulose fraction
-    real(rk8), pointer :: fr_flig(:)      ! fine root litter lignin fraction
-    integer(ik4) , pointer :: npfts(:)    ! number of pfts for each column
-    integer(ik4) , pointer :: pfti(:)     ! beginning pft index for each column
+    real(rk8), pointer :: lf_flab(:)   ! leaf litter labile fraction
+    real(rk8), pointer :: lf_fcel(:)   ! leaf litter cellulose fraction
+    real(rk8), pointer :: lf_flig(:)   ! leaf litter lignin fraction
+    real(rk8), pointer :: fr_flab(:)   ! fine root litter labile fraction
+    real(rk8), pointer :: fr_fcel(:)   ! fine root litter cellulose fraction
+    real(rk8), pointer :: fr_flig(:)   ! fine root litter lignin fraction
+    integer(ik4) , pointer :: npfts(:) ! number of pfts for each column
+    integer(ik4) , pointer :: pfti(:)  ! beginning pft index for each column
 
     ! C fluxes associated with phenology (litterfall and crop) to
     ! litter metabolic pool (gC/m3/s)
@@ -897,27 +909,27 @@ module mod_clm_cncisoflux
     end select
 
     ! assign local pointers to derived type arrays (in)
-    ivt                    => clm3%g%l%c%p%itype
-    wtcol                  => clm3%g%l%c%p%wtcol
-    pactive                => clm3%g%l%c%p%active
-    leafc_to_litter        => pcisof%leafc_to_litter
-    frootc_to_litter       => pcisof%frootc_to_litter
-    npfts                  => clm3%g%l%c%npfts
-    pfti                   => clm3%g%l%c%pfti
-    lf_flab                => pftcon%lf_flab
-    lf_fcel                => pftcon%lf_fcel
-    lf_flig                => pftcon%lf_flig
-    fr_flab                => pftcon%fr_flab
-    fr_fcel                => pftcon%fr_fcel
-    fr_flig                => pftcon%fr_flig
+    ivt              => clm3%g%l%c%p%itype
+    wtcol            => clm3%g%l%c%p%wtcol
+    pactive          => clm3%g%l%c%p%active
+    leafc_to_litter  => pcisof%leafc_to_litter
+    frootc_to_litter => pcisof%frootc_to_litter
+    npfts            => clm3%g%l%c%npfts
+    pfti             => clm3%g%l%c%pfti
+    lf_flab          => pftcon%lf_flab
+    lf_fcel          => pftcon%lf_fcel
+    lf_flig          => pftcon%lf_flig
+    fr_flab          => pftcon%fr_flab
+    fr_fcel          => pftcon%fr_fcel
+    fr_flig          => pftcon%fr_flig
 
     ! assign local pointers to derived type arrays (out)
-    phenology_c_to_litr_met_c  => ccisof%phenology_c_to_litr_met_c
-    phenology_c_to_litr_cel_c  => ccisof%phenology_c_to_litr_cel_c
-    phenology_c_to_litr_lig_c  => ccisof%phenology_c_to_litr_lig_c
+    phenology_c_to_litr_met_c => ccisof%phenology_c_to_litr_met_c
+    phenology_c_to_litr_cel_c => ccisof%phenology_c_to_litr_cel_c
+    phenology_c_to_litr_lig_c => ccisof%phenology_c_to_litr_lig_c
 
-    leaf_prof    => clm3%g%l%c%p%pps%leaf_prof
-    froot_prof   => clm3%g%l%c%p%pps%froot_prof
+    leaf_prof  => clm3%g%l%c%p%pps%leaf_prof
+    froot_prof => clm3%g%l%c%p%pps%froot_prof
 
     do j = 1 , nlevdecomp
       do pi = 1 , max_pft_per_col
@@ -928,21 +940,30 @@ module mod_clm_cncisoflux
             p = pfti(c) + pi - 1
             if (pactive(p)) then
               ! leaf litter carbon fluxes
-              phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) + &
-                 leafc_to_litter(p) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
-              phenology_c_to_litr_cel_c(c,j) = phenology_c_to_litr_cel_c(c,j) + &
-                 leafc_to_litter(p) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
-              phenology_c_to_litr_lig_c(c,j) = phenology_c_to_litr_lig_c(c,j) + &
-                 leafc_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+              phenology_c_to_litr_met_c(c,j) = &
+                 phenology_c_to_litr_met_c(c,j) + &
+                 leafc_to_litter(p) * lf_flab(ivt(p)) * &
+                 wtcol(p) * leaf_prof(p,j)
+              phenology_c_to_litr_cel_c(c,j) = &
+                 phenology_c_to_litr_cel_c(c,j) + &
+                 leafc_to_litter(p) * lf_fcel(ivt(p)) * &
+                 wtcol(p) * leaf_prof(p,j)
+              phenology_c_to_litr_lig_c(c,j) = &
+                 phenology_c_to_litr_lig_c(c,j) + &
+                 leafc_to_litter(p) * lf_flig(ivt(p)) * &
+                 wtcol(p) * leaf_prof(p,j)
 
               ! fine root litter carbon fluxes
-              phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) + &
+              phenology_c_to_litr_met_c(c,j) = &
+                 phenology_c_to_litr_met_c(c,j) + &
                  frootc_to_litter(p) * fr_flab(ivt(p)) * &
                  wtcol(p) * froot_prof(p,j)
-              phenology_c_to_litr_cel_c(c,j) = phenology_c_to_litr_cel_c(c,j) + &
+              phenology_c_to_litr_cel_c(c,j) = &
+                 phenology_c_to_litr_cel_c(c,j) + &
                  frootc_to_litter(p) * fr_fcel(ivt(p)) * &
                  wtcol(p) * froot_prof(p,j)
-              phenology_c_to_litr_lig_c(c,j) = phenology_c_to_litr_lig_c(c,j) + &
+              phenology_c_to_litr_lig_c(c,j) = &
+                 phenology_c_to_litr_lig_c(c,j) + &
                  frootc_to_litter(p) * fr_flig(ivt(p)) * &
                  wtcol(p) * froot_prof(p,j)
             end if
@@ -973,8 +994,8 @@ module mod_clm_cncisoflux
     real(rk8), pointer :: fr_flab(:)  ! fine root litter labile fraction
     real(rk8), pointer :: fr_fcel(:)  ! fine root litter cellulose fraction
     real(rk8), pointer :: fr_flig(:)  ! fine root litter lignin fraction
-    integer(ik4) , pointer :: npfts(:)    ! number of pfts for each column
-    integer(ik4) , pointer :: pfti(:)     ! beginning pft index for each column
+    integer(ik4) , pointer :: npfts(:) ! number of pfts for each column
+    integer(ik4) , pointer :: pfti(:)  ! beginning pft index for each column
     real(rk8), pointer :: m_leafc_to_litter(:)
     real(rk8), pointer :: m_frootc_to_litter(:)
     real(rk8), pointer :: m_livestemc_to_litter(:)
@@ -1027,12 +1048,12 @@ module mod_clm_cncisoflux
     end select
 
     ! assign local pointers
-    lf_flab                        => pftcon%lf_flab
-    lf_fcel                        => pftcon%lf_fcel
-    lf_flig                        => pftcon%lf_flig
-    fr_flab                        => pftcon%fr_flab
-    fr_fcel                        => pftcon%fr_fcel
-    fr_flig                        => pftcon%fr_flig
+    lf_flab  => pftcon%lf_flab
+    lf_fcel  => pftcon%lf_fcel
+    lf_flig  => pftcon%lf_flig
+    fr_flab  => pftcon%fr_flab
+    fr_fcel  => pftcon%fr_fcel
+    fr_flig  => pftcon%fr_flig
 
     ! assign local pointers to column-level arrays
     npfts                          => clm3%g%l%c%npfts
@@ -1134,10 +1155,12 @@ module mod_clm_cncisoflux
                    m_deadstemc_storage_to_litter(p)  * wtcol(p) * stem_prof(p,j)
               gap_mortality_c_to_litr_met_c(c,j) = &
                    gap_mortality_c_to_litr_met_c(c,j) + &
-                   m_livecrootc_storage_to_litter(p) * wtcol(p) * croot_prof(p,j)
+                   m_livecrootc_storage_to_litter(p) * &
+                   wtcol(p) * croot_prof(p,j)
               gap_mortality_c_to_litr_met_c(c,j) = &
                    gap_mortality_c_to_litr_met_c(c,j) + &
-                   m_deadcrootc_storage_to_litter(p) * wtcol(p) * croot_prof(p,j)
+                   m_deadcrootc_storage_to_litter(p) * &
+                   wtcol(p) * croot_prof(p,j)
               gap_mortality_c_to_litr_met_c(c,j) = &
                    gap_mortality_c_to_litr_met_c(c,j) + &
                    m_gresp_storage_to_litter(p) * wtcol(p) * leaf_prof(p,j)
@@ -1172,8 +1195,8 @@ module mod_clm_cncisoflux
     end do
   end subroutine CNCIsoGapPftToColumn
   !
-  ! gather all pft-level harvest mortality fluxes
-  ! to the column level and assign them to the litter, cwd, and wood product pools
+  ! gather all pft-level harvest mortality fluxes to the column level and
+  ! assign them to the litter, cwd, and wood product pools
   !
   subroutine CNCIsoHarvestPftToColumn (num_soilc, filter_soilc, isotope)
     use mod_clm_type
@@ -1250,12 +1273,12 @@ module mod_clm_cncisoflux
     end select
 
     ! assign local pointers
-    lf_flab                        => pftcon%lf_flab
-    lf_fcel                        => pftcon%lf_fcel
-    lf_flig                        => pftcon%lf_flig
-    fr_flab                        => pftcon%fr_flab
-    fr_fcel                        => pftcon%fr_fcel
-    fr_flig                        => pftcon%fr_flig
+    lf_flab => pftcon%lf_flab
+    lf_fcel => pftcon%lf_fcel
+    lf_flig => pftcon%lf_flig
+    fr_flab => pftcon%fr_flab
+    fr_fcel => pftcon%fr_fcel
+    fr_flig => pftcon%fr_flig
 
     ! assign local pointers to column-level arrays
     npfts                       => clm3%g%l%c%npfts
@@ -1341,7 +1364,8 @@ module mod_clm_cncisoflux
               harvest_c_to_litr_met_c(c,j) = harvest_c_to_litr_met_c(c,j) + &
                      hrv_leafc_storage_to_litter(p) * wtcol(p) * leaf_prof(p,j)
               harvest_c_to_litr_met_c(c,j) = harvest_c_to_litr_met_c(c,j) + &
-                     hrv_frootc_storage_to_litter(p) * wtcol(p) * froot_prof(p,j)
+                     hrv_frootc_storage_to_litter(p) * &
+                     wtcol(p) * froot_prof(p,j)
               harvest_c_to_litr_met_c(c,j) = harvest_c_to_litr_met_c(c,j) + &
                      hrv_livestemc_storage_to_litter(p) * &
                      wtcol(p) * stem_prof(p,j)
@@ -1367,7 +1391,8 @@ module mod_clm_cncisoflux
               harvest_c_to_litr_met_c(c,j)  = harvest_c_to_litr_met_c(c,j) + &
                      hrv_deadstemc_xfer_to_litter(p) * wtcol(p) * stem_prof(p,j)
               harvest_c_to_litr_met_c(c,j) = harvest_c_to_litr_met_c(c,j) + &
-                     hrv_livecrootc_xfer_to_litter(p) * wtcol(p) * croot_prof(p,j)
+                     hrv_livecrootc_xfer_to_litter(p) * &
+                     wtcol(p) * croot_prof(p,j)
               harvest_c_to_litr_met_c(c,j) = harvest_c_to_litr_met_c(c,j) + &
                      hrv_deadcrootc_xfer_to_litter(p) * &
                      wtcol(p) * croot_prof(p,j)
@@ -1410,7 +1435,7 @@ module mod_clm_cncisoflux
     real(rk8), intent(in):: frax_c13
     integer(ik4), intent(in) :: num        ! number of filter members
     integer(ik4), intent(in) :: filter(:)  ! filter indices
-    integer(ik4), intent(in) :: diag       ! 0=no diagnostics, 1=print diagnostics
+    integer(ik4), intent(in) :: diag  ! 0=no diagnostics, 1=print diagnostics
     character(len=*), intent(in) :: isotope  ! 'c13' or 'c14'
 
     integer(ik4) :: i,f     ! indices

@@ -4,7 +4,8 @@ module mod_clm_cndecompcascadebgc
 #ifndef CENTURY_DECOMP
 
   !
-  ! Module that sets the coeffiecients used in the decomposition cascade submodel.  This uses the BGC parameters as in CLMCN 4.0
+  ! Module that sets the coeffiecients used in the decomposition cascade
+  ! submodel.  This uses the BGC parameters as in CLMCN 4.0
   !
   use mod_intkinds
   use mod_realkinds
@@ -386,8 +387,8 @@ module mod_clm_cndecompcascadebgc
     use mod_clm_type
     use mod_clm_varcon, only: secspday
     implicit none
-    integer(ik4), intent(in) :: lbc, ubc        ! column bounds
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: lbc, ubc   ! column bounds
+    integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     ! column level
     ! rate constant for decomposition (1./sec)
@@ -554,15 +555,17 @@ module mod_clm_cndecompcascadebgc
       ! assuming that the base rate constants are assigned for non-moisture
       ! limiting conditions at 25 C.
       ! Peter Thornton: 3/13/09
-      ! Replaced the Lloyd and Taylor function with a Q10 formula, with Q10 = 1.5
-      ! as part of the modifications made to improve the seasonal cycle of
-      ! atmospheric CO2 concentration in global simulations. This does not impact
-      ! the base rates at 25 C, which are calibrated from microcosm studies.
+      ! Replaced the Lloyd and Taylor function with a Q10 formula,
+      ! with Q10 = 1.5 as part of the modifications made to improve the
+      ! seasonal cycle of atmospheric CO2 concentration in global simulations.
+      ! This does not impact the base rates at 25 C, which are calibrated
+      ! from microcosm studies.
       do j = 1 , nlev_soildecomp_standard
         do fc = 1 , num_soilc
           c = filter_soilc(fc)
           if ( j == 1 ) t_scalar(c,:) = 0.D0
-          !! use separate (possibly equal) t funcs above and below freezing point
+          ! use separate (possibly equal) t funcs above and below
+          ! freezing point
           if ( t_soisno(c,j) >= tfrz ) then
             t_scalar(c,1) = t_scalar(c,1) + &
                     (1.5D0**((t_soisno(c,j)-(tfrz+25.D0))/10.D0))*fr(c,j)
@@ -580,7 +583,8 @@ module mod_clm_cndecompcascadebgc
       ! Barley straw decomposition in the field: a comparison of models.
       ! Ecology, 68(5):1190-1200.
       ! and supported by data in
-      ! Orchard, V.A., and F.J. Cook, 1983. Relationship between soil respiration
+      ! Orchard, V.A., and F.J. Cook, 1983.
+      ! Relationship between soil respiration
       ! and soil moisture. Soil Biol. Biochem., 15(4):447-453.
 
       minpsi = -10.0D0;
@@ -643,14 +647,16 @@ module mod_clm_cndecompcascadebgc
       ! assuming that the base rate constants are assigned for non-moisture
       ! limiting conditions at 25 C.
       ! Peter Thornton: 3/13/09
-      ! Replaced the Lloyd and Taylor function with a Q10 formula, with Q10 = 1.5
-      ! as part of the modifications made to improve the seasonal cycle of
-      ! atmospheric CO2 concentration in global simulations. This does not impact
-      ! the base rates at 25 C, which are calibrated from microcosm studies.
+      ! Replaced the Lloyd and Taylor function with a Q10 formula,
+      ! with Q10 = 1.5 as part of the modifications made to improve
+      ! the seasonal cycle of atmospheric CO2 concentration in global
+      ! simulations. This does not impact the base rates at 25 C, which
+      ! are calibrated from microcosm studies.
       do j = 1 , nlevdecomp
         do fc = 1 , num_soilc
           c = filter_soilc(fc)
-          !! use separate (possibly equal) t funcs above and below freezing point
+          !! use separate (possibly equal) t funcs above and below
+          !! freezing point
           !! t_scalar(c,j)= (1.5**((t_soisno(c,j)-(tfrz+25.D0))/10.D0))
           if (t_soisno(c,j) .ge. tfrz) then
             t_scalar(c,j)= (1.5D0**((t_soisno(c,j)-(tfrz+25.D0))/10.D0))
@@ -667,7 +673,8 @@ module mod_clm_cndecompcascadebgc
       ! Barley straw decomposition in the field: a comparison of models.
       ! Ecology, 68(5):1190-1200.
       ! and supported by data in
-      ! Orchard, V.A., and F.J. Cook, 1983. Relationship between soil respiration
+      ! Orchard, V.A., and F.J. Cook, 1983.
+      ! Relationship between soil respiration
       ! and soil moisture. Soil Biol. Biochem., 15(4):447-453.
       minpsi = -10.0D0;
       do j = 1 , nlevdecomp
@@ -776,4 +783,3 @@ module mod_clm_cndecompcascadebgc
 #endif
 
 end module mod_clm_cndecompcascadebgc
-

@@ -22,14 +22,14 @@ module mod_clm_cnprecisioncontrol
   ! On the radiation time step, force leaf and deadstem c and n to 0 if
   ! they get too small.
   !
-  subroutine CNPrecisionControl(num_soilc, filter_soilc, num_soilp, filter_soilp)
+  subroutine CNPrecisionControl(num_soilc,filter_soilc,num_soilp,filter_soilp)
     use mod_clm_type
     use mod_clm_varctl , only : use_c13, use_c14
     use mod_clm_varpar , only : nlevdecomp
     use mod_clm_pftvarcon , only : nc3crop
     use mod_clm_surfrd , only : crop_prog
     implicit none
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
@@ -45,22 +45,22 @@ module mod_clm_cnprecisioncontrol
     ! (gC/m2) temporary photosynthate C pool
     real(rk8), pointer :: cpool(:)
     real(rk8), pointer :: deadcrootc(:)         ! (gC/m2) dead coarse root C
-    real(rk8), pointer :: deadcrootc_storage(:) ! (gC/m2) dead coarse root C strg
-    real(rk8), pointer :: deadcrootc_xfer(:)    ! (gC/m2) dead coarse root C trnf
+    real(rk8), pointer :: deadcrootc_storage(:) ! (gC/m2) dead cors root C strg
+    real(rk8), pointer :: deadcrootc_xfer(:)    ! (gC/m2) dead cors root C trnf
     real(rk8), pointer :: deadstemc(:)          ! (gC/m2) dead stem C
     real(rk8), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
     real(rk8), pointer :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
     real(rk8), pointer :: frootc(:)             ! (gC/m2) fine root C
     real(rk8), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
     real(rk8), pointer :: frootc_xfer(:)        ! (gC/m2) fine root C transfer
-    real(rk8), pointer :: gresp_storage(:)      ! (gC/m2) growth respiration strg
-    real(rk8), pointer :: gresp_xfer(:)         ! (gC/m2) growth respiration trnfr
+    real(rk8), pointer :: gresp_storage(:)      ! (gC/m2) growth resp. strg
+    real(rk8), pointer :: gresp_xfer(:)         ! (gC/m2) growth resp. trnfr
     real(rk8), pointer :: leafc(:)              ! (gC/m2) leaf C
     real(rk8), pointer :: leafc_storage(:)      ! (gC/m2) leaf C storage
     real(rk8), pointer :: leafc_xfer(:)         ! (gC/m2) leaf C transfer
     real(rk8), pointer :: livecrootc(:)         ! (gC/m2) live coarse root C
-    real(rk8), pointer :: livecrootc_storage(:) ! (gC/m2) live coarse root C strg
-    real(rk8), pointer :: livecrootc_xfer(:)    ! (gC/m2) live coarse root C trnf
+    real(rk8), pointer :: livecrootc_storage(:) ! (gC/m2) live cors root C strg
+    real(rk8), pointer :: livecrootc_xfer(:)    ! (gC/m2) live cors root C trnf
     real(rk8), pointer :: livestemc(:)          ! (gC/m2) live stem C
     real(rk8), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
     real(rk8), pointer :: livestemc_xfer(:)     ! (gC/m2) live stem C transfer
@@ -85,11 +85,11 @@ module mod_clm_cnprecisioncontrol
     ! (gC/m2) dead coarse root C transfer
     real(rk8), pointer :: c13_deadcrootc_xfer(:)
     real(rk8), pointer :: c13_deadstemc(:)          ! (gC/m2) dead stem C
-    real(rk8), pointer :: c13_deadstemc_storage(:)  ! (gC/m2) dead stem C storage
-    real(rk8), pointer :: c13_deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
+    real(rk8), pointer :: c13_deadstemc_storage(:)  ! (gC/m2) dead stem C stor
+    real(rk8), pointer :: c13_deadstemc_xfer(:)     ! (gC/m2) dead stem C trnsf
     real(rk8), pointer :: c13_frootc(:)             ! (gC/m2) fine root C
-    real(rk8), pointer :: c13_frootc_storage(:)     ! (gC/m2) fine root C storage
-    real(rk8), pointer :: c13_frootc_xfer(:)        ! (gC/m2) fine root C trnsfer
+    real(rk8), pointer :: c13_frootc_storage(:)     ! (gC/m2) fine root C stor
+    real(rk8), pointer :: c13_frootc_xfer(:)        ! (gC/m2) fine root C trnsf
     real(rk8), pointer :: c13_gresp_storage(:) ! (gC/m2) growth respiration strg
     real(rk8), pointer :: c13_gresp_xfer(:)    ! (gC/m2) growth respiration trnf
     real(rk8), pointer :: c13_leafc(:)           ! (gC/m2) leaf C
@@ -101,8 +101,8 @@ module mod_clm_cnprecisioncontrol
     ! (gC/m2) live coarse root C transfer
     real(rk8), pointer :: c13_livecrootc_xfer(:)
     real(rk8), pointer :: c13_livestemc(:)          ! (gC/m2) live stem C
-    real(rk8), pointer :: c13_livestemc_storage(:)  ! (gC/m2) live stem C storage
-    real(rk8), pointer :: c13_livestemc_xfer(:)     ! (gC/m2) live stem C transfer
+    real(rk8), pointer :: c13_livestemc_storage(:)  ! (gC/m2) live stem C stor
+    real(rk8), pointer :: c13_livestemc_xfer(:)     ! (gC/m2) live stem C transf
     ! (gC/m2) pft-level sink for C truncation
     real(rk8), pointer :: c13_pft_ctrunc(:)
 
@@ -121,10 +121,10 @@ module mod_clm_cnprecisioncontrol
     real(rk8), pointer :: c14_deadcrootc_xfer(:)
     real(rk8), pointer :: c14_deadstemc(:)         ! (gC/m2) dead stem C
     real(rk8), pointer :: c14_deadstemc_storage(:) ! (gC/m2) dead stem C storage
-    real(rk8), pointer :: c14_deadstemc_xfer(:)    ! (gC/m2) dead stem C transfer
+    real(rk8), pointer :: c14_deadstemc_xfer(:)    ! (gC/m2) dead stem C transf
     real(rk8), pointer :: c14_frootc(:)            ! (gC/m2) fine root C
     real(rk8), pointer :: c14_frootc_storage(:)    ! (gC/m2) fine root C storage
-    real(rk8), pointer :: c14_frootc_xfer(:)       ! (gC/m2) fine root C transfer
+    real(rk8), pointer :: c14_frootc_xfer(:)       ! (gC/m2) fine root C transf
     real(rk8), pointer :: c14_gresp_storage(:) ! (gC/m2) growth respiration strg
     real(rk8), pointer :: c14_gresp_xfer(:)    ! (gC/m2) growth respiration trnf
     real(rk8), pointer :: c14_leafc(:)             ! (gC/m2) leaf C
@@ -137,13 +137,13 @@ module mod_clm_cnprecisioncontrol
     real(rk8), pointer :: c14_livecrootc_xfer(:)
     real(rk8), pointer :: c14_livestemc(:)         ! (gC/m2) live stem C
     real(rk8), pointer :: c14_livestemc_storage(:) ! (gC/m2) live stem C storage
-    real(rk8), pointer :: c14_livestemc_xfer(:)    ! (gC/m2) live stem C transfer
+    real(rk8), pointer :: c14_livestemc_xfer(:)    ! (gC/m2) live stem C trans
     ! (gC/m2) pft-level sink for C truncation
     real(rk8), pointer :: c14_pft_ctrunc(:)
 
     real(rk8), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead coarse root N strg
-    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead coarse root N trnf
+    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead cors root N strg
+    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead cors root N trnf
     real(rk8), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
     real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
     real(rk8), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
@@ -154,8 +154,8 @@ module mod_clm_cnprecisioncontrol
     real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
     real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
     real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live coarse root N strg
-    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live coarse root N trnf
+    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live cors root N strg
+    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live cors root N trnf
     real(rk8), pointer :: grainn(:)             ! (gC/m2) grain N
     real(rk8), pointer :: grainn_storage(:)     ! (gC/m2) grain N storage
     real(rk8), pointer :: grainn_xfer(:)        ! (gC/m2) grain N transfer
@@ -300,8 +300,8 @@ module mod_clm_cnprecisioncontrol
     retransn                   => clm3%g%l%c%p%pns%retransn
 
 #ifdef NITRIF_DENITRIF
-   smin_nh4_vr                 => clm3%g%l%c%cns%smin_nh4_vr
-   smin_no3_vr                 => clm3%g%l%c%cns%smin_no3_vr
+   smin_nh4_vr => clm3%g%l%c%cns%smin_nh4_vr
+   smin_no3_vr => clm3%g%l%c%cns%smin_no3_vr
 #endif
 
     ! set the critical carbon state value for truncation (gC/m2)

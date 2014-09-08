@@ -140,7 +140,8 @@ module mod_clm_cnsoillittverttransp
     ! fixed bioturbation and cryoturbation set to a maximum depth
     do fc = 1 , num_soilc
       c = filter_soilc (fc)
-      if ( max(altmax(c),altmax_lastyear(c)) <= max_altdepth_cryoturbation .and. &
+      if ( max(altmax(c),altmax_lastyear(c)) <= &
+                            max_altdepth_cryoturbation .and. &
            max(altmax(c),altmax_lastyear(c)) > 0.0D0 ) then
         ! use mixing profile modified slightly from Koven et al. (2009):
         ! constant through active layer, linear decrease from base of active
@@ -209,10 +210,12 @@ module mod_clm_cnsoillittverttransp
           if ( use_c14 .and. use_c13 ) then
             ! C14
             conc_ptr => clm3%g%l%c%cc14s%decomp_cpools_vr
-            source    => clm3%g%l%c%cc14f%decomp_cpools_sourcesink
-            trcr_tendency_ptr => clm3%g%l%c%cc14f%decomp_cpools_transport_tendency
+            source  => clm3%g%l%c%cc14f%decomp_cpools_sourcesink
+            trcr_tendency_ptr => &
+                    clm3%g%l%c%cc14f%decomp_cpools_transport_tendency
           else
-            write(stderr,*) 'error.  ncase = 4, but c13 and c14 not both enabled.'
+            write(stderr,*) &
+                    'Error. ncase = 4, but c13 and c14 not both enabled.'
             call fatal(__FILE__,__LINE__,'clm now stopping')
           end if
       end select
@@ -384,7 +387,8 @@ module mod_clm_cnsoillittverttransp
           do fc = 1 , num_soilc
             c = filter_soilc(fc)
             do j = 1 , nlevdecomp
-              trcr_tendency_ptr(c,j,s) = trcr_tendency_ptr(c,j,s) + conc_trcr(c,j)
+              trcr_tendency_ptr(c,j,s) = &
+                      trcr_tendency_ptr(c,j,s) + conc_trcr(c,j)
               trcr_tendency_ptr(c,j,s) = trcr_tendency_ptr(c,j,s) / dtime
             end do
           end do

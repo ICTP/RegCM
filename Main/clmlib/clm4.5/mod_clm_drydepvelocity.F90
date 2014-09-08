@@ -9,9 +9,9 @@ Module mod_clm_drydepvelocity
   ! This code simulates dry deposition velocities using the Wesely scheme.
   ! Details of this method can be found in:
   !
-  ! M.L Wesely. Parameterization of surface resistances to gaseous dry deposition
-  ! in regional-scale numericl models. 1989. Atmospheric Environment vol.23 No.6
-  ! pp. 1293-1304.
+  ! M.L Wesely. Parameterization of surface resistances to gaseous dry
+  ! deposition in regional-scale numericl models. 1989.
+  ! Atmospheric Environment vol.23 No.6 pp. 1293-1304.
   !
   ! In Wesely (1998) "the magnitude of the dry deposition velocity can be found
   ! as:
@@ -24,9 +24,10 @@ Module mod_clm_drydepvelocity
   ! molecular diffusivity in air), and rc is the bulk surface resistance".
   !
   ! In this subroutine both ra and rb are calculated elsewhere in CLM.  Thus ra
-  ! and rb were "globalized" in order to gain access to them for the calculation.
-  ! "ram1" is the CLM variable used for ra.  ram1 was globalized in the following
-  ! subroutines; BareGroundFluxes.F90, Biogeophysics_lake.F90, CanopyFluxes.F90,
+  ! and rb were "globalized" in order to gain access to them for the
+  ! calculation. "ram1" is the CLM variable used for ra.
+  ! ram1 was globalized in the following subroutines;
+  ! BareGroundFluxes.F90, Biogeophysics_lake.F90, CanopyFluxes.F90,
   ! and clmtype.F90.
   !
   ! "rb" is the CLM variable used for rb in the Wesely equation above.  rb was
@@ -34,10 +35,11 @@ Module mod_clm_drydepvelocity
   !
   ! In Wesely (1989) rc is estimated for five seasonal categories and 11 landuse
   ! types.  For each season and landuse type, Wesely compiled data into a
-  ! look-up-table for several parameters used to calculate rc. In this subroutine
-  ! the same values are used as found in wesely's look-up-tables, the only
-  ! difference is that this subroutine uses a CLM generated LAI to select values
-  ! from the look-up-table instead of seasonality.  Inaddition, Wesely(1989)
+  ! look-up-table for several parameters used to calculate rc.
+  ! In this subroutine the same values are used as found in wesely's
+  ! look-up-tables, the only difference is that this subroutine uses a CLM
+  ! generated LAI to select values from the look-up-table instead of
+  ! seasonality.  Inaddition, Wesely(1989)
   ! land use types are "mapped" into CLM plant function types (PFT).
   !
   ! Subroutine written to operate at the patch level.
@@ -101,8 +103,8 @@ Module mod_clm_drydepvelocity
     integer(ik4) , pointer :: pgridcell(:)  !pft's gridcell index
     !one-sided leaf area index with burying by snow
     real(rk8), pointer :: elai(:)
-    real(rk8), pointer :: forc_t(:)        !atmospheric temperature (Kelvin)
-    real(rk8), pointer :: forc_q(:)        !atmospheric specific humidity (kg/kg)
+    real(rk8), pointer :: forc_t(:)  !atmospheric temperature (Kelvin)
+    real(rk8), pointer :: forc_q(:)  !atmospheric specific humidity (kg/kg)
     real(rk8), pointer :: forc_psrf(:)     !surface pressure (Pa)
     real(rk8), pointer :: latdeg(:)        !latitude (degrees)
     real(rk8), pointer :: londeg(:)        !longitude (degrees)
@@ -164,9 +166,9 @@ Module mod_clm_drydepvelocity
 
     !vegetative resistance (plant mesophyll)
     real(rk8), dimension(n_drydep) :: rsmx
-    real(rk8), dimension(n_drydep) :: rclx  !lower canopy resistance
-    real(rk8), dimension(n_drydep) :: rlux  !vegetative resistance (upper canopy)
-    real(rk8), dimension(n_drydep) :: rgsx  !gournd resistance
+    real(rk8), dimension(n_drydep) :: rclx !lower canopy resistance
+    real(rk8), dimension(n_drydep) :: rlux !vegetative resistance (upper canopy)
+    real(rk8), dimension(n_drydep) :: rgsx !gournd resistance
     real(rk8), dimension(n_drydep) :: heff
     real(rk8) :: rc    !combined surface resistance
     real(rk8) :: cts   !correction to flu rcl and rgs for frost
@@ -468,13 +470,11 @@ Module mod_clm_drydepvelocity
               rsmx(ispec) = ( 1.D0/dv_pan )
             end if
           end if
-
           rclx(ispec) = cts + &
                   1.D0/((heff(ispec)/(1.D5*rcls(index_season,wesveg))) + &
                   (foxd(ispec)/rclo(index_season,wesveg)))
           rlux(ispec) = cts + &
                   rlu(index_season,wesveg)/(1.D-5*heff(ispec)+foxd(ispec))
-
         end do species_loop1
 
         !
@@ -485,7 +485,6 @@ Module mod_clm_drydepvelocity
           ! no effect if sfc_temp < O C
           !
           non_freezing: if ( sfc_temp > tmelt ) then
-
             if ( has_dew ) then
               rlux_o3 = 1.D0 / &
                       ((1.D0/3000.D0)+(1.D0/(3.D0*rlu(index_season,wesveg))))
@@ -496,7 +495,6 @@ Module mod_clm_drydepvelocity
                 rlux(index_o3a) = rlux_o3
               end if
             end if
-
             if ( has_rain ) then
               rlux_o3 = 1.D0 / &
                       ((1.D0/1000.D0)+(1.D0/(3.D0*rlu(index_season,wesveg))))
@@ -507,7 +505,6 @@ Module mod_clm_drydepvelocity
                 rlux(index_o3a) = rlux_o3
               end if
             end if
-
             if ( index_o3 > 0 ) then
               rclx(index_o3) = cts + rclo(index_season,wesveg)
               rlux(index_o3) = cts + rlux(index_o3)
@@ -516,36 +513,28 @@ Module mod_clm_drydepvelocity
               rclx(index_o3a) = cts + rclo(index_season,wesveg)
               rlux(index_o3a) = cts + rlux(index_o3a)
             end if
-
             species_loop2: do ispec = 1 , n_drydep
               if ( mapping(ispec) <= 0 ) cycle
               if ( ispec /= index_o3  .and. &
                    ispec /= index_o3a .and. &
                    ispec /= index_so2 ) then
-
                 if ( has_dew ) then
                   rlux(ispec) = 1.D0/((1.D0/(3.D0*rlux(ispec)))+ &
                         (1.D-7*heff(ispec))+(foxd(ispec)/rlux_o3))
                 end if
-
               else if ( ispec == index_so2 ) then
-
                 if ( has_dew ) then
                   rlux(ispec) = 100.D0
                 end if
-
                 if ( has_rain ) then
                   rlux(ispec) = 1.D0 / &
-                          ((1.D0/5000.D0)+(1.D0/(3.D0*rlu(index_season,wesveg))))
+                         ((1.D0/5000.D0)+(1.D0/(3.D0*rlu(index_season,wesveg))))
                 end if
-
                 rclx(ispec) = cts + rcls(index_season,wesveg)
                 rlux(ispec) = cts + rlux(ispec)
-
                 if ( has_dew .or. has_rain ) then
                   rlux(ispec) = 50.D0
                 end if
-
               end if
             end do species_loop2
           end if non_freezing
@@ -555,7 +544,6 @@ Module mod_clm_drydepvelocity
 
         species_loop3: do ispec=1,n_drydep
           if ( mapping(ispec) <= 0 ) cycle
-
           !
           ! compute rc
           !
@@ -569,7 +557,6 @@ Module mod_clm_drydepvelocity
           if ( drydep_list(ispec) == 'SO2' .and. wesveg == 7 ) then
             rc = 0.D0
           end if
-
           select case( drydep_list(ispec) )
             case ( 'SO4' )
               velocity(pi,ispec) = (1.D0/(ram1(pi)+rds))*100.D0

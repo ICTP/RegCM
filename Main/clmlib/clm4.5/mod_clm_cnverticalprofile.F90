@@ -40,9 +40,9 @@ module mod_clm_cnverticalprofile
             nlevdecomp_full, maxpatch_pft
     use mod_clm_pftvarcon , only : rootprof_beta, noveg
     implicit none
-    integer(ik4), intent(in) :: lbp, ubp        ! pft-index bounds
-    integer(ik4), intent(in) :: lbc, ubc        ! column-index bounds
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: lbp, ubp   ! pft-index bounds
+    integer(ik4), intent(in) :: lbc, ubc   ! column-index bounds
+    integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
@@ -59,12 +59,12 @@ module mod_clm_cnverticalprofile
     integer(ik4) , pointer :: ivt(:)    ! pft vegetation type
     ! fraction of roots in each soil layer  (nlevgrnd)
     real(rk8), pointer :: rootfr(:,:)
-    integer(ik4) , pointer :: pcolumn(:)    ! pft's column index
-    real(rk8), pointer :: leaf_prof(:,:)    ! (1/m) profile of leaves
-    real(rk8), pointer :: froot_prof(:,:)   ! (1/m) profile of fine roots
-    real(rk8), pointer :: croot_prof(:,:)   ! (1/m) profile of coarse roots
-    real(rk8), pointer :: stem_prof(:,:)    ! (1/m) profile of stems
-    real(rk8), pointer :: wtcol(:)          ! pft weight relative to column (0-1)
+    integer(ik4) , pointer :: pcolumn(:)   ! pft's column index
+    real(rk8), pointer :: leaf_prof(:,:)   ! (1/m) profile of leaves
+    real(rk8), pointer :: froot_prof(:,:)  ! (1/m) profile of fine roots
+    real(rk8), pointer :: croot_prof(:,:)  ! (1/m) profile of coarse roots
+    real(rk8), pointer :: stem_prof(:,:)   ! (1/m) profile of stems
+    real(rk8), pointer :: wtcol(:)         ! pft weight relative to column (0-1)
     ! true=>do computations on this pft (see reweightMod for details)
     logical , pointer :: pactive(:)
 
@@ -91,23 +91,22 @@ module mod_clm_cnverticalprofile
     real(rk8) :: delta = 1.e-10
 
     ! assign local pointers at the column level
-    nfixation_prof         => clm3%g%l%c%cps%nfixation_prof
-    ndep_prof              => clm3%g%l%c%cps%ndep_prof
-    altmax_lastyear_indx   => clm3%g%l%c%cps%altmax_lastyear_indx
-    npfts                  => clm3%g%l%c%npfts
-    pfti                   => clm3%g%l%c%pfti
+    nfixation_prof       => clm3%g%l%c%cps%nfixation_prof
+    ndep_prof            => clm3%g%l%c%cps%ndep_prof
+    altmax_lastyear_indx => clm3%g%l%c%cps%altmax_lastyear_indx
+    npfts                => clm3%g%l%c%npfts
+    pfti                 => clm3%g%l%c%pfti
 
     ! assign local pointers at the pft level
-    ivt                    => clm3%g%l%c%p%itype
-    leaf_prof              => clm3%g%l%c%p%pps%leaf_prof
-    froot_prof             => clm3%g%l%c%p%pps%froot_prof
-    croot_prof             => clm3%g%l%c%p%pps%croot_prof
-    stem_prof              => clm3%g%l%c%p%pps%stem_prof
-    pcolumn                => clm3%g%l%c%p%column
-    rootfr                 => clm3%g%l%c%p%pps%rootfr
-    wtcol                  => clm3%g%l%c%p%wtcol
-    pactive                => clm3%g%l%c%p%active
-
+    ivt                  => clm3%g%l%c%p%itype
+    leaf_prof            => clm3%g%l%c%p%pps%leaf_prof
+    froot_prof           => clm3%g%l%c%p%pps%froot_prof
+    croot_prof           => clm3%g%l%c%p%pps%croot_prof
+    stem_prof            => clm3%g%l%c%p%pps%stem_prof
+    pcolumn              => clm3%g%l%c%p%column
+    rootfr               => clm3%g%l%c%p%pps%rootfr
+    wtcol                => clm3%g%l%c%p%wtcol
+    pactive              => clm3%g%l%c%p%active
 
 #ifdef VERTSOILC
     ! define a single shallow surface profile for surface additions
@@ -233,9 +232,7 @@ module mod_clm_cnverticalprofile
         ndep_prof(c,1) = 1./dzsoi_decomp(1)
       end if
     end do
-
 #else
-
     ! for one layer decomposition model, set profiles to unity
     leaf_prof(:,:) = 1.D0
     froot_prof(:,:) = 1.D0
@@ -243,9 +240,7 @@ module mod_clm_cnverticalprofile
     stem_prof(:,:) = 1.D0
     nfixation_prof(:,:) = 1.D0
     ndep_prof(:,:) = 1.D0
-
 #endif
-
 
     ! check to make sure integral of all profiles = 1.
     do fc = 1,num_soilc

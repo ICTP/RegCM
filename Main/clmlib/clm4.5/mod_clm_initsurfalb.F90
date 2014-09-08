@@ -116,21 +116,21 @@ contains
 
     ! Assign local pointers to derived subtypes components (landunit-level)
 
-    lakpoi              => clm3%g%l%lakpoi
-    itypelun            => clm3%g%l%itype
+    lakpoi      => clm3%g%l%lakpoi
+    itypelun    => clm3%g%l%itype
 
     ! Assign local pointers to derived subtypes components (column-level)
 
-    dz                  => clm3%g%l%c%cps%dz
-    h2osoi_ice          => clm3%g%l%c%cws%h2osoi_ice
-    h2osoi_liq          => clm3%g%l%c%cws%h2osoi_liq
-    h2osoi_vol          => clm3%g%l%c%cws%h2osoi_vol
-    snow_depth              => clm3%g%l%c%cps%snow_depth
-    h2osno              => clm3%g%l%c%cws%h2osno
-    frac_sno            => clm3%g%l%c%cps%frac_sno
-    ctype               => clm3%g%l%c%itype
-    clandunit           => clm3%g%l%c%landunit
-    soilpsi             => clm3%g%l%c%cps%soilpsi
+    dz          => clm3%g%l%c%cps%dz
+    h2osoi_ice  => clm3%g%l%c%cws%h2osoi_ice
+    h2osoi_liq  => clm3%g%l%c%cws%h2osoi_liq
+    h2osoi_vol  => clm3%g%l%c%cws%h2osoi_vol
+    snow_depth  => clm3%g%l%c%cps%snow_depth
+    h2osno      => clm3%g%l%c%cws%h2osno
+    frac_sno    => clm3%g%l%c%cps%frac_sno
+    ctype       => clm3%g%l%c%itype
+    clandunit   => clm3%g%l%c%landunit
+    soilpsi     => clm3%g%l%c%cps%soilpsi
 
     ! Assign local pointers to derived subtypes components (pft-level)
 
@@ -142,13 +142,13 @@ contains
     ! Assign local pointers to derived subtypes components (pft-level)
     ! The folowing pointers will only be used for lake points in this routine
 
-    htop               => clm3%g%l%c%p%pps%htop
-    hbot               => clm3%g%l%c%p%pps%hbot
-    tlai               => clm3%g%l%c%p%pps%tlai
-    tsai               => clm3%g%l%c%p%pps%tsai
-    elai               => clm3%g%l%c%p%pps%elai
-    esai               => clm3%g%l%c%p%pps%esai
-    fdry               => clm3%g%l%c%p%pps%fdry
+    htop => clm3%g%l%c%p%pps%htop
+    hbot => clm3%g%l%c%p%pps%hbot
+    tlai => clm3%g%l%c%p%pps%tlai
+    tsai => clm3%g%l%c%p%pps%tsai
+    elai => clm3%g%l%c%p%pps%elai
+    esai => clm3%g%l%c%p%pps%esai
+    fdry => clm3%g%l%c%p%pps%fdry
 
     decl      => clm3%g%l%c%cps%decl
     dayl      => clm3%g%l%c%p%pepv%dayl

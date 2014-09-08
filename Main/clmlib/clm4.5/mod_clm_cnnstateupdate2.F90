@@ -24,7 +24,7 @@ module mod_clm_cnnstateupdate2
     use mod_clm_type
     use mod_clm_varpar , only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd
     implicit none
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: num_soilc   ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
@@ -60,8 +60,8 @@ module mod_clm_cnnstateupdate2
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) N pools
     real(rk8), pointer :: decomp_npools_vr(:,:,:)
     real(rk8), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead coarse root N strg
-    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead coarse root N trfr
+    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead corse root N strg
+    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead corse root N trfr
     real(rk8), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
     real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
     real(rk8), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
@@ -72,8 +72,8 @@ module mod_clm_cnnstateupdate2
     real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
     real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
     real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live coarse root N strg
-    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live coarse root N trfr
+    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live corse root N strg
+    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live corse root N trfr
     real(rk8), pointer :: livestemn(:)          ! (gN/m2) live stem N
     real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
     real(rk8), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
@@ -85,21 +85,27 @@ module mod_clm_cnnstateupdate2
     real(rk8):: dt        ! radiation time step (seconds)
 
     ! assign local pointers at the column level
-    gap_mortality_n_to_litr_met_n  => clm3%g%l%c%cnf%gap_mortality_n_to_litr_met_n
-    gap_mortality_n_to_litr_cel_n  => clm3%g%l%c%cnf%gap_mortality_n_to_litr_cel_n
-    gap_mortality_n_to_litr_lig_n  => clm3%g%l%c%cnf%gap_mortality_n_to_litr_lig_n
+    gap_mortality_n_to_litr_met_n  => &
+            clm3%g%l%c%cnf%gap_mortality_n_to_litr_met_n
+    gap_mortality_n_to_litr_cel_n  => &
+            clm3%g%l%c%cnf%gap_mortality_n_to_litr_cel_n
+    gap_mortality_n_to_litr_lig_n  => &
+            clm3%g%l%c%cnf%gap_mortality_n_to_litr_lig_n
     gap_mortality_n_to_cwdn        => clm3%g%l%c%cnf%gap_mortality_n_to_cwdn
     decomp_npools_vr               => clm3%g%l%c%cns%decomp_npools_vr
     ! assign local pointers at the pft level
     m_deadcrootn_storage_to_litter => &
             clm3%g%l%c%p%pnf%m_deadcrootn_storage_to_litter
     m_deadcrootn_to_litter         => clm3%g%l%c%p%pnf%m_deadcrootn_to_litter
-    m_deadcrootn_xfer_to_litter    => clm3%g%l%c%p%pnf%m_deadcrootn_xfer_to_litter
+    m_deadcrootn_xfer_to_litter    => &
+            clm3%g%l%c%p%pnf%m_deadcrootn_xfer_to_litter
     m_deadstemn_storage_to_litter  => &
             clm3%g%l%c%p%pnf%m_deadstemn_storage_to_litter
     m_deadstemn_to_litter          => clm3%g%l%c%p%pnf%m_deadstemn_to_litter
-    m_deadstemn_xfer_to_litter     => clm3%g%l%c%p%pnf%m_deadstemn_xfer_to_litter
-    m_frootn_storage_to_litter     => clm3%g%l%c%p%pnf%m_frootn_storage_to_litter
+    m_deadstemn_xfer_to_litter     => &
+            clm3%g%l%c%p%pnf%m_deadstemn_xfer_to_litter
+    m_frootn_storage_to_litter     => &
+            clm3%g%l%c%p%pnf%m_frootn_storage_to_litter
     m_frootn_to_litter             => clm3%g%l%c%p%pnf%m_frootn_to_litter
     m_frootn_xfer_to_litter        => clm3%g%l%c%p%pnf%m_frootn_xfer_to_litter
     m_leafn_storage_to_litter      => clm3%g%l%c%p%pnf%m_leafn_storage_to_litter
@@ -108,11 +114,13 @@ module mod_clm_cnnstateupdate2
     m_livecrootn_storage_to_litter => &
             clm3%g%l%c%p%pnf%m_livecrootn_storage_to_litter
     m_livecrootn_to_litter         => clm3%g%l%c%p%pnf%m_livecrootn_to_litter
-    m_livecrootn_xfer_to_litter    => clm3%g%l%c%p%pnf%m_livecrootn_xfer_to_litter
+    m_livecrootn_xfer_to_litter    => &
+            clm3%g%l%c%p%pnf%m_livecrootn_xfer_to_litter
     m_livestemn_storage_to_litter  => &
             clm3%g%l%c%p%pnf%m_livestemn_storage_to_litter
     m_livestemn_to_litter          => clm3%g%l%c%p%pnf%m_livestemn_to_litter
-    m_livestemn_xfer_to_litter     => clm3%g%l%c%p%pnf%m_livestemn_xfer_to_litter
+    m_livestemn_xfer_to_litter     => &
+            clm3%g%l%c%p%pnf%m_livestemn_xfer_to_litter
     m_retransn_to_litter           => clm3%g%l%c%p%pnf%m_retransn_to_litter
     deadcrootn                     => clm3%g%l%c%p%pns%deadcrootn
     deadcrootn_storage             => clm3%g%l%c%p%pns%deadcrootn_storage
@@ -207,7 +215,7 @@ module mod_clm_cnnstateupdate2
     use mod_clm_type
     use mod_clm_varpar , only : i_met_lit, i_cel_lit, i_lig_lit, i_cwd
     implicit none
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
@@ -244,8 +252,8 @@ module mod_clm_cnnstateupdate2
     ! (gC/m3)  vertically-resolved decomposing (litter, cwd, soil) N pools
     real(rk8), pointer :: decomp_npools_vr(:,:,:)
     real(rk8), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead coarse root N strg
-    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead coarse root N trfr
+    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead corse root N strg
+    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead corse root N trfr
     real(rk8), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
     real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
     real(rk8), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
@@ -255,9 +263,9 @@ module mod_clm_cnnstateupdate2
     real(rk8), pointer :: leafn(:)              ! (gN/m2) leaf N
     real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
     real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
-    real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live coarse root N strg
-    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live coarse root N trfr
+    real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live corse root N
+    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live corse root N strg
+    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live corse root N trfr
     real(rk8), pointer :: livestemn(:)          ! (gN/m2) live stem N
     real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
     real(rk8), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
@@ -269,62 +277,62 @@ module mod_clm_cnnstateupdate2
     real(rk8):: dt        ! radiation time step (seconds)
 
     ! assign local pointers at the column level
-    harvest_n_to_litr_met_n         => clm3%g%l%c%cnf%harvest_n_to_litr_met_n
-    harvest_n_to_litr_cel_n         => clm3%g%l%c%cnf%harvest_n_to_litr_cel_n
-    harvest_n_to_litr_lig_n         => clm3%g%l%c%cnf%harvest_n_to_litr_lig_n
-    harvest_n_to_cwdn               => clm3%g%l%c%cnf%harvest_n_to_cwdn
-    decomp_npools_vr                => clm3%g%l%c%cns%decomp_npools_vr
+    harvest_n_to_litr_met_n => clm3%g%l%c%cnf%harvest_n_to_litr_met_n
+    harvest_n_to_litr_cel_n => clm3%g%l%c%cnf%harvest_n_to_litr_cel_n
+    harvest_n_to_litr_lig_n => clm3%g%l%c%cnf%harvest_n_to_litr_lig_n
+    harvest_n_to_cwdn       => clm3%g%l%c%cnf%harvest_n_to_cwdn
+    decomp_npools_vr        => clm3%g%l%c%cns%decomp_npools_vr
 
     ! assign local pointers at the pft level
     hrv_deadcrootn_storage_to_litter => &
             clm3%g%l%c%p%pnf%hrv_deadcrootn_storage_to_litter
-    hrv_deadcrootn_to_litter         => clm3%g%l%c%p%pnf%hrv_deadcrootn_to_litter
+    hrv_deadcrootn_to_litter  => clm3%g%l%c%p%pnf%hrv_deadcrootn_to_litter
     hrv_deadcrootn_xfer_to_litter    => &
             clm3%g%l%c%p%pnf%hrv_deadcrootn_xfer_to_litter
     hrv_deadstemn_storage_to_litter  => &
             clm3%g%l%c%p%pnf%hrv_deadstemn_storage_to_litter
-    hrv_deadstemn_to_prod10n         => clm3%g%l%c%p%pnf%hrv_deadstemn_to_prod10n
-    hrv_deadstemn_to_prod100n        => clm3%g%l%c%p%pnf%hrv_deadstemn_to_prod100n
-    hrv_deadstemn_xfer_to_litter     => &
+    hrv_deadstemn_to_prod10n  => clm3%g%l%c%p%pnf%hrv_deadstemn_to_prod10n
+    hrv_deadstemn_to_prod100n => clm3%g%l%c%p%pnf%hrv_deadstemn_to_prod100n
+    hrv_deadstemn_xfer_to_litter => &
             clm3%g%l%c%p%pnf%hrv_deadstemn_xfer_to_litter
-    hrv_frootn_storage_to_litter     => &
+    hrv_frootn_storage_to_litter => &
             clm3%g%l%c%p%pnf%hrv_frootn_storage_to_litter
-    hrv_frootn_to_litter             => clm3%g%l%c%p%pnf%hrv_frootn_to_litter
-    hrv_frootn_xfer_to_litter        => clm3%g%l%c%p%pnf%hrv_frootn_xfer_to_litter
-    hrv_leafn_storage_to_litter      => &
+    hrv_frootn_to_litter       => clm3%g%l%c%p%pnf%hrv_frootn_to_litter
+    hrv_frootn_xfer_to_litter  => clm3%g%l%c%p%pnf%hrv_frootn_xfer_to_litter
+    hrv_leafn_storage_to_litter => &
             clm3%g%l%c%p%pnf%hrv_leafn_storage_to_litter
-    hrv_leafn_to_litter              => clm3%g%l%c%p%pnf%hrv_leafn_to_litter
-    hrv_leafn_xfer_to_litter         => clm3%g%l%c%p%pnf%hrv_leafn_xfer_to_litter
+    hrv_leafn_to_litter        => clm3%g%l%c%p%pnf%hrv_leafn_to_litter
+    hrv_leafn_xfer_to_litter   => clm3%g%l%c%p%pnf%hrv_leafn_xfer_to_litter
     hrv_livecrootn_storage_to_litter => &
             clm3%g%l%c%p%pnf%hrv_livecrootn_storage_to_litter
-    hrv_livecrootn_to_litter         => clm3%g%l%c%p%pnf%hrv_livecrootn_to_litter
+    hrv_livecrootn_to_litter   => clm3%g%l%c%p%pnf%hrv_livecrootn_to_litter
     hrv_livecrootn_xfer_to_litter    => &
             clm3%g%l%c%p%pnf%hrv_livecrootn_xfer_to_litter
     hrv_livestemn_storage_to_litter  => &
             clm3%g%l%c%p%pnf%hrv_livestemn_storage_to_litter
-    hrv_livestemn_to_litter          => clm3%g%l%c%p%pnf%hrv_livestemn_to_litter
-    hrv_livestemn_xfer_to_litter     => &
+    hrv_livestemn_to_litter => clm3%g%l%c%p%pnf%hrv_livestemn_to_litter
+    hrv_livestemn_xfer_to_litter => &
             clm3%g%l%c%p%pnf%hrv_livestemn_xfer_to_litter
-    hrv_retransn_to_litter           => clm3%g%l%c%p%pnf%hrv_retransn_to_litter
-    deadcrootn                     => clm3%g%l%c%p%pns%deadcrootn
-    deadcrootn_storage             => clm3%g%l%c%p%pns%deadcrootn_storage
-    deadcrootn_xfer                => clm3%g%l%c%p%pns%deadcrootn_xfer
-    deadstemn                      => clm3%g%l%c%p%pns%deadstemn
-    deadstemn_storage              => clm3%g%l%c%p%pns%deadstemn_storage
-    deadstemn_xfer                 => clm3%g%l%c%p%pns%deadstemn_xfer
-    frootn                         => clm3%g%l%c%p%pns%frootn
-    frootn_storage                 => clm3%g%l%c%p%pns%frootn_storage
-    frootn_xfer                    => clm3%g%l%c%p%pns%frootn_xfer
-    leafn                          => clm3%g%l%c%p%pns%leafn
-    leafn_storage                  => clm3%g%l%c%p%pns%leafn_storage
-    leafn_xfer                     => clm3%g%l%c%p%pns%leafn_xfer
-    livecrootn                     => clm3%g%l%c%p%pns%livecrootn
-    livecrootn_storage             => clm3%g%l%c%p%pns%livecrootn_storage
-    livecrootn_xfer                => clm3%g%l%c%p%pns%livecrootn_xfer
-    livestemn                      => clm3%g%l%c%p%pns%livestemn
-    livestemn_storage              => clm3%g%l%c%p%pns%livestemn_storage
-    livestemn_xfer                 => clm3%g%l%c%p%pns%livestemn_xfer
-    retransn                       => clm3%g%l%c%p%pns%retransn
+    hrv_retransn_to_litter     => clm3%g%l%c%p%pnf%hrv_retransn_to_litter
+    deadcrootn                 => clm3%g%l%c%p%pns%deadcrootn
+    deadcrootn_storage         => clm3%g%l%c%p%pns%deadcrootn_storage
+    deadcrootn_xfer            => clm3%g%l%c%p%pns%deadcrootn_xfer
+    deadstemn                  => clm3%g%l%c%p%pns%deadstemn
+    deadstemn_storage          => clm3%g%l%c%p%pns%deadstemn_storage
+    deadstemn_xfer             => clm3%g%l%c%p%pns%deadstemn_xfer
+    frootn                     => clm3%g%l%c%p%pns%frootn
+    frootn_storage             => clm3%g%l%c%p%pns%frootn_storage
+    frootn_xfer                => clm3%g%l%c%p%pns%frootn_xfer
+    leafn                      => clm3%g%l%c%p%pns%leafn
+    leafn_storage              => clm3%g%l%c%p%pns%leafn_storage
+    leafn_xfer                 => clm3%g%l%c%p%pns%leafn_xfer
+    livecrootn                 => clm3%g%l%c%p%pns%livecrootn
+    livecrootn_storage         => clm3%g%l%c%p%pns%livecrootn_storage
+    livecrootn_xfer            => clm3%g%l%c%p%pns%livecrootn_xfer
+    livestemn                  => clm3%g%l%c%p%pns%livestemn
+    livestemn_storage          => clm3%g%l%c%p%pns%livestemn_storage
+    livestemn_xfer             => clm3%g%l%c%p%pns%livestemn_xfer
+    retransn                   => clm3%g%l%c%p%pns%retransn
 
     ! set time steps
     dt = dtsrf

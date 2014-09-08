@@ -31,7 +31,7 @@ module mod_clm_cnnstateupdate1
     use mod_clm_pftvarcon , only : npcropmin, nc3crop
     use mod_clm_surfrd , only : crop_prog
     implicit none
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
@@ -100,12 +100,12 @@ module mod_clm_cnnstateupdate1
     ! allocation to grain N storage (gN/m2/s)
     real(rk8), pointer :: npool_to_grainn_storage(:)
 
-    real(rk8), pointer :: sminn_vr(:,:)     ! (gN/m3) soil mineral N
+    real(rk8), pointer :: sminn_vr(:,:)    ! (gN/m3) soil mineral N
 #ifdef NITRIF_DENITRIF
-    real(rk8), pointer :: smin_no3_vr(:,:)  ! (gN/m3) soil NO3
-    real(rk8), pointer :: smin_nh4_vr(:,:)  ! (gN/m3) soil NH4
-    real(rk8), pointer :: f_nit_vr(:,:)     ! (gN/m3/s) soil nitrification flux
-    real(rk8), pointer :: f_denit_vr(:,:)   ! (gN/m3/s) soil denitrification flux
+    real(rk8), pointer :: smin_no3_vr(:,:) ! (gN/m3) soil NO3
+    real(rk8), pointer :: smin_nh4_vr(:,:) ! (gN/m3) soil NH4
+    real(rk8), pointer :: f_nit_vr(:,:)    ! (gN/m3/s) soil nitrification flux
+    real(rk8), pointer :: f_denit_vr(:,:)  ! (gN/m3/s) soil denitrification flux
     real(rk8), pointer :: actual_immob_no3_vr(:,:)  ! (gN/m3/s)
     real(rk8), pointer :: actual_immob_nh4_vr(:,:)  ! (gN/m3/s)
     real(rk8), pointer :: smin_no3_to_plant_vr(:,:) ! (gN/m3/s)
@@ -120,7 +120,8 @@ module mod_clm_cnnstateupdate1
     ! vert-res transfer of N from donor to receiver pool along
     ! decomp. cascade (gN/m3/s)
     real(rk8), pointer :: decomp_cascade_ntransfer_vr(:,:,:)
-    ! vert-res mineral N flux for transition along decomposition cascade (gN/m3/s)
+    ! vert-res mineral N flux for transition along decomposition
+    ! cascade (gN/m3/s)
     real(rk8), pointer :: decomp_cascade_sminn_flux_vr(:,:,:)
     ! which pool is C taken from for a given decomposition step
     integer(ik4),  pointer :: cascade_donor_pool(:)
@@ -140,14 +141,14 @@ module mod_clm_cnnstateupdate1
     real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
     real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
     real(rk8), pointer :: livecrootn(:)         ! (gN/m2) live coarse root N
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live coarse root N strg
-    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live coarse root N trfr
+    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live corse root N strg
+    real(rk8), pointer :: livecrootn_xfer(:)    ! (gN/m2) live corse root N trfr
     real(rk8), pointer :: livestemn(:)          ! (gN/m2) live stem N
     real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
     real(rk8), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
     real(rk8), pointer :: deadcrootn(:)         ! (gN/m2) dead coarse root N
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead coarse root N strg
-    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead coarse root N trfr
+    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead corse root N strg
+    real(rk8), pointer :: deadcrootn_xfer(:)    ! (gN/m2) dead corse root N trfr
     real(rk8), pointer :: deadstemn(:)          ! (gN/m2) dead stem N
     real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
     real(rk8), pointer :: deadstemn_xfer(:)     ! (gN/m2) dead stem N transfer
@@ -181,121 +182,121 @@ module mod_clm_cnnstateupdate1
     woody      => pftcon%woody
 
     ! assign local pointers at the column level
-    ndep_to_sminn                     => clm3%g%l%c%cnf%ndep_to_sminn
-    nfix_to_sminn                     => clm3%g%l%c%cnf%nfix_to_sminn
-    fert_to_sminn                     => clm3%g%l%c%cnf%fert_to_sminn
-    soyfixn_to_sminn                  => clm3%g%l%c%cnf%soyfixn_to_sminn
+    ndep_to_sminn    => clm3%g%l%c%cnf%ndep_to_sminn
+    nfix_to_sminn    => clm3%g%l%c%cnf%nfix_to_sminn
+    fert_to_sminn    => clm3%g%l%c%cnf%fert_to_sminn
+    soyfixn_to_sminn => clm3%g%l%c%cnf%soyfixn_to_sminn
 #ifndef NITRIF_DENITRIF
-    sminn_to_denit_excess_vr          => clm3%g%l%c%cnf%sminn_to_denit_excess_vr
-    sminn_to_denit_decomp_cascade_vr  => &
+    sminn_to_denit_excess_vr         => clm3%g%l%c%cnf%sminn_to_denit_excess_vr
+    sminn_to_denit_decomp_cascade_vr => &
             clm3%g%l%c%cnf%sminn_to_denit_decomp_cascade_vr
 #else
-    smin_no3_vr                    => clm3%g%l%c%cns%smin_no3_vr
-    smin_nh4_vr                    => clm3%g%l%c%cns%smin_nh4_vr
-    f_nit_vr                       => clm3%g%l%c%cnf%f_nit_vr
-    f_denit_vr                     => clm3%g%l%c%cnf%f_denit_vr
-    actual_immob_no3_vr            => clm3%g%l%c%cnf%actual_immob_no3_vr
-    actual_immob_nh4_vr            => clm3%g%l%c%cnf%actual_immob_nh4_vr
-    smin_no3_to_plant_vr           => clm3%g%l%c%cnf%smin_no3_to_plant_vr
-    smin_nh4_to_plant_vr           => clm3%g%l%c%cnf%smin_nh4_to_plant_vr
-    gross_nmin_vr                  => clm3%g%l%c%cnf%gross_nmin_vr
+    smin_no3_vr          => clm3%g%l%c%cns%smin_no3_vr
+    smin_nh4_vr          => clm3%g%l%c%cns%smin_nh4_vr
+    f_nit_vr             => clm3%g%l%c%cnf%f_nit_vr
+    f_denit_vr           => clm3%g%l%c%cnf%f_denit_vr
+    actual_immob_no3_vr  => clm3%g%l%c%cnf%actual_immob_no3_vr
+    actual_immob_nh4_vr  => clm3%g%l%c%cnf%actual_immob_nh4_vr
+    smin_no3_to_plant_vr => clm3%g%l%c%cnf%smin_no3_to_plant_vr
+    smin_nh4_to_plant_vr => clm3%g%l%c%cnf%smin_nh4_to_plant_vr
+    gross_nmin_vr        => clm3%g%l%c%cnf%gross_nmin_vr
 #endif
-    sminn_to_plant_vr              => clm3%g%l%c%cnf%sminn_to_plant_vr
-    decomp_cascade_sminn_flux_vr   => &
+    sminn_to_plant_vr            => clm3%g%l%c%cnf%sminn_to_plant_vr
+    decomp_cascade_sminn_flux_vr => &
             clm3%g%l%c%cnf%decomp_cascade_sminn_flux_vr
-    decomp_cascade_ntransfer_vr    => &
+    decomp_cascade_ntransfer_vr => &
             clm3%g%l%c%cnf%decomp_cascade_ntransfer_vr
-    cascade_donor_pool             => decomp_cascade_con%cascade_donor_pool
-    cascade_receiver_pool          => decomp_cascade_con%cascade_receiver_pool
-    supplement_to_sminn_vr         => clm3%g%l%c%cnf%supplement_to_sminn_vr
-    decomp_npools_vr               => clm3%g%l%c%cns%decomp_npools_vr
-    decomp_npools_sourcesink       => clm3%g%l%c%cnf%decomp_npools_sourcesink
-    sminn_vr                       => clm3%g%l%c%cns%sminn_vr
-    ndep_prof                      => clm3%g%l%c%cps%ndep_prof
-    nfixation_prof                 => clm3%g%l%c%cps%nfixation_prof
-    phenology_n_to_litr_met_n      => clm3%g%l%c%cnf%phenology_n_to_litr_met_n
-    phenology_n_to_litr_cel_n      => clm3%g%l%c%cnf%phenology_n_to_litr_cel_n
-    phenology_n_to_litr_lig_n      => clm3%g%l%c%cnf%phenology_n_to_litr_lig_n
+    cascade_donor_pool        => decomp_cascade_con%cascade_donor_pool
+    cascade_receiver_pool     => decomp_cascade_con%cascade_receiver_pool
+    supplement_to_sminn_vr    => clm3%g%l%c%cnf%supplement_to_sminn_vr
+    decomp_npools_vr          => clm3%g%l%c%cns%decomp_npools_vr
+    decomp_npools_sourcesink  => clm3%g%l%c%cnf%decomp_npools_sourcesink
+    sminn_vr                  => clm3%g%l%c%cns%sminn_vr
+    ndep_prof                 => clm3%g%l%c%cps%ndep_prof
+    nfixation_prof            => clm3%g%l%c%cps%nfixation_prof
+    phenology_n_to_litr_met_n => clm3%g%l%c%cnf%phenology_n_to_litr_met_n
+    phenology_n_to_litr_cel_n => clm3%g%l%c%cnf%phenology_n_to_litr_cel_n
+    phenology_n_to_litr_lig_n => clm3%g%l%c%cnf%phenology_n_to_litr_lig_n
 
     ! new pointers for dynamic landcover
-    dwt_seedn_to_leaf         => clm3%g%l%c%cnf%dwt_seedn_to_leaf
-    dwt_seedn_to_deadstem     => clm3%g%l%c%cnf%dwt_seedn_to_deadstem
-    dwt_frootn_to_litr_met_n  => clm3%g%l%c%cnf%dwt_frootn_to_litr_met_n
-    dwt_frootn_to_litr_cel_n  => clm3%g%l%c%cnf%dwt_frootn_to_litr_cel_n
-    dwt_frootn_to_litr_lig_n  => clm3%g%l%c%cnf%dwt_frootn_to_litr_lig_n
-    dwt_livecrootn_to_cwdn    => clm3%g%l%c%cnf%dwt_livecrootn_to_cwdn
-    dwt_deadcrootn_to_cwdn    => clm3%g%l%c%cnf%dwt_deadcrootn_to_cwdn
+    dwt_seedn_to_leaf        => clm3%g%l%c%cnf%dwt_seedn_to_leaf
+    dwt_seedn_to_deadstem    => clm3%g%l%c%cnf%dwt_seedn_to_deadstem
+    dwt_frootn_to_litr_met_n => clm3%g%l%c%cnf%dwt_frootn_to_litr_met_n
+    dwt_frootn_to_litr_cel_n => clm3%g%l%c%cnf%dwt_frootn_to_litr_cel_n
+    dwt_frootn_to_litr_lig_n => clm3%g%l%c%cnf%dwt_frootn_to_litr_lig_n
+    dwt_livecrootn_to_cwdn   => clm3%g%l%c%cnf%dwt_livecrootn_to_cwdn
+    dwt_deadcrootn_to_cwdn   => clm3%g%l%c%cnf%dwt_deadcrootn_to_cwdn
     seedn => clm3%g%l%c%cns%seedn
 
     ! assign local pointers at the pft level
-    ivt                            => clm3%g%l%c%p%itype
-    deadcrootn_storage_to_xfer     => clm3%g%l%c%p%pnf%deadcrootn_storage_to_xfer
+    ivt                         => clm3%g%l%c%p%itype
+    deadcrootn_storage_to_xfer  => clm3%g%l%c%p%pnf%deadcrootn_storage_to_xfer
     deadcrootn_xfer_to_deadcrootn  => &
             clm3%g%l%c%p%pnf%deadcrootn_xfer_to_deadcrootn
     deadstemn_storage_to_xfer      => clm3%g%l%c%p%pnf%deadstemn_storage_to_xfer
     deadstemn_xfer_to_deadstemn    => &
             clm3%g%l%c%p%pnf%deadstemn_xfer_to_deadstemn
-    frootn_storage_to_xfer         => clm3%g%l%c%p%pnf%frootn_storage_to_xfer
-    frootn_to_litter               => clm3%g%l%c%p%pnf%frootn_to_litter
-    frootn_to_retransn             => clm3%g%l%c%p%pnf%frootn_to_retransn
-    frootn_xfer_to_frootn          => clm3%g%l%c%p%pnf%frootn_xfer_to_frootn
-    leafn_storage_to_xfer          => clm3%g%l%c%p%pnf%leafn_storage_to_xfer
-    leafn_to_litter                => clm3%g%l%c%p%pnf%leafn_to_litter
-    leafn_to_retransn              => clm3%g%l%c%p%pnf%leafn_to_retransn
-    leafn_xfer_to_leafn            => clm3%g%l%c%p%pnf%leafn_xfer_to_leafn
-    livecrootn_storage_to_xfer     => clm3%g%l%c%p%pnf%livecrootn_storage_to_xfer
-    livecrootn_to_deadcrootn       => clm3%g%l%c%p%pnf%livecrootn_to_deadcrootn
-    livecrootn_to_retransn         => clm3%g%l%c%p%pnf%livecrootn_to_retransn
+    frootn_storage_to_xfer     => clm3%g%l%c%p%pnf%frootn_storage_to_xfer
+    frootn_to_litter           => clm3%g%l%c%p%pnf%frootn_to_litter
+    frootn_to_retransn         => clm3%g%l%c%p%pnf%frootn_to_retransn
+    frootn_xfer_to_frootn      => clm3%g%l%c%p%pnf%frootn_xfer_to_frootn
+    leafn_storage_to_xfer      => clm3%g%l%c%p%pnf%leafn_storage_to_xfer
+    leafn_to_litter            => clm3%g%l%c%p%pnf%leafn_to_litter
+    leafn_to_retransn          => clm3%g%l%c%p%pnf%leafn_to_retransn
+    leafn_xfer_to_leafn        => clm3%g%l%c%p%pnf%leafn_xfer_to_leafn
+    livecrootn_storage_to_xfer => clm3%g%l%c%p%pnf%livecrootn_storage_to_xfer
+    livecrootn_to_deadcrootn   => clm3%g%l%c%p%pnf%livecrootn_to_deadcrootn
+    livecrootn_to_retransn     => clm3%g%l%c%p%pnf%livecrootn_to_retransn
     livecrootn_xfer_to_livecrootn  => &
             clm3%g%l%c%p%pnf%livecrootn_xfer_to_livecrootn
-    livestemn_storage_to_xfer      => clm3%g%l%c%p%pnf%livestemn_storage_to_xfer
-    livestemn_to_deadstemn         => clm3%g%l%c%p%pnf%livestemn_to_deadstemn
-    livestemn_to_retransn          => clm3%g%l%c%p%pnf%livestemn_to_retransn
-    livestemn_xfer_to_livestemn    => &
+    livestemn_storage_to_xfer  => clm3%g%l%c%p%pnf%livestemn_storage_to_xfer
+    livestemn_to_deadstemn     => clm3%g%l%c%p%pnf%livestemn_to_deadstemn
+    livestemn_to_retransn      => clm3%g%l%c%p%pnf%livestemn_to_retransn
+    livestemn_xfer_to_livestemn => &
             clm3%g%l%c%p%pnf%livestemn_xfer_to_livestemn
-    npool_to_deadcrootn            => clm3%g%l%c%p%pnf%npool_to_deadcrootn
-    npool_to_deadcrootn_storage    => clm3%g%l%c%p%pnf%npool_to_deadcrootn_storage
-    npool_to_deadstemn             => clm3%g%l%c%p%pnf%npool_to_deadstemn
-    npool_to_deadstemn_storage     => clm3%g%l%c%p%pnf%npool_to_deadstemn_storage
-    npool_to_frootn                => clm3%g%l%c%p%pnf%npool_to_frootn
-    npool_to_frootn_storage        => clm3%g%l%c%p%pnf%npool_to_frootn_storage
-    npool_to_leafn                 => clm3%g%l%c%p%pnf%npool_to_leafn
-    npool_to_leafn_storage         => clm3%g%l%c%p%pnf%npool_to_leafn_storage
-    npool_to_livecrootn            => clm3%g%l%c%p%pnf%npool_to_livecrootn
-    npool_to_livecrootn_storage    => clm3%g%l%c%p%pnf%npool_to_livecrootn_storage
-    npool_to_livestemn             => clm3%g%l%c%p%pnf%npool_to_livestemn
-    npool_to_livestemn_storage     => clm3%g%l%c%p%pnf%npool_to_livestemn_storage
-    retransn_to_npool              => clm3%g%l%c%p%pnf%retransn_to_npool
-    sminn_to_npool                 => clm3%g%l%c%p%pnf%sminn_to_npool
-    grainn_storage_to_xfer         => clm3%g%l%c%p%pnf%grainn_storage_to_xfer
-    grainn_to_food                 => clm3%g%l%c%p%pnf%grainn_to_food
-    grainn_xfer_to_grainn          => clm3%g%l%c%p%pnf%grainn_xfer_to_grainn
-    livestemn_to_litter            => clm3%g%l%c%p%pnf%livestemn_to_litter
-    npool_to_grainn                => clm3%g%l%c%p%pnf%npool_to_grainn
-    npool_to_grainn_storage        => clm3%g%l%c%p%pnf%npool_to_grainn_storage
-    grainn                         => clm3%g%l%c%p%pns%grainn
-    grainn_storage                 => clm3%g%l%c%p%pns%grainn_storage
-    grainn_xfer                    => clm3%g%l%c%p%pns%grainn_xfer
-    deadcrootn                     => clm3%g%l%c%p%pns%deadcrootn
-    deadcrootn_storage             => clm3%g%l%c%p%pns%deadcrootn_storage
-    deadcrootn_xfer                => clm3%g%l%c%p%pns%deadcrootn_xfer
-    deadstemn                      => clm3%g%l%c%p%pns%deadstemn
-    deadstemn_storage              => clm3%g%l%c%p%pns%deadstemn_storage
-    deadstemn_xfer                 => clm3%g%l%c%p%pns%deadstemn_xfer
-    frootn                         => clm3%g%l%c%p%pns%frootn
-    frootn_storage                 => clm3%g%l%c%p%pns%frootn_storage
-    frootn_xfer                    => clm3%g%l%c%p%pns%frootn_xfer
-    leafn                          => clm3%g%l%c%p%pns%leafn
-    leafn_storage                  => clm3%g%l%c%p%pns%leafn_storage
-    leafn_xfer                     => clm3%g%l%c%p%pns%leafn_xfer
-    livecrootn                     => clm3%g%l%c%p%pns%livecrootn
-    livecrootn_storage             => clm3%g%l%c%p%pns%livecrootn_storage
-    livecrootn_xfer                => clm3%g%l%c%p%pns%livecrootn_xfer
-    livestemn                      => clm3%g%l%c%p%pns%livestemn
-    livestemn_storage              => clm3%g%l%c%p%pns%livestemn_storage
-    livestemn_xfer                 => clm3%g%l%c%p%pns%livestemn_xfer
-    npool                          => clm3%g%l%c%p%pns%npool
-    retransn                       => clm3%g%l%c%p%pns%retransn
+    npool_to_deadcrootn         => clm3%g%l%c%p%pnf%npool_to_deadcrootn
+    npool_to_deadcrootn_storage => clm3%g%l%c%p%pnf%npool_to_deadcrootn_storage
+    npool_to_deadstemn          => clm3%g%l%c%p%pnf%npool_to_deadstemn
+    npool_to_deadstemn_storage  => clm3%g%l%c%p%pnf%npool_to_deadstemn_storage
+    npool_to_frootn             => clm3%g%l%c%p%pnf%npool_to_frootn
+    npool_to_frootn_storage     => clm3%g%l%c%p%pnf%npool_to_frootn_storage
+    npool_to_leafn              => clm3%g%l%c%p%pnf%npool_to_leafn
+    npool_to_leafn_storage      => clm3%g%l%c%p%pnf%npool_to_leafn_storage
+    npool_to_livecrootn         => clm3%g%l%c%p%pnf%npool_to_livecrootn
+    npool_to_livecrootn_storage => clm3%g%l%c%p%pnf%npool_to_livecrootn_storage
+    npool_to_livestemn          => clm3%g%l%c%p%pnf%npool_to_livestemn
+    npool_to_livestemn_storage  => clm3%g%l%c%p%pnf%npool_to_livestemn_storage
+    retransn_to_npool           => clm3%g%l%c%p%pnf%retransn_to_npool
+    sminn_to_npool              => clm3%g%l%c%p%pnf%sminn_to_npool
+    grainn_storage_to_xfer      => clm3%g%l%c%p%pnf%grainn_storage_to_xfer
+    grainn_to_food              => clm3%g%l%c%p%pnf%grainn_to_food
+    grainn_xfer_to_grainn       => clm3%g%l%c%p%pnf%grainn_xfer_to_grainn
+    livestemn_to_litter         => clm3%g%l%c%p%pnf%livestemn_to_litter
+    npool_to_grainn             => clm3%g%l%c%p%pnf%npool_to_grainn
+    npool_to_grainn_storage     => clm3%g%l%c%p%pnf%npool_to_grainn_storage
+    grainn                      => clm3%g%l%c%p%pns%grainn
+    grainn_storage              => clm3%g%l%c%p%pns%grainn_storage
+    grainn_xfer                 => clm3%g%l%c%p%pns%grainn_xfer
+    deadcrootn                  => clm3%g%l%c%p%pns%deadcrootn
+    deadcrootn_storage          => clm3%g%l%c%p%pns%deadcrootn_storage
+    deadcrootn_xfer             => clm3%g%l%c%p%pns%deadcrootn_xfer
+    deadstemn                   => clm3%g%l%c%p%pns%deadstemn
+    deadstemn_storage           => clm3%g%l%c%p%pns%deadstemn_storage
+    deadstemn_xfer              => clm3%g%l%c%p%pns%deadstemn_xfer
+    frootn                      => clm3%g%l%c%p%pns%frootn
+    frootn_storage              => clm3%g%l%c%p%pns%frootn_storage
+    frootn_xfer                 => clm3%g%l%c%p%pns%frootn_xfer
+    leafn                       => clm3%g%l%c%p%pns%leafn
+    leafn_storage               => clm3%g%l%c%p%pns%leafn_storage
+    leafn_xfer                  => clm3%g%l%c%p%pns%leafn_xfer
+    livecrootn                  => clm3%g%l%c%p%pns%livecrootn
+    livecrootn_storage          => clm3%g%l%c%p%pns%livecrootn_storage
+    livecrootn_xfer             => clm3%g%l%c%p%pns%livecrootn_xfer
+    livestemn                   => clm3%g%l%c%p%pns%livestemn
+    livestemn_storage           => clm3%g%l%c%p%pns%livestemn_storage
+    livestemn_xfer              => clm3%g%l%c%p%pns%livestemn_xfer
+    npool                       => clm3%g%l%c%p%pns%npool
+    retransn                    => clm3%g%l%c%p%pns%retransn
 
     ! set time steps
     dt = dtsrf
@@ -318,10 +319,12 @@ module mod_clm_cnnstateupdate1
 #ifndef NITRIF_DENITRIF
         ! N deposition and fixation
         sminn_vr(c,j) = sminn_vr(c,j) + ndep_to_sminn(c)*dt * ndep_prof(c,j)
-        sminn_vr(c,j) = sminn_vr(c,j) + nfix_to_sminn(c)*dt * nfixation_prof(c,j)
+        sminn_vr(c,j) = sminn_vr(c,j) + nfix_to_sminn(c)*dt * &
+                nfixation_prof(c,j)
 #else
         ! N deposition and fixation (put all into NH4 pool)
-        smin_nh4_vr(c,j) = smin_nh4_vr(c,j) + ndep_to_sminn(c)*dt * ndep_prof(c,j)
+        smin_nh4_vr(c,j) = smin_nh4_vr(c,j) + ndep_to_sminn(c)*dt * &
+                ndep_prof(c,j)
         smin_nh4_vr(c,j) = smin_nh4_vr(c,j) + &
                 nfix_to_sminn(c)*dt * nfixation_prof(c,j)
 #endif

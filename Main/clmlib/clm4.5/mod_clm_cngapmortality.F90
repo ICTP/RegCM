@@ -25,7 +25,7 @@ module mod_clm_cngapmortality
     use mod_clm_varcon      , only: secspday
     use mod_clm_pftvarcon       , only: npcropmin
     implicit none
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! column filter for soil points
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! pft filter for soil points
@@ -43,16 +43,16 @@ module mod_clm_cngapmortality
     real(rk8), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
     real(rk8), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
     real(rk8), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
-    real(rk8), pointer :: livecrootc_storage(:) ! (gC/m2) live coarse root C stge
-    real(rk8), pointer :: deadcrootc_storage(:) ! (gC/m2) dead coarse root C stge
-    real(rk8), pointer :: gresp_storage(:)      ! (gC/m2) growth respiration stge
+    real(rk8), pointer :: livecrootc_storage(:) ! (gC/m2) live corse root C stge
+    real(rk8), pointer :: deadcrootc_storage(:) ! (gC/m2) dead corse root C stge
+    real(rk8), pointer :: gresp_storage(:)      ! (gC/m2) growth respir. stge
     real(rk8), pointer :: leafc_xfer(:)         ! (gC/m2) leaf C transfer
     real(rk8), pointer :: frootc_xfer(:)        ! (gC/m2) fine root C transfer
     real(rk8), pointer :: livestemc_xfer(:)     ! (gC/m2) live stem C transfer
     real(rk8), pointer :: deadstemc_xfer(:)     ! (gC/m2) dead stem C transfer
-    real(rk8), pointer :: livecrootc_xfer(:)    ! (gC/m2) live coarse root C trfr
-    real(rk8), pointer :: deadcrootc_xfer(:)    ! (gC/m2) dead coarse root C trfr
-    real(rk8), pointer :: gresp_xfer(:)         ! (gC/m2) growth respiration trfr
+    real(rk8), pointer :: livecrootc_xfer(:)    ! (gC/m2) live corse root C trfr
+    real(rk8), pointer :: deadcrootc_xfer(:)    ! (gC/m2) dead corse root C trfr
+    real(rk8), pointer :: gresp_xfer(:)         ! (gC/m2) growth resp trfr
     real(rk8), pointer :: leafn(:)              ! (gN/m2) leaf N
     real(rk8), pointer :: frootn(:)             ! (gN/m2) fine root N
     real(rk8), pointer :: livestemn(:)          ! (gN/m2) live stem N
@@ -65,8 +65,8 @@ module mod_clm_cngapmortality
     real(rk8), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
     real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
     real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live coarse root N stge
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead coarse root N stge
+    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live corse root N stge
+    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead corse root N stge
     real(rk8), pointer :: leafn_xfer(:)         ! (gN/m2) leaf N transfer
     real(rk8), pointer :: frootn_xfer(:)        ! (gN/m2) fine root N transfer
     real(rk8), pointer :: livestemn_xfer(:)     ! (gN/m2) live stem N transfer
@@ -135,54 +135,54 @@ module mod_clm_cngapmortality
     woody                          => pftcon%woody
 
     ! assign local pointers to pft-level arrays
-    ivt                            => clm3%g%l%c%p%itype
-    leafc                          => clm3%g%l%c%p%pcs%leafc
-    frootc                         => clm3%g%l%c%p%pcs%frootc
-    livestemc                      => clm3%g%l%c%p%pcs%livestemc
-    deadstemc                      => clm3%g%l%c%p%pcs%deadstemc
-    livecrootc                     => clm3%g%l%c%p%pcs%livecrootc
-    deadcrootc                     => clm3%g%l%c%p%pcs%deadcrootc
-    leafc_storage                  => clm3%g%l%c%p%pcs%leafc_storage
-    frootc_storage                 => clm3%g%l%c%p%pcs%frootc_storage
-    livestemc_storage              => clm3%g%l%c%p%pcs%livestemc_storage
-    deadstemc_storage              => clm3%g%l%c%p%pcs%deadstemc_storage
-    livecrootc_storage             => clm3%g%l%c%p%pcs%livecrootc_storage
-    deadcrootc_storage             => clm3%g%l%c%p%pcs%deadcrootc_storage
-    gresp_storage                  => clm3%g%l%c%p%pcs%gresp_storage
-    leafc_xfer                     => clm3%g%l%c%p%pcs%leafc_xfer
-    frootc_xfer                    => clm3%g%l%c%p%pcs%frootc_xfer
-    livestemc_xfer                 => clm3%g%l%c%p%pcs%livestemc_xfer
-    deadstemc_xfer                 => clm3%g%l%c%p%pcs%deadstemc_xfer
-    livecrootc_xfer                => clm3%g%l%c%p%pcs%livecrootc_xfer
-    deadcrootc_xfer                => clm3%g%l%c%p%pcs%deadcrootc_xfer
-    gresp_xfer                     => clm3%g%l%c%p%pcs%gresp_xfer
-    leafn                          => clm3%g%l%c%p%pns%leafn
-    frootn                         => clm3%g%l%c%p%pns%frootn
-    livestemn                      => clm3%g%l%c%p%pns%livestemn
-    deadstemn                      => clm3%g%l%c%p%pns%deadstemn
-    livecrootn                     => clm3%g%l%c%p%pns%livecrootn
-    deadcrootn                     => clm3%g%l%c%p%pns%deadcrootn
-    retransn                       => clm3%g%l%c%p%pns%retransn
-    leafn_storage                  => clm3%g%l%c%p%pns%leafn_storage
-    frootn_storage                 => clm3%g%l%c%p%pns%frootn_storage
-    livestemn_storage              => clm3%g%l%c%p%pns%livestemn_storage
-    deadstemn_storage              => clm3%g%l%c%p%pns%deadstemn_storage
-    livecrootn_storage             => clm3%g%l%c%p%pns%livecrootn_storage
-    deadcrootn_storage             => clm3%g%l%c%p%pns%deadcrootn_storage
-    leafn_xfer                     => clm3%g%l%c%p%pns%leafn_xfer
-    frootn_xfer                    => clm3%g%l%c%p%pns%frootn_xfer
-    livestemn_xfer                 => clm3%g%l%c%p%pns%livestemn_xfer
-    deadstemn_xfer                 => clm3%g%l%c%p%pns%deadstemn_xfer
-    livecrootn_xfer                => clm3%g%l%c%p%pns%livecrootn_xfer
-    deadcrootn_xfer                => clm3%g%l%c%p%pns%deadcrootn_xfer
-    m_leafc_to_litter              => clm3%g%l%c%p%pcf%m_leafc_to_litter
-    m_frootc_to_litter             => clm3%g%l%c%p%pcf%m_frootc_to_litter
-    m_livestemc_to_litter          => clm3%g%l%c%p%pcf%m_livestemc_to_litter
-    m_deadstemc_to_litter          => clm3%g%l%c%p%pcf%m_deadstemc_to_litter
-    m_livecrootc_to_litter         => clm3%g%l%c%p%pcf%m_livecrootc_to_litter
-    m_deadcrootc_to_litter         => clm3%g%l%c%p%pcf%m_deadcrootc_to_litter
-    m_leafc_storage_to_litter      => clm3%g%l%c%p%pcf%m_leafc_storage_to_litter
-    m_frootc_storage_to_litter     => clm3%g%l%c%p%pcf%m_frootc_storage_to_litter
+    ivt                        => clm3%g%l%c%p%itype
+    leafc                      => clm3%g%l%c%p%pcs%leafc
+    frootc                     => clm3%g%l%c%p%pcs%frootc
+    livestemc                  => clm3%g%l%c%p%pcs%livestemc
+    deadstemc                  => clm3%g%l%c%p%pcs%deadstemc
+    livecrootc                 => clm3%g%l%c%p%pcs%livecrootc
+    deadcrootc                 => clm3%g%l%c%p%pcs%deadcrootc
+    leafc_storage              => clm3%g%l%c%p%pcs%leafc_storage
+    frootc_storage             => clm3%g%l%c%p%pcs%frootc_storage
+    livestemc_storage          => clm3%g%l%c%p%pcs%livestemc_storage
+    deadstemc_storage          => clm3%g%l%c%p%pcs%deadstemc_storage
+    livecrootc_storage         => clm3%g%l%c%p%pcs%livecrootc_storage
+    deadcrootc_storage         => clm3%g%l%c%p%pcs%deadcrootc_storage
+    gresp_storage              => clm3%g%l%c%p%pcs%gresp_storage
+    leafc_xfer                 => clm3%g%l%c%p%pcs%leafc_xfer
+    frootc_xfer                => clm3%g%l%c%p%pcs%frootc_xfer
+    livestemc_xfer             => clm3%g%l%c%p%pcs%livestemc_xfer
+    deadstemc_xfer             => clm3%g%l%c%p%pcs%deadstemc_xfer
+    livecrootc_xfer            => clm3%g%l%c%p%pcs%livecrootc_xfer
+    deadcrootc_xfer            => clm3%g%l%c%p%pcs%deadcrootc_xfer
+    gresp_xfer                 => clm3%g%l%c%p%pcs%gresp_xfer
+    leafn                      => clm3%g%l%c%p%pns%leafn
+    frootn                     => clm3%g%l%c%p%pns%frootn
+    livestemn                  => clm3%g%l%c%p%pns%livestemn
+    deadstemn                  => clm3%g%l%c%p%pns%deadstemn
+    livecrootn                 => clm3%g%l%c%p%pns%livecrootn
+    deadcrootn                 => clm3%g%l%c%p%pns%deadcrootn
+    retransn                   => clm3%g%l%c%p%pns%retransn
+    leafn_storage              => clm3%g%l%c%p%pns%leafn_storage
+    frootn_storage             => clm3%g%l%c%p%pns%frootn_storage
+    livestemn_storage          => clm3%g%l%c%p%pns%livestemn_storage
+    deadstemn_storage          => clm3%g%l%c%p%pns%deadstemn_storage
+    livecrootn_storage         => clm3%g%l%c%p%pns%livecrootn_storage
+    deadcrootn_storage         => clm3%g%l%c%p%pns%deadcrootn_storage
+    leafn_xfer                 => clm3%g%l%c%p%pns%leafn_xfer
+    frootn_xfer                => clm3%g%l%c%p%pns%frootn_xfer
+    livestemn_xfer             => clm3%g%l%c%p%pns%livestemn_xfer
+    deadstemn_xfer             => clm3%g%l%c%p%pns%deadstemn_xfer
+    livecrootn_xfer            => clm3%g%l%c%p%pns%livecrootn_xfer
+    deadcrootn_xfer            => clm3%g%l%c%p%pns%deadcrootn_xfer
+    m_leafc_to_litter          => clm3%g%l%c%p%pcf%m_leafc_to_litter
+    m_frootc_to_litter         => clm3%g%l%c%p%pcf%m_frootc_to_litter
+    m_livestemc_to_litter      => clm3%g%l%c%p%pcf%m_livestemc_to_litter
+    m_deadstemc_to_litter      => clm3%g%l%c%p%pcf%m_deadstemc_to_litter
+    m_livecrootc_to_litter     => clm3%g%l%c%p%pcf%m_livecrootc_to_litter
+    m_deadcrootc_to_litter     => clm3%g%l%c%p%pcf%m_deadcrootc_to_litter
+    m_leafc_storage_to_litter  => clm3%g%l%c%p%pcf%m_leafc_storage_to_litter
+    m_frootc_storage_to_litter => clm3%g%l%c%p%pcf%m_frootc_storage_to_litter
     m_livestemc_storage_to_litter  => &
             clm3%g%l%c%p%pcf%m_livestemc_storage_to_litter
     m_deadstemc_storage_to_litter  => &
@@ -191,23 +191,23 @@ module mod_clm_cngapmortality
             clm3%g%l%c%p%pcf%m_livecrootc_storage_to_litter
     m_deadcrootc_storage_to_litter => &
             clm3%g%l%c%p%pcf%m_deadcrootc_storage_to_litter
-    m_gresp_storage_to_litter      => clm3%g%l%c%p%pcf%m_gresp_storage_to_litter
-    m_leafc_xfer_to_litter         => clm3%g%l%c%p%pcf%m_leafc_xfer_to_litter
-    m_frootc_xfer_to_litter        => clm3%g%l%c%p%pcf%m_frootc_xfer_to_litter
-    m_livestemc_xfer_to_litter     => clm3%g%l%c%p%pcf%m_livestemc_xfer_to_litter
-    m_deadstemc_xfer_to_litter     => clm3%g%l%c%p%pcf%m_deadstemc_xfer_to_litter
-    m_livecrootc_xfer_to_litter    => clm3%g%l%c%p%pcf%m_livecrootc_xfer_to_litter
-    m_deadcrootc_xfer_to_litter    => clm3%g%l%c%p%pcf%m_deadcrootc_xfer_to_litter
-    m_gresp_xfer_to_litter         => clm3%g%l%c%p%pcf%m_gresp_xfer_to_litter
-    m_leafn_to_litter              => clm3%g%l%c%p%pnf%m_leafn_to_litter
-    m_frootn_to_litter             => clm3%g%l%c%p%pnf%m_frootn_to_litter
-    m_livestemn_to_litter          => clm3%g%l%c%p%pnf%m_livestemn_to_litter
-    m_deadstemn_to_litter          => clm3%g%l%c%p%pnf%m_deadstemn_to_litter
-    m_livecrootn_to_litter         => clm3%g%l%c%p%pnf%m_livecrootn_to_litter
-    m_deadcrootn_to_litter         => clm3%g%l%c%p%pnf%m_deadcrootn_to_litter
-    m_retransn_to_litter           => clm3%g%l%c%p%pnf%m_retransn_to_litter
-    m_leafn_storage_to_litter      => clm3%g%l%c%p%pnf%m_leafn_storage_to_litter
-    m_frootn_storage_to_litter     => clm3%g%l%c%p%pnf%m_frootn_storage_to_litter
+    m_gresp_storage_to_litter  => clm3%g%l%c%p%pcf%m_gresp_storage_to_litter
+    m_leafc_xfer_to_litter     => clm3%g%l%c%p%pcf%m_leafc_xfer_to_litter
+    m_frootc_xfer_to_litter    => clm3%g%l%c%p%pcf%m_frootc_xfer_to_litter
+    m_livestemc_xfer_to_litter => clm3%g%l%c%p%pcf%m_livestemc_xfer_to_litter
+    m_deadstemc_xfer_to_litter => clm3%g%l%c%p%pcf%m_deadstemc_xfer_to_litter
+    m_livecrootc_xfer_to_litter => clm3%g%l%c%p%pcf%m_livecrootc_xfer_to_litter
+    m_deadcrootc_xfer_to_litter => clm3%g%l%c%p%pcf%m_deadcrootc_xfer_to_litter
+    m_gresp_xfer_to_litter      => clm3%g%l%c%p%pcf%m_gresp_xfer_to_litter
+    m_leafn_to_litter           => clm3%g%l%c%p%pnf%m_leafn_to_litter
+    m_frootn_to_litter          => clm3%g%l%c%p%pnf%m_frootn_to_litter
+    m_livestemn_to_litter       => clm3%g%l%c%p%pnf%m_livestemn_to_litter
+    m_deadstemn_to_litter       => clm3%g%l%c%p%pnf%m_deadstemn_to_litter
+    m_livecrootn_to_litter      => clm3%g%l%c%p%pnf%m_livecrootn_to_litter
+    m_deadcrootn_to_litter      => clm3%g%l%c%p%pnf%m_deadcrootn_to_litter
+    m_retransn_to_litter        => clm3%g%l%c%p%pnf%m_retransn_to_litter
+    m_leafn_storage_to_litter   => clm3%g%l%c%p%pnf%m_leafn_storage_to_litter
+    m_frootn_storage_to_litter  => clm3%g%l%c%p%pnf%m_frootn_storage_to_litter
     m_livestemn_storage_to_litter  => &
             clm3%g%l%c%p%pnf%m_livestemn_storage_to_litter
     m_deadstemn_storage_to_litter  => &
@@ -216,12 +216,12 @@ module mod_clm_cngapmortality
             clm3%g%l%c%p%pnf%m_livecrootn_storage_to_litter
     m_deadcrootn_storage_to_litter => &
             clm3%g%l%c%p%pnf%m_deadcrootn_storage_to_litter
-    m_leafn_xfer_to_litter         => clm3%g%l%c%p%pnf%m_leafn_xfer_to_litter
-    m_frootn_xfer_to_litter        => clm3%g%l%c%p%pnf%m_frootn_xfer_to_litter
-    m_livestemn_xfer_to_litter     => clm3%g%l%c%p%pnf%m_livestemn_xfer_to_litter
-    m_deadstemn_xfer_to_litter     => clm3%g%l%c%p%pnf%m_deadstemn_xfer_to_litter
-    m_livecrootn_xfer_to_litter    => clm3%g%l%c%p%pnf%m_livecrootn_xfer_to_litter
-    m_deadcrootn_xfer_to_litter    => clm3%g%l%c%p%pnf%m_deadcrootn_xfer_to_litter
+    m_leafn_xfer_to_litter     => clm3%g%l%c%p%pnf%m_leafn_xfer_to_litter
+    m_frootn_xfer_to_litter    => clm3%g%l%c%p%pnf%m_frootn_xfer_to_litter
+    m_livestemn_xfer_to_litter => clm3%g%l%c%p%pnf%m_livestemn_xfer_to_litter
+    m_deadstemn_xfer_to_litter => clm3%g%l%c%p%pnf%m_deadstemn_xfer_to_litter
+    m_livecrootn_xfer_to_litter => clm3%g%l%c%p%pnf%m_livecrootn_xfer_to_litter
+    m_deadcrootn_xfer_to_litter => clm3%g%l%c%p%pnf%m_deadcrootn_xfer_to_litter
 #if (defined CNDV)
     greffic     => clm3%g%l%c%p%pdgvs%greffic
     heatstress  => clm3%g%l%c%p%pdgvs%heatstress
@@ -340,7 +340,7 @@ module mod_clm_cngapmortality
     use mod_clm_type
     use mod_clm_varpar , only : maxpatch_pft, nlevdecomp
     implicit none
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: num_soilc  ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! soil column filter
 
     ! true=>do computations on this pft (see reweightMod for details)
@@ -453,20 +453,20 @@ module mod_clm_cngapmortality
     m_gresp_storage_to_litter      => clm3%g%l%c%p%pcf%m_gresp_storage_to_litter
     m_leafc_xfer_to_litter         => clm3%g%l%c%p%pcf%m_leafc_xfer_to_litter
     m_frootc_xfer_to_litter        => clm3%g%l%c%p%pcf%m_frootc_xfer_to_litter
-    m_livestemc_xfer_to_litter     => clm3%g%l%c%p%pcf%m_livestemc_xfer_to_litter
-    m_deadstemc_xfer_to_litter     => clm3%g%l%c%p%pcf%m_deadstemc_xfer_to_litter
-    m_livecrootc_xfer_to_litter    => clm3%g%l%c%p%pcf%m_livecrootc_xfer_to_litter
-    m_deadcrootc_xfer_to_litter    => clm3%g%l%c%p%pcf%m_deadcrootc_xfer_to_litter
-    m_gresp_xfer_to_litter         => clm3%g%l%c%p%pcf%m_gresp_xfer_to_litter
-    m_leafn_to_litter              => clm3%g%l%c%p%pnf%m_leafn_to_litter
-    m_frootn_to_litter             => clm3%g%l%c%p%pnf%m_frootn_to_litter
-    m_livestemn_to_litter          => clm3%g%l%c%p%pnf%m_livestemn_to_litter
-    m_deadstemn_to_litter          => clm3%g%l%c%p%pnf%m_deadstemn_to_litter
-    m_livecrootn_to_litter         => clm3%g%l%c%p%pnf%m_livecrootn_to_litter
-    m_deadcrootn_to_litter         => clm3%g%l%c%p%pnf%m_deadcrootn_to_litter
-    m_retransn_to_litter           => clm3%g%l%c%p%pnf%m_retransn_to_litter
-    m_leafn_storage_to_litter      => clm3%g%l%c%p%pnf%m_leafn_storage_to_litter
-    m_frootn_storage_to_litter     => clm3%g%l%c%p%pnf%m_frootn_storage_to_litter
+    m_livestemc_xfer_to_litter => clm3%g%l%c%p%pcf%m_livestemc_xfer_to_litter
+    m_deadstemc_xfer_to_litter => clm3%g%l%c%p%pcf%m_deadstemc_xfer_to_litter
+    m_livecrootc_xfer_to_litter => clm3%g%l%c%p%pcf%m_livecrootc_xfer_to_litter
+    m_deadcrootc_xfer_to_litter => clm3%g%l%c%p%pcf%m_deadcrootc_xfer_to_litter
+    m_gresp_xfer_to_litter      => clm3%g%l%c%p%pcf%m_gresp_xfer_to_litter
+    m_leafn_to_litter           => clm3%g%l%c%p%pnf%m_leafn_to_litter
+    m_frootn_to_litter          => clm3%g%l%c%p%pnf%m_frootn_to_litter
+    m_livestemn_to_litter       => clm3%g%l%c%p%pnf%m_livestemn_to_litter
+    m_deadstemn_to_litter       => clm3%g%l%c%p%pnf%m_deadstemn_to_litter
+    m_livecrootn_to_litter      => clm3%g%l%c%p%pnf%m_livecrootn_to_litter
+    m_deadcrootn_to_litter      => clm3%g%l%c%p%pnf%m_deadcrootn_to_litter
+    m_retransn_to_litter        => clm3%g%l%c%p%pnf%m_retransn_to_litter
+    m_leafn_storage_to_litter   => clm3%g%l%c%p%pnf%m_leafn_storage_to_litter
+    m_frootn_storage_to_litter  => clm3%g%l%c%p%pnf%m_frootn_storage_to_litter
     m_livestemn_storage_to_litter  => &
             clm3%g%l%c%p%pnf%m_livestemn_storage_to_litter
     m_deadstemn_storage_to_litter  => &
@@ -475,24 +475,30 @@ module mod_clm_cngapmortality
             clm3%g%l%c%p%pnf%m_livecrootn_storage_to_litter
     m_deadcrootn_storage_to_litter => &
             clm3%g%l%c%p%pnf%m_deadcrootn_storage_to_litter
-    m_leafn_xfer_to_litter         => clm3%g%l%c%p%pnf%m_leafn_xfer_to_litter
-    m_frootn_xfer_to_litter        => clm3%g%l%c%p%pnf%m_frootn_xfer_to_litter
-    m_livestemn_xfer_to_litter     => clm3%g%l%c%p%pnf%m_livestemn_xfer_to_litter
-    m_deadstemn_xfer_to_litter     => clm3%g%l%c%p%pnf%m_deadstemn_xfer_to_litter
-    m_livecrootn_xfer_to_litter    => clm3%g%l%c%p%pnf%m_livecrootn_xfer_to_litter
-    m_deadcrootn_xfer_to_litter    => clm3%g%l%c%p%pnf%m_deadcrootn_xfer_to_litter
-    gap_mortality_c_to_litr_met_c  => clm3%g%l%c%ccf%gap_mortality_c_to_litr_met_c
-    gap_mortality_c_to_litr_cel_c  => clm3%g%l%c%ccf%gap_mortality_c_to_litr_cel_c
-    gap_mortality_c_to_litr_lig_c  => clm3%g%l%c%ccf%gap_mortality_c_to_litr_lig_c
+    m_leafn_xfer_to_litter     => clm3%g%l%c%p%pnf%m_leafn_xfer_to_litter
+    m_frootn_xfer_to_litter    => clm3%g%l%c%p%pnf%m_frootn_xfer_to_litter
+    m_livestemn_xfer_to_litter => clm3%g%l%c%p%pnf%m_livestemn_xfer_to_litter
+    m_deadstemn_xfer_to_litter => clm3%g%l%c%p%pnf%m_deadstemn_xfer_to_litter
+    m_livecrootn_xfer_to_litter => clm3%g%l%c%p%pnf%m_livecrootn_xfer_to_litter
+    m_deadcrootn_xfer_to_litter => clm3%g%l%c%p%pnf%m_deadcrootn_xfer_to_litter
+    gap_mortality_c_to_litr_met_c => &
+            clm3%g%l%c%ccf%gap_mortality_c_to_litr_met_c
+    gap_mortality_c_to_litr_cel_c => &
+            clm3%g%l%c%ccf%gap_mortality_c_to_litr_cel_c
+    gap_mortality_c_to_litr_lig_c => &
+            clm3%g%l%c%ccf%gap_mortality_c_to_litr_lig_c
     gap_mortality_c_to_cwdc        => clm3%g%l%c%ccf%gap_mortality_c_to_cwdc
-    gap_mortality_n_to_litr_met_n  => clm3%g%l%c%cnf%gap_mortality_n_to_litr_met_n
-    gap_mortality_n_to_litr_cel_n  => clm3%g%l%c%cnf%gap_mortality_n_to_litr_cel_n
-    gap_mortality_n_to_litr_lig_n  => clm3%g%l%c%cnf%gap_mortality_n_to_litr_lig_n
-    gap_mortality_n_to_cwdn        => clm3%g%l%c%cnf%gap_mortality_n_to_cwdn
-    leaf_prof                      => clm3%g%l%c%p%pps%leaf_prof
-    froot_prof                     => clm3%g%l%c%p%pps%froot_prof
-    croot_prof                     => clm3%g%l%c%p%pps%croot_prof
-    stem_prof                      => clm3%g%l%c%p%pps%stem_prof
+    gap_mortality_n_to_litr_met_n => &
+            clm3%g%l%c%cnf%gap_mortality_n_to_litr_met_n
+    gap_mortality_n_to_litr_cel_n => &
+            clm3%g%l%c%cnf%gap_mortality_n_to_litr_cel_n
+    gap_mortality_n_to_litr_lig_n => &
+            clm3%g%l%c%cnf%gap_mortality_n_to_litr_lig_n
+    gap_mortality_n_to_cwdn => clm3%g%l%c%cnf%gap_mortality_n_to_cwdn
+    leaf_prof               => clm3%g%l%c%p%pps%leaf_prof
+    froot_prof              => clm3%g%l%c%p%pps%froot_prof
+    croot_prof              => clm3%g%l%c%p%pps%croot_prof
+    stem_prof               => clm3%g%l%c%p%pps%stem_prof
 
     do j = 1 , nlevdecomp
       do pi = 1 , maxpatch_pft
@@ -571,7 +577,8 @@ module mod_clm_cngapmortality
               gap_mortality_c_to_litr_met_c(c,j) = &
                       gap_mortality_c_to_litr_met_c(c,j) + &
                       (m_livecrootc_xfer_to_litter(p) + &
-                      m_deadcrootc_xfer_to_litter(p)) * wtcol(p) * croot_prof(p,j)
+                      m_deadcrootc_xfer_to_litter(p)) * &
+                      wtcol(p) * croot_prof(p,j)
 
               ! leaf gap mortality nitrogen fluxes
               gap_mortality_n_to_litr_met_n(c,j) = &
@@ -606,7 +613,8 @@ module mod_clm_cngapmortality
                        (m_livestemn_to_litter(p) + m_deadstemn_to_litter(p)) * &
                        wtcol(p) * stem_prof(p,j)
               gap_mortality_n_to_cwdn(c,j) = gap_mortality_n_to_cwdn(c,j) + &
-                       (m_livecrootn_to_litter(p) + m_deadcrootn_to_litter(p)) * &
+                       (m_livecrootn_to_litter(p) + &
+                       m_deadcrootn_to_litter(p)) * &
                        wtcol(p) * croot_prof(p,j)
 
               ! retranslocated N pool gap mortality fluxes

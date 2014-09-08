@@ -672,12 +672,10 @@ module mod_clm_frictionvelocity
     else
       um = sqrt(ur*ur+wc*wc)
     end if
-
     rib = grav*zldis*dthv/(thv*um*um)
 #if (defined PERGRO)
     rib = 0.D0
 #endif
-
     if ( rib >= 0.D0 ) then
       ! neutral or stable
       zeta = rib*log(zldis/z0m)/(1.D0-5.D0*min(rib,0.19D0))

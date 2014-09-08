@@ -158,10 +158,10 @@ module mod_clm_varctl
     if ( present(username_in     ) ) username      = username_in
     if ( present(hostname_in     ) ) hostname      = hostname_in
   end subroutine set_clmvarctl
-!
-! Check that values are correct, and finish setting variables based on
-! other variables.
-!
+  !
+  ! Check that values are correct, and finish setting variables based on
+  ! other variables.
+  !
   subroutine clmvarctl_init( )
     character(len=32) :: subname = 'clmvarctl_init'  ! subroutine name
 

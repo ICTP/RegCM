@@ -272,7 +272,8 @@ module mod_clm_croprest
     ! gdd1020
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'gdd1020',cdims=(/'pft'/), &
-      long_name='20 year average of growing degree-days base 10C from planting', &
+      long_name = '20 year average of growing degree-days base &
+                  &10C from planting', &
       units='ddays')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'gdd1020') ) then
@@ -287,7 +288,8 @@ module mod_clm_croprest
     ! gdd820
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'gdd820',cdims=(/'pft'/), &
-       long_name='20 year average of growing degree-days base 8C from planting', &
+       long_name = '20 year average of growing degree-days base 8C &
+                   &from planting', &
        units='ddays')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'gdd820') ) then
@@ -302,7 +304,8 @@ module mod_clm_croprest
     ! gdd020
     if (flag == 'define') then
       call clm_addvar(clmvar_double,ncid,'gdd020',cdims=(/'pft'/), &
-       long_name='20 year average of growing degree-days base 0C from planting', &
+       long_name = '20 year average of growing degree-days base 0C &
+                   &from planting', &
        units='ddays')
     else if (flag == 'read') then
       if ( is_restart() .and. .not. clm_check_var(ncid,'gdd020') ) then
@@ -655,7 +658,8 @@ module mod_clm_croprest
       call clm_addvar(clmvar_double,ncid,'transfer_grain_gr',cdims=(/'pft'/), &
             long_name='grain growth respiration from storage',units='gC/m2/s')
     else if (flag == 'read') then
-      if ( is_restart() .and. .not. clm_check_var(ncid,'transfer_grain_gr') ) then
+      if ( is_restart() .and. &
+              .not. clm_check_var(ncid,'transfer_grain_gr') ) then
         call fatal(__FILE__,__LINE__,'clm now stopping')
       else
         call clm_readvar(ncid,'transfer_grain_gr', &

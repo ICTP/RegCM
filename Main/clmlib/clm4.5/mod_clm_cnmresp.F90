@@ -24,7 +24,7 @@ module mod_clm_cnmresp
     use mod_clm_pftvarcon , only : npcropmin
     implicit none
     integer(ik4), intent(in) :: lbc, ubc  ! column-index bounds
-    integer(ik4), intent(in) :: num_soilc ! number of soil points in column filter
+    integer(ik4), intent(in) :: num_soilc ! number of soil points in col filter
     integer(ik4), intent(in) :: filter_soilc(:) ! column filter for soil points
     integer(ik4), intent(in) :: num_soilp  ! number of soil points in pft filter
     integer(ik4), intent(in) :: filter_soilp(:) ! pft filter for soil points
@@ -44,8 +44,8 @@ module mod_clm_cnmresp
     real(rk8), pointer :: rootfr(:,:)
     integer(ik4) , pointer :: ivt(:)       ! pft vegetation type
     integer(ik4) , pointer :: pcolumn(:)   ! index into column level quantities
-    integer(ik4) , pointer :: plandunit(:) ! index into landunit level quantities
-    integer(ik4) , pointer :: clandunit(:) ! index into landunit level quantities
+    integer(ik4) , pointer :: plandunit(:) ! index into land level quantities
+    integer(ik4) , pointer :: clandunit(:) ! index into land level quantities
     integer(ik4) , pointer :: itypelun(:)  ! landunit type
     ! ecophysiological constants
     ! binary flag for woody lifeform (1=woody, 0=not woody)

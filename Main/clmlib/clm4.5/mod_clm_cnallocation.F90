@@ -102,10 +102,12 @@ module mod_clm_cnallocation
     use mod_clm_varcon , only : secspday, istsoil, istcrop
     use mod_clm_varpar , only : max_pft_per_col
     implicit none
-    integer(ik4), intent(in) :: lbp, ubp        ! pft-index bounds
-    integer(ik4), intent(in) :: lbc, ubc        ! column-index bounds
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
-    integer(ik4), intent(in) :: filter_soilc(ubc-lbc+1) ! filter for soil columns
+    integer(ik4), intent(in) :: lbp, ubp  ! pft-index bounds
+    integer(ik4), intent(in) :: lbc, ubc  ! column-index bounds
+    ! number of soil columns in filter
+    integer(ik4), intent(in) :: num_soilc
+    ! filter for soil columns
+    integer(ik4), intent(in) :: filter_soilc(ubc-lbc+1)
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(ubp-lbp+1) ! filter for soil pfts
 
@@ -185,8 +187,8 @@ module mod_clm_cnallocation
     real(rk8), pointer :: huigrain(:) ! same to reach vegetative maturity
     real(rk8), pointer :: hui(:)      ! =gdd since planting (gddplant)
     real(rk8), pointer :: leafout(:)  ! =gdd from top soil layer temperature
-    real(rk8), pointer :: aleafi(:)   ! saved allocation coefficient from phase 2
-    real(rk8), pointer :: astemi(:)   ! saved allocation coefficient from phase 2
+    real(rk8), pointer :: aleafi(:) ! saved allocation coefficient from phase 2
+    real(rk8), pointer :: astemi(:) ! saved allocation coefficient from phase 2
     real(rk8), pointer :: aleaf(:)      ! leaf allocation coefficient
     real(rk8), pointer :: astem(:)      ! stem allocation coefficient
     real(rk8), pointer :: graincn(:)    ! grain C:N (gC/gN)
@@ -277,8 +279,10 @@ module mod_clm_cnallocation
     real(rk8), pointer :: npool_to_deadcrootn(:)
     real(rk8), pointer :: npool_to_deadcrootn_storage(:)
     ! column level
-    real(rk8), pointer :: fpi(:) ! fraction of potential immobilization (no units)
-    real(rk8), pointer :: fpg(:) ! fraction of potential gpp (no units)
+    ! fraction of potential immobilization (no units)
+    real(rk8), pointer :: fpi(:)
+    ! fraction of potential gpp (no units)
+    real(rk8), pointer :: fpg(:)
     real(rk8), pointer :: potential_immob(:)
     real(rk8), pointer :: actual_immob(:)
     real(rk8), pointer :: sminn_to_plant(:)
@@ -307,10 +311,10 @@ module mod_clm_cnallocation
                  sum_nh4_demand_scaled(lbc:ubc,1:nlevdecomp)
     real(rk8) :: sum_no3_demand(lbc:ubc,1:nlevdecomp), &
                  sum_no3_demand_scaled(lbc:ubc,1:nlevdecomp)
-    real(rk8), pointer :: smin_no3_vr(:,:)  ! (gN/m3) soil mineral NO3
-    real(rk8), pointer :: smin_nh4_vr(:,:)  ! (gN/m3) soil mineral NH4
-    real(rk8), pointer :: f_nit_vr(:,:)     ! (gN/m3/s) soil nitrification flux
-    real(rk8), pointer :: f_denit_vr(:,:)   ! (gN/m3/s) soil denitrification flux
+    real(rk8), pointer :: smin_no3_vr(:,:) ! (gN/m3) soil mineral NO3
+    real(rk8), pointer :: smin_nh4_vr(:,:) ! (gN/m3) soil mineral NH4
+    real(rk8), pointer :: f_nit_vr(:,:)    ! (gN/m3/s) soil nitrification flux
+    real(rk8), pointer :: f_denit_vr(:,:)  ! (gN/m3/s) soil denitrification flux
     ! (gN/m3/s) potential soil nitrification flux
     real(rk8), pointer :: pot_f_nit_vr(:,:)
     ! (gN/m3/s) potential soil denitrification flux
@@ -342,8 +346,8 @@ module mod_clm_cnallocation
     real(rk8):: mr         !maintenance respiration (gC/m2/s)
     real(rk8):: f1,f2,f3,f4,g1,g2  !allocation parameters
     real(rk8):: cnl,cnfr,cnlw,cndw !C:N ratios for leaf, fine root, and wood
-    real(rk8):: fcur               !fraction of current psn displayed as growth
-    real(rk8):: gresp_storage      !temporary variable for growth resp to storage
+    real(rk8):: fcur           !fraction of current psn displayed as growth
+    real(rk8):: gresp_storage  !temporary variable for growth resp to storage
     !temporary variable for total new leaf carbon allocation
     real(rk8):: nlc
     real(rk8):: curmr, curmr_ratio   !xsmrpool temporary variables
@@ -723,20 +727,21 @@ module mod_clm_cnallocation
             ! It might be worth a rewrite to capture what I was trying to do,
             ! but the retranslocation for corn and wheat begins at the beginning
             ! of the grain fill stage, but for soybean I was holding it until 
-            ! after the leaf and stem decline were complete. Looking at how astem
-            ! is calculated, once the stem decline is near complete, astem should
-            ! (usually) be set to astemf. The reason for holding off on soybean
-            ! is that the retranslocation scheme begins at the beginning of the
-            ! grain phase, when the leaf and stem are still growing, but
-            ! declining. Since carbon is still getting allocated and now
+            ! after the leaf and stem decline were complete. Looking at
+            ! how astem is calculated, once the stem decline is near complete,
+            ! astem should (usually) be set to astemf.
+            ! The reason for holding off on soybean is that the retranslocation
+            ! scheme begins at the beginning of the grain phase, when the leaf
+            ! and stem are still growing, but declining.
+            ! Since carbon is still getting allocated and now
             ! there is more nitrogen available, the nitrogen can be divertedi
             ! from grain. For corn and wheat the impact was probably enough to
             ! boost productivity, but for soybean the nitrogen was better off
-            ! fulfilling the grain fill. It seems that if the peak lai is reached
-            ! for soybean though that this would be bypassed altogether, not the
-            ! intended outcome. I checked several of my output files and
-            ! they all seemed to be going through the retranslocation loop for
-            ! soybean - good news.
+            ! fulfilling the grain fill. It seems that if the peak lai is
+            ! reached for soybean though that this would be bypassed
+            ! altogether, not the intended outcome. I checked several of my
+            ! output files and they all seemed to be going through the
+            ! retranslocation loop for soybean - good news.
 
             if ( ivt(p) /= nsoybean .or. astem(p) == astemf(ivt(p)) ) then
               if ( grain_flag(p) == 0.D0 ) then
@@ -782,8 +787,9 @@ module mod_clm_cnallocation
       else if (ivt(p) >= npcropmin) then ! skip generic crops
         cng = graincn(ivt(p))
         c_allometry(p) = (1.D0+g1)*(1.D0+f1+f5+f3*(1.D0+f2))
-        n_allometry(p) = 1.D0/cnl + f1/cnfr + f5/cng + (f3*f4*(1.D0+f2))/cnlw + &
-                       (f3*(1.D0-f4)*(1.D0+f2))/cndw
+        n_allometry(p) = 1.D0/cnl + f1/cnfr + f5/cng + &
+                (f3*f4*(1.D0+f2))/cnlw + &
+                (f3*(1.D0-f4)*(1.D0+f2))/cndw
       else
         c_allometry(p) = 1.D0+g1+f1+f1*g1
         n_allometry(p) = 1.D0/cnl + f1/cnfr
@@ -872,12 +878,12 @@ module mod_clm_cnallocation
            actual_immob_vr(c,j) = potential_immob_vr(c,j)
            sminn_to_plant_vr(c,j) = col_plant_ndemand(c) * nuptake_prof(c,j)
         else if ( carbon_only ) then !.or. &
-!                (crop_supln .and. (itypelun(l) == istcrop) .and. &
-!                (ivt(pfti(c)) >= npcropmin)) )then
+          !       (crop_supln .and. (itypelun(l) == istcrop) .and. &
+          !       (ivt(pfti(c)) >= npcropmin)) )then
           ! this code block controls the addition of N to sminn pool
-          ! to eliminate any N limitation, when Carbon_Only is set.  This lets the
-          ! model behave essentially as a carbon-only model, but with the
-          ! benefit of keeping track of the N additions needed to
+          ! to eliminate any N limitation, when Carbon_Only is set.
+          !  This lets the model behave essentially as a carbon-only model,
+          ! but with the benefit of keeping track of the N additions needed to
           ! eliminate N limitations, so there is still a diagnostic quantity
           ! that describes the degree of N limitation at steady-state.
           nlimit(c,j) = 1
@@ -1118,8 +1124,8 @@ module mod_clm_cnallocation
           fpi_no3_vr(c,j) = 1.0D0 -  fpi_nh4_vr(c,j)
             actual_immob_no3_vr(c,j) = (potential_immob_vr(c,j) - &
                     actual_immob_nh4_vr(c,j))
-          smin_no3_to_plant_vr(c,j) = (col_plant_ndemand(c)*nuptake_prof(c,j) - &
-                  smin_nh4_to_plant_vr(c,j))
+          smin_no3_to_plant_vr(c,j) = (col_plant_ndemand(c) * &
+                  nuptake_prof(c,j) - smin_nh4_to_plant_vr(c,j))
           f_denit_vr(c,j) = pot_f_denit_vr(c,j)
         else
           ! NO3 availability can not satisfy the sum of immobilization, 
@@ -1135,7 +1141,8 @@ module mod_clm_cnallocation
                  ((col_plant_ndemand(c)*nuptake_prof(c,j)-&
                  smin_nh4_to_plant_vr(c,j))*compet_plant_no3 / &
                  sum_no3_demand_scaled(c,j)), &
-                 col_plant_ndemand(c)*nuptake_prof(c,j)-smin_nh4_to_plant_vr(c,j))
+                 col_plant_ndemand(c)*nuptake_prof(c,j) - &
+                 smin_nh4_to_plant_vr(c,j))
             f_denit_vr(c,j) =  min((smin_no3_vr(c,j)/dt)*&
                  (pot_f_denit_vr(c,j)*compet_denit / &
                  sum_no3_demand_scaled(c,j)), pot_f_denit_vr(c,j))
@@ -1395,7 +1402,8 @@ module mod_clm_cnallocation
       end if
 
       ! increase fcur linearly with ndays_active, until fcur reaches 1.0 at
-      ! ndays_active = days/year.  This prevents the continued storage of C and N.
+      ! ndays_active = days/year.
+      ! This prevents the continued storage of C and N.
       ! turning off this correction (PET, 12/11/03), instead using bgtr in
       ! phenology algorithm.
       !fcur = fcur + (1.D0 - fcur)*lgsf(p)
@@ -1414,11 +1422,13 @@ module mod_clm_cnallocation
         psnshade_to_cpool(p) = psnshade_to_cpool(p)*(1.D0 - downreg(p))
         if ( use_c13 ) then
           c13_psnsun_to_cpool(p) = c13_psnsun_to_cpool(p)*(1.D0 - downreg(p))
-          c13_psnshade_to_cpool(p) = c13_psnshade_to_cpool(p)*(1.D0 - downreg(p))
+          c13_psnshade_to_cpool(p) = &
+                  c13_psnshade_to_cpool(p)*(1.D0 - downreg(p))
         end if
         if ( use_c14 ) then
           c14_psnsun_to_cpool(p) = c14_psnsun_to_cpool(p)*(1.D0 - downreg(p))
-          c14_psnshade_to_cpool(p) = c14_psnshade_to_cpool(p)*(1.D0 - downreg(p))
+          c14_psnshade_to_cpool(p) = &
+                  c14_psnshade_to_cpool(p)*(1.D0 - downreg(p))
         end if
       end if
 
@@ -1475,8 +1485,8 @@ module mod_clm_cnallocation
         npool_to_livecrootn_storage(p) = (nlc * f2 * f3 * f4 / cnlw) * &
                                          (1.D0 - fcur)
         npool_to_deadcrootn(p) = (nlc * f2 * f3 * (1.D0 - f4) / cndw) * fcur
-        npool_to_deadcrootn_storage(p) = (nlc * f2 * f3 * (1.D0 - f4) / cndw) * &
-                                         (1.D0 - fcur)
+        npool_to_deadcrootn_storage(p) = (nlc * f2 * f3 * &
+                (1.D0 - f4) / cndw) * (1.D0 - fcur)
       end if
       if ( ivt(p) >= npcropmin ) then ! skip 2 generic crops
         cng = graincn(ivt(p))
@@ -1489,8 +1499,8 @@ module mod_clm_cnallocation
         npool_to_livecrootn_storage(p) = (nlc * f2 * f3 * f4 / cnlw) * &
                                          (1.D0 - fcur)
         npool_to_deadcrootn(p) = (nlc * f2 * f3 * (1.D0 - f4) / cndw) * fcur
-        npool_to_deadcrootn_storage(p) = (nlc * f2 * f3 * (1.D0 - f4) / cndw) * &
-                                         (1.D0 - fcur)
+        npool_to_deadcrootn_storage(p) = (nlc * f2 * f3 * &
+                (1.D0 - f4) / cndw) * (1.D0 - fcur)
         npool_to_grainn(p) = (nlc * f5 / cng) * fcur
         npool_to_grainn_storage(p) = (nlc * f5 / cng) * (1.D0 -fcur)
       end if

@@ -26,7 +26,7 @@ module mod_clm_cnphenology
   real(rk8) :: crit_dayl  ! critical daylength for offset (seconds)
   real(rk8) :: ndays_on   ! number of days to complete onset
   real(rk8) :: ndays_off  ! number of days to complete offset
-  real(rk8) :: fstor2tran ! fraction of storage to move to transfer on each onset
+  real(rk8) :: fstor2tran ! fraction of storge to move to transfer on each onset
   real(rk8) :: crit_onset_fdd  ! critical number of freezing days
   real(rk8) :: crit_onset_swi  ! water stress days for offset trigger
   real(rk8) :: soilpsi_on      ! water potential for onset trigger (MPa)
@@ -58,12 +58,12 @@ module mod_clm_cnphenology
   subroutine CNPhenology (num_soilc, filter_soilc, num_soilp, filter_soilp, &
                           num_pcropp, filter_pcropp, doalb)
     implicit none
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
     integer(ik4), intent(in) :: num_pcropp ! number of prog. crop pfts in filter
-    integer(ik4), intent(in) :: filter_pcropp(:)! filter for prognostic crop pfts
+    integer(ik4), intent(in) :: filter_pcropp(:)! filter for prognostic crop pft
     logical, intent(in) :: doalb  ! true if time for sfc albedo calc
 
     ! each of the following phenology type routines includes a filter
@@ -171,44 +171,44 @@ module mod_clm_cnphenology
     use mod_clm_croprest , only: CropRestYear, CropRestIncYear
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
-    integer(ik4), intent(in) :: num_pcropp  ! number of prognostic crops in filter
-    integer(ik4), intent(in) :: filter_pcropp(:)! filter for prognostic crop pfts
+    integer(ik4), intent(in) :: num_pcropp  ! number of prognos. crops in filter
+    integer(ik4), intent(in) :: filter_pcropp(:)! filter for prognostic crop pft
 
     integer(ik4) , pointer :: ivt(:)   ! pft vegetation type
     ! ecophysiological constants
     real(rk8), pointer :: t_ref2m(:)     ! 2m air temperature (K)
     real(rk8), pointer :: tempavg_t2m(:) ! temp. avg 2m air temperature (K)
-    real(rk8), pointer :: gdd0(:)        ! growing deg. days base 0 deg C (ddays)
-    real(rk8), pointer :: gdd8(:)        !    "     "    "    "   8  "  "    "
-    real(rk8), pointer :: gdd10(:)       !    "     "    "    "  10  "  "    "
-    real(rk8), pointer :: gdd020(:)      ! 20-yr mean of gdd0 (ddays)
-    real(rk8), pointer :: gdd820(:)      ! 20-yr mean of gdd8 (ddays)
-    real(rk8), pointer :: gdd1020(:)     ! 20-yr mean of gdd10 (ddays)
+    real(rk8), pointer :: gdd0(:)    ! growing deg. days base 0 deg C (ddays)
+    real(rk8), pointer :: gdd8(:)    !    "     "    "    "   8  "  "    "
+    real(rk8), pointer :: gdd10(:)   !    "     "    "    "  10  "  "    "
+    real(rk8), pointer :: gdd020(:)  ! 20-yr mean of gdd0 (ddays)
+    real(rk8), pointer :: gdd820(:)  ! 20-yr mean of gdd8 (ddays)
+    real(rk8), pointer :: gdd1020(:) ! 20-yr mean of gdd10 (ddays)
     integer(ik4) , pointer :: pgridcell(:)  ! pft's gridcell index
 
     integer(ik4) :: p                 ! indices
     integer(ik4) :: fp                ! lake filter pft index
     integer(ik4), save :: nyrs = -999 ! number of years prognostic crop has run
-    integer(ik4) kyr                  ! current year
-    integer(ik4) kmo                  !       month of year  (1, ..., 12)
-    integer(ik4) kda                  !       day of month   (1, ..., 31)
-    integer(ik4) mcsec                !       seconds of day (0, ..., seconds/day)
+    integer(ik4) kyr        ! current year
+    integer(ik4) kmo        !       month of year  (1, ..., 12)
+    integer(ik4) kda        !       day of month   (1, ..., 31)
+    integer(ik4) mcsec      !       seconds of day (0, ..., seconds/day)
     ! length of years to average for gdd
     real(rk8), parameter :: yravg   = 20.0D0
     real(rk8), parameter :: yravgm1 = yravg-1.0D0 ! minus 1 of above
 
     ! assign local pointers to derived type arrays
-    ivt             => clm3%g%l%c%p%itype
-    t_ref2m         => clm3%g%l%c%p%pes%t_ref2m
-    tempavg_t2m     => clm3%g%l%c%p%pepv%tempavg_t2m
+    ivt         => clm3%g%l%c%p%itype
+    t_ref2m     => clm3%g%l%c%p%pes%t_ref2m
+    tempavg_t2m => clm3%g%l%c%p%pepv%tempavg_t2m
 
-    gdd0            => clm3%g%l%c%p%pps%gdd0
-    gdd8            => clm3%g%l%c%p%pps%gdd8
-    gdd10           => clm3%g%l%c%p%pps%gdd10
-    gdd020          => clm3%g%l%c%p%pps%gdd020
-    gdd820          => clm3%g%l%c%p%pps%gdd820
-    gdd1020         => clm3%g%l%c%p%pps%gdd1020
-    pgridcell       => clm3%g%l%c%p%gridcell
+    gdd0      => clm3%g%l%c%p%pps%gdd0
+    gdd8      => clm3%g%l%c%p%pps%gdd8
+    gdd10     => clm3%g%l%c%p%pps%gdd10
+    gdd020    => clm3%g%l%c%p%pps%gdd020
+    gdd820    => clm3%g%l%c%p%pps%gdd820
+    gdd1020   => clm3%g%l%c%p%pps%gdd1020
+    pgridcell => clm3%g%l%c%p%gridcell
 
     ! set time steps
 
@@ -321,15 +321,15 @@ module mod_clm_cnphenology
     real(rk8), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
     real(rk8), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
     real(rk8), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
-    real(rk8), pointer :: livecrootc_storage(:) ! (gC/m2) live coarse root C strg
-    real(rk8), pointer :: deadcrootc_storage(:) ! (gC/m2) dead coarse root C strg
-    real(rk8), pointer :: gresp_storage(:)      ! (gC/m2) growth respiration strg
+    real(rk8), pointer :: livecrootc_storage(:) ! (gC/m2) live corse root C strg
+    real(rk8), pointer :: deadcrootc_storage(:) ! (gC/m2) dead corse root C strg
+    real(rk8), pointer :: gresp_storage(:)      ! (gC/m2) growth resp. strg
     real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
     real(rk8), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
     real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
     real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live coarse root N strg
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead coarse root N strg
+    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live corse root N strg
+    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead corse root N strg
     ! ecophysiological constants
     ! binary flag for seasonal-deciduous leaf habit (0 or 1)
     real(rk8), pointer :: season_decid(:)
@@ -337,7 +337,7 @@ module mod_clm_cnphenology
     real(rk8), pointer :: woody(:)
 
     real(rk8), pointer :: dormant_flag(:)    ! dormancy flag
-    real(rk8), pointer :: days_active(:)     ! number of days since last dormancy
+    real(rk8), pointer :: days_active(:)     ! number of day since last dormancy
     real(rk8), pointer :: onset_flag(:)      ! onset flag
     real(rk8), pointer :: onset_counter(:)   ! onset counter (seconds)
     real(rk8), pointer :: onset_gddflag(:)   ! onset freeze flag
@@ -372,14 +372,14 @@ module mod_clm_cnphenology
     real(rk8), pointer :: frootc_xfer(:)     ! (gC/m2) fine root C transfer
     real(rk8), pointer :: livestemc_xfer(:)  ! (gC/m2) live stem C transfer
     real(rk8), pointer :: deadstemc_xfer(:)  ! (gC/m2) dead stem C transfer
-    real(rk8), pointer :: livecrootc_xfer(:) ! (gC/m2) live coarse root C transfer
-    real(rk8), pointer :: deadcrootc_xfer(:) ! (gC/m2) dead coarse root C transfer
+    real(rk8), pointer :: livecrootc_xfer(:) ! (gC/m2) live cors root C transfer
+    real(rk8), pointer :: deadcrootc_xfer(:) ! (gC/m2) dead cors root C transfer
     real(rk8), pointer :: leafn_xfer(:)      ! (gN/m2) leaf N transfer
     real(rk8), pointer :: frootn_xfer(:)     ! (gN/m2) fine root N transfer
     real(rk8), pointer :: livestemn_xfer(:)  ! (gN/m2) live stem N transfer
     real(rk8), pointer :: deadstemn_xfer(:)  ! (gN/m2) dead stem N transfer
-    real(rk8), pointer :: livecrootn_xfer(:) ! (gN/m2) live coarse root N transfer
-    real(rk8), pointer :: deadcrootn_xfer(:) ! (gN/m2) dead coarse root N transfer
+    real(rk8), pointer :: livecrootn_xfer(:) ! (gN/m2) live cors root N transfer
+    real(rk8), pointer :: deadcrootn_xfer(:) ! (gN/m2) dead cors root N transfer
     real(rk8), pointer :: leafc_storage_to_xfer(:)
     real(rk8), pointer :: frootc_storage_to_xfer(:)
     real(rk8), pointer :: livestemc_storage_to_xfer(:)
@@ -456,8 +456,8 @@ module mod_clm_cnphenology
             clm3%g%l%c%p%pcf%deadcrootc_xfer_to_deadcrootc
     leafn_xfer_to_leafn           => clm3%g%l%c%p%pnf%leafn_xfer_to_leafn
     frootn_xfer_to_frootn         => clm3%g%l%c%p%pnf%frootn_xfer_to_frootn
-    livestemn_xfer_to_livestemn   => clm3%g%l%c%p%pnf%livestemn_xfer_to_livestemn
-    deadstemn_xfer_to_deadstemn   => clm3%g%l%c%p%pnf%deadstemn_xfer_to_deadstemn
+    livestemn_xfer_to_livestemn => clm3%g%l%c%p%pnf%livestemn_xfer_to_livestemn
+    deadstemn_xfer_to_deadstemn => clm3%g%l%c%p%pnf%deadstemn_xfer_to_deadstemn
     livecrootn_xfer_to_livecrootn => &
             clm3%g%l%c%p%pnf%livecrootn_xfer_to_livecrootn
     deadcrootn_xfer_to_deadcrootn => &
@@ -533,8 +533,8 @@ module mod_clm_cnphenology
           ! if this is the end of the offset_period, reset phenology
           ! flags and indices
           if (offset_counter(p) == 0.0D0) then
-            ! this code block was originally handled by call cn_offset_cleanup(p)
-            ! inlined during vectorization
+            ! this code block was originally handled by
+            ! call cn_offset_cleanup(p) inlined during vectorization
 
             offset_flag(p) = 0.D0
             offset_counter(p) = 0.D0
@@ -700,8 +700,8 @@ module mod_clm_cnphenology
   ! in the absence of a suitable stress trigger, by switching to an essentially
   ! evergreen habit, but maintaining a deciduous leaf longevity, while waiting
   ! for the next stress trigger.  This is in contrast to the seasonal deciduous
-  ! algorithm (for temperate deciduous trees) that forces a single growing season
-  ! per year.
+  ! algorithm (for temperate deciduous trees) that forces a single growing
+  ! season per year.
   !
   subroutine CNStressDecidPhenology (num_soilp, filter_soilp)
     use mod_clm_varcon , only : secspday , tfrz , rpi
@@ -717,40 +717,51 @@ module mod_clm_cnphenology
     real(rk8), pointer :: frootc_storage(:)     ! (gC/m2) fine root C storage
     real(rk8), pointer :: livestemc_storage(:)  ! (gC/m2) live stem C storage
     real(rk8), pointer :: deadstemc_storage(:)  ! (gC/m2) dead stem C storage
-    real(rk8), pointer :: livecrootc_storage(:) ! (gC/m2) live coarse root C storage
-    real(rk8), pointer :: deadcrootc_storage(:) ! (gC/m2) dead coarse root C storage
-    real(rk8), pointer :: gresp_storage(:)      ! (gC/m2) growth respiration storage
+    ! (gC/m2) live coarse root C storage
+    real(rk8), pointer :: livecrootc_storage(:)
+    ! (gC/m2) dead coarse root C storage
+    real(rk8), pointer :: deadcrootc_storage(:)
+    ! (gC/m2) growth respiration storage
+    real(rk8), pointer :: gresp_storage(:)
     real(rk8), pointer :: leafn_storage(:)      ! (gN/m2) leaf N storage
     real(rk8), pointer :: frootn_storage(:)     ! (gN/m2) fine root N storage
     real(rk8), pointer :: livestemn_storage(:)  ! (gN/m2) live stem N storage
     real(rk8), pointer :: deadstemn_storage(:)  ! (gN/m2) dead stem N storage
-    real(rk8), pointer :: livecrootn_storage(:) ! (gN/m2) live coarse root N storage
-    real(rk8), pointer :: deadcrootn_storage(:) ! (gN/m2) dead coarse root N storage
-    real(rk8), pointer :: t_soisno(:,:)         ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
-    real(rk8), pointer :: soilpsi(:,:)          ! soil water potential in each soil layer (MPa)
-    real(rk8), pointer :: leaf_long(:)          ! leaf longevity (yrs)
-    real(rk8), pointer :: stress_decid(:)       ! binary flag for stress-deciduous leaf habit (0 or 1)
-    real(rk8), pointer :: woody(:)              ! binary flag for woody lifeform (1=woody, 0=not woody)
+    ! (gN/m2) live coarse root N storage
+    real(rk8), pointer :: livecrootn_storage(:)
+    ! (gN/m2) dead coarse root N storage
+    real(rk8), pointer :: deadcrootn_storage(:)
+    ! soil temperature (Kelvin)  (-nlevsno+1:nlevgrnd)
+    real(rk8), pointer :: t_soisno(:,:)
+    ! soil water potential in each soil layer (MPa)
+    real(rk8), pointer :: soilpsi(:,:)
+    real(rk8), pointer :: leaf_long(:)     ! leaf longevity (yrs)
+    ! binary flag for stress-deciduous leaf habit (0 or 1)
+    real(rk8), pointer :: stress_decid(:)
+    ! binary flag for woody lifeform (1=woody, 0=not woody)
+    real(rk8), pointer :: woody(:)
 
-    real(rk8), pointer :: dormant_flag(:)    ! dormancy flag
-    real(rk8), pointer :: days_active(:)     ! number of days since last dormancy
-    real(rk8), pointer :: onset_flag(:)      ! onset flag
-    real(rk8), pointer :: onset_counter(:)   ! onset counter (seconds)
-    real(rk8), pointer :: onset_gddflag(:)   ! onset freeze flag
-    real(rk8), pointer :: onset_fdd(:)       ! onset freezing degree days counter
-    real(rk8), pointer :: onset_gdd(:)       ! onset growing degree days
-    real(rk8), pointer :: onset_swi(:)       ! onset soil water index
-    real(rk8), pointer :: offset_flag(:)     ! offset flag
-    real(rk8), pointer :: offset_counter(:)  ! offset counter (seconds)
-    real(rk8), pointer :: dayl(:)            ! daylength (seconds)
-    real(rk8), pointer :: offset_fdd(:)      ! offset freezing degree days counter
-    real(rk8), pointer :: offset_swi(:)      ! offset soil water index
-    real(rk8), pointer :: annavg_t2m(:)      ! annual average 2m air temperature (K)
-    real(rk8), pointer :: lgsf(:)            ! long growing season factor [0-1]
-    real(rk8), pointer :: bglfr(:)           ! background litterfall rate (1/s)
-    real(rk8), pointer :: bgtr(:)            ! background transfer growth rate (1/s)
-    real(rk8), pointer :: prev_leafc_to_litter(:)  ! previous timestep leaf C litterfall flux (gC/m2/s)
-    real(rk8), pointer :: prev_frootc_to_litter(:) ! previous timestep froot C litterfall flux (gC/m2/s)
+    real(rk8), pointer :: dormant_flag(:)  ! dormancy flag
+    real(rk8), pointer :: days_active(:)   ! number of days since last dormancy
+    real(rk8), pointer :: onset_flag(:)    ! onset flag
+    real(rk8), pointer :: onset_counter(:) ! onset counter (seconds)
+    real(rk8), pointer :: onset_gddflag(:) ! onset freeze flag
+    real(rk8), pointer :: onset_fdd(:)     ! onset freezing degree days counter
+    real(rk8), pointer :: onset_gdd(:)     ! onset growing degree days
+    real(rk8), pointer :: onset_swi(:)     ! onset soil water index
+    real(rk8), pointer :: offset_flag(:)   ! offset flag
+    real(rk8), pointer :: offset_counter(:) ! offset counter (seconds)
+    real(rk8), pointer :: dayl(:)           ! daylength (seconds)
+    real(rk8), pointer :: offset_fdd(:)  ! offset freezing degree days counter
+    real(rk8), pointer :: offset_swi(:)  ! offset soil water index
+    real(rk8), pointer :: annavg_t2m(:)  ! annual average 2m air temperature (K)
+    real(rk8), pointer :: lgsf(:)     ! long growing season factor [0-1]
+    real(rk8), pointer :: bglfr(:)    ! background litterfall rate (1/s)
+    real(rk8), pointer :: bgtr(:)     ! background transfer growth rate (1/s)
+    ! previous timestep leaf C litterfall flux (gC/m2/s)
+    real(rk8), pointer :: prev_leafc_to_litter(:)
+    ! previous timestep froot C litterfall flux (gC/m2/s)
+    real(rk8), pointer :: prev_frootc_to_litter(:)
     real(rk8), pointer :: leafc_xfer_to_leafc(:)
     real(rk8), pointer :: frootc_xfer_to_frootc(:)
     real(rk8), pointer :: livestemc_xfer_to_livestemc(:)
@@ -767,14 +778,14 @@ module mod_clm_cnphenology
     real(rk8), pointer :: frootc_xfer(:)     ! (gC/m2) fine root C transfer
     real(rk8), pointer :: livestemc_xfer(:)  ! (gC/m2) live stem C transfer
     real(rk8), pointer :: deadstemc_xfer(:)  ! (gC/m2) dead stem C transfer
-    real(rk8), pointer :: livecrootc_xfer(:) ! (gC/m2) live coarse root C transfer
-    real(rk8), pointer :: deadcrootc_xfer(:) ! (gC/m2) dead coarse root C transfer
+    real(rk8), pointer :: livecrootc_xfer(:) ! (gC/m2) live cors root C transfer
+    real(rk8), pointer :: deadcrootc_xfer(:) ! (gC/m2) dead cors root C transfer
     real(rk8), pointer :: leafn_xfer(:)      ! (gN/m2) leaf N transfer
     real(rk8), pointer :: frootn_xfer(:)     ! (gN/m2) fine root N transfer
     real(rk8), pointer :: livestemn_xfer(:)  ! (gN/m2) live stem N transfer
     real(rk8), pointer :: deadstemn_xfer(:)  ! (gN/m2) dead stem N transfer
-    real(rk8), pointer :: livecrootn_xfer(:) ! (gN/m2) live coarse root N transfer
-    real(rk8), pointer :: deadcrootn_xfer(:) ! (gN/m2) dead coarse root N transfer
+    real(rk8), pointer :: livecrootn_xfer(:) ! (gN/m2) live cors root N transfer
+    real(rk8), pointer :: deadcrootn_xfer(:) ! (gN/m2) dead cors root N transfer
     real(rk8), pointer :: leafc_storage_to_xfer(:)
     real(rk8), pointer :: frootc_storage_to_xfer(:)
     real(rk8), pointer :: livestemc_storage_to_xfer(:)
@@ -800,91 +811,91 @@ module mod_clm_cnphenology
     real(rk8):: temp            !temporary variable for daylength calculation
 
     ! Assign local pointers to derived type arrays (in)
-    ivt                            => clm3%g%l%c%p%itype
-    pcolumn                        => clm3%g%l%c%p%column
-    pgridcell                      => clm3%g%l%c%p%gridcell
-    latdeg                         => clm3%g%latdeg
-    decl                           => clm3%g%l%c%cps%decl
-    leafc_storage                  => clm3%g%l%c%p%pcs%leafc_storage
-    frootc_storage                 => clm3%g%l%c%p%pcs%frootc_storage
-    livestemc_storage              => clm3%g%l%c%p%pcs%livestemc_storage
-    deadstemc_storage              => clm3%g%l%c%p%pcs%deadstemc_storage
-    livecrootc_storage             => clm3%g%l%c%p%pcs%livecrootc_storage
-    deadcrootc_storage             => clm3%g%l%c%p%pcs%deadcrootc_storage
-    gresp_storage                  => clm3%g%l%c%p%pcs%gresp_storage
-    leafn_storage                  => clm3%g%l%c%p%pns%leafn_storage
-    frootn_storage                 => clm3%g%l%c%p%pns%frootn_storage
-    livestemn_storage              => clm3%g%l%c%p%pns%livestemn_storage
-    deadstemn_storage              => clm3%g%l%c%p%pns%deadstemn_storage
-    livecrootn_storage             => clm3%g%l%c%p%pns%livecrootn_storage
-    deadcrootn_storage             => clm3%g%l%c%p%pns%deadcrootn_storage
-    soilpsi                        => clm3%g%l%c%cps%soilpsi
-    t_soisno                       => clm3%g%l%c%ces%t_soisno
-    leaf_long                      => pftcon%leaf_long
-    woody                          => pftcon%woody
-    stress_decid                   => pftcon%stress_decid
+    ivt                 => clm3%g%l%c%p%itype
+    pcolumn             => clm3%g%l%c%p%column
+    pgridcell           => clm3%g%l%c%p%gridcell
+    latdeg              => clm3%g%latdeg
+    decl                => clm3%g%l%c%cps%decl
+    leafc_storage       => clm3%g%l%c%p%pcs%leafc_storage
+    frootc_storage      => clm3%g%l%c%p%pcs%frootc_storage
+    livestemc_storage   => clm3%g%l%c%p%pcs%livestemc_storage
+    deadstemc_storage   => clm3%g%l%c%p%pcs%deadstemc_storage
+    livecrootc_storage  => clm3%g%l%c%p%pcs%livecrootc_storage
+    deadcrootc_storage  => clm3%g%l%c%p%pcs%deadcrootc_storage
+    gresp_storage       => clm3%g%l%c%p%pcs%gresp_storage
+    leafn_storage       => clm3%g%l%c%p%pns%leafn_storage
+    frootn_storage      => clm3%g%l%c%p%pns%frootn_storage
+    livestemn_storage   => clm3%g%l%c%p%pns%livestemn_storage
+    deadstemn_storage   => clm3%g%l%c%p%pns%deadstemn_storage
+    livecrootn_storage  => clm3%g%l%c%p%pns%livecrootn_storage
+    deadcrootn_storage  => clm3%g%l%c%p%pns%deadcrootn_storage
+    soilpsi             => clm3%g%l%c%cps%soilpsi
+    t_soisno            => clm3%g%l%c%ces%t_soisno
+    leaf_long           => pftcon%leaf_long
+    woody               => pftcon%woody
+    stress_decid        => pftcon%stress_decid
 
    ! Assign local pointers to derived type arrays (out)
-    dormant_flag                   => clm3%g%l%c%p%pepv%dormant_flag
-    days_active                    => clm3%g%l%c%p%pepv%days_active
-    onset_flag                     => clm3%g%l%c%p%pepv%onset_flag
-    onset_counter                  => clm3%g%l%c%p%pepv%onset_counter
-    onset_gddflag                  => clm3%g%l%c%p%pepv%onset_gddflag
-    onset_fdd                      => clm3%g%l%c%p%pepv%onset_fdd
-    onset_gdd                      => clm3%g%l%c%p%pepv%onset_gdd
-    onset_swi                      => clm3%g%l%c%p%pepv%onset_swi
-    offset_flag                    => clm3%g%l%c%p%pepv%offset_flag
-    offset_counter                 => clm3%g%l%c%p%pepv%offset_counter
-    dayl                           => clm3%g%l%c%p%pepv%dayl
-    offset_fdd                     => clm3%g%l%c%p%pepv%offset_fdd
-    offset_swi                     => clm3%g%l%c%p%pepv%offset_swi
-    annavg_t2m                     => clm3%g%l%c%p%pepv%annavg_t2m
-    prev_leafc_to_litter           => clm3%g%l%c%p%pepv%prev_leafc_to_litter
-    prev_frootc_to_litter          => clm3%g%l%c%p%pepv%prev_frootc_to_litter
-    lgsf                           => clm3%g%l%c%p%pepv%lgsf
-    bglfr                          => clm3%g%l%c%p%pepv%bglfr
-    bgtr                           => clm3%g%l%c%p%pepv%bgtr
-    leafc_xfer_to_leafc            => clm3%g%l%c%p%pcf%leafc_xfer_to_leafc
-    frootc_xfer_to_frootc          => clm3%g%l%c%p%pcf%frootc_xfer_to_frootc
-    livestemc_xfer_to_livestemc    => clm3%g%l%c%p%pcf%livestemc_xfer_to_livestemc
-    deadstemc_xfer_to_deadstemc    => clm3%g%l%c%p%pcf%deadstemc_xfer_to_deadstemc
+    dormant_flag                => clm3%g%l%c%p%pepv%dormant_flag
+    days_active                 => clm3%g%l%c%p%pepv%days_active
+    onset_flag                  => clm3%g%l%c%p%pepv%onset_flag
+    onset_counter               => clm3%g%l%c%p%pepv%onset_counter
+    onset_gddflag               => clm3%g%l%c%p%pepv%onset_gddflag
+    onset_fdd                   => clm3%g%l%c%p%pepv%onset_fdd
+    onset_gdd                   => clm3%g%l%c%p%pepv%onset_gdd
+    onset_swi                   => clm3%g%l%c%p%pepv%onset_swi
+    offset_flag                 => clm3%g%l%c%p%pepv%offset_flag
+    offset_counter              => clm3%g%l%c%p%pepv%offset_counter
+    dayl                        => clm3%g%l%c%p%pepv%dayl
+    offset_fdd                  => clm3%g%l%c%p%pepv%offset_fdd
+    offset_swi                  => clm3%g%l%c%p%pepv%offset_swi
+    annavg_t2m                  => clm3%g%l%c%p%pepv%annavg_t2m
+    prev_leafc_to_litter        => clm3%g%l%c%p%pepv%prev_leafc_to_litter
+    prev_frootc_to_litter       => clm3%g%l%c%p%pepv%prev_frootc_to_litter
+    lgsf                        => clm3%g%l%c%p%pepv%lgsf
+    bglfr                       => clm3%g%l%c%p%pepv%bglfr
+    bgtr                        => clm3%g%l%c%p%pepv%bgtr
+    leafc_xfer_to_leafc         => clm3%g%l%c%p%pcf%leafc_xfer_to_leafc
+    frootc_xfer_to_frootc       => clm3%g%l%c%p%pcf%frootc_xfer_to_frootc
+    livestemc_xfer_to_livestemc => clm3%g%l%c%p%pcf%livestemc_xfer_to_livestemc
+    deadstemc_xfer_to_deadstemc => clm3%g%l%c%p%pcf%deadstemc_xfer_to_deadstemc
     livecrootc_xfer_to_livecrootc  => &
             clm3%g%l%c%p%pcf%livecrootc_xfer_to_livecrootc
     deadcrootc_xfer_to_deadcrootc  => &
             clm3%g%l%c%p%pcf%deadcrootc_xfer_to_deadcrootc
-    leafn_xfer_to_leafn            => clm3%g%l%c%p%pnf%leafn_xfer_to_leafn
-    frootn_xfer_to_frootn          => clm3%g%l%c%p%pnf%frootn_xfer_to_frootn
-    livestemn_xfer_to_livestemn    => clm3%g%l%c%p%pnf%livestemn_xfer_to_livestemn
-    deadstemn_xfer_to_deadstemn    => clm3%g%l%c%p%pnf%deadstemn_xfer_to_deadstemn
-    livecrootn_xfer_to_livecrootn  => &
+    leafn_xfer_to_leafn         => clm3%g%l%c%p%pnf%leafn_xfer_to_leafn
+    frootn_xfer_to_frootn       => clm3%g%l%c%p%pnf%frootn_xfer_to_frootn
+    livestemn_xfer_to_livestemn => clm3%g%l%c%p%pnf%livestemn_xfer_to_livestemn
+    deadstemn_xfer_to_deadstemn => clm3%g%l%c%p%pnf%deadstemn_xfer_to_deadstemn
+    livecrootn_xfer_to_livecrootn => &
             clm3%g%l%c%p%pnf%livecrootn_xfer_to_livecrootn
-    deadcrootn_xfer_to_deadcrootn  => &
+    deadcrootn_xfer_to_deadcrootn => &
             clm3%g%l%c%p%pnf%deadcrootn_xfer_to_deadcrootn
-    leafc_xfer                     => clm3%g%l%c%p%pcs%leafc_xfer
-    frootc_xfer                    => clm3%g%l%c%p%pcs%frootc_xfer
-    livestemc_xfer                 => clm3%g%l%c%p%pcs%livestemc_xfer
-    deadstemc_xfer                 => clm3%g%l%c%p%pcs%deadstemc_xfer
-    livecrootc_xfer                => clm3%g%l%c%p%pcs%livecrootc_xfer
-    deadcrootc_xfer                => clm3%g%l%c%p%pcs%deadcrootc_xfer
-    leafn_xfer                     => clm3%g%l%c%p%pns%leafn_xfer
-    frootn_xfer                    => clm3%g%l%c%p%pns%frootn_xfer
-    livestemn_xfer                 => clm3%g%l%c%p%pns%livestemn_xfer
-    deadstemn_xfer                 => clm3%g%l%c%p%pns%deadstemn_xfer
-    livecrootn_xfer                => clm3%g%l%c%p%pns%livecrootn_xfer
-    deadcrootn_xfer                => clm3%g%l%c%p%pns%deadcrootn_xfer
-    leafc_storage_to_xfer          => clm3%g%l%c%p%pcf%leafc_storage_to_xfer
-    frootc_storage_to_xfer         => clm3%g%l%c%p%pcf%frootc_storage_to_xfer
-    livestemc_storage_to_xfer      => clm3%g%l%c%p%pcf%livestemc_storage_to_xfer
-    deadstemc_storage_to_xfer      => clm3%g%l%c%p%pcf%deadstemc_storage_to_xfer
-    livecrootc_storage_to_xfer     => clm3%g%l%c%p%pcf%livecrootc_storage_to_xfer
-    deadcrootc_storage_to_xfer     => clm3%g%l%c%p%pcf%deadcrootc_storage_to_xfer
-    gresp_storage_to_xfer          => clm3%g%l%c%p%pcf%gresp_storage_to_xfer
-    leafn_storage_to_xfer          => clm3%g%l%c%p%pnf%leafn_storage_to_xfer
-    frootn_storage_to_xfer         => clm3%g%l%c%p%pnf%frootn_storage_to_xfer
-    livestemn_storage_to_xfer      => clm3%g%l%c%p%pnf%livestemn_storage_to_xfer
-    deadstemn_storage_to_xfer      => clm3%g%l%c%p%pnf%deadstemn_storage_to_xfer
-    livecrootn_storage_to_xfer     => clm3%g%l%c%p%pnf%livecrootn_storage_to_xfer
-    deadcrootn_storage_to_xfer     => clm3%g%l%c%p%pnf%deadcrootn_storage_to_xfer
+    leafc_xfer                  => clm3%g%l%c%p%pcs%leafc_xfer
+    frootc_xfer                 => clm3%g%l%c%p%pcs%frootc_xfer
+    livestemc_xfer              => clm3%g%l%c%p%pcs%livestemc_xfer
+    deadstemc_xfer              => clm3%g%l%c%p%pcs%deadstemc_xfer
+    livecrootc_xfer             => clm3%g%l%c%p%pcs%livecrootc_xfer
+    deadcrootc_xfer             => clm3%g%l%c%p%pcs%deadcrootc_xfer
+    leafn_xfer                  => clm3%g%l%c%p%pns%leafn_xfer
+    frootn_xfer                 => clm3%g%l%c%p%pns%frootn_xfer
+    livestemn_xfer              => clm3%g%l%c%p%pns%livestemn_xfer
+    deadstemn_xfer              => clm3%g%l%c%p%pns%deadstemn_xfer
+    livecrootn_xfer             => clm3%g%l%c%p%pns%livecrootn_xfer
+    deadcrootn_xfer             => clm3%g%l%c%p%pns%deadcrootn_xfer
+    leafc_storage_to_xfer       => clm3%g%l%c%p%pcf%leafc_storage_to_xfer
+    frootc_storage_to_xfer      => clm3%g%l%c%p%pcf%frootc_storage_to_xfer
+    livestemc_storage_to_xfer   => clm3%g%l%c%p%pcf%livestemc_storage_to_xfer
+    deadstemc_storage_to_xfer   => clm3%g%l%c%p%pcf%deadstemc_storage_to_xfer
+    livecrootc_storage_to_xfer  => clm3%g%l%c%p%pcf%livecrootc_storage_to_xfer
+    deadcrootc_storage_to_xfer  => clm3%g%l%c%p%pcf%deadcrootc_storage_to_xfer
+    gresp_storage_to_xfer       => clm3%g%l%c%p%pcf%gresp_storage_to_xfer
+    leafn_storage_to_xfer       => clm3%g%l%c%p%pnf%leafn_storage_to_xfer
+    frootn_storage_to_xfer      => clm3%g%l%c%p%pnf%frootn_storage_to_xfer
+    livestemn_storage_to_xfer   => clm3%g%l%c%p%pnf%livestemn_storage_to_xfer
+    deadstemn_storage_to_xfer   => clm3%g%l%c%p%pnf%deadstemn_storage_to_xfer
+    livecrootn_storage_to_xfer  => clm3%g%l%c%p%pnf%livecrootn_storage_to_xfer
+    deadcrootn_storage_to_xfer  => clm3%g%l%c%p%pnf%deadcrootn_storage_to_xfer
 
     ! set time steps
 
@@ -917,8 +928,8 @@ module mod_clm_cnphenology
           ! if this is the end of the offset_period, reset phenology
           ! flags and indices
           if (offset_counter(p) == 0.D0) then
-            ! this code block was originally handled by call cn_offset_cleanup(p)
-            ! inlined during vectorization
+            ! this code block was originally handled by
+            ! call cn_offset_cleanup(p) inlined during vectorization
             offset_flag(p) = 0.D0
             offset_counter(p) = 0.D0
             dormant_flag(p) = 1.D0
@@ -1250,11 +1261,11 @@ module mod_clm_cnphenology
 
     integer(ik4) , pointer :: idop(:)     ! date of planting
     integer(ik4) , pointer :: harvdate(:) ! harvest date
-    logical , pointer :: croplive(:)      ! Flag, true if planted, not harvested
-    logical , pointer :: cropplant(:)     ! Flag, true if crop may be planted
-    real(rk8), pointer :: cumvd(:)        ! cumulative vernalization d?ependence?
-    real(rk8), pointer :: hdidx(:)        ! cold hardening index?
-    real(rk8), pointer :: vf(:)           ! vernalization factor
+    logical , pointer :: croplive(:)    ! Flag, true if planted, not harvested
+    logical , pointer :: cropplant(:)   ! Flag, true if crop may be planted
+    real(rk8), pointer :: cumvd(:)      ! cumulative vernalization d?ependence?
+    real(rk8), pointer :: hdidx(:)      ! cold hardening index?
+    real(rk8), pointer :: vf(:)         ! vernalization factor
     real(rk8), pointer :: gddmaturity(:)  ! gdd needed to harvest
     real(rk8), pointer :: bglfr(:)        ! background litterfall rate (1/s)
     ! heat unit index needed from planting to leaf emergence
@@ -1471,7 +1482,8 @@ module mod_clm_cnphenology
               gddmaturity(p) = min(gdd1020(p),hybgdd(ivt(p)))
             end if
             if (ivt(p)==ncorn .or. ivt(p)==ncornirrig) then
-              gddmaturity(p) = max(950.D0, min(gdd820(p)*0.85D0, hybgdd(ivt(p))))
+              gddmaturity(p) = max(950.D0, &
+                      min(gdd820(p)*0.85D0, hybgdd(ivt(p))))
               gddmaturity(p) = max(950.D0, min(gddmaturity(p)+150.D0,1850.D0))
             end if
             if (ivt(p)==nscereal .or. &
@@ -1499,7 +1511,8 @@ module mod_clm_cnphenology
             end if
             if (ivt(p)==ncorn .or. &
                 ivt(p)==ncornirrig) then
-              gddmaturity(p) = max(950.D0, min(gdd820(p)*0.85D0, hybgdd(ivt(p))))
+              gddmaturity(p) = max(950.D0, &
+                      min(gdd820(p)*0.85D0, hybgdd(ivt(p))))
             end if
             if (ivt(p)==nscereal .or. &
                 ivt(p) == nscerealirrig) then
@@ -1563,7 +1576,7 @@ module mod_clm_cnphenology
       ! ----------------------------------
 
       ! all of the phenology changes are based on the total number of gdd needed
-      ! to change to the next phase - based on fractions of the total gdd typical
+      ! to change to the next phase - based on fracti. of the total gdd typical
       ! for  that region based on the April 1 - Sept 30 window of development
 
       ! crop phenology (gdd thresholds) controlled by gdd needed for
@@ -1774,7 +1787,8 @@ module mod_clm_cnphenology
 
     integer(ik4) , pointer :: pcolumn(:)  ! pft's column index
     logical , pointer :: croplive(:)    ! Flag, true if planted, not harvested
-    real(rk8), pointer :: tlai(:)  ! one-sided leaf area index, no burying by snow
+    ! one-sided leaf area index, no burying by snow
+    real(rk8), pointer :: tlai(:)
     real(rk8), pointer :: t_ref2m(:)  ! 2 m height surface air temperature (K)
     !daily minimum of average 2 m height surface air temperature (K)
     real(rk8), pointer :: t_ref2m_min(:)
@@ -1801,7 +1815,7 @@ module mod_clm_cnphenology
     t_ref2m     => clm3%g%l%c%p%pes%t_ref2m
     t_ref2m_min => clm3%g%l%c%p%pes%t_ref2m_min
     t_ref2m_max => clm3%g%l%c%p%pes%t_ref2m_max
-    snow_depth      => clm3%g%l%c%cps%snow_depth
+    snow_depth  => clm3%g%l%c%cps%snow_depth
 
     c = pcolumn(p)
 
@@ -1819,13 +1833,14 @@ module mod_clm_cnphenology
     ! vernalization factor calculation
     ! if vf(p) = 1.  then plant is fully vernalized - and thermal time
     ! accumulation in phase 1 will be unaffected
-    ! refers to gddtsoi & gddplant, defined in the accumulation routines (slevis)
-    ! reset vf, cumvd, and hdidx to 0 at planting of crop (slevis)
+    ! refers to gddtsoi & gddplant, defined in the accumulation routines
+    ! (slevis) reset vf, cumvd, and hdidx to 0 at planting of crop (slevis)
 
     if (t_ref2m_max(p) > tfrz) then
       if (t_ref2m_min(p) <= tfrz+15.D0) then
         vd1 = 1.4D0 - 0.0778D0 * tcrown
-        vd2 = 0.5D0 + 13.44D0 / ((t_ref2m_max(p)-t_ref2m_min(p)+3.D0)**2) * tcrown
+        vd2 = 0.5D0 + 13.44D0 / &
+                ((t_ref2m_max(p)-t_ref2m_min(p)+3.D0)**2) * tcrown
         vd = max(0.D0, min(1.D0, vd1, vd2))
         cumvd(p) = cumvd(p) + vd
       end if
@@ -1894,7 +1909,8 @@ module mod_clm_cnphenology
         else if (tlai(p) > 0.D0) then ! slevis: kill if past phase1
           gddmaturity(p) = 0.D0      !         by forcing through
           huigrain(p)    = 0.D0      !         harvest
-          write (stdout,*) '95% of crop killed by cold temperatures at p,c =', p,c
+          write (stdout,*) &
+                  '95% of crop killed by cold temperatures at p,c =', p,c
         end if
       end if
     end if
@@ -1915,14 +1931,14 @@ module mod_clm_cnphenology
     real(rk8), pointer :: frootc_xfer(:)     ! (gC/m2) fine root C transfer
     real(rk8), pointer :: livestemc_xfer(:)  ! (gC/m2) live stem C transfer
     real(rk8), pointer :: deadstemc_xfer(:)  ! (gC/m2) dead stem C transfer
-    real(rk8), pointer :: livecrootc_xfer(:) ! (gC/m2) live coarse root C transfer
-    real(rk8), pointer :: deadcrootc_xfer(:) ! (gC/m2) dead coarse root C transfer
+    real(rk8), pointer :: livecrootc_xfer(:) ! (gC/m2) live cors root C transfer
+    real(rk8), pointer :: deadcrootc_xfer(:) ! (gC/m2) dead cors root C transfer
     real(rk8), pointer :: leafn_xfer(:)      ! (gN/m2) leaf N transfer
     real(rk8), pointer :: frootn_xfer(:)     ! (gN/m2) fine root N transfer
     real(rk8), pointer :: livestemn_xfer(:)  ! (gN/m2) live stem N transfer
     real(rk8), pointer :: deadstemn_xfer(:)  ! (gN/m2) dead stem N transfer
-    real(rk8), pointer :: livecrootn_xfer(:) ! (gN/m2) live coarse root N transfer
-    real(rk8), pointer :: deadcrootn_xfer(:) ! (gN/m2) dead coarse root N transfer
+    real(rk8), pointer :: livecrootn_xfer(:) ! (gN/m2) live cors root N transfer
+    real(rk8), pointer :: deadcrootn_xfer(:) ! (gN/m2) dead cors root N transfer
     ! binary flag for woody lifeform (1=woody, 0=not woody)
     real(rk8), pointer :: woody(:)
     real(rk8), pointer :: bgtr(:) ! background transfer growth rate (1/s)
@@ -1945,37 +1961,37 @@ module mod_clm_cnphenology
     real(rk8):: t1       ! temporary variable
 
     ! assign local pointers to derived type arrays (in)
-    ivt                            => clm3%g%l%c%p%itype
-    onset_flag                     => clm3%g%l%c%p%pepv%onset_flag
-    onset_counter                  => clm3%g%l%c%p%pepv%onset_counter
-    leafc_xfer                     => clm3%g%l%c%p%pcs%leafc_xfer
-    frootc_xfer                    => clm3%g%l%c%p%pcs%frootc_xfer
-    livestemc_xfer                 => clm3%g%l%c%p%pcs%livestemc_xfer
-    deadstemc_xfer                 => clm3%g%l%c%p%pcs%deadstemc_xfer
-    livecrootc_xfer                => clm3%g%l%c%p%pcs%livecrootc_xfer
-    deadcrootc_xfer                => clm3%g%l%c%p%pcs%deadcrootc_xfer
-    leafn_xfer                     => clm3%g%l%c%p%pns%leafn_xfer
-    frootn_xfer                    => clm3%g%l%c%p%pns%frootn_xfer
-    livestemn_xfer                 => clm3%g%l%c%p%pns%livestemn_xfer
-    deadstemn_xfer                 => clm3%g%l%c%p%pns%deadstemn_xfer
-    livecrootn_xfer                => clm3%g%l%c%p%pns%livecrootn_xfer
-    deadcrootn_xfer                => clm3%g%l%c%p%pns%deadcrootn_xfer
-    bgtr                           => clm3%g%l%c%p%pepv%bgtr
-    woody                          => pftcon%woody
+    ivt             => clm3%g%l%c%p%itype
+    onset_flag      => clm3%g%l%c%p%pepv%onset_flag
+    onset_counter   => clm3%g%l%c%p%pepv%onset_counter
+    leafc_xfer      => clm3%g%l%c%p%pcs%leafc_xfer
+    frootc_xfer     => clm3%g%l%c%p%pcs%frootc_xfer
+    livestemc_xfer  => clm3%g%l%c%p%pcs%livestemc_xfer
+    deadstemc_xfer  => clm3%g%l%c%p%pcs%deadstemc_xfer
+    livecrootc_xfer => clm3%g%l%c%p%pcs%livecrootc_xfer
+    deadcrootc_xfer => clm3%g%l%c%p%pcs%deadcrootc_xfer
+    leafn_xfer      => clm3%g%l%c%p%pns%leafn_xfer
+    frootn_xfer     => clm3%g%l%c%p%pns%frootn_xfer
+    livestemn_xfer  => clm3%g%l%c%p%pns%livestemn_xfer
+    deadstemn_xfer  => clm3%g%l%c%p%pns%deadstemn_xfer
+    livecrootn_xfer => clm3%g%l%c%p%pns%livecrootn_xfer
+    deadcrootn_xfer => clm3%g%l%c%p%pns%deadcrootn_xfer
+    bgtr            => clm3%g%l%c%p%pepv%bgtr
+    woody           => pftcon%woody
 
     ! assign local pointers to derived type arrays (out)
-    leafc_xfer_to_leafc            => clm3%g%l%c%p%pcf%leafc_xfer_to_leafc
-    frootc_xfer_to_frootc          => clm3%g%l%c%p%pcf%frootc_xfer_to_frootc
-    livestemc_xfer_to_livestemc    => clm3%g%l%c%p%pcf%livestemc_xfer_to_livestemc
-    deadstemc_xfer_to_deadstemc    => clm3%g%l%c%p%pcf%deadstemc_xfer_to_deadstemc
-    livecrootc_xfer_to_livecrootc  => &
+    leafc_xfer_to_leafc         => clm3%g%l%c%p%pcf%leafc_xfer_to_leafc
+    frootc_xfer_to_frootc       => clm3%g%l%c%p%pcf%frootc_xfer_to_frootc
+    livestemc_xfer_to_livestemc => clm3%g%l%c%p%pcf%livestemc_xfer_to_livestemc
+    deadstemc_xfer_to_deadstemc => clm3%g%l%c%p%pcf%deadstemc_xfer_to_deadstemc
+    livecrootc_xfer_to_livecrootc => &
             clm3%g%l%c%p%pcf%livecrootc_xfer_to_livecrootc
-    deadcrootc_xfer_to_deadcrootc  => &
+    deadcrootc_xfer_to_deadcrootc => &
             clm3%g%l%c%p%pcf%deadcrootc_xfer_to_deadcrootc
-    leafn_xfer_to_leafn            => clm3%g%l%c%p%pnf%leafn_xfer_to_leafn
-    frootn_xfer_to_frootn          => clm3%g%l%c%p%pnf%frootn_xfer_to_frootn
-    livestemn_xfer_to_livestemn    => clm3%g%l%c%p%pnf%livestemn_xfer_to_livestemn
-    deadstemn_xfer_to_deadstemn    => clm3%g%l%c%p%pnf%deadstemn_xfer_to_deadstemn
+    leafn_xfer_to_leafn         => clm3%g%l%c%p%pnf%leafn_xfer_to_leafn
+    frootn_xfer_to_frootn       => clm3%g%l%c%p%pnf%frootn_xfer_to_frootn
+    livestemn_xfer_to_livestemn => clm3%g%l%c%p%pnf%livestemn_xfer_to_livestemn
+    deadstemn_xfer_to_deadstemn => clm3%g%l%c%p%pnf%deadstemn_xfer_to_deadstemn
     livecrootn_xfer_to_livecrootn  => &
             clm3%g%l%c%p%pnf%livecrootn_xfer_to_livecrootn
     deadcrootn_xfer_to_deadcrootn  => &
@@ -2049,7 +2065,8 @@ module mod_clm_cnphenology
     real(rk8), pointer :: leafc(:)              ! (gC/m2) leaf C
     real(rk8), pointer :: frootc(:)             ! (gC/m2) fine root C
     real(rk8), pointer :: cpool_to_leafc(:)  ! allocation to leaf C (gC/m2/s)
-    real(rk8), pointer :: cpool_to_frootc(:) ! allocation to fine root C (gC/m2/s)
+    ! allocation to fine root C (gC/m2/s)
+    real(rk8), pointer :: cpool_to_frootc(:)
 !   integer(ik4) , pointer :: pcolumn(:)     ! pft's column index
     real(rk8), pointer :: grainc(:)          ! (gC/m2) grain C
     real(rk8), pointer :: livestemc(:)       ! (gC/m2) livestem C
@@ -2066,16 +2083,17 @@ module mod_clm_cnphenology
     real(rk8), pointer :: prev_leafc_to_litter(:)
     ! previous timestep froot C litterfall flux (gC/m2/s)
     real(rk8), pointer :: prev_frootc_to_litter(:)
-    real(rk8), pointer :: leafc_to_litter(:)   ! leaf C litterfall (gC/m2/s)
-    real(rk8), pointer :: frootc_to_litter(:)  ! fine root C litterfall (gC/m2/s)
-    real(rk8), pointer :: leafn_to_litter(:)   ! leaf N litterfall (gN/m2/s)
+    real(rk8), pointer :: leafc_to_litter(:)  ! leaf C litterfall (gC/m2/s)
+    real(rk8), pointer :: frootc_to_litter(:) ! fine root C litterfall (gC/m2/s)
+    real(rk8), pointer :: leafn_to_litter(:)  ! leaf N litterfall (gN/m2/s)
     ! leaf N to retranslocated N pool (gN/m2/s)
     real(rk8), pointer :: leafn_to_retransn(:)
-    real(rk8), pointer :: frootn_to_litter(:)  ! fine root N litterfall (gN/m2/s)
+    real(rk8), pointer :: frootn_to_litter(:) ! fine root N litterfall (gN/m2/s)
     ! live stem C litterfall (gC/m2/s)
     real(rk8), pointer :: livestemc_to_litter(:)
     real(rk8), pointer :: grainc_to_food(:)      ! grain C to food (gC/m2/s)
-    real(rk8), pointer :: livestemn_to_litter(:) ! livestem N to litter (gN/m2/s)
+    ! livestem N to litter (gN/m2/s)
+    real(rk8), pointer :: livestemn_to_litter(:)
     real(rk8), pointer :: grainn_to_food(:)      ! grain N to food (gN/m2/s)
 
     integer(ik4) :: p  ! indices
@@ -2114,7 +2132,8 @@ module mod_clm_cnphenology
     frootn_to_litter               => clm3%g%l%c%p%pnf%frootn_to_litter
 
     ! The litterfall transfer rate starts at 0.0 and increases linearly
-    ! over time, with displayed growth going to 0.0 on the last day of litterfall
+    ! over time, with displayed growth going to 0.0 on the last day of
+    ! litterfall
 
     do fp = 1 , num_soilp
       p = filter_soilp(fp)
@@ -2203,7 +2222,8 @@ module mod_clm_cnphenology
     ! pft loop
     do fp = 1 , num_soilp
       p = filter_soilp(fp)
-      ! only calculate these fluxes if the background litterfall rate is non-zero
+      ! only calculate these fluxes if the background
+      ! litterfall rate is non-zero
       if (bglfr(p) > 0.D0) then
         ! units for bglfr are already 1/s
         leafc_to_litter(p)  = bglfr(p) * leafc(p)
@@ -2254,22 +2274,22 @@ module mod_clm_cnphenology
     real(rk8):: ntovr    ! temporary variable for nitrogen turnover
 
     ! assign local pointers to derived type arrays (in)
-    ivt                            => clm3%g%l%c%p%itype
-    livestemc                      => clm3%g%l%c%p%pcs%livestemc
-    livecrootc                     => clm3%g%l%c%p%pcs%livecrootc
-    livestemn                      => clm3%g%l%c%p%pns%livestemn
-    livecrootn                     => clm3%g%l%c%p%pns%livecrootn
-    woody                          => pftcon%woody
-    livewdcn                       => pftcon%livewdcn
-    deadwdcn                       => pftcon%deadwdcn
+    ivt         => clm3%g%l%c%p%itype
+    livestemc   => clm3%g%l%c%p%pcs%livestemc
+    livecrootc  => clm3%g%l%c%p%pcs%livecrootc
+    livestemn   => clm3%g%l%c%p%pns%livestemn
+    livecrootn  => clm3%g%l%c%p%pns%livecrootn
+    woody       => pftcon%woody
+    livewdcn    => pftcon%livewdcn
+    deadwdcn    => pftcon%deadwdcn
 
     ! assign local pointers to derived type arrays (out)
-    livestemc_to_deadstemc         => clm3%g%l%c%p%pcf%livestemc_to_deadstemc
-    livecrootc_to_deadcrootc       => clm3%g%l%c%p%pcf%livecrootc_to_deadcrootc
-    livestemn_to_deadstemn         => clm3%g%l%c%p%pnf%livestemn_to_deadstemn
-    livestemn_to_retransn          => clm3%g%l%c%p%pnf%livestemn_to_retransn
-    livecrootn_to_deadcrootn       => clm3%g%l%c%p%pnf%livecrootn_to_deadcrootn
-    livecrootn_to_retransn         => clm3%g%l%c%p%pnf%livecrootn_to_retransn
+    livestemc_to_deadstemc   => clm3%g%l%c%p%pcf%livestemc_to_deadstemc
+    livecrootc_to_deadcrootc => clm3%g%l%c%p%pcf%livecrootc_to_deadcrootc
+    livestemn_to_deadstemn   => clm3%g%l%c%p%pnf%livestemn_to_deadstemn
+    livestemn_to_retransn    => clm3%g%l%c%p%pnf%livestemn_to_retransn
+    livecrootn_to_deadcrootn => clm3%g%l%c%p%pnf%livecrootn_to_deadcrootn
+    livecrootn_to_retransn   => clm3%g%l%c%p%pnf%livecrootn_to_retransn
 
     ! pft loop
     do fp = 1,num_soilp
@@ -2314,10 +2334,11 @@ module mod_clm_cnphenology
     ! live stem C litterfall (gC/m2/s)
     real(rk8), pointer :: livestemc_to_litter(:)
     real(rk8), pointer :: grainc_to_food(:)      ! grain C to food (gC/m2/s)
-    real(rk8), pointer :: livestemn_to_litter(:) ! livestem N to litter (gN/m2/s)
-    real(rk8), pointer :: grainn_to_food(:)     ! grain N to food (gN/m2/s)
-    real(rk8), pointer :: leafn_to_litter(:)    ! leaf N litterfall (gN/m2/s)
-    real(rk8), pointer :: frootn_to_litter(:)   ! fine root N litterfall (gN/m2/s)
+    ! livestem N to litter (gN/m2/s)
+    real(rk8), pointer :: livestemn_to_litter(:)
+    real(rk8), pointer :: grainn_to_food(:)   ! grain N to food (gN/m2/s)
+    real(rk8), pointer :: leafn_to_litter(:)  ! leaf N litterfall (gN/m2/s)
+    real(rk8), pointer :: frootn_to_litter(:) ! fine root N litterfall (gN/m2/s)
     ! C fluxes associated with phenology (litterfall and crop) to
     ! litter metabolic pool (gC/m3/s)
     real(rk8), pointer :: phenology_c_to_litr_met_c(:,:)
@@ -2351,36 +2372,36 @@ module mod_clm_cnphenology
     integer(ik4) :: fc,c,pi,p,j       ! indices
 
     ! assign local pointers to derived type arrays (in)
-    pactive                        => clm3%g%l%c%p%active
-    ivt                            => clm3%g%l%c%p%itype
-    wtcol                          => clm3%g%l%c%p%wtcol
-    leafc_to_litter                => clm3%g%l%c%p%pcf%leafc_to_litter
-    frootc_to_litter               => clm3%g%l%c%p%pcf%frootc_to_litter
-    livestemc_to_litter            => clm3%g%l%c%p%pcf%livestemc_to_litter
-    grainc_to_food                 => clm3%g%l%c%p%pcf%grainc_to_food
-    livestemn_to_litter            => clm3%g%l%c%p%pnf%livestemn_to_litter
-    grainn_to_food                 => clm3%g%l%c%p%pnf%grainn_to_food
-    leafn_to_litter                => clm3%g%l%c%p%pnf%leafn_to_litter
-    frootn_to_litter               => clm3%g%l%c%p%pnf%frootn_to_litter
-    npfts                          => clm3%g%l%c%npfts
-    pfti                           => clm3%g%l%c%pfti
-    phenology_c_to_litr_met_c      => clm3%g%l%c%ccf%phenology_c_to_litr_met_c
-    phenology_c_to_litr_cel_c      => clm3%g%l%c%ccf%phenology_c_to_litr_cel_c
-    phenology_c_to_litr_lig_c      => clm3%g%l%c%ccf%phenology_c_to_litr_lig_c
-    phenology_n_to_litr_met_n      => clm3%g%l%c%cnf%phenology_n_to_litr_met_n
-    phenology_n_to_litr_cel_n      => clm3%g%l%c%cnf%phenology_n_to_litr_cel_n
-    phenology_n_to_litr_lig_n      => clm3%g%l%c%cnf%phenology_n_to_litr_lig_n
-    lf_flab                        => pftcon%lf_flab
-    lf_fcel                        => pftcon%lf_fcel
-    lf_flig                        => pftcon%lf_flig
-    fr_flab                        => pftcon%fr_flab
-    fr_fcel                        => pftcon%fr_fcel
-    fr_flig                        => pftcon%fr_flig
+    pactive                   => clm3%g%l%c%p%active
+    ivt                       => clm3%g%l%c%p%itype
+    wtcol                     => clm3%g%l%c%p%wtcol
+    leafc_to_litter           => clm3%g%l%c%p%pcf%leafc_to_litter
+    frootc_to_litter          => clm3%g%l%c%p%pcf%frootc_to_litter
+    livestemc_to_litter       => clm3%g%l%c%p%pcf%livestemc_to_litter
+    grainc_to_food            => clm3%g%l%c%p%pcf%grainc_to_food
+    livestemn_to_litter       => clm3%g%l%c%p%pnf%livestemn_to_litter
+    grainn_to_food            => clm3%g%l%c%p%pnf%grainn_to_food
+    leafn_to_litter           => clm3%g%l%c%p%pnf%leafn_to_litter
+    frootn_to_litter          => clm3%g%l%c%p%pnf%frootn_to_litter
+    npfts                     => clm3%g%l%c%npfts
+    pfti                      => clm3%g%l%c%pfti
+    phenology_c_to_litr_met_c => clm3%g%l%c%ccf%phenology_c_to_litr_met_c
+    phenology_c_to_litr_cel_c => clm3%g%l%c%ccf%phenology_c_to_litr_cel_c
+    phenology_c_to_litr_lig_c => clm3%g%l%c%ccf%phenology_c_to_litr_lig_c
+    phenology_n_to_litr_met_n => clm3%g%l%c%cnf%phenology_n_to_litr_met_n
+    phenology_n_to_litr_cel_n => clm3%g%l%c%cnf%phenology_n_to_litr_cel_n
+    phenology_n_to_litr_lig_n => clm3%g%l%c%cnf%phenology_n_to_litr_lig_n
+    lf_flab                   => pftcon%lf_flab
+    lf_fcel                   => pftcon%lf_fcel
+    lf_flig                   => pftcon%lf_flig
+    fr_flab                   => pftcon%fr_flab
+    fr_fcel                   => pftcon%fr_fcel
+    fr_flig                   => pftcon%fr_flig
 
     ! assign local pointers to derived type arrays (out)
 
-    leaf_prof                      => clm3%g%l%c%p%pps%leaf_prof
-    froot_prof                     => clm3%g%l%c%p%pps%froot_prof
+    leaf_prof   => clm3%g%l%c%p%pps%leaf_prof
+    froot_prof  => clm3%g%l%c%p%pps%froot_prof
 
     do j = 1 , nlevdecomp
       do pi = 1 , max_pft_per_col
@@ -2390,46 +2411,58 @@ module mod_clm_cnphenology
             p = pfti(c) + pi - 1
             if (pactive(p)) then
               ! leaf litter carbon fluxes
-              phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) + &
+              phenology_c_to_litr_met_c(c,j) = &
+                      phenology_c_to_litr_met_c(c,j) + &
                       leafc_to_litter(p) * lf_flab(ivt(p)) * &
                       wtcol(p) * leaf_prof(p,j)
-              phenology_c_to_litr_cel_c(c,j) = phenology_c_to_litr_cel_c(c,j) + &
+              phenology_c_to_litr_cel_c(c,j) = &
+                      phenology_c_to_litr_cel_c(c,j) + &
                       leafc_to_litter(p) * lf_fcel(ivt(p)) * &
                       wtcol(p) * leaf_prof(p,j)
-              phenology_c_to_litr_lig_c(c,j) = phenology_c_to_litr_lig_c(c,j) + &
+              phenology_c_to_litr_lig_c(c,j) = &
+                      phenology_c_to_litr_lig_c(c,j) + &
                       leafc_to_litter(p) * lf_flig(ivt(p)) * &
                       wtcol(p) * leaf_prof(p,j)
 
               ! leaf litter nitrogen fluxes
-              phenology_n_to_litr_met_n(c,j) = phenology_n_to_litr_met_n(c,j) + &
+              phenology_n_to_litr_met_n(c,j) = &
+                      phenology_n_to_litr_met_n(c,j) + &
                       leafn_to_litter(p) * lf_flab(ivt(p)) * &
                       wtcol(p) * leaf_prof(p,j)
-              phenology_n_to_litr_cel_n(c,j) = phenology_n_to_litr_cel_n(c,j) + &
+              phenology_n_to_litr_cel_n(c,j) = &
+                      phenology_n_to_litr_cel_n(c,j) + &
                       leafn_to_litter(p) * lf_fcel(ivt(p)) * &
                       wtcol(p) * leaf_prof(p,j)
-              phenology_n_to_litr_lig_n(c,j) = phenology_n_to_litr_lig_n(c,j) + &
+              phenology_n_to_litr_lig_n(c,j) = &
+                      phenology_n_to_litr_lig_n(c,j) + &
                       leafn_to_litter(p) * lf_flig(ivt(p)) * &
                       wtcol(p) * leaf_prof(p,j)
 
               ! fine root litter carbon fluxes
-              phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) + &
+              phenology_c_to_litr_met_c(c,j) = &
+                      phenology_c_to_litr_met_c(c,j) + &
                      frootc_to_litter(p) * fr_flab(ivt(p)) * &
                      wtcol(p) * froot_prof(p,j)
-              phenology_c_to_litr_cel_c(c,j) = phenology_c_to_litr_cel_c(c,j) + &
+              phenology_c_to_litr_cel_c(c,j) = &
+                      phenology_c_to_litr_cel_c(c,j) + &
                      frootc_to_litter(p) * fr_fcel(ivt(p)) * &
                      wtcol(p) * froot_prof(p,j)
-              phenology_c_to_litr_lig_c(c,j) = phenology_c_to_litr_lig_c(c,j) + &
+              phenology_c_to_litr_lig_c(c,j) = &
+                      phenology_c_to_litr_lig_c(c,j) + &
                      frootc_to_litter(p) * fr_flig(ivt(p)) * &
                      wtcol(p) * froot_prof(p,j)
 
               ! fine root litter nitrogen fluxes
-              phenology_n_to_litr_met_n(c,j) = phenology_n_to_litr_met_n(c,j) + &
+              phenology_n_to_litr_met_n(c,j) = &
+                      phenology_n_to_litr_met_n(c,j) + &
                      frootn_to_litter(p) * fr_flab(ivt(p)) * &
                      wtcol(p) * froot_prof(p,j)
-              phenology_n_to_litr_cel_n(c,j) = phenology_n_to_litr_cel_n(c,j) + &
+              phenology_n_to_litr_cel_n(c,j) = &
+                      phenology_n_to_litr_cel_n(c,j) + &
                      frootn_to_litter(p) * fr_fcel(ivt(p)) * &
                      wtcol(p) * froot_prof(p,j)
-              phenology_n_to_litr_lig_n(c,j) = phenology_n_to_litr_lig_n(c,j) + &
+              phenology_n_to_litr_lig_n(c,j) = &
+                      phenology_n_to_litr_lig_n(c,j) + &
                      frootn_to_litter(p) * fr_flig(ivt(p)) * &
                      wtcol(p) * froot_prof(p,j)
 

@@ -45,9 +45,9 @@ module mod_clm_cnndynamics
     implicit none
     integer(ik4), intent(in) :: lbc, ubc        ! column bounds
     real(rk8) , pointer :: forc_ndep(:)  ! nitrogen deposition rate (gN/m2/s)
-    integer(ik4) , pointer :: gridcell(:)   ! index into gridcell level quantities
+    integer(ik4) , pointer :: gridcell(:) ! index into gridcell level quantities
     real(rk8), pointer :: ndep_to_sminn(:)
-    integer(ik4) :: g,c                    ! indices
+    integer(ik4) :: g , c  ! indices
 
     ! Assign local pointers to derived type arrays (in)
     forc_ndep     => clm_a2l%forc_ndep
@@ -133,12 +133,12 @@ module mod_clm_cnndynamics
     use mod_clm_type
     use mod_clm_varpar      , only : nlevdecomp, nlevsoi
     implicit none
-    integer(ik4), intent(in) :: lbc, ubc        ! column bounds
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: lbc, ubc  ! column bounds
+    integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     ! liquid water (kg/m2) (new) (-nlevsno+1:nlevgrnd)
     real(rk8), pointer :: h2osoi_liq(:,:)
-    real(rk8), pointer :: qflx_drain(:)   ! sub-surface runoff (mm H2O /s)
+    real(rk8), pointer :: qflx_drain(:) ! sub-surface runoff (mm H2O /s)
     !!! awaiting_new_frozen_hydrolgy
     !!! sub-surface runoff from perched wt (mm H2O /s)
     !!! real(rk8), pointer :: qflx_drain_perched(:)
@@ -169,7 +169,8 @@ module mod_clm_cnndynamics
 #endif
     real(rk8) :: disn_conc  ! dissolved mineral N concentration
 
-    real(rk8), parameter :: depth_runoff_Nloss = 0.05 ! (m) depth over which runoff mixes with soil water for N loss to runoff
+    ! (m) depth over which runoff mixes with soil water for N loss to runoff
+    real(rk8), parameter :: depth_runoff_Nloss = 0.05
     real(rk8) :: drain_tot(lbc:ubc)  ! total drainage flux (mm H2O /s)
 
     ! Assign local pointers to derived type arrays (in)
@@ -316,7 +317,8 @@ module mod_clm_cnndynamics
         smin_no3_leached_vr(c,j) = max(smin_no3_leached_vr(c,j), 0.D0)
         !
         !
-        ! calculate the N loss from surface runoff, assuming a shallow mixing of surface waters into soil and removal based on runoff
+        ! calculate the N loss from surface runoff, assuming a shallow
+        ! mixing of surface waters into soil and removal based on runoff
         if ( zisoi(j) .le. depth_runoff_Nloss )  then
           smin_no3_runoff_vr(c,j) = disn_conc * qflx_surf(c) * &
                   h2osoi_liq(c,j) / ( surface_water(c) * dz(c,j) )
@@ -356,7 +358,7 @@ module mod_clm_cnndynamics
     use mod_clm_type
     use mod_clm_subgridave , only : p2c
     implicit none
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
 
     real(rk8), pointer :: fert(:)  ! nitrogen fertilizer rate (gN/m2/s)
@@ -374,8 +376,8 @@ module mod_clm_cnndynamics
   ! This routine handles the fixation of nitrogen for soybeans based on
   ! the EPICPHASE model M. Cabelguenne et al.,
   ! Agricultural systems 60: 175-196, 1999
-  ! N-fixation is based on soil moisture, plant growth phase, and availibility of
-  ! nitrogen in the soil root zone.
+  ! N-fixation is based on soil moisture, plant growth phase, and
+  ! availibility of nitrogen in the soil root zone.
   !
   subroutine CNSoyfix (num_soilc, filter_soilc, num_soilp, filter_soilp)
     use mod_clm_type
@@ -383,7 +385,7 @@ module mod_clm_cnndynamics
     use mod_clm_subgridave , only : p2c
 
     implicit none
-    integer(ik4), intent(in) :: num_soilc       ! number of soil columns in filter
+    integer(ik4), intent(in) :: num_soilc ! number of soil columns in filter
     integer(ik4), intent(in) :: filter_soilc(:) ! filter for soil columns
     integer(ik4), intent(in) :: num_soilp       ! number of soil pfts in filter
     integer(ik4), intent(in) :: filter_soilp(:) ! filter for soil pfts
@@ -413,15 +415,15 @@ module mod_clm_cnndynamics
     real(rk8):: GDDfracthreshold3, GDDfracthreshold4
 
     ! Assign local pointers to derived type arrays (in)
-    ivt               => clm3%g%l%c%p%itype
-    pcolumn           => clm3%g%l%c%p%column
-    fpg               => clm3%g%l%c%cps%fpg
-    wf                => clm3%g%l%c%cps%wf
-    plant_ndemand     => clm3%g%l%c%p%pepv%plant_ndemand
-    sminn             => clm3%g%l%c%cns%sminn
-    hui               => clm3%g%l%c%p%pps%gddplant
-    gddmaturity       => clm3%g%l%c%p%pps%gddmaturity
-    croplive          => clm3%g%l%c%p%pps%croplive
+    ivt           => clm3%g%l%c%p%itype
+    pcolumn       => clm3%g%l%c%p%column
+    fpg           => clm3%g%l%c%cps%fpg
+    wf            => clm3%g%l%c%cps%wf
+    plant_ndemand => clm3%g%l%c%p%pepv%plant_ndemand
+    sminn         => clm3%g%l%c%cns%sminn
+    hui           => clm3%g%l%c%p%pps%gddplant
+    gddmaturity   => clm3%g%l%c%p%pps%gddmaturity
+    croplive      => clm3%g%l%c%p%pps%croplive
 
     ! Assign local pointers to derived type arrays (out)
     soyfixn           => clm3%g%l%c%p%pnf%soyfixn
