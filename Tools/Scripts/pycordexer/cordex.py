@@ -24,6 +24,17 @@ def integrate(x,r):
   inr = np.sum(r,axis=0)
   return inr
 
+def mrtosph(x,oname):
+  if oname == 'humidity_mixing_ratio':
+    sph = 1.0/(1.0-x)
+  else:
+    sph = x
+  return sph
+
+def correct_evaporation(x):
+  corrected = np.where(x < 0.0,0.0,x)
+  return corrected
+
 def searchvar(vnames,nc):
   v = None
   indx = 0
@@ -291,6 +302,7 @@ lookup = { 'tas' : { 'name' : ['t2m','t2avg'],
            'hus850' :  { 'name' : ['qas','qv'],
                      'units' : '1',
                      'long_name' : 'Specific Humidity',
+                     'standard_name' : 'specific_humidity',
                      'needbound' : False,
                      'timecorr' : { 'ATM' : 0.0, },
                      'vertint' : 850.0,
@@ -469,7 +481,7 @@ lookupvar = {
 }
 
 # Open input dataset
-ncf = Dataset(datafile)
+ncf = Dataset(datafile,'r')
 
 times = ncf.variables['time']
 if len(times) < 1:
@@ -565,11 +577,11 @@ newattr = {
   'model_id' : ICTP_Model,
   'creation_date' : time.asctime(time.localtime(time.time()-4000000)),
   'CORDEX_domain' : domain,
-  'rcm_version_id' : '4.3-rc15',
+  'rcm_version_id' : ICTP_Model_Version,
   'ICTP_version_note' : notes,
   'contact' : mail,
   'product' : 'output',
-  'tracking_id' : uuid.uuid1( ),
+  'tracking_id' : str(uuid.uuid1( )),
 }
 
 if frequency == 'month':
@@ -770,16 +782,22 @@ xfac = unitcorrect(oldunits,lookup[variable]['units'])
 for it in range(0,np.size(correct_time)):
   if lookup[variable].has_key('vertint'):
     if 'plev' in var.dimensions:
-      newvar[it,Ellipsis] = var[it,mask[0],Ellipsis] * xfac
+      intvar = var[it,mask[0],Ellipsis]
+      if variable == 'hus850':
+        intvar = mrtosph(intvar,getattr(var,'standard_name'))
+      newvar[it,Ellipsis] = intvar * xfac
     else:
       if lookup[variable]['vertmod'] == 'linear':
-        newvar[it,Ellipsis] = mod_vertint.intlin(var[it,:,:,:],
-                                 ps[it,:,:],sigma,ptop,
-                                 lookup[variable]['vertint']) * xfac
+        intvar = mod_vertint.intlin(var[it,:,:,:],
+                          ps[it,:,:],sigma,ptop,
+                          lookup[variable]['vertint'])
+        if variable == 'hus850':
+          intvar = mrtosph(intvar,getattr(var,'standard_name'))
+        newvar[it,Ellipsis] = intvar * xfac
       elif lookup[variable]['vertmod'] == 'log':
         newvar[it,Ellipsis] = mod_vertint.intlog(var[it,:,:,:],
-                                 ps[it,:,:],sigma,ptop,
-                                 lookup[variable]['vertint']) * xfac
+                              ps[it,:,:],sigma,ptop,
+                              lookup[variable]['vertint']) * xfac
       elif lookup[variable]['vertmod'] == 'compute':
         if not lookup[variable].has_key('formula'):
           raise RuntimeError('Cannot compute without formula!')
@@ -802,7 +820,10 @@ for it in range(0,np.size(correct_time)):
     else:
       newvar[it,Ellipsis] = wrapper(func,compvars,it) * xfac
   else:
-    newvar[it,Ellipsis] = var[it,Ellipsis] * xfac
+    if variable == 'evspsbl':
+        newvar[it,Ellipsis] = correct_evaporation(var[it,Ellipsis]) * xfac
+    else:
+        newvar[it,Ellipsis] = var[it,Ellipsis] * xfac
 
 nco.close()
 ncf.close()
