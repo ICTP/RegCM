@@ -221,7 +221,7 @@ program sigma2p
     else if (varname == 'ptop') then
       istatus = nf90_get_var(ncid,i,ptop)
       call checkncerr(istatus,__FILE__,__LINE__,'Error read variable ptop')
-    else if (varname == 'crs') then
+    else if (varname == 'crs' .or. varname == 'rcm_map' ) then
       ircm_map = i
     else if (varname == 'ps') then
       ipsvarid = i
