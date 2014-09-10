@@ -415,6 +415,11 @@ module mod_lm_interface
 #endif
 #endif
     call vecocn(lm,lms)
+    ! Move negative evaporation (deposition) into precipitation
+    where (lms%evpr < d_zero)
+      lms%prcp = lms%prcp - lms%evpr
+      lms%evpr = d_zero
+    end where
     lm%hfx = sum(lms%sent,1)*rdnnsg
     lm%qfx = sum(lms%evpr,1)*rdnnsg
     lm%uvdrag = sum(lms%drag,1)*rdnnsg
