@@ -29,7 +29,7 @@ module mod_mpmessage
   private
 
   public :: setup_mesg , die , aline , say , note , cry , fatal , checkalloc
-  public :: vprntv , vprntm
+  public :: vprntv , vprntm , iprntv
 
   contains
   !
@@ -60,6 +60,32 @@ module mod_mpmessage
       write(stdout,myf) a(n-kk+1:)
     end if
   end subroutine vprntv
+
+  subroutine iprntv(a,n,nam)
+    implicit none
+    integer(ik4) , intent(in) :: n
+    character(len=*) , intent(in) :: nam
+    integer(ik4) , intent(in) , dimension(n) :: a
+    integer(ik4) :: k , nn , kk
+    integer(ik4) , parameter :: npl = 7
+    character(len=32) :: myf
+    write(stdout,'(2x,a,a,a)') '# ',nam,' #'
+    write(myf,'(a,i1,a)') '(2x,',npl,'i8)'
+    if ( n > npl ) then
+      nn = n/npl
+      do k = 1 , nn
+        kk = (k-1)*npl+1
+        write(stdout,myf) a(kk:kk+npl-1)
+      end do
+      kk = n-(nn*npl)+1
+    else
+      kk = n
+    end if
+    if ( kk > 0 ) then
+      write(myf,'(a,i1,a)') '(2x,',kk,'i8)'
+      write(stdout,myf) a(n-kk+1:)
+    end if
+  end subroutine iprntv
 !
   subroutine vprntm(a,n1,n2,nam)
     implicit none

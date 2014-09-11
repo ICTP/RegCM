@@ -210,8 +210,8 @@ module mod_che_start
       end do
 
       if ( myid == italk ) then
-        if ( itr == 1 )  write(*,*) 'tracer', ' cbmz index',' molw' 
-        write(*,*) chtrname(itr),  trac%indcbmz(itr),  trac%mw(itr)
+        if ( itr == 1 )  write(stdout,*) 'tracer', ' cbmz index',' molw' 
+        write(stdout,*) chtrname(itr),  trac%indcbmz(itr),  trac%mw(itr)
       end if
 
       !!$ Define also some specific indices for practical purpose
@@ -276,44 +276,39 @@ module mod_che_start
 #endif
 
     end do
-
+    !
     ! define now correspndance between boundary species indices and
     ! determine tracer indices corresponding to ch boundary conditions
     ! 
-
     ichbdy2trac(:) = 0 
-
     itr = 1
-    
-       if(igaschem ==1) then 
-          do n = 1, n_chbcvar
-            do i = 1,ntr
-             if (chbcname(n)==  chtrname(i)) then 
-                ichbdy2trac(itr) = i                 
-                itr =itr + 1
-             end if
-           end do
-         end do 
-      end if
-!!$       ! look also in aerosol bc and pile them after.   
-       if(iaerosol==1) then 
-          do n = 1, size(aeaero)
-            do i = 1,ntr
-               if (aeaero(n)==  chtrname(i)) then 
-                ichbdy2trac(itr) = i  
-                itr=itr+1
-             end if
-          end do
+    if( igaschem == 1 ) then 
+      do n = 1 , n_chbcvar
+        do i = 1 , ntr
+          if (chbcname(n) == chtrname(i)) then 
+            ichbdy2trac(itr) = i                 
+            itr = itr + 1
+          end if
         end do
-       end if
-      
-      if ( myid == italk ) then
-       write(*,*) 'tracer index coreesponding to bdy species '
-       do n = 1,size(ichbdy2trac)          
-          write(*,*) ichbdy2trac(n) 
-       end do
-       end if
-    
+      end do 
+    end if
+    !
+    ! look also in aerosol bc and pile them after.   
+    !
+    if ( iaerosol == 1 ) then 
+      do n = 1 , size(aeaero)
+        do i = 1 , ntr
+          if ( aeaero(n) == chtrname(i) ) then 
+            ichbdy2trac(itr) = i  
+            itr = itr + 1
+          end if
+        end do
+      end do
+    end if
+    if ( myid == italk ) then
+      write(stdout,*) 'tracer index coreesponding to bdy species '
+      call iprntv(ichbdy2trac,size(ichbdy2trac),'ichbdy2trac')
+    end if
 !!$  FAB : work on that later
 !!$    do itr = 1,ntr
 !!$       do n = 1,n_chbcvar
@@ -323,17 +318,13 @@ module mod_che_start
 !!$      end do
 !!$        print*,'test', itr, chtrname(itr), trac%indchbdy(itr) 
 !!$     end do
-
-
-
-
     if ( idust(1) > 0 .or. ichbion==1) then
       ! activate dust initialization
       if ( myid == italk ) write(stdout,*) 'Calling inidust'
       call inidust
     end if
 
-    if (ichbion==1) call ini_bionit
+    if ( ichbion == 1 ) call ini_bionit
 
     if ( igaschem == 1 ) then
       open(26,file='TUVGRID2', status='old', err=900)

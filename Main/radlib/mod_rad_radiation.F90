@@ -1205,9 +1205,9 @@ module mod_rad_radiation
     integer(ik4) :: indx = 0
     call time_begin(subroutine_name,indx)
 #endif
-!
-!   Initialize output fields:
-!
+    !
+    ! Initialize output fields:
+    !
     fsds(:) = d_zero
     fsnirt(:) = d_zero
     fsnrtc(:) = d_zero
@@ -1223,7 +1223,7 @@ module mod_rad_radiation
     solld(:) = d_zero
     abv(:) = d_zero
     sol(:) = d_zero
-!
+
     aeradfo(:) = d_zero
     aeradfos(:) = d_zero
     x0fsntc(:) = d_zero
@@ -1231,11 +1231,11 @@ module mod_rad_radiation
     outtaucl(:,:,:) = d_zero
     outtauci(:,:,:) = d_zero
     ww(:) = d_zero
-!
+
     qrs(:,:) = d_zero
-!
-!   Define solar incident radiation and interface pressures:
-!
+    !
+    ! Define solar incident radiation and interface pressures:
+    !
     do n = n1 , n2
       if ( czengt0(n) ) then
         solin(n) = scon*eccf*czen(n)
@@ -1249,12 +1249,12 @@ module mod_rad_radiation
         end if
       end do
     end do
-!
-!   Compute optical paths:
-!   CO2, use old scheme(as constant)
-!
+    !
+    ! Compute optical paths:
+    ! CO2, use old scheme(as constant)
+    !
     tmp1 = d_half/(egravgts*sslp)
-!   co2mmr = co2vmr*(mmwco2/mmwair)
+    ! co2mmr = co2vmr*(mmwco2/mmwair)
    
     sqrco2 = dsqrt(co2mmr)
     do n = n1 , n2
@@ -1272,7 +1272,7 @@ module mod_rad_radiation
         uo3(n,0) = ptho3
       end if
     end do
-!
+
     tmp2 = delta*regravgts
     do k = 1 , kz
       do n = n1 , n2
@@ -1292,9 +1292,9 @@ module mod_rad_radiation
         end if
       end do
     end do
-!
-!   Compute column absorber amounts for the clear sky computation:
-!
+    !
+    ! Compute column absorber amounts for the clear sky computation:
+    !
     do n = n1 , n2
       if ( czengt0(n) ) then
         uth2o(n) = d_zero
@@ -1313,9 +1313,9 @@ module mod_rad_radiation
         end if
       end do
     end do
-!
-!   Initialize spectrally integrated totals:
-!
+    !
+    ! Initialize spectrally integrated totals:
+    !
     do k = 0 , kz
       do n = n1 , n2
         totfld(n,k) = d_zero
@@ -1327,11 +1327,11 @@ module mod_rad_radiation
       fswup(n,kzp1) = d_zero
       fswdn(n,kzp1) = d_zero
     end do
-!
-!   Set cloud properties for top (0) layer; so long as tauxcl is zero,
-!   there is no cloud above top of model; the other cloud properties
-!   are arbitrary:
-!
+    !
+    ! Set cloud properties for top (0) layer; so long as tauxcl is zero,
+    ! there is no cloud above top of model; the other cloud properties
+    ! are arbitrary:
+    !
     do n = n1 , n2
       if ( czengt0(n) ) then
         tauxcl(n,0,:) = d_zero
@@ -1344,23 +1344,23 @@ module mod_rad_radiation
         fci(n,0) = 0.725D0
       end if
     end do
-!
-!   Begin spectral loop
-!
+    !
+    ! Begin spectral loop
+    !
     do ns = 1 , nspi
       wgtint = nirwgt(ns)
-!
-!     Set index for cloud particle properties based on the wavelength,
-!     according to A. Slingo (1989) equations 1-3:
-!     Use index 1 (0.25 to 0.69 micrometers) for visible
-!     Use index 2 (0.69 - 1.19 micrometers) for near-infrared
-!     Use index 3 (1.19 to 2.38 micrometers) for near-infrared
-!     Use index 4 (2.38 to 4.00 micrometers) for near-infrared
-!
-!     Note that the minimum wavelength is encoded (with 0.001, 0.002,
-!     0.003) in order to specify the index appropriate for the
-!     near-infrared cloud absorption properties
-!
+      !
+      ! Set index for cloud particle properties based on the wavelength,
+      ! according to A. Slingo (1989) equations 1-3:
+      ! Use index 1 (0.25 to 0.69 micrometers) for visible
+      ! Use index 2 (0.69 - 1.19 micrometers) for near-infrared
+      ! Use index 3 (1.19 to 2.38 micrometers) for near-infrared
+      ! Use index 4 (2.38 to 4.00 micrometers) for near-infrared
+      !
+      ! Note that the minimum wavelength is encoded (with 0.001, 0.002,
+      ! 0.003) in order to specify the index appropriate for the
+      ! near-infrared cloud absorption properties
+      !
       indxsl = 0
       if ( wavmax(ns) <= 0.70D0 ) then
         indxsl = 1
@@ -1372,17 +1372,17 @@ module mod_rad_radiation
                      wavmin(ns) > 2.38D0 ) then
         indxsl = 4
       end if
-!
-!     Set cloud extinction optical depth, single scatter albedo,
-!     asymmetry parameter, and forward scattered fraction:
-!
+      !
+      ! Set cloud extinction optical depth, single scatter albedo,
+      ! asymmetry parameter, and forward scattered fraction:
+      !
       abarli = abarl(indxsl)
       bbarli = bbarl(indxsl)
       cbarli = cbarl(indxsl)
       dbarli = dbarl(indxsl)
       ebarli = ebarl(indxsl)
       fbarli = fbarl(indxsl)
-!
+
       abarii = abari(indxsl)
       bbarii = bbari(indxsl)
       cbarii = cbari(indxsl)
@@ -1391,34 +1391,35 @@ module mod_rad_radiation
       fbarii = fbari(indxsl)
 
       ww(indxsl) = ww(indxsl) + d_one
-!
+
       do k = 1 , kz
         do n = n1 , n2
           if ( czengt0(n) ) then
-!
-!           liquid
-!
+            !
+            ! liquid
+            !
             tmp1l = abarli + bbarli/rel(n,k)
             tmp2l = d_one - cbarli - dbarli*rel(n,k)
             tmp3l = fbarli*rel(n,k)
-!
-!           ice
-!
+            !
+            ! ice
+            !
             tmp1i = abarii + bbarii/rei(n,k)
             tmp2i = d_one - cbarii - dbarii*rei(n,k)
             tmp3i = fbarii*rei(n,k)
-!
-!           Cloud fraction incorporated into cloud extinction optical depth
-!found
-!           April 12 2000, Filippo found the different scheme here:
-   
-!scheme     1
-!ccm3.6.6
-!           tauxcl(n,k,ns) = clwp(n,k)*tmp1l*(d_one-fice(n,k))*cld(n,k)*dsqrt(cld(n,k))
-!           tauxci(n,k,ns) = clwp(n,k)*tmp1i*fice(n,k)*cld(n,k)*dsqrt(cld(n,k))
-!
-!scheme     2
-!KN
+            !
+            !  Cloud fraction incorporated into cloud extinction optical depth
+            !found
+            !  April 12 2000, Filippo found the different scheme here:
+            !scheme     1
+            !ccm3.6.6
+            ! tauxcl(n,k,ns) = clwp(n,k) * tmp1l * &
+            !           (d_one-fice(n,k)) * cld(n,k) * dsqrt(cld(n,k))
+            ! tauxci(n,k,ns) = clwp(n,k) * tmp1i * &
+            !            fice(n,k) * cld(n,k) * dsqrt(cld(n,k))
+            !
+            !scheme     2
+            !
             tauxcl(n,k,ns) = clwp(n,k)*tmp1l*(d_one-fice(n,k))*cld(n,k) / &
                           (d_one+(d_one-0.85D0)*(d_one-cld(n,k))*      &
                           clwp(n,k)*tmp1l*(d_one-fice(n,k)))
@@ -1427,35 +1428,32 @@ module mod_rad_radiation
                           (d_one+(d_one-0.78D0)*(d_one-cld(n,k)) * &
                           clwp(n,k)*tmp1i*fice(n,k))
             outtauci(n,k,indxsl) = outtauci(n,k,indxsl) + tauxci(n,k,ns)
-   
-!scheme     3
-!EES        below replaced
-!           tauxcl(n,k,ns) = clwp(n,k)*tmp1l*(d_one-fice(n,k))*cld(n,k)**0.85
-!           tauxci(n,k,ns) = clwp(n,k)*tmp1i*fice(n,k)*cld(n,k)**0.85
-!found_
-!
-!           Do not let single scatter albedo be 1; delta-eddington
-!           solution for non-conservative case:
-!
-!qian       30/06/99        wcl(n,k) = dmin1(tmp2l,0.999999)
-            wcl(n,k) = dmin1(tmp2l,verynearone)
+            !
+            !scheme     3
+            ! tauxcl(n,k,ns) = clwp(n,k)*tmp1l*(d_one-fice(n,k))*cld(n,k)**0.85
+            ! tauxci(n,k,ns) = clwp(n,k)*tmp1i*fice(n,k)*cld(n,k)**0.85
+            !
+            ! Do not let single scatter albedo be 1; delta-eddington
+            ! solution for non-conservative case:
+            !
+            wcl(n,k) = min(tmp2l,verynearone)
             gcl(n,k) = ebarli + tmp3l
             fcl(n,k) = gcl(n,k)*gcl(n,k)
-!
-            wci(n,k) = dmin1(tmp2i,verynearone)
+
+            wci(n,k) = min(tmp2i,verynearone)
             gci(n,k) = ebarii + tmp3i
             fci(n,k) = gci(n,k)*gci(n,k)
-!
+
           end if
         end do
       end do
-!
-!     Set reflectivities for surface based on mid-point wavelength
-!
+      !
+      ! Set reflectivities for surface based on mid-point wavelength
+      !
       wavmid = (wavmin(ns)+wavmax(ns))*d_half
-!
-!     Wavelength less  than 0.7 micro-meter
-!
+      !
+      ! Wavelength less  than 0.7 micro-meter
+      !
       if ( wavmid < 0.7D0 ) then
         do n = n1 , n2
           if ( czengt0(n) ) then
@@ -1463,9 +1461,9 @@ module mod_rad_radiation
             difalb(n) = adifsw(n)
           end if
         end do
-!
-!       Wavelength greater than 0.7 micro-meter
-!
+      !
+      ! Wavelength greater than 0.7 micro-meter
+      !
       else
         do n = n1 , n2
           if ( czengt0(n) ) then
@@ -1475,14 +1473,14 @@ module mod_rad_radiation
         end do
       end if
       trayoslp = raytau(ns)/sslp
-!
-!     Layer input properties now completely specified; compute the
-!     delta-Eddington solution reflectivities and transmissivities
-!     for each layer, starting from the top and working downwards:
-   
-!     options for aerosol: no climatic feedback if idirect == 1
-!     should be consistent with aeroppt routine
-
+      !
+      ! Layer input properties now completely specified; compute the
+      ! delta-Eddington solution reflectivities and transmissivities
+      ! for each layer, starting from the top and working downwards:
+      ! 
+      ! options for aerosol: no climatic feedback if idirect == 1
+      ! should be consistent with aeroppt routine
+      !
       lzero = .true.
       if ( ichem == 1 ) then
         if ( idirect == 2 ) then
@@ -1491,11 +1489,11 @@ module mod_rad_radiation
       end if
    
       call radded(n1,n2,trayoslp,czen,czengt0,tauxcl,tauxci,ns,lzero)
-!
-!     Compute reflectivity to direct and diffuse mod_radiation for layers
-!     below by adding succesive layers starting from the surface and
-!     working upwards:
-!
+      !
+      ! Compute reflectivity to direct and diffuse mod_radiation for layers
+      ! below by adding succesive layers starting from the surface and
+      ! working upwards:
+      !
       do n = n1 , n2
         if ( czengt0(n) ) then
           rupdir(n,kzp1) = diralb(n)
@@ -1513,10 +1511,10 @@ module mod_rad_radiation
           end if
         end do
       end do
-!
-!     Compute up and down fluxes for each interface, using the added
-!     atmospheric layer properties at each interface:
-!
+      !
+      ! Compute up and down fluxes for each interface, using the added
+      ! atmospheric layer properties at each interface:
+      !
       do k = 0 , kzp1
         do n = n1 , n2
           if ( czengt0(n) ) then
@@ -1529,10 +1527,10 @@ module mod_rad_radiation
           end if
         end do
       end do
-!
-!     Compute flux divergence in each layer using the interface up
-!     and down fluxes:
-!
+      !
+      ! Compute flux divergence in each layer using the interface up
+      ! and down fluxes:
+      !
       do k = 0 , kz
         do n = n1 , n2
           if ( czengt0(n) ) then
@@ -1541,11 +1539,11 @@ module mod_rad_radiation
           end if
         end do
       end do
-!
-!     Monochromatic computation completed; accumulate in totals;
-!     adjust fraction within spectral interval to allow for the
-!     possibility of sub-divisions within a particular interval:
-!
+      !
+      ! Monochromatic computation completed; accumulate in totals;
+      ! adjust fraction within spectral interval to allow for the
+      ! possibility of sub-divisions within a particular interval:
+      !
       psf = d_one
       if ( dabs(ph2o(ns)) > dlowval ) psf = psf*ph2o(ns)
       if ( dabs(pco2(ns)) > dlowval ) psf = psf*pco2(ns)
@@ -1561,31 +1559,31 @@ module mod_rad_radiation
           sfltot = sfltot + solflx(n)
           fswup(n,0) = fswup(n,0) + solflx(n)*fluxup(n,0)
           fswdn(n,0) = fswdn(n,0) + solflx(n)*fluxdn(n,0)
-!
-!           Down spectral fluxes need to be in mks; thus the 0.001
-!           conversion factors
+          !
+          ! Down spectral fluxes need to be in mks; thus the 0.001
+          ! conversion factors
+          !
           if ( wavmid < 0.7D0 ) then
             sols(n) = sols(n) + exptdn(n,kzp1)*solflx(n)*d_r1000
             solsd(n) = solsd(n) + &
                    (fluxdn(n,kzp1)-exptdn(n,kz + 1))*solflx(n)*d_r1000
-!KN         added below
+            !KN         added below
             abv(n) = abv(n) + (solflx(n) *            &
                        (fluxdn(n,kzp1)-fluxup(n,kz + 1)))*  &
                        (d_one-asw(n))/(d_one-diralb(n))*d_r1000
-!KN         added above
+            !KN         added above
           else
             soll(n) = soll(n) + exptdn(n,kzp1)*solflx(n)*d_r1000
             solld(n) = solld(n) + &
                    (fluxdn(n,kzp1)-exptdn(n,kz + 1))*solflx(n)*d_r1000
             fsnirtsq(n) = fsnirtsq(n) + solflx(n)*(fluxdn(n,0)-fluxup(n,0))
-!KN         added below
+            !KN         added below
             abv(n) = abv(n) + &
                        (solflx(n)*(fluxdn(n,kzp1)-fluxup(n,kz + 1)))* &
                         (d_one-alw(n))/(d_one-diralb(n))*d_r1000
-!KN         added above
+            !KN         added above
           end if
           fsnirt(n) = fsnirt(n) + wgtint*solflx(n) * (fluxdn(n,0)-fluxup(n,0))
-!
         end if
       end do
       do k = 0 , kz
@@ -1597,8 +1595,7 @@ module mod_rad_radiation
           end if
         end do
       end do
-   
-!     solar is incident visible solar radiation
+      ! solar is incident visible solar radiation
       if ( ns == 8 ) then
         do n = n1 , n2
           if ( czengt0(n) ) then
@@ -1606,39 +1603,39 @@ module mod_rad_radiation
           end if
         end do
       end if
-   
-!FAB
-!     CLEAR SKY CALCULATION PLUS AEROSOL
-!     FORCING RAD CLR is called 2 times , one with O aerosol OP , and
-!     one with actual aerosol. DIFFERENCE  in net TOA SW for the two
-!     case is saved as one more variable in the rad file. The
-!     outputed TOASW ( fsntc, clrst) is accounting for aerosol.
-      if ( ichem == 1 .and. idirect >= 1 ) then
-   
-!       Following code is the diagnostic clear sky computation:
-!
-!       Compute delta-Eddington solution reflectivities and
-!       transmissivities for the entire column; note, for
-!       convenience, we use mod_the same reflectivity and transmissivity
-!       arrays as for the full calculation above, where 0 for layer
-!       quantities refers to the entire atmospheric column, and where
-!       0 for interface quantities refers to top of atmos- phere,
-!       while 1 refers to the surface:
-!
+      !FAB
+      ! CLEAR SKY CALCULATION PLUS AEROSOL
+      ! FORCING RAD CLR is called 2 times , one with O aerosol OP , and
+      ! one with actual aerosol. DIFFERENCE  in net TOA SW for the two
+      ! case is saved as one more variable in the rad file. The
+      ! outputed TOASW ( fsntc, clrst) is accounting for aerosol.
+      !FAB
+      if ( ichem == 1 .and. idirect > 0 ) then
+        !
+        ! Following code is the diagnostic clear sky computation:
+        !
+        ! Compute delta-Eddington solution reflectivities and
+        ! transmissivities for the entire column; note, for
+        ! convenience, we use mod_the same reflectivity and transmissivity
+        ! arrays as for the full calculation above, where 0 for layer
+        ! quantities refers to the entire atmospheric column, and where
+        ! 0 for interface quantities refers to top of atmos- phere,
+        ! while 1 refers to the surface:
+        !
         call radclr(n1,n2,trayoslp,czen,czengt0,ns,.true.)
-!
-!       Compute reflectivity to direct and diffuse mod_radiation for
-!       entire column; 0,1 on layer quantities refers to two
-!       effective layers overlying surface; 0 on interface quantities
-!       refers to top of column; 2 on interface quantities refers to
-!       the surface:
+        !
+        ! Compute reflectivity to direct and diffuse mod_radiation for
+        ! entire column; 0,1 on layer quantities refers to two
+        ! effective layers overlying surface; 0 on interface quantities
+        ! refers to top of column; 2 on interface quantities refers to
+        ! the surface:
+        !
         do n = n1 , n2
           if ( czengt0(n) ) then
             rupdir(n,2) = diralb(n)
             rupdif(n,2) = difalb(n)
           end if
         end do
-!
         do k = 1 , 0 , -1
           do n = n1 , n2
             if ( czengt0(n) ) then
@@ -1650,10 +1647,10 @@ module mod_rad_radiation
             end if
           end do
         end do
-!
-!       Compute up and down fluxes for each interface, using the added
-!       atmospheric layer properties at each interface:
-!
+        !
+        ! Compute up and down fluxes for each interface, using the added
+        ! atmospheric layer properties at each interface:
+        !
         do k = 0 , 2
           do n = n1 , n2
             if ( czengt0(n) ) then
@@ -1666,45 +1663,44 @@ module mod_rad_radiation
             end if
           end do
         end do
-!
         x0fsnrtc = d_zero  
         do n = n1 , n2
           if ( czengt0(n) ) then
-!           SAVE the ref net TOA flux ( and put back the cumul variables to 0.)
+            ! SAVE the ref net TOA flux
+            !   ( and put back the cumul variables to 0.)
             x0fsntc(n) = x0fsntc(n) + solflx(n)*(fluxdn(n,0)-fluxup(n,0))
             x0fsnsc(n) = x0fsnsc(n) + solflx(n)*(fluxdn(n,2)-fluxup(n,2))
             x0fsnrtc = x0fsnrtc + wgtint*solflx(n)*(fluxdn(n,0)-fluxup(n,0))
           end if
         end do
-!
-!       End of clear sky calculation with O aerosol OP
-!
+        !
+        ! End of clear sky calculation with O aerosol OP
+        !
       end if
-!
-!     Following code is the diagnostic clear sky computation:
-!
-!     Compute delta-Eddington solution reflectivities and
-!     transmissivities for the entire column; note, for convenience,
-!     we use mod_the same reflectivity and transmissivity arrays as for
-!     the full calculation above, where 0 for layer quantities refers
-!     to the entire atmospheric column, and where 0 for interface
-!     quantities refers to top of atmos- phere, while 1 refers to the
-!     surface:
-!
+      !
+      ! Following code is the diagnostic clear sky computation:
+      !
+      ! Compute delta-Eddington solution reflectivities and
+      ! transmissivities for the entire column; note, for convenience,
+      ! we use mod_the same reflectivity and transmissivity arrays as for
+      ! the full calculation above, where 0 for layer quantities refers
+      ! to the entire atmospheric column, and where 0 for interface
+      ! quantities refers to top of atmos- phere, while 1 refers to the
+      ! surface:
+      !
       call radclr(n1,n2,trayoslp,czen,czengt0,ns,.false.)
-!
-!     Compute reflectivity to direct and diffuse mod_radiation for entire
-!     column; 0,1 on layer quantities refers to two effective layers
-!     overlying surface; 0 on interface quantities refers to top of
-!     column; 2 on interface quantities refers to the surface:
-!
+      !
+      ! Compute reflectivity to direct and diffuse mod_radiation for entire
+      ! column; 0,1 on layer quantities refers to two effective layers
+      ! overlying surface; 0 on interface quantities refers to top of
+      ! column; 2 on interface quantities refers to the surface:
+      !
       do n = n1 , n2
         if ( czengt0(n) ) then
           rupdir(n,2) = diralb(n)
           rupdif(n,2) = difalb(n)
         end if
       end do
-!
       do k = 1 , 0 , -1
         do n = n1 , n2
           if ( czengt0(n) ) then
@@ -1716,10 +1712,10 @@ module mod_rad_radiation
           end if
         end do
       end do
-!
-!     Compute up and down fluxes for each interface, using the added
-!     atmospheric layer properties at each interface:
-!
+      !
+      ! Compute up and down fluxes for each interface, using the added
+      ! atmospheric layer properties at each interface:
+      !
       do k = 0 , 2
         do n = n1 , n2
           if ( czengt0(n) ) then
@@ -1732,7 +1728,6 @@ module mod_rad_radiation
           end if
         end do
       end do
-!
       do n = n1 , n2
         if ( czengt0(n) ) then
           fsntc(n) = fsntc(n) + solflx(n)*(fluxdn(n,0)-fluxup(n,0))
@@ -1740,18 +1735,18 @@ module mod_rad_radiation
           fsnrtc(n) = fsnrtc(n) + wgtint*solflx(n) * (fluxdn(n,0)-fluxup(n,0))
         end if
       end do
-!
-!     End of clear sky calculation
-!
-    end do  ! End of spectral interval loop
+      !
+      ! End of clear sky calculation
+      !
+    end do ! End of spectral interval loop
 
     do is = 1 , 4
       outtaucl(:,:,is) = outtaucl(:,:,is) / ww(is)
       outtauci(:,:,is) = outtauci(:,:,is) / ww(is)
     end do
-   
-!   FAB calculation of TOA aerosol radiative forcing
-    if ( ichem == 1 .and. idirect >= 1 ) then
+
+    ! FAB calculation of TOA aerosol radiative forcing
+    if ( ichem == 1 .and. idirect > 0 ) then
       do n = n1 , n2
         if ( czengt0(n) ) then
           aeradfo(n) = -(x0fsntc(n)-fsntc(n))
@@ -1759,9 +1754,9 @@ module mod_rad_radiation
         end if
       end do
     end if
-!
-!   Compute solar heating rate (k/s)
-!
+    !
+    ! Compute solar heating rate (k/s)
+    !
     do k = 1 , kz
       do n = n1 , n2
         if ( czengt0(n) ) then
@@ -1769,9 +1764,9 @@ module mod_rad_radiation
         end if
       end do
     end do
-!
-!   Set the downwelling flux at the surface
-!
+    !
+    ! Set the downwelling flux at the surface
+    !
     do n = n1 , n2
       fsds(n) = fswdn(n,kzp1)
     end do
@@ -1843,9 +1838,7 @@ module mod_rad_radiation
                     piln,n2o,ch4,cfc11,cfc12,cld,tclrsf,qrl,flns,flnt, &
                     flnsc,flntc,flwds,fslwdcs,emiss,aerlwfo,aerlwfos,  &
                     absgasnxt,absgastot,emsgastot,labsem)
-!
     implicit none
-!
     integer(ik4) , intent(in) :: n1 , n2
     logical , intent(in) :: labsem
     real(rk8) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , &
@@ -1859,9 +1852,7 @@ module mod_rad_radiation
     intent (in) cld , emiss
     intent (out) flns , flnsc , flnt , flntc , flwds , qrl , aerlwfo , aerlwfos
     intent (inout) tclrsf
-!
-!---------------------------Local variables-----------------------------
-!
+
     real(rk8) :: absbt , bk1 , bk2 , tmp1
     integer(ik4) :: n , k , k1 , k2 , k3 , khighest , km , km1 , km2 , &
                km3 , km4 , ns , irad , nradaer
@@ -1873,7 +1864,6 @@ module mod_rad_radiation
     do n = n1 , n2
       rtclrsf(n,1) = d_one/tclrsf(n,1)
     end do
-!
     do k = 1 , kz
       do n = n1 , n2
         fclb4(n,k) = d_zero
@@ -1882,40 +1872,39 @@ module mod_rad_radiation
         rtclrsf(n,k+1) = d_one/tclrsf(n,k+1)
       end do
     end do
-!
-!   Calculate some temperatures needed to derive absorptivity and
-!   emissivity, as well as some h2o path lengths
-!
+    !
+    ! Calculate some temperatures needed to derive absorptivity and
+    ! emissivity, as well as some h2o path lengths
+    !
     call radtpl(n1,n2,ts,tnm,pmln,qnm,piln,pint)
-   
-!   do emissivity and absorptivity calculations
-!   only if abs/ems computation
-!
+    !
+    ! do emissivity and absorptivity calculations
+    ! only if abs/ems computation
+    !
     if ( labsem ) then
-!
-!     Compute ozone path lengths at frequency of a/e calculation.
-!
+      !
+      ! Compute ozone path lengths at frequency of a/e calculation.
+      !
       call radoz2(n1,n2,o3vmr,pint)
-!
-!     Compute trace gas path lengths
-!
+      !
+      ! Compute trace gas path lengths
+      !
       call trcpth(n1,n2,tnm,pint,cfc11,cfc12,n2o,ch4,qnm, &
                   ucfc11,ucfc12,un2o0,un2o1,uch4,uco211,uco212, &
                   uco213,uco221,uco222,uco223,bn2o0,bn2o1,bch4,uptype)
-!
-!     Compute total emissivity:
-!
+      !
+      ! Compute total emissivity:
+      !
       call radems(n1,n2,pint,emsgastot)
-!
-!     Compute total absorptivity:
-!
+      !
+      ! Compute total absorptivity:
+      !
       call radabs(n1,n2,pint,pmid,piln,pmln,absgasnxt,absgastot)
-!
     end if
-!
-!   Find the lowest and highest level cloud for each grid point
-!   Note: Vertical indexing here proceeds from bottom to top
-!
+    !
+    ! Find the lowest and highest level cloud for each grid point
+    ! Note: Vertical indexing here proceeds from bottom to top
+    !
     do n = n1 , n2
       klov(n) = 0
       done(n) = .false.
@@ -1949,9 +1938,9 @@ module mod_rad_radiation
     do n = n1 , n2
       khivm(n) = khiv(n) - 1
     end do
-!
-!   Note: Vertical indexing here proceeds from bottom to top
-!
+    !
+    ! Note: Vertical indexing here proceeds from bottom to top
+    !
     do n = n1 , n2
       if ( .not. seldo(n) ) cycle
       do k = klov(n) , khiv(n)
@@ -1959,17 +1948,14 @@ module mod_rad_radiation
         fclb4(n,kzp1-k) = stebol*tint4(n,kzp3-k)
       end do
     end do
-
-!
-!   option to calculate LW aerosol radiative forcing
-!
-!   FAB LW radiative forcing ( rad=1 : avec dust)
-    if ( ichem /= 1 .and. idirect > 0 ) then
+    !
+    ! option to calculate LW aerosol radiative forcing
+    !
+    ! FAB LW radiative forcing ( rad=1 : avec dust)
+    !
+    nradaer = 1
+    if ( ichem == 1 .and. idirect > 0 ) then
       nradaer = 2
-      fsul0(:,:) = d_zero
-      fsdl0(:,:) = d_zero
-    else
-      nradaer = 1
     end if
 
     abstot(:,:,:) = absgastot(:,:,:)
@@ -1979,25 +1965,25 @@ module mod_rad_radiation
     do irad = 1 , nradaer
 
       if ( ichem == 1 .and. idirect > 0 .and. irad == 2 ) then
-        abstot(:,:,:) = d_one-(d_one-abstot(:,:,:))*aertrlw(:,:,:)
-        emstot(:,:) = d_one-(d_one-emstot(:,:))*aertrlw(:,:,1)
+        abstot(:,:,:) = d_one - (d_one - abstot(:,:,:)) * aertrlw(:,:,:)
+        emstot(:,:) = d_one - (d_one - emstot(:,:)) * aertrlw(:,:,1)
         do k = 1 , kz  ! aertrlw defined on plev levels
           do ns = 1 , 4
-            absnxt(:,k,ns) = d_one-(d_one-absnxt(:,k,ns)) *   &
+            absnxt(:,k,ns) = d_one-(d_one-absnxt(:,k,ns)) * &
                               (aertrlw(:,k,k+1)**xuinpl(:,k,ns))
           end do
         end do
       end if
-!
-!     Compute sums used in integrals (all longitude points)
-!
-!     Definition of bk1 & bk2 depends on finite differencing.  for
-!     trapezoidal rule bk1=bk2. trapezoidal rule applied for nonadjacent
-!     layers only.
-!
-!     delt=t**4 in layer above current sigma level km.
-!     delt1=t**4 in layer below current sigma level km.
-!
+      !
+      ! Compute sums used in integrals (all longitude points)
+      !
+      ! Definition of bk1 & bk2 depends on finite differencing.  for
+      ! trapezoidal rule bk1=bk2. trapezoidal rule applied for nonadjacent
+      ! layers only.
+      !
+      ! delt=t**4 in layer above current sigma level km.
+      ! delt1=t**4 in layer below current sigma level km.
+      !
       do n = n1 , n2
         delt(n) = tint4(n,kz) - tlayr4(n,kzp1)
         delt1(n) = tlayr4(n,kzp1) - tint4(n,kzp1)
@@ -2013,9 +1999,9 @@ module mod_rad_radiation
           s(n,k,kzp1) = stebol*(bk2*delt(n)+bk1*delt1(n))
         end do
       end do
-!
-!     All k, km>1
-!
+      !
+      ! All k, km>1
+      !
       do km = kz , 2 , -1
         do n = n1 , n2
           delt(n) = tint4(n,km-1) - tlayr4(n,km)
@@ -2030,83 +2016,77 @@ module mod_rad_radiation
               bk2 = absnxt(n,km-1,2)
               bk1 = absnxt(n,km-1,3)
             else
-              bk2 = (abstot(n,k,km-1)+ &
-                     abstot(n,k,km))*d_half
+              bk2 = d_half * (abstot(n,k,km-1) + abstot(n,k,km))
               bk1 = bk2
             end if
-            s(n,k,km) = s(n,k,km+1)+stebol*(bk2*delt(n)+bk1*delt1(n))
+            s(n,k,km) = s(n,k,km+1) + stebol*(bk2*delt(n) + bk1*delt1(n))
           end do
         end do
       end do
-!
-!     Computation of clear sky fluxes always set first level of fsul
-!
+      !
+      ! Computation of clear sky fluxes always set first level of fsul
+      !
       do n = n1 , n2
         if ( iemiss == 1 ) then
-          fsul(n,kzp1) = emiss(n)*(stebol*(ts(n)**4))
+          fsul(n,kzp1) = emiss(n) * stebol * ts(n)**4
         else
-          fsul(n,kzp1) = stebol*(ts(n)**4)
+          fsul(n,kzp1) = stebol * ts(n)**4
         end if
       end do
-!
-!     Downward clear sky fluxes store intermediate quantities in down
-!     flux Initialize fluxes to clear sky values.
-!
+      !
+      ! Downward clear sky fluxes store intermediate quantities in down
+      ! flux Initialize fluxes to clear sky values.
+      !
       do n = n1 , n2
         tmp(n) = fsul(n,kzp1) - stebol*tint4(n,kzp1)
-        fsul(n,1) = fsul(n,kzp1) - abstot(n,1,kzp1)*tmp(n)+s(n,1,2)
-        fsdl(n,1) = stebol*(tplnke(n)**4)*emstot(n,1)
+        fsul(n,1) = fsul(n,kzp1) - abstot(n,1,kzp1) * tmp(n) + s(n,1,2)
+        fsdl(n,1) = emstot(n,1) * stebol * tplnke(n)**4
         ful(n,1) = fsul(n,1)
         fdl(n,1) = fsdl(n,1)
       end do
-!
-!     fsdl(n,kzp1) assumes isothermal layer
-!
+      !
+      ! fsdl(n,kzp1) assumes isothermal layer
+      !
       do k = 2 , kz
         do n = n1 , n2
-          fsul(n,k) = fsul(n,kzp1) - abstot(n,k,kzp1)*tmp(n)+s(n,k,k+1)
+          fsul(n,k) = fsul(n,kzp1) - abstot(n,k,kzp1)*tmp(n) + s(n,k,k+1)
           ful(n,k) = fsul(n,k)
-          fsdl(n,k) = stebol*(tplnke(n)**4)*emstot(n,k) - &
+          fsdl(n,k) = stebol*(tplnke(n)**4) * emstot(n,k) - &
                               (s(n,k,2)-s(n,k,k+1))
           fdl(n,k) = fsdl(n,k)
         end do
       end do
-!
-!     Store the downward emission from level 1 = total gas emission *
-!     sigma t**4.  fsdl does not yet include all terms
-!
+      !
+      ! Store the downward emission from level 1 = total gas emission *
+      ! sigma t**4.  fsdl does not yet include all terms
+      !
       do n = n1 , n2
         ful(n,kzp1) = fsul(n,kzp1)
-        absbt = stebol*(tplnke(n)**4)*emstot(n,kzp1)
+        absbt = emstot(n,kzp1) * stebol * tplnke(n)**4
         fsdl(n,kzp1) = absbt - s(n,kzp1,2)
         fdl(n,kzp1) = fsdl(n,kzp1)
       end do
-
-!     FAB radiative forcing sur fsul
-
+      !
+      ! FAB radiative forcing sur fsul
+      !
       if ( ichem == 1 .and. idirect > 0 .and. irad == 1 ) then
-        fsul0(:,:) = fsul(:,:)! save fsul0 = no dust
-        fsdl0(:,:) = fsdl(:,:)!
+        fsul0(:,:) = fsul(:,:) ! save fsul0 = no dust
+        fsdl0(:,:) = fsdl(:,:) !
         ful0(:,:) = ful(:,:)
         fdl0(:,:) = fdl(:,:)
         s0(:,:,:) = s(:,:,:)
       end if
 
     end do ! end rad loop
-
-!   FAB after this DO loop fsul account for dust LW effect
-!   which is OK in case of idirect=2
-
+    !
+    ! FAB after this DO loop fsul account for dust LW effect
+    ! which is OK in case of idirect=2
+    !
     if ( ichem == 1 .and. idirect > 0 ) then
-
       aerlwfo(:) = fsul0(:,1) - fsul(:,1)
-
-!     surface lw net ! fsul(n,plevp) - fsdl(n,plevp)
-!     aerlwfos(:)= fsdl0(:,kz)-fsdl(:,kz)
-      aerlwfos(:) = (fsul0(:,kzp1)-fsdl0(:,kzp1))- &
-                    (fsul(:,kzp1) - fsdl(:,kzp1))
-       
-!     return to no aerosol LW effect  situation if idirect ==1
+      aerlwfos(:) = (fsul0(:,kzp1) - fsdl0(:,kzp1)) - &
+                    (fsul(:,kzp1)  - fsdl(:,kzp1) )
+      ! return to no aerosol LW effect situation if idirect ==1
       if ( idirect == 1 ) then
         fsul(:,:) = fsul0(:,:)
         fsdl(:,:) = fsdl0(:,:)
@@ -2114,38 +2094,38 @@ module mod_rad_radiation
         fdl(:,:) = fdl0(:,:)
         s(:,:,:) = s0(:,:,:)
       end if 
-
     end if ! end aersol rad diagnostic
-
-!   FAB MODIF  : save downward clear sky long wave flux in surface  
+    !
+    ! FAB MODIF  : save downward clear sky long wave flux in surface  
+    !
     fslwdcs(:) = fsdl(:,kzp1)
-!
-!   Modifications for clouds
-!
-!   Further qualify longitude subset for computations.  Select only
-!   those locations where there are clouds
-!   (total cloud fraction <= 1.e-3 treated as clear)
-!
+    !
+    ! Modifications for clouds
+    !
+    ! Further qualify longitude subset for computations.  Select only
+    ! those locations where there are clouds
+    ! (total cloud fraction <= 1.e-3 treated as clear)
+    !
     where ( tclrsf(:,kzp1) < verynearone )
       seldo = .true.
     elsewhere
       seldo = .false.
     end where
-!
-!   Compute downflux at level 1 for cloudy sky
-!
+    !
+    ! Compute downflux at level 1 for cloudy sky
+    !
     do n = n1 , n2
       if ( .not. seldo(n) ) cycle
-!
-!     First clear sky flux plus flux from cloud at level 1
-!
+      !
+      ! First clear sky flux plus flux from cloud at level 1
+      !
       fdl(n,kzp1) = fsdl(n,kzp1)*tclrsf(n,kz) * &
                     rtclrsf(n,kzp1-khiv(n))+fclb4(n,kz-1)*cld(n,kz)
     end do
-!
-!   Flux emitted by other layers
-!   Note: Vertical indexing here proceeds from bottom to top
-!
+    !
+    ! Flux emitted by other layers
+    ! Note: Vertical indexing here proceeds from bottom to top
+    !
     khighest = khiv(intmax(khiv))
     do km = 3 , khighest
       km1 = kzp1 - km
@@ -2159,9 +2139,9 @@ module mod_rad_radiation
         end if
       end do
     end do
-!
-!   Note: Vertical indexing here proceeds from bottom to top
-!
+    !
+    ! Note: Vertical indexing here proceeds from bottom to top
+    !
     do k = 1 , khighest - 1
       k1 = kzp1 - k
       k2 = kzp2 - k
@@ -2178,7 +2158,6 @@ module mod_rad_radiation
         km3 = kzp3 - km
         do n = n1 , n2
           if ( .not. seldo(n) ) cycle
-!
           if ( k <= khivm(n) .and. km >= klov(n) .and. km <= khivm(n)) then
             ful(n,k2) = ful(n,k2) + (fclt4(n,km1)+s(n,k2,k3)-s(n,k2,km3)) * &
                         cld(n,km2)*(tclrsf(n,km1)*rtclrsf(n,k1))
@@ -2186,7 +2165,7 @@ module mod_rad_radiation
         end do
       end do ! km = 1 , k
     end do   ! k = 1 , khighest-1
-!
+
     do k = 1 , kzp1
       k2 = kzp2 - k
       k3 = kzp3 - k
@@ -2213,9 +2192,9 @@ module mod_rad_radiation
         end do
       end do  ! km = 1 , khighest
     end do    ! k = 1 , kzp1
-!
-!   Computation of the downward fluxes
-!
+    !
+    ! Computation of the downward fluxes
+    !
     do k = 2 , khighest - 1
       k1 = kzp1 - k
       k2 = kzp2 - k
@@ -2230,7 +2209,6 @@ module mod_rad_radiation
         km4 = kzp4 - km
         do n = n1 , n2
           if ( .not. seldo(n) ) cycle
-!
           if ( k <= khiv(n) .and. &
                km >= max0(k+1,klov(n)) .and. km <= khiv(n) ) then
             fdl(n,k2) = fdl(n,k2)+(cld(n,km2)*tclrsf(n,k1)*rtclrsf(n,km2)) * &
@@ -2246,33 +2224,33 @@ module mod_rad_radiation
         end if
       end do
     end do  ! k = 1 , khighest-1
-!
-!   End cloud modification loops
-!
-!   All longitudes: store history tape quantities
-!
+    !
+    ! End cloud modification loops
+    !
+    ! All longitudes: store history tape quantities
+    !
     do n = n1 , n2
-!
-!     Downward longwave flux
-!
+      !
+      ! Downward longwave flux
+      !
       flwds(n) = fdl(n,kzp1)
-!
-!     Net flux
-!
+      !
+      ! Net flux
+      !
       flns(n) = ful(n,kzp1) - fdl(n,kzp1)
-!
-!     Clear sky flux at top of atmosphere
-!
+      !
+      ! Clear sky flux at top of atmosphere
+      !
       flntc(n) = fsul(n,1)
       flnsc(n) = fsul(n,kzp1) - fsdl(n,kzp1)
-!
-!     Outgoing ir
-!
+      !
+      ! Outgoing ir
+      !
       flnt(n) = ful(n,1) - fdl(n,1)
     end do
-!
-!   Computation of longwave heating (k per sec)
-!
+    !
+    ! Computation of longwave heating (k per sec)
+    !
     do k = 1 , kz
       do n = n1 , n2
         qrl(n,k) = (ful(n,k)-fdl(n,k)-ful(n,k+1)+fdl(n,k+1))*gocp / &
