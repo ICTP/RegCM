@@ -1753,19 +1753,19 @@ module mod_ncout
 
         ! The following may be enabled/disabled
 
-        if ( enable_opt2d_vars(opt_acstoarf) ) then
-          call setup_var(v2dvar_opt,opt_acstoarf,vsize,'acstoarf','W m-2', &
-            'Top of atmosphere shortwave radiative forcing', &
-            'toa_shortwave_radiative_forcing',.true.,'time: mean')
-          opt_acstoarf_out => v2dvar_opt(opt_acstoarf)%rval
-        end if
-        if ( enable_opt2d_vars(opt_acstsrrf) ) then
-          call setup_var(v2dvar_opt,opt_acstsrrf,vsize,'acstsrrf','W m-2', &
-            'Surface shortwave radiative forcing', &
-            'surface_shortwave_radiative_forcing',.true.,'time: mean')
-          opt_acstsrrf_out => v2dvar_opt(opt_acstsrrf)%rval
-        end if
         if ( idirect > 0 ) then
+          if ( enable_opt2d_vars(opt_acstoarf) ) then
+            call setup_var(v2dvar_opt,opt_acstoarf,vsize,'acstoarf','W m-2', &
+              'Top of atmosphere shortwave radiative forcing', &
+              'toa_shortwave_radiative_forcing',.true.,'time: mean')
+            opt_acstoarf_out => v2dvar_opt(opt_acstoarf)%rval
+          end if
+          if ( enable_opt2d_vars(opt_acstsrrf) ) then
+            call setup_var(v2dvar_opt,opt_acstsrrf,vsize,'acstsrrf','W m-2', &
+              'Surface shortwave radiative forcing', &
+              'surface_shortwave_radiative_forcing',.true.,'time: mean')
+            opt_acstsrrf_out => v2dvar_opt(opt_acstsrrf)%rval
+          end if
           if ( enable_opt2d_vars(opt_acstalrf) ) then
             call setup_var(v2dvar_opt,opt_acstalrf,vsize,'acstalrf','W m-2', &
               'Top of atmosphere longwave radiative forcing', &
@@ -1779,8 +1779,7 @@ module mod_ncout
             opt_acssrlrf_out => v2dvar_opt(opt_acssrlrf)%rval
           end if
         else
-          enable_opt2d_vars(opt_acstalrf) = .false.
-          enable_opt2d_vars(opt_acssrlrf) = .false.
+          enable_opt2d_vars(opt_acstoarf:opt_acssrlrf) = .false.
         end if
         if ( enable_opt2d_vars(opt_aod) ) then
           call setup_var(v2dvar_opt,opt_aod,vsize,'aod','1', &

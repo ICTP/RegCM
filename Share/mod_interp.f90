@@ -667,10 +667,26 @@ module mod_interp
           jc1dr(j,i) = ndr
           ic1dl(j,i) = mdl
           jc1dl(j,i) = ndl
-          dc1xa(j,i) = (d_one/dista)**2
-          dc1xb(j,i) = (d_one/distb)**2
-          dc1xc(j,i) = (d_one/distc)**2
-          dc1xd(j,i) = (d_one/distd)**2
+          if ( abs(dista) > dlowval ) then
+            dc1xa(j,i) = (d_one/dista)**2
+          else
+            dc1xa(j,i) = -d_one
+          end if
+          if ( abs(distb) > dlowval ) then
+            dc1xb(j,i) = (d_one/distb)**2
+          else
+            dc1xb(j,i) = -d_one
+          end if
+          if ( abs(distc) > dlowval ) then
+            dc1xc(j,i) = (d_one/distc)**2
+          else
+            dc1xc(j,i) = -d_one
+          end if
+          if ( abs(distd) > dlowval ) then
+            dc1xd(j,i) = (d_one/distd)**2
+          else
+            dc1xd(j,i) = -d_one
+          end if
         end do
       end do
       write (stdout,*) 'Done.'
@@ -698,26 +714,44 @@ module mod_interp
         v3 = d_zero
         v4 = d_zero
         if ( b2(mur,nur) > missc ) then
+          if ( dista < 0.0 ) then
+            b3(j,i) = b2(mur,nur)
+            cycle
+          end if
           v1 = b2(mur,nur)*dista
           ifound = 1
           wg = wg + dista
         end if
         if ( b2(mul,nul) > missc ) then
+          if ( distb < 0.0 ) then
+            b3(j,i) = b2(mur,nur)
+            cycle
+          end if
           v2 = b2(mul,nul)*distb
           ifound = 1
           wg = wg + distb
         end if
         if ( b2(mdr,ndr) > missc ) then
+          if ( distc < 0.0 ) then
+            b3(j,i) = b2(mur,nur)
+            cycle
+          end if
           v3 = b2(mdr,ndr)*distc
           ifound = 1
           wg = wg + distc
         end if
         if ( b2(mdl,ndl) > missc ) then
+          if ( distd < 0.0 ) then
+            b3(j,i) = b2(mur,nur)
+            cycle
+          end if
           v4= b2(mdl,ndl)*distd
           ifound = 1
           wg = wg + distd
         end if
-        if ( ifound /= 0 ) b3(j,i) = v1/wg+v2/wg+v3/wg+v4/wg
+        if ( ifound /= 0 ) then
+          b3(j,i) = v1/wg+v2/wg+v3/wg+v4/wg
+        end if
       end do
     end do
   end subroutine distwgtcr
@@ -943,10 +977,26 @@ module mod_interp
           jd1dr(j,i,idx) = ndr
           id1dl(j,i,idx) = mdl
           jd1dl(j,i,idx) = ndl
-          dd1xa(j,i,idx) = (d_one/dista)**2
-          dd1xb(j,i,idx) = (d_one/distb)**2
-          dd1xc(j,i,idx) = (d_one/distc)**2
-          dd1xd(j,i,idx) = (d_one/distd)**2
+          if ( abs(dista) > dlowval ) then
+            dd1xa(j,i,idx) = (d_one/dista)**2
+          else
+            dd1xa(j,i,idx) = -d_one
+          end if
+          if ( abs(distb) > dlowval ) then
+            dd1xb(j,i,idx) = (d_one/distb)**2
+          else
+            dd1xb(j,i,idx) = -d_one
+          end if
+          if ( abs(distc) > dlowval ) then
+            dd1xc(j,i,idx) = (d_one/distc)**2
+          else
+            dd1xc(j,i,idx) = -d_one
+          end if
+          if ( abs(distd) > dlowval ) then
+            dd1xd(j,i,idx) = (d_one/distd)**2
+          else
+            dd1xd(j,i,idx) = -d_one
+          end if
         end do
       end do
       write (stdout,*) 'Done.'
@@ -974,21 +1024,37 @@ module mod_interp
         v3 = d_zero
         v4 = d_zero
         if ( b2(mur,nur) > missc ) then
+          if ( dista < 0.0 ) then
+            b3(j,i) = b2(mur,nur)
+            cycle
+          end if
           v1 = b2(mur,nur)*dista
           ifound = 1
           wg = wg + dista
         end if
         if ( b2(mul,nul) > missc ) then
+          if ( distb < 0.0 ) then
+            b3(j,i) = b2(mur,nur)
+            cycle
+          end if
           v2 = b2(mul,nul)*distb
           ifound = 1
           wg = wg + distb
         end if
         if ( b2(mdr,ndr) > missc ) then
+          if ( distc < 0.0 ) then
+            b3(j,i) = b2(mur,nur)
+            cycle
+          end if
           v3 = b2(mdr,ndr)*distc
           ifound = 1
           wg = wg + distc
         end if
         if ( b2(mdl,ndl) > missc ) then
+          if ( distd < 0.0 ) then
+            b3(j,i) = b2(mur,nur)
+            cycle
+          end if
           v4= b2(mdl,ndl)*distd
           ifound = 1
           wg = wg + distd
