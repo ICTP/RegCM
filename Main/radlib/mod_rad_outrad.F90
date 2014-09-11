@@ -151,11 +151,13 @@ module mod_rad_outrad
       call copy4d_div(tauasc3d,opt_assa8_out,8,deltaz)
       call copy4d_div(gtota3d,opt_agfu8_out,8,deltaz)
       call copy2d_integrate_from3(tauxar3d,opt_aod_out,8)
-      call copy2d_add(aeradfo,opt_acstoarf_out)
-      call copy2d_add(aeradfos,opt_acstsrrf_out)
       if ( idirect > 0 ) then
-        call copy2d_add(aerlwfo,opt_acstalrf_out)
-        call copy2d_add(aerlwfos,opt_acssrlrf_out)
+        call copy2d_add(aeradfo,opt_acstoarf_out)
+        call copy2d_add(aeradfos,opt_acstsrrf_out)
+        if ( idirect == 2 ) then
+          call copy2d_add(aerlwfo,opt_acstalrf_out)
+          call copy2d_add(aerlwfos,opt_acssrlrf_out)
+        end if
       end if
     end if
 !

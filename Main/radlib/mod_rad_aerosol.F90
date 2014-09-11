@@ -857,14 +857,15 @@ module mod_rad_aerosol
 !         aerosol path btw k1 and k2 flux level
           ibin = 0
           uaerdust = d_zero
-          do itr = 1 , ntr     
-            if ( chtrname(itr) == 'DUST' ) then
+          do itr = 1 , ntr
+            if ( chtrname(itr)(1:4) == 'DUST' .or.  &
+                 chtrname(itr)(1:2) == 'BC' ) then
               ibin = ibin+1
               if ( k1<k2 ) then
-                uaerdust =  uaerdust + d10e5 * (sum(uaer(n,k1:k2-1,itr)))
+                uaerdust =  uaerdust + d10e5 * sum(uaer(n,k1:k2-1,itr))
                 aertrlw(n,k1,k2) = dexp(-fiveothree * qabslw * uaerdust)
               else if ( k1>k2 ) then
-                uaerdust =  uaerdust + d10e5 * (sum(uaer(n,k2:k1-1,itr)))
+                uaerdust =  uaerdust + d10e5 * sum(uaer(n,k2:k1-1,itr))
                 aertrlw(n,k1,k2) = dexp(-fiveothree * qabslw * uaerdust)
               end if
             end if
@@ -872,7 +873,6 @@ module mod_rad_aerosol
         end do
       end do
     end do
-!     
   end subroutine aeroppt
-!
+
 end module mod_rad_aerosol

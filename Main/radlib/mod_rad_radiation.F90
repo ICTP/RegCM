@@ -1965,11 +1965,12 @@ module mod_rad_radiation
     do irad = 1 , nradaer
 
       if ( ichem == 1 .and. idirect > 0 .and. irad == 2 ) then
-        abstot(:,:,:) = d_one - (d_one - abstot(:,:,:)) * aertrlw(:,:,:)
-        emstot(:,:) = d_one - (d_one - emstot(:,:)) * aertrlw(:,:,1)
+        ! print *, aertrlw
+        abstot(:,:,:) = d_one - (d_one - absgastot(:,:,:)) * aertrlw(:,:,:)
+        emstot(:,:) = d_one - (d_one - emsgastot(:,:)) * aertrlw(:,:,1)
         do k = 1 , kz  ! aertrlw defined on plev levels
           do ns = 1 , 4
-            absnxt(:,k,ns) = d_one-(d_one-absnxt(:,k,ns)) * &
+            absnxt(:,k,ns) = d_one-(d_one-absgasnxt(:,k,ns)) * &
                               (aertrlw(:,k,k+1)**xuinpl(:,k,ns))
           end do
         end do
