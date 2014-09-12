@@ -1352,7 +1352,7 @@ module mod_ncout
         v3dvar_sub(sub_smw)%axis = 'xys'
         v3dvar_sub(sub_runoff)%axis = 'xys'
         if ( enable_sub3d_vars(sub_smw) ) then
-          call setup_var(v3dvar_sub,sub_smw,vsize,'mrso','kg kg-1', &
+          call setup_var(v3dvar_sub,sub_smw,vsize,'mrso','kg m-2', &
             'Soil moisture content','soil_moisture_content', &
             .true.,l_fill=.true.)
           sub_smw_out => v3dvar_sub(sub_smw)%rval
