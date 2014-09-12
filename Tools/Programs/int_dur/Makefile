@@ -7,10 +7,10 @@ OBJS = mod_date.o
 
 all: int_dur
 
-mod_date.o: mod_date.f90
+mod_date.o: mod_date.F90
 	$(FC) $(FCFLAGS) -c -o $@ $<
 
-int_dur: int_dur.f90 $(OBJS)
+int_dur: int_dur.F90 $(OBJS)
 	$(FC) $(FCFLAGS) -o $@ $< $(LDFLAGS) $(LIBS) $(OBJS)
 
 clean:

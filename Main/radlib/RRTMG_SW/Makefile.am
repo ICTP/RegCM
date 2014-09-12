@@ -21,76 +21,73 @@ include $(REGCM_ROOT)/makeinc
 
 noinst_LIBRARIES = librrtmgsw.a
 librrtmgsw_a_SOURCES = \
-parkind.f90    rrlw_kg06.f90  rrlw_kg16.f90   rrsw_kg17.f90  rrsw_kg27.f90  \
-parrrsw.f90    rrlw_kg07.f90  rrlw_ncpar.f90  rrsw_kg18.f90  rrsw_kg28.f90  \
-parrrtm.f90    rrlw_kg08.f90  rrlw_ref.f90    rrsw_kg19.f90  rrsw_kg29.f90  \
-rrlw_cld.f90   rrlw_kg09.f90  rrlw_tbl.f90    rrsw_kg20.f90  rrsw_ncpar.f90 \
-rrlw_con.f90   rrlw_kg10.f90  rrlw_vsn.f90    rrsw_kg21.f90  rrsw_ref.f90   \
-rrlw_kg01.f90  rrlw_kg11.f90  rrlw_wvn.f90    rrsw_kg22.f90  rrsw_tbl.f90   \
-rrlw_kg02.f90  rrlw_kg12.f90  rrsw_aer.f90    rrsw_kg23.f90  rrsw_vsn.f90   \
-rrlw_kg03.f90  rrlw_kg13.f90  rrsw_cld.f90    rrsw_kg24.f90  rrsw_wvn.f90   \
-rrlw_kg04.f90  rrlw_kg14.f90  rrsw_con.f90    rrsw_kg25.f90  rrlw_kg05.f90  \
-rrlw_kg15.f90  rrsw_kg16.f90  rrsw_kg26.f90
-
-%.o: %.f90
-	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
+parkind.F90    rrlw_kg06.F90  rrlw_kg16.F90   rrsw_kg17.F90  rrsw_kg27.F90  \
+parrrsw.F90    rrlw_kg07.F90  rrlw_ncpar.F90  rrsw_kg18.F90  rrsw_kg28.F90  \
+parrrtm.F90    rrlw_kg08.F90  rrlw_ref.F90    rrsw_kg19.F90  rrsw_kg29.F90  \
+rrlw_cld.F90   rrlw_kg09.F90  rrlw_tbl.F90    rrsw_kg20.F90  rrsw_ncpar.F90 \
+rrlw_con.F90   rrlw_kg10.F90  rrlw_vsn.F90    rrsw_kg21.F90  rrsw_ref.F90   \
+rrlw_kg01.F90  rrlw_kg11.F90  rrlw_wvn.F90    rrsw_kg22.F90  rrsw_tbl.F90   \
+rrlw_kg02.F90  rrlw_kg12.F90  rrsw_aer.F90    rrsw_kg23.F90  rrsw_vsn.F90   \
+rrlw_kg03.F90  rrlw_kg13.F90  rrsw_cld.F90    rrsw_kg24.F90  rrsw_wvn.F90   \
+rrlw_kg04.F90  rrlw_kg14.F90  rrsw_con.F90    rrsw_kg25.F90  rrlw_kg05.F90  \
+rrlw_kg15.F90  rrsw_kg16.F90  rrsw_kg26.F90
 
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 distclean-local:
-	rm -f *.mod *__genmod.f90
+	rm -f *.mod *__genmod.F90
 
 clean-local:
-	rm -f *.mod *__genmod.f90
+	rm -f *.mod *__genmod.F90
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on i.
-parkind.o : parkind.f90
-parrrsw.o : parrrsw.f90 parkind.o
-parrrtm.o : parrrtm.f90 parkind.o
-rrlw_cld.o : rrlw_cld.f90 parkind.o
-rrlw_con.o : rrlw_con.f90 parkind.o
-rrlw_kg01.o : rrlw_kg01.f90 parkind.o
-rrlw_kg02.o : rrlw_kg02.f90 parkind.o
-rrlw_kg03.o : rrlw_kg03.f90 parkind.o
-rrlw_kg04.o : rrlw_kg04.f90 parkind.o
-rrlw_kg05.o : rrlw_kg05.f90 parkind.o
-rrlw_kg06.o : rrlw_kg06.f90 parkind.o
-rrlw_kg07.o : rrlw_kg07.f90 parkind.o
-rrlw_kg08.o : rrlw_kg08.f90 parkind.o
-rrlw_kg09.o : rrlw_kg09.f90 parkind.o
-rrlw_kg10.o : rrlw_kg10.f90 parkind.o
-rrlw_kg11.o : rrlw_kg11.f90 parkind.o
-rrlw_kg12.o : rrlw_kg12.f90 parkind.o
-rrlw_kg13.o : rrlw_kg13.f90 parkind.o
-rrlw_kg14.o : rrlw_kg14.f90 parkind.o
-rrlw_kg15.o : rrlw_kg15.f90 parkind.o
-rrlw_kg16.o : rrlw_kg16.f90 parkind.o
-rrlw_ncpar.o : rrlw_ncpar.f90 parkind.o
-rrlw_ref.o : rrlw_ref.f90 parkind.o
-rrlw_tbl.o : rrlw_tbl.f90 parkind.o
-rrlw_vsn.o : rrlw_vsn.f90
-rrlw_wvn.o : rrlw_wvn.f90 parkind.o parrrtm.o
-rrsw_aer.o : rrsw_aer.f90 parkind.o parrrsw.o
-rrsw_cld.o : rrsw_cld.f90 parkind.o
-rrsw_con.o : rrsw_con.f90 parkind.o
-rrsw_kg16.o : rrsw_kg16.f90 parkind.o parrrsw.o
-rrsw_kg17.o : rrsw_kg17.f90 parkind.o parrrsw.o
-rrsw_kg18.o : rrsw_kg18.f90 parkind.o parrrsw.o
-rrsw_kg19.o : rrsw_kg19.f90 parkind.o parrrsw.o
-rrsw_kg20.o : rrsw_kg20.f90 parkind.o parrrsw.o
-rrsw_kg21.o : rrsw_kg21.f90 parkind.o parrrsw.o
-rrsw_kg22.o : rrsw_kg22.f90 parkind.o parrrsw.o
-rrsw_kg23.o : rrsw_kg23.f90 parkind.o parrrsw.o
-rrsw_kg24.o : rrsw_kg24.f90 parkind.o parrrsw.o
-rrsw_kg25.o : rrsw_kg25.f90 parkind.o parrrsw.o
-rrsw_kg26.o : rrsw_kg26.f90 parkind.o parrrsw.o
-rrsw_kg27.o : rrsw_kg27.f90 parkind.o parrrsw.o
-rrsw_kg28.o : rrsw_kg28.f90 parkind.o parrrsw.o
-rrsw_kg29.o : rrsw_kg29.f90 parkind.o parrrsw.o
-rrsw_ncpar.o : rrsw_ncpar.f90 parkind.o
-rrsw_ref.o : rrsw_ref.f90 parkind.o
-rrsw_tbl.o : rrsw_tbl.f90 parkind.o
-rrsw_vsn.o : rrsw_vsn.f90
-rrsw_wvn.o : rrsw_wvn.f90 parkind.o parrrsw.o
+parkind.o : parkind.F90
+parrrsw.o : parrrsw.F90 parkind.o
+parrrtm.o : parrrtm.F90 parkind.o
+rrlw_cld.o : rrlw_cld.F90 parkind.o
+rrlw_con.o : rrlw_con.F90 parkind.o
+rrlw_kg01.o : rrlw_kg01.F90 parkind.o
+rrlw_kg02.o : rrlw_kg02.F90 parkind.o
+rrlw_kg03.o : rrlw_kg03.F90 parkind.o
+rrlw_kg04.o : rrlw_kg04.F90 parkind.o
+rrlw_kg05.o : rrlw_kg05.F90 parkind.o
+rrlw_kg06.o : rrlw_kg06.F90 parkind.o
+rrlw_kg07.o : rrlw_kg07.F90 parkind.o
+rrlw_kg08.o : rrlw_kg08.F90 parkind.o
+rrlw_kg09.o : rrlw_kg09.F90 parkind.o
+rrlw_kg10.o : rrlw_kg10.F90 parkind.o
+rrlw_kg11.o : rrlw_kg11.F90 parkind.o
+rrlw_kg12.o : rrlw_kg12.F90 parkind.o
+rrlw_kg13.o : rrlw_kg13.F90 parkind.o
+rrlw_kg14.o : rrlw_kg14.F90 parkind.o
+rrlw_kg15.o : rrlw_kg15.F90 parkind.o
+rrlw_kg16.o : rrlw_kg16.F90 parkind.o
+rrlw_ncpar.o : rrlw_ncpar.F90 parkind.o
+rrlw_ref.o : rrlw_ref.F90 parkind.o
+rrlw_tbl.o : rrlw_tbl.F90 parkind.o
+rrlw_vsn.o : rrlw_vsn.F90
+rrlw_wvn.o : rrlw_wvn.F90 parkind.o parrrtm.o
+rrsw_aer.o : rrsw_aer.F90 parkind.o parrrsw.o
+rrsw_cld.o : rrsw_cld.F90 parkind.o
+rrsw_con.o : rrsw_con.F90 parkind.o
+rrsw_kg16.o : rrsw_kg16.F90 parkind.o parrrsw.o
+rrsw_kg17.o : rrsw_kg17.F90 parkind.o parrrsw.o
+rrsw_kg18.o : rrsw_kg18.F90 parkind.o parrrsw.o
+rrsw_kg19.o : rrsw_kg19.F90 parkind.o parrrsw.o
+rrsw_kg20.o : rrsw_kg20.F90 parkind.o parrrsw.o
+rrsw_kg21.o : rrsw_kg21.F90 parkind.o parrrsw.o
+rrsw_kg22.o : rrsw_kg22.F90 parkind.o parrrsw.o
+rrsw_kg23.o : rrsw_kg23.F90 parkind.o parrrsw.o
+rrsw_kg24.o : rrsw_kg24.F90 parkind.o parrrsw.o
+rrsw_kg25.o : rrsw_kg25.F90 parkind.o parrrsw.o
+rrsw_kg26.o : rrsw_kg26.F90 parkind.o parrrsw.o
+rrsw_kg27.o : rrsw_kg27.F90 parkind.o parrrsw.o
+rrsw_kg28.o : rrsw_kg28.F90 parkind.o parrrsw.o
+rrsw_kg29.o : rrsw_kg29.F90 parkind.o parrrsw.o
+rrsw_ncpar.o : rrsw_ncpar.F90 parkind.o
+rrsw_ref.o : rrsw_ref.F90 parkind.o
+rrsw_tbl.o : rrsw_tbl.F90 parkind.o
+rrsw_vsn.o : rrsw_vsn.F90
+rrsw_wvn.o : rrsw_wvn.F90 parkind.o parrrsw.o

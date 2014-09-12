@@ -168,6 +168,8 @@ module mod_bats_param
 !
 ! Dec. 15, 2008_
 !
+! slmo is surface moisture availability in fraction of one
+!
   data slmo/0.65D0 , 0.45D0 , 0.60D0 , 0.60D0 , 0.65D0 , &
             0.65D0 , 0.55D0 , 0.10D0 , 0.90D0 , 0.80D0 , &
             0.20D0 , 0.90D0 , 0.90D0 , 1.00D0 , 1.00D0 , &

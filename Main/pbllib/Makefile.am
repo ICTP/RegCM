@@ -22,7 +22,7 @@ include $(REGCM_ROOT)/makeinc
 vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:.
 
 noinst_LIBRARIES = libpbl.a
-libpbl_a_SOURCES = mod_pbl_common.f90 mod_pbl_thetal.F90 mod_pbl_uwtcm.F90 \
+libpbl_a_SOURCES = mod_pbl_common.F90 mod_pbl_thetal.F90 mod_pbl_uwtcm.F90 \
                    mod_pbl_holtbl.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
@@ -33,9 +33,6 @@ FCFLAGS += -M$(MPP_INCLUDE)
 else
 FCFLAGS += -I$(MPP_INCLUDE)
 endif
-
-%.o: %.f90
-	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
@@ -48,7 +45,7 @@ clean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-mod_pbl_common.o : mod_pbl_common.f90 mod_intkinds.o mod_realkinds.o mod_regcm_types.o
+mod_pbl_common.o : mod_pbl_common.F90 mod_intkinds.o mod_realkinds.o mod_regcm_types.o
 mod_pbl_holtbl.o : mod_pbl_holtbl.F90 mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_pbl_common.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o
 mod_pbl_thetal.o : mod_pbl_thetal.F90 mod_constants.o mod_intkinds.o mod_realkinds.o mod_runparams.o mod_mpmessage.o mod_stdio.o
 mod_pbl_uwtcm.o : mod_pbl_uwtcm.F90 mod_constants.o mod_dynparam.o mod_intkinds.o mod_memutil.o mod_mpmessage.o mod_mppparam.o mod_pbl_common.o mod_pbl_thetal.o mod_realkinds.o mod_regcm_types.o mod_runparams.o mod_service.o

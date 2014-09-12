@@ -2,10 +2,7 @@
 include $(REGCM_ROOT)/makeinc
 
 noinst_LIBRARIES = libnetlib.a
-libnetlib_a_SOURCES = linpack.f90 eispack.f90 lapack_dgbsv.f90
-
-%.o: %.f90
-	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
+libnetlib_a_SOURCES = linpack.F90 eispack.F90 lapack_dgbsv.F90
 
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
@@ -19,6 +16,6 @@ clean-local:
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
 
-linpack.o : linpack.f90
-eispack.o : eispack.f90
-lapack_dgbsv.o : lapack_dgbsv.f90
+linpack.o : linpack.F90
+eispack.o : eispack.F90
+lapack_dgbsv.o : lapack_dgbsv.F90

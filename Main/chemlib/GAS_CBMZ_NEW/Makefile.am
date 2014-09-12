@@ -22,15 +22,12 @@ include $(REGCM_ROOT)/makeinc
 vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:.
 
 noinst_LIBRARIES = libcbmz.a
-libcbmz_a_SOURCES = mod_cbmz_Precision.f90 mod_cbmz_Parameters.f90 mod_cbmz_Global.f90   \
-                   mod_cbmz_Function.f90 mod_cbmz_JacobianSP.f90 mod_cbmz_Jacobian.f90  \
-                   mod_cbmz_jval1.f90 mod_che_hvread.f90 mod_cbmz_Rates.f90 mod_cbmz_Util.f90 mod_cbmz_Monitor.f90  \
-                   mod_cbmz_LinearAlgebra.f90 mod_cbmz_Main.f90  \
-                   mod_cbmz_Integrator.F90 mod_cbmz_Model.f90
-
-
-
-
+libcbmz_a_SOURCES = mod_cbmz_Precision.F90 mod_cbmz_Parameters.F90 \
+   mod_cbmz_Global.F90 mod_cbmz_Function.F90 mod_cbmz_JacobianSP.F90 \
+   mod_cbmz_Jacobian.F90  mod_cbmz_jval1.F90 mod_che_hvread.F90 \
+   mod_cbmz_Rates.F90 mod_cbmz_Util.F90 mod_cbmz_Monitor.F90  \
+   mod_cbmz_LinearAlgebra.F90 mod_cbmz_Main.F90  mod_cbmz_Integrator.F90 \
+   mod_cbmz_Model.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -41,38 +38,39 @@ else
 FCFLAGS += -I$(MPP_INCLUDE)
 endif
 
-%.o: %.f90
-	$(FC) $(CPPFLAGS) $(FCFLAGS) -cpp -c $<
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -cpp -c $<
+
 distclean-local:
 	rm -f *.mod
+
 clean-local:
 	rm -f *.mod
+
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-mod_cbmz_Precision.o: mod_cbmz_Precision.f90
-mod_cbmz_Parameters.o: mod_cbmz_Parameters.f90 \
+mod_cbmz_Precision.o: mod_cbmz_Precision.F90
+mod_cbmz_Parameters.o: mod_cbmz_Parameters.F90 \
                     mod_cbmz_Precision.o
-mod_cbmz_Monitor.o: mod_cbmz_Monitor.f90 \
+mod_cbmz_Monitor.o: mod_cbmz_Monitor.F90 \
                      mod_cbmz_Precision.o
-mod_cbmz_Global.o: mod_cbmz_Global.f90 \
+mod_cbmz_Global.o: mod_cbmz_Global.F90 \
                     mod_cbmz_Parameters.o mod_cbmz_Precision.o
-mod_cbmz_Initialize.o: mod_cbmz_Initialize.f90  
-mod_cbmz_Function.o: mod_cbmz_Function.f90  
-mod_cbmz_Stochastic.o: mod_cbmz_Stochastic.f90  
-mod_cbmz_JacobianSP.o: mod_cbmz_JacobianSP.f90 
-mod_cbmz_Jacobian.o: mod_cbmz_Jacobian.f90   mod_cbmz_JacobianSP.o
-mod_cbmz_LinearAlgebra.o: mod_cbmz_LinearAlgebra.f90  mod_cbmz_JacobianSP.o
-mod_cbmz_Rates.o: mod_cbmz_Rates.f90  
-mod_cbmz_HessianSP.o: mod_cbmz_HessianSP.f90  
-mod_cbmz_Hessian.o:  mod_cbmz_Hessian.f90  mod_cbmz_HessianSP.o
-mod_cbmz_StoichiomSP.o: mod_cbmz_StoichiomSP.f90 
-mod_cbmz_Stoichiom.o: mod_cbmz_Stoichiom.f90   mod_cbmz_StoichiomSP.o
-mod_cbmz_Util.o: mod_cbmz_Util.f90   mod_cbmz_Monitor.o
-mod_cbmz_Main.o: mod_cbmz_Main.f90   mod_cbmz_Global.o mod_cbmz_Parameters.o  mod_cbmz_Model.o mod_cbmz_Integrator.o
-mod_cbmz_Model.o: mod_cbmz_Model.f90   mod_cbmz_Integrator.o
+mod_cbmz_Initialize.o: mod_cbmz_Initialize.F90  
+mod_cbmz_Function.o: mod_cbmz_Function.F90  
+mod_cbmz_Stochastic.o: mod_cbmz_Stochastic.F90  
+mod_cbmz_JacobianSP.o: mod_cbmz_JacobianSP.F90 
+mod_cbmz_Jacobian.o: mod_cbmz_Jacobian.F90   mod_cbmz_JacobianSP.o
+mod_cbmz_LinearAlgebra.o: mod_cbmz_LinearAlgebra.F90  mod_cbmz_JacobianSP.o
+mod_cbmz_Rates.o: mod_cbmz_Rates.F90  
+mod_cbmz_HessianSP.o: mod_cbmz_HessianSP.F90  
+mod_cbmz_Hessian.o:  mod_cbmz_Hessian.F90  mod_cbmz_HessianSP.o
+mod_cbmz_StoichiomSP.o: mod_cbmz_StoichiomSP.F90 
+mod_cbmz_Stoichiom.o: mod_cbmz_Stoichiom.F90   mod_cbmz_StoichiomSP.o
+mod_cbmz_Util.o: mod_cbmz_Util.F90   mod_cbmz_Monitor.o
+mod_cbmz_Main.o: mod_cbmz_Main.F90   mod_cbmz_Global.o mod_cbmz_Parameters.o  mod_cbmz_Model.o mod_cbmz_Integrator.o
+mod_cbmz_Model.o: mod_cbmz_Model.F90   mod_cbmz_Integrator.o
 mod_cbmz_Integrator.o: mod_cbmz_Integrator.F90  
 
-mod_cbmz_jval1.o : mod_cbmz_jval1.f90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_mppparam.o mod_stdio.o
-mod_che_hvread.o: mod_che_hvread.f90 mod_cbmz_jval1.o 
+mod_cbmz_jval1.o : mod_cbmz_jval1.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_mppparam.o mod_stdio.o
+mod_che_hvread.o: mod_che_hvread.F90 mod_cbmz_jval1.o 

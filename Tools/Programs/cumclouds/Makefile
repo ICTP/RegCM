@@ -10,7 +10,7 @@ plot: cumclouds
 	paste gnuplot_*.dat > dat.dat
 	gnuplot plotclf.gp
 
-cumclouds: cumclouds.f90
+cumclouds: cumclouds.F90
 	$(FC) $(FCFLAGS) -o $@ $< $(LIBS)
 
 clean:

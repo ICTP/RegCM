@@ -20,10 +20,10 @@
 vpath %.o $(REGCM_ROOT)/Share:$(REGCM_ROOT)/Main/mpplib:.
 
 noinst_LIBRARIES = libcbmz.a
-libcbmz_a_SOURCES = mod_cbmz_boxvars.f90 mod_cbmz_chemmech.f90 \
-  mod_cbmz_chemvars.f90 mod_cbmz_chemlocal.f90 mod_cbmz_molwg.f90 \
-  mod_cbmz_linslv.f90 mod_cbmz_jval1.f90 mod_cbmz_solve1.f90 \
-  mod_cbmz_rates1.f90 mod_cbmz_main1.f90 mod_cbmz_init1.F90
+libcbmz_a_SOURCES = mod_cbmz_boxvars.F90 mod_cbmz_chemmech.F90 \
+  mod_cbmz_chemvars.F90 mod_cbmz_chemlocal.F90 mod_cbmz_molwg.F90 \
+  mod_cbmz_linslv.F90 mod_cbmz_jval1.F90 mod_cbmz_solve1.F90 \
+  mod_cbmz_rates1.F90 mod_cbmz_main1.F90 mod_cbmz_init1.F90
 
 REGCMSRC = $(REGCM_ROOT)/Main
 MPP = $(REGCMSRC)/mpplib
@@ -33,9 +33,6 @@ FCFLAGS += -M$(MPP_INCLUDE)
 else
 FCFLAGS += -I$(MPP_INCLUDE)
 endif
-
-%.o: %.f90
-	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
 
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
@@ -48,14 +45,14 @@ clean-local:
 
 # --------------------------------------------------------------------
 # DO NOT DELETE THIS LINE -- make depend depends on it.
-mod_cbmz_boxvars.o : mod_cbmz_boxvars.f90 mod_intkinds.o mod_realkinds.o
-mod_cbmz_chemlocal.o : mod_cbmz_chemlocal.f90 mod_intkinds.o mod_realkinds.o mod_cbmz_chemmech.o
-mod_cbmz_chemmech.o : mod_cbmz_chemmech.f90 mod_intkinds.o mod_realkinds.o
-mod_cbmz_chemvars.o : mod_cbmz_chemvars.f90 mod_intkinds.o mod_realkinds.o mod_cbmz_chemmech.o
+mod_cbmz_boxvars.o : mod_cbmz_boxvars.F90 mod_intkinds.o mod_realkinds.o
+mod_cbmz_chemlocal.o : mod_cbmz_chemlocal.F90 mod_intkinds.o mod_realkinds.o mod_cbmz_chemmech.o
+mod_cbmz_chemmech.o : mod_cbmz_chemmech.F90 mod_intkinds.o mod_realkinds.o
+mod_cbmz_chemvars.o : mod_cbmz_chemvars.F90 mod_intkinds.o mod_realkinds.o mod_cbmz_chemmech.o
 mod_cbmz_init1.o : mod_cbmz_init1.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_mpmessage.o mod_cbmz_chemmech.o mod_cbmz_chemlocal.o mod_cbmz_chemvars.o mod_cbmz_jval1.o
-mod_cbmz_jval1.o : mod_cbmz_jval1.f90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_mppparam.o mod_stdio.o
-mod_cbmz_linslv.o : mod_cbmz_linslv.f90 mod_intkinds.o mod_realkinds.o
-mod_cbmz_main1.o : mod_cbmz_main1.f90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_cbmz_boxvars.o mod_cbmz_chemmech.o mod_cbmz_chemvars.o mod_cbmz_rates1.o mod_cbmz_solve1.o
-mod_cbmz_molwg.o : mod_cbmz_molwg.f90 mod_intkinds.o mod_realkinds.o
-mod_cbmz_rates1.o : mod_cbmz_rates1.f90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_cbmz_chemvars.o mod_cbmz_chemmech.o mod_cbmz_chemlocal.o mod_cbmz_jval1.o
-mod_cbmz_solve1.o : mod_cbmz_solve1.f90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_cbmz_chemmech.o mod_cbmz_chemvars.o mod_cbmz_chemlocal.o mod_cbmz_linslv.o mod_cbmz_init1.o
+mod_cbmz_jval1.o : mod_cbmz_jval1.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_dynparam.o mod_mppparam.o mod_stdio.o
+mod_cbmz_linslv.o : mod_cbmz_linslv.F90 mod_intkinds.o mod_realkinds.o
+mod_cbmz_main1.o : mod_cbmz_main1.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_cbmz_boxvars.o mod_cbmz_chemmech.o mod_cbmz_chemvars.o mod_cbmz_rates1.o mod_cbmz_solve1.o
+mod_cbmz_molwg.o : mod_cbmz_molwg.F90 mod_intkinds.o mod_realkinds.o
+mod_cbmz_rates1.o : mod_cbmz_rates1.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_cbmz_chemvars.o mod_cbmz_chemmech.o mod_cbmz_chemlocal.o mod_cbmz_jval1.o
+mod_cbmz_solve1.o : mod_cbmz_solve1.F90 mod_intkinds.o mod_realkinds.o mod_constants.o mod_cbmz_chemmech.o mod_cbmz_chemvars.o mod_cbmz_chemlocal.o mod_cbmz_linslv.o mod_cbmz_init1.o

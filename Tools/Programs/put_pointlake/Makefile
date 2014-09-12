@@ -5,7 +5,7 @@ LIBS = `nf-config --flibs`
 
 all:: put_pointlake
 
-put_pointlake: put_pointlake.f90
+put_pointlake: put_pointlake.F90
 	$(FC) $(FCFLAGS) -o $@ $< $(LIBS)
 
 clean:

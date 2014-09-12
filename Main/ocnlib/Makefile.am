@@ -35,9 +35,6 @@ else
 FCFLAGS += -I$(MPP_INCLUDE)
 endif
 
-%.o: %.f90
-	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
-
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 

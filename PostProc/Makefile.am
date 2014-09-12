@@ -33,9 +33,6 @@ GrADSNcPlot_SOURCES = GrADSNcPlot.F90
 GrADSNcPrepare_SOURCES = GrADSNcPrepare.F90
 clm45_1dto2d_SOURCES = clm45_1dto2d.F90
 
-%.o: %.f90
-	$(FC) $(CPPFLAGS) $(FCFLAGS) -c $<
-
 %.o: %.F90
 	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 

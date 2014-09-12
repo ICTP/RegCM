@@ -5,7 +5,7 @@ LIBS = `nf-config --flibs`
 
 all:: changeland
 
-changeland: changeland.f90
+changeland: changeland.F90
 	$(FC) $(FCFLAGS) -o $@ $< $(LIBS)
 
 clean:
