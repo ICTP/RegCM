@@ -858,8 +858,7 @@ module mod_rad_aerosol
           ibin = 0
           uaerdust = d_zero
           do itr = 1 , ntr
-            if ( chtrname(itr)(1:4) == 'DUST' .or.  &
-                 chtrname(itr)(1:2) == 'BC' ) then
+            if ( chtrname(itr)(1:4) == 'DUST' ) then
               ibin = ibin+1
               if ( k1<k2 ) then
                 uaerdust =  uaerdust + d10e5 * sum(uaer(n,k1:k2-1,itr))

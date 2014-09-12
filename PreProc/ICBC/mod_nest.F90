@@ -87,18 +87,18 @@ module mod_nest
   subroutine get_nest(idate)
     use netcdf
     implicit none
-!
+
     type(rcm_time_and_date) , intent(in) :: idate
-!
+
     integer(ik4) :: i , istatus , ivarid , idimid , irec
     integer(ik4) , dimension(4) :: istart , icount
     type(rcm_time_and_date) :: imf
     logical :: lspch
-!
+
     if (.not. associated(b2)) then
       call die('get_nest','Called get_nest before headernest !',1)
     end if
-!
+
     if ( idate > itimes(nrec) ) then
       istatus = nf90_close(ncinp)
       call checkncerr(istatus,__FILE__,__LINE__, 'Error close')

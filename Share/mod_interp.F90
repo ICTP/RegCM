@@ -671,21 +671,37 @@ module mod_interp
             dc1xa(j,i) = (d_one/dista)**2
           else
             dc1xa(j,i) = -d_one
+            dc1xb(j,i) = d_zero
+            dc1xc(j,i) = d_zero
+            dc1xd(j,i) = d_zero
+            cycle
           end if
           if ( abs(distb) > dlowval ) then
             dc1xb(j,i) = (d_one/distb)**2
           else
+            dc1xa(j,i) = d_zero
             dc1xb(j,i) = -d_one
+            dc1xc(j,i) = d_zero
+            dc1xd(j,i) = d_zero
+            cycle
           end if
           if ( abs(distc) > dlowval ) then
             dc1xc(j,i) = (d_one/distc)**2
           else
+            dc1xa(j,i) = d_zero
+            dc1xb(j,i) = d_zero
             dc1xc(j,i) = -d_one
+            dc1xd(j,i) = d_zero
+            cycle
           end if
           if ( abs(distd) > dlowval ) then
             dc1xd(j,i) = (d_one/distd)**2
           else
+            dc1xa(j,i) = d_zero
+            dc1xb(j,i) = d_zero
+            dc1xc(j,i) = d_zero
             dc1xd(j,i) = -d_one
+            cycle
           end if
         end do
       end do
@@ -724,7 +740,7 @@ module mod_interp
         end if
         if ( b2(mul,nul) > missc ) then
           if ( distb < 0.0 ) then
-            b3(j,i) = b2(mur,nur)
+            b3(j,i) = b2(mul,nul)
             cycle
           end if
           v2 = b2(mul,nul)*distb
@@ -733,7 +749,7 @@ module mod_interp
         end if
         if ( b2(mdr,ndr) > missc ) then
           if ( distc < 0.0 ) then
-            b3(j,i) = b2(mur,nur)
+            b3(j,i) = b2(mdr,ndr)
             cycle
           end if
           v3 = b2(mdr,ndr)*distc
@@ -742,7 +758,7 @@ module mod_interp
         end if
         if ( b2(mdl,ndl) > missc ) then
           if ( distd < 0.0 ) then
-            b3(j,i) = b2(mur,nur)
+            b3(j,i) = b2(mdl,ndl)
             cycle
           end if
           v4= b2(mdl,ndl)*distd
@@ -981,21 +997,37 @@ module mod_interp
             dd1xa(j,i,idx) = (d_one/dista)**2
           else
             dd1xa(j,i,idx) = -d_one
+            dd1xb(j,i,idx) = d_zero
+            dd1xc(j,i,idx) = d_zero
+            dd1xd(j,i,idx) = d_zero
+            cycle
           end if
           if ( abs(distb) > dlowval ) then
             dd1xb(j,i,idx) = (d_one/distb)**2
           else
+            dd1xa(j,i,idx) = d_zero
             dd1xb(j,i,idx) = -d_one
+            dd1xc(j,i,idx) = d_zero
+            dd1xd(j,i,idx) = d_zero
+            cycle
           end if
           if ( abs(distc) > dlowval ) then
             dd1xc(j,i,idx) = (d_one/distc)**2
           else
+            dd1xa(j,i,idx) = d_zero
+            dd1xb(j,i,idx) = d_zero
             dd1xc(j,i,idx) = -d_one
+            dd1xd(j,i,idx) = d_zero
+            cycle
           end if
           if ( abs(distd) > dlowval ) then
             dd1xd(j,i,idx) = (d_one/distd)**2
           else
+            dd1xa(j,i,idx) = d_zero
+            dd1xb(j,i,idx) = d_zero
+            dd1xc(j,i,idx) = d_zero
             dd1xd(j,i,idx) = -d_one
+            cycle
           end if
         end do
       end do
@@ -1034,7 +1066,7 @@ module mod_interp
         end if
         if ( b2(mul,nul) > missc ) then
           if ( distb < 0.0 ) then
-            b3(j,i) = b2(mur,nur)
+            b3(j,i) = b2(mul,nul)
             cycle
           end if
           v2 = b2(mul,nul)*distb
@@ -1043,7 +1075,7 @@ module mod_interp
         end if
         if ( b2(mdr,ndr) > missc ) then
           if ( distc < 0.0 ) then
-            b3(j,i) = b2(mur,nur)
+            b3(j,i) = b2(mdr,ndr)
             cycle
           end if
           v3 = b2(mdr,ndr)*distc
@@ -1052,7 +1084,7 @@ module mod_interp
         end if
         if ( b2(mdl,ndl) > missc ) then
           if ( distd < 0.0 ) then
-            b3(j,i) = b2(mur,nur)
+            b3(j,i) = b2(mdl,ndl)
             cycle
           end if
           v4= b2(mdl,ndl)*distd

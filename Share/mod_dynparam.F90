@@ -616,16 +616,15 @@ module mod_dynparam
     return
   end subroutine initparam
 
-  subroutine init_fnestparam(filename,coarsedir,coarsedom)
+  subroutine init_fnestparam(filename,coarse_outdir,coarse_domname)
     implicit none
     character(len=*) , intent(in) :: filename
-    character(len=256) , intent(out) :: coarsedir , coarsedom
+    character(len=256) , intent(out) :: coarse_outdir , coarse_domname
     integer(ik4) :: iresult
-    namelist /fnestparam/ coarsedir , coarsedom
+    namelist /fnestparam/ coarse_outdir , coarse_domname
 
-    coarsedir = '        '
-    coarsedom = '        '
-
+    coarse_outdir = '        '
+    coarse_domname = '        '
     open(ipunit, file=filename, status='old', &
                  action='read', iostat=iresult)
     if ( iresult /= 0 ) then
