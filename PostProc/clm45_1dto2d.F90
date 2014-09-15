@@ -34,7 +34,7 @@ program clm45_1dto2d
 
   character(len=256) :: prgname , ncfile , ncoutfile
   integer(ik4) :: numarg , istatus
-  integer(ik4) :: ncid , ndims , nvars , natts , udimid , iomode
+  integer(ik4) :: ncid , ndims , nvars , natts , udimid
   integer(ik4) :: ncoutid
   integer(ik4) :: varid , idtime
   integer(ik4) , allocatable , dimension(:) :: dimids , dsize
