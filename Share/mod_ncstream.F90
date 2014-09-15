@@ -237,7 +237,7 @@ module mod_ncstream
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
         call die('nc_stream','Parallel netcdf with Pnetcdf crash',1)
       else
-        ncstat = nf90_create(stream%filename,imode,stream%id)
+        ncstat = nf90_create(stream%filename,iomode,stream%id)
       end if
 #endif
       if ( ncstat /= nf90_noerr ) then
