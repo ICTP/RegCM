@@ -1277,12 +1277,7 @@ module mod_nchelper
     implicit none
     character(len=*) , intent(in) :: fname
     integer(ik4) , intent(out) :: ncid
-#ifdef NETCDF4_HDF5
-    incstat = nf90_create(fname, &
-             ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model),ncid)
-#else
-    incstat = nf90_create(fname, nf90_clobber, ncid)
-#endif
+    incstat = nf90_create(fname, iomode, ncid)
     call checkncerr(incstat,__FILE__,__LINE__, &
                     'Error creating NetCDF output '//trim(fname))
   end subroutine createfile_withname

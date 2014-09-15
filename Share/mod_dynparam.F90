@@ -24,6 +24,7 @@ module mod_dynparam
   use mod_realkinds
   use mod_constants
   use mod_date
+  use netcdf
 
   implicit none
 
@@ -325,6 +326,7 @@ module mod_dynparam
   character(len=256) :: dirter , inpter
   character(len=256) :: dirglob , inpglob
   character(len=256) :: dirout
+  integer(ik4) :: iomode
 
 ! Model output control parameters
 
@@ -399,6 +401,12 @@ module mod_dynparam
 #ifdef CLM45
     namelist /clm_regcm/ enable_megan_emission , enable_urban_landunit, &
       enable_more_crop_pft
+#endif
+
+#ifdef NETCDF4_HDF5
+    iomode = ior(nf90_clobber,ior(nf90_hdf5,nf90_classic_model))
+#else
+    iomode = ior(nf90_clobber, nf90_64bit_offset)
 #endif
 
     open(ipunit, file=filename, status='old', &

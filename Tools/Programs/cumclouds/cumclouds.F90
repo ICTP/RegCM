@@ -75,7 +75,7 @@ program cumclouds
   do ids = 0 , nds
 
     write(fname,'(a,i0.4,a)') 'profile_', int(ds), '.nc'
-    istat = nf90_create(fname,NF90_CLOBBER,ncid)
+    istat = nf90_create(fname,nf90_clobber,ncid)
     istat = nf90_def_dim(ncid,'klev',nk,idims(1))
     istat = nf90_def_dim(ncid,'record',nf90_unlimited,idims(2))
     istat = nf90_def_var(ncid,'klev',nf90_float,idims(1:1),ivars(1))

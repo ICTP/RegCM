@@ -590,8 +590,7 @@ module mod_savefile
 
       ! Use 64-bit offset format file, instead of a netCDF classic format file.
       ! Sometimes SAV files can be really big... 
-      ncstatus = nf90_create(ffout, &
-              ior(nf90_64bit_offset,nf90_clobber),ncid)
+      ncstatus = nf90_create(ffout, iomode, ncid)
       call check_ok(__FILE__,__LINE__,'Cannot create savefile '//trim(ffout))
 
       ncstatus = nf90_def_dim(ncid,'jcross',jcross2-jcross1+1,dimids(idjcross))

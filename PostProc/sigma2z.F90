@@ -29,6 +29,7 @@ program sigma2z
   use mod_message
   use mod_vertint
   use mod_nchelper
+  use mod_dynparam , only : iomode
   use mod_hgt
   use mod_humid
   use mod_stdio
@@ -109,13 +110,7 @@ program sigma2z
   ikvarid = -1
   iy = -1
   jx = -1
-#ifdef NETCDF4_HDF5
-  istatus = nf90_create(ncpfile, &
-            ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model), &
-            ncout)
-#else
-  istatus = nf90_create(ncpfile, nf90_clobber, ncout)
-#endif
+  istatus = nf90_create(ncpfile, iomode, ncout)
   call checkncerr(istatus,__FILE__,__LINE__, &
           'Error Opening Output file '//trim(ncpfile))
 

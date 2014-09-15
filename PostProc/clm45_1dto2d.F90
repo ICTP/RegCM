@@ -33,7 +33,7 @@ program clm45_1dto2d
 
   character(len=256) :: prgname , ncfile , ncoutfile
   integer(ik4) :: numarg , istatus
-  integer(ik4) :: ncid , ndims , nvars , natts , udimid
+  integer(ik4) :: ncid , ndims , nvars , natts , udimid , iomode
   integer(ik4) :: ncoutid
   integer(ik4) :: varid , idtime
   integer(ik4) , allocatable , dimension(:) :: dimids , dsize
@@ -82,7 +82,8 @@ program clm45_1dto2d
   call checkncerr(istatus,__FILE__,__LINE__, &
                   'Error Open file '//trim(ncfile))
 
-  istatus = nf90_create(ncoutfile, nf90_clobber, ncoutid)
+  iomode = ior(nf90_64bit_offset, nf90_clobber)
+  istatus = nf90_create(ncoutfile, iomode, ncoutid)
   call checkncerr(istatus,__FILE__,__LINE__, &
                   'Error Create file '//trim(ncoutfile))
 

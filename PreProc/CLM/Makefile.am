@@ -25,5 +25,5 @@ distclean-local:
 clm2rcm.o : clm2rcm.F90 mod_intkinds.o mod_realkinds.o mod_nclib.o mod_dynparam.o mod_message.o mod_grid.o mod_param_clm.o mod_date.o mod_clm3grid.o mod_memutil.o mod_stdio.o mod_domain.o mod_nchelper.o
 mod_clm3grid.o : mod_clm3grid.F90 mod_intkinds.o mod_realkinds.o mod_stdio.o
 mod_grid.o : mod_grid.F90 mod_realkinds.o mod_dynparam.o mod_memutil.o
-mod_nclib.o : mod_nclib.F90 mod_intkinds.o mod_realkinds.o mod_memutil.o mod_message.o mod_stdio.o
+mod_nclib.o : mod_nclib.F90 mod_intkinds.o mod_realkinds.o mod_memutil.o mod_message.o mod_stdio.o mod_dynparam.o
 mod_param_clm.o : mod_param_clm.F90 mod_intkinds.o mod_realkinds.o mod_message.o mod_stdio.o

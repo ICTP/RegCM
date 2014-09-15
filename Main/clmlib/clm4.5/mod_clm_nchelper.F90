@@ -271,12 +271,7 @@ module mod_clm_nchelper
     type(clm_filetype) , intent(out) :: ncid
 
     if ( myid /= iocpu ) return
-#ifdef NETCDF4_HDF5
-    incstat = nf90_create(fname, &
-             ior(ior(nf90_clobber,nf90_hdf5),nf90_classic_model),ncid%ncid)
-#else
-    incstat = nf90_create(fname, nf90_clobber, ncid%ncid)
-#endif
+    incstat = nf90_create(fname, iomode, ncid%ncid)
     call clm_checkncerr(__FILE__,__LINE__, &
                     'Error creating NetCDF output '//trim(fname))
     ncid%fname = fname
