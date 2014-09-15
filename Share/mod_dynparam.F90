@@ -404,7 +404,7 @@ module mod_dynparam
 #endif
 
 #ifdef NETCDF4_HDF5
-    iomode = ior(nf90_clobber,ior(nf90_hdf5,nf90_classic_model))
+    iomode = ior(nf90_clobber,ior(nf90_netcdf4,nf90_classic_model))
 #else
     iomode = ior(nf90_clobber, nf90_64bit_offset)
 #endif

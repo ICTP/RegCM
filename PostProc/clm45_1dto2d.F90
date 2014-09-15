@@ -27,6 +27,7 @@ program clm45_1dto2d
   use mod_intkinds
   use mod_stdio
   use mod_nchelper
+  use mod_dynparam , only : iomode
   use netcdf
 
   implicit none
@@ -82,7 +83,6 @@ program clm45_1dto2d
   call checkncerr(istatus,__FILE__,__LINE__, &
                   'Error Open file '//trim(ncfile))
 
-  iomode = ior(nf90_64bit_offset, nf90_clobber)
   istatus = nf90_create(ncoutfile, iomode, ncoutid)
   call checkncerr(istatus,__FILE__,__LINE__, &
                   'Error Create file '//trim(ncoutfile))

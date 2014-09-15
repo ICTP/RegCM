@@ -204,7 +204,9 @@ module mod_ncstream
       type(ncoutstream_params) , intent(in) :: params
       type(ncoutstream) , pointer :: stream
       type(rcm_time_and_date) :: tt
+#ifdef NETCDF4_HDF5
       integer(ik4) :: imode
+#endif
 
       if ( associated(ncout%ncp%xs) ) call outstream_dispose(ncout)
       ! Allocate all space
@@ -224,7 +226,7 @@ module mod_ncstream
           stream%id,comm=params%mpi_comm,info=params%mpi_info)
         stream%l_parallel = .true.
       else
-        ncstat = nf90_create(stream%filename,imode,stream%id)
+        ncstat = nf90_create(stream%filename,iomode,stream%id)
       end if
 #else
       if ( params%mpi_comm /= -1 ) then

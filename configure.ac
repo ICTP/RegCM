@@ -140,9 +140,9 @@ if eval "test x$NETCDF4_COMPRESS = x1"; then
   AC_SUBST(AM_CPPFLAGS)
 fi
 
-AC_ARG_ENABLE(nc4-parallel,
-  AC_HELP_STRING([--enable-nc4-parallel],
-                 [Supply this option if you plan on using NetCDF4/HDF5 mpi output parallel output option.]),
+AC_ARG_ENABLE(nc4,
+  AC_HELP_STRING([--enable-nc4],
+                 [Supply this option if you plan on using NetCDF4/HDF5 option.]),
   [NETCDF4_HDF5="1"],[NETCDF4_HDF5="0"]
 )
 if eval "test x$NETCDF4_HDF5 = x1"; then
