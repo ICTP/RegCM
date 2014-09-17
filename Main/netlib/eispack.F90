@@ -4,7 +4,7 @@
 ! EISPACK
 ! Eigenvalue Calculations
 !
-! EISPACK is a FORTRAN90 library which calculates the eigenvalues and 
+! EISPACK is a FORTRAN90 library which calculates the eigenvalues and
 ! eigenvectors of a matrix.
 !
 ! A variety of options are available for special matrix formats.
@@ -18,7 +18,7 @@
 ! keeping a copy of EISPACK around. For one thing, the implementation of the
 ! LAPACK routines makes it a trying task to try to comprehend the algorithm by
 ! reading the source code. A single user level routine may refer indirectly to
-! thirty or forty others. 
+! thirty or forty others.
 !
 !  List of Routines:
 !
@@ -124,8 +124,8 @@ function pythag ( a, b )
 !
 !      PYTHAG = sqrt ( A * A + B * B )
 !
-!    is reasonably accurate, but can fail if, for example, A**2 is larger 
-!    than the machine overflow.  The formula can lose most of its accuracy 
+!    is reasonably accurate, but can fail if, for example, A**2 is larger
+!    than the machine overflow.  The formula can lose most of its accuracy
 !    if the sum of the squares is very large or very small.
 !
 !  Licensing:
@@ -151,7 +151,7 @@ function pythag ( a, b )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -216,8 +216,8 @@ subroutine bakvec ( n, t, e, m, z, ierr )
 !
 !  Discussion:
 !
-!    This subroutine forms the eigenvectors of a nonsymmetric tridiagonal 
-!    matrix by back transforming those of the corresponding symmetric 
+!    This subroutine forms the eigenvectors of a nonsymmetric tridiagonal
+!    matrix by back transforming those of the corresponding symmetric
 !    matrix determined by FIGI.
 !
 !  Licensing:
@@ -243,7 +243,7 @@ subroutine bakvec ( n, t, e, m, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -255,20 +255,20 @@ subroutine bakvec ( n, t, e, m, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) T(N,3), contains the nonsymmetric matrix.  Its 
+!    Input, real ( kind = 8 ) T(N,3), contains the nonsymmetric matrix.  Its
 !    subdiagonal is stored in the positions 2:N of the first column,
 !    its diagonal in positions 1:N of the second column,
-!    and its superdiagonal in positions 1:N-1 of the third column.  
+!    and its superdiagonal in positions 1:N-1 of the third column.
 !    T(1,1) and T(N,3) are arbitrary.
 !
-!    Input/output, real ( kind = 8 ) E(N).  On input, E(2:N) contains the 
+!    Input/output, real ( kind = 8 ) E(N).  On input, E(2:N) contains the
 !    subdiagonal elements of the symmetric matrix.  E(1) is arbitrary.
 !    On output, the contents of E have been destroyed.
 !
-!    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back 
+!    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back
 !    transformed.
 !
-!    Input/output, real ( kind = 8 ) Z(N,M), contains the eigenvectors.  
+!    Input/output, real ( kind = 8 ) Z(N,M), contains the eigenvectors.
 !    On output, they have been transformed as requested.
 !
 !    Output, integer ( kind = 4 ) IERR, an error flag.
@@ -328,7 +328,7 @@ subroutine balanc ( n, a, low, igh, xscale )
 !
 !  Discussion:
 !
-!    This subroutine balances a real matrix and isolates eigenvalues 
+!    This subroutine balances a real matrix and isolates eigenvalues
 !    whenever possible.
 !
 !    Suppose that the principal submatrix in rows LOW through IGH
@@ -368,7 +368,7 @@ subroutine balanc ( n, a, low, igh, xscale )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -383,7 +383,7 @@ subroutine balanc ( n, a, low, igh, xscale )
 !    Input/output, real ( kind = 8 ) A(N,N), the N by N matrix.  On output,
 !    the matrix has been balanced.
 !
-!    Output, integer ( kind = 4 ) LOW, IGH, indicate that A(I,J) is equal to 
+!    Output, integer ( kind = 4 ) LOW, IGH, indicate that A(I,J) is equal to
 !    zero if
 !    (1) I is greater than J and
 !    (2) J=1,...,LOW-1 or I=IGH+1,...,N.
@@ -535,14 +535,14 @@ subroutine balanc ( n, a, low, igh, xscale )
         f = 1.0D+00
         s = c + r
 
-        do while ( c < g ) 
+        do while ( c < g )
           f = f * rdx
           c = c * b2
         end do
 
         g = r * rdx
 
-        do while ( g <= c ) 
+        do while ( g <= c )
           f = f / rdx
           c = c / b2
         end do
@@ -580,8 +580,8 @@ subroutine balbak ( n, low, igh, xscale, m, z )
 !
 !  Discussion:
 !
-!    This subroutine forms the eigenvectors of a real general matrix by 
-!    back transforming those of the corresponding balanced matrix 
+!    This subroutine forms the eigenvectors of a real general matrix by
+!    back transforming those of the corresponding balanced matrix
 !    determined by BALANC.
 !
 !  Licensing:
@@ -611,7 +611,7 @@ subroutine balbak ( n, low, igh, xscale, m, z )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -628,10 +628,10 @@ subroutine balbak ( n, low, igh, xscale, m, z )
 !    Input, real ( kind = 8 ) SCALE(N), contains information determining
 !    the permutations and scaling factors used by BALANC.
 !
-!    Input, integer ( kind = 4 ) M, the number of columns of Z to be 
+!    Input, integer ( kind = 4 ) M, the number of columns of Z to be
 !    back-transformed.
 !
-!    Input/output, real ( kind = 8 ) Z(N,M), contains the real and imaginary parts 
+!    Input/output, real ( kind = 8 ) Z(N,M), contains the real and imaginary parts
 !    of the eigenvectors, which, on return, have been back-transformed.
 !
   implicit none
@@ -720,7 +720,7 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -732,18 +732,18 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) MB, is the (half) band width of the matrix, 
+!    Input, integer ( kind = 4 ) MB, is the (half) band width of the matrix,
 !    defined as the number of adjacent diagonals, including the principal
 !    diagonal, required to specify the non-zero portion of the
 !    lower triangle of the matrix.
 !
-!    Input/output, real ( kind = 8 ) A(N,MB).  On input, contains the lower triangle of 
-!    the symmetric band input matrix stored as an N by MB array.  Its lowest 
+!    Input/output, real ( kind = 8 ) A(N,MB).  On input, contains the lower triangle of
+!    the symmetric band input matrix stored as an N by MB array.  Its lowest
 !    subdiagonal is stored in the last N+1-MB positions of the first column,
-!    its next subdiagonal in the last N+2-MB positions of the second column, 
-!    further subdiagonals similarly, and finally its principal diagonal in 
-!    the N positions of the last column.  Contents of storages not part of 
-!    the matrix are arbitrary.  On output, A has been destroyed, except for 
+!    its next subdiagonal in the last N+2-MB positions of the second column,
+!    further subdiagonals similarly, and finally its principal diagonal in
+!    the N positions of the last column.  Contents of storages not part of
+!    the matrix are arbitrary.  On output, A has been destroyed, except for
 !    its last two columns which contain a copy of the tridiagonal matrix.
 !
 !    Output, real ( kind = 8 ) D(N), the diagonal elements of the tridiagonal matrix.
@@ -751,7 +751,7 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
 !    Output, real ( kind = 8 ) E(N), the subdiagonal elements of the tridiagonal
 !    matrix in E(2:N).  E(1) is set to zero.
 !
-!    Output, real ( kind = 8 ) E2(N), contains the squares of the corresponding elements 
+!    Output, real ( kind = 8 ) E2(N), contains the squares of the corresponding elements
 !    of E.  E2 may coincide with E if the squares are not needed.
 !
 !    Input, logical MATZ, should be set to TRUE if the transformation matrix is
@@ -999,7 +999,7 @@ subroutine bandr ( n, mb, a, d, e, e2, matz, z )
 
           a(j,mb) = dmin * a(j,mb)
           d(j) = d(j) / dmin
- 
+
         end if
 
       end do
@@ -1077,7 +1077,7 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -1089,7 +1089,7 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) MBW, the number of columns of the array A used 
+!    Input, integer ( kind = 4 ) MBW, the number of columns of the array A used
 !    to store the band matrix.  If the matrix is symmetric, MBW is its (half)
 !    band width, denoted MB and defined as the number of adjacent
 !    diagonals, including the principal diagonal, required to
@@ -1101,35 +1101,35 @@ subroutine bandv ( n, mbw, a, e21, m, w, z, ierr )
 !    case, MBW=2*MB-1.
 !
 !    Input, real ( kind = 8 ) A(N,MBW), the lower triangle of the symmetric band input
-!    atrix stored as an N by MB array.  Its lowest subdiagonal is stored 
-!    in the last N+1-MB positions of the first column, its next subdiagonal 
-!    in the last N+2-MB positions of the second column, further subdiagonals 
-!    similarly, and finally its principal diagonal in the N positions of 
+!    atrix stored as an N by MB array.  Its lowest subdiagonal is stored
+!    in the last N+1-MB positions of the first column, its next subdiagonal
+!    in the last N+2-MB positions of the second column, further subdiagonals
+!    similarly, and finally its principal diagonal in the N positions of
 !    column MB.  If the subroutine is being used to solve systems of linear
 !    equations, and the coefficient matrix is not symmetric, A is
-!    N by 2*MB-1 instead, with lower triangle as above and with its first 
-!    superdiagonal stored in the first N-1 positions of column MB+1, its 
+!    N by 2*MB-1 instead, with lower triangle as above and with its first
+!    superdiagonal stored in the first N-1 positions of column MB+1, its
 !    second superdiagonal in the first N-2 positions of column MB+2, further
-!    superdiagonals similarly, and finally its highest superdiagonal in 
-!    the first N+1-MB positions of the last column.  Contents of storages 
+!    superdiagonals similarly, and finally its highest superdiagonal in
+!    the first N+1-MB positions of the last column.  Contents of storages
 !    not part of the matrix are arbitrary.
 !
 !    Input, real ( kind = 8 ) E21, specifies the ordering of the eigenvalues and contains
-!    0.0D+00 if the eigenvalues are in ascending order, or 2.0D+00 if the 
-!    eigenvalues are in descending order.  If the subroutine is being used 
-!    to solve systems of linear equations, E21 should be set to 1.0D+00 
+!    0.0D+00 if the eigenvalues are in ascending order, or 2.0D+00 if the
+!    eigenvalues are in descending order.  If the subroutine is being used
+!    to solve systems of linear equations, E21 should be set to 1.0D+00
 !    if the coefficient matrix is symmetric and to -1.0D+00 if not.
 !
 !    Input, integer ( kind = 4 ) M, the number of specified eigenvalues or the number of
 !    systems of linear equations.
 !
-!    Input, real ( kind = 8 ) W(M), contains the M eigenvalues in ascending or descending 
+!    Input, real ( kind = 8 ) W(M), contains the M eigenvalues in ascending or descending
 !    order.  If the subroutine is being used to solve systems of linear
-!    equations (A-W(1:M)*I) * X(1:M) = B(1:M), where I is the identity matrix, 
+!    equations (A-W(1:M)*I) * X(1:M) = B(1:M), where I is the identity matrix,
 !    W should be set accordingly.
 !
-!    Input/output, real ( kind = 8 ) Z(N,M).  On input, the constant matrix 
-!    columns B(1:M), if the subroutine is used to solve systems of linear 
+!    Input/output, real ( kind = 8 ) Z(N,M).  On input, the constant matrix
+!    columns B(1:M), if the subroutine is used to solve systems of linear
 !    equations.  On output, the associated set of orthogonal eigenvectors.
 !    Any vector which fails to converge is set to zero.  If the
 !    routine is used to solve systems of linear equations,
@@ -1533,7 +1533,7 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -1546,8 +1546,8 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = 8 ) EPS1, is an absolute error tolerance for the computed
-!    eigenvalues.  If the input EPS1 is non-positive, it is reset for each 
-!    submatrix to a default value, namely, minus the product of the relative 
+!    eigenvalues.  If the input EPS1 is non-positive, it is reset for each
+!    submatrix to a default value, namely, minus the product of the relative
 !    machine precision and the 1-norm of the submatrix.
 !
 !    Input, real ( kind = 8 ) D(N), the diagonal elements of the input matrix.
@@ -1555,27 +1555,27 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
 !    Input, real ( kind = 8 ) E(N), contains in E(2:N) the subdiagonal elements of the
 !    matrix.  E(1) is arbitrary.
 !
-!    Input/output, real ( kind = 8 ) E2(N).  On input, the squares of the corresponding 
-!    elements of E.  E2(1) is arbitrary.  On output, elements of E2, 
-!    corresponding to elements of E regarded as negligible, have been 
-!    replaced by zero, causing the matrix to split into a direct sum of 
+!    Input/output, real ( kind = 8 ) E2(N).  On input, the squares of the corresponding
+!    elements of E.  E2(1) is arbitrary.  On output, elements of E2,
+!    corresponding to elements of E regarded as negligible, have been
+!    replaced by zero, causing the matrix to split into a direct sum of
 !    submatrices.  E2(1) is also set to zero.
 !
 !    Input, real ( kind = 8 ) LB, UB, define the interval to be searched for eigenvalues.
 !    If LB is not less than UB, no eigenvalues will be found.
 !
-!    Input, integer ( kind = 4 ) MM, an upper bound for the number of eigenvalues in the 
-!    interval.  Warning: if more than MM eigenvalues are determined to lie 
+!    Input, integer ( kind = 4 ) MM, an upper bound for the number of eigenvalues in the
+!    interval.  Warning: if more than MM eigenvalues are determined to lie
 !    in the interval, an error return is made with no eigenvalues found.
 !
-!    Output, integer ( kind = 4 ) M, the number of eigenvalues determined to lie 
+!    Output, integer ( kind = 4 ) M, the number of eigenvalues determined to lie
 !    in (LB,UB).
 !
 !    Output, real ( kind = 8 ) W(M), the eigenvalues in ascending order.
 !
-!    Output, integer ( kind = 4 ) IND(MM), contains in its first M positions the submatrix 
+!    Output, integer ( kind = 4 ) IND(MM), contains in its first M positions the submatrix
 !    indices associated with the corresponding eigenvalues in W:
-!    1 for eigenvalues belonging to the first submatrix from the top, 2 for 
+!    1 for eigenvalues belonging to the first submatrix from the top, 2 for
 !    those belonging to the second submatrix, and so on.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
@@ -1633,7 +1633,7 @@ subroutine bisect ( n, eps1, d, e, e2, lb, ub, mm, m, w, ind, ierr )
   e2(1) = 0.0D+00
 
   do i = 2, n
-    
+
     tst1 = abs ( d(i) ) + abs ( d(i-1) )
     tst2 = tst1 + abs ( e(i) )
 
@@ -1918,8 +1918,8 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 !
 !  Discussion:
 !
-!    This subroutine finds the eigenvalue of smallest magnitude of a real 
-!    symmetric band matrix using the QR algorithm with shifts of origin.  
+!    This subroutine finds the eigenvalue of smallest magnitude of a real
+!    symmetric band matrix using the QR algorithm with shifts of origin.
 !    Consecutive calls can be made to find further eigenvalues.
 !
 !    Note that for a subsequent call, N should be replaced by N-1, but
@@ -1948,7 +1948,7 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -1965,29 +1965,29 @@ subroutine bqr ( n, mb, a, t, r, ierr )
 !    diagonal, required to specify the non-zero portion of the
 !    lower triangle of the matrix.
 !
-!    Input/output, real ( kind = 8 ) A(N,MB).  On input, A contains the lower triangle 
-!    of the symmetric band input matrix stored as an N by MB array.  Its 
-!    lowest subdiagonal is stored in the last N+1-MB positions of the first 
+!    Input/output, real ( kind = 8 ) A(N,MB).  On input, A contains the lower triangle
+!    of the symmetric band input matrix stored as an N by MB array.  Its
+!    lowest subdiagonal is stored in the last N+1-MB positions of the first
 !    column, its next subdiagonal in the last N+2-MB positions of the
-!    second column, further subdiagonals similarly, and finally its principal 
-!    diagonal in the N positions of the last column.  Contents of storages 
+!    second column, further subdiagonals similarly, and finally its principal
+!    diagonal in the N positions of the last column.  Contents of storages
 !    not part of the matrix are arbitrary.  On a subsequent call, its output
-!    contents from the previous call should be passed.  On output, A contains 
-!    the transformed band matrix.  The matrix A+T*I derived from the output 
-!    parameters is similar to the input A+T*I to within rounding errors.  
+!    contents from the previous call should be passed.  On output, A contains
+!    the transformed band matrix.  The matrix A+T*I derived from the output
+!    parameters is similar to the input A+T*I to within rounding errors.
 !    Its last row and column are null as long as IERR is zero.
 !
-!    Input/output, real ( kind = 8 ) T.  On input, T specifies the shift (of eigenvalues) 
-!    applied to the diagonal of A in forming the input matrix.  What is 
-!    actually determined is the eigenvalue nearest to T of A+T*I, where I 
-!    is the identity matrix.  On a subsequent call, the output value of T 
+!    Input/output, real ( kind = 8 ) T.  On input, T specifies the shift (of eigenvalues)
+!    applied to the diagonal of A in forming the input matrix.  What is
+!    actually determined is the eigenvalue nearest to T of A+T*I, where I
+!    is the identity matrix.  On a subsequent call, the output value of T
 !    from the previous call should be passed if the next nearest eigenvalue
 !    is sought.  On output, T contains the computed eigenvalue of A+T*I,
 !    as long as IERR is zero.
 !
-!    Input/output, real ( kind = 8 ) R.  On input for the first call, R should be 
-!    specified as zero, and as its output value from the previous call 
-!    on a subsequent call.  It is used to determine when the last row and 
+!    Input/output, real ( kind = 8 ) R.  On input for the first call, R should be
+!    specified as zero, and as its output value from the previous call
+!    on a subsequent call.  It is used to determine when the last row and
 !    column of the transformed band matrix can be regarded as negligible.
 !    On output, R contains the maximum of its input value and the norm of the
 !    last column of the input matrix A.
@@ -2323,7 +2323,7 @@ subroutine cbabk2 ( n, low, igh, xscale, m, zr, zi )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -2342,8 +2342,8 @@ subroutine cbabk2 ( n, low, igh, xscale, m, zr, zi )
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
 !
-!    Input/output, real ( kind = 8 ) ZR(N,M), ZI(N,M).  On input, the real and imaginary 
-!    parts, respectively, of the eigenvectors to be back transformed in 
+!    Input/output, real ( kind = 8 ) ZR(N,M), ZI(N,M).  On input, the real and imaginary
+!    parts, respectively, of the eigenvectors to be back transformed in
 !    their first M columns.  On output, the transformed eigenvectors.
 !
   implicit none
@@ -2453,7 +2453,7 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -2465,12 +2465,12 @@ subroutine cbal ( n, ar, ai, low, igh, xscale )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real and 
+!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real and
 !    imaginary parts of the complex matrix to be balanced.  On output,
 !    the real and imaginary parts of the balanced matrix.
 !
 !    Output, integer ( kind = 4 ) LOW, IGH, are values such that AR(I,J) and AI(I,J)
-!    are zero if I is greater than J and either J=1,...,LOW-1 or 
+!    are zero if I is greater than J and either J=1,...,LOW-1 or
 !    I=IGH+1,...,N.
 !
 !    Output, real ( kind = 8 ) SCALE(N), information determining the
@@ -2694,7 +2694,7 @@ subroutine cdiv ( ar, ai, br, bi, cr, ci )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -2746,7 +2746,7 @@ subroutine cg ( n, ar, ai, wr, wi, matz, zr, zi, ierr )
 !
 !  Discussion:
 !
-!    This subroutine calls the recommended sequence of EISPACK subroutines 
+!    This subroutine calls the recommended sequence of EISPACK subroutines
 !    to find the eigenvalues and eigenvectors (if desired)
 !    of a complex general matrix.
 !
@@ -2773,7 +2773,7 @@ subroutine cg ( n, ar, ai, wr, wi, matz, zr, zi, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -2785,7 +2785,7 @@ subroutine cg ( n, ar, ai, wr, wi, matz, zr, zi, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real and 
+!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real and
 !    imaginary parts of the complex matrix.  On output, AR and AI
 !    have been overwritten by other information.
 !
@@ -2798,7 +2798,7 @@ subroutine cg ( n, ar, ai, wr, wi, matz, zr, zi, ierr )
 !    Output, real ( kind = 8 ) ZR(N,N), ZI(N,N), the real and imaginary parts,
 !    respectively, of the eigenvectors, if MATZ is not zero.
 !
-!    Output, integer ( kind = 4 ) IERR, an error completion code described in the 
+!    Output, integer ( kind = 4 ) IERR, an error completion code described in the
 !    documentation for COMQR and COMQR2.  The normal completion code is zero.
 !
   implicit none
@@ -2830,7 +2830,7 @@ subroutine cg ( n, ar, ai, wr, wi, matz, zr, zi, ierr )
     if ( ierr /= 0 ) then
       return
     end if
-  
+
   else
 
     call comqr2 ( n, is1, is2, fv2, fv3, ar, ai, wr, wi, zr, zi, ierr )
@@ -2857,8 +2857,8 @@ subroutine ch ( n, ar, ai, w, matz, zr, zi, ierr )
 !
 !  Discussion:
 !
-!    This subroutine calls the recommended sequence of subroutines from the 
-!    EISPACK eigensystem package to find the eigenvalues and eigenvectors 
+!    This subroutine calls the recommended sequence of subroutines from the
+!    EISPACK eigensystem package to find the eigenvalues and eigenvectors
 !    of a complex hermitian matrix.
 !
 !  Licensing:
@@ -2884,7 +2884,7 @@ subroutine ch ( n, ar, ai, w, matz, zr, zi, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -2896,7 +2896,7 @@ subroutine ch ( n, ar, ai, w, matz, zr, zi, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real and 
+!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real and
 !    imaginary parts of the complex matrix.  On output, AR and AI
 !    have been overwritten by other information.
 !
@@ -2908,7 +2908,7 @@ subroutine ch ( n, ar, ai, w, matz, zr, zi, ierr )
 !    Output, real ( kind = 8 ) ZR(N,N), ZI(N,N), the real and imaginary parts,
 !    respectively, of the eigenvectors, if MATZ is not zero.
 !
-!    Output, integer ( kind = 4 ) IERR, an error completion code described in the 
+!    Output, integer ( kind = 4 ) IERR, an error completion code described in the
 !    documentation for TQLRAT and TQL2.  The normal completion code is zero.
 !
   implicit none
@@ -2989,7 +2989,7 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -3001,27 +3001,27 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) AR(N,N), AI(N,N), the real and imaginary parts of 
-!    the complex Hessenberg matrix.  
+!    Input, real ( kind = 8 ) AR(N,N), AI(N,N), the real and imaginary parts of
+!    the complex Hessenberg matrix.
 !
 !    Input/output, real ( kind = 8 ) WR(N), WI(N).  On input, the real and imaginary parts
-!    of the eigenvalues of the matrix.  The eigenvalues must be stored in a 
-!    manner identical to that of subroutine COMLR, which recognizes possible 
-!    splitting of the matrix.  On output, WR may have been altered since 
-!    close eigenvalues are perturbed slightly in searching for independent 
+!    of the eigenvalues of the matrix.  The eigenvalues must be stored in a
+!    manner identical to that of subroutine COMLR, which recognizes possible
+!    splitting of the matrix.  On output, WR may have been altered since
+!    close eigenvalues are perturbed slightly in searching for independent
 !    eigenvectors.
 !
 !    Input, logical SELECT(N), specifies the eigenvectors to be found.  The
-!    eigenvector corresponding to the J-th eigenvalue is specified by 
+!    eigenvector corresponding to the J-th eigenvalue is specified by
 !    setting SELECT(J) to TRUE.
 !
-!    Input, integer ( kind = 4 ) MM, an upper bound for the number of eigenvectors 
+!    Input, integer ( kind = 4 ) MM, an upper bound for the number of eigenvectors
 !    to be found.
 !
 !    Output, integer ( kind = 4 ) M, the number of eigenvectors actually found.
 !
 !    Output, real ( kind = 8 ) ZR(N,MM), ZI(N,MM), the real and imaginary parts
-!    of the eigenvectors.  The eigenvectors are normalized so that the 
+!    of the eigenvectors.  The eigenvectors are normalized so that the
 !    component of largest magnitude is 1.
 !    Any vector which fails the acceptance test is set to zero.
 !
@@ -3093,7 +3093,7 @@ subroutine cinvit ( n, ar, ai, wr, wi, select, mm, m, zr, zi, ierr )
      end do
 !
 !  Compute infinity norm of leading UK by UK (Hessenberg) matrix.
-!   
+!
      norm = 0.0D+00
      mp = 1
 
@@ -3342,7 +3342,7 @@ subroutine combak ( n, low, igh, ar, ai, ia, m, zr, zi )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -3360,13 +3360,13 @@ subroutine combak ( n, low, igh, ar, ai, ia, m, zr, zi )
 !    Input, real ( kind = 8 ) AR(N,IGH), AI(N,IGH), the multipliers which were used in the
 !    reduction by COMHES in their lower triangles below the subdiagonal.
 !
-!    Input, integer ( kind = 4 ) INT(IGH), information on the rows and columns interchanged 
+!    Input, integer ( kind = 4 ) INT(IGH), information on the rows and columns interchanged
 !    in the reduction by COMHES.
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
 !
-!    Input/output, real ( kind = 8 ) ZR(N,M), ZI(N,M).  On input, the real and imaginary 
-!    parts of the eigenvectors to be back transformed.  On output, the real 
+!    Input/output, real ( kind = 8 ) ZR(N,M), ZI(N,M).  On input, the real and imaginary
+!    parts of the eigenvectors to be back transformed.  On output, the real
 !    and imaginary parts of the transformed eigenvectors.
 !
   implicit none
@@ -3467,7 +3467,7 @@ subroutine comhes ( n, low, igh, ar, ai, ia )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -3482,9 +3482,9 @@ subroutine comhes ( n, low, igh, ar, ai, ia )
 !    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
-!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real and imaginary 
-!    parts of the complex input matrix.  On output, the real and imaginary 
-!    parts of the Hessenberg matrix.  The multipliers which were used in the 
+!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real and imaginary
+!    parts of the complex input matrix.  On output, the real and imaginary
+!    parts of the Hessenberg matrix.  The multipliers which were used in the
 !    reduction are stored in the remaining triangles under the
 !    Hessenberg matrix.
 !
@@ -3586,7 +3586,7 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
 !
 !  Discussion:
 !
-!    This subroutine finds the eigenvalues of a complex upper Hessenberg 
+!    This subroutine finds the eigenvalues of a complex upper Hessenberg
 !    matrix by the modified LR method.
 !
 !  Licensing:
@@ -3612,7 +3612,7 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -3627,21 +3627,21 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
 !    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
-!    Input/output, real ( kind = 8 ) HR(N,N), HI(N,N).  On input, the real and imaginary 
-!    parts of the complex upper Hessenberg matrix.  Their lower triangles 
-!    below the subdiagonal contain the multipliers which were used in the 
-!    reduction by COMHES if performed.  On output, the upper Hessenberg 
-!    portions of HR and HI have been destroyed.  Therefore, they must be 
-!    saved before calling COMLR if subsequent calculation of eigenvectors 
+!    Input/output, real ( kind = 8 ) HR(N,N), HI(N,N).  On input, the real and imaginary
+!    parts of the complex upper Hessenberg matrix.  Their lower triangles
+!    below the subdiagonal contain the multipliers which were used in the
+!    reduction by COMHES if performed.  On output, the upper Hessenberg
+!    portions of HR and HI have been destroyed.  Therefore, they must be
+!    saved before calling COMLR if subsequent calculation of eigenvectors
 !    is to be performed.
 !
-!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts of the 
+!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts of the
 !    eigenvalues.  If an error exit is made, the eigenvalues should be correct
 !    for indices IERR+1,...,N.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
 !    0, for normal return,
-!    J, if the limit of 30*N iterations is exhausted while the J-th 
+!    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
   implicit none
@@ -3712,7 +3712,7 @@ subroutine comlr ( n, low, igh, hr, hi, wr, wi, ierr )
   do ll = low, en
      l = en + low - ll
      if ( l == low ) go to 300
-     tst1 = abs ( hr(l-1,l-1) ) + abs ( hi(l-1,l-1) ) + abs ( hr(l,l) ) & 
+     tst1 = abs ( hr(l-1,l-1) ) + abs ( hi(l-1,l-1) ) + abs ( hr(l,l) ) &
        + abs ( hi(l,l) )
      tst2 = tst1 + abs ( hr(l,l-1) ) + abs ( hi(l,l-1) )
      if ( tst2 == tst1) go to 300
@@ -3878,9 +3878,9 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 !
 !  Discussion:
 !
-!    This subroutine finds the eigenvalues and eigenvectors of a complex 
-!    upper Hessenberg matrix by the modified LR method.  The eigenvectors 
-!    of a complex general matrix can also be found if COMHES has been used 
+!    This subroutine finds the eigenvalues and eigenvectors of a complex
+!    upper Hessenberg matrix by the modified LR method.  The eigenvectors
+!    of a complex general matrix can also be found if COMHES has been used
 !    to reduce this general matrix to Hessenberg form.
 !
 !  Licensing:
@@ -3906,7 +3906,7 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -3922,28 +3922,28 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
 !    Input, integer ( kind = 4 ) INT(IGH), information on the rows and columns interchanged
-!    in the reduction by COMHES, if performed.  If the eigenvectors of the 
+!    in the reduction by COMHES, if performed.  If the eigenvectors of the
 !    Hessenberg matrix are desired, set INT(J)=J for these elements.
 !
 !    Input/output, real ( kind = 8 ) HR(N,N), HI(N,N).  On input, the real and imaginary
-!    parts of the complex upper Hessenberg matrix.  Their lower triangles 
-!    below the subdiagonal contain the multipliers which were used in the 
+!    parts of the complex upper Hessenberg matrix.  Their lower triangles
+!    below the subdiagonal contain the multipliers which were used in the
 !    reduction by COMHES, if performed.  If the eigenvectors of the Hessenberg
 !    matrix are desired, these elements must be set to zero.  On output,
 !    the upper Hessenberg portions of HR and HI have been destroyed, but the
 !    location HR(1,1) contains the norm of the triangularized matrix.
 !
-!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts of the 
-!    eigenvalues.  If an error exit is made, the eigenvalues should be 
+!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts of the
+!    eigenvalues.  If an error exit is made, the eigenvalues should be
 !    correct for indices IERR+1,...,N.
 !
 !    Output, real ( kind = 8 ) ZR(N,N), ZI(N,N), the real and imaginary parts of the
-!    eigenvectors.  The eigenvectors are unnormalized.  If an error exit 
+!    eigenvectors.  The eigenvectors are unnormalized.  If an error exit
 !    is made, none of the eigenvectors has been found.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
 !    0, for normal return,
-!    J, if the limit of 30*N iterations is exhausted while the J-th 
+!    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
   implicit none
@@ -4001,7 +4001,7 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
 
   zi(1:n,1:n) = 0.0D+00
 !
-!  Form the matrix of accumulated transformations from the information left 
+!  Form the matrix of accumulated transformations from the information left
 !  by COMHES.
 !
   iend = igh - low - 1
@@ -4234,7 +4234,7 @@ subroutine comlr2 ( n, low, igh, ia, hr, hi, wr, wi, zr, zi, ierr )
   en = enm1
   go to 220
 !
-!  All roots found.  
+!  All roots found.
 !  Backsubstitute to find vectors of upper triangular form.
 !
   680 continue
@@ -4400,7 +4400,7 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -4415,21 +4415,21 @@ subroutine comqr ( n, low, igh, hr, hi, wr, wi, ierr )
 !    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
-!    Input/output, real ( kind = 8 ) HR(N,N), HI(N,N).  On input, the real and imaginary 
-!    parts of the complex upper Hessenberg matrix.  Their lower triangles 
-!    below the subdiagonal contain information about the unitary 
+!    Input/output, real ( kind = 8 ) HR(N,N), HI(N,N).  On input, the real and imaginary
+!    parts of the complex upper Hessenberg matrix.  Their lower triangles
+!    below the subdiagonal contain information about the unitary
 !    transformations used in the reduction by CORTH, if performed.  On output,
-!    the upper Hessenberg portions of HR and HI have been destroyed.  
-!    Therefore, they must be saved before calling COMQR if subsequent 
+!    the upper Hessenberg portions of HR and HI have been destroyed.
+!    Therefore, they must be saved before calling COMQR if subsequent
 !    calculation of eigenvectors is to be performed.
 !
-!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts of the 
-!    eigenvalues.  If an error exit is made, the eigenvalues should be 
+!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts of the
+!    eigenvalues.  If an error exit is made, the eigenvalues should be
 !    correct for indices IERR+1,...,N.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
 !    0, for normal return,
-!    J, if the limit of 30*N iterations is exhausted while the J-th 
+!    J, if the limit of 30*N iterations is exhausted while the J-th
 !       eigenvalue is being sought.
 !
   implicit none
@@ -4719,7 +4719,7 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -4734,30 +4734,30 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 !    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
-!    Input/output, real ( kind = 8 ) ORTR(N), ORTI(N).  On input, information about the 
+!    Input/output, real ( kind = 8 ) ORTR(N), ORTI(N).  On input, information about the
 !    unitary transformations used in the reduction by CORTH, if performed.
 !    If the eigenvectors of the Hessenberg matrix are desired, set ORTR(J) and
 !    ORTI(J) to 0.0D+00 for these elements.  On output, these arrays
 !    have been overwritten.
 !
-!    Input/output, real ( kind = 8 ) HR(N,N), HI(N,N).  On input, the real and imaginary 
-!    parts of the complex upper Hessenberg matrix.  Their lower triangles 
-!    below the subdiagonal contain further information about the 
-!    transformations which were used in the reduction by CORTH, if performed.  
-!    If the eigenvectors of the Hessenberg matrix are desired, these elements 
+!    Input/output, real ( kind = 8 ) HR(N,N), HI(N,N).  On input, the real and imaginary
+!    parts of the complex upper Hessenberg matrix.  Their lower triangles
+!    below the subdiagonal contain further information about the
+!    transformations which were used in the reduction by CORTH, if performed.
+!    If the eigenvectors of the Hessenberg matrix are desired, these elements
 !    may be arbitrary.
 !
-!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts of the 
-!    eigenvalues.  If an error exit is made, the eigenvalues should be 
+!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts of the
+!    eigenvalues.  If an error exit is made, the eigenvalues should be
 !    correct for indices IERR+1,...,N.
 !
-!    Output, real ( kind = 8 ) ZR(N,N), ZI(N,N), the real and imaginary parts of the 
-!    eigenvectors.  The eigenvectors are unnormalized.  If an error exit 
+!    Output, real ( kind = 8 ) ZR(N,N), ZI(N,N), the real and imaginary parts of the
+!    eigenvectors.  The eigenvectors are unnormalized.  If an error exit
 !    is made, none of the eigenvectors has been found.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
 !    0, for normal return,
-!    J, if the limit of 30*N iterations is exhausted while the J-th 
+!    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
   implicit none
@@ -4800,7 +4800,7 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
   real    ( kind = 8 ) yr
   real    ( kind = 8 ) zi(n,n)
   real    ( kind = 8 ) zr(n,n)
-  real    ( kind = 8 ) zzi 
+  real    ( kind = 8 ) zzi
   real    ( kind = 8 ) zzr
 
   ierr = 0
@@ -4815,7 +4815,7 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
 
   zi(1:n,1:n) = 0.0D+00
 !
-!  Form the matrix of accumulated transformations from the information 
+!  Form the matrix of accumulated transformations from the information
 !  left by CORTH.
 !
   iend = igh - low - 1
@@ -5111,7 +5111,7 @@ subroutine comqr2 ( n, low, igh, ortr, orti, hr, hi, wr, wi, zr, zi, ierr )
   en = enm1
   go to 220
 !
-!  All roots found.  
+!  All roots found.
 !  Backsubstitute to find vectors of upper triangular form.
 !
 680 continue
@@ -5283,7 +5283,7 @@ subroutine cortb ( n, low, igh, ar, ai, ortr, orti, m, zr, zi )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -5299,18 +5299,18 @@ subroutine cortb ( n, low, igh, ar, ai, ortr, orti, m, zr, zi )
 !    If CBAL is not used, set LOW = 1 and IGH to the order of the matrix.
 !
 !    Input, real ( kind = 8 ) AR(N,IGH), AI(N,IGH), information about the unitary
-!    transformations used in the reduction by CORTH in their strict lower 
+!    transformations used in the reduction by CORTH in their strict lower
 !    triangles.
 !
-!    Input/output, real ( kind = 8 ) ORTR(IGH), ORTI(IGH).  On input, further information 
+!    Input/output, real ( kind = 8 ) ORTR(IGH), ORTI(IGH).  On input, further information
 !    about the transformations used in the reduction by CORTH.  On output,
 !    ORTR and ORTI have been further altered.
 !
 !    Input, integer ( kind = 4 ) M, the number of columns of ZR and ZI to be back
 !    transformed.
 !
-!    Input/output, real ( kind = 8 ) ZR(N,M), ZI(N,M).  On input, the real and imaginary 
-!    parts of the eigenvectors to be back transformed.  On output, the real 
+!    Input/output, real ( kind = 8 ) ZR(N,M), ZI(N,M).  On input, the real and imaginary
+!    parts of the eigenvectors to be back transformed.  On output, the real
 !    and imaginary parts of the transformed eigenvectors.
 !
   implicit none
@@ -5414,7 +5414,7 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -5429,10 +5429,10 @@ subroutine corth ( n, low, igh, ar, ai, ortr, orti )
 !    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine CBAL.
 !    If CBAL is not used, set LOW = 1 and IGH = N.
 !
-!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real and imaginary 
+!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real and imaginary
 !    parts of the complex input matrix.  On output, the real and imaginary
-!    parts of the Hessenberg matrix.  Information about the unitary 
-!    transformations used in the reduction is stored in the remaining 
+!    parts of the Hessenberg matrix.  Information about the unitary
+!    transformations used in the reduction is stored in the remaining
 !    triangles under the Hessenberg matrix.
 !
 !    Output, real ( kind = 8 ) ORTR(IGH), ORTI(IGH), further information about the
@@ -5565,9 +5565,9 @@ subroutine csroot ( xr, xi, yr, yi )
 !
 !  Discussion:
 !
-!    The branch of the square function is chosen so that 
-!      YR >= 0.0D+00 
-!    and 
+!    The branch of the square function is chosen so that
+!      YR >= 0.0D+00
+!    and
 !      sign ( YI ) == sign ( XI )
 !
 !  Licensing:
@@ -5593,7 +5593,7 @@ subroutine csroot ( xr, xi, yr, yi )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -5670,7 +5670,7 @@ subroutine elmbak ( n, low, igh, a, ind, m, z )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -5683,7 +5683,7 @@ subroutine elmbak ( n, low, igh, a, ind, m, z )
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
 !    Input, integer ( kind = 4 ) LOW, IGH, integers determined by the balancing
-!    routine BALANC.  If BALANC has not been used, set LOW = 1 and 
+!    routine BALANC.  If BALANC has not been used, set LOW = 1 and
 !    IGH equal to the order of the matrix.
 !
 !    Input, real ( kind = 8 ) A(N,IGH), the multipliers which were used in the
@@ -5694,8 +5694,8 @@ subroutine elmbak ( n, low, igh, a, ind, m, z )
 !
 !    Input, integer ( kind = 4 ) M, the number of columns of Z to be back transformed.
 !
-!    Input/output, real ( kind = 8 ) Z(N,M).  On input, the real and imaginary parts 
-!    of the eigenvectors to be back transformed.  On output, the real and 
+!    Input/output, real ( kind = 8 ) Z(N,M).  On input, the real and imaginary parts
+!    of the eigenvectors to be back transformed.  On output, the real and
 !    imaginary parts of the transformed eigenvectors.
 !
   implicit none
@@ -5763,8 +5763,8 @@ subroutine elmhes ( n, low, igh, a, ind )
 !
 !  Discussion:
 !
-!    Given a real general matrix, this subroutine reduces a submatrix 
-!    situated in rows and columns LOW through IGH to upper Hessenberg 
+!    Given a real general matrix, this subroutine reduces a submatrix
+!    situated in rows and columns LOW through IGH to upper Hessenberg
 !    form by stabilized elementary similarity transformations.
 !
 !  Licensing:
@@ -5795,7 +5795,7 @@ subroutine elmhes ( n, low, igh, a, ind )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -5807,7 +5807,7 @@ subroutine elmhes ( n, low, igh, a, ind )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine  
+!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine
 !    BALANC.  If BALANC has not been used, set LOW = 1, IGH = N.
 !
 !    Input/output, real ( kind = 8 ) A(N,N).  On input, the matrix to be reduced.
@@ -5931,7 +5931,7 @@ subroutine eltran ( n, low, igh, a, ind, z )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -5943,7 +5943,7 @@ subroutine eltran ( n, low, igh, a, ind, z )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine  
+!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine
 !    BALANC.  If BALANC has not been used, set LOW = 1, IGH = N.
 !
 !    Input, real ( kind = 8 ) A(N,IGH), the multipliers which were used in the
@@ -6045,7 +6045,7 @@ subroutine figi ( n, t, d, e, e2, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -6058,8 +6058,8 @@ subroutine figi ( n, t, d, e, e2, ierr )
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = 8 ) T(N,3) contains the input matrix.  Its subdiagonal is
-!    stored in the last N-1 positions of the first column, its diagonal in 
-!    the N positions of the second column, and its superdiagonal in the 
+!    stored in the last N-1 positions of the first column, its diagonal in
+!    the N positions of the second column, and its superdiagonal in the
 !    first N-1 positions of the third column.  T(1,1) and T(N,3) are arbitrary.
 !
 !    Output, real ( kind = 8 ) D(N), the diagonal elements of the symmetric matrix.
@@ -6073,8 +6073,8 @@ subroutine figi ( n, t, d, e, e2, ierr )
 !    Output, integer ( kind = 4 ) IERR, error flag.
 !    0, for normal return,
 !    N+I, if T(I,1) * T(I-1,3) is negative,
-!    -(3*N+I), if T(I,1) * T(I-1,3) is zero with one factor non-zero.  In 
-!      this case, the eigenvectors of the symmetric matrix are not simply 
+!    -(3*N+I), if T(I,1) * T(I-1,3) is zero with one factor non-zero.  In
+!      this case, the eigenvectors of the symmetric matrix are not simply
 !      related to those of T and should not be sought.
 !
   implicit none
@@ -6162,7 +6162,7 @@ subroutine figi2 ( n, t, d, e, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -6175,8 +6175,8 @@ subroutine figi2 ( n, t, d, e, z, ierr )
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
 !    Input, real ( kind = 8 ) T(N,3) contains the input matrix.  Its subdiagonal is
-!    stored in the last N-1 positions of the first column, its diagonal in 
-!    the N positions of the second column, and its superdiagonal in the 
+!    stored in the last N-1 positions of the first column, its diagonal in
+!    the N positions of the second column, and its superdiagonal in the
 !    first N-1 positions of the third column.  T(1,1) and T(N,3) are arbitrary.
 !
 !    Output, real ( kind = 8 ) D(N), the diagonal elements of the symmetric matrix.
@@ -6288,7 +6288,7 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -6304,7 +6304,7 @@ subroutine hqr ( n, low, igh, h, wr, wi, ierr )
 !    BALANC.  If BALANC is not used, set LOW=1, IGH=N.
 !
 !    Input/output, real ( kind = 8 ) H(N,N), the N by N upper Hessenberg matrix.
-!    Information about the transformations used in the reduction to 
+!    Information about the transformations used in the reduction to
 !    Hessenberg form by ELMHES or ORTHES, if performed, is stored
 !    in the remaining triangle under the Hessenberg matrix.
 !    On output, the information in H has been destroyed.
@@ -6663,7 +6663,7 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -6675,7 +6675,7 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, determined by the balancing routine BALANC.  
+!    Input, integer ( kind = 4 ) LOW, IGH, determined by the balancing routine BALANC.
 !    If BALANC has not been used, set LOW = 1, IGH = N.
 !
 !    Input/output, real ( kind = 8 ) H(N,N), the N by N upper Hessenberg matrix.
@@ -6688,20 +6688,20 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 !    occurred, then the eigenvalues should be correct for indices
 !    IERR+1 through N.
 !
-!    Input/output, real ( kind = 8 ) Z(N,N).  On input, the transformation matrix 
+!    Input/output, real ( kind = 8 ) Z(N,N).  On input, the transformation matrix
 !    produced by ELTRAN after the reduction by ELMHES, or by ORTRAN after the
-!    reduction by ORTHES, if performed.  If the eigenvectors of the Hessenberg 
+!    reduction by ORTHES, if performed.  If the eigenvectors of the Hessenberg
 !    matrix are desired, Z must contain the identity matrix.  On output,
 !    Z contains the real and imaginary parts of the eigenvectors.
-!    If the I-th eigenvalue is real, the I-th column of Z contains its 
-!    eigenvector.  If the I-th eigenvalue is complex with positive imaginary 
-!    part, the I-th and (I+1)-th columns of Z contain the real and imaginary 
+!    If the I-th eigenvalue is real, the I-th column of Z contains its
+!    eigenvector.  If the I-th eigenvalue is complex with positive imaginary
+!    part, the I-th and (I+1)-th columns of Z contain the real and imaginary
 !    parts of its eigenvector.  The eigenvectors are unnormalized.  If an
 !    error exit is made, none of the eigenvectors has been found.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
 !    0, for normal return,
-!    J, if the limit of 30*N iterations is exhausted while the J-th 
+!    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
   implicit none
@@ -6868,7 +6868,7 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
      end if
 
      tst1 = abs ( p ) * ( abs ( h(m-1,m-1) ) + abs ( zz ) + abs ( h(m+1,m+1) ) )
-     tst2 = tst1 + abs ( h(m,m-1) ) * ( abs ( q ) + abs ( r ) ) 
+     tst2 = tst1 + abs ( h(m,m-1) ) * ( abs ( q ) + abs ( r ) )
      if ( tst2 == tst1 ) then
        exit
      end if
@@ -7072,7 +7072,7 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
   en = enm2
   go to 60
 !
-!  All roots found.  
+!  All roots found.
 !  Backsubstitute to find vectors of upper triangular form.
 !
 340 continue
@@ -7187,7 +7187,7 @@ subroutine hqr2 ( n, low, igh, h, wr, wi, z, ierr )
 
      m = na
 !
-!  Last vector component chosen imaginary, so that the eigenvector 
+!  Last vector component chosen imaginary, so that the eigenvector
 !  matrix is triangular.
 !
      if ( abs ( h(en,na) ) > abs ( h(na,en) ) ) then
@@ -7343,7 +7343,7 @@ subroutine htrib3 ( n, a, tau, m, zr, zi )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -7355,10 +7355,10 @@ subroutine htrib3 ( n, a, tau, m, zr, zi )
 !
 !    Input, integer ( kind = 4 ) N, is the order of the matrix.
 !
-!    Input, real ( kind = 8 ) A(N,N), contains information about the unitary 
+!    Input, real ( kind = 8 ) A(N,N), contains information about the unitary
 !    transformations used in the reduction by HTRID3.
 !
-!    Input, real ( kind = 8 ) TAU(2,N), contains further information about the 
+!    Input, real ( kind = 8 ) TAU(2,N), contains further information about the
 !    transformations.
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
@@ -7388,7 +7388,7 @@ subroutine htrib3 ( n, a, tau, m, zr, zi )
     return
   end if
 !
-!  Transform the eigenvectors of the real symmetric tridiagonal matrix 
+!  Transform the eigenvectors of the real symmetric tridiagonal matrix
 !  to those of the hermitian tridiagonal matrix.
 !
   do k = 1, n
@@ -7467,7 +7467,7 @@ subroutine htribk ( n, ar, ai, tau, m, zr, zi )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -7479,11 +7479,11 @@ subroutine htribk ( n, ar, ai, tau, m, zr, zi )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) AR(N,N), AI(N,N), contain information about 
+!    Input, real ( kind = 8 ) AR(N,N), AI(N,N), contain information about
 !    the unitary transformations used in the reduction by HTRIDI in their
 !    full lower triangles, except for the diagonal of AR.
 !
-!    Input, real ( kind = 8 ) TAU(2,N), contains further information about the 
+!    Input, real ( kind = 8 ) TAU(2,N), contains further information about the
 !    transformations.
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
@@ -7514,7 +7514,7 @@ subroutine htribk ( n, ar, ai, tau, m, zr, zi )
     return
   end if
 !
-!  Transform the eigenvectors of the real symmetric tridiagonal matrix to 
+!  Transform the eigenvectors of the real symmetric tridiagonal matrix to
 !  those of the hermitian tridiagonal matrix.
 !
   do k = 1, n
@@ -7592,7 +7592,7 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -7604,10 +7604,10 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) A(N,N).  On input, the lower triangle of the complex 
+!    Input/output, real ( kind = 8 ) A(N,N).  On input, the lower triangle of the complex
 !    hermitian input matrix.  The real parts of the matrix elements are stored
-!    in the full lower triangle of A, and the imaginary parts are stored in 
-!    the transposed positions of the strict upper triangle of A.  No storage 
+!    in the full lower triangle of A, and the imaginary parts are stored in
+!    the transposed positions of the strict upper triangle of A.  No storage
 !    is required for the zero imaginary parts of the diagonal elements.
 !    On output, A contains information about the unitary transformations
 !    used in the reduction.
@@ -7620,7 +7620,7 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
 !    Output, real ( kind = 8 ) E2(N), the squares of the corresponding elements of E.
 !    E2 may coincide with E if the squares are not needed.
 !
-!    Output, real ( kind = 8 ) TAU(2,N), contains further information about the 
+!    Output, real ( kind = 8 ) TAU(2,N), contains further information about the
 !    transformations.
 !
   implicit none
@@ -7675,7 +7675,7 @@ subroutine htrid3 ( n, a, d, e, e2, tau )
        e2(i) = 0.0D+00
        go to 290
      end if
-   
+
       do k = 1, l
         a(i,k) = a(i,k) / xscale
         a(k,i) = a(k,i) / xscale
@@ -7783,7 +7783,7 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
 !
 !  Discussion:
 !
-!    This subroutine reduces a complex hermitian matrix to a real symmetric 
+!    This subroutine reduces a complex hermitian matrix to a real symmetric
 !    tridiagonal matrix using unitary similarity transformations.
 !
 !  Licensing:
@@ -7809,7 +7809,7 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -7821,11 +7821,11 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real 
+!    Input/output, real ( kind = 8 ) AR(N,N), AI(N,N).  On input, the real
 !    and imaginary parts, respectively, of the complex hermitian input matrix.
 !    Only the lower triangle of the matrix need be supplied.
-!    On output, information about the unitary transformations used in the 
-!    reduction in their full lower triangles.  Their strict upper triangles 
+!    On output, information about the unitary transformations used in the
+!    reduction in their full lower triangles.  Their strict upper triangles
 !    and the diagonal of AR are unaltered.
 !
 !    Output, real ( kind = 8 ) D(N), the diagonal elements of the the tridiagonal matrix.
@@ -7836,7 +7836,7 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
 !    Output, real ( kind = 8 ) E2(N), the squares of the corresponding elements of E.
 !    E2 may coincide with E if the squares are not needed.
 !
-!    Output, real ( kind = 8 ) TAU(2,N), contains further information about the 
+!    Output, real ( kind = 8 ) TAU(2,N), contains further information about the
 !    transformations.
 !
   implicit none
@@ -7986,7 +7986,7 @@ subroutine htridi ( n, ar, ai, d, e, e2, tau )
     d(i) = ar(i,i)
     ar(i,i) = hh
     ai(i,i) = xscale * sqrt ( h )
-  
+
   end do
 
   return
@@ -8026,7 +8026,7 @@ subroutine imtql1 ( n, d, e, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -8038,13 +8038,13 @@ subroutine imtql1 ( n, d, e, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) D(N).  On input, the diagonal elements of 
-!    the matrix.  On output, the eigenvalues in ascending order.  If an error 
-!    exit is made, the eigenvalues are correct and ordered for indices 
+!    Input/output, real ( kind = 8 ) D(N).  On input, the diagonal elements of
+!    the matrix.  On output, the eigenvalues in ascending order.  If an error
+!    exit is made, the eigenvalues are correct and ordered for indices
 !    1,2,...IERR-1, but may not be the smallest eigenvalues.
 !
-!    Input/output, real ( kind = 8 ) E(N).  On input, the subdiagonal elements 
-!    of the matrix in its last N-1 positions.  E(1) is arbitrary.  On output, 
+!    Input/output, real ( kind = 8 ) E(N).  On input, the subdiagonal elements
+!    of the matrix in its last N-1 positions.  E(1) is arbitrary.  On output,
 !    E has been overwritten.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
@@ -8222,7 +8222,7 @@ subroutine imtql2 ( n, d, e, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -8234,20 +8234,20 @@ subroutine imtql2 ( n, d, e, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) D(N).  On input, the diagonal elements of 
+!    Input/output, real ( kind = 8 ) D(N).  On input, the diagonal elements of
 !    the input matrix.  On output, the eigenvalues in ascending order.  If an
 !    error exit is made, the eigenvalues are correct but
 !    unordered for indices 1,2,...,IERR-1.
 !
-!    Input/output, real ( kind = 8 ) E(N).  On input, the subdiagonal elements 
+!    Input/output, real ( kind = 8 ) E(N).  On input, the subdiagonal elements
 !    of the input matrix in E(2:N).  E(1) is arbitrary.  On output, E is
 !    overwritten.
 !
-!    Input/output, real ( kind = 8 ) Z(N,N).  On input, the transformation 
-!    matrix produced in the reduction by TRED2, if performed.  If the 
-!    eigenvectors of the tridiagonal matrix are desired, Z must contain the 
-!    identity matrix.  On output, Z contains orthonormal eigenvectors of the 
-!    symmetric tridiagonal (or full) matrix.  If an error exit is made, Z 
+!    Input/output, real ( kind = 8 ) Z(N,N).  On input, the transformation
+!    matrix produced in the reduction by TRED2, if performed.  If the
+!    eigenvectors of the tridiagonal matrix are desired, Z must contain the
+!    identity matrix.  On output, Z contains orthonormal eigenvectors of the
+!    symmetric tridiagonal (or full) matrix.  If an error exit is made, Z
 !    contains the eigenvectors associated with the stored eigenvalues.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
@@ -8444,7 +8444,7 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -8461,19 +8461,19 @@ subroutine imtqlv ( n, d, e, e2, w, ind, ierr )
 !    Input, real ( kind = 8 ) E(N), the subdiagonal elements of the input matrix
 !    in E(2:N).  E(1) is arbitrary.
 !
-!    Input/output, real ( kind = 8 ) E2(N).  On input, the squares of the corresponding 
-!    elements of E.  E2(1) is arbitrary.  On output, elements of E2 
-!    corresponding to elements of E regarded as negligible have been 
-!    replaced by zero, causing the matrix to split into a direct sum of 
+!    Input/output, real ( kind = 8 ) E2(N).  On input, the squares of the corresponding
+!    elements of E.  E2(1) is arbitrary.  On output, elements of E2
+!    corresponding to elements of E regarded as negligible have been
+!    replaced by zero, causing the matrix to split into a direct sum of
 !    submatrices.  E2(1) is also set to zero.
 !
 !    Output, real ( kind = 8 ) W(N), the eigenvalues in ascending order.  If an
-!    error exit is made, the eigenvalues are correct and ordered for 
+!    error exit is made, the eigenvalues are correct and ordered for
 !    indices 1,2,...IERR-1, but may not be the smallest eigenvalues.
 !
 !    Output, integer ( kind = 4 ) IND(N), the submatrix indices associated with the
-!    corresponding eigenvalues in W: 1 for eigenvalues belonging to the 
-!    first submatrix from the top, 2 for those belonging to the second 
+!    corresponding eigenvalues in W: 1 for eigenvalues belonging to the
+!    first submatrix from the top, 2 for those belonging to the second
 !    submatrix, and so on.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
@@ -8638,7 +8638,7 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !
 !  Discussion:
 !
-!    This subroutine finds those eigenvectors of a real upper Hessenberg 
+!    This subroutine finds those eigenvectors of a real upper Hessenberg
 !    matrix corresponding to specified eigenvalues, using inverse iteration.
 !
 !  Licensing:
@@ -8664,7 +8664,7 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -8678,22 +8678,22 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !
 !    Input, real ( kind = 8 ) A(N,N), the Hessenberg matrix.
 !
-!    Input/output, real ( kind = 8 ) WR(N), WI(N).  On input, the real and imaginary 
-!    parts, respectively, of the eigenvalues of the matrix.  The eigenvalues 
+!    Input/output, real ( kind = 8 ) WR(N), WI(N).  On input, the real and imaginary
+!    parts, respectively, of the eigenvalues of the matrix.  The eigenvalues
 !    must be stored in a manner identical to that of subroutine HQR,
 !    which recognizes possible splitting of the matrix.  On output,
 !    WR may have been altered since close eigenvalues are perturbed
 !    slightly in searching for independent eigenvectors.
 !
-!    Input/output, logical SELECT(N).  On input, specifies the eigenvectors 
+!    Input/output, logical SELECT(N).  On input, specifies the eigenvectors
 !    to be found.  The eigenvector corresponding to the J-th eigenvalue is
-!    specified by setting SELECT(J) to TRUE.  On output, SELECT may have been 
-!    altered.  If the elements corresponding to a pair of conjugate complex 
-!    eigenvalues were each initially set to TRUE, the program resets the 
+!    specified by setting SELECT(J) to TRUE.  On output, SELECT may have been
+!    altered.  If the elements corresponding to a pair of conjugate complex
+!    eigenvalues were each initially set to TRUE, the program resets the
 !    second of the two elements to FALSE.
 !
-!    Input, integer ( kind = 4 ) MM, an upper bound for the number of columns required 
-!    to store the eigenvectors to be found.  Note that two columns are 
+!    Input, integer ( kind = 4 ) MM, an upper bound for the number of columns required
+!    to store the eigenvectors to be found.  Note that two columns are
 !    required to store the eigenvector corresponding to a complex eigenvalue.
 !
 !    Input, integer ( kind = 4 ) M, the number of columns actually used to store
@@ -8701,14 +8701,14 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !
 !    Output, real ( kind = 8 ) Z(N,MM), the real and imaginary parts of the eigenvectors.
 !    If the next selected eigenvalue is real, the next column
-!    of Z contains its eigenvector.  If the eigenvalue is complex, the next 
-!    two columns of Z contain the real and imaginary parts of its eigenvector.  
-!    The eigenvectors are normalized so that the component of largest 
+!    of Z contains its eigenvector.  If the eigenvalue is complex, the next
+!    two columns of Z contain the real and imaginary parts of its eigenvector.
+!    The eigenvectors are normalized so that the component of largest
 !    magnitude is 1.  Any vector which fails the acceptance test is set to zero.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
 !    0, for normal return,
-!    -(2*N+1), if more than MM columns of Z are necessary to store the 
+!    -(2*N+1), if more than MM columns of Z are necessary to store the
 !      eigenvectors corresponding to the specified eigenvalues.
 !    -K, if the iteration corresponding to the K-th value fails,
 !    -(N+K), if both error situations occur.
@@ -8807,7 +8807,7 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 
      end do
 !
-!  EPS3 replaces zero pivot in decomposition and close roots are modified 
+!  EPS3 replaces zero pivot in decomposition and close roots are modified
 !  by EPS3.
 !
      if ( norm == 0.0D+00 ) then
@@ -8926,7 +8926,7 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 !  Complex eigenvalue.
 !
 !  Triangular decomposition with interchanges,
-!  replacing zero pivots by EPS3.  
+!  replacing zero pivots by EPS3.
 !  Store imaginary parts in upper triangle starting at (1,3)
 !
 520  continue
@@ -9135,7 +9135,7 @@ subroutine invit ( n, a, wr, wi, select, mm, m, z, ierr )
 
      rv1(1) = eps3
      rv1(2:uk) = y
-     
+
      j = uk - its + 1
      rv1(j) = rv1(j) - eps3 * x
      if ( ilambd == 0.0D+00 ) go to 440
@@ -9203,12 +9203,12 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
 !  Discussion:
 !
 !    This subroutine is part of an algorithm for solving general linear
-!    systems of the form A*X=B.  
+!    systems of the form A*X=B.
 !
-!    It determines the singular value decomposition 
-!      A = U * S * V' 
-!    of a real M by N rectangular matrix, forming U' * B 
-!    rather than U.  Householder bidiagonalization and a variant of the 
+!    It determines the singular value decomposition
+!      A = U * S * V'
+!    of a real M by N rectangular matrix, forming U' * B
+!    rather than U.  Householder bidiagonalization and a variant of the
 !    QR algorithm are used.
 !
 !  Licensing:
@@ -9234,7 +9234,7 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -9253,19 +9253,19 @@ subroutine minfit ( nm, m, n, a, w, ip, b, ierr )
 !
 !    Input/output, real ( kind = 8 ) A(NM,N). On input, the rectangular coefficient matrix.
 !    On output, A has been overwritten by the orthogonal matrix V of the
-!    decomposition in its first N rows and columns.  If an error exit is made, 
-!    the columns of V corresponding to indices of correct singular values 
+!    decomposition in its first N rows and columns.  If an error exit is made,
+!    the columns of V corresponding to indices of correct singular values
 !    should be correct.
 !
-!    Output, real ( kind = 8 ) W(N), the singular values of A.  These are the diagonal 
-!    elements of S.  They are unordered.  If an error exit is made, the 
+!    Output, real ( kind = 8 ) W(N), the singular values of A.  These are the diagonal
+!    elements of S.  They are unordered.  If an error exit is made, the
 !    singular values should be correct for indices IERR+1, IERR+2,...,N.
 !
 !    Input, integer ( kind = 4 ) IP, is the number of columns of B.  IP can be zero.
 !
 !    Input/output, real ( kind = 8 ) B(NM,IP).  On input, the constant column matrix,
 !    On output, B has been overwritten by U'*B.  If an error exit is made,
-!    the rows of U'*B corresponding to indices of correct singular values 
+!    the rows of U'*B corresponding to indices of correct singular values
 !    should be correct.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
@@ -9627,7 +9627,7 @@ subroutine ortbak ( n, low, igh, a, ort, m, z )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -9639,21 +9639,21 @@ subroutine ortbak ( n, low, igh, a, ort, m, z )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine BALANC.  
-!    If BALANC has not been used, set LOW = 1 and IGH equal to the order of 
+!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine BALANC.
+!    If BALANC has not been used, set LOW = 1 and IGH equal to the order of
 !    the matrix.
 !
-!    Input, real ( kind = 8 ) A(N,IGH), contains information about the orthogonal 
-!    transformations used in the reduction by ORTHES in its strict 
+!    Input, real ( kind = 8 ) A(N,IGH), contains information about the orthogonal
+!    transformations used in the reduction by ORTHES in its strict
 !    lower triangle.
 !
-!    Input/output, real ( kind = 8 ) ORT(IGH), contains further information about the 
+!    Input/output, real ( kind = 8 ) ORT(IGH), contains further information about the
 !    transformations used in the reduction by ORTHES.  On output, ORT
 !    has been altered.
 !
 !    Input, integer ( kind = 4 ) M, the number of columns of Z to be back transformed.
 !
-!    Input/output, real ( kind = 8 ) Z(N,N).  On input, the real and imaginary parts of 
+!    Input/output, real ( kind = 8 ) Z(N,N).  On input, the real and imaginary parts of
 !    the eigenvectors to be back transformed in the first M columns.  On
 !    output, the real and imaginary parts of the transformed eigenvectors.
 !
@@ -9709,7 +9709,7 @@ subroutine orthes ( n, low, igh, a, ort )
 !
 !  Discussion:
 !
-!    Given a real general matrix, this subroutine reduces a submatrix 
+!    Given a real general matrix, this subroutine reduces a submatrix
 !    situated in rows and columns LOW through IGH to upper Hessenberg form by
 !    orthogonal similarity transformations.
 !
@@ -9726,7 +9726,7 @@ subroutine orthes ( n, low, igh, a, ort )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -9738,15 +9738,15 @@ subroutine orthes ( n, low, igh, a, ort )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine BALANC.  
+!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing routine BALANC.
 !    If BALANC has not been used, set LOW = 1 and IGH = N.
 !
 !    Input/output, real ( kind = 8 ) A(N,N).  On input, the matrix.  On output,
-!    the Hessenberg matrix.  Information about the orthogonal transformations 
+!    the Hessenberg matrix.  Information about the orthogonal transformations
 !    used in the reduction is stored in the remaining triangle under the
 !    Hessenberg matrix.
 !
-!    Output, real ( kind = 8 ) ORT(IGH), contains further information about the 
+!    Output, real ( kind = 8 ) ORT(IGH), contains further information about the
 !    transformations.
 !
   implicit none
@@ -9875,7 +9875,7 @@ subroutine ortran ( n, low, igh, a, ort, z )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -9887,14 +9887,14 @@ subroutine ortran ( n, low, igh, a, ort, z )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing 
+!    Input, integer ( kind = 4 ) LOW, IGH, are determined by the balancing
 !    routine BALANC.  If BALANC has not been used, set LOW = 1, IGH = N.
 !
-!    Input, real ( kind = 8 ) A(N,IGH), contains information about the orthogonal 
-!    transformations used in the reduction by ORTHES in its strict lower 
+!    Input, real ( kind = 8 ) A(N,IGH), contains information about the orthogonal
+!    transformations used in the reduction by ORTHES in its strict lower
 !    triangle.
 !
-!    Input/output, real ( kind = 8 ) ORT(IGH), contains further information about the 
+!    Input/output, real ( kind = 8 ) ORT(IGH), contains further information about the
 !    transformations used in the reduction by ORTHES.  On output, ORT
 !    has been further altered.
 !
@@ -9995,7 +9995,7 @@ subroutine qzhes ( n, a, b, matz, z )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -10018,7 +10018,7 @@ subroutine qzhes ( n, a, b, matz, z )
 !    Input, logical MATZ, should be TRUE if the right hand transformations
 !    are to be accumulated for later use in computing eigenvectors.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the product of the right hand 
+!    Output, real ( kind = 8 ) Z(N,N), contains the product of the right hand
 !    transformations if MATZ is TRUE.
 !
   implicit none
@@ -10236,7 +10236,7 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -10250,19 +10250,19 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 !
 !    Input/output, real ( kind = 8 ) A(N,N).  On input, a real upper Hessenberg matrix.
 !    On output, A has been reduced to quasi-triangular form.  The elements
-!    below the first subdiagonal are still zero and no two consecutive 
+!    below the first subdiagonal are still zero and no two consecutive
 !    subdiagonal elements are nonzero.
 !
 !    Input/output, real ( kind = 8 ) B(N,N).  On input, a real upper triangular matrix.
 !    On output, B is still in upper triangular form, although its elements
-!    have been altered.  The location B(N,1) is used to store EPS1 times 
+!    have been altered.  The location B(N,1) is used to store EPS1 times
 !    the norm of B for later use by QZVAL and QZVEC.
 !
 !    Input, real ( kind = 8 ) EPS1, a tolerance used to determine negligible elements.
-!    EPS1 = 0.0D+00 (or negative) may be input, in which case an element 
-!    will be neglected only if it is less than roundoff error times the 
-!    norm of its matrix.  If the input EPS1 is positive, then an element 
-!    will be considered negligible if it is less than EPS1 times the norm 
+!    EPS1 = 0.0D+00 (or negative) may be input, in which case an element
+!    will be neglected only if it is less than roundoff error times the
+!    norm of its matrix.  If the input EPS1 is positive, then an element
+!    will be considered negligible if it is less than EPS1 times the norm
 !    of its matrix.  A positive value of EPS1 may result in faster execution,
 !    but less accurate results.
 !
@@ -10270,13 +10270,13 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
 !    are to be accumulated for later use in computing eigenvectors.
 !
 !    Input/output, real ( kind = 8 ) Z(N,N).  If MATZ is FALSE, Z is not referenced.
-!    Otherwise, on input, the transformation matrix produced in the reduction 
-!    by QZHES, if performed, or else the identity matrix.  On output, Z 
+!    Otherwise, on input, the transformation matrix produced in the reduction
+!    by QZHES, if performed, or else the identity matrix.  On output, Z
 !    contains the product of the right hand transformations for both steps.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
 !    0, for normal return,
-!    J, if the limit of 30*N iterations is exhausted while the J-th 
+!    J, if the limit of 30*N iterations is exhausted while the J-th
 !      eigenvalue is being sought.
 !
   implicit none
@@ -10515,7 +10515,7 @@ subroutine qzit ( n, a, b, eps1, matz, z, ierr )
   if ( abs ( s - a44 ) < abs ( sh - a44 ) ) sh = s
 !
 !  Look for two consecutive small sub-diagonal elements of A.
-! 
+!
   do ll = ld, enm2
     l = enm2 + ld - ll
     if ( l == ld ) then
@@ -10792,7 +10792,7 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -10804,33 +10804,33 @@ subroutine qzval ( n, a, b, alfr, alfi, beta, matz, z )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrices.
 !
-!    Input/output, real ( kind = 8 ) A(N,N).  On input, a real upper quasi-triangular 
-!    matrix.  On output, A has been reduced further to a quasi-triangular 
+!    Input/output, real ( kind = 8 ) A(N,N).  On input, a real upper quasi-triangular
+!    matrix.  On output, A has been reduced further to a quasi-triangular
 !    matrix in which all nonzero subdiagonal elements correspond to
 !    pairs of complex eigenvalues.
 !
-!    Input/output, real ( kind = 8 ) B(N,N).  On input, a real upper triangular matrix.  
+!    Input/output, real ( kind = 8 ) B(N,N).  On input, a real upper triangular matrix.
 !    In addition, location B(n,1) contains the tolerance quantity EPSB
-!    computed and saved in QZIT.  On output, B is still in upper triangular 
+!    computed and saved in QZIT.  On output, B is still in upper triangular
 !    form, although its elements have been altered.  B(N,1) is unaltered.
 !
 !    Output, real ( kind = 8 ) ALFR(N), ALFI(N), the real and imaginary parts of the
-!    diagonal elements of the triangular matrix that would be obtained 
-!    if A were reduced completely to triangular form by unitary 
-!    transformations.  Non-zero values of ALFI occur in pairs, the first 
+!    diagonal elements of the triangular matrix that would be obtained
+!    if A were reduced completely to triangular form by unitary
+!    transformations.  Non-zero values of ALFI occur in pairs, the first
 !    member positive and the second negative.
 !
 !    Output, real ( kind = 8 ) BETA(N), the diagonal elements of the corresponding B,
-!    normalized to be real and non-negative.  The generalized eigenvalues 
+!    normalized to be real and non-negative.  The generalized eigenvalues
 !    are then the ratios (ALFR + I * ALFI) / BETA.
 !
 !    Input, logical MATZ, should be TRUE if the right hand transformations
-!    are to be accumulated for later use in computing eigenvectors, and 
+!    are to be accumulated for later use in computing eigenvectors, and
 !    to FALSE otherwise.
 !
 !    Input/output, real ( kind = 8 ) Z(N,N), is only used if MATZ is TRUE.
 !    On input, the transformation matrix produced in the reductions by QZHES
-!    and QZIT, if performed, or else the identity matrix.  On output, 
+!    and QZIT, if performed, or else the identity matrix.  On output,
 !    the product of the right hand transformations for all three steps.
 !
   implicit none
@@ -11217,7 +11217,7 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -11230,29 +11230,29 @@ subroutine qzvec ( n, a, b, alfr, alfi, beta, z )
 !    Input, integer ( kind = 4 ) N, the order of the matrices.
 !
 !    Input, real ( kind = 8 ) A(N,N), contains a real upper quasi-triangular matrix.
-!    Its subdiagonal elements provide information about the storage of 
+!    Its subdiagonal elements provide information about the storage of
 !    the complex eigenvectors.
 !
-!    Input/output, real ( kind = 8 ) B(N,N).  On input, a real upper triangular matrix.  
+!    Input/output, real ( kind = 8 ) B(N,N).  On input, a real upper triangular matrix.
 !    In addition, location B(N,1) contains the tolerance quantity EPSB
 !    computed and saved in QZIT.  On output, B has been destroyed.
 !
-!    Input, real ( kind = 8 ) ALFR(N), ALFI(N), BETA(N), vectors whose ratios 
-!      ( ALFR + I * ALFI ) / BETA 
+!    Input, real ( kind = 8 ) ALFR(N), ALFI(N), BETA(N), vectors whose ratios
+!      ( ALFR + I * ALFI ) / BETA
 !    are the generalized eigenvalues.  They are usually obtained from QZVAL.
 !
-!    Input/output, real ( kind = 8 ) Z(N,N).  On input, the transformation matrix produced 
-!    in the reductions by QZHES, QZIT, and QZVAL, if performed.  If the 
-!    eigenvectors of the triangular problem are desired, Z must contain the 
-!    identity matrix.  On output, Z contains the real and imaginary parts of 
+!    Input/output, real ( kind = 8 ) Z(N,N).  On input, the transformation matrix produced
+!    in the reductions by QZHES, QZIT, and QZVAL, if performed.  If the
+!    eigenvectors of the triangular problem are desired, Z must contain the
+!    identity matrix.  On output, Z contains the real and imaginary parts of
 !    the eigenvectors:
-!    If ALFI(I) == 0.0, the I-th eigenvalue is real and the I-th column of Z 
+!    If ALFI(I) == 0.0, the I-th eigenvalue is real and the I-th column of Z
 !    contains its eigenvector.
 !    If ALFI(I) > 0.0, the eigenvalue is the first of a complex pair and the
 !    I-th and (I+1)-th columns of Z contain its eigenvector.
-!    If ALFI(I) < 0.0, the eigenvalue is the second of a complex pair and the 
+!    If ALFI(I) < 0.0, the eigenvalue is the second of a complex pair and the
 !    (I-1)-th and I-th columns of Z contain the conjugate of its eigenvector.
-!    Each eigenvector is normalized so that the modulus of its largest 
+!    Each eigenvector is normalized so that the modulus of its largest
 !    component is 1.0D+00 .
 !
   implicit none
@@ -11907,7 +11907,7 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -11919,13 +11919,13 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) EPS1.  On input, a theoretical absolute 
-!    error tolerance for the computed eigenvalues.  If the input EPS1 is 
-!    non-positive, or indeed smaller than its default value, it is reset at 
-!    each iteration to the respective default value, namely, the product of 
-!    the relative machine precision and the magnitude of the current eigenvalue 
-!    iterate.  The theoretical absolute error in the K-th eigenvalue is usually 
-!    not greater than K times EPS1.  On output, EPS1 is unaltered unless it has 
+!    Input/output, real ( kind = 8 ) EPS1.  On input, a theoretical absolute
+!    error tolerance for the computed eigenvalues.  If the input EPS1 is
+!    non-positive, or indeed smaller than its default value, it is reset at
+!    each iteration to the respective default value, namely, the product of
+!    the relative machine precision and the magnitude of the current eigenvalue
+!    iterate.  The theoretical absolute error in the K-th eigenvalue is usually
+!    not greater than K times EPS1.  On output, EPS1 is unaltered unless it has
 !    been reset to its (last) default value.
 !
 !    Input, real ( kind = 8 ) D(N), the diagonal elements of the input matrix.
@@ -11933,35 +11933,35 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !    Input, real ( kind = 8 ) E(N), the subdiagonal elements of the input matrix
 !    in E(2:N).  E(1) is arbitrary.
 !
-!    Input/output, real ( kind = 8 ) E2(N).  On input, E2(2:N-1) contains the 
-!    squares of the corresponding elements of E, and E2(1) is arbitrary.  On 
-!    output, elements of E2 corresponding to elements of E regarded as 
-!    negligible have been replaced by zero, causing the matrix to split into 
-!    a direct sum of submatrices.  E2(1) is set to 0.0D+00 if the smallest 
-!    eigenvalues have been found, and to 2.0D+00 if the largest eigenvalues 
+!    Input/output, real ( kind = 8 ) E2(N).  On input, E2(2:N-1) contains the
+!    squares of the corresponding elements of E, and E2(1) is arbitrary.  On
+!    output, elements of E2 corresponding to elements of E regarded as
+!    negligible have been replaced by zero, causing the matrix to split into
+!    a direct sum of submatrices.  E2(1) is set to 0.0D+00 if the smallest
+!    eigenvalues have been found, and to 2.0D+00 if the largest eigenvalues
 !    have been found.  E2 is otherwise unaltered (unless overwritten by BD).
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvalues to be found.
 !
 !    Output, real ( kind = 8 ) W(M), the M algebraically smallest eigenvalues in
-!    ascending order, or the M largest eigenvalues in descending order.  
-!    If an error exit is made because of an incorrect specification of IDEF, 
+!    ascending order, or the M largest eigenvalues in descending order.
+!    If an error exit is made because of an incorrect specification of IDEF,
 !    no eigenvalues are found.  If the Newton iterates for a particular
-!    eigenvalue are not monotone, the best estimate obtained is returned 
+!    eigenvalue are not monotone, the best estimate obtained is returned
 !    and IERR is set.  W may coincide with D.
 !
-!    Outpt, integer IND(N), contains in its first M positions the submatrix 
+!    Outpt, integer IND(N), contains in its first M positions the submatrix
 !    indices associated with the corresponding eigenvalues in W:
-!    1 for eigenvalues belonging to the first submatrix from the top, 2 for 
+!    1 for eigenvalues belonging to the first submatrix from the top, 2 for
 !    those belonging to the second submatrix, and so on.
 !
-!    Output, real ( kind = 8 ) BD(N), contains refined bounds for the 
-!    theoretical errors of the corresponding eigenvalues in W.  These bounds 
-!    are usually within the tolerance specified by EPS1.  BD may coincide 
+!    Output, real ( kind = 8 ) BD(N), contains refined bounds for the
+!    theoretical errors of the corresponding eigenvalues in W.  These bounds
+!    are usually within the tolerance specified by EPS1.  BD may coincide
 !    with E2.
 !
-!    Input, integer ( kind = 4 ) IDEF, should be set to 1 if the input matrix 
-!    is known to be positive definite, to -1 if the input matrix is known to 
+!    Input, integer ( kind = 4 ) IDEF, should be set to 1 if the input matrix
+!    is known to be positive definite, to -1 if the input matrix is known to
 !    be negative  definite, and to 0 otherwise.
 !
 !    Input, logical TYPE, should be set to TRUE if the smallest eigenvalues
@@ -11969,10 +11969,10 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
 !    0, for normal return,
-!    6*N+1, if IDEF is set to 1 and TYPE to .true. when the matrix is not 
+!    6*N+1, if IDEF is set to 1 and TYPE to .true. when the matrix is not
 !      positive definite, or if IDEF is set to -1 and TYPE to .false.
 !      when the matrix is not negative definite,
-!    5*N+K, if successive iterates to the K-th eigenvalue are not monotone 
+!    5*N+K, if successive iterates to the K-th eigenvalue are not monotone
 !      increasing, where K refers to the last such occurrence.
 !
   implicit none
@@ -12021,7 +12021,7 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
   err = 0.0D+00
   s = 0.0D+00
 !
-!  Look for small sub-diagonal entries and define initial shift 
+!  Look for small sub-diagonal entries and define initial shift
 !  from lower Gerschgorin bound.
 !
 !  Copy E2 array into BD.
@@ -12087,7 +12087,7 @@ subroutine ratqr ( n, eps1, d, e, e2, m, w, ind, bd, type, idef, ierr )
      if ( delta < (-eps1) ) go to 1000
      go to 300
 !
-!  Replace small sub-diagonal squares by zero to reduce the incidence of 
+!  Replace small sub-diagonal squares by zero to reduce the incidence of
 !  underflows.
 !
 190  continue
@@ -12229,7 +12229,7 @@ subroutine rebak ( n, b, dl, m, z )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -12241,7 +12241,7 @@ subroutine rebak ( n, b, dl, m, z )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) B(N,N), contains information about the similarity 
+!    Input, real ( kind = 8 ) B(N,N), contains information about the similarity
 !    transformation (Cholesky decomposition) used in the reduction by REDUC
 !    in its strict lower triangle.
 !
@@ -12250,7 +12250,7 @@ subroutine rebak ( n, b, dl, m, z )
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
 !
 !    Input/output, real ( kind = 8 ) Z(N,M).  On input, the eigenvectors to be back
-!    transformed in its first M columns.  On output, the transformed 
+!    transformed in its first M columns.  On output, the transformed
 !    eigenvectors.
 !
   implicit none
@@ -12308,7 +12308,7 @@ subroutine rebakb ( n, b, dl, m, z )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -12320,7 +12320,7 @@ subroutine rebakb ( n, b, dl, m, z )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) B(N,N), contains information about the similarity 
+!    Input, real ( kind = 8 ) B(N,N), contains information about the similarity
 !    transformation (Cholesky decomposition) used in the reduction by REDUC2
 !    in its strict lower triangle.
 !
@@ -12329,7 +12329,7 @@ subroutine rebakb ( n, b, dl, m, z )
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
 !
 !    Input/output, real ( kind = 8 ) Z(N,M).  On input, the eigenvectors to be back
-!    transformed in its first M columns.  On output, the transformed 
+!    transformed in its first M columns.  On output, the transformed
 !    eigenvectors.
 !
   implicit none
@@ -12391,7 +12391,7 @@ subroutine reduc ( n, a, b, dl, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -12410,11 +12410,11 @@ subroutine reduc ( n, a, b, dl, ierr )
 !    of the symmetric matrix derived from the reduction to the
 !    standard form.  The strict upper triangle of a is unaltered.
 !
-!    Input/output, real ( kind = 8 ) B(N,N).  On input, the real symmetric input matrix.  
+!    Input/output, real ( kind = 8 ) B(N,N).  On input, the real symmetric input matrix.
 !    Only the full upper triangle of the matrix need be supplied.  If
-!    N is negative, the strict lower triangle of B contains, instead, the 
+!    N is negative, the strict lower triangle of B contains, instead, the
 !    strict lower triangle of its Cholesky factor L.  In any case, on output,
-!    B contains in its strict lower triangle the strict lower triangle of 
+!    B contains in its strict lower triangle the strict lower triangle of
 !    its Cholesky factor L.  The full upper triangle of B is unaltered.
 !
 !    Input/output, real ( kind = 8 ) DL(N).  If N is negative, then the DL contains
@@ -12557,7 +12557,7 @@ subroutine reduc2 ( n, a, b, dl, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -12576,11 +12576,11 @@ subroutine reduc2 ( n, a, b, dl, ierr )
 !    of the symmetric matrix derived from the reduction to the
 !    standard form.  The strict upper triangle of a is unaltered.
 !
-!    Input/output, real ( kind = 8 ) B(N,N).  On input, the real symmetric input matrix.  
+!    Input/output, real ( kind = 8 ) B(N,N).  On input, the real symmetric input matrix.
 !    Only the full upper triangle of the matrix need be supplied.  If
-!    N is negative, the strict lower triangle of B contains, instead, the 
+!    N is negative, the strict lower triangle of B contains, instead, the
 !    strict lower triangle of its Cholesky factor L.  In any case, on output,
-!    B contains in its strict lower triangle the strict lower triangle of 
+!    B contains in its strict lower triangle the strict lower triangle of
 !    its Cholesky factor L.  The full upper triangle of B is unaltered.
 !
 !    Input/output, real ( kind = 8 ) DL(N).  If N is negative, then the DL contains
@@ -12725,7 +12725,7 @@ subroutine rg ( n, a, wr, wi, matz, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -12743,18 +12743,18 @@ subroutine rg ( n, a, wr, wi, matz, z, ierr )
 !    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
 !    nonzero if both eigenvalues and eigenvectors are desired.
 !
-!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts, respectively, 
-!    of the eigenvalues.  Complex conjugate pairs of eigenvalues appear 
+!    Output, real ( kind = 8 ) WR(N), WI(N), the real and imaginary parts, respectively,
+!    of the eigenvalues.  Complex conjugate pairs of eigenvalues appear
 !    consecutively with the eigenvalue having the positive imaginary part first.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the real and imaginary parts of the 
+!    Output, real ( kind = 8 ) Z(N,N), contains the real and imaginary parts of the
 !    eigenvectors if MATZ is not zero.  If the J-th eigenvalue is real, the
-!    J-th column of Z contains its eigenvector.  If the J-th eigenvalue is 
-!    complex with positive imaginary part, the J-th and (J+1)-th columns of 
-!    Z contain the real and imaginary parts of its eigenvector.  The 
+!    J-th column of Z contains its eigenvector.  If the J-th eigenvalue is
+!    complex with positive imaginary part, the J-th and (J+1)-th columns of
+!    Z contain the real and imaginary parts of its eigenvector.  The
 !    conjugate of this vector is the eigenvector for the conjugate eigenvalue.
 !
-!    Output, integer ( kind = 4 ) IERR, an error completion code described in the 
+!    Output, integer ( kind = 4 ) IERR, an error completion code described in the
 !    documentation for HQR and HQR2.  The normal completion code is zero.
 !
   implicit none
@@ -12812,7 +12812,7 @@ subroutine rgg ( n, a, b, alfr, alfi, beta, matz, z, ierr )
 !    This subroutine calls the recommended sequence of
 !    subroutines from the eigensystem subroutine package (eispack)
 !    to find the eigenvalues and eigenvectors (if desired)
-!    for the real general generalized eigenproblem  
+!    for the real general generalized eigenproblem
 !
 !      A * x = lambda * B * x.
 !
@@ -12839,7 +12839,7 @@ subroutine rgg ( n, a, b, alfr, alfi, beta, matz, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -12865,15 +12865,15 @@ subroutine rgg ( n, a, b, alfr, alfi, beta, matz, z, ierr )
 !    Complex conjugate pairs of eigenvalues appear consecutively
 !    with the eigenvalue having the positive imaginary part first.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the real and imaginary parts of the 
+!    Output, real ( kind = 8 ) Z(N,N), contains the real and imaginary parts of the
 !    eigenvectors if MATZ is not zero.  If the J-th eigenvalue is real, the
-!    J-th column of Z contains its eigenvector.  If the J-th eigenvalue is 
-!    complex with positive imaginary part, the J-th and (J+1)-th columns of 
-!    Z contain the real and imaginary parts of its eigenvector.  The 
+!    J-th column of Z contains its eigenvector.  If the J-th eigenvalue is
+!    complex with positive imaginary part, the J-th and (J+1)-th columns of
+!    Z contain the real and imaginary parts of its eigenvector.  The
 !    conjugate of this vector is the eigenvector for the conjugate eigenvalue.
 !
-!    Output, integer ( kind = 4 ) IERR, is set equal to an error completion code 
-!    described in the documentation for QZIT.  The normal completion 
+!    Output, integer ( kind = 4 ) IERR, is set equal to an error completion code
+!    described in the documentation for QZIT.  The normal completion
 !    code is zero.
 !
   implicit none
@@ -12952,7 +12952,7 @@ subroutine rs ( n, a, w, matz, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -12974,7 +12974,7 @@ subroutine rs ( n, a, w, matz, z, ierr )
 !    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
 !    Output, integer ( kind = 4 ) IERR, is set equal to an error
-!    completion code described in the documentation for TQLRAT and TQL2.  
+!    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
   implicit none
@@ -13042,7 +13042,7 @@ subroutine rsb ( n, mb, a, w, matz, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -13059,10 +13059,10 @@ subroutine rsb ( n, mb, a, w, matz, z, ierr )
 !    to specify the non-zero portion of the lower triangle of the matrix.
 !
 !    Input, real ( kind = 8 ) A(N,MB), contains the lower triangle of the real symmetric
-!    band matrix.  Its lowest subdiagonal is stored in the last N+1-MB 
-!    positions of the first column, its next subdiagonal in the last 
-!    N+2-MB positions of the second column, further subdiagonals similarly, 
-!    and finally its principal diagonal in the N positions of the last 
+!    band matrix.  Its lowest subdiagonal is stored in the last N+1-MB
+!    positions of the first column, its next subdiagonal in the last
+!    N+2-MB positions of the second column, further subdiagonals similarly,
+!    and finally its principal diagonal in the N positions of the last
 !    column.  Contents of storages not part of the matrix are arbitrary.
 !
 !    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, and
@@ -13073,7 +13073,7 @@ subroutine rsb ( n, mb, a, w, matz, z, ierr )
 !    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
 !    Output, integer ( kind = 4 ) IERR, is set to an error
-!    completion code described in the documentation for TQLRAT and TQL2.  
+!    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
   implicit none
@@ -13101,7 +13101,7 @@ subroutine rsb ( n, mb, a, w, matz, z, ierr )
   end if
 
   if ( matz == 0 ) then
- 
+
     tf = .false.
 
     call bandr ( n, mb, a, w, fv1, fv2, tf, z )
@@ -13157,7 +13157,7 @@ subroutine rsg ( n, a, b, w, matz, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -13185,7 +13185,7 @@ subroutine rsg ( n, a, b, w, matz, z, ierr )
 !    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
 !    Output, integer ( kind = 4 ) IERR, is set to an error
-!    completion code described in the documentation for TQLRAT and TQL2.  
+!    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
   implicit none
@@ -13279,7 +13279,7 @@ subroutine rsgab ( n, a, b, w, matz, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -13303,7 +13303,7 @@ subroutine rsgab ( n, a, b, w, matz, z, ierr )
 !    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
 !    Output, integer ( kind = 4 ) IERR, is set to an error
-!    completion code described in the documentation for TQLRAT and TQL2.  
+!    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
   implicit none
@@ -13360,7 +13360,7 @@ subroutine rsgba ( n, a, b, w, matz, z, ierr )
 !    subroutines from the eigensystem subroutine package (eispack)
 !    to find the eigenvalues and eigenvectors (if desired)
 !    for the real symmetric generalized eigenproblem:
-! 
+!
 !      B * A * x = lambda * x
 !
 !  Licensing:
@@ -13386,7 +13386,7 @@ subroutine rsgba ( n, a, b, w, matz, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -13410,7 +13410,7 @@ subroutine rsgba ( n, a, b, w, matz, z, ierr )
 !    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
 !    Output, integer ( kind = 4 ) IERR, is set to an error
-!    completion code described in the documentation for TQLRAT and TQL2.  
+!    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
   implicit none
@@ -13491,7 +13491,7 @@ subroutine rsm ( n, a, w, m, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -13587,7 +13587,7 @@ subroutine rsp ( n, nv, a, w, matz, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -13599,7 +13599,7 @@ subroutine rsp ( n, nv, a, w, matz, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, integer ( kind = 4 ) NV, the dimension of the array A, which 
+!    Input, integer ( kind = 4 ) NV, the dimension of the array A, which
 !    must be at least (N*(N+1))/2.
 !
 !    Input, real ( kind = 8 ) A(NV), contains the lower triangle of the real symmetric
@@ -13613,7 +13613,7 @@ subroutine rsp ( n, nv, a, w, matz, z, ierr )
 !    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ is nonzero.
 !
 !    Output, integer ( kind = 4 ) IERR, is set to an error
-!    completion code described in the documentation for TQLRAT and TQL2.  
+!    completion code described in the documentation for TQLRAT and TQL2.
 !    The normal completion code is zero.
 !
   implicit none
@@ -13710,7 +13710,7 @@ subroutine rspp ( n, nv, a, w, matz, z, ierr, m, type )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -13720,10 +13720,10 @@ subroutine rspp ( n, nv, a, w, matz, z, ierr, m, type )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the order of A, the number of rows and 
+!    Input, integer ( kind = 4 ) N, the order of A, the number of rows and
 !    columns in the original matrix.
 !
-!    Input, integer ( kind = 4 ) NV, is the of the array A as specified in the 
+!    Input, integer ( kind = 4 ) NV, is the of the array A as specified in the
 !    calling program.  NV must not be less than N*(N+1)/2.
 !
 !    Input, real ( kind = 8 ) A((N*(N+1))/2), on input the lower triangle of the
@@ -13733,13 +13733,13 @@ subroutine rspp ( n, nv, a, w, matz, z, ierr, m, type )
 !
 !    Output, real ( kind = 8 ) W(M), the eigenvalues requested.
 !
-!    Input, integer ( kind = 4 ) MATZ, is set to 0 if only eigenvalues are 
-!    desired.  Otherwise it is set to any non-zero integer for both eigenvalues 
+!    Input, integer ( kind = 4 ) MATZ, is set to 0 if only eigenvalues are
+!    desired.  Otherwise it is set to any non-zero integer for both eigenvalues
 !    and eigenvectors.
 !
 !    Output, real ( kind = 8 ) Z(N,M), the eigenvectors.
 !
-!    Output, integer ( kind = 4 ) IERR, error flag from RATQR.  IERR=0 on 
+!    Output, integer ( kind = 4 ) IERR, error flag from RATQR.  IERR=0 on
 !    normal return.  IERR nonzero, in this case, means that the algorithm broke
 !    down while computing an eigenvalue.
 !
@@ -13769,7 +13769,7 @@ subroutine rspp ( n, nv, a, w, matz, z, ierr, m, type )
   real    ( kind = 8 ) z(n,m)
 !
 !  IDEF =
-!    -1 if the matrix is known to be negative definite, 
+!    -1 if the matrix is known to be negative definite,
 !    +1 if the matrix is known to be positive definite, or
 !    0 otherwise.
 !
@@ -13823,7 +13823,7 @@ subroutine rst ( n, w, e, matz, z, ierr )
 !
 !  Discussion:
 !
-!    This subroutine calls the recommended sequence of subroutines 
+!    This subroutine calls the recommended sequence of subroutines
 !    to find the eigenvalues and eigenvectors (if desired)
 !    of a real symmetric tridiagonal matrix.
 !
@@ -13850,7 +13850,7 @@ subroutine rst ( n, w, e, matz, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -13862,21 +13862,21 @@ subroutine rst ( n, w, e, matz, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) W(N).  On input, the diagonal elements 
-!    of the real symmetric tridiagonal matrix.  On output, the eigenvalues in 
+!    Input/output, real ( kind = 8 ) W(N).  On input, the diagonal elements
+!    of the real symmetric tridiagonal matrix.  On output, the eigenvalues in
 !    ascending order.
 !
 !    Input, real ( kind = 8 ) E(N), the subdiagonal elements of the matrix in
 !    E(2:N).  E(1) is arbitrary.
 !
-!    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired, 
+!    Input, integer ( kind = 4 ) MATZ, is zero if only eigenvalues are desired,
 !    and nonzero if both eigenvalues and eigenvectors are desired.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ 
+!    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ
 !    is nonzero.
 !
 !    Output, integer ( kind = 4 ) IERR, is set to an error
-!    completion code described in the documentation for IMTQL1 and IMTQL2.  
+!    completion code described in the documentation for IMTQL1 and IMTQL2.
 !    The normal completion code is zero.
 !
   implicit none
@@ -13931,7 +13931,7 @@ subroutine rt ( n, a, w, matz, z, ierr )
 !
 !  Discussion:
 !
-!    This subroutine calls the recommended sequence of subroutines 
+!    This subroutine calls the recommended sequence of subroutines
 !    to find the eigenvalues and eigenvectors (if desired)
 !    of a special real tridiagonal matrix.
 !
@@ -13958,7 +13958,7 @@ subroutine rt ( n, a, w, matz, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -13970,22 +13970,22 @@ subroutine rt ( n, a, w, matz, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) A(N,N), contains the special real tridiagonal 
+!    Input, real ( kind = 8 ) A(N,N), contains the special real tridiagonal
 !    matrix in its first three columns.  The subdiagonal elements are stored
-!    in the last N-1 positions of the first column, the diagonal elements 
-!    in the second column, and the superdiagonal elements in the first N-1 
+!    in the last N-1 positions of the first column, the diagonal elements
+!    in the second column, and the superdiagonal elements in the first N-1
 !    positions of the third column.  Elements A(1,1) and A(N,3) are arbitrary.
 !
-!    Input, integer ( kind = 4 ) MATZ, is 0 if only eigenvalues are desired, 
+!    Input, integer ( kind = 4 ) MATZ, is 0 if only eigenvalues are desired,
 !    and nonzero if both eigenvalues and eigenvectors are desired.
 !
 !    Output, real ( kind = 8 ) W(N), the eigenvalues in ascending order.
 !
-!    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ 
+!    Output, real ( kind = 8 ) Z(N,N), contains the eigenvectors, if MATZ
 !    is nonzero.
 !
 !    Output, integer ( kind = 4 ) IERR, is set to an error
-!    completion code described in the documentation for IMTQL1 and IMTQL2.  
+!    completion code described in the documentation for IMTQL1 and IMTQL2.
 !    The normal completion code is zero.
 !
   implicit none
@@ -14054,9 +14054,9 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 !
 !    This subroutine determines the singular value decomposition
 !
-!      A = U * S * V' 
+!      A = U * S * V'
 !
-!    of a real M by N rectangular matrix.  Householder bidiagonalization 
+!    of a real M by N rectangular matrix.  Householder bidiagonalization
 !    and a variant of the QR algorithm are used.
 !
 !  Licensing:
@@ -14086,7 +14086,7 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -14098,20 +14098,20 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 !
 !    Input, integer ( kind = 4 ) M, the number of rows of A and U.
 !
-!    Input, integer ( kind = 4 ) N, the number of columns of A and U, and 
+!    Input, integer ( kind = 4 ) N, the number of columns of A and U, and
 !    the order of V.
 !
 !    Input, real ( kind = 8 ) A(M,N), the M by N matrix to be decomposed.
 !
 !    Output, real ( kind = 8 ) W(N), the singular values of A.  These are the
-!    diagonal elements of S.  They are unordered.  If an error exit is 
-!    made, the singular values should be correct for indices 
+!    diagonal elements of S.  They are unordered.  If an error exit is
+!    made, the singular values should be correct for indices
 !    IERR+1, IERR+2,..., N.
 !
 !    Input, logical MATU, should be set to TRUE if the U matrix in the
 !    decomposition is desired, and to FALSE otherwise.
 !
-!    Output, real ( kind = 8 ) U(M,N), contains the matrix U, with orthogonal 
+!    Output, real ( kind = 8 ) U(M,N), contains the matrix U, with orthogonal
 !    columns, of the decomposition, if MATU has been set to TRUE.  Otherwise
 !    U is used as a temporary array.  U may coincide with A.
 !    If an error exit is made, the columns of U corresponding
@@ -14399,7 +14399,7 @@ subroutine svd ( m, n, a, w, matu, u, matv, v, ierr )
 !  Test for convergence.
 !
 565 continue
- 
+
     z = w(k)
 
     if ( l == k ) go to 650
@@ -14632,12 +14632,12 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 !    Input, real ( kind = 8 ) E(N), contains the subdiagonal elements of the input matrix
 !    in E(2:N).  E(1) is arbitrary.
 !
-!    Input, real ( kind = 8 ) E2(N), contains the squares of the corresponding elements 
+!    Input, real ( kind = 8 ) E2(N), contains the squares of the corresponding elements
 !    of E, with zeros corresponding to negligible elements of E.
-!    E(I) is considered negligible if it is not larger than the product of 
-!    the relative machine precision and the sum of the magnitudes of D(I) 
-!    and D(I-1).  E2(1) must contain 0.0D+00 if the eigenvalues are in 
-!    ascending order, or 2.0D+00 if the eigenvalues are in descending order.  
+!    E(I) is considered negligible if it is not larger than the product of
+!    the relative machine precision and the sum of the magnitudes of D(I)
+!    and D(I-1).  E2(1) must contain 0.0D+00 if the eigenvalues are in
+!    ascending order, or 2.0D+00 if the eigenvalues are in descending order.
 !    If BISECT, TRIDIB, or IMTQLV has been used to find the eigenvalues,
 !    their output E2 array is exactly what is expected here.
 !
@@ -14645,9 +14645,9 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 !
 !    Input, real ( kind = 8 ) W(M), the eigenvalues.
 !
-!    Input, integer ( kind = 4 ) IND(M), the submatrix indices associated with the 
-!    corresponding eigenvalues in W: 1 for eigenvalues belonging to the 
-!    first submatrix from the top, 2 for those belonging to the second 
+!    Input, integer ( kind = 4 ) IND(M), the submatrix indices associated with the
+!    corresponding eigenvalues in W: 1 for eigenvalues belonging to the
+!    first submatrix from the top, 2 for those belonging to the second
 !    submatrix, and so on.
 !
 !    Output, real ( kind = 8 ) Z(N,M), the associated set of orthonormal eigenvectors.
@@ -14655,7 +14655,7 @@ subroutine tinvit ( n, d, e, e2, m, w, ind, z, ierr )
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
 !    0, for normal return,
-!    -R, if the eigenvector corresponding to the R-th eigenvalue fails to 
+!    -R, if the eigenvector corresponding to the R-th eigenvalue fails to
 !      converge in 5 iterations.
 !
   implicit none
@@ -14951,7 +14951,7 @@ subroutine tql1 ( n, d, e, ierr )
 !
 !  Discussion:
 !
-!    This subroutine finds the eigenvalues of a symmetric tridiagonal 
+!    This subroutine finds the eigenvalues of a symmetric tridiagonal
 !    matrix by the QL method.
 !
 !  Licensing:
@@ -14981,7 +14981,7 @@ subroutine tql1 ( n, d, e, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -15000,13 +15000,13 @@ subroutine tql1 ( n, d, e, ierr )
 !    ordered for indices 1, 2,... IERR-1, but may not be
 !    the smallest eigenvalues.
 !
-!    Input/output, real ( kind = 8 ) E(N).  On input, E(2:N) contains the subdiagonal 
+!    Input/output, real ( kind = 8 ) E(N).  On input, E(2:N) contains the subdiagonal
 !    elements of the input matrix, and E(1) is arbitrary.
 !    On output, E has been destroyed.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
 !    0, normal return,
-!    J, if the J-th eigenvalue has not been determined after 
+!    J, if the J-th eigenvalue has not been determined after
 !    30 iterations.
 !
   implicit none
@@ -15160,8 +15160,8 @@ subroutine tql2 ( n, d, e, z, ierr )
 !
 !  Discussion:
 !
-!    This subroutine finds the eigenvalues and eigenvectors of a symmetric 
-!    tridiagonal matrix by the QL method.  The eigenvectors of a full 
+!    This subroutine finds the eigenvalues and eigenvectors of a symmetric
+!    tridiagonal matrix by the QL method.  The eigenvectors of a full
 !    symmetric matrix can also be found if TRED2 has been used to reduce this
 !    full matrix to tridiagonal form.
 !
@@ -15193,7 +15193,7 @@ subroutine tql2 ( n, d, e, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -15206,23 +15206,23 @@ subroutine tql2 ( n, d, e, z, ierr )
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
 !    Input/output, real ( kind = 8 ) D(N).  On input, the diagonal elements of the matrix.
-!    On output, the eigenvalues in ascending order.  If an error exit is 
+!    On output, the eigenvalues in ascending order.  If an error exit is
 !    made, the eigenvalues are correct but unordered for indices 1,2,...,IERR-1.
 !
-!    Input/output, real ( kind = 8 ) E(N).  On input, E(2:N) contains the subdiagonal 
+!    Input/output, real ( kind = 8 ) E(N).  On input, E(2:N) contains the subdiagonal
 !    elements of the input matrix, and E(1) is arbitrary.
 !    On output, E has been destroyed.
 !
-!    Input, real ( kind = 8 ) Z(N,N).  On input, the transformation matrix produced in 
-!    the reduction by TRED2, if performed.  If the eigenvectors of the 
+!    Input, real ( kind = 8 ) Z(N,N).  On input, the transformation matrix produced in
+!    the reduction by TRED2, if performed.  If the eigenvectors of the
 !    tridiagonal matrix are desired, Z must contain the identity matrix.
 !    On output, Z contains the orthonormal eigenvectors of the symmetric
-!    tridiagonal (or full) matrix.  If an error exit is made, Z contains 
+!    tridiagonal (or full) matrix.  If an error exit is made, Z contains
 !    the eigenvectors associated with the stored eigenvalues.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
 !    0, normal return,
-!    J, if the J-th eigenvalue has not been determined after 
+!    J, if the J-th eigenvalue has not been determined after
 !    30 iterations.
 !
   implicit none
@@ -15350,7 +15350,7 @@ subroutine tql2 ( n, d, e, z, ierr )
      d(l) = c * p
      tst2 = tst1 + abs ( e(l) )
 
-     if ( tst2 > tst1 ) then 
+     if ( tst2 > tst1 ) then
        go to 130
      end if
 
@@ -15432,7 +15432,7 @@ subroutine tqlrat ( n, d, e2, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -15593,7 +15593,7 @@ subroutine tqlrat ( n, d, e2, ierr )
   return
 end subroutine tqlrat
 
-subroutine trbak1 ( n, a, e, m, z ) 
+subroutine trbak1 ( n, a, e, m, z )
 
 !*****************************************************************************80
 !
@@ -15628,7 +15628,7 @@ subroutine trbak1 ( n, a, e, m, z )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -15639,7 +15639,7 @@ subroutine trbak1 ( n, a, e, m, z )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input, real ( kind = 8 ) A(N,N), contains information about the orthogonal 
+!    Input, real ( kind = 8 ) A(N,N), contains information about the orthogonal
 !    transformations used in the reduction by TRED1 in its strict lower
 !    triangle.
 !
@@ -15648,7 +15648,7 @@ subroutine trbak1 ( n, a, e, m, z )
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
 !
-!    Input/output, real ( kind = 8 ) Z(N,M).  On input, the eigenvectors to be back 
+!    Input/output, real ( kind = 8 ) Z(N,M).  On input, the eigenvectors to be back
 !    transformed.  On output, the transformed eigenvectors.
 !
   implicit none
@@ -15732,7 +15732,7 @@ subroutine trbak3 ( n, nv, a, m, z )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -15752,7 +15752,7 @@ subroutine trbak3 ( n, nv, a, m, z )
 !
 !    Input, integer ( kind = 4 ) M, the number of eigenvectors to be back transformed.
 !
-!    Input/output, real ( kind = 8 ) Z(N,M).  On input, the eigenvectors to be back 
+!    Input/output, real ( kind = 8 ) Z(N,M).  On input, the eigenvectors to be back
 !    transformed.  On output, the transformed eigenvectors.
 !
   implicit none
@@ -15820,7 +15820,7 @@ subroutine tred1 ( n, a, d, e, e2 )
 !
 !  Discussion:
 !
-!    The routine reduces a real symmetric matrix to a symmetric 
+!    The routine reduces a real symmetric matrix to a symmetric
 !    tridiagonal matrix using orthogonal similarity transformations.
 !
 !  Licensing:
@@ -15851,7 +15851,7 @@ subroutine tred1 ( n, a, d, e, e2 )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -15863,19 +15863,19 @@ subroutine tred1 ( n, a, d, e, e2 )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix A.
 !
-!    Input/output, real ( kind = 8 ) A(N,N), on input, contains the real symmetric matrix.  
+!    Input/output, real ( kind = 8 ) A(N,N), on input, contains the real symmetric matrix.
 !    Only the lower triangle of the matrix need be supplied.
-!    On output, A contains information about the orthogonal transformations 
-!    used in the reduction in its strict lower triangle.  
+!    On output, A contains information about the orthogonal transformations
+!    used in the reduction in its strict lower triangle.
 !    The full upper triangle of A is unaltered.
 !
-!    Output, real ( kind = 8 ) D(N), contains the diagonal elements of the tridiagonal 
+!    Output, real ( kind = 8 ) D(N), contains the diagonal elements of the tridiagonal
 !    matrix.
 !
 !    Output, real ( kind = 8 ) E(N), contains the subdiagonal elements of the tridiagonal
 !    matrix in its last n-1 positions.  e(1) is set to zero.
 !
-!    Output, real ( kind = 8 ) E2(N), contains the squares of the corresponding 
+!    Output, real ( kind = 8 ) E2(N), contains the squares of the corresponding
 !    elements of E.  E2 may coincide with E if the squares are not needed.
 !
   implicit none
@@ -16034,7 +16034,7 @@ subroutine tred2 ( n, a, d, e, z )
 !
 !    Martin, Reinsch, Wilkinson,
 !    TRED2,
-!    Numerische Mathematik, 
+!    Numerische Mathematik,
 !    Volume 11, pages 181-195, 1968.
 !
 !    James Wilkinson, Christian Reinsch,
@@ -16044,7 +16044,7 @@ subroutine tred2 ( n, a, d, e, z )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -16064,7 +16064,7 @@ subroutine tred2 ( n, a, d, e, z )
 !    Output, real ( kind = 8 ) E(N), contains the subdiagonal elements of the tridiagonal
 !    matrix in E(2:N).  E(1) is set to zero.
 !
-!    Output, real ( kind = 8 ) Z(N,N), the orthogonal transformation matrix produced 
+!    Output, real ( kind = 8 ) Z(N,N), the orthogonal transformation matrix produced
 !    in the reduction.
 !
   implicit none
@@ -16259,7 +16259,7 @@ subroutine tred3 ( n, nv, a, d, e, e2 )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -16274,8 +16274,8 @@ subroutine tred3 ( n, nv, a, d, e, e2 )
 !    Input, integer ( kind = 4 ) NV, the dimension of A, which must be at least
 !    (N*(N+1))/2.
 !
-!    Input/output, real ( kind = 8 ) A(NV).  On input, the lower triangle of the real 
-!    symmetric matrix, stored row-wise.  On output, information about the 
+!    Input/output, real ( kind = 8 ) A(NV).  On input, the lower triangle of the real
+!    symmetric matrix, stored row-wise.  On output, information about the
 !    orthogonal transformations used in the reduction.
 !
 !    Output, real ( kind = 8 ) D(N), the diagonal elements of the tridiagonal matrix.
@@ -16430,7 +16430,7 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -16442,10 +16442,10 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) EPS1.  On input, an absolute error tolerance for 
+!    Input/output, real ( kind = 8 ) EPS1.  On input, an absolute error tolerance for
 !    the computed eigenvalues.  It should be chosen commensurate with
-!    relative perturbations in the matrix elements of the order of the 
-!    relative machine precision.  If the input EPS1 is non-positive, it 
+!    relative perturbations in the matrix elements of the order of the
+!    relative machine precision.  If the input EPS1 is non-positive, it
 !    is reset for each submatrix to a default value, namely, minus the
 !    product of the relative machine precision and the 1-norm of the submatrix.
 !
@@ -16454,10 +16454,10 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 !    Input, real ( kind = 8 ) E(N), the subdiagonal elements of the input matrix
 !    in E(2:N).  E(1) is arbitrary.
 !
-!    Input/output, real ( kind = 8 ) E2(N).  On input, the squares of the corresponding 
-!    elements of E.  E2(1) is arbitrary.  On output, elements of E2 
-!    corresponding to elements of E regarded as negligible, have been 
-!    replaced by zero, causing the matrix to split into a direct sum of 
+!    Input/output, real ( kind = 8 ) E2(N).  On input, the squares of the corresponding
+!    elements of E.  E2(1) is arbitrary.  On output, elements of E2
+!    corresponding to elements of E regarded as negligible, have been
+!    replaced by zero, causing the matrix to split into a direct sum of
 !    submatrices.  E2(1) is also set to zero.
 !
 !    Input, integer ( kind = 4 ) M11, the lower boundary index for the desired eigenvalues.
@@ -16468,17 +16468,17 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 !    Output, real ( kind = 8 ) LB, UB, define an interval containing exactly the desired
 !    eigenvalues.
 !
-!    Output, real ( kind = 8 ) W(M), the eigenvalues between indices M11 and M22 
+!    Output, real ( kind = 8 ) W(M), the eigenvalues between indices M11 and M22
 !    in ascending order.
 !
-!    Output, integer ( kind = 4 ) IND(M), the submatrix indices associated with the 
-!    corresponding eigenvalues in W: 1 for eigenvalues belonging to the 
-!    first submatrix from the top, 2 for those belonging to the second 
+!    Output, integer ( kind = 4 ) IND(M), the submatrix indices associated with the
+!    corresponding eigenvalues in W: 1 for eigenvalues belonging to the
+!    first submatrix from the top, 2 for those belonging to the second
 !    submatrix, and so on.
 !
 !    Output, integer ( kind = 4 ) IERR, error flag.
 !    0, for normal return,
-!    3*N+1, if multiple eigenvalues at index M11 make unique selection 
+!    3*N+1, if multiple eigenvalues at index M11 make unique selection
 !      impossible,
 !    3*N+2, if multiple eigenvalues at index M22 make unique selection
 !      impossible.
@@ -16633,7 +16633,7 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
   q = 0
   r = 0
 !
-!  Establish and process next submatrix, refining interval by the 
+!  Establish and process next submatrix, refining interval by the
 !  Gerschgorin bounds.
 !
 100 continue
@@ -16849,7 +16849,7 @@ subroutine tridib ( n, eps1, d, e, e2, lb, ub, m11, m, w, ind, ierr )
 
   go to 1001
 !
-!  Set error: interval cannot be found containing exactly the 
+!  Set error: interval cannot be found containing exactly the
 !  desired eigenvalues.
 !
 980 continue
@@ -16898,7 +16898,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !    ISBN: 0387054146,
 !    LC: QA251.W67.
 !
-!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow, 
+!    Brian Smith, James Boyle, Jack Dongarra, Burton Garbow,
 !    Yasuhiko Ikebe, Virginia Klema, Cleve Moler,
 !    Matrix Eigensystem Routines, EISPACK Guide,
 !    Lecture Notes in Computer Science, Volume 6,
@@ -16910,10 +16910,10 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !
 !    Input, integer ( kind = 4 ) N, the order of the matrix.
 !
-!    Input/output, real ( kind = 8 ) EPS1.  On input, an absolute error tolerance for 
+!    Input/output, real ( kind = 8 ) EPS1.  On input, an absolute error tolerance for
 !    the computed eigenvalues.  It should be chosen commensurate with
-!    relative perturbations in the matrix elements of the order of the 
-!    relative machine precision.  If the input EPS1 is non-positive, it 
+!    relative perturbations in the matrix elements of the order of the
+!    relative machine precision.  If the input EPS1 is non-positive, it
 !    is reset for each submatrix to a default value, namely, minus the
 !    product of the relative machine precision and the 1-norm of the submatrix.
 !
@@ -16922,25 +16922,25 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
 !    Input, real ( kind = 8 ) E(N), the subdiagonal elements of the input matrix
 !    in E(2:N).  E(1) is arbitrary.
 !
-!    Input/output, real ( kind = 8 ) E2(N).  On input, the squares of the corresponding 
-!    elements of E.  E2(1) is arbitrary.  On output, elements of E2 
-!    corresponding to elements of E regarded as negligible have been 
-!    replaced by zero, causing the matrix to split into a direct sum of 
+!    Input/output, real ( kind = 8 ) E2(N).  On input, the squares of the corresponding
+!    elements of E.  E2(1) is arbitrary.  On output, elements of E2
+!    corresponding to elements of E regarded as negligible have been
+!    replaced by zero, causing the matrix to split into a direct sum of
 !    submatrices.  E2(1) is also set to zero.
 !
 !    Input, real ( kind = 8 ) LB, UB, define the interval to be searched for eigenvalues.
 !    If LB is not less than UB, no eigenvalues will be found.
 !
-!    Input, integer ( kind = 4 ) MM, an upper bound for the number of eigenvalues in 
-!    the interval.  If more than MM eigenvalues are determined to lie in 
+!    Input, integer ( kind = 4 ) MM, an upper bound for the number of eigenvalues in
+!    the interval.  If more than MM eigenvalues are determined to lie in
 !    the interval, an error return is made with no values or vectors found.
 !
-!    Output, integer ( kind = 4 ) M, the number of eigenvalues determined to lie 
+!    Output, integer ( kind = 4 ) M, the number of eigenvalues determined to lie
 !    in (LB, UB).
 !
 !    Output, real ( kind = 8 ) W(M), the eigenvalues in ascending order if the matrix
 !    does not split.  If the matrix splits, the eigenvalues are in ascending
-!    order for each submatrix.  If a vector error exit is made, W contains 
+!    order for each submatrix.  If a vector error exit is made, W contains
 !    those values already found.
 !
 !    Output, real ( kind = 8 ) Z(N,MM), the associated set of orthonormal eigenvectors.
@@ -17047,7 +17047,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
   q = 0
   r = 0
 !
-!  Establish and process next submatrix, refining interval by the 
+!  Establish and process next submatrix, refining interval by the
 !  Gerschgorin bounds.
 !
 100 continue
@@ -17393,7 +17393,7 @@ subroutine tsturm ( n, eps1, d, e, e2, lb, ub, mm, m, w, z, ierr )
      z(p:q,r) = rv6(p:q) * xu
 
      x0 = x1
-  
+
   end do
 
 940 continue

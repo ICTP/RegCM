@@ -58,8 +58,8 @@ SUBROUTINE shr_sys_system(str,rcode)
 
 !-------------------------------------------------------------------------------
 ! PURPOSE: an architecture independant system call
-! NOTE: 
-! - for Catamount (Cray, pheonix at ORNL) there is no system call -- workarounds 
+! NOTE:
+! - for Catamount (Cray, pheonix at ORNL) there is no system call -- workarounds
 !   exist only for simple "rm" and "cp" commands
 !-------------------------------------------------------------------------------
 

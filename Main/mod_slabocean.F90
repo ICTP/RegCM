@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_slabocean
   use mod_intkinds
   use mod_realkinds
@@ -73,7 +73,7 @@ module mod_slabocean
       integer(ik4) , pointer , intent(in) , dimension(:,:) :: ldmsk
       real(rk8) , pointer , intent(in) , dimension(:,:) :: fsw , flw
 
-      ! water heat capacity ~ 4 J/g/K         
+      ! water heat capacity ~ 4 J/g/K
       mlcp = mixed_layer_depth*4.0D6
 
       call assignpnt(sfs%tgb,sstemp)
@@ -81,7 +81,7 @@ module mod_slabocean
       call assignpnt(sfs%hfx,ohfx)
       call assignpnt(sfs%qfx,oqfx)
       call assignpnt(fsw,ofsw)
-      call assignpnt(flw,oflw) 
+      call assignpnt(flw,oflw)
     end subroutine init_slabocean
 
     subroutine update_slabocean(xt)
@@ -106,7 +106,7 @@ module mod_slabocean
         end do
       else if ( do_qflux_adj ) then
         !
-        ! Find the current climatological heat flux adjustment (qflux_adj).  
+        ! Find the current climatological heat flux adjustment (qflux_adj).
         ! The qflux_adj can be added to the heat flux to find the net heat
         ! flux anomaly into the mixed layer for the coupled mixed layer expt.
         !
@@ -115,7 +115,7 @@ module mod_slabocean
         ! adjustment. These include ice restoring and ice lid contributions.
         !
         qflux_adj = qflb0 + xt*qflbt
-      end if    
+      end if
       !
       ! energy budget in the mixed layer including the q flux therm
       !
@@ -143,7 +143,7 @@ module mod_slabocean
           if ( ocmask(j,i) == 0 ) then
             ! The following are some key equations for this model:
             ! flux from or to the atmosphere ( convention = positive downward)
-            ! multiply evaporation by latent heat of evaporation     
+            ! multiply evaporation by latent heat of evaporation
             hflx(j,i) = ofsw(j,i)-oflw(j,i)-ohfx(j,i)-wlhv*oqfx(j,i)
             ! account for the retaured or adjustment flux term
             net_hflx(j,i) = hflx(j,i) + qflux_adj(j,i) + qflux_sst(j,i)

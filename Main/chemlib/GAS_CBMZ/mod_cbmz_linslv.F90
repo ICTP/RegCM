@@ -56,7 +56,7 @@ module mod_cbmz_linslv
 !
 !
 ! ------------------------------------------------------
- 
+
     subroutine linslv(a,b,x,n)
 
 !  *** SUB -LINSLV- SOLVES THE FOLLOWING MATRIX EQUATION--
@@ -64,7 +64,7 @@ module mod_cbmz_linslv
 !  *** THE ENTRY -RESOLV- ASSUMES THAT THE A-MATRIX HAS BEEN PROPERLY
 !  ***     REDUCED AND JUST SOLVES FOR X(N).  THIS OPTION SAVES TIME
 !  ***     WHEN THE SYSTEM IS TO BE RESOLVED WITH A NEW B-VECTOR..  (Pra
-   
+
       implicit none
 !
       integer(ik4) :: n
@@ -143,7 +143,7 @@ module mod_cbmz_linslv
           s(j) = s(j) - a(j,i)*x(i)
         end do
       end do
- 
+
       do i = 1 , n
         ii = n + 1 - i
         summ = x(ii)
@@ -156,7 +156,7 @@ module mod_cbmz_linslv
         end if
         x(ii) = summ/a(ii,ii)
       end do
- 
+
     end subroutine resolv
 
 end module mod_cbmz_linslv

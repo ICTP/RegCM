@@ -133,7 +133,7 @@ module histFileMod
   private :: hfields_write             ! Write a variable to a history tape
   private :: hfields_1dinfo            ! Define/output 1d subgrid info if appropriate
   private :: update_hbuf_field_1d      ! Updates history buffer for specific field and tape
-  private :: update_hbuf_field_2d      ! Updates history buffer for specific field and tape 
+  private :: update_hbuf_field_2d      ! Updates history buffer for specific field and tape
   private :: list_index                ! Find index of field in exclude list
   private :: getname                   ! Retrieve name portion of input "inname"
   private :: set_hist_filename         ! Determine history dataset filenames
@@ -1044,7 +1044,7 @@ contains
     tape(t)%hlist(n)%field%beg1d_out = beg1d_out
     tape(t)%hlist(n)%field%end1d_out = end1d_out
     tape(t)%hlist(n)%field%num1d_out = num1d_out
-    
+
     ! Alloccate and initialize history buffer and related info
 
     num2d = tape(t)%hlist(n)%field%num2d
@@ -1728,7 +1728,7 @@ contains
     use domainMod   , only : ldomain
 #if (defined RTM)
     use RunoffMod   , only : get_proc_rof_global
-#endif	
+#endif
     use clm_varcon  , only : zsoi, zlak
     use fileutils   , only : get_filename
     use clm_time_manager, only : get_ref_date , calendar
@@ -1824,7 +1824,7 @@ contains
     str = '$HeadURL'
     call check_ret(&
          nf_put_att_text (nfid(t), NF_GLOBAL, 'version', len_trim(str), trim(str)), subname)
-     
+
     str = '$Id: histFileMod.F90 4183 2007-04-30 20:20:27Z erik $'
     call check_ret(&
          nf_put_att_text (nfid(t), NF_GLOBAL, 'revision_id', len_trim(str), trim(str)), subname)
@@ -2007,7 +2007,7 @@ contains
     use domainMod   , only : ldomain,llatlon,gatm
 #if (defined RTM)
     use RunoffMod   , only : runoff,get_proc_rof_global
-#endif	
+#endif
     use clm_varpar   , only : lsmlon, lsmlat, nlevsoi
     use ncdio
     use spmdGathScatMod, only : gather_data_to_master
@@ -2975,7 +2975,7 @@ contains
     ! Determine if time to write restarts before resetting number of
     ! time samples below
 
-#if (defined OFFLINE) 
+#if (defined OFFLINE)
     if_writrest = .false.
     if (tape(1)%ntimes == tape(1)%mfilt) if_writrest = .true.
 #endif
@@ -3845,7 +3845,7 @@ contains
 ! !USES:
     use clmtype
     use decompMod , only : get_proc_bounds
-    use clm_varpar, only : lsmlon, lsmlat, nlevsoi, nlevlak, numrad 
+    use clm_varpar, only : lsmlon, lsmlat, nlevsoi, nlevlak, numrad
 #if (defined CASA)
     use CASAMod,    only : nlive, npools
 #endif

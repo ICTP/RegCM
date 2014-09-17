@@ -64,7 +64,7 @@ module mod_che_ncio
   integer(ik4) , dimension(n_chbcvar) :: chbc_ivar
   integer(ik4) , dimension(n_oxbcvar) :: oxbc_ivar
   integer(ik4) , dimension(:) , pointer :: aebc_ivar
-  
+
   type(rcm_time_and_date) , dimension(:) , allocatable :: chbc_idate
   integer(ik4) :: ibcrec , ibcnrec
 
@@ -186,8 +186,8 @@ module mod_che_ncio
 
    subroutine read_bionem(nfert,nmanure,soilph)
       implicit none
-     
-      real(rk8) , pointer , dimension(:,:) , intent(out) ::nfert,nmanure,soilph 
+
+      real(rk8) , pointer , dimension(:,:) , intent(out) ::nfert,nmanure,soilph
       integer(ik4) :: idmin
       integer(ik4) , dimension(2) :: istart , icount
       character(len=256) :: dname
@@ -263,11 +263,11 @@ module mod_che_ncio
       character(64) ::chemi_timeunits , chemi_timecal
       real(rk8) , dimension(:) , allocatable :: emtimeval
       integer(ik4) , dimension(4) :: istart , icount
-      integer(ik4) :: year , month , day , hour 
+      integer(ik4) :: year , month , day , hour
       type(rcm_time_and_date) :: tchdate
 
       ! FAB: remember for now, we have 1 emission file containing all monthly
-      ! emission for the whole simulation period 
+      ! emission for the whole simulation period
       ! change that in the future.,
 
       aername = trim(dirglob)//pthsep//trim(domname)//'_CHEMISS.nc'
@@ -303,7 +303,7 @@ module mod_che_ncio
         end if
         istatus = nf90_get_var(ncid, itvar, emtimeval)
         call check_ok(__FILE__,__LINE__,'variable time read error', 'ICBC FILE')
-      
+
         recc = 0
         looprec: &
         do n = 1 , chmnrec
@@ -336,12 +336,12 @@ module mod_che_ncio
           if ( myid == italk ) then
             write(stdout,*) 'CHE_EMISS: Reading record ', recc
           end if
-        end if  
+        end if
 
         !*** intialized in start_chem
         !*** Advice record counter
         istart = 0
-        icount = 0 
+        icount = 0
 
         if ( do_parallel_netcdf_in ) then
           istart(1) = global_dot_jstart
@@ -456,7 +456,7 @@ module mod_che_ncio
       end if
 
 
-      ! NO2 emission 
+      ! NO2 emission
       if ( ino2 /= 0 ) then
 !       call rvar(ncid,istart,icount,ino2,echemsrc, &
 !                 'NO_flux',.false.,sdim)
@@ -465,7 +465,7 @@ module mod_che_ncio
       end if
 
 
-      if (ipollen /=0 ) then 
+      if (ipollen /=0 ) then
         call  rvar(ncid,istart,icount,ipollen,echemsrc, &
                   'POLLEN',.false.,sdim)
       end if
@@ -500,7 +500,7 @@ module mod_che_ncio
       character(len=*) , intent(in) , optional :: cnb
       character(len=*) , intent(in) , optional :: cnc
       character(len=*) , intent(in) , optional :: cnd
-      integer(ik4) :: ivarid 
+      integer(ik4) :: ivarid
       integer(ik4) :: i , j , ind
 
       if ( do_parallel_netcdf_in ) then
@@ -690,7 +690,7 @@ module mod_che_ncio
         chbc_search = -1
       else
         tdif = idate - chbc_idate(1)
-        ibcrec = (idnint(tohours(tdif))/ibdyfrq)+1 
+        ibcrec = (idnint(tohours(tdif))/ibdyfrq)+1
         if ( ibcrec < 1 .or. ibcrec > ibcnrec ) then
           appdat1 = tochar(idate)
           write (stderr,*) 'Record is not found in CHBC file for ',appdat1
@@ -700,7 +700,7 @@ module mod_che_ncio
           call fatal(__FILE__,__LINE__,'CHBC READ')
         end if
         chbc_search = ibcrec
-      end if 
+      end if
     end function chbc_search
 
     subroutine open_chbc(idate)
@@ -811,7 +811,7 @@ module mod_che_ncio
 
     subroutine read_chbc(chebdio)
       implicit none
-      real(rk8) , dimension (:,:,:,:), intent(out) :: chebdio 
+      real(rk8) , dimension (:,:,:,:), intent(out) :: chebdio
       integer(ik4) , dimension(4) :: istart , icount
       integer(ik4) :: i , j , k, n , iafter
 

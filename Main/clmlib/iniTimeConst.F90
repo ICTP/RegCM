@@ -66,7 +66,7 @@ subroutine iniTimeConst
 ! Created by Gordon Bonan.
 ! Updated to clm2.1 data structrues by Mariana Vertenstein
 ! 4/26/05, Peter Thornton: Eliminated exponential decrease in saturated hydraulic
-!   conductivity (hksat) with depth. 
+!   conductivity (hksat) with depth.
 !
 ! !LOCAL VARIABLES:
 !
@@ -85,21 +85,21 @@ subroutine iniTimeConst
   real(r8), pointer :: zi(:,:)            ! interface level below a "z" level (m)
   real(r8), pointer :: dz(:,:)            ! layer thickness depth (m)
   real(r8), pointer :: rootfr(:,:)        ! fraction of roots in each soil layer
-  real(r8), pointer :: rresis(:,:)        !root resistance by layer (0-1)  (nlevsoi)	
+  real(r8), pointer :: rresis(:,:)        !root resistance by layer (0-1)  (nlevsoi)
   real(r8), pointer :: dewmx(:)           ! maximum allowed dew [mm]
-  real(r8), pointer :: bsw(:,:)           ! Clapp and Hornberger "b" (nlevsoi)  
+  real(r8), pointer :: bsw(:,:)           ! Clapp and Hornberger "b" (nlevsoi)
   real(r8), pointer :: bsw2(:,:)          ! Clapp and Hornberger "b" for CN code
   real(r8), pointer :: psisat(:,:)        ! soil water potential at saturation for CN code (MPa)
   real(r8), pointer :: vwcsat(:,:)        ! volumetric water content at saturation for CN code (m3/m3)
-  real(r8), pointer :: watsat(:,:)        ! volumetric soil water at saturation (porosity) (nlevsoi) 
+  real(r8), pointer :: watsat(:,:)        ! volumetric soil water at saturation (porosity) (nlevsoi)
   real(r8), pointer :: watdry(:,:)        ! btran parameter for btran=0
   real(r8), pointer :: watopt(:,:)        ! btran parameter for btran = 1
-  real(r8), pointer :: hksat(:,:)         ! hydraulic conductivity at saturation (mm H2O /s) (nlevsoi) 
-  real(r8), pointer :: sucsat(:,:)        ! minimum soil suction (mm) (nlevsoi) 
-  real(r8), pointer :: csol(:,:)          ! heat capacity, soil solids (J/m**3/Kelvin) (nlevsoi) 
-  real(r8), pointer :: tkmg(:,:)          ! thermal conductivity, soil minerals  [W/m-K] (new) (nlevsoi) 
-  real(r8), pointer :: tkdry(:,:)         ! thermal conductivity, dry soil (W/m/Kelvin) (nlevsoi) 
-  real(r8), pointer :: tksatu(:,:)        ! thermal conductivity, saturated soil [W/m-K] (new) (nlevsoi) 
+  real(r8), pointer :: hksat(:,:)         ! hydraulic conductivity at saturation (mm H2O /s) (nlevsoi)
+  real(r8), pointer :: sucsat(:,:)        ! minimum soil suction (mm) (nlevsoi)
+  real(r8), pointer :: csol(:,:)          ! heat capacity, soil solids (J/m**3/Kelvin) (nlevsoi)
+  real(r8), pointer :: tkmg(:,:)          ! thermal conductivity, soil minerals  [W/m-K] (new) (nlevsoi)
+  real(r8), pointer :: tkdry(:,:)         ! thermal conductivity, dry soil (W/m/Kelvin) (nlevsoi)
+  real(r8), pointer :: tksatu(:,:)        ! thermal conductivity, saturated soil [W/m-K] (new) (nlevsoi)
   real(r8), pointer :: wtfact(:)          ! maximum saturated fraction for a gridcell
   real(r8), pointer :: smpmin(:)          ! restriction for min of soil potential (mm) (new)
   real(r8), pointer :: hkdepth(:)         ! decay factor (m)
@@ -137,7 +137,7 @@ subroutine iniTimeConst
 !EOP
 !
 ! !OTHER LOCAL VARIABLES:
-  integer  :: ncid             ! netCDF file id 
+  integer  :: ncid             ! netCDF file id
   integer  :: n,i,j,ib,lev,bottom      ! indices
   integer  :: g,l,c,p          ! indices
   integer  :: m                ! vegetation type index
@@ -229,8 +229,8 @@ subroutine iniTimeConst
   psisat          => clm3%g%l%c%cps%psisat
   vwcsat          => clm3%g%l%c%cps%vwcsat
   watsat          => clm3%g%l%c%cps%watsat
-  watdry          => clm3%g%l%c%cps%watdry  
-  watopt          => clm3%g%l%c%cps%watopt  
+  watdry          => clm3%g%l%c%cps%watdry
+  watopt          => clm3%g%l%c%cps%watopt
   hksat           => clm3%g%l%c%cps%hksat
   sucsat          => clm3%g%l%c%cps%sucsat
   tkmg            => clm3%g%l%c%cps%tkmg
@@ -260,7 +260,7 @@ subroutine iniTimeConst
 
 
   ! --------------------------------------------------------------------
-  ! Read soil color, sand and clay from surface dataset 
+  ! Read soil color, sand and clay from surface dataset
   ! --------------------------------------------------------------------
 
   if (masterproc) then
@@ -277,7 +277,7 @@ subroutine iniTimeConst
         call check_ret(nf_inq_varid(ncid, 'mxsoil_color', varid), subname)
         call check_ret(nf_get_var_int(ncid, varid, mxsoil_color), subname)
      else
-        mxsoil_color = 8  
+        mxsoil_color = 8
      end if
   endif
 
@@ -359,7 +359,7 @@ subroutine iniTimeConst
            if(ldomain%mask(ns) == 0) soic2d(ns) = 0.
 
          ! calculate maximum color value
-           if(soic2d(ns) > 8) mxsoil_color = 20 
+           if(soic2d(ns) > 8) mxsoil_color = 20
 
          ! fmax
            if(ldomain%mask(ns) == 1 .and. gti(ns) == 0) then
@@ -369,106 +369,106 @@ subroutine iniTimeConst
 
 #if (defined VOC)
         ! store emission factor map into clmtype structure
-          if(r2cefmap(1).eq.1) then 
+          if(r2cefmap(1).eq.1) then
            if(ldomain%mask(ns) == 0) ef_iso(ns) = 0._r8
             epsilon_iso(ns) = ef_iso(ns)
           endif
 
-          if(r2cefmap(8).eq.1) then 
+          if(r2cefmap(8).eq.1) then
            if(ldomain%mask(ns) == 0) ef_bpin(ns) = 0._r8
             epsilon_bpin(ns) = ef_bpin(ns)
           endif
 
-          if(r2cefmap(7).eq.1) then 
+          if(r2cefmap(7).eq.1) then
            if(ldomain%mask(ns) == 0) ef_apin(ns) = 0._r8
             epsilon_apin(ns) = ef_apin(ns)
           endif
 
-          if(r2cefmap(6).eq.1) then 
+          if(r2cefmap(6).eq.1) then
            if(ldomain%mask(ns) == 0) ef_mbo(ns) = 0._r8
             epsilon_mbo(ns) = ef_mbo(ns)
           endif
 
-          if(r2cefmap(4).eq.1) then 
+          if(r2cefmap(4).eq.1) then
            if(ldomain%mask(ns) == 0) ef_limo(ns) = 0._r8
             epsilon_limo(ns) = ef_limo(ns)
           endif
 
-          if(r2cefmap(3).eq.1) then 
+          if(r2cefmap(3).eq.1) then
            if(ldomain%mask(ns) == 0) ef_sabi(ns) = 0._r8
             epsilon_sabi(ns) = ef_sabi(ns)
           endif
 
-          if(r2cefmap(2).eq.1) then 
+          if(r2cefmap(2).eq.1) then
            if(ldomain%mask(ns) == 0) ef_myrc(ns) = 0._r8
             epsilon_myrc(ns) = ef_myrc(ns)
           endif
 
-          if(r2cefmap(5).eq.1) then 
+          if(r2cefmap(5).eq.1) then
            if(ldomain%mask(ns) == 0) ef_co(ns) = 0._r8
             epsilon_co(ns) = ef_co(ns)
           endif
 
-          if(r2cefmap(10).eq.1) then 
+          if(r2cefmap(10).eq.1) then
            if(ldomain%mask(ns) == 0) ef_acar(ns) = 0._r8
             epsilon_acar(ns) = ef_acar(ns)
           endif
 
-          if(r2cefmap(9).eq.1) then 
+          if(r2cefmap(9).eq.1) then
            if(ldomain%mask(ns) == 0) ef_ocim(ns) = 0._r8
             epsilon_ocim(ns) = ef_ocim(ns)
           endif
 
-          if(r2cefmap(11).eq.1) then 
+          if(r2cefmap(11).eq.1) then
             if(ldomain%mask(ns) == 0) ef_omtp(ns) = 0._r8
             epsilon_omtp(ns) = ef_omtp(ns)
           endif
 
-          if(r2cefmap(12).eq.1) then 
+          if(r2cefmap(12).eq.1) then
            if(ldomain%mask(ns) == 0) ef_farn(ns) = 0._r8
             epsilon_farn(ns) = ef_farn(ns)
           endif
- 
-          if(r2cefmap(13).eq.1) then 
+
+          if(r2cefmap(13).eq.1) then
            if(ldomain%mask(ns) == 0) ef_bcar(ns) = 0._r8
             epsilon_bcar(ns) = ef_bcar(ns)
           endif
 
-          if(r2cefmap(14).eq.1) then 
+          if(r2cefmap(14).eq.1) then
            if(ldomain%mask(ns) == 0) ef_osqt(ns) = 0._r8
             epsilon_osqt(ns) = ef_osqt(ns)
           endif
 
-          if(r2cefmap(15).eq.1) then 
+          if(r2cefmap(15).eq.1) then
            if(ldomain%mask(ns) == 0) ef_meoh(ns) = 0._r8
             epsilon_meoh(ns) = ef_meoh(ns)
           endif
 
-          if(r2cefmap(16).eq.1) then 
+          if(r2cefmap(16).eq.1) then
            if(ldomain%mask(ns) == 0) ef_acto(ns) = 0._r8
             epsilon_acto(ns) = ef_acto(ns)
           endif
 
-          if(r2cefmap(17).eq.1) then 
+          if(r2cefmap(17).eq.1) then
            if(ldomain%mask(ns) == 0) ef_meth(ns) = 0._r8
             epsilon_meth(ns) = ef_meth(ns)
           endif
 
-          if(r2cefmap(18).eq.1) then 
+          if(r2cefmap(18).eq.1) then
            if(ldomain%mask(ns) == 0) ef_no(ns) = 0._r8
             epsilon_no(ns) = ef_no(ns)
           endif
 
-          if(r2cefmap(19).eq.1) then 
+          if(r2cefmap(19).eq.1) then
            if(ldomain%mask(ns) == 0) ef_acta(ns) = 0._r8
             epsilon_acta(ns) = ef_acta(ns)
           endif
 
-          if(r2cefmap(20).eq.1) then 
+          if(r2cefmap(20).eq.1) then
            if(ldomain%mask(ns) == 0) ef_form(ns) = 0._r8
             epsilon_form(ns) = ef_form(ns)
           endif
-#endif   
+#endif
        ! Used to store the i,j for gathering back to regcm
           nn        = nn + 1
           map_i(nn) = ldecomp%gdc2i(ns)
@@ -520,7 +520,7 @@ subroutine iniTimeConst
      write (6,*) 'Successfully read fmax, soil color, sand and clay boundary data'
      write (6,*)
   endif
-  ! Determine saturated and dry soil albedos for n color classes and 
+  ! Determine saturated and dry soil albedos for n color classes and
   ! numrad wavebands (1=vis, 2=nir)
 
   allocate(albsat(mxsoil_color,numrad), albdry(mxsoil_color,numrad), stat=ier)
@@ -561,7 +561,7 @@ subroutine iniTimeConst
      write(6,*)'maximum color class = ',mxsoil_color,' is not supported'
      call endrun
   end if
-  
+
 #if (defined CASA)
 !dir$ concurrent
 !cdir nodep
@@ -582,7 +582,7 @@ subroutine iniTimeConst
   ! --------------------------------------------------------------------
   ! If a nitrogen deposition dataset has been specified, read it
   ! --------------------------------------------------------------------
-  
+
   call ndeprd(ndep)
 
   ! --------------------------------------------------------------------
@@ -739,7 +739,7 @@ subroutine iniTimeConst
    zisoi(nlevsoi) = zsoi(nlevsoi) + 0.5_r8*dzsoi(nlevsoi)
 
    ! --------------------------------------------------------------------
-   ! Initialize nitrogen deposition values 
+   ! Initialize nitrogen deposition values
    ! for now these are constants by gridcell, eventually they
    ! will be variables from the atmosphere, and at some point in between
    ! they will be specified time varying fields.
@@ -750,9 +750,9 @@ subroutine iniTimeConst
 
       ! nitrogen deposition (forcing flux from atmosphere)
       ! convert rate from 1/yr -> 1/s
-      
+
       forc_ndep(g) = ndep(g)/(86400._r8 * 365._r8)
-      
+
    end do
 
    ! --------------------------------------------------------------------
@@ -796,8 +796,8 @@ subroutine iniTimeConst
             tksatu(c,lev) = spval
             tkdry(c,lev) = spval
             csol(c,lev) = spval
-            watdry(c,lev) = spval 
-            watopt(c,lev) = spval 
+            watdry(c,lev) = spval
+            watopt(c,lev) = spval
          end do
       else
          do lev = 1,nlevsoi
@@ -818,8 +818,8 @@ subroutine iniTimeConst
             tksatu(c,lev) = tkmg(c,lev)*0.57_r8**watsat(c,lev)
             tkdry(c,lev) = (0.135_r8*bd + 64.7_r8) / (2.7e3_r8 - 0.947_r8*bd)
             csol(c,lev) = (2.128_r8*sand+2.385_r8*clay) / (sand+clay)*1.e6_r8  ! J/(m3 K)
-            watdry(c,lev) = watsat(c,lev) * (316230._r8/sucsat(c,lev)) ** (-1._r8/bsw(c,lev)) 
-            watopt(c,lev) = watsat(c,lev) * (158490._r8/sucsat(c,lev)) ** (-1._r8/bsw(c,lev)) 
+            watdry(c,lev) = watsat(c,lev) * (316230._r8/sucsat(c,lev)) ** (-1._r8/bsw(c,lev))
+            watopt(c,lev) = watsat(c,lev) * (158490._r8/sucsat(c,lev)) ** (-1._r8/bsw(c,lev))
          end do
 
       endif
@@ -864,7 +864,7 @@ subroutine iniTimeConst
                                - exp(-rootb_par(ivt(p)) * zi(c,lev  )) )
          end do
          rootfr(p,nlevsoi) = .5_r8*( exp(-roota_par(ivt(p)) * zi(c,nlevsoi-1))  &
-          
+
                                 + exp(-rootb_par(ivt(p)) * zi(c,nlevsoi-1)) )
 
 #if (defined CN)
@@ -902,14 +902,14 @@ subroutine iniTimeConst
       else
          rootfr(p,1:nlevsoi) = 0._r8
       endif
-      
+
       ! initialize rresis, for use in ecosystemdyn
       do lev = 1,nlevsoi
          rresis(p,lev) = 0._r8
       end do
 
    end do ! end pft level initialization
-   
+
 #if (defined CN)
    ! initialize the CN variables for special landunits, including lake points
    call CNiniSpecial()

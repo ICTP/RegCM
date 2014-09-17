@@ -91,9 +91,9 @@ module mod_params
 !-----namelist:
 !
   namelist /restartparam/ ifrest , mdate0 , mdate1 , mdate2
- 
+
   namelist /timeparam/ dtrad , dtsrf , dtabem , dt
- 
+
   namelist /outparam/ ifsave , ifatm , ifrad , ifsrf , ifsub , iflak , &
     ifsts , ifchem , ifopt , savfrq , atmfrq , srffrq , subfrq ,       &
     lakfrq , radfrq , chemfrq , enable_atm_vars ,                      &
@@ -123,18 +123,18 @@ module mod_params
     edtmino , edtmaxo , edtminx , edtmaxx , pbcmax , mincld ,       &
     htmin , htmax , skbmax , dtauc, shrmin_ocn , shrmax_ocn ,       &
     edtmin_ocn, edtmax_ocn, edtmino_ocn , edtmaxo_ocn ,             &
-    edtminx_ocn , edtmaxx_ocn 
- 
+    edtminx_ocn , edtmaxx_ocn
+
   namelist /emanparam/ minsig , elcrit_ocn , elcrit_lnd , tlcrit ,  &
     entp , sigd , sigs , omtrain , omtsnow , coeffr , coeffs , cu , &
     betae , dtmax , alphae , damp , epmax_ocn , epmax_lnd
- 
+
   namelist /tiedtkeparam/ iconv , entrmax , entrdd , entrpen ,   &
     entrscv , entrmid , cprcon , detrpen , entshalp , rcuc_lnd , &
     rcuc_ocn , rcpec_lnd , rcpec_ocn , rhebc_lnd , rhebc_ocn ,   &
     rprc_ocn , rprc_lnd
 
-  namelist /kfparam/ kf_entrate
+  namelist /kfparam/ kf_trigger , kf_entrate
 
   namelist /chemparam/ chemsimtype , ichremlsc , ichremcvc , ichdrdepo , &
          ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,      &
@@ -210,7 +210,7 @@ module mod_params
 !     = 2 ; grell
 !     = 3 ; betts-miller (1986)
 !     = 4 ; emanuel (1991)
-!     = 5 ; Tiedtke (1986) - version from ECHAM 5.4 
+!     = 5 ; Tiedtke (1986) - version from ECHAM 5.4
 !
 !     igcc   : Grell Scheme Convective Closure Assumption
 !     = 1 ; Arakawa & Schubert (1974)
@@ -219,12 +219,12 @@ module mod_params
 !     ipptls : type of moisture scheme
 !     = 1 ; explicit moisture (SUBEX; Pal et al 2000)
 !     = 2 ; new microphysics
-! 
+!
 !     iocnflx: type of ocean flux parameterization
 !     = 1 ; BATS
 !     = 2 ; Zeng et al.
 !
-!     iocncpl: controls the coupling with driver, RegESM 
+!     iocncpl: controls the coupling with driver, RegESM
 !     = 0 ; no coupling
 !     = 1 ; activate coupling
 !
@@ -270,14 +270,14 @@ module mod_params
   idate1 = 1900010100  ! Start date of this simulation
   idate2 = 1900010100  ! End Date this simulation
   ! note: beginning/end forecast time set in restart.mm4
- 
+
 !------namelist timeparam:
 !
   dtrad = 30.0D0 ! time interval in min solar rad caluclated
   dtsrf = 600.0D0 ! time interval at which bats is called (secs)
   dtabem = 12.0D0  ! time interval absorption-emission calculated (hours)
   dt = 200.0D0    ! time step in seconds
- 
+
 !-----namelist out      note: * signifies currently not in namelist
 !
   rfstrt = .false.      ! *
@@ -305,7 +305,7 @@ module mod_params
   enable_rad_vars(:) = .true.
   enable_opt_vars(:) = .true.
   enable_che_vars(:) = .true.
-  dirout = './output' 
+  dirout = './output'
   lsync = .true.
   do_parallel_netcdf_in = .false.
   do_parallel_netcdf_out = .false.
@@ -396,7 +396,7 @@ module mod_params
   zauto_rate_kessl = 1.D-3
   zauto_rate_klepi = 0.5D-3
   rkconv = 1.666D-4 ! d_one/6000.0D0
-  rcovpmin = 0.1D0 
+  rcovpmin = 0.1D0
   rpecons = 5.547D-5
 !
 !------namelist grellparam:
@@ -421,12 +421,12 @@ module mod_params
   htmin = -250.0D0       ! Min convective heating
   htmax = 500.0D0        ! Max convective heating
   skbmax = 0.4D0        ! Max cloud base height in sigma
-  dtauc = 60.0D0         ! Fritsch & Chappell (1980) 
-! 
+  dtauc = 60.0D0         ! Fritsch & Chappell (1980)
+!
 !------namelist emanparam:
   minsig = 0.95D0     ! Lowest sigma level from which convection can originate
-  elcrit_ocn = 0.0011D0 ! Autoconversion threshold water content (gm/gm) 
-  elcrit_lnd = 0.0011D0 ! Autoconversion threshold water content (gm/gm) 
+  elcrit_ocn = 0.0011D0 ! Autoconversion threshold water content (gm/gm)
+  elcrit_lnd = 0.0011D0 ! Autoconversion threshold water content (gm/gm)
   tlcrit = -55.0D0    ! Below tlcrit auto-conversion threshold is zero
   entp = 1.5D0        ! Coefficient of mixing in the entrainment formulation
   sigd = 0.05D0       ! Fractional area covered by unsaturated dndraft
@@ -463,10 +463,11 @@ module mod_params
                       ! cloud at which evaporation starts for ocean
   rprc_lnd = 1.4D-3   ! coefficient for determining conversion from cloud water
   rprc_ocn = 1.4D-3   ! coefficient for determining conversion from cloud water
- 
+
 !c------namelist kfparam ;
 
-  kf_entrate = 0.3D0 ! Kain Fritsch entrainment rate
+  kf_trigger = 3
+  kf_entrate = 0.03D0 ! Kain Fritsch entrainment rate
 
 !c------namelist uwparam ;
   iuwvadv = 0
@@ -488,7 +489,7 @@ module mod_params
   mixed_layer_depth     = 50.0D0
   sst_restore_timescale = 5.0D0 !days
   do_restore_sst = .true.
-  do_qflux_adj = .false. 
+  do_qflux_adj = .false.
 
 !c-----namelist tweakparam ;
 
@@ -512,11 +513,11 @@ module mod_params
   ichjphcld = 1     ! impact of cloud aod on photolysis coef
   idirect = 1       ! tracer direct effect
   iindirect = 0
-  ichdiag = 0       ! chem tend outputs 
+  ichdiag = 0       ! chem tend outputs
   ichsursrc = 1
   ichebdy = 1
   rdstemfac = d_one
-  ichbion = 0 
+  ichbion = 0
 !c------namelist clmparam ; (read in case clm surface model compiled in)
 #ifdef CLM
   imask = 1
@@ -749,7 +750,7 @@ module mod_params
         write(stdout,*) 'Read slabocparam OK'
 #endif
       end if
-      if ( do_qflux_adj .eqv. do_restore_sst ) then 
+      if ( do_qflux_adj .eqv. do_restore_sst ) then
         write (stderr,*) 'do_qflux_adj   = ' , do_qflux_adj
         write (stderr,*) 'do_restore_sst = ' , do_restore_sst
         write (stderr,*) 'THESE OPTION CANNOT BE EQUAL !!'
@@ -829,9 +830,9 @@ module mod_params
     end if
 
     close(ipunit)
-  end if 
+  end if
 !
-!  communicate to all processors 
+!  communicate to all processors
 !
   call bcast(ifrest)
   call bcast(hspan)
@@ -840,12 +841,12 @@ module mod_params
   call bcast(idate2)
   call bcast(globidate1)
   call bcast(globidate2)
- 
+
   call bcast(dtrad)
   call bcast(dtabem)
   call bcast(dtsrf)
   call bcast(dt)
- 
+
   call bcast(ifsave)
   call bcast(savfrq)
   call bcast(ifatm)
@@ -1030,7 +1031,7 @@ module mod_params
 
   call bcast(clfrcvmax)
   call bcast(cllwcv)
- 
+
   if ( any(icup == 2) ) then
     call bcast(shrmin)
     call bcast(shrmax)
@@ -1055,7 +1056,7 @@ module mod_params
     call bcast(skbmax)
     call bcast(dtauc)
   end if
- 
+
   if ( any(icup == 4) ) then
     call bcast(minsig)
     call bcast(elcrit_ocn)
@@ -1076,7 +1077,7 @@ module mod_params
     call bcast(epmax_ocn)
     call bcast(epmax_ocn)
   end if
- 
+
   if ( any(icup == 5) ) then
     call bcast(iconv)
     call bcast(entrmax)
@@ -1206,7 +1207,7 @@ module mod_params
 !-----------------------ALLOCATE NEEDED SPACE---------------------------
 !-----------------------------------------------------------------------
 !-----------------------------------------------------------------------
-! 
+!
   if ( myid == italk ) then
     if ( mod(idnint(dtrad*60.0D0),idnint(dt)) /= 0 ) then
       write (stderr,*) 'DTRAD=' , dtrad , 'DT=' , dt
@@ -1360,7 +1361,7 @@ module mod_params
   call bcast(ptop)
 
   dx = ds * d_1000
-! 
+!
 !-----specify the constants used in the model.
 !     conf   : condensation threshold.
 !     qcth   : threshold for the onset of autoconversion.
@@ -1415,16 +1416,16 @@ module mod_params
   kstsoff = khour*xhour
 !
   if ( myid == italk ) then
-    write(stdout,*) 'Create SAV files : ' , ifsave  
-    write(stdout,*) 'Create ATM files : ' , ifatm  
-    write(stdout,*) 'Create RAD files : ' , ifrad  
-    write(stdout,*) 'Create SRF files : ' , ifsrf  
-    write(stdout,*) 'Create STS files : ' , ifsts  
-    if ( nsg > 1 ) write(stdout,*) 'Create SUB files : ' , ifsub  
-    if ( lakemod == 1 ) write(stdout,*) 'Create LAK files : ' , iflak  
+    write(stdout,*) 'Create SAV files : ' , ifsave
+    write(stdout,*) 'Create ATM files : ' , ifatm
+    write(stdout,*) 'Create RAD files : ' , ifrad
+    write(stdout,*) 'Create SRF files : ' , ifsrf
+    write(stdout,*) 'Create STS files : ' , ifsts
+    if ( nsg > 1 ) write(stdout,*) 'Create SUB files : ' , ifsub
+    if ( lakemod == 1 ) write(stdout,*) 'Create LAK files : ' , iflak
     if ( ichem == 1 ) then
-      write(stdout,*) 'Create CHE files : ' , ifchem  
-      write(stdout,*) 'Create OPT files : ' , ifopt  
+      write(stdout,*) 'Create CHE files : ' , ifchem
+      write(stdout,*) 'Create OPT files : ' , ifopt
     end if
     write(stdout,'(a,f6.1)') ' Frequency in hours to create SAV : ' , savfrq
     write(stdout,'(a,f6.1)') ' Frequency in hours to create ATM : ' , atmfrq
@@ -1464,23 +1465,23 @@ module mod_params
     write(stdout,'(a,i2)') '  Enable chem/aerosol model   : ' , ichem
     write(stdout,'(a,i2)') '  Convective LWP scheme       : ' , iconvlwp
     write(stdout,*) 'Boundary Pameterizations'
-    write(stdout,'(a,f9.6)') '  Nudge value high range     : ', high_nudge 
-    write(stdout,'(a,f9.6)') '  Nudge value medium range   : ', medium_nudge 
-    write(stdout,'(a,f9.6)') '  Nudge value low range      : ', low_nudge 
-#ifdef CLM 
+    write(stdout,'(a,f9.6)') '  Nudge value high range     : ', high_nudge
+    write(stdout,'(a,f9.6)') '  Nudge value medium range   : ', medium_nudge
+    write(stdout,'(a,f9.6)') '  Nudge value low range      : ', low_nudge
+#ifdef CLM
     write(stdout,*) 'CLM Pameterizations'
-    write(stdout,'(a,i2)' ) '  CLM imask                       : ' , imask 
+    write(stdout,'(a,i2)' ) '  CLM imask                       : ' , imask
     write(stdout,'(a,f9.6)') '  Frequency in hours to write CLM : ', clmfrq
 #endif
     write(stdout,*) 'Model Timestep Pameterizations'
     write(stdout,'(a,f12.6)') '  time step for dynamical '// &
-          'model in seconds : ' , dt 
+          'model in seconds : ' , dt
     write(stdout,'(a,f12.6)') '  time step for surface   '// &
-          'model in seconds : ' , dtsrf 
+          'model in seconds : ' , dtsrf
     write(stdout,'(a,f12.6)') '  time step for radiation '// &
-          'model in minutes : ' , dtrad 
+          'model in minutes : ' , dtrad
     write(stdout,'(a,f12.6)') '  time step for emission  '// &
-          'model in hours   : ' , dtabem 
+          'model in hours   : ' , dtabem
   end if
 
   if ( nsg > 1 ) then
@@ -1622,7 +1623,7 @@ module mod_params
     cevapoce = max(cevapoce,d_zero)
     caccroce = max(caccroce,d_zero)
   end if
- 
+
   if ( myid == italk ) then
     if ( ibltyp == 1 ) then
       write(stdout,*) 'PBL limit for Holtstag'
@@ -1890,7 +1891,7 @@ module mod_params
     twt(k,2) = d_one - twt(k,1)
     qcon(k) = (sigma(k)-hsigma(k))/(hsigma(k-1)-hsigma(k))
   end do
- 
+
   chibot = 450.0D0
   ptmb = d_10*ptop
   pz = hsigma(1)*(d_1000-ptmb) + ptmb
@@ -1900,7 +1901,7 @@ module mod_params
     pk = hsigma(k)*(d_1000-ptmb) + ptmb
     if ( pk <= chibot ) kchi = k
   end do
- 
+
   if ( ipptls > 0 ) then
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -1992,7 +1993,7 @@ module mod_params
     else if ( iboudy == 5 ) then
       write(stdout,*) 'Relaxation boundary conditions (exponential method)'
     end if
- 
+
     write(stdout,'(a,7x,a,11x,a,6x,a,7x,a,7x,a,9x,a)') '# k','sigma','a',&
       'dsigma','twt(1)','twt(2)','qcon'
 !

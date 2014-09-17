@@ -379,7 +379,7 @@ module mod_ncout
   integer(ik4) , parameter :: che_bdyten   = 10
   integer(ik4) , parameter :: che_sedten   = 11
   integer(ik4) , parameter :: che_emten    = 12
- 
+
   integer(ik4) , parameter :: slab_xlon    = 1
   integer(ik4) , parameter :: slab_xlat    = 2
   integer(ik4) , parameter :: slab_mask    = 3
@@ -468,7 +468,7 @@ module mod_ncout
       nstream = nstream+1
       slaboc_stream = nstream
     end if
- 
+
     maxstreams = nstream
     allocate(outstream(maxstreams))
 
@@ -514,7 +514,7 @@ module mod_ncout
               'Total snow precipitation flux','snow_flux',.true., &
               'time: mean')
             atm_tsn_out => v2dvar_atm(atm_tsn)%rval
-          end if          
+          end if
         else
           enable_atm2d_vars(atm_tsn) = .false.
         end if
@@ -632,7 +632,7 @@ module mod_ncout
               atm_raincc_out => v3dvar_atm(atm_raincc)%rval
             end if
           else
-            enable_atm3d_vars(atm_rainls) = .false. 
+            enable_atm3d_vars(atm_rainls) = .false.
             enable_atm3d_vars(atm_raincc) = .false.
           end if
           if (stats) then
@@ -739,7 +739,7 @@ module mod_ncout
               '',.true.)
               atm_stats_snowev_out=> v3dvar_atm(atm_stats_snowev)%rval
             end if
-          else!stats 
+          else!stats
             enable_atm3d_vars(atm_stats_supw:atm_stats_snowev) = .false.
           end if
         else
@@ -749,7 +749,7 @@ module mod_ncout
           enable_atm3d_vars(atm_zh) = .false.
           enable_atm3d_vars(atm_pf) = .false.
           enable_atm3d_vars(atm_ph) = .false.
-          enable_atm3d_vars(atm_rainls) = .false. 
+          enable_atm3d_vars(atm_rainls) = .false.
           enable_atm3d_vars(atm_raincc) = .false.
           enable_atm3d_vars(atm_stats_supw:atm_stats_snowev) = .false.
         end if
@@ -2000,7 +2000,7 @@ module mod_ncout
             vcount = vcount + 1
           end if
         end do
-        do i = 1 , nche3dvars 
+        do i = 1 , nche3dvars
           if ( enable_che_vars(i+nche2dvars) ) then
             outstream(che_stream)%ncvars%vlist(vcount)%vp => v3dvar_che(i)
             vcount = vcount + 1
@@ -2467,6 +2467,8 @@ module mod_ncout
           end if
         end if
         if ( any(icup == 6) ) then
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_integer('kf_trigger',kf_trigger))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('kf_entrainment_rate',kf_entrate))
         end if

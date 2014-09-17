@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_bats_bndry
 !
   use mod_intkinds
@@ -65,7 +65,7 @@ module mod_bats_bndry
     character(len=dbgslen) :: subroutine_name = 'soilbc'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
-#endif 
+#endif
     do i = ilndbeg , ilndend
       ! lveg is set in subr. interf
       freza(lveg(i)) = 0.15D0*deprv(lveg(i))
@@ -154,11 +154,11 @@ module mod_bats_bndry
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-   
+
     !=======================================================================
     !   1.   initialize
     !=======================================================================
-   
+
     do i = ilndbeg , ilndend
       htvp(i) = wlhv
       if ( tgrd(i) < tzero .or. sncv(i) > d_zero ) then
@@ -186,7 +186,7 @@ module mod_bats_bndry
       watr(i) = dmax1(watr(i),minwrat)
       watu(i) = dmax1(watu(i),minwrat)
     end do
-    !   
+    !
     !=======================================================================
     !   2.  calculate transfer coefficients at layer 1
     !=======================================================================
@@ -194,7 +194,7 @@ module mod_bats_bndry
     call dragc
     ! 2.2  get saturation vapor pressure of soil surface
     call satur(qgrd,tgrd,sfcp)
-   
+
     !=======================================================================
     ! 3.   bare land
     !=======================================================================
@@ -257,7 +257,7 @@ module mod_bats_bndry
     !=======================================================================
     !   6.   linkage to meteorological model
     !=======================================================================
- 
+
     do i = ilndbeg , ilndend
       ! 6.1  rate of momentum transfer per velocity
       drag(i) = cdrx(i)*vspda(i)*rhs(i)
@@ -272,7 +272,7 @@ module mod_bats_bndry
       ! rh2ox(i) = (watr-wiltr)/(relfc-wiltr)
     end do
 #ifdef DEBUG
-    call time_end(subroutine_name,idindx) 
+    call time_end(subroutine_name,idindx)
 #endif
   end subroutine bndry
 !
@@ -303,7 +303,7 @@ module mod_bats_bndry
       end if
     end do
 #ifdef DEBUG
-    call time_end(subroutine_name,idindx) 
+    call time_end(subroutine_name,idindx)
 #endif
   end subroutine vcover
 !
@@ -340,10 +340,10 @@ module mod_bats_bndry
       end if
     end do
 #ifdef DEBUG
-    call time_end(subroutine_name,idindx) 
+    call time_end(subroutine_name,idindx)
 #endif
   end subroutine drip
-! 
+!
 !=======================================================================
 ! WATER
 !     update soil moisture and runoff
@@ -575,10 +575,10 @@ module mod_bats_bndry
       gwet(i) = scvk(i) + gwet(i)*(d_one-scvk(i))
     end do
 #ifdef DEBUG
-    call time_end(subroutine_name,idindx) 
+    call time_end(subroutine_name,idindx)
 #endif
   end subroutine water
-! 
+!
 !=======================================================================
 ! SNOW
 !     update snow cover and snow age
@@ -665,13 +665,13 @@ module mod_bats_bndry
       if ( sncv(i) > 800.0D0 ) snag(i) = d_zero
     end do
 #ifdef DEBUG
-    call time_end(subroutine_name,idindx) 
+    call time_end(subroutine_name,idindx)
 #endif
   end subroutine snow
 !
 !=======================================================================
 ! TGRUND
-! 
+!
 !     Present version of diurnal and seasonal force restore (red 7-88)
 !     based on Dickinson (1988) force restore paper in j. climate.
 !     in particular, shows that a 0.1 m or thicker surface layer will
@@ -731,7 +731,7 @@ module mod_bats_bndry
     xdtime = dtbat*xnu
     dtimea = dtbat*xnua
     xdt2 = d_half*xdtime
-   
+
     do i = ilndbeg , ilndend
       ! 1.1  frozen ground values using 44 m2/yr for frozen ground
       !      thermal diffusion coefficient, based on the values of
@@ -820,7 +820,7 @@ module mod_bats_bndry
         bb(i) = bb(i) - bcoef(i)*wlhf*sm(i)
       end if
     end do
-   
+
     !=======================================================================
     !   3.   update soil temperatures
     !=======================================================================
@@ -857,7 +857,7 @@ module mod_bats_bndry
       end if
     end do
 #ifdef DEBUG
-    call time_end(subroutine_name,idindx) 
+    call time_end(subroutine_name,idindx)
 #endif
   contains
 
@@ -876,7 +876,7 @@ module mod_bats_bndry
       real(rk8) , intent(in) :: x
       fct1 = wlhf*d_rfour*1.414D0/x
     end function fct1
-! 
+!
   end subroutine tgrund
 !
 end module mod_bats_bndry

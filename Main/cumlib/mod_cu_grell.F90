@@ -21,13 +21,13 @@ module mod_cu_grell
 
   use mod_intkinds
   use mod_realkinds
-  use mod_service 
+  use mod_service
   use mod_memutil
   use mod_cu_common
   use mod_mpmessage
   use mod_runparams , only : iqv , dt , dtsec
   use mod_regcm_types
- 
+
   implicit none
 
   private
@@ -214,7 +214,7 @@ module mod_cu_grell
     psur(:,:)  = d_zero
     qcrit(:,:) = d_zero
     ter11(:,:) = d_zero
-    if ( ichem == 1 ) c2m%convpr(:,:,:) = d_zero 
+    if ( ichem == 1 ) c2m%convpr(:,:,:) = d_zero
 
     kdet(:,:)  = 2
     k22(:,:)   = 1
@@ -1170,7 +1170,7 @@ module mod_cu_grell
          end do
        end do
 #ifdef DEBUG
-       call time_end(subroutine_name,idindx) 
+       call time_end(subroutine_name,idindx)
 #endif
      end subroutine minimi
 
@@ -1200,7 +1200,7 @@ module mod_cu_grell
         end do
       end do
 #ifdef DEBUG
-      call time_end(subroutine_name,idindx) 
+      call time_end(subroutine_name,idindx)
 #endif
     end subroutine maximi1
 
@@ -1231,7 +1231,7 @@ module mod_cu_grell
         end do
       end do
 #ifdef DEBUG
-      call time_end(subroutine_name,idindx) 
+      call time_end(subroutine_name,idindx)
 #endif
     end subroutine maximi2
 

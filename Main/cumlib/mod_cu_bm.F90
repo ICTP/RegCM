@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_cu_bm
 
   use mod_intkinds
@@ -392,7 +392,7 @@ module mod_cu_bm
     end do
     !
     ! cloud top computation
-    !    
+    !
     do i = ici1 , ici2
       do j = jci1 , jci2
         prtop(j,i) = pbot(j,i)
@@ -1103,7 +1103,7 @@ module mod_cu_bm
     !
     ! ptop in pascal
     pt = ptop*d_1000
-   
+
     kthm = jtb
     kpm = itb
     kthm1 = kthm - 1

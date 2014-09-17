@@ -465,7 +465,7 @@ module mod_mtrxclm
           if ( (d_one-c2ralbdirl(jg,ig)) > dlowval ) then
             lms%lwdiralb(n,j,i) = c2ralbdirl(jg,ig)
           end if
-          if ( (d_one-c2ralbdifs(jg,ig)) > dlowval ) then 
+          if ( (d_one-c2ralbdifs(jg,ig)) > dlowval ) then
             lms%swdifalb(n,j,i) = c2ralbdifs(jg,ig)
           end if
           if ( (d_one-c2ralbdifl(jg,ig)) > dlowval ) then

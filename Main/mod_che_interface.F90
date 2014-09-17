@@ -72,7 +72,7 @@ module mod_che_interface
   public :: sdelq_io , sdelt_io , sfracb2d_io , sfracs2d_io , ssw2da_io
   public :: sfracv2d_io , svegfrac2d_io , taucldsp_io
 
-  contains 
+  contains
 
 #if (defined CLM45)
   subroutine init_chem(atms,mddom,sfs,xpsb,ba_cr,fcc,cldfra,       &
@@ -132,11 +132,11 @@ module mod_che_interface
     call assignpnt(atms%vbx3d,cvbx3d)
     call assignpnt(atms%chib3d,chib3d)
     call assignpnt(atms%rhb3d,crhb3d)
-!   
+!
     call assignpnt(mddom%lndcat,clndcat)
     call assignpnt(mddom%xlat,cxlat)
     call assignpnt(mddom%ht,cht)
-    call assignpnt(mddom%iveg,cveg2d) 
+    call assignpnt(mddom%iveg,cveg2d)
     call assignpnt(sfs%psb,cpsb)
     call assignpnt(xpsb%b0,psbb0)
     call assignpnt(xpsb%b1,psbb1)
@@ -155,22 +155,22 @@ module mod_che_interface
     call assignpnt(sfracs2d,csfracs2d)
     call assignpnt(sxlai2d,cxlai2d)
 
-    call assignpnt(sdelt,csdeltk2d) 
+    call assignpnt(sdelt,csdeltk2d)
     call assignpnt(sdelq,csdelqk2d)
 
     call assignpnt(atms%za,cza)
     call assignpnt(atms%dzq,cdzq)
     call assignpnt(coszrs,czen)
-    call assignpnt(ssw2da,cssw2da)   
+    call assignpnt(ssw2da,cssw2da)
 
     call assignpnt(taucldsp, ctaucld)
 
     cba%havebound = ba_cr%havebound
-    call assignpnt(ba_cr%bsouth, cba%bsouth)   
-    call assignpnt(ba_cr%bnorth, cba%bnorth)   
-    call assignpnt(ba_cr%beast, cba%beast)   
-    call assignpnt(ba_cr%bwest, cba%bwest)   
-    call assignpnt(ba_cr%ibnd, cba%ibnd)   
+    call assignpnt(ba_cr%bsouth, cba%bsouth)
+    call assignpnt(ba_cr%bnorth, cba%bnorth)
+    call assignpnt(ba_cr%beast, cba%beast)
+    call assignpnt(ba_cr%bwest, cba%bwest)
+    call assignpnt(ba_cr%ibnd, cba%ibnd)
 
     cba%ns = ba_cr%ns
     cba%nn = ba_cr%nn

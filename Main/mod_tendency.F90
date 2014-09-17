@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_tendency
 
   use mod_intkinds
@@ -56,7 +56,7 @@ module mod_tendency
   real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi , &
                ten0 , qen0
   real(rk8) , pointer , dimension(:,:,:) :: ps4
-  real(rk8) , pointer , dimension(:,:,:) :: ps_4 
+  real(rk8) , pointer , dimension(:,:,:) :: ps_4
   real(rk8) , pointer , dimension(:,:) :: psc , pten
 
 
@@ -81,7 +81,7 @@ module mod_tendency
     call getmem2d(psc,jce1,jce2,ice1,ice2,'tendency:psc')
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
     call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
-    if ( idiag > 0 ) then 
+    if ( idiag > 0 ) then
       call getmem3d(ten0,jce1,jce2,ice1,ice2,1,kz,'tendency:ten0')
       call getmem3d(qen0,jce1,jce2,ice1,ice2,1,kz,'tendency:qen0')
     end if
@@ -459,8 +459,8 @@ module mod_tendency
     !
     ! No diffusion of TKE on lower boundary (kzp1)
     !
-    xkc(:,:,:) = d_zero 
-    xkcf(:,:,:) = d_zero 
+    xkc(:,:,:) = d_zero
+    xkcf(:,:,:) = d_zero
     !
     ! compute the horizontal diffusion coefficient and stored in xkc:
     ! the values are calculated at cross points, but they also used
@@ -510,10 +510,10 @@ module mod_tendency
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       aten%tke(:,:,:) = d_zero
     end if
-    if ( ichem == 1 ) then 
+    if ( ichem == 1 ) then
       chiten(:,:,:,:)  = d_zero
       if ( ichdiag == 1 ) chiten0(:,:,:,:) = d_zero
-    end if 
+    end if
     if ( idiag > 0 ) then
       ten0(:,:,:) = d_zero
       qen0(:,:,:) = d_zero
@@ -525,7 +525,7 @@ module mod_tendency
     adf%diffqx(:,:,:,:) = d_zero
     !
     ! compute the horizontal advection term:
-    !  
+    !
     call hadv(cross,aten%t,atmx%t,kz)
     if ( idiag > 0 ) then
       tdiag%adh = tdiag%adh + (aten%t - ten0) * afdout
@@ -586,7 +586,7 @@ module mod_tendency
       ! save the h diff diag here
       tdiag%dif(jci1:jci2,ici1:ici2,:) = tdiag%dif(jci1:jci2,ici1:ici2,:) + &
         (adf%difft - ten0(jci1:jci2,ici1:ici2,:)) * afdout
-      ! reset ten0 to aten%t 
+      ! reset ten0 to aten%t
       ten0 = aten%t
     end if
     !
@@ -644,7 +644,7 @@ module mod_tendency
         end do
       end if
     end if
- 
+
     if ( idiag > 0 ) then
       tdiag%con = tdiag%con + (aten%t - ten0) * afdout
       ten0 = aten%t
@@ -657,7 +657,7 @@ module mod_tendency
 #endif
     !
     ! save cumulus cloud fraction for chemistry before it is
-    ! overwritten in cldfrac 
+    ! overwritten in cldfrac
     !
     if ( ichem == 1 .and. ichdiag == 1 ) then
       cconvdiag = cconvdiag + (chiten - chiten0) * cfdout
@@ -689,7 +689,7 @@ module mod_tendency
         call pcp
         call cldfrac
       end if
-      ! 
+      !
       ! compute the diffusion terms:
       ! the diffusion term for qx is stored in diffqx.
       !
@@ -702,7 +702,7 @@ module mod_tendency
         qdiag%dif(jci1:jci2,ici1:ici2,:) = qdiag%dif(jci1:jci2,ici1:ici2,:) + &
                      (adf%diffqx(jci1:jci2,ici1:ici2,:,iqv) - &
                       qen0(jci1:jci2,ici1:ici2,:)) * afdout
-        ! reset qen0 to aten%t 
+        ! reset qen0 to aten%t
         qen0 = aten%qx(:,:,:,iqv)
       end if
     end if
@@ -756,7 +756,7 @@ module mod_tendency
       !
       call diffu_x(chiten,chib3d,sfs%psb,xkc,kz)
       if ( ichdiag == 1 ) then
-        cdifhdiag = cdifhdiag + (chiten - chiten0) * cfdout 
+        cdifhdiag = cdifhdiag + (chiten - chiten0) * cfdout
       end if
       !
       ! Compute chemistry tendencies (other than transport)
@@ -792,7 +792,7 @@ module mod_tendency
     ! Call medium resolution PBL
     !
     if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
-    ! care : pbl update the difft table at this level 
+    ! care : pbl update the difft table at this level
     if ( idiag > 0 ) ten0(jci1:jci2,ici1:ici2,:) = adf%difft
     if ( ibltyp == 1 .or. ibltyp == 99 ) then
       ! Call the Holtslag PBL
@@ -806,15 +806,15 @@ module mod_tendency
          holtten%qx(jci1:jci2,ici1:ici2,:,:)
     end if
     if ( ichem == 1 .and. ichdiag == 1 ) then
-      ctbldiag = ctbldiag + (chiten - chiten0) * cfdout 
+      ctbldiag = ctbldiag + (chiten - chiten0) * cfdout
     end if
     if ( idiag > 0 ) then
       tdiag%tbl(jci1:jci2,ici1:ici2,:) = tdiag%tbl(jci1:jci2,ici1:ici2,:) + &
-                     (adf%difft - ten0(jci1:jci2,ici1:ici2,:)) * afdout    
-      ten0 = aten%t 
+                     (adf%difft - ten0(jci1:jci2,ici1:ici2,:)) * afdout
+      ten0 = aten%t
       qdiag%tbl(jci1:jci2,ici1:ici2,:) = qdiag%tbl(jci1:jci2,ici1:ici2,:) + &
                 (adf%diffqx(jci1:jci2,ici1:ici2,:,iqv) - &
-            qen0(jci1:jci2,ici1:ici2,:)) * afdout    
+            qen0(jci1:jci2,ici1:ici2,:)) * afdout
       qen0 = aten%qx(:,:,:,iqv)
     end if
 #ifdef DEBUG
@@ -847,7 +847,7 @@ module mod_tendency
     if ( iboudy == 4 ) then
       call sponge(kz,ba_cr,xtb,aten%t)
       call sponge(kz,iqv,ba_cr,xqb,aten%qx)
-      if ( idiag > 0 ) then    
+      if ( idiag > 0 ) then
         ! rq : temp condensation tend is added the evap temp tend
         !      calculated in pcp
         tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
@@ -873,9 +873,9 @@ module mod_tendency
       end do
     end do
     ! Rq: the temp tendency diagnostics have been already
-    !     saved for tbl and hor. diff but :  
+    !     saved for tbl and hor. diff but :
     if ( idiag > 0 ) then
-      ten0 = aten%t ! important since aten%t have been updated 
+      ten0 = aten%t ! important since aten%t have been updated
       qen0 = aten%qx(:,:,:,iqv) ! important since aten%qx have been updated
     end if
     !
@@ -895,7 +895,7 @@ module mod_tendency
       else
         call condtq(psc)
       end if
-      if ( idiag > 0 ) then    
+      if ( idiag > 0 ) then
         ! rq : temp condensation tend is added the evap temp tend
         ! calculated in pcp
         tdiag%lsc = tdiag%lsc + (aten%t - ten0) * afdout
@@ -913,13 +913,13 @@ module mod_tendency
     end if
     if ( ichem == 1 ) then
       if ( ichdiag == 1 ) chiten0 = chiten
-      ! keep nudge_chi for now 
+      ! keep nudge_chi for now
       if ( iboudy == 1 .or. iboudy == 5 ) then
         call nudge_chi(kz,xbctime,chib,chiten)
       end if
       if ( ichdiag == 1 ) cbdydiag = cbdydiag + (chiten - chiten0) * cfdout
-    end if  
-    if ( idiag > 0 ) then    
+    end if
+    if ( idiag > 0 ) then
       tdiag%bdy = tdiag%bdy + (aten%t - ten0) * afdout
       ten0 = aten%t
       qdiag%bdy = qdiag%bdy + (aten%qx(:,:,:,iqv) - qen0) * afdout
@@ -1483,7 +1483,7 @@ module mod_tendency
           end do
         end if
         maxv = dabs(maxval(aten%qx(:,:,:,iqv)))
-        if ( (maxv/dtsec) > 0.001D0 ) then ! 
+        if ( (maxv/dtsec) > 0.001D0 ) then !
           write(stderr,*) 'MAXVAL ATEN QV :', maxv
           maxv = maxv - 0.001D0
           do kk = 1 , kz
@@ -1499,7 +1499,7 @@ module mod_tendency
           end do
         end if
         maxv = dabs(maxval(aten%qx(:,:,:,iqc)))
-        if ( (maxv/dtsec) > 0.001D0 ) then ! 
+        if ( (maxv/dtsec) > 0.001D0 ) then !
           write(stderr,*) 'MAXVAL ATEN QC :', maxv
           maxv = maxv - 0.001D0
           do kk = 1 , kz

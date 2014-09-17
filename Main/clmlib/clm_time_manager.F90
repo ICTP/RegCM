@@ -93,7 +93,7 @@ subroutine timemgr_init( calendar_in, start_ymd_in, start_tod_in, ref_ymd_in, &
 
   !---------------------------------------------------------------------------------
   ! Initialize the ESMF time manager from the sync clock
-  ! 
+  !
   ! Arguments
   character(len=*), optional, intent(IN) :: calendar_in       ! Calendar type
   integer         , optional, intent(IN) :: start_ymd_in      ! Start date (YYYYMMDD)
@@ -117,7 +117,7 @@ end subroutine timemgr_init
 subroutine timemgr_restart_io( ncid, flag )
 
   !---------------------------------------------------------------------------------
-  ! Read/Write information needed on restart to a netcdf file. 
+  ! Read/Write information needed on restart to a netcdf file.
 
   ! Arguments
   integer         , intent(in) :: ncid  ! netcdf id
@@ -136,7 +136,7 @@ end subroutine timemgr_restart_io
 !=========================================================================================
 
 subroutine timemgr_restart( stop_ymd_synclock, stop_tod_synclock )
- 
+
   !---------------------------------------------------------------------------------
   ! Restart the ESMF time manager using the synclock for ending date.
   !
@@ -168,7 +168,7 @@ subroutine calc_nestep()
   ! Calculate ending timestep number
   ! Calculation of ending timestep number (nestep) assumes a constant stepsize.
   !
-  
+
   nestep = (mtau-ktau)/ntsrf
 
 end subroutine calc_nestep
@@ -194,9 +194,9 @@ subroutine advance_timestep()
 
   character(len=*), parameter :: sub = 'advance_timestep'
   integer :: rc
-  
+
   tm_first_restart_step = .false.
-  
+
 end subroutine advance_timestep
 
 !=========================================================================================
@@ -206,7 +206,7 @@ integer function get_step_size()
   ! Return the step size in seconds.
 
   get_step_size = idnint(dtsrf)
-  
+
 end function get_step_size
 
 !=========================================================================================
@@ -226,7 +226,7 @@ subroutine get_curr_date(yr, mon, day, tod, offset)
   !-----------------------------------------------------------------------------------------
   ! Return date components valid at end of current timestep with an optional
   ! offset (positive or negative) in seconds.
-  
+
   integer, intent(out) ::&
       yr,    &! year
       mon,   &! month
@@ -234,7 +234,7 @@ subroutine get_curr_date(yr, mon, day, tod, offset)
       tod     ! time of day (seconds past 0Z)
 
    integer, optional, intent(in) :: offset  ! Offset from current time in seconds.
-                                            ! Positive for future times, negative 
+                                            ! Positive for future times, negative
                                             ! for previous times.
     type (rcm_time_and_date) :: id
     type (rcm_time_interval) :: tdif
@@ -383,7 +383,7 @@ real(r8) function get_curr_calday(offset)
 
 ! Arguments
    integer, optional, intent(in) :: offset  ! Offset from current time in seconds.
-                                            ! Positive for future times, negative 
+                                            ! Positive for future times, negative
                                             ! for previous times.
    type (rcm_time_and_date) :: id
    type (rcm_time_interval) :: tdif
@@ -415,7 +415,7 @@ real(r8) function get_calday(ymd, tod)
 end function get_calday
 
 !=========================================================================================
- 
+
 logical function is_end_curr_day()
 
 ! Return true if current timestep is last timestep in current day.

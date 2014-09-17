@@ -136,7 +136,7 @@ module controlMod
 !
 ! When coupled to CAM: base calendar info, nstep, nestep, nsrest, and time
 ! step are input to the land model from CAM. The values in the clm_inparm namelist
-! are not used. 
+! are not used.
 !
 ! !USES:
   use shr_kind_mod , only : r8 => shr_kind_r8, SHR_KIND_CL
@@ -293,24 +293,24 @@ contains
 
     ! Archive options
     namelist /clm_inparm/ archive_dir, mss_wpass, mss_irt, &
-         brnch_retain_casename 
+         brnch_retain_casename
 #endif
 
     ! clm input datasets
 
     namelist / clm_inparm/ &
-	 dtime	
+	 dtime
 
     namelist /clm_inparm/  &
          finidat, fsurdat, fatmgrid, fatmlndfrc, fatmtopo, flndtopo, &
          fpftcon, frivinp_rtm,  &
-         fpftdyn, fndepdat, fndepdyn, nrevsn, offline_atmdir 
+         fpftdyn, fndepdat, fndepdyn, nrevsn, offline_atmdir
 
 !!!!!!!! abt rcm below
     namelist /clm_inparm/  &
          mksrf_fvegtyp, mksrf_fsoicol, mksrf_fsoitex, mksrf_flanwat, &
          mksrf_fglacier, mksrf_flai,  &
-         mksrf_furban, mksrf_fisop, mksrf_offline_fnavyoro, mksrf_fmax, &  
+         mksrf_furban, mksrf_fisop, mksrf_offline_fnavyoro, mksrf_fmax, &
          mksrf_fbpin,mksrf_fapin,mksrf_fmbo, &
          mksrf_flimo,mksrf_fsabi,mksrf_fmyrc, &
          mksrf_fco,mksrf_focim,mksrf_facar, &
@@ -348,7 +348,7 @@ contains
     namelist /clm_inparm/  &
          clump_pproc, irad, wrtdia, csm_doflxave, rtm_nsteps, pertlim, &
          create_crop_landunit, nsegspc
-         
+
     ! ----------------------------------------------------------------------
     ! Default values
     ! ----------------------------------------------------------------------
@@ -387,8 +387,8 @@ contains
 
 !!!!!!! abt rcm below
     mksrf_fvegtyp   = trim(dirclm)//pthsep//trim(domname)//'_RCMpft.nc'
-    mksrf_fsoicol   = trim(dirclm)//pthsep//trim(domname)//'_RCMsoicol_clm2.nc'  
-    mksrf_fsoitex   = trim(dirclm)//pthsep//trim(domname)//'_RCMsoitex.10level.nc' 
+    mksrf_fsoicol   = trim(dirclm)//pthsep//trim(domname)//'_RCMsoicol_clm2.nc'
+    mksrf_fsoitex   = trim(dirclm)//pthsep//trim(domname)//'_RCMsoitex.10level.nc'
     mksrf_flanwat   = trim(dirclm)//pthsep//trim(domname)//'_RCMlanwat.nc'
     mksrf_fglacier  = trim(dirclm)//pthsep//trim(domname)//'_RCMglacier.nc'
     mksrf_flai      = trim(dirclm)//pthsep//trim(domname)//'_RCMlai.nc'
@@ -397,8 +397,8 @@ contains
     mksrf_fmbo      = trim(dirclm)//pthsep//trim(domname)//'_RCMmbo.nc'
     mksrf_fbpin     = trim(dirclm)//pthsep//trim(domname)//'_RCMpinb.nc'
     mksrf_fapin     = trim(dirclm)//pthsep//trim(domname)//'_RCMpina.nc'
-    mksrf_flimo     = trim(dirclm)//pthsep//trim(domname)//'_RCMlimo.nc' 
-    mksrf_fsabi     = trim(dirclm)//pthsep//trim(domname)//'_RCMsabi.nc'    
+    mksrf_flimo     = trim(dirclm)//pthsep//trim(domname)//'_RCMlimo.nc'
+    mksrf_fsabi     = trim(dirclm)//pthsep//trim(domname)//'_RCMsabi.nc'
     mksrf_fmyrc     = trim(dirclm)//pthsep//trim(domname)//'_RCMmyrc.nc'
     mksrf_fco       = trim(dirclm)//pthsep//trim(domname)//'_RCMco.nc'
     mksrf_focim     = trim(dirclm)//pthsep//trim(domname)//'_RCMocim.nc'
@@ -414,7 +414,7 @@ contains
     mksrf_fform     = trim(dirclm)//pthsep//trim(domname)//'_RCMform.nc'
     mksrf_fmeth     = trim(dirclm)//pthsep//trim(domname)//'_RCMmeth.nc'
     mksrf_fmax      = trim(dirclm)//pthsep//trim(domname)//'_RCMfmax.nc'
-    mksrf_offline_fnavyoro = trim(dirclm)//pthsep//trim(domname)//'_RCMnavyoro_20min.nc' 
+    mksrf_offline_fnavyoro = trim(dirclm)//pthsep//trim(domname)//'_RCMnavyoro_20min.nc'
 !!!!!!! abt rcm above
 
 
@@ -490,7 +490,7 @@ contains
     if (masterproc) then
 
        ! ----------------------------------------------------------------------
-       ! Read namelist from standard input. 
+       ! Read namelist from standard input.
        ! ----------------------------------------------------------------------
 
 !abt commented out reading the clm namelist
@@ -564,10 +564,10 @@ contains
 #if (defined DGVM)
           write(6,*)'dynamic landuse is currently not supported with DGVM option'
           call endrun()
-#elif (defined CASA)          
+#elif (defined CASA)
           write(6,*)'dynamic landuse is currently not supported with CASA option'
           call endrun()
-#endif       
+#endif
        end if
 
 #if (defined SEQ_MCT) || (defined SEQ_ESMF)
@@ -652,7 +652,7 @@ contains
           call endrun()
        end if
 
-       ! Check on offline mode 
+       ! Check on offline mode
 
 #if (defined OFFLINE)
 !       if (offline_atmdir == ' ') then
@@ -695,7 +695,7 @@ contains
 !!!!!!!!! abt rcm above
 
 
-       ! Check on ccsm mode 
+       ! Check on ccsm mode
 
 #if (defined COUP_CSM)
        if (csm_doflxave .and. irad ==1 ) then
@@ -706,12 +706,12 @@ contains
 #endif
 
        ! Check on nitrogen deposition dataset
-       
+
        if (fndepdat /= ' ' .and. fndepdyn /= ' ') then
           write(6,*)'namelist error: only one of fndepdat or fndepdyn can be defined'
           call endrun()
        end if
-       
+
        ! Model physics
 
        if (irad < 0) irad = nint(-irad*3600._r8/dtime)
@@ -727,17 +727,17 @@ contains
              hist_nhtfrq(i) = nint(-hist_nhtfrq(i)*SHR_CONST_CDAY/(24._r8*dtime))
           endif
        end do
-       
+
        if (rpntpath == 'not_specified') then
 !abt commented          call shr_sys_getenv('HOME', homedir, ierr)
 !abt commented          rpntpath = trim(homedir)//'/lnd.'//trim(caseid)//'.rpointer'
 !abt use Input folder as default location for clm restart pointer file
          rpntpath = './lnd.'//trim(caseid)//'.rpointer'
        endif
-       
+
        if (nsrest == 0) nrevsn = ' '
        if (nsrest == 1) nrevsn = 'set by restart pointer file file'
-       
+
 #if (defined DGVM)
        hist_crtinic = 'YEARLY'
 #else
@@ -747,9 +747,9 @@ contains
        endif
 #endif
 
-       ! Split the full pathname of the restart pointer file into a 
+       ! Split the full pathname of the restart pointer file into a
        ! directory name and a file name
-       
+
        rpntdir = ' '
        rpntfil = ' '
        do n = len_trim(rpntpath),1,-1
@@ -762,7 +762,7 @@ contains
        rpntdir = '.'        ! no "/" found, set path = "."
        rpntfil = rpntpath   ! no "/" found, use whole input string.
 100    continue
-       
+
     endif   ! end of if-masterproc if-block
 
     ! ----------------------------------------------------------------------
@@ -770,7 +770,7 @@ contains
     ! ----------------------------------------------------------------------
 
     call control_spmd()
-    
+
     if (masterproc) then
        write(6,*) 'Successfully initialized run control settings'
        write(6,*)
@@ -1101,28 +1101,28 @@ contains
        write(6,*) '   mksrf_flai not set'
     else
        write(6,*) '   LAI data = ',trim(mksrf_flai)
-    end if    
+    end if
 #if (defined VOC)
     if (mksrf_fisop == ' ') then
        write(6,*) '   mksrf_fisop not set'
     else
        write(6,*) '   Isoprene data = ',trim(mksrf_fisop)
-    end if    
+    end if
     if (mksrf_fmbo == ' ') then
        write(6,*) '   mksrf_fmbo not set'
     else
        write(6,*) '   Methylbutenol data = ',trim(mksrf_fmbo)
-    end if    
+    end if
     if (mksrf_fbpin == ' ') then
        write(6,*) '   mksrf_fbpin not set'
     else
        write(6,*) '   B-pinene data = ',trim(mksrf_fbpin)
-    end if    
+    end if
     if (mksrf_fapin == ' ') then
        write(6,*) '   mksrf_fapin not set'
     else
        write(6,*) '   A-pinene data = ',trim(mksrf_fapin)
-    end if    
+    end if
     if (mksrf_flimo == ' ') then
        write(6,*) '   mksrf_flimo not set'
     else

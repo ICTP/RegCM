@@ -39,9 +39,9 @@ module mod_che_isorropia
   private
 
   public :: aerodriver
- 
+
   contains
- 
+
   subroutine aerodriver
     use mod_dynparam
     use mod_constants
@@ -63,7 +63,7 @@ module mod_che_isorropia
     real(rk8) , parameter :: massfactor = 1000.0D0
     real(rk8) , parameter :: dtaesolv = 900.0D0
     real(rk8) , parameter :: conmin = 1.0D-30
- 
+
     real(rk8) , dimension(ncomp) :: wi , wt
     real(rk8) , dimension(ngasaq) :: gas
     real(rk8) , dimension(nslds) :: aersld
@@ -72,7 +72,7 @@ module mod_che_isorropia
     real(rk8) , dimension(nother) :: other
     integer(ik4) :: i , j , k
     real(rk8) :: tempi , rhi
- 
+
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -87,7 +87,7 @@ module mod_che_isorropia
           tempi = ctb3d(j,i,k)
           rhi = crhb3d(j,i,k)
           if ( rhi>1.0 ) rhi = 0.99
- 
+
           wi = d_zero
           wi(2) = max(chib3d(j,i,k,ih2so4)/w_so4*crhob3d(j,i,k)*massfactor,   &
                       conmin)                                     !so4
@@ -95,10 +95,10 @@ module mod_che_isorropia
                       *crhob3d(j,i,k)*massfactor,conmin)          !nh4
           wi(4) = max((chib3d(j,i,k,ihno3)/w_hno3+chib3d(j,i,k,iano3)/ &
                        w_ano3)*crhob3d(j,i,k)*massfactor,conmin)  !no3
- 
+
           call isoropia(wi,rhi,tempi,cntrl,wt,gas,aerliq,aersld,scasi,other)
-! 
-! add to the chemical tendency the tendendy linked to thermo equilibrium 
+!
+! add to the chemical tendency the tendendy linked to thermo equilibrium
           chemten(j,i,k,ih2so4) = chemten(j,i,k,ih2so4) + (wt(2)*w_so4/massfactor/crhob3d(j,i,k)      &
                                 *cpsb(j,i)-chib3d(j,i,k,ih2so4)*cpsb(j,i))    &
                                 /dtaesolv                        !so4
@@ -119,7 +119,7 @@ module mod_che_isorropia
       end do
     end do
   end subroutine aerodriver
-! 
+!
 ! =====================================================================
 !
 ! *** isorropia code ii
@@ -584,7 +584,7 @@ module mod_che_isorropia
            5.94,5.84,5.75,5.65,5.56,5.47,5.38,5.29,5.20,5.11,5.01,4.92,   &
            4.82,4.71,4.60,4.49,4.36,4.24,4.10,3.96,3.81,3.65,3.48,3.30,   &
            3.11,2.92,2.71,2.49,2.26,2.02,1.76,1.50,1.22,0.94,0.64/)
- 
+
 !
 ! *** problem type (0 = foreward , 1=reverse)
 ! ******************************
@@ -635,7 +635,7 @@ module mod_che_isorropia
 ! metstbl = 0
 ! goto 50
 ! end if
- 
+
 !
 ! *** save results to arrays (units = mole/m3)
 ! ****************************
@@ -701,14 +701,14 @@ module mod_che_isorropia
     wt(6) = wi(6)
     wt(7) = wi(7)
     wt(8) = wi(8)
- 
+
     if ( iprob>0 .and. water>tiny1 ) then
       wt(3) = wt(3) + gnh3
       wt(4) = wt(4) + ghno3
       wt(5) = wt(5) + ghcl
     end if
   end subroutine isoropia
- 
+
 !======================================================================
 !
 ! *** isorropia code
@@ -1114,7 +1114,7 @@ module mod_che_isorropia
       errmsg(i) = 'message n/a'
     end do
   end subroutine init1
- 
+
 !======================================================================
 !
 ! *** isorropia code
@@ -1849,7 +1849,7 @@ module mod_che_isorropia
     xk25 = 9.557D21    ! mgcl2(s)         <==> mg(aq)    + 2cl(aq)
 ! xk26 = 4.299d-7  ! co2(aq) + h2o    <==> hco3(aq)  + h(aq)
 ! xk27 = 4.678d-11 ! hco3(aq)         <==> co3(aq)   + h(aq)
- 
+
 !
     if ( int(temp)/=298 ) then       ! for t != 298k or 298.15k
       t0 = 298.15D0
@@ -1888,7 +1888,7 @@ module mod_che_isorropia
 !   xk25 = xk25 *exp(  .0D0*(t0t-1.0D0) + .0D0*coef)
 !   xk26 = xk26 *exp(-3.0821D0*(t0t-1.0D0) + 31.8139D0*coef)
 !   xk27 = xk27 *exp(-5.9908D0*(t0t-1.0D0) + 38.844D0*coef)
- 
+
     end if
     xk2 = xk21*xk22
     xk42 = xk4/xk41
@@ -2002,7 +2002,7 @@ module mod_che_isorropia
 ! 0.1d0    ! ca(no3)2 , k2so4 , kno3 , kcl , mgso4 , mg(no3)2 , nano3 ,
 ! nacl , nh4no3 , nh4cl drmp4   = 0.1d0    ! k2so4 , kno3 , kcl , mgso4
 ! , mg(no3)2 , nano3 , nacl , nh4no3 , nh4cl drmp5   = 0.1d0    ! k2so4
-! , kno3 , kcl , mgso4 , nano3 , nacl , nh4no3 , nh4cl drmv1   = 0.1d0 
+! , kno3 , kcl , mgso4 , nano3 , nacl , nh4no3 , nh4cl drmv1   = 0.1d0
 ! ! (nh4)2so4 , nh4no3 , na2so4 , k2so4 , mgso4 if (int(temp) .ne. 298)
 ! then t0       = 298.15d0
 ! tcf      = 1.0/temp - 1.0/t0
@@ -2345,7 +2345,7 @@ module mod_che_isorropia
     else
       exnh4 = molal(3) + cnh4cl + cnh4no3 + cnh4hs4 + 2D0*cnh42s4 +       &
               3D0*clc - wi(3)
- 
+
     end if
     exnh4 = max(exnh4,zero)
     if ( exnh4>=tiny1 ) then        ! no excess nh4 , go to next precursor
@@ -2511,7 +2511,7 @@ module mod_che_isorropia
       end if
     end if
   end subroutine adjust
- 
+
 !======================================================================
 !
 ! *** isorropia code
@@ -2529,7 +2529,7 @@ module mod_che_isorropia
   real(rk8) function getasr(so4i,rhi)
     implicit none
     real(rk8) :: a1 , rat , wf
-    integer(ik4) :: ia1 , indr , inds , indsh , indsl , iposh , iposl 
+    integer(ik4) :: ia1 , indr , inds , indsh , indsl , iposh , iposl
     integer , parameter :: nso4s = 14
     integer , parameter :: nrhs = 20
     integer , parameter :: nasrd = nso4s*nrhs
@@ -2556,7 +2556,7 @@ module mod_che_isorropia
                    1.533645,1.535016,1.539003,1.545124,1.553283,1.561886, &
                    1.570530,1.579234,1.587813,1.595956,1.603901,1.611349, &
                    1.618833,1.625819,1.632543,1.639032,1.645276/)
- 
+
     asrat(101:200) = (/1.707390,1.689553,1.683198,1.681810,1.683490,      &
                      1.687477,1.693148,1.700084,1.706917,1.713507,        &
                      1.719952,1.726190,1.731985,1.737544,1.742673,        &
@@ -2577,7 +2577,7 @@ module mod_che_isorropia
                      1.893436,1.896036,1.898872,1.901485,1.903908,        &
                      1.906212,1.908391,1.910375,1.912248,1.913952,        &
                      1.915621,1.917140,1.918576,1.919934,1.921220/)
- 
+
     asrat(201:280) = (/1.928264,1.923245,1.921625,1.921523,1.922421,      &
                      1.924016,1.925931,1.927991,1.929875,1.931614,        &
                      1.933262,1.934816,1.936229,1.937560,1.938769,        &
@@ -2717,7 +2717,7 @@ module mod_che_isorropia
     molal(4) = molal(4) - delt
     ghcl = molal(1)*molal(4)/alfa
   end subroutine calchap
- 
+
 !======================================================================
 !
 ! *** isorropia code
@@ -2767,7 +2767,7 @@ module mod_che_isorropia
     molal(7) = delt                  ! no3-
     molal(1) = molal(1) + delt       ! h+
   end subroutine calcna
- 
+
 !======================================================================
 !
 ! *** isorropia code
@@ -2805,10 +2805,10 @@ module mod_che_isorropia
     molal(1) = molal(1) - delt
     molal(7) = molal(7) - delt
     ghno3 = molal(1)*molal(7)/alfa
- 
+
     write (*,*) alfa , molal(1) , molal(7) , ghno3 , delt
   end subroutine calcnap
- 
+
 !======================================================================
 !
 ! *** isorropia code
@@ -2859,7 +2859,7 @@ module mod_che_isorropia
     molal(3) = chi1 - psi            ! nh4+
     molal(1) = chi2 + psi            ! h+
   end subroutine calcnh3
-! 
+!
 !======================================================================
 !
 ! *** isorropia code
@@ -2999,7 +2999,7 @@ module mod_che_isorropia
     ghcl = max(w(5)-molal(4),tiny1)
     ghno3 = max(w(4)-molal(7),tiny1)
   end subroutine calcnha
-! 
+!
 !======================================================================
 !
 ! *** isorropia code
@@ -3049,7 +3049,7 @@ module mod_che_isorropia
     ghno3 = molal(1)*molal(7)/a4
     ghcl = molal(1)*molal(4)/a3
   end subroutine calcnhp
-! 
+!
 !======================================================================
 !
 ! *** isorropia code ii
@@ -3153,7 +3153,7 @@ module mod_che_isorropia
     bb = -(om1+om2+a22*akw)
     cc = om1*om2
     dd = sqrt(bb*bb-4.D0*cc)
- 
+
     del1 = 0.5D0*(-bb-dd)
     del2 = 0.5D0*(-bb+dd)
 !
@@ -3174,7 +3174,7 @@ module mod_che_isorropia
 ! call pusherr (0020 , errinf)
 ! end if
   end subroutine calcamaq
-! 
+!
 !======================================================================
 !
 ! *** isorropia code
@@ -3216,7 +3216,7 @@ module mod_che_isorropia
     nh3aq = alf2 - del
 !
   end subroutine calcamaq2
- 
+
 !======================================================================
 !
 ! *** isorropia code
@@ -3248,7 +3248,7 @@ module mod_che_isorropia
     bb = -(om1+om2+a32)
     cc = om1*om2
     dd = sqrt(bb*bb-4.D0*cc)
- 
+
     del1 = 0.5D0*(-bb-dd)
     del2 = 0.5D0*(-bb+dd)
 !
@@ -3262,7 +3262,7 @@ module mod_che_isorropia
       delt = del2
     end if
   end subroutine calcclaq
-! 
+!
 !======================================================================
 !
 ! *** isorropia code
@@ -3302,7 +3302,7 @@ module mod_che_isorropia
     if ( hi<=tiny1 ) hi = sqrt(akw)     ! if solution is neutral.
     claq = alf2 - del1
   end subroutine calcclaq2
-! 
+!
 !======================================================================
 !
 ! *** isorropia code
@@ -3334,7 +3334,7 @@ module mod_che_isorropia
     bb = -(om1+om2+a42)
     cc = om1*om2
     dd = sqrt(bb*bb-4.D0*cc)
- 
+
     del1 = 0.5D0*(-bb-dd)
     del2 = 0.5D0*(-bb+dd)
 !
@@ -3354,7 +3354,7 @@ module mod_che_isorropia
       delt = del2
     end if
   end subroutine calcniaq
-! 
+!
 !======================================================================
 !
 ! *** isorropia code
@@ -4435,7 +4435,7 @@ module mod_che_isorropia
 ! end if
 !
   end subroutine calchs4
- 
+
 !======================================================================
 !
 ! *** isorropia code
@@ -16533,7 +16533,7 @@ module mod_che_isorropia
     binarr(22) = bnc22m(ipos)
     binarr(23) = bnc23m(ipos)
   end subroutine km323
- 
+
 !************************************************************************
 !
 !  tolbox library v.1.0 (may 1995)
@@ -16572,7 +16572,7 @@ module mod_che_isorropia
       end if
     end do
   end subroutine chrbln
- 
+
 !************************************************************************
 !
 !  tolbox library v.1.0 (may 1995)
@@ -16606,7 +16606,7 @@ module mod_che_isorropia
       chr(i:i) = ' '
     end do
   end subroutine shftrght
- 
+
 !************************************************************************
 !
 !  tolbox library v.1.0 (may 1995)
@@ -16662,7 +16662,7 @@ module mod_che_isorropia
       string(ip:ip+ilo-1) = new     ! replace substring 'old' with 'new'
     end do
   end subroutine rplstr
- 
+
 !************************************************************************
 !
 !  tolbox library v.1.0 (may 1995)
@@ -16780,8 +16780,8 @@ module mod_che_isorropia
     end do
     backspace(iunit)
   end subroutine pushend
- 
- 
+
+
 !************************************************************************
 !
 !  tolbox library v.1.0 (may 1995)
@@ -16930,7 +16930,7 @@ module mod_che_isorropia
       end if
     end do
   end subroutine poly3
-! 
+!
 !======================================================================
 !
 ! *** isorropia code
@@ -17018,7 +17018,7 @@ module mod_che_isorropia
         func = x**30 + a1*x**2 + a2*x + a3
       end function func
   end subroutine poly3b
-! 
+!
 !      program driver
 !      real(rk8) root
 !
@@ -17099,7 +17099,7 @@ module mod_che_isorropia
                     0.7762E+00,0.7943E+00,0.8128E+00,0.8318E+00,          &
                     0.8511E+00,0.8710E+00,0.8913E+00,0.9120E+00,          &
                     0.9333E+00,0.9550E+00,0.9772E+00,0.1000E+01/)
- 
+
     adec10(101:200) = (/0.1023E+01,0.1047E+01,0.1072E+01,0.1096E+01,      &
                       0.1122E+01,0.1148E+01,0.1175E+01,0.1202E+01,        &
                       0.1230E+01,0.1259E+01,0.1288E+01,0.1318E+01,        &
@@ -17139,7 +17139,7 @@ module mod_che_isorropia
 !
     ex10 = aint10(k1+10)*adec10(k2+100)
   end function ex10
-! 
+!
 !======================================================================
 !
 ! *** isorropia code
@@ -17417,7 +17417,7 @@ module mod_che_isorropia
     tin = tiny1
     grt = great
   end subroutine isorinf
-! 
+!
 !======================================================================
 !
 ! *** isorropia code
@@ -17685,7 +17685,7 @@ module mod_che_isorropia
     sodrat = w(1)/w(2)
 !
 ! *** find calculation regime from (sulrat ,rh)
- 
+
 ! ************************** *** sulfate poor ; sodium poor
 !
     if ( 2.0<=sulrat .and. sodrat<2.0 ) then
@@ -18973,7 +18973,7 @@ module mod_che_isorropia
       scase = 'b1 ; subcase 2'
     end if
   end subroutine calcb1
-! 
+!
 !======================================================================
 !
 ! *** isorropia code
@@ -19089,7 +19089,7 @@ module mod_che_isorropia
     cnh42s4 = wf*cnh42so + onemwf*cnh42s4
     cnh4hs4 = wf*cnh4hso + onemwf*cnh4hs4
   end subroutine calcb1b
- 
+
 !======================================================================
 !
 ! *** isorropia code
@@ -19143,8 +19143,8 @@ module mod_che_isorropia
       call calcact
     end do
   end subroutine calcc2
- 
- 
+
+
 !======================================================================
 !
 ! *** isorropia code
@@ -19778,7 +19778,7 @@ module mod_che_isorropia
       scase = 'd1 ; subcase 2'
     end if
   end subroutine calcd1
- 
+
 !======================================================================
 !
 ! *** isorropia code
@@ -20301,7 +20301,7 @@ module mod_che_isorropia
       end if
     end if
   end subroutine calcg3
-! 
+!
 !======================================================================
 !
 ! *** isorropia code
@@ -20875,7 +20875,7 @@ module mod_che_isorropia
       scase = 'g1 ; subcase 2'
     end if
   end subroutine calcg1
- 
+
 !======================================================================
 !
 ! *** isorropia code
@@ -21441,7 +21441,7 @@ module mod_che_isorropia
 ! ***************************
     funch5a = molal(3)*molal(4)/ghcl/gnh3/a6/a4 - one
   end function funch5a
- 
+
 !======================================================================
 !
 ! *** isorropia code
@@ -22274,7 +22274,7 @@ module mod_che_isorropia
       scase = 'h1 ; subcase 2'
     end if
   end subroutine calch1
- 
+
 !======================================================================
 !
 ! *** isorropia code
@@ -22608,7 +22608,7 @@ module mod_che_isorropia
     end if
 !
   end subroutine calci5
-! 
+!
 !======================================================================
 !
 ! *** isorropia code
@@ -23500,7 +23500,7 @@ module mod_che_isorropia
 ! **********************************************
 !   call calcnh3
   end subroutine calci1
- 
+
 !======================================================================
 !
 ! *** isorropia code
@@ -23539,7 +23539,7 @@ module mod_che_isorropia
     if ( frso4<=tiny1 ) then
       clc = max(clc-frnh4,zero)
       cnh42s4 = 2.D0*frnh4
- 
+
     else if ( frnh4<=tiny1 ) then
       cnh4hs4 = 3.D0*min(frso4,clc)
       clc = max(clc-frso4,zero)
@@ -27714,7 +27714,7 @@ module mod_che_isorropia
 ! *** written by christos fountoukis & athanasios nenes
 !
 !======================================================================
- 
+
   subroutine calcm1a
     use mod_che_common_isorropia
     implicit none
@@ -27976,7 +27976,7 @@ module mod_che_isorropia
       molal(6) = delta                                   ! hso4 effect
     end if
   end subroutine calcp13
- 
+
 !
 !======================================================================
 !
@@ -32191,7 +32191,7 @@ module mod_che_isorropia
 ! *** written by christos fountoukis and athanasios nenes
 !
 !======================================================================
- 
+
   subroutine calcp1a
     use mod_che_common_isorropia
     implicit none
@@ -32430,7 +32430,7 @@ module mod_che_isorropia
       ckhso4 = zero
 !
       call calcmr                                            ! water content
- 
+
 !
 !   *** calculate activities or terminate internal loop
 !   *****************
@@ -33116,7 +33116,7 @@ module mod_che_isorropia
     calaou = .true.                ! outer loop activity calculation flag
     psi4lo = zero                  ! low  limit
     psi4hi = chi4                  ! high limit
- 
+
 !
 ! *** initial values for bisection ************************************
 !
@@ -33136,7 +33136,7 @@ module mod_che_isorropia
 !
 !   *** root tracking ; for the range of hi and lo
 !   **********************
- 
+
       dx = (psi4hi-psi4lo)/float(ndiv)
       do i = 1 , ndiv
         x2 = max(x1-dx,psi4lo)
@@ -33279,7 +33279,7 @@ module mod_che_isorropia
 !
 !   *** calculate activities or terminate internal loop
 !   *****************
- 
+
       if ( .not.(frst .and. calaou .or. .not.frst .and. calain) ) exit
       call calcact
     end do
@@ -33706,7 +33706,7 @@ module mod_che_isorropia
 !
 ! *** setup parameters ************************************************
 !
- 
+
     psi2 = p2                      ! save psi2 in common block
     psi4lo = zero                  ! low  limit for psi4
     psi4hi = chi4                  ! high limit for psi4
@@ -33982,7 +33982,7 @@ module mod_che_isorropia
     chi7 = cmgso4
     chi8 = ckhso4
 !
- 
+
     psi1 = cnh4hs4                 ! assign initial psi's
     psi2 = zero
     psi3 = zero
@@ -34074,14 +34074,14 @@ module mod_che_isorropia
 !
 ! *** setup parameters ************************************************
 !
- 
+
     psi2 = p2                      ! save psi3 in common block
     psi4lo = zero                  ! low  limit for psi4
     psi4hi = chi4                  ! high limit for psi4
 !
 ! *** if nh3 = 0 , call funcl3b for y4=0
 ! ********************************
- 
+
     if ( chi4<=tiny1 ) then
       funcl2a = funcl2b(zero)
       go to 200
@@ -34089,11 +34089,11 @@ module mod_che_isorropia
 !
 ! *** initial values for bisection ************************************
 !
- 
+
     x1 = psi4hi
     y1 = funcl2b(x1)
     y2 = y1
- 
+
     if ( abs(y1)>eps ) then
       yhi = y1                      ! save y-value at hi position
 !
@@ -34368,7 +34368,7 @@ module mod_che_isorropia
     if ( frso4<=tiny1 ) then
       clc = max(clc-frnh4,zero)
       cnh42s4 = 2.D0*frnh4
- 
+
     else if ( frnh4<=tiny1 ) then
       cnh4hs4 = 3.D0*min(frso4,clc)
       clc = max(clc-frso4,zero)
@@ -34604,7 +34604,7 @@ module mod_che_isorropia
     psi1 = chi1                                 ! all nh4hso4 deliquesced
     psi2 = chi2                                 ! all nahso4 deliquesced
     psi4 = chi4                                 ! all mgso4 deliquesced
- 
+
 !
 ! *** solve equations ; with iterations for activity coef. ************
 !
@@ -35887,7 +35887,7 @@ module mod_che_isorropia
     w(2) = cnh42s4
     w(3) = 2.D0*cnh42s4 + gnh3
   end subroutine calcs1
- 
+
 !======================================================================
 !
 ! *** isorropia code
@@ -36632,7 +36632,7 @@ module mod_che_isorropia
       scase = 'q3 ; subcase 3'
     end if
   end subroutine calcq3
-! 
+!
 !======================================================================
 !
 ! *** isorropia code
@@ -37847,14 +37847,14 @@ module mod_che_isorropia
           call calcmdrp(rh,drmr4,drnacl,calcr1a,calcr4a)
           scase = 'r3 ; subcase 3'
         end if
- 
+
       else if ( .not.exac .and. exsc ) then
         if ( rh>=drmr2 ) then
           scase = 'r3 ; subcase 4'
           call calcmdrp(rh,drmr2,drnacl,calcr1a,calcr4a)
           scase = 'r3 ; subcase 4'
         end if
- 
+
       else if ( exac .and. .not.exsc ) then
         if ( rh>=drmr5 ) then
           scase = 'r3 ; subcase 5'
@@ -38157,42 +38157,42 @@ module mod_che_isorropia
           call calcmdrp(rh,drmh2,drnano3,calcr1a,calcr3a)
           scase = 'r2 ; subcase 3'
         end if
- 
+
       else if ( .not.exac .and. exsn .and. exsc ) then
         if ( rh>=drmr1 ) then
           scase = 'r2 ; subcase 4'
           call calcmdrp(rh,drmr1,drnano3,calcr1a,calcr3a)
           scase = 'r2 ; subcase 4'
         end if
- 
+
       else if ( .not.exac .and. .not.exsn .and. exsc ) then
         if ( rh>=drmr2 ) then
           scase = 'r2 ; subcase 5'
           call calcmdrp(rh,drmr2,drnacl,calcr1a,calcr4a)
           scase = 'r2 ; subcase 5'
         end if
- 
+
       else if ( .not.exac .and. exsn .and. .not.exsc ) then
         if ( rh>=drmr3 ) then
           scase = 'r2 ; subcase 6'
           call calcmdrp(rh,drmr3,drnano3,calcr1a,calcr3a)
           scase = 'r2 ; subcase 6'
         end if
- 
+
       else if ( exac .and. .not.exsn .and. exsc ) then
         if ( rh>=drmr4 ) then
           scase = 'r2 ; subcase 7'
           call calcmdrp(rh,drmr4,drnacl,calcr1a,calcr4a)
           scase = 'r2 ; subcase 7'
         end if
- 
+
       else if ( exac .and. .not.exsn .and. .not.exsc ) then
         if ( rh>=drmr5 ) then
           scase = 'r2 ; subcase 8'
           call calcmdrp(rh,drmr5,drnh4cl,calcr1a,calcr5)
           scase = 'r2 ; subcase 8'
         end if
- 
+
       else if ( exac .and. exsn .and. .not.exsc ) then
         if ( rh>=drmr6 ) then
           scase = 'r2 ; subcase 9'
@@ -38528,42 +38528,42 @@ module mod_che_isorropia
           call calcmdrp(rh,drmh2,drnano3,calcr1a,calcr3a)
           scase = 'r1 ; subcase 3'
         end if
- 
+
       else if ( .not.exac .and. exsn .and. exsc ) then
         if ( rh>=drmr1 ) then
           scase = 'r1 ; subcase 4'
           call calcmdrp(rh,drmr1,drnano3,calcr1a,calcr3a)
           scase = 'r1 ; subcase 4'
         end if
- 
+
       else if ( .not.exac .and. .not.exsn .and. exsc ) then
         if ( rh>=drmr2 ) then
           scase = 'r1 ; subcase 5'
           call calcmdrp(rh,drmr2,drnacl,calcr1a,calcr3a)               !, calcr4a)
           scase = 'r1 ; subcase 5'
         end if
- 
+
       else if ( .not.exac .and. exsn .and. .not.exsc ) then
         if ( rh>=drmr3 ) then
           scase = 'r1 ; subcase 6'
           call calcmdrp(rh,drmr3,drnano3,calcr1a,calcr3a)
           scase = 'r1 ; subcase 6'
         end if
- 
+
       else if ( exac .and. .not.exsn .and. exsc ) then
         if ( rh>=drmr4 ) then
           scase = 'r1 ; subcase 7'
           call calcmdrp(rh,drmr4,drnacl,calcr1a,calcr3a)               !, calcr4a)
           scase = 'r1 ; subcase 7'
         end if
- 
+
       else if ( exac .and. .not.exsn .and. .not.exsc ) then
         if ( rh>=drmr5 ) then
           scase = 'r1 ; subcase 8'
           call calcmdrp(rh,drmr5,drnh4cl,calcr1a,calcr3a)               !, calcr5)
           scase = 'r1 ; subcase 8'
         end if
- 
+
       else if ( exac .and. exsn .and. .not.exsc ) then
         if ( rh>=drmr6 ) then
           scase = 'r1 ; subcase 9'
@@ -38579,21 +38579,21 @@ module mod_che_isorropia
           call calcmdrp(rh,drmr7,drnh4no3,calcr1a,calcr2a)
           scase = 'r1 ; subcase 10'
         end if
- 
+
       else if ( exan .and. .not.exsn .and. exsc ) then
         if ( rh>=drmr8 ) then
           scase = 'r1 ; subcase 11'
           call calcmdrp(rh,drmr8,drnh4no3,calcr1a,calcr2a)
           scase = 'r1 ; subcase 11'
         end if
- 
+
       else if ( exan .and. .not.exsn .and. .not.exsc ) then
         if ( rh>=drmr9 ) then
           scase = 'r1 ; subcase 12'
           call calcmdrp(rh,drmr9,drnh4no3,calcr1a,calcr2a)
           scase = 'r1 ; subcase 12'
         end if
- 
+
       else if ( exan .and. exsn .and. .not.exsc ) then
         if ( rh>=drmr10 ) then
           scase = 'r1 ; subcase 13'
@@ -38609,7 +38609,7 @@ module mod_che_isorropia
           call calcmdrp(rh,drmr11,drnh4no3,calcr1a,calcr2a)
           scase = 'r1 ; subcase 14'
         end if
- 
+
       else if ( exan .and. exac .and. .not.exsc ) then
         if ( rh>=drmr12 ) then
           scase = 'r1 ; subcase 15'
@@ -38768,7 +38768,7 @@ module mod_che_isorropia
         ohi = 0.5D0*(-bb+sqrt(dd))
         hi = akw/ohi
       end if
- 
+
 !
 !   undssociated species equilibria
 !
@@ -40340,7 +40340,7 @@ module mod_che_isorropia
       cai = zero
       ki = waer(7)
       mgi = waer(8)
- 
+
 !
 !   soltion acidic or basic?
 !
@@ -40769,7 +40769,7 @@ module mod_che_isorropia
         root7 = min(root7,waer(7)/2.0,max((waer(2)-waer(6))-root1,zero),  &
                 chi7)
         psi7 = chi7 - root7
- 
+
       end if
       psconv7 = abs(psi7-psi70)<=eps*psi70
       psi70 = psi7
@@ -41512,14 +41512,14 @@ module mod_che_isorropia
           call calcmdrpii(rh,drmr4,drnacl,calcu1a,calcu4a)
           scase = 'u3 ; subcase 3'
         end if
- 
+
       else if ( .not.exac .and. exsc ) then
         if ( rh>=drmr2 ) then
           scase = 'u3 ; subcase 4'
           call calcmdrpii(rh,drmr2,drnacl,calcu1a,calcu4a)
           scase = 'u3 ; subcase 4'
         end if
- 
+
       else if ( exac .and. .not.exsc ) then
         if ( rh>=drmr5 ) then
           scase = 'u3 ; subcase 5'
@@ -41884,42 +41884,42 @@ module mod_che_isorropia
           call calcmdrpii(rh,drmm2,drnano3,calcu1a,calcu3a)
           scase = 'u2 ; subcase 3'
         end if
- 
+
       else if ( .not.exac .and. exsn .and. exsc ) then
         if ( rh>=drmr1 ) then
           scase = 'u2 ; subcase 4'
           call calcmdrpii(rh,drmr1,drnano3,calcu1a,calcu3a)
           scase = 'u2 ; subcase 4'
         end if
- 
+
       else if ( .not.exac .and. .not.exsn .and. exsc ) then
         if ( rh>=drmr2 ) then
           scase = 'u2 ; subcase 5'
           call calcmdrpii(rh,drmr2,drnacl,calcu1a,calcu4a)
           scase = 'u2 ; subcase 5'
         end if
- 
+
       else if ( .not.exac .and. exsn .and. .not.exsc ) then
         if ( rh>=drmr3 ) then
           scase = 'u2 ; subcase 6'
           call calcmdrpii(rh,drmr3,drnano3,calcu1a,calcu3a)
           scase = 'u2 ; subcase 6'
         end if
- 
+
       else if ( exac .and. .not.exsn .and. exsc ) then
         if ( rh>=drmr4 ) then
           scase = 'u2 ; subcase 7'
           call calcmdrpii(rh,drmr4,drnacl,calcu1a,calcu4a)
           scase = 'u2 ; subcase 7'
         end if
- 
+
       else if ( exac .and. .not.exsn .and. .not.exsc ) then
         if ( rh>=drmr5 ) then
           scase = 'u2 ; subcase 8'
           call calcmdrpii(rh,drmr5,drnh4cl,calcu1a,calcu5)
           scase = 'u2 ; subcase 8'
         end if
- 
+
       else if ( exac .and. exsn .and. .not.exsc ) then
         if ( rh>=drmr6 ) then
           scase = 'u2 ; subcase 9'
@@ -41930,7 +41930,7 @@ module mod_che_isorropia
 !
     end if
 !
- 
+
 ! if (w(4) > tiny1) then        ! no3 exists , water possible
 ! scase = 'u2 ; subcase 1'
 ! call calcu2a
@@ -42562,7 +42562,7 @@ module mod_che_isorropia
 ! *** solve equations ; with iterations for activity coef. ************
 !
     do i = 1 , nsweep
- 
+
       akw = xkw*rh*water*water               ! h2o       <==> h+
 !
 !   ion concentrations
@@ -43186,7 +43186,7 @@ module mod_che_isorropia
 ! *** calculate initial solution ***************************************
 !
     call calcw1a
- 
+
 !
     chi9 = ck2so4           ! salts
     chi13 = ckno3

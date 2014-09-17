@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-   
+
 module mod_pbl_holtbl
   !
   ! Holtslag planetary boundary layer scheme
@@ -241,7 +241,7 @@ module mod_pbl_holtbl
       end do
     end do
   end do
- 
+
   do i = ici1 , ici2
     do j = jci1 , jci2
       ! compute friction velocity
@@ -424,7 +424,7 @@ module mod_pbl_holtbl
       tpred2(j,i,kz) = coeff2(j,i,kz)
     end do
   end do
- 
+
   do k = kz - 1 , 1 , -1
     do i = idii1 , idii2
       do j = jdii1 , jdii2
@@ -457,10 +457,10 @@ module mod_pbl_holtbl
       end do
     end do
   end do
-  ! 
+  !
   !   temperature
   !   calculate coefficients at cross points for temperature
-  ! 
+  !
   do k = 2 , kz
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -468,7 +468,7 @@ module mod_pbl_holtbl
       end do
     end do
   end do
- 
+
   do i = ici1 , ici2
     do j = jci1 , jci2
       coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
@@ -491,7 +491,7 @@ module mod_pbl_holtbl
       end do
     end do
   end do
- 
+
   do i = ici1 , ici2
     do j = jci1 , jci2
       coef1(j,i,kz) = d_zero
@@ -513,7 +513,7 @@ module mod_pbl_holtbl
       tpred1(j,i,kz) = coeff1(j,i,kz)
     end do
   end do
- 
+
   do k = kz - 1 , 1 , -1
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -536,7 +536,7 @@ module mod_pbl_holtbl
   end do
   !
   !   water vapor calculate coefficients at cross points for water vapor
-  ! 
+  !
   do k = 2 , kz
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -544,7 +544,7 @@ module mod_pbl_holtbl
       end do
     end do
   end do
- 
+
   do i = ici1 , ici2
     do j = jci1 , jci2
       coef1(j,i,1) = dt*alphak(j,i,1)*betak(j,i,2)
@@ -554,7 +554,7 @@ module mod_pbl_holtbl
       coeff1(j,i,1) = m2p%qxatm(j,i,1,iqv)/coef2(j,i,1)
     end do
   end do
- 
+
   do k = 2 , kz - 1
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -567,7 +567,7 @@ module mod_pbl_holtbl
       end do
     end do
   end do
- 
+
   do i = ici1 , ici2
     do j = jci1 , jci2
       coef1(j,i,kz) = d_zero
@@ -583,13 +583,13 @@ module mod_pbl_holtbl
   !
   !   all coefficients have been computed, predict field and put it in
   !   temporary work space tpred
-  ! 
+  !
   do i = ici1 , ici2
     do j = jci1 , jci2
       tpred1(j,i,kz) = coeff1(j,i,kz)
     end do
   end do
- 
+
   do k = kz - 1 , 1 , -1
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -620,7 +620,7 @@ module mod_pbl_holtbl
       end do
     end do
   end if
-  ! 
+  !
   !   calculate coefficients at cross points for cloud vater
   !
   do k = 2 , kz
@@ -740,7 +740,7 @@ module mod_pbl_holtbl
     !     coef1, coef2, coef3 and coefe are the same as for water vapor
     !     and cloud water so they do not need to be recalculated
     !     recalculation of coef1,2,3  with tracer diffusivity kvc
-    ! 
+    !
     do k = 2 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -785,7 +785,7 @@ module mod_pbl_holtbl
           end do
         end do
       end do
- 
+
       do i = ici1 , ici2
         do j = jci1 , jci2
           coefe(j,i,kz) = d_zero
@@ -830,14 +830,14 @@ module mod_pbl_holtbl
           p2m%remdrd(j,i,itr) = p2m%remdrd(j,i,itr) + m2p%chib(j,i,kz,itr)* &
               m2p%drydepv(j,i,itr)*m2p%psb(j,i)*dt*d_half*m2p%rhox2d(j,i)* &
               hydf(kz)/m2p%psb(j,i)
- 
+
         end do
       end do
     end do
   end if
 #ifdef DEBUG
   call time_end(subroutine_name,idindx)
-#endif 
+#endif
   end subroutine holtbl
 !
 ! ------------------------------------------------------------
@@ -994,7 +994,7 @@ module mod_pbl_holtbl
       p2m%kpbl(j,i) = kz
     end do
   end do
- 
+
   do k = kz , kmxpbl + 1 , -1
     k2 = k - 1
     do i = ici1 , ici2
@@ -1096,7 +1096,7 @@ module mod_pbl_holtbl
       end do
     end do
   end do
- 
+
   if ( ibltyp == 99 ) then
     do i = ici1 , ici2
       do j = jci1 , jci2

@@ -376,7 +376,7 @@ contains
 ! !IROUTINE: rcmdrv
 !
 ! !INTERFACE:
-  subroutine rcmdrv()   
+  subroutine rcmdrv()
 !
 ! !DESCRIPTION:
 ! This code reads in atmospheric fields from an input file and generates
@@ -567,7 +567,7 @@ contains
           atm_a2l%forc_hgt(g) = r2czga_all(i,j)
           atm_a2l%forc_hgt_u(g) = r2czga_all(i,j) !observational height of wind [m]
           atm_a2l%forc_hgt_t(g) = r2czga_all(i,j) !observational height of temp [m
-          atm_a2l%forc_hgt_q(g) = r2czga_all(i,j) !observational height of humidity [m]!   
+          atm_a2l%forc_hgt_q(g) = r2czga_all(i,j) !observational height of humidity [m]!
           atm_a2l%forc_pbot(g) = r2cpsb_all(i,j)
           atm_a2l%forc_psrf(g) = r2cpsb_all(i,j)
           atm_a2l%forc_th(g)  = atm_a2l%forc_t(g) * (atm_a2l%forc_psrf(g) &
@@ -892,7 +892,7 @@ contains
     if_solld  = mct_aVect_indexRA(aV_drv_d2a,'f_solld' ,perrWith=subName)
     if_pbotxy = mct_aVect_indexRA(aV_drv_d2a,'f_pbotxy',perrWith=subName)
     if_psrfxy = mct_aVect_indexRA(aV_drv_d2a,'f_psrfxy',perrWith=subName)
-    
+
     allocate( x(datlon,datlat,14), stat=ier)
     if (ier /= 0) then
        write (6,*) 'atmdrv_init(): allocation error _d'
@@ -1068,7 +1068,7 @@ contains
     if_solld  = mct_aVect_indexRA(aV_drv_d2a,'f_solld' ,perrWith=subName)
     if_pbotxy = mct_aVect_indexRA(aV_drv_d2a,'f_pbotxy',perrWith=subName)
     if_psrfxy = mct_aVect_indexRA(aV_drv_d2a,'f_psrfxy',perrWith=subName)
-    
+
     allocate( x(datlon,datlat,14), stat=ier)
     if (ier /= 0) then
        write (6,*) 'atmdrv_init(): allocation error _d'
@@ -1586,7 +1586,7 @@ end subroutine rcmdrv_init
 !  takes the 2-d regcm variable arrays and saves them into the clm
 !  grid-based format [i.e. tbot(i,j) for REGCM and CLM needs tbot to
 !  a component of the aV_drv_d2a%rAttr(tbot,1)].  Also checks if REGCM
-!  atmospheric variables are reasonable.  
+!  atmospheric variables are reasonable.
 !
 ! !USES:
     use clm_varcon, only : sb
@@ -1755,7 +1755,7 @@ end subroutine rcmdrv_init
           ! FORC_UXY, FORC_VXY
              aV_drv_d2a%rAttr(if_uxy,n) = r2cuxb_all(i,j)
              aV_drv_d2a%rAttr(if_vxy,n) = r2cvxb_all(i,j)
-        
+
 
           ! FORC_PSRFXY, FORC_PBOTXY
              aV_drv_d2a%rAttr(if_psrfxy,n) = r2cpsb_all(i,j)
@@ -1774,7 +1774,7 @@ end subroutine rcmdrv_init
              else
                 aV_drv_d2a%rAttr(if_qxy,n) = r2cqb_all(i,j)
              end if
-  
+
 
           ! ZGCMXY
              aV_drv_d2a%rAttr(izgcmxy,n) = r2czga_all(i,j)

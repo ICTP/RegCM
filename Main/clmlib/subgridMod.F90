@@ -15,7 +15,7 @@ module subgridMod
   use abortutils  , only : endrun
 
   implicit none
-  private	
+  private
   save
 
 ! !PUBLIC MEMBER FUNCTIONS:
@@ -213,8 +213,8 @@ end subroutine subgrid_get_indexes
     implicit none
     integer , intent(in)  :: nw                   ! wtxy cell index
     integer , optional, intent(out) :: nlunits    ! number of landunits
-    integer , optional, intent(out) :: ncols      ! number of columns 
-    integer , optional, intent(out) :: npfts      ! number of pfts 
+    integer , optional, intent(out) :: ncols      ! number of columns
+    integer , optional, intent(out) :: npfts      ! number of pfts
     integer , optional, intent(out) :: nveg       ! number of vegetated pfts in naturally vegetated landunit
     real(r8), optional, intent(out) :: wtveg      ! weight (relative to gridcell) of naturally vegetated landunit
     integer , optional, intent(out) :: ncrop      ! number of crop pfts in crop landunit
@@ -249,12 +249,12 @@ end subroutine subgrid_get_indexes
     icols   = 0
     ilunits = 0
 
-    ! Set naturally vegetated landunit assuming that 
+    ! Set naturally vegetated landunit assuming that
     ! the vegetated landunit has one column
 
     npfts_per_lunit = 0
     wtlunit = 0._r8
-    do m = 1, maxpatch_pft            
+    do m = 1, maxpatch_pft
        if (wtxy(nw,m) > 0.0_r8) then
           npfts_per_lunit = npfts_per_lunit + 1
           wtlunit = wtlunit + wtxy(nw,m)
@@ -263,7 +263,7 @@ end subroutine subgrid_get_indexes
     if (npfts_per_lunit > 0) then
        if (allocate_all_vegpfts) npfts_per_lunit = numpft+1
        ilunits = ilunits + 1
-       icols = icols + 1  
+       icols = icols + 1
     end if
     ipfts = ipfts + npfts_per_lunit
     if (present(nveg )) nveg  = npfts_per_lunit
@@ -321,7 +321,7 @@ end subroutine subgrid_get_indexes
 
     npfts_per_lunit = 0
     wtlunit = 0._r8
-    do m = npatch_glacier+1, npatch_crop 
+    do m = npatch_glacier+1, npatch_crop
        if (wtxy(nw,m) > 0.0_r8) then
           npfts_per_lunit = npfts_per_lunit + 1
           wtlunit = wtlunit + wtxy(nw,m)

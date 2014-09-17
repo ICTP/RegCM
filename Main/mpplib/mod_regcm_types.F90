@@ -47,13 +47,13 @@ module mod_regcm_types
   end type masked_comm
 
   type model_area
-    logical :: bandflag 
+    logical :: bandflag
     logical :: has_bdy
     logical :: has_bdyleft , has_bdyright , has_bdytop , has_bdybottom
     logical :: has_bdytopleft , has_bdytopright
-    logical :: has_bdybottomleft , has_bdybottomright 
+    logical :: has_bdybottomleft , has_bdybottomright
     integer(ik4) , dimension(2) :: location
-    integer(ik4) :: left , right , top , bottom 
+    integer(ik4) :: left , right , top , bottom
     integer(ik4) :: topleft , topright , bottomleft , bottomright
     integer(ik4) :: ibt1 , ibt2 , ibt4 , ibb1 , ibb2 , ibb4
     integer(ik4) :: jbl1 , jbl2 , jbl4 , jbr1 , jbr2 , jbr4
@@ -328,9 +328,9 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: rlwf        ! flw
     real(rk8) , pointer , dimension(:,:) :: dwrlwf      ! flwd
     real(rk8) , pointer , dimension(:,:) :: zencos      ! coszrs
-    real(rk8) , pointer , dimension(:,:) :: ncprate     ! pptnc 
-    real(rk8) , pointer , dimension(:,:) :: cprate      ! cprate 
-    real(rk8) , pointer , dimension(:,:) :: vegswab     ! sabveg 
+    real(rk8) , pointer , dimension(:,:) :: ncprate     ! pptnc
+    real(rk8) , pointer , dimension(:,:) :: cprate      ! cprate
+    real(rk8) , pointer , dimension(:,:) :: vegswab     ! sabveg
     real(rk8) , pointer , dimension(:,:) :: lwalb       ! albvl
     real(rk8) , pointer , dimension(:,:) :: swalb       ! albvs
     real(rk8) , pointer , dimension(:,:) :: swdiralb    ! aldirs
@@ -445,8 +445,8 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:,:) :: chib    ! chib
     real(rk8) , pointer , dimension(:,:,:) :: chifxuw   ! chifxuw
     real(rk8) , pointer , dimension(:,:,:) :: drydepv   ! drydepv
-    real(rk8) , pointer , dimension(:,:) :: rhox2d      ! rhox2d 
-    integer(ik4) , pointer , dimension(:,:) :: ktrop    ! ktrop 
+    real(rk8) , pointer , dimension(:,:) :: rhox2d      ! rhox2d
+    integer(ik4) , pointer , dimension(:,:) :: ktrop    ! ktrop
   end type mod_2_pbl
 
   type pbl_2_mod

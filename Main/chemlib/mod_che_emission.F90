@@ -19,13 +19,13 @@
 
 module mod_che_emission
   !
-  ! Chemical and aerosol surface emission 
+  ! Chemical and aerosol surface emission
   !
   use mod_intkinds
   use mod_realkinds
   use mod_constants
   use mod_mpmessage
-  use mod_service 
+  use mod_service
   use mod_dynparam
   use mod_che_common
   use mod_che_param
@@ -39,7 +39,7 @@ module mod_che_emission
 
   private
   !
-  public :: chem_emission , emis_tend 
+  public :: chem_emission , emis_tend
   !
   contains
   !
@@ -100,7 +100,7 @@ module mod_che_emission
     integer(ik4) , intent(in) :: j , lmonth
     integer(ik8) , intent(in) :: ktau
 
-    real(rk8) , intent(in) ::declin 
+    real(rk8) , intent(in) ::declin
     integer(ik4)  :: i , itr
 
 #if (defined VOC && defined CLM)
@@ -116,9 +116,9 @@ module mod_che_emission
     ! calculate the tendency linked to emissions from emission fluxes
     ! In the future split these calculations in corresponding module  ??
     ! Modify chemsrc for species that need a dirunal cycle
-    if ( iisop > 0 ) then 
+    if ( iisop > 0 ) then
 #ifdef CLM45
-      !overwrite chemsrc for biogenic in case of CLM/BVOC option  
+      !overwrite chemsrc for biogenic in case of CLM/BVOC option
       ! test if CLM BVOC is activated and overwrite chemsrc.
       ! Below included in order to include CLM-MEGAN biogenic emission
       ! into the gas phase chemistry scheme
@@ -134,7 +134,7 @@ module mod_che_emission
       end if
 #else
 #if (defined VOC && defined CLM)
-      !overwrite chemsrc for biogenic in case of CLM/BVOC option  
+      !overwrite chemsrc for biogenic in case of CLM/BVOC option
       ! test if CLM BVOC is activated and overwrite chemsrc.
       ! Below included in order to include CLM-MEGAN biogenic
       ! emission
@@ -202,12 +202,12 @@ module mod_che_emission
     !
     ! add the source term to tracer tendency
     !
-    if ( ichdrdepo /= 2 ) then  
+    if ( ichdrdepo /= 2 ) then
       do itr = 1 , ntr
         do i = ici1 , ici2
           if ( chtrname(itr)(1:4) == 'DUST' .or. &
                chtrname(itr)(1:4) == 'SSLT' .or. &
-               chtrname(itr)(1:6) == 'POLLEN' ) cycle 
+               chtrname(itr)(1:6) == 'POLLEN' ) cycle
           chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
               chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0D3)
           ! diagnostic for source, cumul
@@ -215,7 +215,7 @@ module mod_che_emission
           if ( ichdiag == 1 ) then
             cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
                 chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
-          end if 
+          end if
         end do
       end do
     else if ( ichdrdepo == 2 ) then
@@ -223,34 +223,34 @@ module mod_che_emission
         do i = ici1 , ici2
           if ( chtrname(itr)(1:4).ne.'DUST' .or. &
                chtrname(itr)(1:4).ne.'SSLT' .or. &
-               chtrname(itr)(1:6).ne.'POLLEN' ) then 
+               chtrname(itr)(1:6).ne.'POLLEN' ) then
             ! if PBL scheme is not UW then calculate emission tendency
             if ( ibltyp /= 2 ) then
               chiten(j,i,kz,itr) = chiten(j,i,kz,itr) + &
                  chemsrc(j,i,itr)*egrav/(dsigma(kz)*1.0D3)
-            end if 
+            end if
             ! otherwise emission is injected in the PBL scheme ( together
-            ! with dry deposition) for tend calculation 
+            ! with dry deposition) for tend calculation
             chifxuw(j,i,itr) = chifxuw(j,i,itr) +  chemsrc(j,i,itr)
             ! diagnostic for source, cumul
             cemtrac(j,i,itr) = cemtrac(j,i,itr) + chemsrc(j,i,itr)*cfdout
             if ( ichdiag == 1 ) then
-              ! in this case we calculate emission tendency diagnostic, but 
-              ! this term will also be included in BL tendency diagnostic 
-              ! if UW scheme is used.           
+              ! in this case we calculate emission tendency diagnostic, but
+              ! this term will also be included in BL tendency diagnostic
+              ! if UW scheme is used.
               if ( ibltyp /= 2 ) then
                 cemisdiag(j,i,kz,itr) = cemisdiag(j,i,kz,itr) + &
                    chemsrc(j,i,itr)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout
               end if
-            end if 
-          end if 
+            end if
+          end if
         end do
       end do
     end if
-    ! put back isop source to its nominal value 
-    if ( iisop > 0 ) then 
+    ! put back isop source to its nominal value
+    if ( iisop > 0 ) then
       chemsrc(j,:,iisop) = tmpsrc(j,:,iisop)
-    end if 
+    end if
 
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)

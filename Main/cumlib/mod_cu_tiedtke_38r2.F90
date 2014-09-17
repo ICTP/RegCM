@@ -8,7 +8,7 @@ module mod_cu_tiedtke_38r2
   use mod_runparams
 
   implicit none
- 
+
   private
 
   public :: sucumf , custrat , cumastrn , cuancape2
@@ -112,19 +112,19 @@ module mod_cu_tiedtke_38r2
 !
 !     E. HOLM + P. BECHTOLD     E.C.M.W.F.     13/10/2005
 !
-!     PURPOSE 
+!     PURPOSE
 !     -------
 !                 ESTIMATE CAPE FIRST FOR A MIXED-LAYER PARCEL, THEN
 !                 LOOP OVER SUBSEQUENT DEPARTURE LAYERS IN LOWEST 350 hPa
-!                 Theta_e =Theta*exp[L q_v/(C_p T)] 
+!                 Theta_e =Theta*exp[L q_v/(C_p T)]
 !                         = T*(P0/P)**(R_d/C_p) * exp[L q_v/(C_p T)]
 !                 -> THIS WILL BE THE UPDRAUGHT PARCEL (CONSERVING ITS
 !                 PROPERTIES)  (no entrainment)
-!                 CAPE    = Int ( g dTheta_v/Theta_v dz ) = 
+!                 CAPE    = Int ( g dTheta_v/Theta_v dz ) =
 !                   aprox = Int ( g (Theta_e_up-Theta_e_sat)/Theta_e_sat ) dz
 !                 WITH THIS FORMULATION THE ACTUAL CAPE IS OVERESTIMATED  BY
 !                 ROUGHLY 20%. DEEP CONVECTION CAN BE CONSIDERED FOR CAPE
-!                 VALUES ABOVE 200-500 J/KG            
+!                 VALUES ABOVE 200-500 J/KG
 !
 !     PARAMETER     DESCRIPTION                              UNITS
 !     ---------     -----------                              -----
@@ -139,7 +139,7 @@ module mod_cu_tiedtke_38r2
 !
 !    *PAP*          PRESSURE ON FULL LEVELS                    PA
 !    *PAPH*         PRESSURE ON HALF LEVELS                    PA
-!    *PT*           TEMPERATURE ON FULL LEVELS                 K   
+!    *PT*           TEMPERATURE ON FULL LEVELS                 K
 !    *PQ*           SPECIFIC HUMIDITY ON FULL LEVELS          KG/KG
 !
 !    OUTPUT PARAMETERS (REAL):
@@ -436,7 +436,7 @@ module mod_cu_tiedtke_38r2
     integer(ik4) :: icall , ik , jk , jl
     real(rk8) :: zalfa , zzs
     !----------------------------------------------------------------------
-    ! 
+    !
     !*    1. SPECIFY LARGE SCALE PARAMETERS AT HALF LEVELS
     !*       ADJUST TEMPERATURE FIELDS IF STATICLY UNSTABLE
     !*       FIND LEVEL OF MAXIMUM VERTICAL VELOCITY
@@ -569,7 +569,7 @@ module mod_cu_tiedtke_38r2
 !    INPUT PARAMETERS (LOGICAL):
 !
 !    *LDLAND*       LAND SEA MASK (.TRUE. FOR LAND)
-!    *LDCUM*        FLAG: .TRUE. FOR CONVECTIVE POINTS 
+!    *LDCUM*        FLAG: .TRUE. FOR CONVECTIVE POINTS
 !
 !    UPDATED PARAMETERS (INTEGER):
 !
@@ -585,7 +585,7 @@ module mod_cu_tiedtke_38r2
 !    OUTPUT PARAMETERS (INTEGER):
 !
 !    *KCTOP*        CLOUD TOP LEVEL
-!    *KCTOP0*       FIRST GUESS OF CLOUD TOP LEVEL 
+!    *KCTOP0*       FIRST GUESS OF CLOUD TOP LEVEL
 !
 !    OUTPUT PARAMETERS (REAL):
 !
@@ -3759,7 +3759,7 @@ module mod_cu_tiedtke_38r2
 !----------------------------------------------------------------------
 !
   subroutine cuctracer(kidia,kfdia,klon,klev,ktrac,kctop,kdtop, &
-                       ldcum,lddraf,ptsphy,paph,pmfu,pmfd,      & 
+                       ldcum,lddraf,ptsphy,paph,pmfu,pmfd,      &
                        pudrate,pddrate,pcen,ptenc)
     implicit none
     integer(ik4) , intent(in) :: klon
@@ -4952,7 +4952,7 @@ module mod_cu_tiedtke_38r2
     !----------------------------------------------------------------------
     !*   11.0          CHEMICAL TRACER TRANSPORT
     ! -------------------------
- 
+
     if ( lmftrac .and. ktrac > 0 ) then
       !   transport switched off for mid-level convection
       do jl = kidia , kfdia
@@ -5314,13 +5314,13 @@ end module mod_cu_tiedtke_38r2
 ! --------------------------------------------------------------------
 ! #### This program reads the GATE dam2c%taset (161 soundings) and
 ! #### calls the convection routine.
-! 
+!
 ! #### All thermodynamic and dynamic variables are supposed to be
 ! #### situated at the same vertical levels labeled from KLEV (first level
 ! #### above bottom) to 1 (top)
 ! #### Fluxes are supposed to be on half levels and have dimensions KLEV+1
 ! #### therefore, also half level pressure and geopotential height are given
-! 
+!
 subroutine myabort
   implicit none
   call abort
@@ -5336,14 +5336,14 @@ program testgate
   implicit none
 
   ! --------------------------------------------------------------------
-  !*Set Dimensions for convection call 
+  !*Set Dimensions for convection call
 
   integer(ik4) , parameter :: klon = 161 ! number of soundings for GATE
   integer(ik4) , parameter :: klev = 41  ! number of vertical levels
   integer(ik4) , parameter :: ktrac= 2   ! number of chemical tracers
   !               (put KTRAC to zero if you don't want/need tracers in your
   !                host model)
- 
+
   ! --------------------------------------------------------------------
   !*Set horizontal + vertical loop bounds
   !
@@ -5366,7 +5366,7 @@ program testgate
   logical , dimension(klon) :: ldland , ldcum , ldsc
   real(rk8), dimension(klev) :: pref
   ! --------------------------------------------------------------------
-  !*Set switches for convection call 
+  !*Set switches for convection call
 
   integer :: nsmax = 319 ! horizontal resolution/sepctral truncation
         ! Nota: the convective adjustment time scale is 1 h for NSMAX <=319
@@ -5386,7 +5386,7 @@ program testgate
   ! PGEOH : Geopotential on half levels (g*m)
   ! PPRES : full-level pressure (Pa)
   ! PPRESH: half-level pressure (Pa)
-  ! PREF  : reference pressure of model levels or average pressure over domain 
+  ! PREF  : reference pressure of model levels or average pressure over domain
   ! PT    : temperature (K)
   ! PQ    : specific humidity (kg/kg)
   ! PVERVEL: vert. velocity (Pa/s)
@@ -5417,8 +5417,8 @@ program testgate
   ! PUMF, PDMF: updraft and downdraft mass flux (kg/(s m^2))
   ! PMFUDE_RATE : updraft detrainment rate (kg/(s m^3)) - for chemical modelling
   ! PMFDDE_RATE : downdraft detrainment rate (kg/(s m^3))
-  ! PUTEN, PVTEN   : u, v  convective tendency (m/s^2) 
-  ! PCTEN          : convective tracer tendency (1/s) 
+  ! PUTEN, PVTEN   : u, v  convective tendency (m/s^2)
+  ! PCTEN          : convective tracer tendency (1/s)
   ! PTU   : updraft temperature (K)
   ! PURV  : water vapor content in updraft (kg/kg)
   ! PURCI : cloud water+ice content in updraft (kg/kg)
@@ -5506,13 +5506,13 @@ program testgate
     plhflx(:,jk) = 0.9D0*plhflx(:,jk+1)
     pshflx(:,jk) = 0.9D0*pshflx(:,jk+1)
   end do
-  ! ### 
+  ! ###
 
   ldland = .false.
   do jk=1,klev
     do jl=1,klon
       ptten(jl,jk) = 0.0D0  ! Recall, in prognostic applications
-      pqten(jl,jk) = 0.0D0  ! PTTEN and PQTEN should be actual model tendencies 
+      pqten(jl,jk) = 0.0D0  ! PTTEN and PQTEN should be actual model tendencies
                             ! for other variables set them to ZERO
       !* use GATE tendencies for humidity here
       !!  ptten(jl,jk)=-zq1(jl,jk)/xtjour
@@ -5523,7 +5523,7 @@ program testgate
       priten(jl,jk) = d_zero
     end do
   end do
- 
+
   !** Initialize a boundary-layer and upper-tropospheric tracer
 
   pcten(:,:,:) = d_zero
@@ -5546,7 +5546,7 @@ program testgate
                 pumf,pdmf,pmfude_rate,pmfdde_rate,pcape,ktrac,    &
                 pc,pcten)
   !
-  ! only for CAPE diagnostic - this provides better/smoother CAPE estimation 
+  ! only for CAPE diagnostic - this provides better/smoother CAPE estimation
   !                            for forecaster than the PCAPE from CUMASTRN
   call cuancape2(kidia,kfdia,klon,klev,ppres,ppresh,pt,pq,pcape,pcin)
   !
@@ -5572,8 +5572,8 @@ program testgate
          pumf(jl,jk),pdmf(jl,jk),pprlflx(jl,jk)*3.6e3,pprsflx(jl,jk)*3.6e3,&
          purci(jl,jk)*1.0D3,puten(jl,jk)*xtjour,pvten(jl,jk)*xtjour, &
          pc(jl,jk,1),pc(jl,jk,1)+pcten(jl,jk,1)*pdtconv ,&
-         pc(jl,jk,2),pc(jl,jk,2)+pcten(jl,jk,2)*pdtconv 
-      end do 
+         pc(jl,jk,2),pc(jl,jk,2)+pcten(jl,jk,2)*pdtconv
+      end do
     else
       write(8,*)' %     P      Z      dT/dt    dqv/dt d(ql)/dt '// &
         'Mflxup  Mflxdown Prflx   rci_up     du/dt    dv/dt'
@@ -5586,7 +5586,7 @@ program testgate
           (prcten(jl,jk)+priten(jl,jk))*zeps, &
           pumf(jl,jk),pdmf(jl,jk),(pprlflx(jl,jk)+pprsflx(jl,jk))*3.6e3,&
           purci(jl,jk)*1.0D3,puten(jl,jk)*xtjour,pvten(jl,jk)*xtjour
-      end do 
+      end do
     end if
     !
     ! print rainfall tend (mm/h) -> transform from m/s to mm/h
@@ -5596,13 +5596,13 @@ program testgate
       ktype(jl),kcltop(jl),kclbas(jl),pcape(jl),pcin(jl)
   end do
 
-  ! Print mean profile over the whole period     
+  ! Print mean profile over the whole period
   write(9,*)'% P[hPa]    Z[m]    dT/dt_conv   dr_t/dt_conv    '// &
     'dT/dt_obs dr_t/dt_obs    du/dt    dv/dt    Mfl    Mfl_obs'
   do jk = 1 , klev
     write(9,19)sum(ppres(:,jk))/zlon*1.0D-2,sum(pgeo(:,jk))/(egrav*zlon), &
       sum(ptten(:,jk)-ztten(:,jk))/zlon*xtjour, &
-      sum(pqten(:,jk)-zrvten(:,jk)+prcten(:,jk))/zlon*zeps,&         
+      sum(pqten(:,jk)-zrvten(:,jk)+prcten(:,jk))/zlon*zeps,&
       sum(zq1(:,jk))/zlon,-sum(zq2(:,jk))/zlon, &
       sum(puten(:,jk))/zlon*xtjour,sum(pvten(:,jk))/zlon*xtjour,  &
       sum(pumf(:,jk)+pdmf(:,jk))/zlon,-sum(pvervel(:,jk))/zlon

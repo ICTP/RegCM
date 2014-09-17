@@ -57,11 +57,11 @@ module clm_varpar
   integer, parameter :: maxpatch_cft   = 2
   integer            :: maxpatch_pft
   integer            :: npatch_urban
-  integer            :: npatch_lake 
-  integer            :: npatch_wet  
+  integer            :: npatch_lake
+  integer            :: npatch_wet
   integer            :: npatch_glacier
-  integer            :: npatch_crop 
-  integer            :: maxpatch    
+  integer            :: npatch_crop
+  integer            :: maxpatch
 
   integer, parameter :: max_pft_per_gcell = numpft+1 + 4 + maxpatch_cft
   integer, parameter :: max_pft_per_lu    = max(numpft+1, maxpatch_cft)

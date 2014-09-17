@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_output
 
   use mod_intkinds
@@ -97,7 +97,7 @@ module mod_output
       if ( doing_restart ) then
         doing_restart = .false.
 #ifdef DEBUG
-        call time_end(subroutine_name,idindx) 
+        call time_end(subroutine_name,idindx)
 #endif
         return
       end if
@@ -186,7 +186,7 @@ module mod_output
             atm_qc_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqc)/ps_out
           end do
         end if
- 
+
         if ( associated(atm_qr_out) ) then
           do k = 1 , kz
             atm_qr_out(:,:,k) = atm1%qx(jci1:jci2,ici1:ici2,k,iqr)/ps_out
@@ -343,114 +343,114 @@ module mod_output
           atm_tgb_out = atm_tgb_out * rsrf_in_atm
         if ( associated(atm_tsw_out) ) &
           atm_tsw_out = atm_tsw_out * rsrf_in_atm
-        ! FAB add tendency diagnostic here 
-        if ( associated(atm_tten_adh_out) ) then     
+        ! FAB add tendency diagnostic here
+        if ( associated(atm_tten_adh_out) ) then
           do k = 1 , kz
             atm_tten_adh_out(:,:,k) = tdiag%adh(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           tdiag%adh = d_zero
-        end if 
-        if ( associated(atm_tten_adv_out) ) then     
+        end if
+        if ( associated(atm_tten_adv_out) ) then
           do k = 1 , kz
             atm_tten_adv_out(:,:,k) = tdiag%adv(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           tdiag%adv = d_zero
-        end if 
-        if ( associated(atm_tten_tbl_out) ) then     
+        end if
+        if ( associated(atm_tten_tbl_out) ) then
           do k = 1 , kz
             atm_tten_tbl_out(:,:,k) = tdiag%tbl(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           tdiag%tbl = d_zero
-        end if 
-        if ( associated(atm_tten_dif_out) ) then     
+        end if
+        if ( associated(atm_tten_dif_out) ) then
           do k = 1 , kz
             atm_tten_dif_out(:,:,k) = tdiag%dif(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           tdiag%dif = d_zero
-        end if 
-        if ( associated(atm_tten_bdy_out) ) then     
+        end if
+        if ( associated(atm_tten_bdy_out) ) then
           do k = 1 , kz
             atm_tten_bdy_out(:,:,k) = tdiag%bdy(jci1:jci2,ici1:ici2,k)/ps_out
           end do
-          tdiag%bdy = d_zero 
-        end if 
-        if ( associated(atm_tten_con_out) ) then     
+          tdiag%bdy = d_zero
+        end if
+        if ( associated(atm_tten_con_out) ) then
           do k = 1 , kz
             atm_tten_con_out(:,:,k) = tdiag%con(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           tdiag%con = d_zero
-        end if 
-        if ( associated(atm_tten_adi_out) ) then     
+        end if
+        if ( associated(atm_tten_adi_out) ) then
           do k = 1 , kz
             atm_tten_adi_out(:,:,k) = tdiag%adi(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           tdiag%adi = d_zero
-        end if 
-        if ( associated(atm_tten_rad_out) ) then     
+        end if
+        if ( associated(atm_tten_rad_out) ) then
           do k = 1 , kz
             atm_tten_rad_out(:,:,k) = tdiag%rad(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           tdiag%rad = d_zero
-        end if  
-        if ( associated(atm_tten_lsc_out) ) then     
+        end if
+        if ( associated(atm_tten_lsc_out) ) then
           do k = 1 , kz
             atm_tten_lsc_out(:,:,k) = tdiag%lsc(jci1:jci2,ici1:ici2,k)/ps_out
           end do
-          tdiag%lsc = d_zero 
-        end if  
-        if ( associated(atm_qten_adh_out) ) then     
+          tdiag%lsc = d_zero
+        end if
+        if ( associated(atm_qten_adh_out) ) then
           do k = 1 , kz
             atm_qten_adh_out(:,:,k) = qdiag%adh(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           qdiag%adh = d_zero
-        end if 
-        if ( associated(atm_qten_adv_out) ) then     
+        end if
+        if ( associated(atm_qten_adv_out) ) then
           do k = 1 , kz
             atm_qten_adv_out(:,:,k) = qdiag%adv(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           qdiag%adv = d_zero
-        end if 
-        if ( associated(atm_qten_tbl_out) ) then     
+        end if
+        if ( associated(atm_qten_tbl_out) ) then
           do k = 1 , kz
             atm_qten_tbl_out(:,:,k) = qdiag%tbl(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           qdiag%tbl = d_zero
-        end if 
-        if ( associated(atm_qten_dif_out) ) then     
+        end if
+        if ( associated(atm_qten_dif_out) ) then
           do k = 1 , kz
             atm_qten_dif_out(:,:,k) = qdiag%dif(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           qdiag%dif = d_zero
-        end if 
-        if ( associated(atm_qten_bdy_out) ) then     
+        end if
+        if ( associated(atm_qten_bdy_out) ) then
           do k = 1 , kz
             atm_qten_bdy_out(:,:,k) = qdiag%bdy(jci1:jci2,ici1:ici2,k)/ps_out
           end do
-          qdiag%bdy = d_zero 
-        end if 
-        if ( associated(atm_qten_con_out) ) then     
+          qdiag%bdy = d_zero
+        end if
+        if ( associated(atm_qten_con_out) ) then
           do k = 1 , kz
             atm_qten_con_out(:,:,k) = qdiag%con(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           qdiag%con = d_zero
         end if
-        if ( associated(atm_qten_adi_out) ) then     
+        if ( associated(atm_qten_adi_out) ) then
           do k = 1 , kz
             atm_qten_adi_out(:,:,k) = qdiag%adi(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           qdiag%adi = d_zero
-        end if 
-        if ( associated(atm_qten_rad_out) ) then     
+        end if
+        if ( associated(atm_qten_rad_out) ) then
           do k = 1 , kz
             atm_qten_rad_out(:,:,k) = qdiag%rad(jci1:jci2,ici1:ici2,k)/ps_out
           end do
           qdiag%rad = d_zero
-        end if  
-        if ( associated(atm_qten_lsc_out) ) then     
+        end if
+        if ( associated(atm_qten_lsc_out) ) then
           do k = 1 , kz
             atm_qten_lsc_out(:,:,k) = qdiag%lsc(jci1:jci2,ici1:ici2,k)/ps_out
           end do
-          qdiag%lsc = d_zero 
+          qdiag%lsc = d_zero
         end if
 
         ps_out = d_10*(ps_out+ptop)
@@ -859,7 +859,7 @@ module mod_output
       if ( ipptls == 2 ) sfs%snownc  = d_zero
     end if
 #ifdef DEBUG
-    call time_end(subroutine_name,idindx) 
+    call time_end(subroutine_name,idindx)
 #endif
   end subroutine output
 !

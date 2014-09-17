@@ -24,7 +24,7 @@ module mod_cbmz_chemmech
 !
   public
 !
-! chemmech.EXT    April, 2007    
+! chemmech.EXT    April, 2007
 !     for RADICAL BALANCE-BACK EULER solver for chemistry (quadchem)
 !      (chemmain.f cheminit.f chemrates chemsolve.f, linslv.f, jval2.f)
 !
@@ -47,8 +47,8 @@ module mod_cbmz_chemmech
 !    also change exponents (DO vs EO) in BOD and YTN
 ! ----------------------------
 !
-!  Other INCLUDE files: 
-!   chemvars.EXT =  input-output variables 
+!  Other INCLUDE files:
+!   chemvars.EXT =  input-output variables
 !    that are passed to and from the solver each time it is called.
 !   chemlocal.EXT = Variables that are shared among the subroutines
 !     in the chemistry solver, but not used elsewhere and not saved.
@@ -59,7 +59,7 @@ module mod_cbmz_chemmech
 !   7/07  Modified to put critical indices in chemmech.
 ! -------------------------------------------------------------
 
-! ESSENTIAL index parameters:  
+! ESSENTIAL index parameters:
 !     c_kvec:  maximum index for vectorization
 !     c_icdim: maximum dimension for the number of species
 !     c_rdim: maximum dimension for the number of reactions
@@ -87,14 +87,14 @@ module mod_cbmz_chemmech
   integer(ik4) , parameter :: c_rin = 25  ! Input unit for REACTION.DAT (mechanism)
   integer(ik4) , parameter :: c_hvin = 26 ! Input unit for TUVGRID2 (hv data)
 !
-! REACTION RATE PARAMETERS:  
+! REACTION RATE PARAMETERS:
 !
 ! c_rk      Gas-phase rate parameters (for calculating rate:  up to 7)
 !            connected with rate calc. options in chemrates
-! c_rkh     Henry's law rate parameters 
+! c_rkh     Henry's law rate parameters
 ! c_rkq     Aqueous equilibrium parameters (A=B+C, H+ and OH- reactions)
 ! c_rkqq    Special equilibrium parameters
-! 
+!
 !  c_nrk(c_rdim)    Format index for reaction rate
 !                    This ID's read format and reaction rate formula
 !  c_nrkh(c_rdim)   Format index for Henry's law coefficient
@@ -120,9 +120,9 @@ module mod_cbmz_chemmech
 ! CHEMICAL MECHANISM AND SPECIES INDICES
 !  c_reactant(c_rdim,2):   Index for reactant species in A+B=C..
 !  c_product(c_rdim,20)    Index for product species in A+B=C...
-!  c_nnpro(c_rdim)   : number of reaction products for reaction nr. 
+!  c_nnpro(c_rdim)   : number of reaction products for reaction nr.
 !  c_stoich(c_rdim,20)     Stoichiometry for each product
-!  c_prodarr(nr,ic) Array of stoichiometry for production of chem ic 
+!  c_prodarr(nr,ic) Array of stoichiometry for production of chem ic
 !                   from reaction nr - assigned to gas species.
 !                   (used in solution for chem pairs and multisolve
 !
@@ -136,8 +136,8 @@ module mod_cbmz_chemmech
 !  c_nreaqq    Number of special equilibrium constants
 !
 !  c_nchem1    Number if input/output (transported) species
-!  c_nchem2    Number of total species 
-! 
+!  c_nchem2    Number of total species
+!
 !  c_icat      Category of chemical species
 !  c_lsts      Flag to identify steady state species (T for stst)
 !  c_lump(nlump,3)  Lumped species: species n1= sum from n2 to n3
@@ -156,10 +156,10 @@ module mod_cbmz_chemmech
 
   integer(ik4) :: c_nreac    ! Number of chemical reactions
   integer(ik4) :: c_nreach   ! Number of Henry's law equilibrium constants
-  integer(ik4) :: c_nreacq   ! Number of regular equilibrium constants 
+  integer(ik4) :: c_nreacq   ! Number of regular equilibrium constants
   integer(ik4) :: c_nreaqq   ! Number of special equilibrium constants
   integer(ik4) :: c_nchem1   ! Number if input/output (transported) species
-  integer(ik4) :: c_nchem2   ! Number of total species 
+  integer(ik4) :: c_nchem2   ! Number of total species
 !
   integer(ik4) :: c_icat(c_cdim)   ! Category of chemical species
   logical :: c_lsts(c_cdim)   ! Flag to identify steady state species
@@ -168,7 +168,7 @@ module mod_cbmz_chemmech
 
 ! INDICES FOR CHEMICAL REACTION SOLUTION PROCEDURE (CASCADE)
 
-!  c_cascade(ic,n)  Array of cascade species: identified species 
+!  c_cascade(ic,n)  Array of cascade species: identified species
 !                   in order of solution and single/multisolve
 !
 ! c_nppair(c_cdim,23)  pair pointers: for linked pair chain in cascade
@@ -176,24 +176,24 @@ module mod_cbmz_chemmech
 !                  (to species directly above in pair hierarchy)
 ! c_nppair(ic,2) = pointer to main primary species for pair group
 ! c_nppair(ic,3) = number of pair group subspecies for this species
-! c_nppair(ic,4+) = chem. index for pair group subspecies of species ic 
+! c_nppair(ic,4+) = chem. index for pair group subspecies of species ic
 ! c_npmulti(ic,1) = chem index for head of multi group for this spec.
 !
-! c_nnrchem(c_cdim) : Cascade solution order: 
+! c_nnrchem(c_cdim) : Cascade solution order:
 !                     number of reactions linked to species ic
 ! c_nrchem(c_cdim,c_rdim)  Cascade solution order:
 !                     Reaction numbers (nr) linked to species ic
-! c_nnrchp(c_cdim)   Cascade solution order: 
+! c_nnrchp(c_cdim)   Cascade solution order:
 !                     number of reactions linked to ic as  product
 ! c_nrchmp(c_cdim,c_rdim)  Cascade solution order:
 !                     Reaction numbers (nr) linked to ic as product
 ! n_nicreac(c_rdim) : Chemical species associated with reaction.
 !
-! c_exloss(ic, is,i)  Reaction number for 'exchange' loss reaction: 
-!                    loss to species ic;  counter for number of 
+! c_exloss(ic, is,i)  Reaction number for 'exchange' loss reaction:
+!                    loss to species ic;  counter for number of
 !                    exchange species is, number of reactions i
 ! c_expro(ic,is,i)   Reaction number for 'exchange' product reaction:
-!                    produces species ic;  counter for number of 
+!                    produces species ic;  counter for number of
 !                    exchange species is, number of reactions i
 ! c_exspec(ic,is)    Exchange species number for species #is
 !                    that is in back-forth reaction with species ic
@@ -202,7 +202,7 @@ module mod_cbmz_chemmech
   integer(ik4) :: c_npmulti(c_cdim,1)       ! Pointer to multi spec. head
 
   integer(ik4) :: c_nnrchem(c_cdim)         ! Number of reactions linked to spec.
-  integer(ik4) :: c_nrchem(c_cdim, c_rdim)  ! Reaction numbers for spec. 
+  integer(ik4) :: c_nrchem(c_cdim, c_rdim)  ! Reaction numbers for spec.
   integer(ik4) :: c_nnrchp(c_cdim)          ! Number of product reactions for ic
   integer(ik4) :: c_nrchmp(c_cdim, c_rdim)  ! Productreaction numbers for ic
   integer(ik4) :: c_nicreac(c_rdim)         ! Species ic associated with reaction nr
@@ -211,7 +211,7 @@ module mod_cbmz_chemmech
   integer(ik4) :: c_expro(c_cdim,20,5)    ! Exchange product reaction number
   integer(ik4) :: c_exspec(c_cdim,20)     ! Exchange species number
 
-!  CHEMISTRY REACTION COUNTERS:  
+!  CHEMISTRY REACTION COUNTERS:
 !   c_stoiloss(c_rdim): counter for net loss of reactant per reaction
 !                     (used to ID self-reaction or product=reactant)
 !   stoicpro, stoicprx - cut, no longer used
@@ -240,7 +240,7 @@ module mod_cbmz_chemmech
 !                      Aqueous equil. number (nrq) for subsequent spec,
 !                      for species associated with each gas-master.
 ! c_ion(c_cdim)       Charge associated with each species
-! 
+!
   integer(ik4) :: c_nequil(c_cdim)    ! Number of aq species linked to gas ic
   integer(ik4) :: c_npequil(c_cdim)   ! Pointer to linked gas-master species
   integer(ik4) :: c_ncequil(c_cdim,6) ! List of aq species for gas-master
@@ -248,7 +248,7 @@ module mod_cbmz_chemmech
   integer(ik4) :: c_ion(c_cdim)       ! Charge associated with each species
 !
 ! INDICES AND POINTERS FOR AQUEOUS EQUILIBRIA
-! 
+!
 ! CHEM MECHANISM NAMES  tchem
 ! c_tchem(c_cdim)          Chem. species name, a8
 ! c_treac(6, c_rdim)       Chem reaction species names: A+B->3 products
@@ -277,7 +277,7 @@ module mod_cbmz_chemmech
 ! c_nno3    Index to identify NO3  in species list
 ! c_nn2o5   Index to identify N2O5 in species list
 ! c_nhno3   Index to identify HNO3 in species list
-! 
+!
   integer(ik4) :: c_nh2o   ! Index to identify H2O  in species list
   integer(ik4) :: c_nco2   ! Index to identify CO2  in species list
   integer(ik4) :: c_nhplus ! Index to identify H+   in species list
@@ -301,16 +301,16 @@ module mod_cbmz_chemmech
 ! Note: jval(56) = Output from J-value parameterization.
 !                  Declared internally in hvrates
 !  c_nhv(ipar)       Number of parameter intervals for each parameter
-!  c_hvmat(ipar,ialt)  Value of parameter interval points 
+!  c_hvmat(ipar,ialt)  Value of parameter interval points
 !                   for each of 22 parameters, 40 altitudes
 !  c_hvmatb(ipar)    Values for temperature adjustment
 !  c_jarray( k,ig,jc)  Output array for 56 jvalues (jc)
 !                 for matrix of 510 altitudes and zenith angles (ig)
 !                 and 80 conditions (k): 1=base value, >1 adjustments
 
-   integer(ik4) :: c_nhv(22)                   
-   real(rk8) :: c_hvmat(22,40)     
-   real(rk8) :: c_hvmatb(22)        
+   integer(ik4) :: c_nhv(22)
+   real(rk8) :: c_hvmat(22,40)
+   real(rk8) :: c_hvmatb(22)
    real(rk8) :: c_jarray(80,510,56)
 
 !!NUMERICAL SOLUTION  PARAMETERS
@@ -327,11 +327,11 @@ module mod_cbmz_chemmech
 !     real(rk8) c_ohtest       ! test: dOH/OH or dOH/HO2
 !     real(rk8) c_notest       ! test: dNO2/NO2
 !     integer c_iter                  ! chem. number of iterations
-! NOVEMBER 2007 ADDITION: 
+! NOVEMBER 2007 ADDITION:
 !   chemistry mechanism parameters to be used in tracer calculations
-! 
+!
 ! STOICHIOMETRY PARAMETERS used in global tracer calculations
-!  c_noxchem(13,nr) = stoich parameters for:  
+!  c_noxchem(13,nr) = stoich parameters for:
 !                1-5: net rp Ox; NOx, PAN, HNO3, RNO3;
 !                6-13:   NOx->PAN, PAN->NOx;  N<->HNO3;  N<->RNO3, N<=>H+RNO3
 !
@@ -354,7 +354,7 @@ module mod_cbmz_chemmech
    integer(ik4) :: c_nroho3              ! nr for OH+O3
    integer(ik4) :: c_nrohch4             ! nr for OH+CH4
 ! 2009 addition
-   integer(ik4) :: c_nnrro2              ! Number of special RO2-RO2 reactions 
+   integer(ik4) :: c_nnrro2              ! Number of special RO2-RO2 reactions
    integer(ik4) :: c_nrro2(c_rdim)       ! nr for special RO2-RO2 reactions
 
 end module mod_cbmz_chemmech

@@ -10,8 +10,8 @@ module program_offMod
 !
 ! !MODULE: program_offMod
 !
-! !DESCRIPTION (for coupled REGCM-CLM):  
-! The information in the description below may not accurately reflect 
+! !DESCRIPTION (for coupled REGCM-CLM):
+! The information in the description below may not accurately reflect
 ! the coupled code.  Program_off is used to initialize the land surface
 ! and is called from init_clm.f
 !
@@ -79,14 +79,14 @@ contains
 !!
 !
 ! !DESCRIPTION:
-! Subroutine for initializing the land surface variables.  
+! Subroutine for initializing the land surface variables.
 !
-! !CALLED FROM: 
+! !CALLED FROM:
 ! init_clm(sera/para).f
 !
 ! !USES:
   use shr_kind_mod    , only : r8 => shr_kind_r8, SHR_KIND_CL
-  use shr_orb_mod          
+  use shr_orb_mod
 !  use clm_varorb      , only : eccen, mvelpp, lambm0, obliqr, obliq, &
 !                               iyear_AD, nmvelp
   use clm_comp        , only : clm_init0, clm_init1, clm_init2 !, clm_run1, clm_run2
@@ -95,7 +95,7 @@ contains
   use abortutils      , only : endrun
   use controlMod      , only : control_setNL
   use clm_mct_mod
-  use spmdMod  
+  use spmdMod
   use ESMF_Mod
   use perf_mod
   use mod_clm
@@ -121,7 +121,7 @@ contains
 
   logical  :: log_print    ! true=> print diagnostics
   real(r8) :: eccf         ! earth orbit eccentricity factor
-  logical  :: mpi_running  ! true => MPI is initialized 
+  logical  :: mpi_running  ! true => MPI is initialized
   integer  :: mpicom_glob  ! MPI communicator
 
   character(len=SHR_KIND_CL) :: nlfilename = "lnd.stdin"
@@ -201,7 +201,7 @@ contains
 !  call t_stopf('init')
 
 !!!!!!!!!!!!!!!!!!!!!!! RCM ONLY USES ABOVE; ignore below !!!!!!!!!
-! abt rcm below  
+! abt rcm below
   ! -----------------------------------------------------------------
   ! Time stepping loop
   ! -----------------------------------------------------------------

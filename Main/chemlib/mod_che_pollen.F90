@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_che_pollen
-  
+
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
@@ -31,14 +31,14 @@ module mod_che_pollen
 
   private
 
-  ! Parameter usefull for wet and dry deposition of carbon aerosol 
+  ! Parameter usefull for wet and dry deposition of carbon aerosol
   ! densities in kg/m3
 
   real(rk8) , public , parameter :: rhopollen   = 1200.0D0
-  
+
 
   ! effctive dimaters ( and not radius!)  in micrometer
-  ! ( should they be defined intercatively in the future ? ) 
+  ! ( should they be defined intercatively in the future ? )
   real(rk8) , public , parameter :: reffpollen   = 20.D0
 
 
@@ -49,7 +49,7 @@ module mod_che_pollen
 
   public :: solpollen, pollen_emission
 
-  
+
   contains
 
     subroutine pollen_emission(j, ustar, wind10, rh10, prec, convprec )
@@ -59,36 +59,36 @@ module mod_che_pollen
       real(rk8) , dimension(ici1:ici2) :: precip,emispol
      integer(ik4) :: i
       real (rk8) :: emispot, fh,fw,fr,uconv,htc,ce
-            
-! calculate the actual pollen flux corrected for meteo 
-! receive emission potential in grain/m2/hr      
-! 
-      htc = d_one ! cover height 
+
+! calculate the actual pollen flux corrected for meteo
+! receive emission potential in grain/m2/hr
+!
+      htc = d_one ! cover height
       uconv = d_zero
-      precip = (prec + convprec ) * 3600.D0 
+      precip = (prec + convprec ) * 3600.D0
       emispol = d_zero
       ce = 1.D-4 ! flowering factor, a raffiner en fonction calendrier floraison
 
       do i = ici1 , ici2
-    
+
        emispot = chemsrc(j,i,ipollen) * 24.D0 ! in particle/m2 + derniere correction
        if (emispot < 1.D-20) cycle
        emispol(i) = emispot * mathpi / 6.D0 * (reffpollen * 1.D-06)**3  *  rhopollen   ! in kg/m2
 
        if (  rh10(i)*100.0D0 < 50.D0 ) then
          fh =d_one
-       elseif (  rh10(i)*100.0D0 > 80.D0 ) then 
+       elseif (  rh10(i)*100.0D0 > 80.D0 ) then
          fh=d_zero
-       else  
-       fh = (80.D0 - rh10(i)*100.0D0 )/ (80.D0 - 50.D0)  
+       else
+       fh = (80.D0 - rh10(i)*100.0D0 )/ (80.D0 - 50.D0)
        end if
 
        if (  precip(i) < 1.0D-5 ) then
          fr =d_one
-       elseif ( precip(i) > 0.5D0 ) then 
+       elseif ( precip(i) > 0.5D0 ) then
          fr=d_zero
-       else  
-         fr = (0.5D0 - precip(i))/0.5D0 
+       else
+         fr = (0.5D0 - precip(i))/0.5D0
        end if
 
 ! Sofiev et al., 2006
@@ -114,7 +114,7 @@ module mod_che_pollen
             ! diagnostic for source, cumul
             cemtrac(j,i,ipollen) = cemtrac(j,i,ipollen) + emispol(i)*cfdout
         end do
-        end if 
+        end if
 
     end subroutine pollen_emission
 !

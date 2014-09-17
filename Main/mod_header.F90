@@ -40,14 +40,14 @@ module mod_header
   contains
 
   subroutine whoami(myid)
-    implicit none 
+    implicit none
     integer(ik4) , intent(in) :: myid
 
-    if ( myid == iocpu ) then 
+    if ( myid == iocpu ) then
       call cpu_time(start_time)
       last_time = start_time
       write (stdout,"(/,2x,'This is RegCM trunk')")
-      write (stdout,99001)  SVN_REV, __DATE__ , __TIME__   
+      write (stdout,99001)  SVN_REV, __DATE__ , __TIME__
     end if
 
 99001   format(2x,' SVN Revision: ',a,' compiled at: data : ',a,  &
@@ -55,23 +55,23 @@ module mod_header
   end subroutine whoami
 
   subroutine header(myid,nproc)
-    implicit none 
+    implicit none
     integer(ik4) , intent(in) :: myid , nproc
     integer(ik4) :: ihost , idir
     integer(ik4) :: hostnm
     integer(ik4) :: getcwd
-    character (len=32) :: hostname='?' 
-    character (len=32) :: user='?' 
+    character (len=32) :: hostname='?'
+    character (len=32) :: user='?'
     character (len=256) :: directory='?'
-  
-    if ( myid == iocpu )  then 
+
+    if ( myid == iocpu )  then
 #ifdef IBM
       hostname='ibm platform '
       user= 'Unknown'
 #else
       ihost = hostnm(hostname)
       call getlog(user)
-#endif 
+#endif
       idir = getcwd(directory)
       call date_and_time(zone=czone,values=tval)
       write(cdata,'(i0.4,"-",i0.2,"-",i0.2," ",i0.2,":",i0.2,":",i0.2,a)') &
@@ -80,10 +80,10 @@ module mod_header
       write (stdout,*) ": it is submitted by : ",trim(user)
       write (stdout,*) ": it is running on   : ",trim(hostname)
       write (stdout,*) ": it is using        : ",nproc, &
-                       '  processors' 
+                       '  processors'
       write (stdout,*) ": in directory       : ",trim(directory)
-      write (stdout,*) "                      " 
-    end if 
+      write (stdout,*) "                      "
+    end if
   end subroutine header
 
   subroutine checktime(myid)

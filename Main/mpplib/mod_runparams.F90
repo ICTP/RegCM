@@ -192,7 +192,7 @@ module mod_runparams
   real(rk8) , public :: epmax_ocn
   real(rk8) , public :: epmax_lnd
   integer(ik4) , public :: minorig
- 
+
   ! Tiedtke cumulus scheme parameters
 
   integer(ik4) , public :: iconv
@@ -224,6 +224,8 @@ module mod_runparams
   ! Kain-Fritsch parameter
 
   real(rk8) , public :: kf_entrate
+  integer(ik4) , public :: kf_trigger
+  !
 
   ! Tweak Global data
 
@@ -274,7 +276,7 @@ module mod_runparams
 
   ! Chemistry nameliste option
 
-  character(len=8) , public :: chemsimtype 
+  character(len=8) , public :: chemsimtype
   integer(ik4) , public :: ichcumtra
   integer(ik4) , public :: ichdrdepo
   integer(ik4) , public :: ichremcvc
@@ -316,8 +318,8 @@ module mod_runparams
   logical , public :: do_qflux_adj
   logical , public :: do_restore_sst
   ! TK mod; restoring time scale for SST in days
-  real(rk8) , public :: sst_restore_timescale 
-  real(rk8) , public :: mixed_layer_depth 
+  real(rk8) , public :: sst_restore_timescale
+  real(rk8) , public :: mixed_layer_depth
   integer(ik4) , dimension(mpy) , public :: stepcount
 
 #ifdef CLM
@@ -341,9 +343,9 @@ module mod_runparams
   ! Implict option
   real(rk8) , public :: ksemi
   ! Fall speed values
-  real(rk8) , public :: vqxr 
-  real(rk8) , public :: vqxi 
-  real(rk8) , public :: vqxs 
+  real(rk8) , public :: vqxr
+  real(rk8) , public :: vqxi
+  real(rk8) , public :: vqxs
   ! autoconversion values
   real(rk8) , public :: zauto_rate_khair
   real(rk8) , public :: zauto_rate_kessl

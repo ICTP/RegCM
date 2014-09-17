@@ -19,12 +19,12 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_cloud_variables
-   
+
   use mod_realkinds
   use mod_constants
 
   implicit none
-     
+
   public
 
   !numbers

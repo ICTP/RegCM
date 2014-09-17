@@ -131,8 +131,8 @@ contains
     real(r8), pointer :: ram1(:)          ! aerodynamical resistance (s/m)
     real(r8), pointer :: fpsn(:)          ! photosynthesis (umol CO2 /m**2 /s)
     real(r8), pointer :: rootr(:,:)       ! effective fraction of roots in each soil layer
-    real(r8), pointer :: rresis(:,:)      ! root resistance by layer (0-1)  (nlevsoi)	
-!abt rcm 
+    real(r8), pointer :: rresis(:,:)      ! root resistance by layer (0-1)  (nlevsoi)
+!abt rcm
     real(r8), pointer :: uvdrag(:)        ! surface wind drag
 !above rcm
 !
@@ -418,7 +418,7 @@ contains
        clm3%g%l%c%p%pc13f%psnsun(p) = 0._r8
        clm3%g%l%c%p%pc13f%psnsha(p) = 0._r8
        clm3%g%l%c%p%pc13f%fpsn(p) = 0._r8
-       
+
 
     end do
 

@@ -243,7 +243,7 @@ contains
           if (dim2name(1:3)=='lev' .or. dim2name(1:3)=='num') then
              switchdim = .true.
           end if
-#if (defined CASA)   
+#if (defined CASA)
           if (dim2name=='npools' .or. dim2name=='nlive') then
              switchdim = .true.
           end if
@@ -905,7 +905,7 @@ contains
     integer :: dimid(4)                 ! dimension ids
     integer :: varid                    ! variable id
     integer :: lb1,ub1,lb2,ub2          ! bounds of data
-    integer :: nsize                    ! size of global array second dimension         
+    integer :: nsize                    ! size of global array second dimension
     integer :: data_offset              ! offset to single grid point for column model
     integer :: ndata                    ! count of pft's or columns to read
     real(r8), pointer :: datap(:,:)     ! permutted 2d data
@@ -1804,8 +1804,8 @@ contains
 ! !INTERFACE:
   subroutine scam_field_offsets(ncid,dim1name,data_offset, ndata)
 !
-! !DESCRIPTION: 
-! Read/Write initial data from/to netCDF instantaneous initial data file 
+! !DESCRIPTION:
+! Read/Write initial data from/to netCDF instantaneous initial data file
 !
 ! !USES:
     use shr_kind_mod, only : r8 => shr_kind_r8
@@ -1817,9 +1817,9 @@ contains
     implicit none
     character(len=*), intent(in) :: dim1name ! dimension 1 name
     integer, intent(in)  :: ncid             ! netCDF dataset id
-    integer, intent(out) :: data_offset      ! offset into land array 
-                                             ! 1st column 
-    integer, intent(out) :: ndata            ! number of column (or 
+    integer, intent(out) :: data_offset      ! offset into land array
+                                             ! 1st column
+    integer, intent(out) :: ndata            ! number of column (or
                                              ! pft points to read)
 !
 ! !CALLED FROM: subroutine inicfields
@@ -1839,14 +1839,14 @@ contains
     integer :: cc,i                          ! index variable
     integer :: totpfts                       ! total number of pfts
     integer :: totcols                       ! total number of columns
-    integer, save :: col_offset              ! offset into land array of 
+    integer, save :: col_offset              ! offset into land array of
                                              ! starting column
-    integer, save :: pi_offset               ! offset into land array of 
+    integer, save :: pi_offset               ! offset into land array of
                                              ! starting pft needed for scam
     integer :: dimid                         ! netCDF dimension id
     integer :: varid                         ! netCDF variable id
     integer, save :: begp, endp              ! per-proc beg/end pft indices
-    integer, save :: begc, endc              ! per-proc beg/end col indices 
+    integer, save :: begc, endc              ! per-proc beg/end col indices
     integer, save :: begl, endl              ! per-proc beg/end land indices
     integer, save :: begg, endg              ! per-proc beg/end gridcell ind
     logical, save :: firsttime = .true.      ! determine offsets once.
@@ -1875,7 +1875,7 @@ contains
 
        allocate (pfts1dlon(totpfts))
        allocate (pfts1dlat(totpfts))
-       
+
        ret =  nf_inq_varid (ncid, 'pfts1d_ixy', varid)
        if (ret/=NF_NOERR) then
          write(6,*)'inq_varid: id for pfts1d_ixy not found'
@@ -1975,7 +1975,7 @@ contains
        firsttime = .false.
     endif
 
-    
+
     if (dim1name == 'pft') then
        data_offset = pi_offset
        ndata = endp-begp+1

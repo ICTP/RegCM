@@ -519,10 +519,10 @@ module mod_lm_interface
     call albedoocn(lm,lms)
     lm%swalb = sum(lms%swalb,1)*rdnnsg
     lm%lwalb = sum(lms%lwalb,1)*rdnnsg
-    lm%swdiralb = sum(lms%swdiralb,1)*rdnnsg 
-    lm%lwdiralb = sum(lms%lwdiralb,1)*rdnnsg 
-    lm%swdifalb = sum(lms%swdifalb,1)*rdnnsg 
-    lm%lwdifalb = sum(lms%lwdifalb,1)*rdnnsg 
+    lm%swdiralb = sum(lms%swdiralb,1)*rdnnsg
+    lm%lwdiralb = sum(lms%lwdiralb,1)*rdnnsg
+    lm%swdifalb = sum(lms%swdifalb,1)*rdnnsg
+    lm%lwdifalb = sum(lms%lwdifalb,1)*rdnnsg
   end subroutine surface_albedo
 
   subroutine export_data_from_surface(expfie)
@@ -640,7 +640,7 @@ module mod_lm_interface
 !                   hveg(iveg1(n,jy,ix)) = hveg(iveg1(n,jy,ix))+1
 !                 end do
 !               end do
-!             end do        
+!             end do
 !             hveg(14) = 0
 !             hveg(15) = 0
 !             ! set array to store change
@@ -654,7 +654,7 @@ module mod_lm_interface
 !               flag = .false.
 !               if (lm%ldmskb(j,i) /= lm%ldmsk(j,i)) flag = .true.
 !               ! set land-sea mask to its original value
-!               lm%ldmsk(j,i) = ldmskb(j,i)             
+!               lm%ldmsk(j,i) = ldmskb(j,i)
 !               do n = 1, nnsg
 !                 lm%ldmsk1(n,j,i) = lm%ldmsk(j,i)
 !               end do
@@ -669,9 +669,9 @@ module mod_lm_interface
 !         end if
           !
           !------------------------------------------------------------------
-          ! Update: Sea-ice, mask and land-use type (based on sea-ice module) 
+          ! Update: Sea-ice, mask and land-use type (based on sea-ice module)
           !------------------------------------------------------------------
-          ! 
+          !
           if ( impfie%sit(j,i) < tol .and. lm%ldmsk(j,i) /= 1 ) then
             if ( impfie%sit(j,i) > iceminh ) then
               flag = .false.
@@ -701,7 +701,7 @@ module mod_lm_interface
                     lm%ldmsk1(n,j,i) = ldmskb(j,i)
                     ! set land-use type to its original value
                     ! set sea ice thikness (in meter)
-                    lms%sfice(n,j,i) = d_zero 
+                    lms%sfice(n,j,i) = d_zero
                   else
                     flag = .false.
                   end if
@@ -719,7 +719,7 @@ module mod_lm_interface
     end do
     !
     !-----------------------------------------------------------------------
-    ! Format definition 
+    ! Format definition
     !-----------------------------------------------------------------------
     !
 ! 20 format(' ATM land-sea mask is changed at (',I3,',',I3,') : ',     &

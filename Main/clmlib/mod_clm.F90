@@ -34,7 +34,7 @@ module mod_clm
   integer(ik4) :: r2cdtime      ! timestep in seconds
   integer(ik4) :: r2cnsrest     ! 0=initial, 1=restart
   integer(ik4) :: r2cnestep     ! final timestep (or day if negative) number
-  integer(ik4) :: r2cnelapse    ! # of timesteps (or days if negative) 
+  integer(ik4) :: r2cnelapse    ! # of timesteps (or days if negative)
                            ! to extend a run
   integer(ik4) :: r2cnstep      ! current timestep (ktau)
 !
@@ -42,15 +42,15 @@ module mod_clm
   integer(ik4) :: r2cstart_tod  ! starting time of day for run in seconds
   integer(ik4) :: r2cstop_ymd   ! stopping date for run in yearmmdd format
   integer(ik4) :: r2cstop_tod   ! stopping time of day for run in seconds
-  integer(ik4) :: r2cref_ymd    ! reference date for time coordinate 
+  integer(ik4) :: r2cref_ymd    ! reference date for time coordinate
                            ! in yearmmdd format
-  integer(ik4) :: r2cref_tod    ! reference time of day for time 
+  integer(ik4) :: r2cref_tod    ! reference time of day for time
                            ! coordinate in seconds
 
   character(len=32) :: r2cclndr ! Calendar type ('NO_LEAP' or 'GREGORIAN')
 
   logical :: r2cwrtdia     ! write output true/false
-  integer(ik4) :: r2cirad       ! radiation calculation 
+  integer(ik4) :: r2cirad       ! radiation calculation
   integer(ik4) :: r2cmss_irt    ! NCAR mass store retention time set to 0
 
   integer(ik4) :: r2clsmlon     ! number of longitude points
@@ -132,8 +132,8 @@ module mod_clm
   real(rk8) , pointer , dimension(:,:) :: c2rinfl
   real(rk8) , pointer , dimension(:,:) :: c2rro_sur
   real(rk8) , pointer , dimension(:,:) :: c2rro_sub
-  real(rk8) , pointer , dimension(:,:) :: c2rfracsno      
-  real(rk8) , pointer , dimension(:,:) :: c2rfvegnosno 
+  real(rk8) , pointer , dimension(:,:) :: c2rfracsno
+  real(rk8) , pointer , dimension(:,:) :: c2rfvegnosno
   real(rk8) , pointer , dimension(:,:) :: voc_em
   real(rk8) , pointer , dimension(:,:) :: voc_em1
   real(rk8) , pointer , dimension(:,:) :: voc_em2

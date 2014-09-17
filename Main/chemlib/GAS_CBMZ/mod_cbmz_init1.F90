@@ -1528,7 +1528,7 @@ module mod_cbmz_init1
             c_nppair(ic3,np) = ic
             !
             ! Assign CATEGORY and STEADY STATE INDEX to secondary species
-            ! also assign to all its subspecies, including aqueous 
+            ! also assign to all its subspecies, including aqueous
             ! equil. species.
             !
 !           do neq = 1 , (c_nequil(ic )+1)
@@ -2572,7 +2572,7 @@ module mod_cbmz_init1
                   icp2 = c_npequil(c_product(nrp,2))
                 end if
                 !
-                ! CONTROLS TO IDENTIFY  EXCHANGE REACTION 
+                ! CONTROLS TO IDENTIFY  EXCHANGE REACTION
                 ! (EXLOSS-EXPRO):  A+B=C, C=A+B
                 if ( (icy1 == icp1 .and. icy2 == icp2) .or. &
                      (icy1 == icp2 .and. icy2 == icp1) ) then
@@ -3401,7 +3401,7 @@ module mod_cbmz_init1
       ! Reaction counters
       integer(ik4) :: nr , nrh , nrq
       ! Vectorization counters
-      integer(ik4) :: kk 
+      integer(ik4) :: kk
       ! General counters
       integer(ik4) :: i , n
 
@@ -3596,7 +3596,7 @@ module mod_cbmz_init1
       tdelta = c_xcout(kw,ic) - c_xcin(kw,ic)
       write(c_out,302) c_tchem(ic), c_xcout(kw,ic), c_xcin(kw,ic), tdelta,  &
                        c_rp(kw,ic), c_rl(kw,ic)
-    
+
    21 format(/,'WARNING:  UNKNOWN CHEMICAL NAME IN SUBROUTINE', &
               'ANALYZE',/,'NAME = ',a8,'  IC=',i5)
    22 format(/,'CHEMICAL PRODUCTION AND LOSS ANALYSIS FOR:',/,  &

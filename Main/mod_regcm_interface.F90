@@ -57,13 +57,13 @@ module mod_regcm_interface
 
   data extime /d_zero/
   contains
- 
+
   subroutine RCM_initialize(mpiCommunicator)
     implicit none
     integer, intent(in), optional :: mpiCommunicator
 !
     integer(ik4) :: ierr
-! 
+!
 !**********************************************************************
 !
 !   MPI Initialization
@@ -96,7 +96,7 @@ module mod_regcm_interface
     call whoami(myid)
     call setup_mesg(myid)
 !
-#ifdef DEBUG 
+#ifdef DEBUG
     call activate_debug()
 #endif
 !
@@ -128,9 +128,9 @@ module mod_regcm_interface
     call set_nproc
     call setup_model_indexes
 !
-#ifdef DEBUG 
+#ifdef DEBUG
     call start_debug()
-#endif 
+#endif
 !
 !**********************************************************************
 !
@@ -246,7 +246,7 @@ module mod_regcm_interface
         end if
       end if
       !
-      ! Retrieve information from the driver 
+      ! Retrieve information from the driver
       !
 #ifdef CPL
       if ( iocncpl == 1 ) then
@@ -283,7 +283,7 @@ module mod_regcm_interface
       !
       call output
       !
-      ! Send information to the driver 
+      ! Send information to the driver
       !
 #ifdef CPL
       if ( iocncpl == 1 ) then

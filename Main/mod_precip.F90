@@ -16,10 +16,10 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_precip
   !
-  ! Large Scale Precipitation computation 
+  ! Large Scale Precipitation computation
   ! Fractional cloud coverage and liquid water content calculation
   ! Heating term for explicit moisture scheme
   !
@@ -45,7 +45,7 @@ module mod_precip
   real(rk8) , pointer , dimension(:,:,:) :: t3 , t2 , tten
   real(rk8) , pointer , dimension(:,:,:) :: p3 , qs3 , rh3 , rho3
   real(rk8) , pointer , dimension(:,:,:) :: radcldf , radlqwc
- 
+
   real(rk8) :: qcth
 
   real(rk8) , parameter :: uch = d_1000*regrav*secph
@@ -127,7 +127,7 @@ module mod_precip
                 pptnew , qcincld , qcleft , qcw , qs , rdevap , &
                 rh , rhcs , rho , tcel , thog , tk , prainx
     integer(ik4) :: i , j , k , kk
-    !   
+    !
     !--------------------------------------------------------------------
     ! 1. Compute the precipitation formed in each layer.
     !    The computations are performed from the top to the surface.
@@ -165,7 +165,7 @@ module mod_precip
           !   - The factor of cgul accounts for the fact that the Gultepe
           !     and Isaac equation is for mean cloud water while qcth is the
           !     theshhold for auto-conversion.
-          qcth = cgul(j,i)*(d_10**(-0.489D0+0.0134D0*tcel))*d_r1000 
+          qcth = cgul(j,i)*(d_10**(-0.489D0+0.0134D0*tcel))*d_r1000
           ! 1ae. Compute the gridcell average autoconversion [kg/k g/s]
           pptnew = qck1(j,i)*(qcincld-qcth)*afc ! [kg/kg/s][avg]
           pptnew = dmin1(dmax1(pptnew,d_zero),pptmax) ![kg/kg/s][avg]
@@ -319,7 +319,7 @@ module mod_precip
         end do
       end do
     end if
-    !     
+    !
     !--------------------------------------------------------------------
     ! 3. Convert the accumlated precipitation to appropriate units for
     !    the surface physics and the output
@@ -406,25 +406,25 @@ module mod_precip
 !         else
 !           if ( rh3(j,i,k) >= d_one) then        ! full cloud cover
 !             fcc(j,i,k) = d_one
-!           else 
+!           else
 !             fcc(j,i,k) = (rh3(j,i,k)**0.25D0)* &
-!                   (d_one-dexp((-100.0D0*(qx3(j,i,k,iqc)+qx3(j,i,k,iqi))/ & 
+!                   (d_one-dexp((-100.0D0*(qx3(j,i,k,iqc)+qx3(j,i,k,iqi))/ &
 !                   ((d_one-rh3(j,i,k))*qs3(j,i,k))**0.49D0)))
 !             fcc(j,i,k) = dmin1(dmax1(fcc(j,i,k),0.01D0),0.99D0)
 !           end if !  rh0 threshold
 !           Test CF either 1 or 0
 !           if (qx3(j,i,k,iqc)+qx3(j,i,k,iqi)>minqx) then
 !             fcc(j,i,k)=d_one
-!           else 
+!           else
 !             fcc(j,i,k)=d_zero
-!           end if 
+!           end if
 !         end if
           !----------------------------------------------------------------
           ! Correction:
           !   Ivan Guettler, 14.10.2010.
-          ! Based on: Vavrus, S. and Waliser D., 2008, 
+          ! Based on: Vavrus, S. and Waliser D., 2008,
           ! An Improved Parameterization for Simulating Arctic Cloud Amount
-          ! in the CCSM3 Climate Model, J. Climate 
+          ! in the CCSM3 Climate Model, J. Climate
           !----------------------------------------------------------------
           if ( p3(j,i,k) >= 75000.0D0 ) then
             ! Clouds below 750hPa
@@ -477,7 +477,7 @@ module mod_precip
                 excld = min(0.99D0, max(0.01D0 , rm))
               else
                 excld = min(0.99D0, max(0.01D0 , &
-                        rm*(d_one-exp(-100.D0*(qcld/botm)))))  
+                        rm*(d_one-exp(-100.D0*(qcld/botm)))))
               end if
               ! xu and randall
             end if
@@ -489,7 +489,7 @@ module mod_precip
               excld = fcc(j,i,k)   ! reduced rh-cld
             end if
             !--------
-            ! Cloud Water Volume    
+            ! Cloud Water Volume
             ! kg gq / kg dry air * kg dry air / m3 * 1000 = g qc /  m3
             if ( qcld > minqx ) then
               exlwc = qcld*rho3(j,i,k)*d_1000
@@ -515,13 +515,13 @@ module mod_precip
               excld = dmin1(dmax1(excld,0.01D0),0.99D0)
             end if !  rh0 threshold
             !----------------------------------------------------------------
-            ! Based on: Vavrus, S. and Waliser D., 2008, 
+            ! Based on: Vavrus, S. and Waliser D., 2008,
             !----------------------------------------------------------------
             ! Clouds below 750hPa
             if ( p3(j,i,k) >= 75000.0D0 .and. qx3(j,i,k,iqv) <= 0.003D0 ) then
               excld = excld * dmax1(0.15D0,dmin1(d_one,qx3(j,i,k,iqv)/0.003D0))
             end if
-            !------------------- end hanzhenyu 
+            !------------------- end hanzhenyu
             !--------
             if ( totc(j,i,k) > minqx ) then
               if ( iconvlwp == 1 ) then
@@ -577,7 +577,7 @@ module mod_precip
   !    cloudy portion).                                             c
   !                                                                 c
   !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-  ! 
+  !
   subroutine condtq(psc)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: psc
@@ -618,14 +618,14 @@ module mod_precip
           rhc = dmax1(qvcs/qvs,dlowval)
 
           r1 = d_one/(d_one+wlhv*wlhv*qvs/(rwat*cpd*tmp3*tmp3))
-     
+
           ! 2b. Compute the relative humidity threshold at ktau+1
           if ( tmp3 > tc0 ) then
             rh0adj = rh0(j,i)
           else ! high cloud (less subgrid variability)
             rh0adj = rhmax - (rhmax-rh0(j,i))/(d_one+0.15D0*(tc0-tmp3))
           end if
-     
+
           ! 2c. Compute the water vapor in excess of saturation
           if ( rhc >= rhmax .or. rhc < rh0adj ) then ! Full or no cloud cover
             dqv = qvcs - qvs*conf ! Water vapor in excess of sat
@@ -644,7 +644,7 @@ module mod_precip
             dqv = qvc_cld - qvs*conf  ! qv diff between predicted qv_c
             tmp1 = r1*dqv*fccc        ! grid cell average
           end if
-     
+
           ! 2d. Compute the new cloud water + old cloud water
           exces = qccs + tmp1
           if ( exces >= d_zero ) then ! Some cloud is left

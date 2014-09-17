@@ -81,7 +81,7 @@ module clm_varctl
   character(len=256) :: mksrf_fno               ! no2/n2o/nh3 data file name
   character(len=256) :: mksrf_facta             ! Acetaldehyde/ethanol data file name
   character(len=256) :: mksrf_fform             ! formic acid acetic acid and formaldehyde data file name
-  character(len=256) :: mksrf_fmax              ! Saturation Maximum data file name 
+  character(len=256) :: mksrf_fmax              ! Saturation Maximum data file name
   character(len=256) :: filer_rest              ! restart file name used in output.F (not namelist option)
 !!!! abt rcm above
 

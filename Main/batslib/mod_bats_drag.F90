@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_bats_drag
 !
   use mod_intkinds
@@ -33,7 +33,7 @@ module mod_bats_drag
   public :: dragc , depth
 !
   contains
-! 
+!
 !=======================================================================
 !l  based on: bats version 1e          copyright 18 august 1989
 !=======================================================================
@@ -41,10 +41,10 @@ module mod_bats_drag
 !     *** determines surface transfer coeffs. at anemom. level from
 !     *** lowest model level based on monin-obukov theory using
 !     *** deardorff parameterization in terms of bulk richardson no.
-! 
+!
 !     ****  a.  calculates neutral drag coefficient (cdrn) as a fn of
 !     ****             underlying surface
-! 
+!
 !     ****  b.  modifies cdrn as fn of bulk rich. no. of surface layer
 !
 !=======================================================================
@@ -58,13 +58,13 @@ module mod_bats_drag
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-     
+
     !======================================
     !     1.   get neutral drag coefficient
     !======================================
-     
+
     call dragdn
-   
+
     do i = ilndbeg , ilndend
       !==================================================
       ! 2.  compute stability as bulk rich. no. = rin/rid

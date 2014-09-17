@@ -217,7 +217,7 @@ module mod_pbl_thetal
         if ( (.not. (s > dum .and. s < b)) .or.              &
              (mflag .and. (smb >= (bmc/d_two))) .or.         &
              ((.not. mflag) .and. (smb >= (cmd/d_two))) .or. &
-             (mflag .and. (bmc < delta)) .or.                &    
+             (mflag .and. (bmc < delta)) .or.                &
              ((.not. mflag) .and. (cmd < delta)) ) then
           s = (a+b)/d_two
           mflag = .true.
@@ -411,8 +411,8 @@ module mod_pbl_thetal
       do iteration = 1 , imax
         ! if the air is undersaturated, then thetal is just the normal
         ! potential temperature, so the delta t is given by dthetal
-        ! if(tempqc < qcthresh) then 
-        if ( abs(qt-qvprev) <= qcthresh ) then 
+        ! if(tempqc < qcthresh) then
+        if ( abs(qt-qvprev) <= qcthresh ) then
           deltat = myexner*dthetal
           ! otherwise, add a contribution from the change in cloud water.
         else

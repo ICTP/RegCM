@@ -21,7 +21,7 @@ module clm_varsur
 !
 ! land model grid - moved to domainMod
 !
-! surface boundary data, these are all "gdc" local 
+! surface boundary data, these are all "gdc" local
 !
   integer , allocatable :: vegxy(:,:) ! vegetation type
   real(r8), allocatable,target :: wtxy(:,:)  ! subgrid weights
@@ -52,11 +52,11 @@ module clm_varsur
   real(r8), allocatable :: c2r_allout(:)     ! used for gathering and sending to regcm
   integer , allocatable :: omap_i(:)         ! used for gathering and sending to regcm
   integer , allocatable :: omap_j(:)         ! used for gathering and sending to regcm
-  real(r8), allocatable :: clm2bats_veg(:,:) ! Only used for RegCM Dust model 
-  real(r8), allocatable :: clm_fracveg(:,:)  ! fraction of grid covered by vegetation 
+  real(r8), allocatable :: clm2bats_veg(:,:) ! Only used for RegCM Dust model
+  real(r8), allocatable :: clm_fracveg(:,:)  ! fraction of grid covered by vegetation
 
   integer :: cgaschem                        ! Gas-phase chem flag( cgaschem=1 for CBMZ)
-  integer :: caerosol                        ! Flag for sending aerosol vars to RegCM 
+  integer :: caerosol                        ! Flag for sending aerosol vars to RegCM
                                              ! particularly clm snow cover and fracveg
 
 ! abt above

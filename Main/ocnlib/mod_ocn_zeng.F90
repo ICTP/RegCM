@@ -318,8 +318,8 @@ module mod_ocn_zeng
       drag(i) = ustar**2*rhox(i)/uv995
       u10m(i) = usw(i)*uv10/uv995
       v10m(i) = vsw(i)*uv10/uv995
-      taux(i) = tau*(usw(i)/uv995) 
-      tauy(i) = tau*(vsw(i)/uv995) 
+      taux(i) = tau*(usw(i)/uv995)
+      tauy(i) = tau*(vsw(i)/uv995)
       t2m(i)  = t995 + tzero - dth*facttq
       q2m(i)  = q995 - dqh*facttq
       ! We need specific humidity in output

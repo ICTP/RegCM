@@ -51,8 +51,6 @@ module mod_cu_kf
   !   the cumulus parameterization for tropical cyclone prediction:
   !   Convection trigger. Atmospheric Research, 92, 190 - 211.
   !
-  integer(ik4) , parameter :: kf_trigger = 3
-  !
   !  WRF v3.5 with diagnosed deep and shallow KF cloud fraction using
   !  CAM3-CAM5 methodology, along with captured liquid and ice condensates.
   !    JAH & KA (U.S. EPA) -- May 2013
@@ -251,7 +249,7 @@ module mod_cu_kf
         end do
       end do
     end if
- 
+
     c2m%kcumtop(:,:) = 0
     c2m%kcumbot(:,:) = 0
 
@@ -2293,7 +2291,7 @@ module mod_cu_kf
       implicit none
       real(rk8) , intent(in) :: p , thes
       real(rk8) , intent(inout) :: ts , qs
-      real(rk8) :: tp , qq , bth , tth , pp 
+      real(rk8) :: tp , qq , bth , tth , pp
       real(rk8) :: t00 , t10 , t01 , t11
       real(rk8) :: q00 , q10 , q01 , q11
       integer(ik4) :: iptb , ithtb

@@ -37,7 +37,7 @@ module mod_slice
 
   public :: mkslice
 
-  contains 
+  contains
 
   subroutine mkslice
     implicit none
@@ -75,7 +75,7 @@ module mod_slice
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atms%ubx3d(j,i,k) = d_rfour* & 
+          atms%ubx3d(j,i,k) = d_rfour* &
               (atm2%u(j,i,k)+atm2%u(j,i+1,k)+ &
                atm2%u(j+1,i,k)+atm2%u(j+1,i+1,k))/sfs%psb(j,i)
           atms%vbx3d(j,i,k) = d_rfour* &
@@ -84,7 +84,7 @@ module mod_slice
         end do
       end do
     end do
- 
+
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -122,7 +122,7 @@ module mod_slice
           atms%pb3d(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
           atms%thx3d(j,i,k) = atms%tb3d(j,i,k) * &
                   (atms%ps2d(j,i)/atms%pb3d(j,i,k))**rovcp
-                   
+
         end do
       end do
     end do
@@ -168,7 +168,7 @@ module mod_slice
         end do
       end do
     end do
-   
+
     atms%rhb3d(:,:,:) = d_zero
 
     do k = 1 , kz
@@ -182,7 +182,7 @@ module mod_slice
         end do
       end do
     end do
-   
+
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       do k = 1 , kzp1
         do i = ice1 , ice2

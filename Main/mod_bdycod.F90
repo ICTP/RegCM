@@ -33,7 +33,7 @@ module mod_bdycod
   use mod_pbl_interface , only : tkemin
   use mod_che_interface
   use mod_lm_interface
-  use mod_mpmessage 
+  use mod_mpmessage
   use mod_ncio
   use mod_service
   use mod_slabocean
@@ -1439,7 +1439,7 @@ module mod_bdycod
               tkeint = atm1%tke(j,ici2,k+1)/sfs%psa(j,ici2)
               windavg = nve(j,k) + nve(j+1,k) + nvi(j,k) + nvi(j+1,k)
               if ( windavg < d_zero ) then
-                tkex = tkemin   
+                tkex = tkemin
               else
                 tkex = tkeint
               end if

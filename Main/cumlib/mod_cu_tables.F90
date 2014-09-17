@@ -37,13 +37,13 @@ module mod_cu_tables
 
   ! subroutines public
 
-  public :: init_convect_tables ! initialize luts 
+  public :: init_convect_tables ! initialize luts
 
   integer, parameter :: jptlucu1 =  50000  ! lookup table lower bound
   integer, parameter :: jptlucu2 = 400000  ! lookup table upper bound
 
   logical :: lookupoverflow = .false.      ! preset with false
-  
+
   real(rk8) :: tlucua(jptlucu1:jptlucu2)    ! table - e_s*rgas/rwat
   real(rk8) :: tlucub(jptlucu1:jptlucu2)    ! table - for derivative calculation
   real(rk8) :: tlucuc(jptlucu1:jptlucu2)    ! table - l/cp
@@ -57,13 +57,13 @@ module mod_cu_tables
     real(rk8), parameter :: zavl2 =    21.2409642D0
     real(rk8), parameter :: zavl3 =    -2.711193D0
     real(rk8), parameter :: zavl4 =     1.673952D0
-    real(rk8), parameter :: zavl5 =     2.433502D0 
+    real(rk8), parameter :: zavl5 =     2.433502D0
 
     real(rk8), parameter :: zavi1 = -6024.5282D0
     real(rk8), parameter :: zavi2 =    29.32707D0
     real(rk8), parameter :: zavi3 =     1.0613868D0
     real(rk8), parameter :: zavi4 =    -1.3198825D0
-    real(rk8), parameter :: zavi5 =    -0.49382577D0        
+    real(rk8), parameter :: zavi5 =    -0.49382577D0
 
     real(rk8) :: z5alvcp, z5alscp, zalvdcp, zalsdcp
     real(rk8) :: ztt, zldcp
@@ -108,7 +108,7 @@ module mod_cu_tables
       tlucuaw(it) = dexp((zavl1/ztt+zavl2+zavl3*0.01D0* &
                     ztt+zavl4*ztt*ztt*1.D-5+zavl5*dlog(ztt)))*rgas/rwat
     end do
-    
+
   end subroutine init_convect_tables
 
 end module mod_cu_tables

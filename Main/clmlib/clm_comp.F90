@@ -88,7 +88,7 @@ contains
 !-----------------------------------------------------------------------
 
    call t_startf('clm_init1')
-   if (present(SyncClock)) then	
+   if (present(SyncClock)) then
       call initialize2( SyncClock )
    else
       call initialize2()
@@ -112,7 +112,7 @@ contains
 ! !USES:
     use shr_orb_mod     , only : shr_orb_decl
     use clm_varctl      , only : finidat, nsrest
-    use initSurfAlbMod  , only : initSurfAlb, do_initsurfalb 
+    use initSurfAlbMod  , only : initSurfAlb, do_initsurfalb
     use clm_time_manager, only : get_nstep, get_step_size, get_curr_calday
     use clm_atmlnd      , only : clm_map2gcell
     use clm_varorb      , only : eccen, mvelpp, lambm0, obliqr
@@ -143,12 +143,12 @@ contains
        if (finidat == ' ' .or. do_initsurfalb) then
           calday = get_curr_calday()
           call shr_orb_decl( calday, eccen, mvelpp, lambm0, obliqr, declin, eccf )
-          
+
           dtime = get_step_size()
 
           caldaym1 = get_curr_calday(offset=-int(dtime))
           call shr_orb_decl( caldaym1, eccen, mvelpp, lambm0, obliqr, declinm1, eccf )
-          
+
           call initSurfAlb( calday, declin, declinm1 )
        end if
 
@@ -175,7 +175,7 @@ contains
 !
 ! !USES:
     use shr_orb_mod     , only : shr_orb_decl
-    use clm_varctl      , only : irad 
+    use clm_varctl      , only : irad
     use clm_time_manager, only : get_nstep, get_step_size, get_curr_calday
 !    use clm_varorb      , only : eccen, mvelpp, lambm0, obliqr
     use driver          , only : driver1
@@ -214,7 +214,7 @@ contains
 
     call t_startf('clm_run1')
 
-    ! Determine doalb (true when the next time step is a radiation time step) 
+    ! Determine doalb (true when the next time step is a radiation time step)
 
 !   nstep = get_nstep()
 !abt    nstep = r2cnstep
@@ -238,11 +238,11 @@ contains
 !    endif
 
     ! Determine declination angle for next time step
-    
+
     call shr_orb_decl( caldayp1, eccen, mvelpp, lambm0, obliqr, declinp1, eccf )
 
     ! Call land model driver1
-    
+
     call t_startf('driver1')
     call driver1(doalb, caldayp1, declinp1)
     call t_stopf('driver1')
@@ -305,7 +305,7 @@ contains
     call t_startf('clm_run2')
 
     ! Call land model driver2
-    
+
     dtime = get_step_size()
     caldayp1 = get_curr_calday( offset=int(dtime) )
     call shr_orb_decl( caldayp1, eccen, mvelpp, lambm0, obliqr, declinp1, eccf )

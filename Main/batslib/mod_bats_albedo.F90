@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_bats_albedo
 
   use mod_intkinds
@@ -48,7 +48,7 @@ module mod_bats_albedo
 
   public :: albedo
   public :: ldesseas
- 
+
   contains
 !
 ! Albedo calculates fragmented albedos (direct and diffuse) in
@@ -100,13 +100,13 @@ module mod_bats_albedo
     if ( ldesseas ) then
       if ( xmonth == 1 .or. xmonth == 2 .or. xmonth == 12 ) then
         solour(1) = 0.12D0
-      endif        
+      endif
       if ( xmonth == 3 .or. xmonth == 4 .or. xmonth == 5 ) then
         solour(1) = 0.15D0
-      endif        
+      endif
       if ( xmonth == 6 .or. xmonth == 7 .or. xmonth == 8) then
         solour(1) = 0.18D0
-      endif        
+      endif
       if ( xmonth == 9 .or. xmonth == 10 .or. xmonth == 11) then
         solour(1) = 0.15D0
       endif
@@ -126,7 +126,7 @@ module mod_bats_albedo
       lwal(i) = d_zero
       albld = d_zero
       albsd = d_zero
-      ! 
+      !
       !================================================================
       !       2.   get albedo
       !================================================================

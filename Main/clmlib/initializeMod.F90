@@ -237,7 +237,7 @@ contains
     call map_setgatm(gatm,alatlon,llatlon,amask,pftm)
 
 
-    ! Initialize clump and processor decomposition 
+    ! Initialize clump and processor decomposition
     call decomp_lnd_init(alatlon%ns,alatlon%ni,alatlon%nj,llatlon%ns,llatlon%ni,llatlon%nj)
 
 
@@ -357,16 +357,16 @@ contains
     call get_proc_bounds    (begg    , endg)
     allocate (vegxy(begg:endg,maxpatch), &
               wtxy(begg:endg,maxpatch),  &
-              stat=ier)   
+              stat=ier)
     if (ier /= 0) then
        write(6,*)'initialize allocation error'; call endrun()
     endif
 
 
 
-    ! Read surface dataset and set up vegetation type [vegxy] and 
+    ! Read surface dataset and set up vegetation type [vegxy] and
     ! weight [wtxy] arrays for [maxpatch] subgrid patches.
-!  abt rcm below    
+!  abt rcm below
 !    call surfrd (fsurdat, ldomain)
     call rcmsurfrd (mksrf_flanwat,mksrf_fglacier,mksrf_furban,   &
                     mksrf_fsoitex,mksrf_fvegtyp,ldomain)
@@ -430,14 +430,14 @@ contains
 #else
     use STATICEcosysDynMod , only : EcosystemDynini
 #endif
-#if (defined DUST) 
+#if (defined DUST)
     use DustMod         , only : Dustini
 #endif
 #if (defined CASA)
     use CASAMod         , only : initCASA
     use CASAPhenologyMod, only : initCASAPhenology
 #endif
-#if (defined RTM) 
+#if (defined RTM)
     use RtmMod          , only : Rtmini
 #endif
     use clm_time_manager, only : get_curr_date, get_nstep, advance_timestep, &
@@ -468,7 +468,7 @@ contains
     integer  :: begl, endl            ! clump beg and ending landunit indices
     integer  :: begg, endg            ! clump beg and ending gridcell indices
     integer  :: begg_atm, endg_atm    ! proc beg and ending gridcell indices
-    character(len=256) :: fnamer             ! name of netcdf restart file 
+    character(len=256) :: fnamer             ! name of netcdf restart file
     character(len=256) :: pnamer             ! full pathname of netcdf restart file
     character(len=256) :: fnamer_bin         ! name of binary restart file
     character(len=256) :: pnamer_bin         ! full pathname of binary restart file
@@ -513,10 +513,10 @@ contains
     deallocate (vegxy, wtxy)
 
     ! ------------------------------------------------------------------------
-    ! Initialize time constant variables 
+    ! Initialize time constant variables
     ! ------------------------------------------------------------------------
 
-    ! Initialize Ecosystem Dynamics 
+    ! Initialize Ecosystem Dynamics
 
 #if (defined DGVM)
     call DGVMEcosystemDynini()
@@ -526,9 +526,9 @@ contains
     call EcosystemDynini()
 #endif
 
-    ! Initialize dust emissions model 
+    ! Initialize dust emissions model
 
-#if (defined DUST) 
+#if (defined DUST)
     call Dustini()
 #endif
 
@@ -536,7 +536,7 @@ contains
     ! DGVMEcosystemDynini() and before initCASA())
 
     call iniTimeConst()
-    
+
     ! ------------------------------------------------------------------------
     ! Obtain restart file if appropriate
     ! ------------------------------------------------------------------------
@@ -549,8 +549,8 @@ contains
     ! Initialize time manager
     ! ------------------------------------------------------------------------
 
-    if (nsrest == 0) then  
-       if (present(SyncClock)) then	
+    if (nsrest == 0) then
+       if (present(SyncClock)) then
           call eshr_timemgr_clockGet(                                          &
                SyncClock, start_ymd=start_ymd,                                 &
                start_tod=start_tod, ref_ymd=ref_ymd,                           &
@@ -569,7 +569,7 @@ contains
        call restFile_open( flag='read', file=fnamer, ncid=ncid )
        call timemgr_restart_io( ncid=ncid, flag='read' )
        call restFile_close( ncid=ncid )
-       if (present(SyncClock)) then	
+       if (present(SyncClock)) then
           call eshr_timemgr_clockGet( SyncClock, stop_ymd=stop_ymd, stop_tod=stop_tod )
           call timemgr_restart( stop_ymd, stop_tod )
        else
@@ -599,10 +599,10 @@ contains
     call initAccFlds()
 
     ! ------------------------------------------------------------------------
-    ! Set arbitrary initial conditions for time varying fields 
+    ! Set arbitrary initial conditions for time varying fields
     ! used in coupled carbon-nitrogen code
     ! ------------------------------------------------------------------------
-    
+
 #if (defined CN)
     if (nsrest == 0) then
        call CNiniTimeVar()
@@ -613,8 +613,8 @@ contains
     ! Read restart/initial info
     ! ------------------------------------------------------------------------
 
-    ! No weight related information can be contained in the routines,  
-    ! "mkarbinit, inicfile and restFile". 
+    ! No weight related information can be contained in the routines,
+    ! "mkarbinit, inicfile and restFile".
 
     if (do_restread()) then
        if (masterproc) write(6,*)'reading restart file ',trim(fnamer)
@@ -622,11 +622,11 @@ contains
     else if (nsrest == 0 .and. finidat == ' ') then
        call mkarbinit()
     end if
-       
+
     ! For restart run, read binary history restart
 
     if (nsrest == 1) then
-       if (masterproc)then 
+       if (masterproc)then
           pnamer_bin = pnamer(1:(len_trim(pnamer)-3))
           call getfil( pnamer_bin, fnamer_bin )
        end if
@@ -639,7 +639,7 @@ contains
 
     ! Determine correct pft weights (interpolate pftdyn dataset if initial run)
     ! Otherwise these are read in for a restart run
-    
+
     if (fpftdyn /= ' ') then
        call pftdyn_init()
        if (nsrest == 0) call pftdyn_interp()
@@ -668,7 +668,7 @@ contains
     ! ------------------------------------------------------------------------
 
 #if (defined CASA)
-    ! Initialize CASA 
+    ! Initialize CASA
 
     call initCASA()
     call initCASAPhenology()
@@ -678,13 +678,13 @@ contains
     ! Initialize history and accumator buffers
     ! ------------------------------------------------------------------------
 
-    ! Initialize master history list. 
+    ! Initialize master history list.
 
     call initHistFlds()
 
-    ! Initialize active history fields. This is only done if not a restart run. 
-    ! If a restart run, then this information has already been obtained from the 
-    ! restart data read above. Note that routine htapes_build needs time manager 
+    ! Initialize active history fields. This is only done if not a restart run.
+    ! If a restart run, then this information has already been obtained from the
+    ! restart data read above. Note that routine htapes_build needs time manager
     ! information, so this call must be made after the restart information has been read.
 
 !abt commented    if (nsrest == 0 .or. nsrest == 3) call htapes_build ()
@@ -702,7 +702,7 @@ contains
     ! --------------------------------------------------------------
 
     ! Initialize filters
-    
+
     call allocFilters()
     call setFilters()
 
@@ -819,5 +819,5 @@ contains
        do_restread = .true.
     end if
   end function do_restread
-  
+
 end module initializeMod

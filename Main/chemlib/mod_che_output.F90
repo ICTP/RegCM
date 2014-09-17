@@ -113,7 +113,7 @@ module mod_che_output
                              cpsb(jci1:jci2,ici1:ici2)
           end do
         end if
-        ctbldiag(:,:,:,itr) = d_zero 
+        ctbldiag(:,:,:,itr) = d_zero
         if ( associated(che_raiten_out) ) then
           do k = 1 , kz
             che_raiten_out(:,:,k) = remcvc(jci1:jci2,ici1:ici2,k,itr) / &
@@ -139,14 +139,14 @@ module mod_che_output
                            cpsb(jci1:jci2,ici1:ici2)
           end do
         end if
-        cseddpdiag(:,:,:,itr) = d_zero      
+        cseddpdiag(:,:,:,itr) = d_zero
         if ( associated(che_pblten_out) ) then
           che_pblten_out = chifxuw(jci1:jci2,ici1:ici2,itr)
         end if
         if ( associated(che_emten_out) ) then
           do k = 1 , kz
             ! no need to normalise by ps here !!
-            che_emten_out(:,:,k) = cemisdiag(jci1:jci2,ici1:ici2,k,itr) 
+            che_emten_out(:,:,k) = cemisdiag(jci1:jci2,ici1:ici2,k,itr)
           end do
         end if
         cemisdiag(:,:,:,itr) = d_zero

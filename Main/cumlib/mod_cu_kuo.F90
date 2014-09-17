@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_cu_kuo
   !
   ! This module implements Kuo cumulus parameterization scheme.
@@ -33,7 +33,7 @@ module mod_cu_kuo
   use mod_regcm_types
 
   implicit none
- 
+
   private
 
   public :: allocate_mod_cu_kuo , cupara , htdiff

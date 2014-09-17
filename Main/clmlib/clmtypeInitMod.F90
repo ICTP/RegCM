@@ -231,7 +231,7 @@ contains
     ! Adding isotope code
     call init_pft_cflux_type(begp, endp, clm3%g%l%c%p%pc13f)
     call init_pft_cflux_type(begc, endc, clm3%g%l%c%cc13f%pcf_a)
-    
+
 
     ! pft nitrogen flux variables at pft level and averaged to column
 
@@ -502,37 +502,37 @@ contains
 
   end subroutine init_energy_balance_type
 
-!------------------------------------------------------------------------ 
-!BOP 
-! 
-! !IROUTINE: init_water_balance_type 
-! 
-! !INTERFACE: 
-  subroutine init_water_balance_type(beg, end, wbal) 
-! 
-! !DESCRIPTION: 
-! Initialize water balance variables 
-! 
-! !ARGUMENTS: 
-    implicit none 
-    integer, intent(in) :: beg, end 
-    type(water_balance_type), intent(inout):: wbal 
-! 
-! !REVISION HISTORY: 
-! Created by Mariana Vertenstein 
-! 
-!EOP 
-!------------------------------------------------------------------------ 
- 
-    allocate(wbal%begwb(beg:end)) 
+!------------------------------------------------------------------------
+!BOP
+!
+! !IROUTINE: init_water_balance_type
+!
+! !INTERFACE:
+  subroutine init_water_balance_type(beg, end, wbal)
+!
+! !DESCRIPTION:
+! Initialize water balance variables
+!
+! !ARGUMENTS:
+    implicit none
+    integer, intent(in) :: beg, end
+    type(water_balance_type), intent(inout):: wbal
+!
+! !REVISION HISTORY:
+! Created by Mariana Vertenstein
+!
+!EOP
+!------------------------------------------------------------------------
+
+    allocate(wbal%begwb(beg:end))
     allocate(wbal%endwb(beg:end))
     allocate(wbal%errh2o(beg:end))
- 
+
     wbal%begwb(beg:end) = nan
     wbal%endwb(beg:end) = nan
     wbal%errh2o(beg:end) = nan
- 
-  end subroutine init_water_balance_type 
+
+  end subroutine init_water_balance_type
 
 
 !!!!!! abt rcm below
@@ -653,9 +653,9 @@ contains
     allocate(gamma_age_out(beg:end))
 
     pva%fsun24    (beg:end)   = nan
-    pva%fsun240   (beg:end)   = nan 
+    pva%fsun240   (beg:end)   = nan
     pva%t_sum24   (beg:end)   = nan
-    pva%t_sum240  (beg:end)   = nan 
+    pva%t_sum240  (beg:end)   = nan
     pva%fsd24     (beg:end)   = nan
     pva%fsd240    (beg:end)   = nan
     pva%fsi24     (beg:end)   = nan
@@ -713,12 +713,12 @@ contains
     allocate(pdd%mlaidiff (beg:end))
     allocate(pdd%rb1      (beg:end))
     allocate(pdd%annlai   (12,beg:end))
-    
+
     pdd%drydepvel     = 0._r8
     pdd%vds           = 0._r8
-    pdd%mlaidiff      = nan 
+    pdd%mlaidiff      = nan
     pdd%annlai        = nan
-    pdd%rb1           = nan 
+    pdd%rb1           = nan
 
   end subroutine init_dry_deps_type
 !!!!!! abt rcm above
@@ -816,8 +816,8 @@ contains
     allocate(pftcon%nwheat(0:numpft))
     allocate(pftcon%noveg(0:numpft))
     allocate(pftcon%ntree(0:numpft))
-    allocate(pftcon%smpso(0:numpft)) 
-    allocate(pftcon%smpsc(0:numpft)) 
+    allocate(pftcon%smpso(0:numpft))
+    allocate(pftcon%smpsc(0:numpft))
     allocate(pftcon%fnitr(0:numpft))
     allocate(pftcon%foln(0:numpft))
     allocate(pftcon%dleaf(0:numpft))
@@ -1090,7 +1090,7 @@ contains
     allocate(pps%cisha(beg:end))
     allocate(pps%alphapsnsun(beg:end))
     allocate(pps%alphapsnsha(beg:end))
-    
+
 #if (defined CASA)
     allocate(pps%Closs(beg:end,npools))  ! C lost to atm
     allocate(pps%Resp_C(beg:end,npools))
@@ -1353,7 +1353,7 @@ contains
     pepv%rc13_canair(beg:end) = nan
     pepv%rc13_psnsun(beg:end) = nan
     pepv%rc13_psnsha(beg:end) = nan
-    
+
   end subroutine init_pft_epv_type
 
 !------------------------------------------------------------------------
@@ -2498,8 +2498,8 @@ contains
     allocate(cps%isoicol(beg:end))  !* cannot be averaged up
     allocate(cps%bsw(beg:end,nlevsoi))
     allocate(cps%watsat(beg:end,nlevsoi))
-    allocate(cps%watdry(beg:end,nlevsoi)) 
-    allocate(cps%watopt(beg:end,nlevsoi)) 
+    allocate(cps%watdry(beg:end,nlevsoi))
+    allocate(cps%watopt(beg:end,nlevsoi))
     allocate(cps%hksat(beg:end,nlevsoi))
     allocate(cps%sucsat(beg:end,nlevsoi))
     allocate(cps%csol(beg:end,nlevsoi))
@@ -2554,8 +2554,8 @@ contains
     cps%isoicol(beg:end) = bigint
     cps%bsw(beg:end,1:nlevsoi) = nan
     cps%watsat(beg:end,1:nlevsoi) = nan
-    cps%watdry(beg:end,1:nlevsoi) = nan  
-    cps%watopt(beg:end,1:nlevsoi) = nan  
+    cps%watdry(beg:end,1:nlevsoi) = nan
+    cps%watopt(beg:end,1:nlevsoi) = nan
     cps%hksat(beg:end,1:nlevsoi) = nan
     cps%sucsat(beg:end,1:nlevsoi) = nan
     cps%csol(beg:end,1:nlevsoi) = nan

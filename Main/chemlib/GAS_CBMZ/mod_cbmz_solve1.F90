@@ -27,7 +27,7 @@ module mod_cbmz_solve1
   use mod_cbmz_chemlocal
   use mod_cbmz_linslv
   use mod_cbmz_init1
- 
+
  private
 
   public :: quadchem
@@ -372,7 +372,7 @@ module mod_cbmz_solve1
       !       #46: OH+CH4->HO2
       !
       call presolve
-     
+
 
       ! ---------------------------------------------------------------
       !  BEGIN ITERATIVE RUNS
@@ -2459,7 +2459,7 @@ module mod_cbmz_solve1
       ! Sum hno2 hno4 for write
       real(rk8) :: hnosum
 !
- 
+
      real(rk8) :: calpha(c_kvec) ! General vector variable
    real(rk8) :: cbeta(c_kvec)  ! General vector variable
    real(rk8) :: cgamma(c_kvec) ! General vector variable
@@ -2753,7 +2753,7 @@ module mod_cbmz_solve1
       real(rk8) :: cbeta(c_kvec)  ! General vector variable
       real(rk8) :: cgamma(c_kvec) ! General vector variable
 
-      real(rk8) :: foh(c_kvec) 
+      real(rk8) :: foh(c_kvec)
       ! OH/HO2 from prior iteration
       real(rk8) :: foh1(c_kvec)
       ! Factor for updating OH
@@ -3415,7 +3415,7 @@ module mod_cbmz_solve1
       ! LINE TO COMMENT OUT AUTOMATIC SETTING
       !
 !     if ( c_iter > 0 ) return
- 
+
       !
       ! RETURN IF ITER < 4
       !
@@ -3532,7 +3532,7 @@ module mod_cbmz_solve1
        real(rk8) :: calpha(c_kvec) ! General vector variable
        real(rk8) :: cbeta(c_kvec)  ! General vector variable
        real(rk8) :: cgamma(c_kvec) ! General vector variable
- 
+
        real(rk8) :: foh(c_kvec)        ! OH/HO2.
 
        integer(ik4) :: nspecial(40)
@@ -3798,7 +3798,7 @@ module mod_cbmz_solve1
          !
          do i = 1 , c_cdim
            ics = c_lump(i,1)
-           if ( ics == 0 ) exit 
+           if ( ics == 0 ) exit
            ic1 = c_lump(i,2)
            ic2 = c_lump(i,3)
            !
@@ -4529,7 +4529,7 @@ module mod_cbmz_solve1
          ! Lg, La, Eg in s-1;  Pg, Pa in equivalent units.
          !
          ! (note rpro(kk,1) = aqueous production; rloss(kk,1)=aqloss,
-         !  c_rp(kk,ic) = gas pro, 
+         !  c_rp(kk,ic) = gas pro,
          !  c_rl(kk,ic) = aqueous pro; xc(kk,ic) = gas cnc
          !  xrp(kk,2) = aqueous concentr (w/o ion sum), gas units.
          !
@@ -4902,7 +4902,7 @@ module mod_cbmz_solve1
                ! ION SUM (calpha), d/dH ION SUM (cbeta):
                !
                calpha(kk) = calpha(kk) - xc(kk,icb1)*c_ion(icb1)
-               cbeta(kk) = cbeta(kk) + & 
+               cbeta(kk) = cbeta(kk) + &
                  c_ion(icb1)*((xc(kk,c_nohmin)*xhinv(kk)) * &
                  (d_one+rhdif(kk,nrh))*(xc(kk,icb1)/xc(kk,ic)) * &
                  (xc(kk,icb1)/(rhdif(kk,nrh)*rateq(kk,nrb1))))

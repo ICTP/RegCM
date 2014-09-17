@@ -14,7 +14,7 @@ module mod_che_bionit
 
   public :: allocate_mod_che_bionit, ini_bionit
 
-  real(rk8) , pointer, dimension(:,:) :: nmanure , nfert , soilph 
+  real(rk8) , pointer, dimension(:,:) :: nmanure , nfert , soilph
 
   !coefficients and weights derived from neural net analysis
   real(rk8), parameter :: xwgt0 =  0.561651794427011
@@ -89,7 +89,7 @@ contains
   !       - Hombori (Niger)
   !       - Neisouma (Niger)
 
- subroutine allocate_mod_che_bionit 
+ subroutine allocate_mod_che_bionit
       implicit none
       if ( ichem == 1 ) then
         call getmem2d(nfert,jce1,jce2,ice1,ice2,'che_bionit:nfert')
@@ -112,7 +112,7 @@ contains
     implicit none
 
     integer(ik4) , intent(in) :: j
-    real(rk8) , dimension(ici1:ici2) , intent(in) :: wid10   
+    real(rk8) , dimension(ici1:ici2) , intent(in) :: wid10
     integer(ik4) , dimension(ici1:ici2), intent(in) :: ivegcov
     ! local variables
     integer(ik4) :: i
@@ -158,7 +158,7 @@ contains
      ! iFAB  ! put interactive LAI
        lai_int = cxlai2d(j,ici1:ici2)
 
-     ! 
+     !
          soiltemp_surf =d_zero
          soiltemp_deep  = d_zero     !deep soil temperature (C)
          sandper        = d_zero
@@ -177,7 +177,7 @@ contains
          nsum1        = d_zero
          nsum2        = d_zero
          nsum3        = d_zero
-         noxflux      = d_zero 
+         noxflux      = d_zero
 
 
          totN1d = man1d + fert1d
@@ -189,9 +189,9 @@ contains
        !getting the soil sand percentage, pH and fert rate values
        sandper(i) = sandrow2(i,j)
        !calculating water-filled pore space from soil moisture
-       porewater(i) = cssw2da(j,i) 
+       porewater(i) = cssw2da(j,i)
        !converting soil moisture from kg/m2 to (m3 water/m3 soil)
-       ! divide first by depth of soil layer = 10cm = 0.1m : cdepuv = 100mm 
+       ! divide first by depth of soil layer = 10cm = 0.1m : cdepuv = 100mm
        ! then divide by density of water = 1000kg/m3
        porewater(i) = (porewater(i)/(cdepuv(ivegcov(i)) * d_1000)) * d_r1000
        !calculating water-filled pore space (%)
@@ -296,7 +296,7 @@ contains
        ! diagnostic source (accumulated)
        cemtrac(j,i,ino) = cemtrac(j,i,ino) + &
             noxflux(i)* cfdout
-        
+
        if ( ichdiag == 1 ) then
           cemisdiag(j,i,kz,ino) = cemisdiag(j,i,kz,ino) + &
                noxflux(i)/ ( cdzq(j,i,kz)*crhob3d(j,i,kz)) * cfdout

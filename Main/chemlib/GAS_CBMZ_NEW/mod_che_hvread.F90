@@ -5,7 +5,7 @@ contains
 
 ! This reads the MADRONICH LOOKUP TABLE (2002 VERSION).
 !   Input file:  TUVGRID2  (kept in dhvmad/TUVcode4.1a)
-!    (see TUVINFO in /l/kudzu/k-1/sillman/dhvmad)  
+!    (see TUVINFO in /l/kudzu/k-1/sillman/dhvmad)
 !                 (also tuvtab2.f, tested in tuvtest2.f)
 !
 !   OPTION:  Link to jval2.f for altitude in km (standard)
@@ -13,7 +13,7 @@ contains
 !
 ! Result: creates the hv input arrays:
 !     c_hvin,c_nhv,c_hvmat, c_hvmatb, c_jarray
-! 
+!
 ! Called by:  boxmain (as part of chemical setup)
 ! Calls to:   readhv (in file jval2.f (KM) or jval1.f (kPA).)
 !

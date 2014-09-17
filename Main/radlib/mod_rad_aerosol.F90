@@ -81,7 +81,7 @@ module mod_rad_aerosol
 !
   real(rk8) , pointer , dimension(:,:) :: aermmb
 !
-! Aerosol optical properties (for the mixing) 
+! Aerosol optical properties (for the mixing)
 !
   real(rk8) , pointer , dimension(:,:,:) :: ftota3d ,   &
                  gtota3d , tauasc3d , tauxar3d
@@ -110,7 +110,7 @@ module mod_rad_aerosol
 !
 ! Aersol LW optical properties
 !
-  real(rk8) , pointer , dimension(:,:,:) ::  aertrlw 
+  real(rk8) , pointer , dimension(:,:,:) ::  aertrlw
 !
 !------------------------------------------------------------------------------
 !                  DATA SECTION
@@ -216,19 +216,19 @@ module mod_rad_aerosol
                  4.3961D0 ,  4.3800D0 ,  2.1100D0 ,  2.1100D0 , &
                  2.1100D0 ,  2.1100D0 ,  1.4000D0 ,  1.4000D0 , &
                  1.4000D0 ,  1.4000D0 ,  1.4000D0/
- 
+
   data wsbc_hb /0.245240D0 , 0.209620D0 , 0.195000D0 , 0.185860D0 , &
                 0.177190D0 , 0.168970D0 , 0.148490D0 , 0.071748D0 , &
                 0.037536D0 , 0.089000D0 , 0.025000D0 , 0.025000D0 , &
                 0.025000D0 , 0.025000D0 , 0.009000D0 , 0.009000D0 , &
                 0.009000D0 , 0.009000D0 , 0.009000D0/
- 
+
   data gsbc_hb /0.213870D0 , 0.171540D0 , 0.155640D0 , 0.146100D0 , &
                 0.137320D0 , 0.129230D0 , 0.110060D0 , 0.049175D0 , &
                 0.026638D0 , 0.220000D0 , 0.123000D0 , 0.123000D0 , &
                 0.123000D0 , 0.123000D0 , 0.073000D0 , 0.073000D0 , &
                 0.073000D0 , 0.073000D0 , 0.073000D0/
-! 
+!
 !----------------------------------------------------------------------
 !
   data ksbc_hl /14.8510D0 , 14.2580D0 , 13.9430D0 , 13.7240D0 , &
@@ -236,19 +236,19 @@ module mod_rad_aerosol
                  6.9653D0 ,  4.3800D0 ,  2.1100D0 ,  2.1100D0 , &
                  2.1100D0 ,  2.1100D0 ,  1.4000D0 ,  1.4000D0 , &
                  1.4000D0 ,  1.4000D0 ,  1.4000D0/
- 
+
   data wsbc_hl /0.46081D0 , 0.44933D0 , 0.44397D0 , 0.44065D0 , &
                 0.43737D0 , 0.43394D0 , 0.42346D0 , 0.35913D0 , &
                 0.29579D0 , 0.08900D0 , 0.02500D0 , 0.02500D0 , &
                 0.02500D0 , 0.02500D0 , 0.00900D0 , 0.00900D0 , &
                 0.00900D0 , 0.00900D0 , 0.00900D0/
- 
+
   data gsbc_hl /0.69038D0 , 0.65449D0 , 0.63711D0 , 0.62542D0 , &
                 0.61407D0 , 0.60319D0 , 0.57467D0 , 0.42050D0 , &
                 0.30660D0 , 0.22000D0 , 0.12300D0 , 0.12300D0 , &
                 0.12300D0 , 0.12300D0 , 0.07300D0 , 0.07300D0 , &
                 0.07300D0 , 0.07300D0 , 0.07300D0/
-! 
+!
 !---------------------------------------------------------------------
 !
   data ksoc_hb /6.0584D0 ,  6.0654D0 ,  6.1179D0 ,  6.0102D0 ,  &
@@ -256,19 +256,19 @@ module mod_rad_aerosol
                 3.1485D0 ,  1.3020D0 ,  5.992D-01 , 2.948D-01 , &
                 1.475D-01 , 7.387D-02 , 1.683D-01 , 2.655D-01 , &
                 5.770D-02 , 2.290D-01 , 2.270D-01/
- 
+
   data wsoc_hb /0.91735D0 , 0.92365D0 , 0.92941D0 , 0.93067D0 , &
                 0.93311D0 , 0.93766D0 , 0.94042D0 , 0.95343D0 , &
                 0.95480D0 , 0.70566D0 , 0.70566D0 , 0.70566D0 , &
                 0.70566D0 , 0.70566D0 , 0.70566D0 , 0.70566D0 , &
                 0.70566D0 , 0.70566D0 , 0.70566D0/
- 
+
   data gsoc_hb /0.67489D0 ,  0.67003D0 ,  0.67725D0 ,  0.65487D0 ,  &
                 0.65117D0 ,  0.66116D0 ,  0.64547D0 ,  0.60033D0 ,  &
                 0.55389D0 ,  5.9120D-01 , 5.1110D-01 , 4.2690D-01 , &
                 3.3210D-01 , 2.1970D-01 , 1.3050D-01 , 7.3560D-02 , &
                 1.6020D-01 , 6.8830D-02 , 6.3040D-02/
-! 
+!
 !---------------------------------------------------------------------
 !
   data ksoc_hl / 3.5430D0 ,  3.6230D0 ,  3.7155D0  , 3.7120D0 ,  &
@@ -276,22 +276,22 @@ module mod_rad_aerosol
                  2.9846D0 ,  1.3020D0 ,  5.992D-01 , 2.948D-01 , &
                  1.475D-01 , 7.387D-02 , 1.683D-01 , 2.655D-01 , &
                  5.770D-02 , 2.290D-01 , 2.270D-01/
-! 
+!
   data wsoc_hl /0.87931D0 , 0.88292D0 , 0.89214D0 , 0.89631D0 , &
                 0.89996D0 , 0.90540D0 , 0.90805D0 , 0.93423D0 , &
                 0.95012D0 , 0.85546D0 , 0.85546D0 , 0.85546D0 , &
                 0.85546D0 , 0.85546D0 , 0.85546D0 , 0.85546D0 , &
                 0.85546D0 , 0.85546D0 , 0.85546D0/
-! 
+!
   data gsoc_hl /0.73126D0 , 0.71089D0 , 0.72042D0 , 0.69924D0 , &
                 0.69908D0 , 0.70696D0 , 0.68479D0 , 0.64879D0 , &
                 0.63433D0 , 5.912D-01 , 5.111D-01 , 4.269D-01 , &
                 3.321D-01 , 2.197D-01 , 1.305D-01 , 7.356D-02 , &
                 1.602D-01 , 6.883D-02 , 6.304D-02/
-! 
+!
 !     DUST OP data base for external mixing : maximum of 4 bin for the
 !     momeent , determined from Zender et al.
-! 
+!
   data ((ksdust(ii,jj),jj=1,4),ii=1,nspi) / 1.88010D0 , 0.76017D0 , &
         0.36681D0 , 0.16933D0 , 2.02540D0 , 0.78378D0 , 0.36845D0 , &
         0.17002D0 , 1.95470D0 , 0.76389D0 , 0.37119D0 , 0.17032D0 , &
@@ -308,7 +308,7 @@ module mod_rad_aerosol
         0.53605D0 , 0.20599D0 , 0.50391D0 , 0.67245D0 , 0.53605D0 , &
         0.20599D0 , 0.50391D0 , 0.67245D0 , 0.53605D0 , 0.20599D0 , &
         0.50391D0 , 0.67245D0 , 0.53605D0 , 0.20599D0/
-! 
+!
   data ((wsdust(ii,jj),jj=1,4),ii=1,nspi) / 0.64328D0 , 0.55196D0 , &
         0.53748D0 , 0.54342D0 , 0.67757D0 , 0.56909D0 , 0.53639D0 , &
         0.54232D0 , 0.67316D0 , 0.56027D0 , 0.53875D0 , 0.54181D0 , &
@@ -325,7 +325,7 @@ module mod_rad_aerosol
         0.95008D0 , 0.89293D0 , 0.89568D0 , 0.96322D0 , 0.95008D0 , &
         0.89293D0 , 0.89568D0 , 0.96322D0 , 0.95008D0 , 0.89293D0 , &
         0.89568D0 , 0.96322D0 , 0.95008D0 , 0.89293D0/
-! 
+!
   data ((gsdust(ii,jj),jj=1,4),ii=1,nspi) / 0.87114D0 , 0.92556D0 , &
         0.94542D0 , 0.94831D0 , 0.86127D0 , 0.92100D0 , 0.94355D0 , &
         0.94813D0 , 0.83800D0 , 0.91194D0 , 0.94304D0 , 0.94803D0 , &
@@ -396,7 +396,7 @@ module mod_rad_aerosol
    26.92910D0 , 5.85120D0 ,26.83940D0 , 5.87590D0 ,24.85840D0 , 5.94260D0 , &
    23.35360D0 , 6.16670D0 ,23.35360D0 , 6.16670D0/
 
-  data (((wsslt(nn,ll,mm),ll=1,2),nn=1,nwav),mm=1,nih) /                    & 
+  data (((wsslt(nn,ll,mm),ll=1,2),nn=1,nwav),mm=1,nih) /                    &
     0.99970D0 , 0.99780D0 , 0.99980D0 , 0.99870D0 , 0.99980D0 , 0.99900D0 , &
     0.99990D0 , 0.99920D0 , 0.99990D0 , 0.99940D0 , 0.99990D0 , 0.99950D0 , &
     1.00000D0 , 0.99980D0 , 1.00000D0 , 1.00000D0 , 1.00000D0 , 1.00000D0 , &
@@ -505,7 +505,7 @@ module mod_rad_aerosol
   data rhp /0.0D0,0.5D0,0.7D0,0.8D0,0.9D0,0.95D0,0.98D0,0.99D0/
 !
   contains
-! 
+!
   subroutine allocate_mod_rad_aerosol
     implicit none
     npoints = (jci2-jci1+1)*(ici2-ici1+1)
@@ -566,7 +566,7 @@ module mod_rad_aerosol
 !-----------------------------------------------------------------------
 !
   subroutine aermix(pint,n1,n2)
-! 
+!
     implicit none
 !
     integer(ik4) , intent(in) :: n1 , n2
@@ -582,7 +582,7 @@ module mod_rad_aerosol
 ! gvis   - visible forward scattering asymmetry parameter
 !
 !-----------------------------------------------------------------------
-! 
+!
     real(rk8) :: gvis , kaervs , omgvis , rhfac , tauvis
     integer(ik4) :: n , k , mxaerl
 !
@@ -653,7 +653,7 @@ module mod_rad_aerosol
     wa = d_zero
     ga = d_zero
     fa = d_zero
-!   
+!
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !
 !   Melange externe
@@ -684,7 +684,7 @@ module mod_rad_aerosol
       waer(:,:) = d_zero
       gaer(:,:) = d_zero
       faer(:,:) = d_zero
-! 
+!
 !CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
 !
 !     calculate optical properties of each aerosol component
@@ -717,7 +717,7 @@ module mod_rad_aerosol
             else if ( chtrname(itr) == 'SO4' .or.     &
                       chtrname(itr) == 'ANO3' .or.    &
                       chtrname(itr) == 'ANH4' ) then
-              ! maximum limit for effect on sulfate extinction 
+              ! maximum limit for effect on sulfate extinction
               rh0 = dmin1(0.97D0,dmax1(d_zero,rh(n,k)))
               uaer(n,k,itr) = aermmr(n,k,itr)*path
               tx(n,k,itr) = d10e5*uaer(n,k,itr)*ksbase(ns) *               &
@@ -843,9 +843,9 @@ module mod_rad_aerosol
 !
     end do ! end spectral loop
 !
-!   FAB 
-!   DUST LW emissivity 
-!   qabslw = absorption coefficient between k1 and  k2 (m2.g-1) in the LW : 
+!   FAB
+!   DUST LW emissivity
+!   qabslw = absorption coefficient between k1 and  k2 (m2.g-1) in the LW :
     qabslw = d_r10
 !   initialisation à 1 = perfect transmittivity
     aertrlw (:,:,:) = d_one

@@ -589,7 +589,7 @@ module mod_savefile
       ffout = trim(dirout)//pthsep//trim(domname)//'_'//trim(fbname)//'.nc'
 
       ! Use 64-bit offset format file, instead of a netCDF classic format file.
-      ! Sometimes SAV files can be really big... 
+      ! Sometimes SAV files can be really big...
       ncstatus = nf90_create(ffout, iomode, ncid)
       call check_ok(__FILE__,__LINE__,'Cannot create savefile '//trim(ffout))
 
@@ -1170,7 +1170,7 @@ module mod_savefile
 #ifdef CLM
         call unlink(trim(lastclmrest))
         call unlink((trim(lastclmrest)//'.nc'))
-#endif            
+#endif
       end if
       if (ltmp) then
         isavlast = toint10(idate)
@@ -1203,5 +1203,5 @@ module mod_savefile
     ncstatus = nf90_inq_varid(ncid,vname,varid)
     call check_ok(__FILE__,__LINE__,'Cannot find variable '//trim(vname))
   end function get_varid
-    
+
 end module mod_savefile

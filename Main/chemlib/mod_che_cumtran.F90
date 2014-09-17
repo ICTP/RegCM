@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_che_cumtran
 !
 ! Tracer convective transport
@@ -41,15 +41,15 @@ module mod_che_cumtran
 
     if ( ichdiag == 1 ) then
      do j = jci1 , jci2
-        do i = ici1 , ici2 
+        do i = ici1 , ici2
          chiten0(j,i,:,:) = chib(j,i,:,:)
         end do
       end do
-    end if 
+    end if
 
     do n = 1 , ntr
       do j = jci1 , jci2
-        do i = ici1 , ici2 
+        do i = ici1 , ici2
           if ( kcumtop(j,i) > 0 ) then
             deltas = d_zero
             chiabar = d_zero
@@ -71,12 +71,12 @@ module mod_che_cumtran
       end do
     end do
     ! here calculate a pseudo tendency.
-    ! factor 2 is added since we are out of leap frog 
+    ! factor 2 is added since we are out of leap frog
     if ( ichdiag == 1 ) then
       do j = jci1 , jci2
         do i = ici1 , ici2
         cconvdiag(j,i,:,:)  = cconvdiag(j,i,:,:) +   &
-          ( chib(j,i,:,:) - chiten0(j,i,:,:))/dt  * d_two * cfdout 
+          ( chib(j,i,:,:) - chiten0(j,i,:,:))/dt  * d_two * cfdout
        end do
      end do
     end if

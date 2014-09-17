@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_cu_tiedtke
 !
   use mod_intkinds
@@ -47,7 +47,7 @@ module mod_cu_tiedtke
   integer(ik4) , pointer , dimension(:,:) :: ilab
   integer(ik4) , pointer , dimension(:) :: ktype
   logical , pointer , dimension(:) :: ldland
-  real(rk8) , pointer , dimension(:,:,:) :: pxtm1 , pxtte 
+  real(rk8) , pointer , dimension(:,:,:) :: pxtm1 , pxtte
   real(rk8) , pointer , dimension(:,:) :: ptm1 , pqm1 , pum1 , pvm1 ,    &
         pxlm1 , pxim1 , pxite , papp1 , paphp1 , pxtec , pqtec , zlude , &
         pmflxr
@@ -170,7 +170,7 @@ module mod_cu_tiedtke
     cevapcu(:) = cevapu
     q_detr(:,:,:) = d_zero
 
-    if ( ichem == 1 ) then    
+    if ( ichem == 1 ) then
       c2m%convpr(:,:,:) = d_zero
       do k = 1 , kz
         do ii = 1 , nipoi
@@ -179,7 +179,7 @@ module mod_cu_tiedtke
           ! tracers input profile : implicit loop on tracer
           pxtm1(ii,k,:) = m2c%chias(j,i,k,:)
           pxtte(ii,k,:) = c2m%chiten(j,i,k,:)/m2c%psb(j,i)
-        end do 
+        end do
       end do
     else
       pxtm1(:,:,:) = d_zero ! tracers input profiles
@@ -191,7 +191,7 @@ module mod_cu_tiedtke
       ! convection. The simpler switch on pressure difference still
       ! used in ECMWF is commented out - possibly tests should be made
       ! to reinstate the ECMWF version of this
-      ! this array will then be obsolete 
+      ! this array will then be obsolete
       i = imap(ii)
       j = jmap(ii)
       xpqfx(ii) = m2c%qfx(j,i)
@@ -271,9 +271,9 @@ module mod_cu_tiedtke
 
     ! Output variables (1d)
     prsfc(:) = d_zero ! CHECK - surface rain flux
-    pssfc(:) = d_zero ! CHECK - surface snow flux      
-    paprc(:) = d_zero ! total precip cumulative 
-    paprs(:) = d_zero ! total snow cumulative 
+    pssfc(:) = d_zero ! CHECK - surface snow flux
+    paprc(:) = d_zero ! total precip cumulative
+    paprs(:) = d_zero ! total snow cumulative
 
     kctop(:) = 0
     kcbot(:) = 0
@@ -292,7 +292,7 @@ module mod_cu_tiedtke
           i = imap(ii)
           j = jmap(ii)
           total_precip_points = total_precip_points + 1
-          ! total precip cumulative 
+          ! total precip cumulative
           c2m%rainc(j,i) = c2m%rainc(j,i) + paprc(ii) + paprs(ii)
           ! rainfall for surface
           c2m%pcratec(j,i)= c2m%pcratec(j,i) + prsfc(ii) + pssfc(ii)
@@ -301,7 +301,7 @@ module mod_cu_tiedtke
     end do
 
     ! update tendencies - note that rate were ADDED in cudtdq
-    !                     thus here we must reset the rates. 
+    !                     thus here we must reset the rates.
     do k = 1 , kz
       do ii = 1 , nipoi
         if (ktype(ii) > 0) then
@@ -443,17 +443,17 @@ module mod_cu_tiedtke
         zqsat(jl,jk) = zqsat(jl,jk)/(d_one-retv*zqsat(jl,jk))
       end if
     end do
- 
+
     if ( lookupoverflow ) then
       call fatal(__FILE__,__LINE__,'Cumulus Tables lookup error: OVERFLOW')
     end if
- 
+
     do jt = 1 , ktrac
       do jl = 1 , kproma
         zxtp1(jl,jk,jt) = pxtm1(jl,jk,jt) + pxtte(jl,jk,jt)*dt
       end do
     end do
- 
+
   end do
   do jl = 1 , kproma
     zrain(jl) = d_zero
@@ -490,14 +490,14 @@ module mod_cu_tiedtke
     ! =====================
     ! ABOUT pqhfl and pahfs
     ! =====================
-    ! The variables in question are defined in the turbulence scheme and 
+    ! The variables in question are defined in the turbulence scheme and
     ! are the turbulence flux of water vapour and sensible heat as expected...
     ! The naming changes in the turbulence scheme; they are PDIFTQ and PDIFTS,
     ! respectively...
     ! The flux values are just backed out from the new-old tendency values
     ! differences over the scheme (because of course the scheme employs an
     ! implicit solver.)
-    ! 
+    !
     ! These are the definitions at the start of vdfmain.f90
     !
     ! *PDIFTQ*       TURBULENT FLUX OF SPECIFIC HUMIDITY           KG/(M2*S)
@@ -715,7 +715,7 @@ module mod_cu_tiedtke
   integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
- 
+
   lookupoverflow = .false.
 !
 !-----------------------------------------------------------------------
@@ -1213,7 +1213,7 @@ module mod_cu_tiedtke
   integer(ik4) , save :: idindx = 0
   call time_begin(subroutine_name,idindx)
 #endif
- 
+
   lookupoverflow = .false.
 !
 !-----------------------------------------------------------------------
@@ -2227,15 +2227,15 @@ module mod_cu_tiedtke
   ztglace = tzero - 13.0D0
   zqold(1:kproma) = d_zero
 
-! AMT NOTE!!! in the original scheme, this level which restricts rainfall 
-! below a certain pressure (from the surface) is hard wired according to the 
+! AMT NOTE!!! in the original scheme, this level which restricts rainfall
+! below a certain pressure (from the surface) is hard wired according to the
 ! vertical resolution of the model
 !      if ( klev /= 11 ) then
 !        zdlev = 3.0D4
 !      else if ( nn == 21 ) then
 !        zdlev = 1.5D4
 !      else if ( nn == 31 ) then
-!        zdlev = 2.0D4 
+!        zdlev = 2.0D4
 !      else
 !        zdlev = 3.0D4
 !      end if
@@ -2730,15 +2730,15 @@ module mod_cu_tiedtke
   zcons2 = d_one/(egrav*dt)
   ztglace = tzero - 13.0D0
 
-! AMT NOTE!!! in the original scheme, this level which restricts rainfall 
-! below a certain pressure (from the surface) is hard wired according to the 
+! AMT NOTE!!! in the original scheme, this level which restricts rainfall
+! below a certain pressure (from the surface) is hard wired according to the
 ! vertical resolution of the model
 !      if ( klev /= 11 ) then
 !        zdlev = 3.0D4
 !      else if ( nn == 21 ) then
 !        zdlev = 1.5D4
 !      else if ( nn == 31 ) then
-!        zdlev = 2.0D4 
+!        zdlev = 2.0D4
 !      else
 !        zdlev = 3.0D4
 !      end if
@@ -4344,12 +4344,12 @@ module mod_cu_tiedtke
   !  array arguments with intent(inout):
   real(rk8), intent (inout) :: pq(kbdim,klev), pt(kbdim,klev)
 
-  !  local scalars: 
+  !  local scalars:
   real(rk8):: zcond1, zqst1, zdqsdt, zqsat, zes, zcor, zlcdqsdt
   integer(ik4) :: isum, jl, it, it1, iv
   logical :: lo
 
-  !  local arrays: 
+  !  local arrays:
   real(rk8):: zcond(kbdim)
 
 #ifdef DEBUG
@@ -4397,7 +4397,7 @@ module mod_cu_tiedtke
         end if
       end do
 
-      if (lookupoverflow) then 
+      if (lookupoverflow) then
         call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
       endif
 
@@ -4428,7 +4428,7 @@ module mod_cu_tiedtke
         end if
       end do
 
-      if (lookupoverflow) then 
+      if (lookupoverflow) then
         call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
       endif
     end do
@@ -4463,7 +4463,7 @@ module mod_cu_tiedtke
         end if
       end do
 
-      if (lookupoverflow) then 
+      if (lookupoverflow) then
         call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
       endif
 
@@ -4492,7 +4492,7 @@ module mod_cu_tiedtke
         end if
       end do
 
-      if (lookupoverflow) then 
+      if (lookupoverflow) then
         call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
       endif
     end do
@@ -4524,7 +4524,7 @@ module mod_cu_tiedtke
         if ( abs(zcond(jl)) > d_zero ) isum = isum+1
       end do
 
-      if (lookupoverflow) then 
+      if (lookupoverflow) then
         call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
       endif
 
@@ -4553,7 +4553,7 @@ module mod_cu_tiedtke
         pq(jl,kk) = pq(jl,kk)-zcond1
       end do
 
-      if (lookupoverflow) then 
+      if (lookupoverflow) then
         call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
       endif
     end do
@@ -4581,7 +4581,7 @@ module mod_cu_tiedtke
       pq(jl,kk) = pq(jl,kk)-zcond(jl)
     end do
 
-    if (lookupoverflow) then 
+    if (lookupoverflow) then
       call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
     endif
 
@@ -4606,7 +4606,7 @@ module mod_cu_tiedtke
       pq(jl,kk) = pq(jl,kk)-zcond1
     end do
 
-    if (lookupoverflow) then 
+    if (lookupoverflow) then
       call fatal(__FILE__,__LINE__,'cumulus tables lookup error: overflow')
     endif
 

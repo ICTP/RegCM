@@ -234,7 +234,7 @@ module mod_bats_param
              0.80D0 , 0.90D0 , 0.90D0 , 0.30D0 , 0.80D0 , 9*0.50D0,&
              0.90D0 , 0.50D0/
 !
-! Emissivity coefficients 
+! Emissivity coefficients
 !
   data lndemiss/0.983D0, 0.983D0, 0.983D0, 0.987D0, 0.981D0, 0.981D0, &
                 0.983D0, 0.965D0, 0.987D0, 0.985D0, 0.970D0, 0.993D0, &

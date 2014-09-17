@@ -74,15 +74,15 @@
       integer(kind=im) :: lay                         ! Layer index
       integer(kind=im) :: ib                          ! spectral band index
       integer(kind=im) :: ig                          ! g-point interval index
-      integer(kind=im) :: index 
+      integer(kind=im) :: index
       integer(kind=im) :: icb(nbndlw)
 
       real(kind=rb) :: abscoice(ngptlw)               ! ice absorption coefficients
       real(kind=rb) :: abscoliq(ngptlw)               ! liquid absorption coefficients
       real(kind=rb) :: cwp                            ! cloud water path
       real(kind=rb) :: radice                         ! cloud ice effective size (microns)
-      real(kind=rb) :: factor                         ! 
-      real(kind=rb) :: fint                           ! 
+      real(kind=rb) :: factor                         !
+      real(kind=rb) :: fint                           !
       real(kind=rb) :: radliq                         ! cloud liquid droplet radius (microns)
       real(kind=rb), parameter :: eps = 1.e-6_rb      ! epsilon
       real(kind=rb), parameter :: cldmin = 1.e-20_rb  ! minimum value for cloud quantities
@@ -92,23 +92,23 @@
 !     Explanation of the method for each value of INFLAG.  Values of
 !     0 or 1 for INFLAG do not distingish being liquid and ice clouds.
 !     INFLAG = 2 does distinguish between liquid and ice clouds, and
-!     requires further user input to specify the method to be used to 
+!     requires further user input to specify the method to be used to
 !     compute the aborption due to each.
 !     INFLAG = 0:  For each cloudy layer, the cloud fraction and (gray)
-!                  optical depth are input.  
+!                  optical depth are input.
 !     INFLAG = 1:  For each cloudy layer, the cloud fraction and cloud
-!                  water path (g/m2) are input.  The (gray) cloud optical 
+!                  water path (g/m2) are input.  The (gray) cloud optical
 !                  depth is computed as in CCM2.
-!     INFLAG = 2:  For each cloudy layer, the cloud fraction, cloud 
+!     INFLAG = 2:  For each cloudy layer, the cloud fraction, cloud
 !                  water path (g/m2), and cloud ice fraction are input.
 !       ICEFLAG = 0:  The ice effective radius (microns) is input and the
 !                     optical depths due to ice clouds are computed as in CCM3.
 !       ICEFLAG = 1:  The ice effective radius (microns) is input and the
-!                     optical depths due to ice clouds are computed as in 
-!                     Ebert and Curry, JGR, 97, 3831-3836 (1992).  The 
+!                     optical depths due to ice clouds are computed as in
+!                     Ebert and Curry, JGR, 97, 3831-3836 (1992).  The
 !                     spectral regions in this work have been matched with
-!                     the spectral bands in RRTM to as great an extent 
-!                     as possible:  
+!                     the spectral bands in RRTM to as great an extent
+!                     as possible:
 !                     E&C 1      IB = 5      RRTM bands 9-16
 !                     E&C 2      IB = 4      RRTM bands 6-8
 !                     E&C 3      IB = 3      RRTM bands 3-5
@@ -117,7 +117,7 @@
 !       ICEFLAG = 2:  The ice effective radius (microns) is input and the
 !                     optical properties due to ice clouds are computed from
 !                     the optical properties stored in the RT code,
-!                     STREAMER v3.0 (Reference: Key. J., Streamer 
+!                     STREAMER v3.0 (Reference: Key. J., Streamer
 !                     User's Guide, Cooperative Institute for
 !                     Meteorological Satellite Studies, 2001, 96 pp.).
 !                     Valid range of values for re are between 5.0 and
@@ -132,14 +132,14 @@
 !                    140.0 micron.
 !       LIQFLAG = 0:  The optical depths due to water clouds are computed as
 !                     in CCM3.
-!       LIQFLAG = 1:  The water droplet effective radius (microns) is input 
-!                     and the optical depths due to water clouds are computed 
+!       LIQFLAG = 1:  The water droplet effective radius (microns) is input
+!                     and the optical depths due to water clouds are computed
 !                     as in Hu and Stamnes, J., Clim., 6, 728-742, (1993).
 !                     The values for absorption coefficients appropriate for
-!                     the spectral bands in RRTM have been obtained for a 
-!                     range of effective radii by an averaging procedure 
+!                     the spectral bands in RRTM have been obtained for a
+!                     range of effective radii by an averaging procedure
 !                     based on the work of J. Pinto (private communication).
-!                     Linear interpolation is used to get the absorption 
+!                     Linear interpolation is used to get the absorption
 !                     coefficients for the input effective radius.
 
       data icb /1,2,3,3,3,4,4,4,5, 5, 5, 5, 5, 5, 5, 5/
@@ -168,7 +168,7 @@
 ! Cloud optical depth already defined in taucmc, return to main program
                return
 
-            elseif(inflag .eq. 1) then 
+            elseif(inflag .eq. 1) then
                 stop 'INFLAG = 1 OPTION NOT AVAILABLE WITH MCICA'
 !               cwp = ciwpmc(ig,lay) + clwpmc(ig,lay)
 !               taucmc(ig,lay) = abscld1 * cwp
@@ -204,8 +204,8 @@
                      ib = ngb(ig)
                      abscoice(ig) = &
                          absice2(index,ib) + fint * &
-                         (absice2(index+1,ib) - (absice2(index,ib))) 
-               
+                         (absice2(index+1,ib) - (absice2(index,ib)))
+
 ! For iceflag=3 option, ice particle generalized effective size is limited to 5.0 to 140.0 microns
 
                elseif (iceflag .eq. 3) then
@@ -219,9 +219,9 @@
                      abscoice(ig) = &
                          absice3(index,ib) + fint * &
                          (absice3(index+1,ib) - (absice3(index,ib)))
-   
+
                endif
-                  
+
 ! Calculation of absorption coefficients due to water clouds.
                if (clwpmc(ig,lay) .eq. 0.0_rb) then
                   abscoliq(ig) = 0.0_rb

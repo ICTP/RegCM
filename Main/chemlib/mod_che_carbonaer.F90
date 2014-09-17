@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_che_carbonaer
-  
+
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
@@ -31,7 +31,7 @@ module mod_che_carbonaer
 
   private
 
-  ! Parameter usefull for wet and dry deposition of carbon aerosol 
+  ! Parameter usefull for wet and dry deposition of carbon aerosol
   ! densities in kg/m3
 
   real(rk8) , public , parameter :: rhobc   = 2000.0D0
@@ -40,7 +40,7 @@ module mod_che_carbonaer
   real(rk8) , public , parameter :: rhoochl = 1200.0D0
 
   ! effctive dimaters ( and not radius!)  in micrometer
-  ! ( should they be defined intercatively in the future ? ) 
+  ! ( should they be defined intercatively in the future ? )
   real(rk8) , public , parameter :: reffbc   = 0.05D0
   real(rk8) , public , parameter :: reffbchl = 0.3D0
   real(rk8) , public , parameter :: reffoc   = 0.2D0
@@ -70,7 +70,7 @@ module mod_che_carbonaer
       integer(ik4) :: i , k
       real(rk8) :: agingtend1 , agingtend2
       !
-      ! aging o carbon species : Conversion from hydrophobic to 
+      ! aging o carbon species : Conversion from hydrophobic to
       ! hydrophilic: Carbonaceopus species time constant
       ! ( 1.15 day cooke et al.,1999)
       !

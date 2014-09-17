@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_init
 !
 ! RegCM Init module
@@ -308,7 +308,7 @@ module mod_init
       call grid_distribute(cbmf2d_io,cbmf2d,jci1,jci2,ici1,ici2)
     end if
 
-    if ( irrtm == 0 ) then 
+    if ( irrtm == 0 ) then
       call grid_distribute(gasabsnxt_io,gasabsnxt,jci1,jci2,ici1,ici2,1,kz,1,4)
       call grid_distribute(gasabstot_io,gasabstot, &
                            jci1,jci2,ici1,ici2,1,kzp1,1,kzp1)
@@ -490,7 +490,7 @@ module mod_init
   ! Initialize the BATS variable (Used also by CLM)
   !
   call initialize_surface_model
-  !  
+  !
   ! Calculate topographical correction to diffusion coefficient
   !
   do i = ide1 , ide2

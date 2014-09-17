@@ -36,7 +36,7 @@ type atm2lnd_type
   real(r8), pointer :: forc_t(:)       !atmospheric temperature (Kelvin)
   real(r8), pointer :: forc_u(:)       !atm wind speed, east direction (m/s)
   real(r8), pointer :: forc_v(:)       !atm wind speed, north direction (m/s)
-  real(r8), pointer :: forc_wind(:)    !atmospheric wind speed   
+  real(r8), pointer :: forc_wind(:)    !atmospheric wind speed
   real(r8), pointer :: forc_q(:)       !atmospheric specific humidity (kg/kg)
   real(r8), pointer :: forc_hgt(:)     !atmospheric reference height (m)
   real(r8), pointer :: forc_hgt_u(:)   !obs height of wind [m] (new)
@@ -339,7 +339,7 @@ end subroutine init_atm2lnd_type
 #endif
 end subroutine init_lnd2atm_type
 
-! abt below rcm subrountine  
+! abt below rcm subrountine
 !------------------------------------------------------------------------------
 !BOP
 !
@@ -415,34 +415,34 @@ end subroutine init_lnd2atm_type
 !  allocate(adst(begg_d:endg_d,nflds))
 
 !  ix = 0
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_t(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_u(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_v(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_wind(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_q(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt_u(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt_t(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt_q(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_pbot(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_th(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_vp(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_rho(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_psrf(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_pco2(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_lwrad(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_solar(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_rain(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_snow(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_pc13o2(:)  
-!  ix=ix+1; asrc(:,ix) = a2l_src%forc_po2(:)  
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_t(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_u(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_v(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_wind(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_q(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt_u(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt_t(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt_q(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_pbot(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_th(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_vp(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_rho(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_psrf(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_pco2(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_lwrad(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_solar(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_rain(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_snow(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_pc13o2(:)
+!  ix=ix+1; asrc(:,ix) = a2l_src%forc_po2(:)
 !  do n = 1,numrad
-!     ix=ix+1; asrc(:,ix) = a2l_src%forc_solad(:,n)  
-!     ix=ix+1; asrc(:,ix) = a2l_src%forc_solai(:,n)  
+!     ix=ix+1; asrc(:,ix) = a2l_src%forc_solad(:,n)
+!     ix=ix+1; asrc(:,ix) = a2l_src%forc_solai(:,n)
 !  enddo
 !-forc_ndep is not recd from atm,don't know why it's in a2l (TCFIX) ---
 !-forc_ndep cannot be updated here, array will be trashed and CN will fail ---
-!  asrc(:,xx) = a2l_src%forc_ndep(:)  
+!  asrc(:,xx) = a2l_src%forc_ndep(:)
 
 #if (defined OFFLINE)
   call map_maparrayl(begg_s, endg_s, begg_d, endg_d, 1, a2l_src%flfall, a2l_dst%flfall, map1dl_a2l)
@@ -556,8 +556,8 @@ end subroutine init_lnd2atm_type
 
 !    qbot_a = a2l_src%forc_q(ns)        ! atm specific humidity
 !    qbot_l = a2l_dst%forc_q(nd)        ! lnd specific humidity
-!    pbot_l = a2l_dst%forc_pbot(nd)  
-!    tbot_l = a2l_dst%forc_t(nd)  
+!    pbot_l = a2l_dst%forc_pbot(nd)
+!    tbot_l = a2l_dst%forc_t(nd)
 
 !    qbot_l = qbot_l - (qsum(ns) - qbot_a)        ! normalize
 !    egcm_l = qbot_l*pbot_l/(0.622+0.378*qbot_l)
@@ -691,34 +691,34 @@ end subroutine clm_mapr2l
   allocate(adst(begg_d:endg_d,nflds))
 
   ix = 0
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_t(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_u(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_v(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_wind(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_q(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt_u(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt_t(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt_q(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_pbot(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_th(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_vp(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_rho(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_psrf(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_pco2(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_lwrad(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_solar(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_rain(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_snow(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_pc13o2(:)  
-  ix=ix+1; asrc(:,ix) = a2l_src%forc_po2(:)  
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_t(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_u(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_v(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_wind(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_q(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt_u(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt_t(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_hgt_q(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_pbot(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_th(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_vp(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_rho(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_psrf(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_pco2(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_lwrad(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_solar(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_rain(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_snow(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_pc13o2(:)
+  ix=ix+1; asrc(:,ix) = a2l_src%forc_po2(:)
   do n = 1,numrad
-     ix=ix+1; asrc(:,ix) = a2l_src%forc_solad(:,n)  
-     ix=ix+1; asrc(:,ix) = a2l_src%forc_solai(:,n)  
+     ix=ix+1; asrc(:,ix) = a2l_src%forc_solad(:,n)
+     ix=ix+1; asrc(:,ix) = a2l_src%forc_solai(:,n)
   enddo
 !-forc_ndep is not recd from atm,don't know why it's in a2l (TCFIX) ---
 !-forc_ndep cannot be updated here, array will be trashed and CN will fail ---
-!  asrc(:,xx) = a2l_src%forc_ndep(:)  
+!  asrc(:,xx) = a2l_src%forc_ndep(:)
 
 #if (defined OFFLINE)
   call map_maparrayl(begg_s, endg_s, begg_d, endg_d, 1, a2l_src%flfall, a2l_dst%flfall, map1dl_a2l)
@@ -833,8 +833,8 @@ end subroutine clm_mapr2l
 
     qbot_a = a2l_src%forc_q(ns)        ! atm specific humidity
     qbot_l = a2l_dst%forc_q(nd)        ! lnd specific humidity
-    pbot_l = a2l_dst%forc_pbot(nd)  
-    tbot_l = a2l_dst%forc_t(nd)  
+    pbot_l = a2l_dst%forc_pbot(nd)
+    tbot_l = a2l_dst%forc_t(nd)
 
     qbot_l = qbot_l - (qsum(ns) - qbot_a)        ! normalize
     egcm_l = qbot_l*pbot_l/(0.622+0.378*qbot_l)
@@ -942,12 +942,12 @@ end subroutine clm_mapa2l
 
   nflds = 12+2*numrad
 
-#if (defined DUST || defined  PROGSSLT )  
-  ! add on fv, ram1 
-  nflds = nflds + 2 
+#if (defined DUST || defined  PROGSSLT )
+  ! add on fv, ram1
+  nflds = nflds + 2
 #endif
 
-#if (defined DUST  ) 
+#if (defined DUST  )
   ! add on the number of dust bins (for flxdust)
   nflds = nflds + ndst
 #endif
@@ -957,29 +957,29 @@ end subroutine clm_mapa2l
   allocate(adst(begg_d:endg_d,nflds))
 
   ix = 0
-  ix=ix+1; asrc(:,ix) = l2a_src%t_rad(:)  
-  ix=ix+1; asrc(:,ix) = l2a_src%t_ref2m(:)  
-  ix=ix+1; asrc(:,ix) = l2a_src%q_ref2m(:)  
-  ix=ix+1; asrc(:,ix) = l2a_src%h2osno(:)  
-  ix=ix+1; asrc(:,ix) = l2a_src%taux(:)  
-  ix=ix+1; asrc(:,ix) = l2a_src%tauy(:)  
-  ix=ix+1; asrc(:,ix) = l2a_src%eflx_lh_tot(:)  
-  ix=ix+1; asrc(:,ix) = l2a_src%eflx_sh_tot(:)  
-  ix=ix+1; asrc(:,ix) = l2a_src%eflx_lwrad_out(:)  
-  ix=ix+1; asrc(:,ix) = l2a_src%qflx_evap_tot(:)  
-  ix=ix+1; asrc(:,ix) = l2a_src%fsa(:)  
-  ix=ix+1; asrc(:,ix) = l2a_src%nee(:)  
+  ix=ix+1; asrc(:,ix) = l2a_src%t_rad(:)
+  ix=ix+1; asrc(:,ix) = l2a_src%t_ref2m(:)
+  ix=ix+1; asrc(:,ix) = l2a_src%q_ref2m(:)
+  ix=ix+1; asrc(:,ix) = l2a_src%h2osno(:)
+  ix=ix+1; asrc(:,ix) = l2a_src%taux(:)
+  ix=ix+1; asrc(:,ix) = l2a_src%tauy(:)
+  ix=ix+1; asrc(:,ix) = l2a_src%eflx_lh_tot(:)
+  ix=ix+1; asrc(:,ix) = l2a_src%eflx_sh_tot(:)
+  ix=ix+1; asrc(:,ix) = l2a_src%eflx_lwrad_out(:)
+  ix=ix+1; asrc(:,ix) = l2a_src%qflx_evap_tot(:)
+  ix=ix+1; asrc(:,ix) = l2a_src%fsa(:)
+  ix=ix+1; asrc(:,ix) = l2a_src%nee(:)
   do n = 1,numrad
-     ix=ix+1; asrc(:,ix) = l2a_src%albd(:,n)  
-     ix=ix+1; asrc(:,ix) = l2a_src%albi(:,n)  
+     ix=ix+1; asrc(:,ix) = l2a_src%albd(:,n)
+     ix=ix+1; asrc(:,ix) = l2a_src%albi(:,n)
   enddo
 #if (defined DUST || defined  PROGSSLT )
-  ix=ix+1; asrc(:,ix) = l2a_src%ram1(:)  
+  ix=ix+1; asrc(:,ix) = l2a_src%ram1(:)
   ix=ix+1; asrc(:,ix) = l2a_src%fv(:)
 #endif
 #if (defined DUST )
   do m = 1,ndst  ! dust bins
-     ix=ix+1; asrc(:,ix) = l2a_src%flxdst(:,m)  
+     ix=ix+1; asrc(:,ix) = l2a_src%flxdst(:,m)
   end do !m
 #endif
 
@@ -1110,7 +1110,7 @@ end subroutine clm_mapl2a
   call get_proc_bounds(begg, endg, begl, endl, begc, endc, begp, endp)
 
 
-  ! Compute gridcell averages. 
+  ! Compute gridcell averages.
 
   if (present(init)) then
 
@@ -1119,15 +1119,15 @@ end subroutine clm_mapl2a
           c2l_scale_type= 'unity', l2g_scale_type='unity')
 !dir$ concurrent
 !cdir nodep
-      
+
      call p2g(begp, endp, begc, endc, begl, endl, begg, endg, numrad, &
           pptr%pps%albd, clm_l2a%albd,&
           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
-      
+
      call p2g(begp, endp, begc, endc, begl, endl, begg, endg, numrad, &
           pptr%pps%albi, clm_l2a%albi,&
           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
-      
+
      call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
           pptr%pef%eflx_lwrad_out, clm_l2a%eflx_lwrad_out,&
           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
@@ -1153,19 +1153,19 @@ end subroutine clm_mapl2a
           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
 
      call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
-          pptr%pes%t_ref2m, clm_l2a%t_ref2m, & 
+          pptr%pes%t_ref2m, clm_l2a%t_ref2m, &
           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
 
      call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
-          pptr%pes%q_ref2m, clm_l2a%q_ref2m, & 
+          pptr%pes%q_ref2m, clm_l2a%q_ref2m, &
           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
 
      call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
-          pptr%pmf%taux, clm_l2a%taux, & 
+          pptr%pmf%taux, clm_l2a%taux, &
           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
 
      call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
-          pptr%pmf%tauy, clm_l2a%tauy, & 
+          pptr%pmf%tauy, clm_l2a%tauy, &
           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
 
      call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
@@ -1173,21 +1173,21 @@ end subroutine clm_mapl2a
           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
 
      call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
-          pptr%pef%eflx_sh_tot, clm_l2a%eflx_sh_tot, & 
+          pptr%pef%eflx_sh_tot, clm_l2a%eflx_sh_tot, &
           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
 
      call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
-          pptr%pwf%qflx_evap_tot, clm_l2a%qflx_evap_tot, & 
+          pptr%pwf%qflx_evap_tot, clm_l2a%qflx_evap_tot, &
           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
 
      call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
           pptr%pef%fsa, clm_l2a%fsa, &
           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
-                  
+
      call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
           pptr%pef%eflx_lwrad_out, clm_l2a%eflx_lwrad_out, &
           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
-                  
+
 #if (defined CN)
      call c2g(begc, endc, begl, endl, begg, endg, &
           cptr%ccf%nee, clm_l2a%nee, &
@@ -1256,12 +1256,12 @@ end subroutine clm_mapl2a
        do lev = 1,nlevsoi
         if(cptr%cws%h2osoi_liq(c,lev) /= spval) then
           if(lev.le.3) temp_sm10cm(g) = temp_sm10cm(g) + cptr%cws%h2osoi_liq(c,lev) &
-                                        * (1000./denh2o) * wtgcell(c) 
+                                        * (1000./denh2o) * wtgcell(c)
           temp_smtot(g)  = temp_smtot(g) + cptr%cws%h2osoi_liq(c,lev) * &
-                           (1000./denh2o) * wtgcell(c) 
+                           (1000./denh2o) * wtgcell(c)
           if(temp_root(g,lev) > 0._r8) temp_sm1m(g)   = temp_sm1m(g) +  &
                             cptr%cws%h2osoi_liq(c,lev) * (1000./denh2o) *wtgcell(c)
-        endif       
+        endif
        enddo
      enddo
 
@@ -1274,7 +1274,7 @@ end subroutine clm_mapl2a
           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
 
      call p2g(begp, endp, begc, endc, begl, endl, begg, endg, &
-          pptr%pes%t_veg, clm_l2a%tlef, & 
+          pptr%pes%t_veg, clm_l2a%tlef, &
           p2c_scale_type='unity', c2l_scale_type= 'unity', l2g_scale_type='unity')
 
      call c2g(begc, endc, begl, endl, begg, endg, cptr%ces%t_grnd, &
@@ -1349,7 +1349,7 @@ end subroutine clm_map2gcell
 !
 ! !USES:
 !abt rcm below
-  use spmdMod 
+  use spmdMod
   use decompMod        , only : ldecomp, get_proc_clumps, get_clump_bounds
   use decompMod        , only : get_proc_global
   use areaMod          , only : map_maparrayl, map1dl_l2a
@@ -1381,7 +1381,7 @@ end subroutine clm_map2gcell
   integer :: begg_d,endg_d         ! beg,end of output grid
   integer :: begg,endg,begc,endc   ! beg and end of grid and column
   integer :: begl,endl,begp,endp
-  real(r8),allocatable :: c2r_all(:)    ! used to capture all c2r vars 
+  real(r8),allocatable :: c2r_all(:)    ! used to capture all c2r vars
   integer ,allocatable :: displace(:)   ! used for gathering
   real(r8),allocatable :: dry_local(:)  ! used to capture all c2r vars
   integer :: numg,numl,numc,nump        ! proc totals
@@ -1402,7 +1402,7 @@ end subroutine clm_map2gcell
     do nc = 1,nclumps
 
      call get_clump_bounds(nc, begg, endg, begl, endl, begc, endc, begp, endp)
-     call get_proc_global(numg,numl,numc,nump) 
+     call get_proc_global(numg,numl,numc,nump)
 
      nt = endg-begg+1
      nout = 20
@@ -1431,9 +1431,9 @@ end subroutine clm_map2gcell
 !!!!!! below merely stores all output into one array for !!
 !!!!!! quicker gathering                                 !!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-     nn = 0   
-     do n  = begg,endg   
- 
+     nn = 0
+     do n  = begg,endg
+
         nn = nn + 1
         c2r_all(nn)       = clm_l2a%tgrnd(n)
         c2r_all(nn+nt)    = clm_l2a%h2osno(n)
@@ -1485,7 +1485,7 @@ end subroutine clm_map2gcell
           end do
         end if
 
-        
+
     enddo !gridcell
     enddo !nclumps
 
@@ -1497,7 +1497,7 @@ end subroutine clm_map2gcell
       else
         displace(nc) = displace(nc-1) + c2rngc(nc-1)*nout
       endif
-    enddo  
+    enddo
 
     if(nn .ne. nt) then
       write(6,*) "ERROR: nn not equal to nt"
@@ -1505,8 +1505,8 @@ end subroutine clm_map2gcell
     endif
 
     call mpi_allgatherv(c2r_all(1),nn*nout,MPI_REAL8,c2r_allout, &
-                        c2rngc*nout,displace,MPI_REAL8,mpicom,ierr)     
-    
+                        c2rngc*nout,displace,MPI_REAL8,mpicom,ierr)
+
 
 
     !****** Gather Dry Dep CLM variables to the RegCM grid
@@ -1526,7 +1526,7 @@ end subroutine clm_map2gcell
     end if
 
 
-    deallocate(c2r_all,displace)        
+    deallocate(c2r_all,displace)
 
 
 

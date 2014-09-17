@@ -429,7 +429,7 @@ contains
           endif
           call check_ret(nf_inq_dimid(ncid, 'time', dimid), subname)
           call check_ret(nf_inq_dimlen(ncid, dimid, ntim), subname)
- 
+
        else
 
           nlon_i = lsmlon

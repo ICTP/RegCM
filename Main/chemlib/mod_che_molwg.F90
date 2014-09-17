@@ -101,12 +101,12 @@ module mod_che_molwg
   real(rk8) , parameter :: w_onit    = 119.0D0
 
   ! Organic Acids
-  real(rk8), parameter  :: w_hcooh     = 46.0D0   !Formic acid 
+  real(rk8), parameter  :: w_hcooh     = 46.0D0   !Formic acid
   real(rk8), parameter  :: w_ch3cooh   = 60.0D0   !Acetic acid
   real(rk8),  parameter :: w_rcooh   = 59.1D0
 
   ! Alcohol
-  real(rk8), parameter  :: w_moh         = 32.0D0 !Methanol 
+  real(rk8), parameter  :: w_moh         = 32.0D0 !Methanol
   real(rk8), parameter  :: w_ch3oh       = 32.0D0 !Methanol
   real(rk8), parameter  :: w_eoh         = 46.0D0 !Ethanol
   real(rk8), parameter  :: w_c2h5oh      = 46.0D0 !Ethanol
@@ -116,7 +116,7 @@ module mod_che_molwg
   real(rk8), parameter  :: w_ethooh   = 74.0D0
   real(rk8) , parameter :: w_rooh    = 48.0D0
 
-  ! Other species  
+  ! Other species
   real(rk8) , parameter :: w_dms     = 62.0D0
   real(rk8) , parameter :: w_msa     = 96.0D0
   real(rk8) , parameter :: w_nh3     = 17.0D0
@@ -127,8 +127,8 @@ module mod_che_molwg
   ! are assigned an arbitrary molecular weight , as anyway chemistry works
   ! with mol. and the conversion to mass is done for compatibility with
   ! other processes than chem.
-  ! if these species are outputed in mass, the unit will be however wrong ! 
- 
+  ! if these species are outputed in mass, the unit will be however wrong !
+
   real(rk8) , parameter :: w_O1D = 16.D0
   real(rk8) , parameter :: w_cro =48.D0
   real(rk8) , parameter :: w_to2 = 32.D0

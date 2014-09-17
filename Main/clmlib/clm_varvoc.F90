@@ -9,7 +9,7 @@ module clm_varvoc
 ! !MODULE: clm_varvoc
 !
 ! !DESCRIPTION:
-! Module containing information used for VOC flux calculations using 
+! Module containing information used for VOC flux calculations using
 ! MEGANv2.03 (non-isoprene) and Guenther 2006 equations (isoprene)
 !
 ! !USES:
@@ -69,15 +69,15 @@ module clm_varvoc
   real(r8), pointer :: gamma_age_out(:)
 
 
-! Species dependent variables used in gamma calculation 
+! Species dependent variables used in gamma calculation
   real(r8) :: LDF(nvoc)                      ! surface moisture availability in fraction of one
-  real(r8) :: beta_V(nvoc)                     ! soil texture type based on BATS landuse types     
-  real(r8) :: Anew(nvoc)                     ! relative emission activity for new foilage                           
-  real(r8) :: Aold(nvoc)                     ! relative emission activity for old foilage                           
-  real(r8) :: Agro(nvoc)                     ! relative emission activity for growing foilage               
-  real(r8) :: Amat(nvoc)                     ! relative emission activity for mature foilage               
+  real(r8) :: beta_V(nvoc)                     ! soil texture type based on BATS landuse types
+  real(r8) :: Anew(nvoc)                     ! relative emission activity for new foilage
+  real(r8) :: Aold(nvoc)                     ! relative emission activity for old foilage
+  real(r8) :: Agro(nvoc)                     ! relative emission activity for growing foilage
+  real(r8) :: Amat(nvoc)                     ! relative emission activity for mature foilage
 !  data LDF/0.9999_r8,0.05_r8,0.1_r8,0.5_r8,0.5_r8,0.9999_r8,0.1_r8,0.1_r8,0.8_r8,0.05_r8,0.1_r8, &
-!           0.5_r8,0.5_r8,0.5_r8,0.75_r8,0.25_r8,0.75_r8,0.0_r8,0.5_r8,0.5_r8/            
+!           0.5_r8,0.5_r8,0.5_r8,0.75_r8,0.25_r8,0.75_r8,0.0_r8,0.5_r8,0.5_r8/
 !  data beta_V/0.09_r8,0.1_r8,0.1_r8,0.1_r8,0.09_r8,0.09_r8,0.1_r8,0.1_r8,0.1_r8,0.1_r8,0.1_r8, &
 !            0.17_r8,0.17_r8,0.17_r8,0.08_r8,0.11_r8,0.05_r8,0.11_r8,0.13_r8,0.09_r8/
 !  data Anew/0.05_r8,2._r8,2._r8,2._r8,1._r8,0.05_r8,2._r8,2._r8,2._r8,2._r8,2._r8,0.4_r8,0.4_r8, &

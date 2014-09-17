@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-  
+
 module mod_sun
 !
 ! Sun zenith and declination
@@ -46,7 +46,7 @@ module mod_sun
    ! Lean (GRL 2000) with Wang Lean Sheeley (ApJ 2005) background
    ! Mon Apr  6 11:29:27 2009
    ! PMOD absolute scale , multiply by 0.9965 for TIM scale
-   ! YEAR, TSI 11-yr cycle, TSI cycle+background  
+   ! YEAR, TSI 11-yr cycle, TSI cycle+background
    !
    data ((tsi(ii,jj),ii=1,3),jj=1610,2008) / &
        1610.5D0,1365.8477D0,1365.5469D0, 1611.5D0,1365.8342D0,1365.5300D0, &

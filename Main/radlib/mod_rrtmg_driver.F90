@@ -66,7 +66,7 @@ module mod_rrtmg_driver
          swdvisflx
 
   real(rk8) , pointer , dimension(:,:,:) :: cldfmcl , taucmcl , ssacmcl , &
-         asmcmcl , fsfcmcl , ciwpmcl , clwpmcl 
+         asmcmcl , fsfcmcl , ciwpmcl , clwpmcl
   real(rk8) , pointer , dimension(:,:,:) :: cldfmcl_lw , taucmcl_lw , &
          ciwpmcl_lw , clwpmcl_lw
 
@@ -74,7 +74,7 @@ module mod_rrtmg_driver
   real(rk8) , pointer , dimension(:) :: aerlwfo , aerlwfos
   real(rk8) , pointer , dimension(:,:) :: fice , wcl , wci , gcl , gci , &
          fcl , fci , tauxcl , tauxci , h2ommr , n2ommr , ch4mmr ,       &
-         cfc11mmr , cfc12mmr , deltaz 
+         cfc11mmr , cfc12mmr , deltaz
   real(rk8) , pointer , dimension(:,:,:) :: outtaucl , outtauci
 
   integer(ik4) , pointer , dimension(:) :: ioro
@@ -264,7 +264,7 @@ module mod_rrtmg_driver
     iplon = 1 ! not effectively used
 
     ! adjustment of earthsun distance:
-    ! if dyofyr = 0, we pass directly the ecc. factor in adjes, 
+    ! if dyofyr = 0, we pass directly the ecc. factor in adjes,
     ! otherwise it is calculated in RRTM as a function of day of the year.
     dyofyr = 0
     adjes = eccf
@@ -275,7 +275,7 @@ module mod_rrtmg_driver
 
     !
     ! Call to the shortwave radiation code as soon one element of czen is > 0.
-    ! 
+    !
 
     if ( maxval(m2r%coszrs) > dlowval) then
       ! generates cloud properties:
@@ -323,10 +323,10 @@ module mod_rrtmg_driver
       swhrc(:,:) = d_zero
       swdvisflx(:,:) = d_zero
       swddiruviflx(:,:) = d_zero
-      swddifuviflx(:,:) = d_zero 
+      swddifuviflx(:,:) = d_zero
       swddirpirflx(:,:) = d_zero
       swddifpirflx(:,:) = d_zero
-    end if ! end shortwave call 
+    end if ! end shortwave call
 
     ! LW call :
 
@@ -337,15 +337,15 @@ module mod_rrtmg_driver
                          ciwpmcl_lw,clwpmcl_lw,reicmcl,relqmcl,     &
                          taucmcl_lw)
     tauaer_lw = d_zero
-    !  provisoire similar ti default std 
+    !  provisoire similar ti default std
     do k = 1,nbndlw
       emis_surf(:,k) = 1.D0
       ! = m2r%emiss(:)
-    end do 
+    end do
 
     idrv = 0
 
-    call rrtmg_lw(npr,kth,icld,idrv,play,plev,tlay,tlev,tsfc,  & 
+    call rrtmg_lw(npr,kth,icld,idrv,play,plev,tlay,tlev,tsfc,  &
                   h2ovmr,o3vmr,co2vmr,ch4vmr,n2ovmr,o2vmr,      &
                   cfc11vmr,cfc12vmr,cfc22vmr,ccl4vmr,emis_surf, &
                   inflglw,iceflglw,liqflglw,cldfmcl_lw,         &
@@ -353,8 +353,8 @@ module mod_rrtmg_driver
                   relqmcl,tauaer_lw,lwuflx,lwdflx,lwhr,lwuflxc, &
                   lwdflxc,lwhrc,duflx_dt,duflxc_dt)
 
-    ! Output and interface 
-    ! 
+    ! Output and interface
+    !
     ! EES  next 3 added, they are calculated in radcsw : but not used further
     ! fsnirt   - Near-IR flux absorbed at toa
     ! fsnrtc   - Clear sky near-IR flux absorbed at toa
@@ -383,7 +383,7 @@ module mod_rrtmg_driver
     solsd(:) =  swddifuviflx(:,1)
     soll(:) =  swddirpirflx(:,1)
     solld(:) =  swddifpirflx(:,1)
-    ! LW incident 
+    ! LW incident
     slwd(:) = lwdflx(:,1)
 
     ! 3d heating rate back on regcm grid and converted to K.S-1
@@ -391,9 +391,9 @@ module mod_rrtmg_driver
       kj = kzp1-k
       qrs(:,kj) = swhr(:,k) / secpd
       qrl(:,kj) = lwhr(:,k) / secpd
-      cld_int(:,kj) = cldf(:,k) !ouptut : these are in cloud diagnostics  
+      cld_int(:,kj) = cldf(:,k) !ouptut : these are in cloud diagnostics
       clwp_int(:,kj) = clwp(:,k)
-    end do 
+    end do
 
     ! Finally call radout for coupling to BATS/CLM/ATM and outputing fields
     ! in RAD files : these are diagnostics that are passed to radout but
@@ -446,11 +446,11 @@ module mod_rrtmg_driver
 !   0.003) in order to specify the index appropriate for the
 !   near-infrared cloud absorption properties
 !
-!   the 14 RRTM SW bands intervall are given in wavenumber (wavenum1/2): 
+!   the 14 RRTM SW bands intervall are given in wavenumber (wavenum1/2):
 !   equivalence in micrometer are
-!   3.07-3.84 / 2.50-3.07 / 2.15-2.5 / 1.94-2.15 / 1.62-1.94 / 
-!   1.29-1.62 / 1.24-1.29 / 0.778-1.24 / 0.625-0.778 / 0.441-0.625 / 
-!   0.344-0.441 / 0.263-0.344 / 0.200-0.263 / 3.846-12.195 
+!   3.07-3.84 / 2.50-3.07 / 2.15-2.5 / 1.94-2.15 / 1.62-1.94 /
+!   1.29-1.62 / 1.24-1.29 / 0.778-1.24 / 0.625-0.778 / 0.441-0.625 /
+!   0.344-0.441 / 0.263-0.344 / 0.200-0.263 / 3.846-12.195
 !   A. Slingo's data for cloud particle radiative properties
 !   (from 'A GCM Parameterization for the Shortwave Properties of Water
 !   Clouds' JAS vol. 46 may 1989 pp 1419-1427)
@@ -475,7 +475,7 @@ module mod_rrtmg_driver
                                 cbarl , dbari , dbarl , ebari , ebarl , &
                                 fbari , fbarl
     real(rk8) :: abarii , abarli , bbarii , bbarli , cbarii , cbarli , &
-                dbarii , dbarli , ebarii , ebarli , fbarii , fbarli 
+                dbarii , dbarli , ebarii , ebarli , fbarii , fbarli
 
     real(rk8) , parameter :: c287 = 0.287D+00
 !
@@ -485,7 +485,7 @@ module mod_rrtmg_driver
     data dbarl / 1.630D-07 ,  2.350D-05 , 1.240D-03 , 7.560D-03/
     data ebarl / 0.829D+00 ,  0.794D+00 , 0.754D+00 , 0.826D+00/
     data fbarl / 2.482D-03 ,  4.226D-03 , 6.560D-03 , 4.353D-03/
-! 
+!
     data abari / 3.4480D-03 , 3.4480D-03 , 3.4480D-03 , 3.44800D-03/
     data bbari / 2.4310D+00 , 2.4310D+00 , 2.4310D+00 , 2.43100D+00/
     data cbari / 1.0000D-05 , 1.1000D-04 , 1.8610D-02 , 0.46658D+00/
@@ -498,7 +498,7 @@ module mod_rrtmg_driver
     !
     data indsl /4,4,3,3,3,3,3,2,2,1,1,1,1,4 /
 
-    ! CONVENTION : RRTMG driver takes layering form botom to TOA. 
+    ! CONVENTION : RRTMG driver takes layering form botom to TOA.
     ! regcm consider Top to bottom
 
     ! surface pressure and scaled pressure, from which level are computed
@@ -538,7 +538,7 @@ module mod_rrtmg_driver
     !
     do k = 1 , kzp1
       n = 1
-      kj = kzp1-k+1   
+      kj = kzp1-k+1
       do i = ici1 , ici2
         do j = jci1 , jci2
           plev(n,kj) = (m2r%psb(j,i)*sigma(k)+ptop)*d_10
@@ -563,7 +563,7 @@ module mod_rrtmg_driver
     ! air temperatures
     !
     do k = 1 , kz
-      kj = kzp1-k 
+      kj = kzp1-k
       n = 1
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -593,13 +593,13 @@ module mod_rrtmg_driver
       do n = 1 , npr
         w1 =  (hsigma(kj) - sigma(kj)) / (hsigma(kj) - hsigma(kj-1))
         w2 =  (sigma(kj) - hsigma(kj-1) ) / (hsigma(kj) - hsigma(kj-1))
-        if (k < kz-1) then    
+        if (k < kz-1) then
           tlev(n,k) =  w1*tlay(n,k-1) * (plev(n,k)/play(n,k-1))**c287 + &
-                       w2*tlay(n,k)   * (plev(n,k)/play(n,k))**c287     
-        else 
+                       w2*tlay(n,k)   * (plev(n,k)/play(n,k))**c287
+        else
           ! linear interpolation for last upper tropospheric levels
-          tlev(n,k) =  w1*tlay(n,k-1) + w2*tlay(n,k)     
-        end if 
+          tlev(n,k) =  w1*tlay(n,k-1) + w2*tlay(n,k)
+        end if
       end do
     end do
     do k = kzp1 , ktf
@@ -614,7 +614,7 @@ module mod_rrtmg_driver
     !
     ! h2o volume mixing ratio
     !
-    do k = 1 , kz 
+    do k = 1 , kz
       kj = kzp1 - k
       n = 1
       do i = ici1 , ici2
@@ -692,8 +692,8 @@ module mod_rrtmg_driver
         ! No data FOR NOW : IMPROVE !!
         !
         cfc22vmr(n,k) = d_zero
-        ccl4vmr(n,k)  = d_zero 
-      end do 
+        ccl4vmr(n,k)  = d_zero
+      end do
     end do
     !
     ! deltaz
@@ -706,7 +706,7 @@ module mod_rrtmg_driver
     end do
 
     ! cloud fraction and cloud liquid waterpath calculation:
-    ! as in STANDARD SCHEME for now (getdat) : We need to improve this 
+    ! as in STANDARD SCHEME for now (getdat) : We need to improve this
     ! according to new cloud microphysics!
     ! fractional cloud cover (dependent on relative humidity)
     !
@@ -765,7 +765,7 @@ module mod_rrtmg_driver
     !
     ! CLOUD Properties:
     !
-    ! cloud effective radius 
+    ! cloud effective radius
     !   NB: orography types are specified in the following
     !
     n = 1
@@ -779,7 +779,7 @@ module mod_rrtmg_driver
     call cldefr_rrtm(tlay,rel,rei,fice,play)
     !
     !  partition of total  water path betwwen liquide and ice.
-    ! ( waiting for prognostic ice !) 
+    ! ( waiting for prognostic ice !)
     !
     do k = 1 , kth
       do n = 1 , npr
@@ -788,12 +788,12 @@ module mod_rrtmg_driver
         ! now clwp is liquide only !
       end do
     end do
-    ! 
+    !
     ! Cloud optical properties(tau,ssa,g,f) :
     ! 2 options :
     ! inflgsw == 0 : treated as the standard radiation scheme and
     !                passed to McICA/ RRTM
-    ! inflgsw == 2 : direcly calculated within RRTMsw 
+    ! inflgsw == 2 : direcly calculated within RRTMsw
     !
     ! initialise and  begin spectral loop
     !
@@ -805,7 +805,7 @@ module mod_rrtmg_driver
     outtaucl(:,:,:) = d_zero
     outtauci(:,:,:) = d_zero
 
-    if ( inflagsw == 0 ) then 
+    if ( inflagsw == 0 ) then
       do ns = 1 , nbndsw
         !
         !     Set cloud extinction optical depth, single scatter albedo,
@@ -826,7 +826,7 @@ module mod_rrtmg_driver
 !
         do k = 1 , kz
           do n = 1 , npr
-            if ( clwp(n,k) < dlowval .and. ciwp(n,k) < dlowval) cycle 
+            if ( clwp(n,k) < dlowval .and. ciwp(n,k) < dlowval) cycle
             ! liquid
             tmp1l = abarli + bbarli/rel(n,k)
             tmp2l = d_one - cbarli - dbarli*rel(n,k)
@@ -849,7 +849,7 @@ module mod_rrtmg_driver
             wci(n,k) = dmin1(tmp2i,verynearone)
             gci(n,k) = ebarii + tmp3i
             fci(n,k) = gci(n,k)*gci(n,k)
-            tauc(ns,:,k) = tauxcl(n,k) + tauxci(n,k) 
+            tauc(ns,:,k) = tauxcl(n,k) + tauxci(n,k)
             ssac(ns,:,k) = (tauxcl(n,k) * wcl(n,k) + &
                             tauxci(n,k) * wci(n,k) ) / tauc (ns,:,k)
             asmc(ns,:,k) = (tauxcl(n,k) * gcl(n,k) + &
@@ -862,7 +862,7 @@ module mod_rrtmg_driver
     end if  ! inflagsw
   end subroutine prep_dat_rrtm
 !
-! for now we use for RRTM the same param as in standard rad 
+! for now we use for RRTM the same param as in standard rad
 !
   subroutine cldefr_rrtm(t,rel,rei,fice,pmid)
     implicit none
@@ -900,7 +900,7 @@ module mod_rrtmg_driver
           !
           ! Effective liquid radius over land
           !
-          rliq = d_five+d_five* & 
+          rliq = d_five+d_five* &
                   dmin1(d_one,dmax1(d_zero,(minus10-t(n,k))*0.05D0))
         end if
         rel(n,k) = rliq

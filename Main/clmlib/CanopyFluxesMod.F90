@@ -30,7 +30,7 @@ module CanopyFluxesMod
 ! Created by Mariana Vertenstein
 ! 4/25/05, Peter Thornton: replaced old Stomata subroutine with what
 !   used to be called StomataCN, as part of migration to new sun/shade
-!   algorithms. 
+!   algorithms.
 !
 !EOP
 !------------------------------------------------------------------------------
@@ -40,7 +40,7 @@ contains
 !------------------------------------------------------------------------------
 !BOP
 !
-! !IROUTINE: CanopyFluxes 
+! !IROUTINE: CanopyFluxes
 !
 ! !INTERFACE:
   subroutine CanopyFluxes(lbg, ubg, lbc, ubc, lbp, ubp, &
@@ -134,7 +134,7 @@ contains
    ! 4/14/05: PET
    ! Adding isotope code
    real(r8), pointer :: forc_pc13o2(:) ! partial pressure c13o2 (Pa)
-   
+
    real(r8), pointer :: forc_po2(:)    ! partial pressure o2 (Pa)
    real(r8), pointer :: forc_q(:)      ! atmospheric specific humidity (kg/kg)
    real(r8), pointer :: forc_u(:)      ! atmospheric wind speed in east direction (m/s)
@@ -199,7 +199,7 @@ contains
    real(r8), pointer :: rc13_psnsha(:)     !C13O2/C12O2 in shaded canopy psn flux
    real(r8), pointer :: alphapsnsun(:)     !fractionation factor in sunlit canopy psn flux
    real(r8), pointer :: alphapsnsha(:)     !fractionation factor in shaded canopy psn flux
-   
+
    real(r8), pointer :: qflx_tran_veg(:)   ! vegetation transpiration (mm H2O/s) (+ = to atm)
    real(r8), pointer :: dt_veg(:)          ! change in t_veg, last iteration (Kelvin)
    real(r8), pointer :: qflx_evap_veg(:)   ! vegetation evaporation (mm H2O/s) (+ = to atm)
@@ -210,7 +210,7 @@ contains
    real(r8), pointer :: qflx_evap_soi(:)   ! soil evaporation (mm H2O/s) (+ = to atm)
    real(r8), pointer :: fpsn(:)            ! photosynthesis (umol CO2 /m**2 /s)
    real(r8), pointer :: rootr(:,:)         ! effective fraction of roots in each soil layer
-   real(r8), pointer :: rresis(:,:)        ! root resistance by layer (0-1)  (nlevsoi)	
+   real(r8), pointer :: rresis(:,:)        ! root resistance by layer (0-1)  (nlevsoi)
 !abt rcm below
    real(r8), pointer :: uvdrag(:)          ! surface wind drag
 !abt rcm above
@@ -297,7 +297,7 @@ contains
    ! 4/14/05: PET
    ! Adding isotope code
    real(r8) :: c13o2(lbp:ubp)        ! atmospheric c13o2 partial pressure (pa)
-   
+
    real(r8) :: o2(lbp:ubp)           ! atmospheric o2 partial pressure (pa)
    real(r8) :: svpts(lbp:ubp)        ! saturation vapor pressure at t_veg (pa)
    real(r8) :: eah(lbp:ubp)          ! canopy air vapor pressure (pa)
@@ -354,8 +354,8 @@ contains
 
    t_soisno       => clm3%g%l%c%ces%t_soisno
    watsat         => clm3%g%l%c%cps%watsat
-   watdry         => clm3%g%l%c%cps%watdry 
-   watopt         => clm3%g%l%c%cps%watopt 
+   watdry         => clm3%g%l%c%cps%watdry
+   watopt         => clm3%g%l%c%cps%watopt
    h2osoi_ice     => clm3%g%l%c%cws%h2osoi_ice
    dz             => clm3%g%l%c%cps%dz
    h2osoi_liq     => clm3%g%l%c%cws%h2osoi_liq
@@ -412,7 +412,7 @@ contains
    rc13_psnsha    => clm3%g%l%c%p%pepv%rc13_psnsha
    alphapsnsun    => clm3%g%l%c%p%pps%alphapsnsun
    alphapsnsha    => clm3%g%l%c%p%pps%alphapsnsha
-   
+
    elai           => clm3%g%l%c%p%pps%elai
    esai           => clm3%g%l%c%p%pps%esai
    fdry           => clm3%g%l%c%p%pps%fdry
@@ -437,7 +437,7 @@ contains
    cgrndl         => clm3%g%l%c%p%pef%cgrndl
    cgrnd          => clm3%g%l%c%p%pef%cgrnd
    fpsn           => clm3%g%l%c%p%pcf%fpsn
-      
+
    ! Assign local pointers to derived type members (ecophysiological)
 
    dleaf          => pftcon%dleaf
@@ -503,7 +503,7 @@ contains
                           (smp_node - smpsc(ivt(p))) / (smpso(ivt(p)) - smpsc(ivt(p))), 1._r8)
             rootr(p,j) = rootfr(p,j)*rresis(p,j)
             btran(p) = btran(p) + rootr(p,j)
-         endif 
+         endif
       end do
    end do
 
@@ -547,11 +547,11 @@ contains
 
       co2(p) = forc_pco2(g)
       o2(p)  = forc_po2(g)
-      
+
       ! 4/14/05: PET
       ! Adding isotope code
       c13o2(p) = forc_pc13o2(g)
-      
+
       ! Initialize flux profile
 
       nmozsgn(p) = 0
@@ -593,12 +593,12 @@ contains
 
    ! Set counter for leaf temperature iteration (itlef)
 
-   itlef = 0    
+   itlef = 0
    fnorig = fn
    fporig(1:fn) = filterp(1:fn)
 
    ! Make copies so that array sections are not passed in function calls to friction velocity
-   
+
 !dir$ concurrent
 !cdir nodep
    do f = 1, fn
@@ -777,7 +777,7 @@ contains
          efpot = forc_rho(g)*wtl*(wtgaq*(qsatl(p)+qsatldT(p)*dt_veg(p)) &
             -wtgq0*qg(c)-wtaq0(p)*forc_q(g))
          qflx_evap_veg(p) = rpp*efpot
-         
+
          ! Calculation of evaporative potentials (efpot) and
          ! interception losses; flux in kg m**-2 s-1.  ecidif
          ! holds the excess energy if all intercepted water is evaporated
@@ -917,13 +917,13 @@ contains
       cgrnd(p)  = cgrnds(p) + cgrndl(p)*htvp(c)
 
       ! Update dew accumulation (kg/m2)
-      
+
       h2ocan(p) = max(0._r8,h2ocan(p)+(qflx_tran_veg(p)-qflx_evap_veg(p))*dtime)
-      
+
       ! total photosynthesis
 
       fpsn(p) = psnsun(p)*laisun(p) + psnsha(p)*laisha(p)
-      
+
 #if (defined CN)
       ! 4/14/05: PET
       ! Adding isotope code
@@ -933,8 +933,8 @@ contains
       c13_psnsun(p) = psnsun(p) * (rc13_psnsun(p)/(1._r8+rc13_psnsun(p)))
       c13_psnsha(p) = psnsha(p) * (rc13_psnsha(p)/(1._r8+rc13_psnsha(p)))
       !write(6,*) p,ivt(p),btran(p),psnsun(p),psnsha(p),alphapsnsun(p),alphapsnsha(p)
-#endif     
-      
+#endif
+
    end do
 
    ! Filter out pfts which have small energy balance errors; report others
@@ -964,7 +964,7 @@ contains
 ! !INTERFACE:
    subroutine Stomata (fn, filterp, lbp, ubp, ei, ea, o2, co2, rb, phase)
 !
-! !DESCRIPTION: 
+! !DESCRIPTION:
 ! Leaf stomatal resistance and leaf photosynthesis. Modifications for CN code.
 
 ! !REVISION HISTORY:
@@ -979,7 +979,7 @@ contains
 ! !USES:
      use shr_kind_mod , only : r8 => shr_kind_r8
      use shr_const_mod, only : SHR_CONST_TKFRZ, SHR_CONST_RGAS
-     use clmtype	
+     use clmtype
      use clm_atmlnd   , only : clm_a2l
      use spmdMod, only: masterproc
 !
@@ -1103,16 +1103,16 @@ contains
         ci     => clm3%g%l%c%p%pps%cisun
         alphapsn  => clm3%g%l%c%p%pps%alphapsnsun
         sla    => clm3%g%l%c%p%pps%slasun
-        lnc    => clm3%g%l%c%p%pps%lncsun   
-        vcmx   => clm3%g%l%c%p%pps%vcmxsun   
+        lnc    => clm3%g%l%c%p%pps%lncsun
+        vcmx   => clm3%g%l%c%p%pps%vcmxsun
      else if (phase == 'sha') then
         apar   => clm3%g%l%c%p%pef%parsha
         rs     => clm3%g%l%c%p%pps%rssha
         psn    => clm3%g%l%c%p%pcf%psnsha
         ci     => clm3%g%l%c%p%pps%cisha
-        sla    => clm3%g%l%c%p%pps%slasha   
+        sla    => clm3%g%l%c%p%pps%slasha
         alphapsn  => clm3%g%l%c%p%pps%alphapsnsha
-        lnc    => clm3%g%l%c%p%pps%lncsha   
+        lnc    => clm3%g%l%c%p%pps%lncsha
         vcmx   => clm3%g%l%c%p%pps%vcmxsha
      end if
 #if (defined DGVM)
@@ -1153,7 +1153,7 @@ contains
      act25 = 3.6_r8
      q10act = 2.4_r8
      fnr = 7.16_r8
-     
+
      ! Convert rubisco activity units from umol/mgRubisco/min -> umol/gRubisco/s
 
      act25 = act25 * 1000.0_r8 / 60.0_r8
@@ -1170,7 +1170,7 @@ contains
         ! Set constants
 
         rsmax0 = 2.e4_r8
-        cf = forc_pbot(g)/(SHR_CONST_RGAS*0.001_r8*tgcm(c))*1.e06_r8 
+        cf = forc_pbot(g)/(SHR_CONST_RGAS*0.001_r8*tgcm(c))*1.e06_r8
         if (apar(p) <= 0._r8) then          ! night time
            rs(p) = min(rsmax0, 1._r8/bp * cf)
            psn(p) = 0._r8
@@ -1179,13 +1179,13 @@ contains
            alphapsn(p) = 1._r8
         else                             ! day time
            tc = tl(p) - SHR_CONST_TKFRZ
-           ppf = 4.6_r8 * apar(p)                  
+           ppf = 4.6_r8 * apar(p)
            j = ppf * qe25(ivt(p))
-           kc = kc25 * f1(akc,tc)       
+           kc = kc25 * f1(akc,tc)
            ko = ko25 * f1(ako,tc)
            awc = kc * (1._r8+o2(p)/ko)
            cp = 0.5_r8*kc/ko*o2(p)*0.21_r8
-           
+
            ! new calculations for vcmax, 1/26/04
            lnc(p) = 1._r8 / (sla(p) * leafcn(ivt(p)))
 		   act = act25 * f1(q10act,tc)
@@ -1194,7 +1194,7 @@ contains
 #else
            vcmx(p) = lnc(p) * flnr(ivt(p)) * fnr * act / f2(tc) * btran(p) * fnitr(ivt(p))
 #endif
-           
+
 #if (defined DGVM)
            vcmxpot = vcmx25(ivt(p)) * f1(avcmx,tc) / f2(tc)
 #endif
@@ -1205,11 +1205,11 @@ contains
 
            ! rb: s/m -> s m**2 / umol
 
-           rb(p) = rb(p)/cf 
+           rb(p) = rb(p)/cf
 
            ! Constrain ea
 
-           cea = max(0.25_r8*ei(p)*c3psn(ivt(p))+0.40_r8*ei(p)*(1._r8-c3psn(ivt(p))), min(ea(p),ei(p)) ) 
+           cea = max(0.25_r8*ei(p)*c3psn(ivt(p))+0.40_r8*ei(p)*(1._r8-c3psn(ivt(p))), min(ea(p),ei(p)) )
 
 #if (defined DGVM)
            ! ci iteration for 'potential' photosynthesis
@@ -1250,8 +1250,8 @@ contains
            !
            wj = max(ci(p)-cp,0._r8)*j/(ci(p)+2._r8*cp)*c3psn(ivt(p)) + j*(1._r8-c3psn(ivt(p)))
            wc = max(ci(p)-cp,0._r8)*vcmx(p)/(ci(p)+awc)*c3psn(ivt(p)) + vcmx(p)*(1._r8-c3psn(ivt(p)))
-           we = 0.5_r8*vcmx(p)*c3psn(ivt(p)) + 4000._r8*vcmx(p)*ci(p)/forc_pbot(g)*(1._r8-c3psn(ivt(p))) 
-           psn(p) = min(wj,wc,we) 
+           we = 0.5_r8*vcmx(p)*c3psn(ivt(p)) + 4000._r8*vcmx(p)*ci(p)/forc_pbot(g)*(1._r8-c3psn(ivt(p)))
+           psn(p) = min(wj,wc,we)
            cs = max( co2(p)-1.37_r8*rb(p)*forc_pbot(g)*psn(p), mpe )
            atmp = mp(ivt(p))*psn(p)*forc_pbot(g)*cea / (cs*ei(p)) + bp
            btmp = ( mp(ivt(p))*psn(p)*forc_pbot(g)/cs + bp ) * rb(p) - 1._r8
@@ -1270,8 +1270,8 @@ contains
            !
            wj = max(ci(p)-cp,0._r8)*j/(ci(p)+2._r8*cp)*c3psn(ivt(p)) + j*(1._r8-c3psn(ivt(p)))
            wc = max(ci(p)-cp,0._r8)*vcmx(p)/(ci(p)+awc)*c3psn(ivt(p)) + vcmx(p)*(1._r8-c3psn(ivt(p)))
-           we = 0.5_r8*vcmx(p)*c3psn(ivt(p)) + 4000._r8*vcmx(p)*ci(p)/forc_pbot(g)*(1._r8-c3psn(ivt(p))) 
-           psn(p) = min(wj,wc,we) 
+           we = 0.5_r8*vcmx(p)*c3psn(ivt(p)) + 4000._r8*vcmx(p)*ci(p)/forc_pbot(g)*(1._r8-c3psn(ivt(p)))
+           psn(p) = min(wj,wc,we)
            cs = max( co2(p)-1.37_r8*rb(p)*forc_pbot(g)*psn(p), mpe )
            atmp = mp(ivt(p))*psn(p)*forc_pbot(g)*cea / (cs*ei(p)) + bp
            btmp = ( mp(ivt(p))*psn(p)*forc_pbot(g)/cs + bp ) * rb(p) - 1._r8
@@ -1290,8 +1290,8 @@ contains
            !
            wj = max(ci(p)-cp,0._r8)*j/(ci(p)+2._r8*cp)*c3psn(ivt(p)) + j*(1._r8-c3psn(ivt(p)))
            wc = max(ci(p)-cp,0._r8)*vcmx(p)/(ci(p)+awc)*c3psn(ivt(p)) + vcmx(p)*(1._r8-c3psn(ivt(p)))
-           we = 0.5_r8*vcmx(p)*c3psn(ivt(p)) + 4000._r8*vcmx(p)*ci(p)/forc_pbot(g)*(1._r8-c3psn(ivt(p))) 
-           psn(p) = min(wj,wc,we) 
+           we = 0.5_r8*vcmx(p)*c3psn(ivt(p)) + 4000._r8*vcmx(p)*ci(p)/forc_pbot(g)*(1._r8-c3psn(ivt(p)))
+           psn(p) = min(wj,wc,we)
            cs = max( co2(p)-1.37_r8*rb(p)*forc_pbot(g)*psn(p), mpe )
            atmp = mp(ivt(p))*psn(p)*forc_pbot(g)*cea / (cs*ei(p)) + bp
            btmp = ( mp(ivt(p))*psn(p)*forc_pbot(g)/cs + bp ) * rb(p) - 1._r8
@@ -1310,8 +1310,8 @@ contains
            do iter = 1, niter
               wj = max(ci(p)-cp,0._r8)*j/(ci(p)+2._r8*cp)*c3psn(ivt(p)) + j*(1._r8-c3psn(ivt(p)))
               wc = max(ci(p)-cp,0._r8)*vcmx(p)/(ci(p)+awc)*c3psn(ivt(p)) + vcmx(p)*(1._r8-c3psn(ivt(p)))
-              we = 0.5_r8*vcmx(p)*c3psn(ivt(p)) + 4000._r8*vcmx(p)*ci(p)/forc_pbot(g)*(1._r8-c3psn(ivt(p))) 
-              psn(p) = min(wj,wc,we) 
+              we = 0.5_r8*vcmx(p)*c3psn(ivt(p)) + 4000._r8*vcmx(p)*ci(p)/forc_pbot(g)*(1._r8-c3psn(ivt(p)))
+              psn(p) = min(wj,wc,we)
               cs = max( co2(p)-1.37_r8*rb(p)*forc_pbot(g)*psn(p), mpe )
               atmp = mp(ivt(p))*psn(p)*forc_pbot(g)*cea / (cs*ei(p)) + bp
               btmp = ( mp(ivt(p))*psn(p)*forc_pbot(g)/cs + bp ) * rb(p) - 1._r8
@@ -1332,18 +1332,18 @@ contains
            annpsn(p) = annpsn(p) + psn(p)
 #endif
 
-           ! rs, rb:  s m**2 / umol -> s/m 
+           ! rs, rb:  s m**2 / umol -> s/m
 
            rs(p) = min(rsmax0, rs(p)*cf)
-           rb(p) = rb(p) * cf 
-           
+           rb(p) = rb(p) * cf
+
            ! 4/14/05: PET
            ! Adding isotope code
            alphapsn(p) = 1._r8 + (((c3psn(ivt(p)) * (4.4_r8 + (22.6_r8*(ci(p)/co2(p))))) + &
                          ((1._r8 - c3psn(ivt(p))) * 4.4_r8))/1000._r8)
            !alphapsn(p) = 1._r8
            !write(6,*) 'in StomataCN ',p,ivt(p),c3psn(ivt(p)),ci(p),co2(p),alphapsn(p)
-           
+
         end if
 
      end do

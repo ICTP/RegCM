@@ -30,7 +30,7 @@ contains
 !!abt added below rcm
     use clm_varsur   , only : satbrt_clm,init_tgb,init_snow
     use clm_varpar   , only : lsmlon,lsmlat
-    use clm_varsur   , only : slmo,iexsol,xmopor 
+    use clm_varsur   , only : slmo,iexsol,xmopor
     use decompMod    , only : ldecomp
     use pftvarcon    , only : smpsc
 !!abt above
@@ -139,7 +139,7 @@ contains
     h2ocan_pft     => clm3%g%l%c%p%pws%h2ocan
     t_veg          => clm3%g%l%c%p%pes%t_veg
     t_ref2m        => clm3%g%l%c%p%pes%t_ref2m
-    eflx_lwrad_out => clm3%g%l%c%p%pef%eflx_lwrad_out  
+    eflx_lwrad_out => clm3%g%l%c%p%pef%eflx_lwrad_out
 
     ! Determine subgrid bounds on this processor
 
@@ -150,7 +150,7 @@ contains
 
     do p = begp, endp
        h2ocan_pft(p) = 0._r8
-       
+
        ! added for canopy water mass balance under dynamic pft weights
        !clm3%g%l%c%p%pps%tlai(p) = 0._r8
        !clm3%g%l%c%p%pps%tsai(p) = 0._r8
@@ -352,9 +352,9 @@ contains
                 h2osoi_ice(c,j) = 0._r8
                 h2osoi_liq(c,j) = dz(c,j)*denh2o*h2osoi_vol(c,j)
 !             endif
-!Initialization with no ice to match BATS initialization 
+!Initialization with no ice to match BATS initialization
 !abt added section above
-   
+
 
 
 #if (defined CN)

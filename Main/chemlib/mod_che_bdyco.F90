@@ -29,17 +29,17 @@ module mod_che_bdyco
   use mod_realkinds
   use mod_dynparam
   use mod_memutil
-  use mod_mppparam  
+  use mod_mppparam
   use mod_runparams
   use mod_service
   use mod_mpmessage
   use mod_che_common
   use mod_che_mppio
-  use mod_che_ncio 
+  use mod_che_ncio
   use mod_che_species
   use mod_che_indices
   use mod_che_emission
-  use mod_mppparam  
+  use mod_mppparam
 
   implicit none
 
@@ -97,7 +97,7 @@ module mod_che_bdyco
       call getmem4d(oxcl,jde1-ma%jbl1,jde2+ma%jbr1, &
                          ide1-ma%ibb1,ide2+ma%ibt1, &
                          1,kz,1,noxcl,'che_bdyco:oxcl')
-    end if 
+    end if
   end subroutine allocate_mod_che_bdyco
 
   subroutine che_init_bdy
@@ -120,7 +120,7 @@ module mod_che_bdyco
       call chem_emission(lyear,lmonth,lday,lhour)
     end if
 
-    if ( ichebdy == 1 ) then 
+    if ( ichebdy == 1 ) then
 
       if ( chbdydate1 == globidate1 ) then
         chbc_date = chbdydate1
@@ -156,8 +156,8 @@ module mod_che_bdyco
         end if
       end do
 
-      ! handle oxidant climatology 
-      if ( ioxclim == 1 ) then 
+      ! handle oxidant climatology
+      if ( ioxclim == 1 ) then
         do n = 1 , noxcl
           do k = 1 , kz
             do i = ice1 , ice2
@@ -167,8 +167,8 @@ module mod_che_bdyco
             end do
           end do
         end do
-      end if 
-      
+      end if
+
       if ( myid == italk ) then
         appdat = tochar(chbdydate1)
         if ( .not. ifrest ) then
@@ -179,7 +179,7 @@ module mod_che_bdyco
       end if
 
       chbdydate2 = chbdydate2 + intbdy
- 
+
       if ( myid == italk ) then
         write (stdout,*) 'SEARCH CHBC data for ', toint10(chbdydate2)
       end if
@@ -256,7 +256,7 @@ module mod_che_bdyco
 
       ! handle oxc lima
 
-      if ( ioxclim == 1 ) then 
+      if ( ioxclim == 1 ) then
         call exchange(oxcl,1,jce1,jce2,ice1,ice2,1,kz,1,noxcl)
       end if
     else
@@ -279,7 +279,7 @@ module mod_che_bdyco
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
-  
+
     chib0(:,:,:,:) = chib1(:,:,:,:)
 
     if ( ichsursrc == 1 ) then
@@ -308,7 +308,7 @@ module mod_che_bdyco
       call read_chbc(chebdy)
 
       chib1 = d_zero
-      after = 0  
+      after = 0
       do n = 1 , size(ichbdy2trac)
         if ( ichbdy2trac(n) > 0 ) then
           do k = 1 , kz
@@ -352,8 +352,8 @@ module mod_che_bdyco
       end do
       call exchange(chibt,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
 
-      ! handle oxidant climatology 
-      if ( ioxclim == 1 ) then 
+      ! handle oxidant climatology
+      if ( ioxclim == 1 ) then
         call exchange(oxcl,1,jce1,jce2,ice1,ice2,1,kz,1,noxcl)
       end if
 
@@ -513,7 +513,7 @@ module mod_che_bdyco
     real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: ften
 !
     real(rk8) :: xf , xg
-    real(rk8), dimension(ntr) :: fls0 , fls1 , fls2 , fls3 , fls4 
+    real(rk8), dimension(ntr) :: fls0 , fls1 , fls2 , fls3 , fls4
 
     integer(ik4) :: i , j , k , ib
 #ifdef DEBUG

@@ -411,7 +411,7 @@ module mod_mppparam
     logical :: reorder
     logical , dimension(:) :: periods
   end subroutine mpi_cart_create
-  
+
   subroutine mpi_cart_coords(comm,rank,maxdims,coords,ierror)
     implicit none
     integer(ik4) :: comm , rank , maxdims , ierror
@@ -937,7 +937,7 @@ module mod_mppparam
           call fatal(__FILE__,__LINE__,'mpi_cart_rank error.')
         end if
       end if
-  
+
       ma%has_bdytop    = (ma%top    == mpi_proc_null)
       ma%has_bdybottom = (ma%bottom == mpi_proc_null)
       ma%has_bdyright  = (ma%right  == mpi_proc_null)
@@ -2306,7 +2306,7 @@ module mod_mppparam
     real(rk8) , pointer , dimension(:,:) , intent(in) :: ml    ! model local
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
     logical , intent(in) , optional :: lsub
-    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 
+    integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) , intent(in) , optional :: k
     integer(ik4) :: ib , i , j , kk , isize , jsize , lsize , icpu
     integer(ik4) :: jsub1 , isub1
@@ -5873,8 +5873,8 @@ module mod_mppparam
   end subroutine grid_nc_destroy_var4d
 
   subroutine gather_r(f_collect,f_sub)
-    implicit none 
-    real(rk8) , dimension(:) , intent(out) :: f_collect 
+    implicit none
+    real(rk8) , dimension(:) , intent(out) :: f_collect
     real(rk8) , intent(in) :: f_sub
     real(rk8) , dimension(1) :: tmp
     tmp(1) = f_sub
@@ -5886,8 +5886,8 @@ module mod_mppparam
   end subroutine gather_r
 
   subroutine gather_i(i_collect,i_sub)
-    implicit none 
-    integer(ik4) , dimension(:) , intent(out) :: i_collect 
+    implicit none
+    integer(ik4) , dimension(:) , intent(out) :: i_collect
     integer(ik4) , intent(in) :: i_sub
     integer(ik4) , dimension(1) :: tmp
     tmp(1) = i_sub
@@ -5899,8 +5899,8 @@ module mod_mppparam
   end subroutine gather_i
 
   subroutine allgather_r(f_collect,f_sub)
-    implicit none 
-    real(rk8) , dimension(:) , intent(out) :: f_collect 
+    implicit none
+    real(rk8) , dimension(:) , intent(out) :: f_collect
     real(rk8) , intent(in) :: f_sub
     real(rk8) , dimension(1) :: tmp
     tmp(1) = f_sub
@@ -5912,8 +5912,8 @@ module mod_mppparam
   end subroutine allgather_r
 
   subroutine allgather_i(i_collect,i_sub)
-    implicit none 
-    integer(ik4) , dimension(:) , intent(out) :: i_collect 
+    implicit none
+    integer(ik4) , dimension(:) , intent(out) :: i_collect
     integer(ik4) , intent(in) :: i_sub
     integer(ik4) , dimension(1) :: tmp
     tmp(1) = i_sub
@@ -6253,7 +6253,7 @@ module mod_mppparam
           np = np + 1
         end do
       end if
-    end if 
+    end if
     cl%linear_displ_g(:) = 0
     do np = 2 , nproc
       cl%linear_displ_g(np) = cl%linear_displ_g(np-1) + &
@@ -6288,7 +6288,7 @@ module mod_mppparam
             np = np + 1
           end do
         end if
-      end if 
+      end if
       cl%linear_displ_sg(:) = 0
       do np = 2 , nproc
         cl%linear_displ_sg(np) = cl%linear_displ_sg(np-1) + &

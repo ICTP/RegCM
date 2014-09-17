@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_cu_em
 !
 ! Kerry Emanuel Convective scheme
@@ -78,9 +78,9 @@ module mod_cu_em
     c2m%kcumtop(:,:) = 0
     c2m%kcumbot(:,:) = 0
     ktop = 1
-    if ( ichem == 1 ) then 
+    if ( ichem == 1 ) then
       c2m%convpr(:,:,:) = d_zero
-      ntra = ntr      
+      ntra = ntr
     else
       ntra = 0
     end if
@@ -98,8 +98,8 @@ module mod_cu_em
           vcup(k) = m2c%vas(j,i,kk)                         ! [m/s]
           pcup(k) = m2c%pas(j,i,kk)*d_r100                  ! [hPa]
         end do
-        if (ichem == 1 ) then 
-          do k=1, kz       
+        if (ichem == 1 ) then
+          do k=1, kz
             kk = kzp1 - k
             tra(k,:) = m2c%chias(j,i,kk,:)                  ! [kg/kg]
           end do
@@ -111,13 +111,13 @@ module mod_cu_em
         cbmf = cbmf2d(j,i)                              ! [(kg/m**2)/s]
         elcrit = elcrit2d(j,i)
         epmax = epmax2d(j,i)
-   
+
         call cupeman(tcup,qcup,qscup,ucup,vcup,tra,pcup,phcup,kz,kzp1,  &
                      kzm1,ntra,iflag,ft,fq,fu,fv,ftra,pret,wd,          &
                      tprime,qprime,cbmf,kbase,ktop,elcrit,epmax)
-   
+
         cbmf2d(j,i) = cbmf
-   
+
         ! iflag=0: No moist convection; atmosphere stable or surface
         !          temperature < 250K or surface humidity is negative.
         ! iflag=1: Moist convection occurs.
@@ -129,7 +129,7 @@ module mod_cu_em
 !         if ( iflag == 4 ) then               ! If CFL violation
 !           write(stderr,*) 'EMAN CFL VIOLATION: ',i,j,cbmf
 !         end if
-   
+
           ! Tendencies
           do k = 1 , kz
             kk = kzp1 - k
@@ -148,8 +148,8 @@ module mod_cu_em
           if (ichem ==1 ) then
             do k = 1 , kz
               kk = kzp1 - k
-              c2m%chiten(j,i,kk,:) = ftra(k,:) * m2c%psb(j,i) 
-            end do 
+              c2m%chiten(j,i,kk,:) = ftra(k,:) * m2c%psb(j,i)
+            end do
           end if
 
           ! The order top/bottom for regcm is reversed.
@@ -163,7 +163,7 @@ module mod_cu_em
               c2m%convpr(j,i,kz-k+1) = pret
             end do
           end if
-   
+
           ! Precipitation
           if ( pret > dlowval ) then
             c2m%rainc(j,i)  = c2m%rainc(j,i)  + pret * dtsec  ! mm
@@ -354,21 +354,21 @@ module mod_cu_em
     real(rk8) , dimension(na,na,ntra) :: traent
     real(rk8) , dimension(na,ntra) :: trap
 !
-!   specify switches                        
+!   specify switches
 !
-!   ipbl: set to zero to bypass dry adiabatic adjustment      
-!         any other value results in dry adiabatic adjustment   
+!   ipbl: set to zero to bypass dry adiabatic adjustment
+!         any other value results in dry adiabatic adjustment
 !         (zero value recommended for use in models with boundary layer schemes)
 !
-!   minorig: lowest level from which convection may originate 
-!            (should be first model level at which t is defined   
+!   minorig: lowest level from which convection may originate
+!            (should be first model level at which t is defined
 !            for models using bulk pbl schemes; otherwise, it should
 !            be the first model level at which t is defined above
-!            the surface layer) 
+!            the surface layer)
 !
     ipbl = 0
 !
-!   assign values of thermodynamic constants, gravity, and liquid 
+!   assign values of thermodynamic constants, gravity, and liquid
 !   water density.  these should be consistent with those used in
 !   calling program
 !   note: these are also specified in subroutine tlift
@@ -564,7 +564,7 @@ module mod_cu_em
       return
     end if
 !
-!   find temperature up through icb and test for instability     
+!   find temperature up through icb and test for instability
 !
 !   subroutine tlift calculates part of the lifted parcel virtual
 !   temperature, the actual temperature and the adiabatic
@@ -576,7 +576,7 @@ module mod_cu_em
     end do
 !
 !   if there was no convection at last time step and parcel
-!   is stable at icb then skip rest of calculation     
+!   is stable at icb then skip rest of calculation
 !
     if ( dabs(cbmf) < mincbmf .and. tvp(icb) <= (tv(icb)-dtmax) ) then
       iflag = 0
@@ -693,7 +693,7 @@ module mod_cu_em
     end do
 !
 !   calculate cloud base mass flux and rates of mixing, m(i),
-!   at each model level                    
+!   at each model level
 !
     dbosum = d_zero
 !
@@ -736,7 +736,7 @@ module mod_cu_em
     end do
 !
 !   calculate entrained air mass flux (ment), total water mixing ratio (qent),
-!   total condensed water (elij), and mixing fraction (sij)         
+!   total condensed water (elij), and mixing fraction (sij)
 !
     do i = icb + 1 , inb
       qti = q(nk) - ep(i)*clw(i)
@@ -868,11 +868,11 @@ module mod_cu_em
 !
       jtt = 2
 !
-!     begin downdraft loop                   
+!     begin downdraft loop
 !
       do i = inb , 1 , -1
 !
-!       calculate detrained precipitation           
+!       calculate detrained precipitation
 !
         wdtrain = egrav*ep(i)*m(i)*clw(i)
         if ( i > 1 ) then
@@ -918,13 +918,13 @@ module mod_cu_em
           mp(i) = d_100*regrav*lv(i)*sigd*evap(i)/dhdp
           mp(i) = dmax1(mp(i),d_zero)
 !
-!         add small amount of inertia to downdraft             
+!         add small amount of inertia to downdraft
 !
           fac = 20.0D0/(ph(i-1)-ph(i))
           mp(i) = (fac*mp(i+1)+mp(i))/(d_one+fac)
 !
-!         force mp to decrease linearly to zero             
-!         between about 950 mb and the surface          
+!         force mp to decrease linearly to zero
+!         between about 950 mb and the surface
 !
           if ( p(i) > (0.949D0*p(1)) ) then
             jtt = max0(jtt,i)
@@ -971,7 +971,7 @@ module mod_cu_em
 !
 !
 !   calculate downdraft velocity scale and surface temperature and
-!   water vapor fluctuations         
+!   water vapor fluctuations
 !
     wd = betae*dabs(mp(icb))*0.01D0*rgas*t(icb)/(sigd*p(icb))
     qprime = (qp(1)-q(1))*d_half
@@ -1008,9 +1008,9 @@ module mod_cu_em
     end do
 !
 !   calculate tendencies of potential temperature and mixing ratio
-!   at levels above the lowest level    
+!   at levels above the lowest level
 !   first find the net saturated updraft and downdraft mass fluxes
-!   through each level          
+!   through each level
 !
     do i = 2 , inb
       dpinv = 0.01D0/(ph(i)-ph(i+1))

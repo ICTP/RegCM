@@ -129,8 +129,8 @@ module decompMod
   end interface
   public map_sn2dc
 !------------------------------------------------------------------------------
-! 
-! 
+!
+!
 !------------------------------------------------------------------------------
 
 contains
@@ -220,7 +220,7 @@ contains
 
           cnt = 0
           do lnidx = 0,lncnt(an)-1
-             ln = lnmap(lnoff(an)+lnidx)          
+             ln = lnmap(lnoff(an)+lnidx)
              cnt = cnt + 1
              lcid(ln) = cid
 
@@ -551,7 +551,7 @@ contains
 
           cnt = 0
           do lnidx = 0,lncnt(an)-1
-             ln = lnmap(lnoff(an)+lnidx)          
+             ln = lnmap(lnoff(an)+lnidx)
              cnt = cnt + 1
 !             call subgrid_get_gcellinfo (ln, wtxy, nlunits=ilunits, &
              call subgrid_get_gcellinfo (ln, nlunits=ilunits, &
@@ -659,7 +659,7 @@ contains
        write (6,*)
     end if
 
-    ! Write out clump and proc info, one pe at a time, 
+    ! Write out clump and proc info, one pe at a time,
     ! barrier to control pes overwriting each other on stdout
 
     call shr_sys_flush(6)
@@ -911,7 +911,7 @@ contains
        if (amask(an) == 1) then
           anumg  = anumg  + 1
 
-#if (1 == 0) 
+#if (1 == 0)
           !--- find clump with fewest pfts ---
           cid = 1
           do n = 2,nclumps
@@ -1065,7 +1065,7 @@ contains
        write (6,*)
     end if
 
-    ! Write out clump and proc info, one pe at a time, 
+    ! Write out clump and proc info, one pe at a time,
     ! barrier to control pes overwriting each other on stdout
 
     call shr_sys_flush(6)

@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_ocn_albedo
 
   use mod_intkinds
@@ -46,7 +46,7 @@ module mod_ocn_albedo
   real(rk8) , parameter :: sical1 = 0.4D0
 
   public :: ocn_albedo
- 
+
   contains
   !
   ! Albedo calculates fragmented albedos (direct and diffuse) in
@@ -67,7 +67,7 @@ module mod_ocn_albedo
 #endif
     do i = iocnbeg , iocnend
       czeta = czenith(i)
-      ! 
+      !
       !================================================================
       !       2.   get albedo
       !================================================================

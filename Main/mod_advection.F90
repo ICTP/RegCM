@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-   
+
 module mod_advection
   !
   ! Horizontal and vertical advection.
@@ -31,7 +31,7 @@ module mod_advection
   implicit none
 
   private
-   
+
   public :: init_advection, hadv , vadv
 
   interface hadv

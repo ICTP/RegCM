@@ -1,4 +1,4 @@
-! 
+!
 ! http://people.sc.fsu.edu/~jburkardt/f_src/linpack_d/linpack_d.html
 !
 ! LINPACK
@@ -451,13 +451,13 @@ subroutine schdc ( a, lda, p, work, ipvt, job, info )
 !
 !*******************************************************************************
 !
-!! SCHDC computes the Cholesky decomposition of a positive definite matrix. 
+!! SCHDC computes the Cholesky decomposition of a positive definite matrix.
 !
 !
 !  Discussion:
 !
-!    A pivoting option allows the user to estimate the condition of a 
-!    positive definite matrix or determine the rank of a positive 
+!    A pivoting option allows the user to estimate the condition of a
+!    positive definite matrix or determine the rank of a positive
 !    semidefinite matrix.
 !
 !    For positive definite matrices, INFO = P is the normal return.
@@ -479,7 +479,7 @@ subroutine schdc ( a, lda, p, work, ipvt, job, info )
 !
 !  Author:
 !
-!    J Dongarra and G Stewart, 
+!    J Dongarra and G Stewart,
 !    Argonne National Laboratory and University of Maryland.
 !
 !  Parameters:
@@ -500,19 +500,19 @@ subroutine schdc ( a, lda, p, work, ipvt, job, info )
 !    Input/output, integer IPVT(P).
 !    On input, IPVT contains integers that control the selection
 !    of the pivot elements, if pivoting has been requested.
-!    Each diagonal element A(K,K) is placed in one of three classes 
+!    Each diagonal element A(K,K) is placed in one of three classes
 !    according to the value of IPVT(K).
 !
 !      > 0, then X(K) is an initial element.
 !      = 0, then X(K) is a free element.
 !      < 0, then X(K) is a final element.
 !
-!    Before the decomposition is computed, initial elements are moved by 
-!    symmetric row and column interchanges to the beginning of the array A 
-!    and final elements to the end.  Both initial and final elements are 
-!    frozen in place during the computation and only free elements are moved.  
-!    At the K-th stage of the reduction, if A(K,K) is occupied by a free 
-!    element, it is interchanged with the largest free element A(L,L) with 
+!    Before the decomposition is computed, initial elements are moved by
+!    symmetric row and column interchanges to the beginning of the array A
+!    and final elements to the end.  Both initial and final elements are
+!    frozen in place during the computation and only free elements are moved.
+!    At the K-th stage of the reduction, if A(K,K) is occupied by a free
+!    element, it is interchanged with the largest free element A(L,L) with
 !    L >= K.  IPVT is not referenced if JOB is 0.
 !
 !    On output, IPVT(J) contains the index of the diagonal element
@@ -552,7 +552,7 @@ subroutine schdc ( a, lda, p, work, ipvt, job, info )
 
   if ( job /= 0 ) then
 !
-!  Pivoting has been requested. 
+!  Pivoting has been requested.
 !  Rearrange the the elements according to IPVT.
 !
     do k = 1, p
@@ -560,7 +560,7 @@ subroutine schdc ( a, lda, p, work, ipvt, job, info )
       swapk = ipvt(k) > 0
 
       negk = ipvt(k) < 0
- 
+
       if ( negk ) then
         ipvt(k) = -k
       else
@@ -592,7 +592,7 @@ subroutine schdc ( a, lda, p, work, ipvt, job, info )
 
         pl = pl + 1
 
-      end if     
+      end if
 
     end do
 
@@ -671,7 +671,7 @@ subroutine schdc ( a, lda, p, work, ipvt, job, info )
 
     end if
 !
-!  Reduction step. 
+!  Reduction step.
 !  Pivoting is contained across the rows.
 !
     work(k) = sqrt ( a(k,k) )
@@ -695,7 +695,7 @@ subroutine schdc ( a, lda, p, work, ipvt, job, info )
       call saxpy ( j-k, temp, work(k+1), 1, a(k+1,j), 1 )
 
     end do
-  
+
   end do
 
   return
@@ -710,7 +710,7 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
 !
 !  Discussion:
 !
-!    SCHDD can also downdate the triangular factor of an augmented QR 
+!    SCHDD can also downdate the triangular factor of an augmented QR
 !    decomposition.
 !
 !    Specifically, given an upper triangular matrix R of order P, a
@@ -721,9 +721,9 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
 !      U * (        )  =  (        ),
 !          ( 0 ZETA )     (  X   Y )
 !
-!    where RR is upper triangular.  
+!    where RR is upper triangular.
 !
-!    If R and Z have been obtained from the factorization of a least squares 
+!    If R and Z have been obtained from the factorization of a least squares
 !    problem, then RR and ZZ are the factors corresponding to the problem
 !    with the observation (X,Y) removed.  In this case, if RHO
 !    is the norm of the residual vector, then the norm of
@@ -743,8 +743,8 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
 !
 !    The rotations are chosen so that C(I) is real.
 !
-!    The user is warned that a given downdating problem may be impossible 
-!    to accomplish or may produce inaccurate results.  For example, this 
+!    The user is warned that a given downdating problem may be impossible
+!    to accomplish or may produce inaccurate results.  For example, this
 !    can happen if X is near a vector whose removal will reduce the
 !    rank of R.  Beware.
 !
@@ -763,7 +763,7 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) R(LDR,P), the upper triangular matrix that is to be 
+!    Input/output, real(8) R(LDR,P), the upper triangular matrix that is to be
 !    downdated.  The part of R below the diagonal is not referenced.
 !
 !    Input, integer LDR, the leading dimension of the array R.
@@ -771,9 +771,9 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
 !
 !    Input, integer P, the order of the matrix R.
 !
-!    Input, real(8) X(P), the row vector that is to be removed from R.  
+!    Input, real(8) X(P), the row vector that is to be removed from R.
 !
-!    Input/output, real(8) Z(LDZ,NZ), an array of NZ P-vectors which are to 
+!    Input/output, real(8) Z(LDZ,NZ), an array of NZ P-vectors which are to
 !    be downdated along with R.
 !
 !    Input, integer LDZ, the leading dimension of the array Z.
@@ -782,7 +782,7 @@ subroutine schdd ( r, ldr, p, x, z, ldz, nz, y, rho, c, s, info )
 !    Input, integer NZ, the number of vectors to be downdated.
 !    NZ may be zero, in which case Z, Y, and RHO are not referenced.
 !
-!    Input, real(8) Y(NZ), the scalars for the downdating of the vectors Z.  
+!    Input, real(8) Y(NZ), the scalars for the downdating of the vectors Z.
 !
 !    Input/output, real(8) RHO(NZ), the norms of the residual vectors.  On
 !    output these have been changed along with R and Z.
@@ -966,7 +966,7 @@ subroutine schex ( r, ldr, p, k, l, z, ldz, nz, c, s, job )
 !  Parameters:
 !
 !    Input/output, real(8) R(LDR,P).  On input, the upper triangular factor
-!    that is to be updated.  Elements of R below the diagonal are not 
+!    that is to be updated.  Elements of R below the diagonal are not
 !    referenced.  On output, R has been updated.
 !
 !    Input, integer LDR, the leading dimension of the array R.
@@ -1157,24 +1157,24 @@ subroutine schud ( r, ldr, p, x, z, ldz, nz, y, rho, c, s )
 !
 !  Discussion:
 !
-!    SCHUD can also update the triangular part of an augmented QR 
+!    SCHUD can also update the triangular part of an augmented QR
 !    decomposition.
 !
 !    Specifically, given an upper triangular matrix R of order P, a row vector
-!    X, a column vector Z, and a scalar Y, SCHUD determines a unitary matrix 
+!    X, a column vector Z, and a scalar Y, SCHUD determines a unitary matrix
 !    U and a scalar ZETA such that
 !
 !           (R  Z)     (RR   ZZ )
 !      U  * (    )  =  (        ),
 !           (X  Y)     ( 0  ZETA)
 !
-!    where RR is upper triangular.  
+!    where RR is upper triangular.
 !
 !    If R and Z have been obtained from the factorization of a least squares
-!    problem, then RR and ZZ are the factors corresponding to the problem 
-!    with the observation (X,Y) appended.  In this case, if RHO is the 
-!    norm of the residual vector, then the norm of the residual vector of 
-!    the updated problem is sqrt ( RHO**2 + ZETA**2 ).  SCHUD will 
+!    problem, then RR and ZZ are the factors corresponding to the problem
+!    with the observation (X,Y) appended.  In this case, if RHO is the
+!    norm of the residual vector, then the norm of the residual vector of
+!    the updated problem is sqrt ( RHO**2 + ZETA**2 ).  SCHUD will
 !    simultaneously update several triplets (Z, Y, RHO).
 !
 !    For a less terse description of what SCHUD does and how
@@ -1200,7 +1200,7 @@ subroutine schud ( r, ldr, p, x, z, ldz, nz, y, rho, c, s )
 !
 !  Parameters:
 !
-!    Input, real(8) R(LDR,P), the upper triangular matrix that is to be updated.  
+!    Input, real(8) R(LDR,P), the upper triangular matrix that is to be updated.
 !    the part of R below the diagonal is not referenced.
 !
 !    Input, integer LDR, the leading dimension of the array R.
@@ -1215,13 +1215,13 @@ subroutine schud ( r, ldr, p, x, z, ldz, nz, y, rho, c, s )
 !    Input, integer LDZ, the leading dimension of the array Z.
 !    LDZ must be at least P.
 !
-!    Input, integer NZ, the number of vectors to be updated.  NZ may be 
+!    Input, integer NZ, the number of vectors to be updated.  NZ may be
 !    zero, in which case Z, Y, and RHO are not referenced.
 !
-!    Input, real(8) Y(NZ), the scalars for updating the vectors Z.  
+!    Input, real(8) Y(NZ), the scalars for updating the vectors Z.
 !
 !    Input/output, real(8) RHO(NZ).  On input, the norms of the residual
-!    vectors that are to be updated.  If RHO(J) is negative, it is left 
+!    vectors that are to be updated.  If RHO(J) is negative, it is left
 !    unaltered.
 !
 !    Output, real(8) C(P), S(P), the cosines and sines of the transforming
@@ -1484,7 +1484,7 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
 !
 !    To compute determinant(A), follow SGBCO by SGBDI.
 !
-!  Example:  
+!  Example:
 !
 !    If the original matrix is
 !
@@ -1523,12 +1523,12 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
 !        end do
 !      end do
 !
-!    This uses rows ML+1 through 2*ML+MU+1 of ABD.  In addition, the first  
+!    This uses rows ML+1 through 2*ML+MU+1 of ABD.  In addition, the first
 !    ML rows in ABD are used for elements generated during the
 !    triangularization.
 !
-!    The total number of rows needed in ABD is  2*ML+MU+1.  The ML+MU by 
-!    ML+MU upper left triangle and the ML by ML lower right triangle are 
+!    The total number of rows needed in ABD is  2*ML+MU+1.  The ML+MU by
+!    ML+MU upper left triangle and the ML by ML lower right triangle are
 !    not referenced.
 !
 !  Reference:
@@ -1542,11 +1542,11 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
 !
 !  Parameters:
 !
-!    Input/output, real(8) ABD(LDA,N).  On input, the matrix in band storage.  
+!    Input/output, real(8) ABD(LDA,N).  On input, the matrix in band storage.
 !    The columns of the matrix are stored in the columns of ABD and
-!    the diagonals of the matrix are stored in rows ML+1 through 2*ML+MU+1 
+!    the diagonals of the matrix are stored in rows ML+1 through 2*ML+MU+1
 !    of ABD.  On output, an upper triangular matrix in band storage and
-!    the multipliers which were used to obtain it.  The factorization can 
+!    the multipliers which were used to obtain it.  The factorization can
 !    be written A = L*U where L is a product of permutation and unit lower
 !    triangular matrices and U is upper triangular.
 !
@@ -1555,21 +1555,21 @@ subroutine sgbco ( abd, lda, n, ml, mu, ipvt, rcond, z )
 !
 !    Input, integer N, the order of the matrix.
 !
-!    Input, integer ML, MU, the number of diagonals below and above the 
+!    Input, integer ML, MU, the number of diagonals below and above the
 !    main diagonal.  0 <= ML < N, 0 <= MU < N.
 !
 !    Output, integer IPVT(N), the pivot indices.
 !
 !    Output, real(8) RCOND, an estimate of the reciprocal condition of A.
-!    For the system A*X = B, relative perturbations in A and B of size  
+!    For the system A*X = B, relative perturbations in A and B of size
 !    EPSILON may cause relative perturbations in X of size EPSILON/RCOND.
 !    If RCOND is so small that the logical expression
 !      1.0D+00 + RCOND == 1.0D+00
-!    is true, then A may be singular to working precision.  In particular,  
+!    is true, then A may be singular to working precision.  In particular,
 !    RCOND is zero if exact singularity is detected or the estimate underflows.
 !
 !    Workspace, real(8) Z(N), a work vector whose contents are usually unimportant.
-!    If A is close to a singular matrix, then Z is an approximate null vector 
+!    If A is close to a singular matrix, then Z is an approximate null vector
 !    in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
 !
@@ -1808,7 +1808,7 @@ subroutine sgbdi ( abd, lda, n, ml, mu, ipvt, det )
 !
 !    Input, integer N, the order of the matrix.
 !
-!    Input, integer ML, MU, the number of diagonals below and above the 
+!    Input, integer ML, MU, the number of diagonals below and above the
 !    main diagonal.  0 <= ML < N, 0 <= MU < N.
 !
 !    Input, integer IPVT(N), the pivot vector from SGBCO or SGBFA.
@@ -1847,12 +1847,12 @@ subroutine sgbdi ( abd, lda, n, ml, mu, ipvt, det )
        return
      end if
 
-     do while ( abs ( det(1) ) < 1.0D+00 ) 
+     do while ( abs ( det(1) ) < 1.0D+00 )
        det(1) = ten * det(1)
        det(2) = det(2) - 1.0D+00
      end do
 
-     do while ( abs ( det(1) ) >= ten ) 
+     do while ( abs ( det(1) ) >= ten )
        det(1) = det(1) / ten
        det(2) = det(2) + 1.0D+00
      end do
@@ -1885,11 +1885,11 @@ subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) ABD(LDA,N).  On input, contains the matrix in band 
-!    storage.  The columns of the matrix are stored in the columns of ABD 
-!    and the diagonals of the matrix are stored in rows ML+1 through 
-!    2*ML+MU+1 of ABD.  On output, an upper triangular matrix in band storage 
-!    and the multipliers which were used to obtain it.  The factorization 
+!    Input/output, real(8) ABD(LDA,N).  On input, contains the matrix in band
+!    storage.  The columns of the matrix are stored in the columns of ABD
+!    and the diagonals of the matrix are stored in rows ML+1 through
+!    2*ML+MU+1 of ABD.  On output, an upper triangular matrix in band storage
+!    and the multipliers which were used to obtain it.  The factorization
 !    can be written A = L*U where L is a product of permutation and unit lower
 !    triangular matrices and U is upper triangular.
 !
@@ -1898,14 +1898,14 @@ subroutine sgbfa ( abd, lda, n, ml, mu, ipvt, info )
 !
 !    Input, integer N, the order of the matrix.
 !
-!    Input, integer ML, MU, the number of diagonals below and above the 
+!    Input, integer ML, MU, the number of diagonals below and above the
 !    main diagonal.  0 <= ML < N, 0 <= MU < N.
 !
 !    Output, integer IPVT(N), the pivot indices.
 !
 !    Output, integer INFO, error flag.
 !    0, normal value.
-!    K, if U(K,K) == 0.0D+00.  This is not an error condition for this 
+!    K, if U(K,K) == 0.0D+00.  This is not an error condition for this
 !      subroutine, but it does indicate that SGBSL will divide by zero if
 !      called.  Use RCOND in SGBCO for a reliable indication of singularity.
 !
@@ -2060,7 +2060,7 @@ subroutine sgbsl ( abd, lda, n, ml, mu, ipvt, b, job )
 !
 !    Input, integer N, the order of the matrix.
 !
-!    Input, integer ML, MU, the number of diagonals below and above the 
+!    Input, integer ML, MU, the number of diagonals below and above the
 !    main diagonal.  0 <= ML < N, 0 <= MU < N.
 !
 !    Input, integer IPVT(N), the pivot vector from SGBCO or SGBFA.
@@ -2176,13 +2176,13 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
 !
 !    To compute inverse ( A ), follow SGECO by SGEDI.
 !
-!    For the system A * X = B, relative perturbations in A and B 
-!    of size EPSILON may cause relative perturbations in X of size  
+!    For the system A * X = B, relative perturbations in A and B
+!    of size EPSILON may cause relative perturbations in X of size
 !    EPSILON/RCOND.
 !
 !    If RCOND is so small that the logical expression
 !      1.0D+00 + RCOND == 1.0D+00
-!    is true, then A may be singular to working precision.  In particular,  
+!    is true, then A may be singular to working precision.  In particular,
 !    RCOND is zero if exact singularity is detected or the estimate
 !    underflows.
 !
@@ -2197,13 +2197,13 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
 !
 !  Author:
 !
-!    Cleve Moler, 
+!    Cleve Moler,
 !    University of New Mexico / Argonne National Lab.
 !
 !  Parameters:
 !
 !    Input/output, real(8) A(LDA,N).  On input, a matrix to be factored.
-!    On output, the LU factorization of the matrix. 
+!    On output, the LU factorization of the matrix.
 !
 !    Input, integer LDA, the leading dimension of the array A.
 !
@@ -2211,10 +2211,10 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
 !
 !    Output, integer IPVT(N), the pivot indices.
 !
-!    Output, real(8) RCOND, an estimate of the reciprocal condition number of A.  
+!    Output, real(8) RCOND, an estimate of the reciprocal condition number of A.
 !
 !    Output, real(8) Z(N), a work vector whose contents are usually unimportant.
-!    If A is close to a singular matrix, then Z is an approximate null vector 
+!    If A is close to a singular matrix, then Z is an approximate null vector
 !    in the sense that
 !      norm ( A * Z ) = RCOND * norm ( A ) * norm ( Z ).
 !
@@ -2253,15 +2253,15 @@ subroutine sgeco ( a, lda, n, ipvt, rcond, z )
 !
 !  RCOND = 1 / ( norm(A) * (estimate of norm(inverse(A))) )
 !
-!  estimate of norm(inverse(A)) = norm(Z) / norm(Y) 
+!  estimate of norm(inverse(A)) = norm(Z) / norm(Y)
 !
-!  where  
-!    A * Z = Y  
-!  and  
+!  where
+!    A * Z = Y
+!  and
 !    A' * Y = E
 !
-!  The components of E are chosen to cause maximum local growth in the 
-!  elements of W, where U'*W = E.  The vectors are frequently rescaled 
+!  The components of E are chosen to cause maximum local growth in the
+!  elements of W, where U'*W = E.  The vectors are frequently rescaled
 !  to avoid overflow.
 !
 !  Solve U' * W = E.
@@ -2479,7 +2479,7 @@ subroutine sgedi ( a, lda, n, ipvt, det, work, job )
           exit
         end if
 
-        do while ( abs ( det(1) ) < 1.0D+00 ) 
+        do while ( abs ( det(1) ) < 1.0D+00 )
           det(1) = ten * det(1)
           det(2) = det(2) - 1.0D+00
         end do
@@ -2777,13 +2777,13 @@ subroutine sgtsl ( n, c, d, e, b, info )
 !
 !    Input, integer N, the order of the tridiagonal matrix.
 !
-!    Input/output, real(8) C(N), contains the subdiagonal of the tridiagonal 
+!    Input/output, real(8) C(N), contains the subdiagonal of the tridiagonal
 !    matrix in entries C(2:N).  On output, C is destroyed.
 !
 !    Input/output, real(8) D(N).  On input, the diagonal of the matrix.
 !    On output, D is destroyed.
 !
-!    Input/output, real(8) E(N), contains the superdiagonal of the tridiagonal 
+!    Input/output, real(8) E(N), contains the superdiagonal of the tridiagonal
 !    matrix in entries E(1:N-1).  On output E is destroyed.
 !
 !    Input/output, real(8) B(N).  On input, the right hand side.  On output,
@@ -2791,7 +2791,7 @@ subroutine sgtsl ( n, c, d, e, b, info )
 !
 !    Output, integer INFO, error flag.
 !    0, normal value.
-!    K, the K-th element of the diagonal becomes exactly zero.  The 
+!    K, the K-th element of the diagonal becomes exactly zero.  The
 !       subroutine returns if this error condition is detected.
 !
   implicit none
@@ -2964,7 +2964,7 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
 !
 !  Band storage:
 !
-!    If A is a symmetric positive definite band matrix, the following 
+!    If A is a symmetric positive definite band matrix, the following
 !    program segment will set up the input.
 !
 !      m = (band width above diagonal)
@@ -2976,7 +2976,7 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
 !        end do
 !      end do
 !
-!    This uses M + 1 rows of A, except for the M by M upper left triangle, 
+!    This uses M + 1 rows of A, except for the M by M upper left triangle,
 !    which is ignored.
 !
 !    For example, if the original matrix is
@@ -3005,10 +3005,10 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) ABD(LDA,N).  On input, the matrix to be factored.  
+!    Input/output, real(8) ABD(LDA,N).  On input, the matrix to be factored.
 !    The columns of the upper triangle are stored in the columns of ABD and the
 !    diagonals of the upper triangle are stored in the rows of ABD.
-!    On output, an upper triangular matrix R, stored in band form, so that 
+!    On output, an upper triangular matrix R, stored in band form, so that
 !    A = R'*R.  If INFO /= 0, the factorization is not complete.
 !
 !    Input, integer LDA, the leading dimension of the array ABD.
@@ -3019,22 +3019,22 @@ subroutine spbco ( abd, lda, n, m, rcond, z, info )
 !    Input, integer M, the number of diagonals above the main diagonal.
 !
 !    Output, real(8) RCOND, an estimate of the reciprocal condition of A.
-!    For the system A*X = B, relative perturbations in A and B of size  
+!    For the system A*X = B, relative perturbations in A and B of size
 !    EPSILON may cause relative perturbations in X of size EPSILON/RCOND.
 !    If RCOND is so small that the logical expression
 !      1.0D+00 + RCOND == 1.0D+00
-!    is true, then A may be singular to working precision.  In particular,  
+!    is true, then A may be singular to working precision.  In particular,
 !    RCOND is zero if exact singularity is detected or the estimate underflows.
 !
 !    Output, real(8) Z(N), a work vector whose contents are usually unimportant.
-!    If A is singular to working precision, then Z is an approximate null 
+!    If A is singular to working precision, then Z is an approximate null
 !    vector in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
 !    If INFO /= 0, Z is unchanged.
 !
 !    Output, integer INFO, error flag.
 !    0, for normal return.
-!    K, signals an error condition.  The leading minor of order K is not 
+!    K, signals an error condition.  The leading minor of order K is not
 !    positive definite.
 !
   implicit none
@@ -3299,7 +3299,7 @@ subroutine spbdi ( abd, lda, n, m, det )
       det(2) = det(2) - 1.0D+00
     end do
 
-    do while ( det(1) >= s ) 
+    do while ( det(1) >= s )
       det(1) = det(1) / s
       det(2) = det(2) + 1.0D+00
     end do
@@ -3346,8 +3346,8 @@ subroutine spbfa ( abd, lda, n, m, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) ABD(LDA,N).  On input, the matrix to be factored.  
-!    The columns of the upper triangle are stored in the columns of ABD 
+!    Input/output, real(8) ABD(LDA,N).  On input, the matrix to be factored.
+!    The columns of the upper triangle are stored in the columns of ABD
 !    and the diagonals of the upper triangle are stored in the
 !    rows of ABD.  On output, an upper triangular matrix R, stored in band
 !    form, so that A = R' * R.
@@ -3524,9 +3524,9 @@ subroutine spoco ( a, lda, n, rcond, z, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) A(LDA,N).  On input, the symmetric matrix to 
+!    Input/output, real(8) A(LDA,N).  On input, the symmetric matrix to
 !    be factored.  Only the diagonal and upper triangle are used.
-!    On output, an upper triangular matrix R so that A = R'*R where R' 
+!    On output, an upper triangular matrix R so that A = R'*R where R'
 !    is the transpose.  The strict lower triangle is unaltered.
 !    If INFO /= 0, the factorization is not complete.
 !
@@ -3535,22 +3535,22 @@ subroutine spoco ( a, lda, n, rcond, z, info )
 !    Input, integer N, the order of the matrix.
 !
 !    Output, real(8) RCOND, an estimate of the reciprocal condition of A.
-!    For the system A*X = B, relative perturbations in A and B of size  
+!    For the system A*X = B, relative perturbations in A and B of size
 !    EPSILON may cause relative perturbations in X of size EPSILON/RCOND.
 !    If RCOND is so small that the logical expression
 !      1.0D+00 + RCOND == 1.0D+00
-!    is true, then A may be singular to working precision.  In particular,  
+!    is true, then A may be singular to working precision.  In particular,
 !    RCOND is zero if exact singularity is detected or the estimate underflows.
 !
 !    Output, real(8) Z(N), a work vector whose contents are usually unimportant.
-!    If A is close to a singular matrix, then Z is an approximate null vector 
+!    If A is close to a singular matrix, then Z is an approximate null vector
 !    in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
 !    If INFO /= 0, Z is unchanged.
 !
 !    Output, integer INFO, error flag.
 !    0, for normal return.
-!    K, signals an error condition.  The leading minor of order K is not 
+!    K, signals an error condition.  The leading minor of order K is not
 !    positive definite.
 !
   implicit none
@@ -3749,12 +3749,12 @@ subroutine spodi ( a, lda, n, det, job )
 !
 !  Parameters:
 !
-!    Input/output, real(8) A(LDA,N).  On input, the output A from SPOCO 
-!    or SPOFA, or the output X from SQRDC.  On output, if SPOCO or 
+!    Input/output, real(8) A(LDA,N).  On input, the output A from SPOCO
+!    or SPOFA, or the output X from SQRDC.  On output, if SPOCO or
 !    SPOFA was used to factor A then SPODI produces the upper half of
-!    inverse(A).  If SQRDC was used to decompose X then SPODI produces 
+!    inverse(A).  If SQRDC was used to decompose X then SPODI produces
 !    the upper half of inverse(X'*X) where X' is the transpose.
-!    Elements of A below the diagonal are unchanged.  If the units digit 
+!    Elements of A below the diagonal are unchanged.  If the units digit
 !    of JOB is zero, A is unchanged.
 !
 !    Input, integer LDA, the leading dimension of the array A.
@@ -3875,7 +3875,7 @@ subroutine spofa ( a, lda, n, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) A(LDA,N).  On input, the symmetric matrix to be 
+!    Input/output, real(8) A(LDA,N).  On input, the symmetric matrix to be
 !    factored.  Only the diagonal and upper triangle are used.
 !    On output, an upper triangular matrix R so that A = R'*R
 !    where R' is the transpose.  The strict lower triangle is unaltered.
@@ -3887,7 +3887,7 @@ subroutine spofa ( a, lda, n, info )
 !
 !    Output, integer INFO, error flag.
 !    0, for normal return.
-!    K, signals an error condition.  The leading minor of order K is not 
+!    K, signals an error condition.  The leading minor of order K is not
 !    positive definite.
 !
   implicit none
@@ -4025,7 +4025,7 @@ subroutine sppco ( ap, n, rcond, z, info )
 !
 !  Packed storage:
 !
-!    The following program segment will pack the upper triangle of 
+!    The following program segment will pack the upper triangle of
 !    a symmetric matrix.
 !
 !      k = 0
@@ -4047,31 +4047,31 @@ subroutine sppco ( ap, n, rcond, z, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) AP(N*(N+1)/2).  On input, the packed form of a 
-!    symmetric matrix A.  The columns of the upper triangle are stored 
-!    sequentially in a one-dimensional array.  On output, an upper 
+!    Input/output, real(8) AP(N*(N+1)/2).  On input, the packed form of a
+!    symmetric matrix A.  The columns of the upper triangle are stored
+!    sequentially in a one-dimensional array.  On output, an upper
 !    triangular matrix R, stored in packed form, so that A = R'*R.
 !    If INFO /= 0, the factorization is not complete.
 !
 !    Input, integer N, the order of the matrix.
 !
 !    Output, real(8) RCOND, an estimate of the reciprocal condition of A.
-!    For the system A*X = B, relative perturbations in A and B of size  
+!    For the system A*X = B, relative perturbations in A and B of size
 !    EPSILON may cause relative perturbations in X of size EPSILON/RCOND.
 !    If RCOND is so small that the logical expression
 !      1.0D+00 + RCOND == 1.0D+00
-!    is true, then A may be singular to working precision.  In particular,  
+!    is true, then A may be singular to working precision.  In particular,
 !    RCOND is zero if exact singularity is detected or the estimate underflows.
 !
 !    Output, real(8) Z(N), a work vector whose contents are usually unimportant.
-!    If A is singular to working precision, then Z is an approximate null 
+!    If A is singular to working precision, then Z is an approximate null
 !    vector in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
 !    If INFO /= 0, Z is unchanged.
 !
 !    Output, integer INFO, error flag.
 !    0, for normal return.
-!    K, signals an error condition.  The leading minor of order K is 
+!    K, signals an error condition.  The leading minor of order K is
 !    not positive definite.
 !
   implicit none
@@ -4287,8 +4287,8 @@ subroutine sppdi ( ap, n, det, job )
 !
 !  Parameters:
 !
-!    Input/output, real(8) AP(N*(N+1)/2).  On input, the output from 
-!    SPPCO or SPPFA.  On output, the upper triangular half of the 
+!    Input/output, real(8) AP(N*(N+1)/2).  On input, the output from
+!    SPPCO or SPPFA.  On output, the upper triangular half of the
 !    inverse, if requested.
 !
 !    Input, integer N, the order of the matrix.
@@ -4340,12 +4340,12 @@ subroutine sppdi ( ap, n, det, job )
           exit
         end if
 
-        do while ( det(1) < 1.0D+00 ) 
+        do while ( det(1) < 1.0D+00 )
           det(1) = s * det(1)
           det(2) = det(2) - 1.0D+00
         end do
 
-        do while ( det(1) >= s ) 
+        do while ( det(1) >= s )
           det(1) = det(1) / s
           det(2) = det(2) + 1.0D+00
         end do
@@ -4444,9 +4444,9 @@ subroutine sppfa ( ap, n, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) AP(N*(N+1)/2).  On input, the packed form of a 
-!    symmetric matrix A.  The columns of the upper triangle are stored 
-!    sequentially in a one-dimensional array.  On output, an upper 
+!    Input/output, real(8) AP(N*(N+1)/2).  On input, the packed form of a
+!    symmetric matrix A.  The columns of the upper triangle are stored
+!    sequentially in a one-dimensional array.  On output, an upper
 !    triangular matrix R, stored in packed form, so that A = R'*R.
 !
 !    Input, integer N, the order of the matrix.
@@ -4693,7 +4693,7 @@ subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
 !
 !  Discussion:
 !
-!    SQRDC uses Householder transformations.  
+!    SQRDC uses Householder transformations.
 !
 !    Column pivoting based on the 2-norms of the reduced columns may be
 !    performed at the user's option.
@@ -4710,12 +4710,12 @@ subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
 !  Parameters:
 !
 !    Input/output, real(8) A(LDA,P).  On input, the N by P matrix
-!    whose decomposition is to be computed.  On output, A contains in 
-!    its upper triangle the upper triangular matrix R of the QR 
+!    whose decomposition is to be computed.  On output, A contains in
+!    its upper triangle the upper triangular matrix R of the QR
 !    factorization.  Below its diagonal A contains information from
-!    which the orthogonal part of the decomposition can be recovered.  
+!    which the orthogonal part of the decomposition can be recovered.
 !    Note that if pivoting has been requested, the decomposition is not that
-!    of the original matrix A but that of A with its columns permuted 
+!    of the original matrix A but that of A with its columns permuted
 !    as described by JPVT.
 !
 !    Input, integer LDA, the leading dimension of the array A.  LDA must
@@ -4728,20 +4728,20 @@ subroutine sqrdc ( a, lda, n, p, qraux, jpvt, work, job )
 !    Output, real(8) QRAUX(P), contains further information required to recover
 !    the orthogonal part of the decomposition.
 !
-!    Input/output, integer JPVT(P).  On input, JPVT contains integers that 
+!    Input/output, integer JPVT(P).  On input, JPVT contains integers that
 !    control the selection of the pivot columns.  The K-th column A(*,K) of A
 !    is placed in one of three classes according to the value of JPVT(K).
 !      > 0, then A(K) is an initial column.
 !      = 0, then A(K) is a free column.
 !      < 0, then A(K) is a final column.
-!    Before the decomposition is computed, initial columns are moved to 
-!    the beginning of the array A and final columns to the end.  Both 
-!    initial and final columns are frozen in place during the computation 
+!    Before the decomposition is computed, initial columns are moved to
+!    the beginning of the array A and final columns to the end.  Both
+!    initial and final columns are frozen in place during the computation
 !    and only free columns are moved.  At the K-th stage of the
-!    reduction, if A(*,K) is occupied by a free column it is interchanged 
-!    with the free column of largest reduced norm.  JPVT is not referenced 
+!    reduction, if A(*,K) is occupied by a free column it is interchanged
+!    with the free column of largest reduced norm.  JPVT is not referenced
 !    if JOB == 0.  On output, JPVT(K) contains the index of the column of the
-!    original matrix that has been interchanged into the K-th column, if 
+!    original matrix that has been interchanged into the K-th column, if
 !    pivoting was requested.
 !
 !    Workspace, real(8) WORK(P).  WORK is not referenced if JOB == 0.
@@ -4957,7 +4957,7 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
 !    any of B, RSD, or AB and does not need Y or QTY.  In this
 !    case one may identify Y, QTY, and one of B, RSD, or AB, while
 !    providing separate arrays for anything else that is to be
-!    computed.  
+!    computed.
 !
 !    Thus the calling sequence
 !
@@ -5002,7 +5002,7 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
 !    have the same value as N in SQRDC.
 !
 !    Input, integer K, the number of columns of the matrix AK.  K
-!    must not be greater than min(N,P), where P is the same as in the 
+!    must not be greater than min(N,P), where P is the same as in the
 !    calling sequence to SQRDC.
 !
 !    Input, real(8) QRAUX(P), the auxiliary output from SQRDC.
@@ -5015,17 +5015,17 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
 !
 !    Output, real(8) B(K), the solution of the least squares problem
 !      minimize norm2 ( Y - AK * B),
-!    if its computation has been requested.  Note that if pivoting was 
-!    requested in SQRDC, the J-th component of B will be associated with 
+!    if its computation has been requested.  Note that if pivoting was
+!    requested in SQRDC, the J-th component of B will be associated with
 !    column JPVT(J) of the original matrix A that was input into SQRDC.
 !
 !    Output, real(8) RSD(N), the least squares residual Y - AK * B,
-!    if its computation has been requested.  RSD is also the orthogonal 
-!    projection of Y onto the orthogonal complement of the column space 
+!    if its computation has been requested.  RSD is also the orthogonal
+!    projection of Y onto the orthogonal complement of the column space
 !    of AK.
 !
-!    Output, real(8) AB(N), the least squares approximation Ak * B, if its 
-!    computation has been requested.  AB is also the orthogonal projection 
+!    Output, real(8) AB(N), the least squares approximation Ak * B, if its
+!    computation has been requested.  AB is also the orthogonal projection
 !    of Y onto the column space of A.
 !
 !    Input, integer JOB, specifies what is to be computed.  JOB has
@@ -5037,12 +5037,12 @@ subroutine sqrsl ( a, lda, n, k, qraux, y, qy, qty, b, rsd, ab, job, info )
 !      if D /= 0, compute QTY and RSD.
 !      if E /= 0, compute QTY and AB.
 !
-!    Note that a request to compute B, RSD, or AB automatically triggers 
-!    the computation of QTY, for which an array must be provided in the 
+!    Note that a request to compute B, RSD, or AB automatically triggers
+!    the computation of QTY, for which an array must be provided in the
 !    calling sequence.
 !
 !    Output, integer INFO, is zero unless the computation of B has
-!    been requested and R is exactly singular.  In this case, INFO is the 
+!    been requested and R is exactly singular.  In this case, INFO is the
 !    index of the first zero diagonal element of R, and B is left unaltered.
 !
   implicit none
@@ -5503,11 +5503,11 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
 !
 !  Parameters:
 !
-!    Input/output, real(8) A(LDA,N).  On input, the symmetric matrix to be 
+!    Input/output, real(8) A(LDA,N).  On input, the symmetric matrix to be
 !    factored.  Only the diagonal and upper triangle are used.
 !    On output, a block diagonal matrix and the multipliers which
 !    were used to obtain it.  The factorization can be written A = U*D*U'
-!    where U is a product of permutation and unit upper triangular 
+!    where U is a product of permutation and unit upper triangular
 !    matrices, U' is the transpose of U, and D is block diagonal
 !    with 1 by 1 and 2 by 2 blocks.
 !
@@ -5518,15 +5518,15 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
 !    Output, integer KPVT(N), pivot indices.
 !
 !    Output, real(8) RCOND, an estimate of the reciprocal condition of A.
-!    For the system A*X = B, relative perturbations in A and B of size  
+!    For the system A*X = B, relative perturbations in A and B of size
 !    EPSILON may cause relative perturbations in X of size EPSILON/RCOND.
 !    If RCOND is so small that the logical expression
 !      1.0D+00 + RCOND == 1.0D+00
-!    is true, then A may be singular to working precision.  In particular,  
+!    is true, then A may be singular to working precision.  In particular,
 !    RCOND is zero if exact singularity is detected or the estimate underflows.
 !
 !    Output, real(8) Z(N), a work vector whose contents are usually unimportant.
-!    If A is close to a singular matrix, then Z is an approximate null vector 
+!    If A is close to a singular matrix, then Z is an approximate null vector
 !    in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
 !
@@ -5652,7 +5652,7 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
 !
   k = 1
 
-  do while ( k <= n ) 
+  do while ( k <= n )
 
      ks = 1
      if ( kpvt(k) < 0 ) ks = 2
@@ -5685,7 +5685,7 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
 !
   k = n
 
-  do while ( k /= 0 ) 
+  do while ( k /= 0 )
 
      if ( kpvt(k) < 0 ) then
        ks = 2
@@ -5737,7 +5737,7 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
      end if
 
      k = k - ks
-  
+
   end do
 
   s = 1.0D+00 / sum ( abs ( z(1:n) ) )
@@ -5748,7 +5748,7 @@ subroutine ssico ( a, lda, n, kpvt, rcond, z )
 !
   k = 1
 
-  do while ( k <= n ) 
+  do while ( k <= n )
 
      if ( kpvt(k) < 0 ) then
        ks = 2
@@ -5817,7 +5817,7 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
 !  Parameters:
 !
 !    Input/output, real(8) A(LDA,N).  On input, the output from SSIFA.
-!    On output, the upper triangle of the inverse of the original matrix.  
+!    On output, the upper triangle of the inverse of the original matrix.
 !    The strict lower triangle is never referenced.
 !
 !    Input, integer LDA, the leading dimension of the array A.
@@ -5929,7 +5929,7 @@ subroutine ssidi ( a, lda, n, kpvt, det, inert, work, job )
 
         if ( det(1) /= 0.0D+00 ) then
 
-          do while ( abs ( det(1) ) < 1.0D+00 ) 
+          do while ( abs ( det(1) ) < 1.0D+00 )
             det(1) = ten * det(1)
             det(2) = det(2) - 1.0D+00
           end do
@@ -6073,11 +6073,11 @@ subroutine ssifa ( a, lda, n, kpvt, info )
 !
 !  Parameters:
 !
-!    Input/output, real(8) A(LDA,N).  On input, the symmetric matrix to be 
+!    Input/output, real(8) A(LDA,N).  On input, the symmetric matrix to be
 !    factored.  Only the diagonal and upper triangle are used.
 !    On output, a block diagonal matrix and the multipliers which
 !    were used to obtain it.  The factorization can be written A = U*D*U'
-!    where U is a product of permutation and unit upper triangular 
+!    where U is a product of permutation and unit upper triangular
 !    matrices, U' is the transpose of U, and D is block diagonal
 !    with 1 by 1 and 2 by 2 blocks.
 !
@@ -6089,7 +6089,7 @@ subroutine ssifa ( a, lda, n, kpvt, info )
 !
 !    Output, integer INFO, error flag.
 !    0, normal value.
-!    K, if the K-th pivot block is singular.  This is not an error 
+!    K, if the K-th pivot block is singular.  This is not an error
 !    condition for this subroutine, but it does indicate that SSISL
 !    or SSIDI may divide by zero if called.
 !
@@ -6186,7 +6186,7 @@ subroutine ssifa ( a, lda, n, kpvt, info )
 
      end if
 !
-!  Column K is zero.  
+!  Column K is zero.
 !  Set INFO and iterate the loop.
 !
      if ( max ( absakk, colmax ) == 0.0D+00 ) then
@@ -6247,7 +6247,7 @@ subroutine ssifa ( a, lda, n, kpvt, info )
            t = a(k-1,k)
            a(k-1,k) = a(imax,k)
            a(imax,k) = t
-  
+
         end if
 !
 !  Perform the elimination.
@@ -6404,7 +6404,7 @@ subroutine ssisl ( a, lda, n, kpvt, b )
 !
            call saxpy ( k-2, b(k), a(1,k), 1, b(1), 1 )
            call saxpy ( k-2, b(k-1), a(1,k-1), 1, b(1), 1 )
-   
+
         end if
 !
 !  Apply D inverse.
@@ -6504,7 +6504,7 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
 !
 !  Packed storage:
 !
-!    The following program segment will pack the upper triangle of a 
+!    The following program segment will pack the upper triangle of a
 !    symmetric matrix.
 !
 !      k = 0
@@ -6526,12 +6526,12 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
 !
 !  Parameters:
 !
-!    Input/output, real(8) AP(N*(N+1)/2).  On input, the packed form of a 
-!    symmetric matrix A.  The columns of the upper triangle are stored 
-!    sequentially in a one-dimensional array.  On output, a block diagonal 
-!    matrix and the multipliers which were used to obtain it, stored in 
+!    Input/output, real(8) AP(N*(N+1)/2).  On input, the packed form of a
+!    symmetric matrix A.  The columns of the upper triangle are stored
+!    sequentially in a one-dimensional array.  On output, a block diagonal
+!    matrix and the multipliers which were used to obtain it, stored in
 !    packed form.  The factorization can be written A = U*D*U'
-!    where U is a product of permutation and unit upper triangular 
+!    where U is a product of permutation and unit upper triangular
 !    matrices, U' is the transpose of U, and D is block diagonal
 !    with 1 by 1 and 2 by 2 blocks.
 !
@@ -6540,15 +6540,15 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
 !    Output, integer KPVT(N), the pivot indices.
 !
 !    Output, real(8) RCOND, an estimate of the reciprocal condition of A.
-!    For the system A*X = B, relative perturbations in A and B of size  
+!    For the system A*X = B, relative perturbations in A and B of size
 !    EPSILON may cause relative perturbations in X of size EPSILON/RCOND.
 !    If RCOND is so small that the logical expression
 !      1.0D+00 + RCOND == 1.0D+00
-!    is true, then A may be singular to working precision.  In particular,  
+!    is true, then A may be singular to working precision.  In particular,
 !    RCOND is zero if exact singularity is detected or the estimate underflows.
 !
 !    Output, real(8) Z(N) a work vector whose contents are usually unimportant.
-!    If A is close to a singular matrix, then Z is an approximate null 
+!    If A is close to a singular matrix, then Z is an approximate null
 !    vector in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
 !
@@ -6622,7 +6622,7 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
   k = n
   ik = (n*(n - 1))/2
 
-  do while ( k /= 0 ) 
+  do while ( k /= 0 )
 
      kk = ik + k
      ikm1 = ik - (k - 1)
@@ -6685,7 +6685,7 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
      if ( ks == 2 ) then
        ik = ik - (k + 1)
      end if
-  
+
   end do
 
   z(1:n) = z(1:n) / sum ( abs ( z(1:n) ) )
@@ -6695,7 +6695,7 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
   k = 1
   ik = 0
 
-  do while ( k <= n ) 
+  do while ( k <= n )
 
      if ( kpvt(k) < 0 ) then
        ks = 2
@@ -6725,7 +6725,7 @@ subroutine sspco ( ap, n, kpvt, rcond, z )
      ik = ik + k
      if ( ks == 2 ) ik = ik + (k + 1)
      k = k + ks
-  
+
   end do
 
   s = 1.0D+00 / sum ( abs ( z(1:n) ) )
@@ -6865,7 +6865,7 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
 !
 !  Discussion:
 !
-!    SSPDI uses the factors from SSPFA, where the matrix is stored in 
+!    SSPDI uses the factors from SSPFA, where the matrix is stored in
 !    packed form.
 !
 !    A division by zero will occur if the inverse is requested
@@ -6885,7 +6885,7 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
 !  Parameters:
 !
 !    Input/output, real(8) AP(N*(N+1)/2).  On input, the output from SSPFA.
-!    On output, the upper triangle of the inverse of the original matrix, 
+!    On output, the upper triangle of the inverse of the original matrix,
 !    stored in packed form.  The columns of the upper triangle are stored
 !    sequentially in a one-dimensional array.
 !
@@ -7035,7 +7035,7 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
      k = 1
      ik = 0
 
-     do while ( k <= n ) 
+     do while ( k <= n )
 
         km1 = k - 1
         kk = ik + k
@@ -7108,7 +7108,7 @@ subroutine sspdi ( ap, n, kpvt, det, inert, work, job )
            end if
 
            kstep = 2
-  
+
         end if
 !
 !  Swap.
@@ -7167,7 +7167,7 @@ subroutine sspfa ( ap, n, kpvt, info )
 !
 !  Packed storage:
 !
-!    The following program segment will pack the upper triangle of a 
+!    The following program segment will pack the upper triangle of a
 !    symmetric matrix.
 !
 !      k = 0
@@ -7189,12 +7189,12 @@ subroutine sspfa ( ap, n, kpvt, info )
 !
 !  Parameters:
 !
-!    Input, real(8) AP(N*(N+1)/2).  On input, the packed form of a symmetric 
+!    Input, real(8) AP(N*(N+1)/2).  On input, the packed form of a symmetric
 !    matrix A.  The columns of the upper triangle are stored sequentially
-!    in a one-dimensional array.  On output, a block diagonal matrix and 
+!    in a one-dimensional array.  On output, a block diagonal matrix and
 !    the multipliers which were used to obtain it stored in packed form.
-!    The factorization can be written A = U*D*U' where U is a product of 
-!    permutation and unit upper triangular matrices, U' is the transpose 
+!    The factorization can be written A = U*D*U' where U is a product of
+!    permutation and unit upper triangular matrices, U' is the transpose
 !    of U, and D is block diagonal with 1 by 1 and 2 by 2 blocks.
 !
 !    Input, integer N, the order of the matrix.
@@ -7203,8 +7203,8 @@ subroutine sspfa ( ap, n, kpvt, info )
 !
 !    Output, integer INFO, error flag.
 !    0, normal value.
-!    K, if the K-th pivot block is singular.  This is not an error 
-!    condition for this subroutine, but it does indicate that SSPSL or 
+!    K, if the K-th pivot block is singular.  This is not an error
+!    condition for this subroutine, but it does indicate that SSPSL or
 !    SSPDI may divide by zero if called.
 !
   implicit none
@@ -7276,8 +7276,8 @@ subroutine sspfa ( ap, n, kpvt, info )
     return
   end if
 !
-!  This section of code determines the kind of elimination to be performed.  
-!  When it is completed, KSTEP will be set to the size of the pivot block, 
+!  This section of code determines the kind of elimination to be performed.
+!  When it is completed, KSTEP will be set to the size of the pivot block,
 !  and SWAP will be set to .true. if an interchange is required.
 !
   km1 = k - 1
@@ -7528,7 +7528,7 @@ subroutine sspsl ( ap, n, kpvt, b )
   k = n
   ik = (n*(n - 1))/2
 
-  do while ( k > 0 ) 
+  do while ( k > 0 )
 
      kk = ik + k
 
@@ -7669,9 +7669,9 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 !
 !  Discussion:
 !
-!    SSVDC reduces a real(8) N by P matrix X to diagonal form by orthogonal 
-!    transformations U and V.  The diagonal elements S(I) are the singular 
-!    values of X.  The columns of U are the corresponding left singular 
+!    SSVDC reduces a real(8) N by P matrix X to diagonal form by orthogonal
+!    transformations U and V.  The diagonal elements S(I) are the singular
+!    values of X.  The columns of U are the corresponding left singular
 !    vectors, and the columns of V the right singular vectors.
 !
 !  Reference:
@@ -7696,7 +7696,7 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 !
 !    Input, integer P, the number of columns of the matrix X.
 !
-!    Output, real(8) S(MM), where MM = min(N+1,P).  The first min(N,P) entries 
+!    Output, real(8) S(MM), where MM = min(N+1,P).  The first min(N,P) entries
 !    of S contain the singular values of X arranged in descending
 !    order of magnitude.
 !
@@ -7705,14 +7705,14 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 !
 !    Output, real(8) U(LDU,K).  If JOBA = 1 then K = N; if JOBA >= 2 then
 !    K = min(N,P).  U contains the matrix of left singular vectors.
-!    U is not referenced if JOBA = 0.  If N <= P or if JOBA = 2, then 
+!    U is not referenced if JOBA = 0.  If N <= P or if JOBA = 2, then
 !    U may be identified with X in the subroutine call.
 !
 !    Input, integer LDU, the leading dimension of the array U.
 !    LDU must be at least N.
 !
 !    Output, real(8) V(LDV,P), the matrix of right singular vectors.
-!    V is not referenced if JOB is 0.  If P <= N, then V may be identified 
+!    V is not referenced if JOB is 0.  If P <= N, then V may be identified
 !    with X in the subroutine call.
 !
 !    Input, integer LDV, the leading dimension of the array V.
@@ -7730,11 +7730,11 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
 !      B =  1, return the right singular vectors in V.
 !
 !    Output, integer INFO, status indicator.
-!    The singular values (and their corresponding singular vectors) 
-!    S(INFO+1), S(INFO+2),...,S(M) are correct (here M=min(N,P)).  
-!    Thus if INFO is 0, all the singular values and their vectors are 
+!    The singular values (and their corresponding singular vectors)
+!    S(INFO+1), S(INFO+2),...,S(M) are correct (here M=min(N,P)).
+!    Thus if INFO is 0, all the singular values and their vectors are
 !    correct.  In any event, the matrix B = U'*X*V is the bidiagonal matrix
-!    with the elements of S on its diagonal and the elements of E on 
+!    with the elements of S on its diagonal and the elements of E on
 !    its super-diagonal (U' is the transpose of U).  Thus the singular
 !    values of X and B are the same.
 !
@@ -8002,7 +8002,7 @@ subroutine ssvdc ( x, ldx, n, p, s, e, u, ldu, v, ldv, work, job, info )
      end if
 !
 !  This section of the program inspects for
-!  negligible elements in the S and E arrays.  
+!  negligible elements in the S and E arrays.
 !
 !  On completion the variables KASE and L are set as follows:
 !
@@ -8355,8 +8355,8 @@ subroutine strco ( t, ldt, n, rcond, z, job )
 !
 !  Parameters:
 !
-!    Input, real(8) T(LDT,N), the triangular matrix.  The zero elements of 
-!    the matrix are not referenced, and the corresponding elements of the 
+!    Input, real(8) T(LDT,N), the triangular matrix.  The zero elements of
+!    the matrix are not referenced, and the corresponding elements of the
 !    array can be used to store other information.
 !
 !    Input, integer LDT, the leading dimension of the array T.
@@ -8368,15 +8368,15 @@ subroutine strco ( t, ldt, n, rcond, z, job )
 !    nonzero, T is upper triangular.
 !
 !    Output, real(8) RCOND, an estimate of the reciprocal condition of T.
-!    For the system T*X = B, relative perturbations in T and B of size  
+!    For the system T*X = B, relative perturbations in T and B of size
 !    EPSILON may cause relative perturbations in X of size EPSILON/RCOND.
 !    If RCOND is so small that the logical expression
 !      1.0D+00 + RCOND == 1.0D+00
-!    is true, then T may be singular to working precision.  In particular,  
+!    is true, then T may be singular to working precision.  In particular,
 !    RCOND is zero if exact singularity is detected or the estimate underflows.
 !
 !    Output, real(8) Z(N) a work vector whose contents are usually unimportant.
-!    If T is close to a singular matrix, then Z is an approximate null vector 
+!    If T is close to a singular matrix, then Z is an approximate null vector
 !    in the sense that
 !      norm(A*Z) = RCOND * norm(A) * norm(Z).
 !
@@ -8718,8 +8718,8 @@ subroutine strsl ( t, ldt, n, b, job, info )
 !
 !  Discussion:
 !
-!    STRSL can solve T * X = B or T' * X = B where T is a triangular 
-!    matrix of order N. 
+!    STRSL can solve T * X = B or T' * X = B where T is a triangular
+!    matrix of order N.
 !
 !    Here T' denotes the transpose of the matrix T.
 !
@@ -8734,8 +8734,8 @@ subroutine strsl ( t, ldt, n, b, job, info )
 !
 !  Parameters:
 !
-!    Input, real(8) T(LDT,N), the matrix of the system.  The zero elements of 
-!    the matrix are not referenced, and the corresponding elements of the 
+!    Input, real(8) T(LDT,N), the matrix of the system.  The zero elements of
+!    the matrix are not referenced, and the corresponding elements of the
 !    array can be used to store other information.
 !
 !    Input, integer LDT, the leading dimension of the array T.
@@ -8823,7 +8823,7 @@ subroutine strsl ( t, ldt, n, b, job, info )
   else if ( icase == 3 ) then
 
     b(n) = b(n) / t(n,n)
- 
+
     do jj = 2, n
       j = n - jj + 1
       b(j) = b(j) - sdot ( jj-1, t(j+1,j), 1, b(j+1), 1 )

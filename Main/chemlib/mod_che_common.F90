@@ -36,21 +36,21 @@ module mod_che_common
 
   integer(ik4) , parameter :: nbin = 4
   integer(ik4) , parameter :: sbin = 2
-  integer(ik4) , parameter :: maxntr = 50 
+  integer(ik4) , parameter :: maxntr = 50
 
   ! tracer indices :
   type tracer
     integer(ik4) , pointer , dimension(:) :: index
-    integer(ik4) , pointer , dimension(:) :: indcbmz 
+    integer(ik4) , pointer , dimension(:) :: indcbmz
     integer(ik4) , pointer , dimension(:) :: indchbdy
-    real(rk8)    , pointer , dimension(:) :: mw    
+    real(rk8)    , pointer , dimension(:) :: mw
   end type tracer
   type(tracer) trac
 
   ! tracer variables
 
   real(rk8) , pointer , dimension(:,:,:,:) :: chi
-  real(rk8) , pointer , dimension(:,:,:,:) :: chic , chiten , chiten0 , chemten 
+  real(rk8) , pointer , dimension(:,:,:,:) :: chic , chiten , chiten0 , chemten
 
   real(rk8) , pointer , dimension(:,:,:) :: chemsrc, tmpsrc
   real(rk8) , pointer , dimension(:,:,:,:) :: chia , chib
@@ -77,11 +77,11 @@ module mod_che_common
                                              rxsaq1 , rxsaq2 , rxsg
   real(rk8) , pointer , dimension(:,:,:,:) :: chemdiag , cadvhdiag , &
           cadvvdiag , cdifhdiag , cconvdiag , cbdydiag , ctbldiag ,  &
-          cseddpdiag , cemisdiag 
+          cseddpdiag , cemisdiag
 
 
 !*****************************************************************************
-! INTERFACE VARIABLES  for chemistry / regcm 
+! INTERFACE VARIABLES  for chemistry / regcm
 !   the pointer targets are defined in mod_che_interface
 !*****************************************************************************
 
@@ -117,10 +117,10 @@ module mod_che_common
     integer(ik4) , intent(in) :: isladvec
 
     if ( ichem == 1 ) then
-      
-      call getmem1d(trac%index,1,ntr,'mod_che_common:trac%index') 
-      call getmem1d(trac%indcbmz,1,ntr,'mod_che_common:trac%indcbmz') 
-      call getmem1d(trac%mw,1,ntr,'mod_che_common:trac%mw')  
+
+      call getmem1d(trac%index,1,ntr,'mod_che_common:trac%index')
+      call getmem1d(trac%indcbmz,1,ntr,'mod_che_common:trac%indcbmz')
+      call getmem1d(trac%mw,1,ntr,'mod_che_common:trac%mw')
       call getmem1d(trac%indchbdy,1,ntr,'mod_che_common:trac%indchbdy')
 
       call getmem4d(chia,jce1-ma%jbl2,jce2+ma%jbr2, &
@@ -149,10 +149,10 @@ module mod_che_common
 
       call getmem3d(chifxuw,jci1,jci2,ici1,ici2, &
                     1,ntr,'mod_che_common:chifxuw')
-       
+
       call getmem3d(convcldfra,jci1,jci2,ici1,ici2, &
                     1,kz,'mod_che_common:convcldfra')
-        
+
       call getmem4d(rxsg,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
                     'che_common:rxsg')
       call getmem4d(rxsaq1,jce1,jce2,ice1,ice2,1,kz,1,ntr, &
@@ -169,7 +169,7 @@ module mod_che_common
       call getmem1d(idust,1,nbin,'mod_che_common:idust')
       call getmem1d(isslt,1,sbin,'mod_che_common:isslt')
       call getmem1d(icarb,1,7,'mod_che_common:icarb')
-      call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')       
+      call getmem2d(chtrsize,1,nbin,1,2,'mod_che_common:chtrsize')
 
       call getmem4d(chemall,jci1,jci2,ici1,ici2, &
                     1,kz,1,totsp,'mod_che_common:chemall')
@@ -180,14 +180,14 @@ module mod_che_common
       call getmem3d(dtrace,jce1,jce2,ice1,ice2,1,ntr,'che_common:dtrace')
       call getmem3d(wdlsc,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdlsc')
       call getmem3d(wdcvc,jce1,jce2,ice1,ice2,1,ntr,'che_common:wdcvc')
- 
+
       call getmem3d(wxsg,jce1,jce2,ice1,ice2,1,ntr,'che_common:wxsg')
       call getmem3d(wxaq,jce1,jce2,ice1,ice2,1,ntr,'che_common:wxaq')
       call getmem3d(cemtrac,jce1,jce2,ice1,ice2,1,ntr,'che_common:cemtrac')
       call getmem3d(drydepv,jce1,jce2,ice1,ice2,1,ntr,'che_common:drydepv')
       call getmem3d(ddv_out,jce1,jce2,ice1,ice2,1,ntr,'che_common:ddv_out')
 
-      if ( ichdiag > 0 ) then 
+      if ( ichdiag > 0 ) then
         call getmem4d(chiten0,jce1,jce2, &
                       ice1,ice2,1,kz,1,ntr,'che_common:chiten0')
         call getmem4d(chemdiag,jce1,jce2, &
@@ -218,7 +218,7 @@ module mod_che_common
   subroutine chem_config
     implicit none
     ! Define here the possible types of simulation and fix the dimension
-    ! of relevant tracer dimension and parameters 
+    ! of relevant tracer dimension and parameters
     igaschem = 0
     iaerosol = 0
     iisoropia = 0
@@ -228,7 +228,7 @@ module mod_che_common
       chtrname(1:ntr)(1:6) = (/'DUST01','DUST02','DUST03','DUST04'/)
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'DUST simulation'
-    else if ( chemsimtype(1:4) == 'SSLT' ) then 
+    else if ( chemsimtype(1:4) == 'SSLT' ) then
       ntr = sbin
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = (/'SSLT01','SSLT02'/)
@@ -241,20 +241,20 @@ module mod_che_common
                                'SSLT01','SSLT02'/)
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'DUSS simulation'
-    else if ( chemsimtype(1:4) == 'CARB' ) then 
+    else if ( chemsimtype(1:4) == 'CARB' ) then
       ntr = 4
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB '/)
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'CARB simulation'
-    else if ( chemsimtype(1:4) == 'SULF' ) then 
+    else if ( chemsimtype(1:4) == 'SULF' ) then
       ntr = 2
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = (/'SO2   ','SO4   '/)
       iaerosol = 1
       ioxclim  = 1
       if ( myid == italk ) write(stdout,*) 'SULF simulation'
-    else if ( chemsimtype(1:4) == 'SUCA' ) then 
+    else if ( chemsimtype(1:4) == 'SUCA' ) then
       ntr = 6
       allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = (/'BC_HL ','BC_HB ','OC_HL ','OC_HB ', &
@@ -262,8 +262,8 @@ module mod_che_common
       iaerosol = 1
       ioxclim  = 1
       if ( myid == italk ) write(stdout,*) 'SUCA simulation'
-    else if ( chemsimtype(1:4) == 'AERO' ) then 
-      ntr = 12 
+    else if ( chemsimtype(1:4) == 'AERO' ) then
+      ntr = 12
       allocate(chtrname(ntr))
       iaerosol = 1
       ioxclim  = 1
@@ -271,9 +271,9 @@ module mod_che_common
                                'SO2   ','SO4   ','DUST01','DUST02', &
                                'DUST03','DUST04','SSLT01','SSLT02' /)
       if ( myid == italk ) write(stdout,*) 'AERO simulation'
-    else if ( chemsimtype(1:4) == 'DCCB' ) then 
+    else if ( chemsimtype(1:4) == 'DCCB' ) then
       ntr = 50
-      allocate(chtrname(ntr))      
+      allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = (/'NO    ','NO2   ','N2O5  ','HNO2  ',&
                                'HNO3  ','HNO4  ','O3    ','H2O2  ',&
                                'CO    ','SO2   ','DMS   ','H2SO4 ',&
@@ -291,10 +291,10 @@ module mod_che_common
       igaschem = 1
       iisoropia = 1
       if ( myid == italk ) write(stdout,*) 'DCCB simulation'
-    else if ( chemsimtype(1:4) == 'CBMZ' ) then 
+    else if ( chemsimtype(1:4) == 'CBMZ' ) then
       ! This does not include any aerosol(NH3) or monoterpens(APIN, LIMO)
       ntr = 37
-      allocate(chtrname(ntr))      
+      allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = (/'NO    ','NO2   ','N2O5  ','HNO2  ',&
                                'HNO3  ','HNO4  ','O3    ','H2O2  ',&
                                'CO    ','SO2   ','DMS   ','H2SO4 ',&
@@ -307,13 +307,13 @@ module mod_che_common
                                'CRES  '/)
       igaschem = 1
       if ( myid == italk ) write(stdout,*) 'CBMZ simulation'
-    else if ( chemsimtype(1:6) == 'POLLEN' ) then 
+    else if ( chemsimtype(1:6) == 'POLLEN' ) then
       ntr = 1
-      allocate(chtrname(ntr))      
+      allocate(chtrname(ntr))
       chtrname(1:ntr)(1:6) = (/'POLLEN' /)
       iaerosol = 1
       if ( myid == italk ) write(stdout,*) 'POLLEN simulation'
-    else 
+    else
       if ( myid == italk ) then
         write (stderr,*) 'Not a valid chemtype simulation : STOP !'
         write (stderr,*) 'Valid simulations are : ' , &

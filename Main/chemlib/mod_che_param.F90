@@ -37,7 +37,7 @@ module mod_che_param
   integer(ik4) , dimension(22) :: ciexsol
   !
   !FAB : redefine soil prop. similar to bats for chemistry externalisation.
-  ! think about an interface! 
+  ! think about an interface!
   !
   !     ******      xmopor is fraction of soil that is voids
   data cxmopor/0.33D0 , 0.36D0 , 0.39D0 , 0.42D0 , 0.45D0 , 0.48D0 , &

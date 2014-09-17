@@ -50,7 +50,7 @@ module mod_split
   real(rk8) , pointer , dimension(:,:) :: uu , vv
   real(rk8) , pointer , dimension(:,:) :: xdelh
 !
-  contains 
+  contains
 !
   subroutine allocate_mod_split
     implicit none
@@ -197,7 +197,7 @@ module mod_split
         do i = ice1 , ice2
           do j = jce1 , jce2
             fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
-            dstor(j,i,l) = dstor(j,i,l) + zmatxr(l,k) * & 
+            dstor(j,i,l) = dstor(j,i,l) + zmatxr(l,k) * &
                  (-uuu(j,i+1,k)+uuu(j+1,i+1,k)-uuu(j,i,k)+uuu(j+1,i,k) + &
                    vvv(j,i+1,k)+vvv(j+1,i+1,k)-vvv(j,i,k)-vvv(j+1,i,k))/fac
           end do
@@ -305,7 +305,7 @@ module mod_split
     end do
 !
 !=======================================================================
-! 
+!
     do n = 1 , nsplit
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -385,7 +385,7 @@ module mod_split
     end do
 !
 !=======================================================================
-! 
+!
     do n = 1 , nsplit
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -595,7 +595,7 @@ module mod_split
                             deld(j,i,ns,n0)/sfs%psa(j,i)+delh(j,i,ns,3)/m2
         end do
       end do
- 
+
 !     not in Madala (1987)
 
       fac = (aam(ns)-d_one)/aam(ns)
@@ -695,7 +695,7 @@ module mod_split
 !
 !       not in Madala (1987)
 !
-        if ( ma%has_bdyleft ) then 
+        if ( ma%has_bdyleft ) then
           do i = ici1 , ici2
             delh(jce1,i,ns,n2) = d_two*delh(jce1,i,ns,n1)-delh(jce1,i,ns,n0)
           end do

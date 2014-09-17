@@ -18,7 +18,7 @@ module driver
 ! The main CLM driver calling sequence is as follows:
 ! \begin{verbatim}
 !
-! * Recv data from flux coupler [COUP_CSM] 
+! * Recv data from flux coupler [COUP_CSM]
 !
 ! + interpMonthlyVeg      interpolate monthly vegetation data [!DGVM]
 !   + readMonthlyVegetation read vegetation data for two months [!DGVM]
@@ -94,14 +94,14 @@ module driver
   use spmdMod             , only : masterproc
   use decompMod           , only : get_proc_clumps, get_clump_bounds
   use filterMod           , only : filter, setFilters
-  use pftdynMod           , only : pftdyn_interp, pftdyn_wbal_init, pftdyn_wbal 
+  use pftdynMod           , only : pftdyn_interp, pftdyn_wbal_init, pftdyn_wbal
   use clm_varcon          , only : zlnd
   use clm_time_manager        , only : get_step_size, get_curr_calday, &
                                    get_curr_date, get_ref_date, get_nstep, is_perpetual, &
                                    advance_timestep
   use histFileMod         , only : update_hbuf, htapes_wrapup
   use restFileMod         , only : restFile_write, restFile_write_binary, restFile_filename
-  use inicFileMod         , only : inicfile_perp  
+  use inicFileMod         , only : inicfile_perp
   use accFldsMod          , only : updateAccFlds
   use DriverInitMod       , only : DriverInit
   use BalanceCheckMod     , only : BeginWaterBalance, BalanceCheck
@@ -120,7 +120,7 @@ module driver
 #if (defined DGVM)
   use DGVMEcosystemDynMod , only : DGVMEcosystemDyn, DGVMRespiration
   use DGVMMod             , only : lpj, lpjreset, histDGVM, &
-	                           resetweightsdgvm, resettimeconstdgvm 
+	                           resetweightsdgvm, resettimeconstdgvm
 #elif (defined CN)
   use CNEcosystemDynMod   , only : CNEcosystemDyn
   use CNBalanceCheckMod   , only : BeginCBalance, BeginNBalance, &
@@ -184,7 +184,7 @@ subroutine driver1 (doalb, caldayp1, declinp1)
 ! 11/26/03, Peter Thornton: Added new call for SurfaceRadiationSunShade when
 !  cpp directive SUNSHA is set, for sunlit/shaded canopy radiation.
 ! 4/25/05, Peter Thornton: Made the sun/shade routine the default, no longer
-!  need to have SUNSHA defined.  
+!  need to have SUNSHA defined.
 !
 !EOP
 !
@@ -252,15 +252,15 @@ subroutine driver1 (doalb, caldayp1, declinp1)
 #if (defined CN)
      if (doalb) then
         call t_startf('begcnbal')
-        
+
         call BeginCBalance(filter(nc)%num_soilc,filter(nc)%soilc, &
              filter(nc)%num_soilp, filter(nc)%soilp)
-             
+
         call BeginNBalance(filter(nc)%num_soilc,filter(nc)%soilc, &
              filter(nc)%num_soilp, filter(nc)%soilp)
-             
+
         call t_stopf('begcnbal')
-     end if 
+     end if
 #endif
 
   end do
@@ -296,7 +296,7 @@ subroutine driver1 (doalb, caldayp1, declinp1)
   if (doalb .and. fndepdyn /= ' ') then
      call ndepdyn_interp()
   end if
-#endif       
+#endif
   call t_stopf('pftdynwts')
 
 !$OMP PARALLEL DO PRIVATE (nc,begg,endg,begl,endl,begc,endc,begp,endp)
@@ -414,7 +414,7 @@ subroutine driver1 (doalb, caldayp1, declinp1)
 #if (defined VOC)
      ! VOC emission (A. Guenther's model)
      call VOCEmission(begp, endp, &
-                      filter(nc)%num_nolakep, filter(nc)%nolakep)    
+                      filter(nc)%num_nolakep, filter(nc)%nolakep)
 #endif
 
 
@@ -506,7 +506,7 @@ subroutine driver1 (doalb, caldayp1, declinp1)
      ! fully prognostic canopy structure and C-N biogeochemistry
      call CNEcosystemDyn(begc,endc,begp,endp,filter(nc)%num_soilc,&
                   filter(nc)%soilc, filter(nc)%num_soilp, &
-                  filter(nc)%soilp, doalb)          
+                  filter(nc)%soilp, doalb)
 #else
      ! Prescribed biogeography,
      ! prescribed canopy structure, some prognostic carbon fluxes
@@ -530,21 +530,21 @@ subroutine driver1 (doalb, caldayp1, declinp1)
      call t_startf('balchk')
      call BalanceCheck(begp, endp, begc, endc)
      call t_stopf('balchk')
-     
+
 #if (defined CN)
      if (doalb) then
         call t_startf('cnbalchk')
-        
+
         call CBalanceCheck(filter(nc)%num_soilc,filter(nc)%soilc, &
              filter(nc)%num_soilp, filter(nc)%soilp)
-          
+
         call NBalanceCheck(filter(nc)%num_soilc,filter(nc)%soilc, &
              filter(nc)%num_soilp, filter(nc)%soilp)
-          
+
         call t_stopf('cnbalchk')
      end if
 #endif
-        
+
 
      ! ============================================================================
      ! Determine albedos for next time step

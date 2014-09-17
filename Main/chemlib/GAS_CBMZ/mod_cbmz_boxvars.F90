@@ -26,7 +26,7 @@ module mod_cbmz_boxvars
 !
 ! boxvars.EXT      December, 2006
 !
-!   INCLUDE and COMMON file for the BOX MODEL (boxmain.f, boxproc1.f)  
+!   INCLUDE and COMMON file for the BOX MODEL (boxmain.f, boxproc1.f)
 !    with the RADICAL BALANCE-BACK EULER solver for chemistry (quadchem)
 !      (chemmain.f cheminit.f chemrates chemsolve.f, linslv.f, jval2.f)
 !
@@ -51,13 +51,13 @@ module mod_cbmz_boxvars
 !  integer(ik4) , parameter :: nnb = 2010
 
 
-integer(ik4) , parameter :: nna = 1 
+integer(ik4) , parameter :: nna = 1
 integer(ik4) , parameter :: nnb = 2010
 
   real(rk8) :: time         ! time step (sec)
   real(rk8) :: xr(nna,nnb) ! concentration molec/cm3
 !FAB add
-  real(rk8) :: xrin(nna,nnb), xrout(nna,nnb)  
+  real(rk8) :: xrin(nna,nnb), xrout(nna,nnb)
   real(rk8) :: xremit(nnb) ! emitted concentration molec/cm3
   real(rk8) :: xrwdep(nnb) ! summed wet deposition
 
@@ -114,7 +114,7 @@ integer(ik4) , parameter :: nnb = 2010
   real(rk8) :: wind , wx , side , wmax , wmin
   real(rk8) :: alt      ! Layer thickness, cm
   real(rk8) :: zdzdt    ! Entrainment parameter
-  real(rk8) :: zmax     ! Maximum layer height, cm         
+  real(rk8) :: zmax     ! Maximum layer height, cm
   real(rk8) :: zmin     ! Minimum layer height, cm
   real(rk8) :: altbase
   real(rk8) :: frz(24) , fgen(24) , frw(24) , fngen(24) , frs(24)

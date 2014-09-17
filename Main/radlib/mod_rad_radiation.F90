@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_rad_radiation
 
   use mod_intkinds
@@ -296,7 +296,7 @@ module mod_rad_radiation
   real(rk8) , parameter :: wray = 0.999999D0
   real(rk8) , parameter :: gray = 0.0D0
   real(rk8) , parameter :: fray = 0.1D0
-! 
+!
 ! A. Slingo's data for cloud particle radiative properties
 ! (from 'A GCM Parameterization for the Shortwave Properties of Water
 ! Clouds' JAS vol. 46 may 1989 pp 1419-1427)
@@ -414,7 +414,7 @@ module mod_rad_radiation
   data dbarl / 1.630D-07 ,  2.350D-05 , 1.240D-03 , 7.560D-03/
   data ebarl / 0.829D+00 ,  0.794D+00 , 0.754D+00 , 0.826D+00/
   data fbarl / 2.482D-03 ,  4.226D-03 , 6.560D-03 , 4.353D-03/
-! 
+!
   data abari / 3.4480D-03 , 3.4480D-03 , 3.4480D-03 , 3.44800D-03/
   data bbari / 2.4310D+00 , 2.4310D+00 , 2.4310D+00 , 2.43100D+00/
   data cbari / 1.0000D-05 , 1.1000D-04 , 1.8610D-02 , 0.46658D+00/
@@ -435,17 +435,17 @@ module mod_rad_radiation
               0.320518D0 , 1.000000D0 , 1.000000D0 , 1.000000D0 , &
               1.000000D0 , 1.000000D0 , 1.000000D0 , 1.000000D0 , &
               1.000000D0 , 1.000000D0 , 1.000000D0/
- 
+
   data wavmin/0.200D0 , 0.245D0 , 0.265D0 , 0.275D0 , 0.285D0 ,&
               0.295D0 , 0.305D0 , 0.350D0 , 0.640D0 , 0.700D0 ,&
               0.701D0 , 0.701D0 , 0.701D0 , 0.701D0 , 0.702D0 ,&
               0.702D0 , 2.630D0 , 4.160D0 , 4.160D0/
- 
+
   data wavmax/0.245D0 , 0.265D0 , 0.275D0 , 0.285D0 , 0.295D0 ,&
               0.305D0 , 0.350D0 , 0.640D0 , 0.700D0 , 5.000D0 ,&
               5.000D0 , 5.000D0 , 5.000D0 , 5.000D0 , 5.000D0 ,&
               5.000D0 , 2.860D0 , 4.550D0 , 4.550D0/
- 
+
   data raytau/4.0200D0 , 2.1800D0 , 1.7000D0 , 1.4500D0 , &
               1.2500D0 , 1.0850D0 , 0.7300D0 ,            &
               v_raytau_35 , v_raytau_64 ,                 &
@@ -459,18 +459,18 @@ module mod_rad_radiation
              0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 ,  0.002D0 , &
              0.035D0 , 0.377D0 , 1.950D0 , 9.400D0 , 44.600D0 , &
            190.000D0 , 0.000D0 , 0.000D0 , 0.000D0/
- 
+
   data abo3/5.370D+04 , 13.080D+04 , 9.292D+04 , 4.530D+04 , &
             1.616D+04 ,  4.441D+03 , 1.775D+02 , v_abo3_35 , &
             v_abo3_64 ,  0.000D+00 , 0.000D+00 , 0.000D+00 , &
             0.000D+00 ,  0.000D+00 , 0.000D+00 , 0.000D+00 , &
             0.000D+00 ,  0.000D+00 , 0.000D+00/
- 
+
   data abco2/0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
              0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
              0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
              0.000D0 , 0.094D0 , 0.196D0 , 1.963D0/
- 
+
   data abo2/0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 ,  0.000D0 ,  &
             0.000D0 , 0.000D0 , 0.000D0 , 1.11D-05 , 6.69D-05 , &
             0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 ,  0.000D0 ,  &
@@ -482,21 +482,21 @@ module mod_rad_radiation
             0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.505D0 , &
             0.210D0 , 0.120D0 , 0.070D0 , 0.048D0 , 0.029D0 , &
             0.018D0 , 0.000D0 , 0.000D0 , 0.000D0/
- 
+
   data pco2/0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
             0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
             0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
             0.000D0 , 1.000D0 , 0.640D0 , 0.360D0/
- 
+
   data po2/0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
            0.000D0 , 0.000D0 , 0.000D0 , 1.000D0 , 1.000D0 , &
            0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , 0.000D0 , &
            0.000D0 , 0.000D0 , 0.000D0 , 0.000D0/
 !
-  contains 
+  contains
 
-  subroutine allocate_mod_rad_radiation 
-    implicit none        
+  subroutine allocate_mod_rad_radiation
+    implicit none
 !
     npoints = (jci2-jci1+1)*(ici2-ici1+1)
     call getmem3d(absnxt,1,npoints,1,kz,1,4,'rad:absnxt')
@@ -645,7 +645,7 @@ module mod_rad_radiation
     call getmem2d(pnm,1,npoints,1,kzp1,'rad:pnm')
     call getmem2d(tclrsf,1,npoints,1,kzp1,'rad:tclrsf')
 !
-  end subroutine allocate_mod_rad_radiation 
+  end subroutine allocate_mod_rad_radiation
 !
 !-----------------------------------------------------------------------
 !
@@ -687,7 +687,7 @@ module mod_rad_radiation
 !   co2vmr  =  3.10e-4
 !   ch40 = 0.55241 * 1.414e-6
 !   n2o0 = 1.51913 * 0.287e-6
-!  
+!
 !   cfc110 = 4.69548 * 0.280e-9
 !   cfc120 = 4.14307 * 0.503e-9
 !   co2mmr = 1.51913 * co2vmr
@@ -834,7 +834,7 @@ module mod_rad_radiation
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: absgastot
     real(rk8) , pointer , dimension(:,:) , intent(out) :: emsgastot
     logical , pointer , dimension(:) , intent(in) :: czengt0
-    real(rk8) , pointer , dimension(:,:) :: cld , effcld , piln , pint  
+    real(rk8) , pointer , dimension(:,:) :: cld , effcld , piln , pint
     real(rk8) , pointer , dimension(:,:,:) :: outtaucl , outtauci
     real(rk8) , pointer , dimension(:,:,:) :: tauxcl , tauxci
     real(rk8) , pointer , dimension(:,:) :: clwp , fice , h2ommr , pmid ,  &
@@ -889,7 +889,7 @@ module mod_rad_radiation
       ! Specify aerosol mass mixing ratio
       !
       call aermix(pnm,n1,n2)
- 
+
       call aeroppt(rh,aermmr,pint,n1,n2)
 
       call radcsw(n1,n2,pnm,h2ommr,o3mmr,cld,clwp,rel,rei,fice,eccf,  &
@@ -908,17 +908,17 @@ module mod_rad_radiation
         fsntc(n) = fsntc(n)*1.0D-3
         fsnsc(n) = fsnsc(n)*1.0D-3
         !
-        ! clear sky column partitioning for surface flux  
+        ! clear sky column partitioning for surface flux
         ! note : should be generalised to the whole column to be
         !        really in energy balance !
         !
         totcf(n) = d_one
         do k = 1 , kzp1
-          totcf(n) = totcf(n) * (d_one - cld(n,k)) 
+          totcf(n) = totcf(n) * (d_one - cld(n,k))
         end do
         totcf(n) = d_one - totcf(n)
         !
-        ! maximum cld cover considered        
+        ! maximum cld cover considered
         ! fsns(n) = fsns(n) * maxval(cld(n,:)) + &
         !           fsnsc(n) * (1-maxval(cld(n,:)))
         ! random overlap assumption is tocf(n)
@@ -991,9 +991,9 @@ module mod_rad_radiation
 !       flwds(n) = flwds(n) * maxval(cld(n,:)) + &
 !                  fslwdcs(n)*(d_one-maxval(cld(n,:)))
 !       flns(n) = flns(n) * maxval(cld(n,:)) + &
-!                 flnsc(n)*(d_one-maxval(cld(n,:))) 
+!                 flnsc(n)*(d_one-maxval(cld(n,:)))
 !
-!       totcf(n) has been calculated for the SW, dolw is always true 
+!       totcf(n) has been calculated for the SW, dolw is always true
 !
         flwds(n) = flwds(n) * totcf(n) + &
                    fslwdcs(n) * (d_one - totcf(n))
@@ -1091,7 +1091,7 @@ module mod_rad_radiation
                     solsd,solld,fsnirt,fsnrtc,fsnirtsq,adirsw,adifsw,     &
                     adirlw,adiflw,asw,alw,abv,sol,czen,czengt0,aeradfo,   &
                     aeradfos,tauxcl,tauxci,outtaucl,outtauci)
-! 
+!
     implicit none
 !
     integer(ik4) , intent(in) :: n1 , n2
@@ -1101,7 +1101,7 @@ module mod_rad_radiation
              solld , sols , solsd , adirsw , adifsw , adirlw , adiflw , asw , &
              alw , abv , sol , czen
     logical , pointer , dimension(:) , intent(in) :: czengt0
-    real(rk8) , pointer , dimension(:,:) :: cld , pint 
+    real(rk8) , pointer , dimension(:,:) :: cld , pint
     real(rk8) , pointer , dimension(:,:,:) ::  outtaucl , outtauci
     real(rk8) , pointer , dimension(:,:,:) :: tauxcl , tauxci
     real(rk8) , pointer , dimension(:,:) :: clwp , fice , h2ommr , o3mmr , &
@@ -1255,7 +1255,7 @@ module mod_rad_radiation
     !
     tmp1 = d_half/(egravgts*sslp)
     ! co2mmr = co2vmr*(mmwco2/mmwair)
-   
+
     sqrco2 = dsqrt(co2mmr)
     do n = n1 , n2
       if ( czengt0(n) ) then
@@ -1477,7 +1477,7 @@ module mod_rad_radiation
       ! Layer input properties now completely specified; compute the
       ! delta-Eddington solution reflectivities and transmissivities
       ! for each layer, starting from the top and working downwards:
-      ! 
+      !
       ! options for aerosol: no climatic feedback if idirect == 1
       ! should be consistent with aeroppt routine
       !
@@ -1487,7 +1487,7 @@ module mod_rad_radiation
           lzero = .false.
         end if
       end if
-   
+
       call radded(n1,n2,trayoslp,czen,czengt0,tauxcl,tauxci,ns,lzero)
       !
       ! Compute reflectivity to direct and diffuse mod_radiation for layers
@@ -1553,9 +1553,9 @@ module mod_rad_radiation
         if ( czengt0(n) ) then
           solflx(n) = solin(n)*frcsol(ns)*psf
           fsnt(n) = fsnt(n) + solflx(n)*(fluxdn(n,1)-fluxup(n,1))
-   
+
           fsns(n) = fsns(n) + solflx(n)*(fluxdn(n,kzp1)-fluxup(n,kz + 1))
-   
+
           sfltot = sfltot + solflx(n)
           fswup(n,0) = fswup(n,0) + solflx(n)*fluxup(n,0)
           fswdn(n,0) = fswdn(n,0) + solflx(n)*fluxdn(n,0)
@@ -1663,7 +1663,7 @@ module mod_rad_radiation
             end if
           end do
         end do
-        x0fsnrtc = d_zero  
+        x0fsnrtc = d_zero
         do n = n1 , n2
           if ( czengt0(n) ) then
             ! SAVE the ref net TOA flux
@@ -2094,10 +2094,10 @@ module mod_rad_radiation
         ful(:,:) = ful0(:,:)
         fdl(:,:) = fdl0(:,:)
         s(:,:,:) = s0(:,:,:)
-      end if 
+      end if
     end if ! end aersol rad diagnostic
     !
-    ! FAB MODIF  : save downward clear sky long wave flux in surface  
+    ! FAB MODIF  : save downward clear sky long wave flux in surface
     !
     fslwdcs(:) = fsdl(:,kzp1)
     !
@@ -3528,7 +3528,7 @@ module mod_rad_radiation
           tco2(n) = d_one/(d_one+d_10*u7/dsqrt(d_four+u7*(d_one+rbeta7)))
 !         trab3(n) = 1. - bndfct*absbnd
           absgasnxt(n,k2,kn) = abso(1) + abso(2) + abso(3) + &
-                               abso(4) + abso(5) + abso(6) 
+                               abso(4) + abso(5) + abso(6)
         end do
       end do
 !
@@ -3633,7 +3633,7 @@ module mod_rad_radiation
 ! tr1     - Equation(6) in table A2 for 650-800
 ! tr2     - Equation(6) in table A2 for 500-650
 ! tr3     - Equation(4) in table A2 for 650-800
-! tr4     - Equation(4),table A2 of R&D for 500-650 
+! tr4     - Equation(4),table A2 of R&D for 500-650
 ! tr7     - Equation (6) times eq(4) in table A2 of R&D for 650-800 cm-1 region
 ! tr8     - Equation (6) times eq(4) in table A2 of R&D for 500-650 cm-1 region
 ! uc      - Y + 0.002U in eq(8) of table A2 of R&D
@@ -4135,7 +4135,7 @@ module mod_rad_radiation
 !     ccm3.2
 !     w(n,1)   = (plh2o(n,1)*2.) / pint(n,1)
 !     s2c(n,1) = plh2o(n,1) * qnm(n,1) * repsil
-   
+
 !     ccm3.6.6
       w(n,1) = sslp*(plh2o(n,1)*d_two)/pint(n,1)
       rtnm = d_one/tnm(n,1)

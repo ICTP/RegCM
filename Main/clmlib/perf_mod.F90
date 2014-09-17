@@ -1,14 +1,14 @@
 module perf_mod
 
-!----------------------------------------------------------------------- 
-! 
+!-----------------------------------------------------------------------
+!
 ! Purpose: This module is responsible for controlling the performance
 !          timer logic.
-! 
+!
 ! Author:  P. Worley, January 2007
 !
 ! $Id$
-! 
+!
 !-----------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
@@ -53,7 +53,7 @@ module perf_mod
 #ifdef HAVE_PAPI
 #include <f77papi.h>
 #endif
-#include <mpif.h>  
+#include <mpif.h>
 #include "gptl.inc"
 
 !-----------------------------------------------------------------------
@@ -62,8 +62,8 @@ module perf_mod
    logical, parameter :: def_perf_single_file = .true.          ! default
    logical, private   :: perf_single_file = def_perf_single_file
                          ! flag indicating whether the performance timer
-                         ! output should be written to a single file 
-                         ! (per component communicator) or to a 
+                         ! output should be written to a single file
+                         ! (per component communicator) or to a
                          ! separate file for each process
 
    logical, parameter :: def_timing_initialized = .false.       ! default
@@ -83,7 +83,7 @@ module perf_mod
    integer, parameter :: def_timer_depth_limit = 99999          ! default
    integer, private   :: timer_depth_limit = def_timer_depth_limit
                          ! integer indicating maximum number of levels of
-                         ! timer nesting 
+                         ! timer nesting
 
    integer, parameter :: def_timing_detail_limit = 0            ! default
    integer, private   :: timing_detail_limit = def_timer_depth_limit
@@ -120,9 +120,9 @@ contains
                                timing_detail_limit_out, &
                                timing_barrier_out, &
                                perf_single_file_out )
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 ! Purpose: Return default runtime options
-! Author: P. Worley 
+! Author: P. Worley
 !-----------------------------------------------------------------------
 !---------------------------Input arguments-----------------------------
    ! timers disable/enable option
@@ -170,16 +170,16 @@ contains
                            timing_detail_limit_in, &
                            timing_barrier_in, &
                            perf_single_file_in )
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 ! Purpose: Set runtime options
-! Author: P. Worley 
+! Author: P. Worley
 !-----------------------------------------------------------------------
 !---------------------------Input arguments----------------------------
 !
    ! master process?
    logical, intent(in) :: mastertask
    ! Print out to log file?
-   logical, intent(IN) :: LogPrint        
+   logical, intent(IN) :: LogPrint
    ! timers disable/enable option
    logical, intent(in), optional :: timing_disable_in
    ! performance timer option
@@ -203,7 +203,7 @@ contains
          timing_disable = timing_disable_in
          if (timing_disable) then
             ierr = GPTLdisable()
-         else 
+         else
             ierr = GPTLenable()
          endif
       endif
@@ -237,13 +237,13 @@ contains
       endif
 !
       if (mastertask .and. LogPrint) then
-         write(6,*) 'PERF_SETOPTS:  Using profile_disable=', timing_disable, &             
+         write(6,*) 'PERF_SETOPTS:  Using profile_disable=', timing_disable, &
                ' profile_timer=', perf_timer, &
-               ' profile_depth_limit=', timer_depth_limit, &    
+               ' profile_depth_limit=', timer_depth_limit, &
                ' profile_detail_limit=', timing_detail_limit, &
                ' profile_barrier=', timing_barrier, &
-               ' profile_single_file=', perf_single_file 
-      endif                                                                               
+               ' profile_single_file=', perf_single_file
+      endif
 !
 #ifdef DEBUG
    else
@@ -258,12 +258,12 @@ contains
 !========================================================================
 !
    logical function t_profile_onf()
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 ! Purpose: Return flag indicating whether profiling is currently active.
 !          Part of workaround to implement FVbarrierclock before
 !          communicators exposed in Pilgrim. Does not check level of
 !          event nesting.
-! Author: P. Worley 
+! Author: P. Worley
 !-----------------------------------------------------------------------
 
    if ((.not. timing_initialized) .or. &
@@ -279,10 +279,10 @@ contains
 !========================================================================
 !
    logical function t_barrier_onf()
-!----------------------------------------------------------------------- 
-! Purpose: Return timing_barrier. Part of workaround to implement 
-!          FVbarrierclock before communicators exposed in Pilgrim. 
-! Author: P. Worley 
+!-----------------------------------------------------------------------
+! Purpose: Return timing_barrier. Part of workaround to implement
+!          FVbarrierclock before communicators exposed in Pilgrim.
+! Author: P. Worley
 !-----------------------------------------------------------------------
 
    t_barrier_onf = timing_barrier
@@ -292,10 +292,10 @@ contains
 !========================================================================
 !
    logical function t_single_filef()
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 ! Purpose: Return perf_single_file. Used to control output of other
 !          performance data, only spmdstats currently.
-! Author: P. Worley 
+! Author: P. Worley
 !-----------------------------------------------------------------------
 
    t_single_filef = perf_single_file
@@ -305,9 +305,9 @@ contains
 !========================================================================
 !
    subroutine t_stampf(wall, usr, sys)
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 ! Purpose: Record wallclock, user, and system times (seconds).
-! Author: P. Worley 
+! Author: P. Worley
 !-----------------------------------------------------------------------
 !---------------------------Output arguments-----------------------------
 !
@@ -336,9 +336,9 @@ contains
 !========================================================================
 !
    subroutine t_startf(event)
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 ! Purpose: Start an event timer
-! Author: P. Worley 
+! Author: P. Worley
 !-----------------------------------------------------------------------
 !---------------------------Input arguments-----------------------------
 !
@@ -364,9 +364,9 @@ contains
 !========================================================================
 !
    subroutine t_stopf(event)
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 ! Purpose: Stop an event timer
-! Author: P. Worley 
+! Author: P. Worley
 !-----------------------------------------------------------------------
 !---------------------------Input arguments-----------------------------
 !
@@ -392,10 +392,10 @@ contains
 !========================================================================
 !
    subroutine t_enablef()
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 ! Purpose: Enable t_startf, t_stopf, t_stampf, and t_barrierf. Ignored
 !          in threaded regions.
-! Author: P. Worley 
+! Author: P. Worley
 !-----------------------------------------------------------------------
 !---------------------------Local workspace-----------------------------
 !
@@ -429,10 +429,10 @@ contains
 !========================================================================
 !
    subroutine t_disablef()
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 ! Purpose: Disable t_startf, t_stopf, t_stampf, and t_barrierf. Ignored
 !          in threaded regions.
-! Author: P. Worley 
+! Author: P. Worley
 !-----------------------------------------------------------------------
 !---------------------------Local workspace-----------------------------
 !
@@ -464,9 +464,9 @@ contains
 !========================================================================
 !
    subroutine t_adj_detailf(detail_adjustment)
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 ! Purpose: Modify current detail level. Ignored in threaded regions.
-! Author: P. Worley 
+! Author: P. Worley
 !-----------------------------------------------------------------------
 !---------------------------Input arguments-----------------------------
 !
@@ -496,11 +496,11 @@ contains
 !========================================================================
 !
    subroutine t_barrierf(event, mpicom)
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 ! Purpose: Call (and time) mpi_barrier. Ignored inside OpenMP
 !          threaded regions. Note that barrier executed even if
 !          event not recorded because of level of timer event nesting.
-! Author: P. Worley 
+! Author: P. Worley
 !-----------------------------------------------------------------------
 !---------------------------Use statements------------------------------
    use shr_mpi_mod,       only: shr_mpi_barrier
@@ -556,9 +556,9 @@ contains
 !========================================================================
 !
    subroutine t_prf(filename, mpicom)
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 ! Purpose: Write out performance timer data
-! Author: P. Worley 
+! Author: P. Worley
 !-----------------------------------------------------------------------
 !---------------------------Use statements------------------------------
    use shr_file_mod,      only: shr_file_getUnit, shr_file_freeUnit
@@ -676,8 +676,8 @@ contains
 !========================================================================
 !
    subroutine t_initf(NLFilename, LogPrint, mpicom, MasterTask)
-!----------------------------------------------------------------------- 
-! Purpose:  Set default values of runtime timing options 
+!-----------------------------------------------------------------------
+! Purpose:  Set default values of runtime timing options
 !           before namelist prof_inparm is read,
 !           read namelist (and broadcast, if SPMD),
 !           then initialize timing library.
@@ -799,9 +799,9 @@ contains
 
 !$OMP MASTER
    !
-   ! Set options and initialize timing library.  
-   ! 
-   ! For logical settings, 2nd arg 0 
+   ! Set options and initialize timing library.
+   !
+   ! For logical settings, 2nd arg 0
    ! to gptlsetoption means disable, non-zero means enable
    !
    ! Turn off CPU timing (expensive)
@@ -836,9 +836,9 @@ contains
 !========================================================================
 !
    subroutine t_finalizef()
-!----------------------------------------------------------------------- 
+!-----------------------------------------------------------------------
 ! Purpose: shut down timing library
-! Author: P. Worley 
+! Author: P. Worley
 !-----------------------------------------------------------------------
 !---------------------------Local workspace-----------------------------
 !

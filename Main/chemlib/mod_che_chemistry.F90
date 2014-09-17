@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_che_chemistry
-  
+
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
@@ -62,7 +62,7 @@ module mod_che_chemistry
 
       time = dtchsolv
       !! idate = (lyear-1900)*10000+lmonth*100+lday
-      
+
       ! Begining of i , k loop
       ! do not solve chemistry for stratosphere (k == 1)
       do k = 2 , kz
@@ -78,13 +78,13 @@ module mod_che_chemistry
           deptha = d_zero
           depthb = d_zero
           altabove = d_zero
-          altbelow = d_zero      
+          altbelow = d_zero
 
           if ( ichjphcld == 1 ) then
             if ( k == kz ) then
               pressk    = (cpsb(j,i)*hsigma(k)+ptop)
               heightk   = -1.0*scaleH*log(pressk/(cpsb(j,i)+ptop))
-            end if  
+            end if
             if ( k > 2 ) then
               if ( ctaucld(j,i,k-1,8) > 0.0 ) then
                 do kab = k-1 , 2 , -1
@@ -96,7 +96,7 @@ module mod_che_chemistry
                   heightkm1 = -1.0*scaleH*log(presskm1/(cpsb(j,i)+ptop))
                   heightk   = 0.5*(heightkp1+heightkm1)
                   altabove  = altabove + heightk*ctaucld(j,i,kab,8)
-                end do           
+                end do
                 altabove  = altabove/deptha
               end if
             end if
@@ -111,7 +111,7 @@ module mod_che_chemistry
                   heightkm1 = -1.0*scaleH*log(presskm1/(cpsb(j,i)+ptop))
                   heightk   = 0.5*(heightkp1+heightkm1)
                   altbelow  = altbelow + heightk*ctaucld(j,i,kbl,8)
-                end do 
+                end do
                 altbelow  = altbelow/depthb
               end if
             end if
@@ -123,7 +123,7 @@ module mod_che_chemistry
           ! 1 : initialise xrin with the concentrations from
           !     previous chemsolv step
           do ic = 1 , totsp
-            xrin(ic) = chemall(j,i,k,ic) 
+            xrin(ic) = chemall(j,i,k,ic)
           end do
           ! 2 : update input concentrations for transported species only
           cfactor =  crhob3d(j,i,k) * 1.D-03 * navgdr
@@ -132,8 +132,8 @@ module mod_che_chemistry
             if ( trac%indcbmz(n) > 0 ) then
               xrin(trac%indcbmz(n)) = chib3d(j,i,k,n)*cfactor/trac%mw(n)
             end if
-          end do 
-          ! update for water vapor  
+          end do
+          ! update for water vapor
           xrin(ind_H2O)  = cqxb3d(j,i,k,iqv)*cfactor / 18.D00
 
           call chemmain
@@ -147,7 +147,7 @@ module mod_che_chemistry
             jphoto(j,i,k,ic) = c_jval(1,ic)
           end do
           !
-          ! Now calculate chemical tendencies       
+          ! Now calculate chemical tendencies
           ! mole.cm-3.s-1  to kg.kg-1.s-1.ps (consistency with chiten unit)
           cfactor =  crhob3d(j,i,k) * 1.D-03 * navgdr
           pfact = cpsb(j,i)/cfactor/dtchsolv

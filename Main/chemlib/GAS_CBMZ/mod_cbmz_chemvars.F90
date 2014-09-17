@@ -33,12 +33,12 @@ module mod_cbmz_chemvars
 ! NOTE- chemvars.EXT and chemmech.EXT must always go together
 !       with chemmech.EXT first - it contains indices. (change 7/07)
 !
-!  Divided into ESSENTIAL input/output 
+!  Divided into ESSENTIAL input/output
 !    and OPTIONAL output which is rarely used.
 !
 !  CRITICAL PARAMETERS AND CHOICES:  - moved to chemmech 7/07
 !
-!  Other INCLUDE files: 
+!  Other INCLUDE files:
 !   chemmech.EXT =  variables for the chem. mechanism
 !     that are set once and do not change as the mechanism is called.
 !   chemlocal.EXT = Variables that are shared among the subroutines
@@ -55,32 +55,32 @@ module mod_cbmz_chemvars
 ! READ/WRITE AND VECTOR INDICES - moved to chemmech.EXT.
 !
 ! BASIC INPUTS:  CONCENTRATIONS, DEPOSITION ARRAYS, TIME STEP.
-! 
+!
 ! c_xcin :
 ! c_xcin:       input  species  concentration, molec/cm3
 !               including emissions during the time step
 ! c_xcout:      final species concentrations, molec/cm3
 !               for gas species: sum of gas + linked aqueous,
 !               in gas units (molec/cm3).
-!               for aqueous species: M/liter.  
+!               for aqueous species: M/liter.
 ! c_xcav:       average species concentration during the time step
-!               (to be used for wet deposition: 
+!               (to be used for wet deposition:
 !               xcwdep(M/cm2) = xcav(M/L)*rainfr*alt(cm)*.01 (dm2/cm2)
 ! c_xcemit:     emissions during time step, molec/cm3
 !               (only used in expo. decay solution, usually zero)
 ! c_xcwdep:     Wet deposition in solver - Not used.
 ! c_time:       time step (sec)
-!         
+!
    real(rk8) :: c_xcin(c_kvec,c_cdim)   ! concentration molec/cm3
    real(rk8) :: c_xcout(c_kvec,c_cdim)  ! concentration, mol/cm3
    real(rk8) :: c_xcav(c_kvec,c_cdim)   ! concentration, mol/cm3
    real(rk8) :: c_xcemit(c_kvec,c_cdim) ! emissions, molec/cm3
    real(rk8) :: c_time                  ! time step (sec)
    real(rk8) :: c_jval(c_kvec,56)
-! 
+!
 ! (note = separate out TIME?)
 
-!  CHEMISTRY INPUT PARAMETERS (CPARAMS):  
+!  CHEMISTRY INPUT PARAMETERS (CPARAMS):
 !         Parameters used to calculate rate constants
 
 ! c_h2oliq             Liquid Water Content (LWC) grams cm-3 (acqua)
@@ -90,15 +90,15 @@ module mod_cbmz_chemvars
 ! c_saersa             SULFATE AEROSOL SURFACE AREA cm2 cm-3
 ! c_DROPLET             Droplet radius for gas-aq calc, cm (.001)
 !                        (not yet vectorized - hard set at .001)
-! 
-! FUTURE, NOT CURRENTLY USED:  
+!
+! FUTURE, NOT CURRENTLY USED:
 ! c_rgasaq(kvec,nr)     Gas-aq transfer rate, s-1 (optional, <0 cancels)
 ! c_lgasaq(kvec)        Flag to calculate (T) gas-aqueous transfer rate
 ! c_lstsaq               Flag for steady state gas/aq partitioning
 !                        (T for steady state)
 ! c_lexpo(kvec)         Flag for modified backward Euler solution
 !                        with exponential decay
-! 
+!
    real(rk8) :: c_temp(c_kvec)          ! temperature K
    real(rk8) :: c_dens(c_kvec)          ! density molec cm-3
    real(rk8) :: c_h2oliq(c_kvec)        ! LWC grams cm-3
@@ -112,7 +112,7 @@ module mod_cbmz_chemvars
    logical :: c_lstsaq(c_kvec)         ! Flag for steady state gas-aq
    logical :: c_lexpo(c_kvec)          ! Flag for expo decay solution
 
-!  PHOTOLYSIS INPUT PARAMETERS (HVPARAMS):  
+!  PHOTOLYSIS INPUT PARAMETERS (HVPARAMS):
 !      Parameters used in calculating HV RATES.
 !      Note: see also DATA FOR HV PARAMETERIZATION (chemmech)
 !            and RETURNED J-VALUE ARRAY (jval, local in hvrates.f)
@@ -124,7 +124,7 @@ module mod_cbmz_chemvars
 !    c_jparam( 3)=ozone column (DU)
 !    c_jparam( 4)=SO2   column (DU)  (0.1=1 ppb, SO2 0-1km)
 !    c_jparam( 5)=NO2   column (DU)  (0.1=1 ppb, NO2 0-1km)
-! 
+!
 !    c_jparam( 6)=aerosol optical depth
 !                        (0.36 = Elterman 1968, normal, 0.76=polluted)
 !    c_jparam( 7)=surface albedo   (0.1)
@@ -136,14 +136,14 @@ module mod_cbmz_chemvars
 !    c_jparam(11)= opt-depth-weighted altitude for clouds above (KM)
 !    c_jparam(12)= opt-depth-weighted altitude for clouds below (KM)
 !    c_jparam(13)= temperature (K)
-! 
+!
 !    c_jparam(20)= c_IDATE yymmddd (2000=100) or  day number (1-366)
 !
 !    c_lat (kk)     Latitude, degrees
 !    c_lon (kk)     Longitude, degrees
 !    c_hour         Hour at end of simulated time interval (decimal hrs)
 !    (c_time also used - time interval - above.)
-!    c_IDATE        Date YYMMDD (YY=>100) 
+!    c_IDATE        Date YYMMDD (YY=>100)
 !                   Note, ZEN1 has alt.for YYYYDDD
 !        (lat, lon, hour and date used in SOLAR ZENITH ANGLE  calc.)
 !
@@ -153,7 +153,7 @@ module mod_cbmz_chemvars
   integer(ik4) :: c_idate        ! Date YYMMDD (YY=100 for 2000)
   real(rk8) :: c_jparam(22)  ! J-value input parameters
 
-! OPTIONAL CHEM OUTPUT VALUES:    
+! OPTIONAL CHEM OUTPUT VALUES:
 !  May be used for subsequent analysis but not necessary.
 !  OPTION: Move this from chemvars to chemlocal
 !
@@ -165,8 +165,8 @@ module mod_cbmz_chemvars
   real(rk8) :: c_rl(c_kvec,c_cdim)  ! Loss, molec/cm3
   real(rk8) :: c_rr(c_kvec,c_rdim)  ! Reaction rate m/cm3
 
-! OPTIONAL OUTPUTS RELATING TO NUMERICS: 
-!   Currently in chemlocal:  
+! OPTIONAL OUTPUTS RELATING TO NUMERICS:
+!   Currently in chemlocal:
 !    xohtest, xnotest, fohtest, final iter, history, geomavg
 
   real(rk8) :: c_ohtest   ! test: dOH/OH or dOH/HO2

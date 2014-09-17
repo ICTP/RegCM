@@ -37,7 +37,7 @@ module mcica_subcol_gen_lw
       implicit none
 
 ! public interfaces/functions/subroutines
-      public :: mcica_subcol_lw, generate_stochastic_clouds 
+      public :: mcica_subcol_lw, generate_stochastic_clouds
 
       contains
 
@@ -55,7 +55,7 @@ module mcica_subcol_gen_lw
       integer(kind=im), intent(in) :: ncol            ! number of columns
       integer(kind=im), intent(in) :: nlay            ! number of model layers
       integer(kind=im), intent(in) :: icld            ! clear/cloud, cloud overlap flag
-      integer(kind=im), intent(in) :: permuteseed     ! if the cloud generator is called multiple times, 
+      integer(kind=im), intent(in) :: permuteseed     ! if the cloud generator is called multiple times,
                                                       ! permute the seed between each call.
                                                       ! between calls for LW and SW, recommended
                                                       ! permuteseed differs by 'ngpt'
@@ -64,7 +64,7 @@ module mcica_subcol_gen_lw
                                                       !  1 = Mersenne Twister
 
 ! Atmosphere
-      real(kind=rb), intent(in) :: play(:,:)          ! layer pressures (mb) 
+      real(kind=rb), intent(in) :: play(:,:)          ! layer pressures (mb)
                                                       !    Dimensions: (ncol,nlay)
 
 ! Atmosphere/clouds - cldprop
@@ -110,17 +110,17 @@ module mcica_subcol_gen_lw
       integer(kind=im), parameter :: nsubclw = ngptlw ! number of sub-columns (g-point intervals)
       integer(kind=im) :: ilev                        ! loop index
 
-      real(kind=rb) :: pmid(ncol, nlay)               ! layer pressures (Pa) 
-!      real(kind=rb) :: pdel(ncol, nlay)              ! layer pressure thickness (Pa) 
+      real(kind=rb) :: pmid(ncol, nlay)               ! layer pressures (Pa)
+!      real(kind=rb) :: pdel(ncol, nlay)              ! layer pressure thickness (Pa)
 !      real(kind=rb) :: qi(ncol, nlay)                ! ice water (specific humidity)
 !      real(kind=rb) :: ql(ncol, nlay)                ! liq water (specific humidity)
 
 
 ! Return if clear sky; or stop if icld out of range
       if (icld.eq.0) return
-      if (icld.lt.0.or.icld.gt.3) then 
+      if (icld.lt.0.or.icld.gt.3) then
          stop 'MCICA_SUBCOL: INVALID ICLD'
-      endif 
+      endif
 
 ! NOTE: For GCM mode, permuteseed must be offset between LW and SW by at least the number of subcolumns
 
@@ -132,7 +132,7 @@ module mcica_subcol_gen_lw
       relqmcl(:ncol,:nlay) = rel(:ncol,:nlay)
       pmid(:ncol,:nlay) = play(:ncol,:nlay)*1.e2_rb
 
-! Convert input ice and liquid cloud water paths to specific humidity ice and liquid components 
+! Convert input ice and liquid cloud water paths to specific humidity ice and liquid components
 
 !      cwp =  (q * pdel * 1000.) / gravit)
 !           = (kg/kg * kg m-1 s-2 *1000.) / m s-2
@@ -156,66 +156,66 @@ module mcica_subcol_gen_lw
 
 !-------------------------------------------------------------------------------------------------
       subroutine generate_stochastic_clouds(ncol, nlay, nsubcol, icld, irng, pmid, cld, clwp, ciwp, tauc, &
-                                   cld_stoch, clwp_stoch, ciwp_stoch, tauc_stoch, changeSeed) 
+                                   cld_stoch, clwp_stoch, ciwp_stoch, tauc_stoch, changeSeed)
 !-------------------------------------------------------------------------------------------------
 
   !----------------------------------------------------------------------------------------------------------------
   ! ---------------------
   ! Contact: Cecile Hannay (hannay@ucar.edu)
-  ! 
+  !
   ! Original code: Based on Raisanen et al., QJRMS, 2004.
-  ! 
+  !
   ! Modifications: Generalized for use with RRTMG and added Mersenne Twister as the default
   !   random number generator, which can be changed to the optional kissvec random number generator
-  !   with flag 'irng'. Some extra functionality has been commented or removed.  
+  !   with flag 'irng'. Some extra functionality has been commented or removed.
   !   Michael J. Iacono, AER, Inc., February 2007
   !
   ! Given a profile of cloud fraction, cloud water and cloud ice, we produce a set of subcolumns.
-  ! Each layer within each subcolumn is homogeneous, with cloud fraction equal to zero or one 
+  ! Each layer within each subcolumn is homogeneous, with cloud fraction equal to zero or one
   ! and uniform cloud liquid and cloud ice concentration.
-  ! The ensemble as a whole reproduces the probability function of cloud liquid and ice within each layer 
-  ! and obeys an overlap assumption in the vertical.   
-  ! 
+  ! The ensemble as a whole reproduces the probability function of cloud liquid and ice within each layer
+  ! and obeys an overlap assumption in the vertical.
+  !
   ! Overlap assumption:
-  !  The cloud are consistent with 4 overlap assumptions: random, maximum, maximum-random and exponential. 
+  !  The cloud are consistent with 4 overlap assumptions: random, maximum, maximum-random and exponential.
   !  The default option is maximum-random (option 3)
   !  The options are: 1=random overlap, 2=max/random, 3=maximum overlap, 4=exponential overlap
-  !  This is set with the variable "overlap" 
+  !  This is set with the variable "overlap"
   !mji - Exponential overlap option (overlap=4) has been deactivated in this version
-  !  The exponential overlap uses also a length scale, Zo. (real,    parameter  :: Zo = 2500. ) 
-  ! 
+  !  The exponential overlap uses also a length scale, Zo. (real,    parameter  :: Zo = 2500. )
+  !
   ! Seed:
-  !  If the stochastic cloud generator is called several times during the same timestep, 
+  !  If the stochastic cloud generator is called several times during the same timestep,
   !  one should change the seed between the call to insure that the subcolumns are different.
   !  This is done by changing the argument 'changeSeed'
   !  For example, if one wants to create a set of columns for the shortwave and another set for the longwave ,
-  !  use 'changeSeed = 1' for the first call and'changeSeed = 2' for the second call 
+  !  use 'changeSeed = 1' for the first call and'changeSeed = 2' for the second call
   !
   ! PDF assumption:
-  !  We can use arbitrary complicated PDFS. 
-  !  In the present version, we produce homogeneuous clouds (the simplest case).  
-  !  Future developments include using the PDF scheme of Ben Johnson. 
+  !  We can use arbitrary complicated PDFS.
+  !  In the present version, we produce homogeneuous clouds (the simplest case).
+  !  Future developments include using the PDF scheme of Ben Johnson.
   !
   ! History file:
   !  Option to add diagnostics variables in the history file. (using FINCL in the namelist)
   !  nsubcol = number of subcolumns
   !  overlap = overlap type (1-3)
-  !  Zo = length scale 
+  !  Zo = length scale
   !  CLOUD_S = mean of the subcolumn cloud fraction ('_S" means Stochastic)
   !  CLDLIQ_S = mean of the subcolumn cloud water
-  !  CLDICE_S = mean of the subcolumn cloud ice 
+  !  CLDICE_S = mean of the subcolumn cloud ice
   !
   ! Note:
-  !   Here: we force that the cloud condensate to be consistent with the cloud fraction 
-  !   i.e we only have cloud condensate when the cell is cloudy. 
-  !   In CAM: The cloud condensate and the cloud fraction are obtained from 2 different equations 
-  !   and the 2 quantities can be inconsistent (i.e. CAM can produce cloud fraction 
+  !   Here: we force that the cloud condensate to be consistent with the cloud fraction
+  !   i.e we only have cloud condensate when the cell is cloudy.
+  !   In CAM: The cloud condensate and the cloud fraction are obtained from 2 different equations
+  !   and the 2 quantities can be inconsistent (i.e. CAM can produce cloud fraction
   !   without cloud condensate or the opposite).
   !---------------------------------------------------------------------------------------------------------------
 
       use mcica_random_numbers
 ! The Mersenne Twister random number engine
-      use MersenneTwister, only: randomNumberSequence, &   
+      use MersenneTwister, only: randomNumberSequence, &
                                  new_RandomNumberSequence, getRandomReal
 
       type(randomNumberSequence) :: randomNumbers
@@ -231,10 +231,10 @@ module mcica_subcol_gen_lw
       integer(kind=im), intent(in) :: nsubcol         ! number of sub-columns (g-point intervals)
       integer(kind=im), optional, intent(in) :: changeSeed     ! allows permuting seed
 
-! Column state (cloud fraction, cloud water, cloud ice) + variables needed to read physics state 
+! Column state (cloud fraction, cloud water, cloud ice) + variables needed to read physics state
       real(kind=rb), intent(in) :: pmid(:,:)          ! layer pressure (Pa)
                                                       !    Dimensions: (ncol,nlay)
-      real(kind=rb), intent(in) :: cld(:,:)           ! cloud fraction 
+      real(kind=rb), intent(in) :: cld(:,:)           ! cloud fraction
                                                       !    Dimensions: (ncol,nlay)
       real(kind=rb), intent(in) :: clwp(:,:)          ! in-cloud liquid water path
                                                       !    Dimensions: (ncol,nlay)
@@ -249,7 +249,7 @@ module mcica_subcol_gen_lw
                                                       !    Dimensions: (nbndlw,ncol,nlay)
                                                       !   inactive - for future expansion
 
-      real(kind=rb), intent(out) :: cld_stoch(:,:,:)  ! subcolumn cloud fraction 
+      real(kind=rb), intent(out) :: cld_stoch(:,:,:)  ! subcolumn cloud fraction
                                                       !    Dimensions: (ngptlw,ncol,nlay)
       real(kind=rb), intent(out) :: clwp_stoch(:,:,:) ! subcolumn in-cloud liquid water path
                                                       !    Dimensions: (ngptlw,ncol,nlay)
@@ -265,10 +265,10 @@ module mcica_subcol_gen_lw
                                                       !   inactive - for future expansion
 
 ! -- Local variables
-      real(kind=rb) :: cldf(ncol,nlay)                ! cloud fraction 
-    
+      real(kind=rb) :: cldf(ncol,nlay)                ! cloud fraction
+
 ! Mean over the subcolumns (cloud fraction, cloud water , cloud ice) - inactive
-!      real(kind=rb) :: mean_cld_stoch(ncol, nlay)    ! cloud fraction 
+!      real(kind=rb) :: mean_cld_stoch(ncol, nlay)    ! cloud fraction
 !      real(kind=rb) :: mean_clwp_stoch(ncol, nlay)   ! cloud water
 !      real(kind=rb) :: mean_ciwp_stoch(ncol, nlay)   ! cloud ice
 !      real(kind=rb) :: mean_tauc_stoch(ncol, nlay)   ! cloud optical depth
@@ -277,16 +277,16 @@ module mcica_subcol_gen_lw
 
 ! Set overlap
       integer(kind=im) :: overlap                     ! 1 = random overlap, 2 = maximum/random,
-                                                      ! 3 = maximum overlap, 
-!      real(kind=rb), parameter  :: Zo = 2500._rb        ! length scale (m) 
+                                                      ! 3 = maximum overlap,
+!      real(kind=rb), parameter  :: Zo = 2500._rb        ! length scale (m)
 !      real(kind=rb) :: zm(ncol,nlay)                    ! Height of midpoints (above surface)
-!      real(kind=rb), dimension(nlay) :: alpha=0.0_rb    ! overlap parameter  
+!      real(kind=rb), dimension(nlay) :: alpha=0.0_rb    ! overlap parameter
 
 ! Constants (min value for cloud fraction and cloud water and ice)
       real(kind=rb), parameter :: cldmin = 1.0e-20_rb ! min cloud fraction
 !      real(kind=rb), parameter :: qmin   = 1.0e-10_rb   ! min cloud water and cloud ice (not used)
 
-! Variables related to random number and seed 
+! Variables related to random number and seed
       real(kind=rb), dimension(nsubcol, ncol, nlay) :: CDF, CDF2      ! random numbers
       integer(kind=im), dimension(ncol) :: seed1, seed2, seed3, seed4 ! seed to create random number
       real(kind=rb), dimension(ncol) :: rand_num      ! random number (kissvec)
@@ -299,7 +299,7 @@ module mcica_subcol_gen_lw
 ! Indices
       integer(kind=im) :: ilev, isubcol, i, n, ngbm         ! indices
 
-!------------------------------------------------------------------------------------------ 
+!------------------------------------------------------------------------------------------
 
 ! Check that irng is in bounds; if not, set to default
       if (irng .ne. 0) irng = 1
@@ -307,7 +307,7 @@ module mcica_subcol_gen_lw
 ! Pass input cloud overlap setting to local variable
       overlap = icld
 
-! Ensure that cloud fractions are in bounds 
+! Ensure that cloud fractions are in bounds
       do ilev = 1, nlay
          do i = 1, ncol
             cldf(i,ilev) = cld(i,ilev)
@@ -318,15 +318,15 @@ module mcica_subcol_gen_lw
       enddo
 
 ! ----- Create seed  --------
-   
+
 ! Advance randum number generator by changeseed values
-      if (irng.eq.0) then   
-! For kissvec, create a seed that depends on the state of the columns. Maybe not the best way, but it works.  
-! Must use pmid from bottom four layers. 
+      if (irng.eq.0) then
+! For kissvec, create a seed that depends on the state of the columns. Maybe not the best way, but it works.
+! Must use pmid from bottom four layers.
          do i=1,ncol
-            if (pmid(i,1).lt.pmid(i,2)) then 
+            if (pmid(i,1).lt.pmid(i,2)) then
                stop 'MCICA_SUBCOL: KISSVEC SEED GENERATOR REQUIRES PMID FROM BOTTOM FOUR LAYERS.'
-            endif 
+            endif
             seed1(i) = (pmid(i,1) - int(pmid(i,1)))  * 1000000000_im
             seed2(i) = (pmid(i,2) - int(pmid(i,2)))  * 1000000000_im
             seed3(i) = (pmid(i,3) - int(pmid(i,3)))  * 1000000000_im
@@ -337,20 +337,20 @@ module mcica_subcol_gen_lw
          enddo
       elseif (irng.eq.1) then
          randomNumbers = new_RandomNumberSequence(seed = changeSeed)
-      endif 
+      endif
 
 
 ! ------ Apply overlap assumption --------
 
-! generate the random numbers  
+! generate the random numbers
 
       select case (overlap)
 
-      case(1) 
+      case(1)
 ! Random overlap
 ! i) pick a random value at every level
-  
-         if (irng.eq.0) then 
+
+         if (irng.eq.0) then
             do isubcol = 1,nsubcol
                do ilev = 1,nlay
                   call kissvec(seed1, seed2, seed3, seed4, rand_num)
@@ -368,17 +368,17 @@ module mcica_subcol_gen_lw
              enddo
          endif
 
-      case(2) 
+      case(2)
 ! Maximum-Random overlap
 ! i) pick a random number for top layer.
-! ii) walk down the column: 
+! ii) walk down the column:
 !    - if the layer above is cloudy, we use the same random number than in the layer above
-!    - if the layer above is clear, we use a new random number 
+!    - if the layer above is clear, we use a new random number
 
-         if (irng.eq.0) then 
+         if (irng.eq.0) then
             do isubcol = 1,nsubcol
                do ilev = 1,nlay
-                  call kissvec(seed1, seed2, seed3, seed4, rand_num) 
+                  call kissvec(seed1, seed2, seed3, seed4, rand_num)
                   CDF(isubcol,:,ilev) = rand_num
                enddo
             enddo
@@ -397,19 +397,19 @@ module mcica_subcol_gen_lw
             do i = 1, ncol
                do isubcol = 1, nsubcol
                   if (CDF(isubcol, i, ilev-1) > 1._rb - cldf(i,ilev-1) ) then
-                     CDF(isubcol,i,ilev) = CDF(isubcol,i,ilev-1) 
+                     CDF(isubcol,i,ilev) = CDF(isubcol,i,ilev-1)
                   else
-                     CDF(isubcol,i,ilev) = CDF(isubcol,i,ilev) * (1._rb - cldf(i,ilev-1)) 
+                     CDF(isubcol,i,ilev) = CDF(isubcol,i,ilev) * (1._rb - cldf(i,ilev-1))
                   endif
                enddo
             enddo
          enddo
-       
-      case(3) 
-! Maximum overlap
-! i) pick same random numebr at every level  
 
-         if (irng.eq.0) then 
+      case(3)
+! Maximum overlap
+! i) pick same random numebr at every level
+
+         if (irng.eq.0) then
             do isubcol = 1,nsubcol
                call kissvec(seed1, seed2, seed3, seed4, rand_num)
                do ilev = 1,nlay
@@ -428,22 +428,22 @@ module mcica_subcol_gen_lw
          endif
 
 !    case(4) - inactive
-!       ! Exponential overlap: weighting between maximum and random overlap increases with the distance. 
+!       ! Exponential overlap: weighting between maximum and random overlap increases with the distance.
 !       ! The random numbers for exponential overlap verify:
 !       ! j=1   RAN(j)=RND1
 !       ! j>1   if RND1 < alpha(j,j-1) => RAN(j) = RAN(j-1)
 !       !                                 RAN(j) = RND2
 !       ! alpha is obtained from the equation
-!       ! alpha = exp(- (Zi-Zj-1)/Zo) where Zo is a characteristic length scale    
+!       ! alpha = exp(- (Zi-Zj-1)/Zo) where Zo is a characteristic length scale
 
 
 !       ! compute alpha
-!       zm    = state%zm     
+!       zm    = state%zm
 !       alpha(:, 1) = 0._rb
 !       do ilev = 2,nlay
 !          alpha(:, ilev) = exp( -( zm (:, ilev-1) -  zm (:, ilev)) / Zo)
 !       end do
-       
+
 !       ! generate 2 streams of random numbers
 !       do isubcol = 1,nsubcol
 !          do ilev = 1,nlay
@@ -457,13 +457,13 @@ module mcica_subcol_gen_lw
 !       ! generate random numbers
 !       do ilev = 2,nlay
 !          where (CDF2(:, :, ilev) < spread(alpha (:,ilev), dim=1, nCopies=nsubcol) )
-!             CDF(:,:,ilev) = CDF(:,:,ilev-1) 
+!             CDF(:,:,ilev) = CDF(:,:,ilev-1)
 !          end where
 !       end do
 
       end select
 
- 
+
 ! -- generate subcolumns for homogeneous clouds -----
       do ilev = 1 , nlay
          iscloudy(:,:,ilev) = (CDF(:,:,ilev) >= 1._rb - spread(cldf(:,ilev), dim=1, nCopies=nsubcol) )
@@ -471,7 +471,7 @@ module mcica_subcol_gen_lw
 
 ! where the subcolumn is cloudy, the subcolumn cloud fraction is 1;
 ! where the subcolumn is not cloudy, the subcolumn cloud fraction is 0;
-! where there is a cloud, define the subcolumn cloud properties, 
+! where there is a cloud, define the subcolumn cloud properties,
 ! otherwise set these to zero
 
       ngbm = ngb(1) - 1
@@ -507,12 +507,12 @@ module mcica_subcol_gen_lw
 !      mean_ssac_stoch(:,:) = 0._rb
 !      mean_asmc_stoch(:,:) = 0._rb
 !      do i = 1, nsubcol
-!         mean_cld_stoch(:,:) =  cld_stoch(i,:,:) + mean_cld_stoch(:,:) 
-!         mean_clwp_stoch(:,:) =  clwp_stoch( i,:,:) + mean_clwp_stoch(:,:) 
-!         mean_ciwp_stoch(:,:) =  ciwp_stoch( i,:,:) + mean_ciwp_stoch(:,:) 
-!         mean_tauc_stoch(:,:) =  tauc_stoch( i,:,:) + mean_tauc_stoch(:,:) 
-!         mean_ssac_stoch(:,:) =  ssac_stoch( i,:,:) + mean_ssac_stoch(:,:) 
-!         mean_asmc_stoch(:,:) =  asmc_stoch( i,:,:) + mean_asmc_stoch(:,:) 
+!         mean_cld_stoch(:,:) =  cld_stoch(i,:,:) + mean_cld_stoch(:,:)
+!         mean_clwp_stoch(:,:) =  clwp_stoch( i,:,:) + mean_clwp_stoch(:,:)
+!         mean_ciwp_stoch(:,:) =  ciwp_stoch( i,:,:) + mean_ciwp_stoch(:,:)
+!         mean_tauc_stoch(:,:) =  tauc_stoch( i,:,:) + mean_tauc_stoch(:,:)
+!         mean_ssac_stoch(:,:) =  ssac_stoch( i,:,:) + mean_ssac_stoch(:,:)
+!         mean_asmc_stoch(:,:) =  asmc_stoch( i,:,:) + mean_asmc_stoch(:,:)
 !      end do
 !      mean_cld_stoch(:,:) = mean_cld_stoch(:,:) / nsubcol
 !      mean_clwp_stoch(:,:) = mean_clwp_stoch(:,:) / nsubcol
@@ -533,14 +533,14 @@ module mcica_subcol_gen_lw
 ! (1) The congruential generator x(n)=69069*x(n-1)+1327217885, period 2^32.
 ! (2) A 3-shift shift-register generator, period 2^32-1,
 ! (3) Two 16-bit multiply-with-carry generators, period 597273182964842497>2^59
-!  Overall period>2^123; 
+!  Overall period>2^123;
 !
       real(kind=rb), dimension(:), intent(inout)  :: ran_arr
       integer(kind=im), dimension(:), intent(inout) :: seed1,seed2,seed3,seed4
       integer(kind=im) :: i,sz,kiss
       integer(kind=im) :: m, k, n
 
-! inline function 
+! inline function
       m(k, n) = ieor (k, ishft (k, n) )
 
       sz = size(ran_arr)
@@ -552,7 +552,7 @@ module mcica_subcol_gen_lw
          kiss = seed1(i) + seed2(i) + ishft (seed3(i), 16_im) + seed4(i)
          ran_arr(i) = kiss*2.328306e-10_rb + 0.5_rb
       end do
-    
+
       end subroutine kissvec
 
 end module mcica_subcol_gen_lw

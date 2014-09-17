@@ -89,7 +89,7 @@ contains
     lptr => clm3%g%l
     cptr => clm3%g%l%c
     pptr => clm3%g%l%c%p
-    
+
 
     ! accumulation variable - c24/c240
 

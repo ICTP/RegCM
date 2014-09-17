@@ -58,20 +58,20 @@ module mod_cbmz_jval1
 !     Critical INDEX OPTION:  jaer index (6) jcld index (9)
 !     identifies aerosol optical depth index (always followed by SSA)
 !     and cloud-above optical depth (followed by cloud-below and alt.
- 
+
 !     adju NOTE:  for future VECTORIZATION:  variables listed as (   n)
 !     may be switched to ( kk,n)
 !     Look out for indices:  ig11, etc.
- 
+
 !     INPUTS (parameters for specified case)
 !     INPUT ARRAY DATA
 !     (note: current scale jarray (k,ig,jc):  k=1,56)
 !     OUTPUTS
- 
+
 !     INTERNAL
- 
+
 !     cfac = 2CLOUD ABOVE-BELOW FACTOR  (link to OPTION below)
- 
+
 !     CORRECT FACTORS BASED ON JTAB AND (jclb*jclbm-1)*(1-jcla*jclam)
       data cfac/0.000D+00 , 6.175D-01 , 2.079D+00 , 1.774D+00 , 2.407D+00 , &
                 2.479D+00 , 2.365D+00 , 1.495D+00 , 0.000D+00 , 0.000D+00 , &
@@ -85,7 +85,7 @@ module mod_cbmz_jval1
                 0.000D+00 , 0.000D+00 , 0.000D+00 , 0.000D+00 , 0.000D+00 , &
                 0.000D+00 , 0.000D+00 , 0.000D+00 , 0.000D+00 , 0.000D+00 , &
                 0.000D+00/
- 
+
 !     ORIGINAL (OLD) FACTORS CALCULATED BASED  ON JTAB (old correct)
 !     (4=1.319, 1.699,  1.839 2.147)
 !     data  cfac/ 0.,      5.973E-01,2.025E+00,1.839E+00,2.322E+00,
@@ -97,7 +97,7 @@ module mod_cbmz_jval1
 !     *           0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,
 !     *           0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,
 !     *           0.,0.,0.,0.,0.,0./
- 
+
 !     FACTORS CALCULATED BASED  ON JBASE (OLD)
 !     data  cfac/ 0., 4.896E-01, 1.056E+00, 1.319E+00, 1.134E+00,
 !     *           1.215E+00,   0., 1.255E+00,  0.     ,   0.      ,
@@ -108,33 +108,33 @@ module mod_cbmz_jval1
 !     *           0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,
 !     *           0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,
 !     *           0.,0.,0.,0.,0.,0./
- 
+
 !     -----------------------------------------------------------------
- 
+
 !     VECTOR PARAMETER - MAYBE ADD LATER
 !     kk=1
- 
+
 !     TEST WRITE INDEX (=1 to write)
 !     (=2 for SPECIAL WRITE TO 58-for 2CLOUD ABOVE-BELOW
 !     PARAMETERIZATION)
 
       iwri = 0
- 
+
 !     INDEX OPTION:  jaer (=6), jcld (originally =9) jalb (=8)
       jaer = 6
       jcld = 9
       jalb = 8
       jtem = 13
- 
+
 !     OPTION:  TOTAL NUMBER OF J-VALUES TO BE READ. (jct=4 test 26 trop
 !     56 f jct=4
       jct = 26
- 
+
 !     PRELIMINARY:  ENTER JVALS AS ZERO.
 !     RETURN IF ZENITH>94.  (CUT IF VECTORIZED)
       jval(:) = d_zero
       if ( jparam(1) >= hvmat(1,nhv(1)) ) return
- 
+
 !     LOOP:  Establish index and fractions for each j-parameter
 !     Note:  allow for hvmat intervals monotonically increasing or
 !     decreasi Note:  SKIP (but do not exit) for nhv=1.
@@ -145,11 +145,11 @@ module mod_cbmz_jval1
         jfx(i) = d_zero
         if ( nhv(i) <= 0 ) exit
         if ( nhv(i) /= 1 ) then
- 
+
 !         SPECIAL TEMPERATURE:
 !         (not here!  AFTER jfx() set, reset.)
 !         jfx(jtem)=2.  Only  one value.
- 
+
 !         Test to exit if matrix intervals are zero
 !         (note:  matrix must be monotonically increasing or decreasing)
 
@@ -159,7 +159,7 @@ module mod_cbmz_jval1
                 exit jparamloop
               end if
             end do
- 
+
 !           Enter fraction for parameter outside matrix range
             if ( hvmat(i,1) < hvmat(i,nhv(i)) ) then
               if ( jparam(i) <= hvmat(i,1) ) jfx(i) = d_one
@@ -169,7 +169,7 @@ module mod_cbmz_jval1
               if ( jparam(i) >= hvmat(i,1) ) jfx(i) = d_one
               if ( jparam(i) <= hvmat(i,nhv(i)) ) jfx(i) = dble(nhv(i))
             end if
- 
+
 !           Enter fraction for parameter inside matrix range
             do j = 1 , (nhv(i)-1)
               if ( (jparam(i) >= hvmat(i,j) .and. &
@@ -180,17 +180,17 @@ module mod_cbmz_jval1
                      (jparam(i)-hvmat(i,j))/(hvmat(i,j+1)-hvmat(i,j))
               end if
             end do
- 
+
 !           SPECIAL TEMPERATURE:
 !           jfx(jtem)=2.  Only  one value is entered in hvarray matrix
 !           for jtem This represents  delta  parameter for t(ialt)+10
-!           degrees. jfx(jtem)=2 ensures that  jtem interpolation will 
+!           degrees. jfx(jtem)=2 ensures that  jtem interpolation will
 !           select jfrac(jte as zenith/altitude interpolation from this
 !           one data set. (jfx(jtem)=1 would correspond to base case
- 
+
 !           parameter value = hvmatz
             if ( i == jtem ) jfx(i) = d_two
- 
+
 !           TEST WRITE
             if ( iwri == 1 ) then
               write (57,99001) i , jparam(i) , jfx(i)
@@ -198,29 +198,29 @@ module mod_cbmz_jval1
             end if
           end if
         end if
- 
+
       end do jparamloop ! establish index and fraction for j-parameters
- 
+
 !     Establish ig parameters for base interpolation:  zenith and
 !     altitude zenith and altitude are controlled by ig index in
 !     jarray(k,ig,jc) ig11=lower zenith index, lower altitude index
 !     ig12=upper zenith index, lower altitude index
 !     ig21=lower zenith index, upper altitude index
 !     ig22=upper zenith index, upper altitude index
- 
+
 !     ig01=lower zenith index, surface altitude index
 !     ig02=upper zenith index, surface altitude index
- 
+
 !     NOTE:  TO VECTORIZE:  fzen, falt, izen, ialt, ig11, etc
 !     must all be vectors.  Skip.
- 
+
       izen = idint(jfx(1))
       if ( izen == nhv(1) ) izen = izen - 1
       fzen = d_one + dble(izen) - jfx(1)
       ialt = idint(jfx(2))
       if ( ialt == nhv(2) ) ialt = ialt - 1
       falt = d_one + dble(ialt) - jfx(2)
- 
+
       ig11 = izen + nhv(1)*(ialt-1)
       ig12 = ig11
       if ( izen < nhv(1) ) ig12 = ig11 + 1
@@ -228,11 +228,11 @@ module mod_cbmz_jval1
       if ( ialt < nhv(2) ) ig21 = ig11 + nhv(1)
       ig22 = ig21
       if ( izen < nhv(1) ) ig22 = ig21 + 1
- 
+
       ig01 = izen
       ig02 = ig01
       if ( izen < nhv(1) ) ig02 = ig01 + 1
- 
+
 !     Establish base j-values.  Enter into jval output.
       do jc = 1 , jct
         jval(jc) = jarray(1,ig11,jc)*fzen*falt + jarray(1,ig12,jc) *        &
@@ -247,7 +247,7 @@ module mod_cbmz_jval1
           jval(jc) = jval(jc)*(d_one+x*falt*(d_one-falt))
         end if
       end do
- 
+
 !     TEST WRITE
       if ( iwri == 1 ) then
         write (57,99003) izen , ialt , ig11 , ig12 , ig21 , ig22 ,      &
@@ -259,44 +259,44 @@ module mod_cbmz_jval1
         write (57,99004) jval(4) , jarray(1,ig11,4) , jarray(1,ig12,4) ,&
                          jarray(1,ig21,4) , jarray(1,ig22,4)
       end if
- 
+
 !     LOOP: Establish fractional adjustments
 !     LOOP for each fraction.  Set k-index
       k = 1
       do i = 3 , 19
- 
+
 !       Set initial fraction equal to base value
 !       (watch special 11, 12! Make sure base value is OK if nhv=1 and
 !       skipp
         do jc = 1 , jct
           jfrac(i,jc) = d_one
         end do
- 
+
 !       if(i.eq.6)then
         if ( i == jaer ) then
           do jc = 1 , jct
             jfaerz(jc) = d_one
           end do
         end if
- 
+
 !       if(i.eq.9)then
         if ( i == jcld ) then
           do jc = 1 , jct
             jfsur(jc) = d_one
           end do
         end if
- 
+
 !       If nhv=1, skip this loop.  Automatically enter jfract=1.
 !       Note if nhv=1, values are omitted from jarray(k,ig,jc)
         if ( nhv(i) /= 1 ) then
 !         If nhv=0, exit.
           if ( nhv(i) <= 0 ) exit
- 
+
 !         SPECIAL TEMPERATURE:
 !         Just one array  value is entered for temperature array.
 !         Set  jfx(i) so that jfx(i)=nhv(i)=2.
 !         This insures that jfrac(jtem)=direct interpol.  from single
- 
+
 !         value. Establish adjustment factor and k-index for jarray
 !         (VECTORIZE)
           kn = k + idint(jfx(i))
@@ -309,7 +309,7 @@ module mod_cbmz_jval1
               write (56,99005) i , k , kn , jfx(i) , fkn
             end if
           end if
- 
+
 !         Establish fraction from jarray.
 !         Use zenith interpolation, itself interpolated between two
 !         fractions.
@@ -323,18 +323,18 @@ module mod_cbmz_jval1
                                jarray(kn+1,ig21,jc)*fzen*(d_one-falt) + &
                                jarray(kn+1,ig22,jc)*(d_one-fzen)*(d_one-falt))
           end do
- 
+
 !         Establish surface fraction-FOR SURFACE IMPACT OF CLOUD BELOW.
 !         This uses the CLOUD-BELOW value of cloud optical depth
 !         (from the 10th index)
 !         but it uses it with the CLOUD-ABOVE value (9th index)
 !         Representing the CLOUD-BELOW impact (as CLOUD ABOVE) at the
 !         surface. THIS IS USED TO ADJUST THE ALBEDO FRACTION (8)
- 
+
 !         ALSO - EXPERIMENTAL - USED TO ADJUST CLOUD-ABOVE
 !         TO CORRECT UNDERESTIMATE IN CASE WITH CLOUD-ABOVE AND
 !         CLOUD-BELOW. (totally empirical, no reason.)
- 
+
 !         if(i.eq.10) then
           if ( i == jcld+1 ) then
 !           TEST WRITE
@@ -350,11 +350,11 @@ module mod_cbmz_jval1
 !             jfrac(8,jc)=1-jfsur(jc)*(1.-jfrac(8,jc))
               jfrac(jalb,jc) = d_one - jfsur(jc)*(d_one-jfrac(jalb,jc))
 !             OLD 2CLOUD ABOVE-BELOW CORRECTION FACTOR -   (0, 0.2,
-!             0.4*) c    
-!             jfrac(9,jc)=1.-(1-jfrac(9,jc))*(0.8+0.2*jfsur(jc)) c    
+!             0.4*) c
+!             jfrac(9,jc)=1.-(1-jfrac(9,jc))*(0.8+0.2*jfsur(jc)) c
 !             jfrac(9,jc)=1.-(1-jfrac(9,jc))*(0.6+0.4*jfsur(jc))
-!             ORIGINAL 2CLOUD ABOVE-BELOW CORRECTION FACTOR -         
-!             (see data abo WAS HERE, MOVED BELOW c    
+!             ORIGINAL 2CLOUD ABOVE-BELOW CORRECTION FACTOR -
+!             (see data abo WAS HERE, MOVED BELOW c
 !             jfrac(9,jc)=jfrac(9,jc) c    *       *(1.+
 !             cfac(jc)*(1.-jfsur(jc))*(1.-jfrac(9,jc)) )
             end do
@@ -363,12 +363,12 @@ module mod_cbmz_jval1
               write (57,99007) jfsur(1) , jfsur(2) , jfsur(4) , &
                  jfrac(jalb,1) , jfrac(jalb,2) , jfrac(jalb,4)
             end if
-!           SPECIAL WRITE FOR CREATING 2CLOUD ABOVE-BELOW CORRECTION 
+!           SPECIAL WRITE FOR CREATING 2CLOUD ABOVE-BELOW CORRECTION
 !           FACTOR. was here, moved below.
-!           END IF - Establish surface fraction and adjust albedo, 
+!           END IF - Establish surface fraction and adjust albedo,
 !           cloud above-be
           end if
- 
+
 !         Establish AEROSOL ZERO fraction:  case i=6, 1st fraction
 !         value. fraction k index is k+1 instead of kn
           if ( i == jaer ) then
@@ -379,7 +379,7 @@ module mod_cbmz_jval1
                             jarray(k+1,ig22,jc)*(d_one-fzen)*(d_one-falt))
             end do
           end if
- 
+
 !         TEST WRITE
           if ( iwri == 1 ) then
             write (57,99008) i , k , kn , jfx(i) , fkn
@@ -399,20 +399,20 @@ module mod_cbmz_jval1
                              jarray(kn+1,ig11,4) , jarray(kn+1,ig12,4) ,&
                              jarray(kn+1,ig21,4) , jarray(kn+1,ig22,4)
           end if
- 
+
 !         Special adjustment:  cloud height adjustment factors (j=11,
 !         12) represent an adjustment to the cloud-above and
 !         cloud-below (j=9,10). These are converted to straight
- 
+
 !         fractions here. The adjustment parameter in the array is:
 !         Fadj=(1-Ftot/Fcloud)/(1-Fcloud)
 !         where Ftot is combined fraction, Fcloud is cloud-alone
 !         fraction. Here, the adjustment factor Fadj is replaced with
 !         F': Where Ftot=Fc*F'; F'=1-Fadj(1-Fcloud);  F' limited,
- 
+
 !         between 0.1 and 1 The same adjustment is applied for AEROSOL
 !         SSA (j=7) as an adjustment to the AEROSOL OPTICAL DEPTH
- 
+
 !         fraction (j=6) if(i.eq.11.or.i.eq.12          ) then
           if ( i == jcld+2 .or. i == jcld+3 ) then
             ij = i - 2
@@ -428,11 +428,11 @@ module mod_cbmz_jval1
               write (57,99011) i , jfrac(i,4)
             end if
           end if
- 
+
 !         Special adjustment:  aerosol SSA (i=7)
 !         represent an adjustment to the zero-aerosol fraction (i=6,
 !         jfaerz) These are converted to straight fractions here.
- 
+
 !         The adjustment parameter in the array is:
 !         Fadj=(1-Ftot/Faerbase)/(1-Faerbase/Faerzero)
 !         where Ftot is combined fraction, Faerbase is base aerosol and
@@ -441,7 +441,7 @@ module mod_cbmz_jval1
 !         zero a Here, the adjustment factor Fadj is replaced with F':
 !         Where Ftot=Fc*F'; F'=1-Fadj(1-Faerbase/Faerzero);
 !         F' limited, between 0.1 and 10.
- 
+
 !         if(i.eq.7) then
           if ( i == jaer+1 ) then
 !           ij=6
@@ -463,17 +463,17 @@ module mod_cbmz_jval1
               write (57,99011) i , jfrac(i,4)
             end if
           end if
- 
+
 !         Special adjustment:  albedo fraction in case of cloud-below.
 !         Adjust fractional change (relative to 1) based on
 !         cloud-below impact on surface:
- 
+
 !         (To do this:  establish special jfrac using CLOUD-BELOW jfx,
 !         but for CLOUD-ABOVE and for SURFACE.
 !         Then adjust albedo fraction:  falb'=1-(1-falb)*fclsurf
 !         DONE WITH jfsur() ABOVE.
 !         --------------------
- 
+
 !         2CLOUD ABOVE-BELOW NONLINEAR ADJUSTMENT:  OPTION.
 !         For case with BOTH cloud-above and cloud-below,
 !         table fractions underestimate j-values.
@@ -483,7 +483,7 @@ module mod_cbmz_jval1
 !         CLA' = F*(1-CLA*CLAm)*(CLB*CLBm-1)
 !         where CLA, CLAm=f9,  f11 (after modification);  CLB,
 !         CLBm=f10,f12. MOVED HERE - PREVIOUSLY w/ jfsur() ABOVE.
- 
+
 !         if(i.eq.12) then
           if ( i == jcld+3 ) then
 !           TEST WRITE
@@ -515,7 +515,7 @@ module mod_cbmz_jval1
                                  jfrac(jcld,2) , jfrac(jcld,4)
           end if
 !
-!         SPECIAL WRITE FOR CREATING 2CLOUD ABOVE-BELOW CORRECTION 
+!         SPECIAL WRITE FOR CREATING 2CLOUD ABOVE-BELOW CORRECTION
 !         FACTOR. (Save table:  jfsur, jf9,jtab-base, jtuv, jtab for 26
 !         species. Then cloud  factor f=
 !         (jtuv-jtab)/[jtab*jsurf*(1-jf9)] where j's are summed over
@@ -534,28 +534,28 @@ module mod_cbmz_jval1
             if ( iwri == 1 ) write (57,99014) (jfrac(jcld+3,jc),jc=1,26)
             if ( iwri >= 1 ) write (57,99014) (jval(jc),jc=1,26)
           end if
- 
+
 !         SPECIAL TEMPERATURE ADJUSTMENT:
 !         Just one array  value is entered for temperature array.
 !         Above, set  jfx(i) so that jfx(i)=nhv(i)=2.
 !         This insures that jfrac(jtem)=direct interpol.  from single
- 
+
 !         value. Here, establish temperature parameter from jparam(jtem)
 !         jparam(jtem)= dtem if less than  50;
 !         else jparam(jtem)=temp, and dtem found as jparam(jtem)-t(alt)
 !         where t(alt), std temp, found  from interpolating
 !         hvmat(jtem,j),
 !         Then  jfrac(jtem) = 1 + 0.1*dtem*jf(jtem); jf(jtem) is factor
-!         from t (previously  entered as jfrac(jtem), interpolated for 
+!         from t (previously  entered as jfrac(jtem), interpolated for
 !         zenith and (0.1 factor because jf(jtem) is % change for 10
- 
+
 !         degree increase.) OPTION - CHANGE JPARAM=dtem FOR TEST
- 
+
           if ( i == jtem ) then
 !           TEST WRITE
             if ( iwri == 1 ) write (57,99015) i , jparam(i) , &
                                   jfrac(i,2) , jfrac(i,4)
- 
+
             x = jparam(i)
             if ( jparam(i) > 50 ) then
               x = jparam(i) - (hvmat(jtem,ialt) * &
@@ -569,30 +569,30 @@ module mod_cbmz_jval1
             do jc = 1 , jct
               jfrac(jtem,jc) = d_one + 0.1D0*x*jfrac(jtem,jc)
             end do
- 
+
 !           TEST WRITE
             if ( iwri == 1 ) write (57,99017) x , &
                                   jfrac(jtem,2) , jfrac(jtem,4)
- 
+
 !           END SPECIAL TEMPERATURE ADJUSTMENT
           end if
- 
+
 !         -------
 !         ADJUST BASE -JVALUE BY FRACTION - WAS HERE, MOVED TO SEPARATE
 !         LOOP BEL ------
- 
+
 !         ADVANCE K-COUNTER FOR NEXT LOOP
 !         (due to screw-up in TUVGRID1, advance even for NHV=1? No.)
           if ( nhv(i) > 1 ) k = k + nhv(i)
         end if
 !       END LOOP:  fractional adjustments
       end do
- 
+
 !     TEST J-VALUE  FINAL FRACTIONAL ADJUSTMENT
       if ( iwri == 1 ) write (57,99018) jval(2) , jval(4)
- 
+
 !     LOOP TO ADJUST BASE J-VALUE BY FRACTION
- 
+
       do i = 3 , 19
         if ( nhv(i) > 1 ) then
 !         ADJUST BASE J-VALUE BY FRACTION
@@ -607,14 +607,14 @@ module mod_cbmz_jval1
           end if
         end if
       end do
- 
+
 !     DATE ADJUSTMENT:
 !     ASSUME THAT INPUT jparam(20)= DATE  (decimal)
 !     either as date factor (-1 to +1)
 !     or DAY NUMBER (1-365)
 !     or YYMMDD (not 00)
 !     DAY FACTOR (X) IS cos(nd*2.*pi/365)
- 
+
       x = jparam(20)
       if ( x > d_one .and. x < 10000.0D0 ) then
         x = dcos(d_two*mathpi*(jparam(20)/dayspy))
@@ -625,7 +625,7 @@ module mod_cbmz_jval1
         id = idint((x+0.001D0-10000.0D0*dble(iy)-100.0D0*dble(im)))
         x = dcos(d_two*mathpi*(dble(id+30*(im-1))/dayspy))
       end if
- 
+
 !     ADJUSTMENT:  x IS DAY FACTOR, -1. to +1.  NOW MAKE DAY ADJUSTMENT.
       x = d_one + 0.0344D0*x
 !     ADJUST BASE J-VALUE FOR DATE
@@ -660,7 +660,7 @@ module mod_cbmz_jval1
               2(1pe10.3))
 99018 format (' BEFORE-FRACTION jO1D,jNO2=',2(1pe10.3))
 99019 format (' FINAL J-CALC: F2,J2,F4,J4=',i3,2(f10.3,1pe10.3))
- 
+
     end subroutine jvalpro
 
 ! SUCCESSFUL VERSION, 11-22-02 w/MODIFICATIONS.  Use with jvalmain1.f.
@@ -695,7 +695,7 @@ module mod_cbmz_jval1
 !   AND SKIPS CLOUD-ABOVE AFTER 8 TROPOSPHERIC LAYERS (i.le.8)
 !   THESE MUST BE CHANGED IN jtab1.f - see CHANGE GRID OPTION
 ! -----------------------------------------------------------------
- 
+
     subroutine readhv(lsin,nhv,hvmat,hvmatb,jarray)
       implicit none
 !
@@ -718,7 +718,7 @@ module mod_cbmz_jval1
 !     for cases identified in hvmatrix.
 !     ig=matrix of altitudes and zenith angles
 !     jc=species j-values
- 
+
 !     Includes AUTOMATIC FILL-IN OF LAST ZENITH VALUE (nighttime)
 !     AND BASE CASE IN ADJUSTMENT FACTORS.
 !     (read from input table.  Base j-values are
@@ -726,23 +726,23 @@ module mod_cbmz_jval1
 !     1 for most adjustment factors, but
 !     0 for cloud adjustment factors 11 and 12
 !     (which are relative to original cloud factor)
- 
+
 !     INPUTS (none)
 !     OUTPUTS
 !     (note: current scale jarray (k,ig,jc):  k=1,56)
- 
+
 !     INTERNAL
 !     --------------------------------------------------
 !     TEST WRITE:  WRITE IF iwri=1
       if ( myid == italk ) write (stdout,*) 'HVREAD: TUVGRID'
       iwri = 0
- 
+
 !     OPTION:  TOTAL NUMBER OF J-VALUES TO BE READ. (jct=4 test 26 trop
 !     56 f CHANGE GRID:  TUVGRID1 (jct=4) vs TUVGRID2 (jct=26)
 !     see also CHANGE GRID below.
 !     jct=4
       jct = 26
- 
+
 !     INDEX OPTION:  jaer (=6), jcld (originally =9) jalb (=8)
       jaer = 6
       jcld = 9
@@ -757,7 +757,7 @@ module mod_cbmz_jval1
           hvmat(i,j) = d_zero
         end do
       end do
- 
+
 !     READ INPUT CONTROLS  (note read index, k, as well)
       rewind lsin
       do i = 1 , 22
@@ -773,7 +773,7 @@ module mod_cbmz_jval1
         read (lsin,99003) (hvmat(k,n),n=1,nhv(k))
         if ( iwri == 1 ) write (57,99003) (hvmat(k,n),n=1,nhv(k))
       end do
- 
+
 !     ALT  ALTITUDE OPTION:  kPa or km
       do j = 1 , 40
         hvmat(22,j) = hvmat(2,j)
@@ -781,7 +781,7 @@ module mod_cbmz_jval1
 !       COMMENT OUT hvmat(2,j)=hvmat(21,j)
 !       END OPTION
       end do
- 
+
 !     SPECIAL TEMPERATURE TREATMENT:
 !     INITIAL  READIN HAS nhv(jtem)=nhv(ialt);  and reads hvmat(jtem,j)
 !     as standard temperature vs. altitude.
@@ -789,11 +789,11 @@ module mod_cbmz_jval1
 !     representing parameter for std temp+10 degrees.
 !     FOR THIS, RESET nhv(jtem)=2.
 !     (hvmatb=hvmat(jtem,1); hvmatz=0.)
- 
+
       if ( jtem > 0 ) then
         if ( nhv(jtem) > 2 ) nhv(jtem) = 2
       end if
- 
+
 !     SET INITIAL J-VALUES TO ZERO/ONE
 !     J=0 FOR BASE CASE (k=1) AND CLOUD-ADJUSTMENT VALUES (k=11,12)
       do k = 1 , 80
@@ -804,9 +804,9 @@ module mod_cbmz_jval1
           end do
         end do
       end do
- 
+
 !     jarray(80,510,56)
- 
+
 !     LOOP TO READ ARRAY BASE CASE (k=1) AND ADJUSTMENT CASES (k>1)
 !     N REPRESENTS PARAMETER VALUE FROM J-MATRIX.
 !     READ FROM ARRAY AND ENTER IMPLICIT VALUES OMITTED FROM ARRAY
@@ -829,15 +829,15 @@ module mod_cbmz_jval1
                 jarray(k,ig,jc) = hvmatz(m)
               end do
             end do
- 
+
 !           READ ARRAY VALUES (skip for nighttime and base-case
 !           adjustment factors (skip for cloud-above at alt>7)
- 
+
 !           altitude and zenith loop (skips nighttime zenith)
 !           with control to skip base case adjustment factor
 !           and to skip for ialt>7 for cloud-above (9, 11:  jcld,
 !           jcld+2) NOTE CHANGE with added 1km layer:  ialt>8 skip
- 
+
 !           SKIPS BASE CASE ADJUSTMENT FACTOR IN ALL SUBSEQUENT LOOPS
 !           BUT INCLUDES IT IN FIRST LOOP (m=2, k=2 was early error)
 !           if(k.eq.2.or.(hvmat(m,n).ne.hvmatb(m))) then
@@ -878,7 +878,7 @@ module mod_cbmz_jval1
 99002 format (2I5,2F10.4)
 99003 format (8F10.4)
 99004 format (8(1pe10.3))
- 
+
     end subroutine readhv
 
 end module mod_cbmz_jval1

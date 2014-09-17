@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_bats_leaftemp
 !
 !     Calculate leaf temperature, leaf fluxes, and net transpiration.
@@ -130,7 +130,7 @@ module mod_bats_leaftemp
     call root
     ! 1.5  saturation specific humidity of leaf
     call satur(qsatl,tlef,sfcp)
-   
+
     !==========================================================
     !l    2.   begin iteration for leaf temperature calculation
     !==========================================================
@@ -141,7 +141,7 @@ module mod_bats_leaftemp
     itfull = itmax
     ! itmax = 40
     ! itfull = 20
-   
+
     do iter = 0 , itmax
       !
       ! 2.1  recalc stability dependent canopy & leaf drag coeffs
@@ -150,18 +150,18 @@ module mod_bats_leaftemp
 
       call lfdrag
       call condch
-   
+
       do i = ilndbeg , ilndend
         if ( sigf(i) > 0.001D0 ) then
           lftra(i) = d_one/(cf(i)*uaf(i))
           cn1(i) = wtlh(i)*rhs(i)
           df(i) = cn1(i)*cpd
-          ! 
+          !
           ! 2.2  decrease foliage conductance for stomatal
           !      resistance
           rppdry = lftra(i)*fdry(i)/(lftrs(i)+lftra(i))
           rpp(i) = rppdry + fwet(i)
-          ! 
+          !
           ! 2.3  recalculate saturation vapor pressure
           !
           eg1 = eg(i)
@@ -169,10 +169,10 @@ module mod_bats_leaftemp
           qsatl(i) = qsatl(i)*eg(i)/eg1
         end if
       end do
-   
+
       ! 2.4  canopy evapotranspiration
       if ( iter == 0 ) call condcq
-   
+
       epss = 1.0D-10
       do i = ilndbeg , ilndend
         if ( sigf(i) > 0.001D0 ) then
@@ -239,7 +239,7 @@ module mod_bats_leaftemp
       call stomat
       ! 3.8  end iteration
     end do
-   
+
     do i = ilndbeg , ilndend
       if ( sigf(i) > 0.001D0 ) then
         !=========================================
@@ -707,7 +707,7 @@ module mod_bats_leaftemp
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine deriv
-! 
+!
   subroutine fseas(temp)
     ! The seasonal function is a number between 0 and 1
     ! If the temperature is greater than 298.0, it is 1

@@ -142,7 +142,7 @@ module mod_atm_interface
   !type(grid_nc_var4d) , public , save :: qqxp
 #endif
 
-  contains 
+  contains
 !
     subroutine setup_model_indexes
       implicit none
@@ -520,8 +520,8 @@ module mod_atm_interface
       call getmem3d(dia%bdy,jce1,jce2,ice1,ice2,1,kz,'tendiag:bdy')
       call getmem3d(dia%adi,jce1,jce2,ice1,ice2,1,kz,'tendiag:adi')
       call getmem3d(dia%dif,jce1,jce2,ice1,ice2,1,kz,'tendiag:dif')
-      call getmem3d(dia%rad,jce1,jce2,ice1,ice2,1,kz,'tendiag:rad') 
-      call getmem3d(dia%lsc,jce1,jce2,ice1,ice2,1,kz,'tendiag:lsc') 
+      call getmem3d(dia%rad,jce1,jce2,ice1,ice2,1,kz,'tendiag:rad')
+      call getmem3d(dia%lsc,jce1,jce2,ice1,ice2,1,kz,'tendiag:lsc')
     end subroutine allocate_tendiag
 
     subroutine allocate_qendiag(dia)
@@ -534,8 +534,8 @@ module mod_atm_interface
       call getmem3d(dia%bdy,jce1,jce2,ice1,ice2,1,kz,'tendiag:bdy')
       call getmem3d(dia%adi,jce1,jce2,ice1,ice2,1,kz,'tendiag:adi')
       call getmem3d(dia%dif,jce1,jce2,ice1,ice2,1,kz,'tendiag:dif')
-      call getmem3d(dia%rad,jce1,jce2,ice1,ice2,1,kz,'tendiag:rad') 
-      call getmem3d(dia%lsc,jce1,jce2,ice1,ice2,1,kz,'tendiag:lsc') 
+      call getmem3d(dia%rad,jce1,jce2,ice1,ice2,1,kz,'tendiag:rad')
+      call getmem3d(dia%lsc,jce1,jce2,ice1,ice2,1,kz,'tendiag:lsc')
     end subroutine allocate_qendiag
 
     subroutine allocate_domain(dom)
@@ -677,7 +677,7 @@ module mod_atm_interface
 
       call allocate_diffx(adf)
 
-      ! FAB: 
+      ! FAB:
       !    complete for diag on water quantitiies idiag = 2, 3 etc
       if ( idiag > 0 ) then
         call allocate_tendiag(tdiag)
@@ -744,6 +744,6 @@ module mod_atm_interface
       call getmem2d(zpbl,jci1,jci2,ici1,ici2,'storage:zpbl')
       call getmem2d(kpbl,jci1,jci2,ici1,ici2,'storage:kpbl')
 
-    end subroutine allocate_mod_atm_interface 
+    end subroutine allocate_mod_atm_interface
 
 end module mod_atm_interface

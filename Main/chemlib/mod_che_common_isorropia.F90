@@ -40,7 +40,7 @@ module mod_che_common_isorropia
   ! *** ISORROPIA CODE II
   ! *** INCLUDE FILE 'ISRPIA.INC'
   ! *** THIS FILE CONTAINS THE DECLARATIONS OF THE GLOBAL CONSTANTS
-  !     AND VARIABLES. 
+  !     AND VARIABLES.
   !
   ! *** COPYRIGHT 1996-2008 , UNIVERSITY OF MIAMI , CARNEGIE MELLON UNIVERSITY ,
   ! *** GEORGIA INSTITUTE OF TECHNOLOGY
@@ -88,12 +88,12 @@ module mod_che_common_isorropia
   !=================================================================
 
   integer(ik4) wftyp
-  real(rk8) :: drh2so4 ,  drnh42s4 , drnahso4 , drnacl ,   drnano3 
+  real(rk8) :: drh2so4 ,  drnh42s4 , drnahso4 , drnacl ,   drnano3
   real(rk8) :: drna2so4 , drnh4hs4 , drlc ,     drnh4no3 , drnh4cl
   real(rk8) :: drcaso4 ,  drcano32 , drcacl2 ,  drk2so4 ,  drkhso4
   real(rk8) :: drkno3 , drkcl , drmgso4 , drmgno32 , drmgcl2
 
-!      common /drh / drh2so4,drnh42s4,drnahso4,drnacl,drnano3, 
+!      common /drh / drh2so4,drnh42s4,drnahso4,drnacl,drnano3,
 !     &              drna2so4,drnh4hs4,drlc,drnh4no3,drnh4cl,
 !     &              drcaso4,drcano32,drcacl2,drk2so4,drkhso4,
 !     &              drkno3,drkcl,drmgso4,drmgno32,drmgcl2
@@ -137,21 +137,21 @@ module mod_che_common_isorropia
   logical :: calaou , calain , frst , dryf
 
 !      common /ions/ molal,molalr,gama,zz,
-!     &              z,gamou,gamin,m0, 
+!     &              z,gamou,gamin,m0,
 !     &              gasaq,epsact,coh,chno3,
 !     &              chcl,water,ionic,iacalc,
 !     &              frst,calain,calaou,dryf
-      
+
   !=================================================================
   ! Variables for solid aerosol phase
   !=================================================================
 
-  real(rk8) :: ch2so4 ,  cnh42s4 , cnh4hs4 , cnacl ,   cna2so4 
+  real(rk8) :: ch2so4 ,  cnh42s4 , cnh4hs4 , cnacl ,   cna2so4
   real(rk8) :: cnano3 ,  cnh4no3 , cnh4cl ,  cnahso4 , clc , ccaso4
   real(rk8) :: ccano32 , ccacl2 ,  ck2so4 ,  ckhso4 ,  ckno3 , ckcl
   real(rk8) :: cmgso4 ,  cmgno32 , cmgcl2
 
-!      common /salt/ ch2so4,cnh42s4,cnh4hs4,cnacl,cna2so4, 
+!      common /salt/ ch2so4,cnh42s4,cnh4hs4,cnacl,cna2so4,
 !     &              cnano3,cnh4no3,cnh4cl,cnahso4,clc,ccaso4,
 !     &              ccano32,ccacl2,ck2so4,ckhso4,ckno3,ckcl,
 !     &              cmgso4,cmgno32,cmgcl2
@@ -160,9 +160,9 @@ module mod_che_common_isorropia
   ! Variables for gas phase
   !=================================================================
 
-  real(rk8) :: gnh3 , ghno3 , ghcl 
+  real(rk8) :: gnh3 , ghno3 , ghcl
 
-!      common /gas / gnh3,ghno3,ghcl 
+!      common /gas / gnh3,ghno3,ghcl
 
   !=================================================================
   ! Equilibrium constants
@@ -210,8 +210,8 @@ module mod_che_common_isorropia
 
   character(len=40) , dimension(nerrmx) :: errmsg
   integer(ik4) , dimension(nerrmx) :: errstk
-  integer(ik4) :: nofer   
-  logical :: stkofl 
+  integer(ik4) :: nofer
+  logical :: stkofl
 
 !      common /eror/ stkofl,nofer,errstk,errmsg
 

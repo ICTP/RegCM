@@ -15,11 +15,11 @@
 !     You should have received a copy of the GNU General Public License
 !     along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
-!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::      
+!::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 module mod_update
 !
 !-----------------------------------------------------------------------
-!     Used module declarations 
+!     Used module declarations
 !-----------------------------------------------------------------------
 !
   use mod_intkinds, only : ik4
@@ -44,7 +44,7 @@ module mod_update
   real(rk8) , parameter :: tol = missing_r8/2.0d0
 !
 !-----------------------------------------------------------------------
-!     Public subroutines 
+!     Public subroutines
 !-----------------------------------------------------------------------
 !
   public :: RCM_Get
@@ -52,7 +52,7 @@ module mod_update
   public :: RCM_Allocate
 !
 !-----------------------------------------------------------------------
-!     Module constants 
+!     Module constants
 !-----------------------------------------------------------------------
 !
   real(rk8), parameter :: beta = 1.25 ! gustiness coeff
@@ -66,7 +66,7 @@ module mod_update
   subroutine RCM_Allocate()
 !
 !-----------------------------------------------------------------------
-!     Used module declarations 
+!     Used module declarations
 !-----------------------------------------------------------------------
 !
     use mod_atm_interface , only : mddom
@@ -76,7 +76,7 @@ module mod_update
     implicit none
 !
 !-----------------------------------------------------------------------
-!     Local variable declarations 
+!     Local variable declarations
 !-----------------------------------------------------------------------
 !
     integer :: i, j
@@ -84,7 +84,7 @@ module mod_update
     real(rk8), parameter :: zeroval = 0.0d20
 !
 !-----------------------------------------------------------------------
-!     Allocate arrays 
+!     Allocate arrays
 !-----------------------------------------------------------------------
 !
     call getmem2d(exportFields%psfc,jce1,jce2,ice1,ice2,'cpl:psfc')
@@ -116,7 +116,7 @@ module mod_update
     call getmem2d(wetdry,jci1,jci2,ici1,ici2,'cpl:wetdry')
 !
 !-----------------------------------------------------------------------
-!     Initialize arrays 
+!     Initialize arrays
 !-----------------------------------------------------------------------
 !
     do i = ici1, ici2
@@ -144,7 +144,7 @@ module mod_update
 !
         importFields%sst(j,i) = initval
         importFields%sit(j,i) = initval
-        importFields%msk(j,i) = initval 
+        importFields%msk(j,i) = initval
 !
         ldmskb(j,i) = mddom%ldmsk(j,i)
         wetdry(j,i) = 0
@@ -156,7 +156,7 @@ module mod_update
   subroutine RCM_Get(localPet)
 !
 !-----------------------------------------------------------------------
-!     Used module declarations 
+!     Used module declarations
 !-----------------------------------------------------------------------
 !
     use mod_constants
@@ -166,7 +166,7 @@ module mod_update
     implicit none
 !
 !-----------------------------------------------------------------------
-!     Imported variable declarations 
+!     Imported variable declarations
 !-----------------------------------------------------------------------
 !
     integer, intent(in) :: localPet
@@ -182,7 +182,7 @@ module mod_update
    subroutine RCM_Put(localPet)
 !
 !-----------------------------------------------------------------------
-!     Used module declarations 
+!     Used module declarations
 !-----------------------------------------------------------------------
 !
     use mod_lm_interface, only : export_data_from_surface
@@ -190,7 +190,7 @@ module mod_update
     implicit none
 !
 !-----------------------------------------------------------------------
-!     Imported variable declarations 
+!     Imported variable declarations
 !-----------------------------------------------------------------------
 !
     integer, intent(in) :: localPet

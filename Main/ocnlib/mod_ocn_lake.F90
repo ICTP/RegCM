@@ -271,7 +271,7 @@ module mod_ocn_lake
         evpr(i) = -drag(i)*delq
         sent(i) = -drag(i)*cpd*delt
       else
-        mask(i) = 4 
+        mask(i) = 4
         tgbrd(i) = tzero - d_two
         ! Reduce sensible heat flux for ice presence
         toth = sfice(i) + sncv(i)
@@ -562,7 +562,7 @@ module mod_ocn_lake
     real(rk8) , intent(inout) , dimension(ndpmax) :: tprof
     real(rk8) :: avet , avev , tav , vol
     integer(ik4) :: k , k2
-! 
+!
     ! Simulates convective mixing
     tt(kmin:ndpt) = tprof(kmin:ndpt)
 
@@ -617,7 +617,7 @@ module mod_ocn_lake
     ! thermal conductivity of ice (W/m/C)
     real(rk8) , parameter :: ki = 2.3D0
     ! thermal conductivity of snow (W/m/C)
-    ! 0.078 W m−1 K−1 for new snow 
+    ! 0.078 W m−1 K−1 for new snow
     ! 0.290 W m−1 K−1 for an ubiquitous wind slab
     ! the average bulk value for the full snowpack is 0.14 W m−1 K−1
     ! Sturm, Perovich and Holmgren

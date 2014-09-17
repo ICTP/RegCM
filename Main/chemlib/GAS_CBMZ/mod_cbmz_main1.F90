@@ -372,7 +372,7 @@ module mod_cbmz_main1
       !
       ! OUTPUT SPECIES CONCENTRATIONS
       !    c_xcout(ic)  = final concentration, molec/cm3
-           
+
       !
       do ic = 1 , 64 !nchem1
         xr(1,ic) = c_xcout(1,ic)

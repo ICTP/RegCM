@@ -701,11 +701,11 @@ contains
 
 #if (defined CN)
     ! add history fields for all CN variables, always set as default='inactive'
-    
+
     !-------------------------------
-    ! C state variables - native to PFT 
+    ! C state variables - native to PFT
     !-------------------------------
-    
+
     call add_fld1d (fname='LEAFC', units='gC/m^2', &
          avgflag='A', long_name='leaf C', &
          ptr_pft=clm3%g%l%c%p%pcs%leafc)
@@ -815,9 +815,9 @@ contains
          ptr_pft=clm3%g%l%c%p%pcs%totpftc)
 
     !-------------------------------
-    ! C13 state variables - native to PFT 
+    ! C13 state variables - native to PFT
     !-------------------------------
-    
+
     call add_fld1d (fname='C13_LEAFC', units='gC13/m^2', &
          avgflag='A', long_name='C13 leaf C', &
          ptr_pft=clm3%g%l%c%p%pc13s%leafc)
@@ -929,7 +929,7 @@ contains
     !-------------------------------
     ! C state variables - native to column
     !-------------------------------
-    
+
     call add_fld1d (fname='CWDC', units='gC/m^2', &
          avgflag='A', long_name='coarse woody debris C', &
          ptr_col=clm3%g%l%c%ccs%cwdc)
@@ -957,35 +957,35 @@ contains
     call add_fld1d (fname='SOIL3C', units='gC/m^2', &
          avgflag='A', long_name='soil organic matter C (slow pool)', &
          ptr_col=clm3%g%l%c%ccs%soil3c)
-    
+
     call add_fld1d (fname='SOIL4C', units='gC/m^2', &
          avgflag='A', long_name='soil organic matter C (slowest pool)', &
          ptr_col=clm3%g%l%c%ccs%soil4c)
-    
+
     call add_fld1d (fname='COL_CTRUNC', units='gC/m^2', &
          avgflag='A', long_name='column-level sink for C truncation', &
          ptr_col=clm3%g%l%c%ccs%col_ctrunc)
-    
+
     call add_fld1d (fname='TOTLITC', units='gC/m^2', &
          avgflag='A', long_name='total litter carbon', &
          ptr_col=clm3%g%l%c%ccs%totlitc)
-    
+
     call add_fld1d (fname='TOTSOMC', units='gC/m^2', &
          avgflag='A', long_name='total soil organic matter carbon', &
          ptr_col=clm3%g%l%c%ccs%totsomc)
-    
+
     call add_fld1d (fname='TOTECOSYSC', units='gC/m^2', &
          avgflag='A', long_name='total ecosystem carbon, incl veg but excl cpool', &
          ptr_col=clm3%g%l%c%ccs%totecosysc)
-    
+
     call add_fld1d (fname='TOTCOLC', units='gC/m^2', &
          avgflag='A', long_name='total column carbon, incl veg and cpool', &
          ptr_col=clm3%g%l%c%ccs%totcolc)
-    
+
     !-------------------------------
     ! C13 state variables - native to column
     !-------------------------------
-    
+
     call add_fld1d (fname='C13_CWDC', units='gC13/m^2', &
          avgflag='A', long_name='C13 coarse woody debris C', &
          ptr_col=clm3%g%l%c%cc13s%cwdc)
@@ -1013,27 +1013,27 @@ contains
     call add_fld1d (fname='C13_SOIL3C', units='gC13/m^2', &
          avgflag='A', long_name='C13 soil organic matter C (slow pool)', &
          ptr_col=clm3%g%l%c%cc13s%soil3c)
-    
+
     call add_fld1d (fname='C13_SOIL4C', units='gC13/m^2', &
          avgflag='A', long_name='C13 soil organic matter C (slowest pool)', &
          ptr_col=clm3%g%l%c%cc13s%soil4c)
-    
+
     call add_fld1d (fname='C13_COL_CTRUNC', units='gC13/m^2', &
          avgflag='A', long_name='C13 column-level sink for C truncation', &
          ptr_col=clm3%g%l%c%cc13s%col_ctrunc)
-    
+
     call add_fld1d (fname='C13_TOTLITC', units='gC13/m^2', &
          avgflag='A', long_name='C13 total litter carbon', &
          ptr_col=clm3%g%l%c%cc13s%totlitc)
-    
+
     call add_fld1d (fname='C13_TOTSOMC', units='gC13/m^2', &
          avgflag='A', long_name='C13 total soil organic matter carbon', &
          ptr_col=clm3%g%l%c%cc13s%totsomc)
-    
+
     call add_fld1d (fname='C13_TOTECOSYSC', units='gC13/m^2', &
          avgflag='A', long_name='C13 total ecosystem carbon, incl veg but excl cpool', &
          ptr_col=clm3%g%l%c%cc13s%totecosysc)
-    
+
     call add_fld1d (fname='C13_TOTCOLC', units='gC13/m^2', &
          avgflag='A', long_name='C13 total column carbon, incl veg and cpool', &
          ptr_col=clm3%g%l%c%cc13s%totcolc)
@@ -2107,7 +2107,7 @@ contains
          ptr_pft=clm3%g%l%c%p%pc13f%pft_fire_closs)
 
     !-------------------------------
-    ! C flux variables - native to column 
+    ! C flux variables - native to column
     !-------------------------------
 
     call add_fld1d (fname='M_LEAFC_TO_LITR1C', units='gC/m^2/s', &
@@ -2359,7 +2359,7 @@ contains
          ptr_col=clm3%g%l%c%ccf%col_fire_closs)
 
     !-------------------------------
-    ! C13 flux variables - native to column 
+    ! C13 flux variables - native to column
     !-------------------------------
 
     call add_fld1d (fname='C13_M_LEAFC_TO_LITR1C', units='gC13/m^2/s', &
@@ -3195,7 +3195,7 @@ contains
          ptr_col=clm3%g%l%c%cnf%col_fire_nloss)
 
     !-------------------------------
-    ! PFT ecophysiological variables (pepv) 
+    ! PFT ecophysiological variables (pepv)
     !-------------------------------
 
     call add_fld1d (fname='DORMANT_FLAG', units='none', &
@@ -3469,67 +3469,67 @@ contains
     call add_fld2d (fname='ROOTFR', units='proportion', type2d='levsoi', &
          avgflag='A', long_name='fraction of roots in each soil layer', &
          ptr_pft=clm3%g%l%c%p%pps%rootfr, default='inactive')
-                                                                       
+
     call add_fld2d (fname='ROOTR', units='proportion', type2d='levsoi', &
          avgflag='A', long_name='effective fraction of roots in each soil layer', &
          ptr_pft=clm3%g%l%c%p%pps%rootr, default='inactive')
-                                                                       
+
     call add_fld2d (fname='RRESIS', units='proportion', type2d='levsoi', &
          avgflag='A', long_name='root resistance in each soil layer', &
          ptr_pft=clm3%g%l%c%p%pps%rresis, default='inactive')
-                                                                       
+
     call add_fld2d (fname='ALBD', units='proportion', type2d='numrad', &
          avgflag='A', long_name='surface albedo (direct)', &
          ptr_pft=clm3%g%l%c%p%pps%albd, default='inactive')
-                                                                        
+
     call add_fld2d (fname='ALBI', units='proportion', type2d='numrad', &
          avgflag='A', long_name='surface albedo (indirect)', &
          ptr_pft=clm3%g%l%c%p%pps%albi, default='inactive')
-                                                                       
+
     call add_fld2d (fname='FABD', units='proportion', type2d='numrad', &
          avgflag='A', long_name='flux absorbed by veg per unit direct flux', &
          ptr_pft=clm3%g%l%c%p%pps%fabd, default='inactive')
-                                                                       
+
     call add_fld2d (fname='FABI', units='proportion', type2d='numrad', &
          avgflag='A', long_name='flux absorbed by veg per unit indirect flux', &
          ptr_pft=clm3%g%l%c%p%pps%fabi, default='inactive')
-                                                                       
+
     call add_fld2d (fname='FTDD', units='proportion', type2d='numrad', &
          avgflag='A', long_name='down direct flux below veg per unit dir flx', &
          ptr_pft=clm3%g%l%c%p%pps%ftdd, default='inactive')
-                                                                       
+
     call add_fld2d (fname='FTID', units='proportion', type2d='numrad', &
          avgflag='A', long_name='down indirect flux below veg per unit dir flx', &
          ptr_pft=clm3%g%l%c%p%pps%ftid, default='inactive')
-                                                                       
+
     call add_fld2d (fname='FTII', units='proportion', type2d='numrad', &
          avgflag='A', long_name='down indirect flux below veg per unit indirect flx', &
          ptr_pft=clm3%g%l%c%p%pps%ftii, default='inactive')
-                                                                       
+
     call add_fld2d (fname='OMEGA', units='proportion', type2d='numrad', &
          avgflag='A', long_name='fraction of intercepted radiation that is scattered', &
          ptr_pft=clm3%g%l%c%p%pps%omega, default='inactive')
-                                                                       
+
     call add_fld2d (fname='EFF_KID', units='none', type2d='numrad', &
          avgflag='A', long_name='effective extinction coefficient for indirect from direct', &
          ptr_pft=clm3%g%l%c%p%pps%eff_kid, default='inactive')
-                                                                       
+
     call add_fld2d (fname='EFF_KII', units='none', type2d='numrad', &
          avgflag='A', long_name='effective extinction coefficient for indirect from indirect', &
          ptr_pft=clm3%g%l%c%p%pps%eff_kii, default='inactive')
-                                                                       
+
     call add_fld2d (fname='SUN_FAID', units='proportion', type2d='numrad', &
          avgflag='A', long_name='fraction sun canopy absorbed indirect from direct', &
          ptr_pft=clm3%g%l%c%p%pps%sun_faid, default='inactive')
-                                                                       
+
     call add_fld2d (fname='SUN_FAII', units='proportion', type2d='numrad', &
          avgflag='A', long_name='fraction sun canopy absorbed indirect from indirect', &
          ptr_pft=clm3%g%l%c%p%pps%sun_faii, default='inactive')
-                                                                       
+
     call add_fld2d (fname='SHA_FAID', units='proportion', type2d='numrad', &
          avgflag='A', long_name='fraction shade canopy absorbed indirect from direct', &
          ptr_pft=clm3%g%l%c%p%pps%sha_faid, default='inactive')
-                                                                       
+
     call add_fld2d (fname='SHA_FAII', units='proportion', type2d='numrad', &
          avgflag='A', long_name='fraction shade canopy absorbed indirect from indirect', &
          ptr_pft=clm3%g%l%c%p%pps%sha_faii, default='inactive')
@@ -3639,7 +3639,7 @@ contains
          ptr_col=clm3%g%l%c%cps%ann_farea_burned)
 
     !-------------------------------
-    ! Energy flux variables not already defined by default - native PFT 
+    ! Energy flux variables not already defined by default - native PFT
     !-------------------------------
 
     call add_fld1d (fname='PARSUN', units='W/m^2', &
@@ -3733,7 +3733,7 @@ contains
     call add_fld2d (fname='SHA_APERLAI', units='W/m^2', type2d='numrad', &
          avgflag='A', long_name='shade canopy total absorbed per unit LAI', &
          ptr_pft=clm3%g%l%c%p%pef%sha_aperlai, default='inactive')
-                                                                       
+
     !-------------------------------
     ! Water flux variables not already defined by default  - native PFT
     !-------------------------------
@@ -3770,7 +3770,7 @@ contains
          avgflag='A', long_name='surface dew added to snow pacK', &
          ptr_pft=clm3%g%l%c%p%pwf%qflx_dew_snow, default='inactive')
 
-    
+
 #endif
 
 #if (defined CASA)
@@ -3873,15 +3873,15 @@ contains
         avgflag='A', long_name='live fraction for leaf, wood, froot', &
         ptr_pft=clm3%g%l%c%p%pps%livefr, set_lake=0._r8)
 
-   call add_fld2d (fname='CLOSS', units='g/m2/s', type2d='npools', & 
+   call add_fld2d (fname='CLOSS', units='g/m2/s', type2d='npools', &
         avgflag='A', long_name='Amt. of Carbon lost by pool', &
         ptr_pft=clm3%g%l%c%p%pps%Closs, set_lake=0._r8)
 
-   call add_fld2d (fname='RESP_C', units='g/m2/s', type2d='npools', &  
+   call add_fld2d (fname='RESP_C', units='g/m2/s', type2d='npools', &
         avgflag='A', long_name='Amt. of Carbon lost to atm by pool', &
         ptr_pft=clm3%g%l%c%p%pps%Resp_C, set_lake=0._r8)
 
-   call add_fld2d (fname='TPOOL_C', units='g/m2', type2d='npools', &  
+   call add_fld2d (fname='TPOOL_C', units='g/m2', type2d='npools', &
         avgflag='A', long_name='Total Carbon for pool', &
         ptr_pft=clm3%g%l%c%p%pps%Tpool_C, set_lake=0._r8)
 

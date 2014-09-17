@@ -23,7 +23,7 @@
 !  Reformatted for F90: JJMorcrette, ECMWF
 !  Further F90 and GCM revisions:  MJIacono, AER, July 2002
 !
-!  This file contains 14 subroutines that include the 
+!  This file contains 14 subroutines that include the
 !  absorption coefficients and other data for each of the 14 shortwave
 !  spectral bands used in RRTM_SW.  Here, the data are defined for 16
 !  g-points, or sub-intervals, per band.  These data are combined and
@@ -33,7 +33,7 @@
       subroutine sw_kgb16
 ! **************************************************************************
 
-      use parkind, only : im => kind_im, rb => kind_rb 
+      use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_kg16, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl
       use rrsw_vsn, only: hvrkg, hnamkg
 
@@ -53,12 +53,12 @@
       rayl = 2.91e-10_rb
 
 !     -----------------------------------------------------------------
-!     The array KAO contains absorption coefs at the 16 chosen g-values 
+!     The array KAO contains absorption coefs at the 16 chosen g-values
 !     for a range of pressure levels> ~100mb, temperatures, and binary
-!     species parameters (see taumol.f for definition).  The first 
-!     index in the array, JS, runs from 1 to 9, and corresponds to 
-!     different values of the binary species parameter.  For instance, 
-!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8, 
+!     species parameters (see taumol.f for definition).  The first
+!     index in the array, JS, runs from 1 to 9, and corresponds to
+!     different values of the binary species parameter.  For instance,
+!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8,
 !     JS = 3 corresponds to the parameter value 2/8, etc.  The second index
 !     in the array, JT, which runs from 1 to 5, corresponds to different
 !     temperatures.  More specifically, JT = 3 means that the data are for
@@ -3190,15 +3190,15 @@
       kao(:, 5,13,16) = (/ &
         & 0.33226e+01_rb,0.29075e+01_rb,0.24923e+01_rb,0.21144e+01_rb,0.23741e+01_rb, &
         & 0.29651e+01_rb,0.35532e+01_rb,0.41282e+01_rb,0.47532e+01_rb /)
-  
+
 !     -----------------------------------------------------------------
-!     The array KBO contains absorption coefs at the 16 chosen g-values 
-!     for a range of pressure levels < ~100mb and temperatures. The first 
-!     index in the array, JT, which runs from 1 to 5, corresponds to 
-!     different temperatures.  More specifically, JT = 3 means that the 
-!     data are for the reference temperature TREF for this pressure 
+!     The array KBO contains absorption coefs at the 16 chosen g-values
+!     for a range of pressure levels < ~100mb and temperatures. The first
+!     index in the array, JT, which runs from 1 to 5, corresponds to
+!     different temperatures.  More specifically, JT = 3 means that the
+!     data are for the reference temperature TREF for this pressure
 !     level, JT = 2 refers to the temperature TREF-15, JT = 1 is for
-!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.  
+!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.
 !     The second index, JP, runs from 13 to 59 and refers to the JPth
 !     reference pressure level (see taumol.f for the value of these
 !     pressure levels in mb).  The third index, IG, goes from 1 to 16,
@@ -4728,7 +4728,7 @@
       forrefo(:,14) = (/ 0.389705e-03_rb, 0.384274e-03_rb, 0.322135e-03_rb /)
       forrefo(:,15) = (/ 0.372084e-03_rb, 0.390422e-03_rb, 0.370035e-03_rb /)
       forrefo(:,16) = (/ 0.437802e-03_rb, 0.373406e-03_rb, 0.373222e-03_rb /)
-      
+
 !     -----------------------------------------------------------------
 !     The array SELFREFO contains the coefficient of the water vapor
 !     self-continuum (including the energy term).  The first index
@@ -4736,7 +4736,7 @@
 !     JT = 1 refers to a temperature of 245.6, JT = 2 refers to 252.8,
 !     etc.  The second index runs over the g-channel (1 to 16).
 !     -----------------------------------------------------------------
-      
+
       selfrefo(:, 1) = (/ &
         &  0.126758e-02_rb, 0.105253e-02_rb, 0.873963e-03_rb, 0.725690e-03_rb, 0.602573e-03_rb, &
         &  0.500344e-03_rb, 0.415458e-03_rb, 0.344973e-03_rb, 0.286447e-03_rb, 0.237849e-03_rb /)
@@ -4785,14 +4785,14 @@
       selfrefo(:,16) = (/ &
         &  0.760689e-02_rb, 0.709755e-02_rb, 0.662232e-02_rb, 0.617891e-02_rb, 0.576519e-02_rb, &
         &  0.537917e-02_rb, 0.501899e-02_rb, 0.468293e-02_rb, 0.436938e-02_rb, 0.407682e-02_rb /)
-     
+
       end subroutine sw_kgb16
 
 ! **************************************************************************
       subroutine sw_kgb17
 ! **************************************************************************
 
-      use parkind, only : im => kind_im, rb => kind_rb 
+      use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_kg17, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl
 
       implicit none
@@ -4829,12 +4829,12 @@
       rayl = 6.86e-10_rb
 
 !     ------------------------------------------------------------------
-!     The array KAO contains absorption coefs at the 16 chosen g-values 
+!     The array KAO contains absorption coefs at the 16 chosen g-values
 !     for a range of pressure levels> ~100mb, temperatures, and binary
-!     species parameters (see taumol.f for definition).  The first 
-!     index in the array, JS, runs from 1 to 9, and corresponds to 
-!     different values of the binary species parameter.  For instance, 
-!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8, 
+!     species parameters (see taumol.f for definition).  The first
+!     index in the array, JS, runs from 1 to 9, and corresponds to
+!     different values of the binary species parameter.  For instance,
+!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8,
 !     JS = 3 corresponds to the parameter value 2/8, etc.  The second index
 !     in the array, JT, which runs from 1 to 5, corresponds to different
 !     temperatures.  More specifically, JT = 3 means that the data are for
@@ -7968,13 +7968,13 @@
         & 0.42302e+03_rb,0.50734e+03_rb,0.59097e+03_rb,0.67714e+03_rb /)
 
 !     -----------------------------------------------------------------
-!     The array KBO contains absorption coefs at the 16 chosen g-values 
-!     for a range of pressure levels < ~100mb and temperatures. The first 
-!     index in the array, JT, which runs from 1 to 5, corresponds to 
-!     different temperatures.  More specifically, JT = 3 means that the 
-!     data are for the reference temperature TREF for this pressure 
+!     The array KBO contains absorption coefs at the 16 chosen g-values
+!     for a range of pressure levels < ~100mb and temperatures. The first
+!     index in the array, JT, which runs from 1 to 5, corresponds to
+!     different temperatures.  More specifically, JT = 3 means that the
+!     data are for the reference temperature TREF for this pressure
 !     level, JT = 2 refers to the temperature TREF-15, JT = 1 is for
-!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.  
+!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.
 !     The second index, JP, runs from 13 to 59 and refers to the JPth
 !     reference pressure level (see taumol.f for the value of these
 !     pressure levels in mb).  The third index, IG, goes from 1 to 16,
@@ -15576,14 +15576,14 @@
       selfrefo(:,16) = (/ &
         &  0.782126e+00_rb, 0.710682e+00_rb, 0.645764e+00_rb, 0.586776e+00_rb, 0.533177e+00_rb, &
         &  0.484473e+00_rb, 0.440219e+00_rb, 0.400007e+00_rb, 0.363468e+00_rb, 0.330266e+00_rb /)
-     
+
       end subroutine sw_kgb17
 
 ! **************************************************************************
       subroutine sw_kgb18
 ! **************************************************************************
 
-      use parkind, only : im => kind_im, rb => kind_rb 
+      use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_kg18, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl
 
       implicit none
@@ -15594,7 +15594,7 @@
         & 3.65840_rb    , 3.54375_rb    , 3.34481_rb    , 3.10534_rb    , &
         & 2.79879_rb    , 2.42841_rb    , 1.98748_rb    , 1.49377_rb    , &
         & 1.00196_rb    , 0.108342_rb   , 8.95099e-02_rb, 7.05199e-02_rb, &
-        & 5.16432e-02_rb, 3.27635e-02_rb, 1.25133e-02_rb, 1.73001e-03_rb /)  
+        & 5.16432e-02_rb, 3.27635e-02_rb, 1.25133e-02_rb, 1.73001e-03_rb /)
       sfluxrefo(:,2) = (/ &
         & 3.86372_rb    , 3.48521_rb    , 3.30790_rb    , 3.08103_rb    , &
         & 2.77552_rb    , 2.40722_rb    , 1.97307_rb    , 1.48023_rb    , &
@@ -15640,12 +15640,12 @@
       rayl = 1.39e-09_rb
 
 !     ------------------------------------------------------------------
-!     The array KAO contains absorption coefs at the 16 chosen g-values 
+!     The array KAO contains absorption coefs at the 16 chosen g-values
 !     for a range of pressure levels> ~100mb, temperatures, and binary
-!     species parameters (see taumol.f for definition).  The first 
-!     index in the array, JS, runs from 1 to 9, and corresponds to 
-!     different values of the binary species parameter.  For instance, 
-!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8, 
+!     species parameters (see taumol.f for definition).  The first
+!     index in the array, JS, runs from 1 to 9, and corresponds to
+!     different values of the binary species parameter.  For instance,
+!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8,
 !     JS = 3 corresponds to the parameter value 2/8, etc.  The second index
 !     in the array, JT, which runs from 1 to 5, corresponds to different
 !     temperatures.  More specifically, JT = 3 means that the data are for
@@ -18777,15 +18777,15 @@
       kao(:, 5,13,16) = (/ &
         & 0.53530e+00_rb,0.58425e+00_rb,0.11174e+01_rb,0.16761e+01_rb,0.22346e+01_rb, &
         & 0.27933e+01_rb,0.33512e+01_rb,0.39078e+01_rb,0.44703e+01_rb /)
-  
+
 !     -----------------------------------------------------------------
-!     The array KBO contains absorption coefs at the 16 chosen g-values 
-!     for a range of pressure levels < ~100mb and temperatures. The first 
-!     index in the array, JT, which runs from 1 to 5, corresponds to 
-!     different temperatures.  More specifically, JT = 3 means that the 
-!     data are for the reference temperature TREF for this pressure 
+!     The array KBO contains absorption coefs at the 16 chosen g-values
+!     for a range of pressure levels < ~100mb and temperatures. The first
+!     index in the array, JT, which runs from 1 to 5, corresponds to
+!     different temperatures.  More specifically, JT = 3 means that the
+!     data are for the reference temperature TREF for this pressure
 !     level, JT = 2 refers to the temperature TREF-15, JT = 1 is for
-!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.  
+!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.
 !     The second index, JP, runs from 13 to 59 and refers to the JPth
 !     reference pressure level (see taumol.f for the value of these
 !     pressure levels in mb).  The third index, IG, goes from 1 to 16,
@@ -20296,7 +20296,7 @@
         & 0.67770e-01_rb,0.78960e-01_rb,0.86882e-01_rb,0.97002e-01_rb,0.10740e+00_rb /)
       kbo(:,59,16) = (/ &
         & 0.66421e-01_rb,0.77608e-01_rb,0.10426e+00_rb,0.10063e+00_rb,0.10735e+00_rb /)
-  
+
 !     -----------------------------------------------------------------
 
       forrefo(:, 1) = (/ 0.860560e-06_rb, 0.130439e-05_rb, 0.382378e-05_rb /)
@@ -20322,7 +20322,7 @@
 !     refers to temperature in 7.2 degree increments.  For instance,
 !     JT = 1 refers to a temperature of 245.6, JT = 2 refers to 252.8,
 !     etc.  The second index runs over the g-channel (1 to 16).
-           
+
       selfrefo(:, 1) = (/ &
         &  0.750370e-03_rb, 0.644938e-03_rb, 0.554321e-03_rb, 0.476436e-03_rb, 0.409494e-03_rb, &
         &  0.351957e-03_rb, 0.302505e-03_rb, 0.260002e-03_rb, 0.223470e-03_rb, 0.192071e-03_rb /)
@@ -20371,14 +20371,14 @@
       selfrefo(:,16) = (/ &
         &  0.371842e-01_rb, 0.347595e-01_rb, 0.324929e-01_rb, 0.303741e-01_rb, 0.283934e-01_rb, &
         &  0.265419e-01_rb, 0.248112e-01_rb, 0.231933e-01_rb, 0.216809e-01_rb, 0.202671e-01_rb /)
-  
+
       end subroutine sw_kgb18
 
 ! **************************************************************************
       subroutine sw_kgb19
 ! **************************************************************************
 
-      use parkind, only : im => kind_im, rb => kind_rb 
+      use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_kg19, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl
 
       implicit none
@@ -20435,12 +20435,12 @@
       rayl = 2.29e-09_rb
 
 !     ------------------------------------------------------------------
-!     The array KAO contains absorption coefs at the 16 chosen g-values 
+!     The array KAO contains absorption coefs at the 16 chosen g-values
 !     for a range of pressure levels> ~100mb, temperatures, and binary
-!     species parameters (see taumol.f for definition).  The first 
-!     index in the array, JS, runs from 1 to 9, and corresponds to 
-!     different values of the binary species parameter.  For instance, 
-!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8, 
+!     species parameters (see taumol.f for definition).  The first
+!     index in the array, JS, runs from 1 to 9, and corresponds to
+!     different values of the binary species parameter.  For instance,
+!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8,
 !     JS = 3 corresponds to the parameter value 2/8, etc.  The second index
 !     in the array, JT, which runs from 1 to 5, corresponds to different
 !     temperatures.  More specifically, JT = 3 means that the data are for
@@ -23572,15 +23572,15 @@
       kao(:, 5,13,16) = (/ &
         & 0.89862e+00_rb,0.78697e+00_rb,0.72670e+00_rb,0.82187e+00_rb,0.10292e+01_rb, &
         & 0.12848e+01_rb,0.15381e+01_rb,0.17818e+01_rb,0.20623e+01_rb /)
-  
+
 !     -----------------------------------------------------------------
-!     The array KBO contains absorption coefs at the 16 chosen g-values 
-!     for a range of pressure levels < ~100mb and temperatures. The first 
-!     index in the array, JT, which runs from 1 to 5, corresponds to 
-!     different temperatures.  More specifically, JT = 3 means that the 
-!     data are for the reference temperature TREF for this pressure 
+!     The array KBO contains absorption coefs at the 16 chosen g-values
+!     for a range of pressure levels < ~100mb and temperatures. The first
+!     index in the array, JT, which runs from 1 to 5, corresponds to
+!     different temperatures.  More specifically, JT = 3 means that the
+!     data are for the reference temperature TREF for this pressure
 !     level, JT = 2 refers to the temperature TREF-15, JT = 1 is for
-!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.  
+!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.
 !     The second index, JP, runs from 13 to 59 and refers to the JPth
 !     reference pressure level (see taumol.f for the value of these
 !     pressure levels in mb).  The third index, IG, goes from 1 to 16,
@@ -25091,7 +25091,7 @@
         & 0.25697e+02_rb,0.23494e+02_rb,0.21600e+02_rb,0.19961e+02_rb,0.18525e+02_rb /)
       kbo(:,59,16) = (/ &
         & 0.25984e+02_rb,0.23748e+02_rb,0.21819e+02_rb,0.20147e+02_rb,0.18689e+02_rb /)
-  
+
 !     -----------------------------------------------------------------
 
       forrefo(:, 1) = (/ 0.106275e-05_rb, 0.104185e-05_rb, 0.420154e-05_rb /)
@@ -25117,7 +25117,7 @@
 !     refers to temperature in 7.2 degree increments.  For instance,
 !     JT = 1 refers to a temperature of 245.6, JT = 2 refers to 252.8,
 !     etc.  The second index runs over the g-channel (1 to 16).
-     
+
       selfrefo(:, 1) = (/ &
         &  0.331728e-03_rb, 0.287480e-03_rb, 0.249135e-03_rb, 0.215904e-03_rb, 0.187106e-03_rb, &
         &  0.162149e-03_rb, 0.140520e-03_rb, 0.121777e-03_rb, 0.105534e-03_rb, 0.914573e-04_rb /)
@@ -25166,14 +25166,14 @@
       selfrefo(:,16) = (/ &
         &  0.107170e-01_rb, 0.101913e-01_rb, 0.969138e-02_rb, 0.921599e-02_rb, 0.876392e-02_rb, &
         &  0.833402e-02_rb, 0.792521e-02_rb, 0.753646e-02_rb, 0.716677e-02_rb, 0.681522e-02_rb /)
-  
+
       end subroutine sw_kgb19
 
 ! **************************************************************************
       subroutine sw_kgb20
 ! **************************************************************************
 
-      use parkind, only : im => kind_im, rb => kind_rb 
+      use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_kg20, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             absch4o, rayl
 
@@ -25186,8 +25186,8 @@
         & 6.12127_rb , 5.23956_rb    , 4.24941_rb    , 3.20013_rb    , &
         & 2.16047_rb , 0.234509_rb   , 0.194593_rb   , 0.151512_rb   , &
         & 0.110315_rb, 7.09959e-02_rb, 2.70573e-02_rb, 3.36042e-03_rb /)
-  
-      absch4o(:) = (/ &  
+
+      absch4o(:) = (/ &
         & 1.01381e-03_rb,6.33692e-03_rb,1.94185e-02_rb,4.83210e-02_rb, &
         & 2.36574e-03_rb,6.61973e-04_rb,5.64552e-04_rb,2.83183e-04_rb, &
         & 7.43623e-05_rb,8.90159e-07_rb,6.98728e-07_rb,6.51832e-08_rb, &
@@ -25197,12 +25197,12 @@
       rayl = 4.12e-09_rb
 
 !     ------------------------------------------------------------------
-!     The array KAO contains absorption coefs at the 16 chosen g-values 
+!     The array KAO contains absorption coefs at the 16 chosen g-values
 !     for a range of pressure levels> ~100mb, temperatures, and binary
-!     species parameters (see taumol.f for definition).  The first 
-!     index in the array, JS, runs from 1 to 9, and corresponds to 
-!     different values of the binary species parameter.  For instance, 
-!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8, 
+!     species parameters (see taumol.f for definition).  The first
+!     index in the array, JS, runs from 1 to 9, and corresponds to
+!     different values of the binary species parameter.  For instance,
+!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8,
 !     JS = 3 corresponds to the parameter value 2/8, etc.  The second index
 !     in the array, JT, which runs from 1 to 5, corresponds to different
 !     temperatures.  More specifically, JT = 3 means that the data are for
@@ -25630,15 +25630,15 @@
         & 0.71193e+02_rb,0.68607e+02_rb,0.66135e+02_rb,0.63828e+02_rb,0.61720e+02_rb /)
       kao(:,13,16) = (/ &
         & 0.81988e+02_rb,0.78665e+02_rb,0.75707e+02_rb,0.72932e+02_rb,0.70347e+02_rb /)
-  
+
 !     -----------------------------------------------------------------
-!     The array KBO contains absorption coefs at the 16 chosen g-values 
-!     for a range of pressure levels < ~100mb and temperatures. The first 
-!     index in the array, JT, which runs from 1 to 5, corresponds to 
-!     different temperatures.  More specifically, JT = 3 means that the 
-!     data are for the reference temperature TREF for this pressure 
+!     The array KBO contains absorption coefs at the 16 chosen g-values
+!     for a range of pressure levels < ~100mb and temperatures. The first
+!     index in the array, JT, which runs from 1 to 5, corresponds to
+!     different temperatures.  More specifically, JT = 3 means that the
+!     data are for the reference temperature TREF for this pressure
 !     level, JT = 2 refers to the temperature TREF-15, JT = 1 is for
-!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.  
+!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.
 !     The second index, JP, runs from 13 to 59 and refers to the JPth
 !     reference pressure level (see taumol.f for the value of these
 !     pressure levels in mb).  The third index, IG, goes from 1 to 16,
@@ -27224,14 +27224,14 @@
       selfrefo(:,16) = (/ &
         &  0.934781e-01_rb, 0.855190e-01_rb, 0.782376e-01_rb, 0.715761e-01_rb, 0.654819e-01_rb, &
         &  0.599065e-01_rb, 0.548058e-01_rb, 0.501394e-01_rb, 0.458704e-01_rb, 0.419648e-01_rb /)
-     
+
       end subroutine sw_kgb20
 
 ! **************************************************************************
       subroutine sw_kgb21
 ! **************************************************************************
 
-      use parkind, only : im => kind_im, rb => kind_rb 
+      use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_kg21, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl
 
       implicit none
@@ -27271,7 +27271,7 @@
       sfluxrefo(:, 7) = (/ &
         & 15.4910_rb , 15.4028_rb, 14.5772_rb    , 13.5507_rb    , &
         & 12.2122_rb ,10.52735_rb, 8.62650_rb    , 6.49644_rb    , &
-        & 4.41173_rb ,0.478627_rb,0.396433_rb    ,0.314199_rb    , & 
+        & 4.41173_rb ,0.478627_rb,0.396433_rb    ,0.314199_rb    , &
         & 0.233125_rb,0.149052_rb, 5.62309e-02_rb, 7.83925e-03_rb /)
       sfluxrefo(:, 8) = (/ &
         & 15.4562_rb , 15.3928_rb, 14.5510_rb    , 13.5122_rb    , &
@@ -27288,12 +27288,12 @@
       rayl = 9.41e-09_rb
 
 !     ------------------------------------------------------------------
-!     The array KAO contains absorption coefs at the 16 chosen g-values 
+!     The array KAO contains absorption coefs at the 16 chosen g-values
 !     for a range of pressure levels> ~100mb, temperatures, and binary
-!     species parameters (see taumol.f for definition).  The first 
-!     index in the array, JS, runs from 1 to 9, and corresponds to 
-!     different values of the binary species parameter.  For instance, 
-!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8, 
+!     species parameters (see taumol.f for definition).  The first
+!     index in the array, JS, runs from 1 to 9, and corresponds to
+!     different values of the binary species parameter.  For instance,
+!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8,
 !     JS = 3 corresponds to the parameter value 2/8, etc.  The second index
 !     in the array, JT, which runs from 1 to 5, corresponds to different
 !     temperatures.  More specifically, JT = 3 means that the data are for
@@ -30425,15 +30425,15 @@
       kao(:, 5,13,16) = (/ &
         & 0.42298e+02_rb,0.37013e+02_rb,0.31729e+02_rb,0.26445e+02_rb,0.24180e+02_rb, &
         & 0.29511e+02_rb,0.35413e+02_rb,0.41314e+02_rb,0.47218e+02_rb /)
-  
+
 !     -----------------------------------------------------------------
-!     The array KBO contains absorption coefs at the 16 chosen g-values 
-!     for a range of pressure levels < ~100mb and temperatures. The first 
-!     index in the array, JT, which runs from 1 to 5, corresponds to 
-!     different temperatures.  More specifically, JT = 3 means that the 
-!     data are for the reference temperature TREF for this pressure 
+!     The array KBO contains absorption coefs at the 16 chosen g-values
+!     for a range of pressure levels < ~100mb and temperatures. The first
+!     index in the array, JT, which runs from 1 to 5, corresponds to
+!     different temperatures.  More specifically, JT = 3 means that the
+!     data are for the reference temperature TREF for this pressure
 !     level, JT = 2 refers to the temperature TREF-15, JT = 1 is for
-!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.  
+!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.
 !     The second index, JP, runs from 13 to 59 and refers to the JPth
 !     reference pressure level (see taumol.f for the value of these
 !     pressure levels in mb).  The third index, IG, goes from 1 to 16,
@@ -38035,14 +38035,14 @@
       selfrefo(:,16) = (/ &
         &  0.761764e-01_rb, 0.701815e-01_rb, 0.646584e-01_rb, 0.595700e-01_rb, 0.548820e-01_rb, &
         &  0.505629e-01_rb, 0.465838e-01_rb, 0.429178e-01_rb, 0.395403e-01_rb, 0.364286e-01_rb /)
-     
+
       end subroutine sw_kgb21
 
 ! **************************************************************************
       subroutine sw_kgb22
 ! **************************************************************************
 
-      use parkind, only : im => kind_im, rb => kind_rb 
+      use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_kg22, only : kao, kbo, selfrefo, forrefo, sfluxrefo, rayl
 
       implicit none
@@ -38055,7 +38055,7 @@
         & 1.03811_rb    ,0.113272_rb   ,9.37115e-02_rb,7.38969e-02_rb, &
         & 5.44713e-02_rb,3.45905e-02_rb,1.30293e-02_rb,1.84198e-03_rb /)
       sfluxrefo(:, 2) = (/ &
-        & 3.73933_rb    ,3.60360_rb    ,3.43370_rb    ,3.19749_rb    , & 
+        & 3.73933_rb    ,3.60360_rb    ,3.43370_rb    ,3.19749_rb    , &
         & 2.87747_rb    ,2.47926_rb    ,2.02175_rb    ,1.52010_rb    , &
         & 1.03612_rb    ,0.113265_rb   ,9.37145e-02_rb,7.38951e-02_rb, &
         & 5.44714e-02_rb,3.45906e-02_rb,1.30293e-02_rb,1.84198e-03_rb /)
@@ -38076,7 +38076,7 @@
         & 5.42427e-02_rb,3.45732e-02_rb,1.30169e-02_rb,1.84550e-03_rb /)
       sfluxrefo(:, 6) = (/ &
         & 3.73872_rb    ,3.62054_rb    ,3.42934_rb    ,3.20110_rb    , &
-        & 2.86886_rb    ,2.47379_rb    ,2.02237_rb    ,1.52754_rb    , & 
+        & 2.86886_rb    ,2.47379_rb    ,2.02237_rb    ,1.52754_rb    , &
         & 1.03228_rb    ,0.111597_rb   ,9.12252e-02_rb,7.33115e-02_rb, &
         & 5.35600e-02_rb,3.45187e-02_rb,1.30184e-02_rb,1.84551e-03_rb /)
       sfluxrefo(:, 7) = (/ &
@@ -38086,7 +38086,7 @@
         & 5.31771e-02_rb,3.44980e-02_rb,1.30190e-02_rb,1.84551e-03_rb /)
       sfluxrefo(:, 8) = (/ &
         & 3.73995_rb    ,3.65348_rb    ,3.43707_rb    ,3.16351_rb    , &
-        & 2.87003_rb    ,2.47392_rb    ,2.02114_rb    ,1.52548_rb    , & 
+        & 2.87003_rb    ,2.47392_rb    ,2.02114_rb    ,1.52548_rb    , &
         & 1.03306_rb    ,0.111088_rb   ,9.12422e-02_rb,7.11146e-02_rb, &
         & 5.31333e-02_rb,3.45302e-02_rb,1.30209e-02_rb,1.84554e-03_rb /)
       sfluxrefo(:, 9) = (/ &
@@ -38099,12 +38099,12 @@
       rayl = 1.54e-08_rb
 
 !     ------------------------------------------------------------------
-!     The array KAO contains absorption coefs at the 16 chosen g-values 
+!     The array KAO contains absorption coefs at the 16 chosen g-values
 !     for a range of pressure levels> ~100mb, temperatures, and binary
-!     species parameters (see taumol.f for definition).  The first 
-!     index in the array, JS, runs from 1 to 9, and corresponds to 
-!     different values of the binary species parameter.  For instance, 
-!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8, 
+!     species parameters (see taumol.f for definition).  The first
+!     index in the array, JS, runs from 1 to 9, and corresponds to
+!     different values of the binary species parameter.  For instance,
+!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8,
 !     JS = 3 corresponds to the parameter value 2/8, etc.  The second index
 !     in the array, JT, which runs from 1 to 5, corresponds to different
 !     temperatures.  More specifically, JT = 3 means that the data are for
@@ -41236,15 +41236,15 @@
       kao(:, 5,13,16) = (/ &
         & 0.94084e-02_rb,0.82324e-02_rb,0.70564e-02_rb,0.58807e-02_rb,0.52210e-02_rb, &
         & 0.60971e-02_rb,0.72271e-02_rb,0.81397e-02_rb,0.99102e-02_rb /)
-  
+
 !     -----------------------------------------------------------------
-!     The array KBO contains absorption coefs at the 16 chosen g-values 
-!     for a range of pressure levels < ~100mb and temperatures. The first 
-!     index in the array, JT, which runs from 1 to 5, corresponds to 
-!     different temperatures.  More specifically, JT = 3 means that the 
-!     data are for the reference temperature TREF for this pressure 
+!     The array KBO contains absorption coefs at the 16 chosen g-values
+!     for a range of pressure levels < ~100mb and temperatures. The first
+!     index in the array, JT, which runs from 1 to 5, corresponds to
+!     different temperatures.  More specifically, JT = 3 means that the
+!     data are for the reference temperature TREF for this pressure
 !     level, JT = 2 refers to the temperature TREF-15, JT = 1 is for
-!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.  
+!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.
 !     The second index, JP, runs from 13 to 59 and refers to the JPth
 !     reference pressure level (see taumol.f for the value of these
 !     pressure levels in mb).  The third index, IG, goes from 1 to 16,
@@ -42830,14 +42830,14 @@
       selfrefo(:,16) = (/ &
         &  0.666420e-04_rb, 0.801056e-04_rb, 0.962892e-04_rb, 0.115742e-03_rb, 0.139126e-03_rb, &
         &  0.167233e-03_rb, 0.201019e-03_rb, 0.241630e-03_rb, 0.290446e-03_rb, 0.349125e-03_rb /)
-     
+
       end subroutine sw_kgb22
 
 ! **************************************************************************
       subroutine sw_kgb23
 ! **************************************************************************
 
-      use parkind, only : im => kind_im, rb => kind_rb 
+      use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_kg23, only : kao, selfrefo, forrefo, sfluxrefo, raylo
 
       implicit none
@@ -42850,7 +42850,7 @@
         & 14.6388_rb , 1.59111_rb, 1.31860_rb, 1.04018_rb    , &
         & 0.762140_rb,0.484214_rb,0.182275_rb, 2.54948e-02_rb /)
 
-! Rayleigh extinction coefficient at all v 
+! Rayleigh extinction coefficient at all v
       raylo(:) = (/ &
         & 5.94837e-08_rb,5.70593e-08_rb,6.27845e-08_rb,5.56602e-08_rb, &
         & 5.25571e-08_rb,4.73388e-08_rb,4.17466e-08_rb,3.98097e-08_rb, &
@@ -42858,12 +42858,12 @@
         & 3.32155e-08_rb,3.23642e-08_rb,2.72590e-08_rb,2.96813e-08_rb /)
 
 !     ------------------------------------------------------------------
-!     The array KAO contains absorption coefs at the 16 chosen g-values 
+!     The array KAO contains absorption coefs at the 16 chosen g-values
 !     for a range of pressure levels> ~100mb, temperatures, and binary
-!     species parameters (see taumol.f for definition).  The first 
-!     index in the array, JS, runs from 1 to 9, and corresponds to 
-!     different values of the binary species parameter.  For instance, 
-!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8, 
+!     species parameters (see taumol.f for definition).  The first
+!     index in the array, JS, runs from 1 to 9, and corresponds to
+!     different values of the binary species parameter.  For instance,
+!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8,
 !     JS = 3 corresponds to the parameter value 2/8, etc.  The second index
 !     in the array, JT, which runs from 1 to 5, corresponds to different
 !     temperatures.  More specifically, JT = 3 means that the data are for
@@ -43291,7 +43291,7 @@
         & 0.19577e+01_rb,0.19145e+01_rb,0.18728e+01_rb,0.18320e+01_rb,0.17910e+01_rb /)
       kao(:,13,16) = (/ &
         & 0.21716e+01_rb,0.21171e+01_rb,0.20639e+01_rb,0.20113e+01_rb,0.19587e+01_rb /)
-  
+
 !     -----------------------------------------------------------------
 
       forrefo(:, 1) = (/ 0.315770e-07_rb, 0.671978e-07_rb, 0.440649e-06_rb /)
@@ -43366,14 +43366,14 @@
       selfrefo(:,16) = (/ &
         &  0.534327e-02_rb, 0.482967e-02_rb, 0.436544e-02_rb, 0.394583e-02_rb, 0.356655e-02_rb, &
         &  0.322373e-02_rb, 0.291387e-02_rb, 0.263378e-02_rb, 0.238062e-02_rb, 0.215179e-02_rb /)
-     
+
       end subroutine sw_kgb23
 
 ! **************************************************************************
       subroutine sw_kgb24
 ! **************************************************************************
 
-      use parkind, only : im => kind_im, rb => kind_rb 
+      use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_kg24, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             raylao, raylbo, abso3ao, abso3bo
 
@@ -43387,7 +43387,7 @@
         & 9.54462_rb , 1.05002_rb,0.867332_rb,0.685753_rb, &
         & 0.504718_rb,0.323112_rb,0.122183_rb, 1.70288e-02_rb /)
       sfluxrefo(:,2) = (/ &
-        & 34.2367_rb , 32.4327_rb, 30.0863_rb, 28.2085_rb, & 
+        & 34.2367_rb , 32.4327_rb, 30.0863_rb, 28.2085_rb, &
         & 25.6533_rb , 22.3412_rb, 18.3112_rb, 13.8521_rb, &
         & 9.51035_rb , 1.04138_rb,0.863493_rb,0.682790_rb, &
         & 0.504721_rb,0.323102_rb,0.122193_rb, 1.70288e-02_rb /)
@@ -43493,12 +43493,12 @@
         & 0.126497_rb   ,6.95264e-02_rb,2.58175e-02_rb,2.52862e-02_rb /)
 
 !     ------------------------------------------------------------------
-!     The array KAO contains absorption coefs at the 16 chosen g-values 
+!     The array KAO contains absorption coefs at the 16 chosen g-values
 !     for a range of pressure levels> ~100mb, temperatures, and binary
-!     species parameters (see taumol.f for definition).  The first 
-!     index in the array, JS, runs from 1 to 9, and corresponds to 
-!     different values of the binary species parameter.  For instance, 
-!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8, 
+!     species parameters (see taumol.f for definition).  The first
+!     index in the array, JS, runs from 1 to 9, and corresponds to
+!     different values of the binary species parameter.  For instance,
+!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8,
 !     JS = 3 corresponds to the parameter value 2/8, etc.  The second index
 !     in the array, JT, which runs from 1 to 5, corresponds to different
 !     temperatures.  More specifically, JT = 3 means that the data are for
@@ -46630,15 +46630,15 @@
       kao(:, 5,13,16) = (/ &
         & 0.13868e+00_rb,0.12134e+00_rb,0.10400e+00_rb,0.86669e-01_rb,0.69338e-01_rb, &
         & 0.52006e-01_rb,0.39136e-01_rb,0.38851e-01_rb,0.00000e+00_rb /)
-  
+
 !     -----------------------------------------------------------------
-!     The array KBO contains absorption coefs at the 16 chosen g-values 
-!     for a range of pressure levels < ~100mb and temperatures. The first 
-!     index in the array, JT, which runs from 1 to 5, corresponds to 
-!     different temperatures.  More specifically, JT = 3 means that the 
-!     data are for the reference temperature TREF for this pressure 
+!     The array KBO contains absorption coefs at the 16 chosen g-values
+!     for a range of pressure levels < ~100mb and temperatures. The first
+!     index in the array, JT, which runs from 1 to 5, corresponds to
+!     different temperatures.  More specifically, JT = 3 means that the
+!     data are for the reference temperature TREF for this pressure
 !     level, JT = 2 refers to the temperature TREF-15, JT = 1 is for
-!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.  
+!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.
 !     The second index, JP, runs from 13 to 59 and refers to the JPth
 !     reference pressure level (see taumol.f for the value of these
 !     pressure levels in mb).  The third index, IG, goes from 1 to 16,
@@ -48224,14 +48224,14 @@
       selfrefo(:,16) = (/ &
         &  0.252246e-06_rb, 0.220335e-06_rb, 0.192462e-06_rb, 0.168114e-06_rb, 0.146847e-06_rb, &
         &  0.128270e-06_rb, 0.112043e-06_rb, 0.978688e-07_rb, 0.854878e-07_rb, 0.746731e-07_rb /)
-     
+
       end subroutine sw_kgb24
 
 ! **************************************************************************
       subroutine sw_kgb25
 ! **************************************************************************
 
-      use parkind, only : im => kind_im, rb => kind_rb 
+      use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_kg25, only : kao, sfluxrefo, &
                             raylo, abso3ao, abso3bo
 
@@ -48247,30 +48247,30 @@
 
 ! Rayleigh extinction coefficient at v = 2925 cm-1.
       raylo(:) = (/ &
-        & 9.81132e-07_rb,8.25605e-07_rb,6.71302e-07_rb,5.53556e-07_rb, & 
+        & 9.81132e-07_rb,8.25605e-07_rb,6.71302e-07_rb,5.53556e-07_rb, &
         & 3.97383e-07_rb,3.68206e-07_rb,4.42379e-07_rb,4.57799e-07_rb, &
         & 4.22683e-07_rb,3.87113e-07_rb,3.79810e-07_rb,3.63192e-07_rb, &
         & 3.51921e-07_rb,3.34231e-07_rb,3.34294e-07_rb,3.32673e-07_rb /)
-     
+
       abso3ao(:) = (/ &
         & 2.32664e-02_rb,5.76154e-02_rb,0.125389_rb,0.250158_rb, &
         & 0.378756_rb   ,0.402196_rb   ,0.352026_rb,0.352036_rb, &
         & 0.386253_rb   ,0.414598_rb   ,0.420079_rb,0.435471_rb, &
         & 0.445487_rb   ,0.459549_rb   ,0.452920_rb,0.456838_rb /)
 
-      abso3bo(:) = (/ &     
+      abso3bo(:) = (/ &
         & 1.76917e-02_rb,4.64185e-02_rb,1.03640e-01_rb,0.189469_rb, &
         & 0.303858_rb   ,0.400248_rb   ,0.447357_rb   ,0.470009_rb, &
         & 0.498673_rb   ,0.515696_rb   ,0.517053_rb   ,0.517930_rb, &
         & 0.518345_rb   ,0.524952_rb   ,0.508244_rb   ,0.468981_rb /)
 
 !     ------------------------------------------------------------------
-!     The array KAO contains absorption coefs at the 16 chosen g-values 
+!     The array KAO contains absorption coefs at the 16 chosen g-values
 !     for a range of pressure levels> ~100mb, temperatures, and binary
-!     species parameters (see taumol.f for definition).  The first 
-!     index in the array, JS, runs from 1 to 9, and corresponds to 
-!     different values of the binary species parameter.  For instance, 
-!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8, 
+!     species parameters (see taumol.f for definition).  The first
+!     index in the array, JS, runs from 1 to 9, and corresponds to
+!     different values of the binary species parameter.  For instance,
+!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8,
 !     JS = 3 corresponds to the parameter value 2/8, etc.  The second index
 !     in the array, JT, which runs from 1 to 5, corresponds to different
 !     temperatures.  More specifically, JT = 3 means that the data are for
@@ -48698,14 +48698,14 @@
         & 0.22857e-05_rb,0.11848e-04_rb,0.42066e-04_rb,0.67613e-04_rb,0.86033e-04_rb /)
       kao(:,13,16) = (/ &
         & 0.22823e-05_rb,0.69105e-05_rb,0.36212e-04_rb,0.66247e-04_rb,0.85488e-04_rb /)
-  
+
       end subroutine sw_kgb25
 
 ! **************************************************************************
       subroutine sw_kgb26
 ! **************************************************************************
 
-      use parkind, only : im => kind_im, rb => kind_rb 
+      use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_kg26, only : sfluxrefo, raylo
 
       implicit none
@@ -48719,7 +48719,7 @@
         &,  3.49829_rb, 0.407693_rb,    0.299027_rb, 0.236827_rb &
         &, 0.188502_rb, 0.163489_rb, 4.64335e-02_rb, 2.72662e-03_rb /)
 
-! Rayleigh extinction coefficient at all v 
+! Rayleigh extinction coefficient at all v
       raylo(:) = (/ &
         &  1.21263e-06_rb,1.43428e-06_rb,1.67677e-06_rb,1.93255e-06_rb &
         &, 2.19177e-06_rb,2.44195e-06_rb,2.66926e-06_rb,2.85990e-06_rb &
@@ -48732,7 +48732,7 @@
       subroutine sw_kgb27
 ! **************************************************************************
 
-      use parkind, only : im => kind_im, rb => kind_rb 
+      use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_kg27, only : kao, kbo, sfluxrefo, raylo
 
       implicit none
@@ -48758,12 +48758,12 @@
         & 9.74139e-06_rb,9.73525e-06_rb,9.73577e-06_rb,9.73618e-06_rb /)
 
 !     ------------------------------------------------------------------
-!     The array KAO contains absorption coefs at the 16 chosen g-values 
+!     The array KAO contains absorption coefs at the 16 chosen g-values
 !     for a range of pressure levels> ~100mb, temperatures, and binary
-!     species parameters (see taumol.f for definition).  The first 
-!     index in the array, JS, runs from 1 to 9, and corresponds to 
-!     different values of the binary species parameter.  For instance, 
-!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8, 
+!     species parameters (see taumol.f for definition).  The first
+!     index in the array, JS, runs from 1 to 9, and corresponds to
+!     different values of the binary species parameter.  For instance,
+!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8,
 !     JS = 3 corresponds to the parameter value 2/8, etc.  The second index
 !     in the array, JT, which runs from 1 to 5, corresponds to different
 !     temperatures.  More specifically, JT = 3 means that the data are for
@@ -49191,21 +49191,21 @@
         & 0.99644e+03_rb,0.10006e+04_rb,0.10065e+04_rb,0.10000e+04_rb,0.10080e+04_rb /)
       kao(:,13,16) = (/ &
         & 0.99644e+03_rb,0.10006e+04_rb,0.10065e+04_rb,0.10075e+04_rb,0.10080e+04_rb /)
-  
+
 !     -----------------------------------------------------------------
-!     The array KBO contains absorption coefs at the 16 chosen g-values 
-!     for a range of pressure levels < ~100mb and temperatures. The first 
-!     index in the array, JT, which runs from 1 to 5, corresponds to 
-!     different temperatures.  More specifically, JT = 3 means that the 
-!     data are for the reference temperature TREF for this pressure 
+!     The array KBO contains absorption coefs at the 16 chosen g-values
+!     for a range of pressure levels < ~100mb and temperatures. The first
+!     index in the array, JT, which runs from 1 to 5, corresponds to
+!     different temperatures.  More specifically, JT = 3 means that the
+!     data are for the reference temperature TREF for this pressure
 !     level, JT = 2 refers to the temperature TREF-15, JT = 1 is for
-!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.  
+!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.
 !     The second index, JP, runs from 13 to 59 and refers to the JPth
 !     reference pressure level (see taumol.f for the value of these
 !     pressure levels in mb).  The third index, IG, goes from 1 to 16,
 !     and tells us which g-interval the absorption coefficients are for.
 !     -----------------------------------------------------------------
-  
+
       kbo(:,13, 1) = (/ &
         & 0.16036e+00_rb,0.16399e+00_rb,0.17198e+00_rb,0.18455e+00_rb,0.20173e+00_rb /)
       kbo(:,14, 1) = (/ &
@@ -50710,14 +50710,14 @@
         & 0.98036e+03_rb,0.98678e+03_rb,0.99251e+03_rb,0.99003e+03_rb,0.10052e+04_rb /)
       kbo(:,59,16) = (/ &
         & 0.97953e+03_rb,0.98603e+03_rb,0.99185e+03_rb,0.99687e+03_rb,0.10009e+04_rb /)
-     
+
       end subroutine sw_kgb27
 
 ! **************************************************************************
       subroutine sw_kgb28
 ! **************************************************************************
 
-      use parkind, only : im => kind_im, rb => kind_rb 
+      use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_kg28, only : kao, kbo, sfluxrefo, rayl
 
       implicit none
@@ -50754,12 +50754,12 @@
       rayl = 2.02e-05_rb
 
 !     ------------------------------------------------------------------
-!     The array KAO contains absorption coefs at the 16 chosen g-values 
+!     The array KAO contains absorption coefs at the 16 chosen g-values
 !     for a range of pressure levels> ~100mb, temperatures, and binary
-!     species parameters (see taumol.f for definition).  The first 
-!     index in the array, JS, runs from 1 to 9, and corresponds to 
-!     different values of the binary species parameter.  For instance, 
-!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8, 
+!     species parameters (see taumol.f for definition).  The first
+!     index in the array, JS, runs from 1 to 9, and corresponds to
+!     different values of the binary species parameter.  For instance,
+!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8,
 !     JS = 3 corresponds to the parameter value 2/8, etc.  The second index
 !     in the array, JT, which runs from 1 to 5, corresponds to different
 !     temperatures.  More specifically, JT = 3 means that the data are for
@@ -53891,15 +53891,15 @@
       kao(:, 5,13,16) = (/ &
         & 0.20016e+03_rb,0.25832e+03_rb,0.57797e+03_rb,0.24270e+03_rb,0.60363e+03_rb, &
         & 0.74689e+03_rb,0.88521e+03_rb,0.10334e+04_rb,0.11767e+04_rb /)
-  
+
 !     -----------------------------------------------------------------
-!     The array KBO contains absorption coefs at the 16 chosen g-values 
-!     for a range of pressure levels < ~100mb and temperatures. The first 
-!     index in the array, JT, which runs from 1 to 5, corresponds to 
-!     different temperatures.  More specifically, JT = 3 means that the 
-!     data are for the reference temperature TREF for this pressure 
+!     The array KBO contains absorption coefs at the 16 chosen g-values
+!     for a range of pressure levels < ~100mb and temperatures. The first
+!     index in the array, JT, which runs from 1 to 5, corresponds to
+!     different temperatures.  More specifically, JT = 3 means that the
+!     data are for the reference temperature TREF for this pressure
 !     level, JT = 2 refers to the temperature TREF-15, JT = 1 is for
-!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.  
+!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.
 !     The second index, JP, runs from 13 to 59 and refers to the JPth
 !     reference pressure level (see taumol.f for the value of these
 !     pressure levels in mb).  The third index, IG, goes from 1 to 16,
@@ -61426,14 +61426,14 @@
         & 0.54975e+03_rb,0.50730e+03_rb,0.60576e+03_rb,0.88606e+03_rb,0.11813e+04_rb /)
       kbo(:, 5,59,16) = (/ &
         & 0.52585e+03_rb,0.62205e+03_rb,0.60442e+03_rb,0.89194e+03_rb,0.11799e+04_rb /)
-     
+
       end subroutine sw_kgb28
 
 ! **************************************************************************
       subroutine sw_kgb29
 ! **************************************************************************
 
-      use parkind, only : im => kind_im, rb => kind_rb 
+      use parkind, only : im => kind_im, rb => kind_rb
       use rrsw_kg29, only : kao, kbo, selfrefo, forrefo, sfluxrefo, &
                             absh2oo, absco2o, rayl
 
@@ -61458,17 +61458,17 @@
         & 6.92879e-02_rb, 0.123523_rb   , 0.360985_rb   , 1.86434_rb    , &
         & 10.38157_rb   , 0.214129_rb   , 0.213914_rb   , 0.212781_rb   , &
         & 0.215562_rb   , 0.218087_rb   , 0.220918_rb   , 0.218546_rb    /)
-           
+
 ! Rayleigh extinction coefficient at v = 2200 cm-1.
       rayl = 9.30e-11_rb
 
 !     ------------------------------------------------------------------
-!     The array KAO contains absorption coefs at the 16 chosen g-values 
+!     The array KAO contains absorption coefs at the 16 chosen g-values
 !     for a range of pressure levels> ~100mb, temperatures, and binary
-!     species parameters (see taumol.f for definition).  The first 
-!     index in the array, JS, runs from 1 to 9, and corresponds to 
-!     different values of the binary species parameter.  For instance, 
-!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8, 
+!     species parameters (see taumol.f for definition).  The first
+!     index in the array, JS, runs from 1 to 9, and corresponds to
+!     different values of the binary species parameter.  For instance,
+!     JS=1 refers to dry air, JS = 2 corresponds to the paramter value 1/8,
 !     JS = 3 corresponds to the parameter value 2/8, etc.  The second index
 !     in the array, JT, which runs from 1 to 5, corresponds to different
 !     temperatures.  More specifically, JT = 3 means that the data are for
@@ -61896,15 +61896,15 @@
         & 0.29533e+00_rb,0.27422e+00_rb,0.25636e+00_rb,0.23936e+00_rb,0.22658e+00_rb /)
       kao(:,13,16) = (/ &
         & 0.25310e+00_rb,0.23535e+00_rb,0.21855e+00_rb,0.20552e+00_rb,0.19293e+00_rb /)
-  
+
 !     -----------------------------------------------------------------
-!     The array KBO contains absorption coefs at the 16 chosen g-values 
-!     for a range of pressure levels < ~100mb and temperatures. The first 
-!     index in the array, JT, which runs from 1 to 5, corresponds to 
-!     different temperatures.  More specifically, JT = 3 means that the 
-!     data are for the reference temperature TREF for this pressure 
+!     The array KBO contains absorption coefs at the 16 chosen g-values
+!     for a range of pressure levels < ~100mb and temperatures. The first
+!     index in the array, JT, which runs from 1 to 5, corresponds to
+!     different temperatures.  More specifically, JT = 3 means that the
+!     data are for the reference temperature TREF for this pressure
 !     level, JT = 2 refers to the temperature TREF-15, JT = 1 is for
-!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.  
+!     TREF-30, JT = 4 is for TREF+15, and JT = 5 is for TREF+30.
 !     The second index, JP, runs from 13 to 59 and refers to the JPth
 !     reference pressure level (see taumol.f for the value of these
 !     pressure levels in mb).  The third index, IG, goes from 1 to 16,
@@ -63490,6 +63490,6 @@
       selfrefo(:,16) = (/ &
         &  0.261006e-03_rb, 0.771043e-03_rb, 0.227776e-02_rb, 0.672879e-02_rb, 0.198777e-01_rb, &
         &  0.587212e-01_rb, 0.173470e+00_rb, 0.512452e+00_rb, 0.151385e+01_rb, 0.447209e+01_rb /)
-     
+
       end subroutine sw_kgb29
 

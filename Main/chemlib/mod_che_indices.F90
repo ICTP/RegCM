@@ -25,10 +25,10 @@ module mod_che_indices
 
   public
 
-  !ah   gas_phase chemistry indecies for potential transported species 
+  !ah   gas_phase chemistry indecies for potential transported species
   !ah   some of them correspond to the same compounds like isulf, ih2so4
   !ah   we did this just for flexibility
- 
+
   integer(ik4) :: iso2 , iso4 , idms , ibchl , ibchb , iochl , iochb
 
   integer(ik4) :: imsa
@@ -47,7 +47,7 @@ module mod_che_indices
 
   !*** abt added from wetdep scheme
   integer(ik4) :: iisopno3 , ich3ooh , ihydrald , ihyac , ipooh
-  integer(ik4) :: ic3h7ooh , ic2h5ooh 
+  integer(ik4) :: ic3h7ooh , ic2h5ooh
   integer(ik4) :: iisopooh , imacrooh , ipb , ionit , ich3coooh
   integer(ik4) :: ich3cocho , ixooh
   integer(ik4) :: ionitr , iglyald , imvk , imacr , isoa , inh4
@@ -57,8 +57,8 @@ module mod_che_indices
   !
   integer(ik4) :: ipollen
 
-  ! list and name of cbmz species : must be absolutely consistant with 
-  ! mod_cbmz_Parameters 
+  ! list and name of cbmz species : must be absolutely consistant with
+  ! mod_cbmz_Parameters
 
   integer(ik4) , parameter :: totsp = 58
   character(len=8),target, dimension(totsp) :: cbmzspec
@@ -180,7 +180,7 @@ module mod_che_indices
   integer(ik4) , parameter :: ind_NO3 = 57
   integer(ik4) , parameter :: ind_C2O3 = 58
 
-  ! indices for jvalues 
+  ! indices for jvalues
   integer(ik4) , parameter :: jvO2 = 1
   integer(ik4) , parameter :: jvO3a = 2
   integer(ik4) , parameter :: jvO3b = 3

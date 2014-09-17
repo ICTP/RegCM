@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_bats_co2
 !
   use mod_intkinds
@@ -84,7 +84,7 @@ module mod_bats_co2
         if ( resp(i) < d_zero ) resp(i) = d_zero
       end if
     end do
-   
+
   end subroutine co2
 !
 !=======================================================================

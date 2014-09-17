@@ -46,7 +46,7 @@ module mod_che_mppio
 
   public :: allocate_mod_che_mppio
 
-  contains 
+  contains
     !
     ! This routines allocate all the arrays contained in the module
     !

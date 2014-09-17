@@ -347,7 +347,7 @@ module mod_ncio
         call fatal(__FILE__,__LINE__,'ICBC READ')
       end if
       icbc_search = ibcrec
-    end if 
+    end if
   end function icbc_search
 
   integer function som_search(imon)
@@ -362,7 +362,7 @@ module mod_ncio
     if ( imon < 0 .or. imon > 13 ) then
       somrec = -1
     else
-      if ( imon > 0 .and. imon < 13 ) then 
+      if ( imon > 0 .and. imon < 13 ) then
         somrec = imon
       else if ( imon == 0 ) then
         somrec = 12
@@ -754,7 +754,7 @@ module mod_ncio
     implicit none
     character(*) , intent(in) :: f, m1 , mf
     integer(ik4) , intent(in) :: l
-    if (istatus /= nf90_noerr) then 
+    if (istatus /= nf90_noerr) then
       write (stderr,*) trim(m1)
       write (stderr,*) nf90_strerror(istatus)
       call fatal(f,l,trim(mf))

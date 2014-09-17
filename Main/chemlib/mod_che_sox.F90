@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_che_sox
-  
+
   use mod_intkinds
   use mod_realkinds
   use mod_che_bdyco
@@ -51,7 +51,7 @@ module mod_che_sox
 
      integer(ik4) :: i , k
 
-!FAB 
+!FAB
      caircell(:,:) = 1.D-6 * rho(:,:)/amdk * navgdr
 
      call chemrate(caircell,ttb,rk_com)
@@ -76,7 +76,7 @@ module mod_che_sox
      !---------------------------------------------
 
 
-   
+
      do k = 1 , kz
        do i = ici1 , ici2
 
@@ -87,44 +87,44 @@ module mod_che_sox
            oh1int = oxcl(j,i,k,iox_oh)
            if ( czen(j,i) < 0.001D0 ) then
              oh1int = oh1int * 0.01D0
-           else 
-             oh1int = oh1int * 1.99D0 
+           else
+             oh1int = oh1int * 1.99D0
            end if
          else
            oh1int = 30.0D5
            if ( czen(j,i) < 0.001D0 ) then
              oh1int = oh1int * 0.01D0
-           else 
-             oh1int = oh1int * 1.99D0 
+           else
+             oh1int = oh1int * 1.99D0
           end if
          end if
 
-         ! Sink & Tendencies 
-         ! here p1 unit: s^-1  and the ratio of molar mass 
+         ! Sink & Tendencies
+         ! here p1 unit: s^-1  and the ratio of molar mass
          ! of SO4 to SO2 is 96/64 = 1.5
          !---------------------------------------------
          ! rk_com(i,k,12) : rate coef. in cm3/molec-s
-         ! rewrite the rate of reaction as first order 
+         ! rewrite the rate of reaction as first order
          ! rate coefficient  :
          ! SO2_rate = rk_com(i,k,12) * [OH] (S-1)
          !
-         ! Note: 1.5 factor accounts for different molecular 
-         !       weights of  so4 and so2 mw(so4)=96;  
+         ! Note: 1.5 factor accounts for different molecular
+         !       weights of  so4 and so2 mw(so4)=96;
          !       mw(so2)=64;  mw(so4)/mw(so2)=3/2=1.5
-         !---------------------------------------------      
+         !---------------------------------------------
          ! so2_rate = rk_com(i,k,12) * oh1int * d_10
          so2_rate = rk_com(i,k,12) * oh1int
          so2_snk(i,k) = chib(j,i,k,iso2)*(d_one-dexp(-so2_rate*dt))/dt
 
          chiten(j,i,k,iso2) = chiten(j,i,k,iso2) - so2_snk(i,k) * cldno
-         chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + 1.5D0*so2_snk(i,k)*cldno 
+         chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + 1.5D0*so2_snk(i,k)*cldno
 
-         !  gazeous conversion diagnostic 
+         !  gazeous conversion diagnostic
          if ( ichdiag > 0 ) then
           chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) &
-               - so2_snk(i,k) * cldno * cfdout 
+               - so2_snk(i,k) * cldno * cfdout
           chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) &
-               +  1.5D0*so2_snk(i,k)*cldno  * cfdout 
+               +  1.5D0*so2_snk(i,k)*cldno  * cfdout
          end if
        end do
      end do
@@ -134,7 +134,7 @@ module mod_che_sox
      do k = 1 , kz
        do i = ici1 , ici2
          chimol = 28.9D0/64.0D0*chib(j,i,k,iso2)/cpsb(j,i) ! kg/kg to mole
-         if ( ioxclim == 1 ) then 
+         if ( ioxclim == 1 ) then
            h2o2mol =  oxcl(j,i,k,iox_h2o2)
            concmin(i,k) = dmin1(h2o2mol,chimol)*64.0D0/28.9D0*cpsb(j,i)
          else
@@ -144,7 +144,7 @@ module mod_che_sox
        end do
      end do
      ! conversion in   Large scale clouds
- 
+
      do k = 1 , kz
        do i = ici1 , ici2
          rxs1 = d_zero
@@ -159,7 +159,7 @@ module mod_che_sox
            rxs11 = rxs1*1.5D0
            ! SO4 src term and the ratio of molar
            ! mass of SO4 to SO2 is 96/64 = 1.5
- 
+
            ! if removal occurs, a fraction of SO4 src term is also
            ! removed and accounted for in the term  wetrem(iso4)
            ! FAB:
@@ -174,7 +174,7 @@ module mod_che_sox
 !!$             wetrem(iso4) = (fracloud(i,k)*chtrsol(iso4)*chib(j,i,k,iso4) - &
 !!$                      rxs11)*(dexp(-cremrat(j,i,k)/fracloud(i,k)*dt)-d_one)
 !!$           end if
- 
+
 
          end if
            ! Below cloud scavenging only for SO2 only stratiform precip !
@@ -189,25 +189,25 @@ module mod_che_sox
                              (dexp(-krembc*dt)-d_one)
          end if
 
- 
+
          ! Tendancies large scale cloud
          chiten(j,i,k,iso2) = chiten(j,i,k,iso2) + rxs1/dt + &
                               wetrem(iso2)/dt ! zero here
          chiten(j,i,k,iso4) = chiten(j,i,k,iso4) - rxs11/dt + &
                               wetrem(iso4)/dt
- 
+
          ! and wetdep diagnostics
          ! just for iso2 washout (remcvc) here.
          ! only the contribution of large scale cloud is accounted for
          remcvc(j,i,k,iso2) = remcvc(j,i,k,iso2) - wetrem(iso2)/dt *cfdout
          ! remlsc(j,i,k,iso4) = remlsc(j,i,k,iso4) - wetrem(iso4)/d_two
- 
+
          ! chemical aqueous conversion diagnostic
-        
+
          if ( ichdiag > 0 ) then
-           chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) + rxs1/dt * cfdout 
-           chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) - rxs11/dt * cfdout 
-         end if 
+           chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) + rxs1/dt * cfdout
+           chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) - rxs11/dt * cfdout
+         end if
        end do
      end do
      ! cumulus clouds
@@ -220,12 +220,12 @@ module mod_che_sox
            rxs21 = d_zero    ! fraction of conversion, not removed, as SO4 src
            wetrem_cvc(iso2) = d_zero ! scavenging for SO2, below lsc
            wetrem_cvc(iso4) = d_zero
- 
+
            ! conversion from so2 to so4
            rxs2 = fracum(i,k)*chtrsol(iso2)*concmin(i,k) * &
                   (dexp(-d_two/360.0D0*dt)-d_one)
            rxs21 = rxs2*1.5D0
- 
+
            ! removal (including theremoval on the rxs21 term)
            ! contratily to LS clouds, remcum is already an in cloud removal rate
 !!$ FAB TEST DON'T COSIDER REMOVAL HERE
@@ -237,7 +237,7 @@ module mod_che_sox
 
            chiten(j,i,k,iso4) = chiten(j,i,k,iso4) + &
                                 wetrem_cvc(iso4)/dt - rxs21/dt
- 
+
            ! diagnostic of wet deposition: NOT relevant here
            ! only SO2 below large scale cloud washout is considered above
            ! remcvc(j,i,k,1) = remcvc(j,i,k,1) - wetrem_cvc(iso2)/2.
@@ -246,23 +246,23 @@ module mod_che_sox
            ! chemical aquesous conversion diagnostic
            ! ( add the contribution of gas + wet lsc + wet cum conversions)
            if ( ichdiag > 0 ) then
-             chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) + rxs2/dt * cfdout 
-             chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) - rxs21/dt  * cfdout 
-           end if  
+             chemdiag(j,i,k,iso2) = chemdiag(j,i,k,iso2) + rxs2/dt * cfdout
+             chemdiag(j,i,k,iso4) = chemdiag(j,i,k,iso4) - rxs21/dt  * cfdout
+           end if
          end do
        end if
      end do
 
-     ! diagnostic for SO2 durface fluxes         
-  
+     ! diagnostic for SO2 durface fluxes
+
      do i = ici1 , ici2
        wdlsc(j,i,iso2) = d_zero
        wdcvc(j,i,iso2) = d_zero
        do k = 1 , kz
          ! sum on the vertical to get total surface flux diag fo rain out
-         ! and washout (already weighted for time average cfdout !), 
+         ! and washout (already weighted for time average cfdout !),
          ! also change sign convention normalise by psb to get the right
-         ! flux unit 
+         ! flux unit
          wdcvc(j,i,iso2) = wdcvc(j,i,iso2) - &
             remcvc(j,i,k,iso2)*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
        end do
@@ -270,7 +270,7 @@ module mod_che_sox
 
 !!$!
 !!$  if ( (chtrname(itr) == 'DMS' ) .and. iso2 > 0 ) then
-!!$            
+!!$
 !!$    !---------------------------------------------
 !!$    ! rate of reaction for DMS oxidation at daytime using
 !!$    ! OH and at nighttime using NO3
@@ -314,7 +314,7 @@ module mod_che_sox
 !!$    end do
 !!$
 !!$  end if ! dms , so2
-!  
+!
    end subroutine chemsox
 !
 !  *****************************************************************
@@ -323,8 +323,8 @@ module mod_che_sox
 !  *  International Center for Theortical Physics (ICTP)        ****
 !  *  Trieste -Italy                                            ****
 !  *****************************************************************
-! 
-   subroutine chemrate(caircell,temp,rk_com) 
+!
+   subroutine chemrate(caircell,temp,rk_com)
      implicit none
      real(rk8) , dimension(ici1:ici2,kz) , intent(in) :: caircell , temp
      real(rk8) , dimension(ici1:ici2,kz,100) , intent(out) ::  rk_com
@@ -335,7 +335,7 @@ module mod_che_sox
      do k = 1 , kz
        do i = ici1 , ici2
 
-          alpha = 0.4D0  
+          alpha = 0.4D0
           te = temp(i,k)
 
           rk_com(i,k,1) = arr(1.0D0,    -234.D0,te)
@@ -379,18 +379,18 @@ module mod_che_sox
        expo= d_one/(d_one + (dlog10(rk0/rki))**2)
        troe  = (rk0*rki/(rk0+rki))*0.6D0**expo
      end function troe
-  
+
      real(rk8) function arr(aa,bb,te)
        implicit none
-       real(rk8), intent(in) :: aa , bb , te   
+       real(rk8), intent(in) :: aa , bb , te
        arr = aa*dexp(bb/te)
-     end function arr 
+     end function arr
 
      real(rk8) function abr(aa,bb,te)
        implicit none
        real(rk8), intent(in) ::  aa , bb , te
        abr = aa*dexp(bb*(d_one/te - 0.0033557D0))
-     end function abr 
+     end function abr
 
    end subroutine chemrate
 

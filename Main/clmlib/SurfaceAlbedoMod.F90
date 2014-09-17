@@ -152,7 +152,7 @@ contains
     integer  :: filter_novegsol(ubp-lbp+1) ! pft filter where vegetated and coszen>0
     integer  :: num_solar                  ! number of gridcells where coszen>0
 !rcm abt below
-    integer  :: i,j,ns,jy    
+    integer  :: i,j,ns,jy
     real(r8),allocatable :: r2cxlat1d(:)
     real(r8),allocatable :: r2cxlon1d(:)
 !rcm above
@@ -174,8 +174,8 @@ contains
     snowage   => clm3%g%l%c%cps%snowage
     albgrd    => clm3%g%l%c%cps%albgrd
     albgri    => clm3%g%l%c%cps%albgri
-    decl      => clm3%g%l%c%cps%decl 
-    coszen    => clm3%g%l%c%cps%coszen 
+    decl      => clm3%g%l%c%cps%decl
+    coszen    => clm3%g%l%c%cps%coszen
 
     ! Assign local pointers to derived subtypes components (pft-level)
 
@@ -295,7 +295,7 @@ contains
     do p = lbp,ubp
        if (pwtgcell(p)>0._r8) then
           if (coszen_pft(p) > 0._r8) then
-             if (itypelun(plandunit(p)) == istsoil .and. (elai(p) + esai(p)) > 0._r8) then                       
+             if (itypelun(plandunit(p)) == istsoil .and. (elai(p) + esai(p)) > 0._r8) then
                 num_vegsol = num_vegsol + 1
                 filter_vegsol(num_vegsol) = p
              else if (itypelun(plandunit(p)) /= istsoil .or. &
@@ -329,12 +329,12 @@ contains
        end do
     end do
 
-    ! Calculate surface albedos and fluxes 
+    ! Calculate surface albedos and fluxes
     ! Only perform on vegetated pfts where coszen > 0
 
     call TwoStream (lbc, ubc, lbp, ubp, filter_vegsol, num_vegsol, &
                     coszen_pft, vai, rho, tau)
-       
+
     ! Determine values for non-vegetated pfts where coszen > 0
 
     do ib = 1,numrad
@@ -684,12 +684,12 @@ contains
 !cdir nodep
     do fp = 1,num_vegsol
        p = filter_vegsol(fp)
-       
-       ! note that the following limit only acts on cosz values > 0 and less than 
+
+       ! note that the following limit only acts on cosz values > 0 and less than
        ! 0.001, not on values cosz = 0, since these zero have already been filtered
        ! out in filter_vegsol
        cosz = max(0.001_r8, coszen(p))
-       
+
        chil(p) = min( max(xl(ivt(p)), -0.4_r8), 0.6_r8 )
        if (abs(chil(p)) <= 0.01_r8) chil(p) = 0.01_r8
        phi1 = 0.5_r8 - 0.633_r8*chil(p) - 0.330_r8*chil(p)*chil(p)
@@ -726,9 +726,9 @@ contains
              tmp1 = ( (1._r8-fwet(p))*omegal*betadl + fwet(p)*omegas(ib)*betads ) / tmp0
              tmp2 = ( (1._r8-fwet(p))*omegal*betail + fwet(p)*omegas(ib)*betais ) / tmp0
           end if
-          omega(p,ib) = tmp0           
-          betad = tmp1 
-          betai = tmp2  
+          omega(p,ib) = tmp0
+          betad = tmp1
+          betai = tmp2
 
           ! Absorbed, reflected, transmitted fluxes per unit incoming radiation
 
@@ -744,13 +744,13 @@ contains
           p2 = b - avmu(p)*h
           p3 = b + tmp0
           p4 = b - tmp0
-          
+
           t1 = min(h*vai(p), 40._r8)
           s1 = exp(-t1)
           t1 = min(twostext(p)*vai(p), 40._r8)
           s2 = exp(-t1)
-          
-          ! Determine fluxes for vegetated pft for unit incoming direct 
+
+          ! Determine fluxes for vegetated pft for unit incoming direct
           ! Loop over incoming direct and incoming diffuse
           ! 0=unit incoming direct; 1=unit incoming diffuse
 

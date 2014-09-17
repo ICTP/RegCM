@@ -22,7 +22,7 @@ module spmdMod
   save
   private
 
-  ! Default settings valid even if there is no spmd 
+  ! Default settings valid even if there is no spmd
 
   logical, public :: masterproc      ! proc 0 logical for printing msgs
   integer, public :: iam             ! processor number
@@ -50,7 +50,7 @@ module spmdMod
   public :: MPI_COMM_WORLD
   public :: MPI_MAX_PROCESSOR_NAME
 
-#include <mpif.h>  
+#include <mpif.h>
 
 contains
 

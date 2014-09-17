@@ -243,7 +243,7 @@ module mod_bats_common
   !  note also  1 kg/m**2/s = 1 mm/m**2/s so fluxes can be thought of
   !                            in mm/s.
   !=======================================================================
-  ! 
+  !
   subroutine vecbats(lm,lms)
     implicit none
     type(lm_exchange) , intent(inout) :: lm
@@ -287,7 +287,7 @@ module mod_bats_common
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
- 
+
     if ( ivers == 1 ) then ! regcm2d --> bats
 
       call c2l_gs(lndcomm,lm%hgt,zh)
@@ -341,7 +341,7 @@ module mod_bats_common
           fracd(i) = 0.2D0
         end if
       end do
- 
+
       ! Smooth out big qs differences
       if ( nsg > 1 ) then
         call l2c_ss(lndcomm,qs,xqs)
@@ -366,7 +366,7 @@ module mod_bats_common
       end if
 
     else if ( ivers == 2 ) then ! bats --> regcm2d
- 
+
       call fseas(tgbrd)
       if ( iemiss == 1 ) then
         do i = ilndbeg , ilndend

@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_vmodes
 
   use mod_intkinds
@@ -195,11 +195,11 @@ module mod_vmodes
     !      determine thermodynamic matrix
     !
     ! compute thetah
-    ! this array is never used: it is only computed and printed out 
+    ! this array is never used: it is only computed and printed out
     ! the  following line causes a segfault on IBM SP6 when compiled
-    ! with -q check because it uses F90 syntax arrays with different sizes  
+    ! with -q check because it uses F90 syntax arrays with different sizes
     ! S.C. 21/05/2010
-    ! I therefore decided to comment out this line 
+    ! I therefore decided to comment out this line
     ! thetah = tbarh*((sigmah+ptop/pd)**(-rovcp))
     !
     ! compute tbarf and thetaf
@@ -674,7 +674,7 @@ module mod_vmodes
     end if
     call sgedi(v,n,n,ip,d,work,11)
 #ifdef DEBUG
-    call time_end(subroutine_name,idindx)  
+    call time_end(subroutine_name,idindx)
 #endif
   end subroutine invmtrx
 !

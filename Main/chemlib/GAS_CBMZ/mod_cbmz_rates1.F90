@@ -249,7 +249,7 @@ module mod_cbmz_rates1
           ratek(kk,j) = c_rk(1,j)*dexp(-c_rk(2,j)/c_temp(kk))
           cbeta(kk) = c_rk(3,j)*dexp(-c_rk(4,j)/c_temp(kk))*c_dens(kk)
           cgamma(kk) = c_rk(5,j)*dexp(-c_rk(6,j)/c_temp(kk))
-          ratek(kk,j) = ratek(kk,j) + & 
+          ratek(kk,j) = ratek(kk,j) + &
             cbeta(kk)*cgamma(kk)/(cbeta(kk)+cgamma(kk))
         end if
         !

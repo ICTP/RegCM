@@ -495,7 +495,7 @@ module mod_rad_colmod3
           rliq = d_10
         else
           ! Effective liquid radius over land
-          rliq = d_five+d_five* & 
+          rliq = d_five+d_five* &
                    dmin1(d_one,dmax1(d_zero,(minus10-tm1(n,k))*0.05D0))
         end if
         ! rel : liquid effective drop size (microns)
@@ -532,11 +532,11 @@ module mod_rad_colmod3
       end do
     end do
 
-    !FAB : reintroduce simple sulfate indirect effect 
+    !FAB : reintroduce simple sulfate indirect effect
     ! from Qian  1999
-    ! clwp is passed  in g/m2 
+    ! clwp is passed  in g/m2
     if ( ichem == 1 .and. iindirect == 1 ) then
-      do nt = 1 , ntr 
+      do nt = 1 , ntr
         if ( chtrname(nt) /= 'SO4' ) cycle
         do k = 1 , kz
           do n = 1 , npr
@@ -544,9 +544,9 @@ module mod_rad_colmod3
             aerc = rhoa * aermmr(n,k,nt) * 1.D9 !microg/m3
             ! thershold of 0.1 microg/m3 for activation of indirect effect
             if ( aerc > 0.1D0 ) then
-              ! ccn number concentration in cm-3 
+              ! ccn number concentration in cm-3
               nc = 90.7D0 * aerc**0.45D0 + 23.D0
-              ! kg/m3, already account fro cum and ls clouds      
+              ! kg/m3, already account fro cum and ls clouds
               lwc = clwp(n,k) / deltaz(n,k) * d_r1000
               if ( lwc < 1.D-6 ) cycle
               if ( ioro(n) /= 1 ) then
@@ -556,7 +556,7 @@ module mod_rad_colmod3
                ! and over land
                kparam = 0.67D0
               end if
-              !finally modify effective radius 
+              !finally modify effective radius
               !(1.D6 to convert to rel to microm, 1D6 to vonvert nc in m-3)
               rel(n,k) = 1.D6 * ( d_three*lwc / &
                    (d_four*mathpi*rhoh2o*kparam*nc*1.D6 ) )**(d_one/d_three)

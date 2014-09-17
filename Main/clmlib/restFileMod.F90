@@ -15,7 +15,7 @@ module restFileMod
   use shr_kind_mod, only : r8 => shr_kind_r8
   use spmdMod     , only : masterproc
   use abortutils,   only : endrun
-  use ncdio       
+  use ncdio
 !
 ! !PUBLIC TYPES:
   implicit none
@@ -35,7 +35,7 @@ module restFileMod
   public :: restFile_filename       ! Sets restart filename
 !
 ! !PRIVATE MEMBER FUNCTIONS:
-  private :: restFile_read_pfile     
+  private :: restFile_read_pfile
   private :: restFile_write_pfile    ! Writes restart pointer file
   private :: restFile_archive        ! Close restart file and write restart pointer file
   private :: restFile_dimset
@@ -81,7 +81,7 @@ contains
     use CASAMod          , only : CASARest
 #endif
 #if (defined COUP_CSM)
-    use clm_csmMod       , only : csm_restart 
+    use clm_csmMod       , only : csm_restart
 #endif
     use accumulMod       , only : accumulRest
 !
@@ -135,7 +135,7 @@ contains
     call restFile_enddef( ncid )
 
     ! Write restart file variables
-    
+
     call timemgr_restart_io( ncid, flag='write' )
     call SubgridRest( ncid, flag='write' )
     call BiogeophysRest( ncid, flag='write' )
@@ -155,23 +155,23 @@ contains
     call csm_restart( ncid, flag='write' )
 #endif
     call accumulRest( ncid, flag='write' )
-    
+
     ! Close and archive restart file
-    
+
     call restFile_close( ncid )
     call restFile_archive( file )
-    
+
     ! Write restart pointer file
-    
+
     call restFile_write_pfile( file )
-    
+
     ! Write out diagnostic info
 
     if (masterproc) then
        write (6,*) 'Successfully wrote out restart data at nstep = ',get_nstep()
        write (6,'(72a1)') ("-",i=1,60)
     end if
-    
+
   end subroutine restFile_write
 
 !-----------------------------------------------------------------------
@@ -200,7 +200,7 @@ contains
     use CASAMod          , only : CASARest
 #endif
 #if (defined COUP_CSM)
-    use clm_csmMod       , only : csm_restart 
+    use clm_csmMod       , only : csm_restart
 #endif
     use accumulMod       , only : accumulRest
 !
@@ -246,8 +246,8 @@ contains
     call csm_restart( ncid, flag='read' )
 #endif
     call accumulRest( ncid, flag='read' )
-    
-    ! Close file 
+
+    ! Close file
 
     call restFile_close( ncid )
 
@@ -274,7 +274,7 @@ contains
 !
 ! !USES:
     use fileutils  , only : relavu, opnfil, getfil, getavu
-    use histFileMod, only : restart_history 
+    use histFileMod, only : restart_history
 !
 ! !ARGUMENTS:
     implicit none
@@ -316,7 +316,7 @@ contains
 !
 ! !USES:
     use fileutils  , only : relavu, opnfil, getfil, getavu
-    use histFileMod, only : restart_history 
+    use histFileMod, only : restart_history
 !
 ! !ARGUMENTS:
     implicit none
@@ -377,29 +377,29 @@ contains
 !
 ! !LOCAL VARIABLES:
     integer :: status                      ! return status
-    integer :: length                      ! temporary          
+    integer :: length                      ! temporary
     character(len=256) :: ftest,ctest      ! temporaries
 !-----------------------------------------------------------------------
 
     if (masterproc) then
 
        ! Restart run:
-       ! Restart file pathname is read restart pointer file 
+       ! Restart file pathname is read restart pointer file
 
        if (nsrest==1) then
           call restFile_read_pfile( path )
           call getfil( path, file, 0 )
        end if
-       
-       ! Branch run: 
+
+       ! Branch run:
        ! Restart file pathname is obtained from namelist "nrevsn"
-       ! Check case name consistency (case name must be different for branch run, 
+       ! Check case name consistency (case name must be different for branch run,
        ! unless namelist specification states otherwise)
 
        if (nsrest==3) then
           length = len_trim(nrevsn)
           if (nrevsn(length-2:length) == '.nc') then
-             path = trim(nrevsn) 
+             path = trim(nrevsn)
           else
              path = trim(nrevsn) // '.nc'
           end if
@@ -420,7 +420,7 @@ contains
           end if
        end if
 
-       ! Initial run: 
+       ! Initial run:
        ! Restart file pathname is obtained from namelist "finidat"
 
        if (nsrest==0) then
@@ -465,12 +465,12 @@ contains
     character(len=256) :: locfn   ! Restart pointer file name
 !-----------------------------------------------------------------------
 
-    ! Obtain the restart file from the restart pointer file. 
-    ! For restart runs, the restart pointer file contains the full pathname 
-    ! of the restart file. For branch runs, the namelist variable 
-    ! [nrevsn] contains the full pathname of the restart file. 
+    ! Obtain the restart file from the restart pointer file.
+    ! For restart runs, the restart pointer file contains the full pathname
+    ! of the restart file. For branch runs, the namelist variable
+    ! [nrevsn] contains the full pathname of the restart file.
     ! New history files are always created for branch runs.
-       
+
     if (masterproc) then
        write (6,*) 'Reading restart pointer file....'
        nio = getavu()
@@ -555,7 +555,7 @@ contains
 ! !DESCRIPTION:
 ! Open restart pointer file. Write names of current binary and netcdf
 ! restart files. If using mass store, these are the mass store names
-! except if mss_irt=0 (no mass store files written). 
+! except if mss_irt=0 (no mass store files written).
 !
 ! !USES:
     use clm_varctl, only : rpntdir, mss_irt, archive_dir, rpntfil
@@ -585,7 +585,7 @@ contains
        nio = getavu()
        filename= trim(rpntdir) //'/'// trim(rpntfil)
        call opnfil( filename, nio, 'f' )
-       
+
        if (mss_irt == 0) then
 !abt changed          write(nio,'(a)') fnamer
           write(nio,'(a)') fnamer
@@ -593,7 +593,7 @@ contains
           rem_dir = trim(archive_dir) // '/rest/'
           write(nio,'(a)') set_filename( rem_dir, fnamer )
        endif
-       
+
        call relavu( nio )
        write(6,*)'Successfully wrote local restart pointer file'
     end if
@@ -604,7 +604,7 @@ contains
   subroutine restFile_open( flag, file, ncid )
 
     use clm_time_manager, only : get_nstep
-    
+
     implicit none
     character(len=*), intent(in) :: flag ! flag to specify read or write
     character(len=*), intent(in) :: file ! filename
@@ -627,7 +627,7 @@ contains
           call check_ret( nf_set_fill(ncid, nf_nofill, omode), subname )
 
        else if (flag == 'read') then
-       
+
           ! Open netcdf restart file
 
           write (6,*) 'Reading restart dataset'
@@ -635,7 +635,7 @@ contains
 
        end if
     end if
-  
+
   end subroutine restFile_open
 
 !-----------------------------------------------------------------------
@@ -657,7 +657,7 @@ contains
     implicit none
     character(*), intent(in) :: type         ! output type "binary" or "netcdf"
     integer, optional, intent(in) :: offset  ! offset from current time in seconds
-                                             ! positive for future times and 
+                                             ! positive for future times and
                                              ! negative for previous times
 !
 ! !CALLED FROM:
@@ -688,7 +688,7 @@ contains
           call get_curr_date (yr, mon, day, sec)
        end if
        write(cdate,'(i4.4,"-",i2.2,"-",i2.2,"-",i5.5)') yr,mon,day,sec
-       
+
        if (trim(type) == 'binary') then
           restFile_filename = trim(dirout)//trim(caseid)//".clm2.r."//trim(cdate)
        else if (trim(type) == 'netcdf') then
@@ -705,7 +705,7 @@ contains
     else
       restfile_filename = 'not_defined'
     end if
-    
+
   end function restFile_filename
 
 !------------------------------------------------------------------------
@@ -777,7 +777,7 @@ contains
        call check_ret( nf_def_dim(ncid, 'landunit', numl           , dimid), subname )
        call check_ret( nf_def_dim(ncid, 'column'  , numc           , dimid), subname )
        call check_ret( nf_def_dim(ncid, 'pft'     , nump           , dimid), subname )
-       
+
        call check_ret( nf_def_dim(ncid, 'levsoi'  , nlevsoi        , dimid), subname )
        call check_ret( nf_def_dim(ncid, 'levlak'  , nlevlak        , dimid), subname )
        call check_ret( nf_def_dim(ncid, 'levsno'  , nlevsno        , dimid), subname )
@@ -796,7 +796,7 @@ contains
 #endif
        call check_ret( nf_def_dim(ncid, 'string_length', 64        , dimid), subname)
        ! Define global attributes
-       
+
        str = 'CF-1.0'
        call check_ret(nf_put_att_text(ncid, NF_GLOBAL, 'conventions', len_trim(str), trim(str)), subname)
 
@@ -830,7 +830,7 @@ contains
     end if
 
   end subroutine restFile_dimset
-  
+
 !-----------------------------------------------------------------------
 !BOP
 !
@@ -882,7 +882,7 @@ contains
        call check_dim(ncid, 'pft'     , nump)
        call check_dim(ncid, 'levsno'  , nlevsno)
        call check_dim(ncid, 'levsoi'  , nlevsoi)
-       call check_dim(ncid, 'levlak'  , nlevlak) 
+       call check_dim(ncid, 'levlak'  , nlevlak)
 #if (defined CASA)
        ! Dimensions should be checked, but this will only work for initial
        ! datasets created with CASA enabled so do not normally do this.

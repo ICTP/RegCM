@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
 module mod_diffusion
 !
 ! Diffusion calculations
@@ -27,7 +27,7 @@ module mod_diffusion
   use mod_atm_interface
   use mod_runparams
   use mod_mppparam
-  use mod_service 
+  use mod_service
 
   implicit none
 
@@ -178,7 +178,7 @@ module mod_diffusion
       end do
     end if
 #ifdef DEBUG
-    call time_end(subroutine_name,idindx) 
+    call time_end(subroutine_name,idindx)
 #endif
   end subroutine diffu_d
 !

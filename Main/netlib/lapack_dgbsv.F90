@@ -30,24 +30,24 @@ module lapack_dgbsv
 !
 !  =========== DOCUMENTATION ===========
 !
-! Online html documentation available at 
-!            http://www.netlib.org/lapack/explore-html/ 
+! Online html documentation available at
+!            http://www.netlib.org/lapack/explore-html/
 !
 !> \htmlonly
-!> Download DGBSV + dependencies 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dgbsv.f"> 
-!> [TGZ]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dgbsv.f"> 
-!> [ZIP]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dgbsv.f"> 
+!> Download DGBSV + dependencies
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dgbsv.f">
+!> [TGZ]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dgbsv.f">
+!> [ZIP]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dgbsv.f">
 !> [TXT]</a>
-!> \endhtmlonly 
+!> \endhtmlonly
 !
 !  Definition:
 !  ===========
 !
 !       SUBROUTINE DGBSV( N, KL, KU, NRHS, AB, LDAB, IPIV, B, LDB, INFO )
-! 
+!
 !       .. Scalar Arguments ..
 !       INTEGER            INFO, KL, KU, LDAB, LDB, N, NRHS
 !       ..
@@ -55,7 +55,7 @@ module lapack_dgbsv
 !       INTEGER            IPIV( * )
 !       DOUBLE PRECISION   AB( LDAB, * ), B( LDB, * )
 !       ..
-!  
+!
 !
 !> \par Purpose:
 !  =============
@@ -156,10 +156,10 @@ module lapack_dgbsv
 !  Authors:
 !  ========
 !
-!> \author Univ. of Tennessee 
-!> \author Univ. of California Berkeley 
-!> \author Univ. of Colorado Denver 
-!> \author NAG Ltd. 
+!> \author Univ. of Tennessee
+!> \author Univ. of California Berkeley
+!> \author Univ. of Colorado Denver
+!> \author NAG Ltd.
 !
 !> \date November 2011
 !
@@ -252,24 +252,24 @@ module lapack_dgbsv
 !
 !  =========== DOCUMENTATION ===========
 !
-! Online html documentation available at 
-!            http://www.netlib.org/lapack/explore-html/ 
+! Online html documentation available at
+!            http://www.netlib.org/lapack/explore-html/
 !
 !> \htmlonly
-!> Download DGBTF2 + dependencies 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dgbtf2.f"> 
-!> [TGZ]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dgbtf2.f"> 
-!> [ZIP]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dgbtf2.f"> 
+!> Download DGBTF2 + dependencies
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dgbtf2.f">
+!> [TGZ]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dgbtf2.f">
+!> [ZIP]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dgbtf2.f">
 !> [TXT]</a>
-!> \endhtmlonly 
+!> \endhtmlonly
 !
 !  Definition:
 !  ===========
 !
 !       SUBROUTINE DGBTF2( M, N, KL, KU, AB, LDAB, IPIV, INFO )
-! 
+!
 !       .. Scalar Arguments ..
 !       INTEGER            INFO, KL, KU, LDAB, M, N
 !       ..
@@ -277,7 +277,7 @@ module lapack_dgbsv
 !       INTEGER            IPIV( * )
 !       DOUBLE PRECISION   AB( LDAB, * )
 !       ..
-!  
+!
 !
 !> \par Purpose:
 !  =============
@@ -360,10 +360,10 @@ module lapack_dgbsv
 !  Authors:
 !  ========
 !
-!> \author Univ. of Tennessee 
-!> \author Univ. of California Berkeley 
-!> \author Univ. of Colorado Denver 
-!> \author NAG Ltd. 
+!> \author Univ. of Tennessee
+!> \author Univ. of California Berkeley
+!> \author Univ. of Colorado Denver
+!> \author NAG Ltd.
 !
 !> \date September 2012
 !
@@ -523,24 +523,24 @@ module lapack_dgbsv
 !
 !  =========== DOCUMENTATION ===========
 !
-! Online html documentation available at 
-!            http://www.netlib.org/lapack/explore-html/ 
+! Online html documentation available at
+!            http://www.netlib.org/lapack/explore-html/
 !
 !> \htmlonly
-!> Download DGBTRF + dependencies 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dgbtrf.f"> 
-!> [TGZ]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dgbtrf.f"> 
-!> [ZIP]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dgbtrf.f"> 
+!> Download DGBTRF + dependencies
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dgbtrf.f">
+!> [TGZ]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dgbtrf.f">
+!> [ZIP]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dgbtrf.f">
 !> [TXT]</a>
-!> \endhtmlonly 
+!> \endhtmlonly
 !
 !  Definition:
 !  ===========
 !
 !       SUBROUTINE DGBTRF( M, N, KL, KU, AB, LDAB, IPIV, INFO )
-! 
+!
 !       .. Scalar Arguments ..
 !       INTEGER            INFO, KL, KU, LDAB, M, N
 !       ..
@@ -548,7 +548,7 @@ module lapack_dgbsv
 !       INTEGER            IPIV( * )
 !       DOUBLE PRECISION   AB( LDAB, * )
 !       ..
-!  
+!
 !
 !> \par Purpose:
 !  =============
@@ -631,10 +631,10 @@ module lapack_dgbsv
 !  Authors:
 !  ========
 !
-!> \author Univ. of Tennessee 
-!> \author Univ. of California Berkeley 
-!> \author Univ. of Colorado Denver 
-!> \author NAG Ltd. 
+!> \author Univ. of Tennessee
+!> \author Univ. of California Berkeley
+!> \author Univ. of Colorado Denver
+!> \author NAG Ltd.
 !
 !> \date November 2011
 !
@@ -1032,25 +1032,25 @@ module lapack_dgbsv
 !
 !  =========== DOCUMENTATION ===========
 !
-! Online html documentation available at 
-!            http://www.netlib.org/lapack/explore-html/ 
+! Online html documentation available at
+!            http://www.netlib.org/lapack/explore-html/
 !
 !> \htmlonly
-!> Download DGBTRS + dependencies 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dgbtrs.f"> 
-!> [TGZ]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dgbtrs.f"> 
-!> [ZIP]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dgbtrs.f"> 
+!> Download DGBTRS + dependencies
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dgbtrs.f">
+!> [TGZ]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dgbtrs.f">
+!> [ZIP]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dgbtrs.f">
 !> [TXT]</a>
-!> \endhtmlonly 
+!> \endhtmlonly
 !
 !  Definition:
 !  ===========
 !
 !       SUBROUTINE DGBTRS( TRANS, N, KL, KU, NRHS, AB, LDAB, IPIV, B, LDB,
 !                          INFO )
-! 
+!
 !       .. Scalar Arguments ..
 !       CHARACTER          TRANS
 !       INTEGER            INFO, KL, KU, LDAB, LDB, N, NRHS
@@ -1059,7 +1059,7 @@ module lapack_dgbsv
 !       INTEGER            IPIV( * )
 !       DOUBLE PRECISION   AB( LDAB, * ), B( LDB, * )
 !       ..
-!  
+!
 !
 !> \par Purpose:
 !  =============
@@ -1155,10 +1155,10 @@ module lapack_dgbsv
 !  Authors:
 !  ========
 !
-!> \author Univ. of Tennessee 
-!> \author Univ. of California Berkeley 
-!> \author Univ. of Colorado Denver 
-!> \author NAG Ltd. 
+!> \author Univ. of Tennessee
+!> \author Univ. of California Berkeley
+!> \author Univ. of Colorado Denver
+!> \author NAG Ltd.
 !
 !> \date November 2011
 !
@@ -1295,24 +1295,24 @@ module lapack_dgbsv
 !
 !  =========== DOCUMENTATION ===========
 !
-! Online html documentation available at 
-!            http://www.netlib.org/lapack/explore-html/ 
+! Online html documentation available at
+!            http://www.netlib.org/lapack/explore-html/
 !
 !> \htmlonly
-!> Download DLASWP + dependencies 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dlaswp.f"> 
-!> [TGZ]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dlaswp.f"> 
-!> [ZIP]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dlaswp.f"> 
+!> Download DLASWP + dependencies
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/dlaswp.f">
+!> [TGZ]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/dlaswp.f">
+!> [ZIP]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/dlaswp.f">
 !> [TXT]</a>
-!> \endhtmlonly 
+!> \endhtmlonly
 !
 !  Definition:
 !  ===========
 !
 !       SUBROUTINE DLASWP( N, A, LDA, K1, K2, IPIV, INCX )
-! 
+!
 !       .. Scalar Arguments ..
 !       INTEGER            INCX, K1, K2, LDA, N
 !       ..
@@ -1320,7 +1320,7 @@ module lapack_dgbsv
 !       INTEGER            IPIV( * )
 !       DOUBLE PRECISION   A( LDA, * )
 !       ..
-!  
+!
 !
 !> \par Purpose:
 !  =============
@@ -1386,10 +1386,10 @@ module lapack_dgbsv
 !  Authors:
 !  ========
 !
-!> \author Univ. of Tennessee 
-!> \author Univ. of California Berkeley 
-!> \author Univ. of Colorado Denver 
-!> \author NAG Ltd. 
+!> \author Univ. of Tennessee
+!> \author Univ. of California Berkeley
+!> \author Univ. of Colorado Denver
+!> \author NAG Ltd.
 !
 !> \date September 2012
 !
@@ -1487,29 +1487,29 @@ module lapack_dgbsv
 !
 !  =========== DOCUMENTATION ===========
 !
-! Online html documentation available at 
-!            http://www.netlib.org/lapack/explore-html/ 
+! Online html documentation available at
+!            http://www.netlib.org/lapack/explore-html/
 !
 !> \htmlonly
-!> Download IEEECK + dependencies 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/ieeeck.f"> 
-!> [TGZ]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/ieeeck.f"> 
-!> [ZIP]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/ieeeck.f"> 
+!> Download IEEECK + dependencies
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/ieeeck.f">
+!> [TGZ]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/ieeeck.f">
+!> [ZIP]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/ieeeck.f">
 !> [TXT]</a>
-!> \endhtmlonly 
+!> \endhtmlonly
 !
 !  Definition:
 !  ===========
 !
 !       INTEGER          FUNCTION IEEECK( ISPEC, ZERO, ONE )
-! 
+!
 !       .. Scalar Arguments ..
 !       INTEGER            ISPEC
 !       REAL               ONE, ZERO
 !       ..
-!  
+!
 !
 !> \par Purpose:
 !  =============
@@ -1555,10 +1555,10 @@ module lapack_dgbsv
 !  Authors:
 !  ========
 !
-!> \author Univ. of Tennessee 
-!> \author Univ. of California Berkeley 
-!> \author Univ. of Colorado Denver 
-!> \author NAG Ltd. 
+!> \author Univ. of Tennessee
+!> \author Univ. of California Berkeley
+!> \author Univ. of Colorado Denver
+!> \author NAG Ltd.
 !
 !> \date November 2011
 !
@@ -1691,29 +1691,29 @@ module lapack_dgbsv
 !
 !  =========== DOCUMENTATION ===========
 !
-! Online html documentation available at 
-!            http://www.netlib.org/lapack/explore-html/ 
+! Online html documentation available at
+!            http://www.netlib.org/lapack/explore-html/
 !
 !> \htmlonly
-!> Download ILAENV + dependencies 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/ilaenv.f"> 
-!> [TGZ]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/ilaenv.f"> 
-!> [ZIP]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/ilaenv.f"> 
+!> Download ILAENV + dependencies
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/ilaenv.f">
+!> [TGZ]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/ilaenv.f">
+!> [ZIP]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/ilaenv.f">
 !> [TXT]</a>
-!> \endhtmlonly 
+!> \endhtmlonly
 !
 !  Definition:
 !  ===========
 !
 !       INTEGER FUNCTION ILAENV( ISPEC, NAME, OPTS, N1, N2, N3, N4 )
-! 
+!
 !       .. Scalar Arguments ..
 !       CHARACTER*( * )    NAME, OPTS
 !       INTEGER            ISPEC, N1, N2, N3, N4
 !       ..
-!  
+!
 !
 !> \par Purpose:
 !  =============
@@ -1816,10 +1816,10 @@ module lapack_dgbsv
 !  Authors:
 !  ========
 !
-!> \author Univ. of Tennessee 
-!> \author Univ. of California Berkeley 
-!> \author Univ. of Colorado Denver 
-!> \author NAG Ltd. 
+!> \author Univ. of Tennessee
+!> \author Univ. of California Berkeley
+!> \author Univ. of Colorado Denver
+!> \author NAG Ltd.
 !
 !> \date November 2011
 !
@@ -2300,7 +2300,7 @@ module lapack_dgbsv
 !
   160 CONTINUE
 !
-!     12 <= ISPEC <= 16: xHSEQR or one of its subroutines. 
+!     12 <= ISPEC <= 16: xHSEQR or one of its subroutines.
 !
       ILAENV = IPARMQ( ISPEC, NAME, OPTS, N1, N2, N3, N4 )
       RETURN
@@ -2312,28 +2312,28 @@ module lapack_dgbsv
 !
 !  =========== DOCUMENTATION ===========
 !
-! Online html documentation available at 
-!            http://www.netlib.org/lapack/explore-html/ 
+! Online html documentation available at
+!            http://www.netlib.org/lapack/explore-html/
 !
 !> \htmlonly
-!> Download IPARMQ + dependencies 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/iparmq.f"> 
-!> [TGZ]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/iparmq.f"> 
-!> [ZIP]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/iparmq.f"> 
+!> Download IPARMQ + dependencies
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/iparmq.f">
+!> [TGZ]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/iparmq.f">
+!> [ZIP]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/iparmq.f">
 !> [TXT]</a>
-!> \endhtmlonly 
+!> \endhtmlonly
 !
 !  Definition:
 !  ===========
 !
 !       INTEGER FUNCTION IPARMQ( ISPEC, NAME, OPTS, N, ILO, IHI, LWORK )
-! 
+!
 !       .. Scalar Arguments ..
 !       INTEGER            IHI, ILO, ISPEC, LWORK, N
 !       CHARACTER          NAME*( * ), OPTS*( * )
-!  
+!
 !
 !> \par Purpose:
 !  =============
@@ -2341,7 +2341,7 @@ module lapack_dgbsv
 !> \verbatim
 !>
 !>      This program sets problem and machine dependent parameters
-!>      useful for xHSEQR and its subroutines. It is called whenever 
+!>      useful for xHSEQR and its subroutines. It is called whenever
 !>      ILAENV is called with 12 <= ISPEC <= 16
 !> \endverbatim
 !
@@ -2444,10 +2444,10 @@ module lapack_dgbsv
 !  Authors:
 !  ========
 !
-!> \author Univ. of Tennessee 
-!> \author Univ. of California Berkeley 
-!> \author Univ. of Colorado Denver 
-!> \author NAG Ltd. 
+!> \author Univ. of Tennessee
+!> \author Univ. of California Berkeley
+!> \author Univ. of Colorado Denver
+!> \author NAG Ltd.
 !
 !> \date November 2011
 !
@@ -2635,8 +2635,8 @@ module lapack_dgbsv
 !
 !  =========== DOCUMENTATION ===========
 !
-! Online html documentation available at 
-!            http://www.netlib.org/lapack/explore-html/ 
+! Online html documentation available at
+!            http://www.netlib.org/lapack/explore-html/
 !
 !  Definition:
 !  ===========
@@ -2646,7 +2646,7 @@ module lapack_dgbsv
 !     .. Scalar Arguments ..
 !      CHARACTER          CA, CB
 !     ..
-!  
+!
 !
 !> \par Purpose:
 !  =============
@@ -2672,10 +2672,10 @@ module lapack_dgbsv
 !  Authors:
 !  ========
 !
-!> \author Univ. of Tennessee 
-!> \author Univ. of California Berkeley 
-!> \author Univ. of Colorado Denver 
-!> \author NAG Ltd. 
+!> \author Univ. of Tennessee
+!> \author Univ. of California Berkeley
+!> \author Univ. of Colorado Denver
+!> \author NAG Ltd.
 !
 !> \date November 2011
 !
@@ -2761,29 +2761,29 @@ module lapack_dgbsv
 !
 !  =========== DOCUMENTATION ===========
 !
-! Online html documentation available at 
-!            http://www.netlib.org/lapack/explore-html/ 
+! Online html documentation available at
+!            http://www.netlib.org/lapack/explore-html/
 !
 !> \htmlonly
-!> Download XERBLA + dependencies 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/xerbla.f"> 
-!> [TGZ]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/xerbla.f"> 
-!> [ZIP]</a> 
-!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/xerbla.f"> 
+!> Download XERBLA + dependencies
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.tgz?format=tgz&filename=/lapack/lapack_routine/xerbla.f">
+!> [TGZ]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.zip?format=zip&filename=/lapack/lapack_routine/xerbla.f">
+!> [ZIP]</a>
+!> <a href="http://www.netlib.org/cgi-bin/netlibfiles.txt?format=txt&filename=/lapack/lapack_routine/xerbla.f">
 !> [TXT]</a>
-!> \endhtmlonly 
+!> \endhtmlonly
 !
 !  Definition:
 !  ===========
 !
 !       SUBROUTINE XERBLA( SRNAME, INFO )
-! 
+!
 !       .. Scalar Arguments ..
 !       CHARACTER*(*)      SRNAME
 !       INTEGER            INFO
 !       ..
-!  
+!
 !
 !> \par Purpose:
 !  =============
@@ -2817,10 +2817,10 @@ module lapack_dgbsv
 !  Authors:
 !  ========
 !
-!> \author Univ. of Tennessee 
-!> \author Univ. of California Berkeley 
-!> \author Univ. of Colorado Denver 
-!> \author NAG Ltd. 
+!> \author Univ. of Tennessee
+!> \author Univ. of California Berkeley
+!> \author Univ. of Colorado Denver
+!> \author NAG Ltd.
 !
 !> \date November 2011
 !
@@ -3270,7 +3270,7 @@ module lapack_dgbsv
                DY(I) = DX(I)
             END DO
             IF (N.LT.7) RETURN
-         END IF   
+         END IF
          MP1 = M + 1
          DO I = MP1,N,7
             DY(I) = DX(I)
@@ -3281,7 +3281,7 @@ module lapack_dgbsv
             DY(I+5) = DX(I+5)
             DY(I+6) = DX(I+6)
          END DO
-      ELSE      
+      ELSE
 !
 !        code for unequal increments or equal increments
 !          not equal to 1

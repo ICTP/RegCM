@@ -25,7 +25,7 @@
 !                 the coupling of this model to RegCM4                *
 !**********************************************************************
 
-! This moist turbulence parameterization is described in detail in 
+! This moist turbulence parameterization is described in detail in
 !   A New Parameterization for Shallow Cumulus Convection and Its Application to
 !   Marine Subtropical Cloud-Topped Boundary Layers. Part I:
 !   Description and 1D Results
@@ -629,7 +629,7 @@ module mod_pbl_uwtcm
         exnerfl(kzp1) = d_one/rexnerfl(kzp1)
         ! density at the surface
         rhoxsf = (presfl(kzp1)*d_1000)/(rgas*tvx(kz))
-           
+
 !*******************************************************************************
 !*******************************************************************************
 !*********** Calculation (and Conversion) of Surface Fluxes ********************
@@ -653,8 +653,8 @@ module mod_pbl_uwtcm
         dthv = uthvx(kz)-thv0
         ! Calculate the change in potential temperature from the surface
         ! to the first interface
-        dth = thx(kz) - thgb 
-            
+        dth = thx(kz) - thgb
+
         ! Calculate surface momentum fluxes
         uflxp = -uvdragx*ux(kz)/rhoxsf
         vflxp = -uvdragx*vx(kz)/rhoxsf
@@ -672,7 +672,7 @@ module mod_pbl_uwtcm
 !********************* Calculation of boundary layer height ********************
 !*******************************************************************************
 !*******************************************************************************
-          
+
         ! Calculate nsquared Set N^2 based on the current potential
         ! temperature profile
         call n2(thlx,qwx,kz)
@@ -708,7 +708,7 @@ module mod_pbl_uwtcm
           !*************************************************************
           !****** Implicit Diffusion of Thetal and Qtot ****************
           !*************************************************************
-          ! first find the coefficients that apply to 
+          ! first find the coefficients that apply to
           ! all scalars at half-levels
           diffqandthlx: &
           do k = 1 , kz
@@ -757,7 +757,7 @@ module mod_pbl_uwtcm
           ! Set thlx and qwx to their updated values
           thlx(k) = uimp1(k)
           qwx(k) = uimp2(k)
-             
+
           ! Determine the temperature and qc and qv
           ! imethod = 1     ! Use the Brent 1973 method to solve for T
           imethod = 2       ! Use Bretherton's iterative method to solve for T
@@ -770,7 +770,7 @@ module mod_pbl_uwtcm
 
           if ( itbound == -999 ) then
             call fatal(__FILE__,__LINE__,'UW PBL SCHEME ALGO ERROR')
-          end if 
+          end if
 
           thx(k) = temps*rexnerhl(k)
           uthvx(k)=thx(k)*(d_one + ep1*qx(k)-qcx(k))
@@ -794,7 +794,7 @@ module mod_pbl_uwtcm
                         kzm(k+1) * dt *rdzq(k)*rdza(k+1)
           end if
           bimp(k) = d_one - aimp(k) - cimp(k)
-          ! now find right side 
+          ! now find right side
           ! no flux out top, so no (k == 1)
           if ( k == kz ) then
             ! at surface
@@ -872,7 +872,7 @@ module mod_pbl_uwtcm
           ! the tracer value implied for the next timestep
           chiloop: &
           do itr = 1 , ntr
-            ! set the right side 
+            ! set the right side
             rimp1(:) = chix(itr,:)
             ! at surface include surface momentum fluxes
             rimp1(kz) = chix(itr,kz) + dt *              &
@@ -899,7 +899,7 @@ module mod_pbl_uwtcm
         !      time=t+1 values of thetal, qw, and winds
         !   b. surface tke is diagnosed
         !   c. semi-implicit calculation of dissipation term and
-        !      implicit calculation of turbulent transfer term 
+        !      implicit calculation of turbulent transfer term
         ! first, buoyancy and shear terms
         sandb: &
         do k = 2 , kz
@@ -916,7 +916,7 @@ module mod_pbl_uwtcm
           if ( qcx(k) > 1.0D-8 .and. k > 1 ) then
             bouyan(k) = bouyan(k) - &
                         rttenx(k)*(presfl(k+1)-presfl(k))*d_1000 * &
-                        rrhoxfl(k) * rexnerfl(k) / uthvx(k) 
+                        rrhoxfl(k) * rexnerfl(k) / uthvx(k)
           end if
         end do radib
         ! tke at top is fixed
@@ -947,7 +947,7 @@ module mod_pbl_uwtcm
             bimp(k-1) = d_one - aimp(k-1) - cimp(k-1) + dt *   &
                         dsqrt(tke(k))*rczero/dmax1(bbls(k),bbls(k+1))
           end if
-          ! now find right side 
+          ! now find right side
           if ( k == kz ) then
             ! account for fixed part of flux between level kz and surface
             rimp1(k-1) = tke(k) + dt * ( shear(k)+bouyan(k) +   &
@@ -1044,7 +1044,7 @@ module mod_pbl_uwtcm
       do i = n-1, 1, -1
         x(i) = (vp(i) - c(i)*x(i+1))/bp(i)
       end do backsub
-    end subroutine solve_tridiag 
+    end subroutine solve_tridiag
 
     subroutine n2(thlxin,qwxin,kmax)
       implicit none
@@ -1068,7 +1068,7 @@ module mod_pbl_uwtcm
         rcldb(k) = dmax1(qwxin(k)-rvls,d_zero)
         tempv = (templ + wlhvocp*rcldb(k)) *    &
                 (d_one + ep1*(qwxin(k)-rcldb(k)) - rcldb(k))
-        tvbl = tempv*rexnerfl(k) 
+        tvbl = tempv*rexnerfl(k)
         ! now do layer above; go down to see how much evaporates
         templ = thlxin(k-1)*exnerfl(k)
         !rvls = esatw(presfl(k),templ)*epop(k)
@@ -1080,8 +1080,8 @@ module mod_pbl_uwtcm
         rcld = dmax1(qwxin(k-1)-rvls,d_zero)
         tempv = (templ + wlhvocp*rcld) *    &
                 (d_one + ep1*(qwxin(k-1)-rcld) - rcld)
-        tvab = tempv*rexnerfl(k) 
-        
+        tvab = tempv*rexnerfl(k)
+
         thvxfl= d_half * (tvab+tvbl)
         dtvdz = (tvab - tvbl) *rdza(k)
         nsquar(k) = egrav/thvxfl * dtvdz
@@ -1133,10 +1133,10 @@ module mod_pbl_uwtcm
 
         ! Limit the diffusivity to be the vertical grid spacing squared
         ! over the time step; this implies that the entrainment rate
-        ! can only be so large that the BL height would change by 
+        ! can only be so large that the BL height would change by
         ! one grid level over one time step -- TAO
         ! kthmax = dmin1((zax(k-1)-zax(k))**2/dt,1.d4)
-            
+
         kthmax = 10000.0D0
 
         ! Calculate the diffusion coefficients
@@ -1166,7 +1166,7 @@ module mod_pbl_uwtcm
           !          dmax1(bbls(k),bbls(k+1)))
           ! Limit the diffusivity to be the vertical grid spacing squared
           ! over the time step; this implies that the entrainment rate
-          ! can only be so large that the BL height would change by 
+          ! can only be so large that the BL height would change by
           ! one grid level over one time step -- TAO
           kthmax = dmin1((zax(k-1)-zax(k))**2/dt,1.D4)
           ! kthmax = 10000.0D0
@@ -1242,7 +1242,7 @@ module mod_pbl_uwtcm
           searchup1: &
           do k = ktop(ilay)-1 , 2 , -1
             ! we always go up at least one, for the entrainment interface
-            ktop(ilay) = k 
+            ktop(ilay) = k
             bbls(k) = dmin1(vonkar * zqx(k),blinf)
             if ( ilenparam == 1 ) then
               bbls(k) = bbls(k)/(d_one + bbls(k)/lambdal)
@@ -1346,7 +1346,7 @@ module mod_pbl_uwtcm
             kpbl2dx=-kpbl2dx
           end if
         else
-          kmix2dx = kmax - 1 
+          kmix2dx = kmax - 1
           if ( kpbl2dx >= 0 ) then
             kpbl2dx = ktop(iconv)
           else
@@ -1370,7 +1370,7 @@ module mod_pbl_uwtcm
       kmix2dx = min(kmax - 1,kmix2dx)
       pblx = zqx(kmix2dx)
     end subroutine pblhgt
-      
+
     ! Returns the saturation vapor pressure over water in units (cb)
     ! given the input pressure in cb and Temperature in K
     ! Modified from Buck (1981), J. App. Met. v 20
@@ -1453,7 +1453,7 @@ module mod_pbl_uwtcm
           end if
         end do drysearch
       end if
-      ! If we still didn't find a cloud-topped boundary layer, then 
+      ! If we still didn't find a cloud-topped boundary layer, then
       ! set the top to be the first interface layer
       if ( .not. foundlayer ) then
         kmix2dx = kmax - 1

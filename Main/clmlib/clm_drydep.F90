@@ -23,8 +23,8 @@ module clm_drydep
                             SHR_CONST_CPDAIR, SHR_CONST_MWWV
   use spmdMod      , only : masterproc, iam
 
-  implicit none 
-  save 
+  implicit none
+  save
 
   private
 
@@ -125,7 +125,7 @@ module clm_drydep
        /1.e36_r8,2000._r8,2000._r8,2000._r8,2000._r8,2000._r8,1.e36_r8,1.e36_r8,2500._r8,2000._r8,4000._r8/
   data rclo(1,1:NLUse) &
        /1.e36_r8,1000._r8,1000._r8,1000._r8,1000._r8,1000._r8,1.e36_r8,1.e36_r8,1000._r8,1000._r8,1000._r8/
-  
+
   data ri  (2,1:NLUse) &
        /1.e36_r8,1.e36_r8,1.e36_r8,1.e36_r8, 250._r8, 500._r8,1.e36_r8,1.e36_r8,1.e36_r8,1.e36_r8,1.e36_r8/
   data rlu (2,1:NLUse) &
@@ -260,9 +260,9 @@ module clm_drydep
              ,.1_r8     &
              ,.1_r8     &
              ,1.e-36_r8 &
-             ,1.e-36_r8 &  
-             ,1.e-36_r8 &  
-             ,1.e-36_r8 &  
+             ,1.e-36_r8 &
+             ,1.e-36_r8 &
+             ,1.e-36_r8 &
              ,1.e-36_r8 &
              ,.1_r8     &
              ,.1_r8     &
@@ -287,58 +287,58 @@ module clm_drydep
 
   !--- Names of species that can work with ---
   character(len=20), private, parameter :: species_name_table(n_species_table) = &
-                         (/ 'O3      '                       & 
-                           ,'H2O2    '                       & 
-                           ,'OH      '                       & 
-                           ,'HO2     '                       & 
-                           ,'CO      '                       & 
-                           ,'CH4     '                       & 
-                           ,'CH3O2   '                       & 
-                           ,'CH3OOH  '                       & 
-                           ,'HCHO    '                       & 
-                           ,'CHOOH   '                       & 
-                           ,'NO      '                       & 
-                           ,'NO2     '                       & 
-                           ,'HNO3    '                       & 
-                           ,'CO2     '                       & 
-                           ,'NH3     '                       & 
-                           ,'N2O5    '                       & 
-                           ,'NO3     '                       & 
-                           ,'MOH     '                       & 
-                           ,'HO2NO2  '                       & 
-                           ,'O1D     '                       & 
-                           ,'C2H6    '                       & 
-                           ,'C2H5O2  '                       & 
-                           ,'PO2     '                       & 
-                           ,'MACRO2  '                       & 
-                           ,'ISOPO2  '                       & 
-                           ,'C4H10   '                       & 
-                           ,'ALD2    '                       &  !CH3CHO  acetaldehyde 
-                           ,'C2H5OOH '                       & 
-                           ,'C3H6    '                       & 
-                           ,'POOH    '                       & 
-                           ,'ETHE    '                       & 
-                           ,'PAN     '                       & 
-                           ,'CH3COOOH'                       & 
+                         (/ 'O3      '                       &
+                           ,'H2O2    '                       &
+                           ,'OH      '                       &
+                           ,'HO2     '                       &
+                           ,'CO      '                       &
+                           ,'CH4     '                       &
+                           ,'CH3O2   '                       &
+                           ,'CH3OOH  '                       &
+                           ,'HCHO    '                       &
+                           ,'CHOOH   '                       &
+                           ,'NO      '                       &
+                           ,'NO2     '                       &
+                           ,'HNO3    '                       &
+                           ,'CO2     '                       &
+                           ,'NH3     '                       &
+                           ,'N2O5    '                       &
+                           ,'NO3     '                       &
+                           ,'MOH     '                       &
+                           ,'HO2NO2  '                       &
+                           ,'O1D     '                       &
+                           ,'C2H6    '                       &
+                           ,'C2H5O2  '                       &
+                           ,'PO2     '                       &
+                           ,'MACRO2  '                       &
+                           ,'ISOPO2  '                       &
+                           ,'C4H10   '                       &
+                           ,'ALD2    '                       &  !CH3CHO  acetaldehyde
+                           ,'C2H5OOH '                       &
+                           ,'C3H6    '                       &
+                           ,'POOH    '                       &
+                           ,'ETHE    '                       &
+                           ,'PAN     '                       &
+                           ,'CH3COOOH'                       &
                            ,'C10H16  '                       &  !monoterpenes
                            ,'CHOCHO  '                       &  !glyoxal ?
                            ,'CH3COCHO'                       &  !methylglyoxal  MGLY
-                           ,'GLYALD  '                       & 
+                           ,'GLYALD  '                       &
                            ,'CH3CO3  '                       &  !
-                           ,'C3H8    '                       & 
-                           ,'C3H7O2  '                       & 
-                           ,'CH3COCH3'                       & 
-                           ,'C3H7OOH '                       & 
-                           ,'RO2     '                       & 
-                           ,'ROOH    '                       & 
-                           ,'Rn      '                       & 
+                           ,'C3H8    '                       &
+                           ,'C3H7O2  '                       &
+                           ,'CH3COCH3'                       &
+                           ,'C3H7OOH '                       &
+                           ,'RO2     '                       &
+                           ,'ROOH    '                       &
+                           ,'Rn      '                       &
                            ,'ISOP    '                       &
                            ,'MVK     '                       &
                            ,'MACR    '                       &
                            ,'C2H5OH  '                       &
-                           ,'ONITR   '                       & 
-                           ,'ONIT    '                       & 
-                           ,'ISOPNO3 '                       & 
+                           ,'ONITR   '                       &
+                           ,'ONIT    '                       &
+                           ,'ISOPNO3 '                       &
                            ,'HYDRALD '                       &
                            /)
 
@@ -369,7 +369,7 @@ module clm_drydep
              ,7.47e+00_r8, 5241._r8,0._r8     ,    0._r8,0._r8     ,    0._r8  &
              ,7.47e+00_r8, 5241._r8,0._r8     ,    0._r8,0._r8     ,    0._r8  &
              ,7.47e+00_r8, 5241._r8,0._r8     ,    0._r8,0._r8     ,    0._r8  &
-             ,1.70e-03_r8,    0._r8,0._r8     ,    0._r8,0._r8     ,    0._r8  &  
+             ,1.70e-03_r8,    0._r8,0._r8     ,    0._r8,0._r8     ,    0._r8  &
              ,1.14e+01_r8, 6267._r8,0._r8     ,    0._r8,0._r8     ,    0._r8  &
              ,3.36e+02_r8, 5995._r8,0._r8     ,    0._r8,0._r8     ,    0._r8  &
              ,1.70e-03_r8,    0._r8,0._r8     ,    0._r8,0._r8     ,    0._r8  &
@@ -385,7 +385,7 @@ module clm_drydep
              ,1.45e-03_r8, 2700._r8,0._r8     ,    0._r8,0._r8     ,    0._r8  &
              ,3.00e+06_r8,    0._r8,0._r8     ,    0._r8,0._r8     ,    0._r8  &
              ,2.70e+01_r8, 5300._r8,0._r8     ,    0._r8,0._r8     ,    0._r8  &
-             ,3.36e+02_r8, 5995._r8,0._r8     ,    0._r8,0._r8     ,    0._r8  &  
+             ,3.36e+02_r8, 5995._r8,0._r8     ,    0._r8,0._r8     ,    0._r8  &
              ,7.47e+00_r8, 5241._r8,0._r8     ,    0._r8,0._r8     ,    0._r8  &
              ,3.36e+02_r8, 5995._r8,0._r8     ,    0._r8,0._r8     ,    0._r8  &
              ,0.00e+00_r8,    0._r8,0._r8     ,    0._r8,0._r8     ,    0._r8  &
@@ -425,7 +425,7 @@ CONTAINS
 
     !========================================================================
     ! Initialization of dry deposition fields
-    ! reads drydep_inparm namelist and sets up CCSM driver list of fields for 
+    ! reads drydep_inparm namelist and sets up CCSM driver list of fields for
     ! land-atmosphere communications.
     ! !REVISION HISTORY:
     !  2008-Nov-12 - F. Vitt - first version
@@ -444,8 +444,8 @@ CONTAINS
     integer :: i, l                      ! Indices
     character(len=32) :: test_name       ! field test name
     !----- formats -----
-    character(*),parameter :: subName = '(seq_drydep_init) ' 
-    character(*),parameter :: F00   = "('(seq_drydep_init) ',8a)" 
+    character(*),parameter :: subName = '(seq_drydep_init) '
+    character(*),parameter :: F00   = "('(seq_drydep_init) ',8a)"
 
     !-----------------------------------------------------------------------------
     ! Allocate and fill foxd, drat and mapping as well as species indices
@@ -476,14 +476,14 @@ CONTAINS
        if(masterproc) then
        write(6,*) " **** Name = ",trim(test_name)  !buggin
        end if
-  
+
        !--- Figure out if species maps to a species in the species table ---
        do l = 1,n_species_table
           if(  trim( test_name ) == trim( species_name_table(l) ) ) then
              mapping(i)  = l
              exit
           end if
-    
+
        end do
 
 
@@ -527,13 +527,13 @@ CONTAINS
              test_name = 'HNO3'
 
         !*** abt added for compatibility with CBMZ species names
-          case( 'MGLY' )   
+          case( 'MGLY' )
              test_name = 'CH3COCHO'
-          case( 'HCOOH' )  
+          case( 'HCOOH' )
              test_name = 'CHOOH'
-          case( 'HNO4', 'HONO' )   
+          case( 'HNO4', 'HONO' )
              test_name = 'HO2NO2'
-          case( 'ACET', 'ACO2' )   
+          case( 'ACET', 'ACO2' )
              test_name = 'CH3COCH3'
           case( 'ISOPRD' )
              test_name = 'MVK'
@@ -570,7 +570,7 @@ CONTAINS
        if ( trim(drydep_list(i)) == 'PAN' )  pan_ndx  = i
        if ( trim(drydep_list(i)) == 'SO2' )  so2_ndx  = i
        if ( trim(drydep_list(i)) == 'OX' .or. trim(drydep_list(i)) == 'O3' ) o3_ndx  = i
-       if ( trim(drydep_list(i)) == 'O3A' ) o3a_ndx  = i 
+       if ( trim(drydep_list(i)) == 'O3A' ) o3a_ndx  = i
 
        if( mapping(i) > 0) then
          l = mapping(i)
@@ -602,7 +602,7 @@ CONTAINS
     ! !REVISION HISTORY:
     !  2008-Nov-12 - F. Vitt - first version
     !========================================================================
-    
+
     implicit none
 
     real(r8), intent(in)     :: sfc_temp         ! Input surface temperature
@@ -626,7 +626,7 @@ CONTAINS
     ! !REVISION HISTORY:
     !  2008-Nov-12 - F. Vitt - first version
     !========================================================================
-    
+
 
     implicit none
 
@@ -645,11 +645,11 @@ CONTAINS
     real(r8) :: wrk(ncol)      ! Work array
 
     !----- formats -----
-    character(*),parameter :: subName = '(seq_drydep_set_hcoeff) ' 
-    character(*),parameter :: F00   = "('(seq_drydep_set_hcoeff) ',8a)" 
+    character(*),parameter :: subName = '(seq_drydep_set_hcoeff) '
+    character(*),parameter :: F00   = "('(seq_drydep_set_hcoeff) ',8a)"
 
     !-------------------------------------------------------------------------------
-    ! notes: 
+    ! notes:
     !-------------------------------------------------------------------------------
 
     wrk(:) = (t0 - sfc_temp(:))/(t0*sfc_temp(:))

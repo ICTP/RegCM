@@ -29,16 +29,16 @@ module mod_cbmz_chemlocal
 !     for RADICAL BALANCE-BACK EULER solver for chemistry (quadchem)
 !      (chemmain.f cheminit.f chemrates chemsolve.f, linslv.f, jval2.f)
 !
-!   for SOLVER VARIABLES 
+!   for SOLVER VARIABLES
 !   which are shared among the solver subroutines in common blocks
-!   but are not saved or passed to the main program.  
+!   but are not saved or passed to the main program.
 
 !  It also contains declarations for LOCAL VARIABLES
-!   which are used in solver subroutines but not retained 
-!   or passed to other subroutines  
+!   which are used in solver subroutines but not retained
+!   or passed to other subroutines
 !
-!  Other INCLUDE files: 
-!   chemvars.EXT =  input-output variables 
+!  Other INCLUDE files:
+!   chemvars.EXT =  input-output variables
 !    that are passed to and from the solver each time it is called.
 !   chemmech.EXT =  variables for the chem. mechanism
 !     that are set once and do not change as the mechanism is called.
@@ -47,19 +47,19 @@ module mod_cbmz_chemlocal
 ! History:
 !  12/06. Program written by Sandy Sillman based on commq7.EXT
 ! -------------------------------------------------------------
-! LOCAL SPECIES CONCENTRATIONS 
+! LOCAL SPECIES CONCENTRATIONS
 !     (see also input-output variables in chemvars.EXT)
 !
 ! xc:         average species concentration over time step, molec/cm3
 !                 (internally converted to mol/lit-atm for aqueous)
-!                 (note: in expo decay solution, 
+!                 (note: in expo decay solution,
 !              this is distinguished from final species concentration)
 !
 ! xcfinr:   Ratio of FINAL (end of time step) to AVERAGE concentration
 !             (=1 for back-Euler. Used for expo decay solution.
 !
 ! xclastq : OPTION, xc after last aquasolve,  used in next aquasolve
-! 
+!
   real(rk8) ::  xc( c_kvec,c_cdim) ! concentration molec/cm3
   real(rk8) ::  xcfinr( c_kvec,c_cdim) ! ratio FINAL/AVG cncn
   real(rk8) ::  xclastq( c_kvec,c_cdim) ! conc molec/cm3
@@ -93,7 +93,7 @@ module mod_cbmz_chemlocal
   real(rk8) :: egasaq(c_kvec,c_rdim)    ! Gas-to-aq transfer s-1
   real(rk8) :: ratero2(c_kvec,c_rdim,2) ! Rate constants for RO2-RO2
 
-! LOCAL CHEMICAL SOLVER VARIABLES:  
+! LOCAL CHEMICAL SOLVER VARIABLES:
 ! PRODUCTION AND LOSS RATES AND INTERIM CONCENTRATIONS
 ! SINGLE SPECIES AND LINKED PAIR SOLUTIONS
 !  (OPTION - iteration counter is in common for written output)
@@ -104,7 +104,7 @@ module mod_cbmz_chemlocal
 ! cpro(c_kvec,is1,is2) Cross-production for pair species:
 !              conversion from species 1 to species 2, molec/cm3/tstep
 !
-! geomavg(kk, ic)   Geometric average adjustment factor 
+! geomavg(kk, ic)   Geometric average adjustment factor
 !                      for difficult convergence.
 !                    Solution is geom. avg of current and prior iter,
 !                      using geomavg factor, adjusted based on history.
@@ -128,14 +128,14 @@ module mod_cbmz_chemlocal
 !                         (Omitting inter-group conversion)
 ! rppair(c_kvec,c_cdim)  Net production rate for pair group`
 !                          weighted by pairfac to conserve pair mass
-! rpro(c_kvec,c_cdim)   Solver production rate+initial concentration, 
+! rpro(c_kvec,c_cdim)   Solver production rate+initial concentration,
 !                                           molec/cm3/timestep
 ! rpro1(c_kvec,c_cdim)  Interim rpro w/out cpro pair production
 !
 ! rrp(c_kvec,c_cdim)   Continuous production sum thru cascade, molec/cm3
 ! rrl(c_kvec,c_cdim)   Continuous loss sum thru cascade,  molec/cm3
-! 
-! xrm(c_kvec,c_cdim)     Initial concentration for each member of  
+!
+! xrm(c_kvec,c_cdim)     Initial concentration for each member of
 !                                      multi-species group, molec/cm3
 !                           (used in chemsolve and noxsolve)
 ! xrp(c_kvec, c_cdim)   Solver initial concentration for single species
@@ -145,21 +145,21 @@ module mod_cbmz_chemlocal
 !       (used in chemsolve only, not nec. in common)
 ! xrr(c_kvec, c_cdim)   Solver interim solution      for single species
 !    or for each species in group for paired solution, molec/cm3
-! xrrm(c_kvec,c_cdim)    Initial solution      for each member of  
+! xrrm(c_kvec,c_cdim)    Initial solution      for each member of
 !               multi-species group (before normalization), molec/cm3
 ! xrrpair(c_kvec, c_cdim)  Solver solution for pair group sum
 !              (weigted by pairfac to conserve mass). molec/cm3
 !               used in normalization of indiv. species solutions
 !       (used in chemsolve only, not nec. in common)
 !
-! 
+!
   real(rk8) :: cpm(c_kvec,c_cdim,c_cdim)   ! Cross-prod for multi
-  real(rk8) :: cpro(c_kvec,c_cdim,c_cdim)  ! Cross-production 
-! 
+  real(rk8) :: cpro(c_kvec,c_cdim,c_cdim)  ! Cross-production
+!
   real(rk8) :: history(c_kvec,c_cdim,400)  ! Cncn for each iter
   real(rk8) :: geomavg(c_kvec,c_cdim)      ! Geom. avg factor
 !
-  real(rk8) :: rlm(c_kvec,c_cdim)          ! Loss for multi-spec 
+  real(rk8) :: rlm(c_kvec,c_cdim)          ! Loss for multi-spec
   real(rk8) :: rlmulti(c_kvec)             ! Loss group sum for multi
   real(rk8) :: rloss(c_kvec,c_cdim)        ! Solver loss rate
   real(rk8) :: rloss1(c_kvec,c_cdim)       ! Interim rloss w/out cpro
@@ -168,10 +168,10 @@ module mod_cbmz_chemlocal
   real(rk8) :: rpmulti(c_kvec)             ! Product'n multi group sum
   real(rk8) :: rppair(c_kvec,c_cdim)       ! Production for pair grp
   real(rk8) :: rpro(c_kvec,c_cdim)         ! Solver production rate
-  real(rk8) :: rpro1(c_kvec,c_cdim)        ! Interim rpro w/out cpro 
-  real(rk8) :: rrp(c_kvec,c_cdim)          ! Interim production rate 
-  real(rk8) :: rrl(c_kvec,c_cdim)          ! Interim loss rate 
-! 
+  real(rk8) :: rpro1(c_kvec,c_cdim)        ! Interim rpro w/out cpro
+  real(rk8) :: rrp(c_kvec,c_cdim)          ! Interim production rate
+  real(rk8) :: rrl(c_kvec,c_cdim)          ! Interim loss rate
+!
   real(rk8) :: xrm(c_kvec,c_cdim)          ! Initial conc. for multi
   real(rk8) :: xrp(c_kvec,c_cdim)          ! Solver prior concentration
   real(rk8) :: xrppair(c_kvec)             ! Solver prior pair group cn.
@@ -183,7 +183,7 @@ module mod_cbmz_chemlocal
 !          -> moved to chemvars as c_iter
 !     integer iter                     ! Iteration counter
 
-! LCHEMRATES,  LREAC  
+! LCHEMRATES,  LREAC
 ! VARIABLES ASSOCIATED WITH ODD HYDROGEN RADICALS AND ODD NITROGEN
 !
 ! foh(kk)           OH/HO2 fraction. (ohsolv and presolve. not common)
@@ -191,30 +191,30 @@ module mod_cbmz_chemlocal
 ! oddhdel(kk,2)     Summed sensitivity of net production of Hx to OH,
 !                    summed as PHx* (d ln (pHx)/d ln([OH]))  (1=w RO2 2=w/o RO2)
 !                    (molec/cm3)
-!                    (This results in a linearized update of Hx: 
-!                     PHx = oddhsum + oddhdel(OH-OHp)) 
+!                    (This results in a linearized update of Hx:
+!                     PHx = oddhsum + oddhdel(OH-OHp))
 ! oddhloh(kk,2)       Partial sum of net production/loss of Hx, molec/cm3
 !                    only from reactions that remove OH
 ! oddhlho2(kk,2)       Partial sum of net production/loss of Hx, molec/cm3
 !                    only from reactions that remove HO2
-! oddhsrc(kk,2)       Sumed production of Hx (molec/cm3)  
-!                                   from net production reactions only 
+! oddhsrc(kk,2)       Sumed production of Hx (molec/cm3)
+!                                   from net production reactions only
 !                  based on prior species concentrations and reactions
 ! oddhsum(kk,2)       Sum of net production/loss of Hx, molec/cm3
 !                  based on prior species concentrations and reactions
-! 
+!
 ! oddhsump(kk)      Sum of net production/loss of Hx from prior iteration
 ! oddhfacp(kk)      Hx concentration adjustment from prior iteration
 !
 ! (oddnsum(kk) - deleted)
 !
-! senhcat(kk,icat)  Estimated ssensitivity of odd-H species conc. 
-!                    to changes in OH, by species category.  
+! senhcat(kk,icat)  Estimated ssensitivity of odd-H species conc.
+!                    to changes in OH, by species category.
 !                     d ln [odd-h spec]/d ln([OH])
 !                     (Zero for non-odd-H species)
 !                     (Sometimes used also for NOx)
 ! senshx(kk,2)       Sensitivity of Hx production to OH (w/ and w/o RO2)
-!             for individual reaction: d ln (pHx)/d ln([OH]) 
+!             for individual reaction: d ln (pHx)/d ln([OH])
 !
 ! sourcnx(kk)     Summed NOx source from chemistry (molec/cm3/timestep)
 !                   (includes net NOx source from PAN reactions)
@@ -224,7 +224,7 @@ module mod_cbmz_chemlocal
 ! xfohtest          Convergence test for OH/HO2 ratio (nonvectorized)
 !                     =((OH/HO2)p-(OH/HO2))/(OH/HO2p
 !
-! THE FOLLOWING ARE MOVED TO chemvars.EXT: 
+! THE FOLLOWING ARE MOVED TO chemvars.EXT:
 ! xnotest          Convergence test ratio for NOx (nonvectorized)
 !                     =(NOxp-NOx)/NOxp
 ! xohtest          Convergence test ratio for OH (nonvectorized)
@@ -243,39 +243,39 @@ module mod_cbmz_chemlocal
   real(rk8) :: sourcnx(c_kvec)    ! Summed NOx source, mol/cm3
   real(rk8) :: sinknx(c_kvec)     ! Summed NOx sink, mol/cm3
 
-  real(rk8) :: xfohtest           ! OH/HO2 convergence test 
+  real(rk8) :: xfohtest           ! OH/HO2 convergence test
 
   real(rk8) :: oddhfacp(c_kvec)   ! Factor for OH from prior iteration
   real(rk8) :: oddhsump(c_kvec)   ! Net pro/loss of OH from prior it.
 !
-! SPECIES INDICES AND COUNTERS FOR CHEMISTRY SOLVER. 
+! SPECIES INDICES AND COUNTERS FOR CHEMISTRY SOLVER.
 
 ! ncsol(nc)              Chem. species number for head of pair group
-!                        being solved for.  
+!                        being solved for.
 !                        NOT IN COMMON.  This is passed to chemsolve.
-! 
-! ncsolv(nc)        Species number for each species in solver call, 
-!                    including subspecies in pair chains,   
+!
+! ncsolv(nc)        Species number for each species in solver call,
+!                    including subspecies in pair chains,
 !                    nc is number within the solver.
 !                    ncsolv(nc) gives the species number (ic)
 !                    (Local in chemsolve)
 !
-! nssolv(nc)        Pair/multisolve group number for each species 
+! nssolv(nc)        Pair/multisolve group number for each species
 !                    in solver call, including subspec in pair chains.
 !                    nc is number within the solver.
-!                    nssolv(nc) gives the pair group number (is) 
+!                    nssolv(nc) gives the pair group number (is)
 !                    (Local in chemsolve)
 !
 ! nsol                  Number of pair groups to be solved for
 !                        (Used in chemread, chemsolve, not in common)
 !
-! nsolv                 Number of species to be solved for 
+! nsolv                 Number of species to be solved for
 !                       in individual call to solver (chemsolve)
 !                        (Used in chemread, chemsolve, not in common)
-! ncdim                 Maximum number of total species 
+! ncdim                 Maximum number of total species
 !               to be solved simultaneously in pair or multisolve
 !                        (Chemread only. May be unnec.)
-! nsdim                 Maximum number of species pair groups 
+! nsdim                 Maximum number of species pair groups
 !               to be solved simultaneously in pair or multisolve
 !                   (excluding pair chains).
 !       (in quadchem, chemsolve, chemread. Must be in common for now.)
@@ -290,13 +290,13 @@ module mod_cbmz_chemlocal
 
 
 !
-! LOCAL VARIABLES USED IN CHEMISTRY SUBROUTINES 
+! LOCAL VARIABLES USED IN CHEMISTRY SUBROUTINES
 !        (not passed between subroutines or included in common block)
-! 
+!
 ! prior (kk)   General vector vbl for prior species concentrations
 !                                                    (molec/cm3)
 !                 (used for initial concentration or prior estimate)
-! alpha (kk)   General vector vbl 
+! alpha (kk)   General vector vbl
 ! beta  (kk)   General vector vbl
 ! gamma (kk)   General vector vbl
 !
@@ -305,8 +305,8 @@ module mod_cbmz_chemlocal
 ! ionsum                              aquasolve ion counter
 ! ic, ic1, ic2,ic3, icc, ics, ics2, icc1, icc2, icc3, is, iss, iscs
 !  ich, icq
-!  icx, icx1, icy1, icx2, icy2, icp, icp1, icp2:   
-! ica1, ica2, icb1, icb2, nra1,nra2,nrb1,nrb2 
+!  icx, icx1, icy1, icx2, icy2, icp, icp1, icp2:
+! ica1, ica2, icb1, icb2, nra1,nra2,nrb1,nrb2
 !                                Chem species index numbers
 !  neq                          Aqueous equilibrium counters
 ! nc, nc1, nc2, ncc, ncf, nn, nne           Chem. species counters
@@ -349,7 +349,7 @@ module mod_cbmz_chemlocal
 !!$  integer(ik4) :: kk , kw
 !!$  ! General counters
 !!$  integer(ik4) :: i , j , k , ii , ij , iii , n
-!!$! 
+!!$!
 ! CUT LOCAL VARIABLES  - Local in individual subroutines
 !
 ! lloss        Local: Flag for identifying exchange loss reaction
@@ -363,7 +363,7 @@ module mod_cbmz_chemlocal
 !                       (=1/ihvint) (bhvrates)
 !   ihvint             Number of discrete times  used  to interpolate
 !                       hv over the simulated time interval  (bhvrates)
-! 
+!
 !   jval(      56)       J-value output from jval2.f parameterization.
 !                                      (sec-1)  (bhvrates)
 !   zen(kk)           Zenith angle (degrees) (90=horizon) (bhvrates)
