@@ -1099,6 +1099,7 @@ module mod_params
   end if
 
   if ( any(icup == 6) ) then
+    call bcast(kf_trigger)
     call bcast(kf_entrate)
   end if
 
