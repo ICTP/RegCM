@@ -38,8 +38,8 @@
  /
  &globdatparam
  ibdyfrq =     6,
- ssttyp = 'EHA1B',
- dattyp = 'EHA1B',
+ ssttyp = 'ERSST',
+ dattyp = 'EIN15',
  gdate1 = 2004120100,
  gdate2 = 2006010100,
  dirglob = 'input',
