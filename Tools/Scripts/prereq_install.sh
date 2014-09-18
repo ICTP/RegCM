@@ -209,6 +209,8 @@ rm -fr netcdf-fortran-${netcdf_f_ver}
 echo "Compiled netCDF Fortran library."
 
 # Done
+CC=`echo $CC | cut -d " " -f 1`
+FC=`echo $FC | cut -d " " -f 1`
 echo
 echo                 "Done!"
 echo
@@ -217,7 +219,7 @@ echo
 echo  "./configure PATH=$DEST/bin:\$PATH \\"
 echo  "            CC=\"$CC\" \\"
 echo  "            FC=\"$FC\" \\"
-echo  "            MPIFC=\"$DEST/bin/mpif90 \\"
+echo  "            MPIFC=\"$DEST/bin/mpif90\" \\"
 echo  "            CPPFLAGS=-I$DEST/include \\"
 echo  "            LDFLAGS=-L$DEST/lib \\"
 echo  "            LIBS=\"-lnetcdff -lnetcdf $H5LIBS\""
@@ -235,5 +237,5 @@ echo "rehash"
 echo
 
 echo "Cleanup..."
-mkdir -p src && mv *gz *.bz2 src || exit 1
+mkdir -p src && mv -f *gz *.bz2 src || exit 1
 exit 0

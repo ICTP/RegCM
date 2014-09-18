@@ -1,4 +1,4 @@
-#::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+#n::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 #
 #    This file is part of ICTP RegCM.
 #
@@ -39,7 +39,7 @@ FCFLAGS += -I$(MPP_INCLUDE)
 endif
 
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -cpp -c $<
+	$(MPIFC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 distclean-local:
 	rm -f *.mod

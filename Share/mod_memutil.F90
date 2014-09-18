@@ -164,6 +164,35 @@ module mod_memutil
     module procedure relmem5d_d
   end interface relmem5d
 
+  interface remap_bound
+    module procedure remap_bounds1_t
+    module procedure remap_bounds1_l
+    module procedure remap_bounds2_l
+    module procedure remap_bounds3_l
+    module procedure remap_bounds4_l
+    module procedure remap_bounds5_l
+    module procedure remap_bounds1_i2
+    module procedure remap_bounds2_i2
+    module procedure remap_bounds3_i2
+    module procedure remap_bounds4_i2
+    module procedure remap_bounds5_i2
+    module procedure remap_bounds1_i4
+    module procedure remap_bounds2_i4
+    module procedure remap_bounds3_i4
+    module procedure remap_bounds4_i4
+    module procedure remap_bounds5_i4
+    module procedure remap_bounds1_r4
+    module procedure remap_bounds2_r4
+    module procedure remap_bounds3_r4
+    module procedure remap_bounds4_r4
+    module procedure remap_bounds5_r4
+    module procedure remap_bounds1_r8
+    module procedure remap_bounds2_r8
+    module procedure remap_bounds3_r8
+    module procedure remap_bounds4_r8
+    module procedure remap_bounds5_r8
+  end interface remap_bound
+
   type pool1d_i
     type(pool1d_i) , pointer :: next => null()
     type(iarr1d) :: a
@@ -2102,6 +2131,216 @@ module mod_memutil
     call finalize_pool5d_d(r5dd)
   end subroutine memory_destroy
 
+  function remap_bounds1_l(ib1,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1
+    logical , dimension(ib1:) , target , intent(in) :: a
+    logical , dimension(:) , pointer :: b
+    b => a
+  end function remap_bounds1_l
+
+  function remap_bounds2_l(ib1,ib2,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2
+    logical , dimension(ib1:,ib2:) , target , intent(in) :: a
+    logical , dimension(:,:) , pointer :: b
+    b => a
+  end function remap_bounds2_l
+
+  function remap_bounds3_l(ib1,ib2,ib3,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2 , ib3
+    logical , dimension(ib1:,ib2:,ib3:) , target , intent(in) :: a
+    logical , dimension(:,:,:) , pointer :: b
+    b => a
+  end function remap_bounds3_l
+
+  function remap_bounds4_l(ib1,ib2,ib3,ib4,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2 , ib3 , ib4
+    logical , dimension(ib1:,ib2:,ib3:,ib4:) , target , intent(in) :: a
+    logical , dimension(:,:,:,:) , pointer :: b
+    b => a
+  end function remap_bounds4_l
+
+  function remap_bounds5_l(ib1,ib2,ib3,ib4,ib5,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2 , ib3 , ib4 , ib5
+    logical , dimension(ib1:,ib2:,ib3:,ib4:,ib5:) , target , intent(in) :: a
+    logical , dimension(:,:,:,:,:) , pointer :: b
+    b => a
+  end function remap_bounds5_l
+
+  function remap_bounds1_i2(ib1,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1
+    integer(ik2) , dimension(ib1:) , target , intent(in) :: a
+    integer(ik2) , dimension(:) , pointer :: b
+    b => a
+  end function remap_bounds1_i2
+
+  function remap_bounds2_i2(ib1,ib2,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2
+    integer(ik2) , dimension(ib1:,ib2:) , target , intent(in) :: a
+    integer(ik2) , dimension(:,:) , pointer :: b
+    b => a
+  end function remap_bounds2_i2
+
+  function remap_bounds3_i2(ib1,ib2,ib3,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2 , ib3
+    integer(ik2) , dimension(ib1:,ib2:,ib3:) , target , intent(in) :: a
+    integer(ik2) , dimension(:,:,:) , pointer :: b
+    b => a
+  end function remap_bounds3_i2
+
+  function remap_bounds4_i2(ib1,ib2,ib3,ib4,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2 , ib3 , ib4
+    integer(ik2) , dimension(ib1:,ib2:,ib3:,ib4:) , target , intent(in) :: a
+    integer(ik2) , dimension(:,:,:,:) , pointer :: b
+    b => a
+  end function remap_bounds4_i2
+
+  function remap_bounds5_i2(ib1,ib2,ib3,ib4,ib5,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2 , ib3 , ib4 , ib5
+    integer(ik2) , dimension(ib1:,ib2:,ib3:,ib4:,ib5:) , &
+            target , intent(in) :: a
+    integer(ik2) , dimension(:,:,:,:,:) , pointer :: b
+    b => a
+  end function remap_bounds5_i2
+
+  function remap_bounds1_i4(ib1,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1
+    integer(ik4) , dimension(ib1:) , target , intent(in) :: a
+    integer(ik4) , dimension(:) , pointer :: b
+    b => a
+  end function remap_bounds1_i4
+
+  function remap_bounds2_i4(ib1,ib2,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2
+    integer(ik4) , dimension(ib1:,ib2:) , target , intent(in) :: a
+    integer(ik4) , dimension(:,:) , pointer :: b
+    b => a
+  end function remap_bounds2_i4
+
+  function remap_bounds3_i4(ib1,ib2,ib3,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2 , ib3
+    integer(ik4) , dimension(ib1:,ib2:,ib3:) , target , intent(in) :: a
+    integer(ik4) , dimension(:,:,:) , pointer :: b
+    b => a
+  end function remap_bounds3_i4
+
+  function remap_bounds4_i4(ib1,ib2,ib3,ib4,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2 , ib3 , ib4
+    integer(ik4) , dimension(ib1:,ib2:,ib3:,ib4:) , target , intent(in) :: a
+    integer(ik4) , dimension(:,:,:,:) , pointer :: b
+    b => a
+  end function remap_bounds4_i4
+
+  function remap_bounds5_i4(ib1,ib2,ib3,ib4,ib5,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2 , ib3 , ib4 , ib5
+    integer(ik4) , dimension(ib1:,ib2:,ib3:,ib4:,ib5:) , &
+            target , intent(in) :: a
+    integer(ik4) , dimension(:,:,:,:,:) , pointer :: b
+    b => a
+  end function remap_bounds5_i4
+
+  function remap_bounds1_r4(ib1,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1
+    real(rk4) , dimension(ib1:) , target , intent(in) :: a
+    real(rk4) , dimension(:) , pointer :: b
+    b => a
+  end function remap_bounds1_r4
+
+  function remap_bounds2_r4(ib1,ib2,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2
+    real(rk4) , dimension(ib1:,ib2:) , target , intent(in) :: a
+    real(rk4) , dimension(:,:) , pointer :: b
+    b => a
+  end function remap_bounds2_r4
+
+  function remap_bounds3_r4(ib1,ib2,ib3,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2 , ib3
+    real(rk4) , dimension(ib1:,ib2:,ib3:) , target , intent(in) :: a
+    real(rk4) , dimension(:,:,:) , pointer :: b
+    b => a
+  end function remap_bounds3_r4
+
+  function remap_bounds4_r4(ib1,ib2,ib3,ib4,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2 , ib3 , ib4
+    real(rk4) , dimension(ib1:,ib2:,ib3:,ib4:) , target , intent(in) :: a
+    real(rk4) , dimension(:,:,:,:) , pointer :: b
+    b => a
+  end function remap_bounds4_r4
+
+  function remap_bounds5_r4(ib1,ib2,ib3,ib4,ib5,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2 , ib3 , ib4 , ib5
+    real(rk4) , dimension(ib1:,ib2:,ib3:,ib4:,ib5:) , target , intent(in) :: a
+    real(rk4) , dimension(:,:,:,:,:) , pointer :: b
+    b => a
+  end function remap_bounds5_r4
+
+  function remap_bounds1_r8(ib1,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1
+    real(rk8) , dimension(ib1:) , target , intent(in) :: a
+    real(rk8) , dimension(:) , pointer :: b
+    b => a
+  end function remap_bounds1_r8
+
+  function remap_bounds2_r8(ib1,ib2,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2
+    real(rk8) , dimension(ib1:,ib2:) , target , intent(in) :: a
+    real(rk8) , dimension(:,:) , pointer :: b
+    b => a
+  end function remap_bounds2_r8
+
+  function remap_bounds3_r8(ib1,ib2,ib3,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2 , ib3
+    real(rk8) , dimension(ib1:,ib2:,ib3:) , target , intent(in) :: a
+    real(rk8) , dimension(:,:,:) , pointer :: b
+    b => a
+  end function remap_bounds3_r8
+
+  function remap_bounds4_r8(ib1,ib2,ib3,ib4,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2 , ib3 , ib4
+    real(rk8) , dimension(ib1:,ib2:,ib3:,ib4:) , target , intent(in) :: a
+    real(rk8) , dimension(:,:,:,:) , pointer :: b
+    b => a
+  end function remap_bounds4_r8
+
+  function remap_bounds5_r8(ib1,ib2,ib3,ib4,ib5,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1 , ib2 , ib3 , ib4 , ib5
+    real(rk8) , dimension(ib1:,ib2:,ib3:,ib4:,ib5:) , target , intent(in) :: a
+    real(rk8) , dimension(:,:,:,:,:) , pointer :: b
+    b => a
+  end function remap_bounds5_r8
+
+  function remap_bounds1_t(ib1,a) result(b)
+    implicit none
+    integer(ik4) , intent(in) :: ib1
+    type(rcm_time_and_date) , dimension(ib1:) , target , intent(in) :: a
+    type(rcm_time_and_date) , dimension(:) , pointer :: b
+    b => a
+  end function remap_bounds1_t
+
   subroutine assignp1d_l(a,b)
     implicit none
     logical , pointer , dimension(:) , intent(in) :: a
@@ -2110,7 +2349,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):) => a
+    b => remap_bound(lbound(a,1),a)
   end subroutine assignp1d_l
 
   subroutine assignp1d_s(a,b)
@@ -2121,7 +2360,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):) => a
+    b => remap_bound(lbound(a,1),a)
   end subroutine assignp1d_s
 
   subroutine assignp1d_i(a,b)
@@ -2132,7 +2371,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):) => a
+    b => remap_bound(lbound(a,1),a)
   end subroutine assignp1d_i
 
   subroutine assignp1d_r(a,b)
@@ -2143,7 +2382,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):) => a
+    b => remap_bound(lbound(a,1),a)
   end subroutine assignp1d_r
 
   subroutine assignp1d_d(a,b)
@@ -2154,7 +2393,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):) => a
+    b => remap_bound(lbound(a,1),a)
   end subroutine assignp1d_d
 
   subroutine assignp1d_t(a,b)
@@ -2165,7 +2404,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):) => a
+    b => remap_bound(lbound(a,1),a)
   end subroutine assignp1d_t
 
   subroutine assignp2d_l(a,b)
@@ -2176,7 +2415,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),a)
   end subroutine assignp2d_l
 
   subroutine assignp2d_s(a,b)
@@ -2187,7 +2426,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),a)
   end subroutine assignp2d_s
 
   subroutine assignp2d_i(a,b)
@@ -2198,7 +2437,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),a)
   end subroutine assignp2d_i
 
   subroutine assignp2d_r(a,b)
@@ -2209,7 +2448,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),a)
   end subroutine assignp2d_r
 
   subroutine assignp2d_d(a,b)
@@ -2220,92 +2459,102 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),a)
   end subroutine assignp2d_d
 
   subroutine assignp2d3_l(a,b,k)
-    use iso_c_binding, only: c_loc, c_f_pointer
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
     implicit none
     logical , pointer , dimension(:,:,:) , intent(in) :: a
     logical , pointer , dimension(:,:) , intent(out) :: b
     integer , intent(in) :: k
     integer , dimension(2) :: theshape
     logical , pointer , dimension(:,:) :: x
+    type(c_ptr) :: pntr
     if ( .not. associated(a) ) then
       nullify(b)
       return
     end if
     theshape = shape(a(:,:,1))
-    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k)),x,theshape)
-    b(lbound(a,1):,lbound(a,2):) => x
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),k))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),x)
   end subroutine assignp2d3_l
 
   subroutine assignp2d3_s(a,b,k)
-    use iso_c_binding, only: c_loc, c_f_pointer
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
     implicit none
     integer(2) , pointer , dimension(:,:,:) , intent(in) :: a
     integer(2) , pointer , dimension(:,:) , intent(out) :: b
     integer , intent(in) :: k
     integer , dimension(2) :: theshape
     integer(2) , pointer , dimension(:,:) :: x
+    type(c_ptr) :: pntr
     if ( .not. associated(a) ) then
       nullify(b)
       return
     end if
     theshape = shape(a(:,:,1))
-    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k)),x,theshape)
-    b(lbound(a,1):,lbound(a,2):) => x
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),k))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),x)
   end subroutine assignp2d3_s
 
   subroutine assignp2d3_i(a,b,k)
-    use iso_c_binding, only: c_loc, c_f_pointer
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
     implicit none
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: a
     integer(ik4) , pointer , dimension(:,:) , intent(out) :: b
     integer , intent(in) :: k
     integer , dimension(2) :: theshape
     integer(ik4) , pointer , dimension(:,:) :: x
+    type(c_ptr) :: pntr
     if ( .not. associated(a) ) then
       nullify(b)
       return
     end if
     theshape = shape(a(:,:,1))
-    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k)),x,theshape)
-    b(lbound(a,1):,lbound(a,2):) => x
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),k))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),x)
   end subroutine assignp2d3_i
 
   subroutine assignp2d3_r(a,b,k)
-    use iso_c_binding, only: c_loc, c_f_pointer
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(in) :: a
     real(rk4) , pointer , dimension(:,:) , intent(out) :: b
     integer , intent(in) :: k
     integer , dimension(2) :: theshape
     real(rk4) , pointer , dimension(:,:) :: x
+    type(c_ptr) :: pntr
     if ( .not. associated(a) ) then
       nullify(b)
       return
     end if
     theshape = shape(a(:,:,1))
-    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k)),x,theshape)
-    b(lbound(a,1):,lbound(a,2):) => x
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),k))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),x)
   end subroutine assignp2d3_r
 
   subroutine assignp2d3_d(a,b,k)
-    use iso_c_binding, only: c_loc, c_f_pointer
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: a
     real(rk8) , pointer , dimension(:,:) , intent(out) :: b
     integer , intent(in) :: k
     integer , dimension(2) :: theshape
     real(rk8) , pointer , dimension(:,:) :: x
+    type(c_ptr) :: pntr
     if ( .not. associated(a) ) then
       nullify(b)
       return
     end if
     theshape = shape(a(:,:,1))
-    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k)),x,theshape)
-    b(lbound(a,1):,lbound(a,2):) => x
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),k))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),x)
   end subroutine assignp2d3_d
 
   subroutine assignp3d_l(a,b)
@@ -2316,7 +2565,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),a)
   end subroutine assignp3d_l
 
   subroutine assignp3d_s(a,b)
@@ -2327,7 +2576,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),a)
   end subroutine assignp3d_s
 
   subroutine assignp3d_i(a,b)
@@ -2338,7 +2587,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),a)
   end subroutine assignp3d_i
 
   subroutine assignp3d_r(a,b)
@@ -2349,7 +2598,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),a)
   end subroutine assignp3d_r
 
   subroutine assignp3d_d(a,b)
@@ -2360,177 +2609,197 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),a)
   end subroutine assignp3d_d
 
   subroutine assignp3d4_l(a,b,k)
-    use iso_c_binding, only: c_loc, c_f_pointer
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
     implicit none
     logical , pointer , dimension(:,:,:,:) , intent(in) :: a
     logical , pointer , dimension(:,:,:) , intent(out) :: b
     integer , intent(in) :: k
     integer , dimension(3) :: theshape
     logical , pointer , dimension(:,:,:) :: x
+    type(c_ptr) :: pntr
     if ( .not. associated(a) ) then
       nullify(b)
       return
     end if
     theshape = shape(a(:,:,:,1))
-    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k)),x,theshape)
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => x
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),x)
   end subroutine assignp3d4_l
 
   subroutine assignp3d4_s(a,b,k)
-    use iso_c_binding, only: c_loc, c_f_pointer
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
     implicit none
     integer(2) , pointer , dimension(:,:,:,:) , intent(in) :: a
     integer(2) , pointer , dimension(:,:,:) , intent(out) :: b
     integer , intent(in) :: k
     integer , dimension(3) :: theshape
     integer(2) , pointer , dimension(:,:,:) :: x
+    type(c_ptr) :: pntr
     if ( .not. associated(a) ) then
       nullify(b)
       return
     end if
     theshape = shape(a(:,:,:,1))
-    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k)),x,theshape)
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => x
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),x)
   end subroutine assignp3d4_s
 
   subroutine assignp3d4_i(a,b,k)
-    use iso_c_binding, only: c_loc, c_f_pointer
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
     implicit none
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: a
     integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: b
     integer , intent(in) :: k
     integer , dimension(3) :: theshape
     integer(ik4) , pointer , dimension(:,:,:) :: x
+    type(c_ptr) :: pntr
     if ( .not. associated(a) ) then
       nullify(b)
       return
     end if
     theshape = shape(a(:,:,:,1))
-    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k)),x,theshape)
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => x
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),x)
   end subroutine assignp3d4_i
 
   subroutine assignp3d4_r(a,b,k)
-    use iso_c_binding, only: c_loc, c_f_pointer
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: a
     real(rk4) , pointer , dimension(:,:,:) , intent(out) :: b
     integer , intent(in) :: k
     integer , dimension(3) :: theshape
     real(rk4) , pointer , dimension(:,:,:) :: x
+    type(c_ptr) :: pntr
     if ( .not. associated(a) ) then
       nullify(b)
       return
     end if
     theshape = shape(a(:,:,:,1))
-    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k)),x,theshape)
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => x
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),x)
   end subroutine assignp3d4_r
 
   subroutine assignp3d4_d(a,b,k)
-    use iso_c_binding, only: c_loc, c_f_pointer
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: a
     real(rk8) , pointer , dimension(:,:,:) , intent(out) :: b
     integer , intent(in) :: k
     integer , dimension(3) :: theshape
     real(rk8) , pointer , dimension(:,:,:) :: x
+    type(c_ptr) :: pntr
     if ( .not. associated(a) ) then
       nullify(b)
       return
     end if
     theshape = shape(a(:,:,:,1))
-    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k)),x,theshape)
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):) => x
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),lbound(a,3),k))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),x)
   end subroutine assignp3d4_d
 
   subroutine assignp2d4_l(a,b,k,l)
-    use iso_c_binding, only: c_loc, c_f_pointer
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
     implicit none
     logical , pointer , dimension(:,:,:,:) , intent(in) :: a
     logical , pointer , dimension(:,:) , intent(out) :: b
     integer , intent(in) :: k , l
     integer , dimension(2) :: theshape
     logical , pointer , dimension(:,:) :: x
+    type(c_ptr) :: pntr
     if ( .not. associated(a) ) then
       nullify(b)
       return
     end if
     theshape = shape(a(:,:,1,1))
-    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k,l)),x,theshape)
-    b(lbound(a,1):,lbound(a,2):) => x
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),k,l))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),x)
   end subroutine assignp2d4_l
 
   subroutine assignp2d4_s(a,b,k,l)
-    use iso_c_binding, only: c_loc, c_f_pointer
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
     implicit none
     integer(2) , pointer , dimension(:,:,:,:) , intent(in) :: a
     integer(2) , pointer , dimension(:,:) , intent(out) :: b
     integer , intent(in) :: k , l
     integer , dimension(2) :: theshape
     integer(2) , pointer , dimension(:,:) :: x
+    type(c_ptr) :: pntr
     if ( .not. associated(a) ) then
       nullify(b)
       return
     end if
     theshape = shape(a(:,:,1,1))
-    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k,l)),x,theshape)
-    b(lbound(a,1):,lbound(a,2):) => x
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),k,l))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),x)
   end subroutine assignp2d4_s
 
   subroutine assignp2d4_i(a,b,k,l)
-    use iso_c_binding, only: c_loc, c_f_pointer
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
     implicit none
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: a
     integer(ik4) , pointer , dimension(:,:) , intent(out) :: b
     integer , intent(in) :: k , l
     integer , dimension(2) :: theshape
     integer(ik4) , pointer , dimension(:,:) :: x
+    type(c_ptr) :: pntr
     if ( .not. associated(a) ) then
       nullify(b)
       return
     end if
     theshape = shape(a(:,:,1,1))
-    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k,l)),x,theshape)
-    b(lbound(a,1):,lbound(a,2):) => x
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),k,l))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),x)
   end subroutine assignp2d4_i
 
   subroutine assignp2d4_r(a,b,k,l)
-    use iso_c_binding, only: c_loc, c_f_pointer
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: a
     real(rk4) , pointer , dimension(:,:) , intent(out) :: b
     integer , intent(in) :: k , l
     integer , dimension(2) :: theshape
     real(rk4) , pointer , dimension(:,:) :: x
+    type(c_ptr) :: pntr
     if ( .not. associated(a) ) then
       nullify(b)
       return
     end if
     theshape = shape(a(:,:,1,1))
-    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k,l)),x,theshape)
-    b(lbound(a,1):,lbound(a,2):) => x
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),k,l))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),x)
   end subroutine assignp2d4_r
 
   subroutine assignp2d4_d(a,b,k,l)
-    use iso_c_binding, only: c_loc, c_f_pointer
+    use iso_c_binding, only : c_ptr , c_loc, c_f_pointer
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: a
     real(rk8) , pointer , dimension(:,:) , intent(out) :: b
     integer , intent(in) :: k , l
     integer , dimension(2) :: theshape
     real(rk8) , pointer , dimension(:,:) :: x
+    type(c_ptr) :: pntr
     if ( .not. associated(a) ) then
       nullify(b)
       return
     end if
     theshape = shape(a(:,:,1,1))
-    call c_f_pointer(c_loc(a(lbound(a,1),lbound(a,2),k,l)),x,theshape)
-    b(lbound(a,1):,lbound(a,2):) => x
+    pntr = c_loc(a(lbound(a,1),lbound(a,2),k,l))
+    call c_f_pointer(pntr,x,theshape)
+    b => remap_bound(lbound(a,1),lbound(a,2),x)
   end subroutine assignp2d4_d
 
   subroutine assignp4d_l(a,b)
@@ -2541,7 +2810,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),lbound(a,4),a)
   end subroutine assignp4d_l
 
   subroutine assignp4d_s(a,b)
@@ -2552,7 +2821,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),lbound(a,4),a)
   end subroutine assignp4d_s
 
   subroutine assignp4d_i(a,b)
@@ -2563,7 +2832,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),lbound(a,4),a)
   end subroutine assignp4d_i
 
   subroutine assignp4d_r(a,b)
@@ -2574,7 +2843,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),lbound(a,4),a)
   end subroutine assignp4d_r
 
   subroutine assignp4d_d(a,b)
@@ -2585,7 +2854,7 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3),lbound(a,4),a)
   end subroutine assignp4d_d
 
   subroutine assignp5d_l(a,b)
@@ -2596,7 +2865,8 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3), &
+                     lbound(a,4),lbound(a,5),a)
   end subroutine assignp5d_l
 
   subroutine assignp5d_s(a,b)
@@ -2607,7 +2877,8 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3), &
+                     lbound(a,4),lbound(a,5),a)
   end subroutine assignp5d_s
 
   subroutine assignp5d_i(a,b)
@@ -2618,7 +2889,8 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3), &
+                     lbound(a,4),lbound(a,5),a)
   end subroutine assignp5d_i
 
   subroutine assignp5d_r(a,b)
@@ -2629,7 +2901,8 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3), &
+                     lbound(a,4),lbound(a,5),a)
   end subroutine assignp5d_r
 
   subroutine assignp5d_d(a,b)
@@ -2640,7 +2913,8 @@ module mod_memutil
       nullify(b)
       return
     end if
-    b(lbound(a,1):,lbound(a,2):,lbound(a,3):,lbound(a,4):,lbound(a,5):) => a
+    b => remap_bound(lbound(a,1),lbound(a,2),lbound(a,3), &
+                     lbound(a,4),lbound(a,5),a)
   end subroutine assignp5d_d
 
 end module mod_memutil

@@ -37,7 +37,7 @@ FCFLAGS += -I$(MPP_INCLUDE)
 endif
 
 %.o: %.F90
-	$(FC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
+	$(MPIFC) $(CPPFLAGS) $(SVNDEF) $(FCFLAGS) -c $<
 
 distclean-local:
 	rm -f *.mod
