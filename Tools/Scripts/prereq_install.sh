@@ -9,7 +9,7 @@
 # Working CC Compiler
 #CC="gcc -fPIC"
 #CC="icc -fPIC"
-#CC="pgcc -fpic"
+#CC="pgcc -fpic -DpgiFortran"
 #CC="xlc_r -qpic"
 # Working C++ Compiler
 #CXX="g++ -fPIC"
