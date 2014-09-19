@@ -684,7 +684,7 @@ module mod_pbl_uwtcm
         richnum = nsquar/dmax1(svs,1.0D-8)
 
         ! Calculate the boundary layer height
-        ktmin = m2p%ktrop(j,i)
+        ktmin = kz - m2p%ktrop(j,i) + 1
         call pblhgt(kzp1,iconv)
         ! call pblhgt_tao(kzp1,iconv)
 
