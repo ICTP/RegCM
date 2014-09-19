@@ -174,24 +174,24 @@ module mod_pbl_uwtcm
       ! Put the t and qv tendencies in to difft and diffq for
       ! application of the sponge boundary conditions (see mod_tendency)
       !
-      p2m%diffqx(jci1:jci2,ici1:ici2,:,iqv) =  &
-        p2m%diffqx(jci1:jci2,ici1:ici2,:,iqv) +  &
-          p2m%qxuwten(jci1:jci2,ici1:ici2,:,iqv)
-      p2m%difft(jci1:jci2,ici1:ici2,:) =  &
-        p2m%difft(jci1:jci2,ici1:ici2,:) +  &
-          p2m%tuwten(jci1:jci2,ici1:ici2,:)
+      p2m%diffqx(jci1:jci2,ici1:ici2,kpbl2dx:kz,iqv) =  &
+        p2m%diffqx(jci1:jci2,ici1:ici2,kpbl2dx:kz,iqv) +  &
+          p2m%qxuwten(jci1:jci2,ici1:ici2,kpbl2dx:kz,iqv)
+      p2m%difft(jci1:jci2,ici1:ici2,kpbl2dx:kz) =  &
+        p2m%difft(jci1:jci2,ici1:ici2,kpbl2dx:kz) +  &
+          p2m%tuwten(jci1:jci2,ici1:ici2,kpbl2dx:kz)
 
       ! Put the cloud water tendency
-      p2m%qxten(jci1:jci2,ici1:ici2,:,iqc) =  &
-        p2m%qxten(jci1:jci2,ici1:ici2,:,iqc) +   &
-          p2m%qxuwten(jci1:jci2,ici1:ici2,:,iqc)
+      p2m%qxten(jci1:jci2,ici1:ici2,kpbl2dx:kz,iqc) =  &
+        p2m%qxten(jci1:jci2,ici1:ici2,kpbl2dx:kz,iqc) +   &
+          p2m%qxuwten(jci1:jci2,ici1:ici2,kpbl2dx:kz,iqc)
 
       ! Put the tracer tendencies in chiuwten
       ! TODO: may want to calcuate rmdr here following holtbl
       if ( ichem == 1 ) then
-        p2m%chiten(jci1:jci2,ici1:ici2,:,:) = &
-          p2m%chiten(jci1:jci2,ici1:ici2,:,:) + &
-            chiuwten(jci1:jci2,ici1:ici2,:,:)
+        p2m%chiten(jci1:jci2,ici1:ici2,kpbl2dx:kz,:) = &
+          p2m%chiten(jci1:jci2,ici1:ici2,kpbl2dx:kz,:) + &
+            chiuwten(jci1:jci2,ici1:ici2,kpbl2dx:kz,:)
       end if
 
       if ( .not. bRegridWinds ) then
@@ -199,10 +199,12 @@ module mod_pbl_uwtcm
         ! If the TCM calculations were done on the dot grid, then
         ! the u and v tendencies need not to be regridded to the dot grid
         !
-        p2m%uten(jci1:jci2,ici1:ici2,:) = p2m%uten(jci1:jci2,ici1:ici2,:) + &
-                 p2m%uuwten(jci1:jci2,ici1:ici2,:)
-        p2m%vten(jci1:jci2,ici1:ici2,:) = p2m%vten(jci1:jci2,ici1:ici2,:) + &
-                 p2m%vuwten(jci1:jci2,ici1:ici2,:)
+        p2m%uten(jci1:jci2,ici1:ici2,kpbl2dx:kz) = &
+                p2m%uten(jci1:jci2,ici1:ici2,kpbl2dx:kz) + &
+                 p2m%uuwten(jci1:jci2,ici1:ici2,kpbl2dx:kz)
+        p2m%vten(jci1:jci2,ici1:ici2,kpbl2dx:kz) = &
+                p2m%vten(jci1:jci2,ici1:ici2,kpbl2dx:kz) + &
+                 p2m%vuwten(jci1:jci2,ici1:ici2,kpbl2dx:kz)
       end if
     end if
 !   !

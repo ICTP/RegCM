@@ -402,7 +402,7 @@
 !
  &kfparam
  kf_trigger = 3,      ! Trigger mechanism. Allowed values 1 and 3
- kf_entrate = 0.3D0,  ! Entrainment rate
+ kf_entrate = 0.03D0, ! Entrainment rate
  /
 !
 ! Holtslag PBL scheme control
