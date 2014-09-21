@@ -1289,27 +1289,20 @@ module mod_tendency
     !  Couple TKE to ps for use in vertical advection
     !
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      uwstatea%advtke(:,:,:) = d_zero
       do k = 1 , kzp1
         do i = ice1 , ice2
           do j = jce1 , jce2
             uwstatea%tkeps(j,i,k) = atm1%tke(j,i,k)*sfs%psa(j,i)
-            uwstatea%advtke(j,i,k) = d_zero
           end do
         end do
       end do
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          uwstatea%tkeps(j,i,kz+1) = atm1%tke(j,i,kz+1)*sfs%psa(j,i)
-        end do
-      end do
-    end if
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
       ! Calculate the horizontal advective tendency for TKE
       call hadvtke(uwstatea,atm1,twt,mddom%msfx,dx4)
       ! Calculate the vertical advective tendency for TKE
       call vadvtke(uwstatea,qdot,2)
       ! Calculate the horizontal, diffusive tendency for TKE
-      call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,xkcf,kzp1)
+      call diffu_x(uwstatea%advtke,atms%tkeb3d,sfs%psb,xkcf,kz)
     end if
     !
     !   store the xxa variables in xxb and xxc in xxa:

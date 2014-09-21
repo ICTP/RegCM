@@ -127,21 +127,19 @@ module mod_slice
       end do
     end do
     !
-    ! Find troposphere hgt.
+    ! Find tropopause hgt.
     !
-    iloop: &
+    ktrop(:,:) = 1
     do i = ici1 , ici2
-      jloop: &
       do j = jci1 , jci2
-        kloop: &
         do k = kz , 1 , -1
           if ( atms%pb3d(j,i,k) < ptrop(j,i) ) then
-            ktrop(j,i) = kz-k-1
-            cycle jloop
+            ktrop(j,i) = k
+            exit
           end if
-        end do kloop
-      end do jloop
-    end do iloop
+        end do
+      end do
+    end do
     !
     ! compute the height at full (za) and half (zq) sigma levels:
     !
@@ -187,7 +185,7 @@ module mod_slice
       do k = 1 , kzp1
         do i = ice1 , ice2
           do j = jce1 , jce2
-            atms%tkeb3d(j,i,k) = atm2%tke(j,i,k)
+            atms%tkeb3d(j,i,k) = atm2%tke(j,i,k)/sfs%psb(j,i)
           end do
         end do
       end do

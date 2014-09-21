@@ -5388,11 +5388,12 @@ module mod_mppparam
 !
 ! Written by Travis A. O'Brien 01/04/11.
 !
-  subroutine uvcross2dot(ux,vx,ud,vd)
+  subroutine uvcross2dot(ux,vx,ud,vd,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ux , vx
     real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ud , vd
-    integer(ik4) :: i , j
+    integer(ik4) , intent(in) :: k1 , k2
+    integer(ik4) :: i , j , k
 
     ! TODO:  It might make sense to encapsulate the following code
     ! in to a standard routine, since this boundary sending code is
@@ -5427,14 +5428,16 @@ module mod_mppparam
     ! Perform the bilinear interpolation necessary
     ! to put the u and v variables on the dot grid.
 
-    do i = idi1 , idi2
-      do j = jdi1 , jdi2
-        ud(j,i,:) =  ud(j,i,:) +               &
-          d_rfour*(ux(j,i,:) + ux(j-1,i,:) +   &
-                   ux(j,i-1,:) + ux(j-1,i-1,:))
-        vd(j,i,:) =  vd(j,i,:) +               &
-          d_rfour*(vx(j,i,:) + vx(j-1,i,:) +   &
-                   vx(j,i-1,:) + vx(j-1,i-1,:))
+    do k = k1 , k2
+      do i = idi1 , idi2
+        do j = jdi1 , jdi2
+          ud(j,i,k) =  ud(j,i,k) +               &
+            d_rfour*(ux(j,i,k) + ux(j-1,i,k) +   &
+                     ux(j,i-1,k) + ux(j-1,i-1,k))
+          vd(j,i,k) =  vd(j,i,k) +               &
+            d_rfour*(vx(j,i,k) + vx(j-1,i,k) +   &
+                     vx(j,i-1,k) + vx(j-1,i-1,k))
+        end do
       end do
     end do
   end subroutine uvcross2dot

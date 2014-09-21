@@ -91,9 +91,6 @@ module mod_cu_kuo
     call time_begin(subroutine_name,idindx)
 #endif
 
-    pmax = d_zero
-    qmax = d_zero
-    tmax = d_zero
     !
     ! c2m%kcumtop = top level of cumulus clouds
     ! c2m%kcumbot = bottom level of cumulus clouds
@@ -126,6 +123,9 @@ module mod_cu_kuo
           !    as the origin of air parcel that produce cloud.
           !
           eqtm = d_zero
+          pmax =  m2c%pas(j,i,kz)
+          qmax = m2c%qxas(j,i,kz,iqv)
+          tmax =  m2c%tas(j,i,kz)
           do k = k700 , kz
             ttp = m2c%tas(j,i,k) + pert
             q = m2c%qxas(j,i,k,iqv) + perq
@@ -155,113 +155,111 @@ module mod_cu_kuo
           ! 3) compute seqt (saturation equivalent potential temperature)
           !    of all the levels that are above the lcl
           !
-          do k = 1 , kz
-            if ( hsigma(k) >= siglcl ) exit
+          do k = kz - 1 , 1 , -1
+            kbase = k
+            if ( hsigma(k) <= siglcl ) exit
           end do
-          kbase = min(k,kz-1)
-          if ( kbase > m2c%ktrop(j,i) ) then
+          !
+          ! kbase is the layer where lcl is located.
+          !
+          do k = 1 , kbase
+            ttp = m2c%tas(j,i,k)
+            qs = pfqsat(ttp,m2c%pas(j,i,k))
+            t1 = ttp*(stdp/m2c%pas(j,i,k))**rovcp
+            seqt(k) = t1*exp(wlh(t1)*rcpd*qs/ttp)
+          end do
+          !
+          ! 4) when seqt = eqt + dt, cloud top is reached.
+          !    eqt is the eqt of cloud (same as lcl eqt).
+          !
+          do kk = 1 , kbase
+            k = kbase + 1 - kk
+            deqt = seqt(k) - eqtm
+            if ( deqt > dlt ) exit
+          end do
+          !
+          ! cloud top has been reached
+          !
+          ktop = min(kbase-3,k)
+          !
+          ! 5) check cloud depth
+          !    if cloud depth is less than critical depth (cdscld = 0.3),
+          !    the convection is killed
+          !
+          dsc = (siglcl-hsigma(ktop))
+          if ( dsc >= cdscld ) then
             !
-            ! kbase is the layer where lcl is located.
+            ! 6) check negative area
+            !    if negative area is larger than the positive area
+            !    convection is killed.
             !
-            do k = 1 , kbase
-              ttp = m2c%tas(j,i,k)
-              qs = pfqsat(ttp,m2c%pas(j,i,k))
-              t1 = ttp*(stdp/m2c%pas(j,i,k))**rovcp
-              seqt(k) = t1*exp(wlh(t1)*rcpd*qs/ttp)
+            ttsum = d_zero
+            do k = ktop , kbase
+              ttsum = (eqtm-seqt(k))*dsigma(k) + ttsum
             end do
-            !
-            ! 4) when seqt = eqt + dt, cloud top is reached.
-            !    eqt is the eqt of cloud (same as lcl eqt).
-            !
-            do kk = 1 , kbase
-              k = kbase + 1 - kk
-              deqt = seqt(k) - eqtm
-              if ( deqt > dlt ) exit
-            end do
-            !
-            ! cloud top has been reached
-            !
-            ktop = min(kbase-3,k)
-            !
-            ! 5) check cloud depth
-            !    if cloud depth is less than critical depth (cdscld = 0.3),
-            !    the convection is killed
-            !
-            dsc = (siglcl-hsigma(ktop))
-            if ( dsc >= cdscld ) then
+            if ( ttsum >= d_zero ) then
               !
-              ! 6) check negative area
-              !    if negative area is larger than the positive area
-              !    convection is killed.
+              ! convection exist, compute convective flux of water vapor and
+              ! latent heating
+              ! icon   : is a counter which keep track the total points
+              !          where deep convection occurs.
+              ! c301   : is the 'b' factor in kuo's scheme.
               !
-              ttsum = d_zero
-              do k = ktop , kbase
-                ttsum = (eqtm-seqt(k))*dsigma(k) + ttsum
+              total_precip_points = total_precip_points + 1
+              suma = d_zero
+              sumb = d_zero
+              arh = d_zero
+              do k = 1 , kz
+                qwght(k) = d_zero
               end do
-              if ( ttsum >= d_zero ) then
-                !
-                ! convection exist, compute convective flux of water vapor and
-                ! latent heating
-                ! icon   : is a counter which keep track the total points
-                !          where deep convection occurs.
-                ! c301   : is the 'b' factor in kuo's scheme.
-                !
-                total_precip_points = total_precip_points + 1
-                suma = d_zero
-                sumb = d_zero
-                arh = d_zero
-                do k = 1 , kz
-                  qwght(k) = d_zero
-                end do
-                do k = ktop , kz
-                  ttp = m2c%tas(j,i,k)
-                  qs = pfqsat(ttp,m2c%pas(j,i,k))
-                  rh = m2c%qxas(j,i,k,iqv)/qs
-                  rh = max(min(rh,d_one),d_zero)
-                  xsav = (d_one-rh)*qs
-                  qwght(k) = xsav
-                  sumb = sumb + qs*dsigma(k)
-                  arh = arh + rh*qs*dsigma(k)
-                  suma = suma + xsav*dsigma(k)
-                end do
-                arh = arh/sumb
-                c301 = d_two*(d_one-arh)
-                if ( c301 < d_zero ) c301 = d_zero
-                if ( c301 > d_one ) c301 = d_one
-                if ( suma <= d_zero ) then
-                  c301 = d_zero
-                  suma = d_one
-                end if
-                do k = ktop , kz
-                  qwght(k) = qwght(k)/suma
-                end do
-                do k = 1 , kz
-                  ttconv = wlhvocp*(d_one-c301)*twght(k,kbase,ktop)*sca
-                  rsheat(j,i,k) = rsheat(j,i,k) + ttconv*dt
-                  apcnt = (d_one-c301)*sca/4.3D-3
-                  eddyf = apcnt*vqflx(k,kbase,ktop)
-                  c2m%qxten(j,i,k,iqv) = eddyf
-                  rswat(j,i,k) = rswat(j,i,k) + c301*qwght(k)*sca*dt
-                end do
-                kbaseb = min0(kbase,kzm2)
-                c2m%kcumtop(j,i) = ktop
-                c2m%kcumbot(j,i) = kbaseb
-                ! the unit for rainfall is mm.
-                pratec = (d_one-c301)*sca*d_1000*regrav
-                if ( pratec > dlowval ) then
-                  c2m%rainc(j,i) = c2m%rainc(j,i) + pratec*dtsec
-                  ! instantaneous precipitation rate for use in surface (mm/s)
-                  c2m%pcratec(j,i) = c2m%pcratec(j,i) + pratec
-                end if
-                if ( ichem == 1 ) then
-                  ! build for chemistry 3d table of cons precipitation rate
-                  ! from the surface to the top of the convection
-                  do k = 1 , ktop-1
-                    c2m%convpr(j,i,kz-k+1) = pratec
-                  end do
-                end if
-                cycle
+              do k = ktop , kz
+                ttp = m2c%tas(j,i,k)
+                qs = pfqsat(ttp,m2c%pas(j,i,k))
+                rh = m2c%qxas(j,i,k,iqv)/qs
+                rh = max(min(rh,d_one),d_zero)
+                xsav = (d_one-rh)*qs
+                qwght(k) = xsav
+                sumb = sumb + qs*dsigma(k)
+                arh = arh + rh*qs*dsigma(k)
+                suma = suma + xsav*dsigma(k)
+              end do
+              arh = arh/sumb
+              c301 = d_two*(d_one-arh)
+              if ( c301 < d_zero ) c301 = d_zero
+              if ( c301 > d_one ) c301 = d_one
+              if ( suma <= d_zero ) then
+                c301 = d_zero
+                suma = d_one
               end if
+              do k = ktop , kz
+                qwght(k) = qwght(k)/suma
+              end do
+              do k = 1 , kz
+                ttconv = wlhvocp*(d_one-c301)*twght(k,kbase,ktop)*sca
+                rsheat(j,i,k) = rsheat(j,i,k) + ttconv*dt
+                apcnt = (d_one-c301)*sca/4.3D-3
+                eddyf = apcnt*vqflx(k,kbase,ktop)
+                c2m%qxten(j,i,k,iqv) = eddyf
+                rswat(j,i,k) = rswat(j,i,k) + c301*qwght(k)*sca*dt
+              end do
+              kbaseb = min0(kbase,kzm2)
+              c2m%kcumtop(j,i) = ktop
+              c2m%kcumbot(j,i) = kbaseb
+              ! the unit for rainfall is mm.
+              pratec = (d_one-c301)*sca*d_1000*regrav
+              if ( pratec > dlowval ) then
+                c2m%rainc(j,i) = c2m%rainc(j,i) + pratec*dtsec
+                ! instantaneous precipitation rate for use in surface (mm/s)
+                c2m%pcratec(j,i) = c2m%pcratec(j,i) + pratec
+              end if
+              if ( ichem == 1 ) then
+                ! build for chemistry 3d table of cons precipitation rate
+                ! from the surface to the top of the convection
+                do k = 1 , ktop-1
+                  c2m%convpr(j,i,kz-k+1) = pratec
+                end do
+              end if
+              cycle
             end if
           end if
         end if

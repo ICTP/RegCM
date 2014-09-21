@@ -262,6 +262,7 @@ module mod_runparams
   ! UW PBL parameters
 
   integer(ik4) , public :: iuwvadv
+  integer(ik4) , public :: ilenparam
   real(rk8) , public :: rstbl
   real(rk8) , public :: atwo
 

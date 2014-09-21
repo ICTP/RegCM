@@ -74,8 +74,8 @@ module mod_pbl_uwtcm
   use mod_mppparam
   use mod_pbl_common
   use mod_pbl_thetal
-  use mod_runparams , only : iqv , iqc , iqr , iqi , iqs , iuwvadv ,  &
-          atwo , rstbl , dt , rdt , ichem , sigma , hsigma , dsigma , &
+  use mod_runparams , only : iqv , iqc , iuwvadv , atwo , rstbl ,  &
+          ilenparam , dt , rdt , ichem , sigma , hsigma , dsigma , &
           ibltyp , ipptls
   use mod_regcm_types
   use mod_service
@@ -87,7 +87,6 @@ module mod_pbl_uwtcm
   real(rk8) , public , parameter :: tkemin = 1.0D-8
 
   real(rk8) , public , parameter :: nuk = 5.0D0 ! multiplier for kethl
-  integer(ik4) :: ktmin
 
   ! Model constants
   ! fraction of turb layer to be considered in bbls
@@ -100,7 +99,8 @@ module mod_pbl_uwtcm
   real(rk8) , parameter :: etal =  0.085D0
 
   ! Variables that hold frequently-done calculations
-  real(rk8) :: rcp , rczero
+  real(rk8) , parameter :: rcp = d_one/cpd
+  real(rk8) , parameter :: rczero = d_one/czero
 
   ! local variables on full levels
   real(rk8) , pointer , dimension(:) :: zqx , kth , kzm , rhoxfl , &
@@ -129,8 +129,14 @@ module mod_pbl_uwtcm
   integer(ik4) :: kpbl2dx  ! Top of PBL
   integer(ik4) :: kmix2dx  ! Top of mixed layer (decoupled layer)
 
-  integer(ik4) :: imethod , itbound
-  integer(ik4) , public :: ilenparam
+  ! imethod = 1     ! Use the Brent 1973 method to solve for T
+  ! imethod = 2       ! Use Bretherton's iterative method to solve for T
+  ! imethod = 3     ! Use a finite difference method to solve for T
+  integer(ik4) , parameter :: imethod = 2
+  ! Do a maximum of 100 iterations (usually are no more than about 30)
+  integer(ik4) , parameter :: itbound = 100
+  ! Modding : Update tendencies only in the PBL
+  logical :: update_only_in_pbl = .false.
 
   public :: allocate_tcm_state
   public :: init_mod_pbl_uwtcm
@@ -142,24 +148,14 @@ module mod_pbl_uwtcm
 
   contains
 
-  subroutine allocate_tcm_state(tcmstate,lpar)
+  subroutine allocate_tcm_state(tcmstate)
     implicit none
     type(tcm_state) , intent(out) :: tcmstate
-    logical , intent(in) :: lpar
-    if ( lpar ) then
-      call getmem3d(tcmstate%tkeps,jce1,jce2, &
-              ice1,ice2,1,kzp1,'pbl_common:tkeps')
-      call getmem3d(tcmstate%advtke,jce1,jce2, &
-              ice1,ice2,1,kzp1,'pbl_common:advtke')
-      call getmem3d(tcmstate%kzm,jci1,jci2,ici1,ici2,1,kzp1,'pbl_common:kzm')
-      call getmem3d(tcmstate%kth,jci1,jci2,ici1,ici2,1,kzp1,'pbl_common:kth')
-      call getmem2d(tcmstate%srftke,jci1,jci2,ici1,ici2,'pbl_common:srftke')
-    else
-      call getmem3d(tcmstate%kzm,jcross1,jcross2, &
-                                 icross1,icross2,1,kzp1,'pbl_common:kzm')
-      call getmem3d(tcmstate%kth,jcross1,jcross2, &
-                                 icross1,icross2,1,kzp1,'pbl_common:kth')
-    end if
+    call getmem3d(tcmstate%tkeps,jce1,jce2,ice1,ice2,1,kzp1,'pbl_common:tkeps')
+    call getmem3d(tcmstate%advtke,jce1,jce2,ice1,ice2,1,kz,'pbl_common:advtke')
+    call getmem3d(tcmstate%kzm,jci1,jci2,ici1,ici2,1,kzp1,'pbl_common:kzm')
+    call getmem3d(tcmstate%kth,jci1,jci2,ici1,ici2,1,kzp1,'pbl_common:kth')
+    call getmem2d(tcmstate%srftke,jci1,jci2,ici1,ici2,'pbl_common:srftke')
   end subroutine allocate_tcm_state
 
   subroutine get_data_from_tcm(p2m,atm1,atm2,bRegridWinds)
@@ -167,6 +163,7 @@ module mod_pbl_uwtcm
     type(pbl_2_mod) , intent(inout) :: p2m
     type(atmstate) , intent(inout) :: atm1 , atm2
     logical , intent(in) :: bRegridWinds
+    integer :: i , j , k , n
     ! Don't update the model variables if we are the diagnostic mode
     ! (Holtslag running, and UW updating tke)
     if ( ibltyp /= 99 ) then
@@ -174,24 +171,46 @@ module mod_pbl_uwtcm
       ! Put the t and qv tendencies in to difft and diffq for
       ! application of the sponge boundary conditions (see mod_tendency)
       !
-      p2m%diffqx(jci1:jci2,ici1:ici2,kpbl2dx:kz,iqv) =  &
-        p2m%diffqx(jci1:jci2,ici1:ici2,kpbl2dx:kz,iqv) +  &
-          p2m%qxuwten(jci1:jci2,ici1:ici2,kpbl2dx:kz,iqv)
-      p2m%difft(jci1:jci2,ici1:ici2,kpbl2dx:kz) =  &
-        p2m%difft(jci1:jci2,ici1:ici2,kpbl2dx:kz) +  &
-          p2m%tuwten(jci1:jci2,ici1:ici2,kpbl2dx:kz)
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            p2m%diffqx(j,i,k,iqv) = p2m%diffqx(j,i,k,iqv) +  &
+               p2m%qxuwten(j,i,k,iqv)
+          end do
+        end do
+      end do
+
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            p2m%difft(j,i,k) = p2m%difft(j,i,k) + p2m%tuwten(j,i,k)
+          end do
+        end do
+      end do
 
       ! Put the cloud water tendency
-      p2m%qxten(jci1:jci2,ici1:ici2,kpbl2dx:kz,iqc) =  &
-        p2m%qxten(jci1:jci2,ici1:ici2,kpbl2dx:kz,iqc) +   &
-          p2m%qxuwten(jci1:jci2,ici1:ici2,kpbl2dx:kz,iqc)
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + &
+               p2m%qxuwten(j,i,k,iqc)
+          end do
+        end do
+      end do
 
       ! Put the tracer tendencies in chiuwten
       ! TODO: may want to calcuate rmdr here following holtbl
       if ( ichem == 1 ) then
-        p2m%chiten(jci1:jci2,ici1:ici2,kpbl2dx:kz,:) = &
-          p2m%chiten(jci1:jci2,ici1:ici2,kpbl2dx:kz,:) + &
-            chiuwten(jci1:jci2,ici1:ici2,kpbl2dx:kz,:)
+        do n = 1 , ntr
+          do k = 1 , kz
+            do i = ici1 , ici2
+              do j = jci1 , jci2
+                p2m%chiten(j,i,k,n) = p2m%chiten(j,i,k,n) + &
+                   chiuwten(j,i,k,n)
+              end do
+            end do
+          end do
+        end do
       end if
 
       if ( .not. bRegridWinds ) then
@@ -199,12 +218,14 @@ module mod_pbl_uwtcm
         ! If the TCM calculations were done on the dot grid, then
         ! the u and v tendencies need not to be regridded to the dot grid
         !
-        p2m%uten(jci1:jci2,ici1:ici2,kpbl2dx:kz) = &
-                p2m%uten(jci1:jci2,ici1:ici2,kpbl2dx:kz) + &
-                 p2m%uuwten(jci1:jci2,ici1:ici2,kpbl2dx:kz)
-        p2m%vten(jci1:jci2,ici1:ici2,kpbl2dx:kz) = &
-                p2m%vten(jci1:jci2,ici1:ici2,kpbl2dx:kz) + &
-                 p2m%vuwten(jci1:jci2,ici1:ici2,kpbl2dx:kz)
+        do k = 1 , kz
+          do i = idi1 , idi2
+            do j = jdi1 , jdi2
+              p2m%uten(j,i,k) = p2m%uten(j,i,k) + p2m%uuwten(j,i,k)
+              p2m%vten(j,i,k) = p2m%vten(j,i,k) + p2m%vuwten(j,i,k)
+            end do
+          end do
+        end do
       end if
     end if
 !   !
@@ -226,14 +247,22 @@ module mod_pbl_uwtcm
 !       uwstateb%kth(:,:,k) = uwstateb%kth(:,:,k+1)
 !     end do
 !   end if
-    p2m%tketen(jci1:jci2,ici1:ici2,:) = p2m%tkeuwten(jci1:jci2,ici1:ici2,:)
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          p2m%tketen(j,i,k) = p2m%tkeuwten(j,i,k)
+        end do
+      end do
+    end do
     !
     ! Set the surface tke (diagnosed)
     !
-    atm1%tke(jci1:jci2,ici1:ici2,kzp1) =  &
-               uwstateb%srftke(jci1:jci2,ici1:ici2)
-    atm2%tke(jci1:jci2,ici1:ici2,kzp1) =  &
-               uwstateb%srftke(jci1:jci2,ici1:ici2)
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        atm1%tke(j,i,kzp1) = uwstateb%srftke(j,i)
+        atm2%tke(j,i,kzp1) = uwstateb%srftke(j,i)
+      end do
+    end do
   end subroutine get_data_from_tcm
 
 !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
@@ -398,24 +427,6 @@ module mod_pbl_uwtcm
   subroutine init_mod_pbl_uwtcm
     implicit none
 
-    ! If we are the head processor, output the various parameters
-
-    if ( myid == italk ) then
-      write(*,*)'***************************************'
-      write(*,*)'******** UW TCM Parameters*************'
-      write(*,*)'***************************************'
-      write(*,*)'rstbl = ',rstbl
-      write(*,*)'atwo = ',atwo
-      write(*,*)'iuwvadv = ',iuwvadv
-      write(*,*)'ilenparam = ',ilenparam
-      write(*,*)'***************************************'
-    end if
-
-    ! Variables that hold frequently-done calculations
-
-    rcp = d_one/cpd
-    rczero = d_one/czero
-
     call getmem1d(zqx,1,kzp2,'mod_uwtcm:zqx')
 
     ! Allocate memory local variables on full levels
@@ -495,14 +506,25 @@ module mod_pbl_uwtcm
     implicit none
     type(mod_2_pbl) , intent(in) :: m2p
     type(pbl_2_mod) , intent(inout) :: p2m
-    integer(ik4) ::  i , j , k, itr
+    integer(ik4) ::  i , j , k , itr , ibnd
     integer(ik4) :: ilay ! layer index
-    integer(ik4) :: iconv , iteration
+    integer(ik4) :: kpbconv , iteration
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'uwtcm'
     integer(ik4) , save :: idindx = 0
     call time_begin(subroutine_name,idindx)
 #endif
+
+    ! Zero out tendencies
+
+    p2m%uuwten(:,:,:) = d_zero
+    p2m%vuwten(:,:,:) = d_zero
+    p2m%tkeuwten(:,:,:) = d_zero
+    p2m%tuwten(:,:,:) = d_zero
+    p2m%qxuwten(:,:,:,:) = d_zero
+    uwstateb%kzm(:,:,:) = 0
+    uwstateb%kth(:,:,:) = 0
+    if ( ichem == 1 ) chiuwten(:,:,:,:) = d_zero
 
     !Main do loop
     iloop: &
@@ -533,7 +555,7 @@ module mod_pbl_uwtcm
         do k = kz , 1 , -1
           rttenx(k) = m2p%heatrt(j,i,k)
           cell = ptop/psbx
-          zqx(k) = zqx(k+1) + rgas/egrav*m2p%tatm(j,i,k)*   &
+          zqx(k) = zqx(k+1) + rgas*regrav*m2p%tatm(j,i,k)*   &
                    log((sigma(k+1)+cell)/(sigma(k)+cell))
           zax(k) = d_half*(zqx(k)+zqx(k+1))
           tke(k) = m2p%tkests(j,i,k)
@@ -619,8 +641,8 @@ module mod_pbl_uwtcm
           rhoxfl(k) = rhoxhl(k)+(rhoxhl(k-1)-rhoxhl(k))*fracz
           rrhoxfl(k) = d_one/rhoxfl(k)
           ! Wind gradient and shear
-          dudz =  (ux(k-1)  - ux(k))  *rdza(k)
-          dvdz =  (vx(k-1)  - vx(k))  *rdza(k)
+          dudz =  (ux(k-1)  - ux(k)) * rdza(k)
+          dvdz =  (vx(k-1)  - vx(k)) * rdza(k)
           svs(k) = dudz*dudz + dvdz*dvdz
         end do kfullloop
 
@@ -668,7 +690,6 @@ module mod_pbl_uwtcm
         ! surface N^2 from the surface virtual heat flux
         kh0 = vonkar*d_one*dsqrt(dmax1(tkemin,3.25D0 * ustxsq))
 
-
 !*******************************************************************************
 !*******************************************************************************
 !********************* Calculation of boundary layer height ********************
@@ -686,9 +707,8 @@ module mod_pbl_uwtcm
         richnum = nsquar/dmax1(svs,1.0D-8)
 
         ! Calculate the boundary layer height
-        ktmin = kz - m2p%ktrop(j,i) + 1
-        call pblhgt(kzp1,iconv)
-        ! call pblhgt_tao(kzp1,iconv)
+        call pblhgt(kzp1,m2p%ktrop(j,i),kpbconv)
+        ! call pblhgt_tao(kzp1,kpbconv)
 
 !*******************************************************************************
 !*******************************************************************************
@@ -700,12 +720,12 @@ module mod_pbl_uwtcm
         ! liquid water potential temperature, then re-calculate the
         ! diffusivity profiles using the updated values, and re-integrate.
         ! Also update N^2 along the way.
-        myiteration: &
+        melloryamadaiteration: &
         do iteration = 0 , 1
           !*************************************************************
           !***** Semi-implicit calculation of diffusivity profiles *****
           !*************************************************************
-          call my(kzp1,iconv)
+          call melloryamada(kzp1,kpbconv)
 
           !*************************************************************
           !****** Implicit Diffusion of Thetal and Qtot ****************
@@ -717,8 +737,7 @@ module mod_pbl_uwtcm
             if ( k == 1 ) then
               aimp(k) = d_zero
             else
-              aimp(k) = -(rhoxfl(k)*rrhoxhl(k))* &
-                          kth(k) * dt *rdzq(k)*rdza(k)
+              aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*kth(k)*dt*rdzq(k)*rdza(k)
             end if
             if ( k == kz ) then
               cimp(k) = d_zero
@@ -748,7 +767,7 @@ module mod_pbl_uwtcm
           ! Calculate nsquared Set N^2 based on the updated potential
           ! temperature profile (this is for the semi-implicit integration)
           call n2(uimp1,uimp2,kz)
-        end do myiteration
+        end do melloryamadaiteration
 
         !*************************************************************
         !************ Re-calculate thx, qx, and qcx ******************
@@ -759,23 +778,16 @@ module mod_pbl_uwtcm
           ! Set thlx and qwx to their updated values
           thlx(k) = uimp1(k)
           qwx(k) = uimp2(k)
-
           ! Determine the temperature and qc and qv
-          ! imethod = 1     ! Use the Brent 1973 method to solve for T
-          imethod = 2       ! Use Bretherton's iterative method to solve for T
-          ! imethod = 3     ! Use a finite difference method to solve for T
-          itbound = 100 ! Do a maximum of 100 iterations (usually are no more
-                        ! than about 30)
+          ibnd = itbound
           temps = solve_for_t(thlx(k),qwx(k),preshl(k),thxs(k)*exnerhl(k), &
-                              qwxs(k),qcxs(k),thlxs(k),itbound,imethod,    &
+                              qwxs(k),qcxs(k),thlxs(k),ibnd,imethod,       &
                               isice(k),qcx(k),qx(k))
-
-          if ( itbound == -999 ) then
+          if ( ibnd == -999 ) then
             call fatal(__FILE__,__LINE__,'UW PBL SCHEME ALGO ERROR')
           end if
-
           thx(k) = temps*rexnerhl(k)
-          uthvx(k)=thx(k)*(d_one + ep1*qx(k)-qcx(k))
+          uthvx(k) = thx(k)*(d_one + ep1*qx(k)-qcx(k))
         end do recalcscalar
 
         !*************************************************************
@@ -786,14 +798,12 @@ module mod_pbl_uwtcm
           if ( k == 1 ) then
             aimp(k) = d_zero
           else
-            aimp(k) = -(rhoxfl(k)*rrhoxhl(k))*     &
-                        kzm(k) * dt *rdzq(k)*rdza(k)
+            aimp(k) = -(rhoxfl(k)*rrhoxhl(k)) * kzm(k)*dt*rdzq(k)*rdza(k)
           end if
           if ( k == kz ) then
             cimp(k) = d_zero
           else
-            cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k))*   &
-                        kzm(k+1) * dt *rdzq(k)*rdza(k+1)
+            cimp(k) = -(rhoxfl(k+1)*rrhoxhl(k)) * kzm(k+1)*dt*rdzq(k)*rdza(k+1)
           end if
           bimp(k) = d_one - aimp(k) - cimp(k)
           ! now find right side
@@ -801,10 +811,8 @@ module mod_pbl_uwtcm
           if ( k == kz ) then
             ! at surface
             ! include surface momentum fluxes
-            rimp1(k) = ux(k) + dt *              &
-                       uflxp * (rhoxsf*rrhoxhl(k)) *rdzq(kz)
-            rimp2(k) = vx(k) + dt *              &
-                       vflxp * (rhoxsf*rrhoxhl(k)) *rdzq(kz)
+            rimp1(k) = ux(k) + dt * uflxp * (rhoxsf*rrhoxhl(k)) *rdzq(kz)
+            rimp2(k) = vx(k) + dt * vflxp * (rhoxsf*rrhoxhl(k)) *rdzq(kz)
           else
             rimp1(k) = ux(k)
             rimp2(k) = vx(k)
@@ -898,7 +906,7 @@ module mod_pbl_uwtcm
 
         ! features:
         !   a. explicit calculation of buoyancy and shear terms using
-        !      time=t+1 values of thetal, qw, and winds
+        !      time = t+1 values of thetal, qw, and winds
         !   b. surface tke is diagnosed
         !   c. semi-implicit calculation of dissipation term and
         !      implicit calculation of turbulent transfer term
@@ -913,7 +921,7 @@ module mod_pbl_uwtcm
         ! Add radiative divergence contribution to the bouyancy term
         ! (only if there is cloud water at the current level)
         radib:&
-        do ilay = 1 , iconv
+        do ilay = 1 , kpbconv
           k = ktop(ilay)
           if ( qcx(k) > 1.0D-8 .and. k > 1 ) then
             bouyan(k) = bouyan(k) - &
@@ -974,8 +982,10 @@ module mod_pbl_uwtcm
 
         ! Calculate the TCM tendencies for the model's prognostic variables
         ! For everything but TKE, couple the tendency (multiply by p0-ptop)
+        ibnd = 1
+        if ( update_only_in_pbl ) ibnd = kpbl2dx
         tcmtend: &
-        do k = 1 , kz
+        do k = ibnd , kz
           ! Zonal wind tendency
           p2m%uuwten(j,i,k)= psbx*(ux(k)-uxs(k))*rdt
           ! Meridional wind tendency
@@ -1048,16 +1058,16 @@ module mod_pbl_uwtcm
       end do backsub
     end subroutine solve_tridiag
 
-    subroutine n2(thlxin,qwxin,kmax)
+    subroutine n2(thlxin,qwxin,ktmax)
       implicit none
-      integer(ik4) , intent(in) :: kmax
-      real(rk8) , intent(in) , dimension(kmax) :: thlxin , qwxin
+      integer(ik4) , intent(in) :: ktmax
+      real(rk8) , intent(in) , dimension(ktmax) :: thlxin , qwxin
       ! local variables
       real(rk8) :: tempv , tvbl , rcld , tvab , thvxfl , dtvdz
       integer(ik4) :: k
 
       kloop: &
-      do k = 2 , kmax
+      do k = 2 , ktmax
         ! buoyancy is jump in thetav across flux level/dza
         ! first, layer below, go up and see if anything condenses.
         templ = thlxin(k)*exnerfl(k)
@@ -1084,18 +1094,16 @@ module mod_pbl_uwtcm
                 (d_one + ep1*(qwxin(k-1)-rcld) - rcld)
         tvab = tempv*rexnerfl(k)
 
-        thvxfl= d_half * (tvab+tvbl)
+        thvxfl = d_half * (tvab+tvbl)
         dtvdz = (tvab - tvbl) *rdza(k)
         nsquar(k) = egrav/thvxfl * dtvdz
       end do kloop
       nsquar(1) = nsquar(2)
     end subroutine n2
 
-    subroutine my(kmax,iconv)
-      ! see gb01 and mbg02
+    subroutine melloryamada(ktmax,kpbconv)
       implicit none
-      integer(ik4) , intent(in) :: kmax , iconv
-      ! local variables
+      integer(ik4) , intent(in) :: ktmax , kpbconv
       real(rk8) :: gh , a1ob1 , delthvl , elambda , bige , biga
       real(rk8) , parameter :: a1 = 0.92D0 , b1 = 16.6D0 , c1 = 0.08D0 , &
                               a2 = 0.74D0 , b2 = 10.1D0
@@ -1108,15 +1116,15 @@ module mod_pbl_uwtcm
       ! kth and kzm are at full levels.
       ! kethl is at half levels.
 
-      kzm(kmax) = d_zero
-      kth(kmax) = d_zero
+      kzm(ktmax) = d_zero
+      kth(ktmax) = d_zero
       kzm(1) = d_zero
       kth(1) = d_zero
-      sm(kmax) = d_one
-      sh(kmax) = d_one
+      sm(ktmax) = d_one
+      sh(ktmax) = d_one
 
       kloop: &
-      do k = kmax - 1, 2, -1
+      do k = ktmax - 1, 2, -1
         gh = -bbls(k)*bbls(k)*nsquar(k)/(d_two*tke(k)+1.0D-9)
         ! gh = dmin1(gh,0.0233D0)
         ! TAO: Added the -0.28 minimum for the G function, as stated
@@ -1153,7 +1161,7 @@ module mod_pbl_uwtcm
 
       ! special case for tops of convective layers
       conv: &
-      do ilay = 1 , iconv
+      do ilay = 1 , kpbconv
         k = ktop(ilay)
         kethl(k) = nuk*kzm(k+1)
         if ( k >= 3 .and. nsquar(k) > 1.D-8 ) then
@@ -1183,33 +1191,29 @@ module mod_pbl_uwtcm
       ! need kethl at top
       kethl(1) = kethl(2)
       ! replace kethl at surface with something non-zero
-      kethl(kmax-1) = nuk*d_half*kzm(kmax-1)
-    end subroutine my
+      kethl(ktmax-1) = nuk*d_half*kzm(ktmax-1)
+    end subroutine melloryamada
 
-    subroutine pblhgt(kmax,iconv)
-      ! see mbg02
+    subroutine pblhgt(ktmax,ktmin,kpbconv)
       implicit none
-      ! input variables
-      integer(ik4) , intent(in) :: kmax
-      integer(ik4) , intent(out) :: iconv
-      ! local variables
+      integer(ik4) , intent(in) :: ktmax , ktmin
+      integer(ik4) , intent(out) :: kpbconv
       integer(ik4) :: istabl , ibeg , ilay , nlev , k , itemp
       real(rk8) :: blinf , rnnll , tkeavg , trnnll , radnnll , delthvl , &
                   elambda , bige , biga , entnnll , tbbls , lambdal
 
       ! find noncontiguous convectively unstable layers
-      iconv = 0
+      kpbconv = 0
       istabl = 1
-
       findconv: &
-      do k = 2 , kmax
+      do k = 2 , ktmax
         if ( nsquar(k) <= d_zero ) then
           if ( istabl == 1 ) then
-            iconv = iconv + 1
-            ktop(iconv)=k
+            kpbconv = kpbconv + 1
+            ktop(kpbconv) = k
           end if
           istabl = 0
-          kbot(iconv)=k
+          kbot(kpbconv) = k
         else
           istabl = 1
           bbls(k) = dmin1(rstbl*dsqrt(tke(k)/nsquar(k)),vonkar*zqx(k))
@@ -1220,11 +1224,10 @@ module mod_pbl_uwtcm
 
       ! now see if they have sufficient buoyant convection to connect
       ibeg = 1
-
       bigloop: &
       do
         convlayerloop: &
-        do ilay = ibeg , iconv
+        do ilay = ibeg , kpbconv
           blinf = xfr*(zqx(ktop(ilay)-1) - zqx(kbot(ilay)+1))
           lambdal = etal*(zqx(ktop(ilay)-1) - zqx(kbot(ilay)+1))
           ! find average n*n*l*l for layer
@@ -1258,9 +1261,9 @@ module mod_pbl_uwtcm
                 ibeg = ilay - 1
                 ktop(ibeg) = ktop(ibeg)+1
                 kbot(ibeg) = kbot(ibeg+1)
-                iconv = iconv - 1
+                kpbconv = kpbconv - 1
                 shiftarray1: &
-                do itemp = ibeg+1 , iconv
+                do itemp = ibeg+1 , kpbconv
                   ktop(itemp)=ktop(itemp+1)
                   kbot(itemp)=kbot(itemp+1)
                 end do shiftarray1
@@ -1292,7 +1295,7 @@ module mod_pbl_uwtcm
           nlev = nlev + 1
           ! now extend down
           searchdown1: &
-          do k = kbot(ilay)+1 , kmax
+          do k = kbot(ilay)+1 , ktmax
             tbbls = dmin1(vonkar * zqx(k),blinf)
             if ( ilenparam == 1 ) then
               tbbls = tbbls/(1 + tbbls/lambdal)
@@ -1301,29 +1304,29 @@ module mod_pbl_uwtcm
             ! is it the bottom?
             if ( trnnll*nlev >= -d_half*rnnll ) cycle convlayerloop
             ! (skip the rest of this iteration of the do loop)
-            kbot(ilay)=k
-            if ( ilay < iconv .and. kbot(ilay) == ktop(ilay+1) ) then
+            kbot(ilay) = k
+            if ( ilay < kpbconv .and. kbot(ilay) == ktop(ilay+1) ) then
               ! did we merge with layer below?
-              ktop(ilay)=ktop(ilay)+1
-              kbot(ilay)=kbot(ilay+1)
-              iconv = iconv - 1
+              ktop(ilay) = ktop(ilay)+1
+              kbot(ilay) = kbot(ilay+1)
+              kpbconv = kpbconv - 1
               shiftarray2: &
-              do itemp = ilay+1 , iconv
-                ktop(itemp)=ktop(itemp+1)
-                kbot(itemp)=kbot(itemp+1)
+              do itemp = ilay+1 , kpbconv
+                ktop(itemp) = ktop(itemp+1)
+                kbot(itemp) = kbot(itemp+1)
               end do shiftarray2
               cycle bigloop ! recompute for the new, deeper layer
                             ! (restart the do loop)
             end if
             rnnll = rnnll + trnnll
-            bbls(k)=tbbls
+            bbls(k) = tbbls
             nlev = nlev + 1
           end do searchdown1
         end do convlayerloop
-        exit
+        exit bigloop
       end do bigloop
       setbbls: &
-      do ilay = 1 , iconv
+      do ilay = 1 , kpbconv
         blinf = xfr*(zqx(ktop(ilay)-1) - zqx(kbot(ilay)+1))
         lambdal = etal*(zqx(ktop(ilay)-1) - zqx(kbot(ilay)+1))
         convkloop: &
@@ -1334,42 +1337,41 @@ module mod_pbl_uwtcm
           end if
         end do convkloop
       end do setbbls
-      ! we should now have tops and bottoms for iconv layers
-      if (iconv > 0 ) then
-        if ( kbot(iconv) == kmax ) then
-          kmix2dx = ktop(iconv)
+      ! we should now have tops and bottoms for kpbconv layers
+      if (kpbconv > 0 ) then
+        if ( kbot(kpbconv) == ktmax ) then
+          kmix2dx = ktop(kpbconv)
           if ( kpbl2dx >= 0 ) then
-            if ( iconv > 1 ) then
-              kpbl2dx = ktop(iconv-1)
+            if ( kpbconv > 1 ) then
+              kpbl2dx = ktop(kpbconv-1)
             else
               kpbl2dx = kmix2dx
             end if
           else
-            kpbl2dx=-kpbl2dx
+            kpbl2dx = -kpbl2dx
           end if
         else
-          kmix2dx = kmax - 1
+          kmix2dx = ktmax - 1
           if ( kpbl2dx >= 0 ) then
-            kpbl2dx = ktop(iconv)
+            kpbl2dx = ktop(kpbconv)
           else
             kpbl2dx = -kpbl2dx
           end if
         end if
       else
-        kmix2dx = kmax - 1
+        kmix2dx = ktmax - 1
         if ( kpbl2dx >= 0 ) then
           kpbl2dx = kmix2dx
         else
           kpbl2dx = -kpbl2dx
         end if
       end if
-      ! Limit the PBL height to be either the highest allowable (kt--set in
-      ! mod_param), or the minimum (kmax-1; the first interface level above the
-      ! surface).
+      ! Limit the PBL height to be either the highest allowable (tropopause),
+      ! or the minimum (ktmax-1; the first interface level above the surface).
       kpbl2dx = max(ktmin,kpbl2dx)
-      kpbl2dx = min(kmax - 1,kpbl2dx)
+      kpbl2dx = min(ktmax-1,kpbl2dx)
       kmix2dx = max(ktmin,kmix2dx)
-      kmix2dx = min(kmax - 1,kmix2dx)
+      kmix2dx = min(ktmax-1,kmix2dx)
       pblx = zqx(kmix2dx)
     end subroutine pblhgt
 
@@ -1411,13 +1413,13 @@ module mod_pbl_uwtcm
       esati = dum*0.61115D0*dexp(arg)
     end function esati
 
-    subroutine pblhgt_tao(kmax,iconv)
+    subroutine pblhgt_tao(ktmax,kpbconv)
       implicit none
-      integer(ik4) , intent(in) :: kmax
-      integer(ik4) , intent(out) :: iconv
-      real(rk8) , dimension(kmax) :: ktimesz
+      integer(ik4) , intent(in) :: ktmax
+      integer(ik4) , intent(out) :: kpbconv
+      real(rk8) , dimension(ktmax) :: ktimesz
       real(rk8) :: lambda
-      logical , dimension(kmax) :: isSaturated1D , isStable1D , isBelow7001D
+      logical , dimension(ktmax) :: isSaturated1D , isStable1D , isBelow7001D
       logical :: foundlayer
       integer(ik4) :: k
       isSaturated1D = .false.
@@ -1436,7 +1438,7 @@ module mod_pbl_uwtcm
       ! First see if there is a cloud-topped boundary layer: its top will be
       ! stable, saturated, and below 700 mb
       ctsearch: &
-      do k = kmax-1 , 1 , -1
+      do k = ktmax-1 , 1 , -1
         if ( isSaturated1D(k) .and. isStable1D(k) .and. isBelow7001D(k) ) then
           kmix2dx = k
           foundlayer = .true.
@@ -1447,7 +1449,7 @@ module mod_pbl_uwtcm
       ! layer where the richardson number exceeds its threshold
       if ( .not. foundlayer ) then
         drysearch: &
-        do k = kmax-1 , 1 , -1
+        do k = ktmax-1 , 1 , -1
           if ( isStable1D(k) ) then
             kmix2dx = k
             foundlayer = .true.
@@ -1458,17 +1460,17 @@ module mod_pbl_uwtcm
       ! If we still didn't find a cloud-topped boundary layer, then
       ! set the top to be the first interface layer
       if ( .not. foundlayer ) then
-        kmix2dx = kmax - 1
+        kmix2dx = ktmax - 1
       end if
       ! Set the boundary layer top and the top of the convective layer
       kmix2dx = max(kmix2dx,3)
-      kmix2dx = min(kmix2dx,kmax-1)
+      kmix2dx = min(kmix2dx,ktmax-1)
       kpbl2dx = kmix2dx
       ! Set that there is only one convective layer
-      iconv = 1
-      ktop(iconv) = kmix2dx
+      kpbconv = 1
+      ktop(kpbconv) = kmix2dx
       ! Set the boundary layer height
-      pblx = zqx(ktop(iconv))
+      pblx = zqx(ktop(kpbconv))
       ! Smoothly interpolate the boundary layer height
       if ( (richnum(kmix2dx) >= rcrit) .and.   &
            (richnum(kmix2dx+1) < rcrit) ) then
@@ -1479,7 +1481,7 @@ module mod_pbl_uwtcm
       end if
       ! Set the master length scale
       lambda = etal*pblx
-      ktimesz = vonkar*zqx(1:kmax)
+      ktimesz = vonkar*zqx(1:ktmax)
       ! Within the boundary layer, the length scale is propor. to the height
       bbls = ktimesz/(d_one+ktimesz/lambda)
       ! Otherwise use a Stability-related length scale

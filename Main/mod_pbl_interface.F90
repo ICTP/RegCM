@@ -29,7 +29,7 @@ module mod_pbl_interface
   use mod_pbl_common , only : ricr , chiuwten , uwstatea , uwstateb
   use mod_pbl_common , only : dotqdot , ftmp , kmxpbl
   use mod_pbl_holtbl , only : holtbl , allocate_mod_pbl_holtbl
-  use mod_pbl_uwtcm , only : nuk , ilenparam , allocate_tcm_state
+  use mod_pbl_uwtcm , only : nuk , allocate_tcm_state
   use mod_pbl_uwtcm , only : hadvtke , vadvtke , uwtcm , get_data_from_tcm
   use mod_pbl_uwtcm , only : init_mod_pbl_uwtcm , tkemin
   use mod_pbl_uwtcm , only : check_conserve_qt
@@ -49,7 +49,6 @@ module mod_pbl_interface
 
   public :: uwstatea
   public :: uwstateb
-  public :: ilenparam
   public :: kmxpbl
   public :: nuk
   public :: ricr
@@ -67,8 +66,8 @@ module mod_pbl_interface
       call allocate_mod_pbl_holtbl
     end if
     if ( ibltyp == 2 .or. ibltyp == 99) then
-      call allocate_tcm_state(uwstatea,.true.)
-      call allocate_tcm_state(uwstateb,.true.)
+      call allocate_tcm_state(uwstatea)
+      call allocate_tcm_state(uwstateb)
       ! To be used in vertical advection scheme
       call getmem3d(dotqdot,jci1,jci2,ici1,ici2,1,kz,'mod_uwtcm:dotqdot')
       call getmem3d(ftmp,jci1,jci2,ici1,ici2,1,kz,'mod_uwtcm:ftmp')
@@ -139,11 +138,11 @@ module mod_pbl_interface
         call holtbl(m2p,p2m)
       case (2)
         call uwtcm(m2p,p2m)
-        call uvcross2dot(uwten%u,uwten%v,aten%u,aten%v)
+        call uvcross2dot(uwten%u,uwten%v,aten%u,aten%v,1,kz)
         call get_data_from_tcm(p2m,atm1,atm2,.true.)
       case (99)
         call uwtcm(m2p,p2m)
-        call uvcross2dot(uwten%u,uwten%v,aten%u,aten%v)
+        call uvcross2dot(uwten%u,uwten%v,aten%u,aten%v,1,kz)
         call get_data_from_tcm(p2m,atm1,atm2,.true.)
         call holtbl(m2p,p2m)
         call check_conserve_qt(m2p,p2m)

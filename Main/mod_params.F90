@@ -1629,6 +1629,12 @@ module mod_params
     if ( ibltyp == 1 ) then
       write(stdout,*) 'PBL limit for Holtstag'
       write(stdout,'(a,i3)') '  Index of highest allowed pbl : ',kmxpbl
+    else if ( ibltyp == 2 ) then
+      write(stdout,*) 'UW TCM Parameters'
+      write(stdout,'(a,f11.6)') '  rstbl     = ', rstbl
+      write(stdout,'(a,f11.6)') '  atwo      = ', atwo
+      write(stdout,'(a,i3)')    '  iuwvadv   = ', iuwvadv
+      write(stdout,'(a,i3)')    '  ilenparam = ', ilenparam
     end if
     if ( ipptls > 0 ) then
       write(stdout,*) 'SUBEX large scale precipitation parameters'
