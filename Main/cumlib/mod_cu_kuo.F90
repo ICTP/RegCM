@@ -81,7 +81,7 @@ module mod_cu_kuo
             eddyf , emax , eqt , eqtm , plcl , pmax , pratec ,            &
             q , qmax , qs , rh , rsht , rswt , sca , siglcl ,             &
             suma , sumb , t1 , tdmax , tlcl , tmax , tmean , ttconv ,     &
-            ttp , ttsum , xsav , zlcl , es
+            ttp , ttsum , xsav , zlcl
     integer(ik4) :: i , j , k , kbase , kbaseb , kk , ktop
     real(rk8) , dimension(kz) :: seqt
     real(rk8) , dimension(kz) :: tmp3
@@ -129,7 +129,7 @@ module mod_cu_kuo
           do k = k700 , kz
             ttp = m2c%tas(j,i,k) + pert
             q = m2c%qxas(j,i,k,iqv) + perq
-            t1 = ttp*(stdp/m2c%pas(j,i,k))**rovcp
+            t1 = ttp*(1.0D5/m2c%pas(j,i,k))**rovcp
             eqt = t1*exp(wlhvocp*q/ttp)
             if ( eqt > eqtm ) then
               eqtm = eqt
@@ -165,8 +165,8 @@ module mod_cu_kuo
           do k = 1 , kbase
             ttp = m2c%tas(j,i,k)
             qs = pfqsat(ttp,m2c%pas(j,i,k))
-            t1 = ttp*(stdp/m2c%pas(j,i,k))**rovcp
-            seqt(k) = t1*exp(wlh(t1)*rcpd*qs/ttp)
+            t1 = ttp*(1.0D5/m2c%pas(j,i,k))**rovcp
+            seqt(k) = t1*exp(wlhvocp*rcpd*qs/ttp)
           end do
           !
           ! 4) when seqt = eqt + dt, cloud top is reached.
@@ -295,8 +295,8 @@ module mod_cu_kuo
           rswt = rswat(j,i,k)/tauht
           c2m%tten(j,i,k) = c2m%tten(j,i,k) + rsht
           c2m%qxten(j,i,k,iqv) = c2m%qxten(j,i,k,iqv) + rswt
-          rsheat(j,i,k) = rsheat(j,i,k)*(d_one-dt/tauht)
-          rswat(j,i,k) = rswat(j,i,k)*(d_one-dt/tauht)
+          rsheat(j,i,k) = rsheat(j,i,k)*(d_one-dtsec/tauht)
+          rswat(j,i,k) = rswat(j,i,k)*(d_one-dtsec/tauht)
         end do
       end do
     end do
