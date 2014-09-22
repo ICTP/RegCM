@@ -265,6 +265,7 @@ module mod_runparams
   integer(ik4) , public :: ilenparam
   real(rk8) , public :: rstbl
   real(rk8) , public :: atwo
+  real(rk8) , public  :: czero
 
   ! Holtslag PBL parameters
 

@@ -74,9 +74,9 @@ module mod_pbl_uwtcm
   use mod_mppparam
   use mod_pbl_common
   use mod_pbl_thetal
-  use mod_runparams , only : iqv , iqc , iuwvadv , atwo , rstbl ,  &
-          ilenparam , dt , rdt , ichem , sigma , hsigma , dsigma , &
-          ibltyp , ipptls
+  use mod_runparams , only : iqv , iqc , iuwvadv , atwo , rstbl , &
+          ilenparam , czero , dt , rdt , ichem , sigma , hsigma , &
+          dsigma , ibltyp , ipptls
   use mod_regcm_types
   use mod_service
 
@@ -94,13 +94,12 @@ module mod_pbl_uwtcm
   ! see gb01 regarding the next three lines, atwo and rstbl can be tweaked
   real(rk8) , parameter :: aone = 1.9D0*xfr
   ! b1/2**(3/2) from Mellor and Yamada (1982)
-  real(rk8) , parameter :: czero = 5.869D0
   real(rk8) , parameter :: rcrit = 0.3D0
   real(rk8) , parameter :: etal =  0.085D0
 
   ! Variables that hold frequently-done calculations
   real(rk8) , parameter :: rcp = d_one/cpd
-  real(rk8) , parameter :: rczero = d_one/czero
+  real(rk8) :: rczero
 
   ! local variables on full levels
   real(rk8) , pointer , dimension(:) :: zqx , kth , kzm , rhoxfl , &
@@ -500,6 +499,7 @@ module mod_pbl_uwtcm
     call getmem1d(ktop,1,kz,'mod_uwtcm:ktop')
     call getmem1d(kbot,1,kz,'mod_uwtcm:kbot')
 
+    rczero = d_one/czero
   end subroutine init_mod_pbl_uwtcm
 
   subroutine uwtcm(m2p,p2m)

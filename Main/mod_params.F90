@@ -140,7 +140,7 @@ module mod_params
          ichcumtra , ichsolver , idirect , iindirect , ichdustemd ,      &
          ichdiag , ichsursrc , ichebdy , rdstemfac, ichjphcld, ichbion
 
-  namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl
+  namelist /uwparam/ iuwvadv , ilenparam , atwo , rstbl , czero
 
   namelist /holtslagparam/ ricr_ocn , ricr_lnd , zhnew_fac , &
          ifaholtth10 , ifaholtmax , ifaholtmin
@@ -474,6 +474,7 @@ module mod_params
   ilenparam = 0
   atwo = 15.0D0
   rstbl = 1.5D0
+  czero = 5.869D0
 
 !c------namelist holtslagparam ;
 
@@ -1116,6 +1117,7 @@ module mod_params
     call bcast(ilenparam)
     call bcast(atwo)
     call bcast(rstbl)
+    call bcast(czero)
   end if
 
   if ( islab_ocean == 1 ) then
@@ -1633,6 +1635,7 @@ module mod_params
       write(stdout,*) 'UW TCM Parameters'
       write(stdout,'(a,f11.6)') '  rstbl     = ', rstbl
       write(stdout,'(a,f11.6)') '  atwo      = ', atwo
+      write(stdout,'(a,f11.6)') '  czero     = ', czero
       write(stdout,'(a,i3)')    '  iuwvadv   = ', iuwvadv
       write(stdout,'(a,i3)')    '  ilenparam = ', ilenparam
     end if

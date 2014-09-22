@@ -424,6 +424,7 @@
  rstbl = 1.5D0,   ! Scaling parameter for stable boundary layer eddy length
                   ! scale.  Higher values mean stronger mixing in stable 
                   ! conditions
+ czero = 5.869D0, ! Czero constant in UW PBL (eqn 44a and pgs 856-857)
  ilenparam = 0,   !
  /
 !

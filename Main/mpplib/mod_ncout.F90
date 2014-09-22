@@ -2493,6 +2493,8 @@ module mod_ncout
             ncattribute_real8('uwpbl_cloud_evap_entr_incr_efficiency',atwo))
           call outstream_addatt(outstream(i)%ncout(j), &
             ncattribute_real8('uwpbl_eddy_LS_stable_PBL_scaling',rstbl))
+          call outstream_addatt(outstream(i)%ncout(j), &
+            ncattribute_real8('uwpbl_czero',czero))
         end if
         if ( irrtm == 1 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
