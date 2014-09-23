@@ -72,63 +72,62 @@ program sst
        ssttyp == 'OI_NC' .or. ssttyp == 'OI2ST' .or.       &
        ssttyp == 'OI_WK' .or. ssttyp == 'OI2WK' ) then
     call sst_1deg
-  else if ( ssttyp == 'EH5RF' .or. ssttyp == 'EH5A2' .or.  &
-            ssttyp == 'EH5B1' .or. ssttyp == 'EHA1B' ) then
+  else if ( ssttyp(1:2) == 'EH' ) then
     call sst_eh5om
   else if ( ssttyp == 'ERSST' .or. ssttyp == 'ERSKT' .or. &
             ssttyp == 'EIN15' ) then
     call sst_ersst
-  else if ( ssttyp == 'FV_RF' .or. ssttyp == 'FV_A2' .or.  &
-            ssttyp == 'FV_B2' ) then
+  else if ( ssttyp == 'FV_A2' .or.  ssttyp == 'FV_B2' ) then
     call sst_fvgcm
-  else if ( ssttyp == 'CCSST' .or. ssttyp == 'CAM4N' .or. &
-            ssttyp == 'CA_RF' .or. ssttyp == 'CA_26' .or. &
-            ssttyp == 'CA_45' .or. ssttyp == 'CA_85') then
+  else if ( ssttyp == 'CCSST' .or. ssttyp == 'CAM4N' ) then
     if (ical /= noleap) then
       write(stderr,*) ssttyp//' calendar should be set to noleap'
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnmnc
-  else if ( ssttyp == 'HA_RF' .or. ssttyp == 'HA_26' .or. &
-            ssttyp == 'HA_45' .or. ssttyp == 'HA_85' ) then
+  else if ( ssttyp(1:3) == 'CA_' ) then
+    if (ical /= noleap) then
+      write(stderr,*) ssttyp//' calendar should be set to noleap'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gnmnc
+  else if ( ssttyp(1:3) == 'HA_' ) then
     if (ical /= y360 ) then
       write(stderr,*) ssttyp//' calendar should be set to 360_day'
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnmnc
-  else if ( ssttyp == 'CS_RF' .or. ssttyp == 'CS_26' .or. &
-            ssttyp == 'CS_45' .or. ssttyp == 'CS_85' ) then
+  else if ( ssttyp(1:3) == 'CS_' ) then
     if (ical /= noleap ) then
       write(stderr,*) ssttyp//' calendar should be set to noleap'
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnmnc
-  else if ( ssttyp == 'EC_RF' .or. ssttyp == 'EC_45' .or. &
-            ssttyp == 'EC_85' ) then
-    call sst_gnmnc
-  else if ( ssttyp == 'IP_RF' .or. ssttyp == 'IP_45' .or. &
-            ssttyp == 'IP_85' ) then
-    if (ical /= noleap) then
-      write(stderr,*) ssttyp//' calendar should be set to noleap'
-      call die('sst','Calendar mismatch',1)
-    end if
-    call sst_gnmnc
-  else if ( ssttyp == 'GF_RF' .or. ssttyp == 'GF_45' .or. &
-            ssttyp == 'GF_85' ) then
-    if (ical /= noleap) then
-      write(stderr,*) ssttyp//' calendar should be set to noleap'
-      call die('sst','Calendar mismatch',1)
-    end if
-    call sst_gnmnc
-  else if ( ssttyp == 'CN_RF' .or. ssttyp == 'CN_45' .or. &
-            ssttyp == 'CN_85' ) then
+  else if ( ssttyp(1:3) == 'EC_' ) then
     if (ical /= gregorian) then
       write(stderr,*) ssttyp//' calendar should be set to gregorian'
       call die('sst','Calendar mismatch',1)
     end if
     call sst_gnmnc
-  else if ( ssttyp == 'MP_RF' .or. ssttyp == 'MP_45' .or. &
-            ssttyp == 'MP_85' .or. ssttyp == 'E5_A2' ) then
+  else if ( ssttyp(1:3) == 'IP_' ) then
+    if (ical /= noleap) then
+      write(stderr,*) ssttyp//' calendar should be set to noleap'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gnmnc
+  else if ( ssttyp(1:3) == 'GF_' ) then
+    if (ical /= noleap) then
+      write(stderr,*) ssttyp//' calendar should be set to noleap'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gnmnc
+  else if ( ssttyp(1:3) == 'CN_' ) then
+    if (ical /= gregorian) then
+      write(stderr,*) ssttyp//' calendar should be set to gregorian'
+      call die('sst','Calendar mismatch',1)
+    end if
+    call sst_gnmnc
+  else if ( ssttyp(1:3) == 'MP_' .or. ssttyp == 'E5_A2' ) then
     if (ical /= gregorian) then
       write(stderr,*) ssttyp//' calendar should be set to gregorian'
       call die('sst','Calendar mismatch',1)

@@ -83,7 +83,7 @@ module mod_date
     integer(ik4) :: second = 0
   end type iatime
 
-  interface assignment(=) 
+  interface assignment(=)
     module procedure initfromintdt , initfromtypedt
     module procedure initfromintit , initfromdbleit , initfromtypeit
   end interface assignment(=)
@@ -154,6 +154,7 @@ module mod_date
   public :: gethour , getminute , getsecond
   public :: date_is , time_is
   public :: curr_date , ref_date , curr_time , calendar_str
+  public :: date_in_scenario
 
   data mlen /31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31/
   data calstr /'gregorian','noleap','360_day'/
@@ -1825,7 +1826,7 @@ module mod_date
     implicit none
     type (rcm_time_and_date) , intent(in) :: x
     integer(ik4) , intent(out) :: iday , isec
-    type (rcm_time_and_date) , save :: y 
+    type (rcm_time_and_date) , save :: y
     logical , save :: isinit = .false.
     if ( .not. isinit ) then
       y = cordex_refdate
@@ -1834,7 +1835,7 @@ module mod_date
     else
       if ( x%calendar /= y%calendar ) then
         y = cordex_refdate
-        call set_caltype(y,x) 
+        call set_caltype(y,x)
       end if
     end if
     iday = x%days_from_reference - y%days_from_reference
@@ -1943,4 +1944,28 @@ module mod_date
     end select
   end function calendar_str
 
+  logical function date_in_scenario(x,cmip_cycle,l2006)
+    implicit none
+    type (rcm_time_and_date) , intent(in) :: x
+    integer(ik4) , intent(in) :: cmip_cycle
+    logical , optional , intent(in) :: l2006
+    integer(ik4) :: iy , im , id
+    call split_rcm_date(x,iy,im,id)
+    if ( cmip_cycle == 3 ) then
+      date_in_scenario = ( iy > 2000 )
+    else ! Assume CMIP5
+      if ( present(l2006) ) then
+        if ( l2006 ) then
+          date_in_scenario = ( iy > 2005 )
+        else
+          date_in_scenario = ( iy > 2005 .or. ( iy == 2005 .and. im == 12 ) )
+        end if
+      else
+        date_in_scenario = ( iy > 2005 .or. ( iy == 2005 .and. im == 12 ) )
+      end if
+    end if
+  end function date_in_scenario
+
 end module mod_date
+
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

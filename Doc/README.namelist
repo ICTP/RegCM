@@ -93,7 +93,7 @@
  ibdyfrq =     6,            ! boundary condition interval (hours)
  ssttyp = 'OI_WK',           ! Type of Sea Surface Temperature used
                              !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
-                             !          FV_RF, FV_A2, FV_B2,
+                             !          FV_A2, FV_B2,
                              !          EH5RF, EH5A2, EH5B1, EHA1B,
                              !          ERSST, ERSKT, CCSST, CA_XX,
                              !          HA_XX, EC_XX, IP_XX, GF_XX,
