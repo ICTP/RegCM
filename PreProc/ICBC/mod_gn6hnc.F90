@@ -168,17 +168,14 @@ module mod_gn6hnc
   character(len=3) , dimension(:) , pointer :: varname
 
   contains
-!
+
   subroutine headgn6hnc
     use netcdf
-!
     implicit none
-!
     integer(ik4) :: istatus , ivar1 , inet1 , inet2 , inet3 , jdim , i , j , k
     character(len=256) :: pathaddname
     real(8) :: dp0
-!
-!
+
     if ( dattyp == 'CAM4N' ) then
       pathaddname = trim(inpglob)// &
             '/CAM2/USGS-gtopo30_0.9x1.25_remap_c051027.nc'
@@ -326,7 +323,7 @@ module mod_gn6hnc
         call getmem3d(pp3d,1,nlon,1,nlat,1,klev,'mod_gn6hnc:pp3d')
       end if
     end if
- 
+
     istatus = nf90_inq_varid(inet1,'lat',ivar1)
     call checkncerr(istatus,__FILE__,__LINE__,'Error find lat var')
     istatus = nf90_get_var(inet1,ivar1,glat)
@@ -712,7 +709,7 @@ module mod_gn6hnc
     end if
 
 !   Set up pointers
- 
+
     u3 => d3(:,:,1:npl)
     v3 => d3(:,:,npl+1:2*npl)
     t3 => b3(:,:,1:npl)
@@ -770,7 +767,7 @@ module mod_gn6hnc
   end subroutine headgn6hnc
 !
 !-----------------------------------------------------------------------
-! 
+!
   subroutine get_gn6hnc(idate)
 
     use netcdf
@@ -781,7 +778,7 @@ module mod_gn6hnc
 !
     call readgn6hnc(idate)
     write (stdout,*) 'Read in fields at Date: ', tochar(idate)
- 
+
     ! GFS and EC-EARTH and ECHAM5 grids are already on pressure levels.
     if ( dattyp /= 'GFS11' .and. dattyp(1:3) /= 'EC_' .and. &
          dattyp(1:2) /= 'E5' ) then
@@ -796,7 +793,7 @@ module mod_gn6hnc
         call top2btm(pp3d,nlon,nlat,klev)
         call top2btm(hvar,nlon,nlat,klev)
       end if
- 
+
       ! All processing assumes dataset in top -> bottom
       ! CanESM and IPSL are read bottom -> top
       if ( dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'IP_' .or. &
@@ -824,7 +821,7 @@ module mod_gn6hnc
       call intlog(tp,tvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
       call intlin(qp,qvar,psvar,pp3d,nlon,nlat,klev,pplev,npl)
     end if
- 
+
     ! Horizontal interpolation on RegCM grid
     if ( dattyp(1:3) /= 'MP_' .and. dattyp(1:3) /= 'CA_' .and. &
          dattyp(1:3) /= 'CN_' .and. dattyp(1:3) /= 'CS_' .and. &
@@ -839,7 +836,7 @@ module mod_gn6hnc
 
     ! Rotate winds
     call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,npl,plon,plat,iproj)
- 
+
     ! Go to bottom->top
     if ( dattyp(1:3) /= 'EC_' ) then
       call top2btm(t3,jx,iy,npl)
@@ -848,17 +845,17 @@ module mod_gn6hnc
       call top2btm(u3,jx,iy,npl)
       call top2btm(v3,jx,iy,npl)
     end if
- 
+
     ! Recalculate pressure on RegCM orography
     call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,npl)
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
- 
+
     if ( i_band == 1 ) then
        call p1p2_band(b3pd,ps4,jx,iy)
     else
        call p1p2(b3pd,ps4,jx,iy)
     endif
- 
+
     ! Recalculate temperature on RegCM orography
     call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,npl)
     ! Replace it with SST on water points
@@ -872,14 +869,14 @@ module mod_gn6hnc
 
     ! Get back to specific humidity
     call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
- 
+
     ! Calculate geopotential for RegCM using internal formula
     call hydrost(h4,t4,topogm,ps4,ptop,sigma2,jx,iy,kz)
- 
+
   end subroutine get_gn6hnc
 !
 !-----------------------------------------------------------------------
-! 
+!
   subroutine readgn6hnc(idate)
 !
     use netcdf
@@ -1034,7 +1031,7 @@ module mod_gn6hnc
         end do
         varname => echvars
         do kkrec = 1 , 5
-          if ( dattyp(4:4) == 'R' ) then
+          if ( .not. date_in_scenario(idate,5,.true.) ) then
             write (inname,99006) 'RF', pthsep, year, pthsep, 'ich1_', &
                   trim(varname(kkrec))//'_', year, '.nc'
           else
@@ -1113,12 +1110,12 @@ module mod_gn6hnc
           if ( month == 12 .and. day >= 1 .and. hour > 0 ) then
             iyear1 = iyear1 + 1
           end if
-          if ( dattyp(4:4) == 'R' ) then
+          if ( .not. date_in_scenario(idate,5,.false.) ) then
             write (inname,99005) 'RF', pthsep, trim(havars(6)), pthsep, &
                  trim(havars(6)), trim(hapbase1)//trim(habase3), &
                  iyear1-1, '12010600-', iyear1, '12010000.nc'
           else
-            if (year*1000000+month*10000+day*100+hour == 2005120100) then 
+            if (year*1000000+month*10000+day*100+hour == 2005120100) then
               write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
                 trim(havars(6)), pthsep, trim(havars(6)), &
                 trim(hapbase2)//dattyp(4:5)//trim(habase3), &
@@ -1164,11 +1161,19 @@ module mod_gn6hnc
             istatus = nf90_close(inet(6))
             call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
           end if
-          if ( dattyp(4:4) == 'R' ) then
-            if ( year == 2005 .and. month /= 1 .and. &
-                 day /= 1 .and. hour /= 0 ) then
-              iyear1 = 2005
-              iyear2 = 2006
+          if ( .not. date_in_scenario(idate,5,.true.) ) then
+            if ( year == 2005 ) then
+              if ( month == 1 .and. day == 1 .and. hour == 0 ) then
+                iyear1 = year/5*5
+                if ( mod(year,5) == 0 .and. month == 1 .and. &
+                     day == 1 .and. hour == 0 ) then
+                  iyear1 = iyear1 - 5
+                end if
+                iyear2 = iyear1 + 5
+              else
+                iyear1 = 2005
+                iyear2 = 2006
+              end if
             else
               iyear1 = year/5*5
               if ( mod(year,5) == 0 .and. month == 1 .and. &
@@ -1181,12 +1186,12 @@ module mod_gn6hnc
             iyear1 = (year-2006)/5*5+2006
             iyear2 = iyear1 + 5
           end if
-          if ( dattyp(4:4) == 'R' ) then
+          if ( .not. date_in_scenario(idate,5,.true.) ) then
             write (inname,99005) 'RF', pthsep, trim(csirvars(6)), pthsep, &
                  trim(csirvars(6)), trim(csirbase1)//trim(csirbase3), &
                  iyear1, '01010600-', iyear2, '01010000.nc'
           else
-            if (year*1000000+month*10000+day*100+hour == 2005120100) then 
+            if (year*1000000+month*10000+day*100+hour == 2005120100) then
               write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
                 trim(csirvars(6)), pthsep, trim(csirvars(6)), &
                 trim(csirbase2)//dattyp(4:5)//trim(csirbase3), &
@@ -1318,16 +1323,16 @@ module mod_gn6hnc
                 iyear2 = iyear1
                 imon2 = imon1 + 3
               end if
-              if ( dattyp(4:4) == 'R' ) then
+              if ( .not. date_in_scenario(idate,5,.false.) ) then
                 write (inname,99004) 'RF', pthsep, trim(havars(i)), pthsep, &
                   trim(havars(i)), trim(habase1)//trim(habase3), &
                   iyear1, imon1 , '010600-', iyear2, imon2, '010000.nc'
               else
-                if (iyear1*1000000+imon1*10000 == 2005090000) then 
+                if (iyear1*1000000+imon1*10000 == 2005090000) then
                   iyear1 = 2005
                   imon1 = 12
                   iyear2 = 2006
-                  imon2 = 3 
+                  imon2 = 3
                   write (inname,99004) ('RCP'//dattyp(4:5)), pthsep, &
                     trim(havars(i)), pthsep, trim(havars(i)), &
                     trim(habase2)//dattyp(4:5)//trim(habase3), &
@@ -1351,7 +1356,7 @@ module mod_gn6hnc
           ! yearly files, one for each variable
           do i = 1 , nfiles
             if ( cavars(i) /= 'XXX' ) then
-              if ( dattyp(4:4) == 'R' ) then
+              if ( .not. date_in_scenario(idate,5,.true.) ) then
                 write (inname,99005) 'RF', pthsep, trim(cavars(i)), pthsep, &
                   trim(cavars(i)), trim(cabase1)//trim(cabase3), &
                   year, '01010000-', year, '12311800.nc'
@@ -1373,7 +1378,7 @@ module mod_gn6hnc
           ! 10 yearly files, one for each variable
           do i = 1 , nfiles-1
             if ( ipvars(i) /= 'XXX' ) then
-              if ( dattyp(4:4) == 'R' ) then
+              if ( .not. date_in_scenario(idate,5,.true.) ) then
                 if ( year > 2000 ) then
                   write (inname,99005) 'HIST',pthsep,trim(ipvars(i)), pthsep, &
                     trim(ipvars(i)), trim(ipbase1)//trim(ipbase3), &
@@ -1387,7 +1392,7 @@ module mod_gn6hnc
                 write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
                   trim(ipvars(i)), pthsep, trim(ipvars(i)), &
                   trim(ipbase2)//dattyp(4:5)//trim(ipbase3), &
-                  (year/10*10+6), '01010300-', (year/10*10+15), '12312100.nc'
+                  (year/10*10+6), '010103-', (year/10*10+15), '123121.nc'
               end if
               pathaddname = trim(inpglob)//'/IPSL-CM5A-LR/'//inname
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
@@ -1397,7 +1402,7 @@ module mod_gn6hnc
             end if
           end do
           ! PS is in 50 years file...
-          if ( dattyp(4:4) == 'R' ) then
+          if ( .not. date_in_scenario(idate,5,.true.) ) then
             if ( year < 1950 ) then
               write (inname,99005) 'HIST',pthsep,trim(ipvars(6)), pthsep, &
                     trim(ipvars(6)), trim(ipbase1)//trim(ipbase3), &
@@ -1434,7 +1439,7 @@ module mod_gn6hnc
           end if
           do i = 1 , nfiles
             if ( gfdlvars(i) /= 'XXX' ) then
-              if ( dattyp(4:4) == 'R' ) then
+              if ( .not. date_in_scenario(idate,5,.true.) ) then
                 write (inname,99005) 'RF',pthsep,trim(gfdlvars(i)), pthsep, &
                   trim(gfdlvars(i)), trim(gfdlbase1)//trim(gfdlbase3), &
                   y1, '010100-', y2, '123123.nc'
@@ -1481,7 +1486,7 @@ module mod_gn6hnc
           end if
           do i = 1 , nfiles
             if ( cnrmvars(i) /= 'XXX' ) then
-              if ( dattyp(4:4) == 'R' ) then
+              if ( .not. date_in_scenario(idate,5,.true.) ) then
                 write (inname,99007) 'RF',pthsep,trim(cnrmvars(i)), pthsep, &
                   trim(cnrmvars(i)), trim(cnrmbase1)//trim(cnrmbase3), &
                   y1, m1, '010600-', y2, m2, '010000.nc'
@@ -1489,7 +1494,7 @@ module mod_gn6hnc
                 write (inname,99007) ('RCP'//dattyp(4:4)//'.'//dattyp(5:5)), &
                   pthsep, trim(cnrmvars(i)), pthsep, trim(cnrmvars(i)), &
                   trim(cnrmbase2)//dattyp(4:5)//trim(cnrmbase3), &
-                  y1, m1, '010600-', y2, m2, '010000.nc'
+                  y1, m1, '0106-', y2, m2, '0100.nc'
               end if
               pathaddname = trim(inpglob)//'/CNRM-CM5/'//inname
               istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
@@ -1508,7 +1513,7 @@ module mod_gn6hnc
           y2 = y1+1
           do i = 1 , nfiles-1
             if ( csirvars(i) /= 'XXX' ) then
-              if ( dattyp(4:4) == 'R' ) then
+              if ( .not. date_in_scenario(idate,5,.true.) ) then
                 write (inname,99005) 'RF',pthsep,trim(csirvars(i)), pthsep, &
                   trim(csirvars(i)), trim(csirbase1)//trim(csirbase3), &
                   y1, '01010600-', y2, '01010000.nc'
@@ -1538,7 +1543,7 @@ module mod_gn6hnc
           end if
           do i = 1 , nfiles
             if ( mpievars(i) /= 'XXX' ) then
-              if ( dattyp(4:4) == 'R' ) then
+              if ( .not. date_in_scenario(idate,5,.true.) ) then
                 write (inname,99008) 'RF',pthsep,trim(mpievars(i)), pthsep, &
                   trim(mpievars(i)), trim(mpiebase1)//trim(mpiebase3), &
                   y1, m1, '010000-', y2, m2, '010000.nc'

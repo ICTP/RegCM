@@ -93,18 +93,17 @@
  ibdyfrq =     6,            ! boundary condition interval (hours)
  ssttyp = 'OI_WK',           ! Type of Sea Surface Temperature used
                              !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
-                             !          FV_A2, FV_B2,
-                             !          EH5RF, EH5A2, EH5B1, EHA1B,
-                             !          ERSST, ERSKT, CCSST, CA_XX,
-                             !          HA_XX, EC_XX, IP_XX, GF_XX,
+                             !          FV_A2, FV_B2, EH5A2, EH5B1, EHA1B,
+                             !          ERSST, ERSKT, CCSST,
+                             !          CA_XX, HA_XX, EC_XX, IP_XX, GF_XX,
                              !          CN_XX, MP_XX
  dattyp = 'EIN15',           ! Type of global analysis datasets used
                              !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
                              !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
-                             !          FVGCM, FNEST, EH5RF, EH5A2, EH5B1,
-                             !          EHA1B, CCSMN, ECEXY, CA_XX, HA_XX,
-                             !          EC_XX, IP_XX, GF_XX, CN_XX, MP_XX
-                             ! with XX for CMIP5 datasets in RF, 26, 45, 85
+                             !          FVGCM, FNEST, EH5A2, EH5B1, EHA1B,
+                             !          CCSMN, ECEXY, CA_XX, HA_XX, EC_XX,
+                             !          IP_XX, GF_XX, CN_XX, MP_XX
+                             ! with XX for CMIP5 datasets in 26, 45, 85
  chemtyp = 'MZ6HR',          ! Type of Global Chemistry boundary conditions
                              ! One in : MZ6HR, 6 hours MOZART output
                              !        : MZCLM, MOZART climatology 1999-2009
@@ -258,7 +257,7 @@
  iemiss  =          0,  ! Calculate emission
  lakemod =          0,  ! Use lake model
  ichem   =          0,  ! Use active aerosol chemical model
- scenario =      'A1B', ! IPCC Scenario to use in A1B,RF,A2,B1,B2
+ scenario =      'A1B', ! IPCC Scenario to use in A1B,A2,B1,B2
                         ! RCP Scenario in RCP3PD,RCP4.5,RCP6,RCP8.5
  idcsst   =          0, ! Use diurnal cycle sst scheme
  iseaice  =          0, ! Model seaice effects

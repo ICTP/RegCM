@@ -346,17 +346,16 @@ tell them how to build initial and bondary conditions.
  ibdyfrq =     6,            ! boundary condition interval (hours)
  ssttyp = 'OI_WK',           ! Type of Sea Surface Temperature used
                              !  One in: GISST, OISST, OI2ST, OI_WK, OI2WK,
-                             !          FV_RF, FV_A2, FV_B2,
-                             !          EH5RF, EH5A2, EH5B1, EHA1B,
-                             !          ERSST, ERSKT, CCSST, CA_XX,
-                             !          HA_XX, EC_XX, IP_XX, GF_XX,
+                             !          FV_A2, FV_B2, EH5A2, EH5B1, EHA1B,
+                             !          ERSST, ERSKT, CCSST, 
+			     !          CA_XX, HA_XX, EC_XX, IP_XX, GF_XX,
                              !          CN_XX
  dattyp = 'EIN15',           ! Type of global analysis datasets used
                              !  One in: ECMWF, ERA40, EIN75, EIN15, EIN25,
                              !          ERAHI, NNRP1, NNRP2, NRP2W, GFS11,
-                             !          FVGCM, FNEST, EH5RF, EH5A2, EH5B1,
-                             !          EHA1B, CCSMN, ECEXY, CA_XX, HA_XX,
-                             !          EC_XX, IP_XX, GF_XX, CN_XX
+                             !          FVGCM, FNEST, EH5A2, EH5B1, EHA1B,
+                             !          CCSMN, ECEXY, CA_XX, HA_XX, EC_XX,
+                             !          IP_XX, GF_XX, CN_XX, MP_XX
  gdate1 = 1990060100,        ! Start date for ICBC data generation
  gdate2 = 1990070100,        ! End data for ICBC data generation
  calendar = 'gregorian',     ! Calendar to use (gregorian, noleap or 360_day)
@@ -667,8 +666,8 @@ sensitivity experiments to select the best scheme for your application.
  iemiss  =          0,  ! Calculate emission
  lakemod =          0,  ! Use lake model
  ichem   =          1,  ! Use active aerosol chemical model
- scenario =      'A1B', ! IPCC Scenario to use in A1B,RF,A2,B1,B2
-                        ! RCP Scenarios in RCP3PD,RCP4.5,RCP6,RCP8.5
+ scenario =      'A1B', ! IPCC Scenario to use in A1B,A2,B1,B2
+                        ! RCP Scenarios in RPC2.6,RCP4.5,RCP6,RCP8.5
  idcsst   =          0, ! Use diurnal cycle sst scheme
  iseaice  =          0, ! Model seaice effects
  idesseas =          0, ! Model desert seasonal albedo variability

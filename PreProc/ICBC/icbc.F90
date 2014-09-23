@@ -205,12 +205,11 @@ program icbc
   write (stdout,*) 'GLOBIDATE1 : ' , tochar(globidate1)
   write (stdout,*) 'GLOBIDATE2 : ' , tochar(globidate2)
   write (stdout,*) 'NSTEPS     : ' , nsteps
- 
+
   idate = globidate1
   iodate = idate
 
-  if ( dattyp == 'NNRP1' .or. dattyp == 'NNRP2' .or. &
-       dattyp(1:3) == 'CFS' ) then
+  if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
     call headernc
   else if ( dattyp == 'ECMWF' ) then
     call headerec
@@ -225,8 +224,7 @@ program icbc
     call headgn6hnc
   else if ( dattyp == 'ERAHI' ) then
     call headerehi
-  else if ( dattyp == 'EH5RF' .or. dattyp == 'EH5A2' .or. &
-            dattyp == 'EH5B1' .or. dattyp == 'EHA1B') then
+  else if ( dattyp(1:2) == 'EH' ) then
     call headermpi
   else if ( dattyp == 'FVGCM' ) then
     call headerfv
@@ -243,7 +241,7 @@ program icbc
   else
     call die('icbc','Unknown dattyp',1)
   end if
- 
+
   call newfile(idate)
 
   do nnn = 1 , nsteps
@@ -252,9 +250,7 @@ program icbc
       call newfile(monfirst(idate))
     end if
 
-    if ( dattyp == 'NNRP1' .or. dattyp == 'NNRP2' ) then
-      call getncep(idate)
-    else if ( dattyp(1:3) == 'CFS' ) then
+    if ( dattyp(1:4) == 'NNRP' .or. dattyp(1:3) == 'CFS' ) then
       call getncep(idate)
     else if ( dattyp == 'ECMWF' ) then
       call getecwcp(idate)
@@ -269,8 +265,7 @@ program icbc
       call geterahi(idate)
     else if ( dattyp(1:3) == 'ECE' ) then
       call getecens(idate)
-    else if ( dattyp == 'EH5RF' .or. dattyp == 'EH5A2' .or. &
-              dattyp == 'EH5B1' .or. dattyp == 'EHA1B') then
+    else if ( dattyp(1:2) == 'EH' ) then
       call geteh5om(idate)
     else if ( dattyp == 'FVGCM' ) then
       call getfvgcm(idate)
@@ -294,7 +289,7 @@ program icbc
 
   call close_output
   call closesst
- 
+
   call memory_destroy
 
   call finaltime(0)
