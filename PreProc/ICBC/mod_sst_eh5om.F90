@@ -180,7 +180,6 @@ module mod_sst_eh5om
         end do
       end do
       call bilinx(sst,sstmm,xlon,xlat,loni,lati,ilon,jlat,jx,iy,1)
-      write (stdout,*) 'XLON,XLAT,SST = ' , xlon(1,1) , xlat(1,1) , sstmm(1,1)
       call writerec(idate)
       write (stdout,*) 'WRITING OUT SST DATA:' , tochar(idate)
       close(11)
