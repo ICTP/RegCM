@@ -278,6 +278,11 @@ module mod_clm_nchelper
     call getmem2d(ncid%i4buf,jout1,jout2,iout1,iout2,'clm_createfile')
     call getmem2d(ncid%r4buf,jout1,jout2,iout1,iout2,'clm_createfile')
     call getmem2d(ncid%r8buf,jout1,jout2,iout1,iout2,'clm_createfile')
+
+    incstat = nf90_put_att(ncid%ncid,nf90_global,'regcm_subgrid',nsg)
+    call clm_checkncerr(__FILE__,__LINE__, &
+                    'Error writing to output '//trim(fname))
+
     ncid%dimhash = huge(1)
     ncid%varhash = huge(1)
     ncid%idimlast = 0

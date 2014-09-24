@@ -22,12 +22,156 @@ subroutine myabort
   call abort
 end subroutine myabort
 
+module mod_remap
+  use mod_realkinds
+  use mod_intkinds
+
+  implicit none
+
+  private
+
+  public :: remap
+
+  interface remap
+    module procedure remap_real4
+    module procedure remap_real8
+    module procedure remap_int4
+  end interface remap
+
+  contains
+
+  subroutine remap_int4(nsg,iv,mask,var)
+    implicit none
+    integer(ik4) , intent(in) :: nsg
+    integer(ik4) , intent(inout) , dimension(:) :: iv
+    integer(ik4) , intent(in) , dimension(:,:) :: mask
+    integer(ik4) , intent(out) , dimension(:,:) :: var
+    integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj
+    var(:,:) = bigint
+    if ( nsg == 1 ) then
+      n1 = size(mask,1)
+      n2 = size(mask,2)
+      ib = 1
+      do i = 1 , n2
+        do j = 1 , n1
+          if ( mask(j,i) > 0 ) then
+            var(j,i) = iv(ib)
+            ib = ib + 1
+          end if
+        end do
+      end do
+    else
+      n1 = size(mask,1)/nsg
+      n2 = size(mask,2)/nsg
+      ib = 1
+      do i = 1 , n2
+        do j = 1 , n1
+          do ni = 1 , nsg
+            ii = (i-1)*nsg + ni
+            do nj = 1 , nsg
+              jj = (j-1)*nsg + nj
+              if ( mask(jj,ii) > 0 ) then
+                var(jj,ii) = iv(ib)
+                ib = ib + 1
+              end if
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine remap_int4
+
+  subroutine remap_real4(nsg,iv,mask,var)
+    implicit none
+    integer(ik4) , intent(in) :: nsg
+    real(rk4) , intent(inout) , dimension(:) :: iv
+    integer(ik4) , intent(in) , dimension(:,:) :: mask
+    real(rk4) , dimension(:,:) , intent(out) :: var
+    integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj
+    var(:,:) = 1E+36
+    if ( nsg == 1 ) then
+      n1 = size(mask,1)
+      n2 = size(mask,2)
+      ib = 1
+      do i = 1 , n2
+        do j = 1 , n1
+          if ( mask(j,i) > 0 ) then
+            var(j,i) = iv(ib)
+            ib = ib + 1
+          end if
+        end do
+      end do
+    else
+      n1 = size(mask,1)/nsg
+      n2 = size(mask,2)/nsg
+      ib = 1
+      do i = 1 , n2
+        do j = 1 , n1
+          do ni = 1 , nsg
+            ii = (i-1)*nsg + ni
+            do nj = 1 , nsg
+              jj = (j-1)*nsg + nj
+              if ( mask(jj,ii) > 0 ) then
+                var(jj,ii) = iv(ib)
+                ib = ib + 1
+              end if
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine remap_real4
+
+  subroutine remap_real8(nsg,iv,mask,var)
+    implicit none
+    integer(ik4) , intent(in) :: nsg
+    real(rk8) , intent(inout) , dimension(:) :: iv
+    integer(ik4) , intent(in) , dimension(:,:) :: mask
+    real(rk8) , dimension(:,:) , intent(out) :: var
+    integer(ik4) :: ib , n1 , n2 , i , j , ni , nj , ii , jj
+    var(:,:) = 1D+36
+    if ( nsg == 1 ) then
+      n1 = size(mask,1)
+      n2 = size(mask,2)
+      ib = 1
+      do i = 1 , n2
+        do j = 1 , n1
+          if ( mask(j,i) > 0 ) then
+            var(j,i) = iv(ib)
+            ib = ib + 1
+          end if
+        end do
+      end do
+    else
+      n1 = size(mask,1)/nsg
+      n2 = size(mask,2)/nsg
+      ib = 1
+      do i = 1 , n2
+        do j = 1 , n1
+          do ni = 1 , nsg
+            ii = (i-1)*nsg + ni
+            do nj = 1 , nsg
+              jj = (j-1)*nsg + nj
+              if ( mask(jj,ii) > 0 ) then
+                var(jj,ii) = iv(ib)
+                ib = ib + 1
+              end if
+            end do
+          end do
+        end do
+      end do
+    end if
+  end subroutine remap_real8
+
+end module mod_remap
+
 program clm45_1dto2d
   use mod_realkinds
   use mod_intkinds
   use mod_stdio
   use mod_nchelper
   use mod_dynparam , only : iomode
+  use mod_remap
   use netcdf
 
   implicit none
@@ -45,7 +189,7 @@ program clm45_1dto2d
   integer(ik4) , allocatable , dimension(:,:) :: vshape
   integer(ik4) :: iy , jx
   integer(ik4) :: id , iv , ia , iid1 , iid2
-  integer(ik4) :: i , j , ib , n , m
+  integer(ik4) :: n , m
   integer(ik4) :: lndgrid , iydim , jxdim
   integer(ik4) , allocatable , dimension(:,:) :: mask
   real(rk4) , allocatable , dimension(:, :) :: var2d_single
@@ -63,6 +207,7 @@ program clm45_1dto2d
   real(rk8) , allocatable , dimension(:,:,:) :: double_var_3d
   real(rk4) , allocatable , dimension(:,:,:) :: single_var_3d
   integer(ik4) , allocatable , dimension(:,:,:) :: int_var_3d
+  integer(ik4) :: nsg
 
   call get_command_argument(0,value=prgname)
   numarg = command_argument_count()
@@ -86,6 +231,12 @@ program clm45_1dto2d
   istatus = nf90_create(ncoutfile, iomode, ncoutid)
   call checkncerr(istatus,__FILE__,__LINE__, &
                   'Error Create file '//trim(ncoutfile))
+
+  istatus = nf90_get_att(ncid,nf90_global,'regcm_subgrid',nsg)
+  if ( istatus /= nf90_noerr ) then
+    write(stdout,*) 'Assuming nsg = 1'
+    nsg = 1
+  end if
 
   istatus = nf90_inquire(ncid,ndims,nvars,natts,udimid)
   call checkncerr(istatus,__FILE__,__LINE__, &
@@ -287,18 +438,7 @@ program clm45_1dto2d
               allocate(single_var_1d(vshape(iv,1)))
               istatus = nf90_get_var(ncid,iv,single_var_1d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              ! Here the expand !
-              ib = 1
-              do i = 1 , iy
-                do j = 1 , jx
-                  if ( mask(j,i) > 0 ) then
-                    var2d_single(j,i) = single_var_1d(ib)
-                    ib = ib + 1
-                  else
-                    var2d_single(j,i) = 1e+36
-                  end if
-                end do
-              end do
+              call remap(nsg,single_var_1d,mask,var2d_single)
               istatus = nf90_put_var(ncoutid,iv,var2d_single)
               call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
               deallocate(single_var_1d)
@@ -307,18 +447,7 @@ program clm45_1dto2d
               istatus = nf90_get_var(ncid,iv,single_var_2d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
               do n = 1 , vshape(iv,2)
-                ! Here the expand !
-                ib = 1
-                do i = 1 , iy
-                  do j = 1 , jx
-                    if ( mask(j,i) > 0 ) then
-                      var2d_single(j,i) = single_var_2d(ib,n)
-                      ib = ib + 1
-                    else
-                      var2d_single(j,i) = 1e+36
-                    end if
-                  end do
-                end do
+                call remap(nsg,single_var_2d(:,n),mask,var2d_single)
                 istatus = nf90_put_var(ncoutid,iv,var2d_single, &
                         start=(/1,1,n/), count=(/jx,iy,1/))
                 call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -330,18 +459,7 @@ program clm45_1dto2d
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
               do n = 1 , vshape(iv,3)
                 do m = 1 , vshape(iv,2)
-                  ! Here the expand !
-                  ib = 1
-                  do i = 1 , iy
-                    do j = 1 , jx
-                      if ( mask(j,i) > 0 ) then
-                        var2d_single(j,i) = single_var_3d(ib,m,n)
-                        ib = ib + 1
-                      else
-                        var2d_single(j,i) = 1e+36
-                      end if
-                    end do
-                  end do
+                  call remap(nsg,single_var_3d(:,m,n),mask,var2d_single)
                   istatus = nf90_put_var(ncoutid,iv,var2d_single, &
                           start=(/1,1,m,n/), count=(/jx,iy,1,1/))
                   call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -355,18 +473,7 @@ program clm45_1dto2d
               allocate(double_var_1d(vshape(iv,1)))
               istatus = nf90_get_var(ncid,iv,double_var_1d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              ! Here the expand !
-              ib = 1
-              do i = 1 , iy
-                do j = 1 , jx
-                  if ( mask(j,i) > 0 ) then
-                    var2d_double(j,i) = double_var_1d(ib)
-                    ib = ib + 1
-                  else
-                    var2d_double(j,i) = 1D+36
-                  end if
-                end do
-              end do
+              call remap(nsg,double_var_1d,mask,var2d_double)
               istatus = nf90_put_var(ncoutid,iv,var2d_double)
               call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
               deallocate(double_var_1d)
@@ -375,18 +482,7 @@ program clm45_1dto2d
               istatus = nf90_get_var(ncid,iv,double_var_2d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
               do n = 1 , vshape(iv,2)
-                ! Here the expand !
-                ib = 1
-                do i = 1 , iy
-                  do j = 1 , jx
-                    if ( mask(j,i) > 0 ) then
-                      var2d_double(j,i) = double_var_2d(ib,n)
-                      ib = ib + 1
-                    else
-                      var2d_double(j,i) = 1D+36
-                    end if
-                  end do
-                end do
+                call remap(nsg,double_var_2d(:,n),mask,var2d_double)
                 istatus = nf90_put_var(ncoutid,iv,var2d_double, &
                         start=(/1,1,n/), count=(/jx,iy,1/))
                 call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -398,18 +494,7 @@ program clm45_1dto2d
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
               do n = 1 , vshape(iv,3)
                 do m = 1 , vshape(iv,2)
-                  ! Here the expand !
-                  ib = 1
-                  do i = 1 , iy
-                    do j = 1 , jx
-                      if ( mask(j,i) > 0 ) then
-                        var2d_double(j,i) = double_var_3d(ib,m,n)
-                        ib = ib + 1
-                      else
-                        var2d_double(j,i) = 1D+36
-                      end if
-                    end do
-                  end do
+                  call remap(nsg,double_var_3d(:,m,n),mask,var2d_double)
                   istatus = nf90_put_var(ncoutid,iv,var2d_double, &
                           start=(/1,1,m,n/), count=(/jx,iy,1,1/))
                   call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -423,18 +508,7 @@ program clm45_1dto2d
               allocate(int_var_1d(vshape(iv,1)))
               istatus = nf90_get_var(ncid,iv,int_var_1d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
-              ! Here the expand !
-              ib = 1
-              do i = 1 , iy
-                do j = 1 , jx
-                  if ( mask(j,i) > 0 ) then
-                    var2d_int(j,i) = int_var_1d(ib)
-                    ib = ib + 1
-                  else
-                    var2d_int(j,i) = bigint
-                  end if
-                end do
-              end do
+              call remap(nsg,int_var_1d,mask,var2d_int)
               istatus = nf90_put_var(ncoutid,iv,var2d_int)
               call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
               deallocate(int_var_1d)
@@ -443,18 +517,7 @@ program clm45_1dto2d
               istatus = nf90_get_var(ncid,iv,int_var_2d)
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
               do n = 1 , vshape(iv,2)
-                ! Here the expand !
-                ib = 1
-                do i = 1 , iy
-                  do j = 1 , jx
-                    if ( mask(j,i) > 0 ) then
-                      var2d_int(j,i) = int_var_2d(ib,n)
-                      ib = ib + 1
-                    else
-                      var2d_int(j,i) = bigint
-                    end if
-                  end do
-                end do
+                call remap(nsg,int_var_2d(:,n),mask,var2d_int)
                 istatus = nf90_put_var(ncoutid,iv,var2d_int, &
                         start=(/1,1,n/), count=(/jx,iy,1/))
                 call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -466,18 +529,7 @@ program clm45_1dto2d
               call checkncerr(istatus,__FILE__,__LINE__,'Error read var')
               do n = 1 , vshape(iv,3)
                 do m = 1 , vshape(iv,2)
-                  ! Here the expand !
-                  ib = 1
-                  do i = 1 , iy
-                    do j = 1 , jx
-                      if ( mask(j,i) > 0 ) then
-                        var2d_int(j,i) = int_var_3d(ib,m,n)
-                        ib = ib + 1
-                      else
-                        var2d_int(j,i) = bigint
-                      end if
-                    end do
-                  end do
+                  call remap(nsg,int_var_3d(:,m,n),mask,var2d_int)
                   istatus = nf90_put_var(ncoutid,iv,var2d_int, &
                           start=(/1,1,m,n/), count=(/jx,iy,1,1/))
                   call checkncerr(istatus,__FILE__,__LINE__,'Error write var')
@@ -495,3 +547,5 @@ program clm45_1dto2d
   istatus = nf90_close(ncoutid)
 
 end program clm45_1dto2d
+
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2
