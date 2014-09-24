@@ -965,6 +965,9 @@ module mod_clm_canopyfluxes
      if (zldis(p) < 0.D0) then
        found = .true.
        index = p
+       write(stderr,*) 'At pft index ', p
+       write(stderr,*) 'Canopy height : ', displa(p)
+       write(stderr,*) 'Forcing model : ', forc_hgt_u_pft(p)
      end if
    end do
 
