@@ -43,7 +43,7 @@ fi
 AC_ARG_WITH([netcdf],
   AC_HELP_STRING([--with-netcdf],
             [Path to NetCDF installation (default: NETCDF environment)]),
-  [NC_PREFIX="$withval" && NCAUTO="no"], [FAKE="no"]
+  [NC_PREFIX="$withval"; NCAUTO="no"], [FAKE="no"]
 )
 
 AC_ARG_WITH([hdf5],
@@ -56,6 +56,12 @@ AC_ARG_WITH([szip],
   AC_HELP_STRING([--with-szip],
             [Path to SZIP installation (default: SZIP environment)]),
   [SZIP_PREFIX="$withval"], [SZIP_PREFIX="${SZIP}"]
+)
+
+AC_ARG_WITH([oasis],
+  AC_HELP_STRING([--with-oasis],
+                 [Path to OASIS installation (default: do not use)]),
+  [USEOASIS="1"; OASIS_PREFIX="$withval"], [USEOASIS="0"]
 )
 
 PARALLEL="1"
@@ -127,6 +133,11 @@ AM_CONDITIONAL(DO_COMPILE_CPL, [test x"$USECPL" = x1])
 
 if eval "test x"$USECPL" = x1"; then
   AM_CPPFLAGS="\$(DEFINE)CPL $AM_CPPFLAGS"
+  AC_SUBST(AM_CPPFLAGS)
+fi
+
+if eval "test x"$USEOASIS" = x1"; then
+  AM_CPPFLAGS="\$(DEFINE)OASIS -I$OASIS_PREFIX/include $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
