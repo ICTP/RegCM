@@ -59,9 +59,9 @@ AC_ARG_WITH([szip],
 )
 
 AC_ARG_WITH([oasis],
-  AC_HELP_STRING([--with-oasis],
+  AC_HELP_STRING([--with-oasis-include],
                  [Path to OASIS installation (default: do not use)]),
-  [USEOASIS="1"; OASIS_PREFIX="$withval"], [USEOASIS="0"]
+  [USEOASIS="1"; OASIS_INCLUDE="$withval"], [USEOASIS="0"]
 )
 
 PARALLEL="1"
@@ -137,7 +137,7 @@ if eval "test x"$USECPL" = x1"; then
 fi
 
 if eval "test x"$USEOASIS" = x1"; then
-  AM_CPPFLAGS="\$(DEFINE)OASIS -I$OASIS_PREFIX/include $AM_CPPFLAGS"
+  AM_CPPFLAGS="\$(DEFINE)OASIS -I$OASIS_INCLUDE $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
 
@@ -421,10 +421,11 @@ if eval "test x"$PARALLEL" = x1"; then
   ACX_MPI
 else
   FORT_SIZE="real4double8"
-  MPIFC=$FC
-  LIBS="$LIBS -lmpiser"
-  AC_SUBST(MPIFC)
   AC_SUBST(FORT_SIZE)
+  MPIFC=$FC
+  AC_SUBST(MPIFC)
+  LIBS="$LIBS -lmpiser"
+  AC_SUBST(LIBS)
   AM_CPPFLAGS="\$(DEFINE)MPI_SERIAL $AM_CPPFLAGS"
   AC_SUBST(AM_CPPFLAGS)
 fi
