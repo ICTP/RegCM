@@ -58,7 +58,7 @@ AC_ARG_WITH([szip],
   [SZIP_PREFIX="$withval"], [SZIP_PREFIX="${SZIP}"]
 )
 
-AC_ARG_WITH([oasis],
+AC_ARG_WITH([oasis-include],
   AC_HELP_STRING([--with-oasis-include],
                  [Path to OASIS installation (default: do not use)]),
   [USEOASIS="1"; OASIS_INCLUDE="$withval"], [USEOASIS="0"]
