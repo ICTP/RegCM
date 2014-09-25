@@ -254,7 +254,7 @@ module mod_split
 !   this routine determines p(.) from p(x) by a 4-point interpolation.
 !
     call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
-    call psc2psd(sfs%psa,psdot)
+    call psc2psd(sfs%psa,sfs%psdota)
 !
 !=======================================================================
 !
@@ -479,7 +479,7 @@ module mod_split
         gnuzm = gnuhf*zmatx(k,l)
         do i = idi1 , idi2
           do j = jdi1 , jdi2
-            fac = psdot(j,i)/(dx2*mddom%msfd(j,i))
+            fac = sfs%psdota(j,i)/(dx2*mddom%msfd(j,i))
             x = fac*(dhsum(j,i,l)+dhsum(j,i-1,l) - &
                      dhsum(j-1,i,l)-dhsum(j-1,i-1,l))
             y = fac*(dhsum(j,i,l)-dhsum(j,i-1,l) + &
@@ -556,7 +556,7 @@ module mod_split
       do nw = 1 , 2
         do i = idi1 , idi2
           do j = jdi1 , jdi2
-            work(j,i,nw) = work(j,i,nw)*psdot(j,i)
+            work(j,i,nw) = work(j,i,nw)*sfs%psdota(j,i)
           end do
         end do
       end do
@@ -652,7 +652,7 @@ module mod_split
         do nw = 1 , 2
           do i = idi1 , idi2
             do j = jdi1 , jdi2
-              work(j,i,nw) = work(j,i,nw)*psdot(j,i)
+              work(j,i,nw) = work(j,i,nw)*sfs%psdota(j,i)
             end do
           end do
         end do

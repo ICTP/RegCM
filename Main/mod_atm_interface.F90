@@ -54,7 +54,6 @@ module mod_atm_interface
   public :: setup_boundaries , setup_model_indexes
 
   real(rk8) , public , pointer , dimension(:,:) :: hgfact
-  real(rk8) , public , pointer , dimension(:,:) :: psdot
   real(rk8) , public , pointer , dimension(:,:,:) :: dstor
   real(rk8) , public , pointer , dimension(:,:,:) :: hstor
   real(rk8) , public , pointer , dimension(:,:) :: ts0 , ts1
@@ -508,6 +507,16 @@ module mod_atm_interface
         call getmem3d(atm%tke,jce1-jl,jce2+jr,ice1-ib,ice2+it, &
                       1,kzp1,'atmstate:tke')
       end if
+      if ( idynamic == 2 ) then
+        call getmem3d(atm%pr,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:pr')
+        call getmem3d(atm%rho,jce1-jl,jce2+jr, &
+                ice1-ib,ice2+it,1,kz,'atmstate:rho')
+        call getmem3d(atm%pp,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:pp')
+        call getmem3d(atm%w,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kzp1,'atmstate:w')
+      else
+        call getmem3d(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
+        call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
+      end if
     end subroutine allocate_atmstate
 
     subroutine allocate_tendiag(dia)
@@ -584,6 +593,10 @@ module mod_atm_interface
                             ice1-ma%ibb1,ice2+ma%ibt1,'surf:psa')
       call getmem2d(sfs%psb,jce1-ma%jbl1,jce2+ma%jbr1, &
                             ice1-ma%ibb1,ice2+ma%ibt1,'surf:psb')
+      call getmem2d(sfs%psdota,jde1-ma%jbl1,jde2+ma%jbr1, &
+                            ide1-ma%ibb1,ide2+ma%ibt1,'surf:psdota')
+      call getmem2d(sfs%psdotb,jde1-ma%jbl1,jde2+ma%jbr1, &
+                            ide1-ma%ibb1,ide2+ma%ibt1,'surf:psdotb')
       call getmem2d(sfs%tga,jci1,jci2,ici1,ici2,'surf:tga')
       call getmem2d(sfs%tgb,jci1,jci2,ici1,ici2,'surf:tgb')
       call getmem2d(sfs%hfx,jci1,jci2,ici1,ici2,'surf:hfx')
@@ -601,11 +614,9 @@ module mod_atm_interface
       implicit none
       type(slice) , intent(out) :: ax
       integer(ik4) , intent(in) :: ibltyp
-      call getmem3d(ax%pb3d,jce1,jce2,ice1,ice2,1,kz,'slice:pb3d')
       call getmem3d(ax%pf3d,jce1,jce2,ice1,ice2,1,kz+1,'slice:pb3d')
       call getmem3d(ax%qsb3d,jce1,jce2,ice1,ice2,1,kz,'slice:qsb3d')
       call getmem3d(ax%rhb3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhb3d')
-      call getmem3d(ax%rhob3d,jce1,jce2,ice1,ice2,1,kz,'slice:rhob3d')
       call getmem3d(ax%thx3d,jce1,jce2,ice1,ice2,1,kz,'slice:thx3d')
       call getmem3d(ax%ubx3d,jce1-ma%jbl2,jce2+ma%jbr2, &
                              ice1-ma%ibb2,ice2+ma%ibt2,1,kz,'slice:ubx3d')
@@ -691,7 +702,6 @@ module mod_atm_interface
       call getmem3d(hstor,jde1,jde2,ide1,ide2,1,nsplit,'storage:hstor')
 
       call getmem2d(hgfact,jde1,jde2,ide1,ide2,'storage:hgfact')
-      call getmem2d(psdot,jde1,jde2,ide1,ide2,'storage:psdot')
       call getmem3d(omega,jci1,jci2,ici1,ici2,1,kz,'storage:omega')
       call getmem3d(qdot,jce1-ma%jbl1,jce2+ma%jbr1, &
                          ice1-ma%ibb1,ice2+ma%ibt1,1,kzp1,'storage:qdot')
@@ -741,6 +751,8 @@ module mod_atm_interface
       call getmem2d(sdelq,jci1,jci2,ici1,ici2,'storage:sdelq')
       call getmem2d(sdelt,jci1,jci2,ici1,ici2,'storage:sdelt')
 
+      call assignpnt(atm2%pr,atms%pb3d)
+      call assignpnt(atm2%rho,atms%rhob3d)
       call getmem2d(zpbl,jci1,jci2,ici1,ici2,'storage:zpbl')
       call getmem2d(kpbl,jci1,jci2,ici1,ici2,'storage:kpbl')
 

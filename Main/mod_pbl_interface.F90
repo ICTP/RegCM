@@ -87,7 +87,7 @@ module mod_pbl_interface
 
     ! INPUT to PBL
     call assignpnt(mddom%coriol,m2p%coriol)
-    call assignpnt(psdot,m2p%psdot)
+    call assignpnt(sfs%psdotb,m2p%psdot)
     call assignpnt(sfs%psb,m2p%psb)
     call assignpnt(sfs%tgb,m2p%tgb)
     call assignpnt(sfs%qfx,m2p%qfx)

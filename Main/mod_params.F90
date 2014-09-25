@@ -102,11 +102,12 @@ module mod_params
     enable_che_vars , dirout , lsync , do_parallel_netcdf_in ,         &
     do_parallel_netcdf_out , idiag
 
-  namelist /physicsparam/ ibltyp , iboudy , isladvec , icup_lnd ,    &
-    icup_ocn , igcc , ipgf , iemiss , lakemod , ipptls , iocnflx ,   &
-    iocncpl , iocnrough , ichem , scenario , idcsst , iseaice ,      &
-    idesseas , iconvlwp , irrtm , iclimao3 , isolconst , icumcloud , &
-    islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval
+  namelist /physicsparam/ idynamic , ifupr , ibltyp , iboudy ,         &
+    isladvec , icup_lnd , icup_ocn , igcc , ipgf , iemiss , lakemod ,  &
+    ipptls , iocnflx , iocncpl , iocnrough , ichem , scenario ,        &
+    idcsst , iseaice , idesseas , iconvlwp , irrtm , iclimao3 ,        &
+    isolconst , icumcloud , islab_ocean , itweak , temp_tend_maxval ,  &
+    wind_tend_maxval
 
   namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
     iceflglw , liqflglw , icld , irng , idrv
@@ -315,6 +316,8 @@ module mod_params
 !----------------------------------------------------------------------
 !-----namelist physicsparam:
 !
+  idynamic = 1
+  ifupr = 1
   ibltyp = 1
   iboudy = 5
   isladvec = 0
@@ -613,6 +616,13 @@ module mod_params
 #endif
     end if
 
+    if ( idynamic /= 1 ) then
+      write(stderr,*) 'Not implemented in this version.'
+      write(stderr,*) 'Please keep the hydrostatic core for now.'
+      write(stderr,*) 'Set IDYNAMIC = 1'
+      call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
+    end if
+
     ! Hack. permanently disable seasonal albedo.
     idesseas = 0
 
@@ -873,6 +883,7 @@ module mod_params
   do_parallel_netcdf_out = .false.
 #endif
 
+  call bcast(idynamic)
   call bcast(iboudy)
   call bcast(isladvec)
   call bcast(ibltyp)
@@ -889,6 +900,10 @@ module mod_params
   call bcast(lakemod)
   call bcast(ichem)
   call bcast(ntr)
+
+  if ( idynamic == 2 ) then
+    call bcast(ifupr)
+  end if
 
   if ( ipptls == 2 ) then
     nqx = 5

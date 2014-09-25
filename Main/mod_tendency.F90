@@ -127,7 +127,9 @@ module mod_tendency
     end do
 
     call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
-    call psc2psd(sfs%psa,psdot)
+    call psc2psd(sfs%psa,sfs%psdota)
+    call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
+    call psc2psd(sfs%psb,sfs%psdotb)
     !
     ! Internal U,V points
     !
@@ -135,8 +137,8 @@ module mod_tendency
       do i = idii1 , idii2
         do j = jdii1 , jdii2
           xmsf = mddom%msfd(j,i)
-          atmx%u(j,i,k) = atm1%u(j,i,k)/(psdot(j,i)*xmsf)
-          atmx%v(j,i,k) = atm1%v(j,i,k)/(psdot(j,i)*xmsf)
+          atmx%u(j,i,k) = atm1%u(j,i,k)/(sfs%psdota(j,i)*xmsf)
+          atmx%v(j,i,k) = atm1%v(j,i,k)/(sfs%psdota(j,i)*xmsf)
         end do
       end do
     end do
@@ -279,7 +281,6 @@ module mod_tendency
 !
 !=======================================================================
 !
-    call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
     if ( isladvec == 1 ) then
       call exchange(atm1%u,4,jde1,jde2,ide1,ide2,1,kz)
       call exchange(atm1%v,4,jde1,jde2,ide1,ide2,1,kz)
@@ -294,7 +295,24 @@ module mod_tendency
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       call exchange(atm1%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
-!
+
+    if ( idynamic == 1 ) then
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atm1%pr(j,i,k) = (hsigma(k)*sfs%psa(j,i) + ptop)*d_1000
+            atm1%rho(j,i,k) = atm1%pr(j,i,k) / (rgas*atmx%t(j,i,k))
+          end do
+        end do
+      end do
+    end if
+    if ( idynamic == 2 ) then
+      call exchange(atm1%pp,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm1%w,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm1%pr,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm1%rho,1,jce1,jce2,ice1,ice2,1,kz)
+    end if
+
     if ( isladvec == 1 ) then
       call exchange(atm2%u,4,jde1,jde2,ide1,ide2,1,kz)
       call exchange(atm2%v,4,jde1,jde2,ide1,ide2,1,kz)
@@ -309,7 +327,24 @@ module mod_tendency
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       call exchange(atm2%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
-!
+
+    if ( idynamic == 1 ) then
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
+            atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)/sfs%psb(j,i))
+          end do
+        end do
+      end do
+    end if
+    if ( idynamic == 2 ) then
+      call exchange(atm2%pr,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm2%rho,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm2%pp,1,jce1,jce2,ice1,ice2,1,kz)
+      call exchange(atm2%w,1,jce1,jce2,ice1,ice2,1,kz)
+    end if
+
     if ( isladvec == 1 ) then
       call exchange(atmx%u,4,jde1,jde2,ide1,ide2,1,kz)
       call exchange(atmx%v,4,jde1,jde2,ide1,ide2,1,kz)
@@ -331,11 +366,6 @@ module mod_tendency
         call exchange(chib,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       end if
     end if
-    !
-    ! Calculate pdot , calculate decoupled variables at B
-    !
-    call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
-    call psc2psd(sfs%psb,psdot)
     !
     ! compute the pressure tendency
     !
@@ -794,11 +824,6 @@ module mod_tendency
     if ( ichem == 1 .and. ichdiag == 1 ) chiten0 = chiten
     ! care : pbl update the difft table at this level
     if ( idiag > 0 ) ten0(jci1:jci2,ici1:ici2,:) = adf%difft
-    if ( ibltyp == 1 .or. ibltyp == 99 ) then
-      ! Call the Holtslag PBL
-      call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
-      call psc2psd(sfs%psb,psdot)
-    end if
     call pblscheme
     if ( ibltyp == 99 ) then
       adf%diffqx(jci1:jci2,ici1:ici2,:,:) = &
@@ -1070,8 +1095,8 @@ module mod_tendency
       end do
     end do
     !
-    call diffu_d(adf%difuu,atms%ubd3d,psdot,mddom%msfd,xkc,1)
-    call diffu_d(adf%difuv,atms%vbd3d,psdot,mddom%msfd,xkc,1)
+    call diffu_d(adf%difuu,atms%ubd3d,sfs%psdotb,mddom%msfd,xkc,1)
+    call diffu_d(adf%difuv,atms%vbd3d,sfs%psdotb,mddom%msfd,xkc,1)
     !
     ! Reset tendencies for U,V
     !
@@ -1592,7 +1617,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ide1, ide2
           do j = jde1 , jde2
-            check_ww = (wten(j,i,k)-mean_ww)/psdot(j,i)
+            check_ww = (wten(j,i,k)-mean_ww)/sfs%psdotb(j,i)
             if ( dabs(check_ww) > wind_tend_maxval ) then
               write(stderr,*) 'After ', loc, ' at ktau = ', ktau
               write(stderr,*) 'WIND tendency out of order : ', check_ww

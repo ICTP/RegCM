@@ -1,0 +1,648 @@
+module mod_sound
+
+  use mod_realkinds
+  use mod_intkinds
+  use mod_dynparam
+  use mod_runparams
+  use mod_constants
+  use mod_stdio
+  use mod_mppparam
+  use mod_atm_interface
+
+  implicit none
+
+  private
+
+  public :: sound
+
+  contains
+
+  subroutine sound(dtl,ktau)
+    implicit none
+
+    real(rk8) , intent(in) :: dtl
+    integer(ik8) , intent(in) :: ktau
+
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: aa
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: b
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: c
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: rhs
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: sigdot
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: wo
+    real(rk8) :: bet , bm , bp , bpxbm , bpxbp , cddtmp ,  cfl , check , &
+      chh , cjtmp , cpm , cs , denom , dppdp0 , dpterm , dts , dtsmax ,  &
+      dx8 , ppold , rho , rho0s , rofac , xgamma , xkd
+    real(rk8) , dimension(jci1:jci2,ici1:ici2) :: astore , estore
+    real(rk8) , dimension(jci1:jci2,ici1:ici2) :: dpsdxm , dpsdym
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ca
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: g1 , g2
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ptend , pxup , pyvp
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: tk
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ucrs , vcrs
+    integer(ik4) :: i , istep , it , j , k , km1 , kp1
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: cc , cdd , cj
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: pi , pp3d
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: qv3d
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) ::t3d
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) ::u3d , v3d
+    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: w3d , e , f
+    !
+    ! Graziano:
+    !
+    ! Variables to implement upper radiative bc, for now disabled.
+    ! Need deeper knowledge of this stuff...
+    !
+    ! real(rk8) :: abar , atot , dxmsfb , ensq , rhon , rhontot , xkeff , &
+    !   xkleff , xleff , xmsfbar , xmsftot
+    ! real(rk8) , dimension(-6:6) :: fi , fj
+    ! real(rk8) , dimension(0:6) :: fk , fl
+    ! real(rk8) , dimension(jci1:jci2,ici1:ici2) :: wpval
+    ! integer(ik4) :: icut , inn , jnn , ll , lp1 , mp1 , npts , nsi , nsj
+    ! real(rk8) , dimension(-6:6,-6:6) :: tmask
+    !
+    ! HT IS G*(TERR. HT.)
+    ! UTENS, VTENS, PPTENS AND WTENS ARE SUPPLIED TO THIS ROUTINE
+    ! UTENS,VTENS=(ADVECTION+CORIOLIS+DIFFUSION)
+    ! TTENS=G*W*(TLP/R/T0-1/CP)+DP`DT/RHO/CP+Q/CP (ADIABATIC+MEAN ADVECT
+    !    DIABATIC)+ADVECTION+DIFFUSION
+    ! PPTENS(I,K)=
+    !   XGAMMA*PR0(I,K)*QQ(I,K)/CP/T0(I,K)(HEATING)
+    !   +ADVECTION+DIFFUSION
+    ! WTENS(I,K)=WTL*G*((T(I,K)-T0(I,K))/T0(I,K)-R/CP*PP3D(I,K)/PR0(I,K)
+    !   - WTU*G*((T(I,K-1)-T0(I,K-1))/T0(I,K-1)-R/CP*PP3D(I,K-1)/PR0(I,
+    !   (BUOYANCY)+ADVECTION+DIFFUSION
+    !   WHERE WTL=(SIGMA(K)-SIGMA(K-1))/(SIGMA(K+1)-SIGMA(K-1))
+    !   WTU=(SIGMA(K+1)-SIGMA(K))/(SIGMA(K+1)-SIGMA(K-1))
+    !   TIME-STEPS(ISTEP)
+    !
+    ! STATEMENT FUNCTIONS USED FOR P AND RHO
+    !   Z0(I,J,K)=-(R*TLP/(2.*G)*(ALOG(PR0(I,J,K)/P0))**2
+    !     -     +R*TS0/G*ALOG(PR0(I,J,K)/P0))
+    ! IF(KTAU.EQ.0)THEN
+    ! BET IS IKAWA BETA PARAMETER (0.=CENTERED, 1.=BACKWARD)
+    !
+    bet = 0.4D0
+    bp = (d_one+bet)*d_half
+    bm = (d_one-bet)*d_half
+    bpxbp = bp*bp
+    bpxbm = bp*bm
+    xkd = 0.1D0
+
+    xgamma = d_one/(d_one-rovcp)
+    dx8 = dx*8.0D0
+    ! CALCULATE SHORT TIME-STEP
+    cs = sqrt(xgamma*rgas*stdt)
+    dtsmax = dx/cs/(d_one+xkd)
+    ! DTL LONG TIME-STEP (XXB-XXC)
+    istep = int(dtl/dtsmax) + 1
+    if ( ktau >= 1 ) istep = max(4,istep)
+    dts = dtl/istep
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        dpsdxm(j,i) = (sfs%psa(j+1,i)-sfs%psa(j-1,i)) / &
+                      (sfs%psa(j,i)*dx8*mddom%msfx(j,i))
+        dpsdym(j,i) = (sfs%psa(j,i+1)-sfs%psa(j,i-1)) / &
+                      (sfs%psa(j,i)*dx8*mddom%msfx(j,i))
+      end do
+    end do
+    !
+    ! CALCULATE THE LOOP BOUNDARIES
+    !
+!    if ( ktau == 0 ) then
+!      write(stdout,*) 'SHORT TIME STEP ' , dts , istep , &
+!                      ' BETA = ' , bet , ' XKD = ' , xkd
+!      do j = -6 , 6
+!        do i = -6 , 6
+!          tmask(i,j) = d_zero
+!        end do
+!      end do
+!      if ( ifupr == 1 ) then
+!        !
+!        ! DEFINE VALUES OF FK, FL, FI & FJ FOR UPPER RADIATIVE BC
+!        !
+!        do i = 1 , 5
+!          fk(i) = d_two
+!          fl(i) = d_two
+!        end do
+!        fk(0) = d_one
+!        fl(0) = d_one
+!        fk(6) = d_one
+!        fl(6) = d_one
+!        do i = -5 , 5
+!          fi(i) = d_one
+!          fj(i) = d_one
+!        end do
+!        fi(-6) = d_half
+!        fj(-6) = d_half
+!        fi(6) = d_half
+!        fj(6) = d_half
+!      end if
+!    end if
+    !
+    !  PREMULTIPLY THE TENDENCY ARRAYS BY DTS
+    !
+    !  CALCULATE INITIAL ARRAYS FOR SHORT TIMESTEP
+    !  XXB STORES FILTERED OLD XXA WITHOUT XXC TERM
+    !  NO ASSELIN FILTER ON BOUNDARY
+    !
+    do k = 1 , kz
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          aten%u(j,i,k) = aten%u(j,i,k)*dts
+          aten%v(j,i,k) = aten%v(j,i,k)*dts
+          u3d(j,i,k) = atm2%u(j,i,k)/sfs%psdota(j,i)
+          v3d(j,i,k) = atm2%v(j,i,k)/sfs%psdota(j,i)
+          atm2%u(j,i,k) = omuhf*atm1%u(j,i,k)/mddom%msfd(j,i) + &
+            gnuhf*atm2%u(j,i,k)
+          atm2%v(j,i,k) = omuhf*atm1%v(j,i,k)/mddom%msfd(j,i) + &
+            gnuhf*atm2%v(j,i,k)
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          aten%pp(j,i,k) = aten%pp(j,i,k)*dts
+          qv3d(j,i,k) = atm1%qx(j,i,k,iqv)/sfs%psa(j,i)
+          pp3d(j,i,k) = atm2%pp(j,i,k)/sfs%psa(j,i)
+          atm2%pp(j,i,k) = omuhf*atm1%pp(j,i,k) + gnuhf*atm2%pp(j,i,k)
+        end do
+      end do
+    end do
+    do k = 1 , kzp1
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          aten%w(j,i,k) = aten%w(j,i,k)*dts
+          w3d(j,i,k) = atm2%w(j,i,k)/sfs%psa(j,i)
+          atm2%w(j,i,k) = omuhf*atm1%w(j,i,k) + gnuhf*atm2%w(j,i,k)
+        end do
+      end do
+    end do
+    !
+    ! Time Step loop
+    !
+    do it = 1 , istep
+      if ( it /= 1 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              pp3d(j,i,k) = pp3d(j,i,k) + xkd*pi(j,i,k)
+            end do
+          end do
+        end do
+      end if
+      do k = 1 , kz
+        kp1 = min(kz,k+1)
+        km1 = max(1,k-1)
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            t3d(j,i,k) = (pp3d(j,i,km1)-pp3d(j,i,kp1)) / &
+                         (atm1%pr(j,i,km1)-atm1%pr(j,i,kp1))
+          end do
+        end do
+      end do
+      !
+      ! ADVANCE U AND V
+      !
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            ! PREDICT U AND V
+            rho = d_rfour * (atm2%rho(j,i,k) + atm2%rho(j,i-1,k) + &
+                             atm2%rho(j-1,i,k) + atm2%rho(j-1,i-1,k))
+            dppdp0 = d_rfour * (t3d(j,i,k) + t3d(j,i-1,k) + &
+                                t3d(j-1,i,k) + t3d(j-1,i-1,k))
+            ! DIVIDE BY MAP SCALE FACTOR
+            chh = d_half * dts / (rho*dx) / mddom%msfd(j,i)
+            u3d(j,i,k) = u3d(j,i,k) - &
+                      chh * (pp3d(j,i,k) - pp3d(j,i-1,k) + &
+                             pp3d(j-1,i,k) - pp3d(j-1,i-1,k) - &
+                      ( atm1%pr(j,i,k) - atm1%pr(j,i-1,k) + &
+                        atm1%pr(j-1,i,k) - atm1%pr(j-1,i-1,k)) * dppdp0)
+            v3d(j,i,k) = v3d(j,i,k) - &
+                      chh * (pp3d(j,i,k) - pp3d(j-1,i,k) + &
+                             pp3d(j,i-1,k) - pp3d(j-1,i-1,k) - &
+                      ( atm1%pr(j,i,k) - atm1%pr(j-1,i,k) + &
+                        atm1%pr(j,i-1,k) - atm1%pr(j-1,i-1,k))*dppdp0)
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            u3d(i,j,k) = u3d(i,j,k) + aten%u(i,j,k)
+            v3d(i,j,k) = v3d(i,j,k) + aten%v(i,j,k)
+          end do
+        end do
+      end do
+      if ( it /= 1 ) then
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              pp3d(j,i,k) = pp3d(j,i,k) - xkd*pi(j,i,k)
+            end do
+          end do
+        end do
+      end if
+      !
+      !  SEMI-IMPLICIT SOLUTION FOR W AND P
+      !
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            wo(j,i,k) = w3d(j,i,k)
+          end do
+        end do
+      end do
+      !
+      ! VERTICAL BOUNDARY CONDITIONS, W=V.DH/DY AT BOTTOM, LID AT TOP
+      !
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          w3d(j,i,kzp1) = d_rfour * ((v3d(j+1,i,kz) + v3d(j,i,kz) +          &
+                                      v3d(j+1,i+1,kz) + v3d(j,i+1,kz)) *     &
+                                     ( mddom%ht(j+1,i) - mddom%ht(j-1,i) ) + &
+                                     (u3d(j+1,i,kz) + u3d(j,i,kz) +          &
+                                      u3d(j+1,i+1,kz) + u3d(j,i+1,kz)) *     &
+                                     ( mddom%ht(j,i+1) - mddom%ht(j,i-1))) / &
+                           ( d_two * dx * mddom%msfx(j,i) * egrav )
+          e(j,i,kz) = d_zero
+          f(j,i,kz) = w3d(j,i,kzp1)
+          cc(j,i,1) = xgamma * atm2%pr(j,i,1) * dts/ (dx*mddom%msfx(j,i))
+          cdd(j,i,1) = xgamma * atm2%pr(j,i,1) * atm1%rho(j,i,1) * &
+                       egrav * dts / (sfs%psa(j,i)*dsigma(1))
+          cj(j,i,1) = atm1%rho(j,i,1) * egrav * dts / d_two
+          pxup(j,i,1) = 0.0625D0 *                              &
+                      ( atm1%pr(j,i+1,1) - atm1%pr(j,i-1,1) ) * &
+                      ( u3d(j,i,1) + u3d(j+1,i,1) +             &
+                        u3d(j,i+1,1) + u3d(j+1,i+1,1) -         &
+                        u3d(j,i,2) - u3d(j+1,i,2) -             &
+                        u3d(j,i+1,2) - u3d(j+1,i+1,2) ) /       &
+                      ( atm1%pr(j,i,1) - atm1%pr(j,i,2))
+          pyvp(j,i,1) = 0.0625D0 *                              &
+                      ( atm1%pr(j+1,i,1) - atm1%pr(j-1,i,1) ) * &
+                      ( v3d(j,i,1) + v3d(j+1,i,1) +             &
+                        v3d(j,i+1,1) + v3d(j+1,i+1,1) -         &
+                        v3d(j,i,2) - v3d(j+1,i,2) -             &
+                        v3d(j,i+1,2) - v3d(j+1,i+1,2) ) /       &
+                      ( atm1%pr(j,i,1) - atm1%pr(j,i,2) )
+          !
+          ! ZERO GRADIENT (FREE SLIP) B.C.S ON V AT TOP AND BOTTOM
+          !
+          ptend(j,i,1) = aten%pp(j,i,1) - d_half * cc(j,i,1) *      &
+                       ( ( v3d(j+1,i,1) * mddom%msfd(j+1,i) -       &
+                           v3d(j,i,1) * mddom%msfd(j,i) +           &
+                           v3d(j+1,i+1,1) * mddom%msfd(j+1,i+1) -   &
+                           v3d(j,i+1,1) * mddom%msfd(j,i+1) +       &
+                           u3d(j,i+1,1) * mddom%msfd(j,i+1) -       &
+                           u3d(j,i,1) * mddom%msfd(j,i) +           &
+                           u3d(j+1,i+1,1) * mddom%msfd(j+1,i+1) -   &
+                           u3d(j+1,i,1) * mddom%msfd(j+1,i) ) /     &
+                       mddom%msfx(j,i) - d_two * (pyvp(j,i,1) + pxup(j,i,1)) )
+          tk(j,i,1) = sfs%psa(j,i) * atm1%t(j,i,1) / &
+                      (d_two * xgamma * atm1%pr(j,i,1) * &
+                      atm2%t(j,i,1) / sfs%psa(j,i))
+        end do
+      end do
+      do k = 2 , kz
+        kp1 = k + 1
+        km1 = k - 1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            tk(j,i,k) = sfs%psa(j,i) * atm1%t(j,i,k) / &
+                        (d_two * xgamma * atm1%pr(j,i,k) * &
+                        atm2%t(j,i,k) / sfs%psa(j,i))
+            rofac = (dsigma(k-1)*atm1%rho(j,i,k) + &
+                     dsigma(k)*atm1%rho(j,i,k-1)) / &
+                    (dsigma(k-1)*atm2%rho(j,i,k) + &
+                     dsigma(k)*atm2%rho(j,i,k-1))
+            !
+            ! SET FACTORS FOR DIFFERENCING
+            !
+            cc(j,i,k) = xgamma * atm2%pr(j,i,k) * dts / (dx*mddom%msfx(j,i))
+            cdd(j,i,k) = xgamma * atm2%pr(j,i,k) * atm1%rho(j,i,k) * &
+                         egrav * dts / (sfs%psa(j,i)*dsigma(k))
+            cj(j,i,k) = atm1%rho(j,i,k) * egrav * dts/d_two
+            ca(j,i,k) = egrav * dts / (atm1%pr(j,i,k)-atm1%pr(j,i,km1)) * rofac
+            g1(j,i,k) = d_one - dsigma(km1) * tk(j,i,k)
+            g2(j,i,k) = d_one + dsigma(k) * tk(j,i,km1)
+            !
+            ! IMPLICIT W EQUATION COEFFICIENT ARRAYS AND RHS (IKAWA METHOD)
+            !
+            c(j,i,k) = -ca(j,i,k) * (cdd(j,i,k-1)-cj(j,i,k-1))*g2(j,i,k)*bpxbp
+            b(j,i,k) = d_one + ca(j,i,k) * ( g1(j,i,k) *      &
+                       (cdd(j,i,k) - cj(j,i,k)) + g2(j,i,k) * &
+                       (cdd(j,i,k-1) + cj(j,i,k-1)) ) * bpxbp
+            aa(j,i,k) = -ca(j,i,k) * (cdd(j,i,k)+cj(j,i,k))*g1(j,i,k)*bpxbp
+            pyvp(j,i,k) = 0.125D0 * (atm1%pr(j+1,i,k) - atm1%pr(j-1,i,k)) * &
+                          ( v3d(j,i,km1) + v3d(j+1,i,km1) +         &
+                            v3d(j,i+1,km1) + v3d(j+1,i+1,km1) -     &
+                            v3d(j,i,kp1) - v3d(j+1,i,kp1) -         &
+                            v3d(j,i+1,kp1) - v3d(j+1,i+1,kp1) ) /   &
+                          ( atm1%pr(j,i,km1) - atm1%pr(j,i,kp1) )
+            pxup(j,i,k) = 0.125D0 * (atm1%pr(j,i+1,k) - atm1%pr(j,i-1,k)) * &
+                          ( u3d(j,i,km1) + u3d(j+1,i,km1) +         &
+                            u3d(j,i+1,km1) + u3d(j+1,i+1,km1) -     &
+                            u3d(j,i,kp1) - u3d(j+1,i,kp1) -         &
+                            u3d(j,i+1,kp1) - u3d(j+1,i+1,kp1) ) /   &
+                          ( atm1%pr(j,i,km1) - atm1%pr(j,i,kp1) )
+          end do
+        end do
+      end do
+      !
+      ! ZERO GRADIENT (FREE SLIP) B.C.S ON V AT TOP AND BOTTOM
+      !
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          pyvp(j,i,kz) = pyvp(j,i,kz)*d_half
+          pxup(j,i,kz) = pxup(j,i,kz)*d_half
+        end do
+      end do
+      do k = 2 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ptend(j,i,k) = aten%pp(j,i,k) - d_half * cc(j,i,k) *      &
+                           ( (v3d(j+1,i,k) * mddom%msfd(j+1,i) -      &
+                              v3d(j,i,k) * mddom%msfd(j,i) +          &
+                              v3d(j+1,i+1,k) * mddom%msfd(j+1,i+1) -  &
+                              v3d(j,i+1,k) * mddom%msfd(j,i+1) +      &
+                              u3d(j,i+1,k) * mddom%msfd(j,i+1) -      &
+                              u3d(j,i,k) * mddom%msfd(j,i) +          &
+                              u3d(j+1,i+1,k) * mddom%msfd(j+1,i+1) -  &
+                              u3d(j+1,i,k) * mddom%msfd(j+1,i) ) /    &
+                          mddom%msfx(i,j) - &
+                          d_two*( pyvp(j,i,k) + pxup(j,i,k) ) )
+            rhs(j,i,k) = w3d(j,i,k) + aten%w(j,i,k) + ca(j,i,k) * ( bpxbm *   &
+                       ( (cdd(j,i,k-1) - cj(j,i,k-1))*g2(j,i,k)*wo(j,i,k-1) - &
+                        ( (cdd(j,i,k-1) + cj(j,i,k-1))*g2(j,i,k) +            &
+                          (cdd(j,i,k) - cj(j,i,k))*g1(j,i,k) ) * wo(j,i,k) +  &
+                          (cdd(j,i,k) + cj(j,i,k))*g1(j,i,k)*wo(j,i,k+1) ) +  &
+                       ( pp3d(j,i,k) * g1(j,i,k) -                            &
+                         pp3d(j,i,k-1) * g2(j,i,k) ) +                        &
+                       ( g1(j,i,k)*ptend(j,i,k) -                             &
+                         g2(j,i,k)*ptend(j,i,k-1) ) *bp )
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            pi(j,i,k) = pp3d(j,i,k)
+            pp3d(j,i,k) = pp3d(j,i,k) + ptend(j,i,k) +              &
+                          ( cj(j,i,k) * (wo(j,i,k+1) + wo(j,i,k)) + &
+                            cdd(j,i,k) * (wo(j,i,k+1) - wo(j,i,k)) ) * bm
+          end do
+        end do
+      end do
+      !
+      ! UPWARD CALCULATION OF COEFFICIENTS
+      !
+      do k = kz , 2 , -1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            denom = aa(j,i,k)*e(j,i,k) + b(j,i,k)
+            e(j,i,k-1) = -c(j,i,k) / denom
+            f(j,i,k-1) = (rhs(j,i,k) - f(j,i,k)*aa(j,i,k)) / denom
+          end do
+        end do
+      end do
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          denom = (cdd(j,i,1)+cj(j,i,1))*bp
+          estore(j,i) = pp3d(j,i,1) + f(j,i,1)*denom
+          astore(j,i) = denom*e(j,i,1) + (cj(j,i,1)-cdd(j,i,1))*bp
+        end do
+      end do
+      !
+      ! IF FIRST TIME THROUGH AND UPPER RADIATION B.C`S ARE USED
+      ! NEED TO CALC SOME COEFFICIENTS
+      !
+!      if ( ifupr == 1 .and. ktau == 0 .and. it == 1 ) then
+!        ! CALCULATING MEANS FOR UP. RAD. B.C.
+!        atot = d_zero
+!        rhontot = d_zero
+!        xmsftot = d_zero
+!        npts = 0
+!        do i = ici1 , ici2
+!          do j = jci1 , jci2
+!            atot = atot + astore(j,i)
+!            ensq = egrav*egrav/cpd/(atm2%t(j,i,1)/sfs%psa(j,i))
+!            rhontot = rhontot + atm2%rho(j,i,1)*sqrt(ensq)
+!            xmsftot = xmsftot + mddom%msfx(j,i)
+!          end do
+!        end do
+!        npts = (jci2-jci1+1)*(ici2-ici1+1)
+!        abar = atot/npts
+!        rhon = rhontot/npts
+!        xmsfbar = xmsftot/npts
+!        dxmsfb = d_two/dx/xmsfbar
+!        do ll = 0 , 6
+!          do k = 0 , 6
+!            xkeff = dxmsfb * sin(mathpi*k/12.0D0)*cos(mathpi*ll/12.0D0)
+!            xleff = dxmsfb * sin(mathpi*ll/12.0D0)*cos(mathpi*k/12.0D0)
+!            xkleff = sqrt(xkeff*xkeff + xleff*xleff)
+!            do j = -6 , 6
+!              do i = -6 , 6
+!                tmask(j,i) = tmask(j,i) + &
+!                             fi(i)*fj(j)*fk(k)*fl(ll)/144.0D0 * &
+!                             cos(2.0D0*mathpi*k*i/12.0D0) *     &
+!                             cos(2.0D0*mathpi*ll*j/12.0D0) *    &
+!                             xkleff / (rhon-abar*xkleff)
+!              end do
+!            end do
+!          end do
+!        end do
+!      end if
+      !
+      !  FINISHED INITIAL COEFFICIENT COMPUTE
+      !  NOW DO DOWNWARD SWEEP FOR W
+      !
+      ! FIRST, SET UPPER BOUNDARY CONDITION, EITHER W=0 OR RADIATION
+      !
+!      do i = ici1 , ici2
+!        do j = jci1 , jci2
+!          wpval(j,i) = d_zero
+!        end do
+!      end do
+!      if ( ifupr == 1 ) then
+!        !
+!        ! APPLY UPPER RAD COND. NO W3D(TOP) IN LATERAL SPONGE
+!        !
+!        do i = ici1+3 , ici2-3
+!          inn = insi(i,nsi)
+!          do j = jci1+3 , jci2-3
+!            do nsj = -6 , 6
+!              jnn = jnsj(j,nsj)
+!              do nsi = -6 , 6
+!                wpval(j,i) = wpval(j,i) + &
+!                      estore(inn,jnn)*tmask(nsi,nsj)*wtij(j,i)
+!              end do
+!            end do
+!          end do
+!        end do
+!      end if
+!      !
+!      ! FINISHED CALC OF RADIATION W
+!      !
+!      do i = ici1 , ici2
+!        do j = jci1 , jci2
+!          w3d(j,i,1) = wpval(j,i)
+!        end do
+!      end do
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          w3d(j,i,1) = d_zero
+        end do
+      end do
+      !
+      ! DOWNWARD CALCULATION OF W
+      !
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            w3d(j,i,k+1) = e(j,i,k)*w3d(j,i,k) + f(j,i,k)
+            !
+            ! --- CALCULATE WIND AT CROSS POINT
+            !
+            ucrs(j,i,k) = u3d(j,i,k) + u3d(j+1,i,k) + &
+                          u3d(j,i+1,k) + u3d(j+1,i+1,k)
+            vcrs(j,i,k) = v3d(j,i,k) + v3d(j+1,i,k) + &
+                          v3d(j,i+1,k) + v3d(j+1,i+1,k)
+          end do
+        end do
+      end do
+      cfl = d_zero
+      do k = kz , 2 , -1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            rho0s = twt(k,1)*atm1%rho(j,i,k) + twt(k,2)*atm1%rho(j,i,k-1)
+            sigdot(j,i,k) = -rho0s * egrav * w3d(j,i,k) /                &
+                            sfs%psa(j,i)*0.001D0 - sigma(k) *            &
+                            ( dpsdxm(j,i) * ( twt(k,1)*ucrs(j,i,k) +     &
+                                              twt(k,2)*ucrs(j,i,k-1) ) + &
+                              dpsdym(j,i) * ( twt(k,1)*vcrs(j,i,k) +     &
+                                              twt(k,2)*vcrs(j,i,k-1) ) )
+            check = abs(sigdot(j,i,k)) * dtl / (dsigma(k) + dsigma(k-1))
+            cfl = max(check,cfl)
+          end do
+        end do
+      end do
+      if ( cfl > d_one ) then
+        do k = kz , 2 , -1
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              cfl = abs(sigdot(j,i,k)) * dtl / (dsigma(k)+dsigma(k-1))
+              if ( cfl > d_one ) then
+                write(stderr,99003) cfl , w3d(j,i,k) , i , j , k
+    99003       format ('CFL>1: CFL = ',f7.4,' W = ',f8.4,'  I = ',i5, &
+                        '  J = ',i5,'  K = ',i5,'  INEST = ',i3)
+              end if
+            end do
+          end do
+        end do
+      end if
+      !
+      ! NOW COMPUTE THE NEW PRESSURE
+      !
+      do k =  1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            ppold = pi(j,i,k)
+            cddtmp = xgamma * atm2%pr(j,i,k) * atm1%rho(j,i,k) * &
+                     egrav * dts / (sfs%psa(j,i)*dsigma(k))
+            cjtmp = atm1%rho(j,i,k) * egrav * dts/d_two
+            pp3d(j,i,k) = pp3d(j,i,k) + &
+                          ( cjtmp * (w3d(j,i,k+1) + w3d(j,i,k)) + &
+                            cddtmp * (w3d(j,i,k+1) - w3d(j,i,k)) )*bp
+            pi(j,i,k) = pp3d(j,i,k) - ppold - aten%pp(j,i,k)
+            !
+            ! COMPUTE PRESSURE DP`/DT CORRECTION TO THE TEMPERATURE
+            !
+            cpm = cpd * (d_one + 0.8D0*qv3d(j,i,k))
+            dpterm = sfs%psa(j,i)*(pp3d(j,i,k)-ppold) / (cpm*atm2%rho(j,i,k))
+            atm2%t(j,i,k) = atm2%t(j,i,k) + gnuhf*dpterm
+            atm1%t(j,i,k) = atm1%t(j,i,k) + dpterm
+          end do
+        end do
+      end do
+      !
+      ! ZERO GRADIENT CONDITIONS ON W,  SPECIFIED ON PP
+      !
+      do k =  1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            pp3d(j,i,k) = pp3d(j,i,k) + aten%pp(j,i,k)
+          end do
+        end do
+      end do
+      do k =  1 , kzp1
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            w3d(j,i,k) = w3d(j,i,k) + aten%w(j,i,k)
+          end do
+        end do
+      end do
+      if ( ma%has_bdyleft ) then
+        do k = 1 , kzp1
+          do i = ice1 , ice2
+            w3d(jce1,i,k) = w3d(jci1,i,k)
+          end do
+        end do
+      end if
+      if ( ma%has_bdyright ) then
+        do k = 1 , kzp1
+          do i = ice1 , ice2
+            w3d(jce2,j,k) = w3d(jci2,j,k)
+          end do
+        end do
+      end if
+      if ( ma%has_bdybottom ) then
+        do k = 1 , kzp1
+          do j = jce1 , jce2
+            w3d(j,ice1,k) = w3d(j,ici1,k)
+          end do
+        end do
+      end if
+      if ( ma%has_bdytop ) then
+        do k = 1 , kzp1
+          do j = jce1 , jce2
+            w3d(j,ice2,k) = w3d(j,ici2,k)
+          end do
+        end do
+      end if
+      ! END OF TIME LOOP
+    end do
+    !
+    !     TRANSFER XXA TO XXB, NEW VALUES TO XXA AND APPLY TIME FILTER
+    !
+    do k = 1 , kz
+      do i = idi1 , idi1
+        do j = jdi1 , jdi1
+          atm1%u(j,i,k) = sfs%psdotb(j,i)*u3d(j,i,k)
+          atm1%v(j,i,k) = sfs%psdotb(j,i)*v3d(j,i,k)
+          atm2%u(j,i,k) = atm2%u(j,i,k) + gnuhf*atm1%u(j,i,k)
+          atm2%v(j,i,k) = atm2%v(j,i,k) + gnuhf*atm1%v(j,i,k)
+        end do
+      end do
+    end do
+    do k = 1 , kz
+      do i = ici1 , ici1
+        do j = jci1 , jci1
+          atm1%pp(j,i,k) = sfs%psa(j,i)*pp3d(j,i,k)
+          atm2%pp(j,i,k) = atm2%pp(j,i,k) + gnuhf*atm1%pp(j,i,k)
+        end do
+      end do
+    end do
+    do k = 1 , kzp1
+      do i = ici1 , ici1
+        do j = jci1 , jci1
+          atm1%w(j,i,k) = sfs%psa(j,i)*w3d(j,i,k)
+          atm2%w(j,i,k) = atm2%w(j,i,k) + gnuhf*atm1%w(j,i,k)
+        end do
+      end do
+    end do
+  end subroutine sound
+
+end module mod_sound
+
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

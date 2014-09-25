@@ -118,6 +118,10 @@ module mod_runparams
   integer(ik4) , public :: isladvec
   ! Convective LWP scheme
   integer(ik4) , public :: iconvlwp
+  ! Dynamical core
+  integer(ik4) , public :: idynamic
+  ! Upper radiative BC for non-hydrostatic core
+  integer(ik4) , public :: ifupr
 
   character(len=8) , public :: scenario
 

@@ -63,6 +63,7 @@ module mod_bdycod
                                          sve , svi , nve , nvi
   real(rk8) , pointer , dimension(:,:) :: wue , wui , eue , eui , &
                                          wve , wvi , eve , evi
+  real(rk8) , pointer , dimension(:,:) :: psdot
   real(rk8) , pointer , dimension(:) :: fcx , gcx
   real(rk8) , pointer , dimension(:) :: fcd , gcd
   real(rk8) , pointer , dimension(:) :: lfc , lgc
@@ -126,6 +127,7 @@ module mod_bdycod
       call getmem2d(wve,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wve')
       call getmem2d(wvi,ide1-ma%ibb1,ide2+ma%ibt1,1,kz,'bdycon:wvi')
     end if
+    call getmem2d(psdot,jde1,jde2,ide1,ide2,'bdycon:psdot')
   end subroutine allocate_mod_bdycon
 !
   subroutine setup_bdycon(hlev)
@@ -338,7 +340,7 @@ module mod_bdycod
     end do
     call exchange(xub%b1,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange(xvb%b1,1,jde1,jde2,ide1,ide2,1,kz)
-!
+
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -698,16 +700,16 @@ module mod_bdycod
       if ( ma%has_bdyleft ) then
         do k = 1 , kz
           do i = idi1 , idi2
-            wue(i,k) = (xub%b0(jde1,i,k)+dtb*xub%bt(jde1,i,k))/psdot(jde1,i)
-            wve(i,k) = (xvb%b0(jde1,i,k)+dtb*xvb%bt(jde1,i,k))/psdot(jde1,i)
+            wue(i,k) = (xub%b0(jde1,i,k) + dtb*xub%bt(jde1,i,k))/psdot(jde1,i)
+            wve(i,k) = (xvb%b0(jde1,i,k) + dtb*xvb%bt(jde1,i,k))/psdot(jde1,i)
           end do
         end do
       end if
       if ( ma%has_bdyright ) then
         do k = 1 , kz
           do i = idi1 , idi2
-            eue(i,k) = (xub%b0(jde2,i,k)+dtb*xub%bt(jde2,i,k))/psdot(jde2,i)
-            eve(i,k) = (xvb%b0(jde2,i,k)+dtb*xvb%bt(jde2,i,k))/psdot(jde2,i)
+            eue(i,k) = (xub%b0(jde2,i,k) + dtb*xub%bt(jde2,i,k))/psdot(jde2,i)
+            eve(i,k) = (xvb%b0(jde2,i,k) + dtb*xvb%bt(jde2,i,k))/psdot(jde2,i)
           end do
         end do
       end if
@@ -717,16 +719,16 @@ module mod_bdycod
       if ( ma%has_bdybottom ) then
         do k = 1 , kz
           do j = jde1 , jde2
-            sue(j,k) = (xub%b0(j,ide1,k)+dtb*xub%bt(j,ide1,k))/psdot(j,ide1)
-            sve(j,k) = (xvb%b0(j,ide1,k)+dtb*xvb%bt(j,ide1,k))/psdot(j,ide1)
+            sue(j,k) = (xub%b0(j,ide1,k) + dtb*xub%bt(j,ide1,k))/psdot(j,ide1)
+            sve(j,k) = (xvb%b0(j,ide1,k) + dtb*xvb%bt(j,ide1,k))/psdot(j,ide1)
           end do
         end do
       end if
       if ( ma%has_bdytop ) then
         do k = 1 , kz
           do j = jde1 , jde2
-            nue(j,k) = (xub%b0(j,ide2,k)+dtb*xub%bt(j,ide2,k))/psdot(j,ide2)
-            nve(j,k) = (xvb%b0(j,ide2,k)+dtb*xvb%bt(j,ide2,k))/psdot(j,ide2)
+            nue(j,k) = (xub%b0(j,ide2,k) + dtb*xub%bt(j,ide2,k))/psdot(j,ide2)
+            nve(j,k) = (xvb%b0(j,ide2,k) + dtb*xvb%bt(j,ide2,k))/psdot(j,ide2)
           end do
         end do
       end if

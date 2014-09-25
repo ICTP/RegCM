@@ -52,6 +52,12 @@ module mod_message
     module procedure die4
   end interface die
 
+  interface myabort
+    subroutine myabort( )
+      implicit none
+    end subroutine myabort
+  end interface myabort
+
   contains
 
   subroutine setup_mesg(ipid)
@@ -64,14 +70,14 @@ module mod_message
     implicit none
     if ( iprank == 0 ) write (stdout,*) trim(aline)
   end subroutine say
- 
+
   subroutine note
     implicit none
     write (aline,*) '------------------ NOTICE -----------------'
     write (stderr,*) ' Processor ' , iprank , ' : ' , trim(aline)
     write (aline,*) '-------------------------------------------'
   end subroutine note
- 
+
   subroutine cry
     implicit none
     if ( iprank == 0 ) then
@@ -80,7 +86,7 @@ module mod_message
       write (aline,*) '-------------------------------------------'
     end if
   end subroutine cry
- 
+
   subroutine fatal(filename,line,str)
     implicit none
     character(*) , intent(in) :: filename , str
@@ -110,7 +116,6 @@ module mod_message
   subroutine die0(msg)
     implicit none
     character (len=*) , intent(in) :: msg
-    external :: myabort
     if ( iprank == 0 ) write (stderr,*) msg
     call myabort
   end subroutine die0
@@ -118,7 +123,6 @@ module mod_message
   subroutine die1(msg,msg1)
     implicit none
     character (len=*) , intent(in) :: msg , msg1
-    external :: myabort
     if ( iprank == 0 ) write (stderr,*) msg , ' : ', msg1
     call myabort
   end subroutine die1
@@ -127,7 +131,6 @@ module mod_message
     implicit none
     character (len=*) , intent(in) :: msg , msg1
     integer(ik4) , intent(in) :: ier1
-    external :: myabort
     if ( iprank == 0 ) write (stderr,*) msg , ' : ', msg1 , ': ', ier1
     call myabort
   end subroutine die2
@@ -136,7 +139,6 @@ module mod_message
     implicit none
     character (len=*) , intent(in) :: msg , msg1 , msg2
     integer(ik4) , intent(in) :: ier1 , ier2
-    external :: myabort
     if ( iprank == 0 ) write (stderr,*) msg , ' : ', msg1 , &
                            ': ', ier1 , ' : ', msg2 , ': ', ier2
     call myabort
