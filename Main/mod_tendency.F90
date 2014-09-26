@@ -58,7 +58,7 @@ module mod_tendency
   real(rk8) , pointer , dimension(:,:,:) :: ps4
   real(rk8) , pointer , dimension(:,:,:) :: ps_4
   real(rk8) , pointer , dimension(:,:) :: psc , pten
-  real(rk8) , pointer , dimension(:,:) :: dummy
+  real(rk8) , pointer , dimension(:,:) :: dummy , rpsa , rpsb
 
 #ifdef DEBUG
   real(rk8) , pointer , dimension(:,:,:) :: wten
@@ -70,7 +70,6 @@ module mod_tendency
 
   subroutine allocate_mod_tend
     implicit none
-
     call getmem3d(ps_4,jcross1,jcross2,icross1,icross2,1,4,'tendency:ps_4')
     call getmem3d(divl,jce1,jce2,ice1,ice2,1,kz,'tendency:divl')
     call getmem3d(ttld,jce1,jce2,ice1,ice2,1,kz,'tend:ttld')
@@ -81,6 +80,8 @@ module mod_tendency
     call getmem2d(psc,jce1,jce2,ice1,ice2,'tendency:psc')
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
     call getmem2d(dummy,jde1,jde2,ide1,ide2,'tendency:dummy')
+    call getmem2d(rpsa,jde1,jde2,ide1,ide2,'tendency:rpsa')
+    call getmem2d(rpsb,jde1,jde2,ide1,ide2,'tendency:rpsb')
     call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
     if ( idiag > 0 ) then
       call getmem3d(ten0,jce1,jce2,ice1,ice2,1,kz,'tendency:ten0')
@@ -91,17 +92,16 @@ module mod_tendency
 #endif
     rptn = d_one/dble((jout2-jout1+1)*(iout2-iout1+1))
   end subroutine allocate_mod_tend
-!
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!                                                                     c
-! This subroutine computes the tendencies of the prognostic           c
-! variables p*, u, v, and t.                                          c
-!                                                                     c
-!cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
-!
+  !
+  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !                                                                     c
+  ! This subroutine computes the tendencies of the prognostic           c
+  ! variables p*, u, v, and t.                                          c
+  !                                                                     c
+  !cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+  !
   subroutine tend
     implicit none
-!
     real(rk8) :: cell , chias , chibs , dudx , dudy , dvdx , dvdy ,  &
                psasum , pt2bar , pt2tot , ptnbar , maxv , lowq ,     &
                ptntot , qxas , qxbs , rovcpm , rtbar , sigpsa , tv , &
@@ -120,6 +120,16 @@ module mod_tendency
     !
     call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
     call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        rpsa(j,i) = d_one/sfs%psa(j,i)
+      end do
+    end do
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        rpsb(j,i) = d_one/sfs%psb(j,i)
+      end do
+    end do
 
     call psc2psd(sfs%psa,sfs%psdota)
     call psc2psd(sfs%psb,sfs%psdotb)
@@ -250,20 +260,12 @@ module mod_tendency
       end if
     end if
     !
-    ! Helper
-    !
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        dummy(j,i) = d_one/sfs%psa(j,i)
-      end do
-    end do
-    !
     ! T , QV , QC
     !
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atmx%t(j,i,k) = atm1%t(j,i,k)*dummy(j,i)
+          atmx%t(j,i,k) = atm1%t(j,i,k)*rpsa(j,i)
         end do
       end do
     end do
@@ -271,7 +273,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            atmx%qx(j,i,k,n) = atm1%qx(j,i,k,n)*dummy(j,i)
+            atmx%qx(j,i,k,n) = atm1%qx(j,i,k,n)*rpsa(j,i)
           end do
         end do
       end do
@@ -284,7 +286,7 @@ module mod_tendency
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              chi(j,i,k,n) = chia(j,i,k,n)*dummy(j,i)
+              chi(j,i,k,n) = chia(j,i,k,n)*rpsa(j,i)
             end do
           end do
         end do
@@ -358,7 +360,7 @@ module mod_tendency
         do i = ice1 , ice2
           do j = jce1 , jce2
             atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
-            atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)/sfs%psb(j,i))
+            atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)*rpsb(j,i))
           end do
         end do
       end do
@@ -381,7 +383,7 @@ module mod_tendency
       call exchange(atmx%t,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atmx%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
     end if
-!
+
     if ( ichem == 1 ) then
       if ( isladvec == 1 ) then
         call exchange(chi,4,jce1,jce2,ice1,ice2,1,kz,1,ntr)
@@ -395,24 +397,23 @@ module mod_tendency
     !
     ! Compute map factor for ahead and cross point velocities
     !
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        dummy(j,i) = d_one/(dx2*mddom%msfx(j,i)*mddom%msfx(j,i))
-      end do
-    end do
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
           atms%ubx3d(j,i,k) = d_rfour*             &
               (atm2%u(j,i,k)   + atm2%u(j,i+1,k) + &
-               atm2%u(j+1,i,k) + atm2%u(j+1,i+1,k)) / sfs%psb(j,i)
+               atm2%u(j+1,i,k) + atm2%u(j+1,i+1,k)) * rpsa(j,i)
           atms%vbx3d(j,i,k) = d_rfour*             &
               (atm2%v(j,i,k)   + atm2%v(j,i+1,k) + &
-               atm2%v(j+1,i,k) + atm2%v(j+1,i+1,k)) / sfs%psb(j,i)
+               atm2%v(j+1,i,k) + atm2%v(j+1,i+1,k)) * rpsa(j,i)
         end do
       end do
     end do
-
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        dummy(j,i) = d_one/(dx2*mddom%msfx(j,i)*mddom%msfx(j,i))
+      end do
+    end do
     !
     ! compute vertical sigma-velocity (qdot):
     !
@@ -437,7 +438,7 @@ module mod_tendency
         do i = ice1 , ice2
           do j = jce1 , jce2
             qdot(j,i,k) = qdot(j,i,k-1) - (pten(j,i) + &
-              divl(j,i,k-1)*dummy(j,i)) * dsigma(k-1)/sfs%psa(j,i)
+              divl(j,i,k-1)*dummy(j,i)) * dsigma(k-1) * rpsa(j,i)
            end do
         end do
       end do
@@ -446,8 +447,7 @@ module mod_tendency
         do i = ice1 , ice2
           do j = jce1 , jce2
             rho0s = twt(k,1)*atm1%rho(j,i,k)+twt(k,2)*atm1%rho(j,i,k-1)
-            qdot(j,i,k) = -rho0s * egrav * &
-              atm1%w(j,i,k) / sfs%psa(j,i) * 0.001 -                     &
+            qdot(j,i,k) = -rho0s*egrav*atm1%w(j,i,k)*rpsa(j,i) * 0.001 - &
               sigma(k) * (dpsdxm(j,i) * (twt(k,1)*atms%ubx3d(j,i,k) +    &
                                          twt(k,2)*atms%ubx3d(j,i,k-1)) + &
                           dpsdym(j,i) * (twt(k,1)*atms%vbx3d(j,i,k) +    &
@@ -666,7 +666,7 @@ module mod_tendency
             rovcpm = rgas/(cpd*(d_one+0.8D0*(atmx%qx(j,i,k,iqv))))
             tv = atmx%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
             aten%t(j,i,k) = aten%t(j,i,k) + (omega(j,i,k)*rovcpm*tv) / &
-                            (ptop/sfs%psa(j,i)+hsigma(k))
+                            (ptop*rpsa(j,i)+hsigma(k))
           end do
         end do
       end do
@@ -1083,7 +1083,7 @@ module mod_tendency
             tvc = atmc%t(j,i,k)*(d_one+ep1*(atmc%qx(j,i,k,iqv))/psc(j,i))
             tva = atm1%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
             tvb = atm2%t(j,i,k)*(d_one+ep1* &
-                                 (atm2%qx(j,i,k,iqv))/sfs%psb(j,i))
+                                 (atm2%qx(j,i,k,iqv))*rpsb(j,i))
             td(j,i,k) = alpha*(tvc+tvb) + beta*tva
             ttld(j,i,k) = td(j,i,k) - sfs%psa(j,i) * &
                       t00pg*((hsigma(k)*sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
@@ -1132,8 +1132,7 @@ module mod_tendency
           do j = jci1 , jci2
             tvc = atmc%t(j,i,k)*(d_one+ep1*(atmc%qx(j,i,k,iqv))/psc(j,i))
             tva = atm1%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
-            tvb = atm2%t(j,i,k)*(d_one+ep1* &
-                 (atm2%qx(j,i,k,iqv))/sfs%psb(j,i))
+            tvb = atm2%t(j,i,k)*(d_one+ep1*(atm2%qx(j,i,k,iqv))*rpsb(j,i))
             td(j,i,k) = alpha*(tvc+tvb) + beta*tva
           end do
         end do
@@ -1278,12 +1277,12 @@ module mod_tendency
     if ( ipgf == 1 ) then
       do i = ice1 , ice2
         do j = jce1 , jce2
-          tv = (ttld(j,i,kz)/sfs%psa(j,i))/(d_one+atmx%qx(j,i,kz,iqc)/ &
+          tv = (ttld(j,i,kz)*rpsa(j,i))/(d_one+atmx%qx(j,i,kz,iqc)/ &
                                        (d_one+atmx%qx(j,i,kz,iqv)))
           phi(j,i,kz) = mddom%ht(j,i) + &
                    rgas*t00pg/pgfaa1*((sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
           phi(j,i,kz) = phi(j,i,kz) - rgas * tv * &
-                  dlog((hsigma(kz)+ptop/sfs%psa(j,i))/(d_one+ptop/sfs%psa(j,i)))
+                  dlog((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
         end do
       end do
       do k = 1 , kzm1
@@ -1295,18 +1294,18 @@ module mod_tendency
                     dsigma(lev+1))))/(d_one+atmx%qx(j,i,lev,iqc)/  &
                                      (d_one+atmx%qx(j,i,lev,iqv)))
             phi(j,i,lev) = phi(j,i,lev+1) - rgas *             &
-                   tvavg*dlog((hsigma(lev)+ptop/sfs%psa(j,i))/ &
-                             (hsigma(lev+1)+ptop/sfs%psa(j,i)))
+                   tvavg*dlog((hsigma(lev) + ptop*rpsa(j,i)) / &
+                             (hsigma(lev+1) + ptop*rpsa(j,i)))
           end do
         end do
       end do
     else if ( ipgf == 0 ) then
       do i = ice1 , ice2
         do j = jce1 , jce2
-          tv = (td(j,i,kz)/sfs%psa(j,i))/(d_one+atmx%qx(j,i,kz,iqc)/  &
-                                     (d_one+atmx%qx(j,i,kz,iqv)))
+          tv = (td(j,i,kz)*rpsa(j,i))/(d_one+atmx%qx(j,i,kz,iqc)/  &
+                                      (d_one+atmx%qx(j,i,kz,iqv)))
           phi(j,i,kz) = mddom%ht(j,i) - rgas * tv * &
-               dlog((hsigma(kz)+ptop/sfs%psa(j,i))/(d_one+ptop/sfs%psa(j,i)))
+               dlog((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
         end do
       end do
       do k = 1 , kzm1
@@ -1318,8 +1317,8 @@ module mod_tendency
                     dsigma(lev+1))))/(d_one+atmx%qx(j,i,lev,iqc) / &
                                      (d_one+atmx%qx(j,i,lev,iqv)))
             phi(j,i,lev) = phi(j,i,lev+1) - rgas *              &
-                   tvavg*dlog((hsigma(lev)+ptop/sfs%psa(j,i)) / &
-                              (hsigma(lev+1)+ptop/sfs%psa(j,i)))
+                   tvavg*dlog((hsigma(lev)+ptop*rpsa(j,i)) / &
+                              (hsigma(lev+1)+ptop*rpsa(j,i)))
           end do
         end do
       end do
@@ -1439,7 +1438,7 @@ module mod_tendency
             ! Add the advective tendency to the TKE tendency calculated
             ! by the UW TKE routine
              aten%tke(j,i,k) = aten%tke(j,i,k) + &
-                               uwstatea%advtke(j,i,k)/sfs%psa(j,i)
+                               uwstatea%advtke(j,i,k)*rpsa(j,i)
              ! Do a filtered time integration
              atmc%tke(j,i,k) = max(tkemin,atm2%tke(j,i,k) + &
                                dt*aten%tke(j,i,k))
@@ -1511,12 +1510,17 @@ module mod_tendency
         sfs%psa(j,i) = psc(j,i)
       end do
     end do
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        rpsb(j,i) = d_one/sfs%psb(j,i)
+      end do
+    end do
     if ( idynamic == 1 ) then
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
             atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
-            atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)/sfs%psb(j,i))
+            atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)*rpsb(j,i))
           end do
         end do
       end do
@@ -1526,8 +1530,8 @@ module mod_tendency
           do j = jce1 , jce2
             atm2%pr(j,i,k) = atm1%pr(j,i,k) + atm1%pp(j,i,k)
             atm2%rho(j,i,k) = atm2%pr(j,i,k) / &
-                    (rgas*(atm2%t(j,i,k)/sfs%psb(j,i)) * &
-                    (d_one+ep1*atm2%qx(j,i,k,iqv)/sfs%psb(j,i)))
+                    (rgas*(atm2%t(j,i,k)*rpsb(j,i)) * &
+                    (d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i)))
           end do
         end do
       end do
