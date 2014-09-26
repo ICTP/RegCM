@@ -110,6 +110,7 @@ module mod_tendency
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
+    integer(ik4) :: nexchange_adv
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'tend'
     integer(ik4) , save :: idindx = 0
@@ -131,6 +132,11 @@ module mod_tendency
       end do
     end do
 
+    if ( isladvec == 1 ) then
+      nexchange_adv = 4
+    else
+      nexchange_adv = 1
+    end if
     call psc2psd(sfs%psa,sfs%psdota)
     call psc2psd(sfs%psb,sfs%psdotb)
     !
@@ -308,17 +314,10 @@ module mod_tendency
       end do
     end do
 
-    if ( isladvec == 1 ) then
-      call exchange(atm1%u,4,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atm1%v,4,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atm1%t,4,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atm1%qx,4,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-    else
-      call exchange(atm1%u,1,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atm1%v,1,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atm1%t,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atm1%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-    end if
+    call exchange(atm1%u,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atm1%v,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atm1%t,nexchange_adv,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atm1%qx,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,nqx)
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       call exchange(atm1%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
@@ -340,17 +339,10 @@ module mod_tendency
       call exchange(atm1%rho,1,jce1,jce2,ice1,ice2,1,kz)
     end if
 
-    if ( isladvec == 1 ) then
-      call exchange(atm2%u,4,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atm2%v,4,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atm2%t,4,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atm2%qx,4,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-    else
-      call exchange(atm2%u,1,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atm2%v,1,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atm2%t,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atm2%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-    end if
+    call exchange(atm2%u,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atm2%v,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atm2%t,nexchange_adv,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atm2%qx,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,nqx)
     if ( ibltyp == 2 .or. ibltyp == 99 ) then
       call exchange(atm2%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
@@ -372,26 +364,14 @@ module mod_tendency
       call exchange(atm2%w,1,jce1,jce2,ice1,ice2,1,kz)
     end if
 
-    if ( isladvec == 1 ) then
-      call exchange(atmx%u,4,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atmx%v,4,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atmx%t,4,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atmx%qx,4,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-    else
-      call exchange(atmx%u,1,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atmx%v,1,jde1,jde2,ide1,ide2,1,kz)
-      call exchange(atmx%t,1,jce1,jce2,ice1,ice2,1,kz)
-      call exchange(atmx%qx,1,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-    end if
+    call exchange(atmx%u,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atmx%v,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
+    call exchange(atmx%t,nexchange_adv,jce1,jce2,ice1,ice2,1,kz)
+    call exchange(atmx%qx,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 
     if ( ichem == 1 ) then
-      if ( isladvec == 1 ) then
-        call exchange(chi,4,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        call exchange(chib,4,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-      else
-        call exchange(chi,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-        call exchange(chib,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
-      end if
+      call exchange(chi,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,ntr)
+      call exchange(chib,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     end if
 
     !
