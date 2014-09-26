@@ -66,30 +66,28 @@ module mod_vmodes
     call getmem2d(hydroc,1,kz,1,kzp1,'vmodes:hydroc')
     call getmem2d(hydros,1,kz,1,kz,'vmodes:hydros')
   end subroutine allocate_mod_vmodes
-!
-!----------------------------------------------------------------------
-!
-! This subroutine determines the vertical modes of the PSU/NCAR meso-
-! scale model designated MM4.  It also computes associated transform
-! matrices used by the initialization software used with MM4.
-! Adapted to be used in RegCM.
-!
-!----------------------------------------------------------------------
-!
-!
-! Programmed by Ronald M. Errico at NCAR,  Dec 1984.
-! Revised by Ronald Errico and Gary Bates, Nov 1987.
-! Revised by Ronald Errico,                Mar 1988.
-! For further info see: NCAR Tech Note by Errico and Bates, 1988.
-!
-! lstand = .true. if standard atmosphere t to be used (ignore input
-!           tbarh and xps in that case).  Otherwise, xps and tbarh must
-!           be defined on input.
-!
+  !
+  !----------------------------------------------------------------------
+  !
+  ! This subroutine determines the vertical modes of the PSU/NCAR meso-
+  ! scale model designated MM4.  It also computes associated transform
+  ! matrices used by the initialization software used with MM4.
+  ! Adapted to be used in RegCM.
+  !
+  !----------------------------------------------------------------------
+  !
+  ! Programmed by Ronald M. Errico at NCAR,  Dec 1984.
+  ! Revised by Ronald Errico and Gary Bates, Nov 1987.
+  ! Revised by Ronald Errico,                Mar 1988.
+  ! For further info see: NCAR Tech Note by Errico and Bates, 1988.
+  !
+  ! lstand = .true. if standard atmosphere t to be used (ignore input
+  !           tbarh and xps in that case).  Otherwise, xps and tbarh must
+  !           be defined on input.
+  !
   subroutine vmodes(lstand)
     implicit none
     logical , intent(in) :: lstand
-!
     real(rk8) , dimension(2) :: det
     integer(ik4) :: ier , k , k1 , k2 , l , mm , numerr
     logical :: lhydro , lprint , lsigma
@@ -142,11 +140,7 @@ module mod_vmodes
     varpa2 = d_zero
     numerr = 0
     !
-    ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    !
-    !                            s  t  a  r  t
-    !
-    ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+    ! start
     !
     if ( myid == italk ) then
       write(stdout,*) 'Calculating Vertical Modes'
@@ -190,9 +184,7 @@ module mod_vmodes
     if ( lstand ) call vtlaps
     call vchekt
     !
-    ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    !
-    !      determine thermodynamic matrix
+    ! determine thermodynamic matrix
     !
     ! compute thetah
     ! this array is never used: it is only computed and printed out
@@ -228,7 +220,7 @@ module mod_vmodes
         e1(k,l) = d_one
       end do
     end do
-!
+
     do k = 1 , kz
       a3(k,k) = -tbarh(k)
       d1(k,k) = sigma(k+1) - sigma(k)
@@ -237,7 +229,7 @@ module mod_vmodes
       s2(k,k) = sigmah(k)
       x1(k,k) = d_one
     end do
-!
+
     do k = 1 , kz
       do l = 1 , kz
         e3(k,l) = d_zero
@@ -355,8 +347,6 @@ module mod_vmodes
       call vprntv(w1(1,2),kz,'test2   ')
     end if
     !
-    ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    !
     ! determine tau matrix
     !
     do l = 1 , kz
@@ -376,10 +366,7 @@ module mod_vmodes
     tau = w1-w2
     tau = -rgas*tau
     !
-    ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-    !
     ! determine other matrices and vectors
-    !
     ! compute eigenvalues and vectors for tau (rg calls eispack routines)
     !
     w1 = tau
@@ -409,8 +396,6 @@ module mod_vmodes
         cpfac(k) = cpfac(k) + (sigma(l+1)-sigma(l))*w1(l,k)
       end do
     end do
-    !
-    ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     !
     ! determine arrays needed for daley's variational scheme
     ! for determination of surface pressure changes
@@ -453,8 +438,6 @@ module mod_vmodes
         a0(k2,k1) = a0(k2,k1) - a4(k2,k1)
       end do
     end do
-    !
-    ! - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     !
     ! output desired arrays
     !
@@ -677,5 +660,5 @@ module mod_vmodes
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine invmtrx
-!
+
 end module mod_vmodes

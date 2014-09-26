@@ -368,12 +368,10 @@ module mod_tendency
     call exchange(atmx%v,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atmx%t,nexchange_adv,jce1,jce2,ice1,ice2,1,kz)
     call exchange(atmx%qx,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-
     if ( ichem == 1 ) then
       call exchange(chi,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call exchange(chib,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     end if
-
     !
     ! Compute map factor for ahead and cross point velocities
     !

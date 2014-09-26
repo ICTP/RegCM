@@ -18,9 +18,9 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_split
-!
-! Split explicit time integration
-!
+  !
+  ! Split explicit time integration
+  !
   use mod_dynparam
   use mod_mppparam
   use mod_runparams
@@ -41,7 +41,7 @@ module mod_split
   real(rk8) , pointer , dimension(:) :: an
   real(rk8) , pointer , dimension(:,:) :: am
   real(rk8) , pointer , dimension(:,:,:) :: uuu , vvv
-!
+
   real(rk8) , pointer , dimension(:,:,:) :: ddsum
   real(rk8) , pointer , dimension(:,:,:) :: dhsum
   real(rk8) , pointer , dimension(:,:,:,:) :: deld
@@ -49,9 +49,9 @@ module mod_split
   real(rk8) , pointer , dimension(:,:,:) :: work
   real(rk8) , pointer , dimension(:,:) :: uu , vv
   real(rk8) , pointer , dimension(:,:) :: xdelh
-!
+
   contains
-!
+
   subroutine allocate_mod_split
     implicit none
     call getmem1d(aam,1,nsplit,'split:aam')
@@ -69,9 +69,9 @@ module mod_split
     call getmem3d(uuu,jde1,jde2+ma%jbr1,ide1,ide2+ma%ibt1,1,kz,'split:uuu')
     call getmem3d(vvv,jde1,jde2+ma%jbr1,ide1,ide2+ma%ibt1,1,kz,'split:vvv')
   end subroutine allocate_mod_split
-!
-! Intial computation of vertical modes.
-!
+  !
+  ! Intial computation of vertical modes.
+  !
   subroutine spinit
     implicit none
     real(rk8) :: eps , eps1 , fac , pdlog
@@ -188,10 +188,10 @@ module mod_split
         end do
       end do
     end do
-!
+
     call exchange_rt(uuu,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange_rt(vvv,1,jde1,jde2,ide1,ide2,1,kz)
-!
+
     do l = 1 , nsplit
       do k = 1 , kz
         do i = ice1 , ice2
@@ -208,7 +208,7 @@ module mod_split
     ! Geopotential manipulations
     !
     do l = 1 , nsplit
-      pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+ptop)
+      pdlog = varpa1(l,kzp1)*log(sigmah(kzp1)*pd+ptop)
       eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -218,7 +218,7 @@ module mod_split
       end do
 
       do k = 1 , kz
-        pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+ptop)
+        pdlog = varpa1(l,k)*log(sigmah(k)*pd+ptop)
         eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -233,9 +233,9 @@ module mod_split
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine spinit
-!
-! Compute deld, delh, integrate in time and add correction terms appropriately
-!
+  !
+  ! Compute deld, delh, integrate in time and add correction terms appropriately
+  !
   subroutine splitf
     implicit none
     real(rk8) :: eps , eps1 , fac , gnuam , gnuan , gnuzm , pdlog , x , y
@@ -247,19 +247,14 @@ module mod_split
 #endif
     deld(:,:,:,:) = d_zero
     delh(:,:,:,:) = d_zero
-!
-!   compute pressure on dot grid
-!=======================================================================
-!
-!   this routine determines p(.) from p(x) by a 4-point interpolation.
-!
+    !
+    ! compute pressure on dot grid
+    !
     call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
     call psc2psd(sfs%psa,sfs%psdota)
-!
-!=======================================================================
-!
-!   get deld(0), delh(0) from storage
-!
+    !
+    ! get deld(0), delh(0) from storage
+    !
    do n = 1 , nsplit
      do i = ide1 , ide2
        do j = jde1 , jde2
@@ -268,11 +263,9 @@ module mod_split
        end do
      end do
    end do
-!
-!=======================================================================
-!
-!   Divergence manipulations (f)
-!
+   !
+   ! Divergence manipulations (f)
+   !
     do k = 1 , kz
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -281,10 +274,10 @@ module mod_split
         end do
       end do
     end do
-!
+
     call exchange_rt(uuu,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange_rt(vvv,1,jde1,jde2,ide1,ide2,1,kz)
-!
+
     do l = 1 , nsplit
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -303,9 +296,7 @@ module mod_split
         end do
       end do
     end do
-!
-!=======================================================================
-!
+
     do n = 1 , nsplit
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -313,11 +304,9 @@ module mod_split
         end do
       end do
     end do
-!
-!=======================================================================
-!
-!   Divergence manipulations (0)
-!
+    !
+    ! Divergence manipulations (0)
+    !
     do k = 1 , kz
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -326,10 +315,10 @@ module mod_split
         end do
       end do
     end do
-!
+
     call exchange_rt(uuu,1,jde1,jde2,ide1,ide2,1,kz)
     call exchange_rt(vvv,1,jde1,jde2,ide1,ide2,1,kz)
-!
+
     do l = 1 , nsplit
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -347,9 +336,7 @@ module mod_split
         end do
       end do
     end do
-!
-!=======================================================================
-!
+
     do n = 1 , nsplit
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -357,13 +344,11 @@ module mod_split
         end do
       end do
     end do
-!
-!=======================================================================
-!
-!   Geopotential manipulations (f)
-!
+    !
+    ! Geopotential manipulations (f)
+    !
     do l = 1 , nsplit
-      pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+ptop)
+      pdlog = varpa1(l,kzp1)*log(sigmah(kzp1)*pd+ptop)
       eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -372,7 +357,7 @@ module mod_split
         end do
       end do
       do k = 1 , kz
-        pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+ptop)
+        pdlog = varpa1(l,k)*log(sigmah(k)*pd+ptop)
         eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -383,9 +368,7 @@ module mod_split
         end do
       end do
     end do
-!
-!=======================================================================
-!
+
     do n = 1 , nsplit
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -393,13 +376,11 @@ module mod_split
         end do
       end do
     end do
-!
-!=======================================================================
-!
-!   Geopotential manipulations (0)
-!
+    !
+    ! Geopotential manipulations (0)
+    !
     do l = 1 , nsplit
-      pdlog = varpa1(l,kzp1)*dlog(sigmah(kzp1)*pd+ptop)
+      pdlog = varpa1(l,kzp1)*log(sigmah(kzp1)*pd+ptop)
       eps1 = varpa1(l,kzp1)*sigmah(kzp1)/(sigmah(kzp1)*pd+ptop)
       do i = ice1 , ice2
         do j = jce1 , jce2
@@ -408,7 +389,7 @@ module mod_split
         end do
       end do
       do k = 1 , kz
-        pdlog = varpa1(l,k)*dlog(sigmah(k)*pd+ptop)
+        pdlog = varpa1(l,k)*log(sigmah(k)*pd+ptop)
         eps1 = varpa1(l,k)*sigmah(k)/(sigmah(k)*pd+ptop)
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -419,9 +400,7 @@ module mod_split
         end do
       end do
     end do
-!
-!=======================================================================
-!
+
     do n = 1 , nsplit
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -429,9 +408,9 @@ module mod_split
         end do
       end do
     end do
-!
-!   put deld(0), delh(0) into storage
-!
+    !
+    ! put deld(0), delh(0) into storage
+    !
     do n = 1 , nsplit
       do i = ide1 , ide2
         do j = jde1 , jde2
@@ -440,15 +419,13 @@ module mod_split
         end do
       end do
     end do
-!
-!   split explicit time integration
-!
+    !
+    ! split explicit time integration
+    !
     call spstep
-!
-!=======================================================================
-!
-!   Add corrections to t and p;  u and v
-!
+    !
+    ! Add corrections to t and p;  u and v
+    !
     do l = 1 , nsplit
       gnuan = gnuhf*an(l)
       do i = ici1 , ici2
@@ -469,8 +446,6 @@ module mod_split
         end do
       end do
     end do
-
-!=======================================================================
 
     call exchange_lb(dhsum,1,jde1,jde2,ide1,ide2,1,nsplit)
 
@@ -496,10 +471,9 @@ module mod_split
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine splitf
-!
+
   subroutine spstep
     implicit none
-!
     real(rk8) :: dtau2 , fac
     integer(ik4) :: i , j , m2 , n , n0 , n1 , n2 , ns , nw
 #ifdef DEBUG
@@ -515,30 +489,27 @@ module mod_split
         end do
       end do
     end do
-!
+
     do ns = 1 , nsplit
-!
       n0 = 1
       n1 = 2
       n2 = n0
       m2 = idint(aam(ns))*2
       dtau2 = dtau(ns)*d_two
-!
-!     below follows Madala (1987)
-!
+      !
+      ! below follows Madala (1987)
+      !
       do i = ice1 , ice2
         do j = jce1 , jce2
           ddsum(j,i,ns) = deld(j,i,ns,n0)
           dhsum(j,i,ns) = delh(j,i,ns,n0)
         end do
       end do
-!
-!     first step, use forward scheme
-!
-!=======================================================================
-!
-!     compute gradient of delh;  output = (work1,work2)
-!
+      !
+      ! first step, use forward scheme
+      !
+      ! compute gradient of delh;  output = (work1,work2)
+      !
       xdelh(jde1:jde2,ide1:ide2) = delh(jde1:jde2,ide1:ide2,ns,n0)
       call exchange_lb(xdelh,1,jde1,jde2,ide1,ide2)
       do i = idi1 , idi2
@@ -550,9 +521,7 @@ module mod_split
                          xdelh(j,i-1)-xdelh(j-1,i-1))/fac
         end do
       end do
-!
-!=======================================================================
-!
+
       do nw = 1 , 2
         do i = idi1 , idi2
           do j = jdi1 , jdi2
@@ -560,23 +529,21 @@ module mod_split
           end do
         end do
       end do
-!
-!=======================================================================
-!
-!     compute divergence z from u and v
-!     ( u must be pstar * u ; similarly for v )
-!     ( note: map scale factors have been inverted in model (init) )
-!
+      !
+      ! compute divergence z from u and v
+      ! ( u must be pstar * u ; similarly for v )
+      ! ( note: map scale factors have been inverted in model (init) )
+      !
       do i = idi1 , idi2
         do j = jdi1 , jdi2
           uu(j,i) = work(j,i,1)*mddom%msfd(j,i)
           vv(j,i) = work(j,i,2)*mddom%msfd(j,i)
         end do
       end do
-!
+
       call exchange_rt(uu,1,jdi1,jdi2,idi1,idi2)
       call exchange_rt(vv,1,jdi1,jdi2,idi1,idi2)
-!
+
       do i = ici1 , ici2
         do j = jci1 , jci2
           fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
@@ -584,9 +551,7 @@ module mod_split
                          +vv(j,i+1)+vv(j+1,i+1)-vv(j,i)-vv(j+1,i))/fac
         end do
       end do
-!
-!=======================================================================
-!
+
       do i = ici1 , ici2
         do j = jci1 , jci2
           deld(j,i,ns,n1) = deld(j,i,ns,n0) - dtau(ns)*work(j,i,3) + &
@@ -595,9 +560,9 @@ module mod_split
                             deld(j,i,ns,n0)/sfs%psa(j,i)+delh(j,i,ns,3)/m2
         end do
       end do
-
-!     not in Madala (1987)
-
+      !
+      ! not in Madala (1987)
+      !
       fac = (aam(ns)-d_one)/aam(ns)
       if ( ma%has_bdyleft ) then
         do i = ici1 , ici2
@@ -619,22 +584,20 @@ module mod_split
           delh(j,ice2,ns,n1) = delh(j,ice2,ns,n0)*fac
         end do
       end if
-!
+
       do i = ice1 , ice2
         do j = jce1 , jce2
           ddsum(j,i,ns) = ddsum(j,i,ns) + deld(j,i,ns,n1)
           dhsum(j,i,ns) = dhsum(j,i,ns) + delh(j,i,ns,n1)
         end do
       end do
-!
-!     subsequent steps, use leapfrog scheme
-!
+      !
+      ! subsequent steps, use leapfrog scheme
+      !
       do n = 2 , m2
-!
-!=======================================================================
-!
-!       compute gradient of delh;  output = (work1,work2)
-!
+        !
+        ! compute gradient of delh;  output = (work1,work2)
+        !
         xdelh(jde1:jde2,ide1:ide2) = delh(jde1:jde2,ide1:ide2,ns,n1)
         call exchange_lb(xdelh,1,jde1,jde2,ide1,ide2)
         do i = idi1 , idi2
@@ -646,9 +609,7 @@ module mod_split
                            xdelh(j,i-1)-xdelh(j-1,i-1))/fac
           end do
         end do
-!
-!=======================================================================
-!
+
         do nw = 1 , 2
           do i = idi1 , idi2
             do j = jdi1 , jdi2
@@ -656,23 +617,21 @@ module mod_split
             end do
           end do
         end do
-!
-!=======================================================================
-!
-!       compute divergence z from u and v
-!       ( u must be pstar * u ; similarly for v )
-!       ( note: map scale factors have been inverted in model (init) )
-!
+        !
+        ! compute divergence z from u and v
+        ! ( u must be pstar * u ; similarly for v )
+        ! ( note: map scale factors have been inverted in model (init) )
+        !
         do i = idi1 , idi2
           do j = jdi1 , jdi2
             uu(j,i) = work(j,i,1)*mddom%msfd(j,i)
             vv(j,i) = work(j,i,2)*mddom%msfd(j,i)
           end do
         end do
-!
+
         call exchange_rt(uu,1,jdi1,jdi2,idi1,idi2)
         call exchange_rt(vv,1,jdi1,jdi2,idi1,idi2)
-!
+
         do i = ici1 , ici2
           do j = jci1 , jci2
             fac = dx2*mddom%msfx(j,i)*mddom%msfx(j,i)
@@ -680,9 +639,7 @@ module mod_split
                             vv(j,i+1)+vv(j+1,i+1)-vv(j,i)-vv(j+1,i))/fac
           end do
         end do
-!
-!=======================================================================
-!
+
         do i = ici1 , ici2
           do j = jci1 , jci2
             deld(j,i,ns,n2) = deld(j,i,ns,n0) - dtau2*work(j,i,3) + &
@@ -692,9 +649,9 @@ module mod_split
                               delh(j,i,ns,3)/aam(ns)
           end do
         end do
-!
-!       not in Madala (1987)
-!
+        !
+        ! not in Madala (1987)
+        !
         if ( ma%has_bdyleft ) then
           do i = ici1 , ici2
             delh(jce1,i,ns,n2) = d_two*delh(jce1,i,ns,n1)-delh(jce1,i,ns,n0)
@@ -715,23 +672,23 @@ module mod_split
             delh(j,ice2,ns,n2) = d_two*delh(j,ice2,ns,n1)-delh(j,ice2,ns,n0)
           end do
         end if
-!
+
         do i = ice1 , ice2
           do j = jce1 , jce2
             ddsum(j,i,ns) = ddsum(j,i,ns) + deld(j,i,ns,n2)
             dhsum(j,i,ns) = dhsum(j,i,ns) + delh(j,i,ns,n2)
           end do
         end do
-!
+
         n0 = n1
         n1 = n2
         n2 = n0
       end do
-!
+
     end do
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
 #endif
   end subroutine spstep
-!
+
 end module mod_split
