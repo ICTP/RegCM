@@ -36,14 +36,14 @@ module mod_regcm_types
     logical , pointer , dimension(:,:) :: global_gmask
     logical , pointer , dimension(:,:,:) :: global_sgmask
     logical , pointer , dimension(:,:) :: global_out_sgmask
-    integer(ik4) , public , pointer , dimension(:) :: linear_npoint_g
-    integer(ik4) , public , pointer , dimension(:) :: linear_displ_g
-    integer(ik4) , public , pointer , dimension(:) :: cartesian_npoint_g
-    integer(ik4) , public , pointer , dimension(:) :: cartesian_displ_g
-    integer(ik4) , public , pointer , dimension(:) :: linear_npoint_sg
-    integer(ik4) , public , pointer , dimension(:) :: linear_displ_sg
-    integer(ik4) , public , pointer , dimension(:) :: cartesian_npoint_sg
-    integer(ik4) , public , pointer , dimension(:) :: cartesian_displ_sg
+    integer(ik4) , pointer , dimension(:) :: linear_npoint_g
+    integer(ik4) , pointer , dimension(:) :: linear_displ_g
+    integer(ik4) , pointer , dimension(:) :: cartesian_npoint_g
+    integer(ik4) , pointer , dimension(:) :: cartesian_displ_g
+    integer(ik4) , pointer , dimension(:) :: linear_npoint_sg
+    integer(ik4) , pointer , dimension(:) :: linear_displ_sg
+    integer(ik4) , pointer , dimension(:) :: cartesian_npoint_sg
+    integer(ik4) , pointer , dimension(:) :: cartesian_displ_sg
   end type masked_comm
 
   type model_area
