@@ -155,7 +155,7 @@ module mod_cu_bm
     real(rk8) , parameter :: h3000 = 3000.0D0
     real(rk8) , parameter :: h10e5 = 100000.0D0
     real(rk8) , parameter :: d608 = 0.608D0
-    real(rk8) , parameter :: dm2859 = -rgas/cpd
+    real(rk8) , parameter :: dm2859 = -rovcp
     real(rk8) , parameter :: epsq = 2.0D-12
     real(rk8) , parameter :: row = d_1000
     real(rk8) , parameter :: t1 = tzero+1.0D0
@@ -206,7 +206,7 @@ module mod_cu_bm
     real(rk8) , parameter :: slope = (h1-efmnt)/(h1-efimn)
     real(rk8) , parameter :: a23m4l = c3les*(tzero-c4les)*wlhv
     real(rk8) , parameter :: cporng = d_one/dm2859
-    real(rk8) , parameter :: elocp = wlhv/cpd
+    real(rk8) , parameter :: elocp = wlhvocp
     real(rk8) , parameter :: cprlg = cpd/(row*egrav*wlhv)
     logical , save :: efinit = .false.
     logical , parameter :: unis = .false.

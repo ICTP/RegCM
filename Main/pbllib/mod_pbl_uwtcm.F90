@@ -98,7 +98,6 @@ module mod_pbl_uwtcm
   real(rk8) , parameter :: etal =  0.085D0
 
   ! Variables that hold frequently-done calculations
-  real(rk8) , parameter :: rcp = d_one/cpd
   real(rk8) :: rczero
 
   ! local variables on full levels
@@ -686,7 +685,7 @@ module mod_pbl_uwtcm
         ustxsq = dsqrt(uflxp*uflxp + vflxp*vflxp)
 
         ! Estimate of the surface virtual heat flux
-        thvflx = hfxx/rhoxsf*rcp*(d_one+ep1*q0s) + ep1/thgb*qfxx*rhoxsf
+        thvflx = hfxx/rhoxsf*rcpd*(d_one+ep1*q0s) + ep1/thgb*qfxx*rhoxsf
         ! Estimate of surface eddy diffusivity, for estimating the
         ! surface N^2 from the surface virtual heat flux
         kh0 = vonkar*d_one*dsqrt(dmax1(tkemin,3.25D0 * ustxsq))
@@ -754,7 +753,7 @@ module mod_pbl_uwtcm
               rimp2(k) = qwx(k) + dt * qfxx*rrhoxhl(k)*rdzq(kz)
               ! include surface sensible heat flux
               rimp1(k) = thlx(k) + &
-                     dt * hfxx*rrhoxhl(k)*rcp*rdzq(kz)*rexnerhl(kz)
+                     dt * hfxx*rrhoxhl(k)*rcpd*rdzq(kz)*rexnerhl(kz)
             else
               rimp2(k) = qwx(k)
               rimp1(k) = thlx(k)

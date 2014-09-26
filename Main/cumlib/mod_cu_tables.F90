@@ -72,11 +72,11 @@ module mod_cu_tables
 
     integer(ik4) :: it
 
-    z5alvcp = c5les*wlhv/cpd
-    z5alscp = c5ies*wlhs/cpd
+    z5alvcp = c5les*wlhv*rcpd
+    z5alscp = c5ies*wlhs*rcpd
 
-    zalvdcp = wlhv/cpd
-    zalsdcp = wlhs/cpd
+    zalvdcp = wlhv*rcpd
+    zalsdcp = wlhs*rcpd
 
     do it = jptlucu1, jptlucu2
       ztt = 0.001D0*it

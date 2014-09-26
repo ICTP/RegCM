@@ -1291,7 +1291,7 @@ module mod_cu_kf
               !
               if ( qsrh < qd(nd) ) then
                 qsrh = qd(nd)
-                t1rh = tz(nd) + (qss-qsrh)*rl/cpd
+                t1rh = tz(nd) + (qss-qsrh)*rl*rcpd
               end if
               tz(nd) = t1rh
               qss = qsrh
@@ -1593,7 +1593,7 @@ module mod_cu_kf
           cpm = cpd*(d_one+0.887D0*qmix)
           dssdt = qss*(cliq-bliq*dliq)/((tmix-dliq)*(tmix-dliq))
           dq = (qmix-qss)/(d_one+rl*dssdt/cpm)
-          tmix = tmix + rl/cpd*dq
+          tmix = tmix + rl*rcpd*dq
           qmix = qmix - dq
           tlcl = tmix
         else

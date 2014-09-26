@@ -724,14 +724,14 @@ module mod_pbl_holtbl
   !
   do i = ici1 , ici2
     do j = jci1 , jci2
-      p2m%difft(j,i,kz) = p2m%difft(j,i,kz) - hydf(kz)*ttnp(j,i,kz)/cpd
+      p2m%difft(j,i,kz) = p2m%difft(j,i,kz) - hydf(kz)*ttnp(j,i,kz)*rcpd
     end do
   end do
   do k = 1 , kzm1
     do i = ici1 , ici2
       do j = jci1 , jci2
         p2m%difft(j,i,k) = p2m%difft(j,i,k) + &
-                hydf(k)*(ttnp(j,i,k+1)-ttnp(j,i,k))/cpd
+                hydf(k)*(ttnp(j,i,k+1)-ttnp(j,i,k))*rcpd
       end do
     end do
   end do

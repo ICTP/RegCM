@@ -6,7 +6,7 @@ module mod_clm_varcon
   use mod_intkinds
   use mod_constants , only : cpd , pdbratio , secpd , earthrad , tzero , &
     rgasmol , rhoice , rhoh2o , wlhf , wlhs , wlhv , spcpice , spcpfw ,  &
-    egrav , rwat , vonkar , sigm , mathpi , rdry
+    egrav , rwat , vonkar , sigm , mathpi , regrav , rdry
   use mod_clm_varpar , only : numrad , nlevgrnd , nlevlak , &
      nlevdecomp_full , ngases
 #if (defined VICHYDRO)
@@ -46,7 +46,7 @@ module mod_clm_varcon
   ! Gas constant for dry air [J/kg/K]
   real(rk8) , public , parameter :: rair   = rdry
   ! Rw/g constant = (8.3144/0.018)/(9.80616)*1000. mm/K
-  real(rk8) , public , parameter :: roverg = rwat/egrav*1000.D0
+  real(rk8) , public , parameter :: roverg = rwat*regrav*1000.D0
   ! Specific heat of water [J/kg-K]
   real(rk8) , public , parameter :: cpliq  = spcpfw
   ! Specific heat of ice [J/kg-K]

@@ -868,7 +868,7 @@ module mod_cu_tiedtke_38r2
           plu(jl,jk) = zmfulk*(d_one/max(cmfcmin,pmfu(jl,jk)))
           pqu(jl,jk) = zmfuqk*(d_one/max(cmfcmin,pmfu(jl,jk)))
           ptu(jl,jk) = (zmfusk * &
-            (d_one/max(cmfcmin,pmfu(jl,jk)))-pgeoh(jl,jk))/cpd
+            (d_one/max(cmfcmin,pmfu(jl,jk)))-pgeoh(jl,jk))*rcpd
           ptu(jl,jk) = max(100.0D0,ptu(jl,jk))
           ptu(jl,jk) = min(400.0D0,ptu(jl,jk))
           zqold(jl) = pqu(jl,jk)
@@ -995,10 +995,10 @@ module mod_cu_tiedtke_38r2
           if ( llo1(jl) ) then
             if ( ldland(jl) ) then
               zdnoprc = 5.D-4
-              zprcdgw = rprc_lnd/egrav
+              zprcdgw = rprc_lnd*regrav
             else
               zdnoprc = 3.D-4
-              zprcdgw = rprc_ocn/egrav
+              zprcdgw = rprc_ocn*regrav
             end if
             if ( plu(jl,jk) > zdnoprc ) then
               zwu = min(15.0D0,sqrt(d_two*max(0.1D0,pkineu(jl,jk+1))))
@@ -1852,10 +1852,10 @@ module mod_cu_tiedtke_38r2
         if ( lmfmid .and. pgeo(jl,kk) >  5000.0D0 .and. &
                           pgeo(jl,kk) < 10000.0D0 .and. &
                           pqen(jl,kk) > 0.80D0*pqsen(jl,kk) ) then
-          ptu(jl,kk+1) = (cpd*pten(jl,kk)+pgeo(jl,kk)-pgeoh(jl,kk+1))/cpd
+          ptu(jl,kk+1) = (cpd*pten(jl,kk)+pgeo(jl,kk)-pgeoh(jl,kk+1))*rcpd
           pqu(jl,kk+1) = pqen(jl,kk)
           plu(jl,kk+1) = d_zero
-          zzzmb = max(cmfcmin,-pvervel(jl,kk)/egrav)
+          zzzmb = max(cmfcmin,-pvervel(jl,kk)*regrav)
           zzzmb = min(zzzmb,cmfcmax)
           pmfub(jl) = zzzmb
           pmfu(jl,kk+1) = pmfub(jl)
@@ -2233,7 +2233,7 @@ module mod_cu_tiedtke_38r2
           zmfdqk = pmfdq(jl,jk-1) + zqeen - zqdde
           pqd(jl,jk) = zmfdqk*(d_one/min(-cmfcmin,pmfd(jl,jk)))
           ptd(jl,jk) = (zmfdsk*(d_one / &
-            min(-cmfcmin,pmfd(jl,jk)))-pgeoh(jl,jk))/cpd
+            min(-cmfcmin,pmfd(jl,jk)))-pgeoh(jl,jk))*rcpd
           ptd(jl,jk) = min(400.0D0,ptd(jl,jk))
           ptd(jl,jk) = max(100.0D0,ptd(jl,jk))
           zcond(jl) = pqd(jl,jk)
@@ -2417,7 +2417,7 @@ module mod_cu_tiedtke_38r2
       end do
       do jl = kidia , kfdia
         if ( llbl(jl) ) then
-          ztc(jl,jk) = (ztc(jl,jk+1)*cpd+pgeo(jl,jk+1)-pgeo(jl,jk))/cpd
+          ztc(jl,jk) = (ztc(jl,jk+1)*cpd+pgeo(jl,jk+1)-pgeo(jl,jk))*rcpd
           zqc(jl,jk) = zqc(jl,jk+1)
           if ( ilab(jl,jk+1) > 0 ) then
             llflag(jl) = .true.
@@ -4330,7 +4330,7 @@ module mod_cu_tiedtke_38r2
       do jl = kidia , kfdia
         if ( ldcum(jl) ) then
           ikb = kcbot(jl)
-          zdz = max(d_zero,min(1.5D3,(pgeoh(jl,ikb)-pgeoh(jl,klev+1))/egrav))
+          zdz = max(d_zero,min(1.5D3,(pgeoh(jl,ikb)-pgeoh(jl,klev+1))*regrav))
           zmf_shal(jl) = 0.07D0*(egrav/pten(jl,klev)*zdz * &
             max(d_zero,-pahfs(jl,klev+1)*rcpd - &
             retv*pten(jl,klev)*pqhfl(jl,klev+1)))**.3333D0
@@ -5061,7 +5061,7 @@ module mod_cu_tiedtke_38r2
       do jk = klev , 2 , -1
         do jl = kidia , kfdia
           if ( ldcum(jl) .and. jk >= kctop(jl)-1 ) then
-            zdz = (paph(jl,jk+1)-paph(jl,jk))/egrav
+            zdz = (paph(jl,jk+1)-paph(jl,jk))*regrav
             zsumc(jl,1) = zsumc(jl,1) + &
               (ptenq(jl,jk)-ztenq(jl,jk))*zdz + plude(jl,jk)
             zalv = foelhmcu(pten(jl,jk))
@@ -5077,7 +5077,7 @@ module mod_cu_tiedtke_38r2
           do jk = klev , 2 , -1
             do jl = kidia , kfdia
               if ( ldcum(jl) .and. jk >= kctop(jl)-1 ) then
-                zdz = (paph(jl,jk+1)-paph(jl,jk))/egrav
+                zdz = (paph(jl,jk+1)-paph(jl,jk))*regrav
                 zsumc(jl,4+jn) = zsumc(jl,4+jn) + &
                                  (ptenc(jl,jk,jn)-ztenc(jl,jk,jn))*zdz
               end if
@@ -5103,7 +5103,7 @@ module mod_cu_tiedtke_38r2
 #endif
           end if
           ikb = kctop(jl)
-          zdz = (paph(jl,klev+1)-paph(jl,ikb-1))/egrav
+          zdz = (paph(jl,klev+1)-paph(jl,ikb-1))*regrav
           zsumc(jl,1) = (zsumc(jl,1)+zsfl(jl))/zdz
           zsumc(jl,2) = (zsumc(jl,2)-zalv*zsfl(jl))/(zdz*cpd)
         end if
@@ -5443,7 +5443,7 @@ program testgate
   real(rk8) :: zlon , zdz
   integer :: jl, jk ! loop variables
 
-  zeps = wlhv/cpd*xtjour
+  zeps = wlhv*rcpd*xtjour
   !
   read(7,*)
   do jl = 1 , klon
@@ -5564,7 +5564,7 @@ program testgate
         '---  [   ]  ---'
       do jk = 1 , klev
         zdz = egrav/(ppresh(jl,jk+1)-ppresh(jl,jk))
-        write(8,17)jk,ppres(jl,jk)*1.0D-2,pgeo(jl,jk)/egrav,&
+        write(8,17)jk,ppres(jl,jk)*1.0D-2,pgeo(jl,jk)*regrav,&
          (ptten(jl,jk)-ztten(jl,jk))*xtjour, &
          (pqten(jl,jk)-zrvten(jl,jk))*zeps,  &
          (prcten(jl,jk)+priten(jl,jk))*zeps, &
@@ -5580,7 +5580,7 @@ program testgate
       write(8,*)' %  [hPa]     [m]        ---- [K/day] ----     '// &
         '[kg/(sm^2] [mm/h]   [g/kg]     [m/s/day]'
       do jk = 1 , klev
-        write(8,18)jk,ppres(jl,jk)*1.0D-2,pgeo(jl,jk)/egrav, &
+        write(8,18)jk,ppres(jl,jk)*1.0D-2,pgeo(jl,jk)*regrav, &
           (ptten(jl,jk)-ztten(jl,jk))*xtjour, &
           (pqten(jl,jk)-zrvten(jl,jk))*zeps,  &
           (prcten(jl,jk)+priten(jl,jk))*zeps, &

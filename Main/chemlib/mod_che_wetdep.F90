@@ -20,7 +20,7 @@
 module mod_che_wetdep
 
 ! This module contains routines for wet scavenging of gas and aerosols
- 
+
   use mod_intkinds
   use mod_realkinds
   use mod_constants
@@ -74,7 +74,7 @@ module mod_che_wetdep
     !          PASSED by cremrat already
     !real(rk8), dimension(ici1:ici2,kz) , intent(in) :: nrain1
     ! precip rate mm/s (=kg/m2/s), stratif and convec / grid level already,
-    ! converted next to 1/s  
+    ! converted next to 1/s
     real(rk8), dimension(ici1:ici2,kz) , intent(in) :: strappt, convppt
     ! evaporation (kg/kg/s) convert to (1/s) below
     real(rk8), dimension(ici1:ici2,kz) , intent(in) :: nevapr1
@@ -90,7 +90,7 @@ module mod_che_wetdep
     real(rk8) :: phis(ici1:ici2)        ! surf geopotential (m2/s2)
     real(rk8) :: zmid(ici1:ici2,kz)     ! midpoint geopot convert (m) to (km)
     real(rk8) :: tfld(ici1:ici2,kz)     ! temperature (K)
-    real(rk8) :: cmfdqr(ici1:ici2,kz)   ! dq/dt for convection (1/s) 
+    real(rk8) :: cmfdqr(ici1:ici2,kz)   ! dq/dt for convection (1/s)
     real(rk8) :: nrain(ici1:ici2,kz)    ! stratoform precip (1/s)
     real(rk8) :: nevapr(ici1:ici2,kz)   ! evaporation (1/s)
     real(rk8) :: xhnm(ici1:ici2,kz)     ! total atms density (#/cm^3)
@@ -116,11 +116,11 @@ module mod_che_wetdep
     ! reference temperature (k)
     real(rk8) , parameter :: t0 = 298.0D0
     real(rk8) , parameter :: xph0 = 1.D-5 ! cloud [h+]
-    ! saturation factor for hno3 in clouds 
+    ! saturation factor for hno3 in clouds
     real(rk8) , parameter :: satf_hno3 = 0.016D0
-    ! saturation factor for hno3 in clouds 
+    ! saturation factor for hno3 in clouds
     real(rk8) , parameter :: satf_h2o2 = 0.016D0
-    ! saturation factor for hno3 in clouds 
+    ! saturation factor for hno3 in clouds
     real(rk8) , parameter :: satf_ch2o = 0.1D0
     ! (atmospheres/deg k/cm^3)
     real(rk8) , parameter :: const0 = boltzk * 1.D-6
@@ -186,18 +186,18 @@ module mod_che_wetdep
 
     !-----------------------------------------------------------------
     !  Perform a few conversion for xhnm, zmid, nevap, cmfdqr
-    !-----------------------------------------------------------------    
+    !-----------------------------------------------------------------
 
     ! nrain(ici1:ici2,:)  = nrain1(ici1:ici2,:) * (xhnm1(ici1:ici2,:)/rhoh2o)
     !
     !FOR NOW LARGE SCALE ONLY
-    ! already in s-1 / only large scale precip tendency     
+    ! already in s-1 / only large scale precip tendency
     nrain(ici1:ici2,:) = cremrat(j,ici1:ici2,:)
 
     cmfdqr(:,:) = d_zero
     nevapr(:,:) = d_zero
     !FAB:  improve that by calculating or passing a grid level conversion
-    ! rate for convective processes 
+    ! rate for convective processes
     ![kg_h2o/kg_air/s -> 1/s]
     !cmfdqr(ici1:ici2,:) = cmfdqr1(ici1:ici2,:)*(xhnm1(ici1:ici2,:)/rhoh2o)
     ![kg_h2o/kg_air/s -> 1/s]
@@ -208,7 +208,7 @@ module mod_che_wetdep
     ![kg/m3 -> #/cm3]
     xhnm(ici1:ici2,:) = xhnm1(ici1:ici2,:)*navgdr*cm3_2_m3/( amd*d_1000)
 
-    phis(ici1:ici2) = phis1(ici1:ici2)   
+    phis(ici1:ici2) = phis1(ici1:ici2)
     qin(ici1:ici2,:,:) = qin1(ici1:ici2,:,:)
     tfld(ici1:ici2,:) = tfld1(ici1:ici2,:)
 
@@ -217,32 +217,32 @@ module mod_che_wetdep
     !	... the 2 and .6 multipliers are from a formula by frossling (1938)
     !-----------------------------------------------------------------
     xkgm = xdg/xrm * d_two + xdg/xrm * 0.6D0 * &
-           dsqrt( xrm*xum/xvv ) * (xvv/xdg)**(d_one/d_three) 
+           dsqrt( xrm*xum/xvv ) * (xvv/xdg)**(d_one/d_three)
 
-    do k = ktop + 1 , kz        
+    do k = ktop + 1 , kz
 
       precip(:,k) = cmfdqr(:,k) + nrain(:,k) - nevapr(:,k)
 
       rain(:,k)   = mass_air*precip(:,k)*xhnm(:,k) / mass_h2o
 
       ! Note : xliq calculated from cloud to rain convesrion rate, shouldn't it
-      ! be also from precip rate  ? 
+      ! be also from precip rate  ?
       ! In fact xliq is the rainwater generated at each level but is also be
       ! used to scavenge gas in level below in washout process after iteration
       ! on all cloudy levels, it is equivalent to have an approach with
       ! precipitation rate since: a given layer is sucessively washd out
-      ! by rainwater converted in the different cloudy layer abvove. 
+      ! by rainwater converted in the different cloudy layer abvove.
 
       ! follows the original mozart code here
-      ! xliq is ig g (rainwater fromed during dt) / m3 
-      xliq(:,k)   = precip(:,k) * delt * xhnm(:,k) / navgdr*mass_air * m3_2_cm3 
+      ! xliq is ig g (rainwater fromed during dt) / m3
+      xliq(:,k)   = precip(:,k) * delt * xhnm(:,k) / navgdr*mass_air * m3_2_cm3
 
       !---------------------------------------
       ! convert from cb_X to mass mixing ratio
       !---------------------------------------
       if ( ihno3 > 0 ) vmr_hno3(:,k) = (qin(:,k,ihno3)/ps2(:)) * (amd/63.012D0)
       if ( ih2o2 > 0 ) vmr_h2o2(:,k) = (qin(:,k,ih2o2)/ps2(:)) * (amd/34.0147D0)
-    end do 
+    end do
 
     if ( ihno3 > 0 ) then
       xhno3(:,:)  = vmr_hno3(:,:) * xhnm(:,:)
@@ -257,9 +257,9 @@ module mod_che_wetdep
 
     zsurf(:) = m2km * phis(:) * regrav
     do k = ktop + 1 , kz - 1
-      delz(:,k) = dabs( (zmid(:,k) - zmid(:,k+1))*km2cm ) 
-    end do 
-    delz(:,kz) = dabs( (zmid(:,kz) - zsurf(:) )*km2cm ) 
+      delz(:,k) = dabs( (zmid(:,k) - zmid(:,k+1))*km2cm )
+    end do
+    delz(:,kz) = dabs( (zmid(:,kz) - zsurf(:) )*km2cm )
 
     !-----------------------------------------------------------------
     ! ... part 0b,  for temperature dependent of henrys
@@ -304,14 +304,14 @@ module mod_che_wetdep
       xhen_nh3 (:,k)     = 1.D6
       tmp_hetrates(:,k,:) = d_zero
     end do
-   
+
     !-----------------------------------------------------------------
     !   part 1, solve for high henry constant ( hno3, h2o2)
     !-----------------------------------------------------------------
     long_loop : &
     do i = ici1 , ici2
-      xgas1(:) = xhno3(i,:)  ! xgas will change during 
-      xgas2(:) = xh2o2(i,:)  ! different levels wash 
+      xgas1(:) = xhno3(i,:)  ! xgas will change during
+      xgas2(:) = xh2o2(i,:)  ! different levels wash
       level_loop1 : &
       do kk = ktop + 1 , kz
         stay = d_one
@@ -351,7 +351,7 @@ module mod_che_wetdep
         end if
         !-----------------------------------------------------------------
         ! calculate the lifetime of washout (second)
-        !  after all layers washout the concentration of hno3 is reduced 
+        !  after all layers washout the concentration of hno3 is reduced
         !  then the lifetime xtt is calculated by
         !
         !  xtt = (xhno3(ini) - xgas1(new))/(dt*xhno3(ini))
@@ -369,8 +369,8 @@ module mod_che_wetdep
         if ( dabs(xxx2) > d_zero ) then  ! if no washout lifetime = 1.e29
           yh2o2  = xh2o2(i,kk)/xxx2 * xdtm
         else
-          yh2o2  = 1.D29 
-        end if 
+          yh2o2  = 1.D29
+        end if
         tmp_hetrates(i,kk,1) = dmax1(d_one/yh2o2,d_zero) * stay
         tmp_hetrates(i,kk,2) = dmax1(d_one/yhno3,d_zero) * stay
       end do level_loop1
@@ -380,7 +380,7 @@ module mod_che_wetdep
     ! part 2, in-cloud solve for low henry constant hno3 and h2o2 have
     ! both in and under cloud.
     ! FAB : tmp_hetrates is so the washout of h2O2 and hno3: used for diagnostic
-    !      
+    !
     !   *** abt go directly to calculating the tracer tendency (chiten)
     !   *** MOZART code originally used het_rates and passed it out
     ! old way MOZART: het_rates(:,k,ihcho)  = work3(:)
@@ -571,54 +571,54 @@ module mod_che_wetdep
       ! FAB: add diagnostic
       !-----------------------------------------------------------------
 
-      
+
     do k= 1 , kz
       do itr = 1 , ntr
         do i = ici1 , ici2
           if ( het_rates(i,k,itr) <= 2.D-29 ) cycle
 
-          ! tendency due to rainout and washout                      
+          ! tendency due to rainout and washout
           temp_dep(i) = (d_one-dexp(-het_rates(i,k,itr)*delt))*qin(i,k,itr)
-          chiten(j,i,k,itr) = chiten(j,i,k,itr) - temp_dep(i)/delt 
+          chiten(j,i,k,itr) = chiten(j,i,k,itr) - temp_dep(i)/delt
 
           ! Disagnostic
           ! remlsc: rainout
-          ! remcvc washout 
+          ! remcvc washout
 
-          if ( itr == ih2o2 ) then 
+          if ( itr == ih2o2 ) then
             temp_rain(i) = (d_one- &
               dexp(-(het_rates(i,k,itr)-tmp_hetrates(i,k,1))*delt))*qin(i,k,itr)
             temp_wash(i) = (d_one- &
               dexp(-tmp_hetrates(i,k,1)*delt))*qin(i,k,itr)
-          else if ( itr == ihno3 ) then 
+          else if ( itr == ihno3 ) then
             temp_rain(i) = (d_one- &
               dexp(-(het_rates(i,k,itr)-tmp_hetrates(i,k,2))*delt))*qin(i,k,itr)
             temp_wash(i) = (d_one- &
               dexp(-tmp_hetrates(i,k,2)*delt))*qin(i,k,itr)
           else
             temp_rain(i) = temp_dep(i)
-            temp_wash(i) = d_zero 
-          end if 
+            temp_wash(i) = d_zero
+          end if
           remlsc(j,i,k,itr) = remlsc(j,i,k,itr) - temp_rain(i)*cfdout
           remcvc(j,i,k,itr) = remcvc(j,i,k,itr) - temp_wash(i)*cfdout
-        end do 
-      end do 
-    end do 
+        end do
+      end do
+    end do
 
-    ! diagnostic for durface fluxes         
+    ! diagnostic for durface fluxes
     do itr = 1 , ntr
       do i = ici1 , ici2
         wdlsc(j,i,itr) = d_zero
         wdcvc(j,i,itr) = d_zero
         do k = 1 , kz
           ! sum on the vertical to get total surface flux diag fo rain out
-          ! and washout (already weighted for time average cfdout !), 
+          ! and washout (already weighted for time average cfdout !),
           ! also change sign convention normalise by psb to get the right
-          ! flux unit 
+          ! flux unit
           wdlsc(j,i,itr) = wdlsc(j,i,itr) - &
             remlsc(j,i,k,itr)*cdzq(j,i,k) *crhob3d(j,i,k) /cpsb(j,i)
           wdcvc(j,i,itr) = wdcvc(j,i,itr) - &
-            remcvc(j,i,k,itr)*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i) 
+            remcvc(j,i,k,itr)*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
         end do
       end do
     end do
@@ -634,7 +634,7 @@ module mod_che_wetdep
     real(rk8) , dimension(mbin) , intent(in) :: beffdiam
     real(rk8) , intent(in) :: rhoaer ! specific aerosol density
     real(rk8) , dimension(ici1:ici2,kz) , intent(in) :: wl , t , rho , &
-                                                       strappt 
+                                                       strappt
      real(rk8) , dimension(ici1:ici2,kz) , intent(in)  :: convppt
     real(rk8) , dimension(ici1:ici2,kz) , intent(in) :: fracloud , fracum
     real(rk8) , dimension(ici1:ici2) ,intent(in) :: pressg
@@ -644,11 +644,11 @@ module mod_che_wetdep
     ! index of the correponding aerosol in the chi table
     real(rk8) , dimension(ici1:ici2,kz) :: totppt
     real(rk8) , dimension(ici1:ici2,kz,mbin) :: colef , wetdep , rhsize , rhop
-    real(rk8) , dimension(ntr) :: wetrem , wetrem_cvc 
+    real(rk8) , dimension(ntr) :: wetrem , wetrem_cvc
     real(rk8) :: wtend
     integer(ik4) :: n , k , i, nk,nkh
 
-    ! rain out parametrisation 
+    ! rain out parametrisation
     ! clmin = non-precipitating cloud
     ! conversion threshold, clmin=0.01g/m3
     real(rk8) , parameter :: clmin = 0.01D0
@@ -661,16 +661,16 @@ module mod_che_wetdep
       ! Wet removal at resolvable scale (fcc)
       ! add non-precipitating cloud conversion (threshold clmin=0.01g/m3)
       ! the same as that in subroutine exmois clmin = 0.01
-      ! FAB: 
+      ! FAB:
       ! Care, remrat and rembc as calculated in precip are already grid
       ! level average removal rates
       ! here remrat is divided by fracloud (large scale cloud fraction)
-      ! to get the correct in cloud removal rate 
+      ! to get the correct in cloud removal rate
 
       ! IMPORTANT NOTE : for the diag, we use now rmlsc and remcvc arrays
       ! to output rainout and wahout instead of the large scale vs convective
       ! removal. In each arry convective and large scale rainout ( washout)
-      ! added. The name of the array is thus a bit misleading 
+      ! added. The name of the array is thus a bit misleading
 
       if ( ichremlsc == 1 ) then
         do k = 1 , kz
@@ -683,7 +683,7 @@ module mod_che_wetdep
                    (dexp(-cremrat(j,i,k)/fracloud(i,k)*dt)-d_one)
                 chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
                    wetrem(indp(n))/dt
-                ! save the tendency as a diag 
+                ! save the tendency as a diag
                 remlsc(j,i,k,indp(n)) = remlsc(j,i,k,indp(n)) + &
                    wetrem(indp(n))/dt  *cfdout
               end if
@@ -691,7 +691,7 @@ module mod_che_wetdep
           end do
         end do
       end if
-   
+
       if ( ichremcvc == 1 ) then
         ! sub-scale wet removal, cumulus cloud (fracum)
         ! remcum = in cloud removal rate for cumulus cloud scavenging (s-1)
@@ -703,7 +703,7 @@ module mod_che_wetdep
                    chib(j,i,k,indp(n))*(dexp(-remcum*dt)-d_one)
               chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) + &
                    wetrem_cvc(indp(n))/dt
-         !add the concvetive rainout to large scale save the tendency as a diag 
+         !add the concvetive rainout to large scale save the tendency as a diag
               remlsc(j,i,k,indp(n)) = remlsc(j,i,k,indp(n)) + &
                    wetrem_cvc(indp(n))/ dt *cfdout
             end do
@@ -732,7 +732,7 @@ module mod_che_wetdep
     ! (equals to surface cumul precipi) from surface to cumtop.
     ! inside the cloud, need itnterpolate linearly between the prec rate and
     ! o ( top of the cloud). Consider that half of the convective
-    ! column is cloud .. improve this in the future !  
+    ! column is cloud .. improve this in the future !
     totppt(:,:) = d_zero
     do i =  ici1 , ici2
       if ( kcumtop(j,i) > 0 ) then
@@ -740,17 +740,17 @@ module mod_che_wetdep
         n = 1
         do k =  kcumtop(j,i) , kz
           nkh = nk / 2
-          if ( n <= nkh ) then 
+          if ( n <= nkh ) then
             totppt(i,k) = (dble(n) / dble(nkh)) * convppt(i,kz)
           else
             totppt(i,k)  = convppt(i,kz)
           end if
           n = n + 1
         end do
-      end if 
-    end do 
+      end if
+    end do
     ! add the contribution of strat prec
-    totppt(:,:) = strappt(:,:) + totppt(:,:)   
+    totppt(:,:) = strappt(:,:) + totppt(:,:)
     call blcld(mbin,indp,rhsize,t,pressg,shj,rho,totppt,pdepv,rhop,wetdep,colef)
 
     ! calculate the tendency due to wahsout dep here.
@@ -759,12 +759,12 @@ module mod_che_wetdep
       do k = 1 , kz
         do i = ici1 , ici2
           wtend = chib(j,i,k,indp(n))*(d_one-dexp(-wetdep(i,k,n)*dt))/dt
-          chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) - wtend 
+          chiten(j,i,k,indp(n)) = chiten(j,i,k,indp(n)) - wtend
           ! wet deposition washout diagnostic ( both from conv and large scale)
-          remcvc(j,i,k,indp(n)) = remcvc(j,i,k,indp(n)) - wtend * cfdout 
+          remcvc(j,i,k,indp(n)) = remcvc(j,i,k,indp(n)) - wtend * cfdout
         end do
       end do
-    end do 
+    end do
 
     do n = 1, mbin
       do i = ici1 , ici2
@@ -774,11 +774,11 @@ module mod_che_wetdep
           ! sum on the vertical to get total surface flux diag fo rain out
           ! and washout (already weighted for time average cfdout !),
           ! also change sign convention
-          ! normalise by psb to get the right flux unit 
+          ! normalise by psb to get the right flux unit
           wdlsc(j,i,indp(n)) = wdlsc(j,i,indp(n)) - &
             remlsc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k) /cpsb(j,i)
           wdcvc(j,i,indp(n)) = wdcvc(j,i,indp(n)) - &
-            remcvc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i) 
+            remcvc(j,i,k,indp(n))*cdzq(j,i,k) *crhob3d(j,i,k)/cpsb(j,i)
         end do
       end do
     end do
@@ -787,8 +787,8 @@ module mod_che_wetdep
 
   subroutine blcld(mbin,indp,rhsize,t,pressg,shj,rho,totppt,pdepv, &
                    rhop,wetdep,colef)
-    implicit none 
- 
+    implicit none
+
     integer(ik4) , intent(in) :: mbin
     real(rk8) , dimension(ici1:ici2,kz,mbin) , intent(in) :: rhsize , rhop
     real(rk8) , dimension(ici1:ici2,kz) , intent(in) :: t , rho , totppt
@@ -796,7 +796,7 @@ module mod_che_wetdep
     real(rk8) , dimension(ici1:ici2,kz,ntr) , intent(in) :: pdepv
     real(rk8) , dimension(ici1:ici2) , intent(in) :: pressg
     real(rk8) , dimension(kz) , intent(in) :: shj
-    real(rk8) , dimension(ici1:ici2,kz,mbin) , intent(out) :: colef , wetdep 
+    real(rk8) , dimension(ici1:ici2,kz,mbin) , intent(out) :: colef , wetdep
 
     ! index of the correponding aerosol in the chi table
     integer(ik4) , dimension(mbin) , intent(in) :: indp
@@ -809,64 +809,64 @@ module mod_che_wetdep
 
     !----------------------------------------------------------------------c
     ! call to compute collection efficiency coefficients                   c
-    !----------------------------------------------------------------------c 
- 
-    call cas(t,colef,indp,rhop,rho,rhsize,pressg,mbin,totppt,pdepv,shj) 
+    !----------------------------------------------------------------------c
+
+    call cas(t,colef,indp,rhop,rho,rhsize,pressg,mbin,totppt,pdepv,shj)
 
     wetdep(:,:,:) = d_zero
-    do n = 1 , mbin 
+    do n = 1 , mbin
       do k = 1 , kz
         do i = ici1 , ici2
-          if ( totppt(i,k) > 1.D-20 ) then 
+          if ( totppt(i,k) > 1.D-20 ) then
             tl = t(i,k)-tzero
             !----------------------------------------------------------c
             ! rain scavenging rate : wetdep in s-1   ?                 c
             ! units of totppt (mm.s-1) converted to m.s-1 (by 1.0e-3)  c
             !----------------------------------------------------------c
-            if ( tl > d_zero ) then 
-              rrm = 0.35D0*(totppt(i,k)*3600.0D0)**0.25D0*1.0D-3 
+            if ( tl > d_zero ) then
+              rrm = 0.35D0*(totppt(i,k)*3600.0D0)**0.25D0*1.0D-3
               ! formulation for monoddipesre rain of radius rrm
               ! (cf seinfeld), gives a scavenging rate wetdep in
-              ! s-1 ?? bcrain is 0.5 when it is 1.5 in seinfeld ?? 
-              wetdep(i,k,n) = bcrain*totppt(i,k)*1.0D-3*colef(i,k,n)/rrm 
-            end if 
+              ! s-1 ?? bcrain is 0.5 when it is 1.5 in seinfeld ??
+              wetdep(i,k,n) = bcrain*totppt(i,k)*1.0D-3*colef(i,k,n)/rrm
+            end if
             !---------------------------------------------------------c
             ! snow scavenging rate                                    c
             ! * density of snow is set as 1/10 of liquid water.       c
             ! * factor of 1.0e-2 in wetdep calculation takes this and c
             ! * unit                                                  c
             !      change (to m.s-1) into account                     c
-            !---------------------------------------------------------c 
+            !---------------------------------------------------------c
             ! . . . . snow scavenging
             if ( tl <= d_zero .and. tl >= -8.0D0 ) then
-              dm = 3.8D-5 ! characteristic length scale [m] 
-              wetdep(i,k,n) = bcsnow*totppt(i,k)*1.0D-3*colef(i,k,n)/dm 
+              dm = 3.8D-5 ! characteristic length scale [m]
+              wetdep(i,k,n) = bcsnow*totppt(i,k)*1.0D-3*colef(i,k,n)/dm
             end if
-            ! . . . . steller snow scavenging 
-            if ( tl < -8. .and. tl >= -25.0D0 ) then 
+            ! . . . . steller snow scavenging
+            if ( tl < -8. .and. tl >= -25.0D0 ) then
               dm = 2.7D-5
-              wetdep(i,k,n) = bcsnow*totppt(i,k)*1.0D-3*colef(i,k,n)/dm 
+              wetdep(i,k,n) = bcsnow*totppt(i,k)*1.0D-3*colef(i,k,n)/dm
             end if
-            ! . . . . graupel scavenging 
-            if ( tl > -25.0D0 ) then 
-              dm = 1.4D-4 
-              wetdep(i,k,n) = bcsnow*totppt(i,k)*1.0D-3*colef(i,k,n)/dm 
+            ! . . . . graupel scavenging
+            if ( tl > -25.0D0 ) then
+              dm = 1.4D-4
+              wetdep(i,k,n) = bcsnow*totppt(i,k)*1.0D-3*colef(i,k,n)/dm
             endif
-          end if 
-        end do 
-      end do 
+          end if
+        end do
+      end do
     end do
-  end subroutine blcld ! below-cloud scavenging subroutine 
+  end subroutine blcld ! below-cloud scavenging subroutine
 !
-!*********************************************************************** 
+!***********************************************************************
 !****  a e r o s o l   c o l l e c t i o n   e f f i c i e n c y    ****
 !***********************************************************************
 ! . . . calculation of the collection efficiency of the aerosols of  . .
-! . . . type n by collector droplets of radius rcol  . . . . . . . . . . 
-! . . . . . . . . . . . . . . . . . . . . . . . . . . . .  . . . . . . . 
+! . . . type n by collector droplets of radius rcol  . . . . . . . . . .
+! . . . . . . . . . . . . . . . . . . . . . . . . . . . .  . . . . . . .
 ! . . . dec 19/96 - s.l.gong - vectorised the whole program & added  . .
-! . . . . . . . . . . . . . .  some working space  . . . . . . . . . . . 
-! . . . jul 8/94  - s.l.gong - first version . . . . . . . . . . . . . . 
+! . . . . . . . . . . . . . .  some working space  . . . . . . . . . . .
+! . . . jul 8/94  - s.l.gong - first version . . . . . . . . . . . . . .
 !***********************************************************************
 !
   subroutine cas(t,colef,indp,rhop,rho,rhsize,pressg,mbin,totppt,pdepv,shj)
@@ -875,11 +875,11 @@ module mod_che_wetdep
   !  --------
   !  this is a module of calculating the collection efficiency of
   !  the aerosols of type n by collector droplets of radius rcol.
-  ! 
+  !
   implicit none
 
   integer(ik4) , intent(in) :: mbin
-  integer(ik4) , dimension(mbin) , intent(in) :: indp 
+  integer(ik4) , dimension(mbin) , intent(in) :: indp
   real(rk8) , dimension(ici1:ici2,kz) , intent(in) :: t , rho , totppt
   real(rk8) , dimension(ici1:ici2,kz,mbin) , intent(in) :: rhop , rhsize
   real(rk8) , dimension(ici1:ici2) , intent(in) :: pressg
@@ -893,15 +893,15 @@ module mod_che_wetdep
   real(rk8) :: amfp   ! mean molecular free path
   real(rk8) :: schm   ! schmidt number
   real(rk8) :: prii
-  real(rk8) :: priiv 
+  real(rk8) :: priiv
   ! real(rk8) :: cfac
   real(rk8) :: cfaca
   real(rk8) :: re ! reynolds number
   real(rk8) :: rr ! ratio of collected particle radius:collector particle radius
   real(rk8) :: st ! stokes number of collected particles
   real(rk8) :: vr
-  real(rk8) :: sstar 
-  real(rk8) :: amob 
+  real(rk8) :: sstar
+  real(rk8) :: amob
   real(rk8) :: colimp , pre
   real(rk8) :: vpr ! average settling velocity
   real(rk8) :: rrm ! mass mean raindrop radius (for rain)
@@ -916,13 +916,13 @@ module mod_che_wetdep
   !real(rk8) , parameter :: aa3r = 0.87D0
   real(rk8) , parameter :: rhorain = 1000.0D0
   real(rk8) , parameter :: amuw = 1.002D-3 ! at 20*c [kg/m/sec]
- 
+
   colef(:,:,:) = d_zero
 
-  do n = 1 , mbin 
+  do n = 1 , mbin
     do k = 1 , kz
       do i = ici1 , ici2
-        ! . . . for precipitation: 
+        ! . . . for precipitation:
         vpr = d_zero
         if ( totppt(i,k) > 1.D-15 ) then
           !********************************************************
@@ -950,7 +950,7 @@ module mod_che_wetdep
           anu = amu/rho(i,k)
           amob = 6.0D0*mathpi*amu*rhsize(i,k,n)/cfaca
           pdiff = boltzk*t(i,k)/amob
-          schm = anu/pdiff 
+          schm = anu/pdiff
           !----------------------------------------------------c
           ! collector drop size                                c
           !----------------------------------------------------c
@@ -960,21 +960,21 @@ module mod_che_wetdep
           ! rrm = mass mean raindrop radius                    c
           !----------------------------------------------------c
           if ( t(i,k) > tzero ) then
-            rrm = 0.35D0*(totppt(i,k)*3600.0D0)**0.25D0*1.D-3 
+            rrm = 0.35D0*(totppt(i,k)*3600.0D0)**0.25D0*1.D-3
             ! what empirical parametization is that ?
-            ! needs apparently rain rate in mm/hr 
+            ! needs apparently rain rate in mm/hr
             prii = 2.0D0/9.0D0*egrav/amu
-            priiv = prii*(rhorain-rho(i,k)) 
+            priiv = prii*(rhorain-rho(i,k))
             ! cunningham settling slip-correction factor
             ! settling velocity
             ! FAB : wrong this formulation apply only for small
             ! particles settling but not for big rain drops (high reynolds)!!
-            ! cf Seinfeld / Vpr would be overestimated 
+            ! cf Seinfeld / Vpr would be overestimated
             !  cfac = d_one+amfp/rrm*(aa1r+aa2r*dexp(-aa3r*rrm/amfp))
             ! vpr = priiv*rrm**2*cfac
-            ! try with a mean rainfall velcoity of 3 m/s 
-            vpr = 3.D0 
-          end if 
+            ! try with a mean rainfall velcoity of 3 m/s
+            vpr = 3.D0
+          end if
           !----------------------------------------------------c
           ! snow scavenging                                    c
           ! data from slinn (1984) in atmospheric science &    c
@@ -1003,12 +1003,12 @@ module mod_che_wetdep
             alpha = 2.0D0/3.0D0
           endif
 
-          ! reynolds number: 
+          ! reynolds number:
           re = rrm*vpr*rho(i,k)/amu
-          ! stokes number of collected particles: 
-          st = d_two*pdepv(i,k,indp(n))/egrav*(vpr - &
+          ! stokes number of collected particles:
+          st = d_two*pdepv(i,k,indp(n))*regrav*(vpr - &
                pdepv(i,k,indp(n)))/(d_two*rrm)
-          ! ratio of radius of collected particle to colector drop: 
+          ! ratio of radius of collected particle to colector drop:
           rr = rhsize(i,k,n)/rrm
           vr = amuw/amu
           sstar = (1.2D0+(d_one/12.0D0)* &
@@ -1025,16 +1025,16 @@ module mod_che_wetdep
                  schm**(d_one/d_three)+0.16D0*dsqrt(re*schm)) +  &
                  d_four*rr*(d_one/vr + (d_one+d_two*dsqrt(re))*rr) + colimp
           else
-          ! snow scavenging efficiency: 
+          ! snow scavenging efficiency:
           colef(i,k,n) = (d_one/schm)**alpha +  &
                  (d_one-dexp(-(d_one+dsqrt(re))*rr**2)) + colimp
           endif
-          ! setting the upper-bound for collection efficiency: 
+          ! setting the upper-bound for collection efficiency:
           colef(i,k,n) = dmax1(d_zero,dmin1(d_one,colef(i,k,n)))
         end if
       end do
-    end do 
-  end do 
+    end do
+  end do
   end subroutine cas
 !
 end module mod_che_wetdep

@@ -966,7 +966,7 @@ module mod_cu_em
 !     calculate surface precipitation in mm/s
 !
 !     precip = precip+wt(1)*sigd*water(1)*3600.*24000./(d_1000*g)   ! mm/d
-      precip = precip + wt(1)*sigd*water(1)/egrav ! mm/s
+      precip = precip + wt(1)*sigd*water(1)*regrav ! mm/s
     end if
 !
 !

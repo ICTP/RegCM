@@ -175,7 +175,7 @@ module mod_ocn_coare
         if ( iflag ) then
           zo10 = zogs
         else
-          zo10 = 0.011D0*usr*usr/egrav+0.11D0*visa/usr
+          zo10 = 0.011D0*usr*usr*regrav+0.11D0*visa/usr
         end if
 
         ! initial guess for drag coefficents
@@ -225,7 +225,7 @@ module mod_ocn_coare
           if ( iflag ) then
             zo = zogs
           else
-            zo = 0.011D0*usr*usr/egrav+0.11D0*visa/usr
+            zo = 0.011D0*usr*usr*regrav+0.11D0*visa/usr
           end if
 
           rr = zo*usr/visa
