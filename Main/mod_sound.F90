@@ -33,12 +33,10 @@ module mod_sound
       chh , cjtmp , cpm , cs , denom , dppdp0 , dpterm , dts , dtsmax ,  &
       dx8 , ppold , rho , rho0s , rofac , xgamma , xkd
     real(rk8) , dimension(jci1:jci2,ici1:ici2) :: astore , estore
-    real(rk8) , dimension(jci1:jci2,ici1:ici2) :: dpsdxm , dpsdym
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ca
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: g1 , g2
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ptend , pxup , pyvp
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: tk
-    real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ucrs , vcrs
     integer(ik4) :: i , istep , it , j , k , km1 , kp1
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: cc , cdd , cj
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: pi , pp3d
@@ -97,14 +95,6 @@ module mod_sound
     istep = int(dtl/dtsmax) + 1
     if ( ktau >= 1 ) istep = max(4,istep)
     dts = dtl/istep
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        dpsdxm(j,i) = (sfs%psa(j+1,i)-sfs%psa(j-1,i)) / &
-                      (sfs%psa(j,i)*dx8*mddom%msfx(j,i))
-        dpsdym(j,i) = (sfs%psa(j,i+1)-sfs%psa(j,i-1)) / &
-                      (sfs%psa(j,i)*dx8*mddom%msfx(j,i))
-      end do
-    end do
     !
     ! CALCULATE THE LOOP BOUNDARIES
     !
@@ -501,13 +491,6 @@ module mod_sound
         do i = ici1 , ici2
           do j = jci1 , jci2
             w3d(j,i,k+1) = e(j,i,k)*w3d(j,i,k) + f(j,i,k)
-            !
-            ! --- CALCULATE WIND AT CROSS POINT
-            !
-            ucrs(j,i,k) = u3d(j,i,k) + u3d(j+1,i,k) + &
-                          u3d(j,i+1,k) + u3d(j+1,i+1,k)
-            vcrs(j,i,k) = v3d(j,i,k) + v3d(j+1,i,k) + &
-                          v3d(j,i+1,k) + v3d(j+1,i+1,k)
           end do
         end do
       end do
@@ -516,12 +499,12 @@ module mod_sound
         do i = ici1 , ici2
           do j = jci1 , jci2
             rho0s = twt(k,1)*atm1%rho(j,i,k) + twt(k,2)*atm1%rho(j,i,k-1)
-            sigdot(j,i,k) = -rho0s * egrav * w3d(j,i,k) /                &
-                            sfs%psa(j,i)*0.001D0 - sigma(k) *            &
-                            ( dpsdxm(j,i) * ( twt(k,1)*ucrs(j,i,k) +     &
-                                              twt(k,2)*ucrs(j,i,k-1) ) + &
-                              dpsdym(j,i) * ( twt(k,1)*vcrs(j,i,k) +     &
-                                              twt(k,2)*vcrs(j,i,k-1) ) )
+            sigdot(j,i,k) = -rho0s * egrav * w3d(j,i,k) /             &
+                   sfs%psa(j,i)*0.001D0 - sigma(k) *                  &
+                   ( dpsdxm(j,i) * ( twt(k,1)*atms%ubx3d(j,i,k) +     &
+                                     twt(k,2)*atms%ubx3d(j,i,k-1) ) + &
+                     dpsdym(j,i) * ( twt(k,1)*atms%vbx3d(j,i,k) +     &
+                                     twt(k,2)*atms%vbx3d(j,i,k-1) ) )
             check = abs(sigdot(j,i,k)) * dtl / (dsigma(k) + dsigma(k-1))
             cfl = max(check,cfl)
           end do

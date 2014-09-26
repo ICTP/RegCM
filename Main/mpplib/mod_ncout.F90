@@ -488,6 +488,8 @@ module mod_ncout
       vsize%n1 = 1
       vsize%n2 = 4
 
+      outstream(nstream)%opar%l_sync = lsync
+
       if ( nstream == atm_stream ) then
 
         allocate(v2dvar_atm(natm2dvars))
@@ -1727,7 +1729,10 @@ module mod_ncout
           outstream(slaboc_stream)%ncvars%vlist(vcount)%vp => v3dvar_slaboc(i)
           vcount = vcount + 1
         end do
-
+        !
+        ! This file MUST be synced.
+        !
+        outstream(slaboc_stream)%opar%l_sync = .true.
         outstream(slaboc_stream)%jl1 = vsize%j1
         outstream(slaboc_stream)%jl2 = vsize%j2
         outstream(slaboc_stream)%il1 = vsize%i1
@@ -2018,7 +2023,6 @@ module mod_ncout
       end if
 
       outstream(nstream)%opar%pname = 'RegCM Model'
-      outstream(nstream)%opar%l_sync = lsync
       outstream(nstream)%opar%l_band = (i_band == 1)
 
       if ( parallel_out ) then

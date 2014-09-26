@@ -160,7 +160,8 @@ module mod_pbl_uwtcm
   subroutine get_data_from_tcm(p2m,atm1,atm2,bRegridWinds)
     implicit none
     type(pbl_2_mod) , intent(inout) :: p2m
-    type(atmstate) , intent(inout) :: atm1 , atm2
+    type(atmstate_a) , intent(inout) :: atm1
+    type(atmstate_b) , intent(inout) :: atm2
     logical , intent(in) :: bRegridWinds
     integer :: i , j , k , n
     ! Don't update the model variables if we are the diagnostic mode
@@ -277,7 +278,7 @@ module mod_pbl_uwtcm
   subroutine hadvtke(tcmstate,atm,twt,mapfcx,dxx)
     implicit none
     real(rk8) , intent(in) :: dxx
-    type(atmstate) , intent(in) :: atm
+    type(atmstate_a) , intent(in) :: atm
     type(tcm_state) , intent(inout) :: tcmstate
     real(rk8) , pointer , dimension(:,:) :: twt
     real(rk8) , pointer , dimension(:,:) :: mapfcx

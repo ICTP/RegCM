@@ -73,19 +73,6 @@ module mod_slice
       end do
     end if
     do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          atms%ubx3d(j,i,k) = d_rfour* &
-              (atm2%u(j,i,k)+atm2%u(j,i+1,k)+ &
-               atm2%u(j+1,i,k)+atm2%u(j+1,i+1,k))/sfs%psb(j,i)
-          atms%vbx3d(j,i,k) = d_rfour* &
-              (atm2%v(j,i,k)+atm2%v(j,i+1,k)+ &
-               atm2%v(j+1,i,k)+atm2%v(j+1,i+1,k))/sfs%psb(j,i)
-        end do
-      end do
-    end do
-
-    do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
           atms%wpx3d(j,i,k) = omega(j,i,k) * d_1000 ! Pa/s
@@ -147,24 +134,51 @@ module mod_slice
         atms%zq(j,i,kzp1) = d_zero
       end do
     end do
-    do k = kz , 1 , -1
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          cell = ptop/sfs%psb(j,i)
-          atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg*atms%tb3d(j,i,k) *  &
-                    dlog((sigma(k+1)+cell)/(sigma(k)+cell))
+    if ( idynamic == 1 ) then
+      do k = kz , 1 , -1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            cell = ptop/sfs%psb(j,i)
+            atms%zq(j,i,k) = atms%zq(j,i,k+1) + rovg*atms%tb3d(j,i,k) *  &
+                      log((sigma(k+1)+cell)/(sigma(k)+cell))
+          end do
         end do
       end do
-    end do
-
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          atms%za(j,i,k) = d_half*(atms%zq(j,i,k)+atms%zq(j,i,k+1))
-          atms%dzq(j,i,k) = atms%zq(j,i,k) - atms%zq(j,i,k+1)
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atms%za(j,i,k) = d_half*(atms%zq(j,i,k)+atms%zq(j,i,k+1))
+            atms%dzq(j,i,k) = atms%zq(j,i,k) - atms%zq(j,i,k+1)
+          end do
         end do
       end do
-    end do
+    else
+      do k = 1 , kz-1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atms%dzq(j,i,k) = log(atm2%pr(j,i,k+1)/atm2%pr(j,i,k)) * &
+              rovg*0.5*(atm2%t(j,i,k)+atm2%t(j,i,k+1))
+          end do
+        end do
+      end do
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          atms%dzq(j,i,kz) = atms%dzq(j,i,kz-1)
+        end do
+      end do
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          atms%zq(j,i,kzp1) = d_zero
+        end do
+      end do
+      do k = kz , 1 , -1
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atms%zq(j,i,k) = atms%zq(j,i,k+1) + atms%dzq(j,i,k)
+          end do
+        end do
+      end do
+    end if
 
     atms%rhb3d(:,:,:) = d_zero
 
@@ -189,6 +203,19 @@ module mod_slice
       end do
     end if
 
+    if ( idynamic == 2 ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          dpsdxm(j,i) = (sfs%psb(j+1,i) - sfs%psb(j-1,i)) / &
+                        (sfs%psb(j,i)*dx8*mddom%msfx(j,i))
+          dpsdym(j,i) = (sfs%psb(j,i+1) - sfs%psb(j,i-1)) / &
+                        (sfs%psb(j,i)*dx8*mddom%msfx(j,i))
+        end do
+      end do
+    end if
+
   end subroutine mkslice
-!
+
 end module mod_slice
+
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

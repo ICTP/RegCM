@@ -87,7 +87,7 @@ module mod_regcm_types
     integer(ik4) , pointer , dimension(:,:,:) :: iveg
   end type domain_subgrid
 
-  type atmstate
+  type atmstate_a
     real(rk8) , pointer , dimension(:,:,:) :: u
     real(rk8) , pointer , dimension(:,:,:) :: v
     real(rk8) , pointer , dimension(:,:,:) :: w
@@ -97,7 +97,55 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:,:) :: pp
     real(rk8) , pointer , dimension(:,:,:) :: pr
     real(rk8) , pointer , dimension(:,:,:) :: rho
-  end type atmstate
+  end type atmstate_a
+
+  type atmstate_b
+    real(rk8) , pointer , dimension(:,:,:) :: u
+    real(rk8) , pointer , dimension(:,:,:) :: v
+    real(rk8) , pointer , dimension(:,:,:) :: w
+    real(rk8) , pointer , dimension(:,:,:) :: t
+    real(rk8) , pointer , dimension(:,:,:,:) :: qx
+    real(rk8) , pointer , dimension(:,:,:) :: tke
+    real(rk8) , pointer , dimension(:,:,:) :: pp
+    real(rk8) , pointer , dimension(:,:,:) :: pr
+    real(rk8) , pointer , dimension(:,:,:) :: rho
+  end type atmstate_b
+
+  type atmstate_c
+    real(rk8) , pointer , dimension(:,:,:) :: u
+    real(rk8) , pointer , dimension(:,:,:) :: v
+    real(rk8) , pointer , dimension(:,:,:) :: w
+    real(rk8) , pointer , dimension(:,:,:) :: t
+    real(rk8) , pointer , dimension(:,:,:,:) :: qx
+    real(rk8) , pointer , dimension(:,:,:) :: tke
+    real(rk8) , pointer , dimension(:,:,:) :: pp
+    real(rk8) , pointer , dimension(:,:,:) :: pr
+    real(rk8) , pointer , dimension(:,:,:) :: rho
+  end type atmstate_c
+
+  type atmstate_tendency
+    real(rk8) , pointer , dimension(:,:,:) :: u
+    real(rk8) , pointer , dimension(:,:,:) :: v
+    real(rk8) , pointer , dimension(:,:,:) :: w
+    real(rk8) , pointer , dimension(:,:,:) :: t
+    real(rk8) , pointer , dimension(:,:,:,:) :: qx
+    real(rk8) , pointer , dimension(:,:,:) :: tke
+    real(rk8) , pointer , dimension(:,:,:) :: pp
+    real(rk8) , pointer , dimension(:,:,:) :: pr
+    real(rk8) , pointer , dimension(:,:,:) :: rho
+  end type atmstate_tendency
+
+  type atmstate_decoupled
+    real(rk8) , pointer , dimension(:,:,:) :: u
+    real(rk8) , pointer , dimension(:,:,:) :: v
+    real(rk8) , pointer , dimension(:,:,:) :: w
+    real(rk8) , pointer , dimension(:,:,:) :: t
+    real(rk8) , pointer , dimension(:,:,:,:) :: qx
+    real(rk8) , pointer , dimension(:,:,:) :: tke
+    real(rk8) , pointer , dimension(:,:,:) :: pp
+    real(rk8) , pointer , dimension(:,:,:) :: pr
+    real(rk8) , pointer , dimension(:,:,:) :: rho
+  end type atmstate_decoupled
 
   type tcm_state
     ! TKE*ps

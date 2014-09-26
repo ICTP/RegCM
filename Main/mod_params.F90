@@ -1187,7 +1187,7 @@ module mod_params
 
   call allocate_mod_runparams
 
-  call allocate_mod_atm_interface(ibltyp,isladvec)
+  call allocate_mod_atm_interface
 
   call allocate_mod_tend
 

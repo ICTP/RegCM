@@ -58,7 +58,7 @@ module mod_tendency
   real(rk8) , pointer , dimension(:,:,:) :: ps4
   real(rk8) , pointer , dimension(:,:,:) :: ps_4
   real(rk8) , pointer , dimension(:,:) :: psc , pten
-
+  real(rk8) , pointer , dimension(:,:) :: dummy
 
 #ifdef DEBUG
   real(rk8) , pointer , dimension(:,:,:) :: wten
@@ -80,6 +80,7 @@ module mod_tendency
     call getmem3d(td,jce1,jce2,ice1,ice2,1,kz,'tendency:td')
     call getmem2d(psc,jce1,jce2,ice1,ice2,'tendency:psc')
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
+    call getmem2d(dummy,jde1,jde2,ide1,ide2,'tendency:dummy')
     call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
     if ( idiag > 0 ) then
       call getmem3d(ten0,jce1,jce2,ice1,ice2,1,kz,'tendency:ten0')
@@ -105,7 +106,7 @@ module mod_tendency
                psasum , pt2bar , pt2tot , ptnbar , maxv , lowq ,     &
                ptntot , qxas , qxbs , rovcpm , rtbar , sigpsa , tv , &
                tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,     &
-               xmsf
+               rho0s , cpm , scr
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
@@ -115,35 +116,38 @@ module mod_tendency
     call time_begin(subroutine_name,idindx)
 #endif
     !
-    ! multiply ua and va by inverse of mapscale factor at dot point:
+    ! Compute surface pressure on dot points
     !
-    do k = 1 , kz
-      do i = ide1 , ide2
-        do j = jde1 , jde2
-          atm1%u(j,i,k) = atm1%u(j,i,k)*mddom%msfd(j,i)
-          atm1%v(j,i,k) = atm1%v(j,i,k)*mddom%msfd(j,i)
-        end do
+    call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
+    call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
+
+    call psc2psd(sfs%psa,sfs%psdota)
+    call psc2psd(sfs%psb,sfs%psdotb)
+    !
+    !--------------------------------------------------------------
+    ! Decoupling
+    !--------------------------------------------------------------
+    !
+    ! Helper
+    !
+    do i = ide1 , ide2
+      do j = jde1 , jde2
+        dummy(j,i) = d_one/sfs%psdota(j,i)
       end do
     end do
-
-    call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
-    call psc2psd(sfs%psa,sfs%psdota)
-    call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
-    call psc2psd(sfs%psb,sfs%psdotb)
     !
     ! Internal U,V points
     !
     do k = 1 , kz
       do i = idii1 , idii2
         do j = jdii1 , jdii2
-          xmsf = mddom%msfd(j,i)
-          atmx%u(j,i,k) = atm1%u(j,i,k)/(sfs%psdota(j,i)*xmsf)
-          atmx%v(j,i,k) = atm1%v(j,i,k)/(sfs%psdota(j,i)*xmsf)
+          atmx%u(j,i,k) = atm1%u(j,i,k)*dummy(j,i)
+          atmx%v(j,i,k) = atm1%v(j,i,k)*dummy(j,i)
         end do
       end do
     end do
     !
-    ! Boundary points
+    ! Boundary U,Vpoints
     !
     if ( ma%has_bdyleft ) then
       do k = 1 , kz
@@ -246,12 +250,20 @@ module mod_tendency
       end if
     end if
     !
-    ! T , QV , QC decouple
+    ! Helper
+    !
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        dummy(j,i) = d_one/sfs%psa(j,i)
+      end do
+    end do
+    !
+    ! T , QV , QC
     !
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          atmx%t(j,i,k) = atm1%t(j,i,k)/sfs%psa(j,i)
+          atmx%t(j,i,k) = atm1%t(j,i,k)*dummy(j,i)
         end do
       end do
     end do
@@ -259,7 +271,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            atmx%qx(j,i,k,n) = atm1%qx(j,i,k,n)/sfs%psa(j,i)
+            atmx%qx(j,i,k,n) = atm1%qx(j,i,k,n)*dummy(j,i)
           end do
         end do
       end do
@@ -272,15 +284,28 @@ module mod_tendency
         do k = 1 , kz
           do i = ice1 , ice2
             do j = jce1 , jce2
-              chi(j,i,k,n) = chia(j,i,k,n)/sfs%psa(j,i)
+              chi(j,i,k,n) = chia(j,i,k,n)*dummy(j,i)
             end do
           end do
         end do
       end do
     end if
-!
-!=======================================================================
-!
+    !
+    !--------------------------------------------------------------
+    ! End of Decoupling
+    !--------------------------------------------------------------
+    !
+    ! multiply ua and va by inverse of mapscale factor at dot point:
+    !
+    do k = 1 , kz
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          atm1%u(j,i,k) = atm1%u(j,i,k)*mddom%msfd(j,i)
+          atm1%v(j,i,k) = atm1%v(j,i,k)*mddom%msfd(j,i)
+        end do
+      end do
+    end do
+
     if ( isladvec == 1 ) then
       call exchange(atm1%u,4,jde1,jde2,ide1,ide2,1,kz)
       call exchange(atm1%v,4,jde1,jde2,ide1,ide2,1,kz)
@@ -366,35 +391,83 @@ module mod_tendency
         call exchange(chib,1,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       end if
     end if
+
     !
-    ! compute the pressure tendency
+    ! Compute map factor for ahead and cross point velocities
     !
-    pten(:,:) = d_zero
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        dummy(j,i) = d_one/(dx2*mddom%msfx(j,i)*mddom%msfx(j,i))
+      end do
+    end do
     do k = 1 , kz
       do i = ice1 , ice2
         do j = jce1 , jce2
-          divl(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
-                         atm1%u(j,i+1,k)  -atm1%u(j,i,k)) + &
-                        (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k)- &
-                         atm1%v(j+1,i,k)  -atm1%v(j,i,k))
-          pten(j,i) = pten(j,i) - divl(j,i,k)*dsigma(k) / &
-                      (dx2*mddom%msfx(j,i)*mddom%msfx(j,i))
+          atms%ubx3d(j,i,k) = d_rfour*             &
+              (atm2%u(j,i,k)   + atm2%u(j,i+1,k) + &
+               atm2%u(j+1,i,k) + atm2%u(j+1,i+1,k)) / sfs%psb(j,i)
+          atms%vbx3d(j,i,k) = d_rfour*             &
+              (atm2%v(j,i,k)   + atm2%v(j,i+1,k) + &
+               atm2%v(j+1,i,k) + atm2%v(j+1,i+1,k)) / sfs%psb(j,i)
         end do
       end do
     end do
+
     !
     ! compute vertical sigma-velocity (qdot):
     !
-    qdot(:,:,:)  = d_zero
-    do k = 2 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          qdot(j,i,k) = qdot(j,i,k-1) - (pten(j,i)+divl(j,i,k-1) / &
-                       (dx2*mddom%msfx(j,i)*mddom%msfx(j,i)))* &
-                       dsigma(k-1)/sfs%psa(j,i)
-         end do
+    qdot(:,:,1)  = d_zero
+    if ( idynamic == 1 ) then
+      !
+      ! compute the pressure tendency
+      !
+      pten(:,:) = d_zero
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            divl(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
+                           atm1%u(j,i+1,k)  -atm1%u(j,i,k)) + &
+                          (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k)- &
+                           atm1%v(j+1,i,k)  -atm1%v(j,i,k))
+            pten(j,i) = pten(j,i) - divl(j,i,k)*dsigma(k) * dummy(j,i)
+          end do
+        end do
       end do
-    end do
+      do k = 2 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            qdot(j,i,k) = qdot(j,i,k-1) - (pten(j,i) + &
+              divl(j,i,k-1)*dummy(j,i)) * dsigma(k-1)/sfs%psa(j,i)
+           end do
+        end do
+      end do
+    else
+      do k = 2 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            rho0s = twt(k,1)*atm1%rho(j,i,k)+twt(k,2)*atm1%rho(j,i,k-1)
+            qdot(j,i,k) = -rho0s * egrav * &
+              atm1%w(j,i,k) / sfs%psa(j,i) * 0.001 -                     &
+              sigma(k) * (dpsdxm(j,i) * (twt(k,1)*atms%ubx3d(j,i,k) +    &
+                                         twt(k,2)*atms%ubx3d(j,i,k-1)) + &
+                          dpsdym(j,i) * (twt(k,1)*atms%vbx3d(j,i,k) +    &
+                                         twt(k,2)*atms%vbx3d(j,i,k-1)))
+           end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            divl(j,i,k) = (atm1%u(j+1,i+1,k)+atm1%u(j+1,i,k)- &
+                           atm1%u(j,i+1,k)  -atm1%u(j,i,k)) + &
+                          (atm1%v(j+1,i+1,k)+atm1%v(j,i+1,k)- &
+                           atm1%v(j+1,i,k)  -atm1%v(j,i,k))
+            divl(j,i,k) = divl(j,i,k) * dummy(j,i) + &
+              (qdot(j,i,k+1) - qdot(j,i,k)) * sfs%psa(j,i)/dsigma(k)
+          end do
+        end do
+      end do
+    end if
     call exchange(qdot,1,jce1,jce2,ice1,ice2,1,kzp1)
     !
     ! compute omega
@@ -586,16 +659,30 @@ module mod_tendency
     !
     ! compute the adiabatic term:
     !
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          rovcpm = rgas/(cpd*(d_one+0.8D0*(atmx%qx(j,i,k,iqv))))
-          tv = atmx%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
-          aten%t(j,i,k) = aten%t(j,i,k) + (omega(j,i,k)*rovcpm*tv) / &
-                          (ptop/sfs%psa(j,i)+hsigma(k))
+    if ( idynamic == 1 ) then
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            rovcpm = rgas/(cpd*(d_one+0.8D0*(atmx%qx(j,i,k,iqv))))
+            tv = atmx%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
+            aten%t(j,i,k) = aten%t(j,i,k) + (omega(j,i,k)*rovcpm*tv) / &
+                            (ptop/sfs%psa(j,i)+hsigma(k))
+          end do
         end do
       end do
-    end do
+    else
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            scr = d_half*egrav*atm1%rho(j,i,k)*(atm1%w(j,i,k)+atm1%w(j,i,k+1))
+            cpm = cpd*(d_one+0.8D0*atmx%qx(j,i,k,iqv))
+            aten%t(j,i,k) = aten%t(j,i,k) + atm1%t(j,i,k)*divl(j,i,k) - &
+              (scr+aten%pp(j,i,k)+atm1%pr(j,i,k)*divl(j,i,k)) / &
+              (atm1%rho(j,i,k)*cpm)
+          end do
+        end do
+      end do
+    end if
     if ( idiag > 0 ) then
       tdiag%adi = tdiag%adi + (aten%t - ten0) * afdout
       ten0 = aten%t
@@ -1424,6 +1511,27 @@ module mod_tendency
         sfs%psa(j,i) = psc(j,i)
       end do
     end do
+    if ( idynamic == 1 ) then
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
+            atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)/sfs%psb(j,i))
+          end do
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atm2%pr(j,i,k) = atm1%pr(j,i,k) + atm1%pp(j,i,k)
+            atm2%rho(j,i,k) = atm2%pr(j,i,k) / &
+                    (rgas*(atm2%t(j,i,k)/sfs%psb(j,i)) * &
+                    (d_one+ep1*atm2%qx(j,i,k,iqv)/sfs%psb(j,i)))
+          end do
+        end do
+      end do
+    end if
     !
     ! increment elapsed forecast time:
     !
@@ -1644,5 +1752,7 @@ module mod_tendency
 #endif
 
   end subroutine tend
-!
+
 end module mod_tendency
+
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

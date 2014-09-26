@@ -689,8 +689,9 @@ module mod_output
         ps_out = d_10*(sfs%psa(jci1:jci2,ici1:ici2)+ptop)
         call fill_slaboc_outvars
         call writevar_output_stream(slaboc_stream,v3dvar_slaboc(slab_qflx))
-        if ( myid == italk ) &
+        if ( myid == italk ) then
           write(stdout,*) 'SOM variables written at ' , tochar(idatex)
+        end if
       end if
     end if
 

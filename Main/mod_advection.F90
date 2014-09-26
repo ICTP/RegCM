@@ -66,7 +66,7 @@ module mod_advection
       implicit none
       type(domain) , intent(in) :: dom
       type(surfstate), intent(in) :: sfs
-      type(atmstate) , intent(in) :: atm
+      type(atmstate_a) , intent(in) :: atm
       real(rk8) , pointer , dimension(:,:,:) :: vertvel
       integer(ik4) , pointer , dimension(:,:) :: kpbltop
       call assignpnt(atm%u,ua)

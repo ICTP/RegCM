@@ -83,8 +83,8 @@ module mod_precip
   subroutine init_precip(atmslice,atm,aten,sfs,pptnc,cldfra,cldlwc)
     implicit none
     type(slice) , intent(in) :: atmslice
-    type(atmstate) , intent(in) :: atm
-    type(atmstate) , intent(in) :: aten
+    type(atmstate_b) , intent(in) :: atm
+    type(atmstate_tendency) , intent(in) :: aten
     type(surfstate) , intent(in) :: sfs
     real(rk8) , pointer , dimension(:,:) :: pptnc
     real(rk8) , pointer , dimension(:,:,:) :: cldfra , cldlwc

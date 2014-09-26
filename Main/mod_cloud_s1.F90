@@ -366,7 +366,7 @@ module mod_cloud_s1
   subroutine init_cloud_s1(atms,aten,heatrt,sfs,q_detr,pptnc)
     implicit none
     type(slice) , intent(in) :: atms
-    type(atmstate) , intent(in) :: aten
+    type(atmstate_tendency) , intent(in) :: aten
     type(surfstate) , intent(in) :: sfs
     real(rk8) , pointer , intent(in), dimension(:,:,:) :: heatrt , q_detr
     real(rk8) , pointer , dimension(:,:) :: pptnc
