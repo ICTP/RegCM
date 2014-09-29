@@ -83,7 +83,12 @@ def copyvar(nc,name,ovar,nnvar=None,bnds=True,stsf=False,ds=0.0,
   if name == 'rcm_map' or name == 'crs':
     xvar = nc.createVariable(nvar,ovar.datatype,tuple(ssdim))
   else:
-    xvar = nc.createVariable(nvar,'f8',tuple(ssdim))
+    if len(ssdim) > 1 and 'ntimes' not in ssdim:
+      xvar = nc.createVariable(nvar,'f8',tuple(ssdim),
+                               shuffle=True,fletcher32=True,
+                               zlib=True,complevel=9)
+    else:
+      xvar = nc.createVariable(nvar,'f8',tuple(ssdim))
   attrlist = [ ]
   for attr in ovar.ncattrs():
     attrlist.append(attr)
@@ -424,11 +429,6 @@ if variable not in lookup.keys():
 lookupdim = {
           'jx' : 'x',
           'iy' : 'y',
-          'm2' : 'height',
-          'm10' : 'height',
-          'sigma' : 'plev',
-          'kz' : 'plev',
-          'plev' : 'plev',
           'ntimes' : 'time_bnds',
 }
 
@@ -628,16 +628,16 @@ for dim in var.dimensions:
     newvardims.append(dim)
   else:
     if dim == 'sigma' or dim == 'plev' or dim == 'kz':
-      nco.createDimension(lookupdim[dim], 1)
+      # nco.createDimension(lookupdim[dim], 1)
       reducedims = 'plev'
       #newvardims.append(lookupdim[dim])
     elif dim == 'time_bnds' or dim == 'ntimes':
       pass
     else:
       try:
-        nco.createDimension(lookupdim[dim], len(ncf.dimensions[dim]))
         if ( lookupdim[dim] != 'height' ):
           newvardims.append(lookupdim[dim])
+          nco.createDimension(lookupdim[dim], len(ncf.dimensions[dim]))
         else:
           reducedims = 'height'
       except:
@@ -687,7 +687,7 @@ else:
     newtimebnds = nco.createVariable('time_bnds','f8',('time','time_bnds'))
 
 newvar = nco.createVariable(variable,'f',tuple(newvardims),
-                            shuffle=True,fletcher32='true',
+                            shuffle=True,fletcher32=True,
                             zlib=True,complevel=9)
 oldunits = ''
 for attr in var.ncattrs():
@@ -726,7 +726,10 @@ for dim in var.dimensions:
   if dim in lookupvar.keys():
     addvar.append(dim)
 for avar in addvar:
-  bbvar = nco.createVariable(lookupvar[avar]['name'],'f8',lookupdim[avar])
+  try:
+    bbvar = nco.createVariable(lookupvar[avar]['name'],'f8',lookupdim[avar])
+  except:
+    bbvar = nco.createVariable(lookupvar[avar]['name'],'f8')
   for attr in lookupvar[avar]['attributes'].keys():
     bbvar.setncattr(attr,lookupvar[avar]['attributes'][attr])
   avars.append(bbvar)
@@ -783,8 +786,6 @@ for it in range(0,np.size(correct_time)):
   if lookup[variable].has_key('vertint'):
     if 'plev' in var.dimensions:
       intvar = var[it,mask[0],Ellipsis]
-      if variable == 'hus850':
-        intvar = mrtosph(intvar,getattr(var,'standard_name'))
       newvar[it,Ellipsis] = intvar * xfac
     else:
       if lookup[variable]['vertmod'] == 'linear':

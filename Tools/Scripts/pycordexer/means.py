@@ -87,8 +87,10 @@ compressed in disk.
 
   for var in ncf.variables:
     nctype = ncf.variables[var].datatype
-    if 'jx' in ncf.variables[var].dimensions:
+    if ('x' in ncf.variables[var].dimensions and
+        'y' in ncf.variables[var].dimensions):
       nco.createVariable(var,nctype,ncf.variables[var].dimensions,
+                         shuffle=True,fletcher32=True,
                          zlib=True,complevel=9)
     else:
       if var == 'time_bnds':
@@ -102,7 +104,7 @@ compressed in disk.
           nco.variables[var].setncattr('units',tunit)
         elif attr == 'bounds':
           nco.variables[var].setncattr('bounds','time_bnds')
-	  hasbnds = True
+          hasbnds = True
         else:
           nco.variables[var].setncattr(attr,getattr(ncf.variables[var],attr))
       if not hasbnds:
