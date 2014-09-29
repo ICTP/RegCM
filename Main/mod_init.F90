@@ -220,7 +220,7 @@ module mod_init
     !
     ! Set the TKE variables for UW PBL to a default value
     !
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    if ( ibltyp == 2 ) then
       atm1%tke(:,:,:) = tkemin
       atm2%tke(:,:,:) = tkemin
     end if
@@ -269,7 +269,7 @@ module mod_init
     call grid_distribute(atm2_t_io,atm2%t,jce1,jce2,ice1,ice2,1,kz)
     call grid_distribute(atm2_qx_io,atm2%qx,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    if ( ibltyp == 2 ) then
       call grid_distribute(atm1_tke_io,atm1%tke,jce1,jce2,ice1,ice2,1,kzp1)
       call grid_distribute(atm2_tke_io,atm2%tke,jce1,jce2,ice1,ice2,1,kzp1)
       call grid_distribute(kpbl_io,kpbl,jci1,jci2,ici1,ici2)

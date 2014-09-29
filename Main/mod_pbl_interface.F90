@@ -61,11 +61,11 @@ module mod_pbl_interface
 
   subroutine allocate_pblscheme
     implicit none
-    if ( ibltyp == 1 .or. ibltyp == 99) then
+    if ( ibltyp == 1 ) then
       call getmem2d(ricr,jci1,jci2,ici1,ici2,'pbl_common:ricr')
       call allocate_mod_pbl_holtbl
     end if
-    if ( ibltyp == 2 .or. ibltyp == 99) then
+    if ( ibltyp == 2 ) then
       call allocate_tcm_state(uwstatea)
       call allocate_tcm_state(uwstateb)
       ! To be used in vertical advection scheme
@@ -122,7 +122,6 @@ module mod_pbl_interface
     call assignpnt(uwten%qx,p2m%qxuwten)
     call assignpnt(adf%difft,p2m%difft)
     call assignpnt(adf%diffqx,p2m%diffqx)
-    call assignpnt(holtten%qx,p2m%diagqx)
     call assignpnt(chiten,p2m%chiten)
     call assignpnt(remdrd,p2m%remdrd)
     call assignpnt(zpbl,p2m%zpbl)

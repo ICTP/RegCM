@@ -174,7 +174,7 @@ module mod_savefile
       call getmem3d(atm1_t_io,jcross1,jcross2,icross1,icross2,1,kz,'atm1_t_io')
       call getmem4d(atm1_qx_io,jcross1,jcross2, &
                     icross1,icross2,1,kz,1,nqx,'atm1_qx_io')
-      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      if ( ibltyp == 2 ) then
         call getmem3d(atm1_tke_io,jcross1,jcross2, &
                       icross1,icross2,1,kzp1,'atm1_tke_io')
       end if
@@ -183,7 +183,7 @@ module mod_savefile
       call getmem3d(atm2_t_io,jcross1,jcross2,icross1,icross2,1,kz,'atm2_t_io')
       call getmem4d(atm2_qx_io,jcross1,jcross2, &
                     icross1,icross2,1,kz,1,nqx,'atm2_qx_io')
-      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      if ( ibltyp == 2 ) then
         call getmem3d(atm2_tke_io,jcross1,jcross2, &
                       icross1,icross2,1,kzp1,'atm2_tke_io')
       end if
@@ -228,7 +228,7 @@ module mod_savefile
       call getmem2d(solvsd_io,jcross1,jcross2,icross1,icross2,'solvsd_io')
       call getmem2d(solvl_io,jcross1,jcross2,icross1,icross2,'solvl_io')
       call getmem2d(solvld_io,jcross1,jcross2,icross1,icross2,'solvld_io')
-      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      if ( ibltyp == 2 ) then
         call getmem2d(kpbl_io,jcross1,jcross2,icross1,icross2,'kpbl_io')
       end if
       if ( idcsst == 1 ) then
@@ -361,7 +361,7 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot read atm1_qx')
       ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_qx'),atm2_qx_io)
       call check_ok(__FILE__,__LINE__,'Cannot read atm2_qx')
-      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      if ( ibltyp == 2 ) then
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm1_tke'),atm1_tke_io)
         call check_ok(__FILE__,__LINE__,'Cannot read atm1_tke')
         ncstatus = nf90_get_var(ncid,get_varid(ncid,'atm2_tke'),atm2_tke_io)
@@ -655,7 +655,7 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot create var atm1_qx')
       ncstatus = nf90_def_var(ncid,'atm2_qx',nf90_double,wrkdim(1:4),varids(8))
       call check_ok(__FILE__,__LINE__,'Cannot create var atm2_qx')
-      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      if ( ibltyp == 2 ) then
         wrkdim(3) = dimids(idkf)
         ncstatus = nf90_def_var(ncid,'atm1_tke',nf90_double, &
                                 wrkdim(1:3),varids(9))
@@ -950,7 +950,7 @@ module mod_savefile
       call check_ok(__FILE__,__LINE__,'Cannot write atm1_qx')
       ncstatus = nf90_put_var(ncid,varids(8),atm2_qx_io)
       call check_ok(__FILE__,__LINE__,'Cannot write atm2_qx')
-      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      if ( ibltyp == 2 ) then
         ncstatus = nf90_put_var(ncid,varids(9),atm1_tke_io)
         call check_ok(__FILE__,__LINE__,'Cannot write atm1_tke')
         ncstatus = nf90_put_var(ncid,varids(10),atm2_tke_io)

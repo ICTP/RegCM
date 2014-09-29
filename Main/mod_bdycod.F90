@@ -865,7 +865,7 @@ module mod_bdycod
             end do
           end do
         end do
-        if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        if ( ibltyp == 2 ) then
           do k = 1 , kzp1
             do i = ici1 , ici2
               atm2%tke(jce1,i,k) = atm1%tke(jce1,i,k)
@@ -898,7 +898,7 @@ module mod_bdycod
             end do
           end do
         end do
-        if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        if ( ibltyp == 2 ) then
           do k = 1 , kzp1
             do i = ici1 , ici2
               atm2%tke(jce2,i,k) = atm1%tke(jce2,i,k)
@@ -931,7 +931,7 @@ module mod_bdycod
             end do
           end do
         end do
-        if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        if ( ibltyp == 2 ) then
           do k = 1 , kzp1
             do j = jce1 , jce2
               atm2%tke(j,ice1,k) = atm1%tke(j,ice1,k)
@@ -961,7 +961,7 @@ module mod_bdycod
             end do
           end do
         end do
-        if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        if ( ibltyp == 2 ) then
           do k = 1 , kzp1
             do j = jce1 , jce2
               atm2%tke(j,ice2,k) = atm1%tke(j,ice2,k)
@@ -1363,7 +1363,7 @@ module mod_bdycod
       end do
     end if
 
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    if ( ibltyp == 2 ) then
       if ( ktau == 0 ) then
         if ( ma%has_bdyleft ) then
           atm1%tke(jce1,:,:) = tkemin ! East boundary

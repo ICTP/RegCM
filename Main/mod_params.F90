@@ -714,10 +714,10 @@ module mod_params
     if ( any(icup < 0) .or. any(icup > 6) ) then
       call fatal(__FILE__,__LINE__,'UNSUPPORTED CUMULUS SCHEME')
     end if
-    if ( ibltyp < 0 .or. (ibltyp > 2 .and. ibltyp /= 99) ) then
+    if ( ibltyp < 0 .or. ibltyp > 2 ) then
       call fatal(__FILE__,__LINE__,'UNSUPPORTED PBL SCHEME.')
     end if
-    if ( ibltyp == 1 .or. ibltyp == 99 ) then
+    if ( ibltyp == 1 ) then
       rewind(ipunit)
       read (ipunit, nml=holtslagparam, iostat=iretval, err=110)
       if ( iretval /= 0 ) then
@@ -728,7 +728,7 @@ module mod_params
 #endif
       end if
     end if
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    if ( ibltyp == 2 ) then
       rewind(ipunit)
       read (ipunit, nml=uwparam, iostat=iretval, err=111)
       if ( iretval /= 0 ) then
@@ -790,7 +790,7 @@ module mod_params
 #endif
       end if
       ! force option 2 for drydep in the case of UW PBL
-      if ( ibltyp == 2 .or. ibltyp == 99 ) ichdrdepo = 2
+      if ( ibltyp == 2 ) ichdrdepo = 2
     else
       ichem = 0
       ntr = 0
@@ -1119,7 +1119,7 @@ module mod_params
     call bcast(kf_entrate)
   end if
 
-  if ( ibltyp == 1 .or. ibltyp == 99 ) then
+  if ( ibltyp == 1 ) then
     call bcast(ricr_ocn)
     call bcast(ricr_lnd)
     call bcast(zhnew_fac)
@@ -1127,7 +1127,7 @@ module mod_params
     call bcast(ifaholtmax)
     call bcast(ifaholtmin)
   end if
-  if ( ibltyp == 2 .or. ibltyp == 99 ) then
+  if ( ibltyp == 2 ) then
     call bcast(iuwvadv)
     call bcast(ilenparam)
     call bcast(atwo)
@@ -1950,7 +1950,7 @@ module mod_params
   !
   ! Setup Holtslag PBL Critical Richardson Number
   !
-  if ( ibltyp == 1 .or. ibltyp == 99 ) then
+  if ( ibltyp == 1 ) then
     do i = ici1 , ici2
       do j = jci1 , jci2
         if ( mddom%ldmsk(j,i) == 1 ) then

@@ -707,7 +707,7 @@ module mod_output
         call grid_collect(atm2%t,atm2_t_io,jce1,jce2,ice1,ice2,1,kz)
         call grid_collect(atm2%qx,atm2_qx_io,jce1,jce2,ice1,ice2,1,kz,1,nqx)
 
-        if ( ibltyp == 2 .or. ibltyp == 99 ) then
+        if ( ibltyp == 2 ) then
           call grid_collect(atm1%tke,atm1_tke_io,jce1,jce2,ice1,ice2,1,kzp1)
           call grid_collect(atm2%tke,atm2_tke_io,jce1,jce2,ice1,ice2,1,kzp1)
           call grid_collect(kpbl,kpbl_io,jci1,jci2,ici1,ici2)

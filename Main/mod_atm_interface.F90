@@ -41,7 +41,7 @@ module mod_atm_interface
   type(atmstate_a) , public :: atm1
   type(atmstate_b) , public :: atm2
   type(atmstate_c) , public :: atmc
-  type(atmstate_tendency) , public :: aten , holtten , uwten
+  type(atmstate_tendency) , public :: aten , uwten
   type(atmstate_decoupled) , public :: atmx
   type(tendiag) , public :: tdiag
   type(qendiag) , public :: qdiag
@@ -508,7 +508,7 @@ module mod_atm_interface
       call getmem3d(atm%t,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:t')
       call getmem4d(atm%qx,jce1-jl,jce2+jr, &
                            ice1-ib,ice2+it,1,kz,1,nqx,'atmstate:qx')
-      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1-jl,jce2+jr,ice1-ib,ice2+it, &
                       1,kzp1,'atmstate:tke')
       end if
@@ -561,7 +561,7 @@ module mod_atm_interface
       call getmem3d(atm%t,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:t')
       call getmem4d(atm%qx,jce1-jl,jce2+jr, &
                            ice1-ib,ice2+it,1,kz,1,nqx,'atmstate:qx')
-      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1-jl,jce2+jr,ice1-ib,ice2+it, &
                       1,kzp1,'atmstate:tke')
       end if
@@ -614,7 +614,7 @@ module mod_atm_interface
       call getmem3d(atm%t,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:t')
       call getmem4d(atm%qx,jce1-jl,jce2+jr, &
                            ice1-ib,ice2+it,1,kz,1,nqx,'atmstate:qx')
-      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1-jl,jce2+jr,ice1-ib,ice2+it, &
                       1,kzp1,'atmstate:tke')
       end if
@@ -667,7 +667,7 @@ module mod_atm_interface
       call getmem3d(atm%t,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:t')
       call getmem4d(atm%qx,jce1-jl,jce2+jr, &
                            ice1-ib,ice2+it,1,kz,1,nqx,'atmstate:qx')
-      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1-jl,jce2+jr,ice1-ib,ice2+it, &
                       1,kzp1,'atmstate:tke')
       end if
@@ -720,7 +720,7 @@ module mod_atm_interface
       call getmem3d(atm%t,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:t')
       call getmem4d(atm%qx,jce1-jl,jce2+jr, &
                            ice1-ib,ice2+it,1,kz,1,nqx,'atmstate:qx')
-      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      if ( ibltyp == 2 ) then
         call getmem3d(atm%tke,jce1-jl,jce2+jr,ice1-ib,ice2+it, &
                       1,kzp1,'atmstate:tke')
       end if
@@ -857,12 +857,12 @@ module mod_atm_interface
                                 ice1-ma%ibb2,ice2+ma%ibt2, &
                                 1,kz,1,ntr,'slice:chib3d')
       end if
-      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      if ( ibltyp == 2 ) then
         call getmem3d(ax%tkeb3d,jce1-ma%jbl2,jce2+ma%jbr2, &
                                 ice1-ma%ibb2,ice2+ma%ibt2,1,kzp1,'slice:tkeb3d')
       end if
     end subroutine allocate_slice
-!
+
     subroutine allocate_diffx(dx)
       implicit none
       type(diffx) , intent(out) :: dx
@@ -871,7 +871,7 @@ module mod_atm_interface
       call getmem3d(dx%difft,jci1,jci2,ici1,ici2,1,kz,'diffx:difft')
       call getmem4d(dx%diffqx,jci1,jci2,ici1,ici2,1,kz,1,nqx,'diffx:diffqx')
     end subroutine allocate_diffx
-!
+
     subroutine allocate_mod_atm_interface
       implicit none
 
@@ -889,10 +889,7 @@ module mod_atm_interface
       end if
       call allocate_atmstate_c(atmc,zero_exchange_point)
       call allocate_atmstate_tendency(aten,zero_exchange_point)
-      if ( ibltyp == 99 ) then
-        call allocate_atmstate_tendency(holtten,zero_exchange_point)
-      end if
-      if ( ibltyp == 2 .or. ibltyp == 99 ) then
+      if ( ibltyp == 2 ) then
         call allocate_atmstate_tendency(uwten,one_exchange_point)
       end if
 

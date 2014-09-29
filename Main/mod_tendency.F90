@@ -318,7 +318,7 @@ module mod_tendency
     call exchange(atm1%v,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atm1%t,nexchange_adv,jce1,jce2,ice1,ice2,1,kz)
     call exchange(atm1%qx,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    if ( ibltyp == 2 ) then
       call exchange(atm1%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 
@@ -343,7 +343,7 @@ module mod_tendency
     call exchange(atm2%v,nexchange_adv,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atm2%t,nexchange_adv,jce1,jce2,ice1,ice2,1,kz)
     call exchange(atm2%qx,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    if ( ibltyp == 2 ) then
       call exchange(atm2%tke,1,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 
@@ -475,7 +475,7 @@ module mod_tendency
     call exchange(atms%ubx3d,2,jce1,jce2,ice1,ice2,1,kz)
     call exchange(atms%vbx3d,2,jce1,jce2,ice1,ice2,1,kz)
     call exchange(atms%qxb3d,2,jce1,jce2,ice1,ice2,1,kz,1,nqx)
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    if ( ibltyp == 2 ) then
       call exchange(atms%tkeb3d,2,jce1,jce2,ice1,ice2,1,kzp1)
     end if
 
@@ -588,7 +588,7 @@ module mod_tendency
 #ifdef DEBUG
     wten(:,:,:) = d_zero
 #endif
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    if ( ibltyp == 2 ) then
       aten%tke(:,:,:) = d_zero
     end if
     if ( ichem == 1 ) then
@@ -618,9 +618,9 @@ module mod_tendency
     !
     ! compute the vertical advection term:
     !
-    if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
+    if ( ibltyp == 1 ) then
       call vadv(cross,aten%t,atm1%t,kz,1)
-    else
+    else if ( ibltyp == 2 ) then
       if ( iuwvadv == 1 ) then
         call vadv(cross,aten%t,atm1%t,kz,3)
       else
@@ -698,9 +698,9 @@ module mod_tendency
       qen0 = aten%qx(:,:,:,iqv)
     end if
     if ( all(icup /= 1) ) then
-      if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
+      if ( ibltyp == 1 ) then
         call vadv(aten%qx,atm1%qx,kz,1,iqv)
-      else
+      else if ( ibltyp == 2 ) then
         if ( iuwvadv == 1 ) then
           call vadv(aten%qx,atm1%qx,kz,3,iqv)
         else
@@ -768,9 +768,9 @@ module mod_tendency
       else
         call hadv(aten%qx,atmx%qx,kz,iqfrst,iqlst)
       end if
-      if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
+      if ( ibltyp == 1 ) then
         call vadv(aten%qx,atm1%qx,kz,2,iqfrst,iqlst)
-      else
+      else if ( ibltyp == 2 ) then
         if ( iuwvadv == 1 ) then
           call vadv(aten%qx,atm1%qx,kz,3,iqfrst,iqlst)
         else
@@ -831,9 +831,9 @@ module mod_tendency
         chiten0 = chiten
       end if
       if ( all(icup /= 1) ) then
-        if ( ibltyp /= 2 .and. ibltyp /= 99 ) then
+        if ( ibltyp == 1 ) then
           call vadv(chiten,chia,kz,2)
-        else
+        else if ( ibltyp == 2 ) then
           if ( iuwvadv == 1 ) then
             call vadv(chiten,chia,kz,3)
           else
@@ -890,11 +890,6 @@ module mod_tendency
     ! care : pbl update the difft table at this level
     if ( idiag > 0 ) ten0(jci1:jci2,ici1:ici2,:) = adf%difft
     call pblscheme
-    if ( ibltyp == 99 ) then
-      adf%diffqx(jci1:jci2,ici1:ici2,:,:) = &
-         adf%diffqx(jci1:jci2,ici1:ici2,:,:) + &
-         holtten%qx(jci1:jci2,ici1:ici2,:,:)
-    end if
     if ( ichem == 1 .and. ichdiag == 1 ) then
       ctbldiag = ctbldiag + (chiten - chiten0) * cfdout
     end if
@@ -944,10 +939,9 @@ module mod_tendency
         ten0 = aten%t
       end if
     end if
-
     !
     ! add horizontal diffusion and pbl tendencies for t and qv
-
+    !
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -1377,7 +1371,7 @@ module mod_tendency
     !
     !  Couple TKE to ps for use in vertical advection
     !
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    if ( ibltyp == 2 ) then
       uwstatea%advtke(:,:,:) = d_zero
       do k = 1 , kzp1
         do i = ice1 , ice2
@@ -1412,7 +1406,7 @@ module mod_tendency
           ! done in a loop separate from the updates.  (I lost 3 days
           ! of working to disocover that this is a problem because I
           ! thought it would be clever to combine loops--TAO)
-          if ( ibltyp == 2 .or. ibltyp == 99 ) then
+          if ( ibltyp == 2 ) then
             ! Add the advective tendency to the TKE tendency calculated
             ! by the UW TKE routine
              aten%tke(j,i,k) = aten%tke(j,i,k) + &

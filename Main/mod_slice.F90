@@ -193,7 +193,7 @@ module mod_slice
       end do
     end do
 
-    if ( ibltyp == 2 .or. ibltyp == 99 ) then
+    if ( ibltyp == 2 ) then
       do k = 1 , kzp1
         do i = ice1 , ice2
           do j = jce1 , jce2

@@ -224,7 +224,6 @@
                         !   0 => Frictionless
                         !   1 => Holtslag PBL (Holtslag, 1990)
                         !   2 => UW PBL (Bretherton and McCaa, 2004)
-                        !  99 => Holtslag PBL, with UW in diag. mode
  icup_lnd =          4, ! Cumulus convection scheme Over Land
  icup_ocn =          4, ! Cumulus convection scheme Over Icean
                         !   1 => Kuo

@@ -76,7 +76,7 @@ module mod_pbl_uwtcm
   use mod_pbl_thetal
   use mod_runparams , only : iqv , iqc , iuwvadv , atwo , rstbl , &
           ilenparam , czero , dt , rdt , ichem , sigma , hsigma , &
-          dsigma , ibltyp , ipptls
+          dsigma , ipptls
   use mod_regcm_types
   use mod_service
 
@@ -165,87 +165,67 @@ module mod_pbl_uwtcm
     integer :: i , j , k , n
     ! Don't update the model variables if we are the diagnostic mode
     ! (Holtslag running, and UW updating tke)
-    if ( ibltyp /= 99 ) then
-      !
-      ! Put the t and qv tendencies in to difft and diffq for
-      ! application of the sponge boundary conditions (see mod_tendency)
-      !
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            p2m%diffqx(j,i,k,iqv) = p2m%diffqx(j,i,k,iqv) +  &
-               p2m%qxuwten(j,i,k,iqv)
-          end do
+    !
+    ! Put the t and qv tendencies in to difft and diffq for
+    ! application of the sponge boundary conditions (see mod_tendency)
+    !
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          p2m%diffqx(j,i,k,iqv) = p2m%diffqx(j,i,k,iqv) +  &
+             p2m%qxuwten(j,i,k,iqv)
         end do
       end do
+    end do
 
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            p2m%difft(j,i,k) = p2m%difft(j,i,k) + p2m%tuwten(j,i,k)
-          end do
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          p2m%difft(j,i,k) = p2m%difft(j,i,k) + p2m%tuwten(j,i,k)
         end do
       end do
+    end do
 
-      ! Put the cloud water tendency
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + &
-               p2m%qxuwten(j,i,k,iqc)
-          end do
+    ! Put the cloud water tendency
+    do k = 1 , kz
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          p2m%qxten(j,i,k,iqc) = p2m%qxten(j,i,k,iqc) + &
+             p2m%qxuwten(j,i,k,iqc)
         end do
       end do
+    end do
 
-      ! Put the tracer tendencies in chiuwten
-      ! TODO: may want to calcuate rmdr here following holtbl
-      if ( ichem == 1 ) then
-        do n = 1 , ntr
-          do k = 1 , kz
-            do i = ici1 , ici2
-              do j = jci1 , jci2
-                p2m%chiten(j,i,k,n) = p2m%chiten(j,i,k,n) + &
-                   chiuwten(j,i,k,n)
-              end do
-            end do
-          end do
-        end do
-      end if
-
-      if ( .not. bRegridWinds ) then
-        !
-        ! If the TCM calculations were done on the dot grid, then
-        ! the u and v tendencies need not to be regridded to the dot grid
-        !
+    ! Put the tracer tendencies in chiuwten
+    ! TODO: may want to calcuate rmdr here following holtbl
+    if ( ichem == 1 ) then
+      do n = 1 , ntr
         do k = 1 , kz
-          do i = idi1 , idi2
-            do j = jdi1 , jdi2
-              p2m%uten(j,i,k) = p2m%uten(j,i,k) + p2m%uuwten(j,i,k)
-              p2m%vten(j,i,k) = p2m%vten(j,i,k) + p2m%vuwten(j,i,k)
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              p2m%chiten(j,i,k,n) = p2m%chiten(j,i,k,n) + &
+                 chiuwten(j,i,k,n)
             end do
           end do
         end do
-      end if
+      end do
     end if
-!   !
-!   ! Interpolate kzm and kth from the interfaces to the midpoints
-!   ! if the diffusivities are to be used in the holtslag model
-!   !
-!   if ( ibltyp == 99 ) then
-!     do k = 1 , kz
-!       uwstateb%kzm(:,:,k) = sqrt(uwstateb%kzm(:,:,k)*uwstateb%kzm(:,:,k+1))
-!       uwstateb%kth(:,:,k) = sqrt(uwstateb%kth(:,:,k)*uwstateb%kth(:,:,k+1))
-!     end do
-!   end if
-!   !
-!   ! Shift kth and kzm for output if the UW model is running
-!   !
-!   if ( ibltyp == 2 ) then
-!     do k = 1 , kz
-!       uwstateb%kzm(:,:,k) = uwstateb%kzm(:,:,k+1)
-!       uwstateb%kth(:,:,k) = uwstateb%kth(:,:,k+1)
-!     end do
-!   end if
+
+    if ( .not. bRegridWinds ) then
+      !
+      ! If the TCM calculations were done on the dot grid, then
+      ! the u and v tendencies need not to be regridded to the dot grid
+      !
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            p2m%uten(j,i,k) = p2m%uten(j,i,k) + p2m%uuwten(j,i,k)
+            p2m%vten(j,i,k) = p2m%vten(j,i,k) + p2m%vuwten(j,i,k)
+          end do
+        end do
+      end do
+    end if
+
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2

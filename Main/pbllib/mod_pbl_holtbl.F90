@@ -25,9 +25,9 @@ module mod_pbl_holtbl
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
-  use mod_runparams , only : ibltyp , iqv , iqc , dt , rdt ,  &
-    ichem , ichdrdepo , sigma , hsigma , dsigma , zhnew_fac , &
-    ifaholtth10 , ifaholtmax , ifaholtmin
+  use mod_runparams , only : iqv , iqc , dt , rdt , ichem , ichdrdepo ,    &
+          sigma , hsigma , dsigma , zhnew_fac , ifaholtth10 , ifaholtmax , &
+          ifaholtmin
   use mod_mppparam
   use mod_memutil
   use mod_service
@@ -601,25 +601,14 @@ module mod_pbl_holtbl
   !   calculate tendency due to vertical diffusion using temporary
   !   predicted field
   !
-  if ( ibltyp == 99 ) then
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          p2m%diagqx(j,i,k,iqv) = (tpred1(j,i,k) - &
-                  m2p%qxatm(j,i,k,iqv))*rdt*m2p%psb(j,i)
-        end do
+  do k = 1 , kz
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        p2m%diffqx(j,i,k,iqv) = p2m%diffqx(j,i,k,iqv) + &
+                     (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt*m2p%psb(j,i)
       end do
     end do
-  else
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          p2m%diffqx(j,i,k,iqv) = p2m%diffqx(j,i,k,iqv) + &
-                         (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqv))*rdt*m2p%psb(j,i)
-        end do
-      end do
-    end do
-  end if
+  end do
   !
   !   calculate coefficients at cross points for cloud vater
   !
@@ -682,25 +671,14 @@ module mod_pbl_holtbl
   !   calculate tendency due to vertical diffusion using temporary
   !   predicted field
   !
-  if ( ibltyp == 99 ) then
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          p2m%diagqx(j,i,k,iqc) = (tpred1(j,i,k) - &
-                  m2p%qxatm(j,i,k,iqc))*rdt*m2p%psb(j,i)
-        end do
+  do k = 1 , kz
+    do i = ici1 , ici2
+      do j = jci1 , jci2
+        p2m%diffqx(j,i,k,iqc) = p2m%diffqx(j,i,k,iqc) + &
+                    (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))*rdt*m2p%psb(j,i)
       end do
     end do
-  else
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          p2m%diffqx(j,i,k,iqc) = p2m%diffqx(j,i,k,iqc) + &
-                      (tpred1(j,i,k)-m2p%qxatm(j,i,k,iqc))*rdt*m2p%psb(j,i)
-        end do
-      end do
-    end do
-  end if
+  end do
 !
 ! **********************************************************************
 !
@@ -1097,18 +1075,6 @@ module mod_pbl_holtbl
     end do
   end do
 
-  if ( ibltyp == 99 ) then
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        do k = 1 , kz
-          kvm(j,i,k) = uwstateb%kzm(j,i,k)
-          kvh(j,i,k) = uwstateb%kth(j,i,k)
-          kvq(j,i,k) = uwstateb%kth(j,i,k)
-          cgh(j,i,k) = d_zero
-        end do
-      end do
-    end do
-  end if
 #ifdef DEBUG
   call time_end(subroutine_name,idindx)
 #endif
