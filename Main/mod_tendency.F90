@@ -107,6 +107,7 @@ module mod_tendency
                ptntot , qxas , qxbs , rovcpm , rtbar , sigpsa , tv , &
                tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,     &
                rho0s , cpm , scr
+    real(rk8) :: rofac , uaq , vaq
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
@@ -117,191 +118,22 @@ module mod_tendency
     call time_begin(subroutine_name,idindx)
 #endif
     !
-    ! Compute surface pressure on dot points
+    ! Set number of ghost points for advection for the two schemes
     !
-    call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
-    call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        rpsa(j,i) = d_one/sfs%psa(j,i)
-      end do
-    end do
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        rpsb(j,i) = d_one/sfs%psb(j,i)
-      end do
-    end do
-
     if ( isladvec == 1 ) then
       nexchange_adv = 4
     else
       nexchange_adv = 1
     end if
-    call psc2psd(sfs%psa,sfs%psdota)
-    call psc2psd(sfs%psb,sfs%psdotb)
     !
-    !--------------------------------------------------------------
-    ! Decoupling
-    !--------------------------------------------------------------
+    ! Prepare pressures on two timesteps, on both cross and dot
+    ! points, and compute 1/ps.
     !
-    ! Helper
+    call surface_pressures
     !
-    do i = ide1 , ide2
-      do j = jde1 , jde2
-        dummy(j,i) = d_one/sfs%psdota(j,i)
-      end do
-    end do
+    ! Decoupling on atmx and apply bdy conditions to U,V
     !
-    ! Internal U,V points
-    !
-    do k = 1 , kz
-      do i = idii1 , idii2
-        do j = jdii1 , jdii2
-          atmx%u(j,i,k) = atm1%u(j,i,k)*dummy(j,i)
-          atmx%v(j,i,k) = atm1%v(j,i,k)*dummy(j,i)
-        end do
-      end do
-    end do
-    !
-    ! Boundary U,Vpoints
-    !
-    if ( ma%has_bdyleft ) then
-      do k = 1 , kz
-        do i = idi1 , idi2
-          atmx%u(jdi1,i,k) = wui(i,k)
-          atmx%v(jdi1,i,k) = wvi(i,k)
-        end do
-      end do
-      do k = 1 , kz
-        do i = idi1 , idi2
-          atmx%u(jde1,i,k) = wue(i,k)
-          atmx%v(jde1,i,k) = wve(i,k)
-        end do
-      end do
-      ! inflow/outflow dependence
-      if ( iboudy == 3 .or. iboudy == 4 ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            if ( atmx%u(jde1,i,k) <= d_zero ) then
-              atmx%u(jde1,i,k) = atmx%u(jdi1,i,k)
-              atmx%v(jde1,i,k) = atmx%v(jdi1,i,k)
-            end if
-          end do
-        end do
-      end if
-    end if
-    if ( ma%has_bdyright ) then
-      do k = 1 , kz
-        do i = idi1 , idi2
-          atmx%u(jdi2,i,k) = eui(i,k)
-          atmx%v(jdi2,i,k) = evi(i,k)
-        end do
-      end do
-      do k = 1 , kz
-        do i = idi1 , idi2
-          atmx%u(jde2,i,k) = eue(i,k)
-          atmx%v(jde2,i,k) = eve(i,k)
-        end do
-      end do
-      ! inflow/outflow dependence
-      if ( iboudy == 3 .or. iboudy == 4 ) then
-        do k = 1 , kz
-          do i = idi1 , idi2
-            if ( atmx%u(jde2,i,k) >= d_zero ) then
-              atmx%u(jde2,i,k) = atmx%u(jdi2,i,k)
-              atmx%v(jde2,i,k) = atmx%v(jdi2,i,k)
-            end if
-          end do
-        end do
-      end if
-    end if
-    if ( ma%has_bdybottom ) then
-      do k = 1 , kz
-        do j = jdi1 , jdi2
-          atmx%u(j,idi1,k) = sui(j,k)
-          atmx%v(j,idi1,k) = svi(j,k)
-        end do
-      end do
-      do k = 1 , kz
-        do j = jde1 , jde2
-          atmx%u(j,ide1,k) = sue(j,k)
-          atmx%v(j,ide1,k) = sve(j,k)
-        end do
-      end do
-      if ( iboudy == 3 .or. iboudy == 4 ) then
-        ! inflow/outflow dependence
-        do k = 1 , kz
-          do j = jde1 , jde2
-            if ( atmx%v(j,ide1,k) >= d_zero ) then
-              atmx%v(j,ide1,k) = atmx%v(j,idi1,k)
-              atmx%u(j,ide1,k) = atmx%u(j,idi1,k)
-            end if
-          end do
-        end do
-      end if
-    end if
-    if ( ma%has_bdytop ) then
-      do k = 1 , kz
-        do j = jdi1 , jdi2
-          atmx%u(j,idi2,k) = nui(j,k)
-          atmx%v(j,idi2,k) = nvi(j,k)
-        end do
-      end do
-      do k = 1 , kz
-        do j = jde1 , jde2
-          atmx%u(j,ide2,k) = nue(j,k)
-          atmx%v(j,ide2,k) = nve(j,k)
-        end do
-      end do
-      if ( iboudy == 3 .or. iboudy == 4 ) then
-        ! inflow/outflow dependence
-        do k = 1 , kz
-          do j = jde1 , jde2
-            if ( atmx%v(j,ide2,k) <= d_zero ) then
-              atmx%v(j,ide2,k) = atmx%v(j,idi2,k)
-              atmx%u(j,ide2,k) = atmx%u(j,idi2,k)
-            end if
-          end do
-        end do
-      end if
-    end if
-    !
-    ! T , QV , QC
-    !
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          atmx%t(j,i,k) = atm1%t(j,i,k)*rpsa(j,i)
-        end do
-      end do
-    end do
-    do n = 1 , nqx
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atmx%qx(j,i,k,n) = atm1%qx(j,i,k,n)*rpsa(j,i)
-          end do
-        end do
-      end do
-    end do
-    !
-    ! call tracer decoupling routine for multiple (ntr) species
-    !
-    if ( ichem == 1 ) then
-      do n = 1 , ntr
-        do k = 1 , kz
-          do i = ice1 , ice2
-            do j = jce1 , jce2
-              chi(j,i,k,n) = chia(j,i,k,n)*rpsa(j,i)
-            end do
-          end do
-        end do
-      end do
-    end if
-    !
-    !--------------------------------------------------------------
-    ! End of Decoupling
-    !--------------------------------------------------------------
+    call decouple
     !
     ! multiply ua and va by inverse of mapscale factor at dot point:
     !
@@ -373,7 +205,7 @@ module mod_tendency
       call exchange(chib,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     end if
     !
-    ! Compute map factor for ahead and cross point velocities
+    ! Compute cross point velocities
     !
     do k = 1 , kz
       do i = ice1 , ice2
@@ -467,7 +299,11 @@ module mod_tendency
       end do
     end do
     !
+    ! Prepare fields to be used in physical parametrizations.
+    !
     call mkslice
+    !
+    ! Fill ghost points for those
     !
     call exchange(atms%ubd3d,2,jde1,jde2,ide1,ide2,1,kz)
     call exchange(atms%vbd3d,2,jde1,jde2,ide1,ide2,1,kz)
@@ -478,10 +314,10 @@ module mod_tendency
     if ( ibltyp == 2 ) then
       call exchange(atms%tkeb3d,2,jce1,jce2,ice1,ice2,1,kzp1)
     end if
-
     if ( ichem == 1 ) then
       call exchange(atms%chib3d,2,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     end if
+
     if ( iboudy == 4 ) then
       call sponge(ba_cr,xpsb,pten)
     else if ( iboudy == 1 .or. iboudy == 5 ) then
@@ -490,30 +326,36 @@ module mod_tendency
     !
     ! psc : forecast pressure
     !
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
-      end do
-    end do
-    if ( ma%has_bdyleft ) then
+    if ( idynamic == 1 ) then
       do i = ici1 , ici2
-        psc(jce1,i) = sfs%psb(jce1,i) + xpsb%bt(jce1,i)*dt
+        do j = jci1 , jci2
+          psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
+        end do
       end do
-    end if
-    if ( ma%has_bdyright ) then
-      do i = ici1 , ici2
-        psc(jce2,i) = sfs%psb(jce2,i) + xpsb%bt(jce2,i)*dt
-      end do
-    end if
-    if ( ma%has_bdybottom ) then
-      do j = jce1 , jce2
-        psc(j,ice1) = sfs%psb(j,ice1) + xpsb%bt(j,ice1)*dt
-      end do
-    end if
-    if ( ma%has_bdytop ) then
-      do j = jce1 , jce2
-        psc(j,ice2) = sfs%psb(j,ice2) + xpsb%bt(j,ice2)*dt
-      end do
+      if ( ma%has_bdyleft ) then
+        do i = ici1 , ici2
+          psc(jce1,i) = sfs%psb(jce1,i) + xpsb%bt(jce1,i)*dt
+        end do
+      end if
+      if ( ma%has_bdyright ) then
+        do i = ici1 , ici2
+          psc(jce2,i) = sfs%psb(jce2,i) + xpsb%bt(jce2,i)*dt
+        end do
+      end if
+      if ( ma%has_bdybottom ) then
+        do j = jce1 , jce2
+          psc(j,ice1) = sfs%psb(j,ice1) + xpsb%bt(j,ice1)*dt
+        end do
+      end if
+      if ( ma%has_bdytop ) then
+        do j = jce1 , jce2
+          psc(j,ice2) = sfs%psb(j,ice2) + xpsb%bt(j,ice2)*dt
+        end do
+      end if
+    else
+      ! ???????????????????????
+      ! ???????????????????????
+      ! ???????????????????????
     end if
     !
     ! compute bleck (1977) noise parameters:
@@ -657,6 +499,34 @@ module mod_tendency
             aten%t(j,i,k) = aten%t(j,i,k) + atm1%t(j,i,k)*divl(j,i,k) - &
               (scr+aten%pp(j,i,k)+atm1%pr(j,i,k)*divl(j,i,k)) / &
               (atm1%rho(j,i,k)*cpm)
+          end do
+        end do
+      end do
+      do k = 1 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            tv = atmx%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
+            atmx%pr = (tv-atmx%t(j,i,k) - atmx%pp(j,i,k) / &
+              (cpd*atmx%rho(j,i,k)))/atmx%t(j,i,k)
+          end do
+        end do
+      end do
+      do k = 2 , kz
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            rofac = ( dsigma(k-1) * atm1%rho(j,i,k) +   &
+                      dsigma(k)   * atm1%rho(j,i,k-1) ) / &
+                    ( dsigma(k-1) * atm2%rho(j,i,k) +   &
+                      dsigma(k)   * atm2%rho(j,i,k-1) )
+            uaq = (twt(k,1) * atms%ubx3d(j,i,k) + &
+                   twt(k,2) * atms%ubx3d(j,i,k-1) )
+            vaq = (twt(k,1) * atms%vbx3d(j,i,k) + &
+                   twt(k,2) * atms%vbx3d(j,i,k-1) )
+            aten%w(j,i,k) = aten%w(j,i,k) +        &
+                  ( twt(k,2)*atmx%pr(j,i,k-1) +    &
+                    twt(k,1)*atmx%pr(j,i,k) ) *    &
+                    rofac * egrav * sfs%psa(j,i) ! + &
+                    ! atmx%ex(j,i,k) * ( uaq
           end do
         end do
       end do
@@ -1503,7 +1373,7 @@ module mod_tendency
             atm2%pr(j,i,k) = atm1%pr(j,i,k) + atm1%pp(j,i,k)
             atm2%rho(j,i,k) = atm2%pr(j,i,k) / &
                     (rgas*(atm2%t(j,i,k)*rpsb(j,i)) * &
-                    (d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i)))
+                    (d_one + ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i)))
           end do
         end do
       end do
@@ -1726,6 +1596,189 @@ module mod_tendency
       end if
     end subroutine check_wind_tendency
 #endif
+
+    subroutine surface_pressures( )
+      implicit none
+      integer(ik4) :: i , j
+      !
+      ! Compute surface pressure on dot points
+      !
+      call exchange(sfs%psa,1,jce1,jce2,ice1,ice2)
+      call exchange(sfs%psb,1,jce1,jce2,ice1,ice2)
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          rpsa(j,i) = d_one/sfs%psa(j,i)
+        end do
+      end do
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          rpsb(j,i) = d_one/sfs%psb(j,i)
+        end do
+      end do
+      call psc2psd(sfs%psa,sfs%psdota)
+      call psc2psd(sfs%psb,sfs%psdotb)
+    end subroutine surface_pressures
+
+    subroutine decouple( )
+      implicit none
+      integer(ik4) :: i , j , k
+      real(rk8) , dimension(jde1:jde2,ide1:ide2) :: rpsda
+      !
+      ! Helper
+      !
+      do i = ide1 , ide2
+        do j = jde1 , jde2
+          rpsda(j,i) = d_one/sfs%psdota(j,i)
+        end do
+      end do
+      !
+      ! Internal U,V points
+      !
+      do k = 1 , kz
+        do i = idii1 , idii2
+          do j = jdii1 , jdii2
+            atmx%u(j,i,k) = atm1%u(j,i,k)*rpsda(j,i)
+            atmx%v(j,i,k) = atm1%v(j,i,k)*rpsda(j,i)
+          end do
+        end do
+      end do
+      !
+      ! Boundary U,Vpoints
+      !
+      if ( ma%has_bdyleft ) then
+        do k = 1 , kz
+          do i = idi1 , idi2
+            atmx%u(jdi1,i,k) = wui(i,k)
+            atmx%v(jdi1,i,k) = wvi(i,k)
+          end do
+        end do
+        do k = 1 , kz
+          do i = idi1 , idi2
+            atmx%u(jde1,i,k) = wue(i,k)
+            atmx%v(jde1,i,k) = wve(i,k)
+          end do
+        end do
+        ! inflow/outflow dependence
+        if ( iboudy == 3 .or. iboudy == 4 ) then
+          do k = 1 , kz
+            do i = idi1 , idi2
+              if ( atmx%u(jde1,i,k) <= d_zero ) then
+                atmx%u(jde1,i,k) = atmx%u(jdi1,i,k)
+                atmx%v(jde1,i,k) = atmx%v(jdi1,i,k)
+              end if
+            end do
+          end do
+        end if
+      end if
+      if ( ma%has_bdyright ) then
+        do k = 1 , kz
+          do i = idi1 , idi2
+            atmx%u(jdi2,i,k) = eui(i,k)
+            atmx%v(jdi2,i,k) = evi(i,k)
+          end do
+        end do
+        do k = 1 , kz
+          do i = idi1 , idi2
+            atmx%u(jde2,i,k) = eue(i,k)
+            atmx%v(jde2,i,k) = eve(i,k)
+          end do
+        end do
+        ! inflow/outflow dependence
+        if ( iboudy == 3 .or. iboudy == 4 ) then
+          do k = 1 , kz
+            do i = idi1 , idi2
+              if ( atmx%u(jde2,i,k) >= d_zero ) then
+                atmx%u(jde2,i,k) = atmx%u(jdi2,i,k)
+                atmx%v(jde2,i,k) = atmx%v(jdi2,i,k)
+              end if
+            end do
+          end do
+        end if
+      end if
+      if ( ma%has_bdybottom ) then
+        do k = 1 , kz
+          do j = jdi1 , jdi2
+            atmx%u(j,idi1,k) = sui(j,k)
+            atmx%v(j,idi1,k) = svi(j,k)
+          end do
+        end do
+        do k = 1 , kz
+          do j = jde1 , jde2
+            atmx%u(j,ide1,k) = sue(j,k)
+            atmx%v(j,ide1,k) = sve(j,k)
+          end do
+        end do
+        if ( iboudy == 3 .or. iboudy == 4 ) then
+          ! inflow/outflow dependence
+          do k = 1 , kz
+            do j = jde1 , jde2
+              if ( atmx%v(j,ide1,k) >= d_zero ) then
+                atmx%v(j,ide1,k) = atmx%v(j,idi1,k)
+                atmx%u(j,ide1,k) = atmx%u(j,idi1,k)
+              end if
+            end do
+          end do
+        end if
+      end if
+      if ( ma%has_bdytop ) then
+        do k = 1 , kz
+          do j = jdi1 , jdi2
+            atmx%u(j,idi2,k) = nui(j,k)
+            atmx%v(j,idi2,k) = nvi(j,k)
+          end do
+        end do
+        do k = 1 , kz
+          do j = jde1 , jde2
+            atmx%u(j,ide2,k) = nue(j,k)
+            atmx%v(j,ide2,k) = nve(j,k)
+          end do
+        end do
+        if ( iboudy == 3 .or. iboudy == 4 ) then
+          ! inflow/outflow dependence
+          do k = 1 , kz
+            do j = jde1 , jde2
+              if ( atmx%v(j,ide2,k) <= d_zero ) then
+                atmx%v(j,ide2,k) = atmx%v(j,idi2,k)
+                atmx%u(j,ide2,k) = atmx%u(j,idi2,k)
+              end if
+            end do
+          end do
+        end if
+      end if
+      !
+      ! T , QV , QC
+      !
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atmx%t(j,i,k) = atm1%t(j,i,k)*rpsa(j,i)
+          end do
+        end do
+      end do
+      do n = 1 , nqx
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              atmx%qx(j,i,k,n) = atm1%qx(j,i,k,n)*rpsa(j,i)
+            end do
+          end do
+        end do
+      end do
+      !
+      ! call tracer decoupling routine for multiple (ntr) species
+      !
+      if ( ichem == 1 ) then
+        do n = 1 , ntr
+          do k = 1 , kz
+            do i = ice1 , ice2
+              do j = jce1 , jce2
+                chi(j,i,k,n) = chia(j,i,k,n)*rpsa(j,i)
+              end do
+            end do
+          end do
+        end do
+      end if
+    end subroutine decouple
 
   end subroutine tend
 
