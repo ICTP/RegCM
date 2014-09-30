@@ -58,7 +58,7 @@ module mod_ch_icbc
   real(rk8) :: r4pt
   integer(ik4) :: ism
   type (rcm_time_and_date) , save :: iref1 , iref2
-  
+
   public :: header_ch_icbc , get_ch_icbc , close_ch_icbc
 
   contains
@@ -217,7 +217,7 @@ chv4(:,:,:,cb_CH3OH) = chv4_1(:,:,:,mz_CH3OH)*w_ch3oh/amd
     type(rcm_time_and_date) , intent(in) :: idate
     type(rcm_time_and_date) , intent(in) :: idate0
     real(rk8) , dimension(nfile,124),save :: timearray
- 
+
     character(len=256),intent(out) :: chfilename
     character(len=44),dimension(nfile),save:: filename
     integer(ik4) :: i , recc , it
@@ -244,12 +244,12 @@ chv4(:,:,:,cb_CH3OH) = chv4_1(:,:,:,mz_CH3OH)*w_ch3oh/amd
     yyyy_mmm1  = datenamem1(1:7)
     yyyy_mmp1  = datenamep1(1:7)
 !    write(*,*)yyyy_mm,'  ',yyyy_mmm1,'  ',yyyy_mmp1
-    chfilemm='MZ4-synoz-NCEPT42.mz4.h0.'//yyyy_mm    
-    chfilemmm1='MZ4-synoz-NCEPT42.mz4.h0.'//yyyy_mmm1    
-    chfilemmp1='MZ4-synoz-NCEPT42.mz4.h0.'//yyyy_mmp1    
+    chfilemm='MZ4-synoz-NCEPT42.mz4.h0.'//yyyy_mm
+    chfilemmm1='MZ4-synoz-NCEPT42.mz4.h0.'//yyyy_mmm1
+    chfilemmp1='MZ4-synoz-NCEPT42.mz4.h0.'//yyyy_mmp1
     open(10,file=trim(inpglob)//pthsep//'OXIGLOB'//pthsep//'list')
 
-     
+
     call split_idate(idate0,year1,month1,day1,hour1)
     call split_idate(idate,nyear,nmonth,nday,nhour)
    if(nyear .eq. year1 .and. nmonth .eq. month1 .and. nhour .eq. hour1)then
@@ -292,7 +292,7 @@ chv4(:,:,:,cb_CH3OH) = chv4_1(:,:,:,mz_CH3OH)*w_ch3oh/amd
       do it=1,124
          itimes(it)=timeval2date(dble(timearray(i,it)),cunit,ccal)
          tdif = itimes(it)-idate
-         if(tohours(tdif) == 0) then 
+         if(tohours(tdif) == 0) then
 !         write(*,*)tochar(idate),'  ',tochar(itimes(it)),'  ',tohours(tdif)
          chfilename=trim(trim(inpglob)//pthsep//'OXIGLOB'//pthsep//filename(i))
 !         write(*,*)chfilename
@@ -340,10 +340,10 @@ chv4(:,:,:,cb_CH3OH) = chv4_1(:,:,:,mz_CH3OH)*w_ch3oh/amd
                cunit="days since 1950-01-01 00:00:00"
               do it = 1 , timlen
                 itimes(it) = timeval2date(dble(xtimes(it)),cunit,ccal)
-                
+
                 tdif = itimes(it)-idate
-                if(tohours(tdif) == 0) then 
-                recc = it 
+                if(tohours(tdif) == 0) then
+                recc = it
                 end if
               end do
     write(*,*)chfilename,'  ',recc,'  ',tochar(itimes(recc))
@@ -361,7 +361,7 @@ chv4(:,:,:,cb_CH3OH) = chv4_1(:,:,:,mz_CH3OH)*w_ch3oh/amd
     call split_idate(globidate1,year1,month1,day1,hour1)
 
     do is = 1 , nchsp
-      istart(4) = recc 
+      istart(4) = recc
       istatus = nf90_inq_varid(ncid,trim(chspec(is))//'_VMR_inst',ivarid)
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error find var '//trim(chspec(is)))
@@ -369,9 +369,9 @@ chv4(:,:,:,cb_CH3OH) = chv4_1(:,:,:,mz_CH3OH)*w_ch3oh/amd
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//trim(chspec(is)))
       call bilinx2(chv3(:,:,:,is),xinp(:,:,:,is),xlon,xlat,cht42lon,cht42lat, &
-                   chilon,chjlat,iy,jx,chilev) 
+                   chilon,chjlat,iy,jx,chilev)
     end do
-    do i = 1 , iy 
+    do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
           prcm=((pchem_3(j,i)*0.1-r4pt)*sigma2(l)+r4pt)*10.

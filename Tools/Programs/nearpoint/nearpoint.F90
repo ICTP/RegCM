@@ -115,7 +115,7 @@ program nearpoint
 !-----calling the map projection subroutine
 !
   if ( iproj=='LAMCON' ) then
-    call setup_lcc(clat,clon,centerj,centeri,ds,clon,truelatl,truelath)    
+    call setup_lcc(clat,clon,centerj,centeri,ds,clon,truelatl,truelath)
     if ( iver == 1 ) then
       call llij_lc(lat,lon,jjx,iiy)
     else

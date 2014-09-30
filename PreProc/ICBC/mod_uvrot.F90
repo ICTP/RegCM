@@ -64,10 +64,10 @@ module mod_uvrot
         pollam = pollon
       end if
       if ( pollam > deg180 ) pollam = pollam - deg360
-   
+
       polcphi = dcos(degrad*polphi)
       polsphi = dsin(degrad*polphi)
-   
+
       do j = 1 , iy
         do i = 1 , jx
           zphi = dlat(i,j)*degrad
@@ -163,10 +163,10 @@ module mod_uvrot
         pollam = pollon
       end if
       if ( pollam > deg180 ) pollam = pollam - deg360
-   
+
       polcphi = dcos(degrad*polphi)
       polsphi = dsin(degrad*polphi)
-   
+
       do j = 1 , iy
         do i = 1 , jx
           zphi = dlat(i,j)*degrad

@@ -8,7 +8,7 @@ PROGRAM EMCRE
 ! Patrick Joeckel, MPICH, Mainz, October 2004
 ! ******************************************************************
 !
-! CONVERT IPCC EMISSION FILES 
+! CONVERT IPCC EMISSION FILES
 !
 ! -----------------------------------------------------------------
 
@@ -35,7 +35,7 @@ PROGRAM EMCRE
   INTEGER                                   :: ntime = 1 ! time steps
 
   !OUTPUT FILE SPECIFICATIONS
-  INTEGER, PARAMETER :: bounds = 4 
+  INTEGER, PARAMETER :: bounds = 4
   REAL(DP), DIMENSION(:,:),     ALLOCATABLE :: xlon    ! longitudes [deg]
   REAL(DP), DIMENSION(:,:,:),   ALLOCATABLE :: xlonb    ! longitudes [deg]
   REAL(DP), DIMENSION(:,:),     ALLOCATABLE :: xlat    ! latitudes  [deg]
@@ -47,8 +47,8 @@ PROGRAM EMCRE
   REAL(DP), DIMENSION(:),       ALLOCATABLE :: xtime   ! time [1]
   REAL(DP), DIMENSION(:,:),     ALLOCATABLE :: var
 
-  INTEGER  :: nlon   ! number of longitude intervals 
-  INTEGER  :: nlat   ! number of latitude  intervals 
+  INTEGER  :: nlon   ! number of longitude intervals
+  INTEGER  :: nlat   ! number of latitude  intervals
   REAL(DP),DIMENSION(:,:), ALLOCATABLE :: dhlonx  ! half longitude width  [deg]
   REAL(DP),DIMENSION(:,:), ALLOCATABLE :: dhlatx  ! half longitude width  [deg]
   REAL(DP),DIMENSION(:,:), ALLOCATABLE :: dhlony  ! half longitude width  [deg]
@@ -116,13 +116,13 @@ PROGRAM EMCRE
   xlat(:,:)=0.0_dp
   xlonb(:,:,:)=0.0_dp
   xlatb(:,:,:)=0.0_dp
- 
+
   ! REGCM specific
   ALLOCATE(xlonc(nlon,nlat)) ! cross
   ALLOCATE(xlond(nlon,nlat)) ! dot
   ALLOCATE(xlatc(nlon,nlat))
   ALLOCATE(xlatd(nlon,nlat))
- 
+
   ! (6) OPEN NETCDF-FILE
   CALL nc_read
 
@@ -130,21 +130,21 @@ PROGRAM EMCRE
   ! FROM 0 TO 360
   DO ji=1, nlon
     DO jj=1, nlat
-     xlon(ji,jj) = xlonc(ji,jj) 
+     xlon(ji,jj) = xlonc(ji,jj)
      xlat(ji,jj) = xlatc(ji,jj)
    END DO
   END DO
 
 !  DO ji=1, nlon-1
 !    DO jj=1, nlat-1
-!     xlonb(1,ji,jj)= xlond(ji,jj) 
-!     xlonb(2,ji,jj)= xlond(ji+1,jj) 
-!     xlonb(3,ji,jj)= xlond(ji+1,jj+1) 
-!     xlonb(4,ji,jj)= xlond(ji,jj+1) 
-!     xlatb(1,ji,jj)= xlatd(ji,jj) 
-!     xlatb(2,ji,jj)= xlatd(ji+1,jj) 
-!     xlatb(3,ji,jj)= xlatd(ji+1,jj+1) 
-!     xlatb(4,ji,jj)= xlatd(ji,jj+1) 
+!     xlonb(1,ji,jj)= xlond(ji,jj)
+!     xlonb(2,ji,jj)= xlond(ji+1,jj)
+!     xlonb(3,ji,jj)= xlond(ji+1,jj+1)
+!     xlonb(4,ji,jj)= xlond(ji,jj+1)
+!     xlatb(1,ji,jj)= xlatd(ji,jj)
+!     xlatb(2,ji,jj)= xlatd(ji+1,jj)
+!     xlatb(3,ji,jj)= xlatd(ji+1,jj+1)
+!     xlatb(4,ji,jj)= xlatd(ji,jj+1)
 !   END DO
 !  END DO
 
@@ -186,7 +186,7 @@ PROGRAM EMCRE
 
   DO ji=1, nlon
   DO jj=1, nlat
-     xlonb(1,ji,jj)= xlond(ji,jj) 
+     xlonb(1,ji,jj)= xlond(ji,jj)
      xlatb(1,ji,jj)= xlatd(ji,jj)
      xlonb(2,ji,jj)= xlond(ji,jj)+dhlonx(ji,jj)
      xlatb(2,ji,jj)= xlatd(ji,jj)+dhlatx(ji,jj)
@@ -197,7 +197,7 @@ PROGRAM EMCRE
   ENDDO
   ENDDO
 
-!  xlonb(1,1,1)= xlond(1,1) 
+!  xlonb(1,1,1)= xlond(1,1)
 !  xlatb(1,1,1)= xlatd(1,1)
 !  xlonb(2,1,1)= xlond(1,2)
 !  xlatb(2,1,1)= xlatd(1,2)
@@ -242,7 +242,7 @@ CONTAINS
   SUBROUTINE nc_read_dim
     INTRINSIC :: TRIM, ADJUSTL, NINT
 
-    
+
     ! LOCAL
     INTEGER,SAVE                :: ncid   ! netCDF-ID
     INTEGER                     :: dimid_jx, dimid_iy
@@ -252,7 +252,7 @@ CONTAINS
 
     INQUIRE(FILE=TRIM(fname), EXIST=file_exists)
     IF (.not.file_exists) THEN
-      WRITE(*,*) 'File',TRIM(fname),' does NOT exist! STOP....' 
+      WRITE(*,*) 'File',TRIM(fname),' does NOT exist! STOP....'
       STOP
     ENDIF
 
@@ -290,7 +290,7 @@ CONTAINS
   SUBROUTINE nc_read
     INTRINSIC :: TRIM, ADJUSTL, NINT
 
-    
+
     ! LOCAL
     INTEGER,SAVE                :: ncid   ! netCDF-ID
     INTEGER                     :: dimid_jx, dimid_iy
@@ -302,7 +302,7 @@ CONTAINS
 
     INQUIRE(FILE=TRIM(fname), EXIST=file_exists)
     IF (.not.file_exists) THEN
-      WRITE(*,*) 'File',TRIM(fname),' does NOT exist! STOP....' 
+      WRITE(*,*) 'File',TRIM(fname),' does NOT exist! STOP....'
       STOP
     ENDIF
 
@@ -483,7 +483,7 @@ CONTAINS
     CALL NFERR(status, &
          nf90_put_att(ncid, varid_latb, 'units', 'degrees_north') &
          ,64)
-    
+
    CALL NFERR(status, &
          nf90_def_var(ncid, 'grid_dims', NF90_FLOAT, (/ dimid_rank /), varid_rank) &
          ,65)
@@ -558,21 +558,21 @@ CONTAINS
   SUBROUTINE NFERR(status,command,pos)
 
     USE netcdf, ONLY: NF90_NOERR, nf90_strerror
-    
+
     IMPLICIT NONE
-    
+
     ! I/O
     INTEGER,          INTENT(OUT) :: status
     INTEGER,          INTENT(IN) :: command
     INTEGER,          INTENT(IN) :: pos
-    
+
     status=command
     IF (status /= NF90_NOERR) THEN
        WRITE(*,*) 'netCDF ERROR at position: ', pos
        WRITE(*,*) 'netCDF ERROR status     : ',status
        WRITE(*,*) 'netCDF ERROR            : ',nf90_strerror(status)
     END IF
-  
+
   END SUBROUTINE NFERR
   ! ------------------------------------------------------------------
 

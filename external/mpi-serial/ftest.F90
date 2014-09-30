@@ -82,7 +82,7 @@
 
 	call mpi_waitall(5,rreq,status,ier)
 	print *,'recvs on MPI_COMM_WORLD done'
-	
+
 	do i=1,5
           print *, 'Status source=',status(MPI_SOURCE,i), &
                    '  tag=',status(MPI_TAG,i)

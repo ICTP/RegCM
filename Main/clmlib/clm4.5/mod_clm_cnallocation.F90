@@ -726,7 +726,7 @@ module mod_clm_cnallocation
             ! right circumstances.
             ! It might be worth a rewrite to capture what I was trying to do,
             ! but the retranslocation for corn and wheat begins at the beginning
-            ! of the grain fill stage, but for soybean I was holding it until 
+            ! of the grain fill stage, but for soybean I was holding it until
             ! after the leaf and stem decline were complete. Looking at
             ! how astem is calculated, once the stem decline is near complete,
             ! astem should (usually) be set to astemf.
@@ -1081,7 +1081,7 @@ module mod_clm_cnallocation
           f_nit_vr(c,j) = pot_f_nit_vr(c,j)
 
         else
-          ! NH4 availability can not satisfy the sum of immobilization, 
+          ! NH4 availability can not satisfy the sum of immobilization,
           ! nitrification, and plant growth demands, so these three demands
           ! compete for available soil mineral NH4 resource.
           nlimit_nh4(c,j) = 1
@@ -1128,7 +1128,7 @@ module mod_clm_cnallocation
                   nuptake_prof(c,j) - smin_nh4_to_plant_vr(c,j))
           f_denit_vr(c,j) = pot_f_denit_vr(c,j)
         else
-          ! NO3 availability can not satisfy the sum of immobilization, 
+          ! NO3 availability can not satisfy the sum of immobilization,
           ! denitrification, and plant growth demands, so these three
           ! demands compete for available soil mineral NO3 resource.
           nlimit_no3(c,j) = 1
@@ -1366,7 +1366,7 @@ module mod_clm_cnallocation
       ! modified wood allocation to be 2.2 at npp=800 gC/m2/yr, 0.2 at npp=0,
       ! constrained so that it does not go lower than 0.2 (under negative
       ! annsum_npp)
-      ! There was an error in this formula in previous version, where the 
+      ! There was an error in this formula in previous version, where the
       ! coefficient was 0.004 instead of 0.0025.
       ! This variable allocation is only for trees. Shrubs have a constant
       ! allocation as specified in the pft-physiology file.

@@ -453,7 +453,7 @@ module mod_clm_dust
 
         do m = 1, ndst
           ![frc] Slip correction factor SeP97 p. 464
-          if ( (1.1D0*dmt_vwr(m)/(2.0D0*mfp_atm)) > 25.0 ) then 
+          if ( (1.1D0*dmt_vwr(m)/(2.0D0*mfp_atm)) > 25.0 ) then
             slp_crc(p,m) = 1.0D0 + 2.0D0 * mfp_atm * &
                     1.257D0 / dmt_vwr(m)
           else

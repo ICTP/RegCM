@@ -620,7 +620,7 @@ subroutine basis_matrix_overhauser_nur ( beta, mbasis )
 !  Parameters:
 !
 !    Input, real ( kind = 8 ) BETA.
-!    BETA = || P(N) - P(N-1) || 
+!    BETA = || P(N) - P(N-1) ||
 !         / ( || P(N) - P(N-1) || + || P(N-1) - P(N-2) || )
 !
 !    Output, real ( kind = 8 ) MBASIS(3,3), the basis matrix.
@@ -1135,7 +1135,7 @@ subroutine bp01 ( n, x, bern )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the degree of the Bernstein basis 
+!    Input, integer ( kind = 4 ) N, the degree of the Bernstein basis
 !    polynomials.  N must be at least 0.
 !
 !    Input, real ( kind = 8 ) X, the evaluation point.
@@ -1225,9 +1225,9 @@ subroutine bpab ( n, a, b, x, bern )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) N, the degree of the Bernstein basis 
-!    polynomials.  There is a set of N+1 Bernstein basis polynomials, each 
-!    of degree N, which form a basis for polynomials of degree N on [A,B].  
+!    Input, integer ( kind = 4 ) N, the degree of the Bernstein basis
+!    polynomials.  There is a set of N+1 Bernstein basis polynomials, each
+!    of degree N, which form a basis for polynomials of degree N on [A,B].
 !    N must be at least 0.
 !
 !    Input, real ( kind = 8 ) A, B, the endpoints of the interval on which the
@@ -2292,7 +2292,7 @@ subroutine least_val2 ( nterms, b, c, d, x, px, pxp )
 !
 !  Parameters:
 !
-!    Input, integer ( kind = 4 ) NTERMS, the number of terms in the least 
+!    Input, integer ( kind = 4 ) NTERMS, the number of terms in the least
 !    squares polynomial.  NTERMS must be at least 1.  The value of NTERMS
 !    may be reduced from the value given to LEAST_SET.
 !    This will cause LEAST_VAL to evaluate the least squares polynomial
@@ -4417,7 +4417,7 @@ subroutine spline_cubic_val2 ( n, t, y, ypp, left, tval, yval, ypval, yppval )
 !    Input, real ( kind = 8 ) YPP(N), the second derivatives of the spline at
 !    the knots.
 !
-!    Input/output, integer ( kind = 4 ) LEFT, the suggested T interval to 
+!    Input/output, integer ( kind = 4 ) LEFT, the suggested T interval to
 !    search.  LEFT should be between 1 and N-1.  If LEFT is not in this range,
 !    then its value will be ignored.  On output, LEFT is set to the
 !    actual interval in which TVAL lies.

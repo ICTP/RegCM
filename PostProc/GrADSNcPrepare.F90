@@ -285,7 +285,7 @@ program ncprepare
     tmplon(:) = xlon(jx,:)
     if ( (tmplon(1 ) > 0.0 .and. tmplon(iy) < 0.0) .or. &
          (tmplon(iy) > 0.0 .and. tmplon(1 ) < 0.0) ) then
-      where ( tmplon < 0.0 ) 
+      where ( tmplon < 0.0 )
         tmplon = tmplon + 360.0
       endwhere
     end if
@@ -293,7 +293,7 @@ program ncprepare
     tmplon(:) = xlon(1,:)
     if ( (tmplon(1 ) > 180.0 .and. tmplon(iy) < 0.0) .or. &
          (tmplon(iy) > 180.0 .and. tmplon(1 ) < 0.0) ) then
-      where ( tmplon > 180.0 ) 
+      where ( tmplon > 180.0 )
         tmplon = tmplon - 360.0
       endwhere
     end if
@@ -417,9 +417,9 @@ program ncprepare
            ' bilin sequential binary-big ^', trim(experiment)//'.coord'
   end if
   write(11, '(a,i8,a,f7.2,f7.2)') 'xdef ', nlon , ' linear ',           &
-         minlon, rloninc 
+         minlon, rloninc
   write(11, '(a,i8,a,f7.2,f7.2)') 'ydef ', nlat , ' linear ',           &
-         minlat, rlatinc 
+         minlat, rlatinc
 
   if (.not. ldepth .and. kz /= 0) then
     allocate(level(kz), stat=istatus)

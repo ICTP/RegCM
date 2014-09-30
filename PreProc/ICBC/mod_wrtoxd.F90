@@ -43,12 +43,12 @@ module mod_wrtoxd
   character(len=8) :: chtype
 
   integer(ik4) , parameter :: nchsp = 40   !species in Mozart output
-  integer(ik4) , parameter :: ncbmz = 33   !cbmz species in chemistry lateral boundaries 
+  integer(ik4) , parameter :: ncbmz = 33   !cbmz species in chemistry lateral boundaries
   integer(ik4) , parameter :: noxsp = 5
   integer(ik4) :: naesp = -1
 
   character(len=8) , dimension(nchsp) :: chspec      !Names of Mozart species
-  character(len=8) , dimension(ncbmz) :: cbmzspec    !Name of CBMZ species       
+  character(len=8) , dimension(ncbmz) :: cbmzspec    !Name of CBMZ species
   character(len=8) , dimension(noxsp) :: oxspec
   real(rk8) , dimension(nchsp) :: mw
 
@@ -65,7 +65,7 @@ module mod_wrtoxd
   real(rk8) , pointer , dimension(:,:,:,:) :: chv4
   real(rk8) , pointer , dimension(:,:,:,:) :: oxv4
   real(rk8) , pointer , dimension(:,:,:,:) :: aev4
-  
+
   data oxspec / 'OH' , 'HO2' , 'O3' , 'NO3' , 'H2O2' /
 
   data chspec / 'NO      ','NO2     ','N2O5    ','HNO3    ','HO2NO2  ',         &
@@ -85,7 +85,7 @@ module mod_wrtoxd
 
 
 
- 
+
 
   integer , parameter :: maxaeout = 16
 
@@ -131,7 +131,7 @@ module mod_wrtoxd
     data dochem /.false./
     data dooxcl /.false./
     chtype = chemsimtype
-    select case ( chemsimtype ) 
+    select case ( chemsimtype )
       case ( 'DUST' )
         naesp = 4
         aespec => aedust
@@ -158,7 +158,7 @@ module mod_wrtoxd
         doaero = .true.
         dooxcl = .true.
       case ( 'SUCA' )
-        naesp = 7 
+        naesp = 7
         aespec => aesuca
         doaero = .true.
         dooxcl = .true.

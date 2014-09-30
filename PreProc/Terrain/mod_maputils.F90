@@ -83,7 +83,7 @@ module mod_maputils
       call mapfac_ps(xlat(j,i), xmap(j,i))
     end do
   end do
- 
+
   if ( idot==1 ) then
     do i = 1 , iy
       do j = 1 , jx
@@ -117,7 +117,7 @@ module mod_maputils
       call mapfac_mc(xlat(j,i), xmap(j,i))
     end do
   end do
- 
+
   if ( idot==1 ) then
     do i = 1 , iy
       do j = 1 , jx
@@ -125,7 +125,7 @@ module mod_maputils
       end do
     end do
   end if
- 
+
   end subroutine normer
 
   subroutine rotmer(xlon,xlat,xmap,coriol,jx,iy,clon,clat,pollon,   &
@@ -153,7 +153,7 @@ module mod_maputils
       call mapfac_rc(dble(i), xmap(j,i))
     end do
   end do
- 
+
   if ( idot==1 ) then
     do i = 1 , iy
       do j = 1 , jx
@@ -161,7 +161,7 @@ module mod_maputils
       end do
     end do
   end if
- 
+
   end subroutine rotmer
 !
 end module mod_maputils

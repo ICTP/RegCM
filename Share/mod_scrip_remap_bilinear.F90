@@ -26,12 +26,12 @@
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-!     Copyright (c) 1997, 1998 the Regents of the University of 
+!     Copyright (c) 1997, 1998 the Regents of the University of
 !       California.
 !
-!     This software and ancillary information (herein called software) 
-!     called SCRIP is made available under the terms described here.  
-!     The software has been approved for release with associated 
+!     This software and ancillary information (herein called software)
+!     called SCRIP is made available under the terms described here.
+!     The software has been approved for release with associated
 !     LA-CC Number 98-45.
 !
 !     Unless otherwise indicated, this software has been authored
@@ -46,7 +46,7 @@
 !     any liability or responsibility for the use of this software.
 !
 !     If software is modified to produce derivative works, such modified
-!     software should be clearly marked, so as not to confuse it with 
+!     software should be clearly marked, so as not to confuse it with
 !     the version available from Los Alamos National Laboratory.
 !
 !***********************************************************************
@@ -86,7 +86,7 @@ module mod_scrip_remap_bilinear
 
       ! address for the four source points
       integer(ik4) , dimension(4) :: src_add
- 
+
       ! coordinates of four bilinear corners
       real(rk8) , dimension(4) :: src_lats , src_lons
       ! bilinear weights for four corners
@@ -579,7 +579,7 @@ module mod_scrip_remap_bilinear
       src_lons = d_one/(src_lats + dlowval)
       distance = sum(src_lons)
       src_lats = src_lons/distance
-    end subroutine grid_search_bilin 
+    end subroutine grid_search_bilin
 
     subroutine store_link_bilin(dst_add, src_add, weights, nmap)
       implicit none

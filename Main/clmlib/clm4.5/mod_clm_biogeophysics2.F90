@@ -567,7 +567,7 @@ module mod_clm_biogeophysics2
 
     ! Outgoing long-wave radiation from vegetation + ground
     ! For conservation we put the increase of ground longwave to outgoing
-    ! For urban pfts, ulrad=0 and (1-fracveg_nosno)=1, and 
+    ! For urban pfts, ulrad=0 and (1-fracveg_nosno)=1, and
     ! eflx_lwrad_out and eflx_lwrad_net are calculated in UrbanRadiation.
     ! The increase of ground longwave is added directly
     ! to the outgoing longwave and the net longwave.

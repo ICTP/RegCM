@@ -138,7 +138,7 @@ module mod_erahi
     read (61,rec=nrec) iobuf
     v2(:,:,k) = iobuf
   end do
- 
+
   write (stdout,*) 'READ IN fields at DATE:' , tochar(idate)
   do k = 1 , nlev1
     do j = 1 , nlats
@@ -193,7 +193,7 @@ module mod_erahi
 !
 !     ******           NEW CALCULATION OF P* ON RegCM TOPOGRAPHY.
   call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,nlev2)
- 
+
   call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
   if(i_band == 1) then
      call p1p2_band(b3pd,ps4,jx,iy)
@@ -204,7 +204,7 @@ module mod_erahi
 !     F0    DETERMINE SURFACE TEMPS ON RegCM TOPOGRAPHY.
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
   call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,nlev2)
- 
+
   call readsst(ts4,idate)
 
 !     F3     INTERPOLATE U, V, T, AND Q.
@@ -212,7 +212,7 @@ module mod_erahi
   call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
 !
   call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
- 
+
   call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev2)
   call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
 !
@@ -390,11 +390,11 @@ module mod_erahi
   slat(158) = 86.911
   slat(159) = 88.029
   slat(160) = 89.142
- 
+
   do i = 1 , nlons
     slon(i) = float(i-1)*1.125
   end do
- 
+
   pplev(1) = 30.
   pplev(2) = 50.
   pplev(3) = 70.
@@ -413,7 +413,7 @@ module mod_erahi
   pplev(16) = 920.
   pplev(17) = 960.
   pplev(18) = 1000.
- 
+
   do k = 1 , nlev2
     sigmar(k) = pplev(k)*0.001
   end do
@@ -424,7 +424,7 @@ module mod_erahi
     kr = nlev2 - k + 1
     sigma1(k) = sigmar(kr)
   end do
- 
+
   ak(1) = 0.00000000
   ak(2) = 0.20000000
   ak(3) = 0.38425343
@@ -486,7 +486,7 @@ module mod_erahi
   ak(59) = 0.07367743
   ak(60) = 0.00000000
   ak(61) = 0.00000000
- 
+
   bk(1) = 0.00000000
   bk(2) = 0.00000000
   bk(3) = 0.00000000
@@ -548,7 +548,7 @@ module mod_erahi
   bk(59) = 0.99401945
   bk(60) = 0.99763012
   bk(61) = 1.00000000
- 
+
   call getmem3d(b3,1,jx,1,iy,1,nlev2*3,'mod_erahi:b3')
   call getmem3d(d3,1,jx,1,iy,1,nlev2*2,'mod_erahi:b3')
 

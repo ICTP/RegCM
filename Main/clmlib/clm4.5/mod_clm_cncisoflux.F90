@@ -987,7 +987,7 @@ module mod_clm_cncisoflux
     integer(ik4) , pointer :: ivt(:)      ! pft vegetation type
     real(rk8), pointer :: wtcol(:)    ! pft weight relative to column (0-1)
     ! true=>do computations on this pft (see reweightMod for details)
-    logical , pointer :: pactive(:) 
+    logical , pointer :: pactive(:)
     real(rk8), pointer :: lf_flab(:)  ! leaf litter labile fraction
     real(rk8), pointer :: lf_fcel(:)  ! leaf litter cellulose fraction
     real(rk8), pointer :: lf_flig(:)  ! leaf litter lignin fraction

@@ -18,7 +18,7 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_interp
- 
+
   use mod_intkinds
   use mod_realkinds
   use mod_constants
@@ -100,7 +100,7 @@ module mod_interp
     ! IQ........GRID POINT LOCATION IN NORTH-SOUTH OF TRAPPED GRID POINT.
     !
     ! Global dataset ?
-    ! 
+    !
     lg = .true.
     do i = 1 , iy
       do j = 1 , jx

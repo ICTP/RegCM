@@ -236,7 +236,7 @@ module mod_domain
         call die('Mismatch: KZ in DOMAIN file /= KZ in namelist')
       else
         call die('Mismatch: KZ in DOMAIN file /= KZ+1 in namelist')
-      end if 
+      end if
     end if
     istatus = nf90_inq_varid(ncid, 'ptop', ivarid)
     call checkncerr(istatus,__FILE__,__LINE__,'Error search variable PTOP')
@@ -259,7 +259,7 @@ module mod_domain
     call checkncerr(istatus,__FILE__,__LINE__, &
                     'Error read attribute grid_size_in_meters')
     if ( ls ) dsx = dsx * dble(nsg)
-    if (dabs(dble(dsx*d_r1000)-dble(ds)) > 0.001D+00 ) then 
+    if (dabs(dble(dsx*d_r1000)-dble(ds)) > 0.001D+00 ) then
       write(stderr,*) 'DOMAIN FILE : ', dsx/1000.0
       write(stderr,*) 'NAMELIST    : ', ds
       call die('Mismatch: DS in DOMAIN file /= DS in namelist')

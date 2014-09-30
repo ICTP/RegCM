@@ -143,7 +143,7 @@ module mod_ecens
 !
 ! NEW CALCULATION OF P* ON RegCM TOPOGRAPHY.
   call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,nplev)
- 
+
   call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
   if(i_band.eq.1) then
      call p1p2_band(b3pd,ps4,jx,iy)
@@ -154,7 +154,7 @@ module mod_ecens
 ! F0    DETERMINE SURFACE TEMPS ON RegCM TOPOGRAPHY.
 ! INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
   call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,nplev)
-  call readsst(ts4,idate) 
+  call readsst(ts4,idate)
 
 ! F3     INTERPOLATE U, V, T, AND Q.
   call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,nplev)
@@ -358,7 +358,7 @@ module mod_ecens
   pplev(16) = 920.
   pplev(17) = 960.
   pplev(18) = 1000.
- 
+
   do k = 1 , nplev
     sigmar(k) = pplev(k)*0.001
   end do

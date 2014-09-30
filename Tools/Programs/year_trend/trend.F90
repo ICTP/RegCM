@@ -61,7 +61,7 @@ program trend
           end if
         end if
       end if
-    end if 
+    end if
   end if
   istatus = nf90_inq_dimid(ncid,'iy',iydimid)
   if ( istatus /= nf90_noerr ) then
@@ -79,7 +79,7 @@ program trend
           end if
         end if
       end if
-    end if 
+    end if
   end if
 
   istatus = nf90_inquire_dimension(ncid,ixdimid,name=dname,len=nx)
@@ -349,14 +349,14 @@ program trend
   allocate(b(npoint))
   allocate(r(npoint))
   allocate(abetrend(nx,ny))
- 
+
   write (6,*) 'Read ',nt,' ',trim(varname),' steps'
   istatus = nf90_get_var(ncid,idvar,inpindx)
   if ( istatus /= nf90_noerr ) then
     write(0,*) 'Error reading ',nt,' steps'
     stop
   end if
-  
+
   do it = 1 , nt
     atime(it) = real(it)
     reshaped(it,:) = reshape(inpindx(:,:,it),(/npoint/))

@@ -181,7 +181,7 @@ module mod_hgt
   real(8) , parameter :: stdt = 288.15D+00
   real(8) , parameter :: lrate = 0.00649D+00 ! K/m from MSL up to 11 km
   real(8) , parameter :: bltop = 0.960D+00
- 
+
   ! Atmos. surface pressure mol/cm3
   real(8) , parameter :: atmos = 2.247D19
   ! Conversion parameter for Henry L-atm/mol-K
@@ -196,7 +196,7 @@ module mod_hgt
   ! Fixed emissivity of water
   real(8) , parameter :: emsw = 0.97D+00
 
-  ! Trigonometric constants. 
+  ! Trigonometric constants.
   real(8) , parameter :: mathpi =                                   &
                       &   3.1415926535897932384626433832795029D+00
   real(8) , parameter :: invpi = d_one/mathpi
@@ -358,7 +358,7 @@ module mod_hgt
     real(4) , dimension(km) :: htsig
     real(4) , dimension(km+1) :: sigmaf
     real(4) , dimension(km) :: dsigma
-    ! 
+    !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:
     !        H AND T ARE HEIGHT AND TEMPERATURE ON SIGMA, RESPECTIVELY.

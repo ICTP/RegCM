@@ -135,7 +135,7 @@ module mod_ox_icbc
         end do
       end do
       call bilinx2(oxv3(:,:,:,is),xinp,xlon,xlat,oxt42lon,oxt42lat, &
-                   oxilon,oxjlat,iy,jx,oxilev) 
+                   oxilon,oxjlat,iy,jx,oxilev)
     end do
 
     do i = 1 , oxjlat
@@ -146,7 +146,7 @@ module mod_ox_icbc
 
     call bilinx2(poxid_3,xps,xlon,xlat,oxt42lon,oxt42lat, &
                  oxilon,oxjlat,iy,jx)
-    do i = 1 , iy 
+    do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
           prcm=((poxid_3(j,i)*0.1-r4pt)*sigma2(l)+r4pt)*10.

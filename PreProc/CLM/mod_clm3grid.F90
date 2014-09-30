@@ -59,12 +59,12 @@ module mod_clm3grid
   icount(3) = nlev
   istart(4) = 1
   icount(4) = ntim
- 
+
   end subroutine clm3grid1
 
   subroutine clm3grid2(nlon,nlat,glon,glat,istart,icount,zlon,      &
                        zlat,zlev)
- 
+
   implicit none
 !
   integer(ik4) :: nlat , nlon
@@ -78,7 +78,7 @@ module mod_clm3grid
   intent (out) zlat , zlev , zlon
 !
   integer(ik4) :: i , j , k
-! 
+!
   do i = 1 , icount(1)
     zlon(i) = glon(i+istart(1)-1)
   end do
@@ -88,7 +88,7 @@ module mod_clm3grid
   do k = 1 , icount(3)
     zlev(k) = real(icount(3) - k + 1)
   end do
- 
+
   end subroutine clm3grid2
 
   subroutine bilinx4d(mti,lmsk,loni,lati,nloni,nlati,mto,lono,lato,jx,iy,&
@@ -113,7 +113,7 @@ module mod_clm3grid
 !  Q.........NORTH-SOUTH WEIGHTING FACTOR.
 !  IP........GRID POINT LOCATION IN EAST-WEST OF TRAPPED GRID POINT.
 !  IQ........GRID POINT LOCATION IN NORTH-SOUTH OF TRAPPED GRID POINT.
- 
+
   implicit none
 !
   integer(ik4) :: iy , jx , nlati , nloni , nt , nz
@@ -134,20 +134,20 @@ module mod_clm3grid
 !
   do i = 1 , iy
     do j = 1 , jx
- 
+
       yind = (((lato(j,i)-lati(1))/(lati(nlati)-lati(1))) * &
               float(nlati-1)) + 1.0
       jq = int(yind)
       jqp1 = min0(jq+1,nlati)
       q = yind - real(jq)
- 
+
       lon360 = lono(j,i)
       xind = (((lon360-loni(1))/(loni(nloni)-loni(1))) * &
               float(nloni-1)) + 1.0
       ip = int(xind)
       ipp1 = min0(ip+1,nloni)
       p = xind - real(ip)
- 
+
       do l = 1 , nt
         do k = 1 , nz
           gt1 = .false.
@@ -225,7 +225,7 @@ module mod_clm3grid
       end do
     end do
   end do
- 
+
   end subroutine maskme
 
 end module mod_clm3grid

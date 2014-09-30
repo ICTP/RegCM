@@ -25,21 +25,21 @@ module mod_header
   contains
 
   subroutine header(myname)
-    implicit none 
+    implicit none
     character (len=*) , intent(in) :: myname
     integer(ik4) :: ihost , idir
     integer(ik4) :: hostnm
     integer(ik4) :: getcwd
     character (len=32) :: cdata = '?'
     character (len=5) :: czone = '?'
-    character (len=32) :: hostname = '?' 
-    character (len=32) :: user = '?' 
+    character (len=32) :: hostname = '?'
+    character (len=32) :: user = '?'
     character (len=256) :: directory = '?'
     integer(ik4) , parameter :: nrite = stdout
     integer(ik4) , dimension(8) :: tval
 
-    write (nrite,99002)  myname 
-    write (nrite,99001)  SVN_REV, __DATE__ , __TIME__   
+    write (nrite,99002)  myname
+    write (nrite,99001)  SVN_REV, __DATE__ , __TIME__
 
 #ifdef IBM
     hostname = 'ibm platform '
@@ -47,7 +47,7 @@ module mod_header
 #else
     ihost = hostnm(hostname)
     call getlog(user)
-#endif 
+#endif
     call date_and_time(zone=czone,values=tval)
     idir = getcwd(directory)
 
@@ -57,7 +57,7 @@ module mod_header
     write (nrite,*) ": it is submitted by   : ",trim(user)
     write (nrite,*) ": it is running on     : ",trim(hostname)
     write (nrite,*) ": in directory         : ",trim(directory)
-    write (nrite,*) "                      " 
+    write (nrite,*) "                      "
 99002 format(/,1x,' This is ',A,' part of the RegCM version 4')
 99001 format(2x,' SVN Revision: ',A,' compiled at: data : ',A,'  time: ',A,/)
   end subroutine header
@@ -72,7 +72,7 @@ module mod_header
       call fdate_(cdata)
 #else
       call fdate(cdata)
-#endif 
+#endif
       write ( stdout,* ) 'Input ready at : ', cdata
     end if
 

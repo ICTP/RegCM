@@ -145,7 +145,7 @@ module mod_clm_cnnitrifdenitrif
     real(rk8), pointer :: o2_decomp_depth_sat(:,:)
     ! O2 conc in each soil layer (mol/m3) (nlevsoi)
     real(rk8), pointer :: conc_o2_sat(:,:)
-    ! fractional inundated area in soil column (excluding dedicated 
+    ! fractional inundated area in soil column (excluding dedicated
     ! wetland columns)
     real(rk8), pointer :: finundated(:)
     real(rk8), pointer :: sucsat(:,:) ! minimum soil suction (mm)
@@ -301,7 +301,7 @@ module mod_clm_cnnitrifdenitrif
         ! ph function from Parton et al., (2001, 1996)
         k_nitr_ph_vr(c,j) = 0.56 + atan(rpi * 0.45 * (-5.+ pH(c)))/rpi
 
-        ! moisture function-- assume the same moisture function as 
+        ! moisture function-- assume the same moisture function as
         ! limits heterotrophic respiration
         ! Parton et al. base their nitrification- soil moisture rate
         ! constants based on heterotrophic rates-- can we do the same?

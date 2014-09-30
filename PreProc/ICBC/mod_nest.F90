@@ -63,7 +63,7 @@ module mod_nest
 
   real(rk8) , pointer , dimension(:,:,:) :: h3 , q3 , t3
   real(rk8) , pointer , dimension(:,:,:) :: u3 , v3
- 
+
   real(rk8) , pointer , dimension(:,:,:) :: hp , qp , tp
   real(rk8) , pointer , dimension(:,:,:) :: up , vp
 
@@ -239,7 +239,7 @@ module mod_nest
     ! NEW CALCULATION OF P* ON RegCM TOPOGRAPHY.
     !
     call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,np)
-   
+
     call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
     if(i_band == 1) then
        call p1p2_band(b3pd,ps4,jx,iy)
@@ -291,11 +291,11 @@ module mod_nest
     plev(13) = 850.
     plev(14) = 925.
     plev(15) = 1000.
-   
+
     do k = 1 , np
       sigmar(k) = plev(k)*0.001
     end do
-   
+
     imf = monfirst(globidate1)
     write (fillin,'(a,i10)') 'ATM.', toint10(imf)
 
@@ -360,7 +360,7 @@ module mod_nest
     call getmem3d(b3,1,iy,1,jx,1,np*3,'mod_nest:b3')
     call getmem3d(d3,1,iy,1,jx,1,np*2,'mod_nest:d3')
 
-    istatus = nf90_inq_varid(ncinp, 'sigma', ivarid) 
+    istatus = nf90_inq_varid(ncinp, 'sigma', ivarid)
     call checkncerr(istatus,__FILE__,__LINE__,'variable sigma error')
     istatus = nf90_get_var(ncinp, ivarid, sig)
     call checkncerr(istatus,__FILE__,__LINE__,'variable sigma read error')
@@ -374,19 +374,19 @@ module mod_nest
       end do
       deallocate(sigfix)
     end if
-    istatus = nf90_inq_varid(ncinp, 'xlat', ivarid) 
+    istatus = nf90_inq_varid(ncinp, 'xlat', ivarid)
     call checkncerr(istatus,__FILE__,__LINE__,'variable xlat error')
     istatus = nf90_get_var(ncinp, ivarid, xlat_in)
     call checkncerr(istatus,__FILE__,__LINE__,'variable xlat read error')
-    istatus = nf90_inq_varid(ncinp, 'xlon', ivarid) 
+    istatus = nf90_inq_varid(ncinp, 'xlon', ivarid)
     call checkncerr(istatus,__FILE__,__LINE__,'variable xlon error')
     istatus = nf90_get_var(ncinp, ivarid, xlon_in)
     call checkncerr(istatus,__FILE__,__LINE__,'variable xlon read error')
-    istatus = nf90_inq_varid(ncinp, 'topo', ivarid) 
+    istatus = nf90_inq_varid(ncinp, 'topo', ivarid)
     call checkncerr(istatus,__FILE__,__LINE__,'variable topo error')
     istatus = nf90_get_var(ncinp, ivarid, ht_in)
     call checkncerr(istatus,__FILE__,__LINE__,'variable topo read error')
-    istatus = nf90_inq_varid(ncinp, 'ptop', ivarid) 
+    istatus = nf90_inq_varid(ncinp, 'ptop', ivarid)
     call checkncerr(istatus,__FILE__,__LINE__,'variable ptop error')
     istatus = nf90_get_var(ncinp, ivarid, ptop_in)
     call checkncerr(istatus,__FILE__,__LINE__,'variable ptop read error')
@@ -429,9 +429,9 @@ module mod_nest
       call checkncerr(istatus,__FILE__,__LINE__,'attribure plon read error')
       xcone_in = 0.0D0
     end if
-   
+
     ! Set up pointers
-   
+
     tp => b2(:,:,1:np)
     qp => b2(:,:,np+1:2*np)
     hp => b2(:,:,2*np+1:3*np)

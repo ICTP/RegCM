@@ -125,7 +125,7 @@
       real(8) , parameter :: stdt = 288.15D+00
       real(8) , parameter :: lrate = 0.00649D+00 ! K/km from MSL up to 11 km
       real(8) , parameter :: bltop = 0.960D+00
- 
+
       ! Stefan-Boltzmann  constant CODATA 2007
       real(8) , parameter :: sigm = 5.670400D-08
       ! Boltzman Constant k CODATA 2007
@@ -136,7 +136,7 @@
       ! Fixed emissivity of water
       real(8) , parameter :: emsw = 0.97D+00
 
-      ! Trigonometric constants. 
+      ! Trigonometric constants.
       real(8) , parameter :: mathpi =                                   &
                           &   3.1415926535897932384626433832795029D+00
       real(8) , parameter :: invpi = d_one/mathpi

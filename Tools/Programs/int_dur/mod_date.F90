@@ -84,7 +84,7 @@ module mod_date
     integer(ik4) :: second = 0
   end type iatime
 
-  interface assignment(=) 
+  interface assignment(=)
     module procedure initfromintdt , initfromtypedt
     module procedure initfromintit , initfromdbleit , initfromtypeit
   end interface assignment(=)

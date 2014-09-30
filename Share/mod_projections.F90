@@ -229,7 +229,7 @@ module mod_projections
     if (lon >  deg180) lon = lon - deg360
     if (lon < -deg180) lon = lon + deg360
   end subroutine ijll_ps
- 
+
   subroutine mapfac_ps(lat, xmap)
     implicit none
     real(rk8) , intent(in) :: lat
@@ -288,7 +288,7 @@ module mod_projections
     if (lon >  deg180) lon = lon - deg360
     if (lon < -deg180) lon = lon + deg360
   end subroutine ijll_mc
- 
+
   subroutine mapfac_mc(lat, xmap)
     implicit none
     real(rk8) , intent(in) :: lat
@@ -323,7 +323,7 @@ module mod_projections
     real(rk8) , intent(out) :: i , j
     real(rk8) :: zarg , zarg1 , zarg2 , zlam , zphi
     real(rk8) :: lams , phis
- 
+
     zphi = degrad*lat
     zlam = lon
     if ( zlam>deg180 ) zlam = zlam - deg360
@@ -358,7 +358,7 @@ module mod_projections
     xr = degrad*xr
     yr = yoff + (j-polej)*dlon
     yr = d_two*atan(exp(degrad*yr)) - atan(d_one)*d_two
- 
+
     arg = zcospol*cos(yr)*cos(xr) + zsinpol*sin(yr)
     lat = raddeg*asin(arg)
     zarg1 = sin(zlampol)*(-zsinpol*cos(xr)*cos(yr)+ &
@@ -377,7 +377,7 @@ module mod_projections
     if (lon >  deg180) lon = lon - deg360
     if (lon < -deg180) lon = lon + deg360
   end subroutine ijll_rc
- 
+
   subroutine uvrot_rc(lat, lon, alpha)
     implicit none
     real(rk8) , intent(in) :: lon , lat

@@ -25,7 +25,7 @@ module mod_header
   contains
 
   subroutine header(myid)
-  implicit none 
+  implicit none
 !
   integer(ik4) , intent(in) :: myid
 !
@@ -35,13 +35,13 @@ module mod_header
   integer(ik4) , dimension(8) :: tval
   character (len=32) :: cdata='?'
   character (len=5) :: czone='?'
-  character (len=32) :: hostname='?' 
-  character (len=32) :: user='?' 
+  character (len=32) :: hostname='?'
+  character (len=32) :: user='?'
   character (len=128) :: directory='?'
 !
-  if (myid.eq.1)  then 
+  if (myid.eq.1)  then
     write (stdout, "(/,2x,'This is Terrain part of RegCM package version 4 ')")
-    write (stdout,100)  SVN_REV, __DATE__ , __TIME__   
+    write (stdout,100)  SVN_REV, __DATE__ , __TIME__
 100 format(2x,' SVN Revision: ',a,' compiled at: data : ',a,'  time: ',a,/)
 
 #ifdef IBM
@@ -50,7 +50,7 @@ module mod_header
 #else
     ihost = hostnm(hostname)
     call getlog(user)
-#endif 
+#endif
     call date_and_time(zone=czone,values=tval)
     idir = getcwd(directory)
 
@@ -60,8 +60,8 @@ module mod_header
     write(stdout,*) ": it is submitted by : ",trim(user)
     write(stdout,*) ": it is running on   : ",trim(hostname)
     write(stdout,*) ": in directory       : ",trim(directory)
-    write(stdout,*) "                     " 
-  end if 
+    write(stdout,*) "                     "
+  end if
   end subroutine header
 
 end module mod_header

@@ -63,7 +63,7 @@ module mod_clm_drydep
 
   !---------------------------------------------------------------------------
   ! Table 1 from Wesely, Atmos. Environment, 1989, p1293
-  ! Table 2 from Sheih, microfiche PB86-218104 and 
+  ! Table 2 from Sheih, microfiche PB86-218104 and
   !              Walcek, Atmos.  Environment, 1986, p949
   ! Table 3-5 compiled by P. Hess
   !

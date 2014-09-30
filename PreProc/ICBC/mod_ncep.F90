@@ -55,7 +55,7 @@ module mod_ncep
   ! work will be used to hold the packed integers.
   !
   integer(2) , pointer , dimension(:,:,:) :: work
-  
+
   real(rk8) , pointer :: u3(:,:,:) , v3(:,:,:)
   real(rk8) , pointer :: h3(:,:,:) , q3(:,:,:) , t3(:,:,:)
   real(rk8) , pointer :: uvar(:,:,:) , vvar(:,:,:)
@@ -90,7 +90,7 @@ module mod_ncep
     !
     call uvrot4(u3,v3,dlon,dlat,clon,clat,xcone,jx,iy,klev,plon,plat,iproj)
     !
-    ! X X X X X X X X X X X X X X X X X X X X X X 
+    ! X X X X X X X X X X X X X X X X X X X X X X
     ! V E R T I C A L   I N T E R P O L A T I O N
     ! X X X X X X X X X X X X X X X X X X X X X X
     !
@@ -108,7 +108,7 @@ module mod_ncep
     !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
     !
     call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
- 
+
     call readsst(ts4,idate)
     !
     ! F3  INTERPOLATE U, V, T, AND Q.
@@ -164,7 +164,7 @@ module mod_ncep
         itcfs = 1
       end do
     end if
-   
+
     it = itcfs
     itcfs = itcfs + 1
 
@@ -272,7 +272,7 @@ module mod_ncep
         write (stdout,*) inet5(kkrec) , trim(pathaddname) , &
                          xscl(kkrec) , xoff(kkrec)
       end if
-   
+
       it = (day-1)*4 + hour/6 + 1
       if ( month == 2 ) it = it + 31*4
       if ( month == 3 ) it = it + 59*4
@@ -359,7 +359,7 @@ module mod_ncep
     integer(ik4) :: istatus , inet , iddim , idv
     character(len=256) :: inpfile
 
-    call split_idate(globidate1, year, month, day, hour)  
+    call split_idate(globidate1, year, month, day, hour)
     if ( dattyp(1:3) == 'CFS' ) then
       write(inpfile,'(a,i0.4,i0.2,i0.2,i0.2,a,i0.4,i0.2,i0.2,i0.2,a)') &
         trim(inpglob)//'/CFS/',year,month,day,hour, &

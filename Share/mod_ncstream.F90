@@ -1132,7 +1132,7 @@ module mod_ncstream
         class is (ncvariable1d_real)
           buffer%lhas1dreal = .true.
           buffer%max1d_real(1) = max(buffer%max1d_real(1),len_dim(1))
-        class is (ncvariable2d_real) 
+        class is (ncvariable2d_real)
           buffer%lhas2dreal = .true.
           if ( stream%l_parallel .and. var%lgridded ) then
             buffer%max2d_real(1) = max(buffer%max2d_real(1),stream%global_nj)

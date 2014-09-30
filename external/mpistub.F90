@@ -47,7 +47,7 @@ subroutine mpi_cart_create(comm_old,ndims,dims,periods,reorder, &
   logical :: reorder
   logical , dimension(:) :: periods
 end subroutine mpi_cart_create
-  
+
 subroutine mpi_cart_coords(comm,rank,maxdims,coords,ierror)
   implicit none
   integer :: comm , rank , maxdims , ierror

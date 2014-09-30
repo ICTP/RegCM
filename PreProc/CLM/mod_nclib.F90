@@ -42,7 +42,7 @@ module mod_nclib
 !     History:
 !        Nov. 91  PPM  UW  Created.
 !-----------------------------------------------------------------------
-  subroutine crecdf (filnam, cdfid, phymin, phymax, ndim, ierr) 
+  subroutine crecdf (filnam, cdfid, phymin, phymax, ndim, ierr)
 
   implicit none
 
@@ -136,9 +136,9 @@ module mod_nclib
 
 ! &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 ! write data in array arr to netcdf-file for timestep vtstep
-! 
+!
 ! arguments an its meaning
-!    cdfid     integer            ID returned by crecdf      
+!    cdfid     integer            ID returned by crecdf
 !    varnam    character*10       name of the variable to be written
 !    arr       real*8(ie,je,ke)   array containing data to be written
 !    ie,je,ke  integer            dimensions of arr as used in declar
@@ -226,12 +226,12 @@ module mod_nclib
       rfac = 1./factor
       call putdatcdfi2(cdfid, varnam, vtstep, k,              &
                        iputlev, ievar, jevar, arr, ie, je, ke,      &
-                       vmisdat, rfac, offset, it) 
+                       vmisdat, rfac, offset, it)
     else if ( iotype==2 ) then   ! Real*4 format
       call putdatcdfr4(cdfid,varnam,vtstep,k,iputlev,         &
                        ievar,jevar,arr,ie,je,ke,it)
     end if
-  
+
   end do   ! loop over vertical levels
 
   end subroutine writecdf
@@ -239,14 +239,14 @@ module mod_nclib
 !------------------------------------------------------------------------
 !     Purpose:
 !        Get all times on the specified NetCDF file
-!     Arguments: 
+!     Arguments:
 !        cdfid  int  input   identifier for NetCDF file
 !        times  real input   array contains all time values on the file,
 !                            dimensioned at least times(ntimes)
 !        ntimes int  input   number of times on the file
-!        ierr  int  output  ierrflag 
+!        ierr  int  output  ierrflag
 !     History:
-!        Heini Wernli, ETHZ  
+!        Heini Wernli, ETHZ
 !        Christoph Schaer, ETHZ
 !     Note:
 !        This preliminary version does not define the times-array, but only
@@ -298,15 +298,15 @@ module mod_nclib
 !-----------------------------------------------------------------------
 !     Purpose:
 !        This routine is called to write the data of a variable
-!        to an IVE-NetCDF file for use with the IVE plotting package. 
-!        Prior to calling this routine, the file must be opened with 
-!        a call to opncdf (for extension) or crecdf (for creation), the 
+!        to an IVE-NetCDF file for use with the IVE plotting package.
+!        Prior to calling this routine, the file must be opened with
+!        a call to opncdf (for extension) or crecdf (for creation), the
 !        variable must be defined with a call to putdef.
 !     Arguments:
 !        cdfid   int   input   file-identifier
-!                              (must be obtained by calling routine 
+!                              (must be obtained by calling routine
 !                              opncdf or crecdf)
-!        varnam  char  input   the user-supplied variable name (must 
+!        varnam  char  input   the user-supplied variable name (must
 !                              previously be defined with a call to
 !                              putdef)
 !        time    real  input   the user-supplied time-level of the
@@ -315,7 +315,7 @@ module mod_nclib
 !                              with a call to gettimes). If 'time' is not
 !                              yet known to the file, a knew time-level is
 !                              allocated and appended to the times-array.
-!        level   int input     the horizontal level(s) to be written 
+!        level   int input     the horizontal level(s) to be written
 !                              to the NetCDF file. Suppose that the
 !                              variable is defined as (nx,ny,nz,nt).
 !                              level>0: the call writes the subdomain
@@ -323,11 +323,11 @@ module mod_nclib
 !                              level=0: the call writes the subdomain
 !                                       (1:nx,1:ny,1:nz,itimes)
 !                              Here itimes is the time-index corresponding
-!                              to the value of 'time'. 
-!        dat     real  output  data-array dimensioned sufficiently 
+!                              to the value of 'time'.
+!        dat     real  output  data-array dimensioned sufficiently
 !                              large. The dimensions (nx,ny,nz)
 !                              of the variable must previously be defined
-!                              with a call to putdef. No previous 
+!                              with a call to putdef. No previous
 !                              definition of the time-dimension is
 !                              required.
 !        ierr   int output    indicates possible ierrs found in this
@@ -368,7 +368,7 @@ module mod_nclib
   integer(ik4) :: idtime , idvar , iflag
   integer(ik4) :: i , j , ik , ij
   integer(ik4) , dimension(1) :: istart
- 
+
   integer(2) , parameter :: shfill = -32767_2
   ierr = 0
 
@@ -376,9 +376,9 @@ module mod_nclib
   do j = 1 , jevar
     do i = 1 , ievar
       ij = ij + 1
-      if ( arr(i,j,k)<vmisdat ) then 
+      if ( arr(i,j,k)<vmisdat ) then
         dat(ij) = shfill  ! the lowest integer value, should match min
-      else 
+      else
         dat(ij) = int(nint((arr(i,j,k)-offset)*rfac),ik2)
       end if
     end do
@@ -392,7 +392,7 @@ module mod_nclib
   ierr = nf90_inq_varid(cdfid,varnam,idvar)
   if ( ierr/=nf90_noerr ) go to 920
 
-!     get times-array 
+!     get times-array
   ierr = nf90_inq_dimid(cdfid,'time',did(4))
   if ( ierr/=nf90_noerr ) go to 920
   ierr = nf90_inquire_dimension(cdfid,did(4),len=ntime)
@@ -416,7 +416,7 @@ module mod_nclib
     ierr = nf90_get_att(cdfid,idtime,'actual_range',dvrange)
     if ( ierr/=nf90_noerr ) go to 920
     if ( ( dvrange(1)>time ) .or. ( dvrange(1)==0. ) ) &
-            dvrange(1) = time 
+            dvrange(1) = time
     if ( ( dvrange(2)<time ) .or. ( dvrange(2)==0. ) ) &
             dvrange(2) = time
     ierr = nf90_put_att(cdfid,idtime,'actual_range',dvrange)
@@ -437,7 +437,7 @@ module mod_nclib
   end if
   corner(ik) = iflag
   edgeln(ik) = 1
-  
+
 !     Put data on NetCDF file
   ierr = nf90_put_var(cdfid,idvar,dat,corner(1:ik),edgeln(1:ik))
   if ( ierr/=nf90_noerr ) go to 920
@@ -467,23 +467,23 @@ module mod_nclib
 !        crecdf (create a new file).
 !     Arguments:
 !        cdfid   int   input   file-identifier
-!                              (can be obtained by calling routine 
+!                              (can be obtained by calling routine
 !                              opncdf)
 !        varnam  char  input   the user-supplied variable name.
-!        ndim    int   input   the number of dimensions (ndim<=4). 
+!        ndim    int   input   the number of dimensions (ndim<=4).
 !                              Upon ndim=4, the fourth dimension of the
 !                              variable is specified as 'unlimited'
-!                              on the file (time-dimension). It can 
+!                              on the file (time-dimension). It can
 !                              later be extended to arbitrary length.
-!        misdat  real  input   missing data value for the variable. 
+!        misdat  real  input   missing data value for the variable.
 !        vardim  int   input   the dimensions of the variable.
-!                              Is dimensioned at least Min(3,ndim). 
+!                              Is dimensioned at least Min(3,ndim).
 !        varmin  real  input   the location in physical space of the
 !                              origin of each variable.
-!                              Is dimensioned at least Min(3,ndim). 
+!                              Is dimensioned at least Min(3,ndim).
 !        varmax  real  input   the extent of each variable in physical
 !                              space.
-!                              Is dimensioned at least Min(ndim). 
+!                              Is dimensioned at least Min(ndim).
 !        ierr   int   output  indicates possible ierrs found in this
 !                              routine.
 !                              ierr = 0   no ierrs detected.
@@ -554,7 +554,7 @@ module mod_nclib
 
 
 !     define spatial dimensions
-  ik = 0 
+  ik = 0
   do k = 1 , max0(ndim,3)
     if ( vardim(k)>1 ) then
       ik = ik + 1
@@ -565,7 +565,7 @@ module mod_nclib
 !           instead of defining a new dimension
         do i = 1 , numdims
           dimchk = dimnams(i)
-          if ( ( dimnam(1:3) == dimchk(1:3) ) ) then 
+          if ( ( dimnam(1:3) == dimchk(1:3) ) ) then
             did(ik) = i
             exit
           end if
@@ -595,14 +595,14 @@ module mod_nclib
     ik = ik + 1
 !       define dimension 'time'
     ierr = nf90_inq_dimid(cdfid,'time',did(ik))
-    if ( ierr/=nf90_noerr ) then 
+    if ( ierr/=nf90_noerr ) then
 !         this dimension must first be defined
       ierr = nf90_def_dim(cdfid,'time',nf90_unlimited,did(ik))
       if ( ierr/=nf90_noerr ) go to 920
     end if
 !       define array 'time'
     ierr = nf90_inq_varid(cdfid,'time',idtime)
-    if ( ierr/=nf90_noerr ) then 
+    if ( ierr/=nf90_noerr ) then
 !         define the times-array
       ierr = nf90_def_var(cdfid,'time',nf90_double,did(ik),idtime)
       if ( ierr/=nf90_noerr ) go to 920
@@ -676,15 +676,15 @@ module mod_nclib
 !-----------------------------------------------------------------------
 !     Purpose:
 !        This routine is called to write the data of a variable
-!        to an IVE-NetCDF file for use with the IVE plotting package. 
-!        Prior to calling this routine, the file must be opened with 
-!        a call to opncdf (for extension) or crecdf (for creation), the 
+!        to an IVE-NetCDF file for use with the IVE plotting package.
+!        Prior to calling this routine, the file must be opened with
+!        a call to opncdf (for extension) or crecdf (for creation), the
 !        variable must be defined with a call to putdef.
 !     Arguments:
 !        cdfid   int   input   file-identifier
-!                              (must be obtained by calling routine 
+!                              (must be obtained by calling routine
 !                              opncdf or crecdf)
-!        varnam  char  input   the user-supplied variable name (must 
+!        varnam  char  input   the user-supplied variable name (must
 !                              previously be defined with a call to
 !                              putdef)
 !        time    real  input   the user-supplied time-level of the
@@ -693,7 +693,7 @@ module mod_nclib
 !                              with a call to gettimes). If 'time' is not
 !                              yet known to the file, a knew time-level is
 !                              allocated and appended to the times-array.
-!        level   int input     the horizontal level(s) to be written 
+!        level   int input     the horizontal level(s) to be written
 !                              to the NetCDF file. Suppose that the
 !                              variable is defined as (nx,ny,nz,nt).
 !                              level>0: the call writes the subdomain
@@ -701,11 +701,11 @@ module mod_nclib
 !                              level=0: the call writes the subdomain
 !                                       (1:nx,1:ny,1:nz,itimes)
 !                              Here itimes is the time-index corresponding
-!                              to the value of 'time'. 
-!        dat     real  output  data-array dimensioned sufficiently 
+!                              to the value of 'time'.
+!        dat     real  output  data-array dimensioned sufficiently
 !                              large. The dimensions (nx,ny,nz)
 !                              of the variable must previously be defined
-!                              with a call to putdef. No previous 
+!                              with a call to putdef. No previous
 !                              definition of the time-dimension is
 !                              required.
 !        ierr   int output    indicates possible ierrs found in this
@@ -764,7 +764,7 @@ module mod_nclib
   ierr = nf90_inq_varid(cdfid,varnam,idvar)
   if ( ierr/=nf90_noerr ) go to 920
 
-!     get times-array 
+!     get times-array
   ierr = nf90_inq_dimid(cdfid,'time',did(4))
   if ( ierr/=nf90_noerr ) go to 920
   ierr = nf90_inquire_dimension(cdfid,did(4),len=ntime)
@@ -790,7 +790,7 @@ module mod_nclib
     ierr = nf90_get_att(cdfid,idtime,'actual_range',dvrange)
     if ( ierr/=nf90_noerr ) go to 920
     if ( ( dvrange(1)>time ) .or. ( dvrange(1)==0. ) )              &
-             dvrange(1) = time 
+             dvrange(1) = time
     if ( ( dvrange(2)<time ) .or. ( dvrange(2)==0. ) )              &
              dvrange(2) = time
     ierr = nf90_put_att(cdfid,idtime,'actual_range',dvrange)
@@ -811,7 +811,7 @@ module mod_nclib
   end if
   corner(ik) = iflag
   edgeln(ik) = 1
-  
+
 !     Put data on NetCDF file
 
   ierr = nf90_put_var(cdfid,idvar,dat,corner(1:ik),edgeln(1:ik))
@@ -835,21 +835,21 @@ module mod_nclib
 
 !-----------------------------------------------------------------------
 !     Purpose:
-!        This routine is called to get the dimensions and attributes of 
+!        This routine is called to get the dimensions and attributes of
 !        a variable from an IVE-NetCDF file for use with the IVE plotting
 !        package. Prior to calling this routine, the file must be opened
 !        with a call to opncdf.
 !     Arguments:
 !        cdfid   int   input   file-identifier
-!                              (can be obtained by calling routine 
+!                              (can be obtained by calling routine
 !                              opncdf)
 !        varnam  char  input   the user-supplied variable name.
-!                              (can be obtained by calling routine 
+!                              (can be obtained by calling routine
 !                              opncdf)
 !        ndim    int   output  the number of dimensions (ndim<=4)
-!        misdat  real  output  missing data value for the variable. 
+!        misdat  real  output  missing data value for the variable.
 !        vardim  int   output  the dimensions of the variable.
-!                              Is dimensioned at least (ndim). 
+!                              Is dimensioned at least (ndim).
 !        ierr   int   output  indicates possible ierrs found in this
 !                              routine.
 !                              ierr = 0   no ierrs detected.
@@ -884,7 +884,7 @@ module mod_nclib
   if ( ierr/=nf90_noerr ) go to 920
 
 !     read dimension-table
-  do  i = 1 , ndims 
+  do  i = 1 , ndims
     ierr = nf90_inquire_dimension(cdfid,i,dimnam(i),dimsiz(i))
     if ( ierr/=nf90_noerr ) go to 920
   end do
@@ -909,7 +909,7 @@ module mod_nclib
   end if
 
 !     get dimensions from dimension-table
-  do k = 1 , ndim 
+  do k = 1 , ndim
     vardim(k) = dimsiz(vardim(k))
   end do
 
@@ -943,21 +943,21 @@ module mod_nclib
 
 !-----------------------------------------------------------------------
 !     Purpose:
-!        This routine is called to get the dimensions and attributes of 
+!        This routine is called to get the dimensions and attributes of
 !        a variable from an IVE-NetCDF file for use with the IVE plotting
 !        package. Prior to calling this routine, the file must be opened
 !        with a call to opncdf.
 !     Arguments:
 !        cdfid   int   input   file-identifier
-!                              (can be obtained by calling routine 
+!                              (can be obtained by calling routine
 !                              opncdf)
 !        varnam  char  input   the user-supplied variable name.
-!                              (can be obtained by calling routine 
+!                              (can be obtained by calling routine
 !                              opncdf)
 !        ndim    int   output  the number of dimensions (ndim<=4)
-!        misdat  real  output  missing data value for the variable. 
+!        misdat  real  output  missing data value for the variable.
 !        vardim  int   output  the dimensions of the variable.
-!                              Is dimensioned at least (ndim). 
+!                              Is dimensioned at least (ndim).
 !        ierr   int   output  indicates possible ierrs found in this
 !                              routine.
 !                              ierr = 0   no ierrs detected.
@@ -995,7 +995,7 @@ module mod_nclib
   end if
 
 !     read dimension-table
-  do  i = 1 , ndims 
+  do  i = 1 , ndims
     ierr = nf90_inquire_dimension(cdfid,i,dimnam(i),dimsiz(i))
     if ( ierr/=nf90_noerr ) then
       write(stderr,*) 'Error nf90_inquire_dimension ', dimnam(i)
@@ -1066,7 +1066,7 @@ module mod_nclib
 
   subroutine readcdfr4(idcdf,vnam,lnam,units,nlon1,nlon,nlat1,nlat, &
                        nlev1,nlev,ntim1,ntim,vals)
- 
+
   implicit none
 !
   integer(ik4) :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
@@ -1087,7 +1087,7 @@ module mod_nclib
   icount(3) = nlev
   istart(4) = ntim1
   icount(4) = ntim
- 
+
   iflag = nf90_inq_varid(idcdf,vnam,invarid)
   if (iflag /= nf90_noerr) go to 920
 
@@ -1099,7 +1099,7 @@ module mod_nclib
 
   iflag = nf90_get_att(idcdf,invarid,'units',units)
   if (iflag /= nf90_noerr) go to 920
- 
+
   return
 
  920  write(stderr,*) 'ERROR: An error occurred while attempting to ', &
@@ -1113,7 +1113,7 @@ module mod_nclib
   subroutine readcdfr4_360(idcdf,vnam,lnam,units,nlon1,nlon,nlat1,  &
                            nlat,nlev1,nlev,ntim1,ntim,nglon,nglat,  &
                            nglev,ngtim,vals)
- 
+
   implicit none
 !
   integer(ik4) :: idcdf , nglat , nglev , nglon , ngtim , nlat , nlat1 , &
@@ -1128,7 +1128,7 @@ module mod_nclib
              l , ll , nlat2 , nlev2 , nlon2 , ntim2
   integer(ik4) , dimension(4) :: icount , istart
   real(rk4) , pointer , dimension(:,:,:,:) :: vals1 , vals2
-! 
+!
   istart(1) = 1
   icount(1) = nglon
   istart(2) = 1
@@ -1168,7 +1168,7 @@ module mod_nclib
       end do
     end do
   end do
- 
+
   ntim2 = ntim1 + ntim - 1
   nlev2 = nlev1 + nlev - 1
   nlat2 = nlat1 + nlat - 1
@@ -1186,13 +1186,13 @@ module mod_nclib
       end do
     end do
   end do
- 
+
   iflag = nf90_get_att(idcdf,invarid,'long_name',lnam)
   if (iflag /= nf90_noerr) go to 920
 
   iflag = nf90_get_att(idcdf,invarid,'units',units)
   if (iflag /= nf90_noerr) go to 920
- 
+
   return
 
  920  write(stderr,*) 'ERROR: An error occurred while attempting to ', &
@@ -1205,7 +1205,7 @@ module mod_nclib
 
   subroutine readcdfr4_iso(idcdf,vnam,lnam,units,nlon1,nlon,nlat1,  &
                            nlat,nlev1,nlev,ntim1,ntim,vals)
- 
+
   implicit none
 !
   integer(ik4) :: idcdf , nlat , nlat1 , nlev , nlev1 , nlon , nlon1 ,   &
@@ -1226,7 +1226,7 @@ module mod_nclib
   icount1(1) = nlon
   istart1(2) = nlat1
   icount1(2) = nlat
- 
+
   istart(1) = nlon1
   icount(1) = nlon
   istart(2) = nlat1
@@ -1235,7 +1235,7 @@ module mod_nclib
   icount(3) = nlev
   istart(4) = ntim1
   icount(4) = ntim
- 
+
   iflag = nf90_inq_varid(idcdf,vnam,invarid)
   if (iflag /= nf90_noerr) go to 920
 
@@ -1247,7 +1247,7 @@ module mod_nclib
 
   iflag = nf90_get_att(idcdf,invarid,'units',units)
   if (iflag /= nf90_noerr) go to 920
- 
+
   return
 
  920  write(stderr,*) 'ERROR: An error occurred while attempting to ',  &

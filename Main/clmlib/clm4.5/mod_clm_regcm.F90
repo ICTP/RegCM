@@ -351,7 +351,7 @@ module mod_clm_regcm
 
     !--------------------------------------------------
     ! From land to chemistry
-    ! only for Isoprene 
+    ! only for Isoprene
     if ( ichem == 1 .and. enable_megan_emission ) then
       allocate(vocemis2d(begg:endg,1))
       vocemis2d(:,1) = clm_l2a%flxvoc(:,1)

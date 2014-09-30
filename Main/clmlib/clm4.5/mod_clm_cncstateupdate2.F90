@@ -9,7 +9,7 @@ module mod_clm_cncstateupdate2
   use mod_mpmessage
 
   implicit none
-   
+
   save
 
   private

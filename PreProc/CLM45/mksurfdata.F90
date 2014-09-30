@@ -23,7 +23,7 @@ subroutine myabort
 end subroutine myabort
 
 program mksurfdata
- 
+
 #ifndef CLM45
   use mod_stdio
   write(stdout,*) 'RegCM built without CLM45 support.'
@@ -702,7 +702,7 @@ program mksurfdata
   do it = 1 , 12
     istart1(1) = it
     icount1(1) = 1
-    tdif = imondate-irefdate 
+    tdif = imondate-irefdate
     xdate(1) = tohours(tdif)
     istatus = nf90_put_var(ncid, ivartime, xdate, istart1, icount1)
     call checkncerr(istatus,__FILE__,__LINE__,'Error variable time write')

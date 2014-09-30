@@ -16,7 +16,7 @@
 !    along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
- 
+
   module mod_che_tend
 !
 ! Tendency and budget for tracer transport and chemicals
@@ -40,7 +40,7 @@
   use mod_che_mppio
   use mod_che_chemistry
   use mod_che_isorropia
-  use mod_che_pollen 
+  use mod_che_pollen
   use mod_che_bionit
 
   implicit none
@@ -83,16 +83,16 @@
       real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: chevap
 !      real(rk8) , dimension(ici1:ici2,kz,jci1:jci2) :: checum
        real(rk8) , dimension (1) :: polrftab
-       integer(ik4) , dimension (1) :: poltab 
+       integer(ik4) , dimension (1) :: poltab
       integer(ik4) :: i , j , ibin , k
       integer(ik8) :: kchsolv
       !
       !*********************************************************************
       ! A : PRELIMINARY CALCULATIONS
       !     For historical reasons and to avoid increase memory usage,
-      !     
+      !
       !*********************************************************************
-      ! 
+      !
       rho         = d_zero
       wl          = d_zero
       ttb         = d_zero
@@ -101,7 +101,7 @@
       ustar       = d_zero
       fracloud    = d_zero
       fracum      = d_zero
-      psurf       = d_zero  
+      psurf       = d_zero
       dust_flx    = d_zero
       seasalt_flx = d_zero
       ivegcov     = 0
@@ -119,7 +119,7 @@
             ttb(i,k,j)  = ctb3d(j,i,k)
             ! precipiation rate is a rquired variable for deposition routines.
             ! It is directly taken as rembc (saved in precip routine) in mm/hr !
-            prec(i,k,j) = crembc(j,i,k) / 3600.D0 !passed in mm/s  
+            prec(i,k,j) = crembc(j,i,k) / 3600.D0 !passed in mm/s
             !and the quivalent for convective prec
             convprec(i,k,j) = cconvpr(j,i,k) ! already in mm/s
           end do
@@ -130,39 +130,39 @@
       ! large scale : fracloud, calculated from fcc coming from pcp.f = large scale fraction
       ! cumulus scale : fracum, now directly saved (== cloudfra right after call to convection scheme)
       ! N.B : the difference with 'radiative cldfra' is that cldfra has an upper threshold of 0.8 and accound
-      ! both large scale and cumulus cloud)  
-      ! here cfcc + convcldfra can be > 1  !! Overestimation of removal ? 
+      ! both large scale and cumulus cloud)
+      ! here cfcc + convcldfra can be > 1  !! Overestimation of removal ?
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
 
             fracloud(i,k,j)  =  cfcc(j,i,k)
-            fracum(i,k,j)    =  convcldfra (j,i,k) 
+            fracum(i,k,j)    =  convcldfra (j,i,k)
 
 !            if ( kcumtop(j,i) > 0 ) then
 !              do kk = kcumtop(j,i) , kz
 !                fracum(i,kk,j) = ccldfra(j,i,kk) - cfcc(j,i,kk)
-!                 fracum(i,kk,j) = convcldfra (j,i,kk) 
+!                 fracum(i,kk,j) = convcldfra (j,i,kk)
 !              end do
 !            end if
           end do
         end do
       end do
       !
-      ! variables used for natural fluxes and deposition velocities 
-      ! 
+      ! variables used for natural fluxes and deposition velocities
+      !
       do i = ici1 , ici2
         do j = jci1 , jci2
           !
           ! care ocean-lake in veg2d is now back type 14-15 !!
           !
-          if ( cveg2d(j,i) == 14 .or. cveg2d(j,i) == 15 ) then 
+          if ( cveg2d(j,i) == 14 .or. cveg2d(j,i) == 15 ) then
             ivegcov(i,j) = 0
           else
             ivegcov(i,j) = cveg2d(j,i)
-          end if 
+          end if
           psurf(i,j) = (cpsb(j,i) + ptop) * d_1000
-          ! 
+          !
           ! method based on bats diagnostic in routine interf.
           !
           if ( ivegcov(i,j) /= 0 ) then
@@ -236,7 +236,7 @@
       !       (except full gas phase chemistry solver)
       !*****************************************************************
       !
-      ! SOX CHEMSITRY ( from offline oxidant) 
+      ! SOX CHEMSITRY ( from offline oxidant)
       !
       if ( igaschem == 0 ) then
         if ( iso2 > 0 .and. iso4 > 0 ) then
@@ -261,19 +261,19 @@
       !
       chifxuw = d_zero
       !
-      ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)       
+      ! NATURAL EMISSIONS FLUX and tendencies  (dust -sea salt)
       !
       if ( idust(1) > 0 .and. ichsursrc ==1 ) then
         do j = jci1 , jci2
           where (ivegcov(:,j) == 11)
-            zeff(:,j) = 0.01D0 ! value set to desert type for semi-arid)      
+            zeff(:,j) = 0.01D0 ! value set to desert type for semi-arid)
           end where
           call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j), &
             rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,j),xra(:,1))
           call sfflux(j,ivegcov(:,j),vegfrac(:,j),ustar(:,j),      &
                       zeff(:,j),soilw(:,j),wid10(:,j),rho(:,kz,j), &
-                      dustbsiz,dust_flx(:,:,j))     
-        end do 
+                      dustbsiz,dust_flx(:,:,j))
+        end do
       end if
       if ( isslt(1) > 0 .and. ichsursrc ==1 ) then
         do j = jci1 , jci2
@@ -281,16 +281,16 @@
         end do
       end if
       !
-      ! pollen emission 
+      ! pollen emission
       !
-      if ( ipollen > 0 ) then 
-        do j = jci1 , jci2  
+      if ( ipollen > 0 ) then
+        do j = jci1 , jci2
          call aerodyresis(zeff(:,j),wid10(:,j),temp10(:,j),tsurf(:,j), &
            rh10(:,j),srad(:,j),ivegcov(:,j),ustar(:,j),xra(:,1))
          call pollen_emission(j,ustar(:,j),wid10(:,j),rh10(:,j), &
            prec(:,kz,j), convprec(:,kz,j))
         end do
-      end if  
+      end if
       !
       !biogenic nox emission
       if (ichsursrc == 1 .and. ino > 0 .and. ichbion == 1) then
@@ -307,8 +307,8 @@
         end do
       end if
       !
-      ! aerosol settling and drydep 
-      ! include calculation of dry dep/settling velocities and 
+      ! aerosol settling and drydep
+      ! include calculation of dry dep/settling velocities and
       ! updating tendencies
       !
       pdepv(:,:,:,:) = d_zero
@@ -331,9 +331,9 @@
                            rh10(:,j),wid10(:,j),zeff(:,j),ssltbed, &
                            pdepv(:,:,:,j),ddepa(:,:,j))
         end do
-      end if 
+      end if
       if ( icarb(1) > 0  .and. ichdrdepo > 0) then
-        ibin = count( icarb > 0 ) 
+        ibin = count( icarb > 0 )
         do j = jci1 , jci2
           call drydep_aero(j,ibin,icarb(1:ibin),rhooc,ivegcov(:,j), &
                            ttb(:,:,j),rho(:,:,j),hsigma,psurf(:,j),   &
@@ -341,9 +341,9 @@
                            rh10(:,j),wid10(:,j),zeff(:,j),          &
                            carbed(1:ibin),pdepv(:,:,:,j),ddepa(:,:,j))
         end do
-      end if 
+      end if
       if ( ipollen > 0 .and. ichdrdepo > 0 ) then
-        ibin = 1 
+        ibin = 1
         poltab(1) = ipollen
         polrftab(1) = reffpollen
         do j = jci1 , jci2
@@ -353,7 +353,7 @@
                            rh10(:,j),wid10(:,j),zeff(:,j),          &
                            polrftab,pdepv(:,:,:,j),ddepa(:,:,j))
         end do
-      end if 
+      end if
       !
       ! GAS phase dry deposition velocity + tendencies
       ! option compatible with BATS and CLM
@@ -374,93 +374,93 @@
           call wetdepa(j,nbin,idust,dustbed,rhodust,ttb(:,:,j),  &
                        wl(:,:,j),fracloud(:,:,j),fracum(:,:,j),  &
                        psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j), &
-                       convprec(:,:,j), pdepv(:,:,:,j))  
+                       convprec(:,:,j), pdepv(:,:,:,j))
         end do
       end if
-      if ( isslt(1) > 0 .and.   ichremlsc == 1 )  then   
+      if ( isslt(1) > 0 .and.   ichremlsc == 1 )  then
         do j = jci1 , jci2
           call wetdepa(j,sbin,isslt,ssltbed,rhosslt,ttb(:,:,j),  &
                        wl(:,:,j),fracloud(:,:,j),fracum(:,:,j),  &
                        psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j), &
-                       convprec(:,:,j), pdepv(:,:,:,j))  
+                       convprec(:,:,j), pdepv(:,:,:,j))
         end do
       end if
-      if ( icarb(1) > 0 .and.  ichremlsc == 1 )  then   
-        ibin = count( icarb > 0 ) 
+      if ( icarb(1) > 0 .and.  ichremlsc == 1 )  then
+        ibin = count( icarb > 0 )
         do j = jci1 , jci2
           call wetdepa(j,ibin,icarb(1:ibin),carbed(1:ibin),rhobchl,        &
                        ttb(:,:,j),wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
                        psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j),           &
-                       convprec(:,:,j),pdepv(:,:,:,j)) 
+                       convprec(:,:,j),pdepv(:,:,:,j))
         end do
       end if
       !
-      if ( ipollen > 0 .and.  ichremlsc == 1 )  then   
-        ibin = 1 
+      if ( ipollen > 0 .and.  ichremlsc == 1 )  then
+        ibin = 1
         poltab(1) = ipollen
         polrftab(1) = reffpollen
         do j = jci1 , jci2
           call wetdepa(j,ibin,poltab,polrftab,rhopollen,        &
                        ttb(:,:,j),wl(:,:,j),fracloud(:,:,j),fracum(:,:,j), &
                        psurf(:,j),hsigma,rho(:,:,j),prec(:,:,j),           &
-                       convprec(:,:,j),pdepv(:,:,:,j)) 
+                       convprec(:,:,j),pdepv(:,:,:,j))
         end do
       end if
       !
-      ! Wet Deposition for gasphase species 
+      ! Wet Deposition for gasphase species
       !
       if ( igaschem == 1 .and. ichremlsc == 1 ) then
         ! fix the interface for this variable
         ! no effect of cumulus scavenging now
         ! checum = d_zero
         chevap = d_zero
-        do j = jci1 , jci2        
+        do j = jci1 , jci2
           call sethet(j,hgt(:,:,j),hsurf(:,j),ttb(:,:,j),        &
                       prec(:,:,j),convprec(:,:,j),chevap(:,:,j), &
                       dt,rho(:,:,j),chib(j,:,:,:),psurf(:,j))
         end do
       end if
       !
-      ! Gas phase solver 
+      ! Gas phase solver
       ! note : solver is called every dtchsolv (900s)- chemten
       ! chemistry raecation tendendy is calculated but chemical tracer
       ! tendency is still updated every dt ( =dt) time step
-      ! ( insure smoothness)  
+      ! ( insure smoothness)
       !
-      
-      if ( igaschem == 1 .and. ichsolver > 0 ) then   
+
+      if ( igaschem == 1 .and. ichsolver > 0 ) then
         kchsolv = idnint(dtchsolv/dtsec)
-        if ( mod(ktau+1,kchsolv) == 0 ) then   
+        if ( mod(ktau+1,kchsolv) == 0 ) then
           chemten(:,:,:,:) = d_zero
           do j = jci1 , jci2
             call chemistry(j,lyear,lmonth,lday)
           end do
           if ( myid == italk .and. mod(ktau+1,krep) == 0 ) then
             write(stdout,'(a,2g12.5)') ' $$$ Jvalue min/max NO2surf : ', &
-              minval(jphoto(:,:,kz,jvNO2 )),  maxval(jphoto(:,:,kz,jvNO2 ))  
+              minval(jphoto(:,:,kz,jvNO2 )),  maxval(jphoto(:,:,kz,jvNO2 ))
           end if
-       !    secondary inorganic aerosol solver ( modify also chemten !) 
+       !    secondary inorganic aerosol solver ( modify also chemten !)
           if ( iisoropia == 1 ) then
            call aerodriver
           endif
 
         end if ! end chem timestep
-       
-        ! add tendency due to chemistry reaction + thermo equilibrium (every dt)      
+
+        ! add tendency due to chemistry reaction + thermo equilibrium (every dt)
         chiten(jci1:jci2,:,:,:) = chiten(jci1:jci2,:,:,:) + &
                                   chemten(jci1:jci2,:,:,:)
         if ( ichdiag > 0 ) then
           chemdiag(jci1:jci2,:,:,:) = chemdiag(jci1:jci2,:,:,:) + &
-              chemten(jci1:jci2,:,:,:) * cfdout 
+              chemten(jci1:jci2,:,:,:) * cfdout
         end if
       end if
       !
       ! Finally save tarcer instantaneous burden for diag
       !
       dtrace(:,:,:) = d_zero
-      do k=1,kz 
+      do k=1,kz
         do i = ici1 , ici2
-          do j = jci1 , jci2       
+          do j = jci1 , jci2
            dtrace(j,i,:) = dtrace(j,i,:) +  &
              chib3d(j,i,k,:)*cdzq(j,i,k)*crhob3d(j,i,k)
           end do

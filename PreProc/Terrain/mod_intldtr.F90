@@ -397,7 +397,7 @@ module mod_intldtr
         else
           xx = (xlon(jj,ii)-milon)*rinc + d_one
         end if
- 
+
         ! yy and xx are the exact index values of a point j,i of the
         ! mesoscale mesh when projected onto an earth-grid of lat_s
         ! and lon_s for which terrain observations are available.  it

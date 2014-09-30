@@ -128,7 +128,7 @@ program sigma2z
 
   allocate(dimlen(ndims), stat=istatus)
   call checkalloc(istatus,__FILE__,__LINE__,'dimlen')
- 
+
   kz = 0
   nt = 0
   do i = 1 , ndims

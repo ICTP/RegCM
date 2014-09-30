@@ -43,7 +43,7 @@ module mod_template
     logical , intent(in) :: lflag   ! Flag to control behaviour
 
     ! Local variables
-    
+
     integer :: istat
 
     !-----------------------------------------------------------

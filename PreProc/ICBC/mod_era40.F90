@@ -102,19 +102,19 @@ module mod_era40
 !
 !     ******           NEW CALCULATION OF P* ON RCM TOPOGRAPHY.
   call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,klev)
- 
+
   call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
   if(i_band == 1) then
      call p1p2_band(b3pd,ps4,jx,iy)
   else
      call p1p2(b3pd,ps4,jx,iy)
   endif
- 
+
 !
 !     F0  DETERMINE SURFACE TEMPS ON RCM TOPOGRAPHY.
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
   call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
- 
+
   call readsst(ts4,idate)
 
 !     F2  DETERMINE P* AND HEIGHT.
@@ -124,7 +124,7 @@ module mod_era40
   call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
 !
   call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
- 
+
   call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
   call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
 !
@@ -175,8 +175,8 @@ module mod_era40
     call die('getera40', 'ERA40 datasets is just available from'// &
              ' 1957090100 to 2002083118', 1)
   end if
- 
-  if ( idate == idate0 .or. (lfdoyear(idate) .and. lmidnight(idate))) then 
+
+  if ( idate == idate0 .or. (lfdoyear(idate) .and. lmidnight(idate))) then
     do k4 = 1 , 4
       do kkrec = 1 , 5
         if ( kkrec == 1 ) then
@@ -230,7 +230,7 @@ module mod_era40
             write (inname,99008) year , 'vwnd.' , year
           end if
         end if
- 
+
         pathaddname = trim(inpglob)//pthsep//dattyp//pthsep//inname
         istatus = nf90_open(pathaddname,nf90_nowrite,inet6(kkrec,k4))
         call checkncerr(istatus,__FILE__,__LINE__,'Error open '//trim(pathaddname))
@@ -246,9 +246,9 @@ module mod_era40
                     xscl(kkrec,k4) , xoff(kkrec,k4)
       end do
     end do
- 
+
   end if
- 
+
   k4 = hour/6 + 1
   it = day
   if ( month == 2 ) it = it + 31
@@ -345,7 +345,7 @@ module mod_era40
       end do
     end if
   end do
- 
+
 99001 format (i4,'/',a4,i4,'.00.nc')
 99002 format (i4,'/',a4,i4,'.06.nc')
 99003 format (i4,'/',a4,i4,'.12.nc')
@@ -401,7 +401,7 @@ module mod_era40
     kr = klev - k + 1
     sigma1(k) = sigmar(kr)
   end do
- 
+
   call getmem3d(b3,1,jx,1,iy,1,klev*3,'mod_era40:b3')
   call getmem3d(d3,1,jx,1,iy,1,klev*2,'mod_era40:d3')
   call getmem3d(s3,1,jx,1,iy,1,4*3+1,'mod_era40:s3')

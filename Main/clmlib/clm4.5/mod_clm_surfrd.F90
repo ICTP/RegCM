@@ -548,7 +548,7 @@ module mod_clm_surfrd
     allocate(pctpft(begg:endg,0:numpft))
 
     if ( .not. clm_check_dimlen(ncid, 'lsmpft', numpft+1) ) then
-      write (stderr,*) 'LSMPFT in file not ', numpft+1 
+      write (stderr,*) 'LSMPFT in file not ', numpft+1
       call fatal(__FILE__,__LINE__, trim(subname)//' lsmpft /= numpft+1' )
     end if
 

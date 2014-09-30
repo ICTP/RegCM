@@ -56,7 +56,7 @@ module mod_ch_icbc_clim
   real(rk8) :: r4pt
   integer(ik4) :: ism
   type (rcm_time_and_date) , save :: iref1 , iref2
-  
+
   public :: header_ch_icbc_clim , get_ch_icbc_clim , close_ch_icbc_clim
 
   contains
@@ -190,7 +190,7 @@ module mod_ch_icbc_clim
     odist = xfac1 + xfac2
     xfac1 = xfac1/odist
     xfac2 = d_one-xfac1
-! rq: pppv(mozart) to pppm 
+! rq: pppv(mozart) to pppm
     chv4_3 = (chv4_1*xfac2+chv4_2*xfac1)
 chv4(:,:,:,cb_O3)    = chv4_3(:,:,:,mz_O3)*w_o3/amd
 chv4(:,:,:,cb_NO)    = chv4_3(:,:,:,mz_NO)*w_no/amd
@@ -239,7 +239,7 @@ chv4(:,:,:,cb_CH3OH) = chv4_3(:,:,:,mz_CH3OH)*w_ch3oh/amd
     character(len=256) :: chfilename
     real(rk8) :: wt1 , wt2
     integer(ik4) :: ncid , istatus , ivarid
-   
+
     write(*,*)'iiiiiiiiiiiiii',im1,im2
 
     write(chfilename,'(a,i0.2,a)') &
@@ -261,11 +261,11 @@ chv4(:,:,:,cb_CH3OH) = chv4_3(:,:,:,mz_CH3OH)*w_ch3oh/amd
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//trim(chspec(is)))
       call bilinx2(chv3(:,:,:,is),xinp(:,:,:,is),xlon,xlat,cht42lon,cht42lat, &
-                   chilon,chjlat,iy,jx,chilev) 
+                   chilon,chjlat,iy,jx,chilev)
     end do
     call bilinx2(pchem_3,xps,xlon,xlat,cht42lon,cht42lat, &
                  chilon,chjlat,iy,jx)
-    do i = 1 , iy 
+    do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
           prcm=((pchem_3(j,i)*0.1-r4pt)*sigma2(l)+r4pt)*10.
@@ -316,11 +316,11 @@ chv4(:,:,:,cb_CH3OH) = chv4_3(:,:,:,mz_CH3OH)*w_ch3oh/amd
       call checkncerr(istatus,__FILE__,__LINE__, &
                       'Error read var '//trim(chspec(is)))
       call bilinx2(chv3(:,:,:,is),xinp(:,:,:,is),xlon,xlat,cht42lon,cht42lat, &
-                   chilon,chjlat,iy,jx,chilev) 
+                   chilon,chjlat,iy,jx,chilev)
     end do
     call bilinx2(pchem_3,xps,xlon,xlat,cht42lon,cht42lat, &
                  chilon,chjlat,iy,jx)
-    do i = 1 , iy 
+    do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
           prcm=((pchem_3(j,i)*0.1-r4pt)*sigma2(l)+r4pt)*10.

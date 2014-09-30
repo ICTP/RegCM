@@ -109,20 +109,20 @@ module mod_ein
     else
       call p1p2(b3pd,ps4,jx,iy)
     end if
-    ! 
+    !
     ! INTERPOLATION FROM PRESSURE LEVELS
     !
     call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,klev)
 
     call readsst(ts4,idate)
-    ! 
+    !
     ! F3  INTERPOLATE U, V, T, AND Q.
     !
     call intv1(u4,u3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
     call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,klev)
     call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
     call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,klev)
-    ! 
+    !
     call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
     !
     ! F4  DETERMINE H
@@ -416,7 +416,7 @@ module mod_ein
       kr = klev - k + 1
       sigma1(k) = sigmar(kr)
     end do
-    ! 
+    !
     ! Set up pointers
     !
     u3 => d3(:,:,1:klev)

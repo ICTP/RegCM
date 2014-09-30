@@ -232,7 +232,7 @@ module mod_clm_pftdyn
 
     if ( year /= nt ) then
       if (myid == italk) then
-        write(stdout,*) 'Read pft dynamic landuse data for year ',year 
+        write(stdout,*) 'Read pft dynamic landuse data for year ',year
       end if
       write(cy4,'(i0.4)') nt
 

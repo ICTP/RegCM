@@ -26,12 +26,12 @@
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-!     Copyright (c) 1997, 1998 the Regents of the University of 
+!     Copyright (c) 1997, 1998 the Regents of the University of
 !       California.
 !
-!     This software and ancillary information (herein called software) 
-!     called SCRIP is made available under the terms described here.  
-!     The software has been approved for release with associated 
+!     This software and ancillary information (herein called software)
+!     called SCRIP is made available under the terms described here.
+!     The software has been approved for release with associated
 !     LA-CC Number 98-45.
 !
 !     Unless otherwise indicated, this software has been authored
@@ -46,7 +46,7 @@
 !     any liability or responsibility for the use of this software.
 !
 !     If software is modified to produce derivative works, such modified
-!     software should be clearly marked, so as not to confuse it with 
+!     software should be clearly marked, so as not to confuse it with
 !     the version available from Los Alamos National Laboratory.
 !
 !********************************************************************
@@ -137,7 +137,7 @@ module mod_scrip_grids
 
       grid1_dims(1:grid1_rank) = gadims(1:grid1_rank)
       grid2_dims(1:grid2_rank) = gbdims(1:grid2_rank)
-      init_sizes = .true.    
+      init_sizes = .true.
     end subroutine scrip_dims_init
 
     subroutine scrip_grid_init(gaclat,gaclon,gadlat,gadlon,gamask, &
@@ -241,7 +241,7 @@ module mod_scrip_grids
            grid2_corner_lon = grid2_corner_lon + twopi
       !
       ! make sure input latitude range is within the machine values
-      ! for +/- pi/2 
+      ! for +/- pi/2
       !
       where (grid1_center_lat >  halfpi) grid1_center_lat =  halfpi
       where (grid1_corner_lat >  halfpi) grid1_corner_lat =  halfpi
@@ -405,7 +405,7 @@ module mod_scrip_grids
       where (grid2_center_lat < grid2_bound_box(1,:)) &
         grid2_bound_box(1,:) = -halfpi
       !
-      ! set up and assign address ranges to search bins in order to 
+      ! set up and assign address ranges to search bins in order to
       ! further restrict later searches
       !
       select case ( restrict_type )

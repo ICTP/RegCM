@@ -123,7 +123,7 @@ module mod_clm_megan
   ! Example:
   ! &megan_emis_nl
   !  megan_specifier = 'ISOP = isoprene',
-  !     'C10H16 = myrcene + sabinene + limonene + carene_3 + 
+  !     'C10H16 = myrcene + sabinene + limonene + carene_3 +
   !               ocimene_t_b + pinene_b + ...',
   !     'CH3OH = methanol',
   !     'C2H5OH = ethanol',

@@ -23,7 +23,7 @@ subroutine myabort
 end subroutine myabort
 
 program clm2rcm
- 
+
   use mod_intkinds
   use mod_realkinds
   use mod_nclib
@@ -74,7 +74,7 @@ program clm2rcm
   real(rk4) , pointer , dimension(:,:,:) :: regxyz
   real(rk4) , pointer , dimension(:,:,:,:) :: regyxzt , zoom
   real(rk4) , pointer , dimension(:,:) :: landmask , sandclay
-  integer(ik4) :: ipathdiv , ierr 
+  integer(ik4) :: ipathdiv , ierr
   integer(ik4) :: i , iz , it , j , k , l , kmax , ipnt
   integer(ik4) :: jotyp , idin , idout , ifield , ifld , imap
   integer(ik4) :: idimid , ivarid
@@ -160,7 +160,7 @@ program clm2rcm
   do it = 1 , 12
     istart1(1) = it
     icount1(1) = 1
-    tdif = imondate-irefdate 
+    tdif = imondate-irefdate
     xdate(1) = tohours(tdif)
     istatus = nf90_put_var(ncid, ivar, xdate, istart1, icount1)
     call checkncerr(istatus,__FILE__,__LINE__,'Error variable time write')
@@ -170,11 +170,11 @@ program clm2rcm
 
   ! determine which files to create (emission factor map or not)
   call comp(ifield,bvoc)
- 
+
   ! Loop over the fields defined in clm.param
   do ifld = 1 , ifield
     ! Open input and output files
-    ! Some files have more than one required variable. 
+    ! Some files have more than one required variable.
     ! Therefore, the output file should only be opened once.
     inpfile = trim(inpglob)//infil(ifld)
     if(ifld==iiso) inpfile = "./mksrf_iso.nc"
@@ -248,24 +248,24 @@ program clm2rcm
       call rcrecdf(outfil_nc,idout,varmin,varmax,3,ierr)
 
     end if
- 
+
     ! Setup RegCM3 grid variables
     call param(jx,iy,nlev(ifld),xlat,xlon,varmin,varmax,        &
                xlat1d,xlon1d,xlonmin,xlonmax,xlatmin,xlatmax,   &
                iadim,ndim)
- 
+
     ! Setup CLM3 grid variables, including subgrid region
- 
+
     call clm3grid1(nlon(ifld),nlat(ifld),nlev(ifld),ntim(ifld),     &
                    glon1(ifld),glon2(ifld),glat1(ifld),glat2(ifld), &
                    dlat(ifld),dlon(ifld),xlonmin,xlonmax,xlatmin,xlatmax, &
                    istart,icount)
- 
+
     if ( ifld==isnd .or. ifld==icly ) then
       istart(4) = 1
       icount(4) = 1
     end if
- 
+
     call getmem4d(zoom,1,icount(1),1,icount(2),1,icount(3),1,icount(4), &
                   'clm2rcm:zoom')
     call getmem1d(zlon,1,icount(1),'clm2rcm:zlon')
@@ -314,7 +314,7 @@ program clm2rcm
         zlev(k) = glev_st(k)
       end do
       ntim(ifld) = 1
- 
+
     else if ( ifld==iiso .or. ifld==ibpin .or. ifld==iapin .or.     &
               ifld==imbo .or. ifld==ilimo ) then
       call readcdfr4_iso(idin,vnam(ifld),lnam(ifld),units(ifld),    &
@@ -334,7 +334,7 @@ program clm2rcm
                      istart(3),icount(3),istart(4),icount(4),zoom)
       write(stdout,*) 'Read ', trim(lnam(ifld))
     end if
- 
+
     if ( ifld==icol .or. ifld==iiso .or. ifld==ibpin .or.           &
          ifld==imbo .or. ifld==iapin .or. ifld==ilimo ) then
       write(stdout,*) 'Adjusting landmask'
@@ -351,12 +351,12 @@ program clm2rcm
 
     write(stdout,*) 'WRITE: ', trim(vnam(ifld)), ', ', &
                trim(lnam(ifld)), ', ', trim(units(ifld))
- 
+
     ! Set the non-land values to missing for interpolation purposes
 
     if ( ifld/=ioro ) call maskme(landmask,zoom,vmisdat,icount(1),  &
                                   icount(2),icount(3),icount(4))
- 
+
     ! Interpolate data to RegCM3 grid
 
     call getmem4d(regyxzt,1,jx,1,iy,1,nlev(ifld),1,ntim(ifld),'clm2rcm:regyxzt')
@@ -364,7 +364,7 @@ program clm2rcm
 
     call bilinx4d(zoom,landmask,zlon,zlat,icount(1),icount(2),regyxzt,xlon,  &
                   xlat,jx,iy,icount(3),icount(4),vmin(ifld),vmisdat)
- 
+
     ! Write the interpolated data to NetCDF for CLM and checkfile
 
     imondate = irefdate

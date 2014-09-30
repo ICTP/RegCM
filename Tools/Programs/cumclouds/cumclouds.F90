@@ -23,7 +23,7 @@ program cumclouds
   real(8) :: dp , ds , dxtemc , clfrcv , scalep , totcf , akclth
   real(8) :: scalef , totcf_old
   real(8) , dimension(1) :: helpme
-  
+
   real(8) :: afracl = 0.250D0
   real(8) :: afracs = clfrcvmax
 

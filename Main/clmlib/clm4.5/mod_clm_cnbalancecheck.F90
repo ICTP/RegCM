@@ -342,7 +342,7 @@ module mod_clm_cnbalancecheck
       call fatal(__FILE__,__LINE__,'clm now stopping')
     end if
   end subroutine NBalanceCheck
- 
+
 #endif
 
 end module mod_clm_cnbalancecheck

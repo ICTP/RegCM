@@ -107,7 +107,7 @@ module mod_hgt
     integer(ik4) :: i , j , k , kb , kbc , kt , n
     real(rk8) , dimension(km+1) :: psig
     real(rk8) , dimension(km) :: sig
-    ! 
+    !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:
     !        H AND T ARE HEIGHT AND TEMPERATURE ON SIGMA, RESPECTIVELY.
@@ -185,7 +185,7 @@ module mod_hgt
     real(rk8) :: psfc , temp , wb , wt
     integer(ik4) :: i , j , k , kb , kbc , kt , n
     real(rk8) , dimension(km) :: psig
-    ! 
+    !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:
     !        H AND T ARE HEIGHT AND TEMPERATURE ON SIGMA, RESPECTIVELY.
@@ -255,7 +255,7 @@ module mod_hgt
     real(rk4) :: psfc , temp , wb , wt , ptp
     integer(ik4) :: i , j , k , kb , kbc , kt , n
     real(rk4) , dimension(km) :: psig
-    ! 
+    !
     !  HEIGHT DETERMINES THE HEIGHT OF PRESSURE LEVELS.
     !     ON INPUT:
     !        H AND T ARE HEIGHT AND TEMPERATURE ON SIGMA, RESPECTIVELY.

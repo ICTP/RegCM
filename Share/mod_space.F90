@@ -44,11 +44,11 @@ module mod_space
   type sarr1d
     integer(2) , pointer , dimension(:) :: space => null()
   end type sarr1d
- 
+
   type iarr1d
     integer(ik4) , pointer , dimension(:) :: space => null()
   end type iarr1d
- 
+
   type larr1d
     logical , pointer , dimension(:) :: space => null()
   end type larr1d
@@ -72,7 +72,7 @@ module mod_space
   type iarr2d
     integer(ik4) , pointer , dimension(:,:) :: space => null()
   end type iarr2d
- 
+
   type larr2d
     logical , pointer , dimension(:,:) :: space => null()
   end type larr2d
@@ -88,11 +88,11 @@ module mod_space
   type sarr3d
     integer(2) , pointer , dimension(:,:,:) :: space => null()
   end type sarr3d
- 
+
   type iarr3d
     integer(ik4) , pointer , dimension(:,:,:) :: space => null()
   end type iarr3d
- 
+
   type larr3d
     logical , pointer , dimension(:,:,:) :: space => null()
   end type larr3d
@@ -108,11 +108,11 @@ module mod_space
   type sarr4d
     integer(2) , pointer , dimension(:,:,:,:) :: space => null()
   end type sarr4d
- 
+
   type iarr4d
     integer(ik4) , pointer , dimension(:,:,:,:) :: space => null()
   end type iarr4d
- 
+
   type larr4d
     logical , pointer , dimension(:,:,:,:) :: space => null()
   end type larr4d
@@ -128,11 +128,11 @@ module mod_space
   type sarr5d
     integer(2) , pointer , dimension(:,:,:,:,:) :: space => null()
   end type sarr5d
- 
+
   type iarr5d
     integer(ik4) , pointer , dimension(:,:,:,:,:) :: space => null()
   end type iarr5d
- 
+
   type larr5d
     logical , pointer , dimension(:,:,:,:,:) :: space => null()
   end type larr5d

@@ -8,7 +8,7 @@ PROGRAM EMCRE
 ! Patrick Joeckel, MPICH, Mainz, October 2004
 ! ******************************************************************
 !
-! CONVERT IPCC EMISSION FILES 
+! CONVERT IPCC EMISSION FILES
 !
 ! -----------------------------------------------------------------
 
@@ -55,15 +55,15 @@ PROGRAM EMCRE
   CHARACTER(LEN=str_long)               :: INTERPOLATION='linear'
   ! special case for aircraft emissions (3D)
   LOGICAL                               :: L_AIRCRAFT = .FALSE.
-  INTEGER                               :: YEAR_START    = 0        
-  INTEGER                               :: YEAR_END      = 0        
+  INTEGER                               :: YEAR_START    = 0
+  INTEGER                               :: YEAR_END      = 0
   REAL(DP), DIMENSION(MAX_HEIGHTS)      :: HEIGHT              ! [m]
   REAL(DP), DIMENSION(MAX_HEIGHTS)      :: PRESS               ! [Pa]
   REAL(DP), DIMENSION(MAX_HEIGHTS)      :: IPRESS              ! [Pa]
   REAL(DP)                              :: delta               ! [m] -> thickness of layers
   CHARACTER(LEN=str_vlong)              :: INPUTPATH = ''
-  TYPE(SOURCE_IO), DIMENSION(MAX_NCLASS):: SOURCE 
-  TYPE(YEAR_IO),   DIMENSION(MAX_NCLASS):: YEAR 
+  TYPE(SOURCE_IO), DIMENSION(MAX_NCLASS):: SOURCE
+  TYPE(YEAR_IO),   DIMENSION(MAX_NCLASS):: YEAR
   TYPE(FNAME_IO),  DIMENSION(MAX_NCLASS):: FILE_NAME
   TYPE(FRAC_IO),  DIMENSION(MAX_NCLASS) :: FRAC              ! emission class
 
@@ -85,9 +85,9 @@ PROGRAM EMCRE
   REAL(DP), DIMENSION(:,:,:,:), ALLOCATABLE :: emisflux, emistmp
 
   ! Interpolation needed
-  INTEGER                             :: month_offset  
-  INTEGER                             :: nyears_added  = 0        
-  INTEGER, DIMENSION(MAX_SPEC)        :: years_location  = 0        
+  INTEGER                             :: month_offset
+  INTEGER                             :: nyears_added  = 0
+  INTEGER, DIMENSION(MAX_SPEC)        :: years_location  = 0
   REAL(DP), DIMENSION(:,:),   ALLOCATABLE :: slope
   REAL(DP), DIMENSION(:),     ALLOCATABLE :: x_vector
   REAL(DP), DIMENSION(:,:,:), ALLOCATABLE :: y_vector
@@ -156,7 +156,7 @@ PROGRAM EMCRE
   IF (status /= 0) STOP
 
   !(3a) INIT TIME AXIS
-  if (TRIM(TIME_FREQUENCY)=='monthly') then 
+  if (TRIM(TIME_FREQUENCY)=='monthly') then
      ntime= (year_end-year_start+1)*12
   elseif (TRIM(TIME_FREQUENCY)=='annual') then
      ntime= (year_end-year_start+1)
@@ -170,7 +170,7 @@ PROGRAM EMCRE
      xtime(jl) = REAL(jl-1, DP)
   END DO
   write (*,*) 'NUM. TIME STEPS: ', ntime
-    
+
   ! (4) GET NUMBER OF EMISSION LEVELS
   DO jc = 1, MAX_HEIGHTS
      if (HEIGHT(jc).ne.-999.0_dp) nlev = nlev+1
@@ -180,21 +180,21 @@ PROGRAM EMCRE
     STOP
   ENDIF
   IF (L_AIRCRAFT) THEN
-  ! PRESSURE and INTEFACE PRESSURE (IPRESS) CALCULATION 
-  ! BASED ON THE INTERNATIONAL STANDARD ATMOSPHERE: see home.anadolu.edu.tr/~mcavcar/common/ISAweb.pdf : 
+  ! PRESSURE and INTEFACE PRESSURE (IPRESS) CALCULATION
+  ! BASED ON THE INTERNATIONAL STANDARD ATMOSPHERE: see home.anadolu.edu.tr/~mcavcar/common/ISAweb.pdf :
   ! p=p0*(1-0.0065*(h/T0))^(5.2561)  with  p0=1013325 Pa, T0 = 288.15 K, h in meters
     DO jc = 1, nlev
-      PRESS(jc)= 1013325.0*(1-0.0065*(HEIGHT(jc)/288.15))**(5.2561) 
+      PRESS(jc)= 1013325.0*(1-0.0065*(HEIGHT(jc)/288.15))**(5.2561)
     ENDDO
     delta=HEIGHT(1)
     DO jc = 1, nlev
-      IPRESS(jc)= 1013325*(1-0.0065*((HEIGHT(jc)-delta)/288.15))**(5.2561) 
+      IPRESS(jc)= 1013325*(1-0.0065*((HEIGHT(jc)-delta)/288.15))**(5.2561)
     ENDDO
     IPRESS(nlev+1)=1013325*(1-0.0065*((HEIGHT(jc)+delta)/288.15))**(5.2561)
     write (*,*) 'press',press(1:nlev)
     write (*,*) 'ipress',ipress(1:nlev+1)
-    
-     
+
+
   ENDIF
   write (*,*) 'NUM.LEVEL: ', nlev
 
@@ -227,9 +227,9 @@ PROGRAM EMCRE
        emisflux_air(:,:,:,:) = 0.0
      ENDIF
 
-     
+
      write(*,*) 'SOURCE NAME:', source(jc)%name
- 
+
      nlev_tmp=0
      DO jk=1, MAX_HEIGHTS
        if (FRAC(jc)%scale(jk).ne.-999.0_dp) nlev_tmp = nlev_tmp+1
@@ -244,24 +244,24 @@ PROGRAM EMCRE
      ENDIF
 
      file_loop: DO jf=1,MAX_SPEC
-        
-        IF (YEAR(jc)%year(jf)==0.or.FILE_NAME(jc)%fname(jf)=="") CYCLE 
+
+        IF (YEAR(jc)%year(jf)==0.or.FILE_NAME(jc)%fname(jf)=="") CYCLE
 
         IF (YEAR(jc)%year(jf).lt.YEAR_START.or.YEAR(jc)%year(jf).gt.YEAR_END) THEN
            WRITE(*,*) "YEAR NOT ADDED (OUTSIDE RANGE YEAR_START:YEAR_END)"
            CYCLE
-        ENDIF 
-        
+        ENDIF
+
         WRITE(*,*) '==========================================================='
-        write(*,*) 'YEAR : ', YEAR(jc)%year(jf)  
-        write(*,*) 'file : ', FILE_NAME(jc)%fname(jf)  
-        
+        write(*,*) 'YEAR : ', YEAR(jc)%year(jf)
+        write(*,*) 'file : ', FILE_NAME(jc)%fname(jf)
+
         !INQUIRE DIMENSION OF INPUT FILE
         CALL  inquire_ipcc(status, file_exists, TRIM(INPUTPATH)//'/'//TRIM(ADJUSTL(FILE_NAME(jc)%fname(jf))), &
                   TRIM(source(jc)%name), freq_file, unit_file,       &
                   nlon_file, nlat_file, ntime_file)
 !        IF (status > 0) STOP   ! ERROR
-        
+
         !ALLOCATE VARIABLE FROM FILENAME FOR READING THE DATA
         IF (L_AIRCRAFT) THEN
           ALLOCATE(data_file_air(nlon_file,nlat_file,nlev,ntime_file))
@@ -286,7 +286,7 @@ PROGRAM EMCRE
                  WRITE(*,*) '-----------------------------------------------------------'
               ENDIF
            ELSE
-             !READ VARIABLE FROM FILEN 
+             !READ VARIABLE FROM FILEN
               CALL  read_ipcc(status, TRIM(INPUTPATH)//'/'//TRIM(ADJUSTL(FILE_NAME(jc)%fname(jf))), &
                       TRIM(source(jc)%name), data_file)
               IF(VERBOSE) THEN
@@ -303,7 +303,7 @@ PROGRAM EMCRE
         ENDIF
 
       !ASSIGN READ DATA TO THE RELATIVE YEAR IN THE "LOCAL/CLASS" ARRAY
-        
+
       !OUTPUT FREQUENCY ANNUAL/MONTHLY
       IF (L_AIRCRAFT) THEN
         SELECT CASE (TRIM(TIME_FREQUENCY))
@@ -354,7 +354,7 @@ PROGRAM EMCRE
              CASE('monthly')
               ! brutal monthly averages (not considering different n. days/mont
               ! the error is of ~ 0.21 %
-!FAB 
+!FAB
              print*,size(data_file,3)
              emisflux_class(:,:,jt) = emisflux_class(:,:,jt) +  &
                                           SUM(data_file(:,:,1:12),DIM=3)/12.0
@@ -392,8 +392,8 @@ PROGRAM EMCRE
         DEALLOCATE(data_file)
       ENDIF
 
-    END DO file_loop 
-    
+    END DO file_loop
+
    IF (L_AIRCRAFT) THEN
      DO jk=1, nlev
        CALL INTERP(emisflux_air(:,:,jk,:), nyears_added, years_location(:))
@@ -404,7 +404,7 @@ PROGRAM EMCRE
    nyears_added=0
    years_location(:)=0
 
-   do jk=1,nlev 
+   do jk=1,nlev
      IF (L_AIRCRAFT) THEN
        emisflux(:,:,jk,:) = emisflux(:,:,jk,:) + emisflux_air(:,:,jk,:)*FRAC(jc)%scale(jk)
      ELSE
@@ -424,10 +424,10 @@ PROGRAM EMCRE
   ! Kg m^-2 s^-1  -->  mcl m^-22 s^-1
    IF ((OUT_UNIT)=='mcl m-2 s-1') then
       conv   = ( N_A * 1000.0_DP )/(MOLARMASS)
-      emisflux(:,:,:,:) = emisflux(:,:,:,:) * GLOBALSCALE * conv 
+      emisflux(:,:,:,:) = emisflux(:,:,:,:) * GLOBALSCALE * conv
    ELSEIF ((OUT_UNIT)=='Kg m-2 s-1') then
       conv   = 1.0_dp
-      emisflux(:,:,:,:) = emisflux(:,:,:,:) * GLOBALSCALE * conv 
+      emisflux(:,:,:,:) = emisflux(:,:,:,:) * GLOBALSCALE * conv
    ELSEIF ((OUT_UNIT)=='mcl m-3 s-1') then
       write (*,*) 'AIRCRAFT EMISSIONS => mlc m-3 s-1!'
       conv   = ( N_A * 1000.0_DP )/(MOLARMASS)
@@ -438,8 +438,8 @@ PROGRAM EMCRE
       STOP
    ENDIF
 !FAB version AMMA
-!grid -180 180 to 0 360 as defined for xlo,xlat 
-   If (1==2) then 
+!grid -180 180 to 0 360 as defined for xlo,xlat
+   If (1==2) then
    ALLOCATE(emistmp(nlon, nlat, nlev, ntime))
     emistmp(361:720,:,:,:) =  emisflux(1:360,:,:,:)
     emistmp(1:360,:,:,:)= emisflux(361:720,:,:,:)
@@ -519,17 +519,17 @@ CONTAINS
     INTEGER :: fstat ! file status
 
     NAMELIST /CTRL/ VERBOSE, OUTPUT, SPECIES, MOLARMASS, TIME_FREQUENCY, OUT_UNIT  &
-                  , GLOBALSCALE, INTERPOLATION, L_AIRCRAFT   & 
+                  , GLOBALSCALE, INTERPOLATION, L_AIRCRAFT   &
                   , YEAR_START, YEAR_END, HEIGHT, INPUTPATH &
                   , SOURCE, FRAC, YEAR, FILE_NAME
-  
+
     !DEFAULT
     TIME_FREQUENCY ='monthly'
     OUT_UNIT ='mcl m-2 s-1'
     INTERPOLATION ='linear'
     L_AIRCRAFT=.FALSE.
     !
- 
+
     status = 1 ! ERROR
 
     WRITE(*,*) '==========================================================='
@@ -589,24 +589,24 @@ CONTAINS
     CHARACTER(LEN=*),          INTENT(IN)  :: var     ! variable name
     CHARACTER(LEN=str_short),  INTENT(OUT) :: freq_file    ! emissions frequency
     CHARACTER(LEN=str_short),  INTENT(OUT) :: unit_file
-    INTEGER,                   INTENT(OUT) :: nlon_file  ! IPCC dimension lenght 
+    INTEGER,                   INTENT(OUT) :: nlon_file  ! IPCC dimension lenght
     INTEGER,                   INTENT(OUT) :: nlat_file  ! IPCC dimension length
     INTEGER,                   INTENT(OUT) :: ntime_file ! IPCC dimension length
-    LOGICAL,                   INTENT(OUT) :: file_exists! existence of file 
-    
+    LOGICAL,                   INTENT(OUT) :: file_exists! existence of file
+
     ! LOCAL
     CHARACTER(LEN=*), PARAMETER :: substr = 'inquire_ipcc'
     INTEGER,SAVE                :: ncid   ! netCDF-ID
     INTEGER                     :: dimid, varid
- 
+
     INTEGER, DIMENSION(:), ALLOCATABLE  :: date_file
-  
+
     CHARACTER(LEN=str_vlong)    :: name_dim   ! line
 
 
     INQUIRE(FILE=TRIM(fname), EXIST=file_exists)
     IF (.not.file_exists) THEN
-      WRITE(*,*) 'File',TRIM(fname),' does NOT exist! skipping....' 
+      WRITE(*,*) 'File',TRIM(fname),' does NOT exist! skipping....'
       RETURN
     ENDIF
 
@@ -621,7 +621,7 @@ CONTAINS
     CALL  NFERR( status, &
          nf90_Inquire_Dimension(ncid, dimid, name_dim, nlat_file ) &
          ,3)
-    IF (nlat_file.ne.nlat) THEN 
+    IF (nlat_file.ne.nlat) THEN
       WRITE (*,*) "LAT differs between grid definition and imported grid"
       write(*,*) nlat_file, nlat
       STOP
@@ -633,7 +633,7 @@ CONTAINS
     CALL  NFERR( status, &
          nf90_Inquire_Dimension(ncid, dimid, name_dim, nlon_file ) &
          ,5)
-    IF (nlon_file.ne.nlon) THEN 
+    IF (nlon_file.ne.nlon) THEN
       WRITE (*,*) "LON differs between grid definition and imported grid"
       write(*,*) nlon_file, nlon
       STOP
@@ -645,9 +645,9 @@ CONTAINS
     CALL  NFERR( status, &
          nf90_Inquire_Dimension(ncid, dimid, name_dim, ntime_file ) &
          ,7)
-    IF (ntime_file.eq.12) THEN 
+    IF (ntime_file.eq.12) THEN
       freq_file = 'monthly'
-    ELSE IF (ntime_file.eq.1) THEN 
+    ELSE IF (ntime_file.eq.1) THEN
       freq_file = 'annual'
     ELSE
        WRITE(*,*) substr, &
@@ -664,7 +664,7 @@ CONTAINS
 
     ! RETURN
     status = 0
-    
+
   END SUBROUTINE inquire_ipcc
 !  ! ------------------------------------------------------------------------
 
@@ -682,7 +682,7 @@ CONTAINS
     CHARACTER(LEN=*),          INTENT(IN)  :: fname   ! filename
     CHARACTER(LEN=*),          INTENT(IN)  :: var     ! variable name
     REAL(DP), DIMENSION(:,:,:), INTENT(OUT):: data_file    ! INTENT(OUT)
-    
+
     ! LOCAL
     CHARACTER(LEN=*), PARAMETER :: substr = 'read_ipcc'
     INTEGER,SAVE                :: ncid   ! netCDF-ID
@@ -714,10 +714,10 @@ CONTAINS
 
     ! RETURN
     status = 0
-    
+
   END SUBROUTINE read_ipcc
   ! ------------------------------------------------------------------------
-  
+
   ! ------------------------------------------------------------------------
   SUBROUTINE read_ipcc_air(status, fname, var,  data_file)
 
@@ -732,7 +732,7 @@ CONTAINS
     CHARACTER(LEN=*),          INTENT(IN)  :: fname   ! filename
     CHARACTER(LEN=*),          INTENT(IN)  :: var     ! variable name
     REAL(DP), DIMENSION(:,:,:,:), INTENT(OUT):: data_file    ! INTENT(OUT)
-    
+
     ! LOCAL
     CHARACTER(LEN=*), PARAMETER :: substr = 'read_ipcc'
     INTEGER,SAVE                :: ncid   ! netCDF-ID
@@ -764,12 +764,12 @@ CONTAINS
 
     ! RETURN
     status = 0
-    
+
   END SUBROUTINE read_ipcc_air
   ! ------------------------------------------------------------------------
   SUBROUTINE interp(emisflux_class, nyears_added, years_location)
-    
-   INTEGER, DIMENSION(:), INTENT(IN) :: years_location 
+
+   INTEGER, DIMENSION(:), INTENT(IN) :: years_location
    INTEGER,               INTENT(IN) :: nyears_added
    REAL(DP), DIMENSION(:,:,:), INTENT(INOUT) :: emisflux_class
 
@@ -829,7 +829,7 @@ CONTAINS
                 y_vector(:,:,jt)=emisflux_class(:,:,years_location(jt)+month_offset)
               ENDDO
               CALL spline_interpolation_base(nyears_added,x_vector(:),y_vector(:,:,:), &
-                          spline_inout(:,:,:)) 
+                          spline_inout(:,:,:))
               DO jt=1+month_offset,(ntime-12+1+month_offset),12
                 xval=jt
                 CALL spline_cubic_val(nyears_added,x_vector(:),y_vector(:,:,:),spline_inout(:,:,:),xval,yval(:,:))
@@ -850,7 +850,7 @@ CONTAINS
                 y_vector(:,:,jt)=emisflux_class(:,:,years_location(jt))
               ENDDO
               CALL spline_interpolation_base(nyears_added,x_vector(:),y_vector(:,:,:), &
-                          spline_inout(:,:,:)) 
+                          spline_inout(:,:,:))
               DO jt=1,ntime
                 xval=jt
                 CALL spline_cubic_val(nyears_added,x_vector(:),y_vector(:,:,:),spline_inout(:,:,:),xval,yval(:,:))
@@ -867,7 +867,7 @@ CONTAINS
        STOP
    END SELECT
 
-  
+
   END SUBROUTINE
 
   ! ------------------------------------------------------------------------
@@ -949,7 +949,7 @@ CONTAINS
     nmlstr = TRIM(nmlstr)//'HEIGHT= '//TRIM(heightstr)//', '//CHAR(10)
     nmlstr = TRIM(nmlstr)//'INPUTPATH= '''//TRIM(INPUTPATH)//''', '//CHAR(10)
     class_loop: DO jc = 1, MAX_NCLASS
-    
+
       ! SKIP IF NAME IS EMPTY
       IF (TRIM(source(jc)%name) == '') CYCLE
 
@@ -964,7 +964,7 @@ CONTAINS
 
        file_loop: DO jf=1,MAX_SPEC
           ! SKIP IF FILE WAS NOT PRESENT
-          IF (YEAR(jc)%year(jf)==0.or.FILE_NAME(jc)%fname(jf)=="") CYCLE 
+          IF (YEAR(jc)%year(jf)==0.or.FILE_NAME(jc)%fname(jf)=="") CYCLE
           WRITE(yrstr,'(i4)') YEAR(jc)%year(jf)
           nmlstr=TRIM(nmlstr)//TRIM(yrstr)//''','//TRIM(FILE_NAME(jc)%fname(jf))&
                &//', '//CHAR(10)
@@ -1169,21 +1169,21 @@ CONTAINS
   SUBROUTINE NFERR(status,command,pos)
 
     USE netcdf, ONLY: NF90_NOERR, nf90_strerror
-    
+
     IMPLICIT NONE
-    
+
     ! I/O
     INTEGER,          INTENT(OUT) :: status
     INTEGER,          INTENT(IN) :: command
     INTEGER,          INTENT(IN) :: pos
-    
+
     status=command
     IF (status /= NF90_NOERR) THEN
        WRITE(*,*) 'netCDF ERROR at position: ', pos
        WRITE(*,*) 'netCDF ERROR status     : ',status
        WRITE(*,*) 'netCDF ERROR            : ',nf90_strerror(status)
     END IF
-  
+
   END SUBROUTINE NFERR
   ! ------------------------------------------------------------------
 

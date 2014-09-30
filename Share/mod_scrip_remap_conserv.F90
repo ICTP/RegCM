@@ -26,12 +26,12 @@
 !
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !
-!     Copyright (c) 1997, 1998 the Regents of the University of 
+!     Copyright (c) 1997, 1998 the Regents of the University of
 !       California.
 !
-!     This software and ancillary information (herein called software) 
-!     called SCRIP is made available under the terms described here.  
-!     The software has been approved for release with associated 
+!     This software and ancillary information (herein called software)
+!     called SCRIP is made available under the terms described here.
+!     The software has been approved for release with associated
 !     LA-CC Number 98-45.
 !
 !     Unless otherwise indicated, this software has been authored
@@ -46,15 +46,15 @@
 !     any liability or responsibility for the use of this software.
 !
 !     If software is modified to produce derivative works, such modified
-!     software should be clearly marked, so as not to confuse it with 
+!     software should be clearly marked, so as not to confuse it with
 !     the version available from Los Alamos National Laboratory.
 !
 !********************************************************************
 !
 ! this module contains necessary routines for computing addresses
-! and weights for a conservative interpolation  between any two 
-! grids on a sphere.  the weights are computed by performing line 
-! integrals around all overlap regions of the two grids.  see 
+! and weights for a conservative interpolation  between any two
+! grids on a sphere.  the weights are computed by performing line
+! integrals around all overlap regions of the two grids.  see
 ! Dukowicz and Kodis, SIAM J. Sci. Stat. Comput. 8, 305 (1987) and
 ! Jones, P.W. Monthly Weather Review (submitted).
 !
@@ -206,7 +206,7 @@ module mod_scrip_remap_conserv
           ! direction (SW to NE)
           !
           if ( (endlat < beglat) .or. &
-               (endlat == beglat .and. endlon < beglon) ) then 
+               (endlat == beglat .and. endlon < beglon) ) then
             beglat = grid1_corner_lat(next_corn,grid1_add)
             beglon = grid1_corner_lon(next_corn,grid1_add)
             endlat = grid1_corner_lat(corner,grid1_add)
@@ -383,7 +383,7 @@ module mod_scrip_remap_conserv
           ! sweeps, always integrate in the same direction
           !
           if ( (endlat < beglat) .or. &
-               (endlat == beglat .and. endlon < beglon) ) then 
+               (endlat == beglat .and. endlon < beglon) ) then
             beglat = grid2_corner_lat(next_corn,grid2_add)
             beglon = grid2_corner_lon(next_corn,grid2_add)
             endlat = grid2_corner_lat(corner,grid2_add)
@@ -703,7 +703,7 @@ module mod_scrip_remap_conserv
         if ( norm_opt /= norm_opt_none .and. wts_map1(1,n) > 1.01D0 ) then
           write(stderr,*) 'Map 1 weight > 1 ',grid1_add,grid2_add,wts_map1(1,n)
         end if
-        grid2_centroid_lat(grid2_add) = & 
+        grid2_centroid_lat(grid2_add) = &
           grid2_centroid_lat(grid2_add) + wts_map1(1,n)
         if ( num_maps > 1 ) then
           if ( wts_map2(1,n) < -.01D0 ) then
@@ -755,9 +755,9 @@ module mod_scrip_remap_conserv
                             lbegin, lrevers)
       implicit none
       !
-      ! this routine finds the next intersection of a destination grid 
+      ! this routine finds the next intersection of a destination grid
       ! line with the line segment given by beglon, endlon, etc.
-      ! a coincidence flag is returned if the segment is entirely 
+      ! a coincidence flag is returned if the segment is entirely
       ! coincident with an ocean grid line.  the cells in which to search
       ! for an intersection must have already been restricted in the
       ! calling routine.
@@ -789,10 +789,10 @@ module mod_scrip_remap_conserv
       real(rk8) :: grdlat1 , grdlat2   ! local latitude  variables for grid cell
       real(rk8) :: vec1_lat , vec1_lon ! vectors and cross products used
       real(rk8) :: vec2_lat , vec2_lon ! during grid search
-      real(rk8) :: cross_product 
+      real(rk8) :: cross_product
       real(rk8) :: eps , offset        ! small offset away from intersect
       real(rk8) :: s1 , s2 , determ    ! variables used for linear solve to
-      real(rk8) :: mat1 , mat2 , mat3 
+      real(rk8) :: mat1 , mat2 , mat3
       real(rk8) :: mat4 , rhs1 , rhs2  ! find intersection
       ! lat/lon coords offset for next search
       real(rk8) , save :: intrsct_lat_off , intrsct_lon_off
@@ -900,15 +900,15 @@ module mod_scrip_remap_conserv
             end if
             cross_product = vec1_lon*vec2_lat - vec2_lon*vec1_lat
             !
-            ! if the cross product for a side is zero, the point 
+            ! if the cross product for a side is zero, the point
             !   lies exactly on the side or the side is degenerate
-            !   (zero length).  if degenerate, set the cross 
-            !   product to a positive number.  otherwise perform 
-            !   another cross product between the side and the 
-            !   segment itself. 
-            ! if this cross product is also zero, the line is 
-            !   coincident with the cell boundary - perform the 
-            !   dot product and only choose the cell if the dot 
+            !   (zero length).  if degenerate, set the cross
+            !   product to a positive number.  otherwise perform
+            !   another cross product between the side and the
+            !   segment itself.
+            ! if this cross product is also zero, the line is
+            !   coincident with the cell boundary - perform the
+            !   dot product and only choose the cell if the dot
             !   product is positive (parallel vs anti-parallel).
             !
             if ( dabs(cross_product) < dlowval ) then
@@ -963,7 +963,7 @@ module mod_scrip_remap_conserv
         !
         ! if still no cell found, the point lies outside the grid.
         !   take some baby steps along the segment to see if any
-        !   part of the segment lies inside the grid.  
+        !   part of the segment lies inside the grid.
         !
         loutside = .true.
         s1 = s1 + 0.001D0
@@ -1015,11 +1015,11 @@ module mod_scrip_remap_conserv
         end if
         determ = mat1*mat4 - mat2*mat3
         !
-        ! if the determinant is zero, the segments are either 
-        !   parallel or coincident.  coincidences were detected 
+        ! if the determinant is zero, the segments are either
+        !   parallel or coincident.  coincidences were detected
         !   above so do nothing.
-        ! if the determinant is non-zero, solve for the linear 
-        !   parameters s for the intersection point on each line 
+        ! if the determinant is non-zero, solve for the linear
+        !   parameters s for the intersection point on each line
         !   segment.
         ! if 0<s1,s2<1 then the segment intersects with this side.
         !   return the point of intersection (adding a small
@@ -1057,7 +1057,7 @@ module mod_scrip_remap_conserv
             end if
             determ = mat1*mat4 - mat2*mat3
             !
-            ! sometimes due to roundoff, the previous 
+            ! sometimes due to roundoff, the previous
             ! determinant is non-zero, but the lines
             ! are actually coincident.  if this is the
             ! case, skip the rest.
@@ -1249,9 +1249,9 @@ module mod_scrip_remap_conserv
           do n = 1 , srch_corners
             next_n = mod(n,srch_corners) + 1
             !
-            ! here we take the cross product of the vector making 
+            ! here we take the cross product of the vector making
             ! up each cell side with the vector formed by the vertex
-            ! and search point.  if all the cross products are 
+            ! and search point.  if all the cross products are
             ! positive, the point is contained in the cell.
             !
             vec1_x = srch_corner_x(next_n,cell) - &
@@ -1272,14 +1272,14 @@ module mod_scrip_remap_conserv
             end if
             cross_product = vec1_x*vec2_y - vec2_x*vec1_y
             !
-            ! if the cross product for a side is zero, the point 
+            ! if the cross product for a side is zero, the point
             !   lies exactly on the side or the length of a side
             !   is zero.  if the length is zero set det > 0.
-            !   otherwise, perform another cross 
-            !   product between the side and the segment itself. 
-            ! if this cross product is also zero, the line is 
-            !   coincident with the cell boundary - perform the 
-            !   dot product and only choose the cell if the dot 
+            !   otherwise, perform another cross
+            !   product between the side and the segment itself.
+            ! if this cross product is also zero, the line is
+            !   coincident with the cell boundary - perform the
+            !   dot product and only choose the cell if the dot
             !   product is positive (parallel vs anti-parallel).
             !
 
@@ -1331,7 +1331,7 @@ module mod_scrip_remap_conserv
         !
         ! if no cell found, the point lies outside the grid.
         !   take some baby steps along the segment to see if any
-        !   part of the segment lies inside the grid.  
+        !   part of the segment lies inside the grid.
         !
         loutside = .true.
         s1 = s1 + 0.001D0
@@ -1372,11 +1372,11 @@ module mod_scrip_remap_conserv
         rhs2 = grdy1 - y1
         determ = mat1*mat4 - mat2*mat3
         !
-        ! if the determinant is zero, the segments are either 
-        !   parallel or coincident or one segment has zero length.  
+        ! if the determinant is zero, the segments are either
+        !   parallel or coincident or one segment has zero length.
         !   coincidences were detected above so do nothing.
-        ! if the determinant is non-zero, solve for the linear 
-        !   parameters s for the intersection point on each line 
+        ! if the determinant is non-zero, solve for the linear
+        !   parameters s for the intersection point on each line
         !   segment.
         ! if 0<s1,s2<1 then the segment intersects with this side.
         !   return the point of intersection (adding a small
@@ -1396,7 +1396,7 @@ module mod_scrip_remap_conserv
               mat3 = y2 - begsegy
               rhs1 = grdx1 - begsegx
               rhs2 = grdy1 - begsegy
-            else 
+            else
               mat1 = x2 - endx
               mat3 = y2 - endy
               rhs1 = grdx1 - endx
@@ -1404,7 +1404,7 @@ module mod_scrip_remap_conserv
             end if
             determ = mat1*mat4 - mat2*mat3
             !
-            ! sometimes due to roundoff, the previous 
+            ! sometimes due to roundoff, the previous
             ! determinant is non-zero, but the lines
             ! are actually coincident.  if this is the
             ! case, skip the rest.
@@ -1415,7 +1415,7 @@ module mod_scrip_remap_conserv
               if ( .not. loutside ) then
                 intrsct_x = begsegx + s1*mat1
                 intrsct_y = begsegy + s1*mat3
-              else 
+              else
                 intrsct_x = endx + s1*mat1
                 intrsct_y = endy + s1*mat3
               end if
@@ -1446,7 +1446,7 @@ module mod_scrip_remap_conserv
                   intrsct_y = endy
                   intrsct_lat = endlat
                   intrsct_lon = endlon
-                else 
+                else
                   intrsct_x = begsegx
                   intrsct_y = begsegy
                   intrsct_lat = begseg(1)
@@ -1521,7 +1521,7 @@ module mod_scrip_remap_conserv
         lthresh = .true.
       end if
       !
-      ! if reached end of segment, do not use x,y intersect 
+      ! if reached end of segment, do not use x,y intersect
       ! on next entry
       !
       if ( intrsct_lat == endlat .and. intrsct_lon == endlon ) then

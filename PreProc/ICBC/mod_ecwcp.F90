@@ -91,7 +91,7 @@ module mod_ecwcp
             'ECT421997JUL' , 'ECT421997AUG' , 'ECT421997SEP' ,  &
             'ECT421997OCT' , 'ECT421997NOV' , 'ECT421997DEC'/
 !
- 
+
   call split_idate(idate,year,month,day,hour)
 !
   inquire (file=trim(inpglob)//'/ECWCRP/'// &
@@ -155,19 +155,19 @@ module mod_ecwcp
 !     X X
 !     ******           NEW CALCULATION OF P* ON RegCM TOPOGRAPHY.
   call intgtb(pa,za,tlayer,topogm,t3,h3,sigmar,jx,iy,nlev)
- 
+
   call intpsn(ps4,topogm,pa,za,tlayer,ptop,jx,iy)
   if(i_band == 1) then
      call p1p2_band(b3pd,ps4,jx,iy)
   else
      call p1p2(b3pd,ps4,jx,iy)
   endif
- 
+
 !
 !     F0    DETERMINE SURFACE TEMPS ON RegCM TOPOGRAPHY.
 !     INTERPOLATION FROM PRESSURE LEVELS AS IN INTV2
   call intv3(ts4,t3,ps4,sigmar,ptop,jx,iy,nlev)
- 
+
   call readsst(ts4,idate)
 
 !     F3     INTERPOLATE U, V, T, AND Q.
@@ -175,7 +175,7 @@ module mod_ecwcp
   call intv1(v4,v3,b3pd,sigma2,sigmar,ptop,jx,iy,kz,nlev)
 !
   call intv2(t4,t3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev)
- 
+
   call humid1(t3,q3,d_100,d_zero,sigma1,jx,iy,nlev)
   call intv1(q4,q3,ps4,sigma2,sigmar,ptop,jx,iy,kz,nlev)
   call humid2(t4,q4,ps4,ptop,sigma2,jx,iy,kz)
@@ -283,7 +283,7 @@ module mod_ecwcp
 
   call getmem3d(b3,1,jx,1,iy,1,nlev*3,'mod_ecwcp:b3')
   call getmem3d(d3,1,jx,1,iy,1,nlev*2,'mod_ecwcp:d3')
-  
+
 !     Set up pointers
 
   u3 => d3(:,:,1:nlev)

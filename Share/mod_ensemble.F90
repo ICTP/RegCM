@@ -28,7 +28,7 @@ module mod_ensemble
 !
 !------------------------------------------------------------------------------
 !
-! Routines to implement the ensembling method of 
+! Routines to implement the ensembling method of
 ! O'Brien, Sloan, and Snyder (2010), Climate Dynamics
 !    (DOI: 10.1007/s00382-010-0900-5)
 !
@@ -54,7 +54,7 @@ module mod_ensemble
 !
 ! dVariable3D  -  A 3D floating point array
 !
-! dFrac        -  Maximum fraction by which to vary any value in dVariable3D  
+! dFrac        -  Maximum fraction by which to vary any value in dVariable3D
 !
   subroutine randify3D(dVariable3D,dFrac,imax,jmax,kmax)
     implicit none
@@ -97,7 +97,7 @@ module mod_ensemble
 
     ! Figure out how much to tweak the variable by (at most)
 
-    dChange3D = dVariable3D*dFrac  
+    dChange3D = dVariable3D*dFrac
 
     ! Generate a random number within +/- this range
 
@@ -116,7 +116,7 @@ module mod_ensemble
 !   [-dFrac*dVariable2D(i,j,k) , +dFrac*dVariable2D(i,j,k))
 !
 ! dVariable2D  -  A 2D floating point array
-! dFrac        -  Maximum fraction by which to vary any value in dVariable2D  
+! dFrac        -  Maximum fraction by which to vary any value in dVariable2D
 !
   subroutine randify2D(dVariable2D,dFrac,imax,jmax)
     implicit none
@@ -159,7 +159,7 @@ module mod_ensemble
 
     ! Figure out how much to tweak the variable by (at most)
 
-    dChange2D = dVariable2D*dFrac  
+    dChange2D = dVariable2D*dFrac
 
     ! Generate a random number within +/- this range
 

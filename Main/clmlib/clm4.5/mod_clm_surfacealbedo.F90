@@ -990,7 +990,7 @@ module mod_clm_surfacealbedo
     integer(ik4) , dimension(ubc-lbc+1) , intent(in) :: filter_nourbanc
     ! cos solar zenith angle next time step (column-level)
     real(rk8) , dimension(lbc:ubc) , intent(in) :: coszen
-    
+
     ! landunit of corresponding column
     integer(ik4) , pointer , dimension(:) :: clandunit
     ! landunit type

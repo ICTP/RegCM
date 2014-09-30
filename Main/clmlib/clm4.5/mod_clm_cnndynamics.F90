@@ -176,7 +176,7 @@ module mod_clm_cnndynamics
     ! Assign local pointers to derived type arrays (in)
     h2osoi_liq  => clm3%g%l%c%cws%h2osoi_liq
     qflx_drain  => clm3%g%l%c%cwf%qflx_drain
-    !!! awaiting_new_frozen_hydrolgy qflx_drain_perched 
+    !!! awaiting_new_frozen_hydrolgy qflx_drain_perched
     !!!!                      => clm3%g%l%c%cwf%qflx_drain_perched
     qflx_surf => clm3%g%l%c%cwf%qflx_surf
     sminn_vr => clm3%g%l%c%cns%sminn_vr
@@ -230,7 +230,7 @@ module mod_clm_cnndynamics
     !!! awaiting_new_frozen_hydrolgy ! Loop through columns
     !!! awaiting_new_frozen_hydrolgy do fc = 1,num_soilc
     !!! awaiting_new_frozen_hydrolgy c = filter_soilc(fc)
-    !!! awaiting_new_frozen_hydrolgy drain_tot(c) = 
+    !!! awaiting_new_frozen_hydrolgy drain_tot(c) =
     !!!                  qflx_drain(c) + qflx_drain_perched(c)
     !!! awaiting_new_frozen_hydrolgy end do
     ! Loop through columns

@@ -69,7 +69,7 @@ program int_dur
           end if
         end if
       end if
-    end if 
+    end if
   end if
   istatus = nf90_inq_dimid(ncid,'iy',iydimid)
   if ( istatus /= nf90_noerr ) then
@@ -87,7 +87,7 @@ program int_dur
           end if
         end if
       end if
-    end if 
+    end if
   end if
 
   istatus = nf90_inquire_dimension(ncid,ixdimid,name=dname,len=nx)
@@ -295,7 +295,7 @@ program int_dur
   end if
 
   ! Calculate how many years we have to proces
-  
+
   istart(1) = 1
   icount(1) = 1
   istatus = nf90_get_var(ncid,idtime,xtime,istart(1:1),icount(1:1))
@@ -314,7 +314,7 @@ program int_dur
   end if
   idate2 = timeval2date(xtime(1), time_unit, time_calendar)
   call split_idate(idate2,year2,month2,day2,hour2)
- 
+
   nyear = year2 - year1 + 1
   write(6,*) 'I have a total of ',nyear,' years in input file.'
   select case (idate1%calendar)
@@ -398,7 +398,7 @@ program int_dur
   allocate(meanpre(nx,ny))
   allocate(duration(nx,ny))
   allocate(preslice(nx,ny,maxdpy))
- 
+
   ! Check first date is Jan 01
   dstart = 1
   if ( month1 /= 1 .and. day1 /= 1 ) then

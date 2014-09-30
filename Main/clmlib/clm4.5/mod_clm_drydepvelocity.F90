@@ -191,7 +191,7 @@ Module mod_clm_drydepvelocity
     real(rk8) :: k_pan (11) = &
             (/ 0.000D0, 0.010D0, 0.005D0, 0.004D0, 0.003D0, &
                0.005D0, 0.000D0, 0.000D0, 0.000D0, 0.075D0, 0.002D0 /)
-    
+
     if ( n_drydep == 0 .or. drydep_method /= DD_XLND ) return
 
     ! local pointers to original implicit out arrays

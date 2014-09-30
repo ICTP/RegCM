@@ -47,18 +47,18 @@ module mod_param_clm
 !
   data (glev_st(k),k=1,nsoi)/0.0175 , 0.0451 , 0.0906 , 0.1656 ,    &
         0.2892 , 0.4930 , 0.8290 , 1.3829 , 2.2962 , 3.4332/
- 
+
 !     ** Landmask information in each file
 !     ** vnam_lm = name of landmask variable
   data vnam_lm/'LANDMASK'/
- 
+
 !     ***** INFORMATION ON EACH CLM3 VARIABLE
- 
+
 !     ** Plant functional types
   data vnam(ipft) , vmin(ipft)/'PCT_PFT' , -99.0/
   data infil(ipft)/'/CLM/mksrf_pft.nc'/
   data nlev(ipft) , ntim(ipft)/npft , 1/
- 
+
 !     ** Vegetation parameters (LAI, SAI, etc)
   data vnam(ilai) , vmin(ilai)/'MONTHLY_LAI' , -99.0/
   data vnam(isai) , vmin(isai)/'MONTHLY_SAI' , -99.0/
@@ -72,7 +72,7 @@ module mod_param_clm
   data nlev(isai) , ntim(isai)/ npft , 12/
   data nlev(itop) , ntim(itop)/ npft , 12/
   data nlev(ibot) , ntim(ibot)/ npft , 12/
- 
+
 !     ** Land water (lake and wetland)
 !     data vnam(ilak), vmin(ilak)  / 'PCT_LAKE', -99.0 /
 !     data vnam(iwtl), vmin(iwtl)  / 'PCT_WETLAND', -99.0 /
@@ -86,17 +86,17 @@ module mod_param_clm
   data infil(iwtl)/'/CLM/mksrf_lanwat.nc'/
   data nlev(ilak) , ntim(ilak)/ 1 , 1/
   data nlev(iwtl) , ntim(iwtl)/ 1 , 1/
- 
+
 !     ** Glacier
   data vnam(iglc) , vmin(iglc)/'PCT_GLACIER' , -99.0/
   data infil(iglc)/'/CLM/mksrf_glacier.nc'/
   data nlev(iglc) , ntim(iglc)/ 1 , 1/
- 
+
 !     ** Urban
   data vnam(iurb) , vmin(iurb)/'PCT_URBAN' , -99.0/
   data infil(iurb)/'/CLM/mksrf_urban.nc'/
   data nlev(iurb) , ntim(iurb)/ 1 , 1/
- 
+
 !     ** Soil texture
   data vnam_st/'MAPUNITS'/
   data vnam(isnd) , vmin(isnd)/'PCT_SAND' , -99.0/
@@ -105,7 +105,7 @@ module mod_param_clm
   data infil(icly)/'/CLM/mksrf_soitex.10level.nc'/
   data nlev(isnd) , ntim(isnd)/ 10 , 6998/
   data nlev(icly) , ntim(icly)/ 10 , 6998/
- 
+
 !     ** Soil color
 !     data vnam(icol), vmin(icol)  / 'SOIL_COLOR', 0./
 !     data infil(icol) / '/CLM/mksrf_soicol_clm2.nc' /
@@ -113,7 +113,7 @@ module mod_param_clm
   data vnam(icol) , vmin(icol)/'SOIL_COLOR' , 0.0/
   data infil(icol)/'/CLM/mksrf_soicol_clm2.nc'/
   data nlev(icol) , ntim(icol)/ 1 , 1/
- 
+
 !     ** Orography
   data vnam(ioro) , vmin(ioro)/'LANDFRAC' , -99./
   data infil(ioro)/'/CLM/mksrf_navyoro_20min.nc'/
@@ -121,17 +121,17 @@ module mod_param_clm
 !     data vnam(ioro), vmin(ioro)  / 'lufrac', -99. /
 !     data infil(ioro) / '/CLM/mksrf_navyoro_20min.nc' /
 !     data nlev(ioro),ntim(ioro) / 20,       1 /
- 
+
 !     ***** ADDITION ISOPRENE *****
   data vnam(iiso) , vmin(iiso)/'ISOP' , -99./
   data infil(iiso)/'CLM/mksrf_iso.nc'/
   data nlev(iiso) , ntim(iiso)/ 1 , 1/
- 
+
 !     ***** ADDITION B-PINENE *****
   data vnam(ibpin) , vmin(ibpin)/'BPINE' , -99./
   data infil(ibpin)/'CLM/mksrf_pinb.nc'/
   data nlev(ibpin) , ntim(ibpin)/ 1 , 1/
- 
+
 !     ***** ADDITION A-PINENE *****
   data vnam(iapin) , vmin(iapin)/'APIN' , -99./
   data infil(iapin)/'CLM/mksrf_pina.nc'/
@@ -141,12 +141,12 @@ module mod_param_clm
   data vnam(ilimo) , vmin(ilimo)/'LIMO' , -99./
   data infil(ilimo)/'CLM/mksrf_limo.nc'/
   data nlev(ilimo) , ntim(ilimo)/ 1 , 1/
- 
+
 !     ***** ADDITION METHYLBUTENOL *****
   data vnam(imbo) , vmin(imbo)/'MBO' , -99./
   data infil(imbo)/'CLM/mksrf_mbo.nc'/
   data nlev(imbo) , ntim(imbo)/ 1 , 1/
- 
+
 !     **** ADDITION Maximum Fractional Saturated Area ***
   data vnam(ifma) , vmin(ifma)/'FMAX' , -99.0/
   data infil(ifma)/'/CLM/mksrf_fmax.nc'/
@@ -156,7 +156,7 @@ module mod_param_clm
 
   subroutine param(nx,ny,kz,xlat,xlon,varmin,varmax,xlat1d,xlon1d,  &
                    xlonmin,xlonmax,xlatmin,xlatmax,iadim,ndim)
- 
+
   implicit none
 !
   real(rk4) :: xlatmax , xlatmin , xlonmax , xlonmin
@@ -191,7 +191,7 @@ module mod_param_clm
   xlonmax = maxval(xlon)
   xlatmin = minval(xlat)
   xlatmax = maxval(xlat)
- 
+
   end subroutine param
 
   subroutine comp(fields,bvoc)
@@ -203,7 +203,7 @@ module mod_param_clm
   intent (out) fields
 !
   integer(ik4) :: numcompounds
- 
+
   if ( bvoc ) then
  50     continue
     write(stdout,*) ' '
@@ -222,7 +222,7 @@ module mod_param_clm
   else
     fields = 14
   end if
- 
+
   write(stdout,*) 'producing ' , fields , ' files'
   end subroutine comp
 

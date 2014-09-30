@@ -27,26 +27,26 @@ module mod_ch_param
 
 
 
-!Mozart indcies 
+!Mozart indcies
  INTEGER(ik4), PARAMETER :: mz_NO      = 1
- INTEGER(ik4), PARAMETER :: mz_NO2     = 2 
+ INTEGER(ik4), PARAMETER :: mz_NO2     = 2
  INTEGER(ik4), PARAMETER :: mz_N2O5    = 3
  INTEGER(ik4), PARAMETER :: mz_HNO3    = 4
  INTEGER(ik4), PARAMETER :: mz_HO2NO2  = 5
- INTEGER(ik4), PARAMETER :: mz_O3      = 6 
+ INTEGER(ik4), PARAMETER :: mz_O3      = 6
  INTEGER(ik4), PARAMETER :: mz_H2O2    = 7
  INTEGER(ik4), PARAMETER :: mz_SO2     = 8
  INTEGER(ik4), PARAMETER :: mz_SO4     = 9
- INTEGER(ik4), PARAMETER :: mz_CH4     = 10 
- INTEGER(ik4), PARAMETER :: mz_CH2O    = 11 
+ INTEGER(ik4), PARAMETER :: mz_CH4     = 10
+ INTEGER(ik4), PARAMETER :: mz_CH2O    = 11
  INTEGER(ik4), PARAMETER :: mz_CH3OH   = 12
  INTEGER(ik4), PARAMETER :: mz_PAN     = 13
- INTEGER(ik4), PARAMETER :: mz_C2H6    = 14 
+ INTEGER(ik4), PARAMETER :: mz_C2H6    = 14
  INTEGER(ik4), PARAMETER :: mz_C3H8    = 15
  INTEGER(ik4), PARAMETER :: mz_BIGALK  = 16
  INTEGER(ik4), PARAMETER :: mz_C2H4    = 17
  INTEGER(ik4), PARAMETER :: mz_C3H6    = 18
- INTEGER(ik4), PARAMETER :: mz_BIGENE  = 19  
+ INTEGER(ik4), PARAMETER :: mz_BIGENE  = 19
  INTEGER(ik4), PARAMETER :: mz_TOLUENE = 20
  INTEGER(ik4), PARAMETER :: mz_ISOP    = 21
  INTEGER(ik4), PARAMETER :: mz_CH3CHO  = 22
@@ -56,7 +56,7 @@ module mod_ch_param
  INTEGER(ik4), PARAMETER :: mz_C2H5OOH = 26
  INTEGER(ik4), PARAMETER :: mz_CH3COCH3= 27
  INTEGER(ik4), PARAMETER :: mz_HYAC    = 28
- INTEGER(ik4), PARAMETER :: mz_CH3COCHO =29 
+ INTEGER(ik4), PARAMETER :: mz_CH3COCHO =29
  INTEGER(ik4), PARAMETER :: mz_ONIT    = 30
  INTEGER(ik4), PARAMETER :: mz_MEK     = 31
  INTEGER(ik4), PARAMETER :: mz_MVK     = 32
@@ -65,12 +65,12 @@ module mod_ch_param
  INTEGER(ik4), PARAMETER :: mz_BIGALD  = 35
  INTEGER(ik4), PARAMETER :: mz_ISOPNO3 = 36
  INTEGER(ik4), PARAMETER :: mz_ONITR   = 37
- INTEGER(ik4), PARAMETER :: mz_CRESOL  = 38 
+ INTEGER(ik4), PARAMETER :: mz_CRESOL  = 38
  INTEGER(ik4), PARAMETER :: mz_CO      = 39
- INTEGER(ik4), PARAMETER :: mz_DMS     = 40 
+ INTEGER(ik4), PARAMETER :: mz_DMS     = 40
 
 
-!CBMZ indcies 
+!CBMZ indcies
  INTEGER(ik4), PARAMETER :: cb_O3       = 1
  INTEGER(ik4), PARAMETER :: cb_NO       = 2
  INTEGER(ik4), PARAMETER :: cb_NO2      = 3
@@ -82,7 +82,7 @@ module mod_ch_param
  INTEGER(ik4), PARAMETER :: cb_CO       = 9
  INTEGER(ik4), PARAMETER :: cb_SO2      = 10
  INTEGER(ik4), PARAMETER :: cb_H2SO4    = 11
- INTEGER(ik4), PARAMETER :: cb_DMS      = 12 
+ INTEGER(ik4), PARAMETER :: cb_DMS      = 12
  INTEGER(ik4), PARAMETER :: cb_PAR      = 13
  INTEGER(ik4), PARAMETER :: cb_C2H6     = 14
  INTEGER(ik4), PARAMETER :: cb_ETH      = 15
@@ -175,12 +175,12 @@ module mod_ch_param
   real(rk8) , parameter :: w_onit    = 119.0D0
 
   ! Organic Acids
-  real(rk8), parameter  :: w_hcooh     = 46.0D0   !Formic acid 
+  real(rk8), parameter  :: w_hcooh     = 46.0D0   !Formic acid
   real(rk8), parameter  :: w_ch3cooh   = 60.0D0   !Acetic acid
   real(rk8),  parameter :: w_rcooh   = 59.1D0
 
   ! Alcohol
-  real(rk8), parameter  :: w_moh         = 32.0D0 !Methanol 
+  real(rk8), parameter  :: w_moh         = 32.0D0 !Methanol
   real(rk8), parameter  :: w_ch3oh       = 32.0D0 !Methanol
   real(rk8), parameter  :: w_eoh         = 46.0D0 !Ethanol
   real(rk8), parameter  :: w_c2h5oh      = 46.0D0 !Ethanol
@@ -189,7 +189,7 @@ module mod_ch_param
   real(rk8), parameter  :: w_ch3ooh   = 48.0D0
   real(rk8), parameter  :: w_ethooh   = 74.0D0
   real(rk8) , parameter :: w_rooh    = 48.0D0
-  ! Other species  
+  ! Other species
   real(rk8) , parameter :: w_dms     = 62.0D0
   real(rk8) , parameter :: w_msa     = 96.0D0
   real(rk8) , parameter :: w_nh3     = 17.0D0
@@ -200,7 +200,7 @@ module mod_ch_param
   ! are assigned an arbitrary molecular weight , as anyway chemistry works
   ! with mol. and the conversion to mass is done for compatibility with
   ! other processes than chem.
-  ! if these species are outputed in mass, the unit will be however wrong ! 
+  ! if these species are outputed in mass, the unit will be however wrong !
 
   real(rk8) , parameter :: w_O1D = 16.D0
   real(rk8) , parameter :: w_cro =48.D0

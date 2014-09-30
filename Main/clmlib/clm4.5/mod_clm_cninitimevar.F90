@@ -673,7 +673,7 @@ module mod_clm_cninitimevar
           fpi_vr(c,j) = 0.D0
           som_adv_coef(c,j) = 0.D0
           som_diffus_coef(c,j) = 0.D0
-          ! here initialize the profiles for converting to 
+          ! here initialize the profiles for converting to
           ! vertically resolved carbon pools
           nfixation_prof(c,j) = 0.D0
           ndep_prof(c,j) = 0.D0

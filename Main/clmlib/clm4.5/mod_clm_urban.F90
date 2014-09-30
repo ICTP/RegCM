@@ -1302,7 +1302,7 @@ module mod_clm_urban
             write (stderr,*) 'clm model is stopping'
             call fatal(__FILE__,__LINE__,'clm now stopping')
           endif
-           
+
         end if
       end do
 

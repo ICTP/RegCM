@@ -95,7 +95,7 @@ module mod_humid
     integer :: i , j , k , kx , knx
     real(4) , dimension(km) :: rhs
     !
-    ! THIS ROUTINE COMPUTES SPECIFIC HUMIDITY 
+    ! THIS ROUTINE COMPUTES SPECIFIC HUMIDITY
     ! DATA ON PRESSURE LEVEL P
     !
     rpt = real(ptop)

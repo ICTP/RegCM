@@ -6,7 +6,7 @@ module mod_clm_cndvlight
   ! Calculate light competition
   ! Update fpc for establishment routine
   ! Called once per year
-  ! 
+  !
   use mod_intkinds
   use mod_realkinds
   use mod_constants , only : mathpi

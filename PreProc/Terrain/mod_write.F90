@@ -78,7 +78,7 @@ module mod_write
                 '15 => Bedrock'//char(10)//                  &
                 '16 => Other'//char(10)//                    &
                 '17 => No data'
- 
+
   contains
 !
   subroutine setup_outvars

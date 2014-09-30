@@ -17,7 +17,7 @@
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-module mod_che_start 
+module mod_che_start
 
   use mod_intkinds
   use mod_realkinds
@@ -34,7 +34,7 @@ module mod_che_start
   use mod_che_dust
   use mod_che_sox
   use mod_che_seasalt
-  use mod_mppparam  
+  use mod_mppparam
   use mod_che_hvread
   use mod_che_molwg
   use mod_che_bionit
@@ -55,7 +55,7 @@ module mod_che_start
     implicit none
     integer(ik4) :: i , j , k , itr , ibin , jbin , kbin,n
 
-    ! A : Intialise chemistry tracer indices         
+    ! A : Intialise chemistry tracer indices
 
     iso2  = 0
     iso4  = 0
@@ -71,7 +71,7 @@ module mod_che_start
     ianh4 = 0
     iano3 = 0
 
-    
+
     ino     = 0
     ino2    = 0
     in2o5   = 0
@@ -81,18 +81,18 @@ module mod_che_start
     io3     = 0
     ih2o2   = 0
     ico     = 0
-    iso2    = 0  
+    iso2    = 0
     idms    = 0
     ih2so4  = 0
     ich4    = 0
-    ic2h6   = 0 
+    ic2h6   = 0
     ipar    = 0
-    ich3oh  = 0 
+    ich3oh  = 0
     ihcho   = 0
     iald2   = 0
     iaone   = 0
     ieth    = 0
-    iolet   = 0 
+    iolet   = 0
     iolei   = 0
     itol    = 0
     ixyl    = 0
@@ -100,7 +100,7 @@ module mod_che_start
     ionit   = 0
     ipan    = 0
     ihcooh  = 0
-    ircooh  = 0 
+    ircooh  = 0
     ich3ooh = 0
     iethooh = 0
     irooh   = 0
@@ -112,9 +112,9 @@ module mod_che_start
     ipollen = 0
 
 
-    !abt *** For initializing megan tracer biogenic voc mask  
+    !abt *** For initializing megan tracer biogenic voc mask
     !    *** Mask not equal to zero when any MEGAN species is
-    !    *** defined as a tracer within regcm.in  
+    !    *** defined as a tracer within regcm.in
     !    *** If not equal to zero then that compound will be
     !    *** used as a surface emission from MEGAN and not
     !    *** from inventory (see surftnd.F for use)
@@ -134,13 +134,13 @@ module mod_che_start
       if ( chtrname(itr) == 'DMS' ) idms = itr
 !
 ! for sulfuric acid and sulfate aer, we define here the same tracer index for compatibility with gas-phase
-! chemistry options, and simple sulfate aer option. this might change with adding explicit sulfate aq chemistry.       
+! chemistry options, and simple sulfate aer option. this might change with adding explicit sulfate aq chemistry.
 ! we consider here that all h2so4 partition in aerosol phase
       if ( chtrname(itr) == 'SO4' .or. chtrname(itr) == 'H2SO4'    ) then
         ! sulfate index is added to carb vector for treatment in drydep
         ! and wetdep sulfate effective diameter and bin is taken equal to ochl
         kbin = kbin + 1
-        ih2so4 = itr 
+        ih2so4 = itr
         iso4 = itr
         icarb(kbin) = itr
         carbed(kbin) = reffochl
@@ -148,76 +148,76 @@ module mod_che_start
       end if
       if ( chtrname(itr) == 'ANO3' ) then
         kbin = kbin + 1
-        iano3 = itr 
+        iano3 = itr
         icarb(kbin) = itr
         carbed(kbin) = reffochl
         chtrsol(iano3) = solso4
       end if
       if ( chtrname(itr) == 'ANH4' ) then
         kbin = kbin + 1
-        ianh4 = itr 
+        ianh4 = itr
         icarb(kbin) = itr
         carbed(kbin) = reffochl
         chtrsol(ianh4) = solso4
       end if
-      if ( chtrname(itr) == 'BC_HL' ) then 
+      if ( chtrname(itr) == 'BC_HL' ) then
         kbin = kbin + 1
         ibchl = itr
         icarb(kbin) = itr
         carbed(kbin) = reffbchl
         chtrsol(itr) = solbchl
       end if
-      if ( chtrname(itr) == 'BC_HB' ) then 
+      if ( chtrname(itr) == 'BC_HB' ) then
         kbin = kbin + 1
         ibchb = itr
         icarb(kbin) = itr
         carbed(kbin) = reffbc
-        chtrsol(itr) = solbc   
+        chtrsol(itr) = solbc
       end if
       if ( chtrname(itr) == 'OC_HL' ) then
         kbin = kbin + 1
         iochl = itr
         icarb(kbin) = itr
-        carbed(kbin) = reffochl 
-        chtrsol(itr) = soloc             
+        carbed(kbin) = reffochl
+        chtrsol(itr) = soloc
       end if
       if ( chtrname(itr) == 'OC_HB' ) then
         kbin = kbin + 1
         iochb = itr
-        icarb(kbin) = itr 
-        carbed(kbin) = reffoc 
-        chtrsol(itr) = solochl  
+        icarb(kbin) = itr
+        carbed(kbin) = reffoc
+        chtrsol(itr) = solochl
       end if
       if ( chtrname(itr)(1:4) ==  'DUST') then
         ibin = ibin + 1
         idust(ibin) = itr
-        chtrsol(itr) = soldust(ibin)   
+        chtrsol(itr) = soldust(ibin)
       end if
       if ( chtrname(itr)(1:4) ==  'SSLT') then
         jbin = jbin + 1
         isslt(jbin) = itr
-        chtrsol(itr) = solsslt(jbin)   
+        chtrsol(itr) = solsslt(jbin)
       end if
 
-      ! gas phas species (CBMZ), 
+      ! gas phas species (CBMZ),
       ! max configuration : number of tracer = number of species
 
       do n = 1,totsp
-       if ( chtrname(itr) == cbmzspec(n))then 
+       if ( chtrname(itr) == cbmzspec(n))then
         trac%indcbmz(itr) = n  ! index of the tracer in the CBMZ list of species
-        trac%mw(itr) = mw_cbmz(n) ! correponding molecular weight 
+        trac%mw(itr) = mw_cbmz(n) ! correponding molecular weight
        end if
       end do
 
       if ( myid == italk ) then
-        if ( itr == 1 )  write(stdout,*) 'tracer', ' cbmz index',' molw' 
+        if ( itr == 1 )  write(stdout,*) 'tracer', ' cbmz index',' molw'
         write(stdout,*) chtrname(itr),  trac%indcbmz(itr),  trac%mw(itr)
       end if
 
       !!$ Define also some specific indices for practical purpose
       !  Not all the possible cbmz species have a tracer index:
-      !  however this information is also contained in trac%indcbmz table 
-      ! 
+      !  however this information is also contained in trac%indcbmz table
+      !
       !CBMZ mechanims
       if ( chtrname(itr) == 'NO'     ) ino         = itr
       if ( chtrname(itr) == 'NO2'    ) ino2        = itr
@@ -261,13 +261,13 @@ module mod_che_start
 
       if ( chtrname(itr) == 'POLLEN') ipollen   = itr
 
-! special case of biogenic options 
+! special case of biogenic options
 #if defined CLM45 || (defined VOC && defined CLM)
       !abt *** Added below to determine which MEGAN biogenic emission species
       !    *** will be passed to the gas phase mechanism
       !    *** commented out lines correspond to species not advected but
       !    *** potentially used in chemistry mechanism.
-      !    *** Uncomment to give potential to advect    
+      !    *** Uncomment to give potential to advect
       if ( igaschem == 1 ) then
         if ( chtrname(itr) == 'ISOP'  ) bvoc_trmask(itr) = 1
         if ( chtrname(itr) == 'APIN'  ) bvoc_trmask(itr) = 1
@@ -279,27 +279,27 @@ module mod_che_start
     !
     ! define now correspndance between boundary species indices and
     ! determine tracer indices corresponding to ch boundary conditions
-    ! 
-    ichbdy2trac(:) = 0 
+    !
+    ichbdy2trac(:) = 0
     itr = 1
-    if( igaschem == 1 ) then 
+    if( igaschem == 1 ) then
       do n = 1 , n_chbcvar
         do i = 1 , ntr
-          if (chbcname(n) == chtrname(i)) then 
-            ichbdy2trac(itr) = i                 
+          if (chbcname(n) == chtrname(i)) then
+            ichbdy2trac(itr) = i
             itr = itr + 1
           end if
         end do
-      end do 
+      end do
     end if
     !
-    ! look also in aerosol bc and pile them after.   
+    ! look also in aerosol bc and pile them after.
     !
-    if ( iaerosol == 1 ) then 
+    if ( iaerosol == 1 ) then
       do n = 1 , size(aeaero)
         do i = 1 , ntr
-          if ( aeaero(n) == chtrname(i) ) then 
-            ichbdy2trac(itr) = i  
+          if ( aeaero(n) == chtrname(i) ) then
+            ichbdy2trac(itr) = i
             itr = itr + 1
           end if
         end do
@@ -312,11 +312,11 @@ module mod_che_start
 !!$  FAB : work on that later
 !!$    do itr = 1,ntr
 !!$       do n = 1,n_chbcvar
-!!$       if ( chtrname(itr) == chbcname(n))then 
+!!$       if ( chtrname(itr) == chbcname(n))then
 !!$        trac%indchbdy(itr) = n  ! index of the tracer in the chbdy list
 !!$       end if
 !!$      end do
-!!$        print*,'test', itr, chtrname(itr), trac%indchbdy(itr) 
+!!$        print*,'test', itr, chtrname(itr), trac%indchbdy(itr)
 !!$     end do
     if ( idust(1) > 0 .or. ichbion==1) then
       ! activate dust initialization
@@ -328,7 +328,7 @@ module mod_che_start
 
     if ( igaschem == 1 ) then
       open(26,file='TUVGRID2', status='old', err=900)
-      ! not used in KPP 
+      ! not used in KPP
 !       open(25,file='REACTION.DAT_CBMZ', status='old', err=901)
 !       open(27,file='cbmz_chemmech.out', status='replace', err=902)
 ! 902   continue

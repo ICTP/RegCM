@@ -65,14 +65,14 @@ module mod_dynparam
 !          'ROTMER', Rotated Mercator
 !
   character(len=6) :: iproj
- 
+
 ! Control flag for tropical band option.
- 
+
   integer(ik4) :: i_band
 
 ! Control flag for creating bathymetry for lake model
 !    (Hostetler, etal. 1991, 1993a,b, 1995)
- 
+
   logical :: lakedpth = .false.
 
 ! Control flag for crating teture dataset for aerosol dust
@@ -261,7 +261,7 @@ module mod_dynparam
 
 ! Allow water pixels to have an elevation
 
-  logical :: h2ohgt 
+  logical :: h2ohgt
 !
 ! Smoothing Control flag
 !
@@ -306,7 +306,7 @@ module mod_dynparam
 
 ! Number of Soil texture categories, leave it to 17
 
-  integer(ik4) , parameter :: ntex = 17 
+  integer(ik4) , parameter :: ntex = 17
   integer(ik4) , parameter :: nats = 12 ! Should be ntex-5. Soil classes.
 
 ! Maximum number of depths in lake model

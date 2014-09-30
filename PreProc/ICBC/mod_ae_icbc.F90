@@ -187,7 +187,7 @@ module mod_ae_icbc
         end do
       end do
       call bilinx2(aev3(:,:,:,is),xinp,xlon,xlat,aet42lon,aet42lat, &
-                   aeilon,aejlat,iy,jx,aeilev) 
+                   aeilon,aejlat,iy,jx,aeilev)
     end do
 
     do i = 1 , aejlat
@@ -199,7 +199,7 @@ module mod_ae_icbc
     call bilinx2(paeid_3,xps,xlon,xlat,aet42lon,aet42lat, &
                  aeilon,aejlat,iy,jx)
 
-    do i = 1 , iy 
+    do i = 1 , iy
       do j = 1 , jx
         do l = 1 , kz
           prcm=((paeid_3(j,i)*0.1-r4pt)*sigma2(l)+r4pt)*10.

@@ -12,7 +12,7 @@
 ! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ! GNU General Public License for more details.
 !
-! You should have received a copy of the GNU General Public License 
+! You should have received a copy of the GNU General Public License
 ! along with ICTP RegCM.  If not, see <http://www.gnu.org/licenses/>.
 !
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -31,15 +31,15 @@ module mod_spline
 
   contains
 
-!    
+!
 !  Calculate 2nd derivatives of cubic spline interp function
 !  Adapted from numerical recipes by press et al
-!    
+!
     subroutine spline(x,y,yp1,ypn,y2)
       implicit none
-!    
+!
       integer(ik4) , parameter :: nmax = 100
-!    
+!
       ! Arrays of tabulated function in ascending order by x with y = f(x)
       real(rk8) , dimension(:) , intent(in)  :: x , y
       ! Specified derivatives at x(1) and x(n)
@@ -47,7 +47,7 @@ module mod_spline
       real(rk8) , intent(in) :: yp1 , ypn
       ! Output array of second derivatives
       real(rk8) , dimension(:) , intent(out) :: y2
-!    
+!
       integer(ik4) :: n , i , k
       real(rk8) :: p , qn , sig , un
       real(rk8) , dimension(nmax) :: u
@@ -126,7 +126,7 @@ module mod_spline
 !
       ! Arrays of tabulated function values in ascending xa order
       real(rk8) , dimension(:) , intent(in) :: xa , ya
-      ! Arrays of second derivatives 
+      ! Arrays of second derivatives
       real(rk8) , dimension(:) , intent(in) :: y2a
       ! Abscissa of interpolation
       real(rk8) , intent(in) :: x

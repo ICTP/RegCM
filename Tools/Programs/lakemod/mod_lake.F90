@@ -53,7 +53,7 @@
 !
       subroutine initlake(depth)
       implicit none
-! 
+!
       real(8) , intent(in) :: depth
       integer :: i, j, n
 
@@ -71,7 +71,7 @@
 !
       subroutine lake(dtlake,tl,vl,zl,ql,fsw,flw,hsen, &
                       xl,prec,evl)
-! 
+!
       implicit none
 !
       real(8) :: dtlake , evl , hsen , flw , &
@@ -94,19 +94,19 @@
 !     interpolate winds at z1 m to 2m via log wind profile
       u2 = vl*log(z2/zo)/log(zl/zo)
       if ( u2 < d_half ) u2 = d_half
- 
+
 !     ****** Check if conditions not exist for lake ice
       if ( (aveice < 1.0D-8) .and. (tprof(1) > tcutoff) ) then
- 
+
         qe = -d_one*evl*wlhv
         qh = hsen
 
 !       ******    Calculate eddy diffusivities
         call eddy(idep,dtlake,u2,xl,tprof)
- 
+
 !       ******    Lake temperature calc using sensible and latent heats
         call temp(idep,dtlake,fsw,flw,qe,qh,eta,tprof)
- 
+
 !       ******    Convective mixer
         call mixer(kmin,idep,tprof)
 
@@ -116,7 +116,7 @@
 
 !     ****** Lake ice
       else
- 
+
 !       convert mixing ratio to air vapor pressure
         ea  = ql*88.0D0/(ep2+0.378D0*ql)
         tac = tl - tzero
@@ -135,19 +135,19 @@
         hsnow  = hs*d_100       ! convert snow from m depth to mm h20
         if (aveice < dlowval) aveice = d_zero
         if (hsnow < dlowval) hsnow = d_zero
- 
+
       end if
- 
+
       tgl = tprof(1) + tzero
- 
+
       end subroutine lake
 !
 !-----------------------------------------------------------------------
 !
       subroutine eddy(ndpt,dtlake,u2,xl,tprof)
- 
+
 ! Computes density and eddy diffusivity
- 
+
       implicit none
 !
       integer , intent (in) :: ndpt
@@ -169,7 +169,7 @@
         dnsty(k) = d_1000*(d_one-1.9549D-05 * &
                       (dabs((tprof(k)+tzero)-277.0D0))**1.68D0)
       end do
-! 
+!
 ! Compute eddy diffusion profile
 !
 ! Reference:
@@ -178,7 +178,7 @@
 !  New formulation of eddy diffusion thermocline models.
 !  Appl. Math. Modelling, 1985, Vol. 9 December, pp. 441-446
 !
- 
+
 !     Decay constant of shear velocity - Ekman profile parameter
       ks = 6.6D0*dsqrt(dsin(xl*degrad))*u2**(-1.84D0)
 
@@ -190,7 +190,7 @@
 
 !     Inverse of turbulent Prandtl number
       po = d_one
- 
+
       do k = 1 , ndpt - 1
 
 !       Actual depth from surface
@@ -228,7 +228,7 @@
 
       end do
       de(ndpt) = demin
- 
+
       end subroutine eddy
 !
 !-----------------------------------------------------------------------
@@ -247,16 +247,16 @@
 !
       real(8) :: bot , dt1 , dt2 , top
       integer :: k
- 
+
 !******    solve differential equations of heat transfer
 
       tt(1:ndpt) = tprof(1:ndpt)
- 
+
       dt1 = (fsw*(d_one-dexp(-eta*surf))+(flw+qe+qh)) / &
               (surf*dnsty(1)*cpw)
       dt2 = -de(1)*(tprof(1)-tprof(2))/surf
       tt(1) = tt(1) + (dt1+dt2)*dtlake
- 
+
       do k = 2 , ndpt - 1
         top = (surf+(k-2)*dz)
         bot = (surf+(k-1)*dz)
@@ -265,12 +265,12 @@
                de(k)  *(tprof(k)  -tprof(k+1))) / dz
         tt(k) = tt(k) + (dt1+dt2)*dtlake
       end do
- 
+
       top = (surf+(ndpt-2)*dz)
       dt1 = fsw*dexp(-eta*top)/(dz*dnsty(ndpt)*cpw)
       dt2 = de(ndpt-1)*(tprof(ndpt-1)-tprof(ndpt))/dz
       tt(ndpt) = tt(ndpt) + (dt1+dt2)*dtlake
- 
+
       do k = 1 , ndpt
         tprof(k) = tt(k)
         dnsty(k) = d_1000*(d_one-1.9549D-05 * &
@@ -292,15 +292,15 @@
 !
       real(8) :: avet , avev , tav , vol
       integer :: k , k2
-! 
+!
       tt(kmin:ndpt) = tprof(kmin:ndpt)
- 
+
       do k = kmin , ndpt - 1
         avet = d_zero
         avev = d_zero
- 
+
         if ( dnsty(k) > dnsty(k+1) ) then
- 
+
           do k2 = kmin , k + 1
             if ( k2 == 1 ) then
               vol = surf
@@ -310,7 +310,7 @@
             avet = avet + tt(k2)*vol
             avev = avev + vol
           end do
- 
+
           tav = avet/avev
 
           do k2 = kmin , k + 1
@@ -319,11 +319,11 @@
                         (dabs((tav+tzero)-277.0D0))**1.68D0)
           end do
         end if
- 
+
       end do ! K loop
- 
+
       tprof(kmin:ndpt) = tt(kmin:ndpt)
- 
+
       end subroutine mixer
 !
 !-----------------------------------------------------------------------
@@ -369,20 +369,20 @@
 !
 !
 !****************************SUBROUINE ICE*****************************
-!     SIMULATES LAKE ICE                           
+!     SIMULATES LAKE ICE
 !**********************************************************************
- 
+
       if ( (tac <= d_zero) .and. (aveice > d_zero) ) &
         hs = hs + prec*d_r100  ! convert prec(mm) to depth(m)
       if ( hs < dlowval ) hs = d_zero
- 
+
       ! temperature of ice/snow surface
       t0 = tprof(1)
       ! freezing temp of water
       tf = d_zero
       ! approximate density of air (1 kg/m3)
       rho = rhoh2o*d_r1000
- 
+
       khat = (ki*hs+ks*hi)/(ki*ks)
       theta = cpd*rho*cd*u2
       psi = wlhv*rho*cd*u2*ep2/atm
@@ -413,7 +413,7 @@
                         (-lams2*hs)*(d_one-xec)/(ki*lami2))
       ! radiation absorbed at the ice surface
       fsw = fsw - qpen
- 
+
       ! test qpen sensitivity
       !qpen = qpen * 0.5
 
@@ -431,10 +431,10 @@
           f1 = f(t1)
           cycle
         end if
- 
+
         t0 = t2
         if ( t0 >= tf ) then
- 
+
           if ( hs > d_zero ) then
             ds = dtx*                                            &
                & ((-ld+0.97D0*sigm*t4(tf)+psi*(eomb(tf)-ea)+     &
@@ -455,9 +455,9 @@
             if ( di > d_zero ) di = d_zero
             hi = hi + di
           end if
- 
+
         else if ( t0 < tf ) then
- 
+
           q0 = -ld + 0.97D0*sigm*t4(t0) + psi*(eomb(t0)-ea) + &
                theta*(t0-tac) - fsw
           xlexpc = -(lams1*hs+lami1*hi)
@@ -469,10 +469,10 @@
             qpen = fsw
           end if
           di = dtx*(q0-qw-qpen)/(rhoice*li)
- 
+
           hi = hi + di
         end if
- 
+
         if ( hi <= 0.01D0 ) then
           hi = 0.01D0
           aveice = d_zero
@@ -484,7 +484,7 @@
         end if
         exit
       end do
- 
+
       contains
 
       function t4(x)
@@ -514,7 +514,7 @@
         f = (-ld+0.97D0*sigm*t4(x)+psi*(eomb(x)-ea)+theta*(x-tac)-fsw)  &
             - d_one/khat*(qpen+tf-x)
       end function f
- 
+
       end subroutine ice
 !
       end module mod_lake

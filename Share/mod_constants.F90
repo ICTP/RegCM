@@ -54,7 +54,7 @@ module mod_constants
   real(rk8) , parameter :: deg360 = 360.0D+00
 
   ! Low/Hi values
-  real(rk8) , parameter :: minqx   = 1.0D-14
+  real(rk8) , parameter :: minqx   = 1.0D-8
   real(rk8) , parameter :: dlowval = 1.0D-30
   real(rk8) , parameter :: dhival  = 1.0D+30
   real(rk4) , parameter :: slowval = 1.0E-30
@@ -194,7 +194,7 @@ module mod_constants
   real(rk8) , parameter :: stdt = 288.15D+00
   real(rk8) , parameter :: lrate = 0.00649D+00 ! K/m from MSL up to 11 km
   real(rk8) , parameter :: bltop = 0.960D+00
- 
+
   ! Atmos. surface pressure mol/cm3
   real(rk8) , parameter :: atmos = 2.247D19
   ! Conversion parameter for Henry L-atm/mol-K
@@ -209,7 +209,7 @@ module mod_constants
   ! Fixed emissivity of water
   real(rk8) , parameter :: emsw = 0.97D+00
 
-  ! Trigonometric constants. 
+  ! Trigonometric constants.
   real(rk8) , parameter :: mathpi =                                   &
                       &   3.1415926535897932384626433832795029D+00
   real(rk8) , parameter :: invpi = d_one/mathpi

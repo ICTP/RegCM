@@ -215,7 +215,7 @@ program readregcm
     stop
   end if
 
-  print *, 'Centered on (lat,lon)         : (', clat, ',', clon, ')' 
+  print *, 'Centered on (lat,lon)         : (', clat, ',', clon, ')'
 
   istatus = nf90_get_att(ncid, nf90_global, 'grid_size_in_meters', ds)
   if ( istatus /= nf90_noerr) then
@@ -262,7 +262,7 @@ program readregcm
       write (6,*) nf90_strerror(istatus)
       stop
     end if
-    
+
     print *, 'Lambert parallels are         : ', trlat
 
   else if (iproj == 'ROTMER') then
@@ -307,7 +307,7 @@ program readregcm
     end if
 
     print *, 'Sigma coordinate values       : ', sigma
-    
+
     deallocate(sigma)
 
   end if

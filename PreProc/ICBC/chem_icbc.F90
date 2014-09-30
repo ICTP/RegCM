@@ -112,7 +112,7 @@ program chem_icbc
   end select
 
   call memory_init
-!  
+!
   call init_grid(jx,iy,kz)
   call init_outoxd(chemsimtype)
 !

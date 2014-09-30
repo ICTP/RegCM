@@ -405,7 +405,7 @@ module mod_clm_cndecompcascadebgc
     ! soil water potential in each soil layer (MPa)
     real(rk8), pointer :: soilpsi(:,:)
 #ifdef LCH4
-    ! Ratio of oxygen available to that demanded by roots, 
+    ! Ratio of oxygen available to that demanded by roots,
     ! aerobes, & methanotrophs (nlevsoi)
     real(rk8), pointer :: o2stress_unsat(:,:)
     ! Ratio of oxygen available to that demanded by roots,

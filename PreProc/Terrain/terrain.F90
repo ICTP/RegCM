@@ -399,7 +399,7 @@ program terrain
         htgrid_s(j,iysg) = htgrid_s(j,iysg-1)
         lndout_s(j,1) = lndout_s(j,2)
         lndout_s(j,iysg) = lndout_s(j,iysg-1)
- 
+
         if ( ltexture ) then
           texout_s(j,1) = texout_s(j,2)
           texout_s(j,iysg) = texout_s(j,iysg-1)
@@ -414,7 +414,7 @@ program terrain
         htgrid_s(jxsg,i) = htgrid_s(jxsg-1,i)
         lndout_s(1,i) = lndout_s(2,i)
         lndout_s(jxsg,i) = lndout_s(jxsg-1,i)
- 
+
         if ( ltexture ) then
           texout_s(1,i) = texout_s(2,i)
           texout_s(jxsg,i) = texout_s(jxsg-1,i)
@@ -561,7 +561,7 @@ program terrain
 
 !     ******           preliminary heavy smoothing of boundaries
   if ( smthbdy ) call smthtr(htgrid,jx,iy)
- 
+
 !     ******           grell smoothing to eliminate 2 delx wave (6/90):
   do ism = 1 , ismthlev
     call smth121(htgrid,jx,iy)
@@ -573,7 +573,7 @@ program terrain
       htgrid(j,iy) = htgrid(j,iy-1)
       lndout(j,1) = lndout(j,2)
       lndout(j,iy) = lndout(j,iy-1)
- 
+
       if ( ltexture ) then
         texout(j,1) = texout(j,2)
         texout(j,iy) = texout(j,iy-1)
@@ -588,7 +588,7 @@ program terrain
       htgrid(jx,i) = htgrid(jx-1,i)
       lndout(1,i) = lndout(2,i)
       lndout(jx,i) = lndout(jx-1,i)
- 
+
       if ( ltexture ) then
         texout(1,i) = texout(2,i)
         texout(jx,i) = texout(jx-1,i)
@@ -599,7 +599,7 @@ program terrain
       end if
     end do
   end if
- 
+
   do i = 1 , iy
     do j = 1 , jx
       snowam(j,i) = 0.0

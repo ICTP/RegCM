@@ -228,7 +228,7 @@ module mod_rdldtr
 !
   subroutine fillbuf(copybuf,readbuf,ni,nj,i,j,isize,lwrap)
     implicit none
-    integer(ik4) , intent(in) :: ni , nj , isize 
+    integer(ik4) , intent(in) :: ni , nj , isize
     real(rk8) , dimension(isize*isize) , intent(out) :: copybuf
     real(rk8) , dimension(ni,nj) , intent(in) :: readbuf
     integer(ik4) , intent(in) :: i , j
@@ -276,10 +276,10 @@ module mod_rdldtr
   end function mpindex
 !
   recursive subroutine qsort(a)
-    implicit none 
+    implicit none
     real(rk8) , dimension(:) , intent(in out) :: a
     integer(ik4) :: np , isplit
- 
+
     np = size(a)
     if (np > 1) then
      call partition(a, isplit)
@@ -287,19 +287,19 @@ module mod_rdldtr
      call qsort(a(isplit:))
     end if
   end subroutine qsort
- 
+
   subroutine partition(a, marker)
-    implicit none 
+    implicit none
     real(rk8) , dimension(:) , intent(inout) :: a
     integer(ik4) , intent(out) :: marker
     integer(ik4) :: np , left , right
     real(rk8) :: temp , pivot
- 
+
     np = size(a)
     pivot = (a(1) + a(np))/2.0E0
     left = 0
     right = np + 1
- 
+
     do while (left < right)
       right = right - 1
       do while (a(right) > pivot)
@@ -309,7 +309,7 @@ module mod_rdldtr
       do while (a(left) < pivot)
         left = left + 1
       end do
-      if (left < right) then 
+      if (left < right) then
         temp = a(left)
         a(left) = a(right)
         a(right) = temp
