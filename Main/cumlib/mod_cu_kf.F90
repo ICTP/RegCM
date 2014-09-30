@@ -216,6 +216,7 @@ module mod_cu_kf
                 dqdt(np,k)*m2c%psb(j,i)
         c2m%qxten(j,i,kk,iqc) = c2m%qxten(j,i,kk,iqc) + &
                 dqcdt(np,k)*m2c%psb(j,i)
+        c2m%cldfrc(j,i,k) = cldfra_sh_kf(np,k) + cldfra_dp_kf(np,k)
       end do
     end do
 
@@ -231,7 +232,6 @@ module mod_cu_kf
                   dqidt(np,k)*m2c%psb(j,i)
           c2m%qxten(j,i,kk,iqs) = c2m%qxten(j,i,kk,iqs) + &
                   dqsdt(np,k)*m2c%psb(j,i)
-          c2m%cldfrc(j,i,k) = cldfra_sh_kf(np,k) + cldfra_dp_kf(np,k)
         end do
       end do
     end if
