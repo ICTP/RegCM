@@ -126,19 +126,19 @@ module mod_domain
                                       lndcat,msfx,msfd,coriol,snowam,hlake)
     implicit none
     integer(ik4) , intent(in) :: ncid
-    real(rk4) , pointer , dimension(:) , intent(out) :: sigma
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: xlat
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: xlon
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: dlat
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: dlon
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: ht
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: mask
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: lndcat
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: msfx
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: msfd
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: coriol
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: snowam
-    real(rk4) , pointer , dimension(:,:) , intent(out) , optional :: hlake
+    real(rk4) , pointer , dimension(:) , intent(inout) :: sigma
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: xlat
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: xlon
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: dlat
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: dlon
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: ht
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: mask
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: lndcat
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: msfx
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: msfd
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: coriol
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: snowam
+    real(rk4) , pointer , dimension(:,:) , intent(inout) , optional :: hlake
     logical :: has_snow = .true.
     logical :: has_dhlake = .true.
     call check_domain(ncid)

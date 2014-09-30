@@ -59,10 +59,12 @@ module mod_rad_tracer
   subroutine trcmix(n1,n2,dlat,xptrop,pmid,n2o,ch4,cfc11,cfc12)
     implicit none
     integer(ik4) , intent(in) :: n1 , n2
-    real(rk8) , pointer , dimension(:,:) :: cfc11 , cfc12 , ch4 , n2o , pmid
-    real(rk8) , pointer , dimension(:) :: dlat , xptrop
-    intent (in) pmid , dlat , xptrop
-    intent (out) cfc11 , cfc12 , ch4 , n2o
+    real(rk8) , pointer , dimension(:) , intent(in) :: dlat , xptrop
+    real(rk8) , pointer , dimension(:,:) , intent(in) :: pmid
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: cfc11
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: cfc12
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ch4
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: n2o
 !
 !   dlat   - absolute value of latitude in degrees
 !   xn2o   - pressure scale height for n2o
@@ -301,7 +303,7 @@ module mod_rad_tracer
                 pnew , pnm , s2c , tco2 , th2o , to3 , to3co2 ,     &
                 ucfc11 , ucfc12 , uch4 , uco211 , uco212 , uco213 , &
                 uco221 , uco222 , uco223 , un2o0 , un2o1 , uptype
-    intent (out) abstrc
+    intent (inout) abstrc
 !
 !-----------------------------------------------------------------------
 !
@@ -534,7 +536,7 @@ module mod_rad_tracer
                 to3 , ucfc11 , ucfc12 , uch4 , uco211 , uco212 , uco213 , &
                 uco221 , uco222 , uco223 , uinpl , un2o0 , un2o1 , up2 ,  &
                 uptype , winpl
-    intent (out) abstrc
+    intent (inout) abstrc
 !
 ! sqti    - square root of mean temp
 ! rsqti   - reciprocal of sqti
@@ -733,7 +735,7 @@ module mod_rad_tracer
     real(rk8) , pointer , dimension(:,:) :: tint , tlayr
     real(rk8) , pointer , dimension(:) :: tplnke
     intent (in) tint , tlayr , tplnke
-    intent (out) abplnk1 , abplnk2 , emplnk
+    intent (inout) abplnk1 , abplnk2 , emplnk
 !
 ! wvl   - wavelength index
 ! f1    - Planck function factor
@@ -839,7 +841,7 @@ module mod_rad_tracer
                 tco2 , th2o , to3 , ucfc11 , ucfc12 , uch4 , uco211 , &
                 uco212 , uco213 , uco221 , uco222 , uco223 , un2o0 ,  &
                 un2o1 , up2 , uptype , w
-    intent (out) emstrc
+    intent (inout) emstrc
 !
 ! sqti   - square root of mean temp
 ! ecfc1  - emissivity of cfc11 798 cm-1 band

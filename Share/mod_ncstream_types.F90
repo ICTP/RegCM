@@ -222,7 +222,7 @@ module mod_ncstream_types
     real(rk8) , dimension(maxattarr) :: theval
     integer(ik4) :: numval = 0
   end type ncattribute_real8_array
-!
+
   type ncvariable_standard
     integer(ik4) :: id = -1
     integer(ik4) :: nctype = -1
@@ -238,7 +238,7 @@ module mod_ncstream_types
     real(rk4) :: rmissval = smissval
     integer(ik4) :: imissval = -9999
     integer(ik4) :: ndims = 0
-    integer(ik4) , dimension(5) :: idims = (/-1,-1,-1,-1,-1/)
+    integer(ik4) , dimension(5) :: idims = -1
   end type ncvariable_standard
 
   type, extends(ncvariable_standard) :: ncvariable_0d

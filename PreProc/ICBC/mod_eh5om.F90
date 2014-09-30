@@ -78,7 +78,7 @@ module mod_eh5om
     character(len=4) :: namepart
     character(len=3) :: codepart
     integer(ik4) :: year , month , day , hour
-    integer(ik8) :: iehlen
+    integer :: iehlen
 
     data yr_rf/'1941' , '1942' , '1943' , '1944' , '1945' , '1946' ,  &
                '1947' , '1948' , '1949' , '1950' , '1951' , '1952' ,  &

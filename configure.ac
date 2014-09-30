@@ -282,6 +282,7 @@ AM_CONDITIONAL(COMPILER_IBM, [ test x"$FCPROG" = xxlf2003 -o \
                                     x"$FCPROG" = xbgxlf2003_r -o \
                                     x"$FCPROG" = xbgxlf2008 -o \
                                     x"$FCPROG" = xbgxlf2008_r ] )
+AM_CONDITIONAL(COMPILER_CRAY, [ test x"$FCPROG" = xftn ] )
 AM_CONDITIONAL(COMPILER_GNU, [ test x"$FCPROG" = xgfortran ] )
 AM_CONDITIONAL(COMPILER_G95, [ test x"$FCPROG" = xg95 ] )
 AM_CONDITIONAL(COMPILER_SUN, [ test x"$FCPROG" = xsunf95 ] )
@@ -338,6 +339,11 @@ fi
 if test -x "$COMPILER_SUN_TRUE"; then
   CPRDEF="WORKSHOP"
 fi
+if test -z "$COMPILER_CRAY_TRUE"; then
+  FCFLAGS=""
+  CPRDEF="GNU"
+  AC_SUBST(FCFLAGS)
+fi
 
 AC_SUBST(CPRDEF)
 
@@ -376,6 +382,11 @@ if eval "test x$DEBUG = x1"; then
 	     -traceback $FCFLAGS"
     AC_SUBST(FCFLAGS)
   fi
+  if test -z "$COMPILER_CRAY_TRUE"; then
+    FCFLAGS="-g $(FCFLAGS)"
+    AC_SUBST(FCFLAGS)
+    CPRDEF="GNU"
+  fi
 else
   if test -z "$COMPILER_G95_TRUE"; then
     FCFLAGS="-O3 $FCFLAGS"
@@ -402,6 +413,11 @@ else
   if test -z "$COMPILER_PGI_TRUE"; then
     FCFLAGS="-fastsse $FCFLAGS"
     AC_SUBST(FCFLAGS)
+  fi
+  if test -z "$COMPILER_CRAY_TRUE"; then
+    FCFLAGS="$(FCFLAGS)"
+    AC_SUBST(FCFLAGS)
+    CPRDEF="GNU"
   fi
 fi
 

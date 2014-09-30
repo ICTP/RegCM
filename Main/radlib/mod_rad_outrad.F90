@@ -187,7 +187,7 @@ module mod_rad_outrad
   subroutine copy2d(a,b)
     implicit none
     real(rk8) , pointer , intent(in) , dimension(:) :: a
-    real(rk8) , pointer , intent(out) , dimension(:,:) :: b
+    real(rk8) , pointer , intent(inout) , dimension(:,:) :: b
     integer(ik4) :: i , j , n
     if ( associated(b) ) then
       n = 1
@@ -203,7 +203,7 @@ module mod_rad_outrad
   subroutine copy2d_integrate_from3(a,b,l)
     implicit none
     real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
-    real(rk8) , pointer , intent(out) , dimension(:,:) :: b
+    real(rk8) , pointer , intent(inout) , dimension(:,:) :: b
     integer(ik4) , intent(in) :: l
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
@@ -223,14 +223,14 @@ module mod_rad_outrad
   subroutine copy3d(a,b)
     implicit none
     real(rk8) , pointer , intent(in) , dimension(:,:) :: a
-    real(rk8) , pointer , intent(out) , dimension(:,:,:) :: b
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: b
     call copy3d1(a,b,1,kz)
   end subroutine copy3d
 
   subroutine copy3d1(a,b,k1,k2)
     implicit none
     real(rk8) , pointer , intent(in) , dimension(:,:) :: a
-    real(rk8) , pointer , intent(out) , dimension(:,:,:) :: b
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) , intent(in) :: k1 , k2
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
@@ -249,7 +249,7 @@ module mod_rad_outrad
   subroutine copy4d(a,b,l)
     implicit none
     real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
-    real(rk8) , pointer , intent(out) , dimension(:,:,:) :: b
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) , intent(in) :: l
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
@@ -268,7 +268,7 @@ module mod_rad_outrad
   subroutine copy4d1(a,b,nl)
     implicit none
     real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
-    real(rk8) , pointer , intent(out) , dimension(:,:,:,:) :: b
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: b
     integer(ik4) , intent(in) :: nl
     integer(ik4) :: i , j , l , k , n
     if ( associated(b) ) then
@@ -290,7 +290,7 @@ module mod_rad_outrad
     implicit none
     real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
     real(rk8) , pointer , intent(in) , dimension(:,:) :: c
-    real(rk8) , pointer , intent(out) , dimension(:,:,:) :: b
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) , intent(in) :: l
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
@@ -310,7 +310,7 @@ module mod_rad_outrad
     implicit none
     real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
     real(rk8) , pointer , intent(in) , dimension(:,:) :: c
-    real(rk8) , pointer , intent(out) , dimension(:,:,:) :: b
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) , intent(in) :: l
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
@@ -329,7 +329,7 @@ module mod_rad_outrad
   subroutine copy2d_add(a,b)
     implicit none
     real(rk8) , pointer , intent(in) , dimension(:) :: a
-    real(rk8) , pointer , intent(out) , dimension(:,:) :: b
+    real(rk8) , pointer , intent(inout) , dimension(:,:) :: b
     integer(ik4) :: i , j , n
     if ( associated(b) ) then
       n = 1
@@ -345,7 +345,7 @@ module mod_rad_outrad
   subroutine copy3d_add(a,b)
     implicit none
     real(rk8) , pointer , intent(in) , dimension(:,:) :: a
-    real(rk8) , pointer , intent(out) , dimension(:,:,:) :: b
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then
       do k = 1 , kz
@@ -363,7 +363,7 @@ module mod_rad_outrad
   subroutine copy4d_add(a,b,l)
     implicit none
     real(rk8) , pointer , intent(in) , dimension(:,:,:) :: a
-    real(rk8) , pointer , intent(out) , dimension(:,:,:) :: b
+    real(rk8) , pointer , intent(inout) , dimension(:,:,:) :: b
     integer(ik4) , intent(in) :: l
     integer(ik4) :: i , j , k , n
     if ( associated(b) ) then

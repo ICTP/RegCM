@@ -377,7 +377,7 @@ module mod_sst_gnmnc
     implicit none
     type(rcm_time_and_date) , intent(in) :: idate
     integer(ik4) , intent(inout) :: it
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: vv
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: vv
     integer(ik4) :: year , month , day , hour , y1 , y2
     logical :: lswitch
     icount(1) = ilon

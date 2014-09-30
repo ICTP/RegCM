@@ -815,8 +815,7 @@ module mod_ncstream
           stream%l_hasspectral = .true.
         case default
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-          call die('nc_stream', &
-            'Cannot add dimension '//trim(the_name)//' to file '// &
+          call die('nc_stream', 'Cannot add dimension to file '// &
             trim(stream%filename)//': Undefined in add_dimension', 1)
       end select
       ncstat = nf90_def_dim(stream%id,the_name,num,stream%id_dims(pdim))
@@ -884,9 +883,7 @@ module mod_ncstream
             att%aname,att%theval(1:att%numval))
         class default
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-          call die('nc_stream', &
-            'Cannot add attribute '//trim(att%aname)// &
-            ' in file '//trim(stream%filename), 1)
+          call die('nc_stream', 'Cannot add attribute of unknow type',1)
       end select
       if ( ncstat /= nf90_noerr ) then
         write(stderr,*) nf90_strerror(ncstat)
@@ -1038,9 +1035,7 @@ module mod_ncstream
           var%nctype = nf90_int
         class default
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-          call die('nc_stream', &
-                   'Cannot add variable '//trim(var%vname)// &
-                   ' in file '//trim(stream%filename), 1)
+          call die('nc_stream', 'Cannot add variable of unknown type',1)
       end select
       select type(var)
         class is (ncvariable_0d)
@@ -1124,15 +1119,13 @@ module mod_ncstream
           var%totsize = product(var%nval)
         class default
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-          call die('nc_stream', &
-                   'Cannot add variable '//trim(var%vname)// &
-                   ' in file '//trim(stream%filename), 1)
+          call die('nc_stream', 'Cannot add variable of unknown type',1)
       end select
       select type(var)
         class is (ncvariable1d_real)
           buffer%lhas1dreal = .true.
           buffer%max1d_real(1) = max(buffer%max1d_real(1),len_dim(1))
-        class is (ncvariable2d_real)
+        class is (ncvariable2d_real) 
           buffer%lhas2dreal = .true.
           if ( stream%l_parallel .and. var%lgridded ) then
             buffer%max2d_real(1) = max(buffer%max2d_real(1),stream%global_nj)
@@ -1856,9 +1849,7 @@ module mod_ncstream
             buffer%intbuff,stream%istart(1:nd),stream%icount(1:nd))
         class default
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-          call die('nc_stream', &
-            'Cannot write variable '//trim(var%vname)// &
-            ' in file '//trim(stream%filename), 1)
+          call die('nc_stream', 'Cannot write variable of unknown type',1)
       end select
       if ( ncstat /= nf90_noerr ) then
         write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
@@ -2735,9 +2726,7 @@ module mod_ncstream
           end if
         class default
           write(stderr,*) 'In File ',__FILE__,' at line: ',__LINE__
-          call die('nc_stream', &
-            'Cannot read variable '//trim(var%vname)// &
-            ' in file '//trim(stream%filename), 1)
+          call die('nc_stream', 'Cannot read variable of unknown type',1)
       end select
       if ( ncstat /= nf90_noerr ) then
         write(stderr,*) nf90_strerror(ncstat)

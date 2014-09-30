@@ -1149,7 +1149,7 @@ module mod_cu_grell
        integer(ik4) , intent (in) :: ke
        real(rk8) , intent(in) , pointer , dimension(:,:,:) :: array
        integer(ik4) , intent(in) , pointer , dimension(:,:) :: ks
-       integer(ik4) , intent(out) , pointer , dimension(:,:) :: kt
+       integer(ik4) , intent(inout) , pointer , dimension(:,:) :: kt
        integer(ik4) :: i , j , k
        real(rk8) :: x
 #ifdef DEBUG
@@ -1178,7 +1178,7 @@ module mod_cu_grell
       implicit none
       integer(ik4) , intent (in) :: ks , ke
       real(rk8) , intent(in) , pointer , dimension(:,:,:) :: array
-      integer(ik4) , intent(out) , pointer , dimension(:,:) :: imax
+      integer(ik4) , intent(inout) , pointer , dimension(:,:) :: imax
       integer(ik4) :: i , j , k
       real(rk8) :: x , xar
 #ifdef DEBUG
@@ -1209,7 +1209,7 @@ module mod_cu_grell
       integer(ik4) , intent (in) :: ks
       real(rk8) , intent(in) , pointer , dimension(:,:,:) :: array
       integer(ik4) , intent(in) , pointer , dimension(:,:) :: ke
-      integer(ik4) , intent(out) , pointer , dimension(:,:) :: imax
+      integer(ik4) , intent(inout) , pointer , dimension(:,:) :: imax
       integer(ik4) :: i , j , k
       real(rk8) :: x , xar
 #ifdef DEBUG

@@ -61,18 +61,18 @@ module mod_ncio
   subroutine read_domain_info(ht,lnd,mask,xlat,xlon,dlat,dlon, &
                               msfx,msfd,coriol,snowam,hlake)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: ht
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: lnd
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: mask
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: xlat
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: xlon
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: dlat
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: dlon
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: msfx
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: msfd
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: coriol
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: snowam
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: hlake
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ht
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: lnd
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: mask
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: xlat
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: xlon
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: dlat
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: dlon
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: msfx
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: msfd
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: coriol
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: snowam
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: hlake
     character(len=256) :: dname
     integer(ik4) :: idmin
     integer(ik4) , dimension(2) :: istart , icount
@@ -211,12 +211,12 @@ module mod_ncio
 
   subroutine read_subdomain_info(ht,lnd,mask,xlat,xlon,hlake)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ht
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: lnd
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: mask
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: xlat
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: xlon
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: hlake
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ht
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: lnd
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mask
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: xlat
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: xlon
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: hlake
     character(len=256) :: dname
     integer(ik4) :: idmin
     integer(ik4) , dimension(2) :: istart , icount
@@ -479,12 +479,12 @@ module mod_ncio
 
   subroutine read_icbc(ps,ts,u,v,t,qv)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: ps
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: ts
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: u
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: v
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: t
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: qv
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ps
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ts
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: u
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: v
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: t
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: qv
     integer(ik4) , dimension(4) :: istart , icount
     integer(ik4) :: i , j , k
     real(rk8) :: told , pold , rhold , hl , satvp , tnew , pnew
@@ -687,7 +687,7 @@ module mod_ncio
 
   subroutine read_som(qflx)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: qflx
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: qflx
     integer(ik4) , dimension(4) :: istart , icount
     character(len=3) , dimension(12) :: cmon = &
       (/'jan','feb','mar','apr','may','jun', &

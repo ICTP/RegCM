@@ -18,19 +18,18 @@
 !::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 module mod_bats_co2
-!
   use mod_intkinds
   use mod_realkinds
   use mod_dynparam
   use mod_bats_leaftemp
   use mod_bats_internal
-!
+
   implicit none
 
   private
-!
+
   public :: co2
-!
+
   contains
 !
 !=======================================================================
@@ -64,11 +63,11 @@ module mod_bats_co2
 !
   subroutine co2
     implicit none
-!
     integer(ik4) :: i
     real(rk8) :: rap , resps , rsp , rt , rcar , cari , apbm
     real(rk8) , parameter :: rmp = 800.0D0
-!
+
+    apbm = d_zero
     do i = ilndbeg , ilndend
       if ( sigf(i) > 0.001D0 ) then
         rsp = lftrs(i)*1.7D0

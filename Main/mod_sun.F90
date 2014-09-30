@@ -294,7 +294,7 @@ module mod_sun
   !
   subroutine zenitm(coszrs)
     implicit none
-    real(rk8) , pointer , intent (out), dimension(:,:) :: coszrs
+    real(rk8) , pointer , intent (inout), dimension(:,:) :: coszrs
     integer(ik4) :: i , j
     real(rk8) :: xxlat , xxlon
 #ifdef DEBUG

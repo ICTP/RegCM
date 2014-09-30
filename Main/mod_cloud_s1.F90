@@ -2317,7 +2317,7 @@ module mod_cloud_s1
     !
     implicit none
     real(rk8) , pointer , intent(inout) , dimension(:,:,:,:) :: aam
-    integer(ik4) , pointer , intent(out) , dimension(:,:,:) :: indx
+    integer(ik4) , pointer , intent(inout) , dimension(:,:,:) :: indx
     real(rk8) :: aamax , dum , xsum
     integer(ik4) :: i , j , k , imax , n , m
 #ifdef DEBUG

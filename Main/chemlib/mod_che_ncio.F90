@@ -141,7 +141,7 @@ module mod_che_ncio
     subroutine read_texture(nats,texture)
       implicit none
       integer(ik4) , intent(in) :: nats
-      real(rk8) , pointer , dimension(:,:,:) , intent(out) :: texture
+      real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: texture
       integer(ik4) :: idmin
       integer(ik4) , dimension(3) :: istart , icount
       character(len=256) :: dname
@@ -187,7 +187,9 @@ module mod_che_ncio
    subroutine read_bionem(nfert,nmanure,soilph)
       implicit none
 
-      real(rk8) , pointer , dimension(:,:) , intent(out) ::nfert,nmanure,soilph
+      real(rk8) , pointer , dimension(:,:) , intent(inout) :: nfert
+      real(rk8) , pointer , dimension(:,:) , intent(inout) :: nmanure
+      real(rk8) , pointer , dimension(:,:) , intent(inout) :: soilph
       integer(ik4) :: idmin
       integer(ik4) , dimension(2) :: istart , icount
       character(len=256) :: dname
@@ -257,7 +259,7 @@ module mod_che_ncio
       implicit none
       integer(ik4) , intent(in) :: lyear , lmonth , lday , lhour
       integer(ik4) , intent(out) :: ifreq
-      real(rk8) , pointer , dimension(:,:,:) , intent(out) :: echemsrc
+      real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: echemsrc
       character(256) :: aername
       integer(ik4) :: n,ncid , itvar, idimid, chmnrec,sdim
       character(64) ::chemi_timeunits , chemi_timecal
@@ -494,7 +496,7 @@ module mod_che_ncio
 
       integer(ik4) , intent(in) :: ncid,sdim
       integer(ik4) , dimension(4) , intent(in) :: istart , icount
-      real(rk8) , pointer , dimension(:,:,:) , intent(out) :: echemsrc
+      real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: echemsrc
       logical , intent(in) :: lh
       character(len=*) , intent(in) :: cna
       character(len=*) , intent(in) , optional :: cnb

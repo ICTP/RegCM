@@ -55,7 +55,7 @@ module mod_sst_fvgcm
     real(rk8) , dimension(ilon,jlat) :: sst
     type(rcm_time_and_date) :: idate , idateo , idatef
     integer(ik4) :: year , month , day , hour
-    integer(ik8) :: ilenrec
+    integer :: ilenrec
     logical :: there
     character(len=256) :: fname
 

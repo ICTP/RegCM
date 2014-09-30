@@ -75,7 +75,7 @@ module mod_sst_eh5om
     type(rcm_time_interval) :: tdiff , itbc
     integer(ik4) :: ieh5orec , nsteps
     integer(ik4) :: i , it , j
-    integer(ik8) :: ilenrec
+    integer :: ilenrec
     real(rk8) , dimension(jlat) :: lati
     real(rk8) , dimension(ilon) :: loni
     character(len=256) :: fname

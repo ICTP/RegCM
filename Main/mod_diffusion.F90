@@ -67,7 +67,7 @@ module mod_diffusion
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: xkc
     real(rk8) , pointer , dimension(:,:) , intent(in) :: press
     real(rk8) , pointer , dimension(:,:) , intent(in) :: mapf
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ften
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ften
 !
     integer(ik4) :: i , j , k
 #ifdef DEBUG
@@ -189,7 +189,7 @@ module mod_diffusion
     integer(ik4) , intent(in) :: kmax
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: xkc
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: f
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ften
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ften
     real(rk8) , pointer , dimension(:,:) , intent(in) :: press
 !
     integer(ik4) :: i , j , k
@@ -274,7 +274,7 @@ module mod_diffusion
     integer(ik4) , optional , intent(in) :: n4
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: xkc
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: f
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: ften
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ften
     real(rk8) , pointer , dimension(:,:) , intent(in) :: press
 !
     integer(ik4) :: i , j , k , n , n1 , n2

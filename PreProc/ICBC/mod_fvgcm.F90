@@ -78,7 +78,7 @@ module mod_fvgcm
       logical :: there
       character(len=4) , dimension(30) :: yr_a2 , yr_rf
       integer(ik4) :: year , month , day , hour
-      integer(ik8) :: ilenrec
+      integer :: ilenrec
 
       data fn_rf/'FV_RF'/ , fn_a2/'FV_A2'/
       data pn_rf/'PS_RF'/ , pn_a2/'PS_A2'/

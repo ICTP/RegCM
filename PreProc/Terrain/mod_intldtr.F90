@@ -461,7 +461,7 @@ module mod_intldtr
   subroutine filter1plakes(jx,iy,omt)
     implicit none
     integer(ik4) , intent(in) :: jx , iy
-    real(rk8) , intent(out) , dimension(jx,iy) :: omt
+    real(rk8) , intent(inout) , dimension(jx,iy) :: omt
     integer(ik4) , dimension(maxbins) :: cnt
     integer(ik4) , dimension(9) :: around
     integer(ik4) , parameter :: ilake = 14

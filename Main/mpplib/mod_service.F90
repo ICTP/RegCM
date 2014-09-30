@@ -434,7 +434,8 @@ module mod_service
       call flush(lunit)
 #endif
     end subroutine flusha
-
+#else
+    character(len=4) , public :: unised_module
 #endif
 
 end module  mod_service

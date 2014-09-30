@@ -719,7 +719,6 @@ module mod_mppparam
     logical , dimension(2) :: dim_period
     integer(ik4) , dimension(2) :: isearch
     integer(ik4) :: imaxcpus , imax1 , imax2
-    real(rk8) :: dimfac
     data dim_period /.false.,.false./
 
     ma%bandflag    = (i_band == 1)
@@ -844,7 +843,6 @@ module mod_mppparam
             imax2 = ((iy/3)/2)*2
             write(stderr,*) 'Suggested maximum number of CPUS jx: ', imax1
             write(stderr,*) 'Suggested maximum number of CPUS iy: ', imax2
-            write(stderr,*) 'Suggested ratio per dimension : ', dimfac
             write(stderr,*) 'Closest number : ' , imaxcpus
             call fatal(__FILE__,__LINE__,'CPU/WORK mismatch')
           end if
@@ -1158,7 +1156,7 @@ module mod_mppparam
   subroutine real8_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: ml ! model local
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( ccid == ccio ) then
@@ -1213,7 +1211,7 @@ module mod_mppparam
   subroutine real8_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
     if ( ccid == ccio ) then
@@ -1276,7 +1274,7 @@ module mod_mppparam
   subroutine real8_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , &
                     ksize , nsize , lsize , icpu
@@ -1348,7 +1346,7 @@ module mod_mppparam
   subroutine real4_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:) , intent(out) :: ml ! model local
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( ccid == ccio ) then
@@ -1403,7 +1401,7 @@ module mod_mppparam
   subroutine real4_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
     if ( ccid == ccio ) then
@@ -1466,7 +1464,7 @@ module mod_mppparam
   subroutine real4_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: ib , i , j , k , n , isize , &
                     jsize , ksize , nsize , lsize , icpu
@@ -1538,7 +1536,7 @@ module mod_mppparam
   subroutine integer_2d_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: mg  ! model global
-    integer(ik4) , pointer , dimension(:,:) , intent(out) :: ml ! model local
+    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( ccid == ccio ) then
@@ -1593,7 +1591,7 @@ module mod_mppparam
   subroutine integer_3d_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
     if ( ccid == ccio ) then
@@ -1656,7 +1654,7 @@ module mod_mppparam
   subroutine integer_4d_distribute(mg,ml,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model glob
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model loc
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model loc
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , &
                     ksize , nsize , lsize , icpu
@@ -1728,7 +1726,7 @@ module mod_mppparam
   subroutine real8_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
@@ -1812,7 +1810,7 @@ module mod_mppparam
   subroutine real8_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
@@ -1909,7 +1907,7 @@ module mod_mppparam
   subroutine real4_2d_sub_distribute(mg,ml,j1,j2,i1,i2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( ccid == ccio ) then
@@ -1970,7 +1968,7 @@ module mod_mppparam
   subroutine real4_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model global
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model local
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model local
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
     if ( ccid == ccio ) then
@@ -2039,7 +2037,7 @@ module mod_mppparam
   subroutine logical_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
     implicit none
     logical , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    logical , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    logical , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
@@ -2123,7 +2121,7 @@ module mod_mppparam
   subroutine integer_2d_sub_distribute(mg,ml,j1,j2,i1,i2,mask)
     implicit none
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: mg  ! model global
-    integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: ml ! model local
+    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: ml ! model local
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
@@ -2207,7 +2205,7 @@ module mod_mppparam
   subroutine integer_3d_sub_distribute(mg,ml,j1,j2,i1,i2,k1,k2,mask)
     implicit none
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: mg  ! model glob
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(out) :: ml ! model loc
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: ml ! model loc
     logical , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
@@ -2304,7 +2302,7 @@ module mod_mppparam
   subroutine real8_2d_3d_collect(ml,mg,j1,j2,i1,i2,k,lsub)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: ml    ! model local
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     logical , intent(in) , optional :: lsub
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) , intent(in) , optional :: k
@@ -2372,7 +2370,7 @@ module mod_mppparam
   subroutine real8_2d_collect(ml,mg,j1,j2,i1,i2,lsub)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: mg ! model global
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     logical , intent(in) , optional :: lsub
@@ -2437,7 +2435,7 @@ module mod_mppparam
   subroutine real8_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2,lsub)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     logical , intent(in) , optional :: lsub
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
@@ -2510,7 +2508,7 @@ module mod_mppparam
   subroutine real8_3d_2d_collect(ml,mg,j1,j2,i1,i2,k)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: mg   ! model global
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg   ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k
     integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( ccid == ccio ) then
@@ -2565,7 +2563,7 @@ module mod_mppparam
   subroutine real8_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , &
                     ksize , nsize , lsize , icpu
@@ -2637,7 +2635,7 @@ module mod_mppparam
   subroutine real8_4d_2d_collect(ml,mg,j1,j2,i1,i2,k,n)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: mg     ! model global
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: mg     ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k , n
     integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( ccid == ccio ) then
@@ -2692,7 +2690,7 @@ module mod_mppparam
   subroutine real4_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
     real(rk4) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:) , intent(out) :: mg ! model global
+    real(rk4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( ccid == ccio ) then
@@ -2747,7 +2745,7 @@ module mod_mppparam
   subroutine real4_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
     if ( ccid == ccio ) then
@@ -2810,7 +2808,7 @@ module mod_mppparam
   subroutine real4_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , &
                     ksize , nsize , lsize , icpu
@@ -2882,7 +2880,7 @@ module mod_mppparam
   subroutine logical_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
     logical , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    logical , pointer , dimension(:,:) , intent(out) :: mg ! model global
+    logical , pointer , dimension(:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( ccid == ccio ) then
@@ -2937,7 +2935,7 @@ module mod_mppparam
   subroutine integer_2d_collect(ml,mg,j1,j2,i1,i2)
     implicit none
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: ml  ! model local
-    integer(ik4) , pointer , dimension(:,:) , intent(out) :: mg ! model global
+    integer(ik4) , pointer , dimension(:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , isize , jsize , lsize , icpu
     if ( ccid == ccio ) then
@@ -2992,7 +2990,7 @@ module mod_mppparam
   subroutine integer_3d_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , isize , jsize , ksize , lsize , icpu
     if ( ccid == ccio ) then
@@ -3055,7 +3053,7 @@ module mod_mppparam
   subroutine integer_4d_collect(ml,mg,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model loc
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model glob
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , &
                     ksize , nsize , lsize , icpu
@@ -3127,7 +3125,7 @@ module mod_mppparam
   subroutine real8_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( ccid == ccio ) then
@@ -3188,7 +3186,7 @@ module mod_mppparam
   subroutine real8_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
     if ( ccid == ccio ) then
@@ -3257,7 +3255,7 @@ module mod_mppparam
   subroutine real4_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    real(rk4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( ccid == ccio ) then
@@ -3318,7 +3316,7 @@ module mod_mppparam
   subroutine real4_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
     real(rk4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model local
-    real(rk4) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model global
+    real(rk4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
     if ( ccid == ccio ) then
@@ -3387,7 +3385,7 @@ module mod_mppparam
   subroutine integer_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    integer(ik4) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    integer(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( ccid == ccio ) then
@@ -3448,7 +3446,7 @@ module mod_mppparam
   subroutine integer_3d_sub_collect(ml,mg,j1,j2,i1,i2,k1,k2)
     implicit none
     integer(ik4) , pointer , dimension(:,:,:,:) , intent(in) :: ml  ! model loc
-    integer(ik4) , pointer , dimension(:,:,:,:) , intent(out) :: mg ! model glob
+    integer(ik4) , pointer , dimension(:,:,:,:) , intent(inout) :: mg ! model glob
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2 , k1 , k2
     integer(ik4) :: ib , i , j , k , n , isize , jsize , ksize , lsize , icpu
     if ( ccid == ccio ) then
@@ -3517,7 +3515,7 @@ module mod_mppparam
   subroutine logical_2d_sub_collect(ml,mg,j1,j2,i1,i2)
     implicit none
     logical(ik4) , pointer , dimension(:,:,:) , intent(in) :: ml  ! model local
-    logical(ik4) , pointer , dimension(:,:,:) , intent(out) :: mg ! model global
+    logical(ik4) , pointer , dimension(:,:,:) , intent(inout) :: mg ! model global
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: ib , i , j , n , isize , jsize , lsize , icpu
     if ( ccid == ccio ) then
@@ -3577,7 +3575,7 @@ module mod_mppparam
 !
   subroutine real8_2d_exchange(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: ml
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
     integer(ik4) :: isize , jsize , ssize , j , i , ib
     isize = i2-i1+1
@@ -3818,7 +3816,7 @@ module mod_mppparam
 !
   subroutine real8_3d_exchange(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ml
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
     integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
     isize = i2-i1+1
@@ -4100,7 +4098,7 @@ module mod_mppparam
 !
   subroutine real8_4d_exchange(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: ml
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: isize , jsize , ksize , nsize , ssize
     integer(ik4) :: j , i , k , n , ib
@@ -4424,7 +4422,7 @@ module mod_mppparam
 !
   subroutine real8_2d_exchange_left_bottom(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: ml
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
     integer(ik4) :: isize , jsize , ssize , j , i , ib
     isize = i2-i1+1
@@ -4542,7 +4540,7 @@ module mod_mppparam
 !
   subroutine real8_3d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ml
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
     integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
     isize = i2-i1+1
@@ -4677,7 +4675,7 @@ module mod_mppparam
 !
   subroutine real8_4d_exchange_left_bottom(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: ml
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
     isize = i2-i1+1
@@ -4829,7 +4827,7 @@ module mod_mppparam
 !
   subroutine real8_2d_exchange_right_top(ml,nex,j1,j2,i1,i2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: ml
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2
     integer(ik4) :: isize , jsize , ssize , j , i , ib
     isize = i2-i1+1
@@ -4947,7 +4945,7 @@ module mod_mppparam
 !
   subroutine real8_3d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: ml
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2
     integer(ik4) :: isize , jsize , ksize , ssize , j , i , k , ib
     isize = i2-i1+1
@@ -5082,7 +5080,7 @@ module mod_mppparam
 !
   subroutine real8_4d_exchange_right_top(ml,nex,j1,j2,i1,i2,k1,k2,n1,n2)
     implicit none
-    real(rk8) , pointer , dimension(:,:,:,:) , intent(out) :: ml
+    real(rk8) , pointer , dimension(:,:,:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: nex , j1 , j2  , i1 , i2 , k1 , k2 , n1 , n2
     integer(ik4) :: isize , jsize , ksize , nsize , ssize , j , i , k , n , ib
     isize = i2-i1+1
@@ -5234,7 +5232,7 @@ module mod_mppparam
 !
   subroutine real8_bdy_exchange_left_right(ml,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: ml
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: k1 , k2
     integer(ik4) :: ksize , k , ib
     ksize = k2-k1+1
@@ -5311,7 +5309,7 @@ module mod_mppparam
 !
   subroutine real8_bdy_exchange_top_bottom(ml,k1,k2)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: ml
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: ml
     integer(ik4) , intent(in) :: k1 , k2
     integer(ik4) :: ksize , k , ib
     ksize = k2-k1+1
@@ -5358,7 +5356,7 @@ module mod_mppparam
   subroutine real8_2d_grid_fill(a,b)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in) :: a
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: b
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: b
     call grid_collect(a,b,max(jce1,lbound(a,1)),min(jce2,ubound(a,1)), &
                           max(ice1,lbound(a,2)),min(ice2,ubound(a,2)))
     ! Extend on a 'fake' filled cross grid (+1)
@@ -5445,7 +5443,7 @@ module mod_mppparam
   subroutine psc2psd(pc,pd)
     implicit none
     real(rk8) , pointer , dimension(:,:) , intent(in)  :: pc
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: pd
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: pd
     integer(ik4) :: i , j
     !
     ! Internal points
@@ -5930,7 +5928,7 @@ module mod_mppparam
   subroutine reorder_add_subgrid_2d(var3,var2,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: var2
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: var2
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) :: i , j , ii , jj , n1 , n2
     if ( present(mask) ) then
@@ -5967,7 +5965,7 @@ module mod_mppparam
   subroutine reorder_subgrid_2d(var3,var2,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: var2
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: var2
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) :: i , j , ii , jj , n1 , n2
     if ( present(mask) ) then
@@ -6004,7 +6002,7 @@ module mod_mppparam
   subroutine reorder_logical_global_subgrid_2d(var3,var2)
     implicit none
     logical , pointer , dimension(:,:,:) , intent(in) :: var3
-    logical , pointer , dimension(:,:) , intent(out) :: var2
+    logical , pointer , dimension(:,:) , intent(inout) :: var2
     integer(ik4) :: i , j , ii , jj , n1 , n2
     do i = iout1 , iout2
       do j = jout1 , jout2
@@ -6022,7 +6020,7 @@ module mod_mppparam
   subroutine reorder_subgrid_2d_logical(var3,var2)
     implicit none
     logical , pointer , dimension(:,:,:) , intent(in) :: var3
-    logical , pointer , dimension(:,:) , intent(out) :: var2
+    logical , pointer , dimension(:,:) , intent(inout) :: var2
     integer(ik4) :: i , j , ii , jj , n1 , n2
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -6040,7 +6038,7 @@ module mod_mppparam
   subroutine reorder_add_subgrid_2d3d(var3,var2_3,l,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: var2_3
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: var2_3
     integer(ik4) , optional , intent(in) :: l
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) :: i , j , ii , jj , n1 , n2 , ll
@@ -6080,7 +6078,7 @@ module mod_mppparam
   subroutine reorder_subgrid_2d3d(var3,var2_3,l,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: var3
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: var2_3
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: var2_3
     integer(ik4) , optional , intent(in) :: l
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) :: i , j , ii , jj , n1 , n2 , ll
@@ -6120,7 +6118,7 @@ module mod_mppparam
   subroutine reorder_add_subgrid_3d(var4,var2,l,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: var4
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: var2
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: var2
     integer(ik4) , intent(in) :: l
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) :: i , j , ii , jj , n1 , n2
@@ -6158,7 +6156,7 @@ module mod_mppparam
   subroutine reorder_subgrid_3d(var4,var2,l,mask)
     implicit none
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: var4
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: var2
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: var2
     integer(ik4) , intent(in) :: l
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) , optional :: mask
     integer(ik4) :: i , j , ii , jj , n1 , n2
@@ -6196,7 +6194,7 @@ module mod_mppparam
   subroutine input_reorder(m1,m2,j1,j2,i1,i2)
     implicit none
     real(rk8) , dimension(:,:) , intent(in) :: m1
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: m2
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: m2
     integer(ik4) , intent(in) :: j1 , j2 , i1 , i2
     integer(ik4) :: i , j , ii , jj , n1 , n2
     do i = i1 , i2
@@ -6365,7 +6363,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     logical , pointer , dimension(:,:,:) , intent(in) :: matrix
-    logical , pointer , dimension(:) , intent(out) :: vector
+    logical , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: nval , npt
     nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
@@ -6424,7 +6422,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    integer(ik4) , pointer , dimension(:) , intent(out) :: vector
+    integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: nval , npt
     nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
@@ -6483,7 +6481,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: vector
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: vector
     integer(ik4) :: nval , npt , nlev , k
     nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
@@ -6548,7 +6546,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:) , intent(out) :: vector
+    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: nval , npt
     nval = cl%cartesian_npoint_sg(ccid+1)
     npt  = cl%linear_npoint_sg(myid+1)
@@ -6607,7 +6605,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     logical , pointer , dimension(:,:) , intent(in) :: matrix
-    logical , pointer , dimension(:) , intent(out) :: vector
+    logical , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: i , j , n
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -6623,7 +6621,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: matrix
-    integer(ik4) , pointer , dimension(:) , intent(out) :: vector
+    integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: i , j , n
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -6639,7 +6637,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     real(rk8) , pointer , dimension(:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:) , intent(out) :: vector
+    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: i , j , n
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -6655,7 +6653,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     logical , pointer , dimension(:,:,:) , intent(in) :: matrix
-    logical , pointer , dimension(:) , intent(out) :: vector
+    logical , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: npt
 
     if ( nproc == 1 ) then
@@ -6697,7 +6695,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    integer(ik4) , pointer , dimension(:) , intent(out) :: vector
+    integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: npt
     if ( nproc == 1 ) then
       call mypack_global(cl,matrix,vector)
@@ -6738,7 +6736,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     real(rk8) , pointer , dimension(:,:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:) , intent(out) :: vector
+    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: npt
     if ( nproc == 1 ) then
       call mypack_global(cl,matrix,vector)
@@ -6779,7 +6777,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     real(rk8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: vector
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: vector
     integer(ik4) :: npt , k , nlev
     nlev = size(matrix,4)
     if ( nproc == 1 ) then
@@ -6832,7 +6830,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     logical , pointer , dimension(:,:) , intent(in) :: matrix
-    logical , pointer , dimension(:) , intent(out) :: vector
+    logical , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: i , j , n
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -6848,7 +6846,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: matrix
-    integer(ik4) , pointer , dimension(:) , intent(out) :: vector
+    integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: i , j , n
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -6864,7 +6862,7 @@ module mod_mppparam
     implicit none
     type(masked_comm) , intent(in) :: cl
     real(rk8) , pointer , dimension(:,:) , intent(in) :: matrix
-    real(rk8) , pointer , dimension(:) , intent(out) :: vector
+    real(rk8) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) :: i , j , n
     do i = ici1 , ici2
       do j = jci1 , jci2
@@ -6902,7 +6900,7 @@ module mod_mppparam
   subroutine mypack_logical_grid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(out) :: vector
+    logical , pointer , dimension(:) , intent(inout) :: vector
     logical , pointer , dimension(:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , iv
     iv = 1
@@ -6919,7 +6917,7 @@ module mod_mppparam
   subroutine mypack_logical_subgrid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(out) :: vector
+    logical , pointer , dimension(:) , intent(inout) :: vector
     logical , pointer , dimension(:,:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , n , iv
     iv = 1
@@ -6938,7 +6936,7 @@ module mod_mppparam
   subroutine mypack_integer_grid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(out) :: vector
+    integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , iv
     iv = 1
@@ -6955,7 +6953,7 @@ module mod_mppparam
   subroutine mypack_integer_subgrid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(out) :: vector
+    integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , n , iv
     iv = 1
@@ -6974,7 +6972,7 @@ module mod_mppparam
   subroutine mypack_real8_grid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(out) :: vector
+    real(ik8) , pointer , dimension(:) , intent(inout) :: vector
     real(ik8) , pointer , dimension(:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , iv
     iv = 1
@@ -6991,7 +6989,7 @@ module mod_mppparam
   subroutine mypack_real8_subgrid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(out) :: vector
+    real(ik8) , pointer , dimension(:) , intent(inout) :: vector
     real(ik8) , pointer , dimension(:,:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , n , iv
     iv = 1
@@ -7010,7 +7008,7 @@ module mod_mppparam
   subroutine mypack_real8_subgrid_4d(cl,matrix,vector,klev)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:,:) , intent(out) :: vector
+    real(ik8) , pointer , dimension(:,:) , intent(inout) :: vector
     real(ik8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
     integer(ik4) , intent(in) :: klev
     integer(ik4) :: i , j , k , n , iv
@@ -7032,7 +7030,7 @@ module mod_mppparam
   subroutine mypack_real8_subgrid_slice(cl,matrix,vector,k)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(out) :: vector
+    real(ik8) , pointer , dimension(:) , intent(inout) :: vector
     real(ik8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
     integer(ik4) , intent(in) :: k
     integer(ik4) :: i , j , n , iv
@@ -7202,7 +7200,7 @@ module mod_mppparam
   subroutine mypack_global_logical_grid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(out) :: vector
+    logical , pointer , dimension(:) , intent(inout) :: vector
     logical , pointer , dimension(:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , iv
     iv = 1
@@ -7219,7 +7217,7 @@ module mod_mppparam
   subroutine mypack_global_logical_subgrid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    logical , pointer , dimension(:) , intent(out) :: vector
+    logical , pointer , dimension(:) , intent(inout) :: vector
     logical , pointer , dimension(:,:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , n , iv
     iv = 1
@@ -7238,7 +7236,7 @@ module mod_mppparam
   subroutine mypack_global_integer_grid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(out) :: vector
+    integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) , pointer , dimension(:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , iv
     iv = 1
@@ -7255,7 +7253,7 @@ module mod_mppparam
   subroutine mypack_global_integer_subgrid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    integer(ik4) , pointer , dimension(:) , intent(out) :: vector
+    integer(ik4) , pointer , dimension(:) , intent(inout) :: vector
     integer(ik4) , pointer , dimension(:,:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , n , iv
     iv = 1
@@ -7274,7 +7272,7 @@ module mod_mppparam
   subroutine mypack_global_real8_grid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(out) :: vector
+    real(ik8) , pointer , dimension(:) , intent(inout) :: vector
     real(ik8) , pointer , dimension(:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , iv
     iv = 1
@@ -7291,7 +7289,7 @@ module mod_mppparam
   subroutine mypack_global_real8_subgrid(cl,matrix,vector)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(out) :: vector
+    real(ik8) , pointer , dimension(:) , intent(inout) :: vector
     real(ik8) , pointer , dimension(:,:,:) , intent(in) :: matrix
     integer(ik4) :: i , j , n , iv
     iv = 1
@@ -7310,7 +7308,7 @@ module mod_mppparam
   subroutine mypack_global_real8_subgrid_4d(cl,matrix,vector,klev)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:,:) , intent(out) :: vector
+    real(ik8) , pointer , dimension(:,:) , intent(inout) :: vector
     real(ik8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
     integer(ik4) , intent(in) :: klev
     integer(ik4) :: i , j , k , n , iv
@@ -7332,7 +7330,7 @@ module mod_mppparam
   subroutine mypack_global_real8_subgrid_slice(cl,matrix,vector,k)
     implicit none
     type(masked_comm) , intent(in) :: cl
-    real(ik8) , pointer , dimension(:) , intent(out) :: vector
+    real(ik8) , pointer , dimension(:) , intent(inout) :: vector
     real(ik8) , pointer , dimension(:,:,:,:) , intent(in) :: matrix
     integer(ik4) , intent(in) :: k
     integer(ik4) :: i , j , n , iv

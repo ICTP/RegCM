@@ -75,7 +75,7 @@ module mod_erahi
   integer(ik4) :: i , j , k , nrec
   logical :: there
   real(rk8) :: slonmax , slonmin , xlonmax , xlonmin
-  integer(ik8) :: hireclen
+  integer :: hireclen
 !
   if ( idate == globidate1 ) then
     xlonmin = 400.

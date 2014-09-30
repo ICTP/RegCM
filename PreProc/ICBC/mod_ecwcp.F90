@@ -67,7 +67,7 @@ module mod_ecwcp
   character(len=12) , dimension(12,5) :: finm
   integer(ik4) :: k , nrec
   integer(ik4) :: year , month , day , hour
-  integer(ik8) :: ecwlen
+  integer :: ecwlen
   logical :: there
 !
   data finm/'ECT421993JAN' , 'ECT421993FEB' , 'ECT421993MAR' ,  &

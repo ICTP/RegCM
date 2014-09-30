@@ -497,9 +497,8 @@ module mod_bats_leaftemp
 !
   subroutine satur(qsat,t,p)
     implicit none
-    real(rk8) , pointer , dimension(:) :: p , qsat , t
-    intent (in) p , t
-    intent (out) qsat
+    real(rk8) , pointer , dimension(:) , intent(in) :: p , t
+    real(rk8) , pointer , dimension(:) , intent(inout) :: qsat
     integer(ik4) :: i
 #ifdef DEBUG
     character(len=dbgslen) :: subroutine_name = 'satur'

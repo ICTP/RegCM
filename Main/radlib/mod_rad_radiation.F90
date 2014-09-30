@@ -830,8 +830,8 @@ module mod_rad_radiation
             sols , solsd , ts , totcf , aeradfo , aeradfos , aerlwfo ,       &
             aerlwfos , dlat , xptrop , adirsw , adifsw , adirlw , adiflw ,   &
             asw , alw , abv , sol , czen
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: absgasnxt
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: absgastot
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: absgasnxt
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: absgastot
     real(rk8) , pointer , dimension(:,:) , intent(out) :: emsgastot
     logical , pointer , dimension(:) , intent(in) :: czengt0
     real(rk8) , pointer , dimension(:,:) :: cld , effcld , piln , pint
@@ -841,8 +841,8 @@ module mod_rad_radiation
             pmln , qrl , qrs , rei , rel , t , rh
     real(rk8) , pointer , dimension(:,:,:) :: aermmr
     real(rk8) , pointer , dimension(:,:) :: o3vmr
-    intent (out) alb , albc , abv , sol , tauxcl , tauxci
-    intent (out) flns , flnsc , flnt , flntc , flwds , fsds ,       &
+    intent (inout) alb , albc , abv , sol , tauxcl , tauxci
+    intent (inout) flns , flnsc , flnt , flntc , flwds , fsds ,       &
                    fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
                    fsntc , solin , totcf , outtaucl , outtauci
 !
@@ -1108,7 +1108,7 @@ module mod_rad_radiation
              qrs , rei , rel
     intent (in) cld , clwp , eccf , fice , h2ommr , o3mmr , pint , rei , rel , &
            adirsw , adifsw , adirlw , adiflw , asw , alw
-    intent (out) aeradfo , aeradfos , fsds , qrs , abv , sol , &
+    intent (inout) aeradfo , aeradfos , fsds , qrs , abv , sol , &
             tauxcl , tauxci , outtaucl , outtauci
     intent (inout) fsnirt , fsnirtsq , fsnrtc , fsns , fsnsc , fsnt , &
                    fsntc , solin , soll , solld , sols , solsd
@@ -1850,7 +1850,8 @@ module mod_rad_radiation
                flntc , flwds , fslwdcs , ts
     real(rk8), pointer , dimension(:) :: aerlwfo , aerlwfos
     intent (in) cld , emiss
-    intent (out) flns , flnsc , flnt , flntc , flwds , qrl , aerlwfo , aerlwfos
+    intent (inout) flns , flnsc , flnt , flntc , flwds , qrl , &
+            aerlwfo , aerlwfos
     intent (inout) tclrsf
 
     real(rk8) :: absbt , bk1 , bk2 , tmp1
@@ -2904,8 +2905,8 @@ module mod_rad_radiation
     integer(ik4) , intent(in) :: n1 , n2
     real(rk8) , pointer , dimension(:,:) , intent(in) :: pint , pmid , &
       piln , pmln
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: absgasnxt
-    real(rk8) , pointer , dimension(:,:,:) , intent(out) :: absgastot
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: absgasnxt
+    real(rk8) , pointer , dimension(:,:,:) , intent(inout) :: absgastot
 !
 !---------------------------Local variables-----------------------------
 !
@@ -3600,7 +3601,7 @@ module mod_rad_radiation
 !
     integer(ik4) , intent(in) :: n1 , n2
     real(rk8) , pointer , dimension(:,:) , intent(in) :: pint
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: emsgastot
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: emsgastot
 !
 !---------------------------Local variables-----------------------------
 !
@@ -4184,7 +4185,7 @@ module mod_rad_radiation
     real(rk8) , pointer , dimension(:,:) :: h2ommr , o3mmr , o3vmr , pmid , &
            pmidrd
     intent (in) cld , h2ommr , o3vmr , pint , pmid
-    intent (out) o3mmr , plco2 , pmidrd
+    intent (inout) o3mmr , plco2 , pmidrd
     intent (inout) pintrd , plh2o , tclrsf
 !
     real(rk8) :: cpwpl , vmmr

@@ -665,7 +665,7 @@ module mod_clm_initgridcells
       if ( npfts /=1 ) then
         write(stderr,*)' set_landunit_wet_ice_lake: compete landunit must'// &
                ' have one column and one pft '
-        write(stderr,*)' current values of ncols, pfts=',ncols,npfts
+        write(stderr,*)' current values of pfts=',npfts
         call fatal(__FILE__,__LINE__,'clm now stopping')
       end if
 

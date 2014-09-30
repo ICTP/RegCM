@@ -34,7 +34,7 @@ module mod_snow
 
   subroutine read_snow(snow,jx,iy)
     implicit none
-    real(rk8) , pointer , dimension(:,:) , intent(out) :: snow
+    real(rk8) , pointer , dimension(:,:) , intent(inout) :: snow
     integer(ik4) , intent(in) :: jx , iy
     integer(ik4) :: ncid , istat
     integer(ik4) :: dimid , njx , niy , ntime

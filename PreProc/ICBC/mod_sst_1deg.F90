@@ -66,7 +66,7 @@ module mod_sst_1deg
     real(rk4) , dimension(ilon,jlat) :: gisst
     integer(ik4) :: i , j , k , iwk , nrec
     integer(ik4) :: nsteps
-    integer(ik8) :: gireclen
+    integer :: gireclen
     type(rcm_time_and_date) :: idate , idateo , idatef , idatem , irefd
     real(rk8) , dimension(jlat) :: lati
     real(rk8) , dimension(ilon) :: loni

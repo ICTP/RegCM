@@ -869,7 +869,7 @@ module mod_rrtmg_driver
 !
     real(rk8) , pointer , dimension(:,:) :: fice , pmid , rei , rel , t
     intent (in) pmid , t
-    intent (out) fice , rei , rel
+    intent (inout) fice , rei , rel
 !
     integer(ik4) :: k , n
     real(rk8) :: pnrml , rliq , weight
