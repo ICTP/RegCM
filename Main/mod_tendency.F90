@@ -1518,9 +1518,11 @@ module mod_tendency
 
 #ifdef DEBUG
     call time_end(subroutine_name,idindx)
+#endif
 
     contains
 
+#ifdef DEBUG
     ! Check temperature tendency less than 10 K
 
     subroutine check_temperature_tendency(loc)
