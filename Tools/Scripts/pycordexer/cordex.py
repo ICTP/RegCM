@@ -635,11 +635,11 @@ for dim in var.dimensions:
       pass
     else:
       try:
-        if ( lookupdim[dim] != 'height' ):
+        if ( dim == 'm2' or dim == 'm10' ):
+          reducedims = 'height'
+        else:
           newvardims.append(lookupdim[dim])
           nco.createDimension(lookupdim[dim], len(ncf.dimensions[dim]))
-        else:
-          reducedims = 'height'
       except:
         nco.createDimension(dim,len(ncf.dimensions[dim]))
         newvardims.append(dim)

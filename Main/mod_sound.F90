@@ -31,7 +31,7 @@ module mod_sound
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: wo
     real(rk8) :: bet , bm , bp , bpxbm , bpxbp , cddtmp ,  cfl , check , &
       chh , cjtmp , cpm , cs , denom , dppdp0 , dpterm , dts , dtsmax ,  &
-      dx8 , ppold , rho , rho0s , rofac , xgamma , xkd
+      ppold , rho , rho0s , rofac , xgamma , xkd
     real(rk8) , dimension(jci1:jci2,ici1:ici2) :: astore , estore
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ca
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: g1 , g2
@@ -87,7 +87,6 @@ module mod_sound
     xkd = 0.1D0
 
     xgamma = d_one/(d_one-rovcp)
-    dx8 = dx*8.0D0
     ! CALCULATE SHORT TIME-STEP
     cs = sqrt(xgamma*rgas*stdt)
     dtsmax = dx/cs/(d_one+xkd)

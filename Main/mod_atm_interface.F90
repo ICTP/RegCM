@@ -810,6 +810,7 @@ module mod_atm_interface
                             ice1-ma%ibb1,ice2+ma%ibt1,'surf:psa')
       call getmem2d(sfs%psb,jce1-ma%jbl1,jce2+ma%jbr1, &
                             ice1-ma%ibb1,ice2+ma%ibt1,'surf:psb')
+      call getmem2d(sfs%psc,jce1,jce2,ice1,ice2,'surf:psc')
       call getmem2d(sfs%psdota,jde1-ma%jbl1,jde2+ma%jbr1, &
                             ide1-ma%ibb1,ide2+ma%ibt1,'surf:psdota')
       call getmem2d(sfs%psdotb,jde1-ma%jbl1,jde2+ma%jbr1, &

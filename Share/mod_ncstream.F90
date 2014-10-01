@@ -403,8 +403,8 @@ module mod_ncstream
             write(tempstr(2),'(f7.2)') truelath
             write(tempstr(3),'(f7.2)') clat
             write(tempstr(4),'(f7.2)') clon
-            write(tempstr(5),'(f7.0)') x0
-            write(tempstr(6),'(f7.0)') x0
+            write(tempstr(5),'(f10.0)') x0
+            write(tempstr(6),'(f10.0)') x0
             write(tempstr(7),'(f9.0)') earthrad
             write(tempstr(8),'(f9.0)') earthrad
             attc%theval = '+proj=lcc +lat_1='//trim(adjustl(tempstr(1)))// &
@@ -435,8 +435,8 @@ module mod_ncstream
             attc%aname = 'proj4_params'
             write(tempstr(1),'(f7.2)') clat
             write(tempstr(2),'(f7.2)') clon
-            write(tempstr(3),'(f7.0)') x0
-            write(tempstr(4),'(f7.0)') x0
+            write(tempstr(3),'(f10.0)') x0
+            write(tempstr(4),'(f10.0)') x0
             write(tempstr(5),'(f9.0)') earthrad
             write(tempstr(6),'(f9.0)') earthrad
             attc%theval = '+proj=stere +lat_0='//trim(adjustl(tempstr(1)))// &
@@ -462,8 +462,8 @@ module mod_ncstream
             attc%aname = 'proj4_params'
             write(tempstr(1),'(f7.2)') clat
             write(tempstr(2),'(f7.2)') clon
-            write(tempstr(3),'(f7.0)') x0
-            write(tempstr(4),'(f7.0)') x0
+            write(tempstr(3),'(f10.0)') x0
+            write(tempstr(4),'(f10.0)') x0
             write(tempstr(5),'(f9.0)') earthrad
             write(tempstr(6),'(f9.0)') earthrad
             attc%theval = '+proj=merc +lat_ts='//trim(adjustl(tempstr(1)))// &
@@ -489,8 +489,8 @@ module mod_ncstream
             attc%aname = 'proj4_params'
             write(tempstr(1),'(f7.2)') plat
             write(tempstr(2),'(f7.2)') plon
-            write(tempstr(3),'(f7.0)') x0
-            write(tempstr(4),'(f7.0)') x0
+            write(tempstr(3),'(f10.0)') x0
+            write(tempstr(4),'(f10.0)') x0
             write(tempstr(5),'(f9.0)') earthrad
             write(tempstr(6),'(f9.0)') earthrad
             attc%theval = '+proj=omerc +lat_0='//trim(adjustl(tempstr(1)))// &
@@ -1125,7 +1125,7 @@ module mod_ncstream
         class is (ncvariable1d_real)
           buffer%lhas1dreal = .true.
           buffer%max1d_real(1) = max(buffer%max1d_real(1),len_dim(1))
-        class is (ncvariable2d_real) 
+        class is (ncvariable2d_real)
           buffer%lhas2dreal = .true.
           if ( stream%l_parallel .and. var%lgridded ) then
             buffer%max2d_real(1) = max(buffer%max2d_real(1),stream%global_nj)

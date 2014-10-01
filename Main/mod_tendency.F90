@@ -57,8 +57,8 @@ module mod_tendency
                ten0 , qen0
   real(rk8) , pointer , dimension(:,:,:) :: ps4
   real(rk8) , pointer , dimension(:,:,:) :: ps_4
-  real(rk8) , pointer , dimension(:,:) :: psc , pten
-  real(rk8) , pointer , dimension(:,:) :: dummy , rpsa , rpsb
+  real(rk8) , pointer , dimension(:,:) :: pten
+  real(rk8) , pointer , dimension(:,:) :: dummy , rpsa , rpsb , rpsc
 
 #ifdef DEBUG
   real(rk8) , pointer , dimension(:,:,:) :: wten
@@ -77,11 +77,11 @@ module mod_tendency
     call getmem3d(xkcf,jdi1,jdi2,idi1,idi2,1,kzp1,'tendency:xkcf')
     call getmem3d(ps4,jci1,jci2,ici1,ici2,1,4,'tendency:ps4')
     call getmem3d(td,jce1,jce2,ice1,ice2,1,kz,'tendency:td')
-    call getmem2d(psc,jce1,jce2,ice1,ice2,'tendency:psc')
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
     call getmem2d(dummy,jde1,jde2,ide1,ide2,'tendency:dummy')
     call getmem2d(rpsa,jde1,jde2,ide1,ide2,'tendency:rpsa')
     call getmem2d(rpsb,jde1,jde2,ide1,ide2,'tendency:rpsb')
+    call getmem2d(rpsc,jde1,jde2,ide1,ide2,'tendency:rpsc')
     call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
     if ( idiag > 0 ) then
       call getmem3d(ten0,jce1,jce2,ice1,ice2,1,kz,'tendency:ten0')
@@ -184,6 +184,15 @@ module mod_tendency
         do i = ice1 , ice2
           do j = jce1 , jce2
             atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
+            atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)*rpsb(j,i))
+          end do
+        end do
+      end do
+    else
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atm2%pr(j,i,k) = atm1%pr(j,i,k) + atm1%pp(j,i,k)
             atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)*rpsb(j,i))
           end do
         end do
@@ -329,34 +338,35 @@ module mod_tendency
     if ( idynamic == 1 ) then
       do i = ici1 , ici2
         do j = jci1 , jci2
-          psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
+          sfs%psc(j,i) = sfs%psb(j,i) + pten(j,i)*dt
         end do
       end do
       if ( ma%has_bdyleft ) then
         do i = ici1 , ici2
-          psc(jce1,i) = sfs%psb(jce1,i) + xpsb%bt(jce1,i)*dt
+          sfs%psc(jce1,i) = sfs%psb(jce1,i) + xpsb%bt(jce1,i)*dt
         end do
       end if
       if ( ma%has_bdyright ) then
         do i = ici1 , ici2
-          psc(jce2,i) = sfs%psb(jce2,i) + xpsb%bt(jce2,i)*dt
+          sfs%psc(jce2,i) = sfs%psb(jce2,i) + xpsb%bt(jce2,i)*dt
         end do
       end if
       if ( ma%has_bdybottom ) then
         do j = jce1 , jce2
-          psc(j,ice1) = sfs%psb(j,ice1) + xpsb%bt(j,ice1)*dt
+          sfs%psc(j,ice1) = sfs%psb(j,ice1) + xpsb%bt(j,ice1)*dt
         end do
       end if
       if ( ma%has_bdytop ) then
         do j = jce1 , jce2
-          psc(j,ice2) = sfs%psb(j,ice2) + xpsb%bt(j,ice2)*dt
+          sfs%psc(j,ice2) = sfs%psb(j,ice2) + xpsb%bt(j,ice2)*dt
         end do
       end if
-    else
-      ! ???????????????????????
-      ! ???????????????????????
-      ! ???????????????????????
     end if
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        rpsc(j,i) = d_one/sfs%psc(j,i)
+      end do
+    end do
     !
     ! compute bleck (1977) noise parameters:
     !
@@ -366,7 +376,7 @@ module mod_tendency
       do i = ici1 , ici2
         do j = jci1 , jci2
           ptntot = ptntot + dabs(pten(j,i))
-          pt2tot = pt2tot + dabs((psc(j,i)+sfs%psb(j,i)- &
+          pt2tot = pt2tot + dabs((sfs%psc(j,i)+sfs%psb(j,i)- &
                    d_two*sfs%psa(j,i))/(dt*dt*d_rfour))
         end do
       end do
@@ -847,7 +857,7 @@ module mod_tendency
       if ( ipptls == 2 ) then
         !dummystatement
       else
-        call condtq(psc)
+        call condtq(sfs%psc)
       end if
       if ( idiag > 0 ) then
         ! rq : temp condensation tend is added the evap temp tend
@@ -922,7 +932,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tvc = atmc%t(j,i,k)*(d_one+ep1*(atmc%qx(j,i,k,iqv))/psc(j,i))
+            tvc = atmc%t(j,i,k)*(d_one+ep1*(atmc%qx(j,i,k,iqv))*rpsc(j,i))
             tva = atm1%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
             tvb = atm2%t(j,i,k)*(d_one+ep1* &
                                  (atm2%qx(j,i,k,iqv))*rpsb(j,i))
@@ -972,7 +982,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tvc = atmc%t(j,i,k)*(d_one+ep1*(atmc%qx(j,i,k,iqv))/psc(j,i))
+            tvc = atmc%t(j,i,k)*(d_one+ep1*(atmc%qx(j,i,k,iqv))*rpsc(j,i))
             tva = atm1%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
             tvb = atm2%t(j,i,k)*(d_one+ep1*(atm2%qx(j,i,k,iqv))*rpsb(j,i))
             td(j,i,k) = alpha*(tvc+tvb) + beta*tva
@@ -1348,8 +1358,8 @@ module mod_tendency
     end if
     do i = ici1 , ici2
       do j = jci1 , jci2
-        sfs%psb(j,i) = omuhf*sfs%psa(j,i) + gnuhf*(sfs%psb(j,i)+psc(j,i))
-        sfs%psa(j,i) = psc(j,i)
+        sfs%psb(j,i) = omuhf*sfs%psa(j,i) + gnuhf*(sfs%psb(j,i)+sfs%psc(j,i))
+        sfs%psa(j,i) = sfs%psc(j,i)
       end do
     end do
     do i = ice1 , ice2
@@ -1535,7 +1545,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1, ici2
           do j = jci1 , jci2
-            check_tt = (aten%t(j,i,k)-mean_tt)/psc(j,i)
+            check_tt = (aten%t(j,i,k)-mean_tt)*rpsc(j,i)
             if ( dabs(check_tt) > temp_tend_maxval ) then
               write(stderr,*) 'After ', loc, ' at ktau = ', ktau
               write(stderr,*) 'TEMP tendency out of order : ', check_tt

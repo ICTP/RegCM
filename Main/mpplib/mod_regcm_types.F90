@@ -189,6 +189,7 @@ module mod_regcm_types
   type surfstate
     real(rk8) , pointer , dimension(:,:) :: psa
     real(rk8) , pointer , dimension(:,:) :: psb
+    real(rk8) , pointer , dimension(:,:) :: psc
     real(rk8) , pointer , dimension(:,:) :: psdota
     real(rk8) , pointer , dimension(:,:) :: psdotb
     real(rk8) , pointer , dimension(:,:) :: tga

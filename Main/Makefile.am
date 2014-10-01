@@ -94,8 +94,7 @@ regcm_SOURCES = mod_regcm_interface.F90 mod_atm_interface.F90 mod_che_interface.
   mod_vmodes.F90 mod_split.F90 mod_output.F90 mod_cloud_s1.F90 \
   mod_tendency.F90 mod_params.F90 mod_tstep.F90 mod_slabocean.F90 \
   mod_sldepparam.F90 mod_sladvection.F90 mod_oasis.F90 abort.F90 \
-  regcm.F90 
-#  mod_sound.F90 regcm.F90 
+  mod_sound.F90 regcm.F90 
 
 FCLD = $(MPIFC)
 
