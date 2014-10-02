@@ -54,7 +54,7 @@ module mod_tendency
 
   real(rk8) , pointer , dimension(:,:,:) :: divl
   real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi , &
-               ten0 , qen0 , qcd , qvd
+               ten0 , qen0 , qcd , qvd , tvfac
   real(rk8) , pointer , dimension(:,:,:) :: ps4
   real(rk8) , pointer , dimension(:,:,:) :: ps_4
   real(rk8) , pointer , dimension(:,:) :: pten
@@ -82,6 +82,7 @@ module mod_tendency
     else
       call assignpnt(atmx%qx,qcd,iqc)
     end if
+    call getmem3d(tvfac,jce1,jce2,ice1,ice2,1,kz,'tendency:tvfac')
     call assignpnt(atmx%qx,qvd,iqv)
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
     call getmem2d(dummy,jde1,jde2,ide1,ide2,'tendency:dummy')
@@ -223,7 +224,9 @@ module mod_tendency
     end if
     if ( ipptls == 2 ) then
       qcd(:,:,:) = atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqc) + &
-                   atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqi)
+                   atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqi) + &
+                   atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqr) + &
+                   atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqs)
     end if
     !
     ! Compute cross point velocities
@@ -762,12 +765,12 @@ module mod_tendency
       ! calculate albedo
       !
       call surface_albedo
-      loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
-      labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
       if ( iclimao3 == 1 ) then
         call read_o3data(idatex,scenario,mddom%xlat,mddom%xlon, &
                          sfs%psa,ptop,sigma)
       end if
+      loutrad = (ktau == 0 .or. mod(ktau+1,krad) == 0)
+      labsem = ( ktau == 0 .or. mod(ktau+1,ntabem) == 0 )
       call radiation(xyear,loutrad,labsem)
     end if
 
@@ -1143,11 +1146,17 @@ module mod_tendency
       !
       ! compute geopotential height at half-k levels, cross points:
       !
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            tvfac(j,i,k) = d_one / (d_one+qcd(j,i,k)/(d_one+qvd(j,i,k)))
+          end do
+        end do
+      end do
       if ( ipgf == 1 ) then
         do i = ice1 , ice2
           do j = jce1 , jce2
-            tv = (ttld(j,i,kz)*rpsa(j,i))/(d_one+qcd(j,i,kz)/ &
-                                          (d_one+qvd(j,i,kz)))
+            tv = ttld(j,i,kz)*rpsa(j,i)*tvfac(j,i,kz)
             phi(j,i,kz) = mddom%ht(j,i) + &
                      rgas*t00pg/pgfaa1*((sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
             phi(j,i,kz) = phi(j,i,kz) - rgas * tv * &
@@ -1160,8 +1169,7 @@ module mod_tendency
             do j = jce1 , jce2
               tvavg = ((ttld(j,i,lev)*dsigma(lev)+ttld(j,i,lev+1)*   &
                       dsigma(lev+1))/(sfs%psa(j,i)*(dsigma(lev)+     &
-                      dsigma(lev+1))))/(d_one+qcd(j,i,lev)/  &
-                                       (d_one+qvd(j,i,lev)))
+                      dsigma(lev+1))))*tvfac(j,i,lev)
               phi(j,i,lev) = phi(j,i,lev+1) - rgas *             &
                      tvavg*dlog((hsigma(lev) + ptop*rpsa(j,i)) / &
                                (hsigma(lev+1) + ptop*rpsa(j,i)))
@@ -1171,8 +1179,7 @@ module mod_tendency
      else if ( ipgf == 0 ) then
         do i = ice1 , ice2
           do j = jce1 , jce2
-            tv = (td(j,i,kz)*rpsa(j,i))/(d_one+qcd(j,i,kz)/  &
-                                        (d_one+qvd(j,i,kz)))
+            tv = td(j,i,kz)*rpsa(j,i)*tvfac(j,i,kz)
             phi(j,i,kz) = mddom%ht(j,i) - rgas * tv * &
                  dlog((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
           end do
@@ -1183,8 +1190,7 @@ module mod_tendency
             do j = jce1 , jce2
               tvavg = ((td(j,i,lev)*dsigma(lev)+td(j,i,lev+1)*       &
                       dsigma(lev+1))/(sfs%psa(j,i)*(dsigma(lev)+     &
-                      dsigma(lev+1))))/(d_one+qcd(j,i,lev) / &
-                                       (d_one+qvd(j,i,lev)))
+                      dsigma(lev+1))))*tvfac(j,i,lev)
               phi(j,i,lev) = phi(j,i,lev+1) - rgas *              &
                      tvavg*dlog((hsigma(lev)+ptop*rpsa(j,i)) / &
                                 (hsigma(lev+1)+ptop*rpsa(j,i)))
