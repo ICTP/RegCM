@@ -54,7 +54,7 @@ module mod_tendency
 
   real(rk8) , pointer , dimension(:,:,:) :: divl
   real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi , &
-               ten0 , qen0
+               ten0 , qen0 , qcd , qvd
   real(rk8) , pointer , dimension(:,:,:) :: ps4
   real(rk8) , pointer , dimension(:,:,:) :: ps_4
   real(rk8) , pointer , dimension(:,:) :: pten
@@ -77,12 +77,20 @@ module mod_tendency
     call getmem3d(xkcf,jdi1,jdi2,idi1,idi2,1,kzp1,'tendency:xkcf')
     call getmem3d(ps4,jci1,jci2,ici1,ici2,1,4,'tendency:ps4')
     call getmem3d(td,jce1,jce2,ice1,ice2,1,kz,'tendency:td')
+    if ( ipptls == 2 ) then
+      call getmem3d(qcd,jce1,jce2,ice1,ice2,1,kz,'tendency:qcd')
+    else
+      call assignpnt(atmx%qx,qcd,iqc)
+    end if
+    call assignpnt(atmx%qx,qvd,iqv)
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
     call getmem2d(dummy,jde1,jde2,ide1,ide2,'tendency:dummy')
     call getmem2d(rpsa,jde1,jde2,ide1,ide2,'tendency:rpsa')
     call getmem2d(rpsb,jde1,jde2,ide1,ide2,'tendency:rpsb')
     call getmem2d(rpsc,jde1,jde2,ide1,ide2,'tendency:rpsc')
-    call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
+    if ( idynamic == 1 ) then
+      call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
+    end if
     if ( idiag > 0 ) then
       call getmem3d(ten0,jce1,jce2,ice1,ice2,1,kz,'tendency:ten0')
       call getmem3d(qen0,jce1,jce2,ice1,ice2,1,kz,'tendency:qen0')
@@ -213,6 +221,10 @@ module mod_tendency
       call exchange(chi,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,ntr)
       call exchange(chib,nexchange_adv,jce1,jce2,ice1,ice2,1,kz,1,ntr)
     end if
+    if ( ipptls == 2 ) then
+      qcd(:,:,:) = atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqc) + &
+                   atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqi)
+    end if
     !
     ! Compute cross point velocities
     !
@@ -292,6 +304,11 @@ module mod_tendency
     ! compute omega
     !
     omega(:,:,:) = d_zero
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        dummy(j,i) = d_one/(dx8*mddom%msfx(j,i))
+      end do
+    end do
     do k = 1 , kz
       do i = ici1 , ici2
         do j = jci1 , jci2
@@ -302,8 +319,7 @@ module mod_tendency
                      (sfs%psa(j+1,i)-sfs%psa(j-1,i))+               &
                      (atmx%v(j,i,k)    +atmx%v(j,i+1,k)+            &
                       atmx%v(j+1,i+1,k)+atmx%v(j+1,i,k))*           &
-                     (sfs%psa(j,i+1)-sfs%psa(j,i-1)))/              &
-                     (dx8*mddom%msfx(j,i)))
+                     (sfs%psa(j,i+1)-sfs%psa(j,i-1)))*dummy(j,i))
         end do
       end do
     end do
@@ -493,8 +509,8 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rovcpm = rgas/(cpd*(d_one+0.8D0*(atmx%qx(j,i,k,iqv))))
-            tv = atmx%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
+            rovcpm = rgas/(cpd*(d_one + 0.8D0*qvd(j,i,k)))
+            tv = atmx%t(j,i,k)*(d_one + ep1*qvd(j,i,k))
             aten%t(j,i,k) = aten%t(j,i,k) + (omega(j,i,k)*rovcpm*tv) / &
                             (ptop*rpsa(j,i)+hsigma(k))
           end do
@@ -505,7 +521,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             scr = d_half*egrav*atm0%rho(j,i,k)*(atm1%w(j,i,k)+atm1%w(j,i,k+1))
-            cpm = cpd*(d_one+0.8D0*atmx%qx(j,i,k,iqv))
+            cpm = cpd*(d_one + 0.8D0*qvd(j,i,k))
             aten%t(j,i,k) = aten%t(j,i,k) + atm1%t(j,i,k)*divl(j,i,k) - &
               (scr+aten%pp(j,i,k)+atm1%pr(j,i,k)*divl(j,i,k)) / &
               (atm1%rho(j,i,k)*cpm)
@@ -515,7 +531,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tv = atmx%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
+            tv = atmx%t(j,i,k)*(d_one + ep1*qvd(j,i,k))
             atmx%pr = (tv-atm0%t(j,i,k) - atmx%pp(j,i,k) / &
               (cpd*atm0%rho(j,i,k)))/atmx%t(j,i,k)
           end do
@@ -933,7 +949,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             tvc = atmc%t(j,i,k)*(d_one+ep1*(atmc%qx(j,i,k,iqv))*rpsc(j,i))
-            tva = atm1%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
+            tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
             tvb = atm2%t(j,i,k)*(d_one+ep1* &
                                  (atm2%qx(j,i,k,iqv))*rpsb(j,i))
             td(j,i,k) = alpha*(tvc+tvb) + beta*tva
@@ -945,7 +961,7 @@ module mod_tendency
       if ( ma%has_bdyleft ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one+ep1*(atmx%qx(jce1,i,k,iqv)))
+            td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one + ep1*qvd(jce1,i,k))
             ttld(jce1,i,k) = td(jce1,i,k) - sfs%psa(jce1,i) * &
                         t00pg*((hsigma(k)*sfs%psa(jce1,i)+ptop)/p00pg)**pgfaa1
           end do
@@ -954,7 +970,7 @@ module mod_tendency
       if ( ma%has_bdyright ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one+ep1*(atmx%qx(jce2,i,k,iqv)))
+            td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one + ep1*qvd(jce2,i,k))
             ttld(jce2,i,k) = td(jce2,i,k) - sfs%psa(jce2,i) * &
                      t00pg*((hsigma(k)*sfs%psa(jce2,i)+ptop)/p00pg)**pgfaa1
           end do
@@ -963,7 +979,7 @@ module mod_tendency
       if ( ma%has_bdybottom ) then
         do k = 1 , kz
           do j = jce1 , jce2
-            td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one+ep1*(atmx%qx(j,ice1,k,iqv)))
+            td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one + ep1*qvd(j,ice1,k))
             ttld(j,ice1,k) = td(j,ice1,k) - sfs%psa(j,ice1) * &
                      t00pg*((hsigma(k)*sfs%psa(j,ice1)+ptop)/p00pg)**pgfaa1
           end do
@@ -972,7 +988,7 @@ module mod_tendency
       if ( ma%has_bdytop ) then
         do k = 1 , kz
           do j = jce1 , jce2
-            td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one+ep1*(atmx%qx(j,ice2,k,iqv)))
+            td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one + ep1*qvd(j,ice2,k))
             ttld(j,ice2,k) = td(j,ice2,k) - sfs%psa(j,ice2) * &
                      t00pg*((hsigma(k)*sfs%psa(j,ice2)+ptop)/p00pg)**pgfaa1
           end do
@@ -983,7 +999,7 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             tvc = atmc%t(j,i,k)*(d_one+ep1*(atmc%qx(j,i,k,iqv))*rpsc(j,i))
-            tva = atm1%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
+            tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
             tvb = atm2%t(j,i,k)*(d_one+ep1*(atm2%qx(j,i,k,iqv))*rpsb(j,i))
             td(j,i,k) = alpha*(tvc+tvb) + beta*tva
           end do
@@ -992,28 +1008,28 @@ module mod_tendency
       if ( ma%has_bdyleft ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one+ep1*(atmx%qx(jce1,i,k,iqv)))
+            td(jce1,i,k) = atm1%t(jce1,i,k)*(d_one + ep1*qvd(jce1,i,k))
           end do
         end do
       end if
       if ( ma%has_bdyright ) then
         do k = 1 , kz
           do i = ici1 , ici2
-            td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one+ep1*(atmx%qx(jce2,i,k,iqv)))
+            td(jce2,i,k) = atm1%t(jce2,i,k)*(d_one+ep1*qvd(jce2,i,k))
           end do
         end do
       end if
       if ( ma%has_bdybottom ) then
         do k = 1 , kz
           do j = jce1 , jce2
-            td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one+ep1*(atmx%qx(j,ice1,k,iqv)))
+            td(j,ice1,k) = atm1%t(j,ice1,k)*(d_one+ep1*qvd(j,ice1,k))
           end do
         end do
       end if
       if ( ma%has_bdytop ) then
         do k = 1 , kz
           do j = jce1 , jce2
-            td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one+ep1*(atmx%qx(j,ice2,k,iqv)))
+            td(j,ice2,k) = atm1%t(j,ice2,k)*(d_one+ep1*qvd(j,ice2,k))
           end do
         end do
       end if
@@ -1074,10 +1090,10 @@ module mod_tendency
             psasum = sfs%psa(j,i) + sfs%psa(j,i-1) + &
                      sfs%psa(j-1,i) + sfs%psa(j-1,i-1)
             sigpsa = psasum
-            tv1 = atmx%t(j-1,i-1,k)*(d_one+ep1*(atmx%qx(j-1,i-1,k,iqv)))
-            tv2 = atmx%t(j-1,i,k)*(d_one+ep1*(atmx%qx(j-1,i,k,iqv)))
-            tv3 = atmx%t(j,i-1,k)*(d_one+ep1*(atmx%qx(j,i-1,k,iqv)))
-            tv4 = atmx%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
+            tv1 = atmx%t(j-1,i-1,k)*(d_one+ep1*qvd(j-1,i-1,k))
+            tv2 = atmx%t(j-1,i,k)*(d_one+ep1*qvd(j-1,i,k))
+            tv3 = atmx%t(j,i-1,k)*(d_one+ep1*qvd(j,i-1,k))
+            tv4 = atmx%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
             rtbar = tv1 + tv2 + tv3 + tv4 - d_four*t00pg*             &
                     ((hsigma(k)*psasum*d_rfour+ptop)/p00pg)**pgfaa1
             rtbar = rgas*rtbar*sigpsa/16.0D0
@@ -1101,10 +1117,10 @@ module mod_tendency
             psasum = sfs%psa(j,i) + sfs%psa(j,i-1) + &
                      sfs%psa(j-1,i) + sfs%psa(j-1,i-1)
             sigpsa = psasum
-            tv1 = atmx%t(j-1,i-1,k)*(d_one+ep1*(atmx%qx(j-1,i-1,k,iqv)))
-            tv2 = atmx%t(j-1,i,k)*(d_one+ep1*(atmx%qx(j-1,i,k,iqv)))
-            tv3 = atmx%t(j,i-1,k)*(d_one+ep1*(atmx%qx(j,i-1,k,iqv)))
-            tv4 = atmx%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
+            tv1 = atmx%t(j-1,i-1,k)*(d_one+ep1*qvd(j-1,i-1,k))
+            tv2 = atmx%t(j-1,i,k)*(d_one+ep1*qvd(j-1,i,k))
+            tv3 = atmx%t(j,i-1,k)*(d_one+ep1*qvd(j,i-1,k))
+            tv4 = atmx%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
             rtbar = rgas*(tv1+tv2+tv3+tv4)*sigpsa/16.0D0
             aten%u(j,i,k) = aten%u(j,i,k) - rtbar *                &
                    (dlog(d_half*(sfs%psa(j,i)+sfs%psa(j,i-1))*     &
@@ -1123,81 +1139,83 @@ module mod_tendency
 #ifdef DEBUG
     call check_wind_tendency('PRGR')
 #endif
-    !
-    ! compute geopotential height at half-k levels, cross points:
-    !
-    if ( ipgf == 1 ) then
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          tv = (ttld(j,i,kz)*rpsa(j,i))/(d_one+atmx%qx(j,i,kz,iqc)/ &
-                                       (d_one+atmx%qx(j,i,kz,iqv)))
-          phi(j,i,kz) = mddom%ht(j,i) + &
-                   rgas*t00pg/pgfaa1*((sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
-          phi(j,i,kz) = phi(j,i,kz) - rgas * tv * &
-                  dlog((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
-        end do
-      end do
-      do k = 1 , kzm1
-        lev = kz - k
+    if ( idynamic == 1 ) then
+      !
+      ! compute geopotential height at half-k levels, cross points:
+      !
+      if ( ipgf == 1 ) then
         do i = ice1 , ice2
           do j = jce1 , jce2
-            tvavg = ((ttld(j,i,lev)*dsigma(lev)+ttld(j,i,lev+1)*   &
-                    dsigma(lev+1))/(sfs%psa(j,i)*(dsigma(lev)+     &
-                    dsigma(lev+1))))/(d_one+atmx%qx(j,i,lev,iqc)/  &
-                                     (d_one+atmx%qx(j,i,lev,iqv)))
-            phi(j,i,lev) = phi(j,i,lev+1) - rgas *             &
-                   tvavg*dlog((hsigma(lev) + ptop*rpsa(j,i)) / &
-                             (hsigma(lev+1) + ptop*rpsa(j,i)))
+            tv = (ttld(j,i,kz)*rpsa(j,i))/(d_one+qcd(j,i,kz)/ &
+                                          (d_one+qvd(j,i,kz)))
+            phi(j,i,kz) = mddom%ht(j,i) + &
+                     rgas*t00pg/pgfaa1*((sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
+            phi(j,i,kz) = phi(j,i,kz) - rgas * tv * &
+                    dlog((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
+          end do
+        end do
+        do k = 1 , kzm1
+          lev = kz - k
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              tvavg = ((ttld(j,i,lev)*dsigma(lev)+ttld(j,i,lev+1)*   &
+                      dsigma(lev+1))/(sfs%psa(j,i)*(dsigma(lev)+     &
+                      dsigma(lev+1))))/(d_one+qcd(j,i,lev)/  &
+                                       (d_one+qvd(j,i,lev)))
+              phi(j,i,lev) = phi(j,i,lev+1) - rgas *             &
+                     tvavg*dlog((hsigma(lev) + ptop*rpsa(j,i)) / &
+                               (hsigma(lev+1) + ptop*rpsa(j,i)))
+            end do
+          end do
+        end do
+     else if ( ipgf == 0 ) then
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            tv = (td(j,i,kz)*rpsa(j,i))/(d_one+qcd(j,i,kz)/  &
+                                        (d_one+qvd(j,i,kz)))
+            phi(j,i,kz) = mddom%ht(j,i) - rgas * tv * &
+                 dlog((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
+          end do
+        end do
+        do k = 1 , kzm1
+          lev = kz - k
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              tvavg = ((td(j,i,lev)*dsigma(lev)+td(j,i,lev+1)*       &
+                      dsigma(lev+1))/(sfs%psa(j,i)*(dsigma(lev)+     &
+                      dsigma(lev+1))))/(d_one+qcd(j,i,lev) / &
+                                       (d_one+qvd(j,i,lev)))
+              phi(j,i,lev) = phi(j,i,lev+1) - rgas *              &
+                     tvavg*dlog((hsigma(lev)+ptop*rpsa(j,i)) / &
+                                (hsigma(lev+1)+ptop*rpsa(j,i)))
+            end do
+          end do
+        end do
+      end if
+      call exchange_lb(phi,1,jce1,jce2,ice1,ice2,1,kz)
+      !
+      ! compute the geopotential gradient terms:
+      !
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            aten%u(j,i,k) = aten%u(j,i,k) -         &
+                 (sfs%psa(j-1,i-1)+sfs%psa(j-1,i)+  &
+                  sfs%psa(j,i-1)+sfs%psa(j,i)) *    &
+                 (phi(j,i,k)+phi(j,i-1,k)-          &
+                  phi(j-1,i,k)-phi(j-1,i-1,k)) / (dx8*mddom%msfd(j,i))
+            aten%v(j,i,k) = aten%v(j,i,k) -         &
+                 (sfs%psa(j-1,i-1)+sfs%psa(j-1,i)+  &
+                  sfs%psa(j,i-1)+sfs%psa(j,i)) *    &
+                 (phi(j,i,k)+phi(j-1,i,k)-          &
+                  phi(j,i-1,k)-phi(j-1,i-1,k)) / (dx8*mddom%msfd(j,i))
           end do
         end do
       end do
-    else if ( ipgf == 0 ) then
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          tv = (td(j,i,kz)*rpsa(j,i))/(d_one+atmx%qx(j,i,kz,iqc)/  &
-                                      (d_one+atmx%qx(j,i,kz,iqv)))
-          phi(j,i,kz) = mddom%ht(j,i) - rgas * tv * &
-               dlog((hsigma(kz)+ptop*rpsa(j,i))/(d_one+ptop*rpsa(j,i)))
-        end do
-      end do
-      do k = 1 , kzm1
-        lev = kz - k
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            tvavg = ((td(j,i,lev)*dsigma(lev)+td(j,i,lev+1)*       &
-                    dsigma(lev+1))/(sfs%psa(j,i)*(dsigma(lev)+     &
-                    dsigma(lev+1))))/(d_one+atmx%qx(j,i,lev,iqc) / &
-                                     (d_one+atmx%qx(j,i,lev,iqv)))
-            phi(j,i,lev) = phi(j,i,lev+1) - rgas *              &
-                   tvavg*dlog((hsigma(lev)+ptop*rpsa(j,i)) / &
-                              (hsigma(lev+1)+ptop*rpsa(j,i)))
-          end do
-        end do
-      end do
-    end if
-    call exchange_lb(phi,1,jce1,jce2,ice1,ice2,1,kz)
-    !
-    ! compute the geopotential gradient terms:
-    !
-    do k = 1 , kz
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          aten%u(j,i,k) = aten%u(j,i,k) -         &
-               (sfs%psa(j-1,i-1)+sfs%psa(j-1,i)+  &
-                sfs%psa(j,i-1)+sfs%psa(j,i)) *    &
-               (phi(j,i,k)+phi(j,i-1,k)-          &
-                phi(j-1,i,k)-phi(j-1,i-1,k)) / (dx8*mddom%msfd(j,i))
-          aten%v(j,i,k) = aten%v(j,i,k) -         &
-               (sfs%psa(j-1,i-1)+sfs%psa(j-1,i)+  &
-                sfs%psa(j,i-1)+sfs%psa(j,i)) *    &
-               (phi(j,i,k)+phi(j-1,i,k)-          &
-                phi(j,i-1,k)-phi(j-1,i-1,k)) / (dx8*mddom%msfd(j,i))
-        end do
-      end do
-    end do
 #ifdef DEBUG
-    call check_wind_tendency('GEOP')
+      call check_wind_tendency('GEOP')
 #endif
+    end if
     !
     ! compute the vertical advection terms:
     !
