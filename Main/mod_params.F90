@@ -1939,6 +1939,7 @@ module mod_params
 
   if ( idynamic == 2 ) then
     call make_reference_atmosphere
+    call compute_full_coriolis_coefficients
   end if
 
   chibot = 450.0D0
@@ -2139,6 +2140,39 @@ module mod_params
           end do
         end do
       end subroutine make_reference_atmosphere
+
+      subroutine compute_full_coriolis_coefficients
+        implicit none
+        integer(ik4) :: i , j , k
+        real(rk8) :: rotang , dlat , dlatdy , dlondy
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            dlat = mddom%dlat(j,i)
+            dlatdy = d_half * (mddom%xlat(j-1,i)   + mddom%xlat(i,j) - &
+                               mddom%xlat(j-1,i-1) - mddom%xlat(j,i-1))
+            if ( abs(dlatdy) < 1.0D-5 ) dlatdy = 1.0D-5
+            dlondy = d_half * (mddom%xlon(j-1,i)   + mddom%xlon(i,j) - &
+                               mddom%xlon(j-1,i-1) - mddom%xlon(j,i-1))
+            if ( dlondy >  180.0D0 ) dlondy = dlondy - 360.0D0
+            if ( dlondy < -180.0D0 ) dlondy = dlondy + 360.0D0
+            rotang = -atan(dlondy/dlatdy*cos(degrad*dlat))
+            if ( dlatdy < 0.0 ) rotang = rotang + mathpi
+            mddom%ef(j,i) = eomeg2*cos(degrad*dlat)
+            mddom%ddx(j,i) = cos(rotang)
+            mddom%ddy(j,i) = sin(rotang)
+          end do
+        end do
+        do i = ici1 , ici2
+          do j = jci1 , jci2
+            mddom%ex(j,i) = d_rfour*(mddom%ef(j,i)   + mddom%ef(j,i+1) + &
+                                     mddom%ef(j+1,i) + mddom%ef(j+1,i+1))
+            mddom%crx(j,i) = d_rfour*(mddom%ddx(j,i)   + mddom%ddx(j,i+1) + &
+                                      mddom%ddx(j+1,i) + mddom%ddx(j+1,i+1))
+            mddom%cry(j,i) = d_rfour*(mddom%ddy(j,i)   + mddom%ddy(j,i+1) + &
+                                      mddom%ddy(j+1,i) + mddom%ddy(j+1,i+1))
+          end do
+        end do
+      end subroutine compute_full_coriolis_coefficients
 
   end subroutine param
 !

@@ -543,22 +543,36 @@ module mod_tendency
       do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rofac = ( dsigma(k-1) * atm0%rho(j,i,k) +   &
-                      dsigma(k)   * atm0%rho(j,i,k-1) ) / &
-                    ( dsigma(k-1) * atm2%rho(j,i,k) +   &
-                      dsigma(k)   * atm2%rho(j,i,k-1) )
-            uaq = (twt(k,1) * atms%ubx3d(j,i,k) + &
-                   twt(k,2) * atms%ubx3d(j,i,k-1) )
-            vaq = (twt(k,1) * atms%vbx3d(j,i,k) + &
-                   twt(k,2) * atms%vbx3d(j,i,k-1) )
-            aten%w(j,i,k) = aten%w(j,i,k) +        &
-                  ( twt(k,2)*atmx%pr(j,i,k-1) +    &
-                    twt(k,1)*atmx%pr(j,i,k) ) *    &
-                    rofac * egrav * sfs%psa(j,i) ! + &
-                    ! atmx%ex(j,i,k) * ( uaq
+            rofac = ( dsigma(k-1) * atm0%rho(j,i,k) +      &
+                      dsigma(k)   * atm0%rho(j,i,k-1) ) /  &
+                    ( dsigma(k-1) * atm1%rho(j,i,k) +      &
+                      dsigma(k)   * atm1%rho(j,i,k-1) )
+            uaq = (twt(k,1) * atms%ubx3d(j,i,k) +          &
+                   twt(k,2) * atms%ubx3d(j,i,k-1))
+            vaq = (twt(k,1) * atms%vbx3d(j,i,k) +          &
+                   twt(k,2) * atms%vbx3d(j,i,k-1))
+            aten%w(j,i,k) = aten%w(j,i,k) +               &
+                  (twt(k,2)*atmx%pr(j,i,k-1) +            &
+                   twt(k,1)*atmx%pr(j,i,k)) *             &
+                   rofac * egrav * sfs%psa(j,i) +         &
+                   mddom%ex(j,i)*(uaq*mddom%crx(j,i) -    &
+                                  vaq*mddom%cry(j,i)) +   &
+                   (uaq*uaq+vaq*vaq)*earthrad*rpsa(j,i) + &
+                   atmx%w(j,i,k)*(twt(k,1)*divl(j,i,k) +  &
+                                  twt(k,2)*divl(j,i,k-1))
           end do
         end do
       end do
+      if ( ipptls == 2 ) then
+        do k = 2 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              aten%w(j,i,k) = aten%w(j,i,k) - egrav * &
+                (twt(k,2)*qcd(i,j,k-1) + twt(k,1)*qcd(i,j,k))
+            end do
+          end do
+        end do
+      end if
     end if
     if ( idiag > 0 ) then
       tdiag%adi = tdiag%adi + (aten%t - ten0) * afdout
@@ -951,10 +965,9 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tvc = atmc%t(j,i,k)*(d_one+ep1*(atmc%qx(j,i,k,iqv))*rpsc(j,i))
             tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
-            tvb = atm2%t(j,i,k)*(d_one+ep1* &
-                                 (atm2%qx(j,i,k,iqv))*rpsb(j,i))
+            tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
+            tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
             td(j,i,k) = alpha*(tvc+tvb) + beta*tva
             ttld(j,i,k) = td(j,i,k) - sfs%psa(j,i) * &
                       t00pg*((hsigma(k)*sfs%psa(j,i)+ptop)/p00pg)**pgfaa1
@@ -1001,9 +1014,9 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tvc = atmc%t(j,i,k)*(d_one+ep1*(atmc%qx(j,i,k,iqv))*rpsc(j,i))
             tva = atm1%t(j,i,k)*(d_one+ep1*qvd(j,i,k))
-            tvb = atm2%t(j,i,k)*(d_one+ep1*(atm2%qx(j,i,k,iqv))*rpsb(j,i))
+            tvb = atm2%t(j,i,k)*(d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i))
+            tvc = atmc%t(j,i,k)*(d_one+ep1*atmc%qx(j,i,k,iqv)*rpsc(j,i))
             td(j,i,k) = alpha*(tvc+tvb) + beta*tva
           end do
         end do

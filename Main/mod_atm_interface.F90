@@ -795,6 +795,14 @@ module mod_atm_interface
       if ( lakemod == 1 ) then
         call getmem2d(dom%dhlake,jde1,jde2,ide1,ide2,'storage:dhlake')
       end if
+      if ( idynamic == 2 ) then
+        call getmem2d(dom%ef,jdi1,jdi2,idi1,idi2,'storage:ef')
+        call getmem2d(dom%ddx,jdi1,jdi2,idi1,idi2,'storage:ddx')
+        call getmem2d(dom%ddy,jdi1,jdi2,idi1,idi2,'storage:ddy')
+        call getmem2d(dom%ex,jci1,jci2,ici1,ici2,'storage:ex')
+        call getmem2d(dom%crx,jci1,jci2,ici1,ici2,'storage:crx')
+        call getmem2d(dom%cry,jci1,jci2,ici1,ici2,'storage:cry')
+      end if
     end subroutine allocate_domain
 !
     subroutine allocate_domain_subgrid(sub)

@@ -70,6 +70,12 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: msfx
     real(rk8) , pointer , dimension(:,:) :: msfd
     real(rk8) , pointer , dimension(:,:) :: coriol
+    real(rk8) , pointer , dimension(:,:) :: ef
+    real(rk8) , pointer , dimension(:,:) :: ddx
+    real(rk8) , pointer , dimension(:,:) :: ddy
+    real(rk8) , pointer , dimension(:,:) :: ex
+    real(rk8) , pointer , dimension(:,:) :: crx
+    real(rk8) , pointer , dimension(:,:) :: cry
     real(rk8) , pointer , dimension(:,:) :: snowam
     real(rk8) , pointer , dimension(:,:) :: dhlake
     integer(ik4) , pointer , dimension(:,:) :: ldmsk
