@@ -102,12 +102,13 @@ module mod_params
     enable_che_vars , dirout , lsync , do_parallel_netcdf_in ,         &
     do_parallel_netcdf_out , idiag
 
-  namelist /physicsparam/ idynamic , ifupr , ibltyp , iboudy ,         &
-    isladvec , icup_lnd , icup_ocn , igcc , ipgf , iemiss , lakemod ,  &
-    ipptls , iocnflx , iocncpl , iocnrough , ichem , scenario ,        &
-    idcsst , iseaice , idesseas , iconvlwp , irrtm , iclimao3 ,        &
-    isolconst , icumcloud , islab_ocean , itweak , temp_tend_maxval ,  &
-    wind_tend_maxval
+  namelist /physicsparam/ idynamic , ibltyp , iboudy , isladvec ,      &
+    icup_lnd , icup_ocn , igcc , ipgf , iemiss , lakemod , ipptls ,    &
+    iocnflx , iocncpl , iocnrough , ichem , scenario , idcsst ,        &
+    iseaice , idesseas , iconvlwp , irrtm , iclimao3 , isolconst ,     &
+    icumcloud , islab_ocean , itweak , temp_tend_maxval , wind_tend_maxval
+
+  namelist /nonhydroparam/ ifupr , logp_lrate
 
   namelist /rrtmparam/ inflgsw , iceflgsw , liqflgsw , inflglw ,    &
     iceflglw , liqflglw , icld , irng , idrv
@@ -317,7 +318,6 @@ module mod_params
 !-----namelist physicsparam:
 !
   idynamic = 1
-  ifupr = 1
   ibltyp = 1
   iboudy = 5
   isladvec = 0
@@ -342,8 +342,14 @@ module mod_params
   iclimao3 = 0
   isolconst = 1
   icumcloud = 2
-  temp_tend_maxval = 0.5*(dt/secpm)
-  wind_tend_maxval = 0.5*(dt/secpm)
+  temp_tend_maxval = 0.5D0*(dt/secpm)
+  wind_tend_maxval = 0.5D0*(dt/secpm)
+!----------------------------------------------------------------------
+!-----Non hydrostatic namelist param:
+!
+  ifupr = 1
+  logp_lrate = 50.0D0
+
 !----------------------------------------------------------------------
 !-----rrtm radiation namelist param:
 !
@@ -616,6 +622,19 @@ module mod_params
 #endif
     end if
 
+    if ( idynamic == 2 ) then
+      rewind(ipunit)
+      read (ipunit, nml=nonhydroparam, iostat=iretval, err=104)
+      if ( iretval /= 0 ) then
+        write(stderr,*) 'Error reading nonhydroparam namelist'
+        call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
+#ifdef DEBUG
+      else
+        write(stdout,*) 'Read nonhydroparam OK'
+#endif
+      end if
+    end if
+
     if ( idynamic /= 1 ) then
       write(stderr,*) 'Not implemented in this version.'
       write(stderr,*) 'Please keep the hydrostatic core for now.'
@@ -643,7 +662,7 @@ module mod_params
 
     if ( ipptls > 0 ) then
       rewind(ipunit)
-      read (ipunit, nml=subexparam, iostat=iretval, err=104)
+      read (ipunit, nml=subexparam, iostat=iretval, err=105)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default subex parameter.'
 #ifdef DEBUG
@@ -653,7 +672,7 @@ module mod_params
       end if
       if ( ipptls == 2 ) then
         rewind(ipunit)
-        read (ipunit, nml=microparam, iostat=iretval, err=105)
+        read (ipunit, nml=microparam, iostat=iretval, err=106)
         if ( iretval /= 0 ) then
           write(stdout,*) 'Using default microphysical parameter.'
 #ifdef DEBUG
@@ -669,7 +688,7 @@ module mod_params
 
     if ( any(icup == 2) ) then
       rewind(ipunit)
-      read (ipunit, nml=grellparam, iostat=iretval, err=106)
+      read (ipunit, nml=grellparam, iostat=iretval, err=107)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default Grell parameter.'
 #ifdef DEBUG
@@ -680,7 +699,7 @@ module mod_params
     end if
     if ( any(icup == 4) ) then
       rewind(ipunit)
-      read (ipunit, nml=emanparam, iostat=iretval, err=107)
+      read (ipunit, nml=emanparam, iostat=iretval, err=108)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default MIT parameter.'
 #ifdef DEBUG
@@ -691,7 +710,7 @@ module mod_params
     end if
     if ( any(icup == 5) ) then
       rewind(ipunit)
-      read (ipunit, nml=tiedtkeparam, iostat=iretval, err=108)
+      read (ipunit, nml=tiedtkeparam, iostat=iretval, err=109)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default Tiedtke parameter.'
 #ifdef DEBUG
@@ -702,7 +721,7 @@ module mod_params
     end if
     if ( any(icup == 6) ) then
       rewind(ipunit)
-      read (ipunit, nml=kfparam, iostat=iretval, err=109)
+      read (ipunit, nml=kfparam, iostat=iretval, err=110)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default Kain Fritsch parameter.'
 #ifdef DEBUG
@@ -719,7 +738,7 @@ module mod_params
     end if
     if ( ibltyp == 1 ) then
       rewind(ipunit)
-      read (ipunit, nml=holtslagparam, iostat=iretval, err=110)
+      read (ipunit, nml=holtslagparam, iostat=iretval, err=111)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default Holtslag parameter.'
 #ifdef DEBUG
@@ -730,7 +749,7 @@ module mod_params
     end if
     if ( ibltyp == 2 ) then
       rewind(ipunit)
-      read (ipunit, nml=uwparam, iostat=iretval, err=111)
+      read (ipunit, nml=uwparam, iostat=iretval, err=112)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default UW PBL parameter.'
 #ifdef DEBUG
@@ -741,7 +760,7 @@ module mod_params
     end if
     if ( irrtm == 1 ) then
       rewind(ipunit)
-      read (ipunit, nml=rrtmparam, iostat=iretval, err=112)
+      read (ipunit, nml=rrtmparam, iostat=iretval, err=113)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default RRTM parameter.'
 #ifdef DEBUG
@@ -753,7 +772,7 @@ module mod_params
 
     if ( islab_ocean == 1 ) then
       rewind(ipunit)
-      read (ipunit, nml=slabocparam, iostat=iretval, err=113)
+      read (ipunit, nml=slabocparam, iostat=iretval, err=114)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default SLAB Ocean parameter.'
 #ifdef DEBUG
@@ -780,7 +799,7 @@ module mod_params
 
     if ( ichem == 1 ) then
       rewind(ipunit)
-      read (ipunit, chemparam, iostat=iretval, err=114)
+      read (ipunit, chemparam, iostat=iretval, err=115)
       if ( iretval /= 0 ) then
         write(stderr,*) 'Error reading chemparam namelist'
         call fatal(__FILE__,__LINE__,'INPUT NAMELIST READ ERROR')
@@ -797,7 +816,7 @@ module mod_params
     end if
 #ifdef CLM
     rewind(ipunit)
-    read (ipunit , clmparam, iostat=iretval, err=115)
+    read (ipunit , clmparam, iostat=iretval, err=116)
     if ( iretval /= 0 ) then
       write(stdout,*) 'Using default CLM parameter.'
 #ifdef DEBUG
@@ -808,7 +827,7 @@ module mod_params
 #endif
     if ( iocncpl == 1 ) then
       rewind(ipunit)
-      read (ipunit , cplparam, iostat=iretval, err=116)
+      read (ipunit , cplparam, iostat=iretval, err=117)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Using default Coupling parameter.'
 #ifdef DEBUG
@@ -820,7 +839,7 @@ module mod_params
 
     if ( itweak == 1 ) then
       rewind(ipunit)
-      read (ipunit , tweakparam, iostat=iretval, err=117)
+      read (ipunit , tweakparam, iostat=iretval, err=118)
       if ( iretval /= 0 ) then
         write(stdout,*) 'Tweak parameters absent.'
         write(stdout,*) 'Disable tweaking.'
@@ -903,6 +922,7 @@ module mod_params
 
   if ( idynamic == 2 ) then
     call bcast(ifupr)
+    call bcast(logp_lrate)
   end if
 
   if ( ipptls == 2 ) then
@@ -1917,6 +1937,10 @@ module mod_params
     qcon(k) = (sigma(k)-hsigma(k))/(hsigma(k-1)-hsigma(k))
   end do
 
+  if ( idynamic == 2 ) then
+    call make_reference_atmosphere
+  end if
+
   chibot = 450.0D0
   ptmb = d_10*ptop
   pz = hsigma(1)*(d_1000-ptmb) + ptmb
@@ -2070,23 +2094,54 @@ module mod_params
 101 call fatal(__FILE__,__LINE__, 'Error reading TIMEPARAM')
 102 call fatal(__FILE__,__LINE__, 'Error reading OUTPARAM')
 103 call fatal(__FILE__,__LINE__, 'Error reading PHYSICSPARAM')
-104 call fatal(__FILE__,__LINE__, 'Error reading SUBEXPARAM')
-105 call fatal(__FILE__,__LINE__, 'Error reading MICROPARAM')
-106 call fatal(__FILE__,__LINE__, 'Error reading GRELLPARAM')
-107 call fatal(__FILE__,__LINE__, 'Error reading EMANPARAM')
-108 call fatal(__FILE__,__LINE__, 'Error reading TIEDTKEPARAM')
-109 call fatal(__FILE__,__LINE__, 'Error reading KFPARAM')
-110 call fatal(__FILE__,__LINE__, 'Error reading HOLTSLAGPARAM')
-111 call fatal(__FILE__,__LINE__, 'Error reading UWPARAM')
-112 call fatal(__FILE__,__LINE__, 'Error reading RRTMPARAM')
-113 call fatal(__FILE__,__LINE__, 'Error reading SLABOCPARAM')
-114 call fatal(__FILE__,__LINE__, 'Error reading CHEMPARAM')
+104 call fatal(__FILE__,__LINE__, 'Error reading NONHYDROPARAM')
+105 call fatal(__FILE__,__LINE__, 'Error reading SUBEXPARAM')
+106 call fatal(__FILE__,__LINE__, 'Error reading MICROPARAM')
+107 call fatal(__FILE__,__LINE__, 'Error reading GRELLPARAM')
+108 call fatal(__FILE__,__LINE__, 'Error reading EMANPARAM')
+109 call fatal(__FILE__,__LINE__, 'Error reading TIEDTKEPARAM')
+110 call fatal(__FILE__,__LINE__, 'Error reading KFPARAM')
+111 call fatal(__FILE__,__LINE__, 'Error reading HOLTSLAGPARAM')
+112 call fatal(__FILE__,__LINE__, 'Error reading UWPARAM')
+113 call fatal(__FILE__,__LINE__, 'Error reading RRTMPARAM')
+114 call fatal(__FILE__,__LINE__, 'Error reading SLABOCPARAM')
+115 call fatal(__FILE__,__LINE__, 'Error reading CHEMPARAM')
 #ifdef CLM
-115 call fatal(__FILE__,__LINE__, 'Error reading CLMPARAM')
+116 call fatal(__FILE__,__LINE__, 'Error reading CLMPARAM')
 #endif
-116 call fatal(__FILE__,__LINE__, 'Error reading CPLPARAM')
-117 call fatal(__FILE__,__LINE__, 'Error reading TWEAKPARAM')
+117 call fatal(__FILE__,__LINE__, 'Error reading CPLPARAM')
+118 call fatal(__FILE__,__LINE__, 'Error reading TWEAKPARAM')
+
+
+    contains
+
+      subroutine make_reference_atmosphere
+        use mod_regcm_types
+        use mod_atm_interface
+        use mod_constants
+        implicit none
+        integer(ik4) :: i , j , k
+        real(rk8) , dimension(jce1:jce2,ice1:ice2) :: ps0
+        real(rk8) :: hgt
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            ps0(j,i) = stdp * exp( - mddom%ht(j,i)/(stdt*rdry) )
+          end do
+        end do
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              atm0%pr(j,i,k) = ps0(j,i) * sigma(k) + ptop * 1000.0
+              atm0%t(j,i,k) = max(stdt + logp_lrate*log(atm0%pr(j,i,k)/stdp), &
+                                   218.0D0)
+              atm0%rho(j,i,k) = atm0%pr(j,i,k)/(rdry*atm0%t(j,i,k))
+            end do
+          end do
+        end do
+      end subroutine make_reference_atmosphere
 
   end subroutine param
 !
 end module mod_params
+
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

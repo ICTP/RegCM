@@ -87,6 +87,12 @@ module mod_regcm_types
     integer(ik4) , pointer , dimension(:,:,:) :: iveg
   end type domain_subgrid
 
+  type reference_atmosphere
+    real(rk8) , pointer , dimension(:,:,:) :: t
+    real(rk8) , pointer , dimension(:,:,:) :: pr
+    real(rk8) , pointer , dimension(:,:,:) :: rho
+  end type reference_atmosphere
+
   type atmstate_a
     real(rk8) , pointer , dimension(:,:,:) :: u
     real(rk8) , pointer , dimension(:,:,:) :: v
@@ -524,3 +530,5 @@ module mod_regcm_types
   end type pbl_2_mod
 
 end module mod_regcm_types
+
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

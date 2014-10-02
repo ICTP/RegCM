@@ -192,7 +192,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            atm2%pr(j,i,k) = atm1%pr(j,i,k) + atm1%pp(j,i,k)
+            atm2%pr(j,i,k) = atm0%pr(j,i,k) + atm1%pp(j,i,k)
             atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)*rpsb(j,i))
           end do
         end do
@@ -265,7 +265,7 @@ module mod_tendency
       do k = 2 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
-            rho0s = twt(k,1)*atm1%rho(j,i,k)+twt(k,2)*atm1%rho(j,i,k-1)
+            rho0s = twt(k,1)*atm0%rho(j,i,k)+twt(k,2)*atm0%rho(j,i,k-1)
             qdot(j,i,k) = -rho0s*egrav*atm1%w(j,i,k)*rpsa(j,i) * 0.001 - &
               sigma(k) * (dpsdxm(j,i) * (twt(k,1)*atms%ubx3d(j,i,k) +    &
                                          twt(k,2)*atms%ubx3d(j,i,k-1)) + &
@@ -504,7 +504,7 @@ module mod_tendency
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            scr = d_half*egrav*atm1%rho(j,i,k)*(atm1%w(j,i,k)+atm1%w(j,i,k+1))
+            scr = d_half*egrav*atm0%rho(j,i,k)*(atm1%w(j,i,k)+atm1%w(j,i,k+1))
             cpm = cpd*(d_one+0.8D0*atmx%qx(j,i,k,iqv))
             aten%t(j,i,k) = aten%t(j,i,k) + atm1%t(j,i,k)*divl(j,i,k) - &
               (scr+aten%pp(j,i,k)+atm1%pr(j,i,k)*divl(j,i,k)) / &
@@ -516,16 +516,16 @@ module mod_tendency
         do i = ici1 , ici2
           do j = jci1 , jci2
             tv = atmx%t(j,i,k)*(d_one+ep1*(atmx%qx(j,i,k,iqv)))
-            atmx%pr = (tv-atmx%t(j,i,k) - atmx%pp(j,i,k) / &
-              (cpd*atmx%rho(j,i,k)))/atmx%t(j,i,k)
+            atmx%pr = (tv-atm0%t(j,i,k) - atmx%pp(j,i,k) / &
+              (cpd*atm0%rho(j,i,k)))/atmx%t(j,i,k)
           end do
         end do
       end do
       do k = 2 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rofac = ( dsigma(k-1) * atm1%rho(j,i,k) +   &
-                      dsigma(k)   * atm1%rho(j,i,k-1) ) / &
+            rofac = ( dsigma(k-1) * atm0%rho(j,i,k) +   &
+                      dsigma(k)   * atm0%rho(j,i,k-1) ) / &
                     ( dsigma(k-1) * atm2%rho(j,i,k) +   &
                       dsigma(k)   * atm2%rho(j,i,k-1) )
             uaq = (twt(k,1) * atms%ubx3d(j,i,k) + &

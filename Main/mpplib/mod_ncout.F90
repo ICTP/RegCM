@@ -2232,6 +2232,8 @@ module mod_ncout
           ncattribute_integer('dynamical_core',idynamic))
         if ( idynamic == 2 ) then
           call outstream_addatt(outstream(i)%ncout(j), &
+                  ncattribute_real8('logp_lapse_rate',logp_lrate))
+          call outstream_addatt(outstream(i)%ncout(j), &
                   ncattribute_integer('upper_radiative_bc',ifupr))
         end if
         call outstream_addatt(outstream(i)%ncout(j), &

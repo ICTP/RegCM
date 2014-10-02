@@ -51,6 +51,7 @@ module mod_atm_interface
   type(v3dbound) , public :: xtb , xqb , xub , xvb
   type(v2dbound) , public :: xpsb
   type(bound_area) , public :: ba_cr , ba_dt
+  type(reference_atmosphere) , public :: atm0
 
   public :: allocate_mod_atm_interface
   public :: allocate_v3dbound , allocate_v2dbound
@@ -736,6 +737,14 @@ module mod_atm_interface
       end if
     end subroutine allocate_atmstate_tendency
 
+    subroutine allocate_reference_atmosphere(atm)
+      implicit none
+      type(reference_atmosphere) , intent(out) :: atm
+        call getmem3d(atm%t,jce1,jce2,ice1,ice2,1,kz,'atmstate:t')
+        call getmem3d(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
+        call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
+    end subroutine allocate_reference_atmosphere
+
     subroutine allocate_tendiag(dia)
       implicit none
       type(tendiag) , intent(out) :: dia
@@ -969,6 +978,7 @@ module mod_atm_interface
       call getmem2d(kpbl,jci1,jci2,ici1,ici2,'storage:kpbl')
 
       if ( idynamic == 2 ) then
+        call allocate_reference_atmosphere(atm0)
         call getmem2d(dpsdxm,jci1,jci2,ici1,ici2,'storage:dpsdxm')
         call getmem2d(dpsdym,jci1,jci2,ici1,ici2,'storage:dpsdym')
       end if

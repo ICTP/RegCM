@@ -155,8 +155,8 @@ module mod_slice
       do k = 1 , kz-1
         do i = ice1 , ice2
           do j = jce1 , jce2
-            atms%dzq(j,i,k) = log(atm2%pr(j,i,k+1)/atm2%pr(j,i,k)) * &
-              rovg*0.5*(atm2%t(j,i,k)+atm2%t(j,i,k+1))
+            atms%dzq(j,i,k) = log(atm0%pr(j,i,k+1)/atm0%pr(j,i,k)) * &
+              rovg*d_half*(atm0%t(j,i,k)+atm0%t(j,i,k+1))
           end do
         end do
       end do

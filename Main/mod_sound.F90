@@ -186,7 +186,7 @@ module mod_sound
         do i = ici1 , ici2
           do j = jci1 , jci2
             t3d(j,i,k) = (pp3d(j,i,km1)-pp3d(j,i,kp1)) / &
-                         (atm1%pr(j,i,km1)-atm1%pr(j,i,kp1))
+                         (atm0%pr(j,i,km1)-atm0%pr(j,i,kp1))
           end do
         end do
       end do
@@ -206,13 +206,13 @@ module mod_sound
             u3d(j,i,k) = u3d(j,i,k) - &
                       chh * (pp3d(j,i,k) - pp3d(j,i-1,k) + &
                              pp3d(j-1,i,k) - pp3d(j-1,i-1,k) - &
-                      ( atm1%pr(j,i,k) - atm1%pr(j,i-1,k) + &
-                        atm1%pr(j-1,i,k) - atm1%pr(j-1,i-1,k)) * dppdp0)
+                      ( atm0%pr(j,i,k) - atm0%pr(j,i-1,k) + &
+                        atm0%pr(j-1,i,k) - atm0%pr(j-1,i-1,k)) * dppdp0)
             v3d(j,i,k) = v3d(j,i,k) - &
                       chh * (pp3d(j,i,k) - pp3d(j-1,i,k) + &
                              pp3d(j,i-1,k) - pp3d(j-1,i-1,k) - &
-                      ( atm1%pr(j,i,k) - atm1%pr(j-1,i,k) + &
-                        atm1%pr(j,i-1,k) - atm1%pr(j-1,i-1,k))*dppdp0)
+                      ( atm0%pr(j,i,k) - atm0%pr(j-1,i,k) + &
+                        atm0%pr(j,i-1,k) - atm0%pr(j-1,i-1,k))*dppdp0)
           end do
         end do
       end do
@@ -258,23 +258,23 @@ module mod_sound
           e(j,i,kz) = d_zero
           f(j,i,kz) = w3d(j,i,kzp1)
           cc(j,i,1) = xgamma * atm2%pr(j,i,1) * dts/ (dx*mddom%msfx(j,i))
-          cdd(j,i,1) = xgamma * atm2%pr(j,i,1) * atm1%rho(j,i,1) * &
+          cdd(j,i,1) = xgamma * atm2%pr(j,i,1) * atm0%rho(j,i,1) * &
                        egrav * dts / (sfs%psa(j,i)*dsigma(1))
-          cj(j,i,1) = atm1%rho(j,i,1) * egrav * dts / d_two
+          cj(j,i,1) = atm0%rho(j,i,1) * egrav * dts / d_two
           pxup(j,i,1) = 0.0625D0 *                              &
-                      ( atm1%pr(j,i+1,1) - atm1%pr(j,i-1,1) ) * &
+                      ( atm0%pr(j,i+1,1) - atm0%pr(j,i-1,1) ) * &
                       ( u3d(j,i,1) + u3d(j+1,i,1) +             &
                         u3d(j,i+1,1) + u3d(j+1,i+1,1) -         &
                         u3d(j,i,2) - u3d(j+1,i,2) -             &
                         u3d(j,i+1,2) - u3d(j+1,i+1,2) ) /       &
-                      ( atm1%pr(j,i,1) - atm1%pr(j,i,2))
+                      ( atm0%pr(j,i,1) - atm0%pr(j,i,2))
           pyvp(j,i,1) = 0.0625D0 *                              &
-                      ( atm1%pr(j+1,i,1) - atm1%pr(j-1,i,1) ) * &
+                      ( atm0%pr(j+1,i,1) - atm0%pr(j-1,i,1) ) * &
                       ( v3d(j,i,1) + v3d(j+1,i,1) +             &
                         v3d(j,i+1,1) + v3d(j+1,i+1,1) -         &
                         v3d(j,i,2) - v3d(j+1,i,2) -             &
                         v3d(j,i+1,2) - v3d(j+1,i+1,2) ) /       &
-                      ( atm1%pr(j,i,1) - atm1%pr(j,i,2) )
+                      ( atm0%pr(j,i,1) - atm0%pr(j,i,2) )
           !
           ! ZERO GRADIENT (FREE SLIP) B.C.S ON V AT TOP AND BOTTOM
           !
@@ -288,8 +288,8 @@ module mod_sound
                            u3d(j+1,i+1,1) * mddom%msfd(j+1,i+1) -   &
                            u3d(j+1,i,1) * mddom%msfd(j+1,i) ) /     &
                        mddom%msfx(j,i) - d_two * (pyvp(j,i,1) + pxup(j,i,1)) )
-          tk(j,i,1) = sfs%psa(j,i) * atm1%t(j,i,1) / &
-                      (d_two * xgamma * atm1%pr(j,i,1) * &
+          tk(j,i,1) = sfs%psa(j,i) * atm0%t(j,i,1) / &
+                      (d_two * xgamma * atm0%pr(j,i,1) * &
                       atm2%t(j,i,1) / sfs%psa(j,i))
         end do
       end do
@@ -298,21 +298,21 @@ module mod_sound
         km1 = k - 1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            tk(j,i,k) = sfs%psa(j,i) * atm1%t(j,i,k) / &
-                        (d_two * xgamma * atm1%pr(j,i,k) * &
+            tk(j,i,k) = sfs%psa(j,i) * atm0%t(j,i,k) / &
+                        (d_two * xgamma * atm0%pr(j,i,k) * &
                         atm2%t(j,i,k) / sfs%psa(j,i))
-            rofac = (dsigma(k-1)*atm1%rho(j,i,k) + &
-                     dsigma(k)*atm1%rho(j,i,k-1)) / &
+            rofac = (dsigma(k-1)*atm0%rho(j,i,k) + &
+                     dsigma(k)*atm0%rho(j,i,k-1)) / &
                     (dsigma(k-1)*atm2%rho(j,i,k) + &
                      dsigma(k)*atm2%rho(j,i,k-1))
             !
             ! SET FACTORS FOR DIFFERENCING
             !
             cc(j,i,k) = xgamma * atm2%pr(j,i,k) * dts / (dx*mddom%msfx(j,i))
-            cdd(j,i,k) = xgamma * atm2%pr(j,i,k) * atm1%rho(j,i,k) * &
+            cdd(j,i,k) = xgamma * atm2%pr(j,i,k) * atm0%rho(j,i,k) * &
                          egrav * dts / (sfs%psa(j,i)*dsigma(k))
-            cj(j,i,k) = atm1%rho(j,i,k) * egrav * dts/d_two
-            ca(j,i,k) = egrav * dts / (atm1%pr(j,i,k)-atm1%pr(j,i,km1)) * rofac
+            cj(j,i,k) = atm0%rho(j,i,k) * egrav * dts/d_two
+            ca(j,i,k) = egrav * dts / (atm0%pr(j,i,k)-atm0%pr(j,i,km1)) * rofac
             g1(j,i,k) = d_one - dsigma(km1) * tk(j,i,k)
             g2(j,i,k) = d_one + dsigma(k) * tk(j,i,km1)
             !
@@ -323,18 +323,18 @@ module mod_sound
                        (cdd(j,i,k) - cj(j,i,k)) + g2(j,i,k) * &
                        (cdd(j,i,k-1) + cj(j,i,k-1)) ) * bpxbp
             aa(j,i,k) = -ca(j,i,k) * (cdd(j,i,k)+cj(j,i,k))*g1(j,i,k)*bpxbp
-            pyvp(j,i,k) = 0.125D0 * (atm1%pr(j+1,i,k) - atm1%pr(j-1,i,k)) * &
+            pyvp(j,i,k) = 0.125D0 * (atm0%pr(j+1,i,k) - atm0%pr(j-1,i,k)) * &
                           ( v3d(j,i,km1) + v3d(j+1,i,km1) +         &
                             v3d(j,i+1,km1) + v3d(j+1,i+1,km1) -     &
                             v3d(j,i,kp1) - v3d(j+1,i,kp1) -         &
                             v3d(j,i+1,kp1) - v3d(j+1,i+1,kp1) ) /   &
-                          ( atm1%pr(j,i,km1) - atm1%pr(j,i,kp1) )
-            pxup(j,i,k) = 0.125D0 * (atm1%pr(j,i+1,k) - atm1%pr(j,i-1,k)) * &
+                          ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
+            pxup(j,i,k) = 0.125D0 * (atm0%pr(j,i+1,k) - atm0%pr(j,i-1,k)) * &
                           ( u3d(j,i,km1) + u3d(j+1,i,km1) +         &
                             u3d(j,i+1,km1) + u3d(j+1,i+1,km1) -     &
                             u3d(j,i,kp1) - u3d(j+1,i,kp1) -         &
                             u3d(j,i+1,kp1) - u3d(j+1,i+1,kp1) ) /   &
-                          ( atm1%pr(j,i,km1) - atm1%pr(j,i,kp1) )
+                          ( atm0%pr(j,i,km1) - atm0%pr(j,i,kp1) )
           end do
         end do
       end do
@@ -497,7 +497,7 @@ module mod_sound
       do k = kz , 2 , -1
         do i = ici1 , ici2
           do j = jci1 , jci2
-            rho0s = twt(k,1)*atm1%rho(j,i,k) + twt(k,2)*atm1%rho(j,i,k-1)
+            rho0s = twt(k,1)*atm0%rho(j,i,k) + twt(k,2)*atm0%rho(j,i,k-1)
             sigdot(j,i,k) = -rho0s * egrav * w3d(j,i,k) /             &
                    sfs%psa(j,i)*0.001D0 - sigma(k) *                  &
                    ( dpsdxm(j,i) * ( twt(k,1)*atms%ubx3d(j,i,k) +     &
@@ -530,9 +530,9 @@ module mod_sound
         do i = ici1 , ici2
           do j = jci1 , jci2
             ppold = pi(j,i,k)
-            cddtmp = xgamma * atm2%pr(j,i,k) * atm1%rho(j,i,k) * &
+            cddtmp = xgamma * atm2%pr(j,i,k) * atm0%rho(j,i,k) * &
                      egrav * dts / (sfs%psa(j,i)*dsigma(k))
-            cjtmp = atm1%rho(j,i,k) * egrav * dts/d_two
+            cjtmp = atm0%rho(j,i,k) * egrav * dts/d_two
             pp3d(j,i,k) = pp3d(j,i,k) + &
                           ( cjtmp * (w3d(j,i,k+1) + w3d(j,i,k)) + &
                             cddtmp * (w3d(j,i,k+1) - w3d(j,i,k)) )*bp
