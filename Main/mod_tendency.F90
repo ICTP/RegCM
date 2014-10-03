@@ -59,6 +59,7 @@ module mod_tendency
   real(rk8) , pointer , dimension(:,:,:) :: ps_4
   real(rk8) , pointer , dimension(:,:) :: pten
   real(rk8) , pointer , dimension(:,:) :: dummy , rpsa , rpsb , rpsc
+  real(rk8) , pointer , dimension(:,:) :: rpsda
 
 #ifdef DEBUG
   real(rk8) , pointer , dimension(:,:,:) :: wten
@@ -86,9 +87,10 @@ module mod_tendency
     call assignpnt(atmx%qx,qvd,iqv)
     call getmem2d(pten,jce1,jce2,ice1,ice2,'tendency:pten')
     call getmem2d(dummy,jde1,jde2,ide1,ide2,'tendency:dummy')
-    call getmem2d(rpsa,jde1,jde2,ide1,ide2,'tendency:rpsa')
-    call getmem2d(rpsb,jde1,jde2,ide1,ide2,'tendency:rpsb')
-    call getmem2d(rpsc,jde1,jde2,ide1,ide2,'tendency:rpsc')
+    call getmem2d(rpsa,jce1,jce2,ice1,ice2,'tendency:rpsa')
+    call getmem2d(rpsb,jce1,jce2,ice1,ice2,'tendency:rpsb')
+    call getmem2d(rpsc,jce1,jce2,ice1,ice2,'tendency:rpsc')
+    call getmem2d(rpsda,jde1,jde2,ide1,ide2,'tendency:rpsda')
     if ( idynamic == 1 ) then
       call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
     else if ( idynamic == 2 ) then
@@ -119,7 +121,7 @@ module mod_tendency
                ptntot , qxas , qxbs , rovcpm , rtbar , sigpsa , tv , &
                tv1 , tv2 , tv3 , tv4 , tva , tvavg , tvb , tvc ,     &
                rho0s , cpm , scr
-    real(rk8) :: rofac , uaq , vaq
+    real(rk8) :: rofac , uaq , vaq , wabar , amfac , duv , wadot , wadotp1
     integer(ik4) :: i , itr , j , k , lev , n , ii , jj , kk , iconvec
     logical :: loutrad , labsem
     character (len=32) :: appdat
@@ -455,9 +457,16 @@ module mod_tendency
     aten%v(:,:,:) = d_zero
     aten%t(:,:,:) = d_zero
     aten%qx(:,:,:,:) = d_zero
+    if ( idynamic == 2 ) then
+      aten%pp(:,:,:) = d_zero
+      aten%w(:,:,:) = d_zero
+    end if
 #ifdef DEBUG
     wten(:,:,:) = d_zero
 #endif
+    cldfra(:,:,:) = d_zero
+    cldlwc(:,:,:) = d_zero
+
     if ( ibltyp == 2 ) then
       aten%tke(:,:,:) = d_zero
     end if
@@ -468,6 +477,25 @@ module mod_tendency
     if ( idiag > 0 ) then
       ten0(:,:,:) = d_zero
       qen0(:,:,:) = d_zero
+    end if
+    !
+    ! Compute Horizontal advection terms
+    !
+    if ( idynamic == 2 ) then
+      call hadv(cross,aten%pp,atmx%pp,kz)
+      call hadv(cross,aten%w,atmx%w,kzp1)
+      if ( ibltyp == 1 ) then
+        call vadv(cross,aten%pp,atmx%pp,kz,1)
+        call vadv(cross,aten%w,atmx%w,kzp1,1)
+      else if ( ibltyp == 2 ) then
+        if ( iuwvadv == 1 ) then
+          call vadv(cross,aten%pp,atm1%pp,kz,3)
+          call vadv(cross,aten%w,atmx%w,kzp1,3)
+        else
+          call vadv(cross,aten%pp,atmx%pp,kz,1)
+          call vadv(cross,aten%w,atmx%w,kzp1,1)
+        end if
+      end if
     end if
     !
     ! Initialize diffusion terms
@@ -527,15 +555,6 @@ module mod_tendency
             aten%t(j,i,k) = aten%t(j,i,k) + atm1%t(j,i,k)*divl(j,i,k) - &
               (scr+aten%pp(j,i,k)+atm1%pr(j,i,k)*divl(j,i,k)) / &
               (atm1%rho(j,i,k)*cpm)
-          end do
-        end do
-      end do
-      do k = 1 , kz
-        do i = ici1 , ici2
-          do j = jci1 , jci2
-            tv = atmx%t(j,i,k)*(d_one + ep1*qvd(j,i,k))
-            atmx%pr = (tv-atm0%t(j,i,k) - atmx%pp(j,i,k) / &
-              (cpd*atm0%rho(j,i,k)))/atmx%t(j,i,k)
           end do
         end do
       end do
@@ -624,11 +643,6 @@ module mod_tendency
       qdiag%adv = qdiag%adv + (aten%qx(:,:,:,iqv) - qen0) * afdout
       qen0 = aten%qx(:,:,:,iqv)
     end if
-    !
-    ! Zero out radiative clouds
-    !
-    cldfra(:,:,:) = d_zero
-    cldlwc(:,:,:) = d_zero
     !
     ! conv tracer diagnostic
     !
@@ -1067,12 +1081,12 @@ module mod_tendency
     call diffu_d(adf%difuu,atms%ubd3d,sfs%psdotb,mddom%msfd,xkc,1)
     call diffu_d(adf%difuv,atms%vbd3d,sfs%psdotb,mddom%msfd,xkc,1)
     !
-    ! Reset tendencies for U,V
+    ! compute the horizontal advection terms for u and v:
+    !
+    ! Zero again tendencies
     !
     aten%u(:,:,:) = d_zero
     aten%v(:,:,:) = d_zero
-    !
-    ! compute the horizontal advection terms for u and v:
     !
     call hadv(dot,aten%u,atmx%u,kz)
     call hadv(dot,aten%v,atmx%v,kz)
@@ -1082,16 +1096,43 @@ module mod_tendency
     !
     ! compute coriolis terms:
     !
-    do k = 1 , kz
-      do i = idi1 , idi2
-        do j = jdi1 , jdi2
-          aten%u(j,i,k) = aten%u(j,i,k) + &
-                       mddom%coriol(j,i)*atm1%v(j,i,k)/mddom%msfd(j,i)
-          aten%v(j,i,k) = aten%v(j,i,k) - &
-                       mddom%coriol(j,i)*atm1%u(j,i,k)/mddom%msfd(j,i)
+    if ( idynamic == 1 ) then
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            aten%u(j,i,k) = aten%u(j,i,k) + &
+                         mddom%coriol(j,i)*atm1%v(j,i,k)/mddom%msfd(j,i)
+            aten%v(j,i,k) = aten%v(j,i,k) - &
+                         mddom%coriol(j,i)*atm1%u(j,i,k)/mddom%msfd(j,i)
+          end do
         end do
       end do
-    end do
+    else if ( idynamic == 2 ) then
+      do k = 1 , kz
+        do i = idi1 , idi2
+          do j = jdi1 , jdi2
+            wadot = 0.125D0 * (atm1%w(j-1,i-1,k) + atm1%w(j-1,i,k) + &
+                               atm1%w(j,i-1,k)   + atm1%w(j,i,k))
+            wadotp1 = 0.125D0 * (atm1%w(j-1,i-1,k+1) + atm1%w(j-1,i,k+1) + &
+                                 atm1%w(j,i-1,k+1)   + atm1%w(j,i,k+1))
+            wabar = wadot + wadotp1
+            amfac = wabar * rpsda(j,i) * earthrad
+            duv = atm1%u(j,i,k)*mddom%dmdy(j,i) - &
+                  atm1%v(j,i,k)*mddom%dmdx(j,i)
+            aten%u(j,i,k) = aten%u(j,i,k) + &
+                         mddom%coriol(j,i)*atm1%v(j,i,k)/mddom%msfd(j,i) - &
+                         mddom%ef(j,i)*mddom%ddx(j,i)*wabar + &
+                         atmx%v(j,i,k)*duv - &
+                         atm1%u(j,i,k)*amfac
+            aten%v(j,i,k) = aten%v(j,i,k) - &
+                         mddom%coriol(j,i)*atm1%u(j,i,k)/mddom%msfd(j,i) + &
+                         mddom%ef(j,i)*mddom%ddy(j,i)*wabar - &
+                         atmx%u(j,i,k)*duv - &
+                         atm1%v(j,i,k)*amfac
+          end do
+        end do
+      end do
+    end if
 #ifdef DEBUG
     call check_wind_tendency('CORI')
 #endif
@@ -1670,7 +1711,6 @@ module mod_tendency
     subroutine decouple( )
       implicit none
       integer(ik4) :: i , j , k
-      real(rk8) , dimension(jde1:jde2,ide1:ide2) :: rpsda
       !
       ! Helper
       !
@@ -1832,6 +1872,15 @@ module mod_tendency
             do j = jce1 , jce2
               atmx%pp(j,i,k) = atm1%pp(j,i,k)*rpsa(j,i)
               atmx%w(j,i,k) = atm1%w(j,i,k)*rpsa(j,i)
+            end do
+          end do
+        end do
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              tv = atmx%t(j,i,k)*(d_one + ep1*atmx%qx(j,i,k,iqv))
+              atmx%pr = (tv-atm0%t(j,i,k) - atmx%pp(j,i,k) / &
+                (cpd*atm0%rho(j,i,k)))/atmx%t(j,i,k)
             end do
           end do
         end do

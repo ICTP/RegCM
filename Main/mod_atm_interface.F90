@@ -678,9 +678,6 @@ module mod_atm_interface
                 ice1-ib,ice2+it,1,kz,'atmstate:rho')
         call getmem3d(atm%pp,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kz,'atmstate:pp')
         call getmem3d(atm%w,jce1-jl,jce2+jr,ice1-ib,ice2+it,1,kzp1,'atmstate:w')
-      else
-        call getmem3d(atm%pr,jce1,jce2,ice1,ice2,1,kz,'atmstate:pr')
-        call getmem3d(atm%rho,jce1,jce2,ice1,ice2,1,kz,'atmstate:rho')
       end if
     end subroutine allocate_atmstate_decoupled
 
@@ -802,6 +799,8 @@ module mod_atm_interface
         call getmem2d(dom%ex,jci1,jci2,ici1,ici2,'storage:ex')
         call getmem2d(dom%crx,jci1,jci2,ici1,ici2,'storage:crx')
         call getmem2d(dom%cry,jci1,jci2,ici1,ici2,'storage:cry')
+        call getmem2d(dom%dmdy,jdi1,jdi2,idi1,idi2,'storage:dmdy')
+        call getmem2d(dom%dmdx,jdi1,jdi2,idi1,idi2,'storage:dmdx')
       end if
     end subroutine allocate_domain
 !

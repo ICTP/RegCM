@@ -2160,6 +2160,14 @@ module mod_params
             mddom%ef(j,i) = eomeg2*cos(degrad*dlat)
             mddom%ddx(j,i) = cos(rotang)
             mddom%ddy(j,i) = sin(rotang)
+            mddom%dmdx(j,i) = -d_half * &
+              (mddom%msfx(j,i) + mddom%msfx(j,i-1) - &
+               mddom%msfx(j-1,i) - mddom%msfx(j-i,i-1)) / &
+               (dx*mddom%msfd(j,i)*mddom%msfd(j,i))
+            mddom%dmdy(j,i) = -d_half * &
+              (mddom%msfx(j,i) + mddom%msfx(j-1,i) - &
+               mddom%msfx(j,i-1) - mddom%msfx(j-1,i-1)) / &
+               (dx*mddom%msfd(j,i)*mddom%msfd(j,i))
           end do
         end do
         do i = ici1 , ici2

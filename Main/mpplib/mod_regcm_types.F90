@@ -76,6 +76,8 @@ module mod_regcm_types
     real(rk8) , pointer , dimension(:,:) :: ex
     real(rk8) , pointer , dimension(:,:) :: crx
     real(rk8) , pointer , dimension(:,:) :: cry
+    real(rk8) , pointer , dimension(:,:) :: dmdy
+    real(rk8) , pointer , dimension(:,:) :: dmdx
     real(rk8) , pointer , dimension(:,:) :: snowam
     real(rk8) , pointer , dimension(:,:) :: dhlake
     integer(ik4) , pointer , dimension(:,:) :: ldmsk
