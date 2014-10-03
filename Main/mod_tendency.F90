@@ -54,7 +54,7 @@ module mod_tendency
 
   real(rk8) , pointer , dimension(:,:,:) :: divl
   real(rk8) , pointer , dimension(:,:,:) :: ttld , xkc , xkcf , td , phi , &
-               ten0 , qen0 , qcd , qvd , tvfac
+               ten0 , qen0 , qcd , qvd , tvfac , ucc , vcc
   real(rk8) , pointer , dimension(:,:,:) :: ps4
   real(rk8) , pointer , dimension(:,:,:) :: ps_4
   real(rk8) , pointer , dimension(:,:) :: pten
@@ -91,6 +91,9 @@ module mod_tendency
     call getmem2d(rpsc,jde1,jde2,ide1,ide2,'tendency:rpsc')
     if ( idynamic == 1 ) then
       call getmem3d(phi,jce1-ma%jbl1,jce2,ice1-ma%ibb1,ice2,1,kz,'tendency:phi')
+    else if ( idynamic == 2 ) then
+      call getmem3d(ucc,jce1,jce2,ice1,ice2,1,kz,'tendency:ucc')
+      call getmem3d(vcc,jce1,jce2,ice1,ice2,1,kz,'tendency:vcc')
     end if
     if ( idiag > 0 ) then
       call getmem3d(ten0,jce1,jce2,ice1,ice2,1,kz,'tendency:ten0')
@@ -197,17 +200,17 @@ module mod_tendency
           end do
         end do
       end do
-    else
+    else if ( idynamic == 2 ) then
       do k = 1 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
             atm2%pr(j,i,k) = atm0%pr(j,i,k) + atm1%pp(j,i,k)
-            atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)*rpsb(j,i))
+            atm2%rho(j,i,k) = atm2%pr(j,i,k) / &
+              (rgas*atm2%t(j,i,k)*rpsb(j,i)* &
+              (d_one+ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i)))
           end do
         end do
       end do
-    end if
-    if ( idynamic == 2 ) then
       call exchange(atm2%pr,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm2%rho,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm2%pp,1,jce1,jce2,ice1,ice2,1,kz)
@@ -229,29 +232,14 @@ module mod_tendency
                    atmx%qx(jce1:jce2,ice1:ice2,1:kz,iqs)
     end if
     !
-    ! Compute cross point velocities
+    ! compute vertical sigma-velocity (qdot):
     !
-    do k = 1 , kz
-      do i = ice1 , ice2
-        do j = jce1 , jce2
-          atms%ubx3d(j,i,k) = d_rfour*             &
-              (atm2%u(j,i,k)   + atm2%u(j,i+1,k) + &
-               atm2%u(j+1,i,k) + atm2%u(j+1,i+1,k)) * rpsa(j,i)
-          atms%vbx3d(j,i,k) = d_rfour*             &
-              (atm2%v(j,i,k)   + atm2%v(j,i+1,k) + &
-               atm2%v(j+1,i,k) + atm2%v(j+1,i+1,k)) * rpsa(j,i)
-        end do
-      end do
-    end do
+    qdot(:,:,:)  = d_zero
     do i = ice1 , ice2
       do j = jce1 , jce2
         dummy(j,i) = d_one/(dx2*mddom%msfx(j,i)*mddom%msfx(j,i))
       end do
     end do
-    !
-    ! compute vertical sigma-velocity (qdot):
-    !
-    qdot(:,:,1)  = d_zero
     if ( idynamic == 1 ) then
       !
       ! compute the pressure tendency
@@ -280,12 +268,23 @@ module mod_tendency
       do k = 2 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
+            ucc(j,i,k) = atmx%u(j,i,k)+atmx%u(j,i+1,k) + &
+                         atmx%u(j+1,i,k)+atmx%u(j+1,i+1,k)
+            vcc(j,i,k) = atmx%v(j,i,k)+atmx%v(j,i+1,k) + &
+                         atmx%v(j+1,i,k)+atmx%v(j+1,i+1,k)
+
+          end do
+        end do
+      end do
+      do k = 2 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
             rho0s = twt(k,1)*atm0%rho(j,i,k)+twt(k,2)*atm0%rho(j,i,k-1)
-            qdot(j,i,k) = -rho0s*egrav*atm1%w(j,i,k)*rpsa(j,i) * 0.001 - &
-              sigma(k) * (dpsdxm(j,i) * (twt(k,1)*atms%ubx3d(j,i,k) +    &
-                                         twt(k,2)*atms%ubx3d(j,i,k-1)) + &
-                          dpsdym(j,i) * (twt(k,1)*atms%vbx3d(j,i,k) +    &
-                                         twt(k,2)*atms%vbx3d(j,i,k-1)))
+            qdot(j,i,k) = -rho0s*egrav*atm1%w(j,i,k)*rpsa(j,i) * 0.001D0 - &
+              sigma(k) * (dpsdxm(j,i) * (twt(k,1)*ucc(j,i,k) +             &
+                                         twt(k,2)*ucc(j,i,k-1)) +          &
+                          dpsdym(j,i) * (twt(k,1)*vcc(j,i,k) +             &
+                                         twt(k,2)*vcc(j,i,k-1)))
            end do
         end do
       end do
@@ -1823,6 +1822,16 @@ module mod_tendency
               do j = jce1 , jce2
                 chi(j,i,k,n) = chia(j,i,k,n)*rpsa(j,i)
               end do
+            end do
+          end do
+        end do
+      end if
+      if ( idynamic == 2 ) then
+        do k = 1 , kz
+          do i = ice1 , ice2
+            do j = jce1 , jce2
+              atmx%pp(j,i,k) = atm1%pp(j,i,k)*rpsa(j,i)
+              atmx%w(j,i,k) = atm1%w(j,i,k)*rpsa(j,i)
             end do
           end do
         end do
