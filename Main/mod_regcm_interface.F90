@@ -260,10 +260,6 @@ module mod_regcm_interface
       !
       call tend
       !
-      ! Split modes
-      !
-      call splitf
-      !
       ! Boundary code (do not execute at the end of run)
       !
       if ( ktau /= mtau ) then

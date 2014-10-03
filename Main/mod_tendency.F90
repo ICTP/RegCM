@@ -45,6 +45,8 @@ module mod_tendency
   use mod_cloud_s1
   use mod_sladvection
   use mod_slabocean
+  use mod_sound
+  use mod_split
 
   implicit none
 
@@ -177,8 +179,7 @@ module mod_tendency
           end do
         end do
       end do
-    end if
-    if ( idynamic == 2 ) then
+    else if ( idynamic == 2 ) then
       call exchange(atm1%pp,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm1%w,1,jce1,jce2,ice1,ice2,1,kz)
       call exchange(atm1%pr,1,jce1,jce2,ice1,ice2,1,kz)
@@ -266,7 +267,7 @@ module mod_tendency
            end do
         end do
       end do
-    else
+    else if ( idynamic == 2 ) then
       do k = 2 , kz
         do i = ice1 , ice2
           do j = jce1 , jce2
@@ -381,16 +382,22 @@ module mod_tendency
           sfs%psc(j,ice2) = sfs%psb(j,ice2) + xpsb%bt(j,ice2)*dt
         end do
       end if
-    end if
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        rpsc(j,i) = d_one/sfs%psc(j,i)
+      do i = ice1 , ice2
+        do j = jce1 , jce2
+          rpsc(j,i) = d_one/sfs%psc(j,i)
+        end do
       end do
-    end do
+    else if ( idynamic == 2 ) then
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          sfs%psc(j,i) = sfs%psb(j,i)
+        end do
+      end do
+    end if
     !
     ! compute bleck (1977) noise parameters:
     !
-    if ( ktau /= 0 ) then
+    if ( idynamic == 1 .and. ktau /= 0 ) then
       ptntot = d_zero
       pt2tot = d_zero
       do i = ici1 , ici2
@@ -546,7 +553,7 @@ module mod_tendency
           end do
         end do
       end do
-    else
+    else if ( idynamic == 2 ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
@@ -1378,44 +1385,91 @@ module mod_tendency
         end do
       end do
     end do
-    do k = 1 , kz
-      do i = ici1 , ici2
-        do j = jci1 , jci2
-          atm2%t(j,i,k) = omuhf*atm1%t(j,i,k) + &
-                          gnuhf*(atm2%t(j,i,k)+atmc%t(j,i,k))
-          atm1%t(j,i,k) = atmc%t(j,i,k)
-        end do
+
+    do i = ice1 , ice2
+      do j = jce1 , jce2
+        rpsb(j,i) = d_one/sfs%psb(j,i)
       end do
     end do
-    do n = 1 , nqx
+    if ( idynamic == 1 ) then
       do k = 1 , kz
         do i = ici1 , ici2
           do j = jci1 , jci2
-            qxas = atmc%qx(j,i,k,n)
-            qxbs = omuhf*atm1%qx(j,i,k,n) + &
-                   gnuhf*(atm2%qx(j,i,k,n)+atmc%qx(j,i,k,n))
-            lowq = minqx*sfs%psa(j,i)
-            if ( qxas < lowq ) then
-              if ( n == iqv ) then
-                qxas = lowq
-              else
-                qxas = d_zero
-              end if
-            end if
-            lowq = minqx*sfs%psb(j,i)
-            if ( qxbs < lowq ) then
-              if ( n == iqv ) then
-                qxbs = lowq
-              else
-                qxbs = d_zero
-              end if
-            end if
-            atm1%qx(j,i,k,n) = qxas
-            atm2%qx(j,i,k,n) = qxbs
+            atm2%t(j,i,k) = omuhf*atm1%t(j,i,k) + &
+                            gnuhf*(atm2%t(j,i,k)+atmc%t(j,i,k))
+            atm1%t(j,i,k) = atmc%t(j,i,k)
           end do
         end do
       end do
-    end do
+      do n = 1 , nqx
+        do k = 1 , kz
+          do i = ici1 , ici2
+            do j = jci1 , jci2
+              qxas = atmc%qx(j,i,k,n)
+              qxbs = omuhf*atm1%qx(j,i,k,n) + &
+                     gnuhf*(atm2%qx(j,i,k,n)+atmc%qx(j,i,k,n))
+              lowq = minqx*sfs%psa(j,i)
+              if ( qxas < lowq ) then
+                if ( n == iqv ) then
+                  qxas = lowq
+                else
+                  qxas = d_zero
+                end if
+              end if
+              lowq = minqx*sfs%psb(j,i)
+              if ( qxbs < lowq ) then
+                if ( n == iqv ) then
+                  qxbs = lowq
+                else
+                  qxbs = d_zero
+                end if
+              end if
+              atm1%qx(j,i,k,n) = qxas
+              atm2%qx(j,i,k,n) = qxbs
+            end do
+          end do
+        end do
+      end do
+      do i = ici1 , ici2
+        do j = jci1 , jci2
+          sfs%psb(j,i) = omuhf*sfs%psa(j,i) + gnuhf*(sfs%psb(j,i)+sfs%psc(j,i))
+          sfs%psa(j,i) = sfs%psc(j,i)
+        end do
+      end do
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
+            atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)*rpsb(j,i))
+          end do
+        end do
+      end do
+      !
+      ! Hydrostatic split explicit scheme
+      !
+      call splitf
+      !
+      ! Next timestep ready
+      !
+    else if ( idynamic == 2 ) then
+      !
+      ! Compute u,v,w,pp at ktau+1
+      !
+      call sound(dt,ktau)
+      !
+      ! Done
+      !
+      do k = 1 , kz
+        do i = ice1 , ice2
+          do j = jce1 , jce2
+            atm2%pr(j,i,k) = atm1%pr(j,i,k) + atm1%pp(j,i,k)
+            atm2%rho(j,i,k) = atm2%pr(j,i,k) / &
+                    (rgas*(atm2%t(j,i,k)*rpsb(j,i)) * &
+                    (d_one + ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i)))
+          end do
+        end do
+      end do
+    end if
     if ( ichem == 1 ) then
       do itr = 1 , ntr
         do k = 1 , kz
@@ -1432,38 +1486,12 @@ module mod_tendency
           end do
         end do
       end do
-    end if
-    do i = ici1 , ici2
-      do j = jci1 , jci2
-        sfs%psb(j,i) = omuhf*sfs%psa(j,i) + gnuhf*(sfs%psb(j,i)+sfs%psc(j,i))
-        sfs%psa(j,i) = sfs%psc(j,i)
-      end do
-    end do
-    do i = ice1 , ice2
-      do j = jce1 , jce2
-        rpsb(j,i) = d_one/sfs%psb(j,i)
-      end do
-    end do
-    if ( idynamic == 1 ) then
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atm2%pr(j,i,k) = (hsigma(k)*sfs%psb(j,i) + ptop)*d_1000
-            atm2%rho(j,i,k) = atm2%pr(j,i,k) / (rgas*atm2%t(j,i,k)*rpsb(j,i))
-          end do
-        end do
-      end do
-    else
-      do k = 1 , kz
-        do i = ice1 , ice2
-          do j = jce1 , jce2
-            atm2%pr(j,i,k) = atm1%pr(j,i,k) + atm1%pp(j,i,k)
-            atm2%rho(j,i,k) = atm2%pr(j,i,k) / &
-                    (rgas*(atm2%t(j,i,k)*rpsb(j,i)) * &
-                    (d_one + ep1*atm2%qx(j,i,k,iqv)*rpsb(j,i)))
-          end do
-        end do
-      end do
+      !
+      ! do cumulus transport/mixing of tracers for the schemes allowing it
+      !
+      if ( ichcumtra == 1 .and. any(icup == 4 .or. icup == 5) ) then
+        call cumtran
+      end if
     end if
     !
     ! increment elapsed forecast time:
@@ -1484,16 +1512,9 @@ module mod_tendency
       dtcb = dt*dt*dt
     end if
     !
-    ! do cumulus transport/mixing  of tracers for the schemes allowing it
-    !
-    if ( ichem == 1 .and. ichcumtra == 1 .and. &
-         any(icup == 4 .or. icup == 5) ) then
-      call cumtran
-    end if
-    !
     ! Print out noise parameter
     !
-    if ( ktau > 1 ) then
+    if ( idynamic == 1 .and. ktau > 1 ) then
       if ( is_nan(ptntot) ) then
         maxv = dabs(maxval(aten%t))
         if ( (maxv/dtsec) > 0.01D0 ) then ! 50 K per hour

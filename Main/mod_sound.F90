@@ -7,6 +7,7 @@ module mod_sound
   use mod_constants
   use mod_stdio
   use mod_mppparam
+  use mod_cu_interface , only : total_precip_points
   use mod_atm_interface
 
   implicit none
@@ -31,19 +32,20 @@ module mod_sound
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: wo
     real(rk8) :: bet , bm , bp , bpxbm , bpxbp , cddtmp ,  cfl , check , &
       chh , cjtmp , cpm , cs , denom , dppdp0 , dpterm , dts , dtsmax ,  &
-      ppold , rho , rho0s , rofac , xgamma , xkd
+      ppold , rho , rho0s , rofac , xgamma , xkd , sumcfl
     real(rk8) , dimension(jci1:jci2,ici1:ici2) :: astore , estore
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ca
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: g1 , g2
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: ptend , pxup , pyvp
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: tk
-    integer(ik4) :: i , istep , it , j , k , km1 , kp1
+    integer(ik4) :: i , istep , it , j , k , km1 , kp1 , iconvec
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: cc , cdd , cj
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: pi , pp3d
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) :: qv3d
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) ::t3d
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kz) ::u3d , v3d
     real(rk8) , dimension(jci1:jci2,ici1:ici2,1:kzp1) :: w3d , e , f
+    character (len=32) :: appdat
     !
     ! Graziano:
     !
@@ -509,6 +511,17 @@ module mod_sound
           end do
         end do
       end do
+      if ( mod(ktau,krep) == 0 ) then
+        call sumall(total_precip_points,iconvec)
+        call sumall(cfl,sumcfl)
+        if ( myid == italk ) then
+          appdat = tochar(idatex)
+          sumcfl = sumcfl/nproc
+          write(stdout,'(a,a23,a,i16)') ' $$$ ', appdat , ', ktau   = ', ktau
+          write(stdout,'(a,e12.5)') ' $$$ mean value of CFL = ',sumcfl
+          write(stdout,'(a,i7)') ' $$$  no. of points w/convection = ', iconvec
+        end if
+      end if
       if ( cfl > d_one ) then
         do k = kz , 2 , -1
           do i = ici1 , ici2
