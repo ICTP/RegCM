@@ -126,6 +126,9 @@ module mod_gn6hnc
   character(len=64) :: csirbase1 = '_6hrLev_CSIRO-Mk3-6-0_historical'
   character(len=64) :: csirbase2 = '_6hrLev_CSIRO-Mk3-6-0_rcp'
   character(len=64) :: csirbase3 = '_r1i1p1_'
+  character(len=64) :: mirocbase1 = '_6hrLev_MIROC5_historical'
+  character(len=64) :: mirocbase2 = '_6hrLev_MIROC5_rcp'
+  character(len=64) :: mirocbase3 = '_r1i1p1_'
   character(len=64) :: mpiebase1 = '_6hrLev_MPI-ESM-MR_historical'
   character(len=64) :: mpiebase2 = '_6hrLev_MPI-ESM-MR_rcp'
   character(len=64) :: mpiebase3 = '_r1i1p1_'
@@ -151,6 +154,8 @@ module mod_gn6hnc
   character(len=3) , target , dimension(nvars) :: ec5vars = &
                          (/'ta ' , 'gpa' , 'rha' , 'ua ' , 'va ' , 'XXX'/)
   character(len=3) , target , dimension(nvars) :: csirvars = &
+                         (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
+  character(len=3) , target , dimension(nvars) :: mirocvars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'ps '/)
   character(len=3) , target , dimension(nvars) :: mpievars = &
                          (/'ta ' , 'XXX' , 'hus' , 'ua ' , 'va ' , 'aps'/)
@@ -216,6 +221,12 @@ module mod_gn6hnc
       pathaddname = trim(inpglob)// &
             '/CSIRO-MK36/RF/ta/ta_6hrLev_CSIRO-Mk3-6-0_historical_'// &
             'r1i1p1_195001010600-195101010000.nc'
+    else if ( dattyp(1:3) == 'MI_' ) then
+      ! Vertical info are not stored in the fixed orography file.
+      ! Read part of the info from first T file.
+      pathaddname = trim(inpglob)// &
+        '/MIROC5/RF/ta/ta_6hrLev_MIROC5_historical_'// &
+        'r1i1p1_1970010100-1970020100.nc'
     else if ( dattyp(1:2) == 'E5' ) then
       ! Vertical info are stored in the fixed vertinfo file.
       pathaddname = trim(inpglob)//'/ECHAM5/fixed/EH5_OM_1_VERTINFO.nc'
@@ -568,6 +579,45 @@ module mod_gn6hnc
       where (glon2 >= 180.0)
         glon2 = glon2-360.0
       end where
+    else if ( dattyp(1:3) == 'MI_' ) then
+      istatus = nf90_inq_varid(inet1,'a',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find a var')
+      istatus = nf90_get_var(inet1,ivar1,ak)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read a var')
+      istatus = nf90_inq_varid(inet1,'b',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find b var')
+      istatus = nf90_get_var(inet1,ivar1,bk)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read b var')
+      istatus = nf90_inq_varid(inet1,'p0',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find p0 var')
+      istatus = nf90_get_var(inet1,ivar1,dp0)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read p0 var')
+      p0 = real(dp0)
+      ! Close the T file, get just orography from fixed file.
+      istatus = nf90_close(inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+                      'Error close file '//trim(pathaddname))
+      ! This one contains just orography.
+      pathaddname = trim(inpglob)// &
+        '/MIROC5/fixed/orog_fx_MIROC5_historical_r0i0p0.nc'
+      istatus = nf90_open(pathaddname,nf90_nowrite,inet1)
+      call checkncerr(istatus,__FILE__,__LINE__, &
+        'Error open '//trim(pathaddname))
+      istatus = nf90_inq_varid(inet1,'orog',ivar1)
+      call checkncerr(istatus,__FILE__,__LINE__,'Error find orog var')
+      istatus = nf90_get_var(inet1,ivar1,zsvar,istart(1:3),icount(1:3))
+      call checkncerr(istatus,__FILE__,__LINE__,'Error read orog var')
+      call getmem2d(glat2,1,nlon,1,nlat,'mod_gn6hnc:glat2')
+      call getmem2d(glon2,1,nlon,1,nlat,'mod_gn6hnc:glon2')
+      do j = 1 , nlon
+        glat2(j,:) = glat(:)
+      end do
+      do i = 1 , nlat
+        glon2(:,i) = glon(:)
+      end do
+      where (glon2 >= 180.0)
+        glon2 = glon2-360.0
+      end where
     else if ( dattyp(1:3) == 'CN_' ) then
       istatus = nf90_inq_varid(inet1,'a',ivar1)
       call checkncerr(istatus,__FILE__,__LINE__,'Error find a var')
@@ -744,6 +794,13 @@ module mod_gn6hnc
       ipstimes(1) = 1870010100 ! This set to a "Prehistorical" date
       call setcal(itimes(1), noleap)
       call setcal(ipstimes(1), noleap)
+    else if ( dattyp(1:3) == 'MI_' ) then
+      ! MIROC5 datasets has different times for PS and vertical variables.
+      pstimlen = 1
+      call getmem1d(ipstimes,1,1,'mod_gn6hnc:ipstimes')
+      ipstimes(1) = 1870010100 ! This set to a "Prehistorical" date
+      call setcal(itimes(1), noleap)
+      call setcal(ipstimes(1), noleap)
     else if ( dattyp(1:3) == 'GFS' .or. dattyp(1:3) == 'EC_' .or. &
               dattyp(1:3) == 'CN_' .or. dattyp(1:3) == 'MP_' .or. &
               dattyp(1:2) == 'E5' ) then
@@ -798,7 +855,7 @@ module mod_gn6hnc
       ! CanESM and IPSL are read bottom -> top
       if ( dattyp(1:3) == 'CA_' .or. dattyp(1:3) == 'IP_' .or. &
            dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
-           dattyp(1:3) == 'CS_' ) then
+           dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MI_' ) then
         call top2btm(tvar,nlon,nlat,klev)
         call top2btm(qvar,nlon,nlat,klev)
         call top2btm(uvar,nlon,nlat,klev)
@@ -826,7 +883,8 @@ module mod_gn6hnc
     if ( dattyp(1:3) /= 'MP_' .and. dattyp(1:3) /= 'CA_' .and. &
          dattyp(1:3) /= 'CN_' .and. dattyp(1:3) /= 'CS_' .and. &
          dattyp(1:3) /= 'GF_' .and. dattyp(1:3) /= 'IP_' .and. &
-         dattyp(1:3) /= 'EC_' .and. dattyp(1:2) /= 'E5' ) then
+         dattyp(1:3) /= 'EC_' .and. dattyp(1:3) /= 'MI_' .and. &
+         dattyp(1:2) /= 'E5') then
       call bilinx2(b3,b2,xlon,xlat,glon,glat,nlon,nlat,jx,iy,npl*3)
       call bilinx2(d3,d2,dlon,dlat,glon,glat,nlon,nlat,jx,iy,npl*2)
     else ! Gaussian grid
@@ -1230,6 +1288,50 @@ module mod_gn6hnc
           write (stdout,*) inet(6), trim(pathaddname)
         end if
       end if
+      ! MIROC dataset has PS files with different times
+      if ( dattyp(1:3) == 'MI_' ) then
+        if ( idate < ipstimes(1) .or. idate > ipstimes(pstimlen) ) then
+          if ( inet(6) > 0 ) then
+            istatus = nf90_close(inet(6))
+            call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
+          end if
+          if ( .not. date_in_scenario(idate,5,.true.) ) then
+            write (inname,99005) 'RF', pthsep, trim(mirocvars(6)), pthsep, &
+              trim(mirocvars(6)), trim(mirocbase1)//trim(mirocbase3), &
+              year, '010100-', year, '123118.nc'
+          else
+            write (inname,99005) ('RCP'//dattyp(4:5)), pthsep, &
+              trim(mirocvars(6)), pthsep, trim(mirocvars(6)), &
+              trim(mirocbase2)//dattyp(4:5)//trim(mirocbase3), &
+              year, '010100-', year, '123118.nc'
+          end if
+          pathaddname = trim(inpglob)//'/MIROC5/'//inname
+          istatus = nf90_open(pathaddname,nf90_nowrite,inet(6))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+            'Error open '//trim(pathaddname))
+          istatus = nf90_inq_dimid(inet(6),'time',timid)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error find dim time')
+          istatus = nf90_inquire_dimension(inet(6),timid, len=pstimlen)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error inquire dim time')
+          istatus = nf90_inq_varid(inet(6),'time',timid)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error find var time')
+          istatus = nf90_get_att(inet(6),timid,'units',cunit)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error read time units')
+          istatus = nf90_get_att(inet(6),timid,'calendar',ccal)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error read time calendar')
+          call getmem1d(ipstimes,1,pstimlen,'mod_gn6hnc:ipstimes')
+          call getmem1d(xtimes,1,pstimlen,'mod_gn6hnc:xtimes')
+          istatus = nf90_get_var(inet(6),timid,xtimes)
+          call checkncerr(istatus,__FILE__,__LINE__,'Error read time')
+          do it = 1 , pstimlen
+            ipstimes(it) = timeval2date(xtimes(it),cunit,ccal)
+          end do
+          istatus = nf90_inq_varid(inet(6), trim(mirocvars(6)), ivar(6))
+          call checkncerr(istatus,__FILE__,__LINE__, &
+             'Error find var '//trim(mirocvars(6)))
+          write (stdout,*) inet(6), trim(pathaddname)
+        end if
+      end if
 
       if ( idate < itimes(1) .or. idate > itimes(timlen) ) then
         if (inet(1) > 0) then
@@ -1241,7 +1343,9 @@ module mod_gn6hnc
             istatus = nf90_close(inet(1))
             call checkncerr(istatus,__FILE__,__LINE__,'Error close file')
           else
-            if ( dattyp(1:3) == 'HA_' .or. dattyp(1:3) == 'CS_' ) then
+            if ( dattyp(1:3) == 'HA_' .or. &
+                 dattyp(1:3) == 'CS_' .or. &
+                 dattyp(1:3) == 'MI_' ) then
               do i = 1 , nfiles-1
                 if ( havars(i) /= 'XXX' ) then
                   istatus = nf90_close(inet(i))
@@ -1531,6 +1635,36 @@ module mod_gn6hnc
             end if
           end do
           varname => csirvars
+        else if ( dattyp(1:3) == 'MI_' ) then
+          ! monthly files, one for each variable
+          y1 = year
+          m1 = month
+          y2 = y1
+          m2 = m1 + 1
+          if ( m2 > 12 ) then
+            m2 = 1
+            y2 = y2 + 1
+          end if
+          do i = 1 , nfiles-1
+            if ( csirvars(i) /= 'XXX' ) then
+              if ( .not. date_in_scenario(idate,5,.true.) ) then
+                write (inname,99008) 'RF',pthsep,trim(mirocvars(i)), pthsep, &
+                  trim(mirocvars(i)), trim(mirocbase1)//trim(mirocbase3), &
+                  y1, m1, '0100-', y2, m2, '0100.nc'
+              else
+                write (inname,99008) ('RCP'//dattyp(4:4)//'.'//dattyp(5:5)), &
+                  pthsep, trim(mirocvars(i)), pthsep, trim(mirocvars(i)), &
+                  trim(mirocbase2)//dattyp(4:5)//trim(mirocbase3), &
+                  y1, m1, '0100-', y2, m2, '0100.nc'
+              end if
+              pathaddname = trim(inpglob)//'/MIROC5/'//inname
+              istatus = nf90_open(pathaddname,nf90_nowrite,inet(i))
+              call checkncerr(istatus,__FILE__,__LINE__, &
+                'Error open '//trim(pathaddname))
+              write (stdout,*) inet(i), trim(pathaddname)
+            end if
+          end do
+          varname => mirocvars
         else if ( dattyp(1:3) == 'MP_' ) then
           ! monthly files, one for each variable
           y1 = year
@@ -1606,7 +1740,8 @@ module mod_gn6hnc
         istatus = nf90_get_var(inet(6),ivar(6),pmslvar,istart(1:3),icount(1:3))
         call checkncerr(istatus,__FILE__,__LINE__,'Error read var '//varname(6))
         pmslvar(:,:) = pmslvar(:,:)*0.01
-      else if ( dattyp(1:3) == 'CS_' ) then
+      else if ( dattyp(1:3) == 'CS_' .or. &
+                dattyp(1:3) == 'MI_' ) then
         tdif = idate - ipstimes(1)
         itps = idnint(tohours(tdif))/6 + 1
         istart(3) = itps
@@ -1663,7 +1798,7 @@ module mod_gn6hnc
         psvar(:,:) = psvar(:,:)*0.01
         pp3d(:,:,:) = pp3d(:,:,:)*0.01
       else if ( dattyp(1:3) == 'GF_' .or. dattyp(1:3) == 'CN_' .or. &
-                dattyp(1:3) == 'CS_' ) then
+                dattyp(1:3) == 'CS_' .or. dattyp(1:3) == 'MI_' ) then
         do k = 1, klev
           pp3d(:,:,k) = ak(k)*p0 + bk(k)*psvar(:,:)
         end do
@@ -1740,5 +1875,7 @@ module mod_gn6hnc
 99009   format (a,a,a,a,a,i0.4,a,i0.4,a)
 
   end subroutine readgn6hnc
-!
+
 end module mod_gn6hnc
+
+! vim: tabstop=8 expandtab shiftwidth=2 softtabstop=2

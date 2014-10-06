@@ -124,6 +124,15 @@ module mod_sst_gnmnc
           ssttyp(4:5)//'_r1i1p1_200601-210012.nc'
       end if
       varname(2) = 'tos'
+    else if ( ssttyp(1:3) == 'MI_' ) then
+      if ( .not. date_in_scenario(imm1,5,.true.) ) then
+        inpfile = trim(inpglob)// &
+           '/SST/ts_Amon_MIROC5_historical_r1i1p1_185001-201212.nc'
+      else
+        inpfile = trim(inpglob)//'/SST/ts_Amon_MIROC5_rcp'//&
+          ssttyp(4:5)//'_r1i1p1_200601-210012.nc'
+      end if
+      varname(2) = 'ts'
     else if ( ssttyp(1:3) == 'EC_' ) then
       if ( .not. date_in_scenario(imm1,5,.true.) ) then
         inpfile = trim(inpglob)//'/SST/EC-EARTH/RF/ich1_sst_1950-2009.nc'
@@ -211,7 +220,7 @@ module mod_sst_gnmnc
       if ( ssttyp(1:3) == 'CA_' .or. ssttyp(1:3) == 'CN_' .or. &
            ssttyp(1:3) == 'CS_' .or. ssttyp(1:3) == 'GF_' .or. &
            ssttyp(1:3) == 'IP_' .or. ssttyp(1:3) == 'EC_' .or. &
-           ssttyp(1:3) == 'HA_' ) then
+           ssttyp(1:3) == 'HA_' .or. ssttyp(1:3) == 'MI_' ) then
         call distwgtcr(sstmm,sst,xlon,xlat,glon2,glat2,jx,iy,ilon,jlat)
       else
         call bilinx(sst,sstmm,xlon,xlat,glon,glat,ilon,jlat,jx,iy,1)
@@ -282,7 +291,9 @@ module mod_sst_gnmnc
     call checkncerr(istatus,__FILE__,__LINE__,'Error opening '//trim(fname))
     write (stdout,*) 'Opened ', trim(fname)
 
-    if ( ssttyp(1:3) /= 'IP_' .and. ssttyp(1:3) /= 'CN_' ) then
+    if ( ssttyp(1:3) /= 'IP_' .and. &
+         ssttyp(1:3) /= 'CN_' .and. &
+         ssttyp(1:3) /= 'MI_' ) then
       istatus = nf90_inq_dimid(inet1,'lat',latid)
       call checkncerr(istatus,__FILE__,__LINE__,'Error find dim lat')
       istatus = nf90_inq_dimid(inet1,'lon',lonid)
@@ -320,7 +331,7 @@ module mod_sst_gnmnc
     if ( ssttyp(1:3) /= 'CA_' .and. ssttyp(1:3) /= 'CN_' .and. &
          ssttyp(1:3) /= 'CS_' .and. ssttyp(1:3) /= 'GF_' .and. &
          ssttyp(1:3) /= 'IP_' .and. ssttyp(1:3) /= 'EC_' .and. &
-         ssttyp(1:3) /= 'HA_' ) then
+         ssttyp(1:3) /= 'HA_' .and. ssttyp(1:3) /= 'MI_' ) then
       call getmem1d(glat,1,jlat,'mod_gnmnc_sst:glat')
       call getmem1d(glon,1,ilon,'mod_gnmnc_sst:glon')
       istatus = nf90_get_var(inet1,latid,glat)
@@ -413,6 +424,12 @@ module mod_sst_gnmnc
           if ( date_in_scenario(idate,5,.true.) ) then
             inpfile = trim(inpglob)//'/SST/EC-EARTH/RCP'//ssttyp(4:5)//&
                '/ic'//ssttyp(4:4)//'1_sst_2006-2100.nc'
+            lswitch = .true.
+          end if
+        else if ( ssttyp(1:3) == 'MI_' ) then
+          if ( date_in_scenario(idate,5,.true.) ) then
+            inpfile = trim(inpglob)//'/SST/ts_Amon_MIROC5_rcp'//&
+              ssttyp(4:5)//'_r1i1p1_200601-210012.nc'
             lswitch = .true.
           end if
         else if ( ssttyp(1:3) == 'IP_' ) then

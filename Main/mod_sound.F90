@@ -75,10 +75,6 @@ module mod_sound
     !   WTU=(SIGMA(K+1)-SIGMA(K))/(SIGMA(K+1)-SIGMA(K-1))
     !   TIME-STEPS(ISTEP)
     !
-    ! STATEMENT FUNCTIONS USED FOR P AND RHO
-    !   Z0(I,J,K)=-(R*TLP/(2.*G)*(ALOG(PR0(I,J,K)/P0))**2
-    !     -     +R*TS0/G*ALOG(PR0(I,J,K)/P0))
-    ! IF(KTAU.EQ.0)THEN
     ! BET IS IKAWA BETA PARAMETER (0.=CENTERED, 1.=BACKWARD)
     !
     bet = 0.4D0
