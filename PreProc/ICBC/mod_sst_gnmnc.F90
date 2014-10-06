@@ -413,6 +413,7 @@ module mod_sst_gnmnc
             inpfile = trim(inpglob)//'/SST/tos_Omon_HadGEM2-ES_rcp'// &
               ssttyp(4:5)//'_r1i1p1_200512-209912.nc'
             lswitch = .true.
+            lref = .false.
           end if
         else if ( ssttyp(1:3) == 'CS_' ) then
           if ( date_in_scenario(idate,5,.true.) ) then
@@ -425,6 +426,7 @@ module mod_sst_gnmnc
             inpfile = trim(inpglob)//'/SST/EC-EARTH/RCP'//ssttyp(4:5)//&
                '/ic'//ssttyp(4:4)//'1_sst_2006-2100.nc'
             lswitch = .true.
+            lref = .false.
           end if
         else if ( ssttyp(1:3) == 'MI_' ) then
           if ( date_in_scenario(idate,5,.true.) ) then
@@ -437,16 +439,12 @@ module mod_sst_gnmnc
             inpfile = trim(inpglob)//'/SST/tos_Omon_IPSL-CM5A-LR_rcp'//&
               ssttyp(4:5)//'_r1i1p1_200601-230012.nc'
             lswitch = .true.
+            lref = .false.
           end if
         else if ( ssttyp(1:3) == 'GF_' ) then
           call split_idate(idate, year, month, day, hour)
           y1 = (year-1)/5*5+1
           y2 = y1+4
-          if ( year == y1 .and. month == 1 .and. &
-               day == 1 .and. hour == 0 ) then
-            y1 = y1 - 5
-            y2 = y1 + 4
-          end if
           if ( .not. date_in_scenario(idate,5,.true.) ) then
             write(inpfile,'(a,i4,a,i4,a)') &
               trim(inpglob)//'/SST/ts_Amon_GFDL-ESM2M_historical_r1i1p1_', &
@@ -471,14 +469,6 @@ module mod_sst_gnmnc
             y1 = (year-6)/10*10+6
             y2 = y1 + 9
           end if
-          if ( year /= 2006 .and. month /= 1 .and. &
-               day /= 1 .and. hour /= 0 ) then
-            if ( year == y1 .and. month == 1 .and. &
-                 day == 1 .and. hour == 0 ) then
-              y1 = y1 - 10
-              y2 = y1 + 9
-            end if
-          end if
           if ( .not. date_in_scenario(idate,5,.true.) ) then
             write(inpfile,'(a,i4,a,i4,a)') &
               trim(inpglob)//'/SST/tos_Omon_CNRM-CM5_historical_r1i1p1_', &
@@ -497,7 +487,6 @@ module mod_sst_gnmnc
           call checkncerr(istatus,__FILE__,__LINE__,'Error Close file')
           call open_input(inpfile)
           it = imondiff(idate,fidate1) + 1
-          lref = .false.
         end if
       end if
     end if
