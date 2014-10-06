@@ -44,6 +44,8 @@ module mod_interp
   real(rk8) , parameter :: deg720 = d_two*deg360
   real(rk8) , parameter :: missl = -9999.0D0
   real(rk8) , parameter :: missc = -9990.0D0
+  real(rk8) , parameter :: mindist = 0.01D0
+  real(rk8) , parameter :: p_factor = 2.0D0
 
   real(rk8) , pointer , dimension(:,:) :: dc1xa , dc1xb , dc1xc , dc1xd
   real(rk8) , pointer , dimension(:,:,:) :: dd1xa , dd1xb , dd1xc , dd1xd
@@ -59,12 +61,9 @@ module mod_interp
   end interface bilinx2
 
   contains
-!
-!-----------------------------------------------------------------------
-!
+
   subroutine bilinx(fin,fout,lono,lato,loni,lati,nloni,nlati,jx,iy,nflds)
     implicit none
-!
     integer(ik4) :: jx , iy , nflds , nlati , nloni
     real(rk8) , dimension(nloni,nlati,nflds) :: fin
     real(rk8) , dimension(nlati) :: lati
@@ -74,7 +73,7 @@ module mod_interp
     intent (in) fin , jx , iy , lati , lato , loni , lono , nflds ,   &
                 nlati , nloni
     intent (out) fout
-!
+
     real(rk8) :: bas , lon360 , p , q , xsum , xind , yind
     integer(ik4) :: i , ip , ipp1 , j , jq , jqp1 , l
     logical :: lg
@@ -155,9 +154,7 @@ module mod_interp
       end do
     end do
   end subroutine bilinx
-!
-!-----------------------------------------------------------------------
-!
+
   subroutine bilinx2_3d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy,llev)
     implicit none
     integer(ik4) :: iy , jx , llev , nlat , nlon
@@ -306,7 +303,7 @@ module mod_interp
       end do
     end do
   end subroutine bilinx2_3d
-!
+
   subroutine bilinx2_2d(b3,b2,alon,alat,hlon,hlat,nlon,nlat,jx,iy)
     implicit none
     integer(ik4) :: iy , jx , nlat , nlon
@@ -458,9 +455,9 @@ module mod_interp
     real(rk8) , dimension(nlon,nlat) :: b2
     intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
     intent (out) b3
-    real(rk8) :: dist , dista , distb , distc , distd , distx
+    real(rk8) :: dist , dista , distb , distc , distd , distx , wg
     real(rk8) , dimension(2) :: dists
-    real(rk8) :: v1 , v2 , v3 , v4 , wg
+    real(rk8) , dimension(4) :: vv
     integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
                ndr , nul , nur , ifound , mx , nx , mm , nn
     logical , dimension(4) :: q
@@ -495,6 +492,8 @@ module mod_interp
       imxmn = 1
     end if
     if ( lcross == 0 ) then
+      write (stdout,*) 'FIRST TIME in CRESSMCR'
+      write (stdout,*) 'Calculating weights.... (will take long time)'
       if (.not. associated(ic1dl)) call getmem2d(ic1dl,1,jx,1,iy,'interp:ic1dl')
       if (.not. associated(ic1dr)) call getmem2d(ic1dr,1,jx,1,iy,'interp:ic1dr')
       if (.not. associated(ic1ul)) call getmem2d(ic1ul,1,jx,1,iy,'interp:ic1ul')
@@ -507,12 +506,10 @@ module mod_interp
       if (.not. associated(dc1xb)) call getmem2d(dc1xb,1,jx,1,iy,'interp:dc1xb')
       if (.not. associated(dc1xc)) call getmem2d(dc1xc,1,jx,1,iy,'interp:dc1xc')
       if (.not. associated(dc1xd)) call getmem2d(dc1xd,1,jx,1,iy,'interp:dc1xd')
-      write (stdout,*) 'FIRST TIME in CRESSMCR'
-      write (stdout,*) 'Calculating weights.... (will take long time)'
       do i = 1 , iy
         do j = 1 , jx
           ! Find nearest point
-          distx = 1.0D+08
+          distx = 1.0D+20
           mx = -1
           nx = -1
           do n = 1 , nlat
@@ -526,6 +523,9 @@ module mod_interp
             end do
           end do
           ! Find dists from 4 points around this
+          !        2 | 1
+          !      ---------
+          !        3 | 4
           q(:) = .true.
           nn = nx
           mm = mx + 1
@@ -557,10 +557,10 @@ module mod_interp
           end if
           dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
           if ( dists(1) > dists(2) ) then
-            q(2) = .false.
+            q(1) = .false.
             q(4) = .false.
           else
-            q(1) = .false.
+            q(2) = .false.
             q(3) = .false.
           end if
           mm = mx
@@ -600,15 +600,6 @@ module mod_interp
             q(4) = .false.
           end if
           if ( q(1) ) then
-            mur = mx
-            nur = nx+1
-            mul = mx-1
-            nul = nx-1
-            mdr = mx
-            ndr = nx
-            mdl = mx-1
-            ndl = nx
-          else if ( q(2) ) then
             mur = mx+1
             nur = nx+1
             mul = mx
@@ -616,6 +607,15 @@ module mod_interp
             mdr = mx+1
             ndr = nx
             mdl = mx
+            ndl = nx
+          else if ( q(2) ) then
+            mur = mx
+            nur = nx+1
+            mul = mx-1
+            nul = nx+1
+            mdr = mx
+            ndr = nx
+            mdl = mx-1
             ndl = nx
           else if ( q(3) ) then
             mur = mx
@@ -655,10 +655,6 @@ module mod_interp
             if ( ndr < 1 ) ndr = 1
             if ( ndr < 1 ) ndr = 1
           end if
-          dista = gcdist(glat(mur,nur),glon(mur,nur),alat(j,i),alon(j,i))
-          distb = gcdist(glat(mul,nul),glon(mul,nul),alat(j,i),alon(j,i))
-          distc = gcdist(glat(mdr,ndr),glon(mdr,ndr),alat(j,i),alon(j,i))
-          distd = gcdist(glat(mdl,ndl),glon(mdl,ndl),alat(j,i),alon(j,i))
           ic1ur(j,i) = mur
           jc1ur(j,i) = nur
           ic1ul(j,i) = mul
@@ -667,8 +663,9 @@ module mod_interp
           jc1dr(j,i) = ndr
           ic1dl(j,i) = mdl
           jc1dl(j,i) = ndl
-          if ( abs(dista) > dlowval ) then
-            dc1xa(j,i) = (d_one/dista)**2
+          dista = gcdist(glat(mur,nur),glon(mur,nur),alat(j,i),alon(j,i))
+          if ( dista > mindist ) then
+            dc1xa(j,i) = d_one/(dista**p_factor)
           else
             dc1xa(j,i) = -d_one
             dc1xb(j,i) = d_zero
@@ -676,8 +673,9 @@ module mod_interp
             dc1xd(j,i) = d_zero
             cycle
           end if
-          if ( abs(distb) > dlowval ) then
-            dc1xb(j,i) = (d_one/distb)**2
+          distb = gcdist(glat(mul,nul),glon(mul,nul),alat(j,i),alon(j,i))
+          if ( distb > mindist ) then
+            dc1xb(j,i) = d_one/(distb**p_factor)
           else
             dc1xa(j,i) = d_zero
             dc1xb(j,i) = -d_one
@@ -685,8 +683,9 @@ module mod_interp
             dc1xd(j,i) = d_zero
             cycle
           end if
-          if ( abs(distc) > dlowval ) then
-            dc1xc(j,i) = (d_one/distc)**2
+          distc = gcdist(glat(mdr,ndr),glon(mdr,ndr),alat(j,i),alon(j,i))
+          if ( distc > mindist ) then
+            dc1xc(j,i) = d_one/(distc**p_factor)
           else
             dc1xa(j,i) = d_zero
             dc1xb(j,i) = d_zero
@@ -694,8 +693,9 @@ module mod_interp
             dc1xd(j,i) = d_zero
             cycle
           end if
-          if ( abs(distd) > dlowval ) then
-            dc1xd(j,i) = (d_one/distd)**2
+          distd = gcdist(glat(mdl,ndl),glon(mdl,ndl),alat(j,i),alon(j,i))
+          if ( distd > mindist ) then
+            dc1xd(j,i) = d_one/(distd**p_factor)
           else
             dc1xa(j,i) = d_zero
             dc1xb(j,i) = d_zero
@@ -720,58 +720,59 @@ module mod_interp
         mdl = ic1dl(j,i)
         ndl = jc1dl(j,i)
         dista = dc1xa(j,i)
+        if ( dista < 0.0D0 ) then
+          if ( b2(mur,nur) <= missc ) cycle
+          b3(j,i) = b2(mur,nur)
+          cycle
+        end if
         distb = dc1xb(j,i)
+        if ( distb < 0.0D0 ) then
+          if ( b2(mul,nul) <= missc ) cycle
+          b3(j,i) = b2(mul,nul)
+          cycle
+        end if
         distc = dc1xc(j,i)
+        if ( distc < 0.0D0 ) then
+          if ( b2(mdr,ndr) <= missc ) cycle
+          b3(j,i) = b2(mdr,ndr)
+          cycle
+        end if
         distd = dc1xd(j,i)
+        if ( distd < 0.0D0 ) then
+          if ( b2(mdl,ndl) <= missc ) cycle
+          b3(j,i) = b2(mdl,ndl)
+          cycle
+        end if
         ifound = 0
         wg = d_zero
-        v1 = d_zero
-        v2 = d_zero
-        v3 = d_zero
-        v4 = d_zero
+        vv(:) = d_zero
         if ( b2(mur,nur) > missc ) then
-          if ( dista < 0.0 ) then
-            b3(j,i) = b2(mur,nur)
-            cycle
-          end if
-          v1 = b2(mur,nur)*dista
-          ifound = 1
+          ifound = ifound + 1
+          vv(ifound) = b2(mur,nur)*dista
           wg = wg + dista
         end if
         if ( b2(mul,nul) > missc ) then
-          if ( distb < 0.0 ) then
-            b3(j,i) = b2(mul,nul)
-            cycle
-          end if
-          v2 = b2(mul,nul)*distb
-          ifound = 1
+          ifound = ifound + 1
+          vv(ifound) = b2(mul,nul)*distb
           wg = wg + distb
         end if
         if ( b2(mdr,ndr) > missc ) then
-          if ( distc < 0.0 ) then
-            b3(j,i) = b2(mdr,ndr)
-            cycle
-          end if
-          v3 = b2(mdr,ndr)*distc
-          ifound = 1
+          ifound = ifound + 1
+          vv(ifound) = b2(mdr,ndr)*distc
           wg = wg + distc
         end if
         if ( b2(mdl,ndl) > missc ) then
-          if ( distd < 0.0 ) then
-            b3(j,i) = b2(mdl,ndl)
-            cycle
-          end if
-          v4= b2(mdl,ndl)*distd
-          ifound = 1
+          ifound = ifound + 1
+          vv(ifound) = b2(mdl,ndl)*distd
           wg = wg + distd
         end if
         if ( ifound /= 0 ) then
-          b3(j,i) = v1/wg+v2/wg+v3/wg+v4/wg
+          b3(j,i) = sum(vv(1:ifound))/wg
         end if
       end do
     end do
   end subroutine distwgtcr
-!
+
   subroutine distwgtdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,idd)
     implicit none
     integer(ik4) :: iy , jx , nlat , nlon
@@ -782,9 +783,9 @@ module mod_interp
     integer , intent(in) , optional :: idd
     intent (in) alat , alon , b2 , glat , glon , iy , jx , nlat , nlon
     intent (out) b3
-    real(rk8) :: dist , dista , distb , distc , distd , distx
+    real(rk8) :: dist , dista , distb , distc , distd , distx , wg
     real(rk8) , dimension(2) :: dists
-    real(rk8) :: v1 , v2 , v3 , v4 , wg
+    real(rk8) , dimension(4) :: vv
     integer(ik4) :: i , j , m , mdl , mdr , mul , mur , n , ndl ,  &
                ndr , nul , nur , ifound , mx , nx , mm , nn , idx
     logical , dimension(4) :: q
@@ -821,6 +822,8 @@ module mod_interp
       imxmn = 1
     end if
     if ( ldot(idx) == 0 ) then
+      write (stdout,*) 'FIRST TIME in CRESSMDT'
+      write (stdout,*) 'Calculating weights.... (will take long time)'
       if (.not. associated(id1dl)) call getmem3d(id1dl,1,jx,1,iy,1,2,'id1dl')
       if (.not. associated(id1dr)) call getmem3d(id1dr,1,jx,1,iy,1,2,'id1dr')
       if (.not. associated(id1ul)) call getmem3d(id1ul,1,jx,1,iy,1,2,'id1ul')
@@ -833,12 +836,10 @@ module mod_interp
       if (.not. associated(dd1xb)) call getmem3d(dd1xb,1,jx,1,iy,1,2,'dd1xb')
       if (.not. associated(dd1xc)) call getmem3d(dd1xc,1,jx,1,iy,1,2,'dd1xc')
       if (.not. associated(dd1xd)) call getmem3d(dd1xd,1,jx,1,iy,1,2,'dd1xd')
-      write (stdout,*) 'FIRST TIME in CRESSMDT'
-      write (stdout,*) 'Calculating weights.... (will take long time)'
       do i = 1 , iy
         do j = 1 , jx
           ! Find nearest point
-          distx = 1.0D+08
+          distx = 1.0D+20
           mx = -1
           nx = -1
           do n = 1 , nlat
@@ -852,9 +853,12 @@ module mod_interp
             end do
           end do
           ! Find dists from 4 points around this
+          !        2 | 1
+          !      ---------
+          !        3 | 4
           q(:) = .true.
-          nn = nx
           mm = mx + 1
+          nn = nx
           if ( lonwrap ) then
             if ( mm > nlon ) mm = mm - nlon
           else
@@ -864,11 +868,12 @@ module mod_interp
               write (stderr,*) i , j , mm , nn
               write (stderr,*) alon(j,i)
               write (stderr,*) alat(j,i)
-              call die('cressmdt')
+              call die('cressmcr')
             end if
           end if
           dists(1) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
           mm = mx - 1
+          nn = nx
           if ( lonwrap ) then
             if ( mm < 1 ) mm = nlon - mm
           else
@@ -878,15 +883,15 @@ module mod_interp
               write (stderr,*) i , j , mm , nn
               write (stderr,*) alon(j,i)
               write (stderr,*) alat(j,i)
-              call die('cressmdt')
+              call die('cressmcr')
             end if
           end if
           dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
-          if ( dists(1) > dists(2) ) then
-            q(2) = .false.
+          if ( dists(1) >= dists(2) ) then
+            q(1) = .false.
             q(4) = .false.
           else
-            q(1) = .false.
+            q(2) = .false.
             q(3) = .false.
           end if
           mm = mx
@@ -900,10 +905,11 @@ module mod_interp
               write (stderr,*) i , j , mm , nn
               write (stderr,*) alon(j,i)
               write (stderr,*) alat(j,i)
-              call die('cressmdt')
+              call die('cressmcr')
             end if
           end if
           dists(1) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
+          mm = mx
           nn = nx - 1
           if ( latpole ) then
             if ( nn < 1 ) nn = 1
@@ -914,11 +920,11 @@ module mod_interp
               write (stderr,*) i , j , mm , nn
               write (stderr,*) alon(j,i)
               write (stderr,*) alat(j,i)
-              call die('cressmdt')
+              call die('cressmcr')
             end if
           end if
           dists(2) = gcdist(glat(mm,nn),glon(mm,nn),alat(j,i),alon(j,i))
-          if ( dists(1) > dists(2) ) then
+          if ( dists(1) >= dists(2) ) then
             q(1) = .false.
             q(2) = .false.
           else
@@ -926,15 +932,6 @@ module mod_interp
             q(4) = .false.
           end if
           if ( q(1) ) then
-            mur = mx
-            nur = nx+1
-            mul = mx-1
-            nul = nx-1
-            mdr = mx
-            ndr = nx
-            mdl = mx-1
-            ndl = nx
-          else if ( q(2) ) then
             mur = mx+1
             nur = nx+1
             mul = mx
@@ -942,6 +939,15 @@ module mod_interp
             mdr = mx+1
             ndr = nx
             mdl = mx
+            ndl = nx
+          else if ( q(2) ) then
+            mur = mx
+            nur = nx+1
+            mul = mx-1
+            nul = nx+1
+            mdr = mx
+            ndr = nx
+            mdl = mx-1
             ndl = nx
           else if ( q(3) ) then
             mur = mx
@@ -981,10 +987,6 @@ module mod_interp
             if ( ndr < 1 ) ndr = 1
             if ( ndr < 1 ) ndr = 1
           end if
-          dista = gcdist(glat(mur,nur),glon(mur,nur),alat(j,i),alon(j,i))
-          distb = gcdist(glat(mul,nul),glon(mul,nul),alat(j,i),alon(j,i))
-          distc = gcdist(glat(mdr,ndr),glon(mdr,ndr),alat(j,i),alon(j,i))
-          distd = gcdist(glat(mdl,ndl),glon(mdl,ndl),alat(j,i),alon(j,i))
           id1ur(j,i,idx) = mur
           jd1ur(j,i,idx) = nur
           id1ul(j,i,idx) = mul
@@ -993,8 +995,9 @@ module mod_interp
           jd1dr(j,i,idx) = ndr
           id1dl(j,i,idx) = mdl
           jd1dl(j,i,idx) = ndl
-          if ( abs(dista) > dlowval ) then
-            dd1xa(j,i,idx) = (d_one/dista)**2
+          dista = gcdist(glat(mur,nur),glon(mur,nur),alat(j,i),alon(j,i))
+          if ( dista > mindist ) then
+            dd1xa(j,i,idx) = d_one/(dista**p_factor)
           else
             dd1xa(j,i,idx) = -d_one
             dd1xb(j,i,idx) = d_zero
@@ -1002,8 +1005,9 @@ module mod_interp
             dd1xd(j,i,idx) = d_zero
             cycle
           end if
-          if ( abs(distb) > dlowval ) then
-            dd1xb(j,i,idx) = (d_one/distb)**2
+          distb = gcdist(glat(mul,nul),glon(mul,nul),alat(j,i),alon(j,i))
+          if ( distb > mindist ) then
+            dd1xb(j,i,idx) = d_one/(distb**p_factor)
           else
             dd1xa(j,i,idx) = d_zero
             dd1xb(j,i,idx) = -d_one
@@ -1011,8 +1015,9 @@ module mod_interp
             dd1xd(j,i,idx) = d_zero
             cycle
           end if
-          if ( abs(distc) > dlowval ) then
-            dd1xc(j,i,idx) = (d_one/distc)**2
+          distc = gcdist(glat(mdr,ndr),glon(mdr,ndr),alat(j,i),alon(j,i))
+          if ( distc > mindist ) then
+            dd1xc(j,i,idx) = d_one/(distc**p_factor)
           else
             dd1xa(j,i,idx) = d_zero
             dd1xb(j,i,idx) = d_zero
@@ -1020,8 +1025,9 @@ module mod_interp
             dd1xd(j,i,idx) = d_zero
             cycle
           end if
-          if ( abs(distd) > dlowval ) then
-            dd1xd(j,i,idx) = (d_one/distd)**2
+          distd = gcdist(glat(mdl,ndl),glon(mdl,ndl),alat(j,i),alon(j,i))
+          if ( distd > mindist ) then
+            dd1xd(j,i,idx) = d_one/(distd**p_factor)
           else
             dd1xa(j,i,idx) = d_zero
             dd1xb(j,i,idx) = d_zero
@@ -1046,58 +1052,59 @@ module mod_interp
         mdl = id1dl(j,i,idx)
         ndl = jd1dl(j,i,idx)
         dista = dd1xa(j,i,idx)
+        if ( dista < 0.0 ) then
+          if ( b2(mur,nur) <= missc ) cycle
+          b3(j,i) = b2(mur,nur)
+          cycle
+        end if
         distb = dd1xb(j,i,idx)
+        if ( distb < 0.0 ) then
+          if ( b2(mul,nul) <= missc ) cycle
+          b3(j,i) = b2(mul,nul)
+          cycle
+        end if
         distc = dd1xc(j,i,idx)
+        if ( distc < 0.0 ) then
+          if ( b2(mdr,ndr) <= missc ) cycle
+          b3(j,i) = b2(mdr,ndr)
+          cycle
+        end if
         distd = dd1xd(j,i,idx)
+        if ( distd < 0.0 ) then
+          if ( b2(mdl,ndl) <= missc ) cycle
+          b3(j,i) = b2(mdl,ndl)
+          cycle
+        end if
         ifound = 0
         wg = d_zero
-        v1 = d_zero
-        v2 = d_zero
-        v3 = d_zero
-        v4 = d_zero
+        vv(:) = d_zero
         if ( b2(mur,nur) > missc ) then
-          if ( dista < 0.0 ) then
-            b3(j,i) = b2(mur,nur)
-            cycle
-          end if
-          v1 = b2(mur,nur)*dista
-          ifound = 1
+          ifound = ifound + 1
+          vv(ifound) = b2(mur,nur)*dista
           wg = wg + dista
         end if
         if ( b2(mul,nul) > missc ) then
-          if ( distb < 0.0 ) then
-            b3(j,i) = b2(mul,nul)
-            cycle
-          end if
-          v2 = b2(mul,nul)*distb
-          ifound = 1
+          ifound = ifound + 1
+          vv(ifound) = b2(mul,nul)*distb
           wg = wg + distb
         end if
         if ( b2(mdr,ndr) > missc ) then
-          if ( distc < 0.0 ) then
-            b3(j,i) = b2(mdr,ndr)
-            cycle
-          end if
-          v3 = b2(mdr,ndr)*distc
-          ifound = 1
+          ifound = ifound + 1
+          vv(ifound) = b2(mdr,ndr)*distc
           wg = wg + distc
         end if
         if ( b2(mdl,ndl) > missc ) then
-          if ( distd < 0.0 ) then
-            b3(j,i) = b2(mdl,ndl)
-            cycle
-          end if
-          v4= b2(mdl,ndl)*distd
-          ifound = 1
+          ifound = ifound + 1
+          vv(ifound) = b2(mdl,ndl)*distd
           wg = wg + distd
         end if
-        if ( ifound /= 0 ) b3(j,i) = v1/wg+v2/wg+v3/wg+v4/wg
+        if ( ifound /= 0 ) then
+          b3(j,i) = sum(vv(1:ifound))/wg
+        end if
       end do
     end do
   end subroutine distwgtdt
-!
-!-----------------------------------------------------------------------
-!
+
   subroutine cressmcr(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,nlev,nf)
     implicit none
     integer(ik4) :: iy , jx , nlat , nlev , nlon , nf
@@ -1117,9 +1124,7 @@ module mod_interp
       end do
     end do
   end subroutine cressmcr
-!
-!-----------------------------------------------------------------------
-!
+
   subroutine cressmdt(b3,b2,alon,alat,glon,glat,jx,iy,nlon,nlat,nlev,nf)
     implicit none
     integer(ik4) :: iy , jx , nlat , nlev , nlon , nf
@@ -1139,7 +1144,7 @@ module mod_interp
       end do
     end do
   end subroutine cressmdt
-!
+
   real(rk8) function gcdist(lat1,lon1,lat2,lon2)
     implicit none
     real(rk8) , intent(in) :: lat1 , lon1 , lat2, lon2
@@ -1150,7 +1155,8 @@ module mod_interp
     slat2 = sin(lat2*degrad)
     cdlon = cos((lon1-lon2)*degrad)
     crd   = slat1*slat2+clat1*clat2*cdlon
-    gcdist = earthrad*acos(crd)
+    ! Have it in km to avoid numerical problems :)
+    gcdist = earthrad*acos(crd)*d_r1000
   end function gcdist
-!
+
 end module mod_interp
