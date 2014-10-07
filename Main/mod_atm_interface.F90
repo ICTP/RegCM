@@ -33,8 +33,6 @@ module mod_atm_interface
 
   private
 
-  public :: allocate_reference_atmosphere
-
   logical , public , parameter :: cross = .false.
   logical , public , parameter :: dot = .true.
 
